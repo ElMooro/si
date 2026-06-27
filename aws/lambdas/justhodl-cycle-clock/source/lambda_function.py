@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.4"
+VERSION = "2.5"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -289,6 +289,17 @@ def _cb_impulse():
             "boj_13w_pct": imp("JPNASSETS", 3)}
 
 
+CFTC_URL = "https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/signals"
+
+
+def _cftc_signals():
+    """Live COT/CFTC futures-positioning read from the positioning agent (Lambda URL)."""
+    try:
+        return json.loads(urllib.request.urlopen(CFTC_URL, timeout=12).read())
+    except Exception:
+        return None
+
+
 QUAD_PHASE = {
     "REFLATION":      ("EARLY CYCLE",   1, "growth recovering, inflation rising off lows"),
     "GOLDILOCKS":     ("MID CYCLE",     2, "growth firm, inflation contained — the sweet spot"),
@@ -365,6 +376,13 @@ def lambda_handler(event, context):
     conspulse = load("data/consumer-pulse.json", "consumer_pulse")
     bankstress = load("data/bank-stress.json", "bank_stress")
     commcurves = load("data/commodity-curves.json", "commodity_curves")
+    # Phase 7 — Fed path, COT positioning, stress scenarios, tail risk
+    fedwatch = load("data/fedwatch.json", "fedwatch")
+    stressscen = load("data/stress-scenarios.json", "stress_scenarios")
+    tailrisk = load("data/tail-risk.json", "tail_risk")
+    cissstress = load("data/ciss-stress.json", "ciss")
+    corrbreaks = load("data/correlation-breaks.json", "correlation_breaks")
+    cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
     quad = _get(reg, "current", "quadrant")
@@ -530,6 +548,39 @@ def lambda_handler(event, context):
         "tic": {"stress": _get(ticflows, "composite_tic_stress"), "regime": _get(ticflows, "regime"),
                 "note": _get(ticflows, "interpretation")},
         "commodity_curve": {"regime": _get(commcurves, "composite_regime"), "signal": _get(commcurves, "composite_signal")},
+        "correlation_break": {"signal": _get(corrbreaks, "signal"), "z": _get(corrbreaks, "frobenius_z_score_1y")},
+    }
+    # ── Phase 7: implied Fed path (fedwatch) + tail risk into the rates/vol block ──
+    _nm = _get(fedwatch, "next_meeting", default={}) or {}
+    rates_fed_vol["fed_path"] = {
+        "current_midpoint": _get(fedwatch, "current_fed_funds_range", "midpoint"),
+        "next_date": _nm.get("date"), "next_days": _nm.get("days_until"),
+        "implied_move_bps": _nm.get("implied_move_bps"), "post_rate_pct": _nm.get("implied_post_meeting_rate_pct"),
+        "summary_6mo": _get(fedwatch, "next_6mo_summary"),
+    }
+    rates_fed_vol["tail_gauge"] = _get(tailrisk, "system_tail_gauge")
+    rates_fed_vol["tail_regime"] = _get(tailrisk, "tail_regime")
+    rates_fed_vol["tail_valuation"] = _get(tailrisk, "tail_valuation")
+    # ── COT / CFTC futures positioning into the positioning block ──
+    positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
+                          "smart_money": _get(cftc, "smart_money"), "summary": _get(cftc, "summary")}
+    # ── stress scenarios + tail + euro-area systemic + correlation regime ──
+    def _names(lst):
+        out = []
+        for x in (lst or [])[:4]:
+            out.append(x.get("ticker") or x.get("name") or x.get("symbol") if isinstance(x, dict) else x)
+        return [o for o in out if o]
+    stress_scenarios = {
+        "top": _get(stressscen, "top_scenario"),
+        "scenarios": [{"key": s.get("key"), "name": s.get("name"), "prob_pct": s.get("probability_pct"),
+                       "winners": _names(s.get("winners")), "losers": _names(s.get("losers"))}
+                      for s in (_get(stressscen, "scenarios", default=[]) or [])[:6]],
+        "asset_impact_winners": [{"ticker": w.get("ticker"), "expected_return_pct": w.get("expected_return_pct")}
+                                 for w in (_get(stressscen, "asset_impact", "top_5_winners", default=[]) or [])[:5]],
+        "tail_gauge": _get(tailrisk, "system_tail_gauge"), "tail_regime": _get(tailrisk, "tail_regime"),
+        "tail_valuation": _get(tailrisk, "tail_valuation"),
+        "ea_ciss_regime": _get(cissstress, "ea_regime"), "ea_ciss": _get(cissstress, "ea_composite"),
+        "correlation_signal": _get(corrbreaks, "signal"), "correlation_z": _get(corrbreaks, "frobenius_z_score_1y"),
     }
 
     cycle = {
@@ -679,6 +730,13 @@ def lambda_handler(event, context):
     if rates_fed_vol.get("fed_drift") == "HAWKISH_SHIFT" and str(growth_depth.get("labor_regime", "")).lower() == "weakening":
         divergences.append(f"POLICY-ERROR RISK: Fed communication is shifting hawkish (drift z {rates_fed_vol.get('fed_drift_z')}) "
                            f"while leading labor is weakening — tightening into a slowdown.")
+    if _get(cftc, "smart_money") == "DISTRIBUTING":
+        divergences.append("SMART MONEY DISTRIBUTING: large-spec/commercial futures positioning is net distributing — "
+                           "institutional futures flows are reducing risk even as retail sits at a bullish extreme.")
+    if str(rates_fed_vol.get("tail_regime", "")).upper() == "ELEVATED":
+        divergences.append(f"TAIL RISK ELEVATED: the option-implied crash gauge is {rates_fed_vol.get('tail_gauge')}/100 "
+                           f"(ELEVATED, protection {str(rates_fed_vol.get('tail_valuation','')).lower()}) — the left tail of the "
+                           f"return distribution is fattening beneath the calm surface.")
 
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
@@ -735,6 +793,10 @@ def lambda_handler(event, context):
         "positioning_sentiment": positioning,
         "growth_depth": growth_depth,
         "cross_asset_risk": cross_asset_risk,
+        "fed_path": rates_fed_vol.get("fed_path"),
+        "cot_positioning": positioning.get("cot"),
+        "stress_scenarios": {"top": stress_scenarios.get("top"), "tail_regime": stress_scenarios.get("tail_regime"),
+                             "tail_gauge": stress_scenarios.get("tail_gauge")},
         "scenario_playbook": scenario_playbook,
         "divergences": divergences,
     }
@@ -771,6 +833,7 @@ def lambda_handler(event, context):
         "positioning": positioning,
         "growth_depth": growth_depth,
         "cross_asset_risk": cross_asset_risk,
+        "stress_scenarios": stress_scenarios,
         "divergences": divergences,
         "falsifier": falsifier,
         "availability": avail, "stale": stale,
