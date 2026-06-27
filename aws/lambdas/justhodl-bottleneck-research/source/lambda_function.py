@@ -532,6 +532,71 @@ def compute_changes(ranked, trap_by_tk):
             "promoted": promoted[:10], "demoted": demoted[:10]}
 
 
+def forward_valuation(rec, pressure_entry):
+    """Bloomberg-style forward + projected valuation for a bottleneck candidate, all from
+    real fields already on the record:
+      • price prediction — revenue growth (analyst forward, backlog-supported) → target price
+      • forward P/E & P/S (next 12m) vs the industry multiple
+      • projected P/E & P/S once the bottleneck-driven growth sustains (~2y) — the re-rate runway
+    The thesis: a cheap, accelerating name in a supply-tight industry should grow INTO and then
+    re-rate toward its industry multiple. These numbers quantify both legs."""
+    price = num(rec.get("price")); pe = num(rec.get("pe")); ps = num(rec.get("ps"))
+    ipe = num(rec.get("industry_pe")); mc = num(rec.get("mkt_cap"))
+    fins = rec.get("financials") or []
+    eps_ttm = num(fins[-1].get("eps")) if fins else None
+    rev_ttm = num(fins[-1].get("revenue")) if fins else None
+    if eps_ttm is None and price and pe and pe > 0: eps_ttm = price / pe
+    if rev_ttm is None and mc and ps and ps > 0:    rev_ttm = mc / ps
+
+    # growth driver: prefer the real analyst forward-revenue-growth feed, else trailing YoY
+    used_fwd = rec.get("fwd_rev_growth") is not None
+    g = rec.get("fwd_rev_growth")
+    if g is None: g = rec.get("rev_growth_yoy")
+    if g is None or not price: return None
+    g = max(-0.5, min(g / 100.0, 3.0))             # clamp to sane band
+    f1, f2 = (1 + g), (1 + g) ** 2                 # 1-year and growth-sustained-2-year factors
+
+    backlog_yoy = None
+    if isinstance(pressure_entry, dict):
+        backlog_yoy = pressure_entry.get("backlog_yoy_pct")
+        if backlog_yoy is None: backlog_yoy = pressure_entry.get("new_orders_yoy_pct")
+
+    out = {
+        "growth_1y_pct":  round(g * 100, 1),
+        "growth_source":  "analyst forward revenue" if used_fwd else "trailing revenue YoY",
+        "backlog_yoy_pct": backlog_yoy,
+        "industry_pe":    ipe,
+        "cur_pe":         round(pe, 1) if pe else None,
+        "cur_ps":         round(ps, 2) if ps else None,
+    }
+    # forward (next-12m) multiples — earnings/sales grow one year
+    if pe and pe > 0: out["fwd_pe"] = round(pe / f1, 1)
+    if ps and ps > 0: out["fwd_ps"] = round(ps / f1, 2)
+    # projected (growth sustained ~2y) multiples — the re-rate runway
+    if pe and pe > 0: out["proj_pe"] = round(pe / f2, 1)
+    if ps and ps > 0: out["proj_ps"] = round(ps / f2, 2)
+    # vs industry
+    if ipe:
+        if out.get("fwd_pe"):  out["fwd_pe_vs_ind_pct"]  = round((out["fwd_pe"] / ipe - 1) * 100)
+        if out.get("proj_pe"): out["proj_pe_vs_ind_pct"] = round((out["proj_pe"] / ipe - 1) * 100)
+    # price prediction (from forward EPS)
+    if eps_ttm and eps_ttm > 0:
+        fwd_eps = eps_ttm * f1
+        out["fwd_eps"] = round(fwd_eps, 2)
+        # base: multiple held, price tracks one year of earnings growth
+        out["tp_base"] = round(price * f1, 2)
+        out["tp_base_upside_pct"] = round((f1 - 1) * 100)
+        # bull: re-rate to the industry P/E on forward earnings
+        if ipe:
+            tp_bull = ipe * fwd_eps
+            out["tp_bull"] = round(tp_bull, 2)
+            out["tp_bull_upside_pct"] = round((tp_bull / price - 1) * 100)
+        # bear: growth only ~40% delivers, no re-rate
+        out["tp_bear"] = round(price * (1 + g * 0.4), 2)
+        out["tp_bear_upside_pct"] = round(g * 0.4 * 100)
+    return out
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     try:
@@ -622,6 +687,8 @@ def lambda_handler(event=None, context=None):
             rec["chain"] = chain_f.get(tk)
         rec["pressure_trend"] = pgr_trend.get(r.get("pressure_group"))
         rec["pressure_pctile"] = pgr_pct.get(r.get("pressure_group"))
+        _pentry = (src.get("industry_pressure") or {}).get(r.get("pressure_group")) or {}
+        rec["fwd_val"] = forward_valuation(rec, _pentry)
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False

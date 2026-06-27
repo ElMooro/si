@@ -314,7 +314,31 @@ function drawer(tk){
   if(v.seg_conc!=null)qb.push(`<span class="${v.seg_conc>70?'bad':''}">Top segment <b>${v.seg_conc}%</b>${v.seg_n?` <i>of ${v.seg_n}</i>`:''}</span>`);
   if(v.acq_driven)qb.push(`<span class="bad">⚠ Acquisition-driven <i>(${v.acq_pct}% of rev)</i></span>`);
   const quality=qb.length?`<div class="conf"><h4>Quality &amp; solvency — can it survive to deliver?</h4><div class="kv">${qb.join('')}</div></div>`:'';
-  return `<div class="dwrap">${priceHdr}${scorecard}${thesisHtml}${bearHtml}${dctx}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;
+  const fv=v.fwd_val; let fwdval='';
+  if(fv){
+    const ipe=fv.industry_pe;
+    const indTag=(x)=> (x!=null&&ipe)?` <i>vs ind ${ipe}</i>`:'';
+    const cheapCls=(p)=> p==null?'':(p<=-5?'good':p>=25?'bad':'');   // below industry P/E = re-rate room
+    const tgt=(lbl,price,up,c)=> price==null?'':`<span class="${c}">🎯 ${lbl} <b>$${r1(price)}</b> <i>${(up||0)>=0?'+':''}${up}%</i></span>`;
+    const preds='<div class="kv">'+
+      tgt('Bull · re-rate to industry P/E',fv.tp_bull,fv.tp_bull_upside_pct,'good')+
+      tgt('Base · growth delivers, P/E held',fv.tp_base,fv.tp_base_upside_pct,'')+
+      tgt('Bear · ~40% of growth',fv.tp_bear,fv.tp_bear_upside_pct,'dim')+
+      '</div>';
+    const driver='<div class="kv">'+
+      `<span>Growth applied <b>${fv.growth_1y_pct>=0?'+':''}${fv.growth_1y_pct}%</b> <i>${esc(fv.growth_source||'')}</i></span>`+
+      (fv.backlog_yoy_pct!=null?`<span class="${fv.backlog_yoy_pct>0?'good':''}">Industry backlog <b>${fv.backlog_yoy_pct>=0?'+':''}${fv.backlog_yoy_pct}%</b> <i>YoY · demand pipeline behind the growth</i></span>`:'')+
+      (fv.fwd_eps!=null?`<span>Forward EPS <b>$${r1(fv.fwd_eps)}</b></span>`:'')+
+      '</div>';
+    const mult='<div class="kv">'+
+      (fv.fwd_pe!=null?`<span class="${cheapCls(fv.fwd_pe_vs_ind_pct)}">Forward P/E <b>${fv.fwd_pe}</b>${indTag(fv.fwd_pe)}${fv.fwd_pe_vs_ind_pct!=null?` <i>(${fv.fwd_pe_vs_ind_pct>=0?'+':''}${fv.fwd_pe_vs_ind_pct}% vs ind)</i>`:''}</span>`:'')+
+      (fv.fwd_ps!=null?`<span>Forward P/S <b>${fv.fwd_ps}</b> <i>vs ${fv.cur_ps==null?'—':fv.cur_ps} today</i></span>`:'')+
+      (fv.proj_pe!=null?`<span class="${cheapCls(fv.proj_pe_vs_ind_pct)}">Projected P/E <b>${fv.proj_pe}</b>${indTag(fv.proj_pe)}${fv.proj_pe_vs_ind_pct!=null?` <i>(${fv.proj_pe_vs_ind_pct>=0?'+':''}${fv.proj_pe_vs_ind_pct}% vs ind)</i>`:''} <i>· growth sustained ~2y</i></span>`:'')+
+      (fv.proj_ps!=null?`<span>Projected P/S <b>${fv.proj_ps}</b> <i>~2y</i></span>`:'')+
+      '</div>';
+    fwdval=`<div class="conf"><h4>Forward &amp; projected valuation — price prediction from growth + backlog</h4>${preds}${driver}${mult}<div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:3px">Projection compounds the growth rate; targets re-rate forward earnings to the industry P/E. Not investment advice.</div></div>`;
+  }
+  return `<div class="dwrap">${priceHdr}${scorecard}${thesisHtml}${bearHtml}${dctx}${fwdval}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;
 }
 
 function renderTable(){
