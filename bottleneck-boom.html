@@ -398,6 +398,15 @@ function renderTable(){
     const upTxt=upv==null?'—':`${upv>=0?'+':''}${upv}%`;
     const upCls=upv==null?'dim':(upv>0?'pos':'neg');
     const upTitle=fv.tp_bull!=null?`Price prediction → Bull $${r1(fv.tp_bull)} (+${fv.tp_bull_upside_pct}%, re-rate to ind P/E) · Base $${r1(fv.tp_base)} (+${fv.tp_base_upside_pct}%) · Bear $${r1(fv.tp_bear)} (+${fv.tp_bear_upside_pct}%)`:'tap for forward valuation';
+    // #8 growth-quality qualifier: is the company converting the backlog (beats + expanding margins) or just guiding?
+    let qMark='';
+    if(upv!=null&&(rv.beat_rate!=null||rv.gm_trend!=null)){
+      const exec=(rv.beat_rate!=null&&rv.beat_rate>=70),marg=(rv.gm_trend!=null&&rv.gm_trend>0);
+      const q=(exec&&marg)?['var(--green)','high-confidence: consistent earnings beats + expanding margins — converting backlog, not just guiding']
+            :(exec||marg)?['var(--amber)',`medium-confidence: ${exec?'beating estimates':'margins expanding'} but ${exec?'margins flat':'execution mixed'}`]
+            :['var(--fg-3)','lower-confidence: thin beat history and flat margins — growth is guided, not yet proven in results'];
+      qMark=` <span title="Target quality — ${q[1]}" style="color:${q[0]};font-size:11px">●</span>`;
+    }
     const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
     const tbadge=trp?`<span class="tb ${trp}">${trp==='real'?'✓ REAL':trp==='trap'?'⚠ TRAP':'• WATCH'}</span>`:'';
     // #5 inorganic-growth + distorted-multiple guards
@@ -415,7 +424,7 @@ function renderTable(){
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
       <td class="${(pe&&ipe&&pe<ipe&&!peDist)?'pos':'dim'}">${peTxt}${peDistMark}</td>
       <td class="${fwdpeCls}">${fwdpe==null?'—':r1(fwdpe)}</td>
-      <td class="${upCls}" title="${esc(upTitle)}">${upTxt}</td>
+      <td class="${upCls}" title="${esc(upTitle)}">${upTxt}${qMark}</td>
       <td>${(()=>{const cf=rv.confluence,ca=rv.confluence_avail;if(cf==null)return '<span class="dim">—</span>';const col=cf>=4?'var(--green)':cf>=2?'var(--amber)':'var(--fg-3)';const sigs=(rv.confluence_signals||[]).join(' · ')||'no independent confirmations firing';return `<span title="${esc(cf+' of '+ca+' confirm: '+sigs)}" style="font-family:var(--mono);font-weight:700;color:${col}">${cf}<span class="dim" style="font-weight:400">/${ca}</span></span>`;})()}</td>
       <td class="dim">${r.group_pressure==null?'—':Math.round(r.group_pressure)}</td>
       <td><div class="bswrap"><span class="bscore" style="color:${pcolor(r.boom_score)}">${r.boom_score==null?'—':r.boom_score}</span><span class="bsbar"><i style="width:${bw}%"></i></span></div></td></tr>`;
