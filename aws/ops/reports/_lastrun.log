@@ -1,95 +1,34 @@
+regen v2.4...
+  t+12s...
+  t+24s v2.4 (dur 11.9s)
 
-■ fed-speak
-   aggregate = {"avg_sentiment": 1.67, "hawkish_count": 1, "dovish_count": 0, "neutral_count": 2, "interpretation": "FED LEANING HAWKISH"}
-   latest_hawkish = {"title": "Barr, Deregulating in a Financial Boom: What Could Go Wrong?", "speaker": "", "pub_date": "2026-06-06T16:00:00+00:00", "link": "https://www
+=== RATES/FED/VOL ===
+  Fed: FED LEANING HAWKISH | drift: HAWKISH_SHIFT z 1.24
+  MOVE: 65.4 pctile 8.1 SUPPRESSED | bondvol: NORMAL NEUTRAL
+  equity vol: NORMAL 32.0 | vov: QUIET | tail: NORMAL
+=== POSITIONING ===
+  AAII: 100 bull / 0 bear z 1.03 | EXTREME_BULL
+  retail: QUIET | credit-eq: CREDIT_BULL_RICH | breadth: NULL | gold-eq: NEUTRAL
+=== GROWTH DEPTH ===
+  labor: weakening | activity: 56 EXPANDING | consumer: 51 STEADY
+  bank stress: 29.2 TIGHTENING | reserves/GDP: 9.26 %
+=== GLOBAL LIQ G4 ===
+  china: {"regime": "NEUTRAL", "credit_impulse_pp": -5.52, "m2_yoy_pct": 8.21} | pulse: ACUTE_DRAIN 95.2
+  inflection usd: CONTRACTING
+=== CROSS-ASSET RISK ===
+  yen-carry: 36.0 MODERATE
+  corr regime: MIXED | top alert: Regime shifted from DEFLATION to MIXED
+  TIC: STRONG_FOREIGN_DEMAND | commodity: INFLATIONARY_COOLING
 
-■ fed-nlp
-   drift = {"recent_5_avg": 48.0, "prior_5_avg": 30.0, "drift_points": 18.0, "drift_z": 1.24, "classification": "HAWKISH_SHIFT", "all_composites_last15": [30.0, 
-
-■ bond-vol
-   risk_posture = "NEUTRAL"
-   term_structure = {"front_end_z": 1.33, "long_end_z": 0.62, "credit_z": -1.31, "real_rate_z": 1.04, "signal": "FRONT-END LED - Fed/rate-path vol dominates (policy uncer
-   composite_percentile = null
-   trend = {"dod": 0.0, "wow": 0.26, "mom": 0.64}
-
-■ vol-regime
-   composite_regime = "NORMAL"
-   regime_counts = {"COMPLACENT": 0, "NORMAL": 7, "CONCERNED": 1, "PANIC": 0, "UNKNOWN": 0}
-
-■ aaii-sentiment
-   latest = {"week_ending": "2026-06-25", "bullish": 1.0, "neutral": 0.0, "bearish": 0.0, "bull_bear_spread": 1.0}
-   z_scores = {"bullish": 1.03, "bearish": 0.0, "spread": 1.03}
-   extremes = {"is_bullish_extreme": true, "is_bearish_extreme": false}
-   interpretation = "Retail investors are extremely bullish (100% vs 38% historical). Historically a contrarian sell signal \u2014 euphoria is when distributions usually 
-
-■ retail-sentiment
-   market_regime = "QUIET"
-   market_regime_signal = "Total mentions 2,327 below normal \u2014 retail disengaged"
-
-■ credit-equity-divergence
-   state = "CREDIT_BULL_RICH"
-   current_metrics = {"hyg_20d_ret_pct": -0.5, "spy_20d_ret_pct": -3.39, "hyg_spy_spread_20d": 2.9, "spread_zscore_252d": 1.69, "lqd_20d_ret_pct": 0.22, "emb_20d_ret_pct":
-   regime_explanation = "HYG-SPY 20d spread z=1.69 (HYG outperforms by 2.9%), persistent 3+ days; credit leads, equity bullish"
-
-■ breadth-thrust
-   current_readings = {"zweig_10d_ema": 0.4657, "zweig_window_min": 0.4259, "zweig_window_max": 0.5077, "zweig_thresholds": {"low": 0.4, "high": 0.615}, "n_breadth_days_cac
-   forward_expectations = {"1m": {"return_pct": null, "win_rate_pct": null, "n": 0, "basis": "SPY next 30 calendar days"}, "3m": {"return_pct": null, "win_rate_pct": null, "n":
-   signal_strength = 0
-
-■ gold-equity-rotation
-   current_metrics = {"spy_ratio_gld": 1.951, "ratio_ma50": 1.788, "ratio_ma200": 1.701, "ratio_zscore_252d": 0.92, "ratio_20d_pct": 6.73, "spy_20d_pct": -3.39, "gld_20d_p
-   regime_explanation = "SPY/GLD ratio in range, no clear regime"
-
-■ china-liquidity
-   money = {"m1_yoy_pct": 1.5, "m2_yoy_pct": 8.21}
-   credit_impulse = {"value_pp": -5.52, "is_proxy": true, "definition": "acceleration of money-supply YoY growth (pp change). A free proxy for the Total Social Financing 
-   regime_read = "China liquidity is roughly steady \u2014 no strong forward push or pull on commodities and global cyclicals from the credit impulse."
-
-■ liquidity-pulse
-   summary = "\ud83d\udd34 ACUTE LIQUIDITY DRAIN \u2014 Fed balance sheet draining at extreme pace. Risk-off backdrop confirmed."
-   composites = {"credit_stress_score": 51.6, "credit_regime": "NORMAL", "liquidity_score": 95.2, "liquidity_regime": "ACUTE_DRAIN"}
-   transitions = []
-
-■ liquidity-inflection
-   lead_estimates = {"SPX_proxy": {"lead_days": 2, "corr_21d_fwd": 0.044}, "BTC": {"lead_days": 10, "corr_21d_fwd": 0.078}, "HYG": {"lead_days": 30, "corr_21d_fwd": -0.36
-   usd = {"as_of": "2026-06-24", "impulse_z": -0.625, "net_liq_usd_bn": 5816.9, "state": "CONTRACTING", "last_flip": {"date": "2022-09-14", "direction": "DOWN"
-   china = {"series": "CRDQCNAPABIS", "as_of": "2025-10-01", "credit_yoy_pct": 5.5, "impulse_z": -0.15}
-
-■ cross-asset-regime
-   regime_20d = {"regime": "MIXED", "confidence": 0, "rationale": [], "lookback_returns_pct": {"SPY": -3.39, "TLT": 1.89, "GLD": -9.48, "UUP": 2.74, "HYG": -0.5, "USO
-   regime_60d = {"regime": "MIXED", "confidence": 0, "rationale": [], "lookback_returns_pct": {"SPY": 12.09, "TLT": 0.77, "GLD": -13.17, "UUP": 2.45, "HYG": 0.34, "US
-   correlation_breaks = [{"pair": ["GLD", "VIXY"], "c30d": -0.801, "c90d": -0.337, "delta": -0.464, "interpretation": "shift"}, {"pair": ["GLD", "UUP"], "c30d": -0.706, "c90d
-   alerts = [{"type": "REGIME_CHANGE", "msg": "Regime shifted from DEFLATION to MIXED", "severity": "HIGH"}, {"type": "CORRELATION_BREAK", "pair": ["GLD", "VIXY"]
-
-■ yen-carry
-   unwind_risk_score = 36.0
-   unwind_risk_label = "MODERATE"
-   carry_regime = "NEUTRAL"
-   positioning = {"net_speculator": -178423, "net_managed_money": -96772, "report_date": "2026-06-16", "open_interest": 520825, "net_zscore_vs_history": null, "crowded
-   triggers = ["USD/JPY breaking below ~153 (a ~5% yen rally) would flip the regime toward CARRY-UNWIND.", "20d realised vol sustained above ~16-18% signals the ste
-
-■ tic-flows
-   composite_tic_stress = 0
-   interpretation = "Foreign demand healthy. Auctions support yields lower. Dollar supported."
-   net_purchases = {}
-
-■ labor-leading
-   claims = {"latest_week": null, "initial": null, "ma4w": null, "ma4w_3mo_change_pct": null}
-   interpretation = "Quits rate falling fast (worker confidence dropping)."
-
-■ activity-nowcast
-   activity_index = 56
-   momentum = "FLAT"
-
-■ consumer-pulse
-   pulse_index = 51
-
-■ bank-stress
-   bank_stress_score = 29.2
-   reserve_adequacy = {"reserves_bn": 2951.4, "reserves_to_gdp_pct": 9.26, "scarcity_threshold_pct": 11.0, "read": "reserves in the scarcity zone \u2014 repo stress risk el
-
-■ commodity-curves
-   composite_regime = "INFLATIONARY_COOLING"
-   composite_signal = "PDBC -10.4% & USO -19.4% 20d \u2014 commodities deflating; disinflation tailwind"
-
-DONE 2330
+divergences: 9
+   - GROWTH SPLIT: global business cycle reads GLOBAL_EXPANSION (CLI 109.69, 95.0% breadth) while th
+   - LIQUIDITY SPLIT: aggregate central-bank liquidity is NEUTRAL/flat, but the credit-engine liquid
+   - CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-off.
+   - COUNTERINTUITIVE: growth nowcast is SLOWING, but historically SLOWING preceded SPY +5.07% media
+   - PRESCRIPTION-vs-TAPE: Overheat historically favours Value, Energy, Gold; 1 of 4 are beating SPY
+   - EUPHORIA: retail sentiment at a bullish extreme (100% bulls, spread z 1.03) — historically a co
+   - COMPLACENCY: bond vol (MOVE) at the 8th percentile and credit CREDIT_BULL_RICH while liquidity 
+   - RESERVE SCARCITY: bank reserves 9.3% of GDP (below the ~11% scarcity threshold) — the structura
+   - POLICY-ERROR RISK: Fed communication is shifting hawkish (drift z 1.24) while leading labor is 
+AI: null(quota)
+DONE 2331
