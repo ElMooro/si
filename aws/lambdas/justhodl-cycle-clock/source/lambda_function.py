@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.2"
+VERSION = "2.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -135,21 +135,33 @@ COORD_PHASE = {"GOLDILOCKS": ("MID CYCLE", 2), "OVERHEAT": ("LATE-MID CYCLE", 2.
 
 
 def _net_liquidity():
-    """Fed net liquidity = balance sheet − reverse repo − Treasury General Account, with the
-    13-week change. WALCL is $millions, RRP/TGA are $billions — normalize all to $trillions."""
-    walcl = _fred("WALCL", start="2017-01-01")
-    rrp = _fred("RRPONTSYD", start="2017-01-01")
-    tga = _fred("WTREGEN", start="2017-01-01")
+    """Fed net liquidity = balance sheet − reverse repo − Treasury General Account, with the 13-week
+    change, a 26-week sparkline, and the percentile of the current level since 2018. WALCL is $millions,
+    RRP/TGA are $billions/$millions — normalize all to $trillions."""
+    walcl = _fred("WALCL", start="2018-01-01")
+    rrp = _fred("RRPONTSYD", start="2018-01-01")
+    tga = _fred("WTREGEN", start="2018-01-01")
     if not walcl:
         return None
-    def last(p): return p[-1][1] if p else 0.0
-    def back(p, n): return p[-(n + 1)][1] if len(p) > n else (p[0][1] if p else 0.0)
-    w, r, t = last(walcl) / 1e6, last(rrp) / 1e3, last(tga) / 1e6
-    w13, r13, t13 = back(walcl, 13) / 1e6, back(rrp, 65) / 1e3, back(tga, 13) / 1e6
-    net, net13 = w - r - t, w13 - r13 - t13
-    return {"walcl_tn": round(w, 3), "rrp_tn": round(r, 3), "tga_tn": round(t, 3),
-            "net_tn": round(net, 3), "net_13w_delta_bn": round((net - net13) * 1000, 1),
-            "as_of": walcl[-1][0]}
+    rrp_d, tga_d = dict(rrp), dict(tga)
+    rrp_ks, tga_ks = sorted(rrp_d), sorted(tga_d)
+    def nearest(ks, d, date):
+        import bisect
+        i = bisect.bisect_right(ks, date) - 1
+        return d[ks[i]] if i >= 0 else (d[ks[0]] if ks else 0.0)
+    series = []
+    for date, wv in walcl:
+        net = wv / 1e6 - nearest(rrp_ks, rrp_d, date) / 1e3 - nearest(tga_ks, tga_d, date) / 1e6
+        series.append((date, round(net, 3)))
+    cur = series[-1][1]
+    net13 = series[-14][1] if len(series) > 13 else series[0][1]
+    vals = [v for _, v in series]
+    pct = round(sum(1 for v in vals if v <= cur) / len(vals) * 100)
+    last = series[-1][0]
+    return {"walcl_tn": round(walcl[-1][1] / 1e6, 3), "rrp_tn": round(nearest(rrp_ks, rrp_d, last) / 1e3, 3),
+            "tga_tn": round(nearest(tga_ks, tga_d, last) / 1e6, 3), "net_tn": cur,
+            "net_13w_delta_bn": round((cur - net13) * 1000, 1), "as_of": last,
+            "percentile_since_2018": pct, "series": [{"d": d[:7], "v": v} for d, v in series[-26:]]}
 
 
 def _sahm():
@@ -208,6 +220,73 @@ def _ai_synthesis(state):
     except Exception as e:
         print(f"[cycle-clock] AI synthesis failed: {str(e)[:140]}")
     return None
+
+
+POLY_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+
+CROSS_ASSETS = [
+    ("SPY", "US equities", "equity"), ("QQQ", "US tech", "equity"), ("IWM", "Small caps", "equity"),
+    ("IWD", "Value", "factor"), ("IWF", "Growth", "factor"),
+    ("DBC", "Commodities", "real"), ("GLD", "Gold", "real"), ("XLE", "Energy", "real"),
+    ("TLT", "Long Treasuries", "rates"), ("IEF", "7-10y Treasuries", "rates"),
+    ("HYG", "High yield", "credit"), ("LQD", "IG credit", "credit"),
+    ("UUP", "US dollar", "fx"), ("XLU", "Utilities", "defensive"),
+]
+# which cross-asset proxies each quadrant historically expects to lead
+EXPECT_LEAD = {
+    "OVERHEAT": ["DBC", "GLD", "XLE", "IWD"],
+    "GOLDILOCKS": ["SPY", "QQQ", "IWM", "HYG"],
+    "STAGFLATION": ["GLD", "DBC", "XLU", "UUP"],
+    "DOWNTURN": ["TLT", "IEF", "GLD"],
+}
+SCENARIO_ASSETS = {
+    "GOLDILOCKS": ["Equities (cyclicals, tech)", "HY credit", "EM equities"],
+    "REFLATION": ["Equities", "Commodities", "TIPS"],
+    "OVERHEAT": ["Commodities", "Value / cyclicals", "TIPS"],
+    "STAGFLATION": ["Cash / T-bills", "Gold", "Energy", "Defensives"],
+    "DEFLATION-BUST": ["Long Treasuries", "Gold", "Cash", "Quality"],
+    "DOWNTURN": ["Long Treasuries", "Gold", "Quality"],
+}
+
+
+def _poly_ret(t):
+    import datetime as _dt
+    end = _dt.date.today(); start = end - _dt.timedelta(days=130)
+    u = (f"https://api.polygon.io/v2/aggs/ticker/{t}/range/1/day/{start}/{end}"
+         f"?adjusted=true&sort=asc&limit=200&apiKey={POLY_KEY}")
+    try:
+        r = json.loads(urllib.request.urlopen(u, timeout=10).read()).get("results") or []
+        if len(r) < 63:
+            return None
+        c = [x["c"] for x in r]
+        return {"ret_1m": round((c[-1] / c[-22] - 1) * 100, 1), "ret_3m": round((c[-1] / c[-63] - 1) * 100, 1)}
+    except Exception:
+        return None
+
+
+def _cross_asset():
+    out = []
+    with _cf.ThreadPoolExecutor(max_workers=8) as ex:
+        futs = {ex.submit(_poly_ret, t): (t, lab, cls) for t, lab, cls in CROSS_ASSETS}
+        for f in futs:
+            t, lab, cls = futs[f]
+            try:
+                r = f.result(timeout=14)
+            except Exception:
+                r = None
+            if r:
+                out.append({"ticker": t, "label": lab, "class": cls, **r})
+    out.sort(key=lambda x: -x["ret_1m"])
+    return out
+
+
+def _cb_impulse():
+    """G3 central-bank balance-sheet 13-week % change (currency-neutral liquidity impulse)."""
+    def imp(series, n):
+        p = _fred(series, start="2022-01-01")
+        return round((p[-1][1] / p[-(n + 1)][1] - 1) * 100, 1) if len(p) > n else None
+    return {"fed_13w_pct": imp("WALCL", 13), "ecb_13w_pct": imp("ECBASSETSW", 13),
+            "boj_13w_pct": imp("JPNASSETS", 3)}
 
 
 QUAD_PHASE = {
@@ -347,6 +426,30 @@ def lambda_handler(event, context):
                     "top_names": [x.get("symbol") for x in _eps_top[:8] if isinstance(x, dict)]}
                    if _eps_top else None)
 
+    # ── cross-asset confirmation: is the quadrant's prescription actually working? ──
+    cross = _cross_asset()
+    ca_confirm = None
+    if cross and quad2d:
+        exp = EXPECT_LEAD.get(quad2d, [])
+        spy = next((x["ret_1m"] for x in cross if x["ticker"] == "SPY"), 0.0)
+        leaders = [x for x in cross if x["ticker"] in exp]
+        if leaders:
+            beat = sum(1 for x in leaders if x["ret_1m"] > spy)
+            frac = beat / len(leaders)
+            status = "CONFIRMED" if frac >= 0.6 else "CONTRADICTED" if frac <= 0.34 else "MIXED"
+            lead_labels = [x["label"] for x in cross if x["ticker"] in exp]
+            ca_confirm = {"status": status, "expected": lead_labels, "beating_spy": f"{beat}/{len(leaders)}",
+                          "note": (f"{quad2d.title()} historically favours {', '.join(lead_labels[:3])}; "
+                                   f"{beat} of {len(leaders)} are beating SPY over the last month — "
+                                   f"{'tape confirms the regime read' if status == 'CONFIRMED' else 'tape contradicts the regime read (prescription is the worst-performing book right now)' if status == 'CONTRADICTED' else 'mixed confirmation'}.")}
+    # ── global central-bank liquidity (G3 impulse + global-liquidity engine) ──
+    cb_imp = _cb_impulse()
+    global_liq = {"regime": _get(gliq, "regime"), "global_liquidity_index": _get(gliq, "global_liquidity_index"),
+                  "global_impulse_13w_pct": _get(gliq, "global_impulse_13w_pct"), "cb_impulse_13w": cb_imp}
+    # ── scenario playbook: next-3m quadrant odds → asset plan per scenario ──
+    scenario_playbook = ([{"scenario": k, "odds_pct": v, "assets": SCENARIO_ASSETS.get(k, [])}
+                          for k, v in sorted((next3 or {}).items(), key=lambda x: -x[1])] if next3 else [])
+
     cycle = {
         "phase": phase_label, "phase_n": phase_n, "quadrant": quad, "description": phase_desc,
         "growth_direction": growth_dir, "inflation_direction": infl_dir,
@@ -366,6 +469,7 @@ def lambda_handler(event, context):
         "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,
         "credit_regime": cr_regime,
         "sector_risk_appetite": sr_app, "regime_composite": _get(rcomp, "meta_regime"),
+        "scenario_playbook": scenario_playbook,
     }
 
     # ──────────────────── LIQUIDITY-SQUEEZE RISK ────────────────────
@@ -476,6 +580,8 @@ def lambda_handler(event, context):
     if roro is not None and roro < -15 and quad2d == "GOLDILOCKS":
         divergences.append(f"RISK-vs-CYCLE SPLIT: the cycle reads goldilocks but cross-asset RORO is risk-off "
                            f"({roro:+.0f}) — price action disagrees with the macro read.")
+    if ca_confirm and ca_confirm.get("status") == "CONTRADICTED":
+        divergences.append("PRESCRIPTION-vs-TAPE: " + ca_confirm["note"])
 
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
@@ -523,7 +629,12 @@ def lambda_handler(event, context):
         "analogs": {"nearest": [{"date": a.get("date"), "similarity": a.get("similarity"),
                                  "fwd_63d_pct": a.get("forward_63d_pct")} for a in near3],
                     "directional_call": _get(analogs_d, "directional_call"),
+                    "forward_distribution": _get(analogs_d, "forward_distribution"),
                     "unprecedentedness": _get(analogs_d, "unprecedentedness")},
+        "cross_asset_confirmation": ca_confirm,
+        "cross_asset_returns_1m": {x["label"]: x["ret_1m"] for x in (cross or [])},
+        "global_liquidity": global_liq,
+        "scenario_playbook": scenario_playbook,
         "divergences": divergences,
     }
     ai = None
@@ -553,6 +664,8 @@ def lambda_handler(event, context):
             "unprecedentedness": _get(analogs_d, "unprecedentedness"),
         },
         "liquidity": liquidity,
+        "cross_asset": {"returns": cross, "confirmation": ca_confirm},
+        "global_liquidity": global_liq,
         "divergences": divergences,
         "falsifier": falsifier,
         "availability": avail, "stale": stale,
