@@ -1,31 +1,5 @@
-=== FEDWATCH invoke response ===
-  FunctionError: Unhandled
-  payload: {"errorMessage": "can't subtract offset-naive and offset-aware datetimes", "errorType": "TypeError", "requestId": "ab166664-7f0e-4146-b33b-73f57abdc61b", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 295, in lambda_handler\n    days_until = (md - today_dt).days\n"]}
-  fedwatch.json now: STILL MISSING
-
-=== stress-scenarios full ===
-  top_scenario: {"key": "GOLDILOCKS", "name": "Goldilocks Continuation", "probability_pct": 20.0}
-   - GOLDILOCKS 20.0%  Goldilocks Continuation
-   - CHINA_SLOWDOWN 15.0%  China Slowdown / Global Disinflation
-   - FED_PIVOT 0.0%  Fed Pivot / QE Restart
-   - CREDIT_EVENT 0.0%  Credit Event / HY Spike
-   - DOLLAR_CRISIS 0.0%  Dollar Crisis / Funding Stress
-  scenario[0] keys: ['key', 'name', 'narrative', 'probability', 'probability_pct', 'n_probes_matched', 'n_probes_total', 'probes', 'winners', 'losers']
-  asset_impact type: dict | sample: {"top_5_winners": [{"ticker": "TLT", "expected_return_pct": 2.4, "n_scenarios": 5, "by_scenario": [{"scenario": "GOLDILOCKS", "prob": 0.2, "expected_pct": 4.5}, {"scenario": "CHINA_SLOWDOWN", "prob": 0.15, "expected_pct": 10.0}, {"scenario": "FED_PIVOT", "prob
-
-=== tail-risk ===
-  system_tail_gauge: 56.3
-  tail_regime: "ELEVATED"
-  tail_valuation: "WARMING"
-  interpretation: {"system_tail_gauge": "0-100 SPY-weighted tail stress (skew + risk-reversal + crash prob + skew index)", "tail_valuation": "CHEAP = crash protection underpriced vs own history (favourable to add hedge
-  thesis: "Option-implied crash probability and tail index from the real risk-neutral density (Breeden-Litzenberger on the OTM IV smile) \u2014 fat-tailed, unlike a log-normal model. Put-skew slope + risk-rever
-
-=== ciss-stress ===
-  ea_composite: 0.005292
-  ea_regime: "CALM"
-  ea_composite_date: "2026-06-25"
-
-=== correlation-breaks ===
-  frobenius_z_score_1y: 0.42
-  signal: "NORMAL"
-DONE 2335
+FunctionError: None
+resp: {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.0\", \"scenario\": \"AGGRESSIVE_HIKING\", \"current_ff_range\": {\"lower\": 3.5, \"upper\": 3.75, \"midpoint\": 3.625, \"as_of\": \"2026-06-27\"}, \"next_meeting\": {\"date\": \"2026-07-29\", \"days_until\": 31, \"status\": \"ok\", \"fut
+fedwatch.json keys: ['engine', 'version', 'generated_at', 'current_fed_funds_range', 'next_meeting', 'meetings_ahead', 'n_meetings_with_data', 'next_6mo_summary', 'methodology', 'academic_basis', 'duration_seconds']
+  next_meeting: {"date": "2026-07-29", "days_until": 31, "status": "ok", "futures_contract": "ZQN26", "futures_close": 96.365, "implied_avg_month_rate_pct": 3.635, "implied_post_meeting_rate_pct": 3.7284, "implied_move_bps": 10, "probab
+DONE 2336
