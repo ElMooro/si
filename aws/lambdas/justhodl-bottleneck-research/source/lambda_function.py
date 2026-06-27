@@ -590,6 +590,11 @@ def grade_targets():
     return out
 
 
+def _phi(z):
+    """Standard normal CDF — z-score to percentile."""
+    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
 def pressure_percentiles(industry_pressure):
     """Convert each industry's standardized pressure z-scores to a 0-100 historical percentile."""
     out = {}
