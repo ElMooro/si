@@ -53,6 +53,11 @@ td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
 .ai-watch{margin-top:12px}.ai-watch li{font-size:12px;color:var(--fg-1)}
 .ai-bottom{margin-top:13px;padding-top:12px;border-top:1px solid var(--border-b);font-size:13.5px;font-weight:600;color:var(--fg-0)}
 .pending{background:rgba(245,179,67,.08);border:1px dashed rgba(245,179,67,.5);border-radius:10px;padding:13px 15px;font-size:12.5px;color:var(--amber);font-family:var(--mono);line-height:1.5}
+.tilegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--bg-2);border:1px solid var(--border);border-radius:9px;padding:11px 12px}
+.tile .tl{font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.tile .tv{font-size:15px;font-weight:700;font-family:var(--mono);line-height:1.2}
+.tile .ts{font-size:10.5px;color:var(--fg-3);margin-top:4px;font-family:var(--mono);line-height:1.35}
 .loading2{display:none}
 .tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--fg-2);margin-left:6px}
 .prov{font-family:var(--mono);font-size:10px;color:var(--fg-3);display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:6px}
@@ -163,17 +168,26 @@ function scenarioPlaybook(sp){
   s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Quadrant-transition odds (nowcast model) × the canonical asset plan per destination — the probability-weighted forward book.</div></div>`;
   return s;
 }
+function tile(label,value,sub,color){return `<div class="tile"><div class="tl">${esc(label)}</div><div class="tv" style="color:${color||'#e8eef6'}">${esc(value==null||value===''?'—':value)}</div>${sub?`<div class="ts">${esc(sub)}</div>`:''}</div>`;}
+function tileGrid(title,tiles,note){const t=tiles.filter(Boolean);if(!t.length)return '';return `<h2>${esc(title)}</h2><div class="panel"><div class="tilegrid">${t.join('')}</div>${note?`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px;line-height:1.5">${esc(note)}</div>`:''}</div>`;}
+const HAWK=v=>/HAWK/i.test(v||'')?'#ff8a5c':/DOV/i.test(v||'')?'#3fd68c':'#46c8ff';
 function globalLiqPanel(gl){
   if(!gl)return '';
   const idx=gl.global_liquidity_index||{};const comp=idx.components_usd_bn||{};const cb=gl.cb_impulse_13w||{};const imp=gl.global_impulse_13w_pct;
   if(!comp||!Object.keys(comp).length)return '';
-  let s=`<h2>Global liquidity — G3 central-bank balance sheets</h2><div class="panel">`;
+  let s=`<h2>Global liquidity — G3 balance sheets + the wider tide</h2><div class="panel">`;
   s+=`<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap"><div class="big">$${r1(idx.total_usd_trillions)}T <span style="font-size:12px;color:${imp>=0?'var(--green)':'var(--red)'}">${imp>=0?'+':''}${r1(imp)}%/13w</span></div><div style="font-size:12px;color:var(--fg-2)">regime <b>${esc(gl.regime||'—')}</b>${idx.change_52w_pct!=null?` · 52w ${idx.change_52w_pct>=0?'+':''}${r1(idx.change_52w_pct)}%`:''}</div></div>`;
   const ent=Object.entries(comp);const mx=Math.max(...ent.map(([k,v])=>v),1);const impmap={Fed:cb.fed_13w_pct,ECB:cb.ecb_13w_pct,BOJ:cb.boj_13w_pct};
   s+=`<div style="margin-top:11px">`;
   for(const [k,v] of ent){const im=impmap[k];
     s+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:11.5px"><div style="width:42px;color:var(--fg-2)">${esc(k)}</div><div style="flex:1"><div style="height:11px;width:${(v/mx*100).toFixed(0)}%;background:#46c8ff;border-radius:3px"></div></div><div style="width:58px;text-align:right;color:var(--fg-1)">$${(v/1000).toFixed(2)}T</div><div style="width:66px;text-align:right;color:${im==null?'#536074':im>=0?'#3fd68c':'#ff5c6c'}">${im==null?'—':(im>=0?'+':'')+im+'%/13w'}</div></div>`;}
-  s+=`</div><div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Balance sheets in USD (FRED WALCL/ECBASSETSW/JPNASSETS). Impulse = 13-week % change (currency-neutral) — the tide behind global risk assets.</div></div>`;
+  s+=`</div>`;
+  const ch=gl.china||{};const pu=gl.pulse||{};const inf=gl.inflection||{};
+  if(ch.regime||ch.credit_impulse_pp!=null)s+=`<div class="kvr"><span>🇨🇳 PBOC / China (G4)</span><b>${esc(ch.regime||'—')} · credit impulse ${ch.credit_impulse_pp==null?'—':(ch.credit_impulse_pp>=0?'+':'')+r1(ch.credit_impulse_pp)+'pp'}${ch.m2_yoy_pct!=null?' · M2 '+r1(ch.m2_yoy_pct)+'%':''}</b></div>`;
+  if(pu.liquidity_regime)s+=`<div class="kvr"><span>liquidity pulse</span><b style="color:${/DRAIN|ACUTE/i.test(pu.liquidity_regime)?'var(--red)':'var(--fg-1)'}">${esc(pu.liquidity_regime)}${pu.liquidity_score!=null?' ('+r1(pu.liquidity_score)+')':''}</b></div>`;
+  if(inf.usd_state)s+=`<div class="kvr"><span>net-liq inflection</span><b>USD ${esc(inf.usd_state)}${inf.usd_impulse_z!=null?' · impulse z '+r1(inf.usd_impulse_z):''}${inf.last_flip&&inf.last_flip.date?' · last flip '+esc(inf.last_flip.date):''}</b></div>`;
+  if(pu.summary)s+=`<div style="font-size:11px;color:${/DRAIN|ACUTE/i.test(pu.summary)?'var(--red)':'var(--fg-2)'};margin-top:7px;font-family:var(--mono)">${esc(pu.summary)}</div>`;
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">G3 balance sheets in USD (FRED) + PBOC credit impulse + the liquidity-pulse/inflection engines — the tide behind global risk assets.</div></div>`;
   return s;
 }
 function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('');}
@@ -255,6 +269,39 @@ function aiSection(d){
   // ── cross-asset confirmation ──
   h+=crossAssetSection(d.cross_asset);
 
+  // ── macro drivers: rates/fed/vol, positioning, growth depth ──
+  const rfv=d.rates_fed_vol||{};
+  h+=tileGrid('Rates, the Fed & the volatility complex',[
+    tile('Fed tone',rfv.fed_tone,'fed-speak 30d',HAWK(rfv.fed_tone)),
+    tile('Fed drift',rfv.fed_drift,`z ${r1(rfv.fed_drift_z)}`,HAWK(rfv.fed_drift)),
+    tile('MOVE · bond vol',rfv.move_level==null?'—':r1(rfv.move_level),`${rfv.move_pctile==null?'':r1(rfv.move_pctile)+'th pctile · '}${rfv.move_regime||''}`,(rfv.move_pctile!=null&&rfv.move_pctile<15)?'#f5b343':'#46c8ff'),
+    tile('Bond-vol regime',rfv.bond_vol_regime,rfv.bond_vol_signal?String(rfv.bond_vol_signal).split(' - ')[0]:rfv.bond_vol_posture,'#46c8ff'),
+    tile('Equity vol',rfv.equity_vol_regime,`composite ${r1(rfv.equity_vol_score)}`,rfv.equity_vol_regime==='PANIC'?'#ff5c6c':rfv.equity_vol_regime==='CONCERNED'?'#f5b343':'#3fd68c'),
+    tile('Vol-of-vol',rfv.vov_state,'VVIX regime',/QUIET|CALM/i.test(rfv.vov_state||'')?'#3fd68c':'#f5b343'),
+    tile('Tail / skew',rfv.tail_state,'crash-hedge demand','#46c8ff'),
+  ],'Fed communication tone & drift, bond vol (MOVE) and the equity-vol complex. Suppressed MOVE into a hawkish drift = policy-vol priced cheap.');
+
+  const ps=d.positioning||{};
+  const aaiiCol=ps.aaii_extreme==='EXTREME_BULL'?'#ff5c6c':ps.aaii_extreme==='EXTREME_BEAR'?'#3fd68c':'#46c8ff';
+  h+=tileGrid('Positioning, sentiment & market internals',[
+    tile('AAII retail',ps.aaii_bull_pct==null?'—':`${ps.aaii_bull_pct}% bull`,ps.aaii_extreme==='EXTREME_BULL'?'⚠ euphoric — contrarian':`bear ${ps.aaii_bear_pct}% · z ${r1(ps.aaii_spread_z)}`,aaiiCol),
+    tile('Retail flow',ps.retail_regime,ps.retail_note?String(ps.retail_note).slice(0,38):'','#46c8ff'),
+    tile('Credit vs equity',ps.credit_equity_state,'HYG vs SPY',/BULL_RICH/.test(ps.credit_equity_state||'')?'#f5b343':/BEAR/.test(ps.credit_equity_state||'')?'#ff5c6c':'#3fd68c'),
+    tile('Breadth thrust',ps.breadth_thrust_state==='NULL'?'none':ps.breadth_thrust_state,`strength ${ps.breadth_thrust_strength==null?'—':ps.breadth_thrust_strength}`,'#7c8ba0'),
+    tile('Gold vs equity',ps.gold_equity_state,'rotation','#46c8ff'),
+  ],'Where the crowd sits and whether the market is healthy underneath. Euphoric retail + complacent credit are classic late-cycle contrarian tells.');
+
+  const gd=d.growth_depth||{};
+  const labCol=/weaken|contract|slow/i.test(gd.labor_regime||'')?'#ff5c6c':/strong|expand/i.test(gd.labor_regime||'')?'#3fd68c':'#f5b343';
+  const resScarce=(gd.reserves_to_gdp_pct!=null&&gd.reserves_to_gdp_pct<11);
+  h+=tileGrid('Growth & recession depth',[
+    tile('Leading labor',gd.labor_regime,gd.labor_note?String(gd.labor_note).slice(0,40):'',labCol),
+    tile('Activity nowcast',gd.activity_index==null?'—':`${gd.activity_index}`,`${gd.activity_regime||''} · mom ${gd.activity_momentum||''}`,gd.activity_regime==='EXPANDING'?'#3fd68c':'#f5b343'),
+    tile('Consumer pulse',gd.consumer_index==null?'—':`${gd.consumer_index}`,gd.consumer_regime,'#46c8ff'),
+    tile('Bank stress',gd.bank_stress_regime,`score ${r1(gd.bank_stress_score)}`,/TIGHTEN|STRESS/i.test(gd.bank_stress_regime||'')?'#f5b343':'#3fd68c'),
+    tile('Bank reserves',gd.reserves_to_gdp_pct==null?'—':`${r1(gd.reserves_to_gdp_pct)}% GDP`,resScarce?'⚠ scarcity zone':'adequate',resScarce?'#ff5c6c':'#3fd68c'),
+  ],'Leading labor, activity, consumer and bank-funding health — the slow-moving inputs that lead the cycle. Reserves below ~11% of GDP is the repo-stress pre-condition.');
+
   // ── liquidity row: net liquidity + squeeze + RORO ──
   h+=`<h2>Liquidity &amp; cross-asset risk</h2><div class="grid3">`;
   const nl=lq.net_liquidity;
@@ -285,6 +332,15 @@ function aiSection(d){
 
   // ── global liquidity ──
   h+=globalLiqPanel(d.global_liquidity);
+
+  // ── cross-asset risk & regime ──
+  const car=d.cross_asset_risk||{};const yc=car.yen_carry||{};const cr=car.correlation_regime||{};const tc=car.tic||{};const cc=car.commodity_curve||{};
+  h+=tileGrid('Cross-asset risk & regime',[
+    tile('Yen-carry unwind',yc.unwind_score==null?'—':`${r1(yc.unwind_score)}/100`,yc.unwind_label,(yc.unwind_score!=null&&yc.unwind_score>=50)?'#ff5c6c':(yc.unwind_score!=null&&yc.unwind_score>=30)?'#f5b343':'#3fd68c'),
+    tile('Correlation regime',cr.r20d,cr.r60d?`60d ${cr.r60d}`:'','#46c8ff'),
+    tile('Foreign UST demand',tc.regime,tc.note?String(tc.note).slice(0,38):'',/STRONG/i.test(tc.regime||'')?'#3fd68c':/STRESS|WEAK/i.test(tc.regime||'')?'#ff5c6c':'#46c8ff'),
+    tile('Commodity curve',cc.regime,cc.signal?String(cc.signal).slice(0,44):'','#46c8ff'),
+  ],(cr.top_alert?`⚠ ${cr.top_alert}. `:'')+(yc.trigger?`Yen trigger: ${yc.trigger}`:''));
 
   // ── stress ladder ──
   const C2=lq.components||{};
