@@ -473,6 +473,19 @@ def grade_track_record():
         if a["n"]:
             out["windows"][f"d{w}"] = {"n": a["n"], "hit_rate": round(a["wins"] / a["n"] * 100),
                                        "avg_excess": round(a["sx"] / a["n"], 1)}
+    # per-window maturity so the page can show 21/63-day as "maturing — X/N graded" rather than
+    # hiding the horizons that matter most for a re-rate thesis
+    out["maturity"] = {}
+    for w in windows:
+        pend = 0
+        for it in items:
+            lg = it.get("logged_at")
+            if not lg:
+                continue
+            tgt = (datetime.fromisoformat(str(lg)[:10]) + timedelta(days=w)).date().isoformat()
+            if tgt > today:
+                pend += 1
+        out["maturity"][f"d{w}"] = {"graded": agg[w]["n"], "pending": pend, "total": len(items)}
     try:
         S3.put_object(Bucket=BUCKET, Key="data/bottleneck-track-record.json",
                       Body=json.dumps(out).encode(), ContentType="application/json",
@@ -482,8 +495,99 @@ def grade_track_record():
     return out
 
 
-def _phi(z):
-    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+def log_targets(out_recs, top_calls):
+    """Log today's price targets to the signals table so they can be graded over time —
+    closing the loop on the valuation layer exactly like the boom calls. Idempotent per
+    ticker per day (signal_id carries the date)."""
+    try:
+        tbl = boto3.resource("dynamodb", region_name="us-east-1").Table("justhodl-signals")
+    except Exception as e:
+        print(f"[targets] table fail {str(e)[:60]}"); return 0
+    now = datetime.now(timezone.utc); today = now.date().isoformat()
+    n = 0
+    for tk in top_calls:
+        rec = out_recs.get(tk) or {}
+        fv = rec.get("fwd_val") or {}
+        base = fv.get("tp_base"); price = rec.get("price")
+        if not (base and price):
+            continue
+        try:
+            tbl.put_item(Item={
+                "signal_id":     f"bottleneck-target#{tk}#{today}",
+                "signal_type":   "bottleneck_target",
+                "ticker":        tk,
+                "logged_at":     now.isoformat(),
+                "logged_epoch":  int(now.timestamp()),
+                "baseline_price": str(price),
+                "target_base":   str(base),
+                "target_bull":   (str(fv["tp_bull"]) if fv.get("tp_bull") is not None else None),
+                "target_bear":   (str(fv["tp_bear"]) if fv.get("tp_bear") is not None else None),
+                "horizon_days":  63,
+                "growth_pct":    (str(fv["growth_1y_pct"]) if fv.get("growth_1y_pct") is not None else None),
+                "status":        "pending",
+                "ttl":           int(now.timestamp()) + 180 * 86400,
+            })
+            n += 1
+        except Exception as e:
+            print(f"[targets] put {tk} fail {str(e)[:50]}")
+    print(f"[targets] logged {n} targets")
+    return n
+
+
+def grade_targets():
+    """Did the price reach the base/bull target within the 63-day horizon? Hit-rate over
+    matured targets (point-in-time, peak price in the window vs the dated target). No look-ahead."""
+    try:
+        from boto3.dynamodb.conditions import Attr
+        tbl = boto3.resource("dynamodb", region_name="us-east-1").Table("justhodl-signals")
+        items = []; lek = None
+        for _ in range(8):
+            kw = dict(FilterExpression=Attr("signal_type").eq("bottleneck_target"), Limit=300)
+            if lek:
+                kw["ExclusiveStartKey"] = lek
+            r = tbl.scan(**kw); items += r.get("Items", []); lek = r.get("LastEvaluatedKey")
+            if not lek:
+                break
+    except Exception as e:
+        print(f"[targets] scan fail {str(e)[:60]}"); return None
+    if not items:
+        return None
+    today = datetime.now(timezone.utc).date().isoformat()
+    hist_cache = {}
+    n_graded = base_hit = bull_hit = n_pending = 0
+    sum_peak = 0.0
+    for it in items:
+        tk = it.get("ticker"); lg = it.get("logged_at")
+        try:
+            base_px = float(str(it.get("baseline_price")))
+            tgt_base = float(str(it.get("target_base")))
+            tgt_bull = float(str(it.get("target_bull"))) if it.get("target_bull") else None
+            hz = int(it.get("horizon_days") or 63)
+        except Exception:
+            continue
+        if not (tk and lg and base_px and tgt_base):
+            continue
+        d_log = str(lg)[:10]
+        end = (datetime.fromisoformat(d_log) + timedelta(days=hz)).date().isoformat()
+        if end > today:
+            n_pending += 1; continue
+        if tk not in hist_cache:
+            hist_cache[tk] = _hist_map(tk)
+        sm = hist_cache[tk]
+        window = [v for d, v in sm.items() if d_log <= d <= end]
+        if not window:
+            n_pending += 1; continue
+        peak = max(window)
+        n_graded += 1
+        if peak >= tgt_base: base_hit += 1
+        if tgt_bull and peak >= tgt_bull: bull_hit += 1
+        sum_peak += (peak / base_px - 1) * 100
+    out = {"n_targets": len(items), "n_graded": n_graded, "n_pending": n_pending, "horizon_days": 63}
+    if n_graded:
+        out["base_hit_rate"] = round(base_hit / n_graded * 100)
+        out["bull_hit_rate"] = round(bull_hit / n_graded * 100)
+        out["avg_peak_move_pct"] = round(sum_peak / n_graded, 1)
+    return out
 
 
 def pressure_percentiles(industry_pressure):
@@ -801,12 +905,19 @@ def lambda_handler(event=None, context=None):
 
     # --- #1 track record (forward test vs SPY) ---
     track = grade_track_record()
+    # log today's price targets + grade matured ones (closes the loop on the valuation layer)
+    try:
+        log_targets(out, top_calls)
+        target_record = grade_targets()
+    except Exception as e:
+        print(f"[targets] loop fail {str(e)[:80]}"); target_record = None
 
     payload = {
         "engine": "bottleneck-research", "version": VERSION,
         "generated_at": now.isoformat(), "source_generated_at": src.get("generated_at"),
         "n": len(out), "new_theses": new_theses, "duration_s": round(time.time() - t0, 1),
         "concentration": concentration, "changes": changes, "track_record": track,
+        "target_record": target_record,
         "pressure_pctiles": pgr_pct,
         "by_ticker": out,
     }
