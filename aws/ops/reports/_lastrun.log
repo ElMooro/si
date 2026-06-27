@@ -1,9 +1,23 @@
-1) nogen read of WARM ticker (BMNR) — expect 200 + doc, fast
-   status=200 0.7s hasDoc=True
-2) nogen read of MISSING ticker (ZZTOP9) — expect fast 404/403, NO generation
-   status=403 0.5s body={"error":"upstream not ok","status":403,"path":"equity-research/ZZTOP9.json"}
-3) async trigger of a cold-ish ticker (PLTR) — expect FAST 202 'generating'
-   status=202 0.5s body={"status":"generating","ticker":"PLTR"}
-4) immediate nogen poll of PLTR right after trigger — likely 404 first, will fill in
-   status=403 0.1s not yet
-DONE 2284
+polling PLTR via nogen (cold-ticker triggered earlier)...
+  poll 0: 403 not yet
+  poll 1: 403 not yet
+  poll 2: 403 not yet
+  poll 3: 403 not yet
+  poll 4: 403 not yet
+  poll 5: 403 not yet
+  poll 6: 403 not yet
+  poll 7: 403 not yet
+  poll 8: 403 not yet
+  poll 9: 403 not yet
+  poll 10: 403 not yet
+  poll 11: 403 not yet
+  poll 12: 403 not yet
+  poll 13: 403 not yet
+  poll 14: 403 not yet
+  poll 15: 403 not yet
+  poll 16: 403 not yet
+  poll 17: 403 not yet
+  poll 18: 403 not yet
+  poll 19: 403 not yet
+RESULT: not landed in window (Lambda still running)
+DONE 2285
