@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.0"
+VERSION = "2.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -124,6 +124,28 @@ QUAD_ASSETS = {
 }
 
 
+COORD_PHASE = {"GOLDILOCKS": ("MID CYCLE", 2), "OVERHEAT": ("LATE-MID CYCLE", 2.5),
+               "STAGFLATION": ("LATE CYCLE", 3), "DOWNTURN": ("DOWNTURN", 4)}
+
+
+def _net_liquidity():
+    """Fed net liquidity = balance sheet − reverse repo − Treasury General Account, with the
+    13-week change. WALCL is $millions, RRP/TGA are $billions — normalize all to $trillions."""
+    walcl = _fred("WALCL", start="2017-01-01")
+    rrp = _fred("RRPONTSYD", start="2017-01-01")
+    tga = _fred("WTREGEN", start="2017-01-01")
+    if not walcl:
+        return None
+    def last(p): return p[-1][1] if p else 0.0
+    def back(p, n): return p[-(n + 1)][1] if len(p) > n else (p[0][1] if p else 0.0)
+    w, r, t = last(walcl) / 1e6, last(rrp) / 1e3, last(tga) / 1e3
+    w13, r13, t13 = back(walcl, 13) / 1e6, back(rrp, 65) / 1e3, back(tga, 13) / 1e3
+    net, net13 = w - r - t, w13 - r13 - t13
+    return {"walcl_tn": round(w, 3), "rrp_tn": round(r, 3), "tga_tn": round(t, 3),
+            "net_tn": round(net, 3), "net_13w_delta_bn": round((net - net13) * 1000, 1),
+            "as_of": walcl[-1][0]}
+
+
 QUAD_PHASE = {
     "REFLATION":      ("EARLY CYCLE",   1, "growth recovering, inflation rising off lows"),
     "GOLDILOCKS":     ("MID CYCLE",     2, "growth firm, inflation contained — the sweet spot"),
@@ -170,6 +192,9 @@ def lambda_handler(event, context):
     secrot = load("data/sector-rotation.json", "sector_rotation")
     rcomp = load("data/regime-composite.json", "regime_composite")
     fomc = load("data/fomc-reaction.json", "fomc_reaction")
+    sovf = load("data/sovereign-fiscal.json", "sovereign_fiscal")
+    sfails = load("data/settlement-fails.json", "settlement_fails")
+    analogs_d = load("data/historical-analogs.json", "historical_analogs")
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
     quad = _get(reg, "current", "quadrant")
@@ -253,6 +278,9 @@ def lambda_handler(event, context):
         "nowcast_regime": nowcast_regime, "macro_liquidity_state": liq_state_macro,
         "next_3m_quadrant_odds": next3,
         "coordinates": coord, "trail": trail, "quadrant_2d": quad2d,
+        "headline_quadrant": quad2d or quad,
+        "headline_phase": (COORD_PHASE.get(quad2d, (phase_label, phase_n))[0] if quad2d else phase_label),
+        "macro_regime_quadrant": quad,
         "surprise_tilt": surprise, "asset_leadership": assets,
         "recession_prob_pct": recession_prob,
         "yield_curve_regime": yc_regime, "credit_regime": cr_regime,
@@ -298,6 +326,13 @@ def lambda_handler(event, context):
     gstress_pctile = _get(gstress, "stress_momentum", "percentile")
     if isinstance(gstress_pctile, (int, float)) and gstress_pctile >= 60:
         flickers.append(f"global stress {gstress_pctile}th pctile (elevated)")
+    # Fed net-liquidity decomposition + settlement-fails collateral flicker (Phase 2)
+    netliq = _net_liquidity()
+    if netliq and isinstance(netliq.get("net_13w_delta_bn"), (int, float)) and netliq["net_13w_delta_bn"] < -40:
+        flickers.append(f"Fed net liquidity {netliq['net_13w_delta_bn']}B/13w (draining: TGA/RRP)")
+    sf_sig = _get(sfails, "signal")
+    if sf_sig and str(sf_sig).upper() in ("ELEVATED", "HIGH", "ACUTE", "STRESS", "STRAINED"):
+        flickers.append(f"settlement fails {sf_sig} — {_get(sfails, 'headline', 'collateral scarcity')}")
 
     squeeze = round(min(100, (base_squeeze or 0) + direction_mod), 1) if base_squeeze is not None else None
     def squeeze_level(s):
@@ -316,6 +351,7 @@ def lambda_handler(event, context):
         "aggregate_liquidity_regime": _get(gliq, "regime"),
         "aggregate_liquidity_read": _get(gliq, "regime_read"),
         "impulse_13w_pct": impulse, "flow_regime": flow_regime, "net_30d_bn": net_30d,
+        "net_liquidity": netliq,
         "flickers": flickers,
         "components": {"global_stress": gstress_idx, "crisis_composite": crisis_score,
                        "plumbing_health": plumb_health, "funding_stress": fund_stress,
@@ -365,7 +401,7 @@ def lambda_handler(event, context):
                  "RISING": "liquidity tightening", "ELEVATED": "liquidity stress building",
                  "HIGH": "liquidity squeeze underway", "ACUTE": "acute liquidity squeeze",
                  "UNKNOWN": "liquidity read unavailable"}.get(sq_level, "")
-    fav = (" Historically favours " + ", ".join(assets["lead"][:2]).lower() + ".") if assets else ""
+    fav = (f" Coordinates sit in {quad2d.title()} — historically favours " + ", ".join(assets["lead"][:2]).lower() + ".") if (assets and quad2d) else ""
     roro_clause = f", RORO {risk['read']}" if roro is not None else ""
     verdict = (f"{phase_label} ({quad.lower() if quad else 'regime n/a'}, growth {growth_dir}, inflation {infl_dir}"
                f"{', valuation/leverage froth' if len(froth) >= 2 else ''}) — "
@@ -384,6 +420,13 @@ def lambda_handler(event, context):
         "verdict": verdict,
         "cycle": cycle,
         "risk": risk,
+        "analogs": {
+            "nearest": (_get(analogs_d, "analogs", default=[]) or [])[:3],
+            "forward_distribution": _get(analogs_d, "forward_distribution"),
+            "directional_call": _get(analogs_d, "directional_call"),
+            "directional_description": _get(analogs_d, "directional_description"),
+            "unprecedentedness": _get(analogs_d, "unprecedentedness"),
+        },
         "liquidity": liquidity,
         "divergences": divergences,
         "falsifier": falsifier,
