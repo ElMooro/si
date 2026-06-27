@@ -23,12 +23,18 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.1"
+VERSION = "2.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
 import boto3
 s3 = boto3.client("s3", "us-east-1")
+
+import concurrent.futures as _cf
+try:
+    from llm_router import complete as _llm
+except Exception:
+    _llm = None
 
 
 def _read(key):
@@ -146,6 +152,55 @@ def _net_liquidity():
             "as_of": walcl[-1][0]}
 
 
+def _sahm():
+    """Sahm recession trigger: 3-mo avg unemployment minus its trailing-12-mo low. ≥0.50 = recession."""
+    u = _fred("UNRATE", start="2017-01-01")
+    if len(u) < 15:
+        return None
+    vals = [v for _, v in u]
+    sahm = round(mean(vals[-3:]) - min(vals[-12:]), 2)
+    return {"value": sahm, "triggered": sahm >= 0.5, "as_of": u[-1][0]}
+
+
+def _ai_synthesis(state):
+    """Heavy AI read: feed the full structured state to GLM (tier=reason, GLM-5.1; Claude fallback)
+    and get back a buy-side strategist's synthesis as JSON."""
+    if _llm is None:
+        return None
+    SYSTEM = ("You are a senior buy-side macro strategist writing the daily Cycle & Liquidity read for a "
+              "portfolio manager. You receive a structured state assembled from quantitative engines. Write a "
+              "sharp, honest, specific synthesis: cite the actual numbers, name the key tension explicitly, "
+              "and never invent data that is not in the state. Acknowledge uncertainty and any unprecedentedness "
+              "caveat (reduce conviction when the configuration is historically unusual). No price targets, no "
+              "hype. Return ONLY valid minified JSON, no markdown, no commentary outside the JSON.")
+    prompt = ("STATE (JSON):\n" + json.dumps(state, default=str) +
+              "\n\nReturn ONLY this JSON schema, filled from the state:\n"
+              '{"executive_read":"4-5 sentence synthesis: where we are in the cycle, the single most important '
+              'tension, what the liquidity backdrop adds, and what it means for risk",'
+              '"regime_call":"short decisive label + one clause",'
+              '"bull_case":["2-3 specific points grounded in the numbers"],'
+              '"bear_case":["2-3 specific points grounded in the numbers"],'
+              '"positioning":{"own":["assets/sectors to favour, tied to the quadrant and confirmed by the data"],'
+              '"reduce":["assets to trim or avoid"],"sizing":"one line on conviction and sizing given the '
+              'unprecedentedness/divergences"},'
+              '"watch":["3 specific, falsifiable triggers that would change the read"],'
+              '"divergence_reads":["one plain-English sentence per key divergence explaining why it matters"],'
+              '"liquidity_read":"1-2 sentences on net liquidity direction + any draining flickers",'
+              '"bottom_line":"one decisive sentence a PM can act on today"}')
+    try:
+        raw = _llm(prompt, tier="reason", max_tokens=1500, system=SYSTEM) or ""
+        txt = raw.strip()
+        if txt.startswith("```"):
+            txt = txt.split("```", 2)[1]
+            txt = txt[4:] if txt.startswith("json") else txt
+        i, j = txt.find("{"), txt.rfind("}")
+        if i >= 0 and j > i:
+            return json.loads(txt[i:j + 1])
+    except Exception as e:
+        print(f"[cycle-clock] AI synthesis failed: {str(e)[:140]}")
+    return None
+
+
 QUAD_PHASE = {
     "REFLATION":      ("EARLY CYCLE",   1, "growth recovering, inflation rising off lows"),
     "GOLDILOCKS":     ("MID CYCLE",     2, "growth firm, inflation contained — the sweet spot"),
@@ -195,6 +250,9 @@ def lambda_handler(event, context):
     sovf = load("data/sovereign-fiscal.json", "sovereign_fiscal")
     sfails = load("data/settlement-fails.json", "settlement_fails")
     analogs_d = load("data/historical-analogs.json", "historical_analogs")
+    vixc = load("data/vix-curve.json", "vix_curve")
+    dollar = load("data/dollar-radar.json", "dollar_radar")
+    epsrev = load("data/eps-revision-velocity.json", "eps_revisions")
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
     quad = _get(reg, "current", "quadrant")
@@ -268,6 +326,14 @@ def lambda_handler(event, context):
         if str(sr_app).upper() in ("RISK-OFF", "DEFENSIVE", "DEFENSIVE LEADERSHIP"):
             rp_votes += 15
     recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
+    sahm = _sahm()
+    yc_decomp = {"real_10y_bps": _get(ycurve, "real_yields", "10y") or _get(ycurve, "decomposition", "real_10y_bps"),
+                 "breakeven_10y_bps": _get(ycurve, "inflation_expectations", "10y") or _get(ycurve, "decomposition", "breakeven_10y_bps"),
+                 "term_premium_bps": _get(ycurve, "term_premium_proxy_bps"),
+                 "spreads_bps": _get(ycurve, "spreads_bps")}
+    vol_regime = _get(vixc, "composite_regime")
+    dollar_regime = _get(dollar, "regime") or _get(dollar, "regime_note")
+    eps_breadth = _get(epsrev, "breadth_pct") or _get(epsrev, "net_revision_breadth") or _get(epsrev, "summary")
 
     cycle = {
         "phase": phase_label, "phase_n": phase_n, "quadrant": quad, "description": phase_desc,
@@ -283,7 +349,10 @@ def lambda_handler(event, context):
         "macro_regime_quadrant": quad,
         "surprise_tilt": surprise, "asset_leadership": assets,
         "recession_prob_pct": recession_prob,
-        "yield_curve_regime": yc_regime, "credit_regime": cr_regime,
+        "sahm": sahm,
+        "yield_curve_regime": yc_regime, "yield_curve_decomp": yc_decomp,
+        "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,
+        "credit_regime": cr_regime,
         "sector_risk_appetite": sr_app, "regime_composite": _get(rcomp, "meta_regime"),
     }
 
@@ -401,23 +470,67 @@ def lambda_handler(event, context):
                  "RISING": "liquidity tightening", "ELEVATED": "liquidity stress building",
                  "HIGH": "liquidity squeeze underway", "ACUTE": "acute liquidity squeeze",
                  "UNKNOWN": "liquidity read unavailable"}.get(sq_level, "")
-    fav = (f" Coordinates sit in {quad2d.title()} — historically favours " + ", ".join(assets["lead"][:2]).lower() + ".") if (assets and quad2d) else ""
+    fav = (" Historically favours " + ", ".join(assets["lead"][:2]).lower() + ".") if (assets and quad2d) else ""
     roro_clause = f", RORO {risk['read']}" if roro is not None else ""
-    verdict = (f"{phase_label} ({quad.lower() if quad else 'regime n/a'}, growth {growth_dir}, inflation {infl_dir}"
-               f"{', valuation/leverage froth' if len(froth) >= 2 else ''}) — "
-               f"{sq_phrase}, squeeze risk {sq_level} ({squeeze}){roro_clause}. "
-               + ("Real divergence to watch: " + divergences[0].split(':')[0] + "." if divergences else "")
+    head_ph = (COORD_PHASE.get(quad2d, (phase_label, phase_n))[0] if quad2d else phase_label)
+    reg_note = (f" (macro-regime model still reads {quad.lower()})" if (quad2d and quad and quad.upper() != quad2d) else "")
+    rec_note = (f", recession-prob {recession_prob}%" if recession_prob is not None else "")
+    verdict = (f"{head_ph} — coordinates in {quad2d.title() if quad2d else 'n/a'} "
+               f"(growth z {g_now if g_now is not None else '—'}, inflation z {i_now if i_now is not None else '—'})"
+               f"{reg_note}. {sq_phrase}, squeeze risk {sq_level} ({squeeze}){roro_clause}{rec_note}."
+               + (" Key divergence: " + divergences[0].split(':')[0] + "." if divergences else "")
                + fav)
 
     falsifier = ("Cycle call flips if the macro-regime quadrant rotates out of STAGFLATION (→ GOLDILOCKS/REFLATION = "
                  "re-acceleration, or → DEFLATION-BUST = downturn). Squeeze-risk escalates if plumbing health breaks "
                  "below ~70, funding stress > 40, or crisis composite leaves DEFCON 4 — none of which is true now.")
 
+    # ───────────────── HEAVY AI SYNTHESIS (GLM via llm_router, bounded) ─────────────────
+    near3 = (_get(analogs_d, "analogs", default=[]) or [])[:3]
+    ai_state = {
+        "as_of": datetime.now(timezone.utc).date().isoformat(),
+        "cycle": {
+            "headline_phase": cycle.get("headline_phase"), "quadrant": cycle.get("quadrant_2d"),
+            "growth_z": g_now, "inflation_z": i_now, "trail_recent": (trail[-4:] if trail else []),
+            "macro_regime_model": cycle.get("macro_regime_quadrant"),
+            "us_cycle": f"{us_score} {us_level}", "global_phase": cycle.get("global_phase"),
+            "global_cli": cycle.get("global_avg_cli"), "global_breadth_pct": cycle.get("global_expansion_breadth_pct"),
+            "nowcast": cycle.get("nowcast_regime"), "froth_markers": cycle.get("froth_markers"),
+            "recession_prob_pct": recession_prob, "sahm": sahm,
+            "yield_curve": yc_regime, "yield_curve_decomp": yc_decomp, "credit": cr_regime,
+            "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,
+            "surprise_tilt": surprise, "next_3m_quadrant_odds": next3,
+        },
+        "asset_leadership": assets,
+        "risk": {"roro_score": roro, "read": risk.get("read"), "posture": risk.get("posture"),
+                 "tells": risk.get("tells"), "fomc_context": risk.get("fomc_context")},
+        "liquidity": {"squeeze_score": squeeze, "level": sq_level,
+                      "aggregate_regime": liquidity.get("aggregate_liquidity_regime"),
+                      "net_liquidity": netliq, "flickers": flickers,
+                      "stress_stack": liquidity.get("components")},
+        "analogs": {"nearest": [{"date": a.get("date"), "similarity": a.get("similarity"),
+                                 "fwd_63d_pct": a.get("forward_63d_pct")} for a in near3],
+                    "directional_call": _get(analogs_d, "directional_call"),
+                    "unprecedentedness": _get(analogs_d, "unprecedentedness")},
+        "divergences": divergences,
+    }
+    ai = None
+    if _llm is not None:
+        _ex = _cf.ThreadPoolExecutor(max_workers=1)
+        try:
+            ai = _ex.submit(_ai_synthesis, ai_state).result(timeout=75)
+        except Exception as e:
+            print(f"[cycle-clock] AI bounded-call failed: {str(e)[:100]}")
+        finally:
+            _ex.shutdown(wait=False)
+    print(f"[cycle-clock] AI synthesis: {'OK' if ai else 'unavailable'}")
+
     out = {
         "engine": "cycle-clock", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "verdict": verdict,
+        "ai": ai,
         "cycle": cycle,
         "risk": risk,
         "analogs": {
