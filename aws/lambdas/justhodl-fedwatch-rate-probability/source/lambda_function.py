@@ -341,16 +341,24 @@ def lambda_handler(event=None, context=None):
             "rate_buckets_pct": fed_funds_rate_buckets(current_mid),
         })
 
-    # 4) Aggregate dominant scenario for next 6 months
+    # 4) Aggregate dominant scenario over the reliable near-term meetings.
+    # Distant ZQ contracts are thinly traded — a single-meeting implied move > ~60bps is
+    # physically implausible (the Fed moves in 25bp steps), so we trust only the liquid
+    # prefix: walk meetings in date order and stop at the first implausible jump.
     next_six = [m for m in out_meetings
                   if m.get("status") == "ok"
                      and m.get("days_until", 0) <= 180]
     if next_six:
-        total_implied_move_bps = next_six[-1].get("cumulative_from_today_bps",
-                                       sum(m["implied_move_bps"] for m in next_six))
-        avg_implied_move = (total_implied_move_bps / len(next_six)
-                                if next_six else 0)
-        if total_implied_move_bps <= -50:
+        cum = 0; n_reliable = 0
+        for m in next_six:
+            if abs(m.get("implied_move_bps", 0)) > 60:
+                break
+            cum += m["implied_move_bps"]; n_reliable += 1
+        total_implied_move_bps = cum
+        avg_implied_move = (total_implied_move_bps / n_reliable) if n_reliable else 0
+        if n_reliable == 0:
+            scenario = "INSUFFICIENT_DATA"
+        elif total_implied_move_bps <= -50:
             scenario = "AGGRESSIVE_CUTTING"
         elif total_implied_move_bps <= -25:
             scenario = "MODERATE_CUTTING"
@@ -363,6 +371,7 @@ def lambda_handler(event=None, context=None):
     else:
         total_implied_move_bps = None
         avg_implied_move = None
+        n_reliable = 0
         scenario = "INSUFFICIENT_DATA"
 
     output = {
@@ -377,6 +386,7 @@ def lambda_handler(event=None, context=None):
         "next_6mo_summary": {
             "scenario": scenario,
             "cumulative_implied_move_bps": total_implied_move_bps,
+            "n_reliable_meetings": n_reliable,
             "avg_implied_move_per_meeting_bps": (
                 round(avg_implied_move, 1)
                 if avg_implied_move is not None else None),
