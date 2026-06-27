@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.8"
+VERSION = "2.9"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -132,6 +132,29 @@ QUAD_ASSETS = {
 
 COORD_PHASE = {"GOLDILOCKS": ("MID CYCLE", 2), "OVERHEAT": ("LATE-MID CYCLE", 2.5),
                "STAGFLATION": ("LATE CYCLE", 3), "DOWNTURN": ("DOWNTURN", 4)}
+
+# what observable change would neutralise each synthesis driver — makes the read falsifiable
+FLIP = {
+    "Liquidity-pulse draining": "the liquidity pulse turns from draining to neutral/expanding",
+    "Bank-reserve scarcity": "bank reserves climb back above ~11% of GDP",
+    "Recession-prob composite": "the recession-prob composite falls back below 25%",
+    "Leading labor weakening": "leading labor stabilises or re-accelerates",
+    "Retail euphoria (contrarian)": "AAII bulls reset out of the euphoric extreme",
+    "Smart money distributing": "COT smart-money flips from distributing to accumulating",
+    "Credit complacency": "credit spreads widen out of rich territory",
+    "Bond-vol complacency": "MOVE lifts off its suppressed lows",
+    "Tail risk elevated": "the option-implied tail gauge falls back below ~40",
+    "Fed turning hawkish": "Fed drift neutralises and futures stop pricing hikes",
+    "Yen-carry unwind risk": "yen-carry unwind pressure eases",
+    "Tape contradicts regime": "the tape starts confirming the quadrant prescription",
+    "Global cycle expanding": "the global cycle rolls from expansion to contraction",
+    "Activity nowcast expanding": "the activity nowcast turns to contraction",
+    "Credit spreads benign": "credit spreads turn stressed",
+    "Fed net liquidity rising": "Fed net liquidity rolls over",
+    "Cross-asset RORO risk-on": "cross-asset RORO flips back to risk-off",
+    "Macro regime constructive": "the macro regime turns defensive",
+    "Breadth thrust firing": "the breadth thrust fades",
+}
 
 
 def _net_liquidity():
@@ -918,6 +941,15 @@ def lambda_handler(event, context):
         "n_risk_off": len([c for c in contribs if c["side"] < 0]),
         "n_risk_on": len([c for c in contribs if c["side"] > 0]),
     }
+    _dominant = bearish if score < 0 else bullish
+    _flips = [FLIP[c["label"]] for c in _dominant[:5] if c["label"] in FLIP]
+    synthesis["what_flips_it"] = {
+        "direction": "toward risk-on" if score < 0 else "toward risk-off",
+        "conditions": _flips,
+        "note": (f"This {posture.lower()} read neutralises toward NEUTRAL if roughly half of these reverse; "
+                 f"a full flip needs the net tally to cross {'+15' if score < 0 else '−15'} (now {score:+d}).")
+        if _flips else None,
+    }
 
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
@@ -1024,6 +1056,17 @@ def lambda_handler(event, context):
     except Exception as e:
         print(f"[cycle-clock] track_record failed: {str(e)[:100]}")
 
+    # ── data integrity: how trustworthy is this synthesis given input freshness ──
+    _missing = [k for k, v in avail.items() if v == "MISSING"]
+    _stale_lbls = {s.split(" ")[0] for s in stale}
+    _total = len(avail)
+    _fresh = sum(1 for k, v in avail.items() if v != "MISSING" and k not in _stale_lbls)
+    data_integrity = {
+        "n_sources": _total, "n_fresh": _fresh, "n_stale": len(stale), "n_missing": len(_missing),
+        "integrity_pct": round(100 * _fresh / _total) if _total else None,
+        "stale": stale[:14], "missing": _missing[:14],
+    }
+
     out = {
         "engine": "cycle-clock", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1032,6 +1075,7 @@ def lambda_handler(event, context):
         "synthesis": synthesis,
         "trajectory": trajectory,
         "track_record": track_record,
+        "data_integrity": data_integrity,
         "ai": ai,
         "cycle": cycle,
         "risk": risk,
