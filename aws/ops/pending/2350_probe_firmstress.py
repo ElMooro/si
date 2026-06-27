@@ -1,0 +1,13 @@
+import boto3, json
+s3=boto3.client("s3","us-east-1")
+d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/firm-stress.json")["Body"].read())
+print("top keys:", list(d.keys()))
+print("posture:", json.dumps(d.get("posture"))[:150])
+print("headline:", json.dumps(d.get("headline"))[:200])
+rs=d.get("reverse_stress")
+print("\nreverse_stress type:", type(rs).__name__)
+print("reverse_stress:", json.dumps(rs)[:600])
+print("\nscenarios type:", type(d.get('scenarios')).__name__, "| sample:", json.dumps(d.get('scenarios'))[:300])
+print("\nloss_limits:", json.dumps(d.get("loss_limits"))[:200])
+print("summary:", json.dumps(d.get("summary"))[:250])
+print("DONE 2350")
