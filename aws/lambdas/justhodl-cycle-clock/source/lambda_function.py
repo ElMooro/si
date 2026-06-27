@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "1.0"
+VERSION = "2.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -54,6 +54,76 @@ def _get(d, *path, default=None):
 
 
 # macro-regime quadrant → investment-clock phase
+import urllib.request, urllib.parse
+from statistics import mean, pstdev
+
+FRED_KEY = "2f057499936072679d8843d7fce99989"
+
+
+def _fred(series, start="2006-01-01"):
+    try:
+        u = "https://api.stlouisfed.org/fred/series/observations?" + urllib.parse.urlencode(
+            {"series_id": series, "api_key": FRED_KEY, "file_type": "json", "observation_start": start})
+        j = json.loads(urllib.request.urlopen(u, timeout=12).read())
+        return [(o["date"], float(o["value"])) for o in j.get("observations", [])
+                if o.get("value") not in (None, ".", "")]
+    except Exception:
+        return []
+
+
+def _yoy(pts):
+    d = dict(pts); ks = sorted(d); out = []
+    for i, k in enumerate(ks):
+        if i >= 12 and d[ks[i - 12]]:
+            out.append((k, d[k] / d[ks[i - 12]] - 1.0))
+    return out
+
+
+def _z_series(pts, lb=120):
+    vals = [v for _, v in pts]; dates = [d for d, _ in pts]; out = []
+    for i in range(len(vals)):
+        if i < 24:
+            continue
+        w = vals[max(0, i - lb + 1):i + 1]
+        m = mean(w); sd = pstdev(w) if len(w) > 1 else 0
+        out.append((dates[i], round((vals[i] - m) / sd, 2) if sd else 0.0))
+    return out
+
+
+def _coord_series():
+    """Monthly growth_z & inflation_z from FRED momentum (industrial production + payrolls for
+    growth; headline CPI + core PCE for inflation), aligned → last ~13 months for the trail + now."""
+    def blend(a, b):
+        da, db = dict(a), dict(b); ks = sorted(set(da) & set(db))
+        return {k: round((da[k] + db[k]) / 2, 2) for k in ks}
+    g = blend(_z_series(_yoy(_fred("INDPRO"))), _z_series(_yoy(_fred("PAYEMS"))))
+    f = blend(_z_series(_yoy(_fred("CPIAUCSL"))), _z_series(_yoy(_fred("PCEPILFE"))))
+    ks = sorted(set(g) & set(f))[-13:]
+    return [{"m": k[:7], "g": g[k], "i": f[k]} for k in ks]
+
+
+def _quad2d(g, i):
+    if g is None or i is None:
+        return None
+    if g >= 0 and i < 0:  return "GOLDILOCKS"
+    if g >= 0 and i >= 0: return "OVERHEAT"
+    if g < 0 and i >= 0:  return "STAGFLATION"
+    return "DOWNTURN"
+
+
+# historical asset leadership by clock quadrant (Merrill investment-clock canon)
+QUAD_ASSETS = {
+    "GOLDILOCKS":  {"clock": "Recovery",    "lead": ["Equities — cyclicals & tech", "High-yield credit", "EM equities"],
+                    "lag": ["Cash", "Long-duration Treasuries"]},
+    "OVERHEAT":    {"clock": "Overheat",     "lead": ["Commodities — energy & materials", "Value / cyclical equities", "TIPS / inflation hedges"],
+                    "lag": ["Long Treasuries", "Long-duration growth"]},
+    "STAGFLATION": {"clock": "Stagflation",  "lead": ["Cash / T-bills", "Gold", "Energy & commodities", "Defensives — staples, utilities, healthcare"],
+                    "lag": ["Long-duration equities", "High-yield credit"]},
+    "DOWNTURN":    {"clock": "Reflation",    "lead": ["Long Treasuries — duration", "Gold", "Quality / defensive equities"],
+                    "lag": ["Cyclicals", "High-yield credit", "Commodities"]},
+}
+
+
 QUAD_PHASE = {
     "REFLATION":      ("EARLY CYCLE",   1, "growth recovering, inflation rising off lows"),
     "GOLDILOCKS":     ("MID CYCLE",     2, "growth firm, inflation contained — the sweet spot"),
@@ -93,6 +163,13 @@ def lambda_handler(event, context):
     gstress = load("data/global-stress.json", "global_stress")
     sysstress = load("data/systemic-stress.json", "systemic_stress")
     rmap = load("data/regime-map.json", "risk_map")
+    rrisk = load("data/risk-regime.json", "risk_regime")
+    msurp = load("data/macro-surprise.json", "macro_surprise")
+    ycurve = load("data/yield-curve.json", "yield_curve")
+    credit = load("data/credit-stress.json", "credit_stress")
+    secrot = load("data/sector-rotation.json", "sector_rotation")
+    rcomp = load("data/regime-composite.json", "regime_composite")
+    fomc = load("data/fomc-reaction.json", "fomc_reaction")
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
     quad = _get(reg, "current", "quadrant")
@@ -126,6 +203,47 @@ def lambda_handler(event, context):
                       len(froth) >= 2])
     cycle_conf = "high" if late_votes >= 3 else "moderate" if late_votes == 2 else "low"
 
+    # ── 2D growth×inflation coordinates + 12-month trail (FRED momentum z) ──
+    trail = _coord_series()
+    coord = trail[-1] if trail else None
+    g_now = coord["g"] if coord else None
+    i_now = coord["i"] if coord else None
+    quad2d = _quad2d(g_now, i_now)
+    # data-surprise tilt (macro-surprise engine) — complementary near-term read
+    surprise = {"growth_z": _get(msurp, "growth_z"), "inflation_z": _get(msurp, "inflation_z"),
+                "composite_z": _get(msurp, "composite_z"), "regime": _get(msurp, "regime")}
+    # asset leadership for the current quadrant (canonical clock) + system playbook leaders
+    assets = None
+    if quad2d in QUAD_ASSETS:
+        a = QUAD_ASSETS[quad2d]
+        leaders = _get(play, "proven_signal_leaders", default=[])
+        assets = {"clock_phase": a["clock"], "lead": a["lead"], "lag": a["lag"],
+                  "system_leaders": leaders[:5] if isinstance(leaders, list) else []}
+    # recession-probability composite (yield curve + credit + nowcast + sector rotation)
+    rp_votes, rp_max = 0.0, 0.0
+    yc_regime = _get(ycurve, "regime"); yc_inv = _get(ycurve, "inversion_flags", default={})
+    if yc_regime is not None:
+        rp_max += 35
+        if "INVERT" in str(yc_regime).upper() or (isinstance(yc_inv, dict) and any(yc_inv.values())):
+            rp_votes += 35
+        elif "BULL" in str(yc_regime).upper() and "STEEP" in str(yc_regime).upper():
+            rp_votes += 20
+    cr_regime = _get(credit, "composite_regime")
+    if cr_regime is not None:
+        rp_max += 25
+        if str(cr_regime).upper() in ("STRESS", "WIDENING", "ELEVATED", "RISK-OFF"):
+            rp_votes += 25
+    if nowcast_regime is not None:
+        rp_max += 25
+        if nowcast_regime in ("SLOWING", "CONTRACTION RISK"):
+            rp_votes += (25 if nowcast_regime == "CONTRACTION RISK" else 12)
+    sr_app = _get(secrot, "risk_appetite")
+    if sr_app is not None:
+        rp_max += 15
+        if str(sr_app).upper() in ("RISK-OFF", "DEFENSIVE", "DEFENSIVE LEADERSHIP"):
+            rp_votes += 15
+    recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
+
     cycle = {
         "phase": phase_label, "phase_n": phase_n, "quadrant": quad, "description": phase_desc,
         "growth_direction": growth_dir, "inflation_direction": infl_dir,
@@ -134,6 +252,11 @@ def lambda_handler(event, context):
         "global_phase": gbc_phase, "global_avg_cli": gbc_cli, "global_expansion_breadth_pct": gbc_expansion_breadth,
         "nowcast_regime": nowcast_regime, "macro_liquidity_state": liq_state_macro,
         "next_3m_quadrant_odds": next3,
+        "coordinates": coord, "trail": trail, "quadrant_2d": quad2d,
+        "surprise_tilt": surprise, "asset_leadership": assets,
+        "recession_prob_pct": recession_prob,
+        "yield_curve_regime": yc_regime, "credit_regime": cr_regime,
+        "sector_risk_appetite": sr_app, "regime_composite": _get(rcomp, "meta_regime"),
     }
 
     # ──────────────────── LIQUIDITY-SQUEEZE RISK ────────────────────
@@ -201,6 +324,18 @@ def lambda_handler(event, context):
                        "global_stress_level": _get(gstress, "global_stress_level")},
     }
 
+    # ──────────────────── CROSS-ASSET RISK (RORO) ────────────────────
+    roro = num(_get(rrisk, "risk_regime_score"))
+    risk = {
+        "roro_score": roro,
+        "regime": _get(rrisk, "risk_regime"),
+        "posture": _get(rrisk, "posture"),
+        "components": _get(rrisk, "components"),
+        "tells": _get(rrisk, "tells"),
+        "read": ("risk-on" if (roro or 0) > 15 else "risk-off" if (roro or 0) < -15 else "neutral"),
+        "fomc_context": _get(fomc, "regime_context"),
+    }
+
     # ───────────────────────── DIVERGENCES ─────────────────────────
     divergences = []
     if gbc_phase and "EXPANSION" in str(gbc_phase) and quad in ("STAGFLATION", "DEFLATION-BUST"):
@@ -218,16 +353,25 @@ def lambda_handler(event, context):
         if spy3 is not None:
             divergences.append(f"COUNTERINTUITIVE: growth nowcast is SLOWING, but historically SLOWING preceded "
                                f"SPY +{spy3}% median over 3m — slowing has not meant down for equities.")
+    if roro is not None and roro > 15 and recession_prob is not None and recession_prob >= 50:
+        divergences.append(f"RISK-vs-MACRO SPLIT: cross-asset RORO is risk-on ({roro:+.0f}) while the recession-"
+                           f"probability composite is {recession_prob}% — markets price benign, the curve/credit/cycle stack does not.")
+    if roro is not None and roro < -15 and quad2d == "GOLDILOCKS":
+        divergences.append(f"RISK-vs-CYCLE SPLIT: the cycle reads goldilocks but cross-asset RORO is risk-off "
+                           f"({roro:+.0f}) — price action disagrees with the macro read.")
 
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
                  "RISING": "liquidity tightening", "ELEVATED": "liquidity stress building",
                  "HIGH": "liquidity squeeze underway", "ACUTE": "acute liquidity squeeze",
                  "UNKNOWN": "liquidity read unavailable"}.get(sq_level, "")
+    fav = (" Historically favours " + ", ".join(assets["lead"][:2]).lower() + ".") if assets else ""
+    roro_clause = f", RORO {risk['read']}" if roro is not None else ""
     verdict = (f"{phase_label} ({quad.lower() if quad else 'regime n/a'}, growth {growth_dir}, inflation {infl_dir}"
                f"{', valuation/leverage froth' if len(froth) >= 2 else ''}) — "
-               f"{sq_phrase}, squeeze risk {sq_level} ({squeeze}). "
-               + ("Real divergence to watch: " + divergences[0].split(':')[0] + "." if divergences else ""))
+               f"{sq_phrase}, squeeze risk {sq_level} ({squeeze}){roro_clause}. "
+               + ("Real divergence to watch: " + divergences[0].split(':')[0] + "." if divergences else "")
+               + fav)
 
     falsifier = ("Cycle call flips if the macro-regime quadrant rotates out of STAGFLATION (→ GOLDILOCKS/REFLATION = "
                  "re-acceleration, or → DEFLATION-BUST = downturn). Squeeze-risk escalates if plumbing health breaks "
@@ -239,6 +383,7 @@ def lambda_handler(event, context):
         "duration_s": round(time.time() - t0, 1),
         "verdict": verdict,
         "cycle": cycle,
+        "risk": risk,
         "liquidity": liquidity,
         "divergences": divergences,
         "falsifier": falsifier,
