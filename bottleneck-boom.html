@@ -391,11 +391,18 @@ function renderTable(){
     const upTitle=fv.tp_bull!=null?`Price prediction → Bull $${r1(fv.tp_bull)} (+${fv.tp_bull_upside_pct}%, re-rate to ind P/E) · Base $${r1(fv.tp_base)} (+${fv.tp_base_upside_pct}%) · Bear $${r1(fv.tp_bear)} (+${fv.tp_bear_upside_pct}%)`:'tap for forward valuation';
     const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
     const tbadge=trp?`<span class="tb ${trp}">${trp==='real'?'✓ REAL':trp==='trap'?'⚠ TRAP':'• WATCH'}</span>`:'';
-    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+    // #5 inorganic-growth + distorted-multiple guards
+    const psv=rv.ps,rg=r.rev_growth_yoy;
+    let inorg='';
+    if(rv.acq_driven)inorg=`<span class="tb" style="background:rgba(245,158,11,.13);color:var(--amber);border-color:var(--amber)" title="Acquisitions were ${rv.acq_pct}% of revenue — growth is partly inorganic (M&A), not pure bottleneck demand. Target growth is capped so it isn't extrapolated.">⚿ M&A ${rv.acq_pct!=null?rv.acq_pct+'%':''}</span>`;
+    else if(rg!=null&&rg>=60)inorg=`<span class="tb" style="background:rgba(245,158,11,.13);color:var(--amber);border-color:var(--amber)" title="+${r1(rg)}% revenue growth is too high to be organic demand capture — almost certainly M&A or a one-off (e.g. a recent large acquisition in a prior year). The price target caps growth at 60% so this isn't extrapolated into a fantasy valuation.">⚿ INORGANIC?</span>`;
+    const peDist=(pe!=null&&pe>60&&psv!=null&&psv>0&&pe>50*psv);
+    const peDistMark=peDist?` <span title="Earnings are temporarily depressed (P/E ${r1(pe)} but P/S only ${r1(psv)} — net margin near zero), so this P/E overstates how expensive the stock is. Judge valuation on P/S, not P/E." style="color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700">⚠DIST</span>`:'';
+    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${inorg}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
-      <td class="${(pe&&ipe&&pe<ipe)?'pos':'dim'}">${peTxt}</td>
+      <td class="${(pe&&ipe&&pe<ipe&&!peDist)?'pos':'dim'}">${peTxt}${peDistMark}</td>
       <td class="${fwdpeCls}">${fwdpe==null?'—':r1(fwdpe)}</td>
       <td class="${upCls}" title="${esc(upTitle)}">${upTxt}</td>
       <td>${(()=>{const cf=rv.confluence,ca=rv.confluence_avail;if(cf==null)return '<span class="dim">—</span>';const col=cf>=4?'var(--green)':cf>=2?'var(--amber)':'var(--fg-3)';const sigs=(rv.confluence_signals||[]).join(' · ')||'no independent confirmations firing';return `<span title="${esc(cf+' of '+ca+' confirm: '+sigs)}" style="font-family:var(--mono);font-weight:700;color:${col}">${cf}<span class="dim" style="font-weight:400">/${ca}</span></span>`;})()}</td>
