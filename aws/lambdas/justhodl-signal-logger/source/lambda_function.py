@@ -255,6 +255,17 @@ def lambda_handler(event,context):
         mvrv_mag=10.0 if mvrv<0.8 else (-15.0 if mvrv>3.5 else (-8.0 if mvrv>2.5 else 0))
         mvrv_rat=f"MVRV {mvrv:.2f} = {v2} (historic UP at <1, DOWN at >3)"
         logged.append(log_sig("btc_mvrv",v2,p2,cf2,"BTC-USD",[14,30,60],meta={"mvrv":mvrv},magnitude=mvrv_mag,rationale=mvrv_rat))
+    # crypto-dvol.json — DVOL buy-fear thesis, graded live by the FDR scorecard
+    cd=fs3("data/crypto-dvol.json")
+    cdb=cd.get("btc") or {}
+    pctile=cdb.get("pctile_1y"); dv=cdb.get("dvol")
+    if pctile is not None:
+        pred="UP" if pctile>=60 else "DOWN" if pctile<=40 else "NEUTRAL"
+        if pred!="NEUTRAL":
+            cf=round(0.5+min(0.4,abs(float(pctile)-50)/100.0),2)
+            logged.append(log_sig("crypto_dvol_buyfear",f"DVOL {dv} ({pctile}th)",pred,cf,"BTC-USD",[7,14,30],
+                meta={"dvol":dv,"pctile_1y":pctile,"regime":cdb.get("regime")},
+                rationale="buy-fear: high DVOL pctile=fear -> bullish fwd BTC, low=complacency -> weak (CONFIRMED_STRONG in-sample, DIAGNOSTIC live)"))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")
