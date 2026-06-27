@@ -1,69 +1,97 @@
 
-=== FED/RATES ===
-  fedwatch-rate-probability      MISSING
-  fed-speak                      0.4d ✓FRESH
-  fed-nlp                        0.3d ✓FRESH
-  fed-pivot-factor-router        MISSING
-  bond-regime-detector           MISSING
-  move-index                     0.3d ✓FRESH
-  bond-vol                       0.0d ✓FRESH
-  treasury-proxy                 MISSING
-  repo-monitor                   MISSING
-  funding-plumbing               0.3d ✓FRESH
-  fed-collateral                 0.3d ✓FRESH
-  nyfed-dealer-survey            MISSING
+■ fed-speak  keys=['n_speeches_30d', 'n_new_classified_this_run', 'aggregate', 'by_speaker', 'timeline', 'latest_hawkish', 'latest_dovish', 'latest_neutral']
 
-=== POSITIONING/SENTIMENT ===
-  aaii-sentiment                 0.9d ✓FRESH
-  retail-sentiment               0.0d ✓FRESH
-  cot-extremes-scanner           MISSING
-  cot-tracker                    MISSING
-  cftc-deep-view                 MISSING
-  news-sentiment                 MISSING
-  gdelt-sentiment                MISSING
-  pump-positioning               0.0d ✓FRESH
+■ fed-nlp  keys=['n_total_documents', 'n_new_this_run', 'drift', 'latest_5_documents', 'processed_links', 'documents']
 
-=== BREADTH/INTERNALS ===
-  breadth-divergence             0.9d ✓FRESH
-  breadth-thrust                 0.9d ✓FRESH
-  credit-equity-divergence       1.0d ✓FRESH
-  sector-earnings-diffusion      0.4d ✓FRESH
-  concentration-liquidity        0.4d ✓FRESH
-  gold-equity-rotation           0.9d ✓FRESH
+■ move-index  keys=['engine', 'source', 'ok', 'level', 'change_1d', 'change_20d', 'percentile', 'avg_1y', 'regime', 'color', 'interpretation', 'n_observations', 'history', 'latest_date']
+    regime: "SUPPRESSED"
+    percentile: 8.1
+    level: 65.4
 
-=== VOL ===
-  vol-regime                     0.1d ✓FRESH
-  vvix-vov-regime                0.9d ✓FRESH
-  vix-backwardation-trigger      38.2d ⚠STALE
-  vix9d-vix-inversion            0.9d ✓FRESH
-  vol-radar                      0.1d ✓FRESH
-  carry-surface                  0.0d ✓FRESH
-  skew-tail-hedging              0.9d ✓FRESH
+■ bond-vol  keys=['ok', 'regime', 'composite_z_score', 'composite_percentile', 'regime_streak_days', 'trend', 'term_structure', 'funding_plumbing', 'playbook', 'risk_posture', 'history', 'n_channels_live', 'n_channels_total', 'channels', 'regime_bands', 'methodology']
+    regime: "NORMAL"
 
-=== GLOBAL/LIQ ===
-  china-liquidity                0.4d ✓FRESH
-  liquidity-inflection           0.4d ✓FRESH
-  liquidity-pulse                0.2d ✓FRESH
-  liquidity-capacity             0.7d ✓FRESH
-  global-tide                    0.3d ✓FRESH
-  global-macro                   0.9d ✓FRESH
-  cross-asset-regime             0.4d ✓FRESH
-  tic-flows                      0.9d ✓FRESH
-  capital-inflows                1.8d ✓FRESH
-  fx-intelligence                0.4d ✓FRESH
-  yen-carry                      0.3d ✓FRESH
-  stablecoin-flow                0.2d ✓FRESH
+■ vol-regime  keys=['n_tickers', 'n_with_iv', 'composite_score', 'composite_regime', 'regime_counts', 'weights', 'iv_sources_used', 'tickers', 'most_stressed']
+    composite_score: 32.0
 
-=== GROWTH/VALUATION ===
-  labor-leading                  0.9d ✓FRESH
-  activity-nowcast               0.4d ✓FRESH
-  consumer-pulse                 0.3d ✓FRESH
-  manufacturing-global           MISSING
-  bank-stress                    1.2d ✓FRESH
-  stock-valuations               0.2d ✓FRESH
-  valuations-agent               MISSING
-  commodity-curves               0.9d ✓FRESH
-  seasonality                    0.4d ✓FRESH
-  regime-anomaly                 0.9d ✓FRESH
+■ vvix-vov-regime  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+    state: "QUIET"
 
-DONE 2328
+■ skew-tail-hedging  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+    state: "NORMAL"
+
+■ aaii-sentiment  keys=['latest', 'historical_avg', 'z_scores', 'extremes', 'interpretation', 'history_26w', 'fetch_duration_s']
+
+■ retail-sentiment  keys=['generated_at_unix', 'sources', 'elapsed_seconds', 'n_all_stocks', 'n_wsb', 'n_stocks', 'n_investing', 'n_with_stwt_data', 'market_regime', 'market_regime_signal', 'market_regime_data', 'regime_changed_from_prior', 'top_30_by_mentions', 'ranked', 'n_with_price', 'data_quality']
+
+■ pump-positioning  keys=['elapsed_sec', 'n_candidates', 'macro_regime', 'candidates', 'portfolio_basket', 'aggressive_basket', 'sizing_assumptions']
+
+■ breadth-divergence  keys=['engine', 'error', 'trace']
+
+■ breadth-thrust  keys=['engine', 'state', 'prev_state', 'state_since', 'state_transition', 'signal_strength', 'cooldown_until', 'current_readings', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'historical_episodes', 'supporting_signals', 'methodology', 'sources']
+    state: "NULL"
+
+■ credit-equity-divergence  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+    state: "CREDIT_BULL_RICH"
+
+■ concentration-liquidity  keys=['n_positions', 'total_nav', 'positions', 'sector_exposure_pct', 'factor_exposure_pct', 'alerts', 'thresholds']
+
+■ gold-equity-rotation  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+    state: "NEUTRAL"
+
+■ china-liquidity  keys=['fred_failed', 'series_resolved', 'regime', 'regime_read', 'money', 'credit_impulse', 'interbank_rate', 'currency', 'dr_copper']
+    regime: "NEUTRAL"
+    regime_read: "China liquidity is roughly steady \u2014 no strong forward push or pull on commodities and global cyclicals f
+
+■ liquidity-inflection  keys=['engine', 'availability', 'usd', 'us_money', 'eur', 'china', 'stablecoin', 'stablecoin_schema_hint', 'event_study_after_flips', 'lead_estimates', 'signals_logged', 'methodology']
+
+■ liquidity-pulse  keys=['elapsed_sec', 'series', 'fetch_errors', 'composites', 'summary', 'transitions', 'n_series', 'n_series_ok']
+    summary: "\ud83d\udd34 ACUTE LIQUIDITY DRAIN \u2014 Fed balance sheet draining at extreme pace. Risk-off backdrop confi
+
+■ cross-asset-regime  keys=['asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d', 'correlation_breaks', 'alerts']
+
+■ yen-carry  keys=['ok', 'headline', 'carry_regime', 'boj_injection_score', 'boj_stance_label', 'unwind_risk_score', 'unwind_risk_label', 'unwind_risk_components', 'carry_attractiveness', 'boj_funding_leg', 'carry_width', 'fx_detonator', 'jgb_long_end', 'positioning', 'triggers', 'eurodollar_read']
+    headline: "YEN CARRY: NEUTRAL. Unwind risk 36/100 (MODERATE); USD/JPY 161, vol 3% (calm); BOJ draining."
+
+■ tic-flows  keys=['composite_tic_stress', 'regime', 'top_reasons', 'total_foreign_holdings', 'net_purchases', 'top_holders', 'individual', 'interpretation']
+    regime: "STRONG_FOREIGN_DEMAND"
+
+■ labor-leading  keys=['jolts', 'challenger', 'claims', 'regime', 'interpretation', 'fetch_duration_s']
+    regime: "weakening"
+
+■ activity-nowcast  keys=['ok', 'activity_index', 'activity_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline', 'divergence', 'components', 'n_series', 'n_ok', 'errors', 'note']
+    regime: "EXPANDING"
+    headline: "Activity Nowcast 56/100 \u2014 EXPANDING, momentum FLAT. Lead driver: Financial Stress (St Louis Fed) (strong
+
+■ consumer-pulse  keys=['ok', 'pulse_index', 'pulse_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline', 'sub_indices', 'divergence', 'lead_signal', 'official_labour_cross_ref', 'components', 'n_series', 'n_ok', 'errors']
+    regime: "STEADY"
+    headline: "Consumer & Labour Pulse 51/100 \u2014 STEADY, momentum FLAT. Lead driver: Consumer Sentiment (U-Mich) (weak).
+
+■ bank-stress  keys=['fred_failed', 'series_resolved', 'bank_stress_score', 'regime', 'regime_read', 'emergency_draw', 'emergency_notes', 'emergency_liquidity', 'reserve_adequacy', 'components', 'methodology']
+    regime: "TIGHTENING"
+    regime_read: "Reserves are in the scarcity zone (below 10.5% of GDP) \u2014 the pre-condition for repo/funding stress, even
+
+■ stock-valuations  keys=['engine', 'sp_table', 'sp_coverage', 'sp_universe', 'hist_coverage', 'n_deep_discount', 'sp_asof', 'hp', 'hp_coverage', 'hp_universe', 'heatmap', 'industries', 'n_industries', 'underlooked_top', 'hp_src', 'hp_logged']
+
+■ commodity-curves  keys=['generated_at_unix', 'elapsed_seconds', 'source', 'spy_20d', 'fred_metrics', 'etf_metrics', 'n_fred', 'n_etf', 'n_fred_with_data', 'n_etf_with_data', 'composite', 'composite_regime', 'composite_signal', 'regime_changed_from_prior']
+    composite: {"ratios": {"wti_minus_brent": 2.45, "gold_silver_ratio_etf": 7.02, "gold_minus_pdbc_20d_pp": 0.96, "industria
+
+■ seasonality  keys=['current_period', 'per_symbol', 'highest_favor_today']
+
+■ regime-anomaly  keys=['elapsed_sec', 'hmm', 'anomaly', 'training_window', 'training_progress', 'fit_method']
+
+=== resolve MISSING (alt filenames) ===
+  data/fedwatch.json: MISSING
+  data/rate-probability.json: MISSING
+  data/fed-rate-probability.json: MISSING
+  data/fedwatch-probability.json: MISSING
+  data/rate-cut-odds.json: MISSING
+  data/cot.json: MISSING
+  data/cot-extremes.json: MISSING
+  data/cftc.json: MISSING
+  data/cftc-positioning.json: MISSING
+  data/cot-tracker.json: MISSING
+  data/positioning.json: MISSING
+  data/cot-deep-view.json: MISSING
+  data/cftc-cot.json: MISSING
+DONE 2329
