@@ -1,19 +1,8 @@
-Timeout: 600 s | Mem: 1024 | LastUpdate: Successful
-fired; waiting 200s to capture the run...
-START RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde Version: $LATEST
-[ERROR] NameError: name '_phi' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 733, in lambda_handler
-    pgr_pct = pressure_percentiles(src.get("industry
-END RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde
-REPORT RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde	Duration: 979.92 ms	Billed Duration: 980 ms	Memory Size: 1024 MB	Max Memory Used: 191 MB	
-XRAY TraceId: 1-6a3f5091-25ff03d52135aa0465266290	Segme
-START RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde Version: $LATEST
-[ERROR] NameError: name '_phi' is not defined
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 733, in lambda_handler
-    pgr_pct = pressure_percentiles(src.get("industry
-END RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde
-REPORT RequestId: 53e2cb6e-0602-480e-a4ab-42758966afde	Duration: 1005.71 ms	Billed Duration: 1006 ms	Memory Size: 1024 MB	Max Memory Used: 191 MB	
-XRAY TraceId: 1-6a3f5091-25ff03d52135aa0465266290	Seg
-DONE 2299
+regen after _phi fix; polling...
+  t+12s WROTE
+dur_s: 4.6 new_theses: 0
+#2 windows: ['d5'] | maturity: {"d5": {"graded": 9, "pending": 3, "total": 14}, "d21": {"graded": 0, "pending": 14, "total": 14}, "d63": {"graded": 0, "pending": 14, "total": 14}}
+#3 target_record: {"n_targets": 1, "n_graded": 0, "n_pending": 1, "horizon_days": 63}
+pressure_pctiles: {"TOTAL_MFG": 95, "COMPUTERS_ELECTRONICS": 99, "SEMIS_IP_STRAIN": 98}
+fwd_val on LDOS: True | candidates: 30
+DONE 2300
