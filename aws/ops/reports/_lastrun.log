@@ -1,5 +1,7 @@
-attempt 0: 6/6 bytes=66366 miss=[]
-attempt 1: 6/6 bytes=66366 miss=[]
-attempt 2: 6/6 bytes=66366 miss=[]
-ALL OK
-DONE 2366
+FunctionError: None
+standing: DIAGNOSTIC | verdict: CONFIRMED_STRONG | n_days: 1000
+hypothesis: buy-fear: HIGH DVOL pctile (fear) > LOW DVOL pctile (complacency) on forward BTC
+  fwd30d: LOW-pctile(complacency) mean -0.3% (n402, hit 48%) | HIGH-pctile(fear) mean 4.5% (n177, hit 55%) | edge H-L 4.8pp
+  fwd90d: LOW-pctile(complacency) mean 0.9% (n355, hit 49%) | HIGH-pctile(fear) mean 12.9% (n177, hit 59%) | edge H-L 12.1pp
+  fwd180d: LOW-pctile(complacency) mean 1.4% (n323, hit 41%) | HIGH-pctile(fear) mean 28.6% (n169, hit 71%) | edge H-L 27.2pp
+DONE 2367
