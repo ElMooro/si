@@ -251,6 +251,28 @@ function trajectorySection(tr){
   s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:10px">Self-tracked to data/cycle-clock-history.json — one snapshot per daily run, dedup by date, 300-session cap. The clock will be able to grade its own past reads once forward outcomes mature.</div></div>`;
   return s;
 }
+function trackRecordSection(tr){
+  if(!tr)return '';
+  const qb=tr.quadrant_backtest||{};const pg=tr.posture_grade||{};const cur=tr.current_quadrant;
+  const QORD=['GOLDILOCKS','OVERHEAT','STAGFLATION','DOWNTURN'];
+  const QC={GOLDILOCKS:'#3fd68c',OVERHEAT:'#ff8a5c',STAGFLATION:'#ff5c6c',DOWNTURN:'#46c8ff'};
+  let s=`<h2>Track record — does the clock's call hold up?</h2><div class="panel">`;
+  const cv=(qb.by_quadrant||{})[cur];
+  if(cv)s+=`<div style="border-left:3px solid ${QC[cur]||'#7c8ba0'};background:rgba(255,255,255,.02);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12.5px;color:var(--fg-1);line-height:1.5">In <b style="color:${QC[cur]}">${esc(cur)}</b>, SPY has historically returned <b style="color:${cv.avg_fwd_1m>=0?'var(--green)':'var(--red)'}">${cv.avg_fwd_1m>=0?'+':''}${cv.avg_fwd_1m}%</b> over the next month and <b style="color:${cv.avg_fwd_3m>=0?'var(--green)':'var(--red)'}">${cv.avg_fwd_3m>=0?'+':''}${cv.avg_fwd_3m}%</b> over three (${cv.pct_pos_1m}% of months positive, n=${cv.n}).</div>`;
+  s+=`<table><thead><tr><th>Quadrant</th><th style="text-align:right">Months</th><th style="text-align:right">Fwd 1m</th><th style="text-align:right">Fwd 3m</th><th style="text-align:right">% pos</th></tr></thead><tbody>`;
+  for(const q of QORD){const v=(qb.by_quadrant||{})[q];if(!v)continue;const hi=q===cur;
+    s+=`<tr${hi?' style="background:rgba(255,255,255,.03)"':''}><td style="color:${QC[q]};font-weight:${hi?'700':'400'}">${esc(q)}${hi?' ◀ now':''}</td><td style="text-align:right;color:var(--fg-2)">${v.n}</td><td style="text-align:right;color:${v.avg_fwd_1m>=0?'var(--green)':'var(--red)'}">${v.avg_fwd_1m>=0?'+':''}${v.avg_fwd_1m}%</td><td style="text-align:right;color:${v.avg_fwd_3m>=0?'var(--green)':'var(--red)'}">${v.avg_fwd_3m>=0?'+':''}${v.avg_fwd_3m}%</td><td style="text-align:right;color:var(--fg-1)">${v.pct_pos_1m}%</td></tr>`;}
+  s+=`</tbody></table>`;
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:8px">SPY forward returns by growth×inflation quadrant — ${qb.lookback_years}y of monthly history (FRED S&P 500). Small per-quadrant samples; directional context, not a point forecast.</div>`;
+  s+=`<div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--bg-2)"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Posture forward-grade · 21-session SPY</div>`;
+  if(pg.status==='live'&&pg.hit_rate!=null){
+    s+=`<div style="font-size:13px;color:var(--fg-1);line-height:1.5">Directional hit-rate <b style="color:var(--green)">${pg.hit_rate}%</b> across ${pg.n_graded} matured reads · avg SPY fwd when risk-off <b style="color:${pg.avg_fwd_when_riskoff<0?'var(--green)':'var(--red)'}">${pg.avg_fwd_when_riskoff>=0?'+':''}${pg.avg_fwd_when_riskoff}%</b>, when risk-on <b style="color:${pg.avg_fwd_when_riskon>=0?'var(--green)':'var(--red)'}">${pg.avg_fwd_when_riskon>=0?'+':''}${pg.avg_fwd_when_riskon}%</b></div>`;
+  }else{
+    s+=`<div style="font-size:12.5px;color:var(--fg-2);line-height:1.5">⏳ Accumulating — each daily posture read needs 21 sessions of forward SPY before it can be graded. The directional hit-rate appears here once the log matures (≈1 month).</div>`;
+  }
+  s+=`</div></div>`;
+  return s;
+}
 function aiSection(d){
   const ai=d.ai;
   if(!ai){
@@ -430,6 +452,7 @@ function aiSection(d){
   h+=forwardCone((an||{}).forward_distribution);
   h+=scenarioPlaybook((cy||{}).scenario_playbook);
   h+=stressSection(d.stress_scenarios);
+  h+=trackRecordSection(d.track_record);
   h+=trajectorySection(d.trajectory);
 
   // ── divergences ──
