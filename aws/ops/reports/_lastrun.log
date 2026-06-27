@@ -1,3 +1,69 @@
-page markers: 10 / 10 → missing: []
-page bytes: 34835
-DONE 2327
+
+=== FED/RATES ===
+  fedwatch-rate-probability      MISSING
+  fed-speak                      0.4d ✓FRESH
+  fed-nlp                        0.3d ✓FRESH
+  fed-pivot-factor-router        MISSING
+  bond-regime-detector           MISSING
+  move-index                     0.3d ✓FRESH
+  bond-vol                       0.0d ✓FRESH
+  treasury-proxy                 MISSING
+  repo-monitor                   MISSING
+  funding-plumbing               0.3d ✓FRESH
+  fed-collateral                 0.3d ✓FRESH
+  nyfed-dealer-survey            MISSING
+
+=== POSITIONING/SENTIMENT ===
+  aaii-sentiment                 0.9d ✓FRESH
+  retail-sentiment               0.0d ✓FRESH
+  cot-extremes-scanner           MISSING
+  cot-tracker                    MISSING
+  cftc-deep-view                 MISSING
+  news-sentiment                 MISSING
+  gdelt-sentiment                MISSING
+  pump-positioning               0.0d ✓FRESH
+
+=== BREADTH/INTERNALS ===
+  breadth-divergence             0.9d ✓FRESH
+  breadth-thrust                 0.9d ✓FRESH
+  credit-equity-divergence       1.0d ✓FRESH
+  sector-earnings-diffusion      0.4d ✓FRESH
+  concentration-liquidity        0.4d ✓FRESH
+  gold-equity-rotation           0.9d ✓FRESH
+
+=== VOL ===
+  vol-regime                     0.1d ✓FRESH
+  vvix-vov-regime                0.9d ✓FRESH
+  vix-backwardation-trigger      38.2d ⚠STALE
+  vix9d-vix-inversion            0.9d ✓FRESH
+  vol-radar                      0.1d ✓FRESH
+  carry-surface                  0.0d ✓FRESH
+  skew-tail-hedging              0.9d ✓FRESH
+
+=== GLOBAL/LIQ ===
+  china-liquidity                0.4d ✓FRESH
+  liquidity-inflection           0.4d ✓FRESH
+  liquidity-pulse                0.2d ✓FRESH
+  liquidity-capacity             0.7d ✓FRESH
+  global-tide                    0.3d ✓FRESH
+  global-macro                   0.9d ✓FRESH
+  cross-asset-regime             0.4d ✓FRESH
+  tic-flows                      0.9d ✓FRESH
+  capital-inflows                1.8d ✓FRESH
+  fx-intelligence                0.4d ✓FRESH
+  yen-carry                      0.3d ✓FRESH
+  stablecoin-flow                0.2d ✓FRESH
+
+=== GROWTH/VALUATION ===
+  labor-leading                  0.9d ✓FRESH
+  activity-nowcast               0.4d ✓FRESH
+  consumer-pulse                 0.3d ✓FRESH
+  manufacturing-global           MISSING
+  bank-stress                    1.2d ✓FRESH
+  stock-valuations               0.2d ✓FRESH
+  valuations-agent               MISSING
+  commodity-curves               0.9d ✓FRESH
+  seasonality                    0.4d ✓FRESH
+  regime-anomaly                 0.9d ✓FRESH
+
+DONE 2328
