@@ -163,6 +163,14 @@ function r1(v){return v==null?'—':(Math.round(v*10)/10);}
 function bn(v){if(v==null)return'—';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
 function pcolor(s){if(s==null)return'var(--fg-3)';if(s>=60)return'var(--green)';if(s>=45)return'var(--amber)';return'var(--fg-3)';}
 function score(v){return (v&&v.pressure_0_100!=null)?v.pressure_0_100:(v&&v.ip_yoy_z!=null?50+v.ip_yoy_z*10:null);}
+function entryTiming(rv){
+  const oh=rv.off_52w_high,r1m=rv.ret_1m;
+  if(oh==null||r1m==null)return null;
+  if(oh>=-12&&r1m>=15)return['EXTENDED','var(--red)',`near 52w high (${r1(oh)}%) and +${r1(r1m)}% in a month — already ran, a worse entry`];
+  if(oh<=-12&&r1m<=-5)return['PULLING BACK','var(--amber)',`${r1(oh)}% off the high, ${r1(r1m)}% over the past month — pulling back`];
+  if(Math.abs(r1m)<8&&oh<=-8)return['BASING','var(--green)',`flat over the past month (${r1m>=0?'+':''}${r1(r1m)}%), consolidating ${r1(oh)}% off the high — a constructive base`];
+  return['NEUTRAL','var(--fg-3)',`${r1(oh)}% off high · ${r1m>=0?'+':''}${r1(r1m)}% 1m`];
+}
 let DATA=null,RESEARCH={},RMETA={},SORT='boom_score',OPEN=null,FILTER='all';
 function renderTrust(){
   const tr=RMETA.track_record,c=RMETA.concentration;let html='';
@@ -318,7 +326,8 @@ function drawer(tk){
   const priceHdr = v.price!=null ? `<div class="phdr"><span class="px">$${r1(v.price)}</span>`+
     (v.ret_1m!=null?`<span class="rt ${v.ret_1m>=0?'pos':'neg'}">${v.ret_1m>=0?'+':''}${v.ret_1m}%<i>1M</i></span>`:'')+
     (v.ret_3m!=null?`<span class="rt ${v.ret_3m>=0?'pos':'neg'}">${v.ret_3m>=0?'+':''}${v.ret_3m}%<i>3M</i></span>`:'')+
-    (psp.length>2?sparkline(psp,(v.ret_3m||0)>=0?'var(--green)':'var(--red)'):'')+`</div>` : '';
+    (psp.length>2?sparkline(psp,(v.ret_3m||0)>=0?'var(--green)':'var(--red)'):'')+
+    (()=>{const tm=entryTiming(v);return tm?`<span class="rt" style="color:${tm[1]};border:1px solid ${tm[1]};border-radius:4px" title="${esc(tm[2])}">${tm[0]}<i>entry</i></span>`:'';})()+`</div>` : '';
   const chartLink=`<a class="dlink2" href="/chart-pro.html?ticker=${encodeURIComponent(tk)}">Open full chart &amp; technicals ↗</a>`;
   const sb=v.flags_bull||[],sx=v.flags_bear||[];
   const scorecard=(sb.length||sx.length)?`<div class="scorecard">
@@ -398,7 +407,9 @@ function renderTable(){
     else if(rg!=null&&rg>=60)inorg=`<span class="tb" style="background:rgba(245,158,11,.13);color:var(--amber);border-color:var(--amber)" title="+${r1(rg)}% revenue growth is too high to be organic demand capture — almost certainly M&A or a one-off (e.g. a recent large acquisition in a prior year). The price target caps growth at 60% so this isn't extrapolated into a fantasy valuation.">⚿ INORGANIC?</span>`;
     const peDist=(pe!=null&&pe>60&&psv!=null&&psv>0&&pe>50*psv);
     const peDistMark=peDist?` <span title="Earnings are temporarily depressed (P/E ${r1(pe)} but P/S only ${r1(psv)} — net margin near zero), so this P/E overstates how expensive the stock is. Judge valuation on P/S, not P/E." style="color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700">⚠DIST</span>`:'';
-    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${inorg}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+    const tim=entryTiming(rv);
+    const timTag=tim?`<span title="${esc(tim[2])}" style="font-family:var(--mono);font-size:9px;font-weight:700;color:${tim[1]};border:1px solid ${tim[1]};border-radius:3px;padding:0 4px;margin-right:5px">${tim[0]}</span>`:'';
+    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${inorg}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${timTag}${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
