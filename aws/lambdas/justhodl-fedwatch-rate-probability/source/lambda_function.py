@@ -287,6 +287,7 @@ def lambda_handler(event=None, context=None):
     # 3) For each meeting, pull relevant ZQ futures contract
     today_dt = datetime.utcnow()  # naive, to match strptime'd meeting dates below
     out_meetings = []
+    prev_rate = current_mid  # for incremental per-meeting implied move
     for meeting_date in meetings:
         try:
             md = datetime.strptime(meeting_date, "%Y-%m-%d")
@@ -321,7 +322,9 @@ def lambda_handler(event=None, context=None):
             continue
 
         probabilities = assign_probabilities(post_rate, current_mid)
-        implied_move_bps = round((post_rate - current_mid) * 100)
+        cumulative_from_today_bps = round((post_rate - current_mid) * 100)
+        implied_move_bps = round((post_rate - prev_rate) * 100)  # incremental vs prior meeting
+        prev_rate = post_rate
 
         out_meetings.append({
             "date": meeting_date,
@@ -333,6 +336,7 @@ def lambda_handler(event=None, context=None):
             "implied_avg_month_rate_pct": round(implied_avg_rate, 3),
             "implied_post_meeting_rate_pct": post_rate,
             "implied_move_bps": implied_move_bps,
+            "cumulative_from_today_bps": cumulative_from_today_bps,
             "probabilities_pct": probabilities,
             "rate_buckets_pct": fed_funds_rate_buckets(current_mid),
         })
@@ -342,8 +346,8 @@ def lambda_handler(event=None, context=None):
                   if m.get("status") == "ok"
                      and m.get("days_until", 0) <= 180]
     if next_six:
-        total_implied_move_bps = sum(m["implied_move_bps"]
-                                       for m in next_six)
+        total_implied_move_bps = next_six[-1].get("cumulative_from_today_bps",
+                                       sum(m["implied_move_bps"] for m in next_six))
         avg_implied_move = (total_implied_move_bps / len(next_six)
                                 if next_six else 0)
         if total_implied_move_bps <= -50:
