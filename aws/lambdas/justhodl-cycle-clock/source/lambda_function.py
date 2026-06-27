@@ -324,12 +324,13 @@ def _coord_series_long(n=84):
 
 
 def _spy_monthly():
-    import datetime as _dt
-    end = _dt.date.today(); start = end - _dt.timedelta(days=2800)
-    u = (f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/month/{start}/{end}"
-         f"?adjusted=true&sort=asc&limit=300&apiKey={POLY_KEY}")
-    res = json.loads(urllib.request.urlopen(u, timeout=12).read()).get("results") or []
-    return [(_dt.datetime.utcfromtimestamp(x["t"] / 1000).strftime("%Y-%m"), x["c"]) for x in res]
+    """Month-end S&P 500 closes from FRED SP500 (10y daily) — deeper history than the
+    Polygon key exposes, so the quadrant backtest covers multiple regimes."""
+    pts = _fred("SP500", start="2015-01-01")
+    bymo = {}
+    for d, v in pts:
+        bymo[d[:7]] = v  # pts are sorted ascending → last write per month = month-end close
+    return sorted(bymo.items())
 
 
 def _spy_daily(days=430):
