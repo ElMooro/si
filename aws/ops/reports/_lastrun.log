@@ -1,11 +1,15 @@
-=== crypto-funding.json ===
-keys: ['generated_at', 'generated_at_unix', 'version', 'source', 'elapsed_seconds', 'config', 'market_composite', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'squeeze_candidates', 'by_coin']
-  list 'squeeze_candidates'[0]: {"coin": "LINK", "regime": "BALANCED", "z_score": 1.29, "annualized_pct": 10.95, "oi_usd_b": 0.02, "spot": 7.387, "change_24h_pct": 0.24}
+wrote v3.1 dur 18.5s
 
-=== crypto-liquidity.json ===
-keys: ['engine', 'version', 'generated_at', 'duration_s', 'liquidity_score', 'regime', 'regime_read', 'directional_read', 'forecast_supported', 'forecast_support', 'ssr', 'stablecoin_dominance', 'fear_greed', 'stablecoin_supply', 'event_study_ssr', 'event_study_fear_greed', 'top_picks', 'falsifier', 'histories', 'methodology', 'diagnostics']
-  regime: "DRY-POWDER LOADED"
-  ssr: {"value": 3.7, "percentile_2y": 0.4, "interpretation": "dry powder LARGE vs BTC (bullish)"}
-  stablecoin_dominance: {"now_pct": 18.825800111499383, "percentile_2y": 99.6, "live_coingecko_pct": 12.04}
-  fear_greed: {"value": 15, "classification": "Extreme Fear"}
-DONE 2363
+=== CRYPTO BLOCK ===
+  DVOL btc: 44.9 NORMAL 64 pctile RISING | eth: 59.7
+  funding regime: BALANCED | signal: Funding balanced across coins · no major positioning tilt | composite: {'n_coins_analyzed': 9, 'vw_funding_per_8h': 2.9e-05, 'vw_funding_annualized_pct': 3.18, 'median_funding_per_8h': 4.12e-05, 'median_funding_annualized_pct': 4.51, 'funding_max': 0.0001, 'funding_min': -0.0001489, 'funding_dispersion_pp': 0.0249, 'total_oi_usd_billions': 3.6, 'n_extreme_long_positioning': 0, 'n_extreme_short_positioning': 0, 'n_highly_bullish_leverage': 0, 'n_highly_bearish_leverage': 0, 'n_bullish': 0, 'n_bearish': 1}
+  squeeze candidates: [('LINK', 'BALANCED', 1.29), ('XRP', 'BEARISH_LEVERAGE', -0.96), ('BTC', 'BALANCED', 0.93), ('BNB', 'BALANCED', 0.93), ('DOGE', 'BALANCED', 0.9)]
+  liquidity: DRY-POWDER LOADED | SSR: 3.7 @ 0.4 pctile | F&G: 15 Extreme Fear
+
+=== SYNTHESIS (crypto contributors) ===
+  posture: STRONG RISK-OFF -46 | 11 off vs 5 on
+  bullish: ['Global cycle expanding', 'Activity nowcast expanding', 'Credit spreads benign', 'Fed net liquidity rising']
+  bearish: ['Liquidity-pulse draining', 'Bank-reserve scarcity', 'Recession-prob composite', 'Leading labor weakening', 'Retail euphoria (contrarian)']
+  rates DVOL: 44.9 NORMAL
+  crypto divergence present: True
+DONE 2364
