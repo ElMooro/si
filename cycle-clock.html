@@ -257,6 +257,10 @@ function theRead(sy){
     <div><div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Reduce — what's lagging (tape)</div><div class="assets">${(sy.reduce_whats_lagging||[]).map(x=>`<span class="chip lag">${esc(x)}</span>`).join('')}</div></div></div>`;
   if(sy.key_risk)s+=`<div style="border-left:3px solid var(--amber);background:rgba(245,179,67,.06);border-radius:8px;padding:9px 12px;margin-top:15px;font-size:12px;color:var(--fg-1);line-height:1.5"><b style="color:var(--amber)">Key risk · </b>${esc(sy.key_risk)}</div>`;
   if(sy.bottom_line)s+=`<div style="margin-top:13px;padding-top:12px;border-top:1px solid var(--bg-2);font-size:13.5px;color:var(--fg-0);line-height:1.55;font-weight:600">${esc(sy.bottom_line)}</div>`;
+  const wf=sy.what_flips_it;
+  if(wf&&wf.conditions&&wf.conditions.length){
+    s+=`<div style="margin-top:13px;padding:11px 13px;background:rgba(70,200,255,.05);border:1px solid rgba(70,200,255,.2);border-radius:9px"><div style="font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">What would flip this read · ${esc(wf.direction)}</div><ul style="margin:0;padding-left:17px;font-size:12px;color:var(--fg-1);line-height:1.65">${wf.conditions.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>${wf.note?`<div style="font-size:11px;color:var(--fg-3);margin-top:8px;line-height:1.5">${esc(wf.note)}</div>`:''}</div>`;
+  }
   s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:9px">A deterministic tally of ~20 weighted cross-engine signals into a single net lean — transparent, and independent of the AI narrative. A posture read, not a back-tested edge.</div></div>`;
   return s;
 }
@@ -347,7 +351,7 @@ function aiSection(d){
   const SC={'LOW':'#3fd68c','LOW · WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
   let h=summaryStrip(d)+`<h1>🕐 Cycle &amp; Liquidity Clock <span class="tag">meta-synthesis</span></h1>`;
   h+=`<div class="sub">Where we are in the cycle, the historically-favoured assets for that phase, how much liquidity-squeeze risk is building, and the nearest historical analogs — fused from your cycle, liquidity, cross-asset and stress engines, with divergences surfaced, not averaged.</div>`;
-  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale: '+esc(d.stale.join(', ')):''}</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${(()=>{const di=d.data_integrity;if(!di||di.integrity_pct==null)return '';const c=di.integrity_pct>=95?'var(--green)':di.integrity_pct>=80?'var(--amber)':'var(--red)';return ` · <span style="color:${c}">◉ data integrity ${di.integrity_pct}% · ${di.n_fresh}/${di.n_sources} engines fresh${di.n_stale?` · ${di.n_stale} stale`:''}${di.n_missing?` · ${di.n_missing} missing`:''}</span>`;})()}</div>`;
   h+=`<div class="verdict">${esc(d.verdict)}</div>`;
   h+=theRead(d.synthesis);
   h+=aiSection(d);
