@@ -1,97 +1,95 @@
 
-■ fed-speak  keys=['n_speeches_30d', 'n_new_classified_this_run', 'aggregate', 'by_speaker', 'timeline', 'latest_hawkish', 'latest_dovish', 'latest_neutral']
+■ fed-speak
+   aggregate = {"avg_sentiment": 1.67, "hawkish_count": 1, "dovish_count": 0, "neutral_count": 2, "interpretation": "FED LEANING HAWKISH"}
+   latest_hawkish = {"title": "Barr, Deregulating in a Financial Boom: What Could Go Wrong?", "speaker": "", "pub_date": "2026-06-06T16:00:00+00:00", "link": "https://www
 
-■ fed-nlp  keys=['n_total_documents', 'n_new_this_run', 'drift', 'latest_5_documents', 'processed_links', 'documents']
+■ fed-nlp
+   drift = {"recent_5_avg": 48.0, "prior_5_avg": 30.0, "drift_points": 18.0, "drift_z": 1.24, "classification": "HAWKISH_SHIFT", "all_composites_last15": [30.0, 
 
-■ move-index  keys=['engine', 'source', 'ok', 'level', 'change_1d', 'change_20d', 'percentile', 'avg_1y', 'regime', 'color', 'interpretation', 'n_observations', 'history', 'latest_date']
-    regime: "SUPPRESSED"
-    percentile: 8.1
-    level: 65.4
+■ bond-vol
+   risk_posture = "NEUTRAL"
+   term_structure = {"front_end_z": 1.33, "long_end_z": 0.62, "credit_z": -1.31, "real_rate_z": 1.04, "signal": "FRONT-END LED - Fed/rate-path vol dominates (policy uncer
+   composite_percentile = null
+   trend = {"dod": 0.0, "wow": 0.26, "mom": 0.64}
 
-■ bond-vol  keys=['ok', 'regime', 'composite_z_score', 'composite_percentile', 'regime_streak_days', 'trend', 'term_structure', 'funding_plumbing', 'playbook', 'risk_posture', 'history', 'n_channels_live', 'n_channels_total', 'channels', 'regime_bands', 'methodology']
-    regime: "NORMAL"
+■ vol-regime
+   composite_regime = "NORMAL"
+   regime_counts = {"COMPLACENT": 0, "NORMAL": 7, "CONCERNED": 1, "PANIC": 0, "UNKNOWN": 0}
 
-■ vol-regime  keys=['n_tickers', 'n_with_iv', 'composite_score', 'composite_regime', 'regime_counts', 'weights', 'iv_sources_used', 'tickers', 'most_stressed']
-    composite_score: 32.0
+■ aaii-sentiment
+   latest = {"week_ending": "2026-06-25", "bullish": 1.0, "neutral": 0.0, "bearish": 0.0, "bull_bear_spread": 1.0}
+   z_scores = {"bullish": 1.03, "bearish": 0.0, "spread": 1.03}
+   extremes = {"is_bullish_extreme": true, "is_bearish_extreme": false}
+   interpretation = "Retail investors are extremely bullish (100% vs 38% historical). Historically a contrarian sell signal \u2014 euphoria is when distributions usually 
 
-■ vvix-vov-regime  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
-    state: "QUIET"
+■ retail-sentiment
+   market_regime = "QUIET"
+   market_regime_signal = "Total mentions 2,327 below normal \u2014 retail disengaged"
 
-■ skew-tail-hedging  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
-    state: "NORMAL"
+■ credit-equity-divergence
+   state = "CREDIT_BULL_RICH"
+   current_metrics = {"hyg_20d_ret_pct": -0.5, "spy_20d_ret_pct": -3.39, "hyg_spy_spread_20d": 2.9, "spread_zscore_252d": 1.69, "lqd_20d_ret_pct": 0.22, "emb_20d_ret_pct":
+   regime_explanation = "HYG-SPY 20d spread z=1.69 (HYG outperforms by 2.9%), persistent 3+ days; credit leads, equity bullish"
 
-■ aaii-sentiment  keys=['latest', 'historical_avg', 'z_scores', 'extremes', 'interpretation', 'history_26w', 'fetch_duration_s']
+■ breadth-thrust
+   current_readings = {"zweig_10d_ema": 0.4657, "zweig_window_min": 0.4259, "zweig_window_max": 0.5077, "zweig_thresholds": {"low": 0.4, "high": 0.615}, "n_breadth_days_cac
+   forward_expectations = {"1m": {"return_pct": null, "win_rate_pct": null, "n": 0, "basis": "SPY next 30 calendar days"}, "3m": {"return_pct": null, "win_rate_pct": null, "n":
+   signal_strength = 0
 
-■ retail-sentiment  keys=['generated_at_unix', 'sources', 'elapsed_seconds', 'n_all_stocks', 'n_wsb', 'n_stocks', 'n_investing', 'n_with_stwt_data', 'market_regime', 'market_regime_signal', 'market_regime_data', 'regime_changed_from_prior', 'top_30_by_mentions', 'ranked', 'n_with_price', 'data_quality']
+■ gold-equity-rotation
+   current_metrics = {"spy_ratio_gld": 1.951, "ratio_ma50": 1.788, "ratio_ma200": 1.701, "ratio_zscore_252d": 0.92, "ratio_20d_pct": 6.73, "spy_20d_pct": -3.39, "gld_20d_p
+   regime_explanation = "SPY/GLD ratio in range, no clear regime"
 
-■ pump-positioning  keys=['elapsed_sec', 'n_candidates', 'macro_regime', 'candidates', 'portfolio_basket', 'aggressive_basket', 'sizing_assumptions']
+■ china-liquidity
+   money = {"m1_yoy_pct": 1.5, "m2_yoy_pct": 8.21}
+   credit_impulse = {"value_pp": -5.52, "is_proxy": true, "definition": "acceleration of money-supply YoY growth (pp change). A free proxy for the Total Social Financing 
+   regime_read = "China liquidity is roughly steady \u2014 no strong forward push or pull on commodities and global cyclicals from the credit impulse."
 
-■ breadth-divergence  keys=['engine', 'error', 'trace']
+■ liquidity-pulse
+   summary = "\ud83d\udd34 ACUTE LIQUIDITY DRAIN \u2014 Fed balance sheet draining at extreme pace. Risk-off backdrop confirmed."
+   composites = {"credit_stress_score": 51.6, "credit_regime": "NORMAL", "liquidity_score": 95.2, "liquidity_regime": "ACUTE_DRAIN"}
+   transitions = []
 
-■ breadth-thrust  keys=['engine', 'state', 'prev_state', 'state_since', 'state_transition', 'signal_strength', 'cooldown_until', 'current_readings', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'why_now_explainer', 'historical_episodes', 'supporting_signals', 'methodology', 'sources']
-    state: "NULL"
+■ liquidity-inflection
+   lead_estimates = {"SPX_proxy": {"lead_days": 2, "corr_21d_fwd": 0.044}, "BTC": {"lead_days": 10, "corr_21d_fwd": 0.078}, "HYG": {"lead_days": 30, "corr_21d_fwd": -0.36
+   usd = {"as_of": "2026-06-24", "impulse_z": -0.625, "net_liq_usd_bn": 5816.9, "state": "CONTRACTING", "last_flip": {"date": "2022-09-14", "direction": "DOWN"
+   china = {"series": "CRDQCNAPABIS", "as_of": "2025-10-01", "credit_yoy_pct": 5.5, "impulse_z": -0.15}
 
-■ credit-equity-divergence  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
-    state: "CREDIT_BULL_RICH"
+■ cross-asset-regime
+   regime_20d = {"regime": "MIXED", "confidence": 0, "rationale": [], "lookback_returns_pct": {"SPY": -3.39, "TLT": 1.89, "GLD": -9.48, "UUP": 2.74, "HYG": -0.5, "USO
+   regime_60d = {"regime": "MIXED", "confidence": 0, "rationale": [], "lookback_returns_pct": {"SPY": 12.09, "TLT": 0.77, "GLD": -13.17, "UUP": 2.45, "HYG": 0.34, "US
+   correlation_breaks = [{"pair": ["GLD", "VIXY"], "c30d": -0.801, "c90d": -0.337, "delta": -0.464, "interpretation": "shift"}, {"pair": ["GLD", "UUP"], "c30d": -0.706, "c90d
+   alerts = [{"type": "REGIME_CHANGE", "msg": "Regime shifted from DEFLATION to MIXED", "severity": "HIGH"}, {"type": "CORRELATION_BREAK", "pair": ["GLD", "VIXY"]
 
-■ concentration-liquidity  keys=['n_positions', 'total_nav', 'positions', 'sector_exposure_pct', 'factor_exposure_pct', 'alerts', 'thresholds']
+■ yen-carry
+   unwind_risk_score = 36.0
+   unwind_risk_label = "MODERATE"
+   carry_regime = "NEUTRAL"
+   positioning = {"net_speculator": -178423, "net_managed_money": -96772, "report_date": "2026-06-16", "open_interest": 520825, "net_zscore_vs_history": null, "crowded
+   triggers = ["USD/JPY breaking below ~153 (a ~5% yen rally) would flip the regime toward CARRY-UNWIND.", "20d realised vol sustained above ~16-18% signals the ste
 
-■ gold-equity-rotation  keys=['engine', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
-    state: "NEUTRAL"
+■ tic-flows
+   composite_tic_stress = 0
+   interpretation = "Foreign demand healthy. Auctions support yields lower. Dollar supported."
+   net_purchases = {}
 
-■ china-liquidity  keys=['fred_failed', 'series_resolved', 'regime', 'regime_read', 'money', 'credit_impulse', 'interbank_rate', 'currency', 'dr_copper']
-    regime: "NEUTRAL"
-    regime_read: "China liquidity is roughly steady \u2014 no strong forward push or pull on commodities and global cyclicals f
+■ labor-leading
+   claims = {"latest_week": null, "initial": null, "ma4w": null, "ma4w_3mo_change_pct": null}
+   interpretation = "Quits rate falling fast (worker confidence dropping)."
 
-■ liquidity-inflection  keys=['engine', 'availability', 'usd', 'us_money', 'eur', 'china', 'stablecoin', 'stablecoin_schema_hint', 'event_study_after_flips', 'lead_estimates', 'signals_logged', 'methodology']
+■ activity-nowcast
+   activity_index = 56
+   momentum = "FLAT"
 
-■ liquidity-pulse  keys=['elapsed_sec', 'series', 'fetch_errors', 'composites', 'summary', 'transitions', 'n_series', 'n_series_ok']
-    summary: "\ud83d\udd34 ACUTE LIQUIDITY DRAIN \u2014 Fed balance sheet draining at extreme pace. Risk-off backdrop confi
+■ consumer-pulse
+   pulse_index = 51
 
-■ cross-asset-regime  keys=['asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d', 'correlation_breaks', 'alerts']
+■ bank-stress
+   bank_stress_score = 29.2
+   reserve_adequacy = {"reserves_bn": 2951.4, "reserves_to_gdp_pct": 9.26, "scarcity_threshold_pct": 11.0, "read": "reserves in the scarcity zone \u2014 repo stress risk el
 
-■ yen-carry  keys=['ok', 'headline', 'carry_regime', 'boj_injection_score', 'boj_stance_label', 'unwind_risk_score', 'unwind_risk_label', 'unwind_risk_components', 'carry_attractiveness', 'boj_funding_leg', 'carry_width', 'fx_detonator', 'jgb_long_end', 'positioning', 'triggers', 'eurodollar_read']
-    headline: "YEN CARRY: NEUTRAL. Unwind risk 36/100 (MODERATE); USD/JPY 161, vol 3% (calm); BOJ draining."
+■ commodity-curves
+   composite_regime = "INFLATIONARY_COOLING"
+   composite_signal = "PDBC -10.4% & USO -19.4% 20d \u2014 commodities deflating; disinflation tailwind"
 
-■ tic-flows  keys=['composite_tic_stress', 'regime', 'top_reasons', 'total_foreign_holdings', 'net_purchases', 'top_holders', 'individual', 'interpretation']
-    regime: "STRONG_FOREIGN_DEMAND"
-
-■ labor-leading  keys=['jolts', 'challenger', 'claims', 'regime', 'interpretation', 'fetch_duration_s']
-    regime: "weakening"
-
-■ activity-nowcast  keys=['ok', 'activity_index', 'activity_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline', 'divergence', 'components', 'n_series', 'n_ok', 'errors', 'note']
-    regime: "EXPANDING"
-    headline: "Activity Nowcast 56/100 \u2014 EXPANDING, momentum FLAT. Lead driver: Financial Stress (St Louis Fed) (strong
-
-■ consumer-pulse  keys=['ok', 'pulse_index', 'pulse_z', 'regime', 'regime_label', 'momentum', 'momentum_z', 'headline', 'sub_indices', 'divergence', 'lead_signal', 'official_labour_cross_ref', 'components', 'n_series', 'n_ok', 'errors']
-    regime: "STEADY"
-    headline: "Consumer & Labour Pulse 51/100 \u2014 STEADY, momentum FLAT. Lead driver: Consumer Sentiment (U-Mich) (weak).
-
-■ bank-stress  keys=['fred_failed', 'series_resolved', 'bank_stress_score', 'regime', 'regime_read', 'emergency_draw', 'emergency_notes', 'emergency_liquidity', 'reserve_adequacy', 'components', 'methodology']
-    regime: "TIGHTENING"
-    regime_read: "Reserves are in the scarcity zone (below 10.5% of GDP) \u2014 the pre-condition for repo/funding stress, even
-
-■ stock-valuations  keys=['engine', 'sp_table', 'sp_coverage', 'sp_universe', 'hist_coverage', 'n_deep_discount', 'sp_asof', 'hp', 'hp_coverage', 'hp_universe', 'heatmap', 'industries', 'n_industries', 'underlooked_top', 'hp_src', 'hp_logged']
-
-■ commodity-curves  keys=['generated_at_unix', 'elapsed_seconds', 'source', 'spy_20d', 'fred_metrics', 'etf_metrics', 'n_fred', 'n_etf', 'n_fred_with_data', 'n_etf_with_data', 'composite', 'composite_regime', 'composite_signal', 'regime_changed_from_prior']
-    composite: {"ratios": {"wti_minus_brent": 2.45, "gold_silver_ratio_etf": 7.02, "gold_minus_pdbc_20d_pp": 0.96, "industria
-
-■ seasonality  keys=['current_period', 'per_symbol', 'highest_favor_today']
-
-■ regime-anomaly  keys=['elapsed_sec', 'hmm', 'anomaly', 'training_window', 'training_progress', 'fit_method']
-
-=== resolve MISSING (alt filenames) ===
-  data/fedwatch.json: MISSING
-  data/rate-probability.json: MISSING
-  data/fed-rate-probability.json: MISSING
-  data/fedwatch-probability.json: MISSING
-  data/rate-cut-odds.json: MISSING
-  data/cot.json: MISSING
-  data/cot-extremes.json: MISSING
-  data/cftc.json: MISSING
-  data/cftc-positioning.json: MISSING
-  data/cot-tracker.json: MISSING
-  data/positioning.json: MISSING
-  data/cot-deep-view.json: MISSING
-  data/cftc-cot.json: MISSING
-DONE 2329
+DONE 2330
