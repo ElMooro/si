@@ -800,7 +800,7 @@ def lambda_handler(event, context):
     _sev = ["RESERVE SCARCITY", "TAIL RISK", "POLICY-ERROR", "SMART MONEY", "LIQUIDITY SPLIT", "COMPLACENCY", "EUPHORIA", "PRESCRIPTION"]
     key_risk = next((dv for s in _sev for dv in divergences if dv.startswith(s)), (divergences[0] if divergences else None))
     bl = (f"Rules-based read: {posture} ({score:+d}, {conviction.lower()} conviction). "
-          f"{head_ph.title()} with the tape leading {', '.join(own[:2]).lower()} while the textbook "
+          f"{str(cycle.get('headline_phase') or '').title()} with the tape leading {', '.join(own[:2]).lower()} while the textbook "
           f"{quad2d.lower() if quad2d else ''} book lags. "
           f"{len([c for c in contribs if c['side']<0])} risk-off vs {len([c for c in contribs if c['side']>0])} risk-on signals active.")
     synthesis = {
