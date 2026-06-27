@@ -90,6 +90,18 @@ tr.drawer>td{background:var(--bg-2);padding:0;border-bottom:2px solid var(--bord
 .dlink2:hover{border-color:var(--cyan)}
 .trustbar{display:flex;gap:10px;flex-wrap:wrap;margin:2px 0 12px}
 .trustcard{flex:1;min-width:280px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:12px 15px}
+.bestpick{background:linear-gradient(90deg,rgba(34,211,238,.12),rgba(34,211,238,.02));border:1px solid var(--cyan);border-radius:9px;padding:9px 13px;margin:0 0 11px;font-size:12.5px;line-height:1.5}
+.bestpick b{color:var(--cyan)}
+tr.stk.best>td{background:rgba(34,211,238,.05)}
+tr.stk.best>td.l{box-shadow:inset 3px 0 0 var(--cyan)}
+@media(max-width:760px){
+  table.rtbl th:nth-child(2),table.rtbl td:nth-child(2),
+  table.rtbl th:nth-child(4),table.rtbl td:nth-child(4),
+  table.rtbl th:nth-child(6),table.rtbl td:nth-child(6),
+  table.rtbl th:nth-child(9),table.rtbl td:nth-child(9){display:none}
+  table.rtbl{font-size:12px}
+  .bestpick{font-size:11.5px}
+}
 .trustcard h4{font-family:var(--mono);font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .trk{display:flex;gap:18px;flex-wrap:wrap}
 .trk .w{font-family:var(--mono);font-size:12px}.trk .w b{font-size:15px;color:var(--fg-0)}.trk .w i{color:var(--fg-3);font-style:normal;font-size:9px;display:block;margin-top:1px}
@@ -170,6 +182,17 @@ function entryTiming(rv){
   if(oh<=-12&&r1m<=-5)return['PULLING BACK','var(--amber)',`${r1(oh)}% off the high, ${r1(r1m)}% over the past month — pulling back`];
   if(Math.abs(r1m)<8&&oh<=-8)return['BASING','var(--green)',`flat over the past month (${r1m>=0?'+':''}${r1(r1m)}%), consolidating ${r1(oh)}% off the high — a constructive base`];
   return['NEUTRAL','var(--fg-3)',`${r1(oh)}% off high · ${r1m>=0?'+':''}${r1(r1m)}% 1m`];
+}
+function riskAdj(r,rv){
+  const fv=rv.fwd_val||{},up=fv.tp_base_upside_pct;
+  if(up==null||up<=0)return null;
+  const cr=(rv.confluence_avail?rv.confluence/rv.confluence_avail:0);
+  const tim=entryTiming(rv),tm=tim?({EXTENDED:0.8,'PULLING BACK':1.0,BASING:1.15,NEUTRAL:1.0}[tim[0]]||1.0):1.0;
+  const psv=rv.ps,pe=rv.pe,peDist=(pe!=null&&pe>60&&psv!=null&&psv>0&&pe>50*psv);
+  const rg=r.rev_growth_yoy,inorg=(rv.acq_driven||(rg!=null&&rg>=60));
+  const org=inorg?0.6:(peDist?0.85:1.0);
+  const trapMult=rv.trap==='trap'?0.4:rv.trap==='real'?1.1:1.0;
+  return up*(0.5+0.5*cr)*tm*org*trapMult;
 }
 let DATA=null,RESEARCH={},RMETA={},SORT='boom_score',OPEN=null,FILTER='all';
 function renderTrust(){
@@ -328,7 +351,7 @@ function drawer(tk){
     (v.ret_3m!=null?`<span class="rt ${v.ret_3m>=0?'pos':'neg'}">${v.ret_3m>=0?'+':''}${v.ret_3m}%<i>3M</i></span>`:'')+
     (psp.length>2?sparkline(psp,(v.ret_3m||0)>=0?'var(--green)':'var(--red)'):'')+
     (()=>{const tm=entryTiming(v);return tm?`<span class="rt" style="color:${tm[1]};border:1px solid ${tm[1]};border-radius:4px" title="${esc(tm[2])}">${tm[0]}<i>entry</i></span>`:'';})()+`</div>` : '';
-  const chartLink=`<a class="dlink2" href="/chart-pro.html?ticker=${encodeURIComponent(tk)}">Open full chart &amp; technicals ↗</a>`;
+  const chartLink=`<div style="display:flex;gap:9px;flex-wrap:wrap"><a class="dlink2" href="/why.html?ticker=${encodeURIComponent(tk)}">Open full equity terminal ↗</a><a class="dlink2" href="/chart-pro.html?ticker=${encodeURIComponent(tk)}">Chart &amp; technicals ↗</a></div>`;
   const sb=v.flags_bull||[],sx=v.flags_bear||[];
   const scorecard=(sb.length||sx.length)?`<div class="scorecard">
     <div class="scol bull"><div class="hd"><b>${v.score_bull||0}</b> bullish signals</div><ul>${sb.length?sb.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="none">none</li>'}</ul></div>
@@ -386,8 +409,14 @@ function renderTable(){
   ranks.forEach(rr=>{const _fv=(RESEARCH[rr.ticker]||{}).fwd_val||{}; rr.fwd_pe=_fv.fwd_pe; rr.fwd_upside=_fv.tp_base_upside_pct; rr.confluence=(RESEARCH[rr.ticker]||{}).confluence;});
   ranks.sort((a,b)=>((b[SORT]==null?-1e9:b[SORT])-(a[SORT]==null?-1e9:a[SORT])));
   const mx=Math.max(...ranks.map(r=>r.boom_score||0));
+  // best risk-adjusted pick: reward × confirmation × entry timing × organic/quality, trap-aware
+  let bestTk=null,bestRA=-1e9;
+  ranks.forEach(r=>{const ra=riskAdj(r,RESEARCH[r.ticker]||{});if(ra!=null&&ra>bestRA){bestRA=ra;bestTk=r.ticker;}});
   const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['fwd_pe','Fwd P/E'],['fwd_upside','Target'],['confluence','Confirm'],['group_pressure','Pressure'],['boom_score','Boom']];
-  let h='<table><thead><tr>'+head.map(c=>`<th class="${c[2]||''}" data-s="${c[0]}">${esc(c[1])}</th>`).join('')+'</tr></thead><tbody>';
+  let banner='';
+  if(bestTk){const br=RESEARCH[bestTk]||{},bfv=br.fwd_val||{};
+    banner=`<div class="bestpick">★ Best risk-adjusted setup: <b>${esc(bestTk)}</b> — ${bfv.tp_base_upside_pct!=null?`+${bfv.tp_base_upside_pct}% base target`:'upside'}, ${br.confluence}/${br.confluence_avail} confirmations, ${(entryTiming(br)||['—'])[0].toLowerCase()} entry. Weighs reward against confirmation, entry timing and growth quality — not the highest Boom score, the best balance. Not investment advice.</div>`;}
+  let h=banner+'<table class="rtbl"><thead><tr>'+head.map(c=>`<th class="${c[2]||''}" data-s="${c[0]}">${esc(c[1])}</th>`).join('')+'</tr></thead><tbody>';
   ranks.forEach(r=>{
     const tk=r.ticker,isc=calls.has(tk),bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
     const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe,trp=rv.trap;
@@ -418,7 +447,7 @@ function renderTable(){
     const peDistMark=peDist?` <span title="Earnings are temporarily depressed (P/E ${r1(pe)} but P/S only ${r1(psv)} — net margin near zero), so this P/E overstates how expensive the stock is. Judge valuation on P/S, not P/E." style="color:var(--amber);font-family:var(--mono);font-size:9px;font-weight:700">⚠DIST</span>`:'';
     const tim=entryTiming(rv);
     const timTag=tim?`<span title="${esc(tim[2])}" style="font-family:var(--mono);font-size:9px;font-weight:700;color:${tim[1]};border:1px solid ${tim[1]};border-radius:3px;padding:0 4px;margin-right:5px">${tim[0]}</span>`:'';
-    h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${inorg}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${timTag}${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
+    h+=`<tr class="stk${OPEN===tk?' open':''}${tk===bestTk?' best':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${tk===bestTk?'<span class="call" style="background:var(--cyan);color:#001">★ BEST R/A</span>':''}${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${inorg}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${timTag}${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
       <td class="${r.rev_accel_pp>=0?'pos':'neg'}">${pp(r.rev_accel_pp)}</td>
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
