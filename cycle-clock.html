@@ -211,6 +211,46 @@ function globalLiqPanel(gl){
   return s;
 }
 function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('');}
+function theRead(sy){
+  if(!sy||!sy.posture)return '';
+  const pc={'STRONG RISK-OFF':'#ff5c6c','RISK-OFF':'#ff8a5c','NEUTRAL':'#f5b343','RISK-ON':'#46c8ff','STRONG RISK-ON':'#3fd68c'}[sy.posture]||'#7c8ba0';
+  const sc=sy.score==null?0:sy.score;const half=Math.min(50,Math.abs(sc)/2);
+  const drv=(arr,col)=>(arr||[]).map(c=>`<div style="font-family:var(--mono);font-size:11.5px;color:var(--fg-1);padding:2px 0">${esc(c.label)}${c.note?` <span style="color:var(--fg-3)">${esc(c.note)}</span>`:''}</div>`).join('')||'<div style="color:var(--fg-3);font-size:11px">—</div>';
+  let s=`<h2>The read — rules-based synthesis <span style="color:var(--fg-3);text-transform:none;letter-spacing:0;font-weight:400">· deterministic, runs without the AI layer</span></h2><div class="panel" style="border-color:${pc}55">`;
+  s+=`<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px">
+    <div style="font-family:var(--mono);font-size:21px;font-weight:800;color:${pc};letter-spacing:.02em">${esc(sy.posture)}</div>
+    <div style="font-family:var(--mono);font-size:12.5px;color:var(--fg-2)">score <b style="color:${pc}">${sc>=0?'+':''}${sc}</b> · ${esc(sy.conviction)} conviction · <span style="color:var(--red)">${sy.n_risk_off} risk-off</span> vs <span style="color:var(--green)">${sy.n_risk_on} risk-on</span></div></div>`;
+  s+=`<div style="position:relative;height:8px;background:var(--bg-2);border-radius:4px;margin-bottom:16px">
+    <div style="position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--border-b)"></div>
+    <div style="position:absolute;top:0;bottom:0;${sc<0?`right:50%;width:${half}%`:`left:50%;width:${half}%`};background:${pc};border-radius:4px"></div></div>`;
+  s+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div><div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">▲ Risk-on drivers</div>${drv(sy.bullish_drivers)}</div>
+    <div><div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">▼ Risk-off drivers</div>${drv(sy.bearish_drivers)}</div></div>`;
+  s+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:15px">
+    <div><div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Own — what's leading (tape)</div><div class="assets">${(sy.own_whats_leading||[]).map(x=>`<span class="chip lead">${esc(x)}</span>`).join('')}</div></div>
+    <div><div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Reduce — what's lagging (tape)</div><div class="assets">${(sy.reduce_whats_lagging||[]).map(x=>`<span class="chip lag">${esc(x)}</span>`).join('')}</div></div></div>`;
+  if(sy.key_risk)s+=`<div style="border-left:3px solid var(--amber);background:rgba(245,179,67,.06);border-radius:8px;padding:9px 12px;margin-top:15px;font-size:12px;color:var(--fg-1);line-height:1.5"><b style="color:var(--amber)">Key risk · </b>${esc(sy.key_risk)}</div>`;
+  if(sy.bottom_line)s+=`<div style="margin-top:13px;padding-top:12px;border-top:1px solid var(--bg-2);font-size:13.5px;color:var(--fg-0);line-height:1.55;font-weight:600">${esc(sy.bottom_line)}</div>`;
+  s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:9px">A deterministic tally of ~20 weighted cross-engine signals into a single net lean — transparent, and independent of the AI narrative. A posture read, not a back-tested edge.</div></div>`;
+  return s;
+}
+function trajectorySection(tr){
+  if(!tr)return '';
+  const n=tr.n_days_logged||0;
+  const dpill=(label,v,unit)=>{const c=v==null?'var(--fg-3)':v>0?'#ff8a5c':v<0?'#46c8ff':'var(--fg-2)';return `<div class="acard" style="border-left-color:${c}"><div class="ad" style="color:${c}">${v==null?'—':(v>0?'+':'')+v+(unit||'')}</div><div class="as">${esc(label)}</div></div>`;};
+  let s=`<h2>Cycle trajectory — the clock's own history</h2><div class="panel">`;
+  if(n<3){
+    s+=`<div style="font-size:12.5px;color:var(--fg-2);line-height:1.55">📈 The clock now logs a daily snapshot of its own state — posture score, recession-prob, squeeze, net-liquidity, tail gauge and quadrant. <b style="color:var(--fg-1)">${n} day${n===1?'':'s'} logged so far.</b> The momentum deltas and trajectory chart populate as history accumulates over the coming sessions.</div>`;
+  }else{
+    s+=`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">`;
+    s+=dpill('posture 5d',tr.posture_score_5d,'')+dpill('posture 21d',tr.posture_score_21d,'')+dpill('recession 21d',tr.recession_prob_21d,'pp')+dpill('squeeze 21d',tr.squeeze_21d,'')+dpill('net-liq 21d',tr.net_liq_21d,'T')+dpill('tail 21d',tr.tail_21d,'');
+    s+=`</div>`;
+    const ser=(tr.series||[]).filter(p=>p.posture_score!=null).map(p=>({v:p.posture_score}));
+    if(ser.length>=2)s+=`<div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Posture score · ${ser.length} sessions (risk-off ↓ · risk-on ↑)</div>${sparkline(ser,640,46)}`;
+  }
+  s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:10px">Self-tracked to data/cycle-clock-history.json — one snapshot per daily run, dedup by date, 300-session cap. The clock will be able to grade its own past reads once forward outcomes mature.</div></div>`;
+  return s;
+}
 function aiSection(d){
   const ai=d.ai;
   if(!ai){
@@ -245,6 +285,7 @@ function aiSection(d){
   h+=`<div class="sub">Where we are in the cycle, the historically-favoured assets for that phase, how much liquidity-squeeze risk is building, and the nearest historical analogs — fused from your cycle, liquidity, cross-asset and stress engines, with divergences surfaced, not averaged.</div>`;
   h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale: '+esc(d.stale.join(', ')):''}</div>`;
   h+=`<div class="verdict">${esc(d.verdict)}</div>`;
+  h+=theRead(d.synthesis);
   h+=aiSection(d);
 
   // ── hero: clock + where-we-are ──
@@ -389,6 +430,7 @@ function aiSection(d){
   h+=forwardCone((an||{}).forward_distribution);
   h+=scenarioPlaybook((cy||{}).scenario_playbook);
   h+=stressSection(d.stress_scenarios);
+  h+=trajectorySection(d.trajectory);
 
   // ── divergences ──
   if(d.divergences&&d.divergences.length){
