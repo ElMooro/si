@@ -3,105 +3,193 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cycle &amp; Liquidity Clock · JustHodl</title>
 <style>
-:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--cyan:#46c8ff;--violet:#a78bfa;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+:root{--bg:#0a0e14;--bg-1:#121822;--bg-2:#1a2330;--border:#24303f;--border-b:#2a3550;--fg-0:#e8eef6;--fg-1:#aebccd;--fg-2:#7c8ba0;--fg-3:#536074;--green:#3fd68c;--amber:#f5b343;--red:#ff5c6c;--coral:#ff8a5c;--cyan:#46c8ff;--violet:#a78bfa;--mono:'SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-0);font-family:var(--sans);line-height:1.5}
-.wrap{max-width:1040px;margin:0 auto;padding:22px 16px 80px}
-h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:10px;max-width:880px}
-.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
-h2{font-size:12px;color:var(--fg-2);margin:24px 0 9px;text-transform:uppercase;letter-spacing:.06em}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 16px 90px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bottom:10px;max-width:900px}
+.meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:14px}
+h2{font-size:12px;color:var(--fg-2);margin:26px 0 10px;text-transform:uppercase;letter-spacing:.06em}
 .verdict{background:linear-gradient(180deg,#141b27,#10151e);border:1px solid #2b3a4f;border-radius:12px;padding:15px 18px;margin-bottom:18px;font-size:15px;line-height:1.55}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
-@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:780px){.grid2,.grid3{grid-template-columns:1fr}}
 .panel{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px}
 .panel h3{margin:0 0 10px;font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.06em}
 .big{font-size:22px;font-weight:800;margin-bottom:2px}
-.gauge{height:9px;border-radius:5px;background:linear-gradient(90deg,#3fd68c,#f5b343,#ff5c6c);position:relative;margin:12px 0 4px}
+.kvr{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--fg-1);padding:3px 0;border-bottom:1px solid var(--bg-2)}
+.kvr span{color:var(--fg-3)}
+.gauge{height:9px;border-radius:5px;background:linear-gradient(90deg,#3fd68c,#f5b343,#ff5c6c);position:relative;margin:11px 0 4px}
 .gauge .pin{position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,.6)}
 .gscale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--fg-3);font-family:var(--mono)}
-.flick{font-size:12px;color:var(--amber);font-family:var(--mono);margin:4px 0 0;padding-left:14px;position:relative}
-.flick:before{content:'▸';position:absolute;left:0;color:var(--fg-3)}
-.diverge{background:var(--bg-1);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:9px;padding:11px 14px;margin-bottom:9px;font-size:12.5px;color:var(--fg-1)}
-.diverge b{color:var(--violet)}
+.roro{height:9px;border-radius:5px;background:linear-gradient(90deg,#ff5c6c,#f5b343 50%,#3fd68c);position:relative;margin:11px 0 4px}
+.flick{font-size:12px;color:var(--amber);font-family:var(--mono);margin:4px 0 0;padding-left:14px;position:relative}.flick:before{content:'▸';position:absolute;left:0;color:var(--fg-3)}
+.diverge{background:var(--bg-1);border:1px solid var(--border);border-left:3px solid var(--violet);border-radius:9px;padding:11px 14px;margin-bottom:9px;font-size:12.5px;color:var(--fg-1)}.diverge b{color:var(--violet)}
+.assets{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid var(--border-b)}
+.chip.lead{background:rgba(63,214,140,.1);color:var(--green);border-color:rgba(63,214,140,.4)}
+.chip.lag{background:rgba(255,92,108,.08);color:var(--red);border-color:rgba(255,92,108,.3)}
+.wf{display:flex;align-items:flex-end;gap:8px;height:96px;margin:10px 0 4px}
+.wf .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-family:var(--mono)}
+.wf .bar{width:100%;border-radius:5px 5px 0 0}.wf .vlab{font-size:11px;margin-bottom:3px}.wf .clab{font-size:9.5px;color:var(--fg-3);margin-top:5px;text-align:center}
+.ladder{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;margin-top:8px}
+.lrow .lh{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px}.lrow .lh span{color:var(--fg-2)}
+.ltrack{height:6px;background:var(--bg-2);border-radius:3px;margin-top:3px}.ltrack i{display:block;height:100%;border-radius:3px}
+.acard{flex:1;min-width:120px;background:var(--bg-2);border-radius:8px;padding:9px 11px;font-family:var(--mono);border-left:3px solid var(--fg-3)}
+.acard .ad{color:var(--fg-0);font-size:13px;font-weight:700}.acard .as{color:var(--fg-3);font-size:9.5px}
 table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;color:var(--fg-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--border)}
 td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
 .note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
 .loading{padding:54px;text-align:center;color:var(--fg-2)}
 .tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--fg-2);margin-left:6px}
+.prov{font-family:var(--mono);font-size:10px;color:var(--fg-3);display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:6px}
 </style></head><body><div class="wrap" id="wrap"><div class="loading">Reading the clock…</div></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-// 4-quadrant investment clock SVG; phase 1=early(bottom) → 2=mid(right) → 3=late(top) → 4=downturn(left)
-function clock(phaseN){
-  const segs=[{n:1,lbl:'EARLY',sub:'reflation',a0:90,a1:180,col:'#3fd68c'},
-              {n:2,lbl:'MID',sub:'goldilocks',a0:0,a1:90,col:'#46c8ff'},
-              {n:3,lbl:'LATE',sub:'stagflation',a0:270,a1:360,col:'#f5b343'},
-              {n:4,lbl:'DOWNTURN',sub:'deflation',a0:180,a1:270,col:'#ff5c6c'}];
-  const cx=130,cy=130,r=104;
-  function pt(a,rr){const rad=(a-90)*Math.PI/180;return [cx+rr*Math.cos(rad),cy+rr*Math.sin(rad)];}
-  function arc(a0,a1,rr){const[x0,y0]=pt(a0,rr),[x1,y1]=pt(a1,rr);return `M ${cx} ${cy} L ${x0.toFixed(1)} ${y0.toFixed(1)} A ${rr} ${rr} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z`;}
-  let cur=Math.round(phaseN||0);if(phaseN===2.5)cur=2;
-  let s=`<svg viewBox="0 0 260 260" style="width:100%;max-width:300px;height:auto" xmlns="http://www.w3.org/2000/svg">`;
-  for(const sg of segs){
-    const active=sg.n===cur;
-    s+=`<path d="${arc(sg.a0,sg.a1,r)}" fill="${sg.col}" fill-opacity="${active?0.32:0.07}" stroke="${sg.col}" stroke-opacity="${active?1:0.35}" stroke-width="${active?2:1}"/>`;
-    const mid=(sg.a0+sg.a1)/2;const[lx,ly]=pt(mid,r*0.62);
-    s+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${sg.col}" fill-opacity="${active?1:0.5}" font-size="13" font-weight="700" font-family="sans-serif" text-anchor="middle">${sg.lbl}</text>`;
-    s+=`<text x="${lx.toFixed(1)}" y="${(ly+13).toFixed(1)}" fill="${sg.col}" fill-opacity="${active?0.8:0.4}" font-size="9" font-family="monospace" text-anchor="middle">${sg.sub}</text>`;
-  }
-  // pointer to active segment mid
-  const active=segs.find(x=>x.n===cur);
-  if(active){const[px,py]=pt((active.a0+active.a1)/2,r*0.92);
-    s+=`<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#fff" stroke-width="2.5"/><circle cx="${cx}" cy="${cy}" r="5" fill="#fff"/>`;}
+function r1(x){return x==null?'—':(Math.round(x*10)/10);}
+
+// ── growth × inflation investment clock with 12-month trail + per-quadrant asset leadership ──
+const QHERO={OVERHEAT:['OVERHEAT','Commodities','#f5b343'],STAGFLATION:['STAGFLATION','Cash · Gold','#ff8a5c'],
+             DOWNTURN:['DOWNTURN','Long bonds','#ff5c6c'],GOLDILOCKS:['GOLDILOCKS','Equities','#3fd68c']};
+function clockGI(cy){
+  const trail=cy.trail||[];const co=cy.coordinates||(trail.length?trail[trail.length-1]:null);
+  const active=cy.headline_quadrant||cy.quadrant_2d;
+  const SP=2.6,L=30,R=330,C=180;
+  const X=g=>C+Math.max(-1,Math.min(1,(g||0)/SP))*150;
+  const Y=i=>C-Math.max(-1,Math.min(1,(i||0)/SP))*150;
+  const quads=[['OVERHEAT',180,30],['STAGFLATION',30,30],['DOWNTURN',30,180],['GOLDILOCKS',180,180]];
+  let s=`<svg viewBox="0 0 360 384" style="width:100%;max-width:430px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">`;
+  for(const [q,x,y] of quads){const h=QHERO[q];const on=q===active;
+    s+=`<rect x="${x}" y="${y}" width="150" height="150" fill="${h[2]}" fill-opacity="${on?0.14:0.05}" stroke="${h[2]}" stroke-opacity="${on?0.9:0.25}" stroke-width="${on?1.5:1}"/>`;
+    const tx=x+75;
+    s+=`<text x="${tx}" y="${y+ (y<C?26:132)}" fill="${h[2]}" fill-opacity="${on?1:0.6}" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif">${h[0]}</text>`;
+    s+=`<text x="${tx}" y="${y+ (y<C?40:146)}" fill="${h[2]}" fill-opacity="${on?0.95:0.55}" font-size="11" text-anchor="middle" font-family="monospace">▸ ${h[1]}</text>`;}
+  s+=`<line x1="${C}" y1="30" x2="${C}" y2="330" stroke="#2a3550" stroke-dasharray="3 4"/><line x1="30" y1="${C}" x2="330" y2="${C}" stroke="#2a3550" stroke-dasharray="3 4"/>`;
+  s+=`<text x="332" y="176" fill="#536074" font-size="9" text-anchor="end" font-family="monospace">growth +</text><text x="28" y="176" fill="#536074" font-size="9" font-family="monospace">growth −</text>`;
+  s+=`<text x="186" y="40" fill="#536074" font-size="9" font-family="monospace">inflation +</text><text x="186" y="326" fill="#536074" font-size="9" font-family="monospace">inflation −</text>`;
+  if(trail.length){let pts=trail.map(p=>`${X(p.g).toFixed(1)},${Y(p.i).toFixed(1)}`).join(' ');
+    s+=`<polyline points="${pts}" fill="none" stroke="#46c8ff" stroke-opacity="0.45" stroke-width="2"/>`;
+    trail.forEach((p,k)=>{const op=0.2+0.8*(k/(trail.length-1||1));const rr=3+2.4*(k/(trail.length-1||1));
+      s+=`<circle cx="${X(p.g).toFixed(1)}" cy="${Y(p.i).toFixed(1)}" r="${rr.toFixed(1)}" fill="#46c8ff" fill-opacity="${op.toFixed(2)}"/>`;});
+    s+=`<text x="${X(trail[0].g).toFixed(1)}" y="${(Y(trail[0].i)+16).toFixed(1)}" fill="#46c8ff" fill-opacity="0.55" font-size="8.5" text-anchor="middle" font-family="monospace">${esc(trail[0].m)}</text>`;}
+  if(co){const nx=X(co.g),ny=Y(co.i);
+    if(trail.length>1){const pv=trail[trail.length-2];const dx=nx-X(pv.g),dy=ny-Y(pv.i);const L2=Math.hypot(dx,dy)||1;const ex=nx+dx/L2*16,ey=ny+dy/L2*16;
+      s+=`<line x1="${nx.toFixed(1)}" y1="${ny.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" stroke="#fff" stroke-width="2"/>`;}
+    s+=`<circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="9" fill="none" stroke="#fff" stroke-opacity="0.35" stroke-width="2"/><circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="6.5" fill="#fff"/>`;
+    s+=`<text x="${nx.toFixed(1)}" y="${(ny-13).toFixed(1)}" fill="#fff" font-size="11" font-weight="700" text-anchor="middle" font-family="monospace">NOW</text>`;}
   s+=`</svg>`;return s;
+}
+function recDial(p){
+  if(p==null)return '';
+  const a=(180-1.8*Math.max(0,Math.min(100,p)))*Math.PI/180;
+  const ex=(60+50*Math.cos(a)).toFixed(1),ey=(62-50*Math.sin(a)).toFixed(1);
+  const col=p>=60?'#ff5c6c':p>=35?'#f5b343':'#3fd68c';
+  return `<svg viewBox="0 0 120 78" width="120" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 62 A50 50 0 0 1 110 62" fill="none" stroke="#1a2330" stroke-width="9" stroke-linecap="round"/>
+    <path d="M10 62 A50 50 0 0 1 ${ex} ${ey}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
+    <text x="60" y="56" text-anchor="middle" font-size="22" font-weight="800" fill="${col}" font-family="monospace">${Math.round(p)}%</text></svg>`;
 }
 (async function(){
   const d=await gj('data/cycle-clock.json');const w=document.getElementById('wrap');
   if(!d||!d.cycle){w.innerHTML='<h1>Cycle &amp; Liquidity Clock</h1><div class="loading">No data yet — updates 23:30 UTC.</div>';return;}
-  const cy=d.cycle,lq=d.liquidity;
+  const cy=d.cycle,lq=d.liquidity||{},rk=d.risk||{},an=d.analogs||{};
   const PC={'EARLY CYCLE':'#3fd68c','MID CYCLE':'#46c8ff','LATE-MID CYCLE':'#7fc4ff','LATE CYCLE':'#f5b343','DOWNTURN':'#ff5c6c','UNKNOWN':'#7c8ba0'};
   const SC={'LOW':'#3fd68c','LOW · WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
   let h=`<h1>🕐 Cycle &amp; Liquidity Clock <span class="tag">meta-synthesis</span></h1>`;
-  h+=`<div class="sub">One verdict on where we are in the cycle and how much liquidity-squeeze risk is building — fused from your cycle, liquidity and stress engines, with divergences surfaced, not averaged away.</div>`;
-  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale inputs: '+esc(d.stale.join(', ')):''}</div>`;
+  h+=`<div class="sub">Where we are in the cycle, the historically-favoured assets for that phase, how much liquidity-squeeze risk is building, and the nearest historical analogs — fused from your cycle, liquidity, cross-asset and stress engines, with divergences surfaced, not averaged.</div>`;
+  h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale: '+esc(d.stale.join(', ')):''}</div>`;
   h+=`<div class="verdict">${esc(d.verdict)}</div>`;
+
+  // ── hero: clock + where-we-are ──
   h+=`<div class="grid2">`;
-  // cycle panel
-  h+=`<div class="panel"><h3>Cycle position</h3>
-    ${clock(cy.phase_n)}
-    <div class="big" style="color:${PC[cy.phase]||'#fff'};margin-top:8px">${esc(cy.phase)}</div>
-    <div style="font-size:12.5px;color:var(--fg-1)">${esc(cy.quadrant||'')} quadrant · ${esc(cy.description||'')}</div>
-    <div style="font-size:12px;color:var(--fg-2);margin-top:8px;font-family:var(--mono)">growth ${esc(cy.growth_direction)} · inflation ${esc(cy.inflation_direction)} · confidence ${esc(cy.confidence)}</div>
-    ${cy.froth_markers&&cy.froth_markers.length?`<div style="font-size:12px;color:var(--amber);margin-top:6px;font-family:var(--mono)">froth: ${esc(cy.froth_markers.join(' · '))}</div>`:''}
-    <div style="font-size:11.5px;color:var(--fg-3);margin-top:8px">US cycle ${cy.us_cycle_score} (${esc(cy.us_cycle_level)}) · global ${esc(cy.global_phase)} CLI ${cy.global_avg_cli} · nowcast ${esc(cy.nowcast_regime)}</div>
-  </div>`;
-  // liquidity panel
+  h+=`<div class="panel"><h3>Cycle position — growth × inflation</h3>${clockGI(cy)}
+    <div style="font-family:var(--mono);font-size:11px;color:var(--fg-3);margin-top:4px">12-month trail · coordinates from growth (IP+payrolls) &amp; inflation (CPI+core PCE) momentum z</div></div>`;
+  const co=cy.coordinates||{};
+  h+=`<div class="panel"><h3>Where we are</h3>
+    <div class="big" style="color:${PC[cy.headline_phase]||'#fff'}">${esc(cy.headline_phase||cy.phase)}</div>
+    <div style="font-size:12.5px;color:var(--fg-1);margin-bottom:8px">${esc(cy.quadrant_2d||'')} · growth z ${r1(co.g)} · inflation z ${r1(co.i)}</div>
+    <div class="kvr"><span>macro-regime model</span><b>${esc(cy.macro_regime_quadrant||'—')}</b></div>
+    <div class="kvr"><span>data surprise tilt</span><b>${esc((cy.surprise_tilt||{}).regime||'—')}</b></div>
+    <div class="kvr"><span>yield curve</span><b>${esc(cy.yield_curve_regime||'—')}</b></div>
+    <div class="kvr"><span>credit</span><b>${esc(cy.credit_regime||'—')}</b></div>
+    <div class="kvr"><span>US cycle</span><b>${cy.us_cycle_score==null?'—':cy.us_cycle_score} ${esc(cy.us_cycle_level||'')}</b></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px"><div>${recDial(cy.recession_prob_pct)}</div>
+      <div style="font-size:11.5px;color:var(--fg-2)">recession-probability composite<br><span style="color:var(--fg-3)">curve + credit + nowcast + sector rotation</span></div></div>
+    ${cy.froth_markers&&cy.froth_markers.length?`<div style="font-size:11.5px;color:var(--amber);margin-top:8px;font-family:var(--mono)">froth: ${esc(cy.froth_markers.join(' · '))}</div>`:''}
+  </div></div>`;
+
+  // ── asset leadership ──
+  const al=cy.asset_leadership;
+  if(al){
+    h+=`<h2>Best assets for this phase — what has historically led</h2>`;
+    h+=`<div class="panel"><div style="font-size:12.5px;color:var(--fg-1)">In the <b style="color:${QHERO[cy.quadrant_2d]?QHERO[cy.quadrant_2d][2]:'#fff'}">${esc(cy.quadrant_2d||'')}</b> quadrant (${esc(al.clock_phase)} on the investment clock), the assets that historically outperformed:</div>
+      <div class="assets">${(al.lead||[]).map(a=>`<span class="chip lead">▲ ${esc(a)}</span>`).join('')}</div>
+      <div style="font-size:11px;color:var(--fg-3);margin-top:11px">Tends to lag:</div>
+      <div class="assets">${(al.lag||[]).map(a=>`<span class="chip lag">▼ ${esc(a)}</span>`).join('')}</div>
+      ${al.system_leaders&&al.system_leaders.length?`<div style="font-size:11.5px;color:var(--fg-2);margin-top:11px;font-family:var(--mono)">Your system's proven leaders in this regime: ${esc(al.system_leaders.join(' · '))}</div>`:''}
+      <div style="font-size:10.5px;color:var(--fg-3);margin-top:9px">Canonical Merrill investment-clock leadership, confirmed by your regime playbook. Not investment advice.</div></div>`;
+  }
+
+  // ── liquidity row: net liquidity + squeeze + RORO ──
+  h+=`<h2>Liquidity &amp; cross-asset risk</h2><div class="grid3">`;
+  const nl=lq.net_liquidity;
+  if(nl){
+    const dr=nl.net_13w_delta_bn;
+    const mx=Math.max(nl.walcl_tn||0,0.001);
+    const bar=(v,c)=>`<div class="col"><div class="vlab" style="color:${c}">$${r1(v)}T</div><div class="bar" style="height:${Math.max(6,(Math.abs(v)/mx)*70)}px;background:${c}"></div></div>`;
+    h+=`<div class="panel"><h3>Fed net liquidity</h3>
+      <div class="big">$${r1(nl.net_tn)}T <span style="font-size:12px;color:${dr>=0?'var(--green)':'var(--red)'}">${dr>=0?'+':''}${r1(dr)}B/13w ${dr>=0?'↗':'↘'}</span></div>
+      <div class="wf">${bar(nl.walcl_tn,'#46c8ff')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">−</div>${bar(nl.rrp_tn,'#ff8a5c')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">−</div>${bar(nl.tga_tn,'#ff8a5c')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">=</div>${bar(nl.net_tn,dr>=0?'#3fd68c':'#ff5c6c')}</div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--fg-3)"><span>balance sheet</span><span>RRP</span><span>TGA</span><span>NET</span></div></div>`;
+  }
   h+=`<div class="panel"><h3>Liquidity-squeeze risk</h3>
     <div class="big" style="color:${SC[lq.level]||'#fff'}">${lq.squeeze_risk_score==null?'—':lq.squeeze_risk_score} · ${esc(lq.level)}</div>
     <div class="gauge"><div class="pin" style="left:${Math.max(0,Math.min(100,lq.squeeze_risk_score||0))}%"></div></div>
-    <div class="gscale"><span>0 · ample</span><span>50 · tightening</span><span>100 · acute</span></div>
-    <div style="font-size:12.5px;color:var(--fg-1);margin-top:10px">aggregate liquidity: <b>${esc(lq.aggregate_liquidity_regime||'—')}</b> · ${esc(lq.aggregate_liquidity_read||'')}</div>
-    ${lq.flickers&&lq.flickers.length?`<div style="margin-top:8px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em">draining flickers</div>${lq.flickers.map(f=>`<div class="flick">${esc(f)}</div>`).join('')}</div>`:`<div style="font-size:12px;color:var(--green);margin-top:8px">no draining flickers</div>`}
-  </div></div>`;
-  // divergences
+    <div class="gscale"><span>0 ample</span><span>50</span><span>100 acute</span></div>
+    <div style="font-size:12px;color:var(--fg-1);margin-top:9px">aggregate: <b>${esc(lq.aggregate_liquidity_regime||'—')}</b></div>
+    ${lq.flickers&&lq.flickers.length?`<div style="margin-top:6px">${lq.flickers.map(f=>`<div class="flick">${esc(f)}</div>`).join('')}</div>`:`<div style="font-size:12px;color:var(--green);margin-top:6px">no draining flickers</div>`}</div>`;
+  const roro=rk.roro_score;
+  h+=`<div class="panel"><h3>Cross-asset risk · RORO</h3>
+    <div class="big" style="color:${roro==null?'#fff':roro>15?'var(--green)':roro<-15?'var(--red)':'var(--amber)'}">${roro==null?'—':(roro>0?'+':'')+r1(roro)} · ${esc(rk.read||'')}</div>
+    <div class="roro"><div class="pin" style="position:absolute;top:-4px;width:3px;height:17px;background:#fff;border-radius:2px;left:${Math.max(0,Math.min(100,50+(roro||0)/2))}%"></div></div>
+    <div class="gscale"><span>−100 off</span><span>0</span><span>+100 on</span></div>
+    <div style="font-size:11.5px;color:var(--fg-2);margin-top:9px;font-family:var(--mono)">FX · options · VIX · credit</div>
+    ${rk.tells&&rk.tells.length?`<div style="font-size:11px;color:var(--fg-3);margin-top:5px">${esc((rk.tells||[]).slice(0,3).join(' · '))}</div>`:''}</div>`;
+  h+=`</div>`;
+
+  // ── stress ladder ──
+  const C2=lq.components||{};
+  const lcol=v=>v==null?'#536074':v>=50?'#ff5c6c':v>=35?'#f5b343':'#3fd68c';
+  const lrows=[['global stress',C2.global_stress],['crisis composite',C2.crisis_composite],['plumbing strain',C2.plumbing_health==null?null:100-C2.plumbing_health],['funding stress',C2.funding_stress],['systemic',C2.systemic_stress],['crisis canaries',C2.crisis_canaries]];
+  h+=`<h2>Stress stack — squeeze-risk inputs</h2><div class="panel"><div class="ladder">`;
+  for(const [k,v] of lrows){h+=`<div class="lrow"><div class="lh"><span>${k}</span><b style="color:${lcol(v)}">${v==null?'—':Math.round(v)}</b></div><div class="ltrack"><i style="width:${v==null?0:Math.max(3,Math.min(100,v))}%;background:${lcol(v)}"></i></div></div>`;}
+  h+=`</div></div>`;
+
+  // ── analogs ──
+  const near=an.nearest||[];
+  if(near.length){
+    h+=`<h2>Nearest historical analogs — what followed</h2><div class="panel">`;
+    h+=`<div style="display:flex;gap:8px;flex-wrap:wrap">`;
+    near.forEach((a,i)=>{const sim=Math.round((a.similarity||0)*100);const f=a.forward_63d_pct;const col=i===0?(f>=0?'#3fd68c':'#ff5c6c'):'#7c8ba0';
+      h+=`<div class="acard" style="border-left-color:${col}"><div class="ad">${esc((a.date||'').slice(0,7))}</div><div class="as">${sim}% similar</div><div style="color:${f>=0?'var(--green)':'var(--red)'};margin-top:3px">fwd 63d ${f>=0?'+':''}${r1(f)}%</div></div>`;});
+    h+=`</div>`;
+    const up=an.unprecedentedness||{};
+    h+=`<div style="font-size:11.5px;color:var(--fg-2);margin-top:10px;font-family:var(--mono)">directional read: <b style="color:var(--fg-1)">${esc(an.directional_call||'—')}</b>${up.pctile_vs_history!=null?` · configuration ${r1(up.pctile_vs_history)}th pctile unusual`:''}</div>`;
+    if(up.note)h+=`<div style="font-size:11px;color:var(--amber);margin-top:4px">⚠ ${esc(up.note)}</div>`;
+    h+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:7px">Descriptive distribution of what followed similar configurations — not a forecast.</div></div>`;
+  }
+
+  // ── divergences ──
   if(d.divergences&&d.divergences.length){
-    h+=`<h2>Divergences — what disagrees (and why that matters)</h2>`;
+    h+=`<h2>Divergences — what disagrees (and why it matters)</h2>`;
     for(const dv of d.divergences){const parts=esc(dv).split(':');h+=`<div class="diverge"><b>${parts[0]}:</b>${parts.slice(1).join(':')}</div>`;}
   }
-  // component table
-  h+=`<h2>Under the hood — stress stack</h2><table><tr><th>Component</th><th>Reading</th></tr>`;
-  const C=lq.components||{};
-  const rows=[['Global stress index',C.global_stress+' ('+esc(C.global_stress_level||'')+')'],
-              ['Crisis composite',C.crisis_composite+' (DEFCON '+C.crisis_defcon+')'],
-              ['Eurodollar plumbing health',C.plumbing_health],
-              ['Funding / treasury stress',C.funding_stress],
-              ['Systemic stress',C.systemic_stress],
-              ['Crisis canaries',C.crisis_canaries],
-              ['Liquidity impulse 13w',lq.impulse_13w_pct+'%'],
-              ['Net liquidity 30d',lq.net_30d_bn+'B']];
-  for(const [k,v] of rows)h+=`<tr><td style="color:var(--fg-2)">${k}</td><td>${esc(String(v))}</td></tr>`;
-  h+=`</table>`;
+
+  // ── provenance + falsifier ──
+  h+=`<h2>Data provenance</h2><div class="panel"><div class="prov">`;
+  for(const [k,v] of Object.entries(d.availability||{}))h+=`<span>${esc(k)}: <b style="color:${String(v).includes('MISSING')?'var(--red)':'var(--fg-2)'}">${esc(v)}</b></span>`;
+  h+=`</div></div>`;
   h+=`<div class="note"><b>Falsifier:</b> ${esc(d.falsifier||'')}<br><br>${esc(d.methodology||'')}</div>`;
   w.innerHTML=h;
 })();
