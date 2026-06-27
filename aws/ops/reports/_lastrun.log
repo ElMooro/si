@@ -1,13 +1,6 @@
-
-=== data/yield-curve.json === keys: ['version', 'generated_at', 'duration_s', 'as_of_date', 'regime', 'regime_description', 'inversion_flags', 'decomposition', 'spreads_bps', 'butterfly_5y_bps', 'term_premium_proxy_bps', 'curve_points', 'nominal_yields', 'real_yields', 'inflation_expectations', 'fed_context', 'signals', 'n_signals', 'data_sources', 'regime_definitions']
-  nominal_yields: {"3M": {"date": "2026-06-25", "value": 3.84, "chg_1d_bps": -1.0, "chg_5d_bps": 1.0, "chg_20d_bps": 16.0, "chg_60d_bps": 14.0, "series_id": "DGS3MO", "label": "3M", "years_to_maturity": 0.25}, "2Y": {"date": "2026-06-25", "value": 4.09, "chg
-  curve_points: [{"tenor": "1M", "years": 0.08333333333333333, "yield_pct": 3.7, "chg_1d_bps": 4.0, "chg_5d_bps": 2.0, "chg_20d_bps": -2.0}, {"tenor": "3M", "years": 0.25, "yield_pct": 3.84, "chg_1d_bps": -1.0, "chg_5d_bps": 1.0, "chg_20d_bps": 16.0}, {"te
-  spreads_bps: {"2s10s": 31.0, "3M10Y": 56.0, "5s30s": 71.0, "2s5s": 6.0, "10s30s": 46.0, "fed_funds_to_10y": 77.0}
-  real_yields: {"10Y_REAL": {"value_pct": 2.19, "chg_5d_bps": -4.0}, "20Y_REAL": {"value_pct": 2.51, "chg_5d_bps": -4.0}, "30Y_REAL": {"value_pct": 2.69, "chg_5d_bps": -4.0}, "7Y_REAL": {"value_pct": 2.05, "chg_5d_bps": -4.0}, "5Y_REAL": {"value_pct": 1.9
-  inflation_expectations: {"5Y_BREAKEVEN": {"value_pct": 2.21, "chg_5d_bps": -6.0}, "10Y_BREAKEVEN": {"value_pct": 2.2, "chg_5d_bps": -5.0}, "5Y5Y_FORWARD": {"value_pct": 2.19, "chg_5d_bps": -4.0}}
-  term_premium_proxy_bps: 1.0
-  regime: "BULL_STEEPENER"
-data/treasury-curve.json MISSING
-data/rates-curve.json MISSING
-data/yields.json MISSING
-DONE 2358
+wrote v3.0 dur 18.6s
+regime: BULL_STEEPENER | long rates falling slower than short — Fed cuts incoming / recession risk
+curve points: 11 → [('1M', 3.7), ('3M', 3.84), ('6M', 3.95), ('1Y', 3.96), ('2Y', 4.09), ('3Y', 4.13), ('5Y', 4.15), ('7Y', 4.26), ('10Y', 4.4), ('20Y', 4.87), ('30Y', 4.86)]
+spreads: {'2s10s': 31.0, '3M10Y': 56.0, '5s30s': 71.0, '2s5s': 6.0, '10s30s': 46.0, 'fed_funds_to_10y': 77.0}
+term premium: 1.0 | 10y real: 2.19 | breakeven: 2.2
+DONE 2359
