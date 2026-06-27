@@ -42,6 +42,102 @@ def _regime(v):
     return "LOW" if v < 40 else "NORMAL" if v < 60 else "ELEVATED" if v < 80 else "HIGH"
 
 
+def dvol_dated(ccy, days=1100):
+    """Daily DVOL closes keyed by ISO date, ~3y, for the event study."""
+    now = int(time.time() * 1000)
+    d = _get(f"https://www.deribit.com/api/v2/public/get_volatility_index_data"
+             f"?currency={ccy}&start_timestamp={now - days * 86400000}&end_timestamp={now}"
+             f"&resolution=86400")["result"]["data"]
+    out = {}
+    for row in d:
+        if row and row[4]:
+            iso = datetime.fromtimestamp(row[0] / 1000, tz=timezone.utc).date().isoformat()
+            out[iso] = row[4]
+    return out
+
+
+def cb_daily(product, since):
+    """Coinbase daily closes, paginated (300/call). Returns {iso_date: close}."""
+    out = {}
+    cur = datetime.fromisoformat(since + "T00:00:00+00:00")
+    now = datetime.now(timezone.utc)
+    step = 300 * 86400
+    while cur < now:
+        end = min(datetime.fromtimestamp(cur.timestamp() + step, tz=timezone.utc), now)
+        url = (f"https://api.exchange.coinbase.com/products/{product}/candles"
+               f"?granularity=86400&start={cur.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+               f"&end={end.strftime('%Y-%m-%dT%H:%M:%SZ')}")
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "justhodl/1.0"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                rows = json.loads(r.read())
+            for row in rows:  # [time, low, high, open, close, volume]
+                d = datetime.fromtimestamp(row[0], tz=timezone.utc).date().isoformat()
+                out[d] = float(row[4])
+        except Exception:
+            pass
+        time.sleep(0.34)
+        cur = datetime.fromtimestamp(cur.timestamp() + step, tz=timezone.utc)
+    return out
+
+
+def dvol_event_study():
+    """Point-in-time (no look-ahead) test: does DVOL percentile predict forward BTC?
+    Hypothesis (buy-fear, like VIX): HIGH DVOL pctile (fear) → stronger forward BTC than
+    LOW DVOL pctile (complacency). Trailing-2y percentile at each date; clean target = real
+    Coinbase BTC forward return. DIAGNOSTIC until the central FDR scorecard grades it live."""
+    es = {}
+    try:
+        dser = dvol_dated("BTC", 1100)
+        ddates = sorted(dser)
+        if len(ddates) < 200:
+            return {"standing": "INSUFFICIENT", "n_days": len(ddates)}
+        btc = cb_daily("BTC-USD", ddates[0])
+        bdates = sorted(btc); bpos = {d: i for i, d in enumerate(bdates)}
+
+        def bfwd(d, h):
+            i = bpos.get(d)
+            if i is None or i + h >= len(bdates):
+                return None
+            return (btc[bdates[i + h]] / btc[d] - 1) * 100
+
+        dvals = [dser[d] for d in ddates]
+        pit = []  # (date, trailing-2y percentile of DVOL)
+        for i, d in enumerate(ddates):
+            win = dvals[max(0, i - 729):i + 1]; cur = dser[d]
+            pit.append((d, round(100 * sum(1 for x in win if x <= cur) / len(win))))
+        for h in (30, 90, 180):
+            lo_r, hi_r = [], []
+            for d, p in pit:
+                f = bfwd(d, h)
+                if f is None:
+                    continue
+                if p <= 25:
+                    lo_r.append(f)        # complacency
+                elif p >= 75:
+                    hi_r.append(f)        # fear
+            lm = sum(lo_r) / len(lo_r) if lo_r else None
+            hm = sum(hi_r) / len(hi_r) if hi_r else None
+            es[f"fwd{h}d"] = {
+                "low_pctile_mean": round(lm, 1) if lm is not None else None,
+                "high_pctile_mean": round(hm, 1) if hm is not None else None,
+                "low_hit_pct": round(100 * sum(1 for x in lo_r if x > 0) / len(lo_r)) if lo_r else None,
+                "high_hit_pct": round(100 * sum(1 for x in hi_r if x > 0) / len(hi_r)) if hi_r else None,
+                "n_low": len(lo_r), "n_high": len(hi_r),
+                "edge_high_minus_low_pp": round(hm - lm, 1) if (lm is not None and hm is not None) else None,
+            }
+        e90 = (es.get("fwd90d") or {}).get("edge_high_minus_low_pp")
+        es["hypothesis"] = "buy-fear: HIGH DVOL pctile (fear) > LOW DVOL pctile (complacency) on forward BTC"
+        es["verdict"] = ("INSUFFICIENT" if e90 is None else
+                         "CONFIRMED_STRONG" if e90 >= 12 else "CONFIRMED" if e90 >= 5 else
+                         "INVERTED" if e90 <= -5 else "INCONCLUSIVE")
+        es["standing"] = "DIAGNOSTIC"  # earns trust only via the central FDR scorecard over live outcomes
+        es["n_days"] = len(ddates)
+    except Exception as e:
+        es = {"_err": str(e)[:80]}
+    return es
+
+
 def dvol(ccy):
     """Daily DVOL closes for ~1y → current, 1y percentile, regime, 30d trend."""
     now = int(time.time() * 1000)
@@ -94,7 +190,8 @@ def lambda_handler(event=None, context=None):
         "HIGH": "crypto implied vol high — fear / crash-hedge demand (often near capitulation)",
     }.get(reg)
     out["duration_s"] = round(time.time() - t0, 1)
-    out["sources"] = ["Deribit get_volatility_index_data (DVOL)"]
+    out["event_study_dvol"] = dvol_event_study()
+    out["sources"] = ["Deribit get_volatility_index_data (DVOL)", "Coinbase BTC-USD (event-study target)"]
     if errs:
         out["errors"] = errs
 
