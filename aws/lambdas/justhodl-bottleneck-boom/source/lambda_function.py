@@ -35,6 +35,9 @@ VERSION = "1.0.0"
 GROUPS = {
     "TOTAL_MFG": {"unfilled": "AMTMUO", "new_orders": "AMTMNO", "shipments": "AMTMVS"},
     "COMPUTERS_ELECTRONICS": {"unfilled": "A34SUO", "new_orders": "A34SNO", "shipments": "A34SVS"},
+    "MACHINERY": {"unfilled": "A33SUO", "new_orders": "A33SNO", "shipments": "A33SVS"},
+    "ELECTRICAL_EQUIP": {"unfilled": "A35SUO", "new_orders": "A35SNO", "shipments": "A35SVS"},
+    "AEROSPACE_DEFENSE": {"unfilled": "A36SUO", "new_orders": "A36SNO", "shipments": "A36SVS"},
 }
 SEMI_IP = "IPB53122S"   # industrial production: semiconductors & related (strain proxy)
 
@@ -254,7 +257,14 @@ def group_for(r):
         return "COMPUTERS_ELECTRONICS", 1.0
     if "technology" in sec or "communication" in ind or "hardware" in ind or "electronic" in ind:
         return "COMPUTERS_ELECTRONICS", 0.9
+    # finer-grained Census M3 buckets within industrials — give each name its OWN industry backlog
     if "industrial" in sec or "aerospace" in ind or "defense" in ind or "electrical" in ind or "machinery" in ind:
+        if "aerospace" in ind or "defense" in ind:
+            return "AEROSPACE_DEFENSE", 1.0
+        if "electrical" in ind:
+            return "ELECTRICAL_EQUIP", 1.0
+        if "machinery" in ind:
+            return "MACHINERY", 1.0
         return "TOTAL_MFG", 1.0
     return "TOTAL_MFG", 0.6
 
