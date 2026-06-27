@@ -1,10 +1,12 @@
-  cyclePoint: YES
-  dialD: YES
-  cycleT: YES
-  /100 now: YES
-  >OPEN<: YES
-  >PEAK<: YES
-  >CLOSE<: YES
-  Still rising — early: YES
-  old '24-mo pressure trend' removed: True
-DONE 2310
+groups available: ['TOTAL_MFG', 'COMPUTERS_ELECTRONICS', 'MACHINERY', 'ELECTRICAL_EQUIP', 'AEROSPACE_DEFENSE', 'SEMIS_IP_STRAIN']
+  NVDA: COMPUTERS_ELECTRONICS -> score=62 dir=OPENING t6=14.5
+  MU: COMPUTERS_ELECTRONICS -> score=62 dir=OPENING t6=14.5
+  TDG: AEROSPACE_DEFENSE -> score=49 dir=CLOSING t6=-17.7
+  KTOS: AEROSPACE_DEFENSE -> score=49 dir=CLOSING t6=-17.7
+  ETN: ELECTRICAL_EQUIP -> score=50 dir=STABLE t6=-0.5
+  ROK: MACHINERY -> score=57 dir=OPENING t6=3.7
+  VST: TOTAL_MFG -> score=66 dir=OPENING t6=7.9
+  LDOS: COMPUTERS_ELECTRONICS -> score=62 dir=OPENING t6=14.5
+
+live page has 'Industry bottleneck window': False | pressureViz: False
+DONE 2311
