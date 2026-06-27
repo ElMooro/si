@@ -1,31 +1,31 @@
-=== FEDWATCH ===
-lambda exists: True
-fedwatch.json: ERR An error occurred (NoSuchKey) when calling the Get
+=== FEDWATCH invoke response ===
+  FunctionError: Unhandled
+  payload: {"errorMessage": "can't subtract offset-naive and offset-aware datetimes", "errorType": "TypeError", "requestId": "ab166664-7f0e-4146-b33b-73f57abdc61b", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 295, in lambda_handler\n    days_until = (md - today_dt).days\n"]}
+  fedwatch.json now: STILL MISSING
 
-=== STRESS / TAIL ENGINES (S3) ===
-  stress-scenarios: 0.1d  keys=['n_scenarios', 'top_scenario', 'scenarios', 'asset_impact', 'input_sidecar_freshness']
-  stress-simulator: MISSING
-  stress-loadings: MISSING
-  tail-risk: 0.3d  keys=['engine', 'ok', 'thesis', 'system_tail_gauge', 'tail_regime', 'tail_valuation', 'indices', 'interpretation', 'data_source', 'caveats', 'elapsed_s']
-  ciss-stress: 0.5d  keys=['engine', 'elapsed_s', 'n_series', 'categories', 'ea_composite', 'ea_composite_date', 'ea_regime', 'frequency_note', 'provenance', 'series']
-  correlation-breaks: 0.9d  keys=['fetch_time_sec', 'elapsed_sec', 'n_instruments', 'n_dates_aligned', 'instruments', 'labels', 'diff_modes', 'window_days', 'history_tail_days', 'frobenius_delta', 'frobenius_delta_baseline_mean', 'frobenius_delta_baseline_std', 'frobenius_z_score_1y', 'signal']
-  inventory-drawdown: 1.7d  keys=['engine', 'thesis', 'sector_drawdown', 'stock_drawdown_board', 'boom_setups', 'counts', 'legend', 'sources', 'disclaimer']
-  firm-stress: 0.7d  keys=['schema', 'engine', 'build_seconds', 'firm_book_asof', 'posture', 'headline', 'loss_limits', 'summary', 'scenarios', 'reverse_stress', 'disclaimer']
+=== stress-scenarios full ===
+  top_scenario: {"key": "GOLDILOCKS", "name": "Goldilocks Continuation", "probability_pct": 20.0}
+   - GOLDILOCKS 20.0%  Goldilocks Continuation
+   - CHINA_SLOWDOWN 15.0%  China Slowdown / Global Disinflation
+   - FED_PIVOT 0.0%  Fed Pivot / QE Restart
+   - CREDIT_EVENT 0.0%  Credit Event / HY Spike
+   - DOLLAR_CRISIS 0.0%  Dollar Crisis / Funding Stress
+  scenario[0] keys: ['key', 'name', 'narrative', 'probability', 'probability_pct', 'n_probes_matched', 'n_probes_total', 'probes', 'winners', 'losers']
+  asset_impact type: dict | sample: {"top_5_winners": [{"ticker": "TLT", "expected_return_pct": 2.4, "n_scenarios": 5, "by_scenario": [{"scenario": "GOLDILOCKS", "prob": 0.2, "expected_pct": 4.5}, {"scenario": "CHINA_SLOWDOWN", "prob": 0.15, "expected_pct": 10.0}, {"scenario": "FED_PIVOT", "prob
 
-=== STRESS schema details (fresh ones) ===
+=== tail-risk ===
+  system_tail_gauge: 56.3
+  tail_regime: "ELEVATED"
+  tail_valuation: "WARMING"
+  interpretation: {"system_tail_gauge": "0-100 SPY-weighted tail stress (skew + risk-reversal + crash prob + skew index)", "tail_valuation": "CHEAP = crash protection underpriced vs own history (favourable to add hedge
+  thesis: "Option-implied crash probability and tail index from the real risk-neutral density (Breeden-Litzenberger on the OTM IV smile) \u2014 fat-tailed, unlike a log-normal model. Put-skew slope + risk-rever
 
-  ■ stress-scenarios
-     scenarios: [{"key": "GOLDILOCKS", "name": "Goldilocks Continuation", "narrative": "Disinflation + soft landing. Rates ease, credit stays tight, equities grind higher. Best for growt
-     top_scenario: {"key": "GOLDILOCKS", "name": "Goldilocks Continuation", "probability_pct": 20.0}
+=== ciss-stress ===
+  ea_composite: 0.005292
+  ea_regime: "CALM"
+  ea_composite_date: "2026-06-25"
 
-  ■ tail-risk
-
-  ■ ciss-stress
-
-  ■ correlation-breaks
-
-=== CFTC POSITIONING AGENT (Lambda URL) ===
-  /signals: keys=['positioning_score', 'risk_appetite', 'smart_money', 'crisis_indicators', 'extreme_positions', 'reversal_candidates', 'sector_positioning', 'summary', 'timestamp']
-     summary: "Market Positioning: 31.0/100 | Risk Appetite: 30.0/100 | Smart Money: DISTRIBUTING | Crisis: 20/100 (LOW) | Extremes: 7/29 | Reversals: 2"
-  /analysis: keys=['analysis', 'cot_data', 'market_data']
-DONE 2334
+=== correlation-breaks ===
+  frobenius_z_score_1y: 0.42
+  signal: "NORMAL"
+DONE 2335
