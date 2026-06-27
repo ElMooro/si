@@ -1,7 +1,11 @@
-crypto-dvol exists: True
-FunctionError: None | resp: {"statusCode": 200, "body": "{\"ok\": true, \"btc_dvol\": 44.9, \"regime\": \"NORMAL\"}"}
-BTC: {"dvol": 44.9, "pctile_1y": 64, "regime": "NORMAL", "chg_30d": 7.7, "trend": "RISING", "n_days": 371}
-ETH: {"dvol": 59.7, "pctile_1y": 21, "regime": "NORMAL", "chg_30d": 10.5, "trend": "RISING", "n_days": 371}
-composite regime: NORMAL | pctile: 64 | spread: 14.8
-interp: crypto implied vol normal
-DONE 2362
+=== crypto-funding.json ===
+keys: ['generated_at', 'generated_at_unix', 'version', 'source', 'elapsed_seconds', 'config', 'market_composite', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'squeeze_candidates', 'by_coin']
+  list 'squeeze_candidates'[0]: {"coin": "LINK", "regime": "BALANCED", "z_score": 1.29, "annualized_pct": 10.95, "oi_usd_b": 0.02, "spot": 7.387, "change_24h_pct": 0.24}
+
+=== crypto-liquidity.json ===
+keys: ['engine', 'version', 'generated_at', 'duration_s', 'liquidity_score', 'regime', 'regime_read', 'directional_read', 'forecast_supported', 'forecast_support', 'ssr', 'stablecoin_dominance', 'fear_greed', 'stablecoin_supply', 'event_study_ssr', 'event_study_fear_greed', 'top_picks', 'falsifier', 'histories', 'methodology', 'diagnostics']
+  regime: "DRY-POWDER LOADED"
+  ssr: {"value": 3.7, "percentile_2y": 0.4, "interpretation": "dry powder LARGE vs BTC (bullish)"}
+  stablecoin_dominance: {"now_pct": 18.825800111499383, "percentile_2y": 99.6, "live_coingecko_pct": 12.04}
+  fear_greed: {"value": 15, "classification": "Extreme Fear"}
+DONE 2363
