@@ -911,8 +911,20 @@ def lambda_handler(event=None, context=None):
         if sp is not None and sp >= 20: bull.append("high short interest (squeeze fuel)")
         rec["score_bull"] = len(bull); rec["score_bear"] = len(bearf)
         rec["flags_bull"] = bull; rec["flags_bear"] = bearf
-
-    # --- #2 theme concentration of the top 10 ---
+        # --- #4 confluence: how many INDEPENDENT external confirmations agree (data-available denom)
+        _ch = rec.get("chain")
+        checks = [
+            ("13F funds adding",      rec.get("sm_funds") is not None,       (rec.get("sm_net") or 0) > 0),
+            ("short-squeeze fuel",    rec.get("short_pct") is not None,      (rec.get("short_pct") or 0) >= 20),
+            ("analysts raising rev",  rec.get("fwd_rev_growth") is not None, (rec.get("fwd_rev_growth") or 0) > 0),
+            ("supply-chain catch-up", _ch is not None,                       bool(_ch and (_ch.get("catchup") or 0) > 0)),
+            ("insider buying",        rec.get("insider_sig") is not None,    rec.get("insider_sig") == "buying"),
+            ("margins expanding",     rec.get("gm_trend") is not None,       (rec.get("gm_trend") or 0) > 0.5),
+            ("earnings-beat streak",  rec.get("beat_rate") is not None,      (rec.get("beat_rate") or 0) >= 70),
+        ]
+        rec["confluence"]         = sum(1 for _, has, ok in checks if has and ok)
+        rec["confluence_avail"]   = sum(1 for _, has, _ in checks if has)
+        rec["confluence_signals"] = [nm for nm, has, ok in checks if has and ok]
     from collections import Counter
     grp = Counter(r.get("pressure_group") for r in ranks[:10] if r.get("pressure_group"))
     dom_g, dom_n = (grp.most_common(1)[0] if grp else (None, 0))
