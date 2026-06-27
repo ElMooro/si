@@ -104,6 +104,78 @@ function recDial(p){
     <path d="M10 62 A50 50 0 0 1 ${ex} ${ey}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
     <text x="60" y="56" text-anchor="middle" font-size="22" font-weight="800" fill="${col}" font-family="monospace">${Math.round(p)}%</text></svg>`;
 }
+function sparkline(series,w,hh){
+  if(!series||series.length<2)return '';
+  const vs=series.map(p=>p.v);const mn=Math.min(...vs),mx=Math.max(...vs);const rng=(mx-mn)||1;
+  const pts=series.map((p,i)=>`${(i/(series.length-1)*w).toFixed(1)},${(hh-(p.v-mn)/rng*hh).toFixed(1)}`).join(' ');
+  const up=vs[vs.length-1]>=vs[0];
+  return `<svg viewBox="0 0 ${w} ${hh}" width="${w}" height="${hh}" preserveAspectRatio="none" style="display:block"><polyline points="${pts}" fill="none" stroke="${up?'#3fd68c':'#ff5c6c'}" stroke-width="1.5"/></svg>`;
+}
+function crossAssetSection(ca){
+  if(!ca||!ca.returns||!ca.returns.length)return '';
+  const conf=ca.confirmation||{};
+  const sc={CONFIRMED:'#3fd68c',MIXED:'#f5b343',CONTRADICTED:'#ff5c6c'}[conf.status]||'#7c8ba0';
+  const mx=Math.max(...ca.returns.map(x=>Math.abs(x.ret_1m)),1);
+  let s=`<h2>Cross-asset confirmation — is the prescription actually working?</h2><div class="panel">`;
+  if(conf.status)s+=`<div style="border-left:3px solid ${sc};background:rgba(255,255,255,.02);border-radius:8px;padding:10px 13px;margin-bottom:13px"><span style="font-family:var(--mono);font-size:12px;font-weight:800;color:${sc}">TAPE ${esc(conf.status)}</span> <span style="font-size:9.5px;color:var(--fg-3)">· ${esc(conf.beating_spy||'')} expected leaders beating SPY (1m)</span><div style="font-size:12.5px;color:var(--fg-1);margin-top:5px;line-height:1.5">${esc(conf.note||'')}</div></div>`;
+  s+=`<div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">1-month return · ranked &nbsp;·&nbsp; <span style="color:var(--fg-3)">3-month in grey</span></div>`;
+  for(const x of ca.returns){const c=x.ret_1m>=0?'#3fd68c':'#ff5c6c';const wp=Math.abs(x.ret_1m)/mx*100;
+    s+=`<div style="display:flex;align-items:center;gap:9px;margin-bottom:3px;font-family:var(--mono);font-size:11.5px">
+      <div style="width:118px;color:var(--fg-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.label)}</div>
+      <div style="flex:1;display:flex;align-items:center"><div style="width:50%;display:flex;justify-content:flex-end">${x.ret_1m<0?`<div style="height:11px;width:${wp}%;background:${c};border-radius:3px 0 0 3px"></div>`:''}</div><div style="width:1px;height:15px;background:var(--border-b)"></div><div style="width:50%">${x.ret_1m>=0?`<div style="height:11px;width:${wp}%;background:${c};border-radius:0 3px 3px 0"></div>`:''}</div></div>
+      <div style="width:50px;text-align:right;color:${c}">${x.ret_1m>=0?'+':''}${x.ret_1m}%</div>
+      <div style="width:50px;text-align:right;color:var(--fg-3)">${x.ret_3m>=0?'+':''}${x.ret_3m}%</div></div>`;}
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:9px">Asset-class &amp; factor ETFs, Polygon adjusted closes. Tests the clock's historical prescription against what's actually leading now.</div></div>`;
+  return s;
+}
+function forwardCone(fd){
+  if(!fd)return '';
+  const pts=[{lab:'now',m:0,lo:0,hi:0,mn:0,mx:0}];
+  [['5d','5d'],['21d','21d'],['63d','63d'],['126d','126d']].forEach(([lab,k])=>{const o=fd[k];if(o)pts.push({lab,m:o.median_pct,lo:o.median_pct-o.stdev_pct,hi:o.median_pct+o.stdev_pct,mn:o.min_pct,mx:o.max_pct});});
+  if(pts.length<3)return '';
+  const W=560,H=232,padL=42,padR=14,padT=16,padB=26;
+  const allv=pts.flatMap(p=>[p.lo,p.hi,p.mn,p.mx]);const mn=Math.min(...allv),mx=Math.max(...allv);const rng=(mx-mn)||1;
+  const X=i=>padL+i/(pts.length-1)*(W-padL-padR);const Y=v=>padT+(mx-v)/rng*(H-padT-padB);
+  const line=arr=>arr.map((p,i)=>`${X(i).toFixed(1)},${Y(p).toFixed(1)}`).join(' ');
+  const hiArr=pts.map(p=>p.hi),loArr=pts.map(p=>p.lo),mxArr=pts.map(p=>p.mx),mnArr=pts.map(p=>p.mn),mArr=pts.map(p=>p.m);
+  const poly=(top,bot)=>line(top)+' '+top.map((_,i)=>`${X(pts.length-1-i).toFixed(1)},${Y(bot[pts.length-1-i]).toFixed(1)}`).join(' ');
+  let s=`<h2>Forward path — distribution of what followed similar setups</h2><div class="panel"><svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:640px">`;
+  s+=`<polygon points="${poly(mxArr,mnArr)}" fill="#46c8ff" fill-opacity="0.06"/>`;
+  s+=`<polygon points="${poly(hiArr,loArr)}" fill="#46c8ff" fill-opacity="0.17"/>`;
+  s+=`<line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${W-padR}" y2="${Y(0).toFixed(1)}" stroke="#2a3550" stroke-dasharray="3 3"/>`;
+  s+=`<polyline points="${line(mArr)}" fill="none" stroke="#46c8ff" stroke-width="2.2"/>`;
+  pts.forEach((p,i)=>{s+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.m).toFixed(1)}" r="3" fill="#46c8ff"/><text x="${X(i).toFixed(1)}" y="${H-9}" fill="#7c8ba0" font-size="10" text-anchor="middle" font-family="monospace">${p.lab}</text>`;
+    if(i>0)s+=`<text x="${X(i).toFixed(1)}" y="${(Y(p.m)-8).toFixed(1)}" fill="#e8eef6" font-size="9.5" text-anchor="middle" font-family="monospace">${p.m>=0?'+':''}${p.m}%</text>`;});
+  [mx,0,mn].forEach(v=>{s+=`<text x="${padL-5}" y="${(Y(v)+3).toFixed(1)}" fill="#536074" font-size="9" text-anchor="end" font-family="monospace">${v>=0?'+':''}${r1(v)}%</text>`;});
+  s+=`</svg><div style="font-size:11px;color:var(--fg-2);margin-top:6px;font-family:var(--mono)">median path · ±1σ band (dark) · full min–max range (light) · n=${(fd['63d']||{}).n||'?'} analogs</div>`;
+  const d63=fd['63d']||{};s+=`<div style="font-size:10.5px;color:var(--amber);margin-top:4px">Left-skewed: 63d median ${d63.median_pct}% but mean ${d63.mean_pct}% — a fat downside tail from the worst analogs. Descriptive distribution, not a forecast.</div></div>`;
+  return s;
+}
+function scenarioPlaybook(sp){
+  if(!sp||!sp.length)return '';
+  const QC={GOLDILOCKS:'#3fd68c',REFLATION:'#46c8ff',OVERHEAT:'#f5b343',STAGFLATION:'#ff8a5c','DEFLATION-BUST':'#ff5c6c',DOWNTURN:'#ff5c6c'};
+  let s=`<h2>Scenario playbook — positioning for the next 3 months</h2><div class="panel">`;
+  for(const x of sp){const c=QC[x.scenario]||'#7c8ba0';
+    s+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:120px"><div style="font-family:var(--mono);font-size:11.5px;font-weight:700;color:${c}">${esc(x.scenario)}</div><div style="height:5px;background:var(--bg-2);border-radius:3px;margin-top:4px"><i style="display:block;height:100%;width:${x.odds_pct}%;background:${c};border-radius:3px"></i></div></div>
+      <div style="width:42px;font-family:var(--mono);font-size:13px;color:${c}">${r1(x.odds_pct)}%</div>
+      <div class="assets" style="flex:1;margin:0">${(x.assets||[]).map(a=>`<span class="chip" style="border-color:${c}55;color:var(--fg-1)">${esc(a)}</span>`).join('')}</div></div>`;}
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Quadrant-transition odds (nowcast model) × the canonical asset plan per destination — the probability-weighted forward book.</div></div>`;
+  return s;
+}
+function globalLiqPanel(gl){
+  if(!gl)return '';
+  const idx=gl.global_liquidity_index||{};const comp=idx.components_usd_bn||{};const cb=gl.cb_impulse_13w||{};const imp=gl.global_impulse_13w_pct;
+  if(!comp||!Object.keys(comp).length)return '';
+  let s=`<h2>Global liquidity — G3 central-bank balance sheets</h2><div class="panel">`;
+  s+=`<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap"><div class="big">$${r1(idx.total_usd_trillions)}T <span style="font-size:12px;color:${imp>=0?'var(--green)':'var(--red)'}">${imp>=0?'+':''}${r1(imp)}%/13w</span></div><div style="font-size:12px;color:var(--fg-2)">regime <b>${esc(gl.regime||'—')}</b>${idx.change_52w_pct!=null?` · 52w ${idx.change_52w_pct>=0?'+':''}${r1(idx.change_52w_pct)}%`:''}</div></div>`;
+  const ent=Object.entries(comp);const mx=Math.max(...ent.map(([k,v])=>v),1);const impmap={Fed:cb.fed_13w_pct,ECB:cb.ecb_13w_pct,BOJ:cb.boj_13w_pct};
+  s+=`<div style="margin-top:11px">`;
+  for(const [k,v] of ent){const im=impmap[k];
+    s+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-family:var(--mono);font-size:11.5px"><div style="width:42px;color:var(--fg-2)">${esc(k)}</div><div style="flex:1"><div style="height:11px;width:${(v/mx*100).toFixed(0)}%;background:#46c8ff;border-radius:3px"></div></div><div style="width:58px;text-align:right;color:var(--fg-1)">$${(v/1000).toFixed(2)}T</div><div style="width:66px;text-align:right;color:${im==null?'#536074':im>=0?'#3fd68c':'#ff5c6c'}">${im==null?'—':(im>=0?'+':'')+im+'%/13w'}</div></div>`;}
+  s+=`</div><div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Balance sheets in USD (FRED WALCL/ECBASSETSW/JPNASSETS). Impulse = 13-week % change (currency-neutral) — the tide behind global risk assets.</div></div>`;
+  return s;
+}
 function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('');}
 function aiSection(d){
   const ai=d.ai;
@@ -180,6 +252,9 @@ function aiSection(d){
       <div style="font-size:10.5px;color:var(--fg-3);margin-top:9px">Canonical Merrill investment-clock leadership, confirmed by your regime playbook. Not investment advice.</div></div>`;
   }
 
+  // ── cross-asset confirmation ──
+  h+=crossAssetSection(d.cross_asset);
+
   // ── liquidity row: net liquidity + squeeze + RORO ──
   h+=`<h2>Liquidity &amp; cross-asset risk</h2><div class="grid3">`;
   const nl=lq.net_liquidity;
@@ -190,7 +265,8 @@ function aiSection(d){
     h+=`<div class="panel"><h3>Fed net liquidity</h3>
       <div class="big">$${r1(nl.net_tn)}T <span style="font-size:12px;color:${dr>=0?'var(--green)':'var(--red)'}">${dr>=0?'+':''}${r1(dr)}B/13w ${dr>=0?'↗':'↘'}</span></div>
       <div class="wf">${bar(nl.walcl_tn,'#46c8ff')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">−</div>${bar(nl.rrp_tn,'#ff8a5c')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">−</div>${bar(nl.tga_tn,'#ff8a5c')}<div class="col" style="flex:.3;color:var(--fg-3);align-self:center">=</div>${bar(nl.net_tn,dr>=0?'#3fd68c':'#ff5c6c')}</div>
-      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--fg-3)"><span>balance sheet</span><span>RRP</span><span>TGA</span><span>NET</span></div></div>`;
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--fg-3)"><span>balance sheet</span><span>RRP</span><span>TGA</span><span>NET</span></div>
+      ${nl.series?`<div style="margin-top:9px">${sparkline(nl.series,220,26)}<div style="font-size:9.5px;color:var(--fg-3);font-family:var(--mono);margin-top:2px">26-wk net liquidity · ${nl.percentile_since_2018==null?'—':nl.percentile_since_2018+'th pctile since 2018'}</div></div>`:''}</div>`;
   }
   h+=`<div class="panel"><h3>Liquidity-squeeze risk</h3>
     <div class="big" style="color:${SC[lq.level]||'#fff'}">${lq.squeeze_risk_score==null?'—':lq.squeeze_risk_score} · ${esc(lq.level)}</div>
@@ -206,6 +282,9 @@ function aiSection(d){
     <div style="font-size:11.5px;color:var(--fg-2);margin-top:9px;font-family:var(--mono)">FX · options · VIX · credit</div>
     ${rk.tells&&rk.tells.length?`<div style="font-size:11px;color:var(--fg-3);margin-top:5px">${esc((rk.tells||[]).slice(0,3).join(' · '))}</div>`:''}</div>`;
   h+=`</div>`;
+
+  // ── global liquidity ──
+  h+=globalLiqPanel(d.global_liquidity);
 
   // ── stress ladder ──
   const C2=lq.components||{};
@@ -228,6 +307,10 @@ function aiSection(d){
     if(up.note)h+=`<div style="font-size:11px;color:var(--amber);margin-top:4px">⚠ ${esc(up.note)}</div>`;
     h+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:7px">Descriptive distribution of what followed similar configurations — not a forecast.</div></div>`;
   }
+
+  // ── forward path cone + scenario playbook ──
+  h+=forwardCone((an||{}).forward_distribution);
+  h+=scenarioPlaybook((cy||{}).scenario_playbook);
 
   // ── divergences ──
   if(d.divergences&&d.divergences.length){
