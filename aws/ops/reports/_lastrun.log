@@ -1,7 +1,12 @@
-v 2.7 | current quadrant: OVERHEAT
-lookback: 7.0 y | 84 coord months
-  GOLDILOCKS   n= 1  fwd1m +6.15%  fwd3m 13.83%  pos1m 100%
-  OVERHEAT     n=39  fwd1m +0.16%  fwd3m 1.44%  pos1m 56%
-  STAGFLATION  n=32  fwd1m +1.67%  fwd3m 3.86%  pos1m 72%
-  DOWNTURN     n=12  fwd1m +3.54%  fwd3m 9.61%  pos1m 67%
-DONE 2349
+top keys: ['schema', 'engine', 'generated_at', 'build_seconds', 'firm_book_asof', 'posture', 'headline', 'loss_limits', 'summary', 'scenarios', 'reverse_stress', 'method', 'disclaimer']
+posture: "GREEN"
+headline: "Worst modelled scenario: 2020 COVID Crash at -3.5% of book. 14 of 15 scenarios lose money. Firm stress posture GREEN (soft limit -12%, hard -20%)."
+
+reverse_stress type: dict
+reverse_stress: {"unit_vector_used": "risk-off (-10% tape)", "unit_pnl_pct": -1.035, "to_minus_15pct": {"reachable": true, "multiplier": 14.5, "implied_shock": {"MKT": -1.4499, "SIZE": -0.58, "VALUE": -0.29, "MOM": 0.29, "QUALITY": 0.435, "LOWVOL": 0.58}, "interpretation": "a risk-off move roughly 14.5x the size of a -10% tape -- equivalent to a market leg of about -145%"}, "to_minus_25pct": {"reachable": true, "multiplier": 24.17, "implied_shock": {"MKT": -2.4166, "SIZE": -0.9666, "VALUE": -0.4833, "MOM": 0.4833, "QUALITY": 0.725, "LOWVOL": 0.9666}, "interpretation": "a risk-off move roughly 24.2x the size o
+
+scenarios type: list | sample: [{"scenario": "2020 COVID Crash (Feb-Mar 2020)", "type": "historical", "shock": {"MKT": -0.34, "SIZE": -0.12, "VALUE": -0.1, "MOM": 0.04, "QUALITY": 0.05, "LOWVOL": 0.07}, "book_pnl_pct": -3.5, "desk_pnl": [{"desk": "Merger-Arb Desk", "pnl_pct": -4.926}, {"desk": "Best Ideas", "pnl_pct": -3.541}, {"
+
+loss_limits: {"soft_pct": -12.0, "hard_pct": -20.0}
+summary: {"n_names_modelled": 273, "n_direct_loadings": 172, "n_sector_proxy": 101, "n_book_fallback": 0, "firm_gross_pct": 100.01, "firm_net_pct": 40.84, "annual_vol_pct": 4.7, "var_99_1d_pct": 0.69, "worst_scenario": "2020 COVID Crash (Feb-Mar 2020)", "wors
+DONE 2350
