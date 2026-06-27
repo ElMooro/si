@@ -157,7 +157,7 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function pp(v){return v==null?'—':(v>=0?'+':'')+v+'pp';}
+function pp(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
 function pct(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
 function r1(v){return v==null?'—':(Math.round(v*10)/10);}
 function bn(v){if(v==null)return'—';const a=Math.abs(v),s=v<0?'-':'';if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T';if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(0)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a;}
@@ -330,12 +330,19 @@ function drawer(tk){
       (fv.backlog_yoy_pct!=null?`<span class="${fv.backlog_yoy_pct>0?'good':''}">Industry backlog <b>${fv.backlog_yoy_pct>=0?'+':''}${fv.backlog_yoy_pct}%</b> <i>YoY · demand pipeline behind the growth</i></span>`:'')+
       (fv.fwd_eps!=null?`<span>Forward EPS <b>$${r1(fv.fwd_eps)}</b></span>`:'')+
       '</div>';
-    const mult='<div class="kv">'+
-      (fv.fwd_pe!=null?`<span class="${cheapCls(fv.fwd_pe_vs_ind_pct)}">Forward P/E <b>${fv.fwd_pe}</b>${indTag(fv.fwd_pe)}${fv.fwd_pe_vs_ind_pct!=null?` <i>(${fv.fwd_pe_vs_ind_pct>=0?'+':''}${fv.fwd_pe_vs_ind_pct}% vs ind)</i>`:''}</span>`:'')+
-      (fv.fwd_ps!=null?`<span>Forward P/S <b>${fv.fwd_ps}</b> <i>vs ${fv.cur_ps==null?'—':fv.cur_ps} today</i></span>`:'')+
-      (fv.proj_pe!=null?`<span class="${cheapCls(fv.proj_pe_vs_ind_pct)}">Projected P/E <b>${fv.proj_pe}</b>${indTag(fv.proj_pe)}${fv.proj_pe_vs_ind_pct!=null?` <i>(${fv.proj_pe_vs_ind_pct>=0?'+':''}${fv.proj_pe_vs_ind_pct}% vs ind)</i>`:''} <i>· growth sustained ~2y</i></span>`:'')+
-      (fv.proj_ps!=null?`<span>Projected P/S <b>${fv.proj_ps}</b> <i>~2y</i></span>`:'')+
+    const vind=(p)=> p==null?'':` <i>(${p>=0?'+':''}${p}% vs ind)</i>`;
+    const stage=(label,val,vsind,suffix)=> val==null?'':`<span class="${cheapCls(vsind)}">${label} <b>${val}</b>${vind(vsind)}${suffix||''}</span>`;
+    const peRow='<div class="kv"><span style="font-family:var(--mono);font-weight:700;color:var(--fg-1)">P/E</span>'+
+      stage('Current',fv.cur_pe,fv.cur_pe_vs_ind_pct,fv.industry_pe!=null?` <i>· ind ${fv.industry_pe}</i>`:'')+
+      stage('Forward 12m',fv.fwd_pe,fv.fwd_pe_vs_ind_pct)+
+      stage('Once growth ~2y',fv.proj_pe,fv.proj_pe_vs_ind_pct)+
       '</div>';
+    const psRow='<div class="kv"><span style="font-family:var(--mono);font-weight:700;color:var(--fg-1)">P/S</span>'+
+      stage('Current',fv.cur_ps,fv.cur_ps_vs_ind_pct,fv.industry_ps!=null?` <i>· ind ${fv.industry_ps}</i>`:'')+
+      stage('Forward 12m',fv.fwd_ps,fv.fwd_ps_vs_ind_pct)+
+      stage('Once growth ~2y',fv.proj_ps,fv.proj_ps_vs_ind_pct)+
+      '</div>';
+    const mult=peRow+psRow+(fv.industry_ps==null?'<div style="font-family:var(--mono);font-size:9px;color:var(--fg-3)">P/S "ind" = median of bottleneck peers in this industry (needs ≥2 peers; n/a here)</div>':'');
     fwdval=`<div class="conf"><h4>Forward &amp; projected valuation — price prediction from growth + backlog</h4>${preds}${driver}${mult}<div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:3px">Projection compounds the growth rate; targets re-rate forward earnings to the industry P/E. Not investment advice.</div></div>`;
   }
   return `<div class="dwrap">${priceHdr}${scorecard}${thesisHtml}${bearHtml}${dctx}${fwdval}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;

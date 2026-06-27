@@ -532,7 +532,7 @@ def compute_changes(ranked, trap_by_tk):
             "promoted": promoted[:10], "demoted": demoted[:10]}
 
 
-def forward_valuation(rec, pressure_entry):
+def forward_valuation(rec, pressure_entry, industry_ps=None):
     """Bloomberg-style forward + projected valuation for a bottleneck candidate, all from
     real fields already on the record:
       • price prediction — revenue growth (analyst forward, backlog-supported) → target price
@@ -541,7 +541,7 @@ def forward_valuation(rec, pressure_entry):
     The thesis: a cheap, accelerating name in a supply-tight industry should grow INTO and then
     re-rate toward its industry multiple. These numbers quantify both legs."""
     price = num(rec.get("price")); pe = num(rec.get("pe")); ps = num(rec.get("ps"))
-    ipe = num(rec.get("industry_pe")); mc = num(rec.get("mkt_cap"))
+    ipe = num(rec.get("industry_pe")); mc = num(rec.get("mkt_cap")); ips = num(industry_ps)
     fins = rec.get("financials") or []
     # TTM EPS/revenue: derive from price/PE and mktcap/PS (both are TTM) FIRST — robust to
     # financials ordering; fall back to the latest statement only if a multiple is missing.
@@ -572,6 +572,7 @@ def forward_valuation(rec, pressure_entry):
                            else ("trailing YoY (capped 60%)" if g_capped else "trailing revenue YoY")),
         "backlog_yoy_pct": backlog_yoy,
         "industry_pe":    ipe,
+        "industry_ps":    ips,
         "cur_pe":         round(pe, 1) if pe else None,
         "cur_ps":         round(ps, 2) if ps else None,
     }
@@ -581,10 +582,16 @@ def forward_valuation(rec, pressure_entry):
     # projected (growth sustained ~2y) multiples — the re-rate runway
     if pe and pe > 0: out["proj_pe"] = round(pe / f2, 1)
     if ps and ps > 0: out["proj_ps"] = round(ps / f2, 2)
-    # vs industry
+    # vs industry — P/E
     if ipe:
+        if pe and pe > 0:      out["cur_pe_vs_ind_pct"]  = round((pe / ipe - 1) * 100)
         if out.get("fwd_pe"):  out["fwd_pe_vs_ind_pct"]  = round((out["fwd_pe"] / ipe - 1) * 100)
         if out.get("proj_pe"): out["proj_pe_vs_ind_pct"] = round((out["proj_pe"] / ipe - 1) * 100)
+    # vs industry — P/S (industry P/S = median of bottleneck peers in the same industry)
+    if ips:
+        if ps and ps > 0:      out["cur_ps_vs_ind_pct"]  = round((ps / ips - 1) * 100)
+        if out.get("fwd_ps"):  out["fwd_ps_vs_ind_pct"]  = round((out["fwd_ps"] / ips - 1) * 100)
+        if out.get("proj_ps"): out["proj_ps_vs_ind_pct"] = round((out["proj_ps"] / ips - 1) * 100)
     # price prediction (from forward EPS)
     if eps_ttm and eps_ttm > 0:
         fwd_eps = eps_ttm * f1
@@ -633,6 +640,17 @@ def lambda_handler(event=None, context=None):
 
     out = {}
     need = []
+    # industry P/S benchmark = median P/S of the bottleneck peers in each industry (FMP has no
+    # industry-P/S snapshot, so we use the real candidate-universe median; >=2 peers required).
+    from statistics import median as _median
+    _ps_by_ind = {}
+    for _r in ranks:
+        _f = fin_map.get(_r["ticker"], {}) or {}
+        _ind = _f.get("industry") or _r.get("industry")
+        _psv = num(_f.get("ps")) or num(_r.get("ps_ttm"))
+        if _ind and _psv and _psv > 0:
+            _ps_by_ind.setdefault(_ind, []).append(_psv)
+    industry_ps_median = {k: round(_median(v), 2) for k, v in _ps_by_ind.items() if len(v) >= 2}
     for r in ranks:
         tk = r["ticker"]
         fin = fin_map.get(tk, {}) or {}
@@ -694,7 +712,7 @@ def lambda_handler(event=None, context=None):
         rec["pressure_trend"] = pgr_trend.get(r.get("pressure_group"))
         rec["pressure_pctile"] = pgr_pct.get(r.get("pressure_group"))
         _pentry = (src.get("industry_pressure") or {}).get(r.get("pressure_group")) or {}
-        rec["fwd_val"] = forward_valuation(rec, _pentry)
+        rec["fwd_val"] = forward_valuation(rec, _pentry, industry_ps_median.get(ind))
         cached = cache.get(tk, {})
         ts = cached.get("thesis_at")
         fresh = False
