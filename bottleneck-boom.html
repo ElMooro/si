@@ -226,9 +226,15 @@ function renderPressure(ip){
     if(v.ip_yoy_pct!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${v.ip_yoy_pct>=0?'pos':'neg'}">${pct(v.ip_yoy_pct)}</b></div>`;
     const pctile=(RMETA.pressure_pctiles||{})[k];
     if(pctile!=null)rows+=`<div class="row"><span>vs 10y history</span><b class="${pctile>=80?'pos':''}">${pctile}th pctile</b></div>`;
+    const dirMap={OPENING:['↑ OPENING','var(--green)','bottleneck intensifying — early, best risk/reward'],PEAKING:['● PEAKING','var(--amber)','high but flattening — late, window narrowing'],CLOSING:['↓ CLOSING','var(--red)','easing — re-rate window closing'],STABLE:['→ STABLE','var(--fg-3)','no clear trend']};
+    const dm=dirMap[v.direction];const t6=v.trend_6mo;
+    const dirBadge=dm?`<div style="margin:1px 0 5px"><span style="display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.04em;color:${dm[1]};border:1px solid ${dm[1]};border-radius:4px;padding:1px 6px" title="${esc(dm[2])}">${dm[0]}${t6!=null?` · ${t6>=0?'+':''}${t6}/6mo`:''}</span></div>`:'';
+    const hist=(v.history||[]).map(h=>h.p);
+    const spark=hist.length>=4?`<div style="margin:3px 0 1px">${sparkline(hist,dm?dm[1]:'var(--green)')}<div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:-3px">24-mo pressure trend →</div></div>`:'';
     return `<div class="pc"><span class="asof">${esc(asof)}</span><div class="nm">${esc(k.replace(/_/g,' '))}</div>
       <div class="score" style="color:${pcolor(s)}">${s==null?'—':Math.round(s)}${s!=null?'<span style="font-size:13px;color:var(--fg-3)"> /100</span>':''}</div>
-      <div class="bar"><i style="width:${s!=null?Math.max(4,Math.min(100,s)):0}%;background:${pcolor(s)}"></i></div>${rows}</div>`;
+      ${dirBadge}<div class="bar"><i style="width:${s!=null?Math.max(4,Math.min(100,s)):0}%;background:${pcolor(s)}"></i></div>
+      ${spark}${rows}</div>`;
   }).join('');
 }
 

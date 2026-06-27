@@ -77,6 +77,69 @@ def yoy_series(pts):
     return out
 
 
+def _yoy_pts(pts):
+    """Like yoy_series but keeps dates: [(date, yoy)]."""
+    d = dict(pts)
+    keys = sorted(d)
+    out = []
+    for i, k in enumerate(keys):
+        if i >= 12 and d[keys[i - 12]]:
+            out.append((k, d[k] / d[keys[i - 12]] - 1.0))
+    return out
+
+
+def _z_dated(pts, lookback=120):
+    """pts: [(date, value)] → {date: z} where z is value vs its trailing lookback window."""
+    out = {}
+    vals = [v for _, v in pts]
+    dates = [d for d, _ in pts]
+    for i in range(len(vals)):
+        if i < 23:
+            continue
+        w = vals[max(0, i - lookback + 1):i + 1]
+        m = mean(w); sd = stdev(w) if len(w) > 1 else 0
+        out[dates[i]] = (vals[i] - m) / sd if sd else 0.0
+    return out
+
+
+def _pressure_history(comp_z_dicts, months=24):
+    """Reconstruct the 0-100 pressure score per month (same formula as the latest snapshot:
+    50 + 16·mean(component z's)), for the trailing `months`. comp_z_dicts: list of {date: z}."""
+    dicts = [d for d in comp_z_dicts if d]
+    if not dicts:
+        return []
+    all_dates = sorted(set().union(*[set(d.keys()) for d in dicts]))
+    hist = []
+    for dt in all_dates:
+        zs = [d[dt] for d in dicts if dt in d]
+        if zs:
+            p = min(100, max(0, 50 + 16 * (sum(zs) / len(zs))))
+            hist.append({"d": dt[:7], "p": round(p, 1)})
+    return hist[-months:]
+
+
+def _classify_direction(hist):
+    """Where in the bottleneck cycle are we?
+       OPENING — pressure rising (early, best risk/reward)
+       PEAKING — high but flattening/rolling (late, window narrowing)
+       CLOSING — easing (re-rate window shutting)
+       STABLE  — no clear trend."""
+    if len(hist) < 7:
+        return None, None
+    cur, m3, m6 = hist[-1]["p"], hist[-4]["p"], hist[-7]["p"]
+    slope6 = round(cur - m6, 1)
+    slope3 = round(cur - m3, 1)
+    if slope6 >= 3 and slope3 >= 0:
+        d = "OPENING"
+    elif slope6 <= -3:
+        d = "CLOSING"
+    elif cur >= 55:
+        d = "PEAKING"
+    else:
+        d = "STABLE"
+    return d, slope6
+
+
 def industry_pressure():
     res, used, failed = {}, [], []
     for g, cfg in GROUPS.items():
@@ -84,9 +147,11 @@ def industry_pressure():
         for sid, pts in ((cfg["unfilled"], uf), (cfg["new_orders"], no), (cfg["shipments"], sh)):
             (used if pts else failed).append(sid)
         entry = {"as_of": uf[-1][0] if uf else (no[-1][0] if no else None)}
+        ratio_pts = []
         if uf and sh:
             shm = dict(sh)
-            ratio = [u / shm[d] for d, u in uf if d in shm and shm[d]]
+            ratio_pts = [(d, u / shm[d]) for d, u in uf if d in shm and shm[d]]
+            ratio = [v for _, v in ratio_pts]
             entry["backlog_to_shipments"] = round(ratio[-1], 3) if ratio else None
             entry["backlog_ratio_z"] = z_latest(ratio)
         if no:
@@ -100,12 +165,20 @@ def industry_pressure():
         zs = [v for v in (entry.get("backlog_ratio_z"), entry.get("new_orders_yoy_z"),
                           entry.get("backlog_yoy_z")) if v is not None]
         entry["pressure_0_100"] = round(min(100, max(0, 50 + 16 * (sum(zs) / len(zs)))), 1) if zs else None
+        # 24-month pressure history + cycle direction (where in the bottleneck are we?)
+        comp = [_z_dated(ratio_pts), _z_dated(_yoy_pts(no)) if no else {},
+                _z_dated(_yoy_pts(uf)) if uf else {}]
+        entry["history"] = _pressure_history(comp)
+        entry["direction"], entry["trend_6mo"] = _classify_direction(entry["history"])
         res[g] = entry
     ip = fred(SEMI_IP, start="2000-01-01")
     if ip:
         iy = yoy_series(ip)
-        res["SEMIS_IP_STRAIN"] = {"ip_yoy_pct": round(iy[-1] * 100, 1) if iy else None,
-                                  "ip_yoy_z": z_latest(iy), "as_of": ip[-1][0]}
+        semi = {"ip_yoy_pct": round(iy[-1] * 100, 1) if iy else None,
+                "ip_yoy_z": z_latest(iy), "as_of": ip[-1][0]}
+        semi["history"] = _pressure_history([_z_dated(_yoy_pts(ip))])
+        semi["direction"], semi["trend_6mo"] = _classify_direction(semi["history"])
+        res["SEMIS_IP_STRAIN"] = semi
         used.append(SEMI_IP)
     else:
         failed.append(SEMI_IP)
