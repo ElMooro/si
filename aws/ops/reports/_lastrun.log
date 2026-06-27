@@ -1,15 +1,5 @@
-wrote v3.1 dur 18.5s
-
-=== CRYPTO BLOCK ===
-  DVOL btc: 44.9 NORMAL 64 pctile RISING | eth: 59.7
-  funding regime: BALANCED | signal: Funding balanced across coins · no major positioning tilt | composite: {'n_coins_analyzed': 9, 'vw_funding_per_8h': 2.9e-05, 'vw_funding_annualized_pct': 3.18, 'median_funding_per_8h': 4.12e-05, 'median_funding_annualized_pct': 4.51, 'funding_max': 0.0001, 'funding_min': -0.0001489, 'funding_dispersion_pp': 0.0249, 'total_oi_usd_billions': 3.6, 'n_extreme_long_positioning': 0, 'n_extreme_short_positioning': 0, 'n_highly_bullish_leverage': 0, 'n_highly_bearish_leverage': 0, 'n_bullish': 0, 'n_bearish': 1}
-  squeeze candidates: [('LINK', 'BALANCED', 1.29), ('XRP', 'BEARISH_LEVERAGE', -0.96), ('BTC', 'BALANCED', 0.93), ('BNB', 'BALANCED', 0.93), ('DOGE', 'BALANCED', 0.9)]
-  liquidity: DRY-POWDER LOADED | SSR: 3.7 @ 0.4 pctile | F&G: 15 Extreme Fear
-
-=== SYNTHESIS (crypto contributors) ===
-  posture: STRONG RISK-OFF -46 | 11 off vs 5 on
-  bullish: ['Global cycle expanding', 'Activity nowcast expanding', 'Credit spreads benign', 'Fed net liquidity rising']
-  bearish: ['Liquidity-pulse draining', 'Bank-reserve scarcity', 'Recession-prob composite', 'Leading labor weakening', 'Retail euphoria (contrarian)']
-  rates DVOL: 44.9 NORMAL
-  crypto divergence present: True
-DONE 2364
+attempt 0: 0/6 bytes=63388 miss=['crypto h2', 'crypto fn', 'dvol tile', 'ssr', 'fng', 'squeeze']
+attempt 1: 0/6 bytes=63388 miss=['crypto h2', 'crypto fn', 'dvol tile', 'ssr', 'fng', 'squeeze']
+attempt 2: 0/6 bytes=63388 miss=['crypto h2', 'crypto fn', 'dvol tile', 'ssr', 'fng', 'squeeze']
+INCOMPLETE
+DONE 2365
