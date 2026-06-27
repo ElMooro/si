@@ -40,6 +40,20 @@ table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;co
 td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
 .note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
 .loading{padding:54px;text-align:center;color:var(--fg-2)}
+.ai{background:linear-gradient(180deg,#10182a,#0d1320);border:1px solid #2c3b5e;border-radius:14px;padding:18px 20px;margin-bottom:20px;position:relative}
+.ai:before{content:'AI STRATEGIST';position:absolute;top:-9px;left:16px;background:linear-gradient(90deg,#46c8ff,#a78bfa);color:#0a0e14;font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 9px;border-radius:6px;font-family:var(--mono)}
+.ai .exec{font-size:15px;line-height:1.6;color:var(--fg-0);margin:6px 0 4px}
+.ai .rcall{font-family:var(--mono);font-size:12px;color:var(--cyan);margin-bottom:12px}
+.ai-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}@media(max-width:680px){.ai-cols{grid-template-columns:1fr}}
+.ai-card{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.ai-card h4{margin:0 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
+.ai-card.bull h4{color:var(--green)}.ai-card.bear h4{color:var(--red)}
+.ai-card ul{margin:0;padding-left:16px}.ai-card li{font-size:12.5px;color:var(--fg-1);margin-bottom:5px;line-height:1.45}
+.ai-pos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}@media(max-width:680px){.ai-pos{grid-template-columns:1fr}}
+.ai-watch{margin-top:12px}.ai-watch li{font-size:12px;color:var(--fg-1)}
+.ai-bottom{margin-top:13px;padding-top:12px;border-top:1px solid var(--border-b);font-size:13.5px;font-weight:600;color:var(--fg-0)}
+.pending{background:rgba(245,179,67,.08);border:1px dashed rgba(245,179,67,.5);border-radius:10px;padding:13px 15px;font-size:12.5px;color:var(--amber);font-family:var(--mono);line-height:1.5}
+.loading2{display:none}
 .tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;border:1px solid var(--border);color:var(--fg-2);margin-left:6px}
 .prov{font-family:var(--mono);font-size:10px;color:var(--fg-3);display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:6px}
 </style></head><body><div class="wrap" id="wrap"><div class="loading">Reading the clock…</div></div>
@@ -90,6 +104,31 @@ function recDial(p){
     <path d="M10 62 A50 50 0 0 1 ${ex} ${ey}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"/>
     <text x="60" y="56" text-anchor="middle" font-size="22" font-weight="800" fill="${col}" font-family="monospace">${Math.round(p)}%</text></svg>`;
 }
+function li(arr){return (arr||[]).map(x=>`<li>${esc(x)}</li>`).join('');}
+function aiSection(d){
+  const ai=d.ai;
+  if(!ai){
+    return `<div class="ai"><div class="exec" style="color:var(--fg-2);font-size:13.5px">AI strategist read is generating on the next scheduled run.</div>
+      <div class="pending">⏳ The AI synthesis layer is wired (GLM-5.1 primary · Claude fallback) but both providers returned errors on the last run — GLM rate-limited (429) and Claude unauthorized (401, the credits outage). Restore Z.ai quota <b>or</b> top up Anthropic billing and the full strategist read (executive view, bull/bear, positioning, watch-list) auto-fills on the next run — no redeploy needed.</div></div>`;
+  }
+  const pos=ai.positioning||{};
+  let s=`<div class="ai">`;
+  if(ai.executive_read)s+=`<div class="exec">${esc(ai.executive_read)}</div>`;
+  if(ai.regime_call)s+=`<div class="rcall">▸ ${esc(ai.regime_call)}</div>`;
+  s+=`<div class="ai-cols">
+    <div class="ai-card bull"><h4>▲ Bull case</h4><ul>${li(ai.bull_case)}</ul></div>
+    <div class="ai-card bear"><h4>▼ Bear case</h4><ul>${li(ai.bear_case)}</ul></div></div>`;
+  s+=`<div class="ai-pos">
+    <div class="ai-card"><h4 style="color:var(--green)">Own / favour</h4><div class="assets">${(pos.own||[]).map(x=>`<span class="chip lead">${esc(x)}</span>`).join('')}</div></div>
+    <div class="ai-card"><h4 style="color:var(--red)">Reduce / avoid</h4><div class="assets">${(pos.reduce||[]).map(x=>`<span class="chip lag">${esc(x)}</span>`).join('')}</div></div></div>`;
+  if(pos.sizing)s+=`<div style="font-size:12px;color:var(--amber);margin-top:8px;font-family:var(--mono)">⚖ sizing: ${esc(pos.sizing)}</div>`;
+  if(ai.watch&&ai.watch.length)s+=`<div class="ai-watch"><h4 style="font-size:10.5px;text-transform:uppercase;color:var(--fg-3);margin:0 0 5px">What to watch</h4><ul style="margin:0;padding-left:16px">${li(ai.watch)}</ul></div>`;
+  if(ai.divergence_reads&&ai.divergence_reads.length)s+=`<div class="ai-watch"><h4 style="font-size:10.5px;text-transform:uppercase;color:var(--violet);margin:0 0 5px">Divergence reads</h4><ul style="margin:0;padding-left:16px">${li(ai.divergence_reads)}</ul></div>`;
+  if(ai.liquidity_read)s+=`<div style="font-size:12px;color:var(--fg-2);margin-top:11px"><b style="color:var(--cyan)">Liquidity:</b> ${esc(ai.liquidity_read)}</div>`;
+  if(ai.bottom_line)s+=`<div class="ai-bottom">${esc(ai.bottom_line)}</div>`;
+  s+=`</div>`;
+  return s;
+}
 (async function(){
   const d=await gj('data/cycle-clock.json');const w=document.getElementById('wrap');
   if(!d||!d.cycle){w.innerHTML='<h1>Cycle &amp; Liquidity Clock</h1><div class="loading">No data yet — updates 23:30 UTC.</div>';return;}
@@ -100,6 +139,7 @@ function recDial(p){
   h+=`<div class="sub">Where we are in the cycle, the historically-favoured assets for that phase, how much liquidity-squeeze risk is building, and the nearest historical analogs — fused from your cycle, liquidity, cross-asset and stress engines, with divergences surfaced, not averaged.</div>`;
   h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale: '+esc(d.stale.join(', ')):''}</div>`;
   h+=`<div class="verdict">${esc(d.verdict)}</div>`;
+  h+=aiSection(d);
 
   // ── hero: clock + where-we-are ──
   h+=`<div class="grid2">`;
@@ -112,11 +152,20 @@ function recDial(p){
     <div class="kvr"><span>macro-regime model</span><b>${esc(cy.macro_regime_quadrant||'—')}</b></div>
     <div class="kvr"><span>data surprise tilt</span><b>${esc((cy.surprise_tilt||{}).regime||'—')}</b></div>
     <div class="kvr"><span>yield curve</span><b>${esc(cy.yield_curve_regime||'—')}</b></div>
+    <div class="kvr"><span>real 10y · breakeven</span><b>${(cy.yield_curve_decomp||{}).real_10y_pct==null?'—':(cy.yield_curve_decomp.real_10y_pct+'%')} · ${(cy.yield_curve_decomp||{}).breakeven_10y_pct==null?'—':(cy.yield_curve_decomp.breakeven_10y_pct+'%')}</b></div>
     <div class="kvr"><span>credit</span><b>${esc(cy.credit_regime||'—')}</b></div>
+    <div class="kvr"><span>volatility</span><b>${esc(cy.vol_regime||'—')}</b></div>
+    <div class="kvr"><span>dollar</span><b>${esc(cy.dollar_regime||'—')}</b></div>
+    <div class="kvr"><span>Sahm trigger</span><b style="color:${(cy.sahm||{}).triggered?'var(--red)':'var(--green)'}">${(cy.sahm||{}).value==null?'—':cy.sahm.value+(cy.sahm.triggered?' ⚠ TRIGGERED':' (<0.5 ok)')}</b></div>
+    <div class="kvr"><span>earnings-revision leaders</span><b>${cy.eps_revision_breadth&&cy.eps_revision_breadth.top_names?esc(cy.eps_revision_breadth.top_names.slice(0,5).join(' ')):'—'}</b></div>
     <div class="kvr"><span>US cycle</span><b>${cy.us_cycle_score==null?'—':cy.us_cycle_score} ${esc(cy.us_cycle_level||'')}</b></div>
     <div style="display:flex;align-items:center;gap:12px;margin-top:10px"><div>${recDial(cy.recession_prob_pct)}</div>
       <div style="font-size:11.5px;color:var(--fg-2)">recession-probability composite<br><span style="color:var(--fg-3)">curve + credit + nowcast + sector rotation</span></div></div>
     ${cy.froth_markers&&cy.froth_markers.length?`<div style="font-size:11.5px;color:var(--amber);margin-top:8px;font-family:var(--mono)">froth: ${esc(cy.froth_markers.join(' · '))}</div>`:''}
+    ${(function(){const o=cy.next_3m_quadrant_odds;if(!o)return '';const QC={GOLDILOCKS:'#3fd68c',REFLATION:'#46c8ff','OVERHEAT':'#f5b343',STAGFLATION:'#ff8a5c','DEFLATION-BUST':'#ff5c6c'};const ent=Object.entries(o).sort((a,b)=>b[1]-a[1]);
+      return `<div style="margin-top:11px"><div style="font-size:10.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Next 3-month quadrant odds</div>
+      <div style="display:flex;height:13px;border-radius:4px;overflow:hidden">${ent.map(([k,v])=>`<div title="${esc(k)} ${r1(v)}%" style="width:${v}%;background:${QC[k]||'#536074'}"></div>`).join('')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:5px;font-family:var(--mono);font-size:10px">${ent.map(([k,v])=>`<span style="color:${QC[k]||'#7c8ba0'}">${esc(k)} ${r1(v)}%</span>`).join('')}</div></div>`;})()}
   </div></div>`;
 
   // ── asset leadership ──
