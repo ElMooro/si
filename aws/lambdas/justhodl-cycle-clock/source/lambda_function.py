@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.3"
+VERSION = "2.4"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -341,6 +341,30 @@ def lambda_handler(event, context):
     vixc = load("data/vix-curve.json", "vix_curve")
     dollar = load("data/dollar-radar.json", "dollar_radar")
     epsrev = load("data/eps-revision-velocity.json", "eps_revisions")
+    # Phase 6 — broaden the synthesis across the fleet
+    fedspeak = load("data/fed-speak.json", "fed_speak")
+    fednlp = load("data/fed-nlp.json", "fed_nlp")
+    movex = load("data/move-index.json", "move_index")
+    bondvol = load("data/bond-vol.json", "bond_vol")
+    volreg = load("data/vol-regime.json", "vol_regime")
+    vvix = load("data/vvix-vov-regime.json", "vvix")
+    skewtail = load("data/skew-tail-hedging.json", "skew_tail")
+    aaii = load("data/aaii-sentiment.json", "aaii")
+    retail = load("data/retail-sentiment.json", "retail_sentiment")
+    crediteq = load("data/credit-equity-divergence.json", "credit_equity")
+    breadth = load("data/breadth-thrust.json", "breadth_thrust")
+    goldeq = load("data/gold-equity-rotation.json", "gold_equity")
+    china = load("data/china-liquidity.json", "china_liquidity")
+    liqpulse = load("data/liquidity-pulse.json", "liquidity_pulse")
+    liqinfl = load("data/liquidity-inflection.json", "liquidity_inflection")
+    yencarry = load("data/yen-carry.json", "yen_carry")
+    xaregime = load("data/cross-asset-regime.json", "cross_asset_regime")
+    ticflows = load("data/tic-flows.json", "tic_flows")
+    laborlead = load("data/labor-leading.json", "labor_leading")
+    actnow = load("data/activity-nowcast.json", "activity_nowcast")
+    conspulse = load("data/consumer-pulse.json", "consumer_pulse")
+    bankstress = load("data/bank-stress.json", "bank_stress")
+    commcurves = load("data/commodity-curves.json", "commodity_curves")
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
     quad = _get(reg, "current", "quadrant")
@@ -449,6 +473,64 @@ def lambda_handler(event, context):
     # ── scenario playbook: next-3m quadrant odds → asset plan per scenario ──
     scenario_playbook = ([{"scenario": k, "odds_pct": v, "assets": SCENARIO_ASSETS.get(k, [])}
                           for k, v in sorted((next3 or {}).items(), key=lambda x: -x[1])] if next3 else [])
+
+    # ── Phase 6: rates / Fed / volatility complex ──
+    rates_fed_vol = {
+        "fed_tone": _get(fedspeak, "aggregate", "interpretation"),
+        "fed_sentiment": _get(fedspeak, "aggregate", "avg_sentiment"),
+        "fed_drift": _get(fednlp, "drift", "classification"), "fed_drift_z": _get(fednlp, "drift", "drift_z"),
+        "move_level": _get(movex, "level"), "move_pctile": _get(movex, "percentile"), "move_regime": _get(movex, "regime"),
+        "bond_vol_regime": _get(bondvol, "regime"), "bond_vol_posture": _get(bondvol, "risk_posture"),
+        "bond_vol_signal": _get(bondvol, "term_structure", "signal"),
+        "equity_vol_regime": _get(volreg, "composite_regime"), "equity_vol_score": _get(volreg, "composite_score"),
+        "vov_state": _get(vvix, "state"), "tail_state": _get(skewtail, "state"),
+    }
+    # ── positioning / sentiment / internals ──
+    aaii_l = _get(aaii, "latest", default={}) or {}; aaii_x = _get(aaii, "extremes", default={}) or {}
+    positioning = {
+        "aaii_bull_pct": round((aaii_l.get("bullish") or 0) * 100) if aaii_l.get("bullish") is not None else None,
+        "aaii_bear_pct": round((aaii_l.get("bearish") or 0) * 100) if aaii_l.get("bearish") is not None else None,
+        "aaii_spread_z": _get(aaii, "z_scores", "spread"),
+        "aaii_extreme": ("EXTREME_BULL" if aaii_x.get("is_bullish_extreme") else
+                         "EXTREME_BEAR" if aaii_x.get("is_bearish_extreme") else "normal"),
+        "aaii_note": _get(aaii, "interpretation"),
+        "retail_regime": _get(retail, "market_regime"), "retail_note": _get(retail, "market_regime_signal"),
+        "credit_equity_state": _get(crediteq, "state"), "credit_equity_note": _get(crediteq, "regime_explanation"),
+        "breadth_thrust_state": _get(breadth, "state"), "breadth_thrust_strength": _get(breadth, "signal_strength"),
+        "gold_equity_state": _get(goldeq, "state"), "gold_equity_note": _get(goldeq, "regime_explanation"),
+    }
+    # ── growth / recession depth ──
+    growth_depth = {
+        "labor_regime": _get(laborlead, "regime"), "labor_note": _get(laborlead, "interpretation"),
+        "activity_index": _get(actnow, "activity_index"), "activity_regime": _get(actnow, "regime"),
+        "activity_momentum": _get(actnow, "momentum"),
+        "consumer_index": _get(conspulse, "pulse_index"), "consumer_regime": _get(conspulse, "regime"),
+        "bank_stress_score": _get(bankstress, "bank_stress_score"), "bank_stress_regime": _get(bankstress, "regime"),
+        "reserves_to_gdp_pct": _get(bankstress, "reserve_adequacy", "reserves_to_gdp_pct"),
+        "reserves_read": _get(bankstress, "reserve_adequacy", "read"),
+    }
+    # ── global liquidity → G4 (China) + pulse + inflection ──
+    global_liq["china"] = {"regime": _get(china, "regime"), "credit_impulse_pp": _get(china, "credit_impulse", "value_pp"),
+                           "m2_yoy_pct": _get(china, "money", "m2_yoy_pct")}
+    global_liq["pulse"] = {"liquidity_regime": _get(liqpulse, "composites", "liquidity_regime"),
+                           "liquidity_score": _get(liqpulse, "composites", "liquidity_score"),
+                           "summary": _get(liqpulse, "summary")}
+    global_liq["inflection"] = {"usd_state": _get(liqinfl, "usd", "state"), "usd_impulse_z": _get(liqinfl, "usd", "impulse_z"),
+                                "last_flip": _get(liqinfl, "usd", "last_flip")}
+    # ── cross-asset extensions: yen carry, correlation regime, foreign demand, commodity curve ──
+    _xa_alerts = _get(xaregime, "alerts", default=[]) or []
+    _xa_breaks = _get(xaregime, "correlation_breaks", default=[]) or []
+    cross_asset_risk = {
+        "yen_carry": {"unwind_score": _get(yencarry, "unwind_risk_score"), "unwind_label": _get(yencarry, "unwind_risk_label"),
+                      "regime": _get(yencarry, "carry_regime"), "headline": _get(yencarry, "headline"),
+                      "trigger": (_get(yencarry, "triggers", default=[]) or [None])[0]},
+        "correlation_regime": {"r20d": _get(xaregime, "regime_20d", "regime"), "r60d": _get(xaregime, "regime_60d", "regime"),
+                               "top_alert": (_xa_alerts[0].get("msg") if _xa_alerts else None),
+                               "breaks": [b.get("pair") for b in _xa_breaks[:3]]},
+        "tic": {"stress": _get(ticflows, "composite_tic_stress"), "regime": _get(ticflows, "regime"),
+                "note": _get(ticflows, "interpretation")},
+        "commodity_curve": {"regime": _get(commcurves, "composite_regime"), "signal": _get(commcurves, "composite_signal")},
+    }
 
     cycle = {
         "phase": phase_label, "phase_n": phase_n, "quadrant": quad, "description": phase_desc,
@@ -582,6 +664,21 @@ def lambda_handler(event, context):
                            f"({roro:+.0f}) — price action disagrees with the macro read.")
     if ca_confirm and ca_confirm.get("status") == "CONTRADICTED":
         divergences.append("PRESCRIPTION-vs-TAPE: " + ca_confirm["note"])
+    if positioning.get("aaii_extreme") == "EXTREME_BULL":
+        divergences.append(f"EUPHORIA: retail sentiment at a bullish extreme ({positioning.get('aaii_bull_pct')}% bulls, "
+                           f"spread z {positioning.get('aaii_spread_z')}) — historically a contrarian sell tell.")
+    _mp = rates_fed_vol.get("move_pctile")
+    if isinstance(_mp, (int, float)) and _mp < 15:
+        divergences.append(f"COMPLACENCY: bond vol (MOVE) at the {_mp:.0f}th percentile and credit "
+                           f"{positioning.get('credit_equity_state', '')} while liquidity drains — vol/credit markets "
+                           f"price calm into a tightening backdrop.")
+    _rg = growth_depth.get("reserves_to_gdp_pct")
+    if isinstance(_rg, (int, float)) and _rg < 11:
+        divergences.append(f"RESERVE SCARCITY: bank reserves {_rg:.1f}% of GDP (below the ~11% scarcity threshold) — "
+                           f"the structural pre-condition for repo/funding stress, even with squeeze risk still low today.")
+    if rates_fed_vol.get("fed_drift") == "HAWKISH_SHIFT" and str(growth_depth.get("labor_regime", "")).lower() == "weakening":
+        divergences.append(f"POLICY-ERROR RISK: Fed communication is shifting hawkish (drift z {rates_fed_vol.get('fed_drift_z')}) "
+                           f"while leading labor is weakening — tightening into a slowdown.")
 
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
@@ -634,6 +731,10 @@ def lambda_handler(event, context):
         "cross_asset_confirmation": ca_confirm,
         "cross_asset_returns_1m": {x["label"]: x["ret_1m"] for x in (cross or [])},
         "global_liquidity": global_liq,
+        "rates_fed_vol": rates_fed_vol,
+        "positioning_sentiment": positioning,
+        "growth_depth": growth_depth,
+        "cross_asset_risk": cross_asset_risk,
         "scenario_playbook": scenario_playbook,
         "divergences": divergences,
     }
@@ -666,6 +767,10 @@ def lambda_handler(event, context):
         "liquidity": liquidity,
         "cross_asset": {"returns": cross, "confirmation": ca_confirm},
         "global_liquidity": global_liq,
+        "rates_fed_vol": rates_fed_vol,
+        "positioning": positioning,
+        "growth_depth": growth_depth,
+        "cross_asset_risk": cross_asset_risk,
         "divergences": divergences,
         "falsifier": falsifier,
         "availability": avail, "stale": stale,
