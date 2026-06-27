@@ -842,14 +842,29 @@ def lambda_handler(event=None, context=None):
         return tk, make_thesis(rec.get("name") or tk, tk, rec.get("industry"), rec)
 
     if targets:
-        with ThreadPoolExecutor(max_workers=6) as ex:
-            for tk, res in ex.map(_gen, targets):
-                th, be = res
-                if th:
-                    out[tk]["thesis"], out[tk]["thesis_at"] = th, now.isoformat()
-                    out[tk]["bear"] = be
-                    out[tk]["thesis_ver"] = THESIS_VER
-                    new_theses += 1
+        import concurrent.futures as _cf
+        THESIS_BUDGET_S = 90   # never let AI thesis generation consume the whole Lambda timeout —
+                               # the data layer (targets, multiples, track record, maturity) must
+                               # always get written even when the LLM is slow/out (credit outage).
+        _ex = _cf.ThreadPoolExecutor(max_workers=6)
+        try:
+            futs = {_ex.submit(_gen, tk): tk for tk in targets}
+            for fut in _cf.as_completed(futs, timeout=THESIS_BUDGET_S):
+                try:
+                    tk, res = fut.result()
+                    th, be = res
+                    if th:
+                        out[tk]["thesis"], out[tk]["thesis_at"] = th, now.isoformat()
+                        out[tk]["bear"] = be
+                        out[tk]["thesis_ver"] = THESIS_VER
+                        new_theses += 1
+                except Exception:
+                    pass
+        except _cf.TimeoutError:
+            print(f"[research] thesis budget {THESIS_BUDGET_S}s hit; writing data with "
+                  f"{new_theses} new theses, the rest stay cached/pending for next run")
+        finally:
+            _ex.shutdown(wait=False)   # critical: do NOT block on still-hung LLM threads
 
     # --- sector momentum overlay (is this corner of the market working?) ---
     import statistics as _st
