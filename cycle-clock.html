@@ -281,6 +281,35 @@ function trajectorySection(tr){
   s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:10px">Self-tracked to data/cycle-clock-history.json — one snapshot per daily run, dedup by date, 300-session cap. The clock will be able to grade its own past reads once forward outcomes mature.</div></div>`;
   return s;
 }
+function yieldCurveSection(yc){
+  if(!yc||!yc.curve_points||yc.curve_points.length<3)return '';
+  const pts=yc.curve_points.filter(p=>p.yield_pct!=null&&p.years!=null);
+  if(pts.length<3)return '';
+  const W=660,H=210,padL=34,padR=14,padT=16,padB=28;
+  const xs=pts.map(p=>Math.log(p.years)),ys=pts.map(p=>p.yield_pct);
+  const xmn=Math.min(...xs),xmx=Math.max(...xs),ymn=Math.min(...ys),ymx=Math.max(...ys);
+  const xr=(xmx-xmn)||1,yr=(ymx-ymn)||1;
+  const X=v=>padL+((Math.log(v)-xmn)/xr)*(W-padL-padR);
+  const Y=v=>padT+(1-(v-ymn)/yr)*(H-padT-padB);
+  const line=pts.map((p,i)=>`${(i?'L':'M')}${X(p.years).toFixed(1)},${Y(p.yield_pct).toFixed(1)}`).join(' ');
+  const area=`${line} L${X(pts[pts.length-1].years).toFixed(1)},${H-padB} L${X(pts[0].years).toFixed(1)},${H-padB} Z`;
+  let dots='',labs='';
+  for(const p of pts){const x=X(p.years),y=Y(p.yield_pct);const sc=p.chg_20d_bps>0?'#3fd68c':p.chg_20d_bps<0?'#ff5c6c':'#7c8ba0';
+    dots+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${sc}"/>`;
+    labs+=`<text x="${x.toFixed(1)}" y="${H-padB+15}" font-size="9" fill="var(--fg-3)" text-anchor="middle" font-family="var(--mono)">${esc(p.tenor)}</text>`;}
+  // y gridlines
+  let grid='';for(let k=0;k<=3;k++){const v=ymn+(yr*k/3);const y=Y(v);grid+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--bg-2)" stroke-width="1"/><text x="${padL-5}" y="${(y+3).toFixed(1)}" font-size="8.5" fill="var(--fg-3)" text-anchor="end" font-family="var(--mono)">${v.toFixed(1)}</text>`;}
+  const sp=yc.spreads_bps||{};
+  const spTile=(lab,v)=>v==null?'':`<div class="acard" style="border-left-color:${v<0?'#ff5c6c':v<20?'#f5b343':'#3fd68c'}"><div class="ad" style="color:${v<0?'#ff5c6c':v<20?'#f5b343':'var(--fg-0)'}">${v>=0?'+':''}${v}bps</div><div class="as">${lab}</div></div>`;
+  const inverted=(sp['2s10s']!=null&&sp['2s10s']<0)||(sp['3M10Y']!=null&&sp['3M10Y']<0);
+  const rc=inverted?'#ff5c6c':/STEEPEN/i.test(yc.regime||'')?'#3fd68c':/FLATTEN/i.test(yc.regime||'')?'#f5b343':'#46c8ff';
+  let s=`<h2>Treasury yield curve — shape &amp; signal</h2><div class="panel">`;
+  s+=`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><span style="font-family:var(--mono);font-size:13px;font-weight:800;color:${rc}">${esc(yc.regime||'')}</span>${inverted?'<span style="font-family:var(--mono);font-size:11px;color:#ff5c6c">⚠ inverted</span>':'<span style="font-family:var(--mono);font-size:11px;color:var(--green)">positively sloped</span>'}<span style="font-size:11px;color:var(--fg-3)">${esc(yc.regime_desc||'')}</span></div>`;
+  s+=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-width:${W}px;margin-bottom:12px"><defs><linearGradient id="ycg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${rc}" stop-opacity="0.18"/><stop offset="1" stop-color="${rc}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#ycg)"/><path d="${line}" fill="none" stroke="${rc}" stroke-width="2"/>${dots}${labs}</svg>`;
+  s+=`<div style="display:flex;gap:9px;flex-wrap:wrap">${spTile('2s10s',sp['2s10s'])}${spTile('3M10Y',sp['3M10Y'])}${spTile('5s30s',sp['5s30s'])}${yc.term_premium_bps!=null?`<div class="acard"><div class="ad">${yc.term_premium_bps>=0?'+':''}${yc.term_premium_bps}bps</div><div class="as">term premium</div></div>`:''}${yc.real_10y_pct!=null?`<div class="acard"><div class="ad">${yc.real_10y_pct}%</div><div class="as">10y real</div></div>`:''}${yc.breakeven_10y_pct!=null?`<div class="acard"><div class="ad">${yc.breakeven_10y_pct}%</div><div class="as">10y breakeven</div></div>`:''}</div>`;
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Nominal Treasury par curve (FRED/Polygon), dot colour = 20-day change per tenor (green up, red down). An inverted 2s10s / 3M10Y has preceded every modern US recession; the spread sign and curve regime are core cycle tells.</div></div>`;
+  return s;
+}
 function summaryStrip(d){
   const sy=d.synthesis||{};const snap=((d.trajectory||{}).series||[]).slice(-1)[0]||{};
   const q=snap.quadrant||(d.cycle||{}).quadrant_2d;
@@ -409,6 +438,8 @@ function aiSection(d){
     tile('Vol-of-vol',rfv.vov_state,'VVIX regime',/QUIET|CALM/i.test(rfv.vov_state||'')?'#3fd68c':'#f5b343'),
     tile('Tail risk',rfv.tail_gauge==null?'—':`${r1(rfv.tail_gauge)}/100`,`${rfv.tail_regime||''} · protection ${String(rfv.tail_valuation||'').toLowerCase()}`,/ELEVATED|HIGH/i.test(rfv.tail_regime||'')?'#ff5c6c':/WARM/i.test(rfv.tail_regime||'')?'#f5b343':'#3fd68c'),
   ],'Market-implied Fed path from fed funds futures (fedwatch), Fed communication tone/drift, bond vol (MOVE), the equity-vol complex, and the option-implied tail gauge. Futures pricing hikes into suppressed vol = policy-vol underpriced.');
+
+  h+=yieldCurveSection(d.yield_curve);
 
   const ps=d.positioning||{};
   const aaiiCol=ps.aaii_extreme==='EXTREME_BULL'?'#ff5c6c':ps.aaii_extreme==='EXTREME_BEAR'?'#3fd68c':'#46c8ff';

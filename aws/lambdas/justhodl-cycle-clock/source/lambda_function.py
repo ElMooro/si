@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.9"
+VERSION = "3.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -592,6 +592,16 @@ def lambda_handler(event, context):
                  "breakeven_10y_pct": _get(ycurve, "inflation_expectations", "10Y_BREAKEVEN", "value_pct"),
                  "term_premium_bps": _get(ycurve, "term_premium_proxy_bps"),
                  "spreads_bps": _get(ycurve, "spreads_bps")}
+    yield_curve = {
+        "regime": yc_regime, "regime_desc": _get(ycurve, "regime_description"),
+        "as_of": _get(ycurve, "as_of_date"),
+        "curve_points": [{"tenor": p.get("tenor"), "years": p.get("years"), "yield_pct": p.get("yield_pct"),
+                          "chg_20d_bps": p.get("chg_20d_bps")}
+                         for p in (_get(ycurve, "curve_points", default=[]) or [])],
+        "spreads_bps": _get(ycurve, "spreads_bps"), "inversion_flags": yc_inv,
+        "term_premium_bps": _get(ycurve, "term_premium_proxy_bps"),
+        "real_10y_pct": yc_decomp["real_10y_pct"], "breakeven_10y_pct": yc_decomp["breakeven_10y_pct"],
+    }
     vol_regime = _get(vixc, "composite_regime")
     dollar_regime = _get(dollar, "regime") or _get(dollar, "regime_note")
     _eps_top = _get(epsrev, "summary", "top_25_overall", default=[]) or []
@@ -1090,6 +1100,7 @@ def lambda_handler(event, context):
         "cross_asset": {"returns": cross, "confirmation": ca_confirm},
         "global_liquidity": global_liq,
         "rates_fed_vol": rates_fed_vol,
+        "yield_curve": yield_curve,
         "positioning": positioning,
         "growth_depth": growth_depth,
         "cross_asset_risk": cross_asset_risk,
