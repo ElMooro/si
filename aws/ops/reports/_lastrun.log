@@ -1,13 +1,16 @@
-regen boom; polling for finer groups...
-  t+13s finer groups PRESENT
-
-Pressure groups now:
-  TOTAL_MFG: score=66.1 dir=OPENING trend6=7.9 hist=24
-  COMPUTERS_ELECTRONICS: score=61.6 dir=OPENING trend6=14.5 hist=24
-  MACHINERY: score=57.4 dir=OPENING trend6=3.7 hist=24
-  ELECTRICAL_EQUIP: score=49.9 dir=STABLE trend6=-0.5 hist=24
-  AEROSPACE_DEFENSE: score=48.6 dir=CLOSING trend6=-17.7 hist=24
-  SEMIS_IP_STRAIN: score=semis z=2.12 dir=OPENING trend6=10.4 hist=24
-
-Candidate -> pressure_group (industrials):
-DONE 2307
+top-level keys: ['engine', 'version', 'generated_at', 'duration_s', 'industry_pressure', 'fred_used', 'fred_failed', 'universe_source', 'universe_n', 'scored_n', 'signals_logged', 'regime_at_log', 'top_calls', 'ranks', 'methodology']
+candidate list under 'ranks': 40 items
+  group distribution: {'TOTAL_MFG': 8, 'COMPUTERS_ELECTRONICS': 22, 'MACHINERY': 4, 'AEROSPACE_DEFENSE': 4, 'ELECTRICAL_EQUIP': 2}
+  industrials remapped:
+    NDSN: MACHINERY (Industrial - Machinery)
+    BWXT: AEROSPACE_DEFENSE (Aerospace & Defense)
+    EMR: MACHINERY (Industrial - Machinery)
+    ROK: MACHINERY (Industrial - Machinery)
+    HEI: AEROSPACE_DEFENSE (Aerospace & Defense)
+    PH: MACHINERY (Industrial - Machinery)
+    TDG: AEROSPACE_DEFENSE (Aerospace & Defense)
+    KTOS: AEROSPACE_DEFENSE (Aerospace & Defense)
+    ETN: ELECTRICAL_EQUIP (Electrical Equipment & Parts)
+    HUBB: ELECTRICAL_EQUIP (Electrical Equipment & Parts)
+  sample: [('VST', 'TOTAL_MFG', 'Independent Power Producers'), ('LDOS', 'COMPUTERS_ELECTRONICS', 'Information Technology Services'), ('CEG', 'TOTAL_MFG', 'Renewable Utilities'), ('NRG', 'TOTAL_MFG', 'Independent Power Producers'), ('MU', 'COMPUTERS_ELECTRONICS', 'Semiconductors'), ('DELL', 'COMPUTERS_ELECTRONICS', 'Computer Hardware'), ('HPE', 'COMPUTERS_ELECTRONICS', 'Computer Hardware'), ('JBL', 'COMPUTERS_ELECTRONICS', 'Hardware, Equipment & Parts')]
+DONE 2308
