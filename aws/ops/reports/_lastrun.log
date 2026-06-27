@@ -1,32 +1,42 @@
-=== analogs forward_distribution shape ===
-forward_distribution: {"5d": {"n": 15, "mean_pct": 0.08, "median_pct": -0.07, "hit_rate_pct": 46.7, "min_pct": -6.81, "max_pct": 7.56, "stdev_pct": 3.63}, "21d": {"n": 15, "mean_pct": -0.8, "median_pct": 0.82, "hit_rate_pct": 53.3, "min_pct": -17.71, "max_pct": 8.37, "stdev_pct": 7.41}, "63d": {"n": 15, "mean_pct": -2.88, "median_pct": 0.19, "hit_rate_pct": 53.3, "min_pct": -20.61, "max_pct": 13.21, "stdev_pct": 9.5}, "126d": {"n": 15, "mean_pct": -0.19, "median_pct": 4.54, "hit_rate_pct": 60.0, "min_pct": -24.6, "max_pct": 22.28, "stdev_pct": 14.69}}
-analog[0] keys: ['date', 'distance', 'similarity', 'vector', 'forward_5d_pct', 'forward_21d_pct', 'forward_63d_pct', 'forward_126d_pct']
+regen v2.3...
+  t+12s v2.3 (dur 9.4s)
 
-=== global-liquidity shape ===
-keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity', 'broad_money', 'regime', 'regime_read', 'global_impulse_13w_pct', 'history_points', 'net_liq_points']
-  regime: "NEUTRAL"
-  global_impulse_13w_pct: -0.4
+=== CROSS-ASSET (sorted by 1m) ===
+  IWM  Small caps         1m  +3.3%  3m  +23.3%
+  UUP  US dollar          1m  +2.6%  3m   +2.2%
+  TLT  Long Treasuries    1m  +2.4%  3m   +2.0%
+  XLU  Utilities          1m  +2.3%  3m   +1.3%
+  IWD  Value              1m  +2.0%  3m  +15.6%
+  IEF  7-10y Treasuries   1m  +0.8%  3m   +0.5%
+  LQD  IG credit          1m  +0.5%  3m   +1.7%
+  HYG  High yield         1m  -0.4%  3m   +1.4%
+  SPY  US equities        1m  -2.9%  3m  +15.0%
+  QQQ  US tech            1m  -3.1%  3m  +25.6%
+  IWF  Growth             1m  -5.3%  3m  +15.3%
+  XLE  Energy             1m  -5.5%  3m  -13.9%
+  GLD  Gold               1m  -8.5%  3m   -9.9%
+  DBC  Commodities        1m  -9.9%  3m   -8.7%
 
-=== Polygon ETF aggs test (1m/3m returns) ===
-  SPY: 1m -2.9% 3m +15.0%
-  QQQ: 1m -3.1% 3m +25.6%
-  IWM: 1m +3.3% 3m +23.3%
-  DBC: 1m -9.9% 3m -8.7%
-  GLD: 1m -8.5% 3m -9.9%
-  TLT: 1m +2.4% 3m +2.0%
-  IEF: 1m +0.8% 3m +0.5%
-  HYG: 1m -0.4% 3m +1.4%
-  LQD: 1m +0.5% 3m +1.7%
-  UUP: 1m +2.6% 3m +2.2%
-  IWD: 1m +2.0% 3m +15.6%
-  IWF: 1m -5.3% 3m +15.3%
-  XLE: 1m -5.5% 3m -13.9%
-  XLU: 1m +2.3% 3m +1.3%
+CONFIRMATION: CONTRADICTED | beating SPY: 1/4
+  note: Overheat historically favours Value, Energy, Gold; 1 of 4 are beating SPY over the last month — tape contradicts the regime read (prescription is the worst-performing book right now).
 
-=== FRED global CB balance sheets ===
-  ECBASSETSW: last 2026-06-19=6119940.0 (129 obs from 2024)
-  JPNASSETS: last 2026-05-01=6643630.0 (29 obs from 2024)
-  WALCL: last 2026-06-24=6735645 (130 obs from 2024)
-  RRPONTSYD: last 2026-06-26=6.426 (620 obs from 2024)
-  WTREGEN: last 2026-06-24=918696.0 (130 obs from 2024)
-DONE 2324
+=== GLOBAL LIQUIDITY ===
+  regime: NEUTRAL | index: {'total_usd_bn': 17872.2, 'total_usd_trillions': 17.87, 'components_usd_bn': {'Fed': 6735.6, 'ECB': 7019.6, 'BOJ': 4117.0}, 'change_13w_pct': -0.4, 'change_52w_pct': -5.15, 'as_of': '2026-06-24'} | impulse13w: -0.4
+  CB impulse 13w: {"fed_13w_pct": 1.2, "ecb_13w_pct": -0.6, "boj_13w_pct": -2.8}
+
+=== NET LIQUIDITY ===
+  net 5.812 T | pctile_since_2018: 44 | sparkline pts: 26
+
+=== SCENARIO PLAYBOOK ===
+  STAGFLATION       51.9%  → Cash / T-bills, Gold, Energy
+  DEFLATION-BUST    24.3%  → Long Treasuries, Gold, Cash
+  REFLATION         17.5%  → Equities, Commodities, TIPS
+  GOLDILOCKS         6.3%  → Equities (cyclicals, tech), HY credit, EM equities
+
+=== FORWARD DISTRIBUTION (for cone) ===
+  21d: median 0.82% mean -0.8% σ 7.41% [-17.71..8.37]
+  63d: median 0.19% mean -2.88% σ 9.5% [-20.61..13.21]
+  126d: median 4.54% mean -0.19% σ 14.69% [-24.6..22.28]
+
+divergences: 5 | AI: null(quota)
+DONE 2325
