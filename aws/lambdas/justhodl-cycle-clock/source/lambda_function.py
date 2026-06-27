@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.5"
+VERSION = "2.6"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -290,6 +290,26 @@ def _cb_impulse():
 
 
 CFTC_URL = "https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/signals"
+HISTORY_KEY = "data/cycle-clock-history.json"
+
+
+def _update_history(snapshot):
+    """Append today's snapshot to the persisted self-history, dedup by date, cap length."""
+    try:
+        hist = json.loads(s3.get_object(Bucket=BUCKET, Key=HISTORY_KEY)["Body"].read())
+        if not isinstance(hist, list):
+            hist = []
+    except Exception:
+        hist = []
+    hist = [h for h in hist if h.get("date") != snapshot["date"]]
+    hist.append(snapshot)
+    hist = hist[-300:]
+    try:
+        s3.put_object(Bucket=BUCKET, Key=HISTORY_KEY, Body=json.dumps(hist, default=str).encode(),
+                      ContentType="application/json", CacheControl="no-cache, max-age=0")
+    except Exception as e:
+        print(f"[cycle-clock] history write failed: {str(e)[:80]}")
+    return hist
 
 
 def _cftc_signals():
@@ -738,6 +758,61 @@ def lambda_handler(event, context):
                            f"(ELEVATED, protection {str(rates_fed_vol.get('tail_valuation','')).lower()}) — the left tail of the "
                            f"return distribution is fattening beneath the calm surface.")
 
+    # ───────── DETERMINISTIC SYNTHESIS ("the read") — rules-based, works without the LLM ─────────
+    contribs = []
+    def _add(label, side, weight, note=""):
+        contribs.append({"label": label, "side": side, "weight": weight, "note": note})
+    # risk-on contributors
+    if roro is not None and roro > 15: _add("Cross-asset RORO risk-on", 1, 8, f"RORO {roro:+.0f}")
+    if gbc_phase and "EXPANSION" in str(gbc_phase).upper(): _add("Global cycle expanding", 1, 7, str(gbc_phase))
+    if isinstance(netliq, dict) and (netliq.get("net_13w_delta_bn") or 0) > 0: _add("Fed net liquidity rising", 1, 4)
+    if growth_depth.get("activity_regime") == "EXPANDING": _add("Activity nowcast expanding", 1, 5)
+    if cr_regime and "BENIGN" in str(cr_regime).upper(): _add("Credit spreads benign", 1, 5)
+    if positioning.get("breadth_thrust_state") not in (None, "NULL", "none"): _add("Breadth thrust firing", 1, 6)
+    if str(_get(reg, "current", "quadrant") or "").upper() in ("GOLDILOCKS", "REFLATION"): _add("Macro regime constructive", 1, 5)
+    # risk-off contributors
+    if recession_prob is not None and recession_prob >= 30: _add("Recession-prob composite", -1, min(10, recession_prob / 5), f"{recession_prob}%")
+    if sq_level in ("ELEVATED", "HIGH", "ACUTE", "RISING"): _add("Liquidity-squeeze rising", -1, 8, sq_level)
+    if str(_get(liqpulse, "composites", "liquidity_regime") or "").upper() in ("ACUTE_DRAIN", "DRAINING"): _add("Liquidity-pulse draining", -1, 9, "ACUTE_DRAIN")
+    _rg = growth_depth.get("reserves_to_gdp_pct")
+    if isinstance(_rg, (int, float)) and _rg < 11: _add("Bank-reserve scarcity", -1, 7, f"{_rg:.1f}% GDP")
+    if str(growth_depth.get("labor_regime", "")).lower() == "weakening": _add("Leading labor weakening", -1, 6)
+    if positioning.get("aaii_extreme") == "EXTREME_BULL": _add("Retail euphoria (contrarian)", -1, 6)
+    if positioning.get("cot", {}).get("smart_money") == "DISTRIBUTING": _add("Smart money distributing", -1, 6)
+    if str(positioning.get("credit_equity_state", "")).upper().find("BULL_RICH") >= 0: _add("Credit complacency", -1, 3)
+    _mp = rates_fed_vol.get("move_pctile")
+    if isinstance(_mp, (int, float)) and _mp < 15: _add("Bond-vol complacency", -1, 3, f"MOVE {_mp:.0f}th")
+    if str(rates_fed_vol.get("tail_regime", "")).upper() in ("ELEVATED", "HIGH"): _add("Tail risk elevated", -1, 6)
+    if rates_fed_vol.get("fed_drift") == "HAWKISH_SHIFT": _add("Fed turning hawkish", -1, 5)
+    _yc = _get(cross_asset_risk, "yen_carry", "unwind_score")
+    if isinstance(_yc, (int, float)) and _yc >= 50: _add("Yen-carry unwind risk", -1, 5)
+    if ca_confirm and ca_confirm.get("status") == "CONTRADICTED": _add("Tape contradicts regime", -1, 5)
+    on = sum(c["weight"] for c in contribs if c["side"] > 0)
+    off = sum(c["weight"] for c in contribs if c["side"] < 0)
+    score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))
+    posture = ("STRONG RISK-OFF" if score <= -40 else "RISK-OFF" if score <= -15 else
+               "NEUTRAL" if score < 15 else "RISK-ON" if score < 40 else "STRONG RISK-ON")
+    conviction = ("HIGH" if abs(score) >= 45 else "MODERATE" if abs(score) >= 20 else "LOW")
+    bullish = sorted([c for c in contribs if c["side"] > 0], key=lambda c: -c["weight"])[:4]
+    bearish = sorted([c for c in contribs if c["side"] < 0], key=lambda c: -c["weight"])[:5]
+    own = [x["label"] for x in (cross or [])[:3]]
+    reduce = [x["label"] for x in (cross or [])[-3:]][::-1]
+    _sev = ["RESERVE SCARCITY", "TAIL RISK", "POLICY-ERROR", "SMART MONEY", "LIQUIDITY SPLIT", "COMPLACENCY", "EUPHORIA", "PRESCRIPTION"]
+    key_risk = next((dv for s in _sev for dv in divergences if dv.startswith(s)), (divergences[0] if divergences else None))
+    bl = (f"Rules-based read: {posture} ({score:+d}, {conviction.lower()} conviction). "
+          f"{head_ph.title()} with the tape leading {', '.join(own[:2]).lower()} while the textbook "
+          f"{quad2d.lower() if quad2d else ''} book lags. "
+          f"{len([c for c in contribs if c['side']<0])} risk-off vs {len([c for c in contribs if c['side']>0])} risk-on signals active.")
+    synthesis = {
+        "posture": posture, "score": score, "conviction": conviction,
+        "bullish_drivers": [{"label": c["label"], "note": c["note"]} for c in bullish],
+        "bearish_drivers": [{"label": c["label"], "note": c["note"]} for c in bearish],
+        "own_whats_leading": own, "reduce_whats_lagging": reduce,
+        "key_risk": key_risk, "bottom_line": bl,
+        "n_risk_off": len([c for c in contribs if c["side"] < 0]),
+        "n_risk_on": len([c for c in contribs if c["side"] > 0]),
+    }
+
     # ───────────────────────── VERDICT ─────────────────────────
     sq_phrase = {"LOW": "liquidity ample", "LOW · WATCH": "liquidity flat/easy with mild draining flickers",
                  "RISING": "liquidity tightening", "ELEVATED": "liquidity stress building",
@@ -798,6 +873,8 @@ def lambda_handler(event, context):
         "stress_scenarios": {"top": stress_scenarios.get("top"), "tail_regime": stress_scenarios.get("tail_regime"),
                              "tail_gauge": stress_scenarios.get("tail_gauge")},
         "scenario_playbook": scenario_playbook,
+        "rules_based_read": {"posture": synthesis["posture"], "score": synthesis["score"],
+                             "key_risk": synthesis["key_risk"]},
         "divergences": divergences,
     }
     ai = None
@@ -811,11 +888,34 @@ def lambda_handler(event, context):
             _ex.shutdown(wait=False)
     print(f"[cycle-clock] AI synthesis: {'OK' if ai else 'unavailable'}")
 
+    # ───────── SELF-HISTORY: log today's snapshot, derive trajectory ─────────
+    _today = datetime.now(timezone.utc).date().isoformat()
+    snap = {"date": _today, "quadrant": quad2d, "g": g_now, "i": i_now,
+            "recession_prob": recession_prob, "squeeze": squeeze, "roro": roro,
+            "net_liq_tn": (netliq or {}).get("net_tn"), "tail_gauge": _get(tailrisk, "system_tail_gauge"),
+            "posture_score": synthesis["score"], "n_divergences": len(divergences)}
+    hist = _update_history(snap)
+    def _delta(field, back):
+        if len(hist) > back:
+            prev = hist[-(back + 1)].get(field)
+            if prev is not None and snap.get(field) is not None:
+                return round(snap[field] - prev, 2)
+        return None
+    trajectory = {
+        "n_days_logged": len(hist),
+        "posture_score_5d": _delta("posture_score", 5), "posture_score_21d": _delta("posture_score", 21),
+        "recession_prob_21d": _delta("recession_prob", 21), "squeeze_21d": _delta("squeeze", 21),
+        "net_liq_21d": _delta("net_liq_tn", 21), "tail_21d": _delta("tail_gauge", 21),
+        "series": hist[-90:],
+    }
+
     out = {
         "engine": "cycle-clock", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "verdict": verdict,
+        "synthesis": synthesis,
+        "trajectory": trajectory,
         "ai": ai,
         "cycle": cycle,
         "risk": risk,
