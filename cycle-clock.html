@@ -120,6 +120,29 @@ function sparkline(series,w,hh){
   const up=vs[vs.length-1]>=vs[0];
   return `<svg viewBox="0 0 ${w} ${hh}" width="${w}" height="${hh}" preserveAspectRatio="none" style="display:block"><polyline points="${pts}" fill="none" stroke="${up?'#3fd68c':'#ff5c6c'}" stroke-width="1.5"/></svg>`;
 }
+function cryptoSection(cr){
+  if(!cr||(cr.dvol_btc==null&&cr.liquidity_regime==null))return '';
+  const vc={LOW:'#3fd68c',NORMAL:'#46c8ff',ELEVATED:'#f5b343',HIGH:'#ff5c6c'}[cr.dvol_btc_regime]||'#7c8ba0';
+  const lc=/LOADED/i.test(cr.liquidity_regime||'')?'#3fd68c':/SPENT|GREED/i.test(cr.liquidity_regime||'')?'#ff5c6c':'#46c8ff';
+  const fgv=cr.fear_greed;const fgc=fgv==null?'#7c8ba0':fgv<=25?'#3fd68c':fgv>=75?'#ff5c6c':'#f5b343';
+  const fc=cr.funding_composite||{};
+  let s=`<h2>Crypto — liquidity, leverage &amp; volatility</h2><div class="panel">`;
+  s+=`<div class="tilegrid" style="margin-bottom:13px">`;
+  s+=tile('BTC DVOL',cr.dvol_btc==null?'—':r1(cr.dvol_btc),`${cr.dvol_btc_regime||''}${cr.dvol_btc_pctile!=null?' · '+cr.dvol_btc_pctile+'th pctile':''}${cr.dvol_btc_trend?' · '+String(cr.dvol_btc_trend).toLowerCase():''}`,vc);
+  s+=tile('ETH DVOL',cr.dvol_eth==null?'—':r1(cr.dvol_eth),'implied vol','#46c8ff');
+  s+=tile('Perp funding',cr.funding_regime,fc.vw_funding_annualized_pct!=null?`vw ${r1(fc.vw_funding_annualized_pct)}% APR · OI $${r1(fc.total_oi_usd_billions)}B`:'',/CROWD|EXTREME|SQUEEZE|LONG|SHORT/i.test(cr.funding_regime||'')?'#f5b343':'#46c8ff');
+  s+=tile('Stablecoin liquidity',cr.liquidity_regime,cr.ssr!=null?`SSR ${cr.ssr} · ${r1(cr.ssr_pctile)}th pctile`:'',lc);
+  s+=tile('Fear & Greed',fgv==null?'—':`${fgv}`,cr.fear_greed_class||'',fgc);
+  s+=`</div>`;
+  if(cr.ssr_read)s+=`<div style="border-left:3px solid ${lc};background:rgba(255,255,255,.02);border-radius:8px;padding:9px 12px;margin-bottom:11px;font-size:12px;color:var(--fg-1);line-height:1.5"><b style="color:${lc}">Stablecoin dry powder · </b>${esc(cr.ssr_read)}${cr.directional_read?` — ${esc(cr.directional_read)}`:''}</div>`;
+  if(cr.squeeze_candidates&&cr.squeeze_candidates.length){
+    s+=`<div style="font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Perp squeeze candidates · funding z-score</div><div class="assets">`;
+    s+=cr.squeeze_candidates.map(c=>{const cc=/BEARISH/i.test(c.regime||'')?'lag':/BULLISH|LONG_SQUEEZE/i.test(c.regime||'')?'lead':'';return `<span class="chip ${cc}">${esc(c.coin)} z${c.z>=0?'+':''}${c.z}</span>`;}).join('');
+    s+=`</div>`;
+  }
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Crypto implied vol (Deribit DVOL), perp funding/OI positioning (crypto-funding) and stablecoin dry-powder/SSR + Fear &amp; Greed (crypto-liquidity). Extreme Fear + low SSR = sidelined cash / contrarian setup; crowded funding + rising DVOL = leverage &amp; vol risk.</div></div>`;
+  return s;
+}
 function crossAssetSection(ca){
   if(!ca||!ca.returns||!ca.returns.length)return '';
   const conf=ca.confirmation||{};
@@ -437,6 +460,7 @@ function aiSection(d){
     tile('Equity vol',rfv.equity_vol_regime,`composite ${r1(rfv.equity_vol_score)}`,rfv.equity_vol_regime==='PANIC'?'#ff5c6c':rfv.equity_vol_regime==='CONCERNED'?'#f5b343':'#3fd68c'),
     tile('Vol-of-vol',rfv.vov_state,'VVIX regime',/QUIET|CALM/i.test(rfv.vov_state||'')?'#3fd68c':'#f5b343'),
     tile('Tail risk',rfv.tail_gauge==null?'—':`${r1(rfv.tail_gauge)}/100`,`${rfv.tail_regime||''} · protection ${String(rfv.tail_valuation||'').toLowerCase()}`,/ELEVATED|HIGH/i.test(rfv.tail_regime||'')?'#ff5c6c':/WARM/i.test(rfv.tail_regime||'')?'#f5b343':'#3fd68c'),
+    tile('Crypto vol (DVOL)',rfv.crypto_dvol==null?'—':r1(rfv.crypto_dvol),`${rfv.crypto_dvol_regime||''}${rfv.crypto_dvol_pctile!=null?' · '+rfv.crypto_dvol_pctile+'th':''}${rfv.crypto_dvol_trend?' · '+String(rfv.crypto_dvol_trend).toLowerCase():''}`,{LOW:'#3fd68c',NORMAL:'#46c8ff',ELEVATED:'#f5b343',HIGH:'#ff5c6c'}[rfv.crypto_dvol_regime]||'#7c8ba0'),
   ],'Market-implied Fed path from fed funds futures (fedwatch), Fed communication tone/drift, bond vol (MOVE), the equity-vol complex, and the option-implied tail gauge. Futures pricing hikes into suppressed vol = policy-vol underpriced.');
 
   h+=yieldCurveSection(d.yield_curve);
@@ -502,6 +526,7 @@ function aiSection(d){
     tile('Foreign UST demand',tc.regime,tc.note?String(tc.note).slice(0,38):'',/STRONG/i.test(tc.regime||'')?'#3fd68c':/STRESS|WEAK/i.test(tc.regime||'')?'#ff5c6c':'#46c8ff'),
     tile('Commodity curve',cc.regime,cc.signal?String(cc.signal).slice(0,44):'','#46c8ff'),
   ],(cr.top_alert?`⚠ ${cr.top_alert}. `:'')+(yc.trigger?`Yen trigger: ${yc.trigger}`:''));
+  h+=cryptoSection(d.crypto);
 
   // ── stress ladder ──
   const C2=lq.components||{};
