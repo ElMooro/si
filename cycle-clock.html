@@ -156,6 +156,26 @@ function forwardCone(fd){
   const d63=fd['63d']||{};s+=`<div style="font-size:10.5px;color:var(--amber);margin-top:4px">Left-skewed: 63d median ${d63.median_pct}% but mean ${d63.mean_pct}% — a fat downside tail from the worst analogs. Descriptive distribution, not a forecast.</div></div>`;
   return s;
 }
+function stressSection(ss){
+  if(!ss||!ss.scenarios||!ss.scenarios.length)return '';
+  const SC={GOLDILOCKS:'#3fd68c',CHINA_SLOWDOWN:'#f5b343',FED_PIVOT:'#46c8ff',CREDIT_EVENT:'#ff5c6c',DOLLAR_CRISIS:'#ff5c6c',STAGFLATION:'#ff8a5c',RECESSION:'#ff5c6c',REFLATION:'#46c8ff'};
+  let s=`<h2>Stress scenarios &amp; tail risk — what breaks, and what it costs</h2><div class="panel">`;
+  s+=`<div class="tilegrid" style="margin-bottom:14px">`;
+  s+=tile('System tail gauge',ss.tail_gauge==null?'—':`${r1(ss.tail_gauge)}/100`,`${ss.tail_regime||''} · protection ${String(ss.tail_valuation||'').toLowerCase()}`,/ELEVATED|HIGH/i.test(ss.tail_regime||'')?'#ff5c6c':/WARM/i.test(ss.tail_regime||'')?'#f5b343':'#3fd68c');
+  s+=tile('Euro-area systemic',ss.ea_ciss_regime,ss.ea_ciss==null?'CISS':`CISS ${Number(ss.ea_ciss).toFixed(3)}`,ss.ea_ciss_regime==='CALM'?'#3fd68c':'#f5b343');
+  s+=tile('Correlation regime',ss.correlation_signal,ss.correlation_z==null?'':`frobenius z ${r1(ss.correlation_z)}`,/NORMAL/i.test(ss.correlation_signal||'')?'#3fd68c':'#f5b343');
+  s+=`</div>`;
+  s+=`<div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Scenario tree · probability · winners / losers</div>`;
+  for(const sc of ss.scenarios){if(!sc.prob_pct)continue;const c=SC[sc.key]||'#7c8ba0';
+    s+=`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div style="width:140px;font-family:var(--mono);font-size:11.5px;color:${c}">${esc(sc.name||sc.key)}</div><div style="flex:1;height:6px;background:var(--bg-2);border-radius:3px"><i style="display:block;height:100%;width:${Math.min(100,sc.prob_pct*3)}%;background:${c};border-radius:3px"></i></div><div style="width:40px;text-align:right;font-family:var(--mono);font-size:12px;color:${c}">${r1(sc.prob_pct)}%</div></div>
+      <div style="display:flex;gap:16px;margin-top:3px;margin-left:150px;font-family:var(--mono);font-size:10px;flex-wrap:wrap"><div style="color:var(--green)">▲ ${esc((sc.winners||[]).join(' '))}</div><div style="color:var(--red)">▼ ${esc((sc.losers||[]).join(' '))}</div></div></div>`;}
+  if(ss.asset_impact_winners&&ss.asset_impact_winners.length){
+    s+=`<div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px">Probability-weighted asset impact — top expected winners</div><div class="assets">`;
+    s+=ss.asset_impact_winners.map(w=>`<span class="chip lead">${esc(w.ticker)} ${w.expected_return_pct>=0?'+':''}${w.expected_return_pct}%</span>`).join('');
+    s+=`</div>`;}
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Macro stress-scenario tree (probe-matched probabilities, per-scenario winners/losers, probability-weighted asset impact) + the option-implied tail gauge, euro-area systemic stress and correlation regime.</div></div>`;
+  return s;
+}
 function scenarioPlaybook(sp){
   if(!sp||!sp.length)return '';
   const QC={GOLDILOCKS:'#3fd68c',REFLATION:'#46c8ff',OVERHEAT:'#f5b343',STAGFLATION:'#ff8a5c','DEFLATION-BUST':'#ff5c6c',DOWNTURN:'#ff5c6c'};
@@ -270,21 +290,22 @@ function aiSection(d){
   h+=crossAssetSection(d.cross_asset);
 
   // ── macro drivers: rates/fed/vol, positioning, growth depth ──
-  const rfv=d.rates_fed_vol||{};
+  const rfv=d.rates_fed_vol||{};const fp=rfv.fed_path||{};
   h+=tileGrid('Rates, the Fed & the volatility complex',[
+    tile('Implied Fed path',fp.implied_move_bps==null?'—':`${fp.implied_move_bps>=0?'+':''}${fp.implied_move_bps}bps`,fp.next_date?`next FOMC → ${r1(fp.post_rate_pct)}%${(fp.summary_6mo&&fp.summary_6mo.scenario)?' · '+fp.summary_6mo.scenario:''}`:'',(fp.implied_move_bps>0)?'#ff8a5c':(fp.implied_move_bps<0)?'#3fd68c':'#46c8ff'),
     tile('Fed tone',rfv.fed_tone,'fed-speak 30d',HAWK(rfv.fed_tone)),
     tile('Fed drift',rfv.fed_drift,`z ${r1(rfv.fed_drift_z)}`,HAWK(rfv.fed_drift)),
     tile('MOVE · bond vol',rfv.move_level==null?'—':r1(rfv.move_level),`${rfv.move_pctile==null?'':r1(rfv.move_pctile)+'th pctile · '}${rfv.move_regime||''}`,(rfv.move_pctile!=null&&rfv.move_pctile<15)?'#f5b343':'#46c8ff'),
-    tile('Bond-vol regime',rfv.bond_vol_regime,rfv.bond_vol_signal?String(rfv.bond_vol_signal).split(' - ')[0]:rfv.bond_vol_posture,'#46c8ff'),
     tile('Equity vol',rfv.equity_vol_regime,`composite ${r1(rfv.equity_vol_score)}`,rfv.equity_vol_regime==='PANIC'?'#ff5c6c':rfv.equity_vol_regime==='CONCERNED'?'#f5b343':'#3fd68c'),
     tile('Vol-of-vol',rfv.vov_state,'VVIX regime',/QUIET|CALM/i.test(rfv.vov_state||'')?'#3fd68c':'#f5b343'),
-    tile('Tail / skew',rfv.tail_state,'crash-hedge demand','#46c8ff'),
-  ],'Fed communication tone & drift, bond vol (MOVE) and the equity-vol complex. Suppressed MOVE into a hawkish drift = policy-vol priced cheap.');
+    tile('Tail risk',rfv.tail_gauge==null?'—':`${r1(rfv.tail_gauge)}/100`,`${rfv.tail_regime||''} · protection ${String(rfv.tail_valuation||'').toLowerCase()}`,/ELEVATED|HIGH/i.test(rfv.tail_regime||'')?'#ff5c6c':/WARM/i.test(rfv.tail_regime||'')?'#f5b343':'#3fd68c'),
+  ],'Market-implied Fed path from fed funds futures (fedwatch), Fed communication tone/drift, bond vol (MOVE), the equity-vol complex, and the option-implied tail gauge. Futures pricing hikes into suppressed vol = policy-vol underpriced.');
 
   const ps=d.positioning||{};
   const aaiiCol=ps.aaii_extreme==='EXTREME_BULL'?'#ff5c6c':ps.aaii_extreme==='EXTREME_BEAR'?'#3fd68c':'#46c8ff';
   h+=tileGrid('Positioning, sentiment & market internals',[
     tile('AAII retail',ps.aaii_bull_pct==null?'—':`${ps.aaii_bull_pct}% bull`,ps.aaii_extreme==='EXTREME_BULL'?'⚠ euphoric — contrarian':`bear ${ps.aaii_bear_pct}% · z ${r1(ps.aaii_spread_z)}`,aaiiCol),
+    tile('Futures (COT)',(ps.cot||{}).smart_money||'—',ps.cot?`pos ${r1(ps.cot.score)} · risk-app ${r1(ps.cot.risk_appetite)}`:'',/DISTRIBUT/i.test((ps.cot||{}).smart_money||'')?'#ff5c6c':/ACCUMULAT/i.test((ps.cot||{}).smart_money||'')?'#3fd68c':'#46c8ff'),
     tile('Retail flow',ps.retail_regime,ps.retail_note?String(ps.retail_note).slice(0,38):'','#46c8ff'),
     tile('Credit vs equity',ps.credit_equity_state,'HYG vs SPY',/BULL_RICH/.test(ps.credit_equity_state||'')?'#f5b343':/BEAR/.test(ps.credit_equity_state||'')?'#ff5c6c':'#3fd68c'),
     tile('Breadth thrust',ps.breadth_thrust_state==='NULL'?'none':ps.breadth_thrust_state,`strength ${ps.breadth_thrust_strength==null?'—':ps.breadth_thrust_strength}`,'#7c8ba0'),
@@ -364,9 +385,10 @@ function aiSection(d){
     h+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:7px">Descriptive distribution of what followed similar configurations — not a forecast.</div></div>`;
   }
 
-  // ── forward path cone + scenario playbook ──
+  // ── forward path cone + scenario playbook + stress scenarios ──
   h+=forwardCone((an||{}).forward_distribution);
   h+=scenarioPlaybook((cy||{}).scenario_playbook);
+  h+=stressSection(d.stress_scenarios);
 
   // ── divergences ──
   if(d.divergences&&d.divergences.length){
