@@ -1,4 +1,115 @@
-function pressureMini: True
-'Window' header: True
-inline dial wired in row: True
-DONE 2313
+
+### data/risk-regime.json  (gen 2026-06-26T12:45)
+  top keys: ['engine', 'version', 'generated_at', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components', 'tells', 'elapsed_s', 'sources']
+   risk_regime_score = 8.1
+   posture = ['beta_tilt', 'size_mult', 'hedge']
+   regime = None
+   components = ['fx', 'options', 'vix', 'credit']
+   drivers = None
+   pillars = None
+
+### data/yield-curve.json  (gen 2026-06-27T13:52)
+  top keys: ['version', 'generated_at', 'duration_s', 'as_of_date', 'regime', 'regime_description', 'inversion_flags', 'decomposition', 'spreads_bps', 'butterfly_5y_bps', 'term_premium_proxy_bps', 'curve_points', 'nominal_yields', 'real_yields', 'inflation_expectations', 'fed_context', 'signals', 'n_signals']
+   spreads.2s10s = None
+   2s10s = None
+   3m10y = None
+   recession_prob = None
+   inversion = None
+   signal = None
+   curve = None
+
+### data/credit-stress.json  (gen 2026-06-26T22:00)
+  top keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'data_date', 'current_bps', 'metrics', 'derived_spreads', 'regimes', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'thresholds']
+   hy_oas = None
+   ig_oas = None
+   level = None
+   score = None
+   spreads = None
+   signal = None
+
+### data/sovereign-fiscal.json  (gen 2026-06-27T07:10)
+  top keys: ['engine', 'version', 'generated_at', 'reads', 'tic', 'fiscal', 'debt_service']
+   tga = None
+   issuance = None
+   debt_to_penny = None
+   avg_interest = None
+   net_issuance = None
+   interpretation = None
+
+### data/settlement-fails.json  (gen 2026-06-26T21:30)
+  top keys: ['engine', 'version', 'generated_at', 'as_of', 'signal', 'headline', 'classes', 'totals', 'source']
+   total_fails = None
+   percentile = None
+   level = None
+   fails = None
+   interpretation = None
+
+### data/fomc-reaction.json  (gen 2026-06-26T21:35)
+  top keys: ['engine', 'version', 'generated_at', 'is_decision_day', 'meeting_date', 'surprise', 'reaction_map', 'calibration', 'regime_context', 'what_flips_it', 'self_grading', 'honesty', 'duration_s']
+   stance = None
+   tone = None
+   statement_tone = None
+   reaction_map = ['S&P 500 (SPY)', 'Nasdaq 100 (QQQ)', 'Small caps (IWM)', '20y+ Treasuries (TLT)', 'HY credit (HYG)', 'Gold (GLD)', 'US dollar (UUP)', 'Bitcoin']
+   latest = None
+
+### data/historical-analogs.json  (gen 2026-06-27T11:01)
+  top keys: ['version', 'generated_at', 'duration_s', 'today', 'feature_order', 'n_historical_dates_evaluated', 'unprecedentedness', 'k_neighbors', 'analogs', 'forward_distribution', 'directional_call', 'directional_description', 'methodology', 'data_sources']
+   analogs = [{'date': '2000-02-16', 'distance': 0.782, 'similarity': 0.844, 'vector': {'vix': -0.08, 'twos_tens_bps': -3.46, 'hy_oas': -1.62, 'usd_index': 0.76, 'ten_year_yield': 1.52, 'spx_1m_ret': 0.27}, 'forward_5d_pct': 4.29, 'forward_21d_pct': 8.37, 'forward_63d_pct': -17.68, 'forward_126d_pct': -12.79}, {'date': '2004-06-14', 'distance': 1.337, 'similarity': 0.733, 'vector': {'vix': -0.85, 'twos_tens_bps': -2.7, 'hy_oas': -1.59, 'usd_index': -0.11, 'ten_year_yield': 1.96, 'spx_1m_ret': -0.02}, 'forward_5d_pct': 0.46, 'forward_21d_pct': -1.31, 'forward_63d_pct': -2.7, 'forward_126d_pct': 8.38}, {'date': '2023-03-08', 'distance': 1.892, 'similarity': 0.622, 'vector': {'vix': -1.3, 'twos_tens_bps': -2.05, 'hy_oas': -1.88, 'usd_index': -0.03, 'ten_year_yield': 1.3, 'spx_1m_ret': -0.2}, 'forward_5d_pct': -1.23, 'forward_21d_pct': 4.42, 'forward_63d_pct': 13.21, 'forward_126d_pct': 18.77}, {'date': '2006-02-23', 'distance': 1.939, 'similarity': 0.612, 'vector': {'vix': -0.6, 'twos_tens_bps': -1.81, 'hy_oas': -1.09, 'usd_index': 0.34, 'ten_year_yield': 1.22, 'spx_1m_ret': -0.08}, 'forward_5d_pct': 1.39, 'forward_21d_pct': 1.47, 'forward_63d_pct': -4.83, 'forward_126d_pct': -6.35}]
+   top_analog = None
+   nearest = None
+   matches = None
+
+### data/regime-playbook.json  (gen 2026-06-27T14:30)
+  top keys: ['engine', 'version', 'generated_at', 'duration_s', 'current_fingerprint', 'regime_key', 'current_playbook', 'proven_signal_leaders', 'days_in_history', 'note']
+   current_fingerprint = ['bond_vol', 'plumbing', 'balance_sheet', 'crypto_risk', 'date']
+   playbook = None
+   tilts = None
+   asset_classes = None
+   current = None
+
+### data/regime-composite.json  (gen 2026-06-27T17:51)
+  top keys: ['schema_version', 'version', 'generated_at', 'duration_s', 'meta_regime', 'meta_narrative', 'meta_class', 'composite_score', 'dimensions', 'modules', 'n_modules_total', 'n_modules_with_data', 'n_modules_missing', 'prior_regime', 'regime_changed_from_prior']
+   regime = None
+   score = None
+   composite = None
+   label = None
+
+### data/sector-rotation.json  (gen 2026-06-27T17:51)
+  top keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'macro_context', 'risk_appetite', 'summary', 'sectors', 'ratios', 'rotation_alerts', 'finviz_rotation']
+   leaders = None
+   laggards = None
+   signal = None
+   cyclical_vs_defensive = None
+   phase = None
+
+### data/macro-surprise.json  (gen 2026-06-26T21:49)
+  top keys: ['version', 'generated_at', 'n_indicators_tracked', 'n_indicators_computed', 'composite_z', 'growth_z', 'inflation_z', 'regime', 'regime_description', 'by_indicator', 'by_category', 'top_beats', 'top_misses', 'duration_s', 'data_sources', 'methodology', 'regime_definitions']
+   surprise_index = None
+   score = None
+   trend = None
+   level = None
+
+### data/fed-liquidity.json: MISSING/ERR An error occurred (NoSuchKey) when calling the Get
+
+### data/dollar-radar.json  (gen 2026-06-27T13:15)
+  top keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries', 'indices', 'bilaterals', 'technicals', 'how_to_read', 'disclaimer']
+   dxy = None
+   signal = None
+   level = None
+   trend = None
+
+### data/vix-curve.json  (gen 2026-06-26T18:06)
+  top keys: ['generated_at', 'generated_at_unix', 'version', 'source', 'data_date', 'elapsed_seconds', 'current', 'spreads', 'spread_regimes', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'z_scores_60d', 'percentile_ranks', 'sustained_signals', 'cross_asset_dispersion', 'day_over_day', 'thresholds']
+   term_structure = None
+   contango = None
+   backwardation = None
+   vix = None
+   signal = None
+
+### data/signal-scorecard.json  (gen 2026-06-27T11:00)
+  top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'n_outcomes_scanned', 'n_outcomes_scored', 'n_outcomes_neutral', 'n_outcomes_legacy', 'n_outcomes_unresolved', 'n_signals_tracked', 'n_signals_graded', 'n_promoted', 'n_deprecated', 'n_insufficient', 'avg_graded_wilson_lb', 'promoted_signals', 'deprecated_signals', 'alpha']
+   proven = None
+   engines = None
+   summary = None
+
+DONE 2314
