@@ -346,13 +346,21 @@ function renderTable(){
   const calls=new Set(DATA.top_calls||[]);
   const ranks=(DATA.ranks||[]).slice().filter(r=>passFilter(r,FILTER,calls));
   if(!ranks.length){el.innerHTML='<div class="loading">No candidates match this filter.</div>';return;}
+  ranks.forEach(rr=>{const _fv=(RESEARCH[rr.ticker]||{}).fwd_val||{}; rr.fwd_pe=_fv.fwd_pe; rr.fwd_upside=_fv.tp_base_upside_pct;});
   ranks.sort((a,b)=>((b[SORT]==null?-1e9:b[SORT])-(a[SORT]==null?-1e9:a[SORT])));
   const mx=Math.max(...ranks.map(r=>r.boom_score||0));
-  const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['group_pressure','Pressure'],['boom_score','Boom']];
+  const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['fwd_pe','Fwd P/E'],['fwd_upside','Target'],['group_pressure','Pressure'],['boom_score','Boom']];
   let h='<table><thead><tr>'+head.map(c=>`<th class="${c[2]||''}" data-s="${c[0]}">${esc(c[1])}</th>`).join('')+'</tr></thead><tbody>';
   ranks.forEach(r=>{
     const tk=r.ticker,isc=calls.has(tk),bw=mx>0?Math.max(4,(r.boom_score/mx)*100):0;
     const rv=RESEARCH[tk]||{},pe=rv.pe,ipe=rv.industry_pe,trp=rv.trap;
+    const fv=rv.fwd_val||{};
+    const fwdpe=fv.fwd_pe;
+    const fwdpeCls=(fv.fwd_pe_vs_ind_pct!=null&&fv.fwd_pe_vs_ind_pct<=-5)?'pos':'dim';
+    const upv=fv.tp_base_upside_pct;
+    const upTxt=upv==null?'—':`${upv>=0?'+':''}${upv}%`;
+    const upCls=upv==null?'dim':(upv>0?'pos':'neg');
+    const upTitle=fv.tp_bull!=null?`Price prediction → Bull $${r1(fv.tp_bull)} (+${fv.tp_bull_upside_pct}%, re-rate to ind P/E) · Base $${r1(fv.tp_base)} (+${fv.tp_base_upside_pct}%) · Bear $${r1(fv.tp_bear)} (+${fv.tp_bear_upside_pct}%)`:'tap for forward valuation';
     const peTxt=pe==null?'—':`${r1(pe)}<span class="dim"> / ${ipe==null?'—':ipe}</span>`;
     const tbadge=trp?`<span class="tb ${trp}">${trp==='real'?'✓ REAL':trp==='trap'?'⚠ TRAP':'• WATCH'}</span>`:'';
     h+=`<tr class="stk${OPEN===tk?' open':''}" data-tk="${tk}"><td class="l"><span class="tk">${esc(tk)}</span>${isc?'<span class="call">TOP CALL</span>':''}${tbadge}${rv.score_bull!=null?`<span class="sc"><b class="g">${rv.score_bull}▲</b> <b class="r">${rv.score_bear}▼</b></span>`:''}<div class="ind">${esc((r.name||'').slice(0,30))} · ${esc(r.industry||'')}</div></td>
@@ -360,9 +368,11 @@ function renderTable(){
       <td>${pct(r.rev_growth_yoy)}</td>
       <td>${r.rev_to_mcap_pct==null?'—':r.rev_to_mcap_pct+'%'}</td>
       <td class="${(pe&&ipe&&pe<ipe)?'pos':'dim'}">${peTxt}</td>
+      <td class="${fwdpeCls}">${fwdpe==null?'—':r1(fwdpe)}</td>
+      <td class="${upCls}" title="${esc(upTitle)}">${upTxt}</td>
       <td class="dim">${r.group_pressure==null?'—':Math.round(r.group_pressure)}</td>
       <td><div class="bswrap"><span class="bscore" style="color:${pcolor(r.boom_score)}">${r.boom_score==null?'—':r.boom_score}</span><span class="bsbar"><i style="width:${bw}%"></i></span></div></td></tr>`;
-    if(OPEN===tk)h+=`<tr class="drawer"><td colspan="7">${drawer(tk)}</td></tr>`;
+    if(OPEN===tk)h+=`<tr class="drawer"><td colspan="9">${drawer(tk)}</td></tr>`;
   });
   h+='</tbody></table>';
   el.innerHTML=h;
