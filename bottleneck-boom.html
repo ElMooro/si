@@ -263,24 +263,14 @@ function sparkline(vals,color){
   return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${color}" stroke-width="1.6" points="${pts}"/></svg>`;
 }
 
-function renderPressure(ip){
-  const el=document.getElementById('pcards');
-  if(!ip||!Object.keys(ip).length){el.innerHTML='<div class="loading">No industry-pressure data.</div>';return;}
-  el.innerHTML=Object.entries(ip).sort((a,b)=>(score(b[1])-score(a[1]))).map(([k,v])=>{
-    const s=score(v),asof=v.as_of?('as of '+v.as_of):'';
-    let rows='';
-    if(v.new_orders_yoy_pct!=null)rows+=`<div class="row"><span>New orders YoY</span><b class="${v.new_orders_yoy_pct>=0?'pos':'neg'}">${pct(v.new_orders_yoy_pct)}</b></div>`;
-    if(v.backlog_yoy_pct!=null)rows+=`<div class="row"><span>Backlog YoY</span><b class="${v.backlog_yoy_pct>=0?'pos':'neg'}">${pct(v.backlog_yoy_pct)}</b></div>`;
-    if(v.backlog_to_shipments!=null)rows+=`<div class="row"><span>Backlog / shipments</span><b>${v.backlog_to_shipments}×</b></div>`;
-    if(v.ip_yoy_pct!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${v.ip_yoy_pct>=0?'pos':'neg'}">${pct(v.ip_yoy_pct)}</b></div>`;
-    const pctile=(RMETA.pressure_pctiles||{})[k];
-    if(pctile!=null)rows+=`<div class="row"><span>vs 10y history</span><b class="${pctile>=80?'pos':''}">${pctile}th pctile</b></div>`;
-    const dirMap={OPENING:['↑','var(--green)','bottleneck intensifying — early, best risk/reward','Still rising — early in the window'],PEAKING:['●','var(--amber)','high but flattening — late, window narrowing','High but flattening — late'],CLOSING:['↓','var(--red)','easing — re-rate window closing','Easing — window closing'],STABLE:['→','var(--fg-3)','no clear trend','Stable — no clear trend']};
-    const dm=dirMap[v.direction];const t6=v.trend_6mo;const dir=v.direction;
-    const col=dm?dm[1]:pcolor(s);
-    const mp=cyclePoint(cycleT(dir,t6));
-    const oc=dir==='OPENING'?col:'var(--fg-3)',pc2=dir==='PEAKING'?col:'var(--fg-3)',cc=dir==='CLOSING'?col:'var(--fg-3)';
-    const viz=`<div style="display:flex;align-items:center;gap:12px;margin:6px 0 7px">
+function pressureViz(v){
+  const s=score(v);
+  const dirMap={OPENING:['↑','var(--green)','bottleneck intensifying — early, best risk/reward','Still rising — early in the window'],PEAKING:['●','var(--amber)','high but flattening — late, window narrowing','High but flattening — late'],CLOSING:['↓','var(--red)','easing — re-rate window closing','Easing — window closing'],STABLE:['→','var(--fg-3)','no clear trend','Stable — no clear trend']};
+  const dm=dirMap[v.direction];const t6=v.trend_6mo;const dir=v.direction;
+  const col=dm?dm[1]:pcolor(s);
+  const mp=cyclePoint(cycleT(dir,t6));
+  const oc=dir==='OPENING'?col:'var(--fg-3)',pc2=dir==='PEAKING'?col:'var(--fg-3)',cc=dir==='CLOSING'?col:'var(--fg-3)';
+  const viz=`<div style="display:flex;align-items:center;gap:12px;margin:6px 0 7px">
       <svg viewBox="0 0 140 92" width="106" style="flex:none" role="img" aria-label="Pressure ${s==null?'unknown':Math.round(s)} of 100">
         <path d="M12 68 A58 58 0 0 1 128 68" fill="none" stroke="var(--border-bright)" stroke-width="11" stroke-linecap="round"/>
         ${s!=null?`<path d="${dialD(s)}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round"/>`:''}
@@ -296,9 +286,24 @@ function renderPressure(ip){
           <text x="214" y="66" text-anchor="middle" font-size="9.5" fill="${cc}" style="font-family:var(--mono)">CLOSE</text>
         </svg>
       </div></div>`;
-    const statusLine=dm?`<div style="font-family:var(--mono);font-size:11px;color:${col};margin:0 0 5px" title="${esc(dm[2])}">${dm[0]} ${esc(dm[3])}${t6!=null?` · ${t6>=0?'+':''}${t6}/6mo`:''}</div>`:'';
+  const statusLine=dm?`<div style="font-family:var(--mono);font-size:11px;color:${col};margin:0 0 5px" title="${esc(dm[2])}">${dm[0]} ${esc(dm[3])}${t6!=null?` · ${t6>=0?'+':''}${t6}/6mo`:''}</div>`:'';
+  return viz+statusLine;
+}
+
+function renderPressure(ip){
+  const el=document.getElementById('pcards');
+  if(!ip||!Object.keys(ip).length){el.innerHTML='<div class="loading">No industry-pressure data.</div>';return;}
+  el.innerHTML=Object.entries(ip).sort((a,b)=>(score(b[1])-score(a[1]))).map(([k,v])=>{
+    const s=score(v),asof=v.as_of?('as of '+v.as_of):'';
+    let rows='';
+    if(v.new_orders_yoy_pct!=null)rows+=`<div class="row"><span>New orders YoY</span><b class="${v.new_orders_yoy_pct>=0?'pos':'neg'}">${pct(v.new_orders_yoy_pct)}</b></div>`;
+    if(v.backlog_yoy_pct!=null)rows+=`<div class="row"><span>Backlog YoY</span><b class="${v.backlog_yoy_pct>=0?'pos':'neg'}">${pct(v.backlog_yoy_pct)}</b></div>`;
+    if(v.backlog_to_shipments!=null)rows+=`<div class="row"><span>Backlog / shipments</span><b>${v.backlog_to_shipments}×</b></div>`;
+    if(v.ip_yoy_pct!=null)rows+=`<div class="row"><span>Industrial prod YoY</span><b class="${v.ip_yoy_pct>=0?'pos':'neg'}">${pct(v.ip_yoy_pct)}</b></div>`;
+    const pctile=(RMETA.pressure_pctiles||{})[k];
+    if(pctile!=null)rows+=`<div class="row"><span>vs 10y history</span><b class="${pctile>=80?'pos':''}">${pctile}th pctile</b></div>`;
     return `<div class="pc"><span class="asof">${esc(asof)}</span><div class="nm">${esc(k.replace(/_/g,' '))}</div>
-      ${viz}${statusLine}${rows}</div>`;
+      ${pressureViz(v)}${rows}</div>`;
   }).join('');
 }
 
@@ -417,7 +422,11 @@ function drawer(tk){
     const mult=peRow+psRow+(fv.industry_ps==null?'<div style="font-family:var(--mono);font-size:9px;color:var(--fg-3)">P/S "ind" = median of bottleneck peers in this industry (needs ≥2 peers; n/a here)</div>':'');
     fwdval=`<div class="conf"><h4>Forward &amp; projected valuation — price prediction from growth + backlog</h4>${preds}${driver}${mult}<div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:3px">Projection compounds the growth rate; targets re-rate forward earnings to the industry P/E. Not investment advice.</div></div>`;
   }
-  return `<div class="dwrap">${priceHdr}${scorecard}${thesisHtml}${bearHtml}${dctx}${fwdval}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;
+  const _grp=r.pressure_group;
+  const _ipg=_grp?((DATA.industry_pressure||{})[_grp]):null;
+  const _pct=_grp?((RMETA.pressure_pctiles||{})[_grp]):null;
+  const windowBlock=_ipg?`<div class="conf"><h4>Industry bottleneck window — ${esc(_grp.replace(/_/g,' '))}</h4>${pressureViz(_ipg)}<div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);margin-top:1px">${esc(tk)} is mapped to this industry's order backlog — the re-rate window is the industry's, not the stock's price.${_pct!=null?` Currently ${_pct}th percentile vs 10y history.`:''}</div></div>`:'';
+  return `<div class="dwrap">${priceHdr}${windowBlock}${scorecard}${thesisHtml}${bearHtml}${dctx}${fwdval}${conf}${quality}${what}${kv}${finHtml}${chartLink}</div>`;
 }
 
 function renderTable(){
