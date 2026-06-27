@@ -285,7 +285,7 @@ def lambda_handler(event=None, context=None):
     meetings = get_fomc_meetings_ahead(n=8)
 
     # 3) For each meeting, pull relevant ZQ futures contract
-    today_dt = datetime.now(timezone.utc)
+    today_dt = datetime.utcnow()  # naive, to match strptime'd meeting dates below
     out_meetings = []
     for meeting_date in meetings:
         try:
