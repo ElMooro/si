@@ -1,34 +1,3 @@
-regen v2.5...
-  t+12s...
-  t+24s v2.5 (dur 19.3s)
-
-=== FED PATH ===
-  current midpoint: 3.625 | next FOMC: 2026-07-29 (31d) implied 10 bps → post 3.7284 %
-  6mo: {"scenario": "AGGRESSIVE_HIKING", "cumulative_implied_move_bps": 222, "avg_implied_move_per_meeting_bps": 55.5, "n_meetings_evaluated": 4}
-  tail: 56.3 ELEVATED | valuation WARMING
-=== COT ===
-   {"score": 31.0, "risk_appetite": 30.0, "smart_money": "DISTRIBUTING", "summary": "Market Positioning: 31.0/100 | Risk Appetite: 30.0/100 | Smart Money: DISTRIBUTING | Crisis: 20/100 (LOW) | Extremes: 7/29 | Reversals: 2"}
-=== STRESS SCENARIOS ===
-  top: {"key": "GOLDILOCKS", "name": "Goldilocks Continuation", "probability_pct": 20.0}
-   - GOLDILOCKS 20.0%  W:['QQQ', 'TLT', 'IWM', 'XBI'] L:['UUP', 'UVXY', 'DBA']
-   - CHINA_SLOWDOWN 15.0%  W:['TLT', 'UUP', 'XLP', 'XLU'] L:['XME', 'FXI', 'EEM', 'DBC']
-   - FED_PIVOT 0.0%  W:['IWM', 'KRE', 'GDX', 'GLD'] L:['UUP', 'TLT', 'XLP']
-   - CREDIT_EVENT 0.0%  W:['TLT', 'UUP', 'VIXY', 'GOVT'] L:['HYG', 'JNK', 'SPY', 'IWM']
-   - DOLLAR_CRISIS 0.0%  W:['GLD', 'GDX', 'DBC', 'EEM'] L:['UUP', 'TLT', 'XLP', 'QQQ']
-  asset impact winners: [{"ticker": "TLT", "expected_return_pct": 2.4}, {"ticker": "XBI", "expected_return_pct": 1.8}, {"ticker": "IWM", "expected_return_pct": 1.6}, {"ticker": "QQQ", "expected_return_pct": 1.3}, {"ticker": "XLU", "expected_return_pct": 0.75}]
-  tail: 56.3 ELEVATED | EA CISS: CALM | corr: NORMAL 0.42
-
-divergences: 11
-   - GROWTH SPLIT: global business cycle reads GLOBAL_EXPANSION (CLI 109.69, 95.0% breadth) w
-   - LIQUIDITY SPLIT: aggregate central-bank liquidity is NEUTRAL/flat, but the credit-engine
-   - CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-o
-   - COUNTERINTUITIVE: growth nowcast is SLOWING, but historically SLOWING preceded SPY +5.07
-   - PRESCRIPTION-vs-TAPE: Overheat historically favours Value, Energy, Gold; 1 of 4 are beat
-   - EUPHORIA: retail sentiment at a bullish extreme (100% bulls, spread z 1.03) — historical
-   - COMPLACENCY: bond vol (MOVE) at the 8th percentile and credit CREDIT_BULL_RICH while liq
-   - RESERVE SCARCITY: bank reserves 9.3% of GDP (below the ~11% scarcity threshold) — the st
-   - POLICY-ERROR RISK: Fed communication is shifting hawkish (drift z 1.24) while leading la
-   - SMART MONEY DISTRIBUTING: large-spec/commercial futures positioning is net distributing 
-   - TAIL RISK ELEVATED: the option-implied crash gauge is 56.3/100 (ELEVATED, protection war
-AI: null(quota)
-DONE 2337
+page markers: 0 / 10 → missing: ['Implied Fed path', 'Futures (COT)', 'Stress scenarios & tail risk', 'System tail gauge', 'stressSection', 'Scenario tree', 'Probability-weighted asset impact', 'Tail risk', 'Euro-area systemic', 'next FOMC']
+page bytes: 41408
+DONE 2338
