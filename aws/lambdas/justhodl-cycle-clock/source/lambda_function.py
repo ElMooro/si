@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.6"
+VERSION = "2.7"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -310,6 +310,92 @@ def _update_history(snapshot):
     except Exception as e:
         print(f"[cycle-clock] history write failed: {str(e)[:80]}")
     return hist
+
+
+def _coord_series_long(n=84):
+    """Like _coord_series but returns the last n months (default 7y) for backtesting."""
+    def blend(a, b):
+        da, db = dict(a), dict(b); ks = sorted(set(da) & set(db))
+        return {k: round((da[k] + db[k]) / 2, 2) for k in ks}
+    g = blend(_z_series(_yoy(_fred("INDPRO"))), _z_series(_yoy(_fred("PAYEMS"))))
+    f = blend(_z_series(_yoy(_fred("CPIAUCSL"))), _z_series(_yoy(_fred("PCEPILFE"))))
+    ks = sorted(set(g) & set(f))[-n:]
+    return [{"m": k[:7], "g": g[k], "i": f[k]} for k in ks]
+
+
+def _spy_monthly():
+    import datetime as _dt
+    end = _dt.date.today(); start = end - _dt.timedelta(days=2800)
+    u = (f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/month/{start}/{end}"
+         f"?adjusted=true&sort=asc&limit=300&apiKey={POLY_KEY}")
+    res = json.loads(urllib.request.urlopen(u, timeout=12).read()).get("results") or []
+    return [(_dt.datetime.utcfromtimestamp(x["t"] / 1000).strftime("%Y-%m"), x["c"]) for x in res]
+
+
+def _spy_daily(days=430):
+    import datetime as _dt
+    end = _dt.date.today(); start = end - _dt.timedelta(days=days)
+    u = (f"https://api.polygon.io/v2/aggs/ticker/SPY/range/1/day/{start}/{end}"
+         f"?adjusted=true&sort=asc&limit=1000&apiKey={POLY_KEY}")
+    res = json.loads(urllib.request.urlopen(u, timeout=12).read()).get("results") or []
+    return [(_dt.datetime.utcfromtimestamp(x["t"] / 1000).date().isoformat(), x["c"]) for x in res]
+
+
+def _quadrant_backtest():
+    """Real backtest: label each of the last ~7y of growth×inflation months by quadrant and
+    measure what SPY actually did over the next 1m / 3m. Grades the clock's core macro call."""
+    coords = _coord_series_long()
+    months = _spy_monthly()
+    if not coords or not months:
+        return None
+    idx = {m: i for i, (m, _) in enumerate(months)}
+    agg = {}
+    for c in coords:
+        q = _quad2d(c["g"], c["i"])
+        if q is None or c["m"] not in idx:
+            continue
+        i = idx[c["m"]]
+        if i + 1 >= len(months):
+            continue
+        c0 = months[i][1]; f1 = (months[i + 1][1] / c0 - 1) * 100
+        f3 = (months[i + 3][1] / c0 - 1) * 100 if i + 3 < len(months) else None
+        agg.setdefault(q, []).append((f1, f3))
+    out = {}
+    for q, lst in agg.items():
+        f1s = [a for a, _ in lst]; f3s = [b for _, b in lst if b is not None]
+        out[q] = {"n": len(lst),
+                  "avg_fwd_1m": round(sum(f1s) / len(f1s), 2) if f1s else None,
+                  "avg_fwd_3m": round(sum(f3s) / len(f3s), 2) if f3s else None,
+                  "pct_pos_1m": round(100 * sum(1 for a in f1s if a > 0) / len(f1s)) if f1s else None}
+    return {"by_quadrant": out, "n_months": len(coords), "lookback_years": round(len(coords) / 12, 1)}
+
+
+def _grade_posture_log(hist, spy):
+    """Forward-grade each matured posture snapshot against SPY's 21-session forward move."""
+    import bisect
+    if not spy:
+        return {"n_graded": 0, "status": "no_price_data"}
+    dates = [d for d, _ in spy]; closes = [c for _, c in spy]
+    graded = []
+    for snap in hist:
+        sc = snap.get("posture_score"); d = snap.get("date")
+        if sc is None or abs(sc) < 15 or not d:
+            continue
+        j = bisect.bisect_left(dates, d)
+        if j >= len(dates) or j + 21 >= len(closes):
+            continue
+        f = (closes[j + 21] / closes[j] - 1) * 100
+        correct = (sc < 0 and f < 0) or (sc > 0 and f > 0)
+        graded.append({"date": d, "score": sc, "fwd_spy_21d": round(f, 2), "correct": bool(correct)})
+    n = len(graded)
+    roff = [g["fwd_spy_21d"] for g in graded if g["score"] < 0]
+    ron = [g["fwd_spy_21d"] for g in graded if g["score"] > 0]
+    return {"n_graded": n, "horizon_sessions": 21,
+            "status": "accumulating" if n < 5 else "live",
+            "hit_rate": round(100 * sum(1 for g in graded if g["correct"]) / n) if n else None,
+            "avg_fwd_when_riskoff": round(sum(roff) / len(roff), 2) if roff else None,
+            "avg_fwd_when_riskon": round(sum(ron) / len(ron), 2) if ron else None,
+            "recent": graded[-12:]}
 
 
 def _cftc_signals():
@@ -908,6 +994,15 @@ def lambda_handler(event, context):
         "net_liq_21d": _delta("net_liq_tn", 21), "tail_21d": _delta("tail_gauge", 21),
         "series": hist[-90:],
     }
+    # ── SELF-GRADING: quadrant backtest (immediate) + posture-log forward grade (accumulates) ──
+    track_record = None
+    try:
+        _spy = _spy_daily()
+        track_record = {"quadrant_backtest": _quadrant_backtest(),
+                        "posture_grade": _grade_posture_log(hist, _spy),
+                        "current_quadrant": quad2d}
+    except Exception as e:
+        print(f"[cycle-clock] track_record failed: {str(e)[:100]}")
 
     out = {
         "engine": "cycle-clock", "version": VERSION,
@@ -916,6 +1011,7 @@ def lambda_handler(event, context):
         "verdict": verdict,
         "synthesis": synthesis,
         "trajectory": trajectory,
+        "track_record": track_record,
         "ai": ai,
         "cycle": cycle,
         "risk": risk,
