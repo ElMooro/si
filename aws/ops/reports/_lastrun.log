@@ -1,24 +1,7 @@
-=== DEFILLAMA STABLECOINS ===
-  code 200 | n stablecoins: 385
-    USDT Tether circ: 184.9 B
-    USDC USD Coin circ: 73.8 B
-    USDS Sky Dollar circ: 8.2 B
-    DAI Dai circ: 4.8 B
-    USD1 World Liberty Financial USD circ: 4.7 B
-  agg chart points: 3133 | latest: {'date': '1782518400', 'totalCirculating': {'peggedUSD': 311387097558.15, 'peggedVAR': 88127757.14, 'peggedEUR': 589240860.11, 'peggedJPY': 4401437770.78, 'peggedCNY': 20527519, 'peggedUAH': 140064.48, 'peggedARS': 7593045073.65, 'peggedGBP': 24485080.98, 'peggedCAD': 3651734.16, 'peggedCHF': 36567387.38, 'peggedAUD': 18145512.24, 'peggedREAL': 129964836.82, 'peggedRUB': 45139532994.96, 'peggedMXN': 20531088.69, 'peggedSGD': 15380223.92, 'peggedPHP': 231321591.51, 'peggedTRY': 213427391.99, 'peggedCOP': 307109769.49, 'peggedKES': 21291440.89, 'peggedZAR': 498807.66, 'peggedNGN': 77476873.25, 'peggedXOF': 19186531.61, 'peggedGHS': 258207.75, 'peggedCLP': 64295000, 'peggedPEN': 122850}, 'totalUnreleased': {'peggedUSD': 18467683483314.75, 'peggedVAR': 4543107.47, 'peggedEUR': 62539200.37, 'peggedJPY': 0, 'peggedCNY': 24496531, 'peggedUAH': 0, 'peggedARS': 0, 'peggedGBP': 0, 'peggedCAD': 0, 'peggedCHF': 0, 'peggedAUD': 0, 'peggedREAL': 0, 'peggedRUB': 0, 'peggedMXN': 437600, 'peggedSGD': 0, 'peggedPHP': 0, 'peggedTRY': 202462325.57, 'peggedCOP': 0, 'peggedKES': 0, 'peggedZAR': 0, 'peggedNGN': 0, 'peggedXOF': 0, 'peggedGHS': 0, 'peggedCLP': 0, 'peggedPEN': 0}, 'totalCirculatingUSD': {'peggedUSD': 311372766447.45, 'peggedVAR': 102212071.92, 'peggedEUR': 658351094.18, 'peggedJPY': 22965994.95, 'peggedCNY': 3018651.55, 'peggedUAH': 3119.77, 'peggedARS': 4917228.5, 'peggedGBP': 32356576.82, 'peggedCAD': 2585393.4, 'peggedCHF': 45145333.23, 'peggedAUD': 12428048.63, 'peggedREAL': 24729295.54, 'peggedRUB': 553350817.88, 'peggedMXN': 1173264.86, 'peggedSGD': 11869664.77, 'peggedPHP': 3733266.55, 'peggedTRY': 4592534.1, 'peggedCOP': 114488.87, 'peggedKES': 163421.86, 'peggedZAR': 30265.09, 'peggedNGN': 56300.55, 'peggedXOF': 33321.58, 'peggedGHS': 23098.57, 'peggedCLP': 75480.34, 'peggedPEN': 37945.23}, 'totalMintedUSD': {'peggedUSD': 0, 'peggedVAR': 0, 'peggedEUR': 0, 'peggedJPY': 0, 'peggedCNY': 0, 'peggedUAH': 0, 'peggedARS': 0, 'peggedGBP': 0, 'peggedCAD': 0, 'peggedCHF': 0, 'peggedAUD': 0, 'peggedREAL': 0, 'peggedRUB': 0, 'peggedMXN': 0, 'peggedSGD': 0, 'peggedPHP': 0, 'peggedTRY': 0, 'peggedCOP': 0, 'peggedKES': 0, 'peggedZAR': 0, 'peggedNGN': 0, 'peggedXOF': 0, 'peggedGHS': 0, 'peggedCLP': 0, 'peggedPEN': 0}, 'totalBridgedToUSD': {'peggedUSD': 0, 'peggedVAR': 0, 'peggedEUR': 0, 'peggedJPY': 0, 'peggedCNY': 0, 'peggedUAH': 0, 'peggedARS': 0, 'peggedGBP': 0, 'peggedCAD': 0, 'peggedCHF': 0, 'peggedAUD': 0, 'peggedREAL': 0, 'peggedRUB': 0, 'peggedMXN': 0, 'peggedSGD': 0, 'peggedPHP': 0, 'peggedTRY': 0, 'peggedCOP': 0, 'peggedKES': 0, 'peggedZAR': 0, 'peggedNGN': 0, 'peggedXOF': 0, 'peggedGHS': 0, 'peggedCLP': 0, 'peggedPEN': 0}}
-
-=== DERIBIT (DVOL + perp funding/OI) ===
-  BTC-PERP code 200 | funding_8h: 1.016e-05 | current_funding: 0.0 | OI: 874170860 | mark: 59989.08 | index: 59984.95
-  BTC DVOL points: 7 | latest close: 44.83
-  ETH-PERP OI: 280646694 | funding_8h: -3.7e-05
-
-=== BINANCE (US geo-block test) ===
-  premiumIndex code 451 | lastFundingRate: —
-  openInterest code 451 | —
-
-=== BYBIT (US geo-block test) ===
-  code 403 FAIL
-
-=== OKX (US geo-block test) ===
-  OKX funding code 200 | 0.0000533896335547
-DONE 2361
+crypto-dvol exists: True
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"ok\": true, \"btc_dvol\": 44.9, \"regime\": \"NORMAL\"}"}
+BTC: {"dvol": 44.9, "pctile_1y": 64, "regime": "NORMAL", "chg_30d": 7.7, "trend": "RISING", "n_days": 371}
+ETH: {"dvol": 59.7, "pctile_1y": 21, "regime": "NORMAL", "chg_30d": 10.5, "trend": "RISING", "n_days": 371}
+composite regime: NORMAL | pctile: 64 | spread: 14.8
+interp: crypto implied vol normal
+DONE 2362
