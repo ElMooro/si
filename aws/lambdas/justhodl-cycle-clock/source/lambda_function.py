@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "3.0"
+VERSION = "3.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -154,6 +154,9 @@ FLIP = {
     "Cross-asset RORO risk-on": "cross-asset RORO flips back to risk-off",
     "Macro regime constructive": "the macro regime turns defensive",
     "Breadth thrust firing": "the breadth thrust fades",
+    "Crypto implied vol elevated": "crypto DVOL falls back to normal",
+    "Crypto funding crowded long": "crypto perp funding normalises",
+    "Crypto dry-powder loaded (contrarian)": "stablecoin dry powder gets deployed (SSR rises)",
 }
 
 
@@ -513,6 +516,9 @@ def lambda_handler(event, context):
     cissstress = load("data/ciss-stress.json", "ciss")
     corrbreaks = load("data/correlation-breaks.json", "correlation_breaks")
     firmstress = load("data/firm-stress.json", "firm_stress")
+    cdvol = load("data/crypto-dvol.json", "crypto_dvol")
+    cfund = load("data/crypto-funding.json", "crypto_funding")
+    cliq = load("data/crypto-liquidity.json", "crypto_liquidity")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -702,6 +708,26 @@ def lambda_handler(event, context):
     rates_fed_vol["tail_gauge"] = _get(tailrisk, "system_tail_gauge")
     rates_fed_vol["tail_regime"] = _get(tailrisk, "tail_regime")
     rates_fed_vol["tail_valuation"] = _get(tailrisk, "tail_valuation")
+    # crypto implied vol (DVOL) into the volatility complex
+    rates_fed_vol["crypto_dvol"] = _get(cdvol, "btc", "dvol")
+    rates_fed_vol["crypto_dvol_regime"] = _get(cdvol, "btc", "regime")
+    rates_fed_vol["crypto_dvol_pctile"] = _get(cdvol, "btc", "pctile_1y")
+    rates_fed_vol["crypto_dvol_trend"] = _get(cdvol, "btc", "trend")
+    # ── consolidated crypto block: liquidity tide + perp leverage + implied vol ──
+    crypto = {
+        "dvol_btc": _get(cdvol, "btc", "dvol"), "dvol_btc_pctile": _get(cdvol, "btc", "pctile_1y"),
+        "dvol_btc_regime": _get(cdvol, "btc", "regime"), "dvol_btc_trend": _get(cdvol, "btc", "trend"),
+        "dvol_eth": _get(cdvol, "eth", "dvol"), "vol_regime": _get(cdvol, "crypto_vol_regime"),
+        "funding_regime": _get(cfund, "composite_regime"), "funding_signal": _get(cfund, "composite_signal"),
+        "funding_composite": _get(cfund, "market_composite"),
+        "squeeze_candidates": [{"coin": c.get("coin"), "z": c.get("z_score"), "apr": c.get("annualized_pct"),
+                                "regime": c.get("regime")}
+                               for c in (_get(cfund, "squeeze_candidates", default=[]) or [])[:5]],
+        "liquidity_regime": _get(cliq, "regime"), "ssr": _get(cliq, "ssr", "value"),
+        "ssr_pctile": _get(cliq, "ssr", "percentile_2y"), "ssr_read": _get(cliq, "ssr", "interpretation"),
+        "fear_greed": _get(cliq, "fear_greed", "value"), "fear_greed_class": _get(cliq, "fear_greed", "classification"),
+        "directional_read": _get(cliq, "directional_read"),
+    }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
                           "smart_money": _get(cftc, "smart_money"), "summary": _get(cftc, "summary")}
@@ -896,6 +922,9 @@ def lambda_handler(event, context):
         divergences.append(f"TAIL RISK ELEVATED: the option-implied crash gauge is {rates_fed_vol.get('tail_gauge')}/100 "
                            f"(ELEVATED, protection {str(rates_fed_vol.get('tail_valuation','')).lower()}) — the left tail of the "
                            f"return distribution is fattening beneath the calm surface.")
+    if _get(cdvol, "btc", "trend") == "RISING" and _get(cdvol, "btc", "regime") in ("LOW", "NORMAL"):
+        divergences.append(f"CRYPTO VOL RISING: BTC DVOL {_get(cdvol, 'btc', 'dvol')} ({_get(cdvol, 'btc', 'pctile_1y')}th pctile) "
+                           f"is climbing off low levels — crypto hedging demand is picking up beneath a still-normal surface.")
 
     # ───────── DETERMINISTIC SYNTHESIS ("the read") — rules-based, works without the LLM ─────────
     contribs = []
@@ -926,6 +955,14 @@ def lambda_handler(event, context):
     _yc = _get(cross_asset_risk, "yen_carry", "unwind_score")
     if isinstance(_yc, (int, float)) and _yc >= 50: _add("Yen-carry unwind risk", -1, 5)
     if ca_confirm and ca_confirm.get("status") == "CONTRADICTED": _add("Tape contradicts regime", -1, 5)
+    # crypto contributors (one input among many; modest weight)
+    if _get(cdvol, "btc", "regime") in ("ELEVATED", "HIGH"):
+        _add("Crypto implied vol elevated", -1, 3, f"DVOL {_get(cdvol, 'btc', 'dvol')}")
+    if ("LONG" in str(_get(cfund, "composite_regime") or "").upper()
+            and "SQUEEZE" in str(_get(cfund, "composite_signal") or "").upper()):
+        _add("Crypto funding crowded long", -1, 3)
+    if _get(cliq, "regime") == "DRY-POWDER LOADED":
+        _add("Crypto dry-powder loaded (contrarian)", 1, 2, "SSR low · sidelined stablecoin cash")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))
@@ -1021,6 +1058,8 @@ def lambda_handler(event, context):
         "stress_scenarios": {"top": stress_scenarios.get("top"), "tail_regime": stress_scenarios.get("tail_regime"),
                              "tail_gauge": stress_scenarios.get("tail_gauge")},
         "scenario_playbook": scenario_playbook,
+        "crypto": {"vol_regime": crypto.get("dvol_btc_regime"), "funding": crypto.get("funding_regime"),
+                   "liquidity": crypto.get("liquidity_regime"), "fear_greed": crypto.get("fear_greed_class")},
         "rules_based_read": {"posture": synthesis["posture"], "score": synthesis["score"],
                              "key_risk": synthesis["key_risk"]},
         "divergences": divergences,
@@ -1105,6 +1144,7 @@ def lambda_handler(event, context):
         "growth_depth": growth_depth,
         "cross_asset_risk": cross_asset_risk,
         "stress_scenarios": stress_scenarios,
+        "crypto": crypto,
         "divergences": divergences,
         "falsifier": falsifier,
         "availability": avail, "stale": stale,
