@@ -1,42 +1,4 @@
-regen v2.3...
-  t+12s v2.3 (dur 9.4s)
-
-=== CROSS-ASSET (sorted by 1m) ===
-  IWM  Small caps         1m  +3.3%  3m  +23.3%
-  UUP  US dollar          1m  +2.6%  3m   +2.2%
-  TLT  Long Treasuries    1m  +2.4%  3m   +2.0%
-  XLU  Utilities          1m  +2.3%  3m   +1.3%
-  IWD  Value              1m  +2.0%  3m  +15.6%
-  IEF  7-10y Treasuries   1m  +0.8%  3m   +0.5%
-  LQD  IG credit          1m  +0.5%  3m   +1.7%
-  HYG  High yield         1m  -0.4%  3m   +1.4%
-  SPY  US equities        1m  -2.9%  3m  +15.0%
-  QQQ  US tech            1m  -3.1%  3m  +25.6%
-  IWF  Growth             1m  -5.3%  3m  +15.3%
-  XLE  Energy             1m  -5.5%  3m  -13.9%
-  GLD  Gold               1m  -8.5%  3m   -9.9%
-  DBC  Commodities        1m  -9.9%  3m   -8.7%
-
-CONFIRMATION: CONTRADICTED | beating SPY: 1/4
-  note: Overheat historically favours Value, Energy, Gold; 1 of 4 are beating SPY over the last month — tape contradicts the regime read (prescription is the worst-performing book right now).
-
-=== GLOBAL LIQUIDITY ===
-  regime: NEUTRAL | index: {'total_usd_bn': 17872.2, 'total_usd_trillions': 17.87, 'components_usd_bn': {'Fed': 6735.6, 'ECB': 7019.6, 'BOJ': 4117.0}, 'change_13w_pct': -0.4, 'change_52w_pct': -5.15, 'as_of': '2026-06-24'} | impulse13w: -0.4
-  CB impulse 13w: {"fed_13w_pct": 1.2, "ecb_13w_pct": -0.6, "boj_13w_pct": -2.8}
-
-=== NET LIQUIDITY ===
-  net 5.812 T | pctile_since_2018: 44 | sparkline pts: 26
-
-=== SCENARIO PLAYBOOK ===
-  STAGFLATION       51.9%  → Cash / T-bills, Gold, Energy
-  DEFLATION-BUST    24.3%  → Long Treasuries, Gold, Cash
-  REFLATION         17.5%  → Equities, Commodities, TIPS
-  GOLDILOCKS         6.3%  → Equities (cyclicals, tech), HY credit, EM equities
-
-=== FORWARD DISTRIBUTION (for cone) ===
-  21d: median 0.82% mean -0.8% σ 7.41% [-17.71..8.37]
-  63d: median 0.19% mean -2.88% σ 9.5% [-20.61..13.21]
-  126d: median 4.54% mean -0.19% σ 14.69% [-24.6..22.28]
-
-divergences: 5 | AI: null(quota)
-DONE 2325
+page markers: 0 / 10
+missing: ['crossAssetSection', 'Cross-asset confirmation', 'forwardCone', 'Forward path', 'scenarioPlaybook', 'Scenario playbook', 'globalLiqPanel', 'Global liquidity', 'sparkline', 'TAPE ']
+page bytes: 25713
+DONE 2326
