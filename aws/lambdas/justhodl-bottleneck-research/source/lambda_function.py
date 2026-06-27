@@ -543,17 +543,22 @@ def forward_valuation(rec, pressure_entry):
     price = num(rec.get("price")); pe = num(rec.get("pe")); ps = num(rec.get("ps"))
     ipe = num(rec.get("industry_pe")); mc = num(rec.get("mkt_cap"))
     fins = rec.get("financials") or []
-    eps_ttm = num(fins[-1].get("eps")) if fins else None
-    rev_ttm = num(fins[-1].get("revenue")) if fins else None
-    if eps_ttm is None and price and pe and pe > 0: eps_ttm = price / pe
-    if rev_ttm is None and mc and ps and ps > 0:    rev_ttm = mc / ps
+    # TTM EPS/revenue: derive from price/PE and mktcap/PS (both are TTM) FIRST — robust to
+    # financials ordering; fall back to the latest statement only if a multiple is missing.
+    eps_ttm = (price / pe) if (price and pe and pe > 0) else None
+    rev_ttm = (mc / ps) if (mc and ps and ps > 0) else None
+    if eps_ttm is None and fins: eps_ttm = num(fins[0].get("eps")) or num(fins[-1].get("eps"))
+    if rev_ttm is None and fins: rev_ttm = num(fins[0].get("revenue")) or num(fins[-1].get("revenue"))
 
     # growth driver: prefer the real analyst forward-revenue-growth feed, else trailing YoY
     used_fwd = rec.get("fwd_rev_growth") is not None
     g = rec.get("fwd_rev_growth")
     if g is None: g = rec.get("rev_growth_yoy")
     if g is None or not price: return None
-    g = max(-0.5, min(g / 100.0, 3.0))             # clamp to sane band
+    # clamp to a defensible band — trailing YoY can be distorted by M&A (+99% etc.), which would
+    # produce fantasy targets; 60% is an aggressive-but-sane ceiling for a boom name.
+    g = max(-0.4, min(g / 100.0, 0.6))
+    g_capped = used_fwd is False and (rec.get("rev_growth_yoy") or 0) / 100.0 > 0.6
     f1, f2 = (1 + g), (1 + g) ** 2                 # 1-year and growth-sustained-2-year factors
 
     backlog_yoy = None
@@ -563,7 +568,8 @@ def forward_valuation(rec, pressure_entry):
 
     out = {
         "growth_1y_pct":  round(g * 100, 1),
-        "growth_source":  "analyst forward revenue" if used_fwd else "trailing revenue YoY",
+        "growth_source":  ("analyst forward revenue" if used_fwd
+                           else ("trailing YoY (capped 60%)" if g_capped else "trailing revenue YoY")),
         "backlog_yoy_pct": backlog_yoy,
         "industry_pe":    ipe,
         "cur_pe":         round(pe, 1) if pe else None,
