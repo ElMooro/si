@@ -188,7 +188,16 @@ def _ai_synthesis(state):
               '"liquidity_read":"1-2 sentences on net liquidity direction + any draining flickers",'
               '"bottom_line":"one decisive sentence a PM can act on today"}')
     try:
-        raw = _llm(prompt, tier="reason", max_tokens=1500, system=SYSTEM) or ""
+        raw = ""
+        for _attempt in range(2):
+            try:
+                raw = _llm(prompt, tier="reason", max_tokens=1500, system=SYSTEM) or ""
+                if raw.strip():
+                    break
+            except Exception as _e:
+                if _attempt == 0:
+                    time.sleep(3); continue
+                raise
         txt = raw.strip()
         if txt.startswith("```"):
             txt = txt.split("```", 2)[1]
@@ -327,13 +336,16 @@ def lambda_handler(event, context):
             rp_votes += 15
     recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
     sahm = _sahm()
-    yc_decomp = {"real_10y_bps": _get(ycurve, "real_yields", "10y") or _get(ycurve, "decomposition", "real_10y_bps"),
-                 "breakeven_10y_bps": _get(ycurve, "inflation_expectations", "10y") or _get(ycurve, "decomposition", "breakeven_10y_bps"),
+    yc_decomp = {"real_10y_pct": _get(ycurve, "real_yields", "10Y_REAL", "value_pct"),
+                 "breakeven_10y_pct": _get(ycurve, "inflation_expectations", "10Y_BREAKEVEN", "value_pct"),
                  "term_premium_bps": _get(ycurve, "term_premium_proxy_bps"),
                  "spreads_bps": _get(ycurve, "spreads_bps")}
     vol_regime = _get(vixc, "composite_regime")
     dollar_regime = _get(dollar, "regime") or _get(dollar, "regime_note")
-    eps_breadth = _get(epsrev, "breadth_pct") or _get(epsrev, "net_revision_breadth") or _get(epsrev, "summary")
+    _eps_top = _get(epsrev, "summary", "top_25_overall", default=[]) or []
+    eps_breadth = ({"high_velocity_count": len(_eps_top),
+                    "top_names": [x.get("symbol") for x in _eps_top[:8] if isinstance(x, dict)]}
+                   if _eps_top else None)
 
     cycle = {
         "phase": phase_label, "phase_n": phase_n, "quadrant": quad, "description": phase_desc,
