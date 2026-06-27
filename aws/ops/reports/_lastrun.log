@@ -1,8 +1,27 @@
-fields on NVDA: ['off_52w_high', 'off_52w_low', 'price', 'price_spark', 'range_52w', 'ret_1m', 'ret_3m', 'sector_mom']
-NVDA: off_52w_high=-18.6 ret_1m=-9.4 ret_3m=12.4 range_52w=151.49-236.54 price=192.53
-VST: off_52w_high=-25.6 ret_1m=2.1 ret_3m=7.3 range_52w=132.66-219.82 price=163.49
-CEG: off_52w_high=-36.0 ret_1m=-8.5 ret_3m=-10.6 range_52w=240.51-412.7 price=264.02
-LDOS: off_52w_high=-50.5 ret_1m=-22.1 ret_3m=-35.4 range_52w=99.53-205.77 price=101.76
-MU: off_52w_high=-9.8 ret_1m=22.0 ret_3m=218.6 range_52w=103.38-1255 price=1132.33
-ARM: off_52w_high=-26.2 ret_1m=10.4 ret_3m=115.9 range_52w=100.02-452.7 price=334.27
-DONE 2304
+using FRED key suffix: 9d3a
+
+MACHINERY_333:
+  A33SUO: FAIL HTTP Error 400: Bad Request
+  A33SNO: FAIL HTTP Error 400: Bad Request
+  A33SVS: FAIL HTTP Error 400: Bad Request
+
+ELECTRICAL_335:
+  A35SUO: FAIL HTTP Error 400: Bad Request
+  A35SNO: FAIL HTTP Error 400: Bad Request
+  A35SVS: FAIL HTTP Error 400: Bad Request
+
+TRANSPORT_336:
+  A36SUO: FAIL HTTP Error 400: Bad Request
+  A36SNO: FAIL HTTP Error 400: Bad Request
+  A36SVS: FAIL HTTP Error 400: Bad Request
+
+DEFENSE_CAPGOODS:
+  ADXTUO: FAIL HTTP Error 400: Bad Request
+  ADXTNO: FAIL HTTP Error 400: Bad Request
+  ADXTVS: FAIL HTTP Error 400: Bad Request
+
+DEFENSE_ALT:
+  ADXDUO: FAIL HTTP Error 400: Bad Request
+  ADXDNO: FAIL HTTP Error 400: Bad Request
+  ADXDVS: FAIL HTTP Error 400: Bad Request
+DONE 2305
