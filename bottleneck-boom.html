@@ -97,8 +97,8 @@ tr.stk.best>td.l{box-shadow:inset 3px 0 0 var(--cyan)}
 @media(max-width:760px){
   table.rtbl th:nth-child(2),table.rtbl td:nth-child(2),
   table.rtbl th:nth-child(4),table.rtbl td:nth-child(4),
-  table.rtbl th:nth-child(6),table.rtbl td:nth-child(6),
-  table.rtbl th:nth-child(9),table.rtbl td:nth-child(9){display:none}
+  table.rtbl th:nth-child(5),table.rtbl td:nth-child(5),
+  table.rtbl th:nth-child(6),table.rtbl td:nth-child(6){display:none}
   table.rtbl{font-size:12px}
   .bestpick{font-size:11.5px}
 }
@@ -290,6 +290,23 @@ function pressureViz(v){
   return viz+statusLine;
 }
 
+function pressureMini(v){
+  const s=score(v);
+  const dirMap={OPENING:['↑','var(--green)'],PEAKING:['●','var(--amber)'],CLOSING:['↓','var(--red)'],STABLE:['→','var(--fg-3)']};
+  const dm=dirMap[v.direction];const col=dm?dm[1]:pcolor(s);
+  const a=(180-1.8*Math.max(0,Math.min(100,s||0)))*Math.PI/180;
+  const ex=(28+22*Math.cos(a)).toFixed(1),ey=(30-22*Math.sin(a)).toFixed(1);
+  const tip=(v.direction||'')+(v.trend_6mo!=null?` · ${v.trend_6mo>=0?'+':''}${v.trend_6mo}/6mo`:'');
+  return `<div style="display:flex;align-items:center;gap:5px;justify-content:flex-end" title="${esc(tip)}">
+    <svg viewBox="0 0 56 36" width="46" style="flex:none" role="img" aria-label="Industry pressure ${s==null?'n/a':Math.round(s)} of 100 ${v.direction||''}">
+      <path d="M6 30 A22 22 0 0 1 50 30" fill="none" stroke="var(--border-bright)" stroke-width="6" stroke-linecap="round"/>
+      ${s!=null?`<path d="M6 30 A22 22 0 0 1 ${ex} ${ey}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round"/>`:''}
+      <text x="28" y="28" text-anchor="middle" font-size="13" font-weight="800" fill="var(--fg-1)" style="font-family:var(--mono)">${s==null?'—':Math.round(s)}</text>
+    </svg>
+    <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${col}">${dm?dm[0]:''}</span>
+  </div>`;
+}
+
 function renderPressure(ip){
   const el=document.getElementById('pcards');
   if(!ip||!Object.keys(ip).length){el.innerHTML='<div class="loading">No industry-pressure data.</div>';return;}
@@ -440,7 +457,7 @@ function renderTable(){
   // best risk-adjusted pick: reward × confirmation × entry timing × organic/quality, trap-aware
   let bestTk=null,bestRA=-1e9;
   ranks.forEach(r=>{const ra=riskAdj(r,RESEARCH[r.ticker]||{});if(ra!=null&&ra>bestRA){bestRA=ra;bestTk=r.ticker;}});
-  const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['fwd_pe','Fwd P/E'],['fwd_upside','Target'],['confluence','Confirm'],['group_pressure','Pressure'],['boom_score','Boom']];
+  const head=[['ticker','Name','l'],['rev_accel_pp','Rev accel'],['rev_growth_yoy','Rev growth'],['rev_to_mcap_pct','Rev/MktCap'],['pe','P/E vs ind'],['fwd_pe','Fwd P/E'],['fwd_upside','Target'],['confluence','Confirm'],['group_pressure','Window'],['boom_score','Boom']];
   let banner='';
   if(bestTk){const br=RESEARCH[bestTk]||{},bfv=br.fwd_val||{};
     banner=`<div class="bestpick">★ Best risk-adjusted setup: <b>${esc(bestTk)}</b> — ${bfv.tp_base_upside_pct!=null?`+${bfv.tp_base_upside_pct}% base target`:'upside'}, ${br.confluence}/${br.confluence_avail} confirmations, ${(entryTiming(br)||['—'])[0].toLowerCase()} entry. Weighs reward against confirmation, entry timing and growth quality — not the highest Boom score, the best balance. Not investment advice.</div>`;}
@@ -483,7 +500,7 @@ function renderTable(){
       <td class="${fwdpeCls}">${fwdpe==null?'—':r1(fwdpe)}</td>
       <td class="${upCls}" title="${esc(upTitle)}">${upTxt}${qMark}</td>
       <td>${(()=>{const cf=rv.confluence,ca=rv.confluence_avail;if(cf==null)return '<span class="dim">—</span>';const col=cf>=4?'var(--green)':cf>=2?'var(--amber)':'var(--fg-3)';const sigs=(rv.confluence_signals||[]).join(' · ')||'no independent confirmations firing';return `<span title="${esc(cf+' of '+ca+' confirm: '+sigs)}" style="font-family:var(--mono);font-weight:700;color:${col}">${cf}<span class="dim" style="font-weight:400">/${ca}</span></span>`;})()}</td>
-      <td class="dim">${r.group_pressure==null?'—':Math.round(r.group_pressure)}</td>
+      <td>${(()=>{const ig=(DATA.industry_pressure||{})[r.pressure_group];return ig?pressureMini(ig):(r.group_pressure==null?'<span class="dim">—</span>':Math.round(r.group_pressure));})()}</td>
       <td><div class="bswrap"><span class="bscore" style="color:${pcolor(r.boom_score)}">${r.boom_score==null?'—':r.boom_score}</span><span class="bsbar"><i style="width:${bw}%"></i></span></div></td></tr>`;
     if(OPEN===tk)h+=`<tr class="drawer"><td colspan="10">${drawer(tk)}</td></tr>`;
   });
