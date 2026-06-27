@@ -23,7 +23,7 @@ with its own staleness; a missing/stale feed degrades gracefully and is flagged.
 import json, time
 from datetime import datetime, timezone
 
-VERSION = "2.7"
+VERSION = "2.8"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/cycle-clock.json"
 
@@ -489,6 +489,7 @@ def lambda_handler(event, context):
     tailrisk = load("data/tail-risk.json", "tail_risk")
     cissstress = load("data/ciss-stress.json", "ciss")
     corrbreaks = load("data/correlation-breaks.json", "correlation_breaks")
+    firmstress = load("data/firm-stress.json", "firm_stress")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -688,6 +689,24 @@ def lambda_handler(event, context):
         "tail_valuation": _get(tailrisk, "tail_valuation"),
         "ea_ciss_regime": _get(cissstress, "ea_regime"), "ea_ciss": _get(cissstress, "ea_composite"),
         "correlation_signal": _get(corrbreaks, "signal"), "correlation_z": _get(corrbreaks, "frobenius_z_score_1y"),
+    }
+    # ── firm book reverse-stress: what breaks the book first ──
+    _fsum = _get(firmstress, "summary", default={}) or {}
+    _fscen = sorted([s for s in (_get(firmstress, "scenarios", default=[]) or []) if s.get("book_pnl_pct") is not None],
+                    key=lambda x: x.get("book_pnl_pct", 0))[:5]
+    _rs = _get(firmstress, "reverse_stress", default={}) or {}
+    stress_scenarios["firm_book"] = {
+        "posture": _get(firmstress, "posture"), "headline": _get(firmstress, "headline"),
+        "soft_pct": _get(firmstress, "loss_limits", "soft_pct"), "hard_pct": _get(firmstress, "loss_limits", "hard_pct"),
+        "net_pct": _fsum.get("firm_net_pct"), "gross_pct": _fsum.get("firm_gross_pct"),
+        "annual_vol_pct": _fsum.get("annual_vol_pct"), "var_99_1d_pct": _fsum.get("var_99_1d_pct"),
+        "n_names": _fsum.get("n_names_modelled"),
+        "worst": [{"scenario": s.get("scenario"), "pnl_pct": s.get("book_pnl_pct")} for s in _fscen],
+        "reverse": {
+            "to_soft_mult": _get(_rs, "to_minus_15pct", "multiplier"), "to_soft_reachable": _get(_rs, "to_minus_15pct", "reachable"),
+            "to_soft_interp": _get(_rs, "to_minus_15pct", "interpretation"),
+            "to_hard_mult": _get(_rs, "to_minus_25pct", "multiplier"), "to_hard_reachable": _get(_rs, "to_minus_25pct", "reachable"),
+        },
     }
 
     cycle = {

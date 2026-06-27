@@ -10,6 +10,10 @@ h1{font-size:21px;margin:0 0 2px}.sub{color:var(--fg-2);font-size:13px;margin-bo
 .meta{color:var(--fg-3);font-family:var(--mono);font-size:11px;margin-bottom:14px}
 h2{font-size:12px;color:var(--fg-2);margin:26px 0 10px;text-transform:uppercase;letter-spacing:.06em}
 .verdict{background:linear-gradient(180deg,#141b27,#10151e);border:1px solid #2b3a4f;border-radius:12px;padding:15px 18px;margin-bottom:18px;font-size:15px;line-height:1.55}
+.strip{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;background:rgba(10,14,20,.93);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border:1px solid var(--border-b);border-radius:11px;padding:10px 15px;margin-bottom:16px}
+.strip .sl{font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-3)}
+.strip .sv{font-family:var(--mono);font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:600px){.strip{grid-template-columns:repeat(3,1fr);gap:9px}}
 .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 @media(max-width:780px){.grid2,.grid3{grid-template-columns:1fr}}
@@ -173,7 +177,29 @@ function stressSection(ss){
     s+=`<div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 6px">Probability-weighted asset impact — top expected winners</div><div class="assets">`;
     s+=ss.asset_impact_winners.map(w=>`<span class="chip lead">${esc(w.ticker)} ${w.expected_return_pct>=0?'+':''}${w.expected_return_pct}%</span>`).join('');
     s+=`</div>`;}
-  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Macro stress-scenario tree (probe-matched probabilities, per-scenario winners/losers, probability-weighted asset impact) + the option-implied tail gauge, euro-area systemic stress and correlation regime.</div></div>`;
+  const fb=ss.firm_book;
+  if(fb&&fb.posture){const pc={GREEN:'#3fd68c',AMBER:'#f5b343',YELLOW:'#f5b343',RED:'#ff5c6c'}[String(fb.posture).toUpperCase()]||'#7c8ba0';
+    s+=`<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bg-2)"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px">Firm book — what breaks first (reverse stress)</div>`;
+    s+=`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">`;
+    s+=`<div class="acard" style="border-left-color:${pc}"><div class="ad" style="color:${pc}">${esc(fb.posture)}</div><div class="as">book posture</div></div>`;
+    if(fb.net_pct!=null)s+=`<div class="acard"><div class="ad">${fb.net_pct}%</div><div class="as">net exposure</div></div>`;
+    if(fb.annual_vol_pct!=null)s+=`<div class="acard"><div class="ad">${fb.annual_vol_pct}%</div><div class="as">annual vol</div></div>`;
+    if(fb.var_99_1d_pct!=null)s+=`<div class="acard"><div class="ad">${fb.var_99_1d_pct}%</div><div class="as">1d VaR 99%</div></div>`;
+    if(fb.soft_pct!=null)s+=`<div class="acard"><div class="ad" style="color:var(--amber)">${fb.soft_pct}% / ${fb.hard_pct}%</div><div class="as">soft / hard limit</div></div>`;
+    s+=`</div>`;
+    if(fb.worst&&fb.worst.length){
+      s+=`<div style="font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Worst modelled scenarios for the book</div>`;
+      const mn=Math.min(...fb.worst.map(w=>w.pnl_pct),-0.1);
+      for(const w of fb.worst){const wp=Math.abs(w.pnl_pct)/Math.abs(mn)*100;
+        s+=`<div style="display:flex;align-items:center;gap:9px;margin-bottom:3px;font-family:var(--mono);font-size:11px"><div style="width:240px;color:var(--fg-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.scenario)}</div><div style="flex:1;height:9px;background:var(--bg-2);border-radius:3px"><i style="display:block;height:100%;width:${wp}%;background:var(--red);border-radius:3px"></i></div><div style="width:48px;text-align:right;color:var(--red)">${w.pnl_pct}%</div></div>`;}
+    }
+    if(fb.reverse&&(fb.reverse.to_soft_interp||fb.reverse.to_soft_mult!=null)){
+      const intp=fb.reverse.to_soft_interp||`a risk-off move ≈${fb.reverse.to_soft_mult}× a −10% tape`;
+      s+=`<div style="border-left:3px solid ${pc};background:rgba(255,255,255,.02);border-radius:8px;padding:9px 12px;margin-top:11px;font-size:12px;color:var(--fg-1);line-height:1.5"><b style="color:${pc}">Reverse stress · </b>reaching a −15% book loss requires ${esc(intp)}; −25% needs ≈${fb.reverse.to_hard_mult}×.${fb.n_names?` ${fb.n_names} names modelled.`:''}</div>`;
+    }
+    s+=`</div>`;
+  }
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Macro stress-scenario tree (probe-matched probabilities, per-scenario winners/losers, probability-weighted asset impact) + the option-implied tail gauge, euro-area systemic stress and correlation regime — and the firm book's own reverse stress.</div></div>`;
   return s;
 }
 function scenarioPlaybook(sp){
@@ -251,6 +277,22 @@ function trajectorySection(tr){
   s+=`<div style="font-size:10px;color:var(--fg-3);margin-top:10px">Self-tracked to data/cycle-clock-history.json — one snapshot per daily run, dedup by date, 300-session cap. The clock will be able to grade its own past reads once forward outcomes mature.</div></div>`;
   return s;
 }
+function summaryStrip(d){
+  const sy=d.synthesis||{};const snap=((d.trajectory||{}).series||[]).slice(-1)[0]||{};
+  const q=snap.quadrant||(d.cycle||{}).quadrant_2d;
+  const QC={GOLDILOCKS:'#3fd68c',OVERHEAT:'#ff8a5c',STAGFLATION:'#ff5c6c',DOWNTURN:'#46c8ff'};
+  const pc={'STRONG RISK-OFF':'#ff5c6c','RISK-OFF':'#ff8a5c','NEUTRAL':'#f5b343','RISK-ON':'#46c8ff','STRONG RISK-ON':'#3fd68c'}[sy.posture]||'#7c8ba0';
+  const cell=(label,val,col)=>`<div style="min-width:0"><div class="sl">${label}</div><div class="sv" style="color:${col||'var(--fg-0)'}">${val}</div></div>`;
+  const recCol=snap.recession_prob>=40?'#ff5c6c':snap.recession_prob>=25?'#f5b343':'#3fd68c';
+  const tailCol=snap.tail_gauge>=55?'#ff5c6c':snap.tail_gauge>=40?'#f5b343':'#3fd68c';
+  return `<div class="strip">
+    ${cell('Posture',sy.posture?`${esc(sy.posture)} ${sy.score>=0?'+':''}${sy.score==null?'':sy.score}`:'—',pc)}
+    ${cell('Quadrant',q?esc(q):'—',QC[q]||'var(--fg-0)')}
+    ${cell('Recession',snap.recession_prob!=null?snap.recession_prob+'%':'—',recCol)}
+    ${cell('Net liquidity',snap.net_liq_tn!=null?'$'+r1(snap.net_liq_tn)+'T':'—','var(--cyan)')}
+    ${cell('Tail',snap.tail_gauge!=null?r1(snap.tail_gauge)+'/100':'—',tailCol)}
+  </div>`;
+}
 function trackRecordSection(tr){
   if(!tr)return '';
   const qb=tr.quadrant_backtest||{};const pg=tr.posture_grade||{};const cur=tr.current_quadrant;
@@ -303,7 +345,7 @@ function aiSection(d){
   const cy=d.cycle,lq=d.liquidity||{},rk=d.risk||{},an=d.analogs||{};
   const PC={'EARLY CYCLE':'#3fd68c','MID CYCLE':'#46c8ff','LATE-MID CYCLE':'#7fc4ff','LATE CYCLE':'#f5b343','DOWNTURN':'#ff5c6c','UNKNOWN':'#7c8ba0'};
   const SC={'LOW':'#3fd68c','LOW · WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
-  let h=`<h1>🕐 Cycle &amp; Liquidity Clock <span class="tag">meta-synthesis</span></h1>`;
+  let h=summaryStrip(d)+`<h1>🕐 Cycle &amp; Liquidity Clock <span class="tag">meta-synthesis</span></h1>`;
   h+=`<div class="sub">Where we are in the cycle, the historically-favoured assets for that phase, how much liquidity-squeeze risk is building, and the nearest historical analogs — fused from your cycle, liquidity, cross-asset and stress engines, with divergences surfaced, not averaged.</div>`;
   h+=`<div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z${d.stale&&d.stale.length?' · ⚠ stale: '+esc(d.stale.join(', ')):''}</div>`;
   h+=`<div class="verdict">${esc(d.verdict)}</div>`;
