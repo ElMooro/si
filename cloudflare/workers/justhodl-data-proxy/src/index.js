@@ -1303,11 +1303,13 @@ export default {
           const RESEARCH_LAMBDA = "https://6nkrwmk2ntjx54okqvtzokosb40whvfb.lambda-url.us-east-1.on.aws/";
           const genUrl = `${RESEARCH_LAMBDA}?ticker=${encodeURIComponent(tkr)}`;
           if (asyncGen) {
-            // Start generation in the background and return immediately. The Lambda runs to
-            // completion server-side (and writes equity-research/<TKR>.json to S3) even after
-            // this subrequest is abandoned, so the browser just polls ?nogen=1 until it lands.
-            // This replaces the old single 150s blocking fetch that browsers/ad-blockers killed.
-            ctx.waitUntil(fetch(genUrl, { headers: { "User-Agent": "justhodl-data-proxy" } }).catch(() => {}));
+            // Trigger generation via the Lambda's kickoff mode: it does an AWS-native
+            // Event self-invoke (guaranteed to run to completion and write S3 even during
+            // the AI-synthesis outage) and returns 202 in ~1s. We await that fast call so
+            // the Event invoke is definitely queued, then tell the browser to poll ?nogen=1.
+            // (More reliable than ctx.waitUntil, which this plan cuts before a ~220s gen.)
+            await fetch(`${genUrl}&kickoff=1`, { headers: { "User-Agent": "justhodl-data-proxy" } })
+              .catch(() => {});
             return new Response(
               JSON.stringify({ status: "generating", ticker: tkr }),
               { status: 202, headers: { "Content-Type": "application/json", ...corsHeaders() } }
