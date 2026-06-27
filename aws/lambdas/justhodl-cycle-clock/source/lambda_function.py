@@ -138,8 +138,8 @@ def _net_liquidity():
         return None
     def last(p): return p[-1][1] if p else 0.0
     def back(p, n): return p[-(n + 1)][1] if len(p) > n else (p[0][1] if p else 0.0)
-    w, r, t = last(walcl) / 1e6, last(rrp) / 1e3, last(tga) / 1e3
-    w13, r13, t13 = back(walcl, 13) / 1e6, back(rrp, 65) / 1e3, back(tga, 13) / 1e3
+    w, r, t = last(walcl) / 1e6, last(rrp) / 1e3, last(tga) / 1e6
+    w13, r13, t13 = back(walcl, 13) / 1e6, back(rrp, 65) / 1e3, back(tga, 13) / 1e6
     net, net13 = w - r - t, w13 - r13 - t13
     return {"walcl_tn": round(w, 3), "rrp_tn": round(r, 3), "tga_tn": round(t, 3),
             "net_tn": round(net, 3), "net_13w_delta_bn": round((net - net13) * 1000, 1),
