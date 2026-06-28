@@ -3805,6 +3805,16 @@ def lambda_handler(event, context):
             'top_inflow':_efb.get('top_inflow'),'interpretation':_ef.get('interpretation')}
     except Exception as _exe:
         print('  etf-flows merge skipped:',str(_exe)[:50])
+    try:
+        _hl=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/hyperliquid-perps.json')['Body'].read().decode())
+        _hb=_hl.get('btc') or {}
+        R['hyperliquid']={'total_oi_usd':_hl.get('total_oi_usd'),'btc_oi_usd':_hb.get('oi_usd'),'btc_funding_ann_pct':_hb.get('funding_ann_pct'),
+            'btc_premium_bps':_hb.get('premium_bps'),'eth_oi_usd':(_hl.get('eth') or {}).get('oi_usd'),
+            'leverage_regime':_hl.get('leverage_regime'),'liq_pressure_proxy':_hl.get('liq_pressure_proxy'),
+            'total_oi_chg_24h_pct':_hl.get('total_oi_chg_24h_pct'),'top_oi':_hl.get('top_oi'),
+            'funding_extremes':_hl.get('funding_extremes'),'interpretation':_hl.get('interpretation')}
+    except Exception as _exh:
+        print('  hyperliquid merge skipped:',str(_exh)[:50])
 
 
 
@@ -3816,7 +3826,7 @@ def lambda_handler(event, context):
 
 
 
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.3',**R}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.4',**R}
 
 
 

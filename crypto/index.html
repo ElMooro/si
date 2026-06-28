@@ -372,6 +372,17 @@ h+="<div class='metric'><span class='metric-name'>ETH ETFs</span><span class='me
 h+="<div class='metric'><span class='metric-name'>BTC ETF AUM</span><span class='metric-val mono'>$"+(_etff.btc_aum_usd!=null?(_etff.btc_aum_usd/1e9).toFixed(0)+"B":"-")+"</span></div>";
 if(_etff.btc_event_study)h+="<div class='metric'><span class='metric-name'>Flow→price</span><span class='metric-val' style='font-size:10px;color:"+(/CONFIRM/i.test(_etff.btc_event_study)?"var(--green)":/INVERT/i.test(_etff.btc_event_study)?"var(--red)":"var(--t3)")+"'>"+_etff.btc_event_study+"</span></div>";
 h+="</div>";
+var _hl=D.hyperliquid||{};
+if(_hl.total_oi_usd!=null){
+var _hlr=_hl.leverage_regime||"";var _hlc=/BUILDUP|CASCADE/i.test(_hlr)?"var(--red)":/HEALTHY/i.test(_hlr)?"var(--green)":"var(--t3)";
+h+="<div class='card'><div class='card-title'>Perp Leverage (Hyperliquid)</div>";
+h+="<div class='stat-big' style='font-size:16px'>$"+(_hl.total_oi_usd/1e9).toFixed(1)+"B OI</div>";
+h+="<div style='font-size:11px;color:"+_hlc+"'>"+(_hlr||"-")+(_hl.total_oi_chg_24h_pct!=null?" · OI "+(_hl.total_oi_chg_24h_pct>0?"+":"")+_hl.total_oi_chg_24h_pct+"%/24h":"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>BTC funding</span><span class='metric-val mono'>"+(_hl.btc_funding_ann_pct!=null?_hl.btc_funding_ann_pct+"%/yr":"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Liq pressure</span><span class='metric-val' style='font-size:10px;color:"+(/ELEVATED/i.test(_hl.liq_pressure_proxy||"")?"var(--red)":"var(--t3)")+"'>"+(_hl.liq_pressure_proxy||"-")+"</span></div>";
+if(_hl.top_oi&&_hl.top_oi.length)h+="<div class='metric'><span class='metric-name'>Top OI</span><span class='metric-val' style='font-size:10px'>"+_hl.top_oi.slice(0,3).map(function(x){return x.coin+" $"+(x.oi_usd/1e9).toFixed(1)+"B"}).join(" · ")+"</span></div>";
+h+="</div>";
+}
 h+="<div class='card'><div class='card-title'>Exchange Flows</div>";
 h+="<div class='stat-big' style='color:"+_xfc+";font-size:17px'>"+(_xf.btc_regime||"-")+"</div>";
 h+="<div style='font-size:11px;color:"+_xfc+"'>BTC 30d netflow"+(_xf.btc_netflow_30d_pctile!=null?" · "+_xf.btc_netflow_30d_pctile+"th":"")+"</div>";

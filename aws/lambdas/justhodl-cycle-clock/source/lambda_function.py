@@ -167,6 +167,8 @@ FLIP = {
     "Crypto stablecoin depeg (tail risk)": "stablecoins re-peg to $1",
     "Crypto spot-ETF strong inflow (marginal bid)": "ETF creations slow / reverse",
     "Crypto spot-ETF strong outflow (marginal sell)": "ETF redemptions abate / turn to inflows",
+    "Crypto perp leverage buildup (fragile)": "open interest unwinds / funding normalises",
+    "Crypto perp liquidation cascade (acute stress)": "OI stabilises after forced selling clears",
 }
 
 
@@ -538,6 +540,7 @@ def lambda_handler(event, context):
     cspeg = load("data/crypto-stablecoin-peg.json", "crypto_stablecoin_peg")
     cprem = load("data/coinbase-premium.json", "crypto_coinbase_premium")
     cetf = load("data/crypto-etf-flows.json", "crypto_etf_flows")
+    chl = load("data/hyperliquid-perps.json", "hyperliquid_perps")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -786,6 +789,11 @@ def lambda_handler(event, context):
         "etf_flow_btc_pctile": _get(cetf, "btc_etf", "cum_30d_pctile"),
         "etf_flow_eth_regime": _get(cetf, "eth_etf", "regime"),
         "etf_flow_eth_30d_usd": _get(cetf, "eth_etf", "cum_30d_usd"),
+        # Hyperliquid perp leverage gauge
+        "hl_total_oi_usd": _get(chl, "total_oi_usd"),
+        "hl_btc_funding_ann_pct": _get(chl, "btc", "funding_ann_pct"),
+        "hl_leverage_regime": _get(chl, "leverage_regime"),
+        "hl_liq_pressure": _get(chl, "liq_pressure_proxy"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1080,6 +1088,13 @@ def lambda_handler(event, context):
         elif _etfp <= 20:
             _add("Crypto spot-ETF strong outflow (marginal sell)", -1, 3,
                  f"BTC ETF ${(_etf30 or 0)/1e9:.1f}B/30d, {_etfp}th")
+    # Hyperliquid perp leverage: buildup = fragile (risk-off); cascade = acute deleveraging stress
+    _hlr = str(_get(chl, "leverage_regime") or "")
+    if "BUILDUP" in _hlr.upper():
+        _add("Crypto perp leverage buildup (fragile)", -1, 2,
+             f"HL OI ${(_get(chl, 'total_oi_usd') or 0)/1e9:.1f}B, {_get(chl, 'total_oi_chg_24h_pct')}%/24h")
+    elif "CASCADE" in _hlr.upper():
+        _add("Crypto perp liquidation cascade (acute stress)", -1, 1, _hlr)
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))

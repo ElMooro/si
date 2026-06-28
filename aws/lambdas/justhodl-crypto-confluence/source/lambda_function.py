@@ -179,6 +179,13 @@ def market_context():
             tilt += 2
         elif _etfp <= 20:
             tilt -= 2
+    # Hyperliquid perp leverage regime
+    hl = _read("data/hyperliquid-perps.json") or {}
+    _hlr = str(hl.get("leverage_regime") or "").upper()
+    if "BUILDUP" in _hlr:
+        tilt -= 1
+    elif "CASCADE" in _hlr:
+        tilt -= 1
     regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
@@ -204,6 +211,9 @@ def market_context():
         "etf_flow_btc_regime": (etf.get("btc_etf") or {}).get("regime"),
         "etf_flow_btc_30d_usd": (etf.get("btc_etf") or {}).get("cum_30d_usd"),
         "etf_flow_eth_regime": (etf.get("eth_etf") or {}).get("regime"),
+        "hl_total_oi_usd": hl.get("total_oi_usd"),
+        "hl_leverage_regime": hl.get("leverage_regime"),
+        "hl_btc_funding_ann_pct": (hl.get("btc") or {}).get("funding_ann_pct"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),
