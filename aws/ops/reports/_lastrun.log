@@ -1,3 +1,17 @@
-quota: Number of rules | current: 300.0 | adjustable: True
-REQUESTED: 300 -> 1000 | status: PENDING | id: 8cc23e8b46724e18bc2eb18acb2f9319K5ocbBH4 | created: 2026-06-28 17:37:56
-DONE 2426
+scheduled: crypto-etf-flows-sched
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"btc_etf_regime\": \"STRONG OUTFLOW\", \"btc_30d_usd\": -7187090759, \"eth_etf_regime\": \"STRONG OUTFLOW\"}"}
+
+btc_etf (2026-06-26): today $-446,962,964 | 5d $-1,826,759,815 | 30d $-7,187,090,759 (2th) | STRONG OUTFLOW | 11 ETFs | AUM $72.4B
+   top inflow: [('FBTC', '$0'), ('BRRR', '$0'), ('HODL', '$0')]
+   event study CONFIRMED_STRONG: heavy ETF inflow days > heavy outflow days on forward BTC price
+     fwd10d: inflow -1.2% vs outflow -5.9% | edge 4.8pp (n 40/23)
+     fwd20d: inflow -0.4% vs outflow -13.0% | edge 12.6pp (n 40/23)
+
+eth_etf (2026-06-26): today $-12,691,204 | 5d $-270,872,154 | 30d $-1,081,151,672 (19th) | STRONG OUTFLOW | 8 ETFs | AUM $7.8B
+   top inflow: [('ETHW', '$0'), ('ETHV', '$0'), ('EZET', '$0')]
+   event study CONFIRMED: heavy ETF inflow days > heavy outflow days on forward ETH price
+     fwd10d: inflow -3.3% vs outflow -7.8% | edge 4.5pp (n 38/16)
+     fwd20d: inflow -3.9% vs outflow -11.2% | edge 7.2pp (n 38/16)
+
+interp: Spot BTC ETFs STRONG OUTFLOW ($-7.2B/30d); ETH ETFs STRONG OUTFLOW ($-1.1B/30d). | hist: 1 | diag: None
+DONE 2427
