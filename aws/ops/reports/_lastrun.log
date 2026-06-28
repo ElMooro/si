@@ -1,5 +1,6 @@
-posture: STRONG RISK-OFF -49 | n_risk_off: 13 n_risk_on: 5
+crypto-etf-flows.json btc_etf.cum_30d_pctile = 2 int
+  keys in btc_etf: ['aum_total_usd', 'cum_30d_pctile', 'cum_30d_usd', 'cum_5d_usd', 'event_study', 'flow_today_usd', 'last_date', 'n_etfs', 'regime', 'top_inflow', 'top_outflow']
+cycle-clock crypto.etf_flow_btc_pctile = 2 | regime STRONG OUTFLOW
 crypto bearish drivers: []
-crypto bullish drivers: []
-ETF driver present: False
-DONE 2429
+all bearish driver labels: ['Liquidity-pulse draining', 'Bank-reserve scarcity', 'Recession-prob composite', 'Leading labor weakening', 'Retail euphoria (contrarian)']
+DONE 2430
