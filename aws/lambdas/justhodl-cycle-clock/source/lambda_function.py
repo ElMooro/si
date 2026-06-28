@@ -164,6 +164,7 @@ FLIP = {
     "Crypto heavy exchange inflow (distribution)": "exchange netflow normalises",
     "Crypto below realized price (deep value)": "price reclaims aggregate cost basis",
     "Crypto NUPL euphoria (late-cycle)": "NUPL cools out of euphoria",
+    "Crypto stablecoin depeg (tail risk)": "stablecoins re-peg to $1",
 }
 
 
@@ -532,6 +533,8 @@ def lambda_handler(event, context):
     cxflow = load("data/crypto-exchange-flows.json", "crypto_exchange_flows")
     ccot = load("data/crypto-cot.json", "crypto_cot")
     conchain = load("data/onchain-ratios.json", "crypto_onchain")
+    cspeg = load("data/crypto-stablecoin-peg.json", "crypto_stablecoin_peg")
+    cprem = load("data/coinbase-premium.json", "crypto_coinbase_premium")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -769,6 +772,11 @@ def lambda_handler(event, context):
         "price_vs_realized_pct": _get(conchain, "btc", "price_vs_realized_pct") or _get(conchain, "price_vs_realized_pct"),
         "nupl": _get(conchain, "btc", "nupl") or _get(conchain, "nupl"),
         "nupl_zone": _get(conchain, "btc", "nupl_zone") or _get(conchain, "nupl_zone"),
+        # stablecoin peg (depeg tail risk) + coinbase premium (US spot demand)
+        "stablecoin_peg_status": _get(cspeg, "status"),
+        "stablecoin_peg_gauge": _get(cspeg, "gauge"),
+        "stablecoin_worst_depeg": _get(cspeg, "worst_depeg_pct"),
+        "coinbase_premium_pct": _get(cprem, "btc", "premium_pct"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1050,6 +1058,9 @@ def lambda_handler(event, context):
     _nupl = _get(conchain, "btc", "nupl") or _get(conchain, "nupl")
     if isinstance(_nupl, (int, float)) and _nupl >= 0.75:
         _add("Crypto NUPL euphoria (late-cycle)", -1, 2, f"NUPL {_nupl}")
+    # stablecoin depeg = crypto tail-risk / funding stress (fires only on a real depeg, not minor drift)
+    if _get(cspeg, "gauge") == "red":
+        _add("Crypto stablecoin depeg (tail risk)", -1, 3, f"{_get(cspeg, 'worst_coin')} {_get(cspeg, 'worst_depeg_pct')}%")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))

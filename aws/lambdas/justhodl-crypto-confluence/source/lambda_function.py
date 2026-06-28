@@ -160,6 +160,17 @@ def market_context():
     _nupl = _onb.get("nupl")
     if isinstance(_nupl, (int, float)) and _nupl >= 0.75:
         tilt -= 1                                      # NUPL euphoria = late-cycle
+    # stablecoin peg (active depeg = crypto tail risk) + coinbase premium (US spot demand)
+    speg = _read("data/crypto-stablecoin-peg.json") or {}
+    cprem = _read("data/coinbase-premium.json") or {}
+    if speg.get("gauge") == "red":
+        tilt -= 2                                       # active depeg = risk-off
+    _cpp = (cprem.get("btc") or {}).get("premium_pct")
+    if isinstance(_cpp, (int, float)):
+        if _cpp >= 0.3:
+            tilt += 1                                   # US/institutional bid
+        elif _cpp <= -0.3:
+            tilt -= 1                                   # US distribution
     regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
@@ -179,6 +190,9 @@ def market_context():
         "realized_price": _onb.get("realized_price"),
         "price_vs_realized_pct": _onb.get("price_vs_realized_pct"),
         "nupl_zone": _onb.get("nupl_zone"),
+        "stablecoin_peg_status": speg.get("status"),
+        "stablecoin_worst": speg.get("worst_coin"),
+        "coinbase_premium_pct": (cprem.get("btc") or {}).get("premium_pct"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),
