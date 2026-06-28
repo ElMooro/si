@@ -337,7 +337,7 @@ def build_layers():
     # largely OUTSIDE the US banking system. Net minting = offshore dollar CREATION (eases global
     # $ funding); contraction = offshore $ drain — a genuine, real-time eurodollar tell.
     try:
-        sc = json.loads(http_get("https://stablecoins.llama.fi/stablecoincharts/all"))
+        sc = json.loads(http_get("https://stablecoins.llama.fi/stablecoincharts/all", timeout=45))
         ser = []
         for p in sc:
             v = ((p.get("totalCirculatingUSD") or {}).get("peggedUSD")
@@ -356,8 +356,8 @@ def build_layers():
                                  "Stablecoins (USDT/USDC) are dollar liabilities circulating largely OFFSHORE. "
                                  "Net minting = offshore-dollar CREATION (eases global $ funding); contraction = "
                                  "offshore-dollar drain / tightening. Total supply $%.0fbn." % (cur / 1e9)))
-    except Exception:
-        pass
+    except Exception as _sce:
+        print("[eurodollar] stablecoin offshore-$ metric failed:", str(_sce)[:80])
     cust = fred("WMTSECL1")  # FRBNY custody of marketable USTs held for foreign official/intl accounts (weekly)
     cd2, cv2 = latest(cust)
     if cv2 is not None and len(cust) > 13 and cust[-14][1]:
