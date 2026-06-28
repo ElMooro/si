@@ -1,17 +1,21 @@
-=== CME crypto COT ===
-err: None
-  BTC (2026-06-23): OI 20554 | AsstMgr net LONG net 2585 (1th, EXTREME SHORT) | LevFund net SHORT net -6130 (96th)
-  ETH (2026-06-23): OI 26007 | AsstMgr net SHORT net -3016 (2th, EXTREME SHORT) | LevFund net SHORT net -4977 (48th)
-  divergence: Asset managers net LONG while leveraged funds net SHORT — the ETF-era cash-and-carry footprint (institutions accumulating, hedge funds harvesting basis).
-=== Coinbase premium ===
-err: None
-  BTC: prem -0.009% (balanced) | CB 60077.0 vs KR 60082.7
-  ETH: prem -0.009% (balanced) | CB 1573.2 vs KR 1573.34
-=== Stablecoin peg ===
-err: None
-  status: MINOR DRIFT | worst: FDUSD -0.285 %
-    USDT: $0.998567 (-0.143% yellow)
-    USDC: $0.999732 (-0.027% green)
-    DAI: $0.999608 (-0.039% green)
-    FDUSD: $0.997151 (-0.285% yellow)
-DONE 2399
+=== 1. crypto-cot live? ===
+  invoked async
+
+=== 2. CoinMetrics community — which metrics are FREE? ===
+  SplyCur            -> OK val=20048966.76463361
+  SplyActPct1yr      -> HTTP 403 (not free)
+  SplyAdrBalUSD1K    -> HTTP 403 (not free)
+  SOPR               -> HTTP 403 (not free)
+  FlowInExUSD        -> OK val=734198803.059581081109242688
+  FlowOutExUSD       -> OK val=956311532.312248853275210653
+  SplyExpFut         -> HTTP 400 (not free)
+  CapRealUSD         -> HTTP 403 (not free)
+
+=== 3. Coinbase premium sources (Coinbase vs Kraken vs OKX) ===
+  Coinbase BTC-USD: 60081.01
+  Kraken XBTUSD: 60090.0
+  OKX BTC-USDT: 60171.7
+
+=== 4. Stablecoin depeg (Coingecko) ===
+   {'dai': {'usd': 0.999492}, 'tether': {'usd': 0.998591}, 'usd-coin': {'usd': 0.999736}}
+DONE 2395
