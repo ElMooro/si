@@ -140,7 +140,22 @@ function cryptoSection(cr){
     s+=cr.squeeze_candidates.map(c=>{const cc=/BEARISH/i.test(c.regime||'')?'lag':/BULLISH|LONG_SQUEEZE/i.test(c.regime||'')?'lead':'';return `<span class="chip ${cc}">${esc(c.coin)} z${c.z>=0?'+':''}${c.z}</span>`;}).join('');
     s+=`</div>`;
   }
-  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Crypto implied vol (Deribit DVOL), perp funding/OI positioning (crypto-funding) and stablecoin dry-powder/SSR + Fear &amp; Greed (crypto-liquidity). Extreme Fear + low SSR = sidelined cash / contrarian setup; crowded funding + rising DVOL = leverage &amp; vol risk.</div></div>`;
+  if(cr.rr_25d!=null||cr.puell!=null||cr.cash_carry_3m!=null){
+    const rrc=cr.rr_25d==null?'#7c8ba0':cr.rr_25d<=-6?'#ff5c6c':cr.rr_25d>=3?'#3fd68c':'#f5b343';
+    const tc=/BACKWARD/i.test(cr.vol_term_regime||'')?'#ff5c6c':/CONTANGO/i.test(cr.vol_term_regime||'')?'#3fd68c':'#7c8ba0';
+    const hc=/CAPITUL/i.test(cr.hash_ribbon||'')?'#f5b343':/RECOVERY|BUY/i.test(cr.hash_ribbon||'')?'#3fd68c':'#46c8ff';
+    const pz=cr.puell_zone||'';const pc=/DEEP VALUE|UNDERVALUED/i.test(pz)?'#3fd68c':/OVERHEAT|ELEVATED/i.test(pz)?'#ff5c6c':'#46c8ff';
+    const cc3=cr.cash_carry_3m;const ccc=cc3==null?'#7c8ba0':cc3<=-2?'#ff5c6c':cc3>=15?'#f5b343':'#46c8ff';
+    s+=`<div style="font-size:9.5px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 5px">Options skew · miners · carry</div>`;
+    s+=`<div class="tilegrid" style="margin-bottom:11px">`;
+    s+=tile('25&#916; risk reversal',cr.rr_25d==null?'—':(cr.rr_25d>0?'+':'')+r1(cr.rr_25d),cr.rr_25d==null?'':(cr.rr_25d<=-6?'put skew · hedging':cr.rr_25d>=3?'call skew · upside':'balanced'),rrc);
+    s+=tile('Vol term',cr.vol_term_regime?String(cr.vol_term_regime).split(' ')[0]:'—','30d ATM vs 7/90d',tc);
+    s+=tile('Hash ribbon',cr.hash_ribbon||'—',cr.days_in_capitulation?`${cr.days_in_capitulation}d capitulation`:'miner hash 30/60d',hc);
+    s+=tile('Puell multiple',cr.puell==null?'—':r1(cr.puell),pz,pc);
+    s+=tile('Cash &amp; carry 3m',cc3==null?'—':r1(cc3)+'%',cr.carry_regime?String(cr.carry_regime).split(' (')[0]:'annualized basis',ccc);
+    s+=`</div>`;
+  }
+  s+=`<div style="font-size:10.5px;color:var(--fg-3);margin-top:10px">Crypto implied vol (Deribit DVOL), perp funding/OI positioning (crypto-funding) and stablecoin dry-powder/SSR + Fear &amp; Greed (crypto-liquidity), plus 25&#916; risk reversal + vol term structure (options-surface), hash ribbons + Puell (miners) and 3m cash-and-carry basis (basis). Extreme Fear + low SSR = sidelined cash / contrarian setup; put skew + vol backwardation = near-term hedging; miner capitulation + low Puell = bottoming setup; carry backwardation = deleveraging.</div></div>`;
   return s;
 }
 function crossAssetSection(ca){
