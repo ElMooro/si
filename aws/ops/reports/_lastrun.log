@@ -1,6 +1,19 @@
-hash-rate        unit=Hash Rate TH/s n= 1092 2023-06-29->2026-06-27 gap~1.0d  last_y=1111771053.6412394
-difficulty       unit=Difficulty n= 1092 2023-06-29->2026-06-27 gap~1.0d  last_y=133125104579158.0
-miners-revenue   unit=USD        n= 1095 2023-06-29->2026-06-27 gap~1.0d  last_y=33755336.59745445
-market-price     unit=USD        n= 1096 2023-06-29->2026-06-28 gap~1.0d  last_y=59941.43
-total-bitcoins   unit=BTC        n=145911 2023-06-29->2026-06-27 gap~0.0d  last_y=20049181.25
-DONE 2386
+function created OK | timeout 120
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"ribbon\": \"CAPITULATION\", \"puell\": 0.78, \"puell_zone\": \"UNDERVALUED\"}"}
+
+HASH RIBBONS: CAPITULATION | hash 1111.8 EH/s | ma30 930.2 ma60 956.5
+  last cross: {'date': '2026-06-08', 'dir': 'down', 'days_since': 19}
+PUELL: 0.78 ( UNDERVALUED ) | rev $ 33.8 M/d | 365dMA $ 43.2 M
+DIFFICULTY 14d: -4.2 %
+
+EVENT STUDY — hash ribbon (fwd BTC after buy crossups): INVERTED
+   fwd30d: buy mean -4.6% vs base 3.2% | edge -7.8pp (n_buys 15)
+   fwd90d: buy mean 2.8% vs base 12.2% | edge -9.4pp (n_buys 15)
+   fwd180d: buy mean 10.8% vs base 26.4% | edge -15.6pp (n_buys 15)
+EVENT STUDY — Puell (low vs high fwd BTC): INSUFFICIENT
+   fwd30d: low 7.2% vs high None% | edge L-H Nonepp (n_low 15, n_high 0)
+   fwd90d: low 42.7% vs high None% | edge L-H Nonepp (n_low 15, n_high 0)
+   fwd180d: low 52.5% vs high None% | edge L-H Nonepp (n_low 15, n_high 0)
+
+read: hash ribbons: CAPITULATION · Puell 0.78 (UNDERVALUED) | history_n: 1 | _diag: None
+DONE 2387
