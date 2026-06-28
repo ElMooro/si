@@ -1,15 +1,23 @@
-=== 1. CFTC TFF — CME Bitcoin & Ether COT ===
-  CFTC err: URL can't contain control characters. '/resource/gpe5-46if.json?$where=upper%28contract_market_name%29%20like%20%27%25BI
+=== CFTC TFF — CME Bitcoin & Ether (properly encoded) ===
+  BITCOIN: 'BITCOIN' code=133741 date=2026-06-23
+    AM L/S None/None | LevFund L/S None/None | Dealer L/S 6075/2044 | OI 20554
+  ETHER: 'ETHER CASH SETTLED' code=146021 date=2026-06-23
+    AM L/S None/None | LevFund L/S None/None | Dealer L/S 14645/6390 | OI 26007
 
-=== 2. CoinMetrics community — which cohort metrics are FREE for BTC ===
-  CM catalog err: HTTP Error 400: Bad Request
-
-=== 3. Coinbase premium (Coinbase vs Kraken spot) ===
-  Coinbase $60108.24 | Kraken $60121.1 | premium -0.021%
-
-=== 4. Stablecoin depeg (CoinGecko) ===
-  dai: $0.999689 (depeg -0.031%)
-  first-digital-usd: $0.997161 (depeg -0.284%)
-  tether: $0.998556 (depeg -0.144%)
-  usd-coin: $0.999696 (depeg -0.03%)
-DONE 2395
+=== CoinMetrics community — per-metric free test for BTC ===
+  PriceUSD: FREE  (59955.5660201637)
+  CapRealUSD: HTTP 403 (not in community tier)
+  SplyCur: FREE  (20048966.76463361)
+  CapMVRVCur: FREE  (1.127011418515148159)
+  NVTAdj: HTTP 403 (not in community tier)
+  SOPR: HTTP 403 (not in community tier)
+  FlowInExNtv: FREE  (12245.71548224)
+  FlowOutExNtv: FREE  (15950.33782169)
+  SplyAdrBalNtv1K: HTTP 403 (not in community tier)
+  SplyAdrBalUSD1M: HTTP 403 (not in community tier)
+  SplyActPct1yr: HTTP 403 (not in community tier)
+  CapAct1yrUSD: HTTP 403 (not in community tier)
+  CapMVRVFF: HTTP 403 (not in community tier)
+  RealizedPriceUSD: HTTP 400 (not in community tier)
+FREE metrics: ['PriceUSD', 'SplyCur', 'CapMVRVCur', 'FlowInExNtv', 'FlowOutExNtv']
+DONE 2396
