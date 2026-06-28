@@ -1,15 +1,7 @@
-=== cycle-clock ===
 err: None
-crypto block new fields:
-  exchange_flow_regime: ACCUMULATION | 30d_pctile: 27 | study: INVERTED
-  cot_asset_mgr: net LONG (1th) | lev_funds: net SHORT
-  realized_price: 53199.0 | price_vs_realized: 12.7 | NUPL: 0.1127 HOPE/FEAR
-synthesis: STRONG RISK-OFF -47 | conviction HIGH
-crypto contributors firing: []
-COT divergence present: True
-=== crypto-confluence ===
-err: None
-  regime: NEUTRAL tilt: 0
-  exchange_flow_regime: ACCUMULATION | cot_asset_mgr: net LONG
-  realized_price: 53199.0 | price_vs_realized: 12.7 | nupl_zone: HOPE/FEAR
-DONE 2406
+  crypto_exchange_flow: neutral/not-emitted this run
+  crypto_cot_assetmgr: neutral/not-emitted this run
+  coinbase_premium: neutral/not-emitted this run
+CloudWatch [LOG] proof lines:
+    [LOG] crypto_cot_assetmgr=AM net 1th UP conf=0.75 baseline=$60321.00
+DONE 2407
