@@ -37,6 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 <div class="tab" data-tab="stablecoins">Stables</div>
 <div class="tab" data-tab="tvl">TVL</div>
 <div class="tab" data-tab="derivatives">Derivatives</div>
+<div class="tab" data-tab="volcomplex">Vol Complex</div>
 <div class="tab" data-tab="sentiment">Sentiment</div>
 <div class="tab" data-tab="global">Global</div>
 <div class="tab" data-tab="onchain">On-Chain</div>
@@ -103,6 +104,20 @@ h+="<div class='metric'><span class='metric-name'>Whales</span><span class='metr
 h+="<div class='metric'><span class='metric-name'>Funding</span><span class='metric-val mono "+cl(fAvg)+"'>"+(fAvg).toFixed(4)+"%</span></div>";
 h+="<div class='metric'><span class='metric-name'>Leverage</span><span class='metric-val'>"+(fn.leverage_sentiment||"-")+"</span></div></div>";
 h+="</div>";
+
+// Vol-complex quick summary (folded engines)
+(function(){var iv=D.implied_vol||{};var sf=iv.surface||{};var mn=D.miners||{};var bs=D.basis||{};
+if(iv.btc_dvol!=null||mn.puell!=null||bs.btc_cash_carry_3m_pct!=null){
+var rr=sf.btc_rr_25d;var cc=bs.btc_cash_carry_3m_pct;
+var rrc=rr==null?"var(--t3)":rr<=-6?"var(--red)":rr>=3?"var(--green)":"var(--yellow)";
+var hrc=/CAPITUL/i.test(mn.hash_ribbon||"")?"var(--yellow)":/RECOVERY|BUY/i.test(mn.hash_ribbon||"")?"var(--green)":"var(--cyan)";
+h+="<div class='card' style='margin:12px 0'><div class='card-title'>Vol Complex · skew · miners · carry</div><div class='grid g4'>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>BTC DVOL</div><div class='mono' style='font-size:16px'>"+(iv.btc_dvol!=null?iv.btc_dvol:"-")+"</div><div style='font-size:9px;color:var(--t3)'>"+(iv.btc_dvol_regime||"")+"</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>25&#916; RR</div><div class='mono' style='font-size:16px;color:"+rrc+"'>"+(rr==null?"-":(rr>0?"+":"")+rr)+"</div><div style='font-size:9px;color:var(--t3)'>"+(rr==null?"":rr<=-6?"put skew":rr>=3?"call skew":"balanced")+"</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>Hash ribbon</div><div style='font-size:12px;font-weight:700;color:"+hrc+";margin-top:3px'>"+(mn.hash_ribbon||"-")+"</div><div style='font-size:9px;color:var(--t3)'>Puell "+(mn.puell!=null?mn.puell:"-")+"</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>3m carry</div><div class='mono' style='font-size:16px'>"+(cc!=null?cc+"%":"-")+"</div><div style='font-size:9px;color:var(--t3)'>"+(bs.btc_regime?String(bs.btc_regime).split(" (")[0]:"")+"</div></div>";
+h+="</div></div>";
+}})();
 
 // Risk signals
 var rs=R.signals||[];
@@ -280,6 +295,48 @@ var ms=fn.most_shorted||[];
 if(ms.length>0){h+="<table><thead><tr><th>Sym</th><th style='text-align:right'>8H</th><th style='text-align:right'>Annual</th></tr></thead><tbody>";ms.forEach(function(p){h+="<tr><td class='mono'><strong>"+p.symbol+"</strong></td><td style='text-align:right' class='mono dn'>"+p.funding_rate.toFixed(4)+"%</td><td style='text-align:right' class='mono dn'>"+p.annualized.toFixed(1)+"%</td></tr>"});h+="</tbody></table>";}
 else{h+="<div style='color:var(--t3);text-align:center;padding:16px'>No funding data</div>";}
 h+="</div></div></div>";
+
+// ========== VOL COMPLEX (DVOL · options surface · miners · basis) ==========
+h+="<div class='pane' id='pane-volcomplex'>";
+var _iv=D.implied_vol||{};var _sf=_iv.surface||{};var _mn=D.miners||{};var _bs=D.basis||{};var _ev=_iv.event_study||{};
+var _dvc=_iv.btc_dvol_regime==="LOW"?"var(--green)":_iv.btc_dvol_regime==="NORMAL"?"var(--cyan)":_iv.btc_dvol_regime==="ELEVATED"?"var(--yellow)":_iv.btc_dvol_regime==="HIGH"?"var(--red)":"var(--t3)";
+var _rr=_sf.btc_rr_25d;var _rrc=_rr==null?"var(--t3)":_rr<=-6?"var(--red)":_rr>=3?"var(--green)":"var(--yellow)";
+var _vt=_sf.term_regime||"";var _vtc=/BACKWARD/i.test(_vt)?"var(--red)":/CONTANGO/i.test(_vt)?"var(--green)":"var(--t3)";
+var _hrs=_mn.hash_ribbon||"";var _hrc=/CAPITUL/i.test(_hrs)?"var(--yellow)":/RECOVERY|BUY/i.test(_hrs)?"var(--green)":"var(--cyan)";
+var _pz=_mn.puell_zone||"";var _puc=/DEEP VALUE|UNDERVALUED/i.test(_pz)?"var(--green)":/OVERHEAT|ELEVATED/i.test(_pz)?"var(--red)":"var(--cyan)";
+var _cc=_bs.btc_cash_carry_3m_pct;var _ccc=_cc==null?"var(--t3)":_cc<=-2?"var(--red)":_cc>=15?"var(--yellow)":"var(--cyan)";
+h+="<div class='grid g4' style='margin-bottom:12px'>";
+h+="<div class='card'><div class='card-title'>Implied Vol · DVOL</div>";
+h+="<div class='stat-big' style='color:"+_dvc+"'>"+(_iv.btc_dvol!=null?_iv.btc_dvol:"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_dvc+"'>BTC "+(_iv.btc_dvol_regime||"")+(_iv.btc_dvol_pctile!=null?" · "+_iv.btc_dvol_pctile+"th":"")+(_iv.btc_dvol_trend?" · "+String(_iv.btc_dvol_trend).toLowerCase():"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>ETH DVOL</span><span class='metric-val mono'>"+(_iv.eth_dvol!=null?_iv.eth_dvol:"-")+"</span></div>";
+if(_ev.verdict)h+="<div class='metric'><span class='metric-name'>Buy-fear study</span><span class='metric-val' style='color:var(--green);font-size:10px'>"+_ev.verdict+(_ev.standing?" ("+_ev.standing+")":"")+"</span></div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Options Surface</div>";
+h+="<div class='stat-big' style='color:"+_rrc+"'>"+(_rr==null?"-":(_rr>0?"+":"")+_rr)+"</div>";
+h+="<div style='font-size:11px;color:"+_rrc+"'>25&#916; risk reversal</div>";
+h+="<div class='metric'><span class='metric-name'>Skew</span><span class='metric-val' style='font-size:10px'>"+(_sf.skew_read||"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Vol term</span><span class='metric-val' style='color:"+_vtc+";font-size:10px'>"+(_vt||"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>ATM 30d / BF</span><span class='metric-val mono'>"+(_sf.btc_atm_30d!=null?_sf.btc_atm_30d:"-")+" / "+(_sf.btc_bf_25d!=null?_sf.btc_bf_25d:"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>ETH 25&#916; RR</span><span class='metric-val mono'>"+(_sf.eth_rr_25d!=null?_sf.eth_rr_25d:"-")+"</span></div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Miner Economics</div>";
+h+="<div class='stat-big' style='color:"+_hrc+";font-size:18px'>"+(_hrs||"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_hrc+"'>hash ribbons"+(_mn.days_in_capitulation?" · "+_mn.days_in_capitulation+"d":"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>Puell</span><span class='metric-val' style='color:"+_puc+"'>"+(_mn.puell!=null?_mn.puell:"-")+" "+_pz+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Hash rate</span><span class='metric-val mono'>"+(_mn.hash_rate_eh!=null?_mn.hash_rate_eh+" EH/s":"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Difficulty 14d</span><span class='metric-val mono "+cl(_mn.difficulty_chg_14d)+"'>"+(_mn.difficulty_chg_14d!=null?pct(_mn.difficulty_chg_14d):"-")+"</span></div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Futures Basis · Carry</div>";
+h+="<div class='stat-big' style='color:"+_ccc+"'>"+(_cc!=null?_cc+"%":"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_ccc+"'>BTC 3m cash &amp; carry · "+(_bs.btc_regime||"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>BTC funding</span><span class='metric-val mono "+cl(_bs.btc_funding_ann_pct)+"'>"+(_bs.btc_funding_ann_pct!=null?_bs.btc_funding_ann_pct+"%/yr":"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>ETH 3m carry</span><span class='metric-val mono'>"+(_bs.eth_cash_carry_3m_pct!=null?_bs.eth_cash_carry_3m_pct+"%":"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>ETH funding</span><span class='metric-val mono "+cl(_bs.eth_funding_ann_pct)+"'>"+(_bs.eth_funding_ann_pct!=null?_bs.eth_funding_ann_pct+"%/yr":"-")+"</span></div>";
+h+="</div>";
+h+="</div>";
+h+="<div style='font-size:10.5px;color:var(--t3);margin-top:4px'>Vol-complex engines: <b>crypto-dvol</b> (implied-vol level + buy-fear event study), <b>crypto-options-surface</b> (25&#916; risk reversal, butterfly, vol term structure), <b>crypto-miners</b> (hash ribbons + Puell), <b>crypto-basis</b> (cash-and-carry term structure). Put skew + vol backwardation = near-term hedging; miner capitulation + low Puell = bottoming setup; carry backwardation = deleveraging. Candidate signals are graded live in the central FDR ledger — none trusted until proven.</div>";
+h+="</div>";
 
 // ========== SENTIMENT (Full History since 2016) ==========
 h+="<div class='pane' id='pane-sentiment'>";
