@@ -1,10 +1,16 @@
-=== justhodl-fleet-freshness-monitor ===
-  rule: ENABLED cron(12 12 * * ? *)
-  targets: ['justhodl-fleet-freshness-monitor']
-  FunctionError: None
-  resp: {"statusCode": 200, "body": "{\"n_tracked\": 42, \"stale\": 17, \"fresh\": 25, \"alerts\": 17, \"suppressed\": 0, \"elapsed_s\": 6.63}"}
-=== justhodl-fleet-error-monitor ===
-  rule MISSING: An error occurred (ResourceNotFoundException) when calling t
-  FunctionError: None
-  resp: {"statusCode": 200, "body": "{\"n_scanned\": 643, \"n_alerts\": 1, \"suppressed\": 0, \"elapsed_s\": 31.55}"}
-DONE 2413
+=== restoring watchdog schedules ===
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2414_fix_watchdogs.py", line 24, in <module>
+    ensure("justhodl-fleet-error-monitor","fleet-error-monitor-5min","rate(5 minutes)","AUDIT — scan fleet error rates + DLQ depth")
+  File "/home/runner/work/si/si/aws/ops/pending/2414_fix_watchdogs.py", line 6, in ensure
+    r=ev.put_rule(Name=rule, ScheduleExpression=rate, State="ENABLED", Description=desc)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
