@@ -1,6 +1,10 @@
-crypto-etf-flows.json btc_etf.cum_30d_pctile = 2 int
-  keys in btc_etf: ['aum_total_usd', 'cum_30d_pctile', 'cum_30d_usd', 'cum_5d_usd', 'event_study', 'flow_today_usd', 'last_date', 'n_etfs', 'regime', 'top_inflow', 'top_outflow']
-cycle-clock crypto.etf_flow_btc_pctile = 2 | regime STRONG OUTFLOW
-crypto bearish drivers: []
-all bearish driver labels: ['Liquidity-pulse draining', 'Bank-reserve scarcity', 'Recession-prob composite', 'Leading labor weakening', 'Retail euphoria (contrarian)']
-DONE 2430
+=== metaAndAssetCtxs (OI + funding + premium per perp) ===
+universe size: 230
+  BTC: OI=33876.1698 funding=0.0000103237 premium=-0.0004863324 markPx=59602.0 dayNtlVlm=1041092589.6164803505 oraclePx=59630.0
+  ETH: OI=728958.1382000002 funding=0.0000037802 premium=-0.0005722279 markPx=1571.9 dayNtlVlm=225156300.3005101085 oraclePx=1572.8
+  SOL: OI=5349209.0599999996 funding=-0.0000142208 premium=-0.0006867554 markPx=71.321 dayNtlVlm=172715421.2448900044 oraclePx=71.35
+  TOTAL OI across all HL perps (USD): 6086759305
+=== liquidations available? try a few endpoints ===
+  {'type': 'liquidations'}: ERR HTTP Error 422: Unprocessable Entity
+  {'type': 'recentTrades', 'coin': 'BTC'}: [{"coin": "BTC", "side": "A", "px": "59600.0", "sz": "0.03684", "time": 1782670523035, "hash": "0x00000000000000000000000000000000000000000000000000000000000000
+DONE 2431
