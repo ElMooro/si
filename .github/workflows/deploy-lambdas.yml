@@ -266,13 +266,18 @@ jobs:
                   existing_env="{}"
                 fi
                 merged_env=$(jq -n --argjson a "$existing_env" --argjson b "$cfg_env_json" '$a * $b')
-                echo "{\"Variables\": $merged_env}" > "$tmp/env.json"
+                # Skip --environment when empty (AWS rejects an empty Variables map).
+                env_arg=""
+                if [ "$merged_env" != "{}" ] && [ -n "$merged_env" ]; then
+                  echo "{\"Variables\": $merged_env}" > "$tmp/env.json"
+                  env_arg="--environment file://$tmp/env.json"
+                fi
                 aws lambda update-function-configuration \
                   --function-name "$fn" \
                   --timeout "$fn_timeout" \
                   --memory-size "$fn_memory" \
                   --region "${{ secrets.AWS_REGION }}" \
-                  --environment "file://$tmp/env.json" \
+                  $env_arg \
                   --output text > /dev/null
                 aws lambda wait function-updated \
                   --function-name "$fn" \
@@ -280,7 +285,13 @@ jobs:
               fi
             else
               echo "Lambda $fn does not exist — creating"
-              echo "{\"Variables\": $cfg_env_json}" > "$tmp/env.json"
+              # Only pass --environment when there are real vars; AWS rejects an
+              # empty Variables map on create, which silently failed no-env engines.
+              env_arg=""
+              if [ "$cfg_env_json" != "{}" ] && [ -n "$cfg_env_json" ]; then
+                echo "{\"Variables\": $cfg_env_json}" > "$tmp/env.json"
+                env_arg="--environment file://$tmp/env.json"
+              fi
               aws lambda create-function \
                 --function-name "$fn" \
                 --runtime "$fn_runtime" \
@@ -291,7 +302,7 @@ jobs:
                 --memory-size "$fn_memory" \
                 --description "$fn_desc" \
                 --region "${{ secrets.AWS_REGION }}" \
-                --environment "file://$tmp/env.json" \
+                $env_arg \
                 --tracing-config Mode=Active \
                 --dead-letter-config "TargetArn=arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default" \
                 --output text > /dev/null
@@ -299,6 +310,11 @@ jobs:
               aws lambda wait function-active-v2 \
                 --function-name "$fn" \
                 --region "${{ secrets.AWS_REGION }}"
+              # Verify creation actually took — surface loudly instead of false success.
+              if ! aws lambda get-function --function-name "$fn" --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
+                echo "::error::create-function for $fn reported done but the function is still missing"
+                exit 1
+              fi
               echo "✅ Created new Lambda $fn (with X-Ray + DLQ from creation)"
             fi
 
