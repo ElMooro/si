@@ -67,7 +67,7 @@ def cot(code):
     lf_pct = _pctile(lf_net, lf_hist)
 
     def extreme(p):
-        return "EXTREME LONG" if p is not None and p >= 90 else "EXTREME SHORT" if p is not None and p <= 10 else None
+        return "3Y LOW" if p is not None and p <= 10 else "3Y HIGH" if p is not None and p >= 90 else None
 
     divergence = None
     if am_net > 0 and lf_net < 0:
