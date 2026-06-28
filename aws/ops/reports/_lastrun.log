@@ -1,7 +1,14 @@
-crypto-intel put keys in source: ['crypto-intel.json']
-waiting 150s...
-FOUND at key: crypto-intel.json
-version: 4.4
-hyperliquid: OI $6.1B | funding 7.22%/yr | regime NEUTRAL | liq NORMAL
-etf_flows: BTC STRONG OUTFLOW ($-7.2B, CONFIRMED_STRONG ES)
-DONE 2439
+EXISTS state Active mem 512
+scheduled: crypto-gex-sched
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"btc_regime\": \"NEGATIVE GAMMA (unstable / vol-expansion)\", \"net_gex_usd\": -12527780, \"gamma_flip\": 60132, \"max_pain\": 72000.0}"}
+
+BTC: spot $59702 | net GEX $-13M | NEGATIVE GAMMA (unstable / vol-expansion)
+   flip ~$60132 (spot -0.7%) | call wall $64000.0 | put wall $60000.0 | max-pain $72000.0 (25Dec26)
+   call OI 212921 | put OI 122805 | P/C 0.58 | strikes 93
+
+ETH: spot $1568 | net GEX $-1M | NEGATIVE GAMMA (unstable / vol-expansion)
+   flip ~$1580 (spot -0.7%) | call wall $1600.0 | put wall $1500.0 | max-pain $2200.0 (25Dec26)
+   call OI 883781 | put OI 497120 | P/C 0.56 | strikes 87
+
+interp: BTC dealer gamma NEGATIVE; net GEX $-13M, flip ~$60132 (spot -0.7% below). Call wall $64000.0 (resistance), put wall $60000.0 (support). Max-pain $72000.0 (25Dec26). | dur 0.9 s
+DONE 2440
