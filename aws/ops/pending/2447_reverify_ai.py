@@ -1,0 +1,16 @@
+import boto3, json, time
+lam=boto3.client("lambda","us-east-1"); s3=boto3.client("s3","us-east-1")
+lam.invoke(FunctionName="justhodl-signal-backtest",InvocationType="Event",Payload=b"{}")
+print("backtest async; waiting 210s..."); time.sleep(210)
+d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/signal-backtest.json")["Body"].read())
+ai=d.get("ai_analysis") or {}
+print("AI source:",ai.get("source"),"| rank_corr:",ai.get("rank_corr"),"| inverted:",ai.get("inverted"),"| _err:",ai.get("_error"))
+print("\nHEADLINE:",ai.get("headline"))
+print("DIAGNOSIS:",ai.get("diagnosis"))
+print("PATTERNS:")
+for p in (ai.get("patterns") or []): print("  -",p)
+print("RECOMMENDATIONS:")
+for r in (ai.get("recommendations") or []): print("  -",r)
+print("VERDICT NOTES:")
+for k,v in (ai.get("verdict_notes") or {}).items(): print("  %s: %s"%(k,v))
+print("DONE 2447")
