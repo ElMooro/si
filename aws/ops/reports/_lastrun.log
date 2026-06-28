@@ -1,31 +1,14 @@
-function created OK
-FunctionError: None | resp: {"statusCode": 200, "body": "{\"cc_yield_3m\": 3.06, \"regime\": \"MILD CONTANGO\", \"history_n\": 1}"}
-
-BTC: index $60175.7 | perp prem 0.0133% | funding ann 0.21%
-  30d basis ann 2.0% | 3m cash&carry 3.06% | MILD CONTANGO
-  curve (days: ann basis%):
-        1.2d    -4.71%  (basis -0.015%)
-        2.2d     0.38%  (basis 0.002%)
-        3.2d     0.27%  (basis 0.002%)
-        5.2d     1.81%  (basis 0.026%)
-       12.2d     2.18%  (basis 0.073%)
-       19.2d     2.04%  (basis 0.107%)
-       33.2d      2.0%  (basis 0.182%)
-       61.2d     2.36%  (basis 0.395%)
-       89.2d     3.06%  (basis 0.748%)
-
-ETH: index $1573.5 | perp prem -0.0242% | funding ann -4.05%
-  30d basis ann -0.71% | 3m cash&carry 1.17% | FLAT
-  curve (days: ann basis%):
-        1.2d   -12.77%  (basis -0.042%)
-        2.2d    -8.65%  (basis -0.052%)
-        3.2d    -5.08%  (basis -0.044%)
-        5.2d    -4.95%  (basis -0.071%)
-       12.2d    -1.86%  (basis -0.062%)
-       19.2d    -1.61%  (basis -0.085%)
-       33.2d    -0.71%  (basis -0.065%)
-       61.2d     0.44%  (basis 0.074%)
-       89.2d     1.17%  (basis 0.285%)
-
-read: 3m cash-and-carry yield 3.1% — MILD CONTANGO | history_n: 1 | _diag: None
-DONE 2391
+crypto-intel async kicked
+logger FunctionError: None | resp: {"statusCode": 200, "body": "{\"logged\": 55}"}
+crypto signals logged this run:
+   [LOG] crypto_fear_greed=EXTREME_FEAR UP conf=0.80 baseline=$60121.00
+   [LOG] crypto_risk_score=HIGH DOWN conf=0.46 baseline=$60121.00
+   [LOG] crypto_dvol=45.1 NORMAL DOWN conf=0.65 baseline=$60121.00
+   [LOG] crypto_dvol_buyfear=DVOL 45.1 (65th) UP conf=0.65 baseline=$60121.00
+   [LOG] crypto_options_rr=RR25 -8.5 UP conf=0.71 baseline=$60121.00
+   [LOG] puell_multiple=Puell 0.78 UP conf=0.58 baseline=$60121.00
+basis/error lines: none (clean; cc_basis_extreme NEUTRAL as expected)
+waiting for crypto-intel write...
+crypto-intel basis block: {"btc_cash_carry_3m_pct": 3.06, "btc_funding_ann_pct": 0.21, "btc_regime": "MILD CONTANGO", "eth_cash_carry_3m_pct": 1.17, "eth_funding_ann_pct": -4.05}
+implied_vol has surface: True | miners present: True | basis present: True
+DONE 2392
