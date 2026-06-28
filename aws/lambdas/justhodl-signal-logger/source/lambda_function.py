@@ -238,6 +238,19 @@ def lambda_handler(event,context):
     if rv is not None:
         rv=float(rv)
         logged.append(log_sig("crypto_risk_score",rs.get("regime","?"),dir_score(rv,35,65),conf_ext(rv),"BTC-USD",[1,3,7,14],meta={"score":rv,"action":rs.get("action")}))
+    # crypto_dvol — implied-vol risk signal (CANDIDATE, to be graded by the scorecard).
+    # Hypothesis (consistent with cycle-clock synthesis): elevated/rising BTC DVOL = risk-off
+    # = BTC DOWN; low/falling = risk-on = UP. The scorecard decides if it has real edge.
+    cd=fs3("data/crypto-dvol.json")
+    cbtc=(cd.get("btc") or {})
+    dv=cbtc.get("dvol"); dreg=cbtc.get("regime"); dtr=cbtc.get("trend"); dpct=cbtc.get("pctile_1y")
+    if dv is not None:
+        dpred=("DOWN" if (dreg in ("ELEVATED","HIGH") or dtr=="RISING")
+               else "UP" if (dreg=="LOW" or dtr=="FALLING") else "NEUTRAL")
+        dconf=round(min(0.8,0.5+abs((float(dpct) if dpct is not None else 50)-50)/100),3)
+        logged.append(log_sig("crypto_dvol",f"{dv} {dreg}",dpred,dconf,"BTC-USD",[1,3,7,14],
+                              meta={"dvol":dv,"regime":dreg,"trend":dtr,"pctile_1y":dpct},
+                              rationale=f"BTC DVOL {dv} ({dpct}th pctile, {dtr}) — crypto implied-vol risk signal"))
     tech=c.get("technicals",{})
     btc=tech.get("BTC",tech.get("bitcoin",{}))
     if isinstance(btc,dict):
