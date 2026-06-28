@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-crypto-miners",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Bitcoin miner economics — hash ribbons (30d/60d hash-rate MA cross) + Puell multiple + difficulty trend, with point-in-time event studies vs forward BTC. New domain.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-crypto-miners-daily",
+    "cron": "cron(30 12 * * ? *)",
+    "description": "Daily miner economics snapshot"
+  }
+}
