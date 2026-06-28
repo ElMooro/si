@@ -1,14 +1,5 @@
-top-level keys: ['ai_analysis', 'by_cap_bucket', 'by_cheap_x_improving', 'by_compounder_bucket', 'by_compounder_stocks', 'by_revision', 'by_valuation_vs_peer', 'by_verdict', 'by_verdict_stocks', 'duration_s', 'engine', 'generated_at', 'maturity', 'n_observations', 'note', 'overall', 'snapshots_used', 'version']
-n_observations: 30457 | maturity: MATURE | generated: 2026-06-28T20:30:19.120940+00:00
-
-by_verdict_stocks present: True | verdicts: ['STRONG OPPORTUNITY', 'OPPORTUNITY', 'HIGH RISK', 'FAIR VALUE', 'EXPENSIVE', 'HOLD / NEUTRAL']
-  STRONG OPPORTUNITY: 20 leaders, 20 laggards | n_tickers 67
-    top leaders: [('DLTR', 27.8, 'n15'), ('BBY', 27.8, 'n3'), ('INCY', 17.7, 'n6'), ('BALL', 16.3, 'n7')]
-    top laggards: [('ACN', -26.6, 'n6'), ('LDOS', -21.6, 'n5'), ('ADBE', -18.3, 'n7'), ('PTC', -17.6, 'n2')]
-  OPPORTUNITY: 20 leaders, 20 laggards | n_tickers 213
-    top leaders: [('AMAT', 36.5, 'n4'), ('LUV', 26.2, 'n22'), ('BBY', 19.8, 'n15'), ('HRL', 18.0, 'n25')]
-    top laggards: [('ACN', -25.4, 'n30'), ('CTSH', -23.1, 'n36'), ('FOXA', -22.6, 'n36'), ('FOX', -20.7, 'n36')]
-
-ai_analysis present: True | keys: ['_error']
-  headline: 
-DONE 2444
+ai_analysis: {"_error": "HTTP Error 400: Bad Request"}
+env has ANTHROPIC_API_KEY: True | has FMP_KEY: False
+key prefix: sk-ant-api03-8...ZwAA
+DIRECT CALL HTTP 400 : {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."},"request_i
+DONE 2445
