@@ -279,6 +279,18 @@ def lambda_handler(event,context):
             logged.append(log_sig("crypto_dvol_buyfear",f"DVOL {dv} ({pctile}th)",pred,cf,"BTC-USD",[7,14,30],
                 meta={"dvol":dv,"pctile_1y":pctile,"regime":cdb.get("regime")},
                 rationale="buy-fear: high DVOL pctile=fear -> bullish fwd BTC, low=complacency -> weak (CONFIRMED_STRONG in-sample, DIAGNOSTIC live)"))
+    # crypto-options-surface.json — 25d risk reversal as a contrarian skew/fear gauge, graded live
+    co=fs3("data/crypto-options-surface.json")
+    rr=((co.get("btc") or {}).get("headline_30d") or {}).get("rr_25d")
+    if rr is not None:
+        rr=float(rr)
+        opred="UP" if rr<=-5 else "DOWN" if rr>=3 else "NEUTRAL"  # extreme put skew = fear -> contrarian UP
+        if opred!="NEUTRAL":
+            ocf=round(0.5+min(0.35,abs(rr)/40.0),2)
+            logged.append(log_sig("crypto_options_rr","RR25 %.1f"%rr,opred,ocf,"BTC-USD",[7,14,30],
+                meta={"rr_25d":rr,"skew":(co.get("btc") or {}).get("interpretation"),
+                      "term":((co.get("btc") or {}).get("term_structure") or {}).get("regime")},
+                rationale="25d risk reversal as contrarian skew gauge: extreme put skew (RR<<0)=hedging/fear->contrarian UP; extreme call skew=greed->DOWN (hypothesis, graded live)"))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")

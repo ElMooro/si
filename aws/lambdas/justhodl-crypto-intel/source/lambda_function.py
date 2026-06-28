@@ -3723,6 +3723,16 @@ def lambda_handler(event, context):
             'btc_dvol_regime':_b.get('regime'),'btc_dvol_trend':_b.get('trend'),'eth_dvol':_e.get('dvol'),
             'regime':_dv.get('crypto_vol_regime'),'interpretation':_dv.get('interpretation'),
             'event_study':_dv.get('event_study_dvol')}
+        # options surface (skew / 25d risk reversal / term structure)
+        try:
+            _os=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-options-surface.json')['Body'].read().decode())
+            _h=(_os.get('btc') or {}).get('headline_30d') or {}; _t=(_os.get('btc') or {}).get('term_structure') or {}
+            R['implied_vol']['surface']={'btc_rr_25d':_h.get('rr_25d'),'btc_bf_25d':_h.get('bf_25d'),
+                'btc_atm_30d':_h.get('atm_iv'),'skew_read':(_os.get('btc') or {}).get('interpretation'),
+                'term_regime':_t.get('regime'),'term_slope_90_7':_t.get('slope_90_7'),
+                'eth_rr_25d':((_os.get('eth') or {}).get('headline_30d') or {}).get('rr_25d')}
+        except Exception as _ex2:
+            print('  options surface merge skipped:',str(_ex2)[:50])
     except Exception as _ex:
         print('  implied_vol merge skipped:',str(_ex)[:60])
 
