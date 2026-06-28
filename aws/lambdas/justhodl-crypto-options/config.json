@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-crypto-options",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto options surface — 25-delta risk reversal (directional positioning), butterfly (smile convexity), ATM vol term structure (stress vs calm) and put/call OI for BTC/ETH from the Deribit chain. Completes the implied-vol complex started by crypto-dvol. Self-accumulates RR history; registered in the central ledger. data/crypto-options.json.",
+  "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "schedule": {
+    "rule_name": "justhodl-crypto-options-hourly",
+    "cron": "cron(25 * * * ? *)",
+    "description": "Crypto options surface hourly at :25"
+  }
+}
