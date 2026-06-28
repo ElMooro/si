@@ -291,6 +291,22 @@ def lambda_handler(event,context):
                 meta={"rr_25d":rr,"skew":(co.get("btc") or {}).get("interpretation"),
                       "term":((co.get("btc") or {}).get("term_structure") or {}).get("regime")},
                 rationale="25d risk reversal as contrarian skew gauge: extreme put skew (RR<<0)=hedging/fear->contrarian UP; extreme call skew=greed->DOWN (hypothesis, graded live)"))
+    # crypto-miners.json — Puell multiple + hash ribbon, graded live
+    cm=fs3("data/crypto-miners.json")
+    pu=(cm.get("puell") or {}).get("value")
+    if pu is not None:
+        pu=float(pu)
+        ppred="UP" if pu<1.0 else "DOWN" if pu>=2.2 else "NEUTRAL"
+        if ppred!="NEUTRAL":
+            pcf=0.7 if (pu<0.5 or pu>=4) else 0.58
+            logged.append(log_sig("puell_multiple","Puell %.2f"%pu,ppred,pcf,"BTC-USD",[30,60,90],
+                meta={"puell":pu,"zone":(cm.get("puell") or {}).get("zone")},
+                rationale="Puell multiple: <1 = miner revenue below 365d trend = undervalued -> UP; >2.2 elevated -> DOWN (graded live)"))
+    hrb=cm.get("hash_ribbons") or {}
+    if hrb.get("state")=="RECOVERY/BUY" and not hrb.get("in_capitulation"):
+        logged.append(log_sig("hash_ribbon_buy","RECOVERY","UP",0.55,"BTC-USD",[30,90,180],
+            meta={"hash_rate_eh":hrb.get("hash_rate_eh"),"days_since_buy":(hrb.get("last_true_buy") or {}).get("days_since")},
+            rationale="hash ribbon recovery (30dMA back above 60dMA after capitulation), historically a buy; in-sample DIAGNOSTIC/INVERTED -> graded live"))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")

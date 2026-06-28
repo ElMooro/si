@@ -3733,6 +3733,16 @@ def lambda_handler(event, context):
                 'eth_rr_25d':((_os.get('eth') or {}).get('headline_30d') or {}).get('rr_25d')}
         except Exception as _ex2:
             print('  options surface merge skipped:',str(_ex2)[:50])
+        # miner economics (hash ribbons + Puell)
+        try:
+            _cm=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-miners.json')['Body'].read().decode())
+            _hr=_cm.get('hash_ribbons') or {}
+            R['miners']={'hash_ribbon':_hr.get('state'),'in_capitulation':_hr.get('in_capitulation'),
+                'days_in_capitulation':_hr.get('days_in_capitulation'),'hash_rate_eh':_hr.get('hash_rate_eh'),
+                'puell':(_cm.get('puell') or {}).get('value'),'puell_zone':(_cm.get('puell') or {}).get('zone'),
+                'difficulty_chg_14d':(_cm.get('difficulty') or {}).get('chg_14d_pct'),'read':_cm.get('interpretation')}
+        except Exception as _ex3:
+            print('  miners merge skipped:',str(_ex3)[:50])
     except Exception as _ex:
         print('  implied_vol merge skipped:',str(_ex)[:60])
 
