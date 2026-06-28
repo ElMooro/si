@@ -336,26 +336,19 @@ def build_layers():
     # Stablecoins as an offshore-dollar proxy: USDT/USDC are dollar liabilities circulating
     # largely OUTSIDE the US banking system. Net minting = offshore dollar CREATION (eases global
     # $ funding); contraction = offshore $ drain — a genuine, real-time eurodollar tell.
+    # Read from the crypto-liquidity engine (small + reliable) rather than re-fetching DefiLlama.
     try:
-        sc = json.loads(http_get("https://stablecoins.llama.fi/stablecoincharts/all", timeout=45))
-        ser = []
-        for p in sc:
-            v = ((p.get("totalCirculatingUSD") or {}).get("peggedUSD")
-                 or (p.get("totalCirculating") or {}).get("peggedUSD"))
-            if v:
-                ser.append((int(p["date"]), v))
-        ser.sort()
-        if ser:
-            cur = ser[-1][1]; tgt = ser[-1][0] - 30 * 86400
-            prior = [v for t, v in ser if t <= tgt]
-            if prior:
-                flow30 = round((cur / prior[-1] - 1) * 100, 2)
-                st = "green" if flow30 >= 0.5 else "yellow" if flow30 >= -1 else "red"
-                fx.append(metric("stablecoin_offshore_usd", "Stablecoin supply (offshore-$ proxy, 30d Δ)",
-                                 flow30, "%", st,
-                                 "Stablecoins (USDT/USDC) are dollar liabilities circulating largely OFFSHORE. "
-                                 "Net minting = offshore-dollar CREATION (eases global $ funding); contraction = "
-                                 "offshore-dollar drain / tightening. Total supply $%.0fbn." % (cur / 1e9)))
+        _cl = gj("data/crypto-liquidity.json") or {}
+        _ss = _cl.get("stablecoin_supply") or {}
+        flow30 = _ss.get("chg_30d_pct"); tot = _ss.get("total_usd")
+        if flow30 is not None:
+            st = "green" if flow30 >= 0 else "yellow" if flow30 >= -4 else "red"
+            fx.append(metric("stablecoin_offshore_usd", "Stablecoin supply (offshore-$ proxy, 30d Δ)",
+                             round(float(flow30), 2), "%", st,
+                             "Stablecoins (USDT/USDC) are dollar liabilities circulating largely OFFSHORE. "
+                             "Net minting = offshore-dollar CREATION (eases global $ funding); contraction = "
+                             "offshore-dollar drain / tightening.%s"
+                             % ((" Total supply $%.0fbn." % (tot / 1e9)) if tot else "")))
     except Exception as _sce:
         print("[eurodollar] stablecoin offshore-$ metric failed:", str(_sce)[:80])
     cust = fred("WMTSECL1")  # FRBNY custody of marketable USTs held for foreign official/intl accounts (weekly)
