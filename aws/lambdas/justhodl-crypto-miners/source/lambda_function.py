@@ -102,35 +102,55 @@ def lambda_handler(event, context):
             return 1 if ma30[d] >= ma60[d] else -1
         cur = cdates[-1]
         in_cap = ma30[cur] < ma60[cur]
-        # last cross + all cross-up dates
+        # cross detection — a TRUE buy fires only when 30dMA crosses back above 60dMA
+        # after a *sustained* capitulation (>=10d below). Naive "any cross-up" catches MA
+        # whipsaw noise (the real hash-ribbon buy is rare — a few times per cycle).
         last_cross = None
         cross_dir = None
-        crossups = []
+        crossups = []        # all up-crosses (noisy)
+        crossups_true = []   # up-crosses ending a real capitulation
+        cap_run = 0          # consecutive days with 30dMA < 60dMA
         for i in range(1, len(cdates)):
             if sign(cdates[i]) != sign(cdates[i - 1]):
                 last_cross = cdates[i]
                 cross_dir = "up" if sign(cdates[i]) > 0 else "down"
                 if sign(cdates[i]) > 0:
                     crossups.append(cdates[i])
+                    if cap_run >= 10:
+                        crossups_true.append(cdates[i])
+            cap_run = cap_run + 1 if sign(cdates[i]) < 0 else 0
         days_since = ((date.fromisoformat(cur) - date.fromisoformat(last_cross)).days
                       if last_cross else None)
-        buy_active = (cross_dir == "up" and days_since is not None and days_since <= 60)
+        last_true_buy = crossups_true[-1] if crossups_true else None
+        days_since_buy = ((date.fromisoformat(cur) - date.fromisoformat(last_true_buy)).days
+                          if last_true_buy else None)
+        buy_active = days_since_buy is not None and days_since_buy <= 60
         state = "CAPITULATION" if in_cap else ("RECOVERY/BUY" if buy_active else "HEALTHY")
+        # current consecutive capitulation length
+        cur_cap_run = 0
+        for d in reversed(cdates):
+            if sign(d) < 0:
+                cur_cap_run += 1
+            else:
+                break
         hribbon = {
             "hash_rate_eh": round(hr[cur] / 1e6, 1),
             "ma30_eh": round(ma30[cur] / 1e6, 1), "ma60_eh": round(ma60[cur] / 1e6, 1),
             "state": state, "in_capitulation": in_cap,
+            "days_in_capitulation": cur_cap_run if in_cap else 0,
             "last_cross": {"date": last_cross, "dir": cross_dir, "days_since": days_since},
+            "last_true_buy": {"date": last_true_buy, "days_since": days_since_buy},
             "buy_active": buy_active,
+            "n_true_buys_3y": len(crossups_true), "n_naive_crossups_3y": len(crossups),
         }
-        # event study: forward BTC after cross-up (buy) signals vs unconditional baseline
+        # event study uses the capitulation-GATED true buys (the real signal)
         for h in (30, 90, 180):
-            sig = _mean([fwd(d, h) for d in crossups])
+            sig = _mean([fwd(d, h) for d in crossups_true])
             base = _mean([fwd(d, h) for d in pdates])
             es_ribbon["fwd%dd" % h] = {
                 "buy_mean": sig, "baseline_mean": base,
                 "edge_pp": round(sig - base, 1) if (sig is not None and base is not None) else None,
-                "n_buys": len(crossups)}
+                "n_buys": len(crossups_true)}
 
     # ── PUELL MULTIPLE ──
     puell = {}
