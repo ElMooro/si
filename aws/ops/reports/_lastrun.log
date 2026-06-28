@@ -1,5 +1,3 @@
-caller: arn:aws:iam::857687956942:user/github-actions-justhodl
-principal: iam-user -> github-actions-justhodl
-self-grant FAILED: An error occurred (LimitExceeded) when calling the PutUserPolicy operation: Maximum policy size of 2048 bytes exceeded for user github-actio
-service-quotas still denied/err: An error occurred (AccessDeniedException) when calling the ListServiceQuotas operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not auth
-DONE 2423
+created managed policy: arn:aws:iam::857687956942:policy/justhodl-servicequotas-events
+IAM step 'attach' FAILED: An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10
+DONE 2424
