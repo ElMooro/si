@@ -1,10 +1,4 @@
-=== crypto-intel: implied_vol ===
-  FunctionError: None
-  implied_vol: {"btc_dvol": 45.1, "btc_dvol_pctile": 65, "btc_dvol_regime": "NORMAL", "btc_dvol_trend": "RISING", "eth_dvol": 59.9, "regime": "NORMAL"}
-  event_study verdict: CONFIRMED_STRONG standing: DIAGNOSTIC
-
-=== eurodollar-plumbing: stablecoin offshore-$ metric ===
-  FunctionError: None
-  plumbing_health: 92.3 | verdict: FUNCTIONING
-  stablecoin_offshore_usd NOT FOUND in layers: ['us_core', 'bank_funding', 'credit', 'backstops', 'settlement', 'fx', 'hubs']
-DONE 2371
+FunctionError: None
+plumbing_health: 92.3 | verdict: FUNCTIONING
+✗ still not found — check CloudWatch
+DONE 2372
