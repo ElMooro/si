@@ -1,0 +1,20 @@
+import boto3, json, time
+from botocore.config import Config
+lam=boto3.client("lambda","us-east-1",config=Config(read_timeout=300,retries={"max_attempts":0}))
+s3=boto3.client("s3","us-east-1")
+lam.invoke(FunctionName="justhodl-signal-backtest",InvocationType="Event",Payload=b"{}")
+print("backtest async; waiting 210s for full recompute + AI..."); time.sleep(210)
+d=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/signal-backtest.json")["Body"].read())
+ai=d.get("ai_analysis") or {}
+print("generated_at:",d.get("generated_at"))
+print("AI source:",ai.get("source"),"| _error:",ai.get("_error"),"| _skip:",ai.get("_skip"))
+print("rank_corr:",ai.get("rank_corr"),"| inverted:",ai.get("inverted"))
+print("\nHEADLINE:",ai.get("headline"))
+print("\nDIAGNOSIS:",ai.get("diagnosis"))
+print("\nPATTERNS:")
+for p in (ai.get("patterns") or []): print("  -",p)
+print("\nRECOMMENDATIONS:")
+for r in (ai.get("recommendations") or []): print("  -",r)
+print("\nVERDICT NOTES:")
+for k,v in (ai.get("verdict_notes") or {}).items(): print("  %s: %s"%(k,v))
+print("DONE 2446")
