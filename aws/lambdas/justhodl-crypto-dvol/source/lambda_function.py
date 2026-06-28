@@ -13,9 +13,10 @@ free and US-reachable (unlike Binance/Bybit). This engine surfaces:
 Writes data/crypto-dvol.json. Sources: Deribit public API (get_volatility_index_data).
 """
 import json
+import math
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
@@ -190,6 +191,26 @@ def lambda_handler(event=None, context=None):
         "HIGH": "crypto implied vol high — fear / crash-hedge demand (often near capitulation)",
     }.get(reg)
     out["duration_s"] = round(time.time() - t0, 1)
+    # ── realized vol (30d) + variance risk premium (DVOL − RV) ──
+    try:
+        since = (datetime.now(timezone.utc).date() - timedelta(days=42)).isoformat()
+        bp = cb_daily("BTC-USD", since)
+        bdts = sorted(bp)
+        rets = [math.log(bp[bdts[i]] / bp[bdts[i - 1]]) for i in range(1, len(bdts)) if bp[bdts[i - 1]]]
+        rr = rets[-30:]
+        if len(rr) >= 20:
+            mean = sum(rr) / len(rr)
+            var = sum((x - mean) ** 2 for x in rr) / (len(rr) - 1)
+            rv30 = (var ** 0.5) * (365 ** 0.5) * 100
+            out["realized_vol_30d"] = round(rv30, 1)
+            if bd is not None:
+                vrp = bd - rv30
+                out["variance_risk_premium"] = round(vrp, 1)
+                out["vrp_read"] = ("implied >> realized — options richly priced (vol-sellers favoured)" if vrp > 8
+                                   else "implied < realized — options cheap vs recent moves (vol-buyers favoured)" if vrp < -3
+                                   else "implied ~ realized — fairly priced")
+    except Exception as e:
+        errs.append("rv: " + str(e)[:50])
     out["event_study_dvol"] = dvol_event_study()
     out["sources"] = ["Deribit get_volatility_index_data (DVOL)", "Coinbase BTC-USD (event-study target)"]
     if errs:

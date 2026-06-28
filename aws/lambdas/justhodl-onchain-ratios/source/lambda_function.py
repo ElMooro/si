@@ -68,7 +68,7 @@ def fetch_btc_metrics():
     try:
         url = (
             f"{COINMETRICS_BASE}/timeseries/asset-metrics"
-            f"?assets=btc&metrics=PriceUSD,CapMrktCurUSD,CapRealUSD,CapMVRVCur,NVTAdj"
+            f"?assets=btc&metrics=PriceUSD,CapMrktCurUSD,CapRealUSD,CapMVRVCur,NVTAdj,SplyCur,FlowInExUSD,FlowOutExUSD"
             f"&pretty=false&page_size=1&end_time={datetime.utcnow().strftime('%Y-%m-%d')}"
         )
         d = _fetch_json(url)
@@ -80,6 +80,26 @@ def fetch_btc_metrics():
             out["realized_cap"] = float(r.get("CapRealUSD") or 0)
             out["mvrv"] = float(r.get("CapMVRVCur") or 0)
             out["nvt"] = float(r.get("NVTAdj") or 0)
+            out["supply"] = float(r.get("SplyCur") or 0)
+            _fin = float(r.get("FlowInExUSD") or 0)
+            _fout = float(r.get("FlowOutExUSD") or 0)
+            out["exchange_inflow_usd"] = _fin
+            out["exchange_outflow_usd"] = _fout
+            out["exchange_netflow_usd"] = _fin - _fout  # +: coins TO exchanges (sell pressure); -: accumulation
+            # realized price (aggregate on-chain cost basis) + NUPL + flow regime
+            if out["realized_cap"] and out["supply"]:
+                out["realized_price"] = round(out["realized_cap"] / out["supply"], 0)
+                if out["price"]:
+                    out["price_vs_realized_pct"] = round((out["price"] / out["realized_price"] - 1) * 100, 1)
+            if out["market_cap"] and out["realized_cap"]:
+                _nupl = 1 - out["realized_cap"] / out["market_cap"]
+                out["nupl"] = round(_nupl, 4)
+                out["nupl_zone"] = ("CAPITULATION" if _nupl < 0 else "HOPE/FEAR" if _nupl < 0.25
+                                    else "OPTIMISM/ANXIETY" if _nupl < 0.5 else "BELIEF/DENIAL" if _nupl < 0.75
+                                    else "EUPHORIA/GREED")
+            _nf = out["exchange_netflow_usd"]
+            out["netflow_regime"] = ("OUTFLOW (accumulation)" if _nf < -1e8 else "INFLOW (distribution)"
+                                     if _nf > 1e8 else "BALANCED")
     except Exception as e:
         out["errors"].append(f"coinmetrics_btc: {type(e).__name__}")
 
