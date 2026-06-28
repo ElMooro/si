@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-coinbase-premium",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 128,
+  "timeout": 30,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Coinbase premium index (BTC/ETH) — Coinbase spot vs Kraken as a US-institutional spot-demand proxy.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-coinbase-premium-hourly",
+    "cron": "cron(35 * * * ? *)",
+    "description": "Hourly Coinbase premium snapshot"
+  }
+}
