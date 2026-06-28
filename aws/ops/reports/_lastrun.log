@@ -1,5 +1,6 @@
-crypto_dvol: 3 in ledger
-   latest dir DOWN | baseline 60036 | epoch 1782605655 | val 45.1 NORMAL
-crypto_risk_score: 393 in ledger
-   latest dir DOWN | baseline 60036 | epoch 1782605655 | val HIGH
+dvol json btc: {"dvol": 45.1, "pctile_1y": 65, "regime": "NORMAL", "chg_30d": 7.8, "trend": "RISING", "n_days": 371}
+logger last modified: 2026-06-28T00:04:58.000+0000
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"logged\": 53}"}
+crypto_dvol_buyfear found: 1
+   2026-06-28T00:06:17.354795+00:00 | UP | val DVOL 45.1 (65th) | baseline 59962 | windows ['7', '14', '30'] | status pending
 DONE 2370
