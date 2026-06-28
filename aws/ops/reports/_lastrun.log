@@ -1,4 +1,15 @@
-fetch 1: 7/7 markers present
-  ALL markers live: ['data-tab="volcomplex"', 'Vol Complex', 'pane-volcomplex'] ...
-main page links to /crypto/: True
-DONE 2394
+=== 1. CFTC TFF — CME Bitcoin & Ether COT ===
+  CFTC err: URL can't contain control characters. '/resource/gpe5-46if.json?$where=upper%28contract_market_name%29%20like%20%27%25BI
+
+=== 2. CoinMetrics community — which cohort metrics are FREE for BTC ===
+  CM catalog err: HTTP Error 400: Bad Request
+
+=== 3. Coinbase premium (Coinbase vs Kraken spot) ===
+  Coinbase $60108.24 | Kraken $60121.1 | premium -0.021%
+
+=== 4. Stablecoin depeg (CoinGecko) ===
+  dai: $0.999689 (depeg -0.031%)
+  first-digital-usd: $0.997161 (depeg -0.284%)
+  tether: $0.998556 (depeg -0.144%)
+  usd-coin: $0.999696 (depeg -0.03%)
+DONE 2395
