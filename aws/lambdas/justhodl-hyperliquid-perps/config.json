@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-hyperliquid-perps",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Hyperliquid perp intelligence — cross-venue OI (USD), funding, premium across 230 perps. System leverage gauge, OI-vs-price divergence (buildup/deleveraging), funding extremes, and a liquidation-pressure proxy (sharp OI drop + premium dislocation). Covers gaps #2 (perp OI/funding/liq) + #4 (OI analytics)."
+}
