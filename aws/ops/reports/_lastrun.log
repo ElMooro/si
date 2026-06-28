@@ -1,9 +1,6 @@
-state: Active
-FunctionError: None | resp: {"statusCode": 200, "body": "{\"total_oi_usd\": 6068067193, \"leverage_regime\": \"NEUTRAL\", \"btc_funding_ann\": 7.22}"}
-total OI: $6.07B | BTC OI $2.02B funding 7.22%/yr premium -3.8bps | ETH $1.14B | SOL $0.38B
-leverage_regime: NEUTRAL | liq_proxy: NORMAL | hist_n: 1
-top OI: [('BTC', '$2.0B'), ('HYPE', '$1.3B'), ('ETH', '$1.1B'), ('SOL', '$0.4B'), ('ZEC', '$0.2B')]
-funding most_long: [['IP', 717.58], ['GRIFFAIN', 44.48], ['CHIP', 10.95]]
-interp: HL perp leverage: $6.1B total OI, BTC funding 7%/yr, regime NEUTRAL.
-schedule state: ENABLED
-DONE 2436
+crypto-intel async; wait 75s...
+crypto-intel vNone hyperliquid: OI $0.0B | BTC funding None%/yr | regime None | liq None
+cycle-clock crypto: hl_total_oi $6.1B | hl_regime NEUTRAL | hl_funding 7.22 | hl_liq NORMAL
+  synthesis: STRONG RISK-OFF -49 | any perp contributor: []
+confluence: regime NEUTRAL tilt -2 | hl_regime NEUTRAL | hl_oi $6.1B
+DONE 2437
