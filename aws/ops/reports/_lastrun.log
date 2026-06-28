@@ -1,6 +1,19 @@
-=== justhodl-finviz-universe ===
-  FunctionError: None
-  resp: {"statusCode": 200, "body": "{\"n_tickers\": 11357, \"short_float\": 5744, \"float\": 5757, \"rel_volume\": 11319, \"elapsed_s\": 10.4}"}
-=== justhodl-finviz-signals ===
-  invoke err: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-
-DONE 2411
+total rules: 300 | ENABLED: 300 | DISABLED: 0
+
+=== DISABLED rules (0) ===
+
+=== schedule state for sampled stale engines ===
+  finviz-groups-3x -> ENABLED cron(15 19 * * ? *)
+  finviz-news-4x -> ENABLED cron(38 20 * * ? *)
+  finviz-signals-3x -> ENABLED cron(45 16 * * ? *)
+  justhodl-edge-discovery-weekly -> ENABLED cron(0 11 ? * SUN *)
+  meta-improver -> NO RULE FOUND (schedule deleted?)
+  causality -> NO RULE FOUND (schedule deleted?)
+  bagger-engine-weekly -> ENABLED cron(0 12 ? * SUN *)
+  decisive -> NO RULE FOUND (schedule deleted?)
+  secretary -> NO RULE FOUND (schedule deleted?)
+  digest-trends -> NO RULE FOUND (schedule deleted?)
+  capital-inflows -> NO RULE FOUND (schedule deleted?)
+  justhodl-dark-pool-weekly -> ENABLED cron(0 14 ? * WED *)
+  earnings-quality -> NO RULE FOUND (schedule deleted?)
+DONE 2412
