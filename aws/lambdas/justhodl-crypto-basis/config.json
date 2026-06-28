@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-crypto-basis",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto futures basis / cash-and-carry — annualized dated-future basis term structure + perp premium/funding (BTC/ETH) from Deribit. Leverage-demand and carry-regime gauge.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-crypto-basis-hourly",
+    "cron": "cron(25 * * * ? *)",
+    "description": "Hourly futures basis snapshot"
+  }
+}
