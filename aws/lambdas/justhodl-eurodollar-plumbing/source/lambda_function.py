@@ -333,6 +333,31 @@ def build_layers():
         dh = [v for _, v in dollar]
         fx.append(metric("broad_dollar", "Broad trade-weighted USD", round(dv, 2), "idx",
                          flag(pctile(dv, dh), 75, 90), "A surging dollar tightens offshore funding; proxy for cross-currency strain", pctile(dv, dh), dd))
+    # Stablecoins as an offshore-dollar proxy: USDT/USDC are dollar liabilities circulating
+    # largely OUTSIDE the US banking system. Net minting = offshore dollar CREATION (eases global
+    # $ funding); contraction = offshore $ drain — a genuine, real-time eurodollar tell.
+    try:
+        sc = json.loads(http_get("https://stablecoins.llama.fi/stablecoincharts/all"))
+        ser = []
+        for p in sc:
+            v = ((p.get("totalCirculatingUSD") or {}).get("peggedUSD")
+                 or (p.get("totalCirculating") or {}).get("peggedUSD"))
+            if v:
+                ser.append((int(p["date"]), v))
+        ser.sort()
+        if ser:
+            cur = ser[-1][1]; tgt = ser[-1][0] - 30 * 86400
+            prior = [v for t, v in ser if t <= tgt]
+            if prior:
+                flow30 = round((cur / prior[-1] - 1) * 100, 2)
+                st = "green" if flow30 >= 0.5 else "yellow" if flow30 >= -1 else "red"
+                fx.append(metric("stablecoin_offshore_usd", "Stablecoin supply (offshore-$ proxy, 30d Δ)",
+                                 flow30, "%", st,
+                                 "Stablecoins (USDT/USDC) are dollar liabilities circulating largely OFFSHORE. "
+                                 "Net minting = offshore-dollar CREATION (eases global $ funding); contraction = "
+                                 "offshore-dollar drain / tightening. Total supply $%.0fbn." % (cur / 1e9)))
+    except Exception:
+        pass
     cust = fred("WMTSECL1")  # FRBNY custody of marketable USTs held for foreign official/intl accounts (weekly)
     cd2, cv2 = latest(cust)
     if cv2 is not None and len(cust) > 13 and cust[-14][1]:

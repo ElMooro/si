@@ -3715,6 +3715,17 @@ def lambda_handler(event, context):
 
     ai=gen_ai(R,tech);R['ai_intelligence']=ai
 
+    # implied-vol complex (DVOL) — merged from crypto-dvol engine + its event study
+    try:
+        _dv=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-dvol.json')['Body'].read().decode())
+        _b=_dv.get('btc') or {}; _e=_dv.get('eth') or {}
+        R['implied_vol']={'btc_dvol':_b.get('dvol'),'btc_dvol_pctile':_b.get('pctile_1y'),
+            'btc_dvol_regime':_b.get('regime'),'btc_dvol_trend':_b.get('trend'),'eth_dvol':_e.get('dvol'),
+            'regime':_dv.get('crypto_vol_regime'),'interpretation':_dv.get('interpretation'),
+            'event_study':_dv.get('event_study_dvol')}
+    except Exception as _ex:
+        print('  implied_vol merge skipped:',str(_ex)[:60])
+
 
 
 
