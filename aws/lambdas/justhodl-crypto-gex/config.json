@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-crypto-gex",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crypto dealer gamma exposure (GEX) + max-pain by strike (BTC/ETH) from Deribit OI-by-strike. Net GEX, gamma-flip level, call/put gamma walls (resistance/support), max-pain, and pinning-vs-unstable regime. Completes the vol complex (positioning-by-strike).",
+  "environment": {
+    "ENGINE": "crypto-gex"
+  }
+}
