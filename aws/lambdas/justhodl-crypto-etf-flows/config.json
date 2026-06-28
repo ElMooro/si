@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-crypto-etf-flows",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 150,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Spot BTC & ETH ETF net creation/redemption flows (full US roster) via Polygon fund-flows — the marginal buyer/seller of crypto. Daily/5d/30d aggregates, percentile, price-context + point-in-time event study.",
+  "environment": {
+    "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+  }
+}
