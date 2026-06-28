@@ -99,7 +99,7 @@ CONVICTION_RANK = {"STRONG OPPORTUNITY": 6, "OPPORTUNITY": 5, "FAIR VALUE": 4,
                    "HOLD / NEUTRAL": 3, "EXPENSIVE": 2, "HIGH RISK": 1}
 
 
-def _spearman(pairs):
+def _rank_corr_det(pairs):
     n = len(pairs)
     if n < 3:
         return None
@@ -130,7 +130,7 @@ def _deterministic_analysis(out):
     so_wr = so.get("win_rate")
     pairs = [(CONVICTION_RANK.get(k, 0), v.get("win_rate") or 0)
              for k, v in bv.items() if v and v.get("n") and k in CONVICTION_RANK]
-    rho = _spearman(pairs)
+    rho = _rank_corr_det(pairs)
     inverted = bool(so_wr is not None and top_k != "STRONG OPPORTUNITY"
                     and (top_v.get("win_rate") or 0) - so_wr > 3)
     if inverted:
