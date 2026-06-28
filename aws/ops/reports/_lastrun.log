@@ -1,9 +1,9 @@
-FunctionError: None
-RIBBON: CAPITULATION | in_cap days: 20
-  true buys 3y: 7 | naive crossups 3y: 15
-  last true buy: {'date': '2026-05-23', 'days_since': 35}
-event study verdict: INVERTED standing: DIAGNOSTIC
-   fwd30d: buy mean -10.2% vs base 3.2% | edge -13.4pp (n 7)
-   fwd90d: buy mean -6.1% vs base 12.2% | edge -18.3pp (n 7)
-   fwd180d: buy mean 28.3% vs base 26.4% | edge 1.9pp (n 7)
-DONE 2388
+crypto-intel async kicked
+ledger [LOG] lines:
+   [LOG] crypto_dvol=45.1 NORMAL DOWN conf=0.65 baseline=$60098.00
+   [LOG] crypto_dvol_buyfear=DVOL 45.1 (65th) UP conf=0.65 baseline=$60098.00
+   [LOG] crypto_options_rr=RR25 -8.5 UP conf=0.71 baseline=$60098.00
+   [LOG] puell_multiple=Puell 0.78 UP conf=0.58 baseline=$60098.00
+waiting for crypto-intel async write...
+crypto-intel miners block: {"hash_ribbon": "CAPITULATION", "in_capitulation": true, "days_in_capitulation": 20, "hash_rate_eh": 1111.8, "puell": 0.78, "puell_zone": "UNDERVALUED", "difficulty_chg_14d": -4.2, "read": "hash ribbons: CAPITULATION \u00b7 Puell 0.78 (UNDERVALUED)"}
+DONE 2389
