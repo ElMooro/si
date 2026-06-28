@@ -38,6 +38,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th{text-align:left;padd
 <div class="tab" data-tab="tvl">TVL</div>
 <div class="tab" data-tab="derivatives">Derivatives</div>
 <div class="tab" data-tab="volcomplex">Vol Complex</div>
+<div class="tab" data-tab="flows">Flows · COT</div>
 <div class="tab" data-tab="sentiment">Sentiment</div>
 <div class="tab" data-tab="global">Global</div>
 <div class="tab" data-tab="onchain">On-Chain</div>
@@ -116,6 +117,21 @@ h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>BT
 h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>25&#916; RR</div><div class='mono' style='font-size:16px;color:"+rrc+"'>"+(rr==null?"-":(rr>0?"+":"")+rr)+"</div><div style='font-size:9px;color:var(--t3)'>"+(rr==null?"":rr<=-6?"put skew":rr>=3?"call skew":"balanced")+"</div></div>";
 h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>Hash ribbon</div><div style='font-size:12px;font-weight:700;color:"+hrc+";margin-top:3px'>"+(mn.hash_ribbon||"-")+"</div><div style='font-size:9px;color:var(--t3)'>Puell "+(mn.puell!=null?mn.puell:"-")+"</div></div>";
 h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>3m carry</div><div class='mono' style='font-size:16px'>"+(cc!=null?cc+"%":"-")+"</div><div style='font-size:9px;color:var(--t3)'>"+(bs.btc_regime?String(bs.btc_regime).split(" (")[0]:"")+"</div></div>";
+h+="</div></div>";
+}})();
+
+// Flows · COT quick summary (folded free-data engines)
+(function(){var xf=D.exchange_flows||{};var co=D.cot||{};var cbp=D.coinbase_premium||{};var onr=D.onchain_ratios||{};
+if(xf.btc_regime||co.btc_asset_mgr_read||cbp.btc_pct!=null||onr.realized_price!=null){
+var xfc=/ACCUMULAT/i.test(xf.btc_regime||"")?"var(--green)":/DISTRIBUT/i.test(xf.btc_regime||"")?"var(--red)":"var(--t3)";
+var amc=/LONG/i.test(co.btc_asset_mgr_read||"")?"var(--green)":/SHORT/i.test(co.btc_asset_mgr_read||"")?"var(--red)":"var(--t3)";
+var cpv=cbp.btc_pct;var cpc=cpv==null?"var(--t3)":cpv>=0.05?"var(--green)":cpv<=-0.05?"var(--red)":"var(--t3)";
+var pvr=onr.price_vs_realized_pct;var pvrc=pvr==null?"var(--t3)":pvr>=0?"var(--green)":"var(--red)";
+h+="<div class='card' style='margin:12px 0'><div class='card-title'>Flows · COT · Realized</div><div class='grid g4'>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>Exchange flows</div><div style='font-size:12px;font-weight:700;color:"+xfc+";margin-top:3px'>"+(xf.btc_regime?String(xf.btc_regime).split(" (")[0]:"-")+"</div><div style='font-size:9px;color:var(--t3)'>"+(xf.btc_netflow_30d_pctile!=null?xf.btc_netflow_30d_pctile+"th pctile":"")+"</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>Inst COT</div><div style='font-size:12px;font-weight:700;color:"+amc+";margin-top:3px'>"+(co.btc_asset_mgr_read||"-")+"</div><div style='font-size:9px;color:var(--t3)'>"+(co.btc_asset_mgr_extreme||"asset mgrs")+"</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>CB premium</div><div class='mono' style='font-size:16px;color:"+cpc+"'>"+(cpv!=null?(cpv>0?"+":"")+cpv+"%":"-")+"</div><div style='font-size:9px;color:var(--t3)'>US demand</div></div>";
+h+="<div style='text-align:center'><div style='font-size:9px;color:var(--t3)'>Realized px</div><div class='mono' style='font-size:16px'>"+(onr.realized_price!=null?"$"+Math.round(onr.realized_price/1000)+"k":"-")+"</div><div style='font-size:9px;color:"+pvrc+"'>"+(pvr!=null?(pvr>0?"+":"")+pvr+"%":"")+"</div></div>";
 h+="</div></div>";
 }})();
 
@@ -336,6 +352,50 @@ h+="<div class='metric'><span class='metric-name'>ETH funding</span><span class=
 h+="</div>";
 h+="</div>";
 h+="<div style='font-size:10.5px;color:var(--t3);margin-top:4px'>Vol-complex engines: <b>crypto-dvol</b> (implied-vol level + buy-fear event study), <b>crypto-options-surface</b> (25&#916; risk reversal, butterfly, vol term structure), <b>crypto-miners</b> (hash ribbons + Puell), <b>crypto-basis</b> (cash-and-carry term structure). Put skew + vol backwardation = near-term hedging; miner capitulation + low Puell = bottoming setup; carry backwardation = deleveraging. Candidate signals are graded live in the central FDR ledger — none trusted until proven.</div>";
+h+="</div>";
+
+// ========== FLOWS · COT (free-data engines) ==========
+h+="<div class='pane' id='pane-flows'>";
+var _xf=D.exchange_flows||{};var _co=D.cot||{};var _cbp=D.coinbase_premium||{};var _spg=D.stablecoin_peg||{};var _onr2=D.onchain_ratios||{};
+var _xfc=/ACCUMULAT/i.test(_xf.btc_regime||"")?"var(--green)":/DISTRIBUT/i.test(_xf.btc_regime||"")?"var(--red)":"var(--t3)";
+var _amc=/LONG/i.test(_co.btc_asset_mgr_read||"")?"var(--green)":/SHORT/i.test(_co.btc_asset_mgr_read||"")?"var(--red)":"var(--t3)";
+var _cpv=_cbp.btc_pct;var _cpc=_cpv==null?"var(--t3)":_cpv>=0.05?"var(--green)":_cpv<=-0.05?"var(--red)":"var(--t3)";
+var _spc=_spg.gauge==="green"?"var(--green)":_spg.gauge==="yellow"?"var(--yellow)":_spg.gauge==="red"?"var(--red)":"var(--t3)";
+var _pvr=_onr2.price_vs_realized_pct;var _pvrc=_pvr==null?"var(--t3)":_pvr>=0?"var(--green)":"var(--red)";
+h+="<div class='grid g4' style='margin-bottom:12px'>";
+h+="<div class='card'><div class='card-title'>Exchange Flows</div>";
+h+="<div class='stat-big' style='color:"+_xfc+";font-size:17px'>"+(_xf.btc_regime||"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_xfc+"'>BTC 30d netflow"+(_xf.btc_netflow_30d_pctile!=null?" · "+_xf.btc_netflow_30d_pctile+"th":"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>30d net (BTC)</span><span class='metric-val mono'>"+(_xf.btc_netflow_30d!=null?Math.round(_xf.btc_netflow_30d).toLocaleString():"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>ETH 30d</span><span class='metric-val' style='font-size:10px'>"+(_xf.eth_regime||"-")+"</span></div>";
+if(_xf.event_study)h+="<div class='metric'><span class='metric-name'>Flow study</span><span class='metric-val' style='font-size:10px;color:"+(/INVERT/i.test(_xf.event_study)?"var(--red)":"var(--green)")+"'>"+_xf.event_study+"</span></div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Institutional COT (CME)</div>";
+h+="<div class='stat-big' style='color:"+_amc+";font-size:17px'>"+(_co.btc_asset_mgr_read||"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_amc+"'>asset managers"+(_co.btc_asset_mgr_pctile!=null?" · "+_co.btc_asset_mgr_pctile+"th"+(_co.btc_asset_mgr_extreme?" "+_co.btc_asset_mgr_extreme:""):"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>AM net</span><span class='metric-val mono "+cl(_co.btc_asset_mgr_net)+"'>"+(_co.btc_asset_mgr_net!=null?_co.btc_asset_mgr_net.toLocaleString():"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Hedge funds</span><span class='metric-val mono'>"+(_co.btc_lev_funds_read||"-")+(_co.btc_lev_funds_net!=null?" "+_co.btc_lev_funds_net.toLocaleString():"")+"</span></div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Coinbase Premium</div>";
+h+="<div class='stat-big' style='color:"+_cpc+"'>"+(_cpv!=null?(_cpv>0?"+":"")+_cpv+"%":"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_cpc+"'>"+(_cbp.btc_read||"US spot demand")+"</div>";
+h+="<div class='metric'><span class='metric-name'>ETH premium</span><span class='metric-val mono'>"+(_cbp.eth_pct!=null?(_cbp.eth_pct>0?"+":"")+_cbp.eth_pct+"%":"-")+"</span></div>";
+h+="<div style='font-size:9.5px;color:var(--t3);margin-top:6px'>Coinbase vs Kraken — US/institutional bid proxy</div>";
+h+="</div>";
+h+="<div class='card'><div class='card-title'>Stablecoin Peg</div>";
+h+="<div class='stat-big' style='color:"+_spc+";font-size:17px'>"+(_spg.status||"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_spc+"'>worst: "+(_spg.worst_coin||"-")+(_spg.worst_depeg_pct!=null?" "+_spg.worst_depeg_pct+"%":"")+"</div>";
+var _coins=_spg.coins||{};Object.keys(_coins).forEach(function(k){var cc=_coins[k].status==="green"?"var(--green)":_coins[k].status==="yellow"?"var(--yellow)":"var(--red)";h+="<div class='metric'><span class='metric-name'>"+k+"</span><span class='metric-val mono' style='color:"+cc+"'>"+_coins[k].depeg_pct+"%</span></div>";});
+h+="</div>";
+h+="</div>";
+h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>On-Chain Valuation · Realized Price</div>";
+h+="<div class='grid g4'>";
+h+="<div><div class='stat-sm'>Realized Price</div><div class='stat-big'>"+(_onr2.realized_price!=null?"$"+Math.round(_onr2.realized_price).toLocaleString():"-")+"</div><div style='font-size:10px;color:var(--t3)'>aggregate cost basis</div></div>";
+h+="<div><div class='stat-sm'>Price vs Realized</div><div class='stat-big' style='color:"+_pvrc+"'>"+(_pvr!=null?(_pvr>0?"+":"")+_pvr+"%":"-")+"</div></div>";
+h+="<div><div class='stat-sm'>MVRV</div><div class='stat-big'>"+(_onr2.mvrv!=null?(+_onr2.mvrv).toFixed(2):"-")+"</div></div>";
+h+="<div><div class='stat-sm'>NUPL</div><div class='stat-big'>"+(_onr2.nupl!=null?_onr2.nupl:"-")+"</div><div style='font-size:10px;color:var(--t3)'>"+(_onr2.nupl_zone||"")+"</div></div>";
+h+="</div></div>";
+h+="<div style='font-size:10.5px;color:var(--t3);margin-top:4px'>Free-data engines: <b>crypto-exchange-flows</b> (coins on/off exchanges = distribution/accumulation), <b>crypto-cot</b> (CME asset-manager vs hedge-fund positioning), <b>coinbase-premium</b> (US spot demand), <b>crypto-stablecoin-peg</b> (depeg tail-risk), realized price from <b>onchain-ratios</b>. Honest note: the exchange-flow &quot;outflow = bullish&quot; heuristic measures as INVERTED over the last ~3.5y (ETF-era regime change) — graded live in the FDR ledger, not assumed.</div>";
 h+="</div>";
 
 // ========== SENTIMENT (Full History since 2016) ==========
