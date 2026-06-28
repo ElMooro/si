@@ -1,14 +1,19 @@
-crypto-intel async kicked
-logger FunctionError: None | resp: {"statusCode": 200, "body": "{\"logged\": 55}"}
-crypto signals logged this run:
-   [LOG] crypto_fear_greed=EXTREME_FEAR UP conf=0.80 baseline=$60121.00
-   [LOG] crypto_risk_score=HIGH DOWN conf=0.46 baseline=$60121.00
-   [LOG] crypto_dvol=45.1 NORMAL DOWN conf=0.65 baseline=$60121.00
-   [LOG] crypto_dvol_buyfear=DVOL 45.1 (65th) UP conf=0.65 baseline=$60121.00
-   [LOG] crypto_options_rr=RR25 -8.5 UP conf=0.71 baseline=$60121.00
-   [LOG] puell_multiple=Puell 0.78 UP conf=0.58 baseline=$60121.00
-basis/error lines: none (clean; cc_basis_extreme NEUTRAL as expected)
-waiting for crypto-intel write...
-crypto-intel basis block: {"btc_cash_carry_3m_pct": 3.06, "btc_funding_ann_pct": 0.21, "btc_regime": "MILD CONTANGO", "eth_cash_carry_3m_pct": 1.17, "eth_funding_ann_pct": -4.05}
-implied_vol has surface: True | miners present: True | basis present: True
-DONE 2392
+cycle-clock async kicked
+confluence FunctionError: None
+CONFLUENCE market_context: regime NEUTRAL tilt 0
+  vol_regime NORMAL | skew: PUT SKEW — downside puts bid, hedging/fear | vol_term: BACKWARDATION (near-term stress)
+  puell 0.78 UNDERVALUED | hash_ribbon CAPITULATION | carry_3m 3.06 MILD CONTANGO
+waiting for cycle-clock...
+
+CYCLE-CLOCK crypto block new fields:
+  rr_25d -8.46 | skew_read: PUT SKEW — downside puts bid, hedging/fear | vol_term_regime: BACKWARDATION (near-term stress)
+  hash_ribbon CAPITULATION | puell 0.78 UNDERVALUED
+  cash_carry_3m 3.06 | carry_regime MILD CONTANGO | eth_funding_ann -4.05
+
+synthesis posture: STRONG RISK-OFF -47
+crypto divergences: 4
+   - CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-off.
+   - CRYPTO VOL RISING: BTC DVOL 45.1 (65th pctile) is climbing off low levels — crypto hedging demand is picking up beneath a still-normal surfa
+   - CRYPTO BTC/ETH SPLIT: BTC futures carry positive (3.06% 3m contango) while ETH perp funding is negative (-4.05%/yr) — ETH-specific deleverag
+   - CRYPTO MINER CAPITULATION: hash ribbons in capitulation (20d) with Puell 0.78 (UNDERVALUED) — miner stress that has historically marked bott
+DONE 2393
