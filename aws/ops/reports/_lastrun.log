@@ -1,2 +1,13 @@
-STILL MISSING: An error occurred (ResourceNotFoundException) when calling the GetFunc
-DONE 2381
+CREATED: arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-options
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2382_create_options.py", line 27, in <module>
+    events.put_rule(Name=rule,ScheduleExpression=sch["cron"],State="ENABLED",Description=sch.get("description","")[:255])
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
