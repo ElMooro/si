@@ -1,19 +1,4 @@
-cycle-clock async kicked
-confluence FunctionError: None
-CONFLUENCE market_context: regime NEUTRAL tilt 0
-  vol_regime NORMAL | skew: PUT SKEW — downside puts bid, hedging/fear | vol_term: BACKWARDATION (near-term stress)
-  puell 0.78 UNDERVALUED | hash_ribbon CAPITULATION | carry_3m 3.06 MILD CONTANGO
-waiting for cycle-clock...
-
-CYCLE-CLOCK crypto block new fields:
-  rr_25d -8.46 | skew_read: PUT SKEW — downside puts bid, hedging/fear | vol_term_regime: BACKWARDATION (near-term stress)
-  hash_ribbon CAPITULATION | puell 0.78 UNDERVALUED
-  cash_carry_3m 3.06 | carry_regime MILD CONTANGO | eth_funding_ann -4.05
-
-synthesis posture: STRONG RISK-OFF -47
-crypto divergences: 4
-   - CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-off.
-   - CRYPTO VOL RISING: BTC DVOL 45.1 (65th pctile) is climbing off low levels — crypto hedging demand is picking up beneath a still-normal surfa
-   - CRYPTO BTC/ETH SPLIT: BTC futures carry positive (3.06% 3m contango) while ETH perp funding is negative (-4.05%/yr) — ETH-specific deleverag
-   - CRYPTO MINER CAPITULATION: hash ribbons in capitulation (20d) with Puell 0.78 (UNDERVALUED) — miner stress that has historically marked bott
-DONE 2393
+fetch 1: 7/7 markers present
+  ALL markers live: ['data-tab="volcomplex"', 'Vol Complex', 'pane-volcomplex'] ...
+main page links to /crypto/: True
+DONE 2394
