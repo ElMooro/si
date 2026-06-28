@@ -1,13 +1,13 @@
-CREATED: arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-options
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2382_create_options.py", line 27, in <module>
-    events.put_rule(Name=rule,ScheduleExpression=sch["cron"],State="ENABLED",Description=sch.get("description","")[:255])
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
+BTC options live: 930
+sample instrument keys: ['base_currency', 'block_trade_commission', 'block_trade_min_trade_amount', 'block_trade_tick_size', 'contract_size', 'counter_currency', 'creation_timestamp', 'expiration_timestamp', 'instrument_id', 'instrument_name', 'instrument_type', 'is_active', 'kind', 'maker_commission', 'min_trade_amount', 'option_type', 'price_index', 'quote_currency', 'settlement_currency', 'settlement_period', 'state', 'strike', 'taker_commission', 'tick_size', 'tick_size_steps']
+sample: {'instrument_name': 'BTC-28JUN26-50000-C', 'strike': 50000.0, 'option_type': 'call', 'expiration_timestamp': 1782633600000, 'tick_size': 0.0001}
+n_expiries: 13
+expiries (days out): [0.2, 1.2, 2.2, 3.2, 5.2, 12.2, 19.2, 33.2, 61.2, 89.2, 180.2, 271.2]
+target expiry ~30d: 2026-07-31 | n_strikes: 116
+underlying_price: 60316.59
+ticker keys: ['ask_iv', 'best_ask_amount', 'best_ask_price', 'best_bid_amount', 'best_bid_price', 'bid_iv', 'estimated_delivery_price', 'greeks', 'index_price', 'instrument_name', 'interest_rate', 'last_price', 'mark_iv', 'mark_price', 'max_price', 'min_price', 'open_interest', 'settlement_price', 'state', 'stats', 'timestamp', 'underlying_index', 'underlying_price']
+ticker sample: {'instrument_name': 'BTC-31JUL26-60000-C', 'mark_iv': 42.55, 'bid_iv': 41.95, 'ask_iv': 42.78, 'underlying_price': 60316.3}
+greeks: {'delta': 0.54187, 'gamma': 5e-05, 'vega': 72.21388, 'theta': -46.22158, 'rho': 26.81279}
+book_summary n: 930 | sample keys: ['ask_price', 'base_currency', 'bid_price', 'creation_timestamp', 'estimated_delivery_price', 'high', 'instrument_name', 'interest_rate', 'last', 'low', 'mark_iv', 'mark_price', 'mid_price', 'open_interest', 'price_change', 'quote_currency', 'underlying_index', 'underlying_price', 'volume', 'volume_usd']
+book_summary mark_iv present?: True | underlying present?: True
+DONE 2380
