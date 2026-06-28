@@ -69,6 +69,96 @@ def batch_quotes(tickers):
     return out
 
 
+def stock_rollup(vt_map, top_n=20, min_n=2):
+    """Per-ticker rollup inside each verdict/bucket -> leaders (best mean fwd return)
+    and laggards (worst), so the scorecard can SHOW which names win/lose, not just %."""
+    out_map = {}
+    for v, tmap in vt_map.items():
+        rolled = []
+        for tk, rets in tmap.items():
+            rr = [x for x in rets if x is not None]
+            if not rr:
+                continue
+            m = statistics.mean(rr)
+            rolled.append({"ticker": tk, "ret": round(m, 1), "n": len(rr),
+                           "win_rate": round(sum(1 for x in rr if x > 0) / len(rr) * 100)})
+        if not rolled:
+            continue
+        robust = [x for x in rolled if x["n"] >= min_n]
+        use = robust if len(robust) >= 8 else rolled
+        use.sort(key=lambda x: -x["ret"])
+        leaders = use[:top_n]
+        lead_set = {x["ticker"] for x in leaders}
+        laggards = [x for x in reversed(use) if x["ticker"] not in lead_set][:top_n]
+        out_map[v] = {"leaders": leaders, "laggards": laggards,
+                      "n_tickers": len(rolled), "min_obs": min_n}
+    return out_map
+
+
+def ai_analyze(out):
+    """Heavy-AI layer: Claude reads the scorecard (verdict stats + per-ticker winners/
+    losers + buckets) and returns a strict-JSON honest diagnosis + recalibration actions."""
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        return {"_skip": "no ANTHROPIC_API_KEY"}
+    ov = out.get("overall") or {}
+    lines = ["OVERALL: n=%s win=%s%% avg=%s%% median=%s%% hit5=%s%% best/worst=%s/%s" % (
+        out.get("n_observations"), ov.get("win_rate"), ov.get("avg"), ov.get("median"),
+        ov.get("hit_5pct"), ov.get("best"), ov.get("worst"))]
+    for v, s in sorted((out.get("by_verdict") or {}).items(),
+                       key=lambda kv: -((kv[1] or {}).get("win_rate") or 0)):
+        if not s:
+            continue
+        lines.append("VERDICT %s: n=%s win=%s%% avg=%s%% median=%s%% hit5=%s%% best/worst=%s/%s" % (
+            v, s["n"], s["win_rate"], s["avg"], s["median"], s["hit_5pct"], s["best"], s["worst"]))
+    for v, st in (out.get("by_verdict_stocks") or {}).items():
+        L = ", ".join("%s(%s%%,n%s)" % (x["ticker"], x["ret"], x["n"]) for x in st["leaders"][:8])
+        D = ", ".join("%s(%s%%,n%s)" % (x["ticker"], x["ret"], x["n"]) for x in st["laggards"][:8])
+        lines.append("%s -> winners: %s || losers: %s" % (v, L, D))
+    for b, s in (out.get("by_compounder_bucket") or {}).items():
+        if s:
+            lines.append("QUALITY %s: n=%s win=%s%% avg=%s%%" % (b, s["n"], s["win_rate"], s["avg"]))
+    summary = "\n".join(lines)
+    system = (
+        "You are the quantitative validation analyst for JustHodl.AI's Signal Scorecard. You receive "
+        "forward-return validation for stock-selection verdicts (STRONG OPPORTUNITY, OPPORTUNITY, FAIR VALUE, "
+        "HOLD/NEUTRAL, EXPENSIVE, HIGH RISK), compounder-quality buckets, and the per-ticker winners and losers "
+        "inside each verdict. Diagnose HONESTLY whether the conviction labels are predictive, explain WHY a label "
+        "is inverted or working using the per-ticker evidence (name the tickers that drag or drive each bucket), "
+        "and give concrete, specific recalibration actions. Be blunt and quantitative. No hedging, no praise, no filler. "
+        "Output STRICT JSON only, no markdown, with keys: "
+        "headline (string: the single most important truth in one sentence), "
+        "diagnosis (string: 2-3 sentences on whether labels are predictive and the core problem), "
+        "verdict_notes (object: each verdict label -> one-line evidence-based note citing tickers), "
+        "patterns (array of 2-4 strings: cross-cutting patterns separating winners from losers), "
+        "recommendations (array of 3-5 strings: specific actions to make labels predictive)."
+    )
+    payload = json.dumps({"model": "claude-sonnet-4-6", "max_tokens": 1600, "system": system,
+                          "messages": [{"role": "user", "content": "Scorecard data:\n" + summary + "\n\nReturn the JSON analysis now."}]}).encode()
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=payload,
+                                 headers={"Content-Type": "application/json", "x-api-key": key,
+                                          "anthropic-version": "2023-06-01"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=70) as r:
+            data = json.loads(r.read().decode())
+        txt = data["content"][0]["text"] if data.get("content") else ""
+    except Exception as e:
+        return {"_error": str(e)[:160]}
+    t = txt.strip()
+    if t.startswith("```"):
+        t = t.strip("`")
+        if t[:4].lower() == "json":
+            t = t[4:]
+    t = t.strip()
+    try:
+        parsed = json.loads(t)
+    except Exception:
+        parsed = {"headline": "", "diagnosis": txt[:900], "_parse_error": True}
+    parsed["model"] = "claude-sonnet-4-6"
+    parsed["generated_at"] = datetime.now(timezone.utc).isoformat()
+    return parsed
+
+
 def agg(returns):
     rs = [r for r in returns if r is not None]
     if not rs:
@@ -274,6 +364,8 @@ def lambda_handler(event=None, context=None):
     by_rev = defaultdict(list)
     by_val = defaultdict(list)
     by_cheap_improving = defaultdict(list)
+    by_verdict_ticker = defaultdict(lambda: defaultdict(list))   # verdict -> ticker -> [rets]
+    by_comp_ticker = defaultdict(lambda: defaultdict(list))      # bucket  -> ticker -> [rets]
     overall = []
     for r in records:
         pnow = prices.get(r["ticker"])
@@ -281,11 +373,14 @@ def lambda_handler(event=None, context=None):
             continue
         ret = (pnow / r["p0"] - 1) * 100
         overall.append(ret)
-        if r["verdict"]: by_verdict[r["verdict"]].append(ret)
+        if r["verdict"]:
+            by_verdict[r["verdict"]].append(ret)
+            by_verdict_ticker[r["verdict"]][r["ticker"]].append(ret)
         c = r.get("comp")
         if c is not None:
             bucket = "compounder_80+" if c >= 80 else "compounder_70-80" if c >= 70 else "compounder_<70"
             by_comp[bucket].append(ret)
+            by_comp_ticker[bucket][r["ticker"]].append(ret)
         if r.get("cap"): by_cap[r["cap"]].append(ret)
         if r.get("rev") in ("UP", "DOWN", "FLAT"): by_rev["revision_" + r["rev"]].append(ret)
         # peer-relative valuation axis (the 'cheap vs industry' half of the thesis)
@@ -298,7 +393,7 @@ def lambda_handler(event=None, context=None):
     # dislocation + triple-threat membership (from latest snapshots; approximate
     # using current dislocations/best-setups as the cohort, returns since entry)
     out = {
-        "engine": "signal-backtest", "version": "1.0",
+        "engine": "signal-backtest", "version": "2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "n_observations": len(overall),
@@ -311,11 +406,19 @@ def lambda_handler(event=None, context=None):
         "by_revision": {k: agg(v) for k, v in by_rev.items()},
         "by_valuation_vs_peer": {k: agg(v) for k, v in by_val.items()},
         "by_cheap_x_improving": {k: agg(v) for k, v in by_cheap_improving.items()},
+        "by_verdict_stocks": stock_rollup(by_verdict_ticker),
+        "by_compounder_stocks": stock_rollup(by_comp_ticker),
         "note": ("Forward return = % change from the snapshot's entry price to "
                  "the current price (variable holding period, snapshots >=7d old). "
                  "As history matures these become reliable; the conviction board "
                  "can then reweight signals by proven win-rate."),
     }
+    try:
+        out["ai_analysis"] = ai_analyze(out)
+        _a = out["ai_analysis"]
+        print("[bt] ai_analysis:", _a.get("headline") or _a.get("_skip") or _a.get("_error") or "ok")
+    except Exception as _e:
+        out["ai_analysis"] = {"_error": str(_e)[:140]}
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[bt] DONE {round(time.time()-t0,1)}s — {len(overall)} obs, maturity {out['maturity']}")
