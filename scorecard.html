@@ -54,6 +54,32 @@ function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 function wrClass(w){return w>=56?'wr-good':w>=50?'wr-mid':'wr-bad';}
 function num(v,d){return v==null?'—':(typeof v==='number'?v.toFixed(d==null?1:d):v);}
+function tog(id){var e=document.getElementById(id);if(e)e.style.display=(e.style.display==='none'?'':'none');}
+function chip(x,win){var c=win?'var(--green)':'var(--red)';return `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 7px;border:1px solid ${c};border-radius:5px;font-size:11px;font-family:var(--mono,monospace)" title="mean forward return over ${x.n} snapshots, ${x.win_rate}% positive"><b>${esc(x.ticker)}</b> <span style="color:${c}">${x.ret>=0?'+':''}${num(x.ret)}%</span> <span style="color:var(--fg-3)">${x.win_rate}%·n${x.n}</span></span>`;}
+function stockCols(st){
+  if(!st||(!(st.leaders||[]).length&&!(st.laggards||[]).length))return '<div style="color:var(--fg-3);padding:10px;font-size:12px">No per-ticker detail yet for this bucket.</div>';
+  var L=(st.leaders||[]).map(function(x){return chip(x,true);}).join('')||'<span style="color:var(--fg-3)">—</span>';
+  var D=(st.laggards||[]).map(function(x){return chip(x,false);}).join('')||'<span style="color:var(--fg-3)">—</span>';
+  var meta=st.n_tickers!=null?`<div style="font-size:10px;color:var(--fg-3);margin-bottom:6px">${st.n_tickers} distinct tickers · min ${st.min_obs||2} obs to qualify · ranked by mean forward return</div>`:'';
+  return `<div style="padding:8px 4px 4px">${meta}<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px">▲ WINNERS &nbsp;<span style="color:var(--fg-3);font-weight:400">carrying this label</span></div>${L}</div>
+    <div><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:6px">▼ LOSERS &nbsp;<span style="color:var(--fg-3);font-weight:400">dragging this label</span></div>${D}</div>
+  </div></div>`;}
+function aiPanel(ai){
+  if(!ai||ai._error||ai._skip||(!ai.headline&&!ai.diagnosis))return '';
+  var src=esc(ai.source||ai.model||'analysis');
+  var pat=(ai.patterns||[]).map(function(p){return `<li>${esc(p)}</li>`;}).join('');
+  var rec=(ai.recommendations||[]).map(function(r){return `<li>${esc(r)}</li>`;}).join('');
+  var vn=ai.verdict_notes||{};var vnk=Object.keys(vn);
+  var vnh=vnk.length?('<div style="margin-top:12px"><div style="font-size:11px;font-weight:700;color:var(--violet);margin-bottom:5px">VERDICT NOTES</div>'+vnk.map(function(k){return `<div style="font-size:12px;margin:4px 0;line-height:1.5"><b>${esc(k)}:</b> <span style="color:var(--fg-3)">${esc(vn[k])}</span></div>`;}).join('')+'</div>'):'';
+  return `<div style="border:1px solid var(--violet);border-radius:12px;padding:16px 18px;margin:18px 0;background:color-mix(in srgb, var(--violet) 7%, transparent)">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px"><span style="font-size:13px;font-weight:800;letter-spacing:.5px;color:var(--violet)">⚡ AI ANALYST</span><span style="font-size:10px;color:var(--fg-3);font-family:var(--mono,monospace);border:1px solid var(--fg-3);padding:1px 6px;border-radius:4px">${src}</span></div>
+    ${ai.headline?`<div style="font-size:16px;font-weight:700;line-height:1.45;margin-bottom:9px">${esc(ai.headline)}</div>`:''}
+    ${ai.diagnosis?`<div style="font-size:13px;line-height:1.6;margin-bottom:4px;color:var(--fg-2,#c9d1d9)">${esc(ai.diagnosis)}</div>`:''}
+    ${pat?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:700;color:var(--cyan);margin-bottom:5px">PATTERNS SEPARATING WINNERS FROM LOSERS</div><ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.65">${pat}</ul></div>`:''}
+    ${rec?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:5px">RECALIBRATION ACTIONS</div><ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.65">${rec}</ul></div>`:''}
+    ${vnh}
+  </div>`;}
 
 async function load(){
   const d=await gj('data/signal-backtest.json');
@@ -67,6 +93,9 @@ async function load(){
   </div>
   <div style="font-family:var(--mono);font-size:11px;color:var(--fg-3)">Maturity: <span class="maturity ${esc(d.maturity)}">${esc(d.maturity)}</span></div>`;
 
+  // AI Analyst panel (heavy-AI diagnosis: headline, patterns, recalibration actions)
+  h+=aiPanel(d.ai_analysis||{});
+
   // by verdict — sort by win_rate, flag inverted/best
   const bv=d.by_verdict||{};
   const verdicts=Object.entries(bv).filter(([k,v])=>v&&v.n).sort((a,b)=>b[1].win_rate-a[1].win_rate);
@@ -78,18 +107,26 @@ async function load(){
     if(inverted){
       h+=`<div class="callout">⚠ <b>Honest finding:</b> the <b>${esc(buyish[0])}</b> verdict is currently underperforming (${num(buyish[1].win_rate)}% win, ${buyish[1].avg>=0?'+':''}${num(buyish[1].avg)}% avg) while "${esc(top[0])}" leads (${num(top[1].win_rate)}%). The conviction labels aren't yet predictive — the validation loop is recalibrating signal weights. This is exactly the gap between a scanner and a proven alpha engine, shown openly.</div>`;
     }
-    h+=`<h2>By Verdict</h2><table class="tbl"><thead><tr><th>Verdict</th><th>N</th><th>Win Rate</th><th>Avg Return</th><th>Median</th><th>Hit ≥5%</th><th>Best / Worst</th></tr></thead><tbody>`;
-    verdicts.forEach(([k,v])=>{
+    h+=`<h2>By Verdict</h2><div style="font-size:11px;color:var(--fg-3);margin:-6px 0 8px">Tap any verdict to reveal the winning and losing stocks inside it.</div><table class="tbl"><thead><tr><th>Verdict</th><th>N</th><th>Win Rate</th><th>Avg Return</th><th>Median</th><th>Hit ≥5%</th><th>Best / Worst</th><th></th></tr></thead><tbody>`;
+    verdicts.forEach(([k,v],i)=>{
       const fl=v.win_rate>=57?'<span class="flag best">best</span>':(/STRONG|OPPORTUNITY|BUY/.test(k)&&v.win_rate<48?'<span class="flag inverted">underperforming</span>':'');
-      h+=`<tr><td>${esc(k)}${fl}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td><td>${num(v.median)}%</td><td>${num(v.hit_5pct)}%</td><td style="color:var(--fg-3)">${num(v.best)} / ${num(v.worst)}</td></tr>`;
+      const st=(d.by_verdict_stocks||{})[k];
+      const hint=st?'<span style="color:var(--cyan)">▸ stocks</span>':'';
+      h+=`<tr style="cursor:pointer" onclick="tog('vd${i}')"><td>${esc(k)}${fl}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td><td>${num(v.median)}%</td><td>${num(v.hit_5pct)}%</td><td style="color:var(--fg-3)">${num(v.best)} / ${num(v.worst)}</td><td style="font-size:10px;font-family:var(--mono,monospace)">${hint}</td></tr>`;
+      h+=`<tr id="vd${i}" style="display:none"><td colspan="8" style="background:color-mix(in srgb,var(--cyan) 4%,transparent)">${stockCols(st)}</td></tr>`;
     });
     h+='</tbody></table>';
   }
   // by compounder bucket if present
   const bc=d.by_compounder_bucket||{};
   if(Object.keys(bc).length){
-    h+=`<h2>By Quality (Compounder Bucket)</h2><table class="tbl"><thead><tr><th>Bucket</th><th>N</th><th>Win Rate</th><th>Avg</th></tr></thead><tbody>`;
-    Object.entries(bc).forEach(([k,v])=>{if(v&&v.n)h+=`<tr><td>${esc(k)}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td></tr>`;});
+    h+=`<h2>By Quality (Compounder Bucket)</h2><table class="tbl"><thead><tr><th>Bucket</th><th>N</th><th>Win Rate</th><th>Avg</th><th></th></tr></thead><tbody>`;
+    Object.entries(bc).forEach(([k,v],i)=>{if(v&&v.n){
+      const st=(d.by_compounder_stocks||{})[k];
+      const hint=st?'<span style="color:var(--cyan)">▸ stocks</span>':'';
+      h+=`<tr style="cursor:pointer" onclick="tog('bc${i}')"><td>${esc(k)}</td><td>${v.n}</td><td class="${wrClass(v.win_rate)}">${num(v.win_rate)}%</td><td style="color:${v.avg>=0?'var(--green)':'var(--red)'}">${v.avg>=0?'+':''}${num(v.avg)}%</td><td style="font-size:10px;font-family:var(--mono,monospace)">${hint}</td></tr>`;
+      h+=`<tr id="bc${i}" style="display:none"><td colspan="5" style="background:color-mix(in srgb,var(--cyan) 4%,transparent)">${stockCols(st)}</td></tr>`;
+    }});
     h+='</tbody></table>';
   }
   document.getElementById('content').innerHTML=h;
