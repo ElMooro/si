@@ -1,8 +1,21 @@
-=== (1) no-env self-test created? (proves create-fix) ===
-  CREATED OK -> FIX WORKS. state: Active | env: None
-=== (2) EventBridge rules quota (300 -> 1000 request) ===
-  APPLIED quota now: 1000.0
-  req 8cc23e8b46724e18bc2e | desired 1000.0 | STATUS APPROVED | created 2026-06-28 17:37:56
-=== (3) cleanup self-test fn ===
-  deleted justhodl-deploy-selftest
-DONE 2443
+has ANTHROPIC_API_KEY: False | has FMP_KEY: False
+invoked async; waiting 180s (heavy: snapshots+quotes+Claude)...
+version: 2.0 | n_obs: 30457 | maturity: MATURE
+
+by_verdict_stocks present: ['STRONG OPPORTUNITY', 'OPPORTUNITY', 'HIGH RISK', 'FAIR VALUE', 'EXPENSIVE', 'HOLD / NEUTRAL']
+
+STRONG OPPORTUNITY (67 tickers):
+  WINNERS: [('DLTR', '27.8%', 'n15', 'w100%'), ('BBY', '27.8%', 'n3', 'w100%'), ('INCY', '17.7%', 'n6', 'w100%'), ('BALL', '16.3%', 'n7', 'w100%'), ('HRL', '13.6%', 'n8', 'w100%'), ('TMO', '12.9%', 'n17', 'w100%')]
+  LOSERS : [('ACN', '-26.6%', 'n6', 'w0%'), ('LDOS', '-21.6%', 'n5', 'w0%'), ('ADBE', '-18.3%', 'n7', 'w0%'), ('PTC', '-17.6%', 'n2', 'w0%'), ('INTU', '-17.3%', 'n12', 'w0%'), ('TTD', '-17.2%', 'n10', 'w0%')]
+
+HIGH RISK (176 tickers):
+  WINNERS: [('DD', '184.2%', 'n36', 'w100%'), ('UAL', '27.5%', 'n36', 'w100%'), ('HOOD', '23.6%', 'n25', 'w100%'), ('MAS', '22.8%', 'n4', 'w100%'), ('BLDR', '18.8%', 'n36', 'w100%'), ('NCLH', '18.7%', 'n36', 'w100%')]
+  LOSERS : [('SATS', '-20.4%', 'n36', 'w0%'), ('ALB', '-20.0%', 'n36', 'w0%'), ('CME', '-18.4%', 'n36', 'w0%'), ('DOW', '-16.2%', 'n36', 'w0%'), ('LYB', '-15.7%', 'n33', 'w0%'), ('ICE', '-14.7%', 'n36', 'w0%')]
+
+EXPENSIVE (132 tickers):
+  WINNERS: [('TECH', '39.9%', 'n36', 'w100%'), ('MRNA', '35.5%', 'n22', 'w100%'), ('AMAT', '33.3%', 'n24', 'w100%'), ('MU', '28.0%', 'n36', 'w94%'), ('GLW', '21.2%', 'n36', 'w100%'), ('SNDK', '18.6%', 'n24', 'w92%')]
+  LOSERS : [('KLAC', '-79.1%', 'n31', 'w0%'), ('SMCI', '-34.9%', 'n6', 'w0%'), ('CBOE', '-32.8%', 'n9', 'w0%'), ('ORCL', '-32.0%', 'n5', 'w0%'), ('ON', '-23.1%', 'n36', 'w0%'), ('PLTR', '-17.3%', 'n36', 'w0%')]
+
+=== AI ANALYSIS ===
+AI: {'_skip': 'no ANTHROPIC_API_KEY'}
+DONE 2444
