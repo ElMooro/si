@@ -363,6 +363,15 @@ var _cpv=_cbp.btc_pct;var _cpc=_cpv==null?"var(--t3)":_cpv>=0.05?"var(--green)":
 var _spc=_spg.gauge==="green"?"var(--green)":_spg.gauge==="yellow"?"var(--yellow)":_spg.gauge==="red"?"var(--red)":"var(--t3)";
 var _pvr=_onr2.price_vs_realized_pct;var _pvrc=_pvr==null?"var(--t3)":_pvr>=0?"var(--green)":"var(--red)";
 h+="<div class='grid g4' style='margin-bottom:12px'>";
+var _etff=D.etf_flows||{};
+var _efr=_etff.btc_regime||"";var _efc=/STRONG INFLOW|^INFLOW/i.test(_efr)?"var(--green)":/OUTFLOW/i.test(_efr)?"var(--red)":"var(--t3)";
+h+="<div class='card'><div class='card-title'>Spot ETF Flows (marginal buyer)</div>";
+h+="<div class='stat-big' style='color:"+_efc+";font-size:16px'>BTC "+(_efr||"-")+"</div>";
+h+="<div style='font-size:11px;color:"+_efc+"'>$"+(_etff.btc_flow_30d_usd!=null?(_etff.btc_flow_30d_usd/1e9).toFixed(1):"-")+"B / 30d"+(_etff.btc_30d_pctile!=null?" · "+_etff.btc_30d_pctile+"th":"")+"</div>";
+h+="<div class='metric'><span class='metric-name'>ETH ETFs</span><span class='metric-val' style='font-size:10px'>"+(_etff.eth_regime||"-")+" ($"+(_etff.eth_flow_30d_usd!=null?(_etff.eth_flow_30d_usd/1e9).toFixed(1):"-")+"B)</span></div>";
+h+="<div class='metric'><span class='metric-name'>BTC ETF AUM</span><span class='metric-val mono'>$"+(_etff.btc_aum_usd!=null?(_etff.btc_aum_usd/1e9).toFixed(0)+"B":"-")+"</span></div>";
+if(_etff.btc_event_study)h+="<div class='metric'><span class='metric-name'>Flow→price</span><span class='metric-val' style='font-size:10px;color:"+(/CONFIRM/i.test(_etff.btc_event_study)?"var(--green)":/INVERT/i.test(_etff.btc_event_study)?"var(--red)":"var(--t3)")+"'>"+_etff.btc_event_study+"</span></div>";
+h+="</div>";
 h+="<div class='card'><div class='card-title'>Exchange Flows</div>";
 h+="<div class='stat-big' style='color:"+_xfc+";font-size:17px'>"+(_xf.btc_regime||"-")+"</div>";
 h+="<div style='font-size:11px;color:"+_xfc+"'>BTC 30d netflow"+(_xf.btc_netflow_30d_pctile!=null?" · "+_xf.btc_netflow_30d_pctile+"th":"")+"</div>";
