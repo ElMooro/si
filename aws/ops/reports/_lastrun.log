@@ -1,0 +1,8 @@
+=== (1) no-env self-test created? (proves create-fix) ===
+  CREATED OK -> FIX WORKS. state: Active | env: None
+=== (2) EventBridge rules quota (300 -> 1000 request) ===
+  APPLIED quota now: 1000.0
+  req 8cc23e8b46724e18bc2e | desired 1000.0 | STATUS APPROVED | created 2026-06-28 17:37:56
+=== (3) cleanup self-test fn ===
+  deleted justhodl-deploy-selftest
+DONE 2443
