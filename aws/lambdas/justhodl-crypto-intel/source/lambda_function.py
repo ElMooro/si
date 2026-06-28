@@ -3743,6 +3743,16 @@ def lambda_handler(event, context):
                 'difficulty_chg_14d':(_cm.get('difficulty') or {}).get('chg_14d_pct'),'read':_cm.get('interpretation')}
         except Exception as _ex3:
             print('  miners merge skipped:',str(_ex3)[:50])
+        # futures basis / cash-and-carry
+        try:
+            _cb=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-basis.json')['Body'].read().decode())
+            R['basis']={'btc_cash_carry_3m_pct':(_cb.get('btc') or {}).get('cash_and_carry_yield_3m_pct'),
+                'btc_funding_ann_pct':(_cb.get('btc') or {}).get('funding_annualized_pct'),
+                'btc_regime':(_cb.get('btc') or {}).get('regime'),
+                'eth_cash_carry_3m_pct':(_cb.get('eth') or {}).get('cash_and_carry_yield_3m_pct'),
+                'eth_funding_ann_pct':(_cb.get('eth') or {}).get('funding_annualized_pct')}
+        except Exception as _ex4:
+            print('  basis merge skipped:',str(_ex4)[:50])
     except Exception as _ex:
         print('  implied_vol merge skipped:',str(_ex)[:60])
 

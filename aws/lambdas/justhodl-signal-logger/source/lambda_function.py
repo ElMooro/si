@@ -307,6 +307,17 @@ def lambda_handler(event,context):
         logged.append(log_sig("hash_ribbon_buy","RECOVERY","UP",0.55,"BTC-USD",[30,90,180],
             meta={"hash_rate_eh":hrb.get("hash_rate_eh"),"days_since_buy":(hrb.get("last_true_buy") or {}).get("days_since")},
             rationale="hash ribbon recovery (30dMA back above 60dMA after capitulation), historically a buy; in-sample DIAGNOSTIC/INVERTED -> graded live"))
+    # crypto-basis.json — carry / leverage extreme as a contrarian gauge, graded live
+    cb2=fs3("data/crypto-basis.json")
+    cc=(cb2.get("btc") or {}).get("cash_and_carry_yield_3m_pct")
+    if cc is not None:
+        cc=float(cc)
+        bpred="DOWN" if cc>=15 else "UP" if cc<=-2 else "NEUTRAL"  # hot carry=crowded leverage->DOWN; backwardation->UP
+        if bpred!="NEUTRAL":
+            bcf=round(0.5+min(0.3,abs(cc)/60.0),2)
+            logged.append(log_sig("cc_basis_extreme","3m carry %.1f%%"%cc,bpred,bcf,"BTC-USD",[14,30,60],
+                meta={"cc_yield_3m":cc,"regime":(cb2.get("btc") or {}).get("regime")},
+                rationale="3m cash-and-carry extreme: hot contango (>=15%)=crowded leverage-long->contrarian DOWN; backwardation(<=-2%)=deleveraging capitulation->UP (graded live)"))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")
