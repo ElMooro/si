@@ -157,6 +157,10 @@ FLIP = {
     "Crypto implied vol elevated": "crypto DVOL falls back to normal",
     "Crypto funding crowded long": "crypto perp funding normalises",
     "Crypto dry-powder loaded (contrarian)": "stablecoin dry powder gets deployed (SSR rises)",
+    "Crypto options hedging (put skew + backwardation)": "crypto skew normalises / vol term re-contangos",
+    "Crypto miners deep value (Puell)": "Puell rises back above 1",
+    "Crypto hash-ribbon recovery": "hash ribbon rolls back into capitulation",
+    "Crypto carry backwardation (deleveraging)": "futures basis re-contangos",
 }
 
 
@@ -519,6 +523,9 @@ def lambda_handler(event, context):
     cdvol = load("data/crypto-dvol.json", "crypto_dvol")
     cfund = load("data/crypto-funding.json", "crypto_funding")
     cliq = load("data/crypto-liquidity.json", "crypto_liquidity")
+    cropts = load("data/crypto-options-surface.json", "crypto_options")
+    cminers = load("data/crypto-miners.json", "crypto_miners")
+    cbasis = load("data/crypto-basis.json", "crypto_basis")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -727,6 +734,21 @@ def lambda_handler(event, context):
         "ssr_pctile": _get(cliq, "ssr", "percentile_2y"), "ssr_read": _get(cliq, "ssr", "interpretation"),
         "fear_greed": _get(cliq, "fear_greed", "value"), "fear_greed_class": _get(cliq, "fear_greed", "classification"),
         "directional_read": _get(cliq, "directional_read"),
+        # options surface (skew / 25d risk reversal / vol term structure)
+        "rr_25d": _get(cropts, "btc", "headline_30d", "rr_25d"),
+        "skew_read": _get(cropts, "btc", "interpretation"),
+        "vol_term_regime": _get(cropts, "btc", "term_structure", "regime"),
+        "eth_rr_25d": _get(cropts, "eth", "headline_30d", "rr_25d"),
+        # miner economics (hash ribbons + Puell)
+        "hash_ribbon": _get(cminers, "hash_ribbons", "state"),
+        "days_in_capitulation": _get(cminers, "hash_ribbons", "days_in_capitulation"),
+        "puell": _get(cminers, "puell", "value"), "puell_zone": _get(cminers, "puell", "zone"),
+        "miners_read": _get(cminers, "interpretation"),
+        # futures basis / cash-and-carry
+        "cash_carry_3m": _get(cbasis, "btc", "cash_and_carry_yield_3m_pct"),
+        "carry_regime": _get(cbasis, "btc", "regime"),
+        "eth_cash_carry_3m": _get(cbasis, "eth", "cash_and_carry_yield_3m_pct"),
+        "eth_funding_ann": _get(cbasis, "eth", "funding_annualized_pct"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -925,6 +947,18 @@ def lambda_handler(event, context):
     if _get(cdvol, "btc", "trend") == "RISING" and _get(cdvol, "btc", "regime") in ("LOW", "NORMAL"):
         divergences.append(f"CRYPTO VOL RISING: BTC DVOL {_get(cdvol, 'btc', 'dvol')} ({_get(cdvol, 'btc', 'pctile_1y')}th pctile) "
                            f"is climbing off low levels — crypto hedging demand is picking up beneath a still-normal surface.")
+    _btc_cc = _get(cbasis, "btc", "cash_and_carry_yield_3m_pct")
+    _eth_fund = _get(cbasis, "eth", "funding_annualized_pct")
+    if (isinstance(_btc_cc, (int, float)) and isinstance(_eth_fund, (int, float))
+            and _btc_cc > 1 and _eth_fund < -2):
+        divergences.append(f"CRYPTO BTC/ETH SPLIT: BTC futures carry positive ({_btc_cc}% 3m contango) while ETH perp "
+                           f"funding is negative ({_eth_fund}%/yr) — ETH-specific deleveraging beneath a calm BTC surface.")
+    _mr = _get(cminers, "hash_ribbons", "state")
+    _pz = _get(cminers, "puell", "zone")
+    if _mr == "CAPITULATION" and isinstance(_get(cminers, "puell", "value"), (int, float)) and _get(cminers, "puell", "value") < 1:
+        divergences.append(f"CRYPTO MINER CAPITULATION: hash ribbons in capitulation "
+                           f"({_get(cminers, 'hash_ribbons', 'days_in_capitulation')}d) with Puell {_get(cminers, 'puell', 'value')} ({_pz}) — "
+                           f"miner stress that has historically marked bottoming *setups* (the timing signal itself is unproven live).")
 
     # ───────── DETERMINISTIC SYNTHESIS ("the read") — rules-based, works without the LLM ─────────
     contribs = []
@@ -963,6 +997,21 @@ def lambda_handler(event, context):
         _add("Crypto funding crowded long", -1, 3)
     if _get(cliq, "regime") == "DRY-POWDER LOADED":
         _add("Crypto dry-powder loaded (contrarian)", 1, 2, "SSR low · sidelined stablecoin cash")
+    # options surface: extreme put skew + vol backwardation = near-term hedging / defensive
+    _rr = _get(cropts, "btc", "headline_30d", "rr_25d")
+    _vt = str(_get(cropts, "btc", "term_structure", "regime") or "")
+    if isinstance(_rr, (int, float)) and _rr <= -6 and "BACKWARD" in _vt.upper():
+        _add("Crypto options hedging (put skew + backwardation)", -1, 2, f"RR {_rr}")
+    # miners: deep-value Puell / hash-ribbon recovery = contrarian risk-on
+    _pu = _get(cminers, "puell", "value")
+    if isinstance(_pu, (int, float)) and _pu < 0.6:
+        _add("Crypto miners deep value (Puell)", 1, 2, f"Puell {_pu}")
+    if _get(cminers, "hash_ribbons", "state") == "RECOVERY/BUY":
+        _add("Crypto hash-ribbon recovery", 1, 2)
+    # basis: carry backwardation = deleveraging / funding stress
+    _cc = _get(cbasis, "btc", "cash_and_carry_yield_3m_pct")
+    if isinstance(_cc, (int, float)) and _cc <= -2:
+        _add("Crypto carry backwardation (deleveraging)", -1, 2, f"3m carry {_cc}%")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))
@@ -1059,7 +1108,10 @@ def lambda_handler(event, context):
                              "tail_gauge": stress_scenarios.get("tail_gauge")},
         "scenario_playbook": scenario_playbook,
         "crypto": {"vol_regime": crypto.get("dvol_btc_regime"), "funding": crypto.get("funding_regime"),
-                   "liquidity": crypto.get("liquidity_regime"), "fear_greed": crypto.get("fear_greed_class")},
+                   "liquidity": crypto.get("liquidity_regime"), "fear_greed": crypto.get("fear_greed_class"),
+                   "skew": crypto.get("skew_read"), "vol_term": crypto.get("vol_term_regime"),
+                   "hash_ribbon": crypto.get("hash_ribbon"), "puell": crypto.get("puell"),
+                   "carry_3m": crypto.get("cash_carry_3m"), "carry_regime": crypto.get("carry_regime")},
         "rules_based_read": {"posture": synthesis["posture"], "score": synthesis["score"],
                              "key_risk": synthesis["key_risk"]},
         "divergences": divergences,

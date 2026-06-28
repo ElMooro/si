@@ -127,12 +127,38 @@ def market_context():
         tilt += 1
     elif "CONTRACT" in sbf_state:
         tilt -= 1
-    regime = "RISK_ON" if tilt >= 2 else "RISK_OFF" if tilt <= -2 else "NEUTRAL"
+    # ── vol / skew / miner / carry overlays (the new crypto vol-complex engines) ──
+    dvol = _read("data/crypto-dvol.json") or {}
+    opts = _read("data/crypto-options-surface.json") or {}
+    miners = _read("data/crypto-miners.json") or {}
+    basis = _read("data/crypto-basis.json") or {}
+    if str((dvol.get("btc") or {}).get("regime") or "").upper() in ("ELEVATED", "HIGH"):
+        tilt -= 1
+    _rr = ((opts.get("btc") or {}).get("headline_30d") or {}).get("rr_25d")
+    _vt = str(((opts.get("btc") or {}).get("term_structure") or {}).get("regime") or "").upper()
+    if isinstance(_rr, (int, float)) and _rr <= -6 and "BACKWARD" in _vt:
+        tilt -= 1                                      # put skew + vol backwardation = hedging
+    _pu = (miners.get("puell") or {}).get("value")
+    if isinstance(_pu, (int, float)) and _pu < 0.6:
+        tilt += 1                                      # deep-value Puell = contrarian support
+    if (miners.get("hash_ribbons") or {}).get("state") == "RECOVERY/BUY":
+        tilt += 1
+    _cc = (basis.get("btc") or {}).get("cash_and_carry_yield_3m_pct")
+    if isinstance(_cc, (int, float)) and _cc <= -2:
+        tilt -= 1                                      # carry backwardation = deleveraging
+    regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
         "liquidity": liq.get("regime"), "dump_risk": dump, "dump_risk_level": cyc.get("risk_level"),
         "stablecoin_flow": sbf.get("state"), "altseason_composite": alt.get("composite"),
         "narrative_stance": nar.get("stance"), "narrative_breadth_pct": nar.get("narrative_breadth_pct"),
+        "vol_regime": (dvol.get("btc") or {}).get("regime"), "vol_trend": (dvol.get("btc") or {}).get("trend"),
+        "options_skew": (opts.get("btc") or {}).get("interpretation"),
+        "vol_term": ((opts.get("btc") or {}).get("term_structure") or {}).get("regime"),
+        "puell": (miners.get("puell") or {}).get("value"), "puell_zone": (miners.get("puell") or {}).get("zone"),
+        "hash_ribbon": (miners.get("hash_ribbons") or {}).get("state"),
+        "cash_carry_3m": (basis.get("btc") or {}).get("cash_and_carry_yield_3m_pct"),
+        "carry_regime": (basis.get("btc") or {}).get("regime"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),
