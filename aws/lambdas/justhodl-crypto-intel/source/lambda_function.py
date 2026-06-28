@@ -3796,6 +3796,15 @@ def lambda_handler(event, context):
                 'mvrv':_ob.get('mvrv'),'nupl':_ob.get('nupl'),'nupl_zone':_ob.get('nupl_zone')})
     except Exception as _exo:
         print('  onchain realized merge skipped:',str(_exo)[:50])
+    try:
+        _ef=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-etf-flows.json')['Body'].read().decode())
+        _efb=_ef.get('btc_etf') or {}; _efe=_ef.get('eth_etf') or {}
+        R['etf_flows']={'btc_regime':_efb.get('regime'),'btc_flow_30d_usd':_efb.get('cum_30d_usd'),'btc_flow_today_usd':_efb.get('flow_today_usd'),
+            'btc_30d_pctile':_efb.get('cum_30d_pctile'),'btc_aum_usd':_efb.get('aum_total_usd'),'btc_event_study':(_efb.get('event_study') or {}).get('verdict'),
+            'eth_regime':_efe.get('regime'),'eth_flow_30d_usd':_efe.get('cum_30d_usd'),'eth_aum_usd':_efe.get('aum_total_usd'),
+            'top_inflow':_efb.get('top_inflow'),'interpretation':_ef.get('interpretation')}
+    except Exception as _exe:
+        print('  etf-flows merge skipped:',str(_exe)[:50])
 
 
 
@@ -3807,7 +3816,7 @@ def lambda_handler(event, context):
 
 
 
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.2',**R}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.3',**R}
 
 
 

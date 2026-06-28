@@ -165,6 +165,8 @@ FLIP = {
     "Crypto below realized price (deep value)": "price reclaims aggregate cost basis",
     "Crypto NUPL euphoria (late-cycle)": "NUPL cools out of euphoria",
     "Crypto stablecoin depeg (tail risk)": "stablecoins re-peg to $1",
+    "Crypto spot-ETF strong inflow (marginal bid)": "ETF creations slow / reverse",
+    "Crypto spot-ETF strong outflow (marginal sell)": "ETF redemptions abate / turn to inflows",
 }
 
 
@@ -535,6 +537,7 @@ def lambda_handler(event, context):
     conchain = load("data/onchain-ratios.json", "crypto_onchain")
     cspeg = load("data/crypto-stablecoin-peg.json", "crypto_stablecoin_peg")
     cprem = load("data/coinbase-premium.json", "crypto_coinbase_premium")
+    cetf = load("data/crypto-etf-flows.json", "crypto_etf_flows")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -777,6 +780,12 @@ def lambda_handler(event, context):
         "stablecoin_peg_gauge": _get(cspeg, "gauge"),
         "stablecoin_worst_depeg": _get(cspeg, "worst_depeg_pct"),
         "coinbase_premium_pct": _get(cprem, "btc", "premium_pct"),
+        # spot ETF net flows — the marginal buyer (event-study CONFIRMED predictive)
+        "etf_flow_btc_regime": _get(cetf, "btc_etf", "regime"),
+        "etf_flow_btc_30d_usd": _get(cetf, "btc_etf", "cum_30d_usd"),
+        "etf_flow_btc_pctile": _get(cetf, "btc_etf", "cum_30d_pctile"),
+        "etf_flow_eth_regime": _get(cetf, "eth_etf", "regime"),
+        "etf_flow_eth_30d_usd": _get(cetf, "eth_etf", "cum_30d_usd"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1061,6 +1070,16 @@ def lambda_handler(event, context):
     # stablecoin depeg = crypto tail-risk / funding stress (fires only on a real depeg, not minor drift)
     if _get(cspeg, "gauge") == "red":
         _add("Crypto stablecoin depeg (tail risk)", -1, 3, f"{_get(cspeg, 'worst_coin')} {_get(cspeg, 'worst_depeg_pct')}%")
+    # spot ETF flows — the marginal buyer; event-study CONFIRMED predictive, so meaningful weight
+    _etfp = _get(cetf, "btc_etf", "cum_30d_pctile")
+    _etf30 = _get(cetf, "btc_etf", "cum_30d_usd")
+    if isinstance(_etfp, (int, float)):
+        if _etfp >= 80:
+            _add("Crypto spot-ETF strong inflow (marginal bid)", 1, 3,
+                 f"BTC ETF +${(_etf30 or 0)/1e9:.1f}B/30d, {_etfp}th")
+        elif _etfp <= 20:
+            _add("Crypto spot-ETF strong outflow (marginal sell)", -1, 3,
+                 f"BTC ETF ${(_etf30 or 0)/1e9:.1f}B/30d, {_etfp}th")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))

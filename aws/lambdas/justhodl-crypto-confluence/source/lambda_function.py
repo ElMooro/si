@@ -171,6 +171,14 @@ def market_context():
             tilt += 1                                   # US/institutional bid
         elif _cpp <= -0.3:
             tilt -= 1                                   # US distribution
+    # spot ETF net flows — marginal buyer, event-study CONFIRMED predictive (weight 2)
+    etf = _read("data/crypto-etf-flows.json") or {}
+    _etfp = (etf.get("btc_etf") or {}).get("cum_30d_pctile")
+    if isinstance(_etfp, (int, float)):
+        if _etfp >= 80:
+            tilt += 2
+        elif _etfp <= 20:
+            tilt -= 2
     regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
@@ -193,6 +201,9 @@ def market_context():
         "stablecoin_peg_status": speg.get("status"),
         "stablecoin_worst": speg.get("worst_coin"),
         "coinbase_premium_pct": (cprem.get("btc") or {}).get("premium_pct"),
+        "etf_flow_btc_regime": (etf.get("btc_etf") or {}).get("regime"),
+        "etf_flow_btc_30d_usd": (etf.get("btc_etf") or {}).get("cum_30d_usd"),
+        "etf_flow_eth_regime": (etf.get("eth_etf") or {}).get("regime"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),

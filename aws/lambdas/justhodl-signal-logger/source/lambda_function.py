@@ -353,6 +353,18 @@ def lambda_handler(event,context):
             logged.append(log_sig("coinbase_premium","prem %.2f%%"%cpp,cppred,cpcf,"BTC-USD",[3,7,14],
                 meta={"premium_pct":cpp,"read":(cpj.get("btc") or {}).get("read")},
                 rationale="Coinbase premium (vs Kraken) as US-institutional spot demand: positive=US/institutional bid->UP; negative=US distribution->DOWN (graded live)."))
+    # crypto-etf-flows.json — spot ETF net flows (marginal buyer; event-study CONFIRMED predictive)
+    ef=fs3("data/crypto-etf-flows.json")
+    efb=ef.get("btc_etf") or {}
+    efp=efb.get("cum_30d_pctile")
+    if efp is not None:
+        efp=float(efp)
+        efpred="UP" if efp>=70 else "DOWN" if efp<=30 else "NEUTRAL"  # heavy inflow->UP; heavy outflow->DOWN
+        if efpred!="NEUTRAL":
+            efcf=round(0.55+min(0.25,abs(efp-50)/100.0),2)
+            logged.append(log_sig("crypto_etf_flow","30d %sth"%int(efp),efpred,efcf,"BTC-USD",[10,20,30],
+                meta={"cum_30d_usd":efb.get("cum_30d_usd"),"regime":efb.get("regime"),"event_study":(efb.get("event_study") or {}).get("verdict")},
+                rationale="Spot BTC ETF net flow (marginal buyer): heavy inflow->UP, heavy outflow->DOWN. Event study CONFIRMED flows lead price (graded live)."))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")

@@ -330,7 +330,7 @@ def extract_metrics(data,weights):
         })(),
         "crypto_regime":rs.get("regime","N/A"),
         "crypto_action":rs.get("action","N/A"),
-        **(lambda xf=crypto.get("exchange_flows",{}) or {}, ct=crypto.get("cot",{}) or {}, cb=crypto.get("coinbase_premium",{}) or {}, sp=crypto.get("stablecoin_peg",{}) or {}, ocr=crypto.get("onchain_ratios",{}) or {}: {
+        **(lambda xf=crypto.get("exchange_flows",{}) or {}, ct=crypto.get("cot",{}) or {}, cb=crypto.get("coinbase_premium",{}) or {}, sp=crypto.get("stablecoin_peg",{}) or {}, ocr=crypto.get("onchain_ratios",{}) or {}, ef=crypto.get("etf_flows",{}) or {}: {
             "crypto_exchange_flow_regime": xf.get("btc_regime"),
             "crypto_exchange_flow_pctile": xf.get("btc_netflow_30d_pctile"),
             "crypto_cot_asset_mgr": ct.get("btc_asset_mgr_read"),
@@ -341,6 +341,10 @@ def extract_metrics(data,weights):
             "crypto_realized_price": ocr.get("realized_price"),
             "crypto_price_vs_realized_pct": ocr.get("price_vs_realized_pct"),
             "crypto_nupl_zone": ocr.get("nupl_zone"),
+            "crypto_etf_btc_regime": ef.get("btc_regime"),
+            "crypto_etf_btc_30d_usd": ef.get("btc_flow_30d_usd"),
+            "crypto_etf_eth_regime": ef.get("eth_regime"),
+            "crypto_etf_eth_30d_usd": ef.get("eth_flow_30d_usd"),
         })(),
         # ─── Phase 1A bond regime + Phase 1B divergence — added 2026-04-25 ───
         "bond_regime":(data.get("bond_regime") or {}).get("regime","UNKNOWN"),
@@ -1160,6 +1164,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "ETH: $"+str(m["eth_price"])+" 24h:"+str(m["eth_24h"])+"% Sentiment:"+str(m["eth_sentiment"]),
         "ONCHAIN: MVRV:"+str(m["mvrv"])+" Signal:"+str(m["onchain_signal"])+" Momentum30d:"+str(m["onchain_momentum"]),
         "CRYPTO_FLOWS: ExchFlows:"+str(m["crypto_exchange_flow_regime"])+" ("+str(m["crypto_exchange_flow_pctile"])+"th) CME-COT-AsstMgr:"+str(m["crypto_cot_asset_mgr"])+" CB-prem:"+str(m["crypto_coinbase_premium_pct"])+"% Stables:"+str(m["crypto_stablecoin_status"])+" RealizedPx:$"+str(m["crypto_realized_price"])+" ("+str(m["crypto_price_vs_realized_pct"])+"% vs cost-basis, NUPL "+str(m["crypto_nupl_zone"])+")",
+        "CRYPTO_ETF_FLOWS: spot BTC ETFs "+str(m["crypto_etf_btc_regime"])+" ($"+str(round((m["crypto_etf_btc_30d_usd"] or 0)/1e9,1))+"B/30d) | spot ETH ETFs "+str(m["crypto_etf_eth_regime"])+" ($"+str(round((m["crypto_etf_eth_30d_usd"] or 0)/1e9,1))+"B/30d) [marginal buyer; flows lead price]",
         "VALUATIONS: CAPE:"+str(m["cape"])+" Buffett:"+str(m["buffett"])+"%",
         "OPTIONS: Bias:"+str(m["options_bias"])+" P/C:"+str(m["pc"]),
         "PICKS: "+str(", ".join(m["picks"])),
