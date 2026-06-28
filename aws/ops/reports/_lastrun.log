@@ -1,3 +1,8 @@
-created managed policy: arn:aws:iam::857687956942:policy/justhodl-servicequotas-events
-IAM step 'attach' FAILED: An error occurred (LimitExceeded) when calling the AttachUserPolicy operation: Cannot exceed quota for PoliciesPerUser: 10
-DONE 2424
+created group justhodl-quota-admins
+attached policy to group
+added github-actions-justhodl to group
+waiting 20s for propagation...
+  QUOTA: Number of rules | code L-244521F2 | value 300.0 | adjustable True
+  QUOTA: Targets per rule | code L-388D1D08 | value 5.0 | adjustable False
+no adjustable rules-per-bus quota found
+DONE 2425
