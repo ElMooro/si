@@ -1,7 +1,12 @@
-scheduler role: arn:aws:iam::857687956942:role/justhodl-scheduler-role
-existing scheduler schedules: 117
-=== watchdogs onto EventBridge Scheduler ===
-  fleet-freshness-monitor-sched: created rate(30 minutes) (ENABLED)
-  fleet-error-monitor-sched: created rate(15 minutes) (ENABLED)
-  fleet-monitor-sched: created rate(3 hours) (ENABLED)
-DONE 2418
+=== schedule finviz engines on Scheduler ===
+  scheduled finviz-universe-sched -> cron(0 14,22 * * ? *)
+  scheduled finviz-signals-sched -> cron(0 14,18,21 * * ? *)
+triggered both async; waiting 100s...
+    0.0h  data/finviz-universe.json
+    0.0h  data/finviz-short.json
+    0.0h  data/finviz-heatmap.json
+    0.0h  data/finviz-earnings-calendar.json
+    0.0h  data/finviz-etf-flows.json
+   -0.0h  data/finviz-signals.json
+  finviz-signals recent errors: none (clean run)
+DONE 2419
