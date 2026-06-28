@@ -1,14 +1,7 @@
-crypto-intel async; waiting 150s for heavy aggregate...
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2438_reverify_ci.py", line 5, in <module>
-    ci=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/crypto-intel.json")["Body"].read())
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+crypto-intel put keys in source: ['crypto-intel.json']
+waiting 150s...
+FOUND at key: crypto-intel.json
+version: 4.4
+hyperliquid: OI $6.1B | funding 7.22%/yr | regime NEUTRAL | liq NORMAL
+etf_flows: BTC STRONG OUTFLOW ($-7.2B, CONFIRMED_STRONG ES)
+DONE 2439
