@@ -1,6 +1,7 @@
-freshness-manifest age now: 295.8h (was 168h)
-roles trusting scheduler.amazonaws.com: ['justhodl-scheduler-role']
-lambda-execution-role trusts: lambda=True scheduler=False | can_update_trust=?
-existing EventBridge Scheduler schedules: 20 ['justhodl-beneish-weekly', 'justhodl-cef-discount-daily', 'justhodl-chart-patterns-daily', 'justhodl-insider-buyback-confluence-daily', 'justhodl-insider-sell-cluster-daily', 'justhodl-magic-formula-daily', 'justhodl-momentum-leaders-hourly', 'justhodl-peer-comparison-daily']
-note: will attempt role creation in next step if needed
-DONE 2417
+scheduler role: arn:aws:iam::857687956942:role/justhodl-scheduler-role
+existing scheduler schedules: 117
+=== watchdogs onto EventBridge Scheduler ===
+  fleet-freshness-monitor-sched: created rate(30 minutes) (ENABLED)
+  fleet-error-monitor-sched: created rate(15 minutes) (ENABLED)
+  fleet-monitor-sched: created rate(3 hours) (ENABLED)
+DONE 2418
