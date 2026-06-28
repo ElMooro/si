@@ -161,6 +161,9 @@ FLIP = {
     "Crypto miners deep value (Puell)": "Puell rises back above 1",
     "Crypto hash-ribbon recovery": "hash ribbon rolls back into capitulation",
     "Crypto carry backwardation (deleveraging)": "futures basis re-contangos",
+    "Crypto heavy exchange inflow (distribution)": "exchange netflow normalises",
+    "Crypto below realized price (deep value)": "price reclaims aggregate cost basis",
+    "Crypto NUPL euphoria (late-cycle)": "NUPL cools out of euphoria",
 }
 
 
@@ -526,6 +529,9 @@ def lambda_handler(event, context):
     cropts = load("data/crypto-options-surface.json", "crypto_options")
     cminers = load("data/crypto-miners.json", "crypto_miners")
     cbasis = load("data/crypto-basis.json", "crypto_basis")
+    cxflow = load("data/crypto-exchange-flows.json", "crypto_exchange_flows")
+    ccot = load("data/crypto-cot.json", "crypto_cot")
+    conchain = load("data/onchain-ratios.json", "crypto_onchain")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -749,6 +755,20 @@ def lambda_handler(event, context):
         "carry_regime": _get(cbasis, "btc", "regime"),
         "eth_cash_carry_3m": _get(cbasis, "eth", "cash_and_carry_yield_3m_pct"),
         "eth_funding_ann": _get(cbasis, "eth", "funding_annualized_pct"),
+        # exchange netflows (accumulation/distribution) — note: "outflow=bullish" measured INVERTED ~3.5y
+        "exchange_flow_regime": _get(cxflow, "btc", "regime"),
+        "exchange_flow_30d_pctile": _get(cxflow, "btc", "cum_30d_pctile"),
+        "exchange_flow_study": _get(cxflow, "btc", "event_study", "verdict"),
+        # CME institutional COT (asset managers vs leveraged funds)
+        "cot_asset_mgr": _get(ccot, "btc", "asset_mgr", "read"),
+        "cot_asset_mgr_pctile": _get(ccot, "btc", "asset_mgr", "net_pctile_3y"),
+        "cot_lev_funds": _get(ccot, "btc", "lev_funds", "read"),
+        "cot_divergence": _get(ccot, "btc", "divergence"),
+        # on-chain valuation: realized price (aggregate cost basis) + NUPL
+        "realized_price": _get(conchain, "btc", "realized_price") or _get(conchain, "realized_price"),
+        "price_vs_realized_pct": _get(conchain, "btc", "price_vs_realized_pct") or _get(conchain, "price_vs_realized_pct"),
+        "nupl": _get(conchain, "btc", "nupl") or _get(conchain, "nupl"),
+        "nupl_zone": _get(conchain, "btc", "nupl_zone") or _get(conchain, "nupl_zone"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -909,6 +929,11 @@ def lambda_handler(event, context):
     rlabel = _get(rmap, "regime", "label")
     if rlabel == "BIFURCATED":
         divergences.append("CROSS-ASSET SPLIT: Risk Map BIFURCATED — equities broadly risk-on while crypto is risk-off.")
+    _cotdiv = _get(ccot, "btc", "divergence")
+    if _cotdiv and "cash-and-carry" in str(_cotdiv).lower():
+        divergences.append("CRYPTO COT SPLIT: CME asset managers net long while leveraged funds net short — "
+                           "ETF-era cash-and-carry basis trade (institutions accumulating, hedge funds harvesting basis), "
+                           "not directional bearishness.")
     if nowcast_regime == "SLOWING":
         spy3 = _get(now, "regime_spy_performance", "SLOWING", "horizons", "3m", "median_pct")
         if spy3 is not None:
@@ -1012,6 +1037,19 @@ def lambda_handler(event, context):
     _cc = _get(cbasis, "btc", "cash_and_carry_yield_3m_pct")
     if isinstance(_cc, (int, float)) and _cc <= -2:
         _add("Crypto carry backwardation (deleveraging)", -1, 2, f"3m carry {_cc}%")
+    # exchange netflows: heavy INFLOW (distribution) is the cleaner caution signal — the naive
+    # "outflow=bullish" relationship measured INVERTED over ~3.5y, so only the inflow side, low weight.
+    _xfp = _get(cxflow, "btc", "cum_30d_pctile")
+    if isinstance(_xfp, (int, float)) and _xfp >= 80:
+        _add("Crypto heavy exchange inflow (distribution)", -1, 1, f"netflow {_xfp}th pctile")
+    # realized price: below aggregate cost basis = capitulation value (contrarian risk-on)
+    _pvr = _get(conchain, "btc", "price_vs_realized_pct") or _get(conchain, "price_vs_realized_pct")
+    if isinstance(_pvr, (int, float)) and _pvr < 0:
+        _add("Crypto below realized price (deep value)", 1, 2, f"{_pvr}% vs cost basis")
+    # NUPL euphoria = late-cycle caution
+    _nupl = _get(conchain, "btc", "nupl") or _get(conchain, "nupl")
+    if isinstance(_nupl, (int, float)) and _nupl >= 0.75:
+        _add("Crypto NUPL euphoria (late-cycle)", -1, 2, f"NUPL {_nupl}")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))

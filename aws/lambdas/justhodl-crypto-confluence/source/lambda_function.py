@@ -146,6 +146,20 @@ def market_context():
     _cc = (basis.get("btc") or {}).get("cash_and_carry_yield_3m_pct")
     if isinstance(_cc, (int, float)) and _cc <= -2:
         tilt -= 1                                      # carry backwardation = deleveraging
+    # ── exchange flows / institutional COT / realized price (free-data engines) ──
+    xflow = _read("data/crypto-exchange-flows.json") or {}
+    cot = _read("data/crypto-cot.json") or {}
+    onch = _read("data/onchain-ratios.json") or {}
+    _onb = (onch.get("btc") or onch or {})
+    _xfp = (xflow.get("btc") or {}).get("cum_30d_pctile")
+    if isinstance(_xfp, (int, float)) and _xfp >= 80:
+        tilt -= 1                                      # heavy exchange inflow = distribution
+    _pvr = _onb.get("price_vs_realized_pct")
+    if isinstance(_pvr, (int, float)) and _pvr < 0:
+        tilt += 1                                      # below realized price = deep-value support
+    _nupl = _onb.get("nupl")
+    if isinstance(_nupl, (int, float)) and _nupl >= 0.75:
+        tilt -= 1                                      # NUPL euphoria = late-cycle
     regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
@@ -159,6 +173,12 @@ def market_context():
         "hash_ribbon": (miners.get("hash_ribbons") or {}).get("state"),
         "cash_carry_3m": (basis.get("btc") or {}).get("cash_and_carry_yield_3m_pct"),
         "carry_regime": (basis.get("btc") or {}).get("regime"),
+        "exchange_flow_regime": (xflow.get("btc") or {}).get("regime"),
+        "cot_asset_mgr": ((cot.get("btc") or {}).get("asset_mgr") or {}).get("read"),
+        "cot_divergence": (cot.get("btc") or {}).get("divergence"),
+        "realized_price": _onb.get("realized_price"),
+        "price_vs_realized_pct": _onb.get("price_vs_realized_pct"),
+        "nupl_zone": _onb.get("nupl_zone"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),
