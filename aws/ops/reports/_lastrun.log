@@ -1,12 +1,67 @@
-=== schedule finviz engines on Scheduler ===
-  scheduled finviz-universe-sched -> cron(0 14,22 * * ? *)
-  scheduled finviz-signals-sched -> cron(0 14,18,21 * * ? *)
-triggered both async; waiting 100s...
-    0.0h  data/finviz-universe.json
-    0.0h  data/finviz-short.json
-    0.0h  data/finviz-heatmap.json
-    0.0h  data/finviz-earnings-calendar.json
-    0.0h  data/finviz-etf-flows.json
-   -0.0h  data/finviz-signals.json
-  finviz-signals recent errors: none (clean run)
-DONE 2419
+triage candidates (stale, non-excluded): 61
+
+=== SCHEDULED on Scheduler + triggered (11) ===
+  justhodl-alpha-daily-brief  cron(30 11 * * ? *)  <- alpha-brief.json
+  justhodl-meta-improver  cron(0 22 ? * SUN *)  <- meta-improver-state.json
+  justhodl-opportunity-calibrator  cron(30 15 ? * SUN *)  <- opportunity-calibration.json
+  justhodl-behavior-mirror  cron(0 13 ? * SUN *)  <- behavior-mirror.json
+  justhodl-causality-scanner  cron(0 21 ? * SUN *)  <- causality-discoveries.json
+  justhodl-engine-contribution  cron(0 2 ? * SUN *)  <- engine-contributions.json
+  justhodl-chokepoint  cron(30 15 * * ? *)  <- cyclical-bagger.json
+  justhodl-alpha-decay  cron(45 13 * * ? *)  <- alpha-decay.json
+  justhodl-hot-stocks-digest  cron(30 12 * * ? *)  <- hot-stocks-digest.json
+  justhodl-capital-inflows  cron(0 22 ? * THU *)  <- capital-inflows.json
+  justhodl-inventory-drawdown  cron(30 23 ? * TUE *)  <- inventory-drawdown.json
+
+=== ALREADY-SCHEDULED but stale = runtime issue, needs code look (27) ===
+  665h  congress-party-map.json  [justhodl-political-stocks]
+  608h  cascade-calibration.json  [justhodl-best-setups]
+  595h  trade-tickets.json  [justhodl-best-setups]
+  403h  quiver-lobbying-cache.json  [justhodl-lobbying-intel]
+  209h  polygon-options-flow.json  [justhodl-best-setups]
+  209h  vol-target-unwind.json  [justhodl-risk-regime]
+  167h  bagger-engine.json  [justhodl-bagger-engine]
+  166h  strategy-portfolio.json  [justhodl-strategist]
+  165h  weekly-review-latest.json  [justhodl-weekly-ai-review]
+  162h  edge-discovery-graduated.json  [justhodl-edge-discovery]
+  162h  edge-discovery.json  [justhodl-edge-discovery]
+  149h  signal-halflife.json  [justhodl-meta-improver]
+  145h  miss-calibrator-proposals.json  [justhodl-miss-calibrator]
+  144h  smart-money-13f.json  [justhodl-ai-rerating-radar]
+  143h  buyback-scanner.json  [justhodl-buyback-scanner]
+  142h  index-inclusion.json  [justhodl-index-inclusion]
+  133h  spac-floor-warrant.json  [justhodl-signal-board]
+  129h  chokepoint.json  [justhodl-best-setups]
+  124h  consensus-bottom.json  [justhodl-accumulation-radar]
+  114h  options-confluence.json  [justhodl-best-setups]
+  93h  earnings-quality.json  [justhodl-best-setups]
+  93h  dark-pool.json  [justhodl-dark-pool]
+  69h  intraday-pulse.json  [justhodl-intraday-pulse]
+  69h  forward-orders.json  [justhodl-forward-orders]
+  69h  quiver-congress-cache.json  [justhodl-political-stocks]
+
+=== no writer found = retire candidate (23) ===
+  931h  data/vix-backwardation-trigger.json
+  885h  data/_freshness-status.json
+  837h  data/eventbridge-audit.json
+  795h  data/system-audit.json
+  737h  data/fred-cache-secretary.json
+  737h  data/secretary-latest.json
+  696h  data/ka-metrics.json
+  696h  data/ka-analysis.json
+  584h  data/_probe_shares.json
+  440h  data/crisis-decisive-call.json
+  440h  data/regime-decisive-call.json
+  397h  data/backtest-summary.json
+  335h  data/khalid-analysis.json
+  306h  data/digest-trends-ai.json
+  299h  data/finviz-signals-state.json
+  167h  data/stress-factor-loadings.json
+  166h  data/hiring-velocity.json
+  165h  data/ma-target-predictor.json
+  157h  data/divcut-warning.json
+  142h  data/buyback-yield-ranking.json
+  133h  data/reit-nav-discount.json
+  125h  data/13f-price-divergence.json
+  108h  data/cta-trend-exhaust.json
+DONE 2420
