@@ -1,21 +1,14 @@
-=== 1. crypto-cot live? ===
-  invoked async
+=== onchain-ratios (NEW: realized price, NUPL, exchange netflows) ===
+  realized_price: None | price_vs_realized_pct: None
+  nupl: None | nupl_zone: None
+  exchange_netflow_usd: None | netflow_regime: None
 
-=== 2. CoinMetrics community — which metrics are FREE? ===
-  SplyCur            -> OK val=20048966.76463361
-  SplyActPct1yr      -> HTTP 403 (not free)
-  SplyAdrBalUSD1K    -> HTTP 403 (not free)
-  SOPR               -> HTTP 403 (not free)
-  FlowInExUSD        -> OK val=734198803.059581081109242688
-  FlowOutExUSD       -> OK val=956311532.312248853275210653
-  SplyExpFut         -> HTTP 400 (not free)
-  CapRealUSD         -> HTTP 403 (not free)
+=== crypto-dvol (NEW: realized vol + variance premium) ===
+  realized_vol_30d: 43.4 | variance_risk_premium: 1.7
+  vrp_read: implied ~ realized — fairly priced
 
-=== 3. Coinbase premium sources (Coinbase vs Kraken vs OKX) ===
-  Coinbase BTC-USD: 60081.01
-  Kraken XBTUSD: 60090.0
-  OKX BTC-USDT: 60171.7
-
-=== 4. Stablecoin depeg (Coingecko) ===
-   {'dai': {'usd': 0.999492}, 'tether': {'usd': 0.998591}, 'usd-coin': {'usd': 0.999736}}
-DONE 2395
+=== pre-existing free-gap engines — live + producing? ===
+  justhodl-crypto-cot: LIVE (asof 2026-06-28T04:51:15Z)
+  justhodl-coinbase-premium: LIVE (asof 2026-06-28T04:46:43Z)
+  justhodl-crypto-stablecoin-peg: LIVE (asof 2026-06-28T04:46:47Z)
+DONE 2396
