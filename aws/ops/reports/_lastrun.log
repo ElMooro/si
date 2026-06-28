@@ -1,13 +1,26 @@
-BTC options live: 930
-sample instrument keys: ['base_currency', 'block_trade_commission', 'block_trade_min_trade_amount', 'block_trade_tick_size', 'contract_size', 'counter_currency', 'creation_timestamp', 'expiration_timestamp', 'instrument_id', 'instrument_name', 'instrument_type', 'is_active', 'kind', 'maker_commission', 'min_trade_amount', 'option_type', 'price_index', 'quote_currency', 'settlement_currency', 'settlement_period', 'state', 'strike', 'taker_commission', 'tick_size', 'tick_size_steps']
-sample: {'instrument_name': 'BTC-28JUN26-50000-C', 'strike': 50000.0, 'option_type': 'call', 'expiration_timestamp': 1782633600000, 'tick_size': 0.0001}
-n_expiries: 13
-expiries (days out): [0.2, 1.2, 2.2, 3.2, 5.2, 12.2, 19.2, 33.2, 61.2, 89.2, 180.2, 271.2]
-target expiry ~30d: 2026-07-31 | n_strikes: 116
-underlying_price: 60316.59
-ticker keys: ['ask_iv', 'best_ask_amount', 'best_ask_price', 'best_bid_amount', 'best_bid_price', 'bid_iv', 'estimated_delivery_price', 'greeks', 'index_price', 'instrument_name', 'interest_rate', 'last_price', 'mark_iv', 'mark_price', 'max_price', 'min_price', 'open_interest', 'settlement_price', 'state', 'stats', 'timestamp', 'underlying_index', 'underlying_price']
-ticker sample: {'instrument_name': 'BTC-31JUL26-60000-C', 'mark_iv': 42.55, 'bid_iv': 41.95, 'ask_iv': 42.78, 'underlying_price': 60316.3}
-greeks: {'delta': 0.54187, 'gamma': 5e-05, 'vega': 72.21388, 'theta': -46.22158, 'rho': 26.81279}
-book_summary n: 930 | sample keys: ['ask_price', 'base_currency', 'bid_price', 'creation_timestamp', 'estimated_delivery_price', 'high', 'instrument_name', 'interest_rate', 'last', 'low', 'mark_iv', 'mark_price', 'mid_price', 'open_interest', 'price_change', 'quote_currency', 'underlying_index', 'underlying_price', 'volume', 'volume_usd']
-book_summary mark_iv present?: True | underlying present?: True
-DONE 2380
+function created OK | timeout 120 | LastModified 2026-06-28T02:20:25.000+0000
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"btc_rr_25d\": -8.46, \"term\": \"BACKWARDATION (near-term stress)\", \"history_n\": 1}"}
+
+BTC: underlying $60027.2 | strikes 930
+  30d headline: ATM 42.61 | 25dC 38.99 25dP 47.45 | RR25 -8.46 | BF25 0.61
+  read: PUT SKEW — downside puts bid, hedging/fear
+  term: 7d 44.64 / 30d 42.61 / 90d 42.91 | slope -1.73 -> BACKWARDATION (near-term stress)
+
+ETH: underlying $1617.2 | strikes 726
+  30d headline: ATM 57.45 | 25dC 54.83 25dP 62.27 | RR25 -7.43 | BF25 1.1
+  read: PUT SKEW — downside puts bid, hedging/fear
+  term: 7d 56.71 / 30d 57.45 / 90d 57.47 | slope 0.76 -> FLAT
+
+history_n: 1 | _diag: None
+BTC expiry ladder (days: ATM | RR25):
+      0.2d  ATM 26.61  RR25 -6.52
+      1.2d  ATM 35.28  RR25 -5.85
+      2.2d  ATM 41.22  RR25 -7.75
+      3.2d  ATM 42.53  RR25 -7.64
+      5.2d  ATM 44.64  RR25 -9.41
+     12.2d  ATM 43.42  RR25 -9.68
+     19.2d  ATM 43.19  RR25 -8.29
+     33.2d  ATM 42.61  RR25 -8.46
+     61.2d  ATM 42.57  RR25 -8.24
+     89.2d  ATM 42.91  RR25 -8.09
+DONE 2381
