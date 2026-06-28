@@ -108,9 +108,11 @@ def build(ccy):
     call_wall = max(by_strike.items(), key=lambda kv: kv[1]["call_g"], default=(None, {}))
     put_wall = max(by_strike.items(), key=lambda kv: kv[1]["put_g"], default=(None, {}))
 
-    # max-pain for nearest monthly expiry (most OI among future expiries)
+    # max-pain for the relevant NEAR-TERM expiry (nearest within 10d with OI; else soonest)
     exp_oi_tot = {e: sum(s["c"] + s["p"] for s in strikes.values()) for e, strikes in by_exp_oi.items()}
-    near_exp = max(exp_oi_tot, key=exp_oi_tot.get) if exp_oi_tot else None
+    soon = sorted(exp_oi_tot)
+    near_window = [e for e in soon if (e - now) <= 10 * 86400000 and exp_oi_tot[e] > 0]
+    near_exp = (max(near_window, key=exp_oi_tot.get) if near_window else (soon[0] if soon else None))
     max_pain = None
     if near_exp:
         strikes = by_exp_oi[near_exp]

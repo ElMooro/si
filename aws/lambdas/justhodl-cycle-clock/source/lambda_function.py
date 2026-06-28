@@ -169,6 +169,7 @@ FLIP = {
     "Crypto spot-ETF strong outflow (marginal sell)": "ETF redemptions abate / turn to inflows",
     "Crypto perp leverage buildup (fragile)": "open interest unwinds / funding normalises",
     "Crypto perp liquidation cascade (acute stress)": "OI stabilises after forced selling clears",
+    "Crypto dealer negative gamma (vol-expansion)": "spot reclaims the gamma-flip level",
 }
 
 
@@ -541,6 +542,7 @@ def lambda_handler(event, context):
     cprem = load("data/coinbase-premium.json", "crypto_coinbase_premium")
     cetf = load("data/crypto-etf-flows.json", "crypto_etf_flows")
     chl = load("data/hyperliquid-perps.json", "hyperliquid_perps")
+    cgex = load("data/crypto-gex.json", "crypto_gex")
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -794,6 +796,14 @@ def lambda_handler(event, context):
         "hl_btc_funding_ann_pct": _get(chl, "btc", "funding_ann_pct"),
         "hl_leverage_regime": _get(chl, "leverage_regime"),
         "hl_liq_pressure": _get(chl, "liq_pressure_proxy"),
+        # dealer gamma (GEX) positioning-by-strike
+        "gex_btc_regime": _get(cgex, "btc", "regime"),
+        "gex_btc_net_usd": _get(cgex, "btc", "net_gex_usd"),
+        "gex_btc_flip": _get(cgex, "btc", "gamma_flip"),
+        "gex_btc_spot_vs_flip": _get(cgex, "btc", "spot_vs_flip"),
+        "gex_btc_call_wall": _get(cgex, "btc", "call_wall"),
+        "gex_btc_put_wall": _get(cgex, "btc", "put_wall"),
+        "gex_btc_max_pain": _get(cgex, "btc", "max_pain"),
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1095,6 +1105,12 @@ def lambda_handler(event, context):
              f"HL OI ${(_get(chl, 'total_oi_usd') or 0)/1e9:.1f}B, {_get(chl, 'total_oi_chg_24h_pct')}%/24h")
     elif "CASCADE" in _hlr.upper():
         _add("Crypto perp liquidation cascade (acute stress)", -1, 1, _hlr)
+    # dealer gamma: NEGATIVE gamma (spot below flip) = dealers amplify moves = vol-expansion / unstable
+    _gxr = str(_get(cgex, "btc", "regime") or "")
+    _svf = _get(cgex, "btc", "spot_vs_flip")
+    if "NEGATIVE" in _gxr.upper() and isinstance(_svf, (int, float)) and _svf <= -0.5:
+        _add("Crypto dealer negative gamma (vol-expansion)", -1, 1,
+             f"spot {_svf}% below flip ${_get(cgex, 'btc', 'gamma_flip')}")
     on = sum(c["weight"] for c in contribs if c["side"] > 0)
     off = sum(c["weight"] for c in contribs if c["side"] < 0)
     score = max(-100, min(100, round((on - off) / max(on + off, 1) * 100)))

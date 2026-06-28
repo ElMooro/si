@@ -330,7 +330,7 @@ def extract_metrics(data,weights):
         })(),
         "crypto_regime":rs.get("regime","N/A"),
         "crypto_action":rs.get("action","N/A"),
-        **(lambda xf=crypto.get("exchange_flows",{}) or {}, ct=crypto.get("cot",{}) or {}, cb=crypto.get("coinbase_premium",{}) or {}, sp=crypto.get("stablecoin_peg",{}) or {}, ocr=crypto.get("onchain_ratios",{}) or {}, ef=crypto.get("etf_flows",{}) or {}, hl=crypto.get("hyperliquid",{}) or {}: {
+        **(lambda xf=crypto.get("exchange_flows",{}) or {}, ct=crypto.get("cot",{}) or {}, cb=crypto.get("coinbase_premium",{}) or {}, sp=crypto.get("stablecoin_peg",{}) or {}, ocr=crypto.get("onchain_ratios",{}) or {}, ef=crypto.get("etf_flows",{}) or {}, hl=crypto.get("hyperliquid",{}) or {}, gx=crypto.get("gex",{}) or {}: {
             "crypto_exchange_flow_regime": xf.get("btc_regime"),
             "crypto_exchange_flow_pctile": xf.get("btc_netflow_30d_pctile"),
             "crypto_cot_asset_mgr": ct.get("btc_asset_mgr_read"),
@@ -348,6 +348,11 @@ def extract_metrics(data,weights):
             "crypto_hl_total_oi_usd": hl.get("total_oi_usd"),
             "crypto_hl_leverage_regime": hl.get("leverage_regime"),
             "crypto_hl_btc_funding_ann": hl.get("btc_funding_ann_pct"),
+            "crypto_gex_btc_regime": gx.get("btc_regime"),
+            "crypto_gex_btc_flip": gx.get("btc_gamma_flip"),
+            "crypto_gex_call_wall": gx.get("btc_call_wall"),
+            "crypto_gex_put_wall": gx.get("btc_put_wall"),
+            "crypto_gex_max_pain": gx.get("btc_max_pain"),
         })(),
         # ─── Phase 1A bond regime + Phase 1B divergence — added 2026-04-25 ───
         "bond_regime":(data.get("bond_regime") or {}).get("regime","UNKNOWN"),
@@ -1169,6 +1174,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "CRYPTO_FLOWS: ExchFlows:"+str(m["crypto_exchange_flow_regime"])+" ("+str(m["crypto_exchange_flow_pctile"])+"th) CME-COT-AsstMgr:"+str(m["crypto_cot_asset_mgr"])+" CB-prem:"+str(m["crypto_coinbase_premium_pct"])+"% Stables:"+str(m["crypto_stablecoin_status"])+" RealizedPx:$"+str(m["crypto_realized_price"])+" ("+str(m["crypto_price_vs_realized_pct"])+"% vs cost-basis, NUPL "+str(m["crypto_nupl_zone"])+")",
         "CRYPTO_ETF_FLOWS: spot BTC ETFs "+str(m["crypto_etf_btc_regime"])+" ($"+str(round((m["crypto_etf_btc_30d_usd"] or 0)/1e9,1))+"B/30d) | spot ETH ETFs "+str(m["crypto_etf_eth_regime"])+" ($"+str(round((m["crypto_etf_eth_30d_usd"] or 0)/1e9,1))+"B/30d) [marginal buyer; flows lead price]",
         "CRYPTO_PERP_LEVERAGE: Hyperliquid OI $"+str(round((m["crypto_hl_total_oi_usd"] or 0)/1e9,1))+"B | BTC funding "+str(m["crypto_hl_btc_funding_ann"])+"%/yr | regime "+str(m["crypto_hl_leverage_regime"]),
+        "CRYPTO_DEALER_GAMMA: "+str(m["crypto_gex_btc_regime"])+" | flip $"+str(m["crypto_gex_btc_flip"])+" | call wall $"+str(m["crypto_gex_call_wall"])+" (resist) / put wall $"+str(m["crypto_gex_put_wall"])+" (support) | max-pain $"+str(m["crypto_gex_max_pain"]),
         "VALUATIONS: CAPE:"+str(m["cape"])+" Buffett:"+str(m["buffett"])+"%",
         "OPTIONS: Bias:"+str(m["options_bias"])+" P/C:"+str(m["pc"]),
         "PICKS: "+str(", ".join(m["picks"])),

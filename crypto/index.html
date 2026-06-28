@@ -383,6 +383,19 @@ h+="<div class='metric'><span class='metric-name'>Liq pressure</span><span class
 if(_hl.top_oi&&_hl.top_oi.length)h+="<div class='metric'><span class='metric-name'>Top OI</span><span class='metric-val' style='font-size:10px'>"+_hl.top_oi.slice(0,3).map(function(x){return x.coin+" $"+(x.oi_usd/1e9).toFixed(1)+"B"}).join(" · ")+"</span></div>";
 h+="</div>";
 }
+var _gx=D.gex||{};
+if(_gx.btc_regime){
+var _gxr=_gx.btc_regime||"";var _gxc=/NEGATIVE/i.test(_gxr)?"var(--red)":/POSITIVE/i.test(_gxr)?"var(--green)":"var(--t3)";
+h+="<div class='card'><div class='card-title'>Dealer Gamma (Deribit)</div>";
+h+="<div class='stat-big' style='font-size:14px;color:"+_gxc+"'>"+(/NEGATIVE/i.test(_gxr)?"NEG GAMMA":/POSITIVE/i.test(_gxr)?"POS GAMMA":_gxr)+"</div>";
+h+="<div style='font-size:10px;color:var(--t3)'>"+(/NEGATIVE/i.test(_gxr)?"vol-expansion / unstable":"pinned / vol-suppressed")+"</div>";
+h+="<div class='metric'><span class='metric-name'>Net GEX</span><span class='metric-val mono'>$"+(_gx.btc_net_gex_usd!=null?(_gx.btc_net_gex_usd/1e6).toFixed(0)+"M":"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Gamma flip</span><span class='metric-val mono'>$"+(_gx.btc_gamma_flip!=null?Number(_gx.btc_gamma_flip).toLocaleString():"-")+(_gx.btc_spot_vs_flip!=null?" ("+(_gx.btc_spot_vs_flip>0?"+":"")+_gx.btc_spot_vs_flip+"%)":"")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Call wall</span><span class='metric-val mono' style='color:var(--red)'>$"+(_gx.btc_call_wall!=null?Number(_gx.btc_call_wall).toLocaleString():"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Put wall</span><span class='metric-val mono' style='color:var(--green)'>$"+(_gx.btc_put_wall!=null?Number(_gx.btc_put_wall).toLocaleString():"-")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>Max-pain</span><span class='metric-val mono'>$"+(_gx.btc_max_pain!=null?Number(_gx.btc_max_pain).toLocaleString():"-")+(_gx.btc_max_pain_exp?" ("+_gx.btc_max_pain_exp+")":"")+"</span></div>";
+h+="</div>";
+}
 h+="<div class='card'><div class='card-title'>Exchange Flows</div>";
 h+="<div class='stat-big' style='color:"+_xfc+";font-size:17px'>"+(_xf.btc_regime||"-")+"</div>";
 h+="<div style='font-size:11px;color:"+_xfc+"'>BTC 30d netflow"+(_xf.btc_netflow_30d_pctile!=null?" · "+_xf.btc_netflow_30d_pctile+"th":"")+"</div>";

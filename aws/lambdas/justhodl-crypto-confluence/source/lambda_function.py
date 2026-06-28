@@ -186,6 +186,11 @@ def market_context():
         tilt -= 1
     elif "CASCADE" in _hlr:
         tilt -= 1
+    # dealer gamma: negative gamma below flip = vol-expansion / unstable
+    gex = _read("data/crypto-gex.json") or {}
+    _gb = gex.get("btc") or {}
+    if "NEGATIVE" in str(_gb.get("regime") or "").upper() and isinstance(_gb.get("spot_vs_flip"), (int, float)) and _gb.get("spot_vs_flip") <= -0.5:
+        tilt -= 1
     regime = "RISK_ON" if tilt >= 3 else "RISK_OFF" if tilt <= -3 else "NEUTRAL"
     return {
         "regime": regime, "tilt": tilt,
@@ -214,6 +219,11 @@ def market_context():
         "hl_total_oi_usd": hl.get("total_oi_usd"),
         "hl_leverage_regime": hl.get("leverage_regime"),
         "hl_btc_funding_ann_pct": (hl.get("btc") or {}).get("funding_ann_pct"),
+        "gex_btc_regime": (gex.get("btc") or {}).get("regime"),
+        "gex_btc_gamma_flip": (gex.get("btc") or {}).get("gamma_flip"),
+        "gex_btc_call_wall": (gex.get("btc") or {}).get("call_wall"),
+        "gex_btc_put_wall": (gex.get("btc") or {}).get("put_wall"),
+        "gex_btc_max_pain": (gex.get("btc") or {}).get("max_pain"),
         "note": ("Liquidity/cycle backdrop supports leaning into coin setups." if regime == "RISK_ON"
                  else "High dump-risk / contracting backdrop — treat bullish coin signals as suspect." if regime == "RISK_OFF"
                  else "Mixed backdrop — coin-specific confluence matters more than the tape."),

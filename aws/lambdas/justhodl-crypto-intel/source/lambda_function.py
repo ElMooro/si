@@ -3815,6 +3815,16 @@ def lambda_handler(event, context):
             'funding_extremes':_hl.get('funding_extremes'),'interpretation':_hl.get('interpretation')}
     except Exception as _exh:
         print('  hyperliquid merge skipped:',str(_exh)[:50])
+    try:
+        _gx=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-gex.json')['Body'].read().decode())
+        _gb=_gx.get('btc') or {}; _ge=_gx.get('eth') or {}
+        R['gex']={'btc_regime':_gb.get('regime'),'btc_net_gex_usd':_gb.get('net_gex_usd'),'btc_gamma_flip':_gb.get('gamma_flip'),
+            'btc_spot_vs_flip':_gb.get('spot_vs_flip'),'btc_call_wall':_gb.get('call_wall'),'btc_put_wall':_gb.get('put_wall'),
+            'btc_max_pain':_gb.get('max_pain'),'btc_max_pain_exp':_gb.get('max_pain_exp'),'btc_put_call_oi_ratio':_gb.get('put_call_oi_ratio'),
+            'eth_regime':_ge.get('regime'),'eth_gamma_flip':_ge.get('gamma_flip'),'eth_max_pain':_ge.get('max_pain'),
+            'interpretation':_gx.get('interpretation')}
+    except Exception as _exg:
+        print('  gex merge skipped:',str(_exg)[:50])
 
 
 
@@ -3826,7 +3836,7 @@ def lambda_handler(event, context):
 
 
 
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.4',**R}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.5',**R}
 
 
 
