@@ -95,12 +95,156 @@ def stock_rollup(vt_map, top_n=20, min_n=2):
     return out_map
 
 
+CONVICTION_RANK = {"STRONG OPPORTUNITY": 6, "OPPORTUNITY": 5, "FAIR VALUE": 4,
+                   "HOLD / NEUTRAL": 3, "EXPENSIVE": 2, "HIGH RISK": 1}
+
+
+def _spearman(pairs):
+    n = len(pairs)
+    if n < 3:
+        return None
+    xs = sorted(range(n), key=lambda i: pairs[i][0])
+    ys = sorted(range(n), key=lambda i: pairs[i][1])
+    rx = {}; ry = {}
+    for r, i in enumerate(xs):
+        rx[i] = r
+    for r, i in enumerate(ys):
+        ry[i] = r
+    d2 = sum((rx[i] - ry[i]) ** 2 for i in range(n))
+    return round(1 - 6 * d2 / (n * (n * n - 1)), 2)
+
+
+def _deterministic_analysis(out):
+    """Always-on honest analysis computed directly from the data (no LLM needed)."""
+    from collections import Counter
+    bv = out.get("by_verdict") or {}
+    bvs = out.get("by_verdict_stocks") or {}
+    bc = out.get("by_compounder_bucket") or {}
+    ranked = sorted(((k, v) for k, v in bv.items() if v and v.get("n")),
+                    key=lambda kv: -(kv[1].get("win_rate") or 0))
+    if not ranked:
+        return {"_skip": "no verdict data", "source": "deterministic"}
+    top_k, top_v = ranked[0]
+    bot_k, bot_v = ranked[-1]
+    so = bv.get("STRONG OPPORTUNITY") or {}
+    so_wr = so.get("win_rate")
+    pairs = [(CONVICTION_RANK.get(k, 0), v.get("win_rate") or 0)
+             for k, v in bv.items() if v and v.get("n") and k in CONVICTION_RANK]
+    rho = _spearman(pairs)
+    inverted = bool(so_wr is not None and top_k != "STRONG OPPORTUNITY"
+                    and (top_v.get("win_rate") or 0) - so_wr > 3)
+    if inverted:
+        headline = ("Conviction labels are inverted — %s leads at %s%% while STRONG OPPORTUNITY trails at %s%%; the buy labels are not predictive yet."
+                    % (top_k, round(top_v.get("win_rate"), 1), round(so_wr, 1)))
+    elif top_k == "STRONG OPPORTUNITY":
+        headline = "Conviction labels are working — STRONG OPPORTUNITY leads all verdicts at %s%% win." % round(top_v.get("win_rate"), 1)
+    else:
+        headline = "%s leads at %s%% win; conviction ordering is noisy (rank corr %s)." % (top_k, round(top_v.get("win_rate"), 1), rho)
+    spread = round((top_v.get("win_rate") or 0) - (bot_v.get("win_rate") or 0), 1)
+    q80 = (bc.get("compounder_80+") or {}).get("win_rate")
+    diag = ("Across %d verdicts the win-rate spread is %spp (best %s, worst %s); conviction-vs-outcome rank correlation is %s (1.0 = perfectly ordered, <=0 = inverted/noisy)."
+            % (len(ranked), spread, top_k, bot_k, rho if rho is not None else "n/a"))
+    if q80 is not None:
+        diag += " Top-quality names (compounder_80+) win %s%%, so the quality axis carries more signal than the verdict axis right now." % round(q80, 1)
+    vnotes = {}
+    for k, v in ranked:
+        st = bvs.get(k) or {}
+        L = st.get("leaders") or []; D = st.get("laggards") or []
+        ld = ", ".join("%s %s%%" % (x["ticker"], ("+%s" % x["ret"] if x["ret"] >= 0 else x["ret"])) for x in L[:2])
+        dg = ", ".join("%s %s%%" % (x["ticker"], ("+%s" % x["ret"] if x["ret"] >= 0 else x["ret"])) for x in D[:2])
+        note = "%s%% win" % round(v.get("win_rate"), 1)
+        if ld:
+            note += "; driven by %s" % ld
+        if dg:
+            note += "; dragged by %s" % dg
+        vnotes[k] = note
+    lag_c = Counter(); led_c = Counter()
+    for k, st in bvs.items():
+        for x in (st.get("laggards") or []):
+            lag_c[x["ticker"]] += 1
+        for x in (st.get("leaders") or []):
+            led_c[x["ticker"]] += 1
+    repeat_lag = [t for t, c in lag_c.most_common(6) if c >= 2]
+    repeat_led = [t for t, c in led_c.most_common(6) if c >= 2]
+    patterns = []
+    if inverted:
+        patterns.append("The high-conviction buy bucket underperforms lower-conviction ones — verdict scoring is currently anti-correlated with forward returns (rank corr %s)." % rho)
+    if repeat_lag:
+        patterns.append("Systematic losers dragging multiple verdicts: %s — these lose regardless of the label assigned." % ", ".join(repeat_lag))
+    if repeat_led:
+        patterns.append("Systematic winners across verdicts: %s — consistently positive wherever they appear." % ", ".join(repeat_led))
+    qb = {k: (v or {}).get("win_rate") for k, v in bc.items() if v}
+    if qb.get("compounder_80+") and qb.get("compounder_70-80") and qb["compounder_80+"] - qb["compounder_70-80"] > 8:
+        patterns.append("Quality is non-monotonic: 80+ wins %s%% but the 70-80 bucket is a trap at %s%% — mid-quality underperforms." % (round(qb["compounder_80+"], 1), round(qb["compounder_70-80"], 1)))
+    recs = []
+    if inverted:
+        recs.append("Down-weight or temporarily invert the STRONG OPPORTUNITY signal weights; it trails %s by %spp." % (top_k, round((top_v.get("win_rate") or 0) - so_wr, 1)))
+    if repeat_lag:
+        recs.append("Add a penalty/exclusion for cross-verdict repeat laggards (%s) until they show positive forward returns." % ", ".join(repeat_lag[:5]))
+    if q80 is not None:
+        recs.append("Overweight compounder_80+ (%s%% win) and treat the 70-80 bucket as neutral rather than a buy." % round(q80, 1))
+    if top_k == "HIGH RISK":
+        recs.append("HIGH RISK leading suggests the risk flag is catching high-momentum names that keep running — add a momentum/trend overlay so the buy labels capture that move.")
+    recs.append("Keep grading point-in-time and re-fit verdict weights to forward excess-vs-SPY (not absolute return) so labels become monotonic with outcomes.")
+    return {"headline": headline, "diagnosis": diag, "verdict_notes": vnotes,
+            "patterns": patterns, "recommendations": recs, "rank_corr": rho,
+            "inverted": inverted, "source": "deterministic",
+            "generated_at": datetime.now(timezone.utc).isoformat()}
+
+
+def _parse_json_obj(txt):
+    t = (txt or "").strip()
+    if t.startswith("```"):
+        t = t.strip("`")
+        if t[:4].lower() == "json":
+            t = t[4:]
+    t = t.strip()
+    try:
+        o = json.loads(t)
+        return o if isinstance(o, dict) else None
+    except Exception:
+        return None
+
+
+def _call_glm(system, user):
+    try:
+        key = boto3.client("ssm", region_name="us-east-1").get_parameter(
+            Name="/justhodl/zai-api-key", WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return None
+    body = json.dumps({"model": "glm-4.6", "max_tokens": 1600,
+                       "messages": [{"role": "system", "content": system},
+                                    {"role": "user", "content": user}]}).encode()
+    req = urllib.request.Request("https://api.z.ai/api/paas/v4/chat/completions", data=body,
+                                 headers={"Content-Type": "application/json", "Authorization": "Bearer " + key}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=70) as r:
+            data = json.loads(r.read().decode())
+        return _parse_json_obj(data["choices"][0]["message"]["content"])
+    except Exception:
+        return None
+
+
+def _call_claude(system, user):
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        return None
+    payload = json.dumps({"model": "claude-sonnet-4-6", "max_tokens": 1600, "system": system,
+                          "messages": [{"role": "user", "content": user}]}).encode()
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=payload,
+                                 headers={"Content-Type": "application/json", "x-api-key": key,
+                                          "anthropic-version": "2023-06-01"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=70) as r:
+            data = json.loads(r.read().decode())
+        return _parse_json_obj(data["content"][0]["text"] if data.get("content") else "")
+    except Exception:
+        return None
+
+
 def ai_analyze(out):
     """Heavy-AI layer: Claude reads the scorecard (verdict stats + per-ticker winners/
     losers + buckets) and returns a strict-JSON honest diagnosis + recalibration actions."""
-    key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if not key:
-        return {"_skip": "no ANTHROPIC_API_KEY"}
     ov = out.get("overall") or {}
     lines = ["OVERALL: n=%s win=%s%% avg=%s%% median=%s%% hit5=%s%% best/worst=%s/%s" % (
         out.get("n_observations"), ov.get("win_rate"), ov.get("avg"), ov.get("median"),
@@ -133,30 +277,27 @@ def ai_analyze(out):
         "patterns (array of 2-4 strings: cross-cutting patterns separating winners from losers), "
         "recommendations (array of 3-5 strings: specific actions to make labels predictive)."
     )
-    payload = json.dumps({"model": "claude-sonnet-4-6", "max_tokens": 1600, "system": system,
-                          "messages": [{"role": "user", "content": "Scorecard data:\n" + summary + "\n\nReturn the JSON analysis now."}]}).encode()
-    req = urllib.request.Request("https://api.anthropic.com/v1/messages", data=payload,
-                                 headers={"Content-Type": "application/json", "x-api-key": key,
-                                          "anthropic-version": "2023-06-01"}, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=70) as r:
-            data = json.loads(r.read().decode())
-        txt = data["content"][0]["text"] if data.get("content") else ""
-    except Exception as e:
-        return {"_error": str(e)[:160]}
-    t = txt.strip()
-    if t.startswith("```"):
-        t = t.strip("`")
-        if t[:4].lower() == "json":
-            t = t[4:]
-    t = t.strip()
-    try:
-        parsed = json.loads(t)
-    except Exception:
-        parsed = {"headline": "", "diagnosis": txt[:900], "_parse_error": True}
-    parsed["model"] = "claude-sonnet-4-6"
-    parsed["generated_at"] = datetime.now(timezone.utc).isoformat()
-    return parsed
+    user = "Scorecard data:\n" + summary + "\n\nReturn the JSON analysis now."
+
+    # Always compute a deterministic analysis so the panel is never empty.
+    det = _deterministic_analysis(out)
+
+    # Enrich with an LLM when a provider is funded: GLM (Z.ai) first, then Claude.
+    llm = _call_glm(system, user)
+    src = "glm-4.6"
+    if not llm:
+        llm = _call_claude(system, user)
+        src = "claude-sonnet-4-6"
+    if llm and (llm.get("headline") or llm.get("diagnosis")):
+        for k in ("headline", "diagnosis", "verdict_notes", "patterns", "recommendations"):
+            if not llm.get(k):
+                llm[k] = det.get(k)
+        llm["source"] = src
+        llm.setdefault("rank_corr", det.get("rank_corr"))
+        llm.setdefault("inverted", det.get("inverted"))
+        llm["generated_at"] = datetime.now(timezone.utc).isoformat()
+        return llm
+    return det
 
 
 def agg(returns):
