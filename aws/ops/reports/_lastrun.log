@@ -1,23 +1,31 @@
-BTC futures: 14
-  BTC-28JUN26            settlement=day        exp_days=0.2
-  BTC-29JUN26            settlement=day        exp_days=1.2
-  BTC-30JUN26            settlement=day        exp_days=2.2
-  BTC-1JUL26             settlement=day        exp_days=3.2
-  BTC-3JUL26             settlement=week       exp_days=5.2
-  BTC-10JUL26            settlement=week       exp_days=12.2
-  BTC-17JUL26            settlement=week       exp_days=19.2
-  BTC-31JUL26            settlement=month      exp_days=33.2
-  BTC-28AUG26            settlement=month      exp_days=61.2
-  BTC-25SEP26            settlement=month      exp_days=89.2
-  BTC-25DEC26            settlement=month      exp_days=180.2
-  BTC-26MAR27            settlement=month      exp_days=271.2
-  BTC-25JUN27            settlement=month      exp_days=362.2
-  BTC-PERPETUAL          settlement=perpetual  exp_days=perp
+function created OK
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"cc_yield_3m\": 3.06, \"regime\": \"MILD CONTANGO\", \"history_n\": 1}"}
 
-book_summary future keys: ['ask_price', 'base_currency', 'bid_price', 'creation_timestamp', 'estimated_delivery_price', 'high', 'instrument_name', 'last', 'low', 'mark_price', 'mid_price', 'open_interest', 'price_change', 'quote_currency', 'volume', 'volume_notional', 'volume_usd']
+BTC: index $60175.7 | perp prem 0.0133% | funding ann 0.21%
+  30d basis ann 2.0% | 3m cash&carry 3.06% | MILD CONTANGO
+  curve (days: ann basis%):
+        1.2d    -4.71%  (basis -0.015%)
+        2.2d     0.38%  (basis 0.002%)
+        3.2d     0.27%  (basis 0.002%)
+        5.2d     1.81%  (basis 0.026%)
+       12.2d     2.18%  (basis 0.073%)
+       19.2d     2.04%  (basis 0.107%)
+       33.2d      2.0%  (basis 0.182%)
+       61.2d     2.36%  (basis 0.395%)
+       89.2d     3.06%  (basis 0.748%)
 
-ticker(BTC-3JUL26) keys: ['best_ask_amount', 'best_ask_price', 'best_bid_amount', 'best_bid_price', 'estimated_delivery_price', 'index_price', 'instrument_name', 'last_price', 'mark_price', 'max_price', 'min_price', 'open_interest', 'settlement_price', 'state', 'stats', 'timestamp']
-  mark_price: 60132.48  index_price: 60118.34  last: 60102.5
+ETH: index $1573.5 | perp prem -0.0242% | funding ann -4.05%
+  30d basis ann -0.71% | 3m cash&carry 1.17% | FLAT
+  curve (days: ann basis%):
+        1.2d   -12.77%  (basis -0.042%)
+        2.2d    -8.65%  (basis -0.052%)
+        3.2d    -5.08%  (basis -0.044%)
+        5.2d    -4.95%  (basis -0.071%)
+       12.2d    -1.86%  (basis -0.062%)
+       19.2d    -1.61%  (basis -0.085%)
+       33.2d    -0.71%  (basis -0.065%)
+       61.2d     0.44%  (basis 0.074%)
+       89.2d     1.17%  (basis 0.285%)
 
-perp: mark 60127.96 index 60118.34 funding_8h 0.0 funding_1d 1.92e-06
-DONE 2390
+read: 3m cash-and-carry yield 3.1% — MILD CONTANGO | history_n: 1 | _diag: None
+DONE 2391
