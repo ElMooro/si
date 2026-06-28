@@ -318,6 +318,41 @@ def lambda_handler(event,context):
             logged.append(log_sig("cc_basis_extreme","3m carry %.1f%%"%cc,bpred,bcf,"BTC-USD",[14,30,60],
                 meta={"cc_yield_3m":cc,"regime":(cb2.get("btc") or {}).get("regime")},
                 rationale="3m cash-and-carry extreme: hot contango (>=15%)=crowded leverage-long->contrarian DOWN; backwardation(<=-2%)=deleveraging capitulation->UP (graded live)"))
+    # crypto-exchange-flows.json — exchange netflows (accumulation/distribution), graded live
+    xf=fs3("data/crypto-exchange-flows.json")
+    xfb=xf.get("btc") or {}
+    xfp=xfb.get("cum_30d_pctile")
+    if xfp is not None:
+        xfp=float(xfp)
+        xpred="UP" if xfp<=25 else "DOWN" if xfp>=75 else "NEUTRAL"  # heavy outflow=accumulation->UP; heavy inflow=distribution->DOWN
+        if xpred!="NEUTRAL":
+            xcf=round(0.5+min(0.25,abs(xfp-50)/100.0),2)
+            logged.append(log_sig("crypto_exchange_flow","netflow %dth"%int(xfp),xpred,xcf,"BTC-USD",[30,60,90],
+                meta={"cum_30d_pctile":xfp,"regime":xfb.get("regime"),"event_study":(xfb.get("event_study") or {}).get("verdict")},
+                rationale="exchange netflow: heavy outflow (coins to cold storage)=accumulation->UP; heavy inflow=distribution->DOWN. Classic heuristic; measured INVERTED in-sample (ETF era) -> graded live to confirm."))
+    # crypto-cot.json — CME asset-manager positioning extreme (contrarian), graded live
+    ct=fs3("data/crypto-cot.json")
+    cta=(ct.get("btc") or {}).get("asset_mgr") or {}
+    ctp=cta.get("net_pctile_3y")
+    if ctp is not None:
+        ctp=float(ctp)
+        ctpred="UP" if ctp<=15 else "DOWN" if ctp>=85 else "NEUTRAL"  # 3Y-low positioning=washed out->UP; 3Y-high=crowded->DOWN
+        if ctpred!="NEUTRAL":
+            ctcf=round(0.5+min(0.25,abs(ctp-50)/100.0),2)
+            logged.append(log_sig("crypto_cot_assetmgr","AM net %dth"%int(ctp),ctpred,ctcf,"BTC-USD",[30,60,90],
+                meta={"net":cta.get("net"),"net_pctile_3y":ctp,"read":cta.get("read"),"divergence":(ct.get("btc") or {}).get("divergence")},
+                rationale="CME asset-manager positioning extreme as contrarian gauge: institutions at 3Y-low net positioning=washed out->UP; 3Y-high=crowded long->DOWN (graded live)."))
+    # coinbase-premium.json — US institutional spot demand, graded live
+    cpj=fs3("data/coinbase-premium.json")
+    cpp=(cpj.get("btc") or {}).get("premium_pct")
+    if cpp is not None:
+        cpp=float(cpp)
+        cppred="UP" if cpp>=0.1 else "DOWN" if cpp<=-0.1 else "NEUTRAL"  # +premium=US bid->UP; -premium=US distribution->DOWN
+        if cppred!="NEUTRAL":
+            cpcf=round(0.5+min(0.3,abs(cpp)/2.0),2)
+            logged.append(log_sig("coinbase_premium","prem %.2f%%"%cpp,cppred,cpcf,"BTC-USD",[3,7,14],
+                meta={"premium_pct":cpp,"read":(cpj.get("btc") or {}).get("read")},
+                rationale="Coinbase premium (vs Kraken) as US-institutional spot demand: positive=US/institutional bid->UP; negative=US distribution->DOWN (graded live)."))
     # edge-data.json
     e=fs3("edge-data.json")
     es=e.get("composite_score")
