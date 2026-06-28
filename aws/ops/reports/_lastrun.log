@@ -1,6 +1,10 @@
-dvol json btc: {"dvol": 45.1, "pctile_1y": 65, "regime": "NORMAL", "chg_30d": 7.8, "trend": "RISING", "n_days": 371}
-logger last modified: 2026-06-28T00:04:58.000+0000
-FunctionError: None | resp: {"statusCode": 200, "body": "{\"logged\": 53}"}
-crypto_dvol_buyfear found: 1
-   2026-06-28T00:06:17.354795+00:00 | UP | val DVOL 45.1 (65th) | baseline 59962 | windows ['7', '14', '30'] | status pending
-DONE 2370
+=== crypto-intel: implied_vol ===
+  FunctionError: None
+  implied_vol: {"btc_dvol": 45.1, "btc_dvol_pctile": 65, "btc_dvol_regime": "NORMAL", "btc_dvol_trend": "RISING", "eth_dvol": 59.9, "regime": "NORMAL"}
+  event_study verdict: CONFIRMED_STRONG standing: DIAGNOSTIC
+
+=== eurodollar-plumbing: stablecoin offshore-$ metric ===
+  FunctionError: None
+  plumbing_health: 92.3 | verdict: FUNCTIONING
+  stablecoin_offshore_usd NOT FOUND in layers: ['us_core', 'bank_funding', 'credit', 'backstops', 'settlement', 'fx', 'hubs']
+DONE 2371
