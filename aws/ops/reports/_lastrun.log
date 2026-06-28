@@ -1,14 +1,4 @@
-=== onchain-ratios (NEW: realized price, NUPL, exchange netflows) ===
-  realized_price: None | price_vs_realized_pct: None
-  nupl: None | nupl_zone: None
-  exchange_netflow_usd: None | netflow_regime: None
-
-=== crypto-dvol (NEW: realized vol + variance premium) ===
-  realized_vol_30d: 43.4 | variance_risk_premium: 1.7
-  vrp_read: implied ~ realized — fairly priced
-
-=== pre-existing free-gap engines — live + producing? ===
-  justhodl-crypto-cot: LIVE (asof 2026-06-28T04:51:15Z)
-  justhodl-coinbase-premium: LIVE (asof 2026-06-28T04:46:43Z)
-  justhodl-crypto-stablecoin-peg: LIVE (asof 2026-06-28T04:46:47Z)
-DONE 2396
+onchain-ratios err: None
+[data/onchain-ratios.json] price 59955.5660201637 | MVRV 1.127011418515148 | realized_price 53199.0 | price_vs_realized 12.7% | NUPL 0.1127 (HOPE/FEAR) | errors []
+COT btc asset_mgr: net 2585 pctile 1 extreme: EXTREME SHORT read: net LONG
+DONE 2400
