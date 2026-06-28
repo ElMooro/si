@@ -1,6 +1,14 @@
-crypto-intel async; wait 75s...
-crypto-intel vNone hyperliquid: OI $0.0B | BTC funding None%/yr | regime None | liq None
-cycle-clock crypto: hl_total_oi $6.1B | hl_regime NEUTRAL | hl_funding 7.22 | hl_liq NORMAL
-  synthesis: STRONG RISK-OFF -49 | any perp contributor: []
-confluence: regime NEUTRAL tilt -2 | hl_regime NEUTRAL | hl_oi $6.1B
-DONE 2437
+crypto-intel async; waiting 150s for heavy aggregate...
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2438_reverify_ci.py", line 5, in <module>
+    ci=json.loads(s3.get_object(Bucket="justhodl-dashboard-live",Key="data/crypto-intel.json")["Body"].read())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
