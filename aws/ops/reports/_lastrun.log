@@ -1,0 +1,9 @@
+=== new crypto engines: out-age + schedule ===
+  crypto-etf-flows     out=3.0h sched=ENABLED cron(0 23 * * ? *)
+  hyperliquid-perps    out=0.8h sched=ENABLED cron(10 * * * ? *)
+  crypto-gex           out=0.4h sched=ENABLED rate(30 minutes)
+=== Hyperliquid maturation ===
+  hist_n=3 regime=NEUTRAL oi_chg24h=0.1 liq=NORMAL
+=== fleet freshness manifest ===
+  manifest err: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie
+DONE 2471
