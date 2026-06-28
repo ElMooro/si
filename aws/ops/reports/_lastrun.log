@@ -1,16 +1,7 @@
-=== restoring watchdog schedules ===
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2414_fix_watchdogs.py", line 24, in <module>
-    ensure("justhodl-fleet-error-monitor","fleet-error-monitor-5min","rate(5 minutes)","AUDIT — scan fleet error rates + DLQ depth")
-  File "/home/runner/work/si/si/aws/ops/pending/2414_fix_watchdogs.py", line 6, in ensure
-    r=ev.put_rule(Name=rule, ScheduleExpression=rate, State="ENABLED", Description=desc)
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.LimitExceededException: An error occurred (LimitExceededException) when calling the PutRule operation: The requested resource exceeds the maximum number allowed.
+live functions: 643
+total rules: 300
+
+=== ORPHANED rules (target function deleted) — 0 ===
+
+deleted 0 orphaned rules -> rules now ~300/300
+DONE 2415
