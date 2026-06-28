@@ -3756,6 +3756,47 @@ def lambda_handler(event, context):
     except Exception as _ex:
         print('  implied_vol merge skipped:',str(_ex)[:60])
 
+    # ── free-data crypto engines (exchange flows / institutional COT / coinbase premium / stablecoin peg / realized price) ──
+    try:
+        _xf=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-exchange-flows.json')['Body'].read().decode())
+        _xb=_xf.get('btc') or {}; _xe=_xf.get('eth') or {}
+        R['exchange_flows']={'btc_netflow_30d':_xb.get('cum_30d'),'btc_netflow_30d_pctile':_xb.get('cum_30d_pctile'),
+            'btc_regime':_xb.get('regime'),'btc_trend':_xb.get('trend'),'btc_netflow_today':_xb.get('netflow_today'),
+            'eth_netflow_30d':_xe.get('cum_30d'),'eth_regime':_xe.get('regime'),
+            'event_study':(_xb.get('event_study') or {}).get('verdict'),'interpretation':_xf.get('interpretation')}
+    except Exception as _exf:
+        print('  exchange-flows merge skipped:',str(_exf)[:50])
+    try:
+        _ct=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-cot.json')['Body'].read().decode())
+        _ca=(_ct.get('btc') or {}).get('asset_mgr') or {}; _cl=(_ct.get('btc') or {}).get('lev_funds') or {}
+        R['cot']={'btc_asset_mgr_read':_ca.get('read'),'btc_asset_mgr_net':_ca.get('net'),'btc_asset_mgr_pctile':_ca.get('net_pctile_3y'),
+            'btc_asset_mgr_extreme':_ca.get('extreme'),'btc_lev_funds_read':_cl.get('read'),'btc_lev_funds_net':_cl.get('net'),
+            'btc_lev_funds_pctile':_cl.get('net_pctile_3y'),'divergence':(_ct.get('btc') or {}).get('divergence'),
+            'report_date':(_ct.get('btc') or {}).get('report_date'),'interpretation':_ct.get('interpretation')}
+    except Exception as _exc:
+        print('  cot merge skipped:',str(_exc)[:50])
+    try:
+        _cp=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/coinbase-premium.json')['Body'].read().decode())
+        R['coinbase_premium']={'btc_pct':(_cp.get('btc') or {}).get('premium_pct'),'btc_read':(_cp.get('btc') or {}).get('read'),
+            'eth_pct':(_cp.get('eth') or {}).get('premium_pct'),'interpretation':_cp.get('interpretation')}
+    except Exception as _exp:
+        print('  coinbase-premium merge skipped:',str(_exp)[:50])
+    try:
+        _sp=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/crypto-stablecoin-peg.json')['Body'].read().decode())
+        R['stablecoin_peg']={'status':_sp.get('status'),'gauge':_sp.get('gauge'),'worst_coin':_sp.get('worst_coin'),
+            'worst_depeg_pct':_sp.get('worst_depeg_pct'),'coins':_sp.get('coins'),'interpretation':_sp.get('interpretation')}
+    except Exception as _exs:
+        print('  stablecoin-peg merge skipped:',str(_exs)[:50])
+    try:
+        _or=json.loads(s3.get_object(Bucket=S3_BUCKET,Key='data/onchain-ratios.json')['Body'].read().decode())
+        _ob=_or.get('btc') or _or
+        if _ob.get('realized_price'):
+            R.setdefault('onchain_ratios',{})
+            R['onchain_ratios'].update({'realized_price':_ob.get('realized_price'),'price_vs_realized_pct':_ob.get('price_vs_realized_pct'),
+                'mvrv':_ob.get('mvrv'),'nupl':_ob.get('nupl'),'nupl_zone':_ob.get('nupl_zone')})
+    except Exception as _exo:
+        print('  onchain realized merge skipped:',str(_exo)[:50])
+
 
 
 
@@ -3766,7 +3807,7 @@ def lambda_handler(event, context):
 
 
 
-    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.1',**R}
+    out={'generated_at':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'fetch_time':round(time.time()-start,1),'version':'4.2',**R}
 
 
 
