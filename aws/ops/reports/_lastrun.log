@@ -1,9 +1,23 @@
-crypto-intel async kicked
-ledger [LOG] lines:
-   [LOG] crypto_dvol=45.1 NORMAL DOWN conf=0.65 baseline=$60098.00
-   [LOG] crypto_dvol_buyfear=DVOL 45.1 (65th) UP conf=0.65 baseline=$60098.00
-   [LOG] crypto_options_rr=RR25 -8.5 UP conf=0.71 baseline=$60098.00
-   [LOG] puell_multiple=Puell 0.78 UP conf=0.58 baseline=$60098.00
-waiting for crypto-intel async write...
-crypto-intel miners block: {"hash_ribbon": "CAPITULATION", "in_capitulation": true, "days_in_capitulation": 20, "hash_rate_eh": 1111.8, "puell": 0.78, "puell_zone": "UNDERVALUED", "difficulty_chg_14d": -4.2, "read": "hash ribbons: CAPITULATION \u00b7 Puell 0.78 (UNDERVALUED)"}
-DONE 2389
+BTC futures: 14
+  BTC-28JUN26            settlement=day        exp_days=0.2
+  BTC-29JUN26            settlement=day        exp_days=1.2
+  BTC-30JUN26            settlement=day        exp_days=2.2
+  BTC-1JUL26             settlement=day        exp_days=3.2
+  BTC-3JUL26             settlement=week       exp_days=5.2
+  BTC-10JUL26            settlement=week       exp_days=12.2
+  BTC-17JUL26            settlement=week       exp_days=19.2
+  BTC-31JUL26            settlement=month      exp_days=33.2
+  BTC-28AUG26            settlement=month      exp_days=61.2
+  BTC-25SEP26            settlement=month      exp_days=89.2
+  BTC-25DEC26            settlement=month      exp_days=180.2
+  BTC-26MAR27            settlement=month      exp_days=271.2
+  BTC-25JUN27            settlement=month      exp_days=362.2
+  BTC-PERPETUAL          settlement=perpetual  exp_days=perp
+
+book_summary future keys: ['ask_price', 'base_currency', 'bid_price', 'creation_timestamp', 'estimated_delivery_price', 'high', 'instrument_name', 'last', 'low', 'mark_price', 'mid_price', 'open_interest', 'price_change', 'quote_currency', 'volume', 'volume_notional', 'volume_usd']
+
+ticker(BTC-3JUL26) keys: ['best_ask_amount', 'best_ask_price', 'best_bid_amount', 'best_bid_price', 'estimated_delivery_price', 'index_price', 'instrument_name', 'last_price', 'mark_price', 'max_price', 'min_price', 'open_interest', 'settlement_price', 'state', 'stats', 'timestamp']
+  mark_price: 60132.48  index_price: 60118.34  last: 60102.5
+
+perp: mark 60127.96 index 60118.34 funding_8h 0.0 funding_1d 1.92e-06
+DONE 2390
