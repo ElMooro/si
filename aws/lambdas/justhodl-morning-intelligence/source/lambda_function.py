@@ -234,6 +234,10 @@ def load_all():
         "risk_regime":"data/risk-regime.json",
         "hot_money":"data/hot-money.json",
         "accum_radar":"data/accumulation-radar.json",
+        # ─── Cross-asset FLOW: where money is actually rotating ──
+        "capital_inflows":"data/capital-inflows.json",
+        "gold_equity_rotation":"data/gold-equity-rotation.json",
+        "sector_flow_state":"data/sector-flow-state.json",
     }
     return {k:fs3(v) for k,v in keys.items()}
 
@@ -731,6 +735,26 @@ def extract_metrics(data,weights):
             "roro_size_mult": (rr.get("posture") or {}).get("size_mult"),
             "roro_tells": (rr.get("tells") or [])[:4],
         })(),
+        # Cross-asset FLOW — where money is rotating (capital-inflows by
+        # asset class + metals direction + sector conviction). Complements
+        # the RORO *score* above with the actual *direction* of flows.
+        **(lambda ci=data.get("capital_inflows", {}),
+                  ger=data.get("gold_equity_rotation", {}),
+                  sfs=data.get("sector_flow_state", {}): (lambda ac=(ci.get("by_asset_class") or {}),
+                  gm=(ger.get("current_metrics") or {}): {
+            "flow_foreign_regime": ci.get("regime"),
+            "flow_treasuries_mo_b": (ac.get("treasuries") or {}).get("latest_month_b"),
+            "flow_corp_bonds_mo_b": (ac.get("corporate_bonds") or {}).get("latest_month_b"),
+            "flow_equities_mo_b": (ac.get("equities") or {}).get("latest_month_b"),
+            "flow_gold_20d": gm.get("gld_20d_pct"),
+            "flow_dollar_20d": gm.get("uup_20d_pct"),
+            "flow_bonds_tlt_20d": gm.get("tlt_20d_pct"),
+            "flow_metals_state": ger.get("state"),
+            "flow_top_sectors": [
+                f"{s.get('sector') or s.get('etf')}:{s.get('posture') or s.get('conviction')}"
+                for s in ((sfs.get("sectors") or sfs.get("ranked") or [])[:4])
+            ],
+        })())(),
         # Crisis KB (#2) — top active patterns
         **(lambda k=data.get("crisis_kb", {}): {
             "active_crisis_patterns": [
@@ -1242,6 +1266,8 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
         "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
         "RISK_REGIME(RORO): "+str(m.get("roro_score") if m.get("roro_score") is not None else "?")+"/100 ("+str(m.get("roro_regime") or "?")+") — cross-asset risk-on/off from Massive FX+options + FRED VIX/credit. Posture: "+str(m.get("roro_posture") or "?")+" size×"+str(m.get("roro_size_mult") or "?")+". Tells: "+("; ".join(m.get("roro_tells") or []) or "none")+"",
+        # ═══ Cross-asset FLOW — where money is actually rotating ════════
+        "CROSS_ASSET_FLOW: foreign cross-border regime "+str(m.get("flow_foreign_regime") or "?")+" — into US Treasuries "+str(m.get("flow_treasuries_mo_b") if m.get("flow_treasuries_mo_b") is not None else "?")+"$B/mo, corp bonds "+str(m.get("flow_corp_bonds_mo_b") if m.get("flow_corp_bonds_mo_b") is not None else "?")+"$B/mo, equities "+str(m.get("flow_equities_mo_b") if m.get("flow_equities_mo_b") is not None else "?")+"$B/mo. Hard assets/dollar 20d: gold "+str(m.get("flow_gold_20d") if m.get("flow_gold_20d") is not None else "?")+"%, dollar "+str(m.get("flow_dollar_20d") if m.get("flow_dollar_20d") is not None else "?")+"%, long bonds "+str(m.get("flow_bonds_tlt_20d") if m.get("flow_bonds_tlt_20d") is not None else "?")+"% (metals regime "+str(m.get("flow_metals_state") or "?")+"). Sector conviction: "+(", ".join(m.get("flow_top_sectors") or []) or "?")+". This is the *direction* of money (the RORO line above is the risk *score*) — falling gold+rising dollar+bond bid = risk-off rotation toward havens.",
         # ═══ Cross-border hot money + market leaders + cycle radar ═════
         "CROSS_BORDER_HOT_MONEY: inflows → "+(", ".join(m.get("hot_money_inflows") or []) or "none")+" | outflows → "+(", ".join(m.get("hot_money_outflows") or []) or "none")+" | EM-debt: "+str(m.get("hot_money_em_debt") or "?")+". TWIN_ENGINE conviction = currency + equity + flow all rising (strongest genuine foreign inflow); PRICE_LED = rally without confirmed foreign buying.",
         "MARKET_LEADERS (relative strength vs SPY + accumulation): "+(", ".join(m.get("market_leaders") or []) or "none")+((" | LEADERS FADING (rolling over): "+", ".join(m.get("leaders_fading"))) if m.get("leaders_fading") else ""),
