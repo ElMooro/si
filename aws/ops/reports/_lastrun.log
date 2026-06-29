@@ -1,8 +1,36 @@
-len 68943
-  Industries & companies at the bottleneck   FOUND
-  Inventory pre-shortage                     FOUND
-  Futures curve                              FOUND
-  COT commercials                            FOUND
-  Pricing power (PPI)                        FOUND
-  Capital (Marks)                            FOUND
+data/rotation-radar.json
+   gen=2026-06-29T13:45:07.930928+00:00 | keys=['engine', 'version', 'generated_at', 'crypto', 'equity', 'diagnostics', 'scores', 'signals_logged', 'ai_brief', 'methodology']
+data/rotation-chains.json
+   gen=2026-06-29T15:51:04+00:00 | keys=['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains', 'top_next_up', 'notes']
+data/dark-pool.json
+   gen=2026-06-24T14:00:27.175061+00:00 | keys=['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks']
+data/13f-positions.json
+   gen=2026-06-28T21:11:18+00:00 | keys=['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker', 'most_bought', 'most_sold']
+data/breadth-divergence.json
+   gen=2026-06-28T22:00:39Z | keys=['engine', 'error', 'trace', 'as_of']
+data/breadth-history.json
+   gen=2026-06-28T21:30:19.202217+00:00 | keys=['history', 'as_of']
+data/options-flow.json
+   gen=2026-06-28T22:00:31+00:00 | keys=['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+data/options-gamma.json
+   gen=2026-06-29T14:55:51+00:00 | keys=['generated_at', 'underlying', 'spot', 'vix', 'regime', 'interpretation', 'total_gex', 'by_expiry', 'by_strike', 'zero_gamma_strike']
+data/capital-flow-radar-state.json
+   gen=2026-06-28T22:30:08.013285+00:00 | keys=['pump_setups', 'party_over', 'risk_appetite_short', 'generated_at']
+data/capital-inflows.json
+   gen=2026-06-28T10:35:37.337369+00:00 | keys=['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime']
+data/smart-beta.json
+   gen=2026-06-29T00:15:11.848150+00:00 | keys=['ok', 'version', 'generated_at', 'n_universe', 'n_analyzed', 'n_valid', 'n_diversified_leaders', 'factor_regime', 'leading_factor', 'lagging_factor']
+data/gold-equity-rotation.json
+   gen=2026-06-28T22:45:04Z | keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology']
+data/liquidity-flow.json
+   gen=2026-06-28T22:00:31+00:00 | keys=['generated_at', 'as_of', 'current', 'deltas', 'regime', 'interpretation', 'history_180d', 'fetch_errors', 'fetch_duration_s']
+data/insider-aggregate-history.json
+   gen=? | keys=['snapshots', 'updated_at']
+data/finviz-groups.json
+   gen=2026-06-28T19:15:04.043440+00:00 | keys=['generated_at', 'source', 'sectors', 'industries', 'countries', 'mktcaps', 'counts']
+   .sectors: [{"name": "Healthcare", "perf_w": 7.59, "perf_m": 7.74, "perf_q": 10.79, "perf_h": 3.91, "perf_y": 21.25, "perf_ytd": 4.68, "avg_volume": 1428483.12, "rel_volume": 2.68, "change": 
+data/etf-flows.json
+   gen=2026-06-29T11:35:42.715145+00:00 | keys=['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out']
+data/flow-lookthrough.json
+   gen=2026-06-28T23:15:16.131205+00:00 | keys=['engine', 'version', 'generated_at', 'thesis', 'flows_asof', 'n_etfs_used', 'n_etfs_with_delta', 'n_names', 'top_picks', 'inflow_leaders']
 DONE 2490
