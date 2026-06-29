@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -228,10 +228,14 @@ def industry_pressure():
             if ov is not None and _dem_var:
                 entry["bullwhip_ratio"] = round(ov / _dem_var, 2)
                 _prior = round(ovp / _dem_var, 2) if ovp is not None else None
-                _rising = (_prior is not None and entry["bullwhip_ratio"] > _prior)
                 entry["bullwhip_prior"] = _prior
-                entry["bullwhip_state"] = ("AMPLIFYING" if (entry["bullwhip_ratio"] > 1 and _rising)
-                                           else "ACTIVE" if entry["bullwhip_ratio"] > 1 else "DAMPED")
+                # the LEADING signal is amplification RISING, not the absolute level (orders are
+                # structurally more volatile than demand, so the ratio is always >1)
+                if _prior:
+                    _chg = entry["bullwhip_ratio"] / _prior - 1
+                    entry["bullwhip_state"] = ("AMPLIFYING" if _chg > 0.15
+                                               else "DAMPING" if _chg < -0.15 else "STABLE")
+                    entry["bullwhip_chg_pct"] = round(_chg * 100, 1)
         if uf:
             uy = yoy_series(uf)
             entry["backlog_yoy_pct"] = round(uy[-1] * 100, 1) if uy else None
