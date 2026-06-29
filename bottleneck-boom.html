@@ -557,14 +557,14 @@ function renderEarly(){
       <td style="padding:8px 10px"><span style="font-family:var(--mono);font-size:10px;color:${phColor(c.phase)}">${phLabel(c.phase)}</span></td>
       <td style="padding:8px 10px;text-align:right;color:${c.capex_yoy_pct<0?'var(--green)':'var(--fg-1)'}">${c.capex_yoy_pct==null?'—':c.capex_yoy_pct+'%'}</td>
       <td style="padding:8px 10px;text-align:right;color:${cdaC}">${c.capex_to_da==null?'—':c.capex_to_da}</td>
-      <td style="padding:8px 10px;text-align:right;color:${c.net_margin_pct<0?'var(--red)':'var(--fg-1)'}">${c.net_margin_pct==null?'—':c.net_margin_pct+'%'}</td>
+      <td style="padding:8px 10px;text-align:right;color:${c.net_margin_pct<0?'var(--red)':'var(--fg-1)'}">${c.net_margin_pct==null?'—':c.net_margin_pct+'%'}${c.margin_inflecting?' <span style="color:var(--green);font-size:9px;font-weight:700" title="operating margin troughing and turning up — pricing power converting">▲TURNING</span>':''}</td>
       <td style="padding:8px 10px;text-align:center">${ml}</td>
       <td style="padding:8px 10px;text-align:right;color:${c.consensus_fwd_growth_pct<0?'var(--red)':'var(--fg-2)'}">${c.consensus_fwd_growth_pct==null?'—':c.consensus_fwd_growth_pct+'%'}</td>
       <td style="padding:8px 10px;text-align:right"><b>${gap==null?'—':gap}</b>${gapbar}</td></tr>`;}).join('');
   const clusters=(DATA.early_sector_clusters||[]);
   const clusterHTML=clusters.length?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px">`+clusters.map(cl=>{const sys=cl.systematic;
     return `<span style="font-size:11px;font-family:var(--mono);padding:4px 9px;border-radius:5px;border:1px solid ${sys?'var(--green)':'var(--border)'};color:${sys?'var(--green)':'var(--fg-2)'};background:${sys?'rgba(38,255,175,0.07)':'var(--bg-2)'}">${esc(cl.industry)} · ${cl.n}${sys?' · SYSTEMATIC':''} <span style="color:var(--fg-3)">${(cl.tickers||[]).join(' ')}</span></span>`;}).join('')+`</div>`:'';
-  el.innerHTML=`<div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Money-losing cyclicals cutting capacity while the Street stays bearish — supply exiting today is pricing power in 18–24 months. The wider the <b style="color:var(--violet)">consensus gap</b>, the more the future diverges from what's priced. Logged to the scorecard on 6 / 12 / 18-month windows.</div>
+  el.innerHTML=`<div style="font-size:12px;color:var(--fg-3);margin-bottom:4px">Money-losing cyclicals cutting capacity while the Street stays bearish — supply exiting today is pricing power in 18–24 months. The wider the <b style="color:var(--violet)">consensus gap</b>, the more the future diverges from what's priced. <b style="color:var(--green)">▲TURNING</b> = operating margin has troughed and turned up (Buffett's pricing-power tell — the thesis converting). Logged to the scorecard on 6 / 12 / 18-month windows.</div>
   <div style="font-size:11px;color:var(--fg-3);margin-bottom:2px">Multiple names in one <b style="color:var(--green)">industry</b> cutting capacity = a <b>systematic sector bust</b>, a far stronger signal than an isolated company:</div>${clusterHTML}
   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
   <thead><tr style="color:var(--fg-3);font-family:var(--mono);font-size:10px;text-align:left">
