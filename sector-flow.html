@@ -299,7 +299,25 @@ function renderConviction(sfs){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs){
+function renderIndustries(fg){
+  const ind=((fg&&fg.industries)||[]).map(x=>({name:x.name,pw:+x.perf_w||0,pm:+x.perf_m||0,rv:+x.rel_volume||0,ch:+x.change||0}));
+  if(ind.length<10)return"";
+  const inflow=ind.filter(x=>x.pw>0).sort((a,b)=>b.pw-a.pw).slice(0,12);
+  const outflow=ind.filter(x=>x.pw<0).sort((a,b)=>a.pw-b.pw).slice(0,12);
+  const row=(x,col)=>`<div class="row"><span class="sym" style="color:${col};min-width:auto;flex:0 0 auto">${esc(x.name)}</span>
+    <span class="ph" style="color:var(--fg-3);margin-left:auto">wk ${x.pw>=0?"+":""}${x.pw.toFixed(1)}% · vol ${x.rv.toFixed(1)}×${x.rv>=1.3?" 🔥":""}</span>
+    <div class="bar-wrap" style="max-width:90px"><div class="bar" style="width:${Math.max(3,Math.min(100,x.rv*22))}%;background:var(--cyan)"></div></div>
+    <span class="val" style="color:${col}">${x.pm>=0?"+":""}${x.pm.toFixed(1)}%</span></div>`;
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>🏭 Industry rotation <span style="color:var(--fg-4);font-weight:400">(${ind.length} industries — finer than the 11 sectors)</span></h2><span class="ct">${ind.length}</span></div>`;
+  h+=`<div style="font-size:10.5px;color:var(--green);font-family:var(--font-mono);letter-spacing:.5px;margin:2px 2px 5px">▲ MONEY ROTATING IN (week leaders · volume = conviction)</div>`;
+  h+=`<div class="rows">`+inflow.map(x=>row(x,"var(--green)")).join("")+`</div>`;
+  h+=`<div style="font-size:10.5px;color:var(--red);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">▼ MONEY ROTATING OUT (week laggards)</div>`;
+  h+=`<div class="rows">`+outflow.map(x=>row(x,"var(--red)")).join("")+`</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">val = 1-month move (the rotation); bar/× = relative volume (today vs average — high volume means the move is being driven by real participation, not drift). 🔥 = volume ≥1.3× normal.</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -330,6 +348,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs){
   h+=renderConviction(sfs);
   h+=renderRRG(sec);
   h+=renderCycleFlow(sec);
+  h+=renderIndustries(fg);
   // sector rotation
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
   if(sectors.length){
@@ -384,7 +403,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs){
   document.getElementById("note").innerHTML=
     `<b style="color:var(--fg-2)">Reading it.</b> This page fuses every flow &amp; positioning signal on the system. <b style="color:var(--green)">Sector Conviction</b> is the headline — rotation score + RRG quadrant + true ETF flow + money-flow + liquidity, gated by multi-signal confluence. The <b style="color:var(--violet)">RRG</b> shows where each sector sits in the Leading/Weakening/Lagging/Improving cycle; <b>Cycle vs Flow</b> tests whether the rotation confirms the regime. Below: where flows actually land (look-through to names), participation surge, what rotates next (lead-lag chains), dark-pool accumulation, 13F conviction, and the liquidity/factor/insider backdrop. Sources: <code>sector-rotation</code>, <code>etf-true-flows</code>, <code>etf-flows</code>, <code>flow-lookthrough</code>, <code>rotation-chains</code>, <code>dark-pool</code>, <code>13f-positions</code>, <code>insider-aggregate</code>, <code>liquidity-flow</code>, <code>smart-beta</code>, <code>sector-flow-state</code>. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
