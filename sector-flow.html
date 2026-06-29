@@ -163,7 +163,58 @@ function renderRRG(sec){
     </div>`;
 }
 
-function render(etf,sec){
+function renderLookthrough(lk){
+  if(!lk)return"";
+  const tp=(lk.top_picks||[]).slice(0,12), acc=(lk.actual_accumulation||[]).slice(0,10);
+  if(!tp.length&&!acc.length)return"";
+  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>💰 Where the flows land — names ETF creation is buying <span style="color:var(--fg-4);font-weight:400">(look-through, 5-day)</span></h2><span class="ct">${tp.length}</span></div>`;
+  if(tp.length)h+=`<div class="rows">`+tp.map(p=>{
+    const ft=esc(String(p.flow_type||"").replace(/_/g," ").toLowerCase());
+    return `<div class="row flow-pos"><span class="sym">${esc(p.ticker)}</span>
+      <span class="cat" style="min-width:150px">${ft}</span>
+      <span class="ph" style="color:${p.confirmed?"var(--green)":"var(--fg-3)"}">${p.confirmed?"confirmed":"unconfirmed"}</span>
+      <div class="bar-wrap"></div>
+      <span class="val">${money(p.net_flow_5d_usd)}</span></div>`;
+  }).join("")+`</div>`;
+  if(acc.length)h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Share-count-confirmed accumulation: ${acc.map(a=>`<span class="chip" style="padding:1px 7px;margin:1px;display:inline-block;font-family:var(--font-mono);font-size:11px">${esc(a.ticker||a.symbol||a)}</span>`).join("")}</div>`;
+  return h;
+}
+function renderVolSurge(ef){
+  if(!ef||!ef.by_etf)return"";
+  const arr=Object.values(ef.by_etf).map(e=>{
+    const a=+e.avg_20d_dollar_vol_b||0,t=+e.today_dollar_vol_b||0;
+    return {e,surge:a>0?t/a:0};
+  }).filter(x=>x.surge>=1.3).sort((a,b)=>b.surge-a.surge).slice(0,12);
+  if(!arr.length)return"";
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>📊 Participation surging <span style="color:var(--fg-4);font-weight:400">(today $volume vs 20-day avg)</span></h2><span class="ct">${arr.length}</span></div>`;
+  h+=`<div class="rows">`+arr.map(({e,surge})=>{
+    const r1=+e.return_1d_pct||0,r5=+e.return_5d_pct||0,r20=+e.return_20d_pct||0;
+    const dir=r5>0?"var(--green)":r5<0?"var(--red)":"var(--fg-3)";
+    return `<div class="row"><span class="sym">${esc(e.ticker)}</span>
+      <span class="cat" style="min-width:120px">${esc(e.category||"")}</span>
+      <span class="ph" style="color:${dir}">1d ${r1>=0?"+":""}${r1.toFixed(1)}% · 5d ${r5>=0?"+":""}${r5.toFixed(1)}% · 20d ${r20>=0?"+":""}${r20.toFixed(1)}%</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,surge*33))}%;background:var(--cyan)"></div></div>
+      <span class="val" style="color:var(--cyan)">${surge.toFixed(1)}×</span></div>`;
+  }).join("")+`</div>`;
+  return h;
+}
+function renderChains(ch){
+  if(!ch)return"";
+  const nu=(ch.top_next_up||[]).slice(0,12);
+  if(!nu.length)return"";
+  let h=`<div class="sec-hdr"><span class="dot v"></span><h2>🔮 What rotates next — laggards trailing their leader <span style="color:var(--fg-4);font-weight:400">(lead-lag chains)</span></h2><span class="ct">${nu.length}</span></div>`;
+  h+=`<div class="rows">`+nu.map(n=>{
+    const own=+n.own_30d_pct||0,lead=+n.leader_30d_pct||0,sc=+n.score||0;
+    return `<div class="row"><span class="sym" style="color:var(--violet)">${esc(n.ticker)}</span>
+      <span class="cat" style="min-width:70px">${esc(n.chain||"")} chain</span>
+      <span class="ph" style="color:var(--fg-3)">leader +${Math.round(lead)}% · self ${own>=0?"+":""}${Math.round(own)}% (30d)</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,sc))}%;background:var(--violet)"></div></div>
+      <span class="val" style="color:var(--violet)">${Math.round(sc)}</span></div>`;
+  }).join("")+`</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -202,6 +253,7 @@ function render(etf,sec){
         <span class="val" style="color:${col}">${Math.round(sc)}</span></div>`;
     }).join("")+`</div>`;
   } else h+='<div class="empty">Sector rotation data unavailable.</div>';
+  h+=renderLookthrough(lk);
   // unusual ETF inflows
   h+=`<div class="sec-hdr"><span class="dot g"></span><h2>🌊 Unusual ETF Inflows <span style="color:var(--fg-4);font-weight:400">(true net creation $, 1-day)</span></h2><span class="ct">${inflows.length}</span></div>`;
   if(inflows.length){
@@ -223,6 +275,8 @@ function render(etf,sec){
     h+=`<div class="sec-hdr"><span class="dot c"></span><h2>🔀 Category Rotation <span style="color:var(--fg-4);font-weight:400">(true net flows, 5-day)</span></h2><span class="ct">${catRot.length}</span></div>`;
     h+=`<div class="rows">`+catRot.slice(0,12).map(c=>{const v=+c.net_flow_5d_usd||0;const pos=v>=0;return `<div class="row ${pos?"flow-pos":"flow-neg"}"><span class="cat" style="min-width:160px;font-size:11px">${esc(c.category||"")}</span>${c.n_etfs?`<span class="ph" style="color:var(--fg-3)">${c.n_etfs} ETFs</span>`:""}<div class="bar-wrap"></div><span class="val">${money(v)}</span></div>`;}).join("")+`</div>`;
   }
+  h+=renderVolSurge(ef);
+  h+=renderChains(ch);
   // rotation alerts (dict or list)
   if(alertItems.length){
     h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alertItems.length}</span></div>`;
@@ -240,7 +294,7 @@ function render(etf,sec){
      <b style="color:var(--green)">Unusual ETF inflows</b> are <i>true</i> net creation dollars (shares-outstanding × price), the hard-money confirmation; they're sparse day-to-day because they only register when an ETF actually creates/redeems shares.
      Sources: <code>sector-rotation</code> + <code>etf-true-flows</code> engines. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json")]).then(([etf,sec])=>render(etf,sec));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json")]).then(([etf,sec,ef,lk,ch])=>render(etf,sec,ef,lk,ch));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
