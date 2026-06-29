@@ -1,8 +1,13 @@
-  FOUND   renderCycleFlow
-  FOUND   Cycle vs flow
-  FOUND   Liquidity
-  FOUND   Factor
-  FOUND   liquidity-flow.json
-  FOUND   smart-beta.json
-bytes: 30226
-DONE 2500
+created function
+permission added
+scheduled sector-flow-state-hourly
+invoke status: 200 err: None
+payload: {"ok": true, "n": 11, "ow": ["XLI"], "uw": ["XLRE", "XLB", "XLY", "XLP", "XLE"]}
+EMITTED n_sectors: 11 | liq: draining | phase: EXPANSION-MID
+OVERWEIGHT: ['XLI'] | UNDERWEIGHT: ['XLRE', 'XLB', 'XLY', 'XLP', 'XLE']
+  XLV   conv=73.7  NEUTRAL     Leading   conf=2 drivers=RRG Leading,money-flow strong
+  XLI   conv=66.1  OVERWEIGHT  Leading   conf=4 drivers=RRG Leading,money-flow strong,RS accelerating,cycle-favored
+  XLU   conv=60.9  NEUTRAL     Improving conf=3 drivers=RRG Improving,money-flow strong,RS accelerating
+  XLK   conv=53.7  NEUTRAL     Weakening conf=2 drivers=RS accelerating,cycle-favored
+  XLC   conv=52.3  NEUTRAL     Lagging   conf=2 drivers=flow strong inflow,cycle-favored
+DONE 2501
