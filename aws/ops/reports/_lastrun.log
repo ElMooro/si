@@ -1,5 +1,15 @@
-https://justhodl.ai/sector-flow.html
-   FOUND | renderRRG=Y | bytes=20529
-https://elmooro.github.io/si/sector-flow.html
-   FOUND | renderRRG=Y | bytes=20529
-DONE 2493
+===== etf-flows.json =====
+keys: ['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out', 'duration_s', 'data_sources', 'signal_definitions']
+ .by_etf dict sample: {"USO": {"ticker": "USO", "category": "COMMODITIES", "name": "United States Oil Fund, LP", "latest_close": 105.48, "aum_b": 1.82, "return_1d_pct": -3.5, "return_5d_pct": -8.17, "return_20d_pct": -19.35, "today_dollar_vol_b": 1.015, "avg_5d_dollar_vol_b": 0.618, "avg_20d_dollar_vol_b": 0.82, "avg_60d
+ .by_category dict sample: {"BROAD_EQUITY_US": {"category": "BROAD_EQUITY_US", "n_etfs": 8, "total_aum_b": 3920.98, "total_today_dollar_vol_b": 109.358, "avg_dvol_z": 0, "avg_return_1d_pct": -0.69, "category_signal": "NORMAL"}}
+
+===== flow-lookthrough.json =====
+keys: ['engine', 'version', 'generated_at', 'thesis', 'flows_asof', 'n_etfs_used', 'n_etfs_with_delta', 'n_names', 'top_picks', 'inflow_leaders', 'outflow_leaders', 'thematic_rotation_leaders', 'actual_accumulation', 'actual_distribution', 'index_events', 'methodology', 'caveats', 'elapsed_s'] | thesis: ETF creations/redemptions force mechanical buying/selling of underlying holdings. Two views: flow attributed by weight, 
+ .top_picks[0]: {"ticker": "ON", "score": 5.15, "net_flow_5d_usd": 18278766.0, "flow_type": "THEMATIC_ROTATION", "confirmed": true}
+ .inflow_leaders[0]: {"ticker": "AAPL", "shares_delta_usd": 9613529012.0, "drivers": [{"etf": "VOO", "contrib_5d_usd": -3529752450.0, "weight": 0.07035, "broad": true}, {"etf": "IVV", "contrib_5d_usd": 3294337737.0, "weight": 0.06817, "broad": true}, {"etf": "SPY", "contrib_5d_usd": 863000332.0, "weight": 0.06791, "broad": true}, {"etf": "
+
+===== rotation-chains.json =====
+keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_chains', 'n_tickers', 'lag_candidates', 'chains', 'top_next_up', 'notes'] | notes: Lead-lag relationships measured via Pearson correlation of tier-N's daily returns at lag d with tier-(N+1)'s daily retur
+ .top_next_up[0]: {"ticker": "GEV", "own_30d_pct": -0.05, "own_60d_pct": 21.81, "leader_30d_pct": 33.57, "lag_pct": 33.62, "score": 100, "chain": "AI", "leader_tier": 2}
+ .lag_candidates[0]: 5
+DONE 2494
