@@ -1,13 +1,16 @@
-BEFORE target_allocation: {"us_equity": 39.75, "intl_dev_eq": 14.58, "em_equity": 4.38, "ust_short": 15.46, "ust_long": 10.48, "ig_credit": 4.96, "gold": 4.98, "btc": 1.74, "cash": 3.69}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2516_allocator_diff.py", line 13, in <module>
-    lam.update_function_code(FunctionName="justhodl-master-allocator",ZipFile=buf.getvalue())
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-master-allocator
+LastUpdateStatus: Successful
+invoke err: None
+AFTER target_allocation: {"us_equity": 40.1, "intl_dev_eq": 14.81, "em_equity": 4.59, "ust_short": 15.62, "ust_long": 10.77, "ig_credit": 5.0, "gold": 3.86, "btc": 1.82, "cash": 3.42}
+=== DELTA (pp vs before) ===
+  btc           +1.74 ->  +1.82  (+0.08)
+  cash          +3.69 ->  +3.42  (-0.27)
+  em_equity     +4.38 ->  +4.59  (+0.21)
+  gold          +4.98 ->  +3.86  (-1.12)
+  ig_credit     +4.96 ->  +5.00  (+0.04)
+  intl_dev_eq  +14.58 -> +14.81  (+0.23)
+  us_equity    +39.75 -> +40.10  (+0.35)
+  ust_long     +10.48 -> +10.77  (+0.29)
+  ust_short    +15.46 -> +15.62  (+0.16)
+  signal 'Gold/Metals Rotation': FOUND
+  signal 'Foreign UST Demand': FOUND
+DONE 2517
