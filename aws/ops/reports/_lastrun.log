@@ -1,9 +1,11 @@
-version: 2.10.0 dur: 56.5
-=== #6 DEMAND-SUPPLY GROWTH SPREAD (per industry) ===
-  TOTAL_MFG              spread=4.6    state=FORMING  forming=True (ordersYoY 11.7, backlogYoY 11.5)
-  COMPUTERS_ELECTRONICS  spread=6.3    state=FORMING  forming=True (ordersYoY 13.3, backlogYoY 3.8)
-  MACHINERY              spread=4.4    state=FORMING  forming=True (ordersYoY 14.0, backlogYoY 4.3)
-  ELECTRICAL_EQUIP       spread=-0.8   state=CLOSING  forming=False (ordersYoY 5.8, backlogYoY 5.4)
-  AEROSPACE_DEFENSE      spread=-33.6  state=CLOSING  forming=False (ordersYoY -22.1, backlogYoY 11.1)
-INDUSTRIES WITH BOTTLENECK FORMING: ['TOTAL_MFG', 'COMPUTERS_ELECTRONICS', 'MACHINERY']
-DONE 2470
+err: None
+version: 2.11.1 dur: 59.9
+=== CAPSTONE: leading_bottleneck_read ===
+forward_state: BUILDING | n_confirmations: 5
+forming_industries: ['TOTAL_MFG', 'COMPUTERS_ELECTRONICS', 'MACHINERY']
+   + GSCPI tightening (physical backdrop)
+   + orders>shipments forming: TOTAL_MFG, COMPUTERS_ELECTRONICS, MACHINERY
+   + labor supply-ramp blocked (manufacturing, construction, mining_logging)
+   + policy/input pressure: critical_minerals, import_dependency
+   + no capacity relief yet (tightness can persist)
+DONE 2471
