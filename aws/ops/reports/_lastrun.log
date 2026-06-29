@@ -1,9 +1,12 @@
-runtime: python3.12 | timeout: 300 | memory: 512
-handler: lambda_function.lambda_handler | role: arn:aws:iam::857687956942:role/lambda-execution-role
-env keys: ['FMP_KEY', 'FRED_KEY', 'SIGNALS_TABLE']
-MISSING data/supply-inflection-scanner.json
-EXISTS data/supply-chain-graph.json
-EXISTS data/global-business-cycle.json
-EXISTS data/liquidity-capacity.json
-MISSING data/metals-miners.json
-DONE 2448
+bottleneck-boom async; waiting 180s (4 FMP calls/ticker)...
+version: 1.0.0 | scored: 48 | dur: 8.8 s
+phase counts: None
+flood warnings: None
+early signals logged: None
+
+INDUSTRY SUPPLY:
+
+EARLY BOTTLENECK CALLS (the Druckenmiller 'born in the bust' list):
+
+sample rank supply fields: {'ticker': 'VST', 'capex_yoy_pct': None, 'capex_to_da': None, 'money_losing': None, 'druckenmiller_setup': None, 'capital_cycle_phase': None, 'early_bottleneck_score': None}
+DONE 2449
