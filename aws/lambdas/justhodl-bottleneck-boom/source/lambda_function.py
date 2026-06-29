@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -77,6 +77,28 @@ def consensus_growth(t):
         return None
     cur, nxt = rev(rows[-2]), rev(rows[-1])
     return round((nxt / cur - 1) * 100, 1) if (cur and nxt) else None
+
+
+def margin_trend(t):
+    """Buffett pricing-power confirmation — is the (money-losing) name's operating margin
+    TROUGHING and turning up? Margin inflection is the earliest financial sign that supply
+    tightness is converting to pricing power, the trigger from 'watch' to 'confirmed'."""
+    inc = fmp("income-statement", {"symbol": t, "period": "quarter", "limit": 8}) or []
+    if not isinstance(inc, list) or len(inc) < 5:
+        return None
+    seq = list(reversed(inc))  # oldest -> newest
+    m = []
+    for q in seq:
+        rev, op = q.get("revenue"), q.get("operatingIncome")
+        if rev:
+            m.append(round(op / rev * 100, 1) if op is not None else None)
+    m = [x for x in m if x is not None]
+    if len(m) < 5:
+        return None
+    cur, prev, trough = m[-1], m[-2], min(m[:-1])
+    inflecting = bool(cur > prev and (prev - trough) < 1.5 and cur > trough)
+    return {"op_margin_now": cur, "op_margin_trough": round(trough, 1),
+            "op_margin_4q_ago": m[-5], "margin_inflecting": inflecting}
 
 
 def fred(sid, start="2005-01-01"):
@@ -173,8 +195,17 @@ def _classify_direction(hist):
     return d, slope6
 
 
+def _winvar(series, n=36, start=0):
+    w = series[-(n + start):len(series) - start] if start else series[-n:]
+    return stdev(w) ** 2 if len(w) > 1 else None
+
+
 def industry_pressure():
     res, used, failed = {}, [], []
+    # bullwhip baseline (Lee/Forrester) — Var(end demand): RSAFS retail sales YoY
+    _dem = fred("RSAFS", start="2000-01-01")
+    _dem_yoy = yoy_series(_dem) if _dem else []
+    _dem_var = _winvar(_dem_yoy) if _dem_yoy else None
     for g, cfg in GROUPS.items():
         uf, no, sh = fred(cfg["unfilled"]), fred(cfg["new_orders"]), fred(cfg["shipments"])
         for sid, pts in ((cfg["unfilled"], uf), (cfg["new_orders"], no), (cfg["shipments"], sh)):
@@ -191,6 +222,16 @@ def industry_pressure():
             ny = yoy_series(no)
             entry["new_orders_yoy_pct"] = round(ny[-1] * 100, 1) if ny else None
             entry["new_orders_yoy_z"] = z_latest(ny)
+            # bullwhip ratio — Var(upstream orders)/Var(end demand); >1 = amplification, the
+            # earliest shortage tell (order volatility blows up before prices move)
+            ov, ovp = _winvar(ny), _winvar(ny, start=36)
+            if ov is not None and _dem_var:
+                entry["bullwhip_ratio"] = round(ov / _dem_var, 2)
+                _prior = round(ovp / _dem_var, 2) if ovp is not None else None
+                _rising = (_prior is not None and entry["bullwhip_ratio"] > _prior)
+                entry["bullwhip_prior"] = _prior
+                entry["bullwhip_state"] = ("AMPLIFYING" if (entry["bullwhip_ratio"] > 1 and _rising)
+                                           else "ACTIVE" if entry["bullwhip_ratio"] > 1 else "DAMPED")
         if uf:
             uy = yoy_series(uf)
             entry["backlog_yoy_pct"] = round(uy[-1] * 100, 1) if uy else None
@@ -575,10 +616,22 @@ def lambda_handler(event=None, context=None):
         r["boom_score"] = round(max(0, min(100, base * shade)), 1)
     # ── Layer 0: supply / capital-cycle (#1 destruction, #2 Druckenmiller, #3 phase, #4 supply-weighted) ──
     grp_supply = industry_supply(rows, pressure)
+    # Goldratt wiring (READ the existing chokepoint engine, do NOT rebuild) — an irreplaceable
+    # supplier that is ALSO in a scarcity-building industry = supply exiting a name nobody can route around
+    crit_map = {}
+    try:
+        _ck = json.loads(S3.get_object(Bucket=BUCKET, Key="data/chokepoint.json")["Body"].read())
+        for _lst in ("ranked", "board", "top_hidden", "top_chokepoints", "hidden", "chokepoints"):
+            for _r in (_ck.get(_lst) or []):
+                if isinstance(_r, dict) and _r.get("ticker") and _r.get("criticality") is not None:
+                    crit_map[str(_r["ticker"]).upper()] = _r["criticality"]
+    except Exception as e:
+        print(f"[chokepoint] {str(e)[:60]}")
     for r in rows:
         gs = grp_supply.get(r.get("pressure_group")) or {}
         sbase = gs.get("supply_cycle_score", 50)
         r["capital_cycle_phase"] = gs.get("capital_cycle_phase")
+        r["chokepoint_criticality"] = crit_map.get(r["ticker"])
         tilt = 0
         if r.get("druckenmiller_setup"):
             tilt += 18
@@ -588,6 +641,10 @@ def lambda_handler(event=None, context=None):
             tilt += 6
         if r.get("capex_yoy_pct") is not None and r["capex_yoy_pct"] > 25:
             tilt -= 10                                  # name is itself flooding capacity
+        _crit = r["chokepoint_criticality"]
+        if _crit is not None and _crit >= 50 and r["capital_cycle_phase"] == "SCARCITY_BUILDING":
+            tilt += 12                                  # Goldratt: binding constraint + supply exiting
+            r["chokepoint_in_scarcity"] = True
         r["early_bottleneck_score"] = round(max(0, min(100, sbase + tilt)), 1)
     rows.sort(key=lambda r: -r["boom_score"])
     regime = None
@@ -612,6 +669,11 @@ def lambda_handler(event=None, context=None):
         phase_fwd = {"SCARCITY_BUILDING": 1.0, "GLUT": 0.6, "TIGHT": 0.3}.get(r.get("capital_cycle_phase"), 0.2)
         r["consensus_gap_score"] = (round(max(0, min(100, 50 + phase_fwd * 40 - cg * 0.8)), 1)
                                     if cg is not None else None)
+        mt = margin_trend(r["ticker"])
+        if mt:
+            r["op_margin_now"] = mt["op_margin_now"]
+            r["op_margin_trough"] = mt["op_margin_trough"]
+            r["margin_inflecting"] = mt["margin_inflecting"]
     n_early = log_early(early, regime)
     # sector clustering — multiple names in one industry cutting capacity = SYSTEMATIC sector bust,
     # a far stronger Druckenmiller signal than an isolated single-company story
@@ -677,7 +739,11 @@ def lambda_handler(event=None, context=None):
              "money_losing": r.get("money_losing"), "net_margin_pct": r.get("net_margin_pct"),
              "rev_growth_yoy": r.get("rev_growth_yoy"),
              "consensus_fwd_growth_pct": r.get("consensus_fwd_growth_pct"),
-             "consensus_gap_score": r.get("consensus_gap_score")} for r in early],
+             "consensus_gap_score": r.get("consensus_gap_score"),
+             "chokepoint_criticality": r.get("chokepoint_criticality"),
+             "chokepoint_in_scarcity": r.get("chokepoint_in_scarcity", False),
+             "op_margin_now": r.get("op_margin_now"), "op_margin_trough": r.get("op_margin_trough"),
+             "margin_inflecting": r.get("margin_inflecting", False)} for r in early],
         "early_sector_clusters": early_sector_clusters,
         "ranks": rows[:40],
         "methodology": ("Boom = company capture (z-blend: 35% rev acceleration, 25% rev growth, "
