@@ -1,30 +1,28 @@
-BEFORE top_tickers: 25 as_of 2026-06-29T20:04:09+00:00
-saved live code bytes: 56553
-invoke err: None
-AFTER top_tickers: 25 as_of 2026-06-29T22:20:55+00:00
-RESTORED. live as_of still: 2026-06-29T20:04:09+00:00 (unchanged = good)
-
-=== RANK MOVES (both top-25, by |move|) ===
-  QCOM   #19->#20 DN1  score 98.9->98.9
-  MU     #20->#21 DN1  score 98.5->98.4
-  CBRE   #21->#22 DN1  score 98.0->98.0
-  IRM    #22->#23 DN1  score 98.0->98.0
-  LRCX   #23->#24 DN1  score 96.8->96.8
-  STX    # 1-># 1 --  score 131.8->131.8
-  GOOGL  # 2-># 2 --  score 125.7->122.1
-  OXY    # 3-># 3 --  score 119.6->119.6
-  SNDK   # 4-># 4 --  score 112.0->112.0
-  ALL    # 5-># 5 --  score 111.4->111.4
-  ORCL   # 6-># 6 --  score 111.2->111.2
-  UBER   # 7-># 7 --  score 109.7->109.7
-  AVGO   # 8-># 8 --  score 108.1->108.1
-  TER    # 9-># 9 --  score 106.0->106.0
-  FTNT   #10->#10 --  score 105.9->105.9
-  PLD    #11->#11 --  score 105.9->105.9
-  FITB   #12->#12 --  score 105.6->105.6
-  GOOG   #13->#13 --  score 102.9->102.9
-ENTERED top25: ['AMZN']
-LEFT top25:    ['CRWD']
-
-CLAMPED in top25: 0 of 25
-DONE 2517
+===== sector-rotation (data/sector-rotation.json) =====
+ n: 11
+ fields: ['symbol', 'name', 'current_price', 'cycle_fit_phases', 'in_current_cycle', 'rotation_score', 'score_components', 'rs_1d_pct', 'return_1d_pct', 'spy_return_1d_pct', 'rs_5d_pct', 'return_5d_pct', 'spy_return_5d_pct', 'rs_1m_pct', 'return_1m_pct', 'spy_return_1m_pct', 'rs_3m_pct', 'return_3m_pct', 'spy_return_3m_pct', 'rs_6m_pct', 'return_6m_pct', 'spy_return_6m_pct', 'rs_slope_21d_pct_per_day', 'rs_acceleration', 'rs_pct_rank_1y', 'sma20', 'sma50', 'sma200', 'pct_vs_sma20', 'pct_vs_sma50', 'pct_vs_sma200', 'golden_cross_active', 'death_cross_active', 'chaikin_money_flow_20', 'obv_slope_10d', 'money_flow_index_14', 'volume_surge_ratio', 'sub_sector_check', 'rotation_in_flags', 'rotation_out_flags', 'rotating_in', 'rotating_out', 'etf_flow_z', 'etf_flow_signal', 'etf_flow_5d_usd', 'rotation_score_preflow', 'etf_flow_confirm', 'rank']
+ ex: {"symbol": "XLI", "name": "Industrials", "current_price": 182.76, "cycle_fit_phases": ["EXPANSION-MID"], "in_current_cycle": true, "rotation_score": 63.6, "score_components": {"rs_momentum": 53.0, "money_flow": 100, "breadth": 57.4, "regime_fit": 75, "sub_sect
+===== money-flow-state (data/money-flow-state.json) =====
+ sectors[0]: {"sector": "Healthcare", "net_flow_usd": 6329729221, "up_dvol": 251180185505, "down_dvol": 66078207271, "n": 353}
+ inst_tilt[0]: {"sector": "Communication Services", "net_fund_actions": 8, "adding": 8, "trimming": 0}
+===== capital-flow-radar (data/capital-flow-radar.json) =====
+ n_complexes: 46
+ fields: ['complex', 'members_present', 'primary', 'net_flow_5d_usd', 'net_flow_21d_usd', 'net_flow_daily_usd', 'pct_aum_5d', 'velocity_ratio', 'acceleration_usd_per_day', 'accelerating', 'breadth', 'persistence_days', 'flow_zscore_90d', 'leveraged_positioning', 'bull_lev_flow_5d', 'bear_lev_flow_5d', 'price_5d_pct', 'flow_price_divergence', 'pump_probability', 'regime', 'verdict', 'ref_stocks', 'top_conviction_stocks']
+  - Aerospace/Defense | sector= None | pump= 88.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
+  - Airlines | sector= None | pump= 81.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
+  - Technology | sector= None | pump= 80.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
+  - Biotech | sector= None | pump= 80.0 | regime= STEADY_INFLOW — TREND INTACT | div= False
+  - S&P 500 Broad | sector= None | pump= 80.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
+  - Utilities | sector= None | pump= 80.0 | regime= STEADY_INFLOW — TREND INTACT | div= False
+===== finviz-groups (data/finviz-groups.json) =====
+ n_ind: 144
+ fields: ['name', 'perf_w', 'perf_m', 'perf_q', 'perf_h', 'perf_y', 'perf_ytd', 'avg_volume', 'rel_volume', 'change', 'volume', 'mktcap', 'pe', 'fwd_pe', 'peg', 'ps', 'pb', 'p_cash', 'p_fcf', 'eps_g_5y', 'eps_g_n5y', 'sales_g_5y']
+ ex: {"name": "Semiconductor Equipment & Materials", "perf_w": 0.87, "perf_m": 29.84, "perf_q": 73.19, "perf_h": 113.43, "perf_y": 210.09, "perf_ytd": 117.28, "avg_volume": 80490.83, "rel_volume": 0.85, "change": 7.82, "volum
+===== dark-pool (data/dark-pool.json) =====
+ board n: 60
+ fields: ['ticker', 'state', 'score', 'dark_pool_pct', 'offex_pct', 'dark_accel', 'week_return_pct', 'ats_shares_wk', 'offex_shares_wk', 'total_vol_wk']
+ ex: {"ticker": "TWLO", "state": "ACCUMULATION", "score": 89.9, "dark_pool_pct": 34.44, "offex_pct": 49.47, "dark_accel": 0.937, "week_return_pct": -0.68, "ats_shares_wk": 7178330, "offex_shares_wk": 10312
+===== liquidity-flow (data/liquidity-flow.json) =====
+ regime: draining | keys: ['generated_at', 'as_of', 'current', 'deltas', 'regime', 'interpretation', 'history_180d', 'fetch_errors', 'fetch_duration_s']
+universe n: 1856 | ex: {"symbol": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "exchange": "NASDAQ Global Select", "market_cap": 4697662
+DONE 2518
