@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.5.0"
+VERSION = "2.5.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -203,52 +203,50 @@ def _gscpi():
     from xml.etree import ElementTree as ET
     from collections import defaultdict
     url = "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.xlsx"
+    ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
     try:
-        raw = urllib.request.urlopen(url, timeout=30).read()
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; JustHodlBot/1.0)"})
+        raw = urllib.request.urlopen(req, timeout=45).read()
         zf = zipfile.ZipFile(io.BytesIO(raw))
-        ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
         sst = []
         if "xl/sharedStrings.xml" in zf.namelist():
             for si in ET.fromstring(zf.read("xl/sharedStrings.xml")).findall(f"{ns}si"):
                 sst.append("".join(t.text or "" for t in si.iter(f"{ns}t")))
-        sheet = sorted(n for n in zf.namelist() if n.startswith("xl/worksheets/sheet"))[0]
-        rows = []
-        for row in ET.fromstring(zf.read(sheet)).iter(f"{ns}row"):
-            cells = {}
-            for c in row.findall(f"{ns}c"):
-                col = "".join(ch for ch in c.get("r", "") if ch.isalpha())
-                v = c.find(f"{ns}v")
-                if v is None or v.text is None:
-                    continue
-                cells[col] = (sst[int(v.text)] if (c.get("t") == "s" and int(v.text) < len(sst))
-                              else v.text)
-            if cells:
-                rows.append(cells)
-        gcol = None
-        for r in rows[:6]:
-            for col, val in r.items():
-                if isinstance(val, str) and "GSCPI" in val.upper():
-                    gcol = col
-        nums = []
-        if gcol:
-            for r in rows:
-                try:
-                    nums.append(float(r[gcol]))
-                except (KeyError, TypeError, ValueError):
-                    pass
-        else:                                   # fallback: column of plausible GSCPI floats (dates excluded by range)
-            colvals = defaultdict(list)
+        best = []                                       # scan every sheet, keep the longest GSCPI-like column
+        for name in sorted(n for n in zf.namelist() if n.startswith("xl/worksheets/sheet")):
+            rows = []
+            for row in ET.fromstring(zf.read(name)).iter(f"{ns}row"):
+                cells = {}
+                for c in row.findall(f"{ns}c"):
+                    col = "".join(ch for ch in c.get("r", "") if ch.isalpha())
+                    v = c.find(f"{ns}v")
+                    if v is None or v.text is None:
+                        continue
+                    cells[col] = (sst[int(v.text)] if (c.get("t") == "s" and int(v.text) < len(sst))
+                                  else v.text)
+                if cells:
+                    rows.append(cells)
+            gcol = None
+            for r in rows[:8]:
+                for col, val in r.items():
+                    if isinstance(val, str) and "GSCPI" in val.upper():
+                        gcol = col
+            cand = defaultdict(list)
             for r in rows:
                 for col, val in r.items():
                     try:
                         f = float(val)
-                        if -6 < f < 6:
-                            colvals[col].append(f)
+                        if -6 < f < 8:                  # GSCPI range; excludes date serials (>40000)
+                            cand[col].append(f)
                     except (TypeError, ValueError):
                         pass
-            if colvals:
-                nums = colvals[max(colvals, key=lambda k: len(colvals[k]))]
+            nums = (cand.get(gcol) if (gcol and cand.get(gcol))
+                    else cand[max(cand, key=lambda k: len(cand[k]))] if cand else [])
+            if len(nums) > len(best):
+                best = nums
+        nums = best
         if len(nums) < 14:
+            print(f"[gscpi] parsed only {len(nums)} obs")
             return None
         cur = nums[-1]
         w = nums[-120:]
@@ -259,7 +257,7 @@ def _gscpi():
                 "direction": "TIGHTENING" if chg3 > 0.1 else "EASING" if chg3 < -0.1 else "STABLE",
                 "n_obs": len(nums)}
     except Exception as e:
-        print(f"[gscpi] {str(e)[:80]}")
+        print(f"[gscpi] {type(e).__name__}: {str(e)[:120]}")
         return None
 
 
