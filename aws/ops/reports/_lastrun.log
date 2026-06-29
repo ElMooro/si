@@ -1,13 +1,14 @@
-/home/runner/work/si/si/aws/ops/pending/2524_investigate_llm.py:31: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
-  def ts(e): return dt.datetime.utcfromtimestamp(e["timestamp"]/1000).isoformat()
-ANTHROPIC_KEY present on brain-sync: True len: 108
+/home/runner/work/si/si/aws/ops/pending/2525_outage_pattern.py:17: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  d=dt.datetime.utcfromtimestamp(e["timestamp"]/1000).strftime("%m-%d")
+justhodl-morning-intelligence: 26 err events on 13 days -> 06-16..06-28
+    per-day: {'06-16': 2, '06-17': 2, '06-18': 2, '06-19': 2, '06-20': 2, '06-21': 2, '06-22': 2, '06-23': 2, '06-24': 2, '06-25': 2, '06-26': 2, '06-27': 2, '06-28': 2}
+justhodl-ai-chat: no 400/credit/AI-error events in 14d
+justhodl-page-ai-commentary: no 400/credit/AI-error events in 14d
+justhodl-cycle-clock: no 400/credit/AI-error events in 14d
+justhodl-brain-sync: 28 err events on 14 days -> 06-16..06-29
+    per-day: {'06-16': 1, '06-17': 1, '06-18': 1, '06-19': 1, '06-20': 1, '06-21': 1, '06-22': 2, '06-23': 2, '06-24': 2, '06-25': 2, '06-26': 2, '06-27': 2, '06-28': 2, '06-29': 8}
+justhodl-my-brief: 6 err events on 6 days -> 06-16..06-21
+    per-day: {'06-16': 1, '06-17': 1, '06-18': 1, '06-19': 1, '06-20': 1, '06-21': 1}
 
-=== LIVE Anthropic test NOW (credits reportedly filled) ===
-  claude-haiku-4-5-20251001: HTTP 200 OK -> OK
-  claude-sonnet-4-6: HTTP 200 OK -> OK
-
-=== CloudWatch failure history (brain-sync, last 14d) ===
-matching events: 3
-  EARLIEST: 2026-06-16T13:01:11.106000 -> [brain-sync] regime read err: HTTP Error 400: Bad Request
-  LATEST  : 2026-06-18T13:01:08.857000 -> [brain-sync] regime read err: HTTP Error 400: Bad Request
-DONE 2524
+=== sample error lines (any engine logging the BODY/reason) ===
+DONE 2525
