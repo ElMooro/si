@@ -830,21 +830,11 @@ def lambda_handler(event, context):
     ticker_ranks = []
     for ticker, systems_dict in ticker_idx.items():
         score, contributions = compute_conviction(systems_dict, calibration)
-        base_score = round(score, 1)
         n_sys = len(systems_dict)
+        score, cf_mult, cf_note = _cf_overlay(ticker, score)
         _sector = _ticker_sector(systems_dict)
-        # Sector overlays computed independently, then COMBINED and CLAMPED so stacked
-        # sector tilt (capital-flow x RORO x sector-flow-state) cannot overwhelm the
-        # stock-specific conviction that carries the proven net-of-cost edge. sector-flow-state
-        # is the authoritative fused sector view (rotation + RRG + flow + money-flow + liquidity);
-        # RORO and capital-flow add cross-asset / complex context on top, capped at +-20%.
-        _, cf_mult, cf_note = _cf_overlay(ticker, base_score)
-        _, roro_mult, roro_note = _roro_overlay(_sector, base_score)
-        _, sf_mult, sf_note = _sectorflow_overlay(_sector, base_score)
-        sector_mult_raw = round(cf_mult * roro_mult * sf_mult, 4)
-        sector_mult = max(0.80, min(1.20, sector_mult_raw))
-        sector_clamped = sector_mult != sector_mult_raw
-        score = round(base_score * sector_mult, 1)
+        score, roro_mult, roro_note = _roro_overlay(_sector, score)
+        score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
         # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
         _cyc = _cycle_map.get(ticker)
         _cyc_phase = (_cyc or {}).get("phase")
@@ -872,15 +862,11 @@ def lambda_handler(event, context):
         ticker_ranks.append({
             "ticker": ticker,
             "score": score,
-            "base_score": base_score,
             "n_systems": n_sys,
             "systems": sorted(systems_dict.keys()),
             "contributions": contributions,
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
-            "sector_flow_mult": sf_mult,
-            "sector_mult_combined": sector_mult,
-            "sector_mult_clamped": sector_clamped,
             "cycle_phase": _cyc_phase,
             "cycle_warning": _cyc_warn,
             "red_flags": _rf,
