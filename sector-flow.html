@@ -317,7 +317,31 @@ function renderIndustries(fg){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg){
+function renderMoneyFlow(mf){
+  if(!mf||!(mf.stocks_in||[]).length)return"";
+  const secs=(mf.sectors||[]);
+  const maxAbs=Math.max(1,...secs.map(s=>Math.abs(+s.net_flow_usd||0)));
+  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>💵 Dollar money-flow <span style="color:var(--fg-4);font-weight:400">(whole market · ${mf.n_days||6}-day · ${mf.n_stocks||""} stocks)</span></h2><span class="ct">${secs.length}</span></div>`;
+  h+=`<div class="rows">`+secs.map(s=>{
+    const v=+s.net_flow_usd||0,pos=v>=0,w=Math.max(2,Math.abs(v)/maxAbs*100);
+    return `<div class="row"><span class="nm" style="min-width:150px;color:${pos?'var(--green)':'var(--red)'}">${esc(s.sector)}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${w}%;background:${pos?'var(--green)':'var(--red)'}"></div></div>
+      <span class="val" style="color:${pos?'var(--green)':'var(--red)'}">${money(v)}</span></div>`;
+  }).join("")+`</div>`;
+  const sIn=(mf.stocks_in||[]).slice(0,12), sOut=(mf.stocks_out||[]).slice(0,12);
+  const stk=(x,col)=>`<div class="row"><span class="sym" style="color:${col}">${esc(x.ticker)}</span>
+    <span class="cat" style="min-width:150px">${esc(x.industry||"")}</span>
+    <span class="ph" style="color:var(--fg-3)">${x.ret_pct>=0?"+":""}${x.ret_pct}% · dvol ${money(x.avg_dvol_usd)}</span>
+    <div class="bar-wrap"></div><span class="val" style="color:${col}">${money(x.flow_usd)}</span></div>`;
+  h+=`<div style="font-size:10.5px;color:var(--green);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">▲ STOCKS — DOLLARS FLOWING IN (move × dollar-volume)</div>`;
+  h+=`<div class="rows">`+sIn.map(x=>stk(x,"var(--green)")).join("")+`</div>`;
+  h+=`<div style="font-size:10.5px;color:var(--red);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">▼ STOCKS — DOLLARS FLOWING OUT</div>`;
+  h+=`<div class="rows">`+sOut.map(x=>stk(x,"var(--red)")).join("")+`</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Dollar money-flow = ${mf.n_days||6}-day return × average daily dollar-volume (signed) — a big move on heavy volume = real money committed. Whole-market Polygon scan mapped to ${mf.n_stocks||""} names with sector/industry. as_of ${esc(mf.as_of||"")}.</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -349,6 +373,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg){
   h+=renderRRG(sec);
   h+=renderCycleFlow(sec);
   h+=renderIndustries(fg);
+  h+=renderMoneyFlow(mf);
   // sector rotation
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
   if(sectors.length){
@@ -403,7 +428,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg){
   document.getElementById("note").innerHTML=
     `<b style="color:var(--fg-2)">Reading it.</b> This page fuses every flow &amp; positioning signal on the system. <b style="color:var(--green)">Sector Conviction</b> is the headline — rotation score + RRG quadrant + true ETF flow + money-flow + liquidity, gated by multi-signal confluence. The <b style="color:var(--violet)">RRG</b> shows where each sector sits in the Leading/Weakening/Lagging/Improving cycle; <b>Cycle vs Flow</b> tests whether the rotation confirms the regime. Below: where flows actually land (look-through to names), participation surge, what rotates next (lead-lag chains), dark-pool accumulation, 13F conviction, and the liquidity/factor/insider backdrop. Sources: <code>sector-rotation</code>, <code>etf-true-flows</code>, <code>etf-flows</code>, <code>flow-lookthrough</code>, <code>rotation-chains</code>, <code>dark-pool</code>, <code>13f-positions</code>, <code>insider-aggregate</code>, <code>liquidity-flow</code>, <code>smart-beta</code>, <code>sector-flow-state</code>. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json"),load("data/money-flow-state.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
