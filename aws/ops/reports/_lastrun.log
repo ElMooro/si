@@ -1,24 +1,9 @@
-backtest async; waiting 210s...
-AI source: deterministic | rank_corr: -0.37 | inverted: True | _err: None
-
-HEADLINE: Conviction labels are inverted — HIGH RISK leads at 73.3% while STRONG OPPORTUNITY trails at 60.3%; the buy labels are not predictive yet.
-DIAGNOSIS: Across 6 verdicts the win-rate spread is 19.1pp (best HIGH RISK, worst EXPENSIVE); conviction-vs-outcome rank correlation is -0.37 (1.0 = perfectly ordered, <=0 = inverted/noisy). Top-quality names (compounder_80+) win 71.9%, so the quality axis carries more signal than the verdict axis right now.
-PATTERNS:
-  - The high-conviction buy bucket underperforms lower-conviction ones — verdict scoring is currently anti-correlated with forward returns (rank corr -0.37).
-  - Systematic losers dragging multiple verdicts: CBOE, ORCL, SMCI, ACN, LDOS, ADBE — these lose regardless of the label assigned.
-  - Systematic winners across verdicts: AMAT, CRL, BBY, INCY, BALL, HRL — consistently positive wherever they appear.
-  - Quality is non-monotonic: 80+ wins 71.9% but the 70-80 bucket is a trap at 54.0% — mid-quality underperforms.
-RECOMMENDATIONS:
-  - Down-weight or temporarily invert the STRONG OPPORTUNITY signal weights; it trails HIGH RISK by 13.0pp.
-  - Add a penalty/exclusion for cross-verdict repeat laggards (CBOE, ORCL, SMCI, ACN, LDOS) until they show positive forward returns.
-  - Overweight compounder_80+ (71.9% win) and treat the 70-80 bucket as neutral rather than a buy.
-  - HIGH RISK leading suggests the risk flag is catching high-momentum names that keep running — add a momentum/trend overlay so the buy labels capture that move.
-  - Keep grading point-in-time and re-fit verdict weights to forward excess-vs-SPY (not absolute return) so labels become monotonic with outcomes.
-VERDICT NOTES:
-  HIGH RISK: 73.3% win; driven by DD +184.2%, UAL +27.5%; dragged by SATS -20.4%, ALB -20.0%
-  HOLD / NEUTRAL: 61.4% win; driven by QURE +75.1%, APGE +51.5%; dragged by HTZ -48.8%, MSTR -31.9%
-  STRONG OPPORTUNITY: 60.3% win; driven by DLTR +27.8%, BBY +27.8%; dragged by ACN -26.6%, LDOS -21.6%
-  FAIR VALUE: 60.3% win; driven by MRNA +43.8%, SNDK +42.9%; dragged by ORCL -31.3%, SMCI -25.3%
-  OPPORTUNITY: 57.0% win; driven by AMAT +36.5%, LUV +26.2%; dragged by ACN -25.4%, CTSH -23.1%
-  EXPENSIVE: 54.2% win; driven by TECH +39.9%, MRNA +35.5%; dragged by KLAC -79.1%, SMCI -34.9%
-DONE 2447
+runtime: python3.12 | timeout: 300 | memory: 512
+handler: lambda_function.lambda_handler | role: arn:aws:iam::857687956942:role/lambda-execution-role
+env keys: ['FMP_KEY', 'FRED_KEY', 'SIGNALS_TABLE']
+MISSING data/supply-inflection-scanner.json
+EXISTS data/supply-chain-graph.json
+EXISTS data/global-business-cycle.json
+EXISTS data/liquidity-capacity.json
+MISSING data/metals-miners.json
+DONE 2448
