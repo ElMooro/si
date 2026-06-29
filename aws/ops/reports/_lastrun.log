@@ -1,57 +1,14 @@
-FunctionError: None
-version: 2.2.0 | dur: 14.6 s
+=== CYCLE-CLOCK fusion ===
+err: None
+capital_cycle_phases: None
+scarcity_building: None | flooding: None
+bottleneck_early_calls: None
+commodity_cure_setups: None
+drivers shown: ['Global cycle expanding', 'Activity nowcast expanding', 'Credit spreads benign', 'Fed net liquidity rising', 'Liquidity-pulse draining', 'Bank-reserve scarcity', 'Recession-prob composite', 'Leading labor weakening', 'Retail euphoria (contrarian)']
+capital-cycle contributor in drivers: []
+n_risk_on: 6 | n_risk_off: 14
 
-COMMODITY CYCLE (#7):
-  CRUDE_OIL    price=102.13 z=2.08 yoy=64.3% | producer capex_yoy_med=7.2 | depressed=False exiting=False | CURE=False
-  NATGAS       price=2.94 z=-0.23 yoy=-5.8% | producer capex_yoy_med=39.0 | depressed=False exiting=False | CURE=False
-  COPPER       price=13483.75 z=2.8 yoy=41.5% | producer capex_yoy_med=28.1 | depressed=False exiting=False | CURE=False
-  ALUMINUM     price=3654.02 z=3.03 yoy=49.3% | producer capex_yoy_med=12.6 | depressed=False exiting=False | CURE=False
-  STEEL_IRON   price=357.11 z=1.06 yoy=7.0% | producer capex_yoy_med=-15.6 | depressed=False exiting=True | CURE=False
-cure setups: []
-
-CROSS-ENGINE CONFIRM (#8 read-side):
-{
- "global_business_cycle": {
-  "keys": [
-   "schema_version",
-   "engine_type",
-   "generated_at",
-   "elapsed_sec",
-   "countries_with_fresh_data",
-   "countries_total",
-   "methodology",
-   "by_country"
-  ]
- },
- "liquidity_capacity": {
-  "keys": [
-   "schema_version",
-   "engine",
-   "generated_at",
-   "build_seconds",
-   "headline",
-   "liquidity_posture",
-   "liquidity_score",
-   "firm"
-  ]
- },
- "supply_chain_graph": {
-  "keys": [
-   "engine",
-   "version",
-   "ok",
-   "generated_at",
-   "thesis",
-   "n_nodes",
-   "n_edges",
-   "n_themes"
-  ]
- },
- "supply_inflection_themes": [
-  "Semiconductors",
-  "PHLX Semiconductor",
-  "Industrial Renaissance",
-  "Homebuilders",
-  "Healthcare",
-  "Bi
-DONE 2453
+=== BEST-SETUPS fusion ===
+err: None
+setups total: 0 | setups carrying a bottleneck/capital-cycle signal: 0
+DONE 2454
