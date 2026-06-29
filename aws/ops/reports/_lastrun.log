@@ -1,15 +1,19 @@
-updated money-flow code
-invoke err: None
-version: 1.1.0
-=== institutional_sector_tilt (13F adds-trims by sector) ===
-  Communication Services net=8     adding=8    trimming=0
-  Consumer Defensive     net=6     adding=8    trimming=2
-  Healthcare             net=-1    adding=9    trimming=10
-  Consumer Cyclical      net=-1    adding=4    trimming=5
-  Technology             net=-9    adding=18   trimming=27
-  FOUND   renderCongress
-  FOUND   Congressional money flow
-  FOUND   INSTITUTIONS
-  FOUND   political-trades.json
-bytes: 39928
-DONE 2512
+===== capital-inflows (data/capital-inflows.json) =====
+ topkeys: ['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime', 'regime_interpretation', 'flags', 'history_12mo_rolling_b', 'sources']
+  .headline: {"foreign_net_into_us_lt_12mo_b": 1824.9, "net_cross_border_lt_12mo_b": 1349.4, "latest_month_b": 206.0, "run_rate_3mo_annualized_b": 1611.1, "yoy_change_12mo_b": 676.5, "short_term_treasury_12mo_b": 93.8}
+  .regime: "STEADY_INFLOW"
+  .by_asset_class: {"treasuries": {"latest_month_b": 50.5, "rolling_12mo_b": 372.5}, "agency_bonds": {"latest_month_b": 26.6, "rolling_12mo_b": 132.5}, "corporate_bonds": {"latest_month_b": 20.7, "rolling_12mo_b": 435.9}, "equities": {"latest_month_b": 108.2, "rolling_12mo_b": 883.9}}
+===== polygon-fx-regime (data/polygon-fx-regime.json) =====
+ topkeys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro', 'regime_signals', 'regime_metrics', 'pair_data', 'source']
+===== gold-equity-rotation (data/gold-equity-rotation.json) =====
+ topkeys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+  .state: "NEUTRAL"
+  .signal_strength: 0.2
+  .current_metrics: {"spy_ratio_gld": 1.951, "ratio_ma50": 1.788, "ratio_ma200": 1.701, "ratio_zscore_252d": 0.92, "ratio_20d_pct": 6.73, "spy_20d_pct": -3.39, "gld_20d_pct": -9.48, "gdx_20d_pct": -11.68, "slv_20d_pct": -22.06, "uup_20d_pct": 2.74, "tlt_20d_pct": 1.89, "ratio_persistence_5d": null, 
+===== tic-flows (data/tic-flows.json) =====
+ topkeys: ['schema_version', 'method', 'generated_at', 'composite_tic_stress', 'regime', 'top_reasons', 'total_foreign_holdings', 'net_purchases', 'top_holders', 'individual', 'interpretation', 'duration_s']
+===== credit-stress (data/credit-stress.json) =====
+ topkeys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'data_date', 'current_bps', 'metrics', 'derived_spreads', 'regimes', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'thresholds']
+===== dark-pool top_distribution =====
+ n: 12 sample: {"ticker": "ILMN", "state": "DISTRIBUTION", "score": 83.6, "dark_pool_pct": 40.84, "offex_pct": 52.31, "dark_accel": 0.579, "week_return_pct": -1.27, "ats_shares_wk": 4954295, "offex_shares_wk": 6346213, "total_vol_wk": 12131759}
+DONE 2513
