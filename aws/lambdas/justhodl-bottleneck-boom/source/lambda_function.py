@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.12.0"
+VERSION = "2.12.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -442,12 +442,17 @@ def _edgar_fts_sic(q, forms, a, b, pages=3):
     for pg in range(pages):
         params = urllib.parse.urlencode({"q": q, "forms": forms, "startdt": a, "enddt": b})
         url = f"https://efts.sec.gov/LATEST/search-index?{params}&from={pg * 10}"
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl Research contact@justhodl.ai",
-                                                       "Accept": "application/json"})
-            j = json.loads(urllib.request.urlopen(req, timeout=20).read())
-        except Exception as e:
-            print(f"[edgar-sic] {str(e)[:50]}")
+        j = None
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "JustHodl Research contact@justhodl.ai",
+                                                           "Accept": "application/json"})
+                j = json.loads(urllib.request.urlopen(req, timeout=25).read())
+                break
+            except Exception as e:
+                print(f"[edgar-sic] pg{pg} try{attempt} {str(e)[:40]}")
+                _t.sleep(1.2)
+        if j is None:
             break
         h = j.get("hits") or {}
         if pg == 0:
