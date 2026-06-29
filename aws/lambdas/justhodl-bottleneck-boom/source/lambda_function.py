@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.9.0"
+VERSION = "2.10.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -517,6 +517,21 @@ def industry_pressure():
             uy = yoy_series(uf)
             entry["backlog_yoy_pct"] = round(uy[-1] * 100, 1) if uy else None
             entry["backlog_yoy_z"] = z_latest(uy)
+        # #6 — 2nd-derivative: demand growth (orders) vs supply growth (shipments). Spread > 0 and
+        # WIDENING = demand pulling away from what supply can ship = bottleneck forming, the earliest
+        # structural tell, before backlog levels confirm it.
+        if no and sh:
+            on_y, sh_y = yoy_series(no), yoy_series(sh)
+            if on_y and sh_y:
+                spread = (on_y[-1] - sh_y[-1]) * 100
+                sp_prior = ((on_y[-7] - sh_y[-7]) * 100
+                            if (len(on_y) >= 7 and len(sh_y) >= 7) else None)
+                entry["demand_supply_spread_pp"] = round(spread, 1)
+                widening = (sp_prior is not None and spread > sp_prior + 0.5)
+                narrowing = (sp_prior is not None and spread < sp_prior - 0.5)
+                entry["spread_state"] = ("FORMING" if (spread > 0 and widening)
+                                         else "CLOSING" if (spread < 0 or narrowing) else "STABLE")
+                entry["bottleneck_forming"] = bool(spread > 0 and widening)
         zs = [v for v in (entry.get("backlog_ratio_z"), entry.get("new_orders_yoy_z"),
                           entry.get("backlog_yoy_z")) if v is not None]
         entry["pressure_0_100"] = round(min(100, max(0, 50 + 16 * (sum(zs) / len(zs)))), 1) if zs else None
