@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.4.1"
+VERSION = "2.4.2"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -625,10 +625,15 @@ def lambda_handler(event=None, context=None):
     crit_map = {}
     try:
         _ck = json.loads(S3.get_object(Bucket=BUCKET, Key="data/chokepoint.json")["Body"].read())
-        for _lst in ("ranked", "board", "top_hidden", "top_chokepoints", "hidden", "chokepoints"):
+        for _lst in ("all_chokepoints", "highest_conviction_book", "confirmed_chokepoint_book",
+                     "discovered_chokepoint_book", "industry_leaders", "hidden_chokepoint_book",
+                     "cheap_chokepoint_book"):
             for _r in (_ck.get(_lst) or []):
                 if isinstance(_r, dict) and _r.get("ticker") and _r.get("criticality") is not None:
                     crit_map[str(_r["ticker"]).upper()] = _r["criticality"]
+        for _tk, _v in (_ck.get("structural_names") or {}).items():
+            if isinstance(_v, dict) and _v.get("criticality") is not None:
+                crit_map.setdefault(str(_tk).upper(), _v["criticality"])
     except Exception as e:
         print(f"[chokepoint] {str(e)[:60]}")
     for r in rows:
