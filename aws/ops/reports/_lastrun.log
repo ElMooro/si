@@ -1,5 +1,15 @@
-  FOUND   renderLookthrough
-  FOUND   What rotates next
-  FOUND   Participation surging
-bytes: 24320
-DONE 2496
+===== dark-pool.json =====
+keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks', 'top_accumulation', 'top_distribution', 'dark_map', 'data_source', 'caveats', 'elapsed_s'] | thesis: Per-name off-exchange accumulation from FINRA ATS transparency. Rising dark-pool share of volume while price s | latest_week: 2026-06-01
+ .board[0]: {"ticker": "TWLO", "state": "ACCUMULATION", "score": 89.9, "dark_pool_pct": 34.44, "offex_pct": 49.47, "dark_accel": 0.937, "week_return_pct": -0.68, "ats_shares_wk": 7178330, "offex_shares_wk": 10312264, "total_vol_wk": 20844827}
+ .top_picks[0]: {"ticker": "TWLO", "score": 89.9, "direction": "long", "state": "ACCUMULATION", "dark_pool_pct": 34.44, "dark_accel": 0.937, "offex_pct": 49.47, "week_return_pct": -0.68}
+
+===== 13f-positions.json =====
+keys: ['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors', 'by_fund', 'aggregate_by_ticker', 'most_bought', 'most_sold', 'consensus_holds', 'rare_picks', 'fetch_duration_s'] | as_of_quarter: 2026-03-31
+ .most_bought[0]: {"ticker": "PEP", "cusip": "693718108", "name": "PepsiCo", "n_funds_holding": 14, "total_value": 3157359126, "n_funds_adding": 8, "n_funds_trimming": 2, "n_funds_new_position": 2, "n_funds_exiting": 0, "fund_actions": [{"fund": "BRIDGEWATER", "fund_name": "Bridgewater Associates", "value": 89751816,
+ .most_sold[0]: {"ticker": null, "cusip": "75734B100", "name": "REDDIT INC", "n_funds_holding": 11, "total_value": 1832282268, "n_funds_adding": 0, "n_funds_trimming": 10, "n_funds_new_position": 1, "n_funds_exiting": 0, "fund_actions": [{"fund": "BRIDGEWATER", "fund_name": "Bridgewater Associates", "value": 926486
+ aggregate_by_ticker sample: {"AAPL": {"ticker": "AAPL", "cusip": "037833100", "name": "Apple Inc", "n_funds_holding": 16, "total_value": 94042850454, "n_funds_adding": 6, "n_funds_trimming": 7, "n_funds_new_position": 2, "n_funds_exiting": 0, "fund_actions": [{"fund": "BERKSHIRE", "fund_name": "Berkshire Hathaway", "value": 57
+
+===== insider-aggregate-history.json =====
+keys: ['snapshots', 'updated_at']
+ snapshots[-1]: {"ts": "2026-06-28T22:00:27.633880+00:00", "regime": "INSIDERS_DISTRIBUTING", "ratio_30d_dollar": 0.014, "ratio_30d_count": 0.095, "buy_usd_30d": 11438933, "sell_usd_30d": 830794102}
+DONE 2497
