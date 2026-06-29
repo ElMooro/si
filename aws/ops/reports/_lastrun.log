@@ -1,17 +1,6 @@
-updated sector-flow-state code
-invoke err: None
-version: 1.1.0
-=== sectors with dollar-flow folded in ===
-  XLV   conv=77.4  OVERWEIGHT  $flow=+$6.33B   confirms=True  drivers=RRG Leading, money-flow strong, dollars flowing in
-  XLU   conv=63.3  OVERWEIGHT  $flow=+$250M    confirms=None  drivers=RRG Improving, money-flow strong, RS accelerating
-  XLI   conv=62.6  OVERWEIGHT  $flow=-$6.48B   confirms=False drivers=RRG Leading, money-flow strong, RS accelerating, cycle-favored, ⚠ dollars diverging (distribution)
-  XLK   conv=49.9  NEUTRAL     $flow=-$24.73B  confirms=False drivers=RS accelerating, cycle-favored, ⚠ dollars diverging (distribution)
-  XLC   conv=48.6  NEUTRAL     $flow=-$3.89B   confirms=False drivers=flow strong inflow, cycle-favored, ⚠ dollars diverging (distribution)
-  XLF   conv=43.4  NEUTRAL     $flow=-$619M    confirms=True  drivers=RRG Improving, money-flow strong, cycle-favored
-  XLRE  conv=39.8  UNDERWEIGHT $flow=+$492M    confirms=None  drivers=RRG Improving
-  XLB   conv=32.8  UNDERWEIGHT $flow=-$335M    confirms=True  drivers=RRG Improving, cycle-favored
-  XLP   conv=27.4  UNDERWEIGHT $flow=+$734M    confirms=None  drivers=RRG Improving
-  XLY   conv=26.7  UNDERWEIGHT $flow=-$1.80B   confirms=True  drivers=RRG Improving
-  XLE   conv=14.2  UNDERWEIGHT $flow=+$142M    confirms=None  drivers=cycle-favored
-downstream deal-scanner deals w/ conviction: 9 of 9
-DONE 2508
+===== political-stocks.json (congress) =====
+keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'lookback_days', 'data_source', 'party_source', 'quiver_source', 'trump_holdings', 'congress', 'notes']
+
+===== political-trades.json =====
+keys: ['schema_version', 'method', 'generated_at', 'endpoints', 'stats', 'trades_recent_50', 'clusters_top_10', 'large_trades_top_15', 'high_watch_recent_15', 'duration_s']
+DONE 2509
