@@ -1,8 +1,21 @@
-deployed LastModified: 2026-06-29T00:06:37.000+0000 | timeout: 300
-FunctionError: Unhandled | resp: {"errorMessage": "Handler 'lambda_handler' missing on module 'lambda_function'", "errorType": "Runtime.HandlerNotFound", "requestId": "", "stackTrace": []}
-version: 1.0.0 | dur: 8.8 s
-phase counts: None
-early signals logged: None | flood: None
-INDUSTRY SUPPLY:
-EARLY CALLS:
-DONE 2450
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"scored\": 48, \"logged\": 8}"}
+version: 2.0.0 | dur: 12.0 s | scored: 48
+phase counts: {'NEUTRAL': 3, 'GLUT': 1, 'TIGHT': 1} | early logged: 8 | flood: []
+
+INDUSTRY SUPPLY (capital-cycle phase per group):
+  TOTAL_MFG              phase=NEUTRAL            score=50 | capex_yoy_med=48.9 capex/DA=1.24 | %ml=22 %cut=44 %druck=22 | util=75.7 z=-0.35 6mo=0.73
+  COMPUTERS_ELECTRONICS  phase=GLUT               score=22 | capex_yoy_med=29.7 capex/DA=1.12 | %ml=8 %cut=44 %druck=0 | util=75.4 z=-0.74 6mo=2.21
+  MACHINERY              phase=TIGHT              score=62 | capex_yoy_med=-4.2 capex/DA=0.42 | %ml=0 %cut=100 %druck=0 | util=81.8 z=1.05 6mo=1.57
+  ELECTRICAL_EQUIP       phase=NEUTRAL            score=50 | capex_yoy_med=2.2 capex/DA=0.77 | %ml=0 %cut=67 %druck=0 | util=86.2 z=1.71 6mo=1.94
+  AEROSPACE_DEFENSE      phase=NEUTRAL            score=50 | capex_yoy_med=42.5 capex/DA=1.43 | %ml=17 %cut=50 %druck=0 | util=72.6 z=0.4 6mo=1.17
+
+EARLY BOTTLENECK CALLS (born-in-the-bust):
+  DELL   Dell Technologies Inc.     30 | GLUT               | capex 15.4% capex/DA 0.99 margin 6.3% ml=False
+  HPE    Hewlett Packard Enterprise 30 | GLUT               | capex -67.7% capex/DA 0.22 margin 3.9% ml=False
+  JBL    Jabil Inc.                 30 | GLUT               | capex -16.5% capex/DA 0.51 margin 2.6% ml=False
+  MRVL   Marvell Technology, Inc.   30 | GLUT               | capex 22.7% capex/DA 0.31 margin 29.0% ml=False
+  LITE   Lumentum Holdings Inc.     30 | GLUT               | capex -11.5% capex/DA 0.7 margin 17.7% ml=False
+  ONTO   Onto Innovation Inc.       30 | GLUT               | capex -28.0% capex/DA 0.36 margin 10.3% ml=False
+  ACLS   Axcelis Technologies, Inc. 30 | GLUT               | capex -47.3% capex/DA 0.46 margin 11.9% ml=False
+  TSM    Taiwan Semiconductor Manuf 22 | GLUT               | capex 17.0% capex/DA 1.9 margin 47.0% ml=False
+DONE 2451
