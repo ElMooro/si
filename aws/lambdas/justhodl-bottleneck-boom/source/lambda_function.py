@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.7.0"
+VERSION = "2.8.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -306,6 +306,47 @@ def constraint_language():
             "intensity_chg_pct": intensity, "rising_phrases": rising,
             "names_by_breadth": sorted(all_names, key=lambda k: -all_names[k])[:15],
             "text_confirms_bottleneck": bool(intensity is not None and intensity > 15)}
+
+
+TRADE_PHRASES = {
+    "export_controls":   '"export control" OR "export restrictions" OR "export license"',
+    "single_source":     '"single source" OR "sole source" OR "single-source"',
+    "critical_minerals": '"critical minerals" OR "rare earth"',
+    "tariff_cost":       '"tariff" "increased costs"',
+    "import_dependency": '"dependent on imports" OR "reliance on imports" OR "import dependency"',
+}
+
+
+def trade_policy_bottleneck():
+    """#4 leading layer — policy/structural INPUT bottlenecks: export controls, sole-source
+    dependency, critical minerals / rare earth, tariffs. Disclosed in filings; rising = an input
+    the market can't route around is being constrained by policy or geography (e.g. gallium)."""
+    import time as _t
+    today = datetime.now(timezone.utc).date()
+    cur_a, cur_b = today - timedelta(days=120), today
+    prv_a, prv_b = today - timedelta(days=240), today - timedelta(days=120)
+    forms, phrases, names, ct, pt = "10-Q,10-K,8-K", {}, {}, 0, 0
+    for k, q in TRADE_PHRASES.items():
+        c, ctk = _edgar_fts(q, forms, cur_a.isoformat(), cur_b.isoformat())
+        _t.sleep(0.2)
+        p, _ = _edgar_fts(q, forms, prv_a.isoformat(), prv_b.isoformat())
+        _t.sleep(0.2)
+        if c is None:
+            continue
+        ct += c
+        pt += (p or 0)
+        trend = ("RISING" if (p is not None and c > p * 1.15) else
+                 "FALLING" if (p is not None and c < p * 0.85) else "STABLE")
+        phrases[k] = {"hits_120d": c, "hits_prior": p, "trend": trend, "sample_tickers": ctk}
+        for tk in ctk:
+            names[tk] = names.get(tk, 0) + 1
+    if not phrases:
+        return {}
+    return {"phrases": phrases,
+            "rising_phrases": [k for k, v in phrases.items() if v["trend"] == "RISING"],
+            "intensity_chg_pct": round(((ct / pt) - 1) * 100, 1) if pt else None,
+            "exposed_names": sorted(names, key=lambda k: -names[k])[:15],
+            "policy_bottleneck_building": bool(pt and ct > pt * 1.15)}
 
 
 def _gscpi():
@@ -788,6 +829,7 @@ def lambda_handler(event=None, context=None):
     phys = physical_throughput()
     text_signal = constraint_language()
     labor = labor_bottleneck()
+    trade = trade_policy_bottleneck()
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -925,7 +967,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
