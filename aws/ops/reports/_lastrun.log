@@ -1,28 +1,33 @@
-===== sector-rotation (data/sector-rotation.json) =====
- n: 11
- fields: ['symbol', 'name', 'current_price', 'cycle_fit_phases', 'in_current_cycle', 'rotation_score', 'score_components', 'rs_1d_pct', 'return_1d_pct', 'spy_return_1d_pct', 'rs_5d_pct', 'return_5d_pct', 'spy_return_5d_pct', 'rs_1m_pct', 'return_1m_pct', 'spy_return_1m_pct', 'rs_3m_pct', 'return_3m_pct', 'spy_return_3m_pct', 'rs_6m_pct', 'return_6m_pct', 'spy_return_6m_pct', 'rs_slope_21d_pct_per_day', 'rs_acceleration', 'rs_pct_rank_1y', 'sma20', 'sma50', 'sma200', 'pct_vs_sma20', 'pct_vs_sma50', 'pct_vs_sma200', 'golden_cross_active', 'death_cross_active', 'chaikin_money_flow_20', 'obv_slope_10d', 'money_flow_index_14', 'volume_surge_ratio', 'sub_sector_check', 'rotation_in_flags', 'rotation_out_flags', 'rotating_in', 'rotating_out', 'etf_flow_z', 'etf_flow_signal', 'etf_flow_5d_usd', 'rotation_score_preflow', 'etf_flow_confirm', 'rank']
- ex: {"symbol": "XLI", "name": "Industrials", "current_price": 182.76, "cycle_fit_phases": ["EXPANSION-MID"], "in_current_cycle": true, "rotation_score": 63.6, "score_components": {"rs_momentum": 53.0, "money_flow": 100, "breadth": 57.4, "regime_fit": 75, "sub_sect
-===== money-flow-state (data/money-flow-state.json) =====
- sectors[0]: {"sector": "Healthcare", "net_flow_usd": 6329729221, "up_dvol": 251180185505, "down_dvol": 66078207271, "n": 353}
- inst_tilt[0]: {"sector": "Communication Services", "net_fund_actions": 8, "adding": 8, "trimming": 0}
-===== capital-flow-radar (data/capital-flow-radar.json) =====
- n_complexes: 46
- fields: ['complex', 'members_present', 'primary', 'net_flow_5d_usd', 'net_flow_21d_usd', 'net_flow_daily_usd', 'pct_aum_5d', 'velocity_ratio', 'acceleration_usd_per_day', 'accelerating', 'breadth', 'persistence_days', 'flow_zscore_90d', 'leveraged_positioning', 'bull_lev_flow_5d', 'bear_lev_flow_5d', 'price_5d_pct', 'flow_price_divergence', 'pump_probability', 'regime', 'verdict', 'ref_stocks', 'top_conviction_stocks']
-  - Aerospace/Defense | sector= None | pump= 88.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
-  - Airlines | sector= None | pump= 81.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
-  - Technology | sector= None | pump= 80.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
-  - Biotech | sector= None | pump= 80.0 | regime= STEADY_INFLOW — TREND INTACT | div= False
-  - S&P 500 Broad | sector= None | pump= 80.0 | regime= ACCELERATING_INFLOW — PUMP SETUP | div= False
-  - Utilities | sector= None | pump= 80.0 | regime= STEADY_INFLOW — TREND INTACT | div= False
-===== finviz-groups (data/finviz-groups.json) =====
- n_ind: 144
- fields: ['name', 'perf_w', 'perf_m', 'perf_q', 'perf_h', 'perf_y', 'perf_ytd', 'avg_volume', 'rel_volume', 'change', 'volume', 'mktcap', 'pe', 'fwd_pe', 'peg', 'ps', 'pb', 'p_cash', 'p_fcf', 'eps_g_5y', 'eps_g_n5y', 'sales_g_5y']
- ex: {"name": "Semiconductor Equipment & Materials", "perf_w": 0.87, "perf_m": 29.84, "perf_q": 73.19, "perf_h": 113.43, "perf_y": 210.09, "perf_ytd": 117.28, "avg_volume": 80490.83, "rel_volume": 0.85, "change": 7.82, "volum
-===== dark-pool (data/dark-pool.json) =====
- board n: 60
- fields: ['ticker', 'state', 'score', 'dark_pool_pct', 'offex_pct', 'dark_accel', 'week_return_pct', 'ats_shares_wk', 'offex_shares_wk', 'total_vol_wk']
- ex: {"ticker": "TWLO", "state": "ACCUMULATION", "score": 89.9, "dark_pool_pct": 34.44, "offex_pct": 49.47, "dark_accel": 0.937, "week_return_pct": -0.68, "ats_shares_wk": 7178330, "offex_shares_wk": 10312
-===== liquidity-flow (data/liquidity-flow.json) =====
- regime: draining | keys: ['generated_at', 'as_of', 'current', 'deltas', 'regime', 'interpretation', 'history_180d', 'fetch_errors', 'fetch_duration_s']
-universe n: 1856 | ex: {"symbol": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "exchange": "NASDAQ Global Select", "market_cap": 4697662
-DONE 2518
+created new function
+scheduled hourly :45
+invoke err: None
+resp: {"ok": true, "sectors": 11, "divergences": 2, "headline": "2 sector divergence(s): Real Estate (distribution), Communication Services (accumulation)"}
+
+HEADLINE: 2 sector divergence(s): Real Estate (distribution), Communication Services (accumulation)
+BACKDROP: {"liquidity_regime": "draining", "risk_regime": "MILD_RISK_OFF", "risk_regime_score": -14.2}
+TOP INFLOW: ['Financials', 'Healthcare', 'Utilities', 'Consumer Staples'] | TOP OUTFLOW: ['Technology']
+
+=== PER-SECTOR VERDICT (ranked by net flow) ===
+  Financials               net=+0.80 conf=3/4 [R.E.D] OVERWEIGHT 
+       → INFLOW — money rotating in
+  Healthcare               net=+0.65 conf=3/5 [RTE.d] OVERWEIGHT 
+       → INFLOW — money rotating in
+  Utilities                net=+0.63 conf=3/4 [RTE..] OVERWEIGHT 
+       → INFLOW — money rotating in
+  Industrials              net=+0.50 conf=2/4 [Rte.D] NEUTRAL    
+       → MIXED — no flow consensus
+  Consumer Staples         net=+0.37 conf=3/5 [RT.I.] OVERWEIGHT 
+       → INFLOW — money rotating in
+  Materials                net=+0.06 conf=0/3 [.T...] NEUTRAL    
+       → MIXED — no flow consensus
+  Real Estate              net=-0.21 conf=1/4 [RT..d] UNDERWEIGHT ⚠DIVERGENCE
+       → DISTRIBUTION RISK — price leading but tape/institutions/dark-pool exiting
+  Consumer Discretionary   net=-0.34 conf=2/5 [r.e..] NEUTRAL    
+       → MIXED — no flow consensus
+  Communication Services   net=-0.59 conf=2/4 [r.eI.] OVERWEIGHT  ⚠DIVERGENCE
+       → STEALTH ACCUMULATION — price lagging but money quietly entering
+  Energy                   net=-0.74 conf=2/4 [rT..d] NEUTRAL    
+       → MIXED — no flow consensus
+  Technology               net=-1.02 conf=3/5 [rt.i.] UNDERWEIGHT
+       → OUTFLOW — money rotating out
+DONE 2519
