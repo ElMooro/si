@@ -460,7 +460,7 @@ def log_early(calls, regime):
         return 0
 
 
-
+def lambda_handler(event=None, context=None):
     t0 = time.time()
     pressure, used, failed = industry_pressure()
     universe, src = load_universe()
