@@ -415,7 +415,7 @@ function renderAssetClassRotation(etf,ger){
     return `<div class="row"><span class="nm" style="min-width:150px;color:${col}">${esc(LAB[c.category]||c.category)}</span>
       <div class="bar-wrap"><div class="bar" style="width:${Math.max(2,Math.abs(v)/maxAbs*100)}%;background:${col}"></div></div>
       <span class="val" style="color:${col}">${money(v)}</span></div>`;}).join("")+`</div>`;
-  const ha=[["Gold (GLD)",m.gld_20d_pct],["Silver (SLV)",m.slv_20d_pct],["Gold miners (GDX)",m.gdx_20d_pct],["Long bonds (TLT)",m.tlt_20d_pct],["US Dollar (UUP)",m.uup_20d_pct],["S&P 500 (SPY)",m.spy_20d_pct]].filter(x=>x[1]!=null);
+  const ha=[["Gold (GLD)",m.gld_20d_pct],["Silver (SLV)",m.slv_20d_pct],["Gold miners (GDX)",m.gdx_20d_pct],["Equity REITs (VNQ)",m.vnq_20d_pct],["Mortgage REITs (REM)",m.rem_20d_pct],["Long bonds (TLT)",m.tlt_20d_pct],["US Dollar (UUP)",m.uup_20d_pct],["S&P 500 (SPY)",m.spy_20d_pct]].filter(x=>x[1]!=null);
   if(ha.length){
     h+=`<div style="font-size:10.5px;color:var(--fg-3);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">HARD ASSETS, BONDS & DOLLAR — 20-day move (price = flow direction)</div>`;
     h+=`<div class="rows">`+ha.map(([n,v])=>{const pos=(+v)>=0,col=pos?"var(--green)":"var(--red)";

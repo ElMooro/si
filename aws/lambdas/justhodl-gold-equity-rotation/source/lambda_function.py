@@ -54,6 +54,8 @@ ASSETS = {
     "GLD": "GLD", "SPY": "SPY", "GDX": "GDX", "SLV": "SLV",
     "UUP": "UUP",   # dollar proxy
     "TLT": "TLT",   # rate proxy
+    "VNQ": "VNQ",   # equity REITs (real estate)
+    "REM": "REM",   # mortgage REITs (pure rate play)
 }
 
 s3 = boto3.client("s3")
@@ -159,6 +161,8 @@ def lambda_handler(event, context):
         slv = h.get("SLV", [])
         uup = h.get("UUP", [])
         tlt = h.get("TLT", [])
+        vnq = h.get("VNQ", [])
+        rem = h.get("REM", [])
         if len(spy) < 60 or len(gld) < 60:
             raise RuntimeError(f"insufficient data: SPY={len(spy)} GLD={len(gld)}")
 
@@ -174,6 +178,8 @@ def lambda_handler(event, context):
         slv_20d = pct_return(slv, 20) if slv else None
         uup_20d = pct_return(uup, 20) if uup else None
         tlt_20d = pct_return(tlt, 20) if tlt else None
+        vnq_20d = pct_return(vnq, 20) if vnq else None
+        rem_20d = pct_return(rem, 20) if rem else None
 
         # SPY/GLD ratio MAs and z-score
         ratio_ma50 = ma(ratio, 50)
@@ -297,6 +303,8 @@ def lambda_handler(event, context):
                 "slv_20d_pct": round(slv_20d, 2) if slv_20d is not None else None,
                 "uup_20d_pct": round(uup_20d, 2) if uup_20d is not None else None,
                 "tlt_20d_pct": round(tlt_20d, 2) if tlt_20d is not None else None,
+                "vnq_20d_pct": round(vnq_20d, 2) if vnq_20d is not None else None,
+                "rem_20d_pct": round(rem_20d, 2) if rem_20d is not None else None,
                 "ratio_persistence_5d": ratio_persist,
                 "dxy_falling_20d": dxy_falling,
                 "gold_strength": round(gld_strength, 2),
