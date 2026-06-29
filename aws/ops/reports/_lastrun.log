@@ -1,11 +1,22 @@
-ALL contract keys: ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX', 'ES', 'GC', 'HG', 'HO', 'KC', 'NG', 'NQ', 'PL', 'RB', 'RTY', 'SB', 'SI', 'VX', 'YM', 'ZB', 'ZC', 'ZF', 'ZN', 'ZS', 'ZT', 'ZW']
-CL report_type=disagg n_reports=8
-   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
-   latest sample: {"report_date": "2026-05-05", "open_interest": 2067827, "noncommercial_long": 285775, "noncommercial_short": 758635, "net_speculator": -472860, "commercial_long": 716499, "commercial_short": 378998, "net_commercial": 337501, "managed_money_long": 185755, "managed_money_short": 114964, "net_managed_money": 70791, "speculator_long_ratio": 27.4}
-NG report_type=disagg n_reports=8
-   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
-   latest sample: {"report_date": "2026-05-05", "open_interest": 1628637, "noncommercial_long": 392124, "noncommercial_short": 318422, "net_speculator": 73702, "commercial_long": 241927, "commercial_short": 269968, "net_commercial": -28041, "managed_money_long": 180450, "managed_money_short": 287939, "net_managed_money": -107489, "speculator_long_ratio": 55.2}
-HG report_type=disagg n_reports=8
-   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
-   latest sample: {"report_date": "2026-05-05", "open_interest": 232609, "noncommercial_long": 131241, "noncommercial_short": 38371, "net_speculator": 92870, "commercial_long": 24839, "commercial_short": 126253, "net_commercial": -101414, "managed_money_long": 80400, "managed_money_short": 16927, "net_managed_money": 63473, "speculator_long_ratio": 77.4}
-DONE 2484
+err: None
+version: 2.15.1 dur: 55.3
+=== #2 INVENTORY-TO-SALES (Burry) ===
+n_sectors_drawing: 7
+   Wholesale              ratio=1.19  chg6m=-8.46  pctile5y=0.0
+   Total business         ratio=1.31  chg6m=-5.07  pctile5y=13.3
+   Manufacturing          ratio=1.5   chg6m=-3.85  pctile5y=6.7
+   Retail                 ratio=1.26  chg6m=-2.33  pctile5y=33.3
+   Building materials     ratio=2.1   chg6m=-3.67  pctile5y=81.7
+   Autos                  ratio=1.45  chg6m=-3.78  pctile5y=88.3
+   Motor vehicle & parts  ratio=1.91  chg6m=-0.52  pctile5y=83.3
+pre_shortage_names: [('MU', 'Semiconductors', -11.1, 73.7), ('HEI', 'Aerospace & Defense', -11.2, 16.7), ('HPE', 'Computer Hardware', -9.5, 14.8), ('NDSN', 'Industrial - Machinery', -9.4, 10.7)]
+CAPSTONE forward_state: BUILDING n_confirm: 8
+   + GSCPI tightening (physical backdrop)
+   + orders>shipments forming: TOTAL_MFG, COMPUTERS_ELECTRONICS, MACHINERY
+   + labor supply-ramp blocked (manufacturing, construction, mining_logging)
+   + policy/input pressure: critical_minerals, import_dependency
+   + no capacity relief yet (tightness can persist)
+   + inventory drawing down in 7 sectors (Burry pre-shortage)
+   + supply response not funded (capital not flooding in)
+   + commodities backwardated: CRUDE_OIL, GASOLINE
+DONE 2479
