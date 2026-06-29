@@ -1,7 +1,15 @@
-=== CYCLE-CLOCK ===
-capital_cycle block: {"phases": {"SCARCITY_BUILDING": 1, "GLUT": 1, "TIGHT": 1, "NEUTRAL": 2}, "scarcity_building": 1, "flooding": 0, "capacity_flood_names": [], "commodity_cure_setups": [], "early_calls": ["CLF", "F", "AAON", "OLN", "ASH"]}
-n_risk_on: 6 n_risk_off: 14
-=== BEST-SETUPS ===
-top_setups: 50 | carrying bottleneck/capital-cycle: 1
-   MU STRONG BUY conv 71.5 ['COMPOUNDER', 'CONVERGENCE', 'DISLOCATION', 'BOTTLENECK_BOOM']
-DONE 2456
+err: None
+version: 2.2.1
+early calls now (8):
+  CLF   capex/DA=0.46   capexYoY=-15.6   margin=-6.4    ml=True gap=87.0  
+  F     capex/DA=0.64   capexYoY=11.5    margin=-3.2    ml=True gap=88.4  
+  OLN   capex/DA=0.41   capexYoY=-1.7    margin=-1.9    ml=True gap=86.9  
+  ASH   capex/DA=0.24   capexYoY=-36.0   margin=-39.0   ml=True gap=87.2  
+  CC    capex/DA=0.71   capexYoY=-48.0   margin=-7.1    ml=True gap=86.3  
+  CE    capex/DA=0.39   capexYoY=-23.3   margin=-11.5   ml=True gap=100  
+  WLK   capex/DA=0.81   capexYoY=-2.8    margin=-14.9   ml=True gap=87.1  
+  GEF   capex/DA=0.75   capexYoY=3.5     margin=29.0    ml=True gap=89.0  
+
+AAON/LYB still present: NONE (correctly dropped)
+all survivors capex/DA<1: True
+DONE 2457
