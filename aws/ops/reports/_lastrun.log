@@ -1,6 +1,6 @@
-n_entries: 49 type: list
-entry[0] keys: ['centrality_score', 'company_name', 'concentration_flags', 'customers', 'geographic_concentration_pct', 'is_systemic_hub', 'n_customers', 'n_high_severity_flags', 'n_suppliers', 'narrative', 'sector', 'suppliers', 'ticker']
-entry[0]: {"ticker": "AAPL", "company_name": "Apple Inc.", "sector": "Technology", "n_customers": 0, "n_suppliers": 0, "customers": [], "suppliers": [], "geographic_concentration_pct": {"fiscalYear": 100.0}, "concentration_flags": [{"type": "GEO_CONCENTRATION", "country": "fiscalYear", "pct_revenue": 100.0, "severity": 80}], "n_high_severity_flags": 1, "centrality_score": 0, "is_systemic_hub": false, "narrative": "AAPL supply graph:. top geographic revenue: fiscalYear 100%. flags: GEO_CONCENTRATION."}
-n_flagged: 44
-flagged sample: {"ticker": "AAPL", "company_name": "Apple Inc.", "sector": "Technology", "n_customers": 0, "n_suppliers": 0, "customers": [], "suppliers": [], "geographic_concentration_pct": {"fiscalYear": 100.0}, "concentration_flags": [{"type": "GEO_CONCENTRATION", "country": "fiscalYear", "pct_revenue": 100.0, "severity": 80}], "n_high_severity_flags": 1, "centrality_score": 0, "is_systemic_hub": false, "narra
-DONE 2488
+err: None
+version: 2.17.0 dur: 67.9
+=== #6 SINGLE-POINT-OF-FAILURE ===
+n_flagged: 0 | systemic_hubs: []
+PPI(ppi_pricing) tightening_inputs: ['STEEL_PPI', 'PPI_STEEL'] building: True
+DONE 2489
