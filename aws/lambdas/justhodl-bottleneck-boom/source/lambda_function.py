@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.15.1"
+VERSION = "2.16.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -241,7 +241,7 @@ def labor_bottleneck():
     return out
 
 
-def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory=None, cap_avail=None, backwardn=None):
+def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory=None, cap_avail=None, backwardn=None, ppi=None):
     """Capstone — fuse the leading layers (which lead the financials by quarters) into one forward
     read. >=4 confirmations = a bottleneck is building before the income statement shows it."""
     forming = [g for g, e in (pressure or {}).items() if e.get("bottleneck_forming")]
@@ -265,6 +265,8 @@ def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity,
         confirms.append("supply response not funded (capital not flooding in)")
     if (backwardn or {}).get("backwardated"):
         confirms.append("commodities backwardated: " + ", ".join(backwardn["backwardated"]))
+    if (ppi or {}).get("pricing_power_building"):
+        confirms.append("PPI pricing power building: " + ", ".join((ppi.get("tightening_inputs") or [])[:3]))
     n = len(confirms)
     return {"forming_industries": forming, "confirmations": confirms, "n_confirmations": n,
             "forward_state": "BUILDING" if n >= 5 else "EARLY" if n >= 3 else "QUIET",
@@ -505,6 +507,43 @@ def backwardation():
                   "producers": COMMODITY_MAP.get(k, {}).get("tickers", [])}
     backw = [k for k, v in out.items() if v["curve_state"] == "BACKWARDATION"]
     return {"commodities": out, "backwardated": backw, "physical_tightness": bool(backw)}
+
+
+def ppi_signal(rows):
+    """#5 leading layer — granular PPI = pricing power being captured in real transaction prices
+    NOW (monthly), ahead of reported margins. READS supply-inflection (don't re-fetch PPI) and
+    maps each PPI input to the bottleneck industry + the engine names capturing it."""
+    PPI_IND = {"semiconduct": ("Semiconductors", ["semiconduct"]),
+               "steel":       ("Steel/Metals", ["steel", "metal"]),
+               "metals":      ("Steel/Metals", ["steel", "metal"]),
+               "transformer": ("Electrical/Grid", ["electric"]),
+               "electrical":  ("Electrical/Grid", ["electric"]),
+               "grid":        ("Electrical/Grid", ["electric"]),
+               "machinery":   ("Machinery", ["machinery"]),
+               "chemical":    ("Chemicals", ["chemical"])}
+    try:
+        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/supply-inflection.json")["Body"].read())
+    except Exception as e:
+        print(f"[ppi] {str(e)[:50]}")
+        return {}
+    out = []
+    for s in (d.get("signals") or []):
+        blob = " ".join(str(s.get(k, "")) for k in ("name", "description", "category", "symbol")).lower()
+        if "ppi" not in blob:
+            continue
+        ind, subs = None, []
+        for kw, (label, ss) in PPI_IND.items():
+            if kw in blob:
+                ind, subs = label, ss
+                break
+        names = (sorted({r["ticker"] for r in rows
+                         if any(x in str(r.get("industry", "")).lower() for x in subs)})[:8] if subs else [])
+        out.append({"input": s.get("name") or s.get("symbol"), "flag": s.get("flag"),
+                    "score": s.get("score"), "industry": ind, "capturing_names": names,
+                    "desc": s.get("description")})
+    tightening = [o for o in out if str(o.get("flag", "")).endswith("TIGHTENING")]
+    return {"ppi_inputs": out, "tightening_inputs": [o["input"] for o in tightening],
+            "pricing_power_building": bool(tightening), "as_of": d.get("generated_at")}
 
 
 def inventory_signal():
@@ -1126,8 +1165,9 @@ def lambda_handler(event=None, context=None):
     cap_avail = capital_availability()
     inventory = inventory_signal()
     backwardn = backwardation()
+    ppi = ppi_signal(rows)
     cot = commercial_positioning()
-    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn)
+    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn, ppi)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -1265,7 +1305,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "ppi_pricing": ppi, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
