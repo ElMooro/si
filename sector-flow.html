@@ -251,7 +251,35 @@ function render13F(t){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch,dp,t13,ins){
+function renderCycleFlow(sec){
+  const S=((sec||{}).sectors||[]).filter(s=>s.rs_pct_rank_1y!=null&&s.rs_slope_21d_pct_per_day!=null);
+  if(S.length<4)return"";
+  const phase=((sec||{}).macro_context||{}).cycle_phase||"";
+  const rows=S.map(s=>{
+    const q=rrgQuad(+s.rs_pct_rank_1y,+s.rs_slope_21d_pct_per_day||0).q;
+    const flowLead=(q==="Leading"||q==="Improving"), cycleLead=!!s.in_current_cycle;
+    let tag,col;
+    if(cycleLead&&flowLead){tag="CONFIRMED";col="var(--green)";}
+    else if(cycleLead&&!flowLead){tag="CYCLE-ONLY";col="var(--amber)";}
+    else if(!cycleLead&&flowLead){tag="STEALTH";col="var(--violet)";}
+    else{tag="quiet";col="var(--fg-4)";}
+    return {s,q,tag,col,cycleLead,flowLead};
+  });
+  const ord=r=>r.tag==="CONFIRMED"?0:r.tag==="STEALTH"?1:r.tag==="CYCLE-ONLY"?2:3;
+  const show=rows.filter(r=>r.tag!=="quiet").sort((a,b)=>ord(a)-ord(b));
+  if(!show.length)return"";
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>🎯 Cycle vs flow — does the rotation confirm the regime?${phase?` <span style="color:var(--fg-4);font-weight:400">(${esc(phase)})</span>`:""}</h2><span class="ct">${show.length}</span></div>`;
+  h+=`<div class="rows">`+show.map(r=>`<div class="row">
+    <span class="sym" style="color:${r.col};min-width:42px">${esc(s2sym(r.s))}</span>
+    <span class="nm" style="min-width:118px">${esc(r.s.name||"")}</span>
+    <span class="ph" style="color:${r.col};min-width:74px">${r.q}</span>
+    <span class="cat" style="flex:1">cycle ${r.cycleLead?"favors":"off-cycle"} · flows ${r.flowLead?"leading":"not leading"}</span>
+    <span class="val" style="color:${r.col};font-size:9.5px">${esc(r.tag)}</span></div>`).join("")+`</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Stovall's reverse read: the cycle map says which sectors <i>should</i> lead — but research shows naive cycle-rotation rarely beats the market, so flows are the confirmation. <b style="color:var(--green)">Confirmed</b> = cycle + flows agree. <b style="color:var(--violet)">Stealth</b> = flows leading before the cycle expects it. <b style="color:var(--amber)">Cycle-only</b> = textbook tailwind the money isn't backing yet.</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -269,6 +297,8 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins){
   if(mc&&typeof mc==="object")bn+=`<span class="chip"><b>Regime</b> ${esc(mc.regime_label||"")}${mc.cycle_phase?` · ${esc(mc.cycle_phase)}`:""}${mc.macro_stress_score!=null?` · stress ${Math.round(mc.macro_stress_score)}`:""}</span>`;
   else if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
   if(ins&&(ins.snapshots||[]).length){const _s=ins.snapshots[ins.snapshots.length-1];bn+=`<span class="chip"><b>Insiders</b> ${esc(String(_s.regime||"").replace(/_/g," ").toLowerCase())}${_s.ratio_30d_dollar!=null?` (buy/sell ${(+_s.ratio_30d_dollar).toFixed(2)})`:""}</span>`;}
+  if(lf&&lf.regime){const _nm=(lf.deltas&&lf.deltas['1m'])?lf.deltas['1m'].net:null;const _dr=lf.regime==='draining';bn+=`<span class="chip" style="border-color:${_dr?'var(--red)':'var(--green)'}"><b>Liquidity</b> ${esc(lf.regime)}${_nm!=null?` (${_nm>=0?'+':''}$${Math.round(_nm)}B/1m)`:''}</span>`;}
+  if(sb&&sb.factor_regime){bn+=`<span class="chip"><b>Factor</b> ${esc(String(sb.factor_regime).replace(/_/g,' ').toLowerCase())}${(sb.leading_factor&&sb.leading_factor!==sb.lagging_factor)?` · ${esc(sb.leading_factor)} leads`:''}</span>`;}
   document.getElementById("banner").innerHTML=bn;
   // stats
   document.getElementById("statbar").innerHTML=
@@ -278,6 +308,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins){
      <div class="stat"><div class="n">${(etf||{}).n_etfs||((etf||{}).inflows||[]).length+((etf||{}).outflows||[]).length||"—"}</div><div class="l">ETFs Tracked</div></div>`;
   let h="";
   h+=renderRRG(sec);
+  h+=renderCycleFlow(sec);
   // sector rotation
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
   if(sectors.length){
@@ -334,7 +365,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins){
      <b style="color:var(--green)">Unusual ETF inflows</b> are <i>true</i> net creation dollars (shares-outstanding × price), the hard-money confirmation; they're sparse day-to-day because they only register when an ETF actually creates/redeems shares.
      Sources: <code>sector-rotation</code> + <code>etf-true-flows</code> engines. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins])=>render(etf,sec,ef,lk,ch,dp,t13,ins));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
