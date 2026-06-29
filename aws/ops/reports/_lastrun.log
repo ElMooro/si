@@ -1,22 +1,3 @@
-err: None
-version: 2.15.1 dur: 55.3
-=== #2 INVENTORY-TO-SALES (Burry) ===
-n_sectors_drawing: 7
-   Wholesale              ratio=1.19  chg6m=-8.46  pctile5y=0.0
-   Total business         ratio=1.31  chg6m=-5.07  pctile5y=13.3
-   Manufacturing          ratio=1.5   chg6m=-3.85  pctile5y=6.7
-   Retail                 ratio=1.26  chg6m=-2.33  pctile5y=33.3
-   Building materials     ratio=2.1   chg6m=-3.67  pctile5y=81.7
-   Autos                  ratio=1.45  chg6m=-3.78  pctile5y=88.3
-   Motor vehicle & parts  ratio=1.91  chg6m=-0.52  pctile5y=83.3
-pre_shortage_names: [('MU', 'Semiconductors', -11.1, 73.7), ('HEI', 'Aerospace & Defense', -11.2, 16.7), ('HPE', 'Computer Hardware', -9.5, 14.8), ('NDSN', 'Industrial - Machinery', -9.4, 10.7)]
-CAPSTONE forward_state: BUILDING n_confirm: 8
-   + GSCPI tightening (physical backdrop)
-   + orders>shipments forming: TOTAL_MFG, COMPUTERS_ELECTRONICS, MACHINERY
-   + labor supply-ramp blocked (manufacturing, construction, mining_logging)
-   + policy/input pressure: critical_minerals, import_dependency
-   + no capacity relief yet (tightness can persist)
-   + inventory drawing down in 7 sectors (Burry pre-shortage)
-   + supply response not funded (capital not flooding in)
-   + commodities backwardated: CRUDE_OIL, GASOLINE
-DONE 2479
+top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
+no obvious PPI list; full sample: {"schema_version": "1.0", "method": "supply_inflection_scanner_v1", "generated_at": "2026-06-29T07:00:33.628632+00:00", "duration_s": 1.5, "fetch_stats": {"n_signals": 38, "n_ok": 38, "n_fail": 0, "fetch_duration_s": 1.5}, "summary": {"n_signals_scored": 38, "n_strong_tightening": 1, "n_tightening": 10, "n_easing": 22, "top_signals": [{"name": "MEMORY_DEMAND", "symbol": "MU", "score": 84.5, "flag": "STRONG_TIGHTENING", "themes": ["SMH", "SOXX", "AIQ", "BOTZ"], "description": "Memory demand proxy via MU stock (HBM+DRAM bellwether)"}, {"name": "PRICES_PAID_PHILLY", "symbol": "PPCDFSA066MSFRBPHI"
+DONE 2480
