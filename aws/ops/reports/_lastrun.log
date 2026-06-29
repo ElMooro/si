@@ -1,9 +1,9 @@
-version: 2.9.0 dur: 75.5
-=== #5 CAPACITY RESPONSE ===
-  capacity_expansion 120d=491  prior=539  STABLE   e.g. CRS,ICCC,IESC,LHX,MLR
-  new_facility       120d=767  prior=763  STABLE   e.g. AZZ,CEG,LINE,MCW,RITE
-  groundbreaking     120d=351  prior=357  STABLE   e.g. APLD,CVCO,CWD,IDA,LKFN
-intensity_chg_pct: -3.0 | supply_relief_coming: False
-read: Capacity additions not rising — no supply response yet, tightness can persist
-expanding_names: ['CRS', 'ICCC', 'IESC', 'LHX', 'MLR', 'MOD', 'VSH', 'WMS', 'AZZ', 'CEG', 'LINE', 'MCW', 'RITE', 'VMC', 'WSBF']
-DONE 2469
+version: 2.10.0 dur: 56.5
+=== #6 DEMAND-SUPPLY GROWTH SPREAD (per industry) ===
+  TOTAL_MFG              spread=4.6    state=FORMING  forming=True (ordersYoY 11.7, backlogYoY 11.5)
+  COMPUTERS_ELECTRONICS  spread=6.3    state=FORMING  forming=True (ordersYoY 13.3, backlogYoY 3.8)
+  MACHINERY              spread=4.4    state=FORMING  forming=True (ordersYoY 14.0, backlogYoY 4.3)
+  ELECTRICAL_EQUIP       spread=-0.8   state=CLOSING  forming=False (ordersYoY 5.8, backlogYoY 5.4)
+  AEROSPACE_DEFENSE      spread=-33.6  state=CLOSING  forming=False (ordersYoY -22.1, backlogYoY 11.1)
+INDUSTRIES WITH BOTTLENECK FORMING: ['TOTAL_MFG', 'COMPUTERS_ELECTRONICS', 'MACHINERY']
+DONE 2470
