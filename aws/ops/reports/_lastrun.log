@@ -1,20 +1,10 @@
-err: None
-version: 2.4.0 | dur: 13.6 s
-
-=== 1. BULLWHIP per industry (Lee/Forrester) ===
-  TOTAL_MFG              ratio=6.38  prior=88.24 state=ACTIVE
-  COMPUTERS_ELECTRONICS  ratio=10.27 prior=11.23 state=ACTIVE
-  MACHINERY              ratio=18.44 prior=60.19 state=ACTIVE
-  ELECTRICAL_EQUIP       ratio=3.16  prior=38.84 state=ACTIVE
-  AEROSPACE_DEFENSE      ratio=166.3 prior=430.05 state=ACTIVE
-
-=== 2. GOLDRATT chokepoint wiring + 3. BUFFETT margin inflection (early calls) ===
-  CLF   Steel                  crit=None  in_scarcity=False | margin now=-4.2 trough=-11.6 INFLECTING=False | gap=87.0
-  F     Auto - Manufacturers   crit=None  in_scarcity=False | margin now=5.4 trough=-2.0 INFLECTING=True | gap=88.4
-  OLN   Chemicals - Specialty  crit=None  in_scarcity=False | margin now=-3.8 trough=-3.8 INFLECTING=False | gap=86.9
-  ASH   Chemicals - Specialty  crit=None  in_scarcity=False | margin now=8.1 trough=-11.2 INFLECTING=False | gap=87.2
-  CC    Chemicals - Specialty  crit=None  in_scarcity=False | margin now=4.6 trough=-19.5 INFLECTING=True | gap=86.3
-  CE    Chemicals - Specialty  crit=None  in_scarcity=False | margin now=8.1 trough=-59.3 INFLECTING=False | gap=100
-  WLK   Chemicals - Specialty  crit=None  in_scarcity=False | margin now=-5.8 trough=-27.0 INFLECTING=True | gap=87.1
-  GEF   Packaging & Containers crit=None  in_scarcity=False | margin now=5.2 trough=-57.2 INFLECTING=False | gap=89.0
-DONE 2459
+version: 2.4.1
+BULLWHIP (trend-based):
+  TOTAL_MFG              ratio=6.38   chg=-92.8%  state=DAMPING
+  COMPUTERS_ELECTRONICS  ratio=10.27  chg=-8.5%   state=STABLE
+  MACHINERY              ratio=18.44  chg=-69.4%  state=DAMPING
+  ELECTRICAL_EQUIP       ratio=3.16   chg=-91.9%  state=DAMPING
+  AEROSPACE_DEFENSE      ratio=166.3  chg=-61.3%  state=DAMPING
+CHOKEPOINT criticality on boom ranks (tech chokepoints):
+MARGIN INFLECTING early calls: ['F', 'CC', 'WLK']
+DONE 2460
