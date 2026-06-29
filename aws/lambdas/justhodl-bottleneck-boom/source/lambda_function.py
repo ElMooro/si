@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -214,10 +214,23 @@ def load_universe():
     return DEFAULT_UNIVERSE, "default_universe"
 
 
+def _ttm(rows, field, n=4, start=0):
+    vals = []
+    for r in (rows[start:start + n] if rows else []):
+        v = r.get(field)
+        if v is not None:
+            try:
+                vals.append(float(v))
+            except (TypeError, ValueError):
+                pass
+    return sum(vals) if vals else None
+
+
 def fetch_ticker(t):
     g = fmp("income-statement-growth", {"symbol": t, "period": "quarter", "limit": 6}) or []
     r = fmp("ratios-ttm", {"symbol": t}) or []
     p = fmp("profile", {"symbol": t}) or []
+    cf = fmp("cash-flow-statement", {"symbol": t, "period": "quarter", "limit": 8}) or []
     g0 = g[0] if g else {}
     g1 = g[1] if len(g) > 1 else {}
     r0 = r[0] if isinstance(r, list) and r else (r if isinstance(r, dict) else {})
@@ -231,13 +244,30 @@ def fetch_ticker(t):
     prv = pick(g1, "growthRevenue", "revenueGrowth")
     ps = pick(r0, "priceToSalesRatioTTM", "priceToSalesTTM", "priceSalesRatioTTM")
     it = pick(r0, "inventoryTurnoverTTM", "inventoryTurnover")
+    nm = pick(r0, "netProfitMarginTTM", "netProfitMarginTtm")
+    # ── supply-side (cash flow, quarterly) — the destruction / Druckenmiller layer ──
+    capex_ttm = _ttm(cf, "capitalExpenditure", 4, 0)
+    capex_prev = _ttm(cf, "capitalExpenditure", 4, 4)
+    da_ttm = _ttm(cf, "depreciationAndAmortization", 4, 0)
+    fcf_ttm = _ttm(cf, "freeCashFlow", 4, 0)
+    ni_ttm = _ttm(cf, "netIncome", 4, 0)
+    cap_abs = abs(capex_ttm) if capex_ttm is not None else None
+    capp_abs = abs(capex_prev) if capex_prev is not None else None
+    capex_yoy = round((cap_abs / capp_abs - 1) * 100, 1) if (cap_abs and capp_abs) else None
+    capex_to_da = round(cap_abs / abs(da_ttm), 2) if (cap_abs is not None and da_ttm) else None
+    money_losing = bool((ni_ttm is not None and ni_ttm < 0) or (fcf_ttm is not None and fcf_ttm < 0))
+    capex_cut = bool((capex_yoy is not None and capex_yoy < 0) or (capex_to_da is not None and capex_to_da < 1.0))
     return {"ticker": t, "name": p0.get("companyName"), "sector": p0.get("sector"),
             "industry": p0.get("industry"), "mkt_cap": p0.get("mktCap") or p0.get("marketCap"),
             "rev_growth_yoy": round(lvl * 100, 1) if lvl is not None else None,
             "rev_accel_pp": round((lvl - prv) * 100, 1) if (lvl is not None and prv is not None) else None,
             "ps_ttm": round(ps, 2) if ps is not None else None,
             "rev_to_mcap_pct": round(100.0 / ps, 1) if ps else None,
-            "inv_turnover": round(it, 2) if it is not None else None}
+            "inv_turnover": round(it, 2) if it is not None else None,
+            "net_margin_pct": round(nm * 100, 1) if nm is not None else None,
+            "capex_yoy_pct": capex_yoy, "capex_to_da": capex_to_da,
+            "money_losing": money_losing, "capex_cut": capex_cut,
+            "druckenmiller_setup": bool(money_losing and capex_cut)}
 
 
 def zify(rows, field):
@@ -312,7 +342,125 @@ def log_signals(top, regime):
         return 0
 
 
-def lambda_handler(event=None, context=None):
+CAP_UTIL = {   # FRED G17 capacity utilization per pressure group (probe-tolerant)
+    "TOTAL_MFG": "CUMFNS",
+    "COMPUTERS_ELECTRONICS": "CAPUTLG3344S",
+    "MACHINERY": "CAPUTLG333S",
+    "ELECTRICAL_EQUIP": "CAPUTLG335S",
+    "AEROSPACE_DEFENSE": "CAPUTLG3364T9S",
+}
+
+
+def _slope6_pts(pts):
+    return round(pts[-1][1] - pts[-7][1], 2) if len(pts) >= 7 else None
+
+
+def _median(xs):
+    s = sorted(xs)
+    return s[len(s) // 2] if s else None
+
+
+def industry_supply(rows, pressure):
+    """Layer 0 — the supply / capital-cycle side. Per group: capex destruction, money-losing
+    share, capacity utilization level+trend → capital-cycle phase + supply_cycle_score.
+    Phases: SCARCITY_BUILDING (Druckenmiller sweet spot, supply exiting) / TIGHT (boom) /
+    CAPACITY_FLOODING (Marks warning, capital piling in) / GLUT (oversupply, seeds next scarcity)."""
+    by_g = {}
+    for r in rows:
+        by_g.setdefault(r.get("pressure_group"), []).append(r)
+    groups = {}
+    for g in GROUPS:
+        members = by_g.get(g, [])
+        n = len(members)
+        cy = [r["capex_yoy_pct"] for r in members if r.get("capex_yoy_pct") is not None]
+        cda = [r["capex_to_da"] for r in members if r.get("capex_to_da") is not None]
+        ent = {
+            "n_companies": n,
+            "capex_yoy_median": round(_median(cy), 1) if cy else None,
+            "capex_to_da_median": round(_median(cda), 2) if cda else None,
+            "pct_money_losing": round(100 * sum(1 for r in members if r.get("money_losing")) / n) if n else None,
+            "pct_capex_cut": round(100 * sum(1 for r in members if r.get("capex_cut")) / n) if n else None,
+            "pct_druckenmiller": round(100 * sum(1 for r in members if r.get("druckenmiller_setup")) / n) if n else None,
+        }
+        ucu = fred(CAP_UTIL.get(g, ""), start="2000-01-01") if CAP_UTIL.get(g) else []
+        if ucu:
+            ent["cap_util"] = round(ucu[-1][1], 1)
+            ent["cap_util_z"] = z_latest([v for _, v in ucu])
+            ent["cap_util_6mo_chg"] = _slope6_pts(ucu)
+            ent["cap_util_as_of"] = ucu[-1][0]
+        dem = (pressure.get(g) or {}).get("direction")
+        cm = ent.get("capex_yoy_median"); ml = ent.get("pct_money_losing") or 0
+        util = ent.get("cap_util_z"); util_tr = ent.get("cap_util_6mo_chg")
+        capex_falling = (cm is not None and cm < 0) or ((ent.get("pct_capex_cut") or 0) >= 50)
+        capex_surging = (cm is not None and cm >= 20)
+        util_high = (util is not None and util >= 0.5)
+        util_low = (util is not None and util <= -0.5)
+        phase, score = "NEUTRAL", 50
+        if capex_falling and ml >= 30 and not util_low:
+            phase, score = "SCARCITY_BUILDING", 80
+        elif capex_surging and util_high:
+            phase, score = "CAPACITY_FLOODING", 30
+        elif util_high and dem in ("OPENING", "PEAKING"):
+            phase, score = "TIGHT", 62
+        elif util_low and not capex_falling:
+            phase, score = "GLUT", 22
+        ent["capital_cycle_phase"] = phase
+        ent["supply_cycle_score"] = score
+        ent["demand_direction"] = dem
+        # rough months-to-tightness proxy: deeper capex cuts + rising util => sooner (#5)
+        if phase == "SCARCITY_BUILDING":
+            depth = abs(cm) if cm is not None else 10
+            ent["est_months_to_tightness"] = max(6, min(24, round(24 - depth * 0.4 - (util_tr or 0) * 8)))
+        groups[g] = ent
+    return groups
+
+
+def log_early(calls, regime):
+    """#5 — log early supply-bottleneck calls as their OWN signal family, graded on LONG
+    forward windows (6/12/18mo) since capital-cycle theses take 18-24 months to ripen."""
+    try:
+        tbl = DDB.Table(SIGNALS_TABLE)
+        now = datetime.now(timezone.utc)
+        d0 = now.strftime("%Y-%m-%d")
+        n = 0
+        for r in calls:
+            q = fmp("quote-short", {"symbol": r["ticker"]}) or []
+            px = (q[0].get("price") if isinstance(q, list) and q else None)
+            if not px:
+                continue
+            windows = [126, 252, 378]
+            item = {
+                "signal_id": f"supply-bottleneck-early#{r['ticker']}#{d0}",
+                "signal_type": "supply_bottleneck_early",
+                "signal_value": str(r["early_bottleneck_score"]),
+                "predicted_direction": "UP",
+                "confidence": Decimal(str(min(0.70, round(0.40 + r["early_bottleneck_score"] / 300, 2)))),
+                "measure_against": "ticker", "baseline_price": str(px), "benchmark": "SPY",
+                "check_windows": [f"day_{w}" for w in windows],
+                "check_timestamps": {f"day_{w}": (now + timedelta(days=w)).isoformat() for w in windows},
+                "outcomes": {}, "accuracy_scores": {},
+                "logged_at": now.isoformat(), "logged_epoch": int(now.timestamp()),
+                "status": "pending", "schema_version": "2",
+                "horizon_days_primary": 252,
+                "regime_at_log": regime or "UNKNOWN",
+                "ttl": int(now.timestamp()) + 420 * 86400,
+                "metadata": {"early_score": str(r["early_bottleneck_score"]), "group": r["pressure_group"],
+                             "phase": r.get("capital_cycle_phase"), "capex_yoy": str(r.get("capex_yoy_pct")),
+                             "money_losing": str(r.get("money_losing")), "engine": "bottleneck-boom", "v": VERSION},
+                "rationale": (f"{r['ticker']} EARLY bottleneck {r['early_bottleneck_score']}: "
+                              f"{r['pressure_group']} {r.get('capital_cycle_phase')}; "
+                              f"capex {r.get('capex_yoy_pct')}% yoy, capex/D&A {r.get('capex_to_da')}, "
+                              f"money_losing={r.get('money_losing')} — supply exiting, 18-24mo thesis."),
+            }
+            tbl.put_item(Item=item)
+            n += 1
+        return n
+    except Exception as e:
+        print(f"[early] {str(e)[:90]}")
+        return 0
+
+
+
     t0 = time.time()
     pressure, used, failed = industry_pressure()
     universe, src = load_universe()
@@ -340,6 +488,22 @@ def lambda_handler(event=None, context=None):
         base = 50 + 14 * comp
         shade = 0.6 + 0.4 * ((gp if gp is not None else 50) / 100) * w
         r["boom_score"] = round(max(0, min(100, base * shade)), 1)
+    # ── Layer 0: supply / capital-cycle (#1 destruction, #2 Druckenmiller, #3 phase, #4 supply-weighted) ──
+    grp_supply = industry_supply(rows, pressure)
+    for r in rows:
+        gs = grp_supply.get(r.get("pressure_group")) or {}
+        sbase = gs.get("supply_cycle_score", 50)
+        r["capital_cycle_phase"] = gs.get("capital_cycle_phase")
+        tilt = 0
+        if r.get("druckenmiller_setup"):
+            tilt += 18
+        elif r.get("capex_cut"):
+            tilt += 8
+        if r.get("money_losing"):
+            tilt += 6
+        if r.get("capex_yoy_pct") is not None and r["capex_yoy_pct"] > 25:
+            tilt -= 10                                  # name is itself flooding capacity
+        r["early_bottleneck_score"] = round(max(0, min(100, sbase + tilt)), 1)
     rows.sort(key=lambda r: -r["boom_score"])
     regime = None
     try:
@@ -350,6 +514,20 @@ def lambda_handler(event=None, context=None):
         pass
     top = rows[:8]
     n_logged = log_signals(top, regime)
+    # #2/#5 — early bottleneck calls: money-losing + capex-cutting in scarcity-building industries
+    early = sorted([r for r in rows if r.get("capital_cycle_phase") == "SCARCITY_BUILDING"
+                    and r.get("druckenmiller_setup")], key=lambda r: -r["early_bottleneck_score"])[:8]
+    if not early:                                       # fallback: best early scores in scarcity/glut
+        early = sorted([r for r in rows if r.get("capital_cycle_phase") in ("SCARCITY_BUILDING", "GLUT")],
+                       key=lambda r: -r["early_bottleneck_score"])[:8]
+    n_early = log_early(early, regime)
+    # #3 — capacity-flood warnings: current boom names whose industry is now FLOODING capacity
+    flood = [r["ticker"] for r in top
+             if (grp_supply.get(r.get("pressure_group")) or {}).get("capital_cycle_phase") == "CAPACITY_FLOODING"]
+    phase_counts = {}
+    for _g, _e in grp_supply.items():
+        ph = _e.get("capital_cycle_phase")
+        phase_counts[ph] = phase_counts.get(ph, 0) + 1
     out = {
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -358,6 +536,16 @@ def lambda_handler(event=None, context=None):
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
+        "industry_supply": grp_supply,
+        "capital_cycle_phase_counts": phase_counts,
+        "capacity_flood_warnings": flood,
+        "early_signals_logged": n_early,
+        "early_bottleneck_calls": [
+            {"ticker": r["ticker"], "name": r.get("name"), "score": r["early_bottleneck_score"],
+             "group": r["pressure_group"], "phase": r.get("capital_cycle_phase"),
+             "capex_yoy_pct": r.get("capex_yoy_pct"), "capex_to_da": r.get("capex_to_da"),
+             "money_losing": r.get("money_losing"), "net_margin_pct": r.get("net_margin_pct"),
+             "rev_growth_yoy": r.get("rev_growth_yoy")} for r in early],
         "ranks": rows[:40],
         "methodology": ("Boom = company capture (z-blend: 35% rev acceleration, 25% rev growth, "
                         "25% revenue-to-market-cap [inverse P/S], 15% inventory turnover) shaded by "

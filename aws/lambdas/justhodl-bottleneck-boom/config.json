@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-bottleneck-boom",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Supply-Bottleneck Boom + Capital-Cycle detector. Demand-side (backlog/orders + revenue acceleration) AND supply-side (capex destruction, capex/D&A, capacity utilization, money-losing+cutting screen) → capital-cycle phase, early bottleneck calls 18-24mo ahead, consensus-gap, commodity cure-for-low-prices module. Fused with supply-chain-graph / global-business-cycle / liquidity-capacity / themes.",
+  "environment": {
+    "FRED_KEY": "2f057499936072679d8843d7fce99989",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "SIGNALS_TABLE": "justhodl-signals"
+  }
+}
