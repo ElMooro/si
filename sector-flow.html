@@ -214,7 +214,44 @@ function renderChains(ch){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch){
+function renderDarkPool(dp){
+  if(!dp)return"";
+  let acc=dp.top_accumulation||[];
+  if(!acc.length)acc=(dp.board||[]).filter(b=>b.state==="ACCUMULATION");
+  acc=acc.slice().sort((a,b)=>(+b.score||0)-(+a.score||0)).slice(0,12);
+  if(!acc.length)return"";
+  const wk=dp.latest_week?` · wk ${esc(dp.latest_week)}`:"";
+  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>🕳️ Dark-pool accumulation <span style="color:var(--fg-4);font-weight:400">(off-exchange footprints${wk})</span></h2><span class="ct">${acc.length}</span></div>`;
+  h+=`<div class="rows">`+acc.map(b=>{
+    const wr=+b.week_return_pct||0,quiet=wr<=1.5;
+    return `<div class="row"><span class="sym" style="color:var(--green)">${esc(b.ticker)}</span>
+      <span class="cat" style="min-width:64px">dark ${(+b.dark_pool_pct||0).toFixed(0)}%</span>
+      <span class="ph" style="color:var(--fg-3)">accel ${(+b.dark_accel||0).toFixed(2)} · wk ${wr>=0?"+":""}${wr.toFixed(1)}%${quiet?" · quiet build":""}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,+b.score||0))}%;background:var(--green)"></div></div>
+      <span class="val" style="color:var(--green)">${Math.round(+b.score||0)}</span></div>`;
+  }).join("")+`</div>`;
+  return h;
+}
+function render13F(t){
+  if(!t)return"";
+  const mb=(t.most_bought||[]).slice(0,8),ms=(t.most_sold||[]).slice(0,8);
+  if(!mb.length&&!ms.length)return"";
+  const q=t.as_of_quarter?` · ${esc(t.as_of_quarter)} (lagged)`:"";
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>🏛️ Institutional 13F conviction <span style="color:var(--fg-4);font-weight:400">(funds adding vs trimming${q})</span></h2><span class="ct">${mb.length+ms.length}</span></div>`;
+  h+=`<div class="rows">`;
+  h+=mb.map(x=>`<div class="row flow-pos"><span class="sym">${esc(x.ticker||"—")}</span>
+    <span class="nm" style="min-width:130px">${esc(String(x.name||"").slice(0,24))}</span>
+    <span class="ph" style="color:var(--green)">${x.n_funds_adding||0} adding · ${x.n_funds_new_position||0} new</span>
+    <div class="bar-wrap"></div><span class="val">${money(x.total_value)}</span></div>`).join("");
+  h+=ms.map(x=>`<div class="row flow-neg"><span class="sym">${esc(x.ticker||"—")}</span>
+    <span class="nm" style="min-width:130px">${esc(String(x.name||"").slice(0,24))}</span>
+    <span class="ph" style="color:var(--red)">${x.n_funds_trimming||0} trimming · ${x.n_funds_exiting||0} exiting</span>
+    <div class="bar-wrap"></div><span class="val" style="color:var(--red)">${money(x.total_value)}</span></div>`).join("");
+  h+=`</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -231,6 +268,7 @@ function render(etf,sec,ef,lk,ch){
   if(ra!=null)bn+=`<span class="chip"><b>Risk Appetite</b> ${esc((ra&&ra.label)||asText(ra))}${ra&&ra.score!=null?` (${Math.round(ra.score)})`:""}</span>`;
   if(mc&&typeof mc==="object")bn+=`<span class="chip"><b>Regime</b> ${esc(mc.regime_label||"")}${mc.cycle_phase?` · ${esc(mc.cycle_phase)}`:""}${mc.macro_stress_score!=null?` · stress ${Math.round(mc.macro_stress_score)}`:""}</span>`;
   else if(mc!=null)bn+=`<span class="chip"><b>Macro</b> ${esc(asText(mc))}</span>`;
+  if(ins&&(ins.snapshots||[]).length){const _s=ins.snapshots[ins.snapshots.length-1];bn+=`<span class="chip"><b>Insiders</b> ${esc(String(_s.regime||"").replace(/_/g," ").toLowerCase())}${_s.ratio_30d_dollar!=null?` (buy/sell ${(+_s.ratio_30d_dollar).toFixed(2)})`:""}</span>`;}
   document.getElementById("banner").innerHTML=bn;
   // stats
   document.getElementById("statbar").innerHTML=
@@ -277,6 +315,8 @@ function render(etf,sec,ef,lk,ch){
   }
   h+=renderVolSurge(ef);
   h+=renderChains(ch);
+  h+=renderDarkPool(dp);
+  h+=render13F(t13);
   // rotation alerts (dict or list)
   if(alertItems.length){
     h+=`<div class="sec-hdr"><span class="dot v"></span><h2>⚡ Rotation Alerts</h2><span class="ct">${alertItems.length}</span></div>`;
@@ -294,7 +334,7 @@ function render(etf,sec,ef,lk,ch){
      <b style="color:var(--green)">Unusual ETF inflows</b> are <i>true</i> net creation dollars (shares-outstanding × price), the hard-money confirmation; they're sparse day-to-day because they only register when an ETF actually creates/redeems shares.
      Sources: <code>sector-rotation</code> + <code>etf-true-flows</code> engines. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json")]).then(([etf,sec,ef,lk,ch])=>render(etf,sec,ef,lk,ch));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins])=>render(etf,sec,ef,lk,ch,dp,t13,ins));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
