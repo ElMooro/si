@@ -469,10 +469,11 @@ def lambda_handler(event, context):
                 "sector capital ACCELERATING in · " + (cxn or "") + " (pump " + str(pp) + ")")
 
     # 7f. Supply-bottleneck — demand outrunning supply (boom) + Druckenmiller early capital-cycle
-    for r in (bottleneck.get("ranks") or [])[:30]:
+    _btop = set(bottleneck.get("top_calls") or [])
+    for r in (bottleneck.get("ranks") or [])[:40]:
         bsc = r.get("boom_score")
-        if bsc is not None and bsc >= 62:
-            add(r.get("ticker"), r.get("sector"), "BOTTLENECK_BOOM", normalize(bsc, 60, 92),
+        if (r.get("ticker") in _btop) or (bsc is not None and bsc >= 55):
+            add(r.get("ticker"), r.get("sector"), "BOTTLENECK_BOOM", normalize(bsc or 60, 52, 88),
                 f"demand>supply · boom {bsc} · {r.get('pressure_group')} pressure {r.get('group_pressure')}")
     for c in (bottleneck.get("early_bottleneck_calls") or []):
         if c.get("phase") == "SCARCITY_BUILDING" and c.get("money_losing"):

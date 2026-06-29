@@ -812,13 +812,6 @@ def lambda_handler(event, context):
         "gex_btc_call_wall": _get(cgex, "btc", "call_wall"),
         "gex_btc_put_wall": _get(cgex, "btc", "put_wall"),
         "gex_btc_max_pain": _get(cgex, "btc", "max_pain"),
-        # capital cycle (bottleneck-boom supply side) — the Druckenmiller "where the puck is going" read
-        "capital_cycle_phases": _bphases,
-        "capital_cycle_scarcity_building": _bphases.get("SCARCITY_BUILDING", 0),
-        "capital_cycle_flooding": _bphases.get("CAPACITY_FLOODING", 0),
-        "capacity_flood_names": _bflood[:6],
-        "commodity_cure_setups": _bcure,
-        "bottleneck_early_calls": [c.get("ticker") for c in _bearly[:5]],
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1320,6 +1313,14 @@ def lambda_handler(event, context):
         "cross_asset_risk": cross_asset_risk,
         "stress_scenarios": stress_scenarios,
         "crypto": crypto,
+        "capital_cycle": {
+            "phases": _bphases,
+            "scarcity_building": _bphases.get("SCARCITY_BUILDING", 0),
+            "flooding": _bphases.get("CAPACITY_FLOODING", 0),
+            "capacity_flood_names": _bflood[:6],
+            "commodity_cure_setups": _bcure,
+            "early_calls": [c.get("ticker") for c in _bearly[:5]],
+        },
         "divergences": divergences,
         "falsifier": falsifier,
         "availability": avail, "stale": stale,
