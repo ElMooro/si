@@ -461,7 +461,35 @@ function renderForeignFlows(ci,tic){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic){
+function renderFusion(scf){
+  if(!scf||!((scf.sectors)||[]).length)return"";
+  const bd=scf.backdrop||{};
+  const LENS=[["rotation","R"],["tape","T"],["etf","E"],["institutional","I"],["darkpool","D"]];
+  const maxAbs=Math.max(0.5,...scf.sectors.map(s=>Math.abs(s.net_score)));
+  let h=`<div class="sec-hdr"><span class="dot v"></span><h2>🧭 Sector capital-flow verdict <span style="color:var(--fg-4);font-weight:400">(all lenses fused)</span></h2></div>`;
+  h+=`<div style="font-size:12.5px;color:var(--fg-2);margin:0 2px 8px"><b>${esc(scf.headline||"")}</b></div>`;
+  h+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">`;
+  if(bd.risk_regime)h+=`<span class="chip"><b>Backdrop</b> ${esc(bd.risk_regime)}${bd.risk_regime_score!=null?` (${bd.risk_regime_score})`:""}</span>`;
+  if(bd.liquidity_regime)h+=`<span class="chip"><b>Liquidity</b> ${esc(bd.liquidity_regime)}</span>`;
+  h+=`</div>`;
+  h+=`<div class="rows">`+scf.sectors.map(s=>{
+    const pos=s.net_score>=0,col=pos?"var(--green)":"var(--red)";
+    const post=s.posture,pcol=post==="OVERWEIGHT"?"var(--green)":post==="UNDERWEIGHT"?"var(--red)":"var(--fg-3)";
+    const dots=LENS.map(([k,ltr])=>{const f=s.families[k]||{};const pr=f.present;const d=pr?f.dir:0;const c=d>0?"var(--green)":d<0?"var(--red)":"var(--fg-4)";return `<span title="${k}" style="display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-size:9px;font-weight:800;border-radius:3px;color:#000;background:${c};opacity:${pr?1:0.22};margin-right:2px">${ltr}</span>`;}).join("");
+    const dv=s.divergence?`<span class="chip" style="border-color:var(--amber);color:var(--amber);padding:0 6px">⚠ divergence</span>`:"";
+    return `<div class="row" style="flex-wrap:wrap">
+      <span class="nm" style="min-width:148px;color:${col};font-weight:700">${esc(s.sector)}</span>
+      <span style="min-width:82px">${dots}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.abs(s.net_score)/maxAbs*100)}%;background:${col}"></div></div>
+      <span class="val" style="color:${col};min-width:46px">${s.net_score>=0?"+":""}${(+s.net_score).toFixed(2)}</span>
+      <span class="chip" style="color:${pcol};border-color:${pcol}">${esc(post)}</span> ${dv}
+      <div style="flex-basis:100%;font-size:11px;color:var(--fg-3);margin:2px 0 1px 2px">${esc(s.conclusion)} · ${s.confluence}/${s.n_families} lenses agree</div></div>`;
+  }).join("")+`</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Each sector scored across 5 independent flow lenses — <b>R</b> price-RS · <b>T</b> tape&nbsp;$ · <b>E</b> ETF creation · <b>I</b> 13F institutions · <b>D</b> dark-pool — z-scored cross-sectionally and fused. Green=inflow, red=outflow, dim=no data. <b>Divergence</b> = price leading one way while smart money (tape+13F+dark-pool) goes the other. Source: <code>sector-capital-fusion</code>.</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic,scf){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -489,6 +517,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,t
      <div class="stat"><div class="n gr">${inflows.length?esc(inflows[0].ticker):"—"}</div><div class="l">Biggest ETF Inflow</div></div>
      <div class="stat"><div class="n">${(etf||{}).n_etfs||((etf||{}).inflows||[]).length+((etf||{}).outflows||[]).length||"—"}</div><div class="l">ETFs Tracked</div></div>`;
   let h="";
+  h+=renderFusion(scf);
   h+=renderConviction(sfs);
   h+=renderRRG(sec);
   h+=renderCycleFlow(sec);
@@ -553,7 +582,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,t
   document.getElementById("note").innerHTML=
     `<b style="color:var(--fg-2)">Reading it.</b> This page fuses every flow &amp; positioning signal on the system. <b style="color:var(--green)">Sector Conviction</b> is the headline — rotation score + RRG quadrant + true ETF flow + money-flow + liquidity, gated by multi-signal confluence. The <b style="color:var(--violet)">RRG</b> shows where each sector sits in the Leading/Weakening/Lagging/Improving cycle; <b>Cycle vs Flow</b> tests whether the rotation confirms the regime. Below: where flows actually land (look-through to names), participation surge, what rotates next (lead-lag chains), dark-pool accumulation, 13F conviction, and the liquidity/factor/insider backdrop. Sources: <code>sector-rotation</code>, <code>etf-true-flows</code>, <code>etf-flows</code>, <code>flow-lookthrough</code>, <code>rotation-chains</code>, <code>dark-pool</code>, <code>13f-positions</code>, <code>insider-aggregate</code>, <code>liquidity-flow</code>, <code>smart-beta</code>, <code>sector-flow-state</code>. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json"),load("data/money-flow-state.json"),load("data/political-trades.json"),load("data/risk-regime.json"),load("data/polygon-fx-regime.json"),load("data/dollar-radar.json"),load("data/capital-inflows.json"),load("data/gold-equity-rotation.json"),load("data/tic-flows.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json"),load("data/money-flow-state.json"),load("data/political-trades.json"),load("data/risk-regime.json"),load("data/polygon-fx-regime.json"),load("data/dollar-radar.json"),load("data/capital-inflows.json"),load("data/gold-equity-rotation.json"),load("data/tic-flows.json"),load("data/sector-capital-fusion.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic,scf])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic,scf));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
