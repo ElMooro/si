@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -297,7 +297,8 @@ def fetch_ticker(t):
             "net_margin_pct": round(nm * 100, 1) if nm is not None else None,
             "capex_yoy_pct": capex_yoy, "capex_to_da": capex_to_da,
             "money_losing": money_losing, "capex_cut": capex_cut,
-            "druckenmiller_setup": bool(money_losing and capex_cut)}
+            "capex_under_replacement": bool(capex_to_da is not None and capex_to_da < 1.0),
+            "druckenmiller_setup": bool(money_losing and capex_to_da is not None and capex_to_da < 1.0)}
 
 
 def zify(rows, field):
