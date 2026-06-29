@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.11.1"
+VERSION = "2.12.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -414,6 +414,99 @@ def capacity_response():
             "read": ("Capacity additions RISING — supply response underway, bottleneck relief ahead (fade tightness)"
                      if relief else
                      "Capacity additions not rising — no supply response yet, tightness can persist")}
+
+
+def _sic_sector(sic):
+    try:
+        s = int(sic)
+    except (TypeError, ValueError):
+        return None
+    if 1000 <= s < 1300: return "Mining/Metals"
+    if 1300 <= s < 1400: return "Energy/E&P"
+    if 2800 <= s < 2900: return "Chemicals"
+    if 2900 <= s < 3000: return "Petroleum/Refining"
+    if 3300 <= s < 3400: return "Primary Metals"
+    if 3400 <= s < 3500: return "Fabricated Metals"
+    if s in (3674,) or 3670 <= s < 3680 or 3570 <= s < 3580: return "Semiconductors/Electronics"
+    if 3500 <= s < 3600: return "Machinery"
+    if 3600 <= s < 3700: return "Electrical Equip"
+    if 3700 <= s < 3800: return "Transportation Equip"
+    if 4900 <= s < 4950: return "Utilities/Power"
+    return None
+
+
+def _edgar_fts_sic(q, forms, a, b, pages=3):
+    """EDGAR FTS returning (total, [(ticker, sic), ...]) across a few pages — for issuance-by-sector."""
+    import re as _re, time as _t
+    total, items = 0, []
+    for pg in range(pages):
+        params = urllib.parse.urlencode({"q": q, "forms": forms, "startdt": a, "enddt": b})
+        url = f"https://efts.sec.gov/LATEST/search-index?{params}&from={pg * 10}"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "JustHodl Research contact@justhodl.ai",
+                                                       "Accept": "application/json"})
+            j = json.loads(urllib.request.urlopen(req, timeout=20).read())
+        except Exception as e:
+            print(f"[edgar-sic] {str(e)[:50]}")
+            break
+        h = j.get("hits") or {}
+        if pg == 0:
+            total = (h.get("total") or {}).get("value", 0)
+        hits = h.get("hits") or []
+        if not hits:
+            break
+        for hh in hits:
+            src = hh.get("_source") or {}
+            sic = (src.get("sics") or [None])[0]
+            for dn in src.get("display_names") or []:
+                m = _re.search(r"\(([A-Z][A-Z.\-]{0,5})\)", dn)
+                if m:
+                    items.append((m.group(1), sic))
+        _t.sleep(0.15)
+    return total, items
+
+
+def capital_availability():
+    """#1 leading layer (Howard Marks) — capital availability LEADS supply. Capital flooding into a
+    sector funds the supply response that eventually kills a bottleneck; capital starved = supply
+    can't expand and tightness persists. HY spread = capital cost (reused from credit-stress);
+    EDGAR equity-issuance = who is raising money to add capacity, by industry."""
+    import time as _t
+    out = {}
+    try:
+        cs = json.loads(S3.get_object(Bucket=BUCKET, Key="data/credit-stress.json")["Body"].read())
+        hy = (cs.get("current_bps") or {}).get("BAMLH0A0HYM2")
+        out["hy_oas_pct"] = hy
+        out["credit_regime"] = cs.get("composite_regime")
+        out["capital_cost"] = ("CHEAP" if (hy is not None and hy < 3.5)
+                               else "EXPENSIVE" if (hy is not None and hy > 5.5) else "NORMAL")
+    except Exception as e:
+        print(f"[capavail] credit-stress {str(e)[:50]}")
+    today = datetime.now(timezone.utc).date()
+    ca, cb = today - timedelta(days=90), today
+    pa, pb = today - timedelta(days=180), today - timedelta(days=90)
+    Q = '"public offering" OR "at-the-market" OR "shares of common stock"'
+    c, citems = _edgar_fts_sic(Q, "S-1,S-3,424B", ca.isoformat(), cb.isoformat())
+    _t.sleep(0.2)
+    p, _ = _edgar_fts_sic(Q, "S-1,S-3,424B", pa.isoformat(), pb.isoformat(), pages=1)
+    if c is not None:
+        bysec = {}
+        for tk, sic in citems:
+            sec = _sic_sector(sic)
+            if sec:
+                bysec.setdefault(sec, []).append(tk)
+        out["issuance_90d"] = c
+        out["issuance_prior_90d"] = p
+        out["issuance_trend"] = ("RISING" if (p and c > p * 1.15)
+                                 else "FALLING" if (p and c < p * 0.85) else "STABLE")
+        out["issuers_by_industry"] = {k: sorted(set(v)) for k, v in sorted(bysec.items())}
+    cheap = out.get("capital_cost") == "CHEAP"
+    rising = out.get("issuance_trend") == "RISING"
+    out["supply_response_funded"] = bool(cheap and rising)
+    out["read"] = ("Capital cheap + issuance rising — supply response is being funded; tight industries face future relief (fade)"
+                   if (cheap and rising) else
+                   "Capital not flooding in — supply response constrained, tightness can persist")
+    return out
 
 
 def _gscpi():
@@ -913,6 +1006,7 @@ def lambda_handler(event=None, context=None):
     labor = labor_bottleneck()
     trade = trade_policy_bottleneck()
     capacity = capacity_response()
+    cap_avail = capital_availability()
     leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
@@ -1051,7 +1145,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
