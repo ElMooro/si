@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.13.0"
+VERSION = "2.14.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -241,7 +241,7 @@ def labor_bottleneck():
     return out
 
 
-def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory=None, cap_avail=None):
+def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory=None, cap_avail=None, backwardn=None):
     """Capstone — fuse the leading layers (which lead the financials by quarters) into one forward
     read. >=4 confirmations = a bottleneck is building before the income statement shows it."""
     forming = [g for g, e in (pressure or {}).items() if e.get("bottleneck_forming")]
@@ -263,6 +263,8 @@ def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity,
         confirms.append("inventory drawing down in %d sectors (Burry pre-shortage)" % inventory["n_sectors_drawing"])
     if (cap_avail or {}).get("supply_response_funded") is False:
         confirms.append("supply response not funded (capital not flooding in)")
+    if (backwardn or {}).get("backwardated"):
+        confirms.append("commodities backwardated: " + ", ".join(backwardn["backwardated"]))
     n = len(confirms)
     return {"forming_industries": forming, "confirmations": confirms, "n_confirmations": n,
             "forward_state": "BUILDING" if n >= 5 else "EARLY" if n >= 3 else "QUIET",
@@ -418,6 +420,47 @@ def capacity_response():
             "read": ("Capacity additions RISING — supply response underway, bottleneck relief ahead (fade tightness)"
                      if relief else
                      "Capacity additions not rising — no supply response yet, tightness can persist")}
+
+
+ROLL_PROXIES = {
+    "CRUDE_OIL": {"etf": "USO", "spot": "DCOILWTICO"},
+    "NATGAS":    {"etf": "UNG", "spot": "DHHNGSP"},
+    "GASOLINE":  {"etf": "UGA", "spot": "DGASUSGULF"},
+}
+
+
+def _fmp_hist_closes(sym):
+    h = fmp("historical-price-eod/full", {"symbol": sym})
+    rows = h if isinstance(h, list) else (h.get("historical") if isinstance(h, dict) else None)
+    if not rows:
+        return []
+    out = [(r.get("date"), float(r.get("adjClose") or r.get("close")))
+           for r in rows if (r.get("date") and (r.get("adjClose") or r.get("close")) is not None)]
+    out.sort(key=lambda x: x[0])
+    return out
+
+
+def backwardation():
+    """#3 leading layer (commodity traders / Keynes) — futures-curve shape via roll yield.
+    roll = futures-ETF return minus spot return over ~3mo; POSITIVE = backwardation = physical
+    tightness NOW (buyers pay up for immediate delivery), the earliest real-time commodity tell.
+    A backwardated commodity -> its producers (shown) are capturing the tightness."""
+    out = {}
+    for k, cfg in ROLL_PROXIES.items():
+        etf = _fmp_hist_closes(cfg["etf"])
+        spot = fred(cfg["spot"], "2024-01-01")
+        if len(etf) < 70 or len(spot) < 70:
+            continue
+        n = 63
+        etf_ret = (etf[-1][1] / etf[-1 - n][1] - 1) * 100
+        spot_ret = (spot[-1][1] / spot[-1 - n][1] - 1) * 100
+        roll = round(etf_ret - spot_ret, 1)
+        state = "BACKWARDATION" if roll > 2 else "CONTANGO" if roll < -2 else "FLAT"
+        out[k] = {"etf_3mo_pct": round(etf_ret, 1), "spot_3mo_pct": round(spot_ret, 1),
+                  "roll_yield_pct": roll, "curve_state": state,
+                  "producers": COMMODITY_MAP.get(k, {}).get("tickers", [])}
+    backw = [k for k, v in out.items() if v["curve_state"] == "BACKWARDATION"]
+    return {"commodities": out, "backwardated": backw, "physical_tightness": bool(backw)}
 
 
 def inventory_signal():
@@ -1038,7 +1081,8 @@ def lambda_handler(event=None, context=None):
     capacity = capacity_response()
     cap_avail = capital_availability()
     inventory = inventory_signal()
-    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail)
+    backwardn = backwardation()
+    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -1176,7 +1220,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
