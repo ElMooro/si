@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.6.0"
+VERSION = "2.7.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -193,6 +193,52 @@ def _classify_direction(hist):
     else:
         d = "STABLE"
     return d, slope6
+
+
+LABOR_SECTORS = {
+    "manufacturing":  {"openings": "JTS3000JOL", "hires": "JTS3000HIL", "wage": "CES3000000003"},
+    "construction":   {"openings": "JTS2300JOL", "hires": "JTS2300HIL", "wage": "CES2000000003"},
+    "mining_logging": {"openings": "JTS1000JOL", "hires": "JTS1000HIL", "wage": "CES1021000003"},
+}
+
+
+def labor_bottleneck():
+    """#3 leading layer — supply can't ramp without workers. Sector JOLTS openings-to-hires
+    (rising = jobs employers can't fill) + wage acceleration in the trade = a labor constraint
+    that keeps a bottleneck OPEN even when capex says 'build'."""
+    out = {}
+    for sec, cfg in LABOR_SECTORS.items():
+        op, hi, wg = (fred(cfg["openings"], "2010-01-01"), fred(cfg["hires"], "2010-01-01"),
+                      fred(cfg["wage"], "2010-01-01"))
+        e = {}
+        if op and hi:
+            opd, hid = dict(op), dict(hi)
+            ratio = [(d, opd[d] / hid[d]) for d in sorted(set(opd) & set(hid)) if hid[d]]
+            if ratio:
+                rv = [v for _, v in ratio]
+                ny = yoy_series(op)
+                e["openings_to_hires"] = round(rv[-1], 2)
+                e["oth_z"] = z_latest(rv)
+                e["openings_yoy_pct"] = round(ny[-1] * 100, 1) if ny else None
+                e["as_of"] = ratio[-1][0]
+        if wg:
+            wy = yoy_series(wg)
+            if len(wy) >= 7:
+                e["wage_yoy_pct"] = round(wy[-1] * 100, 1)
+                e["wage_accel_pp"] = round((wy[-1] - wy[-7]) * 100, 1)   # vs 6mo ago
+        tight = 0
+        if e.get("oth_z") is not None and e["oth_z"] > 0.5:
+            tight += 1
+        if e.get("wage_accel_pp") is not None and e["wage_accel_pp"] > 0.3:
+            tight += 1
+        e["labor_constrained"] = tight >= 1
+        e["labor_tightness"] = {2: "TIGHT", 1: "FIRMING", 0: "BALANCED"}[tight]
+        if e:
+            out[sec] = e
+    constrained = [s for s, v in out.items() if v.get("labor_constrained")]
+    out["constrained_sectors"] = constrained
+    out["supply_ramp_blocked"] = bool(constrained)
+    return out
 
 
 def _edgar_fts(q, forms, startdt, enddt):
@@ -741,6 +787,7 @@ def lambda_handler(event=None, context=None):
     pressure, used, failed = industry_pressure()
     phys = physical_throughput()
     text_signal = constraint_language()
+    labor = labor_bottleneck()
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -878,7 +925,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
