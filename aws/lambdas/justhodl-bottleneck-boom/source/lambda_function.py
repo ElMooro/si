@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -445,6 +445,42 @@ def industry_supply(rows, pressure):
     return groups
 
 
+COMMODITY_MAP = {   # commodity -> FRED price series + representative producers (in the scan)
+    "CRUDE_OIL": {"fred": "MCOILWTICO", "tickers": ["DVN", "APA", "CTRA", "OXY", "EQT", "AR", "RRC", "MTDR"]},
+    "NATGAS": {"fred": "MHHNGSP", "tickers": ["EQT", "AR", "RRC", "CTRA"]},
+    "COPPER": {"fred": "PCOPPUSDM", "tickers": ["FCX", "SCCO"]},
+    "ALUMINUM": {"fred": "PALUMUSDM", "tickers": ["AA"]},
+    "STEEL_IRON": {"fred": "WPU101", "tickers": ["NUE", "STLD", "X", "CLF"]},
+}
+
+
+def commodity_cycle(rows):
+    """#7 — 'the cure for low prices is low prices': flag commodities whose price is DEPRESSED
+    while the producers are CUTTING supply (capex), the setup that precedes a price recovery."""
+    by_t = {r["ticker"]: r for r in rows}
+    out = {}
+    for name, cfg in COMMODITY_MAP.items():
+        pts = fred(cfg["fred"], start="2005-01-01")
+        if not pts:
+            continue
+        vals = [v for _, v in pts]
+        pz = z_latest(vals)
+        yy = yoy_series(pts)
+        caps = [by_t[t]["capex_yoy_pct"] for t in cfg["tickers"]
+                if by_t.get(t) and by_t[t].get("capex_yoy_pct") is not None]
+        cap_med = _median(caps) if caps else None
+        supply_exiting = bool(cap_med is not None and cap_med < 0)
+        price_depressed = bool(pz is not None and pz <= -0.4)
+        out[name] = {
+            "price": round(vals[-1], 2), "price_z": pz,
+            "price_yoy_pct": round(yy[-1] * 100, 1) if yy else None, "as_of": pts[-1][0],
+            "producer_capex_yoy_med": round(cap_med, 1) if cap_med is not None else None,
+            "supply_exiting": supply_exiting, "price_depressed": price_depressed,
+            "cure_for_low_prices_setup": bool(price_depressed and supply_exiting),
+        }
+    return out
+
+
 def log_early(calls, regime):
     """#5 — log early supply-bottleneck calls as their OWN signal family, graded on LONG
     forward windows (6/12/18mo) since capital-cycle theses take 18-24 months to ripen."""
@@ -566,6 +602,30 @@ def lambda_handler(event=None, context=None):
     for _g, _e in grp_supply.items():
         ph = _e.get("capital_cycle_phase")
         phase_counts[ph] = phase_counts.get(ph, 0) + 1
+    # #7 — commodity cure-for-low-prices module
+    commodities = commodity_cycle(rows)
+    cure_setups = [k for k, v in commodities.items() if v.get("cure_for_low_prices_setup")]
+    # #8 (read side) — corroborate with sibling supply/cycle engines (defensive: never raises)
+    cross = {}
+    def _rd(key):
+        try:
+            return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return None
+    for label, key, fields in (
+        ("global_business_cycle", "data/global-business-cycle.json", ("phase", "cycle_phase", "regime", "score")),
+        ("liquidity_capacity", "data/liquidity-capacity.json", ("regime", "state", "score", "label")),
+        ("supply_chain_graph", "data/supply-chain-graph.json", ("stress", "overall_stress", "score", "regime")),
+    ):
+        j = _rd(key)
+        if isinstance(j, dict):
+            cross[label] = {f: j.get(f) for f in fields if j.get(f) is not None} or {"keys": list(j.keys())[:8]}
+    th = _rd("data/themes-detected.json")
+    if isinstance(th, dict):
+        themes = th.get("themes") or th.get("detected") or th.get("ranks")
+        if isinstance(themes, list):
+            cross["supply_inflection_themes"] = [(t.get("name") or t.get("theme") or t.get("ticker"))
+                                                 for t in themes[:6] if isinstance(t, dict)]
     out = {
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -577,6 +637,9 @@ def lambda_handler(event=None, context=None):
         "industry_supply": grp_supply,
         "capital_cycle_phase_counts": phase_counts,
         "capacity_flood_warnings": flood,
+        "commodity_cycle": commodities,
+        "cure_for_low_prices": cure_setups,
+        "cross_engine_confirm": cross,
         "early_signals_logged": n_early,
         "early_bottleneck_calls": [
             {"ticker": r["ticker"], "name": r.get("name"), "score": r["early_bottleneck_score"],
