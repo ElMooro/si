@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-sector-flow-state",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 60,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Canonical fused SECTOR CONVICTION feed. Fuses sector-rotation (rotation_score, RRG quadrant, ETF-flow-confirm, money-flow) + liquidity-flow backdrop into one per-sector conviction + posture + confluence. Emits data/sector-flow-state.json for deal-scanner/master-ranker/best-setups/bottleneck-boom.",
+  "schedule": {
+    "rule_name": "sector-flow-state-hourly",
+    "cron": "cron(20 * * * ? *)",
+    "description": "Hourly at :20 (after sector-rotation refresh) to keep the fused sector conviction current"
+  }
+}
