@@ -1,10 +1,9 @@
-version: 2.8.0 dur: 48.9
-=== #4 TRADE/POLICY ===
-  export_controls    120d=1630 prior=1487 STABLE   e.g. AVAV,AVGO,CLNN,NVDA,SMCI
-  single_source      120d=1408 prior=1265 STABLE   e.g. BMI,BTMD,HAYW,HY,IVDN
-  critical_minerals  120d=524  prior=437  RISING   e.g. EMAT,TMRC,USAR
-  tariff_cost        120d=1614 prior=1593 STABLE   e.g. AKA,AOUT,CRI,DORM,HNRG
-  import_dependency  120d=15   prior=9    RISING   e.g. AMRX,CENX,FPI,NCL,OMEX
-rising: ['critical_minerals', 'import_dependency'] | intensity_chg_pct: 8.3 | building: False
-exposed_names: ['HY', 'AVAV', 'AVGO', 'CLNN', 'NVDA', 'SMCI', 'SNAP', 'SWKS', 'BMI', 'BTMD', 'HAYW', 'IVDN', 'JBHT', 'ONDS', 'PAG']
-DONE 2468
+version: 2.9.0 dur: 75.5
+=== #5 CAPACITY RESPONSE ===
+  capacity_expansion 120d=491  prior=539  STABLE   e.g. CRS,ICCC,IESC,LHX,MLR
+  new_facility       120d=767  prior=763  STABLE   e.g. AZZ,CEG,LINE,MCW,RITE
+  groundbreaking     120d=351  prior=357  STABLE   e.g. APLD,CVCO,CWD,IDA,LKFN
+intensity_chg_pct: -3.0 | supply_relief_coming: False
+read: Capacity additions not rising — no supply response yet, tightness can persist
+expanding_names: ['CRS', 'ICCC', 'IESC', 'LHX', 'MLR', 'MOD', 'VSH', 'WMS', 'AZZ', 'CEG', 'LINE', 'MCW', 'RITE', 'VMC', 'WSBF']
+DONE 2469
