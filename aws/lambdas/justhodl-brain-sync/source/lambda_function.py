@@ -26,13 +26,44 @@ CAT_LABEL = {"philosophy": "Philosophy", "rule": "Rule", "thesis": "Thesis",
              "reminder": "Reminder"}
 
 
+def _llm(prompt, system, max_tokens):
+    """Resilient completion for the brain's distillation. Routes via the shared
+    llm_router (GLM-5.1 on Z.ai primary, Claude Sonnet fallback) so the directive
+    and regime-read survive an Anthropic credit/outage (the historical failure
+    mode: Anthropic 400 'credit balance too low' left the directive empty for the
+    30+ engines that consume it). Falls back to a direct Anthropic call only if
+    the router itself is unavailable. NOTE: the reason-tier sends the worldview to
+    Z.ai, consistent with the existing reason-tier engines (e.g. cycle-clock)."""
+    try:
+        from llm_router import complete
+        txt = complete(prompt, tier="reason", max_tokens=max_tokens, system=system)
+        if txt and txt.strip():
+            return txt
+    except Exception as e:
+        print(f"[brain-sync] router unavailable: {str(e)[:80]}")
+    if not ANTHROPIC_KEY:
+        return None
+    try:
+        body = {"model": MODEL, "max_tokens": max_tokens, "system": system,
+                "messages": [{"role": "user", "content": prompt}]}
+        req = urllib.request.Request("https://api.anthropic.com/v1/messages",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY,
+                     "anthropic-version": "2023-06-01"})
+        r = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+        return "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
+    except Exception as e:
+        print(f"[brain-sync] direct anthropic err: {str(e)[:80]}")
+        return None
+
+
 def _ai_extract(notes_text):
-    """Have Claude READ the brain and produce a structured directive layer the
+    """Have the LLM READ the brain and produce a structured directive layer the
     engines can act on — real understanding, not keyword matching. Returns a dict
     with sector tilts, themes, hard rules, avoid-list, watched tickers, risk
     posture, and a one-paragraph 'investor profile'. Cached; only re-runs when
     the brain content hash changes (handled by caller)."""
-    if not ANTHROPIC_KEY or not notes_text.strip():
+    if not notes_text.strip():
         return None
     system = (
         "You are distilling an investor's personal notes into a STRUCTURED PROFILE that "
@@ -48,19 +79,21 @@ def _ai_extract(notes_text):
         "\"risk_posture\": \"<aggressive|balanced|defensive> — <one line>\", "
         "\"signal_emphasis\": [\"<which signal types matter most to them: e.g. insider, buyback, capex, dislocation, macro>\"]}"
     )
+    txt = _llm("INVESTOR NOTES:\n" + notes_text[:9000], system, 900)
+    if not txt:
+        return None
     try:
-        body = {"model": MODEL, "max_tokens": 900, "system": system,
-                "messages": [{"role": "user", "content": "INVESTOR NOTES:\n" + notes_text[:9000]}]}
-        req = urllib.request.Request("https://api.anthropic.com/v1/messages",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"})
-        r = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
-        txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
         import re as _re
         txt = _re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip())
         return json.loads(txt)
-    except Exception as e:
-        print(f"[brain-sync] AI extract err: {str(e)[:80]}")
+    except Exception:
+        try:
+            import re as _re
+            m = _re.search(r"\{.*\}", txt, _re.DOTALL)
+            if m:
+                return json.loads(m.group(0))
+        except Exception as e:
+            print(f"[brain-sync] AI extract parse err: {str(e)[:80]}")
         return None
 
 
@@ -91,7 +124,7 @@ def _regime_read(notes_text, regimes):
     """Top AI read: given the user's notes + the live regime, say where we are
     relative to THEIR thinking, and flag which of their notes to double-check
     (because conditions may have changed or a thesis may be playing out/breaking)."""
-    if not ANTHROPIC_KEY or not notes_text.strip():
+    if not notes_text.strip():
         return None
     system = (
         "You are the user's personal macro strategist & CIO. You've studied THEIR investing notes "
@@ -112,27 +145,23 @@ def _regime_read(notes_text, regimes):
         "or conditions changed — max 4>\"]}"
         " Ground everything in their actual notes + the live data. Be decisive, not hedged. This is research, not advice."
     )
+    prompt = (f"LIVE MARKET REGIME DATA:\n{json.dumps(regimes, default=str)}\n\n"
+              f"THEIR INVESTING NOTES (their worldview):\n{notes_text[:14000]}")
+    txt = _llm(prompt, system, 2500)
+    if not txt:
+        return {"_error": "no LLM provider available (Anthropic credit-exhausted + Z.ai unreachable)"}
+    import re as _re
+    cleaned = _re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip())
     try:
-        body = {"model": MODEL, "max_tokens": 2500, "system": system,
-                "messages": [{"role": "user", "content": f"LIVE MARKET REGIME DATA:\n{json.dumps(regimes, default=str)}\n\nTHEIR INVESTING NOTES (their worldview):\n{notes_text[:14000]}"}]}
-        req = urllib.request.Request("https://api.anthropic.com/v1/messages",
-            data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01"})
-        r = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
-        txt = "".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")
-        import re as _re
-        cleaned = _re.sub(r"^```(?:json)?\s*|\s*```$", "", txt.strip())
-        try:
-            return json.loads(cleaned)
-        except Exception:
-            # extract the first {...} block if the model added prose around it
-            m = _re.search(r"\{.*\}", cleaned, _re.DOTALL)
-            if m:
+        return json.loads(cleaned)
+    except Exception:
+        m = _re.search(r"\{.*\}", cleaned, _re.DOTALL)
+        if m:
+            try:
                 return json.loads(m.group(0))
-            return {"_parse_failed": True, "raw": cleaned[:200]}
-    except Exception as e:
-        print(f"[brain-sync] regime read err: {str(e)[:120]}")
-        return {"_error": str(e)[:120]}
+            except Exception:
+                pass
+        return {"_parse_failed": True, "raw": cleaned[:200]}
 
 
 def lambda_handler(event=None, context=None):
