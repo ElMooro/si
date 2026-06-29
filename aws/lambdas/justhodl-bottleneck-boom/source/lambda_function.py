@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.15.0"
+VERSION = "2.15.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -443,19 +443,22 @@ def commercial_positioning():
         if not cc:
             continue
         wr = sorted(cc.get("weekly_reports") or [], key=lambda r: r.get("report_date", ""))
-        if len(wr) < 14:
+        if len(wr) < 4:
             continue
         def cnet(r):
+            nc = r.get("net_commercial")
+            if nc is not None:
+                return nc
             cl, cs = r.get("commercial_long"), r.get("commercial_short")
             return (cl - cs) if (cl is not None and cs is not None) else None
-        latest, ago = cnet(wr[-1]), cnet(wr[-14])
+        latest, ago = cnet(wr[-1]), cnet(wr[0])
         if latest is None or ago is None:
             continue
         oi = wr[-1].get("open_interest") or 0
         chg = latest - ago
         lean = ("LESS HEDGED (lean tight)" if (oi and chg > 0.02 * oi)
                 else "MORE HEDGED (lean loose)" if (oi and chg < -0.02 * oi) else "STABLE")
-        out[c] = {"name": label, "commercial_net": latest, "chg_13wk": chg,
+        out[c] = {"name": label, "commercial_net": latest, "chg": chg, "as_of": wr[-1].get("report_date"),
                   "pct_oi": round(latest / oi * 100, 1) if oi else None, "lean": lean,
                   "producers": COMMODITY_MAP.get(cmap, {}).get("tickers", []) if cmap else []}
     tight = [c for c, v in out.items() if "tight" in v["lean"]]
