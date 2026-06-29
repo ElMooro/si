@@ -100,16 +100,36 @@ def lambda_handler(event, context):
         return out
 
     industries, sectors = rollup("industry"), rollup("sector")
+
+    inst_sector = {}
+    try:
+        inst = json.loads(S3.get_object(Bucket=BUCKET, Key="data/13f-positions.json")["Body"].read())
+    except Exception:
+        inst = {}
+    for bucket in ("most_bought", "most_sold"):
+        for x in (inst.get(bucket) or []):
+            tk = x.get("ticker")
+            if not tk or tk not in smap:
+                continue
+            sc = smap[tk].get("sector")
+            if not sc:
+                continue
+            a = inst_sector.setdefault(sc, {"sector": sc, "net_fund_actions": 0, "adding": 0, "trimming": 0})
+            a["adding"] += x.get("n_funds_adding") or 0
+            a["trimming"] += x.get("n_funds_trimming") or 0
+            a["net_fund_actions"] += (x.get("n_funds_adding") or 0) - (x.get("n_funds_trimming") or 0)
+    inst_tilt = sorted(inst_sector.values(), key=lambda x: -x["net_fund_actions"])
     doc = {
-        "engine": "justhodl-money-flow-state", "version": "1.0.0",
+        "engine": "justhodl-money-flow-state", "version": "1.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "as_of": days[-1][0], "n_days": len(days), "n_stocks": len(rows),
         "methodology": ("Per-stock dollar money-flow = N-day return x avg daily dollar-volume (signed); "
                         "up/down dvol = dollar volume on up vs down days. Polygon grouped-daily x universe "
-                        "sector/industry map. Rolled up to industry and sector."),
+                        "sector/industry map. Rolled up to industry and sector. Institutional sector tilt = "
+                        "13F funds adding minus trimming, rolled to sector."),
         "stocks_in": rows[:25], "stocks_out": rows[-25:][::-1],
         "industries_in": industries[:15], "industries_out": industries[-15:][::-1],
-        "sectors": sectors,
+        "sectors": sectors, "institutional_sector_tilt": inst_tilt,
     }
     S3.put_object(Bucket=BUCKET, Key="data/money-flow-state.json",
                   Body=json.dumps(doc).encode(), ContentType="application/json")
