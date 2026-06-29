@@ -1,11 +1,15 @@
-gen: 2026-06-29T13:45:28.265919+00:00 stats: {"n_senate": 200, "n_house": 200, "n_total": 393, "n_clusters": 1, "n_large_trades": 3, "n_high_watch": 112, "n_recent_30d": 240}
-clusters_top_10[0]: {"ticker": "ACN", "n_members": 3, "members": ["John Boozman", "Julie Johnson", "Richard W. Allen"], "n_trades": 3, "n_buys": 0, "n_sells": 3, "first_trade": "2026-05-08", "last_trade": "2026-05-15", "total_value_max_usd": 80000, "direction": "SELL"}
-large_trades_top_15[0]: {"chamber": "HOUSE", "member": "Nancy Pelosi", "office": "Nancy Pelosi", "ticker": "INTC", "asset_description": "Intel Corp", "asset_type": "Purchase", "transaction_type": "purchase", "amount_range": "$1,000,001 - $5,000,000", "amount_max_usd": 5000000, "transaction_date": "2026-05-29", "disclosure_date": "2026-06-24",
-trades_recent_50[0]: {"chamber": "HOUSE", "member": "Matt Van Epps", "office": "Matt Van Epps", "ticker": "INTC", "asset_description": "Intel Corp", "asset_type": "Sale", "transaction_type": "sale", "amount_range": "$1,001 - $15,000", "amount_max_usd": 15000, "transaction_date": "2026-06-16", "disclosure_date": "2026-06-17", "link": "https
-high_watch_recent_15[0]: {"chamber": "HOUSE", "member": "Nancy Pelosi", "office": "Nancy Pelosi", "ticker": "INTC", "asset_description": "Intel Corp", "asset_type": "Purchase", "transaction_type": "purchase", "amount_range": "$1,000,001 - $5,000,000", "amount_max_usd": 5000000, "transaction_date": "2026-05-29", "disclosure_date": "2026-06-24",
-
-political-stocks.congress type: dict
- congress keys: ['n_trades_total', 'n_trades_house', 'n_trades_senate', 'n_tickers', 'n_party_map', 'trade_source', 'top_buys', 'top_sells', 'clusters', 'bipartisan_buys']
-   n_trades_total -> 1000
-   n_trades_house -> 500
-DONE 2511
+updated money-flow code
+invoke err: None
+version: 1.1.0
+=== institutional_sector_tilt (13F adds-trims by sector) ===
+  Communication Services net=8     adding=8    trimming=0
+  Consumer Defensive     net=6     adding=8    trimming=2
+  Healthcare             net=-1    adding=9    trimming=10
+  Consumer Cyclical      net=-1    adding=4    trimming=5
+  Technology             net=-9    adding=18   trimming=27
+  FOUND   renderCongress
+  FOUND   Congressional money flow
+  FOUND   INSTITUTIONS
+  FOUND   political-trades.json
+bytes: 39928
+DONE 2512
