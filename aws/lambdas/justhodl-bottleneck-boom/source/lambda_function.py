@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -47,6 +47,36 @@ DEFAULT_UNIVERSE = [
     "IESC","STRL","PH","EMR","ROK","NDSN","GGG","CW","HEI","TDG","AXON","KTOS","LDOS","BWXT","VST",
     "CEG","NRG","DELL","HPE",
 ]
+
+# Capacity-cycle ("born in the bust") universe — money-losing / capex-cutting cyclicals across the
+# industries that actually go through Druckenmiller supply destruction. The supply scan needs these.
+CYCLICAL_UNIVERSE = [
+    "DVN","APA","CTRA","OXY","EQT","AR","RRC","MTDR","SLB","HAL","BKR","NOV","FTI","VLO","MPC","PSX","DK",
+    "DOW","LYB","CE","EMN","WLK","OLN","CC","ASH",
+    "NUE","STLD","X","CLF","AA","ATI","MP","FCX","SCCO","RGLD",
+    "IP","PKG","GEF","SLVM",
+    "ZIM","SBLK","GNK","INSW","FRO","MATX",
+    "GM","F","LEA","BWA","GT","DAN","ADNT",
+    "BLDR","MAS","EXP","VMC","MLM","DHI","LEN",
+    "WDC","STX",
+    "MOS","CF","NTR","IPI","FMC",
+    "UAL","DAL","AAL","LUV","ALK",
+    "FSLR","ENPH","SEDG","RUN","ARRY",
+]
+
+
+def consensus_growth(t):
+    """#6 — forward consensus revenue growth from analyst estimates (next FY vs current FY)."""
+    est = fmp("analyst-estimates", {"symbol": t, "period": "annual", "limit": 4}) or []
+    if not isinstance(est, list) or len(est) < 2:
+        return None
+    def rev(e):
+        return e.get("revenueAvg") or e.get("estimatedRevenueAvg")
+    rows = sorted([e for e in est if rev(e)], key=lambda e: e.get("date") or "")
+    if len(rows) < 2:
+        return None
+    cur, nxt = rev(rows[-2]), rev(rows[-1])
+    return round((nxt / cur - 1) * 100, 1) if (cur and nxt) else None
 
 
 def fred(sid, start="2005-01-01"):
@@ -464,8 +494,9 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     pressure, used, failed = industry_pressure()
     universe, src = load_universe()
+    universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
-    with ThreadPoolExecutor(max_workers=6) as ex:
+    with ThreadPoolExecutor(max_workers=8) as ex:
         futs = {ex.submit(fetch_ticker, t): t for t in universe}
         for f in as_completed(futs):
             try:
@@ -520,6 +551,13 @@ def lambda_handler(event=None, context=None):
     if not early:                                       # fallback: best early scores in scarcity/glut
         early = sorted([r for r in rows if r.get("capital_cycle_phase") in ("SCARCITY_BUILDING", "GLUT")],
                        key=lambda r: -r["early_bottleneck_score"])[:8]
+    # #6 — consensus gap: max conviction when engine sees future tightness but the Street is bearish
+    for r in early:
+        cg = consensus_growth(r["ticker"])
+        r["consensus_fwd_growth_pct"] = cg
+        phase_fwd = {"SCARCITY_BUILDING": 1.0, "GLUT": 0.6, "TIGHT": 0.3}.get(r.get("capital_cycle_phase"), 0.2)
+        r["consensus_gap_score"] = (round(max(0, min(100, 50 + phase_fwd * 40 - cg * 0.8)), 1)
+                                    if cg is not None else None)
     n_early = log_early(early, regime)
     # #3 — capacity-flood warnings: current boom names whose industry is now FLOODING capacity
     flood = [r["ticker"] for r in top
@@ -545,7 +583,9 @@ def lambda_handler(event=None, context=None):
              "group": r["pressure_group"], "phase": r.get("capital_cycle_phase"),
              "capex_yoy_pct": r.get("capex_yoy_pct"), "capex_to_da": r.get("capex_to_da"),
              "money_losing": r.get("money_losing"), "net_margin_pct": r.get("net_margin_pct"),
-             "rev_growth_yoy": r.get("rev_growth_yoy")} for r in early],
+             "rev_growth_yoy": r.get("rev_growth_yoy"),
+             "consensus_fwd_growth_pct": r.get("consensus_fwd_growth_pct"),
+             "consensus_gap_score": r.get("consensus_gap_score")} for r in early],
         "ranks": rows[:40],
         "methodology": ("Boom = company capture (z-blend: 35% rev acceleration, 25% rev growth, "
                         "25% revenue-to-market-cap [inverse P/S], 15% inventory turnover) shaded by "
