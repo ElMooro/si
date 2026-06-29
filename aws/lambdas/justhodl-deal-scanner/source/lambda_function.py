@@ -320,7 +320,16 @@ def load_sector_signal():
         for it in ra.get("rotating_in", []) or []:
             if isinstance(it, dict) and it.get("sym"):
                 rin.add(it["sym"])
-    return scores, rin
+    conv_map, posture_map = {}, {}
+    try:
+        sfs = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/sector-flow-state.json")["Body"].read())
+        for x in sfs.get("sectors", []):
+            if x.get("symbol"):
+                conv_map[x["symbol"]] = x.get("conviction")
+                posture_map[x["symbol"]] = x.get("posture")
+    except Exception:
+        pass
+    return scores, rin, conv_map, posture_map
 
 
 def lambda_handler(event, context):
@@ -338,7 +347,7 @@ def lambda_handler(event, context):
     prs += fetch_polygon(limit=100, pages=3)   # wider third-party AI-deal coverage
     prs += fetch_benzinga(pagesize=100, pages=2)
     ai_universe = load_ai_universe()
-    sector_scores, sector_rotating_in = load_sector_signal()
+    sector_scores, sector_rotating_in, sector_conv, sector_posture = load_sector_signal()
     now = datetime.now(timezone.utc)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
@@ -405,7 +414,9 @@ def lambda_handler(event, context):
         sec_etf = SECTOR_TO_SPDR.get(sector.lower()) if sector else None
         sec_score = sector_scores.get(sec_etf) if sec_etf else None
         sec_rot_in = bool(sec_etf and sec_etf in sector_rotating_in)
-        sector_tailwind = bool(sec_rot_in or (sec_score is not None and sec_score >= 65))
+        sec_conv = sector_conv.get(sec_etf) if sec_etf else None
+        sec_post = sector_posture.get(sec_etf) if sec_etf else None
+        sector_tailwind = bool(sec_rot_in or (sec_score is not None and sec_score >= 65) or sec_post == "OVERWEIGHT")
         sec_boost = (30 if ai_rel else 18) if sector_tailwind else (8 if (sec_score is not None and sec_score >= 50) else 0)
         cb = CAP_BOOST.get(bkt, 5)
         rec = 0 if d["age_h"] is None else max(0, 30 - d["age_h"] / 8.0)
@@ -446,6 +457,7 @@ def lambda_handler(event, context):
             "vs_market_cap_pct": vs_mc, "highlight": hl, "ai_relevant": ai_rel,
             "ai_keywords": ai_kws, "is_billion": is_billion, "ai_megadeal": ai_mega,
             "sector": sector, "sector_etf": sec_etf, "sector_rotation_score": sec_score,
+            "sector_conviction": sec_conv, "sector_posture": sec_post,
             "sector_rotating_in": sec_rot_in, "sector_tailwind": sector_tailwind,
             "smart_money_backed": smbk,
             "score": score, "why": "; ".join(why_bits)})
