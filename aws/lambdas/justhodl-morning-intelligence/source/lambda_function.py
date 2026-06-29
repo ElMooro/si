@@ -81,6 +81,15 @@ def stg(chat_id,text):
         except Exception as e: print("[TG] "+str(e))
 
 def ai(prompt,max_tokens=800):
+    # Resilient: GLM-5.1/Z.ai primary with Claude fallback via the shared
+    # llm_router, so the daily brief survives an Anthropic credit-exhaustion /
+    # outage (previously this was hard-wired to Anthropic-only and went silent
+    # whenever credits ran out). Direct Anthropic is kept as the last resort.
+    try:
+        from llm_router import complete
+        txt=complete(prompt,tier="reason",max_tokens=max_tokens)
+        if txt and txt.strip(): return txt.strip()
+    except Exception as e: print("[AI router] "+str(e))
     try:
         body=json.dumps({"model":"claude-haiku-4-5-20251001","max_tokens":max_tokens,"messages":[{"role":"user","content":prompt}]}).encode()
         req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=body,
