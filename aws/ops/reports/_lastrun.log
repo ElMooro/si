@@ -1,6 +1,6 @@
 FunctionError: Unhandled
-version: 2.15.1 dur: 55.3
-=== #5 PPI PRICING POWER ===
-tightening_inputs: None | pricing_power_building: None
-CAPSTONE: BUILDING 8 confirms
-DONE 2483
+errorType: UnboundLocalError
+errorMessage: cannot access local variable 'rows' where it is not associated with a value
+ST: File "/var/task/lambda_function.py", line 1173, in lambda_handler
+    ppi = ppi_signal(rows)
+DONE 2484
