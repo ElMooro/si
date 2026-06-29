@@ -1,6 +1,30 @@
-updated gold-equity code
+BEFORE top_tickers: 25 as_of 2026-06-29T20:04:09+00:00
+saved live code bytes: 56553
 invoke err: None
-VNQ 20d: 2.56 | REM 20d: -0.41 | TLT: 1.97 | GLD: -11.64
-  FOUND   Equity REITs (VNQ)
-  FOUND   Mortgage REITs (REM)
-DONE 2516
+AFTER top_tickers: 25 as_of 2026-06-29T22:20:55+00:00
+RESTORED. live as_of still: 2026-06-29T20:04:09+00:00 (unchanged = good)
+
+=== RANK MOVES (both top-25, by |move|) ===
+  QCOM   #19->#20 DN1  score 98.9->98.9
+  MU     #20->#21 DN1  score 98.5->98.4
+  CBRE   #21->#22 DN1  score 98.0->98.0
+  IRM    #22->#23 DN1  score 98.0->98.0
+  LRCX   #23->#24 DN1  score 96.8->96.8
+  STX    # 1-># 1 --  score 131.8->131.8
+  GOOGL  # 2-># 2 --  score 125.7->122.1
+  OXY    # 3-># 3 --  score 119.6->119.6
+  SNDK   # 4-># 4 --  score 112.0->112.0
+  ALL    # 5-># 5 --  score 111.4->111.4
+  ORCL   # 6-># 6 --  score 111.2->111.2
+  UBER   # 7-># 7 --  score 109.7->109.7
+  AVGO   # 8-># 8 --  score 108.1->108.1
+  TER    # 9-># 9 --  score 106.0->106.0
+  FTNT   #10->#10 --  score 105.9->105.9
+  PLD    #11->#11 --  score 105.9->105.9
+  FITB   #12->#12 --  score 105.6->105.6
+  GOOG   #13->#13 --  score 102.9->102.9
+ENTERED top25: ['AMZN']
+LEFT top25:    ['CRWD']
+
+CLAMPED in top25: 0 of 25
+DONE 2517
