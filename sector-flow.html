@@ -216,20 +216,25 @@ function renderChains(ch){
 
 function renderDarkPool(dp){
   if(!dp)return"";
-  let acc=dp.top_accumulation||[];
-  if(!acc.length)acc=(dp.board||[]).filter(b=>b.state==="ACCUMULATION");
-  acc=acc.slice().sort((a,b)=>(+b.score||0)-(+a.score||0)).slice(0,12);
-  if(!acc.length)return"";
+  const grab=(arr,st)=>{let a=arr&&arr.length?arr:(dp.board||[]).filter(b=>b.state===st);return a.slice().sort((x,y)=>(+y.score||0)-(+x.score||0)).slice(0,10);};
+  const acc=grab(dp.top_accumulation,"ACCUMULATION"), dist=grab(dp.top_distribution,"DISTRIBUTION");
+  if(!acc.length&&!dist.length)return"";
   const wk=dp.latest_week?` · wk ${esc(dp.latest_week)}`:"";
-  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>🕳️ Dark-pool accumulation <span style="color:var(--fg-4);font-weight:400">(off-exchange footprints${wk})</span></h2><span class="ct">${acc.length}</span></div>`;
-  h+=`<div class="rows">`+acc.map(b=>{
-    const wr=+b.week_return_pct||0,quiet=wr<=1.5;
-    return `<div class="row"><span class="sym" style="color:var(--green)">${esc(b.ticker)}</span>
+  const row=(b,col)=>{const wr=+b.week_return_pct||0,quiet=Math.abs(wr)<=1.5;
+    return `<div class="row"><span class="sym" style="color:${col}">${esc(b.ticker)}</span>
       <span class="cat" style="min-width:64px">dark ${(+b.dark_pool_pct||0).toFixed(0)}%</span>
-      <span class="ph" style="color:var(--fg-3)">accel ${(+b.dark_accel||0).toFixed(2)} · wk ${wr>=0?"+":""}${wr.toFixed(1)}%${quiet?" · quiet build":""}</span>
-      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,+b.score||0))}%;background:var(--green)"></div></div>
-      <span class="val" style="color:var(--green)">${Math.round(+b.score||0)}</span></div>`;
-  }).join("")+`</div>`;
+      <span class="ph" style="color:var(--fg-3)">accel ${(+b.dark_accel||0).toFixed(2)} · wk ${wr>=0?"+":""}${wr.toFixed(1)}%${quiet?" · quiet":""}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(3,Math.min(100,+b.score||0))}%;background:${col}"></div></div>
+      <span class="val" style="color:${col}">${Math.round(+b.score||0)}</span></div>`;};
+  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>🕳️ Dark-pool footprints <span style="color:var(--fg-4);font-weight:400">(off-exchange${wk})</span></h2><span class="ct">${acc.length+dist.length}</span></div>`;
+  if(acc.length){
+    h+=`<div style="font-size:10.5px;color:var(--green);font-family:var(--font-mono);letter-spacing:.5px;margin:2px 2px 5px">▲ ACCUMULATION (dark volume rising, price held/down — quiet buying)</div>`;
+    h+=`<div class="rows">`+acc.map(b=>row(b,"var(--green)")).join("")+`</div>`;
+  }
+  if(dist.length){
+    h+=`<div style="font-size:10.5px;color:var(--red);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">▼ DISTRIBUTION (dark volume rising, price down — quiet selling)</div>`;
+    h+=`<div class="rows">`+dist.map(b=>row(b,"var(--red)")).join("")+`</div>`;
+  }
   return h;
 }
 function render13F(t){
@@ -379,7 +384,84 @@ function renderCongress(pt){
   return h;
 }
 
-function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt){
+function renderCrossAssetRisk(rr){
+  if(!rr||rr.risk_regime_score==null)return"";
+  const sc=+rr.risk_regime_score, col=sc<=-10?"var(--red)":sc>=10?"var(--green)":"var(--amber)";
+  const post=rr.posture||{}, tells=[];
+  for(const k of Object.keys(rr.components||{})){const c=rr.components[k];if(c&&Array.isArray(c.tells))c.tells.forEach(t=>tells.push(t));}
+  let h=`<div class="sec-hdr"><span class="dot v"></span><h2>🌐 Cross-asset risk regime</h2><span class="ct">${Math.round(sc)}</span></div>`;
+  h+=`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:14px">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+      <span style="font-size:19px;font-weight:800;color:${col}">${esc(rr.risk_regime||"")}</span>
+      <span style="font-size:12px;color:var(--fg-3)">score ${sc.toFixed(1)}</span>
+      ${post.beta_tilt?`<span class="chip"><b>Tilt</b> ${esc(String(post.beta_tilt).replace(/_/g," "))}</span>`:""}
+      ${post.hedge?`<span class="chip"><b>Hedge</b> ${esc(post.hedge)}</span>`:""}
+      ${post.size_mult!=null?`<span class="chip"><b>Size</b> ${post.size_mult}×</span>`:""}
+    </div>
+    ${tells.length?`<ul style="font-size:11px;color:var(--fg-2);margin:4px 0 0;padding-left:18px">${tells.slice(0,6).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:""}
+    <div style="font-size:11px;color:var(--fg-3);margin-top:8px">Cross-asset risk-on/off from FX, options skew, credit &amp; liquidity. Negative = risk-off (money toward havens: bonds, dollar, gold). Source: <code>risk-regime</code>.</div></div>`;
+  return h;
+}
+function renderAssetClassRotation(etf,ger){
+  const cr=((etf||{}).category_rotation||[]).filter(c=>+c.net_flow_5d_usd);
+  const LAB={BROAD_EQUITY_US:"US Equities",GROWTH:"Growth equity",INTERNATIONAL:"Intl equity",RATES_TREASURIES:"Treasuries",CREDIT:"Credit (corp bonds)",COMMODITIES:"Commodities",CRYPTO:"Crypto",DIVIDEND_VALUE:"Dividend / Value"};
+  const KEEP=Object.keys(LAB);
+  const items=cr.filter(c=>KEEP.includes(c.category)).sort((a,b)=>(+b.net_flow_5d_usd)-(+a.net_flow_5d_usd));
+  const m=(ger||{}).current_metrics||{};
+  if(!items.length&&!Object.keys(m).length)return"";
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>🪙 Asset-class rotation <span style="color:var(--fg-4);font-weight:400">(ETF net flows, 5-day)</span></h2><span class="ct">${items.length}</span></div>`;
+  const maxAbs=Math.max(1,...items.map(c=>Math.abs(+c.net_flow_5d_usd)));
+  h+=`<div class="rows">`+items.map(c=>{const v=+c.net_flow_5d_usd,pos=v>=0,col=pos?"var(--green)":"var(--red)";
+    return `<div class="row"><span class="nm" style="min-width:150px;color:${col}">${esc(LAB[c.category]||c.category)}</span>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(2,Math.abs(v)/maxAbs*100)}%;background:${col}"></div></div>
+      <span class="val" style="color:${col}">${money(v)}</span></div>`;}).join("")+`</div>`;
+  const ha=[["Gold (GLD)",m.gld_20d_pct],["Silver (SLV)",m.slv_20d_pct],["Gold miners (GDX)",m.gdx_20d_pct],["Long bonds (TLT)",m.tlt_20d_pct],["US Dollar (UUP)",m.uup_20d_pct],["S&P 500 (SPY)",m.spy_20d_pct]].filter(x=>x[1]!=null);
+  if(ha.length){
+    h+=`<div style="font-size:10.5px;color:var(--fg-3);font-family:var(--font-mono);letter-spacing:.5px;margin:10px 2px 5px">HARD ASSETS, BONDS & DOLLAR — 20-day move (price = flow direction)</div>`;
+    h+=`<div class="rows">`+ha.map(([n,v])=>{const pos=(+v)>=0,col=pos?"var(--green)":"var(--red)";
+      return `<div class="row"><span class="nm" style="min-width:150px;color:${col}">${esc(n)}</span><div class="bar-wrap"></div><span class="val" style="color:${col}">${(+v)>=0?"+":""}${(+v).toFixed(1)}%</span></div>`;}).join("")+`</div>`;
+  }
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Money rotating across asset classes: ETF creation dollars (5d) for equities/bonds/credit/commodities/crypto, plus the 20-day price move in metals, long bonds and the dollar. Sources: <code>etf-true-flows</code>, <code>gold-equity-rotation</code>.</div>`;
+  return h;
+}
+function renderDollarFX(fx,dr){
+  const roro=(fx||{}).fx_roro||{};
+  if(roro.fx_roro_score==null&&!(dr&&dr.regime))return"";
+  const rs=+roro.fx_roro_score, rcol=rs<-3?"var(--red)":rs>3?"var(--green)":"var(--amber)";
+  let h=`<div class="sec-hdr"><span class="dot g"></span><h2>💵 Dollar, FX & carry <span style="color:var(--fg-4);font-weight:400">(risk-on/off via currencies)</span></h2></div>`;
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">`;
+  if(dr&&dr.regime)h+=`<span class="chip"><b>Dollar</b> ${esc(dr.regime)}</span>`;
+  if(roro.fx_roro_regime)h+=`<span class="chip" style="border-color:${rcol}"><b>FX risk</b> ${esc(roro.fx_roro_regime)}${roro.fx_roro_score!=null?` (${rs})`:""}</span>`;
+  if(roro.em_basket_5d_pct!=null)h+=`<span class="chip"><b>EM FX 5d</b> ${roro.em_basket_5d_pct>=0?"+":""}${(+roro.em_basket_5d_pct).toFixed(2)}%</span>`;
+  if(roro.gold_silver_ratio_chg_5d!=null)h+=`<span class="chip"><b>Gold/Silver 5d</b> ${roro.gold_silver_ratio_chg_5d>=0?"+":""}${(+roro.gold_silver_ratio_chg_5d).toFixed(1)}%</span>`;
+  h+=`</div>`;
+  const dv=(roro.drivers||[]).slice(0,8);
+  if(dv.length)h+=`<div class="rows">`+dv.map(d=>{const r=+d.ret_5d_pct||0,c=+d.contribution||0,col=c>=0?"var(--green)":"var(--red)";
+    return `<div class="row"><span class="nm" style="min-width:170px">${esc(d.driver)}</span>
+      <span class="ph" style="color:var(--fg-3)">5d ${r>=0?"+":""}${r.toFixed(2)}%</span>
+      <div class="bar-wrap"></div><span class="val" style="color:${col}">${c>=0?"+":""}${c.toFixed(2)}</span></div>`;}).join("")+`</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Dollar strength + currency risk-on/off + carry crosses (e.g. AUD/JPY). A bid dollar with falling risk-currencies = risk-off / carry unwind, money toward havens. Sources: <code>dollar-radar</code>, <code>polygon-fx-regime</code>.</div>`;
+  return h;
+}
+function renderForeignFlows(ci,tic){
+  const ac=(ci||{}).by_asset_class;
+  if(!ac)return"";
+  const LAB={treasuries:"US Treasuries",agency_bonds:"Agency bonds",corporate_bonds:"Corporate bonds",equities:"US Equities"};
+  const order=["treasuries","agency_bonds","corporate_bonds","equities"];
+  let h=`<div class="sec-hdr"><span class="dot c"></span><h2>🌍 Foreign money into US assets <span style="color:var(--fg-4);font-weight:400">(cross-border, TIC)</span></h2></div>`;
+  const rr3=(ci.headline||{}).run_rate_3mo_annualized_b;
+  if(ci.regime)h+=`<div style="font-size:11.5px;color:var(--fg-2);margin:0 2px 6px"><b>${esc(String(ci.regime).replace(/_/g," "))}</b>${rr3?` · ~$${Math.round(rr3)}B/yr run-rate`:""}</div>`;
+  h+=`<div class="rows">`+order.filter(k=>ac[k]).map(k=>{const v=+(ac[k].latest_month_b||0),y=+(ac[k].rolling_12mo_b||0),pos=v>=0,col=pos?"var(--green)":"var(--red)";
+    return `<div class="row"><span class="nm" style="min-width:150px;color:${col}">${esc(LAB[k]||k)}</span>
+      <span class="ph" style="color:var(--fg-3)">12mo ${y>=0?"+":""}$${Math.round(y)}B</span>
+      <div class="bar-wrap"></div><span class="val" style="color:${col}">${v>=0?"+":""}$${v.toFixed(0)}B<span style="font-size:9px;color:var(--fg-4)"> /mo</span></span></div>`;}).join("")+`</div>`;
+  const th=(tic||{}).top_holders||[];
+  if(th.length)h+=`<div style="font-size:11px;color:var(--fg-3);margin:8px 2px 0">Largest foreign holders: ${th.slice(0,5).map(t=>`<span class="chip" style="padding:1px 7px;margin:1px;display:inline-block">${esc(t.country||t.name||t)}</span>`).join("")}</div>`;
+  h+=`<div style="font-size:11px;color:var(--fg-3);margin:6px 2px 0">Foreign (incl. central banks) net buying of US Treasuries, agency &amp; corporate bonds, and equities — the cross-border fixed-income + equity flow. Sources: <code>capital-inflows</code>, <code>tic-flows</code>.</div>`;
+  return h;
+}
+
+function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
   const inflows=((etf||{}).inflows||[]).slice().filter(x=>(+x.net_flow_1d_usd||0)>0).sort((a,b)=>(b.net_flow_1d_usd||0)-(a.net_flow_1d_usd||0));
@@ -412,6 +494,10 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt){
   h+=renderCycleFlow(sec);
   h+=renderIndustries(fg);
   h+=renderMoneyFlow(mf);
+  h+=renderCrossAssetRisk(rr);
+  h+=renderAssetClassRotation(etf,ger);
+  h+=renderDollarFX(fx,dr);
+  h+=renderForeignFlows(ci,tic);
   // sector rotation
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
   if(sectors.length){
@@ -467,7 +553,7 @@ function render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt){
   document.getElementById("note").innerHTML=
     `<b style="color:var(--fg-2)">Reading it.</b> This page fuses every flow &amp; positioning signal on the system. <b style="color:var(--green)">Sector Conviction</b> is the headline — rotation score + RRG quadrant + true ETF flow + money-flow + liquidity, gated by multi-signal confluence. The <b style="color:var(--violet)">RRG</b> shows where each sector sits in the Leading/Weakening/Lagging/Improving cycle; <b>Cycle vs Flow</b> tests whether the rotation confirms the regime. Below: where flows actually land (look-through to names), participation surge, what rotates next (lead-lag chains), dark-pool accumulation, 13F conviction, and the liquidity/factor/insider backdrop. Sources: <code>sector-rotation</code>, <code>etf-true-flows</code>, <code>etf-flows</code>, <code>flow-lookthrough</code>, <code>rotation-chains</code>, <code>dark-pool</code>, <code>13f-positions</code>, <code>insider-aggregate</code>, <code>liquidity-flow</code>, <code>smart-beta</code>, <code>sector-flow-state</code>. Real data, research only — not investment advice.`;
 }
-Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json"),load("data/money-flow-state.json"),load("data/political-trades.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt));
+Promise.all([load("data/etf-true-flows.json"),load("data/sector-rotation.json"),load("data/etf-flows.json"),load("data/flow-lookthrough.json"),load("data/rotation-chains.json"),load("data/dark-pool.json"),load("data/13f-positions.json"),load("data/insider-aggregate-history.json"),load("data/liquidity-flow.json"),load("data/smart-beta.json"),load("data/sector-flow-state.json"),load("data/finviz-groups.json"),load("data/money-flow-state.json"),load("data/political-trades.json"),load("data/risk-regime.json"),load("data/polygon-fx-regime.json"),load("data/dollar-radar.json"),load("data/capital-inflows.json"),load("data/gold-equity-rotation.json"),load("data/tic-flows.json")]).then(([etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic])=>render(etf,sec,ef,lk,ch,dp,t13,ins,lf,sb,sfs,fg,mf,pt,rr,fx,dr,ci,ger,tic));
 setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
