@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.12.1"
+VERSION = "2.12.2"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -423,6 +423,7 @@ def _sic_sector(sic):
         return None
     if 1000 <= s < 1300: return "Mining/Metals"
     if 1300 <= s < 1400: return "Energy/E&P"
+    if 2833 <= s <= 2836: return None          # pharma/biotech — not an industrial supply bottleneck
     if 2800 <= s < 2900: return "Chemicals"
     if 2900 <= s < 3000: return "Petroleum/Refining"
     if 3300 <= s < 3400: return "Primary Metals"
