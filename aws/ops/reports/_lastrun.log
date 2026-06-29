@@ -1,4 +1,11 @@
-version: 2.15.0 dur: 74.6
-=== #4 COT COMMERCIAL HEDGERS ===
-commercials_leaning_tight: []
-DONE 2483
+ALL contract keys: ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX', 'ES', 'GC', 'HG', 'HO', 'KC', 'NG', 'NQ', 'PL', 'RB', 'RTY', 'SB', 'SI', 'VX', 'YM', 'ZB', 'ZC', 'ZF', 'ZN', 'ZS', 'ZT', 'ZW']
+CL report_type=disagg n_reports=8
+   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
+   latest sample: {"report_date": "2026-05-05", "open_interest": 2067827, "noncommercial_long": 285775, "noncommercial_short": 758635, "net_speculator": -472860, "commercial_long": 716499, "commercial_short": 378998, "net_commercial": 337501, "managed_money_long": 185755, "managed_money_short": 114964, "net_managed_money": 70791, "speculator_long_ratio": 27.4}
+NG report_type=disagg n_reports=8
+   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
+   latest sample: {"report_date": "2026-05-05", "open_interest": 1628637, "noncommercial_long": 392124, "noncommercial_short": 318422, "net_speculator": 73702, "commercial_long": 241927, "commercial_short": 269968, "net_commercial": -28041, "managed_money_long": 180450, "managed_money_short": 287939, "net_managed_money": -107489, "speculator_long_ratio": 55.2}
+HG report_type=disagg n_reports=8
+   latest report keys: ['commercial_long', 'commercial_short', 'managed_money_long', 'managed_money_short', 'net_commercial', 'net_managed_money', 'net_speculator', 'noncommercial_long', 'noncommercial_short', 'open_interest', 'report_date', 'speculator_long_ratio']
+   latest sample: {"report_date": "2026-05-05", "open_interest": 232609, "noncommercial_long": 131241, "noncommercial_short": 38371, "net_speculator": 92870, "commercial_long": 24839, "commercial_short": 126253, "net_commercial": -101414, "managed_money_long": 80400, "managed_money_short": 16927, "net_managed_money": 63473, "speculator_long_ratio": 77.4}
+DONE 2484
