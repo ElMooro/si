@@ -1,5 +1,4 @@
-top type: dict | keys: ['source', 'contracts', 'data', 'timestamp', 'cached_at']
-body keys sample: ['ES', 'NQ', 'YM', 'RTY', 'VX']
-  ES -> {"contract": "ES", "name": "S&P 500 E-Mini", "category": "equity_index", "cftc_code": "13874A", "report_type": "tff", "weekly_reports": [{"report_date": "2026-06-23", "open_interest": 1980254, "noncommercial_long": 1356479, "noncommercial_short": 737218, "net_speculator": 619261, "commercial_long": 
-  NQ -> {"contract": "NQ", "name": "NASDAQ 100 E-Mini", "category": "equity_index", "cftc_code": "209742", "report_type": "tff", "weekly_reports": [{"report_date": "2026-06-23", "open_interest": 265083, "noncommercial_long": 140821, "noncommercial_short": 128975, "net_speculator": 11846, "commercial_long": 
-DONE 2482
+version: 2.15.0 dur: 74.6
+=== #4 COT COMMERCIAL HEDGERS ===
+commercials_leaning_tight: []
+DONE 2483
