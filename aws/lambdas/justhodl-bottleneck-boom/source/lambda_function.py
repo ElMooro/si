@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.2.1"
+VERSION = "2.3.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -472,10 +472,27 @@ def commodity_cycle(rows):
         cap_med = _median(caps) if caps else None
         supply_exiting = bool(cap_med is not None and cap_med < 0)
         price_depressed = bool(pz is not None and pz <= -0.4)
+        # which companies / sector are behind this commodity, and who is cutting
+        producers = []
+        for t in cfg["tickers"]:
+            rr = by_t.get(t)
+            if rr:
+                producers.append({"ticker": t, "sector": rr.get("sector"), "industry": rr.get("industry"),
+                                  "capex_yoy_pct": rr.get("capex_yoy_pct"), "capex_to_da": rr.get("capex_to_da"),
+                                  "money_losing": rr.get("money_losing")})
+            else:
+                producers.append({"ticker": t})
+        _inds = [p["industry"] for p in producers if p.get("industry")]
+        _secs = [p["sector"] for p in producers if p.get("sector")]
         out[name] = {
             "price": round(vals[-1], 2), "price_z": pz,
             "price_yoy_pct": round(yy[-1] * 100, 1) if yy else None, "as_of": pts[-1][0],
             "producer_capex_yoy_med": round(cap_med, 1) if cap_med is not None else None,
+            "producer_sector": max(set(_secs), key=_secs.count) if _secs else None,
+            "producer_industry": max(set(_inds), key=_inds.count) if _inds else None,
+            "producers": producers,
+            "n_producers_cutting": sum(1 for p in producers
+                                       if p.get("capex_to_da") is not None and p["capex_to_da"] < 1),
             "supply_exiting": supply_exiting, "price_depressed": price_depressed,
             "cure_for_low_prices_setup": bool(price_depressed and supply_exiting),
         }
@@ -596,6 +613,16 @@ def lambda_handler(event=None, context=None):
         r["consensus_gap_score"] = (round(max(0, min(100, 50 + phase_fwd * 40 - cg * 0.8)), 1)
                                     if cg is not None else None)
     n_early = log_early(early, regime)
+    # sector clustering — multiple names in one industry cutting capacity = SYSTEMATIC sector bust,
+    # a far stronger Druckenmiller signal than an isolated single-company story
+    _ind = {}
+    for r in early:
+        ind = r.get("industry")
+        if ind:
+            _ind.setdefault(ind, []).append(r["ticker"])
+    early_sector_clusters = sorted(
+        [{"industry": k, "tickers": v, "n": len(v), "systematic": len(v) >= 2} for k, v in _ind.items()],
+        key=lambda x: -x["n"])
     # #3 — capacity-flood warnings: current boom names whose industry is now FLOODING capacity
     flood = [r["ticker"] for r in top
              if (grp_supply.get(r.get("pressure_group")) or {}).get("capital_cycle_phase") == "CAPACITY_FLOODING"]
@@ -645,11 +672,13 @@ def lambda_handler(event=None, context=None):
         "early_bottleneck_calls": [
             {"ticker": r["ticker"], "name": r.get("name"), "score": r["early_bottleneck_score"],
              "group": r["pressure_group"], "phase": r.get("capital_cycle_phase"),
+             "sector": r.get("sector"), "industry": r.get("industry"),
              "capex_yoy_pct": r.get("capex_yoy_pct"), "capex_to_da": r.get("capex_to_da"),
              "money_losing": r.get("money_losing"), "net_margin_pct": r.get("net_margin_pct"),
              "rev_growth_yoy": r.get("rev_growth_yoy"),
              "consensus_fwd_growth_pct": r.get("consensus_fwd_growth_pct"),
              "consensus_gap_score": r.get("consensus_gap_score")} for r in early],
+        "early_sector_clusters": early_sector_clusters,
         "ranks": rows[:40],
         "methodology": ("Boom = company capture (z-blend: 35% rev acceleration, 25% rev growth, "
                         "25% revenue-to-market-cap [inverse P/S], 15% inventory turnover) shaded by "
