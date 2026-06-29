@@ -1,33 +1,7 @@
-created new function
-scheduled hourly :45
-invoke err: None
-resp: {"ok": true, "sectors": 11, "divergences": 2, "headline": "2 sector divergence(s): Real Estate (distribution), Communication Services (accumulation)"}
-
-HEADLINE: 2 sector divergence(s): Real Estate (distribution), Communication Services (accumulation)
-BACKDROP: {"liquidity_regime": "draining", "risk_regime": "MILD_RISK_OFF", "risk_regime_score": -14.2}
-TOP INFLOW: ['Financials', 'Healthcare', 'Utilities', 'Consumer Staples'] | TOP OUTFLOW: ['Technology']
-
-=== PER-SECTOR VERDICT (ranked by net flow) ===
-  Financials               net=+0.80 conf=3/4 [R.E.D] OVERWEIGHT 
-       → INFLOW — money rotating in
-  Healthcare               net=+0.65 conf=3/5 [RTE.d] OVERWEIGHT 
-       → INFLOW — money rotating in
-  Utilities                net=+0.63 conf=3/4 [RTE..] OVERWEIGHT 
-       → INFLOW — money rotating in
-  Industrials              net=+0.50 conf=2/4 [Rte.D] NEUTRAL    
-       → MIXED — no flow consensus
-  Consumer Staples         net=+0.37 conf=3/5 [RT.I.] OVERWEIGHT 
-       → INFLOW — money rotating in
-  Materials                net=+0.06 conf=0/3 [.T...] NEUTRAL    
-       → MIXED — no flow consensus
-  Real Estate              net=-0.21 conf=1/4 [RT..d] UNDERWEIGHT ⚠DIVERGENCE
-       → DISTRIBUTION RISK — price leading but tape/institutions/dark-pool exiting
-  Consumer Discretionary   net=-0.34 conf=2/5 [r.e..] NEUTRAL    
-       → MIXED — no flow consensus
-  Communication Services   net=-0.59 conf=2/4 [r.eI.] OVERWEIGHT  ⚠DIVERGENCE
-       → STEALTH ACCUMULATION — price lagging but money quietly entering
-  Energy                   net=-0.74 conf=2/4 [rT..d] NEUTRAL    
-       → MIXED — no flow consensus
-  Technology               net=-1.02 conf=3/5 [rt.i.] UNDERWEIGHT
-       → OUTFLOW — money rotating out
-DONE 2519
+  FOUND   renderFusion
+  FOUND   Sector capital-flow verdict
+  FOUND   sector-capital-fusion.json
+  MISSING price-vs-smartmoney
+  FOUND   divergence
+bytes: 51907
+DONE 2520
