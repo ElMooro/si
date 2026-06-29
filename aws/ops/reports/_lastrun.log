@@ -1,8 +1,8 @@
-USO type list n 1254
-   sample: {"symbol": "USO", "date": "2026-06-29", "open": 106.65, "high": 107.64, "low": 106.19, "close": 107.631, "volume": 1944662, "change": 0.981,
-UNG type list n 1254
-   sample: {"symbol": "UNG", "date": "2026-06-29", "open": 11.52, "high": 11.5499, "low": 11.41, "close": 11.46, "volume": 3166268, "change": -0.06, "c
-DCOILWTICO n 200 last ('2026-06-22', 78.94)
-DHHNGSP n 198 last ('2026-06-22', 3.16)
-DGASUSGULF n 200 last ('2026-06-22', 2.991)
-DONE 2480
+err: None
+version: 2.14.0 dur: 61.8
+=== #3 BACKWARDATION (roll-yield) ===
+  CRUDE_OIL  etf3mo=-13.3   spot3mo=-20.0   roll=6.8    BACKWARDATION  producers=DVN,APA,CTRA,OXY,EQT
+  NATGAS     etf3mo=-6.8    spot3mo=3.9     roll=-10.7  CONTANGO       producers=EQT,AR,RRC,CTRA
+  GASOLINE   etf3mo=-0.8    spot3mo=-8.2    roll=7.3    BACKWARDATION  producers=
+backwardated: ['CRUDE_OIL', 'GASOLINE'] | physical_tightness: True
+DONE 2481
