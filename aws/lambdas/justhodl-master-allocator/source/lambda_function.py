@@ -140,6 +140,17 @@ TILT_MAGNITUDES = {
                          "em_equity": -4.0, "ust_long": +4.0,
                          "ust_short": +3.0, "ig_credit": -2.0,
                          "gold": +3.0, "btc": -1.0, "cash": +6.0},
+    # Sleeve-specific cross-asset FLOW signals (orthogonal to the
+    # risk-off composites above). gold_rotation tilts ONLY the gold
+    # sleeve by gold's own momentum, so the allocator stops chasing a
+    # falling metal that the risk-off signals would otherwise overweight.
+    # foreign_bond_demand tilts the UST sleeve by actual foreign (TIC)
+    # demand for Treasuries -- a structural bond driver none of the
+    # composites capture. Intensity sign here is asset-direction (not
+    # risk-off): + = own that sleeve more.
+    "gold_rotation":    {"gold": +8.0},
+    "foreign_bond_demand": {"ust_long": +4.0, "ust_short": +2.0,
+                            "cash": -1.0},
 }
 
 s3 = boto3.client("s3")
@@ -284,10 +295,38 @@ def gather_signals():
                                 "regime": mn.get("regime")
                                 or mn.get("phase")}
 
+    # Gold / metals rotation -- directly informs the GOLD sleeve. None of
+    # the risk-off composites check whether gold is actually working;
+    # this tilts gold by its own 20d momentum so the allocator does not
+    # chase a falling metal. Intensity here is gold-direction (+ = gold up).
+    ger = read_json("data/gold-equity-rotation.json")
+    gm = ger.get("current_metrics") or {}
+    moms = [x for x in (gm.get("gld_20d_pct"), gm.get("gdx_20d_pct"))
+            if isinstance(x, (int, float))]
+    if moms:
+        gold_mom = sum(moms) / len(moms)
+        out["gold_rotation"] = {"value": round(gold_mom, 2),
+                                "intensity": clamp(gold_mom / 8.0, -1.0, 1.0),
+                                "label": "Gold/Metals Rotation",
+                                "regime": ger.get("state")}
+
+    # Foreign cross-border demand for US Treasuries (TIC) -- a structural
+    # bond-sleeve driver not captured by the risk-off composites. Strong
+    # foreign bid for USTs relative to its 12mo run-rate supports the UST
+    # weight. Intensity is UST-direction (+ = foreign accumulating).
+    ci = read_json("data/capital-inflows.json")
+    ust = (ci.get("by_asset_class") or {}).get("treasuries") or {}
+    lm, r12 = ust.get("latest_month_b"), ust.get("rolling_12mo_b")
+    if isinstance(lm, (int, float)) and isinstance(r12, (int, float)) and r12:
+        run_rate_m = r12 / 12.0
+        out["foreign_bond_demand"] = {
+            "value": round(lm, 1),
+            "intensity": clamp((lm - run_rate_m) / max(15.0, abs(run_rate_m)),
+                               -1.0, 1.0),
+            "label": "Foreign UST Demand (TIC)",
+            "regime": ci.get("regime")}
+
     return out
-
-
-# ============== aggregation ==============================================
 def aggregate_tilts(signals, ic_weights):
     """Combine signal-by-signal tilt proposals into a final per-asset
     tilt vector, weighted by each signal's IC from the fleet calibrator.
