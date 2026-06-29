@@ -22,6 +22,10 @@ from datetime import datetime, timezone
 S3 = boto3.client("s3")
 BUCKET = "justhodl-dashboard-live"
 RISK_ON = {"XLK", "XLY", "XLF", "XLC", "XLB", "XLE", "XLI", "XLRE"}
+SPDR_TO_GICS = {"XLK": "Technology", "XLV": "Healthcare", "XLF": "Financial Services",
+                "XLE": "Energy", "XLI": "Industrials", "XLB": "Basic Materials",
+                "XLP": "Consumer Defensive", "XLY": "Consumer Cyclical", "XLU": "Utilities",
+                "XLRE": "Real Estate", "XLC": "Communication Services"}
 
 
 def rj(key):
@@ -46,6 +50,8 @@ def rrg_quad(rank, slope):
 def lambda_handler(event, context):
     sec = rj("data/sector-rotation.json")
     liq = rj("data/liquidity-flow.json")
+    mf = rj("data/money-flow-state.json")
+    mf_sector = {s.get("sector"): s.get("net_flow_usd") for s in (mf.get("sectors") or []) if s.get("sector")}
     sectors = sec.get("sectors") or []
     liq_drain = (liq.get("regime") == "draining")
     out = []
@@ -63,7 +69,19 @@ def lambda_handler(event, context):
         mfi = float(s.get("money_flow_index_14") or 50)
         mfi_adj = 3 if mfi > 60 else -3 if mfi < 40 else 0
         liq_adj = -2 if (liq_drain and sym in RISK_ON) else 0
-        conv = max(0.0, min(100.0, base + q_adj + flow_adj + mfi_adj + liq_adj))
+        dollar_flow = mf_sector.get(SPDR_TO_GICS.get(sym))
+        dollar_adj, dollar_confirms = 0, None
+        if dollar_flow is not None:
+            strong = base >= 55
+            if strong and dollar_flow > 0:
+                dollar_adj, dollar_confirms = 3, True
+            elif strong and dollar_flow < 0:
+                dollar_adj, dollar_confirms = -4, False   # rotation strong but dollars leaving = distribution
+            elif (not strong) and dollar_flow < 0:
+                dollar_adj, dollar_confirms = -2, True     # dollars confirm the weakness
+            elif (not strong) and dollar_flow > 0:
+                dollar_adj = 2                              # early dollars in
+        conv = max(0.0, min(100.0, base + q_adj + flow_adj + mfi_adj + liq_adj + dollar_adj))
         drivers = []
         if quad in ("Leading", "Improving"):
             drivers.append(f"RRG {quad}")
@@ -75,6 +93,10 @@ def lambda_handler(event, context):
             drivers.append("RS accelerating")
         if s.get("in_current_cycle"):
             drivers.append("cycle-favored")
+        if dollar_confirms is True and dollar_flow and dollar_flow > 0:
+            drivers.append("dollars flowing in")
+        elif dollar_confirms is False:
+            drivers.append("\u26a0 dollars diverging (distribution)")
         conf = len(drivers)
         posture = "OVERWEIGHT" if (conv >= 62 and conf >= 3) else "UNDERWEIGHT" if (conv <= 42) else "NEUTRAL"
         out.append({
@@ -82,10 +104,11 @@ def lambda_handler(event, context):
             "quadrant": quad, "confluence": conf, "drivers": drivers,
             "rotation_score": round(base, 1), "rs_rank_1y": round(rank, 1), "rs_slope": round(slope, 4),
             "flow_confirm": fc or None, "in_cycle": bool(s.get("in_current_cycle")),
+            "dollar_flow_usd": dollar_flow, "dollar_confirms": dollar_confirms,
         })
     out.sort(key=lambda x: -x["conviction"])
     doc = {
-        "engine": "justhodl-sector-flow-state", "version": "1.0.0",
+        "engine": "justhodl-sector-flow-state", "version": "1.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "liquidity_regime": liq.get("regime"),
         "cycle_phase": (sec.get("macro_context") or {}).get("cycle_phase"),
