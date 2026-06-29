@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.12.2"
+VERSION = "2.13.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -241,9 +241,9 @@ def labor_bottleneck():
     return out
 
 
-def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity):
-    """Capstone — fuse the 6 leading layers (which lead the financials by quarters) into one
-    forward read. >=4 confirmations = a bottleneck is building before the income statement shows it."""
+def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory=None, cap_avail=None):
+    """Capstone — fuse the leading layers (which lead the financials by quarters) into one forward
+    read. >=4 confirmations = a bottleneck is building before the income statement shows it."""
     forming = [g for g, e in (pressure or {}).items() if e.get("bottleneck_forming")]
     confirms = []
     if ((phys or {}).get("gscpi") or {}).get("direction") == "TIGHTENING":
@@ -259,10 +259,14 @@ def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity)
         confirms.append("policy/input pressure: " + ", ".join(rp) if rp else "policy bottleneck building")
     if (capacity or {}).get("supply_relief_coming") is False:
         confirms.append("no capacity relief yet (tightness can persist)")
+    if (inventory or {}).get("n_sectors_drawing", 0) >= 3:
+        confirms.append("inventory drawing down in %d sectors (Burry pre-shortage)" % inventory["n_sectors_drawing"])
+    if (cap_avail or {}).get("supply_response_funded") is False:
+        confirms.append("supply response not funded (capital not flooding in)")
     n = len(confirms)
     return {"forming_industries": forming, "confirmations": confirms, "n_confirmations": n,
-            "forward_state": "BUILDING" if n >= 4 else "EARLY" if n >= 2 else "QUIET",
-            "note": "6 leading layers (physical/text/labor/policy/capacity/2nd-deriv) that lead financials by quarters"}
+            "forward_state": "BUILDING" if n >= 5 else "EARLY" if n >= 3 else "QUIET",
+            "note": "leading layers (physical/text/labor/policy/capacity/2nd-deriv/inventory/capital) that lead financials by quarters"}
 
 
 def _edgar_fts(q, forms, startdt, enddt):
@@ -414,6 +418,26 @@ def capacity_response():
             "read": ("Capacity additions RISING — supply response underway, bottleneck relief ahead (fade tightness)"
                      if relief else
                      "Capacity additions not rising — no supply response yet, tightness can persist")}
+
+
+def inventory_signal():
+    """#2 leading layer (Burry) — inventory-to-sales regime. READS the existing inventory-drawdown
+    engine (do NOT rebuild): which SECTORS are drawing down (lean I/S = pre-shortage) and which
+    COMPANIES have days-of-inventory falling into rising demand (physically running out)."""
+    try:
+        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/inventory-drawdown.json")["Body"].read())
+    except Exception as e:
+        print(f"[inv] {str(e)[:50]}")
+        return {}
+    drawing = [{"sector": s.get("sector"), "ratio": s.get("latest_ratio"), "chg_6m": s.get("chg_6m"),
+                "percentile_5y": s.get("percentile_5y")}
+               for s in (d.get("sector_drawdown") or []) if "DRAW" in str(s.get("flag", ""))]
+    setups = [{"ticker": r.get("ticker"), "industry": r.get("industry"), "dio_chg_pct": r.get("dio_chg_pct"),
+               "rev_growth_yoy": r.get("rev_growth_yoy"), "boom_score": r.get("boom_score")}
+              for r in (d.get("boom_setups") or [])[:12]]
+    return {"sectors_drawing_down": drawing, "n_sectors_drawing": len(drawing),
+            "pre_shortage_names": setups, "inventory_tightening": bool(drawing or setups),
+            "as_of": d.get("generated_at")}
 
 
 def _sic_sector(sic):
@@ -1013,7 +1037,8 @@ def lambda_handler(event=None, context=None):
     trade = trade_policy_bottleneck()
     capacity = capacity_response()
     cap_avail = capital_availability()
-    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity)
+    inventory = inventory_signal()
+    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -1151,7 +1176,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
