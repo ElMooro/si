@@ -1,12 +1,6 @@
 FunctionError: Unhandled
-version: 2.15.1
-ppi_pricing raw: null
-supply-inflection signals: 38
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2482_diag_ppi.py", line 14, in <module>
-    ppimatch=[s for s in sigs if "ppi" in " ".join(str(s.get(k,"")) for k in ("name","description","category","symbol")).lower()]
-                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/2482_diag_ppi.py", line 14, in <genexpr>
-    ppimatch=[s for s in sigs if "ppi" in " ".join(str(s.get(k,"")) for k in ("name","description","category","symbol")).lower()]
-                                                       ^^^^^
-AttributeError: 'str' object has no attribute 'get'
+version: 2.15.1 dur: 55.3
+=== #5 PPI PRICING POWER ===
+tightening_inputs: None | pricing_power_building: None
+CAPSTONE: BUILDING 8 confirms
+DONE 2483
