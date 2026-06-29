@@ -1,6 +1,11 @@
-FunctionError: Unhandled
-errorType: UnboundLocalError
-errorMessage: cannot access local variable 'rows' where it is not associated with a value
-ST: File "/var/task/lambda_function.py", line 1173, in lambda_handler
-    ppi = ppi_signal(rows)
-DONE 2484
+version: 2.16.0
+=== #4 COT COMMERCIAL HEDGERS ===
+  CL  Crude Oil    net=378876    chg=41375     pct_oi=19.8   LESS HEDGED (lean tight) prod=DVN,APA,CTRA,OXY
+  NG  Natural Gas  net=-30615    chg=-2574     pct_oi=-1.9   STABLE                   prod=EQT,AR,RRC,CTRA
+  RB  Gasoline     net=-86498    chg=-6481     pct_oi=-27.4  MORE HEDGED (lean loose) prod=
+  HO  Heating Oil  net=-60005    chg=5925      pct_oi=-22.2  LESS HEDGED (lean tight) prod=
+  HG  Copper       net=-97586    chg=3828      pct_oi=-36.3  STABLE                   prod=FCX,SCCO
+  GC  Gold         net=-9336     chg=9776      pct_oi=-2.7   LESS HEDGED (lean tight) prod=
+  SI  Silver       net=-13722    chg=3891      pct_oi=-12.6  LESS HEDGED (lean tight) prod=
+commercials_leaning_tight: ['CL', 'HO', 'GC', 'SI']
+DONE 2485
