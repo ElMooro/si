@@ -164,6 +164,15 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 <div class="fchips" id="fchips"></div>
 <div id="content"><div class="loading">Loading bottleneck candidates…</div></div>
 
+<div class="sec-h">Capital Cycle — where supply is being destroyed (the Druckenmiller read)</div>
+<div id="capcycle"><div class="loading">Loading capital cycle…</div></div>
+
+<div class="sec-h">Born in the Bust — early bottleneck calls (18–24 month horizon)</div>
+<div id="earlycalls"></div>
+
+<div class="sec-h">Commodity Cycle — "the cure for low prices is low prices"</div>
+<div id="commod"></div>
+
 <div class="disc" id="disc"></div>
 </div>
 <script>
@@ -510,6 +519,66 @@ function renderTable(){
   el.querySelectorAll('th[data-s]').forEach(th=>th.onclick=(e)=>{e.stopPropagation();SORT=th.getAttribute('data-s')==='ticker'?'boom_score':th.getAttribute('data-s');renderTable();});
 }
 
+function phColor(p){return p==='SCARCITY_BUILDING'?'var(--green)':p==='TIGHT'?'var(--cyan)':p==='CAPACITY_FLOODING'?'var(--amber)':p==='GLUT'?'var(--red)':'var(--fg-3)';}
+function phLabel(p){return (p||'NEUTRAL').replace(/_/g,' ');}
+function renderCapCycle(){
+  const el=document.getElementById('capcycle');if(!el)return;
+  const is=DATA.industry_supply||{},pc=DATA.capital_cycle_phase_counts||{},groups=Object.keys(is);
+  if(!groups.length){el.innerHTML='<div class="loading">No capital-cycle data.</div>';return;}
+  const summary=Object.keys(pc).map(k=>`<span style="color:${phColor(k)};font-family:var(--mono);font-size:11px;margin-right:14px">${phLabel(k)} · ${pc[k]}</span>`).join('');
+  const cards=groups.map(g=>{const e=is[g]||{},ph=e.capital_cycle_phase;
+    const util=e.cap_util==null?'—':e.cap_util+(e.cap_util_6mo_chg!=null?` <span style="color:${e.cap_util_6mo_chg>0?'var(--green)':'var(--red)'}">${e.cap_util_6mo_chg>0?'▲':'▼'}${Math.abs(e.cap_util_6mo_chg)}</span>`:'');
+    const cdaC=(e.capex_to_da_median!=null&&e.capex_to_da_median<1)?'var(--green)':'var(--fg-1)';
+    const cyC=(e.capex_yoy_median!=null&&e.capex_yoy_median<0)?'var(--green)':'var(--fg-1)';
+    return `<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:var(--mono);font-size:12px;color:var(--fg-2)">${g.replace(/_/g,' ')}</span>
+        <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${phColor(ph)};border:1px solid ${phColor(ph)};border-radius:4px;padding:2px 6px">${phLabel(ph)}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;font-size:12px">
+        <span style="color:var(--fg-3)">capex/D&amp;A <b style="color:${cdaC}">${e.capex_to_da_median==null?'—':e.capex_to_da_median}</b></span>
+        <span style="color:var(--fg-3)">capex YoY <b style="color:${cyC}">${e.capex_yoy_median==null?'—':e.capex_yoy_median+'%'}</b></span>
+        <span style="color:var(--fg-3)">losing $ <b>${e.pct_money_losing==null?'—':e.pct_money_losing+'%'}</b></span>
+        <span style="color:var(--fg-3)">capex-cut <b>${e.pct_capex_cut==null?'—':e.pct_capex_cut+'%'}</b></span>
+        <span style="color:var(--fg-3)">util <b>${util}</b></span>
+        ${e.est_months_to_tightness?`<span style="color:var(--fg-3)">~tight <b style="color:var(--green)">${e.est_months_to_tightness}mo</b></span>`:''}
+      </div></div>`;}).join('');
+  el.innerHTML=`<div style="margin-bottom:12px">${summary}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">${cards}</div>`;
+}
+function renderEarly(){
+  const el=document.getElementById('earlycalls');if(!el)return;
+  const calls=(DATA.early_bottleneck_calls||[]).slice().sort((a,b)=>((b.consensus_gap_score||b.score||0)-(a.consensus_gap_score||a.score||0)));
+  if(!calls.length){el.innerHTML='<div class="loading">No early bottleneck calls right now.</div>';return;}
+  const rows=calls.map(c=>{
+    const ml=c.money_losing?'<span style="color:var(--red);font-size:10px;font-weight:700">LOSING $</span>':'<span style="color:var(--fg-3);font-size:10px">—</span>';
+    const gap=c.consensus_gap_score,gapbar=gap==null?'':`<span style="display:inline-block;width:54px;height:5px;background:var(--bg);border-radius:3px;vertical-align:middle;margin-left:6px"><i style="display:block;height:100%;width:${Math.min(100,gap)}%;background:var(--violet);border-radius:3px"></i></span>`;
+    const cdaC=(c.capex_to_da!=null&&c.capex_to_da<1)?'var(--green)':'var(--fg-1)';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:8px 10px"><b style="font-family:var(--mono)">${c.ticker}</b><div style="font-size:10px;color:var(--fg-3)">${esc(c.name||'')}</div></td>
+      <td style="padding:8px 10px"><span style="font-family:var(--mono);font-size:10px;color:${phColor(c.phase)}">${phLabel(c.phase)}</span></td>
+      <td style="padding:8px 10px;text-align:right;color:${c.capex_yoy_pct<0?'var(--green)':'var(--fg-1)'}">${c.capex_yoy_pct==null?'—':c.capex_yoy_pct+'%'}</td>
+      <td style="padding:8px 10px;text-align:right;color:${cdaC}">${c.capex_to_da==null?'—':c.capex_to_da}</td>
+      <td style="padding:8px 10px;text-align:right;color:${c.net_margin_pct<0?'var(--red)':'var(--fg-1)'}">${c.net_margin_pct==null?'—':c.net_margin_pct+'%'}</td>
+      <td style="padding:8px 10px;text-align:center">${ml}</td>
+      <td style="padding:8px 10px;text-align:right;color:${c.consensus_fwd_growth_pct<0?'var(--red)':'var(--fg-2)'}">${c.consensus_fwd_growth_pct==null?'—':c.consensus_fwd_growth_pct+'%'}</td>
+      <td style="padding:8px 10px;text-align:right"><b>${gap==null?'—':gap}</b>${gapbar}</td></tr>`;}).join('');
+  el.innerHTML=`<div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">Money-losing cyclicals cutting capacity while the Street stays bearish — supply exiting today is pricing power in 18–24 months. The wider the <b style="color:var(--violet)">consensus gap</b>, the more the future diverges from what's priced. Logged to the scorecard on 6 / 12 / 18-month windows.</div>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+  <thead><tr style="color:var(--fg-3);font-family:var(--mono);font-size:10px;text-align:left">
+  <th style="padding:6px 10px">Name</th><th style="padding:6px 10px">Phase</th><th style="padding:6px 10px;text-align:right">capex YoY</th><th style="padding:6px 10px;text-align:right">capex/D&amp;A</th><th style="padding:6px 10px;text-align:right">Margin</th><th style="padding:6px 10px;text-align:center">P&amp;L</th><th style="padding:6px 10px;text-align:right">Street fwd</th><th style="padding:6px 10px;text-align:right">Consensus gap</th></tr></thead>
+  <tbody>${rows}</tbody></table></div>`;
+}
+function renderCommod(){
+  const el=document.getElementById('commod');if(!el)return;
+  const cm=DATA.commodity_cycle||{},ks=Object.keys(cm);
+  if(!ks.length){el.innerHTML='<div class="loading">No commodity data.</div>';return;}
+  const anyCure=(DATA.cure_for_low_prices||[]).length>0;
+  const cards=ks.map(k=>{const e=cm[k]||{},cure=e.cure_for_low_prices_setup;
+    return `<div style="background:var(--bg-2);border:1px solid ${cure?'var(--green)':'var(--border)'};border-radius:8px;padding:12px 14px">
+      <div style="display:flex;justify-content:space-between"><span style="font-family:var(--mono);font-size:12px;color:var(--fg-2)">${k.replace(/_/g,' ')}</span>${cure?'<span style="font-size:10px;color:var(--green);font-weight:700">CURE SETUP</span>':''}</div>
+      <div style="font-size:18px;font-weight:700;margin:6px 0">${e.price==null?'—':e.price}<span style="font-size:11px;color:${e.price_yoy_pct<0?'var(--red)':'var(--green)'};margin-left:8px">${e.price_yoy_pct==null?'':(e.price_yoy_pct>0?'+':'')+e.price_yoy_pct+'% yoy'}</span></div>
+      <div style="font-size:11px;color:var(--fg-3)">price z <b style="color:${e.price_depressed?'var(--green)':'var(--fg-1)'}">${e.price_z==null?'—':e.price_z}</b> · producer capex <b style="color:${e.supply_exiting?'var(--green)':'var(--fg-1)'}">${e.producer_capex_yoy_med==null?'—':e.producer_capex_yoy_med+'%'}</b></div></div>`;}).join('');
+  el.innerHTML=`<div style="font-size:12px;color:var(--fg-3);margin-bottom:8px">A depressed price with producers cutting supply precedes recovery. ${anyCure?'':'Right now most commodities are elevated, so no cure setups fire — the accurate read.'}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">${cards}</div>`;
+}
 async function load(){
   const [boom,res]=await Promise.all([
     fetch(`${PROXY}/data/bottleneck-boom.json?t=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null),
@@ -522,6 +591,7 @@ async function load(){
   renderChanges();
   renderChips();
   renderTable();
+  try{renderCapCycle();renderEarly();renderCommod();}catch(e){console.error('capcycle render',e);}
   document.getElementById('disc').innerHTML=`<b>Methodology.</b> ${esc(DATA.methodology||'')}<br><br>Per-stock theses are AI-written in plain English from the stock's own numbers (mechanism + the key risk) — research aid, not advice. Cheap revenue-to-market-cap with <b>decelerating</b> orders is the value trap this is built to avoid; bottleneck pressure + revenue acceleration are what separate a real boom from a trap. Scored ${DATA.scored_n||0} of a curated bottleneck-relevant universe. Track record: <a href="/track-public.html">/track-public.html</a>.`;
 }
 load();
