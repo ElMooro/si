@@ -1,4 +1,20 @@
-gen: 2026-06-28T10:35:40.246408+00:00 counts: {"sectors_drawing": 7, "names_scanned": 121, "names_with_inventory": 82, "boom_setups": 4, "building_inventory": 21}
-sector sample: [{"series": "WHLSLRIRSA", "sector": "Wholesale", "theme_etf": null, "latest_ratio": 1.19, "chg_3m": -4.8, "chg_6m": -8.46, "chg_12m": -8.46, "percentile_5y": 0.0, "drawdown_score": 100.0, "flag": "DRAWING DOWN"}, {"series": "ISRATIO", "sector": "Total business", "theme_etf": null, "latest_ratio": 1.31, "chg_3m": -2.96, "chg_6m": -5.07, "chg_12m": -5.07, "percentile_5y": 13.3, "drawdown_score": 71.2, "flag": "DRAWING DOWN"}, {"series": "MNFCTRIRSA", "sector": "Manufacturing", "theme_etf": "XLI", "latest_ratio": 1.5, "chg_3m": -3.23, "chg_6m": -3.85, "chg_12m": -5.06, "percentile_5y": 6.7, "drawdown_score": 65.0, "flag": "DRAWING DOWN"}]
-boom_setup sample: [{"ticker": "MU", "classification": "BOOM_SETUP", "boom_score": 47.1, "dio_latest": 120.5, "dio_4q_ago": 135.6, "dio_chg_pct": -11.1, "draw_score": 22.2, "rev_growth_yoy": 73.7, "demand_score": 100.0, "industry": "Semiconductors", "sector": "Technology"}, {"ticker": "HEI", "classification": "BOOM_SETUP", "boom_score": 37.8, "dio_latest": 157.5, "dio_4q_ago": 177.4, "dio_chg_pct": -11.2, "draw_score": 22.4, "rev_growth_yoy": 16.7, "demand_score": 63.6, "industry": "Aerospace & Defense", "sector": "Industrials"}, {"ticker": "HPE", "classification": "BOOM_SETUP", "boom_score": 33.8, "dio_latest": 120.0, "dio_4q_ago": 132.6, "dio_chg_pct": -9.5, "draw_score": 19.0, "rev_growth_yoy": 14.8, "demand_score": 60.0, "industry": "Computer Hardware", "sector": "Technology"}]
-DONE 2478
+err: None
+version: 2.13.0 dur: 65.1
+=== #2 INVENTORY-TO-SALES (Burry) ===
+n_sectors_drawing: 7
+   Wholesale              ratio=1.19  chg6m=-8.46  pctile5y=0.0
+   Total business         ratio=1.31  chg6m=-5.07  pctile5y=13.3
+   Manufacturing          ratio=1.5   chg6m=-3.85  pctile5y=6.7
+   Retail                 ratio=1.26  chg6m=-2.33  pctile5y=33.3
+   Building materials     ratio=2.1   chg6m=-3.67  pctile5y=81.7
+   Autos                  ratio=1.45  chg6m=-3.78  pctile5y=88.3
+pre_shortage_names: [('MU', 'Semiconductors', 'dio -11.1%', 'rev 73.7%'), ('HEI', 'Aerospace & Defense', 'dio -11.2%', 'rev 16.7%'), ('HPE', 'Computer Hardware', 'dio -9.5%', 'rev 14.8%'), ('NDSN', 'Industrial - Machinery', 'dio -9.4%', 'rev 10.7%')]
+CAPSTONE forward_state: BUILDING n_confirmations: 7
+   + GSCPI tightening (physical backdrop)
+   + orders>shipments forming: TOTAL_MFG, COMPUTERS_ELECTRONICS, MACHINERY
+   + labor supply-ramp blocked (manufacturing, construction, mining_logging)
+   + policy/input pressure: critical_minerals, import_dependency
+   + no capacity relief yet (tightness can persist)
+   + inventory drawing down in 7 sectors (Burry pre-shortage)
+   + supply response not funded (capital not flooding in)
+DONE 2479
