@@ -1,5 +1,12 @@
 err: None
-version: 2.5.2
-GSCPI: {"level": 1.77, "chg_3m": 1.22, "z_vs_history": 0.82, "direction": "TIGHTENING", "n_obs": 341}
-physical_pressure_z: 0.4 state: BALANCED confirms: False
-DONE 2465
+version: 2.6.0 | dur: 24.8 s
+=== #2 CONSTRAINT LANGUAGE (EDGAR full-text) ===
+  on_allocation          90d=34   prior=38   STABLE    e.g. BSY,GCTK,PARK,PCTY,RRC
+  supply_constrained     90d=52   prior=50   STABLE    e.g. AGPU,APVO,CWD,HGIT,RKLB
+  capacity_constrained   90d=12   prior=23   FALLING   e.g. CSX,FET,FPS,IVF,KRMN
+  lead_times_extended    90d=492  prior=871  FALLING   e.g. AGPU,ANET,HNRG,KOPN,LEU
+  double_ordering        90d=0    prior=0    STABLE    e.g. 
+on_allocation_names: ['BSY', 'GCTK', 'PARK', 'PCTY', 'RRC', 'SABR', 'TRNR', 'XPO']
+intensity_chg_pct: -39.9 | rising: [] | confirms: False
+names_by_breadth: ['AGPU', 'BSY', 'GCTK', 'PARK', 'PCTY', 'RRC', 'SABR', 'TRNR', 'XPO', 'APVO', 'CWD', 'HGIT', 'RKLB', 'WSR', 'CSX']
+DONE 2466
