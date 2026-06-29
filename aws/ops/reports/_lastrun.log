@@ -1,6 +1,9 @@
-===== political-stocks.json (congress) =====
-keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'lookback_days', 'data_source', 'party_source', 'quiver_source', 'trump_holdings', 'congress', 'notes']
-
-===== political-trades.json =====
-keys: ['schema_version', 'method', 'generated_at', 'endpoints', 'stats', 'trades_recent_50', 'clusters_top_10', 'large_trades_top_15', 'high_watch_recent_15', 'duration_s']
-DONE 2509
+===== screener/smart-money-holdings.json =====
+type: dict keys: ['generated_at', 'elapsed_seconds', 'as_of_quarter', 'year', 'quarter', 'n_funds_scanned', 'n_funds_attempted', 'n_symbols', 'holdings', 'funds']
+ sample: {"AAPL": {"holders": [{"cik": "0001067983", "name": "Berkshire Hathaway", "shares": 227917808, "value": 57843260493, "pct_of_fund": 21.986}, {"cik": "0001374170", "name": "Norges Bank Investment Mgmt", "shares": 192255086, "value": 52266467680, "pct_of_fund": 5.591}, {"cik": "0000902219", "name": "Wellington Management", "shares": 6503344
+ gen: 2026-06-29T14:30:33.237457+00:00
+===== screener/smart-money.json =====
+type: dict keys: ['generated_at', 'elapsed_seconds', 'as_of_date', 'as_of_quarter', 'n_filers', 'filers', 'summary']
+ sample: {"generated_at": "2026-06-29T14:00:33.538003+00:00"}
+ gen: 2026-06-29T14:00:33.538003+00:00
+DONE 2510
