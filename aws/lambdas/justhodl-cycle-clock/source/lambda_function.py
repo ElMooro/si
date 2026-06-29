@@ -138,6 +138,9 @@ FLIP = {
     "Liquidity-pulse draining": "the liquidity pulse turns from draining to neutral/expanding",
     "Bank-reserve scarcity": "bank reserves climb back above ~11% of GDP",
     "Recession-prob composite": "the recession-prob composite falls back below 25%",
+    "Capital-cycle scarcity building": "industry capex turns back up / capacity utilization rolls over",
+    "Capacity flooding (late cycle)": "industry capex growth rolls back below replacement",
+    "Commodity cure-for-low-prices": "commodity prices recover back above their trend",
     "Leading labor weakening": "leading labor stabilises or re-accelerates",
     "Retail euphoria (contrarian)": "AAII bulls reset out of the euphoric extreme",
     "Smart money distributing": "COT smart-money flips from distributing to accumulating",
@@ -543,6 +546,11 @@ def lambda_handler(event, context):
     cetf = load("data/crypto-etf-flows.json", "crypto_etf_flows")
     chl = load("data/hyperliquid-perps.json", "hyperliquid_perps")
     cgex = load("data/crypto-gex.json", "crypto_gex")
+    bneck = load("data/bottleneck-boom.json", "bottleneck")
+    _bphases = (_get(bneck, "capital_cycle_phase_counts") or {})
+    _bflood = (_get(bneck, "capacity_flood_warnings") or [])
+    _bcure = (_get(bneck, "cure_for_low_prices") or [])
+    _bearly = (_get(bneck, "early_bottleneck_calls") or [])
     cftc = _cftc_signals()
 
     # ───────────────────────── CYCLE POSITION ─────────────────────────
@@ -804,6 +812,13 @@ def lambda_handler(event, context):
         "gex_btc_call_wall": _get(cgex, "btc", "call_wall"),
         "gex_btc_put_wall": _get(cgex, "btc", "put_wall"),
         "gex_btc_max_pain": _get(cgex, "btc", "max_pain"),
+        # capital cycle (bottleneck-boom supply side) — the Druckenmiller "where the puck is going" read
+        "capital_cycle_phases": _bphases,
+        "capital_cycle_scarcity_building": _bphases.get("SCARCITY_BUILDING", 0),
+        "capital_cycle_flooding": _bphases.get("CAPACITY_FLOODING", 0),
+        "capacity_flood_names": _bflood[:6],
+        "commodity_cure_setups": _bcure,
+        "bottleneck_early_calls": [c.get("ticker") for c in _bearly[:5]],
     }
     # ── COT / CFTC futures positioning into the positioning block ──
     positioning["cot"] = {"score": _get(cftc, "positioning_score"), "risk_appetite": _get(cftc, "risk_appetite"),
@@ -1049,6 +1064,15 @@ def lambda_handler(event, context):
     _yc = _get(cross_asset_risk, "yen_carry", "unwind_score")
     if isinstance(_yc, (int, float)) and _yc >= 50: _add("Yen-carry unwind risk", -1, 5)
     if ca_confirm and ca_confirm.get("status") == "CONTRADICTED": _add("Tape contradicts regime", -1, 5)
+    # capital-cycle contributors (bottleneck-boom supply side; structural / 18-24mo horizon, modest weight)
+    if _bphases.get("SCARCITY_BUILDING", 0) >= 1:
+        _add("Capital-cycle scarcity building", 1, 4,
+             "supply exiting money-losing cyclicals — 18-24mo tightening setup")
+    if _bflood:
+        _add("Capacity flooding (late cycle)", -1, 4,
+             f"{len(_bflood)} boom names' industries now adding capacity")
+    if _bcure:
+        _add("Commodity cure-for-low-prices", 1, 3, ",".join(_bcure[:3]))
     # crypto contributors (one input among many; modest weight)
     if _get(cdvol, "btc", "regime") in ("ELEVATED", "HIGH"):
         _add("Crypto implied vol elevated", -1, 3, f"DVOL {_get(cdvol, 'btc', 'dvol')}")

@@ -193,6 +193,8 @@ def load_all():
         "brain":"data/brain.json",
         # ─── Crypto cycle dump-risk gauge (halving + macro + flows + AI rotation) ──
         "crypto_dump_risk":"data/crypto-cycle-risk.json",
+        # ─── Capital cycle / bottleneck-boom (Druckenmiller supply-destruction read) ──
+        "bottleneck":"data/bottleneck-boom.json",
         # ─── Earnings Call Transcript Sentiment NLP (Bloomberg-Gap #5) ──
         "earnings_sentiment":"screener/earnings-sentiment.json",
         # ─── Earnings Call NLP (Bloomberg-Gap #7 · daily) ─────────────
@@ -267,6 +269,9 @@ def extract_metrics(data,weights):
     # cross-border + cycle + leadership facts (hot-money + accumulation-radar)
     hotm = data.get("hot_money", {}) or {}
     accr = data.get("accum_radar", {}) or {}
+    bneck = data.get("bottleneck", {}) or {}
+    _bn_early = [c.get("ticker") for c in (bneck.get("early_bottleneck_calls") or [])[:5]]
+    _bn_phases = bneck.get("capital_cycle_phase_counts") or {}
     hm_in = [f"{c.get('country')} [{c.get('conviction')}]" for c in (hotm.get("inflow_leaders") or [])[:5]]
     hm_out = [c.get("country") for c in (hotm.get("outflow_leaders") or [])[:4]]
     accum_bottoms = [f"{r.get('ticker')}({r.get('label') or r.get('class')})"
@@ -287,6 +292,10 @@ def extract_metrics(data,weights):
         "cycle_tops": dist_tops,
         "market_leaders": mkt_leaders,
         "leaders_fading": [r.get("ticker") for r in (accr.get("leaders_fading") or [])[:5]],
+        "capital_cycle_phases": _bn_phases,
+        "capital_cycle_early_calls": _bn_early,
+        "bottleneck_boom_names": (bneck.get("top_calls") or [])[:6],
+        "commodity_cure_setups": bneck.get("cure_for_low_prices") or [],
         "khalid_raw":ki,
         "khalid_weight":kw,
         "khalid_adj":round(float(ki["score"] if isinstance(ki, dict) else ki)*kw,1) if ki else 0,

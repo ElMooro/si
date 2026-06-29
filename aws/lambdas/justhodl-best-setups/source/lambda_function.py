@@ -54,6 +54,8 @@ SIGNAL_PRIORS = {
     "DISLOCATION":          0.78,   # relative-value buy-the-laggard
     "BUYBACK":              0.74,   # aggressive share repurchase (price support, ↑EPS)
     "CAPEX_ACCEL":          0.70,   # surging capex in a buildout sector (AI/power demand)
+    "BOTTLENECK_BOOM":      0.70,   # demand outrunning supply (Census M3 backlog + revenue acceleration)
+    "CAPITAL_CYCLE_EARLY":  0.55,   # Druckenmiller: money-losing cyclical cutting capacity (18-24mo)
     "INSIDER_CLUSTER":      0.80,   # multi-insider buying
     "SHORT_SQUEEZE":        0.66,   # FINRA short-volume z-score + squeeze setup
     "FDA_CATALYST":         0.62,   # upcoming PDUFA/AdCom binary event
@@ -132,6 +134,7 @@ def normalize(value, lo, hi):
 SIGNAL_FAMILY = {
     "COMPOUNDER": "value_quality", "DEEP_VALUE_OVERLAP": "value_quality", "BUYBACK": "value_quality",
     "CAPEX_ACCEL": "growth",
+    "BOTTLENECK_BOOM": "supply_demand", "CAPITAL_CYCLE_EARLY": "supply_demand",
     "REVISION_UP": "revision", "EARNINGS_FRESH": "revision",
     "CAPITAL_FLOW": "flow", "SECTOR_CAPITAL_FLOW": "flow", "CASCADE_ALERT": "flow",
     "CASCADE_LAGGARD": "flow", "CONVERGENCE": "flow", "EARLY_MOVER": "flow",
@@ -277,6 +280,7 @@ def lambda_handler(event, context):
 
     bond_vol = read_json("data/bond-vol.json") or {}
     massive = read_json("data/massive-signals.json") or {}
+    bottleneck = read_json("data/bottleneck-boom.json") or {}
     # ── The Brain: Khalid's pinned principles + watched tickers. We flag setups
     # that align with what's on his mind so the board surfaces HIS theses. ──
     brain = read_json("data/brain.json") or {}
@@ -463,6 +467,19 @@ def lambda_handler(event, context):
         for s in (cx.get("ref_stocks") or []):
             add(s, None, "SECTOR_CAPITAL_FLOW", normalize(pp, 65, 100),
                 "sector capital ACCELERATING in · " + (cxn or "") + " (pump " + str(pp) + ")")
+
+    # 7f. Supply-bottleneck — demand outrunning supply (boom) + Druckenmiller early capital-cycle
+    for r in (bottleneck.get("ranks") or [])[:30]:
+        bsc = r.get("boom_score")
+        if bsc is not None and bsc >= 62:
+            add(r.get("ticker"), r.get("sector"), "BOTTLENECK_BOOM", normalize(bsc, 60, 92),
+                f"demand>supply · boom {bsc} · {r.get('pressure_group')} pressure {r.get('group_pressure')}")
+    for c in (bottleneck.get("early_bottleneck_calls") or []):
+        if c.get("phase") == "SCARCITY_BUILDING" and c.get("money_losing"):
+            add(c.get("ticker"), c.get("group"), "CAPITAL_CYCLE_EARLY",
+                normalize(c.get("consensus_gap_score") or c.get("score"), 60, 100),
+                f"capital cycle: supply exiting · capex {c.get('capex_yoy_pct')}% · "
+                f"capex/D&A {c.get('capex_to_da')} · Street fwd {c.get('consensus_fwd_growth_pct')}%")
 
     # 7e. FINRA short-squeeze setups (elevated short-volume z-score + price strength)
     for r in (finra_short.get("squeeze_candidates") or [])[:25]:
