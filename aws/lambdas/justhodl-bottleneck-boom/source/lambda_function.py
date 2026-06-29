@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.5.1"
+VERSION = "2.5.2"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -196,57 +196,41 @@ def _classify_direction(hist):
 
 
 def _gscpi():
-    """#1 — NY Fed Global Supply Chain Pressure Index: the literal bottleneck index (free xlsx).
+    """#1 — NY Fed Global Supply Chain Pressure Index: the literal bottleneck index (free).
     Baltic Dry + Harpex + BLS air-freight + PMI supplier-delivery-times across 7 economies;
-    >0 = supply chains tighter than average. Monthly = macro backdrop, not a trigger."""
-    import io, zipfile
-    from xml.etree import ElementTree as ET
+    >0 = supply chains tighter than average. Monthly = macro backdrop, not a trigger.
+    NY Fed ships a legacy .xls (OLE2) despite the .xlsx name, so we parse with vendored xlrd."""
     from collections import defaultdict
+    import xlrd
     url = "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.xlsx"
-    ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; JustHodlBot/1.0)"})
         raw = urllib.request.urlopen(req, timeout=45).read()
-        zf = zipfile.ZipFile(io.BytesIO(raw))
-        sst = []
-        if "xl/sharedStrings.xml" in zf.namelist():
-            for si in ET.fromstring(zf.read("xl/sharedStrings.xml")).findall(f"{ns}si"):
-                sst.append("".join(t.text or "" for t in si.iter(f"{ns}t")))
-        best = []                                       # scan every sheet, keep the longest GSCPI-like column
-        for name in sorted(n for n in zf.namelist() if n.startswith("xl/worksheets/sheet")):
-            rows = []
-            for row in ET.fromstring(zf.read(name)).iter(f"{ns}row"):
-                cells = {}
-                for c in row.findall(f"{ns}c"):
-                    col = "".join(ch for ch in c.get("r", "") if ch.isalpha())
-                    v = c.find(f"{ns}v")
-                    if v is None or v.text is None:
-                        continue
-                    cells[col] = (sst[int(v.text)] if (c.get("t") == "s" and int(v.text) < len(sst))
-                                  else v.text)
-                if cells:
-                    rows.append(cells)
+        book = xlrd.open_workbook(file_contents=raw)
+        best = []
+        for si in range(book.nsheets):
+            sh = book.sheet_by_index(si)
+            if sh.nrows < 14:
+                continue
             gcol = None
-            for r in rows[:8]:
-                for col, val in r.items():
-                    if isinstance(val, str) and "GSCPI" in val.upper():
-                        gcol = col
+            for r in range(min(8, sh.nrows)):
+                for c in range(sh.ncols):
+                    v = sh.cell_value(r, c)
+                    if isinstance(v, str) and "GSCPI" in v.upper():
+                        gcol = c
             cand = defaultdict(list)
-            for r in rows:
-                for col, val in r.items():
-                    try:
-                        f = float(val)
-                        if -6 < f < 8:                  # GSCPI range; excludes date serials (>40000)
-                            cand[col].append(f)
-                    except (TypeError, ValueError):
-                        pass
-            nums = (cand.get(gcol) if (gcol and cand.get(gcol))
+            for c in range(sh.ncols):
+                for r in range(sh.nrows):
+                    v = sh.cell_value(r, c)
+                    if isinstance(v, (int, float)) and not isinstance(v, bool) and -6 < v < 8:
+                        cand[c].append(float(v))
+            nums = (cand.get(gcol) if (gcol is not None and cand.get(gcol))
                     else cand[max(cand, key=lambda k: len(cand[k]))] if cand else [])
             if len(nums) > len(best):
                 best = nums
         nums = best
         if len(nums) < 14:
-            print(f"[gscpi] parsed only {len(nums)} obs")
+            print(f"[gscpi] parsed {len(nums)} obs")
             return None
         cur = nums[-1]
         w = nums[-120:]
