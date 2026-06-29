@@ -1,10 +1,12 @@
-version: 2.4.1
-BULLWHIP (trend-based):
-  TOTAL_MFG              ratio=6.38   chg=-92.8%  state=DAMPING
-  COMPUTERS_ELECTRONICS  ratio=10.27  chg=-8.5%   state=STABLE
-  MACHINERY              ratio=18.44  chg=-69.4%  state=DAMPING
-  ELECTRICAL_EQUIP       ratio=3.16   chg=-91.9%  state=DAMPING
-  AEROSPACE_DEFENSE      ratio=166.3  chg=-61.3%  state=DAMPING
-CHOKEPOINT criticality on boom ranks (tech chokepoints):
-MARGIN INFLECTING early calls: ['F', 'CC', 'WLK']
-DONE 2460
+version: 2.4.2
+boom ranks WITH chokepoint criticality (8):
+  ARM   crit=72.6 boom=44.0
+  NVDA  crit=88.2 boom=43.7
+  AVGO  crit=63.6 boom=43.7
+  AMAT  crit=67.0 boom=43.2
+  LRCX  crit=73.1 boom=42.6
+  TER   crit=70.3 boom=42.2
+  TSM   crit=71.4 boom=42.1
+  ONTO  crit=54.8 boom=41.1
+chokepoint-in-scarcity early calls: none (commodities aren't chokepoints — correct)
+DONE 2461
