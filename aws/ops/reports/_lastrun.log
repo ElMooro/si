@@ -1,21 +1,21 @@
-FunctionError: None | resp: {"statusCode": 200, "body": "{\"scored\": 48, \"logged\": 8}"}
-version: 2.0.0 | dur: 12.0 s | scored: 48
-phase counts: {'NEUTRAL': 3, 'GLUT': 1, 'TIGHT': 1} | early logged: 8 | flood: []
+FunctionError: None | resp: {"statusCode": 200, "body": "{\"scored\": 96, \"logged\": 8}"}
+version: 2.1.0 | dur: 13.7 s | universe_n: 96 | scored: 96
+phase counts: {'SCARCITY_BUILDING': 1, 'GLUT': 1, 'TIGHT': 1, 'NEUTRAL': 2} | early logged: 8
 
-INDUSTRY SUPPLY (capital-cycle phase per group):
-  TOTAL_MFG              phase=NEUTRAL            score=50 | capex_yoy_med=48.9 capex/DA=1.24 | %ml=22 %cut=44 %druck=22 | util=75.7 z=-0.35 6mo=0.73
-  COMPUTERS_ELECTRONICS  phase=GLUT               score=22 | capex_yoy_med=29.7 capex/DA=1.12 | %ml=8 %cut=44 %druck=0 | util=75.4 z=-0.74 6mo=2.21
-  MACHINERY              phase=TIGHT              score=62 | capex_yoy_med=-4.2 capex/DA=0.42 | %ml=0 %cut=100 %druck=0 | util=81.8 z=1.05 6mo=1.57
-  ELECTRICAL_EQUIP       phase=NEUTRAL            score=50 | capex_yoy_med=2.2 capex/DA=0.77 | %ml=0 %cut=67 %druck=0 | util=86.2 z=1.71 6mo=1.94
-  AEROSPACE_DEFENSE      phase=NEUTRAL            score=50 | capex_yoy_med=42.5 capex/DA=1.43 | %ml=17 %cut=50 %druck=0 | util=72.6 z=0.4 6mo=1.17
+INDUSTRY SUPPLY:
+  TOTAL_MFG              phase=SCARCITY_BUILDING  | capex_yoy_med=6.0 capex/DA=0.99 | %ml=32 %cut=68 %druck=25 | util=75.7(z-0.35,6mo0.73)
+  COMPUTERS_ELECTRONICS  phase=GLUT               | capex_yoy_med=29.7 capex/DA=1.12 | %ml=8 %cut=44 %druck=0 | util=75.4(z-0.74,6mo2.21)
+  MACHINERY              phase=TIGHT              | capex_yoy_med=-4.2 capex/DA=0.42 | %ml=0 %cut=100 %druck=0 | util=81.8(z1.05,6mo1.57)
+  ELECTRICAL_EQUIP       phase=NEUTRAL            | capex_yoy_med=2.2 capex/DA=0.77 | %ml=0 %cut=67 %druck=0 | util=86.2(z1.71,6mo1.94)
+  AEROSPACE_DEFENSE      phase=NEUTRAL            | capex_yoy_med=42.5 capex/DA=1.43 | %ml=17 %cut=50 %druck=0 | util=72.6(z0.4,6mo1.17)
 
-EARLY BOTTLENECK CALLS (born-in-the-bust):
-  DELL   Dell Technologies Inc.     30 | GLUT               | capex 15.4% capex/DA 0.99 margin 6.3% ml=False
-  HPE    Hewlett Packard Enterprise 30 | GLUT               | capex -67.7% capex/DA 0.22 margin 3.9% ml=False
-  JBL    Jabil Inc.                 30 | GLUT               | capex -16.5% capex/DA 0.51 margin 2.6% ml=False
-  MRVL   Marvell Technology, Inc.   30 | GLUT               | capex 22.7% capex/DA 0.31 margin 29.0% ml=False
-  LITE   Lumentum Holdings Inc.     30 | GLUT               | capex -11.5% capex/DA 0.7 margin 17.7% ml=False
-  ONTO   Onto Innovation Inc.       30 | GLUT               | capex -28.0% capex/DA 0.36 margin 10.3% ml=False
-  ACLS   Axcelis Technologies, Inc. 30 | GLUT               | capex -47.3% capex/DA 0.46 margin 11.9% ml=False
-  TSM    Taiwan Semiconductor Manuf 22 | GLUT               | capex 17.0% capex/DA 1.9 margin 47.0% ml=False
-DONE 2451
+EARLY BOTTLENECK CALLS (now with cyclical universe + consensus gap):
+  CLF    Cleveland-Cliffs Inc.    sc=100 | SCARCITY_BUILDING  | capex -15.6% capex/DA 0.46 margin -6.4% ml=True | Street fwd 3.8% gap=87.0
+  F      Ford Motor Company       sc=100 | SCARCITY_BUILDING  | capex 11.5% capex/DA 0.64 margin -3.2% ml=True | Street fwd 2.0% gap=88.4
+  AAON   AAON, Inc.               sc=100 | SCARCITY_BUILDING  | capex -7.1% capex/DA 3.08 margin 7.3% ml=True | Street fwd 16.8% gap=76.6
+  OLN    Olin Corporation         sc=100 | SCARCITY_BUILDING  | capex -1.7% capex/DA 0.41 margin -1.9% ml=True | Street fwd 3.9% gap=86.9
+  ASH    Ashland Inc.             sc=100 | SCARCITY_BUILDING  | capex -36.0% capex/DA 0.24 margin -39.0% ml=True | Street fwd 3.5% gap=87.2
+  CC     The Chemours Company     sc=100 | SCARCITY_BUILDING  | capex -48.0% capex/DA 0.71 margin -7.1% ml=True | Street fwd 4.6% gap=86.3
+  CE     Celanese Corporation     sc=100 | SCARCITY_BUILDING  | capex -23.3% capex/DA 0.39 margin -11.5% ml=True | Street fwd -16.6% gap=100
+  LYB    LyondellBasell Industrie sc=100 | SCARCITY_BUILDING  | capex -88.4% capex/DA 11.26 margin -2.7% ml=True | Street fwd -2.0% gap=91.6
+DONE 2452
