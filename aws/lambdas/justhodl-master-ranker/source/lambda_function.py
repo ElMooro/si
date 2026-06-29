@@ -746,6 +746,30 @@ def lambda_handler(event, context):
                 return v["sector"]
         return None
 
+    # sector-flow-state overlay (fused RRG-quadrant + posture conviction feed)
+    _sf = fetch_json("data/sector-flow-state.json") or {}
+    sf_by_name = {s.get("name"): s for s in (_sf.get("sectors") or []) if s.get("name")}
+    _SF_NORM = {"Consumer Cyclical": "Consumer Discretionary", "Financial Services": "Financials",
+                "Basic Materials": "Materials", "Consumer Defensive": "Consumer Staples"}
+
+    def _sectorflow_overlay(sector, base_score):
+        if not sector:
+            return base_score, 1.0, None
+        nm = _SF_NORM.get(sector, sector)
+        s = sf_by_name.get(nm)
+        if not s:
+            return base_score, 1.0, None
+        post, quad, conv = s.get("posture"), s.get("quadrant"), s.get("conviction") or 0
+        if post == "OVERWEIGHT" or (quad == "Leading" and conv >= 65):
+            return round(base_score * 1.07, 1), 1.07, f"sector Leading/OW · flow-confirmed ({nm})"
+        if quad == "Improving":
+            return round(base_score * 1.04, 1), 1.04, f"sector rotating in (Improving · {nm})"
+        if post == "UNDERWEIGHT" or quad == "Lagging":
+            return round(base_score * 0.92, 1), 0.92, f"sector Lagging/UW headwind ({nm})"
+        if quad == "Weakening":
+            return round(base_score * 0.97, 1), 0.97, f"sector momentum fading ({nm})"
+        return base_score, 1.0, None
+
     def _roro_overlay(sector, base_score):
         if not isinstance(_rr_score, (int, float)) or not sector:
             return base_score, 1.0, None
@@ -810,6 +834,7 @@ def lambda_handler(event, context):
         score, cf_mult, cf_note = _cf_overlay(ticker, score)
         _sector = _ticker_sector(systems_dict)
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
+        score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
         # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
         _cyc = _cycle_map.get(ticker)
         _cyc_phase = (_cyc or {}).get("phase")
@@ -828,6 +853,8 @@ def lambda_handler(event, context):
             rationale += " · " + cf_note
         if roro_note:
             rationale += " · " + roro_note
+        if sf_note:
+            rationale += " · " + sf_note
         if _cyc_warn:
             rationale += " · cycle: " + _cyc_warn
         if _rf:
