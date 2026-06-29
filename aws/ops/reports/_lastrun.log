@@ -1,5 +1,13 @@
-morning-intelligence zip has llm_router.py: True
-brain-sync zip has llm_router.py: True
-MI LastUpdateStatus: Successful
-MI invoke err: None
-DONE 2523
+/home/runner/work/si/si/aws/ops/pending/2524_investigate_llm.py:31: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  def ts(e): return dt.datetime.utcfromtimestamp(e["timestamp"]/1000).isoformat()
+ANTHROPIC_KEY present on brain-sync: True len: 108
+
+=== LIVE Anthropic test NOW (credits reportedly filled) ===
+  claude-haiku-4-5-20251001: HTTP 200 OK -> OK
+  claude-sonnet-4-6: HTTP 200 OK -> OK
+
+=== CloudWatch failure history (brain-sync, last 14d) ===
+matching events: 3
+  EARLIEST: 2026-06-16T13:01:11.106000 -> [brain-sync] regime read err: HTTP Error 400: Bad Request
+  LATEST  : 2026-06-18T13:01:08.857000 -> [brain-sync] regime read err: HTTP Error 400: Bad Request
+DONE 2524
