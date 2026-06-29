@@ -1,13 +1,8 @@
-===== smart-beta.json =====
-keys: ['ok', 'version', 'generated_at', 'n_universe', 'n_analyzed', 'n_valid', 'n_diversified_leaders', 'factor_regime', 'leading_factor', 'lagging_factor', 'factor_medians', 'factor_spread_points', 'sector_breakdown', 'top_25_diversified', 'bottom_25_laggards', 'diversified_factor_leaders', 'factor_leaders', 'all_tickers', 'methodology', 'edge_basis', 'sources']
- .factor_regime: "BALANCED_MULTI_FACTOR"
- .leading_factor: "value"
- .lagging_factor: "value"
-
-===== liquidity-flow.json =====
-keys: ['generated_at', 'as_of', 'current', 'deltas', 'regime', 'interpretation', 'history_180d', 'fetch_errors', 'fetch_duration_s']
- regime: "draining"
- interpretation: Net liquidity has DRAINED $120B over the last month. primarily driven by TGA refill (+$137B). Risk-asset performance typically lags during drain periods. Defensive positioning and quality bias have historically outperfor
- current: {"fed_balance_sheet_b": 6735.6, "tga_b": 918.7, "rrp_b": 6.4, "net_liquidity_b": 5810.5}
- deltas: {"1d": {"walcl": -0.8, "tga": 38.0, "rrp": 0.7, "net": -39.5}, "1w": {"walcl": -0.8, "tga": 38.0, "rrp": 6.2, "net": -44.9}, "1m": {"walcl": 22.0, "tga": 137.4, "rrp": 4.6, "net": -120.0}, "3m": {"walcl": 78.5, "tga": 44.6, "rrp": 5.4, "net
-DONE 2499
+  FOUND   renderCycleFlow
+  FOUND   Cycle vs flow
+  FOUND   Liquidity
+  FOUND   Factor
+  FOUND   liquidity-flow.json
+  FOUND   smart-beta.json
+bytes: 30226
+DONE 2500
