@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.11.0"
+VERSION = "2.11.1"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -239,6 +239,30 @@ def labor_bottleneck():
     out["constrained_sectors"] = constrained
     out["supply_ramp_blocked"] = bool(constrained)
     return out
+
+
+def leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity):
+    """Capstone — fuse the 6 leading layers (which lead the financials by quarters) into one
+    forward read. >=4 confirmations = a bottleneck is building before the income statement shows it."""
+    forming = [g for g, e in (pressure or {}).items() if e.get("bottleneck_forming")]
+    confirms = []
+    if ((phys or {}).get("gscpi") or {}).get("direction") == "TIGHTENING":
+        confirms.append("GSCPI tightening (physical backdrop)")
+    if forming:
+        confirms.append("orders>shipments forming: " + ", ".join(forming))
+    if (labor or {}).get("supply_ramp_blocked"):
+        confirms.append("labor supply-ramp blocked (" + ", ".join(labor.get("constrained_sectors", [])) + ")")
+    if (text_signal or {}).get("text_confirms_bottleneck"):
+        confirms.append("constraint-language rising in filings")
+    if (trade or {}).get("policy_bottleneck_building") or (trade or {}).get("rising_phrases"):
+        rp = (trade or {}).get("rising_phrases") or []
+        confirms.append("policy/input pressure: " + ", ".join(rp) if rp else "policy bottleneck building")
+    if (capacity or {}).get("supply_relief_coming") is False:
+        confirms.append("no capacity relief yet (tightness can persist)")
+    n = len(confirms)
+    return {"forming_industries": forming, "confirmations": confirms, "n_confirmations": n,
+            "forward_state": "BUILDING" if n >= 4 else "EARLY" if n >= 2 else "QUIET",
+            "note": "6 leading layers (physical/text/labor/policy/capacity/2nd-deriv) that lead financials by quarters"}
 
 
 def _edgar_fts(q, forms, startdt, enddt):
@@ -889,6 +913,7 @@ def lambda_handler(event=None, context=None):
     labor = labor_bottleneck()
     trade = trade_policy_bottleneck()
     capacity = capacity_response()
+    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -1026,7 +1051,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
