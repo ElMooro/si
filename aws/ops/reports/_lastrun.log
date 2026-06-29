@@ -1,3 +1,7 @@
-top keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'fetch_stats', 'summary', 'signals', 'by_theme', 'schema']
-no obvious PPI list; full sample: {"schema_version": "1.0", "method": "supply_inflection_scanner_v1", "generated_at": "2026-06-29T07:00:33.628632+00:00", "duration_s": 1.5, "fetch_stats": {"n_signals": 38, "n_ok": 38, "n_fail": 0, "fetch_duration_s": 1.5}, "summary": {"n_signals_scored": 38, "n_strong_tightening": 1, "n_tightening": 10, "n_easing": 22, "top_signals": [{"name": "MEMORY_DEMAND", "symbol": "MU", "score": 84.5, "flag": "STRONG_TIGHTENING", "themes": ["SMH", "SOXX", "AIQ", "BOTZ"], "description": "Memory demand proxy via MU stock (HBM+DRAM bellwether)"}, {"name": "PRICES_PAID_PHILLY", "symbol": "PPCDFSA066MSFRBPHI"
-DONE 2480
+err: Unhandled
+version: 2.15.1 dur: 55.3
+=== #5 PPI PRICING POWER ===
+tightening_inputs: None | pricing_power_building: None
+--- #3 backwardation: {"commodities": {"CRUDE_OIL": {"etf_3mo_pct": -13.4, "spot_3mo_pct": -20.0, "roll_yield_pct": 6.6, "curve_state": "BACKWARDATION", "producers": ["DVN", "APA", "CTRA", "OXY", "EQT", "AR", "RRC", "MTDR"]}, "NATGAS": {"etf_3mo_pct": -6.8, "spot_3mo_pct": 3.9, "roll_yield_pct": -10.7, "curve_state": "CO
+--- #4 commercial_positioning: {"commodities": {"CL": {"name": "Crude Oil", "commercial_net": 378876, "chg": 41375, "as_of": "2026-06-23", "pct_oi": 19.8, "lean": "LESS HEDGED (lean tight)", "producers": ["DVN", "APA", "CTRA", "OXY", "EQT", "AR", "RRC", "MTDR"]}, "NG": {"name": "Natural Gas", "commercial_net": -30615, "chg": -257
+DONE 2481
