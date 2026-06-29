@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.14.0"
+VERSION = "2.15.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -420,6 +420,47 @@ def capacity_response():
             "read": ("Capacity additions RISING — supply response underway, bottleneck relief ahead (fade tightness)"
                      if relief else
                      "Capacity additions not rising — no supply response yet, tightness can persist")}
+
+
+COT_COMMODITIES = {"CL": ("Crude Oil", "CRUDE_OIL"), "NG": ("Natural Gas", "NATGAS"),
+                   "RB": ("Gasoline", "GASOLINE"), "HO": ("Heating Oil", None),
+                   "HG": ("Copper", "COPPER"), "GC": ("Gold", None), "SI": ("Silver", None)}
+
+
+def commercial_positioning():
+    """#4 leading layer (smart money) — COT commercial hedgers are the physical players (producers +
+    end-users). READS the cftc agent cache (don't rebuild). Commercials reducing their net-short
+    hedge = the physical side leaning tight; pairs with backwardation as producer-confirmed tightness."""
+    try:
+        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/cftc-all-cache.json")["Body"].read())
+    except Exception as e:
+        print(f"[cot] {str(e)[:50]}")
+        return {}
+    body = d.get("data") or {}
+    out = {}
+    for c, (label, cmap) in COT_COMMODITIES.items():
+        cc = body.get(c)
+        if not cc:
+            continue
+        wr = sorted(cc.get("weekly_reports") or [], key=lambda r: r.get("report_date", ""))
+        if len(wr) < 14:
+            continue
+        def cnet(r):
+            cl, cs = r.get("commercial_long"), r.get("commercial_short")
+            return (cl - cs) if (cl is not None and cs is not None) else None
+        latest, ago = cnet(wr[-1]), cnet(wr[-14])
+        if latest is None or ago is None:
+            continue
+        oi = wr[-1].get("open_interest") or 0
+        chg = latest - ago
+        lean = ("LESS HEDGED (lean tight)" if (oi and chg > 0.02 * oi)
+                else "MORE HEDGED (lean loose)" if (oi and chg < -0.02 * oi) else "STABLE")
+        out[c] = {"name": label, "commercial_net": latest, "chg_13wk": chg,
+                  "pct_oi": round(latest / oi * 100, 1) if oi else None, "lean": lean,
+                  "producers": COMMODITY_MAP.get(cmap, {}).get("tickers", []) if cmap else []}
+    tight = [c for c, v in out.items() if "tight" in v["lean"]]
+    return {"commodities": out, "commercials_leaning_tight": tight,
+            "as_of": d.get("timestamp") or d.get("cached_at")}
 
 
 ROLL_PROXIES = {
@@ -1082,6 +1123,7 @@ def lambda_handler(event=None, context=None):
     cap_avail = capital_availability()
     inventory = inventory_signal()
     backwardn = backwardation()
+    cot = commercial_positioning()
     leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
@@ -1220,7 +1262,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
