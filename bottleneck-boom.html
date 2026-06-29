@@ -156,6 +156,8 @@ This page finds where <b>demand is outrunning supply</b>, then the companies pos
 
 <div class="trustbar" id="trustbar"></div>
 
+<div id="leading"></div>
+
 <div class="sec-h">Industry Pressure — where supply is tight</div>
 <div class="pcards" id="pcards"><div class="loading">Loading industry pressure…</div></div>
 
@@ -208,6 +210,35 @@ function riskAdj(r,rv){
   return up*(0.5+0.5*cr)*tm*org*trapMult;
 }
 let DATA=null,RESEARCH={},RMETA={},SORT='boom_score',OPEN=null,FILTER='all';
+function renderLeading(){
+  const el=document.getElementById('leading'); if(!el)return;
+  const L=DATA.leading_bottleneck_read||{}, P=DATA.physical_throughput||{}, G=P.gscpi||{};
+  const T=DATA.constraint_language||{}, LB=DATA.labor_bottleneck||{}, TR=DATA.trade_policy||{}, C=DATA.capacity_response||{};
+  if(!L.forward_state){el.innerHTML='';return;}
+  const stCol={BUILDING:'var(--green)',EARLY:'var(--violet)',QUIET:'var(--fg-3)'}[L.forward_state]||'var(--fg-3)';
+  const pill=(t,c)=>`<span style="display:inline-block;padding:2px 9px;border-radius:11px;font-size:10px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${t}</span>`;
+  const layers=[];
+  if(G.level!=null) layers.push(['GSCPI '+G.level, G.direction||'', G.direction==='TIGHTENING'?'var(--green)':'var(--fg-2)']);
+  const sp=(L.forming_industries||[]).length; layers.push(['Orders vs shipments', sp?(sp+' forming'):'none forming', sp?'var(--green)':'var(--fg-2)']);
+  layers.push(['Sector labor', LB.supply_ramp_blocked?'ramp blocked':'balanced', LB.supply_ramp_blocked?'var(--green)':'var(--fg-2)']);
+  if(T.intensity_chg_pct!=null) layers.push(['Constraint language', (T.intensity_chg_pct>0?'+':'')+T.intensity_chg_pct+'%', T.text_confirms_bottleneck?'var(--green)':'var(--fg-2)']);
+  const trp=(TR.rising_phrases||[]); layers.push(['Policy / inputs', trp.length?trp.join(', '):'stable', trp.length?'var(--amber)':'var(--fg-2)']);
+  layers.push(['Capacity relief', C.supply_relief_coming?'coming → fade':'none yet', C.supply_relief_coming?'var(--red)':'var(--green)']);
+  const layerHtml=layers.map(([n,v,c])=>`<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px">${n}</div><div style="font-size:12px;font-weight:600;color:${c}">${esc(v)}</div></div>`).join('');
+  const conf=(L.confirmations||[]).map(c=>`<li style="margin:2px 0">${esc(c)}</li>`).join('');
+  el.innerHTML=`<div class="sec-h">Leading Bottleneck Radar — what leads the financials by quarters</div>
+  <div style="background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--fg-3)">Forward state</span>
+      <span style="font-size:19px;font-weight:800;color:${stCol}">${L.forward_state}</span>
+      ${pill((L.n_confirmations||0)+' / 6 leading layers confirm', stCol)}
+      ${sp?pill('forming: '+L.forming_industries.join(', '),'var(--green)'):''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px">${layerHtml}</div>
+    <div style="font-size:11px;color:var(--fg-3)">These six layers — physical throughput (GSCPI + freight), filing constraint-language, sector labor (JOLTS), trade/policy, capacity response, and the orders-vs-shipments 2nd-derivative — move <b>before</b> capex and margins. ${(L.n_confirmations||0)>=4?'<b style="color:'+stCol+'">≥4 confirming = a bottleneck is building before the income statement shows it.</b>':''}</div>
+    ${conf?`<ul style="font-size:11px;color:var(--fg-2);margin:8px 0 0;padding-left:18px">${conf}</ul>`:''}
+  </div>`;
+}
 function renderTrust(){
   const tr=RMETA.track_record,c=RMETA.concentration;let html='';
   if(tr){
@@ -595,6 +626,7 @@ async function load(){
   DATA=boom; RESEARCH=(res&&res.by_ticker)||{}; RMETA=res||{};
   if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Bottleneck data not available yet.</div>';document.getElementById('pcards').innerHTML='';return;}
   renderTrust();
+  try{renderLeading();}catch(e){console.error('leading render',e);}
   renderPressure(DATA.industry_pressure||{});
   renderChanges();
   renderChips();
