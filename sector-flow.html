@@ -97,6 +97,72 @@ const money=v=>{v=+v||0;const a=Math.abs(v);const s=v<0?"-":"+";return a>=1e9?s+
 const scoreColor=s=>s>=65?"var(--green)":s>=50?"var(--cyan)":s>=35?"var(--amber)":"var(--fg-4)";
 function asText(x){if(x==null)return"";if(typeof x==="string"||typeof x==="number")return String(x);
   return x.regime||x.label||x.phase||x.state||x.name||x.value||JSON.stringify(x).slice(0,80);}
+function s2sym(s){return s.symbol||s.ticker||s.etf||s.name||'';}
+function rrgQuad(rank,slope){
+  const strong=rank>=50, rising=slope>=0;
+  if(strong&&rising)return{q:"Leading",col:"var(--green)",read:"outperforming + momentum rising — overweight / hold"};
+  if(strong&&!rising)return{q:"Weakening",col:"var(--amber)",read:"still ahead but momentum fading — trim / watch for exit"};
+  if(!strong&&!rising)return{q:"Lagging",col:"var(--red)",read:"underperforming + still falling — avoid / underweight"};
+  return{q:"Improving",col:"var(--violet)",read:"RS turning up from behind — early leadership candidate"};
+}
+function renderRRG(sec){
+  const S=((sec||{}).sectors||[]).filter(s=>s.rs_pct_rank_1y!=null&&s.rs_slope_21d_pct_per_day!=null);
+  if(S.length<4)return"";
+  const slopes=S.map(s=>+s.rs_slope_21d_pct_per_day||0);
+  const maxAbs=Math.max(0.05,...slopes.map(Math.abs));
+  const W=400,H=360,pad=36,pw=W-2*pad,ph=H-2*pad;
+  const xOf=r=>pad+(Math.max(0,Math.min(100,r))/100)*pw;
+  const yOf=sl=>pad+(1-((Math.max(-maxAbs,Math.min(maxAbs,sl))/maxAbs)+1)/2)*ph;
+  const cx=xOf(50),cy=yOf(0);
+  const qfill={Leading:"rgba(56,255,168,.07)",Weakening:"rgba(255,196,84,.06)",Lagging:"rgba(255,99,120,.06)",Improving:"rgba(167,139,250,.07)"};
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:520px;height:auto;display:block;margin:0 auto">`;
+  svg+=`<rect x="${cx}" y="${pad}" width="${W-pad-cx}" height="${cy-pad}" fill="${qfill.Leading}"/>`;
+  svg+=`<rect x="${cx}" y="${cy}" width="${W-pad-cx}" height="${H-pad-cy}" fill="${qfill.Weakening}"/>`;
+  svg+=`<rect x="${pad}" y="${cy}" width="${cx-pad}" height="${H-pad-cy}" fill="${qfill.Lagging}"/>`;
+  svg+=`<rect x="${pad}" y="${pad}" width="${cx-pad}" height="${cy-pad}" fill="${qfill.Improving}"/>`;
+  svg+=`<line x1="${cx}" y1="${pad}" x2="${cx}" y2="${H-pad}" stroke="var(--border)" stroke-width="1"/>`;
+  svg+=`<line x1="${pad}" y1="${cy}" x2="${W-pad}" y2="${cy}" stroke="var(--border)" stroke-width="1"/>`;
+  const lbl=(x,y,t,c,anc)=>`<text x="${x}" y="${y}" fill="${c}" font-size="10" font-weight="700" font-family="var(--font-mono)" text-anchor="${anc}" opacity=".75">${t}</text>`;
+  svg+=lbl(W-pad-2,pad+11,"LEADING","var(--green)","end");
+  svg+=lbl(W-pad-2,H-pad-4,"WEAKENING","var(--amber)","end");
+  svg+=lbl(pad+2,H-pad-4,"LAGGING","var(--red)","start");
+  svg+=lbl(pad+2,pad+11,"IMPROVING","var(--violet)","start");
+  svg+=`<text x="${W/2}" y="${H-6}" fill="var(--fg-3)" font-size="9" text-anchor="middle" font-family="var(--font-mono)">RS rank vs SPY (1y) →</text>`;
+  svg+=`<text x="11" y="${H/2}" fill="var(--fg-3)" font-size="9" text-anchor="middle" font-family="var(--font-mono)" transform="rotate(-90 11 ${H/2})">RS momentum (21d slope) →</text>`;
+  const rows=S.map(s=>{
+    const rank=+s.rs_pct_rank_1y, slope=+s.rs_slope_21d_pct_per_day||0, accel=+s.rs_acceleration||0;
+    return {s,rank,slope,accel,x:xOf(rank),y:yOf(slope),Q:rrgQuad(rank,slope)};
+  });
+  for(const r of rows){
+    const heading=r.accel>0?-1:r.accel<0?1:0; // arrow up if accelerating
+    if(heading!==0){const ay=r.y+heading*9;svg+=`<line x1="${r.x}" y1="${r.y}" x2="${r.x}" y2="${ay}" stroke="${r.Q.col}" stroke-width="1.4" opacity=".55"/>`;}
+    svg+=`<circle cx="${r.x}" cy="${r.y}" r="5.5" fill="${r.Q.col}" fill-opacity=".9" stroke="var(--bg)" stroke-width="1"/>`;
+    svg+=`<text x="${r.x+8}" y="${r.y+3.5}" fill="var(--fg-2)" font-size="10" font-weight="700" font-family="var(--font-mono)">${esc(s2sym(r.s))}</text>`;
+  }
+  svg+=`</svg>`;
+  const order={Leading:0,Improving:1,Weakening:2,Lagging:3};
+  rows.sort((a,b)=>(order[a.Q.q]-order[b.Q.q])||(b.rank-a.rank));
+  const list=rows.map(r=>{
+    const fin=(r.s.rotation_in_flags||[]),fout=(r.s.rotation_out_flags||[]);
+    const flowC=r.s.etf_flow_confirm?` · flow ${esc(String(r.s.etf_flow_confirm).replace(/_/g," ").toLowerCase())}`:"";
+    const flag=fin.includes("RS_ACCELERATING")?" · RS accelerating":"";
+    return `<div class="row"><span class="sym" style="color:${r.Q.col};min-width:42px">${esc(s2sym(r.s))}</span>
+      <span class="nm" style="min-width:120px">${esc(r.s.name||"")}</span>
+      <span class="ph" style="color:${r.Q.col};min-width:78px">${r.Q.q}</span>
+      <span class="cat" style="flex:1">${esc(r.Q.read)}${flag}${flowC}</span>
+      <span class="val" style="color:${r.Q.col}">${Math.round(r.rank)}</span></div>`;
+  }).join("");
+  const transitions=rows.filter(r=>r.Q.q==="Improving"&&r.slope>0).map(r=>esc(s2sym(r.s)));
+  const banner=transitions.length?`<div style="margin:8px 0 0;font-size:11.5px;color:var(--violet)">↗ Rotating into leadership (Improving, momentum up): <b>${transitions.join(", ")}</b> — RRG's earliest entry signal, before the rank catches up.</div>`:"";
+  return `<div class="sec-hdr"><span class="dot v"></span><h2>🧭 Relative Rotation Graph — sectors vs SPY</h2><span class="ct">${rows.length}</span></div>
+    <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:14px">
+      ${svg}
+      <div style="font-size:11px;color:var(--fg-3);text-align:center;margin:4px 0 10px">Each sector plotted by relative-strength rank (x) and RS momentum (y). Money rotates <b>clockwise</b>: Improving → Leading → Weakening → Lagging. Arrow = accelerating/decelerating.</div>
+      <div class="rows">${list}</div>
+      ${banner}
+    </div>`;
+}
+
 function render(etf,sec){
   if(!etf&&!sec){document.getElementById("content").innerHTML='<div class="loading">Could not load flow data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const sectors=((sec||{}).sectors||[]).slice().sort((a,b)=>(b.rotation_score||0)-(a.rotation_score||0));
@@ -122,6 +188,7 @@ function render(etf,sec){
      <div class="stat"><div class="n gr">${inflows.length?esc(inflows[0].ticker):"—"}</div><div class="l">Biggest ETF Inflow</div></div>
      <div class="stat"><div class="n">${(etf||{}).n_etfs||((etf||{}).inflows||[]).length+((etf||{}).outflows||[]).length||"—"}</div><div class="l">ETFs Tracked</div></div>`;
   let h="";
+  h+=renderRRG(sec);
   // sector rotation
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>Sector Rotation — where money favors this cycle</h2><span class="ct">${sectors.length}</span></div>`;
   if(sectors.length){
