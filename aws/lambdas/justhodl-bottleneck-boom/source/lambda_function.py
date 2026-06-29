@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.16.0"
+VERSION = "2.17.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -507,6 +507,40 @@ def backwardation():
                   "producers": COMMODITY_MAP.get(k, {}).get("tickers", [])}
     backw = [k for k, v in out.items() if v["curve_state"] == "BACKWARDATION"]
     return {"commodities": out, "backwardated": backw, "physical_tightness": bool(backw)}
+
+
+def concentration_signal(rows):
+    """#6 leading layer (single-point-of-failure) — READS supply-chain-linkage (don't rebuild):
+    per-name single-source / customer / geographic concentration + supply-graph systemic-hub.
+    A name that is a single point of failure AND sits at a bottleneck is the most fragile/critical
+    exposure — any disruption guarantees the bottleneck. Tags the bottleneck universe in place."""
+    try:
+        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/supply-chain-linkage.json")["Body"].read())
+    except Exception as e:
+        print(f"[conc] {str(e)[:50]}")
+        return {}
+    cmap = {}
+    for e in (d.get("entries") or []):
+        flags = [{"type": f.get("type"), "country": f.get("country"), "pct": f.get("pct_revenue"),
+                  "severity": f.get("severity")}
+                 for f in (e.get("concentration_flags") or [])
+                 if (f.get("type") in ("SINGLE_SOURCE", "CUSTOMER_CONCENTRATION")
+                     or (f.get("type") == "GEO_CONCENTRATION" and f.get("country") not in ("fiscalYear", "", None)))]
+        if flags or e.get("is_systemic_hub"):
+            cmap[str(e.get("ticker"))] = {"flags": flags, "systemic_hub": bool(e.get("is_systemic_hub")),
+                                          "centrality": e.get("centrality_score")}
+    tagged = 0
+    for r in rows:
+        c = cmap.get(r["ticker"])
+        if c:
+            r["concentration_flags"] = c["flags"]
+            r["systemic_hub"] = c["systemic_hub"]
+            tagged += 1
+    uni = {r["ticker"] for r in rows}
+    flagged = {tk: v for tk, v in cmap.items() if tk in uni and (v["flags"] or v["systemic_hub"])}
+    return {"flagged_names": flagged, "n_flagged": len(flagged),
+            "systemic_hubs": sorted(tk for tk, v in cmap.items() if v["systemic_hub"]),
+            "as_of": d.get("generated_at")}
 
 
 def ppi_signal(rows):
@@ -1305,12 +1339,13 @@ def lambda_handler(event=None, context=None):
             cross["supply_inflection_themes"] = [(t.get("name") or t.get("theme") or t.get("ticker"))
                                                  for t in themes[:6] if isinstance(t, dict)]
     ppi = ppi_signal(rows)
+    concentration = concentration_signal(rows)
     leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn, ppi)
     out = {
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "ppi_pricing": ppi, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "ppi_pricing": ppi, "concentration": concentration, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
