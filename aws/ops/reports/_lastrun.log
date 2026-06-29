@@ -1,18 +1,9 @@
-===== polygon-fx-regime (data/polygon-fx-regime.json) =====
- topkeys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro', 'regime_signals', 'regime_metrics', 'pair_data', 'source']
-  .fx_roro: {"fx_roro_score": -2.0, "fx_roro_regime": "NEUTRAL", "em_basket_5d_pct": -0.18, "gold_silver_ratio_chg_5d": 3.794, "havens_bid_count": 0, "drivers": [{"driver": "AUD/JPY carry cross", "ret_5d_pct": -0.102, "contribution": -0.05, "weight": 0.18}, {"driver": "JPY haven (USDJPY)", "ret_5d_pct": 0.185, 
-  .regime_signals: []
-  .regime_metrics: {"usd_synthetic_20d_pct": 0.82, "em_fx_mean_20d_pct": 0.086, "fx_roro_score": -2.0, "fx_roro_regime": "NEUTRAL", "em_basket_5d_pct": -0.18, "gold_silver_ratio_chg_5d": 3.794, "havens_bid_count": 0}
-===== dollar-radar (data/dollar-radar.json) =====
- topkeys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries', 'indices', 'bilaterals', 'technicals', 'how_to_read', 'disclaimer']
-  .headline: "Dollar Pressure +28/100 -- LEAN PUMP. 4 canaries lean pump, 2 lean dump."
-  .regime: "LEAN PUMP"
-===== risk-regime (data/risk-regime.json) =====
- topkeys: ['engine', 'version', 'generated_at', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components', 'tells']
-  .risk_regime_score: -14.2
-  .posture: {"beta_tilt": "reduce_high_beta", "size_mult": 0.9, "hedge": "raise"}
-  .components: {"fx": {"score": -0.14, "fx_roro_score": -14.0, "regime": "MILD_RISK_OFF", "tells": ["RISK-OFF: AUD risk currency (-1.54% 5d)", "RISK-OFF: NZD risk currency (-1.74% 5d)", "RISK-OFF: Gold/Silver ratio (+6.85% 5d)"]}, "options": {"SPY": {"put_call_ratio": 1.437, "skew_25d": 0.2355, "n_contracts": 750}
-===== cross-asset-regime (data/cross-asset-regime.json) =====
- topkeys: ['schema_version', 'method', 'generated_at', 'duration_s', 'asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d', 'correlation_breaks', 'alerts']
-etf category_rotation labels: ['BROAD_EQUITY_US', 'GROWTH', 'INTERNATIONAL', 'CRYPTO', 'VOLATILITY', 'DIVIDEND_VALUE', 'RATES_TREASURIES', 'THEMATIC', 'SECTOR_EQUITY', 'COMMODITIES', 'CREDIT']
-DONE 2514
+  FOUND   Cross-asset risk regime
+  FOUND   Asset-class rotation
+  FOUND   Dollar, FX & carry
+  FOUND   Foreign money into US assets
+  FOUND   DISTRIBUTION (dark volume
+  FOUND   risk-regime.json
+  FOUND   capital-inflows.json
+bytes: 48832
+DONE 2515
