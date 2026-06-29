@@ -1,12 +1,7 @@
-=== CYCLE-CLOCK (correct key: positioning) ===
-capital_cycle_phases: None
-scarcity_building: None | flooding: None
-bottleneck_early_calls: None
-capital-cycle driver shown in top-N: []
-(note: drivers are truncated top-4/5; field presence above proves the block loaded + contributor fired)
-
+=== CYCLE-CLOCK ===
+capital_cycle block: {"phases": {"SCARCITY_BUILDING": 1, "GLUT": 1, "TIGHT": 1, "NEUTRAL": 2}, "scarcity_building": 1, "flooding": 0, "capacity_flood_names": [], "commodity_cure_setups": [], "early_calls": ["CLF", "F", "AAON", "OLN", "ASH"]}
+n_risk_on: 6 n_risk_off: 14
 === BEST-SETUPS ===
-top-level keys: ['schema_version', 'engine', 'generated_at', 'duration_s', 'weight_source', 'bond_vol_regime', 'methodology', 'stats', 'top_setups', 'quad_threats', 'triple_threats', 'buildout_threats', 'brain_aligned', 'structural_chokepoints', 'contested_picks', 'picks_with_kill_thesis', 'lead_lag_tailwinds', 'meta_confluence_book', 'resilient_setups', 'synth_aligned_bullish', 'synth_conflicted', 'synthesizer_wiring', 'orphan_meta_wiring', 'alpha_trust_wiring', 'meta_intelligence']
-book key: top_setups | len: 50
-setups carrying bottleneck/capital-cycle signal: 0
-DONE 2455
+top_setups: 50 | carrying bottleneck/capital-cycle: 1
+   MU STRONG BUY conv 71.5 ['COMPOUNDER', 'CONVERGENCE', 'DISLOCATION', 'BOTTLENECK_BOOM']
+DONE 2456
