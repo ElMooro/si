@@ -1,15 +1,27 @@
 err: None
-version: 2.2.1
-early calls now (8):
-  CLF   capex/DA=0.46   capexYoY=-15.6   margin=-6.4    ml=True gap=87.0  
-  F     capex/DA=0.64   capexYoY=11.5    margin=-3.2    ml=True gap=88.4  
-  OLN   capex/DA=0.41   capexYoY=-1.7    margin=-1.9    ml=True gap=86.9  
-  ASH   capex/DA=0.24   capexYoY=-36.0   margin=-39.0   ml=True gap=87.2  
-  CC    capex/DA=0.71   capexYoY=-48.0   margin=-7.1    ml=True gap=86.3  
-  CE    capex/DA=0.39   capexYoY=-23.3   margin=-11.5   ml=True gap=100  
-  WLK   capex/DA=0.81   capexYoY=-2.8    margin=-14.9   ml=True gap=87.1  
-  GEF   capex/DA=0.75   capexYoY=3.5     margin=29.0    ml=True gap=89.0  
+version: 2.3.0
 
-AAON/LYB still present: NONE (correctly dropped)
-all survivors capex/DA<1: True
-DONE 2457
+=== SECTOR CLUSTERS (systematic shortage detection) ===
+  Chemicals - Specialty      n=5  OLN,ASH,CC,CE,WLK <-- SYSTEMATIC
+  Steel                      n=1  CLF
+  Auto - Manufacturers       n=1  F
+  Packaging & Containers     n=1  GEF
+
+=== EARLY CALLS now carry industry ===
+  CLF   Steel                      capex/DA=0.46 gap=87.0
+  F     Auto - Manufacturers       capex/DA=0.64 gap=88.4
+  OLN   Chemicals - Specialty      capex/DA=0.41 gap=86.9
+  ASH   Chemicals - Specialty      capex/DA=0.24 gap=87.2
+  CC    Chemicals - Specialty      capex/DA=0.71 gap=86.3
+  CE    Chemicals - Specialty      capex/DA=0.39 gap=100
+  WLK   Chemicals - Specialty      capex/DA=0.81 gap=87.1
+  GEF   Packaging & Containers     capex/DA=0.75 gap=89.0
+
+=== COMMODITY producers + sector ===
+  CRUDE_OIL   [Oil & Gas Exploration & Production] cutting=5/8  DVN,APA,CTRA*,OXY*,EQT*,AR*,RRC*,MTDR
+  NATGAS      [Oil & Gas Exploration & Production] cutting=4/4  EQT*,AR*,RRC*,CTRA*
+  COPPER      [Copper] cutting=0/2  FCX,SCCO
+  ALUMINUM    [Aluminum] cutting=0/1  AA
+  STEEL_IRON  [Steel] cutting=1/4  NUE,STLD,X,CLF*
+(* = capex/DA<1, i.e. that producer is cutting capacity)
+DONE 2458
