@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.5.2"
+VERSION = "2.6.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -193,6 +193,73 @@ def _classify_direction(hist):
     else:
         d = "STABLE"
     return d, slope6
+
+
+def _edgar_fts(q, forms, startdt, enddt):
+    """EDGAR full-text search → (total_hits, sample_tickers). Free, all filers, current."""
+    import re as _re
+    params = urllib.parse.urlencode({"q": q, "forms": forms, "startdt": startdt, "enddt": enddt})
+    url = f"https://efts.sec.gov/LATEST/search-index?{params}&from=0"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl Research contact@justhodl.ai",
+                                                   "Accept": "application/json"})
+        j = json.loads(urllib.request.urlopen(req, timeout=20).read())
+        total = ((j.get("hits") or {}).get("total") or {}).get("value", 0)
+        tks = []
+        for h in ((j.get("hits") or {}).get("hits") or [])[:10]:
+            for dn in (h.get("_source") or {}).get("display_names") or []:
+                m = _re.search(r"\(([A-Z][A-Z.\-]{0,5})\)", dn)
+                if m:
+                    tks.append(m.group(1))
+        return total, sorted(set(tks))
+    except Exception as e:
+        print(f"[edgar] {q[:24]}: {str(e)[:50]}")
+        return None, []
+
+
+CONSTRAINT_PHRASES = {
+    "on_allocation":        '"on allocation"',
+    "supply_constrained":   '"supply constrained" OR "supply-constrained"',
+    "capacity_constrained": '"capacity constrained" OR "capacity-constrained"',
+    "lead_times_extended":  '"lead times" "extended"',
+    "double_ordering":      '"double ordering" OR "double-ordering"',
+}
+
+
+def constraint_language():
+    """#2 leading layer — management says it before the financials show it. Track the FREQUENCY
+    of supply-constraint language in recent 10-Q/10-K/8-K filings vs the prior window; rising
+    constraint language = bottleneck building. 'On allocation' = a confirmed, stated bottleneck."""
+    import time as _t
+    today = datetime.now(timezone.utc).date()
+    cur_a, cur_b = today - timedelta(days=90), today
+    prv_a, prv_b = today - timedelta(days=180), today - timedelta(days=90)
+    forms = "10-Q,10-K,8-K"
+    phrases, all_names, cur_total, prv_total = {}, {}, 0, 0
+    for key, q in CONSTRAINT_PHRASES.items():
+        c, ctk = _edgar_fts(q, forms, cur_a.isoformat(), cur_b.isoformat())
+        _t.sleep(0.2)
+        p, _ = _edgar_fts(q, forms, prv_a.isoformat(), prv_b.isoformat())
+        _t.sleep(0.2)
+        if c is None:
+            continue
+        cur_total += c
+        prv_total += (p or 0)
+        trend = ("RISING" if (p is not None and c > p * 1.15) else
+                 "FALLING" if (p is not None and c < p * 0.85) else "STABLE")
+        phrases[key] = {"hits_90d": c, "hits_prior_90d": p, "trend": trend, "sample_tickers": ctk}
+        for tk in ctk:
+            all_names[tk] = all_names.get(tk, 0) + 1
+    if not phrases:
+        return {}
+    rising = [k for k, v in phrases.items() if v["trend"] == "RISING"]
+    intensity = round(((cur_total / prv_total) - 1) * 100, 1) if prv_total else None
+    return {"phrases": phrases,
+            "on_allocation_names": phrases.get("on_allocation", {}).get("sample_tickers", []),
+            "total_hits_90d": cur_total, "total_prior_90d": prv_total,
+            "intensity_chg_pct": intensity, "rising_phrases": rising,
+            "names_by_breadth": sorted(all_names, key=lambda k: -all_names[k])[:15],
+            "text_confirms_bottleneck": bool(intensity is not None and intensity > 15)}
 
 
 def _gscpi():
@@ -673,6 +740,7 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     pressure, used, failed = industry_pressure()
     phys = physical_throughput()
+    text_signal = constraint_language()
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -810,7 +878,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
