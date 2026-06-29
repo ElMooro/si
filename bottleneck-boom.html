@@ -214,29 +214,42 @@ function renderLeading(){
   const el=document.getElementById('leading'); if(!el)return;
   const L=DATA.leading_bottleneck_read||{}, P=DATA.physical_throughput||{}, G=P.gscpi||{};
   const T=DATA.constraint_language||{}, LB=DATA.labor_bottleneck||{}, TR=DATA.trade_policy||{}, C=DATA.capacity_response||{};
+  const INV=DATA.inventory_signal||{}, BW=DATA.backwardation||{}, CA=DATA.capital_availability||{}, PPI=DATA.ppi_pricing||{}, COT=DATA.commercial_positioning||{};
   if(!L.forward_state){el.innerHTML='';return;}
   const stCol={BUILDING:'var(--green)',EARLY:'var(--violet)',QUIET:'var(--fg-3)'}[L.forward_state]||'var(--fg-3)';
   const pill=(t,c)=>`<span style="display:inline-block;padding:2px 9px;border-radius:11px;font-size:10px;font-weight:700;background:${c}22;color:${c};border:1px solid ${c}55">${t}</span>`;
   const layers=[];
-  if(G.level!=null) layers.push(['GSCPI '+G.level, G.direction||'', G.direction==='TIGHTENING'?'var(--green)':'var(--fg-2)']);
-  const sp=(L.forming_industries||[]).length; layers.push(['Orders vs shipments', sp?(sp+' forming'):'none forming', sp?'var(--green)':'var(--fg-2)']);
-  layers.push(['Sector labor', LB.supply_ramp_blocked?'ramp blocked':'balanced', LB.supply_ramp_blocked?'var(--green)':'var(--fg-2)']);
-  if(T.intensity_chg_pct!=null) layers.push(['Constraint language', (T.intensity_chg_pct>0?'+':'')+T.intensity_chg_pct+'%', T.text_confirms_bottleneck?'var(--green)':'var(--fg-2)']);
-  const trp=(TR.rising_phrases||[]); layers.push(['Policy / inputs', trp.length?trp.join(', '):'stable', trp.length?'var(--amber)':'var(--fg-2)']);
-  layers.push(['Capacity relief', C.supply_relief_coming?'coming → fade':'none yet', C.supply_relief_coming?'var(--red)':'var(--green)']);
-  const layerHtml=layers.map(([n,v,c])=>`<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px">${n}</div><div style="font-size:12px;font-weight:600;color:${c}">${esc(v)}</div></div>`).join('');
+  if(G.level!=null) layers.push(['GSCPI (physical)', G.level+' '+(G.direction||''), G.direction==='TIGHTENING']);
+  const sp=(L.forming_industries||[]).length; layers.push(['Orders vs shipments', sp?(sp+' forming'):'none', sp>0]);
+  layers.push(['Sector labor (JOLTS)', LB.supply_ramp_blocked?'ramp blocked':'balanced', !!LB.supply_ramp_blocked]);
+  layers.push(['Inventory/sales (Burry)', (INV.n_sectors_drawing||0)+' sectors drawing', (INV.n_sectors_drawing||0)>=3]);
+  const bw=(BW.backwardated||[]); layers.push(['Futures curve', bw.length?('backwardated: '+bw.join(', ')):'contango/flat', bw.length>0]);
+  layers.push(['Capital (Marks)', (CA.capital_cost||'?')+(CA.issuance_trend?(' · iss '+CA.issuance_trend):''), CA.supply_response_funded===false]);
+  layers.push(['Pricing power (PPI)', PPI.pricing_power_building?('rising: '+((PPI.tightening_inputs||[]).slice(0,2).join(','))):'flat', !!PPI.pricing_power_building]);
+  const ct=(COT.commercials_leaning_tight||[]); layers.push(['COT commercials', ct.length?('tight: '+ct.join(',')):'neutral', ct.length>0]);
+  layers.push(['Capacity relief', C.supply_relief_coming?'coming - fade':'none yet', C.supply_relief_coming===false]);
+  const trp=(TR.rising_phrases||[]); layers.push(['Policy/inputs', trp.length?trp.join(', '):'stable', trp.length>0]);
+  const layerHtml=layers.map(([n,v,good])=>`<div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px">${n}</div><div style="font-size:12px;font-weight:600;color:${good?'var(--green)':'var(--fg-2)'}">${esc(v)}</div></div>`).join('');
+  const chip=(t)=>`<span style="display:inline-block;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:1px 6px;margin:1px;font-size:11px;font-family:var(--mono)">${esc(t)}</span>`;
+  const rowsHtml=[];
+  if((INV.pre_shortage_names||[]).length) rowsHtml.push(['Inventory pre-shortage (days-of-inventory falling into rising demand)', INV.pre_shortage_names.map(n=>chip(n.ticker+' · '+(n.industry||'')+' '+(n.dio_chg_pct||'')+'%')).join('')]);
+  Object.entries(BW.commodities||{}).filter(([k,v])=>v.curve_state==='BACKWARDATION').forEach(([k,v])=>rowsHtml.push(['Backwardation — '+k+' tight (producers capturing)', (v.producers||[]).map(chip).join('')||'<span style="color:var(--fg-3)">—</span>']));
+  (COT.commercials_leaning_tight||[]).forEach(c=>{const v=(COT.commodities||{})[c]||{}; if((v.producers||[]).length) rowsHtml.push(['COT '+(v.name||c)+' — commercials lean tight (producers)', v.producers.map(chip).join('')]);});
+  Object.entries(CA.issuers_by_industry||{}).forEach(([ind,tks])=>rowsHtml.push(['Capital raised — '+ind+' (funds future supply → watch for relief)', tks.slice(0,8).map(chip).join('')]));
+  const detail=rowsHtml.length?`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Industries & companies at the bottleneck</div>${rowsHtml.map(([h,c])=>`<div style="margin:5px 0"><div style="font-size:11px;color:var(--fg-2);margin-bottom:2px">${esc(h)}</div><div>${c}</div></div>`).join('')}</div>`:'';
   const conf=(L.confirmations||[]).map(c=>`<li style="margin:2px 0">${esc(c)}</li>`).join('');
   el.innerHTML=`<div class="sec-h">Leading Bottleneck Radar — what leads the financials by quarters</div>
   <div style="background:linear-gradient(180deg,var(--bg-2),var(--bg-1));border:1px solid var(--border);border-radius:12px;padding:14px 16px">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
       <span style="font-size:12px;color:var(--fg-3)">Forward state</span>
       <span style="font-size:19px;font-weight:800;color:${stCol}">${L.forward_state}</span>
-      ${pill((L.n_confirmations||0)+' / 6 leading layers confirm', stCol)}
+      ${pill((L.n_confirmations||0)+' leading layers confirm', stCol)}
       ${sp?pill('forming: '+L.forming_industries.join(', '),'var(--green)'):''}
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px">${layerHtml}</div>
-    <div style="font-size:11px;color:var(--fg-3)">These six layers — physical throughput (GSCPI + freight), filing constraint-language, sector labor (JOLTS), trade/policy, capacity response, and the orders-vs-shipments 2nd-derivative — move <b>before</b> capex and margins. ${(L.n_confirmations||0)>=4?'<b style="color:'+stCol+'">≥4 confirming = a bottleneck is building before the income statement shows it.</b>':''}</div>
+    <div style="font-size:11px;color:var(--fg-3)">These layers — physical throughput (GSCPI + futures-curve backwardation), inventory-to-sales, sector labor, capital availability, pricing-power (PPI), COT commercials, filing constraint-language, capacity response, policy, and the orders-vs-shipments 2nd-derivative — move <b>before</b> capex and margins. ${(L.n_confirmations||0)>=5?'<b style="color:'+stCol+'">≥5 confirming = a bottleneck is building before the income statement shows it.</b>':''}</div>
     ${conf?`<ul style="font-size:11px;color:var(--fg-2);margin:8px 0 0;padding-left:18px">${conf}</ul>`:''}
+    ${detail}
   </div>`;
 }
 function renderTrust(){
