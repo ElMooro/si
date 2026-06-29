@@ -29,7 +29,7 @@ OUT_KEY = "data/bottleneck-boom.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 SIGNALS_TABLE = os.environ.get("SIGNALS_TABLE", "justhodl-signals")
-VERSION = "2.4.2"
+VERSION = "2.5.0"
 
 # FRED series per pressure group (probe-tolerant: failures are skipped + reported)
 GROUPS = {
@@ -193,6 +193,104 @@ def _classify_direction(hist):
     else:
         d = "STABLE"
     return d, slope6
+
+
+def _gscpi():
+    """#1 — NY Fed Global Supply Chain Pressure Index: the literal bottleneck index (free xlsx).
+    Baltic Dry + Harpex + BLS air-freight + PMI supplier-delivery-times across 7 economies;
+    >0 = supply chains tighter than average. Monthly = macro backdrop, not a trigger."""
+    import io, zipfile
+    from xml.etree import ElementTree as ET
+    from collections import defaultdict
+    url = "https://www.newyorkfed.org/medialibrary/research/interactives/gscpi/downloads/gscpi_data.xlsx"
+    try:
+        raw = urllib.request.urlopen(url, timeout=30).read()
+        zf = zipfile.ZipFile(io.BytesIO(raw))
+        ns = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+        sst = []
+        if "xl/sharedStrings.xml" in zf.namelist():
+            for si in ET.fromstring(zf.read("xl/sharedStrings.xml")).findall(f"{ns}si"):
+                sst.append("".join(t.text or "" for t in si.iter(f"{ns}t")))
+        sheet = sorted(n for n in zf.namelist() if n.startswith("xl/worksheets/sheet"))[0]
+        rows = []
+        for row in ET.fromstring(zf.read(sheet)).iter(f"{ns}row"):
+            cells = {}
+            for c in row.findall(f"{ns}c"):
+                col = "".join(ch for ch in c.get("r", "") if ch.isalpha())
+                v = c.find(f"{ns}v")
+                if v is None or v.text is None:
+                    continue
+                cells[col] = (sst[int(v.text)] if (c.get("t") == "s" and int(v.text) < len(sst))
+                              else v.text)
+            if cells:
+                rows.append(cells)
+        gcol = None
+        for r in rows[:6]:
+            for col, val in r.items():
+                if isinstance(val, str) and "GSCPI" in val.upper():
+                    gcol = col
+        nums = []
+        if gcol:
+            for r in rows:
+                try:
+                    nums.append(float(r[gcol]))
+                except (KeyError, TypeError, ValueError):
+                    pass
+        else:                                   # fallback: column of plausible GSCPI floats (dates excluded by range)
+            colvals = defaultdict(list)
+            for r in rows:
+                for col, val in r.items():
+                    try:
+                        f = float(val)
+                        if -6 < f < 6:
+                            colvals[col].append(f)
+                    except (TypeError, ValueError):
+                        pass
+            if colvals:
+                nums = colvals[max(colvals, key=lambda k: len(colvals[k]))]
+        if len(nums) < 14:
+            return None
+        cur = nums[-1]
+        w = nums[-120:]
+        m, sd = mean(w), (stdev(w) if len(w) > 1 else 0)
+        chg3 = round(cur - nums[-4], 2)
+        return {"level": round(cur, 2), "chg_3m": chg3,
+                "z_vs_history": round((cur - m) / sd, 2) if sd else None,
+                "direction": "TIGHTENING" if chg3 > 0.1 else "EASING" if chg3 < -0.1 else "STABLE",
+                "n_obs": len(nums)}
+    except Exception as e:
+        print(f"[gscpi] {str(e)[:80]}")
+        return None
+
+
+def physical_throughput():
+    """#1 leading layer — physical goods movement leads the financials by quarters.
+    GSCPI (macro bottleneck backdrop) + truck tonnage + rail carloads (goods-cycle throughput).
+    Rising throughput into rising backlog = real tightening before COGS/margins move."""
+    out = {}
+    g = _gscpi()
+    if g:
+        out["gscpi"] = g
+    for key, sid in (("truck_tonnage", "TRUCKD11"), ("rail_carloads", "RAILFRTCARLOADSD11")):
+        o = fred(sid, start="2010-01-01")
+        if not o:
+            continue
+        ny = yoy_series(o)
+        out[key] = {"yoy_pct": round(ny[-1] * 100, 1) if ny else None,
+                    "accel_pp": round((ny[-1] - ny[-4]) * 100, 1) if len(ny) >= 4 else None,
+                    "z": z_latest(ny) if ny else None, "as_of": o[-1][0]}
+    parts = []
+    if g and g.get("z_vs_history") is not None:
+        parts.append(g["z_vs_history"])
+    for k in ("truck_tonnage", "rail_carloads"):
+        if out.get(k, {}).get("z") is not None:
+            parts.append(out[k]["z"] * 0.5)        # throughput half-weight vs the dedicated index
+    if parts:
+        sc = sum(parts) / len(parts)
+        out["physical_pressure_z"] = round(sc, 2)
+        out["physical_state"] = ("TIGHTENING" if sc > 0.5 else "LOOSENING" if sc < -0.5 else "BALANCED")
+        out["confirms_bottleneck"] = bool(sc > 0.5)
+    return out
 
 
 def _winvar(series, n=36, start=0):
@@ -592,6 +690,7 @@ def log_early(calls, regime):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     pressure, used, failed = industry_pressure()
+    phys = physical_throughput()
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -729,7 +828,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
