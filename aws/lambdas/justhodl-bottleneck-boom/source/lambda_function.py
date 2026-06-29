@@ -1170,9 +1170,7 @@ def lambda_handler(event=None, context=None):
     cap_avail = capital_availability()
     inventory = inventory_signal()
     backwardn = backwardation()
-    ppi = ppi_signal(rows)
     cot = commercial_positioning()
-    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn, ppi)
     universe, src = load_universe()
     universe = list(dict.fromkeys(list(universe) + CYCLICAL_UNIVERSE))[:96]  # add cyclical pond for #2
     rows = []
@@ -1306,6 +1304,8 @@ def lambda_handler(event=None, context=None):
         if isinstance(themes, list):
             cross["supply_inflection_themes"] = [(t.get("name") or t.get("theme") or t.get("ticker"))
                                                  for t in themes[:6] if isinstance(t, dict)]
+    ppi = ppi_signal(rows)
+    leading_read = leading_bottleneck_read(pressure, phys, text_signal, labor, trade, capacity, inventory, cap_avail, backwardn, ppi)
     out = {
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
