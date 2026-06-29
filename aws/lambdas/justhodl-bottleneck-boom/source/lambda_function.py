@@ -527,7 +527,12 @@ def ppi_signal(rows):
         print(f"[ppi] {str(e)[:50]}")
         return {}
     out = []
-    for s in (d.get("signals") or []):
+    sigs = d.get("signals") or []
+    if isinstance(sigs, dict):
+        sigs = list(sigs.values())
+    for s in sigs:
+        if not isinstance(s, dict):
+            continue
         blob = " ".join(str(s.get(k, "")) for k in ("name", "description", "category", "symbol")).lower()
         if "ppi" not in blob:
             continue
