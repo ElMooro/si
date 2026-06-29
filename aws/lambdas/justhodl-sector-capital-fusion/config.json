@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-sector-capital-fusion",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Fuses every engine's per-sector capital-flow read (rotation/RS, tape dollars, ETF creation, 13F institutional, dark-pool) into one verdict per GICS sector with confluence + price-vs-smart-money divergence. Emits data/sector-capital-fusion.json.",
+  "schedule": {
+    "rule_name": "sector-capital-fusion-hourly",
+    "cron": "cron(45 * * * ? *)",
+    "description": "Hourly at :45 (after upstream sector/flow engines refresh)"
+  }
+}
