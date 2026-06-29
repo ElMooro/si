@@ -1,10 +1,17 @@
-invoke err: None
-n_deals: 9
-deals carrying sector_conviction: 9
-  NIXX   Industrials    conv=66.1  posture=OVERWEIGHT  tailwind=True
-  BMNR   Financial Serv conv=45.1  posture=NEUTRAL     tailwind=False
-  RAM    Financial Serv conv=45.1  posture=NEUTRAL     tailwind=False
-  MLM    Basic Material conv=34.1  posture=UNDERWEIGHT tailwind=False
-  MIDD   Industrials    conv=66.1  posture=OVERWEIGHT  tailwind=True
-  FCEL   Industrials    conv=66.1  posture=OVERWEIGHT  tailwind=True
-DONE 2503
+===== finviz-groups INDUSTRIES (unused on page) =====
+n_industries: 144
+  Publishing                     perf_w=1.31   perf_m=-0.29  rel_vol=31.69 change=-0.68
+  Pharmaceutical Retailers       perf_w=-0.06  perf_m=-11.08 rel_vol=13.31 change=1.92
+  Conglomerates                  perf_w=10.35  perf_m=12.71  rel_vol=6.44  change=-0.25
+  Consulting Services            perf_w=4.02   perf_m=-4.01  rel_vol=4.83  change=-0.8
+  Rental & Leasing Services      perf_w=-2.58  perf_m=5.61   rel_vol=1.8   change=-1.03
+countries: 40 | mktcaps: 6
+
+===== universe.json (per-ticker sector+industry for rollup) =====
+n_stocks: 1856
+with sector: 1856 | with industry: 1856
+sample: {"symbol": "NVDA", "sector": "Technology", "industry": "Semiconductors", "market_cap": 4697662950000}
+
+===== Polygon grouped-daily: confirm shape (1 call = whole market) =====
+grouped 2026-06-25: status=OK n_tickers=12326 sample={"T": "LCAP", "v": 26236.07083, "vw": 32.4076, "o": 32.73, "c": 32.38, "h": 32.73, "l": 32.28, "t": 1782417600000, "n": 151}
+DONE 2504
