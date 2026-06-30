@@ -98,14 +98,18 @@ def _num(x):
         return None
 
 
-def _fmp(path):
+def _fmp(path, retries=2):
     url = f"https://financialmodelingprep.com/stable/{path}{'&' if '?' in path else '?'}apikey={FMP}"
-    try:
-        raw = urllib.request.urlopen(
-            urllib.request.Request(url, headers={"User-Agent": "jh-deal"}), timeout=20).read()
-        return json.loads(raw)
-    except Exception:
-        return None
+    for attempt in range(retries + 1):
+        try:
+            raw = urllib.request.urlopen(
+                urllib.request.Request(url, headers={"User-Agent": "jh-deal"}), timeout=20).read()
+            return json.loads(raw)
+        except Exception:
+            if attempt < retries:
+                time.sleep(1.2 * (attempt + 1))
+                continue
+            return None
 
 
 def fetch_news(pages=8, limit=100):
@@ -123,7 +127,7 @@ def fetch_news(pages=8, limit=100):
         return items
     tasks = [("press-releases-latest", p) for p in range(pages)] + \
             [("stock-latest", p) for p in range(pages)]
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    with ThreadPoolExecutor(max_workers=6) as ex:
         for r in ex.map(one, tasks):
             out.extend(r)
     return out
@@ -201,12 +205,56 @@ def _largest(blob):
     return best, bstr
 
 
+DEAL_CONTEXT = re.compile(
+    r'(contract|order|award|deal|agreement|supply|valued|worth|purchase|booking|backlog|'
+    r'grant|funding|program|revenue|subcontract|task order|delivery order|procure)', re.I)
+
+_NAME_SUFFIX = re.compile(
+    r'\b(inc|incorporated|corp|corporation|ltd|limited|plc|holdings|holding|company|co|group|'
+    r'llc|sa|ag|nv|the|and|technologies|technology|industries|international|systems|solutions|'
+    r'pharmaceuticals|therapeutics|biosciences|energy|capital|partners|enterprises)\b', re.I)
+
+
+def name_tokens(name):
+    if not name:
+        return []
+    n = _NAME_SUFFIX.sub(" ", name.lower())
+    return [t for t in re.findall(r"[a-z]{4,}", n)]
+
+
+def name_matches(symbol, title, uni):
+    """Reject mis-tagged tickers: the ticker's company name must share a meaningful token with
+    the headline. FMP occasionally tags a PR with the wrong symbol (e.g. a Realty Income JV
+    tagged JYNT) — without this the deal scanner ranks the wrong company."""
+    name = (uni.get(symbol, {}) or {}).get("name") or ""
+    toks = name_tokens(name)
+    if not toks:
+        return True                      # can't verify → allow (don't over-reject)
+    tl = (title or "").lower()
+    return any(t in tl for t in toks)
+
+
 def parse_value(title, text):
-    tv, ts = _largest(title)          # prefer the figure in the headline
+    tv, ts = _largest(title)             # prefer the figure in the headline
     if tv > 0:
         return tv, ts
-    xv, xs = _largest((text or "")[:600])
-    return (xv if xv > 0 else None), xs
+    # text fallback — ONLY accept a figure that sits near deal-context language, so we don't
+    # grab unrelated numbers (industry/ecosystem/market-size figures in the body)
+    blob = (text or "")[:900]
+    best_v, best_s = 0.0, None
+    for m in SIZE_RE.finditer(blob):
+        a, b = max(0, m.start() - 75), min(len(blob), m.end() + 75)
+        if not DEAL_CONTEXT.search(blob[a:b]):
+            continue
+        val = _num(m.group(1).replace(",", ""))
+        if val is None:
+            continue
+        val *= MULT.get(m.group(2).lower(), 1)
+        if val > 1e11 or val <= 0:
+            continue
+        if val > best_v:
+            best_v, best_s = val, m.group(0).strip()
+    return (best_v if best_v > 0 else None), best_s
 
 
 def is_deal(title, text, value, trust="pr"):
@@ -366,6 +414,8 @@ def lambda_handler(event, context):
         val, vstr = parse_value(title, pr.get("text"))
         if not is_deal(title, pr.get("text"), val, pr.get("trust", "pr")):
             continue
+        if not name_matches(sym, title, uni):     # reject mis-tagged tickers
+            continue
         try:
             pub = datetime.fromisoformat(pr.get("publishedDate").replace(" ", "T")).replace(tzinfo=timezone.utc)
             age_h = round((now - pub).total_seconds() / 3600.0, 1)
@@ -406,6 +456,16 @@ def lambda_handler(event, context):
         elif val and (rev == 0 or rev is None):
             materiality = 9999.0  # pre-revenue / first major contract
         vs_mc = round(val / mc * 100, 2) if (val and mc) else None
+        # sanity cap: a single deal can't be a huge multiple of market cap — that means the
+        # parsed figure is an unrelated number or the ticker is mis-tagged. Strip the bad size
+        # rather than green-highlighting garbage (e.g. "$27B / 668564% of market cap").
+        if vs_mc is not None and vs_mc > 300:
+            val = None
+            vstr = None
+            vs_mc = None
+            materiality = None
+            d["deal_value_usd"] = None
+            d["deal_value_str"] = None
         hl = highlight_tier(materiality, vs_mc, val)
         ai_rel, ai_kws = ai_tag(d["symbol"], d["title"], txt, ai_universe)
         is_billion = bool(val and val >= 1e9)
