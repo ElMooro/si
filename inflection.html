@@ -11,15 +11,19 @@ h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan
 .sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:900px}
 .sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
 .sec .hint{letter-spacing:0;text-transform:none;color:var(--fg3);font-size:10.5px;font-weight:400}
-.gauge{background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.03),transparent);border:1px solid var(--border);border-radius:16px;padding:20px 24px}
-.gtop{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.gscore{font-family:var(--mono);font-size:42px;font-weight:800;line-height:1}
-.gregime{font-family:var(--mono);font-size:18px;font-weight:800;letter-spacing:1px}
-.gread{color:var(--fg2);font-size:13px;line-height:1.6;margin-top:9px;max-width:760px}
-.gbar{position:relative;height:12px;border-radius:7px;margin:16px 0 4px;background:linear-gradient(90deg,#ff5577,#fbbf24 50%,#34d399)}
-.gmark{position:absolute;top:-5px;width:4px;height:22px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.6);transform:translateX(-2px)}
-.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--fg3);letter-spacing:1px}
-.comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px;margin-top:16px}
+/* hero gauge */
+.hero2{display:grid;grid-template-columns:minmax(380px,1.1fr) minmax(280px,1fr);gap:18px;align-items:stretch}
+@media(max-width:820px){.hero2{grid-template-columns:1fr}}
+.gpanel{background:radial-gradient(120% 120% at 50% 0%,rgba(34,211,238,.06),rgba(167,139,250,.03) 45%,transparent);border:1px solid var(--border);border-radius:16px;padding:14px 18px 18px;text-align:center}
+.gpanel svg{background:transparent;border:none}
+.gnow{font-family:var(--mono);font-size:11px;color:var(--fg3);letter-spacing:1px;text-transform:uppercase}
+.headpanel{background:var(--bg1);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;justify-content:center}
+.headbadge{font-family:var(--mono);font-size:21px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:10px}
+.headread{color:var(--fg2);font-size:12.5px;line-height:1.6;margin:11px 0 12px}
+.drv2{font-size:11.5px;color:var(--fg2);font-family:var(--mono);line-height:1.5;margin:4px 0;padding:5px 9px;border-radius:6px;display:flex;gap:7px;align-items:flex-start}
+.drv2.dn{background:rgba(255,85,119,.07);border-left:2px solid var(--red)}
+.drv2.up{background:rgba(52,211,153,.07);border-left:2px solid var(--green)}
+.comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;margin-top:14px}
 .comp{background:var(--bg1);border:1px solid var(--border);border-radius:9px;padding:8px 10px}
 .comp .cn{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;color:var(--fg2);text-transform:uppercase;display:flex;justify-content:space-between}
 .comp .cn span{color:var(--fg3)}
@@ -28,7 +32,9 @@ h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan
 .cfill{position:absolute;top:0;height:100%;border-radius:3px}
 .hero{display:flex;gap:18px;flex-wrap:wrap;align-items:center;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
 .st{font-family:var(--mono);font-size:24px;font-weight:800}
-.up,.EXPANDING,.RISING,.pos{color:var(--green)}.down,.CONTRACTING,.FALLING,.neg{color:var(--red)}.flat,.NEUTRAL,.FLAT{color:var(--amber)}
+.up,.EXPANDING,.RISING,.pos,.CALM,.RISK_SEEKING,.EASING{color:var(--green)}
+.down,.CONTRACTING,.FALLING,.neg,.SCRAMBLE,.STRESS,.DASH_FOR_CASH,.TIGHTENING{color:var(--red)}
+.flat,.NEUTRAL,.FLAT,.WATCH,.FLIGHT_TO_SAFETY,.STABLE{color:var(--amber)}
 svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
 .grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
@@ -41,9 +47,15 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 .drv.ok{background:rgba(52,211,153,.05);border-left-color:var(--green)}
 .cbrk{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
 .cbrk div{font-family:var(--mono);font-size:11px}.cbrk b{color:var(--fg0);font-size:14px}
-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
-th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
+/* flow diverging bars */
+.flowwrap{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:15px 18px}
+.flowhdr{font-family:var(--mono);font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.flowrow{display:grid;grid-template-columns:130px 1fr 92px;align-items:center;gap:10px;margin:7px 0;font-family:var(--mono);font-size:11.5px}
+.flowrow .lab{color:var(--fg2)}
+.flowtrack{position:relative;height:16px;background:var(--bg2);border-radius:4px}
+.flowzero{position:absolute;left:50%;top:-2px;width:1px;height:20px;background:var(--fg3)}
+.flowfill{position:absolute;top:0;height:100%;border-radius:4px}
+.flowval{text-align:right;color:var(--fg0)}
 .note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:24px;border-top:1px solid var(--border);padding-top:12px}
 .loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
 </style></head><body>
@@ -51,16 +63,23 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 <nav><a href="/">Desk</a><a href="/canaries.html">Canaries</a><a href="/inflection.html" class="on">🌊 Liquidity</a><a href="/confluence.html">Confluence</a><a href="/ignition.html">Ignition</a></nav></header>
 <div class="wrap">
 <h1>Liquidity Inflection — <span class="grad">trade the second derivative</span></h1>
-<p class="sub">Levels are consensus; inflections are the trade. A composite of the <b>second derivatives</b> institutions actually watch — USD net liquidity (Fed balance sheet − TGA − RRP), bank-reserve scarcity vs the LCLoR floor, the RRP buffer, money-market funding stress (SOFR-IORB, eurodollar plumbing), MOVE, global central-bank liquidity, the broad dollar and credit spreads — with Schmitt-trigger flip detection and a <b>real event-study lead/lag table</b> for SPX, BTC and HYG.</p>
+<p class="sub">Levels are consensus; inflections are the trade. A composite of the <b>second derivatives</b> institutions watch — USD net liquidity, bank-reserve scarcity vs the LCLoR floor, the RRP buffer, money-market funding stress, MOVE, global central-bank liquidity, the broad dollar and credit — plus the dollar-shortage plumbing (cross-currency basis, Fed swap lines, settlement fails) and cross-asset flow divergence. The gauge shows where liquidity <b>is</b>; the projection shows where the mechanics say it's <b>headed</b>.</p>
 
 <div class="sec">🤖 AI DESK BRIEFING</div>
 <div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
 
-<div class="sec">Composite liquidity regime <span class="hint">— the blended second-derivative read</span></div>
-<div id="gauge"><div class="loading">Loading…</div></div>
+<div class="sec">Liquidity status &amp; trajectory <span class="hint">— composite now (needle) vs where the plumbing points (ghost)</span></div>
+<div class="hero2"><div class="gpanel" id="gauge"><div class="loading">Loading…</div></div><div class="headpanel" id="headpanel"></div></div>
+<div class="comps" id="comps"></div>
 
 <div class="sec">USD net liquidity impulse <span class="hint">— WALCL − TGA − RRP, 13-week slope</span></div>
 <div class="hero" id="hero"><span class="loading">Loading…</span></div>
+
+<div class="sec">Dollar shortage &amp; crisis backstops <span class="hint">— offshore USD funding, fails-to-deliver/receive, swap lines</span></div>
+<div class="grid3" id="backstops"></div>
+
+<div class="sec">Cross-asset flow divergence <span class="hint">— where money is moving across asset classes (5-day net)</span></div>
+<div id="flows"></div>
 
 <div class="sec">Reserve &amp; buffer mechanics <span class="hint">— is the system above the comfort floor?</span></div>
 <div class="grid" id="reserves"></div>
@@ -85,8 +104,8 @@ async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const num=(v,d=1)=>v==null||isNaN(v)?'—':(+v).toFixed(d);
 function clsOf(s){s=String(s||'').toUpperCase();
-  if(/EXPAND|RISING|ABUNDANT|CALM|BENIGN|LOOSE|ACCOMMOD|FUNCTION|SUPPRESS/.test(s))return 'g';
-  if(/CONTRACT|FALLING|TIGHTEN|STRESS|ELEVATED|SCARC|DANGER|RESTRICT|REPO/.test(s))return 'r';
+  if(/EXPAND|RISING|ABUNDANT|CALM|BENIGN|LOOSE|ACCOMMOD|FUNCTION|SUPPRESS|EASING|RISK_SEEK/.test(s))return 'g';
+  if(/CONTRACT|FALLING|TIGHTEN|STRESS|ELEVATED|SCARC|DANGER|RESTRICT|REPO|SCRAMBLE|DASH_FOR/.test(s))return 'r';
   return 'a';}
 function pill(s){return s?`<span class="pill ${clsOf(s)}">${esc(s)}</span>`:'';}
 function spark(tail,col='#22d3ee'){
@@ -99,35 +118,92 @@ function spark(tail,col='#22d3ee'){
 }
 function compBar(z){
   const pct=Math.max(0,Math.min(100,50+(z/3)*50));
-  const pos=z>=0;const col=pos?'var(--green)':'var(--red)';
-  const left=pos?50:pct, wdt=Math.abs(pct-50);
+  const pos=z>=0,col=pos?'var(--green)':'var(--red)',left=pos?50:pct,wdt=Math.abs(pct-50);
   return `<div class="cbar"><div class="cmid"></div><div class="cfill" style="left:${left}%;width:${wdt}%;background:${col}"></div></div>`;
 }
 function cell(s){if(!s)return '<td>—</td>';return `<td>${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg3)">(n${s.n}, ${s.hit_dir_pct}%✓)</span></td>`;}
 function card(title,value,sub,vcls,right){
   return `<div class="card"><h3>${title}${right?`<span>${right}</span>`:''}</h3><div class="v ${vcls||''}">${value}</div>${sub?`<div class="m">${sub}</div>`:''}</div>`;
 }
+// ── speedometer gauge: needle = now, ghost needle = where the plumbing points ──
+function speedo(co,tr){
+  if(!co)return '<div class="loading">composite unavailable</div>';
+  const s=Math.max(0,Math.min(100,co.liquidity_score));
+  const W=420,H=248,cx=210,cy=212,R=170,Ri=128;
+  const A=v=>Math.PI*(1-v/100);                 // 0→π(left) .. 100→0(right)
+  const P=(v,r)=>[cx+r*Math.cos(A(v)),cy-r*Math.sin(A(v))];
+  const arc=(a,b,col,wd)=>{const[x0,y0]=P(a,R),[x1,y1]=P(b,R);return `<path d="M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)}" fill="none" stroke="${col}" stroke-width="${wd}" stroke-linecap="round"/>`;};
+  let ticks='';for(let v=0;v<=100;v+=12.5){const[x0,y0]=P(v,R-12),[x1,y1]=P(v,R+2);ticks+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="#2a3650" stroke-width="1.5"/>`;}
+  // projection target from trajectory
+  let proj=s; if(tr){if(tr.heading&&tr.heading.indexOf('TIGHTENING')>=0)proj=Math.max(2,s-13);else if(tr.heading&&tr.heading.indexOf('EASING')>=0)proj=Math.min(98,s+13);}
+  const[nx,ny]=P(s,R-26),[gx,gy]=P(proj,R-30);
+  const regCol=clsOf(co.regime)==='g'?'var(--green)':clsOf(co.regime)==='r'?'var(--red)':'var(--amber)';
+  // ghost arrow head
+  const showGhost=Math.abs(proj-s)>1;
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    ${arc(0,40,'#ff5577',14)}${arc(40,60,'#fbbf24',14)}${arc(60,100,'#34d399',14)}
+    ${ticks}
+    ${showGhost?`<line x1="${cx}" y1="${cy}" x2="${gx.toFixed(1)}" y2="${gy.toFixed(1)}" stroke="${regCol}" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.55"/><circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="6" fill="none" stroke="${regCol}" stroke-width="2" opacity="0.7"/>`:''}
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="9" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="4" fill="${regCol}"/>
+    <text x="${cx}" y="${cy-44}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="46" font-weight="800" fill="${regCol}">${num(s,0)}</text>
+    <text x="${cx}" y="${cy-22}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700" letter-spacing="1" fill="${regCol}">${esc(co.regime)}</text>
+    <text x="${P(2,R+14)[0].toFixed(0)}" y="${(cy+18)}" text-anchor="start" font-family="IBM Plex Mono,monospace" font-size="9" fill="#5d6b82">CONTRACTING</text>
+    <text x="${P(98,R+14)[0].toFixed(0)}" y="${(cy+18)}" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="9" fill="#5d6b82">EXPANDING</text>
+  </svg>
+  <div class="gnow">composite z ${esc(co.composite_z)} · ${esc(co.n_components)} signals blended${showGhost?` · ◌ projection: ${num(proj,0)}`:''}</div>`;
+}
+function flowBars(fd){
+  if(!fd||!fd.flows_5d_usd_bn)return '<div class="loading">flow data unavailable</div>';
+  const F=fd.flows_5d_usd_bn;
+  const rows=[['Treasuries (bonds)','treasuries'],['US equity','equity'],['Credit','credit'],['Crypto','crypto'],['Gold / commodities','commodities_gold']];
+  const vals=rows.map(r=>F[r[1]]).filter(v=>typeof v==='number'&&!isNaN(v));
+  const mx=Math.max(1,...vals.map(v=>Math.abs(v)));
+  let body=rows.map(([lab,key])=>{
+    const v=F[key];
+    if(typeof v!=='number'||isNaN(v))return `<div class="flowrow"><div class="lab">${lab}</div><div class="flowtrack"><div class="flowzero"></div></div><div class="flowval">—</div></div>`;
+    const pos=v>=0,wpct=Math.min(50,Math.abs(v)/mx*50),col=pos?'var(--green)':'var(--red)';
+    const left=pos?50:50-wpct;
+    return `<div class="flowrow"><div class="lab">${lab}</div><div class="flowtrack"><div class="flowzero"></div><div class="flowfill" style="left:${left}%;width:${wpct}%;background:${col}"></div></div><div class="flowval" style="color:${col}">${pos?'+':''}$${num(v,1)}bn</div></div>`;
+  }).join('');
+  return `<div class="flowwrap"><div class="flowhdr"><span>5-day net flow by asset class &nbsp; ${pill(fd.regime)}</span><span style="color:var(--fg3)">◀ outflow · inflow ▶</span></div>${body}<div class="m" style="margin-top:9px;color:var(--fg2);line-height:1.6">${esc(fd.read)}</div></div>`;
+}
 
 async function load(){
   const d=await gj('data/liquidity-inflection.json');
   if(!d){document.getElementById('hero').innerHTML='<span class="loading">brief unavailable</span>';return;}
 
-  const co=d.composite;
-  if(co){
-    const mark=Math.max(0,Math.min(100,co.liquidity_score));
-    const comps=(co.components||[]).map(c=>`<div class="comp"><div class="cn">${esc(c.name.replace(/_/g,' '))}<span>${c.eff_z>0?'+':''}${c.eff_z}</span></div>${compBar(c.eff_z)}</div>`).join('');
-    document.getElementById('gauge').innerHTML=`<div class="gauge">
-      <div class="gtop"><div class="gscore ${clsOf(co.regime)==='g'?'pos':clsOf(co.regime)==='r'?'neg':'flat'}">${num(co.liquidity_score,1)}</div>
-        <div><div class="gregime ${co.regime}">${esc(co.regime)}</div><div class="m">composite z ${esc(co.composite_z)} · ${esc(co.n_components)} signals blended</div></div></div>
-      <div class="gbar"><div class="gmark" style="left:${mark}%"></div></div>
-      <div class="gscale"><span>◀ CONTRACTING</span><span>NEUTRAL</span><span>EXPANDING ▶</span></div>
-      <div class="gread">${esc(co.read)}</div>
-      <div class="comps">${comps}</div></div>`;
-  } else document.getElementById('gauge').innerHTML='<div class="loading">composite unavailable</div>';
+  // ── hero gauge + trajectory ──
+  const co=d.composite,tr=d.trajectory;
+  document.getElementById('gauge').innerHTML=speedo(co,tr);
+  if(tr){
+    const hcls=tr.heading.indexOf('TIGHTENING')>=0?'TIGHTENING':tr.heading.indexOf('EASING')>=0?'EASING':'STABLE';
+    const arrow=hcls==='TIGHTENING'?'↘':hcls==='EASING'?'↗':'→';
+    const drv=(tr.drivers||[]).map(x=>{const dn=/fall|exhaust|below|contract|strength|scramble|dash|drain|headwind|tighten/i.test(x)&&!/draw|weaken|expand|releases|tailwind/i.test(x);return `<div class="drv2 ${dn?'dn':'up'}"><span>${dn?'▾':'▴'}</span><span>${esc(x)}</span></div>`;}).join('');
+    document.getElementById('headpanel').innerHTML=`<div class="gnow">Where it's headed</div>
+      <div class="headbadge ${hcls}">${arrow} ${esc(tr.heading)}</div>
+      <div class="headread">${esc(tr.read)}</div>${drv}
+      <div class="m" style="margin-top:8px">forward vote ${tr.vote>0?'+':''}${esc(tr.vote)} across ${esc(tr.n_signals)} plumbing signals</div>`;
+  } else document.getElementById('headpanel').innerHTML='<div class="loading">trajectory unavailable</div>';
+  document.getElementById('comps').innerHTML=(co&&co.components?co.components:[]).map(c=>`<div class="comp"><div class="cn">${esc(c.name.replace(/_/g,' '))}<span>${c.eff_z>0?'+':''}${c.eff_z}</span></div>${compBar(c.eff_z)}</div>`).join('');
 
+  // ── USD net liquidity ──
   const u=d.usd||{};
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
 
+  // ── dollar shortage & crisis backstops ──
+  const ds=d.dollar_shortage,sf=d.settlement_fails,sl=d.swap_lines;
+  let bh='';
+  if(ds){const fl=(ds.flags||[]).map(x=>`<div class="drv ${ds.status==='CALM'?'ok':''}">${esc(x)}</div>`).join('');
+    bh+=`<div class="card"><h3>Dollar shortage ${pill(ds.status)}</h3><div class="v ${clsOf(ds.status)==='r'?'neg':(clsOf(ds.status)==='g'?'pos':'')}">${esc(ds.status)}</div><div class="m">Fed swap lines $${num(ds.fed_swap_lines_bn,2)}bn · CP−SOFR ${esc(ds.cp_ois_bps)}bp · synthetic USD ${ds.usd_synthetic_20d_pct>0?'+':''}${esc(ds.usd_synthetic_20d_pct)}% 20d · broad $ ${esc(ds.broad_dollar)}</div>${fl}</div>`;}
+  if(sf)bh+=`<div class="card"><h3>Settlement fails ${pill(sf.regime)}</h3><div class="v ${clsOf(sf.regime)==='r'?'neg':'pos'}">$${num(sf.ust_combined_bn,0)}bn</div><div class="m">fails-to-deliver $${num(sf.ust_ftd_bn,0)}bn + fails-to-receive $${num(sf.ust_ftr_bn,0)}bn · ${esc(sf.pctile)}%ile (z ${esc(sf.z)}) · peak $${num(sf.max_bn,0)}bn<br>UST collateral sourcing — spikes = repo squeeze</div></div>`;
+  if(sl)bh+=`<div class="card"><h3>Central-bank backstops ${pill(sl.status)}</h3><div class="v ${clsOf(sl.status)==='r'?'neg':'pos'}">$${num(sl.fed_swaps_bn,2)}bn</div><div class="m">Fed FX swap lines $${num(sl.fed_swaps_bn,2)}bn (Δ ${sl.swap_trend_bn>0?'+':''}${esc(sl.swap_trend_bn)}bn) · discount window $${num(sl.discount_window_bn,1)}bn<br>~0 normally · any sustained rise = acute dollar shortage</div></div>`;
+  document.getElementById('backstops').innerHTML=bh||'<div class="loading">—</div>';
+
+  // ── cross-asset flow divergence ──
+  document.getElementById('flows').innerHTML=flowBars(d.flow_divergence);
+
+  // ── reserve & buffer mechanics ──
   const rs=d.reserves,rp=d.rrp,tg=d.tga;
   let rh='';
   if(rs)rh+=card('Bank reserves '+pill(rs.direction),`$${num(rs.level_usd_bn/1000,2)}T`,`impulse z ${esc(rs.impulse_z)} · ${esc(rs.as_of)}<br>${esc(rs.scarcity_note)}`,clsOf(rs.direction)==='r'?'neg':'');
@@ -135,6 +211,7 @@ async function load(){
   if(tg)rh+=card('Treasury (TGA) '+pill(tg.direction),`$${num(tg.level_usd_bn/1000,2)}T`,`a rising TGA drains liquidity into Treasury's account`,'');
   document.getElementById('reserves').innerHTML=rh||'<div class="loading">—</div>';
 
+  // ── funding & plumbing stress ──
   const fs=d.funding_stress||{};
   let fh='';
   const si=fs.sofr_iorb;
@@ -145,11 +222,12 @@ async function load(){
   const edp=fs.eurodollar_plumbing;
   if(edp)fh+=card('Eurodollar plumbing '+pill(edp.regime),`${esc(edp.health)}<span style="font-size:11px;color:var(--fg3)"> /100 health</span>`,`offshore USD · ${esc(edp.verdict)}`,clsOf(edp.regime)==='r'?'neg':'pos');
   const eds=fs.eurodollar_stress;
-  if(eds)fh+=card('Eurodollar stress '+pill(eds.regime),`${esc(eds.score)}<span style="font-size:11px;color:var(--fg3)"> /100</span>`,(eds.hot&&eds.hot.length)?('hot: '+eds.hot.map(h=>esc(h.name||h.signal||h)).join(', ')):'8-signal offshore composite',clsOf(eds.regime)==='r'?'neg':'');
+  if(eds)fh+=card('Eurodollar stress '+pill(eds.regime),`${esc(eds.score)}<span style="font-size:11px;color:var(--fg3)"> /100</span>`,'8-signal offshore composite',clsOf(eds.regime)==='r'?'neg':'');
   const mv=fs.move;
   if(mv)fh+=card('MOVE index '+pill(mv.regime),`${esc(mv.level)}`,`${esc(mv.percentile)}th %ile · 20d Δ ${mv.change_20d>0?'+':''}${esc(mv.change_20d)}<br>bond vol — a liquidity-stress proxy`,mv.level>110?'neg':'pos');
   document.getElementById('funding').innerHTML=fh||'<div class="loading">—</div>';
 
+  // ── global liquidity ──
   const gl=d.global_liquidity;
   if(gl&&gl.index){const ix=gl.index,comp=ix.components_usd_bn||{};
     const brk=Object.entries(comp).map(([k,v])=>`<div>${esc(k)} <b>$${num(v/1000,2)}T</b></div>`).join('');
@@ -159,6 +237,7 @@ async function load(){
       <div class="m">52w ${ix.change_52w_pct>0?'+':''}${esc(ix.change_52w_pct)}% · as of ${esc(ix.as_of)} · ${esc(gl.regime_read||'')}</div></div>`;
   } else document.getElementById('global').innerHTML='<div class="loading">—</div>';
 
+  // ── macro tides ──
   const dl=d.dollar,fc=d.financial_conditions,cr=d.credit,ss=d.systemic_stress,e=d.eur,c=d.china,ce=d.china_engine,s=d.stablecoin;
   let t='';
   if(dl)t+=card('Broad dollar '+pill(dl.direction),`${esc(dl.level)}`,`impulse z ${esc(dl.impulse_z)} · a stronger USD tightens global dollar liquidity`,clsOf(dl.direction)==='r'?'neg':(clsOf(dl.direction)==='g'?'pos':''));
@@ -170,6 +249,7 @@ async function load(){
   t+=card('Stablecoin tide '+(s?pill(s.state):''),s?esc(s.state||('accel z '+s.accel_z)):'—',s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round(((s.aggregate||{}).delta_7d_usd||0)/1e6))+'mn'):'unavailable',s&&clsOf(s.state)==='r'?'neg':'');
   document.getElementById('tides').innerHTML=t;
 
+  // ── event study + leads ──
   const es=d.event_study_after_flips||{};let rows='';
   for(const [a,tbl] of Object.entries(es)){for(const dir of ['UP','DOWN']){
     rows+=`<tr><td>${esc(a)}</td><td>${dir}</td>${cell((tbl.d5||{})['after_'+dir+'_flip'])}${cell((tbl.d21||{})['after_'+dir+'_flip'])}${cell((tbl.d63||{})['after_'+dir+'_flip'])}</tr>`;}}
