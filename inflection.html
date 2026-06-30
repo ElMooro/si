@@ -89,7 +89,7 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Composite cycle clock <span class="hint">— same phase-space orbit but driven by all components, not just net liquidity</span></div>
 <div id="compclock"><div class="loading">Loading…</div></div>
 
-<div class="sec">Live forward expectation <span class="hint">— what the large-n regime study implies for the next 21 days, given where liquidity is right now</span></div>
+<div class="sec">Live forward expectation <span class="hint">— next-21-day read from the large-n regime study, conditioned on both the net-liq impulse and the full composite state</span></div>
 <div id="fwdexp"><div class="loading">Loading…</div></div>
 
 <div class="sec">Dollar shortage &amp; crisis backstops <span class="hint">— offshore USD funding, fails-to-deliver/receive, swap lines</span></div>
@@ -111,7 +111,7 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Macro tides <span class="hint">— dollar, conditions, credit & the cross-asset feeds</span></div>
 <div class="grid" id="tides"></div>
 
-<div class="sec">Historical analogs <span class="hint">— the closest liquidity fingerprints in history, and what SPX did next</span></div>
+<div class="sec">Historical analogs <span class="hint">— closest liquidity fingerprints in history (now composite-aware), and what SPX did next</span></div>
 <div id="analogs"><div class="loading">Loading…</div></div>
 
 <div class="sec">Does liquidity timing actually work? <span class="hint">— a simple impulse rule backtested vs buy-and-hold (honest, in-sample)</span></div>
@@ -179,7 +179,7 @@ function renderFlipLog(fl){
   }
   return html||'<div class="loading">no flips in window</div>';
 }
-const FP_LABEL={impulse:'Net-liq impulse',hy_oas:'HY OAS',dollar:'Broad dollar',nfci:'NFCI',reserve_drain:'Reserve drain'};
+const FP_LABEL={impulse:'Net-liq impulse',hy_oas:'HY OAS',dollar:'Broad dollar',nfci:'NFCI',reserve_drain:'Reserve drain',composite:'Composite state'};
 function fpRow(fp,feats){return (feats||Object.keys(fp||{})).map(k=>`<div class="comp"><div class="cn">${FP_LABEL[k]||k}<span>${fp[k]>0?'+':''}${fp[k]}</span></div>${compBar(fp[k])}</div>`).join('');}
 function renderBacktest(b){
   if(!b||!(b.curve||[]).length)return '<div class="loading">backtest unavailable</div>';
@@ -244,7 +244,9 @@ function renderForwardExp(fe){
       <div class="v" style="color:${col};font-size:18px">${v.mean>0?'+':''}${v.mean}%</div>
       <div class="m">excess <span style="color:${ecol}">${v.excess>0?'+':''}${v.excess}%</span> vs ${v.baseline}% base<br>n${v.n} \u00b7 ${v.hit_pct}%\u2713</div></div>`;
   }).join('');
-  return `<div class="gnow" style="margin-bottom:9px">Current state: <b>${esc(fe.state)}</b> (impulse z ${esc(fe.impulse_z)}) \u2192 model\u2019s ${esc(fe.horizon)} forward expectation</div><div class="grid3">${cards}</div><div class="m" style="margin-top:9px">${esc(fe.note)}</div>`;
+  const zlab=(fe.composite_z!==undefined&&fe.composite_z!==null)?`composite z ${esc(fe.composite_z)}`:`impulse z ${esc(fe.impulse_z)}`;
+  const src=fe.source?` \u00b7 <span style="color:var(--fg3)">${fe.source==='snapshots'?'all-component snapshots':'FRED-backed (~70% weight)'}</span>`:'';
+  return `<div class="gnow" style="margin-bottom:9px">Current state: <b>${esc(fe.state)}</b> (${zlab})${src} \u2192 model\u2019s ${esc(fe.horizon)} forward expectation</div><div class="grid3">${cards}</div><div class="m" style="margin-top:9px">${esc(fe.note)}</div>`;
 }
 function renderRunway(rr){
   if(!rr)return '';
@@ -437,7 +439,9 @@ async function load(){
   document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
   document.getElementById('compclock').innerHTML=srcLine((d.composite_clock||{}).source)+renderClock(d.composite_clock);
   document.getElementById('tensions').innerHTML=renderTensions(d.tensions);
-  document.getElementById('fwdexp').innerHTML=renderForwardExp(d.forward_expectation);
+  document.getElementById('fwdexp').innerHTML=
+    '<div class="gnow" style="margin-bottom:6px;color:var(--cyan)">\u25b8 Net-liquidity impulse</div>'+renderForwardExp(d.forward_expectation)
+    +(d.forward_expectation_composite?'<div class="gnow" style="margin:18px 0 6px;color:var(--cyan)">\u25b8 Full composite state (all components)</div>'+renderForwardExp(d.forward_expectation_composite):'');
   document.getElementById('runway').innerHTML=renderRunway(d.reserve_runway);
   document.getElementById('datahealth').innerHTML=renderDataHealth(d.data_health);
 
