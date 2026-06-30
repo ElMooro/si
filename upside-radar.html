@@ -10,13 +10,21 @@ nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}na
 h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--green),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:940px}
 .warm{font-family:var(--mono);font-size:11.5px;background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:inline-block;margin:12px 0;color:var(--fg2)}
+.ctx{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+.ctx span{font-family:var(--mono);font-size:11px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--fg2)}
+.ctx b{color:var(--fg-1)}
 .sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase}
-.bigtabs{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}.bigtabs span{font-family:var(--mono);font-size:12px;padding:7px 15px;border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--fg2);background:var(--bg1)}
+.subh{font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--cyan);margin:16px 0 6px;text-transform:uppercase}
+.subh.vio{color:var(--violet)}.subh.am{color:var(--amber)}
+.bigtabs{display:flex;gap:7px;margin:14px 0 4px;flex-wrap:wrap}.bigtabs span{font-family:var(--mono);font-size:11.5px;padding:6px 12px;border:1px solid var(--border);border-radius:9px;cursor:pointer;color:var(--fg2);background:var(--bg1);white-space:nowrap}
 .bigtabs span.on{color:#0a0e14;background:linear-gradient(90deg,var(--green),var(--cyan));font-weight:700;border-color:transparent}
+.bigtabs .grp{align-self:center;color:var(--fg3);font-size:9.5px;letter-spacing:1px;padding:0 3px 0 8px;cursor:default;background:none;border:none}
 table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
 th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
 th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
-.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
+.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}.vi{color:var(--violet)}.cy{color:var(--cyan)}
+.tg{display:inline-block;font-size:9.5px;padding:1px 5px;border:1px solid var(--border);border-radius:5px;margin:1px;color:var(--fg2)}
+.star{color:var(--amber)}
 .note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
 .loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
 </style></head><body>
@@ -24,11 +32,19 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 <nav><a href="/">Desk</a><a href="/ignition.html">Ignition</a><a href="/upside-radar.html" class="on">🚀 Upside Radar</a><a href="/ma-reversion.html">MA Engine</a><a href="/skill.html">Skill</a></nav></header>
 <div class="wrap">
 <h1>Upside Radar — <span class="grad">market-wide multi-bagger discovery</span></h1>
-<p class="sub">Every liquid US stock — not a curated universe — screened daily for the four price signatures that precede huge winners (252d-high breakouts on volume, relative-strength leadership, tight coils under highs, first-footprint volume anomalies), then gated by <b>bagger anatomy</b>: revenue growth, zero dilution, margin inflection, size. Breakouts that pass anatomy log to the closed loop and get graded on /skill.html — the thesis earns its confidence.</p>
+<p class="sub">Every liquid US stock — not a curated universe — screened daily for the four price signatures that precede huge winners (252d-high breakouts on volume, relative-strength leadership, tight coils under highs, first-footprint volume anomalies), gated by <b>bagger anatomy</b> (revenue growth, zero dilution, margin inflection, size), then <b>cross-confirmed</b> against the full discovery fleet — multi-engine confluence, parallel bagger models, momentum &amp; post-earnings drift, dark-pool / 13F / ARK accumulation, short-squeeze fuel, estimate-revision momentum, and sector/theme emergence. Breakouts that pass anatomy log to the closed loop and get graded on /skill.html.</p>
 <div class="warm" id="warm">loading…</div>
+<div class="ctx" id="ctx"></div>
 <div class="sec">🤖 AI Discovery Briefing</div>
 <div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
-<div class="bigtabs" id="tabs"><span data-p="breakout" class="on">🚀 Breakouts</span><span data-p="rs_leaders">🏆 RS Leaders</span><span data-p="coiled">🌀 Coiled</span><span data-p="footprint">👣 Footprints</span><span data-p="anatomy">🧬 Anatomy</span></div>
+<div class="bigtabs" id="tabs">
+<span class="grp">PRICE SIGNATURES</span>
+<span data-p="breakout" class="on">🚀 Breakouts</span><span data-p="rs_leaders">🏆 RS Leaders</span><span data-p="coiled">🌀 Coiled</span><span data-p="footprint">👣 Footprints</span><span data-p="anatomy">🧬 Anatomy</span>
+<span class="grp">CROSS-ENGINE</span>
+<span data-p="confluence">🧩 Confluence</span><span data-p="baggers">🐋 Baggers</span><span data-p="momentum">📈 Momentum</span><span data-p="pead">💥 PEAD</span>
+<span class="grp">SMART MONEY</span>
+<span data-p="accum">💰 Accumulation</span><span data-p="squeeze">🔥 Squeeze</span><span data-p="revisions">📊 Revisions</span><span data-p="emergence">🌱 Emergence</span><span data-p="ranked">🎯 Top-ranked</span>
+</div>
 <div id="pane"></div>
 <div class="note" id="note"></div>
 </div>
@@ -36,29 +52,93 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-let D=null,P='breakout';
+const n1=(v,s)=>v==null||isNaN(v)?'—':(s&&v>0?'+':'')+(+v).toFixed(1);
+const n2=(v)=>v==null||isNaN(v)?'—':(+v).toFixed(2);
+const pct=(v,s)=>v==null||isNaN(v)?'—':(s&&v>0?'+':'')+(+v).toFixed(1)+'%';
+const mb=(v)=>v==null||isNaN(v)?'—':v>=1e9?'$'+(v/1e9).toFixed(2)+'B':v>=1e6?'$'+(v/1e6).toFixed(0)+'M':'$'+(+v).toFixed(0);
+let D=null,X={},P='breakout',brkSet=new Set();
 function tbl(rows,cols){if(!rows||!rows.length)return '<div class="loading">Nothing qualifying today.</div>';
-  return `<table><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>{const v=typeof c[0]==='function'?c[0](r):r[c[0]];return `<td class="${c[2]?c[2](r):''}">${esc(v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;}
+  return `<table><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>{const v=typeof c[0]==='function'?c[0](r):r[c[0]];return `<td class="${c[2]?c[2](r):''}">${c[3]?v:esc(v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;}
+const subh=(t,c)=>`<div class="subh ${c||''}">${t}</div>`;
+// star a ticker that is ALSO breaking out today (cross-confirmation)
+const star=t=>brkSet.has((t||'').toUpperCase())?'<span class="star" title="also breaking out today">★ </span>':'';
 function render(){
-  const S=D.scans||{};
-  const base=[['t','Ticker'],['c','Px'],[r=>r.dist_hi_pct+'%','vs 252d-hi',r=>r.dist_hi_pct>=-0.2?'hi':''],[r=>(r.ret63>0?'+':'')+r.ret63+'%','3m'],[r=>r.ret252!=null?(r.ret252>0?'+':'')+r.ret252+'%':'—','12m',r=>r.ret252>=100?'hi':'']];
+  const S=(D&&D.scans)||{};
+  const base=[[r=>star(r.t)+esc(r.t),'Ticker',null,1],['c','Px'],[r=>r.dist_hi_pct+'%','vs 252d-hi',r=>r.dist_hi_pct>=-0.2?'hi':''],[r=>(r.ret63>0?'+':'')+r.ret63+'%','3m'],[r=>r.ret252!=null?(r.ret252>0?'+':'')+r.ret252+'%':'—','12m',r=>r.ret252>=100?'hi':'']];
+  const fc=X.fc||{},ec=X.ec||{},be=X.be||{},cb=X.cb||{},mbk=X.mb||{},pe=X.pe||{},dp=X.dp||{},cf=X.cf||{},ark=X.ark||{},si=X.si||{},er=X.er||{},se=X.se||{},mr=X.mr||{},bs=X.bs||{},tr=X.tr||{};
   const M={
    breakout:tbl(S.breakout,[...base,[r=>r.dvol_x+'×','$Vol vs 20d',r=>r.dvol_x>=3?'am':'']]),
    rs_leaders:tbl(S.rs_leaders,[...base,[r=>r.rs_pctile,'RS pctile',()=>'hi']]),
    coiled:tbl(S.coiled,[...base,[r=>r.range63_pct+'%','63d range',()=>'am']]),
    footprint:tbl(S.footprint,[...base,[r=>r.dvol_x+'×','$Vol surge',()=>'am']]),
-   anatomy:tbl(D.anatomy,[['ticker','Ticker'],[r=>r.anatomy_score,'Score',r=>r.anatomy_score>=40?'hi':r.anatomy_score<0?'lo':''],[r=>r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—','Rev growth',r=>r.rev_growth_pct>=15?'hi':''],[r=>r.share_chg_4y_pct!=null?r.share_chg_4y_pct+'%':'—','Share chg 4y',r=>r.share_chg_4y_pct<=2?'hi':r.share_chg_4y_pct>10?'lo':''],[r=>r.gross_margin_now!=null?r.gross_margin_now+'%←'+r.gross_margin_then+'%':'—','GM now←then'],[r=>r.mcap_bn!=null?r.mcap_bn+'B':'—','Mcap',r=>r.mcap_bn<3?'hi':'']])};
-  document.getElementById('pane').innerHTML=M[P]||'';
+   anatomy:tbl(D&&D.anatomy,[['ticker','Ticker'],[r=>r.anatomy_score,'Score',r=>r.anatomy_score>=40?'hi':r.anatomy_score<0?'lo':''],[r=>r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—','Rev growth',r=>r.rev_growth_pct>=15?'hi':''],[r=>r.share_chg_4y_pct!=null?r.share_chg_4y_pct+'%':'—','Share chg 4y',r=>r.share_chg_4y_pct<=2?'hi':r.share_chg_4y_pct>10?'lo':''],[r=>r.gross_margin_now!=null?r.gross_margin_now+'%←'+r.gross_margin_then+'%':'—','GM now←then'],[r=>r.mcap_bn!=null?r.mcap_bn+'B':'—','Mcap',r=>r.mcap_bn<3?'hi':'']]),
+   confluence:
+     subh('Multi-engine confluence — names lit up across independent flow/positioning engines')+
+     tbl((fc.multi_engine_confluence||[]).slice(0,30),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n2(r.score),'Score',r=>r.score>=1.5?'hi':''],[r=>r.n_engines,'#Eng',r=>r.n_engines>=4?'hi':''],[r=>(r.tags||[]).slice(0,4).map(t=>`<span class="tg">${esc(t)}</span>`).join(''),'Tags',null,1],[r=>r.covering?'covering':r.heavy_short?'heavy short':r.stealth?'stealth':'—','Flag',r=>r.heavy_short?'am':r.covering?'hi':'']])+
+     subh('Independent-super-family confluence (equity-confluence)','vio')+
+     tbl((ec.confluence_book||[]).slice(0,20),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.composite),'Composite',r=>r.composite>=60?'hi':''],[r=>r.n_super_families,'#Super-fam',r=>r.n_super_families>=3?'hi':''],[r=>(r.families||[]).slice(0,4).map(t=>`<span class="tg">${esc(t)}</span>`).join(''),'Families',null,1],[r=>n2(r.avg_strength),'Avg str']]),
+   baggers:
+     subh('Bagger engine — small-base / revenue / ROIC / reinvestment pillars (potential 100x→25x)')+
+     tbl((be.top_100||[]).slice(0,30),[[r=>star(r.symbol)+esc(r.symbol),'Ticker',null,1],[r=>n1(r.bagger_score),'Bagger',r=>r.bagger_score>=70?'hi':''],['cap_bucket','Cap'],['sector','Sector'],[r=>mb(r.market_cap),'Mcap',r=>r.market_cap<3e9?'hi':''],[r=>r.price?'$'+(+r.price).toFixed(2):'—','Px']])+
+     subh('Cyclical 20x — deep-loss turnaround shapes','am')+
+     tbl((cb.cyclical_only_book||cb.full_20x_book||[]).slice(0,20),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.cyclical_20x_score),'20x score',r=>r.cyclical_20x_score>=50?'hi':''],['stage','Stage'],['cap_bucket','Cap'],[r=>r.twenty_x_shape?'✓':'—','20x shape',r=>r.twenty_x_shape?'hi':'']]),
+   momentum:
+     subh('Momentum breakout — multi-timeframe leaders (TIER A strongest; ⚠ flags parabolic)')+
+     tbl((mbk.all_qualifying||[]).slice(0,40),[[r=>star(r.symbol)+esc(r.symbol),'Ticker',null,1],[r=>r.score,'Score',r=>r.score>=60?'hi':''],['tier','Tier',r=>/A/.test(r.tier||'')?'hi':''],[r=>r.metrics?pct(r.metrics.ret_20d_pct,1):'—','20d',r=>r.metrics&&r.metrics.ret_20d_pct>20?'hi':''],[r=>r.metrics?pct(r.metrics.ret_5d_pct,1):'—','5d'],[r=>r.is_parabolic?'⚠':'—','Parab',r=>r.is_parabolic?'am':'']]),
+   pead:
+     subh('Post-earnings drift — sustained beats + drift (TIER S strongest)')+
+     tbl((pe.all_qualifying||[]).slice(0,40),[[r=>star(r.symbol)+esc(r.symbol),'Ticker',null,1],[r=>r.score,'Score',r=>r.score>=80?'hi':''],['tier','Tier',r=>/S/.test(r.tier||'')?'hi':''],[r=>r.metrics?r.metrics.streak:'—','Beat streak',r=>r.metrics&&r.metrics.streak>=4?'hi':''],[r=>r.metrics?pct(r.metrics.avg_beat_pct,1):'—','Avg beat',()=>'hi'],[r=>r.metrics?n2(r.metrics.beat_acceleration):'—','Accel']]),
+   accum:
+     subh('Dark-pool accumulation — per-name off-exchange buying')+
+     tbl((dp.top_accumulation||(dp.board||[]).filter(x=>x.state==='ACCUMULATION')).slice(0,20),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.score),'DP score',r=>r.score>=70?'hi':''],[r=>pct(r.dark_pool_pct),'Dark %',r=>r.dark_pool_pct>=30?'am':''],[r=>pct(r.offex_pct),'Off-exch %'],[r=>pct(r.week_return_pct,1),'Wk ret',r=>r.week_return_pct>0?'hi':'lo']])+
+     subh('13F / institutional accumulation (capital-flow)','vio')+
+     tbl((cf.accumulating||[]).slice(0,15),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.flow_score),'Flow score',()=>'hi'],['sector','Sector']])+
+     subh('ARK conviction — held across multiple ARK funds','cy')+
+     tbl((ark.cross_fund_top||[]).slice(0,15),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>r.n_funds,'#Funds',r=>r.n_funds>=3?'hi':''],[r=>mb(r.total_value),'Value'],[r=>pct(r.max_weight),'Max wt']]),
+   squeeze:
+     subh('Top squeeze-risk — crowded shorts with covering pressure (multi-bagger fuel)')+
+     tbl((si.top_squeeze_risk||[]).slice(0,15),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>pct(r.latest_short_pct),'Short %',r=>r.latest_short_pct>=10?'am':''],[r=>n2(r.days_to_cover),'Days to cover',r=>r.days_to_cover>=5?'am':''],[r=>pct(r.si_change_pct,1),'SI Δ',r=>r.si_change_pct<0?'hi':'lo']])+
+     subh('Most-crowded shorts','am')+
+     tbl((si.top_crowded_shorts||[]).slice(0,12),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>pct(r.latest_short_pct),'Short %',()=>'am'],[r=>n2(r.days_to_cover),'DTC'],[r=>pct(r.trend_pct,1),'Trend']]),
+   revisions:
+     subh('Estimate-revision strength leaders — forward-EPS momentum into earnings')+
+     tbl((er.estimate_strength_leaders||[]).slice(0,30),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],['company','Company'],[r=>r.days_to_earnings,'Days→ER',r=>r.days_to_earnings<=14?'am':''],[r=>r.importance,'Importance',r=>r.importance>=4?'hi':''],['fiscal_period','Period']])+
+     subh('Fresh upward revisions','vio')+
+     tbl((er.upward_revisions||[]).slice(0,15),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],['company','Company'],[r=>r.days_to_earnings!=null?r.days_to_earnings:'—','Days→ER']]),
+   emergence:
+     subh('Sector emergence — early-innings bull detection (DECLINING→BASING→EMERGING→CONFIRMED)')+
+     tbl((se.sectors||[]).slice().sort((a,b)=>(b.emergence_score||0)-(a.emergence_score||0)).slice(0,11),[[r=>esc(r.name||r.ticker),'Sector'],['ticker','ETF'],[r=>n1(r.emergence_score),'Emergence',r=>r.emergence_score>=70?'hi':''],['stage','Stage',r=>/EMERGING|CONFIRMED/.test(r.stage||'')?'hi':''],[r=>r.rs_score,'RS'],[r=>r.momentum_score,'Mom']])+
+     subh('Theme rotation — rotating in / leading (RRG)','cy')+
+     tbl(((tr.summary&&(tr.summary.rotating_in||tr.summary.leading))||[]).slice(0,15).map(x=>typeof x==='string'?{theme:x}:x),[[r=>esc(r.theme||r.name||r.ticker||r),'Theme',null,1]]),
+   ranked:
+     subh('Master ranker — names with the most independent systems firing')+
+     tbl((mr.top_tickers||[]).slice(0,25),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.score),'Score',r=>r.score>=80?'hi':''],[r=>r.n_systems,'#Systems',r=>r.n_systems>=3?'hi':''],[r=>(r.systems||[]).slice(0,3).map(s=>`<span class="tg">${esc(typeof s==='object'?(s.name||s.system||''):s)}</span>`).join(''),'Systems',null,1]])+
+     subh('Best setups — unified conviction (risk-regime adjusted)','vio')+
+     tbl((bs.top_setups||[]).slice(0,20),[[r=>star(r.ticker)+esc(r.ticker),'Ticker',null,1],[r=>n1(r.conviction),'Conviction',r=>r.conviction>=70?'hi':''],[r=>esc((r.why||r.name||'').slice(0,60)),'Thesis',null,1]])
+  };
+  document.getElementById('pane').innerHTML=M[P]||'<div class="loading">—</div>';
 }
 document.getElementById('tabs').onclick=e=>{const p=e.target.dataset.p;if(!p)return;P=p;
   document.querySelectorAll('#tabs span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));render();};
 async function load(){
-  D=await gj('data/upside-radar.json');
-  if(!D){document.getElementById('warm').textContent='first run pending';return;}
-  const st=D.state||{};
-  document.getElementById('warm').innerHTML=`state: <b>${st.sessions_seen}</b>/252 sessions · <b>${st.rings}</b> liquid names tracked · universe scanned today: <b>${(D.scans||{}).universe_n??'—'}</b> · as of ${esc(st.as_of)} ${st.warm?'· <span class="hi">WARM ✓</span>':'· <span class="am">warming — 12m metrics partial</span>'}`;
+  const FEEDS={fc:'flow-confluence',ec:'equity-confluence',be:'bagger-engine',cb:'cyclical-bagger',mb:'momentum-breakout',pe:'pead-signals',dp:'dark-pool',cf:'capital-flow',ark:'ark-holdings',si:'short-interest',er:'estimate-revisions',se:'sector-emergence',mr:'master-ranker',bs:'best-setups',tr:'theme-rotation'};
+  const [ur,...rest]=await Promise.all([gj('data/upside-radar.json'),...Object.values(FEEDS).map(f=>gj('data/'+f+'.json'))]);
+  D=ur; Object.keys(FEEDS).forEach((k,i)=>X[k]=rest[i]||{});
+  if(!D){document.getElementById('warm').textContent='first run pending';}
+  else{const st=D.state||{};
+    document.getElementById('warm').innerHTML=`state: <b>${st.sessions_seen}</b>/252 sessions · <b>${st.rings}</b> liquid names tracked · universe scanned today: <b>${(D.scans||{}).universe_n??'—'}</b> · as of ${esc(st.as_of)} ${st.warm?'· <span class="hi">WARM ✓</span>':'· <span class="am">warming — 12m metrics partial</span>'}`;
+    (D.scans&&D.scans.breakout||[]).forEach(b=>brkSet.add((b.t||'').toUpperCase()));
+    document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged??0} logged today · v${D.version} · ${D.generated_at} · ★ = name also breaking out today · Research, not advice.`;
+  }
+  // context strip: emerging sectors + confluence count
+  const ctx=document.getElementById('ctx'),se=X.se||{},fc=X.fc||{},si=X.si||{};
+  let c='';
+  const emrg=(se.emerging_now||(se.sectors||[]).filter(s=>/EMERGING|CONFIRMED/.test(s.stage||''))).slice(0,4).map(s=>s.name||s.ticker||s);
+  if(emrg.length)c+=`<span>🌱 emerging: <b>${esc(emrg.join(', '))}</b></span>`;
+  if(fc.counts)c+=`<span>🧩 multi-engine confluence: <b>${fc.counts.multi_engine??'—'}</b></span><span>💰 accumulation tags: <b>${fc.counts.accumulation??'—'}</b></span><span>🔥 squeeze setups: <b>${fc.counts.short_squeeze_setup??'—'}</b></span>`;
+  if((si.top_squeeze_risk||[]).length)c+=`<span>🔥 squeeze-risk names: <b>${si.top_squeeze_risk.length}</b></span>`;
+  ctx.innerHTML=c;
   render();
-  document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged??0} logged today · v${D.version} · ${D.generated_at} · Research, not advice.`;
 }
 load();
 async function aiPanel(key,mount){
@@ -78,6 +158,7 @@ async function aiPanel(key,mount){
   }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
 }
 aiPanel('upside-radar-names','aibrief');
-</script>  <script src="/jh-enhance.js" data-feed="data/upside-radar.json" data-bars="scans.breakout:t:dist_hi_pct" data-title="Breakout scan — distance to 52-week high (%)" data-sub="names pressing range highs" ></script>
+</script>
+  <script src="/jh-enhance.js" data-feed="data/upside-radar.json" data-bars="scans.breakout:t:dist_hi_pct" data-title="Breakout scan — distance to 52-week high (%)" data-sub="names pressing range highs" ></script>
   <script src="/jh-page-ai.js" defer></script>
 </body></html>
