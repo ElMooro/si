@@ -1,11 +1,187 @@
-attempt 0: bytes=34216 layer_live=False
-attempt 1: bytes=34216 layer_live=False
-attempt 2: bytes=35894 layer_live=True
-  OK id="confT"
-  OK Filter out unconfirmed
-  OK tbl(prep(S.breakout)
-  OK const conv=t=>
-  OK 'Conviction'
-  OK #confT.on{
-  OK ⚠ parabolic
-DONE 2578
+
+=== attention-signals.json ===
+   engine: 'attention-signals'
+   version: '1.0.0'
+   generated_at: '2026-06-30T14:46:48.424506+00:00'
+   thesis: 'Fuse insider accumulation (Finnhub) + a
+   n_tickers: 36
+   n_with_insider: 33
+   stocktwits_trending: [list 25]
+   top_attention: [list 25] e0keys=symbol,name,layer,insider_mspr,insider_net_change,analyst_buy_pct,analyst_upgrade_mom,retail_bull_pct,retail_msgs,trending,attention_score,why
+   insider_buying: [list 9] e0keys=symbol,name,layer,insider_mspr,insider_net_change,analyst_buy_pct,analyst_upgrade_mom,retail_bull_pct,retail_msgs,trending,attention_score,why
+   analyst_upgrading: [list 2] e0keys=symbol,name,layer,insider_mspr,insider_net_change,analyst_buy_pct,analyst_upgrade_mom,retail_bull_pct,retail_msgs,trending,attention_score,why
+   theme_pulse: [list 10] e0keys=theme,article,views_recent,views_prior,attention_trend_pct
+   tickers: [list 36] e0keys=symbol,name,layer,insider_mspr,insider_net_change,analyst_buy_pct,analyst_upgrade_mom,retail_bull_pct,retail_msgs,trending,attention_score,why
+   sources: [list 3]
+   caveats: 'Insider MSPR & analyst trends lag filin
+
+=== insider-clusters.json ===
+   schema_version: '2.0'
+   method: 'insider_cluster_scanner_v2'
+   generated_at: '2026-06-30T11:10:47.819930+00:00'
+   lookback_days: 30
+   duration_s: 632.3
+   stats: {dict n_form4_filings_scanned,n_form4_parsed,n_buy_transactions,n_unique_tickers,n_clusters,n_strong_signals,n_smart_money_dual,n_ceo_conviction}
+   thresholds: {dict min_buy_value_usd,cluster_min_insiders,lookback_days,score_strong_threshold}
+   clusters: [list 28] e0keys=ticker,company,cik,n_insiders,n_transactions,total_shares,total_value,avg_price,first_buy,last_buy,highest_role,has_ceo
+
+=== insider-buyback-confluence.json ===
+   engine: 'insider-buyback-confluence'
+   version: '1.0.0'
+   as_of: '2026-06-29T23:00:07Z'
+   state: 'QUIET'
+   signal_strength: 0.1
+   n_confluences: 0
+   n_high_conviction: 0
+   feeders: {dict insider_keys,insider_error,insider_tickers_count,buyback_keys,buyback_error,buyback_tickers_count}
+   top_confluences: [list 0]
+   all_confluences: [list 0]
+   methodology: 'Double-signal: insider clusters (from j
+   sources: [list 3]
+   why_now: '0 high-conviction + 0 moderate confluen
+   run_seconds: 0.17
+
+=== options-flow.json ===
+   schema_version: 1
+   method: 'options_flow_scanner_v1'
+   generated_at: '2026-06-29T22:00:31+00:00'
+   duration_s: 4.2
+   stats: {dict n_universe,n_evaluated,n_no_data,n_tier_a,n_tier_b,n_finra_tickers}
+   summary: {dict top_25_overall,tier_a}
+   all_qualifying: [list 14] e0keys=symbol,score,tier,flags,metrics
+
+=== options-gamma.json ===
+   generated_at: '2026-06-30T14:56:00+00:00'
+   underlying: 'SPY'
+   spot: 741
+   vix: 16
+   regime: 'long_gamma'
+   interpretation: 'Strongly long gamma. Dealers are net-lo
+   total_gex: 1633946141.0
+   by_expiry: {dict 2026-07-01,2026-07-02,2026-07-06,2026-07-07,2026-07-08,2026-07-09}
+   by_strike: {dict 600,665,685,690,695,700,705,710}
+   zero_gamma_strike: 750
+   contracts_analyzed: 2500
+   fetch_duration_s: 11.6
+
+=== 13f-positions.json ===
+   generated_at: '2026-06-29T21:11:18+00:00'
+   as_of_quarter: '2026-03-31'
+   funds_total: 18
+   funds_parsed: 17
+   funds_failed: 0
+   fund_errors: [list 0]
+   by_fund: {dict BERKSHIRE,BRIDGEWATER,AQR,RENAISSANCE,TWO_SIGMA,PERSHING,GREENLIGHT,CITADEL}
+   aggregate_by_ticker: {dict AAPL,AXP,KO,BAC,CVX,674599105,GOOGL,H1467J104}
+   most_bought: [list 25] e0keys=ticker,cusip,name,n_funds_holding,total_value,n_funds_adding,n_funds_trimming,n_funds_new_position,n_funds_exiting,fund_actions,net_action_score
+   most_sold: [list 25] e0keys=ticker,cusip,name,n_funds_holding,total_value,n_funds_adding,n_funds_trimming,n_funds_new_position,n_funds_exiting,fund_actions,net_action_score
+   consensus_holds: [list 30] e0keys=ticker,cusip,name,n_funds_holding,total_value,n_funds_adding,n_funds_trimming,n_funds_new_position,n_funds_exiting,fund_actions,net_action_score
+   rare_picks: [list 20] e0keys=ticker,cusip,name,n_funds_holding,total_value,n_funds_adding,n_funds_trimming,n_funds_new_position,n_funds_exiting,fund_actions,net_action_score
+   fetch_duration_s: 3.6
+
+=== smart-money-clusters.json ===
+   schema_version: '1.0'
+   method: 'smart_money_cluster_scanner_v1'
+   generated_at: '2026-06-30T16:00:17+00:00'
+   duration_s: 2.3
+   as_of_quarter: '2026-03-31'
+   stats: {dict n_total_13f_stocks,n_candidates,n_clusters_scored,n_strong,n_high_conviction,n_moderate,n_legend_fund_buys,n_new_init_clusters}
+   clusters: [list 83] e0keys=ticker,name,score,flag,signal_types,n_funds_holding,n_buyers,n_sellers,n_new,legend_buyers,quant_buyers,total_value
+
+=== dark-pool.json ===
+   engine: 'justhodl-dark-pool'
+   version: '1.0.0'
+   ok: True
+   generated_at: '2026-06-24T14:00:27.175061+00:00'
+   thesis: 'Per-name off-exchange accumulation from
+   latest_week: '2026-06-01'
+   n_scored: 940
+   distribution: {dict accumulation,distribution}
+   board: [list 60] e0keys=ticker,state,score,dark_pool_pct,offex_pct,dark_accel,week_return_pct,ats_shares_wk,offex_shares_wk,total_vol_wk
+   top_picks: [list 20] e0keys=ticker,score,direction,state,dark_pool_pct,dark_accel,offex_pct,week_return_pct
+   top_accumulation: [list 20] e0keys=ticker,state,score,dark_pool_pct,offex_pct,dark_accel,week_return_pct,ats_shares_wk,offex_shares_wk,total_vol_wk
+   top_distribution: [list 12] e0keys=ticker,state,score,dark_pool_pct,offex_pct,dark_accel,week_return_pct,ats_shares_wk,offex_shares_wk,total_vol_wk
+   dark_map: {dict TWLO,EXPD,BYD,INGM,POOL,TNL,CME,NOC}
+   data_source: 'FINRA OTC Transparency weeklySummary (A
+
+=== political-stocks.json ===
+   schema_version: '1.3'
+   method: 'political_stocks_v1_s3cached'
+   generated_at: '2026-06-30T14:00:24+00:00'
+   duration_s: 0.5
+   lookback_days: 90
+   data_source: 'https://api.quiverquant.com/beta/live/c
+   party_source: 'https://theunitedstates.io/congress-leg
+   quiver_source: 's3_cache_120.0h'
+   trump_holdings: {dict filing_date,filing_url,filing_period,filer,role,positions,summary}
+   congress: {dict n_trades_total,n_trades_house,n_trades_senate,n_tickers,n_party_map,trade_source,top_buys,top_sells}
+   notes: "Trump holdings from OGE 278e (annual, m
+
+=== gdelt-news.json ===
+   generated_at: '2026-06-30T14:55:49+00:00'
+   gdelt_timestamp: '20260630150000'
+   stats: {dict articles_total,financial_articles,avg_tone,extreme_negative,extreme_positive,fetch_duration_s}
+   themes: {dict ECON_INFLATION,ECON_DEBT,ECON_INTEREST_RATES,ECON_DEFLATION}
+   asset_sentiment: {dict SPY,QQQ,BTC,BONDS}
+   headlines_by_tone: {dict most_negative,most_positive}
+
+=== short-interest.json ===
+   version: '1.0'
+   generated_at: '2026-06-30T12:20:56.069453+00:00'
+   watchlist_size: 158
+   n_tickers_with_data: 5768
+   n_tickers_finra: 153
+   n_tickers_polygon: 153
+   n_tickers_short_interest: 153
+   by_ticker: {dict AAPL,MSFT,GOOGL,GOOG,AMZN,NVDA,META,TSLA}
+   top_crowded_shorts: [list 15] e0keys=ticker,latest_short_pct,trend_pct,recent_5d_avg,prior_9d_avg,days_to_cover,si_change_pct,short_interest,settlement_date,signal,score,n_days_volume_data
+   top_squeeze_risk: [list 7] e0keys=ticker,latest_short_pct,trend_pct,recent_5d_avg,prior_9d_avg,days_to_cover,si_change_pct,short_interest,settlement_date,signal,score,n_days_volume_data
+   top_high_dtc: [list 2] e0keys=ticker,latest_short_pct,trend_pct,recent_5d_avg,prior_9d_avg,days_to_cover,si_change_pct,short_interest,settlement_date,signal,score,n_days_volume_data
+   top_covering: [list 7] e0keys=ticker,latest_short_pct,trend_pct,recent_5d_avg,prior_9d_avg,days_to_cover,si_change_pct,short_interest,settlement_date,signal,score,n_days_volume_data
+   duration_s: 7.78
+   data_sources: {dict short_volume,short_interest,short_float}
+
+=== squeeze-pretrigger.json ===
+   engine: 'squeeze-pretrigger'
+   version: '1.1'
+   as_of: '2026-06-29T23:30:31.789305Z'
+   state: 'QUIET'
+   previous_state: 'UNKNOWN'
+   state_description: 'No qualifying squeeze setups today'
+   signal_strength: 0
+   summary: {dict n_candidates_evaluated,n_imminent_5of5,n_pretrigger_4of5,n_early_3of5,n_total_setups,feeds_available}
+   current_readings: {dict top_squeeze_tickers,imminent_tickers,pretrigger_tickers}
+   imminent_setups: [list 0]
+   pretrigger_setups: [list 0]
+   early_setups: [list 0]
+   trigger_conditions: [list 4] e0keys=name,current,threshold,satisfied,weight
+   forward_expectations: {dict 1m,2m,wr,basis}
+
+=== rating-change-cluster.json ===
+   engine: 'justhodl-rating-change-cluster'
+   version: 'v1.0.0'
+   as_of: '2026-06-29T23:30:03.137966Z'
+   state: 'QUIET'
+   signal_strength: 0
+   summary: {dict feed_size,cluster_window_days,min_cluster_size,rich_cluster_size,buy_picks_n,buy_rich_n,sell_picks_n,sell_rich_n}
+   buy_picks: [list 0]
+   sell_picks: [list 0]
+   forward_expectations: {dict avg_4w_return}
+   methodology: {dict framework,major_bank_count,dedupe,size_filter,edge_basis}
+   sources: [list 3]
+   why_now: '0 BUY clusters (0 rich) + 0 SELL cluste
+   run_seconds: 0.1
+
+=== patent-velocity.json ===
+   schema_version: '1.0'
+   method: 'patent_velocity_v1'
+   generated_at: '2026-06-30T17:00:24+00:00'
+   status: 'needs_api_key'
+   needs_setup: 'PatentsView API key not provisioned. Re
+   register_url: 'https://patentsview.org/apis/'
+   universe_size: 76
+   n_results: 0
+   highlights: {dict velocity_spikes,new_tech_focus,highest_scale}
+   all_results: [list 0]
+
+DONE 2579
