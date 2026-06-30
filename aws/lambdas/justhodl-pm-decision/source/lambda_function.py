@@ -64,6 +64,7 @@ def lambda_handler(event, context):
     risk = get_s3("portfolio/risk.json")
     crisis = get_s3("data/crisis-composite.json")
     capit = get_s3("data/capitulation.json")
+    darkpool = get_s3("data/dark-pool.json")
 
     rc = ranker.get("regime_context") or {}
 
@@ -88,6 +89,30 @@ def lambda_handler(event, context):
 
     # ── 2. PORTFOLIO ASSESSMENT ──
     pos_metrics = risk.get("position_metrics") or {}
+
+    # ── Dark-pool distribution overlay ──────────────────────────────────────
+    # A position we HOLD that is being quietly distributed off-exchange (heavy
+    # dark-pool / ATS selling) is a de-risk/exit signal the risk engine doesn't
+    # capture — it watches vol/VAR/correlation, not who's quietly selling. Join
+    # the held book against the dark-pool distribution board and flag overlaps.
+    dp_dist = {}
+    for d in (darkpool.get("top_distribution") or []):
+        tk = str(d.get("ticker") or "").upper()
+        if tk:
+            dp_dist[tk] = d
+    dark_pool_flags = []
+    for tk in pos_metrics:
+        d = dp_dist.get(str(tk).upper())
+        if d:
+            dark_pool_flags.append({
+                "ticker": tk,
+                "distribution_score": d.get("score"),
+                "dark_pool_pct": d.get("dark_pool_pct"),
+                "offex_pct": d.get("offex_pct"),
+                "week_return_pct": d.get("week_return_pct"),
+                "signal": "DE-RISK — held name under off-exchange distribution",
+            })
+    dark_pool_flags.sort(key=lambda x: -(x.get("distribution_score") or 0))
     clusters = risk.get("correlation_clusters") or []
     stops = risk.get("stops_hit") or []
     scenarios = risk.get("historical_scenarios") or []
@@ -107,6 +132,7 @@ def lambda_handler(event, context):
                             "portfolio_return_pct": worst.get("portfolio_return_pct")}
                            if worst else None),
         "data_available": bool(pos_metrics),
+        "dark_pool_distribution_flags": dark_pool_flags,
     }
 
     # ── 3. TRIM ──
@@ -195,6 +221,10 @@ def lambda_handler(event, context):
         triggers.append(f"Flip CONSTRUCTIVE if crisis-composite recovers to DEFCON 4-5")
     triggers.append("Flip AGGRESSIVE if the capitulation engine prints GENERATIONAL_BUY / STRONG_BUY")
     triggers.append("Flip CAUTIOUS if leading-markets prints TOP_WARNING or a 2nd canary bucket flashes")
+    if dark_pool_flags:
+        names = ", ".join(f["ticker"] for f in dark_pool_flags[:5])
+        triggers.append(f"DE-RISK review: held name(s) under off-exchange distribution — {names} "
+                        f"(quiet dark-pool selling; consider trimming or tightening stops)")
 
     # ── headline ──
     npos = portfolio["n_positions"]
