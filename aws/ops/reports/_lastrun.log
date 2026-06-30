@@ -1,12 +1,13 @@
-deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-version: 1.3.0
-DOLLAR SHORTAGE: CALM | swaps $ 0.04 bn · CP-OIS 19.0 bp · synthUSD 0.82 %
-  flags: ['Offshore USD funding calm — no scramble for dollars']
-FAILS: CALM | FtD $ 95.13 + FtR $ 103.63 = $ 198.8 bn · 59.1 %ile z -0.07
-SWAPS: CALM | fed swaps $ 0.04 bn · discount window $ 7.89 bn
-FLOW DIVERGENCE: RISK_SEEKING | {'treasuries': 0.19, 'equity': 65.29, 'credit': -2.04, 'crypto': 4.96, 'commodities_gold': -1.8}
-TRAJECTORY: TIGHTENING AHEAD vote -4 n 4
-  drivers: ['Net-liquidity impulse falling', 'RRP buffer exhausted — further drains land on reserves directly', 'Reserves below comfort floor — little room before funding stress', 'Global central-bank liquidity contracting']
-COMPOSITE: 48.0 NEUTRAL n 9 comps: ['net_liquidity', 'reserves', 'global_liquidity', 'dollar', 'funding_stress', 'move', 'credit', 'settlement_fails', 'flow_divergence']
-DONE 2614
+page bytes: 28271
+  [OK] SVG speedometer (speedo fn)
+  [OK] ghost projection needle
+  [OK] trajectory panel
+  [OK] dollar shortage section
+  [OK] fails-to-deliver/receive
+  [OK] swap lines / backstops
+  [OK] flow divergence bars (flowBars)
+  [OK] dash-for-cash wording present
+  feed v1.3.0 · composite 48.0 NEUTRAL
+  trajectory: TIGHTENING AHEAD (vote -4)
+  dollar_shortage CALM · fails CALM (FtD 95.13/FtR 103.63) · flow RISK_SEEKING
+DONE 2615
