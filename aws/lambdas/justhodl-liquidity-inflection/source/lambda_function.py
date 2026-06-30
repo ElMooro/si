@@ -465,7 +465,10 @@ def liquidity_backtest(usd_dates, usd_z, spx, cost_bps=2):
         return None
     zmap = dict(zip(usd_dates, usd_z))
     za = _asof(zmap)
-    sd = sorted(spx)
+    start_d = usd_dates[0] if usd_dates else sorted(spx)[0]
+    sd = [d for d in sorted(spx) if d >= start_d]
+    if len(sd) < 500:
+        return None
     cost = cost_bps / 10000.0
     eq_s = eq_b = 1.0
     peak_s = peak_b = 1.0
