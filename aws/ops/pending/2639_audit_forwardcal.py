@@ -1,0 +1,22 @@
+import boto3, json
+s3 = boto3.client("s3", region_name="us-east-1")
+d = json.loads(s3.get_object(Bucket="justhodl-dashboard-live", Key="data/auction-crisis.json")["Body"].read())
+fc = d.get("forward_calendar")
+print("forward_calendar type:", type(fc), "len:", len(fc) if isinstance(fc,(list,dict)) else None)
+if isinstance(fc, list):
+    for row in fc[:6]: print(" ", json.dumps(row)[:260])
+elif isinstance(fc, dict):
+    print(" keys:", list(fc.keys())[:15])
+    print(" sample:", json.dumps(fc)[:800])
+print("\nissuance_anomaly:", json.dumps(d.get("issuance_anomaly")))
+print("\ntenor_decomposition:", json.dumps(d.get("tenor_decomposition"))[:600])
+print("\ncross_signals:", json.dumps(d.get("cross_signals"))[:500])
+print("\nindicator_aggregate_14d:", json.dumps(d.get("indicator_aggregate_14d"))[:400])
+print("\ncomposite_history len:", len(d.get("composite_history") or []), "sample:", json.dumps((d.get("composite_history") or [])[:2]))
+print("\nstablecoin top_5_minters_30d:", "see next ops")
+d2 = json.loads(s3.get_object(Bucket="justhodl-dashboard-live", Key="data/stablecoin-flow.json")["Body"].read())
+print("\nSTABLECOIN forward_expectations:", json.dumps(d2.get("forward_expectations"))[:500])
+print("STABLECOIN top_5_minters_30d:", json.dumps(d2.get("top_5_minters_30d"))[:400])
+print("STABLECOIN trigger_conditions:", json.dumps(d2.get("trigger_conditions"))[:400])
+print("STABLECOIN historical_episodes:", json.dumps(d2.get("historical_episodes"))[:400])
+print("DONE 2639")
