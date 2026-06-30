@@ -68,6 +68,8 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">🤖 AI DESK BRIEFING</div>
 <div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
 
+<div id="tensions"></div>
+
 <div class="sec">Liquidity status &amp; trajectory <span class="hint">— composite now (needle) vs where the plumbing points (ghost)</span></div>
 <div class="hero2"><div class="gpanel" id="gauge"><div class="loading">Loading…</div></div><div class="headpanel" id="headpanel"></div></div>
 <div class="comps" id="comps"></div>
@@ -81,6 +83,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Liquidity cycle clock <span class="hint">— phase-space orbit: impulse vs its acceleration · where we are in the cycle and which way it’s turning</span></div>
 <div id="clock"><div class="loading">Loading…</div></div>
 
+<div class="sec">Live forward expectation <span class="hint">— what the large-n regime study implies for the next 21 days, given where liquidity is right now</span></div>
+<div id="fwdexp"><div class="loading">Loading…</div></div>
+
 <div class="sec">Dollar shortage &amp; crisis backstops <span class="hint">— offshore USD funding, fails-to-deliver/receive, swap lines</span></div>
 <div class="grid3" id="backstops"></div>
 
@@ -88,6 +93,7 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div id="flows"></div>
 
 <div class="sec">Reserve &amp; buffer mechanics <span class="hint">— is the system above the comfort floor?</span></div>
+<div id="runway"></div>
 <div class="grid" id="reserves"></div>
 
 <div class="sec">Funding &amp; plumbing stress <span class="hint">— money-market signals that lead inflections</span></div>
@@ -110,6 +116,7 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Actual impulse flips <span class="hint">— the rare discrete events, dated (small n — shown for transparency, not statistics)</span></div>
 <div id="flips"></div>
 <div class="sec">Lead / lag <span class="hint">— impulse → 21d forward return, best shift with significance</span></div><div id="leads"></div>
+<div id="datahealth"></div>
 <div class="note" id="note"></div>
 </div>
 <script>
@@ -214,6 +221,39 @@ function renderAnalogs(a){
       </div>
       <div class="comps" style="grid-template-columns:1fr 1fr;gap:6px">${fpRow(an.fingerprint,feats)}</div></div>`).join('');
   return `${now}<div class="grid3">${cards}</div><div class="m" style="margin-top:10px">${esc(a.note)}</div>`;
+}
+function renderTensions(ts){
+  if(!ts)return '';
+  if(!ts.count)return `<div class="gnow" style="color:var(--green);margin:2px 0 4px"><span style="width:8px;height:8px;border-radius:50%;background:#26ffaf;display:inline-block;margin-right:6px"></span>Signals aligned — no hidden divergences flagged</div>`;
+  const lvlCol={ELEVATED:'#ff5c7c',WATCH:'#ffb454',ALIGNED:'#26ffaf'}[ts.level]||'#ffb454';
+  const items=ts.items.map(t=>`<div style="display:flex;gap:9px;margin:6px 0;align-items:flex-start"><span class="pill" style="background:${t.severity==='high'?'#ff5c7c22':'#ffb45422'};color:${t.severity==='high'?'#ff5c7c':'#ffb454'};flex-shrink:0">${esc(t.signal)}</span><span class="m" style="margin:0">${esc(t.note)}</span></div>`).join('');
+  return `<div class="gpanel" style="text-align:left;padding:14px 16px;border-color:${lvlCol}55;background:${lvlCol}0d">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap"><span class="headbadge" style="background:${lvlCol}22;color:${lvlCol};border-color:${lvlCol}55">\u26a0 HIDDEN FRAGILITY: ${esc(ts.level)}</span><span class="m" style="margin:0">${esc(ts.read)}</span></div>${items}</div>`;
+}
+function renderForwardExp(fe){
+  if(!fe||!Object.keys(fe.assets||{}).length)return '<div class="loading">\u2014</div>';
+  const cards=Object.entries(fe.assets).map(([a,v])=>{
+    const col=v.mean>0?'var(--green)':'var(--red)',ecol=v.excess>0?'var(--green)':'var(--red)';
+    return `<div class="card" style="min-width:150px"><h3>${esc(a)} ${v.sig?'<span class="pill c">significant</span>':''}</h3>
+      <div class="v" style="color:${col};font-size:18px">${v.mean>0?'+':''}${v.mean}%</div>
+      <div class="m">excess <span style="color:${ecol}">${v.excess>0?'+':''}${v.excess}%</span> vs ${v.baseline}% base<br>n${v.n} \u00b7 ${v.hit_pct}%\u2713</div></div>`;
+  }).join('');
+  return `<div class="gnow" style="margin-bottom:9px">Current state: <b>${esc(fe.state)}</b> (impulse z ${esc(fe.impulse_z)}) \u2192 model\u2019s ${esc(fe.horizon)} forward expectation</div><div class="grid3">${cards}</div><div class="m" style="margin-top:9px">${esc(fe.note)}</div>`;
+}
+function renderRunway(rr){
+  if(!rr)return '';
+  const col=rr.weeks_to_danger?(rr.weeks_to_danger<26?'#ff5c7c':'#ffb454'):(rr.below_comfort?'#ffb454':'#26ffaf');
+  const big=rr.weeks_to_danger?`~${rr.weeks_to_danger} wk to scarcity zone`:(rr.status==='RISING'?'rising \u2014 no countdown':'stable \u2014 no countdown');
+  return `<div class="gpanel" style="text-align:left;padding:14px 16px;margin-bottom:12px;border-color:${col}44">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="headbadge" style="background:${col}22;color:${col};border-color:${col}55;font-size:15px">\u23f3 ${big}</span>
+    <span class="m" style="margin:0">Reserves <b>$${num(rr.level_usd_bn,0)}bn</b> \u00b7 ${rr.weekly_pace_bn>0?'+':''}$${rr.weekly_pace_bn}bn/wk \u00b7 floor $${num(rr.comfort_floor_bn,0)}bn</span></div>
+    <div class="m" style="margin-top:7px">${esc(rr.read)}</div></div>`;
+}
+function renderDataHealth(dh){
+  if(!dh||!dh.length)return '';
+  const chips=dh.map(d=>{const col=d.status==='stale'?'#ff5c7c':d.status==='fresh'?'#26ffaf':'#5d6b82';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;margin:0 12px 6px 0;font-size:11px;color:var(--fg2)"><span style="width:7px;height:7px;border-radius:50%;background:${col};display:inline-block"></span>${esc(d.feed)} <span style="color:var(--fg3)">${d.age_days==null?'n/a':d.age_days+'d'}${d.status==='stale'?' \u00b7 stale':''}</span></span>`;}).join('');
+  return `<div style="margin:16px 0 4px"><div class="gnow" style="margin-bottom:7px">Data freshness</div>${chips}</div>`;
 }
 function renderClock(c){
   if(!c||!(c.orbit||[]).length)return '<div class="loading">cycle clock unavailable</div>';
@@ -350,6 +390,10 @@ async function load(){
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
   document.getElementById('projection').innerHTML=renderProjection(d.projection);
   document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
+  document.getElementById('tensions').innerHTML=renderTensions(d.tensions);
+  document.getElementById('fwdexp').innerHTML=renderForwardExp(d.forward_expectation);
+  document.getElementById('runway').innerHTML=renderRunway(d.reserve_runway);
+  document.getElementById('datahealth').innerHTML=renderDataHealth(d.data_health);
 
   // ── dollar shortage & crisis backstops ──
   const ds=d.dollar_shortage,sf=d.settlement_fails,sl=d.swap_lines;
