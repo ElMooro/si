@@ -371,6 +371,27 @@ def lambda_handler(event, context):
         add(c.get("ticker"), c.get("company_name"), "INSIDER_CLUSTER",
             base, f"{nb} insiders, ${round((c.get('total_value_usd') or 0)/1e6,1)}M{role_note}")
 
+    # 3b. Corporate buybacks (unified justhodl-buyback-engine: net-of-dilution + fresh
+    #     authorizations). Feeds the dormant BUYBACK signal type (value_quality family).
+    #     Only the GENUINE classes emit — DILUTION_OFFSET (fake buybacks) is excluded.
+    buyback_eng = read_json("data/buyback-engine.json") or {}
+    _BB_GOOD = {"🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "🎯 CHEAP_REPURCHASER", "💰 HIGH_SHAREHOLDER_YIELD"}
+    for _bt, _b in (buyback_eng.get("tickers") or {}).items():
+        _cls = _b.get("class") or ""
+        if not (_b.get("high_conviction_pump") or _cls in _BB_GOOD):
+            continue
+        _bs = float(_b.get("buyback_score") or 0)
+        _strength = min(1.0, _bs / 100.0 + (0.12 if _b.get("high_conviction_pump") else 0.0))
+        _bits = []
+        if _b.get("auth_pct_mcap"):
+            _bits.append(f"auth {_b.get('auth_pct_mcap')}% of mcap")
+        if _b.get("net_buyback_yield"):
+            _bits.append(f"net yield {_b.get('net_buyback_yield')}%")
+        if (_b.get("share_count_reduction_yoy") or 0) > 0:
+            _bits.append(f"shares -{_b.get('share_count_reduction_yoy')}% YoY")
+        add(_bt, _b.get("company"), "BUYBACK", _strength,
+            (_cls.split(" ", 1)[-1] if " " in _cls else _cls) + (" · " + ", ".join(_bits) if _bits else ""))
+
     # 4. Politician (committee-weighted)
     for tk, p in (political.get("by_ticker") or {}).items():
         if (p.get("n_buys") or 0) <= (p.get("n_sells") or 0):
