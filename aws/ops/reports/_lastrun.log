@@ -1,7 +1,10 @@
-deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-version: 1.4.0
-LEVERAGE STRESS: 25.4 ABUNDANT_LIQUIDITY | margin $ 622.199 bn ( 0.88 % mcap, yoy 30.48 %) danger False | repo_score 61.2
-DEALER SURVEY: no_new_survey | last december-2020-survey-of-primary-dealers.pdf
-COMPOSITE: 48.7 NEUTRAL n 10 comps: ['net_liquidity', 'reserves', 'global_liquidity', 'dollar', 'funding_stress', 'move', 'credit', 'settlement_fails', 'flow_divergence', 'leverage_stress']
-DONE 2617
+  justhodl-risk-regime: deployed
+  justhodl-master-ranker: deployed (19f)
+RR: 200 None
+  risk_regime: 12.1 MILD_RISK_ON | liq block score -0.3 traj TIGHTENING AHEAD ds CALM
+  liq tells: ['Bank reserves below comfort floor (LCLoR risk)', 'Liquidity trajectory: TIGHTENING AHEAD']
+MR: 200 None
+  regime_context: liq 48.7 NEUTRAL | traj TIGHTENING AHEAD | ds CALM
+  macro signal: Liquidity Regime: NEUTRAL (48.7/100) · TIGHTENING AHEAD | act: Liquidity neutral now, but mechanics point to tightening — keep quality bias
+  tickers w/ liq tilt: 2 e.g. [('FOXA', 0.97), ('NEM', 0.97)]
+DONE 2618
