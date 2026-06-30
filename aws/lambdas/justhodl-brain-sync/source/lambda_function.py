@@ -208,14 +208,13 @@ def lambda_handler(event=None, context=None):
             lines.append("")
     prompt_block = "\n".join(lines).strip()
 
-    # Extract watchlist-ish tickers mentioned (UPPERCASE 1-5 char tokens) for
-    # engines that want to bias toward what Khalid is watching.
-    import re
-    tickers = set()
-    for n in notes:
-        for m in re.findall(r"\b[A-Z]{1,5}\b", n.get("text", "")):
-            if m not in {"QT", "QE", "RRP", "SOFR", "IORB", "EFFR", "TGA", "AI", "USD", "FED", "CPI", "PPI", "ETF", "I", "A", "US", "GDP", "BTC", "DCF"}:
-                tickers.add(m)
+    # The brain is a KNOWLEDGE layer, not a watchlist. It deliberately does NOT
+    # emit a ticker list: engines must never suggest or bias toward a name just
+    # because it appears in the notes. The brain fuses the user's frameworks,
+    # rules, methodology and risk lens (directive + prompt_block); engines apply
+    # that knowledge to names they surface through their own analysis. (Removed
+    # the old UPPERCASE-token regex, which also mis-read words like ADD/ACT/ABOVE
+    # as tickers.)
 
     # ── SMART layer: AI-extracted structured directive (hash-gated so we only
     # spend a Claude call when the brain actually changes) ──
@@ -331,7 +330,6 @@ def lambda_handler(event=None, context=None):
         "distill_cadence": "monthly (force=true to override)",
         "applied_by": ["morning-intelligence", "ask", "best-setups (brain-aligned)",
                        "devils-advocate (rule checks)", "my-brief", "position-sizer (risk posture)"],
-        "mentioned_tickers": sorted(tickers | set((directive or {}).get("watched_tickers", []) or [])),
         "categories": {CAT_LABEL.get(k, k): len(v) for k, v in by_cat.items()},
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),

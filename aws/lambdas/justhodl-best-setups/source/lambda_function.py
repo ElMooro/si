@@ -285,35 +285,26 @@ def lambda_handler(event, context):
     # that align with what's on his mind so the board surfaces HIS theses. ──
     brain = read_json("data/brain.json") or {}
     brain_directive = brain.get("directive") or {}
-    brain_tickers = set((brain.get("mentioned_tickers") or []))
     brain_themes = [t.lower() for t in (brain_directive.get("themes") or [])]
     brain_tilts = {k.lower(): v for k, v in (brain_directive.get("sector_tilts") or {}).items()}
-    brain_pinned = []
-    for n in (brain.get("notes") or []):
-        if n.get("pinned") and n.get("text"):
-            brain_pinned.append((n["text"].lower(), n["text"]))
-    def brain_match(ticker, sector, signal_keys):
-        """Smart brain alignment: watched ticker, sector tilt (overweight), theme
-        keyword, or pinned-note match. Returns the matched reason or None."""
-        if ticker in brain_tickers:
-            return f"You're tracking {ticker}"
+    def brain_match(sector, signal_keys=None):
+        """KNOWLEDGE alignment only. The brain is a knowledge layer, not a
+        watchlist: a setup is flagged because its SECTOR fits the user's
+        directive (overweight tilt) or investing themes — never because the
+        ticker happens to appear in the notes. Engines never suggest tickers
+        from the brain; they apply its frameworks to names found by their own
+        analysis."""
         sl = (sector or "").lower()
-        # sector tilt from the AI directive
         for sec, stance in brain_tilts.items():
             if sl and (sl in sec or sec in sl):
                 low = stance.lower()
                 if "overweight" in low:
-                    return f"Your brain is overweight {sector}: {stance[:90]}"
+                    return f"Fits your overweight on {sector}: {stance[:90]}"
                 if "avoid" in low or "underweight" in low:
-                    return None  # don't flag setups you want to avoid
-        # theme match against sector
+                    return None  # don't flag setups in sectors you avoid
         for th in brain_themes:
             if sl and (sl in th or any(w in th for w in sl.split())):
                 return f"Fits your theme: {th}"
-        tl = (ticker or "").lower()
-        for low, orig in brain_pinned:
-            if tl and tl in low.split():
-                return orig[:110]
         return None
     bv_regime = (bond_vol.get("regime") or "").upper()
 
@@ -732,7 +723,7 @@ def lambda_handler(event, context):
             "verdict": verdict,
             "triple_threat": triple_threat,
             "buildout_threat": buildout_threat,
-            "brain_aligned": brain_match(tk, rec.get("sector"), [s["key"] for s in signals]),
+            "brain_aligned": brain_match(rec.get("sector"), [s["key"] for s in signals]),
             "value_lenses": sorted(value_signals),
             "flow_lenses": sorted(flow_signals),
             "n_signals": n,
