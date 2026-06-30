@@ -1,7 +1,81 @@
-  ✅ LLM Providers panel
-  ✅ fetches llm-health.json
-  ✅ renders billing_action_needed
-  ✅ renders redundancy
-  ✅ llm-body element
-ALL PRESENT: True
-DONE 2544
+
+✓ data/cross-asset-flow-state.json
+   topkeys: ['engine', 'version', 'generated_at', 'headline', 'risk_regime_score', 'risk_regime', 'posture', 'asset_class_rotation', 'hard_assets_and_dollar', 'dollar_fx_carry', 'foreign_flows', 'dark_pool', 'sources']
+   sample : engine=cross-asset-flow-state · version=1.0 · generated_at=2026-06-30T04:04:25.985605+00:00 · headline=MILD_RISK_OFF (-14.2) | into US Equiti… · risk_regime_score=-14.2 · risk_regime=MILD_RISK_OFF · posture={beta_tilt,size_mult,hedge} · asset_class_rotation=[8] · hard_assets_and_dollar={gold_20d_pct
+   asset_class_rotation[0]: asset_class=US Equities · net_flow_5d_usd=107916241007.0
+
+✓ data/cross-asset-regime.json
+   topkeys: ['schema_version', 'method', 'generated_at', 'duration_s', 'asset_universe', 'stats', 'regime_5d', 'regime_20d', 'regime_60d', 'regime_change', 'correlation_matrix_30d', 'correlation_matrix_90d', 'correlation_breaks', 'alerts']
+   sample : schema_version=1 · method=cross_asset_regime_v1 · generated_at=2026-06-29T11:00:15+00:00 · duration_s=1.3 · asset_universe=[8] · stats={n_assets_loaded,n_correlation_breaks,n_alerts} · regime_5d={regime,confidence,rationale,lookback_returns_pct,risk_score} · regime_20d={regime,confidence,rationale,l
+   asset_universe[0]: ticker=SPY · name=S&P 500 · class=EQUITY
+
+✓ data/dollar-radar.json
+   topkeys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'dollar_pressure', 'regime', 'regime_note', 'headline', 'canaries_pump', 'canaries_dump', 'canaries', 'indices', 'bilaterals', 'technicals', 'how_to_read', 'disclaimer']
+   sample : schema_version=1.0 · engine=justhodl-dollar-radar · generated_at=2026-06-30T01:15:32.162119+00:00 · build_seconds=9.4 · dollar_pressure=22 · regime=LEAN PUMP · regime_note=A modest tilt toward a firmer dollar -… · headline=Dollar Pressure +22/100 -- LEAN PUMP. … · canaries_pump=3 · canaries_dump=2 ·
+   canaries[0]: label=Fed net liquidity (13w change) · reading=-44543 $bn · signal=PUMP · lean=2 · weight=2.0 · detail=Net liquidity = balance sheet minus RR…
+
+✓ data/gold-equity-rotation.json
+   topkeys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets', 'n_tickets', 'methodology', 'sources', 'why_now', 'run_seconds']
+   sample : engine=gold-equity-rotation · version=1.0.0 · as_of=2026-06-29T22:45:04Z · state=EQUITY_DOMINANT_ACTIVE · signal_strength=0.55 · current_metrics={spy_ratio_gld,ratio_ma50,ratio_ma200,ratio_zscore_252d,ratio_20d_pct} · regime_explanation=Equity leading, ratio z=1.22 · trade_tickets=[1] · n_tickets=1 
+   trade_tickets[0]: ticker=SPY · side=LONG · rationale=Building equity leadership; partial en… · target_pct=4 · stop_pct=-2.5 · size_pct_portfolio=1.5
+
+✓ data/capital-inflows.json
+   topkeys: ['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime', 'regime_interpretation', 'flags', 'history_12mo_rolling_b', 'sources', 'disclaimer']
+   sample : engine=capital-inflows · version=1.0.0 · ok=True · generated_at=2026-06-28T10:35:37.337369+00:00 · duration_s=1.6 · data_asof=2026-04-01 · thesis=How hard the rest of the world is fund… · headline={foreign_net_into_us_lt_12mo_b,net_cross_border_lt_12mo_b,latest_month_b,run_rate_3mo_annualized_b,yoy_
+   history_12mo_rolling_b[0]: asof=2026-04-01 · rolling_12mo_b=1824.9
+
+✓ data/tic-flows.json
+   topkeys: ['schema_version', 'method', 'generated_at', 'composite_tic_stress', 'regime', 'top_reasons', 'total_foreign_holdings', 'net_purchases', 'top_holders', 'individual', 'interpretation', 'duration_s']
+   sample : schema_version=1.0 · method=tic_flows_v1 · generated_at=2026-06-29T22:00:38.717786+00:00 · composite_tic_stress=0 · regime=STRONG_FOREIGN_DEMAND · top_reasons=[0] · total_foreign_holdings={} · net_purchases={} · top_holders=[0] · individual={japan,china,uk,cayman_islands,luxembourg} · interpretation
+
+✓ data/eurodollar-stress.json
+   topkeys: ['as_of', 'v', 'composite_score', 'severity', 'regime', 'n_signals_used', 'n_signals_total', 'n_failures', 'signals', 'hot_signals', 'cold_signals', 'failures', 'thresholds', 'duration_s']
+   sample : as_of=2026-06-29T21:16:24.123258+00:00 · v=1.0 · composite_score=36.87 · severity=CALM · regime=CALM · n_signals_used=9 · n_signals_total=9 · n_failures=0 · signals=[9] · hot_signals=[0] · cold_signals=[4] · failures=[0] · thresholds={calm_max,moderate_min,elevated_min,critical_min} · duration_s=3.0
+   signals[0]: id=ofr_fsi · label=St Louis Fed FSI · fred_series=STLFSI4 · value=-0.9568 · score_0_100=0.6 · polarity=1 · as_of=2026-06-19 · description=St. Louis Fed Financial Stress Index v…
+
+✓ data/eurodollar-plumbing.json
+   topkeys: ['engine', 'version', 'generated_at', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note', 'red_flags', 'yellow_flags', 'massive_fx', 'ai', 'layers', 'methodology', 'honesty']
+   sample : engine=justhodl-eurodollar-plumbing · version=1.0 · generated_at=2026-06-29T12:01:06Z · plumbing_health=93.4 · verdict=FUNCTIONING · composite_score=6.6 · score=6.6 · stress_score=6.6 · severity=ABUNDANT · stress_regime=ABUNDANT_LIQUIDITY · compat_note=composite_score/score/stress_score = 1… · red_f
+
+✓ data/vol-regime.json
+   topkeys: ['schema_version', 'method', 'as_of', 'n_tickers', 'n_with_iv', 'composite_score', 'composite_regime', 'regime_counts', 'weights', 'iv_sources_used', 'tickers', 'most_stressed', 'duration_s']
+   sample : schema_version=2.0 · method=vol_regime_v2_fred · as_of=2026-06-29T17:51:50+00:00 · n_tickers=8 · n_with_iv=0 · composite_score=42.5 · composite_regime=CONCERNED · regime_counts={COMPLACENT,NORMAL,CONCERNED,PANIC,UNKNOWN} · weights={SPY,QQQ,IWM,GLD,TLT} · iv_sources_used={SPY,QQQ,IWM,DIA,GLD} · ticke
+   tickers[0]: ticker=QQQ · spot_price=722.72 · rv_5d=33.89 · rv_20d=33.31 · rv_z=3.33 · rv_90d=22.68 · regime=CONCERNED
+
+✓ data/crisis-composite.json
+   topkeys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'master_crisis_score', 'defcon_level', 'defcon_name', 'defcon_color', 'playbook', 'trend', 'components_available', 'components', 'primary_drivers', 'massive_cross_asset', 'scale', 'methodology']
+   sample : schema_version=1.0 · method=crisis_composite_v1 · generated_at=2026-06-30T04:15:51.295350+00:00 · elapsed_s=1.2 · master_crisis_score=25.6 · defcon_level=4 · defcon_name=NORMAL · defcon_color=var(--cyan) · playbook=Standard positioning. No systemic stre… · trend=stable · components_available=12 · co
+   components[0]: source=eurodollar-plumbing · label=USD funding stress (plumbing) · weight=0.2 · crisis_contribution=6.6 · age_hours=16.2 · available=True
+
+✓ data/global-stress.json
+   topkeys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'global_stress_index', 'global_stress_index_ciss_adj', 'ciss_systemic', 'global_stress_level', 'weights', 'gsi_by_horizon', 'market_stress_index', 'equity_stress', 'bond_stress', 'implied_vol', 'credit_spreads', 'rates', 'sovereign', 'funding']
+   sample : schema_version=1.1 · engine=justhodl-global-stress · generated_at=2026-06-30T01:35:09.114669+00:00 · build_seconds=4.4 · global_stress_index=46 · global_stress_index_ciss_adj=46 · ciss_systemic={regime,composite,percentile,floor,note} · global_stress_level=ELEVATED · weights={values,mode,sample_size
+   equities[0]: key=china · symbol=MCHI · market=China · tracks=MSCI China · asset_class=equity · as_of=2026-06-29 · stress=87 · level=ACUTE · drawdown_pct=24.2 · drawdown_score=100 · realized_vol=20.6 · vol_percenti
+
+✓ data/cycle-clock.json
+   topkeys: ['engine', 'version', 'generated_at', 'duration_s', 'verdict', 'synthesis', 'trajectory', 'track_record', 'data_integrity', 'ai', 'cycle', 'risk', 'analogs', 'liquidity', 'cross_asset', 'global_liquidity', 'rates_fed_vol', 'yield_curve']
+   sample : engine=cycle-clock · version=3.1 · generated_at=2026-06-29T23:30:51.537811+00:00 · duration_s=20.4 · verdict=LATE-MID CYCLE — coordinates in Overhe… · synthesis={posture,score,conviction,bullish_drivers,bearish_drivers} · trajectory={n_days_logged,posture_score_5d,posture_score_21d,recession_prob_21
+
+✓ data/dark-pool.json
+   topkeys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks', 'top_accumulation', 'top_distribution', 'dark_map', 'data_source', 'caveats', 'elapsed_s']
+   sample : engine=justhodl-dark-pool · version=1.0.0 · ok=True · generated_at=2026-06-24T14:00:27.175061+00:00 · thesis=Per-name off-exchange accumulation fro… · latest_week=2026-06-01 · n_scored=940 · distribution={accumulation,distribution} · board=[60] · top_picks=[20] · top_accumulation=[20] · top_distribu
+   board[0]: ticker=TWLO · state=ACCUMULATION · score=89.9 · dark_pool_pct=34.44 · offex_pct=49.47 · dark_accel=0.937 · week_return_pct=-0.68 · ats_shares_wk=7178330 · offex_shares_wk=10312264 · total_vol_wk=20844
+✗ data/net-liquidity.json  (An error occurred (NoSuchKey) when calling the Get)
+✗ data/fed-liquidity.json  (An error occurred (NoSuchKey) when calling the Get)
+
+✓ data/regime-map.json
+   topkeys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'regime', 'regime_changed', 'prev_regime', 'transitions', 'n_transitions', 'booming', 'destroyed', 'sleeves', 'ranked', 'n_instruments', 'windows', 'elapsed_s']
+   sample : engine=justhodl-regime-map · version=1.0.0 · ok=True · generated_at=2026-06-29T21:00:34.410854+00:00 · thesis=Cross-asset dispersion map — what's bo… · regime={label,summary,concentration_spread_3m,equity_breadth_pct,equity_avg} · regime_changed=False · prev_regime=BIFURCATED · transitions=[7] · n_t
+   transitions[0]: ticker=SPY · name=S&P 500 (cap-weight) · sleeve=Equity · Breadth & Size · from=RISK-ON · to=BOOMING · delta=22 · kind=ACCELERATING
+✗ data/sahm.json  (An error occurred (NoSuchKey) when calling the Get)
+
+✓ data/settlement-fails.json
+   topkeys: ['engine', 'version', 'generated_at', 'as_of', 'signal', 'headline', 'classes', 'totals', 'source']
+   sample : engine=settlement-fails · version=1.0.0 · generated_at=2026-06-29T21:30:31.933667+00:00 · as_of=2026-06-17 · signal={regime,score,drivers} · headline={label,ftd_bn,ftr_bn,combined_bn,z} · classes=[6] · totals={ftd,ftr,combined} · source=NY Fed Primary Dealer Statistics (FR 2…
+   classes[0]: key=ust_ex_tips · label=U.S. Treasury (ex-TIPS) · ftd=[690] · ftr=[690] · combined=[690] · ftd_latest=95.13 · ftr_latest=103.63 · stats={latest,mean,max,min,z}
+
+✓ data/sovereign-fiscal.json
+   topkeys: ['engine', 'version', 'generated_at', 'reads', 'tic', 'fiscal', 'debt_service']
+   sample : engine=sovereign-fiscal · version=1.0.0 · generated_at=2026-06-29T07:10:49.128271+00:00 · reads=[4] · tic={holders,total,ranking,as_of,source} · fiscal={deficit_monthly,receipts_monthly,outlays_monthly,deficit_ttm,as_of} · debt_service={avg_interest,total_debt_tn,total_debt_latest_tn,debt_as_of,impl
+
+DONE 2545
