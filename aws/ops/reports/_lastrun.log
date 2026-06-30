@@ -1,9 +1,8 @@
 deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-ANALOGS as_of: 2026-06-24 features: ['impulse', 'hy_oas', 'dollar', 'nfci', 'reserve_drain']
-fingerprint now: {'impulse': -0.33, 'hy_oas': -0.98, 'dollar': 0.95, 'nfci': -0.4, 'reserve_drain': 0.19}
-  2024-10-23 · sim 49.5% (dist 1.02) · SPX fwd 21d 3.8% / 63d 5.8% · fp {'impulse': -0.8, 'hy_oas': -0.56, 'dollar': 1.58, 'nfci': 0.09, 'reserve_drain': 0.32}
-  2017-01-11 · sim 46.7% (dist 1.14) · SPX fwd 21d 3.1% / 63d 4.9% · fp {'impulse': -0.55, 'hy_oas': 0.0, 'dollar': 0.49, 'nfci': -0.11, 'reserve_drain': 0.26}
-  2019-10-02 · sim 45.5% (dist 1.2) · SPX fwd 21d 6.5% / 63d 16.8% · fp {'impulse': -0.44, 'hy_oas': 0.0, 'dollar': 0.29, 'nfci': -0.37, 'reserve_drain': 0.0}
-  2024-03-20 · sim 44.5% (dist 1.24) · SPX fwd 21d -6.6% / 63d 8.3% · fp {'impulse': -1.08, 'hy_oas': -0.15, 'dollar': 0.86, 'nfci': 0.1, 'reserve_drain': -0.01}
-DONE 2624
+INVOKE: 200 None
+BACKTEST 1971-02-05 → 2026-06-08 ( 55.4 yr)
+  STRATEGY: tot 64.1% · CAGR 0.9% · Sharpe 0.17 · maxDD -33.7% · inMkt 7.4% · 6 switches
+  BUY&HOLD: tot 25829.7% · CAGR 10.6% · Sharpe 0.6 · maxDD -77.9%
+  VERDICT: Liquidity timing did NOT beat buy-and-hold — staying invested won the melt-up | better DD: True
+  curve pts: 2790 last: {'date': '2026-06-05', 'strat': 1.641, 'bh': 257.094}
+DONE 2625
