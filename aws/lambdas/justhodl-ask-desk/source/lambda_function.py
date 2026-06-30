@@ -49,6 +49,14 @@ VERSION = "1.0.2"
 
 
 def claude(system, user, models, max_tokens=1100):
+    try:
+        import claude_compat
+        _t = claude_compat.text({"max_tokens": max_tokens, "system": system,
+                                 "messages": [{"role": "user", "content": user}]})
+        if _t and _t.strip():
+            return (_t.strip(), "router")
+    except Exception:
+        pass
     last = None
     for model in models:
         try:

@@ -24,6 +24,13 @@ def rj(key, default=None):
 
 
 def claude(system, prompt, mx=1100):
+    try:
+        import claude_compat
+        _t = claude_compat.text({"model": MODEL, "max_tokens": mx, "system": system,
+                                 "messages": [{"role": "user", "content": prompt}]})
+        if _t and _t.strip(): return _t
+    except Exception:
+        pass
     if not ANTHROPIC_KEY: return None
     try:
         body = {"model": MODEL, "max_tokens": mx, "system": system, "messages": [{"role": "user", "content": prompt}]}

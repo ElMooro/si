@@ -1046,19 +1046,10 @@ def call_claude(message, context, history=None):
         "- Format: prices $1,234.56 | pct +1.23% | market caps $1.2B"
     )
     msgs = list((history or [])[-6:]) + [{"role": "user", "content": message}]
-    payload = json.dumps({
-        "model": "claude-haiku-4-5-20251001", "max_tokens": 1024,
-        "system": system, "messages": msgs
-    }).encode()
-    req = urllib.request.Request(
-        'https://api.anthropic.com/v1/messages', data=payload,
-        headers={'Content-Type': 'application/json',
-                 'x-api-key': ANTHROPIC_KEY,
-                 'anthropic-version': '2023-06-01'},
-        method='POST'
-    )
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = json.loads(r.read().decode())
+    body = {"model": "claude-haiku-4-5-20251001", "max_tokens": 1024,
+            "system": system, "messages": msgs}
+    import claude_compat
+    data = claude_compat.messages(body)   # GLM/Z.ai or Claude, resilient
     return data['content'][0]['text'] if data.get('content') else 'Error: empty response'
 
 @track_errors

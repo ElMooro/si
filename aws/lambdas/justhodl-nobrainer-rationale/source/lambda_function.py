@@ -93,6 +93,14 @@ def get_telegram_chat_id():
 # CLAUDE CALL (mirror of ai-brief envelope)
 # ─────────────────────────────────────────────────────────────────────────────
 def call_anthropic(prompt, key, max_tokens=1500):
+    try:
+        import claude_compat
+        _r = claude_compat.messages({"model": ANTHROPIC_MODEL, "max_tokens": max_tokens,
+                                     "messages": [{"role": "user", "content": prompt}]})
+        if (_r.get("content") or [{}])[0].get("text", "").strip():
+            return _r
+    except Exception:
+        pass
     url = "https://api.anthropic.com/v1/messages"
     body = json.dumps({
         "model": ANTHROPIC_MODEL,

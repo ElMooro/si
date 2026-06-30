@@ -27,6 +27,13 @@ def read_json(key, default=None):
 
 
 def call_claude(system, prompt, max_tokens=1400):
+    try:
+        import claude_compat
+        _t = claude_compat.text({"model": MODEL, "max_tokens": max_tokens, "system": system,
+                                 "messages": [{"role": "user", "content": prompt}]})
+        if _t and _t.strip(): return _t
+    except Exception:
+        pass
     if not ANTHROPIC_KEY:
         return None
     try:

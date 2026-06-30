@@ -47,6 +47,17 @@ def _get_anthropic_key() -> str:
 
 
 def call_claude(prompt: str, system: str = "", max_tokens: int = 1200) -> str:
+    try:
+        import claude_compat
+        _b = {"model": ANTHROPIC_MODEL, "max_tokens": max_tokens,
+              "messages": [{"role": "user", "content": prompt}]}
+        if system:
+            _b["system"] = system
+        _t = claude_compat.text(_b)
+        if _t and _t.strip():
+            return _t
+    except Exception:
+        pass
     api_key = _get_anthropic_key()
     if not api_key:
         return ""
