@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buyback Intelligence · JustHodl.AI</title>
+<style>
+:root{--fs:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--fm:"SF Mono",ui-monospace,"Roboto Mono",Menlo,monospace;
+--bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--border:#1c2433;--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;
+--orange:#ff9540;--orange-dim:rgba(255,149,64,.3);--orange-bg:rgba(255,149,64,.07);
+--green:#38ffa8;--green-dim:rgba(56,255,168,.3);--cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.3);
+--violet:#a78bfa;--violet-dim:rgba(167,139,250,.3);--amber:#ffd23f;--red:#ff5c7a;--red-dim:rgba(255,92,122,.3)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg-1);font-family:var(--fs);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 20px 70px}
+.hdr{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.back{font-family:var(--fm);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}.back:hover{color:var(--cyan)}
+.hdr .title{font-family:var(--fm);font-size:11.5px;letter-spacing:1.6px;color:var(--orange);font-weight:600;text-transform:uppercase}
+.hdr .meta{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3);text-align:right}
+h1{font-size:23px;margin:2px 0 0;letter-spacing:-.3px}
+.hero{background:linear-gradient(135deg,var(--orange-bg),rgba(56,255,168,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:15px 22px;margin:12px 0 14px}
+.hero p{margin:0;color:var(--fg-2);font-size:13px}
+.ctx{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.ctx .c{font-family:var(--fm);font-size:11px;color:var(--fg-2);background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:5px 11px}
+.ctx .c b{color:var(--fg-1)}
+.sec{display:flex;align-items:center;gap:9px;margin:26px 0 3px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.gr{background:var(--green);box-shadow:0 0 9px var(--green-dim)}.dot.or{background:var(--orange);box-shadow:0 0 9px var(--orange-dim)}
+.dot.cy{background:var(--cyan);box-shadow:0 0 9px var(--cyan-dim)}.dot.vi{background:var(--violet);box-shadow:0 0 9px var(--violet-dim)}.dot.rd{background:var(--red);box-shadow:0 0 9px var(--red-dim)}
+.sec h2{margin:0;font-family:var(--fm);font-size:13px;letter-spacing:.6px;font-weight:700}
+.sec .cnt{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3)}
+.blurb{margin:2px 0 11px;color:var(--fg-3);font-size:12px;max-width:880px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:13px 15px;border-left:4px solid var(--fg-3)}
+.card.a-or{border-left-color:var(--orange)}.card.a-gr{border-left-color:var(--green)}.card.a-cy{border-left-color:var(--cyan)}
+.card.a-vi{border-left-color:var(--violet)}.card.a-rd{border-left-color:var(--red)}
+.top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sym{font-family:var(--fm);font-size:16px;font-weight:700}
+.nm{font-size:11px;color:var(--fg-3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.klass{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:3px;margin-left:auto;text-transform:uppercase}
+.klass.a-or{background:rgba(255,149,64,.16);color:var(--orange);border:1px solid var(--orange-dim)}
+.klass.a-gr{background:rgba(56,255,168,.15);color:var(--green);border:1px solid var(--green-dim)}
+.klass.a-cy{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.klass.a-vi{background:rgba(167,139,250,.14);color:var(--violet);border:1px solid var(--violet-dim)}
+.klass.a-rd{background:rgba(255,92,122,.14);color:var(--red);border:1px solid var(--red-dim)}
+.scorebar{display:flex;align-items:center;gap:8px;margin:9px 0 8px}
+.scorebar .lab{font-family:var(--fm);font-size:9px;color:var(--fg-3);letter-spacing:.5px;width:46px}
+.strack{flex:1;height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden}
+.sfill{height:100%;background:linear-gradient(90deg,var(--orange),var(--green));border-radius:3px}
+.sval{font-family:var(--fm);font-size:12px;font-weight:700;width:34px;text-align:right}
+.mets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:9px 0 2px}
+.met{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:6px 8px}
+.met .ml{font-family:var(--fm);font-size:8.5px;color:var(--fg-3);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.met .mv{font-family:var(--fm);font-size:13px;font-weight:700;margin-top:1px}
+.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--fg-2)}.cat{color:var(--orange)}.val{color:var(--cyan)}.div{color:var(--violet)}
+.flags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.flag{font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-2)}
+.flag.pump{color:var(--orange);border-color:var(--orange-dim)}.flag.warn{color:var(--red);border-color:var(--red-dim)}.flag.go{color:var(--green);border-color:var(--green-dim)}
+.why{margin-top:8px;font-size:11.5px;color:var(--fg-3);border-top:1px solid var(--border);padding-top:7px}
+.empty{color:var(--fg-3);font-size:12px;font-family:var(--fm);padding:10px 2px}
+.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--fm)}
+.foot{margin-top:34px;border-top:1px solid var(--border);padding-top:14px;color:var(--fg-3);font-size:11.5px;font-family:var(--fm);line-height:1.7}
+.foot b{color:var(--fg-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <a href="/" class="back">← JustHodl.AI</a>
+    <div class="title">Buyback Intelligence</div>
+    <div class="meta" id="meta"></div>
+  </div>
+  <h1>Corporate Buyback Board</h1>
+  <div id="content"><div class="loading">Loading buyback intelligence…</div></div>
+</div>
+<script>
+const PX="https://justhodl-data-proxy.raafouis.workers.dev";
+const SRC=p=>[`${PX}/${p}?t=${Date.now()}`,`https://justhodl.ai/${p}?t=${Date.now()}`,`https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct=v=>v==null?"—":(v>=0?"+":"")+(+v).toFixed(2)+"%";
+const usdB=v=>v==null?"—":Math.abs(v)>=1e9?"$"+(v/1e9).toFixed(1)+"B":Math.abs(v)>=1e6?"$"+(v/1e6).toFixed(0)+"M":"$"+(+v).toFixed(0);
+const SECTIONS=[
+ {key:"high_conviction_pumps",accent:"or",dot:"or",title:"🚀 High-Conviction Pump Setups",
+  blurb:"Large fresh authorizations (≥5% of market cap) confirmed by actual execution or a genuinely shrinking share count. The asymmetric catalyst — authorization plus follow-through, not just a press release."},
+ {key:"fresh_authorizations",accent:"or",dot:"or",title:"📋 Fresh Authorizations",
+  blurb:"Newly disclosed repurchase programs ranked by size relative to market cap. Bigger programs drift more (Ikenberry-Lakonishok-Vermaelen; Dittmar-Field)."},
+ {key:"net_shrinkers",accent:"gr",dot:"gr",title:"💪 Net Shrinkers",
+  blurb:"The real thing: share count actually falling year-over-year with positive net buyback. A genuinely smaller pie per shareholder — not stock-comp offset."},
+ {key:"high_shareholder_yield",accent:"cy",dot:"cy",title:"💰 High Shareholder Yield",
+  blurb:"Net buyback yield + dividend yield. One of the most effective US stock-selection signals historically (O'Shaughnessy). Dividend-only names with no real buyback are excluded."},
+ {key:"cheap_repurchasers",accent:"gr",dot:"gr",title:"🎯 Cheap Repurchasers",
+  blurb:"Actively buying while the stock is cheap (high FCF yield) — management buying dollars for less than a dollar, the value-accretive case."},
+ {key:"dilution_offset_warnings",accent:"rd",dot:"rd",title:"⚠️ Dilution-Offset Warnings",
+  blurb:"Gross buybacks that only neutralize (or fail to neutralize) stock-comp dilution — share count flat or rising despite repurchases. The headline buyback is largely theater. Avoid mistaking these for real returns of capital."}
+];
+function metric(label,value,cls){return `<div class="met"><div class="ml">${label}</div><div class="mv ${cls||"neu"}">${value}</div></div>`;}
+function card(r,accent){
+  const nb=r.net_buyback_yield, sr=r.share_count_reduction_yoy, au=r.auth_pct_mcap,
+        fc=r.fcf_yield_annualized, dv=r.dividend_yield, sc=r.buyback_score||0;
+  const mets=[
+    metric("Net buyback",pct(nb),nb>0?"pos":nb<0?"neg":"neu"),
+    metric("Shares YoY",sr==null?"—":(sr>0?"−":"+")+Math.abs(sr).toFixed(2)+"%",sr>0?"pos":sr<0?"neg":"neu"),
+    metric("Auth %mcap",au==null?"—":au.toFixed(1)+"%","cat"),
+    metric("Div yield",pct(dv),"div"),
+    metric("FCF yield",fc==null?"—":fc.toFixed(1)+"%",fc>=6?"pos":"val"),
+    metric("Shareholder",pct(r.shareholder_yield),r.shareholder_yield>0?"pos":"neu")
+  ].join("");
+  const flags=[];
+  if(r.high_conviction_pump)flags.push('<span class="flag pump">🚀 PUMP SETUP</span>');
+  if(r.active_execution)flags.push('<span class="flag go">● buying now</span>');
+  if(r.asr)flags.push('<span class="flag">ASR</span>');
+  if(r.debt_funded)flags.push('<span class="flag warn">⚠ debt-funded</span>');
+  const kl=(r.class||"").replace(/^[^\sA-Z]+\s*/,"");
+  return `<div class="card a-${accent}">
+    <div class="top"><span class="sym">${esc(r.symbol)}</span>${r.company_name?`<span class="nm">${esc(r.company_name)}</span>`:""}<span class="klass a-${accent}">${esc(kl||"—")}</span></div>
+    <div class="scorebar"><span class="lab">SCORE</span><div class="strack"><div class="sfill" style="width:${Math.max(0,Math.min(100,sc))}%"></div></div><span class="sval">${sc.toFixed(0)}</span></div>
+    <div class="mets">${mets}</div>
+    ${flags.length?`<div class="flags">${flags.join("")}</div>`:""}
+    ${r.why?`<div class="why">${esc(r.why)}</div>`:""}
+  </div>`;
+}
+function section(s,d){
+  const rows=(d[s.key]||[]);
+  let h=`<div class="sec"><span class="dot ${s.dot}"></span><h2>${s.title}</h2><span class="cnt">${rows.length} name${rows.length===1?"":"s"}</span></div><p class="blurb">${s.blurb}</p>`;
+  h+= rows.length?`<div class="grid">${rows.map(r=>card(r,s.accent)).join("")}</div>`:`<div class="empty">None qualifying right now.</div>`;
+  return h;
+}
+function render(d){
+  const c=document.getElementById("content");
+  if(!d){c.innerHTML='<div class="loading">Could not load buyback data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const cn=d.counts||{};
+  document.getElementById("meta").innerHTML=`${d.n_scored||0} names · updated ${d.generated_at?new Date(d.generated_at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}`;
+  let h=`<div class="hero"><p>${esc(d.thesis||"")}</p>
+    <div class="ctx">
+      <span class="c">🚀 <b>${cn["🚀 FRESH_LARGE_AUTH"]||0}</b> fresh large auth</span>
+      <span class="c">💪 <b>${cn["💪 NET_SHRINKER"]||0}</b> net shrinkers</span>
+      <span class="c">💰 <b>${cn["💰 HIGH_SHAREHOLDER_YIELD"]||0}</b> high yield</span>
+      <span class="c">🎯 <b>${cn["🎯 CHEAP_REPURCHASER"]||0}</b> cheap</span>
+      <span class="c">⚠️ <b>${cn["⚠️ DILUTION_OFFSET"]||0}</b> dilution-offset</span>
+      <span class="c"><b>${d.n_excluded||0}</b> excluded (funds/miners)</span>
+    </div></div>`;
+  h+=SECTIONS.map(s=>section(s,d)).join("");
+  h+=`<div class="foot">
+    <b>Methodology.</b> Five fused layers per name: (1) catalyst — fresh 8-K authorizations + size vs market cap with Ikenberry / Peyer-Vermaelen drift priors; (2) execution — actual TTM cash repurchases from the cash-flow statement; (3) net-of-dilution — repurchases minus issuance, because gross buybacks frequently only offset stock-based comp; (4) share shrink — year-over-year change in share count, the ground truth; (5) valuation — FCF-yield cheapness gate.<br>
+    <b>Net buyback yield</b> = (repurchases − issuance) ÷ market cap, trailing twelve months. <b>Shares YoY</b> is the actual change in share count (a falling count confirms a real return of capital). Closed-end funds, ETFs and heavy-ATM crypto miners are excluded from the security master; net issuers are flagged, never surfaced as buyback stars.<br>
+    Sources: SEC 8-K filings, FMP cash-flow / key-metrics / enterprise-values. Research only — not investment advice.
+  </div>`;
+  c.innerHTML=h;
+}
+load("data/buyback-engine.json").then(render);
+setTimeout(()=>location.reload(),900000);
+</script>
+</body>
+</html>
