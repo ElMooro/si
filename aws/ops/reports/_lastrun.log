@@ -1,6 +1,13 @@
-brain.generated_at: 2026-06-29T23:59:44.766101+00:00
-✅ regime_read RECOVERED (via Claude fallback). regime: Compressed-vol / late-cycle tension
-   headline: Bond vol is suppressed and credit spreads are pristine, but real yields at 2.18% and a dollar at 120.9 are quietly strangling the marginal borrower — 
-   alignment: mixed | invest_in: ['XLV (Health Care ETF) — 2026 is a midterm year; H2 starts July 1. 100% win rate since 2006, +8.46% avg. This is the single highest-conviction seasonal trade in my playbook and it starts NOW.', 'Gold & gold miners (GLD/GDX) — dollar at 120.9 is the paradox: strong dollar suppresses gold short-term but 2.22% breakeven inflation + debasement trajectory from expanding Fed balance sheet makes gold the debasement hedge that works when the dollar eventually rolls.', "BTC on dips below key support — crypto dump risk 33.4/LOW, post-halving supply, and the 'VIP section' framework: BTC leads, ETH follows, alts cascade. Watch ETH/BTC for the rotation signal."]
-directive populated: False | sector_tilts: None
-DONE 2527
+=== existing brain-sync rules ===
+   justhodl-brain-sync-15min cron(0 13 * * ? *) ENABLED
+monthly rule ENABLED -> cron(0 9 1 * ? *)
+old 15-min rule deleted
+=== rules now ===
+   justhodl-brain-sync-monthly cron(0 9 1 * ? *) ENABLED
+
+seeding directive now (force=true)...
+seed invoke err: None
+directive populated: False
+regime_read: Suppressed-vol / dollar-spike risk-on
+last_distill_at: 2026-06-30T00:17:00.310229+00:00 | cadence: monthly (force=true to override)
+DONE 2528
