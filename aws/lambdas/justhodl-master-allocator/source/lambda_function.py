@@ -349,10 +349,10 @@ def gather_signals():
             intensity += 0.4
         if "risk-on" in rpl or "risk on" in rpl or "aggressive at the macro" in rpl:
             intensity -= 0.5
-        out["brain_posture"] = {"value": rp[:80],
+        out["brain_posture"] = {"value": round(intensity, 2),
                                 "intensity": clamp(intensity, -1.0, 1.0),
                                 "label": "Brain Macro Posture",
-                                "regime": rp[:50]}
+                                "regime": rp[:60]}
 
     return out
 def aggregate_tilts(signals, ic_weights):
