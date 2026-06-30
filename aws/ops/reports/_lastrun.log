@@ -1,11 +1,42 @@
-  justhodl-risk-regime: deployed (single)
-  justhodl-master-ranker: deployed (pkg, 19 files)
-RR invoke: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": 15.2, \"risk_regime\": \"MILD_RISK_ON\", \"blocks\": 
-  risk_regime_score: 15.2 MILD_RISK_ON
-  blocks_used: [('fx', 0.35, 0.067), ('vix', 0.25, 0.402), ('credit', 0.2, 0.182), ('liquidity_regime', 0.15, -0.104)]
-  components.liquidity_regime: {'score': -0.1, 'liquidity_score': 47.4, 'regime': 'NEUTRAL', 'composite_z': -0.16, 'tells': ['Bank reserves below comfort floor (LCLoR risk)']}
-MR invoke: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 10, \"n_tier_3_plus\": 78, \"n_tier_5_plus\"
-  regime_context liquidity: 47.4 NEUTRAL z -0.16
-  top_macro liquidity entry: {'type': 'liquidity_inflection', 'name': 'Liquidity Regime: NEUTRAL (47.4/100)', 'regime': 'NEUTRAL', 'z': -0.16, 'rationale': 'Liquidity is roughly flat — no strong second-derivative push. Levels, earnings and rates dominate.', 'action_hint': 'Liquidity neutral — no strong 2nd-derivative push', 'score': 55}
-  tickers with liquidity tilt: 0 e.g. []
-DONE 2611
+
+### settlement-fails ###
+  keys: ['engine', 'version', 'generated_at', 'as_of', 'signal', 'headline', 'classes', 'totals', 'source']
+  headline: {}
+
+### repo-lending ###
+  keys: ['schema_version', 'method', 'generated_at', 'composite_leverage_stress', 'regime', 'margin_debt', 'repo', 'securities_lending', 'duration_s']
+  headline: {'composite_leverage_stress': 25.4, 'regime': 'ABUNDANT_LIQUIDITY'}
+
+### etf-flows ###
+  keys: ['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out', 'duration_s', 'data_sources', 'signal_definitions']
+  headline: {}
+
+### capital-flow ###
+  keys: ['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
+  headline: {}
+
+### dealer-survey ###
+  keys: ['generated_at', 'latest_survey', 'history', 'fetch_duration_s', 'last_check', 'last_check_status']
+  headline: {}
+
+### hot-money ###
+  keys: ['engine', 'version', 'generated_at', 'duration_s', 'world_benchmark', 'world_ret_20d_pct', 'n_countries', 'risk_regime', 'thesis', 'method', 'legend', 'inflow_leaders', 'outflow_leaders', 'all_countries', 'drilldowns', 'em_debt_flows', 'signals_logged']
+  headline: {'signals_logged': 6}
+
+### eurodollar-stress.signals (basis/FRA-OIS?) ###
+  signals: [None, None, None, None, None, None, None]
+
+### eurodollar-plumbing.layers ###
+  layer keys: ['us_core', 'bank_funding', 'credit', 'backstops', 'settlement', 'fx', 'hubs']
+  massive_fx: {'regime_signals': [], 'usd_synthetic_20d_pct': 0.82, 'em_fx_mean_20d_pct': 0.086, 'usdjpy': 161.893, 'usdjpy_20d_pct': 0.986, 'eurusd': 1.14032, 'usdcnh': 6.79957, 'asof': '2026-06-29T13:10:03.963343+00:00', 'source': 'Massive polygon-fx-regime (live FX majors)'}
+
+##### FRED facility/swap series #####
+  SWPT: [('2026-06-24', '35'), ('2026-06-17', '49')]
+  WLCFLPCL: [('2026-06-24', '7894'), ('2026-06-17', '7572')]
+  DISCBORR: [('2020-08-01', '83.126'), ('2020-07-01', '92.943')]
+  H41RESPPALDKNWW: [('2026-05-13', '.'), ('2026-05-06', '0')]
+  COMPOUT: [('2026-06-24', '1397.072320496'), ('2026-06-17', '1400.534520691')]
+  WLEMUINDXD: [('2026-06-29', '209.39000'), ('2026-06-28', '858.85000')]
+  DGS10: [('2026-06-29', '4.38'), ('2026-06-26', '4.38')]
+  DSWP10: [('2016-10-28', '1.71'), ('2016-10-27', '1.71')]
+DONE 2612
