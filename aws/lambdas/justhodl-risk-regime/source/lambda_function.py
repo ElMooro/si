@@ -225,8 +225,23 @@ def liquidity_block():
     res = j.get("reserves") or {}
     if isinstance(res.get("scarcity_note"), str) and "Below" in res["scarcity_note"]:
         tells.append("Bank reserves below comfort floor (LCLoR risk)")
+    # forward trajectory nudge — where the plumbing says liquidity is HEADED
+    traj = j.get("trajectory") or {}
+    heading = traj.get("heading")
+    if heading == "TIGHTENING AHEAD":
+        score = _clip(score - 0.25); tells.append("Liquidity trajectory: TIGHTENING AHEAD")
+    elif heading == "EASING AHEAD":
+        score = _clip(score + 0.25); tells.append("Liquidity trajectory: EASING AHEAD")
+    # dollar shortage — an offshore USD scramble is acutely risk-off
+    ds = j.get("dollar_shortage") or {}
+    ds_status = ds.get("status")
+    if ds_status == "SCRAMBLE":
+        score = _clip(score - 0.6); tells.append("Dollar SHORTAGE scramble — offshore USD funding stress")
+    elif ds_status == "WATCH":
+        tells.append("Dollar funding on WATCH")
     m = {"score": round(score, 2), "liquidity_score": ls, "regime": reg,
-         "composite_z": comp.get("composite_z"), "tells": tells}
+         "composite_z": comp.get("composite_z"), "trajectory": heading,
+         "dollar_shortage": ds_status, "tells": tells}
     return score, m
 
 
@@ -279,6 +294,9 @@ def lambda_handler(event, context):
     # flight-to-quality override: havens bid AND vix/credit stressed
     havens = (fx.get("fx_roro") or {}).get("havens_bid_count", 0) or 0
     if score <= -35 and havens >= 2 and (vix_m.get("vix", 0) or 0) >= 22:
+        regime = "FLIGHT_TO_QUALITY"
+    # dollar-shortage override: an offshore USD scramble forces flight-to-quality
+    if (results.get("liquidity_regime") or {}).get("dollar_shortage") == "SCRAMBLE":
         regime = "FLIGHT_TO_QUALITY"
 
     all_tells = []

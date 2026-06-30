@@ -198,6 +198,8 @@ async function load(){
     bh+=`<div class="card"><h3>Dollar shortage ${pill(ds.status)}</h3><div class="v ${clsOf(ds.status)==='r'?'neg':(clsOf(ds.status)==='g'?'pos':'')}">${esc(ds.status)}</div><div class="m">Fed swap lines $${num(ds.fed_swap_lines_bn,2)}bn · CP−SOFR ${esc(ds.cp_ois_bps)}bp · synthetic USD ${ds.usd_synthetic_20d_pct>0?'+':''}${esc(ds.usd_synthetic_20d_pct)}% 20d · broad $ ${esc(ds.broad_dollar)}</div>${fl}</div>`;}
   if(sf)bh+=`<div class="card"><h3>Settlement fails ${pill(sf.regime)}</h3><div class="v ${clsOf(sf.regime)==='r'?'neg':'pos'}">$${num(sf.ust_combined_bn,0)}bn</div><div class="m">fails-to-deliver $${num(sf.ust_ftd_bn,0)}bn + fails-to-receive $${num(sf.ust_ftr_bn,0)}bn · ${esc(sf.pctile)}%ile (z ${esc(sf.z)}) · peak $${num(sf.max_bn,0)}bn<br>UST collateral sourcing — spikes = repo squeeze</div></div>`;
   if(sl)bh+=`<div class="card"><h3>Central-bank backstops ${pill(sl.status)}</h3><div class="v ${clsOf(sl.status)==='r'?'neg':'pos'}">$${num(sl.fed_swaps_bn,2)}bn</div><div class="m">Fed FX swap lines $${num(sl.fed_swaps_bn,2)}bn (Δ ${sl.swap_trend_bn>0?'+':''}${esc(sl.swap_trend_bn)}bn) · discount window $${num(sl.discount_window_bn,1)}bn<br>~0 normally · any sustained rise = acute dollar shortage</div></div>`;
+  const dv=d.dealer_survey;
+  if(dv)bh+=`<div class="card"><h3>NY Fed dealer survey <span class="pill a">${esc(dv.status)}</span></h3><div class="v" style="font-size:14px">${esc((dv.last_survey||'').replace('.pdf','').replace(/-/g,' '))}</div><div class="m">${esc(dv.note)}</div></div>`;
   document.getElementById('backstops').innerHTML=bh||'<div class="loading">—</div>';
 
   // ── cross-asset flow divergence ──
@@ -225,6 +227,8 @@ async function load(){
   if(eds)fh+=card('Eurodollar stress '+pill(eds.regime),`${esc(eds.score)}<span style="font-size:11px;color:var(--fg3)"> /100</span>`,'8-signal offshore composite',clsOf(eds.regime)==='r'?'neg':'');
   const mv=fs.move;
   if(mv)fh+=card('MOVE index '+pill(mv.regime),`${esc(mv.level)}`,`${esc(mv.percentile)}th %ile · 20d Δ ${mv.change_20d>0?'+':''}${esc(mv.change_20d)}<br>bond vol — a liquidity-stress proxy`,mv.level>110?'neg':'pos');
+  const lv=d.leverage_stress;
+  if(lv)fh+=card('Leverage stress '+pill(lv.regime),`${esc(lv.score)}<span style="font-size:11px;color:var(--fg3)"> /100</span>`,`margin debt $${num(lv.margin_debt_bn,0)}bn (${esc(lv.margin_pct_mcap)}% mcap · ${lv.margin_yoy_pct>0?'+':''}${esc(lv.margin_yoy_pct)}% yoy) · repo ${esc(lv.repo_score)}<br>${esc(lv.margin_read)}${lv.margin_danger?' · ⚠️ DANGER ZONE':''}`,lv.score>60?'neg':'pos');
   document.getElementById('funding').innerHTML=fh||'<div class="loading">—</div>';
 
   // ── global liquidity ──

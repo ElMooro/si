@@ -629,16 +629,28 @@ def collect_macro_signals():
     lcomp = (liq or {}).get("composite") or {}
     if isinstance(lcomp.get("liquidity_score"), (int, float)):
         _lreg = lcomp.get("regime") or "NEUTRAL"
+        _ltraj = ((liq or {}).get("trajectory") or {}).get("heading")
+        _lds = ((liq or {}).get("dollar_shortage") or {}).get("status")
+        _name = f"Liquidity Regime: {_lreg} ({lcomp.get('liquidity_score')}/100)"
+        if _ltraj and _ltraj != "STABLE / MIXED":
+            _name += f" · {_ltraj}"
+        _rat = (lcomp.get("read") or "")[:200]
+        if _ltraj:
+            _rat += f" Trajectory: {_ltraj}."
+        if _lds and _lds != "CALM":
+            _rat += f" Dollar funding: {_lds}."
+        _act = ("Liquidity tailwind — lean into beta/cyclicals" if _lreg == "EXPANDING"
+                else "Liquidity headwind — favor quality, raise hedges" if _lreg == "CONTRACTING"
+                else "Liquidity neutral now, but mechanics point to tightening — keep quality bias" if _ltraj == "TIGHTENING AHEAD"
+                else "Liquidity neutral now, mechanics improving — add risk selectively" if _ltraj == "EASING AHEAD"
+                else "Liquidity neutral — no strong 2nd-derivative push")
+        if _lds == "SCRAMBLE":
+            _act = "DOLLAR SHORTAGE — broad de-risk, raise USD/quality"
         out.append({
-            "type": "liquidity_inflection",
-            "name": f"Liquidity Regime: {_lreg} ({lcomp.get('liquidity_score')}/100)",
-            "regime": _lreg,
-            "z": lcomp.get("composite_z"),
-            "rationale": (lcomp.get("read") or "")[:200],
-            "action_hint": ("Liquidity tailwind — lean into beta/cyclicals" if _lreg == "EXPANDING"
-                            else "Liquidity headwind — favor quality, raise hedges" if _lreg == "CONTRACTING"
-                            else "Liquidity neutral — no strong 2nd-derivative push"),
-            "score": 72 if _lreg != "NEUTRAL" else 55,
+            "type": "liquidity_inflection", "name": _name, "regime": _lreg,
+            "z": lcomp.get("composite_z"), "trajectory": _ltraj, "dollar_shortage": _lds,
+            "rationale": _rat, "action_hint": _act,
+            "score": (85 if _lds == "SCRAMBLE" else 72 if (_lreg != "NEUTRAL" or (_ltraj and _ltraj != "STABLE / MIXED")) else 55),
         })
 
     # Regime anomaly
@@ -714,7 +726,8 @@ def get_regime_context():
     nowcast = fetch_json("data/macro-nowcast.json", max_age_h=96) or {}
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
-    _liqc = (fetch_json("data/liquidity-inflection.json", max_age_h=48) or {}).get("composite") or {}
+    _liqc = (fetch_json("data/liquidity-inflection.json", max_age_h=48) or {})
+    _liqcomp = _liqc.get("composite") or {}
 
     # ── Risk Pack overlay — master crisis read + canary turning point ──
     crisis = fetch_json("data/crisis-composite.json") or {}
@@ -750,9 +763,11 @@ def get_regime_context():
         "leading_markets_signal": tp_signal,
         "flashing_buckets": leading.get("flashing_buckets"),
         "capitulation_signal": cap_signal,
-        "liquidity_score": _liqc.get("liquidity_score"),
-        "liquidity_regime": _liqc.get("regime"),
-        "liquidity_z": _liqc.get("composite_z"),
+        "liquidity_score": _liqcomp.get("liquidity_score"),
+        "liquidity_regime": _liqcomp.get("regime"),
+        "liquidity_z": _liqcomp.get("composite_z"),
+        "liquidity_trajectory": (_liqc.get("trajectory") or {}).get("heading"),
+        "dollar_shortage": (_liqc.get("dollar_shortage") or {}).get("status"),
         "risk_posture": posture,
     }
 
@@ -794,6 +809,8 @@ def lambda_handler(event, context):
     _liq_comp = _liq.get("composite") or {}
     _liq_regime = _liq_comp.get("regime") or "NEUTRAL"
     _liq_score = _liq_comp.get("liquidity_score")
+    _liq_heading = (_liq.get("trajectory") or {}).get("heading")
+    _liq_ds = (_liq.get("dollar_shortage") or {}).get("status")
     HIGH_BETA_SECTORS = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
                          "Basic Materials", "Communication Services", "Industrials"}
     DEFENSIVE_SECTORS = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
@@ -853,6 +870,8 @@ def lambda_handler(event, context):
         # composite liquidity regime tilt: expanding liquidity favors high-beta /
         # cyclicals, contracting favors defensives. Gentler than RORO — liquidity
         # is a slower-moving macro tide, so it nudges rather than dominates.
+        # Also forward-aware: the trajectory nudges even when the regime reads NEUTRAL,
+        # and an offshore dollar-shortage scramble broadly de-risks high-beta.
         if not isinstance(_liq_score, (int, float)) or not sector:
             return base_score, 1.0, None
         hb, dfn = sector in HIGH_BETA_SECTORS, sector in DEFENSIVE_SECTORS
@@ -864,10 +883,18 @@ def lambda_handler(event, context):
             m = 0.95 if hb else 1.04
         else:
             m = 1.0
+        if _liq_heading == "TIGHTENING AHEAD":
+            m *= 0.97 if hb else 1.02
+        elif _liq_heading == "EASING AHEAD":
+            m *= 1.03 if hb else 0.99
+        if _liq_ds == "SCRAMBLE" and hb:
+            m *= 0.90
+        m = round(m, 3)
         if m == 1.0:
             return base_score, 1.0, None
         tag = "liquidity tailwind" if m > 1 else "liquidity headwind"
-        return round(base_score * m, 1), m, f"liquidity {_liq_regime} {tag} ({sector})"
+        head = (_liq_heading or "flat").replace(" AHEAD", "").lower()
+        return round(base_score * m, 1), m, f"liquidity {_liq_regime}/{head} {tag} ({sector})"
 
     def _cf_overlay(tk, base_score):
         cf = cf_map.get(tk)
