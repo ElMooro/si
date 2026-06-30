@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.9.0"
+VERSION = "2.0.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -1040,6 +1040,95 @@ def lambda_handler(event=None, context=None):
                       "EASING AHEAD": "Forward mechanics point to improving liquidity — buffers refilling or drains reversing. A tailwind is building for risk assets.",
                       "STABLE / MIXED": "Forward drivers are mixed — no decisive path. Liquidity likely range-bound near current conditions."}[heading]}
 
+    # ── FEATURE 5 quick wins: runway / forward expectation / tensions / data-health ──
+    # (a) reserve runway countdown
+    reserve_runway = None
+    if wresbal and len(wresbal) > 10:
+        wdr = sorted(wresbal)
+        lvl = wresbal[wdr[-1]] / 1000.0                         # $bn
+        base = wresbal[wdr[-9]] / 1000.0 if len(wdr) > 9 else wresbal[wdr[0]] / 1000.0
+        pace = (lvl - base) / 8.0                               # $bn/wk
+        DANGER, COMFORT = 2700.0, 3000.0
+        status = "DRAINING" if pace < -1 else ("RISING" if pace > 1 else "FLAT")
+        wks = round((lvl - DANGER) / abs(pace)) if (pace < -1 and lvl > DANGER) else None
+        reserve_runway = {"level_usd_bn": round(lvl), "weekly_pace_bn": round(pace, 1), "status": status,
+                          "danger_floor_bn": DANGER, "comfort_floor_bn": COMFORT,
+                          "below_comfort": lvl < COMFORT, "weeks_to_danger": wks, "as_of": wdr[-1],
+                          "read": (f"Reserves ${round(lvl):,}bn are {'below' if lvl < COMFORT else 'above'} the "
+                                   f"~${int(COMFORT):,}bn ample floor and {status.lower()} ~${abs(round(pace,1))}bn/wk. "
+                                   + (f"With RRP near-empty, at this pace they reach the ~${int(DANGER):,}bn scarcity "
+                                      f"zone in ~{wks} weeks." if wks else
+                                      "No drain countdown — reserves are stable or rising."))}
+
+    # (b) live forward-expectation readout (map current impulse state → regime study)
+    def _state_of(zz):
+        if zz > 0.5:
+            return "EXPANDING_FAST"
+        if zz > 0.05:
+            return "EXPANDING"
+        if zz >= -0.05:
+            return "FLAT"
+        if zz >= -0.5:
+            return "CONTRACTING"
+        return "CONTRACTING_FAST"
+    forward_expectation = None
+    if usd_z:
+        cz = usd_z[-1]
+        cst = _state_of(cz)
+        assets = {}
+        for asset, rr in (regime_returns or {}).items():
+            d21 = ((rr.get("states") or {}).get(cst) or {}).get("d21")
+            if d21:
+                assets[asset] = {"mean": d21["mean"], "excess": d21["excess"], "n": d21["n"],
+                                 "sig": d21["sig"], "hit_pct": d21["hit_pct"],
+                                 "baseline": (rr.get("baseline") or {}).get("d21")}
+        if assets:
+            forward_expectation = {"state": cst, "impulse_z": round(cz, 2), "horizon": "21d", "assets": assets,
+                                   "note": ("Reads the live impulse state off the large-n regime study — the model's "
+                                            "21-day forward expectation conditioned on where liquidity is now. Excess "
+                                            "is vs each asset's unconditional baseline.")}
+
+    # (c) tension / divergence detector — hidden fragility under a calm headline
+    tensions = []
+    calm = bool(composite and composite.get("liquidity_score", 0) >= 45)
+    if composite and trajectory and composite.get("regime") in ("ABUNDANT", "AMPLE", "NEUTRAL") and heading == "TIGHTENING AHEAD":
+        tensions.append({"severity": "medium", "signal": "headline vs forward",
+                         "note": f"Composite reads {composite['regime']} but forward mechanics are TIGHTENING AHEAD — today's calm may not persist."})
+    fp = (funding_stress or {}).get("funding_plumbing") or {}
+    if calm and fp.get("score") is not None and fp["score"] < 60:
+        tensions.append({"severity": "high", "signal": "funding plumbing",
+                         "note": f"Headline liquidity benign, but funding plumbing is stressed ({fp.get('score')}/100, {fp.get('regime')}) — repo/reserve plumbing tightening beneath the surface."})
+    if dollar_shortage and dollar_shortage.get("status") in ("WATCH", "SCRAMBLE"):
+        tensions.append({"severity": "high" if dollar_shortage["status"] == "SCRAMBLE" else "medium", "signal": "dollar shortage",
+                         "note": f"Offshore USD funding shows {dollar_shortage['status']} while the headline is calm — cross-currency strain building."})
+    if settlement_fails and (settlement_fails.get("pctile") or 0) > 75:
+        tensions.append({"severity": "medium", "signal": "settlement fails",
+                         "note": f"UST settlement fails at the {settlement_fails.get('pctile')}th percentile — collateral plumbing stress not reflected in the headline."})
+    if reserve_runway and reserve_runway.get("weeks_to_danger") and reserve_runway["weeks_to_danger"] < 26 and calm:
+        tensions.append({"severity": "high", "signal": "reserve runway",
+                         "note": f"Reserves on pace to hit the scarcity zone in ~{reserve_runway['weeks_to_danger']} weeks with RRP empty — drains now land directly on reserves."})
+    tension_state = {"count": len(tensions), "level": ("ELEVATED" if any(t["severity"] == "high" for t in tensions)
+                     else "WATCH" if tensions else "ALIGNED"), "items": tensions,
+                     "read": ("Sub-signals disagree with the calm headline — hidden fragility worth respecting." if tensions
+                              else "Sub-signals are broadly aligned with the headline; no hidden divergences flagged.")}
+
+    # (d) data-health strip — per-feed freshness
+    def _age_days(s):
+        try:
+            return round((datetime.now(timezone.utc).date() - _pd(s[:10])).days)
+        except Exception:
+            return None
+    data_health = []
+    for nm, asof, maxd in [("Net liquidity (FRED)", usd_dates[-1] if usd_dates else None, 9),
+                           ("Reserves (WRESBAL)", reserve_runway.get("as_of") if reserve_runway else None, 9),
+                           ("Funding plumbing", (fp or {}).get("as_of"), 4),
+                           ("Settlement fails", (settlement_fails or {}).get("as_of"), 10),
+                           ("Dollar / FX", (dollar_shortage or {}).get("as_of"), 5),
+                           ("MOVE (rates vol)", ((funding_stress or {}).get("move") or {}).get("as_of"), 4)]:
+        ag = _age_days(asof) if asof else None
+        data_health.append({"feed": nm, "as_of": asof, "age_days": ag,
+                            "status": ("stale" if (ag is not None and ag > maxd) else "fresh" if ag is not None else "n/a")})
+
     out = {"engine": "liquidity-inflection", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "availability": avail,
@@ -1054,6 +1143,8 @@ def lambda_handler(event=None, context=None):
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
            "cycle_clock": clock,
+           "reserve_runway": reserve_runway, "forward_expectation": forward_expectation,
+           "tensions": tension_state, "data_health": data_health,
            "analogs": analogs, "backtest": backtest,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
