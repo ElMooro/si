@@ -151,6 +151,13 @@ TILT_MAGNITUDES = {
     "gold_rotation":    {"gold": +8.0},
     "foreign_bond_demand": {"ust_long": +4.0, "ust_short": +2.0,
                             "cash": -1.0},
+    # brain_posture applies the user's OWN distilled macro worldview as a slow
+    # lens (KNOWLEDGE, not tickers). A defensive macro lean tilts toward
+    # cash/gold/USTs and away from beta; aggressive/risk-on tilts the other way.
+    "brain_posture":    {"us_equity": -4.0, "intl_dev_eq": -2.0,
+                         "em_equity": -2.0, "ust_long": +2.0,
+                         "ust_short": +2.0, "ig_credit": -1.0,
+                         "gold": +3.0, "btc": -1.0, "cash": +3.0},
 }
 
 s3 = boto3.client("s3")
@@ -325,6 +332,27 @@ def gather_signals():
                                -1.0, 1.0),
             "label": "Foreign UST Demand (TIC)",
             "regime": ci.get("regime")}
+
+    # Brain macro posture -- the user's distilled worldview as a slow macro lens.
+    # KNOWLEDGE only: read the directive's macro risk_posture, never tickers.
+    # "defensive at the macro" -> risk-off lean; macro "aggressive"/"risk-on" ->
+    # risk-on. "selectively aggressive in small caps" is security selection, not
+    # a macro allocation call, so it does NOT flip the macro tilt.
+    brain = read_json("data/brain.json")
+    rp = ((brain.get("directive") or {}).get("risk_posture") or "")
+    rpl = rp.lower()
+    if rpl:
+        intensity = 0.0
+        if "defensive at the macro" in rpl or "defensive macro" in rpl:
+            intensity += 0.6
+        elif "defensive" in rpl:
+            intensity += 0.4
+        if "risk-on" in rpl or "risk on" in rpl or "aggressive at the macro" in rpl:
+            intensity -= 0.5
+        out["brain_posture"] = {"value": rp[:80],
+                                "intensity": clamp(intensity, -1.0, 1.0),
+                                "label": "Brain Macro Posture",
+                                "regime": rp[:50]}
 
     return out
 def aggregate_tilts(signals, ic_weights):
