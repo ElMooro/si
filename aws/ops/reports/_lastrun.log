@@ -1,16 +1,15 @@
-PAGE status=200 bytes=32529 cf-cache=DYNAMIC
-   OK function openThesis
-   OK th:'upside-theses'
-   OK class="tkl"
-   OK data-p="mbscore"
-   OK dnaBanner
-   OK addEventListener('click'
+PAGE Cache-Control: max-age=600
+PAGE ETag: None
+PAGE age/date: None | None
 
-FEED REACHABILITY (paths the page actually uses):
-   [justhodl.ai/data] status=ERR HTTP Error 404: Not Found json=False 
-      CORS allow-origin: None  content-type: None
-   [proxy worker] status=200 json=True v=2.0.0 n_ai=16 n_cand=392 top0=STX
-      CORS allow-origin: *  content-type: application/json
-   [control: upside-radar.json via justhodl.ai] status=ERR HTTP Error 404: Not Found json=False 
-      CORS allow-origin: None  content-type: None
-DONE 2572
+theses: v=2.0.0 n_cand=392 n_ai=16
+top_ranked[:6]: ['STX', 'ABCL', 'MXL', 'INTC', 'GOOG', 'GOOGL']
+  STX: dna=Margin-Inflection canslim=57 ai=yes sm_score=0
+  ABCL: dna=Hypergrowth Disruptor canslim=50 ai=yes sm_score=0
+
+--- NODE (real data) ---
+TAB render errors: NONE
+MODAL built 5/5 · errors: NONE
+mbscore tab rows: 45
+
+DONE 2573
