@@ -1,19 +1,21 @@
-deployed
-INVOKE: 200 None
+ENGINE v2.1.0 — all 6 feature payloads present:
+  [OK] F1 projection
+  [OK] F2 analogs
+  [OK] F3 backtest
+  [OK] F4 cycle_clock
+  [OK] F5a reserve_runway
+  [OK] F5b forward_expectation
+  [OK] F5c tensions
+  [OK] F5d data_health
 
-=== DESK BRIEFING (decisive-call feed) ===
-HEADLINE: Liquidity NEUTRAL (48.7/100), late contraction, mechanics point tightening ahead.
-
-THE CALL: Net-liquidity impulse is CONTRACTING (z -0.625); the composite reads NEUTRAL at 48.7/100. Net liquidity projected to fall ~$97bn over 13 weeks (to ~$5,720bn by 2026-09-23), driven mainly by treasury cash (tga) rebuild. Contracting but the downside is decelerating — momentum is easing and a turn may be forming.
-
-FWD EXP: Given the CONTRACTING_FAST state, the model's 21-day expectation — SPX_proxy +1.5% (excess +0.5%); BTC +3.4% (excess -0.8%); HYG +0.2% (excess +0.3%, significant).
-
-HIDDEN RISKS:
-  • [MEDIUM] Composite reads NEUTRAL but forward mechanics are TIGHTENING AHEAD — today's calm may not persist.
-  • [HIGH] Headline liquidity benign, but funding plumbing is stressed (54.2/100, TIGHTENING) — repo/reserve plumbing tightening beneath the surface.
-
-ANALOG: Today's fingerprint most resembles 2024-10-23 (49.5% match); SPX then returned +3.8% over 21d and +5.8% over 63d.
-RUNWAY: Reserves $2,951bn are below the ~$3,000bn ample floor and rising ~$4.1bn/wk. No drain countdown — reserves are stable or rising.
-TIMING: Liquidity timing did NOT beat buy-and-hold — staying invested won the melt-up
-MODEL: deterministic synthesis — bound to measured tables (LLM router offline; will upgrade on top-up)
-DONE 2630
+F6 desk briefing: [OK] 'Liquidity NEUTRAL (48.7/100), late contraction, mechanics point tightening ahead.'
+  page [OK] AI brief mount
+  page [OK] projection sec
+  page [OK] cycle clock sec
+  page [OK] analogs sec
+  page [OK] backtest sec
+  page [OK] tensions mount
+  page [OK] fwdexp mount
+  page [OK] runway mount
+  page [OK] datahealth mount
+DONE 2631
