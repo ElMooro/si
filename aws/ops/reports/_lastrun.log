@@ -1,79 +1,18 @@
+13f by_fund keys: ['BERKSHIRE', 'BRIDGEWATER', 'AQR', 'RENAISSANCE', 'TWO_SIGMA', 'PERSHING', 'GREENLIGHT', 'CITADEL', 'MILLENNIUM', 'TIGER_GLOBAL', 'SOROS', 'BAUPOST', 'COATUE', 'DURATION', 'SCION', 'LONE_PINE', 'POINT72']
+13f aggregate_by_ticker sample AAPL -> {"ticker": "AAPL", "cusip": "037833100", "name": "Apple Inc", "n_funds_holding": 16, "total_value": 94042850454, "n_funds_adding": 6, "n_funds_trimming": 7, "n_funds_new_position": 2, "n_funds_exiting": 0, "fund_actions": [{"fund": "BERKSHI
+13f by_fund sample BERKSHIRE -> {"fund_key": "BERKSHIRE", "fund_name": "Berkshire Hathaway", "filed_at": "2026-05-15", "period_of_report": "2026-03-31", "accession": "0001193125-26-226661", "n_positions": 29, "total_value_usd": 2630
 
-✓ historical-analogs
-   version=2.4 · generated_at=2026-06-30T11:01:10.999150+00:… · duration_s=55.49 · today={date,vix,twos_tens_bps,hy_oas_pct,usd_index} · feature_order=[6] · n_historical_dates_evaluated=653 · unprecedentedness={centroid_dist,pctile_vs_history,regime,note} · k_neighbors=15 · analogs=[15] · forward_distribution={5d,21d,63d,
-      analogs[0]: date=2026-03-26 · distance=2.789 · similarity=0.442 · vector={vix,twos_tens_bps,hy_oas,usd_index,ten_year_yield} · forward_5d_pct=2.2 · forward_21d_pct=16.25 · forward_63d_pct=19.44
+political-stocks keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'lookback_days', 'data_source', 'party_source', 'quiver_source', 'trump_holdings', 'congress', 'notes']
+  trump_holdings: {"filing_date": "2025-03-19", "filing_url": "https://efts.sec.gov/LATEST/search-index", "filing_period": "Calendar year 2024 + first 60 days 2025", "filer": "Donald J. Trump", "role": "President of th
 
-✓ smart-money-clusters
-   schema_version=1.0 · method=smart_money_cluster_scanner_v1 · generated_at=2026-06-30T16:00:17+00:00 · duration_s=2.3 · as_of_quarter=2026-03-31 · stats={n_total_13f_stocks,n_candidates,n_clusters_scored,n_strong,n_high_conviction} · clusters=[83]
-      clusters[0]: ticker=PEP · name=PepsiCo · score=81.7 · flag=STRONG_CONVICTION · signal_types=[2] · n_funds_holding=14 · n_buyers=10 · n_sellers=2 · n_new=2
+stock-valuations sp_table[0]: {"t": "HPQ", "sector": "Technology", "pe": 8.58, "pb": -150.47, "ps": 0.37, "ev_ebitda": 7.0, "p_fcf": 5.69, "ev_fcf": 7.26, "ev_s": 0.48, "div_y": 0.0506, "fcf_y": 0.1758, "roe": -4.7344, "roa": 0.05
+  coverage: 499 tickers
 
-✓ insider-aggregate
-   schema_version=1.0 · method=insider_aggregate_v1 · generated_at=2026-06-29T22:30:08.312953+00:… · elapsed_s=0.3 · n_transactions=925 · data_coverage_days=669 · windows={last_7d,last_30d,last_90d} · regime=INSIDERS_DISTRIBUTING · regime_read=Corporate insiders are overwhe… · headline_ratio_30d_dollar=0.132 · notable_clu
+chart-patterns counts: {'cross_up_200dma': 46, 'cross_down_200dma': 30, 'double_tops': 416, 'double_bottoms': 398, 'volume_breakouts': 0, 'gap_and_gos': 2}
+  double_bottoms[0]: {"symbol": "GE", "pattern": "double_bottom", "neckline": 345.74, "status": "CONFIRMED", "rally_height_pct": 18.0, "quality": 92, "last_close": 373.71, "trough1"
 
-✓ insider-buys-enriched
-   engine=insider-buys-enriched · version=1.0 · as_of=2026-06-30T10:00:44.295987+00:… · state=ELEVATED · signal_strength=100 · source=data/insider-clusters.json · source_as_of=None · summary={total_clusters_in_source,eligible_for_enrichment,enriched_returned,high_conviction,medium_high_conviction} · top_setups=[7] · metho
-      top_setups[0]: ticker=KMX · company=CARMAX INC · score=90.8 · signal_type=executive_cluster · n_insiders=5 · n_transactions=5 · total_value_usd=1016708.74 · first_buy=2026-06-22 · last_buy=2026-06-25
+backtest-summary by_signal keys: ['8k_red_flag', 'big_insider_buy', 'asymmetric_setup', 'insider_cluster', 'aaii_extreme']
+  sample 8k_red_flag -> {"n_total_snapshots": 390, "cohorts": {}}
 
-✓ insider-clusters-names
-   regime_note=Bear-flattener + normal VIX fa… · names=[12] · version=1.0 · brief_type=names · generated_at=2026-06-26T18:08:19.222191+00:… · model=claude-haiku-4-5-20251001 · context=insider-clusters-names · title=Insider Cluster Buys — AI Brie… · input_state={primary_feed,cross_feeds_loaded,top_n,prompt_len_chars}
-      names[0]: ticker=LILA · rank=1 · primary_score=97.0 · regime_fit=NEUTRAL · one_liner=CEO + 3 insiders bought $29.62… · thesis=Liberty Latin America saw CEO … · catalyst=Q4 earnings + debt refinancing… · primary_risk=Emerging-market currency headw… · 
-
-✓ 13f-positions
-   generated_at=2026-06-29T21:11:18+00:00 · as_of_quarter=2026-03-31 · funds_total=18 · funds_parsed=17 · funds_failed=0 · fund_errors=[0] · by_fund={BERKSHIRE,BRIDGEWATER,AQR,RENAISSANCE,TWO_SIGMA} · aggregate_by_ticker={AAPL,AXP,KO,BAC,CVX} · most_bought=[25] · most_sold=[25] · consensus_holds=[30] · rare_picks=[20] · f
-      most_bought[0]: ticker=PEP · cusip=693718108 · name=PepsiCo · n_funds_holding=14 · total_value=3157359126 · n_funds_adding=8 · n_funds_trimming=2 · n_funds_new_position=2 · n_funds_exiting=0
-
-✓ 13f-price-divergence
-   engine=13f-price-divergence · version=1.0.0 · as_of=2026-06-30T06:00:02Z · state=QUIET · signal_strength=0.1 · n_divergences=0 · n_bullish=0 · n_bearish=0 · n_high_conviction=0 · feeders={feeder_keys,feeder_error,n_tickers_in_feeder} · top_bullish=[0] · top_bearish=[0] · all_divergences=[0] · methodology=Resolution eng
-
-✓ political-stocks
-   schema_version=1.3 · method=political_stocks_v1_s3cached · generated_at=2026-06-30T14:00:24+00:00 · duration_s=0.5 · lookback_days=90 · data_source=https://api.quiverquant.com/be… · party_source=https://theunitedstates.io/con… · quiver_source=s3_cache_120.0h · trump_holdings={filing_date,filing_url,filing_period,filer,
-
-✓ congress-party-map
-   schema_version=1.0 · generated_at=2026-05-31T17:12:24Z · source=https://raw.githubusercontent.… · n_legislators=536 · party_map={C000127,K000367,S000033,W000802,B001261} · details={C000127,K000367,S000033,W000802,B001261}
-
-✓ catalyst-calendar
-   schema_version=1.0 · method=catalyst_calendar_v1 · as_of=2026-06-30T12:00:22+00:00 · window_days=60 · n_events=104 · events=[104] · by_type={AUCTION,EARNINGS,BANK_EARNINGS,FOMC} · by_source={FOMC,AUCTION,WITCHING,REBALANCE,BANK_EARNINGS} · high_impact_next_7d=3 · high_impact_next_30d=22 · duration_s=0.8
-      events[0]: date=2026-06-30 · time=None · type=AUCTION · title=6-Week Bill auction · subtitle=Size TBD · impact=LOW · source=TreasuryDirect · url=https://www.treasurydirect.gov… · size_billions=0.0
-
-✓ catalyst-skew-premove
-   engine=catalyst-skew-premove · version=1.0 · as_of=2026-06-30T00:30:44.025612Z · state=QUIET · state_description=No directional pre-catalyst sk… · signal_strength=0 · summary={n_events_in_window,n_with_options_data,n_directional_setups,n_bull_skew,n_bear_skew} · bull_skew_setups=[0] · bear_skew_setups=[0] · balanced_se
-      trigger_conditions[0]: name=Directional setups · current=0 · threshold=>=3 · satisfied=False · weight=0.5
-
-✓ chart-patterns
-   schema_version=1.0 · engine=justhodl-chart-patterns · generated_at=2026-06-29T23:30:24.211267+00:… · build_seconds=6.9 · universe_size=503 · n_with_signal=494 · counts={cross_up_200dma,cross_down_200dma,double_tops,double_bottoms,volume_breakouts} · cross_up_200dma=[30] · cross_down_200dma=[30] · double_tops=[30] · dou
-      cross_up_200dma[0]: symbol=CDW · direction=up · days_since_cross=0 · close=139.82 · sma200=135.36 · pct_from_ma=3.3 · ma_slope_20d=falling · series=[200]
-
-✓ peer-comparison
-   engine=peer-comparison · version=1.0.0 · generated_at=2026-06-30T13:02:00.487012+00:… · n_evaluated=0 · universe_size=50 · results=[0] · metric_definitions={ev_ebitda_ttm,pe_ttm,pb,ev_sales_ttm,fcf_yield} · methodology={framework,philosophy,peer_selection,z_normalization,narrative} · academic_basis=[2] · duration_secon
-
-✓ stock-valuations
-   engine=stock-valuations · version=1.5.1 · generated_at=2026-06-30T14:50:34.661615+00:… · duration_s=4.6 · sp_table=[499] · sp_coverage=499 · sp_universe=500 · hist_coverage=495 · n_deep_discount=39 · sp_asof=2026-06-30 · hp=[80] · hp_coverage=400 · hp_universe=400 · heatmap={hp,sp,note} · industries={Industrial - Machi
-      sp_table[0]: t=HPQ · sector=Technology · pe=8.58 · pb=-150.47 · ps=0.37 · ev_ebitda=7.0 · p_fcf=5.69 · ev_fcf=7.26 · ev_s=0.48
-
-✓ earnings-quality
-   engine=earnings-quality · version=1.0.0 · as_of=2026-06-24T13:30:32Z · state=HIGH_QUALITY_RICH · signal_strength=0.65 · n_qualified=120 · n_high_quality=90 · n_low_quality=1 · n_mid_quality=29 · universe_size=135 · top_20_high_quality=[20] · top_10_low_quality_avoid=[1] · all_ranked=[120] · trade_tickets=[11] · n_ticke
-      top_20_high_quality[0]: ticker=META · name=Meta Platforms, Inc. · price=559.0 · market_cap_usd=1418978626377.0 · pe=None · ttm_ni_usd=70587000000 · ttm_ocf_usd=124000000000 · ttm_fcf_usd=48253000000 · sloan_accruals_pct_assets=-13.51
-
-✓ quality-on-sale
-   engine=quality-on-sale · version=1.0.0 · generated_at=2026-06-30T15:00:06.281027+00:… · regime=DRY · regime_description=ZERO names qualify all 5 condi… · n_qualified_5_of_5=0 · n_near_qualified_4_of_5=1 · universe_size=50 · thresholds={predictability_min_stars,eva_spread_pctile_min,eva_spread_absolute_min_pp,roic_min_p
-      near_qualified_4_of_5[0]: ticker=ADBE · qualifies=False · n_conditions_fired=4 · conditions={c1_predictability_5star,c2_eva_top_decile,c3_smart_beta_quality_top_decile,c4_drawdown_20pct_plus,c5_beneish_clean} · predictability_detail={stars,rev_r2,eps_r2,composite_r2
-
-✓ eps-revision-velocity
-   schema_version=1 · method=eps_revision_velocity_v1 · generated_at=2026-06-30T11:00:19+00:00 · duration_s=4.5 · stats={n_universe,n_qualifying,n_tier_a,n_tier_b,statuses} · summary={top_25_overall,tier_a,tier_b_symbols} · all_qualifying=[56]
-      all_qualifying[0]: symbol=AMD · company=Advanced Micro Devices, Inc. · score=86.5 · flag=HIGH_VELOCITY_TIER_B · status=ok · fundamentals={price,market_cap,sector,industry,pct_from_52w_high} · estimates={fy1_year,fy1_eps_avg,fy1_rev_avg,fy1_n_estimates,fy2_yea
-
-✓ analyst-actions
-   engine=justhodl-analyst-actions · version=1.0.0 · generated_at=2026-06-30T13:45:11.331933+00:… · thesis=Analyst rating transitions, pr… · counts={ratings_7d,guidance_21d,insights_7d,upgrades,downgrades} · upgrades=[0] · downgrades=[0] · pt_raises=[0] · pt_cuts=[0] · guidance_raises=[0] · guidance_cuts=[0] · most_bullis
-
-✓ microcap-float-squeeze
-   schema_version=1 · method=microcap_float_squeeze_v1 · generated_at=2026-06-29T22:00:31+00:00 · duration_s=4.0 · stats={n_universe,n_evaluated,n_filtered_out,n_tier_s,n_tier_a} · summary={top_25_overall,tier_s} · all_qualifying=[137]
-      all_qualifying[0]: symbol=ZETA · score=67.0 · tier=TIER_A_SQUEEZE_BREWING · flags=[4] · metrics={price,market_cap,float_shares,shares_outstanding,avg_vol_30d}
-
-✓ _skill/opportunity-rankings
-   version=1.0 · generated_at=2026-06-30T14:30:49.707539+00:… · n_total=7 · engine_hit_rates={sustained_target_equity,equity_frontrun_sniffer,macro_frontrun_sniffer,equity_convergence_fingerprint} · ranked_opportunities=[7] · ranking_formula=score = engine_hit_rate × clai… · skill_data_age_h=4.0
-      ranked_opportunities[0]: rank=1 · opportunity_id=eq_BTC_DOWN_1782829849 · engine=equity_frontrun_sniffer · engine_hit_rate=0.4954 · asset=BTC · direction=DOWNSIDE · setup_type=None · claimed_confidence=0.62 · n_smoking_gun_categories=4
-
-✓ backtest-summary
-   generated_at=2026-06-11T22:00:33+00:00 · snapshot_today={date,by_signal} · forward_returns_computed_today={30d,60d,90d,180d} · by_signal={8k_red_flag,big_insider_buy,asymmetric_setup,insider_cluster,aaii_extreme} · fetch_duration_s=9.6
-
-DONE 2568
+eps-velocity[0]: {"symbol": "AMD", "company": "Advanced Micro Devices, Inc.", "score": 86.5, "flag": "HIGH_VELOCITY_TIER_B", "status": "ok", "fundamentals": {"price": 539.49, "market_cap": 879692394000, "sector": "", "industry": "", "pct_from_52w_high": -4.2}, "estimates": {"f
+DONE 2569
