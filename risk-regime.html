@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Risk Regime (RORO) · JustHodl.AI</title>
 <style>
-:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe}
+:root{--bg:#0a0e14;--panel:#111722;--panel2:#0d131c;--line:#1e2836;--txt:#d6e0ee;--dim:#7c8aa0;--grn:#16c784;--red:#ea3943;--amb:#f0a020;--cyan:#3fb6dc;--blu:#4d7cfe;--vio:#a78bfa}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--txt);font:13px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;padding:18px 14px 60px}
 a{color:var(--cyan);text-decoration:none}
@@ -20,8 +20,8 @@ h1{font-size:20px;letter-spacing:.5px;font-weight:700}
 .statbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:18px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
 .stat .v{font-size:21px;font-weight:700;color:#fff} .stat .l{color:var(--dim);font-size:11px;margin-top:2px}
-h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:22px 0 10px;border-left:3px solid var(--blu);padding-left:9px}
-/* gauge */
+h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin:24px 0 10px;border-left:3px solid var(--blu);padding-left:9px;display:flex;justify-content:space-between;align-items:baseline}
+h2 .h2meta{font-size:11px;letter-spacing:0;text-transform:none;color:var(--dim);font-weight:400}
 .gauge{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 16px 14px;margin-bottom:8px}
 .gauge .track{position:relative;height:26px;border-radius:13px;background:linear-gradient(90deg,var(--red) 0%,var(--amb) 38%,#26323f 50%,var(--amb) 62%,var(--grn) 100%);opacity:.92}
 .gauge .mid{position:absolute;left:50%;top:-5px;bottom:-5px;width:2px;background:var(--dim);transform:translateX(-1px)}
@@ -31,24 +31,38 @@ h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);m
 .gauge .lab .off{color:var(--red)} .gauge .lab .on{color:var(--grn)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:10px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 13px;position:relative;border-left:4px solid var(--line)}
-.card.pos{border-left-color:var(--grn)} .card.neg{border-left-color:var(--red)} .card.flat{border-left-color:var(--amb)}
+.card.pos{border-left-color:var(--grn)} .card.neg{border-left-color:var(--red)} .card.flat{border-left-color:var(--amb)} .card.info{border-left-color:var(--blu)} .card.vio{border-left-color:var(--vio)}
 .card .nm{font-size:14px;font-weight:700;color:#fff;display:flex;justify-content:space-between;align-items:baseline}
 .card .nm .sc{font-size:18px;font-weight:800}
-.card.pos .sc{color:var(--grn)} .card.neg .sc{color:var(--red)} .card.flat .sc{color:var(--amb)}
+.card.pos .sc{color:var(--grn)} .card.neg .sc{color:var(--red)} .card.flat .sc{color:var(--amb)} .card.info .sc{color:var(--cyan)} .card.vio .sc{color:var(--vio)}
 .card .wt{font-size:10.5px;color:var(--dim);margin:2px 0 8px}
-.row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-top:1px dashed var(--line)}
-.row .k{color:var(--dim)} .row .vv{color:var(--txt)}
-.tells{list-style:none;margin-top:4px}
-.tells li{padding:6px 11px;border-left:3px solid var(--line);background:var(--panel);border-radius:0 7px 7px 0;margin-bottom:6px;font-size:12px}
+.card .expl{font-size:11px;color:var(--dim);margin:6px 0 2px;line-height:1.45;font-style:italic}
+.row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-top:1px dashed var(--line);gap:8px}
+.row .k{color:var(--dim)} .row .vv{color:var(--txt);text-align:right}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;border:1px solid var(--line)}
+.badge.pos{color:var(--grn);border-color:var(--grn)} .badge.neg{color:var(--red);border-color:var(--red)} .badge.flat{color:var(--amb);border-color:var(--amb)} .badge.info{color:var(--cyan);border-color:var(--cyan)}
+/* flow bars */
+.flow{display:flex;flex-direction:column;gap:6px}
+.flow .fr{display:grid;grid-template-columns:130px 1fr 88px;align-items:center;gap:10px;font-size:11.5px}
+.flow .fr .fl{color:var(--txt)} .flow .fr .fv{text-align:right;font-variant-numeric:tabular-nums}
+.flow .bar{position:relative;height:14px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.flow .bar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.flow .bar i.p{background:var(--grn)} .flow .bar i.n{right:50%;background:var(--red)}
+.flow .bar .zero{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--line)}
+.tells{list-style:none;margin-top:4px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px}
+.tells li{padding:6px 11px;border-left:3px solid var(--line);background:var(--panel);border-radius:0 7px 7px 0;font-size:12px}
 .tells li.on{border-left-color:var(--grn)} .tells li.off{border-left-color:var(--red)}
 table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
 th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:10.5px;letter-spacing:.5px}
 td:first-child,th:first-child{text-align:left}
 tr:hover td{background:var(--panel2)}
-.pos{color:var(--grn)} .neg{color:var(--red)}
+.pos{color:var(--grn)} .neg{color:var(--red)} .amb{color:var(--amb)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{font-size:11px;padding:3px 9px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font-family:ui-monospace,monospace}
 .loading{color:var(--dim);padding:40px;text-align:center}
-.foot{color:var(--dim);font-size:11px;margin-top:22px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+.foot{color:var(--dim);font-size:11px;margin-top:26px;border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
+.narr{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--vio);border-radius:8px;padding:11px 14px;margin-bottom:10px;font-size:12.5px;line-height:1.55;color:var(--txt)}
 </style>
 </head>
 <body>
@@ -56,11 +70,11 @@ tr:hover td{background:var(--panel2)}
   <div class="topbar">
     <div>
       <h1>Risk Regime · RORO</h1>
-      <div class="sub">Cross-asset Risk-On / Risk-Off synthesizer — Massive FX + options, FRED VIX &amp; HY credit. <a href="/directory.html">all dashboards →</a></div>
+      <div class="sub">Cross-asset Risk-On / Risk-Off command center — RORO synthesizer + money flow, cycle, plumbing, foreign capital, vol &amp; smart money. <a href="/directory.html">all dashboards →</a></div>
     </div>
     <div class="chips" id="chips"></div>
   </div>
-  <div id="content"><div class="loading">Loading risk-regime.json …</div></div>
+  <div id="content"><div class="loading">Loading cross-asset engines …</div></div>
   <div class="foot" id="foot"></div>
 </div>
 <script>
@@ -68,12 +82,23 @@ const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,
   `https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,
   `https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
 async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
-const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num=v=>(typeof v==="number"&&isFinite(v))?v:null;
 const f1=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1);
+const f2=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(2);
+const pc=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const sgn=v=>num(v)===null?"flat":(v>0.02?"pos":(v<-0.02?"neg":"flat"));
-const cls=r=>{const u=(r||"").toUpperCase();if(u.includes("RISK_ON")||u.includes("RISK-ON"))return"on";if(u.includes("RISK_OFF")||u.includes("FLIGHT"))return"off";return"neu";};
+const usd=v=>{if(num(v)===null)return"—";const a=Math.abs(v);const s=v<0?"-":"+";if(a>=1e9)return s+"$"+(a/1e9).toFixed(1)+"b";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"m";return s+"$"+a.toFixed(0);};
+function tone(s){const u=(s||"").toUpperCase();
+  if(/RISK[_ -]?ON|BOOMING|ABUNDANT|FUNCTIONING|STRONG_FOREIGN|EXPANSION|CALM|GENERATIONAL|RISK APPETITE/.test(u))return"pos";
+  if(/RISK[_ -]?OFF|FLIGHT|ACUTE|CRITICAL|PANIC|SEVERE|DUMP|STRESS|RISK_AVERSE|DESTROYED|TIGHTEN|DEFCON 1|DEFCON 2/.test(u))return"neg";
+  if(/MILD|CONCERNED|WATCH|LEAN|BIFURCAT|MODERATE|ELEVATED|ROTATION|NEUTRAL|LATE|STAGFLAT|OVERHEAT/.test(u))return"flat";
+  return"info";}
+const toneCol=t=>({pos:"var(--grn)",neg:"var(--red)",flat:"var(--amb)",info:"var(--cyan)"}[t]||"var(--dim)");
+const badge=(s,t)=>`<span class="badge ${t||tone(s)}">${esc(s)}</span>`;
+function row(k,v,cls){return v==null||v===""?"":`<div class="row"><span class="k">${esc(k)}</span><span class="vv ${cls||""}">${v}</span></div>`;}
 
+/* ── core RORO gauge + blocks (unchanged logic) ── */
 function gauge(score){
   const s=num(score)??0, pct=Math.max(0,Math.min(100,(s+100)/2));
   return `<div class="gauge">
@@ -82,76 +107,189 @@ function gauge(score){
     <div class="lab"><span class="off">◀ RISK-OFF / flight to quality</span><span class="on">RISK-ON / risk appetite ▶</span></div>
   </div>`;
 }
-
 function blockCard(b,comp){
   const sc=num(b.score), c=sc===null?"flat":(sc>0.02?"pos":(sc<-0.02?"neg":"flat"));
   const detail=comp[b.block]||{};
   let rows="";
-  const show={
-    fx:[["FX RORO score","fx_roro_score"],["FX regime","regime"]],
-    options:[],
+  const show={fx:[["FX RORO score","fx_roro_score"],["FX regime","regime"]],options:[],
     vix:[["VIX","vix"],["VIX 3M","vix_3m"],["Term structure","term_structure"]],
-    credit:[["HY OAS %","hy_oas"],["OAS percentile","pctile"],["5d chg (bp)","chg_5d_bp"]]
-  }[b.block]||[];
+    credit:[["HY OAS %","hy_oas"],["OAS percentile","pctile"],["5d chg (bp)","chg_5d_bp"]]}[b.block]||[];
   show.forEach(([k,kk])=>{let v=detail[kk];if(v!==undefined&&v!==null)rows+=`<div class="row"><span class="k">${k}</span><span class="vv">${typeof v==="number"?(Math.abs(v)<2?v.toFixed(2):v.toFixed(1)):esc(String(v))}</span></div>`;});
-  if(b.block==="options"){
-    ["SPY","HYG"].forEach(u=>{const o=detail[u];if(o)rows+=`<div class="row"><span class="k">${u} put/call · skew</span><span class="vv">${num(o.put_call_ratio)?o.put_call_ratio.toFixed(2):"—"} · ${num(o.skew_25d)?o.skew_25d.toFixed(3):"—"}</span></div>`;});
-  }
+  if(b.block==="options"){["SPY","HYG"].forEach(u=>{const o=detail[u];if(o)rows+=`<div class="row"><span class="k">${u} put/call · skew</span><span class="vv">${num(o.put_call_ratio)?o.put_call_ratio.toFixed(2):"—"} · ${num(o.skew_25d)?o.skew_25d.toFixed(3):"—"}</span></div>`;});}
   const nm={fx:"FX (haven/carry/EM)",options:"Options (put-call · skew)",vix:"VIX (level · term)",credit:"Credit (HY OAS)"}[b.block]||b.block;
-  return `<div class="card ${c}"><div class="nm"><span>${nm}</span><span class="sc">${f1(sc===null?null:sc*100/1)}</span></div>
+  return `<div class="card ${c}"><div class="nm"><span>${nm}</span><span class="sc">${f1(sc===null?null:sc*100)}</span></div>
     <div class="wt">weight ${(num(b.weight)??0).toFixed(2)} · block score ${sc===null?"—":sc.toFixed(2)} (−1..+1)</div>${rows}</div>`;
 }
 
-function render(rr,fx){
+/* ── NEW: money flow (cross-asset-flow-state) ── */
+function flowBars(items,maxAbs){
+  return `<div class="flow">`+items.map(it=>{
+    const v=num(it.net_flow_5d_usd)||0, w=Math.min(48,Math.abs(v)/maxAbs*48);
+    const bar=v>=0?`<i class="p" style="left:50%;width:${w}%"></i>`:`<i class="n" style="right:50%;width:${w}%"></i>`;
+    return `<div class="fr"><span class="fl">${esc(it.asset_class)}</span><div class="bar"><span class="zero"></span>${bar}</div><span class="fv ${sgn(v)}">${usd(v)}</span></div>`;
+  }).join("")+`</div>`;
+}
+function moneyFlow(x){
+  if(!x)return"";
+  let h=`<h2>Cross-asset money flow <span class="h2meta">where capital is actually moving — ETF 5d net flows · the <i>direction</i> behind the RORO score</span></h2>`;
+  if(x.headline)h+=`<div class="narr">${esc(x.headline)}</div>`;
+  const rot=(x.asset_class_rotation||[]).filter(r=>num(r.net_flow_5d_usd)!=null);
+  if(rot.length){const mx=Math.max(...rot.map(r=>Math.abs(r.net_flow_5d_usd)))||1;h+=flowBars(rot,mx);}
+  // hard assets + dollar + carry cards
+  const ha=x.hard_assets_and_dollar||{}, dc=x.dollar_fx_carry||{}, ff=x.foreign_flows||{}, dp=x.dark_pool||{};
+  h+=`<div class="cards" style="margin-top:12px">`;
+  h+=`<div class="card ${tone(ha.metals_state)}"><div class="nm"><span>Hard assets &amp; dollar</span><span class="sc" style="font-size:12px">${esc(ha.metals_state||"")}</span></div><div class="wt">20-day moves</div>`+
+     row("Gold",pc(ha.gold_20d_pct),sgn(ha.gold_20d_pct))+row("Silver",pc(ha.silver_20d_pct),sgn(ha.silver_20d_pct))+
+     row("Gold miners",pc(ha.gold_miners_20d_pct),sgn(ha.gold_miners_20d_pct))+row("Long bonds (TLT)",pc(ha.long_bonds_20d_pct),sgn(ha.long_bonds_20d_pct))+
+     row("Dollar (UUP)",pc(ha.dollar_20d_pct),sgn(-(ha.dollar_20d_pct||0)))+row("SPY",pc(ha.spy_20d_pct),sgn(ha.spy_20d_pct))+`</div>`;
+  h+=`<div class="card ${tone(dc.dollar_regime)}"><div class="nm"><span>Dollar · FX · carry</span><span class="sc" style="font-size:12px">${esc(dc.dollar_regime||"")}</span></div><div class="wt">FX RORO ${f1(dc.fx_roro_score)} · ${esc(dc.fx_roro_regime||"")}</div>`+
+     row("EM FX basket 5d",pc(dc.em_basket_5d_pct),sgn(dc.em_basket_5d_pct))+row("Gold/silver ratio 5d",pc(dc.gold_silver_ratio_chg_5d),sgn(dc.gold_silver_ratio_chg_5d))+
+     (dc.carry_drivers&&dc.carry_drivers.length?`<div class="expl">carry: ${esc((dc.carry_drivers||[]).filter(Boolean).join(", "))}</div>`:"")+`</div>`;
+  if(ff.by_asset_class){h+=`<div class="card ${tone(ff.regime)}"><div class="nm"><span>Foreign flows</span><span class="sc" style="font-size:12px">${esc(ff.regime||"")}</span></div><div class="wt">cross-border, by asset class</div>`+
+     Object.entries(ff.by_asset_class).slice(0,5).map(([k,v])=>{const mo=(v&&(v.latest_month_b??v.run_rate_3mo_annualized_b??v.net_b));return row(k.replace(/_/g," "),mo!=null?usd(mo*1e9):"",sgn(mo));}).join("")+`</div>`;}
+  if(dp&&(dp.accumulation_n!=null||dp.distribution_n!=null)){h+=`<div class="card info"><div class="nm"><span>Dark-pool tape</span><span class="sc" style="font-size:13px">${num(dp.accumulation_n)??"—"}/${num(dp.distribution_n)??"—"}</span></div><div class="wt">names accumulating / distributing off-exchange</div>`+
+     (dp.top_accumulation&&dp.top_accumulation.length?row("Accumulating",`<span class="pos">${esc((dp.top_accumulation||[]).slice(0,6).join(" "))}</span>`):"")+
+     (dp.top_distribution&&dp.top_distribution.length?row("Distributing",`<span class="neg">${esc((dp.top_distribution||[]).slice(0,6).join(" "))}</span>`):"")+`</div>`;}
+  h+=`</div>`;
+  return h;
+}
+
+/* ── NEW: regime & cycle context ── */
+function regimeCycle(xar,cycle,regmap){
+  if(!xar&&!cycle&&!regmap)return"";
+  let h=`<h2>Regime &amp; cycle context <span class="h2meta">where we are in the cross-asset &amp; business cycle</span></h2><div class="cards">`;
+  if(xar){const r5=xar.regime_5d||{},r20=xar.regime_20d||{},r60=xar.regime_60d||{},nb=(xar.correlation_breaks||[]).length;
+    h+=`<div class="card ${tone(r20.regime)}"><div class="nm"><span>Cross-asset regime</span><span class="sc" style="font-size:12px">${esc(r20.regime||"")}</span></div><div class="wt">multi-horizon · ${nb} correlation break${nb===1?"":"s"}</div>`+
+       row("5-day",`${badge(r5.regime,tone(r5.regime))} <span class="vv">risk ${f1(r5.risk_score)}</span>`)+
+       row("20-day",`${badge(r20.regime,tone(r20.regime))} <span class="vv">risk ${f1(r20.risk_score)}</span>`)+
+       row("60-day",`${badge(r60.regime,tone(r60.regime))} <span class="vv">risk ${f1(r60.risk_score)}</span>`)+
+       (r20.rationale?`<div class="expl">${esc(r20.rationale)}</div>`:"")+`</div>`;}
+  if(cycle){const sy=cycle.synthesis||{};const bd=(sy.bullish_drivers||[]).slice(0,3),br=(sy.bearish_drivers||[]).slice(0,3);
+    h+=`<div class="card ${tone(sy.posture||cycle.verdict)}"><div class="nm"><span>Business cycle clock</span><span class="sc" style="font-size:12px">${esc(sy.posture||"")}</span></div><div class="wt">${esc(cycle.verdict||"")}</div>`+
+       row("Score / conviction",`${f1(sy.score)} · ${esc(sy.conviction||"")}`)+
+       (bd.length?`<div class="expl" style="color:var(--grn)">+ ${esc(bd.join("; "))}</div>`:"")+
+       (br.length?`<div class="expl" style="color:var(--red)">− ${esc(br.join("; "))}</div>`:"")+`</div>`;}
+  if(regmap){const rg=regmap.regime||{};const boom=(regmap.booming||[]).slice(0,6).map(x=>x.ticker||x).join(" ");const dest=(regmap.destroyed||[]).slice(0,6).map(x=>x.ticker||x).join(" ");
+    h+=`<div class="card ${tone(rg.label)}"><div class="nm"><span>Dispersion map</span><span class="sc" style="font-size:12px">${esc(rg.label||"")}</span></div><div class="wt">breadth ${num(rg.equity_breadth_pct)??"—"}%</div>`+
+       (boom?row("Booming",`<span class="pos">${esc(boom)}</span>`):"")+(dest?row("Destroyed",`<span class="neg">${esc(dest)}</span>`):"")+
+       (rg.summary?`<div class="expl">${esc(rg.summary)}</div>`:"")+`</div>`;}
+  h+=`</div>`;return h;
+}
+
+/* ── NEW: systemic stress & funding plumbing ── */
+function stressPlumbing(crisis,gstress,edplumb,edstress,fails){
+  if(!crisis&&!gstress&&!edplumb&&!edstress&&!fails)return"";
+  let h=`<h2>Systemic stress &amp; funding plumbing <span class="h2meta">is the machine healthy — crisis DEFCON, global stress, offshore USD, settlement</span></h2><div class="cards">`;
+  if(crisis){const dl=crisis.defcon_level,t=dl<=2?"neg":dl===3?"flat":"pos";const drv=(crisis.primary_drivers||[]).slice(0,3).map(d=>d.label||d.source||d).join("; ");
+    h+=`<div class="card ${t}"><div class="nm"><span>Crisis composite</span><span class="sc" style="font-size:13px">DEFCON ${esc(dl)}</span></div><div class="wt">${esc(crisis.defcon_name||"")} · score ${num(crisis.master_crisis_score)?.toFixed(1)} · ${esc(crisis.trend||"")}</div>`+
+       (crisis.playbook?`<div class="expl">${esc(crisis.playbook)}</div>`:"")+(drv?row("Drivers",esc(drv)):"")+`</div>`;}
+  if(gstress){h+=`<div class="card ${tone(gstress.global_stress_level)}"><div class="nm"><span>Global stress</span><span class="sc" style="font-size:13px">${num(gstress.global_stress_index)??"—"}</span></div><div class="wt">${esc(gstress.global_stress_level||"")} · /100</div>`+
+       row("Equity stress",num(gstress.equity_stress)??"")+row("Bond stress",num(gstress.bond_stress)??"")+row("Credit spreads",num(gstress.credit_spreads)??"")+
+       (gstress.equities&&gstress.equities.length?row("Most stressed",esc((gstress.equities||[]).slice().sort((a,b)=>(b.stress||0)-(a.stress||0)).slice(0,3).map(e=>e.market+" "+e.stress).join(", "))):"")+`</div>`;}
+  if(edplumb){const rf=(edplumb.red_flags||[]).length,yf=(edplumb.yellow_flags||[]).length;
+    h+=`<div class="card ${tone(edplumb.stress_regime||edplumb.verdict)}"><div class="nm"><span>Eurodollar plumbing</span><span class="sc" style="font-size:13px">${num(edplumb.plumbing_health)??"—"}</span></div><div class="wt">${esc(edplumb.verdict||"")} · ${esc(edplumb.stress_regime||"")}</div>`+
+       row("Health (0-100)",num(edplumb.plumbing_health)?.toFixed(1))+row("Red / yellow flags",`<span class="${rf?'neg':''}">${rf}</span> / <span class="${yf?'amb':''}">${yf}</span>`)+`</div>`;}
+  if(edstress){h+=`<div class="card ${tone(edstress.severity||edstress.regime)}"><div class="nm"><span>Offshore USD stress</span><span class="sc" style="font-size:13px">${num(edstress.composite_score)?.toFixed(0)??"—"}</span></div><div class="wt">${esc(edstress.severity||edstress.regime||"")} · ${num(edstress.n_signals_used)??"?"} signals</div>`+
+       ((edstress.hot_signals||[]).length?row("Hot",esc((edstress.hot_signals||[]).slice(0,3).map(s=>s.label||s.id||s).join(", ")),"amb"):"")+`</div>`;}
+  if(fails){const sig=fails.signal||{},hd=fails.headline||{};h+=`<div class="card ${tone(sig.regime)}"><div class="nm"><span>Settlement fails</span><span class="sc" style="font-size:12px">${esc(sig.regime||"")}</span></div><div class="wt">UST &amp; agency delivery fails</div>`+
+       row("Combined ($bn)",num(hd.combined_bn)?.toFixed(0))+row("Z-score",f2(hd.z))+(hd.label?`<div class="expl">${esc(hd.label)}</div>`:"")+`</div>`;}
+  h+=`</div>`;return h;
+}
+
+/* ── NEW: foreign capital & dollar detail ── */
+function foreignCapital(capin,tic,sov,dollar){
+  if(!capin&&!tic&&!sov&&!dollar)return"";
+  let h=`<h2>Foreign capital &amp; the dollar <span class="h2meta">who funds the US — TIC flows, foreign demand, fiscal &amp; dollar pressure</span></h2><div class="cards">`;
+  if(capin){const hd=capin.headline||{};h+=`<div class="card ${tone(capin.regime)}"><div class="nm"><span>Capital inflows</span><span class="sc" style="font-size:12px">${esc(capin.regime||"")}</span></div><div class="wt">${esc(capin.regime_interpretation||"foreign funding of the US")}</div>`+
+     row("Foreign net into US (12mo)",num(hd.foreign_net_into_us_lt_12mo_b)!=null?usd(hd.foreign_net_into_us_lt_12mo_b*1e9):"")+
+     row("3mo run-rate (annualized)",num(hd.run_rate_3mo_annualized_b)!=null?usd(hd.run_rate_3mo_annualized_b*1e9):"")+
+     row("Net cross-border (12mo)",num(hd.net_cross_border_lt_12mo_b)!=null?usd(hd.net_cross_border_lt_12mo_b*1e9):"")+`</div>`;}
+  if(tic){const ind=tic.individual||{};h+=`<div class="card ${tone(tic.regime)}"><div class="nm"><span>TIC foreign demand</span><span class="sc" style="font-size:11px">${esc(tic.regime||"")}</span></div><div class="wt">stress ${num(tic.composite_tic_stress)??"—"} · top holders</div>`+
+     Object.entries(ind).slice(0,5).map(([k,v])=>{const val=(v&&(v.net_purchases_b??v.holdings_tn??v.change_b??v.latest));return row(k.replace(/_/g," "),val!=null?(typeof val==="number"?(Math.abs(val)>100?usd(val*1e9):f1(val)):esc(val)):"");}).join("")+`</div>`;}
+  if(dollar){const cp=dollar.canaries_pump,cd=dollar.canaries_dump;h+=`<div class="card ${tone(dollar.regime)}"><div class="nm"><span>Dollar radar</span><span class="sc" style="font-size:13px">${num(dollar.dollar_pressure)??"—"}</span></div><div class="wt">${esc(dollar.regime||"")} · pump ${cp} / dump ${cd}</div>`+
+     (dollar.regime_note?`<div class="expl">${esc(dollar.regime_note)}</div>`:"")+
+     ((dollar.canaries||[]).slice(0,3).map(c=>row(c.label,`${badge(c.signal,tone(c.signal))}`)).join(""))+`</div>`;}
+  if(sov){const fi=sov.fiscal||{},ds=sov.debt_service||{};h+=`<div class="card info"><div class="nm"><span>Sovereign &amp; fiscal</span></div><div class="wt">US fiscal position</div>`+
+     row("Deficit (TTM)",num(fi.deficit_ttm)!=null?usd(fi.deficit_ttm):"")+row("Total debt ($tn)",num(ds.total_debt_tn)?.toFixed(1))+row("Avg interest %",num(ds.avg_interest)?.toFixed(2))+`</div>`;}
+  h+=`</div>`;return h;
+}
+
+/* ── NEW: vol regime ── */
+function volRegime(vol){
+  if(!vol)return"";
+  let h=`<h2>Volatility regime <span class="h2meta">realized vol across the cross-asset complex · z-scores</span></h2>`;
+  h+=`<div class="cards"><div class="card ${tone(vol.composite_regime)}"><div class="nm"><span>Composite</span><span class="sc" style="font-size:13px">${num(vol.composite_score)?.toFixed(0)??"—"}</span></div><div class="wt">${esc(vol.composite_regime||"")}</div></div></div>`;
+  const tk=(vol.tickers||[]).filter(t=>num(t.rv_z)!=null).sort((a,b)=>(b.rv_z||0)-(a.rv_z||0));
+  if(tk.length){h+=`<table><thead><tr><th>Ticker</th><th>RV 20d</th><th>RV z-score</th><th>regime</th></tr></thead><tbody>`+
+    tk.slice(0,8).map(t=>`<tr><td>${esc(t.ticker)}</td><td>${num(t.rv_20d)?.toFixed(1)??"—"}</td><td class="${t.rv_z>1?'neg':t.rv_z<-0.5?'pos':''}">${f2(t.rv_z)}</td><td>${badge(t.regime,tone(t.regime))}</td></tr>`).join("")+`</tbody></table>`;}
+  return h;
+}
+
+function render(D){
+  const rr=D.rr,fx=D.fx;
   if(!rr){document.getElementById("content").innerHTML='<div class="loading">risk-regime.json unavailable.</div>';return;}
   const score=rr.risk_regime_score, regime=rr.risk_regime||"—", post=rr.posture||{}, comp=rr.components||{};
-  const ch=cls(regime);
+  const ch=tone(regime)==="pos"?"on":tone(regime)==="neg"?"off":"neu";
   document.getElementById("chips").innerHTML=
     `<span class="chip ${ch}"><b>${esc(regime)}</b></span>`+
     `<span class="chip ${ch}">${f1(score)}/100</span>`+
     `<span class="chip">tilt: <b>${esc(post.beta_tilt||"—")}</b></span>`+
     `<span class="chip">size ×<b>${num(post.size_mult)??"—"}</b></span>`+
-    `<span class="chip">hedge: <b>${esc(post.hedge||"—")}</b></span>`;
+    `<span class="chip">hedge: <b>${esc(post.hedge||"—")}</b></span>`+
+    (D.crisis?`<span class="chip ${D.crisis.defcon_level<=2?'off':D.crisis.defcon_level===3?'neu':'on'}">DEFCON ${esc(D.crisis.defcon_level)}</span>`:"");
 
   let html=gauge(score);
   html+=`<div class="statbar">
     <div class="stat"><div class="v">${f1(score)}</div><div class="l">RORO score (−100..+100)</div></div>
-    <div class="stat"><div class="v" style="font-size:15px;color:${ch==='on'?'var(--grn)':ch==='off'?'var(--red)':'var(--amb)'}">${esc(regime)}</div><div class="l">regime</div></div>
+    <div class="stat"><div class="v" style="font-size:15px;color:${toneCol(tone(regime))}">${esc(regime)}</div><div class="l">regime</div></div>
     <div class="stat"><div class="v" style="font-size:15px">${esc(post.beta_tilt||"—")}</div><div class="l">beta posture</div></div>
     <div class="stat"><div class="v">×${num(post.size_mult)??"—"}</div><div class="l">size multiplier</div></div>
     <div class="stat"><div class="v" style="font-size:15px">${esc(post.hedge||"—")}</div><div class="l">hedge stance</div></div>
   </div>`;
 
-  html+=`<h2>Block contributions</h2><div class="cards">`;
+  html+=`<h2>Block contributions <span class="h2meta">the four weighted RORO inputs</span></h2><div class="cards">`;
   (rr.blocks_used||[]).forEach(b=>{html+=blockCard(b,comp);});
   html+=`</div>`;
 
-  const tells=rr.tells||[];
-  if(tells.length){
-    html+=`<h2>Tells</h2><ul class="tells">`;
-    tells.forEach(t=>{const u=t.toUpperCase();const c=u.startsWith("RISK-ON")?"on":(u.startsWith("RISK-OFF")?"off":"");html+=`<li class="${c}">${esc(t)}</li>`;});
-    html+=`</ul>`;
-  }
+  html+=moneyFlow(D.xaf);
+  html+=regimeCycle(D.xar,D.cycle,D.regmap);
+  html+=stressPlumbing(D.crisis,D.gstress,D.edplumb,D.edstress,D.fails);
+  html+=foreignCapital(D.capin,D.tic,D.sov,D.dollar);
+  html+=volRegime(D.vol);
 
-  // FX driver detail from polygon-fx-regime.json
+  const tells=rr.tells||[];
+  if(tells.length){html+=`<h2>Tells <span class="h2meta">discrete risk signals firing now</span></h2><ul class="tells">`;
+    tells.forEach(t=>{const u=t.toUpperCase();const c=u.startsWith("RISK-ON")?"on":(u.startsWith("RISK-OFF")?"off":"");html+=`<li class="${c}">${esc(t)}</li>`;});
+    html+=`</ul>`;}
+
   const drivers=(fx&&fx.fx_roro&&fx.fx_roro.drivers)||[];
-  if(drivers.length){
-    html+=`<h2>FX RORO drivers — ${num((fx.fx_roro||{}).fx_roro_score)??"—"}/100 (${esc((fx.fx_roro||{}).fx_roro_regime||"—")})</h2>`;
+  if(drivers.length){html+=`<h2>FX RORO drivers <span class="h2meta">${num((fx.fx_roro||{}).fx_roro_score)??"—"}/100 · ${esc((fx.fx_roro||{}).fx_roro_regime||"—")}</span></h2>`;
     html+=`<table><thead><tr><th>Driver</th><th>5d return %</th><th>weight</th><th>contribution</th></tr></thead><tbody>`;
     drivers.sort((a,b)=>Math.abs(num(b.contribution)||0)-Math.abs(num(a.contribution)||0));
     drivers.forEach(d=>{const c=num(d.contribution);html+=`<tr><td>${esc(d.driver||"")}</td><td class="${sgn(d.ret_5d_pct)}">${f1(d.ret_5d_pct)}</td><td>${num(d.weight)??"—"}</td><td class="${sgn(c)}">${c===null?"—":(c>0?"+":"")+c.toFixed(2)}</td></tr>`;});
-    html+=`</tbody></table>`;
-  }
+    html+=`</tbody></table>`;}
 
   document.getElementById("content").innerHTML=html;
+  const ages=[];
+  [["RORO",rr.generated_at],["flow",D.xaf&&D.xaf.generated_at],["cycle",D.cycle&&D.cycle.generated_at],["crisis",D.crisis&&D.crisis.generated_at]].forEach(([n,t])=>{if(t)ages.push(n+" "+String(t).slice(5,16).replace("T"," "));});
   document.getElementById("foot").innerHTML=
-    `Synthesizer <b>${esc(rr.version||"")}</b> · generated ${esc(rr.generated_at||"")}`+
-    (fx?` · FX source ${esc(fx.version||"")} (${num(fx.n_pairs)??"?"} pairs, ${esc(fx.generated_at||"")})`:"")+
-    `<br>${esc(rr.methodology||"FX 0.35 · VIX 0.25 · Options 0.20 · Credit 0.20, each normalized −1..+1, weighted over live inputs. Positive = risk-on.")}`+
-    `<br>Consumed by master-ranker (sector tilt), best-setups (conviction gate), signal-board, hedge-planner (sleeve bias) and the morning brief.`;
+    `Synthesizer <b>${esc(rr.version||"")}</b> · ${esc(rr.generated_at||"")}`+
+    (fx?` · FX <b>${esc(fx.version||"")}</b> (${num(fx.n_pairs)??"?"} pairs)`:"")+
+    `<br>${esc(rr.methodology||"FX 0.35 · VIX 0.25 · Options 0.20 · Credit 0.20, each normalized −1..+1. Positive = risk-on.")}`+
+    `<br>This page now fuses ~14 cross-asset engines: RORO synthesizer, cross-asset-flow-state, cross-asset-regime, dollar-radar, gold-equity-rotation, capital-inflows, tic-flows, eurodollar-plumbing/stress, vol-regime, crisis-composite, global-stress, cycle-clock, regime-map, dark-pool, settlement-fails &amp; sovereign-fiscal.`+
+    `<br>RORO consumed by master-ranker (sector tilt), best-setups (conviction gate), signal-board, hedge-planner (sleeve bias) &amp; the morning brief.`;
 }
 
-function go(){Promise.all([load("data/risk-regime.json"),load("data/polygon-fx-regime.json")]).then(([rr,fx])=>render(rr,fx));}
+function go(){
+  const F={rr:"data/risk-regime.json",fx:"data/polygon-fx-regime.json",xaf:"data/cross-asset-flow-state.json",
+    xar:"data/cross-asset-regime.json",dollar:"data/dollar-radar.json",ger:"data/gold-equity-rotation.json",
+    capin:"data/capital-inflows.json",tic:"data/tic-flows.json",edstress:"data/eurodollar-stress.json",
+    edplumb:"data/eurodollar-plumbing.json",vol:"data/vol-regime.json",crisis:"data/crisis-composite.json",
+    gstress:"data/global-stress.json",cycle:"data/cycle-clock.json",dark:"data/dark-pool.json",
+    regmap:"data/regime-map.json",fails:"data/settlement-fails.json",sov:"data/sovereign-fiscal.json"};
+  const keys=Object.keys(F);
+  Promise.all(keys.map(k=>load(F[k]))).then(vals=>{const D={};keys.forEach((k,i)=>D[k]=vals[i]);render(D);});
+}
 go(); setInterval(go,300000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
