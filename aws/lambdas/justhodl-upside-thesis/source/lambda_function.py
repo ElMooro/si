@@ -201,7 +201,7 @@ def lambda_handler(event=None, context=None):
                     "market_regime": d["market_regime"]}
             prompt = "DOSSIER:\n" + json.dumps(doss, default=str) + "\n\nReturn the JSON object now."
             try:
-                raw = complete(prompt, tier="reason", max_tokens=700, system=SYS)
+                raw = complete(prompt, tier="critical", max_tokens=700, system=SYS)
                 txt = (raw or "").strip()
                 if txt.startswith("```"): txt = txt.split("```")[1].replace("json", "", 1).strip()
                 i, j = txt.find("{"), txt.rfind("}")
