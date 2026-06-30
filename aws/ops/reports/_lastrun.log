@@ -1,13 +1,302 @@
-  ✅ money-flow section
-  ✅ regime+cycle section
-  ✅ stress+plumbing section
-  ✅ foreign-capital section
-  ✅ vol-regime section
-  ✅ loads cross-asset-flow-state
-  ✅ loads crisis-composite
-  ✅ loads cycle-clock
-  ✅ 14-engine footer
-PAGE OK: True
+total data/*.json feeds: 661
 
-feeds live in S3: 18/18
-DONE 2546
+=== risk-relevant feeds by category (★=already on page) ===
+
+## CREDIT / ICE BofA (46)
+   13f-price-divergence
+   askdesk-config
+   attention-signals
+   auction-tenor-signals
+   buyback-yield-ranking
+   compound-signals
+   compound-signals-state
+   credit-equity-divergence
+   credit-stress
+   credit-stress-history
+   cro-digest
+   cro-digest-history
+   digest-trends-ai
+   digest-trends-history
+   engine-signal-map
+   eva-spread
+   finnhub-signals
+   finviz-signals
+   finviz-signals-state
+   future-intelligence
+   fx-intelligence
+   hot-stocks-digest
+   hyperliquid-perps
+   hyperliquid-perps-history
+   ignition
+   ka-config
+   khalid-config
+   liquidity-credit-engine
+   massive-signals
+   ndx-spx-spread
+   near-misses-by-signal
+   pead-signals
+   political-ai-investigation
+   pre-pump-signals
+   price-redundancy
+   signal-backtest
+   signal-board
+   signal-halflife
+   signal-orthogonality
+   signal-scorecard
+  ★sovereign-fiscal
+   squeeze-pretrigger
+   streaming-config
+   vix-backwardation-trigger
+   yield-curve
+   yield-curve-decisive-call
+
+## FAILS / SETTLEMENT (2)
+   failed-pattern-reversal
+  ★settlement-fails
+
+## DOLLAR SHORTAGE / FUNDING (30)
+   china-liquidity
+   china-liquidity-history
+   concentration-liquidity
+   crisis-plumbing
+   crypto-basis
+   crypto-basis-history
+   crypto-funding
+   crypto-liquidity
+   dollar-decisive-call
+  ★dollar-radar
+   eurodollar-decisive-call
+  ★eurodollar-plumbing
+  ★eurodollar-stress
+   funding-plumbing
+   funding-plumbing-prev
+   global-liquidity
+   global-liquidity-history
+   hyperliquid-perps
+   hyperliquid-perps-history
+   liquidity-capacity
+   liquidity-credit-engine
+   liquidity-decisive-call
+   liquidity-flow
+   liquidity-inflection
+   liquidity-profile
+   liquidity-pulse
+   plumbing-history
+   plumbing-stress
+   repo-lending
+   report
+
+## TIC / FOREIGN / CARIBBEAN (19)
+   ark-holdings
+   ark-holdings-prev
+   coffee-can-holdings
+   options-analytics
+   options-analytics-iv-history
+   political-ai-investigation
+   political-intel
+   political-stocks
+   political-trades
+   portfolio-analytics
+  ★sovereign-fiscal
+   sympathetic-momentum
+   synthetic-monitor
+   synthetic-monitor-prev
+  ★tic-flows
+   ticker-research-bundle
+   ticker-trends
+   trade-tickets
+   trade-tickets-ai-rationale
+
+## FX / PEGS / CURRENCY (6)
+   crypto-stablecoin-peg
+   dxy-equity-divergence
+   fx-decomposition
+   fx-intelligence
+  ★polygon-fx-regime
+   yen-carry
+
+## RATES / CURVE / AUCTION / MOVE (21)
+   auction-crisis
+   auction-crisis-ai
+   auction-crisis-alert-state
+   auction-decisive-call
+   auction-grades
+   auction-tenor-signals
+   catalyst-skew-premove
+   commodity-curves
+   early-movers
+   move-index
+   polygon-futures-curves
+   strategist
+   strategy-portfolio
+   theme-cascade-calibrated
+   treasury-noise
+   treasury-noise-history
+   vix-curve
+   vix-curve-decisive-call
+   vix-curve-history
+   yield-curve
+   yield-curve-decisive-call
+
+## VOL / STRESS / CRISIS (60)
+   auction-crisis
+   auction-crisis-ai
+   auction-crisis-alert-state
+   bank-stress
+   bank-stress-history
+   boj-detail
+   bond-vol
+   bond-vol-decisive-call
+   bond-vol-history
+   catalyst-skew-premove
+   ciss-stress
+   credit-stress
+   credit-stress-history
+   crisis-canaries
+  ★crisis-composite
+   crisis-composite-history
+   crisis-decisive-call
+   crisis-knowledge-base
+   crisis-plumbing
+   crypto-dvol
+   defcon-decisive-call
+   ecb-detail
+  ★eurodollar-stress
+   firm-stress
+  ★global-stress
+   global-stress-history
+   options-gamma
+   plumbing-stress
+   precatalyst-vol-expansion
+   refining-stress
+   retail-alert-state
+   retail-alerts
+   retail-attention-history
+   retail-divergence-track
+   retail-edges-decisive-call
+   retail-momentum-track
+   retail-sentiment
+   skew-tail-hedging
+   snb-detail
+   stress-factor-loadings
+   stress-scenarios
+   systemic-stress
+   systemic-stress-decisive-call
+   tail-hedge
+   tail-hedge-history
+   tail-risk
+   tail-risk-history
+   vix-backwardation-trigger
+   vix-curve
+   vix-curve-decisive-call
+   vix-curve-history
+   vix9d-vix-inversion
+   vol-radar
+   vol-radar-history
+  ★vol-regime
+   vol-surface
+   vol-surface-history
+   vol-target-unwind
+   volatility-squeeze
+   vvix-vov-regime
+
+## CDS / SOVEREIGN RISK (2)
+   cds-monitor
+   cds-proxy
+
+## LIQUIDITY / FED / MACRO REGIME (51)
+   china-liquidity
+   china-liquidity-history
+   concentration-liquidity
+  ★cross-asset-regime
+   cross-asset-regime-state
+   crypto-cycle-risk
+   crypto-cycle-risk-prev
+   crypto-liquidity
+  ★cycle-clock
+   cycle-clock-history
+   fed-collateral
+   fed-nlp
+   fed-pivot-factor-trades
+   fed-speak
+   fed-speak-state
+   fedwatch
+   global-business-cycle
+   global-business-cycle-history
+   global-liquidity
+   global-liquidity-history
+   global-macro
+   liquidity-capacity
+   liquidity-credit-engine
+   liquidity-decisive-call
+   liquidity-flow
+   liquidity-inflection
+   liquidity-profile
+   liquidity-pulse
+   macro-calendar
+   macro-data-decisive-call
+   macro-frontrun-sniffer
+   macro-frontrun-sniffer-history
+   macro-nowcast
+   macro-surprise
+  ★polygon-fx-regime
+   regime
+   regime-anomaly
+   regime-composite
+   regime-composite-history
+   regime-conditional-router
+   regime-conditional-trust
+   regime-decisive-call
+  ★regime-map
+   regime-map-prev
+   regime-playbook
+   regime-playbook-history
+  ★risk-regime
+   risk-regime-state
+   us-cycle
+  ★vol-regime
+   vvix-vov-regime
+
+## FLOWS / POSITIONING / SMART MONEY (40)
+   13f-positions
+   13f-price-divergence
+   breadth-divergence
+   breadth-history
+   breadth-thrust
+   capital-flow
+   capital-flow-radar
+   capital-flow-radar-state
+  ★capital-inflows
+  ★cross-asset-flow-state
+   crypto-cot
+   crypto-cot-history
+   crypto-etf-flows
+   crypto-etf-flows-history
+   crypto-exchange-flows
+   crypto-exchange-flows-history
+  ★dark-pool
+   etf-flows
+   etf-true-flows
+   event-flow-health
+   exchange-flows
+   finviz-etf-flows
+   flow-confluence
+   flow-lookthrough
+  ★gold-equity-rotation
+   institutional-positions
+   liquidity-flow
+   money-flow-state
+   options-flow
+   polygon-options-flow
+   pump-positioning
+   rotation-chains
+   rotation-radar
+   sector-flow-state
+   sector-rotation
+   smart-money-13f
+   stablecoin-flow
+   theme-rotation
+   theme-rotation-state
+  ★tic-flows
+
+DONE 2547
