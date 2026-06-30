@@ -6,33 +6,76 @@
 header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
 .brand{font-family:var(--mono);font-weight:800}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--cyan);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--cyan)}
 nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--cyan)}
-.wrap{max-width:1100px;margin:0 auto;padding:22px}
+.wrap{max-width:1140px;margin:0 auto;padding:22px}
 h1{font-size:25px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:880px}
-.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:22px 0 10px;text-transform:uppercase}
+.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:900px}
+.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 10px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.sec .hint{letter-spacing:0;text-transform:none;color:var(--fg3);font-size:10.5px;font-weight:400}
+.gauge{background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.03),transparent);border:1px solid var(--border);border-radius:16px;padding:20px 24px}
+.gtop{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.gscore{font-family:var(--mono);font-size:42px;font-weight:800;line-height:1}
+.gregime{font-family:var(--mono);font-size:18px;font-weight:800;letter-spacing:1px}
+.gread{color:var(--fg2);font-size:13px;line-height:1.6;margin-top:9px;max-width:760px}
+.gbar{position:relative;height:12px;border-radius:7px;margin:16px 0 4px;background:linear-gradient(90deg,#ff5577,#fbbf24 50%,#34d399)}
+.gmark{position:absolute;top:-5px;width:4px;height:22px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,.6);transform:translateX(-2px)}
+.gscale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--fg3);letter-spacing:1px}
+.comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px;margin-top:16px}
+.comp{background:var(--bg1);border:1px solid var(--border);border-radius:9px;padding:8px 10px}
+.comp .cn{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;color:var(--fg2);text-transform:uppercase;display:flex;justify-content:space-between}
+.comp .cn span{color:var(--fg3)}
+.cbar{position:relative;height:5px;background:var(--bg2);border-radius:3px;margin-top:7px;overflow:hidden}
+.cmid{position:absolute;left:50%;top:0;width:1px;height:100%;background:var(--fg3)}
+.cfill{position:absolute;top:0;height:100%;border-radius:3px}
 .hero{display:flex;gap:18px;flex-wrap:wrap;align-items:center;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px 20px}
-.st{font-family:var(--mono);font-size:24px;font-weight:800}.EXPANDING{color:var(--green)}.CONTRACTING{color:var(--red)}.NEUTRAL{color:var(--amber)}
+.st{font-family:var(--mono);font-size:24px;font-weight:800}
+.up,.EXPANDING,.RISING,.pos{color:var(--green)}.down,.CONTRACTING,.FALLING,.neg{color:var(--red)}.flat,.NEUTRAL,.FLAT{color:var(--amber)}
 svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:13px}
-.card h3{margin:0 0 7px;font-size:12px;font-family:var(--mono);color:var(--fg2)}
-.v{font-family:var(--mono);font-size:19px;font-weight:700}.m{font-size:11px;color:var(--fg3);font-family:var(--mono);margin-top:4px;line-height:1.55}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:13px 15px}
+.card h3{margin:0 0 7px;font-size:12px;font-family:var(--mono);color:var(--fg2);display:flex;justify-content:space-between;align-items:center;gap:6px}
+.v{font-family:var(--mono);font-size:19px;font-weight:700}.m{font-size:11px;color:var(--fg3);font-family:var(--mono);margin-top:5px;line-height:1.6}
+.pill{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:4px;text-transform:uppercase;border:1px solid currentColor}
+.pill.g{color:var(--green);background:rgba(52,211,153,.1)}.pill.r{color:var(--red);background:rgba(255,85,119,.1)}.pill.a{color:var(--amber);background:rgba(251,191,36,.1)}.pill.c{color:var(--cyan);background:rgba(34,211,238,.1)}
+.drv{font-size:11px;color:var(--fg2);font-family:var(--mono);line-height:1.5;margin:5px 0;padding:6px 9px;background:rgba(255,85,119,.05);border-left:2px solid var(--red);border-radius:0 6px 6px 0}
+.drv.ok{background:rgba(52,211,153,.05);border-left-color:var(--green)}
+.cbrk{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+.cbrk div{font-family:var(--mono);font-size:11px}.cbrk b{color:var(--fg0);font-size:14px}
 table{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:9px;border-bottom:1px solid var(--border);background:var(--bg2)}
 th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
-.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
+.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:24px;border-top:1px solid var(--border);padding-top:12px}
 .loading{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
 </style></head><body>
 <header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/canaries.html">Canaries</a><a href="/inflection.html" class="on">🌊 Liquidity</a><a href="/confluence.html">Confluence</a><a href="/ignition.html">Ignition</a></nav></header>
 <div class="wrap">
 <h1>Liquidity Inflection — <span class="grad">trade the second derivative</span></h1>
-<p class="sub">Levels are consensus; inflections are the trade. 13-week impulse of USD net liquidity (Fed balance sheet − TGA − RRP), Schmitt-trigger flip detection, and a <b>real event-study lead/lag table</b> — what actually happened to SPX, BTC and HYG after each historical flip, with n shown. ECB excess liquidity, China credit impulse and stablecoin acceleration ride alongside.</p>
+<p class="sub">Levels are consensus; inflections are the trade. A composite of the <b>second derivatives</b> institutions actually watch — USD net liquidity (Fed balance sheet − TGA − RRP), bank-reserve scarcity vs the LCLoR floor, the RRP buffer, money-market funding stress (SOFR-IORB, eurodollar plumbing), MOVE, global central-bank liquidity, the broad dollar and credit spreads — with Schmitt-trigger flip detection and a <b>real event-study lead/lag table</b> for SPX, BTC and HYG.</p>
+
 <div class="sec">🤖 AI DESK BRIEFING</div>
 <div id="aibrief" style="background:var(--bg1,#10151f);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;margin-bottom:6px;color:var(--fg2,#a8b3c7)"><span style="color:#5d6b82">loading…</span></div>
-<div class="sec">USD impulse</div><div class="hero" id="hero"><span class="loading">Loading…</span></div>
-<div class="sec">Other tides</div><div class="grid" id="tides"></div>
-<div class="sec">Event study — forward returns after impulse flips</div><div id="study"><div class="loading">Loading…</div></div>
+
+<div class="sec">Composite liquidity regime <span class="hint">— the blended second-derivative read</span></div>
+<div id="gauge"><div class="loading">Loading…</div></div>
+
+<div class="sec">USD net liquidity impulse <span class="hint">— WALCL − TGA − RRP, 13-week slope</span></div>
+<div class="hero" id="hero"><span class="loading">Loading…</span></div>
+
+<div class="sec">Reserve &amp; buffer mechanics <span class="hint">— is the system above the comfort floor?</span></div>
+<div class="grid" id="reserves"></div>
+
+<div class="sec">Funding &amp; plumbing stress <span class="hint">— money-market signals that lead inflections</span></div>
+<div class="grid3" id="funding"></div>
+
+<div class="sec">Global liquidity <span class="hint">— major central-bank balance sheets in USD</span></div>
+<div id="global"></div>
+
+<div class="sec">Macro tides <span class="hint">— dollar, conditions, credit & the cross-asset feeds</span></div>
+<div class="grid" id="tides"></div>
+
+<div class="sec">Event study — forward returns after USD net-liquidity flips</div>
+<div id="study"><div class="loading">Loading…</div></div>
 <div class="sec">Lead estimates (impulse → 21d fwd return, best shift)</div><div id="leads"></div>
 <div class="note" id="note"></div>
 </div>
@@ -40,32 +83,96 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function spark(tail){
+const num=(v,d=1)=>v==null||isNaN(v)?'—':(+v).toFixed(d);
+function clsOf(s){s=String(s||'').toUpperCase();
+  if(/EXPAND|RISING|ABUNDANT|CALM|BENIGN|LOOSE|ACCOMMOD|FUNCTION|SUPPRESS/.test(s))return 'g';
+  if(/CONTRACT|FALLING|TIGHTEN|STRESS|ELEVATED|SCARC|DANGER|RESTRICT|REPO/.test(s))return 'r';
+  return 'a';}
+function pill(s){return s?`<span class="pill ${clsOf(s)}">${esc(s)}</span>`:'';}
+function spark(tail,col='#22d3ee'){
   if(!tail||tail.length<10)return '';
   const w=560,h=110,vs=tail.map(p=>p[1]);
   const mn=Math.min(...vs,-0.3),mx=Math.max(...vs,0.3);
   const X=i=>8+(w-16)*i/(tail.length-1), Y=v=>h-10-(h-20)*(v-mn)/(mx-mn);
   const path=vs.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="8" x2="${w-8}" y1="${Y(0)}" y2="${Y(0)}" stroke="#5d6b82" stroke-dasharray="3 4"/><path d="${path}" fill="none" stroke="#22d3ee" stroke-width="2"/></svg>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="8" x2="${w-8}" y1="${Y(0)}" y2="${Y(0)}" stroke="#5d6b82" stroke-dasharray="3 4"/><path d="${path}" fill="none" stroke="${col}" stroke-width="2"/></svg>`;
+}
+function compBar(z){
+  const pct=Math.max(0,Math.min(100,50+(z/3)*50));
+  const pos=z>=0;const col=pos?'var(--green)':'var(--red)';
+  const left=pos?50:pct, wdt=Math.abs(pct-50);
+  return `<div class="cbar"><div class="cmid"></div><div class="cfill" style="left:${left}%;width:${wdt}%;background:${col}"></div></div>`;
 }
 function cell(s){if(!s)return '<td>—</td>';return `<td>${s.median_pct>0?'+':''}${s.median_pct}% <span style="color:var(--fg3)">(n${s.n}, ${s.hit_dir_pct}%✓)</span></td>`;}
+function card(title,value,sub,vcls,right){
+  return `<div class="card"><h3>${title}${right?`<span>${right}</span>`:''}</h3><div class="v ${vcls||''}">${value}</div>${sub?`<div class="m">${sub}</div>`:''}</div>`;
+}
+
 async function load(){
   const d=await gj('data/liquidity-inflection.json');
   if(!d){document.getElementById('hero').innerHTML='<span class="loading">brief unavailable</span>';return;}
+
+  const co=d.composite;
+  if(co){
+    const mark=Math.max(0,Math.min(100,co.liquidity_score));
+    const comps=(co.components||[]).map(c=>`<div class="comp"><div class="cn">${esc(c.name.replace(/_/g,' '))}<span>${c.eff_z>0?'+':''}${c.eff_z}</span></div>${compBar(c.eff_z)}</div>`).join('');
+    document.getElementById('gauge').innerHTML=`<div class="gauge">
+      <div class="gtop"><div class="gscore ${clsOf(co.regime)==='g'?'pos':clsOf(co.regime)==='r'?'neg':'flat'}">${num(co.liquidity_score,1)}</div>
+        <div><div class="gregime ${co.regime}">${esc(co.regime)}</div><div class="m">composite z ${esc(co.composite_z)} · ${esc(co.n_components)} signals blended</div></div></div>
+      <div class="gbar"><div class="gmark" style="left:${mark}%"></div></div>
+      <div class="gscale"><span>◀ CONTRACTING</span><span>NEUTRAL</span><span>EXPANDING ▶</span></div>
+      <div class="gread">${esc(co.read)}</div>
+      <div class="comps">${comps}</div></div>`;
+  } else document.getElementById('gauge').innerHTML='<div class="loading">composite unavailable</div>';
+
   const u=d.usd||{};
-  document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq $${esc(u.net_liq_usd_bn)}bn · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
-  const e=d.eur,c=d.china,s=d.stablecoin;let t='';
-  t+=`<div class="card"><h3>EUR excess liquidity ${e?'●':'○'}</h3><div class="v">${e?('z '+esc(e.z)):'—'}</div><div class="m">${e?esc(e.as_of)+' · '+esc(e.flips_5y)+' flips/5y · ECB hist store':'unavailable'}</div></div>`;
-  t+=`<div class="card"><h3>China credit impulse ${c?'●':'○'}</h3><div class="v">${c?('z '+esc(c.impulse_z)):'—'}</div><div class="m">${c?('credit yoy '+esc(c.credit_yoy_pct)+'% · '+esc(c.series)+' · '+esc(c.as_of)+' (quarterly lag)'):'unavailable'}</div></div>`;
-  t+=`<div class="card"><h3>Stablecoin tide ${s?'●':'○'}</h3><div class="v">${s?esc(s.state||('accel z '+s.accel_z)):'—'}</div><div class="m">${s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round((s.aggregate||{}).delta_7d_usd/1e6))+'mn · '+esc(s.as_of||'')):'unavailable'}</div></div>`;
+  document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
+
+  const rs=d.reserves,rp=d.rrp,tg=d.tga;
+  let rh='';
+  if(rs)rh+=card('Bank reserves '+pill(rs.direction),`$${num(rs.level_usd_bn/1000,2)}T`,`impulse z ${esc(rs.impulse_z)} · ${esc(rs.as_of)}<br>${esc(rs.scarcity_note)}`,clsOf(rs.direction)==='r'?'neg':'');
+  if(rp)rh+=card('Reverse repo (RRP)',`$${num(rp.level_usd_bn,1)}bn`,esc(rp.buffer_note),rp.level_usd_bn<100?'neg':'');
+  if(tg)rh+=card('Treasury (TGA) '+pill(tg.direction),`$${num(tg.level_usd_bn/1000,2)}T`,`a rising TGA drains liquidity into Treasury's account`,'');
+  document.getElementById('reserves').innerHTML=rh||'<div class="loading">—</div>';
+
+  const fs=d.funding_stress||{};
+  let fh='';
+  const si=fs.sofr_iorb;
+  if(si)fh+=card('SOFR − IORB spread',`${si.spread_bps>0?'+':''}${esc(si.spread_bps)} bps`,`20d trend ${si.trend_20d_bps>0?'+':''}${esc(si.trend_20d_bps)}bps · ${esc(si.as_of)}<br>${esc(si.stress)}`,si.spread_bps>=-2?'neg':'pos');
+  const fp=fs.funding_plumbing;
+  if(fp){const drv=(fp.drivers||[]).map(x=>`<div class="drv ${/calm|abundant|ok|cushion/i.test(x.note)&&!/EMPTY|BELOW|TAIL|danger/i.test(x.note)?'ok':''}">${esc(x.note)}</div>`).join('');
+    fh+=`<div class="card"><h3>Funding plumbing ${pill(fp.regime)}</h3><div class="v ${clsOf(fp.regime)==='r'?'neg':''}">${esc(fp.score)}<span style="font-size:11px;color:var(--fg3)"> /100 stress</span></div><div class="m">balance sheet: ${esc(fp.balance_sheet)}</div>${drv}</div>`;}
+  const edp=fs.eurodollar_plumbing;
+  if(edp)fh+=card('Eurodollar plumbing '+pill(edp.regime),`${esc(edp.health)}<span style="font-size:11px;color:var(--fg3)"> /100 health</span>`,`offshore USD · ${esc(edp.verdict)}`,clsOf(edp.regime)==='r'?'neg':'pos');
+  const eds=fs.eurodollar_stress;
+  if(eds)fh+=card('Eurodollar stress '+pill(eds.regime),`${esc(eds.score)}<span style="font-size:11px;color:var(--fg3)"> /100</span>`,(eds.hot&&eds.hot.length)?('hot: '+eds.hot.map(h=>esc(h.name||h.signal||h)).join(', ')):'8-signal offshore composite',clsOf(eds.regime)==='r'?'neg':'');
+  const mv=fs.move;
+  if(mv)fh+=card('MOVE index '+pill(mv.regime),`${esc(mv.level)}`,`${esc(mv.percentile)}th %ile · 20d Δ ${mv.change_20d>0?'+':''}${esc(mv.change_20d)}<br>bond vol — a liquidity-stress proxy`,mv.level>110?'neg':'pos');
+  document.getElementById('funding').innerHTML=fh||'<div class="loading">—</div>';
+
+  const gl=d.global_liquidity;
+  if(gl&&gl.index){const ix=gl.index,comp=ix.components_usd_bn||{};
+    const brk=Object.entries(comp).map(([k,v])=>`<div>${esc(k)} <b>$${num(v/1000,2)}T</b></div>`).join('');
+    document.getElementById('global').innerHTML=`<div class="card"><h3>Global central-bank liquidity ${pill(gl.regime)}</h3>
+      <div class="v">$${num(ix.total_usd_trillions,2)}T <span style="font-size:12px;color:${gl.impulse_13w_pct>=0?'var(--green)':'var(--red)'}">${gl.impulse_13w_pct>0?'+':''}${esc(gl.impulse_13w_pct)}% 13w</span></div>
+      <div class="cbrk">${brk}</div>
+      <div class="m">52w ${ix.change_52w_pct>0?'+':''}${esc(ix.change_52w_pct)}% · as of ${esc(ix.as_of)} · ${esc(gl.regime_read||'')}</div></div>`;
+  } else document.getElementById('global').innerHTML='<div class="loading">—</div>';
+
+  const dl=d.dollar,fc=d.financial_conditions,cr=d.credit,ss=d.systemic_stress,e=d.eur,c=d.china,ce=d.china_engine,s=d.stablecoin;
+  let t='';
+  if(dl)t+=card('Broad dollar '+pill(dl.direction),`${esc(dl.level)}`,`impulse z ${esc(dl.impulse_z)} · a stronger USD tightens global dollar liquidity`,clsOf(dl.direction)==='r'?'neg':(clsOf(dl.direction)==='g'?'pos':''));
+  if(fc)t+=card('Financial conditions (NFCI)',`${esc(fc.nfci)}`,`${esc(fc.read)} · 13w ${fc.trend_13w>0?'+':''}${esc(fc.trend_13w)} ${fc.tightening?'(tightening)':'(easing)'}`,fc.nfci<0?'pos':'neg');
+  if(cr)t+=card('Credit spreads (HY OAS) '+pill(cr.regime),`${esc(cr.hy_oas_bps)} bps`,esc(cr.signal||'high-yield option-adjusted spread'),clsOf(cr.regime)==='r'?'neg':'pos');
+  if(ss)t+=card('Systemic stress '+pill(ss.level),`${esc(ss.global_stress_index)}`,`bond stress ${esc(ss.bond_stress)} · global stress index /100`,ss.global_stress_index>55?'neg':'');
+  t+=card('EUR excess liquidity '+(e?pill('ECB'):''),e?('z '+esc(e.z)):'—',e?(esc(e.as_of)+' · '+esc(e.flips_5y)+' flips/5y'):'unavailable',e&&e.z<0?'neg':'');
+  t+=card('China credit impulse'+(ce&&ce.regime?' '+pill(ce.regime):''),c?('z '+esc(c.impulse_z)):'—',c?('credit yoy '+esc(c.credit_yoy_pct)+'% · '+esc(c.as_of)+' (quarterly lag)'):'unavailable',c&&c.impulse_z<0?'neg':'');
+  t+=card('Stablecoin tide '+(s?pill(s.state):''),s?esc(s.state||('accel z '+s.accel_z)):'—',s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round(((s.aggregate||{}).delta_7d_usd||0)/1e6))+'mn'):'unavailable',s&&clsOf(s.state)==='r'?'neg':'');
   document.getElementById('tides').innerHTML=t;
-  const es=d.event_study_after_flips||{};
-  let rows='';
-  for(const [a,tbl] of Object.entries(es)){
-    for(const dir of ['UP','DOWN']){
-      rows+=`<tr><td>${esc(a)}</td><td>${dir}</td>${cell((tbl.d5||{})['after_'+dir+'_flip'])}${cell((tbl.d21||{})['after_'+dir+'_flip'])}${cell((tbl.d63||{})['after_'+dir+'_flip'])}</tr>`;
-    }
-  }
+
+  const es=d.event_study_after_flips||{};let rows='';
+  for(const [a,tbl] of Object.entries(es)){for(const dir of ['UP','DOWN']){
+    rows+=`<tr><td>${esc(a)}</td><td>${dir}</td>${cell((tbl.d5||{})['after_'+dir+'_flip'])}${cell((tbl.d21||{})['after_'+dir+'_flip'])}${cell((tbl.d63||{})['after_'+dir+'_flip'])}</tr>`;}}
   document.getElementById('study').innerHTML=rows?`<table><thead><tr><th>Asset</th><th>Flip</th><th>+5d</th><th>+21d</th><th>+63d</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="loading">no flips in window</div>';
   const ld=d.lead_estimates||{};
   document.getElementById('leads').innerHTML=Object.entries(ld).map(([a,v])=>`<div class="card" style="display:inline-block;margin:0 8px 8px 0"><h3>${esc(a)}</h3><div class="v">${esc(v.lead_days)}d</div><div class="m">corr ${esc(v.corr_21d_fwd)}</div></div>`).join('')||'—';
@@ -96,7 +203,6 @@ async function aiPanel(key,mount){
     if(gen)el.insertAdjacentHTML('beforeend',`<div style="color:#5d6b82;font-size:10px;margin-top:8px;font-family:var(--mono,monospace)">model-written ${esc(String(gen).slice(0,16))} · bound to this page's measured tables</div>`);
   }catch(e){el.innerHTML='<span style="color:#5d6b82">AI brief generates on the next 4-hour router cycle.</span>';}
 }
-
 aiPanel('liquidity-inflection-decisive-call','aibrief');
 </script>  <script src="/jh-page-ai.js" defer></script>
 </body></html>
