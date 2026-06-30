@@ -230,18 +230,37 @@ def lambda_handler(event=None, context=None):
     directive = None
     prev = read_prev()
     directive_changed = False
-    if notes and (prev.get("content_hash") != content_hash or not prev.get("directive")):
+    # ── MONTHLY enhancement cadence ──────────────────────────────────────
+    # The brain's expensive AI distillation (directive + regime-read) is what
+    # actually enhances the 30+ downstream engines. By design it runs ONCE A
+    # MONTH — not on every note change — so engines get a stable monthly
+    # worldview instead of churning. The cheap note/prompt_block sync still
+    # refreshes each run. Override on demand with invoke payload {"force": true}.
+    force = bool((event or {}).get("force"))
+    def _days_since(iso):
+        try:
+            return (datetime.now(timezone.utc) - datetime.fromisoformat(iso)).days
+        except Exception:
+            return 9999
+    last_distill_at = prev.get("last_distill_at")
+    distill_due = (
+        force
+        or not prev.get("directive")            # never distilled yet
+        or not last_distill_at
+        or _days_since(last_distill_at) >= 28    # ~monthly
+    )
+    if notes and distill_due:
         directive = _ai_extract(all_text)
         directive_changed = bool(directive)
     else:
-        directive = prev.get("directive")  # reuse — content unchanged
+        directive = prev.get("directive")  # reuse — not due for monthly refresh
 
     # Top AI regime read vs the user's notes (refresh when notes change OR every
     # run if absent — regimes shift even when notes don't, but cap cost by only
     # recomputing on content change or if missing). We refresh it each run since
     # the live regime moves; it's one cheap call.
-    regime_read = None
-    if notes:
+    regime_read = prev.get("regime_read")
+    if notes and distill_due:
         # Pull live macro series so the regime-read reasons from real data, not vibes.
         def _fred_latest(series):
             try:
@@ -307,6 +326,9 @@ def lambda_handler(event=None, context=None):
         "directive": directive,                # ← the smart, structured worldview
         "regime_read": regime_read,            # ← the actionable regime + buy-list (was missing from output!)
         "directive_changed_this_run": directive_changed,
+        "last_distill_at": (datetime.now(timezone.utc).isoformat()
+                            if (notes and distill_due) else last_distill_at),
+        "distill_cadence": "monthly (force=true to override)",
         "applied_by": ["morning-intelligence", "ask", "best-setups (brain-aligned)",
                        "devils-advocate (rule checks)", "my-brief", "position-sizer (risk posture)"],
         "mentioned_tickers": sorted(tickers | set((directive or {}).get("watched_tickers", []) or [])),

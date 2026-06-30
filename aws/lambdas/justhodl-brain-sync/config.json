@@ -12,8 +12,8 @@
   "description": "Mirror the user's Brain (philosophy/rules/theses) from KV to S3 for engine consumption",
   "environment_keys": [],
   "schedule": {
-    "expression": "rate(15 minutes)",
-    "name": "justhodl-brain-sync-15min",
-    "description": "Sync brain notes every 15 min"
+    "expression": "cron(0 9 1 * ? *)",
+    "name": "justhodl-brain-sync-monthly",
+    "description": "Distill the brain into the engine-facing directive once a month (1st, 09:00 UTC)"
   }
 }
