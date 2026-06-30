@@ -1,10 +1,15 @@
-=== _freshness-monitor.json top-level keys ===
-['version', 'run_id', 'generated_at', 'n_keys_tracked', 'n_stale', 'n_fresh', 'n_alerts_raised', 'n_alerts_suppressed', 'stale_top_50', 'elapsed_s', 'thresholds', 'manifest_rules', 'telegram_sent', 'sns_sent']
-  generated_at: "2026-06-30T02:29:09.813763+00:00"
-  n_stale: 5
+=== fleet freshness (last monitor run) ===
+generated_at: 2026-06-30T02:59:08.900834+00:00
+n_keys_tracked: 42 | n_stale: 5 | n_alerts_raised: 0
+stale feeds: none reported
 
-=== divergence-interpreter recheck ===
+=== divergence-interpreter live recheck ===
 FunctionError: None
-payload: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"SLOWING\", \"composite_index\": 29.6, \"n_extreme\": 6, \"n_flagged\": 15, \"alert_reasons\": [], \"interpretation_chars\": 3129, \"duration_s\": 12.1}"}
-output _err: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie | has interpretation: False | model: None
+payload: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"SLOWING\", \"composite_index\": 29.6, \"n_extreme\": 6, \"n_flagged\": 15, \"alert_reasons\": [], \"interpretation_chars\": 3284, \"duration_s\": 13.31}"}
+recent log tail:
+  [interp] prompt length: 3568 chars
+
+output key: data/divergence-v2.json
+
+interpreter output model: None | has interpretation: False
 DONE 2543
