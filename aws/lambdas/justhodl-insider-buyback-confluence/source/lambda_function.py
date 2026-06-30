@@ -113,34 +113,46 @@ def extract_insider_tickers(insider_data):
     return out
 
 
-def extract_buyback_tickers(buyback_data):
-    """Build dict of ticker -> buyback stats from buyback-scanner."""
+def extract_buyback_tickers(engine_data, scanner_data=None):
+    """Genuine-buyback names from the unified justhodl-buyback-engine (net-of-dilution,
+    share-shrink, fresh authorizations), augmented with fresh-authorization detail from
+    buyback-scanner. This is far broader than the old scanner-only intersection, so the
+    insider×buyback confluence is no longer starved."""
     out = {}
-    if not isinstance(buyback_data, dict):
-        return out
-    candidates = (buyback_data.get("announcements") or buyback_data.get("picks")
-                  or buyback_data.get("hits") or buyback_data.get("results")
-                  or buyback_data.get("buybacks") or [])
-    if not isinstance(candidates, list):
-        return out
-    for row in candidates:
-        if not isinstance(row, dict):
+    GOOD = {"🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "🎯 CHEAP_REPURCHASER", "💰 HIGH_SHAREHOLDER_YIELD"}
+    tickers = (engine_data.get("tickers") if isinstance(engine_data, dict) else None) or {}
+    for tk, v in tickers.items():
+        if not isinstance(v, dict):
             continue
-        tk = row.get("ticker") or row.get("symbol") or row.get("Symbol")
-        if not tk:
+        klass = v.get("class") or ""
+        pump = v.get("high_conviction_pump")
+        score = float(v.get("buyback_score") or 0)
+        if not (pump or klass in GOOD or (score >= 50 and not v.get("net_issuer"))):
             continue
-        tk = tk.upper()
-        pct_mcap = (row.get("pct_market_cap") or row.get("buyback_yield_pct")
-                    or row.get("pct_mcap") or row.get("buyback_pct"))
-        days_since = (row.get("days_since_announce") or row.get("announce_age_days")
-                      or row.get("days_since"))
-        fcf_cov = row.get("fcf_coverage") or row.get("fcf_cov")
-        out[tk] = {
-            "ticker": tk,
-            "pct_market_cap": float(pct_mcap) if pct_mcap else None,
-            "days_since_announce": days_since,
-            "fcf_coverage": float(fcf_cov) if fcf_cov else None,
+        out[tk.upper()] = {
+            "ticker": tk.upper(), "buyback_score": score,
+            "net_yield": v.get("net_buyback_yield"),
+            "share_reduction": v.get("share_count_reduction_yoy"),
+            "auth_pct_mcap": v.get("auth_pct_mcap"), "class": klass,
+            "active": v.get("active_execution"), "high_conviction_pump": pump,
+            "pct_market_cap": v.get("auth_pct_mcap") or v.get("net_buyback_yield"),
         }
+    if isinstance(scanner_data, dict):
+        for o in (scanner_data.get("top_opportunities") or []):
+            if not isinstance(o, dict):
+                continue
+            tk = (o.get("ticker") or o.get("symbol") or "").upper()
+            if not tk:
+                continue
+            mc = float(o.get("market_cap") or 0)
+            au = float(o.get("authorization_usd") or 0)
+            ap = round(au / mc * 100, 2) if mc > 0 and au > 0 else None
+            rec = out.setdefault(tk, {"ticker": tk, "buyback_score": 42.0, "pct_market_cap": ap})
+            if ap:
+                rec["auth_pct_mcap"] = ap
+                rec["pct_market_cap"] = ap
+            rec["asr"] = o.get("asr_accelerated")
+            rec["announcement_date"] = o.get("announcement_date")
     return out
 
 
@@ -200,51 +212,39 @@ def score_insider(stats):
 
 
 def score_buyback(stats):
+    """0-1 buyback strength from the unified engine's buyback_score plus conviction bonuses."""
     if not stats:
         return 0.0
-    pct = stats.get("pct_market_cap")
-    days = stats.get("days_since_announce")
-    fcf = stats.get("fcf_coverage")
-    s = 0.0
-    if pct is not None:
-        if pct >= 10:
-            s += 0.4
-        elif pct >= 5:
-            s += 0.3
-        elif pct >= 3:
-            s += 0.2
-        else:
-            s += 0.1
-    if days is not None:
-        try:
-            d = int(days)
-            if d <= 30:
-                s += 0.2
-            elif d <= 90:
-                s += 0.15
-            elif d <= 180:
-                s += 0.05
-        except Exception:
-            pass
-    if fcf is not None and fcf >= 1.0:
-        s += 0.2
-    return min(1.0, s)
+    s = float(stats.get("buyback_score") or 0) / 100.0
+    if stats.get("high_conviction_pump"):
+        s += 0.12
+    if (stats.get("share_reduction") or 0) >= 2:
+        s += 0.06
+    if stats.get("active"):
+        s += 0.04
+    ap = stats.get("auth_pct_mcap")
+    if ap and ap >= 5:
+        s += 0.08
+    return max(0.0, min(1.0, s))
 
 
 def lambda_handler(event, context):
     start = time.time()
     try:
-        # 1. Read both feeder S3 outputs
+        # 1. Read feeder S3 outputs — buyback-engine (broad genuine-buyback universe)
+        #    is the primary buyback source; scanner augments with fresh-auth detail.
         insider = fetch_s3_json("data/insider-buys-enriched.json")
+        buyback_engine = fetch_s3_json("data/buyback-engine.json")
         buyback = fetch_s3_json("data/buyback-scanner.json")
 
         insider_t = extract_insider_tickers(insider)
-        buyback_t = extract_buyback_tickers(buyback)
+        buyback_t = extract_buyback_tickers(buyback_engine, buyback)
 
         feeder_status = {
             "insider_keys": list(insider.keys())[:8] if isinstance(insider, dict) else None,
             "insider_error": insider.get("_error") if isinstance(insider, dict) else None,
             "insider_tickers_count": len(insider_t),
+            "buyback_engine_scored": buyback_engine.get("n_scored") if isinstance(buyback_engine, dict) else None,
             "buyback_keys": list(buyback.keys())[:8] if isinstance(buyback, dict) else None,
             "buyback_error": buyback.get("_error") if isinstance(buyback, dict) else None,
             "buyback_tickers_count": len(buyback_t),
@@ -329,9 +329,9 @@ def lambda_handler(event, context):
             "all_confluences": confluences,
             "methodology": (
                 "Double-signal: insider clusters (from justhodl-insider-buys-enriched) "
-                "AND buybacks (from justhodl-buyback-scanner). Insider score: N buyers, "
-                "$ value, recency. Buyback score: % of market cap, days since announce, "
-                "FCF coverage. Multiplier 1.5x when both signals strong. Quality gate: "
+                "AND genuine buybacks (from justhodl-buyback-engine: net-of-dilution, share-shrink, "
+                "fresh authorizations). Insider score: N buyers, $ value, recency. Buyback score: "
+                "engine buyback_score + pump/shrink/active bonuses. Multiplier 1.5x when both signals strong. Quality gate: "
                 "market cap > $500M. Edge basis: Jenter-Lewellen 2018, Peyer-Vermaelen "
                 "2009 (~70% hit on +15-25% / 6-12 months when composite >= 0.55)."
             ),
