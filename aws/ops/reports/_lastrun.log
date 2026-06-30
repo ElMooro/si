@@ -1,9 +1,11 @@
-deployed
-COMPOSITE CLOCK: phase EARLY CONTRACTION | impulse -0.22 accel -1.11 | orbit 26 | rot: clockwise — normal cyclical progression
-  components: ['net_liquidity', 'reserves', 'dollar', 'credit', 'conditions']
-COMPOSITE PROJ: Composite liquidity projected to tighten (-0.04 z, to 46/100) over 13 weeks on current component momentum, led by reserves.
-  z -0.215 → -0.254 score 46.4 → 45.8
-  contributions: {'Net liquidity': 0.01, 'Reserves': -0.103, 'Dollar': 0.019, 'Credit spreads': 0.028, 'Financial conditions': 0.007} primary Reserves
-  hist 14 path 13
-NET-LIQ CLOCK (ref): phase LATE CONTRACTION impulse -0.62
-DONE 2633
+feed v2.2.0
+  composite_clock: EARLY CONTRACTION (impulse -0.22, accel -1.11, 26 orbit pts)
+  composite_projection: 46.4→45.8/100, led by Reserves, 5 components
+  page [OK] composite projection section
+  page [OK] compproj mount
+  page [OK] renderCompProjection
+  page [OK] composite clock section
+  page [OK] compclock mount
+  page [OK] net-liq projection (kept)
+  page [OK] net-liq clock (kept)
+DONE 2634
