@@ -78,6 +78,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Forward net-liquidity projection <span class="hint">— where the mechanical flows (QT runoff, TGA cash path, RRP) point over the next quarter</span></div>
 <div id="projection"><div class="loading">Loading…</div></div>
 
+<div class="sec">Liquidity cycle clock <span class="hint">— phase-space orbit: impulse vs its acceleration · where we are in the cycle and which way it’s turning</span></div>
+<div id="clock"><div class="loading">Loading…</div></div>
+
 <div class="sec">Dollar shortage &amp; crisis backstops <span class="hint">— offshore USD funding, fails-to-deliver/receive, swap lines</span></div>
 <div class="grid3" id="backstops"></div>
 
@@ -212,6 +215,33 @@ function renderAnalogs(a){
       <div class="comps" style="grid-template-columns:1fr 1fr;gap:6px">${fpRow(an.fingerprint,feats)}</div></div>`).join('');
   return `${now}<div class="grid3">${cards}</div><div class="m" style="margin-top:10px">${esc(a.note)}</div>`;
 }
+function renderClock(c){
+  if(!c||!(c.orbit||[]).length)return '<div class="loading">cycle clock unavailable</div>';
+  const S=320,pad=30,R=(S-2*pad)/2,cx=S/2,cy=S/2,LIM=2.6;
+  const px=x=>cx+(Math.max(-LIM,Math.min(LIM,x))/LIM)*R, py=y=>cy-(Math.max(-LIM,Math.min(LIM,y))/LIM)*R;
+  const O=c.orbit;
+  const q=(x0,y0,w,hh,col,lab,lx,ly,anchor)=>`<rect x="${x0}" y="${y0}" width="${w}" height="${hh}" fill="${col}" opacity="0.07"/><text x="${lx}" y="${ly}" fill="#7c8aa3" font-size="9.5" font-family="monospace" text-anchor="${anchor}">${lab}</text>`;
+  const quads=
+    q(cx,pad,R,R,'#26ffaf','Early expansion',cx+R-4,pad+13,'end')+
+    q(cx,cy,R,R,'#ffb454','Late expansion',cx+R-4,cy+R-6,'end')+
+    q(pad,cy,R,R,'#ff5c7c','Early contraction',pad+4,cy+R-6,'start')+
+    q(pad,pad,R,R,'#22d3ee','Late contraction',pad+4,pad+13,'start');
+  const axes=`<line x1="${pad}" y1="${cy}" x2="${S-pad}" y2="${cy}" stroke="#2a3550" stroke-width="1"/><line x1="${cx}" y1="${pad}" x2="${cx}" y2="${S-pad}" stroke="#2a3550" stroke-width="1"/><text x="${S-pad-2}" y="${cy-4}" fill="#5d6b82" font-size="8" font-family="monospace" text-anchor="end">impulse+</text><text x="${cx+3}" y="${pad+8}" fill="#5d6b82" font-size="8" font-family="monospace">accel+</text>`;
+  let trail='';
+  for(let i=1;i<O.length;i++){const op=((i/O.length)*0.8+0.12).toFixed(2);
+    trail+=`<line x1="${px(O[i-1].x).toFixed(1)}" y1="${py(O[i-1].y).toFixed(1)}" x2="${px(O[i].x).toFixed(1)}" y2="${py(O[i].y).toFixed(1)}" stroke="#a78bfa" stroke-width="2" opacity="${op}"/>`;}
+  const L=O[O.length-1];
+  const dot=`<circle cx="${px(L.x).toFixed(1)}" cy="${py(L.y).toFixed(1)}" r="11" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.5"/><circle cx="${px(L.x).toFixed(1)}" cy="${py(L.y).toFixed(1)}" r="6" fill="#fff" stroke="#a78bfa" stroke-width="2"/>`;
+  const phaseCol={'EARLY EXPANSION':'#26ffaf','LATE EXPANSION':'#ffb454','EARLY CONTRACTION':'#ff5c7c','LATE CONTRACTION':'#22d3ee'}[c.phase]||'#fff';
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px"><div style="display:flex;gap:22px;flex-wrap:wrap;align-items:center">
+    <svg width="320" height="320" viewBox="0 0 ${S} ${S}" style="flex-shrink:0;max-width:100%">${quads}${axes}${trail}${dot}</svg>
+    <div style="flex:1;min-width:210px">
+      <div class="headbadge" style="background:${phaseCol}22;color:${phaseCol};border-color:${phaseCol}55;font-size:16px">${esc(c.phase)}</div>
+      <div class="headread" style="margin:9px 0">${esc(c.phase_read)}</div>
+      <div class="m">impulse <b>${esc(c.impulse)}</b> \u00b7 acceleration <b>${esc(c.acceleration)}</b><br>rotation: <b>${esc(c.rotation)}</b></div>
+      <div class="m" style="margin-top:9px">${esc(c.note)}</div>
+    </div></div></div>`;
+}
 function renderProjection(p){
   if(!p||!(p.history||[]).length||!(p.path||[]).length)return '<div class="loading">projection unavailable</div>';
   const H=p.history,P=p.path,W=660,Ht=210,padL=46,padR=14,padT=14,padB=24;
@@ -319,6 +349,7 @@ async function load(){
   const u=d.usd||{};
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
   document.getElementById('projection').innerHTML=renderProjection(d.projection);
+  document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
 
   // ── dollar shortage & crisis backstops ──
   const ds=d.dollar_shortage,sf=d.settlement_fails,sl=d.swap_lines;
