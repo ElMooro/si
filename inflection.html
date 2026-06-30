@@ -75,6 +75,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">USD net liquidity impulse <span class="hint">— WALCL − TGA − RRP, 13-week slope</span></div>
 <div class="hero" id="hero"><span class="loading">Loading…</span></div>
 
+<div class="sec">Forward net-liquidity projection <span class="hint">— where the mechanical flows (QT runoff, TGA cash path, RRP) point over the next quarter</span></div>
+<div id="projection"><div class="loading">Loading…</div></div>
+
 <div class="sec">Dollar shortage &amp; crisis backstops <span class="hint">— offshore USD funding, fails-to-deliver/receive, swap lines</span></div>
 <div class="grid3" id="backstops"></div>
 
@@ -154,6 +157,40 @@ function renderFlipLog(fl){
   }
   return html||'<div class="loading">no flips in window</div>';
 }
+function renderProjection(p){
+  if(!p||!(p.history||[]).length||!(p.path||[]).length)return '<div class="loading">projection unavailable</div>';
+  const H=p.history,P=p.path,W=660,Ht=210,padL=46,padR=14,padT=14,padB=24;
+  const pts=H.map((h,i)=>({i,v:h.net_liq_bn,lo:h.net_liq_bn,hi:h.net_liq_bn,proj:false}))
+    .concat(P.map((q,i)=>({i:H.length+i,v:q.net_liq_bn,lo:q.lo_bn,hi:q.hi_bn,proj:true})));
+  const n=pts.length,vals=pts.flatMap(o=>[o.lo,o.hi,o.v]);
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=(mx-mn)||1;
+  const X=i=>padL+(W-padL-padR)*i/(n-1),Y=v=>padT+(Ht-padT-padB)*(1-(v-mn)/rng);
+  const proj=pts.filter(o=>o.proj),joinI=H.length-1;
+  const bandTop=proj.map(o=>`${X(o.i).toFixed(1)},${Y(o.hi).toFixed(1)}`).join(' ');
+  const bandBot=proj.slice().reverse().map(o=>`${X(o.i).toFixed(1)},${Y(o.lo).toFixed(1)}`).join(' ');
+  const histLine=pts.filter(o=>!o.proj).map((o,k)=>`${k?'L':'M'}${X(o.i).toFixed(1)},${Y(o.v).toFixed(1)}`).join('');
+  const projLine=`M${X(joinI).toFixed(1)},${Y(pts[joinI].v).toFixed(1)}`+proj.map(o=>`L${X(o.i).toFixed(1)},${Y(o.v).toFixed(1)}`).join('');
+  const nowX=X(joinI);
+  const ticks=[mn,(mn+mx)/2,mx].map(v=>`<text x="4" y="${(Y(v)+3).toFixed(1)}" font-size="9" fill="#5d6b82" font-family="monospace">${Math.round(v)}</text><line x1="${padL}" x2="${W-padR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="#1d2636" stroke-dasharray="2 3"/>`).join('');
+  const dr=p.drivers_per_wk_bn||{},chg=p.projected_change_bn;
+  const dchip=(lab,v)=>`<div>${lab} <b style="color:${v>=0?'var(--green)':'var(--red)'}">${v>0?'+':''}$${v}bn/wk</b></div>`;
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px">
+    <div class="headbadge ${chg<0?'TIGHTENING':'EASING'}" style="font-size:17px">${chg<0?'▼':'▲'} ${chg>0?'+':''}$${Math.round(chg)}bn / ${p.horizon_weeks}wk → $${num(p.projected_net_liq_bn/1000,2)}T</div>
+    <div class="headread" style="margin:8px 0 10px">${esc(p.headline)}</div>
+    <svg width="100%" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="xMidYMid meet" style="background:transparent;border:none">
+      ${ticks}
+      <polygon points="${bandTop} ${bandBot}" fill="rgba(167,139,250,.12)" stroke="none"/>
+      <path d="${histLine}" fill="none" stroke="#22d3ee" stroke-width="2.5"/>
+      <path d="${projLine}" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="5 4"/>
+      <line x1="${nowX.toFixed(1)}" y1="${padT}" x2="${nowX.toFixed(1)}" y2="${Ht-padB}" stroke="#5d6b82" stroke-dasharray="3 3"/>
+      <text x="${nowX.toFixed(1)}" y="${Ht-7}" text-anchor="middle" font-size="9" fill="#5d6b82" font-family="monospace">now</text>
+      <text x="${(W-padR).toFixed(1)}" y="${Ht-7}" text-anchor="end" font-size="9" fill="#a78bfa" font-family="monospace">+${p.horizon_weeks}wk</text>
+      <text x="${padL}" y="${Ht-7}" text-anchor="start" font-size="9" fill="#22d3ee" font-family="monospace">net liq $bn · history</text>
+    </svg>
+    <div class="cbrk" style="margin-top:10px">${dchip('Fed runoff',dr.walcl_runoff)}${dchip('TGA',dr.tga)}${dchip('RRP',dr.rrp)}<div style="color:var(--fg3)">primary: ${esc(p.primary_driver)}</div></div>
+    <div class="m" style="margin-top:9px">${esc(p.assumptions)}</div>
+  </div>`;
+}
 function renderLeads(lc){
   return Object.entries(lc||{}).map(([a,v])=>{const b=v.best||{};const sig=Math.abs(b.t||0)>=2;const col=sig?(b.corr>0?'var(--green)':'var(--red)'):'var(--fg2)';
     return `<div class="card" style="display:inline-block;margin:0 8px 8px 0;min-width:158px;vertical-align:top"><h3>${esc(a)}</h3><div class="v">${esc(b.lead)}d <span style="font-size:11px;color:var(--fg3)">lead</span></div><div class="m">corr <span style="color:${col};font-weight:700">${esc(b.corr)}</span> · t ${esc(b.t)} · n${esc(b.n)}<br>${sig?'<span style="color:var(--cyan)">significant peak</span>':'within noise — no reliable lead'}</div></div>`;}).join('')||'—';
@@ -226,6 +263,7 @@ async function load(){
   // ── USD net liquidity ──
   const u=d.usd||{};
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
+  document.getElementById('projection').innerHTML=renderProjection(d.projection);
 
   // ── dollar shortage & crisis backstops ──
   const ds=d.dollar_shortage,sf=d.settlement_fails,sl=d.swap_lines;
