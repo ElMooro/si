@@ -1,14 +1,59 @@
-  ❌ section #credit
-  ❌ section #rates
-  ❌ section #liquidity
-  ❌ section #stress
-  ❌ section #cb
-  ❌ section #regime
-  ❌ section #foreign
-  ❌ section #vol
-  40-engine footer: True
-  no double-escape: True
-SECTIONS OK: False
+=== (1) Bahamas / Bermuda / Caribbean TIC series in FRED ===
+-- Bahamas Treasury Securities holdings
+     FORLTEQTYPOS35319: Foreign Portfolio Holdings of U.S. Equity Securities: Bahama
+     USLTEQTYPOS35319: U.S. Portfolio Holdings of Foreign Equity Securities: Bahama
+     FORLTAGCYPOS35319: Foreign Portfolio Holdings of U.S. Long-Term Agency Bonds: B
+     FORLTTOTALVALCHG35319: Valuation Change on Foreign Portfolio Holdings of All U.S. L
+     FORLTAGCYVALCHG35319: Valuation Change on Foreign Portfolio Holdings of U.S. Long-
+     FORLTTOTALPOS35319: Foreign Portfolio Holdings of All U.S. Long-Term Securities:
+     FORLTTREASPOS35319: Foreign Portfolio Holdings of U.S. Long-Term Treasury Securi
+     FORLTTREASVALCHG35319: Valuation Change on Foreign Portfolio Holdings of U.S. Long-
+-- Bermuda Treasury Securities holdings
+     FORLTTREASPOS39001: Foreign Portfolio Holdings of U.S. Long-Term Treasury Securi
+     USLTEQTYPOS35602: U.S. Portfolio Holdings of Foreign Equity Securities: Bermud
+     FORLTEQTYPOS35602: Foreign Portfolio Holdings of U.S. Equity Securities: Bermud
+     FORLTAGCYPOS35602: Foreign Portfolio Holdings of U.S. Long-Term Agency Bonds: B
+     FORLTTOTALVALCHG35602: Valuation Change on Foreign Portfolio Holdings of All U.S. L
+     USLTEQTYPOS39001: U.S. Portfolio Holdings of Foreign Equity Securities: Caribb
+     FORLTAGCYVALCHG35602: Valuation Change on Foreign Portfolio Holdings of U.S. Long-
+     FORLTEQTYVALCHG39001: Valuation Change on Foreign Portfolio Holdings of U.S. Equit
+-- Caribbean Banking Centers Treasury
+     FORLTTREASPOS39001: Foreign Portfolio Holdings of U.S. Long-Term Treasury Securi
+     USLTBONDVALCHG39001: Valuation Change on U.S. Portfolio Holdings of Foreign Long-
+     FORLTEQTYVALCHG39001: Valuation Change on Foreign Portfolio Holdings of U.S. Equit
+     USLTEQTYPOS39001: U.S. Portfolio Holdings of Foreign Equity Securities: Caribb
+     FORLTTREASNET39001: Foreign Net Transactions of U.S. Long-Term Treasury Securiti
+     FORLTAGCYVALCHG39001: Valuation Change on Foreign Portfolio Holdings of U.S. Long-
+     USLTEQTYNET39001: U.S. Net Transactions of Foreign Equity Securities: Caribbea
+     FORLTAGCYNET39001: Foreign Net Transactions of U.S. Long-Term Agency Bonds: Car
 
-feeds live in S3: 48/48
-DONE 2549
+=== (2) validate ICE BofA effective-yield (semi-annual YTW) series ===
+   BAMLH0A0HYM2EY     OK 6.96 @2026-06-26
+   BAMLC0A0CMEY       OK 5.12 @2026-06-26
+   BAMLC0A1CAAAEY     OK 4.98 @2026-06-26
+   BAMLC0A4CBBBEY     OK 5.30 @2026-06-26
+   BAMLH0A2HYBEY      OK 7.14 @2026-06-26
+   BAMLH0A3HYCEY      OK 13.84 @2026-06-26
+   BAMLEMHYHYCEY      MISSING HTTP Error 400: Bad Request
+   BAMLC0A2CAAEY      OK 4.93 @2026-06-26
+   BAMLC0A3CAEY       OK 4.98 @2026-06-26
+   BAMLH0A1HYBBEY     OK 5.86 @2026-06-26
+   BAMLEMCBPIEY       OK 5.61 @2026-06-26
+
+=== (3) dedicated ICE BofA engine outputs (do they write S3 feeds?) ===
+
+=== (4) fiat-peg FX sources ===
+FRED FX (pegged currencies):
+   DEXHKUS    OK 7.8417 @2026-06-26
+   DEXCHUS    OK 6.798 @2026-06-26
+   DEXDNUS    OK 6.554 @2026-06-26
+   DEXUSEU    OK 1.1403 @2026-06-26
+   DEXSIUS    OK 1.2931 @2026-06-26
+Polygon FX (Gulf pegs) — prev close:
+   USDSAR: c=3.7543
+   USDAED: c=3.6715
+   USDHKD: c=7.8404
+   USDCNH: c=6.79979
+   USDQAR: c=3.644
+
+DONE 2550
