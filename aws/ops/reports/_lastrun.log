@@ -1,42 +1,43 @@
 
-### settlement-fails ###
-  keys: ['engine', 'version', 'generated_at', 'as_of', 'signal', 'headline', 'classes', 'totals', 'source']
-  headline: {}
+### eurodollar-plumbing.layers.fx ###
+   title: FX & offshore strain
+   metrics: [{"id": "broad_dollar", "label": "Broad trade-weighted USD", "value": 120.89, "unit": "idx", "status": "green", "detail": "A surging dollar tightens offshore funding; proxy for cross-currency strain", "pctile": 58.0, "asof": "2026-06-26"}, 
 
-### repo-lending ###
-  keys: ['schema_version', 'method', 'generated_at', 'composite_leverage_stress', 'regime', 'margin_debt', 'repo', 'securities_lending', 'duration_s']
-  headline: {'composite_leverage_stress': 25.4, 'regime': 'ABUNDANT_LIQUIDITY'}
+### eurodollar-plumbing.layers.settlement ###
+   title: Settlement plumbing
+   metrics: [{"id": "ust_fails", "label": "Treasury settlement fails (UST ex-TIPS)", "value": 199.0, "unit": "$bn", "status": "green", "detail": "Fails-to-deliver + receive; collateral becomes hard to source when this spikes (NY Fed FR2004 regime: CALM
 
-### etf-flows ###
-  keys: ['version', 'generated_at', 'n_etfs_analyzed', 'by_etf', 'by_category', 'heavy_inflow', 'heavy_outflow', 'unusual_vol', 'rotation_in', 'rotation_out', 'duration_s', 'data_sources', 'signal_definitions']
-  headline: {}
+### eurodollar-plumbing.layers.backstops ###
+   title: Central-bank backstops
+   metrics: [{"id": "fed_swaps", "label": "Fed central-bank liquidity swaps", "value": 0.04, "unit": "$bn", "status": "green", "detail": "Dollars lent to ECB/BoE/BoJ/SNB/BoC. ~0 normally; ANY sustained rise = offshore dollar shortage (peaked ~$450bn in
 
-### capital-flow ###
-  keys: ['engine', 'version', 'generated_at', 'duration_s', 'sources', 'methodology', 'accumulating', 'distributing', 'etf_flows_in', 'etf_flows_out', 'category_rotation', 'by_ticker']
-  headline: {}
+### eurodollar-plumbing.layers.bank_funding ###
+   title: Bank & short-term funding
+   metrics: [{"id": "cp_ois", "label": "3M financial CP \u2212 SOFR", "value": 19.0, "unit": "bp", "status": "green", "detail": "Foreign/large banks' short-term dollar cost over the risk-free rate; >100bp = CP market freezing", "pctile": null, "asof": 
 
-### dealer-survey ###
-  keys: ['generated_at', 'latest_survey', 'history', 'fetch_duration_s', 'last_check', 'last_check_status']
-  headline: {}
+### settlement-fails (full) ###
+   signal: {"regime": "CALM", "score": 30, "drivers": ["Treasury (ex-TIPS) settlement fails $199bn combined (deliver $95bn + receive $104bn), 59%ile / z -0.1 \u2014 calm", "All-asset fails $324bn combined across 6 classes", "Plumbing settling normally \u2014 no collateral-sourcing stress in the fails data"]}
+   headline: {"label": "U.S. Treasury (ex-TIPS)", "ftd_bn": 95.13, "ftr_bn": 103.63, "combined_bn": 198.8, "z": -0.07, "pctile": 59.1, "max_bn": 890.0, "combined": [["2013-04-03", 101.5], ["2013-04-10", 57.12], ["2013-04-17", 74.87], ["2013-04-24", 78.76], ["2013-05-01", 58.22], ["2013-05-08", 100.07], ["2013-05
+   totals: {"ftd": [["2013-04-03", 160.58], ["2013-04-10", 105.22], ["2013-04-17", 416.82], ["2013-04-24", 247.43], ["2013-05-01", 139.51], ["2013-05-08", 122.16], ["2013-05-15", 209.6], ["2013-05-22", 250.61], ["2013-05-29", 172.51], ["2013-06-05", 208.54], ["2013-06-12", 232.63], ["2013-06-19", 502.58], ["20
+   classes: [{"key": "ust_ex_tips", "label": "U.S. Treasury (ex-TIPS)", "ftd": [["2013-04-03", 43.74], ["2013-04-10", 25.53], ["2013-04-17", 36.08], ["2013-04-24", 39.27], ["2013-05-01", 27.19], ["2013-05-08", 47.29], ["2013-05-15", 34.87], ["2013-05-22", 42.15], ["2013-05-29", 51.84], ["2013-06-05", 126.54], [
+   as_of: "2026-06-17"
 
-### hot-money ###
-  keys: ['engine', 'version', 'generated_at', 'duration_s', 'world_benchmark', 'world_ret_20d_pct', 'n_countries', 'risk_regime', 'thesis', 'method', 'legend', 'inflow_leaders', 'outflow_leaders', 'all_countries', 'drilldowns', 'em_debt_flows', 'signals_logged']
-  headline: {'signals_logged': 6}
+### etf-flows.by_category + heavy lists ###
+   by_category type: dict
+     BROAD_EQUITY_US: {"category": "BROAD_EQUITY_US", "n_etfs": 8, "total_aum_b": 3988.34, "total_today_dollar_vol_b": 96.351, "avg_dvol_z": 0, "avg_return_1d_pct": 1.49, "category_s
+     SECTOR_EQUITY: {"category": "SECTOR_EQUITY", "n_etfs": 11, "total_aum_b": 380.42, "total_today_dollar_vol_b": 13.267, "avg_dvol_z": 0, "avg_return_1d_pct": 0.36, "category_sig
+     RATES_TREASURIES: {"category": "RATES_TREASURIES", "n_etfs": 6, "total_aum_b": 218.75, "total_today_dollar_vol_b": 3.948, "avg_dvol_z": 0, "avg_return_1d_pct": 0.06, "category_si
+     CREDIT: {"category": "CREDIT", "n_etfs": 6, "total_aum_b": 368.75, "total_today_dollar_vol_b": 9.972, "avg_dvol_z": 0, "avg_return_1d_pct": 0.16, "category_signal": "NO
+     COMMODITIES: {"category": "COMMODITIES", "n_etfs": 7, "total_aum_b": 225.48, "total_today_dollar_vol_b": 3.405, "avg_dvol_z": 0, "avg_return_1d_pct": -1.02, "category_signal
+     INTERNATIONAL: {"category": "INTERNATIONAL", "n_etfs": 9, "total_aum_b": 614.9, "total_today_dollar_vol_b": 6.792, "avg_dvol_z": 0, "avg_return_1d_pct": 0.37, "category_signal
+     VOLATILITY: {"category": "VOLATILITY", "n_etfs": 3, "total_aum_b": 0.46, "total_today_dollar_vol_b": 0.575, "avg_dvol_z": 0, "avg_return_1d_pct": -2.64, "category_signal": 
+     CRYPTO: {"category": "CRYPTO", "n_etfs": 5, "total_aum_b": 64.92, "total_today_dollar_vol_b": 4.381, "avg_dvol_z": 0, "avg_return_1d_pct": 1.39, "category_signal": "NOR
+     ALTERNATIVES: {"category": "ALTERNATIVES", "n_etfs": 5, "total_aum_b": 108.63, "total_today_dollar_vol_b": 1.078, "avg_dvol_z": 0, "avg_return_1d_pct": 0.84, "category_signal
+   heavy_inflow: []
+   heavy_outflow: []
 
-### eurodollar-stress.signals (basis/FRA-OIS?) ###
-  signals: [None, None, None, None, None, None, None]
-
-### eurodollar-plumbing.layers ###
-  layer keys: ['us_core', 'bank_funding', 'credit', 'backstops', 'settlement', 'fx', 'hubs']
-  massive_fx: {'regime_signals': [], 'usd_synthetic_20d_pct': 0.82, 'em_fx_mean_20d_pct': 0.086, 'usdjpy': 161.893, 'usdjpy_20d_pct': 0.986, 'eurusd': 1.14032, 'usdcnh': 6.79957, 'asof': '2026-06-29T13:10:03.963343+00:00', 'source': 'Massive polygon-fx-regime (live FX majors)'}
-
-##### FRED facility/swap series #####
-  SWPT: [('2026-06-24', '35'), ('2026-06-17', '49')]
-  WLCFLPCL: [('2026-06-24', '7894'), ('2026-06-17', '7572')]
-  DISCBORR: [('2020-08-01', '83.126'), ('2020-07-01', '92.943')]
-  H41RESPPALDKNWW: [('2026-05-13', '.'), ('2026-05-06', '0')]
-  COMPOUT: [('2026-06-24', '1397.072320496'), ('2026-06-17', '1400.534520691')]
-  WLEMUINDXD: [('2026-06-29', '209.39000'), ('2026-06-28', '858.85000')]
-  DGS10: [('2026-06-29', '4.38'), ('2026-06-26', '4.38')]
-  DSWP10: [('2016-10-28', '1.71'), ('2016-10-27', '1.71')]
-DONE 2612
+### capital-flow.category_rotation ###
+   category_rotation: [{"category": "BROAD_EQUITY_US", "net_flow_5d_usd": 65293822352.0, "n_etfs": 8, "signal": "INFLOW"}, {"category": "GROWTH", "net_flow_5d_usd": 17967556404.0, "n_etfs": 4, "signal": "INFLOW"}, {"category": "CRYPTO", "net_flow_5d_usd": 4958850950.0, "n_etfs": 5, "signal": "INFLOW"}, {"category": "INTE
+   etf_flows_in: [{"ticker": "IVV", "name": "BROAD_EQUITY_US", "category": "BROAD_EQUITY_US", "net_flow_5d_usd": 32487136727.0, "net_flow_20d_usd": 51122015594.0, "shares_chg_5d_pct": 0.0, "aum_est_b": 887.71, "true_f
+   etf_flows_out: [{"ticker": "EWJ", "name": "INTERNATIONAL", "category": "INTERNATIONAL", "net_flow_5d_usd": -84676400.0, "net_flow_20d_usd": 431974134.0, "shares_chg_5d_pct": -0.5, "aum_est_b": 22.25, "true_flow": tr
+DONE 2613
