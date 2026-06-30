@@ -306,40 +306,56 @@ def pull(key):
 
 
 def project_net_liquidity(net, walcl, tga, rrp, horizon_wk=13):
-    """Project net liquidity forward from recent mechanical flows (damped momentum),
-    decomposed by driver (Fed runoff, TGA cash path, RRP), with a √-time uncertainty band.
-    Honest base case — a mechanical extrapolation, not a Fed/Treasury forecast."""
-    if not net or len(net) < 70:
+    """Project net liquidity forward from recent mechanical flows, reconstructed from the
+    component paces (Fed runoff − TGA cash path − RRP) so the headline and driver
+    decomposition are internally consistent. √-time band. Mechanical, not a forecast."""
+    if not net or len(net) < 14:
         return None
     nd = sorted(net)
-    wk_dates = nd[::5]                       # ~weekly sampling of the daily-aligned series
+    gaps = [(_pd(nd[i]) - _pd(nd[i - 1])).days for i in range(1, min(len(nd), 30))]
+    mg = sorted(gaps)[len(gaps) // 2] if gaps else 7
+    stride = max(1, round(7 / max(mg, 1)))          # daily→7, weekly→1
+    wk_dates = nd[::stride]
     wk_vals = [net[d] for d in wk_dates]
-    if len(wk_vals) < 14:
-        return None
+    if len(wk_vals) < 10:
+        wk_dates, wk_vals = nd, [net[d] for d in nd]
     cur = wk_vals[-1]
-    rdiffs = [wk_vals[i] - wk_vals[i - 1] for i in range(len(wk_vals) - 6, len(wk_vals))]
-    dnet = sorted(rdiffs)[len(rdiffs) // 2]   # median recent weekly Δ ($M)
-    alldiffs = [wk_vals[i] - wk_vals[i - 1] for i in range(1, len(wk_vals))]
-    vol = stdev(alldiffs) if len(alldiffs) > 5 else abs(dnet) or 1.0
 
-    def wk_pace(series, in_bn=False):
-        if not series or len(series) < 7:
+    def wpace(series, in_bn=False, daily=False):
+        if not series or len(series) < 8:
             return 0.0
         sd = sorted(series)
-        v = [series[d] * (1000 if in_bn else 1) for d in sd[-7:]]   # → $M
-        return (v[-1] - v[0]) / 6.0
-    dW = wk_pace(walcl)                       # WALCL runoff $M/wk
-    dT = wk_pace(tga)                         # TGA $M/wk (rising TGA drains)
-    dR = wk_pace(rrp, in_bn=True)             # RRP $M/wk (in_bn: series is $bn)
+        scale = 1000.0 if in_bn else 1.0
+        if daily:
+            i0 = sd[-31] if len(sd) > 31 else sd[0]
+            wks = max(1.0, (len(sd[-31:]) - 1) / 5.0)
+            return (series[sd[-1]] - series[i0]) * scale / wks
+        return (series[sd[-1]] - series[sd[-7]]) * scale / 6.0
+    dW = wpace(walcl)                                # WALCL runoff $M/wk
+    dT = wpace(tga)                                  # TGA $M/wk (rising drains)
+    rrp_now_bn = rrp[sorted(rrp)[-1]] if rrp else 0.0
+    dR = wpace(rrp, in_bn=True, daily=True)          # RRP $M/wk
+    # RRP near-empty can only release what's left → cap cumulative contribution
+    rrp_room_M = max(0.0, rrp_now_bn) * 1000.0
+    dnet = dW - dT - dR                              # reconstructed net-liq Δ/wk ($M)
     contrib = {"walcl": dW, "tga": -dT, "rrp": -dR}
     primary = max(contrib, key=lambda k: abs(contrib[k]))
     pnames = {"walcl": "Fed balance-sheet runoff (QT)", "tga": "Treasury cash (TGA) rebuild",
               "rrp": "RRP drain"}
+    alldiffs = [wk_vals[i] - wk_vals[i - 1] for i in range(1, len(wk_vals))]
+    vol = stdev(alldiffs) if len(alldiffs) > 5 else abs(dnet) or 1000.0
     DECAY = 0.85
     last_d = _pd(nd[-1])
-    path, lvl = [], cur
+    path, lvl, rrp_used = [], cur, 0.0
     for w in range(1, horizon_wk + 1):
-        lvl += dnet * (DECAY ** (w - 1))
+        step_W = dW * (DECAY ** (w - 1))
+        step_T = -dT * (DECAY ** (w - 1))
+        step_R = -dR * (DECAY ** (w - 1))
+        # cap RRP release at remaining room
+        if step_R > 0 and rrp_used + step_R > rrp_room_M:
+            step_R = max(0.0, rrp_room_M - rrp_used)
+        rrp_used += max(0.0, step_R)
+        lvl += step_W + step_T + step_R
         band = vol * (w ** 0.5)
         path.append({"week": w, "date": (last_d + timedelta(weeks=w)).isoformat(),
                      "net_liq_bn": round(lvl / 1000, 1),
@@ -357,9 +373,9 @@ def project_net_liquidity(net, walcl, tga, rrp, horizon_wk=13):
             "headline": (f"Net liquidity projected to {direction} ~${abs(round(chg)):,}bn over {horizon_wk} weeks "
                          f"(to ~${round(lvl / 1000):,}bn by {path[-1]['date']}), driven mainly by "
                          f"{pnames[primary].lower()}."),
-            "assumptions": ("Base case extrapolates recent weekly flows with decay (momentum fades over the "
-                            "quarter); band = ±1σ of weekly net-liquidity changes × √weeks. Mechanical "
-                            "extrapolation of WALCL runoff, the TGA cash path and RRP — not a Fed/Treasury forecast.")}
+            "assumptions": ("Reconstructs the path from recent component paces (WALCL runoff − TGA cash path − "
+                            "RRP), each decayed over the quarter; RRP release capped at remaining balance; "
+                            "band = ±1σ weekly × √weeks. Mechanical extrapolation, not a Fed/Treasury forecast.")}
 
 
 def lambda_handler(event=None, context=None):
