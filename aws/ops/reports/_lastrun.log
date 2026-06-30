@@ -1,57 +1,16 @@
-
-### funding-plumbing ###
-  keys: ['engine', 'version', 'generated_at', 'duration_s', 'plumbing_stress_score', 'regime', 'action', 'balance_sheet_direction', 'qt_ended_not_qe', 'signals', 'top_drivers', 'methodology', 'lesson', 'source']
-  headline: {'plumbing_stress_score': 54.2, 'regime': 'TIGHTENING', 'balance_sheet_direction': 'EXPANDING'}
-
-### eurodollar-stress ###
-  keys: ['as_of', 'v', 'composite_score', 'severity', 'regime', 'n_signals_used', 'n_signals_total', 'n_failures', 'signals', 'hot_signals', 'cold_signals', 'failures', 'thresholds', 'duration_s']
-  headline: {'composite_score': 30.97, 'regime': 'CALM', 'n_signals_used': 7, 'n_signals_total': 9}
-
-### eurodollar-plumbing ###
-  keys: ['engine', 'version', 'generated_at', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note', 'red_flags', 'yellow_flags', 'massive_fx', 'ai', 'layers']
-  headline: {'plumbing_health': 91.8, 'composite_score': 8.2, 'score': 8.2, 'stress_score': 8.2, 'stress_regime': 'ABUNDANT_LIQUIDITY'}
-
-### move-index ###
-  keys: ['engine', 'version', 'source', 'generated_at', 'ok', 'duration_s', 'level', 'change_1d', 'change_20d', 'percentile', 'avg_1y', 'regime', 'color', 'interpretation', 'n_observations', 'history']
-  headline: {'level': 66.8, 'regime': 'SUPPRESSED'}
-
-### global-liquidity ###
-  keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'global_liquidity_index', 'fed_net_liquidity', 'broad_money', 'regime', 'regime_read', 'global_impulse_13w_pct', 'history_points', 'net_liq_points']
-  headline: {'regime': 'NEUTRAL', 'regime_read': 'Global liquidity is roughly flat. Liquidity is neither a tailwind nor a headwind — earnings and rates dominate.', 'global_impulse_13w_pct': -0.87}
-
-### china-liquidity ###
-  keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'series_resolved', 'regime', 'regime_read', 'money', 'credit_impulse', 'interbank_rate', 'currency', 'dr_copper']
-  headline: {'regime': 'NEUTRAL', 'regime_read': 'China liquidity is roughly steady — no strong forward push or pull on commodities and global cyclicals from the credit impulse.'}
-
-### credit-stress ###
-  keys: ['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'data_date', 'current_bps', 'metrics', 'derived_spreads', 'current_yields_pct', 'ig_yield_curve_pct', 'regimes', 'composite_regime', 'composite_signal', 'regime_changed_from_prior', 'thresholds']
-  headline: {'composite_regime': 'BENIGN', 'composite_signal': 'HY OAS 2.80% benign · quality dispersion tight · risk-on confirmed', 'regime_changed_from_prior': False}
-
-### plumbing-stress ###
-  keys: ['schema_version', 'method', 'as_of', 'n_indicators', 'n_with_data', 'composite_score', 'composite_label', 'layers', 'raw_indicators', 'alerts', 'duration_s']
-  headline: {'composite_score': 53.5}
-
-### risk-regime ###
-  keys: ['engine', 'version', 'generated_at', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components', 'tells']
-  headline: {'risk_regime_score': -1.3, 'risk_regime': 'NEUTRAL'}
-
-### liquidity-inflection ###
-  keys: ['engine', 'version', 'generated_at', 'duration_s', 'availability', 'usd', 'us_money', 'eur', 'china', 'stablecoin', 'stablecoin_schema_hint', 'event_study_after_flips', 'lead_estimates', 'signals_logged', 'methodology']
-  headline: {'signals_logged': 0}
-
-### global-stress ###
-  keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'global_stress_index', 'global_stress_index_ciss_adj', 'ciss_systemic', 'global_stress_level', 'weights', 'gsi_by_horizon', 'market_stress_index', 'equity_stress', 'bond_stress', 'implied_vol', 'credit_spreads', 'rates']
-  headline: {'global_stress_index': 43, 'global_stress_index_ciss_adj': 43, 'global_stress_level': 'ELEVATED', 'market_stress_index': 62, 'equity_stress': 47, 'bond_stress': 39}
-
-##### FRED series check #####
-  WRESBAL: [('2026-06-24', '2951416.0'), ('2026-06-17', '3033444.0'), ('2026-06-10', '3080723.0')]
-  SOFR: [('2026-06-29', '3.62'), ('2026-06-26', '3.62'), ('2026-06-25', '3.64')]
-  IORB: [('2026-06-30', '3.65'), ('2026-06-29', '3.65'), ('2026-06-28', '3.65')]
-  RRPONTSYD: [('2026-06-30', '26.9'), ('2026-06-29', '3.546'), ('2026-06-26', '6.426')]
-  WALCL: [('2026-06-24', '6735645'), ('2026-06-17', '6736424'), ('2026-06-10', '6725397')]
-  WTREGEN: [('2026-06-24', '918696.0'), ('2026-06-17', '880713.0'), ('2026-06-10', '828122.0')]
-  NFCI: [('2026-06-19', '-0.51600'), ('2026-06-12', '-0.51300'), ('2026-06-05', '-0.51100')]
-  WALCL: [('2026-06-24', '6735645'), ('2026-06-17', '6736424'), ('2026-06-10', '6725397')]
-  BAMLH0A0HYM2: [('2026-06-29', '2.80'), ('2026-06-26', '2.83'), ('2026-06-25', '2.78')]
-  DTWEXBGS: [('2026-06-26', '120.8866'), ('2026-06-25', '121.0559'), ('2026-06-24', '121.412')]
-DONE 2607
+deployed
+INVOKE: 200 Unhandled {"errorMessage": "unsupported operand type(s) for -: 'dict' and 'int'", "errorType": "TypeError", "requestId": "b358dc7f-2b98-474c-a516-4b7024cd3ac1", "stackTra
+version: 1.1.0 duration: 3.9
+COMPOSITE: score None regime None z None n None
+  components: []
+USD: CONTRACTING z -0.625 netliq$bn 5816.9
+RESERVES: $bn None dir None None
+RRP: $bn None None
+SOFR-IORB: None bps | None
+  funding_plumbing: None
+  move: None
+GLOBAL LIQ: idx None impulse13w% None None
+DOLLAR: None dir None eff_z None
+CREDIT: None None bps
+NFCI: None None tightening None
+DONE 2608
