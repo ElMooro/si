@@ -1,13 +1,10 @@
-updated existing function
-scheduled rate(2 hours)
-invoke err: None
-invoke payload: {"statusCode": 200, "body": "MILD_RISK_OFF (-14.2) | into US Equities, out of Credit (corp bonds) | dollar LEAN PUMP | metals EQUITY_DOMINANT_ACTIVE"}
+deployed allocator contains brain_posture: True
 
-=== cross-asset-flow-state.json ===
-headline: MILD_RISK_OFF (-14.2) | into US Equities, out of Credit (corp bonds) | dollar LEAN PUMP | metals EQUITY_DOMINANT_ACTIVE
-risk_regime_score: -14.2 | regime: None | posture: {'beta_tilt': 'reduce_high_beta', 'size_mult': 0.9, 'hedge': 'raise'}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2536_create_cross_asset_flow_state.py", line 68, in <module>
-    print("asset_class_rotation keys:", list((out.get("asset_class_rotation") or {}).keys())[:8])
-                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'list' object has no attribute 'keys'
+BEFORE target weights: (none)
+invoke err: Unhandled
+AFTER  target weights: (none)
+
+brain_posture present in output signals: False
+
+rationale: Risk posture NEUTRAL (equity tilt -0.5pp vs benchmark, duration tilt +1.4pp, gold tilt -1.1pp, cash tilt +0.4pp). Active risk 383 bps of 800 budget. Confidence 86 based on 7/10 signals contributing.
+DONE 2537
