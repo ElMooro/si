@@ -1,9 +1,9 @@
-page bytes: 31882
-  [OK] regime-state section
-  [OK] renderRegimeReturns fn
-  [OK] significance ★ logic
-  [OK] flip-log section
-  [OK] old n=2 aggregate removed
-  feed v1.5.0 · SPX n_total=589 states=['EXPANDING_FAST', 'EXPANDING', 'FLAT', 'CONTRACTING', 'CONTRACTING_FAST']
-  HYG lead best: {'lead': 39, 'corr': -0.374, 'n': 245, 't': -6.3}
-DONE 2621
+deployed
+INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
+PROJECTION: Net liquidity projected to rise ~$651bn over 13 weeks (to ~$6,468bn by 2026-09-23), driven mainly by treasury cash (tga) rebuild.
+  current $ 5816.9 bn → projected $ 6467.6 bn ( 650.7 bn)
+  weekly pace $ 111.0 bn · primary: Treasury cash (TGA) rebuild
+  drivers/wk: {'walcl_runoff': 1.19, 'tga': -13.35, 'rrp': -3.83}
+  hist pts: 14 path pts: 13
+  path tail: [{'week': 12, 'date': '2026-09-16', 'net_liq_bn': 6451.8, 'lo_bn': 5653.4, 'hi_bn': 7250.3}, {'week': 13, 'date': '2026-09-23', 'net_liq_bn': 6467.6, 'lo_bn': 5636.6, 'hi_bn': 7298.7}]
+DONE 2622
