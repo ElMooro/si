@@ -1,7 +1,6 @@
-  ＋ CREATED justhodl-search-attention-daily: cron(0 15 * * ? *) -> justhodl-search-attention
-  ＋ CREATED justhodl-attention-confluence-daily: cron(10 15 * * ? *) -> justhodl-attention-confluence
-
-final state:
-  justhodl-search-attention-daily: cron(0 15 * * ? *) ENABLED targets=1 -> justhodl-search-attention
-  justhodl-attention-confluence-daily: cron(10 15 * * ? *) ENABLED targets=1 -> justhodl-attention-confluence
-DONE 2590
+  no stray rule 'null' (clean)
+  no stray rule 'None' (clean)
+  no stray rule '' (clean)
+  justhodl-search-attention-daily: cron(0 15 * * ? *) ENABLED
+  justhodl-attention-confluence-daily: cron(10 15 * * ? *) ENABLED
+DONE 2591
