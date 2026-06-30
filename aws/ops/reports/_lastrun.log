@@ -1,12 +1,8 @@
-=== bundled (claude_compat, llm_router) ===
   justhodl-ai-chat: compat=True router=True
-  justhodl-ask-desk: compat=False router=False
-  justhodl-my-brief: compat=False router=False
-  justhodl-devils-advocate: compat=False router=False
-  justhodl-page-ai-commentary: compat=False router=False
-  justhodl-nobrainer-rationale: compat=False router=False
-ALL BUNDLED: False
-
-=== live functional test (page-ai-commentary) ===
-  invoke err: None
-DONE 2532
+  justhodl-ask-desk: compat=True router=True
+  justhodl-my-brief: compat=True router=True
+  justhodl-devils-advocate: compat=True router=True
+  justhodl-page-ai-commentary: compat=True router=True
+  justhodl-nobrainer-rationale: compat=True router=True
+ALL 6 BUNDLED: True
+DONE 2533
