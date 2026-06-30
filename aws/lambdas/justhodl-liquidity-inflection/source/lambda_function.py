@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -532,6 +532,35 @@ def lambda_handler(event=None, context=None):
                                                "credit": _bn(credit_f), "crypto": _bn(crypto),
                                                "commodities_gold": _bn(commod)}}
 
+    # ── Leverage stress (margin debt + repo leverage + securities lending) ──
+    rl = pull("data/repo-lending.json")
+    leverage_stress = None
+    if rl:
+        md = rl.get("margin_debt") or {}
+        rp_ = rl.get("repo") or {}
+        sl_ = rl.get("securities_lending") or {}
+        leverage_stress = {
+            "score": rl.get("composite_leverage_stress"), "regime": rl.get("regime"),
+            "margin_debt_bn": md.get("level_billions"), "margin_pct_mcap": md.get("pct_of_market_cap"),
+            "margin_yoy_pct": md.get("yoy_growth_pct"), "margin_danger": md.get("danger_zone"),
+            "margin_read": md.get("interpretation"),
+            "repo_score": rp_.get("score"),
+            "sec_lending_high_util": (sl_.get("components") or {}).get("n_high_utilization"),
+            "note": "Composite of margin debt vs market cap, repo leverage (RRP+SOFR-IORB) and securities-lending "
+                    "utilization. Low = abundant headroom; high/rising = crowded, fragile leverage."}
+
+    # ── Dealer survey (NY Fed primary-dealer survey — reference; PDF parsing deferred) ──
+    dsv = pull("data/dealer-survey.json")
+    dealer_survey = None
+    if dsv:
+        ls = dsv.get("latest_survey") or {}
+        dealer_survey = {
+            "status": dsv.get("last_check_status"),
+            "last_survey": (ls.get("fomc_date") or (ls.get("source_url") or "").split("/")[-1] or None),
+            "source_url": ls.get("source_url"), "discovered_at": ls.get("discovered_at"),
+            "note": "NY Fed Survey of Primary Dealers (funding/balance-sheet expectations). Structured extraction "
+                    "pending a PDF-parsing layer — shown here as a reference until expectations are parsed."}
+
     # ── Composite liquidity regime — synthesize the impulses into ONE inflection read ──
     comp_parts = []
 
@@ -571,6 +600,8 @@ def lambda_handler(event=None, context=None):
             add_part("flow_divergence", -0.7, 0.05)
         elif _fr == "RISK_SEEKING":
             add_part("flow_divergence", 0.5, 0.05)
+    if leverage_stress and isinstance(leverage_stress.get("score"), (int, float)):
+        add_part("leverage_stress", -(leverage_stress["score"] - 50) / 30.0, 0.05)
     composite = None
     if comp_parts:
         wsum = sum(w for _, _, w in comp_parts)
@@ -639,6 +670,7 @@ def lambda_handler(event=None, context=None):
            "dollar": dollar, "dollar_shortage": dollar_shortage,
            "settlement_fails": settlement_fails, "swap_lines": swap_lines,
            "flow_divergence": flow_divergence,
+           "leverage_stress": leverage_stress, "dealer_survey": dealer_survey,
            "credit": credit, "systemic_stress": systemic,
            "financial_conditions": fin_cond, "china_engine": china_engine,
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
