@@ -1,12 +1,11 @@
-page bytes: 20730
-  [OK] Composite liquidity regime section
-  [OK] Reserve & buffer mechanics section
-  [OK] Funding & plumbing stress section
-  [OK] Global liquidity section
-  [OK] SOFR-IORB wiring
-  [OK] LCLoR/reserve language
-  [OK] gauge render fn
-  [OK] global CB breakdown
-  feed version 1.2.0 · composite score 47.4 NEUTRAL · n 7
-  reserves $2951.4bn · rrp $26.9bn · global $17.79T
-DONE 2610
+  justhodl-risk-regime: deployed (single)
+  justhodl-master-ranker: deployed (pkg, 19 files)
+RR invoke: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"risk_regime_score\": 15.2, \"risk_regime\": \"MILD_RISK_ON\", \"blocks\": 
+  risk_regime_score: 15.2 MILD_RISK_ON
+  blocks_used: [('fx', 0.35, 0.067), ('vix', 0.25, 0.402), ('credit', 0.2, 0.182), ('liquidity_regime', 0.15, -0.104)]
+  components.liquidity_regime: {'score': -0.1, 'liquidity_score': 47.4, 'regime': 'NEUTRAL', 'composite_z': -0.16, 'tells': ['Bank reserves below comfort floor (LCLoR risk)']}
+MR invoke: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 10, \"n_tier_3_plus\": 78, \"n_tier_5_plus\"
+  regime_context liquidity: 47.4 NEUTRAL z -0.16
+  top_macro liquidity entry: {'type': 'liquidity_inflection', 'name': 'Liquidity Regime: NEUTRAL (47.4/100)', 'regime': 'NEUTRAL', 'z': -0.16, 'rationale': 'Liquidity is roughly flat — no strong second-derivative push. Levels, earnings and rates dominate.', 'action_hint': 'Liquidity neutral — no strong 2nd-derivative push', 'score': 55}
+  tickers with liquidity tilt: 0 e.g. []
+DONE 2611
