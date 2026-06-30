@@ -1,0 +1,8 @@
+# Serve HTML fresh so new deploys appear immediately.
+# Data feeds load from the proxy/S3 with their own caching, so this only affects pages.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/upside-radar.html
+  Cache-Control: public, max-age=0, must-revalidate
