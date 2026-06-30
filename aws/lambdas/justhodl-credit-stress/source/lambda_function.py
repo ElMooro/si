@@ -111,6 +111,20 @@ SERIES = {
     "T10Y2Y": {"name": "10y-2y Curve", "tier": "rates", "rating": "—"},
 }
 
+# ICE BofA EFFECTIVE YIELDS = semi-annual yield-to-worst (the actual carry/all-in
+# yield, not just the spread). "...EY" suffix on each OAS index id.
+EY_RATINGS = {
+    "BAMLC0A0CMEY": "IG Master", "BAMLC0A1CAAAEY": "AAA", "BAMLC0A2CAAEY": "AA",
+    "BAMLC0A3CAEY": "A", "BAMLC0A4CBBBEY": "BBB", "BAMLH0A0HYM2EY": "HY Master",
+    "BAMLH0A1HYBBEY": "BB", "BAMLH0A2HYBEY": "B", "BAMLH0A3HYCEY": "CCC",
+    "BAMLEMCBPIEY": "EM Corp",
+}
+# IG corporate yield-to-worst by MATURITY bucket -> the corporate yield curve.
+EY_CURVE = {
+    "BAMLC1A0C13YEY": "1-3y", "BAMLC2A0C35YEY": "3-5y", "BAMLC3A0C57YEY": "5-7y",
+    "BAMLC4A0C710YEY": "7-10y", "BAMLC7A0C1015YEY": "10-15y", "BAMLC8A0C15PYEY": "15y+",
+}
+
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
 
@@ -165,6 +179,22 @@ def fetch_fred_series(series_id, n_years=10):
     except Exception as e:
         print(f"  fred {series_id} err: {str(e)[:80]}")
         return []
+
+
+def fetch_fred_latest(series_id):
+    """Latest numeric value only (for the ICE BofA effective-yield panel)."""
+    url = (f"https://api.stlouisfed.org/fred/series/observations"
+           f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+           f"&sort_order=desc&limit=1")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+            obs = json.loads(r.read().decode("utf-8")).get("observations", [])
+        if obs and obs[0].get("value") not in (None, "."):
+            return float(obs[0]["value"])
+    except Exception as e:
+        print(f"  fred EY {series_id} err: {str(e)[:60]}")
+    return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -347,6 +377,18 @@ def lambda_handler(event, context):
         "em_hy_minus_us_hy": em_hy_minus_us_hy,  # EM-DM spread
     }
 
+    # ─── ICE BofA effective yields (semi-annual yield-to-worst) ───
+    yields_pct, ig_curve_pct = {}, {}
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL) as ex:
+        fy = {ex.submit(fetch_fred_latest, sid): (nm, "r") for sid, nm in EY_RATINGS.items()}
+        fy.update({ex.submit(fetch_fred_latest, sid): (nm, "c") for sid, nm in EY_CURVE.items()})
+        for f in as_completed(fy):
+            nm, kind = fy[f]
+            v = f.result()
+            if v is not None:
+                (yields_pct if kind == "r" else ig_curve_pct)[nm] = round(v, 2)
+    print(f"  ✓ ICE BofA YTW: {len(yields_pct)} ratings, {len(ig_curve_pct)} curve buckets")
+
     # ─── Regimes ───
     hy_regime = classify_hy_regime(hy) if hy is not None else "UNKNOWN"
     ig_regime = classify_ig_regime(ig) if ig is not None else "UNKNOWN"
@@ -365,6 +407,8 @@ def lambda_handler(event, context):
         },
         "metrics": metrics,
         "derived_spreads": derived,
+        "current_yields_pct": yields_pct,      # ICE BofA semi-annual yield-to-worst by rating
+        "ig_yield_curve_pct": ig_curve_pct,    # IG corporate YTW by maturity bucket
         "regimes": {
             "hy_regime": hy_regime,
             "ig_regime": ig_regime,

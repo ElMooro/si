@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-fiat-peg-monitor",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 60,
+  "memory": 256,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Currency-peg break / devaluation-pressure board (HKD/CNY/SAR/AED/QAR/DKK) -> data/fiat-peg-monitor.json",
+  "schedule": {"expression": "rate(4 hours)", "name": "justhodl-fiat-peg-monitor-4h", "description": "Peg pressure every 4h"}
+}
