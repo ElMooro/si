@@ -57,11 +57,10 @@ TIC_SERIES = {
     "luxembourg":     "MFFICOQ027S",
     "belgium":        "MFFICBQ027S",
     "switzerland":    "MFFICCQ027S",
-    # Caribbean offshore (hedge-fund / leveraged-Treasury proxy). FRED only
-    # exposes these via the annual TIC SLT survey (FORLTTREASPOS<country>),
-    # so they update yearly, not monthly — flagged on the page.
+    # Caribbean offshore (hedge-fund / leveraged-Treasury proxy). FRED exposes
+    # Bahamas via the annual TIC SLT survey (updates yearly, flagged on page);
+    # Cayman (above, MFFICQQ027S) is the current monthly Caribbean proxy.
     "bahamas":             "FORLTTREASPOS35319",
-    "caribbean_banking":   "FORLTTREASPOS39001",
 }
 # Total foreign holdings
 TOTAL_FOREIGN_SERIES = "MFFICTQ027S"      # Total foreign holdings

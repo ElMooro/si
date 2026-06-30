@@ -90,6 +90,7 @@ const f1=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1);
 const f2=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(2);
 const n1=v=>num(v)===null?"—":v.toFixed(1);
 const pc=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
+const ypct=v=>num(v)===null?"—":v.toFixed(2)+"%";
 const bps=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(0)+"bp";
 const sgn=v=>num(v)===null?"flat":(v>0.02?"pos":(v<-0.02?"neg":"flat"));
 const usd=v=>{if(num(v)===null)return"—";const a=Math.abs(v),s=v<0?"-":"+";if(a>=1e12)return s+"$"+(a/1e12).toFixed(2)+"T";if(a>=1e9)return s+"$"+(a/1e9).toFixed(1)+"b";if(a>=1e6)return s+"$"+(a/1e6).toFixed(0)+"m";return s+"$"+a.toFixed(0);};
@@ -132,6 +133,7 @@ function moneyFlow(x){if(!x)return"";let h=sec("flow","Cross-asset money flow","
 /* ── Credit & ICE BofA ── */
 function creditIce(cs,ced,cdsm,cdsp){if(!cs&&!ced&&!cdsm&&!cdsp)return"";let h=sec("credit","Credit &amp; ICE BofA spreads","OAS, credit-equity divergence, CDS &amp; sovereign risk — the bond market's risk verdict");h+=`<div class="cards">`;
   if(cs){const b=cs.current_bps||{},d=cs.derived_spreads||{};h+=C("ICE BofA OAS",null,"option-adjusted spreads (bps)",row("HY (H0A0)",bps(b.BAMLH0A0HYM2),sgn(-(d.hy_minus_ig||0)))+row("IG master (C0A0)",bps(b.BAMLC0A0CM))+row("AAA (C0A1)",bps(b.BAMLC0A1CAAA))+row("HY − IG",bps(d.hy_minus_ig),d.hy_minus_ig>0?"neg":"pos")+row("CCC − BB",bps(d.ccc_minus_bb),d.ccc_minus_bb>0?"neg":"pos")+row("BBB − AAA",bps(d.bbb_minus_aaa)),"info");}
+  if(cs&&cs.current_yields_pct){const y=cs.current_yields_pct,cv=cs.ig_yield_curve_pct||{};h+=C("ICE BofA yields (YTW)",ypct(y["HY Master"]),"semi-annual yield-to-worst — the all-in carry",row("HY Master",ypct(y["HY Master"]))+row("CCC",ypct(y["CCC"]),"neg")+row("BB",ypct(y["BB"]))+row("IG Master",ypct(y["IG Master"]))+row("BBB",ypct(y["BBB"]))+row("EM Corp",ypct(y["EM Corp"])),"info",Object.keys(cv).length?"IG curve: "+Object.entries(cv).map(([k,v])=>k+" "+v+"%").join(" · "):"");}
   if(ced){const m=ced.current_metrics||{};h+=C("Credit-equity divergence",esc(ced.state||""),"HYG vs SPY — credit confirming or diverging",row("HYG 20d",pc(m.hyg_20d_ret_pct),sgn(m.hyg_20d_ret_pct))+row("SPY 20d",pc(m.spy_20d_ret_pct),sgn(m.spy_20d_ret_pct))+row("Spread z (252d)",f2(m.spread_zscore_252d)),tone(ced.state),ced.regime_explanation);}
   if(cdsm){const g=cdsm.global_credit_stress||{},a=cdsm.alarm_board||{};h+=C("CDS · credit stress",f0(g.score_0_100),`${esc(g.regime||"")} · ${num(a.n_active)??0} alarm${a.n_active===1?"":"s"}`,(g.read?"":""),tone(g.regime),g.read);}
   if(cdsp){const s=cdsp.sovereigns||{},co=cdsp.corporate||{};h+=C("Sovereign 10y · proxy",esc(cdsp.regime||""),"peripheral EU yields &amp; OAS",row("Italy 10y",n1(s.italy_10y))+row("France 10y",n1(s.france_10y))+row("Germany 10y",n1(s.germany_10y))+row("HY OAS",bps(co.hy_oas))+row("IG OAS",bps(co.ig_oas)),tone(cdsp.regime));}
@@ -169,7 +171,8 @@ function stressPlumbing(crisis,gstress,sys,edplumb,edstress,fails,tr,th){if(!cri
   h+=`</div>`;return h;}
 
 /* ── Central banks & currency ── */
-function cbFx(yen,boj,snb,ecb,peg,fxd){if(!yen&&!boj&&!snb&&!ecb&&!peg&&!fxd)return"";let h=sec("cb","Central banks &amp; currency","BOJ/SNB/ECB liquidity stance, yen-carry unwind risk, dollar pegs &amp; stablecoin depegs");h+=`<div class="cards">`;
+function cbFx(yen,boj,snb,ecb,peg,fxd,fp){if(!yen&&!boj&&!snb&&!ecb&&!peg&&!fxd&&!fp)return"";let h=sec("cb","Central banks &amp; currency","BOJ/SNB/ECB liquidity stance, yen-carry unwind risk, dollar pegs (HKD/CNY/Gulf) &amp; stablecoin depegs");h+=`<div class="cards">`;
+  if(fp&&fp.pegs){h+=C("Currency pegs",f0(fp.composite_peg_stress),`${esc(fp.regime||"")} · worst ${esc(fp.worst_peg||"")}`,(fp.pegs||[]).slice(0,6).map(p=>row(p.ccy,`${num(p.spot)} ${badge(p.regime,p.pressure>=90?"neg":p.pressure>=70?"flat":"pos")}`,p.pressure>=70?"neg":"")).join(""),tone(fp.regime),fp.headline);}
   if(yen){h+=C("Yen carry · BOJ",f0(yen.unwind_risk_score),`${esc(yen.carry_regime||"")} · BOJ ${esc(yen.boj_stance_label||"")}`,row("Unwind risk",`${f0(yen.unwind_risk_score)} ${badge(yen.unwind_risk_label,tone(yen.unwind_risk_label))}`)+row("BOJ injection",f1(yen.boj_injection_score),sgn(yen.boj_injection_score)),tone(yen.unwind_risk_label||yen.carry_regime),yen.headline);}
   const cb=[["BOJ",boj],["SNB",snb],["ECB",ecb]].filter(x=>x[1]);
   if(cb.length)h+=C("Central bank liquidity",null,"injection stance (drain = tightening)",cb.map(([nm,d])=>row(nm,badge(d.stance_label,tone(d.stance_label)))).join(""),"info");
@@ -190,7 +193,7 @@ function regimeCycle(xar,cycle,regmap,mn,msp,gbc){if(!xar&&!cycle&&!regmap&&!mn&
 /* ── Foreign capital & dollar ── */
 function foreignCapital(capin,tic,sov,dollar){if(!capin&&!tic&&!sov&&!dollar)return"";let h=sec("foreign","Foreign capital &amp; the dollar","who funds the US — TIC by holder (incl. Caribbean/Cayman leverage), inflows, fiscal &amp; dollar pressure");h+=`<div class="cards">`;
   if(capin){const hd=capin.headline||{};h+=C("Capital inflows",esc(capin.regime||""),esc(capin.regime_interpretation||"foreign funding of the US"),row("Foreign net into US (12mo)",num(hd.foreign_net_into_us_lt_12mo_b)!=null?usd(hd.foreign_net_into_us_lt_12mo_b*1e9):"")+row("3mo run-rate (ann.)",num(hd.run_rate_3mo_annualized_b)!=null?usd(hd.run_rate_3mo_annualized_b*1e9):""),tone(capin.regime));}
-  if(tic){const ind=tic.individual||{};h+=C("TIC foreign demand",esc(tic.regime||""),`stress ${num(tic.composite_tic_stress)??"—"} · Caribbean/Cayman = hedge-fund leverage proxy`,Object.entries(ind).slice(0,6).map(([k,v])=>{const val=(v&&(v.net_purchases_b??v.holdings_tn??v.change_b??v.latest));return row(k.replace(/_/g," "),val!=null?(typeof val==="number"?(Math.abs(val)>100?usd(val*1e9):f1(val)):esc(val)):"");}).join(""),tone(tic.regime));}
+  if(tic){const ind=tic.individual||{};h+=C("TIC foreign demand",esc(tic.regime||""),`stress ${num(tic.composite_tic_stress)??"—"} · Caribbean/Cayman/Bahamas = offshore-leverage proxy`,Object.entries(ind).slice(0,8).map(([k,v])=>{const hold=v&&num(v.current_b),yoy=v&&num(v.yoy_pct);return row(k.replace(/_/g," "),hold!=null?`$${hold>=100?hold.toFixed(0):hold.toFixed(1)}b${yoy!=null?` (${yoy>0?"+":""}${yoy.toFixed(0)}%)`:""}`:"",sgn(yoy));}).join(""),tone(tic.regime));}
   if(dollar){h+=C("Dollar radar",f0(dollar.dollar_pressure),`${esc(dollar.regime||"")} · pump ${dollar.canaries_pump} / dump ${dollar.canaries_dump}`,(dollar.canaries||[]).slice(0,3).map(c=>row(c.label,badge(c.signal,tone(c.signal)))).join(""),tone(dollar.regime),dollar.regime_note);}
   if(sov){const fi=sov.fiscal||{},ds=sov.debt_service||{};h+=C("Sovereign &amp; fiscal",null,"US fiscal position",row("Deficit (TTM)",num(fi.deficit_ttm)!=null?usd(fi.deficit_ttm):"")+row("Total debt ($tn)",n1(ds.total_debt_tn))+row("Avg interest %",num(ds.avg_interest)?.toFixed(2)),"info");}
   h+=`</div>`;return h;}
@@ -234,7 +237,7 @@ function render(D){
   html+=ratesVol(D.yc,D.move,D.bv,D.auction,D.auctiongrades,D.vixcurve);
   html+=liqFunding(D.gliq,D.funding,D.liqpulse,D.repo,D.bankstress,D.liqinflect);
   html+=stressPlumbing(D.crisis,D.gstress,D.systemic,D.edplumb,D.edstress,D.fails,D.tailrisk,D.tailhedge);
-  html+=cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd);
+  html+=cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd,D.fiatpeg);
   html+=regimeCycle(D.xar,D.cycle,D.regmap,D.macronow,D.macrosurp,D.gbc);
   html+=foreignCapital(D.capin,D.tic,D.sov,D.dollar);
   html+=volPos(D.vol,D.vvix,D.skew,D.flowconf,D.instpos);
@@ -274,7 +277,7 @@ function go(){
     repo:"data/repo-lending.json",bankstress:"data/bank-stress.json",liqinflect:"data/liquidity-inflection.json",
     systemic:"data/systemic-stress.json",tailrisk:"data/tail-risk.json",tailhedge:"data/tail-hedge.json",
     yen:"data/yen-carry.json",boj:"data/boj-detail.json",snb:"data/snb-detail.json",ecb:"data/ecb-detail.json",
-    peg:"data/crypto-stablecoin-peg.json",fxd:"data/fx-decomposition.json",macronow:"data/macro-nowcast.json",
+    peg:"data/crypto-stablecoin-peg.json",fiatpeg:"data/fiat-peg-monitor.json",fxd:"data/fx-decomposition.json",macronow:"data/macro-nowcast.json",
     macrosurp:"data/macro-surprise.json",gbc:"data/global-business-cycle.json",vvix:"data/vvix-vov-regime.json",
     skew:"data/skew-tail-hedging.json",flowconf:"data/flow-confluence.json",instpos:"data/institutional-positions.json"};
   const keys=Object.keys(F);
