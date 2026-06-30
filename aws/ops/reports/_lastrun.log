@@ -1,12 +1,22 @@
-feed v2.4.0
-  composite fwd-exp: state CONTRACTING (z -0.215), src fred-reconstruction, 3 assets
-  net-liq fwd-exp:   state CONTRACTING_FAST
-  analogs composite_aware: True | features ['impulse', 'hy_oas', 'dollar', 'nfci', 'reserve_drain', 'composite']
-  composite regime study assets: ['SPX_proxy', 'BTC', 'HYG']
-  snapshots accumulating: 1
-  page [MISS] dual fwd-exp (net-liq label)
-  page [OK] dual fwd-exp (composite label)
-  page [OK] composite z handling
-  page [OK] FRED-backed provenance
-  page [OK] composite analog label
-DONE 2637
+########## auction-crisis.json ##########
+
+=== data/auction-crisis.json ===
+  top-level keys: ['schema_version', 'generated_at', 'elapsed_sec', 'elapsed_v2_sec', 'regime', 'composite_score', 'interpretation', 'n_recent_auctions_14d', 'issuance_anomaly', 'fed_funds_rate', 'freshness', 'recent_auctions', 'indicator_aggregate_14d', 'historical_reference', 'tenor_decomposition', 'forward_calendar', 'historical_analog', 'cross_signals', 'composite_history', 'tail_risk', 'triggers', 'data_source', 'methodology']
+  generated_at: 2026-06-30T19:50:40.776859+00:00
+  schema_version: 2.1
+  RAW (first 1500 chars): {"schema_version": "2.1", "generated_at": "2026-06-30T19:50:40.776859+00:00", "elapsed_sec": 9.73, "elapsed_v2_sec": 6.55, "regime": "CALM", "composite_score": 17.3, "interpretation": "Auctions clearing normally. Healthy demand profile, no flight-to-safety pattern.", "n_recent_auctions_14d": 19, "issuance_anomaly": {"score": 0, "pct_above_baseline": -10.5}, "fed_funds_rate": 3.63, "freshness": {"latest_auction_date": "2026-06-30", "latest_cusip": "912797TW7", "hours_since_latest_auction": 19.8, "previous_latest_cusip": "912797TW7", "is_new_auction_this_run": false, "n_total_auctions_pulled": 484, "data_window_start": "2025-05-26", "data_window_end": "2026-06-30", "fetched_via": "https://api.fiscaldata.treasury.gov (no-cache headers, format=json)"}, "recent_auctions": [{"auction_date": "2026-06-30", "issue_date": "2026-07-02", "security_type": "Bill", "security_term": "6-Week", "cusip": "912797TW7", "tenor_bucket": "bills_lt_90d", "high_rate": 3.655, "low_rate": 3.54, "median_rate": null, "allocated_at_high_pct": 54.61, "btc": 2.71, "primary_dealer_pct": 26.025969746154328, "indirect_pct": 69.0138919070487, "direct_pct": 4.9601383467969695, "tail_bp": null, "accepted_billions": 85.1837795, "indicator_scores": {"zero_rate_floor": 0, "btc_extreme": 0, "tail_stress": 0, "pd_absorption": 0}, "max_indicator_score": 0, "avg_indicator_score": 0.0, "composite_score": 0.0, "postissue_series": "DGS3MO", "postissue_1d_bp": null, "postissue_5d_bp": null, "postissue_30d_bp": null, "postiss
+
+
+########## stablecoin-flow.json ##########
+
+=== data/stablecoin-flow.json ===
+  top-level keys: ['engine', 'version', 'as_of', 'state', 'previous_state', 'state_transition', 'state_description', 'signal_strength', 'aggregate', 'trigger_conditions', 'forward_expectations', 'forward_expectations_by_asset_60d', 'top_stablecoins_by_mcap', 'top_5_minters_30d', 'top_3_burners_30d', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
+  RAW (first 1200 chars): {"engine": "stablecoin-flow", "version": "1.0", "as_of": "2026-06-30T14:00:14.430679Z", "state": "CONTRACTING", "previous_state": "CONTRACTING", "state_transition": false, "state_description": "Net stablecoin contraction -- USD liquidity exiting crypto. Historically precedes drawdowns of 15-30% in BTC over 60-90 days. Deleveraging regime.", "signal_strength": 56.4, "aggregate": {"total_usd": 309285767744, "n_stablecoins": 59, "delta_24h_usd": -656442789, "delta_7d_usd": -2907298721, "delta_30d_usd": -6981430818, "delta_24h_pct": -0.212, "delta_7d_pct": -0.94, "delta_30d_pct": -2.257, "top_chains": [{"chain": "Ethereum", "circulating_usd": 154207792642}, {"chain": "Tron", "circulating_usd": 89183741039}, {"chain": "BSC", "circulating_usd": 18140141064}, {"chain": "Solana", "circulating_usd": 15337523997}, {"chain": "Hyperliquid L1", "circulating_usd": 5865073223}, {"chain": "Base", "circulating_usd": 4699967733}, {"chain": "Arbitrum", "circulating_usd": 4035645322}, {"chain": "Polygon", "circulating_usd": 3353073481}, {"chain": "Aptos", "circulating_usd": 1868453451}, {"chain": "X Layer", "circulating_usd": 1840172511}]}, "trigger_conditions": [{"name": "30d delta abs > $2B", "curre
+
+
+########## treasury-proxy / treasury-api candidate keys ##########
+  [data/treasury-proxy.json] not found / An error occurred (NoSuchKey) when calling the GetObject ope
+  [data/treasury-api.json] not found / An error occurred (NoSuchKey) when calling the GetObject ope
+  [data/treasury.json] not found / An error occurred (NoSuchKey) when calling the GetObject ope
+  [data/daily-treasury-statement.json] not found / An error occurred (NoSuchKey) when calling the GetObject ope
+DONE 2638
