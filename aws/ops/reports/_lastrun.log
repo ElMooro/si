@@ -1,5 +1,7 @@
-bundled 19 files, zip 61931 bytes; includes _sentry_lite: True | lambda_function: True
-FULL package restored
-INVOKE: 200 None {"statusCode": 200, "body": "{\"logged\": 96}"}
-  attention_stealth: 1 signals, 1 fully-priced | e.g. [('AAPL', 'OUTPERFORM', 0.874091, True, True)]
-DONE 2589
+  ＋ CREATED justhodl-search-attention-daily: cron(0 15 * * ? *) -> justhodl-search-attention
+  ＋ CREATED justhodl-attention-confluence-daily: cron(10 15 * * ? *) -> justhodl-attention-confluence
+
+final state:
+  justhodl-search-attention-daily: cron(0 15 * * ? *) ENABLED targets=1 -> justhodl-search-attention
+  justhodl-attention-confluence-daily: cron(10 15 * * ? *) ENABLED targets=1 -> justhodl-attention-confluence
+DONE 2590
