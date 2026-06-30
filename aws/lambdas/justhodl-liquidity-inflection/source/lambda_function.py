@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -615,6 +615,103 @@ def desk_briefing(o):
             "model": "deterministic synthesis — bound to measured tables (LLM router offline; will upgrade on top-up)"}
 
 
+def build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci):
+    """Reconstruct a weekly multi-factor composite-liquidity z over history from the FRED-backed
+    components (net-liq impulse, reserve drain, dollar, credit, conditions), z-harmonised so +
+    always means more liquidity, then weight-blended. ~70% of the live composite's weight but
+    with FULL history — enough to drive a cycle clock and a forward projection on the composite."""
+    pairs = list(zip(usd_dates, usd_z))[::5]
+    spine = [p[0] for p in pairs]
+    z_netliq = {p[0]: p[1] for p in pairs}
+    if len(spine) < 60:
+        return None
+
+    def chg_series(series, wks):
+        if not series or len(series) < wks + 5:
+            return None
+        sd = sorted(series)
+        return {sd[i]: series[sd[i]] - series[sd[i - wks]] for i in range(wks, len(sd))}
+    res_chg = chg_series(wresbal, 13)
+    dxy_chg = chg_series(dxy, 13)
+    a_res = _asof(res_chg) if res_chg else (lambda d: None)
+    a_dxy = _asof(dxy_chg) if dxy_chg else (lambda d: None)
+    a_hy = _asof(hy_oas) if hy_oas else (lambda d: None)
+    a_nf = _asof(nfci) if nfci else (lambda d: None)
+    raw = {"net_liquidity": [], "reserves": [], "dollar": [], "credit": [], "conditions": []}
+    for d in spine:
+        raw["net_liquidity"].append(z_netliq.get(d))
+        raw["reserves"].append(a_res(d))
+        raw["dollar"].append(a_dxy(d))
+        raw["credit"].append(a_hy(d))
+        raw["conditions"].append(a_nf(d))
+    signs = {"net_liquidity": 1, "reserves": 1, "dollar": -1, "credit": -1, "conditions": -1}
+    zc = {k: [signs[k] * x for x in _zcol(v)] for k, v in raw.items()}
+    weights = {"net_liquidity": 0.28, "reserves": 0.16, "dollar": 0.12, "credit": 0.10, "conditions": 0.08}
+    active = {k: w for k, w in weights.items() if any(abs(x) > 1e-9 for x in zc[k])}
+    if not active:
+        return None
+    wsum = sum(active.values())
+    comp_z = [sum(zc[k][i] * active[k] for k in active) / wsum for i in range(len(spine))]
+    return {"dates": spine, "comp_z": comp_z, "component_z": {k: zc[k] for k in active},
+            "weights": active, "wsum": wsum, "components_used": list(active.keys())}
+
+
+def project_composite(hist, horizon_wk=13):
+    """Project the multi-factor composite forward by extrapolating EACH component's recent z-trend
+    (damped) and re-blending by weight — so all components drive it. Decomposes the projected move
+    by component. A momentum extrapolation (no mechanical calendar like net-liq), with a √-time band."""
+    if not hist:
+        return None
+    cz = hist["comp_z"]
+    comp = hist["component_z"]
+    W = hist["weights"]
+    wsum = hist["wsum"]
+    dates = hist["dates"]
+    if len(cz) < 20:
+        return None
+    cur = cz[-1]
+    mom = {}
+    for k, series in comp.items():
+        recent = [series[i] - series[i - 1] for i in range(len(series) - 6, len(series))]
+        mom[k] = sorted(recent)[len(recent) // 2]
+    DECAY = 0.8
+    diffs = [cz[i] - cz[i - 1] for i in range(1, len(cz))]
+    vol = stdev(diffs) if len(diffs) > 5 else 0.2
+    last_d = _pd(dates[-1])
+
+    def score(z):
+        return round(max(0.0, min(100.0, 50 + z * 16.5)), 1)
+    path, lvl = [], cur
+    for w in range(1, horizon_wk + 1):
+        step = sum(W[k] * mom[k] * (DECAY ** (w - 1)) / wsum for k in comp)
+        lvl += step
+        band = vol * (w ** 0.5)
+        path.append({"week": w, "date": (last_d + timedelta(weeks=w)).isoformat(),
+                     "comp_z": round(lvl, 3), "score": score(lvl),
+                     "lo": round(lvl - band, 3), "hi": round(lvl + band, 3)})
+    contrib = {k: round(W[k] * sum(mom[k] * (DECAY ** (w - 1)) for w in range(1, horizon_wk + 1)) / wsum, 3)
+               for k in comp}
+    primary = max(contrib, key=lambda k: abs(contrib[k])) if contrib else None
+    chg = lvl - cur
+    LAB = {"net_liquidity": "Net liquidity", "reserves": "Reserves", "dollar": "Dollar",
+           "credit": "Credit spreads", "conditions": "Financial conditions"}
+    hist_out = [{"date": dates[i], "comp_z": round(cz[i], 3), "score": score(cz[i])}
+                for i in range(max(0, len(dates) - 14), len(dates))]
+    direction = "ease" if chg > 0 else "tighten"
+    return {"horizon_weeks": horizon_wk, "current_z": round(cur, 3), "current_score": score(cur),
+            "projected_z": round(lvl, 3), "projected_score": score(lvl), "projected_change_z": round(chg, 3),
+            "history": hist_out, "path": path,
+            "contributions": {LAB.get(k, k): contrib[k] for k in contrib},
+            "primary_driver": LAB.get(primary, primary),
+            "components_used": [LAB.get(k, k) for k in comp],
+            "headline": (f"Composite liquidity projected to {direction} ({'+' if chg > 0 else ''}{round(chg, 2)} z, "
+                         f"to {round(score(lvl))}/100) over {horizon_wk} weeks on current component momentum, led by "
+                         f"{LAB.get(primary, primary).lower()}."),
+            "note": ("Momentum projection: each component's recent z-trend is extrapolated (decayed) and re-blended "
+                     "by weight. Unlike the net-liquidity projection there is no mechanical calendar — this is a "
+                     "damped-momentum extrapolation of the multi-factor state, with a √-time band.")}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -874,6 +971,17 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[backtest] {str(e)[:80]}")
         backtest = None
+    # ── Composite (all-component) cycle clock + projection ──
+    composite_clock = composite_projection = None
+    try:
+        chist = build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci)
+        if chist:
+            composite_clock = cycle_clock(chist["dates"], chist["comp_z"])
+            if composite_clock:
+                composite_clock["components_used"] = chist["components_used"]
+            composite_projection = project_composite(chist)
+    except Exception as e:
+        print(f"[composite-dyn] {str(e)[:80]}")
 
     # ── Dollar shortage / cross-currency strain (offshore USD funding) ──
     def _layer_metric(edp_doc, layer, mid):
@@ -1193,7 +1301,8 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
-           "cycle_clock": clock,
+           "cycle_clock": clock, "composite_clock": composite_clock,
+           "composite_projection": composite_projection,
            "reserve_runway": reserve_runway, "forward_expectation": forward_expectation,
            "tensions": tension_state, "data_health": data_health,
            "analogs": analogs, "backtest": backtest,
