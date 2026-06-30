@@ -1,10 +1,12 @@
-deployed allocator contains brain_posture: True
+FunctionError: Unhandled
+PAYLOAD: {"errorMessage": "type str doesn't define __round__ method", "errorType": "TypeError", "requestId": "bfcfc786-2dfb-4c5c-8b54-f2a6ef78e286", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 468, in lambda_handler\n    raw_tilts, contributions, weight_sum = aggregate_tilts(\n", "  File \"/var/task/lambda_function.py\", line 393, in aggregate_tilts\n    \"value\": round(sig[\"value\"], 2),\n"]}
 
-BEFORE target weights: (none)
-invoke err: Unhandled
-AFTER  target weights: (none)
+brain.json size: 3.13 MB
+allocator memory: 512 MB | timeout: 180 s
 
-brain_posture present in output signals: False
-
-rationale: Risk posture NEUTRAL (equity tilt -0.5pp vs benchmark, duration tilt +1.4pp, gold tilt -1.1pp, cash tilt +0.4pp). Active risk 383 bps of 800 budget. Confidence 86 based on 7/10 signals contributing.
-DONE 2537
+=== recent CloudWatch ===
+  [ERROR] TypeError: type str doesn't define __round__ method
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 468, in lambda_handler
+    raw_tilts, contributions, weight_s
+DONE 2538
