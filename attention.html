@@ -4,52 +4,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pre-Pump Attention · JustHodl.AI</title>
-<meta name="description" content="Where accumulation + attention line up before the crowd: insider buying (Finnhub), analyst upgrade momentum, retail attention (Stocktwits), and theme attention (Wikipedia).">
+<meta name="description" content="Smart accumulation vs crowd attention: where informed money (insider clusters, options flow, 13F, dark pool, Congress) lines up against the crowd (retail, search, themes) — staged Stealth, Igniting, Crowded, Distribution.">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--border:#1c2433;--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;
 --orange:#ff9540;--orange-dim:rgba(255,149,64,.3);--orange-bg:rgba(255,149,64,.07);
 --green:#38ffa8;--green-dim:rgba(56,255,168,.3);--cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.3);
---violet:#a78bfa;--red:#ff5c7a;--fs:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',monospace;}
+--violet:#a78bfa;--violet-dim:rgba(167,139,250,.3);--amber:#ffd23f;--red:#ff5c7a;
+--fs:'IBM Plex Sans',system-ui,sans-serif;--fm:'IBM Plex Mono',monospace;}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg-1);font-family:var(--fs);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
-.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
-.hdr{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 32px 80px}
+.hdr{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid var(--border)}
 .hdr .title{font-family:var(--fm);font-size:11.5px;letter-spacing:1.6px;color:var(--orange);font-weight:600;text-transform:uppercase}
 .hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
 .hdr .meta{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--fg-3)}
 .back{font-family:var(--fm);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}.back:hover{color:var(--cyan)}
-.hero{background:linear-gradient(135deg,var(--orange-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:15px 22px;margin-bottom:18px}
-.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:940px}.hero b{color:var(--fg-1)}
-.sec{display:flex;align-items:center;gap:10px;margin:30px 0 13px}
-.sec h2{margin:0;font-family:var(--fm);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
-.sec .sub{font-family:var(--fs);font-size:11.5px;color:var(--fg-3);font-weight:400;text-transform:none;letter-spacing:0}
-.sec .dot{width:9px;height:9px;border-radius:50%}.dot.or{background:var(--orange);box-shadow:0 0 9px var(--orange-dim)}.dot.gr{background:var(--green)}.dot.cy{background:var(--cyan)}.dot.vi{background:var(--violet)}
-.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:14px 17px;margin-bottom:10px;border-left:4px solid var(--orange)}
-.card .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero{background:linear-gradient(135deg,var(--orange-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:15px 22px;margin-bottom:14px}
+.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:980px}.hero b{color:var(--fg-1)}
+.ctx{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.ctx .c{font-family:var(--fm);font-size:11px;color:var(--fg-2);background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:5px 11px}
+.ctx .c b{color:var(--fg-1)}
+.legend{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 4px;font-family:var(--fm);font-size:10.5px}
+.legend .lg{padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--fg-2)}
+.sec{display:flex;align-items:center;gap:10px;margin:30px 0 6px}
+.sec h2{margin:0;font-family:var(--fm);font-size:13px;letter-spacing:.6px;font-weight:700}
+.sec .cnt{font-family:var(--fm);font-size:11px;color:var(--fg-3)}
+.sec .dot{width:10px;height:10px;border-radius:50%}
+.dot.gr{background:var(--green);box-shadow:0 0 9px var(--green-dim)}.dot.or{background:var(--orange);box-shadow:0 0 9px var(--orange-dim)}
+.dot.cy{background:var(--cyan);box-shadow:0 0 9px var(--cyan-dim)}.dot.am{background:var(--amber)}.dot.rd{background:var(--red)}
+.blurb{font-size:11.5px;color:var(--fg-3);margin:0 0 12px;max-width:920px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:10px}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:13px 15px;border-left:4px solid var(--fg-3)}
+.card.st-stealth{border-left-color:var(--green)}.card.st-ignite{border-left-color:var(--orange)}
+.card.st-undis{border-left-color:var(--cyan)}.card.st-crowd{border-left-color:var(--amber)}.card.st-dist{border-left-color:var(--red)}
+.card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sym{font-family:var(--fm);font-size:16px;font-weight:700}
-.layer{font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--violet)}
-.score{margin-left:auto;font-family:var(--fm);font-size:15px;font-weight:700;color:var(--orange)}
-.badges{display:flex;gap:5px;flex-wrap:wrap}
-.b{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:3px}
-.b.ins{background:rgba(56,255,168,.15);color:var(--green);border:1px solid var(--green-dim)}
-.b.anl{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
-.b.ret{background:rgba(167,139,250,.15);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
-.b.trd{background:rgba(255,149,64,.16);color:var(--orange);border:1px solid var(--orange-dim)}
-.metrics{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
-.metric{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:6px 12px;min-width:84px}
-.metric .mv{font-family:var(--fm);font-size:14px;font-weight:700}.metric .ml{font-family:var(--fm);font-size:8px;letter-spacing:.7px;color:var(--fg-3);text-transform:uppercase;margin-top:4px}
-.why{color:var(--fg-3);font-size:11.5px;margin-top:9px;font-style:italic}
+.layer{font-family:var(--fm);font-size:8.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-3)}
+.stage{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:3px}
+.stage.st-stealth{background:rgba(56,255,168,.15);color:var(--green);border:1px solid var(--green-dim)}
+.stage.st-ignite{background:rgba(255,149,64,.16);color:var(--orange);border:1px solid var(--orange-dim)}
+.stage.st-undis{background:rgba(0,212,255,.14);color:var(--cyan);border:1px solid var(--cyan-dim)}
+.stage.st-crowd{background:rgba(255,210,63,.14);color:var(--amber);border:1px solid rgba(255,210,63,.3)}
+.stage.st-dist{background:rgba(255,92,122,.14);color:var(--red);border:1px solid rgba(255,92,122,.3)}
+.conf{font-family:var(--fm);font-size:10.5px;color:var(--fg-2)}
+.divv{margin-left:auto;font-family:var(--fm);font-size:14px;font-weight:700}
+.divv.pos{color:var(--green)}.divv.neg{color:var(--red)}
+.dbar{margin:9px 0 7px;display:flex;flex-direction:column;gap:4px}
+.drow{display:flex;align-items:center;gap:8px}
+.dlab{font-family:var(--fm);font-size:9.5px;width:62px;color:var(--fg-3)}
+.dtrack{flex:1;height:7px;background:var(--bg-sunken);border-radius:4px;overflow:hidden}
+.dfill{height:100%;border-radius:4px}.dfill.smart{background:linear-gradient(90deg,var(--green),#1fd98a)}.dfill.crowd{background:linear-gradient(90deg,var(--violet),#7c5cff)}
+.dval{font-family:var(--fm);font-size:11px;font-weight:700;width:30px;text-align:right}
+.fams{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 4px}
+.fchip{font-family:var(--fm);font-size:8.5px;font-weight:600;letter-spacing:.3px;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-2)}
+.fchip.insider,.fchip.funds{color:var(--green);border-color:var(--green-dim)}
+.fchip.options,.fchip.darkpool{color:var(--cyan);border-color:var(--cyan-dim)}
+.fchip.congress,.fchip.analyst{color:var(--violet);border-color:var(--violet-dim)}
+.why{color:var(--fg-3);font-size:11px;margin-top:6px;line-height:1.5}
+.panels{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px;margin-top:10px}
+.panel{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.panel h3{margin:0 0 9px;font-family:var(--fm);font-size:11.5px;letter-spacing:.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.panel h3 .s{font-weight:400;color:var(--fg-3);font-size:10px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-family:var(--fm);font-size:12px;font-weight:600;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:5px 11px;color:var(--fg-1)}
-.themes{display:flex;flex-direction:column;gap:6px}
-.th{display:flex;align-items:center;gap:12px;font-family:var(--fm);font-size:12.5px}
-.th .nm{flex:1;color:var(--fg-2)}.th .tr{font-weight:700;width:64px;text-align:right}.th .vw{color:var(--fg-3);width:90px;text-align:right;font-size:11px}
-.note{margin-top:30px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
+.chip{font-family:var(--fm);font-size:11.5px;font-weight:600;background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--fg-1)}
+.chip .v{color:var(--fg-3);font-weight:500;font-size:10.5px}
+.themes{display:flex;flex-direction:column;gap:5px}
+.th{display:flex;align-items:center;gap:10px;font-family:var(--fm);font-size:12px}
+.th .nm{flex:1;color:var(--fg-2)}.th .vw{color:var(--fg-3);width:80px;text-align:right;font-size:10.5px}.th .tr{font-weight:700;width:58px;text-align:right}
+.note{margin-top:32px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
 .note code{font-family:var(--fm);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
-.empty{color:var(--fg-3);font-style:italic;padding:10px 2px;font-size:12.5px}
+.note b{color:var(--fg-2)}
+.empty{color:var(--fg-3);font-style:italic;padding:8px 2px;font-size:12px}
 .loading{text-align:center;color:var(--fg-3);font-family:var(--fm);padding:70px 0}
-@media(max-width:640px){.wrap{padding:18px 16px 60px}.hdr h1{font-size:19px}}
+@media(max-width:640px){.wrap{padding:18px 14px 60px}.hdr h1{font-size:19px}.grid,.panels{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -57,51 +85,110 @@ a{color:var(--cyan);text-decoration:none}a:hover{color:var(--orange)}
   <div class="hdr">
     <a href="/" class="back">← JustHodl.AI</a>
     <div class="title">Pre-Pump Attention</div>
-    <h1>Accumulation Meets Attention</h1>
+    <h1>Smart Accumulation vs Crowd Attention</h1>
     <div class="meta" id="meta">loading…</div>
   </div>
-  <div class="hero"><p><b>Stocks move when informed accumulation and attention line up before the crowd.</b>
-   This fuses <b style="color:var(--green)">insider buying</b> (Finnhub MSPR), <b style="color:var(--cyan)">analyst upgrade momentum</b>,
-   <b style="color:var(--violet)">retail attention</b> (Stocktwits), and <b style="color:var(--orange)">theme attention</b> (Wikipedia pageviews)
-   into one read — the confirmation layer beneath the re-rating radar.</p></div>
-  <div id="content"><div class="loading">⟳ loading attention signals…</div></div>
+  <div class="hero"><p><b>The edge is the divergence between informed accumulation and crowd attention.</b>
+   Smart money — <b style="color:var(--green)">insider clusters</b>, <b style="color:var(--cyan)">options flow</b>,
+   <b style="color:var(--green)">13F funds</b>, <b style="color:var(--cyan)">dark pool</b>, <b style="color:var(--violet)">Congress</b> —
+   positions <i>before</i> the crowd (<b style="color:var(--violet)">retail, search, themes</b>) arrives. Each name is scored 0–100 on both
+   sides and staged: <b style="color:var(--green)">Stealth</b> (accumulation before the crowd) → <b style="color:var(--orange)">Igniting</b> (both firing) →
+   <b style="color:var(--amber)">Crowded</b> (chase risk) → <b style="color:var(--red)">Distribution</b> (selling into hype).</p></div>
+  <div class="ctx" id="ctx"></div>
+  <div class="legend">
+    <span class="lg">⚙ N = independent informed families confirming (the 2+ bar)</span>
+    <span class="lg" style="color:var(--green)">🟢 smart score</span>
+    <span class="lg" style="color:var(--violet)">🟣 crowd score</span>
+    <span class="lg">divergence = smart − crowd</span>
+  </div>
+  <div id="content"><div class="loading">⟳ loading attention confluence…</div></div>
   <div class="note" id="note"></div>
 </div>
 <script>
-const SRC=p=>[`https://justhodl.ai/${p}?t=${Date.now()}`,`https://justhodl-data-proxy.raafouis.workers.dev/${p}?t=${Date.now()}`,`https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
+const PX="https://justhodl-data-proxy.raafouis.workers.dev";
+const SRC=p=>[`${PX}/${p}?t=${Date.now()}`,`https://justhodl.ai/${p}?t=${Date.now()}`,`https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/${p}?t=${Date.now()}`];
 async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok)return await r.json();}catch(e){}}return null;}
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function badges(r){let b="";if((r.insider_mspr||0)>=30)b+='<span class="b ins">👤 INSIDER BUY</span>';if((r.analyst_upgrade_mom||0)>0.03)b+='<span class="b anl">📈 ANALYST ↑</span>';if(r.retail_bull_pct!=null&&r.retail_bull_pct>=0.65)b+='<span class="b ret">💬 RETAIL</span>';if(r.trending)b+='<span class="b trd">🔥 TRENDING</span>';return b;}
-function card(r){return `<div class="card"><div class="top"><span class="sym">${esc(r.symbol)}</span>${r.layer?`<span class="layer">${esc(r.layer)}</span>`:""}<span class="badges">${badges(r)}</span><span class="score">${r.attention_score}</span></div>
-  <div class="metrics">
-   <div class="metric"><div class="mv" style="color:${(r.insider_mspr||0)>0?'var(--green)':'var(--fg-2)'}">${r.insider_mspr==null?"—":r.insider_mspr}</div><div class="ml">Insider MSPR</div></div>
-   <div class="metric"><div class="mv">${r.analyst_buy_pct==null?"—":Math.round(r.analyst_buy_pct*100)+"%"}</div><div class="ml">Analyst Buy</div></div>
-   <div class="metric"><div class="mv">${r.analyst_upgrade_mom==null?"—":(r.analyst_upgrade_mom>0?"+":"")+r.analyst_upgrade_mom}</div><div class="ml">Upgrade Mom.</div></div>
-   <div class="metric"><div class="mv">${r.retail_bull_pct==null?"—":Math.round(r.retail_bull_pct*100)+"%"}</div><div class="ml">Retail Bull (${r.retail_msgs||0})</div></div>
-  </div>${r.why?`<div class="why">${esc(r.why)}</div>`:""}</div>`;}
-function render(d){
-  if(!d){document.getElementById("content").innerHTML='<div class="loading">Could not load attention data. <a href="javascript:location.reload()">Retry</a></div>';return;}
-  const gen=d.generated_at?new Date(d.generated_at):null;
-  document.getElementById("meta").innerHTML=`${d.n_tickers||0} names · ${d.n_with_insider||0} w/ insider data · ${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}`;
-  let h="";
-  h+=`<div class="sec"><span class="dot or"></span><h2>🔥 Top Pre-Pump Attention <span class="sub">insider + analyst + retail, fused</span></h2></div>`;
-  const top=d.top_attention||[];
-  h+= top.length? top.slice(0,14).map(card).join("") : '<div class="empty">No attention signals yet.</div>';
-  const ib=d.insider_buying||[], au=d.analyst_upgrading||[];
-  h+=`<div class="sec"><span class="dot gr"></span><h2>👤 Insider Buying <span class="sub">informed money accumulating (Finnhub MSPR ≥ 30)</span></h2></div>`;
-  h+= ib.length?`<div class="chips">`+ib.map(r=>`<span class="chip" style="border-color:var(--green-dim)">${esc(r.symbol)} <span style="color:var(--green)">${r.insider_mspr}</span></span>`).join("")+`</div>`:'<div class="empty">No strong insider buying in the tracked set right now.</div>';
-  h+=`<div class="sec"><span class="dot cy"></span><h2>📈 Analyst Upgrades Accelerating</h2></div>`;
-  h+= au.length?`<div class="chips">`+au.map(r=>`<span class="chip" style="border-color:var(--cyan-dim)">${esc(r.symbol)} <span style="color:var(--cyan)">+${r.analyst_upgrade_mom}</span></span>`).join("")+`</div>`:'<div class="empty">No accelerating upgrades in the tracked set.</div>';
-  const tr=d.stocktwits_trending||[];
-  h+=`<div class="sec"><span class="dot or"></span><h2>🔥 Trending on Stocktwits <span class="sub">retail attention surge</span></h2></div>`;
-  h+= tr.length?`<div class="chips">`+tr.slice(0,20).map(t=>`<span class="chip">${esc(t)}</span>`).join("")+`</div>`:'<div class="empty">Trending list unavailable.</div>';
-  const tp=d.theme_pulse||[];
-  h+=`<div class="sec"><span class="dot vi"></span><h2>📡 Theme Attention <span class="sub">Wikipedia pageview momentum — narrative heat</span></h2></div>`;
-  h+= tp.length?`<div class="themes">`+tp.map(t=>{const up=(t.attention_trend_pct||0)>=0;return `<div class="th"><span class="nm">${esc(t.theme)}</span><span class="vw">${(t.views_recent||0).toLocaleString()}/wk</span><span class="tr" style="color:${up?'var(--green)':'var(--red)'}">${t.attention_trend_pct==null?"—":(up?"+":"")+t.attention_trend_pct+"%"}</span></div>`;}).join("")+`</div>`:'<div class="empty">Theme attention populating on next run.</div>';
-  document.getElementById("content").innerHTML=h;
-  document.getElementById("note").innerHTML=`<b style="color:var(--fg-2)">How to read this.</b> <b style="color:var(--green)">Insider MSPR</b> is Finnhub's monthly share-purchase ratio (positive = insiders net buying). <b style="color:var(--cyan)">Upgrade momentum</b> is the month-over-month change in analyst buy-lean. <b style="color:var(--violet)">Retail</b> is Stocktwits bullish %. <b style="color:var(--orange)">Theme attention</b> is Wikipedia pageview trend (recent 7d vs prior 14d). These feed the re-rating radar as kickers. Sources: <code>Finnhub</code>, <code>Stocktwits</code>, <code>Wikipedia pageviews</code> (all free). <b style="color:var(--orange)">Caveat:</b> insider/analyst data lags filings; retail attention can be a pump-in-progress (late, not early). Confirmation layer, not a standalone trigger. Research only, not investment advice.`;
+const FAM={insider:"👤 insider",options:"🐋 options",funds:"🏦 funds",darkpool:"🌑 dark pool",congress:"🏛️ congress",analyst:"📈 analyst"};
+const STAGE_META={
+ STEALTH:{label:"🥷 Stealth Accumulation",cls:"st-stealth",dot:"gr",blurb:"Smart money accumulating while the crowd is demonstrably quiet — the asymmetric, pre-discovery setup. Attention has not arrived yet."},
+ IGNITING:{label:"🔥 Igniting",cls:"st-ignite",dot:"or",blurb:"Informed accumulation AND attention both firing — confirmation, and still reasonably early in the cycle."},
+ UNDISCOVERED:{label:"🛰️ Undiscovered",cls:"st-undis",dot:"cy",blurb:"A smart-money footprint with no retail/search read resolved yet — watch for attention to follow."},
+ CROWDED:{label:"⚠️ Crowded / Late",cls:"st-crowd",dot:"am",blurb:"Loud attention with no smart-money confirmation. Attention leads ~2 weeks then mean-reverts — shown to be avoided, not chased."},
+ DISTRIBUTION:{label:"🚫 Distribution",cls:"st-dist",dot:"rd",blurb:"Insiders or funds selling into the hype. Avoid."}
+};
+function divBar(r){
+  return `<div class="dbar">
+    <div class="drow"><span class="dlab">🟢 smart</span><div class="dtrack"><div class="dfill smart" style="width:${Math.max(0,Math.min(100,r.smart_score))}%"></div></div><span class="dval" style="color:var(--green)">${r.smart_score}</span></div>
+    <div class="drow"><span class="dlab">🟣 crowd</span><div class="dtrack"><div class="dfill crowd" style="width:${Math.max(0,Math.min(100,r.crowd_score))}%"></div></div><span class="dval" style="color:var(--violet)">${r.crowd_score}</span></div>
+  </div>`;
 }
-load("data/attention-signals.json").then(render);
+function card(r){
+  const m=STAGE_META[r.stage]||{cls:"",label:r.stage};
+  const fam=(r.families_firing||[]).map(f=>`<span class="fchip ${f}">${FAM[f]||f}</span>`).join("");
+  const d=r.divergence;
+  return `<div class="card ${m.cls}">
+    <div class="top"><span class="sym">${esc(r.symbol)}</span>${r.layer?`<span class="layer">${esc(r.layer)}</span>`:""}<span class="stage ${m.cls}">${m.label}</span><span class="conf">⚙ ${r.confluence_smart}</span><span class="divv ${d>=0?"pos":"neg"}">${d>=0?"+":""}${d}</span></div>
+    ${divBar(r)}
+    ${fam?`<div class="fams">${fam}</div>`:""}
+    ${r.why?`<div class="why">${esc(r.why)}</div>`:""}
+  </div>`;
+}
+function stageSection(stage,rows,cap){
+  const m=STAGE_META[stage];
+  let h=`<div class="sec"><span class="dot ${m.dot}"></span><h2>${m.label}</h2><span class="cnt">${rows.length} name${rows.length===1?"":"s"}</span></div><p class="blurb">${m.blurb}</p>`;
+  h+= rows.length?`<div class="grid">${rows.slice(0,cap).map(card).join("")}</div>`:`<div class="empty">None in this stage right now.</div>`;
+  return h;
+}
+function panel(title,sub,inner){return `<div class="panel"><h3>${title} ${sub?`<span class="s">${sub}</span>`:""}</h3>${inner}</div>`;}
+function chipList(rows){return rows.length?`<div class="chips">${rows.join("")}</div>`:`<div class="empty">Nothing qualifying right now.</div>`;}
+
+function render(d,sa){
+  const c=document.getElementById("content");
+  if(!d){c.innerHTML='<div class="loading">Could not load attention data. <a href="javascript:location.reload()">Retry</a></div>';return;}
+  const gen=d.generated_at?new Date(d.generated_at):null, cc=d.counts||{};
+  document.getElementById("meta").innerHTML=`${d.n_scored||0} names scored · 🥷${cc.STEALTH||0} 🔥${cc.IGNITING||0} ⚠️${cc.CROWDED||0} 🚫${cc.DISTRIBUTION||0} · ${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}`;
+  const mc=d.market_context||{};
+  let cx="";
+  if(mc.gamma_regime)cx+=`<span class="c">dealer gamma: <b>${esc(mc.gamma_regime)}</b></span>`;
+  if(mc.vix!=null)cx+=`<span class="c">VIX: <b>${mc.vix}</b></span>`;
+  if(mc.news_tone_spy!=null)cx+=`<span class="c">news tone (SPY): <b>${mc.news_tone_spy}</b></span>`;
+  document.getElementById("ctx").innerHTML=cx;
+
+  const st=d.stages||{};
+  let h="";
+  h+=stageSection("STEALTH",st.stealth||[],24);
+  h+=stageSection("IGNITING",st.igniting||[],18);
+  h+=stageSection("UNDISCOVERED",st.undiscovered||[],12);
+  h+=stageSection("CROWDED",st.crowded||[],14);
+  h+=stageSection("DISTRIBUTION",st.distribution||[],14);
+
+  const P=d.panels||{};
+  h+=`<div class="sec"><span class="dot cy"></span><h2>🔬 Signal Layers <span class="cnt">the raw informed + attention feeds</span></h2></div><div class="panels">`;
+  h+=panel("🐋 Unusual Options Flow","sweeps / call-vol surge / Vol&gt;OI",
+    chipList((P.unusual_options||[]).slice(0,16).map(o=>`<span class="chip" style="border-color:var(--cyan-dim)">${esc(o.symbol)} <span class="v">${o.tier?esc(String(o.tier).replace("TIER_","").replace(/_/g," ").toLowerCase()):""} · ${o.norm}</span></span>`)));
+  h+=panel("👥 Insider Cluster Buys","multiple insiders, Form 4",
+    chipList((P.insider_clusters||[]).slice(0,16).map(i=>`<span class="chip" style="border-color:var(--green-dim)">${esc(i.ticker)} <span class="v">${i.n_insiders}👤${i.has_ceo?" CEO":""}</span></span>`)));
+  h+=panel("🏦 Smart-Money Clusters","13F fund accumulation",
+    chipList((P.smart_money||[]).slice(0,16).map(s=>`<span class="chip" style="border-color:var(--green-dim)">${esc(s.ticker)} <span class="v">${s.score}${(s.legend_buyers&&s.legend_buyers.length)?" ★":""}</span></span>`)));
+  h+=panel("🌑 Dark-Pool Accumulation","off-exchange (FINRA ATS)",
+    chipList((P.dark_pool_accumulation||[]).slice(0,16).map(p=>`<span class="chip" style="border-color:var(--cyan-dim)">${esc(p.ticker)} <span class="v">${p.dark_pool_pct}%</span></span>`)));
+  h+=panel("🏛️ Congress Buys","STOCK Act disclosures (90d)",
+    chipList((P.congress_buys||[]).slice(0,16).map(g=>`<span class="chip" style="border-color:var(--violet-dim)">${esc(g.ticker)}${g.n_buys>1?` <span class="v">×${g.n_buys}</span>`:""}</span>`)));
+  const spikes=(sa&&sa.top_attention_spikes)||[];
+  h+=panel("🔎 Search Attention Spikes","Wikipedia pageview velocity (7d vs 21d)",
+    chipList(spikes.slice(0,16).map(s=>`<span class="chip">${esc(s.ticker)} <span class="v" style="color:${s.trend_pct>=0?'var(--green)':'var(--red)'}">${s.trend_pct>=0?"+":""}${s.trend_pct}%</span></span>`)));
+  const tp=P.theme_attention||[];
+  h+=panel("📡 Theme Attention","Wikipedia narrative heat",
+    tp.length?`<div class="themes">`+tp.map(t=>{const up=(t.attention_trend_pct||0)>=0;return `<div class="th"><span class="nm">${esc(t.theme)}</span><span class="vw">${(t.views_recent||0).toLocaleString()}/wk</span><span class="tr" style="color:${up?'var(--green)':'var(--red)'}">${t.attention_trend_pct==null?"—":(up?"+":"")+t.attention_trend_pct+"%"}</span></div>`;}).join("")+`</div>`:`<div class="empty">populating…</div>`);
+  h+=panel("🗣️ Trending on Stocktwits","retail chatter surge",
+    chipList((P.stocktwits_trending||[]).slice(0,24).map(t=>`<span class="chip">${esc(t)}</span>`)));
+  h+=`</div>`;
+
+  c.innerHTML=h;
+  document.getElementById("note").innerHTML=`<b>How to read this.</b> Each name is scored 0–100 on an <b style="color:var(--green)">informed/smart</b> axis (insider clusters, unusual options flow, 13F + smart-money clusters, dark-pool accumulation, Congress buys, analyst upgrade clusters) and a <b style="color:var(--violet)">crowd/attention</b> axis (Stocktwits retail, Wikipedia search velocity, theme heat). <b style="color:var(--green)">Stealth</b> = smart firing while crowd is quiet (the asymmetric edge); <b style="color:var(--orange)">Igniting</b> = both firing; <b style="color:var(--amber)">Crowded</b> = attention with no smart confirmation; <b style="color:var(--red)">Distribution</b> = informed selling into hype. <b>⚙ N</b> = independent informed families confirming — two or more is the institutional bar. Attention leads price ~2 weeks then mean-reverts (Da/Engelberg/Gao), so Stealth/Igniting are the constructive stages and Crowded is shown to be avoided. Sources: <code>Form 4</code>, <code>options-flow</code>, <code>13F</code>, <code>FINRA dark-pool</code>, <code>Quiver Congress</code>, <code>Finnhub</code>, <code>Stocktwits</code>, <code>Wikipedia</code>. Research only, not investment advice.`;
+}
+Promise.all([load("data/attention-confluence.json"),load("data/search-attention.json")]).then(([d,sa])=>render(d,sa));
 setTimeout(()=>location.reload(),900000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
