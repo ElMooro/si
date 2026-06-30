@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -457,6 +457,71 @@ def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
                      "not a forecast.")}
 
 
+def liquidity_backtest(usd_dates, usd_z, spx, cost_bps=2):
+    """Honest backtest of a simple, pre-specified liquidity-timing rule (long SPX when the
+    net-liq impulse ≥ 0, cash otherwise, 1-day signal lag, net of cost) vs buy-and-hold.
+    Reports equity curves + risk stats. Either it earns its keep or it doesn't."""
+    if not usd_dates or not spx or len(spx) < 500:
+        return None
+    zmap = dict(zip(usd_dates, usd_z))
+    za = _asof(zmap)
+    sd = sorted(spx)
+    cost = cost_bps / 10000.0
+    eq_s = eq_b = 1.0
+    peak_s = peak_b = 1.0
+    maxdd_s = maxdd_b = 0.0
+    prev_pos = 0
+    switches = in_mkt = ndays = 0
+    curve, daily_s, daily_b = [], [], []
+    for i in range(1, len(sd)):
+        p0, p1 = spx[sd[i - 1]], spx[sd[i]]
+        if not p0 or not p1:
+            continue
+        ret = p1 / p0 - 1
+        z_prior = za(sd[i - 1])
+        pos = 1 if (z_prior is not None and z_prior >= 0) else 0
+        c = cost if pos != prev_pos else 0.0
+        if pos != prev_pos:
+            switches += 1
+        prev_pos = pos
+        eq_s *= (1 + pos * ret - c)
+        eq_b *= (1 + ret)
+        peak_s = max(peak_s, eq_s); maxdd_s = min(maxdd_s, eq_s / peak_s - 1)
+        peak_b = max(peak_b, eq_b); maxdd_b = min(maxdd_b, eq_b / peak_b - 1)
+        in_mkt += pos; ndays += 1
+        daily_s.append(pos * ret); daily_b.append(ret)
+        if i % 5 == 0:
+            curve.append({"date": sd[i], "strat": round(eq_s, 3), "bh": round(eq_b, 3)})
+    if ndays < 250:
+        return None
+    yrs = ndays / 252.0
+
+    def cagr(eq):
+        return round((eq ** (1 / yrs) - 1) * 100, 1) if yrs > 0 and eq > 0 else 0.0
+
+    def sharpe(rets):
+        if len(rets) < 30:
+            return 0.0
+        s = stdev(rets) * (252 ** 0.5)
+        return round((mean(rets) * 252) / s, 2) if s else 0.0
+    sh_s, sh_b = sharpe(daily_s), sharpe(daily_b)
+    return {"start": sd[0], "end": sd[-1], "years": round(yrs, 1),
+            "strategy": {"name": "Long SPX when net-liq impulse ≥ 0, else cash",
+                         "total_return_pct": round((eq_s - 1) * 100, 1), "cagr_pct": cagr(eq_s),
+                         "sharpe": sh_s, "max_drawdown_pct": round(maxdd_s * 100, 1),
+                         "time_in_market_pct": round(in_mkt / ndays * 100, 1), "switches": switches},
+            "buy_hold": {"name": "Buy & hold SPX", "total_return_pct": round((eq_b - 1) * 100, 1),
+                         "cagr_pct": cagr(eq_b), "sharpe": sh_b, "max_drawdown_pct": round(maxdd_b * 100, 1),
+                         "time_in_market_pct": 100.0, "switches": 0},
+            "curve": curve,
+            "verdict": ("Liquidity timing beat buy-and-hold on risk-adjusted return (higher Sharpe)" if sh_s > sh_b
+                        else "Liquidity timing did NOT beat buy-and-hold — staying invested won the melt-up"),
+            "edge_on_drawdown": maxdd_s > maxdd_b,
+            "note": (f"Simple pre-specified rule · 1-day signal lag · {cost_bps}bp per switch. In-sample test on "
+                     "the same impulse series — illustrative of whether liquidity timing adds value, not a live "
+                     "track record.")}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -709,6 +774,12 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[analogs] {str(e)[:80]}")
         analogs = None
+    # ── Liquidity-timed backtest vs buy-and-hold ──
+    try:
+        backtest = liquidity_backtest(usd_dates, usd_z, spx)
+    except Exception as e:
+        print(f"[backtest] {str(e)[:80]}")
+        backtest = None
 
     # ── Dollar shortage / cross-currency strain (offshore USD funding) ──
     def _layer_metric(edp_doc, layer, mid):
@@ -933,7 +1004,7 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
-           "analogs": analogs,
+           "analogs": analogs, "backtest": backtest,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
            "dollar": dollar, "dollar_shortage": dollar_shortage,
