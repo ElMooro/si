@@ -1,13 +1,15 @@
-page bytes: 28271
-  [OK] SVG speedometer (speedo fn)
-  [OK] ghost projection needle
-  [OK] trajectory panel
-  [OK] dollar shortage section
-  [OK] fails-to-deliver/receive
-  [OK] swap lines / backstops
-  [OK] flow divergence bars (flowBars)
-  [OK] dash-for-cash wording present
-  feed v1.3.0 · composite 48.0 NEUTRAL
-  trajectory: TIGHTENING AHEAD (vote -4)
-  dollar_shortage CALM · fails CALM (FtD 95.13/FtR 103.63) · flow RISK_SEEKING
-DONE 2615
+### repo-lending ###
+  composite_leverage_stress: 25.4 regime: ABUNDANT_LIQUIDITY
+  margin_debt: {"score": 10, "level_billions": 622.199, "level_date": "2026-01-01", "market_cap_trillions": 70.68, "pct_of_market_cap": 0.88, "yoy_growth_pct": 30.48, "danger_zone": false, "interpretation": "Below average leverage"}
+  repo: {"score": 61.2, "components": {"rrp_score": 95, "rrp_billions": 0.0035459999999999997, "sofr_iorb_score": 5, "sofr_iorb_spread_bps": -3.0}}
+  securities_lending: {"score": 10, "components": {"n_high_utilization": 0, "top_high_util": []}}
+
+### dealer-survey ###
+  top keys: ['generated_at', 'latest_survey', 'history', 'fetch_duration_s', 'last_check', 'last_check_status']
+  latest_survey type: dict
+    source_url: https://www.newyorkfed.org/medialibrary/media/markets/survey/2020/december-2020-survey-of-primary-dealers.pdf
+    fomc_date: None
+    discovered_at: 2026-04-27T18:43:43+00:00
+    note: PDF URL recorded. Detailed expectation extraction requires PDF parsing layer (deferred).
+  last_check_status: no_new_survey
+DONE 2616
