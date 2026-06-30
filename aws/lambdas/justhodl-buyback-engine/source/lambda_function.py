@@ -311,11 +311,14 @@ def lambda_handler(event=None, context=None):
                                      lambda x: (x.get("auth_pct_mcap") or 0, x["buyback_score"])),
         "fresh_authorizations": top(lambda x: x.get("auth_pct_mcap"),
                                     lambda x: (x.get("auth_pct_mcap") or 0)),
-        "net_shrinkers": top(lambda x: (x["share_count_reduction_yoy"] or 0) >= 1 and x["net_buyback_ttm"] > 0,
+        "net_shrinkers": top(lambda x: (x["share_count_reduction_yoy"] or 0) >= 1
+                             and x["net_buyback_ttm"] > 0 and not x.get("net_issuer"),
                              lambda x: x["share_count_reduction_yoy"] or 0),
-        "high_shareholder_yield": top(lambda x: x["shareholder_yield"] >= 3,
+        "high_shareholder_yield": top(lambda x: x["shareholder_yield"] >= 3
+                                      and x["net_buyback_yield"] > 0.5 and not x.get("net_issuer"),
                                       lambda x: x["shareholder_yield"]),
-        "cheap_repurchasers": top(lambda x: x["cheap"] and (x["active_execution"] or x["net_buyback_ttm"] > 0),
+        "cheap_repurchasers": top(lambda x: x["cheap"] and not x.get("net_issuer")
+                                  and (x["active_execution"] or x["net_buyback_ttm"] > 0),
                                   lambda x: x["buyback_score"]),
         "dilution_offset_warnings": top(lambda x: x["class"] == "⚠️ DILUTION_OFFSET",
                                         lambda x: x["gross_buyback_yield"]),
