@@ -50,6 +50,14 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 .quote{border-left:3px solid var(--violet);padding:6px 12px;margin:12px 0;color:var(--fg2);font-style:italic;font-size:12.5px}.quote b{color:var(--violet);font-style:normal}
 .conv{color:var(--amber);font-family:var(--mono);letter-spacing:2px}
 .engchips{display:flex;gap:5px;flex-wrap:wrap}
+.dnaBanner{background:linear-gradient(135deg,rgba(167,139,250,.13),rgba(34,211,238,.07));border:1px solid #a78bfa44;border-radius:12px;padding:12px 14px;margin:14px 0}
+.dnaTop{display:flex;align-items:center;gap:10px}.dnaArch{font-size:16px;font-weight:800;color:var(--violet)}.dnaFit{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--cyan);font-weight:700}
+.dnaAnchor{font-size:11.5px;color:var(--fg2);margin-top:6px;line-height:1.5}.dnaEx{font-size:11px;color:var(--fg3);margin-top:3px;font-style:italic}
+.dstrip{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.ds{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--fg2)}
+.ds.hi{color:var(--green);border-color:#34d39955}.ds.am{color:var(--amber);border-color:#fbbf2455}.ds.lo{color:var(--red);border-color:#ff557755}.ds.cy{color:var(--cyan)}
+.btarget{background:rgba(52,211,153,.08);border-left:3px solid var(--green);padding:8px 12px;margin:9px 0;font-size:13px;color:var(--fg-1);line-height:1.55}.btarget b{color:var(--green)}
+.smbox{font-size:12.5px;line-height:1.9;color:var(--fg2)}.smbox b{color:var(--fg-1)}.smbox>div{padding:1px 0}
 </style></head><body>
 <header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
 <nav><a href="/">Desk</a><a href="/ignition.html">Ignition</a><a href="/upside-radar.html" class="on">🚀 Upside Radar</a><a href="/ma-reversion.html">MA Engine</a><a href="/skill.html">Skill</a></nav></header>
@@ -67,6 +75,8 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 <span data-p="confluence">🧩 Confluence</span><span data-p="baggers">🐋 Baggers</span><span data-p="momentum">📈 Momentum</span><span data-p="pead">💥 PEAD</span>
 <span class="grp">SMART MONEY</span>
 <span data-p="accum">💰 Accumulation</span><span data-p="squeeze">🔥 Squeeze</span><span data-p="revisions">📊 Revisions</span><span data-p="emergence">🌱 Emergence</span><span data-p="ranked">🎯 Top-ranked</span>
+<span class="grp">RANK</span>
+<span data-p="mbscore">🏆 Multibagger Score</span>
 </div>
 <div id="pane"></div>
 <div class="note" id="note"></div>
@@ -139,7 +149,10 @@ function render(){
      subh('Master ranker — names with the most independent systems firing')+
      tbl((mr.top_tickers||[]).slice(0,25),[[r=>TK(r.ticker),'Ticker',null,1],[r=>n1(r.score),'Score',r=>r.score>=80?'hi':''],[r=>r.n_systems,'#Systems',r=>r.n_systems>=3?'hi':''],[r=>(r.systems||[]).slice(0,3).map(s=>`<span class="tg">${esc(typeof s==='object'?(s.name||s.system||''):s)}</span>`).join(''),'Systems',null,1]])+
      subh('Best setups — unified conviction (risk-regime adjusted)','vio')+
-     tbl((bs.top_setups||[]).slice(0,20),[[r=>TK(r.ticker),'Ticker',null,1],[r=>n1(r.conviction),'Conviction',r=>r.conviction>=70?'hi':''],[r=>esc((r.why||r.name||'').slice(0,60)),'Thesis',null,1]])
+     tbl((bs.top_setups||[]).slice(0,20),[[r=>TK(r.ticker),'Ticker',null,1],[r=>n1(r.conviction),'Conviction',r=>r.conviction>=70?'hi':''],[r=>esc((r.why||r.name||'').slice(0,60)),'Thesis',null,1]]),
+   mbscore:(()=>{const TH=(X.th&&X.th.theses)||{};const arr=Object.values(TH).sort((a,b)=>(b.discovery_score||0)-(a.discovery_score||0)).slice(0,45);
+     return subh('Multibagger Score — composite rank: framework fit × confluence × smart money × DNA. Click any ticker for the full thesis.')+
+     tbl(arr,[[r=>TK(r.ticker),'Ticker',null,1],[r=>r.discovery_score,'Score',()=>'hi'],[r=>r.dna?esc(r.dna.archetype):'—','DNA archetype',null,1],[r=>r.dna?r.dna.fit_pct+'%':'—','Fit',r=>r.dna&&r.dna.fit_pct>=70?'hi':''],[r=>r.canslim.score,'CANSLIM',r=>r.canslim.score>=60?'hi':''],[r=>r.sqglp.score,'SQGLP',r=>r.sqglp.score>=60?'hi':''],[r=>(r.smart_money&&r.smart_money.score)||'—','🐋',r=>r.smart_money&&r.smart_money.score>=40?'hi':''],[r=>r.ai?'✓':'','AI',()=>'cy']]);})()
   };
   document.getElementById('pane').innerHTML=M[P]||'<div class="loading">—</div>';
 }
@@ -182,12 +195,22 @@ function openThesis(tk){
   let h=`<div class="mhead"><h2>${esc(tk)}</h2>${d.name?`<span class="nm">${esc(d.name)}</span>`:''}${d.sector?`<span class="nm">· ${esc(d.sector)}</span>`:''}<span class="rg">market: ${esc(d.market_regime||'—')}</span></div>`;
   const pl=[];if(m.px)pl.push('$'+m.px);if(m.dist_hi_pct!=null)pl.push(m.dist_hi_pct+'% to 52w-hi');if(m.ret63!=null)pl.push('3m '+(m.ret63>0?'+':'')+m.ret63+'%');if(m.ret252!=null)pl.push('12m '+(m.ret252>0?'+':'')+m.ret252+'%');if(m.rev_growth_pct!=null)pl.push('rev '+m.rev_growth_pct+'%');if(m.gross_margin_now!=null)pl.push('GM '+m.gross_margin_now+'%');if(m.mcap_bn!=null)pl.push('$'+m.mcap_bn+'B');
   if(pl.length)h+=`<div style="font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin-top:8px">${esc(pl.join('  ·  '))}</div>`;
+  const dna=d.dna||{}, val=d.valuation||{}, sm=d.smart_money||{}, cat=d.catalyst, pat=d.pattern;
+  if(dna.archetype)h+=`<div class="dnaBanner"><div class="dnaTop"><span class="dnaArch">🧬 ${esc(dna.archetype)}</span><span class="dnaFit">${dna.fit_pct}% DNA match</span></div><div class="dnaAnchor">${esc(dna.anchor||'')}</div>${dna.examples?`<div class="dnaEx">profile rhymes with ${esc(dna.examples)}</div>`:''}</div>`;
+  const strip=[];
+  if(val.verdict)strip.push(`<span class="ds ${val.verdict.indexOf('attractive')>=0?'hi':val.verdict.indexOf('rich')>=0?'lo':'am'}">💲 ${esc(val.verdict)}${val.ps!=null?' · P/S '+val.ps:''}${val.fcf_yield_pct!=null?' · FCF '+val.fcf_yield_pct+'%':''}</span>`);
+  if(sm.score>0)strip.push(`<span class="ds ${sm.score>=40?'hi':'am'}">🐋 smart money ${sm.score}/100</span>`);
+  if(cat&&cat.days_to_earnings!=null)strip.push(`<span class="ds ${cat.days_to_earnings<=14?'am':''}">📅 earnings ${cat.days_to_earnings}d</span>`);
+  if(pat&&pat.pattern)strip.push(`<span class="ds cy">📐 ${esc(pat.pattern.replace(/_/g,' '))}${pat.status?' '+esc(String(pat.status).toLowerCase()):''}${pat.quality?' q'+pat.quality:''}</span>`);
+  if(strip.length)h+=`<div class="dstrip">${strip.join('')}</div>`;
   h+=`<div class="scores">${fwScore('CAN SLIM',cs.author||"O'Neil",d.canslim.score,d.canslim.checks,cs.legend,true)}${fwScore('100-Bagger · SQGLP',sq.author||'Mayer',d.sqglp.score,d.sqglp.checks,sq.legend,true)}${fwScore('Lynch Tenbagger',ly.author||'Lynch',d.lynch.score,d.lynch.checks,ly.legend,false)}</div>`;
   if(ai){
     h+=`<div class="msec">🤖 AI thesis — why this could boom</div><div class="mai">`;
     if(ai.headline)h+=`<div class="hl">${esc(ai.headline)}</div>`;
     if(ai.why_boom)h+=`<p style="margin:6px 0">${esc(ai.why_boom)}</p>`;
     if(ai.multibagger_case)h+=`<p style="margin:6px 0;color:var(--fg2)"><b style="color:var(--cyan)">Multibagger case:</b> ${esc(ai.multibagger_case)}</p>`;
+    if(ai.bull_target)h+=`<div class="btarget"><b>Bull case:</b> ${esc(ai.bull_target)}</div>`;
+    if(ai.smart_money_read)h+=`<p style="margin:6px 0;font-size:12.5px;color:var(--fg2)"><b style="color:var(--violet)">Smart money:</b> ${esc(ai.smart_money_read)}</p>`;
     h+=`</div>`;
     if(ai.catalysts&&ai.catalysts.length)h+=`<div class="msec">Catalysts</div><ul class="mlist cat">${ai.catalysts.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`;
     if(ai.risks&&ai.risks.length)h+=`<div class="msec">Risks</div><ul class="mlist risk">${ai.risks.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`;
@@ -196,6 +219,16 @@ function openThesis(tk){
     if(ai.best_framework||cv)h+=`<div style="font-family:var(--mono);font-size:12px;margin-top:8px">Best fit: <b class="cy">${esc(ai.best_framework||'—')}</b> · conviction <span class="conv">${'★'.repeat(cv)}${'☆'.repeat(Math.max(0,5-cv))}</span></div>`;
   } else {
     h+=`<div class="msec">Why it's flagged</div><div class="mai" style="font-size:13px;color:var(--fg2)">${esc(d.why)}</div><div style="font-size:11px;color:var(--fg3);margin-top:6px">AI narrative covers the top ${(X.th&&X.th.n_ai)||14} ranked names; ${esc(tk)} has its full framework scorecard above.</div>`;
+  }
+  if(sm&&(sm.n_funds||sm.insider||sm.ark_funds||sm.congress||(sm.famous_funds&&sm.famous_funds.length))){
+    h+=`<div class="msec">🐋 Smart money — who's positioning</div><div class="smbox">`;
+    if(sm.n_funds)h+=`<div>📊 <b>${sm.n_funds}</b> institutions holding${sm.n_adding?` · ${sm.n_adding} adding`:''}${sm.n_new?` · ${sm.n_new} opened new`:''}${sm.cluster_flag?` · <span class="cy">${esc(String(sm.cluster_flag).replace(/_/g,' '))}</span>`:''}</div>`;
+    if(sm.famous_funds&&sm.famous_funds.length)h+=`<div>🏛️ Notable holders: ${sm.famous_funds.map(f=>`<span class="tg">${esc(f)}</span>`).join(' ')}</div>`;
+    if(sm.insider)h+=`<div>👤 <b>${sm.insider.n_insiders}</b> insiders bought${sm.insider.value_usd?` ($${(sm.insider.value_usd/1e6).toFixed(2)}M)`:''}${sm.insider.last_buy?` · last ${esc(sm.insider.last_buy)}`:''}</div>`;
+    if(sm.insider_thesis)h+=`<div style="color:var(--fg3);font-size:11.5px">${esc(sm.insider_thesis)}</div>`;
+    if(sm.ark_funds)h+=`<div>🚀 Held across <b>${sm.ark_funds}</b> ARK fund(s)</div>`;
+    if(sm.congress)h+=`<div>🏛️ Recent Congressional trading activity flagged</div>`;
+    h+=`</div>`;
   }
   if(d.engines_firing&&d.engines_firing.length)h+=`<div class="msec">Engines confirming (${d.n_engines})</div><div class="engchips">${d.engines_firing.map(e=>`<span class="tg">${esc(e.replace(/_/g,' '))}</span>`).join('')}</div>`;
   const bf=ai&&ai.best_framework, q=bf==='100-bagger (SQGLP)'?sq:bf==='Lynch tenbagger'?ly:cs;
