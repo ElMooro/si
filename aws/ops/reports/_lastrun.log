@@ -1,13 +1,11 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2593_deploy_buyback_engine.py", line 13, in <module>
-    lam.update_function_configuration(FunctionName=FN, Timeout=600, MemorySize=512, Environment=ENV); time.sleep(5)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-buyback-engine is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
+code synced
+async invoked; polling S3 (FMP batch ~3min)...
+OUTPUT v 1.0.0 scored 183 fmp_ok 183
+counts: {'🚀 FRESH_LARGE_AUTH': 8, '💪 NET_SHRINKER': 40, '💰 HIGH_SHAREHOLDER_YIELD': 13, '🎯 CHEAP_REPURCHASER': 7, '⚠️ DILUTION_OFFSET': 17, 'ACTIVE': 54, 'NEUTRAL': 44}
+  high_conviction_pumps (8): [('DAKT', 'sc40.6', 'nbY2.5', 'sr-1.41', 'auth37.77'), ('ICFI', 'sc56.0', 'nbY2.88', 'sr1.43', 'auth30.9'), ('VC', 'sc48.8', 'nbY3.12', 'sr0.37', 'auth29.07'), ('LZB', 'sc58.1', 'nbY3.55', 'sr0.55', 'auth18.36')]
+  fresh_authorizations (19): [('BARK', 'sc34.3', 'nbY1.53', 'sr1.41', 'auth53.46'), ('DAKT', 'sc40.6', 'nbY2.5', 'sr-1.41', 'auth37.77'), ('ICFI', 'sc56.0', 'nbY2.88', 'sr1.43', 'auth30.9'), ('VC', 'sc48.8', 'nbY3.12', 'sr0.37', 'auth29.07')]
+  net_shrinkers (25): [('KBH', 'sc80.1', 'nbY16.97', 'sr12.06', 'auth1.93'), ('BYD', 'sc88.5', 'nbY9.6', 'sr9.81', 'authNone'), ('HCA', 'sc93.3', 'nbY8.51', 'sr9.14', 'authNone'), ('AMG', 'sc100.0', 'nbY9.94', 'sr8.22', 'authNone')]
+  high_shareholder_yield (25): [('CLSK', 'sc74.7', 'nbY20.11', 'sr4.64', 'authNone'), ('GLV', 'sc29.4', 'nbY0.71', 'sr1.44', 'authNone'), ('GLO', 'sc29.8', 'nbY0.21', 'sr1.79', 'authNone'), ('GLQ', 'sc19.3', 'nbY0.46', 'sr0.54', 'authNone')]
+  cheap_repurchasers (25): [('ADBE', 'sc100.0', 'nbY11.32', 'sr6.94', 'authNone'), ('AMG', 'sc100.0', 'nbY9.94', 'sr8.22', 'authNone'), ('BAC', 'sc100.0', 'nbY6.83', 'sr5.49', 'authNone'), ('EG', 'sc100.0', 'nbY7.24', 'sr5.66', 'authNone')]
+  dilution_offset_warnings (17): [('LPLA', 'sc3.2', 'nbY-14.15', 'sr-7.39', 'authNone'), ('CSGP', 'sc54.2', 'nbY5.15', 'sr-0.61', 'authNone'), ('HUBS', 'sc57.8', 'nbY4.98', 'sr-0.64', 'authNone'), ('CVX', 'sc34.8', 'nbY2.28', 'sr-13.5', 'authNone')]
+DONE 2594
