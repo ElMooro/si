@@ -179,10 +179,11 @@ def lambda_handler(event=None, context=None):
         }
 
     ranked = sorted(out.values(), key=lambda x: -x["discovery_score"])
-    # ── AI narrative for the top N ──
+    # ── AI narrative for the top N (parallel) ──
     n_ai = 0
     try:
         from llm_router import complete
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         SYS = ("You are an institutional growth-equity analyst in the lineage of William O'Neil (CAN SLIM), "
                "Chris Mayer (100-baggers/SQGLP) and Peter Lynch (tenbaggers). Given a quantitative dossier of "
                "live signals for ONE stock, explain crisply why it could be a multibagger and what would break "
@@ -192,7 +193,8 @@ def lambda_handler(event=None, context=None):
                "\"catalysts\":[2-3 short strings], \"risks\":[2-3 short strings], \"what_breaks_it\":str (1 sentence), "
                "\"best_framework\":\"CAN SLIM\"|\"100-bagger (SQGLP)\"|\"Lynch tenbagger\", \"conviction\":1-5}. "
                "This is research, not advice.")
-        for d in ranked[:TOP_AI]:
+
+        def gen(d):
             doss = {"ticker": d["ticker"], "name": d.get("name"), "sector": d.get("sector"),
                     "engines_firing": d["engines_firing"], "metrics": d["metrics"],
                     "canslim": d["canslim"], "sqglp": d["sqglp"], "lynch": d["lynch"],
@@ -203,10 +205,17 @@ def lambda_handler(event=None, context=None):
                 txt = (raw or "").strip()
                 if txt.startswith("```"): txt = txt.split("```")[1].replace("json", "", 1).strip()
                 i, j = txt.find("{"), txt.rfind("}")
-                d["ai"] = json.loads(txt[i:j+1]) if i >= 0 else None
-                if d["ai"]: n_ai += 1
+                return d["ticker"], (json.loads(txt[i:j+1]) if i >= 0 else None)
             except Exception as e:
                 print(f"  AI {d['ticker']} err: {str(e)[:70]}")
+                return d["ticker"], None
+
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            futs = [ex.submit(gen, d) for d in ranked[:TOP_AI]]
+            for f in as_completed(futs):
+                tk, ai = f.result()
+                if ai:
+                    out[tk]["ai"] = ai; n_ai += 1
     except Exception as e:
         print(f"[upside-thesis] LLM router unavailable: {str(e)[:80]} — deterministic theses only")
 
