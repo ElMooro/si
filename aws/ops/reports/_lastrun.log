@@ -1,18 +1,54 @@
-TIC holders: ['japan', 'china', 'uk', 'cayman_islands', 'luxembourg', 'belgium', 'switzerland', 'bahamas']
-  bahamas: {'current_b': 8.8, 'yoy_change_b': 0.4, '3mo_change_b': -0.3, 'yoy_pct': 5.0, 'status': 'STABLE', 'as_of': '2026-04-01'}
-  caribbean_banking dropped: True
 
-credit-stress YTW ratings: ['AAA', 'HY Master', 'BBB', 'IG Master', 'A', 'AA', 'BB', 'EM Corp', 'CCC', 'B']
-  IG curve: {'1-3y': 4.57, '3-5y': 4.78, '5-7y': 4.95, '7-10y': 5.22, '10-15y': 5.45, '15y+': 5.81}
+✓ cross-asset-flow-state
+   engine=cross-asset-flow-state · version=1.0 · generated_at=2026-06-30T04:04:25.985605+00:00 · headline=MILD_RISK_OFF (-14.2) | into US Equities… · risk_regime_score=-14.2 · risk_regime=MILD_RISK_OFF · posture={beta_tilt,size_mult,hedge} · asset_class_rotation=[8] · hard_assets_and_dollar={gold_20d_pct,silver_20d_pct,gold_miners_20d_pct,long_bonds_20d_pct,dol
+   asset_class_rotation[0]: asset_class=US Equities · net_flow_5d_usd=107916241007.0
+   .asset_class_rotation[0]: asset_class=US Equities · net_flow_5d_usd=107916241007.0
 
-fiat-peg: Peg stress BREAK_RISK (39.6/100). Most pressured: HKD 91.7/100 — BREAK_RISK.
+✓ gold-equity-rotation
+   engine=gold-equity-rotation · version=1.0.0 · as_of=2026-06-29T22:45:04Z · state=EQUITY_DOMINANT_ACTIVE · signal_strength=0.55 · current_metrics={spy_ratio_gld,ratio_ma50,ratio_ma200,ratio_zscore_252d,ratio_20d_pct} · regime_explanation=Equity leading, ratio z=1.22 · trade_tickets=[1] · n_tickets=1 · methodology=Gold vs equity rotation regime. 5-factor… · so
+   trade_tickets[0]: ticker=SPY · side=LONG · rationale=Building equity leadership; partial entr… · target_pct=4 · stop_pct=-2.5 · size_pct_portfolio=1.5
 
-page HTTP 200, bytes: 38690
-  ✅ fiat-peg-monitor.json
-  ✅ ICE BofA yields (YTW)
-  ✅ Currency pegs
-  ✅ ig_yield_curve_pct
-  ✅ cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd,D.fiatpeg)
-  no double-escape: True
+✓ money-flow-state
+   engine=justhodl-money-flow-state · version=1.1.0 · generated_at=2026-06-29T23:30:32.830219+00:00 · as_of=2026-06-26 · n_days=6 · n_stocks=1809 · methodology=Per-stock dollar money-flow = N-day retu… · stocks_in=[25] · stocks_out=[25] · industries_in=[15] · industries_out=[15] · sectors=[11] · institutional_sector_tilt=[5]
+   stocks_in[0]: ticker=APGE · name=Apogee Therapeutics, Inc. · sector=Healthcare · industry=Biotechnology · ret_pct=46.66 · avg_dvol_usd=2037569436 · flow_usd=950700411 · up_dvol=9684829544 · down_dvol=2363000247
 
-DONE 2552
+✓ sector-flow-state
+   engine=justhodl-sector-flow-state · version=1.1.0 · generated_at=2026-06-30T05:20:43.456723+00:00 · liquidity_regime=draining · cycle_phase=EXPANSION-MID · n_sectors=11 · overweight=[3] · underweight=[5] · sectors=[11] · methodology=Fused per-sector conviction = rotation_s… · consumers=deal-scanner, master-ranker, best-setups…
+   sectors[0]: symbol=XLV · name=Healthcare · conviction=77.4 · posture=OVERWEIGHT · quadrant=Leading · confluence=3 · drivers=[3] · rotation_score=63.4 · rs_rank_1y=54.0 · rs_slope=0.4025
+
+✓ liquidity-flow
+   generated_at=2026-06-29T22:00:33+00:00 · as_of=2026-06-24 · current={fed_balance_sheet_b,tga_b,rrp_b,net_liquidity_b} · deltas={1d,1w,1m,3m} · regime=draining · interpretation=Net liquidity has DRAINED $107B over the… · history_180d=[180] · fetch_errors=[0] · fetch_duration_s=4.8
+   history_180d[0]: date=2025-10-07 · walcl=6587.1 · tga=805.1 · rrp=4.6 · net=5777.4
+
+✓ rotation-radar
+   engine=rotation-radar · version=1.2.1 · generated_at=2026-06-29T13:45:07.930928+00:00 · crypto={available,event_study,live,diagnostics} · equity={definition,ratios} · diagnostics=[4] · scores={crypto_altseason,equity_rotation} · signals_logged=0 · ai_brief={error} · methodology=Season-starter doctrine, measured: botto… · duration_s=26.9
+✗ rotation-chain
+
+✓ capital-flow-radar
+   engine=capital-flow-radar · version=3.0.0 · generated_at=2026-06-29T22:30:07.664475+00:00 · thesis=Real dollars into/out of a sector's ETF … · dollar_tide={usd_synthetic_20d_pct,regime,fx_signals,note} · leveraged_positioning={risk_appetite,aggregate_bull_lev_inflow_5d,aggregate_bear_lev_inflow_5d,most_bullish_positioning,most_bearish_positioning} · n_comple
+   pump_setups[0]: complex=S&P 500 Broad · members_present=[11] · primary=SPY · net_flow_5d_usd=8230115454.0 · net_flow_21d_usd=26412825672.0 · net_flow_daily_usd=-14776098340.0 · pct_aum_5d=0.314 · velocity_ratio=1.31 
+
+✓ capital-flow
+   engine=capital-flow · version=1.0 · generated_at=2026-06-29T16:30:51.459617+00:00 · duration_s=1.6 · sources={13f,etf_flows,inst_change,categories} · methodology=Fuses 13F position changes (new/add/trim… · accumulating=[40] · distributing=[25] · etf_flows_in=[25] · etf_flows_out=[15] · category_rotation=[11] · by_ticker={HOOD,AXP,LVS,BSX,COST}
+   accumulating[0]: ticker=COST · name=Costco Wholesale Corporation · flow_score=35.0 · lenses=[1] · detail={inst_change} · sector=Consumer Defensive
+
+✓ correlation-breaks
+   schema_version=1.0 · generated_at=2026-06-29T22:00:33.434851+00:00 · fetch_time_sec=5.7 · elapsed_sec=7.0 · n_instruments=9 · n_dates_aligned=538 · instruments=[9] · labels={SP500,NASDAQCOM,VIXCLS,DGS10,DGS2} · diff_modes={SP500,NASDAQCOM,VIXCLS,DGS10,DGS2} · window_days=60 · history_tail_days=252 · frobenius_delta=1.668 · frobenius_delta_baseline_mean=1.537
+   top_breaking_pairs[0]: pair=[2] · labels=[2] · current_corr=0.2347 · baseline_corr=-0.2938 · delta=0.5285 · z_score=4.12 · direction=RISING (correlation strengthening) · context=
+
+✓ correlation-surface
+   version=1.0 · generated_at=2026-06-29T15:00:07.063832+00:00 · duration_s=0.68 · universe=[14] · lookbacks_trading_days=[3] · macro_regime=MACRO_ALL_ON · macro_regime_description=Cross-asset correlations elevated — sing… · avg_30d_abs_correlation=0.572 · matrices={corr_30d,corr_90d,corr_252d} · headline_pairs=[10] · regime_breaks=[2] · decouplings=[8] · all_p
+   universe[0]: ticker=SPY · category=EQUITY_BROAD · name=S&P 500
+✗ cot-tracker
+✗ cot-extremes-scanner
+
+✓ carry-surface
+   version=1.0.0 · generated_at=2026-06-30T02:49:26.218489+00:00 · elapsed_s=13.15 · n_assets=80 · financing_rate_pct=3.63 · by_class={equity,fx,fixed_income,commodity,crypto} · all_assets=[80] · cross_asset_top=[10] · cross_asset_bottom=[10] · risk_adjusted_leaders=[10] · regime_summary={equity,fx,fixed_income,commodity} · massive_fx={regime_signals,usd_synthe
+   all_assets[0]: symbol=BRLUSD · asset_class=fx · long_currency=BRL · short_currency=USD · long_rate_pct=11.96 · short_rate_pct=3.63 · carry_pct=8.33 · realized_vol_pct=None · carry_pct_z=2.19 · global_rank=1
+
+✓ etf-true-flows
+   engine=etf-true-flows · version=1.1 · generated_at=2026-06-29T15:45:18.300779+00:00 · duration_s=2.2 · n_etfs=80 · maturity=READY · method=True net creation/redemption flow = Δ(sh… · inflows=[25] · outflows=[20] · category_rotation=[11] · by_etf={IVV,VOO,QQQ,VUG,SPY}
+   inflows[0]: ticker=IVV · category=BROAD_EQUITY_US · shares_outstanding=1185793614.0 · price=741.76 · aum_est_b=879.57 · net_flow_1d_usd=0.0 · net_flow_5d_usd=48282124913.0 · net_flow_20d_usd=45241688503.0 · share
+✗ etf-fund-flows
+
+DONE 2553
