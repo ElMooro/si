@@ -1,117 +1,19 @@
+page bytes: 9867
+  MISS data-p="confluence"
+  MISS data-p="baggers"
+  MISS data-p="accum"
+  MISS data-p="squeeze"
+  MISS data-p="revisions"
+  MISS data-p="emergence"
+  MISS data-p="ranked"
+  MISS flow-confluence
+  MISS bagger-engine
+  MISS short-interest
+  MISS estimate-revisions
+  MISS CROSS-ENGINE
+  MISS SMART MONEY
+  MISS also breaking out today
+  no double-escape: True
 
-✓ upside-radar
-   engine=upside-radar · version=1.0.1 · generated_at=2026-06-30T13:35:22.778282… · state={sessions_seen,rings,fetched_this_run,warm} · scans={breakout,rs_leaders,coiled,footprint} · anatomy=[22] · signals_logged=3 · methodology=Full-market state machine:… · duration_s=5.7
-   anatomy[0]: ticker=MXL · rev_growth_pct=29.7 · share_chg_4y_pct=8.7 · gross_margin_now=56.8 · gross_margin_then=52.9 · mcap_bn=1.51 · anatomy_score=65
-
-✓ bagger-engine
-   schema_version=1.0 · method=bagger_engine_v1 · generated_at=2026-06-28T12:04:44.596021… · elapsed_s=248.3 · universe_size=1846 · candidates_in_range=1368 · n_scored=1213 · n_errors=0 · pillar_weights={small_base,revenue,roic,reinvestment} · top_100=[100] · tiers={potential_100x,potential_25x,potenti
-   top_100[0]: symbol=PPIH · name=Perma-Pipe International H… · sector=Industrials · industry=Construction · cap_bucket=micro · market_cap=224838451 · price=27.67 · bagger_score=83.7
-
-✓ cyclical-bagger
-   engine=cyclical-bagger · version=1.0 · generated_at=2026-06-29T15:00:27.150311… · duration_s=4.2 · mode=PROVISIONAL · thesis=The CYCLICAL 20x: deep los… · discriminator={killer_metric,calibration,gate} · stats={pool,evaluated,twenty_x_shape,shape_early_confirming} · full_20x_book=[0] · cyclical_only
-   cyclical_only_book[0]: ticker=IPI · cap_bucket=micro · market_cap=438319769 · cyclical_20x_score=49.0 · twenty_x_shape=True · stage=EARLY · full_20x=False · survived=True
-
-✓ 52wk-quality-breakout
-   engine=justhodl-52wk-quality-brea… · version=v1.0.0 · as_of=2026-06-29T22:00:39.208856… · state=QUIET · signal_strength=0 · summary={universe_attempted,breakouts_found,high_quality_n_4_gates,gates_definition} · picks=[0] · forward_expectations={avg_3m_return} · methodology={framework,breakout_defini
-
-✓ momentum-breakout
-   schema_version=1 · method=momentum_breakout_v1 · generated_at=2026-06-30T11:00:20+00:00 · duration_s=4.7 · spy_returns={20d,60d} · stats={n_universe,n_evaluated,n_tier_a,n_tier_b} · summary={top_25_overall,tier_a,parabolic} · all_qualifying=[142]
-   all_qualifying[0]: symbol=LRCX · score=65 · tier=TIER_B_MOMENTUM · flags=[4] · is_parabolic=False · metrics={today_close,ret_5d_pct,ret_10d_pct,ret_20d_pct}
-
-✓ edge-discovery
-   engine=justhodl-edge-discovery · version=1.0.0 · ok=True · generated_at=2026-06-28T11:00:08.370849… · thesis=Autonomous research factor… · n_candidates_tested=150 · oos_fraction=0.45 · cost_per_trade_pct=0.1 · history_days=754 · multiple_testing={n_trials,expected_max_sharpe_per_trade_null,fdr_q,fdr
-
-✓ short-interest
-   version=1.0 · generated_at=2026-06-30T12:20:56.069453… · watchlist_size=158 · n_tickers_with_data=5768 · n_tickers_finra=153 · n_tickers_polygon=153 · n_tickers_short_interest=153 · by_ticker={AAPL,MSFT,GOOGL,GOOG} · top_crowded_shorts=[15] · top_squeeze_risk=[7] · top_high_dtc=[2] · top_covering=[7
-   top_crowded_shorts[0]: ticker=WBD · latest_short_pct=2.75 · trend_pct=47.74 · recent_5d_avg=34.95 · prior_9d_avg=23.66 · days_to_cover=2.82 · si_change_pct=7.99 · short_interest=65828066
-
-✓ flow-confluence
-   engine=flow-confluence · version=1.0 · generated_at=2026-06-30T13:25:46.270566… · duration_s=2.3 · thesis=Fuses the fragmented flow/… · alpha_gate=ALPHA_NEGATIVE flow engine… · counts={names,multi_engine,short_squeeze_setup,accumulation} · multi_engine_confluence=[40] · by_posture={SHORT_SQUEEZE_SET
-   multi_engine_confluence[0]: ticker=AAPL · score=1.994 · engines=[5] · heavy_short=False · covering=True · stealth=False · tags=[6] · n_engines=5
-
-✓ capital-flow
-   engine=capital-flow · version=1.0 · generated_at=2026-06-29T16:30:51.459617… · duration_s=1.6 · sources={13f,etf_flows,inst_change,categories} · methodology=Fuses 13F position changes… · accumulating=[40] · distributing=[25] · etf_flows_in=[25] · etf_flows_out=[15] · category_rotation=[11] · by_tick
-   accumulating[0]: ticker=COST · name=Costco Wholesale Corporati… · flow_score=35.0 · lenses=[1] · detail={inst_change} · sector=Consumer Defensive
-
-✓ capital-flow-radar
-   engine=capital-flow-radar · version=3.0.0 · generated_at=2026-06-29T22:30:07.664475… · thesis=Real dollars into/out of a… · dollar_tide={usd_synthetic_20d_pct,regime,fx_signals,note} · leveraged_positioning={risk_appetite,aggregate_bull_lev_inflow_5d,aggregate_bear_lev_inflow_5d,most_bullish_positio
-   top_pick_cascade[0]: symbol=JNJ · complex=Healthcare · pump_probability=73.0 · why=sector capital inflow acce…
-
-✓ dark-pool
-   engine=justhodl-dark-pool · version=1.0.0 · ok=True · generated_at=2026-06-24T14:00:27.175061… · thesis=Per-name off-exchange accu… · latest_week=2026-06-01 · n_scored=940 · distribution={accumulation,distribution} · board=[60] · top_picks=[20] · top_accumulation=[20] · top_distribution=[12] · dark_
-   board[0]: ticker=TWLO · state=ACCUMULATION · score=89.9 · dark_pool_pct=34.44 · offex_pct=49.47 · dark_accel=0.937 · week_return_pct=-0.68 · ats_shares_wk=7178330
-
-✓ money-flow-state
-   engine=justhodl-money-flow-state · version=1.1.0 · generated_at=2026-06-29T23:30:32.830219… · as_of=2026-06-26 · n_days=6 · n_stocks=1809 · methodology=Per-stock dollar money-flo… · stocks_in=[25] · stocks_out=[25] · industries_in=[15] · industries_out=[15] · sectors=[11] · institutional_sector_tilt
-   stocks_in[0]: ticker=APGE · name=Apogee Therapeutics, Inc. · sector=Healthcare · industry=Biotechnology · ret_pct=46.66 · avg_dvol_usd=2037569436 · flow_usd=950700411 · up_dvol=9684829544
-
-✓ sector-flow-state
-   engine=justhodl-sector-flow-state · version=1.1.0 · generated_at=2026-06-30T14:20:43.607138… · liquidity_regime=draining · cycle_phase=EXPANSION-MID · n_sectors=11 · overweight=[3] · underweight=[5] · sectors=[11] · methodology=Fused per-sector convictio… · consumers=deal-scanner, master-ranke…
-   sectors[0]: symbol=XLV · name=Healthcare · conviction=77.4 · posture=OVERWEIGHT · quadrant=Leading · confluence=3 · drivers=[3] · rotation_score=63.4
-
-✓ best-setups
-   schema_version=1.0 · engine=best-setups (unified convi… · generated_at=2026-06-29T15:14:08+00:00 · duration_s=4.5 · weight_source=prior-only · bond_vol_regime={regime,composite_z,risk_posture,conviction_multiplier} · methodology=conviction = Σ(signal_stre… · stats={n_setups,strong_buy,buy,watch} · t
-   top_setups[0]: why=GILD screens as a strong b… · ticker=GILD · name=Drug Manufacturers - Gener… · conviction=71.4 · risk_regime_mult=1.03 · cycle_phase=None · cycle_flag=None · cycle_warning=None
-
-✓ master-ranker
-   schema_version=1.0 · method=master_signal_ranker_v1 · as_of=2026-06-29T20:04:09+00:00 · regime_context={regime,regime_color,composite_z,coverage_pct} · risk_regime={score,regime,posture,tells} · n_tickers_total=396 · n_macro_signals=10 · alerts={n_tier_3_plus_systems,n_tier_5_plus_systems,n_extreme_
-   top_tickers[0]: ticker=STX · score=131.8 · n_systems=3 · systems=[3] · contributions=[3] · capital_flow_mult=1.0 · risk_regime_mult=1.0 · cycle_phase=None
-
-✓ signal-board
-   schema_version=1.0 · method=cross_asset_signal_aggrega… · generated_at=2026-06-30T12:15:35.028076… · elapsed_s=48.51 · composite_signal=-0.04 · composite_posture=NEUTRAL / MIXED · n_engines=84 · n_live=79 · n_stale=5 · categories={positioning,relative value,equity valuation,macro} · deep_read={domin
-
-✓ ignition
-   engine=ignition · version=1.0.2 · generated_at=2026-06-30T10:30:47.788982… · duration_s=6.7 · universe_source=default_universe · universe_n=48 · scored_n=48 · pillar_availability={obv_div,ftd,insider,f13_init} · probes={grades,inst,insider_brief,insider_fmp} · ftd_files=[2] · signals_logged=8 · regi
-   ranks[0]: ticker=PH · obv_slope_n=938.165 · px_slope_n=5.306 · divergence=932.859 · px=963.79 · adv30=787217.0 · mkt_cap=121520800854 · name=Parker-Hannifin Corporatio…
-
-✓ sector-emergence
-   engine=justhodl-sector-emergence · version=1.0.0 · ok=True · generated_at=2026-06-29T22:00:27.533512… · thesis=Early-innings bull detecti… · regime_context=BIFURCATED · emerging_now=[4] · sectors=[11] · top_picks=[2] · legend={DECLINING,BASING,EMERGING,CONFIRMED} · note=Earlier detection is noisi… ·
-   sectors[0]: ticker=XLV · name=Health Care · emergence_score=87.6 · stage=EMERGING · rs_score=100 · trend_score=84 · breadth_score=100 · momentum_score=88
-
-✓ strategist
-   engine=justhodl-strategist · version=1.0.0 · ok=True · generated_at=2026-06-30T14:01:57.193450… · model=glm-reason · thesis=Whole-fleet interpretation… · fleet={n_feeds_read,n_fresh,consensus,risk_on_weight} · loudest_engines=[55] · contradictions=[8] · most_backed_names=[12] · interpretation={raw,p
-   most_backed_names[0]: ticker=GOOGL · trust_weight=3.0
-
-✓ theme-rotation
-   engine=theme-rotation · version=1.0.0 · generated_at=2026-06-30T13:30:38.132384… · thesis=Relative-Rotation-Graph ac… · benchmark=SPY · n_themes=38 · axis_days=75 · market_context={smallcap_bid,gamma_regime,strongest_inflow_sector,strongest_outflow_sector} · summary={rotating_in,leading,improving,we
-
-✓ rotation-radar
-   engine=rotation-radar · version=1.2.1 · generated_at=2026-06-30T13:45:08.015509… · crypto={available,event_study,live,diagnostics} · equity={definition,ratios} · diagnostics=[4] · scores={crypto_altseason,equity_rotation} · signals_logged=0 · ai_brief={error,verdict,altseason_read,equity_rotation_re
-
-✓ estimate-revisions
-   engine=justhodl-estimate-revision… · version=2.0.0 · generated_at=2026-06-30T13:40:38.324002… · status=LIVE · thesis=FMP depth (forward-EPS gro… · horizon_days=75 · n_tracked=445 · n_fmp_enriched=250 · n_with_history=445 · n_state_keys=473 · estimate_strength_leaders=[40] · upward_revisions=[9] · do
-   estimate_strength_leaders[0]: ticker=CBRS · company=Cerebras Systems · earnings_date=2026-08-19 · session=BMO · days_to_earnings=50 · fiscal_period=Q2 · fiscal_year=2026 · importance=4
-
-✓ pead-signals
-   schema_version=1 · method=pead_detector_v1 · generated_at=2026-06-30T08:00:51+00:00 · duration_s=10.2 · stats={n_universe,n_evaluated,n_no_data,n_tier_s} · summary={top_30_overall,tier_s,best_microcap,best_smallcap} · all_qualifying=[467]
-   all_qualifying[0]: symbol=GOOGL · score=100 · tier=TIER_S_DRIFTING · flags=[8] · metrics={streak,avg_beat_pct,beat_acceleration,latest_beat_pct} · history=[6]
-
-✓ options-flow
-   schema_version=1 · method=options_flow_scanner_v1 · generated_at=2026-06-29T22:00:31+00:00 · duration_s=4.2 · stats={n_universe,n_evaluated,n_no_data,n_tier_a} · summary={top_25_overall,tier_a} · all_qualifying=[14]
-   all_qualifying[0]: symbol=TSLA · score=86.0 · tier=TIER_A_BULLISH_FLOW · flags=[4] · metrics={spot,n_call_contracts,n_put_contracts,avg_cpr_recent_5d}
-
-✓ polygon-options-flow
-   generated_at=2026-06-19T17:28:18.028226… · elapsed_s=0.9 · n_scanned=30 · n_extreme=7 · n_bullish=8 · n_notable=12 · extreme_call_flow=[7] · bullish_call_flow=[8] · notable_flow=[12] · all_results=[30]
-   extreme_call_flow[0]: ticker=AMD · n_contracts=250 · call_vol=58784 · put_vol=0 · total_vol=58784 · total_oi=45860 · cv_pv_ratio=58784.0 · vol_oi_ratio=1.282
-
-✓ ark-holdings
-   schema_version=2.0 · method=ark_holdings_v2_arkfunds_i… · generated_at=2026-06-30T06:00:40+00:00 · duration_s=3.3 · data_source=https://arkfunds.io/api/v2… · prev_snapshot_at=2026-06-29T06:00:40+00:00 · funds_tracked=[6] · fund_descriptions={ARKK,ARKQ,ARKW,ARKF} · n_funds_fetched=6 · n_positions_tot
-   cross_fund_top[0]: ticker=TSLA · company=TESLA INC · total_shares=2538560 · total_value=963916617.6 · funds=[4] · max_weight=10.22 · n_funds=4
-
-✓ patent-velocity
-   schema_version=1.0 · method=patent_velocity_v1 · generated_at=2026-06-29T17:00:24+00:00 · status=needs_api_key · needs_setup=PatentsView API key not pr… · register_url=https://patentsview.org/ap… · universe_size=76 · n_results=0 · highlights={velocity_spikes,new_tech_focus,highest_scale} · all_resul
-
-✓ political-stocks
-   schema_version=1.3 · method=political_stocks_v1_s3cach… · generated_at=2026-06-30T14:00:24+00:00 · duration_s=0.5 · lookback_days=90 · data_source=https://api.quiverquant.co… · party_source=https://theunitedstates.io… · quiver_source=s3_cache_120.0h · trump_holdings={filing_date,filing_url,filing_pe
-
-✓ sec-filings-intel
-   schema_version=1.0 · method=sec_filings_intel_v1 · generated_at=2026-06-29T21:07:50+00:00 · duration_s=23.2 · lookback_days=60 · n_signal_queries=14 · n_events_total=343 · n_tickers_with_signals=251 · events_by_signal={going_concern,material_weakness,restatement,auditor_change} · signal_definitions=
-   all_tickers[0]: ticker=SGMO · name=SANGAMO THERAPEUTICS, INC · cik=0001001233 · events=[3] · score=-100 · bearish_signals=3 · bullish_signals=0 · highest_severity=critical
-
-✓ equity-confluence
-   engine=equity-confluence · version=1.0 · generated_at=2026-06-30T00:30:14.679513… · duration_s=1.5 · mode=PROVISIONAL · thesis=Names lit up by multiple I… · auto_activation={rule,active,current_proven_super_families,n_proven} · family_status={absorption,squeeze,catalyst,flow_micro} · super_family_st
-   confluence_book[0]: ticker=NVDA · n_super_families=3 · n_families=3 · n_eff=3.0 · composite=61.7 · super_families=[3] · families=[3] · avg_strength=0.63
-
-=== 30/42 feeds present ===
-MISSING: ['upside-radar-names', 'squeeze-risk', 'squeeze', 'short-squeeze', 'resilience-radar', 'emergence', 'revision-momentum', 'analyst-revisions', 'unusual-options', 'insider-buying', 'retail-edges', 'heatmap']
-DONE 2556
+discovery feeds live: 15/15
+DONE 2557
