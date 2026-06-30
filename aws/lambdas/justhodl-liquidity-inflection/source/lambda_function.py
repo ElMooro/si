@@ -1118,15 +1118,21 @@ def lambda_handler(event=None, context=None):
             return round((datetime.now(timezone.utc).date() - _pd(s[:10])).days)
         except Exception:
             return None
+
+    def _feed_asof(key):
+        fd = pull(key) or {}
+        return (fd.get("as_of") or fd.get("generated_at") or fd.get("updated_at") or
+                fd.get("last_updated") or (fd.get("headline") or {}).get("as_of")
+                or (fd.get("signal") or {}).get("as_of"))
     data_health = []
     for nm, asof, maxd in [("Net liquidity (FRED)", usd_dates[-1] if usd_dates else None, 9),
                            ("Reserves (WRESBAL)", reserve_runway.get("as_of") if reserve_runway else None, 9),
-                           ("Funding plumbing", (fp or {}).get("as_of"), 4),
-                           ("Settlement fails", (settlement_fails or {}).get("as_of"), 10),
-                           ("Dollar / FX", (dollar_shortage or {}).get("as_of"), 5),
-                           ("MOVE (rates vol)", ((funding_stress or {}).get("move") or {}).get("as_of"), 4)]:
+                           ("Funding plumbing", _feed_asof("data/funding-plumbing.json"), 4),
+                           ("Settlement fails", _feed_asof("data/settlement-fails.json"), 12),
+                           ("Eurodollar plumbing", _feed_asof("data/eurodollar-plumbing.json"), 5),
+                           ("MOVE (rates vol)", _feed_asof("data/move-index.json"), 5)]:
         ag = _age_days(asof) if asof else None
-        data_health.append({"feed": nm, "as_of": asof, "age_days": ag,
+        data_health.append({"feed": nm, "as_of": (asof[:10] if asof else None), "age_days": ag,
                             "status": ("stale" if (ag is not None and ag > maxd) else "fresh" if ag is not None else "n/a")})
 
     out = {"engine": "liquidity-inflection", "version": VERSION,
