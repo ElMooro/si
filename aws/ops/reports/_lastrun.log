@@ -1,8 +1,22 @@
 deployed
-SNAPSHOT META: {'count': 1, 'first': '2026-06-30', 'last': '2026-06-30'}
-composite_clock source: fred-reconstruction | phase EARLY CONTRACTION
-composite_projection source: fred-reconstruction |  46.4 -> 45.8
-SNAPSHOTS FILE: count 1 first 2026-06-30 last 2026-06-30
-  latest snap: date 2026-06-30 comp_z -0.078 score 48.7 components 10 weights 10
-  component names: ['net_liquidity', 'reserves', 'global_liquidity', 'dollar', 'funding_stress', 'move', 'credit', 'settlement_fails', 'flow_divergence', 'leverage_stress']
-DONE 2635
+INVOKE: 200 None
+
+NET-LIQ FWD EXP: state CONTRACTING_FAST z -0.62
+   SPX_proxy: 1.5% (exc 0.47%, n324)
+   BTC: 3.44% (exc -0.85%, n327)
+   HYG: 0.19% (exc 0.34%, n157 *)
+
+COMPOSITE FWD EXP: state CONTRACTING comp_z -0.215 src fred-reconstruction
+   SPX_proxy: 1.28% (exc 0.25%, n231)
+   BTC: 3.22% (exc -1.08%, n227)
+   HYG: -0.03% (exc 0.11%, n106)
+   components: ['net_liquidity', 'reserves', 'dollar', 'credit', 'conditions']
+
+ANALOGS composite_aware: True | features: ['impulse', 'hy_oas', 'dollar', 'nfci', 'reserve_drain', 'composite']
+  fingerprint_now: {'impulse': -0.33, 'hy_oas': -0.98, 'dollar': 0.95, 'nfci': -0.4, 'reserve_drain': 0.19, 'composite': -0.42}
+   2017-01-11 sim 46.5% SPX +21d 3.1% / +63d 4.9%
+   2019-10-02 sim 45.4% SPX +21d 6.5% / +63d 16.8%
+   2024-11-27 sim 45.2% SPX +21d 2.2% / +63d -4.1%
+
+COMPOSITE REGIME STUDY assets: ['SPX_proxy', 'BTC', 'HYG'] | SPX n_total: 589
+DONE 2636
