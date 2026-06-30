@@ -224,10 +224,13 @@ def lambda_handler(event=None, context=None):
     gamma = _read("data/options-gamma.json")
     themes = theme_map(att)
 
-    # build universe = union of all informed + attention names
+    # build universe = union of all informed + attention names (drop junk/CUSIP)
+    def junk(t):
+        return (not t) or t in {"NONE", "NULL", "NAN", "N/A", "NA"} or t.isdigit() or len(t) > 5
     universe = set()
     for d in (A, IC, OP, F13, SM, DP, CG, AC):
         universe |= set(d.keys())
+    universe = {t for t in universe if not junk(t)}
 
     def theme_trend_for(layer):
         if not layer:
