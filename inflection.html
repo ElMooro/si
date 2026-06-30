@@ -99,6 +99,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Historical analogs <span class="hint">— the closest liquidity fingerprints in history, and what SPX did next</span></div>
 <div id="analogs"><div class="loading">Loading…</div></div>
 
+<div class="sec">Does liquidity timing actually work? <span class="hint">— a simple impulse rule backtested vs buy-and-hold (honest, in-sample)</span></div>
+<div id="backtest"><div class="loading">Loading…</div></div>
+
 <div class="sec">Forward returns by liquidity state <span class="hint">— conditioned on impulse state across all history (large n) · excess vs unconditional baseline · ★ = significant (|t|≥2)</span></div>
 <div id="regime_returns"><div class="loading">Loading…</div></div>
 <div class="sec">Actual impulse flips <span class="hint">— the rare discrete events, dated (small n — shown for transparency, not statistics)</span></div>
@@ -162,6 +165,39 @@ function renderFlipLog(fl){
 }
 const FP_LABEL={impulse:'Net-liq impulse',hy_oas:'HY OAS',dollar:'Broad dollar',nfci:'NFCI',reserve_drain:'Reserve drain'};
 function fpRow(fp,feats){return (feats||Object.keys(fp||{})).map(k=>`<div class="comp"><div class="cn">${FP_LABEL[k]||k}<span>${fp[k]>0?'+':''}${fp[k]}</span></div>${compBar(fp[k])}</div>`).join('');}
+function renderBacktest(b){
+  if(!b||!(b.curve||[]).length)return '<div class="loading">backtest unavailable</div>';
+  const C=b.curve,W=660,Ht=200,padL=42,padR=14,padT=14,padB=26;
+  const allv=C.flatMap(p=>[p.strat,p.bh]).filter(v=>v>0);
+  const lmin=Math.log(Math.min(...allv)),lmax=Math.log(Math.max(...allv)),rng=(lmax-lmin)||1;
+  const X=i=>padL+(W-padL-padR)*i/(C.length-1),Y=v=>padT+(Ht-padT-padB)*(1-(Math.log(v)-lmin)/rng);
+  const line=(key,col,dash)=>`<path d="${C.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`).join('')}" fill="none" stroke="${col}" stroke-width="2.2"${dash?` stroke-dasharray="${dash}"`:''}/>`;
+  const s=b.strategy,h=b.buy_hold,better=s.sharpe>h.sharpe,mxv=Math.max(...allv);
+  const pct=v=>`${v>0?'+':''}${v}%`,raw=v=>`${v}`;
+  const statRow=(lab,sv,hv,fmt,sBetterHigh)=>{const sw=sBetterHigh===null?false:(sBetterHigh?sv>hv:sv<hv);
+    return `<tr><td style="text-align:left">${lab}</td><td style="${sw?'color:var(--green);font-weight:700':''}">${fmt(sv)}</td><td style="${!sw&&sBetterHigh!==null?'color:var(--green);font-weight:700':''}">${fmt(hv)}</td></tr>`;};
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px">
+    <div class="headbadge ${better?'EASING':'TIGHTENING'}" style="font-size:14px;line-height:1.3">${better?'\u2713':'\u2717'} ${esc(b.verdict)}</div>
+    <div class="m" style="margin:6px 0 10px">${esc(b.start)} \u2192 ${esc(b.end)} \u00b7 ${esc(b.years)} years \u00b7 log scale</div>
+    <svg width="100%" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="xMidYMid meet" style="background:transparent;border:none">
+      <line x1="${padL}" x2="${W-padR}" y1="${Y(1).toFixed(1)}" y2="${Y(1).toFixed(1)}" stroke="#1d2636" stroke-dasharray="2 3"/>
+      <line x1="${padL}" x2="${W-padR}" y1="${Y(mxv).toFixed(1)}" y2="${Y(mxv).toFixed(1)}" stroke="#1d2636" stroke-dasharray="2 3"/>
+      ${line('bh','#a78bfa')}${line('strat','#22d3ee')}
+      <text x="6" y="${(Y(mxv)+3).toFixed(1)}" font-size="9" fill="#5d6b82" font-family="monospace">${mxv.toFixed(1)}x</text>
+      <text x="6" y="${(Y(1)+3).toFixed(1)}" font-size="9" fill="#5d6b82" font-family="monospace">1x</text>
+      <text x="${padL}" y="${Ht-8}" font-size="9" fill="#22d3ee" font-family="monospace">\u2014 liquidity-timed (long when impulse\u22650)</text>
+      <text x="${(W-padR).toFixed(1)}" y="${Ht-8}" text-anchor="end" font-size="9" fill="#a78bfa" font-family="monospace">\u2014 buy &amp; hold</text>
+    </svg>
+    <table style="margin-top:10px"><thead><tr><th>Metric</th><th>Liquidity-timed</th><th>Buy &amp; hold</th></tr></thead><tbody>
+      ${statRow('Total return',s.total_return_pct,h.total_return_pct,pct,true)}
+      ${statRow('CAGR',s.cagr_pct,h.cagr_pct,pct,true)}
+      ${statRow('Sharpe (risk-adj)',s.sharpe,h.sharpe,raw,true)}
+      ${statRow('Max drawdown',s.max_drawdown_pct,h.max_drawdown_pct,pct,false)}
+      ${statRow('Time in market',s.time_in_market_pct,h.time_in_market_pct,pct,null)}
+    </tbody></table>
+    <div class="m" style="margin-top:9px">${esc(b.note)}</div>
+  </div>`;
+}
 function renderAnalogs(a){
   if(!a||!(a.analogs||[]).length)return '<div class="loading">analogs unavailable</div>';
   const feats=a.features;
@@ -346,6 +382,7 @@ async function load(){
   t+=card('Stablecoin tide '+(s?pill(s.state):''),s?esc(s.state||('accel z '+s.accel_z)):'—',s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round(((s.aggregate||{}).delta_7d_usd||0)/1e6))+'mn'):'unavailable',s&&clsOf(s.state)==='r'?'neg':'');
   document.getElementById('tides').innerHTML=t;
   document.getElementById('analogs').innerHTML=renderAnalogs(d.analogs);
+  document.getElementById('backtest').innerHTML=renderBacktest(d.backtest);
 
   // ── event study + leads ──
   // ── forward returns by liquidity state (robust) + flip log + leads ──
