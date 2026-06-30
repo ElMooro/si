@@ -167,6 +167,8 @@ def build_ticker_index():
         "equity_confluence":   fetch_json("data/equity-confluence.json", max_age_h=72),
         "earnings_confluence": fetch_json("data/earnings-confluence.json", max_age_h=120),
         "scarcity_radar":      fetch_json("data/scarcity-radar.json", max_age_h=72),
+        # corporate buybacks — net-of-dilution conviction (added 2026-06-30)
+        "buyback":             fetch_json("data/buyback-engine.json", max_age_h=48),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -250,6 +252,28 @@ def build_ticker_index():
                 "flag": r.get("flag"),
                 "n_funds": r.get("n_funds_holding"),
                 "legend_buyers": r.get("legend_buyers"),
+            }
+
+    # 6a. corporate buybacks — genuine net-of-dilution accumulation (justhodl-buyback-engine).
+    #     Only the real classes contribute (DILUTION_OFFSET / net issuers are excluded), so
+    #     the rank rewards companies actually shrinking their share count, and the convergence
+    #     multiplier lifts names where a buyback agrees with insider / smart-money / value signals.
+    if feeds["buyback"]:
+        _BB_GOOD = {"🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "🎯 CHEAP_REPURCHASER", "💰 HIGH_SHAREHOLDER_YIELD"}
+        for sym, v in (feeds["buyback"].get("tickers") or {}).items():
+            if not isinstance(v, dict):
+                continue
+            klass = v.get("class") or ""
+            if not (v.get("high_conviction_pump") or klass in _BB_GOOD
+                    or (float(v.get("buyback_score") or 0) >= 50 and not v.get("net_issuer"))):
+                continue
+            idx.setdefault(sym, {})["buyback"] = {
+                "score": v.get("buyback_score"),
+                "class": klass,
+                "net_yield": v.get("net_buyback_yield"),
+                "share_reduction": v.get("share_count_reduction_yoy"),
+                "auth_pct": v.get("auth_pct_mcap"),
+                "pump": v.get("high_conviction_pump"),
             }
 
     # 6b. fused confluence synthesizers — a name confirmed by a synthesizer (several
@@ -492,6 +516,14 @@ def synthesize_rationale(ticker, systems_dict, score):
         legends = systems_dict["smart_money"]["legend_buyers"]
         if legends:
             highlights.append(f"legends: {', '.join(legends[:2])}")
+    if "buyback" in systems_dict:
+        _bb = systems_dict["buyback"]
+        if _bb.get("pump"):
+            highlights.append(f"buyback pump (auth {_bb.get('auth_pct')}% mcap)")
+        elif (_bb.get("share_reduction") or 0) >= 2:
+            highlights.append(f"net shrinker (shares -{_bb.get('share_reduction')}% YoY)")
+        elif (_bb.get("net_yield") or 0) > 0:
+            highlights.append(f"buyback {_bb.get('net_yield')}% net")
     if "pead" in systems_dict:
         drift = systems_dict["pead"].get("drift_pct")
         if drift and drift > 20:
