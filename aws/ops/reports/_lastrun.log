@@ -1,13 +1,16 @@
-=== existing brain-sync rules ===
-   justhodl-brain-sync-15min cron(0 13 * * ? *) ENABLED
-monthly rule ENABLED -> cron(0 9 1 * ? *)
-old 15-min rule deleted
-=== rules now ===
-   justhodl-brain-sync-monthly cron(0 9 1 * ? *) ENABLED
+LastUpdateStatus: Successful
+invoke err: None
 
-seeding directive now (force=true)...
-seed invoke err: None
-directive populated: False
-regime_read: Suppressed-vol / dollar-spike risk-on
-last_distill_at: 2026-06-30T00:17:00.310229+00:00 | cadence: monthly (force=true to override)
-DONE 2528
+=== DIRECTIVE (now feeds 30+ engines, monthly) ===
+directive populated: True
+  investor_profile: A macro-aware, valuation-driven investor who combines top-down liquidity analysis with bottom-up fundamental screening. They prioritize capital preservation whe
+  risk_posture: balanced — defensive at the macro level (cash/gold/quality when liquidity drains) but selectively aggressive in deeply mispriced small caps with catalysts and strong balance sheets
+  sector_tilts: {"Health Care": "overweight \u2014 100% win rate in H2 of midterm election years since 2006; highest average return of any sector in that window", "Industrials": "overweight \u2014 80% win rate and second-best average return in midterm H2", "Financials": "overweight \u2014 80% win rate in midterm H2
+  themes: ['Liquidity cycle awareness — cash and gold when dollar strengthens and liquidity drains', 'Midterm election year sector seasonality — systematic H2 rotation into Health Care, Industrials, Financials', 'Deep value small-cap hunting — market cap vs. opportunity, EV-adjusted cheapness, P/S under 1 with growth', "Path-to-profitability inflection — stocks re-rating as market recognizes they won't go bankrupt and are approaching breakeven", 'Catalyst-driven mispricing — cheap stocks that stay cheap without a catalyst; focus on stocks where catalyst is imminent', 'Wyckoff accumulation signals — stocks holding up in weak tape as evidence of institutional accumulation']
+  hard_rules: ['When liquidity drains and the dollar is strong, favor cash, gold, and quality — do not fight the macro', 'Do not conflate low share price with cheapness — always evaluate market cap vs. business value', 'Never ignore cash burn and dilution risk on small-cap positions — runway and share count trends are non-negotiable checks', 'A stock refusing to go down in a weak market signals accumulation — treat relative strength as a signal, not noise']
+  watched_tickers: ['XLV', 'XLI', 'XLB', 'XLF', 'XLY', 'XLP', 'XLU', 'XLK', 'XLE', 'XLRE', 'SPY']
+  signal_emphasis: ['insider open-market buying — highest conviction signal for small caps', 'balance sheet quality — cash runway, debt maturity, EV vs. market cap', 'macro liquidity and dollar direction — primary filter for overall risk-on/risk-off posture', 'seasonal/political cycle patterns — midterm H2 sector rotation as systematic overlay', 'relative price strength in weak tape — Wyckoff accumulation as entry signal', 'catalyst identification — FDA, contract wins, profitability inflection, index inclusion', 'valuation dislocation — P/S under 1, EV/revenue, P/B under 1 vs. peers', 'short interest + improving fundamentals — squeeze setup filter']
+regime_read: Liquidity-tighten / dollar-dominant
+mentioned_tickers (engine-facing): ['AA', 'AAA', 'AAPL', 'ABIDE', 'ABLE', 'ABOUT', 'ABOVE', 'ACT', 'AD', 'ADA', 'ADD', 'ADDED', 'ADOPT', 'ADOSC', 'ADX']
+last_distill_at: 2026-06-30T00:19:58.348513+00:00 | cadence: monthly (force=true to override)
+DONE 2529
