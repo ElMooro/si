@@ -1,26 +1,9 @@
-deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-version: 1.5.0
-
-SPX_proxy: n_total=589 baseline={'d5': 0.24, 'd21': 1.03, 'd63': 3.11}
-   EXPANDING_FAST     +21d mean 1.81% excess 0.78% (n146, hit 68.5%, t 1.5)
-   EXPANDING          +21d mean -2.67% excess -3.7% (n30, hit 43.3%, t -2.33 *)
-   FLAT               +21d mean 0.67% excess -0.36% (n39, hit 66.7%, t -0.58)
-   CONTRACTING        +21d mean 1.69% excess 0.66% (n50, hit 74.0%, t 1.12)
-   CONTRACTING_FAST   +21d mean 1.5% excess 0.47% (n324, hit 66.4%, t 1.67)
-
-BTC: n_total=586 baseline={'d5': 0.94, 'd21': 4.3, 'd63': 14.56}
-   EXPANDING_FAST     +21d mean 6.67% excess 2.37% (n146, hit 55.5%, t 1.21)
-   EXPANDING          +21d mean 2.55% excess -1.75% (n30, hit 46.7%, t -0.37)
-   FLAT               +21d mean 6.59% excess 2.29% (n33, hit 57.6%, t 0.71)
-   CONTRACTING        +21d mean 1.61% excess -2.69% (n50, hit 46.0%, t -1.62)
-   CONTRACTING_FAST   +21d mean 3.44% excess -0.85% (n327, hit 57.8%, t -1.01)
-
-HYG: n_total=253 baseline={'d5': -0.03, 'd21': -0.14, 'd63': -0.44}
-   EXPANDING_FAST     +21d mean -1.13% excess -0.99% (n53, hit 20.8%, t -2.94 *)
-   CONTRACTING        +21d mean -0.01% excess 0.13% (n35, hit 51.4%, t 0.55)
-   CONTRACTING_FAST   +21d mean 0.19% excess 0.34% (n157, hit 57.3%, t 2.8 *)
-
-SPX lead best: {'lead': 2, 'corr': 0.044, 'n': 588, 't': 1.1}
-BTC flip_log: [{'date': '2017-05-31', 'direction': 'UP', 'd5': 15.08, 'd21': 15.44, 'd63': 17.92}, {'date': '2018-03-28', 'direction': 'DOWN', 'd5': -11.13, 'd21': 2.72, 'd63': -7.07}, {'date': '2020-02-05', 'direction': 'UP', 'd5': 2.46, 'd21': -8.69, 'd63': -23.43}, {'date': '2022-09-14', 'direction': 'DOWN', 'd5': -3.4, 'd21': -0.33, 'd63': -17.71}]
-DONE 2620
+page bytes: 31882
+  [OK] regime-state section
+  [OK] renderRegimeReturns fn
+  [OK] significance ★ logic
+  [OK] flip-log section
+  [OK] old n=2 aggregate removed
+  feed v1.5.0 · SPX n_total=589 states=['EXPANDING_FAST', 'EXPANDING', 'FLAT', 'CONTRACTING', 'CONTRACTING_FAST']
+  HYG lead best: {'lead': 39, 'corr': -0.374, 'n': 245, 't': -6.3}
+DONE 2621
