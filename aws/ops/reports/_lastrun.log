@@ -1,9 +1,5 @@
-schedule rules: ['justhodl-llm-health-6h rate(6 hours)']
-invoke err: None
-status: DEGRADED | redundancy: intact
-headline: LLM providers 1/2 up [DEGRADED] — anthropic=UP, zai_glm=DOWN | BILLING action needed: zai_glm
-billing_action_needed: ['zai_glm']
-  provider: anthropic ok= True 
-  provider: zai_glm ok= False {"error":{"code":"1113","message":"Insufficient balance or n
-degraded_outputs: []
-DONE 2534
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2535_create_cross_asset_flow_state.py", line 20, in <module>
+    z.writestr("lambda_function.py", open(SRC).read())
+                                     ^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'aws/lambdas/justhodl-cross-asset-flow-state/source/lambda_function.py'
