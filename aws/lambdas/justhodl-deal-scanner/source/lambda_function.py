@@ -222,16 +222,18 @@ def name_tokens(name):
     return [t for t in re.findall(r"[a-z]{4,}", n)]
 
 
-def name_matches(symbol, title, uni):
-    """Reject mis-tagged tickers: the ticker's company name must share a meaningful token with
-    the headline. FMP occasionally tags a PR with the wrong symbol (e.g. a Realty Income JV
-    tagged JYNT) — without this the deal scanner ranks the wrong company."""
+def name_in_lead(symbol, title, uni, lead=32):
+    """The ticker's company name must appear in the HEADLINE LEAD (announcer position). This
+    rejects coincidental mid-headline token overlaps that anywhere-matching let through — e.g.
+    'Realty Income Forms ... Joint Venture' mis-tagged JYNT ('Joint'), or a NASA 'CLPS' program
+    award mis-tagged the CLPS ticker. Recipient-style headlines ('Agency Awards XYZ $14M') are
+    kept separately via a title-parsed deal size."""
     name = (uni.get(symbol, {}) or {}).get("name") or ""
     toks = name_tokens(name)
     if not toks:
-        return True                      # can't verify → allow (don't over-reject)
-    tl = (title or "").lower()
-    return any(t in tl for t in toks)
+        return False                      # unknown ticker → rely on a title-parsed size instead
+    head = (title or "")[:lead].lower()
+    return any(t in head for t in toks)
 
 
 def parse_value(title, text):
@@ -414,7 +416,9 @@ def lambda_handler(event, context):
         val, vstr = parse_value(title, pr.get("text"))
         if not is_deal(title, pr.get("text"), val, pr.get("trust", "pr")):
             continue
-        if not name_matches(sym, title, uni):     # reject mis-tagged tickers
+        # keep only if the company is named in the headline lead OR the deal size is in the title
+        # (recipient-style awards). Kills mis-tagged tickers (JYNT/CLPS/GTLL).
+        if not (_largest(title)[0] > 0 or name_in_lead(sym, title, uni)):
             continue
         try:
             pub = datetime.fromisoformat(pr.get("publishedDate").replace(" ", "T")).replace(tzinfo=timezone.utc)
