@@ -1,8 +1,4 @@
-INVOKE: 200 None {"ok": true, "n_scored": 225, "counts": {"STEALTH": 5, "IGNITING": 83, "UNDISCOVERED": 6, "CROWDED": 26, "DISTRIBUTION": 29, "WATCH": 52, "NEUTRAL": 24}}
-counts: {'STEALTH': 5, 'IGNITING': 83, 'UNDISCOVERED': 6, 'CROWDED': 26, 'DISTRIBUTION': 29, 'WATCH': 52, 'NEUTRAL': 24}
-buyback family firing on 45 names; e.g.: [('AAPL', 70.5, 'STEALTH', ['options', 'funds', 'buyback']), ('ADBE', 61.3, 'DISTRIBUTION', ['buyback']), ('AIZ', 80.0, 'IGNITING', ['buyback', 'darkpool']), ('AMG', 90.8, 'IGNITING', ['buyback', 'darkpool']), ('AMP', 81.6, 'IGNITING', ['funds', 'buyback']), ('APTV', 77.0, 'IGNITING', ['buyback', 'darkpool'])]
-corporate_buybacks panel: 20 [{'ticker': 'ACN', 'score': 77.6, 'class': '🚀 FRESH_LARGE_AUTH', 'net_yield': 3.58, 'share_reduction': 1.94, 'auth_pct': 9.5, 'pump': True}, {'ticker': 'DRI', 'score': 63.1, 'class': '🚀 FRESH_LARGE_AUTH', 'net_yield': 2.8, 'share_reduction': 2.39, 'auth_pct': 6.13, 'pump': True}, {'ticker': 'LZB', 'score': 58.1, 'class': '🚀 FRESH_LARGE_AUTH', 'net_yield': 3.55, 'share_reduction': 0.55, 'auth_pct': 18.36, 'pump': True}]
-  stealth w/ buyback: EXPD 83.2 NET_SHRINKER 3.66% net; dark-pool accumulation (31.73%)
-  igniting w/ buyback: ENR 95.1 insider MSPR 100.0; NET_SHRINKER 8.46% net · CROWD: retail 100% bull
-  undiscovered w/ buyback: PNR 61.4 ACTIVE 2.65% net; dark-pool accumulation (32.98%)
-DONE 2595
+full package deployed (19 files)
+INVOKE: 200 None {"statusCode": 200, "body": "{\"logged\": 119}"}
+  buyback_pump: 2 signals, 2 fully-priced | e.g. [('AVO', 'OUTPERFORM', 0.748167, True), ('OSBC', 'OUTPERFORM', 0.746917, True)]
+DONE 2596
