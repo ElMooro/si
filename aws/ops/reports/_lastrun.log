@@ -1,12 +1,14 @@
-top: ['engine', 'version', 'generated_at', 'thesis', 'universe_n', 'n_scored', 'counts', 'market_context', 'stages', 'panels', 'tickers', 'scoring', 'sources', 'caveats']
-stages: ['stealth', 'igniting', 'undiscovered', 'crowded', 'distribution']
-panels: ['unusual_options', 'insider_clusters', 'smart_money', 'dark_pool_accumulation', 'congress_buys', 'theme_attention', 'stocktwits_trending']
-ticker record keys: ['symbol', 'name', 'layer', 'smart_score', 'crowd_score', 'divergence', 'confluence_smart', 'families_firing', 'stage', 'distributing', 'crowd_has_data', 'signals', 'subscores', 'why']
-subscores: {'insider': 0.0, 'options': 96.5, 'funds': 63.7, 'darkpool': 0.0, 'congress': 0.0, 'analyst': 0.0, 'retail': 0.0, 'theme': 0.0, 'search': 32.2}
-sample options panel[0]: {'symbol': 'TSLA', 'score': 86.0, 'norm': 100.0, 'tier': 'TIER_A_BULLISH_FLOW', 'flags': ['CPR_SURGING', 'CALL_VOL_3X', 'ABS_CPR_3X', 'SHORTS_EASING'], 'metrics': {'spot': 411.84, 'n_call_contracts': 10, 'n_put_contracts': 10, 'avg_cpr_recent_5d': 19.67, 'avg_cpr_older': 9.24, 'cpr_change_pct': 113.0, 'total_call_vol_5d': 654358, 'total_put_vol_5d': 260048, 'call_vol_surge': 42.12, 'short_metrics': {'recent_avg_short_pct': 47.8, 'older_avg_short_pct': 49.4, 'short_pct_change': -1.57, 'avg_total_vol_5d': 20902395, 'n_finra_days': 20}}}
-sample insider panel[0]: {'ticker': 'DPC', 'n_insiders': 9, 'has_ceo': True, 'total_value': 75821493.0, 'highest_role': 'Chief Operating Officer', 'last_buy': '2026-06-26', 'score': 100.0}
-sample smartmoney[0]: {'ticker': 'PEP', 'score': 81.7, 'flag': 'STRONG_CONVICTION', 'signal_types': ['NEW_INITIATION_CLUSTER', 'LEGEND_FUND_BUY'], 'n_buyers': 10, 'n_new': 2, 'legend_buyers': ['DURATION', 'DURATION'], 'name': 'PepsiCo'}
-sample darkpool[0]: {'ticker': 'TWLO', 'state': 'ACCUMULATION', 'score': 89.9, 'dark_pool_pct': 34.44, 'dark_accel': 0.937, 'accumulating': True}
-sample congress[0]: {'ticker': 'TDG', 'n_buys': 1}
-sample theme[0]: {'theme': 'HBM / memory', 'article': 'High_Bandwidth_Memory', 'views_recent': 1327, 'views_prior': 721, 'attention_trend_pct': 84.1}
-DONE 2586
+live attention.html status: 200 bytes: 18327
+  [OK] new title
+  [OK] divergence bar css
+  [OK] stealth section
+  [OK] igniting
+  [OK] distribution
+  [OK] options panel
+  [OK] search panel
+  [OK] loads confluence
+  [OK] loads search
+  [MISS] OLD single-feed (should be ABSENT)
+  feed attention-confluence.json: http 200, 343586 bytes
+  feed search-attention.json: http 200, 33011 bytes
+DONE 2587
