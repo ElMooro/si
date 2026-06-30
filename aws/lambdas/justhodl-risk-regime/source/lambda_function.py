@@ -206,6 +206,30 @@ def options_block():
     return score, res
 
 
+def liquidity_block():
+    """Composite liquidity-inflection regime as a risk-on/off input.
+    + = liquidity expanding (risk-on tailwind); − = contracting (headwind).
+    Reads the blended second-derivative score from the liquidity-inflection engine."""
+    j = _read("data/liquidity-inflection.json") or {}
+    comp = j.get("composite") or {}
+    ls = comp.get("liquidity_score")
+    if not isinstance(ls, (int, float)):
+        return None, {}
+    score = _clip((ls - 50) / 25.0)   # 0-100, 50 neutral → ±25pts ≈ ±1
+    tells = []
+    reg = comp.get("regime")
+    if reg == "EXPANDING":
+        tells.append("Liquidity inflecting UP — net-liquidity tailwind")
+    elif reg == "CONTRACTING":
+        tells.append("Liquidity inflecting DOWN — draining conditions")
+    res = j.get("reserves") or {}
+    if isinstance(res.get("scarcity_note"), str) and "Below" in res["scarcity_note"]:
+        tells.append("Bank reserves below comfort floor (LCLoR risk)")
+    m = {"score": round(score, 2), "liquidity_score": ls, "regime": reg,
+         "composite_z": comp.get("composite_z"), "tells": tells}
+    return score, m
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     # FX block (already computed upstream)
@@ -234,6 +258,10 @@ def lambda_handler(event, context):
     if cred_s is not None:
         blocks.append(("credit", 0.20, cred_s)); results["credit"] = cred_m
 
+    liq_s, liq_m = liquidity_block()
+    if liq_s is not None:
+        blocks.append(("liquidity_regime", 0.15, liq_s)); results["liquidity_regime"] = liq_m
+
     tw = sum(w for _, w, _ in blocks)
     composite = sum(w * s for _, w, s in blocks) / tw if tw else 0.0
     score = round(_clip(composite) * 100, 1)
@@ -254,7 +282,7 @@ def lambda_handler(event, context):
         regime = "FLIGHT_TO_QUALITY"
 
     all_tells = []
-    for b in ("fx", "options", "vix", "credit"):
+    for b in ("fx", "options", "vix", "credit", "liquidity_regime"):
         all_tells += (results.get(b, {}) or {}).get("tells", [])
 
     # position-sizing guidance (consumed by rankers/hedge)

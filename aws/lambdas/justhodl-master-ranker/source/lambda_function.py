@@ -624,6 +624,23 @@ def collect_macro_signals():
                 "score": 70,  # always show in top 10
             })
 
+    # Liquidity inflection — composite 2nd-derivative regime (macro tide)
+    liq = fetch_json("data/liquidity-inflection.json", max_age_h=48)
+    lcomp = (liq or {}).get("composite") or {}
+    if isinstance(lcomp.get("liquidity_score"), (int, float)):
+        _lreg = lcomp.get("regime") or "NEUTRAL"
+        out.append({
+            "type": "liquidity_inflection",
+            "name": f"Liquidity Regime: {_lreg} ({lcomp.get('liquidity_score')}/100)",
+            "regime": _lreg,
+            "z": lcomp.get("composite_z"),
+            "rationale": (lcomp.get("read") or "")[:200],
+            "action_hint": ("Liquidity tailwind — lean into beta/cyclicals" if _lreg == "EXPANDING"
+                            else "Liquidity headwind — favor quality, raise hedges" if _lreg == "CONTRACTING"
+                            else "Liquidity neutral — no strong 2nd-derivative push"),
+            "score": 72 if _lreg != "NEUTRAL" else 55,
+        })
+
     # Regime anomaly
     ra = fetch_json("data/regime-anomaly.json")
     if ra:
@@ -697,6 +714,7 @@ def get_regime_context():
     nowcast = fetch_json("data/macro-nowcast.json", max_age_h=96) or {}
     regime = nowcast.get("regime") or "UNKNOWN"
     fwds = REGIME_FORWARDS.get(regime, {})
+    _liqc = (fetch_json("data/liquidity-inflection.json", max_age_h=48) or {}).get("composite") or {}
 
     # ── Risk Pack overlay — master crisis read + canary turning point ──
     crisis = fetch_json("data/crisis-composite.json") or {}
@@ -732,6 +750,9 @@ def get_regime_context():
         "leading_markets_signal": tp_signal,
         "flashing_buckets": leading.get("flashing_buckets"),
         "capitulation_signal": cap_signal,
+        "liquidity_score": _liqc.get("liquidity_score"),
+        "liquidity_regime": _liqc.get("regime"),
+        "liquidity_z": _liqc.get("composite_z"),
         "risk_posture": posture,
     }
 
@@ -768,6 +789,11 @@ def lambda_handler(event, context):
     _rr = feeds.get("risk_regime") or {}
     _rr_score = _rr.get("risk_regime_score")
     _rr_regime = _rr.get("risk_regime") or "NEUTRAL"
+    # ── Composite liquidity-inflection regime (slower macro tide) ──
+    _liq = fetch_json("data/liquidity-inflection.json", max_age_h=48) or {}
+    _liq_comp = _liq.get("composite") or {}
+    _liq_regime = _liq_comp.get("regime") or "NEUTRAL"
+    _liq_score = _liq_comp.get("liquidity_score")
     HIGH_BETA_SECTORS = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
                          "Basic Materials", "Communication Services", "Industrials"}
     DEFENSIVE_SECTORS = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
@@ -823,6 +849,26 @@ def lambda_handler(event, context):
         tag = "risk-on tilt" if m > 1 else "risk-off de-risk"
         return round(base_score * m, 1), m, f"RORO {_rr_regime} {tag} ({sector})"
 
+    def _liq_overlay(sector, base_score):
+        # composite liquidity regime tilt: expanding liquidity favors high-beta /
+        # cyclicals, contracting favors defensives. Gentler than RORO — liquidity
+        # is a slower-moving macro tide, so it nudges rather than dominates.
+        if not isinstance(_liq_score, (int, float)) or not sector:
+            return base_score, 1.0, None
+        hb, dfn = sector in HIGH_BETA_SECTORS, sector in DEFENSIVE_SECTORS
+        if not (hb or dfn):
+            return base_score, 1.0, None
+        if _liq_regime == "EXPANDING":
+            m = 1.05 if hb else 0.98
+        elif _liq_regime == "CONTRACTING":
+            m = 0.95 if hb else 1.04
+        else:
+            m = 1.0
+        if m == 1.0:
+            return base_score, 1.0, None
+        tag = "liquidity tailwind" if m > 1 else "liquidity headwind"
+        return round(base_score * m, 1), m, f"liquidity {_liq_regime} {tag} ({sector})"
+
     def _cf_overlay(tk, base_score):
         cf = cf_map.get(tk)
         if not cf:
@@ -866,6 +912,7 @@ def lambda_handler(event, context):
         score, cf_mult, cf_note = _cf_overlay(ticker, score)
         _sector = _ticker_sector(systems_dict)
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
+        score, liq_mult, liq_note = _liq_overlay(_sector, score)
         score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
         # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
         _cyc = _cycle_map.get(ticker)
@@ -885,6 +932,8 @@ def lambda_handler(event, context):
             rationale += " · " + cf_note
         if roro_note:
             rationale += " · " + roro_note
+        if liq_note:
+            rationale += " · " + liq_note
         if sf_note:
             rationale += " · " + sf_note
         if _cyc_warn:
@@ -899,6 +948,7 @@ def lambda_handler(event, context):
             "contributions": contributions,
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
+            "liquidity_regime_mult": liq_mult,
             "cycle_phase": _cyc_phase,
             "cycle_warning": _cyc_warn,
             "red_flags": _rf,
