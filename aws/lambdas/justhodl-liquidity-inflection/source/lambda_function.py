@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -568,6 +568,51 @@ def cycle_clock(usd_dates, usd_z, n_orbit=26):
             "note": ("Phase-space orbit: net-liquidity impulse (x) vs its acceleration (y). The cycle normally "
                      "rotates counter-clockwise through the four phases; the trail is the recent path and the "
                      "dot is now.")}
+
+
+def desk_briefing(o):
+    """Deterministic, data-bound desk synthesis written to the decisive-call feed the AI panel
+    reads. Genuinely derived from the measured tables — a real call now, with the LLM router
+    free to overwrite it with a richer narrative once credits return."""
+    comp = o.get("composite") or {}
+    traj = o.get("trajectory") or {}
+    proj = o.get("projection") or {}
+    clk = o.get("cycle_clock") or {}
+    ten = o.get("tensions") or {}
+    fe = o.get("forward_expectation") or {}
+    an = (o.get("analogs") or {}).get("analogs") or []
+    bt = o.get("backtest") or {}
+    rw = o.get("reserve_runway") or {}
+    usd = o.get("usd") or {}
+    regime = comp.get("regime", "—")
+    score = comp.get("liquidity_score")
+    heading = traj.get("heading", "—")
+    phase = clk.get("phase", "—")
+    headline = f"Liquidity {regime} ({score}/100), {phase.lower()}, mechanics point {heading.lower()}."
+    call_bits = [f"Net-liquidity impulse is {usd.get('state', '—')} (z {usd.get('impulse_z')}); the composite reads "
+                 f"{regime} at {score}/100."]
+    if proj.get("headline"):
+        call_bits.append(proj["headline"])
+    if clk.get("phase_read"):
+        call_bits.append(clk["phase_read"])
+    fwd = ""
+    if fe.get("assets"):
+        parts = [f"{k} {v['mean']:+.1f}% (excess {v['excess']:+.1f}%{', significant' if v['sig'] else ''})"
+                 for k, v in fe["assets"].items()]
+        fwd = f"Given the {fe['state']} state, the model's 21-day expectation — " + "; ".join(parts) + "."
+    risks = [f"[{t['severity'].upper()}] {t['note']}" for t in (ten.get("items") or [])] or \
+            ["No hidden divergences — sub-signals are aligned with the headline."]
+    analog = ""
+    if an:
+        a0 = an[0]
+        analog = (f"Today's fingerprint most resembles {a0['date']} ({a0['similarity_pct']}% match); SPX then "
+                  f"returned {a0['spx_fwd_21d']:+.1f}% over 21d and {a0['spx_fwd_63d']:+.1f}% over 63d.")
+    return {"title": "Liquidity inflection — desk call", "headline": headline,
+            "the_call": " ".join(call_bits), "forward_expectation": fwd, "hidden_risks": risks,
+            "nearest_analog": analog, "reserve_runway": rw.get("read", ""),
+            "does_timing_work": bt.get("verdict", ""),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "model": "deterministic synthesis — bound to measured tables (LLM router offline; will upgrade on top-up)"}
 
 
 def lambda_handler(event=None, context=None):
@@ -1174,5 +1219,12 @@ def lambda_handler(event=None, context=None):
                            "closed loop vs SPY at 5/21/63d.")}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
+    try:
+        brief = desk_briefing(out)
+        S3.put_object(Bucket=BUCKET, Key="data/liquidity-inflection-decisive-call.json",
+                      Body=json.dumps(brief, default=str).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=1800")
+    except Exception as e:
+        print(f"[briefing] {str(e)[:80]}")
     print(f"[liq-inflect] z={out['usd']['impulse_z']} state={out['usd']['state']} flips10y={len(flips10)} {out['duration_s']}s")
     return {"statusCode": 200, "body": json.dumps({"state": out["usd"]["state"], "logged": n_logged})}
