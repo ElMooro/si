@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -158,6 +158,109 @@ def best_lead(z_dates, z, px, max_k=30):
             if abs(c) > abs(best[1]):
                 best = (k, round(c, 3))
     return {"lead_days": best[0], "corr_21d_fwd": best[1]}
+
+
+def _corr(xs, ys):
+    n = len(xs)
+    if n < 3:
+        return 0.0
+    mx, my = mean(xs), mean(ys)
+    sx = (sum((a - mx) ** 2 for a in xs)) ** .5
+    sy = (sum((b - my) ** 2 for b in ys)) ** .5
+    return (sum((a - mx) * (b - my) for a, b in zip(xs, ys)) / (sx * sy)) if sx and sy else 0.0
+
+
+def regime_conditioned_study(z_dates, z, px):
+    """Forward returns conditioned on the impulse STATE across ALL history (large n),
+    not just the ~4 rare flips. Reports mean/median/hit, EXCESS over the unconditional
+    baseline, and a t-stat of that excess so significance is explicit."""
+    pdates = sorted(px)
+    pidx = {d: i for i, d in enumerate(pdates)}
+    H = (5, 21, 63)
+    base = {}
+    for w in H:
+        rs = [(px[pdates[i + w]] / px[pdates[i]] - 1) * 100
+              for i in range(len(pdates) - w) if px[pdates[i]] and px[pdates[i + w]]]
+        base[w] = mean(rs) if rs else 0.0
+
+    def state_of(zz):
+        if zz > 0.5:
+            return "EXPANDING_FAST"
+        if zz > 0.05:
+            return "EXPANDING"
+        if zz >= -0.05:
+            return "FLAT"
+        if zz >= -0.5:
+            return "CONTRACTING"
+        return "CONTRACTING_FAST"
+    buckets = {}
+    for d, zz in zip(z_dates, z):
+        j = pidx.get(d)
+        if j is None:
+            continue
+        st = state_of(zz)
+        for w in H:
+            if j + w < len(pdates) and px[pdates[j]] and px[pdates[j + w]]:
+                buckets.setdefault(st, {}).setdefault(w, []).append((px[pdates[j + w]] / px[pdates[j]] - 1) * 100)
+    states = {}
+    for st in ("EXPANDING_FAST", "EXPANDING", "FLAT", "CONTRACTING", "CONTRACTING_FAST"):
+        hz = buckets.get(st)
+        if not hz:
+            continue
+        row = {}
+        for w in H:
+            xs = hz.get(w, [])
+            if len(xs) >= 12:
+                m = mean(xs)
+                sd = stdev(xs) if len(xs) > 1 else 0
+                exc = m - base[w]
+                t = (exc / (sd / len(xs) ** .5)) if sd else 0.0
+                row[f"d{w}"] = {"n": len(xs), "mean": round(m, 2), "median": round(sorted(xs)[len(xs) // 2], 2),
+                                "excess": round(exc, 2), "hit_pct": round(sum(1 for x in xs if x > 0) / len(xs) * 100, 1),
+                                "t": round(t, 2), "sig": abs(t) >= 2.0}
+        if row:
+            states[st] = row
+    return {"baseline": {f"d{w}": round(base[w], 2) for w in H}, "states": states,
+            "n_total": sum(len(v.get(21, [])) for v in buckets.values())}
+
+
+def lead_curve(z_dates, z, px, max_k=40):
+    """Full lead/lag curve corr(impulse_z(t), fwd-21d return at t+k) with t-stats, so a
+    real peak is distinguishable from a cherry-picked one."""
+    pdates = sorted(px)
+    pidx = {d: i for i, d in enumerate(pdates)}
+    pairs = [(pidx[d], zz) for d, zz in zip(z_dates, z) if d in pidx]
+    curve = []
+    for k in range(0, max_k + 1):
+        xs, ys = [], []
+        for j, zz in pairs:
+            if j + k + 21 < len(pdates) and px[pdates[j + k]]:
+                xs.append(zz); ys.append(px[pdates[j + k + 21]] / px[pdates[j + k]] - 1)
+        if len(xs) > 80:
+            c = _corr(xs, ys)
+            n = len(xs)
+            t = c * (((n - 2) / (1 - c * c)) ** .5) if abs(c) < 0.999 else 0.0
+            curve.append({"lead": k, "corr": round(c, 3), "n": n, "t": round(t, 1)})
+    best = max(curve, key=lambda r: abs(r["corr"])) if curve else None
+    return {"best": best, "curve": curve[::2]}
+
+
+def flip_log(flips, px, dates_all):
+    """The actual flip events, dated, with realized forward returns — the honest small-n view."""
+    idx = {d: i for i, d in enumerate(dates_all)}
+    rows = []
+    for f in flips:
+        d = f["date"]
+        j = idx.get(d) or idx.get(min((x for x in dates_all if x >= d), default=None))
+        if j is None:
+            continue
+        rec = {"date": d, "direction": f["direction"]}
+        for w in (5, 21, 63):
+            p0 = px.get(dates_all[j]) if j < len(dates_all) else None
+            p1 = px.get(dates_all[j + w]) if j + w < len(dates_all) else None
+            rec[f"d{w}"] = round((p1 / p0 - 1) * 100, 2) if (p0 and p1) else None
+        rows.append(rec)
+    return rows[-8:]
 
 
 def _pd(s):
@@ -297,12 +400,17 @@ def lambda_handler(event=None, context=None):
     btc = polygon_closes("X:BTCUSD")
     hyg = polygon_closes("HYG")
     studies, leads = {}, {}
+    regime_returns, lead_curves, flip_logs = {}, {}, {}
     flips10 = [f for f in usd_flips if f["date"] >= "2015-06-01"]
     for name, px in (("SPX_proxy", spx), ("BTC", btc), ("HYG", hyg)):
-        if len(px) > 500 and flips10:
+        if len(px) > 500:
             dd = sorted(px)
-            studies[name] = event_study(flips10, px, dd)
+            if flips10:
+                studies[name] = event_study(flips10, px, dd)
+                flip_logs[name] = flip_log(flips10, px, dd)
             leads[name] = best_lead(usd_dates, usd_z, px)
+            regime_returns[name] = regime_conditioned_study(usd_dates, usd_z, px)
+            lead_curves[name] = lead_curve(usd_dates, usd_z, px)
 
     # closed-loop: log a NEW flip (≤5 sessions)
     n_logged = 0
@@ -676,6 +784,7 @@ def lambda_handler(event=None, context=None):
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
            "stablecoin_schema_hint": sc_schema_hint,
            "event_study_after_flips": studies, "lead_estimates": leads,
+           "regime_returns": regime_returns, "lead_curves": lead_curves, "flip_log": flip_logs,
            "signals_logged": n_logged,
            "methodology": ("Net-liquidity impulse = 13-week slope of WALCL−TGA−RRP, 3y z-score; flips "
                            "debounced |Δz|≥0.25. The composite liquidity regime blends the second "
