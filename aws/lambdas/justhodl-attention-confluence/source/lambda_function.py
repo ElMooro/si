@@ -220,6 +220,7 @@ def lambda_handler(event=None, context=None):
     AC = x_analyst_clusters(_read("data/rating-change-cluster.json"))
     SH = x_short(_read("data/short-interest.json"))
     SA = (_read("data/search-attention.json") or {}).get("by_ticker", {}) or {}
+    BB = (_read("data/buyback-engine.json") or {}).get("tickers", {}) or {}
     gdelt = _read("data/gdelt-news.json")
     gamma = _read("data/options-gamma.json")
     themes = theme_map(att)
@@ -257,6 +258,7 @@ def lambda_handler(event=None, context=None):
         ac = AC.get(t, {})
         sh = SH.get(t, {})
         sa = SA.get(t, {})
+        bb = BB.get(t, {})
         layer = a.get("layer") or sm.get("name")
 
         # ---------- INFORMED sub-scores (0-100) ----------
@@ -272,11 +274,16 @@ def lambda_handler(event=None, context=None):
                      if safe(a.get("analyst_upgrade_mom")) > 0 else 0.0)
         if ac.get("cluster"):
             analyst_s = max(analyst_s, 70.0)
+        # buyback = corporate accumulation (the company itself buying its own stock)
+        buyback_s = clamp(bb.get("buyback_score", 0.0))
+        if bb.get("high_conviction_pump"):
+            buyback_s = max(buyback_s, 72.0)
 
-        fam = [("insider", insider_s, 0.26, 35),
-               ("options", options_s, 0.20, 30),
-               ("funds", funds_s, 0.22, 35),
-               ("darkpool", darkpool_s, 0.14, 40),
+        fam = [("insider", insider_s, 0.24, 35),
+               ("options", options_s, 0.18, 30),
+               ("funds", funds_s, 0.20, 35),
+               ("buyback", buyback_s, 0.18, 45),
+               ("darkpool", darkpool_s, 0.12, 40),
                ("congress", congress_s, 0.08, 40),
                ("analyst", analyst_s, 0.10, 45)]
         num = sum(w * s for _, s, w, _ in fam if s > 0)
@@ -346,6 +353,8 @@ def lambda_handler(event=None, context=None):
         if funds_s >= 35:
             lg = sm.get("legend_buyers") or []
             bits.append(("legend funds: " + ", ".join(lg[:2])) if lg else f"{f13.get('n_funds_adding',0)} funds adding")
+        if buyback_s >= 45:
+            bits.append((bb.get("class","buyback") + (f" {bb.get('net_buyback_yield')}% net" if bb.get("net_buyback_yield") else "")).replace("🚀 ","").replace("💪 ","").replace("💰 ","").replace("🎯 ",""))
         if darkpool_s >= 40 and dp.get("accumulating"):
             bits.append(f"dark-pool accumulation ({dp.get('dark_pool_pct')}%)")
         if congress_s:
@@ -368,7 +377,9 @@ def lambda_handler(event=None, context=None):
             "distributing": distributing, "crowd_has_data": crowd_has_data,
             "signals": {
                 "insider": ic or ({"mspr": mspr} if mspr is not None else None),
-                "options": op or None, "funds": (sm or f13) or None, "darkpool": dp or None,
+                "options": op or None, "funds": (sm or f13) or None,
+                "buyback": ({"score": bb.get("buyback_score"), "class": bb.get("class"), "net_yield": bb.get("net_buyback_yield"), "share_reduction": bb.get("share_count_reduction_yoy"), "pump": bb.get("high_conviction_pump")} if bb else None),
+                "darkpool": dp or None,
                 "congress": cg or None, "analyst": ac or ({"upgrade_mom": a.get("analyst_upgrade_mom")} if a.get("analyst_upgrade_mom") else None),
                 "retail": ({"bull_pct": rb, "msgs": a.get("retail_msgs"), "trending": a.get("trending")} if rb is not None or a.get("trending") else None),
                 "theme": ({"theme": tt[0], "trend_pct": tt[1]} if tt else None),
@@ -376,7 +387,7 @@ def lambda_handler(event=None, context=None):
                 "short": sh or None,
             },
             "subscores": {"insider": round(insider_s, 1), "options": round(options_s, 1),
-                          "funds": round(funds_s, 1), "darkpool": round(darkpool_s, 1),
+                          "funds": round(funds_s, 1), "buyback": round(buyback_s, 1), "darkpool": round(darkpool_s, 1),
                           "congress": round(congress_s, 1), "analyst": round(analyst_s, 1),
                           "retail": round(retail_s, 1), "theme": round(theme_s, 1), "search": round(search_s, 1)},
             "why": why,
@@ -405,6 +416,12 @@ def lambda_handler(event=None, context=None):
                             key=lambda r: r.get("score", 0), reverse=True)[:20]
     congress_panel = sorted([{"ticker": k, "n_buys": v.get("n_buys")} for k, v in CG.items()],
                             key=lambda r: r.get("n_buys", 0), reverse=True)[:20]
+    buyback_panel = sorted(
+        [{"ticker": k, "score": v.get("buyback_score"), "class": v.get("class"),
+          "net_yield": v.get("net_buyback_yield"), "share_reduction": v.get("share_count_reduction_yoy"),
+          "auth_pct": v.get("auth_pct_mcap"), "pump": v.get("high_conviction_pump")}
+         for k, v in BB.items() if (v.get("buyback_score") or 0) >= 45],
+        key=lambda r: (1 if r.get("pump") else 0, r.get("score") or 0), reverse=True)[:20]
 
     # ---------- market context ----------
     asset_sent = gdelt.get("asset_sentiment", {}) if isinstance(gdelt, dict) else {}
@@ -434,13 +451,13 @@ def lambda_handler(event=None, context=None):
         "stages": {"stealth": stealth, "igniting": igniting, "undiscovered": undiscovered, "crowded": crowded, "distribution": distribution},
         "panels": {"unusual_options": options_panel, "insider_clusters": insider_panel,
                    "smart_money": funds_panel, "dark_pool_accumulation": darkpool_panel,
-                   "congress_buys": congress_panel,
+                   "congress_buys": congress_panel, "corporate_buybacks": buyback_panel,
                    "theme_attention": att.get("theme_pulse", []),
                    "stocktwits_trending": att.get("stocktwits_trending", [])},
         "tickers": tickers,
         "scoring": {
-            "smart_families": {"insider": 0.26, "options": 0.20, "funds": 0.22, "darkpool": 0.14,
-                               "congress": 0.08, "analyst": 0.10},
+            "smart_families": {"insider": 0.24, "options": 0.18, "funds": 0.20, "buyback": 0.18,
+                               "darkpool": 0.12, "congress": 0.08, "analyst": 0.10},
             "crowd_families": {"retail": 0.42, "theme": 0.23, "search": 0.35},
             "stage_rules": {"STEALTH": "smart>=45 & confluence>=2 & crowd<40",
                             "IGNITING": "smart firing & crowd>=38",
