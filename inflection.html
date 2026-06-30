@@ -96,6 +96,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Macro tides <span class="hint">— dollar, conditions, credit & the cross-asset feeds</span></div>
 <div class="grid" id="tides"></div>
 
+<div class="sec">Historical analogs <span class="hint">— the closest liquidity fingerprints in history, and what SPX did next</span></div>
+<div id="analogs"><div class="loading">Loading…</div></div>
+
 <div class="sec">Forward returns by liquidity state <span class="hint">— conditioned on impulse state across all history (large n) · excess vs unconditional baseline · ★ = significant (|t|≥2)</span></div>
 <div id="regime_returns"><div class="loading">Loading…</div></div>
 <div class="sec">Actual impulse flips <span class="hint">— the rare discrete events, dated (small n — shown for transparency, not statistics)</span></div>
@@ -156,6 +159,22 @@ function renderFlipLog(fl){
     html+=`<div style="margin-bottom:12px;display:inline-block;vertical-align:top;width:340px;margin-right:14px"><div class="flowhdr" style="margin-bottom:6px"><span><b>${esc(asset)}</b> · ${rows.length} flips</span></div><table><thead><tr><th>Date</th><th>Flip</th><th>+5d</th><th>+21d</th><th>+63d</th></tr></thead><tbody>${body}</tbody></table></div>`;
   }
   return html||'<div class="loading">no flips in window</div>';
+}
+const FP_LABEL={impulse:'Net-liq impulse',hy_oas:'HY OAS',dollar:'Broad dollar',nfci:'NFCI',reserve_drain:'Reserve drain'};
+function fpRow(fp,feats){return (feats||Object.keys(fp||{})).map(k=>`<div class="comp"><div class="cn">${FP_LABEL[k]||k}<span>${fp[k]>0?'+':''}${fp[k]}</span></div>${compBar(fp[k])}</div>`).join('');}
+function renderAnalogs(a){
+  if(!a||!(a.analogs||[]).length)return '<div class="loading">analogs unavailable</div>';
+  const feats=a.features;
+  const now=`<div style="margin-bottom:13px"><div class="gnow" style="margin-bottom:7px">Today's liquidity fingerprint · ${esc(a.as_of)}</div><div class="comps">${fpRow(a.fingerprint_now,feats)}</div></div>`;
+  const col=v=>v==null?'var(--fg3)':v>0?'var(--green)':'var(--red)';
+  const cards=a.analogs.map(an=>`<div class="card" style="min-width:235px">
+      <h3>${esc(an.date)} <span class="pill c">${esc(an.similarity_pct)}% match</span></h3>
+      <div style="display:flex;gap:18px;margin:6px 0 9px">
+        <div><div class="m" style="margin:0">SPX +21d</div><div class="v" style="color:${col(an.spx_fwd_21d)};font-size:17px">${an.spx_fwd_21d==null?'—':(an.spx_fwd_21d>0?'+':'')+an.spx_fwd_21d+'%'}</div></div>
+        <div><div class="m" style="margin:0">SPX +63d</div><div class="v" style="color:${col(an.spx_fwd_63d)};font-size:17px">${an.spx_fwd_63d==null?'—':(an.spx_fwd_63d>0?'+':'')+an.spx_fwd_63d+'%'}</div></div>
+      </div>
+      <div class="comps" style="grid-template-columns:1fr 1fr;gap:6px">${fpRow(an.fingerprint,feats)}</div></div>`).join('');
+  return `${now}<div class="grid3">${cards}</div><div class="m" style="margin-top:10px">${esc(a.note)}</div>`;
 }
 function renderProjection(p){
   if(!p||!(p.history||[]).length||!(p.path||[]).length)return '<div class="loading">projection unavailable</div>';
@@ -326,6 +345,7 @@ async function load(){
   t+=card('China credit impulse'+(ce&&ce.regime?' '+pill(ce.regime):''),c?('z '+esc(c.impulse_z)):'—',c?('credit yoy '+esc(c.credit_yoy_pct)+'% · '+esc(c.as_of)+' (quarterly lag)'):'unavailable',c&&c.impulse_z<0?'neg':'');
   t+=card('Stablecoin tide '+(s?pill(s.state):''),s?esc(s.state||('accel z '+s.accel_z)):'—',s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round(((s.aggregate||{}).delta_7d_usd||0)/1e6))+'mn'):'unavailable',s&&clsOf(s.state)==='r'?'neg':'');
   document.getElementById('tides').innerHTML=t;
+  document.getElementById('analogs').innerHTML=renderAnalogs(d.analogs);
 
   // ── event study + leads ──
   // ── forward returns by liquidity state (robust) + flip log + leads ──
