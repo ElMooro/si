@@ -1,18 +1,12 @@
-deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-version: 1.2.0
-COMPOSITE: score 47.4 | regime NEUTRAL | z -0.16 | n 7
-  components: [('net_liquidity', -0.62, 0.28), ('reserves', 0.31, 0.16), ('global_liquidity', -0.58, 0.16), ('dollar', -0.08, 0.12), ('funding_stress', -0.21, 0.12), ('move', 0.77, 0.06), ('credit', 0.47, 0.1)]
-RESERVES: $bn 2951.4 dir RISING z 0.309 | Below ~$3.0T comfort zone — QT/issuance now draining real reserves
-RRP: $bn 26.9 | Buffer effectively exhausted — RRP near zero, drains now hit reserves directly
-TGA: $bn 918.7 dir FLAT
-SOFR-IORB: -3.0 bps trend20d -3.0 | abundant — SOFR comfortably below IORB
-  funding_plumbing: {'score': 54.2, 'regime': 'TIGHTENING', 'balance_sheet': 'EXPANDING', 'drivers': [{'signal': 'reserves', 'note': 'Reserves $2.95T vs ~$3.0T floor — BELOW LCLoR — danger (2019-style repo blowup risk)'}, {'signal': 'rrp_cushion', 'note': 'ON-RRP $4B — EMPTY: shock absorber gone, every drain now hits reserves directly'}, {'signal': 'sofr_tail', 'note': 'SOFR 99th−median +9bps (TAIL STRESS: collateral scarce at the margin)'}, {'signal': 'sofr_iorb', 'note': 'SOFR−IORB -3bps — calm'}]}
-  eurodollar_plumbing: {'health': 91.8, 'regime': 'ABUNDANT_LIQUIDITY', 'verdict': 'FUNCTIONING'}
-  move: {'level': 66.8, 'regime': 'SUPPRESSED', 'percentile': 10.1, 'change_20d': -2.95}
-GLOBAL LIQ: idx {'total_usd_bn': 17787.6, 'total_usd_trillions': 17.79, 'components_usd_bn': {'Fed': 6735.6, 'ECB': 6978.6, 'BOJ': 4109.4}, 'change_13w_pct': -0.87, 'change_52w_pct': -5.6, 'as_of': '2026-06-24'} impulse13w% -0.87 NEUTRAL
-DOLLAR: 120.89 dir FLAT eff_z -0.077
-CREDIT: BENIGN 280.0 bps
-NFCI: -0.516 loose / accommodative tightening False
-SYSTEMIC: 43 ELEVATED
-DONE 2609
+page bytes: 20730
+  [OK] Composite liquidity regime section
+  [OK] Reserve & buffer mechanics section
+  [OK] Funding & plumbing stress section
+  [OK] Global liquidity section
+  [OK] SOFR-IORB wiring
+  [OK] LCLoR/reserve language
+  [OK] gauge render fn
+  [OK] global CB breakdown
+  feed version 1.2.0 · composite score 47.4 NEUTRAL · n 7
+  reserves $2951.4bn · rrp $26.9bn · global $17.79T
+DONE 2610
