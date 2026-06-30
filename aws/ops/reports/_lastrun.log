@@ -1,12 +1,21 @@
-FunctionError: Unhandled
-PAYLOAD: {"errorMessage": "type str doesn't define __round__ method", "errorType": "TypeError", "requestId": "bfcfc786-2dfb-4c5c-8b54-f2a6ef78e286", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 468, in lambda_handler\n    raw_tilts, contributions, weight_sum = aggregate_tilts(\n", "  File \"/var/task/lambda_function.py\", line 393, in aggregate_tilts\n    \"value\": round(sig[\"value\"], 2),\n"]}
+FunctionError: None
 
-brain.json size: 3.13 MB
-allocator memory: 512 MB | timeout: 180 s
+brain_posture in signals_used: True
+   {'value': 0.6, 'intensity': 0.6, 'label': 'Brain Macro Posture', 'regime': 'balanced — defensive at the macro level (cash/gold/quality w', 'ic': None, 'in_allocator': True}
 
-=== recent CloudWatch ===
-  [ERROR] TypeError: type str doesn't define __round__ method
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 468, in lambda_handler
-    raw_tilts, contributions, weight_s
-DONE 2538
+posture: NEUTRAL | confidence: 94 | active_risk_bps: 394.0
+
+WEIGHT DELTAS (after - before), pp:
+             btc:   1.83 ->   1.80  (-0.03)
+            cash:   3.41 ->   3.53  (+0.12)  <- brain lean
+       em_equity:   4.59 ->   4.55  (-0.04)
+            gold:   3.86 ->   4.26  (+0.40)  <- brain lean
+       ig_credit:   5.01 ->   4.93  (-0.08)
+     intl_dev_eq:  14.81 ->  14.71  (-0.10)
+       us_equity:  40.11 ->  39.77  (-0.34)  <- brain lean
+        ust_long:  10.77 ->  10.80  (+0.03)  <- brain lean
+       ust_short:  15.61 ->  15.64  (+0.03)
+
+deltas_from_benchmark: {"us_equity": -0.23, "intl_dev_eq": -0.29, "em_equity": -0.45, "ust_short": 0.64, "ust_long": 0.8, "ig_credit": -0.07, "gold": -0.74, "btc": -0.2, "cash": 0.53}
+rationale: Risk posture NEUTRAL (equity tilt -1.0pp vs benchmark, duration tilt +1.4pp, gold tilt -0.7pp, cash tilt +0.5pp). Active risk 394 bps of 800 budget. Confidence 94 based on 8/11 signals contributing.
+DONE 2539
