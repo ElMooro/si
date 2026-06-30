@@ -1,4 +1,11 @@
-full package deployed (19 files)
-INVOKE: 200 None {"statusCode": 200, "body": "{\"logged\": 119}"}
-  buyback_pump: 2 signals, 2 fully-priced | e.g. [('AVO', 'OUTPERFORM', 0.748167, True), ('OSBC', 'OUTPERFORM', 0.746917, True)]
-DONE 2596
+deployed (19 files)
+INVOKE: 200 None {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 455, \"strong_buy\": 4, \"buy\": 11, \"weight_source\
+read data/best-setups.json
+setups total 50; with BUYBACK signal: 19
+  MU: verdict=STRONG BUY conviction=82.7 n_sig=5 | BUYBACK str=0.246 'CHEAP_REPURCHASER · net yield 0.14%'
+  BKNG: verdict=STRONG BUY conviction=73.5 n_sig=5 | BUYBACK str=0.985 'NET_SHRINKER · net yield 6.03%, shares -3.79% YoY'
+  COP: verdict=BUY conviction=39.9 n_sig=3 | BUYBACK str=0.714 'NET_SHRINKER · net yield 2.85%, shares -3.87% YoY'
+  ADBE: verdict=BUY conviction=38.9 n_sig=3 | BUYBACK str=1.0 'NET_SHRINKER · net yield 11.32%, shares -6.94% YoY'
+  GS: verdict=BUY conviction=36.6 n_sig=3 | BUYBACK str=0.84 'NET_SHRINKER · net yield 5.33%, shares -5.3% YoY'
+  DIS: verdict=WATCH conviction=31.9 n_sig=3 | BUYBACK str=0.812 'NET_SHRINKER · net yield 4.42%, shares -2.32% YoY'
+DONE 2597
