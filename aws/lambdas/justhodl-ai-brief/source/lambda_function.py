@@ -28,6 +28,7 @@ The brief is decisive and follows Khalid's preferred structure:
   (1) Data tape, (2) Regime, (3) Best assets, (4) Worst assets,
   (5) Transitions, (6) Watch triggers, (7) DECISIVE CALL
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

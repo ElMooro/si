@@ -30,6 +30,7 @@ After 6 months: platform has evolved itself in ways Khalid didn't write.
 
 Schedule: weekly Sunday 22 UTC (after causality-scanner, before week start).
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, logging, urllib.request, urllib.parse, base64, time
 import boto3
 from datetime import datetime, timezone, timedelta

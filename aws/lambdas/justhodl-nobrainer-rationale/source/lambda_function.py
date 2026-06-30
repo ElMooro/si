@@ -31,6 +31,7 @@ Env:
   SKIP_TELEGRAM=1 to disable digest
   SKIP_CLAUDE=1 to dry-run without API calls
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

@@ -43,6 +43,7 @@ DESIGN
   payload with status="stale_source" or "ai_error"
 - Anthropic key from env (ANTHROPIC_API_KEY)
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

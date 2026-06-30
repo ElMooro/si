@@ -14,6 +14,7 @@ IWM/SPY relative and XBI absolute) with n. Live detectors score today's
 state; fresh thrusts log to the closed loop at measured confidence; a
 server-side Claude strategist narrates ONLY these tables.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, re, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal

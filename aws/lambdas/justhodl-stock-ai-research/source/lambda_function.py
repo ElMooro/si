@@ -21,6 +21,7 @@ Per-call cost (Haiku 4.5):
   Total ≈ $0.002 per uncached ticker
   S&P 500 once each = $1.00 worst case
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import os
 import json
 import time

@@ -11,6 +11,7 @@ forbids invention; absent data must be called 'not in dossier').
 Each paper logs research_paper to the graded closed loop -> theses get scored.
 Output: data/research/{TICKER}.json + index data/research-papers.json
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal

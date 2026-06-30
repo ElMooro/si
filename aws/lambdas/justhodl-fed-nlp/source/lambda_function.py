@@ -10,6 +10,7 @@ language analysis on FOMC corpus).
 Output: data/fed-nlp.json
 Schedule: rate(6 hours) — Fed publishes irregularly; 6h catches new docs
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import os, json, time, urllib.request, urllib.parse, re, math
 from datetime import datetime, timezone
 from xml.etree import ElementTree as ET

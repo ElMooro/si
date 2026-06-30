@@ -13,6 +13,7 @@ v2 changes over v1:
   - Per-field freshness timestamps (FRED lag vs Polygon real-time)
   - Accountability block: how yesterday's picks performed
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, boto3, os, ssl, time, math, statistics, traceback, hashlib
 import urllib.request, urllib.error
 from datetime import datetime, timezone, timedelta

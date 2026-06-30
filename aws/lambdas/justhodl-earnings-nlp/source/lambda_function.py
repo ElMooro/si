@@ -71,6 +71,7 @@ data/earnings-nlp.json:
   }
 }
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import io, json, os, time, urllib.request, urllib.error, threading
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed

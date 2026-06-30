@@ -22,6 +22,7 @@ v2.0 adds the Top-10 gap-fills (ops 1522) + the important-ECB sweep:
 
 OUTPUT: data/ecb-derived.json · SCHEDULE: daily 14:40 UTC.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, ssl, statistics, os, bisect
 import urllib.request
 from datetime import datetime, timezone, timedelta

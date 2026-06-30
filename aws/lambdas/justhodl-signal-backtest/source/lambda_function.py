@@ -17,6 +17,7 @@ OUTPUT: data/signal-backtest.json — the empirical track record that powers
 trust + lets the conviction board reweight by PROVEN performance.
 SCHEDULE: daily 16:00 UTC.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, statistics
 import urllib.request
 from datetime import datetime, timezone, date

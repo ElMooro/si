@@ -14,6 +14,7 @@ every claim is tied to a signal/metric. Invoked via Function URL / worker proxy.
 
 Guardrails: research/analytics only, never personalized financial advice.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, re, time, urllib.request
 from datetime import datetime, timezone
 import boto3

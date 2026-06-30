@@ -31,6 +31,7 @@ PIPELINE
 Schedule: 11:30 UTC daily (7:30 AM ET pre-market open)
 Cost: ~\$0.01/day for one Claude haiku call
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

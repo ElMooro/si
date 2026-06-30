@@ -27,6 +27,7 @@ SCHEDULE
 cron(0 3 * * ? *) — daily 03:00 UTC. Transcripts only update on earnings
 cycle so daily is plenty.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

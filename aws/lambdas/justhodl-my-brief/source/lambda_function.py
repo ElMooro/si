@@ -6,6 +6,7 @@ Reads best-setups, brain (directive), bond-vol, funding-plumbing, crypto-risk,
 catalyst-calendar. Asks Claude to write a tight, personalized brief in the
 user's own frame. OUTPUT: data/my-brief.json · SCHEDULE: daily 13:30 UTC.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
 from datetime import datetime, timezone

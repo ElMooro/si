@@ -68,6 +68,7 @@ SCHEDULE
 cron(30 13 * * ? *) — daily 13:30 UTC (8:30 AM ET — before US market open,
                                           after all overnight layers run)
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

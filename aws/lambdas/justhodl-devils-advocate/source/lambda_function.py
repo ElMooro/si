@@ -9,6 +9,7 @@ flagging when a setup violates one of the user's own stated rules.
 
 OUTPUT: data/devils-advocate.json  ·  SCHEDULE: every 6h (after best-setups).
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, time, os
 import urllib.request
 from datetime import datetime, timezone

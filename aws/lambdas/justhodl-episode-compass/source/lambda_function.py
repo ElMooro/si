@@ -8,6 +8,7 @@ with the features that match and diverge, what followed each episode (real
 SPX sequels from the deep base), a tail-event checklist — and a server-side
 Claude briefing bound to those measured tables.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, re, urllib.request, urllib.parse, bisect
 from datetime import datetime, timezone, timedelta
 from statistics import mean, pstdev

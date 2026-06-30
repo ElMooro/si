@@ -25,6 +25,7 @@ Dependencies: matplotlib (Lambda layer needed, or use API for chart
 generation). v1 uses a textual ASCII chart approximation + price
 statistics. v2 will add matplotlib-rendered PNG.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, logging, urllib.request, urllib.parse, base64
 import boto3
 from datetime import datetime, timezone, timedelta

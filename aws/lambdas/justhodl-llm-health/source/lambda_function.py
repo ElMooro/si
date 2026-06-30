@@ -12,6 +12,7 @@ with null/error AI fields inside. This engine:
 
 Runs every few hours, so the next outage is caught in hours, not weeks.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import urllib.request

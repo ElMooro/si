@@ -9,6 +9,7 @@ Each page renders a 3-card AI brief panel by fetching its commentary JSON.
 Refreshes daily 10:00 ET (1h after digest-trends-ai). Some pages may
 schedule more frequent refreshes.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

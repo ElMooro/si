@@ -30,6 +30,7 @@ deep, tuned, curated net; this is the catch-all that nothing escapes.
 
 OUTPUT: _health/fleet.json   SCHEDULE: every 3h
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

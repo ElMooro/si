@@ -18,6 +18,7 @@ Output:
 
 Schedule: daily 16 UTC.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

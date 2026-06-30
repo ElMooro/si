@@ -66,6 +66,7 @@ FRAMING (important):
 - Risks are observational (from engine data), not predictive
 - Page UI adds a clear disclaimer ('not financial advice')
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

@@ -12,6 +12,7 @@ investor-debate/_index.json with all current debates + metadata.
 If Stage 1 completes but Stage 2 doesn't add information (low novelty
 score), the synthesis flags this — telling us when debate ISN'T helping.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

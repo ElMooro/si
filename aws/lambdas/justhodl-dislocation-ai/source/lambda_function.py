@@ -14,6 +14,7 @@ Reads:  data/dislocations.json (the ranked list)
 Writes: data/dislocation-ai.json   { by_ticker: {TICKER: {...}}, by_theme: {...} }
 Schedule: daily 15:15 UTC (after dislocation-detector at 14:30).
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, re, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 import boto3

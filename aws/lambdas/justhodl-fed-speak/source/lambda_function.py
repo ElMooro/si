@@ -55,6 +55,7 @@ ZERO DETERIORATION
   ✓ Anthropic key already in env (used by ai-brief, divergence-interpreter, etc)
   ✓ Failure-safe: if RSS fails, returns last known state
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

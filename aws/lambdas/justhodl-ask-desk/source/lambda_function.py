@@ -11,6 +11,7 @@ One question in -> two-stage agentic retrieval:
 Exposed via Lambda Function URL (CORS) with a soft x-desk-key header.
 Every Q/A is archived to data/_askdesk/ for audit.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, urllib.request
 from datetime import datetime, timezone
 import boto3

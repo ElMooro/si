@@ -45,6 +45,7 @@ DESIGN
 - Fail-soft: writes degraded payload with status=error on any failure
 - Archives every output to data/archive/ai-website-synthesis/YYYYMMDD_HH.json
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

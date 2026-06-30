@@ -61,6 +61,7 @@ SCHEDULE
 ========
 cron(0 */6 * * ? *) — every 6 hours (cheap, captures new statement promptly)
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import io, json, os, time, re, urllib.request, urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed

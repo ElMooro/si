@@ -102,6 +102,7 @@ SCHEDULE
 cron(0 14 * * ? *) — daily 14:00 UTC (9 AM ET, after morning brief)
 Catalysts change slowly — once a day is plenty.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

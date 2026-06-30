@@ -9,6 +9,7 @@ on YOUR specific portfolio. Bloomberg TOP-style feed.
 Output: data/news-wire.json + data/news-wire-state.json
 Schedule: rate(15 minutes)
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import os, json, time, urllib.request, urllib.parse, hashlib, re
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed

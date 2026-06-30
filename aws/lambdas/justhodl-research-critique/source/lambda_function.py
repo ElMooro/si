@@ -32,6 +32,7 @@ Override: OPENAI_MODEL=o3-mini-2025-XX-XX + OPENAI_API_KEY → uses OpenAI
 Lambda is invoked async by the prewarm pipeline after each research succeeds.
 Doesn't slow down the research path because it runs in parallel.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

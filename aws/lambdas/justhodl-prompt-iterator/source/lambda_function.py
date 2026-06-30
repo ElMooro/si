@@ -13,6 +13,7 @@ Process:
   5. If passes, save with versioning + log
   6. Compare next-period scoring to previous; auto-revert if worse
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import re

@@ -31,6 +31,7 @@ EXPECTED METRICS
   - Cost per run:     ~$0.05 (haiku is cheap)
   - Output size:      80-120 KB JSON
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

@@ -1,3 +1,4 @@
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import os
 import sys
 import json,urllib3,boto3,time

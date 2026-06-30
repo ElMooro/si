@@ -12,6 +12,7 @@ Pipeline:
 
 Schedule: hourly at :05 (after trade-tickets refresh at :00)
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

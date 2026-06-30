@@ -18,6 +18,7 @@ Output schema (per context, written to data/<context-output_key>.json):
   trade_ideas[], tripwires[], next_event_watch[],
   historical_predictions[]
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

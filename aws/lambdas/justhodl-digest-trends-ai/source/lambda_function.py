@@ -17,6 +17,7 @@ Reads:
 Writes:
   data/digest-trends-ai.json — structured AI insights for HTML rendering
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time

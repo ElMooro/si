@@ -9,6 +9,7 @@ Runs daily after political-intel. Output: data/political-ai-investigation.json
 keyed by ticker. Consumed by chart-pro (POLITICIAN watchlist info panel) and
 can feed the per-user notes-aware AI.
 """
+import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os
 import time
