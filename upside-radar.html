@@ -100,7 +100,13 @@ const star=t=>brkSet.has((t||'').toUpperCase())?'<span class="star" title="also 
 const TK=t=>`<span class="tkl" data-t="${esc((t||'').toUpperCase())}" title="click for the multibagger thesis">${star(t)+esc(t)}</span>`;
 function render(){
   const S=(D&&D.scans)||{};
-  const base=[[r=>TK(r.t),'Ticker',null,1],['c','Px'],[r=>r.dist_hi_pct+'%','vs 252d-hi',r=>r.dist_hi_pct>=-0.2?'hi':''],[r=>(r.ret63>0?'+':'')+r.ret63+'%','3m'],[r=>r.ret252!=null?(r.ret252>0?'+':'')+r.ret252+'%':'—','12m',r=>r.ret252>=100?'hi':'']];
+  const TH=t=>((X.th&&X.th.theses)||{})[(t||'').toUpperCase()]||null;
+  const dnaShort=a=>({"Stealth Microcap":"Stealth µcap","Quiet Compounder":"Compounder","Hypergrowth Disruptor":"Hypergrowth","Turnaround / Down-but-not-out":"Turnaround","Margin-Inflection":"Margin↑"})[a]||a||'—';
+  const base=[[r=>TK(r.t),'Ticker',null,1],['c','Px'],[r=>r.dist_hi_pct+'%','vs 252d-hi',r=>r.dist_hi_pct>=-0.2?'hi':''],[r=>(r.ret63>0?'+':'')+r.ret63+'%','3m'],[r=>r.ret252!=null?(r.ret252>0?'+':'')+r.ret252+'%':'—','12m',r=>r.ret252>=100?'hi':''],
+    [r=>{const d=TH(r.t);return d&&d.metrics&&d.metrics.rev_growth_pct!=null?d.metrics.rev_growth_pct+'%':'—';},'Rev gr',r=>{const d=TH(r.t);return d&&d.metrics&&d.metrics.rev_growth_pct>=25?'hi':d&&d.metrics&&d.metrics.rev_growth_pct>=15?'am':'';}],
+    [r=>{const d=TH(r.t);return d?d.n_engines:'—';},'⚙ Eng',r=>{const d=TH(r.t);return d&&d.n_engines>=4?'hi':d&&d.n_engines>=2?'am':'';}],
+    [r=>{const d=TH(r.t);return d&&d.dna?dnaShort(d.dna.archetype):'—';},'🧬 Setup'],
+    [r=>{const d=TH(r.t);return d?d.discovery_score:'—';},'MB score',r=>{const d=TH(r.t);return d&&d.discovery_score>=80?'hi':d&&d.discovery_score>=60?'am':'';}]];
   const fc=X.fc||{},ec=X.ec||{},be=X.be||{},cb=X.cb||{},mbk=X.mb||{},pe=X.pe||{},dp=X.dp||{},cf=X.cf||{},ark=X.ark||{},si=X.si||{},er=X.er||{},se=X.se||{},mr=X.mr||{},bs=X.bs||{},tr=X.tr||{};
   const M={
    breakout:tbl(S.breakout,[...base,[r=>r.dvol_x+'×','$Vol vs 20d',r=>r.dvol_x>=3?'am':'']]),
@@ -153,7 +159,7 @@ function render(){
      tbl((bs.top_setups||[]).slice(0,20),[[r=>TK(r.ticker),'Ticker',null,1],[r=>n1(r.conviction),'Conviction',r=>r.conviction>=70?'hi':''],[r=>esc((r.why||r.name||'').slice(0,60)),'Thesis',null,1]]),
    mbscore:(()=>{const TH=(X.th&&X.th.theses)||{};const arr=Object.values(TH).sort((a,b)=>(b.discovery_score||0)-(a.discovery_score||0)).slice(0,45);
      return subh('Multibagger Score — composite rank: framework fit × confluence × smart money × DNA. Click any ticker for the full thesis.')+
-     tbl(arr,[[r=>TK(r.ticker),'Ticker',null,1],[r=>r.discovery_score,'Score',()=>'hi'],[r=>r.dna?esc(r.dna.archetype):'—','DNA archetype',null,1],[r=>r.dna?r.dna.fit_pct+'%':'—','Fit',r=>r.dna&&r.dna.fit_pct>=70?'hi':''],[r=>r.canslim.score,'CANSLIM',r=>r.canslim.score>=60?'hi':''],[r=>r.sqglp.score,'SQGLP',r=>r.sqglp.score>=60?'hi':''],[r=>(r.smart_money&&r.smart_money.score)||'—','🐋',r=>r.smart_money&&r.smart_money.score>=40?'hi':''],[r=>r.ai?'✓':'','AI',()=>'cy']]);})()
+     tbl(arr,[[r=>TK(r.ticker),'Ticker',null,1],[r=>r.discovery_score,'Score',()=>'hi'],[r=>r.dna?esc(r.dna.archetype):'—','DNA archetype',null,1],[r=>r.dna?r.dna.fit_pct+'%':'—','Fit',r=>r.dna&&r.dna.fit_pct>=70?'hi':''],[r=>r.canslim?r.canslim.score:'—','CANSLIM',r=>r.canslim&&r.canslim.score>=60?'hi':''],[r=>r.sqglp?r.sqglp.score:'—','SQGLP',r=>r.sqglp&&r.sqglp.score>=60?'hi':''],[r=>(r.smart_money&&r.smart_money.score)||'—','🐋',r=>r.smart_money&&r.smart_money.score>=40?'hi':''],[r=>r.ai?'✓':'','AI',()=>'cy']]);})()
   };
   document.getElementById('pane').innerHTML=M[P]||'<div class="loading">—</div>';
 }
