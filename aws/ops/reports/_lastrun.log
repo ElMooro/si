@@ -1,19 +1,10 @@
-manifest keys watched: 0
+=== _freshness-monitor.json top-level keys ===
+['version', 'run_id', 'generated_at', 'n_keys_tracked', 'n_stale', 'n_fresh', 'n_alerts_raised', 'n_alerts_suppressed', 'stale_top_50', 'elapsed_s', 'thresholds', 'manifest_rules', 'telegram_sent', 'sns_sent']
+  generated_at: "2026-06-30T02:29:09.813763+00:00"
+  n_stale: 5
 
-STALE feeds (age_h > threshold): 0
-
-freshness-monitor last run: 2026-06-30T01:59:09.313666+00:00
-  monitor-reported stale count: None
-
-EventBridge rules total: 312 | DISABLED (justhodl-ish): 0
-
-justhodl-future-intelligence: last log 0.4d ago | no recent errors in tail
-
-justhodl-pairs-scanner: last log 0.5d ago | no recent errors in tail
-
-justhodl-divergence-v2: NO log group (never deployed/invoked)
-
-justhodl-divergence-interpreter: last log 0.3d ago | recent errors:
-    [interp] Claude call failed: HTTP Error 400: Bad Request
-
-DONE 2542
+=== divergence-interpreter recheck ===
+FunctionError: None
+payload: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"SLOWING\", \"composite_index\": 29.6, \"n_extreme\": 6, \"n_flagged\": 15, \"alert_reasons\": [], \"interpretation_chars\": 3129, \"duration_s\": 12.1}"}
+output _err: An error occurred (NoSuchKey) when calling the GetObject operation: The specifie | has interpretation: False | model: None
+DONE 2543
