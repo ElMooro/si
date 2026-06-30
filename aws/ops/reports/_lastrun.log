@@ -1,5 +1,14 @@
-deployed (19 files)
-INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 9, \"n_tier_3_plus\": 78, \"n_tier_5_plus\": 32, \"regime\": \"SLOWING\", \"duration
-total ranked: 0
-ranked names citing buyback: 0
-DONE 2604
+TOP-LEVEL KEYS: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro', 'feed_health', 'feed_freshness', 'stale_feeds_excluded', 'missing_feeds', 'calibration_weights', 'duration_s']
+  list 'top_tickers': 25 rows; row[0] keys: ['ticker', 'score', 'n_systems', 'systems', 'contributions', 'capital_flow_mult', 'risk_regime_mult', 'cycle_phase', 'cycle_warning', 'red_flags', 'rationale', 'details']
+  list 'top_macro': 9 rows; row[0] keys: ['type', 'name', 'category', 'z', 'abs_z', 'rationale', 'action_hint', 'score']
+  list 'feed_freshness': 43 rows; row[0] keys: ['key', 'age_h', 'stale', 'used']
+
+MAIN RANKED LIST KEY: top_tickers
+row[0] full sample: {"ticker": "WELL", "score": 126.4, "n_systems": 2, "systems": ["compound", "pead"], "contributions": [{"system": "compound", "raw_score": 213.5, "normalized": 100, "weight": 1.0, "contribution": 100.0}, {"system": "pead", "raw_score": 98.0, "normalized": 98.0, "weight": 1.0, "contribution": 98.0}], "capital_flow_mult": 1.0, "risk_regime_mult": 1.0, "cycle_phase": null, "cycle_warning": null, "red_flags": null, "rationale": "2 systems agree (compound=126.4) [compound, pead]", "details": {"compound": {"score": 213.5, "n_systems": 2, "systems": ["momentum", "pead"], "details": {"momentum": {"tier
+systems field on a row: systems -> list
+
+ranked rows with buyback contributing: 3 / 25
+  MU: score=102.3 | 6 systems agree (compound=102.3) [buyback, compound, earnings_confluence, eps_velocity, equity_
+  AMG: score=100.0 | 1 systems agree (compound=100.0) [buyback] · net shrinker (shares -8.22% YoY)
+  EG: score=100.0 | 1 systems agree (compound=100.0) [buyback] · net shrinker (shares -5.66% YoY)
+DONE 2605
