@@ -1,33 +1,16 @@
-=== correlation-breaks (stock<->bond rotation) ===
-top keys: ['schema_version', 'generated_at', 'fetch_time_sec', 'elapsed_sec', 'n_instruments', 'n_dates_aligned', 'instruments', 'labels', 'diff_modes', 'window_days', 'history_tail_days', 'frobenius_delta', 'frobenius_delta_baseline_mean', 'frobenius_delta_baseline_std', 'frobenius_z_score_1y', 'signal', 'interpretation', 'top_breaking_pairs', 'n_pairs_above_2sigma', 'n_pairs_above_3sigma', 'latest_matrix', 'delta_matrix', 'matrix_dates', 'frobenius_history', 'data_sources']
-labels: {'SP500': 'S&P 500', 'NASDAQCOM': 'Nasdaq Comp', 'VIXCLS': 'VIX', 'DGS10': '10Y Yield', 'DGS2': '2Y Yield', 'BAMLH0A0HYM2': 'HY OAS', 'DTWEXBGS': 'Broad USD', 'DEXJPUS': 'JPY/USD', 'DCOILWTICO': 'WTI Oil'}
-instruments: ['SP500', 'NASDAQCOM', 'VIXCLS', 'DGS10', 'DGS2', 'BAMLH0A0HYM2', 'DTWEXBGS', 'DEXJPUS', 'DCOILWTICO']
-top_breaking_pairs (first 4):
-   {'labels': ['10Y Yield', 'HY OAS'], 'current_corr': 0.2347, 'baseline_corr': -0.2938, 'delta': 0.5285, 'z_score': 4.12, 'direction': 'RISING (correlation strengthening)'}
-   {'labels': ['Nasdaq Comp', '10Y Yield'], 'current_corr': -0.6194, 'baseline_corr': 0.0664, 'delta': -0.6858, 'z_score': -3.54, 'direction': 'FALLING (correlation weakening or flipping sign)'}
-   {'labels': ['S&P 500', '10Y Yield'], 'current_corr': -0.6545, 'baseline_corr': 0.002, 'delta': -0.6565, 'z_score': -3.36, 'direction': 'FALLING (correlation weakening or flipping sign)'}
-   {'labels': ['Nasdaq Comp', '2Y Yield'], 'current_corr': -0.5531, 'baseline_corr': 0.1718, 'delta': -0.7249, 'z_score': -3.04, 'direction': 'FALLING (correlation weakening or flipping sign)'}
-regime/headline: None | None | Cross-asset relationships within their typical 1Y range
+feed availability:
+  ✅ correlation-surface
+  ✅ correlation-breaks
+  ✅ carry-surface
+  SPY-TLT stock-bond corr: 0.475 | macro_regime: MACRO_ALL_ON
+  USD synthetic 20d: 0.82 | top FX carry: [('BRL', 8.33), ('ZAR', 3.28), ('MXN', 3.23)]
 
-=== correlation-surface (stock-bond pair) ===
-macro_regime: MACRO_ALL_ON | Cross-asset correlations elevated — single-factor macro regime, diversification benefit reduced
-avg_30d_abs_corr: 0.572
-  pair: {'name_a': 'S&P 500', 'name_b': '20Y+ Treasuries', 'ticker_a': 'SPY', 'ticker_b': 'TLT', 'corr_30d': 0.475, 'corr_90d': 0.425}
-  pair: {'name_a': 'S&P 500', 'name_b': 'Gold', 'ticker_a': 'SPY', 'ticker_b': 'GLD', 'corr_30d': 0.757, 'corr_90d': 0.544}
-  pair: {'name_a': 'S&P 500', 'name_b': 'US Dollar', 'ticker_a': 'SPY', 'ticker_b': 'UUP', 'corr_30d': -0.619, 'corr_90d': -0.606}
-  pair: {'name_a': 'Gold', 'name_b': 'US Dollar', 'ticker_a': 'GLD', 'ticker_b': 'UUP', 'corr_30d': -0.685, 'corr_90d': -0.431}
-  pair: {'name_a': '20Y+ Treasuries', 'name_b': 'Crude Oil', 'ticker_a': 'TLT', 'ticker_b': 'USO', 'corr_30d': -0.626, 'corr_90d': -0.497}
-  pair: {'name_a': 'Bitcoin', 'name_b': 'S&P 500', 'ticker_a': 'IBIT', 'ticker_b': 'SPY', 'corr_30d': 0.47, 'corr_90d': 0.568}
-
-=== carry-surface (FX flows) ===
-top keys: ['version', 'generated_at', 'elapsed_s', 'n_assets', 'financing_rate_pct', 'by_class', 'all_assets', 'cross_asset_top', 'cross_asset_bottom', 'risk_adjusted_leaders', 'regime_summary', 'massive_fx', 'methodology']
-regime_summary.fx: {"n": 10, "mean_carry_pct": 0.57, "median_carry_pct": 0.08, "dispersion_pct": 3.53, "max": 8.33, "min": -3.67}
-massive_fx keys: ['regime_signals', 'usd_synthetic_20d_pct', 'majors', 'note', 'source']
-massive_fx: {"regime_signals": [], "usd_synthetic_20d_pct": 0.82, "majors": {"USD_JPY": {"price": 161.893, "ret_20d_pct": 0.986, "vol_20d_pct": 2.16}, "EUR_USD": {"price": 1.14032, "ret_20d_pct": -1.031, "vol_20d_pct": 4.59}, "GBP_USD": {"price": 1.32363, "ret_20d_pct": -0.777, "vol_20d_pct": 5.55}, "AUD_USD": {"price": 0.68952, "ret_20d_pct": -2.126, "vol_20d_pct": 6.01}, "USD_CNH": {"price": 6.79957, "ret_2
-fx assets: 10 · top by carry:
-   {'symbol': 'BRLUSD', 'long_currency': 'BRL', 'short_currency': 'USD', 'carry_pct': 8.33, 'carry_pct_z': 2.19, 'global_rank': 1}
-   {'symbol': 'ZARUSD', 'long_currency': 'ZAR', 'short_currency': 'USD', 'carry_pct': 3.28, 'carry_pct_z': 0.77, 'global_rank': 4}
-   {'symbol': 'MXNUSD', 'long_currency': 'MXN', 'short_currency': 'USD', 'carry_pct': 3.23, 'carry_pct_z': 0.75, 'global_rank': 5}
-   {'symbol': 'AUDUSD', 'long_currency': 'AUD', 'short_currency': 'USD', 'carry_pct': 0.8, 'carry_pct_z': 0.06, 'global_rank': 8}
-   {'symbol': 'GBPUSD', 'long_currency': 'GBP', 'short_currency': 'USD', 'carry_pct': 0.08, 'carry_pct_z': -0.14, 'global_rank': 15}
-DONE 2554
+page bytes: 40750
+  ✅ correlation-surface.json
+  ✅ carry-surface.json
+  ✅ Stock ↔ bond flow
+  ✅ FX carry flows
+  ✅ moneyFlow(D.xaf,D.corr,D.corrbreaks)
+  ✅ D.fiatpeg,D.carry
+  no double-escape: True
+DONE 2555
