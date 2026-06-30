@@ -431,9 +431,11 @@ async function load(){
   const u=d.usd||{};
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
   document.getElementById('projection').innerHTML=renderProjection(d.projection);
-  document.getElementById('compproj').innerHTML=renderCompProjection(d.composite_projection);
+  const _cs=d.composite_snapshots||{};
+  const srcLine=src=>{const real=src==='snapshots';return `<div class="m" style="margin:0 0 8px">Source: <b>${real?'real all-component snapshots':'FRED-backed reconstruction (~70% of composite weight)'}</b>${_cs.count?` \u00b7 ${_cs.count} all-component snapshot${_cs.count>1?'s':''} captured since ${esc(_cs.first)}${real?'':' \u2014 history building toward the full upgrade'}`:''}</div>`;};
+  document.getElementById('compproj').innerHTML=srcLine((d.composite_projection||{}).source)+renderCompProjection(d.composite_projection);
   document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
-  document.getElementById('compclock').innerHTML=renderClock(d.composite_clock);
+  document.getElementById('compclock').innerHTML=srcLine((d.composite_clock||{}).source)+renderClock(d.composite_clock);
   document.getElementById('tensions').innerHTML=renderTensions(d.tensions);
   document.getElementById('fwdexp').innerHTML=renderForwardExp(d.forward_expectation);
   document.getElementById('runway').innerHTML=renderRunway(d.reserve_runway);
