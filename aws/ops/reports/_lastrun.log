@@ -1,7 +1,9 @@
 deployed
-HEADLINE: Net liquidity projected to fall ~$97bn over 13 weeks (to ~$5,720bn by 2026-09-23), driven mainly by treasury cash (tga) rebuild.
-  cur $ 5816.9 → proj $ 5720.0 ( -96.9 bn) pace -16.5 /wk
-  drivers/wk: {'walcl_runoff': 1.19, 'tga': -13.35, 'rrp': -4.38} primary: Treasury cash (TGA) rebuild
-  hist0: {'date': '2026-03-25', 'net_liq_bn': 5783.1} histN: {'date': '2026-06-24', 'net_liq_bn': 5816.9}
-  path1: {'week': 1, 'date': '2026-07-01', 'net_liq_bn': 5800.4, 'lo_bn': 5729.7, 'hi_bn': 5871.1} pathN: {'week': 13, 'date': '2026-09-23', 'net_liq_bn': 5720.0, 'lo_bn': 5465.3, 'hi_bn': 5974.8}
-DONE 2623
+INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
+ANALOGS as_of: 2026-06-24 features: ['impulse', 'hy_oas', 'dollar', 'nfci', 'reserve_drain']
+fingerprint now: {'impulse': -0.33, 'hy_oas': -0.98, 'dollar': 0.95, 'nfci': -0.4, 'reserve_drain': 0.19}
+  2024-10-23 · sim 49.5% (dist 1.02) · SPX fwd 21d 3.8% / 63d 5.8% · fp {'impulse': -0.8, 'hy_oas': -0.56, 'dollar': 1.58, 'nfci': 0.09, 'reserve_drain': 0.32}
+  2017-01-11 · sim 46.7% (dist 1.14) · SPX fwd 21d 3.1% / 63d 4.9% · fp {'impulse': -0.55, 'hy_oas': 0.0, 'dollar': 0.49, 'nfci': -0.11, 'reserve_drain': 0.26}
+  2019-10-02 · sim 45.5% (dist 1.2) · SPX fwd 21d 6.5% / 63d 16.8% · fp {'impulse': -0.44, 'hy_oas': 0.0, 'dollar': 0.29, 'nfci': -0.37, 'reserve_drain': 0.0}
+  2024-03-20 · sim 44.5% (dist 1.24) · SPX fwd 21d -6.6% / 63d 8.3% · fp {'impulse': -1.08, 'hy_oas': -0.15, 'dollar': 0.86, 'nfci': 0.1, 'reserve_drain': -0.01}
+DONE 2624
