@@ -1,6 +1,14 @@
-  no stray rule 'null' (clean)
-  no stray rule 'None' (clean)
-  no stray rule '' (clean)
-  justhodl-search-attention-daily: cron(0 15 * * ? *) ENABLED
-  justhodl-attention-confluence-daily: cron(10 15 * * ? *) ENABLED
-DONE 2591
+
+##### AAPL #####
+  cash-flow buyback fields: {'stockBasedCompensation': 3528000000, 'netDebtIssuance': -5751000000, 'longTermNetDebtIssuance': -5750000000, 'shortTermNetDebtIssuance': -1000000, 'netStockIssuance': -12288000000, 'netCommonStockIssuance': -12288000000, 'commonStockIssuance': 0, 'commonStockRepurchased': -12288000000, 'netPreferredStockIssuance': 0, 'netDividendsPaid': -3822000000, 'commonDividendsPaid': -3822000000, 'preferredDividendsPaid': 0}
+  cash-flow dates: ['2026-03-28', '2025-12-27', '2025-09-27', '2025-06-28', '2025-03-29']
+  key-metrics fields: {'marketCap': 3660026638400, 'earningsYield': 0.008081361946843692, 'freeCashFlowYield': 0.007303498755868509}
+  ratios fields: {'period': 'Q2', 'operatingProfitMargin': 0.32275327385235286, 'continuousOperationsProfitMargin': 0.2660274859692042, 'priceToEarningsRatio': 30.792079207920793, 'priceToEarningsGrowthRatio': -1.0573183824406536, 'forwardPriceToEarningsGrowthRatio': -1.0573183824406536, 'priceToFreeCashFlowRatio': 136.92067780479593, 'priceToOperatingCashFlowRatio': 127.5181742875061, 'operatingCashFlowRatio': 0.2131742931202234, 'operatingCashFlowSalesRatio': 0.2581486544826594, 'freeCashFlowOperatingCashFlowRatio': 0.9313288272594245, 'shortTermOperatingCashFlowCoverageRatio': 2.7847094207819927, 'operatingCashFlowCoverageRatio': 0.338822585024377, 'capitalExpenditureCoverageRatio': 14.562151192288178, 'dividendPaidAndCapexCoverageRatio': 4.954600379768686, 'dividendPayoutRatio': 0.12921766177564406, 'dividendYield': 0.0010442546947338086, 'dividendYieldPercentage': 0.10442546947338087, 'revenuePerShare': 7.558026739415438, 'netIncomePerShare': 2.0106428523747106, 'interestDebtPerShare': 5.7584544819634225, 'cashPerShare': 4.656944684820958, 'bookValuePerShare': 7.239007640551603, 'tangibleBookValuePerShare': 5.788772512667295, 'shareholdersEquityPerShare': 7.239007640551603, 'operatingCashFlowPerShare': 1.9510944333240567, 'capexPerShare': 0.1339839428639717, 'freeCashFlowPerShare': 1.817110490460085, 'netIncomePerEBT': 0.8254402366533642, 'ebtPerEbit': 0.9985509265709906, 'dividendPerShare': 0.2598105680497716}
+  profile: {'price': 287.48, 'lastDividend': 1.05, 'companyName': 'Apple Inc.', 'industry': 'Consumer Electronics'}
+  enterprise-values numberOfShares trend: [('2026-03-28', 14710718000), ('2025-12-27', 14748158000), ('2025-09-27', 14948500000), ('2025-06-28', 14902886000), ('2025-03-29', 14994082000)]
+
+##### live buyback-scanner.json #####
+  top keys: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'n_total_candidates_8k', 'n_unique_tickers', 'n_enriched_opportunities', 'n_fresh_last_7d', 'annual_buyback_auth_usd_bn', 'lookback_days', 'tranche_priors_drift_90d_pct', 'cross_confirmation_multipliers', 'trigger_conditions', 'forward_expectations', 'top_opportunities', 'recommended_trade', 'why_now_explainer', 'methodology']
+  state: NORMAL | n_fresh: None | n_opportunities: None
+  list 'trigger_conditions'[0] keys: ['name', 'current', 'threshold', 'satisfied', 'weight']
+DONE 2592
