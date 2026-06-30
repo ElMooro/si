@@ -86,7 +86,7 @@ th:first-child,td:first-child{text-align:left}td{padding:8px 9px;border-bottom:1
 <script>
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
+async function gj(p){const u=`?t=${Date.now()}`;try{const r=await fetch(`${PX}/${p}${u}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`https://justhodl.ai/${p}${u}`);if(r.ok)return await r.json();}catch(e){}return null;}
 const n1=(v,s)=>v==null||isNaN(v)?'—':(s&&v>0?'+':'')+(+v).toFixed(1);
 const n2=(v)=>v==null||isNaN(v)?'—':(+v).toFixed(2);
 const pct=(v,s)=>v==null||isNaN(v)?'—':(s&&v>0?'+':'')+(+v).toFixed(1)+'%';
@@ -160,15 +160,19 @@ function render(){
 document.getElementById('tabs').onclick=e=>{const p=e.target.dataset.p;if(!p)return;P=p;
   document.querySelectorAll('#tabs span').forEach(x=>x.classList.toggle('on',x.dataset.p===p));render();};
 async function load(){
-  const FEEDS={fc:'flow-confluence',ec:'equity-confluence',be:'bagger-engine',cb:'cyclical-bagger',mb:'momentum-breakout',pe:'pead-signals',dp:'dark-pool',cf:'capital-flow',ark:'ark-holdings',si:'short-interest',er:'estimate-revisions',se:'sector-emergence',mr:'master-ranker',bs:'best-setups',tr:'theme-rotation',th:'upside-theses'};
-  const [ur,...rest]=await Promise.all([gj('data/upside-radar.json'),...Object.values(FEEDS).map(f=>gj('data/'+f+'.json'))]);
-  D=ur; Object.keys(FEEDS).forEach((k,i)=>X[k]=rest[i]||{});
+  // core feed first and reliably (retry once) — the proxy serves data; justhodl.ai/data 404s
+  D=await gj('data/upside-radar.json'); if(!D){await new Promise(r=>setTimeout(r,400));D=await gj('data/upside-radar.json');}
   if(!D){document.getElementById('warm').textContent='first run pending';}
   else{const st=D.state||{};
     document.getElementById('warm').innerHTML=`state: <b>${st.sessions_seen}</b>/252 sessions · <b>${st.rings}</b> liquid names tracked · universe scanned today: <b>${(D.scans||{}).universe_n??'—'}</b> · as of ${esc(st.as_of)} ${st.warm?'· <span class="hi">WARM ✓</span>':'· <span class="am">warming — 12m metrics partial</span>'}`;
     (D.scans&&D.scans.breakout||[]).forEach(b=>brkSet.add((b.t||'').toUpperCase()));
     document.getElementById('note').textContent=`${D.methodology} · ${D.signals_logged??0} logged today · v${D.version} · ${D.generated_at} · ★ = name also breaking out today · Research, not advice.`;
   }
+  render(); // render core immediately so the page is never blank
+  // enrichment feeds in small proxy-friendly batches
+  const FEEDS={fc:'flow-confluence',ec:'equity-confluence',be:'bagger-engine',cb:'cyclical-bagger',mb:'momentum-breakout',pe:'pead-signals',dp:'dark-pool',cf:'capital-flow',ark:'ark-holdings',si:'short-interest',er:'estimate-revisions',se:'sector-emergence',mr:'master-ranker',bs:'best-setups',tr:'theme-rotation',th:'upside-theses'};
+  const ent=Object.entries(FEEDS);
+  for(let i=0;i<ent.length;i+=4){const res=await Promise.all(ent.slice(i,i+4).map(([k,f])=>gj('data/'+f+'.json')));ent.slice(i,i+4).forEach(([k,f],j)=>X[k]=res[j]||X[k]||{});}
   // context strip: emerging sectors + confluence count
   const ctx=document.getElementById('ctx'),se=X.se||{},fc=X.fc||{},si=X.si||{};
   let c='';
