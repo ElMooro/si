@@ -1,9 +1,7 @@
 deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"logged\": 0}"}
-PROJECTION: Net liquidity projected to rise ~$651bn over 13 weeks (to ~$6,468bn by 2026-09-23), driven mainly by treasury cash (tga) rebuild.
-  current $ 5816.9 bn → projected $ 6467.6 bn ( 650.7 bn)
-  weekly pace $ 111.0 bn · primary: Treasury cash (TGA) rebuild
-  drivers/wk: {'walcl_runoff': 1.19, 'tga': -13.35, 'rrp': -3.83}
-  hist pts: 14 path pts: 13
-  path tail: [{'week': 12, 'date': '2026-09-16', 'net_liq_bn': 6451.8, 'lo_bn': 5653.4, 'hi_bn': 7250.3}, {'week': 13, 'date': '2026-09-23', 'net_liq_bn': 6467.6, 'lo_bn': 5636.6, 'hi_bn': 7298.7}]
-DONE 2622
+HEADLINE: Net liquidity projected to fall ~$97bn over 13 weeks (to ~$5,720bn by 2026-09-23), driven mainly by treasury cash (tga) rebuild.
+  cur $ 5816.9 → proj $ 5720.0 ( -96.9 bn) pace -16.5 /wk
+  drivers/wk: {'walcl_runoff': 1.19, 'tga': -13.35, 'rrp': -4.38} primary: Treasury cash (TGA) rebuild
+  hist0: {'date': '2026-03-25', 'net_liq_bn': 5783.1} histN: {'date': '2026-06-24', 'net_liq_bn': 5816.9}
+  path1: {'week': 1, 'date': '2026-07-01', 'net_liq_bn': 5800.4, 'lo_bn': 5729.7, 'hi_bn': 5871.1} pathN: {'week': 13, 'date': '2026-09-23', 'net_liq_bn': 5720.0, 'lo_bn': 5465.3, 'hi_bn': 5974.8}
+DONE 2623
