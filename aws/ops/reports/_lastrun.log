@@ -1,8 +1,15 @@
-INVOKE: 200 None {"ok": true, "n_scored": 226, "counts": {"STEALTH": 0, "IGNITING": 9, "UNDISCOVERED": 17, "CROWDED": 7, "DISTRIBUTION": 17, "WATCH": 144, "NEUTRAL": 32}}
-counts: {'STEALTH': 0, 'IGNITING': 9, 'UNDISCOVERED': 17, 'CROWDED': 7, 'DISTRIBUTION': 17, 'WATCH': 144, 'NEUTRAL': 32}
-  stealth (0): []
-  igniting (9): [('ENR', 's100.0', 'c81.8', 'cf1', 'power_grid'), ('OESX', 's100.0', 'c81.8', 'cf1', 'power_grid'), ('CDNL', 's87.1', 'c51.3', 'cf2', 'datacenter_buildout'), ('PRIM', 's73.8', 'c74.1', 'cf1', 'datacenter_buildout'), ('FCEL', 's50.2', 'c73.4', 'cf1', 'power_grid')]
-  undiscovered (17): [('META', 's81.4', 'c0.0', 'cf2', 'Meta Platforms'), ('AAPL', 's79.3', 'c0.0', 'cf2', 'Apple Inc'), ('HCA', 's77.1', 'c0.0', 'cf2', 'HCA Healthcare'), ('GOOGL', 's74.7', 'c0.0', 'cf2', 'Alphabet Inc Class A'), ('MSFT', 's74.4', 'c0.0', 'cf2', 'Microsoft')]
-  crowded (7): [('EMKR', 's0.0', 'c99.6', 'cf0', 'optical'), ('NVEC', 's0.0', 'c95.0', 'cf0', 'silicon'), ('POET', 's0.0', 'c88.0', 'cf0', 'optical'), ('INFN', 's0.0', 'c87.2', 'cf0', 'optical'), ('NTGR', 's13.9', 'c83.0', 'cf0', 'networking')]
-  distribution (17): [('AMBA', 's0.0', 'c100.0', 'cf0', 'silicon'), ('AMBQ', 's0.0', 'c100.0', 'cf0', 'silicon'), ('AOSL', 's0.0', 'c100.0', 'cf0', 'silicon'), ('KOPN', 's0.0', 'c100.0', 'cf0', 'equipment'), ('AVNW', 's0.0', 'c91.0', 'cf0', 'networking')]
-DONE 2581
+CREATED
+async invoked; polling S3...
+  poll 0: An error occurred (404) when calling the HeadObjec
+  poll 0: not ready
+  poll 1: An error occurred (404) when calling the HeadObjec
+  poll 1: not ready
+  poll 2: An error occurred (404) when calling the HeadObjec
+  poll 2: not ready
+OUTPUT n 226 with_data 160 resolved_new 226
+top spikes: [('AMPX', 113.8, 47.6), ('MDV', 79.9, 43.0), ('OLLI', 60.0, 37.0), ('NVT', 45.2, 48.9), ('AOSL', 43.5, 91.3), ('CLSK', 43.5, 91.3), ('FHN', 31.4, 83.8), ('BEPC', 31.1, 62.2)]
+   NVDA {'found': True, 'wiki_title': 'Nvidia', 'views_recent': 6202.0, 'views_baseline': 9088.4, 'trend_pct': -31.8, 'svi': 49.2, 'n_days': 35}
+   FCEL {'found': True, 'wiki_title': 'FuelCell Energy', 'views_recent': 99.9, 'views_baseline': 80.7, 'trend_pct': 23.8, 'svi': 49.4, 'n_days': 35}
+   META {'found': True, 'wiki_title': 'Meta Platforms', 'views_recent': 11960.4, 'views_baseline': 11648.0, 'trend_pct': 2.7, 'svi': 86.5, 'n_days': 35}
+   ENR {'found': True, 'wiki_title': 'Energizer', 'views_recent': 205.9, 'views_baseline': 216.2, 'trend_pct': -4.8, 'svi': 50.3, 'n_days': 35}
+DONE 2582
