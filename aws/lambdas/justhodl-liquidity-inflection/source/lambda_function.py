@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -656,7 +656,8 @@ def build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci):
     wsum = sum(active.values())
     comp_z = [sum(zc[k][i] * active[k] for k in active) / wsum for i in range(len(spine))]
     return {"dates": spine, "comp_z": comp_z, "component_z": {k: zc[k] for k in active},
-            "weights": active, "wsum": wsum, "components_used": list(active.keys())}
+            "weights": active, "wsum": wsum, "components_used": list(active.keys()),
+            "source": "fred-reconstruction"}
 
 
 def project_composite(hist, horizon_wk=13):
@@ -713,6 +714,76 @@ def project_composite(hist, horizon_wk=13):
             "note": ("Momentum projection: each component's recent z-trend is extrapolated (decayed) and re-blended "
                      "by weight. Unlike the net-liquidity projection there is no mechanical calendar — this is a "
                      "damped-momentum extrapolation of the multi-factor state, with a √-time band.")}
+
+
+def snapshot_composite(out):
+    """Append today's FULL composite reading (all components incl. feed-based) to a rolling S3
+    history, so over time a true all-component series accumulates that the composite clock and
+    projection can use in place of the FRED-backed reconstruction."""
+    comp = out.get("composite")
+    if not comp or comp.get("composite_z") is None:
+        return None
+    key = "data/composite-snapshots.json"
+    try:
+        snaps = json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()).get("snapshots", [])
+    except Exception:
+        snaps = []
+    today = datetime.now(timezone.utc).date().isoformat()
+    comps = comp.get("components") or []
+    rec = {"date": today, "comp_z": comp.get("composite_z"), "score": comp.get("liquidity_score"),
+           "regime": comp.get("regime"),
+           "components": {c["name"]: c["eff_z"] for c in comps if "name" in c and "eff_z" in c},
+           "weights": {c["name"]: c["weight"] for c in comps if "name" in c and "weight" in c}}
+    snaps = [s for s in snaps if s.get("date") != today]
+    snaps.append(rec)
+    snaps.sort(key=lambda s: s.get("date", ""))
+    snaps = snaps[-1500:]
+    body = {"snapshots": snaps, "count": len(snaps),
+            "first": snaps[0]["date"] if snaps else None, "last": snaps[-1]["date"] if snaps else None,
+            "note": "Rolling daily snapshots of the full multi-factor composite (all components, including "
+                    "feed-based ones). Builds a true all-component history for the cycle clock & projection."}
+    S3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(body, default=str).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=1800")
+    return {"count": len(snaps), "first": body["first"], "last": body["last"]}
+
+
+def composite_history_from_snapshots():
+    """Build the composite history from accumulated real snapshots — but only once there are
+    enough of them spanning enough time. Until then returns None and the FRED reconstruction is
+    used. This makes the composite clock/projection self-upgrading with no future code change."""
+    try:
+        snaps = json.loads(S3.get_object(Bucket=BUCKET, Key="data/composite-snapshots.json")["Body"].read()).get("snapshots", [])
+    except Exception:
+        return None
+    snaps = [s for s in snaps if s.get("comp_z") is not None and s.get("date")]
+    if len(snaps) < 52:
+        return None
+    snaps.sort(key=lambda s: s["date"])
+    if (_pd(snaps[-1]["date"]) - _pd(snaps[0]["date"])).days < 300:
+        return None
+    seen = {}
+    for s in snaps:
+        ic = _pd(s["date"]).isocalendar()
+        seen[(ic[0], ic[1])] = s
+    wk = [seen[k] for k in sorted(seen)]
+    dates = [s["date"] for s in wk]
+    comp_z = [s["comp_z"] for s in wk]
+    names = []
+    for s in wk:
+        for nmc in (s.get("components") or {}):
+            if nmc not in names:
+                names.append(nmc)
+    component_z = {nmc: [(s.get("components") or {}).get(nmc, 0.0) or 0.0 for s in wk] for nmc in names}
+    weights = {}
+    for s in reversed(wk):
+        if s.get("weights"):
+            weights = {nmc: s["weights"].get(nmc, 0.0) for nmc in names if s["weights"].get(nmc)}
+            break
+    if not weights:
+        weights = {nmc: 1.0 / len(names) for nmc in names}
+    wsum = sum(weights.values()) or 1.0
+    return {"dates": dates, "comp_z": comp_z, "component_z": component_z, "weights": weights,
+            "wsum": wsum, "components_used": names, "source": "snapshots", "n_snapshots": len(snaps)}
 
 
 def lambda_handler(event=None, context=None):
@@ -977,12 +1048,17 @@ def lambda_handler(event=None, context=None):
     # ── Composite (all-component) cycle clock + projection ──
     composite_clock = composite_projection = None
     try:
-        chist = build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci)
+        chist = (composite_history_from_snapshots()
+                 or build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci))
         if chist:
+            src = chist.get("source")
             composite_clock = cycle_clock(chist["dates"], chist["comp_z"])
             if composite_clock:
                 composite_clock["components_used"] = chist["components_used"]
+                composite_clock["source"] = src
             composite_projection = project_composite(chist)
+            if composite_projection:
+                composite_projection["source"] = src
     except Exception as e:
         print(f"[composite-dyn] {str(e)[:80]}")
 
@@ -1329,6 +1405,12 @@ def lambda_handler(event=None, context=None):
                            "credit spreads (inverted). Edge tables are real event studies over the last "
                            "decade's net-liq flips (n shown), not assertions. New flips are logged to the "
                            "closed loop vs SPY at 5/21/63d.")}
+    try:
+        snap_meta = snapshot_composite(out)
+        if snap_meta:
+            out["composite_snapshots"] = snap_meta
+    except Exception as e:
+        print(f"[snapshot] {str(e)[:80]}")
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     try:
