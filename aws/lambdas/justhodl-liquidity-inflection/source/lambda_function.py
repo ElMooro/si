@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -158,6 +158,48 @@ def best_lead(z_dates, z, px, max_k=30):
             if abs(c) > abs(best[1]):
                 best = (k, round(c, 3))
     return {"lead_days": best[0], "corr_21d_fwd": best[1]}
+
+
+def _pd(s):
+    from datetime import date as _date
+    y, m, d = s.split("-")
+    return _date(int(y), int(m), int(d))
+
+
+def series_state(series, start_cut="2015-01-01", invert=False):
+    """Adaptive level + ~13-week impulse-z + direction + last flip for any {date:level}
+    series. Detects cadence (daily/weekly/monthly) and sizes the slope window to ≈13 weeks
+    so the 'second derivative' is comparable across feeds."""
+    if not series or len(series) < 40:
+        return None
+    dates = sorted(series)
+    vals = [series[d] for d in dates]
+    gaps = [(_pd(dates[i]) - _pd(dates[i - 1])).days for i in range(1, min(len(dates), 40))]
+    med_gap = sorted(gaps)[len(gaps) // 2] if gaps else 1
+    win = max(4, min(90, round(91 / max(med_gap, 1))))      # ~13 weeks ≈ 91 days
+    zlb = min(len(vals), max(60, win * 12))
+    raw = [slope(vals[i - win:i]) for i in range(win, len(vals))]
+    if len(raw) < 10:
+        return None
+    sd_dates = dates[win:]
+    z = []
+    for i in range(len(raw)):
+        w = raw[max(0, i - zlb):i + 1]
+        m = mean(w)
+        sd = stdev(w) if len(w) > 20 else 0
+        z.append(round((raw[i] - m) / sd, 3) if sd else 0.0)
+    flips = [f for f in find_flips(sd_dates, z) if f["date"] >= start_cut]
+    zz = z[-1]
+    last_d = dates[-1]
+    direction = "RISING" if zz > 0.25 else "FALLING" if zz < -0.25 else "FLAT"
+    return {"level": round(series[last_d], 2), "as_of": last_d, "impulse_z": round(zz, 3),
+            "eff_z": round(-zz if invert else zz, 3), "direction": direction,
+            "tail_180": [[d, zv] for d, zv in zip(sd_dates[-180:], z[-180:])],
+            "last_flip": flips[-1] if flips else None, "n_flips": len(flips)}
+
+
+def pull(key):
+    return s3_json(key) or {}
 
 
 def lambda_handler(event=None, context=None):
@@ -310,6 +352,124 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[us_money] {str(e)[:60]}")
 
+    # ── Reserve & buffer mechanics (the 2026 reserve-scarcity regime) ──
+    wresbal = fred("WRESBAL", "2010-01-01")
+    reserves = series_state(wresbal)
+    if reserves and wresbal:
+        rl = wresbal[sorted(wresbal)[-1]]
+        reserves["level_usd_bn"] = round(rl / 1000, 1)
+        reserves["scarcity_note"] = ("Below ~$3.0T comfort zone — QT/issuance now draining real reserves"
+                                     if rl / 1000 < 3000 else "Above comfort zone")
+    rrp_state = series_state(rrp) if rrp else None
+    if rrp_state and rrp:
+        rv = rrp[sorted(rrp)[-1]]
+        rrp_state["level_usd_bn"] = round(rv, 1)
+        rrp_state["buffer_note"] = ("Buffer effectively exhausted — RRP near zero, drains now hit reserves directly"
+                                    if rv < 100 else "Buffer still cushioning the reserve drain")
+    tga_state = series_state(tga) if tga else None
+    if tga_state and tga:
+        tga_state["level_usd_bn"] = round(tga[sorted(tga)[-1]] / 1000, 1)
+
+    # ── Funding & plumbing stress (money-market signals institutions watch) ──
+    sofr = fred("SOFR", "2018-01-01")
+    iorb = fred("IORB", "2021-07-01")
+    sofr_iorb = None
+    if sofr and iorb:
+        cd = sorted(set(sofr) & set(iorb))
+        if cd:
+            ld = cd[-1]
+            spread_bps = round((sofr[ld] - iorb[ld]) * 100, 1)
+            tail = [round((sofr[d] - iorb[d]) * 100, 1) for d in cd[-20:]]
+            sofr_iorb = {"spread_bps": spread_bps, "as_of": ld,
+                         "trend_20d_bps": round(spread_bps - tail[0], 1) if len(tail) > 1 else 0,
+                         "stress": ("REPO STRESS — SOFR at/above IORB = reserve scarcity" if spread_bps >= -2
+                                    else "abundant — SOFR comfortably below IORB"),
+                         "tail_20d": [[d, round((sofr[d] - iorb[d]) * 100, 1)] for d in cd[-20:]]}
+    fp = pull("data/funding-plumbing.json")
+    eds = pull("data/eurodollar-stress.json")
+    edp = pull("data/eurodollar-plumbing.json")
+    mv = pull("data/move-index.json")
+    funding_stress = {
+        "sofr_iorb": sofr_iorb,
+        "funding_plumbing": ({"score": fp.get("plumbing_stress_score"), "regime": fp.get("regime"),
+                              "balance_sheet": fp.get("balance_sheet_direction"),
+                              "drivers": (fp.get("top_drivers") or [])[:4]} if fp else None),
+        "eurodollar_stress": ({"score": eds.get("composite_score"), "regime": eds.get("regime"),
+                               "hot": (eds.get("hot_signals") or [])[:4]} if eds else None),
+        "eurodollar_plumbing": ({"health": edp.get("plumbing_health"), "regime": edp.get("stress_regime"),
+                                 "verdict": edp.get("verdict")} if edp else None),
+        "move": ({"level": mv.get("level"), "regime": mv.get("regime"),
+                  "percentile": mv.get("percentile"), "change_20d": mv.get("change_20d")} if mv else None),
+    }
+
+    # ── Global liquidity (4 central banks, via global-liquidity engine) ──
+    gl = pull("data/global-liquidity.json")
+    global_liq = ({"index": gl.get("global_liquidity_index"), "regime": gl.get("regime"),
+                   "regime_read": gl.get("regime_read"), "impulse_13w_pct": gl.get("global_impulse_13w_pct"),
+                   "fed_net_liquidity": gl.get("fed_net_liquidity"), "broad_money": gl.get("broad_money")}
+                  if gl else None)
+
+    # ── Dollar (broad trade-weighted) — a rising USD tightens global dollar liquidity ──
+    dxy = fred("DTWEXBGS", "2015-01-01")
+    dollar = series_state(dxy, invert=True)
+    if dollar and dxy:
+        dollar["level"] = round(dxy[sorted(dxy)[-1]], 2)
+
+    # ── Credit & systemic stress (pull from existing engines) ──
+    cs = pull("data/credit-stress.json")
+    gs = pull("data/global-stress.json")
+    credit = ({"regime": cs.get("composite_regime"), "hy_oas_bps": cs.get("current_bps"),
+               "signal": cs.get("composite_signal")} if cs else None)
+    systemic = ({"global_stress_index": gs.get("global_stress_index"), "level": gs.get("global_stress_level"),
+                 "bond_stress": gs.get("bond_stress")} if gs else None)
+
+    # ── Financial conditions (Chicago Fed NFCI; negative = loose) ──
+    nfci = fred("NFCI", "2010-01-01")
+    fin_cond = None
+    if nfci:
+        nd = sorted(nfci)
+        lvl = nfci[nd[-1]]
+        prev = nfci[nd[-13]] if len(nd) > 13 else lvl
+        fin_cond = {"nfci": round(lvl, 3), "as_of": nd[-1], "trend_13w": round(lvl - prev, 3),
+                    "read": ("loose / accommodative" if lvl < 0 else "tight / restrictive"),
+                    "tightening": lvl > prev}
+
+    # ── China liquidity engine (augment the BIS credit-impulse with the live regime) ──
+    cl = pull("data/china-liquidity.json")
+    china_engine = ({"regime": cl.get("regime"), "regime_read": cl.get("regime_read")} if cl else None)
+
+    # ── Composite liquidity regime — synthesize the impulses into ONE inflection read ──
+    comp_parts = []
+
+    def add_part(name, eff_z, weight):
+        if eff_z is not None:
+            comp_parts.append((name, max(-3.0, min(3.0, eff_z)), weight))
+
+    add_part("net_liquidity", usd_z[-1] if usd_z else None, 0.28)
+    add_part("reserves", reserves["eff_z"] if reserves else None, 0.16)
+    if global_liq and global_liq.get("impulse_13w_pct") is not None:
+        add_part("global_liquidity", global_liq["impulse_13w_pct"] / 1.5, 0.16)
+    add_part("dollar", dollar["eff_z"] if dollar else None, 0.12)
+    if fp and fp.get("plumbing_stress_score") is not None:
+        add_part("funding_stress", -(fp["plumbing_stress_score"] - 50) / 20.0, 0.12)
+    if mv and mv.get("level") is not None:
+        add_part("move", -(mv["level"] - 90) / 30.0, 0.06)
+    if cs and cs.get("current_bps") is not None:
+        add_part("credit", -(cs["current_bps"] - 350) / 150.0, 0.10)
+    composite = None
+    if comp_parts:
+        wsum = sum(w for _, _, w in comp_parts)
+        comp_z = sum(z * w for _, z, w in comp_parts) / wsum
+        comp_score = max(0.0, min(100.0, round(50 + comp_z * 16.5, 1)))
+        comp_regime = ("EXPANDING" if comp_z > 0.3 else "CONTRACTING" if comp_z < -0.3 else "NEUTRAL")
+        composite = {"liquidity_score": comp_score, "composite_z": round(comp_z, 3), "regime": comp_regime,
+                     "n_components": len(comp_parts),
+                     "components": [{"name": n, "eff_z": round(z, 2), "weight": w} for n, z, w in comp_parts],
+                     "read": {
+                         "EXPANDING": "Liquidity is inflecting UP — the tide is turning supportive for risk. Historically a tailwind 1-3 months out.",
+                         "CONTRACTING": "Liquidity is inflecting DOWN — draining conditions. Historically a headwind; favor quality and hedges.",
+                         "NEUTRAL": "Liquidity is roughly flat — no strong second-derivative push. Levels, earnings and rates dominate."}[comp_regime]}
+
     out = {"engine": "liquidity-inflection", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "availability": avail,
@@ -322,14 +482,22 @@ def lambda_handler(event=None, context=None):
                    "n_flips_10y": len(flips10),
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
+           "composite": composite,
+           "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
+           "funding_stress": funding_stress, "global_liquidity": global_liq,
+           "dollar": dollar, "credit": credit, "systemic_stress": systemic,
+           "financial_conditions": fin_cond, "china_engine": china_engine,
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
            "stablecoin_schema_hint": sc_schema_hint,
            "event_study_after_flips": studies, "lead_estimates": leads,
            "signals_logged": n_logged,
-           "methodology": ("Impulse = 13-week slope of net liquidity (WALCL−TGA−RRP), 3y z-score; "
-                           "flips debounced |Δz|≥0.25. Edge tables are real event studies over the "
-                           "last decade's flips (n shown), not assertions. New flips are logged to "
-                           "the closed loop vs SPY at 5/21/63d.")}
+           "methodology": ("Net-liquidity impulse = 13-week slope of WALCL−TGA−RRP, 3y z-score; flips "
+                           "debounced |Δz|≥0.25. The composite liquidity regime blends the second "
+                           "derivatives of net liquidity, bank reserves, global central-bank liquidity and "
+                           "the broad dollar with funding-stress (SOFR-IORB, eurodollar plumbing), MOVE and "
+                           "credit spreads (inverted). Edge tables are real event studies over the last "
+                           "decade's net-liq flips (n shown), not assertions. New flips are logged to the "
+                           "closed loop vs SPY at 5/21/63d.")}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[liq-inflect] z={out['usd']['impulse_z']} state={out['usd']['state']} flips10y={len(flips10)} {out['duration_s']}s")
