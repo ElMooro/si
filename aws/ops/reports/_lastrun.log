@@ -1,302 +1,145 @@
-total data/*.json feeds: 661
 
-=== risk-relevant feeds by category (★=already on page) ===
+✓ credit-stress
+   generated_at=2026-06-29T22:00:31.446486+00:00 · generated_at_unix=1782770431 · version=1.0.0 · elapsed_seconds=4.57 · data_date=2026-06-26 · current_bps={BAMLH0A0HYM2,BAMLC0A2CAA,BAMLC0A0CM,BAMLC0A1CAAA} · metrics={BAMLH0A0HYM2,BAMLC0A2CAA,BAMLC0A0CM,BAMLC0A1CAAA} · derived_spreads={bbb_minus_aaa,ccc_minus_bb,hy_minus_ig,em_hy_m
 
-## CREDIT / ICE BofA (46)
-   13f-price-divergence
-   askdesk-config
-   attention-signals
-   auction-tenor-signals
-   buyback-yield-ranking
-   compound-signals
-   compound-signals-state
-   credit-equity-divergence
-   credit-stress
-   credit-stress-history
-   cro-digest
-   cro-digest-history
-   digest-trends-ai
-   digest-trends-history
-   engine-signal-map
-   eva-spread
-   finnhub-signals
-   finviz-signals
-   finviz-signals-state
-   future-intelligence
-   fx-intelligence
-   hot-stocks-digest
-   hyperliquid-perps
-   hyperliquid-perps-history
-   ignition
-   ka-config
-   khalid-config
-   liquidity-credit-engine
-   massive-signals
-   ndx-spx-spread
-   near-misses-by-signal
-   pead-signals
-   political-ai-investigation
-   pre-pump-signals
-   price-redundancy
-   signal-backtest
-   signal-board
-   signal-halflife
-   signal-orthogonality
-   signal-scorecard
-  ★sovereign-fiscal
-   squeeze-pretrigger
-   streaming-config
-   vix-backwardation-trigger
-   yield-curve
-   yield-curve-decisive-call
+✓ credit-equity-divergence
+   engine=credit-equity-divergence · version=1.0.0 · as_of=2026-06-29T21:00:50Z · state=CREDIT_BULL_ACTIVE · signal_strength=0.45 · current_metrics={hyg_20d_ret_pct,spy_20d_ret_pct,hyg_spy_spread_20d,spread_zscore_252d} · regime_explanation=Mild bullish divergence z=1.23 · trade_tickets=[1] · n_tickets=1 · methodology=Credit-equity
+   trade_tickets[0]: ticker=SPY · side=LONG · rationale=CREDIT_BULL_ACTIVE setup, smaller … · target_pct=3 · stop_pct=-2 · holding_period=2-4 weeks · size_pct_portfolio=1.0
 
-## FAILS / SETTLEMENT (2)
-   failed-pattern-reversal
-  ★settlement-fails
+✓ liquidity-credit-engine
+   schema_version=1.1 · generated_at=2026-06-29T18:22:26.952666+00:00 · elapsed_sec=12.94 · regime=WATCH · composite={score,n_firing,by_category} · series={WALCL,WSHOTSL,WSHOMCB,RESPPALGUONNWW} · by_category={balance_sheet,liquidity_facilities,credit_spreads,corporate_yields} · reference={DGS1,DGS2,DGS5,DGS10} · transitions=[0] · i
 
-## DOLLAR SHORTAGE / FUNDING (30)
-   china-liquidity
-   china-liquidity-history
-   concentration-liquidity
-   crisis-plumbing
-   crypto-basis
-   crypto-basis-history
-   crypto-funding
-   crypto-liquidity
-   dollar-decisive-call
-  ★dollar-radar
-   eurodollar-decisive-call
-  ★eurodollar-plumbing
-  ★eurodollar-stress
-   funding-plumbing
-   funding-plumbing-prev
-   global-liquidity
-   global-liquidity-history
-   hyperliquid-perps
-   hyperliquid-perps-history
-   liquidity-capacity
-   liquidity-credit-engine
-   liquidity-decisive-call
-   liquidity-flow
-   liquidity-inflection
-   liquidity-profile
-   liquidity-pulse
-   plumbing-history
-   plumbing-stress
-   repo-lending
-   report
+✓ eva-spread
+   engine=eva-spread · version=1.0.0 · generated_at=2026-06-30T00:47:19.701324+00:00 · universe=STATIC_TOP50_SPX (cross-engine fus… · universe_state=CREATING_VALUE_BROAD · n_analyzed=50 · n_valid=47 · n_value_creators=35 · n_value_destroyers=12 · n_super_compounders=10 · wacc_inputs={risk_free_10y_pct,equity_risk_premium_pct,ig_cre
+   top_10_eva_spread[0]: ticker=NVDA · sector=Technology · roic_ttm_pct=62.994 · wacc_pct=16.491 · eva_spread_pct=46.503 · eva_spread_pct_pctile=98.9 · eva_usd=68724923580.0 · eva_margin_pct=31.83 · eva_mo
 
-## TIC / FOREIGN / CARIBBEAN (19)
-   ark-holdings
-   ark-holdings-prev
-   coffee-can-holdings
-   options-analytics
-   options-analytics-iv-history
-   political-ai-investigation
-   political-intel
-   political-stocks
-   political-trades
-   portfolio-analytics
-  ★sovereign-fiscal
-   sympathetic-momentum
-   synthetic-monitor
-   synthetic-monitor-prev
-  ★tic-flows
-   ticker-research-bundle
-   ticker-trends
-   trade-tickets
-   trade-tickets-ai-rationale
+✓ settlement-fails
+   engine=settlement-fails · version=1.0.0 · generated_at=2026-06-29T21:30:31.933667+00:00 · as_of=2026-06-17 · signal={regime,score,drivers} · headline={label,ftd_bn,ftr_bn,combined_bn} · classes=[6] · totals={ftd,ftr,combined} · source=NY Fed Primary Dealer Statistics (…
+   classes[0]: key=ust_ex_tips · label=U.S. Treasury (ex-TIPS) · ftd=[690] · ftr=[690] · combined=[690] · ftd_latest=95.13 · ftr_latest=103.63 · stats={latest,mean,max,min}
 
-## FX / PEGS / CURRENCY (6)
-   crypto-stablecoin-peg
-   dxy-equity-divergence
-   fx-decomposition
-   fx-intelligence
-  ★polygon-fx-regime
-   yen-carry
+✓ failed-pattern-reversal
+   engine=failed-pattern-reversal · version=1.0 · as_of=2026-06-29T22:30:36.920776Z · state=QUIET · previous_state=UNKNOWN · state_description=No failed patterns detected on uni… · signal_strength=0 · summary={universe_size,n_scanned_with_data,n_failed_breakdowns_long,n_failed_breakouts_short} · current_readings={long_top_tickers,s
+   trigger_conditions[0]: name=Long setups (failed breakdowns) · current=0 · threshold=>=3 · satisfied=False · weight=0.4
 
-## RATES / CURVE / AUCTION / MOVE (21)
-   auction-crisis
-   auction-crisis-ai
-   auction-crisis-alert-state
-   auction-decisive-call
-   auction-grades
-   auction-tenor-signals
-   catalyst-skew-premove
-   commodity-curves
-   early-movers
-   move-index
-   polygon-futures-curves
-   strategist
-   strategy-portfolio
-   theme-cascade-calibrated
-   treasury-noise
-   treasury-noise-history
-   vix-curve
-   vix-curve-decisive-call
-   vix-curve-history
-   yield-curve
-   yield-curve-decisive-call
+✓ global-liquidity
+   schema_version=1.0 · method=global_liquidity_v1 · generated_at=2026-06-29T14:00:42.172747+00:00 · elapsed_s=16.2 · fred_failed=[0] · global_liquidity_index={total_usd_bn,total_usd_trillions,components_usd_bn,change_13w_pct} · fed_net_liquidity={value_usd_bn,value_usd_trillions,change_13w_pct,formula} · broad_money={us_m2_yoy_pct
+   history_points[0]: date=2026-06-24 · gli_usd_bn=17872.2
 
-## VOL / STRESS / CRISIS (60)
-   auction-crisis
-   auction-crisis-ai
-   auction-crisis-alert-state
-   bank-stress
-   bank-stress-history
-   boj-detail
-   bond-vol
-   bond-vol-decisive-call
-   bond-vol-history
-   catalyst-skew-premove
-   ciss-stress
-   credit-stress
-   credit-stress-history
-   crisis-canaries
-  ★crisis-composite
-   crisis-composite-history
-   crisis-decisive-call
-   crisis-knowledge-base
-   crisis-plumbing
-   crypto-dvol
-   defcon-decisive-call
-   ecb-detail
-  ★eurodollar-stress
-   firm-stress
-  ★global-stress
-   global-stress-history
-   options-gamma
-   plumbing-stress
-   precatalyst-vol-expansion
-   refining-stress
-   retail-alert-state
-   retail-alerts
-   retail-attention-history
-   retail-divergence-track
-   retail-edges-decisive-call
-   retail-momentum-track
-   retail-sentiment
-   skew-tail-hedging
-   snb-detail
-   stress-factor-loadings
-   stress-scenarios
-   systemic-stress
-   systemic-stress-decisive-call
-   tail-hedge
-   tail-hedge-history
-   tail-risk
-   tail-risk-history
-   vix-backwardation-trigger
-   vix-curve
-   vix-curve-decisive-call
-   vix-curve-history
-   vix9d-vix-inversion
-   vol-radar
-   vol-radar-history
-  ★vol-regime
-   vol-surface
-   vol-surface-history
-   vol-target-unwind
-   volatility-squeeze
-   vvix-vov-regime
+✓ liquidity-pulse
+   schema_version=1.0 · generated_at=2026-06-29T16:03:45.508550+00:00 · elapsed_sec=3.38 · series={WALCL,WRESBAL,WTREGEN,RESPPALGUONNWW} · fetch_errors={} · composites={credit_stress_score,credit_regime,liquidity_score,liquidity_regime} · summary=🔴 ACUTE LIQUIDITY DRAIN — Fed bala… · transitions=[0] · n_series=11 · n_series_ok=11
 
-## CDS / SOVEREIGN RISK (2)
-   cds-monitor
-   cds-proxy
+✓ liquidity-inflection
+   engine=liquidity-inflection · version=1.1.0 · generated_at=2026-06-29T11:15:44.910273+00:00 · duration_s=3.8 · availability={usd,eur,china,stablecoin} · usd={as_of,impulse_z,net_liq_usd_bn,state} · us_money={real_m2_yoy_pct,z,as_of,note} · eur={z,as_of,flips_5y} · china={series,as_of,credit_yoy_pct,impulse_z} · stablecoin={mode,
 
-## LIQUIDITY / FED / MACRO REGIME (51)
-   china-liquidity
-   china-liquidity-history
-   concentration-liquidity
-  ★cross-asset-regime
-   cross-asset-regime-state
-   crypto-cycle-risk
-   crypto-cycle-risk-prev
-   crypto-liquidity
-  ★cycle-clock
-   cycle-clock-history
-   fed-collateral
-   fed-nlp
-   fed-pivot-factor-trades
-   fed-speak
-   fed-speak-state
-   fedwatch
-   global-business-cycle
-   global-business-cycle-history
-   global-liquidity
-   global-liquidity-history
-   global-macro
-   liquidity-capacity
-   liquidity-credit-engine
-   liquidity-decisive-call
-   liquidity-flow
-   liquidity-inflection
-   liquidity-profile
-   liquidity-pulse
-   macro-calendar
-   macro-data-decisive-call
-   macro-frontrun-sniffer
-   macro-frontrun-sniffer-history
-   macro-nowcast
-   macro-surprise
-  ★polygon-fx-regime
-   regime
-   regime-anomaly
-   regime-composite
-   regime-composite-history
-   regime-conditional-router
-   regime-conditional-trust
-   regime-decisive-call
-  ★regime-map
-   regime-map-prev
-   regime-playbook
-   regime-playbook-history
-  ★risk-regime
-   risk-regime-state
-   us-cycle
-  ★vol-regime
-   vvix-vov-regime
+✓ repo-lending
+   schema_version=1.0 · method=repo_lending_intelligence_v1 · generated_at=2026-06-29T16:00:41.980581+00:00 · composite_leverage_stress=25.4 · regime=ABUNDANT_LIQUIDITY · margin_debt={score,level_billions,level_date,market_cap_trillions} · repo={score,components} · securities_lending={score,components} · duration_s=19.9
 
-## FLOWS / POSITIONING / SMART MONEY (40)
-   13f-positions
-   13f-price-divergence
-   breadth-divergence
-   breadth-history
-   breadth-thrust
-   capital-flow
-   capital-flow-radar
-   capital-flow-radar-state
-  ★capital-inflows
-  ★cross-asset-flow-state
-   crypto-cot
-   crypto-cot-history
-   crypto-etf-flows
-   crypto-etf-flows-history
-   crypto-exchange-flows
-   crypto-exchange-flows-history
-  ★dark-pool
-   etf-flows
-   etf-true-flows
-   event-flow-health
-   exchange-flows
-   finviz-etf-flows
-   flow-confluence
-   flow-lookthrough
-  ★gold-equity-rotation
-   institutional-positions
-   liquidity-flow
-   money-flow-state
-   options-flow
-   polygon-options-flow
-   pump-positioning
-   rotation-chains
-   rotation-radar
-   sector-flow-state
-   sector-rotation
-   smart-money-13f
-   stablecoin-flow
-   theme-rotation
-   theme-rotation-state
-  ★tic-flows
+✓ funding-plumbing
+   engine=funding-plumbing · version=1.0 · generated_at=2026-06-29T13:15:39.759363+00:00 · duration_s=2.7 · plumbing_stress_score=53.7 · regime=TIGHTENING · action=Liquidity is draining/flat, not ex… · balance_sheet_direction=EXPANDING · qt_ended_not_qe=False · signals={balance_sheet,reserves,rrp_cushion,sofr_iorb} · top_drivers=[4
+   top_drivers[0]: signal=reserves · note=Reserves $2.95T vs ~$3.0T floor — …
 
-DONE 2547
+✓ china-liquidity
+   schema_version=1.0 · method=china_liquidity_v1 · generated_at=2026-06-29T14:30:09.297875+00:00 · elapsed_s=6.0 · fred_failed=[0] · series_resolved={m1,m2,interbank,usdcny} · regime=NEUTRAL · regime_read=China liquidity is roughly steady … · money={m1_yoy_pct,m2_yoy_pct} · credit_impulse={value_pp,is_proxy,definition,signal} · in
+
+✓ yen-carry
+   schema_version=1.0 · method=yen_carry_and_boj_liquidity · generated_at=2026-06-29T12:00:41.545539+00:00 · elapsed_s=30.52 · ok=True · headline=YEN CARRY: NEUTRAL. Unwind risk 40… · carry_regime=NEUTRAL · boj_injection_score=-2 · boj_stance_label=DRAINING · unwind_risk_score=39.6 · unwind_risk_label=MODERATE · unwind_risk_compone
+
+✓ crypto-stablecoin-peg
+   generated_at=2026-06-30T04:45:14Z · version=1.0 · coins={USDT,USDC,DAI,FDUSD} · worst_depeg_pct=-0.385 · worst_coin=FDUSD · gauge=yellow · status=MINOR DRIFT · interpretation=FDUSD deviating most (-0.385%) — w… · duration_s=0.4
+
+✓ fx-decomposition
+   engine=fx-decomposition · version=1.0.0 · generated_at=2026-06-29T22:00:50.965323+00:00 · usd_state=USD_RANGE_BOUND · carry_environment=CARRY_NEUTRAL · dxy_decomposition={1d,5d,20d,60d} · carry_pair_analyses=[3] · dxy_composition=[6] · methodology={framework,philosophy,decomposition_math,dxy_weights} · academic_basis=[3] · durat
+   carry_pair_analyses[0]: pair=USD-JPY · status=INSUFFICIENT_DATA
+
+✓ boj-detail
+   schema_version=1.0 · method=boj_liquidity_yen_carry_detail · generated_at=2026-06-29T11:20:44.933936+00:00 · elapsed_s=1.84 · ok=True · headline=BOJ: STRONG DRAIN. Yen-carry unwin… · boj_injection_score=-2 · stance_label=STRONG DRAIN · carry_unwind_risk={score_0_100,regime,unwind_in_progress,components} · balance_sheet={total_as
+
+✓ snb-detail
+   schema_version=1.0 · method=snb_liquidity_franc_detail · generated_at=2026-06-29T11:40:04.050872+00:00 · elapsed_s=2.78 · ok=True · headline=SNB: NEUTRAL. Franc safe-haven pre… · snb_injection_score=0 · stance_label=NEUTRAL · franc_pressure={score_0_100,regime,franc_surge,components} · monetary_base={total_chf_bn,change_6m_pct,c
+
+✓ ecb-detail
+   schema_version=1.0 · method=ecb_eurosystem_liquidity_detail · generated_at=2026-06-29T11:00:27.873637+00:00 · elapsed_s=68.89 · ok=True · headline=ECB: STRONG DRAIN. Excess liquidit… · ecb_injection_score=-2 · stance_label=STRONG DRAIN · liquidity={excess_liquidity_eur_bn,change_1m_bn,change_3m_bn,change_6m_bn} · balance_sheet={
+
+✓ yield-curve
+   version=1.0 · generated_at=2026-06-29T13:52:50.386411+00:00 · duration_s=1.28 · as_of_date=2026-06-25 · regime=BULL_STEEPENER · regime_description=long rates falling slower than sho… · inversion_flags={2s10s_inverted,3M10Y_inverted,any_inversion} · decomposition={level_pct,slope_2s10s_bps,curvature_butterfly_bps} · spreads_bps={
+   curve_points[0]: tenor=1M · years=0.08333333333333333 · yield_pct=3.7 · chg_1d_bps=4.0 · chg_5d_bps=2.0 · chg_20d_bps=-2.0
+
+✓ move-index
+   engine=move-index · version=1.0 · source=ICE BofA MOVE via Yahoo ^MOVE · generated_at=2026-06-29T13:20:39.701222+00:00 · ok=True · duration_s=0.5 · level=66.8 · change_1d=-0.31 · change_20d=-2.95 · percentile=10.1 · avg_1y=75.0 · regime=SUPPRESSED · color=#26ffaf · interpretation=Suppressed — confidence in the Fed… · n_observati
+   history[0]: t=1749648600 · v=89.4
+
+✓ bond-vol
+   ok=True · version=2.0 · generated_at=2026-06-30T04:15:49.653435+00:00 · regime=NORMAL · composite_z_score=0.59 · composite_percentile=None · regime_streak_days=27 · trend={dod,wow,mom} · term_structure={front_end_z,long_end_z,credit_z,real_rate_z} · funding_plumbing={regime,stress_score,balance_sheet_direction,qt_ended_not_qe} ·
+   history[0]: date=2026-06-04 · z=-0.13 · regime=NORMAL
+
+✓ auction-crisis
+   schema_version=2.1 · generated_at=2026-06-29T19:50:37.887869+00:00 · elapsed_sec=6.88 · elapsed_v2_sec=4.0 · regime=CALM · composite_score=19.0 · interpretation=Auctions clearing normally. Health… · n_recent_auctions_14d=20 · issuance_anomaly={score,pct_above_baseline} · fed_funds_rate=3.63 · freshness={latest_auction_date,lates
+   recent_auctions[0]: auction_date=2026-06-29 · issue_date=2026-07-02 · security_type=Bill · security_term=26-Week · cusip=912797VJ3 · tenor_bucket=bills_gte_90d · high_rate=3.84 · low_rate=3.725 · medi
+
+✓ auction-grades
+   schema_version=1.0 · method=auction_grader_v1 · generated_at=2026-06-29T17:51:41.934921+00:00 · input_auction_data_modified=2026-06-29T13:05:51.653329+00:00 · n_graded=10 · summary={average_score,overall_gpa_letter,grade_distribution,n_failing} · graded_auctions=[10] · by_tenor={coupons_gt_3y,bills_lt_90d,coupons_lt_3y,bills_gte
+   graded_auctions[0]: cusip=91282CQW4 · auction_date=2026-06-25 · issue_date=2026-06-30 · security_type=Note · security_term=7-Year · tenor_bucket=coupons_gt_3y · accepted_billions=50.5864374 · high_rat
+
+✓ auction-tenor-signals
+   schema_version=1.0 · generated_at=2026-06-29T18:06:24.985004+00:00 · elapsed_sec=2.06 · fed_funds_rate=3.63 · n_auctions_in_window=216 · composite_score=48.0 · any_firing=True · any_watch=False · signals={fed_path,eurodollar,qe_imminence} · transitions=[0]
+
+✓ vix-curve
+   generated_at=2026-06-29T21:30:12.670141+00:00 · generated_at_unix=1782768612 · version=2.0.0 · source=cdn.cboe.com/api/global/us_indices… · data_date=2026-06-26 · elapsed_seconds=1.44 · current={vix9d,vix,vix3m,vix6m} · spreads={9d_vs_30d,30d_vs_3m,3m_vs_6m,9d_vs_6m} · spread_regimes={9d_30d,30d_3m,3m_6m,9d_6m} · composite_regim
+
+✓ tail-risk
+   engine=justhodl-tail-risk · version=1.0.0 · ok=True · generated_at=2026-06-27T13:00:18.697765+00:00 · thesis=Option-implied crash probability a… · system_tail_gauge=56.3 · tail_regime=ELEVATED · tail_valuation=WARMING · indices=[3] · interpretation={system_tail_gauge,tail_valuation,risk_reversal_25,rr_term_slope} · data_source=P
+   indices[0]: ticker=IWM · spot=299.83 · front_exp=2026-08-21 · back_exp=2026-08-21 · atm_iv=0.2323 · put10_iv=0.2985 · put25_iv=0.251 · call25_iv=0.1961 · put_skew_slope=0.0663 · risk_reversal_
+
+✓ tail-hedge
+   schema_version=1.0 · engine=justhodl-tail-hedge · method=tail_hedge_overlay · generated_at=2026-06-30T04:30:12.131753+00:00 · build_seconds=0.61 · hedge_posture=UNHEDGED -- NOT REQUIRED · severity=0 · status=OK · status_color=green · tail_score=0.0 · headline=Tail hedge NOT REQUIRED -- worst m… · cro_brief=No tail hedge is requi
+   consistency_checks[0]: check=stress_exceeds_var99 · ok=True · detail=worst stress -9.2% vs 99% VaR 1.85…
+
+✓ skew-tail-hedging
+   engine=skew-tail-hedging · version=1.0.0 · as_of=2026-06-29T22:30:10Z · state=NORMAL · signal_strength=0.2 · current_metrics={skew,vix,vvix,spy} · regime_explanation=SKEW in normal range; no extreme t… · trade_tickets=[0] · n_tickets=0 · methodology=CBOE SKEW tail-hedging detector. S… · sources=[3] · why_now=SKEW in normal range
+
+✓ vvix-vov-regime
+   engine=vvix-vov-regime · version=1.0.0 · as_of=2026-06-29T22:00:55Z · state=QUIET · signal_strength=0.0 · current_metrics={vix,vvix,vix3m,vvix_vix_ratio} · regime_explanation=Insufficient data · trade_tickets=[0] · n_tickets=0 · methodology=VVIX/VIX ratio (Park 2015) + VVIX … · sources=[3] · why_now=QUIET: Insufficient data · ru
+
+✓ ciss-stress
+   engine=ciss-stress · version=1.1.0 · generated_at=2026-06-29T07:10:43.994327+00:00 · elapsed_s=105.1 · n_series=65 · categories={sovereign_country,country_ciss,sovereign_ea,ea_subindex} · ea_composite=0.005292 · ea_composite_date=2026-06-25 · ea_regime=CALM · frequency_note=CISS composite & sub-indices: dail… · provenance=ECB Da
+   series[0]: id=CISS_D_AT_Z0Z_4F_EC_SOV_CIN_IDX · key=CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX · flow=CISS · category=sovereign_country · area=AT · country=Austria · freq=D · label=Austria — Sovereign c
+
+✓ systemic-stress
+   schema_version=1.0 · method=ecb_ciss_sovciss_systemic_stress · generated_at=2026-06-29T12:00:49.059170+00:00 · elapsed_s=19.45 · ok=True · headline=Systemic stress CALM. Composite 28… · composite={score_0_100,regime,read} · systemic_stress={euro_area,countries,most_stressed,read} · sovereign_stress={countries,euro_area_avg_sovci
+
+✓ bank-stress
+   schema_version=1.0 · method=bank_stress_v1 · generated_at=2026-06-29T15:00:48.435262+00:00 · elapsed_s=1.5 · fred_failed=[0] · series_resolved={discount_window,btfp,swap_lines,reserves} · bank_stress_score=29.2 · regime=TIGHTENING · regime_read=Reserves are in the scarcity zone … · emergency_draw=False · emergency_notes=[0] · em
+   components[0]: label=Discount window primary credit · stress=5.3 · weight=0.3 · value=$7.9bn
+
+✓ cds-monitor
+   schema_version=1.1 · method=creditgrades_structural_credit_plu… · generated_at=2026-06-29T13:00:31.918758+00:00 · elapsed_s=11.05 · ok=True · headline=Global credit stress CALM. Composi… · global_credit_stress={score_0_100,regime,read} · alarm_board={status,n_active,alarms} · single_name_cds={model,primary_signal,calibration,ris
+
+✓ cds-proxy
+   schema_version=1.0 · method=cds_proxy_v1 · generated_at=2026-06-29T18:13:07.470124+00:00 · composite_credit_risk=0 · regime=CALM · top_reasons=[0] · sovereigns={germany_10y,italy_10y,spain_10y,france_10y} · corporate={hy_oas,ig_oas,aaa_oas,single_a_oas} · us_10y_yield=4.48 · notes=Proxy derived from FRED + ICE BofA… · duration_s
+
+✓ breadth-thrust
+   engine=breadth-thrust · version=1.0 · as_of=2026-06-29T22:00:43.006172+00:00 · state=NULL · prev_state=NULL · state_since=2026-06-10T01:00:11.328386+00:00 · state_transition=None · signal_strength=0 · cooldown_until=None · current_readings={zweig_10d_ema,zweig_window_min,zweig_window_max,zweig_thresholds} · trigger_conditions=[2
+   trigger_conditions[0]: name=10d EMA recently <= 0.40 (oversold… · current=min 0.4259 · satisfied=False · weight=50
+
+✓ breadth-divergence
+   engine=breadth-divergence · error=SPY history insufficient: 0 · trace=Traceback (most recent call last):… · as_of=2026-06-29T22:00:38Z
+
+✓ institutional-positions
+   generated_at=2026-06-29T22:00:28+00:00 · tracked_funds=18 · filings_seen=18 · fetch_errors=0 · new_filings=[0] · by_fund={BERKSHIRE,BRIDGEWATER,RENAISSANCE,AQR} · fetch_duration_s=0.8
+
+✓ flow-confluence
+   engine=flow-confluence · version=1.0 · generated_at=2026-06-29T13:25:46.751283+00:00 · duration_s=2.3 · thesis=Fuses the fragmented flow/position… · alpha_gate=ALPHA_NEGATIVE flow engines droppe… · counts={names,multi_engine,short_squeeze_setup,accumulation} · multi_engine_confluence=[40] · by_posture={SHORT_SQUEEZE_SETUP,ACCUMU
+   multi_engine_confluence[0]: ticker=AAPL · score=2.494 · engines=[6] · heavy_short=False · covering=True · stealth=True · tags=[7] · n_engines=6 · posture=ACCUMULATION
+
+✓ macro-nowcast
+   v=2.2 · generated_at=2026-06-30T04:12:37+00:00 · duration_s=1.51 · raw_score=-0.4333 · normalized_score=-0.4333 · regime=SLOWING · regime_color=amber · coverage_pct=100.0 · n_components_used=7 · n_components_failed=0 · components=[7] · historical_scores=[120] · historical_summary={n_months,first_date,last_date,min_score} · regim
+   components[0]: fred_id=PAYEMS · label=Nonfarm Payrolls · transform=yoy_pct · weight=0.25 · rationale=Single best monthly growth indicat… · z=-1.094 · raw_value=0.317 · contribution=-0.2734 · n_ob
+
+✓ macro-surprise
+   version=1.0 · generated_at=2026-06-29T21:49:16.370305+00:00 · n_indicators_tracked=23 · n_indicators_computed=23 · composite_z=1.15 · growth_z=0.59 · inflation_z=-1.88 · regime=GROWTH_SURPRISE_POSITIVE · regime_description=Data beating expectations — bullis… · by_indicator={INDPRO,CPIAUCSL,RSAFS,GDPC1} · by_category={CONSUMER,HO
+   top_beats[0]: series_id=JTSJOL · name=JOLTS Job Openings · category=EMPLOYMENT · higher_is_better=True · latest_date=2026-04-01 · actual=7618.0 · expected_6m_avg=6935.8333 · surprise_pct=9.84 · 
+
+✓ global-business-cycle
+   schema_version=2.0 · engine_type=synthetic_equity_momentum · generated_at=2026-06-29T12:00:49.627930+00:00 · elapsed_sec=28.6 · countries_with_fresh_data=32 · countries_total=34 · methodology={primary_source,secondary_source,rationale,composite_formula} · by_country={USA,CHN,JPN,DEU} · aggregate={global_phase,global_avg_cli,glob
+
+DONE 2548
