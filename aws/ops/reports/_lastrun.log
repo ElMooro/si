@@ -1,6 +1,12 @@
-deployed code still emits mentioned_tickers: False
-deployed code has knowledge-only note: True
-invoke err: None
-brain.json has 'mentioned_tickers': False (want False)
-directive knowledge intact: True | hard_rules: 7 | themes: 7
-DONE 2531
+=== bundled (claude_compat, llm_router) ===
+  justhodl-ai-chat: compat=True router=True
+  justhodl-ask-desk: compat=False router=False
+  justhodl-my-brief: compat=False router=False
+  justhodl-devils-advocate: compat=False router=False
+  justhodl-page-ai-commentary: compat=False router=False
+  justhodl-nobrainer-rationale: compat=False router=False
+ALL BUNDLED: False
+
+=== live functional test (page-ai-commentary) ===
+  invoke err: None
+DONE 2532
