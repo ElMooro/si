@@ -175,6 +175,8 @@ function render(d,sa){
     chipList((P.dark_pool_accumulation||[]).slice(0,16).map(p=>`<span class="chip" style="border-color:var(--cyan-dim)">${esc(p.ticker)} <span class="v">${p.dark_pool_pct}%</span></span>`)));
   h+=panel("🏛️ Congress Buys","STOCK Act disclosures (90d)",
     chipList((P.congress_buys||[]).slice(0,16).map(g=>`<span class="chip" style="border-color:var(--violet-dim)">${esc(g.ticker)}${g.n_buys>1?` <span class="v">×${g.n_buys}</span>`:""}</span>`)));
+  h+=panel("💰 Corporate Buybacks","net-of-dilution + fresh authorizations",
+    chipList((P.corporate_buybacks||[]).slice(0,16).map(b=>`<span class="chip" style="border-color:var(--green-dim)">${b.pump?"🚀 ":""}${esc(b.ticker)} <span class="v">${b.net_yield!=null?(b.net_yield>=0?"+":"")+b.net_yield+"% net":""}${b.auth_pct?` · auth ${b.auth_pct}%`:""}</span></span>`)));
   const spikes=(sa&&sa.top_attention_spikes)||[];
   h+=panel("🔎 Search Attention Spikes","Wikipedia pageview velocity (7d vs 21d)",
     chipList(spikes.slice(0,16).map(s=>`<span class="chip">${esc(s.ticker)} <span class="v" style="color:${s.trend_pct>=0?'var(--green)':'var(--red)'}">${s.trend_pct>=0?"+":""}${s.trend_pct}%</span></span>`)));

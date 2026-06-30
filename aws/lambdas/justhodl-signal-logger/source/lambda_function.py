@@ -932,6 +932,36 @@ def lambda_handler(event,context):
     except Exception as ex:
         print(f"[ATTENTION-CONFLUENCE] {ex}")
 
+    # ─── buyback-engine: corporate-accumulation signals (Ikenberry drift, months) ──
+    # Large authorizations + net share-count reduction drift positive over months
+    # (Ikenberry-Lakonishok-Vermaelen / Peyer-Vermaelen). Horizons [30,60,90]d.
+    try:
+        bbe = fs3("data/buyback-engine.json")
+        for r in (bbe.get("high_conviction_pumps") or [])[:12]:
+            t = str(r.get("symbol") or "").upper()
+            if not t:
+                continue
+            ap = float(r.get("auth_pct_mcap") or 0)
+            sc = float(r.get("buyback_score") or 0)
+            conf = max(0.55, min(0.90, 0.58 + ap / 120.0 + sc / 400.0))
+            logged.append(log_sig("buyback_pump", t, "OUTPERFORM", conf, t, [30, 60, 90], bench="SPY",
+                meta={"auth_pct_mcap": ap, "net_buyback_yield": r.get("net_buyback_yield"),
+                      "class": r.get("class")},
+                rationale=("BUYBACK PUMP: " + (r.get("why") or ""))[:300]))
+        for r in (bbe.get("net_shrinkers") or [])[:12]:
+            t = str(r.get("symbol") or "").upper()
+            if not t:
+                continue
+            sr = float(r.get("share_count_reduction_yoy") or 0)
+            ny = float(r.get("net_buyback_yield") or 0)
+            conf = max(0.52, min(0.85, 0.52 + sr / 30.0 + ny / 40.0))
+            logged.append(log_sig("buyback_net_shrinker", t, "OUTPERFORM", conf, t, [30, 60, 90], bench="SPY",
+                meta={"share_reduction_yoy": sr, "net_buyback_yield": ny, "class": r.get("class")},
+                rationale=("NET SHRINKER: " + (r.get("why") or ""))[:300]))
+        print("[buyback-engine] signals logged")
+    except Exception as ex:
+        print(f"[BUYBACK-ENGINE] {ex}")
+
     # save summary
     s3.put_object(Bucket=S3_BUCKET,Key="learning/last_log_run.json",Body=json.dumps({"logged_at":datetime.now(timezone.utc).isoformat(),"count":len([l for l in logged if l]),"action":event.get("action","auto")}),ContentType="application/json")
     total=len([l for l in logged if l])
