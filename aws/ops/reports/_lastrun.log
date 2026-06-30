@@ -1,24 +1,36 @@
-============================================================
-1) FMP /stable/news/press-releases-latest
-  returned 5 items. First item keys: ['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url']
-  sample: {"symbol": "VRRM", "publishedDate": "2026-06-30 19:01:00", "publisher": "Newsfile Corp", "title": "VRRM INVESTOR ALERT: Faruqi & Faruqi, LLP Reminds Verra (VRRM) Investors of Securities Class Action Lawsuit Deadline on August 4, 2026", "image": "https://images.financialmodelingprep.com/news/vrrm-investor-alert-faruqi-faruqi-llp-reminds-verra-vrrm-20260630.jpg", "site": "newsfilecorp.com", "text": 
+=== CURRENT FEED DEALS ===
+summary: {'n_prs_scanned': 1899, 'n_deals': 17, 'n_green': 14, 'n_yellow': 0, 'n_ai': 3, 'n_ai_mega': 3, 'n_small_cap': 13}
+  TRIB   hl=green  ai=1 $$27 billion vsMC=668564.4 | Trinity Biotech's Trinovium Secures Open Compute Project Membership, A
+  JYNT   hl=green  ai=1 $$6 Billion vsMC=4793.77 | Realty Income Forms Programmatic Joint Venture with Cloud Capital and 
+  HIPO   hl=green  ai=0 $$2 Billion vsMC=271.82 | Hippo Holdings Announces Enhanced Partnership with Accelerant to Expan
+  BN     hl=green  ai=1 $$25 Billion vsMC=26.28 | Brookfield and Bloom Energy Expand AI Infrastructure Partnership to $2
+  CELZ   hl=green  ai=0 $$4.5 Million vsMC=120.26 | Creative Medical Technology Holdings Announces Agreements for Exercise
+  APVO   hl=green  ai=0 $$1.5 Million vsMC=15.45 | Aptevo Secures $1.5 Million Non-Dilutive Research Grant From the Andy 
+  CLPS   hl=green  ai=0 $$148.3 million vsMC=589.99 | Intuitive Machines Secures Sixth NASA CLPS Award to Establish High-Vol
+  CLPS   hl=green  ai=0 $$144 Million vsMC=572.88 | Firefly Aerospace Awarded $144 Million NASA CLPS Contract for Accelera
+  OFSTF  hl=green  ai=0 $$4.9 million vsMC=16.05 | Carbon Streaming Announces Upenergy Default Under Community Carbon Str
+  XRN    hl=green  ai=0 $$217 million vsMC=43.7 | Chiron Real Estate Inc. Accelerates Portfolio Transition via Recapital
+  RIG    hl=green  ai=0 $$1 Billion vsMC=22.64 | Transocean Ltd. Announces Agreement with Equinor Valued at Over $1 Bil
+  ICF    hl=green  ai=0 $$14 Million vsMC=0.68 | California Department of Transportation Awards ICF $14 Million to Adva
+  ARX    hl=green  ai=0 $$500 million vsMC=19.55 | Incline P&C Group Announces Enhanced Partnership with Accelerant
+  BOF    hl=green  ai=0 $$8 Million vsMC=11.35 | BranchOut Food Secures Estimated $8 Million Annual Revenue Program wit
+  GTLL   hl=None   ai=0 $       ? vsMC=None | Correction: Smart Eye Announces Four New Driver Monitoring System Desi
+  GTLL   hl=None   ai=0 $       ? vsMC=None | Smart Eye Announces Four New Driver Monitoring System Design Wins with
+  MPTI   hl=None   ai=0 $$4 Million vsMC=1.35 | M-tron Industries, Inc. Awarded $4 Million in Production Contracts for
 
-2) FMP /stable/news/stock-latest
-  returned 5 items. First item keys: ['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url']
-  sample: {"symbol": "DBC", "publishedDate": "2026-06-30 19:03:01", "publisher": "ETF Trends", "title": "Moving Averages of the Ivy Portfolio and S&P 500: June 2026", "image": "https://images.financialmodelingprep.com/news/moving-averages-of-the-ivy-portfolio-and-sp-500-20260630.jpg", "site": "etftrends.com", "text": "This article provides an update on the monthly moving averages we track for the S&P 500 an
+=== FMP press-release pages 0-7 (sequential, deal-language yield) ===
+  page 0: 100 items, 0 deal-language
+  page 1: 100 items, 0 deal-language
+  page 2: 100 items, 3 deal-language
+  page 3: 100 items, 0 deal-language
+  page 4: 100 items, 1 deal-language
+  page 5: 100 items, 0 deal-language
+  page 6: 100 items, 0 deal-language
+  page 7: 100 items, 1 deal-language
+  TOTAL: 800 items, 5 with strong deal-language
 
-3) Alternate endpoint probes:
-   /stable/news/press-releases-latest                 -> 2
-   /stable/press-releases-latest                      -> ERR/HTTP Error 404: Not Found
-   /stable/news/stock-latest                          -> 2
-   /stable/news/general-latest                        -> 2
-   /stable/fmp-articles                               -> 2
-   /stable/news/press-releases?symbol=NVDA            -> 2
-
-4) Invoke deal-scanner Lambda + inspect output
-  invoke: 200 None
-  feed keys: ['engine', 'version', 'generated_at', 'window', 'summary', 'deals', 'methodology', 'sources', 'disclaimer', 'elapsed_s']
-  scanned_count: None | counts: {}
-    deals: 17
-  source note: ['FMP news/press-releases-latest', 'FMP news/stock-latest', 'Polygon news', 'Benzinga news', 'FMP income-statement', 'universe', 'FMP profile', 'ai-infra-stack (AI universe)', 'sector-rotation (sector tailwind)']
-DONE 2635
+=== Polygon + Benzinga key health ===
+  polygon: 5
+  benzinga key set: True
+  benzinga resp type: dict {'__err__': 'HTTP Error 401: Unauthorized'}
+DONE 2636
