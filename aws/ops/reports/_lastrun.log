@@ -1,36 +1,20 @@
-=== CURRENT FEED DEALS ===
-summary: {'n_prs_scanned': 1899, 'n_deals': 17, 'n_green': 14, 'n_yellow': 0, 'n_ai': 3, 'n_ai_mega': 3, 'n_small_cap': 13}
-  TRIB   hl=green  ai=1 $$27 billion vsMC=668564.4 | Trinity Biotech's Trinovium Secures Open Compute Project Membership, A
-  JYNT   hl=green  ai=1 $$6 Billion vsMC=4793.77 | Realty Income Forms Programmatic Joint Venture with Cloud Capital and 
-  HIPO   hl=green  ai=0 $$2 Billion vsMC=271.82 | Hippo Holdings Announces Enhanced Partnership with Accelerant to Expan
-  BN     hl=green  ai=1 $$25 Billion vsMC=26.28 | Brookfield and Bloom Energy Expand AI Infrastructure Partnership to $2
-  CELZ   hl=green  ai=0 $$4.5 Million vsMC=120.26 | Creative Medical Technology Holdings Announces Agreements for Exercise
-  APVO   hl=green  ai=0 $$1.5 Million vsMC=15.45 | Aptevo Secures $1.5 Million Non-Dilutive Research Grant From the Andy 
-  CLPS   hl=green  ai=0 $$148.3 million vsMC=589.99 | Intuitive Machines Secures Sixth NASA CLPS Award to Establish High-Vol
-  CLPS   hl=green  ai=0 $$144 Million vsMC=572.88 | Firefly Aerospace Awarded $144 Million NASA CLPS Contract for Accelera
-  OFSTF  hl=green  ai=0 $$4.9 million vsMC=16.05 | Carbon Streaming Announces Upenergy Default Under Community Carbon Str
-  XRN    hl=green  ai=0 $$217 million vsMC=43.7 | Chiron Real Estate Inc. Accelerates Portfolio Transition via Recapital
-  RIG    hl=green  ai=0 $$1 Billion vsMC=22.64 | Transocean Ltd. Announces Agreement with Equinor Valued at Over $1 Bil
-  ICF    hl=green  ai=0 $$14 Million vsMC=0.68 | California Department of Transportation Awards ICF $14 Million to Adva
-  ARX    hl=green  ai=0 $$500 million vsMC=19.55 | Incline P&C Group Announces Enhanced Partnership with Accelerant
-  BOF    hl=green  ai=0 $$8 Million vsMC=11.35 | BranchOut Food Secures Estimated $8 Million Annual Revenue Program wit
-  GTLL   hl=None   ai=0 $       ? vsMC=None | Correction: Smart Eye Announces Four New Driver Monitoring System Desi
-  GTLL   hl=None   ai=0 $       ? vsMC=None | Smart Eye Announces Four New Driver Monitoring System Design Wins with
-  MPTI   hl=None   ai=0 $$4 Million vsMC=1.35 | M-tron Industries, Inc. Awarded $4 Million in Production Contracts for
+deployed
+INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"n_prs\": 1899, \"n_deals\": 13, \"n_small_cap\": 10, \"n_high_materiality\": 7}"}
 
-=== FMP press-release pages 0-7 (sequential, deal-language yield) ===
-  page 0: 100 items, 0 deal-language
-  page 1: 100 items, 0 deal-language
-  page 2: 100 items, 3 deal-language
-  page 3: 100 items, 0 deal-language
-  page 4: 100 items, 1 deal-language
-  page 5: 100 items, 0 deal-language
-  page 6: 100 items, 0 deal-language
-  page 7: 100 items, 1 deal-language
-  TOTAL: 800 items, 5 with strong deal-language
+summary: {'n_prs_scanned': 1899, 'n_deals': 13, 'n_green': 7, 'n_yellow': 0, 'n_ai': 2, 'n_ai_mega': 1, 'n_small_cap': 10}
 
-=== Polygon + Benzinga key health ===
-  polygon: 5
-  benzinga key set: True
-  benzinga resp type: dict {'__err__': 'HTTP Error 401: Unauthorized'}
-DONE 2636
+DEALS (post-fix):
+  BN     hl=green  ai=1 sz=$25 Billion vsMC=26.28% mat=32.8 | Brookfield and Bloom Energy Expand AI Infrastructure Partnership
+  CELZ   hl=green  ai=0 sz=$4.5 Million vsMC=120.26% mat=75000.0 | Creative Medical Technology Holdings Announces Agreements for Ex
+  APVO   hl=green  ai=0 sz=$1.5 Million vsMC=15.45% mat=9999.0 | Aptevo Secures $1.5 Million Non-Dilutive Research Grant From the
+  XRN    hl=green  ai=0 sz=$217 million vsMC=43.7% mat=134.8 | Chiron Real Estate Inc. Accelerates Portfolio Transition via Rec
+  RIG    hl=green  ai=0 sz=$1 Billion vsMC=22.64% mat=25.2 | Transocean Ltd. Announces Agreement with Equinor Valued at Over 
+  ICF    hl=green  ai=0 sz=$14 Million vsMC=0.68% mat=9999.0 | California Department of Transportation Awards ICF $14 Million t
+  BOF    hl=green  ai=0 sz=$8 Million vsMC=11.35% mat=58.3 | BranchOut Food Secures Estimated $8 Million Annual Revenue Progr
+  JYNT   hl=None   ai=1 sz=         — vsMC=None% mat=None | Realty Income Forms Programmatic Joint Venture with Cloud Capita
+  CLPS   hl=None   ai=0 sz=         — vsMC=None% mat=None | Intuitive Machines Secures Sixth NASA CLPS Award to Establish Hi
+  CLPS   hl=None   ai=0 sz=         — vsMC=None% mat=None | Firefly Aerospace Awarded $144 Million NASA CLPS Contract for Ac
+  GTLL   hl=None   ai=0 sz=         — vsMC=None% mat=None | Correction: Smart Eye Announces Four New Driver Monitoring Syste
+  GTLL   hl=None   ai=0 sz=         — vsMC=None% mat=None | Smart Eye Announces Four New Driver Monitoring System Design Win
+  MPTI   hl=None   ai=0 sz=$4 Million vsMC=1.35% mat=7.4 | M-tron Industries, Inc. Awarded $4 Million in Production Contrac
+DONE 2637
