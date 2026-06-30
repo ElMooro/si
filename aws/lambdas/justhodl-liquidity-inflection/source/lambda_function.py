@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -442,6 +442,96 @@ def lambda_handler(event=None, context=None):
     cl = pull("data/china-liquidity.json")
     china_engine = ({"regime": cl.get("regime"), "regime_read": cl.get("regime_read")} if cl else None)
 
+    # ── Dollar shortage / cross-currency strain (offshore USD funding) ──
+    def _layer_metric(edp_doc, layer, mid):
+        for m in (((edp_doc.get("layers") or {}).get(layer) or {}).get("metrics") or []):
+            if m.get("id") == mid:
+                return m
+        return {}
+    edp_doc = edp if isinstance(edp, dict) else {}
+    fx_m = _layer_metric(edp_doc, "fx", "broad_dollar")
+    cp_m = _layer_metric(edp_doc, "bank_funding", "cp_ois")
+    mfx = edp_doc.get("massive_fx") or {}
+    swpt = fred("SWPT", "2008-01-01")        # central-bank liquidity swaps, weekly $M
+    swpt_bn = swpt_trend = None
+    if swpt:
+        sd = sorted(swpt)
+        swpt_bn = round(swpt[sd[-1]] / 1000.0, 2)
+        swpt_trend = round((swpt[sd[-1]] - swpt[sd[-5]]) / 1000.0, 2) if len(sd) >= 5 else 0.0
+    cp_bps = cp_m.get("value")
+    usd_synth = mfx.get("usd_synthetic_20d_pct")
+    ds_flags = []
+    if isinstance(swpt_bn, (int, float)) and swpt_bn > 5:
+        ds_flags.append(f"Fed swap lines drawn ${swpt_bn}bn — offshore dollar shortage")
+    if isinstance(cp_bps, (int, float)) and cp_bps > 50:
+        ds_flags.append(f"CP−SOFR {cp_bps}bp — bank dollar funding tightening")
+    if isinstance(usd_synth, (int, float)) and usd_synth > 3:
+        ds_flags.append(f"Synthetic USD +{usd_synth}% 20d — FX-implied dollar funding getting expensive")
+    ds_status = ("SCRAMBLE" if len(ds_flags) >= 2 else "WATCH" if ds_flags else "CALM")
+    dollar_shortage = {
+        "status": ds_status, "fed_swap_lines_bn": swpt_bn, "swap_trend_bn": swpt_trend,
+        "cp_ois_bps": cp_bps, "broad_dollar": fx_m.get("value"), "broad_dollar_pctile": fx_m.get("pctile"),
+        "usd_synthetic_20d_pct": usd_synth,
+        "flags": ds_flags or ["Offshore USD funding calm — no scramble for dollars"],
+        "note": "Swap lines ~0 normally; ANY sustained rise = acute global dollar shortage (peaked ~$450bn in 2020)."}
+
+    # ── Settlement fails (fails-to-deliver + fails-to-receive) — collateral scarcity ──
+    sfd = pull("data/settlement-fails.json")
+    settlement_fails = None
+    if sfd:
+        sig = sfd.get("signal") or {}
+        hd = sfd.get("headline") or {}
+        settlement_fails = {
+            "regime": sig.get("regime"), "score": sig.get("score"),
+            "ust_ftd_bn": hd.get("ftd_bn"), "ust_ftr_bn": hd.get("ftr_bn"),
+            "ust_combined_bn": hd.get("combined_bn"), "pctile": hd.get("pctile"),
+            "z": hd.get("z"), "max_bn": hd.get("max_bn"), "drivers": (sig.get("drivers") or [])[:3],
+            "note": "Fails-to-deliver + fails-to-receive (NY Fed FR2004). Spikes = collateral hard to source — repo squeeze / scarcity."}
+
+    # ── Central-bank swap lines & discount-window backstop usage ──
+    dw = fred("WLCFLPCL", "2010-01-01")      # primary credit (discount window), weekly $M
+    dw_bn = round(dw[sorted(dw)[-1]] / 1000.0, 2) if dw else None
+    swap_lines = {
+        "fed_swaps_bn": swpt_bn, "swap_trend_bn": swpt_trend, "discount_window_bn": dw_bn,
+        "status": ("STRESS" if (isinstance(swpt_bn, (int, float)) and swpt_bn > 5)
+                   or (isinstance(dw_bn, (int, float)) and dw_bn > 15) else "CALM"),
+        "note": "Fed FX swap lines + discount-window primary credit — crisis backstops; usage = funding stress at the margin."}
+
+    # ── Cross-asset flow divergence (dash-for-cash / flight-to-safety) ──
+    cflow = pull("data/capital-flow.json")
+    flow_divergence = None
+    if cflow:
+        rot = {r.get("category"): r for r in (cflow.get("category_rotation") or []) if r.get("category")}
+
+        def _flow(cat):
+            return (rot.get(cat) or {}).get("net_flow_5d_usd")
+
+        def _bn(x):
+            return round(x / 1e9, 2) if isinstance(x, (int, float)) else None
+        bonds, equity = _flow("RATES_TREASURIES"), _flow("BROAD_EQUITY_US")
+        credit_f, crypto, commod = _flow("CREDIT"), _flow("CRYPTO"), _flow("COMMODITIES")
+        bonds_in = isinstance(bonds, (int, float)) and bonds > 0
+        equity_out = isinstance(equity, (int, float)) and equity < 0
+        crypto_out = isinstance(crypto, (int, float)) and crypto < 0
+        commod_out = isinstance(commod, (int, float)) and commod < 0
+        equity_in = isinstance(equity, (int, float)) and equity > 0
+        crypto_in = isinstance(crypto, (int, float)) and crypto > 0
+        if bonds_in and equity_out and crypto_out and commod_out:
+            fr, fread = "DASH_FOR_CASH", ("Bonds bid while equities, crypto AND gold are all sold — a dash-for-cash / "
+                                         "deleveraging scramble. Classic dollar-shortage tell: everything sold for cash.")
+        elif bonds_in and equity_out:
+            fr, fread = "FLIGHT_TO_SAFETY", ("Money rotating from equities into Treasuries — risk-off flight to safety, "
+                                             "gold/crypto not yet dumped (orderly de-risking).")
+        elif equity_in and crypto_in:
+            fr, fread = "RISK_SEEKING", ("Equities and crypto both taking inflows — risk-seeking, liquidity flowing "
+                                         "out along the risk curve.")
+        else:
+            fr, fread = "NEUTRAL", "No strong cross-asset flow divergence."
+        flow_divergence = {"regime": fr, "read": fread,
+                           "flows_5d_usd_bn": {"treasuries": _bn(bonds), "equity": _bn(equity),
+                                               "credit": _bn(credit_f), "crypto": _bn(crypto),
+                                               "commodities_gold": _bn(commod)}}
+
     # ── Composite liquidity regime — synthesize the impulses into ONE inflection read ──
     comp_parts = []
 
@@ -466,6 +556,21 @@ def lambda_handler(event=None, context=None):
         add_part("move", -(_mvl - 90) / 30.0, 0.06)
     if hy_bps is not None:
         add_part("credit", -(hy_bps - 350) / 150.0, 0.10)
+    # stress overlays — dollar shortage, settlement fails, dash-for-cash flows drag liquidity down
+    if ds_status == "SCRAMBLE":
+        add_part("dollar_shortage", -1.5, 0.06)
+    elif ds_status == "WATCH":
+        add_part("dollar_shortage", -0.6, 0.06)
+    if settlement_fails and isinstance(settlement_fails.get("z"), (int, float)):
+        add_part("settlement_fails", -settlement_fails["z"], 0.05)
+    if flow_divergence:
+        _fr = flow_divergence["regime"]
+        if _fr == "DASH_FOR_CASH":
+            add_part("flow_divergence", -1.5, 0.05)
+        elif _fr == "FLIGHT_TO_SAFETY":
+            add_part("flow_divergence", -0.7, 0.05)
+        elif _fr == "RISK_SEEKING":
+            add_part("flow_divergence", 0.5, 0.05)
     composite = None
     if comp_parts:
         wsum = sum(w for _, _, w in comp_parts)
@@ -480,6 +585,42 @@ def lambda_handler(event=None, context=None):
                          "CONTRACTING": "Liquidity is inflecting DOWN — draining conditions. Historically a headwind; favor quality and hedges.",
                          "NEUTRAL": "Liquidity is roughly flat — no strong second-derivative push. Levels, earnings and rates dominate."}[comp_regime]}
 
+    # ── Trajectory — where liquidity is HEADED (forward plumbing mechanics) ──
+    tvotes, treasons = [], []
+
+    def _vote(cond_down, cond_up, reason_down, reason_up):
+        if cond_down:
+            tvotes.append(-1); treasons.append(reason_down)
+        elif cond_up:
+            tvotes.append(1); treasons.append(reason_up)
+    if usd_z:
+        _vote(usd_z[-1] < -0.25, usd_z[-1] > 0.25,
+              "Net-liquidity impulse falling", "Net-liquidity impulse rising")
+    if rrp_state and isinstance(rrp_state.get("level_usd_bn"), (int, float)) and rrp_state["level_usd_bn"] < 100:
+        tvotes.append(-1); treasons.append("RRP buffer exhausted — further drains land on reserves directly")
+    if tga_state:
+        _vote(tga_state.get("direction") == "RISING", tga_state.get("direction") == "FALLING",
+              "TGA rebuilding — pulls cash out of the system", "TGA drawing down — releases cash into the system")
+    if reserves and isinstance(reserves.get("scarcity_note"), str) and "Below" in reserves["scarcity_note"]:
+        tvotes.append(-1); treasons.append("Reserves below comfort floor — little room before funding stress")
+    if global_liq and isinstance(global_liq.get("impulse_13w_pct"), (int, float)):
+        _vote(global_liq["impulse_13w_pct"] < -0.5, global_liq["impulse_13w_pct"] > 0.5,
+              "Global central-bank liquidity contracting", "Global central-bank liquidity expanding")
+    if dollar:
+        _vote(dollar.get("direction") == "RISING", dollar.get("direction") == "FALLING",
+              "Broad dollar strengthening — global liquidity headwind", "Broad dollar weakening — global liquidity tailwind")
+    if ds_status == "SCRAMBLE":
+        tvotes.append(-1); treasons.append("Dollar-shortage scramble underway")
+    if flow_divergence and flow_divergence["regime"] == "DASH_FOR_CASH":
+        tvotes.append(-1); treasons.append("Cross-asset dash-for-cash — deleveraging in progress")
+    tv = sum(tvotes)
+    heading = ("TIGHTENING AHEAD" if tv <= -2 else "EASING AHEAD" if tv >= 2 else "STABLE / MIXED")
+    trajectory = {"heading": heading, "vote": tv, "n_signals": len(tvotes), "drivers": treasons,
+                  "read": {
+                      "TIGHTENING AHEAD": "Forward mechanics point to draining liquidity — buffers thin and drains landing on reserves. A headwind is building; favor quality, keep hedges on.",
+                      "EASING AHEAD": "Forward mechanics point to improving liquidity — buffers refilling or drains reversing. A tailwind is building for risk assets.",
+                      "STABLE / MIXED": "Forward drivers are mixed — no decisive path. Liquidity likely range-bound near current conditions."}[heading]}
+
     out = {"engine": "liquidity-inflection", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "availability": avail,
@@ -492,10 +633,13 @@ def lambda_handler(event=None, context=None):
                    "n_flips_10y": len(flips10),
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
-           "composite": composite,
+           "composite": composite, "trajectory": trajectory,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
-           "dollar": dollar, "credit": credit, "systemic_stress": systemic,
+           "dollar": dollar, "dollar_shortage": dollar_shortage,
+           "settlement_fails": settlement_fails, "swap_lines": swap_lines,
+           "flow_divergence": flow_divergence,
+           "credit": credit, "systemic_stress": systemic,
            "financial_conditions": fin_cond, "china_engine": china_engine,
            "eur": eur_state, "china": cn_state, "stablecoin": sc_state,
            "stablecoin_schema_hint": sc_schema_hint,
