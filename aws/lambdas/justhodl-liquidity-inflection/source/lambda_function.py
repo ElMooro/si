@@ -415,11 +415,15 @@ def lambda_handler(event=None, context=None):
     if dollar and dxy:
         dollar["level"] = round(dxy[sorted(dxy)[-1]], 2)
 
-    # ── Credit & systemic stress (pull from existing engines) ──
+    # ── Credit & systemic stress (regime label from engine; HY OAS scalar from FRED) ──
     cs = pull("data/credit-stress.json")
     gs = pull("data/global-stress.json")
-    credit = ({"regime": cs.get("composite_regime"), "hy_oas_bps": cs.get("current_bps"),
-               "signal": cs.get("composite_signal")} if cs else None)
+    hy_oas = fred("BAMLH0A0HYM2", "2010-01-01")
+    hy_bps = round(hy_oas[sorted(hy_oas)[-1]] * 100, 0) if hy_oas else None
+    credit = None
+    if cs or hy_bps is not None:
+        credit = {"regime": cs.get("composite_regime") if cs else None, "hy_oas_bps": hy_bps,
+                  "signal": cs.get("composite_signal") if cs else None}
     systemic = ({"global_stress_index": gs.get("global_stress_index"), "level": gs.get("global_stress_level"),
                  "bond_stress": gs.get("bond_stress")} if gs else None)
 
@@ -441,21 +445,27 @@ def lambda_handler(event=None, context=None):
     # ── Composite liquidity regime — synthesize the impulses into ONE inflection read ──
     comp_parts = []
 
+    def _num(x):
+        return x if isinstance(x, (int, float)) else None
+
     def add_part(name, eff_z, weight):
-        if eff_z is not None:
+        if isinstance(eff_z, (int, float)):
             comp_parts.append((name, max(-3.0, min(3.0, eff_z)), weight))
 
     add_part("net_liquidity", usd_z[-1] if usd_z else None, 0.28)
     add_part("reserves", reserves["eff_z"] if reserves else None, 0.16)
-    if global_liq and global_liq.get("impulse_13w_pct") is not None:
-        add_part("global_liquidity", global_liq["impulse_13w_pct"] / 1.5, 0.16)
+    _gli = _num(global_liq.get("impulse_13w_pct")) if global_liq else None
+    if _gli is not None:
+        add_part("global_liquidity", _gli / 1.5, 0.16)
     add_part("dollar", dollar["eff_z"] if dollar else None, 0.12)
-    if fp and fp.get("plumbing_stress_score") is not None:
-        add_part("funding_stress", -(fp["plumbing_stress_score"] - 50) / 20.0, 0.12)
-    if mv and mv.get("level") is not None:
-        add_part("move", -(mv["level"] - 90) / 30.0, 0.06)
-    if cs and cs.get("current_bps") is not None:
-        add_part("credit", -(cs["current_bps"] - 350) / 150.0, 0.10)
+    _fps = _num(fp.get("plumbing_stress_score")) if fp else None
+    if _fps is not None:
+        add_part("funding_stress", -(_fps - 50) / 20.0, 0.12)
+    _mvl = _num(mv.get("level")) if mv else None
+    if _mvl is not None:
+        add_part("move", -(_mvl - 90) / 30.0, 0.06)
+    if hy_bps is not None:
+        add_part("credit", -(hy_bps - 350) / 150.0, 0.10)
     composite = None
     if comp_parts:
         wsum = sum(w for _, _, w in comp_parts)
