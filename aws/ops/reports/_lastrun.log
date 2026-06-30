@@ -1,5 +1,9 @@
-position_metrics type: dict | sample keys: []
-dark-pool top-level keys: ['engine', 'version', 'ok', 'generated_at', 'thesis', 'latest_week', 'n_scored', 'distribution', 'board', 'top_picks', 'top_accumulation', 'top_distribution']
-top_distribution n: 12 | sample: [{'ticker': 'ILMN', 'state': 'DISTRIBUTION', 'score': 83.6, 'dark_pool_pct': 40.84, 'offex_pct': 52.31, 'dark_accel': 0.579, 'week_return_pct': -1.27, 'ats_shares_wk': 4954295, 'offex_shares_wk': 6346213, 'total_vol_wk': 12131759}, {'ticker': 'GLIBK', 'state': 'DISTRIBUTION', 'score': 79.5, 'dark_pool_pct': 37.81, 'offex_pct': 45.43, 'dark_accel': 0.584, 'week_return_pct': -2.27, 'ats_shares_wk': 2175111, 'offex_shares_wk': 2613131, 'total_vol_wk': 5752599}, {'ticker': 'BRKR', 'state': 'DISTRIBUTION', 'score': 78.7, 'dark_pool_pct': 33.04, 'offex_pct': 50.48, 'dark_accel': 0.709, 'week_return_pct': -3.51, 'ats_shares_wk': 6763979, 'offex_shares_wk': 10332525, 'total_vol_wk': 20469735}]
-distribution block: {"accumulation": 193, "distribution": 161}
-DONE 2540
+FunctionError: None
+field present: True
+live flags (book empty -> expect []): []
+n_positions: 0
+
+live distribution board (sample): ['ILMN', 'GLIBK', 'BRKR', 'CHH', 'OLLI', 'THC']
+synthetic book {ILMN, AAPL} -> flags: [{"ticker": "ILMN", "distribution_score": 83.6, "dark_pool_pct": 40.84, "offex_pct": 52.31, "week_return_pct": -1.27, "signal": "DE-RISK \u2014 held name under off-exchange distribution"}]
+JOIN CORRECT: True
+DONE 2541
