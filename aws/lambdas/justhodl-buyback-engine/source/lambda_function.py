@@ -41,6 +41,36 @@ FMP_KEY = os.environ.get("FMP_API_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 OUT_KEY = "data/buyback-engine.json"
 s3 = boto3.client("s3")
 
+# ── Security-master exclusion ───────────────────────────────────────────────
+# Closed-end funds / BDCs do "buybacks" via fund mechanics (not operating-company
+# returns of capital), and heavy-ATM crypto miners report repurchase/issuance
+# churn that corrupts net-buyback yield. These are excluded from the buyback board.
+# The isFund/isEtf profile flag is the general backstop for anything not listed.
+EXCLUDE_TICKERS = {
+    # closed-end funds / BDCs
+    "GLV", "GLO", "GLQ", "GLU", "GAB", "GGZ", "GDV", "GUT", "GGT", "ECC", "OXLC",
+    "PDI", "PTY", "PCN", "PHK", "UTF", "RVT", "ADX", "BST", "BSTZ", "ETV", "ETY",
+    "QQQX", "JEPI", "JEPQ", "SPXX", "RQI", "USA", "CET", "HQH", "THQ",
+    # heavy-ATM crypto miners / digital-asset treasuries (buyback data unreliable)
+    "CLSK", "MARA", "RIOT", "CIFR", "WULF", "BITF", "HUT", "BTBT", "BTDR", "HIVE",
+    "IREN", "CORZ", "APLD", "SDIG", "GREE", "MSTR", "SMLR", "BTCS",
+}
+
+
+def is_excluded_profile(prof):
+    """Return an exclusion reason if the FMP profile marks this as a non-operating
+    structure (fund / ETF), else None."""
+    if not isinstance(prof, dict):
+        return None
+    if prof.get("isFund"):
+        return "closed_end_fund"
+    if prof.get("isEtf"):
+        return "etf"
+    nm = (prof.get("companyName") or "").lower()
+    if any(w in nm for w in (" closed-end", "closed end fund", "income fund", " term trust")):
+        return "fund_name_pattern"
+    return None
+
 
 def _read(key, default=None):
     try:
@@ -75,7 +105,15 @@ def up(t):
 
 
 def analyze_ticker(t):
-    """Pull FMP and compute the buyback dossier for one ticker. None if no data."""
+    """Pull FMP and compute the buyback dossier for one ticker.
+    Returns None (no data), {"_excluded": reason}, or the dossier dict."""
+    if t in EXCLUDE_TICKERS:
+        return {"_excluded": "denylist"}
+    pr = fmp(f"profile?symbol={t}")
+    prof = pr[0] if isinstance(pr, list) and pr else {}
+    exr = is_excluded_profile(prof)
+    if exr:
+        return {"_excluded": exr}
     cf = fmp(f"cash-flow-statement?symbol={t}&period=quarter&limit=5")
     if not isinstance(cf, list) or len(cf) < 2:
         return None
@@ -120,9 +158,14 @@ def analyze_ticker(t):
     div_yield = round(ttm_div / mcap * 100, 2)
     shareholder_yield = round(net_yield + div_yield, 2)
     debt_funded = debt_issuance > 0 and gross_repo > 0
+    # Net-issuer sanity gate: shares rising materially (>3% YoY) means the company is
+    # diluting regardless of any gross repurchases — its "net buyback yield" is noise.
+    net_issuer = sr_pct is not None and sr_pct <= -3.0
 
     return {
         "symbol": t, "market_cap": mcap,
+        "sector": prof.get("sector"), "industry": prof.get("industry"),
+        "company_name": prof.get("companyName"),
         "gross_repurchases_ttm": round(gross_repo, 0), "net_buyback_ttm": round(net_buyback, 0),
         "issuance_ttm": round(issuance, 0), "sbc_ttm": round(ttm_sbc, 0),
         "gross_buyback_yield": gross_yield, "net_buyback_yield": net_yield,
@@ -130,7 +173,7 @@ def analyze_ticker(t):
         "active_execution": active, "last_q_repurchase": round(last_q_repo, 0),
         "share_count_reduction_yoy": sr_pct, "shares_now": shares_now,
         "fcf_yield_annualized": round(fcf_yield, 2) if fcf_yield is not None else None,
-        "debt_funded": debt_funded,
+        "debt_funded": debt_funded, "net_issuer": net_issuer,
     }
 
 
@@ -157,11 +200,15 @@ def classify_and_score(d, auth_pct, insider):
     score = round(num / den, 1) if den else 0.0
 
     cheap = fcfY is not None and fcfY >= 6.0
-    if auth_pct and auth_pct >= 5 and (active or (srP or 0) >= 1.5 or insider):
+    net_issuer = d.get("net_issuer")
+    if net_issuer:
+        # diluting regardless of gross repurchases — never a buyback star
+        klass = "⚠️ DILUTION_OFFSET"
+    elif auth_pct and auth_pct >= 5 and (active or (srP or 0) >= 1.5 or insider):
         klass = "🚀 FRESH_LARGE_AUTH"
     elif (srP or 0) >= 2 and d["net_buyback_ttm"] > 0:
         klass = "💪 NET_SHRINKER"
-    elif shY >= 6:
+    elif shY >= 6 and (srP is None or srP >= 0):
         klass = "💰 HIGH_SHAREHOLDER_YIELD"
     elif active and cheap:
         klass = "🎯 CHEAP_REPURCHASER"
@@ -171,7 +218,8 @@ def classify_and_score(d, auth_pct, insider):
         klass = "ACTIVE"
     else:
         klass = "NEUTRAL"
-    high_conviction_pump = bool(auth_pct and auth_pct >= 5 and (active or (srP or 0) >= 1.5))
+    high_conviction_pump = bool(not net_issuer and auth_pct and auth_pct >= 5
+                                and (active or (srP or 0) >= 1.5))
     return score, klass, high_conviction_pump, cheap
 
 
@@ -206,10 +254,14 @@ def lambda_handler(event=None, context=None):
 
     tickers = {}
     n_fmp_ok = 0
+    excluded = []
     for i, t in enumerate(universe):
         d = analyze_ticker(t)
         if i % 30 == 0:
             time.sleep(0.25)
+        if isinstance(d, dict) and d.get("_excluded"):
+            excluded.append({"ticker": t, "reason": d["_excluded"]})
+            continue
         if not d:
             continue
         n_fmp_ok += 1
@@ -250,6 +302,7 @@ def lambda_handler(event=None, context=None):
                    "+ net-of-dilution + share-count shrink + valuation. Net buyback yield and a "
                    "genuinely shrinking share count separate real returns of capital from SBC offset."),
         "universe_n": len(universe), "n_scored": len(tickers), "n_fmp_resolved": n_fmp_ok,
+        "n_excluded": len(excluded), "excluded_sample": excluded[:40],
         "counts": {k: len([x for x in rows if x["class"] == k]) for k in
                    ["🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "💰 HIGH_SHAREHOLDER_YIELD",
                     "🎯 CHEAP_REPURCHASER", "⚠️ DILUTION_OFFSET", "ACTIVE", "NEUTRAL"]},
