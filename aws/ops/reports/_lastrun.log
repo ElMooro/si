@@ -1,11 +1,24 @@
-feed v2.2.0
-  composite_clock: EARLY CONTRACTION (impulse -0.22, accel -1.11, 26 orbit pts)
-  composite_projection: 46.4→45.8/100, led by Reserves, 5 components
-  page [OK] composite projection section
-  page [OK] compproj mount
-  page [OK] renderCompProjection
-  page [OK] composite clock section
-  page [OK] compclock mount
-  page [OK] net-liq projection (kept)
-  page [OK] net-liq clock (kept)
-DONE 2634
+============================================================
+1) FMP /stable/news/press-releases-latest
+  returned 5 items. First item keys: ['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url']
+  sample: {"symbol": "VRRM", "publishedDate": "2026-06-30 19:01:00", "publisher": "Newsfile Corp", "title": "VRRM INVESTOR ALERT: Faruqi & Faruqi, LLP Reminds Verra (VRRM) Investors of Securities Class Action Lawsuit Deadline on August 4, 2026", "image": "https://images.financialmodelingprep.com/news/vrrm-investor-alert-faruqi-faruqi-llp-reminds-verra-vrrm-20260630.jpg", "site": "newsfilecorp.com", "text": 
+
+2) FMP /stable/news/stock-latest
+  returned 5 items. First item keys: ['symbol', 'publishedDate', 'publisher', 'title', 'image', 'site', 'text', 'url']
+  sample: {"symbol": "DBC", "publishedDate": "2026-06-30 19:03:01", "publisher": "ETF Trends", "title": "Moving Averages of the Ivy Portfolio and S&P 500: June 2026", "image": "https://images.financialmodelingprep.com/news/moving-averages-of-the-ivy-portfolio-and-sp-500-20260630.jpg", "site": "etftrends.com", "text": "This article provides an update on the monthly moving averages we track for the S&P 500 an
+
+3) Alternate endpoint probes:
+   /stable/news/press-releases-latest                 -> 2
+   /stable/press-releases-latest                      -> ERR/HTTP Error 404: Not Found
+   /stable/news/stock-latest                          -> 2
+   /stable/news/general-latest                        -> 2
+   /stable/fmp-articles                               -> 2
+   /stable/news/press-releases?symbol=NVDA            -> 2
+
+4) Invoke deal-scanner Lambda + inspect output
+  invoke: 200 None
+  feed keys: ['engine', 'version', 'generated_at', 'window', 'summary', 'deals', 'methodology', 'sources', 'disclaimer', 'elapsed_s']
+  scanned_count: None | counts: {}
+    deals: 17
+  source note: ['FMP news/press-releases-latest', 'FMP news/stock-latest', 'Polygon news', 'Benzinga news', 'FMP income-statement', 'universe', 'FMP profile', 'ai-infra-stack (AI universe)', 'sector-rotation (sector tailwind)']
+DONE 2635
