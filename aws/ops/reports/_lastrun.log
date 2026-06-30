@@ -1,12 +1,6 @@
+deployed code still emits mentioned_tickers: False
+deployed code has knowledge-only note: True
 invoke err: None
-=== brain output now ===
-has 'mentioned_tickers' field: True  (should be False)
-directive (KNOWLEDGE) intact: True
-  hard_rules: 7 rules
-  themes: 7 themes
-  sector_tilts: ['Health Care', 'Industrials', 'Financials', 'Consumer Staples', 'Utilities', 'Technology']
-  risk_posture: balanced — defensive at the macro level (cash/gold/quality when liquidity drains
-  signal_emphasis: 8 emphases
-regime_read: Liquidity-tighten / dollar-dominant
-distill_cadence: monthly (force=true to override)
-DONE 2530
+brain.json has 'mentioned_tickers': False (want False)
+directive knowledge intact: True | hard_rules: 7 | themes: 7
+DONE 2531
