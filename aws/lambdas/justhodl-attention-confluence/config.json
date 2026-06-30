@@ -6,7 +6,6 @@
   "memory_size": 512,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
-  "schedule": "cron(10 15 * * ? *)",
-  "schedule_name": "justhodl-attention-confluence-daily",
+  "schedule": {"rule_name": "justhodl-attention-confluence-daily", "cron": "cron(10 15 * * ? *)", "description": "Daily smart-vs-crowd attention fusion"},
   "description": "Fuse informed accumulation vs crowd attention into Stealth/Igniting/Crowded/Distribution stages"
 }

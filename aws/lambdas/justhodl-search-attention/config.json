@@ -6,7 +6,6 @@
   "memory_size": 512,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
-  "schedule": "cron(0 15 * * ? *)",
-  "schedule_name": "justhodl-search-attention-daily",
-  "description": "Per-company Wikipedia pageview velocity as investor attention proxy (SVI-equivalent)"
+  "schedule": {"rule_name": "justhodl-search-attention-daily", "cron": "cron(0 15 * * ? *)", "description": "Daily Wikipedia pageview attention proxy"},
+  "description": "Per-company Wikipedia pageview velocity as investor attention proxy"
 }
