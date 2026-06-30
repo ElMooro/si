@@ -1,9 +1,19 @@
-FunctionError: None
-field present: True
-live flags (book empty -> expect []): []
-n_positions: 0
+manifest keys watched: 0
 
-live distribution board (sample): ['ILMN', 'GLIBK', 'BRKR', 'CHH', 'OLLI', 'THC']
-synthetic book {ILMN, AAPL} -> flags: [{"ticker": "ILMN", "distribution_score": 83.6, "dark_pool_pct": 40.84, "offex_pct": 52.31, "week_return_pct": -1.27, "signal": "DE-RISK \u2014 held name under off-exchange distribution"}]
-JOIN CORRECT: True
-DONE 2541
+STALE feeds (age_h > threshold): 0
+
+freshness-monitor last run: 2026-06-30T01:59:09.313666+00:00
+  monitor-reported stale count: None
+
+EventBridge rules total: 312 | DISABLED (justhodl-ish): 0
+
+justhodl-future-intelligence: last log 0.4d ago | no recent errors in tail
+
+justhodl-pairs-scanner: last log 0.5d ago | no recent errors in tail
+
+justhodl-divergence-v2: NO log group (never deployed/invoked)
+
+justhodl-divergence-interpreter: last log 0.3d ago | recent errors:
+    [interp] Claude call failed: HTTP Error 400: Bad Request
+
+DONE 2542
