@@ -1,6 +1,15 @@
-  ✓ justhodl-buyback-engine-daily EXISTS: cron(30 13 * * ? *) ENABLED targets=1
-  live page Corporate Buybacks panel: OK | loads corporate_buybacks: OK
-  confluence corporate_buybacks panel: 20
-  buyback in smart_families: True
-  buyback-engine feed: n_scored 183 pumps 8 counts {'🚀 FRESH_LARGE_AUTH': 8, '💪 NET_SHRINKER': 40, '💰 HIGH_SHAREHOLDER_YIELD': 13, '🎯 CHEAP_REPURCHASER': 7, '⚠️ DILUTION_OFFSET': 17, 'ACTIVE': 54, 'NEUTRAL': 44}
-DONE 2598
+code synced
+async invoked; polling (4 FMP calls/ticker)...
+  poll 0: not ready
+scored 176 fmp_ok 176 excluded 12
+counts: {'🚀 FRESH_LARGE_AUTH': 7, '💪 NET_SHRINKER': 39, '💰 HIGH_SHAREHOLDER_YIELD': 4, '🎯 CHEAP_REPURCHASER': 7, '⚠️ DILUTION_OFFSET': 39, 'ACTIVE': 52, 'NEUTRAL': 28}
+  GLV in board: False (should be False)
+  GLO in board: False (should be False)
+  GLQ in board: False (should be False)
+  CLSK in board: False (should be False)
+  MARA in board: False (should be False)
+  RIOT in board: False (should be False)
+  excluded sample: ['BTBT', 'CLSK', 'CRT', 'GIGB', 'GLO', 'GLQ', 'GLV', 'ICLN', 'IEF', 'IVV', 'IWM', 'MXF']
+  high_shareholder_yield top: [('KBH', 16.97, 12.06), ('REFI', 0.05, -1.06), ('ENR', 8.46, 5.12), ('LIEN', -0.0, -120.62), ('AMP', 5.48, 5.28), ('C', 9.47, 7.56)]
+  net_shrinkers top: [('KBH', 12.06), ('BYD', 9.81), ('HCA', 9.14), ('AMG', 8.22), ('C', 7.56), ('FHN', 7.16)]
+DONE 2599
