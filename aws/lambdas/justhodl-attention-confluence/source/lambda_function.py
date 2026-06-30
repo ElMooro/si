@@ -219,6 +219,7 @@ def lambda_handler(event=None, context=None):
     CG = x_congress(_read("data/political-stocks.json"))
     AC = x_analyst_clusters(_read("data/rating-change-cluster.json"))
     SH = x_short(_read("data/short-interest.json"))
+    SA = (_read("data/search-attention.json") or {}).get("by_ticker", {}) or {}
     gdelt = _read("data/gdelt-news.json")
     gamma = _read("data/options-gamma.json")
     themes = theme_map(att)
@@ -252,6 +253,7 @@ def lambda_handler(event=None, context=None):
         cg = CG.get(t, {})
         ac = AC.get(t, {})
         sh = SH.get(t, {})
+        sa = SA.get(t, {})
         layer = a.get("layer") or sm.get("name")
 
         # ---------- INFORMED sub-scores (0-100) ----------
@@ -290,8 +292,15 @@ def lambda_handler(event=None, context=None):
             retail_s = max(retail_s, 55.0)
         tt = theme_trend_for(layer)
         theme_s = clamp(50 + safe(tt[1]) * 0.6) if tt else 0.0
-        # (search SVI slot reserved for justhodl-search-attention; renormalized until present)
-        cfam = [("retail", retail_s, 0.6), ("theme", theme_s, 0.4)]
+        # search attention (Wikipedia pageview velocity via justhodl-search-attention)
+        svi = sa.get("svi")
+        search_has = svi is not None
+        if search_has:
+            accel = clamp(50 + safe(sa.get("trend_pct")) * 0.5) if sa.get("trend_pct") is not None else 50.0
+            search_s = clamp(0.6 * safe(svi) + 0.4 * accel)
+        else:
+            search_s = 0.0
+        cfam = [("retail", retail_s, 0.42), ("theme", theme_s, 0.23), ("search", search_s, 0.35)]
         cnum = sum(w * s for _, s, w in cfam if s > 0)
         cden = sum(w for _, s, w in cfam if s > 0)
         crowd_score = round(cnum / cden, 1) if cden > 0 else 0.0
@@ -303,7 +312,7 @@ def lambda_handler(event=None, context=None):
             or (a.get("insider_net_change") is not None and safe(a.get("insider_net_change")) < 0 and not ic)
 
         # ---------- STAGE ----------
-        crowd_has_data = (rb is not None) or (theme_s > 0) or bool(a.get("trending"))
+        crowd_has_data = (rb is not None) or (theme_s > 0) or bool(a.get("trending")) or search_has
         smart_fire = smart_score >= 45 and confluence_smart >= 2
         smart_some = smart_score >= 38 and confluence_smart >= 1
         crowd_loud = crowd_score >= 55
@@ -345,6 +354,8 @@ def lambda_handler(event=None, context=None):
             cw.append(f"retail {round(safe(rb)*100)}% bull" + (" + trending" if a.get("trending") else ""))
         if theme_s >= 55:
             cw.append(f"hot theme: {tt[0]}")
+        if search_s >= 55:
+            cw.append(f"search +{sa.get('trend_pct')}%")
         why = "; ".join(bits) + ((" · CROWD: " + ", ".join(cw)) if cw else "")
 
         tickers[t] = {
@@ -358,12 +369,13 @@ def lambda_handler(event=None, context=None):
                 "congress": cg or None, "analyst": ac or ({"upgrade_mom": a.get("analyst_upgrade_mom")} if a.get("analyst_upgrade_mom") else None),
                 "retail": ({"bull_pct": rb, "msgs": a.get("retail_msgs"), "trending": a.get("trending")} if rb is not None or a.get("trending") else None),
                 "theme": ({"theme": tt[0], "trend_pct": tt[1]} if tt else None),
+                "search": ({"svi": svi, "trend_pct": sa.get("trend_pct"), "wiki": sa.get("wiki_title")} if search_has else None),
                 "short": sh or None,
             },
             "subscores": {"insider": round(insider_s, 1), "options": round(options_s, 1),
                           "funds": round(funds_s, 1), "darkpool": round(darkpool_s, 1),
                           "congress": round(congress_s, 1), "analyst": round(analyst_s, 1),
-                          "retail": round(retail_s, 1), "theme": round(theme_s, 1)},
+                          "retail": round(retail_s, 1), "theme": round(theme_s, 1), "search": round(search_s, 1)},
             "why": why,
         }
 
@@ -426,7 +438,7 @@ def lambda_handler(event=None, context=None):
         "scoring": {
             "smart_families": {"insider": 0.26, "options": 0.20, "funds": 0.22, "darkpool": 0.14,
                                "congress": 0.08, "analyst": 0.10},
-            "crowd_families": {"retail": 0.6, "theme": 0.4, "search": "reserved (justhodl-search-attention)"},
+            "crowd_families": {"retail": 0.42, "theme": 0.23, "search": 0.35},
             "stage_rules": {"STEALTH": "smart>=45 & confluence>=2 & crowd<40",
                             "IGNITING": "smart firing & crowd>=38",
                             "CROWDED": "crowd>=55 & smart weak",
