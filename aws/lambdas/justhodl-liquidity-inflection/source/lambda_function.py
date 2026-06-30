@@ -620,7 +620,10 @@ def build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci):
     components (net-liq impulse, reserve drain, dollar, credit, conditions), z-harmonised so +
     always means more liquidity, then weight-blended. ~70% of the live composite's weight but
     with FULL history — enough to drive a cycle clock and a forward projection on the composite."""
-    pairs = list(zip(usd_dates, usd_z))[::5]
+    gaps = [(_pd(usd_dates[i]) - _pd(usd_dates[i - 1])).days for i in range(1, min(len(usd_dates), 40))]
+    mg = sorted(gaps)[len(gaps) // 2] if gaps else 7
+    stride = max(1, round(7 / max(mg, 1)))           # → ~weekly spine regardless of input cadence
+    pairs = list(zip(usd_dates, usd_z))[::stride]
     spine = [p[0] for p in pairs]
     z_netliq = {p[0]: p[1] for p in pairs}
     if len(spine) < 60:
