@@ -14,7 +14,7 @@ Item 6/7/8 of the edge map. Levels are consensus; INFLECTIONS are the trade.
              for SPX (deep base), BTC, HYG — the published lead/lag table.
 New flips (≤5 sessions old) are logged to the closed loop vs SPY.
 """
-import json, os, time, urllib.request, urllib.parse
+import json, os, time, urllib.request, urllib.parse, bisect
 from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev
 from decimal import Decimal
@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -378,6 +378,85 @@ def project_net_liquidity(net, walcl, tga, rrp, horizon_wk=13):
                             "band = ±1σ weekly × √weeks. Mechanical extrapolation, not a Fed/Treasury forecast.")}
 
 
+def _asof(series):
+    sd = sorted(series)
+    vals = [series[d] for d in sd]
+
+    def f(d):
+        i = bisect.bisect_right(sd, d) - 1
+        return vals[i] if i >= 0 else None
+    return f
+
+
+def _zcol(xs):
+    valid = [x for x in xs if x is not None]
+    if len(valid) < 10:
+        return [0.0] * len(xs)
+    m = mean(valid)
+    sd = stdev(valid) or 1.0
+    return [((x - m) / sd if x is not None else 0.0) for x in xs]
+
+
+def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
+    """Represent each week as a z-scored liquidity FINGERPRINT (net-liq impulse, HY OAS,
+    broad dollar, NFCI, reserve-drain speed) and find the closest historical analogs to
+    today — then show SPX's realized forward return after each. Crisis-pattern recognition."""
+    if not usd_dates or len(usd_dates) < 160 or not spx or len(spx) < 300:
+        return None
+    spine = usd_dates[::5]
+    zmap = dict(zip(usd_dates, usd_z))
+    a_hy = _asof(hy_oas) if hy_oas else (lambda d: None)
+    a_dx = _asof(dxy) if dxy else (lambda d: None)
+    a_nf = _asof(nfci) if nfci else (lambda d: None)
+    wres_chg = {}
+    if wresbal:
+        wd = sorted(wresbal)
+        for i in range(13, len(wd)):
+            wres_chg[wd[i]] = wresbal[wd[i]] - wresbal[wd[i - 13]]
+    a_wr = _asof(wres_chg) if wres_chg else (lambda d: None)
+    F = {"impulse": [], "hy_oas": [], "dollar": [], "nfci": [], "reserve_drain": []}
+    rows = []
+    for d in spine:
+        rows.append(d)
+        F["impulse"].append(zmap.get(d))
+        F["hy_oas"].append(a_hy(d))
+        F["dollar"].append(a_dx(d))
+        F["nfci"].append(a_nf(d))
+        F["reserve_drain"].append(-a_wr(d) if a_wr(d) is not None else None)   # drain = falling reserves
+    cols = {key: _zcol(v) for key, v in F.items()}
+    nrow = len(rows)
+    vecs = [[cols[key][i] for key in F] for i in range(nrow)]
+    today, today_date = vecs[-1], rows[-1]
+    cutoff = nrow - 13
+    dists = sorted((sum((today[j] - vecs[i][j]) ** 2 for j in range(len(today))) ** 0.5, i)
+                   for i in range(cutoff))
+    sd = sorted(spx)
+
+    def spx_fwd(d, days):
+        i = bisect.bisect_left(sd, d)
+        if i >= len(sd) or i + days >= len(sd):
+            return None
+        p0, p1 = spx[sd[i]], spx[sd[i + days]]
+        return round((p1 / p0 - 1) * 100, 1) if (p0 and p1) else None
+    analogs = []
+    for dd, i in dists:
+        d = rows[i]
+        if any(abs((_pd(d) - _pd(a["date"])).days) < 70 for a in analogs):
+            continue
+        analogs.append({"date": d, "similarity_pct": round(100 / (1 + dd), 1), "distance": round(dd, 2),
+                        "spx_fwd_21d": spx_fwd(d, 21), "spx_fwd_63d": spx_fwd(d, 63),
+                        "fingerprint": {key: round(cols[key][i], 2) for key in F}})
+        if len(analogs) >= k:
+            break
+    return {"as_of": today_date, "features": list(F.keys()),
+            "fingerprint_now": {key: round(cols[key][-1], 2) for key in F},
+            "analogs": analogs,
+            "note": ("Each week is a z-scored liquidity fingerprint (net-liq impulse, HY OAS, broad dollar, "
+                     "NFCI, reserve-drain speed). These are the closest historical matches to today's "
+                     "configuration, with SPX's realized forward return after each. Pattern recognition, "
+                     "not a forecast.")}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -624,6 +703,13 @@ def lambda_handler(event=None, context=None):
     cl = pull("data/china-liquidity.json")
     china_engine = ({"regime": cl.get("regime"), "regime_read": cl.get("regime_read")} if cl else None)
 
+    # ── Historical analogs — nearest liquidity fingerprints in history ──
+    try:
+        analogs = historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx)
+    except Exception as e:
+        print(f"[analogs] {str(e)[:80]}")
+        analogs = None
+
     # ── Dollar shortage / cross-currency strain (offshore USD funding) ──
     def _layer_metric(edp_doc, layer, mid):
         for m in (((edp_doc.get("layers") or {}).get(layer) or {}).get("metrics") or []):
@@ -847,6 +933,7 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
+           "analogs": analogs,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
            "dollar": dollar, "dollar_shortage": dollar_shortage,
