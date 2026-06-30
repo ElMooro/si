@@ -239,6 +239,17 @@
       </div>
     </div>
     
+    <!-- LLM PROVIDERS (llm-health) -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">🤖 LLM Providers</div>
+        <div class="panel-meta" id="llm-status">—</div>
+      </div>
+      <div class="panel-body" id="llm-body">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+    
     <!-- STALE S3 OUTPUTS -->
     <div class="panel">
       <div class="panel-header">
@@ -372,10 +383,33 @@
     }
     
     async function render() {
-      const [errState, freshState] = await Promise.all([
+      const [errState, freshState, llmHealth] = await Promise.all([
         fetchJSON(`${BUCKET}/data/_fleet-monitor.json`),
         fetchJSON(`${BUCKET}/data/_freshness-monitor.json`),
+        fetchJSON(`${BUCKET}/data/llm-health.json`),
       ]);
+
+      // LLM providers (Telegram-independent surface for the provider-outage detector)
+      if (llmHealth) {
+        const st = (llmHealth.status || 'UNKNOWN').toUpperCase();
+        const color = st === 'HEALTHY' ? 'green' : (st === 'DEGRADED' ? 'amber' : 'red');
+        document.getElementById('llm-status').innerHTML =
+          `<span class="status-dot ${color}"></span>${st} · ${fmtTime(llmHealth.generated_at)}`;
+        const provs = (llmHealth.providers || []).map(p =>
+          `<div class="audit-item"><div class="name">${p.ok ? '✅' : '❌'} ${p.provider}</div>`
+          + `<div class="desc">${p.ok ? 'up' : String(p.error || p.status || 'down').slice(0, 90)}</div></div>`).join('');
+        const billing = (llmHealth.billing_action_needed && llmHealth.billing_action_needed.length)
+          ? `<div class="audit-item"><div class="name" style="color:var(--red)">💳 Billing action needed</div><div class="desc">${llmHealth.billing_action_needed.join(', ')} — top up to restore provider redundancy</div></div>` : '';
+        const degraded = (llmHealth.degraded_outputs && llmHealth.degraded_outputs.length)
+          ? `<div class="audit-item"><div class="name" style="color:var(--amber)">⚠️ Null AI outputs</div><div class="desc">${llmHealth.degraded_outputs.map(d => d.feed || d.name || d).join(', ')}</div></div>` : '';
+        document.getElementById('llm-body').innerHTML =
+          `<div class="audit-item"><div class="name">Read</div><div class="desc">${llmHealth.headline || st}</div></div>`
+          + `<div class="audit-item"><div class="name">Redundancy</div><div class="desc">${llmHealth.redundancy || '—'}</div></div>`
+          + provs + billing + degraded;
+      } else {
+        document.getElementById('llm-status').textContent = 'feed unavailable';
+        document.getElementById('llm-body').innerHTML = '<div class="desc" style="color:var(--muted)">llm-health feed unavailable</div>';
+      }
       
       // Updated time
       const ts = errState?.generated_at || freshState?.generated_at;
