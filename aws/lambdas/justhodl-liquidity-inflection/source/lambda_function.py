@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -525,6 +525,51 @@ def liquidity_backtest(usd_dates, usd_z, spx, cost_bps=2):
                      "track record.")}
 
 
+def cycle_clock(usd_dates, usd_z, n_orbit=26):
+    """Phase-space orbit of the net-liquidity impulse (x) vs its acceleration (y). The cycle
+    normally rotates counter-clockwise through 4 phases — early/late expansion, early/late
+    contraction. Returns the recent orbit trail, current phase, and rotation direction."""
+    if not usd_dates or len(usd_dates) < 80:
+        return None
+    pairs = list(zip(usd_dates, usd_z))[::5]
+    wd = [p[0] for p in pairs]
+    wz = [p[1] for p in pairs]
+    if len(wz) < 30:
+        return None
+    accel = [None] * len(wz)
+    for i in range(4, len(wz)):
+        accel[i] = wz[i] - wz[i - 4]
+    av = [a for a in accel if a is not None]
+    am = mean(av)
+    asd = stdev(av) or 1.0
+    accel_z = [((a - am) / asd if a is not None else 0.0) for a in accel]
+    start = max(4, len(wz) - n_orbit)
+    orbit = [{"date": wd[i], "x": round(wz[i], 2), "y": round(accel_z[i], 2)} for i in range(start, len(wz))]
+    cx, cy = wz[-1], accel_z[-1]
+    if cx >= 0 and cy >= 0:
+        phase, read = "EARLY EXPANSION", "Liquidity is expanding and still accelerating — the most supportive part of the cycle for risk."
+    elif cx >= 0 and cy < 0:
+        phase, read = "LATE EXPANSION", "Still expanding but decelerating — momentum is fading; this is where the cycle tends to roll over."
+    elif cx < 0 and cy < 0:
+        phase, read = "EARLY CONTRACTION", "Contracting and accelerating downward — the most defensive part of the cycle."
+    else:
+        phase, read = "LATE CONTRACTION", "Contracting but the downside is decelerating — momentum is easing and a turn may be forming."
+    rot = "indeterminate"
+    if len(orbit) >= 3:
+        ax_, ay_ = orbit[-2]["x"] - orbit[-3]["x"], orbit[-2]["y"] - orbit[-3]["y"]
+        bx_, by_ = orbit[-1]["x"] - orbit[-2]["x"], orbit[-1]["y"] - orbit[-2]["y"]
+        cross = ax_ * by_ - ay_ * bx_
+        rot = ("clockwise — normal cyclical progression" if cross < 0
+               else "counter-clockwise — atypical (possible whipsaw / stalling)")
+    return {"as_of": wd[-1], "impulse": round(cx, 2), "acceleration": round(cy, 2),
+            "phase": phase, "phase_read": read, "rotation": rot, "orbit": orbit,
+            "quadrants": {"q1": "Early expansion", "q2": "Late expansion",
+                          "q3": "Early contraction", "q4": "Late contraction"},
+            "note": ("Phase-space orbit: net-liquidity impulse (x) vs its acceleration (y). The cycle normally "
+                     "rotates counter-clockwise through the four phases; the trail is the recent path and the "
+                     "dot is now.")}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -545,6 +590,7 @@ def lambda_handler(event=None, context=None):
         usd_dates, usd_z = build_impulse(net)
         usd_flips = find_flips(usd_dates, usd_z)
     projection = project_net_liquidity(net, walcl, tga, rrp) if net else None
+    clock = cycle_clock(usd_dates, usd_z) if usd_dates else None
 
     # EUR excess liquidity (platform store)
     eur = None
@@ -1007,6 +1053,7 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
+           "cycle_clock": clock,
            "analogs": analogs, "backtest": backtest,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
