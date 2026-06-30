@@ -1,10 +1,7 @@
-live buybacks.html status: 200 bytes: 13356
-  [OK] Corporate Buyback Board
-  [OK] High-Conviction Pump
-  [OK] Net Shrinkers
-  [OK] Dilution-Offset Warnings
-  [OK] data/buyback-engine.json
-  [OK] High Shareholder Yield
-  [OK] Cheap Repurchasers
-  [OK] Methodology
-DONE 2601
+insider-buys-enriched top keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary', 'top_setups', 'methodology', 'academic_basis', 'schedule']
+deployed
+INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_confluences\": 0, \"n_high\": 0}"}
+STATE: QUIET | n_confluences: 0 | n_high: 0
+feeders: {'insider_keys': ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary'], 'insider_error': None, 'insider_tickers_count': 0, 'buyback_engine_scored': 176, 'buyback_keys': ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'n_total_candidates_8k', 'n_unique_tickers'], 'buyback_error': None, 'buyback_tickers_count': 75}
+  ＋ CREATted schedule justhodl-insider-buyback-confluence-daily: cron(0 14 * * ? *)
+DONE 2602
