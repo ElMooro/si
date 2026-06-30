@@ -1,10 +1,7 @@
-  justhodl-risk-regime: deployed
-  justhodl-master-ranker: deployed (19f)
-RR: 200 None
-  risk_regime: 12.1 MILD_RISK_ON | liq block score -0.3 traj TIGHTENING AHEAD ds CALM
-  liq tells: ['Bank reserves below comfort floor (LCLoR risk)', 'Liquidity trajectory: TIGHTENING AHEAD']
-MR: 200 None
-  regime_context: liq 48.7 NEUTRAL | traj TIGHTENING AHEAD | ds CALM
-  macro signal: Liquidity Regime: NEUTRAL (48.7/100) · TIGHTENING AHEAD | act: Liquidity neutral now, but mechanics point to tightening — keep quality bias
-  tickers w/ liq tilt: 2 e.g. [('FOXA', 0.97), ('NEM', 0.97)]
-DONE 2618
+page bytes: 28983
+  [OK] leverage-stress card
+  [OK] dealer-survey card
+  feed v1.4.0 · leverage 25.4 ABUNDANT_LIQUIDITY margin 622.199bn
+  risk-regime: liq traj=TIGHTENING AHEAD ds=CALM score=-0.3
+  master-ranker: regime_context traj=TIGHTENING AHEAD ds=CALM · 2 tickers forward-tilted
+DONE 2619
