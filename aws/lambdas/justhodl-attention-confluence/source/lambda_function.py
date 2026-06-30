@@ -303,14 +303,17 @@ def lambda_handler(event=None, context=None):
             or (a.get("insider_net_change") is not None and safe(a.get("insider_net_change")) < 0 and not ic)
 
         # ---------- STAGE ----------
+        crowd_has_data = (rb is not None) or (theme_s > 0) or bool(a.get("trending"))
         smart_fire = smart_score >= 45 and confluence_smart >= 2
         smart_some = smart_score >= 38 and confluence_smart >= 1
         crowd_loud = crowd_score >= 55
         crowd_warm = crowd_score >= 38
         if distributing and crowd_warm:
             stage = "DISTRIBUTION"
-        elif smart_fire and crowd_score < 40:
-            stage = "STEALTH"
+        elif smart_fire and crowd_has_data and crowd_score < 40:
+            stage = "STEALTH"          # verified: smart firing while retail is demonstrably quiet
+        elif smart_fire and not crowd_has_data:
+            stage = "UNDISCOVERED"     # smart firing but no retail/attention read yet (search-attention will resolve)
         elif (smart_fire or smart_some) and crowd_warm:
             stage = "IGNITING"
         elif crowd_loud and not smart_some:
@@ -348,7 +351,7 @@ def lambda_handler(event=None, context=None):
             "symbol": t, "name": a.get("name") or sm.get("name") or f13.get("name"), "layer": layer,
             "smart_score": smart_score, "crowd_score": crowd_score, "divergence": divergence,
             "confluence_smart": confluence_smart, "families_firing": fams_firing, "stage": stage,
-            "distributing": distributing,
+            "distributing": distributing, "crowd_has_data": crowd_has_data,
             "signals": {
                 "insider": ic or ({"mspr": mspr} if mspr is not None else None),
                 "options": op or None, "funds": (sm or f13) or None, "darkpool": dp or None,
@@ -374,6 +377,7 @@ def lambda_handler(event=None, context=None):
     igniting = bucket("IGNITING", key=lambda r: (r["smart_score"], r["confluence_smart"]))
     crowded = bucket("CROWDED", key=lambda r: (r["crowd_score"],))
     distribution = bucket("DISTRIBUTION", key=lambda r: (r["crowd_score"],))
+    undiscovered = bucket("UNDISCOVERED", key=lambda r: (r["smart_score"], r["confluence_smart"]))
 
     # ---------- section feeds (raw, for dedicated panels) ----------
     options_panel = sorted([{"symbol": k, **v} for k, v in OP.items()],
@@ -398,7 +402,7 @@ def lambda_handler(event=None, context=None):
     }
 
     counts = {s: len([v for v in tickers.values() if v["stage"] == s])
-              for s in ["STEALTH", "IGNITING", "CROWDED", "DISTRIBUTION", "WATCH", "NEUTRAL"]}
+              for s in ["STEALTH", "IGNITING", "UNDISCOVERED", "CROWDED", "DISTRIBUTION", "WATCH", "NEUTRAL"]}
 
     out = {
         "engine": "attention-confluence",
@@ -412,7 +416,7 @@ def lambda_handler(event=None, context=None):
         "n_scored": len(tickers),
         "counts": counts,
         "market_context": ctx,
-        "stages": {"stealth": stealth, "igniting": igniting, "crowded": crowded, "distribution": distribution},
+        "stages": {"stealth": stealth, "igniting": igniting, "undiscovered": undiscovered, "crowded": crowded, "distribution": distribution},
         "panels": {"unusual_options": options_panel, "insider_clusters": insider_panel,
                    "smart_money": funds_panel, "dark_pool_accumulation": darkpool_panel,
                    "congress_buys": congress_panel,
