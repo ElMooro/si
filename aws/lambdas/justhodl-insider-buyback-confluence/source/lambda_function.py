@@ -84,10 +84,10 @@ def extract_insider_tickers(insider_data):
     out = {}
     if not isinstance(insider_data, dict):
         return out
-    # Try common shapes
-    candidates = (insider_data.get("clusters") or insider_data.get("picks")
-                  or insider_data.get("hits") or insider_data.get("buys")
-                  or insider_data.get("results") or [])
+    # Try common shapes (insider-buys-enriched uses 'top_setups')
+    candidates = (insider_data.get("top_setups") or insider_data.get("clusters")
+                  or insider_data.get("picks") or insider_data.get("hits")
+                  or insider_data.get("buys") or insider_data.get("results") or [])
     if not isinstance(candidates, list):
         return out
     for row in candidates:
@@ -97,10 +97,14 @@ def extract_insider_tickers(insider_data):
         if not tk:
             continue
         tk = tk.upper()
-        n_buyers = row.get("n_buyers") or row.get("num_buyers") or row.get("cluster_size") or 1
-        total_value = row.get("total_value") or row.get("dollar_value") or row.get("value_usd") or 0
-        days_since = row.get("days_since_last_buy") or row.get("days_since") or row.get("recency_days")
-        score_existing = row.get("score") or row.get("confidence") or 0
+        n_buyers = (row.get("n_buyers") or row.get("num_buyers") or row.get("cluster_size")
+                    or row.get("buyer_count") or row.get("n_insiders") or row.get("insider_count") or 1)
+        total_value = (row.get("total_value") or row.get("dollar_value") or row.get("value_usd")
+                       or row.get("total_value_usd") or row.get("total_usd")
+                       or row.get("cluster_value_usd") or row.get("net_value") or 0)
+        days_since = (row.get("days_since_last_buy") or row.get("days_since")
+                      or row.get("recency_days") or row.get("most_recent_days"))
+        score_existing = row.get("score") or row.get("confidence") or row.get("conviction") or 0
         existing = out.get(tk, {})
         out[tk] = {
             "ticker": tk,
