@@ -1,15 +1,9 @@
 deployed
-INVOKE: 200 None
-
-COMPOSITE CYCLE CLOCK:
-  PHASE: None | impulse None accel None
-  rotation: None | components: None
-  orbit pts: 0
-
-COMPOSITE PROJECTION:
-  HEADLINE: Composite liquidity projected to ease (+0.26 z, to 50/100) over 13 weeks on current component momentum, led by reserves.
-  cur z -0.258 score 45.7 → proj z -0.001 score 50.0 ( 0.257 z)
-  contributions: {'Net liquidity': -0.018, 'Reserves': 0.248, 'Dollar': -0.132, 'Credit spreads': 0.069, 'Financial conditions': 0.091}
-  primary: Reserves | components: ['Net liquidity', 'Reserves', 'Dollar', 'Credit spreads', 'Financial conditions']
-  hist pts: 14 path pts: 13
-DONE 2632
+COMPOSITE CLOCK: phase EARLY CONTRACTION | impulse -0.22 accel -1.11 | orbit 26 | rot: clockwise — normal cyclical progression
+  components: ['net_liquidity', 'reserves', 'dollar', 'credit', 'conditions']
+COMPOSITE PROJ: Composite liquidity projected to tighten (-0.04 z, to 46/100) over 13 weeks on current component momentum, led by reserves.
+  z -0.215 → -0.254 score 46.4 → 45.8
+  contributions: {'Net liquidity': 0.01, 'Reserves': -0.103, 'Dollar': 0.019, 'Credit spreads': 0.028, 'Financial conditions': 0.007} primary Reserves
+  hist 14 path 13
+NET-LIQ CLOCK (ref): phase LATE CONTRACTION impulse -0.62
+DONE 2633
