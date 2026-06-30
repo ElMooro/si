@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -305,6 +305,63 @@ def pull(key):
     return s3_json(key) or {}
 
 
+def project_net_liquidity(net, walcl, tga, rrp, horizon_wk=13):
+    """Project net liquidity forward from recent mechanical flows (damped momentum),
+    decomposed by driver (Fed runoff, TGA cash path, RRP), with a √-time uncertainty band.
+    Honest base case — a mechanical extrapolation, not a Fed/Treasury forecast."""
+    if not net or len(net) < 70:
+        return None
+    nd = sorted(net)
+    wk_dates = nd[::5]                       # ~weekly sampling of the daily-aligned series
+    wk_vals = [net[d] for d in wk_dates]
+    if len(wk_vals) < 14:
+        return None
+    cur = wk_vals[-1]
+    rdiffs = [wk_vals[i] - wk_vals[i - 1] for i in range(len(wk_vals) - 6, len(wk_vals))]
+    dnet = sorted(rdiffs)[len(rdiffs) // 2]   # median recent weekly Δ ($M)
+    alldiffs = [wk_vals[i] - wk_vals[i - 1] for i in range(1, len(wk_vals))]
+    vol = stdev(alldiffs) if len(alldiffs) > 5 else abs(dnet) or 1.0
+
+    def wk_pace(series, in_bn=False):
+        if not series or len(series) < 7:
+            return 0.0
+        sd = sorted(series)
+        v = [series[d] * (1000 if in_bn else 1) for d in sd[-7:]]   # → $M
+        return (v[-1] - v[0]) / 6.0
+    dW = wk_pace(walcl)                       # WALCL runoff $M/wk
+    dT = wk_pace(tga)                         # TGA $M/wk (rising TGA drains)
+    dR = wk_pace(rrp, in_bn=True)             # RRP $M/wk (in_bn: series is $bn)
+    contrib = {"walcl": dW, "tga": -dT, "rrp": -dR}
+    primary = max(contrib, key=lambda k: abs(contrib[k]))
+    pnames = {"walcl": "Fed balance-sheet runoff (QT)", "tga": "Treasury cash (TGA) rebuild",
+              "rrp": "RRP drain"}
+    DECAY = 0.85
+    last_d = _pd(nd[-1])
+    path, lvl = [], cur
+    for w in range(1, horizon_wk + 1):
+        lvl += dnet * (DECAY ** (w - 1))
+        band = vol * (w ** 0.5)
+        path.append({"week": w, "date": (last_d + timedelta(weeks=w)).isoformat(),
+                     "net_liq_bn": round(lvl / 1000, 1),
+                     "lo_bn": round((lvl - band) / 1000, 1), "hi_bn": round((lvl + band) / 1000, 1)})
+    hist = [{"date": wk_dates[i], "net_liq_bn": round(wk_vals[i] / 1000, 1)}
+            for i in range(max(0, len(wk_dates) - 14), len(wk_dates))]
+    chg = (lvl - cur) / 1000
+    direction = "fall" if chg < 0 else "rise"
+    return {"horizon_weeks": horizon_wk, "current_net_liq_bn": round(cur / 1000, 1),
+            "projected_net_liq_bn": round(lvl / 1000, 1), "projected_change_bn": round(chg, 1),
+            "weekly_pace_bn": round(dnet / 1000, 1), "history": hist, "path": path,
+            "drivers_per_wk_bn": {"walcl_runoff": round(dW / 1000, 2), "tga": round(-dT / 1000, 2),
+                                  "rrp": round(-dR / 1000, 2)},
+            "primary_driver": pnames[primary],
+            "headline": (f"Net liquidity projected to {direction} ~${abs(round(chg)):,}bn over {horizon_wk} weeks "
+                         f"(to ~${round(lvl / 1000):,}bn by {path[-1]['date']}), driven mainly by "
+                         f"{pnames[primary].lower()}."),
+            "assumptions": ("Base case extrapolates recent weekly flows with decay (momentum fades over the "
+                            "quarter); band = ±1σ of weekly net-liquidity changes × √weeks. Mechanical "
+                            "extrapolation of WALCL runoff, the TGA cash path and RRP — not a Fed/Treasury forecast.")}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -324,6 +381,7 @@ def lambda_handler(event=None, context=None):
                 net[d] = lastw - tga[d] - rrp[d]
         usd_dates, usd_z = build_impulse(net)
         usd_flips = find_flips(usd_dates, usd_z)
+    projection = project_net_liquidity(net, walcl, tga, rrp) if net else None
 
     # EUR excess liquidity (platform store)
     eur = None
@@ -772,7 +830,7 @@ def lambda_handler(event=None, context=None):
                    "n_flips_10y": len(flips10),
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
-           "composite": composite, "trajectory": trajectory,
+           "composite": composite, "trajectory": trajectory, "projection": projection,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
            "funding_stress": funding_stress, "global_liquidity": global_liq,
            "dollar": dollar, "dollar_shortage": dollar_shortage,
