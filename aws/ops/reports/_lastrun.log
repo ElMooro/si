@@ -1,7 +1,9 @@
-insider-buys-enriched top keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary', 'top_setups', 'methodology', 'academic_basis', 'schedule']
+insider top_setups: 7 rows
+  row[0] keys: ['ticker', 'company', 'score', 'signal_type', 'n_insiders', 'n_transactions', 'total_value_usd', 'first_buy', 'last_buy', 'highest_role', 'has_ceo', 'has_cfo', 'has_chairman', 'fundamentals', 'expected_returns', 'recommended_trade', 'why_now_explainer', 'insiders']
+  row[0] sample: {'ticker': 'KMX', 'company': 'CARMAX INC', 'score': 90.8, 'signal_type': 'executive_cluster', 'n_insiders': 5, 'n_transactions': 5, 'total_value_usd': 1016708.74, 'first_buy': '2026-06-22', 'last_buy': '2026-06-25', 'highest_role': 'Director, President and CEO'}
 deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_confluences\": 0, \"n_high\": 0}"}
-STATE: QUIET | n_confluences: 0 | n_high: 0
-feeders: {'insider_keys': ['engine', 'version', 'as_of', 'state', 'signal_strength', 'source', 'source_as_of', 'summary'], 'insider_error': None, 'insider_tickers_count': 0, 'buyback_engine_scored': 176, 'buyback_keys': ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'n_total_candidates_8k', 'n_unique_tickers'], 'buyback_error': None, 'buyback_tickers_count': 75}
-  ＋ CREATted schedule justhodl-insider-buyback-confluence-daily: cron(0 14 * * ? *)
-DONE 2602
+INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"NORMAL\", \"n_confluences\": 1, \"n_high\": 1}"}
+STATE: NORMAL | n_confluences: 1 | n_high: 1
+feeders insider/buyback counts: 7 / 75
+  KMX: composite=1.0 (ins=0.6 byb=0.969) | 💪 NET_SHRINKER net6.91% | 5 buyers
+DONE 2603
