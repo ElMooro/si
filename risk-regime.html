@@ -89,6 +89,7 @@ const f0=v=>num(v)===null?"—":Math.round(v);
 const f1=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1);
 const f2=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(2);
 const n1=v=>num(v)===null?"—":v.toFixed(1);
+const n2=v=>num(v)===null?"—":v.toFixed(2);
 const pc=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(1)+"%";
 const ypct=v=>num(v)===null?"—":v.toFixed(2)+"%";
 const bps=v=>num(v)===null?"—":(v>0?"+":"")+v.toFixed(0)+"bp";
@@ -118,7 +119,7 @@ function blockCard(b,comp){const sc=num(b.score),c=sc===null?"flat":(sc>0.02?"po
   return `<div class="card ${c}"><div class="nm"><span>${nm}</span><span class="sc">${f1(sc===null?null:sc*100)}</span></div><div class="wt">weight ${(num(b.weight)??0).toFixed(2)} · block score ${sc===null?"—":sc.toFixed(2)} (−1..+1)</div>${rows}</div>`;}
 
 function flowBars(items,mx){return `<div class="flow">`+items.map(it=>{const v=num(it.net_flow_5d_usd)||0,w=Math.min(48,Math.abs(v)/mx*48);const bar=v>=0?`<i class="p" style="left:50%;width:${w}%"></i>`:`<i class="n" style="right:50%;width:${w}%"></i>`;return `<div class="fr"><span class="fl">${esc(it.asset_class)}</span><div class="bar"><span class="zero"></span>${bar}</div><span class="fv ${sgn(v)}">${usd(v)}</span></div>`;}).join("")+`</div>`;}
-function moneyFlow(x){if(!x)return"";let h=sec("flow","Cross-asset money flow","where capital is actually moving — ETF 5d net flows · the direction behind the RORO score");
+function moneyFlow(x,corr,cbk){if(!x&&!corr&&!cbk)return"";x=x||{};let h=sec("flow","Cross-asset money flow","where capital is actually moving — ETF 5d net flows, the stock↔bond seesaw, foreign &amp; FX flows behind the RORO score");
   if(x.headline)h+=`<div class="narr">${esc(x.headline)}</div>`;
   const rot=(x.asset_class_rotation||[]).filter(r=>num(r.net_flow_5d_usd)!=null);
   if(rot.length){const mx=Math.max(...rot.map(r=>Math.abs(r.net_flow_5d_usd)))||1;h+=flowBars(rot,mx);}
@@ -128,6 +129,20 @@ function moneyFlow(x){if(!x)return"";let h=sec("flow","Cross-asset money flow","
   h+=C("Dollar · FX · carry",esc(dc.dollar_regime||""),`FX RORO ${f1(dc.fx_roro_score)} · ${esc(dc.fx_roro_regime||"")}`,row("EM FX basket 5d",pc(dc.em_basket_5d_pct),sgn(dc.em_basket_5d_pct))+row("Gold/silver ratio 5d",pc(dc.gold_silver_ratio_chg_5d),sgn(dc.gold_silver_ratio_chg_5d)),tone(dc.dollar_regime),(dc.carry_drivers||[]).filter(Boolean).length?"carry: "+(dc.carry_drivers||[]).filter(Boolean).join(", "):"");
   if(ff.by_asset_class)h+=C("Foreign flows",esc(ff.regime||""),"cross-border, by asset class",Object.entries(ff.by_asset_class).slice(0,5).map(([k,v])=>{const mo=(v&&(v.latest_month_b??v.run_rate_3mo_annualized_b??v.net_b));return row(k.replace(/_/g," "),mo!=null?usd(mo*1e9):"",sgn(mo));}).join(""),tone(ff.regime));
   if(dp&&(dp.accumulation_n!=null||dp.distribution_n!=null))h+=C("Dark-pool tape",`${num(dp.accumulation_n)??"—"}/${num(dp.distribution_n)??"—"}`,"names accumulating / distributing off-exchange",(dp.top_accumulation||[]).length?row("Accumulating",`<span class="pos">${esc((dp.top_accumulation||[]).slice(0,6).join(" "))}</span>`):""+(dp.top_distribution||[]).length?row("Distributing",`<span class="neg">${esc((dp.top_distribution||[]).slice(0,6).join(" "))}</span>`):"","info");
+  // Treasury <-> equity flow relationship + active rotation
+  if(corr){const pp=corr.headline_pairs||[];const fp2=(a,b)=>pp.find(p=>(p.ticker_a===a&&p.ticker_b===b)||(p.ticker_a===b&&p.ticker_b===a));
+    const st=fp2("SPY","TLT"),su=fp2("SPY","UUP"),sg=fp2("SPY","GLD"),sbt=fp2("SPY","IBIT");
+    const sc=st?st.corr_30d:null,t=sc==null?"info":(sc>0.2?"neg":sc<-0.2?"pos":"flat");
+    h+=C("Stock ↔ bond flow",n2(sc),esc(corr.macro_regime||""),
+      (st?row("SPY ↔ TLT (30d)",n2(st.corr_30d),st.corr_30d>0?"neg":"pos"):"")
+      +(su?row("SPY ↔ USD",n2(su.corr_30d)):"")
+      +(sg?row("SPY ↔ Gold",n2(sg.corr_30d)):"")
+      +(sbt?row("SPY ↔ BTC",n2(sbt.corr_30d)):""),
+      t, sc!=null&&sc>0.2?"Bonds NOT hedging equities (positive stock-bond corr) — diversification impaired, risk-parity fragile":(sc!=null?"Bonds hedging equities — flight-to-quality channel open":""));}
+  if(cbk){const bp=(cbk.top_breaking_pairs||[])[0];
+    h+=C("Correlation breaks",f2(cbk.frobenius_z_score_1y),`${num(cbk.n_pairs_above_2sigma)??0} pairs &gt;2σ · what's rotating now`,
+      bp?row((bp.labels||[]).join(" ↔ "),`${n2(bp.current_corr)} ← ${n2(bp.baseline_corr)}`,bp.delta>0?"neg":"pos"):"",
+      "vio",cbk.interpretation);}
   h+=`</div>`;return h;}
 
 /* ── Credit & ICE BofA ── */
@@ -171,8 +186,9 @@ function stressPlumbing(crisis,gstress,sys,edplumb,edstress,fails,tr,th){if(!cri
   h+=`</div>`;return h;}
 
 /* ── Central banks & currency ── */
-function cbFx(yen,boj,snb,ecb,peg,fxd,fp){if(!yen&&!boj&&!snb&&!ecb&&!peg&&!fxd&&!fp)return"";let h=sec("cb","Central banks &amp; currency","BOJ/SNB/ECB liquidity stance, yen-carry unwind risk, dollar pegs (HKD/CNY/Gulf) &amp; stablecoin depegs");h+=`<div class="cards">`;
+function cbFx(yen,boj,snb,ecb,peg,fxd,fp,carry){if(!yen&&!boj&&!snb&&!ecb&&!peg&&!fxd&&!fp&&!carry)return"";let h=sec("cb","Central banks &amp; currency","BOJ/SNB/ECB liquidity stance, yen-carry unwind risk, dollar pegs (HKD/CNY/Gulf) &amp; stablecoin depegs");h+=`<div class="cards">`;
   if(fp&&fp.pegs){h+=C("Currency pegs",f0(fp.composite_peg_stress),`${esc(fp.regime||"")} · worst ${esc(fp.worst_peg||"")}`,(fp.pegs||[]).slice(0,6).map(p=>row(p.ccy,`${num(p.spot)} ${badge(p.regime,p.pressure>=90?"neg":p.pressure>=70?"flat":"pos")}`,p.pressure>=70?"neg":"")).join(""),tone(fp.regime),fp.headline);}
+  if(carry){const mf=carry.massive_fx||{},fxa=(carry.all_assets||[]).filter(a=>a.asset_class==="fx").sort((a,b)=>(b.carry_pct||0)-(a.carry_pct||0)).slice(0,4);h+=C("FX carry flows",pc(mf.usd_synthetic_20d_pct),"where currency money flows for yield · USD synthetic 20d",fxa.map(a=>row((a.long_currency||"")+"/"+(a.short_currency||""),`${a.carry_pct>0?"+":""}${n1(a.carry_pct)}% (z${f1(a.carry_pct_z)})`,a.carry_pct>0?"pos":"neg")).join(""),mf.usd_synthetic_20d_pct>0?"flat":"pos","High carry = highest-yielding longs funded in USD; USD synthetic +ve = dollar bid (carry headwind).");}
   if(yen){h+=C("Yen carry · BOJ",f0(yen.unwind_risk_score),`${esc(yen.carry_regime||"")} · BOJ ${esc(yen.boj_stance_label||"")}`,row("Unwind risk",`${f0(yen.unwind_risk_score)} ${badge(yen.unwind_risk_label,tone(yen.unwind_risk_label))}`)+row("BOJ injection",f1(yen.boj_injection_score),sgn(yen.boj_injection_score)),tone(yen.unwind_risk_label||yen.carry_regime),yen.headline);}
   const cb=[["BOJ",boj],["SNB",snb],["ECB",ecb]].filter(x=>x[1]);
   if(cb.length)h+=C("Central bank liquidity",null,"injection stance (drain = tightening)",cb.map(([nm,d])=>row(nm,badge(d.stance_label,tone(d.stance_label)))).join(""),"info");
@@ -232,12 +248,12 @@ function render(D){
   html+=sec("blocks","Block contributions","the four weighted RORO inputs")+`<div class="cards">`;
   (rr.blocks_used||[]).forEach(b=>{html+=blockCard(b,comp);});html+=`</div>`;
 
-  html+=moneyFlow(D.xaf);
+  html+=moneyFlow(D.xaf,D.corr,D.corrbreaks);
   html+=creditIce(D.creditstress,D.crediteq,D.cdsmon,D.cdsproxy);
   html+=ratesVol(D.yc,D.move,D.bv,D.auction,D.auctiongrades,D.vixcurve);
   html+=liqFunding(D.gliq,D.funding,D.liqpulse,D.repo,D.bankstress,D.liqinflect);
   html+=stressPlumbing(D.crisis,D.gstress,D.systemic,D.edplumb,D.edstress,D.fails,D.tailrisk,D.tailhedge);
-  html+=cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd,D.fiatpeg);
+  html+=cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd,D.fiatpeg,D.carry);
   html+=regimeCycle(D.xar,D.cycle,D.regmap,D.macronow,D.macrosurp,D.gbc);
   html+=foreignCapital(D.capin,D.tic,D.sov,D.dollar);
   html+=volPos(D.vol,D.vvix,D.skew,D.flowconf,D.instpos);
@@ -277,7 +293,7 @@ function go(){
     repo:"data/repo-lending.json",bankstress:"data/bank-stress.json",liqinflect:"data/liquidity-inflection.json",
     systemic:"data/systemic-stress.json",tailrisk:"data/tail-risk.json",tailhedge:"data/tail-hedge.json",
     yen:"data/yen-carry.json",boj:"data/boj-detail.json",snb:"data/snb-detail.json",ecb:"data/ecb-detail.json",
-    peg:"data/crypto-stablecoin-peg.json",fiatpeg:"data/fiat-peg-monitor.json",fxd:"data/fx-decomposition.json",macronow:"data/macro-nowcast.json",
+    peg:"data/crypto-stablecoin-peg.json",fiatpeg:"data/fiat-peg-monitor.json",corr:"data/correlation-surface.json",corrbreaks:"data/correlation-breaks.json",carry:"data/carry-surface.json",fxd:"data/fx-decomposition.json",macronow:"data/macro-nowcast.json",
     macrosurp:"data/macro-surprise.json",gbc:"data/global-business-cycle.json",vvix:"data/vvix-vov-regime.json",
     skew:"data/skew-tail-hedging.json",flowconf:"data/flow-confluence.json",instpos:"data/institutional-positions.json"};
   const keys=Object.keys(F);
