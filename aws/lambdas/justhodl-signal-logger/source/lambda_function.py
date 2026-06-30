@@ -879,6 +879,59 @@ def lambda_handler(event,context):
         print(f"[FRONTRUN-PREDICTIONS] {ex}")
     # ─── End Phase 11 front-run learning loop additions ───
 
+    # ─── attention-confluence: smart-vs-crowd staged signals ───────────────────
+    # Stealth/Igniting = informed accumulation → OUTPERFORM; Crowded/Distribution =
+    # loud attention without smart confirm / selling into hype → UNDERPERFORM.
+    # Horizons [10,20,30]d match the attention lead window (Da/Engelberg/Gao: search
+    # attention leads ~2 weeks then mean-reverts). Graded vs SPY by outcome-checker.
+    try:
+        ac = fs3("data/attention-confluence.json")
+        st = (ac.get("stages") or {})
+
+        def _acconf(r, base):
+            return max(0.50, min(0.90, base + abs(float(r.get("divergence") or 0)) / 220.0
+                                  + float(r.get("confluence_smart") or 0) * 0.03))
+
+        def _t(r):
+            return str(r.get("symbol") or "").upper()
+
+        for r in (st.get("stealth") or [])[:12]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_stealth", _t(r), "OUTPERFORM", _acconf(r, 0.60), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"smart": r.get("smart_score"), "crowd": r.get("crowd_score"),
+                      "divergence": r.get("divergence"), "confluence": r.get("confluence_smart"),
+                      "families": r.get("families_firing")},
+                rationale=("STEALTH: " + (r.get("why") or ""))[:300]))
+        for r in (st.get("igniting") or [])[:12]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_igniting", _t(r), "OUTPERFORM", _acconf(r, 0.55), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"smart": r.get("smart_score"), "crowd": r.get("crowd_score"),
+                      "confluence": r.get("confluence_smart")},
+                rationale=("IGNITING: " + (r.get("why") or ""))[:300]))
+        for r in (st.get("crowded") or [])[:10]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_crowded", _t(r), "UNDERPERFORM",
+                max(0.50, min(0.85, 0.52 + float(r.get("crowd_score") or 0) / 300.0)), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"crowd": r.get("crowd_score"), "smart": r.get("smart_score")},
+                rationale=("CROWDED (chase/reversal risk): " + (r.get("why") or ""))[:300]))
+        for r in (st.get("distribution") or [])[:10]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_distribution", _t(r), "UNDERPERFORM",
+                max(0.50, min(0.85, 0.55 + float(r.get("crowd_score") or 0) / 300.0)), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"crowd": r.get("crowd_score"), "distributing": r.get("distributing")},
+                rationale=("DISTRIBUTION: " + (r.get("why") or ""))[:300]))
+        print("[attention-confluence] staged signals logged")
+    except Exception as ex:
+        print(f"[ATTENTION-CONFLUENCE] {ex}")
+
     # save summary
     s3.put_object(Bucket=S3_BUCKET,Key="learning/last_log_run.json",Body=json.dumps({"logged_at":datetime.now(timezone.utc).isoformat(),"count":len([l for l in logged if l]),"action":event.get("action","auto")}),ContentType="application/json")
     total=len([l for l in logged if l])
