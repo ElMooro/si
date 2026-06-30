@@ -1,22 +1,18 @@
-updated fiat-peg code
-scheduled rate(4h)
+TIC holders: ['japan', 'china', 'uk', 'cayman_islands', 'luxembourg', 'belgium', 'switzerland', 'bahamas']
+  bahamas: {'current_b': 8.8, 'yoy_change_b': 0.4, '3mo_change_b': -0.3, 'yoy_pct': 5.0, 'status': 'STABLE', 'as_of': '2026-04-01'}
+  caribbean_banking dropped: True
 
-[fiat-peg] err: None
-  headline: Peg stress BREAK_RISK (39.6/100). Most pressured: HKD 91.7/100 — BREAK_RISK.
-    HKD: spot 7.8417 · pressure 91.7 · BREAK_RISK
-    DKK: spot 7.4735 · pressure 53.9 · DRIFTING
-    CNY: spot 6.798 · pressure 41.9 · ON_PEG
-    SAR: spot 3.7543 · pressure 22.9 · ON_PEG
-    QAR: spot 3.644 · pressure 22.0 · ON_PEG
-    AED: spot 3.6715 · pressure 5.4 · ON_PEG
+credit-stress YTW ratings: ['AAA', 'HY Master', 'BBB', 'IG Master', 'A', 'AA', 'BB', 'EM Corp', 'CCC', 'B']
+  IG curve: {'1-3y': 4.57, '3-5y': 4.78, '5-7y': 4.95, '7-10y': 5.22, '10-15y': 5.45, '15y+': 5.81}
 
-[credit-stress] err: None
-  current_yields_pct: {'AAA': 4.98, 'HY Master': 6.96, 'BBB': 5.3, 'IG Master': 5.12, 'A': 4.98, 'AA': 4.93, 'BB': 5.86, 'EM Corp': 5.61, 'CCC': 13.84, 'B': 7.14}
-  ig_yield_curve_pct: {'1-3y': 4.57, '3-5y': 4.78, '5-7y': 4.95, '7-10y': 5.22, '10-15y': 5.45, '15y+': 5.81}
+fiat-peg: Peg stress BREAK_RISK (39.6/100). Most pressured: HKD 91.7/100 — BREAK_RISK.
 
-[tic-flows] err: None
-  holders now: ['japan', 'china', 'uk', 'cayman_islands', 'luxembourg', 'belgium', 'switzerland', 'bahamas', 'caribbean_banking']
-    bahamas: {'current_b': 8.8, 'yoy_change_b': 0.4, '3mo_change_b': -0.3, 'yoy_pct': 5.0, 'status': 'STABLE', 'as_of': '2026-04-01'}
-    caribbean_banking: {'current_b': 123.7, 'yoy_change_b': 19.3, '3mo_change_b': 12.6, 'yoy_pct': 18.5, 'status': 'ACCUMULATING', 'as_of': '2011-12-01'}
+page HTTP 200, bytes: 38690
+  ✅ fiat-peg-monitor.json
+  ✅ ICE BofA yields (YTW)
+  ✅ Currency pegs
+  ✅ ig_yield_curve_pct
+  ✅ cbFx(D.yen,D.boj,D.snb,D.ecb,D.peg,D.fxd,D.fiatpeg)
+  no double-escape: True
 
-DONE 2551
+DONE 2552
