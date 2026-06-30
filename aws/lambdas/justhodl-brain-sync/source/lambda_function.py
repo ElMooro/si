@@ -79,7 +79,7 @@ def _ai_extract(notes_text):
         "\"risk_posture\": \"<aggressive|balanced|defensive> — <one line>\", "
         "\"signal_emphasis\": [\"<which signal types matter most to them: e.g. insider, buyback, capex, dislocation, macro>\"]}"
     )
-    txt = _llm("INVESTOR NOTES:\n" + notes_text[:9000], system, 900)
+    txt = _llm("INVESTOR NOTES:\n" + notes_text[:9000], system, 1800)
     if not txt:
         return None
     try:
