@@ -80,8 +80,14 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Forward net-liquidity projection <span class="hint">— where the mechanical flows (QT runoff, TGA cash path, RRP) point over the next quarter</span></div>
 <div id="projection"><div class="loading">Loading…</div></div>
 
+<div class="sec">Composite forward projection <span class="hint">— the multi-factor composite (net-liq, reserves, dollar, credit, conditions) extrapolated on component momentum</span></div>
+<div id="compproj"><div class="loading">Loading…</div></div>
+
 <div class="sec">Liquidity cycle clock <span class="hint">— phase-space orbit: impulse vs its acceleration · where we are in the cycle and which way it’s turning</span></div>
 <div id="clock"><div class="loading">Loading…</div></div>
+
+<div class="sec">Composite cycle clock <span class="hint">— same phase-space orbit but driven by all components, not just net liquidity</span></div>
+<div id="compclock"><div class="loading">Loading…</div></div>
 
 <div class="sec">Live forward expectation <span class="hint">— what the large-n regime study implies for the next 21 days, given where liquidity is right now</span></div>
 <div id="fwdexp"><div class="loading">Loading…</div></div>
@@ -282,6 +288,42 @@ function renderClock(c){
       <div class="m" style="margin-top:9px">${esc(c.note)}</div>
     </div></div></div>`;
 }
+function renderCompProjection(p){
+  if(!p||!(p.history||[]).length||!(p.path||[]).length)return '<div class="loading">composite projection unavailable</div>';
+  const cl=v=>Math.max(0,Math.min(100,50+v*16.5));
+  const H=p.history,P=p.path,W=660,Ht=210,padL=40,padR=14,padT=14,padB=24;
+  const pts=H.map((h,i)=>({i,v:h.score,lo:h.score,hi:h.score,proj:false}))
+    .concat(P.map((q,i)=>({i:H.length+i,v:q.score,lo:cl(q.lo),hi:cl(q.hi),proj:true})));
+  const n=pts.length,vals=pts.flatMap(o=>[o.lo,o.hi,o.v]);
+  const mn=Math.min(...vals)-2,mx=Math.max(...vals)+2,rng=(mx-mn)||1;
+  const X=i=>padL+(W-padL-padR)*i/(n-1),Y=v=>padT+(Ht-padT-padB)*(1-(v-mn)/rng);
+  const proj=pts.filter(o=>o.proj),joinI=H.length-1;
+  const bandTop=proj.map(o=>`${X(o.i).toFixed(1)},${Y(o.hi).toFixed(1)}`).join(' ');
+  const bandBot=proj.slice().reverse().map(o=>`${X(o.i).toFixed(1)},${Y(o.lo).toFixed(1)}`).join(' ');
+  const histLine=pts.filter(o=>!o.proj).map((o,k)=>`${k?'L':'M'}${X(o.i).toFixed(1)},${Y(o.v).toFixed(1)}`).join('');
+  const projLine=`M${X(joinI).toFixed(1)},${Y(pts[joinI].v).toFixed(1)}`+proj.map(o=>`L${X(o.i).toFixed(1)},${Y(o.v).toFixed(1)}`).join('');
+  const nowX=X(joinI);
+  const fifty=(mn<50&&mx>50)?`<line x1="${padL}" x2="${W-padR}" y1="${Y(50).toFixed(1)}" y2="${Y(50).toFixed(1)}" stroke="#2a3550" stroke-dasharray="2 3"/><text x="6" y="${(Y(50)+3).toFixed(1)}" font-size="9" fill="#5d6b82" font-family="monospace">50</text>`:'';
+  const chg=p.projected_change_z,chgScore=p.projected_score-p.current_score;
+  const contribBars=Object.entries(p.contributions||{}).map(([k,v])=>`<div class="comp"><div class="cn">${esc(k)}<span style="color:${v>0?'var(--green)':v<0?'var(--red)':'var(--fg3)'}">${v>0?'+':''}${v}</span></div>${compBar(v*6)}</div>`).join('');
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px">
+    <div class="headbadge ${chg<0?'TIGHTENING':'EASING'}" style="font-size:16px">${chg<0?'▼':'▲'} ${chg>0?'+':''}${chg} z · ${p.current_score}→${p.projected_score}/100 / ${p.horizon_weeks}wk</div>
+    <div class="headread" style="margin:8px 0 10px">${esc(p.headline)}</div>
+    <svg width="100%" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="xMidYMid meet" style="background:transparent;border:none">
+      ${fifty}
+      <polygon points="${bandTop} ${bandBot}" fill="rgba(167,139,250,.12)" stroke="none"/>
+      <path d="${histLine}" fill="none" stroke="#22d3ee" stroke-width="2.5"/>
+      <path d="${projLine}" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="5 4"/>
+      <line x1="${nowX.toFixed(1)}" y1="${padT}" x2="${nowX.toFixed(1)}" y2="${Ht-padB}" stroke="#5d6b82" stroke-dasharray="3 3"/>
+      <text x="${nowX.toFixed(1)}" y="${Ht-7}" text-anchor="middle" font-size="9" fill="#5d6b82" font-family="monospace">now</text>
+      <text x="${(W-padR).toFixed(1)}" y="${Ht-7}" text-anchor="end" font-size="9" fill="#a78bfa" font-family="monospace">+${p.horizon_weeks}wk</text>
+      <text x="${padL}" y="${Ht-7}" text-anchor="start" font-size="9" fill="#22d3ee" font-family="monospace">composite score · history</text>
+    </svg>
+    <div class="gnow" style="margin:10px 0 6px">Projected move by component (z-contribution)</div>
+    <div class="comps">${contribBars}</div>
+    <div class="m" style="margin-top:9px">${esc(p.note)}</div>
+  </div>`;
+}
 function renderProjection(p){
   if(!p||!(p.history||[]).length||!(p.path||[]).length)return '<div class="loading">projection unavailable</div>';
   const H=p.history,P=p.path,W=660,Ht=210,padL=46,padR=14,padT=14,padB=24;
@@ -389,7 +431,9 @@ async function load(){
   const u=d.usd||{};
   document.getElementById('hero').innerHTML=`<div><div class="st ${esc(u.state)}">${esc(u.state)}</div><div class="m">impulse z <b>${esc(u.impulse_z)}</b> · net liq <b>$${esc(u.net_liq_usd_bn)}bn</b> · ${esc(u.as_of)}<br>last flip: ${u.last_flip?esc(u.last_flip.direction)+' '+esc(u.last_flip.date):'—'} · ${esc(u.n_flips_10y)} flips/10y</div></div>${spark(u.impulse_tail_180d)}`;
   document.getElementById('projection').innerHTML=renderProjection(d.projection);
+  document.getElementById('compproj').innerHTML=renderCompProjection(d.composite_projection);
   document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
+  document.getElementById('compclock').innerHTML=renderClock(d.composite_clock);
   document.getElementById('tensions').innerHTML=renderTensions(d.tensions);
   document.getElementById('fwdexp').innerHTML=renderForwardExp(d.forward_expectation);
   document.getElementById('runway').innerHTML=renderRunway(d.reserve_runway);
