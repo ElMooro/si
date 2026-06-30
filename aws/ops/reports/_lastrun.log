@@ -1,12 +1,8 @@
-CREATED justhodl-attention-confluence
-INVOKE status: 200 | fnerr: None
-RESULT: {"ok": true, "n_scored": 226, "counts": {"STEALTH": 17, "IGNITING": 9, "CROWDED": 7, "DISTRIBUTION": 17, "WATCH": 144, "NEUTRAL": 32}}
-
-OUTPUT v 1.0.0 n_scored 226 universe 226
-counts: {'STEALTH': 17, 'IGNITING': 9, 'CROWDED': 7, 'DISTRIBUTION': 17, 'WATCH': 144, 'NEUTRAL': 32}
-  stealth: 17 | [('META', 81.4, 0.0, 2), ('AAPL', 79.3, 0.0, 2), ('HCA', 77.1, 0.0, 2), ('GOOGL', 74.7, 0.0, 2)]
-  igniting: 9 | [('ENR', 100.0, 81.8, 1), ('OESX', 100.0, 81.8, 1), ('CDNL', 87.1, 51.3, 2), ('PRIM', 73.8, 74.1, 1)]
-  crowded: 7 | [('EMKR', 0.0, 99.6, 0), ('NVEC', 0.0, 95.0, 0), ('POET', 0.0, 88.0, 0), ('INFN', 0.0, 87.2, 0)]
-  distribution: 17 | [('AMBA', 0.0, 100.0, 0), ('AMBQ', 0.0, 100.0, 0), ('AOSL', 0.0, 100.0, 0), ('KOPN', 0.0, 100.0, 0)]
-panels: {'unusual_options': 14, 'insider_clusters': 20, 'smart_money': 20, 'dark_pool_accumulation': 20, 'congress_buys': 20, 'theme_attention': 10, 'stocktwits_trending': 25}
-DONE 2580
+INVOKE: 200 None {"ok": true, "n_scored": 226, "counts": {"STEALTH": 0, "IGNITING": 9, "UNDISCOVERED": 17, "CROWDED": 7, "DISTRIBUTION": 17, "WATCH": 144, "NEUTRAL": 32}}
+counts: {'STEALTH': 0, 'IGNITING': 9, 'UNDISCOVERED': 17, 'CROWDED': 7, 'DISTRIBUTION': 17, 'WATCH': 144, 'NEUTRAL': 32}
+  stealth (0): []
+  igniting (9): [('ENR', 's100.0', 'c81.8', 'cf1', 'power_grid'), ('OESX', 's100.0', 'c81.8', 'cf1', 'power_grid'), ('CDNL', 's87.1', 'c51.3', 'cf2', 'datacenter_buildout'), ('PRIM', 's73.8', 'c74.1', 'cf1', 'datacenter_buildout'), ('FCEL', 's50.2', 'c73.4', 'cf1', 'power_grid')]
+  undiscovered (17): [('META', 's81.4', 'c0.0', 'cf2', 'Meta Platforms'), ('AAPL', 's79.3', 'c0.0', 'cf2', 'Apple Inc'), ('HCA', 's77.1', 'c0.0', 'cf2', 'HCA Healthcare'), ('GOOGL', 's74.7', 'c0.0', 'cf2', 'Alphabet Inc Class A'), ('MSFT', 's74.4', 'c0.0', 'cf2', 'Microsoft')]
+  crowded (7): [('EMKR', 's0.0', 'c99.6', 'cf0', 'optical'), ('NVEC', 's0.0', 'c95.0', 'cf0', 'silicon'), ('POET', 's0.0', 'c88.0', 'cf0', 'optical'), ('INFN', 's0.0', 'c87.2', 'cf0', 'optical'), ('NTGR', 's13.9', 'c83.0', 'cf0', 'networking')]
+  distribution (17): [('AMBA', 's0.0', 'c100.0', 'cf0', 'silicon'), ('AMBQ', 's0.0', 'c100.0', 'cf0', 'silicon'), ('AOSL', 's0.0', 'c100.0', 'cf0', 'silicon'), ('KOPN', 's0.0', 'c100.0', 'cf0', 'equipment'), ('AVNW', 's0.0', 'c91.0', 'cf0', 'networking')]
+DONE 2581
