@@ -228,18 +228,17 @@ DEAL_VERB = re.compile(
     r'closes?|gets?|gains?|inks?|bags?|clinches?|to\s+supply|to\s+provide|to\s+build)\b', re.I)
 
 
-def lead_company_matches(symbol, title, uni):
+def lead_company_matches(name, symbol, title):
     """Match the ticker against the ANNOUNCER — the company named before the first deal verb.
     A title that merely contains a $ figure isn't enough (it may belong to a different company
-    in the headline). This is the decisive gate against mis-tagged PRs whose ticker symbol or
-    name coincidentally appears mid-headline (NASA 'CLPS' program, 'Joint Venture' → JYNT)."""
-    name = (uni.get(symbol, {}) or {}).get("name") or ""
-    toks = name_tokens(name)
+    in the headline). Decisive gate against mis-tagged PRs whose ticker symbol or name
+    coincidentally appears mid-headline (NASA 'CLPS' program, 'Joint Venture' → JYNT)."""
+    toks = name_tokens(name or "")
     m = DEAL_VERB.search(title or "")
-    lead = ((title or "")[:m.start()] if m else (title or "")[:42]).lower()
+    lead = ((title or "")[:m.start()] if m else (title or "")[:46]).lower()
     if toks:
         return any(t in lead for t in toks)
-    return bool(re.search(r'\b' + re.escape(symbol.lower()) + r'\b', lead))  # unknown → symbol in lead
+    return bool(re.search(r'\b' + re.escape((symbol or "").lower()) + r'\b', lead))
 
 
 def parse_value(title, text):
@@ -422,10 +421,6 @@ def lambda_handler(event, context):
         val, vstr = parse_value(title, pr.get("text"))
         if not is_deal(title, pr.get("text"), val, pr.get("trust", "pr")):
             continue
-        # the ticker must be the headline's announcer (company before the deal verb) — a $ figure
-        # alone isn't enough, since it may belong to a different company in the headline.
-        if not lead_company_matches(sym, title, uni):
-            continue
         try:
             pub = datetime.fromisoformat(pr.get("publishedDate").replace(" ", "T")).replace(tzinfo=timezone.utc)
             age_h = round((now - pub).total_seconds() / 3600.0, 1)
@@ -457,6 +452,11 @@ def lambda_handler(event, context):
     for d in deals_raw:
         txt = d.get("text_snippet", "")
         rev, mc, mu = info.get(d["symbol"], (None, None, uni.get(d["symbol"], {})))
+        # announcer-match using the FMP-profile company name (works for tickers outside our
+        # curated universe). Drops mis-tagged PRs whose deal belongs to a different company.
+        _nm = (mu or {}).get("name") or (uni.get(d["symbol"], {}) or {}).get("name") or ""
+        if _nm and not lead_company_matches(_nm, d["symbol"], d["title"]):
+            continue
         bkt = uni.get(d["symbol"], {}).get("cap_bucket") or bucket_of(mc)
         small = bkt in SMALL_BUCKETS
         val = d["deal_value_usd"]
