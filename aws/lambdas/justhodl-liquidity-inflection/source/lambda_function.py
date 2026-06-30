@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -397,10 +397,11 @@ def _zcol(xs):
     return [((x - m) / sd if x is not None else 0.0) for x in xs]
 
 
-def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
-    """Represent each week as a z-scored liquidity FINGERPRINT (net-liq impulse, HY OAS,
-    broad dollar, NFCI, reserve-drain speed) and find the closest historical analogs to
-    today — then show SPX's realized forward return after each. Crisis-pattern recognition."""
+def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4, comp_hist=None):
+    """Represent each week as a z-scored liquidity FINGERPRINT and find the closest historical
+    analogs to today — then show SPX's realized forward return after each. When a composite
+    history is supplied, the multi-factor composite state is added as a fingerprint dimension so
+    matches respect the whole liquidity configuration, not just net-liq impulse."""
     if not usd_dates or len(usd_dates) < 160 or not spx or len(spx) < 300:
         return None
     spine = usd_dates[::5]
@@ -414,7 +415,12 @@ def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
         for i in range(13, len(wd)):
             wres_chg[wd[i]] = wresbal[wd[i]] - wresbal[wd[i - 13]]
     a_wr = _asof(wres_chg) if wres_chg else (lambda d: None)
+    a_comp = None
+    if comp_hist and comp_hist.get("dates") and comp_hist.get("comp_z"):
+        a_comp = _asof(dict(zip(comp_hist["dates"], comp_hist["comp_z"])))
     F = {"impulse": [], "hy_oas": [], "dollar": [], "nfci": [], "reserve_drain": []}
+    if a_comp:
+        F["composite"] = []
     rows = []
     for d in spine:
         rows.append(d)
@@ -422,7 +428,9 @@ def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
         F["hy_oas"].append(a_hy(d))
         F["dollar"].append(a_dx(d))
         F["nfci"].append(a_nf(d))
-        F["reserve_drain"].append(-a_wr(d) if a_wr(d) is not None else None)   # drain = falling reserves
+        F["reserve_drain"].append(-a_wr(d) if a_wr(d) is not None else None)
+        if a_comp:
+            F["composite"].append(a_comp(d))
     cols = {key: _zcol(v) for key, v in F.items()}
     nrow = len(rows)
     vecs = [[cols[key][i] for key in F] for i in range(nrow)]
@@ -450,11 +458,11 @@ def historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, k=4):
             break
     return {"as_of": today_date, "features": list(F.keys()),
             "fingerprint_now": {key: round(cols[key][-1], 2) for key in F},
-            "analogs": analogs,
-            "note": ("Each week is a z-scored liquidity fingerprint (net-liq impulse, HY OAS, broad dollar, "
-                     "NFCI, reserve-drain speed). These are the closest historical matches to today's "
-                     "configuration, with SPX's realized forward return after each. Pattern recognition, "
-                     "not a forecast.")}
+            "analogs": analogs, "composite_aware": bool(a_comp),
+            "note": ("Each week is a z-scored liquidity fingerprint" + (" including the multi-factor composite state"
+                     if a_comp else "") + " (net-liq impulse, HY OAS, broad dollar, NFCI, reserve-drain speed). "
+                     "Closest historical matches to today, with SPX's realized forward return after each. "
+                     "Pattern recognition, not a forecast.")}
 
 
 def liquidity_backtest(usd_dates, usd_z, spx, cost_bps=2):
@@ -1033,9 +1041,30 @@ def lambda_handler(event=None, context=None):
     cl = pull("data/china-liquidity.json")
     china_engine = ({"regime": cl.get("regime"), "regime_read": cl.get("regime_read")} if cl else None)
 
-    # ── Historical analogs — nearest liquidity fingerprints in history ──
+    # ── Composite history (snapshots once accumulated, else FRED reconstruction) ──
     try:
-        analogs = historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx)
+        chist = (composite_history_from_snapshots()
+                 or build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci))
+    except Exception as e:
+        print(f"[chist] {str(e)[:80]}")
+        chist = None
+    chist_src = chist.get("source") if chist else None
+    # composite-conditioned forward-return study (same buckets, but on the FULL composite state)
+    regime_returns_composite = {}
+    if chist:
+        for _nm, _px in (("SPX_proxy", spx), ("BTC", btc), ("HYG", hyg)):
+            if len(_px) > 500:
+                try:
+                    rrc = regime_conditioned_study(chist["dates"], chist["comp_z"], _px)
+                    if rrc:
+                        rrc["source"] = chist_src
+                        regime_returns_composite[_nm] = rrc
+                except Exception as e:
+                    print(f"[rrc {_nm}] {str(e)[:60]}")
+
+    # ── Historical analogs — nearest liquidity fingerprints in history (composite-aware) ──
+    try:
+        analogs = historical_analogs(usd_dates, usd_z, hy_oas, dxy, nfci, wresbal, spx, comp_hist=chist)
     except Exception as e:
         print(f"[analogs] {str(e)[:80]}")
         analogs = None
@@ -1048,17 +1077,14 @@ def lambda_handler(event=None, context=None):
     # ── Composite (all-component) cycle clock + projection ──
     composite_clock = composite_projection = None
     try:
-        chist = (composite_history_from_snapshots()
-                 or build_composite_history(usd_dates, usd_z, wresbal, dxy, hy_oas, nfci))
         if chist:
-            src = chist.get("source")
             composite_clock = cycle_clock(chist["dates"], chist["comp_z"])
             if composite_clock:
                 composite_clock["components_used"] = chist["components_used"]
-                composite_clock["source"] = src
+                composite_clock["source"] = chist_src
             composite_projection = project_composite(chist)
             if composite_projection:
-                composite_projection["source"] = src
+                composite_projection["source"] = chist_src
     except Exception as e:
         print(f"[composite-dyn] {str(e)[:80]}")
 
@@ -1320,6 +1346,28 @@ def lambda_handler(event=None, context=None):
                                             "21-day forward expectation conditioned on where liquidity is now. Excess "
                                             "is vs each asset's unconditional baseline.")}
 
+    # composite forward expectation — conditioned on the FULL multi-factor state
+    forward_expectation_composite = None
+    if chist and chist.get("comp_z") and regime_returns_composite:
+        czc = chist["comp_z"][-1]
+        cstc = _state_of(czc)
+        assets_c = {}
+        for asset, rr in regime_returns_composite.items():
+            d21 = ((rr.get("states") or {}).get(cstc) or {}).get("d21")
+            if d21:
+                assets_c[asset] = {"mean": d21["mean"], "excess": d21["excess"], "n": d21["n"],
+                                   "sig": d21["sig"], "hit_pct": d21["hit_pct"],
+                                   "baseline": (rr.get("baseline") or {}).get("d21")}
+        if assets_c:
+            forward_expectation_composite = {
+                "state": cstc, "composite_z": round(czc, 3), "horizon": "21d", "assets": assets_c,
+                "source": chist_src, "components_used": chist.get("components_used"),
+                "note": ("Same readout but conditioned on the FULL multi-factor composite state (all components, "
+                         "not just net-liq impulse). Currently driven by the "
+                         + ("real all-component snapshot history." if chist_src == "snapshots"
+                            else "FRED-backed composite reconstruction; auto-upgrades to the snapshot history once "
+                            "enough has accumulated."))}
+
     # (c) tension / divergence detector — hidden fragility under a calm headline
     tensions = []
     calm = bool(composite and composite.get("liquidity_score", 0) >= 45)
@@ -1383,6 +1431,8 @@ def lambda_handler(event=None, context=None):
            "cycle_clock": clock, "composite_clock": composite_clock,
            "composite_projection": composite_projection,
            "reserve_runway": reserve_runway, "forward_expectation": forward_expectation,
+           "forward_expectation_composite": forward_expectation_composite,
+           "regime_returns_composite": regime_returns_composite,
            "tensions": tension_state, "data_health": data_health,
            "analogs": analogs, "backtest": backtest,
            "reserves": reserves, "rrp": rrp_state, "tga": tga_state,
