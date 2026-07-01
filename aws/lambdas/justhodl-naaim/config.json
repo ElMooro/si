@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-naaim",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "NAAIM Exposure Index weekly — active-manager equity exposure, contrarian at extremes. Feeds put-call-extreme sentiment composite (6th component) + signal-board. Accumulates own S3 history; PROVISIONAL until 52 obs.",
+  "schedule": {
+    "name": "justhodl-naaim-weekly",
+    "expression": "cron(30 17 ? * THU,FRI *)",
+    "description": "NAAIM weekly print (Thu release; Fri retry, upsert-idempotent)"
+  }
+}

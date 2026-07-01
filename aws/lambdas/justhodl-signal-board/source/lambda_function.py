@@ -1007,6 +1007,19 @@ def n_risk_regime(d):
     return sig, f"RORO {d.get('risk_regime', '?')} ({s:+.0f})"
 
 
+def n_naaim(d):
+    """NAAIM active-manager exposure — contrarian at extremes. + = washed-out
+    (bullish forward), - = levered euphoria (crowded). Provisional history damps."""
+    sig = d.get("signal")
+    if not isinstance(sig, int):
+        return 0, "NAAIM n/a"
+    if d.get("provisional"):
+        sig = max(-1, min(1, sig))
+    v = (d.get("latest") or {}).get("value")
+    return sig, "NAAIM %.0f %s%s" % (v if v is not None else -1, d.get("state", "?"),
+                                     " (prov)" if d.get("provisional") else "")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1101,6 +1114,7 @@ FEEDS = [
     ("Intraday Pulse",         "tape",             "data/intraday-pulse.json",       n_intraday_pulse),
     ("Estimate Revisions",     "equity tactical",  "data/estimate-revisions.json",   n_estimate_revisions),
     ("Risk Regime (RORO)",     "cross-asset",      "data/risk-regime.json",          n_risk_regime),
+    ("NAAIM Positioning",      "sentiment",        "data/naaim.json",                n_naaim),
 ]
 
 

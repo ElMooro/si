@@ -305,6 +305,33 @@ def lambda_handler(event, context):
     started = datetime.now(timezone.utc).isoformat()
     try:
         signals = [compute_signal(spec) for spec in SIGNALS]
+
+        # ── NAAIM Exposure Index (ops 2702): weekly manager positioning,
+        #    contrarian. Low exposure = washed-out = stress-positive -> flipped.
+        #    PROVISIONAL history (<52w) contributes at 0.6 weight.
+        try:
+            _nj = json.loads(s3.get_object(Bucket=BUCKET, Key="data/naaim.json")["Body"].read())
+            _nz = _nj.get("z")
+            _nold = days_since((_nj.get("latest") or {}).get("date") or "")
+            if isinstance(_nz, (int, float)):
+                _nw = 0.6 if _nj.get("provisional") else 1.0
+                _nf = freshness_score("weekly", _nold)
+                signals.append({"id": "NAAIM_EXPOSURE", "ok": True, "cadence": "weekly",
+                                "latest_date": (_nj.get("latest") or {}).get("date"),
+                                "latest_value": (_nj.get("latest") or {}).get("value"),
+                                "z_raw": round(_nz, 3), "z_stress": round(-_nz, 3),
+                                "flipped": True, "weight_base": _nw,
+                                "freshness_mult": round(_nf, 3),
+                                "effective_weight": round(_nw * _nf, 3),
+                                "lookback": min(260, _nj.get("history_n") or 0),
+                                "days_old": _nold, "n_history": _nj.get("history_n"),
+                                "provisional": bool(_nj.get("provisional"))})
+            else:
+                signals.append({"id": "NAAIM_EXPOSURE", "ok": False, "error": "no_z",
+                                "cadence": "weekly"})
+        except Exception as _e:
+            signals.append({"id": "NAAIM_EXPOSURE", "ok": False, "error": str(_e)[:60],
+                            "cadence": "weekly"})
         composite_z, dispersion, valid = aggregate(signals)
         if composite_z is None:
             payload = {

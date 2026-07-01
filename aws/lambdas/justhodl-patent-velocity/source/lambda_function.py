@@ -58,6 +58,7 @@ import json
 import os
 import time
 import urllib.error
+import re
 import urllib.request
 import urllib.parse
 from collections import defaultdict, Counter
@@ -225,38 +226,51 @@ def _http_post(url, payload, timeout=HTTP_TIMEOUT, retries=2):
 
 
 def fetch_patents_for_assignees(assignee_names: list, days_back: int) -> list:
-    """Query PatentsView for patents granted within the date window for any
-    of the assignee_name variations."""
+    """ops 2702: keyless source. Google Patents XHR count queries for US GRANTS
+    published in [recent] and [baseline] windows; synthesizes minimal per-patent
+    records (date only, no CPC) so the original velocity/scoring pipeline runs
+    unchanged. Window consistency makes the ratio robust even if the status
+    filter is loosely applied upstream."""
     end = datetime.now(timezone.utc).date()
+    mid = end - timedelta(days=RECENT_DAYS)
     start = end - timedelta(days=days_back)
-    
-    # Build query
-    q = {
-        "q": {
-            "_and": [
-                {"_gte": {"patent_date": start.isoformat()}},
-                {"_lte": {"patent_date": end.isoformat()}},
-                {"_or": [{"assignee_organization": name} for name in assignee_names]},
-            ]
-        },
-        "f": ["patent_number", "patent_date", "patent_title",
-               "assignee_organization", "cpc_at_issue"],
-        "s": [{"patent_date": "desc"}],
-        "o": {"page": 1, "per_page": 200},
-    }
-    
-    url = "https://search.patentsview.org/api/v1/patent/"
-    body = _http_post(url, q, timeout=25)
-    if not body:
+    q = " OR ".join('assignee:"%s"' % a for a in assignee_names[:4])
+
+    def _count(d1, d2):
+        inner = ("q=(%s)&country=US&status=GRANT&type=PATENT&after=publication:%s&before=publication:%s"
+                 % (q, d1.strftime("%Y%m%d"), d2.strftime("%Y%m%d")))
+        url = "https://patents.google.com/xhr/query?url=" + urllib.parse.quote(inner, safe="")
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
+                                                           "Accept": "application/json"})
+                with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                    body = r.read().decode("utf-8", "ignore")
+                mm = re.search(r'"total_num_results"\s*:\s*(\d+)', body)
+                return int(mm.group(1)) if mm else 0
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 503) and attempt < 2:
+                    time.sleep(4 * (attempt + 1)); continue
+                print("[patent] google HTTP %s" % e.code); return None
+            except Exception as e:
+                if attempt < 2:
+                    time.sleep(2); continue
+                print("[patent] google err %s" % str(e)[:70]); return None
+        return None
+
+    n_recent = _count(mid, end)
+    time.sleep(1.4)
+    n_base = _count(start, mid)
+    time.sleep(1.4)
+    if n_recent is None and n_base is None:
         return []
-    
-    try:
-        data = json.loads(body)
-        patents = data.get("patents") or data.get("results") or []
-        return patents if isinstance(patents, list) else []
-    except Exception as e:
-        print(f"[patent] parse err: {e}")
-        return []
+    recs = []
+    rd, bd = (mid + timedelta(days=1)).isoformat(), (start + timedelta(days=1)).isoformat()
+    for _ in range(int(n_recent or 0)):
+        recs.append({"patent_date": rd, "cpc_codes": [], "patent_title": None})
+    for _ in range(int(n_base or 0)):
+        recs.append({"patent_date": bd, "cpc_codes": [], "patent_title": None})
+    return recs
 
 
 def analyze_ticker(ticker: str, assignee_names: list) -> dict:
@@ -368,7 +382,7 @@ def handler(event, context):
     
     # Bail early if API key not provisioned. PatentsView migrated to require
     # key in 2024-2025; write a stub output so dashboard shows actionable msg.
-    if not PATENTSVIEW_API_KEY:
+    if False:  # ops 2702: keyless Google Patents source — PatentsView key no longer required
         msg = ("PatentsView API key not provisioned. Register at "
                 "https://patentsview.org/apis/ (free) → service desk request → "
                 "drop key in SSM at /justhodl/patentsview-key + Lambda env "
@@ -395,7 +409,8 @@ def handler(event, context):
             "message": msg,
         })}
     
-    tickers = list(TICKER_TO_ASSIGNEE.keys())[:MAX_COMPANIES]
+    _lim = int((event or {}).get("limit") or MAX_COMPANIES)
+    tickers = list(TICKER_TO_ASSIGNEE.keys())[:_lim]
     print(f"[patent] processing {len(tickers)} tickers w/ patent activity")
     
     results = []
@@ -435,7 +450,7 @@ def handler(event, context):
         "method":           "patent_velocity_v1",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
-        "data_source":      "USPTO PatentsView API (search.patentsview.org)",
+        "data_source":      "Google Patents grant-count windows (keyless; ops 2702) — velocity-consistent",
         "windows": {
             "recent_days":   RECENT_DAYS,
             "baseline_days": BASELINE_DAYS,
@@ -453,6 +468,9 @@ def handler(event, context):
         },
         
         "all_results":        results,
+        "top_picks": [{"ticker": r.get("ticker"), "score": r["score"], "direction": "long",
+                       "reason": "patent velocity %sx, %s grants/90d" % (r.get("velocity_ratio"), r.get("n_recent_patents"))}
+                      for r in velocity_spikes[:15] if r.get("ticker")],
         
         "notes": (
             f"USPTO patent grant velocity over {RECENT_DAYS}d window vs trailing "
@@ -462,7 +480,7 @@ def handler(event, context):
             "NEW tech categories (CPC codes appearing in recent but not baseline) "
             "indicate fresh technology focus. Universe curated to ~80 high-IP "
             "companies across tech / biotech / semis / defense / industrial / "
-            "EVs / quantum. Free via PatentsView API, no auth."
+            "EVs / quantum. Keyless Google Patents count windows (ops 2702); CPC new-tech detection dormant pending PatentsView key."
         ),
     }
     
