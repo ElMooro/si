@@ -1,27 +1,50 @@
-bundled files: ['_fred_shim.py', '_sentry_lite.py', 'anthropic_shim.py', 'api_auth.py', 'benzinga.py', 'calibration.py', 'capital_flow.py', 'claude_compat.py', 'edgar.py', 'engine_trust.py', 'equity_enrich.py', 'finra_si.py', 'finviz.py', 'ka_aliases.py', 'lambda_function.py', 'llm_router.py', 'massive.py', 'massive_signals.py', 'system_events.py']
-deployed
-INVOKE: 200 None {"statusCode": 200, "body": "{\"ok\": true, \"n_tickers\": 25, \"n_macro\": 10, \"n_tier_3_plus\": 89, \"n_tier_5_plus\": 33, \"regime\": \"SLOWING\", \"duration_s\": 6.26}"}
+alerts: {
+ "n_tier_3_plus_systems": 89,
+ "n_tier_5_plus_systems": 33,
+ "n_extreme_macro": 6,
+ "calibration_active": false,
+ "n_structural_chokepoints": 3
+}
 
-top_tickers: 25
-tickers in top-25 touched by a NEW family: 8
-  GOOGL  score=116.2 systems=['compound', 'earnings_confluence', 'forward_orders', 'future_intel', 'massive', 'pead', 'revenue_accel', 'smart_money']
-    rationale: 8 systems agree (compound=116.2) [compound, earnings_confluence, forward_orders, future_intel, massive…] · legends: BERKSHIRE, BAUPOST · RPO/backlog accelerating · options: bullish call flow; smart-money blocks · RORO MILD_RISK_ON risk-on tilt (Communication Services) · liquidity NEUTRAL/tightening liquidity headwind (Communication Services)
-  MU     score=111.6 systems=['buyback', 'compound', 'earnings_confluence', 'eps_velocity', 'equity_confluence', 'forward_orders', 'future_intel']
-    rationale: 7 systems agree (compound=111.6) [buyback, compound, earnings_confluence, eps_velocity, equity_confluence…] · buyback 0.14% net · RPO/backlog accelerating · sector capital ACCELERATING IN (Semiconductors) · RORO MILD_RISK_ON risk-on tilt (Technology) · liquidity NEUTRAL/tightening liquidity headwind (Technology) · sector momentum fading (Technology)
-  AMD    score=110.9 systems=['compound', 'earnings_confluence', 'earnings_quality_hi', 'eps_velocity', 'future_intel', 'massive']
-    rationale: 6 systems agree (compound=110.9) [compound, earnings_confluence, earnings_quality_hi, eps_velocity, future_intel…] · high earnings quality · options: bullish call flow; smart-money blocks · sector capital ACCELERATING IN (Semiconductors) · structural chokepoint (crit 50.7)
-  GOOG   score=109.6 systems=['compound', 'earnings_confluence', 'forward_orders', 'future_intel', 'massive', 'pead', 'revenue_accel', 'smart_money']
-    rationale: 8 systems agree (compound=109.6) [compound, earnings_confluence, forward_orders, future_intel, massive…] · legends: BERKSHIRE · RPO/backlog accelerating · options: bullish call flow; smart-money blocks · RORO MILD_RISK_ON risk-on tilt (Communication Services) · liquidity NEUTRAL/tightening liquidity headwind (Communication Services)
-  AVGO   score=108.1 systems=['compound', 'eps_velocity', 'flow_confluence', 'forward_orders', 'future_intel', 'massive', 'revenue_accel', 'smart_money']
-    rationale: 8 systems agree (compound=108.1) [compound, eps_velocity, flow_confluence, forward_orders, future_intel…] · legends: TIGER_GLOBAL, SOROS · RPO/backlog accelerating · options: bullish call flow; smart-money blocks · sector capital ACCELERATING IN (Semiconductors) · RORO MILD_RISK_ON risk-on tilt (Technology) · liquidity NEUTRAL/tightening liquidity headwind (Technology) · sector momentum fading (Technology) · structural chokepoint (crit 63.6)
-  TSLA   score=102.6 systems=['compound', 'eps_velocity', 'future_intel', 'revenue_accel', 'smart_money', 'squeeze_setup']
-    rationale: 6 systems agree (compound=102.6) [compound, eps_velocity, future_intel, revenue_accel, smart_money…] · squeeze setup (dtc 9.91d) · sector inflow (Consumer Discretionary)
-  AMZN   score=101.3 systems=['compound', 'eps_velocity', 'flow_confluence', 'forward_orders', 'future_intel', 'massive', 'revenue_accel', 'smart_money']
-    rationale: 8 systems agree (compound=101.3) [compound, eps_velocity, flow_confluence, forward_orders, future_intel…] · legends: PERSHING, LONE_PINE · RPO/backlog accelerating · options: bullish call flow; smart-money blocks · sector inflow (Consumer Discretionary) · RORO MILD_RISK_ON risk-on tilt (Consumer Cyclical) · liquidity NEUTRAL/tightening liquidity headwind (Consumer Cyclical) · sector Leading/OW · flow-confirmed (Consumer Discretionary)
-  CBRS   score=100.0 systems=['estimate_revisions']
-    rationale: 1 systems agree (compound=100.0) [estimate_revisions] · EPS estimates +44% into print
-
---- trust_mult sample from contributions ---
-  {'system': 'compound', 'raw_score': 213.5, 'normalized': 100, 'weight': 1.0, 'trust_mult': 1.0, 'contribution': 100.0}
-  {'system': 'pead', 'raw_score': 98.0, 'normalized': 98.0, 'weight': 1.0, 'trust_mult': 1.0, 'contribution': 98.0}
-DONE 2653
+feed_health: {
+ "compound": {
+  "loaded": true,
+  "size_hint": 7
+ },
+ "asymmetric": {
+  "loaded": true,
+  "size_hint": 9
+ },
+ "theme_tiers": {
+  "loaded": true,
+  "size_hint": 10
+ },
+ "eps_velocity": {
+  "loaded": true,
+  "size_hint": 7
+ },
+ "insider": {
+  "loaded": true,
+  "size_hint": 8
+ },
+ "smart_money": {
+  "loaded": true,
+  "size_hint": 7
+ },
+ "deep_value": {
+  "loaded": true,
+  "size_hint": 7
+ },
+ "pead": {
+  "loaded": true,
+  "size_hint": 7
+ },
+ "nobrainers": {
+  "loaded": true,
+  "size_hint": 10
+ },
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/2654_check_unused_fields.py", line 7, in <module>
+    print("\nfeed_freshness (sample keys):", list((j.get("feed_freshness") or {}).keys())[:8])
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'keys'
