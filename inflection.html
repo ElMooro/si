@@ -83,6 +83,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 <div class="sec">Composite forward projection <span class="hint">— the multi-factor composite (net-liq, reserves, dollar, credit, conditions) extrapolated on component momentum</span></div>
 <div id="compproj"><div class="loading">Loading…</div></div>
 
+<div class="sec">Treasury auction health <span class="hint">— real auction results & forward calendar (api.fiscaldata.treasury.gov) · is issuance clearing normally?</span></div>
+<div id="auctions"><div class="loading">Loading…</div></div>
+
 <div class="sec">Liquidity cycle clock <span class="hint">— phase-space orbit: impulse vs its acceleration · where we are in the cycle and which way it’s turning</span></div>
 <div id="clock"><div class="loading">Loading…</div></div>
 
@@ -110,6 +113,9 @@ svg{background:var(--bg2);border:1px solid var(--border);border-radius:10px}
 
 <div class="sec">Macro tides <span class="hint">— dollar, conditions, credit & the cross-asset feeds</span></div>
 <div class="grid" id="tides"></div>
+
+<div class="sec">Stablecoin flow <span class="hint">— crypto-dollar liquidity: is USD capital entering or exiting crypto via stablecoins?</span></div>
+<div id="stablecoin"><div class="loading">Loading…</div></div>
 
 <div class="sec">Historical analogs <span class="hint">— closest liquidity fingerprints in history (now composite-aware), and what SPX did next</span></div>
 <div id="analogs"><div class="loading">Loading…</div></div>
@@ -227,6 +233,35 @@ function renderAnalogs(a){
       </div>
       <div class="comps" style="grid-template-columns:1fr 1fr;gap:6px">${fpRow(an.fingerprint,feats)}</div></div>`).join('');
   return `${now}<div class="grid3">${cards}</div><div class="m" style="margin-top:10px">${esc(a.note)}</div>`;
+}
+function renderAuctions(ta){
+  if(!ta)return '<div class="loading">auction data unavailable</div>';
+  const rc=ta.regime,col=rc==='CALM'?'#26ffaf':rc==='WATCH'?'#ffb454':'#ff5c7c';
+  const nt=ta.near_term_calendar;
+  const highlights=(ta.tenor_highlights||[]).map(h=>`<div class="card" style="min-width:180px"><h3>${esc(h.label)}</h3><div class="v" style="font-size:18px;color:${h.composite>40?'#ff5c7c':h.composite>20?'#ffb454':'#26ffaf'}">${esc(h.composite)}/100</div><div class="m">${esc(h.risk_profile||'')}</div></div>`).join('');
+  const cs=ta.curve_slope;
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px">
+    <div class="headbadge" style="background:${col}22;color:${col};border-color:${col}55">${esc(rc)} \u00b7 ${esc(ta.composite_score)}/100</div>
+    <div class="headread" style="margin:8px 0 10px">${esc(ta.interpretation)}</div>
+    <div class="comps" style="margin-bottom:12px">${highlights}</div>
+    ${nt?`<div class="gnow" style="margin-bottom:4px">Confirmed forward calendar</div><div class="m">$${num(nt.scheduled_bill_issuance_bn,0)}bn in T-bills scheduled to settle over the next ${esc(nt.coverage_days)} days (${esc(nt.n_auctions)} auctions) \u00b7 issuance running ${ta.issuance_anomaly&&ta.issuance_anomaly.pct_above_baseline<0?'below':'above'} baseline (${esc((ta.issuance_anomaly||{}).pct_above_baseline)}%)<br><span style="color:var(--fg3)">${esc(nt.note)}</span></div>`:''}
+    ${cs?`<div class="m" style="margin-top:9px">2s10s curve: ${cs.spread_bp>0?'+':''}${esc(cs.spread_bp)}bp (${esc(cs.regime)}) \u00b7 tail-stress alerts (14d): ${esc((ta.tail_stress_14d||{}).n_fired)}</div>`:''}
+    <div class="m" style="margin-top:7px;color:var(--fg3)">${esc(ta.source)} \u00b7 ${esc(ta.as_of)}</div>
+  </div>`;
+}
+function renderStablecoin(sf){
+  if(!sf||!sf.state)return '<div class="loading">stablecoin data unavailable</div>';
+  const col=sf.state==='CONTRACTING'?'#ff5c7c':sf.state==='EXPANDING'?'#26ffaf':'#ffb454';
+  const dchip=(lab,v)=>v==null?'':`<div><div class="m" style="margin:0">${lab}</div><div class="v" style="font-size:16px;color:${v>0?'var(--green)':'var(--red)'}">${v>0?'+':''}${v}%</div></div>`;
+  const minters=(sf.top_minters_30d||[]).slice(0,5).map(m=>`<div style="display:flex;justify-content:space-between;font-size:12px;margin:4px 0"><span>${esc(m.symbol)}</span><span style="color:${m.delta_30d_pct>0?'var(--green)':'var(--red)'}">${m.delta_30d_pct>0?'+':''}${num(m.delta_30d_pct,1)}% 30d</span></div>`).join('');
+  return `<div class="gpanel" style="text-align:left;padding:16px 18px">
+    <div class="headbadge" style="background:${col}22;color:${col};border-color:${col}55">${esc(sf.state)} \u00b7 signal ${esc(sf.signal_strength)}/100</div>
+    <div class="headread" style="margin:8px 0 10px">${esc(sf.state_description)}</div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;margin:10px 0">${dchip('24h',sf.delta_24h_pct)}${dchip('7d',sf.delta_7d_pct)}${dchip('30d',sf.delta_30d_pct)}<div><div class="m" style="margin:0">Total supply</div><div class="v" style="font-size:16px">$${num(sf.total_usd_bn,0)}bn</div></div></div>
+    ${minters?`<div class="gnow" style="margin:8px 0 4px">Top movers (30d)</div>${minters}`:''}
+    ${sf.forward_expectations?`<div class="m" style="margin-top:9px">${typeof sf.forward_expectations==='string'?esc(sf.forward_expectations):esc(JSON.stringify(sf.forward_expectations)).slice(0,220)}</div>`:''}
+    <div class="m" style="margin-top:7px;color:var(--fg3)">Crypto-dollar liquidity \u2014 distinct channel from fiat/bank-reserve plumbing \u00b7 ${esc(sf.as_of)}</div>
+  </div>`;
 }
 function renderTensions(ts){
   if(!ts)return '';
@@ -436,6 +471,7 @@ async function load(){
   const _cs=d.composite_snapshots||{};
   const srcLine=src=>{const real=src==='snapshots';return `<div class="m" style="margin:0 0 8px">Source: <b>${real?'real all-component snapshots':'FRED-backed reconstruction (~70% of composite weight)'}</b>${_cs.count?` \u00b7 ${_cs.count} all-component snapshot${_cs.count>1?'s':''} captured since ${esc(_cs.first)}${real?'':' \u2014 history building toward the full upgrade'}`:''}</div>`;};
   document.getElementById('compproj').innerHTML=srcLine((d.composite_projection||{}).source)+renderCompProjection(d.composite_projection);
+  document.getElementById('auctions').innerHTML=renderAuctions(d.treasury_auctions);
   document.getElementById('clock').innerHTML=renderClock(d.cycle_clock);
   document.getElementById('compclock').innerHTML=srcLine((d.composite_clock||{}).source)+renderClock(d.composite_clock);
   document.getElementById('tensions').innerHTML=renderTensions(d.tensions);
@@ -451,7 +487,7 @@ async function load(){
   if(ds){const fl=(ds.flags||[]).map(x=>`<div class="drv ${ds.status==='CALM'?'ok':''}">${esc(x)}</div>`).join('');
     bh+=`<div class="card"><h3>Dollar shortage ${pill(ds.status)}</h3><div class="v ${clsOf(ds.status)==='r'?'neg':(clsOf(ds.status)==='g'?'pos':'')}">${esc(ds.status)}</div><div class="m">Fed swap lines $${num(ds.fed_swap_lines_bn,2)}bn · CP−SOFR ${esc(ds.cp_ois_bps)}bp · synthetic USD ${ds.usd_synthetic_20d_pct>0?'+':''}${esc(ds.usd_synthetic_20d_pct)}% 20d · broad $ ${esc(ds.broad_dollar)}</div>${fl}</div>`;}
   if(sf)bh+=`<div class="card"><h3>Settlement fails ${pill(sf.regime)}</h3><div class="v ${clsOf(sf.regime)==='r'?'neg':'pos'}">$${num(sf.ust_combined_bn,0)}bn</div><div class="m">fails-to-deliver $${num(sf.ust_ftd_bn,0)}bn + fails-to-receive $${num(sf.ust_ftr_bn,0)}bn · ${esc(sf.pctile)}%ile (z ${esc(sf.z)}) · peak $${num(sf.max_bn,0)}bn<br>UST collateral sourcing — spikes = repo squeeze</div></div>`;
-  if(sl)bh+=`<div class="card"><h3>Central-bank backstops ${pill(sl.status)}</h3><div class="v ${clsOf(sl.status)==='r'?'neg':'pos'}">$${num(sl.fed_swaps_bn,2)}bn</div><div class="m">Fed FX swap lines $${num(sl.fed_swaps_bn,2)}bn (Δ ${sl.swap_trend_bn>0?'+':''}${esc(sl.swap_trend_bn)}bn) · discount window $${num(sl.discount_window_bn,1)}bn<br>~0 normally · any sustained rise = acute dollar shortage</div></div>`;
+  if(sl)bh+=`<div class="card"><h3>Central-bank backstops ${pill(sl.status)}</h3><div class="v ${clsOf(sl.status)==='r'?'neg':'pos'}">$${num(sl.fed_swaps_bn,2)}bn</div><div class="m">Fed FX swap lines $${num(sl.fed_swaps_bn,2)}bn (Δ ${sl.swap_trend_bn>0?'+':''}${esc(sl.swap_trend_bn)}bn) · discount window $${num(sl.discount_window_bn,1)}bn<br>SRF (repo backstop) $${num(sl.srf_bn,3)}bn${sl.srf_active_days?` · active ${esc(sl.srf_active_days)}d`:' · dormant'}<br>~0 normally · any sustained rise = acute dollar shortage</div></div>`;
   const dv=d.dealer_survey;
   if(dv)bh+=`<div class="card"><h3>NY Fed dealer survey <span class="pill a">${esc(dv.status)}</span></h3><div class="v" style="font-size:14px">${esc((dv.last_survey||'').replace('.pdf','').replace(/-/g,' '))}</div><div class="m">${esc(dv.note)}</div></div>`;
   document.getElementById('backstops').innerHTML=bh||'<div class="loading">—</div>';
@@ -506,6 +542,7 @@ async function load(){
   t+=card('China credit impulse'+(ce&&ce.regime?' '+pill(ce.regime):''),c?('z '+esc(c.impulse_z)):'—',c?('credit yoy '+esc(c.credit_yoy_pct)+'% · '+esc(c.as_of)+' (quarterly lag)'):'unavailable',c&&c.impulse_z<0?'neg':'');
   t+=card('Stablecoin tide '+(s?pill(s.state):''),s?esc(s.state||('accel z '+s.accel_z)):'—',s?('strength '+esc(s.signal_strength)+' · 7d Δ $'+esc(Math.round(((s.aggregate||{}).delta_7d_usd||0)/1e6))+'mn'):'unavailable',s&&clsOf(s.state)==='r'?'neg':'');
   document.getElementById('tides').innerHTML=t;
+  document.getElementById('stablecoin').innerHTML=renderStablecoin(d.stablecoin_full);
   document.getElementById('analogs').innerHTML=renderAnalogs(d.analogs);
   document.getElementById('backtest').innerHTML=renderBacktest(d.backtest);
 
