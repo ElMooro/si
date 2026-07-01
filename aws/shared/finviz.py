@@ -139,6 +139,15 @@ def fetch_view(view, filt=None, timeout=60):
 CUSTOM_COLS = ",".join(str(i) for i in range(151))  # full 151-column custom surface
 
 
+
+_COLMAP_NORM = None
+def _cmap(rawk):
+    """Header-normalized COLMAP lookup (custom-export headers can differ in case/spacing)."""
+    global _COLMAP_NORM
+    if _COLMAP_NORM is None:
+        _COLMAP_NORM = {k.strip().lower(): v for k, v in COLMAP.items()}
+    return _COLMAP_NORM.get((rawk or "").strip().lower())
+
 def fetch_custom(filt=None, cols=CUSTOM_COLS, timeout=90):
     """One authenticated custom-column export = ALL fields for the whole (filtered) universe in a single call."""
     url = "%s?v=152&c=%s%s&auth=%s" % (BASE, cols, ("&f=" + filt) if filt else "", _token())
@@ -171,7 +180,7 @@ def build_universe(filt=None, **_legacy):
             continue
         rec = uni.setdefault(tk, {"ticker": tk})
         for rawk, val in raw.items():
-            m = COLMAP.get(rawk.strip())
+            m = _cmap(rawk)
             if not m or m[0] == "ticker":
                 continue
             key, parse = m

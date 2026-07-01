@@ -42,7 +42,7 @@ OUT_KEY = "data/finviz-signals.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 SUSPICIOUS_N = 4500   # a real event-screen never returns half the universe
-LOOSE_SCREENS = {"horizontal_sr", "tl_support", "tl_resistance"}  # weak patterns tag thousands legitimately
+LOOSE_SCREENS = {"horizontal_sr"}  # weak patterns tag thousands legitimately (TLs now use strong variants)
 SUSPICIOUS_N_LOOSE = 9500  # only near-whole-universe counts are suspicious for loose screens
 SLEEP_S = 3
 
@@ -101,8 +101,8 @@ SCREENS = [
     ("wedge_down",     "f=ta_pattern_wedgedown",            80),
     ("horizontal_sr",        "f=ta_pattern_horizontal",       120),  # v2
     ("horizontal_sr_strong", "f=ta_pattern_horizontal2", 120),  # v2 — strong = "2" suffix (ops 2696)
-    ("tl_support",     "f=ta_pattern_tlsupport",           120),  # v2
-    ("tl_resistance",  "f=ta_pattern_tlresistance",        120),  # v2
+    ("tl_support",     "f=ta_pattern_tlsupport2",          120),  # v2 — STRONG variant; loose base tags ~88% of mkt (ops 2697)
+    ("tl_resistance",  "f=ta_pattern_tlresistance2",       120),  # v2 — STRONG variant (ops 2697)
 ]
 
 _F_MA  = ("price","change_pct","sma20_pct","sma50_pct","sma200_pct","rsi",
@@ -297,7 +297,7 @@ def lambda_handler(event, context):
         if not _is_stock(u):
             continue
         dg["stock"] += 1
-        price, avol = u.get("price") or 0, u.get("avg_volume") or 0
+        price, avol = u.get("price") or u.get("prev_close") or 0, u.get("avg_volume") or 0
         vw, vm = u.get("volatility_w"), u.get("volatility_m")
         offh = u.get("off_52w_high_pct")
         atrp = (u.get("atr") or 0) / price if price else 99
@@ -344,7 +344,7 @@ def lambda_handler(event, context):
     sp_tot = sp_a200 = 0
     sect = {}
     for tk, u in uni.items():
-        if not _is_stock(u) or (u.get("price") or 0) < 1 or (u.get("avg_volume") or 0) < 50_000:
+        if not _is_stock(u) or (u.get("price") or u.get("prev_close") or 0) < 1 or (u.get("avg_volume") or 0) < 50_000:
             continue
         s200 = u.get("sma200_pct")
         if s200 is None:
@@ -392,7 +392,7 @@ def lambda_handler(event, context):
             return
         u = uni.get(tk) or {}
         picks[tk] = {"ticker": tk, "score": score, "direction": direction, "reason": reason,
-                     "price": u.get("price"), "sector": u.get("sector")}
+                     "price": u.get("price") or u.get("prev_close"), "sector": u.get("sector")}
     for tk in confluence["bottom_squeeze_insider"]: pick(tk, 92, "long", "double/multiple bottom + high short float + insider buying")
     for tk in confluence["ath_momentum"]:          pick(tk, 88, "long", "new ALL-TIME high on >=2x volume")
     for tk in confluence["base_breakout"]:         pick(tk, 84, "long", "strong horizontal base breaking out on volume")
