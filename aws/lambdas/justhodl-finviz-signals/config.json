@@ -1,8 +1,8 @@
 {
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "timeout": 180,
-  "memory": 256,
+  "timeout": 300,
+  "memory": 512,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "schedule": {
     "rule_name": "finviz-signals-3x",

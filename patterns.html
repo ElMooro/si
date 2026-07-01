@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Radar · Double Tops &amp; Bottoms · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e8edf4;--text-dim:#aab4c4;--text-mute:#6b7687;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--font-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4}a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono)}
+h1{font-size:21px;margin:8px 0 2px;font-weight:700;letter-spacing:-.2px}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:3px 7px;border-radius:3px;letter-spacing:.5px}
+.sub{color:var(--text-mute);font-size:12px;margin-top:4px;max-width:840px}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}.meta b{color:var(--info);font-weight:600}
+.gold-card{background:linear-gradient(180deg,rgba(251,191,36,.07),transparent);border:1px solid rgba(251,191,36,.35);border-radius:8px;padding:12px 14px;margin:14px 0}
+.gold-card h3{margin:0 0 4px;font-size:13px;color:var(--gold);font-family:var(--font-mono);letter-spacing:.4px}
+.gold-card .note{font-size:11px;color:var(--text-mute);margin-bottom:8px}
+.gc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.gc-grid{grid-template-columns:1fr}}
+.gc-col .h{font-family:var(--font-mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.gc-col.up .h{color:var(--pos)}.gc-col.dn .h{color:var(--neg)}
+.gc-tks{display:flex;flex-wrap:wrap;gap:6px}
+.gc-tk{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;border:1px solid var(--border-hi);background:var(--panel)}
+.gc-col.up .gc-tk{color:var(--pos)}.gc-col.dn .gc-tk{color:var(--neg)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 12px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.tab{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;color:var(--text-dim);background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;transition:.12s}
+.tab:hover{border-color:var(--border-hi);color:var(--text)}.tab.on{color:var(--bg);background:var(--info);border-color:var(--info);font-weight:700}
+.tab.up.on{background:var(--pos);border-color:var(--pos)}.tab.dn.on{background:var(--neg);border-color:var(--neg)}.tab.nt.on{background:var(--accent);border-color:var(--accent)}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+input.q{background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12px;width:220px;font-family:var(--font-mono)}
+input.q:focus{outline:none;border-color:var(--info)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:880px}
+th{padding:7px 11px;text-align:right;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;cursor:pointer;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:6px 11px;font-family:var(--font-mono);font-size:11.5px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);white-space:nowrap}
+tr:last-child td{border-bottom:none}.tk{font-weight:600;color:var(--text)}.co{color:var(--text-dim);font-size:11px;max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.mut{color:var(--text-mute)}
+.chip{display:inline-block;font-size:9px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;margin-left:4px;background:rgba(251,191,36,.15);color:var(--gold)}
+.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:var(--gold);border-radius:6px;padding:8px 12px;font-size:11px;font-family:var(--font-mono);margin:10px 0;display:none}
+.links{margin-top:22px;font-size:11px;color:var(--text-mute)}.links a{color:var(--info);text-decoration:none;margin-right:14px}
+.err{color:var(--neg);font-family:var(--font-mono);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="nav-back" href="/">← JustHodl.AI</a>
+<header>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1>Pattern Radar</h1><span class="badge">FINVIZ PATTERNS · WHOLE MARKET</span></div>
+<div class="sub">All sixteen FinViz chart-pattern screens across ~11,300 names: double &amp; multiple tops/bottoms, head-and-shoulders (both), channels, wedges, triangles, horizontal support/resistance and trendline S/R. Patterns are probabilistic — the gold list below is where <b>two independent methodologies agree</b>: FinViz's tag AND the in-house strict detector (swing prominence, valley depth, neckline logic) on <a href="/chart-patterns.html" style="color:var(--info)">chart-patterns</a>.</div>
+<div class="meta"><span>Updated <b id="ts">…</b></span><span>Pattern names tagged <b id="ntag">—</b></span></div>
+</header>
+<div class="warn" id="qwarn"></div>
+<div class="gold-card">
+<h3>★ DOUBLE-CONFIRMED — FinViz ∩ in-house detector</h3>
+<div class="note" id="gcnote">Two independent pattern methodologies agreeing on the same name, same structure.</div>
+<div class="gc-grid">
+<div class="gc-col up"><div class="h">Double Bottoms (bullish reversal)</div><div class="gc-tks" id="gcb"><span class="mut">—</span></div></div>
+<div class="gc-col dn"><div class="h">Double Tops (bearish reversal)</div><div class="gc-tks" id="gct"><span class="mut">—</span></div></div>
+</div>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="toolbar"><input class="q" id="q" placeholder="filter ticker / company / sector…"><span class="mut" style="font-family:var(--font-mono);font-size:11px" id="rowcount"></span></div>
+<div class="card"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="links">Related: <a href="/chart-patterns.html">Chart Pattern Scanner (drawn charts)</a><a href="/finviz-signals.html">Finviz Signals</a><a href="/ma-crosses.html">MA Crosses</a><a href="/highs-lows.html">Highs &amp; Lows</a><a href="/consolidation.html">Consolidation</a></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const TABS=[["double_bottom","Double Bottom","up"],["multiple_bottom","Multiple Bottom","up"],["inverse_hs","Inverse H&S","up"],
+["double_top","Double Top","dn"],["multiple_top","Multiple Top","dn"],["head_shoulders","Head & Shoulders","dn"],
+["channel_up","Channel Up","up"],["channel_down","Channel Down","dn"],["triangle_asc","Triangle Asc","up"],["triangle_desc","Triangle Desc","dn"],
+["wedge_up","Wedge Up","dn"],["wedge_down","Wedge Down","up"],
+["horizontal_sr","Horizontal S/R","nt"],["horizontal_sr_strong","Horizontal S/R Strong","nt"],["tl_support","TL Support","up"],["tl_resistance","TL Resistance","dn"]];
+let DOC=null,CUR="double_bottom",SORT={k:"rel_volume",d:-1};
+const $=id=>document.getElementById(id);
+const fN=(v,d=2)=>v==null?"—":(+v).toFixed(d);
+const fP=v=>{if(v==null)return"—";const s=(+v).toFixed(1)+"%";return v>0?"+"+s:s};
+const cls=v=>v==null?"mut":v>0?"pos":v<0?"neg":"mut";
+const fM=v=>v==null?"—":v>=1e9?(v/1e9).toFixed(1)+"B":v>=1e6?(v/1e6).toFixed(0)+"M":fN(v,0);
+function board(){return (DOC.boards||{}).patterns||{}}
+function confirmedSet(){const d=board().double_confirmed||{};return new Set([...(d.double_top||[]),...(d.double_bottom||[])])}
+function render(){
+ const q=$("q").value.toLowerCase(),conf=confirmedSet();
+ let r=(board()[CUR]||[]).filter(x=>!q||[x.ticker,x.company,x.sector].join(" ").toLowerCase().includes(q));
+ r=r.slice().sort((a,b)=>{const A=a[SORT.k],B=b[SORT.k];if(A==null)return 1;if(B==null)return -1;return(A<B?-1:A>B?1:0)*SORT.d});
+ $("rowcount").textContent=r.length+" names";
+ const COLS=[["ticker","TICKER","l"],["company","COMPANY","l"],["sector","SECTOR","l"],["price","PRICE"],["change_pct","CHG%"],["rsi","RSI"],["rel_volume","RVOL"],["perf_m","1M%"],["off_52w_high_pct","vs52wH"],["sma200_pct","%v200D"],["market_cap","MCAP"]];
+ $("thead").innerHTML=COLS.map(c=>`<th class="${c[2]||""}" data-k="${c[0]}">${c[1]}${SORT.k===c[0]?(SORT.d<0?" ▾":" ▴"):""}</th>`).join("");
+ $("tbody").innerHTML=r.map(x=>`<tr>
+  <td class="l tk">${x.ticker}${conf.has(x.ticker)?'<span class="chip">★ CONFIRMED×2</span>':""}</td>
+  <td class="l co">${x.company||""}</td><td class="l mut">${x.sector||""}</td>
+  <td>${fN(x.price)}</td><td class="${cls(x.change_pct)}">${fP(x.change_pct)}</td>
+  <td class="${(x.rsi||50)<=32?"neg":(x.rsi||50)>=70?"pos":""}">${fN(x.rsi,0)}</td>
+  <td class="${(x.rel_volume||0)>=2?"pos":""}">${fN(x.rel_volume,1)}</td>
+  <td class="${cls(x.perf_m)}">${fP(x.perf_m)}</td><td class="${cls(x.off_52w_high_pct)}">${fP(x.off_52w_high_pct)}</td>
+  <td class="${cls(x.sma200_pct)}">${fP(x.sma200_pct)}</td><td class="mut">${fM(x.market_cap)}</td></tr>`).join("")||'<tr><td colspan="11" class="mut" style="text-align:center;padding:24px">no names on this screen right now</td></tr>';
+ document.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;SORT=SORT.k===k?{k,d:-SORT.d}:{k,d:-1};render()});
+}
+function tabs(){$("tabs").innerHTML=TABS.map(t=>`<div class="tab ${t[2]} ${t[0]===CUR?"on":""}" data-k="${t[0]}">${t[1]} <span style="opacity:.7">${(board()[t[0]]||[]).length}</span></div>`).join("");
+ document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{CUR=el.dataset.k;tabs();render()})}
+async function main(){
+ try{
+  const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());DOC=await r.json();
+  $("ts").textContent=(DOC.generated_at||"").replace("T"," ").slice(0,16)+"Z";
+  let tot=0;TABS.forEach(t=>tot+=(board()[t[0]]||[]).length);$("ntag").textContent=tot;
+  const dc=board().double_confirmed||{};
+  const chip=(tk,href)=>`<a class="gc-tk" href="/chart-patterns.html">${tk}</a>`;
+  $("gcb").innerHTML=(dc.double_bottom||[]).map(chip).join("")||'<span class="mut">none right now — both detectors must agree</span>';
+  $("gct").innerHTML=(dc.double_top||[]).map(chip).join("")||'<span class="mut">none right now — both detectors must agree</span>';
+  if(dc.note)$("gcnote").textContent=dc.note;
+  const qn=Object.keys(DOC.quarantined||{});
+  if(qn.length){const w=$("qwarn");w.style.display="block";w.textContent="⚠ quarantined screens (suspicious raw counts, excluded): "+qn.join(", ");}
+  tabs();render();$("q").oninput=render;
+ }catch(e){document.querySelector(".wrap").insertAdjacentHTML("beforeend",'<div class="err">feed unavailable — '+e+'</div>')}
+}
+main();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>

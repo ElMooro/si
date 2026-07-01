@@ -72,6 +72,13 @@ SIGNAL_PRIORS = {
     "CASCADE_LAGGARD":      0.50,   # catch-up play
     "RETAIL_HOT":           0.45,   # can be pump/noise
     "RETAIL_VELOCITY":      0.40,
+    # ── FinViz technical events (ops 2695) — priors stay modest until the
+    #    harvester ledger grades eng:finviz-signals forward excess-vs-SPY ──
+    "ATH_BREAKOUT":         0.66,   # new all-time high on >=2x volume
+    "BASE_BREAKOUT":        0.64,   # strong horizontal base breaking out on volume
+    "GOLDEN_CROSS":         0.60,   # 50-DMA crossing above 200-DMA
+    "MA200_RECLAIM":        0.60,   # price reclaiming the 200-DMA on volume
+    "DOUBLE_BOTTOM_FV":     0.56,   # FinViz double/multiple bottom + oversold/insider
 }
 
 
@@ -144,6 +151,8 @@ SIGNAL_FAMILY = {
     "INSIDER_CLUSTER": "smart_money", "EXECUTIVE_BUY": "smart_money",
     "POLITICIAN_BUY": "political", "POLITICIAN_COMMITTEE": "political",
     "FDA_CATALYST": "catalyst", "GOV_CONTRACT": "catalyst",
+    "ATH_BREAKOUT": "technical", "BASE_BREAKOUT": "technical", "GOLDEN_CROSS": "technical",
+    "MA200_RECLAIM": "technical", "DOUBLE_BOTTOM_FV": "technical",
 }
 WITHIN_FAMILY_WEIGHT = 0.25   # an extra same-family signal adds only a quarter-bet
 
@@ -207,6 +216,7 @@ def lambda_handler(event, context):
         red_flag_map.setdefault(r.get("ticker"), []).append("low earnings quality (accruals)")
     red_flag_map.pop(None, None)
     risk_regime = read_json("data/risk-regime.json") or {}
+    finviz_sig = read_json("data/finviz-signals.json") or {}
     chokepoint = read_json("data/chokepoint.json") or {}
     et_doc = read_json("data/engine-trust.json") or {}
     equity_conf = read_json("data/equity-confluence.json") or {}
@@ -325,6 +335,28 @@ def lambda_handler(event, context):
         if not any(s["key"] == key for s in rec["signals"]):
             rec["signals"].append({"key": key, "strength": round(strength, 3),
                                    "weight": weights.get(key, 0.5), "detail": detail})
+
+    # 0a. FinViz technical events (ops 2695) — whole-market MA crosses, ATH
+    #     breakouts, base breaks, confirmed bottoms from justhodl-finviz-signals v2.
+    #     Only multi-confirmed confluence sets emit. New "technical" factor family
+    #     -> counts as an independent bet in effective_bets().
+    _fv_conf = finviz_sig.get("confluence") or {}
+    _fv_sigs = finviz_sig.get("signals") or {}
+    _fv_name = {}
+    for _rows in _fv_sigs.values():
+        for _r in _rows or []:
+            if _r.get("ticker") and _r.get("company") and _r["ticker"] not in _fv_name:
+                _fv_name[_r["ticker"]] = _r["company"]
+    for _tk in (_fv_conf.get("ath_momentum") or [])[:40]:
+        add(_tk, _fv_name.get(_tk), "ATH_BREAKOUT", 0.90, "new all-time high on >=2x relative volume")
+    for _tk in (_fv_conf.get("base_breakout") or [])[:40]:
+        add(_tk, _fv_name.get(_tk), "BASE_BREAKOUT", 0.85, "strong horizontal base breaking out on volume")
+    for _tk in (_fv_conf.get("ma200_reclaim_vol") or [])[:40]:
+        add(_tk, _fv_name.get(_tk), "MA200_RECLAIM", 0.80, "reclaimed its 200-DMA on elevated volume")
+    for _tk in sorted({_r.get("ticker") for _r in (_fv_sigs.get("golden_cross") or []) if _r.get("ticker")})[:40]:
+        add(_tk, _fv_name.get(_tk), "GOLDEN_CROSS", 0.70, "golden cross — 50-DMA crossed above 200-DMA")
+    for _tk in sorted(set(_fv_conf.get("bottom_oversold") or []) | set(_fv_conf.get("bottom_insider") or []))[:40]:
+        add(_tk, _fv_name.get(_tk), "DOUBLE_BOTTOM_FV", 0.75, "double/multiple bottom with oversold RSI or insider buying")
 
     # 0. Gamma squeeze — dealer short-gamma + call-heavy (Massive options/GEX). The matrix gap:
     #    best-setups already had options FLOW but not dealer GAMMA. Dormant until squeezes appear.
@@ -704,6 +736,11 @@ def lambda_handler(event, context):
             "RETAIL_HOT": "surging retail attention",
             "EARNINGS_FRESH": "a fresh post-earnings catalyst",
             "CONVERGENCE": "multiple models converging",
+            "ATH_BREAKOUT": "breaking to new all-time highs on heavy volume",
+            "BASE_BREAKOUT": "breaking out of a strong horizontal base",
+            "GOLDEN_CROSS": "a fresh golden cross (50>200-DMA)",
+            "MA200_RECLAIM": "reclaiming its 200-day moving average",
+            "DOUBLE_BOTTOM_FV": "a confirmed double-bottom reversal",
         }
         ranked_sigs = sorted(signals, key=lambda s: -s["strength"] * s["weight"])
         why_parts = []

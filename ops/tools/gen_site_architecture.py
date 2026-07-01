@@ -45,6 +45,8 @@ CATS = [
 CATNAMES = [n for n, _ in CATS]
 
 OVERRIDES = {
+ "ma-crosses.html":"⚡ Equity Signals","highs-lows.html":"⚡ Equity Signals",
+ "patterns.html":"⚡ Equity Signals","consolidation.html":"⚡ Equity Signals",
  "capital-flow-radar.html":"🧭 Macro & Liquidity","capital-flow.html":"🧭 Macro & Liquidity",
  "capital-inflows.html":"🧭 Macro & Liquidity","carry-surface.html":"🧭 Macro & Liquidity",
  "carry.html":"🧭 Macro & Liquidity","cb-injection.html":"🧭 Macro & Liquidity",

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consolidation Radar · Coils &amp; Distribution · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e8edf4;--text-dim:#aab4c4;--text-mute:#6b7687;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--font-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4}a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono)}
+h1{font-size:21px;margin:8px 0 2px;font-weight:700;letter-spacing:-.2px}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--info);background:rgba(34,211,238,.12);padding:3px 7px;border-radius:3px;letter-spacing:.5px}
+.sub{color:var(--text-mute);font-size:12px;margin-top:4px;max-width:860px}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}.meta b{color:var(--info);font-weight:600}
+.crit{font-family:var(--font-mono);font-size:10.5px;color:var(--text-mute);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:7px 11px;margin:12px 0;display:inline-block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 12px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.tab{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;color:var(--text-dim);background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;transition:.12s}
+.tab:hover{border-color:var(--border-hi);color:var(--text)}
+.tab.coil.on{color:var(--bg);background:var(--info);border-color:var(--info);font-weight:700}
+.tab.dist.on{color:var(--bg);background:var(--neg);border-color:var(--neg);font-weight:700}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+input.q{background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12px;width:220px;font-family:var(--font-mono)}
+input.q:focus{outline:none;border-color:var(--info)}
+label.only{font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:5px;font-family:var(--font-mono);cursor:pointer}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:920px}
+th{padding:7px 11px;text-align:right;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;cursor:pointer;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:6px 11px;font-family:var(--font-mono);font-size:11.5px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);white-space:nowrap}
+tr:last-child td{border-bottom:none}.tk{font-weight:600;color:var(--text)}.co{color:var(--text-dim);font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.mut{color:var(--text-mute)}
+.score{font-weight:700}
+.bar{display:inline-block;height:6px;border-radius:3px;background:var(--info);vertical-align:middle;margin-right:6px;min-width:2px}
+.chip{display:inline-block;font-size:9px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;margin-left:4px;letter-spacing:.3px}
+.chip.wy{background:rgba(0,230,118,.14);color:var(--pos)}
+.chip.sr{background:rgba(167,139,250,.14);color:var(--accent)}
+.chip.tl{background:rgba(34,211,238,.12);color:var(--info)}
+.chip.why{background:rgba(255,61,90,.12);color:var(--neg)}
+.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:var(--gold);border-radius:6px;padding:8px 12px;font-size:11px;font-family:var(--font-mono);margin:10px 0;display:none}
+.links{margin-top:22px;font-size:11px;color:var(--text-mute)}.links a{color:var(--info);text-decoration:none;margin-right:14px}
+.err{color:var(--neg);font-family:var(--font-mono);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="nav-back" href="/">← JustHodl.AI</a>
+<header>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1>Consolidation Radar</h1><span class="badge">COILS · WYCKOFF-TAGGED</span></div>
+<div class="sub">Volatility contraction is the market's loaded spring: weekly volatility compressing under monthly, tight ATR, price basing near 52-week highs. Each coil is cross-tagged with <span style="color:var(--accent)">horizontal-S/R</span> pattern membership and — the gold combination — the <span style="color:var(--pos)">Wyckoff ACCUMULATION</span> phase from the accumulation-radar engine: <b>tight range + smart money quietly buying</b>. The mirror tab shows <span style="color:var(--neg)">Distribution Watch</span>: Wyckoff DISTRIBUTION names simultaneously printing top patterns or losing the 200-DMA.</div>
+<div class="meta"><span>Updated <b id="ts">…</b></span><span>Coiled <b id="ncoil">—</b></span><span>Distribution watch <b id="ndist">—</b></span></div>
+</header>
+<div class="warn" id="qwarn"></div>
+<div class="crit" id="crit">criteria…</div>
+<div class="tabs" id="tabs"></div>
+<div class="toolbar">
+<input class="q" id="q" placeholder="filter ticker / company / sector…">
+<label class="only" id="wywrap"><input type="checkbox" id="wyonly"> Wyckoff ACCUMULATION only</label>
+<span class="mut" style="font-family:var(--font-mono);font-size:11px" id="rowcount"></span>
+</div>
+<div class="card"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="links">Related: <a href="/accumulation.html">Accumulation / Distribution Radar</a><a href="/resilience.html">Resilience (COILED→IGNITING)</a><a href="/squeeze.html">Squeeze Cockpit</a><a href="/ma-crosses.html">MA Crosses</a><a href="/highs-lows.html">Highs &amp; Lows</a><a href="/patterns.html">Patterns</a></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+let DOC=null,CUR="coiled",SORT={k:"coil_score",d:-1};
+const $=id=>document.getElementById(id);
+const fN=(v,d=2)=>v==null?"—":(+v).toFixed(d);
+const fP=v=>{if(v==null)return"—";const s=(+v).toFixed(1)+"%";return v>0?"+"+s:s};
+const cls=v=>v==null?"mut":v>0?"pos":v<0?"neg":"mut";
+const fM=v=>v==null?"—":v>=1e9?(v/1e9).toFixed(1)+"B":v>=1e6?(v/1e6).toFixed(0)+"M":fN(v,0);
+function cons(){return (DOC.boards||{}).consolidation||{}}
+function chips(x){
+ let h="";(x.tags||[]).forEach(t=>{
+  if(t==="WYCKOFF_ACCUMULATION")h+='<span class="chip wy">WYCKOFF ACC</span>';
+  else if(t.startsWith("HORIZONTAL"))h+=`<span class="chip sr">${t==="HORIZONTAL_SR_STRONG"?"S/R STRONG":"S/R"}</span>`;
+  else if(t==="TL_SUPPORT")h+='<span class="chip tl">TL SUPPORT</span>';});
+ (x.why||[]).forEach(w=>h+=`<span class="chip why">${w.replace(/_/g," ")}</span>`);
+ return h;
+}
+function render(){
+ const q=$("q").value.toLowerCase(),wy=$("wyonly").checked;
+ let r=(cons()[CUR]||[]).filter(x=>!q||[x.ticker,x.company,x.sector].join(" ").toLowerCase().includes(q));
+ if(CUR==="coiled"&&wy)r=r.filter(x=>(x.tags||[]).includes("WYCKOFF_ACCUMULATION"));
+ r=r.slice().sort((a,b)=>{const A=a[SORT.k],B=b[SORT.k];if(A==null)return 1;if(B==null)return -1;return(A<B?-1:A>B?1:0)*SORT.d});
+ $("rowcount").textContent=r.length+" names";
+ const CC=CUR==="coiled"
+  ?[["ticker","TICKER","l"],["company","COMPANY","l"],["sector","SECTOR","l"],["coil_score","COIL"],["price","PRICE"],["volatility_w","VOL-W%"],["volatility_m","VOL-M%"],["atr_pct","ATR%"],["off_52w_high_pct","vs52wH"],["rel_volume","RVOL"],["market_cap","MCAP"]]
+  :[["ticker","TICKER","l"],["company","COMPANY","l"],["sector","SECTOR","l"],["price","PRICE"],["off_52w_high_pct","vs52wH"],["rsi","RSI"],["perf_m","1M%"]];
+ $("thead").innerHTML=CC.map(c=>`<th class="${c[2]||""}" data-k="${c[0]}">${c[1]}${SORT.k===c[0]?(SORT.d<0?" ▾":" ▴"):""}</th>`).join("");
+ const max=Math.max(...r.map(x=>x.coil_score||0),1);
+ $("tbody").innerHTML=r.map(x=>CUR==="coiled"?`<tr>
+  <td class="l tk">${x.ticker}${chips(x)}</td><td class="l co">${x.company||""}</td><td class="l mut">${x.sector||""}</td>
+  <td><span class="bar" style="width:${Math.round(46*(x.coil_score||0)/max)}px"></span><span class="score">${fN(x.coil_score,0)}</span></td>
+  <td>${fN(x.price)}</td><td>${fN(x.volatility_w,1)}</td><td class="mut">${fN(x.volatility_m,1)}</td>
+  <td>${fN(x.atr_pct,1)}</td><td class="${cls(x.off_52w_high_pct)}">${fP(x.off_52w_high_pct)}</td>
+  <td>${fN(x.rel_volume,1)}</td><td class="mut">${fM(x.market_cap)}</td></tr>`
+  :`<tr>
+  <td class="l tk">${x.ticker}${chips(x)}</td><td class="l co">${x.company||""}</td><td class="l mut">${x.sector||""}</td>
+  <td>${fN(x.price)}</td><td class="${cls(x.off_52w_high_pct)}">${fP(x.off_52w_high_pct)}</td>
+  <td>${fN(x.rsi,0)}</td><td class="${cls(x.perf_m)}">${fP(x.perf_m)}</td></tr>`).join("")
+  ||`<tr><td colspan="11" class="mut" style="text-align:center;padding:24px">nothing on this board right now</td></tr>`;
+ document.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;SORT=SORT.k===k?{k,d:-SORT.d}:{k,d:-1};render()});
+}
+function tabs(){
+ const c=cons();
+ $("tabs").innerHTML=`<div class="tab coil ${CUR==="coiled"?"on":""}" data-k="coiled">🌀 Coiled <span style="opacity:.7">${(c.coiled||[]).length}</span></div>
+ <div class="tab dist ${CUR==="distribution_watch"?"on":""}" data-k="distribution_watch">⚠ Distribution Watch <span style="opacity:.7">${(c.distribution_watch||[]).length}</span></div>`;
+ document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{CUR=el.dataset.k;SORT=CUR==="coiled"?{k:"coil_score",d:-1}:{k:"perf_m",d:1};$("wywrap").style.display=CUR==="coiled"?"flex":"none";tabs();render()});
+}
+async function main(){
+ try{
+  const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());DOC=await r.json();
+  $("ts").textContent=(DOC.generated_at||"").replace("T"," ").slice(0,16)+"Z";
+  const c=cons();
+  $("ncoil").textContent=(c.coiled||[]).length;$("ndist").textContent=(c.distribution_watch||[]).length;
+  $("crit").textContent="Coil criteria: "+(c.criteria||"");
+  const qn=Object.keys(DOC.quarantined||{});
+  if(qn.length){const w=$("qwarn");w.style.display="block";w.textContent="⚠ quarantined screens (suspicious raw counts, excluded): "+qn.join(", ");}
+  tabs();render();$("q").oninput=render;$("wyonly").onchange=render;
+ }catch(e){document.querySelector(".wrap").insertAdjacentHTML("beforeend",'<div class="err">feed unavailable — '+e+'</div>')}
+}
+main();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>

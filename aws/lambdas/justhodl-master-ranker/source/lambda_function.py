@@ -166,6 +166,7 @@ def build_ticker_index():
         "massive":          fetch_json("data/massive-signals.json", max_age_h=72),
         "capital_flow":     fetch_json("data/capital-flow-radar.json", max_age_h=60),
         "risk_regime":      fetch_json("data/risk-regime.json", max_age_h=48),
+        "finviz_tech":      fetch_json("data/finviz-signals.json", max_age_h=30),
         # fused confluence synthesizers (added — rank should weight multi-engine-confirmed names)
         "options_confluence":  fetch_json("data/options-confluence.json", max_age_h=72),
         "flow_confluence":     fetch_json("data/flow-confluence.json", max_age_h=72),
@@ -463,6 +464,25 @@ def build_ticker_index():
                 "score": r.get("score"),
                 "ret_20d": r.get("ret_20d"),
             }
+
+    # FinViz technical events (ops 2695): whole-market MA crosses / ATH breakouts /
+    # base breaks from justhodl-finviz-signals v2 confluence. Registers a
+    # "finviz_tech" system ({"score": 0-100, "tags": [...]}) so compute_conviction,
+    # n_systems and the calibration loop all see the technical tape.
+    if feeds.get("finviz_tech"):
+        _fvc = feeds["finviz_tech"].get("confluence") or {}
+        for _key, _sc, _tag in (("ath_momentum", 88, "ATH_BREAKOUT"),
+                                ("base_breakout", 84, "BASE_BREAKOUT"),
+                                ("bottom_squeeze_insider", 90, "BOTTOM_SQUEEZE_INSIDER"),
+                                ("ma200_reclaim_vol", 78, "MA200_RECLAIM"),
+                                ("trend_flip_up", 72, "TREND_FLIP_UP"),
+                                ("breakout_52w_vol", 70, "52W_BREAKOUT_VOL")):
+            for _sym in (_fvc.get(_key) or [])[:60]:
+                _cur = idx.setdefault(_sym, {}).get("finviz_tech") or {}
+                _tags = _cur.get("tags") or []
+                if _tag not in _tags:
+                    _tags.append(_tag)
+                idx[_sym]["finviz_tech"] = {"score": max(_cur.get("score") or 0, _sc), "tags": _tags}
 
     # 12. volatility squeeze
     if feeds["volatility_squeeze"]:

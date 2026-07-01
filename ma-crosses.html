@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MA Cross Command · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--text:#e8edf4;--text-dim:#aab4c4;--text-mute:#6b7687;--pos:#00e676;--neg:#ff3d5a;--info:#22d3ee;--accent:#a78bfa;--gold:#fbbf24;--font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--font-mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.4}a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono)}
+h1{font-size:21px;margin:8px 0 2px;font-weight:700;letter-spacing:-.2px}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:3px 7px;border-radius:3px;letter-spacing:.5px}
+.sub{color:var(--text-mute);font-size:12px;margin-top:4px;max-width:820px}
+.meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:16px;align-items:center;margin-top:8px;flex-wrap:wrap}.meta b{color:var(--info);font-weight:600}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.kpi .l{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mute)}
+.kpi .v{font-family:var(--font-mono);font-size:19px;font-weight:700;margin-top:3px}
+.kpi .s{font-size:10px;color:var(--text-mute);margin-top:2px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 12px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.tab{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;color:var(--text-dim);background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:6px 12px;cursor:pointer;transition:.12s}
+.tab:hover{border-color:var(--border-hi);color:var(--text)}.tab.on{color:var(--bg);background:var(--info);border-color:var(--info);font-weight:700}
+.tab.up.on{background:var(--pos);border-color:var(--pos)}.tab.dn.on{background:var(--neg);border-color:var(--neg)}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+input.q{background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:12px;width:220px;font-family:var(--font-mono)}
+input.q:focus{outline:none;border-color:var(--info)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th{padding:7px 11px;text-align:right;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--text-mute);border-bottom:1px solid var(--border);background:rgba(28,35,48,.4);font-weight:500;cursor:pointer;white-space:nowrap}
+th.l,td.l{text-align:left}
+td{padding:6px 11px;font-family:var(--font-mono);font-size:11.5px;text-align:right;border-bottom:1px solid rgba(28,35,48,.5);white-space:nowrap}
+tr:last-child td{border-bottom:none}.tk{font-weight:600;color:var(--text)}.co{color:var(--text-dim);font-size:11px;max-width:210px;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.mut{color:var(--text-mute)}
+.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:var(--gold);border-radius:6px;padding:8px 12px;font-size:11px;font-family:var(--font-mono);margin:10px 0;display:none}
+.links{margin-top:22px;font-size:11px;color:var(--text-mute)}.links a{color:var(--info);text-decoration:none;margin-right:14px}
+.err{color:var(--neg);font-family:var(--font-mono);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="nav-back" href="/">← JustHodl.AI</a>
+<header>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h1>MA Cross Command</h1><span class="badge">FINVIZ · WHOLE MARKET</span></div>
+<div class="sub">Every moving-average cross across ~11,300 US names, both directions: golden/death (50×200), price × 200/50/20-DMA, and 20×50. Fresh crosses are trend-state changes — the 200-DMA line is the institutional bull/bear divide. Fused into best-setups (technical family) and master-ranker; graded by the truth layer as <span style="color:var(--accent)">eng:finviz-signals</span>.</div>
+<div class="meta"><span>Updated <b id="ts">…</b></span><span>Screens <b id="nscreens">—</b></span><span>Breadth regime <b id="regime">—</b></span></div>
+</header>
+<div class="warn" id="qwarn"></div>
+<div class="strip">
+<div class="kpi"><div class="l">% &gt; 200-DMA</div><div class="v" id="pa200">—</div><div class="s">whole market</div></div>
+<div class="kpi"><div class="l">% &gt; 50-DMA</div><div class="v" id="pa50">—</div><div class="s">whole market</div></div>
+<div class="kpi"><div class="l">% &gt; 20-DMA</div><div class="v" id="pa20">—</div><div class="s">whole market</div></div>
+<div class="kpi"><div class="l">S&amp;P 500 &gt; 200-DMA</div><div class="v" id="sp200">—</div><div class="s">index subset</div></div>
+<div class="kpi"><div class="l">Golden / Death today</div><div class="v"><span class="pos" id="ngold">—</span><span class="mut"> / </span><span class="neg" id="ndeath">—</span></div><div class="s">50×200 crosses</div></div>
+<div class="kpi"><div class="l">Net 52w NH−NL</div><div class="v" id="nethl">—</div><div class="s" id="advs">advancers —</div></div>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="toolbar"><input class="q" id="q" placeholder="filter ticker / company / sector…"><span class="mut" style="font-family:var(--font-mono);font-size:11px" id="rowcount"></span></div>
+<div class="card"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="links">Related: <a href="/ma200-radar.html">200-DMA Reclaim &amp; Retest</a><a href="/highs-lows.html">Highs &amp; Lows</a><a href="/patterns.html">Patterns</a><a href="/consolidation.html">Consolidation</a><a href="/master-rank.html">Master Ranker</a><a href="/best-ideas.html">Best Ideas</a></div>
+</div>
+<script>
+const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
+const TABS=[["golden_cross","⭐ Golden Cross","up"],["death_cross","☠ Death Cross","dn"],
+["price_cross200a","Price ↑ 200D","up"],["price_cross200b","Price ↓ 200D","dn"],
+["price_cross50a","Price ↑ 50D","up"],["price_cross50b","Price ↓ 50D","dn"],
+["price_cross20a","Price ↑ 20D","up"],["price_cross20b","Price ↓ 20D","dn"],
+["sma20_cross50a","20D ↑ 50D","up"],["sma20_cross50b","20D ↓ 50D","dn"]];
+const COLS=[["ticker","TICKER","l"],["company","COMPANY","l"],["sector","SECTOR","l"],["price","PRICE"],["change_pct","CHG%"],["sma20_pct","%v20D"],["sma50_pct","%v50D"],["sma200_pct","%v200D"],["rsi","RSI"],["rel_volume","RVOL"],["perf_m","1M%"],["off_52w_high_pct","vs52wH"],["market_cap","MCAP"]];
+let DOC=null,CUR="golden_cross",SORT={k:"rel_volume",d:-1};
+const $=id=>document.getElementById(id);
+const fN=(v,d=2)=>v==null?"—":(+v).toFixed(d);
+const fP=v=>{if(v==null)return"—";const s=(+v).toFixed(1)+"%";return v>0?"+"+s:s};
+const cls=v=>v==null?"mut":v>0?"pos":v<0?"neg":"mut";
+const fM=v=>v==null?"—":v>=1e9?(v/1e9).toFixed(1)+"B":v>=1e6?(v/1e6).toFixed(0)+"M":fN(v,0);
+function rows(){return ((DOC.boards||{}).ma_crosses||{})[CUR]||[]}
+function render(){
+ const q=$("q").value.toLowerCase();
+ let r=rows().filter(x=>!q||[x.ticker,x.company,x.sector].join(" ").toLowerCase().includes(q));
+ r=r.slice().sort((a,b)=>{const A=a[SORT.k],B=b[SORT.k];if(A==null)return 1;if(B==null)return -1;return(A<B?-1:A>B?1:0)*SORT.d});
+ $("rowcount").textContent=r.length+" names";
+ $("thead").innerHTML=COLS.map(c=>`<th class="${c[2]||""}" data-k="${c[0]}">${c[1]}${SORT.k===c[0]?(SORT.d<0?" ▾":" ▴"):""}</th>`).join("");
+ $("tbody").innerHTML=r.map(x=>`<tr>
+  <td class="l tk">${x.ticker}</td><td class="l co">${x.company||""}</td><td class="l mut">${x.sector||""}</td>
+  <td>${fN(x.price)}</td><td class="${cls(x.change_pct)}">${fP(x.change_pct)}</td>
+  <td class="${cls(x.sma20_pct)}">${fP(x.sma20_pct)}</td><td class="${cls(x.sma50_pct)}">${fP(x.sma50_pct)}</td>
+  <td class="${cls(x.sma200_pct)}">${fP(x.sma200_pct)}</td><td>${fN(x.rsi,0)}</td>
+  <td class="${(x.rel_volume||0)>=2?"pos":""}">${fN(x.rel_volume,1)}</td>
+  <td class="${cls(x.perf_m)}">${fP(x.perf_m)}</td><td class="${cls(x.off_52w_high_pct)}">${fP(x.off_52w_high_pct)}</td>
+  <td class="mut">${fM(x.market_cap)}</td></tr>`).join("")||'<tr><td colspan="13" class="mut" style="text-align:center;padding:24px">no names on this screen right now</td></tr>';
+ document.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;SORT=SORT.k===k?{k,d:-SORT.d}:{k,d:-1};render()});
+}
+function tabs(){$("tabs").innerHTML=TABS.map(t=>`<div class="tab ${t[2]} ${t[0]===CUR?"on":""}" data-k="${t[0]}">${t[1]} <span style="opacity:.7">${(((DOC.boards||{}).ma_crosses||{})[t[0]]||[]).length}</span></div>`).join("");
+ document.querySelectorAll(".tab").forEach(el=>el.onclick=()=>{CUR=el.dataset.k;tabs();render()})}
+async function main(){
+ try{
+  const r=await fetch(PROXY+"/data/finviz-signals.json?t="+Date.now());DOC=await r.json();
+  $("ts").textContent=(DOC.generated_at||"").replace("T"," ").slice(0,16)+"Z";
+  $("nscreens").textContent=Object.keys(DOC.counts||{}).length;
+  const b=DOC.breadth||{},c=b.counts||{};
+  $("pa200").textContent=b.pct_above_sma200!=null?b.pct_above_sma200+"%":"—";
+  $("pa200").className="v "+((b.pct_above_sma200||0)>=55?"pos":(b.pct_above_sma200||0)<45?"neg":"");
+  $("pa50").textContent=b.pct_above_sma50!=null?b.pct_above_sma50+"%":"—";
+  $("pa20").textContent=b.pct_above_sma20!=null?b.pct_above_sma20+"%":"—";
+  $("sp200").textContent=b.sp500_pct_above_sma200!=null?b.sp500_pct_above_sma200+"%":"—";
+  $("regime").textContent=b.regime||"—";
+  $("ngold").textContent=(DOC.counts||{}).golden_cross??"—";
+  $("ndeath").textContent=(DOC.counts||{}).death_cross??"—";
+  $("nethl").textContent=c.net_hl_52w==null?"—":(c.net_hl_52w>0?"+":"")+c.net_hl_52w;
+  $("nethl").className="v "+cls(c.net_hl_52w);
+  $("advs").textContent="advancers "+(b.advancers_pct!=null?b.advancers_pct+"%":"—");
+  const qn=Object.keys(DOC.quarantined||{});
+  if(qn.length){const w=$("qwarn");w.style.display="block";w.textContent="⚠ quarantined screens (suspicious raw counts, excluded): "+qn.join(", ")+" — see engine log ops 2695";}
+  tabs();render();
+  $("q").oninput=render;
+ }catch(e){document.querySelector(".wrap").insertAdjacentHTML("beforeend",'<div class="err">feed unavailable — '+e+'</div>')}
+}
+main();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
