@@ -1,33 +1,22 @@
-============================================================
-ENGINE 1: signal-genealogy
-  version=1.1.0 qualifying=98 significant_cascades=1288
 
-ENGINE 2: structural-pre-signals
-  version=1.0.0 restructuring=7 buildout=32
+signal-genealogy-daily: 2 targets
+  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-signal-genealogy
+  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-signal-genealogy
+  removed duplicate target ids: ['target1']
 
-ENGINE 3: universe-discovery
-  version=1.0.0 ipos=22 registrants=39 crossers=0
+structural-pre-signals-daily: 2 targets
+  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-structural-pre-signals
+  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-structural-pre-signals
+  removed duplicate target ids: ['target1']
 
-ENGINE 4: talent-migration
-  version=1.0.0 total=98 departures=25 appointments=25
+universe-discovery-daily: 2 targets
+  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-universe-discovery
+  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-universe-discovery
+  removed duplicate target ids: ['target1']
 
-============================================================
-PAGES
-  signal-genealogy.html: bytes=12999 all clean
-  early-signals.html: bytes=18434 all clean
+talent-migration-daily: 2 targets
+  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-talent-migration
+  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-talent-migration
+  removed duplicate target ids: ['target1']
 
-============================================================
-SCHEDULES (all 4 should be ENABLED)
-  signal-genealogy-daily: State=ENABLED Schedule=cron(40 6 * * ? *) n_targets=2
-  structural-pre-signals-daily: State=ENABLED Schedule=cron(20 11 * * ? *) n_targets=2
-  universe-discovery-daily: State=ENABLED Schedule=cron(10 12 * * ? *) n_targets=2
-  talent-migration-daily: State=ENABLED Schedule=cron(5 13 * * ? *) n_targets=2
-
-============================================================
-LAMBDA FUNCTIONS (all 4 should be Active)
-  justhodl-signal-genealogy: State=Active Memory=512MB Timeout=180s LastModified=2026-07-01T19:05:23.000+0000
-  justhodl-structural-pre-signals: State=Active Memory=512MB Timeout=120s LastModified=2026-07-01T19:36:10.000+0000
-  justhodl-universe-discovery: State=Active Memory=512MB Timeout=120s LastModified=2026-07-01T19:45:41.000+0000
-  justhodl-talent-migration: State=Active Memory=512MB Timeout=150s LastModified=2026-07-01T19:49:05.000+0000
-
-DONE 2686
+DONE 2687
