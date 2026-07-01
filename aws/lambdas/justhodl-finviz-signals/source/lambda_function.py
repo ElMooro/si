@@ -37,6 +37,21 @@ SCREENS = [
     ("multiple_top",   "f=ta_pattern_multipletop",         120),
     ("channel_up",     "f=ta_pattern_channelup",           150),
     ("channel_down",   "f=ta_pattern_channeldown",         150),
+    # ── added after deep FinViz research (verified against FinViz's own live filter
+    # dictionary via Screener.load_filter_dict() — first guesses for triangle/price-
+    # cross were wrong syntax that silently returned the WHOLE unfiltered universe
+    # instead of erroring, caught by checking result counts before deploy) ──
+    ("triangle_asc",   "f=ta_pattern_wedgeresistance",      100),  # FinViz UI "Triangle Ascending"
+    ("triangle_desc",  "f=ta_pattern_wedgesupport",         100),  # FinViz UI "Triangle Descending"
+    ("wedge_up",       "f=ta_pattern_wedgeup",               80),  # reversal
+    ("wedge_down",     "f=ta_pattern_wedgedown",             80),  # reversal
+    ("sma20_cross50a", "f=ta_sma20_cross50a",               150),  # 20d crossing ABOVE 50d
+    ("sma20_cross50b", "f=ta_sma20_cross50b",               150),  # 20d crossing BELOW 50d
+    ("price_cross50a", "f=ta_sma50_pca",                    150),  # price crossed ABOVE its 50d SMA
+    ("price_cross200a","f=ta_sma200_pca",                   150),  # price crossed ABOVE its 200d SMA
+    ("price_cross200b","f=ta_sma200_pcb",                   150),  # price crossed BELOW its 200d SMA
+    ("new_high_20d",   "s=ta_highlow20d_nh",                150),  # short-horizon momentum, complements 52w
+    ("new_low_20d",    "s=ta_highlow20d_nl",                150),
 ]
 
 
