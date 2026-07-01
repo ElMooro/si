@@ -1,24 +1,17 @@
-=== ratios endpoint — operating margin field? ===
-  keys: ['grossProfitMargin', 'ebitMargin', 'ebitdaMargin', 'operatingProfitMargin', 'pretaxProfitMargin', 'continuousOperationsProfitMargin', 'netProfitMargin', 'bottomLineProfitMargin']
-  operatingProfitMargin: 0.26405907218149716
+config updated: memory=1024 timeout=300
+code deployed
+invoking (this will take a while — broad universe + 2-stage funnel)...
+INVOKE: 200 Unhandled
+BODY: {"errorMessage": "cannot unpack non-iterable NoneType object", "errorType": "TypeError", "requestId": "2f7ef02c-6a94-4fef-9f43-5779d3f848ed", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 369, in lambda_handler\n    for (kind, gname), pts in groups.items():\n"]}
 
-=== company-screener max rows in a single call ===
-  rows returned for limit=3000: 3000
+=== LIVE OUTPUT ===
+version: 1.1.0 elapsed_s: 4.08
+universe: None | AI cohort: None | sectors: None
+by_sector: None
+candidates_by_sector: None
 
-=== sector breakdown of that broad screen (real 'all sectors' coverage check) ===
-   Technology: 296
-   Financial Services: 293
-   Industrials: 282
-   Healthcare: 196
-   Consumer Cyclical: 154
-   Consumer Defensive: 97
-   Utilities: 85
-   Real Estate: 81
-   Energy: 77
-   Communication Services: 71
-   Basic Materials: 69
-  total non-ETF/fund: 1701
+n_priced: 118 n_candidates: 14
 
-=== ai-infra-stack.json layer list (for reference, to keep as special overlay) ===
-  layers: ['silicon', 'equipment', 'memory', 'foundry', 'networking', 'optical', 'power_grid', 'cooling', 'datacenter_buildout', 'neocloud', 'miners_to_ai', 'datacenter_reits']
-DONE 2659
+top 10 setups across ALL sectors:
+readback error: 'in_ai_cohort'
+DONE 2660
