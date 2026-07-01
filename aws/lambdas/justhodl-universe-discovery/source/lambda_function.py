@@ -112,6 +112,8 @@ def lambda_handler(event=None, context=None):
         company = r.get("company") or ""
         if "ETF" in company.upper():
             continue                       # ETF launches aren't the "new company" signal this is for
+        if any(x in company.upper() for x in ("WARRANT", "WHEN ISSUED", "WHEN-ISSUED", "EX-DISTRIBUTION")):
+            continue                       # derivative securities / spin-off technical listings, not new companies
         ipos.append({"symbol": r.get("symbol"), "company": company,
                      "date": r.get("date"), "exchange": r.get("exchange"),
                      "actions": r.get("actions"), "shares": r.get("shares"),
