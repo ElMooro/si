@@ -1,13 +1,22 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2676_deploy_structural.py", line 22, in <module>
-    lam.update_function_code(FunctionName=FN, ZipFile=buf.getvalue()); print("code updated")
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-structural-pre-signals is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
+  state check 0: State=Active LastUpdateStatus=Successful
+code updated
+  state check 0: State=Active LastUpdateStatus=InProgress
+  state check 1: State=Active LastUpdateStatus=Successful
+schedule wired
+INVOKE: 200 None
+BODY: {"statusCode": 200, "body": "{\"ok\": true, \"n_restructuring\": 0, \"n_buildout\": 43}"}
+
+version: 1.0.0 elapsed_s: 14.74
+restructuring: 0 filings | buildout: 43 filings
+
+sample restructuring filings:
+
+sample buildout filings:
+  BACC   Blue Acquisition Corp/Cayman | 2026-06-30 | Technology
+  BACC   Blue Acquisition Corp/Cayman | 2026-06-30 | Technology
+  DLR    DIGITAL REALTY TRUST, INC. | 2026-06-29 | Technology
+  DLR    DIGITAL REALTY TRUST, INC. | 2026-06-29 | Technology
+  ?      Blue Owl Digital Infrastructure Trust | 2026-06-29 | None
+  EDGM   Edgemode, Inc. | 2026-06-29 | Technology
+by_sector: {'Technology': 42, '?': 1}
+DONE 2677
