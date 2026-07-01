@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-talent-migration",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 150,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Talent Migration: executive/board departures and appointments via SEC 8-K Item 5.02, with lightweight keyword classification of the actual filing text.",
+  "schedule": {
+    "rule_name": "talent-migration-daily",
+    "cron": "cron(5 13 * * ? *)",
+    "description": "Daily talent migration scan at 13:05 UTC"
+  }
+}
