@@ -3,105 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Re-Rating Radar · Find the Next MU · JustHodl.AI</title>
-<meta name="description" content="AI-infrastructure names cheap for their growth — not yet re-rated. Revision contagion + deepest discounts to growth-implied multiple. The MU pattern, fundamentals-first.">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>Re-Rating Radar · All Sectors · JustHodl.AI</title>
+<meta name="description" content="Names across every sector priced below their peer-group-implied multiple for their growth — not yet re-rated. Industry-relative regression, estimate-revision timing, and peer-leader contagion.">
 <style>
 :root{
-  --bg:#07090f;--bg-sunken:#0a0e17;--bg-raised:#11161f;--bg-elevated:#1a212f;
-  --fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--fg-4:#3d4759;--border:#1c2433;
-  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,.32);
-  --green:#38ffa8;--green-dim:rgba(56,255,168,.32);--green-bg:rgba(56,255,168,.06);
-  --amber:#ffb13d;--amber-dim:rgba(255,177,61,.32);
-  --red:#ff5c7a;--red-dim:rgba(255,92,122,.4);
-  --violet:#a78bfa;--violet-dim:rgba(167,139,250,.32);--violet-bg:rgba(167,139,250,.07);
-  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
-  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --bg:#0a0e14;--p:#10151f;--p2:#161d2a;--l:#1d2636;
+  --fg:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;
+  --cyan:#22d3ee;--green:#26ffaf;--red:#ff5c7c;--violet:#a78bfa;--amber:#fbbf24;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;--sans:Inter,system-ui,sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--fg-1);font-family:var(--font-sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
-.wrap{max-width:1240px;margin:0 auto;padding:28px 32px 80px}
-.page-hdr{display:flex;align-items:baseline;gap:22px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--border)}
-.page-hdr .title{font-family:var(--font-mono);font-size:11.5px;letter-spacing:1.6px;color:var(--violet);font-weight:600;text-transform:uppercase}
-.page-hdr h1{margin:2px 0 0;font-size:24px;font-weight:600;letter-spacing:-.2px;width:100%}
-.page-hdr .meta{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
-.page-hdr .meta b{color:var(--fg-1)}
-.nav-back{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px;text-transform:uppercase}
-.nav-back:hover{color:var(--cyan)}
-.hero{background:linear-gradient(135deg,var(--violet-bg),rgba(0,212,255,.03),transparent);border:1px solid var(--border);border-left:4px solid var(--violet);border-radius:10px;padding:16px 22px;margin-bottom:16px}
-.hero p{margin:0;color:var(--fg-2);font-size:13.5px;max-width:920px}
-.hero p b{color:var(--fg-1)}
-.banner{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;font-family:var(--font-mono);font-size:11px}
-.chip{background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:7px 13px;color:var(--fg-2)}
-.chip b{color:var(--violet)}
-.statbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
-.stat{flex:1;min-width:120px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
-.stat .n{font-family:var(--font-mono);font-size:24px;font-weight:700;line-height:1.05}
-.stat .l{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.2px;color:var(--fg-3);text-transform:uppercase;margin-top:6px}
-.stat .n.vi{color:var(--violet)}.stat .n.cy{color:var(--cyan)}.stat .n.gr{color:var(--green)}
-.sec-hdr{display:flex;align-items:center;gap:10px;margin:32px 0 14px}
-.sec-hdr h2{margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600}
-.sec-hdr .sub{font-family:var(--font-sans);font-size:11.5px;color:var(--fg-3);font-weight:400;text-transform:none;letter-spacing:0}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 28px 70px}
+
+.topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.brand{font-family:var(--mono);font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.brand b{color:var(--fg3);font-weight:600}
+.topmeta{font-family:var(--mono);font-size:11.5px;color:var(--fg3)}
+.toplinks{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em}
+.toplinks a{color:var(--fg2)}.toplinks a:hover{color:var(--cyan)}
+
+h1{margin:2px 0 6px;font-size:23px;font-weight:700;letter-spacing:-.2px}
+.hero{background:linear-gradient(135deg,rgba(167,139,250,.07),rgba(34,211,238,.03),transparent);
+  border:1px solid var(--l);border-left:3px solid var(--violet);border-radius:12px;
+  padding:16px 22px;margin-bottom:16px}
+.hero p{margin:0;color:var(--fg2);font-size:13px;max-width:900px;line-height:1.55}
+.hero p b{color:var(--fg)}
+
+.statbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.stat{flex:1;min-width:110px;background:var(--p);border:1px solid var(--l);border-radius:10px;padding:12px 15px}
+.stat .n{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1.05}
+.stat .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--fg3);text-transform:uppercase;margin-top:5px}
+.stat .n.vi{color:var(--violet)}.stat .n.cy{color:var(--cyan)}.stat .n.gr{color:var(--green)}.stat .n.rd{color:var(--red)}
+
+/* ---- sector coverage grid — the headline "all sectors" proof ---- */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:22px}
+.sector-tile{background:var(--p);border:1px solid var(--l);border-radius:9px;padding:10px 13px;cursor:pointer;transition:border-color .12s}
+.sector-tile:hover,.sector-tile.on{border-color:var(--cyan)}
+.sector-tile.on{background:rgba(34,211,238,.06)}
+.sector-tile .sn{font-size:11.5px;font-weight:600;color:var(--fg2);margin-bottom:5px}
+.sector-tile .sc{font-family:var(--mono);font-weight:700;font-size:16px}
+.sector-tile .sc small{font-family:var(--sans);font-weight:500;font-size:10px;color:var(--fg3)}
+.sector-tile .sbar{height:3px;background:var(--l);border-radius:2px;margin-top:6px;overflow:hidden}
+.sector-tile .sbar i{display:block;height:100%;background:var(--green)}
+
+.sec-hdr{display:flex;align-items:center;gap:10px;margin:30px 0 12px;flex-wrap:wrap}
+.sec-hdr h2{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--fg2)}
+.sec-hdr .sub{font-family:var(--sans);font-size:11.5px;color:var(--fg3);font-weight:400;text-transform:none;letter-spacing:0}
 .sec-hdr .dot{width:9px;height:9px;border-radius:50%}
-.sec-hdr .dot.v{background:var(--violet);box-shadow:0 0 10px var(--violet-dim)}
-.sec-hdr .dot.g{background:var(--green);box-shadow:0 0 10px var(--green-dim)}
+.sec-hdr .dot.v{background:var(--violet);box-shadow:0 0 10px rgba(167,139,250,.4)}
+.sec-hdr .dot.g{background:var(--green);box-shadow:0 0 10px rgba(38,255,175,.4)}
 .sec-hdr .dot.c{background:var(--cyan)}
-.sec-hdr .ct{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3)}
-.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:15px 18px;margin-bottom:11px;border-left:4px solid var(--border)}
-.card.contagion{border-left-color:var(--violet);background:linear-gradient(100deg,var(--violet-bg),var(--bg-raised) 46%);box-shadow:0 0 20px rgba(167,139,250,.06)}
-.card.discount{border-left-color:var(--green);background:linear-gradient(100deg,var(--green-bg),var(--bg-raised) 46%)}
-.card .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sym{font-family:var(--font-mono);font-size:17px;font-weight:700;letter-spacing:.4px}
-.co{color:var(--fg-2);font-size:12.5px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cap,.layer{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-sunken);border:1px solid var(--border);color:var(--fg-2)}
-.cap.nano,.cap.micro,.cap.small{color:var(--cyan);border-color:var(--cyan-dim)}
-.layer{color:var(--violet);border-color:var(--violet-dim)}
-.badge{font-family:var(--font-mono);font-size:8.5px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:3px}
-.badge.up{background:rgba(0,212,255,.16);color:var(--cyan);border:1px solid var(--cyan-dim)}
-.badge.cg{background:rgba(167,139,250,.18);color:var(--violet);border:1px solid var(--violet-dim)}
-.badge.sq{background:rgba(255,92,122,.14);color:var(--red);border:1px solid var(--red-dim)}
-.badge.deal{background:rgba(56,255,168,.14);color:var(--green);border:1px solid var(--green-dim)}
-.badge.accel{background:rgba(255,177,61,.14);color:var(--amber);border:1px solid var(--amber-dim)}
-.comp{margin-left:auto;font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--fg-1)}
-.cg-line{font-size:12px;color:var(--violet);margin:9px 0 3px;font-weight:500}
-.metrics{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
-.metric{background:var(--bg-sunken);border:1px solid var(--border);border-radius:6px;padding:7px 13px;min-width:90px}
-.metric .mv{font-family:var(--font-mono);font-size:15px;font-weight:700;line-height:1}
-.metric .ml{font-family:var(--font-mono);font-size:8px;letter-spacing:.8px;color:var(--fg-3);text-transform:uppercase;margin-top:5px}
+.sec-hdr .ct{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--fg3)}
+
+.card{background:var(--p);border:1px solid var(--l);border-radius:10px;padding:14px 17px;margin-bottom:9px;border-left:3px solid var(--l)}
+.card.contagion{border-left-color:var(--violet);background:linear-gradient(100deg,rgba(167,139,250,.06),var(--p) 46%)}
+.card.discount{border-left-color:var(--green);background:linear-gradient(100deg,rgba(38,255,175,.05),var(--p) 46%)}
+.card.flagged{border-left-color:var(--red)}
+.card .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.sym{font-family:var(--mono);font-size:16.5px;font-weight:700}
+.co{color:var(--fg2);font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:var(--p2);border:1px solid var(--l);color:var(--fg2)}
+.tag.ai{color:var(--amber);border-color:rgba(251,191,36,.35)}
+.tag.sector{color:var(--fg3)}
+.badge{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.03em;padding:2px 7px;border-radius:4px}
+.badge.up{background:rgba(34,211,238,.15);color:var(--cyan)}
+.badge.cg{background:rgba(167,139,250,.17);color:var(--violet)}
+.badge.sq{background:rgba(255,92,124,.14);color:var(--red)}
+.badge.deal{background:rgba(38,255,175,.14);color:var(--green)}
+.badge.accel{background:rgba(251,191,36,.14);color:var(--amber)}
+.badge.flag{background:rgba(255,92,124,.2);color:var(--red)}
+.comp{margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:700}
+.cg-line{font-size:12px;color:var(--violet);margin:8px 0 2px}
+.metrics{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.metric{background:var(--p2);border:1px solid var(--l);border-radius:7px;padding:7px 12px;min-width:88px}
+.metric .mv{font-family:var(--mono);font-size:14px;font-weight:700;line-height:1}
+.metric .ml{font-family:var(--mono);font-size:8px;letter-spacing:.04em;color:var(--fg3);text-transform:uppercase;margin-top:4px}
 .metric.disc .mv{color:var(--green)}.metric.grow .mv{color:var(--cyan)}
-.why{color:var(--fg-3);font-size:11.5px;margin-top:10px;font-style:italic}
+.why{color:var(--fg3);font-size:11.5px;margin-top:9px;line-height:1.5}
+.flags-line{color:var(--red);font-size:11.5px;margin-top:6px}
+
 .tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
-.tbl th{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;text-align:right;padding:8px 9px;border-bottom:1px solid var(--border)}
-.tbl th:first-child,.tbl th:nth-child(2){text-align:left}
-.tbl td{padding:9px;border-bottom:1px solid var(--border);color:var(--fg-2);text-align:right;font-family:var(--font-mono)}
-.tbl td:first-child,.tbl td:nth-child(2){text-align:left;font-family:var(--font-sans)}
-.tbl td .s{font-family:var(--font-mono);font-weight:600;color:var(--fg-1)}
-.tbl tr:hover td{background:var(--bg-raised)}
-.note{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg-3);line-height:1.7}
-.note code{font-family:var(--font-mono);color:var(--cyan);background:var(--bg-sunken);padding:1px 5px;border-radius:3px}
-.empty{color:var(--fg-3);font-style:italic;padding:12px 2px;font-size:12.5px}
-.loading{text-align:center;color:var(--fg-3);font-family:var(--font-mono);padding:80px 0;font-size:13px}
-@media(max-width:640px){.wrap{padding:18px 16px 60px}.co{max-width:130px}.page-hdr h1{font-size:19px}.tbl th:nth-child(n+5),.tbl td:nth-child(n+5){display:none}}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--fg3);text-transform:uppercase;text-align:right;padding:8px;border-bottom:1px solid var(--l)}
+.tbl th:first-child,.tbl th:nth-child(2),.tbl th:nth-child(3){text-align:left}
+.tbl td{padding:8px;border-bottom:1px solid var(--l);color:var(--fg2);text-align:right;font-family:var(--mono)}
+.tbl td:first-child,.tbl td:nth-child(2),.tbl td:nth-child(3){text-align:left;font-family:var(--sans)}
+.tbl td .s{font-family:var(--mono);font-weight:700;color:var(--fg)}
+.tbl tr:hover td{background:var(--p2)}
+
+.note{margin-top:32px;padding-top:16px;border-top:1px solid var(--l);font-size:11.5px;color:var(--fg3);line-height:1.7}
+.note code{font-family:var(--mono);color:var(--cyan);background:var(--p2);padding:1px 5px;border-radius:3px}
+.empty{color:var(--fg3);font-style:italic;padding:12px 2px;font-size:12.5px}
+.loading{text-align:center;color:var(--fg3);font-family:var(--mono);padding:80px 0;font-size:13px}
+@media(max-width:640px){.wrap{padding:16px 14px 50px}.co{max-width:120px}h1{font-size:18px}.tbl th:nth-child(n+6),.tbl td:nth-child(n+6){display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="page-hdr">
-    <a href="/" class="nav-back">← JustHodl.AI</a>
-    <div class="title">AI Re-Rating Radar</div>
-    <h1>Find the Next MU — Before It Re-Rates</h1>
-    <div class="meta" id="meta">loading…</div>
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>Re-Rating Radar<b>· JustHodl.AI</b></div>
+    <div class="topmeta" id="meta">loading…</div>
+    <div class="toplinks"><a href="/">← Desk</a></div>
   </div>
+  <h1>Find the Next MU — Across Every Sector</h1>
   <div class="hero">
-    <p><b>The MU pattern: high coming growth on a low multiple — price hasn't yet repriced for the AI-driven
-    growth.</b> The cohort regression finds names priced <i>below</i> their growth-implied multiple, the
-    revision-velocity trigger separates re-rating from value trap, and <b style="color:var(--violet)">contagion</b>
-    flags laggards whose layer leader is already revising up — the upstream→downstream lag window.</p>
+    <p><b>The MU pattern, generalized: growth priced below the peer-group-implied multiple — not yet
+    re-rated.</b> Each name is regressed against its own industry (or sector, when an industry is too thin
+    to fit reliably) on growth <i>and</i> margin, not the whole market on one line — different industries
+    structurally trade at different multiples. The estimate-revision trigger separates re-rating from value
+    trap, <b style="color:var(--violet)">contagion</b> flags laggards whose peer-group leader is already
+    revising up, and a quality gate disqualifies anything flagged for earnings manipulation regardless of
+    how cheap it looks.</p>
   </div>
-  <div class="banner" id="banner"></div>
   <div class="statbar" id="statbar"></div>
-  <div id="content"><div class="loading">⟳ scanning the AI-infra cohort for unpriced growth…</div></div>
+  <div id="sectorgrid"></div>
+  <div id="content"><div class="loading">⟳ scanning the market for unpriced growth…</div></div>
   <div class="note" id="note"></div>
 </div>
 <script>
@@ -113,79 +132,134 @@ async function load(p){for(const u of SRC(p)){try{const r=await fetch(u);if(r.ok
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pc=v=>v==null?"—":(v>0?"+":"")+Math.round(v)+"%";
 const xx=v=>v==null?"—":v.toFixed(1)+"×";
+
+let RAW=null, SECTOR_FILTER=null;
+
 function badges(d){let b="";
   if(d.estimates_rising)b+='<span class="badge up">↑ EST RISING</span>';
   if(d.contagion)b+='<span class="badge cg">🧬 CONTAGION</span>';
   if(d.accelerating)b+='<span class="badge accel">⚡ ACCEL</span>';
   if(d.short_squeeze)b+='<span class="badge sq">🩳 SQUEEZE</span>';
   if(d.ai_deal)b+='<span class="badge deal">🤝 AI DEAL</span>';
+  if(d.red_flags&&d.red_flags.length)b+='<span class="badge flag">🚩 FLAGGED</span>';
   return b;}
+
 function metrics(d){
   return `<div class="metrics">
     <div class="metric disc"><div class="mv">${d.discount_to_implied_pct!=null?Math.round(d.discount_to_implied_pct)+"%":"—"}</div><div class="ml">below fair mult.</div></div>
-    <div class="metric grow"><div class="mv">${pc(d.growth_pct)}</div><div class="ml">${d.growth_basis==="forward"?"fwd growth":"growth"}</div></div>
+    <div class="metric grow"><div class="mv">${pc(d.growth_pct)}</div><div class="ml">${d.growth_basis==="forward"?"fwd growth":"trailing growth"}</div></div>
     <div class="metric"><div class="mv">${xx(d.ev_sales)}</div><div class="ml">EV/Sales${d.ev_sales_implied?" (fair "+xx(d.ev_sales_implied)+")":""}</div></div>
+    ${d.margin_pct!=null?`<div class="metric"><div class="mv">${Math.round(d.margin_pct)}%</div><div class="ml">op. margin</div></div>`:""}
     ${d.laggard_gap_pp>0?`<div class="metric"><div class="mv">${Math.round(d.laggard_gap_pp)}pp</div><div class="ml">lags peers</div></div>`:""}
-    ${d.unpriced_z!=null?`<div class="metric"><div class="mv">${d.unpriced_z}</div><div class="ml">unpriced z</div></div>`:""}
+    ${d.unpriced_z!=null?`<div class="metric"><div class="mv">${d.unpriced_z}</div><div class="ml">${esc(d.peer_group_kind||"peer")}-relative z</div></div>`:""}
   </div>`;
 }
+
 function card(d,kind){
-  const cls=kind||(d.contagion?"contagion":"");
-  const cg=d.contagion&&d.layer_leader?`<div class="cg-line">🧬 ${esc(d.layer_leader)} (${esc(d.layer)} leader) is revising up — ${esc(d.symbol)} hasn't caught up yet</div>`:"";
+  const cls=(kind||(d.contagion?"contagion":""))+(d.red_flags&&d.red_flags.length?" flagged":"");
+  const cg=d.contagion&&d.peer_leader?`<div class="cg-line">🧬 ${esc(d.peer_leader)} (${esc(d.layer||d.industry||"peer")} leader) is revising up — ${esc(d.symbol)} hasn't caught up yet</div>`:"";
+  const flagsLine=d.red_flags&&d.red_flags.length?`<div class="flags-line">🚩 ${d.red_flags.map(esc).join("; ")}</div>`:"";
   return `<div class="card ${cls}">
     <div class="top">
       <span class="sym">${esc(d.symbol)}</span>
-      ${d.cap_bucket?`<span class="cap ${d.cap_bucket}">${d.cap_bucket}</span>`:""}
-      ${d.layer?`<span class="layer">${esc(d.layer)}</span>`:""}
+      ${d.in_ai_cohort?'<span class="tag ai">AI-infra</span>':""}
+      ${d.sector?`<span class="tag sector">${esc(d.industry||d.sector)}</span>`:""}
       ${d.name?`<span class="co">${esc(d.name)}</span>`:""}
       <span style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap">${badges(d)}</span>
       <span class="comp">${d.composite}</span>
     </div>
-    ${cg}
+    ${cg}${flagsLine}
     ${metrics(d)}
     ${d.why?`<div class="why">${esc(d.why)}</div>`:""}
   </div>`;
 }
+
+function renderSectorGrid(cov){
+  const by=cov.by_sector||{}, cand=cov.candidates_by_sector||{};
+  const maxC=Math.max(1,...Object.values(cand));
+  const entries=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  let h=`<div class="sector-grid">`;
+  h+=`<div class="sector-tile${SECTOR_FILTER===null?' on':''}" data-sector="">
+      <div class="sn">All sectors</div><div class="sc">${cov.n_universe||0}<small> names</small></div>
+      <div class="sbar"><i style="width:100%"></i></div></div>`;
+  for(const [sec,n] of entries){
+    const c=cand[sec]||0;
+    h+=`<div class="sector-tile${SECTOR_FILTER===sec?' on':''}" data-sector="${esc(sec)}">
+      <div class="sn">${esc(sec)}</div><div class="sc">${c}<small> / ${n}</small></div>
+      <div class="sbar"><i style="width:${Math.round(c/maxC*100)}%"></i></div></div>`;
+  }
+  h+=`</div>`;
+  document.getElementById("sectorgrid").innerHTML=h;
+  document.querySelectorAll(".sector-tile").forEach(el=>{
+    el.addEventListener("click",()=>{ SECTOR_FILTER=el.dataset.sector||null; render(RAW); });
+  });
+}
+
+function filterRows(rows){
+  if(!SECTOR_FILTER) return rows;
+  return rows.filter(r=>r.sector===SECTOR_FILTER);
+}
+
 function render(j){
+  RAW=j;
   if(!j){document.getElementById("content").innerHTML='<div class="loading">Could not load re-rating data. <a href="javascript:location.reload()">Retry</a></div>';return;}
-  const s=j.summary||{};
-  const contag=s.contagion_candidates||[];
-  const deep=s.deepest_discounts||[];
-  const setups=s.top_setups||[];
+  const s=j.summary||{}, cov=j.coverage||{};
+  const contag=filterRows(s.contagion_candidates||[]);
+  const deep=filterRows(s.deepest_discounts||[]);
+  const setups=filterRows(s.top_setups||[]);
+  const flagged=filterRows(s.red_flagged||[]);
   const gen=j.generated_at?new Date(j.generated_at):null;
-  document.getElementById("meta").innerHTML=`${s.n_priced||0} priced · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
-  const reg=j.regression||{};
-  document.getElementById("banner").innerHTML=
-    (reg.reading?`<span class="chip"><b>Model</b> EV/Sales vs growth · ${reg.n_points||0} names</span>`:"")+
-    `<span class="chip"><b>Read</b> larger discount = cheaper for the growth it's projecting</span>`;
+  document.getElementById("meta").innerHTML=`${s.n_priced||0} priced across ${cov.n_sectors||0} sectors · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
   document.getElementById("statbar").innerHTML=
     `<div class="stat"><div class="n vi">${s.n_candidates||0}</div><div class="l">Setups</div></div>
      <div class="stat"><div class="n vi">${s.n_contagion||0}</div><div class="l">🧬 Contagion</div></div>
      <div class="stat"><div class="n cy">${s.n_rising||0}</div><div class="l">↑ Est. Rising</div></div>
-     <div class="stat"><div class="n">${s.n_universe||0}</div><div class="l">AI-Infra Cohort</div></div>`;
+     <div class="stat"><div class="n gr">${cov.n_ai_cohort||0}</div><div class="l">AI-Infra Names</div></div>
+     <div class="stat"><div class="n rd">${(s.red_flagged||[]).length}</div><div class="l">🚩 Quality-Flagged</div></div>
+     <div class="stat"><div class="n">${cov.n_universe||0}</div><div class="l">Whole Universe</div></div>`;
+  renderSectorGrid(cov);
+
   let h="";
-  // CONTAGION — front and center
-  h+=`<div class="sec-hdr"><span class="dot v"></span><h2>🧬 Contagion Candidates <span class="sub">layer leader revising up, this name hasn't — the lag window</span></h2><span class="ct">${contag.length}</span></div>`;
-  h+= contag.length?contag.map(d=>card(d,"contagion")).join(""):'<div class="empty">No contagion setups right now — no AI-infra layer leader is mid-revision-up with a flat laggard beneath it. This fires when an upstream leader\'s estimates climb before its downstream names catch up.</div>';
-  // DEEPEST DISCOUNTS — front and center
-  h+=`<div class="sec-hdr"><span class="dot g"></span><h2>💎 Deepest Discounts <span class="sub">cheapest vs their growth-implied multiple</span></h2><span class="ct">${deep.length}</span></div>`;
-  h+= deep.length?deep.map(d=>card(d,"discount")).join(""):'<div class="empty">No deep-discount setups in the current window.</div>';
-  // FULL RANKED BOARD
-  h+=`<div class="sec-hdr"><span class="dot c"></span><h2>📊 All Ranked Setups</h2><span class="ct">${setups.length}</span></div>`;
+  h+=`<div class="sec-hdr"><span class="dot v"></span><h2>🧬 Contagion Candidates <span class="sub">peer-group leader revising up, this name hasn't — the lag window</span></h2><span class="ct">${contag.length}</span></div>`;
+  h+= contag.length?contag.map(d=>card(d,"contagion")).join(""):'<div class="empty">No contagion setups in this view right now — this fires when a peer-group leader\'s estimates climb before its peers catch up.</div>';
+
+  h+=`<div class="sec-hdr"><span class="dot g"></span><h2>💎 Deepest Discounts <span class="sub">cheapest vs their peer-group-implied multiple</span></h2><span class="ct">${deep.length}</span></div>`;
+  h+= deep.length?deep.map(d=>card(d,"discount")).join(""):'<div class="empty">No deep-discount setups in this view.</div>';
+
+  if(flagged.length){
+    h+=`<div class="sec-hdr"><span class="dot" style="background:var(--red);box-shadow:0 0 10px rgba(255,92,124,.4)"></span><h2>🚩 Quality-Flagged <span class="sub">cheap for a reason — excluded from candidacy regardless of discount</span></h2><span class="ct">${flagged.length}</span></div>`;
+    h+= flagged.map(d=>card(d,"")).join("");
+  }
+
+  h+=`<div class="sec-hdr"><span class="dot c"></span><h2>📊 All Ranked Setups${SECTOR_FILTER?' — '+esc(SECTOR_FILTER):''}</h2><span class="ct">${setups.length}</span></div>`;
   if(setups.length){
-    h+=`<table class="tbl"><thead><tr><th>Ticker</th><th>Layer</th><th>Growth</th><th>EV/Sales</th><th>Fair</th><th>Discount</th><th>Lag</th><th>Score</th></tr></thead><tbody>`+
-      setups.map(d=>`<tr><td><span class="s">${esc(d.symbol)}</span>${d.estimates_rising?' <span style="color:var(--cyan)">↑</span>':""}${d.contagion?' 🧬':""}</td>
-        <td>${esc(d.layer||"")}</td><td>${pc(d.growth_pct)}</td><td>${xx(d.ev_sales)}</td><td>${xx(d.ev_sales_implied)}</td>
+    h+=`<table class="tbl"><thead><tr><th>Ticker</th><th>Sector</th><th>Industry</th><th>Growth</th><th>EV/Sales</th><th>Fair</th><th>Discount</th><th>Score</th></tr></thead><tbody>`+
+      setups.map(d=>`<tr><td><span class="s">${esc(d.symbol)}</span>${d.estimates_rising?' <span style="color:var(--cyan)">↑</span>':""}${d.contagion?' 🧬':""}${d.in_ai_cohort?' <span style="color:var(--amber)">AI</span>':""}</td>
+        <td>${esc(d.sector||"")}</td><td>${esc(d.industry||"")}</td><td>${pc(d.growth_pct)}</td><td>${xx(d.ev_sales)}</td><td>${xx(d.ev_sales_implied)}</td>
         <td style="color:var(--green)">${d.discount_to_implied_pct!=null?Math.round(d.discount_to_implied_pct)+"%":"—"}</td>
-        <td>${d.laggard_gap_pp>0?Math.round(d.laggard_gap_pp)+"pp":"—"}</td><td style="color:var(--fg-1);font-weight:600">${d.composite}</td></tr>`).join("")+
+        <td style="color:var(--fg);font-weight:700">${d.composite}</td></tr>`).join("")+
       `</tbody></table>`;
-  } else h+='<div class="empty">No setups passed the screen in the current window.</div>';
+  } else h+='<div class="empty">No setups passed the screen in this view.</div>';
   document.getElementById("content").innerHTML=h;
+
   document.getElementById("note").innerHTML=
-    `<b style="color:var(--fg-2)">How it works.</b> Across the AI-infra cohort, EV/Sales is regressed on forward growth; a name far <i>below</i> its growth-implied line is cheap for the growth it's projecting (<b style="color:var(--green)">discount to fair</b>).
-     The <b style="color:var(--cyan)">revision-velocity trigger</b> boosts names whose estimates are rising and disqualifies names being cut (value trap vs re-rating). <b style="color:var(--violet)">🧬 Contagion</b> flags a laggard whose AI-infra layer leader is already revising up.
-     Sources: <code>ai-infra-stack</code>, <code>eps-revision-velocity</code>, <code>estimate-revisions</code>, valuations, finra-short, deal-scanner.
-     <b style="color:var(--amber)">Caveat:</b> cheap + rising can still be a value trap if growth doesn't materialize; re-rating timing is the hardest part; coverage is the ~94-name AI cohort; ignores pure-narrative pumps. Real data, research only — not investment advice.`;
+    `<b style="color:var(--fg2)">How it works.</b> Within each industry (falling back to sector when an industry
+     has too few priced names to fit reliably), EV/Sales is regressed on growth <i>and</i> operating margin —
+     a name far <i>below</i> its peer-group-implied line is cheap for the growth and profitability it's
+     projecting (<b style="color:var(--green)">discount to fair</b>). The <b style="color:var(--cyan)">estimate-revision
+     trigger</b> boosts names whose estimates are rising and disqualifies names being cut. <b style="color:var(--violet)">🧬 Contagion</b>
+     flags a laggard whose peer-group leader is already revising up. A <b style="color:var(--red)">quality gate</b>
+     (Beneish + earnings-quality) disqualifies flagged names regardless of discount. A cheap first-pass regression
+     runs across the whole covered universe; forward-looking analyst-estimate growth (more precise, more expensive)
+     is fetched only for names that already look interesting on that basis, or are in the original AI-infra cohort.
+     Sources: <code>FMP company-screener/financial-growth/key-metrics/ratios/analyst-estimates</code>,
+     <code>ai-infra-stack</code>, <code>eps-revision-velocity</code>, <code>estimate-revisions</code>,
+     <code>finra-short</code>, <code>deal-scanner</code>, <code>smart-money-13f</code>, <code>beneish</code>,
+     <code>earnings-quality</code>.
+     <b style="color:var(--amber)">Caveat:</b> cheap + rising can still be a value trap if growth doesn't
+     materialize; re-rating timing is the hardest part; coverage is ~1,700 US-listed names ≥$300M market cap
+     plus the full AI-infra cohort — not literally every listed company; ignores pure-narrative pumps.
+     Real data, research only — not investment advice.`;
 }
 load(DATA).then(render);
 setTimeout(()=>location.reload(),600000);
