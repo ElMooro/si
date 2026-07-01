@@ -1,12 +1,208 @@
-bytes: 155988
-  [OK] old 196-pill nav-links class fully gone
-  [OK] new favorites bar present (7 pills)
-  [OK] all 5 zone headers present
-  [OK] nav-drawer script present
-  [OK] auth data-slot present in topbar
-  [OK] no [object Object] / undefined%
+======================================================================
+1) ENGINE-TRUST — is it populated? does it cover master-ranker's families?
+   engine-trust.json: 261 graded engines
+   MR families WITH a trust grade: 13
+     compound             -> eng:compound-signals      status=INSUFFICIENT trust=1.0
+     asymmetric           -> eng:asymmetric-scorer     status=WARMING trust=1.0
+     insider              -> eng:insider-radar         status=ACTIVE trust=1.0
+     insider              -> eng:insider-trades        status=WARMING trust=1.0
+     insider              -> eng:insider-clusters-names status=WARMING trust=1.0
+     insider              -> eng:insider-buys-enriched status=WARMING trust=1.0
+     insider              -> eng:insider-clusters      status=INSUFFICIENT trust=1.0
+     pead                 -> earnings_pead             status=ACTIVE trust=1.0
+     pead                 -> eng:earnings-pead         status=WARMING trust=1.0
+     pead                 -> eng:pead-signals          status=INSUFFICIENT trust=1.0
+     massive              -> eng:massive-signals       status=WARMING trust=1.0
+     buyback              -> eng:buyback-yield-ranking status=WARMING trust=1.0
+     buyback              -> eng:buyback-scanner       status=WARMING trust=1.0
+   MR families with NO trust grade (would default 1.0): 19
+     ['theme_tiers', 'eps_velocity', 'smart_money', 'deep_value', 'nobrainers', 'options_flow', 'momentum_breakout', 'volatility_squeeze', 'future_intel', 'supply_inflection', 'pre_pump', 'revenue_accel', 'capital_flow', 'risk_regime', 'options_confluence', 'flow_confluence', 'equity_confluence', 'earnings_confluence', 'scarcity_radar']
 
-=== confirm auth.js self-injecting-slot fix is live ===
-  _ensureSlot present: True
-  called in init(): True
-DONE 2649
+======================================================================
+2) LIVE master-ranker.json — full top-level key shape
+   top-level keys: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro', 'feed_health', 'feed_freshness', 'stale_feeds_excluded', 'missing_feeds', 'calibration_weights', 'duration_s']
+   top_tickers: 25 entries
+   first ticker full shape: {
+ "ticker": "WELL",
+ "score": 126.4,
+ "n_systems": 2,
+ "systems": [
+  "compound",
+  "pead"
+ ],
+ "contributions": [
+  {
+   "system": "compound",
+   "raw_score": 213.5,
+   "normalized": 100,
+   "weight": 1.0,
+   "contribution": 100.0
+  },
+  {
+   "system": "pead",
+   "raw_score": 98.0,
+   "normalized": 98.0,
+   "weight": 1.0,
+   "contribution": 98.0
+  }
+ ],
+ "capital_flow_mult": 1.0,
+ "risk_regime_mult": 1.0,
+ "liquidity_regime_mult": 1.0,
+ "cycle_phase": null,
+ "cycle_warning": null,
+ "red_flags": null,
+ "rationale": "2 systems agree (compound=126.4) [compound, pead]",
+ "details": {
+  "compound": {
+   "score": 213.5,
+   "n_systems": 2,
+   "systems": [
+    "momentum",
+    "pead"
+   ],
+   "details": {
+    "momentum": {
+     "tier": "MARGINAL",
+     "flags": [
+      "RISING_20D",
+      "AT_60D_HIGH",
+      "RS_20D_+13"
+     ],
+     "ret_60d": 14.5,
+     "ret_20d": 10.9,
+     "vol_ratio": 0.68,
+     "rs_vs_spy_20d": 13.0
+    },
+    "pead": {
+     "tier": "TIER_S_DRIFTING",
+     "score": 98.0,
+     "streak": 8,
+     "avg_beat_pct": 38.17,
+     "beat_accel": 68.35,
+     "drift_pct": 7.03,
+     "days_since_earnings": 28,
+     "flags": [
+      "STREAK_5Q+",
+      "BIG_AVG_BEAT_25%+",
+      "BEATS_ACCELERATING_10PP+",
+      "LATEST_BEAT_30%+",
+      "PEAD_ACTIVE",
+      "DRIFT_UP"
+     ]
+    }
+   }
+  },
+  "pead": {
+   "score": 98.0,
+   "tier": "TIER_S_DRIFTING",
+   "drift_pct": 7.03,
+   "days_to_next": 26
+  }
+ }
+}
+
+   regime_context: {
+ "regime": "SLOWING",
+ "regime_color": "amber",
+ "composite_z": -0.4333,
+ "coverage_pct": 100.0,
+ "spy_fwd_6m": "+8.8%",
+ "spy_fwd_12m": "+17.5%",
+ "defcon_level": 4,
+ "defcon_name": "NORMAL",
+ "crisis_trend": "stable",
+ "leading_markets_signal": "EXPANSION_CONFIRMED",
+ "flashing_buckets": [
+  "risk_appetite"
+ ],
+ "capitulation_signal": "NO_SIGNAL",
+ "liquidity_score": 48.7,
+ "liquidity_regime": "NEUTRAL",
+ "liquidity_z": -0.078,
+ "liquidity_trajectory": "TIGHTENING AHEAD",
+ "dollar_shortage": "CALM",
+ "risk_posture": "CONSTRUCTIVE \u2014 risk-on; beta and cyclicals favoured"
+}
+
+   macro signals key present: False, count: ?
+
+======================================================================
+3) engine-manifest — total real engines on the platform vs the ~25 MR reads
+   total engines in manifest: 437
+
+   candidate engines NOT read by master-ranker (73):
+     justhodl-13f-positions                   data/13f-positions.json
+     justhodl-13f-price-divergence            data/13f-aggregate.json
+     justhodl-52wk-quality-breakout           data/52wk-quality-breakout.json
+     justhodl-activist-13d                    data/activist-13d.json
+     justhodl-activist-filings-scanner        data/activist-filings.json
+     justhodl-analyst-actions                 analyst
+     justhodl-analyst-consensus               data/analyst-consensus.json
+     justhodl-asymmetric-scorer               data/8k-filings.json
+     justhodl-backlog                         data/backlog.json
+     justhodl-beneish                         data/beneish.json
+     justhodl-boom-radar                      boom
+     justhodl-bottleneck-boom                 data/best-setups.json
+     justhodl-catalyst-calendar               data/catalyst-calendar.json
+     justhodl-catalyst-classifier             data/catalysts.json
+     justhodl-catalyst-clusters               data/ai-website-synthesis.json
+     justhodl-catalyst-skew-premove           data/catalyst-calendar.json
+     justhodl-conviction-engine               data/canary-grid.json
+     justhodl-dealer-gex                      data/dealer-gex.json
+     justhodl-dislocation-ai                  data/dislocation-ai.json
+     justhodl-dislocation-detector            data/dislocations.json
+     justhodl-dividend-growth                 data/dividend-growth.json
+     justhodl-earnings-cascade                data/earnings-cascade.json
+     justhodl-earnings-iv-crush               data/earnings-iv-crush.json
+     justhodl-earnings-nlp                    data/earnings-nlp.json
+     justhodl-earnings-quality                data/earnings-quality.json
+     justhodl-earnings-tone-velocity          data/earnings-tone-velocity.json
+     justhodl-earnings-tracker                data/earnings-tracker.json
+     justhodl-earnings-whisper                data/8k-filings.json
+     justhodl-estimate-revisions              estimate
+     justhodl-eva-spread                      data/eva-spread.json
+     justhodl-finra-short                     data/finra-short.json
+     justhodl-forward-orders                  data/forward-orders.json
+     justhodl-gf-value                        data/gf-value.json
+     justhodl-gold-equity-rotation            data/gold-equity-rotation.json
+     justhodl-index-recon                     data/index-recon.json
+     justhodl-ipo-pipeline                    data/ipo-pipeline.json
+     justhodl-lobbying-intel                  data/lobbying-intel.json
+     justhodl-magic-formula                   data/magic-formula.json
+     justhodl-merger-arb                      data/merger-arb.json
+     justhodl-merger-arb-risk                 data/firm-book.json
+     justhodl-microcap-float-squeeze          data/microcap-float-squeeze.json
+     justhodl-pairs-arb                       data/pairs-arb.json
+     justhodl-pairs-scanner                   data/pairs-scanner.json
+     justhodl-patent-velocity                 data/patent-velocity.json
+     justhodl-political-ai-investigation      data/political-ai-investigation.json
+     justhodl-political-intel                 data/political-intel.json
+     justhodl-political-stocks                data/congress-party-map.json
+     justhodl-political-trades                data/political-trades.json
+     justhodl-portfolio-catalysts             data/catalyst-calendar.json
+     justhodl-post-earnings-mean-rev          data/master-ranker.json
+     justhodl-precatalyst-vol-expansion       data/catalyst-calendar.json
+     justhodl-predictability                  data/predictability.json
+     justhodl-pump-earnings-nlp               data/convergence-radar.json
+     justhodl-quality-on-sale                 data/beneish-m-score.json
+     justhodl-rotation-chain                  data/rotation-chains.json
+     justhodl-rotation-radar                  data/rotation-radar.json
+     justhodl-russell-recon-frontrun          data/russell-recon-frontrun.json
+     justhodl-sec-13f                         data/institutional-positions.json
+     justhodl-sec-filing-diff                 data/sec-filing-diff.json
+     justhodl-sec-filings-intel               data/sec-filings-intel.json
+     justhodl-sector-earnings-diffusion       data/eps-revision-velocity.json
+     justhodl-sector-heatmap                  data/sector-heatmap.json
+     justhodl-sector-rotation                 data/sector-rotation.json
+     justhodl-sector-tilt                     data/macro-nowcast.json
+     justhodl-short-interest                  data/short-interest.json
+     justhodl-short-pressure                  data/master-ranker.json
+     justhodl-smart-beta                      data/smart-beta.json
+     justhodl-squeeze-pretrigger              data/catalyst-calendar.json
+     justhodl-supply-chain-linkage            data/supply-chain-linkage.json
+     justhodl-tape-reader                     data/tape-reader.json
+     justhodl-theme-rotation-engine           data/theme-rotation.json
+     justhodl-trade-evaluator                 data/trade-journal.json
+     justhodl-volatility-squeeze-hunter       data/universe.json
+DONE 2650
