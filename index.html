@@ -132,26 +132,24 @@ button{font-family: inherit; cursor: pointer; background: none; border: none; co
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.45}}
 .brand span{color: var(--cyan); font-weight: 500}
 
-.nav-links{
-  display: flex; gap: 0; flex: 1;
-  overflow-x: auto;
+.fav-bar{
+  display: flex; gap: 8px; flex: 1;
+  overflow-x: auto; align-items: center;
 }
-.nav-links a{
+.fav-pill{
+  --fc: var(--cyan);
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  color: var(--fg-3);
-  text-transform: uppercase;
-  padding: 0 14px;
-  height: 52px;
-  display: flex; align-items: center;
-  border-bottom: 2px solid transparent;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--fg-2);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 12px;
   white-space: nowrap;
   transition: all .15s;
 }
-.nav-links a:hover{color: var(--fg-1); border-bottom-color: var(--cyan-dim); background: var(--bg-glow)}
-.nav-links a.active{color: var(--cyan); border-bottom-color: var(--cyan)}
+.fav-pill:hover{color: var(--fc); border-color: var(--fc); background: var(--bg-glow)}
 
 .topbar-meta{
   font-family: var(--font-mono);
@@ -296,6 +294,25 @@ button{font-family: inherit; cursor: pointer; background: none; border: none; co
   grid-template-columns: repeat(12, 1fr);
   gap: 18px;
   margin-bottom: 24px;
+}
+.zone-head{
+  grid-column: span 12;
+  display: flex; align-items: center; gap: 10px;
+  margin: 8px 0 -6px;
+  padding: 0 2px;
+}
+.zone-head:first-child{ margin-top: 0 }
+.zone-head b{
+  --zc: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+  color: var(--zc);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.zone-head i{
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
 }
 .card{
   background: var(--bg-raised);
@@ -606,177 +623,14 @@ table.tbl tr:last-child td{border-bottom: none}
   <a class="brand" href="/">
     <span class="dot"></span>JUSTHODL<span>·AI</span>
   </a>
-  <nav class="nav-links">
-    <a href="/" class="active">DESK</a>
-    <a href="/cockpit.html" style="color:#a78bfa;font-weight:800;background:rgba(167,139,250,0.12);border-radius:5px;padding:2px 8px">🎛 COCKPIT</a>
-    <a href="/brain.html" style="color:#a78bfa;font-weight:700">🧠 BRAIN</a>
-    <a href="/master-board.html" style="color:#26ffaf;font-weight:800;background:rgba(38,255,175,0.1);border-radius:5px;padding:2px 8px">🎯 MASTER BOARD</a>
-    <a href="/retail/" style="color:#22d3ee;font-weight:800;background:rgba(34,211,238,0.14);border:1px solid rgba(34,211,238,0.45);border-radius:5px;padding:2px 9px">📱 RETAIL</a>
-    <a href="/finviz-signals.html" style="color:#a78bfa;font-weight:800;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.45);border-radius:5px;padding:2px 9px">📊 SIGNALS</a>
-    <a href="/scorecard.html" style="color:#22d3ee;font-weight:700">📊 SCORECARD</a>
-    <a href="/dossier.html" style="color:#a78bfa;font-weight:700">📂 DOSSIER</a>
-    <a href="/engines.html" style="color:#26ffaf;font-weight:700">⚙ ENGINES</a>
-    <a href="/ecb-history.html" style="color:#a78bfa;font-weight:700">📊 ECB HIST</a>
-    <a href="/eu-dump-radar.html" style="color:#ff5577;font-weight:700">🚨 EU DUMP RADAR</a>
-    <a href="/why-now.html" style="color:#fbbf24;font-weight:700">⚡ WHY NOW</a>
-    <a href="/signal-replay.html" style="color:#22d3ee;font-weight:700">⏪ REPLAY</a>
-    <a href="/journal.html" style="color:#26ffaf;font-weight:700">📓 JOURNAL</a>
-    <a href="/directory.html" style="color:#00f4a8;font-weight:700;background:rgba(0,214,143,0.1);border:1px solid rgba(0,214,143,0.4);border-radius:5px;padding:2px 9px">📁 DIRECTORY</a><a href="/methodology.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.42);border-radius:5px;padding:2px 9px">🧪 METHODOLOGY</a><a href="/upside-radar.html" style="color:#34d399;font-weight:700;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.4);border-radius:5px;padding:2px 9px">🚀 UPSIDE</a><a href="/rotation-radar.html" style="color:#ff9f43;font-weight:700;background:rgba(255,159,67,0.08);border:1px solid rgba(255,159,67,0.42);border-radius:5px;padding:2px 9px">🔄 ROTATION</a><a href="/altseason.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.42);border-radius:5px;padding:2px 9px">🌈 ALTSEASON</a><a href="/bottleneck-boom.html" style="color:#fbbf24;font-weight:700;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.42);border-radius:5px;padding:2px 9px">⛓️ BOTTLENECK</a>
-    <a href="/frontrun.html" style="color:#ff7a18;font-weight:700;background:rgba(255,122,24,0.10);border:1px solid rgba(255,122,24,0.45);border-radius:5px;padding:2px 9px">🎯 FRONT-RUN</a>
-    <a href="/deal-scanner.html" style="color:#26ffaf;font-weight:700;background:rgba(38,255,175,0.10);border:1px solid rgba(38,255,175,0.45);border-radius:5px;padding:2px 9px">🤝 DEALS</a><a href="/sector-flow.html" style="color:#00d4ff;font-weight:700;background:rgba(0,212,255,0.10);border:1px solid rgba(0,212,255,0.45);border-radius:5px;padding:2px 9px">🌊 SECTOR FLOW</a><a href="/ai-rerating.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.10);border:1px solid rgba(167,139,250,0.45);border-radius:5px;padding:2px 9px">🧬 RE-RATING</a><a href="/fleet-edge.html" style="color:#2dd4bf;font-weight:700;background:rgba(45,212,191,0.10);border:1px solid rgba(45,212,191,0.45);border-radius:5px;padding:2px 9px">🔬 FLEET EDGE</a><a href="/risk-regime.html" style="color:#60a5fa;font-weight:700;background:rgba(96,165,250,0.10);border:1px solid rgba(96,165,250,0.45);border-radius:5px;padding:2px 9px">⚖️ RORO</a><a href="/smart-money-13f.html" style="color:#fbbf24;font-weight:700;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.45);border-radius:5px;padding:2px 9px">🧠 AI FUNDS</a><a href="/attention.html" style="color:#ff9540;font-weight:700;background:rgba(255,149,64,0.10);border:1px solid rgba(255,149,64,0.45);border-radius:5px;padding:2px 9px">📡 ATTENTION</a><a href="/buybacks.html" style="color:#26ffaf;font-weight:700;background:rgba(38,255,175,0.10);border:1px solid rgba(38,255,175,0.45);border-radius:5px;padding:2px 9px">💰 BUYBACKS</a><a href="/pre-pump-radar.html" style="color:#ef4444;font-weight:700;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.45);border-radius:5px;padding:2px 9px;text-shadow:0 0 8px rgba(239,68,68,.3)">🔥 PRE-PUMP RADAR</a><a href="/ignition.html" style="color:#ff7a18;font-weight:700;background:rgba(255,122,24,0.10);border:1px solid rgba(255,122,24,0.45);border-radius:5px;padding:2px 9px">🔥 IGNITION</a><a href="/canaries.html" style="color:#fbbf24;font-weight:700;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.42);border-radius:5px;padding:2px 9px">🐤 CANARIES</a><a href="/inflection.html" style="color:#22d3ee;font-weight:700;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.42);border-radius:5px;padding:2px 9px">🌊 INFLECTION</a><a href="/confluence.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.42);border-radius:5px;padding:2px 9px">🧬 CONFLUENCE</a>
-    <a href="/macro-frontrun.html" style="color:#22d3ee;font-weight:700;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.42);border-radius:5px;padding:2px 9px">🏛 MACRO FRONT-RUN</a>
-    <a href="/alerts.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.42);border-radius:5px;padding:2px 9px">📡 ALERTS</a><a href="/valuations.html" style="color:#34d399;font-weight:700;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.4);border-radius:5px;padding:2px 9px">💰 VALUE</a><a href="/research.html" style="color:#a78bfa;font-weight:700;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.4);border-radius:5px;padding:2px 9px">📜 RESEARCH</a><a href="/engines.html" style="color:#22d3ee;font-weight:700;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.4);border-radius:5px;padding:2px 9px">🧭 ENGINES</a><a href="/backtests.html" style="color:#34d399;font-weight:700;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.4);border-radius:5px;padding:2px 9px">🧪 BACKTESTS</a><a href="/ask.html" style="color:#22d3ee;font-weight:700;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.4);border-radius:5px;padding:2px 9px">🤖 ASK</a><a href="/heatmap.html" style="color:#fbbf24;font-weight:700;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.4);border-radius:5px;padding:2px 9px">🔥 HEAT</a><a href="/ciss.html" style="color:#ef4444;font-weight:700;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.42);border-radius:5px;padding:2px 9px">🌡 STRESS</a><a href="/switzerland.html" style="color:#f87171;font-weight:700;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.4);border-radius:5px;padding:2px 9px">🇨🇭 SWISS</a><a href="/sovereign.html" style="color:#eab308;font-weight:700;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.42);border-radius:5px;padding:2px 9px">🏛 SOVEREIGN</a>
-    <a href="/digest-archive.html" style="color:#a78bfa;font-weight:700">📂 ARCHIVE</a>
-    <a href="/digest-trends.html" style="color:#a78bfa;font-weight:700">📊 TRENDS</a>
-    <a href="/targets.html" style="color:#ff7a18;font-weight:700;background:rgba(255,122,24,0.08);border:1px solid rgba(255,122,24,0.42);border-radius:5px;padding:2px 9px">🎯 TARGETS</a>
-    <a href="/uptime.html" style="color:#26ffaf;font-weight:700">🟢 UPTIME</a>
-    <a href="/skill.html" style="color:#a78bfa;font-weight:700">🧠 SKILL</a>
-    <a href="/best-ideas.html" style="color:#26ffaf;font-weight:700">⭐ BEST IDEAS</a>
-    <a href="/why.html" style="color:#fbbf24;font-weight:700">🔍 WHY</a>
-    <!-- ═══ PRO PACK v3 — Institutional Cockpits (10 engines + retail edges + squeeze) ═══ -->
-    <a href="/eva.html" style="color:#a78bfa;font-weight:700">📈 EVA SPREAD</a>
-    <a href="/predictability.html" style="color:#a78bfa;font-weight:700">🌟 PREDICTABILITY</a>
-    <a href="/smart-beta.html" style="color:#a78bfa;font-weight:700">🎯 SMART BETA</a>
-    <a href="/gf-value.html" style="color:#a78bfa;font-weight:700">💎 GF VALUE</a>
-    <a href="/magic-formula.html" style="color:#a78bfa;font-weight:700">🧮 MAGIC FORMULA</a>
-    <a href="/starmine.html" style="color:#a78bfa;font-weight:700">⭐ STARMINE</a>
-    <a href="/beneish.html" style="color:#fb7185;font-weight:700">🚨 BENEISH</a>
-    <a href="/funding-plumbing.html" style="color:#22d3ee;font-weight:600">🩺 PLUMBING</a>
-    <a href="/bond-vol.html" style="color:#fb923c;font-weight:700">📉 BOND VOL</a>
-    <a href="/ipo-pipeline.html" style="color:#22d3ee;font-weight:700">🆕 IPO PIPELINE</a>
-    <a href="/squeeze.html" style="color:#ef4444;font-weight:700">🎯 SQUEEZE</a>
-    <a href="/retail-edges.html" style="color:#22c55e;font-weight:700">🔥 RETAIL EDGES</a>
-    <!-- ═══ end Pro Pack v3 cluster ═══ -->
-    <a href="/boom-board.html" style="color:#26ffaf;font-weight:700">💎 BOOM BOARD</a>
-    <a href="/capital-return.html" style="color:#26ffaf;font-weight:700">🦈 CANNIBALS</a>
-    <a href="/catch-up.html" style="color:#26ffaf;font-weight:700">🎯 CATCH-UP</a>
-    <a href="/trend-engine.html" style="color:#22d3ee;font-weight:700">📈 TREND DESK</a>
-    <a href="/desk-allocator.html" style="color:#a78bfa;font-weight:700;text-shadow:0 0 8px rgba(167,139,250,.3)">⚖ ALLOCATOR</a>
-    <a href="/alpha/" style="color:#facc15;font-weight:600">α ALPHA</a>
-    <a href="/debate/" style="color:#a78bfa;font-weight:600">⚔ DEBATE</a>
-    <a href="/trades/" style="color:#22c55e;font-weight:600">📓 TRADES</a>
-    <a href="/calibration/" style="color:#facc15;font-weight:600">📐 CALIBRATION</a>
-    <a href="/anomaly/" style="color:#ef4444;font-weight:600">⚠ ANOMALY</a>
-    <a href="/rotation/" style="color:#22d3ee;font-weight:600">🔄 ROTATION</a>
-    <a href="/composite/" style="color:#fb923c;font-weight:700;text-shadow:0 0 8px rgba(251,146,60,.3)">🧭 META-REGIME</a>
-    <a href="/intelligence/" style="color:#a78bfa;font-weight:700;text-shadow:0 0 8px rgba(167,139,250,.3)">🧠 INTELLIGENCE</a>
-    <a href="/gex/" style="color:#fbbf24;font-weight:600">📐 GEX</a>
-    <a href="/0dte/" style="color:#a78bfa;font-weight:600">⚡ 0DTE</a>
-    <a href="/dix/" style="color:#a78bfa;font-weight:600">🌑 DIX</a>
-    <a href="/vix/" style="color:#22d3ee;font-weight:600">📈 VIX</a>
-    <a href="/funding/" style="color:#fb923c;font-weight:600">🪙 FUNDING</a>
-    <a href="/credit/" style="color:#fb7185;font-weight:600">💳 CREDIT</a>
-    <a href="/global/" style="color:#34d399;font-weight:600">🌍 GLOBAL</a>
-    <a href="/insider/" style="color:#00e676;font-weight:600">💼 INSIDER</a>
-    <a href="/commodities/" style="color:#fb923c;font-weight:600">🛢️ COMMODITIES</a>
-    <a href="/news-velocity/" style="color:#22d3ee;font-weight:600">📰 NEWS VEL</a>
-    <a href="/cb/" style="color:#fbbf24;font-weight:600">🏦 CB STANCE</a>
-    <a href="/trends/" style="color:#22d3ee;font-weight:600">🔎 TRENDS</a>
-    <a href="/earnings/" style="color:#a78bfa;font-weight:600">🎙 EARNINGS NLP</a>
-    <a href="/short/" style="color:#dc2626;font-weight:600">🩸 SHORT</a>
-    <a href="/portfolio/" style="color:#06b6d4;font-weight:600">📊 PORTFOLIO</a>
-    <a href="/sizing/" style="color:#fbbf24;font-weight:600">📐 SIZING</a><a href="/market-map.html" style="color:#30cc5a;font-weight:700;background:rgba(48,204,90,0.08);border:1px solid rgba(48,204,90,0.4);border-radius:5px;padding:2px 9px">🗺 MAP</a>
-    <a href="/catalyst/" style="color:#fb923c;font-weight:600">🗓 CATALYST</a>
-    <a href="/intel/" style="color:#00f4a8;font-weight:600">⚡ INTEL</a>
-    <a href="/master-rank.html" style="color:#facc15;font-weight:600">⚡ ACTION ITEMS</a>
-    <a href="/alpha-scoreboard.html" style="color:#facc15;font-weight:600">⚡ SCOREBOARD</a>
-    <a href="/divergence-v2.html" style="color:#facc15;font-weight:600">⚡ DIVERGENCE</a>
-    <a href="/watchlist.html" style="color:#facc15;font-weight:600">📌 WATCHLIST</a>
-    <a href="/catalyst-calendar.html" style="color:#22c55e;font-weight:600">📅 CALENDAR</a>
-    <a href="/vol-regime.html" style="color:#a78bfa;font-weight:600">📊 VOL</a>
-    <a href="/implied-prob.html" style="color:#3b82f6;font-weight:600">🎯 IMPLIED</a>
-    <a href="/trade-journal.html" style="color:#22c55e;font-weight:600">📓 JOURNAL</a>
-    <a href="/plumbing.html" style="color:#ef4444;font-weight:600">🔧 PLUMBING</a>
-    <a href="/chart-pro.html" style="color:#06b6d4;font-weight:600">📈 CHART PRO</a>
-    <a href="/tape-reader.html" style="color:#a78bfa;font-weight:600">📡 TAPE</a>
-    <a href="/earnings-whisper.html" style="color:#22c55e;font-weight:600">📅 WHISPER</a>
-    <a href="/fed-speak.html" style="color:#3b82f6;font-weight:600">🏦 FED</a>
-    <a href="/fomc.html" style="color:#ef4444;font-weight:600">🏛 FOMC</a>
-    <a href="/global-macro.html" style="color:#22c55e;font-weight:600">🌍 GLOBAL</a>
-    <a href="/stress.html" style="color:#ef4444;font-weight:600">🌪 STRESS</a>
-    <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
-    <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a>
-    <a href="/lce.html" style="color:#10b981;font-weight:600">🟢 LCE</a>
-    <a href="/global-cycle.html" style="color:#8b5cf6;font-weight:600">🌍 GLOBAL CYCLE</a>
-    <a href="/global-cycle/" style="color:#8b5cf6;font-weight:600">📈 CYCLE HISTORY</a>
-    <a href="/stock/">STOCK</a>
-    <a href="/screener/">SCREENER</a>
-    <a href="/chart-patterns.html">PATTERNS</a>
-    <a href="/edge.html">EDGE</a>
-    <a href="/themes.html">THEMES</a><a href="/insider.html" style="color:#34d399;font-weight:700;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.4);border-radius:5px;padding:2px 9px">🕵 INSIDER</a>
-    <a href="/theme-tiers.html">Theme Tiers</a><a href="/bottleneck-boom.html">Bottleneck Boom</a>
-    <a href="/supply-inflection.html">Supply</a>
-    <a href="/nobrainers.html">NOBRAINERS</a>
-    <a href="/defcon.html">DEFCON</a>
-    <a href="/baggers.html">BAGGERS</a>
-    <a href="/insider-clusters.html">Clusters</a>
-    <a href="/insider-drawdown.html">Insider DD</a>
-    <a href="/eps-velocity.html">EPS Velocity</a>
-    <a href="/pead-signals.html">PEAD</a>
-    <a href="/deep-value.html">Deep Value</a>
-    <a href="/compound-signals.html">Compound</a>
-    <a href="/smart-money.html">SMART MONEY</a>
-  <a href="/intelligence.html">INTEL</a>
-    <a href="/insiders.html">INSIDERS</a>
-    <a href="/13f.html">13F</a>
-    <a href="/ticker.html">TICKER</a>
-    <a href="/sectors.html">SECTORS</a>
-    <a href="/sector-tilt.html">Sector Tilt</a>
-    <a href="/allocator.html">ALLOCATOR</a>
-    <a href="/pm-decision.html">PM DECISION</a>
-    <a href="/risk-desk.html">RISK DESK</a>
-    <a href="/signal-board.html">Signal Board</a>
-    <a href="/future-intel.html">🔮 Future Intel</a>
-    <a href="/forward-orders.html">📜 Forward Orders</a>
-    <a href="/rotation-chains.html">🔄 Rotation Chains</a>
-    <a href="/buzz-velocity.html">📢 Buzz Velocity</a>
-    <a href="/sec-filings.html">📑 SEC Filings</a>
-    <a href="/political.html">🏛️ Political Stocks</a>
-    <a href="/lobbying.html">📊 Lobbying Intel</a>
-    <a href="/ark.html">🚀 ARK Holdings</a>
-    <a href="/patent-velocity.html">💡 Patent Velocity</a>
-    <a href="/opportunities.html">Opportunities</a>
-    <a href="/health.html">Platform Health</a>
-    <a href="/yield-curve.html">Yield Curve</a>
-    <a href="/market-internals.html">Market Internals</a>
-    <a href="/vix-curve.html">VIX Curve</a>
-    <a href="/position-sizer.html">Position Sizer</a>
-    <a href="/portfolio-manager.html">Manage Book</a>
-    <a href="/cross-asset-rv.html">Cross-Asset RV</a>
-    <a href="/fundamentals.html">Fundamentals X-Ray</a>
-    <a href="/construction-housing.html">Housing Cycle</a>
-    <a href="/crypto-narratives.html">Crypto Narratives</a>
-    <a href="/short-pressure.html">Short Pressure</a>
-    <a href="/vol.html">VOL</a>
-    <a href="/news.html">NEWS</a>
-    <a href="/momentum.html">MOMENTUM</a>
-    <a href="/pairs.html">PAIRS</a>
-    <a href="/research.html">RESEARCH</a>
-    <a href="/accuracy.html">ACCURACY</a>
-    <a href="/feedback.html">FEEDBACK</a>
-    <a href="/liquidity.html">LIQUIDITY</a>
-    <a href="/dollar.html">DOLLAR</a>
-    <a href="/global-stress.html">GLOBAL STRESS</a>
-    <a href="/flow.html">FLOW</a>
-    <a href="/crypto/">CRYPTO</a>
-    <a href="/positioning/">COT</a>
-    <a href="/risk.html">RISK</a>
-    <a href="/volatility.html">VOL</a>
-    <a href="/valuations.html">VALUATIONS</a>
-    <a href="/cb-injection.html" style="color:#fbbf24;font-weight:600">🏦 CB INJECTION</a>
-    <a href="/ecb-detail.html" style="color:#22d3ee;font-weight:600">🇪🇺 ECB DETAIL</a>
-    <a href="/boj-detail.html" style="color:#fb923c;font-weight:600">🇯🇵 BOJ CARRY</a>
-    <a href="/snb-detail.html" style="color:#22d3ee;font-weight:600">🇨🇭 SNB FRANC</a>
-    <a href="/systemic-stress.html" style="color:#ef4444;font-weight:600">🛡️ SYSTEMIC STRESS</a>
-    <a href="/euro-fragmentation.html" style="color:#fb7185;font-weight:600">⚡ EURO FRAGMENTATION</a>
-    <a href="/cds-monitor.html" style="color:#ef4444;font-weight:600">🚨 CDS MONITOR</a>
-    <a href="/metals-miners.html" style="color:#ffd266;font-weight:700">⛏ METALS &amp; MINERS</a>
-    
-    <a href="/my-portfolio.html" style="color:#26ffaf;font-weight:700">🧠 MY PORTFOLIO</a>
-    <a href="/ask.html" style="color:#22d3ee;font-weight:700">💬 ASK</a>
-    <a href="/track-public.html" style="color:#a8b3c7;font-weight:600">✅ TRACK RECORD</a>
-    <a href="/status.html">STATUS</a>
-    <a href="/investor.html">INVESTORS</a>
+  <nav class="fav-bar">
+    <a href="/screener/" class="fav-pill" style="--fc:#facc15">🔎 Screener</a>
+    <a href="/risk-regime.html" class="fav-pill" style="--fc:#60a5fa">⚖️ Risk Regime</a>
+    <a href="/inflection.html" class="fav-pill" style="--fc:#22d3ee">🌊 Liquidity</a>
+    <a href="/deal-scanner.html" class="fav-pill" style="--fc:#26ffaf">🤝 Deals</a>
+    <a href="/master-rank.html" class="fav-pill" style="--fc:#a78bfa">🏆 Master Rank</a>
+    <a href="/portfolio-manager.html" class="fav-pill" style="--fc:#ef4444">💼 Portfolio</a>
+    <a href="/brain.html" class="fav-pill" style="--fc:#facc15">🧠 Brain</a>
   </nav>
   <div data-auth-slot style="margin-left:auto"></div>
   <div class="topbar-meta">
@@ -1092,6 +946,7 @@ table.tbl tr:last-child td{border-bottom: none}
   <!-- ────────── MAIN GRID ────────── -->
   <div class="grid">
 
+    <div class="zone-head"><b style="--zc:#facc15">Today's read</b><i></i></div>
     <!-- ★ Signal Board — Flagship cross-asset posture (20-engine synthesis) -->
     <section class="card col-12" id="signalBoardCard" style="border-left:3px solid #facc15">
       <div class="card-head">
@@ -1234,6 +1089,7 @@ table.tbl tr:last-child td{border-bottom: none}
       </div>
     </section>
 
+    <div class="zone-head"><b style="--zc:#22d3ee">Macro &amp; liquidity</b><i></i></div>
     <!-- Treasury Auctions — full interpretation page -->
     <section class="card col-6" style="border-left:3px solid #3b82f6">
       <div class="card-head">
@@ -1351,6 +1207,7 @@ table.tbl tr:last-child td{border-bottom: none}
       </div>
     </section>
 
+    <div class="zone-head"><b style="--zc:#a78bfa">Cross-asset &amp; positioning</b><i></i></div>
     <!-- Cross-Asset Divergences -->
     <section class="card col-6">
       <div class="card-head">
@@ -1407,6 +1264,7 @@ table.tbl tr:last-child td{border-bottom: none}
       </div>
     </section>
 
+    <div class="zone-head"><b style="--zc:#26ffaf">Your portfolio</b><i></i></div>
     <!-- PnL Tracker -->
     <section class="card col-12">
       <div class="card-head">
@@ -1430,6 +1288,7 @@ table.tbl tr:last-child td{border-bottom: none}
         </div>
       </div>
 
+      <div class="zone-head"><b style="--zc:#60a5fa">Deep intelligence</b><i></i></div>
       <!-- ────────── INTELLIGENCE PIPELINE (NEW BUILD STACK) ────────── -->
       <div style="margin-bottom:24px;padding:14px 16px;background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(34,211,238,.04));border:1px solid rgba(167,139,250,.18);border-radius:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
