@@ -1,28 +1,19 @@
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
-
-======== 1/5 CREATE/UPDATE justhodl-naaim + weekly rule ========
-  settling 30s for parallel deploy-lambdas…
-  existed -> code updated
-  rule: cron(30 17 ? * THU,FRI *)
-
-======== 2/5 RUN NAAIM (sync) ========
-  invoke -> {"ok": true, "value": 1.0, "n": 1043, "state": "WASHED_OUT", "provisional": false}
-   {"value": 1.0, "date": "2026-08-01", "z": -3.33, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1043, "provisional": false}
-
-======== 3/5 DEPLOY patched engines ========
-  synced justhodl-patent-velocity
-  synced justhodl-put-call-extreme
-  synced justhodl-signal-board
-  patent rule ensured
-
-======== 4/5 RUN PATENT-VELOCITY (async + poll — long sync invokes drop the runner's HTTP connection) ========
-  triggered async; polling S3 for a newer object (budget 8.5 min)…
-  landed after 20s
-   {"n_results": 0, "universe": 76, "duration_s": 506.2, "total_recent_grants": 0, "spikes": 0, "top_picks_n": 0, "top5": [], "data_source": "Google Patents grant-count windows (keyless; ops 2702) \u2014 velocity-consistent"}
+== 0/4 PATENT GOOGLE-EGRESS DIAGNOSIS ==
+  cloudwatch [patent] lines (6 unique):
+    [patent] google HTTP 503
+    [patent] processed 20/76  found 12  elapsed 292s
+    [patent] processed 20/76  found 13  elapsed 250s
+    [patent] processing 76 tickers w/ patent activity
+    [patent] time budget exhausted
+    [patent] wrote 12,188B  results=13  spikes=0  duration=518.7s
+  runner-side probe: {"http": 200, "count": 17, "body_head": "{\"results\":{\"total_num_results\":17, \"total_num_pages\":2, \"many_results\":false, \"num_page\":0, \"cluster\":[{\"result\":[{\"id\":\"patent/US12594954B2/en\", \"rank\":0, \"patent\":{\"title\":\" Per"}
+== 1/4 redeploy naaim v1.1 + rerun ==
+  invoke -> {"ok": true, "value": 4.0, "n": 1040, "state": "WASHED_OUT", "provisional": false}
+  SANE: {"value": 4.0, "date": "2026-06-25", "z": -3.2, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1040, "provisional": false}
+== 2/4 re-prove fused consumers on corrected print ==
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2702_naaim_patent_live.py", line 147, in <module>
-    assert (pj.get("n_results") or 0) >= 40, "too few patent results: %s" % pj.get("n_results")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: too few patent results: 0
-❌ OPS-FAIL: aws/ops/pending/ops_2702_naaim_patent_live.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2703_naaim_fix_patent_diag.py", line 118, in <module>
+    assert comp and comp.get("ok"), "NAAIM component not ok: %s" % comp
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: NAAIM component not ok: {'id': 'NAAIM_EXPOSURE', 'ok': False, 'error': "name 'BUCKET' is not defined", 'cadence': 'weekly'}
+❌ OPS-FAIL: aws/ops/pending/ops_2703_naaim_fix_patent_diag.py
