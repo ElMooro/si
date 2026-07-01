@@ -34,7 +34,7 @@
   .regime-strip { background: var(--bg-card); border: 1px solid var(--border);
                   border-left: 4px solid var(--blue); border-radius: 6px;
                   padding: 14px 16px; margin-bottom: 14px;
-                  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 12px; }
+                  display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
   .strip-cell { padding: 0 8px; border-left: 1px solid var(--border-light); }
   .strip-cell:first-child { border-left: none; padding-left: 0; }
   .strip-cell .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -96,6 +96,44 @@
   .pill.asymmetric    { background: rgba(168,85,247,0.16); color: var(--purple); }
   .pill.pre_pump      { background: rgba(239,68,68,0.16); color: var(--red); }
   .pill.revenue_accel { background: rgba(34,197,94,0.16); color: var(--green); }
+  .pill.institutional_13f { background: rgba(59,130,246,0.20); color: var(--blue); }
+  .pill.estimate_revisions { background: rgba(34,197,94,0.18); color: var(--green); }
+  .pill.forward_orders { background: rgba(34,197,94,0.20); color: var(--green); }
+  .pill.squeeze_setup { background: rgba(239,68,68,0.20); color: var(--red); }
+  .pill.earnings_quality_hi { background: rgba(59,130,246,0.16); color: var(--blue); }
+  .pill.more { background: rgba(255,255,255,0.08); color: var(--text-dim); cursor: default; }
+
+  .mult-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px;
+                border-radius: 3px; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mult-badge.up { background: rgba(34,197,94,0.16); color: var(--green); }
+  .mult-badge.down { background: rgba(239,68,68,0.16); color: var(--red); }
+  .flag-chip { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px;
+               font-weight: 700; margin-right: 4px; }
+  .flag-chip.redflag { background: rgba(239,68,68,0.22); color: var(--red); }
+  .flag-chip.cycle { background: rgba(245,158,11,0.20); color: var(--amber); }
+  .flag-chip.structural { background: rgba(59,130,246,0.20); color: var(--blue); }
+
+  .expand-toggle { cursor: pointer; }
+  .expand-toggle:hover td { background: var(--bg-card-elev); }
+  tr.detail-row td { background: var(--bg-card-elev); border-bottom: 1px solid var(--border-light);
+                      padding: 12px 16px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-size: 11px; }
+  .contrib-row { display: grid; grid-template-columns: 110px 1fr 40px 50px; gap: 6px;
+                 align-items: center; margin-bottom: 3px; color: var(--text-dim); }
+  .contrib-bar-track { background: var(--border); border-radius: 3px; height: 6px; overflow: hidden; }
+  .contrib-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; }
+  .contrib-bar-fill.trusted { background: var(--green); }
+  .contrib-bar-fill.distrusted { background: var(--red); }
+  .detail-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase;
+                   letter-spacing: 0.05em; margin-bottom: 4px; }
+
+  .health-strip { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px;
+                  background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+                  margin-top: 14px; font-size: 10px; }
+  .health-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .health-dot.ok { background: var(--green); }
+  .health-dot.miss { background: var(--red); }
+  .health-item { color: var(--text-dim); }
 
   .rationale { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.3; }
 
@@ -144,15 +182,8 @@
       </div>
       <div class="meta">
         <a href="/">← Desk</a> ·
-        <a href="/watchlist.html">📌 My Watchlist</a> ·
         <a href="/alpha-scoreboard.html">Scoreboard</a> ·
-        <a href="/divergence-v2.html">Divergence</a>
-        <a href="/stress.html" style="color:#ef4444">🌪 Stress</a>
-    <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
-    <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a> · ·
-        <a href="/sector-tilt.html">Sector Tilt</a> ·
-        <a href="/pairs.html">Pairs</a> ·
-        <a href="/insider-drawdown.html">Insider DD</a>
+        <a href="/watchlist.html">📌 My Watchlist</a>
       </div>
     </div>
 
@@ -198,7 +229,14 @@
         <div class="value" id="nExtremeMacro">—</div>
         <div class="meta-line">divergences + pairs</div>
       </div>
+      <div class="strip-cell">
+        <div class="label">Chokepoints</div>
+        <div class="value" id="nStructural">—</div>
+        <div class="meta-line" id="calibNote">structural names</div>
+      </div>
     </div>
+
+    <div class="health-strip" id="healthStrip"></div>
 
     <!-- Two-column layout: ticker ranker + macro signals -->
     <div class="layout">
@@ -299,6 +337,53 @@ function applySort(rows, col, dir) {
   });
 }
 
+function fmtMult(m, label) {
+  if (m === null || m === undefined || Math.abs(m - 1.0) < 0.005) return '';
+  const cls = m > 1 ? 'up' : 'down';
+  const pct = ((m - 1) * 100).toFixed(0);
+  return `<span class="mult-badge ${cls}" title="${label}">${label} ${pct>0?'+':''}${pct}%</span>`;
+}
+
+function renderContribRow(c) {
+  const trustCls = c.trust_mult > 1.01 ? 'trusted' : (c.trust_mult < 0.99 ? 'distrusted' : '');
+  const pct = Math.max(2, Math.min(100, c.normalized || 0));
+  const trustNote = c.trust_mult !== undefined && Math.abs(c.trust_mult - 1) > 0.01
+    ? ` (trust ${c.trust_mult}x)` : '';
+  return `<div class="contrib-row">
+    <span>${(c.system||'').replace(/_/g,' ')}</span>
+    <span class="contrib-bar-track"><span class="contrib-bar-fill ${trustCls}" style="width:${pct}%"></span></span>
+    <span>${c.normalized}</span>
+    <span title="final weighted contribution${trustNote}">${c.contribution}</span>
+  </div>`;
+}
+
+function renderDetailRow(r) {
+  const contribs = (r.contributions || []).slice().sort((a,b) => b.contribution - a.contribution);
+  const mults = [
+    fmtMult(r.capital_flow_mult, 'capital flow'),
+    fmtMult(r.risk_regime_mult, 'RORO'),
+    fmtMult(r.liquidity_regime_mult, 'liquidity'),
+  ].filter(Boolean).join(' ');
+  const flags = [
+    r.red_flags && r.red_flags.length ? `<span class="flag-chip redflag">⚠ ${r.red_flags.join('; ')}</span>` : '',
+    r.cycle_warning ? `<span class="flag-chip cycle">⏳ ${r.cycle_warning.replace(/_/g,' ')}</span>` : '',
+    r.structural_chokepoint ? `<span class="flag-chip structural">🔗 structural chokepoint${r.chokepoint_criticality ? ' ('+r.chokepoint_criticality+')' : ''}</span>` : '',
+  ].filter(Boolean).join(' ');
+  return `<tr class="detail-row"><td colspan="6">
+    <div class="detail-grid">
+      <div>
+        <div class="detail-label">Per-system contribution (bar = normalized score, right = final weight × trust)</div>
+        ${contribs.map(renderContribRow).join('') || '<span style="color:var(--text-muted)">no system breakdown</span>'}
+      </div>
+      <div>
+        <div class="detail-label">Regime multipliers &amp; flags</div>
+        <div style="margin-bottom:8px">${mults || '<span style="color:var(--text-muted)">no active regime tilt</span>'}</div>
+        <div>${flags || '<span style="color:var(--text-muted)">no red flags / cycle warnings</span>'}</div>
+      </div>
+    </div>
+  </td></tr>`;
+}
+
 function renderTickers() {
   let rows = applySort(DATA.top_tickers || [], SORT.col, SORT.dir);
   rows = filterByWatchlist(rows);
@@ -324,17 +409,21 @@ function renderTickers() {
   const tbody = rows.map((r, i) => {
     const tier = r.n_systems >= 5 ? 'tier-5' : (r.n_systems >= 4 ? 'tier-4' : (r.n_systems >= 3 ? 'tier-3' : ''));
     const scoreClass = r.score >= 60 ? 'high' : (r.score >= 30 ? 'med' : 'low');
-    const sysPills = (r.systems || []).slice(0, 6).map(s =>
-      `<span class="pill ${s}">${s.replace(/_/g,' ')}</span>`).join('');
+    const allSys = r.systems || [];
+    const shown = allSys.slice(0, 6);
+    const extra = allSys.length - shown.length;
+    const sysPills = shown.map(s => `<span class="pill ${s}">${s.replace(/_/g,' ')}</span>`).join('')
+      + (extra > 0 ? `<span class="pill more">+${extra} more</span>` : '');
+    const flagDot = (r.red_flags && r.red_flags.length) ? ' ⚠' : '';
     return `
-      <tr class="${tier}">
+      <tr class="${tier} expand-toggle" data-i="${i}">
         <td class="rank">${i+1}</td>
-        <td><span class="ticker-cell">${r.ticker || '?'}</span></td>
+        <td><span class="ticker-cell">${r.ticker || '?'}${flagDot}</span></td>
         <td><span class="score-cell ${scoreClass}">${(r.score||0).toFixed(0)}</span></td>
         <td><strong>${r.n_systems || 0}</strong></td>
         <td><div class="systems-pills">${sysPills}</div></td>
         <td>
-          <div class="rationale">${(r.rationale||'').slice(0,130)}</div>
+          <div class="rationale">${r.rationale||''}</div>
         </td>
       </tr>
     `;
@@ -349,6 +438,15 @@ function renderTickers() {
       SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
       SORT.col = c;
       renderTickers();
+    });
+  });
+  document.querySelectorAll('tr.expand-toggle').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const next = tr.nextElementSibling;
+      if (next && next.classList.contains('detail-row')) { next.remove(); return; }
+      document.querySelectorAll('tr.detail-row').forEach(d => d.remove());
+      const r = rows[+tr.dataset.i];
+      tr.insertAdjacentHTML('afterend', renderDetailRow(r));
     });
   });
 }
@@ -393,9 +491,28 @@ function renderHeader() {
   document.getElementById('nTier5').textContent = alerts.n_tier_5_plus_systems ?? '—';
   document.getElementById('nTier3').textContent = alerts.n_tier_3_plus_systems ?? '—';
   document.getElementById('nExtremeMacro').textContent = alerts.n_extreme_macro ?? '—';
+  document.getElementById('nStructural').textContent = alerts.n_structural_chokepoints ?? '—';
+  document.getElementById('calibNote').textContent =
+    alerts.calibration_active ? 'calibration active' : 'calibration warming up';
   document.getElementById('metaLine').innerHTML =
     `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
-    `${DATA.n_tickers_total} tickers across 14 systems · ${DATA.duration_s}s`;
+    `${DATA.n_tickers_total} tickers across ${(DATA.top_tickers?.[0]?.systems?.length ? '19+' : '19+')} systems · ${DATA.duration_s}s`;
+}
+
+function renderHealthStrip() {
+  const fh = DATA.feed_health || {};
+  const missing = DATA.missing_feeds || [];
+  const stale = DATA.stale_feeds_excluded || [];
+  const entries = Object.entries(fh);
+  if (!entries.length && !missing.length && !stale.length) {
+    document.getElementById('healthStrip').style.display = 'none';
+    return;
+  }
+  const loaded = entries.filter(([,v]) => v && v.loaded).length;
+  let html = `<span class="health-item"><strong style="color:var(--text)">${loaded}/${entries.length}</strong> signal feeds loaded</span>`;
+  if (stale.length) html += `<span class="health-item"><span class="health-dot miss"></span>${stale.length} stale (excluded): ${stale.slice(0,6).join(', ')}${stale.length>6?'…':''}</span>`;
+  if (missing.length) html += `<span class="health-item"><span class="health-dot miss"></span>${missing.length} missing: ${missing.slice(0,6).join(', ')}${missing.length>6?'…':''}</span>`;
+  document.getElementById('healthStrip').innerHTML = html;
 }
 
 async function load() {
@@ -409,6 +526,7 @@ async function load() {
     renderHeader();
     renderTickers();
     renderMacro();
+    renderHealthStrip();
   } catch (e) {
     document.getElementById('tickerHost').innerHTML =
       `<div class="loader">Failed: ${e.message}</div>`;
