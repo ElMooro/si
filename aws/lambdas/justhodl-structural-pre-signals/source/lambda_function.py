@@ -58,15 +58,17 @@ BUILDOUT_TERMS = ['"data center" "megawatts"', '"power purchase agreement" "data
 def _edgar(q, forms, startdt, enddt, tries=3):
     url = ("https://efts.sec.gov/LATEST/search-index?q=" + urllib.parse.quote(q)
            + f"&forms={forms}&startdt={startdt}&enddt={enddt}")
+    last_err = None
     for i in range(tries):
         try:
             raw = urllib.request.urlopen(
                 urllib.request.Request(url, headers={"User-Agent": "JustHodl.AI research contact@justhodl.ai"}),
                 timeout=20).read()
-            return json.loads(raw)
-        except Exception:
+            return json.loads(raw), url, None
+        except Exception as e:
+            last_err = f"{type(e).__name__}: {str(e)[:200]}"
             time.sleep(1.0 * (i + 1))
-    return None
+    return None, url, last_err
 
 
 def _fmp(path, tries=2):
@@ -126,17 +128,26 @@ def lambda_handler(event=None, context=None):
 
     # ── restructuring: 8-K Item 2.05, SEC's own mandated exit/disposal disclosure ──
     restructuring = []
-    d = _edgar('"Item 2.05"', "8-K", startdt, enddt)
+    debug_info = {}
+    d, req_url, err = _edgar('"Item 2.05"', "8-K", startdt, enddt)
+    debug_info["restructuring_query_url"] = req_url
+    debug_info["restructuring_error"] = err
+    debug_info["restructuring_raw_hit_count"] = (d.get("hits", {}).get("total", {}).get("value")
+                                                 if d else None)
     if d:
         for h in d.get("hits", {}).get("hits", [])[:100]:
             rec = parse_hit(h)
             if "2.05" in (rec.get("items") or []):    # confirm genuine item presence, not just text match
                 restructuring.append(rec)
+    debug_info["restructuring_after_filter"] = len(restructuring)
 
     # ── buildout: datacenter/power-capacity capex language, several term variants ──
     buildout_raw, seen_ids = [], set()
+    debug_info["buildout_per_term"] = []
     for term in BUILDOUT_TERMS:
-        d = _edgar(term, "8-K,10-Q,10-K", startdt, enddt)
+        d, req_url, err = _edgar(term, "8-K,10-Q,10-K", startdt, enddt)
+        debug_info["buildout_per_term"].append({"term": term, "error": err,
+            "raw_hits": (d.get("hits", {}).get("total", {}).get("value") if d else None)})
         if not d:
             continue
         for h in d.get("hits", {}).get("hits", [])[:50]:
@@ -197,6 +208,7 @@ def lambda_handler(event=None, context=None):
             "source": "SEC EDGAR full-text search, data-center/power-capacity language in 8-K/10-Q/10-K",
         },
         "sources": ["SEC EDGAR full-text search (efts.sec.gov)", "FMP company-screener (enrichment)"],
+        "_debug": debug_info,
         "disclaimer": "Real SEC filings, research only — not investment advice. A company filing "
                      "Item 2.05 or mentioning data-center capacity is not itself a trade signal; "
                      "read the actual filing before acting.",
