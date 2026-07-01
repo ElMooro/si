@@ -26,7 +26,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/liquidity-inflection.json"
 FRED_KEY = os.environ.get("FRED_KEY", "2f057499936072679d8843d7fce99989")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "2.4.0"
+VERSION = "2.5.0"
 W_SLOPE = 65          # ~13 weeks of business days
 Z_LOOKBACK = 756      # 3y
 DEBOUNCE = 0.25
@@ -794,6 +794,69 @@ def composite_history_from_snapshots():
             "wsum": wsum, "components_used": names, "source": "snapshots", "n_snapshots": len(snaps)}
 
 
+def stablecoin_signal(sc):
+    """Properly extract the ALREADY-LIVE stablecoin-flow engine (crypto-dollar liquidity) instead
+    of the crude best-effort probe this page used before — it has a validated state machine,
+    forward expectations and mint/burn detail that were being discarded."""
+    if not sc or not isinstance(sc, dict):
+        return None
+    agg = sc.get("aggregate") or {}
+    state = sc.get("state")
+    d30 = agg.get("delta_30d_pct")
+    eff_z = None
+    if isinstance(d30, (int, float)):
+        eff_z = max(-3.0, min(3.0, d30 / 4.0))
+    return {"state": state, "state_description": sc.get("state_description"),
+            "signal_strength": sc.get("signal_strength"), "eff_z": eff_z,
+            "total_usd_bn": round(agg.get("total_usd", 0) / 1e9, 1) if agg.get("total_usd") else None,
+            "delta_24h_pct": agg.get("delta_24h_pct"), "delta_7d_pct": agg.get("delta_7d_pct"),
+            "delta_30d_pct": d30, "top_chains": (agg.get("top_chains") or [])[:5],
+            "top_minters_30d": (sc.get("top_5_minters_30d") or [])[:5],
+            "top_burners_30d": (sc.get("top_3_burners_30d") or [])[:3],
+            "forward_expectations": sc.get("forward_expectations"),
+            "as_of": (sc.get("as_of") or "")[:10]}
+
+
+def treasury_auction_signal(ac, net_dates_last=None, tga_pace_bn_wk=None):
+    """Surface the ALREADY-LIVE auction-crisis-detector (real Treasury auction results +
+    forward calendar via api.fiscaldata.treasury.gov) — auction demand health, and a near-term
+    calendar cross-check against the momentum-based TGA projection (confirmed scheduled bill
+    issuance vs what the momentum path implies for the same window)."""
+    if not ac or not isinstance(ac, dict):
+        return None
+    td = ac.get("tenor_decomposition") or {}
+    highlights = sorted(
+        ({"bucket": k, "label": v.get("label"), "composite": v.get("composite"),
+          "risk_profile": v.get("risk_profile"), "dominant_signal": v.get("dominant_signal")}
+         for k, v in td.items() if isinstance(v, dict) and v.get("composite") is not None),
+        key=lambda r: -(r["composite"] or 0))[:3]
+    tail = ((ac.get("indicator_aggregate_14d") or {}).get("tail_stress") or {})
+    fc = ac.get("forward_calendar") or []
+    near_term = None
+    if fc:
+        today = datetime.now(timezone.utc).date()
+        window_end = today + timedelta(days=14)
+        bills = [a for a in fc if a.get("security_type") == "Bill" and a.get("offering_amount_billions")]
+        in_window = [a for a in bills if a.get("issue_date") and today.isoformat() <= a["issue_date"] <= window_end.isoformat()]
+        known_bn = round(sum(a["offering_amount_billions"] for a in in_window), 1)
+        implied_bn = round((tga_pace_bn_wk or 0) * 2, 1) if tga_pace_bn_wk is not None else None
+        agree = None
+        if implied_bn is not None and known_bn:
+            agree = "CONSISTENT" if abs(known_bn - implied_bn) < max(known_bn, abs(implied_bn)) * 0.5 + 5 else "DIVERGENT"
+        near_term = {"coverage_days": 14, "n_auctions": len(in_window),
+                     "scheduled_bill_issuance_bn": known_bn,
+                     "momentum_implied_bn": implied_bn, "agreement": agree,
+                     "note": ("Confirmed scheduled T-bill issuance over the next 14 days from the real Treasury "
+                              "auction calendar, vs. what the momentum-based projection implies for the same "
+                              "window (bill issuance alone; doesn't capture coupons/spending/receipts).")}
+    return {"regime": ac.get("regime"), "composite_score": ac.get("composite_score"),
+            "interpretation": ac.get("interpretation"), "issuance_anomaly": ac.get("issuance_anomaly"),
+            "tenor_highlights": highlights, "tail_stress_14d": {"n_fired": tail.get("n_fired"), "max_score": tail.get("max_score")},
+            "curve_slope": (ac.get("cross_signals") or {}).get("curve_slope"),
+            "near_term_calendar": near_term, "as_of": (ac.get("generated_at") or "")[:10],
+            "source": "auction-crisis-detector (api.fiscaldata.treasury.gov, live)"}
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -853,37 +916,19 @@ def lambda_handler(event=None, context=None):
                     "credit_yoy_pct": round(yoy[-1][1] * 100, 1),
                     "impulse_z": round((vals[-1] - m) / sd, 2) if sd else 0}
 
-    # Stablecoin acceleration (platform brief)
+    # ── Stablecoin flow — crypto-dollar liquidity (already-live engine, properly extracted) ──
     sc = s3_json("data/stablecoin-flow.json")
-    sc_state = None
-    if sc:
-        hist = None
-        for f in ("history", "series", "mcap_history", "daily"):
-            if isinstance(sc.get(f), list) and len(sc[f]) > 30:
-                hist = sc[f]
-                break
-        if hist:
-            vals = []
-            for h in hist:
-                v = h.get("total_mcap") or h.get("mcap") or h.get("value") or h.get("total")
-                if v is not None:
-                    vals.append(float(v))
-            if len(vals) > 30:
-                d1 = [vals[i] - vals[i - 1] for i in range(1, len(vals))]
-                d2 = [d1[i] - d1[i - 1] for i in range(1, len(d1))]
-                m, sd = mean(d2[-180:]), (stdev(d2[-180:]) if len(d2) > 30 else 0)
-                sc_state = {"accel_z": round((d2[-1] - m) / sd, 2) if sd else 0,
-                            "n_points": len(vals), "as_of": sc.get("generated_at", "")[:10]}
-    if not sc_state and isinstance(sc, dict):
-        ag = sc.get("aggregate") or {}
-        if isinstance(ag, dict) and ag:
-            nums = {k: v for k, v in ag.items() if isinstance(v, (int, float))}
-            sc_state = {"mode": "state_passthrough", "state": sc.get("state"),
-                        "signal_strength": sc.get("signal_strength"),
-                        "aggregate": dict(list(nums.items())[:6]),
-                        "as_of": sc.get("as_of")}
-    avail["stablecoin"] = bool(sc_state)
-    sc_schema_hint = (sorted(sc.keys())[:12] if (sc and not sc_state) else None)
+    stablecoin_full = stablecoin_signal(sc)
+    sc_state = ({"accel_z": stablecoin_full["eff_z"], "state": stablecoin_full["state"],
+                "signal_strength": stablecoin_full["signal_strength"], "as_of": stablecoin_full["as_of"]}
+                if stablecoin_full else None)
+    avail["stablecoin"] = bool(stablecoin_full)
+    sc_schema_hint = None
+
+    # ── Treasury auction health — already-live auction-crisis-detector (real fiscaldata.treasury.gov) ──
+    ac = pull("data/auction-crisis.json")
+    treasury_auctions = treasury_auction_signal(
+        ac, tga_pace_bn_wk=(projection or {}).get("drivers_per_wk_bn", {}).get("tga") if projection else None)
 
     # Lead/lag event-study vs SPX / BTC / HYG
     spx_doc = s3_json("data/spx-history-deep.json") or {}
@@ -1137,11 +1182,27 @@ def lambda_handler(event=None, context=None):
     # ── Central-bank swap lines & discount-window backstop usage ──
     dw = fred("WLCFLPCL", "2010-01-01")      # primary credit (discount window), weekly $M
     dw_bn = round(dw[sorted(dw)[-1]] / 1000.0, 2) if dw else None
+    srf = fred("RPONTSYD", "2021-07-01")     # Fed Standing Repo Facility usage (dealers borrowing FROM Fed) — distinct from RRP
+    srf_bn = round(srf[sorted(srf)[-1]] / 1000.0, 3) if srf else None
+    srf_active_days = None
+    if srf:
+        sd_ = sorted(srf)
+        streak = 0
+        for d_ in reversed(sd_):
+            if (srf[d_] or 0) > 50:   # >$50M = meaningfully non-zero for a facility that normally prints ~$0
+                streak += 1
+            else:
+                break
+        srf_active_days = streak
     swap_lines = {
         "fed_swaps_bn": swpt_bn, "swap_trend_bn": swpt_trend, "discount_window_bn": dw_bn,
+        "srf_bn": srf_bn, "srf_active_days": srf_active_days,
         "status": ("STRESS" if (isinstance(swpt_bn, (int, float)) and swpt_bn > 5)
-                   or (isinstance(dw_bn, (int, float)) and dw_bn > 15) else "CALM"),
-        "note": "Fed FX swap lines + discount-window primary credit — crisis backstops; usage = funding stress at the margin."}
+                   or (isinstance(dw_bn, (int, float)) and dw_bn > 15)
+                   or (isinstance(srf_bn, (int, float)) and srf_bn > 1) else "CALM"),
+        "note": ("Fed FX swap lines + discount-window primary credit + Standing Repo Facility (SRF) usage — "
+                 "crisis backstops. SRF normally prints ~$0; any real usage means dealers needed the Fed's "
+                 "emergency repo backstop, a harder signal than reserve-scarcity proxies.")}
 
     # ── Cross-asset flow divergence (dash-for-cash / flight-to-safety) ──
     cflow = pull("data/capital-flow.json")
@@ -1219,6 +1280,10 @@ def lambda_handler(event=None, context=None):
 
     add_part("net_liquidity", usd_z[-1] if usd_z else None, 0.28)
     add_part("reserves", reserves["eff_z"] if reserves else None, 0.16)
+    if us_money and isinstance(us_money.get("real_m2_yoy_pct"), (int, float)):
+        add_part("m2_growth", us_money["real_m2_yoy_pct"] / 3.0, 0.05)
+    if stablecoin_full and isinstance(stablecoin_full.get("eff_z"), (int, float)):
+        add_part("stablecoin_flow", stablecoin_full["eff_z"], 0.05)
     _gli = _num(global_liq.get("impulse_13w_pct")) if global_liq else None
     if _gli is not None:
         add_part("global_liquidity", _gli / 1.5, 0.16)
@@ -1378,6 +1443,15 @@ def lambda_handler(event=None, context=None):
     if calm and fp.get("score") is not None and fp["score"] < 60:
         tensions.append({"severity": "high", "signal": "funding plumbing",
                          "note": f"Headline liquidity benign, but funding plumbing is stressed ({fp.get('score')}/100, {fp.get('regime')}) — repo/reserve plumbing tightening beneath the surface."})
+    if swap_lines and isinstance(swap_lines.get("srf_bn"), (int, float)) and swap_lines["srf_bn"] > 1:
+        tensions.append({"severity": "high", "signal": "SRF backstop usage",
+                         "note": f"The Fed's Standing Repo Facility is being used (${swap_lines['srf_bn']}bn, {swap_lines.get('srf_active_days')}d active) — normally ~$0; dealers needed the emergency backstop."})
+    if treasury_auctions and treasury_auctions.get("regime") in ("STRESS", "CRISIS") and calm:
+        tensions.append({"severity": "high" if treasury_auctions["regime"] == "CRISIS" else "medium", "signal": "Treasury auction demand",
+                         "note": f"Headline calm, but Treasury auctions are showing {treasury_auctions['regime']} ({treasury_auctions.get('composite_score')}/100) — {treasury_auctions.get('interpretation', '')}"})
+    if stablecoin_full and stablecoin_full.get("state") == "CONTRACTING" and calm:
+        tensions.append({"severity": "medium", "signal": "stablecoin outflow",
+                         "note": f"Fiat liquidity calm, but stablecoin supply is contracting (signal {stablecoin_full.get('signal_strength')}/100) — crypto-dollar liquidity draining, a distinct channel."})
     if dollar_shortage and dollar_shortage.get("status") in ("WATCH", "SCRAMBLE"):
         tensions.append({"severity": "high" if dollar_shortage["status"] == "SCRAMBLE" else "medium", "signal": "dollar shortage",
                          "note": f"Offshore USD funding shows {dollar_shortage['status']} while the headline is calm — cross-currency strain building."})
@@ -1428,6 +1502,7 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
+           "treasury_auctions": treasury_auctions, "stablecoin_full": stablecoin_full,
            "cycle_clock": clock, "composite_clock": composite_clock,
            "composite_projection": composite_projection,
            "reserve_runway": reserve_runway, "forward_expectation": forward_expectation,
