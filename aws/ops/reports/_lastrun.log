@@ -1,22 +1,5 @@
-
-signal-genealogy-daily: 2 targets
-  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-signal-genealogy
-  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-signal-genealogy
-  removed duplicate target ids: ['target1']
-
-structural-pre-signals-daily: 2 targets
-  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-structural-pre-signals
-  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-structural-pre-signals
-  removed duplicate target ids: ['target1']
-
-universe-discovery-daily: 2 targets
-  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-universe-discovery
-  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-universe-discovery
-  removed duplicate target ids: ['target1']
-
-talent-migration-daily: 2 targets
-  Id=1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-talent-migration
-  Id=target1 Arn=arn:aws:lambda:us-east-1:857687956942:function:justhodl-talent-migration
-  removed duplicate target ids: ['target1']
-
-DONE 2687
+signal-genealogy-daily: 1 target(s) -- OK
+structural-pre-signals-daily: 1 target(s) -- OK
+universe-discovery-daily: 1 target(s) -- OK
+talent-migration-daily: 1 target(s) -- OK
+DONE 2688
