@@ -13,7 +13,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 REGION, BUCKET, ACCT = "us-east-1", "justhodl-dashboard-live", "857687956942"
-lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=740, connect_timeout=15, retries={"max_attempts": 2}))
+lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=120, connect_timeout=15, retries={"max_attempts": 1}))
 ev = boto3.client("events", region_name=REGION)
 s3 = boto3.client("s3", region_name=REGION)
 R = {"ops": 2702, "ts": datetime.now(timezone.utc).isoformat()}
@@ -62,7 +62,7 @@ def ensure_rule(fn, name, expr, desc):
     ev.put_targets(Rule=name, Targets=[{"Id": "1", "Arn": arn}])
 
 sect("1/5 CREATE/UPDATE justhodl-naaim + weekly rule")
-print("  settling 60s for parallel deploy-lambdas…"); time.sleep(60)
+print("  settling 30s for parallel deploy-lambdas…"); time.sleep(30)
 cfg = json.load(open("aws/lambdas/justhodl-naaim/config.json"))
 zb = zip_fn("justhodl-naaim")
 try:
@@ -107,13 +107,35 @@ ensure_rule("justhodl-patent-velocity", sch.get("rule_name") or sch.get("name") 
             sch.get("description", ""))
 print("  patent rule ensured")
 
-sect("4/5 RUN PATENT-VELOCITY (sync, ~6 min for 76 names x2 windows)")
-r = lam.invoke(FunctionName="justhodl-patent-velocity", InvocationType="RequestResponse",
+sect("4/5 RUN PATENT-VELOCITY (async + poll — long sync invokes drop the runner's HTTP connection)")
+def _patent_head():
+    try:
+        h = s3.head_object(Bucket=BUCKET, Key="data/patent-velocity.json")
+        return h["LastModified"]
+    except Exception:
+        return None
+lm0 = _patent_head()
+fresh0 = lm0 and (datetime.now(timezone.utc) - lm0).total_seconds() < 1500
+pj = None
+if fresh0:
+    _cand = json.loads(s3.get_object(Bucket=BUCKET, Key="data/patent-velocity.json")["Body"].read())
+    if (_cand.get("n_results") or 0) >= 40 and "needs_api_key" not in json.dumps(_cand)[:1500]:
+        pj = _cand
+        print("  fresh output already on S3 (age %.0fs, likely the disconnected prior invoke) — using it"
+              % (datetime.now(timezone.utc) - lm0).total_seconds())
+if pj is None:
+    lam.invoke(FunctionName="justhodl-patent-velocity", InvocationType="Event",
                Payload=json.dumps({"limit": 76}).encode())
-pay = (r["Payload"].read() or b"")[:220].decode("utf-8", "ignore")
-print("  invoke ->", ("ERROR " if r.get("FunctionError") else "") + pay)
-assert not r.get("FunctionError"), "patent-velocity errored: %s" % pay
-pj = json.loads(s3.get_object(Bucket=BUCKET, Key="data/patent-velocity.json")["Body"].read())
+    print("  triggered async; polling S3 for a newer object (budget 8.5 min)…")
+    t0 = time.time()
+    while time.time() - t0 < 510:
+        time.sleep(20)
+        lm = _patent_head()
+        if lm and (lm0 is None or lm > lm0):
+            pj = json.loads(s3.get_object(Bucket=BUCKET, Key="data/patent-velocity.json")["Body"].read())
+            print("  landed after %.0fs" % (time.time() - t0))
+            break
+    assert pj is not None, "patent-velocity did not land within budget — check its CloudWatch logs"
 tot_recent = sum((x.get("n_recent_patents") or 0) for x in pj.get("all_results", []))
 R["patent"] = {"n_results": pj.get("n_results"), "universe": pj.get("universe_size"),
                "duration_s": pj.get("duration_s"), "total_recent_grants": tot_recent,
