@@ -42,6 +42,8 @@ OUT_KEY = "data/finviz-signals.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 SUSPICIOUS_N = 4500   # a real event-screen never returns half the universe
+LOOSE_SCREENS = {"horizontal_sr", "tl_support", "tl_resistance"}  # weak patterns tag thousands legitimately
+SUSPICIOUS_N_LOOSE = 9500  # only near-whole-universe counts are suspicious for loose screens
 SLEEP_S = 3
 
 # (name, query-fragment, cap) — s= prebuilt screens / f= filters. Runtime
@@ -63,10 +65,10 @@ SCREENS = [
     ("new_low_alltime", "f=ta_alltime_nl",     150),  # v2 — NEW ALL-TIME LOW
     ("new_high_52w",   "s=ta_newhigh",         150),
     ("new_low_52w",    "s=ta_newlow",          150),
-    ("new_high_50d",   "s=ta_highlow50d_nh",   150),  # v2
-    ("new_low_50d",    "s=ta_highlow50d_nl",   150),  # v2
-    ("new_high_20d",   "s=ta_highlow20d_nh",   150),
-    ("new_low_20d",    "s=ta_highlow20d_nl",   150),
+    ("new_high_50d",   "f=ta_highlow50d_nh",   150),  # v2 — FILTER not signal (ops 2696)
+    ("new_low_50d",    "f=ta_highlow50d_nl",   150),  # v2
+    ("new_high_20d",   "f=ta_highlow20d_nh",   150),  # latent v1 bug: was s= (ops 2696)
+    ("new_low_20d",    "f=ta_highlow20d_nl",   150),
     # ── volume / momentum / mean-reversion events ──
     ("unusual_volume", "s=ta_unusualvolume",   150),
     ("most_active",    "s=ta_mostactive",      100),
@@ -98,7 +100,7 @@ SCREENS = [
     ("wedge_up",       "f=ta_pattern_wedgeup",              80),
     ("wedge_down",     "f=ta_pattern_wedgedown",            80),
     ("horizontal_sr",        "f=ta_pattern_horizontal",       120),  # v2
-    ("horizontal_sr_strong", "f=ta_pattern_horizontalstrong", 120),  # v2
+    ("horizontal_sr_strong", "f=ta_pattern_horizontal2", 120),  # v2 — strong = "2" suffix (ops 2696)
     ("tl_support",     "f=ta_pattern_tlsupport",           120),  # v2
     ("tl_resistance",  "f=ta_pattern_tlresistance",        120),  # v2
 ]
@@ -179,8 +181,8 @@ def _wyckoff_phases(doc):
 def _is_stock(u):
     if not u:
         return False
-    at = u.get("asset_type")
-    if at and at != "Stock":
+    at = (u.get("asset_type") or "").lower()
+    if at and "stock" not in at:
         return False
     if u.get("etf_type") or u.get("expense_ratio") is not None:
         return False
@@ -188,14 +190,16 @@ def _is_stock(u):
 
 
 def lambda_handler(event, context):
-    signals, counts, counts_raw, quarantined = {}, {}, {}, {}
+    signals, counts, counts_raw, quarantined, tset = {}, {}, {}, {}, {}
     for name, qs, cap in SCREENS:
+        thresh = SUSPICIOUS_N_LOOSE if name in LOOSE_SCREENS else SUSPICIOUS_N
         try:
             full = FV.fetch_screen(qs)
             counts_raw[name] = len(full)
-            if len(full) >= SUSPICIOUS_N:
+            tset[name] = {r.get("ticker") for r in full if r.get("ticker")}
+            if len(full) >= thresh:
                 quarantined[name] = len(full)
-                signals[name], counts[name] = [], 0
+                signals[name], counts[name], tset[name] = [], 0, set()
                 print("  %-20s QUARANTINED raw=%d" % (name, len(full)))
             else:
                 signals[name] = full[:cap]
@@ -203,7 +207,7 @@ def lambda_handler(event, context):
                 print("  %-20s %d (raw %d)" % (name, counts[name], len(full)))
         except Exception as e:
             print("  %-20s FAIL %s" % (name, str(e)[:70]))
-            signals[name], counts[name], counts_raw[name] = [], 0, 0
+            signals[name], counts[name], counts_raw[name], tset[name] = [], 0, 0, set()
         time.sleep(SLEEP_S)
 
     uni = FV.load_universe()
@@ -211,7 +215,7 @@ def lambda_handler(event, context):
     wyckoff = _wyckoff_phases(_get_json("data/accumulation-radar.json"))
 
     def _tks(name):
-        return {x.get("ticker") for x in signals.get(name, []) if x.get("ticker")}
+        return tset.get(name) or set()   # FULL membership (pre-cap), not the display slice
 
     # ── confluence: multi-confirmed events (v1 keys preserved, v2 added) ──
     bottoms = _tks("double_bottom") | _tks("inverse_hs") | _tks("multiple_bottom")
@@ -288,17 +292,24 @@ def lambda_handler(event, context):
     # ── consolidation: volatility-contraction coils near highs ──────────
     hsr, hsr_s, tls = _tks("horizontal_sr"), _tks("horizontal_sr_strong"), _tks("tl_support")
     coils = []
+    dg = {"universe": len(uni), "stock": 0, "px_vol": 0, "have_vol": 0, "contract": 0}
     for tk, u in uni.items():
         if not _is_stock(u):
             continue
+        dg["stock"] += 1
         price, avol = u.get("price") or 0, u.get("avg_volume") or 0
         vw, vm = u.get("volatility_w"), u.get("volatility_m")
         offh = u.get("off_52w_high_pct")
         atrp = (u.get("atr") or 0) / price if price else 99
-        if price < 3 or avol < 300_000 or vw is None or vm is None or offh is None:
+        if price < 3 or avol < 300_000:
             continue
+        dg["px_vol"] += 1
+        if vw is None or vm is None or offh is None:
+            continue
+        dg["have_vol"] += 1
         if vm <= 0 or vw > vm * 0.85 or atrp > 0.035 or offh < -15:
             continue
+        dg["contract"] += 1
         score = min(40.0, 40 * (1 - vw / vm) / 0.5)     # contraction depth
         score += 30 * max(0.0, 1 - atrp / 0.035)        # absolute tightness
         score += 15 * max(0.0, 1 + offh / 15)           # near 52w high = base, not downtrend
@@ -324,7 +335,8 @@ def lambda_handler(event, context):
             dist_watch.append({"ticker": tk, "company": u.get("company"), "sector": u.get("sector"),
                                "price": u.get("price"), "off_52w_high_pct": u.get("off_52w_high_pct"),
                                "rsi": u.get("rsi"), "perf_m": u.get("perf_m"), "why": why})
-    consolidation = {"coiled": coils, "distribution_watch": dist_watch[:60],
+    print("  coil gates:", dg, "-> coiled", len(coils))
+    consolidation = {"coiled": coils, "distribution_watch": dist_watch[:60], "diag": dg,
                      "criteria": "wk-vol <= 0.85x mo-vol · ATR <= 3.5% of price · within 15% of 52w high · >=$3 · >=300k avg vol"}
 
     # ── whole-market breadth (FinViz cut: per-sector) + daily history ────
