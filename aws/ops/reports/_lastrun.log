@@ -1,81 +1,30 @@
-total: 40173
+============================================================
+1) ERCOT MIS report catalog — stable large-load queue endpoint
+  reportTypeId=13424 (Large Flexible/Large Load queue guess): 200 b'{"ListDocsByRptTypeRes":{"DocumentList":[{"Document":{"ExpiredDate":"2029-01-13T23:59:59-06:00","ILMStatus":"EXT","SecurityStatus":"P","ContentSize":"3204693","Extension":"xlsx","ReportTypeID":"13424","Prefix":"rpt","FriendlyName":"ERCOT_2025_Hourly_WindSolar_Output","ConstructedName":"rpt.0001342
+  NP3-987-ER product page: 200 b'\n<!DOCTYPE html>\n<html lang="en">\n\n<head>\n  <title>Data Product Details</title>\n  <meta http-equiv="X-UA-Compatible" content="IE=edge" />\n  <meta charset="utf-8"/>\n  <meta name="referrer" co
 
-all keys seen across records + counts:
-  checked_at: 40173
-  signal_type: 40173
-  logged_at: 40173
-  signal_id: 40173
-  predicted_dir: 40173
-  signal_value: 40173
-  correct: 40173
-  outcome_id: 40173
-  ttl: 40173
-  window_key: 40173
-  outcome: 40173
-  outcome.checked_at: 40173
-  outcome.correct: 40173
-  outcome.price_at_check: 30378
-  outcome.actual_direction: 30378
-  outcome.return_pct: 30378
-  outcome.price_at_signal: 30378
-  regime_at_log: 15047
-  outcome.benchmark_price: 9795
-  outcome.asset_price: 9795
-  outcome.excess_return: 9795
-  is_legacy: 4410
-  legacy_reason: 4410
-  backfilled_at: 1825
-  outcome.asset_return: 1405
-  outcome.baseline_benchmark_price: 1405
-  outcome.baseline_price: 1405
-  outcome.benchmark_return: 1405
+============================================================
+2) SEC EDGAR full-text search — 8-K Item 5.02 (executive departures)
+  efts search-index: 200 b'{"took":1096,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":202,"relation":"eq"},"max_score":7.4387894,"hits":[{"_index":"edgar_file","_id":
+  efts alt: 200 b'{"took":1738,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":10000,"relation":"gte"},"max_score":8.218173,"hits":[{"_index":"edgar_file","_id
+  data.sec.gov submissions (AAPL CIK) reachable: 200 164394
 
-=== eng: prefixed signal types specifically — do THEY carry a ticker? ===
-eng: records: 2854
-  eng:finviz-news: 65
-  eng:stocktwits: 60
-  eng:narrative-vs-tape: 58
-  eng:executive-intel: 53
-  eng:early-movers: 50
-  eng:finra-short: 40
-  eng:velocity-acceleration: 39
-  eng:tape-reader: 36
-  eng:cascade-validation-log: 36
-  eng:theme-cascade-calibrated: 34
-  eng:retail-alerts: 32
-  eng:pump-mechanics: 32
-  eng:insider-radar: 32
-  eng:buzz-velocity: 32
-  eng:ipo-pipeline: 32
-  eng:options-flow: 31
-  eng:theme-cascade: 30
-  eng:sec-filings-intel: 30
-  eng:capital-flow: 30
-  eng:liquidity-profile: 28
+============================================================
+3) SEC EDGAR daily full-text search (the real endpoint)
+  status: 200
+  keys: ['took', 'timed_out', '_shards', 'hits', 'aggregations', 'query'] | hits: {'value': 95, 'relation': 'eq'}
 
-sample eng: record full dump:
-{
- "checked_at": "2026-06-26T21:29:03.072596+00:00",
- "signal_type": "eng:insider-trades",
- "logged_at": "2026-06-19T02:14:09.957345+00:00",
- "signal_id": "77e2b459-1fa4-4020-b565-d66fac01f3b6",
- "predicted_dir": "UP",
- "signal_value": "PICK",
- "correct": true,
- "regime_at_log": "SLOWING",
- "outcome_id": "77e2b459-1fa4-4020-b565-d66fac01f3b6_day_7",
- "ttl": "1814045343",
- "window_key": "day_7",
- "outcome": {
-  "price_at_check": "38.88",
-  "actual_direction": "UP",
-  "return_pct": "11.181012",
-  "checked_at": "2026-06-26T21:29:03.072596+00:00",
-  "correct": true,
-  "price_at_signal": "34.97"
- }
-}
+============================================================
+4) SEC EDGAR full text search UI endpoint (alt path)
+  new-registrant Form 10 browse: None HTTP Error 503: Service Unavailable
 
-=== full distinct signal_type list (all 271) ===
-['analog_signal', 'apex_fusion', 'carry_risk', 'corr_break_composite_vs_spy', 'corr_break_composite_vs_vxx', 'corr_break_top_pair', 'correlation_break', 'cot_extreme', 'crisis_broad_dollar_vs_eem', 'crisis_broad_dollar_vs_spy', 'crisis_dfii10_vs_gld', 'crisis_dfii10_vs_spy', 'crisis_hy_oas_vs_hyg', 'crisis_hy_oas_vs_spy', 'crisis_ig_bbb_oas', 'crisis_index_anfci', 'crisis_index_kcfsi', 'crisis_index_nfci', 'crisis_index_stlfsi4', 'crisis_obfr_iorb', 'crisis_rate_diff_eur_3m', 'crisis_rate_diff_jpy_3m', 'crisis_sloos_tighten', 'crisis_sofr_iorb', 'crisis_t10yie_extreme', 'crypto_dvol', 'crypto_fear_greed', 'crypto_risk_score', 'divergence_extreme', 'earnings_pead', 'edge_composite', 'edge_regime', 'eng:13f-positions', 'eng:ai-infra-stack', 'eng:ai-rerating-radar', 'eng:allocator', 'eng:analyst-actions', 'eng:analyst-consensus', 'eng:apex-fusion', 'eng:ark-holdings', 'eng:asymmetric-scorer', 'eng:attention-signals', 'eng:auction-decisive-call', 'eng:backlog', 'eng:baggers-names', 'eng:beneish', 'eng:best-ideas', 'eng:best-setups', 'eng:beta-laggards', 'eng:bond-vol-decisive-call', 'eng:bonds-decisive-call', 'eng:boom-radar', 'eng:bottleneck-boom', 'eng:buyback-scanner', 'eng:buyback-yield-ranking', 'eng:buzz-velocity', 'eng:capital-flow', 'eng:capital-flow-radar', 'eng:capital-return', 'eng:carry-surface', 'eng:cascade-validation-log', 'eng:chart-patterns', 'eng:chart-vision', 'eng:chokepoint', 'eng:commodity-curves', 'eng:compass-decisive-call', 'eng:compound-signals', 'eng:concentration-liquidity', 'eng:consumer-pulse-decisive-call', 'eng:convergence-radar', 'eng:convexity-scores', 'eng:conviction-decisive-call', 'eng:correlation-surface', 'eng:crisis-decisive-call', 'eng:crypto-emergence', 'eng:crypto-etf-arb', 'eng:crypto-opportunities', 'eng:cyclical-bagger', 'eng:dark-pool', 'eng:deal-scanner', 'eng:dealer-gex', 'eng:debate', 'eng:deep-value', 'eng:deep-value-names', 'eng:deep-value-overlap', 'eng:defcon-decisive-call', 'eng:desk-consensus', 'eng:dislocations', 'eng:divergence-decisive-call', 'eng:dividend-growth', 'eng:dollar-decisive-call', 'eng:early-movers', 'eng:earnings-cascade', 'eng:earnings-iv-crush', 'eng:earnings-pead', 'eng:earnings-quality', 'eng:earnings-tracker', 'eng:earnings-whisper', 'eng:edgar-authority', 'eng:eps-revision-velocity', 'eng:eps-velocity-names', 'eng:equity-confluence', 'eng:estimate-revisions', 'eng:etf-flows', 'eng:etf-true-flows', 'eng:eva-spread', 'eng:executive-intel', 'eng:factor-decomposition', 'eng:factor-risk', 'eng:fast-filings', 'eng:finnhub-signals', 'eng:finra-short', 'eng:finviz-earnings-surprise', 'eng:finviz-etf-flows', 'eng:finviz-news', 'eng:firm-book', 'eng:flow-confluence', 'eng:flow-lookthrough', 'eng:forensic-screen', 'eng:forward-orders', 'eng:frontrun-sniffer', 'eng:fundamentals', 'eng:fundamentals-decisive-call', 'eng:future-intelligence', 'eng:gf-value', 'eng:hiring-velocity', 'eng:ignition', 'eng:implied-prob', 'eng:index-inclusion', 'eng:index-recon', 'eng:insider-aggregate', 'eng:insider-buys-enriched', 'eng:insider-clusters', 'eng:insider-clusters-names', 'eng:insider-radar', 'eng:insider-trades', 'eng:intraday-pulse', 'eng:ipo-pipeline', 'eng:kill-theses', 'eng:lce-decisive-call', 'eng:lead-lag-graph', 'eng:liquidity-capacity', 'eng:liquidity-decisive-call', 'eng:liquidity-profile', 'eng:lobbying-intel', 'eng:lockup-expiration', 'eng:ma-reversion', 'eng:ma-target-predictor', 'eng:ma200-reclaim', 'eng:magic-formula', 'eng:market-map', 'eng:massive-signals', 'eng:master-ranker', 'eng:merger-arb-risk', 'eng:meta-labeler', 'eng:microcap-float-squeeze', 'eng:miss-calibrator-proposals', 'eng:momentum-breakout', 'eng:momentum-leaders', 'eng:momentum-names', 'eng:narrative-vs-tape', 'eng:opportunities', 'eng:options-analytics', 'eng:options-confluence', 'eng:options-flow', 'eng:paper-book', 'eng:pead-signals', 'eng:political-intel', 'eng:political-trades', 'eng:polygon-options-flow', 'eng:position-sizing', 'eng:pre-pump-signals', 'eng:predictability', 'eng:pump-mechanics', 'eng:pump-positioning', 'eng:pump-radar-summary.plain', 'eng:quality-on-sale', 'eng:radar-backtest', 'eng:research-papers', 'eng:resilience', 'eng:retail-alerts', 'eng:retail-edges-decisive-call', 'eng:retail-sentiment', 'eng:revenue-acceleration', 'eng:risk-radar', 'eng:risk-radar-decisive-call', 'eng:risk-sizer', 'eng:rotation-chains', 'eng:russell-recon-frontrun', 'eng:rv-iv-scanner', 'eng:sec-filing-diff', 'eng:sec-filings-intel', 'eng:secretary-latest', 'eng:sector-emergence', 'eng:sector-rotation', 'eng:sector-tilt', 'eng:sequence-alpha', 'eng:short-interest', 'eng:short-pressure', 'eng:simulated-portfolio', 'eng:sizing', 'eng:smart-beta', 'eng:smart-money-13f', 'eng:smart-money-clusters', 'eng:smart-money-names', 'eng:spinoff-desk', 'eng:squeeze-fuel', 'eng:stablecoin-flow', 'eng:starmine', 'eng:stealth-accumulation', 'eng:stock-valuations', 'eng:stocktwits', 'eng:strategist', 'eng:supply-chain-graph', 'eng:supply-chain-linkage', 'eng:supply-inflection', 'eng:tail-risk', 'eng:tape-reader', 'eng:theme-cascade', 'eng:theme-cascade-backtest', 'eng:theme-cascade-calibrated', 'eng:theme-rotation', 'eng:theme-second-wave', 'eng:theme-tiers', 'eng:ticker-trends', 'eng:trade-journal', 'eng:trade-tickets', 'eng:upside-radar', 'eng:user-watchlist', 'eng:valuations-decisive-call', 'eng:velocity-acceleration', 'eng:vix-curve-decisive-call', 'eng:volatility-squeeze', 'eng:yield-curve-decisive-call', 'equity_convergence_fingerprint', 'etf_flow_extreme', 'etf_rotation', 'eurodollar_stress', 'frontrun_sniffer_setup', 'khalid_index', 'macro_composite_z', 'macro_frontrun_sniffer_setup', 'market_phase', 'ml_risk', 'momentum_gld', 'momentum_spy', 'momentum_tlt', 'momentum_top_pick', 'momentum_uso', 'momentum_uup', 'nobrainer_AIQ', 'nobrainer_BOTZ', 'nobrainer_COPX', 'nobrainer_LIT', 'nobrainer_OIH', 'nobrainer_PICK', 'nobrainer_REMX', 'nobrainer_ROBO', 'nobrainer_SIL', 'nobrainer_SLX', 'nobrainer_SMH', 'nobrainer_SOXX', 'nobrainer_URA', 'nobrainer_XLE', 'nobrainer_XOP', 'plumbing_stress', 'screener_top_pick', 'sector_breadth', 'squeeze_risk', 'sustained_target_equity', 'yc_regime']
-DONE 2667
+============================================================
+5) California EDD WARN open data
+  CA EDD Socrata WARN: None <urlopen error [Errno -5] No address associated with hostname>
+
+============================================================
+6) FMP IPO calendar
+  status: 200
+  count: 175
+  sample: {"symbol": "COPR", "date": "2026-07-02", "daa": "2026-07-02T04:00:00.000Z", "company": "Idaho Copper Corporation", "exchange": "NYSE", "actions": "Expected", "shares": null, "priceRange": null, "marketCap": null}
+DONE 2668
