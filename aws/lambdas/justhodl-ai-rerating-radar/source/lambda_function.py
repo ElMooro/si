@@ -171,10 +171,14 @@ def build_universe():
                    "&isActivelyTrading=true&country=US") or []
     by_sector = {}
     tagged = {}
+    US_EXCHANGES = {"NYSE", "NASDAQ", "AMEX", "NYSE American", "NASDAQ Global Select",
+                    "NASDAQ Global Market", "NASDAQ Capital Market"}
     for r in screen:
         sym = r.get("symbol")
         if not sym or r.get("isEtf") or r.get("isFund") or not r.get("sector"):
             continue
+        if r.get("exchangeShortName") not in US_EXCHANGES and r.get("exchange") not in US_EXCHANGES:
+            continue                      # exclude foreign secondary listings (.BA/.NE/.DE-style duplicates)
         tagged[sym] = {"sector": r.get("sector"), "industry": r.get("industry"),
                        "market_cap": _num(r.get("marketCap")), "name": r.get("companyName")}
         by_sector.setdefault(r["sector"], []).append(sym)
