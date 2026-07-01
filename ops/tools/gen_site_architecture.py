@@ -58,6 +58,7 @@ OVERRIDES = {
  "cds-monitor.html":"🐤 Risk & Crisis","correlation.html":"🐤 Risk & Crisis",
  "ofr.html":"🐤 Risk & Crisis","episode-compass.html":"🐤 Risk & Crisis",
  "accumulation.html":"⚡ Equity Signals","ai-rerating.html":"⚡ Equity Signals",
+ "signal-genealogy.html":"⚡ Equity Signals","early-signals.html":"⚡ Equity Signals",
  "analyst-actions.html":"⚡ Equity Signals","ath.html":"⚡ Equity Signals",
  "backlog.html":"⚡ Equity Signals","capital-return.html":"⚡ Equity Signals",
  "catch-up.html":"⚡ Equity Signals","conviction.html":"⚡ Equity Signals",
