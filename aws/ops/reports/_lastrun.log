@@ -1,23 +1,34 @@
-  analyst-actions        age= 13.6h  keys=['engine', 'version', 'generated_at', 'thesis', 'counts', 'upgrades']  ticker_list=None
-  dealer-gex             age=  6.2h  keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite']  ticker_list=None
-  activist-13d           age= 16.4h  keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'summary']  ticker_list=None
-  13f-positions          age=  6.2h  keys=['generated_at', 'as_of_quarter', 'funds_total', 'funds_parsed', 'funds_failed', 'fund_errors']  ticker_list=('most_bought', 25)
-  13f-aggregate          MISSING (no such key)
-  catalyst-calendar      age=  9.5h  keys=['schema_version', 'method', 'as_of', 'window_days', 'n_events', 'events']  ticker_list=None
-  forward-orders         age= 61.8h  keys=['schema_version', 'method', 'generated_at', 'duration_s', 'n_universe', 'n_with_rpo']  ticker_list=('top_25_by_score', 25)
-  backlog                age= 15.8h  keys=['engine', 'version', 'generated_at', 'duration_s', 'n_covered', 'cap_distribution']  ticker_list=('accelerating', 30)
-  estimate-revisions     age=  9.7h  keys=['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days']  ticker_list=('estimate_strength_leaders', 40)
-  beneish                age= 72.3h  keys=['ok', 'version', 'generated_at', 'universe_state', 'n_universe_analyzed', 'n_likely_manipulator']  ticker_list=('red_flags', 1)
-  earnings-quality       age=157.8h  keys=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_qualified']  ticker_list=('top_20_high_quality', 20)
-  short-interest         age= 15.0h  keys=['version', 'generated_at', 'watchlist_size', 'n_tickers_with_data', 'n_tickers_finra', 'n_tickers_polygon']  ticker_list=('top_crowded_shorts', 15)
-  finra-short            age=  2.3h  keys=['generated_at', 'generated_at_unix', 'version', 'data_date', 'elapsed_seconds', 'config']  ticker_list=('squeeze_candidates', 16)
-  rotation-radar         age= 13.6h  keys=['engine', 'version', 'generated_at', 'crypto', 'equity', 'diagnostics']  ticker_list=None
-  sector-rotation        age=  0.7h  keys=['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'macro_context', 'risk_appetite']  ticker_list=('sectors', 11)
-  gf-value               age=  5.3h  keys=['version', 'generated_at', 'universe', 'universe_state', 'universe_median_mos_pct', 'n_analyzed']  ticker_list=('deepest_value', 25)
-  magic-formula          age=  4.6h  keys=['version', 'generated_at', 'universe', 'regime', 'n_universe_eligible', 'median_earnings_yield_pct']  ticker_list=('top_30', 30)
-  smart-beta             age=  3.1h  keys=['ok', 'version', 'generated_at', 'n_universe', 'n_analyzed', 'n_valid']  ticker_list=('top_25_diversified', 25)
-  index-recon            age= 13.2h  keys=['ok', 'schema', 'finviz_truth', 'cross_confirm', 'generated_at', 'elapsed_s']  ticker_list=('russell_2000_additions', 40)
-  merger-arb             age=  5.7h  keys=['generated_at', 'elapsed_seconds', 'headline', 'summary', 'tight_carry', 'wide_spread']  ticker_list=None
-  dividend-growth        age= 13.6h  keys=['ok', 'schema_version', 'generated_at', 'elapsed_s', 'source', 'headline']  ticker_list=('compounders', 106)
-  patent-velocity        age= 10.3h  keys=['schema_version', 'method', 'generated_at', 'status', 'needs_setup', 'register_url']  ticker_list=None
-DONE 2651
+=== analyst-actions.upgrades ===
+  type: list | len: 0
+
+=== catalyst-calendar.events ===
+  type: list | len: 107
+  sample[0]: {
+ "date": "2026-06-30",
+ "time": null,
+ "type": "AUCTION",
+ "title": "6-Week Bill auction",
+ "subtitle": "Size TBD",
+ "impact": "LOW",
+ "source": "TreasuryDirect",
+ "url": "https://www.treasurydirect.gov/auctions/upcoming/",
+ "size_billions": 0.0,
+ "cusip": "912797TW7",
+ "days_to": 0
+}
+
+=== activist-13d.summary ===
+  type: dict | len: 4
+  keys: ['n_total_setups', 'n_fresh_tier_a', 'n_multi_activist', 'activists_tracked']
+
+=== confirm exact ticker-field names on the straightforward ones ===
+  13f-positions.most_bought: sample[0] = {"ticker": "PEP", "cusip": "693718108", "name": "PepsiCo", "n_funds_holding": 14, "total_value": 3157359126, "n_funds_adding": 8, "n_funds_trimming": 2, "n_funds_new_position": 2, "n_funds_exiting": 0, "fund_actions": [{"fund": "BRIDGEWATER", "fund_n
+  estimate-revisions.estimate_strength_leaders: sample[0] = {"ticker": "CBRS", "company": "Cerebras Systems", "earnings_date": "2026-08-19", "session": "BMO", "days_to_earnings": 50, "fiscal_period": "Q2", "fiscal_year": 2026, "importance": 4, "current_eps_est": -0.19, "baseline_eps_est": -0.34, "eps_rev_pct"
+  forward-orders.top_25_by_score: sample[0] = {"ticker": "ORCL", "name": "Oracle Corporation", "sector": "Technology", "industry": "Software - Infrastructure", "market_cap": 428268279600, "composite": 82.8, "subscores": {"rpo_yield": 100, "rpo_growth": 100, "rpo_acceleration": 85, "contracts": 0
+  backlog.accelerating: sample[0] = {"ticker": "MU", "sector": "Technology", "cap_bucket": "mega", "group": "Software/Semis", "cik": "0000723125", "rpo": 5000000000.0, "rpo_qoq": 2083.4, "rpo_yoy": 904.0, "rpo_tag": "RevenueRemainingPerformanceObligation", "deferred_rev": 422000000.0, 
+  finra-short.squeeze_candidates: sample[0] = {"symbol": "HOOD", "name": "Robinhood Markets", "sector": "Financials", "svr_pct": 63.34, "z_score": 3.03, "momentum_pct": 4.58, "days_to_cover": 10.09, "squeeze_score": 90, "squeeze_flags": ["SVR_HEAVY_ABNORMAL", "HIGH_DAYS_TO_COVER", "MOMENTUM_EXTR
+  short-interest.top_crowded_shorts: sample[0] = {"ticker": "WBD", "latest_short_pct": 2.75, "trend_pct": 47.74, "recent_5d_avg": 34.95, "prior_9d_avg": 23.66, "days_to_cover": 2.82, "si_change_pct": 7.99, "short_interest": 65828066, "settlement_date": "2026-06-15", "signal": "DISTRIBUTION", "score
+  beneish.red_flags: sample[0] = {"ticker": "NVDA", "sector": "Technology", "m_score": -1.132, "verdict": "LIKELY_MANIPULATOR", "components": {"dsri": 1.008, "gmi": 1.055, "aqi": 1.567, "sgi": 1.655, "depi": 1.061, "sgai": 0.793, "tata": 0.084, "lvgi": 0.807}, "fiscal_year_t": "2026
+  earnings-quality.top_20_high_quality: sample[0] = {"ticker": "META", "name": "Meta Platforms, Inc.", "price": 559.0, "market_cap_usd": 1418978626377.0, "pe": null, "ttm_ni_usd": 70587000000, "ttm_ocf_usd": 124000000000, "ttm_fcf_usd": 48253000000, "sloan_accruals_pct_assets": -13.51, "cash_conversio
+  sector-rotation.sectors: sample[0] = {"symbol": "XLI", "name": "Industrials", "current_price": 185.23, "cycle_fit_phases": ["EXPANSION-MID"], "in_current_cycle": true, "rotation_score": 79.7, "score_components": {"rs_momentum": 57.3, "money_flow": 100, "breadth": 59.2, "regime_fit": 75,
+DONE 2652
