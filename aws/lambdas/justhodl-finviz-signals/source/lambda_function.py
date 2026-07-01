@@ -211,6 +211,15 @@ def lambda_handler(event, context):
         time.sleep(SLEEP_S)
 
     uni = FV.load_universe()
+    # FinViz export quirk (root cause of ops-2696/2697 empty boards): the custom
+    # export reports "Average Volume" in THOUSANDS of shares. Detect units from
+    # the data itself (median stock avg-vol) so a future format change self-heals
+    # loudly instead of silently zeroing the coil/breadth gates again.
+    _avs = sorted(u.get("avg_volume") for u in uni.values()
+                  if not (u.get("asset_type") or u.get("etf_type")) and u.get("avg_volume"))
+    _av_med = _avs[len(_avs) // 2] if _avs else 0
+    AV_MULT = 1000.0 if 0 < _av_med < 20000 else 1.0
+    print("  avg_volume median=%s -> unit multiplier x%d (thousands)" % (_av_med, AV_MULT))
     chart_pat = _walk_pattern_sets(_get_json("data/chart-patterns.json"))
     wyckoff = _wyckoff_phases(_get_json("data/accumulation-radar.json"))
 
@@ -292,12 +301,13 @@ def lambda_handler(event, context):
     # ── consolidation: volatility-contraction coils near highs ──────────
     hsr, hsr_s, tls = _tks("horizontal_sr"), _tks("horizontal_sr_strong"), _tks("tl_support")
     coils = []
-    dg = {"universe": len(uni), "stock": 0, "px_vol": 0, "have_vol": 0, "contract": 0}
+    dg = {"universe": len(uni), "stock": 0, "px_vol": 0, "have_vol": 0, "contract": 0,
+          "av_median_raw": _av_med, "av_unit_mult": AV_MULT}
     for tk, u in uni.items():
         if not _is_stock(u):
             continue
         dg["stock"] += 1
-        price, avol = u.get("price") or u.get("prev_close") or 0, u.get("avg_volume") or 0
+        price, avol = u.get("price") or u.get("prev_close") or 0, (u.get("avg_volume") or 0) * AV_MULT
         vw, vm = u.get("volatility_w"), u.get("volatility_m")
         offh = u.get("off_52w_high_pct")
         atrp = (u.get("atr") or 0) / price if price else 99
@@ -344,7 +354,7 @@ def lambda_handler(event, context):
     sp_tot = sp_a200 = 0
     sect = {}
     for tk, u in uni.items():
-        if not _is_stock(u) or (u.get("price") or u.get("prev_close") or 0) < 1 or (u.get("avg_volume") or 0) < 50_000:
+        if not _is_stock(u) or (u.get("price") or u.get("prev_close") or 0) < 1 or (u.get("avg_volume") or 0) * AV_MULT < 50_000:
             continue
         s200 = u.get("sma200_pct")
         if s200 is None:
