@@ -819,9 +819,8 @@ def stablecoin_signal(sc):
 
 def treasury_auction_signal(ac, net_dates_last=None, tga_pace_bn_wk=None):
     """Surface the ALREADY-LIVE auction-crisis-detector (real Treasury auction results +
-    forward calendar via api.fiscaldata.treasury.gov) — auction demand health, and a near-term
-    calendar cross-check against the momentum-based TGA projection (confirmed scheduled bill
-    issuance vs what the momentum path implies for the same window)."""
+    forward calendar via api.fiscaldata.treasury.gov) — auction demand health, and the
+    confirmed near-term bill-issuance calendar (a real, scheduled number, not an extrapolation)."""
     if not ac or not isinstance(ac, dict):
         return None
     td = ac.get("tenor_decomposition") or {}
@@ -839,16 +838,13 @@ def treasury_auction_signal(ac, net_dates_last=None, tga_pace_bn_wk=None):
         bills = [a for a in fc if a.get("security_type") == "Bill" and a.get("offering_amount_billions")]
         in_window = [a for a in bills if a.get("issue_date") and today.isoformat() <= a["issue_date"] <= window_end.isoformat()]
         known_bn = round(sum(a["offering_amount_billions"] for a in in_window), 1)
-        implied_bn = round((tga_pace_bn_wk or 0) * 2, 1) if tga_pace_bn_wk is not None else None
-        agree = None
-        if implied_bn is not None and known_bn:
-            agree = "CONSISTENT" if abs(known_bn - implied_bn) < max(known_bn, abs(implied_bn)) * 0.5 + 5 else "DIVERGENT"
         near_term = {"coverage_days": 14, "n_auctions": len(in_window),
                      "scheduled_bill_issuance_bn": known_bn,
-                     "momentum_implied_bn": implied_bn, "agreement": agree,
-                     "note": ("Confirmed scheduled T-bill issuance over the next 14 days from the real Treasury "
-                              "auction calendar, vs. what the momentum-based projection implies for the same "
-                              "window (bill issuance alone; doesn't capture coupons/spending/receipts).")}
+                     "note": ("Confirmed GROSS new T-bill issuance settling over the next 14 days, from the real "
+                              "Treasury auction calendar — not a net figure (doesn't subtract maturing bills, "
+                              "coupon issuance, spending or receipts), so it isn't directly comparable to the "
+                              "net-liquidity projection's weekly pace. Shown as a real, confirmed data point in "
+                              "its own right, not a cross-check.")}
     return {"regime": ac.get("regime"), "composite_score": ac.get("composite_score"),
             "interpretation": ac.get("interpretation"), "issuance_anomaly": ac.get("issuance_anomaly"),
             "tenor_highlights": highlights, "tail_stress_14d": {"n_fired": tail.get("n_fired"), "max_score": tail.get("max_score")},
@@ -927,8 +923,7 @@ def lambda_handler(event=None, context=None):
 
     # ── Treasury auction health — already-live auction-crisis-detector (real fiscaldata.treasury.gov) ──
     ac = pull("data/auction-crisis.json")
-    treasury_auctions = treasury_auction_signal(
-        ac, tga_pace_bn_wk=(projection or {}).get("drivers_per_wk_bn", {}).get("tga") if projection else None)
+    treasury_auctions = treasury_auction_signal(ac)
 
     # Lead/lag event-study vs SPX / BTC / HYG
     spx_doc = s3_json("data/spx-history-deep.json") or {}
