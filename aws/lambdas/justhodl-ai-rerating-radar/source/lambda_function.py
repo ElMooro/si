@@ -185,6 +185,20 @@ def build_universe():
         t = tagged.get(sym, {})
         uni[sym] = {**rec, "sector": t.get("sector"), "industry": t.get("industry"),
                     "market_cap": rec.get("market_cap") or t.get("market_cap"), "in_ai_cohort": True}
+    # backfill sector/industry for AI names the bulk screener happened to miss (a handful,
+    # usually a FMP screener quirk rather than actually being below the cap floor) — cheap,
+    # only runs for the exceptions, not the whole cohort
+    missing = [s for s, u in uni.items() if not u.get("sector")]
+    if missing:
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = {ex.submit(_fmp, f"profile?symbol={urllib.parse.quote(s)}"): s for s in missing}
+            for f in as_completed(futs):
+                s = futs[f]
+                p = f.result()
+                if isinstance(p, list) and p:
+                    uni[s]["sector"] = p[0].get("sector")
+                    uni[s]["industry"] = p[0].get("industry")
+                    uni[s]["market_cap"] = uni[s]["market_cap"] or _num(p[0].get("marketCap"))
     # fair per-sector shortlist for everything else
     for sector, syms in by_sector.items():
         ranked = sorted(syms, key=lambda s: tagged[s]["market_cap"] or 0, reverse=True)
