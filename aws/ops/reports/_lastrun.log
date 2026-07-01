@@ -1,11 +1,30 @@
-  [OK] new platform palette (#0a0e14) in place
-  [OK] old orphaned palette (#0a0a0a/#facc15 theme-color) gone
-  [OK] spotlight/hero present
-  [OK] conviction-meter class present
-  [OK] card-based leaderboard (no <table>)
-  [OK] category pill system present
-  [OK] macro z-bar visual present
-  [OK] nav-drawer still present
-  [OK] watchlist wiring still present
-bytes: 29073
-DONE 2657
+=== 1) company-screener bulk fields (sector/industry/marketCap in one call?) ===
+  count: 5 | sample keys: ['symbol', 'companyName', 'marketCap', 'sector', 'industry', 'beta', 'price', 'lastAnnualDividend', 'volume', 'exchange', 'exchangeShortName', 'country', 'isEtf', 'isFund', 'isActivelyTrading']
+  sample row: {
+ "symbol": "NVDA",
+ "companyName": "NVIDIA Corporation",
+ "marketCap": 4798664520000,
+ "sector": "Technology",
+ "industry": "Semiconductors",
+ "beta": 2.202,
+ "price": 198.12,
+ "lastAnnualDividend": 0.28,
+ "volume": 74741354,
+ "exchange": "NASDAQ Global Select",
+ "exchangeShortName": "NASDAQ",
+ "country": "US",
+ "isEtf": false,
+ "isFund": false,
+ "isActivelyTrading": true
+}
+
+=== 2) does screener support a growth filter directly? ===
+  by-sector filter works: True
+
+=== 3) financial-growth endpoint (per-symbol, but check field names) ===
+  keys: ['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'revenueGrowth', 'grossProfitGrowth', 'ebitgrowth', 'operatingIncomeGrowth', 'netIncomeGrowth', 'epsgrowth', 'epsdilutedGrowth', 'weightedAverageSharesGrowth', 'weightedAverageSharesDilutedGrowth', 'dividendsPerShareGrowth', 'operatingCashFlowGrowth', 'receivablesGrowth', 'inventoryGrowth', 'assetGrowth', 'bookValueperShareGrowth']
+  revenueGrowth: 0.48851101111066864
+
+=== 4) key-metrics or ratios bulk-ish endpoint for EV/Sales directly? ===
+  key-metrics keys: ['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'marketCap', 'enterpriseValue', 'evToSales', 'evToOperatingCashFlow', 'evToFreeCashFlow', 'evToEBITDA', 'netDebtToEBITDA', 'currentRatio', 'incomeQuality', 'grahamNumber', 'grahamNetNet', 'taxBurden', 'interestBurden', 'workingCapital', 'investedCapital', 'returnOnAssets', 'operatingReturnOnAssets', 'returnOnTangibleAssets', 'returnOnEquity', 'returnOnInvestedCapital']
+DONE 2658
