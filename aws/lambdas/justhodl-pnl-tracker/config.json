@@ -10,7 +10,7 @@
   "description": "Simulated portfolio P&L tracker — measures realized returns if every alert was taken",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(30 21 * * MON-FRI *)",
+    "expression": "cron(30 21 ? * MON-FRI *)",
     "name": "justhodl-pnl-tracker-daily",
     "description": "Daily 16:30 ET (after market close) — open new, execute exits, send digest"
   }

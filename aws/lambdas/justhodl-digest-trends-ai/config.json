@@ -10,7 +10,7 @@
   "description": "AI-narrated daily digest — reads all system state + uses Claude to generate insights",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0 13 * * MON-FRI *)",
+    "expression": "cron(0 13 ? * MON-FRI *)",
     "name": "justhodl-digest-trends-ai-daily",
     "description": "Daily 9:00 ET — after self-improvement runs at 8:30, before market open"
   }

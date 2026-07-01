@@ -10,7 +10,7 @@
   "description": "Closes self-improvement loop: applies calibrated weights to re-rank cascade",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(5 13 * * MON-FRI *)",
+    "expression": "cron(5 13 ? * MON-FRI *)",
     "name": "justhodl-cascade-recalibrator-daily",
     "description": "Daily 9:05 ET — after self-improvement (8:30) refreshes weights"
   }

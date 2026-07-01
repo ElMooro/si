@@ -10,7 +10,7 @@
   "description": "Daily prediction snapshot — captures FULL feature vector per alerted ticker for self-improvement",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0 21 * * MON-FRI *)",
+    "expression": "cron(0 21 ? * MON-FRI *)",
     "name": "justhodl-prediction-snapshotter-daily",
     "description": "Daily 16:00 ET after market close — capture day's predictions with features"
   }

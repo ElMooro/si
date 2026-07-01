@@ -10,7 +10,7 @@
   "description": "Universal AI commentary engine — generates per-page narratives via Claude",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0 14 * * MON-FRI *)",
+    "expression": "cron(0 14 ? * MON-FRI *)",
     "name": "justhodl-page-ai-commentary-daily",
     "description": "Daily 10:00 ET — AI commentary for all major pages"
   }

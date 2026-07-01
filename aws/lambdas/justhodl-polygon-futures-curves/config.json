@@ -10,7 +10,7 @@
   "description": "Polygon Futures Starter ($29/m) — VIX/oil/gold/copper curves for macro regime",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0 13 * * MON-FRI *)",
+    "expression": "cron(0 13 ? * MON-FRI *)",
     "name": "justhodl-polygon-futures-curves-daily",
     "description": "Daily 9am ET — futures curve regime"
   }

@@ -10,7 +10,7 @@
   "description": "Real-time trade ticket monitor: alerts on stop breach / TP hits / big gains during trading hours",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0/10 14-20 * * MON-FRI *)",
+    "expression": "cron(0/10 14-20 ? * MON-FRI *)",
     "name": "justhodl-trade-ticket-monitor-10min",
     "description": "Every 10 min during US trading hours (14-20 UTC = 9am-3:59pm ET)"
   }

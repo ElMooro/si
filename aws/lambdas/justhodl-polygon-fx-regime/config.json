@@ -10,7 +10,7 @@
   "description": "Polygon Currencies Starter ($49/m) — FX regime detector via 9 major pairs",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(30 12 * * MON-FRI *)",
+    "expression": "cron(30 12 ? * MON-FRI *)",
     "name": "justhodl-polygon-fx-regime-daily",
     "description": "Daily 8:30am ET — FX regime assessment"
   }

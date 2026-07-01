@@ -10,7 +10,7 @@
   "description": "Self-improvement loop: scores yesterday's predictions, attributes outcomes to features, calibrates cascade weights",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(30 12 * * MON-FRI *)",
+    "expression": "cron(30 12 ? * MON-FRI *)",
     "name": "justhodl-self-improvement-daily",
     "description": "Daily 8:30am ET — score yesterday + calibrate before market open"
   }

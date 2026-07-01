@@ -10,7 +10,7 @@
   "description": "Converts cascade alerts into complete trade tickets: ATR-based stop + R-multiple TPs + position sizing",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(25 14,15,16,17,18,19 * * MON-FRI *)",
+    "expression": "cron(25 14,15,16,17,18,19 ? * MON-FRI *)",
     "name": "justhodl-trade-tickets-hourly",
     "description": "Hourly during trading hours — regenerate tickets with latest prices"
   }

@@ -83,14 +83,18 @@ jobs:
             echo "══════════════════════════════════════════"
             echo "  Running: $s"
             echo "══════════════════════════════════════════"
-            ( python3 "$s" 2>&1 | tee -a aws/ops/reports/_lastrun.log ) || { echo "OPS-FAIL: $s" >> aws/ops/reports/_lastrun.log; FAIL=1; }
-            echo "✅ $s completed"
-            # Auto-move successful scripts to ran/ so the pending dir
-            # only contains scripts that are still pending or failed.
-            mkdir -p aws/ops/ran
-            target="aws/ops/ran/$(basename "$s")"
-            if [ ! -e "$target" ]; then
-              git mv "$s" "$target" 2>/dev/null && echo "📦 moved to $target" || true
+            if ( set -o pipefail; python3 "$s" 2>&1 | tee -a aws/ops/reports/_lastrun.log ); then
+              echo "✅ $s completed"
+              # Auto-move successful scripts to ran/ so the pending dir
+              # only contains scripts that are still pending or failed.
+              mkdir -p aws/ops/ran
+              target="aws/ops/ran/$(basename "$s")"
+              if [ ! -e "$target" ]; then
+                git mv "$s" "$target" 2>/dev/null && echo "📦 moved to $target" || true
+              fi
+            else
+              echo "❌ OPS-FAIL: $s" | tee -a aws/ops/reports/_lastrun.log
+              FAIL=1
             fi
           done
           if [ "${FAIL:-0}" = "1" ]; then exit 1; fi
