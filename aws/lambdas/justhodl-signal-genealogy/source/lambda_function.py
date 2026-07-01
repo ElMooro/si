@@ -192,6 +192,16 @@ def lead_lag(seriesA, seriesB, max_lag=MAX_LAG_DAYS):
     return best, curve
 
 
+def sibling_root(signal_type):
+    """Signals like crisis_dfii10_vs_gld / crisis_dfii10_vs_spy share the SAME underlying
+    input (dfii10) paired against different assets — they will correlate near-instantly for
+    mechanical reasons, not because one genuinely leads the other. Same for _vs_ pairs
+    sharing a root generally. Strip the '_vs_X' suffix to detect siblings."""
+    if "_vs_" in signal_type:
+        return signal_type.split("_vs_")[0]
+    return None
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     items = scan_outcomes()
@@ -265,8 +275,13 @@ def lambda_handler(event=None, context=None):
             break
 
     survivors = bh_fdr(all_tests, q=FDR_Q)
+    n_sibling_excluded = 0
     pairs = []
     for (a, b), curve in pair_curves.items():
+        root_a, root_b = sibling_root(a), sibling_root(b)
+        if root_a and root_a == root_b:
+            n_sibling_excluded += 1
+            continue                     # same underlying input, different pairing -- not a real cascade
         surviving_lags = [lag for lag in curve if (a, b, lag) in survivors and lag != 0
                           and curve[lag]["n"] >= MIN_PAIR_N]
         if not surviving_lags:
@@ -277,6 +292,7 @@ def lambda_handler(event=None, context=None):
         pairs.append({"leader": leader, "follower": follower,
                      "lag_days": abs(best_lag), "corr": c["corr"], "t": c["t"], "n": c["n"]})
     pairs.sort(key=lambda p: -abs(p["t"]))
+    print(f"[genealogy] excluded {n_sibling_excluded} sibling pairs (shared underlying variable)")
 
     lead_score, follow_score = {}, {}
     for p in pairs:
@@ -320,14 +336,16 @@ def lambda_handler(event=None, context=None):
                             key=lambda r: -(r["vs_spy_t"] or 0))[:20],
         "significant_cascades": pairs[:60],
         "n_pairs_tested": checked, "n_hypothesis_tests": len(all_tests),
+        "n_sibling_pairs_excluded": n_sibling_excluded,
         "n_significant_pairs": len(pairs),
         "fdr_note": f"{len(all_tests)} total (pair, lag) hypotheses tested across {checked} pairs "
                    f"and up to 29 lags each; Benjamini-Hochberg FDR at q={FDR_Q} applied across the "
                    f"WHOLE family before any pair is called significant — not just its cherry-picked "
-                   f"best lag. Without this correction the first run showed 1,455/3,501 pairs "
-                   f"(41.6%) as 'significant' at a raw |t|>=2.0 threshold, when independent noise "
-                   f"predicts ~5%; that was the multiple-comparisons inflation of searching many "
-                   f"lags and reporting only the best one.",
+                   f"best lag. {n_sibling_excluded} pairs were further excluded as 'siblings' (e.g. "
+                   f"crisis_dfii10_vs_gld and crisis_dfii10_vs_spy share the dfii10 input and "
+                   f"correlate near-instantly for mechanical reasons, not genuine lead-lag). Without "
+                   f"the FDR correction the first run showed 1,455/3,501 pairs (41.6%) as "
+                   f"'significant' at a raw |t|>=2.0 threshold, when independent noise predicts ~5%.",
         "methodology": {
             "series": "daily net-directional firing intensity per signal_type (UP-coded minus "
                      "DOWN-coded firings per day), zero-filled on days with no firing",
