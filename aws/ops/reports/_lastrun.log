@@ -1,15 +1,30 @@
 
-======== 1/4 RECREATE RULES FROM config.json ========
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2700_restore_dead_schedules.py", line 45, in <module>
-    rule_arn = ev.put_rule(Name=sc["name"], ScheduleExpression=sc["expression"],
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.
+======== 1/4 MAP LIVE RULES -> FN ========
+  scheduled fns: 276
+
+======== 2/4 ENFORCE THE 12 ========
+  cascade-recalibrator               had_rule=True  created=False expr=cron(5 13 ? * MON-FRI *)
+  cascade-validator                  had_rule=True  created=False expr=cron(0 21 ? * MON-FRI *)
+  digest-trends-ai                   had_rule=False created=True  expr=cron(0 13 ? * MON-FRI *)
+  page-ai-commentary                 had_rule=False created=True  expr=cron(0 14 ? * MON-FRI *)
+  pnl-tracker                        had_rule=False created=True  expr=cron(30 21 ? * MON-FRI *)
+  polygon-futures-curves             had_rule=True  created=False expr=cron(0 13 ? * MON-FRI *)
+  polygon-fx-regime                  had_rule=True  created=False expr=cron(30 12 ? * MON-FRI *)
+  polygon-options-flow               had_rule=False created=True  expr=cron(15 14,15,16,17,18,19 ? * MON-FRI *)
+  prediction-snapshotter             had_rule=False created=True  expr=cron(0 21 ? * MON-FRI *)
+  self-improvement                   had_rule=False created=True  expr=cron(30 12 ? * MON-FRI *)
+  trade-ticket-monitor               had_rule=False created=True  expr=cron(0/10 14-20 ? * MON-FRI *)
+  trade-tickets                      had_rule=False created=True  expr=cron(25 14,15,16,17,18,19 ? * MON-FRI *)
+
+======== 3/4 REFRESH + HARD-ASSERT CRITICAL FEEDS ========
+  self-improvement               692.6h -> -0.0h err=None {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\
+  trade-tickets                  680.0h -> -0.0h err=None {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\
+  polygon-options-flow           293.7h -> -0.0h err=None {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\
+  HARD ASSERTS PASSED
+
+======== 4/4 REPORT + CONSUMERS ========
+  wrote aws/ops/reports/2701_schedule_fleet_fix.json
+  retriggered justhodl-best-setups
+  retriggered justhodl-master-ranker
+
+OPS 2701 COMPLETE
