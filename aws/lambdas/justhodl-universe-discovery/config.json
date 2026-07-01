@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-universe-discovery",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Universe Discovery: IPO calendar, new SEC registrants (S-1/10-12G), and threshold-crossing small caps -- what's new that no existing screen is watching yet.",
+  "schedule": {
+    "rule_name": "universe-discovery-daily",
+    "cron": "cron(10 12 * * ? *)",
+    "description": "Daily universe discovery scan at 12:10 UTC"
+  }
+}
