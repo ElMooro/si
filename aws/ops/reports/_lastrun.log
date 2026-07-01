@@ -1,30 +1,13 @@
-============================================================
-1) ERCOT MIS report catalog — stable large-load queue endpoint
-  reportTypeId=13424 (Large Flexible/Large Load queue guess): 200 b'{"ListDocsByRptTypeRes":{"DocumentList":[{"Document":{"ExpiredDate":"2029-01-13T23:59:59-06:00","ILMStatus":"EXT","SecurityStatus":"P","ContentSize":"3204693","Extension":"xlsx","ReportTypeID":"13424","Prefix":"rpt","FriendlyName":"ERCOT_2025_Hourly_WindSolar_Output","ConstructedName":"rpt.0001342
-  NP3-987-ER product page: 200 b'\n<!DOCTYPE html>\n<html lang="en">\n\n<head>\n  <title>Data Product Details</title>\n  <meta http-equiv="X-UA-Compatible" content="IE=edge" />\n  <meta charset="utf-8"/>\n  <meta name="referrer" co
+=== ERCOT: search MIS report catalog for 'large load' / 'interconnection' by name ===
+  keyword=large%20load: status=200 b'{"ResponseFaultList":[{"ResponseFault":{"FaultID":1,"FaultDescription":"Did not recieve a numeric ReportTypeId. [reporttypeid] required."}}]}'
+  keyword=GIS%20Report: status=200 b'{"ResponseFaultList":[{"ResponseFault":{"FaultID":1,"FaultDescription":"Did not recieve a numeric ReportTypeId. [reporttypeid] required."}}]}'
+  keyword=interconnection: status=200 b'{"ResponseFaultList":[{"ResponseFault":{"FaultID":1,"FaultDescription":"Did not recieve a numeric ReportTypeId. [reporttypeid] required."}}]}'
 
-============================================================
-2) SEC EDGAR full-text search — 8-K Item 5.02 (executive departures)
-  efts search-index: 200 b'{"took":1096,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":202,"relation":"eq"},"max_score":7.4387894,"hits":[{"_index":"edgar_file","_id":
-  efts alt: 200 b'{"took":1738,"timed_out":false,"_shards":{"total":50,"successful":50,"skipped":0,"failed":0},"hits":{"total":{"value":10000,"relation":"gte"},"max_score":8.218173,"hits":[{"_index":"edgar_file","_id
-  data.sec.gov submissions (AAPL CIK) reachable: 200 164394
+  data-product-list page status: None HTTP Error 404: 404
 
-============================================================
-3) SEC EDGAR daily full-text search (the real endpoint)
-  status: 200
-  keys: ['took', 'timed_out', '_shards', 'hits', 'aggregations', 'query'] | hits: {'value': 95, 'relation': 'eq'}
+=== WARN Act: try Texas Workforce Commission direct data ===
+  TWC WARN page: None HTTP Error 404: Not Found
 
-============================================================
-4) SEC EDGAR full text search UI endpoint (alt path)
-  new-registrant Form 10 browse: None HTTP Error 503: Service Unavailable
-
-============================================================
-5) California EDD WARN open data
-  CA EDD Socrata WARN: None <urlopen error [Errno -5] No address associated with hostname>
-
-============================================================
-6) FMP IPO calendar
-  status: 200
-  count: 175
-  sample: {"symbol": "COPR", "date": "2026-07-02", "daa": "2026-07-02T04:00:00.000Z", "company": "Idaho Copper Corporation", "exchange": "NYSE", "actions": "Expected", "shares": null, "priceRange": null, "marketCap": null}
-DONE 2668
+=== WARN Act: try a national CSV aggregator (data.gov style) ===
+  layoffs.fyi wp-json: 200 b'[{"id":2820,"date":"2020-12-29T06:00:00","date_gmt":"2020-12-29T13:00:00","guid":{"rendered":"https:\\/\\/layoffs.fyi\\/?p=2820"},"modified":"2020-1
+DONE 2669
