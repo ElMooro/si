@@ -1,32 +1,17 @@
-deployed
-INVOKE: 200 None
+=== LIVE ENGINE ===
 version: 2.0.0 elapsed_s: 25.12
-universe: 631 sectors: 11 by_sector: {'Technology': 106, 'Industrials': 77, 'Energy': 43, 'Consumer Cyclical': 55, 'Communication Services': 35, 'Consumer Defensive': 45, 'Utilities': 49, 'Healthcare': 54, 'Financial Services': 49, 'Basic Materials': 33, 'Real Estate': 55}
-n_priced: 601 n_candidates: 70
-
-deepest_discounts (checking for foreign-listing pollution):
-  BA       Industrials          ai=False disc=90.5% has_dot=False
-  BTDR     Technology           ai=True disc=89.7% has_dot=False
-  FCEL     Industrials          ai=True disc=84.9% has_dot=False
-  CNC      Healthcare           ai=False disc=84.0% has_dot=False
-  AAOI     Technology           ai=True disc=76.5% has_dot=False
-  BG       Consumer Defensive   ai=False disc=73.9% has_dot=False
-  MU       Technology           ai=True disc=73.1% has_dot=False
-  CALX     Technology           ai=True disc=72.6% has_dot=False
-  ACMR     Technology           ai=True disc=71.4% has_dot=False
-  UBER     Technology           ai=False disc=71.4% has_dot=False
-
-top 12 setups overall:
-  MU     Technology           Semiconductors         score=87.8
-  PRIM   Industrials          Engineering & Construction score=81.1
-  BA     Industrials          Aerospace & Defense    score=70.4
-  LRCX   Technology           Semiconductors         score=69.0
-  CALX   Technology           Software - Application score=67.6
-  DKS    Consumer Cyclical    Specialty Retail       score=67.1
-  CRWV   Technology           Software - Infrastructure score=65.8
-  AMBA   Technology           Semiconductors         score=64.4
-  BTDR   Technology           Software - Application score=59.6
-  META   Communication Services Internet Content & Information score=56.0
-  FCEL   Industrials          Electrical Equipment & Parts score=55.4
-  AXON   Industrials          Aerospace & Defense    score=51.7
-DONE 2664
+universe=631 ai_cohort=125 sectors=11
+by_sector: {'Technology': 106, 'Industrials': 77, 'Energy': 43, 'Consumer Cyclical': 55, 'Communication Services': 35, 'Consumer Defensive': 45, 'Utilities': 49, 'Healthcare': 54, 'Financial Services': 49, 'Basic Materials': 33, 'Real Estate': 55}
+n_priced=601 n_candidates=70 n_contagion=11
+red_flagged: 2
+  [OK] new platform palette (#0a0e14)
+  [OK] old palette (#07090f) gone
+  [OK] sector grid present
+  [OK] sector filter JS present
+  [OK] AI-infra cohort tag present
+  [OK] quality-flagged section present
+  [OK] peer-group-relative labeling present
+  [OK] nav-drawer present
+  [OK] old '~94-name cohort' text gone
+bytes: 19209
+DONE 2665
