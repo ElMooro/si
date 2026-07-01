@@ -135,14 +135,20 @@ def lambda_handler(event=None, context=None):
     debug_info["restructuring_raw_hit_count"] = (d.get("hits", {}).get("total", {}).get("value")
                                                  if d else None)
     if d:
+        seen_restructuring_adsh = set()
         for h in d.get("hits", {}).get("hits", [])[:100]:
             rec = parse_hit(h)
+            adsh = (h.get("_source") or {}).get("adsh")
+            key = adsh or h.get("_id")
+            if key in seen_restructuring_adsh:
+                continue
             if "2.05" in (rec.get("items") or []):    # confirm genuine item presence, not just text match
+                seen_restructuring_adsh.add(key)
                 restructuring.append(rec)
     debug_info["restructuring_after_filter"] = len(restructuring)
 
     # ── buildout: datacenter/power-capacity capex language, several term variants ──
-    buildout_raw, seen_ids = [], set()
+    buildout_raw, seen_adsh = [], set()
     debug_info["buildout_per_term"] = []
     for term in BUILDOUT_TERMS:
         d, req_url, err = _edgar(term, "8-K,10-Q,10-K", startdt, enddt)
@@ -151,10 +157,11 @@ def lambda_handler(event=None, context=None):
         if not d:
             continue
         for h in d.get("hits", {}).get("hits", [])[:50]:
-            hid = h.get("_id")
-            if hid in seen_ids:
-                continue
-            seen_ids.add(hid)
+            adsh = (h.get("_source") or {}).get("adsh")
+            key = adsh or h.get("_id")     # fall back to doc id if adsh is somehow missing
+            if key in seen_adsh:
+                continue                    # same filing, different exhibit document -- one row per filing
+            seen_adsh.add(key)
             buildout_raw.append(parse_hit(h))
 
     # ── enrich tickers (sector/mkt-cap) concurrently, best-effort ──
