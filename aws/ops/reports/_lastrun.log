@@ -1,48 +1,49 @@
 
-======== 1/5 LIVE-VERIFY CORRECTED CODES ========
-  new_high_50d           f=ta_highlow50d_nh             raw=1319
-  new_low_50d            f=ta_highlow50d_nl             raw=539
-  new_high_20d           f=ta_highlow20d_nh             raw=1770
-  new_low_20d            f=ta_highlow20d_nl             raw=762
-  horizontal_sr_strong   f=ta_pattern_horizontal2       raw=460
-  horizontal_sr          f=ta_pattern_horizontal        raw=7274
-  tl_support             f=ta_pattern_tlsupport         raw=10059
-  tl_resistance          f=ta_pattern_tlresistance      raw=9708
-
-======== 2/5 UNIVERSE PROBE (asset_type + volatility fields) ========
-  n=11397 asset_type={'<none>': 5974, 'Equities (Stocks)': 3854, 'Bonds': 1010, 'CryptoCurrency': 157, 'Multi-Asset - Tactical / Active': 136, 'Commodities & Metals': 103}
-  fields non-null: {'volatility_w': 11286, 'volatility_m': 11065, 'atr': 11387, 'off_52w_high_pct': 11370, 'avg_volume': 11370}
-
-======== 3/5 DEPLOY PATCHED ENGINE ========
-  before: {"quarantined": {"new_high_50d": 11397, "new_low_50d": 11397, "new_high_20d": 11397, "new_low_20d": 11397, "horizontal_sr": 7274, "horizontal_sr_strong": 11397, "tl_support": 10059, "tl_resistance": 9708}, "counts_raw_bad8": {"new_high_50d": 11397, "new_low_50d": 11397, "new_high_20d": 11397, "new_l
-  settling 60s for parallel deploy-lambdas…
-  engine code synced
-
-======== 4/5 RE-RUN ENGINE ========
+======== 1/6 EXPORT HEADER FINGERPRINT ========
 {
- "quarantined": {
-  "tl_support": 10059,
-  "tl_resistance": 9708
- },
- "counts_fixed": {
-  "new_high_50d": 150,
-  "new_low_50d": 150,
-  "new_high_20d": 150,
-  "new_low_20d": 150,
-  "horizontal_sr_strong": 120,
-  "horizontal_sr": 120,
-  "tl_support": 0,
-  "tl_resistance": 0
- },
- "counts_raw_fixed": {
-  "new_high_50d": 1319,
-  "new_low_50d": 539,
-  "new_high_20d": 1770,
-  "new_low_20d": 762,
-  "horizontal_sr_strong": 460,
-  "horizontal_sr": 7275,
-  "tl_support": 10059,
-  "tl_resistance": 9708
+ "n_rows": 11397,
+ "n_headers": 151,
+ "price_like_headers": [
+  "'Price'",
+  "'Target Price'"
+ ],
+ "sample_headers": [
+  "'No.'",
+  "'Ticker'",
+  "'Company'",
+  "'Sector'",
+  "'Industry'",
+  "'Country'",
+  "'Market Cap'",
+  "'P/E'",
+  "'Forward P/E'",
+  "'PEG'",
+  "'P/S'",
+  "'P/B'"
+ ],
+ "sample_price_vals": {
+  "'Price'": "133.39",
+  "'Target Price'": "160.41"
+ }
+}
+
+======== 2/6 CACHED UNIVERSE BEFORE ========
+{"generated_at": "2026-07-01T22:00:36.457942+00:00", "n": 11397, "price_nonnull": 11387, "prev_close_nonnull": 11373, "sma200_nonnull": 11387, "change_nonnull": 11373, "sample_stock_keys": ["ah_close", "analyst_recom", "atr", "avg_volume", "beta", "book_sh", "cash_sh", "change_open_pct", "change_pct", "company", "country", "current_ratio", "debt_eq", "div_ex_date", "div_ttm", "div_yield", "earnings_date", "employees", "eps_g_3y", "eps_growth_5y", "eps_growth_n5y", "eps_growth_ny", "eps_growth_qoq", "eps_growth_ty", "eps_next_q", "eps_surprise", "eps_ttm", "eps_yoy_ttm", "ev", "ev_ebitda", "ev_sales", "exchange", "float_pct", "float_shares", "fwd_pe", "gap_pct", "gross_margin", "income", "ind
+
+======== 3/6 DEPLOY (shared bundle refresh) ========
+  settling 60s for parallel deploy-lambdas…
+  justhodl-finviz-universe synced (shared bundled)
+  justhodl-finviz-signals synced (shared bundled)
+
+======== 4/6 REBUILD UNIVERSE ========
+   {'n': 11397, 'price_nonnull': 11387, 'prev_close_nonnull': 11373, 'sma200_nonnull': 11387}
+
+======== 5/6 RE-RUN ENGINE ========
+{
+ "quarantined": {},
+ "tl_counts_raw": {
+  "tl_support": 330,
+  "tl_resistance": 518
  },
  "coiled": 0,
  "coil_diag": {
@@ -52,15 +53,23 @@
   "have_vol": 0,
   "contract": 0
  },
- "dist_watch": 8,
- "base_breakout_confluence": 45,
- "breadth_universe_n": 16,
- "pa200": 62.5
+ "top_coils": [],
+ "dist_watch": 15,
+ "breadth": {
+  "universe_n": 16,
+  "pct_above_sma200": 62.5,
+  "pct_above_sma50": 50.0,
+  "pct_above_sma20": 43.8,
+  "advancers_pct": 50.0,
+  "regime": "BULL",
+  "sp500_pct_above_sma200": 100.0
+ },
+ "picks": 45
 }
 
-======== 5/5 REPORT + CONSUMERS ========
-  wrote aws/ops/reports/2696_finviz_fix.json
+======== 6/6 REPORT + CONSUMERS ========
+  wrote aws/ops/reports/2697_universe_price_fix.json
   triggered justhodl-best-setups
   triggered justhodl-master-ranker
 
-OPS 2696 COMPLETE
+OPS 2697 COMPLETE

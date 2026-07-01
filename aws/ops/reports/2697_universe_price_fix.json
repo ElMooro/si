@@ -1,0 +1,113 @@
+{
+ "ops": 2697,
+ "ts": "2026-07-01T22:33:14Z",
+ "export": {
+  "n_rows": 11397,
+  "n_headers": 151,
+  "price_like_headers": [
+   "'Price'",
+   "'Target Price'"
+  ],
+  "sample_headers": [
+   "'No.'",
+   "'Ticker'",
+   "'Company'",
+   "'Sector'",
+   "'Industry'",
+   "'Country'",
+   "'Market Cap'",
+   "'P/E'",
+   "'Forward P/E'",
+   "'PEG'",
+   "'P/S'",
+   "'P/B'"
+  ],
+  "sample_price_vals": {
+   "'Price'": "133.39",
+   "'Target Price'": "160.41"
+  }
+ },
+ "before": {
+  "generated_at": "2026-07-01T22:00:36.457942+00:00",
+  "n": 11397,
+  "price_nonnull": 11387,
+  "prev_close_nonnull": 11373,
+  "sma200_nonnull": 11387,
+  "change_nonnull": 11373,
+  "sample_stock_keys": [
+   "ah_close",
+   "analyst_recom",
+   "atr",
+   "avg_volume",
+   "beta",
+   "book_sh",
+   "cash_sh",
+   "change_open_pct",
+   "change_pct",
+   "company",
+   "country",
+   "current_ratio",
+   "debt_eq",
+   "div_ex_date",
+   "div_ttm",
+   "div_yield",
+   "earnings_date",
+   "employees",
+   "eps_g_3y",
+   "eps_growth_5y",
+   "eps_growth_n5y",
+   "eps_growth_ny",
+   "eps_growth_qoq",
+   "eps_growth_ty",
+   "eps_next_q",
+   "eps_surprise",
+   "eps_ttm",
+   "eps_yoy_ttm",
+   "ev",
+   "ev_ebitda",
+   "ev_sales",
+   "exchange",
+   "float_pct",
+   "float_shares",
+   "fwd_pe",
+   "gap_pct",
+   "gross_margin",
+   "income",
+   "index_membership",
+   "industry"
+  ]
+ },
+ "after_universe": {
+  "n": 11397,
+  "price_nonnull": 11387,
+  "prev_close_nonnull": 11373,
+  "sma200_nonnull": 11387
+ },
+ "after": {
+  "quarantined": {},
+  "tl_counts_raw": {
+   "tl_support": 330,
+   "tl_resistance": 518
+  },
+  "coiled": 0,
+  "coil_diag": {
+   "universe": 11397,
+   "stock": 5974,
+   "px_vol": 0,
+   "have_vol": 0,
+   "contract": 0
+  },
+  "top_coils": [],
+  "dist_watch": 15,
+  "breadth": {
+   "universe_n": 16,
+   "pct_above_sma200": 62.5,
+   "pct_above_sma50": 50.0,
+   "pct_above_sma20": 43.8,
+   "advancers_pct": 50.0,
+   "regime": "BULL",
+   "sp500_pct_above_sma200": 100.0
+  },
+  "picks": 45
+ }
+}
