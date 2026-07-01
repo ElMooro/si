@@ -1,30 +1,24 @@
-=== 1) company-screener bulk fields (sector/industry/marketCap in one call?) ===
-  count: 5 | sample keys: ['symbol', 'companyName', 'marketCap', 'sector', 'industry', 'beta', 'price', 'lastAnnualDividend', 'volume', 'exchange', 'exchangeShortName', 'country', 'isEtf', 'isFund', 'isActivelyTrading']
-  sample row: {
- "symbol": "NVDA",
- "companyName": "NVIDIA Corporation",
- "marketCap": 4798664520000,
- "sector": "Technology",
- "industry": "Semiconductors",
- "beta": 2.202,
- "price": 198.12,
- "lastAnnualDividend": 0.28,
- "volume": 74741354,
- "exchange": "NASDAQ Global Select",
- "exchangeShortName": "NASDAQ",
- "country": "US",
- "isEtf": false,
- "isFund": false,
- "isActivelyTrading": true
-}
+=== ratios endpoint — operating margin field? ===
+  keys: ['grossProfitMargin', 'ebitMargin', 'ebitdaMargin', 'operatingProfitMargin', 'pretaxProfitMargin', 'continuousOperationsProfitMargin', 'netProfitMargin', 'bottomLineProfitMargin']
+  operatingProfitMargin: 0.26405907218149716
 
-=== 2) does screener support a growth filter directly? ===
-  by-sector filter works: True
+=== company-screener max rows in a single call ===
+  rows returned for limit=3000: 3000
 
-=== 3) financial-growth endpoint (per-symbol, but check field names) ===
-  keys: ['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'revenueGrowth', 'grossProfitGrowth', 'ebitgrowth', 'operatingIncomeGrowth', 'netIncomeGrowth', 'epsgrowth', 'epsdilutedGrowth', 'weightedAverageSharesGrowth', 'weightedAverageSharesDilutedGrowth', 'dividendsPerShareGrowth', 'operatingCashFlowGrowth', 'receivablesGrowth', 'inventoryGrowth', 'assetGrowth', 'bookValueperShareGrowth']
-  revenueGrowth: 0.48851101111066864
+=== sector breakdown of that broad screen (real 'all sectors' coverage check) ===
+   Technology: 296
+   Financial Services: 293
+   Industrials: 282
+   Healthcare: 196
+   Consumer Cyclical: 154
+   Consumer Defensive: 97
+   Utilities: 85
+   Real Estate: 81
+   Energy: 77
+   Communication Services: 71
+   Basic Materials: 69
+  total non-ETF/fund: 1701
 
-=== 4) key-metrics or ratios bulk-ish endpoint for EV/Sales directly? ===
-  key-metrics keys: ['symbol', 'date', 'fiscalYear', 'period', 'reportedCurrency', 'marketCap', 'enterpriseValue', 'evToSales', 'evToOperatingCashFlow', 'evToFreeCashFlow', 'evToEBITDA', 'netDebtToEBITDA', 'currentRatio', 'incomeQuality', 'grahamNumber', 'grahamNetNet', 'taxBurden', 'interestBurden', 'workingCapital', 'investedCapital', 'returnOnAssets', 'operatingReturnOnAssets', 'returnOnTangibleAssets', 'returnOnEquity', 'returnOnInvestedCapital']
-DONE 2658
+=== ai-infra-stack.json layer list (for reference, to keep as special overlay) ===
+  layers: ['silicon', 'equipment', 'memory', 'foundry', 'networking', 'optical', 'power_grid', 'cooling', 'datacenter_buildout', 'neocloud', 'miners_to_ai', 'datacenter_reits']
+DONE 2659
