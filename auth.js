@@ -68,6 +68,7 @@
   const JustHodlAuth = {
     async init() {
       this._injectCSS();
+      this._ensureSlot();
       if (!ENABLED) { this._renderAuthUI(); return; }
       if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
         console.warn("[auth] Supabase JS not loaded; running anonymous.");
@@ -187,6 +188,19 @@
     getAccessToken() {
       // For authenticated calls to the Worker (entitlement checks)
       return supabase ? supabase.auth.getSession().then(r => r.data.session?.access_token) : Promise.resolve(null);
+    },
+
+    // ── Self-injecting slot: if the page defines its own [data-auth-slot], use it;
+    // otherwise auto-create a small floating one in the top-right corner. This is what
+    // makes Sign In actually visible on pages that never added the slot markup —
+    // matches jh-nav-drawer.js's zero-per-page-setup pattern. ──
+    _ensureSlot() {
+      if (document.querySelector("[data-auth-slot]")) return;
+      const host = document.createElement("div");
+      host.setAttribute("data-auth-slot", "");
+      host.id = "jh-auth-auto-slot";
+      host.style.cssText = "position:fixed;top:14px;right:14px;z-index:999995";
+      document.body.appendChild(host);
     },
 
     // ── UI: inject a sign-in button / user menu into [data-auth-slot] ──
