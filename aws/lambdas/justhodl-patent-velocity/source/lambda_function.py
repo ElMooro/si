@@ -240,7 +240,7 @@ def fetch_patents_for_assignees(assignee_names: list, days_back: int) -> list:
         inner = ("q=(%s)&country=US&status=GRANT&type=PATENT&after=publication:%s&before=publication:%s"
                  % (q, d1.strftime("%Y%m%d"), d2.strftime("%Y%m%d")))
         url = "https://patents.google.com/xhr/query?url=" + urllib.parse.quote(inner, safe="")
-        for attempt in range(3):
+        for attempt in range(2):
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                            "Accept": "application/json"})
@@ -250,7 +250,7 @@ def fetch_patents_for_assignees(assignee_names: list, days_back: int) -> list:
                 return int(mm.group(1)) if mm else 0
             except urllib.error.HTTPError as e:
                 if e.code in (429, 503) and attempt < 2:
-                    time.sleep(4 * (attempt + 1)); continue
+                    time.sleep(3); continue
                 print("[patent] google HTTP %s" % e.code); return None
             except Exception as e:
                 if attempt < 2:
@@ -259,11 +259,11 @@ def fetch_patents_for_assignees(assignee_names: list, days_back: int) -> list:
         return None
 
     n_recent = _count(mid, end)
-    time.sleep(1.4)
+    time.sleep(1.0)
     n_base = _count(start, mid)
-    time.sleep(1.4)
-    if n_recent is None and n_base is None:
-        return []
+    time.sleep(1.0)
+    if n_recent is None or n_base is None:
+        return []   # either window throttled -> skip; cursor retries next cycle
     recs = []
     rd, bd = (mid + timedelta(days=1)).isoformat(), (start + timedelta(days=1)).isoformat()
     for _ in range(int(n_recent or 0)):
@@ -410,7 +410,23 @@ def handler(event, context):
         })}
     
     _lim = int((event or {}).get("limit") or MAX_COMPANIES)
-    tickers = list(TICKER_TO_ASSIGNEE.keys())[:_lim]
+    # ── incremental coverage (ops 2704): cursor rotation + prior-run merge so
+    #    throttled partial passes ACCUMULATE to full-universe coverage instead
+    #    of overwriting it. Every row carries a per-ticker `asof`.
+    _prior = {}
+    try:
+        _prior = json.loads(s3.get_object(Bucket=BUCKET, Key=OUTPUT_KEY)["Body"].read().decode("utf-8"))
+    except Exception:
+        pass
+    _prev_rows = {}
+    for _r in (_prior.get("all_results") or []):
+        if _r.get("ticker"):
+            _r.setdefault("asof", _prior.get("generated_at") or "")
+            _prev_rows[_r["ticker"]] = _r
+    _all = list(TICKER_TO_ASSIGNEE.keys())
+    _cur = int(_prior.get("cursor") or 0) % max(1, len(_all))
+    _order = _all[_cur:] + _all[:_cur]
+    tickers = _order[:_lim]
     print(f"[patent] processing {len(tickers)} tickers w/ patent activity")
     
     results = []
@@ -418,6 +434,7 @@ def handler(event, context):
         try:
             r = analyze_ticker(ticker, TICKER_TO_ASSIGNEE[ticker])
             if r:
+                r["asof"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
                 results.append(r)
         except Exception as e:
             print(f"[patent] err on {ticker}: {str(e)[:80]}")
@@ -431,10 +448,18 @@ def handler(event, context):
                   f"elapsed {elapsed:.0f}s")
         
         # Time budget
-        if (datetime.now(timezone.utc) - started).total_seconds() > 500:
+        if (datetime.now(timezone.utc) - started).total_seconds() > 640:
             print("[patent] time budget exhausted")
             break
     
+    _fresh = {r["ticker"]: r for r in results if r.get("ticker")}
+    _cut = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat(timespec="seconds")
+    _merged = {t: r for t, r in _prev_rows.items() if (r.get("asof") or "") >= _cut}
+    _merged.update(_fresh)
+    _next_cursor = (_cur + (i + 1 if tickers else 0)) % max(1, len(_all))
+    results = list(_merged.values())
+    print("[patent] merge: fresh=%d carried=%d total=%d next_cursor=%d"
+          % (len(_fresh), len(results) - len(_fresh), len(results), _next_cursor))
     results.sort(key=lambda r: -r["score"])
     
     # Highlights
@@ -456,7 +481,9 @@ def handler(event, context):
             "baseline_days": BASELINE_DAYS,
         },
         
-        "universe_size":      len(tickers),
+        "universe_size":      len(_all),
+        "cursor":             _next_cursor,
+        "coverage": {"fresh_this_run": len(_fresh), "total": len(results), "universe": len(_all)},
         "n_results":          len(results),
         "n_velocity_spikes":  len(velocity_spikes),
         "n_new_tech_focus":   len(new_tech_focus),

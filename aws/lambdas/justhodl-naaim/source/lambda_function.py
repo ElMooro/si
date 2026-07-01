@@ -75,9 +75,47 @@ def _excel_serial_date(v):
     return None
 
 
+def _pick_cols(rows):
+    """Locate the DATE and NAAIM-MEAN columns. The published file carries many
+    series per week (Mean, Most Bearish/Bullish Response, Quartiles, S&P) —
+    v1 grabbed column 1 blindly and ingested the MOST-BEARISH column (0.2 on
+    2026-06-24 vs true mean 98.59). Header match first; statistical profile
+    fit as fallback (mean column: median 30..95, min>=-30, max<=140)."""
+    for i, row in enumerate(rows[:12]):
+        low = [str(c).strip().lower() for c in row]
+        if not any("date" in c for c in low):
+            continue
+        dcol = next(j for j, c in enumerate(low) if "date" in c)
+        for pat in ("naaim number", "mean/average", "naaim exposure", "mean", "average", "naaim"):
+            for j, c in enumerate(low):
+                if pat in c and j != dcol and "bear" not in c and "bull" not in c and "quart" not in c:
+                    return i + 1, dcol, j, "header:" + str(row[j])[:28]
+    # profile fit
+    width = max((len(r) for r in rows), default=0)
+    best = None
+    for j in range(width):
+        vals = []
+        for r in rows:
+            if j < len(r):
+                try:
+                    vals.append(float(str(r[j]).replace("%", "").strip()))
+                except Exception:
+                    pass
+        if len(vals) < 200:
+            continue
+        sv = sorted(vals)
+        med = sv[len(sv) // 2]
+        if -30 <= sv[0] and sv[-1] <= 140 and 30 <= med <= 95:
+            if best is None or len(vals) > best[1]:
+                best = (j, len(vals), med)
+    if best:
+        return 0, 0, best[0], "profile-fit:col%d(med=%.1f)" % (best[0], best[2])
+    return None
+
+
 def _history_from_file(page_html):
-    """Discover + parse NAAIM's published data file. Returns {date: value}."""
-    out = {}
+    """Discover + parse NAAIM's published data file. Returns ({date: value}, note)."""
+    out, note = {}, "none"
     links = re.findall(r'href="([^"]+\.(?:xlsx|xls|csv)[^"]*)"', page_html, re.I)
     links = [l for l in links if re.search(r"exposure|naaim|use", l, re.I)] or links[:2]
     for link in links[:3]:
@@ -95,20 +133,24 @@ def _history_from_file(page_html):
                 rows = _xlsx_rows(blob)
             except Exception as e:
                 print("  xlsx parse fail:", str(e)[:70])
-        for row in rows:
-            if len(row) < 2:
+        picked = _pick_cols(rows)
+        if not picked:
+            continue
+        start, dcol, vcol, note = picked
+        for row in rows[start:]:
+            if max(dcol, vcol) >= len(row):
                 continue
-            d = _parse_date(str(row[0])) or _excel_serial_date(row[0])
+            d = _parse_date(str(row[dcol])) or _excel_serial_date(row[dcol])
             try:
-                v = float(str(row[1]).replace("%", "").strip())
+                v = float(str(row[vcol]).replace("%", "").strip())
             except Exception:
                 continue
-            if d and -220 <= v <= 220:
+            if d and -30 <= v <= 200:
                 out[d] = round(v, 2)
         if out:
-            print("  history file parsed: %d rows from %s" % (len(out), url[:80]))
+            print("  history file parsed: %d rows via %s from %s" % (len(out), note, url[:80]))
             break
-    return out
+    return out, note
 
 
 def lambda_handler(event=None, context=None):
@@ -136,13 +178,19 @@ def lambda_handler(event=None, context=None):
         prior_doc = json.loads(s3.get_object(Bucket=BUCKET, Key=KEY)["Body"].read())
     except Exception:
         pass
-    hist = {h["date"]: h["value"] for h in prior_doc.get("history", []) if h.get("date")}
-    hist.update(_history_from_file(html))
-    # scrub any contaminated rows (future dates, absurd values) from prior runs
+    file_hist, col_note = _history_from_file(html)
+    if len(file_hist) >= 500:
+        # comprehensive published file = CANONICAL; discard accumulated rows
+        # entirely (purges v1's wrong-column contamination in one shot)
+        hist = dict(file_hist)
+        print("  file canonical (%d rows, %s) — prior accumulation discarded" % (len(hist), col_note))
+    else:
+        hist = {h["date"]: h["value"] for h in prior_doc.get("history", []) if h.get("date")}
+        hist.update(file_hist)
     cutoff = (today + timedelta(days=2)).isoformat()
-    hist = {d: v for d, v in hist.items() if d <= cutoff and 0 <= v <= 200}
+    hist = {d: v for d, v in hist.items() if d <= cutoff and -30 <= v <= 200}
     file_max = max(hist) if hist else None
-    if latest_val is not None and latest_date and (file_max is None or latest_date >= file_max):
+    if latest_val is not None and latest_date and (file_max is None or latest_date > file_max):
         hist[latest_date] = latest_val
     series = sorted(hist.items())
     if not series:
@@ -174,7 +222,7 @@ def lambda_handler(event=None, context=None):
            "change_w": round(cur - prev, 2) if prev is not None else None,
            "avg_4w": round(statistics.fmean(vals[-4:]), 2),
            "pctile": pct, "z": z, "signal": sig, "state": state,
-           "provisional": provisional, "history_n": n,
+           "provisional": provisional, "history_n": n, "column_mode": col_note,
            "history": [{"date": d, "value": v} for d, v in series[-520:]]}
     s3.put_object(Bucket=BUCKET, Key=KEY, Body=json.dumps(doc, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")

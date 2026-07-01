@@ -310,7 +310,8 @@ def lambda_handler(event, context):
         #    contrarian. Low exposure = washed-out = stress-positive -> flipped.
         #    PROVISIONAL history (<52w) contributes at 0.6 weight.
         try:
-            _nj = json.loads(s3.get_object(Bucket=BUCKET, Key="data/naaim.json")["Body"].read())
+            _nj = json.loads(boto3.client("s3", region_name="us-east-1").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/naaim.json")["Body"].read())
             _nz = _nj.get("z")
             _nold = days_since((_nj.get("latest") or {}).get("date") or "")
             if isinstance(_nz, (int, float)):
