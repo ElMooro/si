@@ -1,3 +1,111 @@
-Cloudflare-related SSM params found: NONE
+=== 1) FULL raw headers on the 3 key URLs (mimicking a real Chrome UA) ===
 
-DONE 2646
+--- /index.html (status 200, 179538 bytes) ---
+  Date: Wed, 01 Jul 2026 02:45:51 GMT
+  Content-Type: text/html; charset=utf-8
+  Transfer-Encoding: chunked
+  Connection: close
+  Server: cloudflare
+  Last-Modified: Wed, 01 Jul 2026 02:38:25 GMT
+  Access-Control-Allow-Origin: *
+  Strict-Transport-Security: max-age=31556952
+  Server-Timing: cfEdge;dur=12,cfOrigin;dur=142
+  Expires: Wed, 01 Jul 2026 02:55:51 GMT
+  Cache-Control: max-age=600
+  Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+  X-Proxy-Cache: MISS
+  X-Github-Request-Id: A3E8:3ADF95:4A262B:4CE3C0:6A447F5F
+  Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=4bSbxGl2ui7DjHqrf3Jq3laL0Uy9K2TRD9u8lT8IWaXyQvL5m4KNvC24N0Ocmts2%2FMxSQ%2B53ppWsSbBj0IVlHvGpKZQG6Y7opJdw%2F90UUft6oLjRmUJZiLw9UppPRA%3D%3D"}]}
+  Age: 0
+  Via: 1.1 varnish
+  X-Served-By: cache-sjc1000139-SJC
+  X-Cache: MISS
+  X-Cache-Hits: 0
+  X-Timer: S1782873951.255277,VS0,VE134
+  Vary: Accept-Encoding
+  X-Fastly-Request-Id: 78198e298905211aa1ee2af5c87766e08e8b1add
+  Cf-Cache-Status: DYNAMIC
+  CF-RAY: a14213b33a387a33-SJC
+  alt-svc: h3=":443"; ma=86400
+
+--- /jh-nav-drawer.js (status 200, 8031 bytes) ---
+  Date: Wed, 01 Jul 2026 02:45:51 GMT
+  Content-Type: application/javascript; charset=utf-8
+  Transfer-Encoding: chunked
+  Connection: close
+  Server: cloudflare
+  Last-Modified: Wed, 01 Jul 2026 02:38:25 GMT
+  Access-Control-Allow-Origin: *
+  Strict-Transport-Security: max-age=31556952
+  Etag: W/"6a447da1-1f5f"
+  Expires: Wed, 01 Jul 2026 02:55:51 GMT
+  Cache-Control: max-age=14400
+  Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+  X-Proxy-Cache: MISS
+  X-Github-Request-Id: 5D46:3ADF95:4A2636:4CE3CD:6A447F5E
+  Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=TvBerUd%2FW5QcX66Ul5LHJ9kKfecBhDlG11licNb65H9xMn8GY6np4oDJENV7MGUH7gAVRBEN%2Brho9D9l1GJcElPa6ZMpCcCuiMMz76847vW923tlR%2BI%2FuY%2FTimucfg%3D%3D"}]}
+  Age: 0
+  Via: 1.1 varnish
+  X-Served-By: cache-sjc10038-SJC
+  X-Cache: MISS
+  X-Cache-Hits: 0
+  X-Timer: S1782873951.433685,VS0,VE111
+  Vary: Accept-Encoding
+  X-Fastly-Request-Id: b890147666b58594bbbbdc65ba6b3f9b6e7c7974
+  Cf-Cache-Status: MISS
+  Server-Timing: cfEdge;dur=15,cfOrigin;dur=117
+  CF-RAY: a14213b45ac12734-SJC
+  alt-svc: h3=":443"; ma=86400
+
+--- /nav-manifest.json (status 200, 21393 bytes) ---
+  Date: Wed, 01 Jul 2026 02:45:51 GMT
+  Content-Type: application/json; charset=utf-8
+  Transfer-Encoding: chunked
+  Connection: close
+  Server: cloudflare
+  Last-Modified: Wed, 01 Jul 2026 02:38:25 GMT
+  Access-Control-Allow-Origin: *
+  Strict-Transport-Security: max-age=31556952
+  Etag: W/"6a447da1-5391"
+  Expires: Wed, 01 Jul 2026 02:55:51 GMT
+  Cache-Control: max-age=600
+  Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+  X-Proxy-Cache: MISS
+  X-Github-Request-Id: 0FE2:20D405:4A8CD6:4D4AC4:6A447F5E
+  Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=toahpRuCLtz%2F34iAmWFCa50gG%2FsEnpKgeaJMxBDlpYNsz8wWFA%2Bwzpzdf6SmJ37FlpEZPMWzjJnXXQdJPDQnjJG14XSbuoQ9PGsx6Tka7FzUh1Xzjy0vrJK4AGW7yg%3D%3D"}]}
+  Age: 0
+  Via: 1.1 varnish
+  X-Served-By: cache-sjc1000131-SJC
+  X-Cache: MISS
+  X-Cache-Hits: 0
+  X-Timer: S1782873952.593761,VS0,VE98
+  Vary: Accept-Encoding
+  X-Fastly-Request-Id: c562e3e6354a34ad40922cef5e8dd8572d435dfb
+  Cf-Cache-Status: DYNAMIC
+  Server-Timing: cfEdge;dur=17,cfOrigin;dur=105
+  CF-RAY: a14213b54ca823a9-SJC
+  alt-svc: h3=":443"; ma=86400
+
+=== 2) Content-Type sanity check (wrong MIME can silently block execution) ===
+jh-nav-drawer.js Content-Type: application/javascript; charset=utf-8 | OK for JS: True
+nav-manifest.json Content-Type: application/json; charset=utf-8 | OK for JSON: True
+
+=== 3) service worker present? (would explain staleness surviving hard-refresh) ===
+service-worker.js: 200 4343 bytes — EXISTS, this could be the real cause
+index.html registers a service worker?: True
+
+=== 4) cache consistency across 4 consecutive hits (any edge-node flakiness / stale HIT?) ===
+  hit 1: cf-cache-status=DYNAMIC age=1
+  hit 2: cf-cache-status=DYNAMIC age=3
+  hit 3: cf-cache-status=DYNAMIC age=5
+  hit 4: cf-cache-status=DYNAMIC age=7
+
+=== 5) byte-for-byte integrity — served JS hash vs local repo source hash ===
+served sha256: 3d3a32b86037eb2b
+local  sha256: 3d3a32b86037eb2b
+IDENTICAL: True
+
+=== 6) is /screener/ (intentionally excluded) what's actually being checked? ===
+screener/ has drawer tag (should be False, it was excluded on purpose): False
+
+DONE 2647
