@@ -1,9 +1,8 @@
-  triangle_asc       qs=f=ta_pattern_triangleascending      -> 11397 rows  sample={'ticker': 'A', 'company': 'Agilent Technologies Inc', 'sector': 'Healthcare', 'market_cap': 37673.6, 'perf_m': -1.9, 'perf_y': 10.74, 'avg_volume': 2272.52, 'price': 133.39, 'change_pct': 0.42, 'volume': 2354627.0, 'gap_pct': 0.12}
-  triangle_desc      qs=f=ta_pattern_triangledescending     -> 11397 rows  sample={'ticker': 'A', 'company': 'Agilent Technologies Inc', 'sector': 'Healthcare', 'market_cap': 37673.6, 'perf_m': -1.9, 'perf_y': 10.74, 'avg_volume': 2272.52, 'price': 133.39, 'change_pct': 0.42, 'volume': 2354627.0, 'gap_pct': 0.12}
-  wedge_up           qs=f=ta_pattern_wedgeup                -> 2416 rows  sample={'ticker': 'AAAA', 'company': 'Amplius Aggressive Asset Allocation ETF', 'sector': 'Financial', 'perf_m': -1.62, 'avg_volume': 4.25, 'price': 30.24, 'change_pct': -0.67, 'volume': 11940.0, 'gap_pct': -0.31}
-  wedge_down         qs=f=ta_pattern_wedgedown              -> 1175 rows  sample={'ticker': 'AAAU', 'company': 'Goldman Sachs Physical Gold ETF', 'sector': 'Financial', 'perf_m': -9.86, 'perf_y': 20.78, 'avg_volume': 1809.13, 'price': 39.82, 'change_pct': 0.63, 'volume': 1194149.0, 'gap_pct': 0.76}
-  sma20_cross50      qs=f=ta_sma20_cross50a                 -> 1043 rows  sample={'ticker': 'ABG', 'company': 'Asbury Automotive Group Inc', 'sector': 'Consumer Cyclical', 'market_cap': 3686.9, 'perf_m': 6.11, 'perf_y': -20.45, 'avg_volume': 269.17, 'price': 198.02, 'change_pct': -1.52, 'volume': 199676.0, 'gap_pct': -0.73}
-  sma50_cross20b     qs=f=ta_sma20_cross50b                 -> 1125 rows  sample={'ticker': 'AA', 'company': 'Alcoa Corp', 'sector': 'Basic Materials', 'market_cap': 12529.49, 'perf_m': -38.94, 'perf_y': 57.22, 'avg_volume': 5068.68, 'price': 47.48, 'change_pct': -8.94, 'volume': 16983691.0, 'gap_pct': -6.32}
-  price_cross50a     qs=f=ta_sma50_cross_price_a            -> 11397 rows  sample={'ticker': 'A', 'company': 'Agilent Technologies Inc', 'sector': 'Healthcare', 'market_cap': 37673.6, 'perf_m': -1.9, 'perf_y': 10.74, 'avg_volume': 2272.52, 'price': 133.39, 'change_pct': 0.42, 'volume': 2354627.0, 'gap_pct': 0.12}
-  price_cross200a    qs=f=ta_sma200_cross_price_a           -> 11397 rows  sample={'ticker': 'A', 'company': 'Agilent Technologies Inc', 'sector': 'Healthcare', 'market_cap': 37673.6, 'perf_m': -1.9, 'perf_y': 10.74, 'avg_volume': 2272.52, 'price': 133.39, 'change_pct': 0.42, 'volume': 2354627.0, 'gap_pct': 0.12}
-DONE 2690
+total filter categories: 87
+
+=== Pattern ===
+  'Triangle Ascending' -> ta_pattern_wedgeresistance
+  'Triangle Ascending (Strong)' -> ta_pattern_wedgeresistance2
+  'Triangle Descending' -> ta_pattern_wedgesupport
+  'Triangle Descending (Strong)' -> ta_pattern_wedgesupport2
+DONE 2691
