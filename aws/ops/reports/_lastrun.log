@@ -1,10 +1,3 @@
-FEED via proxy: n_deals 7 green 6 ai 1 ai_mega 1 | updated 2026-07-01T00:35:40.725969+00:00
-first deal field coverage: {'symbol': True, 'name': True, 'title': True, 'highlight': True, 'ai_relevant': True, 'vs_market_cap_pct': True, 'materiality_pct': True, 'deal_value_str': True, 'why': True, 'cap_bucket': True, 'url': True, 'age_h': True}
-  sample why: $25 Billion deal; 32.8% of annual revenue ($76128M) — not yet in reported number
-EventBridge rules attached: {'deal-scanner-daily'}
-   deal-scanner-daily: cron(0 22 * * ? *) [ENABLED]
-  page [OK] reads deal-scanner.json
-  page [OK] filters ai_relevant
-  page [OK] reads summary.n_deals
-  page [OK] highlight green tier
-DONE 2641
+rule updated: arn:aws:events:us-east-1:857687956942:rule/deal-scanner-daily
+now: cron(5 */3 * * ? *) [ ENABLED ]
+DONE 2642
