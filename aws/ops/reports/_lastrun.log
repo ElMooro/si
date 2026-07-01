@@ -1,16 +1,33 @@
+bundled files: ['_fred_shim.py', '_sentry_lite.py', 'anthropic_shim.py', 'api_auth.py', 'benzinga.py', 'calibration.py', 'capital_flow.py', 'claude_compat.py', 'edgar.py', 'engine_trust.py', 'equity_enrich.py', 'finra_si.py', 'finviz.py', 'ka_aliases.py', 'lambda_function.py', 'llm_router.py', 'massive.py', 'massive_signals.py', 'system_events.py']
 deployed
-INVOKE: 200 Unhandled
-BODY: {"errorMessage": "Unable to import module 'lambda_function': No module named 'finviz'", "errorType": "Runtime.ImportModuleError", "requestId": "", "stackTrace": []}
+invoking (32 screens x ~4s spacing, this will take a few minutes)...
+INVOKE: 200 None
+BODY: {"ok": true, "counts": {"golden_cross": 200, "death_cross": 200, "new_high_52w": 150, "new_low_52w": 75, "unusual_volume": 150, "most_active": 100, "overbought": 63, "oversold": 14, "top_gainers": 100, "top_losers": 100, "momentum_month": 200, "rel_vol_2x": 200, "short_high": 200, "insider_buys": 10
+
+total screens: 35
+
+NEW screens specifically (the ones just added):
+  price_cross50a       150
+  new_high_20d         150
+  sma20_cross50b       150
+  price_cross200a      150
+  triangle_asc         100
+  triangle_desc        100
+  price_cross200b      150
+  new_low_20d          150
+  wedge_down           80
+  sma20_cross50a       150
+  wedge_up             80
 
 all screen counts:
   golden_cross         200
   death_cross          200
   new_high_52w         150
-  new_low_52w          62
+  new_low_52w          75
   unusual_volume       150
   most_active          100
-  overbought           66
-  oversold             12
+  overbought           63
+  oversold             14
   top_gainers          100
   top_losers           100
   momentum_month       200
@@ -27,4 +44,15 @@ all screen counts:
   multiple_top         120
   channel_up           150
   channel_down         150
-DONE 2693
+  triangle_asc         100
+  triangle_desc        100
+  wedge_up             80
+  wedge_down           80
+  sma20_cross50a       150
+  sma20_cross50b       150
+  price_cross50a       150
+  price_cross200a      150
+  price_cross200b      150
+  new_high_20d         150
+  new_low_20d          150
+DONE 2694
