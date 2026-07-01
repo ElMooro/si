@@ -1,18 +1,3 @@
-=== live origin content (cache-busted) ===
-index.html has drawer tag: True
-bytes: 172367
+Cloudflare-related SSM params found: NONE
 
-=== actual response headers on a NORMAL request (no cache-bust, mimics a real browser visit) ===
-normal-request has drawer tag: True
-  Cache-Control: max-age=600
-  Cf-Cache-Status: DYNAMIC
-  Age: 0
-  Last-Modified: Wed, 01 Jul 2026 01:50:44 GMT
-  Expires: Wed, 01 Jul 2026 02:45:41 GMT
-
-=== jh-nav-drawer.js itself — is IT cached/stale? ===
-js has toggle logic: True | bytes: 8027
-  Cache-Control: max-age=14400
-  Cf-Cache-Status: MISS
-  Age: 0
-DONE 2645
+DONE 2646
