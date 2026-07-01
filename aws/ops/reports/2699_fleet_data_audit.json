@@ -1,0 +1,278 @@
+{
+ "ops": 2699,
+ "ts": "2026-07-01T23:03:21.669062+00:00",
+ "summary": {
+  "feeds_seen": 734,
+  "stale_producer": 0,
+  "dead_input": 8,
+  "missing_feed": 0,
+  "orphan_compute": 14
+ },
+ "stale_producer": [],
+ "dead_input": [
+  {
+   "key": "data/khalid-config.json",
+   "age_h": 2992.3,
+   "expected_h": null,
+   "producers": [
+    "justhodl-ka-metrics",
+    "justhodl-khalid-metrics"
+   ],
+   "n_consumers": 2,
+   "consumers": [
+    "justhodl-fleet-freshness-monitor",
+    "justhodl-history-snapshotter"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/fred-cache-secretary.json",
+   "age_h": 821.6,
+   "expected_h": null,
+   "producers": [
+    "justhodl-financial-secretary"
+   ],
+   "n_consumers": 2,
+   "consumers": [
+    "justhodl-bond-regime-detector",
+    "justhodl-divergence-scanner"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/secretary-latest.json",
+   "age_h": 821.6,
+   "expected_h": null,
+   "producers": [
+    "justhodl-financial-secretary"
+   ],
+   "n_consumers": 1,
+   "consumers": [
+    "justhodl-history-snapshotter"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/cascade-calibration.json",
+   "age_h": 692.4,
+   "expected_h": null,
+   "producers": [
+    "justhodl-self-improvement"
+   ],
+   "n_consumers": 9,
+   "consumers": [
+    "justhodl-best-setups",
+    "justhodl-cascade-recalibrator",
+    "justhodl-digest-trends-ai",
+    "justhodl-page-ai-commentary",
+    "justhodl-ticket-ai-rationale",
+    "justhodl-track-record",
+    "justhodl-trade-tickets",
+    "justhodl-weekly-ai-review"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/trade-tickets.json",
+   "age_h": 679.8,
+   "expected_h": null,
+   "producers": [
+    "justhodl-trade-tickets"
+   ],
+   "n_consumers": 9,
+   "consumers": [
+    "justhodl-best-setups",
+    "justhodl-digest-trends-ai",
+    "justhodl-page-ai-commentary",
+    "justhodl-pnl-tracker",
+    "justhodl-prediction-snapshotter",
+    "justhodl-prepump-alerts-router",
+    "justhodl-ticket-ai-rationale",
+    "justhodl-trade-ticket-monitor"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/history-index.json",
+   "age_h": 562.1,
+   "expected_h": null,
+   "producers": [
+    "justhodl-history-snapshotter"
+   ],
+   "n_consumers": 2,
+   "consumers": [
+    "justhodl-health-monitor",
+    "justhodl-history-api"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/khalid-analysis.json",
+   "age_h": 419.9,
+   "expected_h": null,
+   "producers": [
+    "justhodl-ka-metrics",
+    "justhodl-khalid-metrics"
+   ],
+   "n_consumers": 1,
+   "consumers": [
+    "justhodl-history-snapshotter"
+   ],
+   "schedules": []
+  },
+  {
+   "key": "data/polygon-options-flow.json",
+   "age_h": 293.6,
+   "expected_h": null,
+   "producers": [
+    "justhodl-polygon-options-flow"
+   ],
+   "n_consumers": 9,
+   "consumers": [
+    "justhodl-best-setups",
+    "justhodl-massive-signals",
+    "justhodl-options-confluence",
+    "justhodl-page-ai-commentary",
+    "justhodl-political-ai-investigation",
+    "justhodl-prediction-snapshotter",
+    "justhodl-prepump-alerts-router",
+    "justhodl-ticket-ai-rationale"
+   ],
+   "schedules": []
+  }
+ ],
+ "missing_feed": [],
+ "orphan_compute": [
+  {
+   "key": "data/_freshness-alert-history.json",
+   "producers": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "schedules": [
+    "cron(12 12 * * ? *)",
+    "cron(52 19 * * ? *)",
+    "cron(10 20 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/_freshness-monitor.json",
+   "producers": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "schedules": [
+    "cron(12 12 * * ? *)",
+    "cron(52 19 * * ? *)",
+    "cron(10 20 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/backlog-coverage-cache.json",
+   "producers": [
+    "justhodl-backlog"
+   ],
+   "schedules": [
+    "cron(30 11 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/brain-history.json",
+   "producers": [
+    "justhodl-brain-sync"
+   ],
+   "schedules": [
+    "cron(0 9 1 * ? *)"
+   ]
+  },
+  {
+   "key": "data/crypto-cycle-risk-prev.json",
+   "producers": [
+    "justhodl-crypto-cycle-risk"
+   ],
+   "schedules": [
+    "cron(2 16 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/etf-shares-history.json",
+   "producers": [
+    "justhodl-etf-true-flows"
+   ],
+   "schedules": [
+    "cron(45 15 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/funding-plumbing-prev.json",
+   "producers": [
+    "justhodl-funding-plumbing"
+   ],
+   "schedules": [
+    "cron(15 13 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/global-business-cycle-history.json",
+   "producers": [
+    "justhodl-global-business-cycle"
+   ],
+   "schedules": [
+    "cron(0 12 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/liquidity-inflection-decisive-call.json",
+   "producers": [
+    "justhodl-liquidity-inflection"
+   ],
+   "schedules": [
+    "cron(15 11 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/regime-map-prev.json",
+   "producers": [
+    "justhodl-regime-map"
+   ],
+   "schedules": [
+    "cron(0 13,21 * * ? *)",
+    "cron(0 13,21 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/retail-alert-state.json",
+   "producers": [
+    "justhodl-retail-sentiment"
+   ],
+   "schedules": [
+    "cron(10 19 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/retail-alerts.json",
+   "producers": [
+    "justhodl-retail-sentiment"
+   ],
+   "schedules": [
+    "cron(10 19 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/theme-cascade-backtest.json",
+   "producers": [
+    "justhodl-theme-cascade-backtest"
+   ],
+   "schedules": [
+    "cron(45 22 * * ? *)"
+   ]
+  },
+  {
+   "key": "data/weekly-review-latest.json",
+   "producers": [
+    "justhodl-weekly-ai-review"
+   ],
+   "schedules": [
+    "cron(0 14 ? * SUN *)"
+   ]
+  }
+ ]
+}

@@ -1,96 +1,25 @@
 
-======== 1/3 DEPLOY ENGINE ========
-  settling 60s for parallel deploy-lambdas…
-  engine synced
+======== 1/4 LINEAGE FROM REPO ========
+  producers=83 feeds, consumer-edges=724 feeds
 
-======== 2/3 RE-RUN + HARD PROOF ========
-{
- "quarantined": {},
- "coil_diag": {
-  "universe": 11397,
-  "stock": 5974,
-  "px_vol": 3027,
-  "have_vol": 2986,
-  "contract": 179,
-  "av_median_raw": 604.92,
-  "av_unit_mult": 1000.0
- },
- "coiled": 120,
- "top_coils": [
-  {
-   "t": "PTACU",
-   "s": 91.1,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "GTLS",
-   "s": 90.2,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "PRA",
-   "s": 87.1,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "CUB",
-   "s": 77.1,
-   "tags": []
-  },
-  {
-   "t": "NUVL",
-   "s": 76.5,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "BBCQ",
-   "s": 74.5,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "NAD",
-   "s": 72.1,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  },
-  {
-   "t": "ACA",
-   "s": 71.7,
-   "tags": [
-    "HORIZONTAL_SR"
-   ]
-  }
- ],
- "wyckoff_coils": 0,
- "dist_watch": 15,
- "breadth": {
-  "universe_n": 4810,
-  "pct_above_sma200": 55.6,
-  "pct_above_sma50": 57.9,
-  "pct_above_sma20": 62.5,
-  "advancers_pct": 53.3,
-  "regime": "BULL",
-  "sp500_pct_above_sma200": 61.2
- },
- "sectors_n": 11,
- "picks": 45
-}
-  HARD ASSERTS PASSED
+======== 2/4 EVENTBRIDGE SCHEDULES ========
+  schedule rules=322, scheduled fns=276
 
-======== 3/3 REPORT + CONSUMERS ========
-  wrote aws/ops/reports/2698_avg_volume_units.json
-  triggered justhodl-best-setups
-  triggered justhodl-master-ranker
+======== 3/4 S3 FRESHNESS ========
+  top-level feeds on S3: 673
 
-OPS 2698 COMPLETE
+======== 4/4 VERDICTS ========
+{"feeds_seen": 734, "stale_producer": 0, "dead_input": 8, "missing_feed": 0, "orphan_compute": 14}
+  worst stale:
+  dead inputs (consumed, unscheduled, old):
+   data/khalid-config.json                      age=2992.3h cons=2
+   data/fred-cache-secretary.json               age= 821.6h cons=2
+   data/secretary-latest.json                   age= 821.6h cons=1
+   data/cascade-calibration.json                age= 692.4h cons=9
+   data/trade-tickets.json                      age= 679.8h cons=9
+   data/history-index.json                      age= 562.1h cons=2
+   data/khalid-analysis.json                    age= 419.9h cons=1
+   data/polygon-options-flow.json               age= 293.6h cons=9
+
+  wrote aws/ops/reports/2699_fleet_data_audit.json
+OPS 2699 COMPLETE
