@@ -113,14 +113,23 @@ def _history_from_file(page_html):
 
 def lambda_handler(event=None, context=None):
     html = _get(PAGE)
-    m = re.search(r"Exposure\s+Index[^0-9\-]{0,120}?(-?\d{1,3}(?:\.\d{1,2})?)", html, re.I | re.S)
-    latest_val = float(m.group(1)) if m else None
-    dm = re.search(r"([A-Z][a-z]+ \d{1,2}, \d{4})", html)
-    latest_date = _parse_date(dm.group(1)) if dm else None
-    if not latest_date:
-        d = datetime.now(timezone.utc).date()
-        latest_date = (d - timedelta(days=(d.weekday() - 2) % 7)).isoformat()  # last Wed close
-    print("  page latest: %s = %s" % (latest_date, latest_val))
+    today = datetime.now(timezone.utc).date()
+    # Page scrape is a FALLBACK only, hard-gated: the raw page carries stray
+    # numbers and event-calendar dates (v1 grabbed "1.0 @ 2026-08-01"). Require
+    # the "number is" phrase, a plausible value, and a date within the last
+    # two weeks (never the future). The published history FILE is primary.
+    latest_val = latest_date = None
+    m = re.search(r"number\s+is[^0-9\-]{0,60}?(-?\d{1,3}(?:\.\d{1,2})?)", html, re.I | re.S)
+    if m:
+        _v = float(m.group(1))
+        if 0 <= _v <= 200:
+            latest_val = _v
+    for dtxt in re.findall(r"([A-Z][a-z]+ \d{1,2}, \d{4})", html)[:6]:
+        _d = _parse_date(dtxt)
+        if _d and timedelta(days=-14) <= (datetime.fromisoformat(_d).date() - today) <= timedelta(days=1):
+            latest_date = _d
+            break
+    print("  page latest (gated): %s = %s" % (latest_date, latest_val))
 
     prior_doc = {}
     try:
@@ -129,7 +138,11 @@ def lambda_handler(event=None, context=None):
         pass
     hist = {h["date"]: h["value"] for h in prior_doc.get("history", []) if h.get("date")}
     hist.update(_history_from_file(html))
-    if latest_val is not None:
+    # scrub any contaminated rows (future dates, absurd values) from prior runs
+    cutoff = (today + timedelta(days=2)).isoformat()
+    hist = {d: v for d, v in hist.items() if d <= cutoff and 0 <= v <= 200}
+    file_max = max(hist) if hist else None
+    if latest_val is not None and latest_date and (file_max is None or latest_date >= file_max):
         hist[latest_date] = latest_val
     series = sorted(hist.items())
     if not series:
