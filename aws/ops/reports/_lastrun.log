@@ -1,19 +1,18 @@
-== 0/4 PATENT GOOGLE-EGRESS DIAGNOSIS ==
-  cloudwatch [patent] lines (6 unique):
-    [patent] google HTTP 503
-    [patent] processed 20/76  found 12  elapsed 292s
-    [patent] processed 20/76  found 13  elapsed 250s
-    [patent] processing 76 tickers w/ patent activity
-    [patent] time budget exhausted
-    [patent] wrote 12,188B  results=13  spikes=0  duration=518.7s
-  runner-side probe: {"http": 200, "count": 17, "body_head": "{\"results\":{\"total_num_results\":17, \"total_num_pages\":2, \"many_results\":false, \"num_page\":0, \"cluster\":[{\"result\":[{\"id\":\"patent/US12594954B2/en\", \"rank\":0, \"patent\":{\"title\":\" Per"}
-== 1/4 redeploy naaim v1.1 + rerun ==
-  invoke -> {"ok": true, "value": 4.0, "n": 1040, "state": "WASHED_OUT", "provisional": false}
-  SANE: {"value": 4.0, "date": "2026-06-25", "z": -3.2, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1040, "provisional": false}
-== 2/4 re-prove fused consumers on corrected print ==
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+== 1/5 DEPLOY (naaim v1.2, put-call-extreme, patent-velocity) ==
+  settling 25s for parallel deploy-lambdas…
+  synced justhodl-naaim
+  synced justhodl-put-call-extreme
+  synced justhodl-patent-velocity
+== 2/5 FIRE PATENT ASYNC (longest leg first) ==
+  triggered (will poll after fast proofs; engine budget 640s)
+== 3/5 NAAIM v1.2 PROOF (expect ~98.6 EUPHORIC per CEIC cross-check) ==
+  invoke -> {"ok": true, "value": 4.0, "n": 1043, "state": "WASHED_OUT", "provisional": false}
+   {"value": 4.0, "date": "2026-06-25", "z": -3.2, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1043, "column_mode": "profile-fit:col1(med=71.6)", "provisional": false}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2703_naaim_fix_patent_diag.py", line 118, in <module>
-    assert comp and comp.get("ok"), "NAAIM component not ok: %s" % comp
-           ^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: NAAIM component not ok: {'id': 'NAAIM_EXPOSURE', 'ok': False, 'error': "name 'BUCKET' is not defined", 'cadence': 'weekly'}
-❌ OPS-FAIL: aws/ops/pending/ops_2703_naaim_fix_patent_diag.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2704_naaim_column_patent_merge.py", line 89, in <module>
+    assert isinstance(v, (int, float)) and 60 <= v <= 130, "value off vs known ~98.6: %s" % v
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: value off vs known ~98.6: 4.0
+❌ OPS-FAIL: aws/ops/pending/ops_2704_naaim_column_patent_merge.py
