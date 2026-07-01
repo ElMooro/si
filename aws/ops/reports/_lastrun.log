@@ -1,50 +1,12 @@
-alerts: {
- "n_tier_3_plus_systems": 89,
- "n_tier_5_plus_systems": 33,
- "n_extreme_macro": 6,
- "calibration_active": false,
- "n_structural_chokepoints": 3
-}
-
-feed_health: {
- "compound": {
-  "loaded": true,
-  "size_hint": 7
- },
- "asymmetric": {
-  "loaded": true,
-  "size_hint": 9
- },
- "theme_tiers": {
-  "loaded": true,
-  "size_hint": 10
- },
- "eps_velocity": {
-  "loaded": true,
-  "size_hint": 7
- },
- "insider": {
-  "loaded": true,
-  "size_hint": 8
- },
- "smart_money": {
-  "loaded": true,
-  "size_hint": 7
- },
- "deep_value": {
-  "loaded": true,
-  "size_hint": 7
- },
- "pead": {
-  "loaded": true,
-  "size_hint": 7
- },
- "nobrainers": {
-  "loaded": true,
-  "size_hint": 10
- },
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/2654_check_unused_fields.py", line 7, in <module>
-    print("\nfeed_freshness (sample keys):", list((j.get("feed_freshness") or {}).keys())[:8])
-                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'list' object has no attribute 'keys'
+LIVE ENGINE: 25 top tickers, 8 touched by a new signal family
+  sample: GOOGL -> 8 systems agree (compound=116.2) [compound, earnings_confluence, forward_orders, future_intel, massive…] · legends: BERKSHIRE, BAUPOST · RPO
+  [OK] no truncated rationale (.slice(0,130) gone)
+  [OK] expand-toggle rows present
+  [OK] contribution bar rendering present
+  [OK] multiplier badge logic present
+  [OK] flag chip logic present
+  [OK] data-health strip present
+  [OK] new pill colors present
+  [OK] old nav dump gone
+  [OK] nav-drawer present
+DONE 2655
