@@ -1,12 +1,10 @@
-deployed
-summary: {'n_prs_scanned': 1899, 'n_deals': 7, 'n_green': 6, 'n_yellow': 0, 'n_ai': 1, 'n_ai_mega': 1, 'n_small_cap': 5}
-
-DEALS (profile announcer-match):
-  BN     hl=green  ai=1 sz=$25 Billion vsMC=26.28% mat=32.8 | Brookfield and Bloom Energy Expand AI Infrastructure Par
-  CELZ   hl=green  ai=0 sz=$4.5 Million vsMC=120.26% mat=75000.0 | Creative Medical Technology Holdings Announces Agreement
-  APVO   hl=green  ai=0 sz=$1.5 Million vsMC=15.45% mat=9999.0 | Aptevo Secures $1.5 Million Non-Dilutive Research Grant 
-  XRN    hl=green  ai=0 sz=$217 million vsMC=43.7% mat=134.8 | Chiron Real Estate Inc. Accelerates Portfolio Transition
-  RIG    hl=green  ai=0 sz=$1 Billion vsMC=22.64% mat=25.2 | Transocean Ltd. Announces Agreement with Equinor Valued 
-  BOF    hl=green  ai=0 sz=$8 Million vsMC=11.35% mat=58.3 | BranchOut Food Secures Estimated $8 Million Annual Reven
-  MPTI   hl=None   ai=0 sz=$4 Million vsMC=1.35% mat=7.4 | M-tron Industries, Inc. Awarded $4 Million in Production
-DONE 2640
+FEED via proxy: n_deals 7 green 6 ai 1 ai_mega 1 | updated 2026-07-01T00:35:40.725969+00:00
+first deal field coverage: {'symbol': True, 'name': True, 'title': True, 'highlight': True, 'ai_relevant': True, 'vs_market_cap_pct': True, 'materiality_pct': True, 'deal_value_str': True, 'why': True, 'cap_bucket': True, 'url': True, 'age_h': True}
+  sample why: $25 Billion deal; 32.8% of annual revenue ($76128M) — not yet in reported number
+EventBridge rules attached: {'deal-scanner-daily'}
+   deal-scanner-daily: cron(0 22 * * ? *) [ENABLED]
+  page [OK] reads deal-scanner.json
+  page [OK] filters ai_relevant
+  page [OK] reads summary.n_deals
+  page [OK] highlight green tier
+DONE 2641
