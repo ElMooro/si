@@ -1,25 +1,15 @@
 
-======== 1/4 LINEAGE FROM REPO ========
-  producers=83 feeds, consumer-edges=724 feeds
-
-======== 2/4 EVENTBRIDGE SCHEDULES ========
-  schedule rules=322, scheduled fns=276
-
-======== 3/4 S3 FRESHNESS ========
-  top-level feeds on S3: 673
-
-======== 4/4 VERDICTS ========
-{"feeds_seen": 734, "stale_producer": 0, "dead_input": 8, "missing_feed": 0, "orphan_compute": 14}
-  worst stale:
-  dead inputs (consumed, unscheduled, old):
-   data/khalid-config.json                      age=2992.3h cons=2
-   data/fred-cache-secretary.json               age= 821.6h cons=2
-   data/secretary-latest.json                   age= 821.6h cons=1
-   data/cascade-calibration.json                age= 692.4h cons=9
-   data/trade-tickets.json                      age= 679.8h cons=9
-   data/history-index.json                      age= 562.1h cons=2
-   data/khalid-analysis.json                    age= 419.9h cons=1
-   data/polygon-options-flow.json               age= 293.6h cons=9
-
-  wrote aws/ops/reports/2699_fleet_data_audit.json
-OPS 2699 COMPLETE
+======== 1/4 RECREATE RULES FROM config.json ========
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2700_restore_dead_schedules.py", line 45, in <module>
+    rule_arn = ev.put_rule(Name=sc["name"], ScheduleExpression=sc["expression"],
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the PutRule operation: Parameter ScheduleExpression is not valid.
