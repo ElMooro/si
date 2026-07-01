@@ -109,7 +109,10 @@ def lambda_handler(event=None, context=None):
     for r in ipos_raw:
         if not isinstance(r, dict):
             continue
-        ipos.append({"symbol": r.get("symbol"), "company": r.get("company"),
+        company = r.get("company") or ""
+        if "ETF" in company.upper():
+            continue                       # ETF launches aren't the "new company" signal this is for
+        ipos.append({"symbol": r.get("symbol"), "company": company,
                      "date": r.get("date"), "exchange": r.get("exchange"),
                      "actions": r.get("actions"), "shares": r.get("shares"),
                      "price_range": r.get("priceRange"), "market_cap": r.get("marketCap")})
@@ -119,11 +122,16 @@ def lambda_handler(event=None, context=None):
     #    direct listings without a traditional IPO) ──
     s1_data, s1_err = _edgar('"registration statement"', "S-1", startdt, enddt)
     reg10_data, reg10_err = _edgar('"registration"', "10-12G", startdt, enddt)
-    new_registrants = []
+    new_registrants, seen_adsh = [], set()
     for data, form_label in [(s1_data, "S-1"), (reg10_data, "10-12G")]:
         if not data:
             continue
         for h in data.get("hits", {}).get("hits", [])[:40]:
+            adsh = (h.get("_source") or {}).get("adsh")
+            key = adsh or h.get("_id")
+            if key in seen_adsh:
+                continue                    # same filing, different exhibit document
+            seen_adsh.add(key)
             rec = parse_registrant_hit(h)
             rec["registration_type"] = form_label
             new_registrants.append(rec)
