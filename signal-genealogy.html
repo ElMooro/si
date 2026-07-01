@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Genealogy · Which Signals Lead · JustHodl.AI</title>
+<meta name="description" content="Which of the platform's own signal families fire early vs merely confirm — extending EDGE-ACCURACY from is-this-right to is-this-right-AND-early.">
+<style>
+:root{
+  --bg:#0a0e14;--p:#10151f;--p2:#161d2a;--l:#1d2636;
+  --fg:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;
+  --cyan:#22d3ee;--green:#26ffaf;--red:#ff5c7c;--violet:#a78bfa;--amber:#fbbf24;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;--sans:Inter,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--violet)}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 28px 70px}
+.topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.brand{font-family:var(--mono);font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px}
+.brand .dot{width:8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 8px var(--cyan)}
+.brand b{color:var(--fg3);font-weight:600}
+.topmeta{font-family:var(--mono);font-size:11.5px;color:var(--fg3)}
+.toplinks{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg3)}
+.toplinks a{color:var(--fg2)}.toplinks a:hover{color:var(--cyan)}
+h1{margin:2px 0 6px;font-size:23px;font-weight:700;letter-spacing:-.2px}
+.hero{background:linear-gradient(135deg,rgba(34,211,238,.07),rgba(167,139,250,.03),transparent);
+  border:1px solid var(--l);border-left:3px solid var(--cyan);border-radius:12px;padding:16px 22px;margin-bottom:16px}
+.hero p{margin:0 0 8px;color:var(--fg2);font-size:13px;max-width:900px;line-height:1.55}
+.hero p:last-child{margin-bottom:0}
+.hero b{color:var(--fg)}
+.scope-note{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:8px;
+  padding:10px 14px;font-size:12px;color:var(--fg2);margin-bottom:16px;line-height:1.55}
+.scope-note b{color:var(--amber)}
+
+.statbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.stat{flex:1;min-width:110px;background:var(--p);border:1px solid var(--l);border-radius:10px;padding:12px 15px}
+.stat .n{font-family:var(--mono);font-size:22px;font-weight:700;line-height:1.05}
+.stat .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--fg3);text-transform:uppercase;margin-top:5px}
+.stat .n.cy{color:var(--cyan)}.stat .n.gr{color:var(--green)}.stat .n.vi{color:var(--violet)}
+
+.section{margin-bottom:26px}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.section-head h2{margin:0;font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2)}
+.section-head .sub{font-size:11.5px;color:var(--fg3);font-weight:400}
+.section-head .count{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg3)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.two-col{grid-template-columns:1fr}}
+.leaderboard{background:var(--p);border:1px solid var(--l);border-radius:10px;overflow:hidden}
+.lb-row{display:grid;grid-template-columns:1fr 70px 50px;gap:10px;align-items:center;
+  padding:9px 14px;border-bottom:1px solid var(--l);font-size:12.5px}
+.lb-row:last-child{border-bottom:none}
+.lb-name{font-weight:600;color:var(--fg)}
+.lb-score{font-family:var(--mono);font-weight:700;text-align:right}
+.lb-score.up{color:var(--green)}.lb-score.down{color:var(--red)}
+.lb-n{font-family:var(--mono);font-size:10.5px;color:var(--fg3);text-align:right}
+.spy-badge{display:inline-block;font-size:8.5px;font-family:var(--mono);font-weight:700;
+  padding:1px 6px;border-radius:3px;background:rgba(38,255,175,.15);color:var(--green);margin-left:6px}
+
+.cascade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px}
+.cascade{background:var(--p);border:1px solid var(--l);border-radius:10px;padding:13px 16px}
+.cascade .flow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;font-weight:600;flex-wrap:wrap}
+.cascade .leader{color:var(--cyan)}
+.cascade .arrow{color:var(--fg3);font-size:11px}
+.cascade .follower{color:var(--fg2)}
+.cascade .lag-badge{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);
+  background:rgba(251,191,36,.12);padding:2px 8px;border-radius:5px;margin-left:auto}
+.cascade .stats{display:flex;gap:14px;margin-top:9px;font-size:11px;color:var(--fg3);font-family:var(--mono)}
+.cascade .stats b{color:var(--fg2)}
+
+.methodology{margin-top:32px;padding-top:16px;border-top:1px solid var(--l);font-size:11.5px;color:var(--fg3);line-height:1.7}
+.methodology code{font-family:var(--mono);color:var(--cyan);background:var(--p2);padding:1px 5px;border-radius:3px}
+.methodology .fdr-callout{background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.18);border-radius:8px;padding:12px 15px;margin:10px 0}
+.loader{text-align:center;padding:60px;color:var(--fg3);font-family:var(--mono);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>Signal Genealogy<b>· JustHodl.AI</b></div>
+    <div class="topmeta" id="meta">loading…</div>
+    <div class="toplinks"><a href="/">← Desk</a></div>
+  </div>
+  <h1>Which Signals Lead, Which Just Confirm</h1>
+  <div class="hero">
+    <p><b>EDGE-ACCURACY measures whether a signal is right. This measures whether it's early.</b>
+    A signal can be 100% accurate and still be worthless for catching something before the crowd
+    if it only fires after five other signals already moved. This tracks the platform's own
+    signal families as time series and cross-correlates them against each other and against SPY,
+    at every lag from -21 to +21 days, to find which ones are genuine leaders and which are
+    downstream confirmation.</p>
+  </div>
+  <div class="scope-note">
+    <b>Scope, honestly:</b> the outcomes ledger tracks WHEN each signal family fired, not which
+    ticker it was about — so this measures family-level firing-intensity lead/lag (does a surge
+    in one signal family's activity precede a surge in another's), not per-ticker sequencing.
+    Every relationship shown survived Benjamini-Hochberg FDR correction across the full family of
+    hypotheses tested (not just a cherry-picked best lag), and pairs sharing an obvious underlying
+    variable (e.g. two signals both derived from real 10y yields) are excluded as mechanical
+    duplicates, not genuine cross-signal timing.
+  </div>
+
+  <div class="statbar" id="statbar"></div>
+
+  <div class="section">
+    <div class="two-col">
+      <div>
+        <div class="section-head"><h2>Earliest signals</h2><span class="sub">net leaders — fire before other things move</span></div>
+        <div class="leaderboard" id="earliestBoard"><div class="loader">Loading…</div></div>
+      </div>
+      <div>
+        <div class="section-head"><h2>Most confirmatory</h2><span class="sub">net followers — confirm what already moved</span></div>
+        <div class="leaderboard" id="confirmBoard"><div class="loader">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Significant cascades</h2><span class="sub">X leads Y by N days, FDR-survived</span><span class="count" id="cascadeCount"></span></div>
+    <div class="cascade-grid" id="cascadeGrid"><div class="loader">Loading…</div></div>
+  </div>
+
+  <div class="methodology" id="methodology"></div>
+</div>
+<script>
+const URL_D = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/signal-genealogy.json';
+let DATA = null;
+
+function pill(st){
+  return st.replace(/_/g,' ').replace(/^eng:/,'').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderBoard(rows, elId, scoreKey){
+  const html = rows.map(r => {
+    const v = r[scoreKey];
+    const cls = v >= 0 ? 'up' : 'down';
+    const spyTag = r.leads_spy ? '<span class="spy-badge">LEADS SPY</span>' : '';
+    return `<div class="lb-row">
+      <div class="lb-name">${pill(r.signal_type)}${spyTag}</div>
+      <div class="lb-score ${cls}">${v>0?'+':''}${v.toFixed(1)}</div>
+      <div class="lb-n">n=${r.n_firings}</div>
+    </div>`;
+  }).join('');
+  document.getElementById(elId).innerHTML = html || '<div class="loader">No data</div>';
+}
+
+function renderCascades(pairs){
+  document.getElementById('cascadeCount').textContent = `${pairs.length} shown`;
+  const html = pairs.map(p => `
+    <div class="cascade">
+      <div class="flow">
+        <span class="leader">${pill(p.leader)}</span>
+        <span class="arrow">──▶</span>
+        <span class="follower">${pill(p.follower)}</span>
+        <span class="lag-badge">+${p.lag_days}d</span>
+      </div>
+      <div class="stats">
+        <span>corr <b>${p.corr}</b></span>
+        <span>t-stat <b>${p.t}</b></span>
+        <span>n <b>${p.n}</b></span>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('cascadeGrid').innerHTML = html || '<div class="loader">No significant cascades in this window</div>';
+}
+
+function render(j){
+  DATA = j;
+  if (!j) { document.getElementById('earliestBoard').innerHTML = '<div class="loader">Failed to load</div>'; return; }
+  const w = j.window || {};
+  document.getElementById('meta').innerHTML =
+    `${w.n_signal_types_qualifying}/${w.n_signal_types_total} signal families qualified · window ${w.start} → ${w.end} (${w.n_days}d)`;
+
+  document.getElementById('statbar').innerHTML = `
+    <div class="stat"><div class="n cy">${w.n_signal_types_qualifying||0}</div><div class="l">Signal Families Graded</div></div>
+    <div class="stat"><div class="n">${(j.n_hypothesis_tests||0).toLocaleString()}</div><div class="l">Hypotheses Tested</div></div>
+    <div class="stat"><div class="n gr">${j.n_significant_pairs||0}</div><div class="l">FDR-Survived Cascades</div></div>
+    <div class="stat"><div class="n vi">${(j.leads_spy||[]).length}</div><div class="l">Lead SPY Itself</div></div>
+  `;
+
+  renderBoard(j.earliest_signals || [], 'earliestBoard', 'earliness_index');
+  renderBoard(j.most_confirmatory_signals || [], 'confirmBoard', 'earliness_index');
+  renderCascades(j.significant_cascades || []);
+
+  document.getElementById('methodology').innerHTML = `
+    <b style="color:var(--fg2)">How it works.</b> Each signal family's daily net-directional
+    firing intensity (UP-coded firings minus DOWN-coded, zero-filled on quiet days) becomes its
+    own time series. Every pair of qualifying families (n≥20 firings) is cross-correlated at
+    every lag from -14 to +14 days; the same is done against SPY's own return series at -21 to
+    +21 days.
+    <div class="fdr-callout">
+      <b style="color:var(--cyan)">Why FDR correction matters here:</b> searching many lags and
+      reporting only the best one inflates apparent significance hard. The first version of this
+      engine flagged 41.6% of pairs as "significant" at a raw |t|≥2.0 threshold — independent
+      noise predicts about 5%. Every (pair, lag) combination actually tested — ${j.n_hypothesis_tests ? j.n_hypothesis_tests.toLocaleString() : 'thousands'}
+      of them — is now treated as one hypothesis in a single Benjamini-Hochberg correction at
+      q=0.10 before anything is called significant, and pairs sharing an obvious underlying
+      variable (${j.n_sibling_pairs_excluded||0} excluded) are filtered as mechanical duplicates.
+    </div>
+    <b style="color:var(--amber)">Caveat:</b> this is family-level, not per-ticker — it tells you
+    which signal <i>types</i> tend to move before others, not which specific stock. Many surviving
+    cascades reflect genuinely related macro variables (real rates, funding stress, cross-asset
+    correlation) rather than surprising discoveries — that's expected and honest, not a flaw.
+    Real data, research only — not investment advice.
+  `;
+}
+
+async function load(){
+  try {
+    const r = await fetch(URL_D + '?_=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    render(await r.json());
+  } catch(e) {
+    document.getElementById('earliestBoard').innerHTML = `<div class="loader">Failed: ${e.message}</div>`;
+  }
+}
+load();
+setInterval(load, 10*60*1000);
+</script>
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
