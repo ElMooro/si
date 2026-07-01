@@ -1,17 +1,146 @@
-=== LIVE ENGINE ===
-version: 2.0.0 elapsed_s: 25.12
-universe=631 ai_cohort=125 sectors=11
-by_sector: {'Technology': 106, 'Industrials': 77, 'Energy': 43, 'Consumer Cyclical': 55, 'Communication Services': 35, 'Consumer Defensive': 45, 'Utilities': 49, 'Healthcare': 54, 'Financial Services': 49, 'Basic Materials': 33, 'Real Estate': 55}
-n_priced=601 n_candidates=70 n_contagion=11
-red_flagged: 2
-  [OK] new platform palette (#0a0e14)
-  [OK] old palette (#07090f) gone
-  [OK] sector grid present
-  [OK] sector filter JS present
-  [OK] AI-infra cohort tag present
-  [OK] quality-flagged section present
-  [OK] peer-group-relative labeling present
-  [OK] nav-drawer present
-  [OK] old '~94-name cohort' text gone
-bytes: 19209
-DONE 2665
+=== sample records (5) ===
+{
+ "checked_at": "2026-06-22T21:29:03.206194+00:00",
+ "signal_type": "screener_top_pick",
+ "logged_at": "2026-04-23T09:10:15.366246+00:00",
+ "signal_id": "173c903a-af63-49ce-929a-0a939186a310",
+ "predicted_dir": "OUTPERFORM",
+ "signal_value": "TOP_10",
+ "correct": true,
+ "regime_at_log": null,
+ "outcome_id": "173c903a-af63-49ce-929a-0a939186a310_day_60",
+ "ttl": "1813699743",
+ "window_key": "day_60",
+ "outcome": {
+  "benchmark_price": "744.39",
+  "asset_price": "357.96",
+  "checked_at": "2026-06-22T21:29:03.206194+00:00",
+  "correct": true,
+  "excess_return": "12.23704"
+ }
+}
+---
+{
+ "checked_at": "2026-05-18T22:30:03.192683+00:00",
+ "signal_type": "correlation_break",
+ "logged_at": "2026-05-15T12:30:50.584829+00:00",
+ "signal_id": "03819e5e-032a-4c93-bc9b-c6c768d43a44",
+ "predicted_dir": "DOWN",
+ "signal_value": "SPY_SHY_d+0.47",
+ "correct": true,
+ "outcome_id": "03819e5e-032a-4c93-bc9b-c6c768d43a44_day_3",
+ "ttl": "1810679403",
+ "window_key": "day_3",
+ "outcome": {
+  "price_at_check": "738.65",
+  "actual_direction": "DOWN",
+  "return_pct": "-1.272438",
+  "checked_at": "2026-05-18T22:30:03.192683+00:00",
+  "correct": true,
+  "price_at_signal": "748.17"
+ }
+}
+---
+{
+ "checked_at": "2026-06-14T17:20:47.033604+00:00",
+ "signal_type": "ml_risk",
+ "logged_at": "2026-05-31T15:10:14.939783+00:00",
+ "signal_id": "f223e697-ac33-4e63-a0c0-baf6186f1122",
+ "predicted_dir": "NEUTRAL",
+ "signal_value": "58.0",
+ "correct": false,
+ "regime_at_log": "CRISIS",
+ "outcome_id": "f223e697-ac33-4e63-a0c0-baf6186f1122_day_14",
+ "ttl": "1812993647",
+ "window_key": "day_14",
+ "outcome": {
+  "price_at_check": "741.75",
+  "actual_direction": "DOWN",
+  "return_pct": "-1.947176",
+  "checked_at": "2026-06-14T17:20:47.033604+00:00",
+  "correct": false,
+  "price_at_signal": "756.48"
+ 
+---
+{
+ "checked_at": "2026-06-26T21:29:03.072596+00:00",
+ "signal_type": "eng:insider-trades",
+ "logged_at": "2026-06-19T02:14:09.957345+00:00",
+ "signal_id": "77e2b459-1fa4-4020-b565-d66fac01f3b6",
+ "predicted_dir": "UP",
+ "signal_value": "PICK",
+ "correct": true,
+ "regime_at_log": "SLOWING",
+ "outcome_id": "77e2b459-1fa4-4020-b565-d66fac01f3b6_day_7",
+ "ttl": "1814045343",
+ "window_key": "day_7",
+ "outcome": {
+  "price_at_check": "38.88",
+  "actual_direction": "UP",
+  "return_pct": "11.181012",
+  "checked_at": "2026-06-26T21:29:03.072596+00:00",
+  "correct": true,
+  "price_at_signal": "34.97"
+ }
+---
+{
+ "checked_at": "2026-05-30T22:00:27.055520+00:00",
+ "signal_type": "screener_top_pick",
+ "logged_at": "2026-04-30T21:10:15.204035+00:00",
+ "signal_id": "f8e7c2b6-2f70-4d3a-b76e-f8e541c57467",
+ "predicted_dir": "OUTPERFORM",
+ "signal_value": "TOP_10",
+ "correct": true,
+ "outcome_id": "f8e7c2b6-2f70-4d3a-b76e-f8e541c57467_day_30",
+ "ttl": "1811714427",
+ "window_key": "day_30",
+ "outcome": {
+  "benchmark_price": "756.48",
+  "asset_price": "580.23",
+  "checked_at": "2026-05-30T22:00:27.055520+00:00",
+  "correct": true,
+  "excess_return": "5.474684"
+ }
+}
+---
+
+=== full scan for scale + schema stats (paginated) ===
+total items scanned: 40173 across 17 pages
+
+distinct signal_types: 271
+  screener_top_pick: 9795
+  correlation_break: 2171
+  etf_rotation: 1782
+  crypto_risk_score: 1346
+  crypto_fear_greed: 1342
+  earnings_pead: 1321
+  plumbing_stress: 1238
+  ml_risk: 1014
+  khalid_index: 1014
+  squeeze_risk: 945
+  edge_composite: 927
+  momentum_uso: 827
+  market_phase: 763
+  momentum_gld: 626
+  edge_regime: 603
+  carry_risk: 603
+  crisis_hy_oas_vs_hyg: 561
+  crisis_sofr_iorb: 549
+  divergence_extreme: 543
+  corr_break_composite_vs_vxx: 518
+  corr_break_composite_vs_spy: 518
+  crisis_hy_oas_vs_spy: 501
+  crisis_broad_dollar_vs_eem: 501
+  momentum_spy: 500
+  apex_fusion: 485
+  crisis_broad_dollar_vs_spy: 361
+  crisis_obfr_iorb: 348
+  crisis_dfii10_vs_gld: 336
+  crisis_dfii10_vs_spy: 336
+  crisis_rate_diff_eur_3m: 335
+
+ticker field name guess: None
+distinct tickers (first 2000 sample): 0
+
+date range: 2026-03-11T09:13:18.581768+00:00 to 2026-06-29T21:00:27.239774+00:00
+DONE 2666
