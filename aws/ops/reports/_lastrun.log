@@ -1,24 +1,33 @@
-code updated
-schedule wired
-INVOKE: 200 None
-BODY: {"statusCode": 200, "body": "{\"ok\": true, \"n_total\": 98, \"n_departures\": 25, \"n_appointments\": 25}"}
+============================================================
+ENGINE 1: signal-genealogy
+  version=1.1.0 qualifying=98 significant_cascades=1288
 
-version: 1.0.0 elapsed_s: 9.12
-total: 98 | classified: 25 | departures: 25 | appointments: 25
+ENGINE 2: structural-pre-signals
+  version=1.0.0 restructuring=7 buildout=32
 
-sample departures:
-  RMBI   Richmond Mutual Bancorporation, Inc. | 2026-07-01 | roles=['Director', 'Chairman', 'President', 'Chief Executive Officer']
-  XOM    EXXON MOBIL CORP | 2026-07-01 | roles=['Director', 'President']
-  PB     PROSPERITY BANCSHARES INC | 2026-07-01 | roles=['Director', 'Chairman', 'Chief Executive Officer', 'President']
-  SEM    SELECT MEDICAL HOLDINGS CORP | 2026-07-01 | roles=['President']
-  BLMN   Bloomin' Brands, Inc. | 2026-07-01 | roles=['President']
+ENGINE 3: universe-discovery
+  version=1.0.0 ipos=22 registrants=39 crossers=0
 
-sample appointments:
-  RMBI   Richmond Mutual Bancorporation, Inc. | 2026-07-01 | roles=['Director', 'Chairman', 'President', 'Chief Executive Officer']
-  XOM    EXXON MOBIL CORP | 2026-07-01 | roles=['Director', 'President']
-  PB     PROSPERITY BANCSHARES INC | 2026-07-01 | roles=['Director', 'Chairman', 'Chief Executive Officer', 'President']
-  SEM    SELECT MEDICAL HOLDINGS CORP | 2026-07-01 | roles=['President']
-  BLMN   Bloomin' Brands, Inc. | 2026-07-01 | roles=['President']
+ENGINE 4: talent-migration
+  version=1.0.0 total=98 departures=25 appointments=25
 
-duplicate adsh check: 0 (clean)
-DONE 2685
+============================================================
+PAGES
+  signal-genealogy.html: bytes=12999 all clean
+  early-signals.html: bytes=18434 all clean
+
+============================================================
+SCHEDULES (all 4 should be ENABLED)
+  signal-genealogy-daily: State=ENABLED Schedule=cron(40 6 * * ? *) n_targets=2
+  structural-pre-signals-daily: State=ENABLED Schedule=cron(20 11 * * ? *) n_targets=2
+  universe-discovery-daily: State=ENABLED Schedule=cron(10 12 * * ? *) n_targets=2
+  talent-migration-daily: State=ENABLED Schedule=cron(5 13 * * ? *) n_targets=2
+
+============================================================
+LAMBDA FUNCTIONS (all 4 should be Active)
+  justhodl-signal-genealogy: State=Active Memory=512MB Timeout=180s LastModified=2026-07-01T19:05:23.000+0000
+  justhodl-structural-pre-signals: State=Active Memory=512MB Timeout=120s LastModified=2026-07-01T19:36:10.000+0000
+  justhodl-universe-discovery: State=Active Memory=512MB Timeout=120s LastModified=2026-07-01T19:45:41.000+0000
+  justhodl-talent-migration: State=Active Memory=512MB Timeout=150s LastModified=2026-07-01T19:49:05.000+0000
+
+DONE 2686
