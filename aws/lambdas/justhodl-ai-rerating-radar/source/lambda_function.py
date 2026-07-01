@@ -361,14 +361,14 @@ def lambda_handler(event, context):
         u, c = uni[s], cheap.get(s)
         if not c:
             continue
-        key = ("industry", u.get("industry")) if u.get("industry") else None
+        key = ("industry", u.get("industry")) if u.get("industry") else ("sector", u.get("sector") or "?")
         groups.setdefault(key, []).append((s, c["growth"], c["margin"], c["ev_sales"]))
     # merge thin industries into their sector
     sector_groups = {}
     final_groups = {}
     for (kind, gname), pts in groups.items():
         if len(pts) >= MIN_GROUP_N:
-            final_groups[("industry", gname)] = pts
+            final_groups[(kind, gname)] = pts
         else:
             sec = None
             for s, *_ in pts:
