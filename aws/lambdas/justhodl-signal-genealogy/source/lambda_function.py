@@ -34,6 +34,7 @@ already applies, just for a correlation instead of a hit-rate.
 OUTPUT  data/signal-genealogy.json   SCHEDULE daily 06:40 UTC.
 """
 import json
+import math
 import os
 import time
 import urllib.request as request
@@ -42,7 +43,7 @@ from statistics import mean, stdev
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/signal-genealogy.json"
 OUTCOMES_TABLE = "justhodl-outcomes"
@@ -50,11 +51,45 @@ BENCH = "SPY"
 MIN_N = 20              # minimum firings in-window to grade a signal_type at all
 MIN_PAIR_N = 15         # minimum overlapping periods to grade a pair's lead-lag
 MAX_LAG_DAYS = 21        # how far to search for a lead/lag relationship
+FDR_Q = 0.10             # same false-discovery-rate threshold signal-scorecard uses
 UP_DIRS = {"UP", "OUTPERFORM", "BULLISH", "LONG"}
 DOWN_DIRS = {"DOWN", "UNDERPERFORM", "BEARISH", "SHORT"}
 
 ddb = boto3.resource("dynamodb", region_name="us-east-1")
 s3 = boto3.client("s3", region_name="us-east-1")
+
+
+def norm_sf(z):
+    """One-sided upper-tail of the standard normal (survival function). Same as
+    signal-scorecard's — normal approximation is fine at our n (>=15)."""
+    return 0.5 * math.erfc(z / math.sqrt(2.0))
+
+
+def pval(t):
+    """Two-tailed p-value from a t-stat via the normal approximation."""
+    return 2 * norm_sf(abs(t))
+
+
+def bh_fdr(pairs, q=FDR_Q):
+    """Benjamini-Hochberg, identical to signal-scorecard's. pairs = [(key, p_value), ...].
+    Returns the set of keys whose null is rejected controlling FDR at q.
+
+    THIS IS THE FIX for a real bug caught before this ever reached a page: searching
+    29-43 lags per test and reporting only the best |corr| inflates apparent
+    significance hard — a genuinely null pair still produces a non-trivial max-of-many
+    correlation by chance. Without this correction, the first live run showed 1,455/3,501
+    pairs (41.6%) as 'significant' at |t|>=2.0, when pure chance predicts ~5%. Every
+    (pair, lag) combination actually tested is treated as one hypothesis in one shared
+    correction, not just the cherry-picked best-per-pair result."""
+    m = len(pairs)
+    if m == 0:
+        return set()
+    ordered = sorted(pairs, key=lambda kv: kv[1])
+    k_max = 0
+    for i, (_, p) in enumerate(ordered, start=1):
+        if p <= (i / m) * q:
+            k_max = i
+    return {ordered[i][0] for i in range(k_max)}
 
 
 def scan_outcomes():
@@ -188,28 +223,59 @@ def lambda_handler(event=None, context=None):
         counts, net = dense_series(per_type[st], all_days)
         dense[st] = {"counts": counts, "net": net}
 
-    vs_spy = {}
+    # ── each qualifying signal vs SPY: is it a genuine leading indicator of the market? ──
+    # Collect EVERY lag tested (not just the best) so FDR correction sees the true
+    # multiple-comparisons burden — each signal searches ~43 lags (-21..+21).
+    spy_tests = []           # (key, p_value) for every (signal, lag) actually tested
+    spy_curves = {}          # signal_type -> {lag: {corr,t,n}}
     for st in qualifying:
         best, curve = lead_lag(dense[st]["net"], spy_ret)
-        if best["n"] >= MIN_PAIR_N:
-            vs_spy[st] = best
+        spy_curves[st] = {c["lag"]: c for c in curve}
+        for c in curve:
+            spy_tests.append(((st, c["lag"]), pval(c["t"])))
 
+    spy_survivors = bh_fdr(spy_tests, q=FDR_Q)
+    vs_spy = {}
+    for st in qualifying:
+        curve = spy_curves.get(st, {})
+        surviving_lags = [lag for lag in curve if (st, lag) in spy_survivors]
+        if not surviving_lags:
+            continue
+        best_lag = max(surviving_lags, key=lambda l: abs(curve[l]["corr"]))
+        vs_spy[st] = curve[best_lag]
+        vs_spy[st]["lag"] = best_lag
+
+    # ── pairwise signal-vs-signal lead/lag (capped pair count for a bounded runtime) ──
+    # Same discipline: collect every (pair, lag) tested, FDR-correct across the whole
+    # family, then only keep a pair's SURVIVING best lag — not its raw best-of-29.
     MAX_PAIRS = 3500
-    pairs = []
+    pair_curves = {}         # (a,b) -> {lag: {corr,t,n}}
+    all_tests = []           # ((a,b,lag), p_value)
     checked = 0
     for i, a in enumerate(qualifying):
         for b in qualifying[i + 1:]:
             checked += 1
             if checked > MAX_PAIRS:
                 break
-            best, _ = lead_lag(dense[a]["net"], dense[b]["net"], max_lag=14)
-            if best["n"] >= MIN_PAIR_N and abs(best["t"]) >= 2.0 and best["lag"] != 0:
-                leader, follower = (a, b) if best["lag"] > 0 else (b, a)
-                pairs.append({"leader": leader, "follower": follower,
-                             "lag_days": abs(best["lag"]), "corr": best["corr"],
-                             "t": best["t"], "n": best["n"]})
+            _, curve = lead_lag(dense[a]["net"], dense[b]["net"], max_lag=14)
+            pair_curves[(a, b)] = {c["lag"]: c for c in curve}
+            for c in curve:
+                all_tests.append(((a, b, c["lag"]), pval(c["t"])))
         if checked > MAX_PAIRS:
             break
+
+    survivors = bh_fdr(all_tests, q=FDR_Q)
+    pairs = []
+    for (a, b), curve in pair_curves.items():
+        surviving_lags = [lag for lag in curve if (a, b, lag) in survivors and lag != 0
+                          and curve[lag]["n"] >= MIN_PAIR_N]
+        if not surviving_lags:
+            continue
+        best_lag = max(surviving_lags, key=lambda l: abs(curve[l]["corr"]))
+        c = curve[best_lag]
+        leader, follower = (a, b) if best_lag > 0 else (b, a)
+        pairs.append({"leader": leader, "follower": follower,
+                     "lag_days": abs(best_lag), "corr": c["corr"], "t": c["t"], "n": c["n"]})
     pairs.sort(key=lambda p: -abs(p["t"]))
 
     lead_score, follow_score = {}, {}
@@ -253,14 +319,23 @@ def lambda_handler(event=None, context=None):
         "leads_spy": sorted([r for r in leaderboard if r["leads_spy"]],
                             key=lambda r: -(r["vs_spy_t"] or 0))[:20],
         "significant_cascades": pairs[:60],
-        "n_pairs_tested": checked, "n_significant_pairs": len(pairs),
+        "n_pairs_tested": checked, "n_hypothesis_tests": len(all_tests),
+        "n_significant_pairs": len(pairs),
+        "fdr_note": f"{len(all_tests)} total (pair, lag) hypotheses tested across {checked} pairs "
+                   f"and up to 29 lags each; Benjamini-Hochberg FDR at q={FDR_Q} applied across the "
+                   f"WHOLE family before any pair is called significant — not just its cherry-picked "
+                   f"best lag. Without this correction the first run showed 1,455/3,501 pairs "
+                   f"(41.6%) as 'significant' at a raw |t|>=2.0 threshold, when independent noise "
+                   f"predicts ~5%; that was the multiple-comparisons inflation of searching many "
+                   f"lags and reporting only the best one.",
         "methodology": {
             "series": "daily net-directional firing intensity per signal_type (UP-coded minus "
                      "DOWN-coded firings per day), zero-filled on days with no firing",
-            "lead_lag": "cross-correlation at each lag from -21 to +21 days; the lag with peak "
-                       "|correlation| is reported with a t-stat (same formula as "
-                       "liquidity-inflection's lead_curve). Pairs require |t|>=2.0 and n>=15 to "
-                       "count as a significant cascade.",
+            "lead_lag": "cross-correlation at every lag from -21 to +21 days (or -14..+14 for "
+                       "pairwise signal-vs-signal tests); every (pair, lag) combination actually "
+                       "tested is treated as one hypothesis in a single Benjamini-Hochberg FDR "
+                       "correction at q=0.10 — a pair only counts as a significant cascade if its "
+                       "best SURVIVING lag clears FDR, not just its raw best-of-many correlation.",
             "earliness_index": "lead_score minus follow_score, where each significant pairwise "
                               "relationship contributes its (capped) t-stat to whichever signal "
                               "was the leader or the follower. Positive = net leader, negative = "
