@@ -63,6 +63,11 @@ from datetime import datetime, timezone
 
 import boto3
 
+try:
+    import engine_trust
+except Exception:
+    engine_trust = None
+
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY_OUT = os.environ.get("S3_KEY_OUT", "data/master-ranker.json")
@@ -169,6 +174,13 @@ def build_ticker_index():
         "scarcity_radar":      fetch_json("data/scarcity-radar.json", max_age_h=72),
         # corporate buybacks — net-of-dilution conviction (added 2026-06-30)
         "buyback":             fetch_json("data/buyback-engine.json", max_age_h=48),
+        # institutional + fundamental-momentum layer (added 2026-07-01) — none of these
+        # were previously read despite being fresh, live, and directly ticker-relevant
+        "institutional_13f":   fetch_json("data/13f-positions.json", max_age_h=48),
+        "estimate_revisions":  fetch_json("data/estimate-revisions.json", max_age_h=48),
+        "forward_orders":      fetch_json("data/forward-orders.json", max_age_h=96),
+        "squeeze_setup":       fetch_json("data/finra-short.json", max_age_h=48),
+        "earnings_quality_hi": fetch_json("data/earnings-quality.json", max_age_h=200),
     }
 
     # Index: ticker → {system_name: {score, details}}
@@ -316,6 +328,80 @@ def build_ticker_index():
                 "scarcity": r.get("scarcity"),
                 "stealth": r.get("stealth"),
                 "vertical": r.get("vertical"),
+            }
+
+    # 6d. institutional 13F accumulation — funds actively ADDING or opening NEW positions
+    #     this quarter (not just "held by a fund"). Complements smart_money (which reads a
+    #     different, pre-clustered feed) with the raw fund-flow signal, named buyers included.
+    if feeds.get("institutional_13f"):
+        for r in (feeds["institutional_13f"].get("most_bought") or []):
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            adding = r.get("n_funds_adding") or 0
+            new_pos = r.get("n_funds_new_position") or 0
+            score = min(100, adding * 8 + new_pos * 12)
+            if score < 24:  # require real conviction, not one fund nibbling
+                continue
+            fund_names = [fa.get("fund") for fa in (r.get("fund_actions") or [])[:3] if fa.get("fund")]
+            idx.setdefault(sym, {})["institutional_13f"] = {
+                "score": score, "n_funds_adding": adding, "n_funds_new": new_pos,
+                "n_funds_holding": r.get("n_funds_holding"), "buyers": fund_names,
+            }
+
+    # 6e. estimate revisions — analyst EPS estimates moving before the print. A fundamental
+    #     "smart money is repricing this" signal distinct from price-based momentum.
+    if feeds.get("estimate_revisions"):
+        for r in (feeds["estimate_revisions"].get("estimate_strength_leaders") or []):
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            rev = r.get("eps_rev_pct")
+            if rev is None:
+                continue
+            score = min(100, max(0, rev * 3))
+            idx.setdefault(sym, {})["estimate_revisions"] = {
+                "score": round(score, 1), "eps_rev_pct": rev,
+                "days_to_earnings": r.get("days_to_earnings"), "fiscal_period": r.get("fiscal_period"),
+            }
+
+    # 6f. forward orders / RPO composite — remaining-performance-obligation yield, growth and
+    #     acceleration. A genuine forward-fundamental signal (contracted future revenue), not
+    #     backward-looking like most price/earnings-based systems here.
+    if feeds.get("forward_orders"):
+        for r in (feeds["forward_orders"].get("top_25_by_score") or []):
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            idx.setdefault(sym, {})["forward_orders"] = {
+                "score": r.get("composite"), "subscores": r.get("subscores"),
+                "sector": r.get("sector"),
+            }
+
+    # 6g. squeeze setups (FINRA short-volume ratio + z-score + days-to-cover composite) — a
+    #     distinct mechanical-pressure signal, complementary to price/fundamental conviction.
+    if feeds.get("squeeze_setup"):
+        for r in (feeds["squeeze_setup"].get("squeeze_candidates") or []):
+            sym = r.get("symbol")  # this feed keys on "symbol", not "ticker"
+            if not sym:
+                continue
+            idx.setdefault(sym, {})["squeeze_setup"] = {
+                "score": r.get("squeeze_score"), "days_to_cover": r.get("days_to_cover"),
+                "z_score": r.get("z_score"), "flags": r.get("squeeze_flags"),
+            }
+
+    # 6h. earnings quality — the POSITIVE side (high cash-conversion, low accrual manipulation
+    #     risk). The negative side already demotes via the red-flag gate below; a name that's
+    #     independently confirmed HIGH quality deserves a small first-class conviction credit,
+    #     not just avoidance of a penalty.
+    if feeds.get("earnings_quality_hi"):
+        for i, r in enumerate(feeds["earnings_quality_hi"].get("top_20_high_quality") or []):
+            sym = r.get("ticker")
+            if not sym:
+                continue
+            idx.setdefault(sym, {})["earnings_quality_hi"] = {
+                "score": max(55, 95 - i * 2), "rank": i + 1,
+                "cash_conversion": r.get("cash_conversion"),
             }
 
     # 7. deep value
@@ -482,7 +568,13 @@ def compute_conviction(systems_dict, calibration_weights):
     total = 0
     for sys_name, data in systems_dict.items():
         normalized = normalize_signal_score(sys_name, data)
-        weight = calibration_weights.get(sys_name, 1.0)  # default 1.0 if uncalibrated
+        cal_weight = calibration_weights.get(sys_name, 1.0)  # default 1.0 if uncalibrated
+        # EDGE-ACCURACY trust: down-weight signal families the fleet's own truth layer has
+        # shown to be below their null benchmark (net-negative after cost), up-weight the
+        # handful that are alpha-proven. Regime-conditioned, defaults to 1.0 (no-op) until
+        # a family's ledger has matured enough to grade — see aws/shared/engine_trust.py.
+        trust_mult = engine_trust.trust(sys_name, default=1.0) if engine_trust else 1.0
+        weight = cal_weight * trust_mult
         contribution = normalized * weight
         total += contribution
         if normalized > 0:
@@ -491,6 +583,7 @@ def compute_conviction(systems_dict, calibration_weights):
                 "raw_score": data.get("score"),
                 "normalized": round(normalized, 1),
                 "weight": round(weight, 2),
+                "trust_mult": round(trust_mult, 2),
                 "contribution": round(contribution, 1),
             })
     # Convergence multiplier: log-linear bonus for multi-system agreement
@@ -524,6 +617,27 @@ def synthesize_rationale(ticker, systems_dict, score):
             highlights.append(f"net shrinker (shares -{_bb.get('share_reduction')}% YoY)")
         elif (_bb.get("net_yield") or 0) > 0:
             highlights.append(f"buyback {_bb.get('net_yield')}% net")
+    if "institutional_13f" in systems_dict:
+        _f = systems_dict["institutional_13f"]
+        buyers = _f.get("buyers") or []
+        if buyers:
+            highlights.append(f"13F buying: {', '.join(buyers[:2])}")
+        elif (_f.get("n_funds_new") or 0) >= 2:
+            highlights.append(f"{_f['n_funds_new']} funds opened new positions")
+    if "estimate_revisions" in systems_dict:
+        rev = systems_dict["estimate_revisions"].get("eps_rev_pct")
+        if rev and rev >= 8:
+            highlights.append(f"EPS estimates +{rev:.0f}% into print")
+    if "forward_orders" in systems_dict:
+        sub = systems_dict["forward_orders"].get("subscores") or {}
+        if (sub.get("rpo_acceleration") or 0) >= 70:
+            highlights.append("RPO/backlog accelerating")
+    if "squeeze_setup" in systems_dict:
+        _sq = systems_dict["squeeze_setup"]
+        if (_sq.get("score") or 0) >= 75:
+            highlights.append(f"squeeze setup (dtc {_sq.get('days_to_cover')}d)")
+    if "earnings_quality_hi" in systems_dict:
+        highlights.append("high earnings quality")
     if "pead" in systems_dict:
         drift = systems_dict["pead"].get("drift_pct")
         if drift and drift > 20:
