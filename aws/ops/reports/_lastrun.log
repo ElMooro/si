@@ -1,8 +1,139 @@
-total filter categories: 87
 
-=== Pattern ===
-  'Triangle Ascending' -> ta_pattern_wedgeresistance
-  'Triangle Ascending (Strong)' -> ta_pattern_wedgeresistance2
-  'Triangle Descending' -> ta_pattern_wedgesupport
-  'Triangle Descending (Strong)' -> ta_pattern_wedgesupport2
-DONE 2691
+=== 20-Day Simple Moving Average ===
+  'Price below SMA20' -> ta_sma20_pb
+  'Price 10% below SMA20' -> ta_sma20_pb10
+  'Price 20% below SMA20' -> ta_sma20_pb20
+  'Price 30% below SMA20' -> ta_sma20_pb30
+  'Price 40% below SMA20' -> ta_sma20_pb40
+  'Price 50% below SMA20' -> ta_sma20_pb50
+  'Price above SMA20' -> ta_sma20_pa
+  'Price 10% above SMA20' -> ta_sma20_pa10
+  'Price 20% above SMA20' -> ta_sma20_pa20
+  'Price 30% above SMA20' -> ta_sma20_pa30
+  'Price 40% above SMA20' -> ta_sma20_pa40
+  'Price 50% above SMA20' -> ta_sma20_pa50
+  'Price crossed SMA20' -> ta_sma20_pc
+  'Price crossed SMA20 above' -> ta_sma20_pca
+  'Price crossed SMA20 below' -> ta_sma20_pcb
+  'SMA20 crossed SMA50' -> ta_sma20_cross50
+  'SMA20 crossed SMA50 above' -> ta_sma20_cross50a
+  'SMA20 crossed SMA50 below' -> ta_sma20_cross50b
+  'SMA20 crossed SMA200' -> ta_sma20_cross200
+  'SMA20 crossed SMA200 above' -> ta_sma20_cross200a
+  'SMA20 crossed SMA200 below' -> ta_sma20_cross200b
+  'SMA20 above SMA50' -> ta_sma20_sa50
+  'SMA20 below SMA50' -> ta_sma20_sb50
+  'SMA20 above SMA200' -> ta_sma20_sa200
+  'SMA20 below SMA200' -> ta_sma20_sb200
+
+=== 50-Day Simple Moving Average ===
+  'Price below SMA50' -> ta_sma50_pb
+  'Price 10% below SMA50' -> ta_sma50_pb10
+  'Price 20% below SMA50' -> ta_sma50_pb20
+  'Price 30% below SMA50' -> ta_sma50_pb30
+  'Price 40% below SMA50' -> ta_sma50_pb40
+  'Price 50% below SMA50' -> ta_sma50_pb50
+  'Price above SMA50' -> ta_sma50_pa
+  'Price 10% above SMA50' -> ta_sma50_pa10
+  'Price 20% above SMA50' -> ta_sma50_pa20
+  'Price 30% above SMA50' -> ta_sma50_pa30
+  'Price 40% above SMA50' -> ta_sma50_pa40
+  'Price 50% above SMA50' -> ta_sma50_pa50
+  'Price crossed SMA50' -> ta_sma50_pc
+  'Price crossed SMA50 above' -> ta_sma50_pca
+  'Price crossed SMA50 below' -> ta_sma50_pcb
+  'SMA50 crossed SMA20' -> ta_sma50_cross20
+  'SMA50 crossed SMA20 above' -> ta_sma50_cross20a
+  'SMA50 crossed SMA20 below' -> ta_sma50_cross20b
+  'SMA50 crossed SMA200' -> ta_sma50_cross200
+  'SMA50 crossed SMA200 above' -> ta_sma50_cross200a
+  'SMA50 crossed SMA200 below' -> ta_sma50_cross200b
+  'SMA50 above SMA20' -> ta_sma50_sa20
+  'SMA50 below SMA20' -> ta_sma50_sb20
+  'SMA50 above SMA200' -> ta_sma50_sa200
+  'SMA50 below SMA200' -> ta_sma50_sb200
+
+=== 200-Day Simple Moving Average ===
+  'Price below SMA200' -> ta_sma200_pb
+  'Price 10% below SMA200' -> ta_sma200_pb10
+  'Price 20% below SMA200' -> ta_sma200_pb20
+  'Price 30% below SMA200' -> ta_sma200_pb30
+  'Price 40% below SMA200' -> ta_sma200_pb40
+  'Price 50% below SMA200' -> ta_sma200_pb50
+  'Price 60% below SMA200' -> ta_sma200_pb60
+  'Price 70% below SMA200' -> ta_sma200_pb70
+  'Price 80% below SMA200' -> ta_sma200_pb80
+  'Price 90% below SMA200' -> ta_sma200_pb90
+  'Price above SMA200' -> ta_sma200_pa
+  'Price 10% above SMA200' -> ta_sma200_pa10
+  'Price 20% above SMA200' -> ta_sma200_pa20
+  'Price 30% above SMA200' -> ta_sma200_pa30
+  'Price 40% above SMA200' -> ta_sma200_pa40
+  'Price 50% above SMA200' -> ta_sma200_pa50
+  'Price 60% above SMA200' -> ta_sma200_pa60
+  'Price 70% above SMA200' -> ta_sma200_pa70
+  'Price 80% above SMA200' -> ta_sma200_pa80
+  'Price 90% above SMA200' -> ta_sma200_pa90
+  'Price 100% above SMA200' -> ta_sma200_pa100
+  'Price crossed SMA200' -> ta_sma200_pc
+  'Price crossed SMA200 above' -> ta_sma200_pca
+  'Price crossed SMA200 below' -> ta_sma200_pcb
+  'SMA200 crossed SMA20' -> ta_sma200_cross20
+  'SMA200 crossed SMA20 above' -> ta_sma200_cross20a
+  'SMA200 crossed SMA20 below' -> ta_sma200_cross20b
+  'SMA200 crossed SMA50' -> ta_sma200_cross50
+  'SMA200 crossed SMA50 above' -> ta_sma200_cross50a
+  'SMA200 crossed SMA50 below' -> ta_sma200_cross50b
+  'SMA200 above SMA20' -> ta_sma200_sa20
+  'SMA200 below SMA20' -> ta_sma200_sb20
+  'SMA200 above SMA50' -> ta_sma200_sa50
+  'SMA200 below SMA50' -> ta_sma200_sb50
+
+=== 20-Day High/Low ===
+  'New High' -> ta_highlow20d_nh
+  'New Low' -> ta_highlow20d_nl
+  '5% or more below High' -> ta_highlow20d_b5h
+  '10% or more below High' -> ta_highlow20d_b10h
+  '15% or more below High' -> ta_highlow20d_b15h
+  '20% or more below High' -> ta_highlow20d_b20h
+  '30% or more below High' -> ta_highlow20d_b30h
+  '40% or more below High' -> ta_highlow20d_b40h
+  '50% or more below High' -> ta_highlow20d_b50h
+  '0-3% below High' -> ta_highlow20d_b0to3h
+  '0-5% below High' -> ta_highlow20d_b0to5h
+  '0-10% below High' -> ta_highlow20d_b0to10h
+  '5% or more above Low' -> ta_highlow20d_a5h
+  '10% or more above Low' -> ta_highlow20d_a10h
+  '15% or more above Low' -> ta_highlow20d_a15h
+  '20% or more above Low' -> ta_highlow20d_a20h
+  '30% or more above Low' -> ta_highlow20d_a30h
+  '40% or more above Low' -> ta_highlow20d_a40h
+  '50% or more above Low' -> ta_highlow20d_a50h
+  '0-3% above Low' -> ta_highlow20d_a0to3h
+  '0-5% above Low' -> ta_highlow20d_a0to5h
+  '0-10% above Low' -> ta_highlow20d_a0to10h
+
+=== 50-Day High/Low ===
+  'New High' -> ta_highlow50d_nh
+  'New Low' -> ta_highlow50d_nl
+  '5% or more below High' -> ta_highlow50d_b5h
+  '10% or more below High' -> ta_highlow50d_b10h
+  '15% or more below High' -> ta_highlow50d_b15h
+  '20% or more below High' -> ta_highlow50d_b20h
+  '30% or more below High' -> ta_highlow50d_b30h
+  '40% or more below High' -> ta_highlow50d_b40h
+  '50% or more below High' -> ta_highlow50d_b50h
+  '0-3% below High' -> ta_highlow50d_b0to3h
+  '0-5% below High' -> ta_highlow50d_b0to5h
+  '0-10% below High' -> ta_highlow50d_b0to10h
+  '5% or more above Low' -> ta_highlow50d_a5h
+  '10% or more above Low' -> ta_highlow50d_a10h
+  '15% or more above Low' -> ta_highlow50d_a15h
+  '20% or more above Low' -> ta_highlow50d_a20h
+  '30% or more above Low' -> ta_highlow50d_a30h
+  '40% or more above Low' -> ta_highlow50d_a40h
+  '50% or more above Low' -> ta_highlow50d_a50h
+  '0-3% above Low' -> ta_highlow50d_a0to3h
+  '0-5% above Low' -> ta_highlow50d_a0to5h
+  '0-10% above Low' -> ta_highlow50d_a0to10h
+DONE 2692
