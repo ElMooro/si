@@ -1,0 +1,117 @@
+{
+ "ops": 2696,
+ "ts": "2026-07-01T22:22:16Z",
+ "code_probe": {
+  "new_high_50d": {
+   "qs": "f=ta_highlow50d_nh",
+   "raw": 1319
+  },
+  "new_low_50d": {
+   "qs": "f=ta_highlow50d_nl",
+   "raw": 539
+  },
+  "new_high_20d": {
+   "qs": "f=ta_highlow20d_nh",
+   "raw": 1770
+  },
+  "new_low_20d": {
+   "qs": "f=ta_highlow20d_nl",
+   "raw": 762
+  },
+  "horizontal_sr_strong": {
+   "qs": "f=ta_pattern_horizontal2",
+   "raw": 460
+  },
+  "horizontal_sr": {
+   "qs": "f=ta_pattern_horizontal",
+   "raw": 7274
+  },
+  "tl_support": {
+   "qs": "f=ta_pattern_tlsupport",
+   "raw": 10059
+  },
+  "tl_resistance": {
+   "qs": "f=ta_pattern_tlresistance",
+   "raw": 9708
+  }
+ },
+ "universe": {
+  "n": 11397,
+  "asset_type_hist": {
+   "<none>": 5974,
+   "Equities (Stocks)": 3854,
+   "Bonds": 1010,
+   "CryptoCurrency": 157,
+   "Multi-Asset - Tactical / Active": 136,
+   "Commodities & Metals": 103
+  },
+  "fields_nonnull": {
+   "volatility_w": 11286,
+   "volatility_m": 11065,
+   "atr": 11387,
+   "off_52w_high_pct": 11370,
+   "avg_volume": 11370
+  }
+ },
+ "before": {
+  "quarantined": {
+   "new_high_50d": 11397,
+   "new_low_50d": 11397,
+   "new_high_20d": 11397,
+   "new_low_20d": 11397,
+   "horizontal_sr": 7274,
+   "horizontal_sr_strong": 11397,
+   "tl_support": 10059,
+   "tl_resistance": 9708
+  },
+  "counts_raw_bad8": {
+   "new_high_50d": 11397,
+   "new_low_50d": 11397,
+   "new_high_20d": 11397,
+   "new_low_20d": 11397,
+   "horizontal_sr": 7274,
+   "horizontal_sr_strong": 11397,
+   "tl_support": 10059,
+   "tl_resistance": 9708
+  },
+  "coiled": 0
+ },
+ "after": {
+  "quarantined": {
+   "tl_support": 10059,
+   "tl_resistance": 9708
+  },
+  "counts_fixed": {
+   "new_high_50d": 150,
+   "new_low_50d": 150,
+   "new_high_20d": 150,
+   "new_low_20d": 150,
+   "horizontal_sr_strong": 120,
+   "horizontal_sr": 120,
+   "tl_support": 0,
+   "tl_resistance": 0
+  },
+  "counts_raw_fixed": {
+   "new_high_50d": 1319,
+   "new_low_50d": 539,
+   "new_high_20d": 1770,
+   "new_low_20d": 762,
+   "horizontal_sr_strong": 460,
+   "horizontal_sr": 7275,
+   "tl_support": 10059,
+   "tl_resistance": 9708
+  },
+  "coiled": 0,
+  "coil_diag": {
+   "universe": 11397,
+   "stock": 5974,
+   "px_vol": 0,
+   "have_vol": 0,
+   "contract": 0
+  },
+  "dist_watch": 8,
+  "base_breakout_confluence": 45,
+  "breadth_universe_n": 16,
+  "pa200": 62.5
+ }
+}

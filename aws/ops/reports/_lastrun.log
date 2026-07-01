@@ -1,39 +1,66 @@
 
-======== 1/5 LIVE-VERIFY NEW FINVIZ CODES ========
-  new_high_alltime       f=ta_alltime_nh              n=633   VERIFIED
-  new_low_alltime        f=ta_alltime_nl              n=138   VERIFIED
-  new_high_50d           s=ta_highlow50d_nh           n=11397 SUSPICIOUS(unfiltered?)
-  new_low_50d            s=ta_highlow50d_nl           n=11397 SUSPICIOUS(unfiltered?)
-  price_cross50b         f=ta_sma50_pcb               n=778   VERIFIED
-  price_cross20a         f=ta_sma20_pca               n=1031  VERIFIED
-  price_cross20b         f=ta_sma20_pcb               n=1199  VERIFIED
-  horizontal_sr          f=ta_pattern_horizontal      n=7274  SUSPICIOUS(unfiltered?)
-  horizontal_sr_strong   f=ta_pattern_horizontalstrong n=11397 SUSPICIOUS(unfiltered?)
-  tl_support             f=ta_pattern_tlsupport       n=10059 SUSPICIOUS(unfiltered?)
-  tl_resistance          f=ta_pattern_tlresistance    n=9708  SUSPICIOUS(unfiltered?)
-  gap_up_vol             f=ta_gap_u,sh_relvol_o2      n=387   VERIFIED
-  gap_down_vol           f=ta_gap_d,sh_relvol_o2      n=575   VERIFIED
-  quarantine-guard in the engine will exclude: ['new_high_50d', 'new_low_50d', 'horizontal_sr', 'horizontal_sr_strong', 'tl_support', 'tl_resistance']
+======== 1/5 LIVE-VERIFY CORRECTED CODES ========
+  new_high_50d           f=ta_highlow50d_nh             raw=1319
+  new_low_50d            f=ta_highlow50d_nl             raw=539
+  new_high_20d           f=ta_highlow20d_nh             raw=1770
+  new_low_20d            f=ta_highlow20d_nl             raw=762
+  horizontal_sr_strong   f=ta_pattern_horizontal2       raw=460
+  horizontal_sr          f=ta_pattern_horizontal        raw=7274
+  tl_support             f=ta_pattern_tlsupport         raw=10059
+  tl_resistance          f=ta_pattern_tlresistance      raw=9708
 
-======== 2/5 SYNC DEPLOYS (belt-and-suspenders vs parallel deploy-lambdas) ========
-  settling 60s so the parallel deploy-lambdas run lands first…
-  justhodl-finviz-signals      code synced (51 KB, shared bundled)
-  justhodl-best-setups         code synced (62 KB, shared bundled)
-  justhodl-master-ranker       code synced (60 KB, shared bundled)
-  justhodl-finviz-signals config: timeout=300 memory=512
+======== 2/5 UNIVERSE PROBE (asset_type + volatility fields) ========
+  n=11397 asset_type={'<none>': 5974, 'Equities (Stocks)': 3854, 'Bonds': 1010, 'CryptoCurrency': 157, 'Multi-Asset - Tactical / Active': 136, 'Commodities & Metals': 103}
+  fields non-null: {'volatility_w': 11286, 'volatility_m': 11065, 'atr': 11387, 'off_52w_high_pct': 11370, 'avg_volume': 11370}
 
-======== 3/5 RUN finviz-signals v2 (sync, ~3-4 min for 46 screens) ========
-  invoke -> {"ok": true, "counts": {"golden_cross": 200, "death_cross": 200, "sma20_cross50a": 150, "sma20_cross50b": 150, "price_cross200a": 150, "price_cross200b": 150, "price_cross50a": 150, "price_cross50b": 150, "price_cross20a": 150, "price_cross20b": 150, "new_high_alltime": 150, "new_low_alltime": 138, 
-  schema 2.0 OK · boards OK · breadth pa200=62.5 pa50=50.0 pa20=43.8 regime=BULL hist=1
-  NEW screens: {'new_high_alltime': 150, 'new_low_alltime': 138, 'new_high_50d': 0, 'new_low_50d': 0, 'price_cross50b': 150, 'price_cross20a': 150, 'price_cross20b': 150, 'horizontal_sr': 0, 'horizontal_sr_strong': 0, 'tl_support': 0, 'tl_resistance': 0, 'gap_up_vol': 120, 'gap_down_vol': 120}
-  quarantined: {'new_high_50d': 11397, 'new_low_50d': 11397, 'new_high_20d': 11397, 'new_low_20d': 11397, 'horizontal_sr': 7274, 'horizontal_sr_strong': 11397, 'tl_support': 10059, 'tl_resistance': 9708}
-  top_picks: 45  · momentum_breakouts: 60 · sweeps: 60 · coiled: 0 · dbl-confirmed: 0/1
+======== 3/5 DEPLOY PATCHED ENGINE ========
+  before: {"quarantined": {"new_high_50d": 11397, "new_low_50d": 11397, "new_high_20d": 11397, "new_low_20d": 11397, "horizontal_sr": 7274, "horizontal_sr_strong": 11397, "tl_support": 10059, "tl_resistance": 9708}, "counts_raw_bad8": {"new_high_50d": 11397, "new_low_50d": 11397, "new_high_20d": 11397, "new_l
+  settling 60s for parallel deploy-lambdas…
+  engine code synced
 
-======== 4/5 RUN best-setups (technical family live) ========
-  invoke -> {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": true, \"n_setups\": 504, \"strong_buy\": 4, \"buy\": 15, \"weight_source\": \"prior-only\"}"}
-  technical keys present in output: {'ATH_BREAKOUT': 0, 'BASE_BREAKOUT': 0, 'GOLDEN_CROSS': 2, 'MA200_RECLAIM': 0, 'DOUBLE_BOTTOM_FV': 0} (zeros are fine on quiet days — the family is wired)
+======== 4/5 RE-RUN ENGINE ========
+{
+ "quarantined": {
+  "tl_support": 10059,
+  "tl_resistance": 9708
+ },
+ "counts_fixed": {
+  "new_high_50d": 150,
+  "new_low_50d": 150,
+  "new_high_20d": 150,
+  "new_low_20d": 150,
+  "horizontal_sr_strong": 120,
+  "horizontal_sr": 120,
+  "tl_support": 0,
+  "tl_resistance": 0
+ },
+ "counts_raw_fixed": {
+  "new_high_50d": 1319,
+  "new_low_50d": 539,
+  "new_high_20d": 1770,
+  "new_low_20d": 762,
+  "horizontal_sr_strong": 460,
+  "horizontal_sr": 7275,
+  "tl_support": 10059,
+  "tl_resistance": 9708
+ },
+ "coiled": 0,
+ "coil_diag": {
+  "universe": 11397,
+  "stock": 5974,
+  "px_vol": 0,
+  "have_vol": 0,
+  "contract": 0
+ },
+ "dist_watch": 8,
+ "base_breakout_confluence": 45,
+ "breadth_universe_n": 16,
+ "pa200": 62.5
+}
 
-======== 5/5 TRIGGER master-ranker (async — finviz_tech system wired) ========
-  triggered · verify later on /master-rank.html (systems list will show finviz_tech)
+======== 5/5 REPORT + CONSUMERS ========
+  wrote aws/ops/reports/2696_finviz_fix.json
+  triggered justhodl-best-setups
+  triggered justhodl-master-ranker
 
-OPS 2695 COMPLETE — FinViz Technical Pillar v2 live and fused.
+OPS 2696 COMPLETE
