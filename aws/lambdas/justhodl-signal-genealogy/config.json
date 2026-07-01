@@ -1,0 +1,16 @@
+{
+  "function_name": "justhodl-signal-genealogy",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Signal Genealogy: which signal families lead vs confirm, using cross-correlation lead-lag analysis on the real outcomes ledger.",
+  "schedule": {
+    "rule_name": "signal-genealogy-daily",
+    "cron": "cron(40 6 * * ? *)",
+    "description": "Daily signal genealogy scan at 06:40 UTC"
+  }
+}
