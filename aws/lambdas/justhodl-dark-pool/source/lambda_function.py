@@ -429,10 +429,11 @@ def lambda_handler(event=None, context=None):
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
     xray_map = {r["ticker"]: {"dp": r.get("dark_pool_pct"), "acc": r.get("dark_accel"),
                               "st": r.get("state"), "sz": r.get("daily_short_z"),
-                              "cv": r.get("conviction"), "fl": r.get("flag")} for r in rows}
+                              "cv": r.get("conviction"), "fl": r.get("flag"),
+                              "dv": r.get("daily_off_exch_vol")} for r in rows}
 
     payload = {
-        "engine": "justhodl-dark-pool", "version": "2.4.0", "ok": True,
+        "engine": "justhodl-dark-pool", "version": "2.4.1", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "

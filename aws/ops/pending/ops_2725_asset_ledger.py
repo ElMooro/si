@@ -81,6 +81,16 @@ print("  cftc feed keys:", R["cftc"]["top_keys"], "| n_analyzed:", c.get("n_cont
 aa = c.get("all_contract_analyses") or []
 print("  contract statuses:", [(a.get("symbol"), a.get("status"), a.get("n_records")) for a in aa[:8]])
 
+print("== 1b/3 dark-pool v2.4.1 (xray_map +dv) ==")
+retry(lambda: (wait_ok("justhodl-dark-pool"), lam.update_function_code(FunctionName="justhodl-dark-pool", ZipFile=zip_fn("justhodl-dark-pool")))[-1], "dp")
+wait_ok("justhodl-dark-pool")
+r = lam.invoke(FunctionName="justhodl-dark-pool", InvocationType="RequestResponse")
+assert not r.get("FunctionError"), r["Payload"].read()[:160]
+_dp = json.loads(s3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
+_dv_n = sum(1 for v in (_dp.get("xray_map") or {}).values() if isinstance(v, dict) and v.get("dv"))
+print("  xray_map dv coverage:", _dv_n)
+assert _dv_n >= 400, "dv thin: %d" % _dv_n
+
 print("== 2/3 FOOTPRINT v1.1 ==")
 retry(lambda: (wait_ok("justhodl-institutional-footprint"), lam.update_function_code(FunctionName="justhodl-institutional-footprint", ZipFile=zip_fn("justhodl-institutional-footprint")))[-1], "fp")
 wait_ok("justhodl-institutional-footprint")
@@ -135,3 +145,5 @@ print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 # rev7 statuses
 
 # rev8 short-history graceful
+
+# rev9 full-book dark

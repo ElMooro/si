@@ -137,14 +137,17 @@ def lambda_handler(event=None, context=None):
                  "Financial": "EQUITY", "Financial Services": "EQUITY", "Energy": "EQUITY",
                  "Basic Materials": "EQUITY", "Utilities": "EQUITY", "Real Estate": "REAL_ESTATE"}
     dark_sec = {}
-    for r in (dp.get("board") or []):
-        t = r.get("ticker"); vol = r.get("daily_off_exch_vol")
-        px = (xray.get(t) or {}).get("px")
-        if t and vol and px:
-            sec = (xray.get(t) or {}).get("sec") or "?"
+    dpx = dp.get("xray_map") or {}
+    src_rows = ([(tk, v.get("dv"), v.get("st")) for tk, v in dpx.items()] if dpx and
+                any(isinstance(v, dict) and v.get("dv") for v in list(dpx.values())[:50])
+                else [(r.get("ticker"), r.get("daily_off_exch_vol"), r.get("state")) for r in (dp.get("board") or [])])
+    for tk, vol, st_ in src_rows:
+        px = (xray.get(tk) or {}).get("px")
+        if tk and vol and px:
+            sec = (xray.get(tk) or {}).get("sec") or "?"
             e = dark_sec.setdefault(sec, {"usd_m": 0.0, "names": []})
             usd = vol * px / 1e6
-            e["usd_m"] += usd; e["names"].append((t, usd, r.get("state")))
+            e["usd_m"] += usd; e["names"].append((tk, usd, st_))
     dark_by_sector = {}
     for sec, e in sorted(dark_sec.items(), key=lambda kv: kv[1]["usd_m"], reverse=True):
         nm = sorted(e["names"], key=lambda x: x[1], reverse=True)
