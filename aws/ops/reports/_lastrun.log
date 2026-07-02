@@ -6,10 +6,12 @@
 
 ======== 2/5 BOND DESK — create + run + prove ========
   settling 30s…
+  synced justhodl-etf-true-flows (bond-ladder universe expansion)
+  true-flows seed invoke: ok {"statusCode": 200, "body": "{\"ok\": true, \"n_etfs\": 99, \"maturity\": \"READ
   ensured justhodl-bond-desk + justhodl-bond-desk-daily
-  invoke -> {"ok": true, "anxiety": 62.4, "regime": "ANXIOUS", "matched": 17}
+  invoke -> {"ok": true, "anxiety": 61.8, "regime": "ANXIOUS", "matched": 17}
 {
- "anxiety": 62.4,
+ "anxiety": 61.8,
  "regime": "ANXIOUS",
  "matched": 17,
  "duration_tilt": 0.818,
@@ -25,14 +27,83 @@
   "bond_vol_regime": "NORMAL",
   "bond_vol_pctile": null,
   "auction_regime": "CALM",
-  "fails_pctile": null,
+  "fails_pctile": 59.1,
   "acm_tp10_d21_bps": -20.3
  },
  "equity_read": "BONDS FLASH ANXIETY FOR EQUITIES: Credit appetite positive ($0.5B risk-credit vs govvies 5d) \u00b7 CCC-BB 806bps (p100, \u039421d +22) \u2014 junk-within-junk WIDENING \u00b7 Duration tilt +0.82 (extending) \u00b7 Equity\u2192bond rotation $31.2B/5d"
 }
+  per-bucket n: {'front_gov': 2, 'belly_gov': 2, 'long_gov': 1, 'tips': 1, 'ig_credit': 1, 'hy_credit': 2, 'loans': 0, 'em_debt': 1, 'aggregate': 1, 'muni': 0, 'equity_core': 6}
+  NOTE: coverage ramps to ~40 as true-flows snapshots accrue (new bond-ladder tickers need 1-2 daily closes for 5d flows)
+
+======== 3/5 REBALANCE RADAR — create + run + prove (T+1 of Q2-end) ========
+  ensured justhodl-rebalance-radar + justhodl-rebalance-daily
+  invoke -> {"ok": true, "in_window": true, "rotation_risk": false, "severity": "NONE"}
+{
+ "calendar": {
+  "today": "2026-07-02",
+  "quarter_end": "2026-09-30",
+  "prev_quarter_end": "2026-06-30",
+  "bdays_to_qtr_end": 64,
+  "bdays_since_prev_qtr_end": 2,
+  "in_rebalance_window": true,
+  "window_anchor": "2026-06-30",
+  "window_def": "T-5..T+3 business days around quarter-end"
+ },
+ "n_quarters": 20,
+ "es_spy_tail": {
+  "T-3": -0.211,
+  "T-2": -0.133,
+  "T-1": 0.008,
+  "T+0": 0.026,
+  "T+1": 0.275,
+  "T+2": 0.212,
+  "T+3": -0.313
+ },
+ "legs": {
+  "ai_semis_5d_usd": -17736293851.0,
+  "bonds_5d_usd": 990209699.0,
+  "crypto_5d_usd": -2070665615.0,
+  "gold_5d_usd": -2188322940.0
+ },
+ "n_complexes": 46,
+ "top_outflows": [
+  {
+   "complex": "S&P 500 Broad",
+   "net_flow_5d_usd": -16773917759.0,
+   "price_5d_pct": 1.71,
+   "qtd_vs_spy_pp": 0.0,
+   "classification": null
+  },
+  {
+   "complex": "Mega-Cap Tech (FANG+)",
+   "net_flow_5d_usd": -10769267253.0,
+   "price_5d_pct": 2.05,
+   "qtd_vs_spy_pp": null,
+   "classification": null
+  },
+  {
+   "complex": "Technology",
+   "net_flow_5d_usd": -10407845325.0,
+   "price_5d_pct": 1.4,
+   "qtd_vs_spy_pp": 10.3,
+   "classification": "MECHANICAL_CONFIRMED_SELL"
+  },
+  {
+   "complex": "Nasdaq Broad",
+   "net_flow_5d_usd": -10103817038.0,
+   "price_5d_pct": 2.05,
+   "qtd_vs_spy_pp": 10.3,
+   "classification": "MECHANICAL_CONFIRMED_SELL"
+  }
+ ],
+ "rotation": {
+  "flag": false,
+  "severity": "NONE",
+  "evidence": [
+   "Inside T-5..T+3 b
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 112, in <module>
-    assert F["matched_tickers"] >= 25, "too few flow tickers matched: %d" % F["matched_tickers"]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: too few flow tickers matched: 17
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 142, in <module>
+    assert ES["n_quarters"] >= 28 and len(ES["assets"]) >= 6
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
 ❌ OPS-FAIL: aws/ops/pending/ops_2711_bond_desk_rebalance.py
