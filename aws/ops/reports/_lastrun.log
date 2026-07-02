@@ -19,9 +19,10 @@
  "own_dix": 57.68,
  "sq_dix": 0.44503
 }
+  history store: {'tickers': 13075, 'median_days': 35, 'max_days': 35, 'ge15': 11891}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 94, in <module>
-    assert z_n >= 100, "short_z still dormant: %d" % z_n
-           ^^^^^^^^^^
-AssertionError: short_z still dormant: 25
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 100, in <module>
+    assert z_n >= min(40, max(10, R["dark_pool"]["history_store"]["ge15"] // 3)), "short_z dormant beyond store age: %d" % z_n
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: short_z dormant beyond store age: 25
 ❌ OPS-FAIL: aws/ops/pending/ops_2715_shortz_factors.py
