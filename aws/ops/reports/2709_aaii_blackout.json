@@ -1,0 +1,61 @@
+{
+ "ops": 2709,
+ "ts": "2026-07-02T02:05:37.653414+00:00",
+ "aaii_seed_n": 0,
+ "aaii": {
+  "week_ending": "2026-06-24",
+  "bullish": 0.449,
+  "bearish": 0.361,
+  "spread": 0.088,
+  "history_n": 21,
+  "interp": "Sentiment is balanced (spread +9%). No contrarian signal.",
+  "source": "sent_results",
+  "backfilled": 21
+ },
+ "composite": {
+  "aaii": {
+   "id": "AAII_SPREAD",
+   "ok": true,
+   "cadence": "weekly",
+   "latest_date": "2026-06-24",
+   "latest_value": 0.088,
+   "z_raw": 1.441,
+   "z_stress": -1.441,
+   "flipped": true,
+   "weight_base": 1.0,
+   "freshness_mult": 1.0,
+   "effective_weight": 1.0,
+   "lookback": 21,
+   "days_old": 8,
+   "n_history": 21,
+   "provisional": false
+  },
+  "n_total": 7,
+  "composite_z": -0.158,
+  "state": "NEUTRAL"
+ },
+ "blackout": {
+  "now_pct": 54.3,
+  "state": "HEAVY_BLACKOUT",
+  "caps_matched": 501,
+  "with_dates": 375,
+  "rep14": 5.3,
+  "peak": {
+   "date": "2026-07-14",
+   "value": 65.6,
+   "reporting_pct": 2.99
+  },
+  "trough": {
+   "date": "2026-08-10",
+   "value": 2.2,
+   "reporting_pct": 0.06
+  },
+  "curve_n": 42
+ },
+ "board": {
+  "AAII Retail Sentiment": "{\"engine\": \"AAII Retail Sentiment\", \"category\": \"sentiment\", \"signal\": 0, \"signal_label\": \"NEUTRAL\", \"read\": \"AAII 45/36 spread +9pp\", \"as_of\": \"2026-07-02T02:06:28+00:00\", \"stale\": false}",
+  "Buyback Blackout": "{\"engine\": \"Buyback Blackout\", \"category\": \"flow\", \"signal\": 0, \"signal_label\": \"NEUTRAL\", \"read\": \"Blackout 54% of SPX cap \\u00b7 next-14d reporting 5%\", \"as_of\": \"2026-07-02T02:06:42+00:00\", \"stale\""
+ },
+ "page": "LIVE",
+ "skew_probe": "unavailable: HTTP Error 400: Bad Request"
+}

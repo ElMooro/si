@@ -18,11 +18,12 @@
   composite: {"aaii": {"id": "AAII_SPREAD", "ok": true, "cadence": "weekly", "latest_date": "2026-06-24", "latest_value": 0.088, "z_raw": 1.441, "z_stress": -1.441, "flipped": true, "weight_base": 1.0, "freshness_mult": 1.0, "effective_weight": 1.0, "lookback": 21, "days_old": 8, "n_history": 21, "provisional": false}, "n_total": 7, "composite_z": -0.158, "state": "NEUTRAL"}
 
 ======== 5/6 CREATE + RUN earnings-blackout ========
-  invoke -> {"ok": true, "now_pct": 0.0, "state": "WINDOW_OPEN", "matched": 501}
-  {"now_pct": 0.0, "state": "WINDOW_OPEN", "caps_matched": 501, "with_dates": 9, "rep14": 0.0, "peak": {"date": "2026-07-14", "value": 2.1, "reporting_pct": 0.0}, "trough": {"date": "2026-07-02", "value": 0.0, "reporting_pct": 0.0}, "curve_n": 42}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2709_aaii_blackout.py", line 185, in <module>
-    assert N["n_with_dates"] >= 350, "earnings-date coverage thin: %s" % N
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: earnings-date coverage thin: {'blackout_mktcap_pct': 0.0, 'state': 'WINDOW_OPEN', 'n_members': 503, 'n_caps_matched': 501, 'n_with_dates': 9, 'total_cap_t': 72.58}
-❌ OPS-FAIL: aws/ops/pending/ops_2709_aaii_blackout.py
+  invoke -> {"ok": true, "now_pct": 54.3, "state": "HEAVY_BLACKOUT", "matched": 501}
+  {"now_pct": 54.3, "state": "HEAVY_BLACKOUT", "caps_matched": 501, "with_dates": 375, "rep14": 5.3, "peak": {"date": "2026-07-14", "value": 65.6, "reporting_pct": 2.99}, "trough": {"date": "2026-08-10", "value": 2.2, "reporting_pct": 0.06}, "curve_n": 42}
+  board: {"engine": "AAII Retail Sentiment", "category": "sentiment", "signal": 0, "signal_label": "NEUTRAL", "read": "AAII 45/36 spread +9pp", "as_of": "2026-07-02T02:06:28+00:00", "stale": false}
+  board: {"engine": "Buyback Blackout", "category": "flow", "signal": 0, "signal_label": "NEUTRAL", "read": "Blackout 54% of SPX cap \u00b7 next-14d reporting 5%", "as_of": "2026-07-02T02:06:42+00:00", "stale"
+
+======== 6/6 PAGE + INFORMATIONAL PROBES + REPORT ========
+  blackout.html: LIVE
+  FRED SKEW probe: unavailable: HTTP Error 400: Bad Request
+OPS 2709 COMPLETE — positioning triad closed + corporate-bid switch live
