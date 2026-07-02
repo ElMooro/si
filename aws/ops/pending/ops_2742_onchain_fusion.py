@@ -112,12 +112,20 @@ R["miners_mpi"] = md["cryptoquant_mpi"]["value"]
 
 print("== 5/6 signal-logger CANDIDATE ==")
 deploy("justhodl-signal-logger")
+t0_ms = int(time.time() * 1000) - 5000
 pay, lg = invoke("justhodl-signal-logger", tail=True)
-hit = "onchain_composite_risk" in lg
-print("  logger payload:", json.dumps(pay)[:120], "| tail-hit:", hit)
-for ln in lg.splitlines():
-    if "onchain_composite_risk" in ln: print("   ", ln.strip()[:150])
-assert hit, "onchain signal not in log tail"
+print("  logger payload:", json.dumps(pay)[:120])
+logs = boto3.client("logs", region_name=REGION)
+hit_line = None
+for attempt in range(4):
+    time.sleep(6)
+    evs = logs.filter_log_events(logGroupName="/aws/lambda/justhodl-signal-logger",
+                                 startTime=t0_ms, filterPattern="onchain_composite_risk",
+                                 limit=5).get("events", [])
+    if evs:
+        hit_line = evs[-1]["message"].strip()[:170]; break
+print("  cw-proof:", hit_line)
+assert hit_line, "onchain signal absent from CloudWatch since invoke"
 R["logger"] = "onchain_composite_risk LOGGED"
 
 print("== 6/6 FIRST-LOOK IC (1y, indicative) ==")
@@ -171,3 +179,5 @@ with open("aws/ops/reports/2742_onchain_fusion.json", "w") as f:
 print("OPS 2742 COMPLETE — on-chain flows through the fleet")
 
 # rev2 env-resolved ratios key
+
+# rev3 cloudwatch proof
