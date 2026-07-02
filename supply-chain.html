@@ -35,10 +35,10 @@ function perfColor(p){if(p==null)return '#5a6678';if(p>=25)return '#2fe08a';if(p
   const d=await gj('data/supply-chain-graph.json');
   const sub=document.getElementById('sub');
   if(!d||!d.ok){sub.textContent='No data yet — engine runs daily 13:45 UTC.';return;}
-  sub.innerHTML=`${d.n_nodes} companies · ${d.n_edges} relationships · booming hubs gold-ringed · node colour = 30d return · ${(d.generated_at||'').slice(0,10)} — <b style="color:var(--amber)">${(d.supply_chain_laggards||[]).length} supplier laggards</b>`;
+  sub.innerHTML=`${d.n_nodes} companies · ${d.n_edges} relationships · booming hubs gold-ringed · node colour = 30d return · dashed = market-inferred (Polygon) · ${(d.graph_stats||{}).confirmed_mutual||0} curated edges market-confirmed · ${(d.generated_at||'').slice(0,10)} — <b style="color:var(--amber)">${(d.supply_chain_laggards||[]).length} supplier laggards</b>`;
   const W=document.getElementById('graph').clientWidth, H=document.getElementById('graph').clientHeight;
   const nodes=d.nodes.map(n=>({...n,id:n.ticker}));
-  const links=d.edges.map(e=>({source:e.supplier,target:e.customer,rel:e.relationship}));
+  const links=d.edges.map(e=>({source:e.supplier,target:e.customer,rel:e.relationship,src:e.source||'curated'}));
   const supMap={},cusMap={};
   d.edges.forEach(e=>{(cusMap[e.supplier]=cusMap[e.supplier]||[]).push(e);(supMap[e.customer]=supMap[e.customer]||[]).push(e);});
   const deg={};links.forEach(l=>{deg[l.source]=(deg[l.source]||0)+1;deg[l.target]=(deg[l.target]||0)+1;});
@@ -48,7 +48,7 @@ function perfColor(p){if(p==null)return '#5a6678';if(p>=25)return '#2fe08a';if(p
   const g=svg.append('g');
   svg.call(d3.zoom().scaleExtent([0.3,3]).on('zoom',ev=>g.attr('transform',ev.transform)));
   const link=g.append('g').selectAll('line').data(links).join('line')
-    .attr('stroke','#2a3647').attr('stroke-width',1).attr('marker-end','url(#arrow)');
+    .attr('stroke',l=>l.src==='polygon'?'#3a4a63':'#2a3647').attr('stroke-width',1)\n    .attr('stroke-dasharray',l=>l.src==='polygon'?'4,3':null).attr('marker-end',l=>l.src==='polygon'?null:'url(#arrow)');
   const node=g.append('g').selectAll('g').data(nodes).join('g').style('cursor','pointer')
     .call(d3.drag().on('start',(ev,n)=>{if(!ev.active)sim.alphaTarget(.3).restart();n.fx=n.x;n.fy=n.y;})
       .on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y;}).on('end',(ev,n)=>{if(!ev.active)sim.alphaTarget(0);n.fx=null;n.fy=null;}));

@@ -155,9 +155,87 @@ def grouped(ds, nodeset):
         return ds, {}
 
 
+REL_KEY = "data/polygon-related-graph.json"
+
+
+def _related_one(t):
+    try:
+        with urllib.request.urlopen(urllib.request.Request(
+            f"https://api.polygon.io/v1/related-companies/{t}?apiKey={POLY}",
+            headers={"User-Agent": "jh/1"}), timeout=12) as r:
+            j = json.loads(r.read())
+        return t, [x.get("ticker") for x in (j.get("results") or []) if x.get("ticker")]
+    except Exception as e:
+        print(f"[scg] related {t}: {str(e)[:50]}")
+        return t, []
+
+
+def _related_graph(tickers):
+    """Polygon market-inferred relatedness (news co-mention + return similarity).
+    Cached to S3 and reused for 6 days — relatedness is slow-moving."""
+    try:
+        doc = json.loads(S3.get_object(Bucket=BUCKET, Key=REL_KEY)["Body"].read())
+        age_d = (datetime.now(timezone.utc)
+                 - datetime.fromisoformat(doc["generated_at"])).total_seconds() / 86400
+        if age_d < 6 and set(tickers) <= set(doc.get("by_ticker") or {}):
+            print(f"[scg] related-graph cache hit (age {age_d:.1f}d)")
+            return doc["by_ticker"]
+    except Exception:
+        pass
+    rel = {}
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for t, rs in ex.map(_related_one, sorted(tickers)):
+            rel[t] = rs
+            time.sleep(0.05)
+    mutual = sorted({tuple(sorted((a, b))) for a in rel for b in rel.get(a, [])
+                     if b in rel and a in rel.get(b, [])})
+    S3.put_object(Bucket=BUCKET, Key=REL_KEY,
+                  Body=json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(),
+                                   "n": len(rel), "by_ticker": rel,
+                                   "mutual_pairs": [list(p) for p in mutual],
+                                   "source": "polygon v1/related-companies (news co-mention + return similarity)"},
+                                  separators=(",", ":")).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=3600")
+    print(f"[scg] related-graph rebuilt: {len(rel)} tickers, {len(mutual)} mutual pairs")
+    return rel
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     nodeset = set(NODES)
+
+    # ── ops 2706: dual-source graph. Layer 2 = Polygon relatedness, which
+    #    (a) CONFIRMS curated edges when the market agrees, and (b) DISCOVERS
+    #    liquidity-gated peer candidates beyond the curated hubs — the exact
+    #    "paid full-universe graph" gap named in v1's caveats, closed keyless.
+    rel = _related_graph(nodeset)
+    def _confirm(a, b):
+        f, r = b in (rel.get(a) or []), a in (rel.get(b) or [])
+        return "mutual" if (f and r) else "one_way" if (f or r) else "none"
+    edge_confirm = {(a, b): _confirm(a, b) for a, b, _ in EDGES}
+
+    cand, cand_via, seen = [], {}, set(nodeset)
+    try:
+        import finviz as FV
+        uni = FV.load_universe()
+    except Exception as e:
+        print(f"[scg] finviz universe unavailable ({str(e)[:40]}) — discovery gated off")
+        uni = {}
+    for hub in sorted(nodeset):
+        added = 0
+        for r in rel.get(hub) or []:
+            if r in seen or added >= 2 or len(cand) >= 40:
+                continue
+            u = uni.get(r) or {}
+            if u.get("asset_type") or u.get("etf_type"):
+                continue
+            px = u.get("price") or u.get("prev_close") or 0
+            if px < 5 or (u.get("market_cap") or 0) < 2000 or (u.get("avg_volume") or 0) * 1000 < 500_000:
+                continue
+            seen.add(r); cand.append(r); cand_via.setdefault(r, hub); added += 1
+    nodeset |= set(cand)
+    print(f"[scg] confirm: mutual={sum(1 for v in edge_confirm.values() if v=='mutual')} "
+          f"one_way={sum(1 for v in edge_confirm.values() if v=='one_way')} | discovered={len(cand)}")
     # grouped daily over last ~48 calendar days (~32 trading) → per-ticker series
     cal = [(date.today() - timedelta(days=i)).isoformat() for i in range(1, 50)]
     by_date = {}
@@ -167,7 +245,8 @@ def lambda_handler(event=None, context=None):
                 by_date[ds] = mp
     dates = sorted(by_date.keys())
     perfs = {}
-    for t in NODES:
+    ALL_TICKERS = list(NODES) + cand
+    for t in ALL_TICKERS:
         series = [by_date[d][t] for d in dates if t in by_date[d]]
         if len(series) >= 7:
             p30 = round((series[-1] / series[-22] - 1) * 100, 2) if len(series) >= 22 else None
@@ -185,25 +264,39 @@ def lambda_handler(event=None, context=None):
         print(f"[scg] boom-radar unavailable: {str(e)[:60]}")
 
     customers_of, suppliers_of = {}, {}
-    for s, c, rel in EDGES:
-        customers_of.setdefault(s, []).append((c, rel))
-        suppliers_of.setdefault(c, []).append((s, rel))
+    for s, c, rl in EDGES:
+        customers_of.setdefault(s, []).append((c, rl))
+        suppliers_of.setdefault(c, []).append((s, rl))
+    DISC_REL = "market-inferred peer (Polygon relatedness)"
+    for r in cand:
+        hub = cand_via[r]
+        suppliers_of.setdefault(hub, []).append((r, DISC_REL))
+        customers_of.setdefault(r, []).append((hub, DISC_REL))
 
     deg = {}
     for s, c, _ in EDGES:
         deg[s] = deg.get(s, 0) + 1
         deg[c] = deg.get(c, 0) + 1
+    for r in cand:
+        deg[r] = deg.get(r, 0) + 1
+        deg[cand_via[r]] = deg.get(cand_via[r], 0) + 1
 
     nodes = []
-    for t in NODES:
+    for t in ALL_TICKERS:
         p = perfs.get(t, {})
         p30 = p.get("perf_30d")
         is_boom = t in boom or (p30 is not None and p30 >= 25)
-        nodes.append({"ticker": t, "theme": THEME.get(t, "Other"),
+        nodes.append({"ticker": t,
+                      "theme": THEME.get(t, "Market-Inferred" if t in cand_via else "Other"),
+                      "origin": "polygon" if t in cand_via else "curated",
                       "perf_30d": p30, "perf_5d": p.get("perf_5d"), "price": p.get("price"),
                       "is_boom": is_boom, "degree": deg.get(t, 0),
                       "n_suppliers": len(suppliers_of.get(t, [])), "n_customers": len(customers_of.get(t, []))})
-    edges = [{"supplier": s, "customer": c, "relationship": rel} for s, c, rel in EDGES]
+    edges = [{"supplier": s, "customer": c, "relationship": rl,
+              "source": "curated", "confirm": edge_confirm[(s, c)]} for s, c, rl in EDGES]
+    edges += [{"supplier": r, "customer": cand_via[r], "relationship": DISC_REL,
+               "source": "polygon", "confirm": "one_way", "direction": "undirected"}
+              for r in cand]
 
     booming_hubs = [n["ticker"] for n in nodes if n["is_boom"]]
     laggards = []
@@ -223,18 +316,25 @@ def lambda_handler(event=None, context=None):
         if k not in best or l["lag_gap_pct"] > best[k]["lag_gap_pct"]:
             best[k] = l
     laggards = sorted(best.values(), key=lambda x: x["lag_gap_pct"], reverse=True)
-    top_picks = [{"ticker": l["ticker"], "direction": "long", "score": min(100, l["lag_gap_pct"]),
+    top_picks = [{"ticker": l["ticker"], "direction": "long",
+                  "score": round(min(100, l["lag_gap_pct"]) * (0.8 if "market-inferred" in (l.get("relationship") or "") else 1.0), 1),
+                  "edge_source": "polygon" if "market-inferred" in (l.get("relationship") or "") else "curated",
                   "supplies_to": l["supplies_to"], "own_perf_30d": l["own_perf_30d"],
                   "customer_perf_30d": l["customer_perf_30d"], "lag_gap_pct": l["lag_gap_pct"]} for l in laggards][:25]
 
     themes = sorted({n["theme"] for n in nodes})
     payload = {
-        "engine": "justhodl-supply-chain-graph", "version": "1.1.0", "ok": True,
+        "engine": "justhodl-supply-chain-graph", "version": "2.0.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Named supplier↔customer graph across semis/tech/datacenter/aero-defense/"
                    "industrial/auto/energy/biopharma. When a hub booms, its suppliers that "
                    "haven't moved are the lead-lag candidates (supply-chain return predictability)."),
         "n_nodes": len(nodes), "n_edges": len(edges), "n_themes": len(themes), "themes": themes,
+        "graph_stats": {"curated_edges": len(EDGES),
+                        "confirmed_mutual": sum(1 for v in edge_confirm.values() if v == "mutual"),
+                        "confirmed_one_way": sum(1 for v in edge_confirm.values() if v == "one_way"),
+                        "unconfirmed": sum(1 for v in edge_confirm.values() if v == "none"),
+                        "discovered_nodes": len(cand), "related_graph_key": REL_KEY},
         "booming_hubs": booming_hubs, "nodes": nodes, "edges": edges,
         "supply_chain_laggards": laggards[:40], "top_picks": top_picks,
         "data_source": "Curated supplier↔customer edge map + Polygon grouped-daily perf + boom-radar flags",
@@ -245,8 +345,10 @@ def lambda_handler(event=None, context=None):
             "MEASURE-BEFORE-TRUST: supply_chain_laggards → harvester (eng:supply-chain-graph), "
             "graded forward vs SPY; not in decision engines until alpha-proven. Complements "
             "rotation-chain (theme-tier lead-lag) with named relationships.",
-            "Edges are static/curated; supply-chain lead-lag is a documented anomaly "
-            "(Cohen & Frazzini, JF 2008). Refresh the map as relationships change.",
+            "Curated edges now market-CONFIRMED against Polygon relatedness (news co-mention + "
+            "return similarity); dashed discovered edges are market-inferred peers, liquidity-gated, "
+            "with a 0.8x score haircut until the harvester proves the tier. Supply-chain lead-lag "
+            "is a documented anomaly (Cohen & Frazzini, JF 2008).",
         ],
         "elapsed_s": round(time.time() - t0, 1),
     }
