@@ -102,6 +102,7 @@ lit_n = sum(1 for v in L.values() if isinstance(v.get("lit_etf_5d_usd_m"), (int,
 cftc_n = sum(1 for v in L.values() if isinstance(v.get("cftc_net_spec"), (int, float)))
 assert len(L) >= 9 and lit_n >= 8, "ledger lit thin: %d/%d" % (lit_n, len(L))
 assert isinstance((L.get("EQUITY") or {}).get("dark_5d_usd_m_est"), (int, float)) and L["EQUITY"]["dark_5d_usd_m_est"] > 500, "dark equity $ missing"
+print("  cftc_by_class sample:", {k: v.get("cftc_net_spec") for k, v in L.items() if v.get("cftc_net_spec") is not None})
 assert cftc_n >= 3, "cftc classes thin: %d (keys %s)" % (cftc_n, R["cftc"]["top_keys"])
 assert len(DS) >= 8, "dark sectors thin"
 assert d["posture"].get("risk_now") is not None
@@ -132,3 +133,5 @@ print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 # rev5 cache-truth
 
 # rev7 statuses
+
+# rev8 short-history graceful

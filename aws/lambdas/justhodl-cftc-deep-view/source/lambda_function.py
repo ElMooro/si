@@ -235,8 +235,28 @@ def analyze_contract(symbol, contract_meta, history):
         parsed.append({"date": str(date), **net})
 
     if len(parsed) < 12:
-        return {"symbol": symbol, "status": "insufficient_history",
-                "n_records": len(parsed)}
+        # SHORT-HISTORY graceful mode: the upstream agent's cache is a rolling
+        # ~7-week window today. Z-scores/extremes need >=12 and stay honestly
+        # absent, but net-positioning LEVELS + WoW are real institutional data
+        # NOW — emit them so downstream (institutional-footprint asset ledger)
+        # fills immediately and self-upgrades as weeks accrue.
+        if not parsed:
+            return {"symbol": symbol, "status": "insufficient_history", "n_records": 0}
+        parsed.sort(key=lambda x: x.get("date") or "")
+        latest, prev = parsed[-1], (parsed[-2] if len(parsed) >= 2 else None)
+        category = (contract_meta.get("category", "") or "").lower()
+        smart_side = SMART_MONEY_MAP.get(category, "commercials")
+        spec = latest.get("large_speculators_net")
+        comm = latest.get("commercials_net")
+        smart_net = comm if smart_side == "commercials" else spec
+        return {"symbol": symbol, "name": contract_meta.get("name") or symbol,
+                "category": category, "status": "SHORT_HISTORY",
+                "n_records": len(parsed), "as_of": latest.get("date"),
+                "net_speculator": spec, "net_commercial": comm,
+                "net_spec_wow": (spec - prev.get("large_speculators_net", 0)) if (prev and spec is not None) else None,
+                "smart_money_side": smart_side, "smart_money_net": smart_net,
+                "direction": ("LONG" if (spec or 0) > 0 else "SHORT" if (spec or 0) < 0 else "FLAT"),
+                "note": "levels+WoW only; z/extremes arm at n>=12 (~%d wks away)" % max(0, 12 - len(parsed))}
 
     # Sort by date
     parsed.sort(key=lambda x: x.get("date") or "")

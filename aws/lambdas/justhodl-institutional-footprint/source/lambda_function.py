@@ -159,7 +159,7 @@ def lambda_handler(event=None, context=None):
         if isinstance(node, dict):
             nm = str(node.get("symbol") or node.get("contract") or node.get("name") or "").lower()
             ns = None
-            for k in ("net_spec", "spec_net", "net_noncommercial", "noncomm_net", "net_position", "net_z", "z_net_spec"):
+            for k in ("net_speculator", "large_speculators_net", "net_spec", "spec_net", "net_noncommercial", "noncomm_net", "net_position", "net_z", "z_net_spec"):
                 v = _num(node.get(k))
                 if v is not None: ns = v; break
             if nm and ns is not None:
