@@ -63,9 +63,20 @@ def _ticker_map(doc):
     visit(doc); return out
 
 def lambda_handler(event=None, context=None):
-    flows_doc = _s3json("data/etf-fund-flows.json", {}) or {}
-    tk = _ticker_map(flows_doc)
-    print("[desk] tickers in flows feed:", len(tk))
+    # canonical per-ticker feed = etf-flows/daily.json (radar's fmap source,
+    # 246 ETFs via ETF Global/Massive); merged with shares-based etf-true-flows
+    # (net_flow_5d_usd normalized) for extra bond-ETF coverage.
+    tk = _ticker_map(_s3json("etf-flows/daily.json", {}) or {})
+    tf = _s3json("data/etf-true-flows.json", {}) or {}
+    added = 0
+    for r in (tf.get("results") or tf.get("metrics") or []):
+        t = (r.get("ticker") or r.get("symbol") or "").upper()
+        if t and t not in tk and isinstance(r.get("net_flow_5d_usd"), (int, float)):
+            tk[t] = {"flow_5d_usd": r["net_flow_5d_usd"],
+                     "flow_21d_usd": r.get("net_flow_20d_usd"),
+                     "flow_zscore_90d": r.get("flow_zscore_90d")}
+            added += 1
+    print("[desk] tickers: daily.json=%d +true-flows=%d" % (len(tk) - added, added))
 
     B={}
     for name,ts in BUCKETS.items():

@@ -79,10 +79,10 @@ def head(k):
     try:
         s3.head_object(Bucket=BUCKET, Key=k); return True
     except Exception: return False
-flows_key_ok = head("data/etf-fund-flows.json")
-print("  data/etf-fund-flows.json exists:", flows_key_ok)
+flows_key_ok = head("etf-flows/daily.json")
+print("  etf-flows/daily.json exists:", flows_key_ok)
 if not flows_key_ok:
-    alt = [o["Key"] for o in s3.list_objects_v2(Bucket=BUCKET, Prefix="data/", MaxKeys=1000).get("Contents", [])
+    alt = [o["Key"] for o in s3.list_objects_v2(Bucket=BUCKET, Prefix="etf-flows/", MaxKeys=1000).get("Contents", [])
            if "flow" in o["Key"] and o["Key"].endswith(".json")][:8]
     print("  flow-ish keys:", alt)
 assert flows_key_ok, "flows feed key mismatch — fix engine constant before deploy"
