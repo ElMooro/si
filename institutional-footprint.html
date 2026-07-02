@@ -88,7 +88,9 @@ function tenorChart(cb,title){
   <line x1="0" y1="${zero}" x2="${W}" y2="${zero}" stroke="#ffffff22"/>${bars}</svg>`;
 }
 (async()=>{
- let d;try{d=await(await fetch('data/institutional-footprint.json',{cache:'no-store'})).json()}catch(e){}
+ let d,AN;try{const[r1,r2]=await Promise.allSettled([fetch('data/institutional-footprint.json',{cache:'no-store'}),fetch('data/positioning-analog.json',{cache:'no-store'})]);
+  if(r1.status==='fulfilled')d=await r1.value.json();
+  if(r2.status==='fulfilled')AN=await r2.value.json()}catch(e){}
  const app=document.getElementById('app');
  if(!d||!d.posture){app.textContent='Feed unavailable — data/institutional-footprint.json failed strict JSON parse or fetch.';return}
  document.getElementById('meta').textContent=`${d.feeds_alive}/${d.feeds_total??18} source feeds · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC · engine v${d.version}`;
@@ -149,6 +151,15 @@ function tenorChart(cb,title){
    ${(K.double_confirmed_buys||[]).length?`<h3 style="margin-top:12px">★ DOUBLE-CONFIRMED (13F ∩ DARK)</h3>${K.double_confirmed_buys.map(t=>`<span class="tag vi">${t}</span>`).join('')}`:''}
    <h3 style="margin-top:12px">WHOLESALER CONCENTRATION (real names)</h3>
    ${wholes.length?wholes.map(w=>`<div class="kv"><span class="tk" onclick="location='/dossier.html?t=${w.ticker}'">${w.ticker}</span><span style="color:var(--fg3);font-size:10px">${esc(w.top_firm)}</span><b class="a">${w.top_pct}%</b></div>`).join(''):'<div class="comp">no concentrated names above filters</div>'}</div>
+  ${AN&&AN.analogs?`<div class="c wide"><h3>🔮 CRISIS ANALOGS & FORWARD MAP <small style="color:var(--fg3)">· ${AN.panel_weeks}w panel since ${(AN.method.match(/since (\d{4}-\d{2}-\d{2})/)||[])[1]||'1997'} · ${AN.dims} dims</small></h3>
+   <div class="lab" style="color:${AN.verdict.includes('CRISIS')?'var(--rd)':AN.verdict.includes('TOP')?'var(--am)':'var(--cy)'};margin-bottom:8px">${esc(AN.verdict)} — condition-space match, not a price forecast</div>
+   <table><tr><th>ANALOG WEEK</th><th>EPISODE</th><th class="num">SIMILARITY</th><th class="num">SPX +1M</th><th class="num">SPX +3M</th></tr>
+   ${AN.analogs.map(a=>`<tr><td>${a.date}</td><td style="color:${a.label==='unlabeled regime'?'var(--fg3)':'var(--am)'}">${esc(a.label)}</td>
+     <td class="num cy">${a.similarity}</td>
+     <td class="num" style="color:${col(a.spx_fwd_1m_pct)}">${fin(a.spx_fwd_1m_pct)?(a.spx_fwd_1m_pct>0?'+':'')+a.spx_fwd_1m_pct+'%':'—'}</td>
+     <td class="num" style="color:${col(a.spx_fwd_3m_pct)}">${fin(a.spx_fwd_3m_pct)?(a.spx_fwd_3m_pct>0?'+':'')+a.spx_fwd_3m_pct+'%':'—'}</td></tr>`).join('')}</table>
+   <div class="comp">forward map: median +1m <b style="color:${col(AN.forward_stats.median_fwd_1m_pct)}">${F(AN.forward_stats.median_fwd_1m_pct)}%</b> · median +3m <b style="color:${col(AN.forward_stats.median_fwd_3m_pct)}">${F(AN.forward_stats.median_fwd_3m_pct)}%</b> · up 3m <b class="cy">${F(AN.forward_stats.hit_rate_up_3m)}%</b> of analogs · today z: ${Object.entries(AN.vector_today_z).map(([k,v])=>k+' '+(v>0?'+':'')+v).join(' · ')}</div>
+   <div class="dossier" style="margin:10px 0 0;padding:12px 14px"><h3>🧠 HISTORIAN OUTLOOK</h3>${esc(AN.ai_outlook)}<div class="dsrc">source: ${AN.ai_outlook_src==='llm'?'LLM synthesis':'deterministic synthesis'} · daily 22:40 UTC</div></div></div>`:''}
   <div class="c wide"><h3>CONVICTION MOVES</h3>
    <table><tr><th>TICKER</th><th>SIGNAL</th><th>SECTOR</th><th>STAGE</th><th class="num">13F $</th></tr>
    ${CV.map(x=>`<tr><td class="tk" onclick="location='/dossier.html?t=${x.ticker}'">${x.ticker}</td>

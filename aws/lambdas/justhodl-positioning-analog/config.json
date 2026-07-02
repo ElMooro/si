@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-positioning-analog",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 768,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Crisis analogs & forward map: 7-dim weekly condition vector vs 1997->, euclidean analogs, SPX forward stats, AI outlook.",
+  "schedule": {
+    "name": "justhodl-positioning-analog-daily",
+    "expression": "cron(40 22 * * ? *)",
+    "description": "Daily 22:40 UTC, before footprint 23:10"
+  }
+}
