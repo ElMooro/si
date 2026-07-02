@@ -150,3 +150,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2710_acm_term_premium.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2710 COMPLETE — the fleet now runs on the real ACM series")
+
+# rev v2: weekly-downsample fix rerun

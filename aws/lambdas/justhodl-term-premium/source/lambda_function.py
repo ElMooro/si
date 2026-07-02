@@ -132,7 +132,8 @@ def lambda_handler(event=None, context=None):
     # weekly downsample, last ~15y, jh-enhance shape
     chart, lastwk = [], None
     for r in rows[-3900:]:
-        wk = r["date"][:8]
+        _y, _w, _ = datetime.strptime(r["date"], "%Y-%m-%d").isocalendar()
+        wk = "%d-%02d" % (_y, _w)
         if wk != lastwk:
             chart.append({"date": r["date"], "value": r["tp10"]})
             lastwk = wk
