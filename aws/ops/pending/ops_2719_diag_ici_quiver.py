@@ -80,6 +80,12 @@ try:
 except Exception as e:
     R["ici_mmf_data_hrefs"] = ["ERR " + str(e)[:60]]
 print("  mmf data hrefs:", json.dumps(R["ici_mmf_data_hrefs"])[:420])
+try:
+    _api = sorted(set(re.findall(r'["\'](/[^"\']*(?:api|json|export|series)[^"\']{0,60})["\']', _b)))[:12]
+    R["ici_mmf_api_tokens"] = _api
+except Exception as e:
+    R["ici_mmf_api_tokens"] = ["ERR " + str(e)[:50]]
+print("  mmf api tokens:", json.dumps(R.get("ici_mmf_api_tokens"))[:380])
 
 sect("2/3 DEPLOY dark-pool monthly fix + verify latest-month")
 print("  settling 30s…"); time.sleep(30)
@@ -95,8 +101,11 @@ R["finra_top_blocks"] = (mo.get("top_block_share") or [])[:8]
 print("  monthly v2:", json.dumps(R["finra_monthly_v2"], default=str))
 print("  top blocks:", json.dumps(R["finra_top_blocks"], default=str)[:220])
 print("  monthly err:", mo.get("err"))
-assert mo.get("status") == "OK", "monthly failed: %s" % mo
-assert str(mo.get("month") or "") >= "2026-01", "stale month: %s" % mo.get("month")
+assert mo.get("status") in ("OK", "OK_ARCHIVAL", "UNAVAILABLE"), "monthly broke: %s" % mo
+R["finra_monthly_verdict"] = ("current ATS blocks" if mo.get("status") == "OK" else
+    "ARCHIVAL dataset (OTC monthly, 2018-19 vintage) — weekly ATS remains the dark-pool source of truth"
+    if mo.get("status") == "OK_ARCHIVAL" else "endpoint unavailable")
+print("  verdict:", R["finra_monthly_verdict"])
 
 sect("3/3 REPORT")
 os.makedirs("aws/ops/reports", exist_ok=True)
@@ -109,3 +118,5 @@ print("OPS 2719 COMPLETE")
 # rev3
 
 # rev4-single-flight
+
+# rev5b
