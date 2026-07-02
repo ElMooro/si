@@ -232,6 +232,27 @@ def lambda_handler(event=None, context=None):
         return [{"ticker":k,**x} for k,x in doc.items() if isinstance(x,dict) and ("short_vol" in x or "short_volume" in x)]
     daily={}
     import statistics as _st
+    # universe-wide z computed from finra-short's rolling history store
+    # ({"tickers":{SYM:[series]}}; entries may be floats or {svr:..} dicts).
+    def _svr_series(rec):
+        if isinstance(rec,list):
+            out=[]
+            for x in rec:
+                if isinstance(x,(int,float)): out.append(float(x))
+                elif isinstance(x,dict):
+                    v=x.get("svr") if isinstance(x.get("svr"),(int,float)) else x.get("svr_pct")
+                    if isinstance(v,(int,float)): out.append(float(v)/100.0 if v>1.5 else float(v))
+            return out
+        if isinstance(rec,dict):
+            for k in ("svr","svr_history","series","values"):
+                if isinstance(rec.get(k),list): return _svr_series(rec[k])
+        return []
+    zmap={}
+    for t,rec in ((fh.get("tickers") or {}) if isinstance(fh,dict) else {}).items():
+        ser=_svr_series(rec)[-40:]
+        if len(ser)>=15 and _st.pstdev(ser):
+            zmap[t.upper()]=(_st.fmean(ser),_st.pstdev(ser))
+    print("[v2] history z-map names:",len(zmap))
     for r0 in _fs_rows(fs):
         t=(r0.get("ticker") or r0.get("symbol") or "").upper()
         sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
@@ -239,6 +260,9 @@ def lambda_handler(event=None, context=None):
         if t and isinstance(tv,(int,float)) and tv>0:
             pct=round(100*svr,1) if isinstance(svr,(int,float)) and svr<=1.5 else (round(100*sv/tv,1) if isinstance(sv,(int,float)) else None)
             if pct is not None:
+                if z is None and t in zmap:
+                    mu,sd=zmap[t]
+                    z=round((pct/100.0-mu)/sd,2)
                 daily[t]={"short_pct":pct,"off_exch_vol":tv,"short_z":z}
     joined=0
     for r in rows:

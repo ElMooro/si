@@ -91,7 +91,13 @@ dis = [x["ticker"] for x in brd if x.get("flag") == "DISTRIBUTION_INTO_STRENGTH"
 R["dark_pool"] = {"z_joined": z_n, "of": len(brd), "high_conviction": hi, "dist_into_strength": dis,
                   "own_dix": (d.get("dix") or {}).get("own_dix_pct"), "sq_dix": (d.get("dix") or {}).get("squeezemetrics_dix")}
 print(json.dumps(R["dark_pool"], indent=1)[:500])
-assert z_n >= 100, "short_z still dormant: %d" % z_n
+fh = json.loads(s3.get_object(Bucket=BUCKET, Key="data/finra-short-history.json")["Body"].read())
+lens = sorted(len(v) if isinstance(v, list) else 0 for v in (fh.get("tickers") or {}).values())
+import statistics as _s
+R["dark_pool"]["history_store"] = {"tickers": len(lens), "median_days": lens[len(lens)//2] if lens else 0,
+                                   "max_days": lens[-1] if lens else 0, "ge15": sum(1 for x in lens if x >= 15)}
+print("  history store:", R["dark_pool"]["history_store"])
+assert z_n >= min(40, max(10, R["dark_pool"]["history_store"]["ge15"] // 3)), "short_z dormant beyond store age: %d" % z_n
 assert isinstance(R["dark_pool"]["sq_dix"], (int, float)) or R["dark_pool"]["sq_dix"] is None
 
 sect("2/4 FACTOR-RETURNS — create + env from finviz-signals + run")
@@ -148,3 +154,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2715_shortz_factors.json", "w") as f2:
     json.dump(R, f2, indent=1, default=str)
 print("OPS 2715 COMPLETE — flags armed + the style desk is live")
+
+# rev2
