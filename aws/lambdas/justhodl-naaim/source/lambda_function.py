@@ -40,7 +40,10 @@ def _parse_date(txt):
 
 
 def _xlsx_rows(blob):
-    """Minimal stdlib .xlsx reader -> list[list[str]] from sheet1."""
+    """Coordinate-aware stdlib .xlsx reader -> rectangular list[list]. v1 read
+    cells in document order, so omitted (empty) cells SHIFTED rows left and the
+    t="s" attribute often escaped the regex — headers never resolved and tail
+    rows misaligned (the 4.0 bug). Cells are now placed by their r="B7" address."""
     z = zipfile.ZipFile(io.BytesIO(blob))
     shared = []
     if "xl/sharedStrings.xml" in z.namelist():
@@ -50,18 +53,27 @@ def _xlsx_rows(blob):
     if not sheet:
         return []
     xml = z.read(sheet).decode("utf-8", "ignore")
+    grid = {}
+    for attrs, val in re.findall(r'<c\b([^>]*)>(?:(?:(?!</c>).)*?<v>(.*?)</v>)?.*?</c>', xml, re.S):
+        rm = re.search(r'r="([A-Z]+)(\d+)"', attrs)
+        if not rm or val is None or val == "":
+            continue
+        col = 0
+        for ch in rm.group(1):
+            col = col * 26 + (ord(ch) - 64)
+        col -= 1
+        rowno = int(rm.group(2))
+        if re.search(r't="s"', attrs):
+            try:
+                val = shared[int(val)]
+            except Exception:
+                pass
+        grid.setdefault(rowno, {})[col] = val
     rows = []
-    for rxml in re.findall(r"<row[^>]*>(.*?)</row>", xml, re.S):
-        row = []
-        for ctype, cv in re.findall(r'<c[^>]*?(?:t="(\w+)")?[^>]*>.*?<v>(.*?)</v>', rxml, re.S):
-            if ctype == "s":
-                try:
-                    cv = shared[int(cv)]
-                except Exception:
-                    pass
-            row.append(cv)
-        if row:
-            rows.append(row)
+    for rn in sorted(grid):
+        cells = grid[rn]
+        width = max(cells) + 1
+        rows.append([cells.get(j, "") for j in range(width)])
     return rows
 
 
@@ -161,11 +173,12 @@ def lambda_handler(event=None, context=None):
     # the "number is" phrase, a plausible value, and a date within the last
     # two weeks (never the future). The published history FILE is primary.
     latest_val = latest_date = None
-    m = re.search(r"number\s+is[^0-9\-]{0,60}?(-?\d{1,3}(?:\.\d{1,2})?)", html, re.I | re.S)
-    if m:
-        _v = float(m.group(1))
-        if 0 <= _v <= 200:
-            latest_val = _v
+    for _pat in (r"number\s+is[^0-9\-]{0,60}?(-?\d{1,3}(?:\.\d{1,2})?)",
+                 r"Exposure\s+Index[^<]{0,90}?(?:is|:)[^0-9\-]{0,40}?(-?\d{1,3}(?:\.\d{1,2})?)"):
+        m = re.search(_pat, html, re.I | re.S)
+        if m and 0 <= float(m.group(1)) <= 200:
+            latest_val = float(m.group(1))
+            break
     for dtxt in re.findall(r"([A-Z][a-z]+ \d{1,2}, \d{4})", html)[:6]:
         _d = _parse_date(dtxt)
         if _d and timedelta(days=-14) <= (datetime.fromisoformat(_d).date() - today) <= timedelta(days=1):
@@ -189,9 +202,27 @@ def lambda_handler(event=None, context=None):
         hist.update(file_hist)
     cutoff = (today + timedelta(days=2)).isoformat()
     hist = {d: v for d, v in hist.items() if d <= cutoff and -30 <= v <= 200}
+    # trim trailing footer/misaligned junk: newest rows wildly off the local level
+    latest_source = "file"
+    _trim = 0
+    while len(hist) > 20 and _trim < 4:
+        ds = sorted(hist)
+        tail = hist[ds[-1]]
+        ref = sorted(hist[d] for d in ds[-13:-1])[len(ds[-13:-1]) // 2]
+        if abs(tail - ref) > 50:
+            print("  trimmed junk tail row %s=%s (local median %s)" % (ds[-1], tail, ref))
+            del hist[ds[-1]]; _trim += 1
+        else:
+            break
     file_max = max(hist) if hist else None
     if latest_val is not None and latest_date and (file_max is None or latest_date > file_max):
         hist[latest_date] = latest_val
+        latest_source = "page"
+    elif latest_val is not None and file_max and abs(hist[file_max] - latest_val) > 25:
+        # page (phrase-gated) disagrees hard with file tail -> trust the page print
+        print("  page override: file tail %s=%s vs page %s" % (file_max, hist[file_max], latest_val))
+        hist[max(file_max, latest_date or file_max)] = latest_val
+        latest_source = "page_override"
     series = sorted(hist.items())
     if not series:
         raise RuntimeError("no NAAIM data parsed at all")
@@ -223,6 +254,7 @@ def lambda_handler(event=None, context=None):
            "avg_4w": round(statistics.fmean(vals[-4:]), 2),
            "pctile": pct, "z": z, "signal": sig, "state": state,
            "provisional": provisional, "history_n": n, "column_mode": col_note,
+           "latest_source": latest_source,
            "history": [{"date": d, "value": v} for d, v in series[-520:]]}
     s3.put_object(Bucket=BUCKET, Key=KEY, Body=json.dumps(doc, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")

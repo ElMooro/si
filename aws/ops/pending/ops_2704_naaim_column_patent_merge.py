@@ -1,4 +1,4 @@
-"""ops 2704 — close out the two data additions with verified-correct data.
+"""ops 2704 v2 (rerun after naaim v1.3 coordinate-aware xlsx fix) — close out the two data additions with verified-correct data.
 
 NAAIM v1.2: header/profile column selection (v1 ingested the MOST-BEARISH
 column — 4.0 vs true mean 98.59 on 2026-06-24, web-verified vs CEIC) +
@@ -86,6 +86,7 @@ R["naaim"] = {"value": v, "date": d, "z": nj.get("z"), "pctile": nj.get("pctile"
               "history_n": nj.get("history_n"), "column_mode": nj.get("column_mode"),
               "provisional": nj.get("provisional")}
 print("  ", json.dumps(R["naaim"]))
+print("  history tail:", json.dumps((nj.get("history") or [])[-3:]))
 assert isinstance(v, (int, float)) and 60 <= v <= 130, "value off vs known ~98.6: %s" % v
 dd = datetime.fromisoformat(d).date()
 assert timedelta(days=0) <= (today - dd) <= timedelta(days=12), "date implausible: %s" % d
