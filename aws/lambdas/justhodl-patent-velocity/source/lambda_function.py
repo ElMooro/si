@@ -244,7 +244,7 @@ def fetch_patents_for_assignees(assignee_names: list, days_back: int) -> list:
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                            "Accept": "application/json"})
-                with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                with urllib.request.urlopen(req, timeout=12) as r:  # ops 2704: fail fast into backoff; 20s+ stalls burned the run budget
                     body = r.read().decode("utf-8", "ignore")
                 mm = re.search(r'"total_num_results"\s*:\s*(\d+)', body)
                 return int(mm.group(1)) if mm else 0
@@ -332,8 +332,13 @@ def analyze_ticker(ticker: str, assignee_names: list) -> dict:
     recent_only_cpcs = set(recent_cpcs.keys()) - set(baseline_cpcs.keys())
     
     # Score 0-100
+    # ops 2704: significance floor — Google's exact-assignee-phrase counts are a
+    # CONSISTENT estimator (undercount cancels in the ratio) but tiny samples
+    # (GOOGL 4/90d style) make the ratio noise. Below the floor: no banding,
+    # flagged low_sample, neutral score.
+    low_sample = (n_recent + n_baseline) < 8
     score = 0
-    if velocity is not None:
+    if velocity is not None and not low_sample:
         if velocity >= 5:    score += 90
         elif velocity >= 3:  score += 70
         elif velocity >= 2:  score += 50
@@ -348,6 +353,8 @@ def analyze_ticker(ticker: str, assignee_names: list) -> dict:
     if len(recent_only_cpcs) >= 2:
         score += 10
     
+    if low_sample:
+        score = min(score, 10)
     score = max(0, min(100, score))
     
     # Thesis
@@ -368,6 +375,7 @@ def analyze_ticker(ticker: str, assignee_names: list) -> dict:
         "n_recent_patents":    n_recent,
         "n_baseline_patents": n_baseline,
         "velocity_ratio":      round(velocity, 2) if velocity is not None else None,
+        "low_sample":          low_sample,
         "top_cpcs_recent":     [{"cpc": c, "count": n}
                                   for c, n in recent_cpcs.most_common(5)],
         "new_cpcs":            sorted(recent_only_cpcs)[:5],
