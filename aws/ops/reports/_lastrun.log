@@ -1,14 +1,7 @@
 settling 30s…
-== truth prints: raw feed shapes ==
-  13f adds-list key='adds' row keys=['change', 'cusip', 'name', 'pct_of_portfolio', 'prior_value', 'resolved_name', 'share_type', 'shares', 'ticker', 'title', 'value_delta_pct', 'value_usd']
-  data/nyfed-primary-dealer.json -> An error occurred (NoSuchKey) when calling the GetObject ope
-  data/dealer-survey.json top=['fetch_duration_s', 'generated_at', 'history', 'last_check', 'last_check_status', 'latest_survey'] indicators=[]
-== deploy + run ==
-  deep-view risk_appetite: None (None until z-layer arms — expected)
-  footprint -> {"ok": true, "feeds_alive": 18, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -36.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 15, "exits": 15, "hi_conv": 15, "dis": 0, "conviction": 6}}
-  EQUITY ledger: {"lit_etf_5d_usd_m": -40063.7, "dark_daily_usd_m_est": 228579.1, "cftc_net_spec": 144383.75, "verdict": "SELLING"}
-  13F buys w/ $: [{'t': 'KO', 'usd_m': 30420.0}, {'t': 'GOOGL', 'usd_m': 15600.1}, {'t': 'NVDA', 'usd_m': 440.7}, {'t': 'CVX', 'usd_m': 417.0}, {'t': 'AMZN', 'usd_m': 914.0}]
-   VALUE_ABSENT_IN_FEED — adds/exits rows carry no $ field; enrich 13f-positions engine later
-  PD: {"net": null, "note": "feed absent"}
-  page: 200_no_marker
-OPS 2726 COMPLETE — ledger polished, every column truthful
+  latest_survey keys: ['discovered_at', 'fomc_date', 'note', 'source_url']
+  numeric sample: {}
+  PD: {"net": null, "note": "no net-position field in dealer feeds"}
+  13F $ confirm: [{"t": "KO", "usd_m": 30420.0}, {"t": "GOOGL", "usd_m": 15600.1}, {"t": "NVDA", "usd_m": 440.7}, {"t": "CVX", "usd_m": 417.0}]
+  page: LIVE
+OPS 2727 COMPLETE
