@@ -1,16 +1,5 @@
-== 1) S3 object truth (boto3) ==
-   {"exists": true, "bytes": 14330, "last_modified": "2026-07-02 14:30:09+00:00", "ctype": "application/json", "cache_control": "public, max-age=900", "top_keys": ["ai_dossier", "asset_classes", "asset_ledger", "conviction_moves", "dark_by_sector", "dark_pool_footprint", "engine", "feeds", "feeds_alive", "generated_at", "method", "posture"],
-== 2) HTTP chain ==
-  [domain] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
-  [s3-url] 200 ct=application/json cf=None | {"engine":"justhodl-institutional-footprint","version":"1.1.3","generated_at":"2026-07-02T14:30:08+00:00","feeds_alive":19,"feeds"
-  [workers.dev] 200 ct=application/json cf=None | {"engine":"justhodl-institutional-footprint","version":"1.1.3","generated_at":"2026-07-02T14:30:08+00:00","feeds_alive":19,"feeds"
-  [gfd-contrast] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
-== 3) deployed page vs repo ==
-  [page] 200 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"> <t
-   page bytes=9118 marker=True fetch-line=True
-== 4) remediation branches ==
-  -> domain serving error while S3 healthy: cache-busting re-put
-  [domain-after] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
-== 5) verdict ==
-  VERDICT: ROUTE_OR_CACHE_FAULT status=404 ct=text/html; charset=utf-8 cf=DYNAMIC
-OPS 2729 COMPLETE (diagnostic — verdict drives the fix)
+waiting 75s for deploy-workers + Pages builds…
+  attempt 1: {'footprint': 200, 'gfd': 200, 'capex': 200}
+  footprint live: {"version": "1.1.3", "has_posture": true, "risk_now": 27.4, "ledger_classes": 11}
+  page: {"status": 200, "marker": true, "fetch_rel": true}
+OPS 2730 COMPLETE — /data/* lives on the domain; the class is fixed

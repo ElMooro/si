@@ -1,0 +1,35 @@
+{
+ "ops": 2730,
+ "ts": "2026-07-02T15:02:37.125400+00:00",
+ "feeds": {
+  "footprint": {
+   "status": 200,
+   "ctype": "application/json",
+   "ok": true,
+   "head": "{\"engine\":\"justhodl-institutional-footprint\",\"version\":\"1.1.3\",\"generated_at\":\"2026-07-02T"
+  },
+  "gfd": {
+   "status": 200,
+   "ctype": "application/json",
+   "ok": true,
+   "head": "{\"engine\":\"justhodl-global-flow-desk\",\"version\":\"1.0.2\",\"generated_at\":\"2026-07-02T12:39:2"
+  },
+  "capex": {
+   "status": 200,
+   "ctype": "application/json",
+   "ok": true,
+   "head": "{\"engine\":\"justhodl-capex-pulse\",\"version\":\"1.1.0\",\"generated_at\":\"2026-07-02T12:39:28+00:"
+  }
+ },
+ "footprint_live": {
+  "version": "1.1.3",
+  "has_posture": true,
+  "risk_now": 27.4,
+  "ledger_classes": 11
+ },
+ "page": {
+  "status": 200,
+  "marker": true,
+  "fetch_rel": true
+ }
+}
