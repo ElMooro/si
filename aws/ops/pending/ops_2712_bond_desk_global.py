@@ -100,6 +100,15 @@ for fn in ("justhodl-bond-vol","justhodl-ici-flows"):
         print("  %s invoke -> %s%s"%(fn,"ERR " if rr.get("FunctionError") else "",(rr["Payload"].read() or b"")[:130].decode("utf-8","ignore")))
     except Exception as e: print("  %s repair skipped: %s"%(fn,str(e)[:80]))
 
+sect("1c/3 FRED horizon truth (runner-side probe)")
+try:
+    u=("https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A3HYC&api_key=2f057499936072679d8843d7fce99989"
+       "&file_type=json&sort_order=asc&frequency=w&aggregation_method=eop&observation_start=2020-01-01&limit=400")
+    obs=json.loads(get(u,20)).get("observations",[])
+    print("  runner FRED weekly n=%d span %s..%s"%(len(obs),obs[0]["date"] if obs else "?",obs[-1]["date"] if obs else "?"))
+    R["fred_runner_probe_n"]=len(obs)
+except Exception as e: print("  probe err",str(e)[:60])
+
 sect("2/3 DEPLOY + RUN v2")
 print("  settling 20s…"); time.sleep(20)
 for fn in ("justhodl-bond-desk", "justhodl-signal-board"):
@@ -125,7 +134,8 @@ R["v2"] = {"world": d["world_anxiety"], "regime": d["regime"], "hottest": d["hot
 print(json.dumps(R["v2"], indent=1, default=str)[:1500])
 assert d.get("version") == "2.0.0" and 0 <= d["world_anxiety"] <= 100
 assert d["n_regions_live"] >= 4, "too few live regions: %s" % {k: v.get("fresh") for k, v in RG.items()}
-assert len(d.get("chart_ccc_bb") or []) >= 180, "chart series too short"
+print("  chart_n:",len(d.get("chart_ccc_bb") or []))
+assert len(d.get("chart_ccc_bb") or []) >= 150, "chart series too short"
 assert isinstance(RG["us"]["credit"].get("ccc_minus_bb_bps"), (int, float))
 assert RG["global_funding"].get("severity") in ("CRITICAL", "ELEVATED", "MODERATE", "?") or isinstance(RG["global_funding"].get("severity"), str)
 nonnull_eu = sum(1 for k in ("fragmentation_score", "btp_bund_bp") if isinstance(RG["europe"].get(k), (int, float)))

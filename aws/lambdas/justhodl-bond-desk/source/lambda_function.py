@@ -168,6 +168,26 @@ def lambda_handler(event=None, context=None):
             print("[fredw]",series,str(e)[:60]); return {}
     cw,bw=_fred_w("BAMLH0A3HYC"),_fred_w("BAMLH0A1HYBB")
     chart=[{"date":d,"value":round(cw[d]*100-bw[d]*100,1)} for d in sorted(cw) if d in bw]
+    chart_src="fred_weekly(%d)"%len(chart)
+    if len(chart)<180:
+        # extend from OWNED credit-stress-history archive (values stored as %, ->bps)
+        csh=_s3json("data/credit-stress-history.json",{}) or {}
+        rows=[]
+        it=csh.items() if isinstance(csh,dict) else [( (r.get("date") or ""),r) for r in csh if isinstance(r,dict)]
+        for d,r in it:
+            v=_first(r,("ccc_minus_bb",)) if isinstance(r,dict) else None
+            if v is not None and len(str(d))>=10:
+                rows.append((str(d)[:10],round(v*100,1) if abs(v)<50 else round(v,1)))
+        rows.sort()
+        wk=None; hist_pts=[]
+        for d,v in rows:
+            key="%d-%02d"%datetime.strptime(d,"%Y-%m-%d").isocalendar()[:2]
+            if key!=wk: hist_pts.append({"date":d,"value":v}); wk=key
+        have={p["date"] for p in chart}
+        merged=sorted(hist_pts+[p for p in chart if p["date"] not in {h["date"] for h in hist_pts}],
+                      key=lambda p:p["date"])
+        if len(merged)>len(chart): chart=merged; chart_src+="+cs_history(%d)"%len(hist_pts)
+    print("[desk] chart source:",chart_src,"n=",len(chart))
     us_credit={"source":"justhodl-credit-stress (ICE BofA ladder)" if cs else "FRED",
                "ccc_minus_bb_bps":_bps(_first(cs,("ccc_minus_bb",))) or micro.get("ccc_bb_bps"),
                "hy_minus_ig_bps":_bps(_first(cs,("hy_minus_ig",))),
