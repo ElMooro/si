@@ -15,7 +15,7 @@
   engine synced
 
 ======== 3/4 RUN + PROVE (async + poll — 46 screens ~3-4 min) ========
-  landed after 162s
+  landed after 161s
 {
  "quality_momo_n": 60,
  "quality_gap_n": 50,
@@ -29,8 +29,8 @@
   "TL_SUPPORT": 4
  },
  "coiled_row_has_new_fields": true,
- "new_reason_picks": 0,
- "picks_total": 45,
+ "new_reason_picks": 13,
+ "picks_total": 58,
  "momo_top3": [
   [
    "SNDK",
@@ -60,9 +60,8 @@
   ]
  ]
 }
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2705_finviz_field_fusion.py", line 107, in <module>
-    assert R["after"]["new_reason_picks"] >= 5, "new pick tiers absent"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: new pick tiers absent
-❌ OPS-FAIL: aws/ops/pending/ops_2705_finviz_field_fusion.py
+
+======== 4/4 REPORT ========
+  wrote aws/ops/reports/2705_finviz_field_fusion.json
+
+OPS 2705 COMPLETE — paid-for fields now working
