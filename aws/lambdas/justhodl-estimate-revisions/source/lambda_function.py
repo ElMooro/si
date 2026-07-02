@@ -211,6 +211,20 @@ def lambda_handler(event=None, context=None):
                   "revenue_confirms": s["revenue_confirms"]} for s in picks]
 
     status = "LIVE" if (len(fmp) > 0 or n_with_history >= 30) else "WARMING"
+    # direction_map over ALL enriched rows (strength_rows), not the raw calendar:
+    # prefer recent revision, then baseline revision, then strength-derived tilt.
+    direction_map = {}
+    for _r in strength_rows:
+        _t = _r.get("ticker")
+        if not _t: continue
+        _v = _r.get("eps_rev_recent_pct")
+        if _v is None: _v = _r.get("eps_rev_pct")
+        if _v is None:
+            _st = _r.get("estimate_strength")
+            _v = (_st - 50) / 5.0 if isinstance(_st, (int, float)) else None
+        if _v is None: continue
+        direction_map[_t] = "UP" if _v > 0.5 else "DOWN" if _v < -0.5 else "FLAT"
+
     out = {
         "engine": "justhodl-estimate-revisions", "version": "2.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(), "status": status,
@@ -219,7 +233,7 @@ def lambda_handler(event=None, context=None):
                   "daily snapshots (true revision deltas that accrue). estimate_strength "
                   "works immediately; revision deltas refine it over time.",
         "horizon_days": HORIZON_DAYS, "n_tracked": len(rows),
-        "direction_map": (lambda _dm={}: ([_dm.update({r["ticker"]: ("UP" if v > 0.5 else "DOWN" if v < -0.5 else "FLAT")}) for r in rows if r.get("ticker") for v in [next((x for x in (r.get("eps_rev_recent"), r.get("eps_rev_pct"), (lambda st: (st - 50) / 5 if isinstance(st, (int, float)) else None)(r.get("estimate_strength"))) if x is not None), None)] if v is not None], _dm.update({s0.get("ticker"): s0.get("direction") for s0 in signals if s0.get("ticker") and s0.get("direction")}), _dm)[-1])(),
+        "direction_map": direction_map,
         "n_fmp_enriched": len(fmp), "n_with_history": n_with_history, "n_state_keys": len(live),
         "estimate_strength_leaders": strength_leaders,
         "upward_revisions": up[:40], "downward_revisions": down[:30],

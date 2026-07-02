@@ -95,8 +95,9 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2717_join_deepening.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2717 COMPLETE — X-Ray joins at institutional depth")
-# rev5 1782971926
 
-# rev6
 
-# rev7
+
+
+
+# rev-b 1782972503
