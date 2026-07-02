@@ -55,10 +55,7 @@ def retry(call, what, tries=6):
     raise RuntimeError(what)
 
 sect("1/3 ICI SEED v3 — browser-header workbooks via engine's own parsers")
-sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source")
-sys.path.insert(0, "aws/lambdas/justhodl-term-premium/source")   # vendored xlrd lives here
-sys.path.insert(0, "aws/shared")
-import lambda_function as ici
+sys.path.insert(0, "aws/lambdas/justhodl-term-premium/source")   # vendored xlrd package
 import xlrd
 def parse_series(blob, label=""):
     """ICI workbook (BIFF .xls or xlsx) -> {iso_date: last_numeric_in_row}."""
@@ -66,10 +63,7 @@ def parse_series(blob, label=""):
     magic = blob[:4]
     print("   [%s] magic=%r len=%d" % (label, magic, len(blob)))
     rows = []
-    if magic[:2] == b"PK":
-        try: rows = ici._xlsx_rows(blob)
-        except Exception as e: print("   xlsx err:", str(e)[:70])
-    else:
+    if magic[:2] != b"PK":
         try:
             bk = xlrd.open_workbook(file_contents=blob)
             for sh in bk.sheets():
@@ -89,11 +83,11 @@ def parse_series(blob, label=""):
     for row in rows:
         d = None; nums = []
         for c in row:
-            if isinstance(c, str) and len(c) == 10 and c[4] == "-" and not d and c >= "2015-01-01":
+            if isinstance(c, str) and len(c) == 10 and c[4:5] == "-" and not d and c >= "2015-01-01":
                 d = c
-            v = ici._num(c)
-            if v is not None: nums.append(v)
-        if d and nums: out[d] = nums[-1]
+            if isinstance(c, (int, float)): nums.append(float(c))
+        if d and nums:
+            out[d] = round(max(nums) / 1000.0, 1)   # TNA $millions (>> fund count) -> billions
     return out
 mmf_hist = {}
 for u in ("https://www.ici.org/mm_summary_data_2024.xls",
