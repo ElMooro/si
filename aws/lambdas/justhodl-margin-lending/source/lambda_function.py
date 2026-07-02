@@ -507,25 +507,65 @@ def lambda_handler(event, context):
 
     hf_layer = _ofr_hf_layer()
 
+    # spec-ETF (ops 2708 precise): radar complexes carry bull/bear leveraged 5d
+    # flows explicitly — no z is precomputed for the LEVERAGED slice, so we
+    # accumulate our own daily net-tilt history and z it (provisional < 40 obs).
     etf_layer = {"status": "UNAVAILABLE"}
     radar = get_s3_json("data/capital-flow-radar.json", {}) or {}
-    lp = radar.get("leveraged_positioning")
-    if lp is not None:
-        nets = _deep_nums(lp, ("net",))
-        zs = _deep_nums(lp, ("z",))
-        etf_layer = {"status": "OK", "net_sum": round(sum(nets), 1) if nets else None,
-                     "n_complexes": len(nets), "avg_z": round(_st.fmean(zs), 2) if zs else None,
-                     "note": "fleet capital-flow-radar leveraged bull-minus-bear positioning"}
+    cx = radar.get("complexes") or []
+    rows = [(c.get("complex") or c.get("name") or "?",
+             (c.get("bull_lev_flow_5d") or 0) - (c.get("bear_lev_flow_5d") or 0))
+            for c in cx if isinstance(c, dict)
+            and (c.get("bull_lev_flow_5d") is not None or c.get("bear_lev_flow_5d") is not None)]
+    if rows:
+        net = round(sum(v for _, v in rows), 0)
+        pos_share = round(100 * sum(1 for _, v in rows if v > 0) / len(rows), 1)
+        hist_key = "data/history/lev-etf-tilt.json"
+        th = get_s3_json(hist_key, {}) or {}
+        th[datetime.now(timezone.utc).strftime("%Y-%m-%d")] = net
+        th = dict(sorted(th.items())[-400:])
+        put_s3_json(hist_key, th)
+        tv = [v for _, v in sorted(th.items())]
+        tz = round((net - _st.fmean(tv)) / _st.pstdev(tv), 2) if len(tv) >= 40 and _st.pstdev(tv) else None
+        top3 = sorted(rows, key=lambda x: -abs(x[1]))[:3]
+        etf_layer = {"status": "OK", "net_lev_5d_usd": net, "pct_complexes_bull": pos_share,
+                     "n_complexes": len(rows), "tilt_z": tz, "tilt_history_n": len(tv),
+                     "provisional": len(tv) < 40,
+                     "top3": [{"complex": n, "net_5d_usd": round(v, 0)} for n, v in top3],
+                     "note": "bull-minus-bear leveraged 5d ETF flow per complex (capital-flow-radar); z from own accumulated daily tilt history"}
+    elif radar.get("leveraged_positioning") is not None:
+        nets = _deep_nums(radar.get("leveraged_positioning"), ("net",))
+        etf_layer = {"status": "OK", "net_lev_5d_usd": round(sum(nets), 0) if nets else None,
+                     "n_complexes": len(nets), "tilt_z": None,
+                     "note": "fallback deep-scan of leveraged_positioning board"}
 
+    # crypto (ops 2708 precise): crypto-funding rows are per-asset OKX perps
+    # with funding_z_score + oi_usd; aggregate across all asset rows and label
+    # the OI scope honestly (OKX perps, not all-exchange).
     cr_layer = {"status": "UNAVAILABLE"}
     cf = get_s3_json("data/crypto-funding.json", {}) or {}
-    fz = _deep_nums(cf, ("funding_z",))
-    oi = _deep_nums(cf, ("oi_usd",))
-    if fz or oi:
-        cr_layer = {"status": "OK",
+    def _asset_rows(doc):
+        out = []
+        stack = [doc]
+        while stack:
+            d = stack.pop()
+            if isinstance(d, dict):
+                if "funding_z_score" in d or "oi_usd" in d:
+                    out.append(d)
+                else:
+                    stack.extend(d.values())
+            elif isinstance(d, list):
+                stack.extend(d[:120])
+        return out
+    ar = _asset_rows(cf)
+    fz = [r["funding_z_score"] for r in ar if isinstance(r.get("funding_z_score"), (int, float))]
+    oi = [r["oi_usd"] for r in ar if isinstance(r.get("oi_usd"), (int, float))]
+    if ar:
+        cr_layer = {"status": "OK", "assets_n": len(ar),
                     "funding_z_med": round(_st.median(fz), 2) if fz else None,
-                    "oi_usd_total_b": round(sum(oi) / 1e9, 1) if oi else None,
-                    "note": "fleet crypto-funding: perp funding z (crowding) + aggregate OI"}
+                    "funding_z_max": round(max(fz), 2) if fz else None,
+                    "okx_perp_oi_usd_b": round(sum(oi) / 1e9, 1) if oi else None,
+                    "note": "per-asset OKX perp rows from crypto-funding: median/max funding z (crowding) + summed OI (OKX scope)"}
 
     comps = []
     if finra.get("yoy_z") is not None:
@@ -536,8 +576,8 @@ def lambda_handler(event, context):
         comps.append((0.25, _clamp_z(-nfci_z)))          # building = negative NFCI = +leverage
     if isinstance(hf_layer.get("latest"), (int, float)):
         comps.append((0.15, 0.0))                          # level w/o history: neutral until series accumulates
-    if etf_layer.get("avg_z") is not None:
-        comps.append((0.15, _clamp_z(etf_layer["avg_z"])))
+    if etf_layer.get("tilt_z") is not None:
+        comps.append((0.15, _clamp_z(etf_layer["tilt_z"])))
     if cr_layer.get("funding_z_med") is not None:
         comps.append((0.15, _clamp_z(cr_layer["funding_z_med"])))
     tw = sum(w for w, _ in comps) or 1.0
