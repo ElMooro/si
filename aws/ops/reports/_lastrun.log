@@ -36,6 +36,7 @@
   NOTE: coverage ramps to ~40 as true-flows snapshots accrue (new bond-ladder tickers need 1-2 daily closes for 5d flows)
 
 ======== 3/5 REBALANCE RADAR — create + run + prove (T+1 of Q2-end) ========
+  purged cached event study (force 11y recompute)
   ensured justhodl-rebalance-radar + justhodl-rebalance-daily
   invoke -> {"ok": true, "in_window": true, "rotation_risk": false, "severity": "NONE"}
 {
@@ -49,15 +50,15 @@
   "window_anchor": "2026-06-30",
   "window_def": "T-5..T+3 business days around quarter-end"
  },
- "n_quarters": 20,
+ "n_quarters": 45,
  "es_spy_tail": {
-  "T-3": -0.211,
-  "T-2": -0.133,
-  "T-1": 0.008,
-  "T+0": 0.026,
-  "T+1": 0.275,
-  "T+2": 0.212,
-  "T+3": -0.313
+  "T-3": 0.32,
+  "T-2": -0.154,
+  "T-1": 0.057,
+  "T+0": 0.194,
+  "T+1": 0.115,
+  "T+2": 0.156,
+  "T+3": 0.074
  },
  "legs": {
   "ai_semis_5d_usd": -17736293851.0,
@@ -100,10 +101,13 @@
   "flag": false,
   "severity": "NONE",
   "evidence": [
-   "Inside T-5..T+3 b
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 142, in <module>
-    assert ES["n_quarters"] >= 28 and len(ES["assets"]) >= 6
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_2711_bond_desk_rebalance.py
+   "Inside T-5..T+3 busi
+
+======== 4/5 BOARD + PAGES ========
+  board: {"engine": "Bond Desk", "category": "rates", "signal": -1, "signal_label": "RISK-OFF", "read": "BOND DESK 62 ANXIOUS (credit +0.5B/5d)", "as_of": "2026-07-02T02:59:10+00:00", "stale": false}
+  board: {"engine": "Rebalance Window", "category": "flow", "signal": 0, "signal_label": "NEUTRAL", "read": "Rebalance window OPEN (T-64 vs 2026-06-30) \u2014 no rotation signature", "as_of": "2026-07-02T02:59:26+00:00"
+  bond-desk LIVE
+  rebalance-radar LIVE
+
+======== 5/5 REPORT ========
+OPS 2711 COMPLETE — FI flow desk + Q-end rotation regime live

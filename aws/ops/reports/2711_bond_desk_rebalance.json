@@ -1,0 +1,102 @@
+{
+ "ops": 2711,
+ "ts": "2026-07-02T02:58:14.146804+00:00",
+ "probes": "ok",
+ "bond_desk": {
+  "anxiety": 61.8,
+  "regime": "ANXIOUS",
+  "matched": 17,
+  "duration_tilt": 0.818,
+  "credit_appetite_5d_b": 0.5,
+  "eq_to_bond_5d_b": 31.16,
+  "ccc_bb": {
+   "ccc_bb_bps": 806.0,
+   "pctile": 99.6,
+   "d21_bps": 22.0,
+   "read": "junk-within-junk WIDENING"
+  },
+  "xchk": {
+   "bond_vol_regime": "NORMAL",
+   "bond_vol_pctile": null,
+   "auction_regime": "CALM",
+   "fails_pctile": 59.1,
+   "acm_tp10_d21_bps": -20.3
+  },
+  "equity_read": "BONDS FLASH ANXIETY FOR EQUITIES: Credit appetite positive ($0.5B risk-credit vs govvies 5d) \u00b7 CCC-BB 806bps (p100, \u039421d +22) \u2014 junk-within-junk WIDENING \u00b7 Duration tilt +0.82 (extending) \u00b7 Equity\u2192bond rotation $31.2B/5d"
+ },
+ "rebalance": {
+  "calendar": {
+   "today": "2026-07-02",
+   "quarter_end": "2026-09-30",
+   "prev_quarter_end": "2026-06-30",
+   "bdays_to_qtr_end": 64,
+   "bdays_since_prev_qtr_end": 2,
+   "in_rebalance_window": true,
+   "window_anchor": "2026-06-30",
+   "window_def": "T-5..T+3 business days around quarter-end"
+  },
+  "n_quarters": 45,
+  "es_spy_tail": {
+   "T-3": 0.32,
+   "T-2": -0.154,
+   "T-1": 0.057,
+   "T+0": 0.194,
+   "T+1": 0.115,
+   "T+2": 0.156,
+   "T+3": 0.074
+  },
+  "legs": {
+   "ai_semis_5d_usd": -17736293851.0,
+   "bonds_5d_usd": 990209699.0,
+   "crypto_5d_usd": -2070665615.0,
+   "gold_5d_usd": -2188322940.0
+  },
+  "n_complexes": 46,
+  "top_outflows": [
+   {
+    "complex": "S&P 500 Broad",
+    "net_flow_5d_usd": -16773917759.0,
+    "price_5d_pct": 1.71,
+    "qtd_vs_spy_pp": 0.0,
+    "classification": null
+   },
+   {
+    "complex": "Mega-Cap Tech (FANG+)",
+    "net_flow_5d_usd": -10769267253.0,
+    "price_5d_pct": 2.05,
+    "qtd_vs_spy_pp": null,
+    "classification": null
+   },
+   {
+    "complex": "Technology",
+    "net_flow_5d_usd": -10407845325.0,
+    "price_5d_pct": 1.4,
+    "qtd_vs_spy_pp": 10.3,
+    "classification": "MECHANICAL_CONFIRMED_SELL"
+   },
+   {
+    "complex": "Nasdaq Broad",
+    "net_flow_5d_usd": -10103817038.0,
+    "price_5d_pct": 2.05,
+    "qtd_vs_spy_pp": 10.3,
+    "classification": "MECHANICAL_CONFIRMED_SELL"
+   }
+  ],
+  "rotation": {
+   "flag": false,
+   "severity": "NONE",
+   "evidence": [
+    "Inside T-5..T+3 business days around quarter-end window (anchor 2026-06-30)",
+    "Crypto leg 5d: $-2.07B "
+   ]
+  }
+ },
+ "board": {
+  "Bond Desk": "{\"engine\": \"Bond Desk\", \"category\": \"rates\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"read\": \"BOND DESK 62 ANXIOUS (credit +0.5B/5d)\", \"as_of\": \"2026-07-02T02:59:10+00:00\", \"stale\": false}",
+  "Rebalance Window": "{\"engine\": \"Rebalance Window\", \"category\": \"flow\", \"signal\": 0, \"signal_label\": \"NEUTRAL\", \"read\": \"Rebalance window OPEN (T-64 vs 2026-06-30) \\u2014 no rotation signature\", \"as_of\": \"2026-07-02T02:59:26+00:00\""
+ },
+ "pages": {
+  "bond-desk": "LIVE",
+  "rebalance-radar": "LIVE"
+ }
+}
