@@ -1,23 +1,68 @@
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
-== 1/5 DEPLOY (naaim v1.2, put-call-extreme, patent-velocity) ==
-  settling 25s for parallel deploy-lambdas…
-  synced justhodl-naaim
-  synced justhodl-put-call-extreme
-  synced justhodl-patent-velocity
-== 2/5 FIRE PATENT ASYNC (longest leg first) ==
-  triggered (will poll after fast proofs; engine budget 640s)
-== 3/5 NAAIM v1.2 PROOF (expect ~98.6 EUPHORIC per CEIC cross-check) ==
-  invoke -> {"ok": true, "value": 98.59, "n": 1042, "state": "EUPHORIC", "provisional": false}
-   {"value": 98.59, "date": "2026-06-24", "z": 1.25, "pctile": 93.8, "state": "EUPHORIC", "signal": -1, "history_n": 1042, "column_mode": "header:NAAIM Number", "provisional": false}
-  history tail: [{"date": "2026-06-10", "value": 79.27}, {"date": "2026-06-17", "value": 92.83}, {"date": "2026-06-24", "value": 98.59}]
-== 4/5 FUSION PROOF ==
-  composite: {"naaim_component": {"id": "NAAIM_EXPOSURE", "ok": true, "cadence": "weekly", "latest_date": "2026-06-24", "latest_value": 98.59, "z_raw": 1.25, "z_stress": -1.25, "flipped": true, "weight_base": 1.0, "freshness_mult": 1.0, "effective_weight": 1.0, "lookback": 260, "days_old": 8, "n_history": 1042, "provisional": false}, "n_total": 6, "composite_z": -0.057, "state": "NEUTRAL"}
-  board: {"engine": "NAAIM Positioning", "category": "sentiment", "signal": -1, "signal_label": "RISK-OFF", "read": "NAAIM 99 EUPHORIC", "as_of": "2026-07-02T00:12:06+00:00", "stale": false}
-== 5/5 PATENT LANDING (poll) ==
-  landed after 183s
-   {"coverage": {"fresh_this_run": 16, "total": 16, "universe": 76}, "cursor": 54, "n_results": 16, "duration_s": 654.4, "total_recent_grants": 295, "spikes": 0, "top_picks_n": 0, "top5": [{"t": "GOOGL", "s": 15, "v": 1.22, "n90": 4}, {"t": "META", "s": 15, "v": 0.76, "n90": 4}, {"t": "TSLA", "s": 15, "v": 0.76, "n90": 2}, {"t": "QCOM", "s": 5, "v": 0.29, "n90": 105}, {"t": "AAPL", "s": 0, "v": 0.27, "n90": 38}]}
-  fired one extra rotation batch async (cursor 54 ->)
-  wrote aws/ops/reports/2704_naaim_patent_close.json
 
-OPS 2704 COMPLETE — both additions live on verified-real data
+======== 1/4 FIELD COVERAGE IN LIVE UNIVERSE (are the idle columns actually populated?) ========
+  n=11397
+  insider_trans_pct     5398 non-null
+  inst_trans_pct        5060 non-null
+  eps_growth_qoq        5387 non-null
+  sales_growth_qoq      4790 non-null
+  perf_y                9599 non-null
+  off_50d_high_pct     11370 non-null
+  target_price          4649 non-null
+  analyst_recom         4599 non-null
+
+======== 2/4 DEPLOY v2.1 ========
+  settling 30s for parallel deploy-lambdas…
+  engine synced
+
+======== 3/4 RUN + PROVE (async + poll — 46 screens ~3-4 min) ========
+  landed after 162s
+{
+ "quality_momo_n": 60,
+ "quality_gap_n": 50,
+ "smart_accum_n": 6,
+ "coil_tag_counts": {
+  "HORIZONTAL_SR": 82,
+  "INST_ACCUMULATING": 70,
+  "TIGHT_50D": 93,
+  "INSIDER_BUYING_6M": 11,
+  "HORIZONTAL_SR_STRONG": 7,
+  "TL_SUPPORT": 4
+ },
+ "coiled_row_has_new_fields": true,
+ "new_reason_picks": 0,
+ "picks_total": 45,
+ "momo_top3": [
+  [
+   "SNDK",
+   4404.7
+  ],
+  [
+   "AXTI",
+   3176.0
+  ],
+  [
+   "ABVX",
+   1628.3
+  ]
+ ],
+ "gap_top3": [
+  [
+   "VKTX",
+   151.6
+  ],
+  [
+   "NKTR",
+   138.0
+  ],
+  [
+   "BCRX",
+   125.9
+  ]
+ ]
+}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2705_finviz_field_fusion.py", line 107, in <module>
+    assert R["after"]["new_reason_picks"] >= 5, "new pick tiers absent"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: new pick tiers absent
+❌ OPS-FAIL: aws/ops/pending/ops_2705_finviz_field_fusion.py
