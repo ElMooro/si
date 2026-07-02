@@ -105,6 +105,9 @@ def _clean_brief(txt):
     if len(t) > 700: t = t[:700]
     if t and not t.rstrip().endswith((".", "!", "?")):
         t = t.rsplit(".", 1)[0] + "." if "." in t else ""
+    if (not t[:1].isalpha() or not t[:1].isupper()
+            or chr(34) in t or "[" in t or "]" in t):   # positive gate: finished analyst prose only
+        return None
     return t if 90 <= len(t) <= 720 else None
 
 
