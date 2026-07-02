@@ -53,46 +53,37 @@ def retry(call, what, tries=6):
             else: raise
     raise RuntimeError(what)
 
-sect("A/4 FINRA MONTHLY — self-discover spec")
-spec = {}
-try:
-    st, body = http("https://api.finra.org/metadata/group/otcMarket/name/monthlySummary")
-    meta = json.loads(body)
-    fields = [f.get("name") for f in (meta.get("fields") or meta if isinstance(meta, list) else [])]
-    fields = [f for f in fields if f]
-    print("  metadata fields:", fields[:18])
-except Exception as e:
-    fields = []; print("  metadata GET failed:", str(e)[:80])
-st, body = http("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
-                data=json.dumps({"limit": 60}).encode(), hdr={"Content-Type": "application/json"})
-rows = json.loads(body)
-assert isinstance(rows, list) and rows, "unfiltered monthly POST failed"
-keys = sorted(rows[0].keys())
-codes = sorted({r.get("summaryTypeCode") for r in rows if r.get("summaryTypeCode")})
-print("  row keys:", keys)
-print("  codes seen:", codes)
-ats_code = next((c for c in codes if "ATS" in c and ("SMBL" in c or "SYM" in c.upper())), None)
-if not ats_code:
-    for cand in ("ATS_M_SMBL", "MONTHLY_ATS_SMBL", "ATS_SMBL_M"):
-        try:
-            st2, b2 = http("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
-                           data=json.dumps({"limit": 3, "compareFilters": [{"compareType": "EQUAL",
-                                            "fieldName": "summaryTypeCode", "fieldValue": cand}]}).encode(),
-                           hdr={"Content-Type": "application/json"})
-            if json.loads(b2): ats_code = cand; break
-        except Exception: pass
-assert ats_code, "no ATS symbol-level monthly code discoverable: %s" % codes
-qty_field = next((k for k in keys if "ShareQuantity" in k and "total" in k.lower()),
-                 next((k for k in keys if "Quantity" in k), None))
-date_field = next((k for k in keys if "monthStart" in k or ("month" in k.lower() and "date" in k.lower())),
-                  next((k for k in keys if "Date" in k), None))
-sym_field = next((k for k in keys if "Symbol" in k), "issueSymbolIdentifier")
-spec = {"ats_code": ats_code, "qty_field": qty_field, "date_field": date_field, "sym_field": sym_field,
-        "discovered": datetime.now(timezone.utc).isoformat(), "all_codes": codes}
+sect("A/4 FINRA MONTHLY — firm-level discovery + spec v2")
+MURL = "https://api.finra.org/data/group/otcMarket/name/monthlySummary"
+codes_live = []
+for cand in ("OTC_M_SMBL_FIRM", "ATS_M_SMBL_FIRM"):
+    try:
+        st, b2 = http(MURL, data=json.dumps({"limit": 3, "compareFilters": [{"compareType": "EQUAL",
+                       "fieldName": "summaryTypeCode", "fieldValue": cand}]}).encode(),
+                      hdr={"Content-Type": "application/json"})
+        if json.loads(b2): codes_live.append(cand)
+    except Exception as e:
+        print("  ", cand, "->", str(e)[:60])
+print("  codes live:", codes_live)
+assert codes_live, "no firm-level monthly codes respond"
+st, b3 = http(MURL, data=json.dumps({"limit": 40, "compareFilters": [{"compareType": "EQUAL",
+               "fieldName": "summaryTypeCode", "fieldValue": codes_live[0]}],
+               "domainFilters": [{"fieldName": "issueSymbolIdentifier",
+                                  "values": ["AAPL", "NVDA", "TSLA", "MSFT", "AMD"]}]}).encode(),
+              hdr={"Content-Type": "application/json"})
+drows = json.loads(b3)
+print("  domainFilters probe rows:", len(drows), "| sample:",
+      {k: drows[0].get(k) for k in ("issueSymbolIdentifier", "marketParticipantName",
+                                    "totalMonthlyShareQuantity", "monthStartDate")} if drows else "EMPTY")
+assert drows, "domainFilters unsupported"
+spec = {"codes": codes_live, "qty_field": "totalMonthlyShareQuantity",
+        "notional_field": "totalNotionalSum", "date_field": "monthStartDate",
+        "sym_field": "issueSymbolIdentifier", "firm_field": "marketParticipantName",
+        "discovered": datetime.now(timezone.utc).isoformat()}
 s3.put_object(Bucket=BUCKET, Key="data/config/finra-monthly-spec.json",
               Body=json.dumps(spec).encode(), ContentType="application/json")
 R["finra_spec"] = spec
-print("  SPEC:", json.dumps(spec))
+print("  SPEC v2:", json.dumps(spec))
 
 sect("B/4 QUIVER OFF-EXCHANGE — verdict")
 try:
@@ -147,7 +138,10 @@ MO = d.get("monthly_ats") or {}
 R["monthly_live"] = {k: MO.get(k) for k in ("status", "month", "n_rows", "joined")}
 print("  monthly:", json.dumps(R["monthly_live"]))
 assert MO.get("status") == "OK" and (MO.get("joined") or 0) >= 200, "monthly fusion failed: %s" % R["monthly_live"]
-assert d.get("version") == "2.3.0"
+sm = MO.get("share_map") or {}
+R["monthly_sample"] = {t: sm[t] for t in list(sm)[:3]}
+print("  concentration sample:", json.dumps(R["monthly_sample"], default=str)[:300])
+assert d.get("version") == "2.4.0"
 r = lam.invoke(FunctionName="justhodl-ici-flows", InvocationType="RequestResponse")
 pay = json.loads(r["Payload"].read() or b"{}")
 print("  ici invoke ->", json.dumps(pay)[:200])

@@ -325,31 +325,54 @@ def lambda_handler(event=None, context=None):
                "history":[{"date":k,"value":v} for k,v in sorted(own_hist.items())][-260:],
                "method":"$vol-weighted (1 - short%%) across daily FINRA regsho TRF tape (%d names) — own DIX-style proxy, no third-party dependency"%len(daily)}
 
-    # ═══ v2.3 LAYER M — FINRA MONTHLY ATS, spec-driven (ops-discovered via metadata) ═══
+    # ═══ v2.4 LAYER M — FINRA MONTHLY (FIRM×SYMBOL: wholesaler concentration) ═══
+    # Discovery (ops 2719): the monthly dataset is firm-level (OTC_M_SMBL_FIRM /
+    # ATS_M_SMBL_FIRM) with totalMonthlyShareQuantity + totalNotionalSum per
+    # market participant per symbol — i.e. WHO internalizes each name and how
+    # concentrated. Aggregated per symbol into share/top-firm/concentration.
     monthly={"status":"UNAVAILABLE"}
     spec=_get_json("data/config/finra-monthly-spec.json") or {}
-    if spec.get("ats_code"):
+    if spec.get("codes"):
         try:
-            mb={"limit":6000,
-                "compareFilters":[{"compareType":"EQUAL","fieldName":"summaryTypeCode",
-                                   "fieldValue":spec["ats_code"]}]}
-            mreq=urllib.request.Request(FINRA.replace("weeklySummary","monthlySummary"),
-                  data=json.dumps(mb).encode(),
-                  headers={**UA,"Content-Type":"application/json","Accept":"application/json"})
-            with urllib.request.urlopen(mreq,timeout=40) as r:
-                mrows=json.loads(r.read())
-            qf,df,sf=spec.get("qty_field"),spec.get("date_field"),spec.get("sym_field","issueSymbolIdentifier")
-            want={r0["ticker"] for r0 in rows}
+            qf=spec.get("qty_field","totalMonthlyShareQuantity")
+            nf=spec.get("notional_field","totalNotionalSum")
+            df=spec.get("date_field","monthStartDate")
+            sf=spec.get("sym_field","issueSymbolIdentifier")
+            ff=spec.get("firm_field","marketParticipantName")
+            want=sorted({r0["ticker"] for r0 in rows})
+            agg={}; mo=None
+            murl=FINRA.replace("weeklySummary","monthlySummary")
+            for code in spec["codes"]:
+                for i0 in range(0,len(want),200):
+                    chunk=want[i0:i0+200]
+                    mb={"limit":12000,
+                        "compareFilters":[{"compareType":"EQUAL","fieldName":"summaryTypeCode","fieldValue":code}],
+                        "domainFilters":[{"fieldName":sf,"values":chunk}]}
+                    mreq=urllib.request.Request(murl,data=json.dumps(mb).encode(),
+                          headers={**UA,"Content-Type":"application/json","Accept":"application/json"})
+                    with urllib.request.urlopen(mreq,timeout=45) as r:
+                        mrows=json.loads(r.read())
+                    for m0 in (mrows if isinstance(mrows,list) else []):
+                        t=(m0.get(sf) or "").upper(); q=m0.get(qf)
+                        if not t or q is None: continue
+                        mo=mo or m0.get(df)
+                        e=agg.setdefault(t,{"sh":0,"ntl":0.0,"firms":{}})
+                        e["sh"]+=q; e["ntl"]+=(m0.get(nf) or 0)
+                        fm=m0.get(ff) or "?"
+                        e["firms"][fm]=e["firms"].get(fm,0)+q
+                    time.sleep(0.25)
             smap={}
-            mo=None
-            for m0 in (mrows if isinstance(mrows,list) else []):
-                t=(m0.get(sf) or "").upper()
-                if t in want and m0.get(qf) is not None:
-                    smap[t]=m0.get(qf); mo=mo or m0.get(df)
-            monthly={"status":"OK","month":mo,"n_rows":len(mrows) if isinstance(mrows,list) else 0,
-                     "share_map":smap,"joined":len(smap),"spec":spec}
+            for t,e in agg.items():
+                if not e["sh"]: continue
+                topf,topq=max(e["firms"].items(),key=lambda kv:kv[1])
+                smap[t]={"sh":e["sh"],"ntl":round(e["ntl"]/1e6,1),
+                         "top_firm":topf[:28],"top_pct":round(100*topq/e["sh"],1),
+                         "n_firms":len(e["firms"])}
+            monthly={"status":"OK","month":mo,"joined":len(smap),"share_map":smap,
+                     "codes":spec["codes"],
+                     "note":"firm-level internalization: per-name monthly off-exch shares, $ notional, top wholesaler + concentration"}
         except Exception as e:
-            monthly={"status":"ERR","err":str(e)[:100],"spec":spec}
+            monthly={"status":"ERR","err":str(e)[:110],"spec":spec}
     # ═══ v2.3 QUIVER OFF-EXCHANGE — gated enrichment (flips on when token exists) ═══
     qcfg=_get_json("data/config/quiver-offexchange.json") or {}
     if qcfg.get("enabled"):
