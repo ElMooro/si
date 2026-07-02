@@ -92,6 +92,24 @@ R["dark_pool"] = {"z_joined": z_n, "of": len(brd), "high_conviction": hi, "dist_
                   "own_dix": (d.get("dix") or {}).get("own_dix_pct"), "sq_dix": (d.get("dix") or {}).get("squeezemetrics_dix")}
 print(json.dumps(R["dark_pool"], indent=1)[:500])
 fh = json.loads(s3.get_object(Bucket=BUCKET, Key="data/finra-short-history.json")["Body"].read())
+tk0 = next(iter((fh.get("tickers") or {}).items()), ("?", None))
+print("  store sample:", tk0[0], type(tk0[1]).__name__,
+      repr(tk0[1][:3] if isinstance(tk0[1], list) else (list(tk0[1].items())[:3] if isinstance(tk0[1], dict) else tk0[1]))[:260])
+def _rep_svr(rec):
+    if isinstance(rec, list):
+        out = []
+        for x in rec:
+            if isinstance(x, (int, float)): out.append(float(x))
+            elif isinstance(x, dict):
+                v = x.get("svr") if isinstance(x.get("svr"), (int, float)) else x.get("svr_pct")
+                if isinstance(v, (int, float)): out.append(v)
+        return out
+    if isinstance(rec, dict):
+        for k in ("svr", "svr_history", "series", "values"):
+            if isinstance(rec.get(k), list): return _rep_svr(rec[k])
+    return []
+rep_ok = sum(1 for v in (fh.get("tickers") or {}).values() if len(_rep_svr(v)) >= 15)
+print("  ops-side extraction: names with >=15 svr obs =", rep_ok)
 lens = sorted(len(v) if isinstance(v, list) else 0 for v in (fh.get("tickers") or {}).values())
 import statistics as _s
 R["dark_pool"]["history_store"] = {"tickers": len(lens), "median_days": lens[len(lens)//2] if lens else 0,
@@ -156,3 +174,5 @@ with open("aws/ops/reports/2715_shortz_factors.json", "w") as f2:
 print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 
 # rev2
+
+# rev3
