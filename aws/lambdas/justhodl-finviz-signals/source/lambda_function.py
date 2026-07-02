@@ -456,10 +456,30 @@ def lambda_handler(event, context):
     for tk in confluence["bear_break"]:            pick(tk, 74, "short", "lost 200-DMA + top-loser tape")
     for tk in confluence["top_overbought"]:        pick(tk, 72, "short", "top pattern + overbought RSI")
     for tk in sorted(_tks("death_cross"))[:25]:    pick(tk, 70, "short", "death cross — 50-DMA under 200-DMA")
-    for c in smart_accum[:12]:                     pick(c["ticker"], 80, "long", "coiled + institutions & insiders net-accumulating (FinViz 3m/6m trans)")
-    for r in momo[:15]:                            pick(r["ticker"], 68, "long", "12-1 momentum leader (+%.0f%% ex-recent)" % r["momo_12_1"])
-    for g in gaps[:10]:                            pick(g["ticker"], 64, "long", "%.0f%% to consensus target, Buy-rated, above 200-DMA" % g["target_upside_pct"])
-    top_picks = sorted(picks.values(), key=lambda x: -x["score"])[:45]
+    # ops 2705 quality tiers get RESERVED representation: without it the 45-cap
+    # lets incumbent 70-92 tiers crowd out new families before the harvester can
+    # ever grade them — measure-before-trust requires the measurements to exist.
+    extra = []
+    for c in smart_accum[:12]:
+        u = uni.get(c["ticker"]) or {}
+        extra.append({"ticker": c["ticker"], "score": 80, "direction": "long",
+                      "reason": "coiled + institutions & insiders net-accumulating (FinViz 3m/6m trans)",
+                      "price": c.get("price"), "sector": c.get("sector")})
+    for r in momo[:15]:
+        extra.append({"ticker": r["ticker"], "score": 68, "direction": "long",
+                      "reason": "12-1 momentum leader (+%.0f%% ex-recent)" % r["momo_12_1"],
+                      "price": r.get("price"), "sector": r.get("sector")})
+    for g in gaps[:10]:
+        extra.append({"ticker": g["ticker"], "score": 64, "direction": "long",
+                      "reason": "%.0f%% to consensus target, Buy-rated, above 200-DMA" % g["target_upside_pct"],
+                      "price": g.get("price"), "sector": g.get("sector")})
+    main = sorted(picks.values(), key=lambda x: -x["score"])[:45]
+    have = {p["ticker"] for p in main}
+    for p in sorted(extra, key=lambda x: -x["score"]):
+        if p["ticker"] not in have and len(main) < 58:
+            main.append(p)
+            have.add(p["ticker"])
+    top_picks = sorted(main, key=lambda x: -x["score"])
 
     doc = {
         "schema": "2.0",

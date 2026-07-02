@@ -104,7 +104,7 @@ print(json.dumps(R["after"], indent=1)[:900])
 assert R["after"]["quality_momo_n"] >= 20, "momo board thin"
 assert R["after"]["quality_gap_n"] >= 5, "consensus-gap board thin"
 assert R["after"]["coiled_row_has_new_fields"], "coil rows missing fused fields"
-assert R["after"]["new_reason_picks"] >= 5, "new pick tiers absent"
+assert R["after"]["new_reason_picks"] >= 6, "new pick tiers absent (reserved slots should guarantee representation)"
 assert any(k in coil_tags for k in ("INST_ACCUMULATING", "INSIDER_BUYING_6M", "TIGHT_50D", "UPSIDE_25")), "no fusion tags fired"
 
 sect("4/4 REPORT")
