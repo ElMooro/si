@@ -69,6 +69,17 @@ except Exception as e:
     R["ici_seed_v2"] = {"ok": False, "err": str(e)[:180]}
 print("  ici v2:", json.dumps(R["ici_seed_v2"])[:260])
 sys.path = sys.path[2:]; sys.modules.pop("lambda_function", None)
+# decisive parse map: every data-file href on the live mmf release page
+try:
+    rq = urllib.request.Request("https://www.ici.org/research/stats/mmf",
+                                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+    with urllib.request.urlopen(rq, timeout=25) as r:
+        _b = r.read().decode("utf-8", "ignore")
+    _h = [h for h in re.findall(r'href="([^"]+)"', _b) if any(x in h.lower() for x in (".xls", ".csv", "/files/", "download"))]
+    R["ici_mmf_data_hrefs"] = _h[:20]
+except Exception as e:
+    R["ici_mmf_data_hrefs"] = ["ERR " + str(e)[:60]]
+print("  mmf data hrefs:", json.dumps(R["ici_mmf_data_hrefs"])[:420])
 
 sect("2/3 DEPLOY dark-pool monthly fix + verify latest-month")
 print("  settling 30s…"); time.sleep(30)
@@ -94,3 +105,5 @@ with open("aws/ops/reports/2719_diag.json", "w") as f:
 print("OPS 2719 COMPLETE")
 
 # rev2
+
+# rev3

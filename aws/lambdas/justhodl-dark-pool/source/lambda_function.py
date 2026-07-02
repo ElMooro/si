@@ -341,12 +341,23 @@ def lambda_handler(event=None, context=None):
             typf=next((k for k in keys if "typecode" in k.lower() or "summarytype" in k.lower()),None)
             datf=next((k for k in keys if "date" in k.lower() or "month" in k.lower()),None)
             body={"limit":5000}
-            if datf: body["sortFields"]=["-"+datf]   # newest first
             if typf:
                 body["compareFilters"]=[{"compareType":"EQUAL","fieldName":typf,"fieldValue":"ATS_M_SMBL"}]
-            try: mrows=_fq(body)
-            except Exception:
-                body.pop("compareFilters",None); mrows=_fq(body)
+            from datetime import timedelta as _td
+            start=(datetime.now(timezone.utc)-_td(days=70)).strftime("%Y-%m-%d")
+            attempts=[]
+            if datf:
+                attempts.append({**body,"dateRangeFilters":[{"fieldName":datf,"startDate":start}]})
+            attempts.append(dict(body))
+            attempts.append({"limit":5000})
+            mrows=None; _err=""
+            for _b in attempts:
+                try:
+                    mrows=_fq(_b)
+                    if isinstance(mrows,list) and mrows: break
+                except Exception as _e:
+                    _err=str(_e)[:60]; mrows=None
+            if mrows is None: raise RuntimeError(_err or "all attempts empty")
             if isinstance(mrows,list) and mrows and symf:
                 latest=max((str(r0.get(datf) or "") for r0 in mrows), default="") if datf else ""
                 mrows=[r0 for r0 in mrows if not datf or str(r0.get(datf) or "")==latest]
