@@ -133,16 +133,41 @@ def lambda_handler(event=None, context=None):
     if tide_pct is not None: inst_parts.append(max(-100, min(100, (tide_pct - 50) * 2.2)))
     inst = round(st.fmean(inst_parts), 1) if inst_parts else None
     aaii = _j("data/aaii-sentiment.json", {}) or _j("data/aaii.json", {}) or {}
+    def _aaii_spread(doc, d=0):
+        if d > 3 or not isinstance(doc, (dict, list)): return None
+        if isinstance(doc, dict):
+            b, r_ = _num(doc.get("bullish") or doc.get("bull")), _num(doc.get("bearish") or doc.get("bear"))
+            if b is not None and r_ is not None: return b - r_
+            for v in doc.values():
+                got = _aaii_spread(v, d + 1)
+                if got is not None: return got
+        else:
+            for v in doc[-3:]:
+                got = _aaii_spread(v, d + 1)
+                if got is not None: return got
+        return None
     bb = None
-    for k in ("bull_bear_spread", "spread", "bull_minus_bear"):
-        if _num(aaii.get(k)) is not None: bb = aaii[k]; break
+    bb = _aaii_spread(aaii)
     if bb is None:
         b, r_ = _num(aaii.get("bullish") or aaii.get("bull")), _num(aaii.get("bearish") or aaii.get("bear"))
         if b is not None and r_ is not None: bb = b - r_
     stbl = _j("data/stablecoin-flow.json", {}) or {}
     st7 = None
-    for k in ("net_7d_usd", "mint_7d_usd", "net_flow_7d"):
-        if _num(stbl.get(k)) is not None: st7 = stbl[k]; break
+    def _st7(doc, d=0):
+        if d > 3: return None
+        if isinstance(doc, dict):
+            for k, v in doc.items():
+                if "delta_7d" in k or "net_7d" in k or "mint_7d" in k:
+                    n_ = _num(v)
+                    if n_ is not None: return n_
+            for v in doc.values():
+                got = _st7(v, d + 1)
+                if got is not None: return got
+        elif isinstance(doc, list):
+            tot = [x for x in (_num((it or {}).get("delta_7d")) for it in doc if isinstance(it, dict)) if x is not None]
+            if tot: return sum(tot)
+        return None
+    st7 = _st7(stbl)
     ret_parts = []
     if bb is not None: ret_parts.append(max(-100, min(100, bb * 3)))
     if st7 is not None: ret_parts.append(max(-100, min(100, st7 / 2e8)))
@@ -181,9 +206,15 @@ def lambda_handler(event=None, context=None):
         usd_first = sym.upper().startswith("USD")
         fx_mom[c] = -mom if usd_first else mom      # ccy strength = money toward country
     countries = {}
+    src_counts = {"true_flows": 0, "etf_global": 0}
+    warming = []
     for t, c in CTRY.items():
-        rec = tfm.get(t) or fmap_daily.get(t)
-        if not rec: continue
+        r1, r2 = tfm.get(t), fmap_daily.get(t)
+        rec = None
+        if r1 and flow_of(r1) is not None: rec = r1; src_counts["true_flows"] += 1
+        elif r2 and flow_of(r2) is not None: rec = r2; src_counts["etf_global"] += 1
+        if not rec:
+            warming.append(t); continue
         v = flow_of(rec)
         if v is None: continue
         e = countries.setdefault(c, {"etf_5d_usd_m": 0.0, "etfs": []})
@@ -199,7 +230,11 @@ def lambda_handler(event=None, context=None):
     hot = {"countries": {c: e for c, e in ctry_rank},
            "top_inflows": [c for c, e in ctry_rank[:5]],
            "top_outflows": [c for c, e in ctry_rank[-5:]][::-1],
-           "n_scored": len(countries)}
+           "n_scored": len(countries),
+           "src_counts": src_counts,
+           "warming_etfs": warming,
+           "warming_note": ("%d country ETFs added to true-flows on 2026-07-01 accrue 5d "
+                            "shares-history through the week; map self-completes." % len(warming)) if warming else None}
 
     # ── capex impulse (best-effort) ──
     sps = _j("data/structural-pre-signals.json", {}) or _j("data/structural-presignals.json", {}) or {}
@@ -222,7 +257,7 @@ def lambda_handler(event=None, context=None):
         brief = complete(prompt, tier="reason", max_tokens=220)
     except Exception as e:
         brief = None
-    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.0",
+    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.1",
            "generated_at": now.isoformat(timespec="seconds"),
            "asset_classes": classes, "sectors": sectors, "inst_vs_retail": inst_retail,
            "hot_money": hot, "capex": capex, "ai_brief": brief,

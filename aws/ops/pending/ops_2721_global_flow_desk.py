@@ -81,7 +81,12 @@ R["ai"] = bool(d.get("ai_brief"))
 R["ctry_sample"] = {c: HOT["countries"][c] for c in list(HOT["countries"])[:3]}
 print(json.dumps({k: R[k] for k in ("populated_classes", "hot", "inst_retail", "sectors", "ai")}, default=str)[:800])
 assert R["populated_classes"] >= 9, "class ladder thin: %s" % R["classes"]
-assert HOT["n_scored"] >= 12, "country map thin: %d" % HOT["n_scored"]
+print("  src_counts:", HOT.get("src_counts"), "| warming:", len(HOT.get("warming_etfs") or []), HOT.get("warming_etfs"))
+assert HOT["n_scored"] >= 6, "country map thin: %d" % HOT["n_scored"]
+assert HOT["n_scored"] + len(HOT.get("warming_etfs") or []) >= 20, "silent country loss: scored %d + warming %d" % (HOT["n_scored"], len(HOT.get("warming_etfs") or []))
+IR = d.get("inst_vs_retail") or {}
+print("  inst_retail v2:", json.dumps(IR, default=str)[:220])
+assert IR.get("retail") is not None or IR.get("aaii_spread") is None, "retail leg still null with aaii present"
 assert len(SEC["ranked"]) >= 9, "sector ranking thin"
 assert IR.get("institutional") is not None, "institutional composite missing"
 retry(lambda: (wait_ok("justhodl-signal-board"), lam.update_function_code(FunctionName="justhodl-signal-board", ZipFile=zip_fn("justhodl-signal-board")))[-1], "board")
@@ -104,3 +109,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2721_global_flow_desk.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2721 COMPLETE — the desk knows where money is going")
+
+# rev2
