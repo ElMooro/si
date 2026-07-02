@@ -1,0 +1,207 @@
+{
+ "ops": 2723,
+ "ts": "2026-07-02T12:38:30.160528+00:00",
+ "fx_converted": [
+  [
+   "TSM",
+   "TWD",
+   40.65,
+   "FMP USDTWD"
+  ],
+  [
+   "ASML",
+   "EUR",
+   2.47,
+   "FRED DEXUSEU"
+  ],
+  [
+   "RY",
+   "CAD",
+   1.51,
+   "FRED DEXCAUS"
+  ],
+  [
+   "BABA",
+   "CNY",
+   18.52,
+   "FRED DEXCHUS"
+  ],
+  [
+   "MUFG",
+   "JPY",
+   2.02,
+   "FRED DEXJPUS"
+  ],
+  [
+   "TD",
+   "CAD",
+   1.67,
+   "FRED DEXCAUS"
+  ],
+  [
+   "SAN",
+   "EUR",
+   3.8,
+   "FRED DEXUSEU"
+  ],
+  [
+   "TM",
+   "JPY",
+   30.92,
+   "FRED DEXJPUS"
+  ],
+  [
+   "SAP",
+   "EUR",
+   0.92,
+   "FRED DEXUSEU"
+  ],
+  [
+   "NVO",
+   "DKK",
+   13.42,
+   "FMP USDDKK"
+  ],
+  [
+   "SMFG",
+   "JPY",
+   1.21,
+   "FRED DEXJPUS"
+  ],
+  [
+   "BBVA",
+   "EUR",
+   1.76,
+   "FRED DEXUSEU"
+  ],
+  [
+   "UL",
+   "EUR",
+   3.64,
+   "FRED DEXUSEU"
+  ],
+  [
+   "HDB",
+   "INR",
+   0.43,
+   "FRED DEXINUS"
+  ],
+  [
+   "BTI",
+   "GBP",
+   1.53,
+   "FRED DEXUSUK"
+  ],
+  [
+   "BMO",
+   "CAD",
+   1.24,
+   "FRED DEXCAUS"
+  ],
+  [
+   "MFG",
+   "JPY",
+   0.63,
+   "FRED DEXJPUS"
+  ],
+  [
+   "ENB",
+   "CAD",
+   9.03,
+   "FRED DEXCAUS"
+  ],
+  [
+   "SONY",
+   "JPY",
+   2.84,
+   "FRED DEXJPUS"
+  ],
+  [
+   "BNS",
+   "CAD",
+   0.41,
+   "FRED DEXCAUS"
+  ],
+  [
+   "CM",
+   "CAD",
+   0.87,
+   "FRED DEXCAUS"
+  ],
+  [
+   "GSK",
+   "GBP",
+   2.73,
+   "FRED DEXUSUK"
+  ],
+  [
+   "SBS",
+   "BRL",
+   0.81,
+   "FRED DEXBZUS"
+  ],
+  [
+   "SNY",
+   "EUR",
+   3.08,
+   "FRED DEXUSEU"
+  ]
+ ],
+ "excluded": [],
+ "market": {
+  "capex_ttm_b": 1176.3,
+  "yoy_pct": 33.6,
+  "universe": "top-160 mcap (stock-xray) + hyperscalers"
+ },
+ "hyp": {
+  "total_ttm_b": 508.0,
+  "yoy_pct": 73.5
+ },
+ "TSM": {
+  "ticker": "TSM",
+  "sector": "Technology",
+  "capex_ttm_b": 40.65,
+  "yoy_pct": 17.0,
+  "mc_b": 2303.99,
+  "intensity_pct": 1.76,
+  "asof": "2026-03-31",
+  "fx": {
+   "ccy": "TWD",
+   "usd_per_ccy": 0.031393,
+   "src": "FMP USDTWD"
+  }
+ },
+ "TM": {
+  "ticker": "TM",
+  "sector": "Consumer Cyclical",
+  "capex_ttm_b": 30.92,
+  "yoy_pct": 38.4,
+  "mc_b": 200.9,
+  "intensity_pct": 15.39,
+  "asof": "2026-03-31",
+  "fx": {
+   "ccy": "JPY",
+   "usd_per_ccy": 0.006185,
+   "src": "FRED DEXJPUS"
+  }
+ },
+ "gfd_capex": {
+  "status": "OK",
+  "source": "capex-pulse",
+  "market_ttm_b": 1176.3,
+  "market_yoy_pct": 33.6,
+  "hyperscalers_ttm_b": 508.0,
+  "hyperscalers_yoy_pct": 73.5,
+  "top_sector": {
+   "name": "Real Estate",
+   "yoy_pct": 59.4
+  },
+  "top_accelerators": [
+   "SBS",
+   "ORCL",
+   "ARM",
+   "BA",
+   "MU"
+  ]
+ }
+}
