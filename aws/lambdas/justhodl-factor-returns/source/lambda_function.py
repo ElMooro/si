@@ -53,12 +53,19 @@ def lambda_handler(event=None, context=None):
         print("[fv] EXPORT EMPTY:",export_err)
         return {"ok":False,"universe":0,"export_err":export_err}
     print("[fv] universe rows",len(uni))
-    recs=[]
+    recs=[]; drops={"na":0,"px":0,"mc":0,"vol":0}
     for t,r in uni.items():
-        px=r.get("price"); vol=r.get("volume") or r.get("avg_volume"); mc=r.get("market_cap")
+        px=r.get("price"); mc=r.get("market_cap")
+        vol=r.get("volume")
+        if not vol and r.get("avg_volume"): vol=r["avg_volume"]*1000.0   # AvgVol is THOUSANDS
         chg=r.get("change_pct") if r.get("change_pct") is not None else r.get("change")
-        if not (px and vol and mc) or chg is None: continue
-        if px<3 or mc<3e8 or vol<2e5: continue
+        mc_usd=(mc*1e6) if (mc and mc<5e6) else mc                       # Market Cap is $MILLIONS
+        if not (px and vol and mc_usd) or chg is None:
+            drops["na"]+=1; continue
+        if px<3: drops["px"]+=1; continue
+        if mc_usd<3e8: drops["mc"]+=1; continue
+        if vol<2e5: drops["vol"]+=1; continue
+        mc=mc_usd
         if (r.get("asset_type") or "").upper()=="ETF": continue
         pe=r.get("pe"); pb=r.get("pb")
         roe=r.get("roe")
@@ -73,7 +80,7 @@ def lambda_handler(event=None, context=None):
                      "size":-math.log(mc),
                      "lowvol":-volm if volm else None})
     n=len(recs)
-    print("[fv] investable universe",n)
+    print("[fv] investable universe",n,"drops",drops)
     zpe=_z([r["val_pe"] for r in recs]); zpb=_z([r["val_pb"] for r in recs])
     for r in recs:
         a=(r["val_pe"]-zpe["mu"])/zpe["sd"] if r["val_pe"] is not None and zpe else None
@@ -137,4 +144,4 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET,Key=OUT,Body=json.dumps(doc,separators=(",",":")).encode(),
                   ContentType="application/json",CacheControl="public, max-age=1800")
     print("[factors]",{k:v.get("ls_ret_1d_pct") for k,v in ok.items()},"| regime:",regime["read"],"| %.0fs"%(time.time()-t0))
-    return {"ok":True,"universe":n,"factors":{k:v.get("ls_ret_1d_pct") for k,v in ok.items()},"regime":regime["read"]}
+    return {"ok":True,"drops":drops,"universe":n,"factors":{k:v.get("ls_ret_1d_pct") for k,v in ok.items()},"regime":regime["read"]}
