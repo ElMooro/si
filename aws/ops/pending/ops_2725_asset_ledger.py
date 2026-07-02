@@ -47,9 +47,9 @@ print("== 1/3 CFTC deep-view fix ==")
 retry(lambda: (wait_ok("justhodl-cftc-deep-view"), lam.update_function_code(FunctionName="justhodl-cftc-deep-view", ZipFile=zip_fn("justhodl-cftc-deep-view")))[-1], "cftc")
 wait_ok("justhodl-cftc-deep-view")
 r = lam.invoke(FunctionName="justhodl-cftc-deep-view", InvocationType="RequestResponse")
-head = (r["Payload"].read() or b"")[:160].decode("utf-8", "ignore")
-print("  cftc ->", ("ERR " if r.get("FunctionError") else "") + head)
-assert not r.get("FunctionError"), head
+full = (r["Payload"].read() or b"").decode("utf-8", "ignore")
+print("  cftc ->", ("ERR " if r.get("FunctionError") else "") + full[:900])
+assert not r.get("FunctionError"), full[:400]
 c = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cftc-deep-view.json")["Body"].read())
 R["cftc"] = {"top_keys": sorted(c.keys())[:10]}
 print("  cftc feed keys:", R["cftc"]["top_keys"])
@@ -95,3 +95,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2725_asset_ledger.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
+
+# rev2 fullstack
