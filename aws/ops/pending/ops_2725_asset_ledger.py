@@ -46,6 +46,19 @@ print("settling 30s…"); time.sleep(30)
 print("== 1/3 CFTC deep-view fix ==")
 retry(lambda: (wait_ok("justhodl-cftc-deep-view"), lam.update_function_code(FunctionName="justhodl-cftc-deep-view", ZipFile=zip_fn("justhodl-cftc-deep-view")))[-1], "cftc")
 wait_ok("justhodl-cftc-deep-view")
+try:
+    _cc = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cftc-all-cache.json")["Body"].read())
+    print("  CACHE top keys:", sorted(map(str, _cc.keys()))[:16])
+    for _k, _v in list(_cc.items())[:4]:
+        if isinstance(_v, dict):
+            print("   sample %r -> dict keys %s" % (_k, sorted(map(str, _v.keys()))[:8]))
+        elif isinstance(_v, list):
+            print("   sample %r -> list[%d] first=%s" % (_k, len(_v),
+                  sorted((_v[0] or {}).keys())[:8] if _v and isinstance(_v[0], dict) else type(_v[0]).__name__ if _v else "-"))
+        else:
+            print("   sample %r -> %s %s" % (_k, type(_v).__name__, str(_v)[:40]))
+except Exception as e:
+    print("  CACHE read err:", str(e)[:90])
 cfg = lam.get_function_configuration(FunctionName="justhodl-cftc-deep-view")
 print("  deployed sha:", cfg.get("CodeSha256", "")[:20], "| handler:", cfg.get("Handler"),
       "| modified:", str(cfg.get("LastModified"))[:19])
@@ -113,3 +126,5 @@ print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 # rev3 frame-dump
 
 # rev4 shape-aware
+
+# rev5 cache-truth

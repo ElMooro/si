@@ -200,6 +200,15 @@ def compute_zscore(value, history):
 
 def analyze_contract(symbol, contract_meta, history):
     """Run the 5-layer analysis on one contract."""
+    if isinstance(history, dict):
+        # dict-wrapped series: {"records": [...]} / {"history": [...]} / {"weekly": [...]}
+        for _k in ("records", "history", "rows", "data", "weekly", "series", "observations"):
+            if isinstance(history.get(_k), list):
+                history = history[_k]
+                break
+        else:
+            _lists = [v for v in history.values() if isinstance(v, list) and v]
+            history = _lists[0] if _lists else None
     if not history or not isinstance(history, list):
         return None
 
@@ -381,9 +390,11 @@ def lambda_handler(event=None, context=None):
             break
     if contracts_data is None:
         # Alternate shape: top-level keys are contract symbols
+        _META = {"meta", "contract_metadata", "metadata", "generated_at", "engine",
+                 "version", "methodology", "academic_basis", "smart_money_map",
+                 "duration_seconds", "n_contracts", "contracts", "updated_at", "as_of"}
         contracts_data = {k: v for k, v in cache.items()
-                           if isinstance(v, (list, dict)) and str(k)[:1].isalpha()
-                           and k not in ("meta", "contract_metadata", "generated_at", "engine", "version")}
+                           if isinstance(v, (list, dict)) and str(k) not in _META}
     _cm = None
     for _k in ("contract_metadata", "meta", "metadata"):
         _v = cache.get(_k)
