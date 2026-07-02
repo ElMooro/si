@@ -66,8 +66,12 @@ def _token():
 def _get(url, tok, timeout=30):
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + tok,
                                                "User-Agent": "JustHodl/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as he:
+        body = (he.read() or b"")[:180].decode("utf-8", "ignore")
+        raise RuntimeError("HTTP %s %s :: %s" % (he.code, url.split("?")[0][-60:], body))
 
 def _series(spec_m, tok, frm=None, limit=1000):
     q = dict(spec_m["params"]); q["limit"] = str(limit)
