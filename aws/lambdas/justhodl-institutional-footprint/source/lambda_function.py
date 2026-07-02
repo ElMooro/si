@@ -85,6 +85,23 @@ def _tick_list(doc, subs, depth=0, out=None):
 def _clip(v, lo=-100, hi=100):
     return max(lo, min(hi, v))
 
+def _clean_brief(txt):
+    """Reason-tier models sometimes emit their planning scaffold. Contract:
+    a short analyst paragraph, plain prose, sentence-complete, <=700 chars."""
+    if not txt: return None
+    t = str(txt).strip()
+    if any(k in t[:200] for k in ("Analyze the Request", "**Data provided", "Let me ", "First,")):
+        paras = [p.strip() for p in t.replace("\r", "").split("\n\n") if len(p.strip()) >= 80]
+        paras = [p for p in paras if "**" not in p[:6] and not p.lstrip().startswith(("1.", "2.", "-", "*"))]
+        t = paras[-1] if paras else ""
+    t = t.replace("**", "").replace("##", "").strip()
+    if len(t) > 700:
+        t = t[:700]
+    if t and not t.rstrip().endswith((".", "!", "?")):
+        t = t.rsplit(".", 1)[0] + "." if "." in t else ""
+    return t if len(t) >= 90 and len(t) <= 720 else None
+
+
 def lambda_handler(event=None, context=None):
     F = {k: _j(k, {}) or {} for k in (
         "data/13f-positions.json", "data/13f-aggregate.json", "data/13f-price-divergence.json",
@@ -337,8 +354,7 @@ def lambda_handler(event=None, context=None):
                      [s0["complex"] for s0 in sectors["buying"][:3]], [s0["complex"] for s0 in sectors["selling"][:3]],
                      cftc_smart, own_dix, adds[:4], exits[:4], tail, gex))
         brief = complete(prompt, tier="reason", max_tokens=440)
-        if brief and not brief.rstrip().endswith((".", "!", "?")):
-            brief = brief.rsplit(".", 1)[0] + "." if "." in brief else None
+        brief = _clean_brief(brief)
     except Exception:
         brief = None
     if not brief or len(brief) < 90:
