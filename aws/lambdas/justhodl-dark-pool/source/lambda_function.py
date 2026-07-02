@@ -366,7 +366,8 @@ def lambda_handler(event=None, context=None):
                     t=str(r0.get(symf) or "").upper()
                     q=r0.get(qtyf) if qtyf else None
                     if t and isinstance(q,(int,float)): blk[t]=blk.get(t,0)+q
-                monthly={"status":"OK","n_symbols":len(blk),
+                _mm=str((mrows[0].get(datf) if datf else "") or "")
+                monthly={"status":("OK" if _mm>="2026-01" else "OK_ARCHIVAL"),"n_symbols":len(blk),
                          "month":(mrows[0].get(datf) if datf else None),
                          "fields":{"symbol":symf,"qty":qtyf,"type":typf,"date":datf},
                          "top_block_share":sorted(blk.items(),key=lambda kv:-kv[1])[:15]}
