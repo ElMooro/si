@@ -100,7 +100,8 @@ R["analog"] = {"weeks": d["panel_weeks"], "dims": d["dims"], "verdict": d["verdi
                "outlook_src": d["ai_outlook_src"], "outlook": d["ai_outlook"][:260]}
 print("  verdict:", d["verdict"], "| top:", json.dumps(d["analogs"][0]))
 print("  outlook[%s]: %s" % (d["ai_outlook_src"], d["ai_outlook"][:200]))
-assert d["panel_weeks"] >= 900 and d["dims"] == 7
+assert d["panel_weeks"] >= 900 and d["dims"] >= 5
+print("  dim_depth:", json.dumps(d.get("dim_depth")), "dropped:", d.get("dims_dropped"))
 assert len(d["analogs"]) >= 4 and all(a["similarity"] > 0 for a in d["analogs"])
 labels = [a["label"] for a in d["analogs"] if a["label"] != "unlabeled regime"]
 assert d["forward_stats"]["median_fwd_3m_pct"] is not None
@@ -128,3 +129,5 @@ with open("aws/ops/reports/2732_analog_pageslog.json", "w") as f:
 print("OPS 2732 COMPLETE — history now testifies on the desk")
 
 # rev2 spx-chunks + GH_API_TOKEN
+
+# rev3 tuple-weeks

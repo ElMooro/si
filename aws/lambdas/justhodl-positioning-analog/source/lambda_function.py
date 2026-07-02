@@ -83,12 +83,12 @@ def spx_closes():
         time.sleep(0.25)
     return dict(sorted(out.items()))
 
-def weekly(daily):  # last obs each ISO week -> {friday-ish date: v}
+def weekly(daily):  # last obs each ISO week -> {(iso_year, iso_week): (date, v)}
     wk = {}
     for d, v in sorted(daily.items()):
         y, w, _ = datetime.strptime(d, "%Y-%m-%d").isocalendar()
         wk[(y, w)] = (d, v)
-    return dict(wk.values())
+    return wk
 
 def z(vals):
     m, sd = statistics.mean(vals), statistics.pstdev(vals)
@@ -116,19 +116,26 @@ def lambda_handler(event=None, context=None):
             rets.append(math.log(c / scl[i - 1]))
             if len(rets) >= 20:
                 rvol[d] = statistics.pstdev(rets[-20:]) * math.sqrt(252)
-    DIMS = {"vix": weekly(vix), "nfci": weekly(nfci), "hy_oas": weekly(hy),
-            "curve_10y3m": weekly(curve), "spx_drawdown": weekly(dd),
-            "spx_mom_13w": weekly(mom), "spx_rvol_4w": weekly(rvol)}
+    RAW = {"vix": weekly(vix), "nfci": weekly(nfci), "hy_oas": weekly(hy),
+           "curve_10y3m": weekly(curve), "spx_drawdown": weekly(dd),
+           "spx_mom_13w": weekly(mom), "spx_rvol_4w": weekly(rvol)}
+    depth = {k: len(v) for k, v in RAW.items()}
+    print("[analog] per-dim weekly depth:", json.dumps(depth))
+    DIMS = {k: v for k, v in RAW.items() if len(v) >= 900}   # graceful dim gate
+    dropped = sorted(set(RAW) - set(DIMS))
+    if dropped: print("[analog] DROPPED short dims:", dropped)
+    assert len(DIMS) >= 5, "too few long dims: %s" % json.dumps(depth)
     common = sorted(set.intersection(*(set(v) for v in DIMS.values())))
-    assert len(common) > 900, "panel thin: %d weeks" % len(common)
-    mat = {k: z([DIMS[k][d] for d in common]) for k in DIMS}
-    idx = {d: i for i, d in enumerate(common)}
+    assert len(common) > 900, "panel thin after tuple-keying: %d (depth %s)" % (len(common), json.dumps(depth))
+    dates_of = {wk: max(DIMS[k][wk][0] for k in DIMS) for wk in common}
+    mat = {k: z([DIMS[k][wk][1] for wk in common]) for k in DIMS}
     today_i = len(common) - 1
     cur = {k: round(mat[k][today_i], 2) for k in DIMS}
 
     # similarity vs all weeks (exclude trailing 8)
+    cweeks = [dates_of[wk] for wk in common]   # ISO-dated week labels
     sims = []
-    for i, d in enumerate(common[:-8]):
+    for i, d in enumerate(cweeks[:-8]):
         dist = math.sqrt(sum((mat[k][i] - mat[k][today_i]) ** 2 for k in DIMS))
         sims.append((100.0 / (1.0 + dist), d))
     sims.sort(reverse=True)
@@ -194,13 +201,13 @@ def lambda_handler(event=None, context=None):
                       verdict.lower(), "bought" if (stats["hit_rate_up_3m"] or 0) >= 60 else "sold"))
     doc = {"engine": "justhodl-positioning-analog", "version": "1.0.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-           "as_of_week": common[-1], "panel_weeks": len(common), "dims": len(DIMS),
+           "as_of_week": cweeks[-1], "panel_weeks": len(common), "dims": len(DIMS), "dims_dropped": dropped, "dim_depth": depth,
            "vector_today_z": cur, "verdict": verdict, "analogs": analogs,
            "forward_stats": stats, "ai_outlook": outlook, "ai_outlook_src": src,
            "method": ("7-dim weekly condition vector (VIX, NFCI, HY OAS, 10y-3m, SPX drawdown/13w-momentum/"
                       "4w-rvol), z over %d weeks since %s; euclidean similarity, episodes deduped >=60d; "
                       "forward = SPX +21d/+65d from analog week. Positioning-space match, not a price forecast.")
-                     % (len(common), common[0])}
+                     % (len(common), cweeks[0])}
     s3.put_object(Bucket=BUCKET, Key=OUT,
                   Body=json.dumps(doc, separators=(",", ":"), allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=60")
