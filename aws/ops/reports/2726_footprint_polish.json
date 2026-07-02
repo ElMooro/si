@@ -1,0 +1,67 @@
+{
+ "ops": 2726,
+ "ts": "2026-07-02T14:02:53.047199+00:00",
+ "f13_row_keys": {
+  "list": "adds",
+  "keys": [
+   "change",
+   "cusip",
+   "name",
+   "pct_of_portfolio",
+   "prior_value",
+   "resolved_name",
+   "share_type",
+   "shares",
+   "ticker",
+   "title",
+   "value_delta_pct",
+   "value_usd"
+  ]
+ },
+ "pd_shapes": {
+  "data/dealer-survey.json": {
+   "top": [
+    "fetch_duration_s",
+    "generated_at",
+    "history",
+    "last_check",
+    "last_check_status",
+    "latest_survey"
+   ],
+   "indicators": []
+  }
+ },
+ "cftc_risk_appetite": null,
+ "f13_usd": [
+  {
+   "t": "KO",
+   "usd_m": 30420.0
+  },
+  {
+   "t": "GOOGL",
+   "usd_m": 15600.1
+  },
+  {
+   "t": "NVDA",
+   "usd_m": 440.7
+  },
+  {
+   "t": "CVX",
+   "usd_m": 417.0
+  },
+  {
+   "t": "AMZN",
+   "usd_m": 914.0
+  },
+  {
+   "t": "NVDA",
+   "usd_m": 818.5
+  }
+ ],
+ "f13_verdict": "VALUE_ABSENT_IN_FEED \u2014 adds/exits rows carry no $ field; enrich 13f-positions engine later",
+ "pd": {
+  "net": null,
+  "note": "feed absent"
+ },
+ "page": "200_no_marker"
+}

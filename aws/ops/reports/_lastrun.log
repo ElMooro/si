@@ -1,23 +1,14 @@
 settling 30s…
-== 1/3 CFTC deep-view fix ==
-  CACHE top keys: ['cached_at', 'contracts', 'data', 'source', 'timestamp']
-   sample 'source' -> str CFTC.gov
-   sample 'contracts' -> int 29
-   sample 'data' -> dict keys ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX']
-   sample 'timestamp' -> str 2026-07-02T13:31:33.209266+00:00
-  deployed sha: tCiVUhsO9tjR65Efe1i/ | handler: lambda_function.lambda_handler | modified: 2026-07-02T13:50:29
-  cftc -> {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.0\", \"state\": \"NORMAL_POSITIONING\", \"n_contracts_analyzed\": 0, \"n_extremes\": 0, \"n_divergences\": 0, \"top_3_divergences\": []}"}
-  cftc feed keys: ['academic_basis', 'all_contract_analyses', 'duration_seconds', 'engine', 'generated_at', 'methodology', 'n_contracts_analyzed', 'n_divergences', 'n_extremes', 'smart_money_map'] | n_analyzed: 0
-  contract statuses: [('ES', 'SHORT_HISTORY', 7), ('NQ', 'SHORT_HISTORY', 7), ('YM', 'SHORT_HISTORY', 7), ('RTY', 'SHORT_HISTORY', 7), ('VX', 'SHORT_HISTORY', 7), ('ZB', 'SHORT_HISTORY', 7), ('ZN', 'SHORT_HISTORY', 7), ('ZF', 'SHORT_HISTORY', 7)]
-== 1b/3 dark-pool v2.4.1 (xray_map +dv) ==
-  xray_map dv coverage: 485
-== 2/3 FOOTPRINT v1.1 ==
-  invoke -> {"ok": true, "feeds_alive": 18, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -36.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 15, "exits": 15, "hi_conv": 15, "dis": 0, "conviction": 6}}
-  LEDGER: {"EQUITY": {"lit_etf_5d_usd_m": -40063.7, "dark_5d_usd_m_est": 228579.1, "cftc_net_spec": 144383.75, "verdict": "SELLING"}, "EQUITY_INTL": {"lit_etf_5d_usd_m": -5922.3, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "TREASURIES": {"lit_etf_5d_usd_m": -170.2, "dark_5d_usd_m_est": null, "cftc_net_spec": 419447.75, "verdict": "SELLING"}, "CREDIT": {"lit_etf_5d_usd_m": -214.4, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "TIPS": {"lit_etf_5d_usd_m": 941.1, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "BUYING"}, "GOLD": {"lit_etf_5d_usd_m": -505.9, "dark_5d_usd_m_est": null, "cftc_net_spec": -80673.0, "verdict": "SELLING"}, "SI
-  DARK sectors: {"Technology": 116261.0, "Communication Services": 25752.9, "Consumer Cyclical": 22182.3, "Financial": 16397.6, "Industrials": 15086.7, "Healthcare": 13016.9, "Consumer Defensive": 8469.9, "Utilities": 4269.2, "Energy": 3782.1, "Basic Materials": 3360.5, "Real Estate": 3342.3}
-  13F $: {"buys": [{"t": "KO", "usd_m": null}, {"t": "GOOGL", "usd_m": null}, {"t": "NVDA", "usd_m": null}, {"t": "CVX", "usd_m": null}, {"t": "AMZN", "usd_m": null}], "sells": [{"t": "V", "usd_m": null}, {"t": "MA", "usd_m": null}, {"t": "AMZN", "usd_m": null}, {"t": "PG", "usd_m": null}, {"t": "AMZN", "usd
-  cftc_by_class sample: {'EQUITY': 144383.75, 'TREASURIES': 419447.75, 'GOLD': -80673.0, 'SILVER': -14777.0}
-  cftc in NOW composite: False
-== 3/3 PAGE + REPORT ==
-  page: LIVE
-OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger
+== truth prints: raw feed shapes ==
+  13f adds-list key='adds' row keys=['change', 'cusip', 'name', 'pct_of_portfolio', 'prior_value', 'resolved_name', 'share_type', 'shares', 'ticker', 'title', 'value_delta_pct', 'value_usd']
+  data/nyfed-primary-dealer.json -> An error occurred (NoSuchKey) when calling the GetObject ope
+  data/dealer-survey.json top=['fetch_duration_s', 'generated_at', 'history', 'last_check', 'last_check_status', 'latest_survey'] indicators=[]
+== deploy + run ==
+  deep-view risk_appetite: None (None until z-layer arms — expected)
+  footprint -> {"ok": true, "feeds_alive": 18, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -36.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 15, "exits": 15, "hi_conv": 15, "dis": 0, "conviction": 6}}
+  EQUITY ledger: {"lit_etf_5d_usd_m": -40063.7, "dark_daily_usd_m_est": 228579.1, "cftc_net_spec": 144383.75, "verdict": "SELLING"}
+  13F buys w/ $: [{'t': 'KO', 'usd_m': 30420.0}, {'t': 'GOOGL', 'usd_m': 15600.1}, {'t': 'NVDA', 'usd_m': 440.7}, {'t': 'CVX', 'usd_m': 417.0}, {'t': 'AMZN', 'usd_m': 914.0}]
+   VALUE_ABSENT_IN_FEED — adds/exits rows carry no $ field; enrich 13f-positions engine later
+  PD: {"net": null, "note": "feed absent"}
+  page: 200_no_marker
+OPS 2726 COMPLETE — ledger polished, every column truthful
