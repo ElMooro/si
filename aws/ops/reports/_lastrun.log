@@ -2,13 +2,13 @@
 ======== 1/4 CREATE capex-pulse + RUN (~160 FMP calls) ========
   settling 30s…
   schedule: cron(40 20 ? * MON-FRI *)
-  invoke -> {"ok": true, "n": 150, "fails": 10, "mkt_ttm_b": 8837.0, "mkt_yoy": 28.0, "hyp": {"ttm_b": 508.0, "yoy": 73.5}}
+  invoke -> {"ok": true, "n": 140, "fails": 10, "mkt_ttm_b": 1113.1, "mkt_yoy": 34.7, "hyp": {"ttm_b": 508.0, "yoy": 73.5}}
 {
- "n": 150,
+ "n": 140,
  "fails": 10,
  "market": {
-  "capex_ttm_b": 8837.0,
-  "yoy_pct": 28.0,
+  "capex_ttm_b": 1113.1,
+  "yoy_pct": 34.7,
   "universe": "top-160 mcap (stock-xray) + hyperscalers"
  },
  "hyperscalers": {
@@ -61,15 +61,15 @@
  "top_sector_yoy": [
   [
    "Financial",
-   870.2
-  ],
-  [
-   "Communication Services",
-   64.1
+   74.7
   ],
   [
    "Real Estate",
    59.4
+  ],
+  [
+   "Communication Services",
+   54.6
   ]
  ],
  "accelerators": [
@@ -125,9 +125,16 @@
   ]
  ]
 }
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2722_capex_pulse.py", line 95, in <module>
-    assert isinstance(MK.get("capex_ttm_b"), (int, float)) and 400 <= MK["capex_ttm_b"] <= 5000, "market ttm insane: %s" % MK.get("capex_ttm_b")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: market ttm insane: 8837.0
-❌ OPS-FAIL: aws/ops/pending/ops_2722_capex_pulse.py
+  excluded_outliers: [('TSM', 1295.0), ('BABA', 125.9), ('MUFG', 326.5), ('TM', 4998.8), ('NVO', 87.6), ('SMFG', 196.3), ('MFG', 102.5), ('SONY', 459.9)]
+
+======== 2/4 FUSE — gfd v1.0.2 + board row ========
+  synced justhodl-global-flow-desk
+  synced justhodl-signal-board
+  gfd capex: {"status": "OK", "source": "capex-pulse", "market_ttm_b": 1113.1, "market_yoy_pct": 34.7, "hyperscalers_ttm_b": 508.0, "hyperscalers_yoy_pct": 73.5, "top_sector": {"name": "Financial", "yoy_pct": 74.7}, "top_accelerators": ["SBS", "ORCL", "ARM", "BA", "MU"]}
+  board: {"engine": "CapEx Pulse", "category": "equity", "signal": 1, "signal_label": "RISK-ON", "read": "CAPEX hyperscalers $508B +73.5% yoy | market $1113B +34.7%", "as_of": "2026-07-02T12:28:23+00:00", "stale": false}
+
+======== 3/4 PAGE ========
+  page: LIVE
+
+======== 4/4 REPORT ========
+OPS 2722 COMPLETE — corporate capex measured in dollars

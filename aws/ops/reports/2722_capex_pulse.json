@@ -1,0 +1,147 @@
+{
+ "ops": 2722,
+ "ts": "2026-07-02T12:27:21.262073+00:00",
+ "capex": {
+  "n": 140,
+  "fails": 10,
+  "market": {
+   "capex_ttm_b": 1113.1,
+   "yoy_pct": 34.7,
+   "universe": "top-160 mcap (stock-xray) + hyperscalers"
+  },
+  "hyperscalers": {
+   "total_ttm_b": 508.0,
+   "yoy_pct": 73.5
+  },
+  "hyp_rows": [
+   [
+    "AMZN",
+    151.0,
+    62.2
+   ],
+   [
+    "GOOGL",
+    109.92,
+    90.4
+   ],
+   [
+    "MSFT",
+    97.22,
+    58.5
+   ],
+   [
+    "META",
+    75.75,
+    73.0
+   ],
+   [
+    "ORCL",
+    55.66,
+    162.4
+   ],
+   [
+    "AAPL",
+    11.05,
+    -0.2
+   ],
+   [
+    "NVDA",
+    6.57,
+    60.5
+   ],
+   [
+    "AVGO",
+    0.86,
+    59.9
+   ]
+  ],
+  "sectors_n": 11,
+  "top_sector_yoy": [
+   [
+    "Financial",
+    74.7
+   ],
+   [
+    "Real Estate",
+    59.4
+   ],
+   [
+    "Communication Services",
+    54.6
+   ]
+  ],
+  "accelerators": [
+   [
+    "SBS",
+    2862.0
+   ],
+   [
+    "ORCL",
+    162.4
+   ],
+   [
+    "ARM",
+    139.7
+   ],
+   [
+    "BA",
+    109.3
+   ],
+   [
+    "MU",
+    102.6
+   ],
+   [
+    "VRTX",
+    91.0
+   ]
+  ],
+  "cutters": [
+   [
+    "SAN",
+    -57.6
+   ],
+   [
+    "ISRG",
+    -46.6
+   ],
+   [
+    "INTC",
+    -43.4
+   ],
+   [
+    "SBUX",
+    -42.2
+   ],
+   [
+    "LLY",
+    -34.8
+   ],
+   [
+    "NVS",
+    -32.4
+   ]
+  ]
+ },
+ "gfd_capex": {
+  "status": "OK",
+  "source": "capex-pulse",
+  "market_ttm_b": 1113.1,
+  "market_yoy_pct": 34.7,
+  "hyperscalers_ttm_b": 508.0,
+  "hyperscalers_yoy_pct": 73.5,
+  "top_sector": {
+   "name": "Financial",
+   "yoy_pct": 74.7
+  },
+  "top_accelerators": [
+   "SBS",
+   "ORCL",
+   "ARM",
+   "BA",
+   "MU"
+  ]
+ },
+ "board": "{\"engine\": \"CapEx Pulse\", \"category\": \"equity\", \"signal\": 1, \"signal_label\": \"RISK-ON\", \"read\": \"CAPEX hyperscalers $508B +73.5% yoy | market $1113B +34.7%\", \"as_of\": \"2026-07-02T12:28:23+00:00\", \"stale\": false}",
+ "page": "LIVE"
+}
