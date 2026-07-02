@@ -1,26 +1,18 @@
 
-======== 1/4 ENV KEYS — clone LLM env from cycle-clock (new lambdas don't inherit) ========
-  cycle-clock env keys: []
-  env merged + timeout 280 + analog cache purged
+======== 1/4 PROBES — dix freshness, FINRA monthly, quiver offexchange ========
+  data/dix.json age 6.2h
+  FINRA monthly: ERR Expecting value: line 1 column 1 (char 0)
+  quiver offexchange: no-token
 
-======== 2/4 DEPLOY + RUN v3 ========
-  settling 25s…
-  invoke -> {"ok": true, "world": 66.9, "regime": "ANXIOUS", "regions_live": 5, "tiles": 14, "analogs": "OK", "ai": "LIVE"}
-{
- "world": 66.9,
- "regime": "ANXIOUS",
- "version": "3.0.0",
- "tiles_live": 14,
- "analog_status": "OK",
- "analog_n": 10,
- "ai_status": "LIVE",
- "chart_n": 156
-}
-  TOP ANALOGS: [{"name": "SVB bank stress", "date": "2023-03-13", "fwd": {"SPY": {"d21": 5.9, "d63": 12.6, "d126": 15.7}, "TLT": {"d21": 1.0, "d63": -3.4, "d126": -11.0}, "GLD": {"d21": 5.2, "d63": 2.3, "d126": -0.2}, "HYG": {"d21": 2.6, "d63": 2.2, "d126": 2.2}, "BTCUSD": {"d21": 14.8, "d63": 12.2, "d126": 24.5}}, "similarity_pct": 69.0}, {"name": "Taper tantrum", "date": "2013-06-24", "fwd": {"SPY": {"d21": 7.3, "d63": 8.2, "d126": 15.6}, "TLT": {"d21": -1.2, "d63": -2.9, "d126": -4.2}, "GLD": {"d21": 2.9, "d63": 2.9, "d126": -6.4}, "HYG": {"d21": 4.4, "d63": 3.7, "d126": 4.6}, "BTCUSD": {"d21": -3.1, "d63
-  AI BRIEF: {"interpretation": "Global bonds are pricing a Japan-centric duration shock (JGB 10Y +99bp 6M, carry stress RISING SHARPLY) while US credit micro shows extreme CCC/BB dispersion at 99.7th percentile. Abundant global funding (health 93.4) prevents systemic crisis, but $31B equity-to-bond rotation signals growing risk aversion. Term premium expected to compress (-20bp D21). The dislocation is real but contained by liquidity.", "crisis_comparison": "SVB analog (69% similarity): rate shock stressing
-
-======== 3/4 BOARD SANITY + PAGE ========
-  page: LIVE
-
-======== 4/4 REPORT ========
-OPS 2713 COMPLETE — world map + crisis DNA + AI layer
+======== 2/4 DEPLOY dark-pool v2 + CREATE MISSING SCHEDULE + RUN ========
+  settling 30s…
+  synced justhodl-dark-pool
+  synced justhodl-signal-board
+  SCHEDULE CREATED: cron(40 21 ? * MON-FRI *) (was None — 7 consumers unblocked)
+  invoke -> {"errorMessage": "name '_get_json' is not defined", "errorType": "NameError", "requestId": "6cde6b2a-4a1d-4f67-bd36-604be5efa80e", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 217, in
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2714_dark_pool_v2.py", line 103, in <module>
+    assert not r.get("FunctionError"), pay
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'errorMessage': "name '_get_json' is not defined", 'errorType': 'NameError', 'requestId': '6cde6b2a-4a1d-4f67-bd36-604be5efa80e', 'stackTrace': ['  File "/var/task/lambda_function.py", line 217, in lambda_handler\n    fs = _get_json("data/finra-short.json") or {}\n']}
+❌ OPS-FAIL: aws/ops/pending/ops_2714_dark_pool_v2.py
