@@ -15,7 +15,7 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 REGION, BUCKET = "us-east-1", "justhodl-dashboard-live"
-lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=290, retries={"max_attempts": 1}))
+lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=290, retries={"max_attempts": 5, "mode": "adaptive"}))
 s3 = boto3.client("s3", region_name=REGION)
 R = {"ops": 2717, "ts": datetime.now(timezone.utc).isoformat()}
 def sect(t): print("\n" + "=" * 8 + " " + t + " " + "=" * 8)
@@ -33,8 +33,12 @@ def zip_fn(fn):
 def wait_ok(fn, budget=240):
     t0 = time.time()
     while time.time() - t0 < budget:
-        c = lam.get_function_configuration(FunctionName=fn)
-        if c.get("State") == "Active" and c.get("LastUpdateStatus") in (None, "Successful"): return
+        try:
+            c = lam.get_function_configuration(FunctionName=fn)
+            if c.get("State") == "Active" and c.get("LastUpdateStatus") in (None, "Successful"): return
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "TooManyRequestsException": raise
+            time.sleep(10)
         time.sleep(5)
 def retry(call, what, tries=6):
     for i in range(tries):
@@ -94,3 +98,5 @@ print("OPS 2717 COMPLETE — X-Ray joins at institutional depth")
 # rev5 1782971926
 
 # rev6
+
+# rev7
