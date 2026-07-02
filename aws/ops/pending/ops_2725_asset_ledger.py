@@ -46,10 +46,22 @@ print("settling 30s…"); time.sleep(30)
 print("== 1/3 CFTC deep-view fix ==")
 retry(lambda: (wait_ok("justhodl-cftc-deep-view"), lam.update_function_code(FunctionName="justhodl-cftc-deep-view", ZipFile=zip_fn("justhodl-cftc-deep-view")))[-1], "cftc")
 wait_ok("justhodl-cftc-deep-view")
+cfg = lam.get_function_configuration(FunctionName="justhodl-cftc-deep-view")
+print("  deployed sha:", cfg.get("CodeSha256", "")[:20], "| handler:", cfg.get("Handler"),
+      "| modified:", str(cfg.get("LastModified"))[:19])
 r = lam.invoke(FunctionName="justhodl-cftc-deep-view", InvocationType="RequestResponse")
 full = (r["Payload"].read() or b"").decode("utf-8", "ignore")
-print("  cftc ->", ("ERR " if r.get("FunctionError") else "") + full[:900])
-assert not r.get("FunctionError"), full[:400]
+if r.get("FunctionError"):
+    try:
+        err = json.loads(full)
+        print("  cftc ERRTYPE:", err.get("errorType"), "|", err.get("errorMessage"))
+        for fr in (err.get("stackTrace") or []):
+            print("    FRAME:", str(fr).replace("\n", " ").strip()[:160])
+    except Exception:
+        print("  cftc ERR raw:", full[:1200])
+else:
+    print("  cftc ->", full[:220])
+assert not r.get("FunctionError"), full[:500]
 c = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cftc-deep-view.json")["Body"].read())
 R["cftc"] = {"top_keys": sorted(c.keys())[:10]}
 print("  cftc feed keys:", R["cftc"]["top_keys"])
@@ -97,3 +109,5 @@ with open("aws/ops/reports/2725_asset_ledger.json", "w") as f:
 print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 
 # rev2 fullstack
+
+# rev3 frame-dump
