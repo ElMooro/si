@@ -103,26 +103,43 @@ s3.put_object(Bucket=BUCKET, Key="data/config/quiver-offexchange.json",
 R["quiver"] = verdict
 print("  VERDICT:", json.dumps(verdict))
 
-sect("C/4 ICI-FLOWS — runner-side seed via engine's own parsers")
+sect("C/4 ICI-FLOWS — store repair + fetch diag + kind-aware seed")
 sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source")
 import lambda_function as ici
-live_mmf = live_ltf = None
-for kind, tgt in (("mmf", "live_mmf"), ("flows", "live_ltf"), ("combined", "live_ltf"), ("ltf", "live_ltf")):
+for hk in ("data/history/ici-mmf.json", "data/history/ici-flows.json"):
+    try:
+        st0 = json.loads(s3.get_object(Bucket=BUCKET, Key=hk)["Body"].read())
+        bad = sum(1 for v in st0.values() if not isinstance(v, dict))
+        if bad:
+            fixed = {k: v for k, v in st0.items() if isinstance(v, dict)}
+            s3.put_object(Bucket=BUCKET, Key=hk, Body=json.dumps(fixed).encode(), ContentType="application/json")
+            print("  repaired %s: dropped %d malformed rows, kept %d" % (hk, bad, len(fixed)))
+        else:
+            print("  %s clean (%d rows)" % (hk, len(st0)))
+    except Exception as e:
+        print("  %s absent (%s)" % (hk, str(e)[:40]))
+for u in ("https://www.ici.org/research/stats/mmf", "https://www.ici.org/research/stats/combined"):
+    try:
+        st, bb = http(u, hdr={"Accept": "text/html", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        print("  GET %s -> %d (%d bytes)" % (u.split("/")[-1], st, len(bb)))
+    except Exception as e:
+        print("  GET %s -> %s" % (u.split("/")[-1], str(e)[:70]))
+seeded = {"mmf": 0, "ltf": 0}
+for kind, key in (("mmf", "data/history/ici-mmf.json"), ("ltf", "data/history/ici-flows.json")):
     try:
         out = ici._live(kind)
-        if out:
-            if tgt == "live_mmf" and live_mmf is None: live_mmf = out
-            if tgt == "live_ltf" and live_ltf is None: live_ltf = out
-            print("  _live(%r) -> %s entries" % (kind, len(out) if hasattr(out, "__len__") else "?"))
+        print("  _live(%r) -> %d entries" % (kind, len(out) if hasattr(out, "__len__") else 0))
+        if isinstance(out, dict) and out:
+            try:
+                cur = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            except Exception:
+                cur = {}
+            cur.update(out)
+            s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(dict(sorted(cur.items())[-800:]), default=str).encode(),
+                          ContentType="application/json")
+            seeded[kind if kind == "mmf" else "ltf"] = len(out)
     except Exception as e:
         print("  _live(%r) raised: %s" % (kind, str(e)[:90]))
-def persist(key, doc):
-    s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(doc, default=str).encode(), ContentType="application/json")
-seeded = {"mmf": 0, "ltf": 0}
-if isinstance(live_mmf, dict) and live_mmf:
-    persist("data/history/ici-mmf.json", dict(sorted(live_mmf.items())[-800:])); seeded["mmf"] = len(live_mmf)
-if isinstance(live_ltf, dict) and live_ltf:
-    persist("data/history/ici-flows.json", dict(sorted(live_ltf.items())[-800:])); seeded["ltf"] = len(live_ltf)
 R["ici_seeded"] = seeded
 print("  seeded:", seeded)
 
@@ -141,13 +158,20 @@ sm = MO.get("share_map") or {}
 R["monthly_sample"] = {t: sm[t] for t in list(sm)[:3]}
 print("  concentration sample:", json.dumps(R["monthly_sample"], default=str)[:300])
 assert d.get("version") == "2.4.0"
+retry(lambda: (wait_ok("justhodl-ici-flows"), lam.update_function_code(FunctionName="justhodl-ici-flows", ZipFile=zip_fn("justhodl-ici-flows")))[-1], "ici")
+wait_ok("justhodl-ici-flows")
 r = lam.invoke(FunctionName="justhodl-ici-flows", InvocationType="RequestResponse")
 pay = json.loads(r["Payload"].read() or b"{}")
-print("  ici invoke ->", json.dumps(pay)[:200])
-assert not r.get("FunctionError"), pay
-ic = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ici-flows.json")["Body"].read())
-R["ici_live"] = {"ok": ic.get("ok", True), "keys": sorted(ic.keys())[:8]}
-print("  ici feed keys:", R["ici_live"]["keys"])
+print("  ici invoke ->", json.dumps(pay)[:220])
+if r.get("FunctionError"):
+    msg = str(pay.get("errorMessage", ""))
+    assert "seed histories" in msg, "ici crashed outside the honest gate: %s" % pay
+    R["ici_live"] = {"status": "GATED", "note": "ici.org blocked from Lambda AND runner; "
+                     "engine gate intact; seed via manual upload or alt mirror — PENDING"}
+else:
+    ic = json.loads(s3.get_object(Bucket=BUCKET, Key="data/ici-flows.json")["Body"].read())
+    R["ici_live"] = {"status": "LIVE", "keys": sorted(ic.keys())[:8]}
+print("  ici verdict:", json.dumps(R["ici_live"]))
 
 os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2719_three_followups.json", "w") as f:

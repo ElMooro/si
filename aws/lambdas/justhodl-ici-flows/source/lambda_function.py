@@ -249,6 +249,8 @@ def _norm_mmf(hist):
     """Normalize to $B (source sometimes $M)."""
     out = {}
     for d, r in hist.items():
+        if not isinstance(r, dict):
+            continue  # repair: skip malformed float rows from a legacy partial write
         t = r.get("total")
         k = 0.001 if (t and t > 100_000) else 1.0
         out[d] = {a: round(v * k, 1) for a, v in r.items()}
