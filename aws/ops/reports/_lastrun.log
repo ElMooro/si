@@ -3,12 +3,12 @@
    mm_summary_data_2024.xls FAIL HTTP Error 404: Not Found
    [mm_summary_data_2025.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
    [mm_summary_data_2025.xls] rows=29 sample=[['Investment Company Institute', None, None, None], ['Weekly Total Net Assets (TNA) and Number of Money Market Mutual Funds', None, None, None], ['(millions of dollars)', None, None, None]]
-   mm_summary_data_2025.xls FAIL module 'lambda_function' has no attribute '_num'
+   mm_summary_data_2025.xls -> 0 pts (total 0)
    [mm_summary_data_2026.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
    [mm_summary_data_2026.xls] rows=29 sample=[['Investment Company Institute', None, None, None], ['Weekly Total Net Assets (TNA) and Number of Money Market Mutual Funds', None, None, None], ['(millions of dollars)', None, None, None]]
-   mm_summary_data_2026.xls FAIL module 'lambda_function' has no attribute '_num'
+   mm_summary_data_2026.xls -> 0 pts (total 0)
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2720_ici_quiver.py", line 110, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2720_ici_quiver.py", line 104, in <module>
     assert len(mmf_hist) >= 40, "MMF seed thin: %d" % len(mmf_hist)
            ^^^^^^^^^^^^^^^^^^^
 AssertionError: MMF seed thin: 0
