@@ -1114,6 +1114,15 @@ def n_darkpool(d):
     return sig,"DARK POOL own-DIX %.1f%% %s (accum %d / dist %d)"%(v,dx.get("read",""),dist.get("accumulation",0),dist.get("distribution",0))
 
 
+def n_factors(d):
+    """Which equity style is being paid — daily L/S factor returns + rotation flags."""
+    rg=d.get("regime") or {}; f=d.get("factors") or {}
+    if not rg.get("leader"): return 0,"Factors n/a"
+    sig=-1 if "MOMENTUM_CRASH" in (rg.get("flags") or []) else (1 if rg.get("leader")=="MOMENTUM" else 0)
+    mom=(f.get("MOMENTUM") or {}).get("ls_ret_1d_pct")
+    return sig,"FACTORS %s (MOM L/S %+.2f%%/1d)"%(rg.get("read","")[:60],mom if mom is not None else 0)
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1216,6 +1225,7 @@ FEEDS = [
     ("Bond Desk",              "rates",            "data/bond-desk.json",            n_bonddesk),
     ("Rebalance Window",       "flow",             "data/rebalance-radar.json",      n_rebalance),
     ("Dark Pool",              "flow",             "data/dark-pool.json",            n_darkpool),
+    ("Factor Returns",         "equity",           "data/factor-returns.json",       n_factors),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

@@ -231,23 +231,15 @@ def lambda_handler(event=None, context=None):
             if isinstance(v,dict): return [{"ticker":k,**x} for k,x in v.items() if isinstance(x,dict)]
         return [{"ticker":k,**x} for k,x in doc.items() if isinstance(x,dict) and ("short_vol" in x or "short_volume" in x)]
     daily={}
+    import statistics as _st
     for r0 in _fs_rows(fs):
         t=(r0.get("ticker") or r0.get("symbol") or "").upper()
         sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
-        if t and isinstance(sv,(int,float)) and isinstance(tv,(int,float)) and tv>0:
-            daily[t]={"short_pct":round(100*sv/tv,1),"off_exch_vol":tv}
-    histmap={}
-    hdays=sorted(fh.items())[-40:] if isinstance(fh,dict) else []
-    for _,day in hdays:
-        for r0 in _fs_rows(day if isinstance(day,dict) else {}):
-            t=(r0.get("ticker") or r0.get("symbol") or "").upper()
-            sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
-            if t and sv and tv: histmap.setdefault(t,[]).append(100*sv/tv)
-    import statistics as _st
-    for t,d in daily.items():
-        ser=histmap.get(t) or []
-        if len(ser)>=15 and _st.pstdev(ser):
-            d["short_z"]=round((d["short_pct"]-_st.fmean(ser))/_st.pstdev(ser),2)
+        svr=r0.get("svr"); z=r0.get("z_score") if isinstance(r0.get("z_score"),(int,float)) else None
+        if t and isinstance(tv,(int,float)) and tv>0:
+            pct=round(100*svr,1) if isinstance(svr,(int,float)) and svr<=1.5 else (round(100*sv/tv,1) if isinstance(sv,(int,float)) else None)
+            if pct is not None:
+                daily[t]={"short_pct":pct,"off_exch_vol":tv,"short_z":z}
     joined=0
     for r in rows:
         d=daily.get(r["ticker"])
@@ -265,12 +257,10 @@ def lambda_handler(event=None, context=None):
     own_dix=round(wsum/vsum,2) if vsum else None
     dixdoc=_get_json("data/dix.json") or {}
     sq_dix=None
-    for k in ("dix","latest","value"):
-        v=dixdoc.get(k)
-        if isinstance(v,(int,float)): sq_dix=v; break
-        if isinstance(v,dict):
-            for kk in ("dix","value"):
-                if isinstance(v.get(kk),(int,float)): sq_dix=v[kk]; break
+    for cand in (dixdoc.get("dix"),dixdoc.get("current"),
+                 (dixdoc.get("current") or {}).get("dix") if isinstance(dixdoc.get("current"),dict) else None,
+                 (dixdoc.get("dix") or {}).get("value") if isinstance(dixdoc.get("dix"),dict) else None):
+        if isinstance(cand,(int,float)): sq_dix=cand; break
     own_hist=_get_json("data/history/dark-pool-dix.json") or {}
     _today=datetime.now(timezone.utc).strftime("%Y-%m-%d")
     if own_dix is not None:

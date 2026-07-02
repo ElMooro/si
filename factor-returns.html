@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Factor Returns — JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
+.sub{color:var(--fg-3);font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
+.hero{background:linear-gradient(135deg,var(--card),var(--bg-2));border:1px solid var(--line);border-radius:14px;padding:18px 24px;margin-bottom:18px;font-family:var(--mono);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:14px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.card h3{margin:0 0 6px;font-size:12px;letter-spacing:1.5px;color:var(--fg-2)}
+.big{font-family:var(--mono);font-size:27px;font-weight:700}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--fg-2);margin-top:3px}
+.note{color:var(--fg-3);font-size:10.5px;margin-top:8px;line-height:1.45}
+.names{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:6px;word-break:break-all}
+.method{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--fg-2);font-size:12px;line-height:1.6}
+.g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.c{color:var(--cyan)}
+.flag{display:inline-block;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:6px;border:1px solid var(--amber);color:var(--amber);margin-right:6px}
+.loading{color:var(--fg-3);font-family:var(--mono);padding:40px;text-align:center}
+</style></head><body><div class="wrap">
+<h1>🧮 FACTOR RETURNS — WHICH STYLE IS BEING PAID</h1>
+<div class="sub" id="sub">Daily long-short decile returns across the full cross-section…</div>
+<div id="app" class="loading">Loading…</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
+async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
+const cc=v=>v>0.15?'g':v<-0.15?'r':'c';
+const F=v=>v==null?'—':v;
+(async()=>{
+ const d=await getJSON('data/factor-returns.json');
+ const app=document.getElementById('app');
+ if(!d||!d.factors){app.textContent='Feed unavailable.';return}
+ const R=d.regime||{},FA=d.factors;
+ document.getElementById('sub').innerHTML=`${d.universe_n} investable names · ${d.history_days} days of history · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const ORDER=['MOMENTUM','VALUE','QUALITY','SIZE','LOWVOL'];
+ const card=k=>{const f=FA[k]||{};if(f.status!=='OK')return `<div class="card"><h3>${k}</h3><div class="big" style="color:var(--fg-3)">${f.status||'—'}</div></div>`;
+  return `<div class="card"><h3>${k}${R.leader===k?' 👑':''}</h3>
+   <div class="big ${cc(f.ls_ret_1d_pct)}">${f.ls_ret_1d_pct>0?'+':''}${f.ls_ret_1d_pct}%</div>
+   <div class="kv"><span>L/S 1-day</span><b>top ${f.top_ret>0?'+':''}${f.top_ret}% / bot ${f.bot_ret>0?'+':''}${f.bot_ret}%</b></div>
+   <div class="kv"><span>cum 5d / 21d</span><b>${F(f.cum_5d_pct)}% / ${F(f.cum_21d_pct)}%</b></div>
+   <div class="kv"><span>z (1d)</span><b>${f.z_1d??'ramping'}</b></div>
+   ${k==='MOMENTUM'?`<div class="kv"><span>crowding $vol share</span><b class="${f.crowding_dollar_share_pct>18?'a':'c'}">${F(f.crowding_dollar_share_pct)}%</b></div>
+   <div class="kv"><span>top-decile PE vs univ</span><b>${F(f.top_decile_median_pe)} / ${F(f.universe_median_pe)}</b></div>`:''}
+   <div class="kv"><span>pool / decile</span><b>${f.n} / ${f.decile}</b></div>
+   <div class="names">${(f.top_names||[]).join(' ')}</div></div>`};
+ app.className='';app.innerHTML=`
+ <div class="hero">ROTATION: <b class="c">${R.read||'—'}</b> ${(R.flags||[]).map(x=>`<span class="flag">${x}</span>`).join('')}
+   <div style="color:var(--fg-3);font-size:11px;margin-top:6px">ranking (5d): ${(R.ranking||[]).join(' → ')}</div></div>
+ <div class="grid">${ORDER.map(card).join('')}</div>
+ <div class="method"><b>METHOD</b> — ${d.method||''}</div>`;
+})();
+</script></div></body></html>

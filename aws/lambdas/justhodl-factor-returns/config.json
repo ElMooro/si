@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-factor-returns",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 768,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Daily long-short factor returns (MOM/VAL/QUAL/SIZE/LOWVOL) from full FinViz cross-section; crowding + rotation regime; self-accumulating history.",
+  "schedule": {
+    "name": "justhodl-factor-returns-daily",
+    "expression": "cron(50 21 ? * MON-FRI *)",
+    "description": "Post-close daily factor L/S returns"
+  }
+}
