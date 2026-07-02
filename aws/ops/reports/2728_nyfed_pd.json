@@ -1,0 +1,105 @@
+{
+ "ops": 2728,
+ "ts": "2026-07-02T14:28:49.030157+00:00",
+ "catalog": {
+  "total": 1539,
+  "netpos": 22,
+  "sample": [
+   [
+    "PDFRN2NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI10NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI20NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI2NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI30NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI3NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI5NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDSI7NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDST10NSP",
+    "SECURITY NET SETTLED POSITION"
+   ],
+   [
+    "PDST30NSP",
+    "SECURITY NET SETTLED POSITION"
+   ]
+  ]
+ },
+ "pd_feed": {
+  "as_of": "2026-06-17",
+  "net_b": {
+   "TREASURY_FRN": 1.7,
+   "TREASURY_COUPONS": -10.3,
+   "TIPS": -1.3
+  },
+  "tsy_total_b": -9.9,
+  "wow": {
+   "TREASURY_FRN": 0.1,
+   "TREASURY_COUPONS": 17.1,
+   "TIPS": -0.4
+  },
+  "z52": {
+   "TREASURY_FRN": -0.01,
+   "TREASURY_COUPONS": 0.67,
+   "TIPS": 0.27
+  },
+  "read": "Dealer SETTLED book net SHORT $9.9B UST, coupons WoW +17.1B; curve: long 3y +5.5B / short 5y -7.5B"
+ },
+ "by_tenor": {
+  "TREASURY_FRN": {
+   "2": 1.7
+  },
+  "TREASURY_COUPONS": {
+   "2": 0.2,
+   "3": 5.5,
+   "5": -7.5,
+   "7": 2.8,
+   "10": -6.4,
+   "20": -5.2,
+   "30": 0.3
+  },
+  "TIPS": {
+   "5": -1.1,
+   "10": -0.3,
+   "30": 0.2
+  }
+ },
+ "hist_depth": {
+  "TREASURY_FRN": 400,
+  "TREASURY_COUPONS": 400,
+  "TIPS": 400
+ },
+ "fp_pd": {
+  "net": -9.9,
+  "note": "nyfed-primary-dealer.json",
+  "tsy_row": {
+   "lit_etf_5d_usd_m": -170.2,
+   "dark_daily_usd_m_est": null,
+   "cftc_net_spec": 419447.75,
+   "verdict": "SELLING",
+   "pd_net_usd_b": -9.9
+  }
+ }
+}
