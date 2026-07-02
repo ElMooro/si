@@ -36,6 +36,18 @@ CLASSES = {"EQUITY_US":["BROAD_EQUITY_US"],"EQUITY_INTL":["INTERNATIONAL"],"SECT
            "CRYPTO":["CRYPTO_ETF","CRYPTO"],"COMMODITIES":["COMMODITIES"],"THEMATIC":["THEMATIC"],
            "DIVIDEND_VALUE":["DIVIDEND_VALUE"],"GROWTH":["GROWTH"],"VOL":["VOLATILITY"]}
 
+
+def _finite(x):
+    """Recursive NaN/Inf -> None so browsers' strict JSON.parse never chokes."""
+    if isinstance(x, float):
+        return x if x == x and x not in (float("inf"), float("-inf")) else None
+    if isinstance(x, dict):
+        return {k: _finite(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_finite(v) for v in x]
+    return x
+
+
 def _j(k, d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
     except Exception: return d
@@ -268,7 +280,7 @@ def lambda_handler(event=None, context=None):
         brief = complete(prompt, tier="reason", max_tokens=220)
     except Exception as e:
         brief = None
-    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.2",
+    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.3",
            "generated_at": now.isoformat(timespec="seconds"),
            "asset_classes": classes, "sectors": sectors, "inst_vs_retail": inst_retail,
            "hot_money": hot, "capex": capex, "ai_brief": brief,
@@ -276,7 +288,7 @@ def lambda_handler(event=None, context=None):
                       "etf-flows fmap for $ ladders; radar complex breadth + OWN-DIX for the "
                       "institutional tide; AAII + stablecoin pulse for retail; country ETFs + TIC "
                       "holder deltas + FX momentum for the hot-money map.")}
-    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":"), default=str).encode(),
+    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(_finite(doc), separators=(",", ":"), default=str, allow_nan=False).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     return {"ok": True, "classes": {k: v.get("net_5d_usd_m") for k, v in classes.items()},
             "inst": inst, "retail": retail, "divergence": div,

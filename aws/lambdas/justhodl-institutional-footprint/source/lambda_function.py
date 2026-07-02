@@ -25,6 +25,18 @@ import boto3
 BUCKET, OUT = "justhodl-dashboard-live", "data/institutional-footprint.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
+
+def _finite(x):
+    """Recursive NaN/Inf -> None so browsers' strict JSON.parse never chokes."""
+    if isinstance(x, float):
+        return x if x == x and x not in (float("inf"), float("-inf")) else None
+    if isinstance(x, dict):
+        return {k: _finite(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_finite(v) for v in x]
+    return x
+
+
 def _j(k, d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
     except Exception: return d
@@ -300,7 +312,7 @@ def lambda_handler(event=None, context=None):
     except Exception:
         brief = None
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.3",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.4",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
@@ -315,8 +327,8 @@ def lambda_handler(event=None, context=None):
                       "engines (dark-pool v2.4 own-DIX/conviction/wholesaler, capital-flow-radar, "
                       "global-flow-desk, NAAIM, leverage, factor crowding, blackout). Concept "
                       "extractors tolerate legacy feed shapes.")}
-    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":"), default=str).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=900")
+    s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(_finite(doc), separators=(",", ":"), default=str, allow_nan=False).encode(),
+                  ContentType="application/json", CacheControl="public, max-age=60")
     return {"ok": True, "feeds_alive": n_alive, "risk_now": risk_now, "now": now_label,
             "risk_fwd": risk_fwd, "fwd": fwd_label,
             "sections": {"sectors": len(comp), "adds": len(adds), "exits": len(exits),
