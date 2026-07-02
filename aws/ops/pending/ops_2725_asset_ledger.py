@@ -76,8 +76,10 @@ else:
     print("  cftc ->", full[:220])
 assert not r.get("FunctionError"), full[:500]
 c = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cftc-deep-view.json")["Body"].read())
-R["cftc"] = {"top_keys": sorted(c.keys())[:10]}
-print("  cftc feed keys:", R["cftc"]["top_keys"])
+R["cftc"] = {"top_keys": sorted(c.keys())[:10], "n_analyzed": c.get("n_contracts_analyzed")}
+print("  cftc feed keys:", R["cftc"]["top_keys"], "| n_analyzed:", c.get("n_contracts_analyzed"))
+aa = c.get("all_contract_analyses") or []
+print("  contract statuses:", [(a.get("symbol"), a.get("status"), a.get("n_records")) for a in aa[:8]])
 
 print("== 2/3 FOOTPRINT v1.1 ==")
 retry(lambda: (wait_ok("justhodl-institutional-footprint"), lam.update_function_code(FunctionName="justhodl-institutional-footprint", ZipFile=zip_fn("justhodl-institutional-footprint")))[-1], "fp")
@@ -128,3 +130,5 @@ print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 # rev4 shape-aware
 
 # rev5 cache-truth
+
+# rev7 statuses

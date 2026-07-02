@@ -149,10 +149,12 @@ def extract_net_positions(record):
                          "comm_short_all"],
         "noncomm_long": ["noncomm_positions_long_all",
                             "non_commercial_long", "noncomm_long",
+                            "noncommercial_long",
                             "NonComm_Positions_Long_All",
                             "noncomm_long_all"],
         "noncomm_short": ["noncomm_positions_short_all",
                              "non_commercial_short", "noncomm_short",
+                             "noncommercial_short",
                              "NonComm_Positions_Short_All",
                              "noncomm_short_all"],
         "nonrept_long": ["nonrept_positions_long_all",
@@ -175,6 +177,14 @@ def extract_net_positions(record):
     if "noncomm_long" in out and "noncomm_short" in out:
         out["large_speculators_net"] = (out["noncomm_long"] -
                                           out["noncomm_short"])
+    # direct net passthroughs (agent publishes precomputed nets)
+    if "commercials_net" not in out:
+        v = safe_float(record.get("net_commercial") if isinstance(record, dict) else None)
+        if v is not None: out["commercials_net"] = v
+    if "large_speculators_net" not in out:
+        v = safe_float(record.get("net_speculator") if isinstance(record, dict) else None)
+        if v is None: v = safe_float(record.get("net_managed_money") if isinstance(record, dict) else None)
+        if v is not None: out["large_speculators_net"] = v
     if "nonrept_long" in out and "nonrept_short" in out:
         out["small_speculators_net"] = (out["nonrept_long"] -
                                            out["nonrept_short"])
@@ -202,7 +212,7 @@ def analyze_contract(symbol, contract_meta, history):
     """Run the 5-layer analysis on one contract."""
     if isinstance(history, dict):
         # dict-wrapped series: {"records": [...]} / {"history": [...]} / {"weekly": [...]}
-        for _k in ("records", "history", "rows", "data", "weekly", "series", "observations"):
+        for _k in ("weekly_reports", "records", "history", "rows", "data", "weekly", "series", "observations"):
             if isinstance(history.get(_k), list):
                 history = history[_k]
                 break
