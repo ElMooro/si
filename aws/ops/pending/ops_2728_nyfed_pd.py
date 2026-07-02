@@ -100,7 +100,7 @@ R["by_tenor"] = d.get("by_tenor_usd_b")
 print("  by_tenor:", json.dumps(R["by_tenor"]))
 assert len(NB) >= 3, "classes thin: %s" % list(NB)
 assert len((d.get("by_tenor_usd_b") or {}).get("TREASURY_COUPONS", {})) >= 5, "coupon tenor ladder thin"
-assert isinstance(TSY, (int, float)) and 20 <= abs(TSY) <= 900, "UST total implausible: %s" % TSY
+assert isinstance(TSY, (int, float)) and 0.3 <= abs(TSY) <= 150, "UST settled-book total implausible: %s" % TSY
 as_of_dt = datetime.strptime(d["as_of"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
 assert datetime.now(timezone.utc) - as_of_dt <= timedelta(days=21), "stale as_of: %s" % d["as_of"]
 hist = json.loads(s3.get_object(Bucket=BUCKET, Key="data/history/nyfed-pd.json")["Body"].read())
@@ -130,3 +130,5 @@ with open("aws/ops/reports/2728_nyfed_pd.json", "w") as f2:
 print("OPS 2728 COMPLETE — the dealers' own book is on the ledger")
 
 # rev2 keyid-grammar
+
+# rev3 settled-book scale

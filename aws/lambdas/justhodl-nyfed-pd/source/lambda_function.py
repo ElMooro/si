@@ -69,6 +69,19 @@ def _discover():
     print("[pd] discovered %d series across %d classes" % (doc["n_series"], len(spec)))
     return doc
 
+def _read(tsy, wow_b, tenor_latest):
+    cp = (tenor_latest or {}).get("TREASURY_COUPONS") or {}
+    curve = ""
+    if len(cp) >= 4:
+        lo = max(cp.items(), key=lambda kv: kv[1])
+        hi = min(cp.items(), key=lambda kv: kv[1])
+        curve = "; curve: long %sy %+.1fB / short %sy %+.1fB" % (lo[0], lo[1], hi[0], hi[1])
+    wow = wow_b.get("TREASURY_COUPONS")
+    return "Dealer SETTLED book net %s $%.1fB UST%s%s" % (
+        "LONG" if tsy > 0 else "SHORT", abs(tsy),
+        "" if wow is None else ", coupons WoW %+.1fB" % wow, curve)
+
+
 def lambda_handler(event=None, context=None):
     spec = _j(SPEC_KEY) or {}
     if not spec.get("classes") or (event or {}).get("rediscover"):
@@ -138,10 +151,9 @@ def lambda_handler(event=None, context=None):
                      "settled positions, weekly, $B (reported $M). API exposes the Treasury "
                      "family (coupons ladder / TIPS / FRN) by tenor; other classes are not in "
                      "this endpoint.",
-           "read": ("Dealers net %s $%.0fB UST%s" % (
-                    "LONG" if tsy > 0 else "SHORT", abs(tsy),
-                    "" if wow_b.get("TREASURY_COUPONS") is None else
-                    ", coupons WoW %+.1fB" % wow_b["TREASURY_COUPONS"]))}
+           "metric": "NET SETTLED POSITIONS (settled inventory book; +-$B scale — "
+                     "distinct from headline net outright positions)",
+           "read": _read(tsy, wow_b, tenor_latest)}
     s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"ok": True, "as_of": as_of, "classes": len(net_b),
