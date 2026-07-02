@@ -1,10 +1,10 @@
 
 ======== 1/4 DARK-POOL v2.0.1 — arm short_z from feed's z_score ========
   settling 30s…
-  zip has zmap marker: False | zip bytes: 53086
-  CodeSha256 pre=KX66RW5/Mmmq post=DW6KDFQfN33p changed=True
+  zip has zmap marker: False | zip bytes: 53197
+  CodeSha256 pre=rMaJKLwlxyAP post=DFdgOJJ88xyt changed=True
   invoke head -> {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-06-08\", \"n_scored\": 936, \"n_accumulation\": 283, \"n_picks\": 20, \"top\": [[\"BYD\", 93.2, \"ACCUMULATION\", 41.14, 0.707], [\"
-  invoke tail -> 91], [\"SAIA\", 90.4, \"ACCUMULATION\", 36.89, 0.734], [\"BPOP\", 90.2, \"ACCUMULATION\", 34.94, 0.759], [\"DLR\", 89.6, \"ACCUMULATION\", 35.86, 0.892], [\"STT\", 88.7, \"ACCUMULATION\", 35.41, 0.885]], \"diag\": {\"fh_type\": \"dict\", \"fh_tickers\": 13075, \"zmap_n\": 11889, \"daily_n\": 501, \"daily_z_n\": 500}}"}
+  invoke tail -> ", 36.89, 0.734], [\"BPOP\", 90.2, \"ACCUMULATION\", 34.94, 0.759], [\"DLR\", 89.6, \"ACCUMULATION\", 35.86, 0.892], [\"STT\", 88.7, \"ACCUMULATION\", 35.41, 0.885]], \"diag\": {\"fh_type\": \"dict\", \"fh_tickers\": 13075, \"zmap_n\": 11889, \"daily_n\": 501, \"daily_z_n\": 500, \"joined_all\": 485, \"z_all\": 485}}"}
 {
  "z_joined": 25,
  "of": 60,
@@ -16,7 +16,11 @@
   "CNC",
   "EXR",
   "BXP",
-  "NEM"
+  "NEM",
+  "HSY",
+  "TECH",
+  "ESS",
+  "INCY"
  ],
  "dist_into_strength": [],
  "own_dix": 57.68,
@@ -29,10 +33,34 @@
   daily sample: ['A', 'AAPL', 'ABBV', 'ABNB', 'ABT', 'ACGL', 'ACN', 'ADBE']
   board sample: ['AFG', 'AJG', 'ALLE', 'AMGN', 'AU', 'AVY', 'BLD', 'BPOP']
   inter sample: ['AJG', 'ALLE', 'AMGN', 'AVY', 'BXP', 'CAH', 'CNC', 'CPT']
-  diag: {'fh_type': 'dict', 'fh_tickers': 13075, 'zmap_n': 11889, 'daily_n': 501, 'daily_z_n': 500} | weekly_source: FRESH
+  diag: {'fh_type': 'dict', 'fh_tickers': 13075, 'zmap_n': 11889, 'daily_n': 501, 'daily_z_n': 500, 'joined_all': 485, 'z_all': 485} | weekly_source: FRESH
+
+======== 2/4 FACTOR-RETURNS — create + env from finviz-signals + run ========
+  finviz env keys: []
+  rule justhodl-factor-returns-daily cron(50 21 ? * MON-FRI *)
+  invoke -> {"ok": true, "universe": 0, "factors": {}, "regime": "n/a"}
+{
+ "universe": 0,
+ "ok_factors": {},
+ "thin": [
+  "MOMENTUM",
+  "VALUE",
+  "QUALITY",
+  "SIZE",
+  "LOWVOL"
+ ],
+ "mom_crowding": null,
+ "mom_pe_vs_univ": [
+  null,
+  null
+ ],
+ "regime": "n/a",
+ "flags": [],
+ "top_mom_names": null
+}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 148, in <module>
-    assert z_n >= 200, "board join thin (weekly side?): joined=%d weekly=%s" % (z_n, d.get("weekly_source"))
-           ^^^^^^^^^^
-AssertionError: board join thin (weekly side?): joined=25 weekly=FRESH
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 173, in <module>
+    assert f["universe_n"] >= 2500, "universe thin: %d" % f["universe_n"]
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: universe thin: 0
 ❌ OPS-FAIL: aws/ops/pending/ops_2715_shortz_factors.py
