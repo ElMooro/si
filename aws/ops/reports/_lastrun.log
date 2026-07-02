@@ -1,108 +1,63 @@
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
 
-======== 1/4 LIVE ENTITLEMENT PROBE — v1/related-companies ========
-  NVDA  -> ['GOOGL', 'AMD', 'META', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'AAPL', 'AVGO', 'INTC']
-  AAPL  -> ['MSFT', 'AMZN', 'GOOGL', 'GOOG', 'NVDA', 'TSLA', 'META', 'NFLX', 'DIS', 'BRK.B']
-  CAT   -> ['DE', 'AOS', 'ETN', 'AIT', 'TEX', 'ASTE', 'MCD', 'WMT', 'IR', 'NVDA']
-  XOM   -> ['CVX', 'COP', 'TTE', 'OXY', 'FANG', 'EPD', 'EOG', 'VLO', 'MUSA', 'PSX']
-  LLY   -> ['ABBV', 'PFE', 'AMGN', 'VKTX', 'JNJ', 'MRK', 'BIIB', 'VRTX', 'INCY', 'NVDA']
-  ENTITLED (5/5 healthy)
+======== 1/5 RUNNER PROBE + SEED — FINRA monthly margin debt ========
+  page fail https://www.finra.org/investors/investing/investment-produ HTTP Error 404: Not Found
+  html table: 13 months
+  latest: 2026-05 = $1415557M ($1416B) | span 2025-05→2026-05 | n=13
+  SEEDED S3 history: 13 months total
 
-======== 2/4 DEPLOY v2.0 ========
-  settling 30s for parallel deploy-lambdas…
-  engine synced, timeout=300
+======== 2/5 SOURCE CHECKS — NFCI leverage + OFR ========
+  NFCILEVERAGE: 2026-06-26 0.47600
+  OFR: {"https://www.financialresearch.gov/hedge-fund-monitor/api/series/leverage.json": "HTTP Error 404: Not Found", "https://www.financialresearch.gov/hedge-fund-monitor/data/leverage.j (informational; engine degrades gracefully)
 
-======== 3/4 RUN + PROVE (async + poll) ========
-  landed after 31s
+======== 3/5 DEPLOY engine + signal-board ========
+  settling 30s…
+  synced justhodl-margin-lending
+  synced justhodl-signal-board
+
+======== 4/5 RUN + PROVE ========
+  invoke -> {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\": true, \"margin_debt_pct_of_cap\": 0.873, \"margin_status\": \"LOW\", \"squeez
 {
  "version": "2.0.0",
- "graph_stats": {
-  "curated_edges": 182,
-  "confirmed_mutual": 16,
-  "confirmed_one_way": 40,
-  "unconfirmed": 126,
-  "discovered_nodes": 40,
-  "related_graph_key": "data/polygon-related-graph.json"
+ "cycle": 65.5,
+ "phase": "BUILDING",
+ "layers_live": 4,
+ "finra": {
+  "latest_b": 1415.6,
+  "latest_month": "2026-05",
+  "yoy_pct": 53.7,
+  "yoy_z": null,
+  "pct_of_market_cap": 1.99,
+  "months_n": 13,
+  "source": "live+stored",
+  "status": "EXCESSIVE_BUILD"
  },
- "n_nodes": 174,
- "n_edges": 222,
- "poly_edges": 40,
- "related_artifact_n": 134,
- "mutual_pairs_market": 157,
- "confirmed_sample": [
-  [
-   "MKSI",
-   "LRCX"
-  ],
-  [
-   "KLIC",
-   "AMKR"
-  ],
-  [
-   "MU",
-   "AMD"
-  ],
-  [
-   "NVDA",
-   "MSFT"
-  ],
-  [
-   "NVDA",
-   "META"
-  ],
-  [
-   "NVDA",
-   "GOOGL"
-  ],
-  [
-   "NVDA",
-   "AMZN"
-  ],
-  [
-   "NVDA",
-   "TSLA"
-  ]
- ],
- "discovered_sample": [
-  [
-   "DOCN",
-   "A"
-  ],
-  [
-   "SMTC",
-   "A"
-  ],
-  [
-   "GOOG",
-   "AAPL"
-  ],
-  [
-   "NFLX",
-   "AAPL"
-  ],
-  [
-   "VECO",
-   "ACLS"
-  ],
-  [
-   "COHU",
-   "ACLS"
-  ],
-  [
-   "CSCO",
-   "ADI"
-  ],
-  [
-   "CRM",
-   "ADI"
-  ]
- ],
- "picks_total": 1,
- "market_inferred_picks": 1,
- "elapsed_s": 15.1
+ "nfci": {
+  "latest": 0.476,
+  "z": 1.06,
+  "status": "TIGHTENING",
+  "date": "2026-06-26"
+ },
+ "etf": {
+  "status": "OK",
+  "net_sum": 6345865642.0,
+  "n_complexes": 72,
+  "avg_z": null,
+  "note": "fleet capital-flow-radar leveraged bull-minus-bear positioning"
+ },
+ "crypto": {
+  "status": "OK",
+  "funding_z_med": 0.39,
+  "oi_usd_total_b": 3.5,
+  "note": "fleet crypto-funding: perp funding z (crowding) + aggregate OI"
+ },
+ "hf": "UNAVAILABLE"
 }
-  retriggered equity-confluence (structural-family consumer)
+  board: {"engine": "Leverage Cycle", "category": "leverage", "signal": 0, "signal_label": "NEUTRAL", "read": "LEV 66 BUILDING (FINRA +54% yoy)", "as_of": "2026-07-02T01:06:09.140005+00:00", "stale": false}
 
-======== 4/4 REPORT ========
-  wrote aws/ops/reports/2706_related_graph.json
+======== 5/5 PAGE + REPORT ========
+  page: LIVE
+  wrote aws/ops/reports/2707_leverage_monitor.json
 
-OPS 2706 COMPLETE — dual-source supply-chain graph live
+OPS 2707 COMPLETE — leverage engine live

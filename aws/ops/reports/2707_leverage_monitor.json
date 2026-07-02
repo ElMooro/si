@@ -1,0 +1,85 @@
+{
+ "ops": 2707,
+ "ts": "2026-07-02T01:05:17.581118+00:00",
+ "finra_probe": {
+  "months_n": 13,
+  "latest": [
+   "2026-05",
+   1415557.0
+  ],
+  "first": [
+   "2025-05",
+   920960.0
+  ],
+  "tail3": [
+   [
+    "2026-03",
+    1220922.0
+   ],
+   [
+    "2026-04",
+    1304281.0
+   ],
+   [
+    "2026-05",
+    1415557.0
+   ]
+  ]
+ },
+ "nfci_probe": [
+  {
+   "realtime_start": "2026-07-01",
+   "realtime_end": "2026-07-01",
+   "date": "2026-06-26",
+   "value": "0.47600"
+  },
+  {
+   "realtime_start": "2026-07-01",
+   "realtime_end": "2026-07-01",
+   "date": "2026-06-19",
+   "value": "0.47700"
+  }
+ ],
+ "ofr_probe": {
+  "https://www.financialresearch.gov/hedge-fund-monitor/api/series/leverage.json": "HTTP Error 404: Not Found",
+  "https://www.financialresearch.gov/hedge-fund-monitor/data/leverage.json": "HTTP Error 404: Not Found"
+ },
+ "after": {
+  "version": "2.0.0",
+  "cycle": 65.5,
+  "phase": "BUILDING",
+  "layers_live": 4,
+  "finra": {
+   "latest_b": 1415.6,
+   "latest_month": "2026-05",
+   "yoy_pct": 53.7,
+   "yoy_z": null,
+   "pct_of_market_cap": 1.99,
+   "months_n": 13,
+   "source": "live+stored",
+   "status": "EXCESSIVE_BUILD"
+  },
+  "nfci": {
+   "latest": 0.476,
+   "z": 1.06,
+   "status": "TIGHTENING",
+   "date": "2026-06-26"
+  },
+  "etf": {
+   "status": "OK",
+   "net_sum": 6345865642.0,
+   "n_complexes": 72,
+   "avg_z": null,
+   "note": "fleet capital-flow-radar leveraged bull-minus-bear positioning"
+  },
+  "crypto": {
+   "status": "OK",
+   "funding_z_med": 0.39,
+   "oi_usd_total_b": 3.5,
+   "note": "fleet crypto-funding: perp funding z (crowding) + aggregate OI"
+  },
+  "hf": "UNAVAILABLE"
+ },
+ "board_row": "{\"engine\": \"Leverage Cycle\", \"category\": \"leverage\", \"signal\": 0, \"signal_label\": \"NEUTRAL\", \"read\": \"LEV 66 BUILDING (FINRA +54% yoy)\", \"as_of\": \"2026-07-02T01:06:09.140005+00:00\", \"stale\": false}",
+ "page": "LIVE"
+}
