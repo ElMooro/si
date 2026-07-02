@@ -341,12 +341,15 @@ def lambda_handler(event=None, context=None):
             typf=next((k for k in keys if "typecode" in k.lower() or "summarytype" in k.lower()),None)
             datf=next((k for k in keys if "date" in k.lower() or "month" in k.lower()),None)
             body={"limit":5000}
+            if datf: body["sortFields"]=["-"+datf]   # newest first
             if typf:
                 body["compareFilters"]=[{"compareType":"EQUAL","fieldName":typf,"fieldValue":"ATS_M_SMBL"}]
             try: mrows=_fq(body)
             except Exception:
                 body.pop("compareFilters",None); mrows=_fq(body)
             if isinstance(mrows,list) and mrows and symf:
+                latest=max((str(r0.get(datf) or "") for r0 in mrows), default="") if datf else ""
+                mrows=[r0 for r0 in mrows if not datf or str(r0.get(datf) or "")==latest]
                 blk={}
                 for r0 in mrows:
                     t=str(r0.get(symf) or "").upper()
