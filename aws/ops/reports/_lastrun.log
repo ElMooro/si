@@ -1,14 +1,23 @@
 
 ======== 1/4 DARK-POOL v2.0.1 — arm short_z from feed's z_score ========
   settling 30s…
-  zip has zmap marker: False | zip bytes: 52675
-  CodeSha256 pre=Ftlg7RUkF0UO post=v1my/7If6bhT changed=True
-  invoke head -> {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-06-08\", \"n_scored\": 936, \"n_accumulation\": 0, \"n_picks\": 0, \"top\": [[\"SOFI\", 39.5, \"NEUTRAL\", 0.0, null], [\"LCID\", 32
-  invoke tail -> LA\", 30.4, \"NEUTRAL\", 0.0, null], [\"RITM\", 29.9, \"NEUTRAL\", 0.0, null], [\"AAL\", 29.5, \"NEUTRAL\", 0.0, null], [\"WEN\", 29.5, \"NEUTRAL\", 0.0, null], [\"PATH\", 29.4, \"NEUTRAL\", 0.0, null]], \"diag\": {\"fh_type\": \"dict\", \"fh_tickers\": 13075, \"zmap_n\": 11889, \"daily_n\": 501, \"daily_z_n\": 500}}"}
+  zip has zmap marker: False | zip bytes: 53086
+  CodeSha256 pre=OVmz/Q5STFfp post=KX66RW5/Mmmq changed=True
+  invoke head -> {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-06-08\", \"n_scored\": 936, \"n_accumulation\": 283, \"n_picks\": 20, \"top\": [[\"BYD\", 93.2, \"ACCUMULATION\", 41.14, 0.707], [\"
+  invoke tail -> 91], [\"SAIA\", 90.4, \"ACCUMULATION\", 36.89, 0.734], [\"BPOP\", 90.2, \"ACCUMULATION\", 34.94, 0.759], [\"DLR\", 89.6, \"ACCUMULATION\", 35.86, 0.892], [\"STT\", 88.7, \"ACCUMULATION\", 35.41, 0.885]], \"diag\": {\"fh_type\": \"dict\", \"fh_tickers\": 13075, \"zmap_n\": 11889, \"daily_n\": 501, \"daily_z_n\": 500}}"}
 {
- "z_joined": 38,
+ "z_joined": 25,
  "of": 60,
- "high_conviction": [],
+ "high_conviction": [
+  "TEL",
+  "WAB",
+  "STT",
+  "EXPD",
+  "CNC",
+  "EXR",
+  "BXP",
+  "NEM"
+ ],
  "dist_into_strength": [],
  "own_dix": 57.68,
  "sq_dix": 0.44503
@@ -16,9 +25,10 @@
   store sample: A list [{'ts': 1778670753, 'date': '2026-05-12', 'svr': 0.48, 'short_vol': 311335.570592, 'total_vol': 648598.402123}, {'ts': 1778720402, 'date': '2026-05-13', 'svr': 0.562, 'short_vol': 512419.941846, 'total_vol': 911764.924355}, {'ts': 1778806802, 'date': '2026-05-
   ops-side extraction: names with >=15 svr obs = 11891
   history store: {'tickers': 13075, 'median_days': 35, 'max_days': 35, 'ge15': 11891}
+  diag: {'fh_type': 'dict', 'fh_tickers': 13075, 'zmap_n': 11889, 'daily_n': 501, 'daily_z_n': 500} | weekly_source: FRESH
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 125, in <module>
-    assert z_n >= min(40, max(10, R["dark_pool"]["history_store"]["ge15"] // 3)), "short_z dormant beyond store age: %d" % z_n
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: short_z dormant beyond store age: 38
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 130, in <module>
+    assert z_n >= 200, "board join thin (weekly side?): joined=%d weekly=%s" % (z_n, d.get("weekly_source"))
+           ^^^^^^^^^^
+AssertionError: board join thin (weekly side?): joined=25 weekly=FRESH
 ❌ OPS-FAIL: aws/ops/pending/ops_2715_shortz_factors.py
