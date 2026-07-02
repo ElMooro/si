@@ -21,7 +21,7 @@ and what does the fusion imply forward. Long-history, source-robust dims
   OUT   data/positioning-analog.json   (page: institutional-footprint.html)
   CRON  daily 22:40 UTC (after factor-returns, before footprint 23:10)
 """
-import json, math, time, urllib.request, urllib.parse, statistics
+import json, re, math, time, urllib.request, urllib.parse, statistics
 from datetime import datetime, timezone
 import boto3
 
@@ -98,6 +98,35 @@ def label_for(date):
     for a, b, lab in EPISODES:
         if a <= date <= b: return lab
     return None
+
+def _clean_brief(txt):
+    """Reason-tier models sometimes emit their planning scaffold. Contract:
+    plain prose, sentence-complete, <=700 chars, or None (caller falls back)."""
+    if not txt: return None
+    t = str(txt).strip()
+    if any(k in t[:250] for k in ("Analyze the Request", "**Analyze", "Let me ", "First,", "1. **")):
+        paras = [p.strip() for p in t.replace("\r", "").split("\n\n") if len(p.strip()) >= 80]
+        paras = [p for p in paras if "**" not in p[:6] and not p.lstrip().startswith(("1.", "2.", "-", "*"))]
+        t = paras[-1] if paras else ""
+    t = t.replace("**", "").replace("##", "").strip()
+    # leading header/step lines ("8. Final Polish (...):", "Step 2:", short label lines)
+    lines = [l for l in t.split("\n") if l.strip()]
+    while lines and (re.match(r"^\s*\d+\.\s", lines[0]) or lines[0].rstrip().endswith(":")
+                     or len(lines[0].strip()) < 40):
+        lines.pop(0)
+    if lines: t = " ".join(l.strip() for l in lines)
+
+    if t.split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):      # deliberation-opener leak
+        parts = [p.strip() for p in t.split(". ") if p.strip()]
+        while parts and parts[0].split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):
+            parts.pop(0)
+        t = (". ".join(parts)).strip()
+        if t and not t.endswith((".", "!", "?")): t += "."
+    if len(t) > 700: t = t[:700]
+    if t and not t.rstrip().endswith((".", "!", "?")):
+        t = t.rsplit(".", 1)[0] + "." if "." in t else ""
+    return t if 90 <= len(t) <= 720 else None
+
 
 def lambda_handler(event=None, context=None):
     print("[analog] pulling panels…")
@@ -176,16 +205,8 @@ def lambda_handler(event=None, context=None):
                   "Forward stats: %s. Write what regimes today most resembles, what followed then, the key "
                   "difference now, and a probabilistic forward read." %
                   (json.dumps(cur), json.dumps(analogs[:4]), json.dumps(stats)))
-        t = complete(prompt, tier="reason", max_tokens=420)
-        if t:
-            t = str(t).strip().replace("**", "")
-            if any(k in t[:200] for k in ("Analyze", "Let me", "First,", "Wait", "Hmm", "Actually", "Okay")):
-                ps = [p.strip() for p in t.split("\n\n") if len(p.strip()) >= 80]
-                t = ps[-1] if ps else ""
-            if len(t) > 700: t = t[:700]
-            if t and not t.rstrip().endswith((".", "!", "?")):
-                t = t.rsplit(".", 1)[0] + "." if "." in t else ""
-            if 90 <= len(t) <= 720: outlook, src = t, "llm"
+        t = _clean_brief(complete(prompt, tier="reason", max_tokens=420))
+        if t: outlook, src = t, "llm"
     except Exception as e:
         print("[analog] llm:", str(e)[:60])
     if not outlook:

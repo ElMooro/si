@@ -15,7 +15,7 @@ One roof over the entire revived flow fleet:
   AI BRIEF       llm_router tier=reason.
 Output data/global-flow-desk.json. Page global-flow-desk.html. Board row.
 """
-import json, statistics as st
+import json, re, statistics as st
 from datetime import datetime, timezone
 import boto3
 
@@ -87,6 +87,13 @@ def _clean_brief(txt):
         paras = [p for p in paras if "**" not in p[:6] and not p.lstrip().startswith(("1.", "2.", "-", "*"))]
         t = paras[-1] if paras else ""
     t = t.replace("**", "").replace("##", "").strip()
+    # leading header/step lines ("8. Final Polish (...):", "Step 2:", short label lines)
+    lines = [l for l in t.split("\n") if l.strip()]
+    while lines and (re.match(r"^\s*\d+\.\s", lines[0]) or lines[0].rstrip().endswith(":")
+                     or len(lines[0].strip()) < 40):
+        lines.pop(0)
+    if lines: t = " ".join(l.strip() for l in lines)
+
     if t.split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):      # deliberation-opener leak
         parts = [p.strip() for p in t.split(". ") if p.strip()]
         while parts and parts[0].split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):
