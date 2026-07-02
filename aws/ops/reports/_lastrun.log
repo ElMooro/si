@@ -1,17 +1,14 @@
 settling 30s…
-== 1/3 engine v1.2.0 ==
-  invoke -> {"ok": true, "feeds_alive": 19, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -16.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 9, "exits": 12, "hi_conv": 15, "dis": 0, "conviction": 6}}
-  dossier: {"src": "llm", "len": 5744, "ends_clean": true, "head": "1.  **Analyze the Request:**\n    *   **Data provided:**\n        *   Risk-now: 27.4 (RISK-ON)\n        *   Forward: -16.5 (POSITIONING FOR RISK-OFF)\n        *   Sectors bought: Semic"}
-  wholesaler (filtered): [('MPT', 'CITADEL SECURITIES', 46.6), ('PATH', 'CITADEL SECURITIES', 39.7), ('HON', 'GOLDMAN SACHS & CO', 39.4), ('QS', 'CITADEL SECURITIES', 39.3), ('LCID', 'CITADEL SECURITIES', 39.2)]
-  history: 1 | pd tenors: 7 | adds deduped: 15
-== 2/3 page v2.0 marker + strict feed ==
-  attempt 1: page=200(old) feed_strict=True
-  attempt 2: page=200(old) feed_strict=True
-  attempt 3: page=200(old) feed_strict=True
-  attempt 4: page=200(old) feed_strict=True
+  dossier[llm|177]: Institutions are rotating out of broad tech and payments—exiting AMZN, V, and MA—while accumulating semiconductors, financials, and value-defensive names like KO, CVX, and NVDA.
+  page attempt 1: 200 old
+  page attempt 2: 200 old
+  page attempt 3: 200 old
+  page attempt 4: 200 old
+  page attempt 5: 200 old
+  page attempt 6: 200 old
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2730_desk_v2.py", line 102, in <module>
-    assert okp and okf, "page/feed not proven at edge"
-           ^^^^^^^^^^^
-AssertionError: page/feed not proven at edge
-❌ OPS-FAIL: aws/ops/pending/ops_2730_desk_v2.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2731_desk_v2_close.py", line 79, in <module>
+    assert okp, "page v2 not at edge after 5min"
+           ^^^
+AssertionError: page v2 not at edge after 5min
+❌ OPS-FAIL: aws/ops/pending/ops_2731_desk_v2_close.py
