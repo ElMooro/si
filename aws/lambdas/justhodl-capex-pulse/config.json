@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-capex-pulse",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 768,
+  "timeout": 280,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Real CapEx dollars: FMP quarterly cash-flows over stock-xray top-160 + hyperscalers; sector aggregates, AI-buildout tile, accelerators/cutters boards.",
+  "schedule": {
+    "name": "justhodl-capex-pulse-daily",
+    "expression": "cron(40 20 ? * MON-FRI *)",
+    "description": "Daily 20:40 UTC before global-flow-desk 22:50"
+  }
+}

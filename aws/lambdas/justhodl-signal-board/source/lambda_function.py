@@ -1143,6 +1143,16 @@ def n_globalflows(d):
         ",".join((hot.get("top_inflows") or [])[:2]),",".join((hot.get("top_outflows") or [])[:2]))
 
 
+def n_capex(d):
+    """Corporate capex impulse: hyperscaler AI-buildout spend + market breadth."""
+    hs=(d.get("hyperscalers") or {}); mk=(d.get("market") or {})
+    hy=hs.get("yoy_pct")
+    if hy is None and mk.get("yoy_pct") is None: return 0,"CapEx n/a"
+    sig=1 if (hy or 0)>15 else -1 if (hy or 0)<-5 else 0
+    return sig,"CAPEX hyperscalers $%.0fB %+.1f%% yoy | market $%.0fB %+.1f%%"%(
+        hs.get("total_ttm_b") or 0,hy or 0,mk.get("capex_ttm_b") or 0,mk.get("yoy_pct") or 0)
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1248,6 +1258,7 @@ FEEDS = [
     ("Factor Returns",         "equity",           "data/factor-returns.json",       n_factors),
     ("Stock X-Ray",            "equity",           "data/stock-xray.json",           n_xray),
     ("Global Flows",           "flow",             "data/global-flow-desk.json",     n_globalflows),
+    ("CapEx Pulse",            "equity",           "data/capex-pulse.json",          n_capex),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

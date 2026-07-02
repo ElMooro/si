@@ -237,12 +237,23 @@ def lambda_handler(event=None, context=None):
                             "shares-history through the week; map self-completes." % len(warming)) if warming else None}
 
     # ── capex impulse (best-effort) ──
-    sps = _j("data/structural-pre-signals.json", {}) or _j("data/structural-presignals.json", {}) or {}
-    capex = {"status": "N/A"}
-    for k in ("capex_by_sector", "capex", "capex_mentions"):
-        if isinstance(sps.get(k), (dict, list)):
-            capex = {"status": "OK", "data": sps[k]}
-            break
+    cpx = _j("data/capex-pulse.json", {}) or {}
+    if cpx.get("hyperscalers"):
+        hs = cpx["hyperscalers"]; mk = cpx.get("market") or {}
+        top_sec = sorted(((n, v) for n, v in (cpx.get("sectors") or {}).items() if v.get("yoy_pct") is not None),
+                         key=lambda kv: kv[1]["yoy_pct"], reverse=True)
+        capex = {"status": "OK", "source": "capex-pulse",
+                 "market_ttm_b": mk.get("capex_ttm_b"), "market_yoy_pct": mk.get("yoy_pct"),
+                 "hyperscalers_ttm_b": hs.get("total_ttm_b"), "hyperscalers_yoy_pct": hs.get("yoy_pct"),
+                 "top_sector": {"name": top_sec[0][0], "yoy_pct": top_sec[0][1]["yoy_pct"]} if top_sec else None,
+                 "top_accelerators": [r["ticker"] for r in ((cpx.get("boards") or {}).get("top_accelerators") or [])[:5]]}
+    else:
+        sps = _j("data/structural-pre-signals.json", {}) or _j("data/structural-presignals.json", {}) or {}
+        capex = {"status": "N/A", "source": "mentions-fallback"}
+        for k in ("capex_by_sector", "capex", "capex_mentions"):
+            if isinstance(sps.get(k), (dict, list)):
+                capex = {"status": "OK", "source": "mentions-fallback", "data": sps[k]}
+                break
 
     # ── AI brief ──
     brief = None
@@ -257,7 +268,7 @@ def lambda_handler(event=None, context=None):
         brief = complete(prompt, tier="reason", max_tokens=220)
     except Exception as e:
         brief = None
-    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.1",
+    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.2",
            "generated_at": now.isoformat(timespec="seconds"),
            "asset_classes": classes, "sectors": sectors, "inst_vs_retail": inst_retail,
            "hot_money": hot, "capex": capex, "ai_brief": brief,

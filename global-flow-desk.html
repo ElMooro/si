@@ -81,4 +81,26 @@ const M=v=>v==null?'—':(v>=0?'+':'')+v.toLocaleString(undefined,{maximumFracti
  document.getElementById('ai').textContent=d.ai_brief||'AI brief unavailable this run.';
  document.getElementById('method').textContent=d.method||'';
 })();
-</script></div></body></html>
+</script></div>
+<div id="capexv1" style="max-width:1180px;margin:12px auto 4px;padding:0 18px;font:13px -apple-system,Segoe UI,sans-serif"></div>
+<script>
+(async()=>{try{
+ const r=await fetch('data/capex-pulse.json',{cache:'no-store'});const d=await r.json();
+ const H=d.hyperscalers||{},M=d.market||{},B=(d.boards||{});
+ const yc=v=>v>10?'#37d99a':v<0?'#ff5d6c':'#46c8ff';
+ document.getElementById('capexv1').innerHTML=
+ `<div style="display:flex;gap:16px;flex-wrap:wrap;background:#0e1420;border:1px solid #1e2836;border-radius:12px;padding:14px 18px">
+  <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">CAPEX PULSE — HYPERSCALERS (AI buildout)</div>
+   <div style="font-family:monospace;font-size:26px;font-weight:700;color:${yc(H.yoy_pct||0)}">$${H.total_ttm_b??'—'}B <span style="font-size:14px">${H.yoy_pct>0?'+':''}${H.yoy_pct??''}% yoy</span></div>
+   <div style="color:#5c6f88;font-size:10px">${(H.rows||[]).slice(0,5).map(x=>x.ticker+' $'+x.capex_ttm_b+'B').join(' · ')}</div></div>
+  <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">MARKET (top-160)</div>
+   <div style="font-family:monospace;font-size:26px;font-weight:700;color:${yc(M.yoy_pct||0)}">$${M.capex_ttm_b??'—'}B <span style="font-size:14px">${M.yoy_pct>0?'+':''}${M.yoy_pct??''}%</span></div>
+   <div style="color:#5c6f88;font-size:10px">TTM capital expenditure, FMP quarterly</div></div>
+  <div><div style="color:#37d99a;font-size:10.5px;letter-spacing:1.3px">ACCELERATING</div>
+   <div style="font-family:monospace;font-size:12px;color:#37d99a;margin-top:6px">${(B.top_accelerators||[]).slice(0,5).map(x=>x.ticker+' +'+x.yoy_pct+'%').join('<br>')}</div></div>
+  <div><div style="color:#ff5d6c;font-size:10.5px;letter-spacing:1.3px">CUTTING</div>
+   <div style="font-family:monospace;font-size:12px;color:#ff5d6c;margin-top:6px">${(B.top_cutters||[]).slice(0,5).map(x=>x.ticker+' '+x.yoy_pct+'%').join('<br>')}</div></div>
+ </div>`;
+}catch(e){}})();
+</script>
+</body></html>
