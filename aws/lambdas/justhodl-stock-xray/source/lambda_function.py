@@ -67,11 +67,29 @@ def lambda_handler(event=None, context=None):
         if pe and 0<pe<400 and sec: bysec.setdefault(sec,[]).append(pe)
     for v in bysec.values(): v.sort()
 
-    mr=_tmap(_j("data/master-ranker.json",{}) or _j("data/master-rank.json",{}) or {})
-    ec=_tmap(_j("data/equity-confluence.json",{}) or {})
+    mrdoc=_j("data/master-ranker.json",{}) or {}
+    mr={}
+    for i,r in enumerate(mrdoc.get("top_tickers") or []):
+        t=(r.get("ticker") or "").upper()
+        if t: mr[t]={"score":r.get("score"),"rank":i+1,"top25":True,
+                     "n_systems":r.get("n_systems")}
+    ecdoc=_j("data/equity-confluence.json",{}) or {}
+    ec={}
+    for key in ("board","rows","tickers","names","composite_board","leaders"):
+        for r in (ecdoc.get(key) or []):
+            if isinstance(r,dict):
+                t=(r.get("ticker") or r.get("symbol") or "").upper()
+                if t: ec.setdefault(t,r)
+    if not ec: ec=_tmap(ecdoc)
     rs=_tmap(_j("data/resilience.json",{}) or {})
     dp=(_j("data/dark-pool.json",{}) or {}).get("xray_map") or {}
-    er=_tmap(_j("data/estimate-revisions.json",{}) or {})
+    erdoc=_j("data/estimate-revisions.json",{}) or {}
+    er={t.upper():{"direction":d} for t,d in (erdoc.get("direction_map") or {}).items()}
+    if len(er)<50:
+        for key,dr in (("upward_revisions","UP"),("downward_revisions","DOWN")):
+            for r in (erdoc.get(key) or []):
+                t=(r.get("ticker") or "").upper() if isinstance(r,dict) else (r if isinstance(r,str) else "")
+                if t: er.setdefault(t,{"direction":dr})
     bs=_tmap(_j("data/best-setups.json",{}) or {})
     bl=_tmap(_j("data/backlog.json",{}) or {})
     # factor decile memberships: prefer stored ranks file (any of 3 shapes),
@@ -104,6 +122,12 @@ def lambda_handler(event=None, context=None):
     for e in (graph.get("pairs") or graph.get("edges") or []):
         a,b=_edge(e)
         if a and b: adj.setdefault(a,[]).append(b); adj.setdefault(b,[]).append(a)
+    bt=graph.get("by_ticker") or {}
+    for t,rec in bt.items():
+        ns=rec if isinstance(rec,list) else (rec.get("related") or rec.get("peers") or rec.get("results") or [])
+        peers=[(p.get("ticker") if isinstance(p,dict) else p) for p in ns]
+        peers=[p for p in peers if isinstance(p,str)]
+        if peers: adj.setdefault(t.upper(),[]).extend(peers[:8])
     src=graph.get("adjacency") or graph.get("map") or graph.get("related") or graph
     if isinstance(src,dict):
         for t,ns in src.items():

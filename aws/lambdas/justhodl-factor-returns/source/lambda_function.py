@@ -88,13 +88,15 @@ def lambda_handler(event=None, context=None):
         r["val"]=st.fmean([x for x in (a,b) if x is not None]) if (a is not None or b is not None) else None
 
     FACTORS={"MOMENTUM":"mom","VALUE":"val","QUALITY":"qual","SIZE":"size","LOWVOL":"lowvol"}
-    out={}; total_dv=sum(r["dv"] for r in recs) or 1
+    out={}; deciles={}; total_dv=sum(r["dv"] for r in recs) or 1
     for name,key in FACTORS.items():
         pool=sorted([r for r in recs if r[key] is not None],key=lambda r:r[key])
         if len(pool)<300: out[name]={"status":"THIN","n":len(pool)}; continue
         d=max(30,len(pool)//10)
         bot,top=pool[:d],pool[-d:]
         ls=round(st.fmean(x["chg"] for x in top)-st.fmean(x["chg"] for x in bot),3)
+        deciles.setdefault(name,{})["long"]=[x["t"] for x in top]
+        deciles[name]["short"]=[x["t"] for x in bot]
         out[name]={"status":"OK","ls_ret_1d_pct":ls,"n":len(pool),"decile":d,
                    "top_ret":round(st.fmean(x["chg"] for x in top),3),
                    "bot_ret":round(st.fmean(x["chg"] for x in bot),3),
@@ -133,7 +135,7 @@ def lambda_handler(event=None, context=None):
 
     doc={"engine":"justhodl-factor-returns","version":"1.0.0",
          "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
-         "universe_n":n,"factors":out,"regime":regime,
+         "universe_n":n,"factors":out,"deciles":deciles,"regime":regime,
          "history_days":len(hist),
          "chart":{k:[{"date":d,"value":round(sum(x[1].get(k) or 0 for x in days[:i+1]),2)} for i,(d,_) in enumerate(days)] for k in ("MOMENTUM","VALUE")} if len(days)>=2 else {},
          "method":("Daily long-short decile returns on the full FinViz Elite cross-section "
