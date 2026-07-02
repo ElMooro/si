@@ -240,6 +240,8 @@ def lambda_handler(event=None, context=None):
                 return got, key.split("/")[-1]
         return None, "no net-position field in dealer feeds"
     pd_pos, pd_note = _pd_extract()
+    if pd_pos is not None and "TREASURIES" in asset_ledger:
+        asset_ledger["TREASURIES"]["pd_net_usd_b"] = pd_pos
 
     # ── RISK-NOW composite ──
     naaim_z = _find(F["data/naaim.json"], ("z",)) or _find(F["data/naaim.json"], ("zscore",))
@@ -298,7 +300,7 @@ def lambda_handler(event=None, context=None):
     except Exception:
         brief = None
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.2",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.3",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
