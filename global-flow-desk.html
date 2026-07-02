@@ -42,7 +42,7 @@ h1{font-size:20px;margin:0 0 4px}h2{font-size:12px;letter-spacing:1.6px;color:va
 <script>
 const M=v=>v==null?'—':(v>=0?'+':'')+v.toLocaleString(undefined,{maximumFractionDigits:1})+'M';
 (async()=>{
- const d=await (await fetch('data/global-flow-desk.json',{cache:'no-store'})).json();
+ const d=await (await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/global-flow-desk.json',{cache:'no-store'})).json();
  document.getElementById('meta').textContent=(d.generated_at||'').replace('T',' ').slice(0,16)+' UTC · '+(d.hot_money?.n_scored||0)+' countries scored';
  const ir=d.inst_vs_retail||{};
  const iCol=ir.institutional>15?'var(--gr)':ir.institutional<-15?'var(--rd)':'var(--cy)';
@@ -85,7 +85,7 @@ const M=v=>v==null?'—':(v>=0?'+':'')+v.toLocaleString(undefined,{maximumFracti
 <div id="capexv1" style="max-width:1180px;margin:12px auto 4px;padding:0 18px;font:13px -apple-system,Segoe UI,sans-serif"></div>
 <script>
 (async()=>{try{
- const r=await fetch('data/capex-pulse.json',{cache:'no-store'});const d=await r.json();
+ const r=await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/capex-pulse.json',{cache:'no-store'});const d=await r.json();
  const H=d.hyperscalers||{},M=d.market||{},B=(d.boards||{});
  const yc=v=>v>10?'#37d99a':v<0?'#ff5d6c':'#46c8ff';
  document.getElementById('capexv1').innerHTML=
