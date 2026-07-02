@@ -1,10 +1,64 @@
-waiting for pages deploy (first-party, ~90s)…
-  attempt 1: LIVE
-  PASS page.onchain_at_edge               
-  PASS nav.entry_at_edge                  manifest 22976 bytes
-  PASS feed.cryptoquant-onchain.json      strict
-  PASS feed.onchain-ratios.json           strict
-  PASS feed.crypto-exchange-flows.json    strict
-  PASS feed.crypto-miners.json            strict
-VERDICT: ALL PASS (6)
-OPS 2744 COMPLETE — the chain has a face
+settling 25s…
+== 1/4 CATALOG PROBE (56 candidates) ==
+  LIVE btc_exchange_netflow           keys=['netflow_total']
+  LIVE btc_exchange_inflow            keys=['inflow_total', 'inflow_top10', 'inflow_mean']
+  LIVE btc_exchange_outflow           keys=['outflow_total', 'outflow_top10', 'outflow_mean']
+  LIVE btc_exchange_reserve           keys=['reserve', 'reserve_usd']
+  dead btc_exchange_addr_in           404
+  dead btc_exchange_addr_out          404
+  LIVE btc_mpi                        keys=['mpi']
+  LIVE btc_whale_ratio                keys=['exchange_whale_ratio']
+  LIVE btc_fund_flow_ratio            keys=['fund_flow_ratio']
+  dead btc_stablecoins_ratio          404
+  LIVE btc_exchange_supply_ratio      keys=['exchange_supply_ratio']
+  LIVE btc_mvrv                       keys=['mvrv']
+  LIVE btc_sopr                       keys=['sopr', 'a_sopr', 'sth_sopr']
+  LIVE btc_sopr_ratio                 keys=['sopr_ratio']
+  dead btc_nupl                       404
+  LIVE btc_realized_price             keys=['realized_price']
+  LIVE btc_ssr                        keys=['stablecoin_supply_ratio']
+  LIVE btc_nvt                        keys=['nvt']
+  LIVE btc_nvt_golden                 keys=['nvt_golden_cross']
+  LIVE btc_nvm                        keys=['nvm']
+  LIVE btc_puell                      keys=['puell_multiple']
+  LIVE btc_stock_to_flow              keys=['stock_to_flow', 'stock_to_flow_reversion']
+  LIVE btc_miner_netflow              keys=['netflow_total']
+  LIVE btc_miner_outflow              keys=['outflow_total', 'outflow_top10', 'outflow_mean']
+  LIVE btc_miner_reserve              keys=['reserve', 'reserve_usd']
+  LIVE btc_tx_count                   keys=['transactions_count_total', 'transactions_count_mean']
+  dead btc_addresses_active           404
+  LIVE btc_fees_total                 keys=['fees_block_mean', 'fees_block_mean_usd', 'fees_reward_percent']
+  LIVE btc_fees_tx_mean               keys=['fees_transaction_mean', 'fees_transaction_mean_usd', 'fees_transaction_median']
+  LIVE btc_blockreward                keys=['blockreward', 'blockreward_usd']
+  LIVE btc_difficulty                 keys=['difficulty']
+  LIVE btc_hashrate                   keys=['hashrate']
+  dead btc_utxo_count                 429
+  dead btc_velocity                   429
+  dead btc_tokens_transferred         404
+  dead btc_supply_total               429
+  LIVE btc_open_interest              keys=['open_interest']
+  dead btc_funding_rates              429
+  dead btc_liquidations               429
+  LIVE btc_taker_ratio                keys=['taker_buy_volume', 'taker_sell_volume', 'taker_buy_ratio']
+  dead btc_coinbase_premium           429
+  dead btc_leverage_ratio             429
+  LIVE eth_exchange_netflow           keys=['netflow_total']
+  dead eth_exchange_inflow            429
+  LIVE eth_exchange_outflow           keys=['outflow_total', 'outflow_top10', 'outflow_mean']
+  dead eth_exchange_reserve           429
+  dead eth_addresses_active           429
+  LIVE eth_tx_count                   keys=['transactions_count_total', 'transactions_count_mean']
+  dead eth_open_interest              429
+  dead eth_funding_rates              429
+  dead eth_leverage_ratio             404
+  dead stablecoin_exchange_reserve    429
+  LIVE stablecoin_exchange_netflow    keys=['netflow_total']
+  dead stablecoin_exchange_inflow     429
+  dead stablecoin_exchange_outflow    429
+  dead stablecoin_supply_total        404
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2745_cq_catalog.py", line 128, in <module>
+    assert len(core) == 8, "core-8 broken: %s" % core
+           ^^^^^^^^^^^^^^
+AssertionError: core-8 broken: ['btc_exchange_netflow', 'btc_exchange_reserve', 'btc_mpi', 'btc_whale_ratio', 'btc_mvrv', 'btc_sopr']
+❌ OPS-FAIL: aws/ops/pending/ops_2745_cq_catalog.py
