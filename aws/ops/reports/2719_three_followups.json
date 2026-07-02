@@ -1,0 +1,57 @@
+{
+ "ops": 2719,
+ "ts": "2026-07-02T07:12:37.567546+00:00",
+ "finra_spec": {
+  "codes": [
+   "OTC_M_SMBL_FIRM"
+  ],
+  "qty_field": "totalMonthlyShareQuantity",
+  "notional_field": "totalNotionalSum",
+  "date_field": "monthStartDate",
+  "sym_field": "issueSymbolIdentifier",
+  "firm_field": "marketParticipantName",
+  "discovered": "2026-07-02T07:12:40.745325+00:00"
+ },
+ "quiver": {
+  "enabled": false,
+  "http": 401,
+  "note": "requires paid Quiver token; congresstrading is their only no-auth endpoint. To activate: create SSM /justhodl/quiver/token + set enabled=true here."
+ },
+ "ici_seeded": {
+  "mmf": 0,
+  "ltf": 0
+ },
+ "monthly_live": {
+  "status": "OK",
+  "month": "2026-04-01",
+  "n_rows": null,
+  "joined": 933
+ },
+ "monthly_sample": {
+  "AAL": {
+   "sh": 2167448923.940517,
+   "ntl": 28884.2,
+   "top_firm": "CITADEL SECURITIES LLC",
+   "top_pct": 28.6,
+   "n_firms": 13
+  },
+  "ADBE": {
+   "sh": 79353861.10835302,
+   "ntl": 21343.3,
+   "top_firm": "De Minimis Firms",
+   "top_pct": 21.8,
+   "n_firms": 19
+  },
+  "ADP": {
+   "sh": 44961410.538262,
+   "ntl": 9807.6,
+   "top_firm": "De Minimis Firms",
+   "top_pct": 36.9,
+   "n_firms": 12
+  }
+ },
+ "ici_live": {
+  "status": "GATED",
+  "note": "ici.org blocked from Lambda AND runner; engine gate intact; seed via manual upload or alt mirror \u2014 PENDING"
+ }
+}

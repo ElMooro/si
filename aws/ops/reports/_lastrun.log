@@ -3,12 +3,16 @@
    ATS_M_SMBL_FIRM -> Expecting value: line 1 column 1 (char 0)
   codes live: ['OTC_M_SMBL_FIRM']
   domainFilters probe rows: 40 | sample: {'issueSymbolIdentifier': 'AMD', 'marketParticipantName': 'FUTU CLEARING INC', 'totalMonthlyShareQuantity': 2327.5494, 'monthStartDate': '2026-04-01'}
-  SPEC v2: {"codes": ["OTC_M_SMBL_FIRM"], "qty_field": "totalMonthlyShareQuantity", "notional_field": "totalNotionalSum", "date_field": "monthStartDate", "sym_field": "issueSymbolIdentifier", "firm_field": "marketParticipantName", "discovered": "2026-07-02T07:07:45.066506+00:00"}
+  SPEC v2: {"codes": ["OTC_M_SMBL_FIRM"], "qty_field": "totalMonthlyShareQuantity", "notional_field": "totalNotionalSum", "date_field": "monthStartDate", "sym_field": "issueSymbolIdentifier", "firm_field": "marketParticipantName", "discovered": "2026-07-02T07:12:40.745325+00:00"}
 
 ======== B/4 QUIVER OFF-EXCHANGE — verdict ========
   VERDICT: {"enabled": false, "http": 401, "note": "requires paid Quiver token; congresstrading is their only no-auth endpoint. To activate: create SSM /justhodl/quiver/token + set enabled=true here."}
 
-======== C/4 ICI-FLOWS — runner-side seed via engine's own parsers ========
+======== C/4 ICI-FLOWS — store repair + fetch diag + kind-aware seed ========
+  repaired data/history/ici-mmf.json: dropped 20 malformed rows, kept 0
+  repaired data/history/ici-flows.json: dropped 33 malformed rows, kept 0
+  GET mmf -> 200 (332041 bytes)
+  GET combined -> HTTP Error 404: Not Found
   [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
   [mmf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
   [mmf] discovered files=2 pages=6
@@ -20,8 +24,7 @@
     · https://www.ici.org/MoneyMarketFunds
     · https://www.ici.org/ResourceHubs/money-market-funds
     · https://www.ici.org/topics/money-market-fund-assets
-  _live('flows') raised: 'flows'
-  _live('combined') raised: 'combined'
+  _live('mmf') -> 0 entries
   [ltf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
   [ltf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
   [ltf] discovered files=2 pages=8
@@ -37,16 +40,13 @@
     · https://www.ici.org/ici-viewpoints/etf-tax-treatment-supports-fairness-efficiency-and-longterm-investing
   [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data_0526: HTTP Error 403: Forbidden
   [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data.xls: HTTP Error 403: Forbidden
+  _live('ltf') -> 0 entries
   seeded: {'mmf': 0, 'ltf': 0}
 
 ======== D/4 DEPLOY dark-pool v2.3 + PROVE all three ========
   settling 30s…
   monthly: {"status": "OK", "month": "2026-04-01", "n_rows": null, "joined": 933}
   concentration sample: {"AAL": {"sh": 2167448923.940517, "ntl": 28884.2, "top_firm": "CITADEL SECURITIES LLC", "top_pct": 28.6, "n_firms": 13}, "ADBE": {"sh": 79353861.10835302, "ntl": 21343.3, "top_firm": "De Minimis Firms", "top_pct": 21.8, "n_firms": 19}, "ADP": {"sh": 44961410.538262, "ntl": 9807.6, "top_firm": "De Mi
-  ici invoke -> {"errorMessage": "'float' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "662f60e0-611d-4833-b32a-101329d6b60d", "stackTrace": ["  File \"/var/task/lambda_function.py\", l
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2719_three_followups.py", line 147, in <module>
-    assert not r.get("FunctionError"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': "'float' object has no attribute 'get'", 'errorType': 'AttributeError', 'requestId': '662f60e0-611d-4833-b32a-101329d6b60d', 'stackTrace': ['  File "/var/task/lambda_function.py", line 277, in lambda_handler\n    mmf_h = _norm_mmf(mmf_h)\n', '  File "/var/task/lambda_function.py", line 252, in _norm_mmf\n    t = r.get("total")\n']}
-❌ OPS-FAIL: aws/ops/pending/ops_2719_three_followups.py
+  ici invoke -> {"errorMessage": "no ICI data (mmf=0 ltf=0) \u2014 seed histories", "errorType": "RuntimeError", "requestId": "9d7461df-ffe8-4e5e-8744-8f7b8924ff59", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 281, in 
+  ici verdict: {"status": "GATED", "note": "ici.org blocked from Lambda AND runner; engine gate intact; seed via manual upload or alt mirror \u2014 PENDING"}
+OPS 2719 COMPLETE — three follow-ups closed
