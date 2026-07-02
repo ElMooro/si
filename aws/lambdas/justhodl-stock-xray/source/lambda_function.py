@@ -103,8 +103,11 @@ def lambda_handler(event=None, context=None):
             for key,tag in (("long","+"),("top","+"),("long_decile","+"),("short","-"),("bottom","-"),("short_decile","-")):
                 for t in (d.get(key) or []):
                     if isinstance(t,str): fmem.setdefault(t.upper(),[]).append(f[:6]+tag)
+    fd=_j("data/factor-returns.json",{}) or {}
+    for f,d in (fd.get("deciles") or {}).items():
+        for t in (d.get("long") or []): fmem.setdefault(t.upper(),[]).append(f[:6]+"+")
+        for t in (d.get("short") or []): fmem.setdefault(t.upper(),[]).append(f[:6]+"-")
     if not fmem:
-        fd=_j("data/factor-returns.json",{}) or {}
         for f,d in (fd.get("factors") or {}).items():
             if not isinstance(d,dict): continue
             for key,tag in (("top_names","+"),("long_sample","+"),("longs","+"),
