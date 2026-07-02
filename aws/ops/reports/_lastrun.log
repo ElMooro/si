@@ -9,10 +9,16 @@ settling 30s…
 == 4/6 miners fusion ==
   miners MPI: {"value": -0.3504, "z365": 0.04, "pctl_1y": 55, "wow": -0.2011, "as_of": "2026-07-01", "risk_sign": 1, "grading": "PROVISIONAL"}
 == 5/6 signal-logger CANDIDATE ==
-  logger payload: {"statusCode": 200, "body": "{\"logged\": 115}"} | tail-hit: False
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2742_onchain_fusion.py", line 120, in <module>
-    assert hit, "onchain signal not in log tail"
-           ^^^
-AssertionError: onchain signal not in log tail
-❌ OPS-FAIL: aws/ops/pending/ops_2742_onchain_fusion.py
+  logger payload: {"statusCode": 200, "body": "{\"logged\": 115}"}
+  cw-proof: [LOG] onchain_composite_risk=ONCHAIN NEUTRAL conf=0.40 baseline=$61468.00
+== 6/6 FIRST-LOOK IC (1y, indicative) ==
+  metric                           n      IC  IC_adj Q4-Q1 bps
+  btc_exchange_netflow           344  -0.098  +0.098      +323
+  btc_exchange_reserve           344  +0.125  -0.125      -209
+  eth_exchange_reserve           344  -0.011  +0.011      -201
+  btc_mpi                        344  -0.203  +0.203      +415
+  btc_whale_ratio                344  +0.094  -0.094      -331
+  btc_mvrv                       344  -0.170  +0.170      +285
+  btc_sopr                       344  -0.074  +0.074      +100
+  stablecoin_exchange_reserve    344  -0.160  -0.160      -476
+OPS 2742 COMPLETE — on-chain flows through the fleet

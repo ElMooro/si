@@ -1,0 +1,82 @@
+{
+ "ops": 2742,
+ "ts": "2026-07-02T22:57:24.790806+00:00",
+ "cq": {
+  "n": 8,
+  "composite": -0.24,
+  "stablecoin": {
+   "value": 63561385260.8275,
+   "z365": -0.69,
+   "pctl_1y": 21,
+   "wow": -2092854733.2974,
+   "as_of": "2026-07-01",
+   "risk_sign": -1
+  }
+ },
+ "ratios": {
+  "feed": "data/onchain-ratios.json",
+  "resurrected": "ops 2742 - daily 21:20 UTC",
+  "whale": {
+   "value": 0.5292,
+   "z365": 0.12,
+   "pctl_1y": 59,
+   "wow": 0.0511,
+   "as_of": "2026-07-01",
+   "risk_sign": 1
+  }
+ },
+ "xf": -0.24,
+ "miners_mpi": -0.3504,
+ "logger": "onchain_composite_risk LOGGED",
+ "ic_1y_indicative": {
+  "btc_exchange_netflow": {
+   "n": 344,
+   "ic": -0.098,
+   "ic_sign_adj": 0.098,
+   "q4q1_fwd21_bps_adj": 323
+  },
+  "btc_exchange_reserve": {
+   "n": 344,
+   "ic": 0.125,
+   "ic_sign_adj": -0.125,
+   "q4q1_fwd21_bps_adj": -209
+  },
+  "eth_exchange_reserve": {
+   "n": 344,
+   "ic": -0.011,
+   "ic_sign_adj": 0.011,
+   "q4q1_fwd21_bps_adj": -201
+  },
+  "btc_mpi": {
+   "n": 344,
+   "ic": -0.203,
+   "ic_sign_adj": 0.203,
+   "q4q1_fwd21_bps_adj": 415
+  },
+  "btc_whale_ratio": {
+   "n": 344,
+   "ic": 0.094,
+   "ic_sign_adj": -0.094,
+   "q4q1_fwd21_bps_adj": -331
+  },
+  "btc_mvrv": {
+   "n": 344,
+   "ic": -0.17,
+   "ic_sign_adj": 0.17,
+   "q4q1_fwd21_bps_adj": 285
+  },
+  "btc_sopr": {
+   "n": 344,
+   "ic": -0.074,
+   "ic_sign_adj": 0.074,
+   "q4q1_fwd21_bps_adj": 100
+  },
+  "stablecoin_exchange_reserve": {
+   "n": 344,
+   "ic": -0.16,
+   "ic_sign_adj": -0.16,
+   "q4q1_fwd21_bps_adj": -476
+  }
+ },
+ "ic_note": "1y in-sample rank IC vs fwd-21d BTC; sign-adjusted so + = hypothesis-supportive; BH-FDR forward grading via scorecard remains the gate"
+}
