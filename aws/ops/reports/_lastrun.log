@@ -1,8 +1,133 @@
-settling 30s…
-invoke -> {"ok": true, "classes": {"EQUITY_US": -40063.7, "EQUITY_INTL": -5922.3, "SECTORS": 858.7, "TREASURIES": -170.2, "CREDIT": -214.4, "TIPS": 941.1, "CRYPTO": -61.6, "COMMODITIES": 96.1, "THEMATIC": -124.9, "DIVIDEND_VALUE": 124.4, "GROWTH": -1068.3, "VOL": 0.0, "GOLD": -505.9, "SILVER": -52.2, "REAL_ESTATE": 55.4, "CASH": -17.7}, "inst": 21.
-{"populated_classes": 16, "hot": {"n": 12, "in": ["UK", "Germany", "India", "Brazil", "South Korea"], "out": ["DM ex-US", "EM (broad)", "Taiwan", "Japan", "Australia"]}, "inst_retail": {"institutional": 21.5, "retail": -7.0, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": 0.08800000000000002, "stablecoin_7d_usd_m": -2872.1, "divergence": "ALIGNED NEUTRAL"}, "sectors": {"leaders": ["XLF", "XLV", "XLI"], "laggards": ["XLP", "XLB", "XLK"], "n": 11}, "ai": true}
-  src_counts: {'true_flows': 9, 'etf_global': 7} | warming: 13 ['EWW', 'EZA', 'TUR', 'EPOL', 'ARGT', 'EIDO', 'VNM', 'THD', 'EWQ', 'EWL', 'EWI', 'EWP', 'EWS']
-  inst_retail v2: {"institutional": 21.5, "retail": -7.0, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": 0.08800000000000002, "stablecoin_7d_usd_m": -2872.1, "divergence": "ALIGNED NEUTRAL"}
-board: {"engine": "Global Flows", "category": "flow", "signal": 0, "signal_label": "NEUTRAL", "read": "GLOBAL FLOWS inst 21.5 / retail -7.0 \u2014 ALIGNED NEUTRAL; hot in UK,Germany out DM ex-US,EM (broad)", "as_of": "2026-07-0
-page: propagating: HTTP Error 403: Forbidden
-OPS 2721 COMPLETE — the desk knows where money is going
+
+======== 1/4 CREATE capex-pulse + RUN (~160 FMP calls) ========
+  settling 30s…
+  schedule: cron(40 20 ? * MON-FRI *)
+  invoke -> {"ok": true, "n": 150, "fails": 10, "mkt_ttm_b": 8837.0, "mkt_yoy": 28.0, "hyp": {"ttm_b": 508.0, "yoy": 73.5}}
+{
+ "n": 150,
+ "fails": 10,
+ "market": {
+  "capex_ttm_b": 8837.0,
+  "yoy_pct": 28.0,
+  "universe": "top-160 mcap (stock-xray) + hyperscalers"
+ },
+ "hyperscalers": {
+  "total_ttm_b": 508.0,
+  "yoy_pct": 73.5
+ },
+ "hyp_rows": [
+  [
+   "AMZN",
+   151.0,
+   62.2
+  ],
+  [
+   "GOOGL",
+   109.92,
+   90.4
+  ],
+  [
+   "MSFT",
+   97.22,
+   58.5
+  ],
+  [
+   "META",
+   75.75,
+   73.0
+  ],
+  [
+   "ORCL",
+   55.66,
+   162.4
+  ],
+  [
+   "AAPL",
+   11.05,
+   -0.2
+  ],
+  [
+   "NVDA",
+   6.57,
+   60.5
+  ],
+  [
+   "AVGO",
+   0.86,
+   59.9
+  ]
+ ],
+ "sectors_n": 11,
+ "top_sector_yoy": [
+  [
+   "Financial",
+   870.2
+  ],
+  [
+   "Communication Services",
+   64.1
+  ],
+  [
+   "Real Estate",
+   59.4
+  ]
+ ],
+ "accelerators": [
+  [
+   "SBS",
+   2862.0
+  ],
+  [
+   "ORCL",
+   162.4
+  ],
+  [
+   "ARM",
+   139.7
+  ],
+  [
+   "BA",
+   109.3
+  ],
+  [
+   "MU",
+   102.6
+  ],
+  [
+   "VRTX",
+   91.0
+  ]
+ ],
+ "cutters": [
+  [
+   "SAN",
+   -57.6
+  ],
+  [
+   "ISRG",
+   -46.6
+  ],
+  [
+   "INTC",
+   -43.4
+  ],
+  [
+   "SBUX",
+   -42.2
+  ],
+  [
+   "LLY",
+   -34.8
+  ],
+  [
+   "NVS",
+   -32.4
+  ]
+ ]
+}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2722_capex_pulse.py", line 95, in <module>
+    assert isinstance(MK.get("capex_ttm_b"), (int, float)) and 400 <= MK["capex_ttm_b"] <= 5000, "market ttm insane: %s" % MK.get("capex_ttm_b")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: market ttm insane: 8837.0
+❌ OPS-FAIL: aws/ops/pending/ops_2722_capex_pulse.py
