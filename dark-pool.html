@@ -63,4 +63,29 @@ function sh(v){if(v==null)return '—';if(v>=1e6)return (v/1e6).toFixed(1)+'M';i
 })();
 </script>  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<!-- v2 OWN-DIX strip (self-contained; leaves v1 layout untouched) -->
+<div id="dpv2" style="max-width:1180px;margin:14px auto 4px;padding:0 18px;font:13px -apple-system,Segoe UI,sans-serif"></div>
+<script>
+(async()=>{try{
+ const r=await fetch('data/dark-pool.json',{cache:'no-store'});const d=await r.json();
+ const X=d.dix||{},F=d.daily_fusion||{},M=d.monthly_ats||{};
+ const col=X.own_dix_pct>=57?'#37d99a':X.own_dix_pct<52?'#ff5d6c':'#46c8ff';
+ const dis=(d.board||[]).filter(x=>x.flag==='DISTRIBUTION_INTO_STRENGTH').slice(0,6).map(x=>x.ticker).join(', ');
+ document.getElementById('dpv2').innerHTML=
+  `<div style="display:flex;gap:14px;flex-wrap:wrap;background:#0e1420;border:1px solid #1e2836;border-radius:12px;padding:14px 18px">
+   <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">OWN-DIX (market buying pressure)</div>
+    <div style="font-family:monospace;font-size:26px;font-weight:700;color:${col}">${X.own_dix_pct??'—'}%</div>
+    <div style="color:#5c6f88;font-size:10px">${X.read||''} · z ${X.own_dix_z??'accumulating'} · SqueezeMetrics ${X.squeezemetrics_dix??'—'}</div></div>
+   <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">DAILY REGSHO FUSION</div>
+    <div style="font-family:monospace;font-size:26px;font-weight:700;color:#46c8ff">${F.joined??0}<span style="font-size:13px;color:#5c6f88">/${F.of??0} names</span></div>
+    <div style="color:#5c6f88;font-size:10px">daily short% + z joined to weekly ATS board</div></div>
+   <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">FINRA MONTHLY ATS</div>
+    <div style="font-family:monospace;font-size:26px;font-weight:700;color:#9db0c8">${M.status||'—'}</div>
+    <div style="color:#5c6f88;font-size:10px">${(M.note||M.err||'').slice(0,70)}</div></div>
+   ${dis?`<div><div style="color:#ffd24a;font-size:10.5px;letter-spacing:1.3px">⚠ DISTRIBUTION INTO STRENGTH</div>
+    <div style="font-family:monospace;font-size:13px;color:#ffd24a;margin-top:8px">${dis}</div></div>`:''}
+  </div>`;
+}catch(e){}})();
+</script>
 </body></html>

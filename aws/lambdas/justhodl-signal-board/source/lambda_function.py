@@ -1105,6 +1105,15 @@ def n_rebalance(d):
     return 0,"Next quarter-end %s (%d bdays)"%(c.get("quarter_end"),c.get("bdays_to_qtr_end",0))
 
 
+def n_darkpool(d):
+    """Own-DIX buying pressure + accumulation breadth from FINRA ATS/regsho fusion."""
+    dx=(d.get("dix") or {}); v=dx.get("own_dix_pct")
+    dist=(d.get("distribution") or {})
+    if not isinstance(v,(int,float)): return 0,"Dark pool n/a"
+    sig=1 if v>=57 else -1 if v<52 else 0
+    return sig,"DARK POOL own-DIX %.1f%% %s (accum %d / dist %d)"%(v,dx.get("read",""),dist.get("accumulation",0),dist.get("distribution",0))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1206,6 +1215,7 @@ FEEDS = [
     ("Term Premium (ACM)",     "rates",            "data/term-premium.json",         n_termprem),
     ("Bond Desk",              "rates",            "data/bond-desk.json",            n_bonddesk),
     ("Rebalance Window",       "flow",             "data/rebalance-radar.json",      n_rebalance),
+    ("Dark Pool",              "flow",             "data/dark-pool.json",            n_darkpool),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

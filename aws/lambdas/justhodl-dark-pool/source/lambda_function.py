@@ -210,10 +210,92 @@ def lambda_handler(event=None, context=None):
 
     # ── dark map for justhodl-ignition (fixes its dead P4 dark-share dimension) ──
     # {ticker: latest-week ATS shares} so ignition can compute dark_to_adv.
+    # ═══ v2 LAYER D — DAILY regsho fusion (finra-short: short + TOTAL TRF volume) ═══
+    # Weekly ATS lags 2-3wk; the daily off-exchange tape is already owned. Fusing gives a
+    # daily pulse per name (short%% of off-exchange = sell-side pressure; LOW = DIX-style
+    # buying) and our OWN market-level DIX proxy, independent of SqueezeMetrics.
+    fs = _get_json("data/finra-short.json") or {}
+    fh = _get_json("data/finra-short-history.json") or {}
+    def _fs_rows(doc):
+        for cand in ("rows","tickers","data","board"):
+            v=doc.get(cand)
+            if isinstance(v,list) and v and isinstance(v[0],dict): return v
+            if isinstance(v,dict): return [{"ticker":k,**x} for k,x in v.items() if isinstance(x,dict)]
+        return [{"ticker":k,**x} for k,x in doc.items() if isinstance(x,dict) and ("short_vol" in x or "short_volume" in x)]
+    daily={}
+    for r0 in _fs_rows(fs):
+        t=(r0.get("ticker") or r0.get("symbol") or "").upper()
+        sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
+        if t and isinstance(sv,(int,float)) and isinstance(tv,(int,float)) and tv>0:
+            daily[t]={"short_pct":round(100*sv/tv,1),"off_exch_vol":tv}
+    histmap={}
+    hdays=sorted(fh.items())[-40:] if isinstance(fh,dict) else []
+    for _,day in hdays:
+        for r0 in _fs_rows(day if isinstance(day,dict) else {}):
+            t=(r0.get("ticker") or r0.get("symbol") or "").upper()
+            sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
+            if t and sv and tv: histmap.setdefault(t,[]).append(100*sv/tv)
+    import statistics as _st
+    for t,d in daily.items():
+        ser=histmap.get(t) or []
+        if len(ser)>=15 and _st.pstdev(ser):
+            d["short_z"]=round((d["short_pct"]-_st.fmean(ser))/_st.pstdev(ser),2)
+    joined=0
+    for r in rows:
+        d=daily.get(r["ticker"])
+        if d:
+            r["daily_short_pct"]=d["short_pct"]; r["daily_short_z"]=d.get("short_z")
+            r["daily_off_exch_vol"]=d["off_exch_vol"]; joined+=1
+            if d.get("short_z") is not None:
+                if r.get("state")=="ACCUMULATION" and d["short_z"]<-0.5: r["conviction"]="HIGH"
+                if (r.get("price_5d_pct") or 0)>2 and d["short_z"]>0.8: r["flag"]="DISTRIBUTION_INTO_STRENGTH"
+    print("[v2] daily regsho joined %d/%d names"%(joined,len(rows)))
+
+    wsum=vsum=0.0
+    for t,d in daily.items():
+        w=d["off_exch_vol"]; wsum+=w*(100-d["short_pct"]); vsum+=w
+    own_dix=round(wsum/vsum,2) if vsum else None
+    dixdoc=_get_json("data/dix.json") or {}
+    sq_dix=None
+    for k in ("dix","latest","value"):
+        v=dixdoc.get(k)
+        if isinstance(v,(int,float)): sq_dix=v; break
+        if isinstance(v,dict):
+            for kk in ("dix","value"):
+                if isinstance(v.get(kk),(int,float)): sq_dix=v[kk]; break
+    own_hist=_get_json("data/history/dark-pool-dix.json") or {}
+    _today=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if own_dix is not None:
+        own_hist[_today]=own_dix
+        own_hist=dict(sorted(own_hist.items())[-500:])
+        S3.put_object(Bucket=BUCKET,Key="data/history/dark-pool-dix.json",
+                      Body=json.dumps(own_hist,separators=(",",":")).encode(),ContentType="application/json")
+    ser=[v for v in own_hist.values()]
+    own_dix_z=round((own_dix-_st.fmean(ser))/_st.pstdev(ser),2) if own_dix is not None and len(ser)>=20 and _st.pstdev(ser) else None
+    dix_block={"own_dix_pct":own_dix,"own_dix_z":own_dix_z,"squeezemetrics_dix":sq_dix,
+               "read":("BUYING PRESSURE" if own_dix and own_dix>=57 else "SELLING PRESSURE" if own_dix and own_dix<52 else "NEUTRAL") if own_dix else "N/A",
+               "history":[{"date":k,"value":v} for k,v in sorted(own_hist.items())][-260:],
+               "method":"$vol-weighted (1 - short%%) across daily FINRA regsho TRF tape (%d names) — own DIX-style proxy, no third-party dependency"%len(daily)}
+
+    monthly={"status":"UNAVAILABLE"}
+    try:
+        mreq=urllib.request.Request("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
+              data=json.dumps({"limit":900,"fields":["issueSymbolIdentifier","totalWeeklyShareQuantity","summaryTypeCode","monthStartDate"],
+                               "compareFilters":[{"compareType":"EQUAL","fieldName":"summaryTypeCode","fieldValue":"ATS_M_SMBL"}]}).encode(),
+              headers={"Content-Type":"application/json","Accept":"application/json","User-Agent":"jh/1"})
+        with urllib.request.urlopen(mreq,timeout=25) as r:
+            mrows=json.loads(r.read())
+        if isinstance(mrows,list) and mrows:
+            monthly={"status":"OK","n":len(mrows),"month":mrows[0].get("monthStartDate"),
+                     "note":"FINRA monthly ATS by symbol live — block-tier fusion staged next"}
+    except Exception as e:
+        monthly={"status":"UNAVAILABLE","err":str(e)[:80]}
+    print("[v2] monthly:",monthly.get("status"),"| own_dix:",own_dix,"vs sq:",sq_dix)
+
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
 
     payload = {
-        "engine": "justhodl-dark-pool", "version": "1.0.0", "ok": True,
+        "engine": "justhodl-dark-pool", "version": "2.0.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "
@@ -225,6 +307,8 @@ def lambda_handler(event=None, context=None):
         "top_accumulation": accumulation[:20],
         "top_distribution": distribution[:12],
         "dark_map": dark_map,
+        "daily_fusion": {"joined": joined, "of": len(rows), "source": "finra-short daily regsho (short + total TRF vol)"},
+        "dix": dix_block, "monthly_ats": monthly,
         "data_source": "FINRA OTC Transparency weeklySummary (ATS+OTC) + Polygon grouped daily volume",
         "caveats": [
             "FINRA ATS/OTC transparency lags ~2-3 weeks (Tier 1 NMS weekly); this is a "

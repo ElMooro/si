@@ -5,13 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 300,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Per-name dark-pool / off-exchange accumulation from FINRA ATS transparency (ATS+OTC weekly by symbol) vs Polygon total volume. dark_pool_pct + accel + price-classified ACCUMULATION/DISTRIBUTION. top_picks -> signal-harvester (eng:dark-pool) measure-before-trust; feeds ignition P4 dark-share. Distinct from market-level justhodl-dix.",
   "environment": {},
   "schedule": {
-    "rule_name": "justhodl-dark-pool-weekly",
-    "cron": "cron(0 14 ? * WED *)",
-    "description": "Weekly Wed 14:00 UTC — FINRA ATS Tier-1 weekly data publishes ~T+2wk; weekly cadence matches source"
+    "name": "justhodl-dark-pool-daily",
+    "expression": "cron(40 21 ? * MON-FRI *)",
+    "description": "Daily: fuse regsho daily tape + refresh weekly ATS when FINRA publishes"
   }
 }
