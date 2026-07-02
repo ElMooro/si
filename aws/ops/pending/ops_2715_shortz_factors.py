@@ -77,11 +77,18 @@ def ensure_fn(name):
 
 sect("1/4 DARK-POOL v2.0.1 — arm short_z from feed's z_score")
 print("  settling 30s…"); time.sleep(30)
-retry(lambda: (wait_ok("justhodl-dark-pool"), lam.update_function_code(FunctionName="justhodl-dark-pool", ZipFile=zip_fn("justhodl-dark-pool")))[-1], "dp")
+pre = lam.get_function_configuration(FunctionName="justhodl-dark-pool")["CodeSha256"]
+zb = zip_fn("justhodl-dark-pool")
+print("  zip has zmap marker:", b"zmap" in zb, "| zip bytes:", len(zb))
+retry(lambda: (wait_ok("justhodl-dark-pool"), lam.update_function_code(FunctionName="justhodl-dark-pool", ZipFile=zb))[-1], "dp")
 wait_ok("justhodl-dark-pool")
+post = lam.get_function_configuration(FunctionName="justhodl-dark-pool")["CodeSha256"]
+print("  CodeSha256 pre=%s post=%s changed=%s" % (pre[:12], post[:12], pre != post))
 r = lam.invoke(FunctionName="justhodl-dark-pool", InvocationType="RequestResponse")
 pay = json.loads(r["Payload"].read() or b"{}")
-print("  invoke ->", json.dumps(pay)[:420])
+pj = json.dumps(pay)
+print("  invoke head ->", pj[:200])
+print("  invoke tail ->", pj[-320:])
 assert not r.get("FunctionError"), pay
 d = json.loads(s3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
 brd = d.get("board") or []
@@ -178,3 +185,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev3
 
 # rev4
+
+# rev5
