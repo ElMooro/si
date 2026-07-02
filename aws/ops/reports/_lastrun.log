@@ -7,10 +7,10 @@
   justhodl-factor-returns -> {"ok": true, "drops": {"na": 5500, "px": 1122, "mc": 1113, "vol": 664}, "universe": 2998, "factors": {"MOMENTUM": -6.407
   justhodl-estimate-revisions -> {"statusCode": 200, "body": "{\"status\": \"LIVE\", \"n_tracked\": 433, \"n_fmp_enriched\": 251, \"n_with_history\": 433
   deciles: {'MOMENTUM': {'long': 287, 'short': 287}, 'VALUE': {'long': 287, 'short': 287}, 'QUALITY': {'long': 258, 'short': 258}, 'SIZE': {'long': 299, 'short': 299}, 'LOWVOL': {'long': 298, 'short': 298}}
-  direction_map: 0
+  direction_map: 38
 Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_2717_join_deepening.py", line 63, in <module>
-    assert R["direction_map_n"] >= 300, "direction_map thin"
+    assert R["direction_map_n"] >= 150, "direction_map thin"
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: direction_map thin
 ❌ OPS-FAIL: aws/ops/pending/ops_2717_join_deepening.py
