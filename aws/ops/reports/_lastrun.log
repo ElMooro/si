@@ -1,18 +1,12 @@
 settling 30s…
 == 1/3 engine v1.1.0 ==
   invoke -> {"ok": true, "classes": {"EQUITY_US": -40068.7, "EQUITY_INTL": -5948.7, "SECTORS": 873.3, "TREASURIES": -329.2, "CREDIT": -214.6, "TIPS": 0.0, "CRYPTO": -63.1, "COMMODITIES": 107.2, "THEMATIC": -124.2, "DIVIDEND_VALUE": 125.9, "GROWTH": -1069.1, "VOL": 0.0, "G
-  brief[deterministic|429]: Money is leaving EQUITY_US ($40069M over 5d) and rotating toward SECTORS (+$873M), with XLF/XLV/XLI leading and XLP/XLB/XLK lagging on the sector tape. The defining rotat
+  brief[llm|155]: Wait, "ALIGNED NEUTRAL" means they aren't fighting each other aggressively, but they aren't aligned bullish or bearish. The risk is the lack of conviction.
   countries: {'scored': 5, 'warming': 22, 'zero_flow_countries': [], 'aaii_pct': -10.9}
   history: 1 | sectors ranked: 11
 == 2/3 page v2 at edge (first-party pages.yml, ~90s) ==
   attempt 1: 200 pending
   attempt 2: 200 pending
-  attempt 3: 200 pending
-  attempt 4: 200 pending
-  attempt 5: 200 pending
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2735_gfd_v2.py", line 93, in <module>
-    assert okp, "page v2 not at edge"
-           ^^^
-AssertionError: page v2 not at edge
-❌ OPS-FAIL: aws/ops/pending/ops_2735_gfd_v2.py
+  attempt 3: 200 v2 LIVE
+== 3/3 report ==
+OPS 2735 COMPLETE — the flow desk earns its name
