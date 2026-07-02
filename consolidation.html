@@ -74,7 +74,11 @@ function chips(x){
  let h="";(x.tags||[]).forEach(t=>{
   if(t==="WYCKOFF_ACCUMULATION")h+='<span class="chip wy">WYCKOFF ACC</span>';
   else if(t.startsWith("HORIZONTAL"))h+=`<span class="chip sr">${t==="HORIZONTAL_SR_STRONG"?"S/R STRONG":"S/R"}</span>`;
-  else if(t==="TL_SUPPORT")h+='<span class="chip tl">TL SUPPORT</span>';});
+  else if(t==="TL_SUPPORT")h+='<span class="chip tl">TL SUPPORT</span>';
+  else if(t==="INST_ACCUMULATING")h+='<span class="chip wy">INST+3M</span>';
+  else if(t==="INSIDER_BUYING_6M")h+='<span class="chip wy">INSIDER+6M</span>';
+  else if(t==="TIGHT_50D")h+='<span class="chip sr">TIGHT 50D</span>';
+  else if(t==="UPSIDE_25")h+='<span class="chip tl">UPSIDE 25%+</span>';});
  (x.why||[]).forEach(w=>h+=`<span class="chip why">${w.replace(/_/g," ")}</span>`);
  return h;
 }

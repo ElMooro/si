@@ -78,6 +78,7 @@ function extra(x){
  let h="";
  if(x.breakout_grade)h+=`<span class="chip ${x.breakout_grade==="ATH"?"ath":"w52"}">${x.breakout_grade}</span>`;
  if(x.low_grade)h+=`<span class="chip ${x.low_grade==="ATL"?"atl":"w52"}">${x.low_grade}</span>`;
+ if(x.fundamental_backed)h+=`<span class="chip r">FUND✓ qoq</span>`;
  (x.sweep_reasons||[]).forEach(r=>h+=`<span class="chip r">${r.replace(/_/g," ")}</span>`);
  return h;
 }

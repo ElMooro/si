@@ -106,9 +106,10 @@ SCREENS = [
 ]
 
 _F_MA  = ("price","change_pct","sma20_pct","sma50_pct","sma200_pct","rsi",
-          "off_52w_high_pct","rel_volume","perf_m","sector","company","market_cap")
+          "off_52w_high_pct","rel_volume","perf_m","sector","company","market_cap","inst_trans_pct")
 _F_HL  = ("price","change_pct","off_ath_pct","off_52w_high_pct","off_52w_low_pct",
-          "rel_volume","perf_m","perf_ytd","short_float_pct","rsi","sector","company","market_cap")
+          "rel_volume","perf_m","perf_ytd","short_float_pct","rsi","sector","company","market_cap",
+          "insider_trans_pct","inst_trans_pct","eps_growth_qoq","sales_growth_qoq","target_price")
 _F_PAT = ("price","change_pct","rsi","rel_volume","perf_m","off_52w_high_pct",
           "sma200_pct","sector","company","market_cap")
 
@@ -266,6 +267,7 @@ def lambda_handler(event, context):
             continue
         seen.add(tk)
         r["breakout_grade"] = "ATH" if tk in ath_set else "52W"
+        r["fundamental_backed"] = bool((r.get("eps_growth_qoq") or 0) >= 15 or (r.get("sales_growth_qoq") or 0) >= 10)
         mom.append(r)
     mom = sorted(mom, key=lambda x: -(x.get("rel_volume") or 0))[:60]
 
@@ -279,6 +281,9 @@ def lambda_handler(event, context):
         if tk in osold or (r.get("rsi") or 99) <= 32: why.append("oversold")
         if tk in ins_b: why.append("insider_buying")
         if tk in sh_hi or (r.get("short_float_pct") or 0) >= 15: why.append("high_short_fuel")
+        if (r.get("insider_trans_pct") or 0) > 0: why.append("insider_6m_net_buying")
+        _tp, _px = r.get("target_price"), r.get("price")
+        if _tp and _px and _tp / _px - 1 >= 0.40: why.append("consensus_upside_40")
         if why:
             seen.add(tk)
             r["sweep_reasons"] = why
@@ -328,8 +333,18 @@ def lambda_handler(event, context):
         elif tk in hsr: score += 8; tags.append("HORIZONTAL_SR")
         if tk in tls: score += 6; tags.append("TL_SUPPORT")
         if wyckoff.get(tk) == "ACCUMULATION": score += 15; tags.append("WYCKOFF_ACCUMULATION")
+        # ops 2705: previously-idle Elite fields — smart-money flow, base tightness, consensus gap
+        _it, _nt = u.get("insider_trans_pct"), u.get("inst_trans_pct")
+        if (_nt or 0) > 0: score += 8; tags.append("INST_ACCUMULATING")
+        if (_it or 0) > 0: score += 6; tags.append("INSIDER_BUYING_6M")
+        if (u.get("off_50d_high_pct") or -99) >= -3: score += 5; tags.append("TIGHT_50D")
+        _tp = u.get("target_price")
+        _ups = round(100 * (_tp / price - 1), 1) if (_tp and price) else None
+        if _ups is not None and _ups >= 25: score += 4; tags.append("UPSIDE_25")
         coils.append({"ticker": tk, "company": u.get("company"), "sector": u.get("sector"),
                       "price": price, "coil_score": round(score, 1),
+                      "insider_trans_pct": _it, "inst_trans_pct": _nt, "target_upside_pct": _ups,
+                      "off_50d_high_pct": u.get("off_50d_high_pct"),
                       "volatility_w": vw, "volatility_m": vm, "atr_pct": round(atrp * 100, 2),
                       "off_52w_high_pct": offh, "rel_volume": u.get("rel_volume"),
                       "market_cap": u.get("market_cap"), "tags": tags})
@@ -346,6 +361,34 @@ def lambda_handler(event, context):
                                "price": u.get("price"), "off_52w_high_pct": u.get("off_52w_high_pct"),
                                "rsi": u.get("rsi"), "perf_m": u.get("perf_m"), "why": why})
     print("  coil gates:", dg, "-> coiled", len(coils))
+    # ── quality boards (ops 2705): built entirely from previously-idle Elite
+    #    fields already in the paid universe export — zero extra API calls.
+    momo, gaps = [], []
+    for tk, u in uni.items():
+        if not _is_stock(u):
+            continue
+        px = u.get("price") or u.get("prev_close") or 0
+        av = (u.get("avg_volume") or 0) * AV_MULT
+        if px < 3 or av < 300_000:
+            continue
+        py, pm = u.get("perf_y"), u.get("perf_m")
+        if py is not None and pm is not None and (u.get("sma200_pct") or -1) > 0:
+            momo.append({"ticker": tk, "company": u.get("company"), "sector": u.get("sector"),
+                         "price": px, "momo_12_1": round(py - pm, 1), "perf_y": py, "perf_m": pm,
+                         "rsi": u.get("rsi"), "market_cap": u.get("market_cap")})
+        tp, rec = u.get("target_price"), u.get("analyst_recom")
+        if tp and px and (u.get("market_cap") or 0) >= 2000 and (u.get("sma200_pct") or -1) > 0            and rec is not None and rec <= 2.2:
+            up = round(100 * (tp / px - 1), 1)
+            if up >= 30:
+                gaps.append({"ticker": tk, "company": u.get("company"), "sector": u.get("sector"),
+                             "price": px, "target_price": tp, "target_upside_pct": up,
+                             "analyst_recom": rec, "eps_growth_qoq": u.get("eps_growth_qoq"),
+                             "market_cap": u.get("market_cap")})
+    momo = sorted(momo, key=lambda x: -x["momo_12_1"])[:60]
+    gaps = sorted(gaps, key=lambda x: -x["target_upside_pct"])[:50]
+    smart_accum = [c for c in coils if "INST_ACCUMULATING" in c["tags"] and "INSIDER_BUYING_6M" in c["tags"]][:40]
+    quality = {"momo_12_1": momo, "consensus_gap": gaps, "smart_accum_coils": smart_accum,
+               "note": "built from FinViz Elite fields previously fetched-but-unconsumed (ops 2705 utilization audit)"}
     consolidation = {"coiled": coils, "distribution_watch": dist_watch[:60], "diag": dg,
                      "criteria": "wk-vol <= 0.85x mo-vol · ATR <= 3.5% of price · within 15% of 52w high · >=$3 · >=300k avg vol"}
 
@@ -413,6 +456,9 @@ def lambda_handler(event, context):
     for tk in confluence["bear_break"]:            pick(tk, 74, "short", "lost 200-DMA + top-loser tape")
     for tk in confluence["top_overbought"]:        pick(tk, 72, "short", "top pattern + overbought RSI")
     for tk in sorted(_tks("death_cross"))[:25]:    pick(tk, 70, "short", "death cross — 50-DMA under 200-DMA")
+    for c in smart_accum[:12]:                     pick(c["ticker"], 80, "long", "coiled + institutions & insiders net-accumulating (FinViz 3m/6m trans)")
+    for r in momo[:15]:                            pick(r["ticker"], 68, "long", "12-1 momentum leader (+%.0f%% ex-recent)" % r["momo_12_1"])
+    for g in gaps[:10]:                            pick(g["ticker"], 64, "long", "%.0f%% to consensus target, Buy-rated, above 200-DMA" % g["target_upside_pct"])
     top_picks = sorted(picks.values(), key=lambda x: -x["score"])[:45]
 
     doc = {
@@ -423,7 +469,8 @@ def lambda_handler(event, context):
         "confluence": confluence,
         "signals": signals,
         "boards": {"ma_crosses": ma_crosses, "highs_lows": highs_lows,
-                   "patterns": patterns_b, "consolidation": consolidation},
+                   "patterns": patterns_b, "consolidation": consolidation,
+                   "quality": quality},
         "breadth": breadth,
         "top_picks": top_picks,
     }
