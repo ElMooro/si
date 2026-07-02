@@ -92,7 +92,9 @@ assert d["n"] >= 120, "coverage thin: %d" % d["n"]
 assert len(SC) >= 8, "sectors thin: %d" % len(SC)
 assert len(HY["rows"]) >= 7 and all(isinstance(x.get("capex_ttm_b"), (int, float)) for x in HY["rows"]), "hyperscalers broken"
 assert isinstance(HY.get("total_ttm_b"), (int, float)) and HY["total_ttm_b"] >= 150, "hyperscaler ttm insane: %s" % HY.get("total_ttm_b")
-assert isinstance(MK.get("capex_ttm_b"), (int, float)) and 400 <= MK["capex_ttm_b"] <= 5000, "market ttm insane: %s" % MK.get("capex_ttm_b")
+print("  excluded_outliers:", [(e["ticker"], e["capex_ttm_b"]) for e in (d.get("excluded_outliers") or [])][:10])
+assert isinstance(MK.get("capex_ttm_b"), (int, float)) and 500 <= MK["capex_ttm_b"] <= 3500, "market ttm insane: %s" % MK.get("capex_ttm_b")
+assert len(d.get("excluded_outliers") or []) <= 25, "outlier gate runaway"
 
 sect("2/4 FUSE — gfd v1.0.2 + board row")
 for fn in ("justhodl-global-flow-desk", "justhodl-signal-board"):
@@ -127,3 +129,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2722_capex_pulse.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2722 COMPLETE — corporate capex measured in dollars")
+
+# rev2

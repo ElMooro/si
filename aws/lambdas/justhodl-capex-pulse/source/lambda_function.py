@@ -46,7 +46,10 @@ def lambda_handler(event=None, context=None):
     uni = [t for t, _ in ranked[:N_TOP]]
     for h in HYPERSCALERS:
         if h not in uni: uni.append(h)
-    rows = []; fails = 0
+    # dedupe dual share classes (keep the primary already in list order)
+    DUP = {"GOOG": "GOOGL", "BRK.B": "BRK.A", "BRK-B": "BRK-A", "FOX": "FOXA", "NWS": "NWSA"}
+    uni = [t for t in uni if not (t in DUP and DUP[t] in uni)]
+    rows = []; fails = 0; excluded = []
     for t in uni:
         try:
             qs = _fmp_cf(t)
@@ -57,6 +60,13 @@ def lambda_handler(event=None, context=None):
             if ttm <= 0: fails += 1; continue
             yoy = round(100 * (ttm / prior - 1), 1) if prior > 0 else None
             c = cards.get(t) or {}
+            mcb = c.get("mc_b")
+            # sanity gate: FMP mislabels investing-activity totals as capex for some
+            # financials — no real firm spends >35%% of mcap/yr on capex (hyperscalers ~2-4%%)
+            if mcb and ttm / 1e9 > 0.35 * mcb:
+                excluded.append({"ticker": t, "capex_ttm_b": round(ttm / 1e9, 1), "mc_b": mcb,
+                                 "why": "capex>35%% mcap — FMP field contamination (financials)"})
+                continue
             rows.append({"ticker": t, "sector": c.get("sec") or "?",
                          "capex_ttm_b": round(ttm / 1e9, 2), "yoy_pct": yoy,
                          "mc_b": c.get("mc_b"),
@@ -65,7 +75,8 @@ def lambda_handler(event=None, context=None):
         except Exception:
             fails += 1
         time.sleep(0.1)
-    print("[capex] rows=%d fails=%d" % (len(rows), fails))
+    print("[capex] rows=%d fails=%d excluded=%d %s" % (len(rows), fails, len(excluded),
+          [e["ticker"] for e in excluded][:8]))
 
     sectors = {}
     for r in rows:
@@ -101,11 +112,12 @@ def lambda_handler(event=None, context=None):
     hist = dict(sorted(hist.items())[-400:])
     s3.put_object(Bucket=BUCKET, Key=HIST, Body=json.dumps(hist).encode(), ContentType="application/json")
 
-    doc = {"engine": "justhodl-capex-pulse", "version": "1.0.0",
+    doc = {"engine": "justhodl-capex-pulse", "version": "1.0.1",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "n": len(rows), "fails": fails,
            "market": {"capex_ttm_b": mkt_ttm, "yoy_pct": mkt_yoy, "universe": "top-%d mcap (stock-xray) + hyperscalers" % N_TOP},
            "hyperscalers": hyperscalers, "sectors": sectors, "boards": boards, "rows": rows,
+           "excluded_outliers": excluded,
            "method": ("FMP /stable/cash-flow-statement quarterly x8 per name; TTM = last 4q "
                       "|capitalExpenditure|, yoy vs prior 4q; sector aggregates dollar-weighted; "
                       "intensity = capex/mcap.")}
