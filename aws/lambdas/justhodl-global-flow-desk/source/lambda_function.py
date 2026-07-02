@@ -94,9 +94,11 @@ def _clean_brief(txt):
         lines.pop(0)
     if lines: t = " ".join(l.strip() for l in lines)
 
-    if t.split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):      # deliberation-opener leak
+    _bad = ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let", "First", "Alright", "Now,", "Note", "Final", "Draft", "Review", "Refine", "Sentence", "Step")
+    def _delib(word): w = word.rstrip(",.:;"+chr(39)+"s"); return any(w.startswith(b.rstrip(",:")) for b in _bad)
+    if _delib(t.split(" ", 1)[0]):      # deliberation-opener leak (prefix match)
         parts = [p.strip() for p in t.split(". ") if p.strip()]
-        while parts and parts[0].split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):
+        while parts and _delib(parts[0].split(" ", 1)[0]):
             parts.pop(0)
         t = (". ".join(parts)).strip()
         if t and not t.endswith((".", "!", "?")): t += "."

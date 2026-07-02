@@ -17,7 +17,7 @@ REGION, BUCKET = "us-east-1", "justhodl-dashboard-live"
 lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=290, retries={"max_attempts": 1}))
 s3 = boto3.client("s3", region_name=REGION)
 R = {"ops": 2738, "ts": datetime.now(timezone.utc).isoformat()}
-BAD = ("Wait", "Hmm", "Actually", "Okay", "OK", "So", "Let", "First", "Alright", "Now", "Note")
+BAD = ("Wait", "Hmm", "Actually", "Okay", "OK", "So", "Let", "First", "Alright", "Now", "Note", "Final", "Draft", "Review", "Refine", "Sentence", "Step")
 def zip_fn(fn):
     src = "aws/lambdas/%s/source" % fn
     buf = io.BytesIO()
@@ -58,7 +58,7 @@ for fn, key, bkey in (("justhodl-global-flow-desk", "data/global-flow-desk.json"
     R[fn] = {"src": d.get(bkey + "_src"), "len": len(br), "first_word": first, "head": br[:170]}
     print("  %s [%s|%d] %s" % (fn.replace("justhodl-", ""), R[fn]["src"], len(br), br[:130]))
     assert 90 <= len(br) <= 760 and br.rstrip().endswith((".", "!", "?")), "length/completion"
-    assert first not in BAD, "opener leak: %r" % br[:60]
+    assert not any(first.rstrip(chr(39)+"s,.").startswith(b) for b in BAD), "opener leak: %r" % br[:60]
     assert not re.match(r"^\s*\d+\.", br), "numbered-header leak: %r" % br[:60]
     assert not firstline.endswith(":"), "colon-header leak: %r" % firstline[:60]
     assert "Analyze the Request" not in br and "**" not in br, "scaffold leak"
@@ -66,3 +66,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2738_brief_v3.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2738 COMPLETE — three desks, one clean voice")
+
+# rev2 prefix-openers + analog fallback .get

@@ -116,9 +116,11 @@ def _clean_brief(txt):
         lines.pop(0)
     if lines: t = " ".join(l.strip() for l in lines)
 
-    if t.split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):      # deliberation-opener leak
+    _bad = ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let", "First", "Alright", "Now,", "Note", "Final", "Draft", "Review", "Refine", "Sentence", "Step")
+    def _delib(word): w = word.rstrip(",.:;"+chr(39)+"s"); return any(w.startswith(b.rstrip(",:")) for b in _bad)
+    if _delib(t.split(" ", 1)[0]):      # deliberation-opener leak (prefix match)
         parts = [p.strip() for p in t.split(". ") if p.strip()]
-        while parts and parts[0].split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):
+        while parts and _delib(parts[0].split(" ", 1)[0]):
             parts.pop(0)
         t = (". ".join(parts)).strip()
         if t and not t.endswith((".", "!", "?")): t += "."
@@ -193,7 +195,7 @@ def lambda_handler(event=None, context=None):
              "hit_rate_up_3m": round(100 * sum(1 for x in f3 if x > 0) / len(f3)) if f3 else None}
     crisis_names = [a["label"] for a in analogs if a["label"] != "unlabeled regime"]
     verdict = ("CRISIS-ADJACENT CONDITIONS" if len(crisis_names) >= 3 and analogs[0]["similarity"] >= 55
-               else "TOP-LIKE CALM" if cur["vix"] < -0.5 and cur["spx_drawdown"] > -0.2 and cur["spx_mom_13w"] > 0.5
+               else "TOP-LIKE CALM" if cur.get("vix", 0) < -0.5 and cur.get("spx_drawdown", 0) > -0.2 and cur.get("spx_mom_13w", 0) > 0.5
                else "MIXED REGIME")
 
     # AI outlook (contract + deterministic fallback)
@@ -218,7 +220,8 @@ def lambda_handler(event=None, context=None):
                    % (a0["label"], a0["date"], a0["similarity"],
                       ", ".join(dict.fromkeys(crisis_names[1:3])) or "unlabeled regimes",
                       stats["median_fwd_1m_pct"] or 0, stats["median_fwd_3m_pct"] or 0, stats["hit_rate_up_3m"] or 0,
-                      cur["spx_mom_13w"], cur["spx_drawdown"], cur["hy_oas"], cur["vix"],
+                      cur.get("spx_mom_13w", 0.0), cur.get("spx_drawdown", 0.0),
+                      cur.get("hy_oas", cur.get("nfci", 0.0)), cur.get("vix", 0.0),
                       verdict.lower(), "bought" if (stats["hit_rate_up_3m"] or 0) >= 60 else "sold"))
     doc = {"engine": "justhodl-positioning-analog", "version": "1.0.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
