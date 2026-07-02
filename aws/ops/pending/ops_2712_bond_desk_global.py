@@ -61,8 +61,22 @@ for k in ("data/credit-stress.json", "data/ici-flows.json", "data/eurodollar-plu
         print("  %-36s MISSING" % k)
         R.setdefault("input_ages_h", {})[k] = None
 
+sect("1b/3 SCHEMA PRINTS + upstream repairs")
+for k in ("data/eurodollar-plumbing.json","data/euro-fragmentation.json","data/bond-vol.json","data/dealer-survey.json"):
+    try:
+        doc=json.loads(s3.get_object(Bucket=BUCKET,Key=k)["Body"].read())
+        print("  %-34s keys:%s"%(k.split("/")[-1],list(doc.keys())[:12]))
+    except Exception as e: print("  %-34s ERR %s"%(k,str(e)[:40]))
+print("  settling 25s…"); time.sleep(25)
+for fn in ("justhodl-bond-vol","justhodl-ici-flows"):
+    try:
+        retry(lambda f=fn:(wait_ok(f),lam.update_function_code(FunctionName=f,ZipFile=zip_fn(f)))[-1],fn); wait_ok(fn)
+        rr=lam.invoke(FunctionName=fn,InvocationType="RequestResponse")
+        print("  %s invoke -> %s%s"%(fn,"ERR " if rr.get("FunctionError") else "",(rr["Payload"].read() or b"")[:110].decode("utf-8","ignore")))
+    except Exception as e: print("  %s repair skipped: %s"%(fn,str(e)[:70]))
+
 sect("2/3 DEPLOY + RUN v2")
-print("  settling 30s…"); time.sleep(30)
+print("  settling 20s…"); time.sleep(20)
 for fn in ("justhodl-bond-desk", "justhodl-signal-board"):
     retry(lambda f=fn: (wait_ok(f), lam.update_function_code(FunctionName=f, ZipFile=zip_fn(f)))[-1], fn)
     wait_ok(fn); print("  synced", fn)
@@ -92,7 +106,7 @@ assert RG["global_funding"].get("severity") in ("CRITICAL", "ELEVATED", "MODERAT
 nonnull_eu = sum(1 for k in ("fragmentation_score", "btp_bund_bp") if isinstance(RG["europe"].get(k), (int, float)))
 nonnull_jp = sum(1 for k in ("jgb10_chg_6m_pp",) if isinstance(RG["japan"].get(k), (int, float))) + (1 if RG["japan"].get("carry_stress") else 0)
 print("  EU non-null fields:", nonnull_eu, "| JP non-null:", nonnull_jp)
-assert nonnull_eu >= 1 and nonnull_jp >= 1, "regional wiring failed to extract values"
+assert (nonnull_eu >= 1 or isinstance(RG["europe"].get("fragmentation_score"),(int,float))) and nonnull_jp >= 1, "regional wiring failed to extract values"
 r = lam.invoke(FunctionName="justhodl-signal-board", InvocationType="RequestResponse")
 assert not r.get("FunctionError")
 sb = s3.get_object(Bucket=BUCKET, Key="data/signal-board.json")["Body"].read().decode()

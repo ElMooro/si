@@ -101,6 +101,12 @@ def _ticker_map(doc):
 
 def _sub(z): return round(max(0,min(100,50+20*max(-2.5,min(2.5,z)))),1)
 
+def _bps(v):
+    """credit-stress + EM diffs are stored as PERCENT; normalize to bps."""
+    if isinstance(v,(int,float)):
+        return round(v*100,1) if abs(v)<50 else round(v,1)
+    return None
+
 def lambda_handler(event=None, context=None):
     # ─── US FLOWS ───
     tk=_ticker_map(_s3json("etf-flows/daily.json",{}) or {})
@@ -135,7 +141,7 @@ def lambda_handler(event=None, context=None):
 
     # ─── US CREDIT (owned ICE ladder + FRED micro/chart) ───
     cs=_s3json("data/credit-stress.json",{}) or {}
-    ccc=_fred("BAMLH0A3HYC"); bb=_fred("BAMLH0A1HYBB")
+    ccc=_fred("BAMLH0A3HYC",1560); bb=_fred("BAMLH0A1HYBB",1560)
     micro={"status":"UNAVAILABLE"}; chart=[]
     if ccc and bb:
         bbm=dict(bb)
@@ -150,9 +156,9 @@ def lambda_handler(event=None, context=None):
             key="%d-%02d"%(iso[0],iso[1])
             if key!=wk: chart.append({"date":d,"value":v}); wk=key
     us_credit={"source":"justhodl-credit-stress (ICE BofA ladder)" if cs else "FRED",
-               "ccc_minus_bb_bps":_first(cs,("ccc_minus_bb",)) or micro.get("ccc_bb_bps"),
-               "hy_minus_ig_bps":_first(cs,("hy_minus_ig",)),
-               "bbb_minus_aaa_bps":_first(cs,("bbb_minus_aaa",)),
+               "ccc_minus_bb_bps":_bps(_first(cs,("ccc_minus_bb",))) or micro.get("ccc_bb_bps"),
+               "hy_minus_ig_bps":_bps(_first(cs,("hy_minus_ig",))),
+               "bbb_minus_aaa_bps":_bps(_first(cs,("bbb_minus_aaa",))),
                "composite_regime":_first(cs,("composite_regime","hy_regime"),(str,)),
                "fred_micro":micro}
     cz=max(-2.5,min(2.5,((micro.get("d21_bps") or 0)/25)+max(0,(micro.get("pctile") or 50)-85)/10))
@@ -183,20 +189,30 @@ def lambda_handler(event=None, context=None):
     sev=_first(pl,("severity",),(str,)) or "?"
     health=_first(pl,("health","health_score"))
     swaps=_first(pl,("fed_swaps","value"),(int,float))
-    GF={"severity":sev,"health":health,"fed_swaps_bn":swaps,
-        "cnh_gap_pips":_first(pl,("cnh_cny","gap_pips")),
+    GF={"severity":sev,"health":health,"fed_swaps_chg_bn":swaps,
+        "cnh_gap_pips":_first(pl,("gap_pips",)),
         "fresh":_fresh(pl)}
-    GF["score"]=_sub({"CRITICAL":2.4,"ELEVATED":1.4,"MODERATE":0.4}.get(sev,0.0)
+    GF["score"]=_sub({"CRITICAL":2.4,"ELEVATED":1.4,"MODERATE":0.4,
+                      "COMFORTABLE":-0.5,"ABUNDANT":-0.9,"GREEN":-0.7}.get(sev,0.0)
                      +(0.6 if (swaps or 0)>10 else 0))
 
     # ─── EUROPE ───
     ef=_s3json("data/euro-fragmentation.json",{}) or {}
     ita=None
-    for c in (ef.get("countries") or ef.get("periphery") or []):
-        if isinstance(c,dict) and "ital" in str(c.get("country") or c.get("name") or "").lower():
-            ita=c; break
+    def _find_italy(doc,depth=0):
+        nonlocal ita
+        if ita or depth>6: return
+        if isinstance(doc,dict):
+            if "spread_vs_bund_bp" in doc and any(
+                    t in json.dumps({k:v for k,v in doc.items() if isinstance(v,str)}).lower()
+                    for t in ("ital","btp","\"it\"")):
+                ita=doc; return
+            for v in doc.values(): _find_italy(v,depth+1)
+        elif isinstance(doc,list):
+            for v in doc[:40]: _find_italy(v,depth+1)
+    _find_italy(ef)
     ss=_s3json("data/systemic-stress.json",{}) or {}
-    EU={"fragmentation_score":_first(ef,("score","fragmentation_score")),
+    EU={"fragmentation_score":_first(ef,("fragmentation_score","composite_score","frag_score","score")),
         "regime":_first(ef,("regime",),(str,)),
         "btp_bund_bp":_first(ita or ef,("spread_vs_bund_bp",)),
         "btp_chg_1m_bp":_first(ita or ef,("spread_change_1m_bp",)),
@@ -216,7 +232,7 @@ def lambda_handler(event=None, context=None):
                      +max(0,(JP["jgb10_chg_6m_pp"] or 0))*2)
 
     # ─── EM ───
-    EM={"em_hy_minus_us_hy_bps":_first(cs,("em_hy_minus_us_hy",)),
+    EM={"em_hy_minus_us_hy_bps":_bps(_first(cs,("em_hy_minus_us_hy",))),
         "em_debt_flow_5d_usd":B["em_debt"]["flow_5d_usd"],
         "fresh":True}
     EM["score"]=_sub(((EM["em_hy_minus_us_hy_bps"] or 0))/120
