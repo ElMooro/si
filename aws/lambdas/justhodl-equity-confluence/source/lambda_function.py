@@ -222,6 +222,10 @@ def lambda_handler(event, context):
         "family_status": fam_status,
         "super_family_status": super_status,
         "sources": engines_seen,
+        "xray_map": {b["ticker"]: {"comp": b.get("composite_score", b.get("composite")),
+                                   "fams": b.get("n_families"), "supers": b.get("n_super_families"),
+                                   "top": (b.get("families") or b.get("family_list") or [])[:3]}
+                     for b in book if b.get("ticker")},
         "confluence_book": confluence[:30],
         "proven_book": proven_book[:20],
         "counts": {

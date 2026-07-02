@@ -74,8 +74,9 @@ def lambda_handler(event=None, context=None):
         if t: mr[t]={"score":r.get("score"),"rank":i+1,"top25":True,
                      "n_systems":r.get("n_systems")}
     ecdoc=_j("data/equity-confluence.json",{}) or {}
-    ec={}
-    for key in ("board","rows","tickers","names","composite_board","leaders"):
+    ec={t.upper():{"composite":v.get("comp"),"n_eff":v.get("supers"),"fams":v.get("fams")}
+        for t,v in (ecdoc.get("xray_map") or {}).items()}
+    for key in ("confluence_book","proven_book","board","rows","tickers","names","composite_board","leaders"):
         for r in (ecdoc.get(key) or []):
             if isinstance(r,dict):
                 t=(r.get("ticker") or r.get("symbol") or "").upper()
