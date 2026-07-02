@@ -53,7 +53,7 @@ import os
 import re
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import boto3
 
@@ -64,6 +64,75 @@ USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Research raafouis@gmail.com"
 # AAII publishes the data here. URL has been stable for years.
 AAII_DATA_URL = "https://www.aaii.com/files/surveys/sentiment.xls"      # XLS (legacy but stable)
 AAII_HTML_URL = "https://www.aaii.com/sentimentsurvey"                  # HTML page with table
+AAII_RESULTS_URL = "https://www.aaii.com/sentimentsurvey/sent_results"  # PRIMARY: public past-results table (latest + backfill)
+
+
+def _gate(b, n, br):
+    """Per-fraction bounds + sum gate. v1's sum-only gate let a stray 100/0/0
+    marketing number through (ops 2709 poisoning) — 100% bullish has never
+    printed in 39 years of survey history."""
+    try:
+        vals = [float(b), float(n), float(br)]
+    except (TypeError, ValueError):
+        return False
+    return all(0.02 <= v <= 0.90 for v in vals) and 0.94 <= sum(vals) <= 1.06
+
+
+def _parse_sent_results(html):
+    """Parse the public past-results table -> rows newest-first, gated.
+    Layout-tolerant: per <tr> cells, else flat date+3-percent scan."""
+    today = datetime.now(timezone.utc).date()
+
+    def _date(txt):
+        t = txt.strip().rstrip(":")
+        for fmt in ("%B %d, %Y", "%b %d, %Y", "%m/%d/%Y", "%m/%d/%y"):
+            try:
+                return datetime.strptime(t, fmt).date()
+            except ValueError:
+                pass
+        for fmt in ("%B %d", "%b %d"):
+            try:
+                d = datetime.strptime(t, fmt).date().replace(year=today.year)
+                return d if d <= today + timedelta(days=1) else d.replace(year=today.year - 1)
+            except ValueError:
+                pass
+        return None
+
+    rows = []
+    trs = re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S | re.I)
+    for tr in trs:
+        cells = [re.sub(r"<[^>]+>", " ", c).strip()
+                 for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S | re.I)]
+        d = next(((_date(c)) for c in cells[:3] if _date(c)), None)
+        if not d:
+            continue
+        nums = []
+        for c in cells:
+            m = re.match(r"^(\d{1,2}(?:\.\d+)?)\s*%?$", c.strip())
+            if m:
+                nums.append(float(m.group(1)) / 100)
+        if len(nums) >= 3 and _gate(nums[0], nums[1], nums[2]):
+            rows.append({"week_ending": d.isoformat(),
+                         "bullish": round(nums[0], 4), "neutral": round(nums[1], 4),
+                         "bearish": round(nums[2], 4),
+                         "bull_bear_spread": round(nums[0] - nums[2], 4)})
+    if not rows:
+        flat = re.sub(r"<[^>]+>", " ", html)
+        for m in re.finditer(r"([A-Z][a-z]{2,8}\.?\s+\d{1,2}(?:,\s*\d{4})?)\D{0,60}?"
+                             r"(\d{1,2}(?:\.\d+)?)\s*%\D{0,25}?(\d{1,2}(?:\.\d+)?)\s*%\D{0,25}?"
+                             r"(\d{1,2}(?:\.\d+)?)\s*%", flat):
+            d = _date(m.group(1))
+            b, n, br = float(m.group(2)) / 100, float(m.group(3)) / 100, float(m.group(4)) / 100
+            if d and _gate(b, n, br):
+                rows.append({"week_ending": d.isoformat(), "bullish": round(b, 4),
+                             "neutral": round(n, 4), "bearish": round(br, 4),
+                             "bull_bear_spread": round(b - br, 4)})
+    rows.sort(key=lambda r: r["week_ending"], reverse=True)
+    dedup, seen = [], set()
+    for r in rows:
+        if r["week_ending"] not in seen:
+            seen.add(r["week_ending"]); dedup.append(r)
+    return dedup
 
 # AAII's long-run historical averages (since 1987)
 HIST_AVG = {
@@ -126,8 +195,10 @@ def _parse_aaii_html(html: str):
         return None
     # Sanity-check: these three percentages should sum to roughly 1.00.
     # If they don't, we caught wrong percentages somewhere on the page.
+    if not _gate(bull, neut, bear):
+        return None
     total = bull + neut + bear
-    if not (0.97 <= total <= 1.03):
+    if not (0.94 <= total <= 1.06):
         return None
 
     # Extract week ending date — multiple acceptable patterns
@@ -216,7 +287,14 @@ def lambda_handler(event, context):
     except Exception as e:
         return {"statusCode": 502, "body": json.dumps({"error": f"AAII fetch failed: {e}"})}
 
-    latest = _parse_aaii_html(html)
+    rows = []
+    try:
+        rows = _parse_sent_results(_fetch(AAII_RESULTS_URL).decode("utf-8", errors="ignore"))
+        print(f"sent_results rows parsed: {len(rows)}")
+    except Exception as e:
+        print(f"sent_results unavailable: {str(e)[:80]}")
+    latest = rows[0] if rows else _parse_aaii_html(html)
+    src = "sent_results" if rows else "page"
     if not latest:
         # AAII page changed structure — return graceful failure with prior data
         existing = _load_existing(s3)
@@ -228,6 +306,13 @@ def lambda_handler(event, context):
         return {"statusCode": 200, "body": json.dumps({"ok": False, "reason": "parse_failed"})}
 
     existing = _load_existing(s3)
+    # scrub poisoned / future rows (ops 2709: a 100/0/0 stray got merged once)
+    cutoff = (datetime.now(timezone.utc).date() + timedelta(days=1)).isoformat()
+    existing["history_26w"] = [h for h in existing.get("history_26w", [])
+                               if _gate(h.get("bullish"), h.get("neutral"), h.get("bearish"))
+                               and str(h.get("week_ending") or "9999") <= cutoff]
+    for r_ in list(reversed(rows[1:60])):        # backfill older gated rows
+        existing["history_26w"] = _merge_history(existing, r_)
     history = _merge_history(existing, latest)
 
     spread = latest["bull_bear_spread"]
@@ -250,6 +335,8 @@ def lambda_handler(event, context):
         "extremes": extremes,
         "interpretation": interp,
         "history_26w": history,
+        "source": src,
+        "backfilled_rows": len(rows),
         "fetch_duration_s": round(time.time() - started, 1),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,

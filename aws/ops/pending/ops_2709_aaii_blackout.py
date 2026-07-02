@@ -133,11 +133,15 @@ R["aaii"] = {"week_ending": L.get("week_ending"), "bullish": L.get("bullish"),
              "bearish": L.get("bearish"), "spread": L.get("bull_bear_spread"),
              "history_n": len(aj.get("history_26w") or []), "interp": (aj.get("interpretation") or "")[:140]}
 print(" ", json.dumps(R["aaii"]))
-assert isinstance(L.get("bullish"), (int, float)) and 0.05 <= L["bullish"] <= 0.8, "bull frac insane"
-assert isinstance(L.get("bearish"), (int, float)) and 0.05 <= L["bearish"] <= 0.85, "bear frac insane"
+R["aaii"]["source"] = aj.get("source"); R["aaii"]["backfilled"] = aj.get("backfilled_rows")
+assert isinstance(L.get("bullish"), (int, float)) and 0.15 <= L["bullish"] <= 0.62, "bull outside truth band: %s" % L
+assert isinstance(L.get("bearish"), (int, float)) and 0.15 <= L["bearish"] <= 0.62, "bear outside truth band: %s" % L
+assert (L.get("neutral") or 0) >= 0.05
 assert abs((L.get("bullish") or 0) + (L.get("neutral") or 0) + (L.get("bearish") or 0) - 1) <= 0.06, "fracs don't sum"
+assert not any((h.get("bullish") or 0) >= 0.95 or (h.get("bearish") or 0) >= 0.95
+               for h in aj.get("history_26w") or []), "poison rows persist in history"
 we = L.get("week_ending") or "1970-01-01"
-assert we >= (datetime.now(timezone.utc) - timedelta(days=12)).strftime("%Y-%m-%d"), "AAII stale: %s" % we
+assert (datetime.now(timezone.utc) - timedelta(days=12)).strftime("%Y-%m-%d") <= we <= (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d"), "AAII week out of range: %s" % we
 assert R["aaii"]["history_n"] >= 8, "history too thin for composite: %d" % R["aaii"]["history_n"]
 
 sect("4/6 FUSION PROOF — composite 7th + two board rows")
