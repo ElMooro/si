@@ -1034,6 +1034,20 @@ def n_leverage(d):
                                    " (FINRA %+.0f%% yoy)" % fy if fy is not None else "")
 
 
+def n_ici(d):
+    """ICI slow-money flows: dry-powder hoard = forward fuel (+); MMF drain
+    into equity chasing = late deployment (-). Provisional clamps to +/-1."""
+    sig = d.get("signal")
+    if not isinstance(sig, int):
+        return 0, "ICI n/a"
+    m = (d.get("mmf") or {})
+    eq = ((d.get("long_term") or {}).get("equity_sum_4w_m"))
+    return sig, "ICI %s · MMF $%.1fT%s · eq4w %s" % (
+        d.get("regime", "?"), (m.get("total_b") or 0) / 1000,
+        (" z%+.1f" % m["z_13w"]) if isinstance(m.get("z_13w"), (int, float)) else "",
+        ("$%+.0fB" % (eq / 1000)) if isinstance(eq, (int, float)) else "?")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1130,6 +1144,7 @@ FEEDS = [
     ("Risk Regime (RORO)",     "cross-asset",      "data/risk-regime.json",          n_risk_regime),
     ("NAAIM Positioning",      "sentiment",        "data/naaim.json",                n_naaim),
     ("Leverage Cycle",         "leverage",         "data/margin-lending.json",       n_leverage),
+    ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 
 
