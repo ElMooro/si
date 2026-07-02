@@ -1,10 +1,5 @@
 settling 30s…
-  global-flow-desk [llm|159] Capital is fleeing US and international equities in favor of select sectors, commodities, dividend value, and Asian hot money targ
-  institutional-footprint [llm|247] Let's finalize the 4 sentences.
-    1. Institutions are actively rotating out of broad mega-cap tech and consumer names into semic
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2738_brief_v3_deploy.py", line 53, in <module>
-    assert not r.get("FunctionError"), (fn, r["Payload"].read()[:200])
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: ('justhodl-positioning-analog', b'{"errorMessage": "\'hy_oas\'", "errorType": "KeyError", "requestId": "ec226c2d-fc8a-4c2f-a349-795a4b47964d", "stackTrace": ["  File \\"/var/task/lambda_function.py\\", line 221, in lambda_handler\\n    cur')
-❌ OPS-FAIL: aws/ops/pending/ops_2738_brief_v3_deploy.py
+  global-flow-desk [llm|429] "financials, healthcare, and industrials" comes from "['XLF', 'XLV', 'XLI']". "US and international equities, growth funds, and go
+  institutional-footprint [deterministic|516] Institutions are Risk On on the tape (risk-now +22.1: managers near full exposure, dark-pool bid 57.7%) while positioning defensiv
+  positioning-analog [llm|563] Today's environment of strong momentum, an inverted yield curve, and extreme complacency most closely resembles the late-cycle mel
+OPS 2738 COMPLETE — three desks, one clean voice
