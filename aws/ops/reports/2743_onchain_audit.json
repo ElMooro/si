@@ -1,0 +1,87 @@
+{
+ "ops": 2743,
+ "ts": "2026-07-02T23:08:04.567556+00:00",
+ "checks": {
+  "cq.domain_strict_json": {
+   "ok": true,
+   "detail": "edge fetch + strict parse"
+  },
+  "cq.status_live": {
+   "ok": true,
+   "detail": "LIVE"
+  },
+  "cq.eight_metrics": {
+   "ok": true,
+   "detail": "['btc_exchange_netflow', 'btc_exchange_reserve', 'btc_mpi', 'btc_mvrv', 'btc_sopr', 'btc_whale_ratio', 'eth_exchange_reserve', 'stablecoin_exchange_reserve']"
+  },
+  "cq.composite_finite": {
+   "ok": true,
+   "detail": "-0.24"
+  },
+  "cq.fresh": {
+   "ok": true,
+   "detail": "staleness=1"
+  },
+  "cq.no_errors": {
+   "ok": true,
+   "detail": "None"
+  },
+  "cq.z_complete": {
+   "ok": true,
+   "detail": "[]"
+  },
+  "cq.history_depth": {
+   "ok": true,
+   "detail": "{'btc_exchange_netflow': 366, 'btc_exchange_reserve': 366, 'eth_exchange_reserve': 365, 'btc_mpi': 365, 'btc_whale_ratio': 365, 'btc_mvrv': 365, 'btc_sopr': 365, 'stablecoin_exchan"
+  },
+  "cq.spec_plan_truths": {
+   "ok": true,
+   "detail": "window=365 fmt=none"
+  },
+  "ratios.cq_block": {
+   "ok": true,
+   "detail": "['btc_whale_ratio', 'btc_mvrv', 'btc_sopr', 'btc_exchange_netflow', 'btc_mpi']"
+  },
+  "ratios.resurrected_fresh_legacy": {
+   "ok": true,
+   "detail": "ops 2742 - daily 21:20 UTC fresh=True legacy_keys=7"
+  },
+  "xf.cq_block": {
+   "ok": true,
+   "detail": "stablecoin z=-0.69"
+  },
+  "xf.legacy_intact": {
+   "ok": true,
+   "detail": "11"
+  },
+  "miners.mpi_block": {
+   "ok": true,
+   "detail": "{'value': -0.3504, 'z365': 0.04, 'pctl_1y': 55, 'wow': -0.2011, 'as_of': '2026-07-01', 'risk_sign': 1, 'grading': 'PROVISIONAL'}"
+  },
+  "rule.justhodl-cryptoquant-daily": {
+   "ok": true,
+   "detail": "ENABLED cron(5 21 * * ? *) targets=1"
+  },
+  "rule.justhodl-onchain-ratios-daily": {
+   "ok": true,
+   "detail": "ENABLED cron(20 21 * * ? *) targets=1"
+  },
+  "ledger.onchain_row_today": {
+   "ok": true,
+   "detail": "pages=9 pred=NEUTRAL conf=0.4028 baseline=61410"
+  },
+  "registry.onchain_family": {
+   "ok": true,
+   "detail": "in map feed"
+  },
+  "spot.gfd_page_v2": {
+   "ok": true,
+   "detail": "10252 bytes"
+  },
+  "spot.footprint_contract_v4": {
+   "ok": true,
+   "detail": "[deterministic|516] Institutions are Risk On on the tape (risk-now +22.1: manage"
+  }
+ },
+ "verdict": "ALL PASS (20 checks)"
+}
