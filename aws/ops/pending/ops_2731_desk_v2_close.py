@@ -81,3 +81,4 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2731_desk_v2_close.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2731 COMPLETE")
+# rev2 page-deployed
