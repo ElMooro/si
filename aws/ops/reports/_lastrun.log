@@ -10,7 +10,7 @@
   direction_map: 38
 Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_2717_join_deepening.py", line 63, in <module>
-    assert R["direction_map_n"] >= 150, "direction_map thin"
+    assert R["direction_map_n"] >= 300, "direction_map thin: %d" % R["direction_map_n"]
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: direction_map thin
+AssertionError: direction_map thin: 38
 ❌ OPS-FAIL: aws/ops/pending/ops_2717_join_deepening.py
