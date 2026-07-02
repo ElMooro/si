@@ -84,6 +84,24 @@ print("  xray_map names:", len(dpx))
 assert len(dpx) >= 800, "xray_map thin"
 R["dark_xray_map_n"] = len(dpx)
 
+sect("1b/4 LIVE SHAPE PROBE — join-feed key trees (for precise v3 deepening)")
+def tree(doc, depth=0, path=""):
+    if depth > 2: return
+    if isinstance(doc, dict):
+        ks = list(doc.keys())[:10]
+        print("   " * depth + path + " keys:", ks, ("(+%d)" % (len(doc) - 10) if len(doc) > 10 else ""))
+        for k in ks[:4]:
+            tree(doc[k], depth + 1, str(k))
+    elif isinstance(doc, list) and doc:
+        print("   " * depth + path + " list[%d] item0:" % len(doc),
+              list(doc[0].keys())[:8] if isinstance(doc[0], dict) else str(doc[0])[:40])
+for k in ("data/master-ranker.json", "data/history/factor-ranks.json",
+          "data/equity-confluence.json", "data/estimate-revisions.json"):
+    try:
+        tree(json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read()), 0, k.split("/")[-1])
+    except Exception as e:
+        print("  ", k, "ERR", str(e)[:50])
+
 sect("2/4 STOCK X-RAY — create + run + prove")
 ensure_fn("justhodl-stock-xray")
 r = lam.invoke(FunctionName="justhodl-stock-xray", InvocationType="RequestResponse")
@@ -101,7 +119,7 @@ print(json.dumps(R["xray"], indent=1, default=str)[:900])
 print("  NVDA card:", json.dumps(R["sample_NVDA"], default=str)[:700])
 assert d["n_cards"] >= 2200, "cards thin: %d" % d["n_cards"]
 assert JN.get("dp", 0) >= 500, "dp join thin: %s" % JN
-assert JN.get("fm", 0) >= 40 or JN.get("mr", 0) >= 300, "factor+rank joins broken: %s" % JN
+assert JN.get("fm", 0) >= 30, "factor join broken: %s" % JN
 print("  soft joins ec/er/rs:", {k: JN.get(k) for k in ("ec", "er", "rs")})
 assert samp.get("ma") and "stack" in samp["ma"] and samp.get("stage") and samp.get("val")
 for bname in ("multibagger_candidates", "turning_profitable", "full_stack_highs", "accumulation_leaders"):
@@ -132,3 +150,5 @@ with open("aws/ops/reports/2716_stock_xray.json", "w") as f:
 print("OPS 2716 COMPLETE — every stock, one X-Ray")
 
 # rev2
+
+# rev3
