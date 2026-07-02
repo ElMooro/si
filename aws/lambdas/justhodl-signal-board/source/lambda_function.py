@@ -1123,6 +1123,15 @@ def n_factors(d):
     return sig,"FACTORS %s (MOM L/S %+.2f%%/1d)"%(rg.get("read","")[:60],mom if mom is not None else 0)
 
 
+def n_xray(d):
+    """Per-name umbrella coverage + derived-board pulse."""
+    b=d.get("boards") or {}
+    if not d.get("n_cards"): return 0,"X-Ray n/a"
+    return 0,"X-RAY %d names (turnersto-profit %d, multibag %d, DIS %d, laggards %d)"%(
+        d["n_cards"],len(b.get("turning_profitable") or []),len(b.get("multibagger_candidates") or []),
+        len(b.get("dis_warnings") or []),len(b.get("laggards_watch") or []))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1226,6 +1235,7 @@ FEEDS = [
     ("Rebalance Window",       "flow",             "data/rebalance-radar.json",      n_rebalance),
     ("Dark Pool",              "flow",             "data/dark-pool.json",            n_darkpool),
     ("Factor Returns",         "equity",           "data/factor-returns.json",       n_factors),
+    ("Stock X-Ray",            "equity",           "data/stock-xray.json",           n_xray),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

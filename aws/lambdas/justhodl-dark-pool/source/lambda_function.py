@@ -341,6 +341,9 @@ def lambda_handler(event=None, context=None):
     print("[v2] monthly:",monthly.get("status"),"| own_dix:",own_dix,"vs sq:",sq_dix)
 
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
+    xray_map = {r["ticker"]: {"dp": r.get("dark_pool_pct"), "acc": r.get("dark_accel"),
+                              "st": r.get("state"), "sz": r.get("daily_short_z"),
+                              "cv": r.get("conviction"), "fl": r.get("flag")} for r in rows}
 
     payload = {
         "engine": "justhodl-dark-pool", "version": "2.0.0", "ok": True,
@@ -355,6 +358,7 @@ def lambda_handler(event=None, context=None):
         "top_accumulation": accumulation[:20],
         "top_distribution": distribution[:12],
         "dark_map": dark_map,
+        "xray_map": xray_map,
         "daily_fusion": {"joined": joined, "of": len(rows), "z_all": _diag["z_all"],
                          "source": "finra-short daily regsho (short + total TRF vol) + rolling-history z (11.9k names)"},
         "high_conviction": hi_all[:40], "distribution_into_strength": dis_all[:40],

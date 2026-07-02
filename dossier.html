@@ -1,271 +1,124 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Research Dossier · JustHodl AI</title>
-<meta name="description" content="One-page institutional research dossier per ticker — valuation, demand, ownership, thesis, risk.">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock X-Ray — JustHodl.AI</title>
 <style>
-:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa;--orange:#fb923c;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;min-height:100vh}
-a{color:var(--cyan);text-decoration:none}
-.header{height:54px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--bg-1);position:sticky;top:0;z-index:50}
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700}
-.brand-dot{width:8px;height:8px;background:var(--violet);border-radius:50%;box-shadow:0 0 9px var(--violet)}
-.nav{display:flex;gap:3px;margin-left:10px;flex-wrap:wrap}.nav a{padding:6px 10px;font-size:12px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}.nav a.active{color:var(--violet)}
-.search{margin-left:auto;display:flex;gap:6px;align-items:center}
-.search input{background:var(--bg-2);border:1px solid var(--border-bright);border-radius:7px;color:var(--fg-1);padding:7px 11px;font-family:var(--mono);font-size:13px;width:120px;text-transform:uppercase}
-.search button{background:var(--violet);border:none;color:var(--bg);font-weight:700;border-radius:7px;padding:7px 13px;cursor:pointer;font-size:12px}
-.wrap{max-width:1080px;margin:0 auto;padding:22px}
-.tk-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-.tk-sym{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--fg-0)}
-.tk-name{font-size:16px;color:var(--fg-2)}
-.tk-px{font-family:var(--mono);font-size:20px;color:var(--cyan)}
-.verdict{font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 11px;border-radius:11px}
-.v-buy,.v-strong{background:rgba(38,255,175,.16);color:var(--green)}
-.v-watch{color:var(--fg-3);border:1px solid var(--border-bright)}
-.v-risk,.v-expensive{background:rgba(255,85,119,.13);color:var(--red)}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 18px}
-.tag{font-family:var(--mono);font-size:10px;padding:2px 9px;border-radius:9px;background:var(--bg-2);border:1px solid var(--border);color:var(--fg-2)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
-.card{background:var(--bg-1);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
-.card.wide{grid-column:1/-1}
-.card h2{font-size:12px;font-family:var(--mono);letter-spacing:.5px;margin-bottom:11px;color:var(--fg-2);display:flex;align-items:center;gap:7px}
-.metric{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
-.metric:last-child{border-bottom:none}
-.metric .k{color:var(--fg-3)}.metric .v{font-family:var(--mono);color:var(--fg-1);font-weight:600}
-.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--amber)}
-.thesis-txt{font-size:13.5px;line-height:1.6;color:var(--fg-1)}
-.sig-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12.5px}
-.sig-row:last-child{border-bottom:none}
-.sig-k{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border-bright);color:var(--cyan);min-width:120px;text-align:center}
-.bar{height:5px;background:var(--bg-2);border-radius:3px;overflow:hidden;flex:1;max-width:80px}.bar .f{height:100%;background:var(--cyan)}
-.lens{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid var(--border-bright);color:var(--fg-2);display:inline-block;margin:2px}
-.lens.green{border-color:var(--green);color:var(--green)}
-.kill{background:rgba(255,85,119,0.05);border-color:#3a2230}
-.kill li{font-size:12.5px;color:var(--fg-2);margin:5px 0;line-height:1.4}
-.brain-card{background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(34,211,238,0.04))}
-.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
-.empty{color:var(--fg-3);font-size:12.5px;font-style:italic}
-.fresh{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:16px}
-.act{display:inline-block;font-family:var(--mono);font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--border-bright);color:var(--cyan);margin:3px 4px 0 0}
-</style></head><body>
-<header class="header">
-  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
-  <nav class="nav"><a href="/">Desk</a><a href="/master-board.html">🎯 Board</a><a href="/dossier.html" class="active">📂 Dossier</a><a href="/scorecard.html">📊 Scorecard</a></nav>
-  <div class="search"><input id="sym" placeholder="TICKER" autocomplete="off"><button onclick="go()">Open</button></div>
-</header>
-<div class="wrap" id="wrap"><div class="loading">Enter a ticker to open its dossier…</div></div>
-<script>
-const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function qp(k){return new URLSearchParams(location.search).get(k);}
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-function go(){const t=document.getElementById('sym').value.trim().toUpperCase();if(t)location.href='/dossier.html?t='+t;}
-document.getElementById('sym').onkeydown=e=>{if(e.key==='Enter')go();};
-function num(v,d){return v==null?'—':(typeof v==='number'?(d===0?Math.round(v):v.toFixed(d==null?1:d)):v);}
-function pct(v){return v==null?'—':(v>=0?'+':'')+num(v)+'%';}
-function findIn(arr,t){if(!Array.isArray(arr))return null;return arr.find(x=>(x.ticker||x.symbol)===t)||null;}
-
-async function load(){
-  const T=(qp('t')||'').toUpperCase();
-  if(!T){return;}
-  document.getElementById('sym').value=T;
-  document.getElementById('wrap').innerHTML='<div class="loading">Building dossier for '+esc(T)+'…</div>';
-  const [bs,fund,backlog,deepval,asym,si,f13,brain,redflag,earn,aa,er,br,fl]=await Promise.all([
-    gj('data/best-setups.json'),gj('data/fundamentals.json'),gj('data/backlog.json'),gj('data/deep-value-overlap.json'),
-    gj('data/asymmetric-scorer.json'),gj('data/short-interest.json'),gj('data/13f-positions.json'),gj('data/brain.json'),
-    gj('data/redflag-alerts.json'),gj('data/earnings-tracker.json'),
-    gj('data/analyst-actions.json'),gj('data/estimate-revisions.json'),gj('data/boom-radar.json'),gj('data/flow-lookthrough.json')]);
-  // resolve per-ticker records
-  const setup=(bs&&bs.top_setups||[]).find(s=>s.ticker===T);
-  let fu=null; const fc=fund&&fund.companies; if(fc){fu=Array.isArray(fc)?findIn(fc,T):(fc[T]||null);}
-  let bk=null; const bt=backlog&&backlog.by_ticker; if(bt){bk=Array.isArray(bt)?findIn(bt,T):(bt[T]||null);}
-  const dv=(deepval&&deepval.board||[]).find(x=>x.ticker===T);
-  const asyS=(asym&&asym.top_setups||[]).find(x=>x.ticker===T);
-  // Benzinga precision + boom-convergence + ETF-flow per-ticker slices
-  const aaRoll=findIn((aa&&aa.most_bullish||[]).concat(aa&&aa.most_bearish||[]),T);
-  const aaGuidUp=(aa&&aa.guidance_raises||[]).filter(x=>(x.ticker||x.symbol)===T);
-  const aaGuidDn=(aa&&aa.guidance_cuts||[]).filter(x=>(x.ticker||x.symbol)===T);
-  const aaPT=[].concat(aa&&aa.pt_raises||[],aa&&aa.pt_cuts||[]).filter(x=>(x.ticker||x.symbol)===T);
-  const erRec=findIn((er&&er.estimate_strength_leaders||[]).concat(er&&er.upward_revisions||[],er&&er.downward_revisions||[]),T);
-  const brRec=findIn((br&&br.high_conviction||[]).concat(br&&br.boom_candidates||[]),T);
-  const flRec=findIn((fl&&fl.actual_accumulation||[]).concat(fl&&fl.thematic_rotation_leaders||[],fl&&fl.inflow_leaders||[],fl&&fl.outflow_leaders||[],fl&&fl.top_picks||[]),T);
-  const hasNew=!!(aaRoll||erRec||brRec||flRec||aaGuidUp.length||aaGuidDn.length||aaPT.length);
-  const name=(dv&&dv.name)||(setup&&setup.name)||T;
-  const px=fu&&fu.price;
-  // verdict
-  const verdict=(setup&&setup.verdict)||(dv&&dv.verdict)||(fu&&fu.valuation_label)||'—';
-  const vc=/STRONG/.test(verdict)?'v-strong':/BUY|OPPORTUNITY/.test(verdict)?'v-buy':/RISK|EXPENSIVE|TRAP/.test(verdict)?'v-risk':'v-watch';
-  const conv=setup&&setup.conviction;
-
-  let h=`<div class="tk-head">
-    <span class="tk-sym">${esc(T)}</span>
-    <span class="tk-name">${esc(name)}</span>
-    ${px?`<span class="tk-px">$${num(px,2)}</span>`:''}
-    <span class="verdict ${vc}">${esc(verdict)}</span>
-    ${conv!=null?`<span style="font-family:var(--mono);color:var(--fg-3)">conviction ${num(conv)}</span>`:''}
-  </div>`;
-  // tags
-  const tags=[];
-  if(fu&&fu.quality_label)tags.push(fu.quality_label);
-  if(fu&&fu.valuation_label)tags.push(fu.valuation_label);
-  if(bk&&bk.sector)tags.push(bk.sector);
-  if(setup&&setup.triple_threat)tags.push('TRIPLE THREAT');
-  if(setup&&setup.buildout_threat)tags.push('BUILDOUT THREAT');
-  if(setup&&setup.brain_aligned)tags.push('🧠 brain-aligned');
-  h+=`<div class="tags">${tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`;
-
-  if(!setup&&!fu&&!bk&&!dv&&!hasNew){
-    h+=`<div class="card wide"><div class="empty">No structured data found for ${esc(T)} in the current engine outputs. It may be outside the covered universe, or the engines haven't scored it yet. Try a large-cap US name (e.g. NVDA, MU, AOS, MSFT).</div></div>`;
-    document.getElementById('wrap').innerHTML=h; return;
-  }
-
-  h+='<div class="grid">';
-
-  // THESIS (wide)
-  h+=`<div class="card wide"><h2>🎯 THESIS &amp; SIGNAL CONFLUENCE</h2>`;
-  if(setup&&(setup.why||setup.thesis)){h+=`<div class="thesis-txt">${esc(setup.why||setup.thesis)}</div>`;}
-  else if(dv){h+=`<div class="thesis-txt">Surfaced via deep-value overlap: ${(dv.value_lenses||[]).join(', ')}. ${dv.n_catalysts?'Catalysts: '+(dv.catalysts||[]).join(', '):''}</div>`;}
-  else{h+=`<div class="empty">No confluence thesis — this name isn't on the conviction board right now.</div>`;}
-  if(setup&&setup.signals&&setup.signals.length){
-    h+=`<div style="margin-top:12px">`+setup.signals.map(sg=>`<div class="sig-row"><span class="sig-k">${esc(sg.key)}</span><span class="bar"><span class="f" style="width:${Math.min(100,(sg.strength||0)*100)}%"></span></span><span style="color:var(--fg-2);font-size:12px">${esc(sg.detail||'')}</span></div>`).join('')+`</div>`;
-  }
-  if(setup&&setup.entry){h+=`<div style="margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--fg-2)">Levels: entry ${setup.entry} · stop ${setup.stop||'—'} · target ${setup.tp3||'—'}${setup.rr?' · '+setup.rr+'R':''} · horizon ${setup.horizon_days||'—'}d</div>`;}
-  h+=`</div>`;
-
-  // ANALYST · ESTIMATES · BOOM · FLOW (Benzinga precision + convergence)
-  if(hasNew){
-    h+=`<div class="card wide"><h2>⚡ ANALYST · ESTIMATES · BOOM · FLOW</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">`;
-    if(brRec){
-      const n=brRec.convergence||(brRec.dimensions&&brRec.dimensions.length)||0;
-      const bc=n>=3?'var(--green)':n>=2?'var(--amber)':'var(--fg-2)';
-      h+=`<div><div class="sig-k">🚀 BOOM CONVERGENCE</div><div style="font-family:var(--mono);font-size:22px;color:${bc}">${n}-way${brRec.boom_score!=null?` · ${num(brRec.boom_score,1)}`:''}</div>`;
-      const rs=(brRec.reasons&&brRec.reasons.length?brRec.reasons:(brRec.dimensions||[]));
-      if(rs&&rs.length)h+=`<div style="font-size:11px;color:var(--fg-2);margin-top:4px">${rs.map(esc).join(' · ')}</div>`;
-      h+=`</div>`;
-    }
-    if(aaRoll){
-      const ns=aaRoll.net_score,nc=ns>0?'var(--green)':ns<0?'var(--red)':'var(--fg-2)';
-      h+=`<div><div class="sig-k">🎓 ANALYST NET</div><div style="font-family:var(--mono);font-size:22px;color:${nc}">${ns>0?'+':''}${num(ns,1)}</div><div style="font-size:11px;color:var(--fg-2)">${num(aaRoll.n_up,0)} up · ${num(aaRoll.n_down,0)} down</div>`;
-      if(aaRoll.signals&&aaRoll.signals.length)h+=`<div style="font-size:11px;color:var(--fg-2);margin-top:4px">${aaRoll.signals.slice(0,3).map(esc).join(' · ')}</div>`;
-      h+=`</div>`;
-    }
-    if(aaGuidUp.length||aaGuidDn.length){
-      const raised=aaGuidUp.length>0,g=(raised?aaGuidUp:aaGuidDn)[0];
-      h+=`<div><div class="sig-k">📊 GUIDANCE</div><div style="font-family:var(--mono);font-size:18px;color:${raised?'var(--green)':'var(--red)'}">${raised?'RAISED':'CUT'}</div><div style="font-size:11px;color:var(--fg-2)">${esc((g.fiscal_period||'')+(g.fiscal_year||''))} ${esc(g.firm||g.company||'')}</div></div>`;
-    }
-    if(aaPT.length){
-      const p=aaPT[0],pp=p.pt_pct!=null?p.pt_pct:p.price_percent_change;
-      h+=`<div><div class="sig-k">🎯 PRICE TARGET</div><div style="font-family:var(--mono);font-size:16px">${p.previous_price_target?'$'+num(p.previous_price_target,0)+'→':''}${p.price_target?'$'+num(p.price_target,0):'—'}</div><div style="font-size:11px;color:${(pp||0)>=0?'var(--green)':'var(--red)'}">${pp!=null?pct(pp):''} ${esc(p.firm||'')}</div></div>`;
-    }
-    if(erRec){
-      const stv=erRec.estimate_strength,sc=stv>=70?'var(--green)':stv>=50?'var(--amber)':'var(--fg-2)';
-      h+=`<div><div class="sig-k">📈 ESTIMATE STRENGTH</div><div style="font-family:var(--mono);font-size:22px;color:${sc}">${num(stv,0)}</div><div style="font-size:11px;color:var(--fg-2)">fwd EPS ${pct(erRec.fwd_eps_growth_pct)} · ${num(erRec.n_analysts,0)} analysts</div></div>`;
-    }
-    if(flRec){
-      const fb=flRec.flow_bps_mcap!=null?flRec.flow_bps_mcap:flRec.score,fcl=(fb||0)>=0?'var(--green)':'var(--red)';
-      h+=`<div><div class="sig-k">🌊 ETF FLOW PRESSURE</div><div style="font-family:var(--mono);font-size:16px;color:${fcl}">${esc(flRec.flow_type||((flRec.net_flow_5d_usd||0)>0?'INFLOW':'OUTFLOW'))}</div><div style="font-size:11px;color:var(--fg-2)">${fb!=null?num(fb,0)+' bps/mcap':''}${flRec.confirmed?' · ✓':''}</div></div>`;
-    }
-    h+=`</div><div style="font-size:10px;color:var(--fg-3);margin-top:10px">Benzinga earnings/guidance/price-targets + FMP estimates + ETF-Global constituent flow + boom convergence. Discovery layer — measure-before-trust.</div></div>`;
-  }
-
-  // OPPORTUNITY DNA — the visual fingerprint of WHAT KIND of setup this is
-  if(setup){
-    try{
-      const dm=OpportunityDNA.score(setup);
-      h+=`<div class="card"><h2>🧬 OPPORTUNITY DNA</h2>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div>${OpportunityDNA.svg(dm,120)}</div>
-          <div style="flex:1;min-width:160px">
-            <div style="font-family:var(--mono);font-size:13px;color:var(--violet);font-weight:700;margin-bottom:8px">${esc(OpportunityDNA.archetype(dm))}</div>
-            ${OpportunityDNA.bars(dm)}
-          </div>
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-top:10px">The fingerprint shows the character of the setup — which forces are driving it. Two names with the same conviction can have very different DNA.</div>
-      </div>`;
-    }catch(e){}
-  }
-  // VALUATION
-  h+=`<div class="card"><h2>💰 VALUATION &amp; QUALITY</h2>`;
-  if(fu){
-    h+=`<div class="metric"><span class="k">Valuation</span><span class="v">${esc(fu.valuation_label||'—')}</span></div>`;
-    h+=`<div class="metric"><span class="k">Quality</span><span class="v">${esc(fu.quality_label||'—')}</span></div>`;
-    if(fu.dcf_gap_pct!=null)h+=`<div class="metric"><span class="k">DCF gap (to fair value)</span><span class="v ${fu.dcf_gap_pct>0?'pos':'neg'}">${pct(fu.dcf_gap_pct)}</span></div>`;
-    if(fu.dcf!=null)h+=`<div class="metric"><span class="k">DCF fair value</span><span class="v">$${num(fu.dcf,2)}</span></div>`;
-    if(fu.piotroski!=null)h+=`<div class="metric"><span class="k">Piotroski F-score</span><span class="v ${fu.piotroski>=7?'pos':fu.piotroski<=3?'neg':'warn'}">${fu.piotroski}/9</span></div>`;
-    if(fu.altman_z!=null)h+=`<div class="metric"><span class="k">Altman-Z (distress)</span><span class="v ${fu.altman_z>=3?'pos':fu.altman_z<1.8?'neg':'warn'}">${num(fu.altman_z,2)}</span></div>`;
-  }
-  if(dv&&dv.ev_sales!=null)h+=`<div class="metric"><span class="k">EV / Sales</span><span class="v">${num(dv.ev_sales,1)}×</span></div>`;
-  if(dv&&dv.value_lenses)h+=`<div style="margin-top:8px">${dv.value_lenses.map(l=>`<span class="lens green">${esc(l)}</span>`).join('')}</div>`;
-  if(!fu&&!dv)h+=`<div class="empty">No valuation data.</div>`;
-  h+=`</div>`;
-
-  // DEMAND / BACKLOG (the institutional edge)
-  h+=`<div class="card"><h2>📈 DEMAND &amp; BACKLOG (RPO)</h2>`;
-  if(bk){
-    if(bk.rpo!=null)h+=`<div class="metric"><span class="k">RPO (remaining perf. obligation)</span><span class="v">$${num(bk.rpo/1e9,1)}B</span></div>`;
-    if(bk.rpo_yoy!=null)h+=`<div class="metric"><span class="k">RPO growth YoY</span><span class="v ${bk.rpo_yoy>0?'pos':'neg'}">${pct(bk.rpo_yoy)}</span></div>`;
-    if(bk.deferred_yoy!=null)h+=`<div class="metric"><span class="k">Deferred revenue YoY</span><span class="v ${bk.deferred_yoy>0?'pos':'neg'}">${pct(bk.deferred_yoy)}${bk.deferred_accelerating?' ⚡':''}</span></div>`;
-    if(bk.rev_yoy!=null)h+=`<div class="metric"><span class="k">Revenue growth YoY</span><span class="v">${pct(bk.rev_yoy)}</span></div>`;
-    if(bk.demand_accelerating!=null)h+=`<div class="metric"><span class="k">Demand accelerating?</span><span class="v ${bk.demand_accelerating?'pos':'warn'}">${bk.demand_accelerating?'YES — orders > shipments':'No — orders lag revenue'}</span></div>`;
-  }else h+=`<div class="empty">No backlog/RPO data (typical for non-contract businesses).</div>`;
-  h+=`</div>`;
-
-  // OWNERSHIP & FLOW
-  h+=`<div class="card"><h2>🏛 OWNERSHIP &amp; SHORT INTEREST</h2>`;
-  let ownAny=false;
-  const f13t=f13&&(f13.by_ticker||f13.positions); const f13e=f13t?(Array.isArray(f13t)?findIn(f13t,T):f13t[T]):null;
-  if(f13e){ownAny=true;h+=`<div class="metric"><span class="k">13F institutional</span><span class="v">${esc(JSON.stringify(f13e).slice(0,40))}</span></div>`;}
-  const sit=si&&si.by_ticker; const sie=sit?(Array.isArray(sit)?findIn(sit,T):sit[T]):null;
-  if(sie){ownAny=true;if(sie.short_pct_float!=null)h+=`<div class="metric"><span class="k">Short % float</span><span class="v ${sie.short_pct_float>20?'warn':''}">${num(sie.short_pct_float)}%</span></div>`;if(sie.days_to_cover!=null)h+=`<div class="metric"><span class="k">Days to cover</span><span class="v">${num(sie.days_to_cover,1)}</span></div>`;}
-  if(setup&&setup.flow_lenses&&setup.flow_lenses.length){ownAny=true;h+=`<div style="margin-top:8px">${setup.flow_lenses.map(l=>`<span class="lens">${esc(l)}</span>`).join('')}</div>`;}
-  if(!ownAny)h+=`<div class="empty">No ownership/short data on file for ${esc(T)}.</div>`;
-  h+=`</div>`;
-
-  // BUSINESS MIX
-  if(fu&&(fu.top_product||fu.top_region)){
-    h+=`<div class="card"><h2>🧩 BUSINESS MIX</h2>`;
-    if(fu.top_product)h+=`<div class="metric"><span class="k">Top product</span><span class="v">${esc(fu.top_product)} ${fu.top_product_pct?'('+num(fu.top_product_pct)+'%)':''}</span></div>`;
-    if(fu.top_region)h+=`<div class="metric"><span class="k">Top region</span><span class="v">${esc(fu.top_region)} ${fu.top_region_pct?'('+num(fu.top_region_pct)+'%)':''}</span></div>`;
-    if(fu.n_products)h+=`<div class="metric"><span class="k">Product lines</span><span class="v">${fu.n_products}</span></div>`;
-    if(fu.n_regions)h+=`<div class="metric"><span class="k">Geographic regions</span><span class="v">${fu.n_regions}</span></div>`;
-    h+=`</div>`;
-  }
-
-  // BRAIN VIEW
-  const dir=brain&&brain.directive;
-  if(dir){
-    h+=`<div class="card brain-card"><h2 style="color:var(--violet)">🧠 YOUR BRAIN'S LENS</h2>`;
-    if(setup&&setup.brain_aligned){h+=`<div class="thesis-txt" style="color:var(--violet)">${esc(setup.brain_aligned)}</div>`;}
-    else{
-      const sec=bk&&bk.sector; const tilts=dir.sector_tilts||{};
-      const stance=sec&&tilts[sec];
-      if(stance)h+=`<div class="thesis-txt">On your <b>${esc(sec)}</b> tilt: ${esc(typeof stance==='string'?stance:JSON.stringify(stance))}</div>`;
-      else h+=`<div class="empty">Not specifically flagged by your Brain. Your themes: ${(dir.themes||[]).join(', ')||'—'}.</div>`;
-    }
-    h+=`</div>`;
-  }
-
-  // RISK / KILL CRITERIA (wide)
-  h+=`<div class="card wide kill"><h2 style="color:var(--red)">⚠ RISK FLAGS &amp; KILL CRITERIA</h2><ul style="list-style:none">`;
-  const rf=redflag&&(redflag.by_ticker||redflag.alerts); const rfe=rf?(Array.isArray(rf)?(rf.filter(x=>(x.ticker||x.symbol)===T)):rf[T]):null;
-  let killAny=false;
-  if(fu&&fu.altman_z!=null&&fu.altman_z<1.8){h+=`<li>🔴 Altman-Z ${num(fu.altman_z,2)} — distress zone (<1.8). Watch balance sheet.</li>`;killAny=true;}
-  if(bk&&bk.demand_accelerating===false&&bk.rpo_minus_rev_growth!=null&&bk.rpo_minus_rev_growth<0){h+=`<li>🟠 Orders growing slower than revenue (RPO−rev ${num(bk.rpo_minus_rev_growth)}pp) — demand may be decelerating.</li>`;killAny=true;}
-  if(dv&&dv.distress_flag){h+=`<li>🔴 Distress flag set by deep-value engine.</li>`;killAny=true;}
-  if(fu&&fu.valuation_label&&/EXPENSIVE/i.test(fu.valuation_label)){h+=`<li>🟠 Trades expensive vs fair value — multiple compression risk if growth slows.</li>`;killAny=true;}
-  if(Array.isArray(rfe)&&rfe.length){rfe.slice(0,3).forEach(r=>{h+=`<li>🔴 ${esc(r.detail||r.type||JSON.stringify(r).slice(0,80))}</li>`;});killAny=true;}
-  // generic kill criteria from the thesis
-  h+=`<li style="color:var(--fg-3);margin-top:8px;border-top:1px solid var(--border);padding-top:8px">Kill the thesis if: ${setup?'conviction signals break (esp. '+(setup.signal_keys||[]).slice(0,2).join(', ')+'), ':''}${bk?'RPO/deferred-rev growth turns negative, ':''}valuation re-rates without earnings follow-through, or the macro regime flips against the setup.</li>`;
-  h+=`</ul></div>`;
-
-  h+='</div>'; // grid
-  h+=`<div class="fresh">Dossier assembled from live engine outputs · best-setups ${bs?'✓':'✗'} · fundamentals ${fu?'✓':'✗'} · backlog ${bk?'✓':'✗'} · deep-value ${dv?'✓':'✗'} · Research, not advice.</div>`;
-  document.getElementById('wrap').innerHTML=h;
-}
-load();
-</script>
-<script src="/opportunity-dna.js"></script>
-<script src="/cmdk.js"></script>
-  <script src="/jh-page-ai.js" defer></script>
+:root{--bg:#0a0e14;--bg2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg2:#9db0c8;--fg3:#5c6f88;--cy:#46c8ff;--am:#ffd24a;--rd:#ff5d6c;--gr:#37d99a;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 18px 60px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.srch{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+input{background:var(--bg2);border:1px solid var(--line);color:var(--fg);font:16px var(--mono);padding:10px 14px;border-radius:10px;width:180px;text-transform:uppercase}
+button,.lnk{background:var(--cy);color:#04121f;border:0;font:600 13px -apple-system,sans-serif;padding:10px 16px;border-radius:10px;cursor:pointer;text-decoration:none}
+.lnk{background:var(--bg2);color:var(--cy);border:1px solid var(--line)}
+.strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chip{font-family:var(--mono);font-size:11px;color:var(--fg2);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.chip b{color:var(--cy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:13px;margin-bottom:16px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.c h3{margin:0 0 8px;font-size:11.5px;letter-spacing:1.4px;color:var(--fg2)}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin:4px 0}
+.big{font-family:var(--mono);font-size:24px;font-weight:700}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);margin:2px 4px 2px 0;background:var(--bg2)}
+.hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:14px}
+.tk{font-family:var(--mono);font-size:34px;font-weight:800}
+.g{color:var(--gr)}.a{color:var(--am)}.r{color:var(--rd)}.cy{color:var(--cy)}.vi{color:var(--vi)}
+.ma{display:flex;gap:6px}.ma span{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--line)}
+.note{color:var(--fg3);font-size:10.5px;margin-top:7px;line-height:1.45}
+.load{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
+</style></head><body><div class="wrap">
+<h1>🩻 STOCK X-RAY — THE INSTITUTIONAL DOSSIER</h1>
+<div class="sub" id="meta">Loading X-Ray card map…</div>
+<div class="srch">
+ <input id="tk" placeholder="TICKER" value="NVDA" maxlength="6">
+ <button onclick="show()">X-RAY</button>
+ <a class="lnk" id="cp" href="/chart-pro.html?symbol=NVDA" target="_blank">📈 Open in Chart-Pro</a>
+ <a class="lnk" id="dl" href="/master-rank.html" target="_blank">Master Rank</a>
+</div>
+<div class="strip" id="boards"></div>
+<div id="app" class="load">Type a ticker and hit X-RAY.</div>
 <script src="/jh-nav-drawer.js" defer></script>
-</body></html>
+<script>
+const F=v=>(v===null||v===undefined||v==='')?'—':v;
+const pc=v=>v==null?'—':(v>0?'+':'')+v+'%';
+let X=null,LEG={};
+async function j(k){try{const r=await fetch(k,{cache:'no-store'});return r.ok?await r.json():null}catch(e){return null}}
+(async()=>{
+ X=await j('data/stock-xray.json');
+ const m=document.getElementById('meta');
+ if(!X||!X.cards){m.textContent='X-Ray feed unavailable.';return}
+ m.innerHTML=`${X.n_cards} names carded · joins ${Object.entries(X.joins||{}).map(([k,v])=>k+':'+v).join(' ')} · ${(X.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const B=X.boards||{},lbl={multibagger_candidates:'🚀 Multibagger',turning_profitable:'🐣 Turning Profitable',accumulation_leaders:'🌑 Accumulation',dis_warnings:'⚠️ Distribution-into-Strength',full_stack_highs:'📶 Full-Stack Highs',laggards_watch:'🐢 Laggards (strong peers)'};
+ document.getElementById('boards').innerHTML=Object.entries(B).map(([k,v])=>
+   `<span class="chip" onclick="pick('${(v[0]||'')}')"><b>${lbl[k]||k}</b> ${v.slice(0,6).join(' ')}${v.length>6?' +'+(v.length-6):''}</span>`).join('');
+ // legacy deep feeds (client-joined per view)
+ for(const [k,key] of [['bl','data/backlog.json'],['tf','data/13f-positions.json'],['rf','data/redflag-alerts.json'],['et','data/earnings-tracker.json']]) LEG[k]=await j(key);
+ show();
+})();
+function pick(t){if(!t)return;document.getElementById('tk').value=t;show()}
+function legFind(doc,t){if(!doc)return null;const w=(n,d)=>{if(d>4||!n)return null;if(Array.isArray(n)){for(const x of n){const r=w(x,d+1);if(r)return r}}else if(typeof n==='object'){if((n.ticker===t||n.symbol===t))return n;if(n[t]&&typeof n[t]==='object')return n[t];for(const v of Object.values(n)){const r=w(v,d+1);if(r)return r}}return null};return w(doc,0)}
+function show(){
+ const t=(document.getElementById('tk').value||'').toUpperCase().trim();
+ document.getElementById('cp').href='/chart-pro.html?symbol='+t;
+ const app=document.getElementById('app');
+ const c=(X&&X.cards||{})[t];
+ if(!c){app.className='load';app.textContent=t+' not in the liquid X-Ray universe (>$250M mcap, >$3).';return}
+ const ma=c.ma||{},D=c.dark||{},V=c.val||{},G=c.grow||{},O=c.own||{},P=c.perf||{};
+ const bl=legFind(LEG.bl,t),tf=legFind(LEG.tf,t),rf=legFind(LEG.rf,t),et=legFind(LEG.et,t);
+ const stC=s=>s==='ACCUMULATION'?'g':s==='DISTRIBUTION'?'r':'cy';
+ const maT=(on,l)=>`<span style="border-color:${on?'var(--gr)':'var(--rd)'};color:${on?'var(--gr)':'var(--rd)'}">${l} ${on?'▲':'▼'}</span>`;
+ app.className='';app.innerHTML=`
+ <div class="hero">
+   <div class="tk">${t}</div>
+   <div><div class="big">$${F(c.px)}</div><div class="note">${c.sec||''} · $${F(c.mc_b)}B</div></div>
+   <div class="ma">${maT(ma.a20,'20MA')}${maT(ma.a50,'50MA')}${maT(ma.a200,'200MA')}<span class="${ma.stack==='FULL_BULL'?'g':ma.stack==='FULL_BEAR'?'r':'a'}">${F(ma.stack)}</span></div>
+   <span class="tag vi">${F(c.stage)}</span>
+   <span class="tag">52w pos ${F(c.pos52)}%</span>
+   ${c.resil?`<span class="tag cy">resilience: ${c.resil}</span>`:''}
+   ${(c.factors||[]).map(f=>`<span class="tag ${f.endsWith('+')?'g':'r'}">${f}</span>`).join('')}
+ </div>
+ <div class="grid">
+  <div class="c"><h3>MOMENTUM & CYCLE</h3>
+    <div class="big ${c.momo_12_1>0?'g':'r'}">${pc(c.momo_12_1)}</div><div class="note">12-1 momentum</div>
+    <div class="kv"><span>w / m / q / y</span><b>${pc(P.w)} · ${pc(P.m)} · ${pc(P.q)} · ${pc(P.y)}</b></div>
+    <div class="kv"><span>RSI · beta</span><b>${F(c.rsi)} · ${F(c.beta)}</b></div>
+    <div class="kv"><span>Weinstein stage</span><b>${F(c.stage)}</b></div></div>
+  <div class="c"><h3>VALUATION (sector-relative "CAPE")</h3>
+    <div class="big ${V.sec_pctile>80?'r':V.sec_pctile<30?'g':'cy'}">${F(V.sec_pctile)}<span style="font-size:12px;color:var(--fg3)">pctile</span></div>
+    <div class="kv"><span>P/E · fwd P/E</span><b>${F(V.pe)} · ${F(V.fwd_pe)}</b></div>
+    <div class="note">Percentile of P/E within its own sector cross-section.</div></div>
+  <div class="c"><h3>GROWTH & PROFITABILITY</h3>
+    <div class="kv"><span>sales QoQ</span><b class="${(G.sales_qoq||0)>20?'g':''}">${pc(G.sales_qoq)}</b></div>
+    <div class="kv"><span>EPS next-yr est</span><b>${pc(G.eps_ny)}</b></div>
+    <div class="kv"><span>profitable now</span><b>${c.profit&&c.profit.now?'YES':'NO'}</b></div>
+    ${c.profit&&c.profit.turning?'<span class="tag g">🐣 TURNING PROFITABLE (fwd)</span>':''}
+    <div class="kv"><span>backlog / RPO</span><b>${F(bl&&(bl.backlog||bl.rpo||bl.value))}</b></div></div>
+  <div class="c"><h3>DARK POOL — BUY/SELL</h3>
+    <div class="big ${stC(D.st)}">${F(D.dp)}%</div><div class="note">off-exchange share (weekly ATS)</div>
+    <div class="kv"><span>state · accel</span><b class="${stC(D.st)}">${F(D.st)} ${D.acc!=null?(D.acc>0?'+':'')+D.acc:''}</b></div>
+    <div class="kv"><span>daily short-z</span><b class="${(D.sz||0)>0.8?'r':(D.sz||0)<-0.5?'g':''}">${F(D.sz)}</b></div>
+    ${D.cv?'<span class="tag g">HIGH CONVICTION</span>':''}${D.fl?'<span class="tag r">⚠ '+D.fl.replace(/_/g,' ')+'</span>':''}</div>
+  <div class="c"><h3>SIGNAL ENGINES</h3>
+    <div class="kv"><span>master-rank</span><b>${c.rank?F(c.rank.score)+' (#'+F(c.rank.rank)+')':'—'}</b></div>
+    <div class="kv"><span>confluence</span><b>${c.confl?F(c.confl.comp)+' · n_eff '+F(c.confl.n_eff):'—'}</b></div>
+    <div class="kv"><span>est. revisions</span><b class="${c.est_rev==='UP'?'g':c.est_rev==='DOWN'?'r':''}">${F(c.est_rev)}</b></div>
+    <div class="kv"><span>best-setups</span><b>${F(c.setup)}</b></div>
+    <div class="kv"><span>red flags</span><b class="${rf?'r':''}">${rf?(rf.flag||rf.reason||'FLAGGED'):'none'}</b></div></div>
+  <div class="c"><h3>OWNERSHIP & FLOW</h3>
+    <div class="kv"><span>institutional own</span><b>${pc(O.inst)}</b></div>
+    <div class="kv"><span>inst Δ (trans)</span><b class="${(O.inst_tr||0)>0?'g':'r'}">${pc(O.inst_tr)}</b></div>
+    <div class="kv"><span>insider Δ</span><b class="${(O.insider_tr||0)>0?'g':''}">${pc(O.insider_tr)}</b></div>
+    <div class="kv"><span>short float</span><b>${pc(O.short_flt)}</b></div>
+    <div class="kv"><span>13F holders</span><b>${F(tf&&(tf.n_holders||tf.holders))}</b></div></div>
+  <div class="c"><h3>ROTATION & PEERS</h3>
+    ${(c.peers||[]).map(p=>{const q=(X.cards||{})[p];return `<div class="kv"><span onclick="pick('${p}')" style="cursor:pointer;color:var(--cy)">${p}</span><b class="${(q&&q.momo_12_1||0)>0?'g':'r'}">${q?pc(q.momo_12_1):'—'}</b></div>`}).join('')||'<div class="note">no supply-chain peers mapped</div>'}
+    <div class="note">Peer 12-1 momentum — laggard vs its own chain shows here.</div></div>
+  <div class="c"><h3>EARNINGS</h3>
+    <div class="kv"><span>next / last</span><b>${F(et&&(et.next_date||et.date))}</b></div>
+    <div class="kv"><span>last surprise</span><b>${F(et&&(et.surprise_pct||et.eps_surprise))}</b></div>
+    <div class="note">Market context: see cycle-clock + bond-desk regimes on the board.</div></div>
+ </div>
+ <div class="note">Card built ${(X.generated_at||'').slice(0,16).replace('T',' ')} UTC · ${X.method||''}</div>`;
+}
+document.getElementById('tk').addEventListener('keydown',e=>{if(e.key==='Enter')show()});
+</script></div></body></html>
