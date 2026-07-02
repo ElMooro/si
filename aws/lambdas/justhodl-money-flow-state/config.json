@@ -5,12 +5,14 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 120,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Whole-market dollar money-flow by stock/industry/sector. Polygon grouped-daily x universe sector/industry map -> per-stock signed dollar flow, rolled up. Emits data/money-flow-state.json.",
   "schedule": {
-    "rule_name": "money-flow-state-daily",
-    "cron": "cron(30 23 * * ? *)",
-    "description": "Daily at 23:30 UTC (after US close + EOD grouped-daily settle)"
+    "name": "justhodl-money-flow-state-sched",
+    "expression": "cron(40 20 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
   }
 }

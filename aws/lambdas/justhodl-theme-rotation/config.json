@@ -5,8 +5,14 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 240,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Cross-theme rotation (RRG): relative strength + momentum across 40+ themes -> IMPROVING/LEADING/WEAKENING/LAGGING quadrants; rotating-in theme seeds feed the ledger.",
-  "schedule": { "rule_name": "theme-rotation-daily", "cron": "cron(30 13 * * ? *)", "description": "Daily theme rotation 13:30 UTC" }
+  "schedule": {
+    "name": "justhodl-theme-rotation-sched",
+    "expression": "cron(25 21 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
+  }
 }

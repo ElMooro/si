@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-cross-asset-regime",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "schedule": {
+    "name": "justhodl-cross-asset-regime-sched",
+    "expression": "cron(35 20 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
+  }
+}

@@ -5,9 +5,15 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 180,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Sector emergence detector: staged early-innings bull detection for 11 GICS sectors (RS inflection + Weinstein Stage-2 reclaim + within-sector breadth + early momentum + revisions/flow/cycle), emergence_score + stage + falsifier. data/sector-emergence.json. EMERGING picks graded forward.",
   "environment": {},
-  "schedule": {"rule_name": "justhodl-sector-emergence-daily", "cron": "cron(0 22 * * ? *)", "description": "daily 22:00 UTC (after close)"}
+  "schedule": {
+    "name": "justhodl-sector-emergence-sched",
+    "expression": "cron(20 21 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
+  }
 }

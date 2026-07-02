@@ -6,7 +6,8 @@
   "timeout": 120,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "schedule": {
-    "rule_name": "justhodl-flow-confluence-daily",
-    "cron": "cron(25 13 * * ? *)"
+    "name": "justhodl-flow-confluence-sched",
+    "expression": "cron(45 22 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
   }
 }

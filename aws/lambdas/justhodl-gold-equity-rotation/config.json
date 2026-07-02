@@ -15,5 +15,10 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Gold-equity rotation regime detector daily 22:45 UTC"
+  },
+  "schedule": {
+    "name": "justhodl-gold-equity-rotation-sched",
+    "expression": "cron(45 20 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
   }
 }

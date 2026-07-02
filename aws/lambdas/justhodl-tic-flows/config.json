@@ -1,9 +1,9 @@
 {
   "timeout": 120,
   "schedule": {
-    "rule_name": "tic-flows-thu",
-    "cron": "cron(0 22 ? * THU *)",
-    "description": "TIC Flows refresh"
+    "name": "justhodl-tic-flows-sched",
+    "expression": "cron(15 14 ? * TUE *)",
+    "description": "Flow-fleet revival (ops 2720)"
   },
   "description": "TIC Flows \u2014 foreign Treasury holdings + de-dollarization tracker",
   "memory": 256

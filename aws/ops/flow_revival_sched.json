@@ -1,0 +1,19 @@
+{
+ "justhodl-cross-asset-regime": "cron(35 20 ? * MON-FRI *)",
+ "justhodl-money-flow-state": "cron(40 20 ? * MON-FRI *)",
+ "justhodl-gold-equity-rotation": "cron(45 20 ? * MON-FRI *)",
+ "justhodl-sector-rotation": "cron(5 21 ? * MON-FRI *)",
+ "justhodl-sector-flow-state": "cron(15 21 ? * MON-FRI *)",
+ "justhodl-sector-emergence": "cron(20 21 ? * MON-FRI *)",
+ "justhodl-theme-rotation": "cron(25 21 ? * MON-FRI *)",
+ "justhodl-rotation-radar": "cron(35 21 ? * MON-FRI *)",
+ "justhodl-crypto-etf-flows": "cron(50 21 * * ? *)",
+ "justhodl-crypto-exchange-flows": "cron(55 21 * * ? *)",
+ "justhodl-stablecoin-flow": "rate(6 hours)",
+ "justhodl-capital-flow-radar": "cron(20 22 ? * MON-FRI *)",
+ "justhodl-flow-confluence": "cron(45 22 ? * MON-FRI *)",
+ "justhodl-sector-capital-fusion": "cron(55 22 ? * MON-FRI *)",
+ "justhodl-fx-intelligence": "cron(0 13 ? * MON-FRI *)",
+ "justhodl-sovereign-fiscal": "cron(0 14 ? * TUE *)",
+ "justhodl-tic-flows": "cron(15 14 ? * TUE *)"
+}

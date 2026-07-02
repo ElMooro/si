@@ -5,8 +5,14 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 120,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Institutional Capital Flow Radar — sector-complex $ flow regime, pump/dump prediction, dollar tide overlay, constituent cascade.",
-  "schedule": { "rule_name": "capital-flow-radar-daily", "cron": "cron(30 22 * * ? *)", "description": "Daily 22:30 UTC after etf-fund-flows + massive-signals" }
+  "description": "Institutional Capital Flow Radar \u2014 sector-complex $ flow regime, pump/dump prediction, dollar tide overlay, constituent cascade.",
+  "schedule": {
+    "name": "justhodl-capital-flow-radar-sched",
+    "expression": "cron(20 22 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
+  }
 }

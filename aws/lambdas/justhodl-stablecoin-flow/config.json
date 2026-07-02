@@ -8,5 +8,10 @@
   "inherit_env": true,
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "name": "justhodl-stablecoin-flow-sched",
+    "expression": "rate(6 hours)",
+    "description": "Flow-fleet revival (ops 2720)"
   }
 }

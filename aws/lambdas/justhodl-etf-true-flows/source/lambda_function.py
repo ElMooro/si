@@ -29,6 +29,8 @@ ETFS = {
     "SECTOR_EQUITY": ["XLK", "XLF", "XLE", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLRE", "XLC", "SMH", "XBI", "KRE", "ITB", "XOP"],
     "THEMATIC": ["ARKK", "ICLN", "TAN", "BOTZ", "ROBO", "LIT", "URA", "NLR", "IGV", "HACK", "CIBR", "FINX", "DRIV"],
     "INTERNATIONAL": ["EFA", "VEA", "EEM", "VWO", "FXI", "EWZ", "EWJ", "INDA", "ASHR"],
+    "COUNTRY": ["MCHI", "EWG", "EWY", "EWT", "EWU", "EWC", "EWA", "EWW", "EZA", "TUR",
+                "EPOL", "ARGT", "EIDO", "VNM", "THD", "EWQ", "EWL", "EWI", "EWP", "EWS"],  # hot-money world map (ops 2720)
     "RATES_TREASURIES": ["TLT", "IEF", "SHY", "GOVT", "BIL", "SGOV", "SHV", "VGSH", "IEI", "VGIT", "VGLT", "EDV"],
     "CREDIT": ["LQD", "HYG", "JNK", "AGG", "BND", "VCIT", "VCSH", "USHY", "SJNK", "BKLN", "SRLN", "EMB", "MUB"],
     "TIPS_INFLATION": ["TIP", "SCHP", "VTIP", "STIP"],

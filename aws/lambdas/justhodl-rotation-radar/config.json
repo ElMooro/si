@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-rotation-radar",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 180,
+  "schedule": {
+    "name": "justhodl-rotation-radar-sched",
+    "expression": "cron(35 21 ? * MON-FRI *)",
+    "description": "Flow-fleet revival (ops 2720)"
+  }
+}

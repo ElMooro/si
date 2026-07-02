@@ -5,10 +5,17 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 150,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Spot BTC & ETH ETF net creation/redemption flows (full US roster) via Polygon fund-flows — the marginal buyer/seller of crypto. Daily/5d/30d aggregates, percentile, price-context + point-in-time event study.",
+  "description": "Spot BTC & ETH ETF net creation/redemption flows (full US roster) via Polygon fund-flows \u2014 the marginal buyer/seller of crypto. Daily/5d/30d aggregates, percentile, price-context + point-in-time event study.",
   "environment": {
     "POLYGON_KEY": "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
+  },
+  "schedule": {
+    "name": "justhodl-crypto-etf-flows-sched",
+    "expression": "cron(50 21 * * ? *)",
+    "description": "Flow-fleet revival (ops 2720)"
   }
 }
