@@ -1,0 +1,166 @@
+{
+ "ops": 2725,
+ "ts": "2026-07-02T13:49:59.394708+00:00",
+ "cftc": {
+  "top_keys": [
+   "academic_basis",
+   "all_contract_analyses",
+   "duration_seconds",
+   "engine",
+   "generated_at",
+   "methodology",
+   "n_contracts_analyzed",
+   "n_divergences",
+   "n_extremes",
+   "smart_money_map"
+  ],
+  "n_analyzed": 0
+ },
+ "ledger": {
+  "EQUITY": {
+   "lit_etf_5d_usd_m": -40063.7,
+   "dark_5d_usd_m_est": 228579.1,
+   "cftc_net_spec": 144383.75,
+   "verdict": "SELLING"
+  },
+  "EQUITY_INTL": {
+   "lit_etf_5d_usd_m": -5922.3,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "SELLING"
+  },
+  "TREASURIES": {
+   "lit_etf_5d_usd_m": -170.2,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": 419447.75,
+   "verdict": "SELLING"
+  },
+  "CREDIT": {
+   "lit_etf_5d_usd_m": -214.4,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "SELLING"
+  },
+  "TIPS": {
+   "lit_etf_5d_usd_m": 941.1,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "BUYING"
+  },
+  "GOLD": {
+   "lit_etf_5d_usd_m": -505.9,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": -80673.0,
+   "verdict": "SELLING"
+  },
+  "SILVER": {
+   "lit_etf_5d_usd_m": -52.2,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": -14777.0,
+   "verdict": "SELLING"
+  },
+  "REAL_ESTATE": {
+   "lit_etf_5d_usd_m": 55.4,
+   "dark_5d_usd_m_est": 3342.3,
+   "cftc_net_spec": null,
+   "verdict": "BUYING"
+  },
+  "CRYPTO": {
+   "lit_etf_5d_usd_m": -61.6,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "SELLING"
+  },
+  "COMMODITIES": {
+   "lit_etf_5d_usd_m": 96.1,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "BUYING"
+  },
+  "CASH": {
+   "lit_etf_5d_usd_m": -17.7,
+   "dark_5d_usd_m_est": null,
+   "cftc_net_spec": null,
+   "verdict": "SELLING"
+  }
+ },
+ "dark_sectors": {
+  "Technology": 116261.0,
+  "Communication Services": 25752.9,
+  "Consumer Cyclical": 22182.3,
+  "Financial": 16397.6,
+  "Industrials": 15086.7,
+  "Healthcare": 13016.9,
+  "Consumer Defensive": 8469.9,
+  "Utilities": 4269.2,
+  "Energy": 3782.1,
+  "Basic Materials": 3360.5,
+  "Real Estate": 3342.3
+ },
+ "stocks_usd": {
+  "buys": [
+   {
+    "t": "KO",
+    "usd_m": null
+   },
+   {
+    "t": "GOOGL",
+    "usd_m": null
+   },
+   {
+    "t": "NVDA",
+    "usd_m": null
+   },
+   {
+    "t": "CVX",
+    "usd_m": null
+   },
+   {
+    "t": "AMZN",
+    "usd_m": null
+   }
+  ],
+  "sells": [
+   {
+    "t": "V",
+    "usd_m": null
+   },
+   {
+    "t": "MA",
+    "usd_m": null
+   },
+   {
+    "t": "AMZN",
+    "usd_m": null
+   },
+   {
+    "t": "PG",
+    "usd_m": null
+   },
+   {
+    "t": "AMZN",
+    "usd_m": null
+   }
+  ]
+ },
+ "pd_net": null,
+ "posture": {
+  "risk_now": 27.4,
+  "now_label": "RISK-ON",
+  "now_components": {
+   "naaim_z": 43.75,
+   "own_dix": 38.16,
+   "flow_breadth": 4.840000000000007,
+   "leverage_cycle": 22.819999999999993
+  },
+  "risk_forward": -36.5,
+  "forward_label": "POSITIONING FOR RISK-OFF",
+  "fwd_components": {
+   "tail_hedge_demand": -54.300000000000004,
+   "dealer_gex_sign": -35,
+   "buyback_blackout": -20.160000000000004
+  }
+ },
+ "cftc_in_composite": false,
+ "page": "LIVE"
+}
