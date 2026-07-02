@@ -55,24 +55,45 @@ def retry(call, what, tries=6):
     raise RuntimeError(what)
 
 sect("1/3 ICI SEED v3 — browser-header workbooks via engine's own parsers")
-sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source"); sys.path.insert(0, "aws/shared")
+sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source")
+sys.path.insert(0, "aws/lambdas/justhodl-term-premium/source")   # vendored xlrd lives here
+sys.path.insert(0, "aws/shared")
 import lambda_function as ici
-def parse_series(blob):
-    """Generic ICI workbook -> {iso_date: last_numeric_in_row}; engine helpers do the lifting."""
+import xlrd
+def parse_series(blob, label=""):
+    """ICI workbook (BIFF .xls or xlsx) -> {iso_date: last_numeric_in_row}."""
     out = {}
-    try:
-        rows = ici._xlsx_rows(blob)
-    except Exception as e:
-        print("   xlsx parse err:", str(e)[:80]); return out
+    magic = blob[:4]
+    print("   [%s] magic=%r len=%d" % (label, magic, len(blob)))
+    rows = []
+    if magic[:2] == b"PK":
+        try: rows = ici._xlsx_rows(blob)
+        except Exception as e: print("   xlsx err:", str(e)[:70])
+    else:
+        try:
+            bk = xlrd.open_workbook(file_contents=blob)
+            for sh in bk.sheets():
+                for i in range(sh.nrows):
+                    row = []
+                    for c in sh.row(i):
+                        if c.ctype == 3:
+                            try:
+                                dt = xlrd.xldate.xldate_as_datetime(c.value, bk.datemode)
+                                row.append(dt.strftime("%Y-%m-%d"))
+                            except Exception: row.append(None)
+                        elif c.ctype == 2: row.append(c.value)
+                        else: row.append(str(c.value) if c.value else None)
+                    rows.append(row)
+        except Exception as e: print("   xlrd err:", str(e)[:70])
+    print("   [%s] rows=%d sample=%s" % (label, len(rows), [r[:4] for r in rows[:3]]))
     for row in rows:
         d = None; nums = []
         for c in row:
-            dd = ici._cell_date(c)
-            if dd and not d: d = dd
+            if isinstance(c, str) and len(c) == 10 and c[4] == "-" and not d and c >= "2015-01-01":
+                d = c
             v = ici._num(c)
             if v is not None: nums.append(v)
-        if d and nums and "19" < d[:2] + d[2:4] and d >= "2015-01-01":
-            out[d] = nums[-1]
+        if d and nums: out[d] = nums[-1]
     return out
 mmf_hist = {}
 for u in ("https://www.ici.org/mm_summary_data_2024.xls",
@@ -80,7 +101,7 @@ for u in ("https://www.ici.org/mm_summary_data_2024.xls",
           "https://www.ici.org/mm_summary_data_2026.xls"):
     try:
         blob = bget(u)
-        pts = parse_series(blob)
+        pts = parse_series(blob, u.rsplit("/",1)[-1])
         mmf_hist.update(pts)
         print("   %s -> %d pts (total %d)" % (u.rsplit('/', 1)[-1], len(pts), len(mmf_hist)))
     except Exception as e:
@@ -92,7 +113,7 @@ for u in ("https://www.ici.org/combined_flows_data_2025.xls",
           "https://www.ici.org/combined_flows_data_2026.xls",
           "https://www.ici.org/flows_data_2026.xls"):
     try:
-        pts = parse_series(bget(u))
+        pts = parse_series(bget(u), u.rsplit("/",1)[-1])
         ltf_hist.update(pts)
         print("   %s -> %d pts" % (u.rsplit('/', 1)[-1], len(pts)))
     except Exception as e:
