@@ -39,7 +39,19 @@ def _z(vals):
 
 def lambda_handler(event=None, context=None):
     t0=time.time()
-    uni=FV.build_universe()  # ONE custom export: whole universe, 72 parsed fields
+    export_err=None
+    try:
+        uni=FV.build_universe()  # ONE custom export: whole universe, 72 parsed fields
+    except Exception as e:
+        uni={}; export_err=str(e)[:160]
+    if not uni:
+        # surface the real failure instead of a silent 0 (SSM token / auth / tier / block)
+        try:
+            FV.fetch_custom()
+        except Exception as e:
+            export_err=(export_err or "")+" | fetch_custom: "+str(e)[:160]
+        print("[fv] EXPORT EMPTY:",export_err)
+        return {"ok":False,"universe":0,"export_err":export_err}
     print("[fv] universe rows",len(uni))
     recs=[]
     for t,r in uni.items():
@@ -50,8 +62,8 @@ def lambda_handler(event=None, context=None):
         if (r.get("asset_type") or "").upper()=="ETF": continue
         pe=r.get("pe"); pb=r.get("pb")
         roe=r.get("roe")
-        py=r.get("perf_year_pct") if r.get("perf_year_pct") is not None else r.get("perf_year")
-        pm=r.get("perf_month_pct") if r.get("perf_month_pct") is not None else r.get("perf_month")
+        py=r.get("perf_y") if r.get("perf_y") is not None else r.get("perf_year")
+        pm=r.get("perf_m") if r.get("perf_m") is not None else r.get("perf_month")
         volm=r.get("volatility_m_pct") if r.get("volatility_m_pct") is not None else (r.get("volatility_m") or r.get("volatility_month"))
         recs.append({"t":t,"chg":chg,"dv":px*vol,"mc":mc,
                      "mom":(py-pm) if (py is not None and pm is not None) else None,

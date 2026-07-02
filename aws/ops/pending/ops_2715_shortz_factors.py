@@ -90,6 +90,7 @@ pj = json.dumps(pay)
 print("  invoke head ->", pj[:200])
 print("  invoke tail ->", pj[-320:])
 assert not r.get("FunctionError"), pay
+if pay.get("export_err"): print("  EXPORT_ERR:", pay["export_err"])
 d = json.loads(s3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
 brd = d.get("board") or []
 z_n = sum(1 for x in brd if isinstance(x.get("daily_short_z"), (int, float)))
@@ -216,3 +217,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev7
 
 # rev8
+
+# rev9
