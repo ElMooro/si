@@ -379,13 +379,42 @@ def lambda_handler(event=None, context=None):
         monthly={"status":"UNAVAILABLE","err":str(e)[:100]}
     print("[v2] monthly:",monthly.get("status"),"| own_dix:",own_dix,"vs sq:",sq_dix)
 
+    # ═══ v2.4 LAYER Q — Quiver off-exchange DPI (env-keyed; definitive entitlement) ═══
+    quiver={"status":"NO_TOKEN"}
+    qtok=next((v for k,v in os.environ.items() if "QUIVER" in k.upper() and v),None)
+    if qtok:
+        qrows=None; code=None
+        for auth in ("Bearer "+qtok,"Token "+qtok):
+            try:
+                qreq=urllib.request.Request("https://api.quiverquant.com/beta/live/offexchange",
+                                            headers={**UA,"Authorization":auth,"Accept":"application/json"})
+                with urllib.request.urlopen(qreq,timeout=25) as r:
+                    qrows=json.loads(r.read()); break
+            except urllib.error.HTTPError as he:
+                code=he.code
+            except Exception as e:
+                code=str(e)[:40]
+        if isinstance(qrows,list) and qrows:
+            dpi={}
+            for r0 in qrows:
+                t=(r0.get("Ticker") or r0.get("ticker") or "").upper()
+                v=r0.get("DPI") if r0.get("DPI") is not None else r0.get("Dpi")
+                if t and isinstance(v,(int,float)): dpi[t]=round(v,4)
+            quiver={"status":"OK","n":len(dpi),
+                    "top_dpi":dict(sorted(dpi.items(),key=lambda kv:-kv[1])[:30])}
+            for r in rows:
+                if r["ticker"] in dpi: r["quiver_dpi"]=dpi[r["ticker"]]
+        else:
+            quiver={"status":"NOT_ENTITLED" if code in (401,402,403) else "ERROR","code":code}
+    print("[v2.4] quiver:",quiver.get("status"),quiver.get("n") or quiver.get("code") or "")
+
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
     xray_map = {r["ticker"]: {"dp": r.get("dark_pool_pct"), "acc": r.get("dark_accel"),
                               "st": r.get("state"), "sz": r.get("daily_short_z"),
                               "cv": r.get("conviction"), "fl": r.get("flag")} for r in rows}
 
     payload = {
-        "engine": "justhodl-dark-pool", "version": "2.0.0", "ok": True,
+        "engine": "justhodl-dark-pool", "version": "2.4.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "
@@ -401,7 +430,7 @@ def lambda_handler(event=None, context=None):
         "daily_fusion": {"joined": joined, "of": len(rows), "z_all": _diag["z_all"],
                          "source": "finra-short daily regsho (short + total TRF vol) + rolling-history z (11.9k names)"},
         "high_conviction": hi_all[:40], "distribution_into_strength": dis_all[:40],
-        "dix": dix_block, "monthly_ats": monthly,
+        "dix": dix_block, "monthly_ats": monthly, "quiver": quiver,
         "data_source": "FINRA OTC Transparency weeklySummary (ATS+OTC) + Polygon grouped daily volume",
         "caveats": [
             "FINRA ATS/OTC transparency lags ~2-3 weeks (Tier 1 NMS weekly); this is a "
