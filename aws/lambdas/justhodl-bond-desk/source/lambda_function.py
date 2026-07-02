@@ -1,4 +1,22 @@
-"""justhodl-bond-desk v2.0 — GLOBAL fixed-income flow, credit & anxiety desk.
+"""justhodl-bond-desk v3.0 — GLOBAL FI anxiety desk + WORLD MAP + CRISIS ANALOGS + AI.
+
+v3 additions on top of the v2 five-region blend:
+  WORLD MAP    per-country anxiety tiles for every region with real data —
+               rich regions (US/EU/JP/CN-HK/EM) from owned engines; the rest
+               of the developed world from FRED OECD monthly 10y yields
+               (6m repricing z = duration-shock anxiety, the JGB logic
+               applied everywhere). ~14 tiles, geographically arranged.
+  CRISIS ANALOGS  deterministic fingerprint of TODAY vs 10 named crises
+               (2008 GFC .. 2024 yen-unwind) on full-history FRED series
+               (BAA10Y credit, DGS10 6m repricing, VIX pctile, 2s10s,
+               dollar 63d — BAML series only serve ~3y so they can't reach
+               2008). Similarity %% + measured forward returns (SPY/TLT/
+               GLD/HYG/BTC at +21/63/126d) from FMP history. Cached 30d.
+  AI BRIEF     llm_router tier=reason (GLM-5.1, Claude fallback) reads the
+               full world state + analogs -> interpretation, crisis
+               comparison, per-asset projections. Provider-outage-honest:
+               ai_status reported; quant analogs carry the page regardless.
+
 
 v1 read ~30% of what the fleet owns and only the US. v2 synthesizes EVERY
 owned FI surface into one world view:
@@ -24,13 +42,38 @@ World anxiety 0-100 = freshness-gated, weight-renormalized regional blend
 weekly 5y (renders day one); own anxiety history still accumulates.
 Output data/bond-desk.json. Consumers: signal-board, bond-desk.html.
 """
-import json, urllib.request, statistics as st
+import json, time, urllib.request, statistics as st
 from datetime import datetime, timezone, timedelta
 import boto3
+try:
+    from llm_router import complete as _llm
+except Exception:
+    _llm = None
 
 BUCKET, OUT = "justhodl-dashboard-live", "data/bond-desk.json"
 HIST = "data/history/bond-desk.json"
 FRED_KEY = "2f057499936072679d8843d7fce99989"
+FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
+ANALOG_KEY = "data/history/bond-crisis-analogs.json"
+
+# world tiles: rich regions resolved from owned engines at runtime; the rest
+# from FRED OECD monthly 10y (IRLTLT01<cc>M156N) 6m repricing.
+WORLD_TILES = [
+ ("us","🇺🇸 United States","RICH",None),("ca","🇨🇦 Canada","FRED","IRLTLT01CAM156N"),
+ ("mx","🇲🇽 Mexico","FRED","IRLTLT01MXM156N"),("gb","🇬🇧 United Kingdom","FRED","IRLTLT01GBM156N"),
+ ("ez","🇪🇺 Eurozone","RICH",None),("ch","🇨🇭 Switzerland","FRED","IRLTLT01CHM156N"),
+ ("se","🇸🇪 Sweden","FRED","IRLTLT01SEM156N"),("za","🇿🇦 South Africa","FRED","IRLTLT01ZAM156N"),
+ ("jp","🇯🇵 Japan","RICH",None),("cn","🇨🇳 China / HK","RICH",None),
+ ("kr","🇰🇷 South Korea","FRED","IRLTLT01KRM156N"),("au","🇦🇺 Australia","FRED","IRLTLT01AUM156N"),
+ ("em","🌏 EM Composite","RICH",None),("us_fund","💵 USD Funding","RICH",None),
+]
+CRISES = [
+ ("GFC / Lehman","2008-10-10"),("Eurozone crisis","2011-11-25"),
+ ("Taper tantrum","2013-06-24"),("China deval","2015-08-24"),
+ ("2016 credit scare","2016-02-11"),("Volmageddon Q4","2018-12-24"),
+ ("COVID crash","2020-03-23"),("UK gilt / inflation shock","2022-09-28"),
+ ("SVB bank stress","2023-03-13"),("Yen-carry unwind","2024-08-05"),
+]
 s3 = boto3.client("s3", region_name="us-east-1")
 
 BUCKETS = {
@@ -110,6 +153,71 @@ def _bps(v):
     if isinstance(v,(int,float)):
         return round(v*100,1) if abs(v)<50 else round(v,1)
     return None
+
+def _fred_hist(series, start="2006-01-01"):
+    url=("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s"
+         "&file_type=json&sort_order=asc&observation_start=%s&limit=100000"%(series,FRED_KEY,start))
+    try:
+        with urllib.request.urlopen(url,timeout=25) as r:
+            obs=json.loads(r.read()).get("observations",[])
+        return [(o["date"],float(o["value"])) for o in obs if o.get("value") not in (".",None)]
+    except Exception as e:
+        print("[fredh]",series,str(e)[:60]); return []
+
+def _fmp_hist(sym, frm="2007-01-01"):
+    url=("https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=%s&from=%s&apikey=%s"%(sym,frm,FMP))
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"jh/1"}),timeout=30) as r:
+            j=json.loads(r.read())
+        rows=j if isinstance(j,list) else (j.get("historical") or [])
+        return sorted([(x["date"],float(x["close"])) for x in rows if x.get("close")])
+    except Exception as e:
+        print("[fmph]",sym,str(e)[:60]); return []
+
+def _vec_at(seriesmap, date):
+    """6-dim anxiety fingerprint at a date from full-history FRED series."""
+    def at(nm, back=0):
+        ser=seriesmap[nm]
+        idx=max(0,min(len(ser)-1,next((i for i,(d,_) in enumerate(ser) if d>=date),len(ser)-1)))
+        j=max(0,idx-back)
+        return ser[idx][1], ser[j][1]
+    try:
+        baa,_=at("BAA10Y"); _,baa63=at("BAA10Y",63)
+        dgs,_=at("DGS10"); _,dgs126=at("DGS10",126)
+        vix,_=at("VIXCLS")
+        vser=[v for d,v in seriesmap["VIXCLS"] if d<=date][-756:]
+        vpct=100*sum(1 for v in vser if v<=vix)/max(1,len(vser))
+        cur,_=at("T10Y2Y"); dol,_=at("DTWEXBGS"); _,dol63=at("DTWEXBGS",63)
+        return [baa, baa-baa63, abs(dgs-dgs126), vpct/25, -cur, 100*(dol/dol63-1)/3]
+    except Exception as e:
+        print("[vec]",date,str(e)[:50]); return None
+
+def _crisis_analogs():
+    cached=_s3json(ANALOG_KEY)
+    if cached and (datetime.now(timezone.utc)-datetime.fromisoformat(cached["computed_at"])).days<30:
+        return cached
+    t0=time.time()
+    sm={nm:_fred_hist(nm) for nm in ("BAA10Y","DGS10","VIXCLS","T10Y2Y","DTWEXBGS")}
+    px={sym:dict(_fmp_hist(sym)) for sym in ("SPY","TLT","GLD","HYG","BTCUSD")}
+    def fwd(sym, date):
+        ser=sorted(px[sym].items())
+        i=next((k for k,(d,_) in enumerate(ser) if d>=date),None)
+        if i is None or i>=len(ser): return {}
+        base=ser[i][1]; out={}
+        for lbl,n in (("d21",21),("d63",63),("d126",126)):
+            if i+n<len(ser): out[lbl]=round(100*(ser[i+n][1]/base-1),1)
+        return out
+    lib={"computed_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),"crises":[]}
+    for name,date in CRISES:
+        v=_vec_at(sm,date)
+        if not v: continue
+        lib["crises"].append({"name":name,"date":date,"vector":[round(x,3) for x in v],
+            "fwd":{sym:fwd(sym,date) for sym in px if fwd(sym,date)}})
+    lib["norm"]=[max(0.25,st.pstdev([c["vector"][k] for c in lib["crises"]]) or 1) for k in range(6)]
+    lib["elapsed_s"]=round(time.time()-t0,1)
+    s3.put_object(Bucket=BUCKET,Key=ANALOG_KEY,Body=json.dumps(lib,separators=(",",":")).encode(),
+                  ContentType="application/json")
+    return lib
 
 def lambda_handler(event=None, context=None):
     # ─── US FLOWS ───
@@ -280,6 +388,49 @@ def lambda_handler(event=None, context=None):
     regime=("STRESS" if world>=75 else "ANXIOUS" if world>=60 else "UNEASY" if world>=45 else "CALM")
     hot=max(live.items(),key=lambda kv:kv[1]["score"])
 
+    # ─── WORLD MAP TILES ───
+    tiles=[]; other_scores=[]
+    rich={"us":US["score"],"ez":EU["score"],"jp":JP["score"],"em":EM["score"],"us_fund":GF["score"]}
+    hk=_s3json("data/hkma.json",{}) or {}
+    cn_sig=_first(hk,("peg_stress","hibor_ois_bp","stress_score")) or (GF.get("cnh_gap_pips") or 0)/40
+    rich["cn"]=_sub(max(-2.5,min(2.5,(cn_sig or 0)/1.5)))
+    for code,label,kind,sid in WORLD_TILES:
+        if kind=="RICH":
+            sc=rich.get(code)
+            tiles.append({"code":code,"label":label,"score":sc,"metric":"engine composite","src":"owned"})
+        else:
+            ser=_fred(sid,140)
+            if len(ser)>=8:
+                cur=ser[0][1]; ago=ser[6][1]; chg=round(cur-ago,2)
+                sc=_sub(max(-2.5,min(2.5,abs(chg)*2.2+(0.4 if chg>0 else -0.2))))
+                tiles.append({"code":code,"label":label,"score":sc,
+                              "metric":"10y Δ6m %+.2fpp"%chg,"yield_10y":cur,"src":"FRED"})
+                other_scores.append(sc)
+            else:
+                tiles.append({"code":code,"label":label,"score":None,"metric":"n/a","src":"FRED"})
+    other_dm=round(st.fmean(other_scores),1) if other_scores else None
+
+    # ─── CRISIS ANALOGS ───
+    analogs={"status":"UNAVAILABLE"}
+    try:
+        lib=_crisis_analogs()
+        smap={nm:_fred_hist(nm,start="2023-01-01") for nm in ("BAA10Y","DGS10","VIXCLS","T10Y2Y","DTWEXBGS")}
+        smap={k:(v if v else _fred_hist(k)) for k,v in smap.items()}
+        nowv=_vec_at(smap, datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        if nowv and lib.get("crises"):
+            norm=lib["norm"]; ranked=[]
+            for c in lib["crises"]:
+                d=(sum(((a-b)/n)**2 for a,b,n in zip(nowv,c["vector"],norm))/6)**0.5
+                ranked.append({**{k:c[k] for k in ("name","date","fwd")},
+                               "similarity_pct":round(100*max(0,1-d/2.6),0)})
+            ranked.sort(key=lambda r:-r["similarity_pct"])
+            analogs={"status":"OK","current_vector":[round(x,3) for x in nowv],
+                     "vector_dims":["BAA10Y","ΔBAA 63d","|Δ10y| 126d","VIX pct/25","−2s10s","DXY 63d%/3"],
+                     "top":ranked[:3],"all":ranked,
+                     "note":"Fingerprint on full-history series (BAML OAS only serves ~3y, cannot reach 2008)."}
+    except Exception as e:
+        print("[analogs]",str(e)[:90]); analogs={"status":"ERROR","err":str(e)[:90]}
+
     hist=_s3json(HIST,{}) or {}
     today=datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hist[today]={"anxiety":world,"appetite":appetite,"eqbond":eq_to_bond}
@@ -294,12 +445,35 @@ def lambda_handler(event=None, context=None):
         "JGB anchor: %s (Δ6m %+.2fpp)"%(JP.get("carry_stress"),JP.get("jgb10_chg_6m_pp") or 0)]
     equity_read="GLOBAL FI %s FOR EQUITIES — "%("FLASHES ANXIETY" if world>=60 else "IS CALM" if world<45 else "IS MIXED")+" · ".join(str(x) for x in er)
 
-    doc={"engine":"justhodl-bond-desk","version":"2.0.0",
+    # ─── AI INTERPRETATION (tier=reason; provider-outage honest) ───
+    ai_brief=None; ai_status="ROUTER_MISSING" if _llm is None else "PROVIDER_DOWN"
+    if _llm is not None:
+        try:
+            payload={"world_anxiety":world,"regime":regime,"regions":{k:{kk:vv for kk,vv in v.items() if kk!="flows" and not isinstance(vv,dict)} for k,v in regions.items()},
+                     "us_credit_micro":micro,"eq_to_bond_5d_usd":eq_to_bond,
+                     "jgb_shock_pp_6m":JP.get("jgb10_chg_6m_pp"),"crisis_analogs":analogs.get("top"),
+                     "acm_tp_d21":us_stress.get("acm_tp10_d21_bps")}
+            SYSTEM=("You are the head of fixed income at a global macro fund. Respond ONLY with a JSON object, no markdown: "
+                    '{"interpretation": str (<=90 words, what global bond markets are pricing and why), '
+                    '"crisis_comparison": str (<=60 words, honest read of the closest analogs incl how today DIFFERS), '
+                    '"projections": {"equities": str, "duration": str, "credit": str, "gold": str, "crypto": str} (each <=25 words, conditional not certain), '
+                    '"confidence": "LOW"|"MODERATE"|"HIGH", "watch": [3 short triggers]}')
+            raw=_llm(json.dumps(payload,default=str), tier="reason", max_tokens=900, system=SYSTEM) or ""
+            txt=raw.strip()
+            if txt.startswith("```"): txt=txt.strip("`").replace("json","",1).strip()
+            if txt:
+                ai_brief=json.loads(txt); ai_status="LIVE"
+        except Exception as e:
+            print("[ai]",str(e)[:90]); ai_status="PROVIDER_DOWN"
+
+    doc={"engine":"justhodl-bond-desk","version":"3.0.0",
          "generated_at":datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "world_anxiety":world,"regime":regime,
          "hottest_region":{"region":hot[0],"score":hot[1]["score"]},
          "regions":regions,"weights":weights,"n_regions_live":len(live),
          "equity_read":equity_read,
+         "world_map":tiles,"other_dm_score":other_dm,
+         "crisis_analogs":analogs,"ai_brief":ai_brief,"ai_status":ai_status,
          "chart_ccc_bb":chart[-300:],
          "anxiety_history":[{"date":k,"value":v["anxiety"]} for k,v in sorted(hist.items())][-260:],
          "method":("World anxiety = freshness-gated regional blend (US .40 flows/credit/stress · "
@@ -309,6 +483,8 @@ def lambda_handler(event=None, context=None):
                    "credit ladder, bond-vol/auctions/fails/ACM/dealer-survey. Chart = CCC-BB weekly 5y."%matched)}
     s3.put_object(Bucket=BUCKET,Key=OUT,Body=json.dumps(doc,separators=(",",":")).encode(),
                   ContentType="application/json",CacheControl="public, max-age=1800")
-    print("[desk] world=%.0f %s | US %.0f GF %.0f EU %.0f JP %.0f EM %.0f | live %d/5"%(
-        world,regime,US["score"],GF["score"],EU["score"],JP["score"],EM["score"],len(live)))
-    return {"ok":True,"world":world,"regime":regime,"regions_live":len(live)}
+    print("[desk] world=%.0f %s | tiles=%d analogs=%s ai=%s"%(
+        world,regime,sum(1 for t in tiles if t["score"] is not None),analogs.get("status"),ai_status))
+    return {"ok":True,"world":world,"regime":regime,"regions_live":len(live),
+            "tiles":sum(1 for t in tiles if t["score"] is not None),
+            "analogs":analogs.get("status"),"ai":ai_status}

@@ -2,15 +2,22 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Global Bond Desk — JustHodl.AI</title>
 <style>
-:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--mono:'SF Mono',Consolas,monospace}
+:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--vio:#a78bfa;--mono:'SF Mono',Consolas,monospace}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:1240px;margin:0 auto;padding:26px 18px 60px}
+.wrap{max-width:1280px;margin:0 auto;padding:26px 18px 60px}
 h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
+h2{font-size:13px;letter-spacing:1.6px;color:var(--fg-2);margin:26px 0 10px}
 .sub{color:var(--fg-3);font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
 .hero{display:flex;gap:22px;align-items:center;background:linear-gradient(135deg,var(--card),var(--bg-2));border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:14px;flex-wrap:wrap}
 .score{font-family:var(--mono);font-size:54px;font-weight:700;line-height:1}
 .phase{font-family:var(--mono);font-size:13px;letter-spacing:2px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg-2)}
-.read{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--fg-2);margin-bottom:20px;line-height:1.65}
+.read{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--fg-2);margin-bottom:16px;line-height:1.65}
+.map{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--card);min-height:76px}
+.tile .l{font-size:11px;color:var(--fg-2);line-height:1.25}
+.tile .s{font-family:var(--mono);font-size:21px;font-weight:700;margin:3px 0 1px}
+.tile .m{font-family:var(--mono);font-size:9.5px;color:var(--fg-3)}
+.legend{font-family:var(--mono);font-size:10px;color:var(--fg-3);margin-bottom:18px}
 .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:20px}
 .rc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px;position:relative}
 .rc h3{margin:0 0 6px;font-size:11.5px;letter-spacing:1.4px;color:var(--fg-2)}
@@ -20,18 +27,30 @@ h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
 .kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--fg-2);margin-top:3px}
 .note{color:var(--fg-3);font-size:10.5px;margin-top:7px;line-height:1.4}
 .stale{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:9px;color:var(--amber)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:20px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
 .card h3{margin:0 0 8px;font-size:12px;letter-spacing:1.4px;color:var(--fg-2)}
+.ai{background:linear-gradient(135deg,#141028,var(--bg-2));border:1px solid #2c2450;border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.ai h3{margin:0 0 10px;font-size:12px;letter-spacing:1.6px;color:var(--vio)}
+.ai .b{font-size:13px;color:var(--fg);line-height:1.65;margin-bottom:10px}
+.pj{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:8px}
+.pj div{background:rgba(167,139,250,.06);border:1px solid #2c2450;border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--fg-2)}
+.pj b{display:block;font-family:var(--mono);font-size:10px;color:var(--vio);letter-spacing:1px;margin-bottom:3px}
+.sim{display:flex;align-items:center;gap:10px;margin:7px 0}
+.sim .nm{width:210px;font-size:12px;color:var(--fg-2)}
+.sim .tr{flex:1;height:10px;background:var(--bg-2);border-radius:5px;overflow:hidden}
+.sim .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--red))}
+.sim .pc{font-family:var(--mono);font-size:12px;width:44px;text-align:right}
 .method{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--fg-2);font-size:12px;line-height:1.6}
 .g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.c{color:var(--cyan)}
 .loading{color:var(--fg-3);font-family:var(--mono);padding:40px;text-align:center}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
 td,th{padding:4px 7px;border-bottom:1px solid var(--line);text-align:right}
 td:first-child,th:first-child{text-align:left}
+@media(max-width:900px){.map{grid-template-columns:repeat(4,1fr)}.sim .nm{width:130px}}
 </style></head><body><div class="wrap">
-<h1>🌍 GLOBAL BOND DESK — FIXED-INCOME ANXIETY, WORLDWIDE</h1>
-<div class="sub" id="sub">Loading US · USD-funding · Europe · Japan · EM…</div>
+<h1>🌍 GLOBAL BOND DESK — WORLDWIDE FI ANXIETY</h1>
+<div class="sub" id="sub">Loading world map · crisis analogs · AI interpretation…</div>
 <div id="app" class="loading">Loading…</div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
@@ -40,19 +59,27 @@ async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:
 const rc=r=>({STRESS:'r',ANXIOUS:'a',UNEASY:'c',CALM:'g'}[r]||'c');
 const sc=v=>v>=75?'var(--red)':v>=60?'var(--amber)':v>=45?'var(--cyan)':'var(--green)';
 const bn=v=>v==null?'—':(v/1e9).toFixed(2)+'B';
-const F=v=>v==null?'—':v;
+const F=v=>(v==null||v==='')?'—':v;
 (async()=>{
  const d=await getJSON('data/bond-desk.json');
  const app=document.getElementById('app');
  if(!d||!d.regions){app.textContent='Feed unavailable.';return}
  const R=d.regions,US=R.us||{},GF=R.global_funding||{},EU=R.europe||{},JP=R.japan||{},EM=R.em||{};
  const Fw=(US.flows||{}),Cr=(US.credit||{}),Mi=Cr.fred_micro||{},Sx=(US.stress||{}),Bk=Fw.buckets||{};
- document.getElementById('sub').innerHTML=`${d.n_regions_live}/5 regions live · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const MAPORD=['ca','us','mx','gb','ez','ch','se','us_fund','em','za','cn','jp','kr','au'];
+ const T=Object.fromEntries((d.world_map||[]).map(t=>[t.code,t]));
+ const AN=d.crisis_analogs||{},AI=d.ai_brief,AIS=d.ai_status;
+ document.getElementById('sub').innerHTML=`${d.n_regions_live}/5 rich regions · ${(d.world_map||[]).filter(t=>t.score!=null).length} map tiles · analogs ${AN.status||'—'} · AI ${AIS||'—'} · v${d.version} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const tile=c=>{const t=T[c];if(!t)return '<div class="tile" style="opacity:.25"></div>';
+   return `<div class="tile" style="border-color:${t.score!=null?sc(t.score):'var(--line)'}">
+     <div class="l">${t.label}</div><div class="s" style="color:${t.score!=null?sc(t.score):'var(--fg-3)'}">${F(t.score)}</div>
+     <div class="m">${t.metric||''}</div></div>`};
  const rcard=(name,r,lines)=>`
   <div class="rc">${r.fresh===false?'<span class="stale">STALE</span>':''}
     <h3>${name}</h3><div class="rs" style="color:${sc(r.score)}">${F(r.score)}</div>
     <div class="bar"><i style="width:${Math.min(100,r.score||0)}%;background:${sc(r.score)}"></i></div>
     ${lines.map(([k,v])=>`<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}</div>`;
+ const fwdRow=a=>`<tr><td>${a.name} <span style="color:var(--fg-3)">${a.date}</span></td><td>${a.similarity_pct}%</td>${['SPY','TLT','GLD','HYG','BTCUSD'].map(s=>{const f=(a.fwd||{})[s]||{};return `<td class="${(f.d63||0)<0?'r':'g'}">${f.d63==null?'—':(f.d63>0?'+':'')+f.d63+'%'}</td>`}).join('')}</tr>`;
  app.className='';app.innerHTML=`
  <div class="hero">
    <div><div class="score ${rc(d.regime)}">${d.world_anxiety}</div>
@@ -61,20 +88,39 @@ const F=v=>v==null?'—':v;
    <div class="phase">HOTTEST: ${(d.hottest_region||{}).region?.replace(/_/g,' ').toUpperCase()} ${(d.hottest_region||{}).score}</div>
  </div>
  <div class="read"><b>EQUITY READ</b> — ${d.equity_read||''}</div>
+
+ <h2>🗺️ WORLD MAP — BOND ANXIETY BY REGION</h2>
+ <div class="map">${MAPORD.map(tile).join('')}</div>
+ <div class="legend">rich tiles = owned engine composites · others = FRED OECD 10y 6-month repricing (the JGB duration-shock logic applied worldwide) · <span class="g">■</span>&lt;45 calm <span class="c">■</span>45-60 uneasy <span class="a">■</span>60-75 anxious <span class="r">■</span>≥75 stress</div>
+
+ <div class="ai"><h3>🤖 AI DESK INTERPRETATION — vs PRIOR CRISES ${AIS==='LIVE'?'':'<span style="color:var(--amber)">('+AIS+' — quantitative analogs below remain active; top up LLM billing to enable)</span>'}</h3>
+   ${AI?`<div class="b"><b>Interpretation:</b> ${AI.interpretation||''}</div>
+   <div class="b"><b>Crisis comparison:</b> ${AI.crisis_comparison||''}</div>
+   <div class="pj">${Object.entries(AI.projections||{}).map(([k,v])=>`<div><b>${k.toUpperCase()}</b>${v}</div>`).join('')}</div>
+   <div class="note" style="margin-top:9px">confidence ${AI.confidence||'—'} · watch: ${(AI.watch||[]).join(' · ')}</div>`
+   :`<div class="b" style="color:var(--fg-3)">AI narrative offline — deterministic crisis-analog engine below is fully live on real data.</div>`}</div>
+
+ <h2>🧬 CRISIS ANALOGS — TODAY'S FINGERPRINT vs HISTORY</h2>
+ <div class="grid"><div class="card" style="grid-column:1/-1">
+   ${(AN.top||[]).map(a=>`<div class="sim"><div class="nm">${a.name} <span style="color:var(--fg-3)">${a.date}</span></div><div class="tr"><i style="width:${a.similarity_pct}%"></i></div><div class="pc">${a.similarity_pct}%</div></div>`).join('')}
+   <table style="margin-top:12px"><tr><th>crisis</th><th>match</th><th>SPY +63d</th><th>TLT</th><th>GLD</th><th>HYG</th><th>BTC</th></tr>
+   ${(AN.all||[]).map(fwdRow).join('')}</table>
+   <div class="note">${AN.note||''} Similarity on [${(AN.vector_dims||[]).join(', ')}]. Forward returns are what ACTUALLY happened after each date — measured, not narrated.</div></div></div>
+
+ <h2>🌐 RICH REGION COMPOSITES</h2>
  <div class="rgrid">
   ${rcard('🇺🇸 UNITED STATES (.40)',US,[['eq→bond 5d','$'+bn(Fw.equity_to_bond_5d_usd)],['credit appetite','$'+bn(Fw.credit_appetite_5d_usd)],['duration tilt',F(Fw.duration_tilt)],['ICI bond $M/wk',F(Fw.ici_bond_weekly_usd_m)]])}
-  ${rcard('💵 USD FUNDING (.20)',GF,[['severity',F(GF.severity)],['health',F(GF.health)],['Fed CB swaps $bn',F(GF.fed_swaps_bn)],['CNH gap pips',F(GF.cnh_gap_pips)]])}
-  ${rcard('🇪🇺 EUROPE (.15)',EU,[['fragmentation',F(EU.fragmentation_score)+' '+F(EU.regime)],['BTP–Bund',F(EU.btp_bund_bp)+'bp'],['Δ 1m',(EU.btp_chg_1m_bp>0?'+':'')+F(EU.btp_chg_1m_bp)+'bp'],['systemic stress',F(EU.systemic_stress)]])}
-  ${rcard('🇯🇵 JAPAN / CARRY (.15)',JP,[['carry stress',F(JP.carry_stress)],['JGB10 Δ6m',(JP.jgb10_chg_6m_pp>0?'+':'')+F(JP.jgb10_chg_6m_pp)+'pp'],['JGB10 Δ12m',(JP.jgb10_chg_12m_pp>0?'+':'')+F(JP.jgb10_chg_12m_pp)+'pp'],['duration carry',F(JP.duration_carry_pp)+'pp']])}
+  ${rcard('💵 USD FUNDING (.20)',GF,[['severity',F(GF.severity)],['health',F(GF.health)],['CNH gap pips',F(GF.cnh_gap_pips)]])}
+  ${rcard('🇪🇺 EUROPE (.15)',EU,[['regime',F(EU.regime)],['BTP–Bund',F(EU.btp_bund_bp)+'bp'],['Δ 1m',(EU.btp_chg_1m_bp>0?'+':'')+F(EU.btp_chg_1m_bp)+'bp']])}
+  ${rcard('🇯🇵 JAPAN / CARRY (.15)',JP,[['carry stress',F(JP.carry_stress)],['JGB10 Δ6m',(JP.jgb10_chg_6m_pp>0?'+':'')+F(JP.jgb10_chg_6m_pp)+'pp'],['duration carry',F(JP.duration_carry_pp)+'pp']])}
   ${rcard('🌏 EMERGING (.10)',EM,[['EM-HY − US-HY',F(EM.em_hy_minus_us_hy_bps)+'bp'],['EM debt flow 5d','$'+bn(EM.em_debt_flow_5d_usd)]])}
  </div>
  <div class="grid">
-  <div class="card"><h3>US CREDIT — OWNED ICE LADDER + MICRO</h3>
+  <div class="card"><h3>US CREDIT — ICE LADDER + MICRO</h3>
     <div class="kv"><span>CCC − BB</span><b class="${(Mi.d21_bps||0)>15?'r':'c'}">${F(Cr.ccc_minus_bb_bps)}bp · p${F(Mi.pctile)} · Δ21d ${(Mi.d21_bps>0?'+':'')+F(Mi.d21_bps)}</b></div>
     <div class="kv"><span>HY − IG</span><b>${F(Cr.hy_minus_ig_bps)}bp</b></div>
     <div class="kv"><span>BBB − AAA</span><b>${F(Cr.bbb_minus_aaa_bps)}bp</b></div>
-    <div class="kv"><span>ladder regime</span><b>${F(Cr.composite_regime)}</b></div>
-    <div class="note">${Cr.source||''}</div></div>
+    <div class="kv"><span>ladder regime</span><b>${F(Cr.composite_regime)}</b></div></div>
   <div class="card"><h3>US STRESS CROSS-CHECKS</h3>
     <div class="kv"><span>bond-vol</span><b>${F(Sx.bond_vol_regime)} ${Sx.bond_vol_pctile?('p'+Sx.bond_vol_pctile):''}</b></div>
     <div class="kv"><span>auctions</span><b>${F(Sx.auction_regime)}</b></div>
@@ -86,7 +132,7 @@ const F=v=>v==null?'—':v;
     ${Object.entries(Bk).map(([k,b])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="${b.flow_5d_usd<0?'r':'g'}">$${bn(b.flow_5d_usd)}</td><td>$${bn(b.flow_21d_usd)}</td><td>${F(b.avg_z90)}</td><td>${b.n}</td></tr>`).join('')}</table>
     <div class="note">${Fw.matched_tickers} matched — ramping via etf-true-flows universe expansion.</div></div>
  </div>
- <div id="chart-anchor"><h1 style="font-size:14px;letter-spacing:1.5px;color:var(--fg-2)">CCC − BB SPREAD — 5Y WEEKLY (bps) · the junk-within-junk anxiety line</h1></div>
+ <div id="chart-anchor"><h1 style="font-size:14px;letter-spacing:1.5px;color:var(--fg-2)">CCC − BB SPREAD — WEEKLY (bps) · junk-within-junk anxiety</h1></div>
  <div class="method" style="margin-top:18px"><b>METHOD</b> — ${d.method||''}</div>`;
  const s=document.createElement('script');s.src='/jh-enhance.js';
  s.setAttribute('data-feed','data/bond-desk.json');
