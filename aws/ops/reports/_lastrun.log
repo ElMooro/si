@@ -1,7 +1,7 @@
 
 ======== 1/4 PROBES — dix freshness, FINRA monthly, quiver offexchange ========
-  data/dix.json age 6.2h
-  FINRA monthly: ERR Expecting value: line 1 column 1 (char 0)
+  data/dix.json age 6.3h
+  FINRA monthly: NON-JSON: 
   quiver offexchange: no-token
 
 ======== 2/4 DEPLOY dark-pool v2 + CREATE MISSING SCHEDULE + RUN ========
@@ -9,10 +9,70 @@
   synced justhodl-dark-pool
   synced justhodl-signal-board
   SCHEDULE CREATED: cron(40 21 ? * MON-FRI *) (was None — 7 consumers unblocked)
-  invoke -> {"errorMessage": "name '_get_json' is not defined", "errorType": "NameError", "requestId": "6cde6b2a-4a1d-4f67-bd36-604be5efa80e", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 217, in
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2714_dark_pool_v2.py", line 103, in <module>
-    assert not r.get("FunctionError"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': "name '_get_json' is not defined", 'errorType': 'NameError', 'requestId': '6cde6b2a-4a1d-4f67-bd36-604be5efa80e', 'stackTrace': ['  File "/var/task/lambda_function.py", line 217, in lambda_handler\n    fs = _get_json("data/finra-short.json") or {}\n']}
-❌ OPS-FAIL: aws/ops/pending/ops_2714_dark_pool_v2.py
+  invoke -> {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-06-08\", \"n_scored\": 936, \"n_accumulation\": 283, \"n_picks\": 20, \"top\": [[\"BYD\", 93.2, \"ACCUMULATION\", 41.14, 0.707], [\"
+{
+ "version": "2.0.0",
+ "latest_week": "2026-06-08",
+ "n_scored": 936,
+ "daily_joined": 485,
+ "of": 936,
+ "own_dix": 57.67,
+ "own_dix_z": null,
+ "sq_dix": null,
+ "dix_read": "BUYING PRESSURE",
+ "monthly": "UNAVAILABLE",
+ "monthly_note": "HTTP Error 400: Bad Request",
+ "hi_conviction": 0,
+ "dist_into_strength": [],
+ "sample": [
+  {
+   "ticker": "BYD",
+   "state": "ACCUMULATION",
+   "dark_pool_pct": 41.14,
+   "daily_short_pct": null,
+   "daily_short_z": null,
+   "conviction": null,
+   "flag": null
+  },
+  {
+   "ticker": "TEL",
+   "state": "ACCUMULATION",
+   "dark_pool_pct": 37.6,
+   "daily_short_pct": 33.7,
+   "daily_short_z": null,
+   "conviction": null,
+   "flag": null
+  },
+  {
+   "ticker": "WAB",
+   "state": "ACCUMULATION",
+   "dark_pool_pct": 36.41,
+   "daily_short_pct": 46.7,
+   "daily_short_z": null,
+   "conviction": null,
+   "flag": null
+  },
+  {
+   "ticker": "INSM",
+   "state": "ACCUMULATION",
+   "dark_pool_pct": 36.22,
+   "daily_short_pct": null,
+   "daily_short_z": null,
+   "conviction": null,
+   "flag": null
+  },
+  {
+   "ticker": "SAIA",
+   "state": "ACCUMULATION",
+   "dark_pool_pct": 36.89,
+   "daily_short_pct": null,
+   "daily_short_z": null,
+   "conviction": null,
+   "fl
+  board: {"engine": "Dark Pool", "category": "flow", "signal": 1, "signal_label": "RISK-ON", "read": "DARK POOL own-DIX 57.7% BUYING PRESSURE (accum 283 / dist 62)", "as_of": "2026-07-02T04:19:22.663389+00:00"
+
+======== 3/4 PAGE ========
+  page: LIVE
+
+======== 4/4 REPORT ========
+OPS 2714 COMPLETE — dark pool now runs the full FINRA stack, daily
