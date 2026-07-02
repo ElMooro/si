@@ -13,9 +13,11 @@
 ======== 3/5 YIELD-CURVE — real value into the proxy field ========
   synced justhodl-yield-curve
   synced justhodl-signal-board
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2710_acm_term_premium.py", line 124, in <module>
-    assert not r.get("FunctionError"), (r["Payload"].read() or b"")[:200]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: b'{"errorMessage": "cannot access local variable \'_tp_bps\' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "c952158f-1618-4e95-b8ee-1eddc1e2a0c2", "stackTrace": '
-❌ OPS-FAIL: aws/ops/pending/ops_2710_acm_term_premium.py
+  {"source": "ACM", "proxy_field_bps": 46.6, "acm_block": {"date": "2026-06-29", "tp10_pct": 0.4656, "tp5_pct": 0.1477, "tp2_pct": 0.0266, "z_10y": 1.42, "pctile": 28.2, "d21_bps": -20.3, "regime": {"level": "LOW_NORMAL", "momentum": "FALLING"}}}
+
+======== 4/5 BOARD ROW ========
+  board: {"engine": "Term Premium (ACM)", "category": "rates", "signal": 0, "signal_label": "NEUTRAL", "read": "TP10 0.47% \u039421d -20bps p28", "as_of": "2026-07-02T02:24:09+00:00", "stale": false}
+
+======== 5/5 PAGE + REPORT ========
+  page: LIVE
+OPS 2710 COMPLETE — the fleet now runs on the real ACM series
