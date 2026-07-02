@@ -122,6 +122,24 @@ import statistics as _s
 R["dark_pool"]["history_store"] = {"tickers": len(lens), "median_days": lens[len(lens)//2] if lens else 0,
                                    "max_days": lens[-1] if lens else 0, "ge15": sum(1 for x in lens if x >= 15)}
 print("  history store:", R["dark_pool"]["history_store"])
+fs_live = json.loads(s3.get_object(Bucket=BUCKET, Key="data/finra-short.json")["Body"].read())
+def _rows_of(doc):
+    for cand in ("rows", "tickers", "data", "board"):
+        v = doc.get(cand)
+        if isinstance(v, list) and v and isinstance(v[0], dict): return v
+        if isinstance(v, dict): return [{"ticker": k, **x} for k, x in v.items() if isinstance(x, dict)]
+    return []
+daily_keys = set()
+for r0 in _rows_of(fs_live):
+    t = (r0.get("ticker") or r0.get("symbol") or "")
+    if t: daily_keys.add(str(t).upper().strip())
+board_keys = {str(x.get("ticker") or "").upper().strip() for x in brd}
+inter = board_keys & daily_keys
+print("  JOIN FORENSICS: daily=%d board=%d intersection=%d" % (len(daily_keys), len(board_keys), len(inter)))
+print("  daily sample:", sorted(daily_keys)[:8])
+print("  board sample:", sorted(board_keys)[:8])
+print("  inter sample:", sorted(inter)[:8])
+R["dark_pool"]["join_forensics"] = {"daily": len(daily_keys), "board": len(board_keys), "inter": len(inter)}
 diag = pay.get("diag") or (json.loads(pay.get("body") or "{}").get("diag") if pay.get("body") else {}) or {}
 R["dark_pool"]["diag"] = diag
 R["dark_pool"]["weekly_source"] = d.get("weekly_source")
@@ -194,3 +212,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev5
 
 # rev6
+
+# rev7
