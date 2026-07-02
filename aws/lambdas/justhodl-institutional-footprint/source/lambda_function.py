@@ -229,10 +229,16 @@ def lambda_handler(event=None, context=None):
                             return val, "%s %s (%s)" % (k, dt, key.split("/")[-1])
                         if val is not None:
                             return None, "STALE_SHIM %s dated %s — rejected (real-data rule)" % (k, dt)
+            ls = doc.get("latest_survey")
+            if isinstance(ls, dict):
+                for subs in (("net", "treasur"), ("treasur", "position"), ("net", "position"), ("net",)):
+                    got = _find(ls, subs)
+                    if got is not None:
+                        return got, "latest_survey %s (%s)" % ("+".join(subs), key.split("/")[-1])
             got = _find(doc, ("net", "treasur")) or _find(doc, ("net", "position"))
             if got is not None:
                 return got, key.split("/")[-1]
-        return None, "feed absent"
+        return None, "no net-position field in dealer feeds"
     pd_pos, pd_note = _pd_extract()
 
     # ── RISK-NOW composite ──
@@ -292,7 +298,7 @@ def lambda_handler(event=None, context=None):
     except Exception:
         brief = None
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.1",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.2",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
