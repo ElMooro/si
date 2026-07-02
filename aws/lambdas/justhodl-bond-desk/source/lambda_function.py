@@ -144,30 +144,35 @@ def lambda_handler(event=None, context=None):
         p=_pair(a,b)
         if p: sos[name]=p
 
-    # ═══ US: ICI bond FUND flows (weekly, z from fleet's own history) ═══
-    ici_latest=_s3json("data/ici-flows.json",{}) or {}
-    ici_hist=_s3json("data/history/ici-flows.json",{}) or {}
-    def _bond_vals(doc):
-        out=[]
-        def walk(d,depth=0):
-            if depth>6: return
-            if isinstance(d,dict):
-                for k,v in d.items():
-                    if "bond" in str(k).lower() and isinstance(v,(int,float)): out.append(v)
-                    else: walk(v,depth+1)
-            elif isinstance(d,list):
-                for v in d[:600]: walk(v,depth+1)
-        walk(doc); return out
-    cur_bond=_bond_vals(ici_latest)
-    hist_bond=_bond_vals(ici_hist)
+    # ═══ US: ICI bond FUND flows — feed already publishes the institutional
+    # block: classes.bond{latest_w_m,sum_4w_m,z_4w(full-hist),weeks_n} + eq−bond
+    # rotation z. Read directly with a tolerant locator.
+    ici_doc=_s3json("data/ici-flows.json",{}) or {}
+    def _find_bond_class(doc,depth=0):
+        if depth>6: return None
+        if isinstance(doc,dict):
+            bcls=doc.get("bond")
+            if isinstance(bcls,dict) and "latest_w_m" in bcls: return bcls,doc
+            for v in doc.values():
+                r=_find_bond_class(v,depth+1)
+                if r: return r
+        elif isinstance(doc,list):
+            for v in doc[:80]:
+                r=_find_bond_class(v,depth+1)
+                if r: return r
+        return None
     ici={"status":"UNAVAILABLE"}
-    if cur_bond:
-        v=cur_bond[0]
-        z=None
-        if len(hist_bond)>=30 and st.pstdev(hist_bond):
-            z=round((v-st.fmean(hist_bond))/st.pstdev(hist_bond),2)
-        ici={"status":"OK","bond_flow_latest_b":round(v,2),"z":z,"hist_n":len(hist_bond),
-             "note":"ICI weekly bond MUTUAL+ETF fund flows ($B) — the big-money channel beyond ETFs"}
+    hit=_find_bond_class(ici_doc)
+    if hit:
+        bcls,parent=hit
+        rot=_first_num(parent,("rot","eq_bond_rotation_z","rotation_z")) 
+        if rot is None: rot=_first_num(ici_doc,("rot",))
+        ici={"status":"OK",
+             "bond_flow_latest_b":round((bcls.get("latest_w_m") or 0)/1000.0,2),
+             "bond_flow_4w_b":round((bcls.get("sum_4w_m") or 0)/1000.0,2),
+             "z":bcls.get("z_4w"),"hist_n":bcls.get("weeks_n"),
+             "eq_minus_bond_rotation_z":rot,"as_of":bcls.get("date"),
+             "note":"ICI weekly bond fund flows (mutual+ETF) — z on full ICI history; rotation z = equity-funds minus bond-funds (negative = flight into bonds)"}
 
     # ═══ US: COT treasury positioning (tolerant) + TIC foreign demand ═══
     cot_doc=_s3json("data/cftc-all-cache.json") or _s3json("data/cot-tracker.json") or {}
@@ -265,7 +270,9 @@ def lambda_handler(event=None, context=None):
     if sos.get("CCC_minus_BB"): us_comps.append((0.16,_clamp(sos["CCC_minus_BB"]["d21"]/25)))
     if sos.get("BBB_minus_A"):  us_comps.append((0.10,_clamp(sos["BBB_minus_A"]["d21"]/8)))
     if ladder.get("HY"):        us_comps.append((0.10,_clamp((ladder["HY"]["pctile"]-50)/25)))
-    if ici.get("z") is not None: us_comps.append((0.12,-_clamp(ici["z"])))   # fund OUTflows = anxiety
+    _rot=ici.get("eq_minus_bond_rotation_z")
+    if _rot is not None: us_comps.append((0.12,-_clamp(_rot)))              # eq-out/bond-in flight = anxiety
+    elif ici.get("z") is not None: us_comps.append((0.10,_clamp(abs(ici["z"])-0.5)))
     if isinstance(xchk["bond_vol_pctile"],(int,float)): us_comps.append((0.10,(xchk["bond_vol_pctile"]-50)/25))
     if isinstance(xchk["fails_pctile"],(int,float)):    us_comps.append((0.10,(xchk["fails_pctile"]-50)/25))
     us_anx=score(us_comps)
@@ -310,7 +317,10 @@ def lambda_handler(event=None, context=None):
     drivers=[]
     if sos.get("CCC_minus_BB"): drivers.append(("US","CCC−BB %.0fbps p%.0f Δ21 %+.0f"%(sos["CCC_minus_BB"]["bps"],ladder["CCC"]["pctile"],sos["CCC_minus_BB"]["d21"]),abs(sos["CCC_minus_BB"]["d21"]/25)))
     drivers.append(("US","equity→bond $%.1fB/5d"%(eq_to_bond/1e9),abs(eqb_zc)))
-    if ici.get("z") is not None: drivers.append(("US","ICI bond funds $%.1fB (z %+.2f)"%(ici["bond_flow_latest_b"],ici["z"]),abs(ici["z"])))
+    if ici.get("status")=="OK":
+        drivers.append(("US","ICI bond funds $%.1fB/w (z %+.2f) · eq−bond rot z %s"%(
+            ici["bond_flow_latest_b"],ici.get("z") or 0,ici.get("eq_minus_bond_rotation_z")),
+            abs(ici.get("eq_minus_bond_rotation_z") or ici.get("z") or 0)))
     if euro_hy: drivers.append(("EU","Euro HY %.0fbps p%.0f"%(euro_hy["bps"],euro_hy["pctile"]),abs((euro_hy["pctile"]-50)/25)))
     if em_hy: drivers.append(("EM","EM HY %.0fbps p%.0f"%(em_hy["bps"],em_hy["pctile"]),abs((em_hy["pctile"]-50)/25)))
     if jz: drivers.append(("JP","carry %s"%(jp.get("carry_regime")),abs(jz)))

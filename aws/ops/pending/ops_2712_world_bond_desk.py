@@ -115,3 +115,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2712_world_bond_desk.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2712 COMPLETE — world bond desk live")
+
+# rev v2: ICI classes.bond direct read + rot z
