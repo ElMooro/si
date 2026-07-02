@@ -1,86 +1,16 @@
 
-======== 1/4 DARK-POOL v2.2 (xray_map) + refresh feed ========
+======== 1/3 DEPLOY chain + refresh upstream feeds ========
   settling 30s…
-  xray_map names: 936
-
-======== 1b/4 LIVE SHAPE PROBE — join-feed key trees (for precise v3 deepening) ========
-master-ranker.json keys: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro'] (+6)
-   regime_context keys: ['regime', 'regime_color', 'composite_z', 'coverage_pct', 'spy_fwd_6m', 'spy_fwd_12m', 'defcon_level', 'defcon_name', 'crisis_trend', 'leading_markets_signal'] (+8)
-   data/history/factor-ranks.json ERR An error occurred (NoSuchKey) when calling the Get
-equity-confluence.json keys: ['engine', 'version', 'generated_at', 'duration_s', 'mode', 'thesis', 'auto_activation', 'family_status', 'super_family_status', 'sources'] (+6)
-estimate-revisions.json keys: ['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'n_fmp_enriched', 'n_with_history', 'n_state_keys'] (+7)
-
-======== 2/4 STOCK X-RAY — create + run + prove ========
-  invoke -> {"ok": true, "n": 3806, "joins": {"mr": 25, "ec": 11, "rs": 59, "dp": 929, "er": 70, "fm": 37}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 0}}
-{
- "n_cards": 3806,
- "joins": {
-  "mr": 25,
-  "ec": 11,
-  "rs": 59,
-  "dp": 929,
-  "er": 70,
-  "fm": 37
- },
- "boards": {
-  "multibagger_candidates": [
-   "ABUS",
-   "AXTI",
-   "CRNX",
-   "NUVB",
-   "CGON",
-   "ONDS",
-   "NUAI",
-   "RCAT"
-  ],
-  "turning_profitable": [
-   "QXO",
-   "PGEN",
-   "SBET",
-   "BMNR",
-   "BTGO",
-   "FWDI",
-   "ALM",
-   "TE"
-  ],
-  "accumulation_leaders": [
-   "TEL",
-   "IEX",
-   "WAB",
-   "STT",
-   "ESS",
-   "TECH",
-   "PSA",
-   "CAH"
-  ],
-  "dis_warnings": [],
-  "full_stack_highs": [
-   "MZYX",
-   "RAAQ",
-   "FVAV",
-   "BACC",
-   "AADX",
-   "CVBF",
-   "ESQ",
-   "PSO"
-  ],
-  "laggards_watch": []
- },
- "board_sizes": {
-  "multibagger_candidates": 15,
-  "turning_profitable": 15,
-  "accumulation_leaders": 15,
-  "dis_warnings": 0,
-  "full_stack_highs": 15,
-  "laggards_watch": 0
- }
-}
-  NVDA card: {"px": 197.58, "mc_b": 4781.44, "ma": {"a20": false, "a50": false, "a200": true, "stack": "MIXED"}, "stage": "STAGE_3_TOP", "pos52": 65.0, "momo_12_1": 40.8, "val": {"pe": 30.26, "fwd_pe": 15.63, "sec_pctile": 49.0}, "profit": {"now": true, "turning": false}, "dark": {"dp": 11.36, "acc": -0.044, "st": "NEUTRAL", "sz": 2.03, "cv": null, "fl": null}, "rank": null, "confl": null, "factors": ["QUALIT+"], "peers": null}
-  soft joins ec/er/rs: {'ec': 11, 'er': 70, 'rs': 59}
-
-======== 3/4 BOARD + PAGE ========
-  board: {"engine": "Stock X-Ray", "category": "equity", "signal": 0, "signal_label": "NEUTRAL", "read": "X-RAY 3806 names (turnersto-profit 15, multibag 15, DIS 0, laggards 0)", "as_of": "2026-07-02T05:35:00+
-  page: LIVE
-
-======== 4/4 REPORT ========
-OPS 2716 COMPLETE — every stock, one X-Ray
+  synced justhodl-factor-returns
+  synced justhodl-estimate-revisions
+  synced justhodl-stock-xray
+  justhodl-factor-returns -> {"ok": true, "drops": {"na": 5500, "px": 1122, "mc": 1113, "vol": 664}, "universe": 2998, "factors": {"MOMENTUM": -6.407
+  justhodl-estimate-revisions -> {"statusCode": 200, "body": "{\"status\": \"LIVE\", \"n_tracked\": 433, \"n_fmp_enriched\": 251, \"n_with_history\": 433
+  deciles: {'MOMENTUM': {'long': 287, 'short': 287}, 'VALUE': {'long': 287, 'short': 287}, 'QUALITY': {'long': 258, 'short': 258}, 'SIZE': {'long': 299, 'short': 299}, 'LOWVOL': {'long': 298, 'short': 298}}
+  direction_map: 0
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2717_join_deepening.py", line 63, in <module>
+    assert R["direction_map_n"] >= 300, "direction_map thin"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: direction_map thin
+❌ OPS-FAIL: aws/ops/pending/ops_2717_join_deepening.py
