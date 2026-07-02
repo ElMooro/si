@@ -1,26 +1,11 @@
 
-======== 1/3 ICI SEED v3 — browser-header workbooks via engine's own parsers ========
-   mm_summary_data_2024.xls FAIL HTTP Error 404: Not Found
-   [mm_summary_data_2025.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
-   [mm_summary_data_2025.xls] rows=29 data_sample=[['DATE', 'TOTAL - ALL MONEY MARKET FUNDS', None, None], [None, None, None, None], [None, 'TOTAL', None, 'TAX-EXEMPT'], [None, None, None, None], [None, '# Classes', 'TNA', '# Classes']]
-   mm_summary_data_2025.xls -> 20 pts (total 20)
-   [mm_summary_data_2026.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
-   [mm_summary_data_2026.xls] rows=29 data_sample=[['DATE', 'TOTAL - ALL MONEY MARKET FUNDS', None, None], [None, None, None, None], [None, 'TOTAL', None, 'TAX-EXEMPT'], [None, None, None, None], [None, '# Classes', 'TNA', '# Classes']]
-   mm_summary_data_2026.xls -> 20 pts (total 20)
-   [combined_flows_data_2025.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
-   [combined_flows_data_2025.xls] rows=45 data_sample=[['Date', 'Total LT MF and ETF flows', None, 'Equity'], [None, None, None, 'Total'], [None, None, None, None], ['Monthly fund flows', None, None, None], ['2024-01-31', 48545.0, None, 4017.0]]
-   combined_flows_data_2025.xls -> 33 pts
-   [combined_flows_data_2026.xls] magic=b'\xd0\xcf\x11\xe0' len=44544
-   [combined_flows_data_2026.xls] rows=45 data_sample=[['Date', 'Total LT MF and ETF flows', None, 'Equity'], [None, None, None, 'Total'], [None, None, None, None], ['Monthly fund flows', None, None, None], ['2024-01-31', 48545.0, None, 4017.0]]
-   combined_flows_data_2026.xls -> 33 pts
-   [flows_data_2026.xls] magic=b'\xd0\xcf\x11\xe0' len=56832
-   [flows_data_2026.xls] rows=46 data_sample=[['Date', 'Total     long-term', None, 'Equity'], [None, None, None, 'Total equity'], [None, None, None, None], [None, None, None, None], ['Monthly Net New Cash Flow', None, None, None]]
-   flows_data_2026.xls -> 33 pts
-   H_MMF seeded 20 pts | H_LTF 33 pts
-   ici invoke -> {"errorMessage": "'float' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "326cd05b-f1e6-4465-b472-977e23df0c79", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 277, in lambda_h
+======== A/4 FINRA MONTHLY — self-discover spec ========
+  metadata fields: []
+  row keys: ['firmCRDNumber', 'initialPublishedDate', 'issueName', 'issueSymbolIdentifier', 'lastReportedDate', 'lastUpdateDate', 'marketParticipantName', 'monthStartDate', 'productTypeCode', 'summaryStartDate', 'summaryTypeCode', 'tierIdentifier', 'totalMonthlyShareQuantity', 'totalMonthlyTradeCount', 'totalNotionalSum']
+  codes seen: ['OTC_M_SMBL_FIRM']
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2720_ici_quiver.py", line 135, in <module>
-    assert not r.get("FunctionError"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': "'float' object has no attribute 'get'", 'errorType': 'AttributeError', 'requestId': '326cd05b-f1e6-4465-b472-977e23df0c79', 'stackTrace': ['  File "/var/task/lambda_function.py", line 277, in lambda_handler\n    mmf_h = _norm_mmf(mmf_h)\n', '  File "/var/task/lambda_function.py", line 252, in _norm_mmf\n    t = r.get("total")\n']}
-❌ OPS-FAIL: aws/ops/pending/ops_2720_ici_quiver.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2719_three_followups.py", line 84, in <module>
+    assert ats_code, "no ATS symbol-level monthly code discoverable: %s" % codes
+           ^^^^^^^^
+AssertionError: no ATS symbol-level monthly code discoverable: ['OTC_M_SMBL_FIRM']
+❌ OPS-FAIL: aws/ops/pending/ops_2719_three_followups.py
