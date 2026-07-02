@@ -1,3 +1,5 @@
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
 
 ======== 1/5 RUNNER PROBE — NY Fed ACM file reachable ========
   ACMTermPremium.xls -> 10113024 bytes, magic d0cf11e0
@@ -7,9 +9,13 @@
   zip size 0.1 MB (xlrd vendored)
   invoke -> {"ok": true, "date": "2026-06-29", "tp10": 0.4656, "n": 16224, "source": "live"}
   {"date": "2026-06-29", "tp10": 0.4656, "tp5": 0.1477, "tp2": 0.0266, "z_10y": 1.42, "pctile": 28.2, "deltas": {"d5": -7.0, "d21": -20.3, "d63": -22.6}, "regime": {"level": "LOW_NORMAL", "momentum": "FALLING"}, "series_n": 16224, "first": "1961-06-14", "source": "live", "decomp": "10y yield = 3.95% expectations + 0.47% term premium", "identity": -0.0}
+
+======== 3/5 YIELD-CURVE — real value into the proxy field ========
+  synced justhodl-yield-curve
+  synced justhodl-signal-board
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2710_acm_term_premium.py", line 117, in <module>
-    assert len(tp["history_chart"]) >= 300
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2710_acm_term_premium.py", line 124, in <module>
+    assert not r.get("FunctionError"), (r["Payload"].read() or b"")[:200]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'{"errorMessage": "cannot access local variable \'_tp_bps\' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "c952158f-1618-4e95-b8ee-1eddc1e2a0c2", "stackTrace": '
 ❌ OPS-FAIL: aws/ops/pending/ops_2710_acm_term_premium.py
