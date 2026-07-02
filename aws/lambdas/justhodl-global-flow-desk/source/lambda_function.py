@@ -77,6 +77,22 @@ def flow_of(rec):
         if v is not None: return v
     return None
 
+def _clean_brief(txt):
+    """Reason-tier models sometimes emit their planning scaffold. Contract:
+    plain prose, sentence-complete, <=700 chars, or None (caller falls back)."""
+    if not txt: return None
+    t = str(txt).strip()
+    if any(k in t[:250] for k in ("Analyze the Request", "**Analyze", "Let me ", "First,", "1. **")):
+        paras = [p.strip() for p in t.replace("\r", "").split("\n\n") if len(p.strip()) >= 80]
+        paras = [p for p in paras if "**" not in p[:6] and not p.lstrip().startswith(("1.", "2.", "-", "*"))]
+        t = paras[-1] if paras else ""
+    t = t.replace("**", "").replace("##", "").strip()
+    if len(t) > 700: t = t[:700]
+    if t and not t.rstrip().endswith((".", "!", "?")):
+        t = t.rsplit(".", 1)[0] + "." if "." in t else ""
+    return t if 90 <= len(t) <= 720 else None
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     tf = _j("data/etf-true-flows.json", {}) or {}
@@ -192,6 +208,7 @@ def lambda_handler(event=None, context=None):
                "ALIGNED " + ("RISK-ON" if inst + retail > 30 else "RISK-OFF" if inst + retail < -30 else "NEUTRAL"))
     inst_retail = {"institutional": inst, "retail": retail, "own_dix": own_dix,
                    "radar_breadth_pct": tide_pct, "aaii_spread": bb,
+                   "aaii_spread_pct": round(bb * 100, 1) if bb is not None else None,
                    "stablecoin_7d_usd_m": round(st7 / 1e6, 1) if st7 is not None else None,
                    "divergence": div}
 
@@ -228,7 +245,8 @@ def lambda_handler(event=None, context=None):
         if not rec:
             warming.append(t); continue
         v = flow_of(rec)
-        if v is None: continue
+        if v is None or v == 0.0:            # exact $0 over 5d = degenerate fresh history
+            warming.append(t); continue
         e = countries.setdefault(c, {"etf_5d_usd_m": 0.0, "etfs": []})
         e["etf_5d_usd_m"] += v / 1e6; e["etfs"].append(t)
     for c, e in countries.items():
@@ -268,28 +286,53 @@ def lambda_handler(event=None, context=None):
                 break
 
     # ── AI brief ──
-    brief = None
+    brief, brief_src = None, "deterministic"
     try:
         from llm_router import complete
-        prompt = ("Global capital flow snapshot. Classes(net5d $M): " +
+        prompt = ("Respond with ONLY three plain prose sentences — no preamble, no plan, no lists, "
+                  "no markdown. Global capital flow snapshot. Classes(net5d $M): " +
                   ", ".join("%s %s" % (k, v.get("net_5d_usd_m")) for k, v in classes.items()) +
                   ". Sector leaders %s laggards %s. Inst %s vs Retail %s (%s). Hot money in: %s; out: %s. "
-                  "Write 3 sentences: where money is going, the single most important rotation, one risk."
+                  "Sentence 1 where money is going, sentence 2 the single most important rotation, "
+                  "sentence 3 one risk."
                   % (sectors["leaders"], sectors["laggards"], inst, retail, div,
                      hot["top_inflows"][:3], hot["top_outflows"][:3]))
-        brief = complete(prompt, tier="reason", max_tokens=220)
-    except Exception as e:
+        brief = _clean_brief(complete(prompt, tier="reason", max_tokens=380))
+        if brief: brief_src = "llm"
+    except Exception:
         brief = None
-    doc = {"engine": "justhodl-global-flow-desk", "version": "1.0.3",
+    if not brief:
+        _cm = {k: (v.get("net_5d_usd_m") or 0) for k, v in classes.items()}
+        top_in = max(_cm, key=_cm.get); top_out = min(_cm, key=_cm.get)
+        brief = ("Money is leaving %s ($%.0fM over 5d) and rotating toward %s (+$%.0fM), with %s leading "
+                 "and %s lagging on the sector tape. The defining rotation is institutions (%+.1f) leaning "
+                 "against retail (%+.1f) — %s — while hot money favors %s over %s. The risk: if the "
+                 "institutional bid fades, the %s exit accelerates into thin summer liquidity."
+                 % (top_out, abs(_cm[top_out]), top_in, _cm[top_in],
+                    "/".join(sectors["leaders"][:3]), "/".join(sectors["laggards"][:3]),
+                    inst or 0, retail or 0, str(div).lower(),
+                    ", ".join(hot["top_inflows"][:3]), ", ".join(hot["top_outflows"][:3]), top_out))
+    HK = "data/history/global-flow-desk.json"
+    ph = _j(HK, {}) or {}
+    ph[now.strftime("%Y-%m-%d")] = {"inst": inst, "retail": retail,
+                                    "eq_us": (classes.get("EQUITY_US") or {}).get("net_5d_usd_m"),
+                                    "tips": (classes.get("TIPS") or {}).get("net_5d_usd_m")}
+    ph = dict(sorted(ph.items())[-400:])
+    s3.put_object(Bucket=BUCKET, Key=HK, Body=json.dumps(_finite(ph), allow_nan=False).encode(),
+                  ContentType="application/json")
+    history = [{"d": k, **v} for k, v in list(ph.items())[-60:]]
+
+    doc = {"engine": "justhodl-global-flow-desk", "version": "1.1.0",
            "generated_at": now.isoformat(timespec="seconds"),
            "asset_classes": classes, "sectors": sectors, "inst_vs_retail": inst_retail,
-           "hot_money": hot, "capex": capex, "ai_brief": brief,
+           "hot_money": hot, "capex": capex, "ai_brief": brief, "ai_brief_src": brief_src,
+           "history": history,
            "method": ("Fusion of the revived flow fleet: etf-true-flows categories (+COUNTRY) & "
                       "etf-flows fmap for $ ladders; radar complex breadth + OWN-DIX for the "
                       "institutional tide; AAII + stablecoin pulse for retail; country ETFs + TIC "
                       "holder deltas + FX momentum for the hot-money map.")}
     s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(_finite(doc), separators=(",", ":"), default=str, allow_nan=False).encode(),
-                  ContentType="application/json", CacheControl="public, max-age=900")
+                  ContentType="application/json", CacheControl="public, max-age=60")
     return {"ok": True, "classes": {k: v.get("net_5d_usd_m") for k, v in classes.items()},
             "inst": inst, "retail": retail, "divergence": div,
             "hot_in": hot["top_inflows"][:3], "hot_out": hot["top_outflows"][:3],

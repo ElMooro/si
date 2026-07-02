@@ -1,106 +1,104 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global Flow Desk — JustHodl.AI</title>
+<title>Global Flow Desk — JustHodl.AI</title><!-- FLOW DESK v2 -->
 <style>
-:root{--bg:#0a0e14;--bg2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg2:#9db0c8;--fg3:#5c6f88;--cy:#46c8ff;--am:#ffd24a;--rd:#ff5d6c;--gr:#37d99a;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
-.wrap{max-width:1280px;margin:0 auto;padding:24px 18px 60px}
-h1{font-size:20px;margin:0 0 4px}h2{font-size:12px;letter-spacing:1.6px;color:var(--fg2);margin:22px 0 10px}
-.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:14px}
-.hero{display:flex;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:14px;padding:16px 20px}
-.big{font-family:var(--mono);font-size:26px;font-weight:800}
-.note{color:var(--fg3);font-size:10.5px;line-height:1.45}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px}
-.tile .c{font-size:12px;color:var(--fg2)}.tile .v{font-family:var(--mono);font-size:19px;font-weight:700}
-.tile .m{font-family:var(--mono);font-size:10px;color:var(--fg3)}
-.bars{display:flex;flex-direction:column;gap:6px}
-.bar{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px}
-.bar .lbl{width:120px;color:var(--fg2)}.bar .tr{flex:1;height:14px;background:var(--bg2);border-radius:7px;position:relative;overflow:hidden}
-.bar .fill{position:absolute;top:0;bottom:0}.bar .val{width:92px;text-align:right}
+:root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 18px 70px}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:.4px}
+.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:13px;margin-bottom:14px}
+.dial{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative}
+.dial h3,.c h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2);font-weight:600}
+.big{font-family:var(--mono);font-size:33px;font-weight:800;line-height:1}
+.lab{font-family:var(--mono);font-size:11.5px;margin-top:4px}
+.bar{height:7px;background:#101a2b;border-radius:5px;margin-top:10px;position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;width:2px;background:#fff6;left:50%}
+.bar b{position:absolute;top:0;bottom:0;border-radius:5px}
+.comp{color:var(--fg3);font-size:10px;margin-top:8px;font-family:var(--mono);line-height:1.7}
+.spark{position:absolute;right:14px;top:14px;opacity:.9}
+.dossier{background:linear-gradient(160deg,#0f1c31,#0a1322);border:1px solid #274668;border-radius:14px;padding:16px 20px;margin:0 0 14px;font-size:14px;line-height:1.7}
+.dossier h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.8px;color:var(--cy)}
+.dsrc{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:13px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.wide{grid-column:1/-1}
+.kv{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin:5px 0;gap:8px}
+.kv .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar{flex:1;height:6px;background:#0f1828;border-radius:4px;margin:0 4px;position:relative;min-width:40px}
+.hbar b{position:absolute;top:0;bottom:0;border-radius:4px}
+.chip{font-size:9.5px;padding:2px 7px;border-radius:10px;font-family:var(--mono);white-space:nowrap}
+.chip.in{background:#0d2b22;color:var(--gr);border:1px solid #1c4a3a}
+.chip.out{background:#2d1218;color:var(--rd);border:1px solid #52222c}
+.chip.neu{background:#12203a;color:var(--cy);border:1px solid #22406b}
+.chip.warm{background:#2b230d;color:var(--am);border:1px solid #4a3d1c}
 .g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}.vi{color:var(--vi)}
-.gauge{display:flex;gap:26px;flex-wrap:wrap}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
-.ai{border-left:3px solid var(--vi);background:var(--bg2);border-radius:10px;padding:12px 16px;font-size:13.5px;line-height:1.65}
-.sec{display:flex;gap:6px;flex-wrap:wrap}
-.sec span{font-family:var(--mono);font-size:11px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg2)}
+.load{color:var(--fg3);font-family:var(--mono);padding:44px;text-align:center}
+@media(max-width:700px){.big{font-size:27px}}
 </style></head><body><div class="wrap">
 <h1>🌍 GLOBAL FLOW DESK — WHERE MONEY IS GOING</h1>
-<div class="sub" id="meta">Loading…</div>
-<div class="hero" id="hero"></div>
-<h2>💵 HOT MONEY — COUNTRY MAP <span style="color:var(--fg3);font-weight:400">(country ETF flows + TIC holder Δ + FX momentum)</span></h2>
-<div class="tiles" id="ctry"></div>
-<div class="grid2" style="margin-top:18px">
- <div class="panel"><h2 style="margin-top:0">🏦 ASSET-CLASS LADDER (net 5d)</h2><div class="bars" id="classes"></div></div>
- <div class="panel"><h2 style="margin-top:0">🔄 SECTOR ROTATION (net 5d)</h2><div class="bars" id="sectors"></div>
-  <div class="sec" id="leaders" style="margin-top:10px"></div></div>
-</div>
-<h2>🤖 AI DESK BRIEF</h2><div class="ai" id="ai">—</div>
-<div class="note" id="method" style="margin-top:14px"></div>
+<div class="sub" id="meta">Assembling flows…</div>
+<div id="app" class="load">Loading…</div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
-const M=v=>v==null?'—':(v>=0?'+':'')+v.toLocaleString(undefined,{maximumFractionDigits:1})+'M';
+const fin=v=>Number.isFinite(v);
+const F=v=>fin(v)||typeof v==='string'?v:'—';
+const mUsd=v=>!fin(v)?'—':(v>0?'+':'−')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.abs(v).toFixed(0)+'M');
+const col=v=>!fin(v)?'var(--fg3)':v>0?'var(--gr)':v<0?'var(--rd)':'var(--cy)';
+const esc=s=>String(s??'').replace(/</g,'&lt;');
+function spark(rows,key,w=118,h=34){
+ const vs=rows.map(r=>r[key]).filter(fin); if(vs.length<3)return'';
+ const mn=Math.min(...vs,0),mx=Math.max(...vs,0),rg=(mx-mn)||1;
+ const pts=rows.filter(r=>fin(r[key])).map((r,i,a)=>`${(i/(a.length-1))*w},${h-((r[key]-mn)/rg)*h}`).join(' ');
+ const zero=h-((0-mn)/rg)*h;
+ return `<svg class="spark" width="${w}" height="${h}"><line x1="0" y1="${zero}" x2="${w}" y2="${zero}" stroke="#ffffff22"/><polyline points="${pts}" fill="none" stroke="var(--cy)" stroke-width="1.6"/></svg>`;
+}
+function hbars(items,fmt,max){
+ const mx=max??Math.max(...items.map(x=>Math.abs(x.v)||0),1);
+ return items.map(x=>{const w=Math.min(100,Math.abs(x.v)/mx*100);
+  return `<div class="kv"><span class="nm">${esc(x.nm)}</span><span class="hbar"><b style="width:${w}%;${x.v>=0?'left:0;':'right:0;'}background:${col(x.v)}"></b></span><b style="color:${col(x.v)};white-space:nowrap">${fmt(x.v)}</b>${x.chip??''}</div>`}).join('');
+}
 (async()=>{
- const d=await (await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/global-flow-desk.json',{cache:'no-store'})).json();
- document.getElementById('meta').textContent=(d.generated_at||'').replace('T',' ').slice(0,16)+' UTC · '+(d.hot_money?.n_scored||0)+' countries scored';
- const ir=d.inst_vs_retail||{};
- const iCol=ir.institutional>15?'var(--gr)':ir.institutional<-15?'var(--rd)':'var(--cy)';
- const rCol=ir.retail>15?'var(--gr)':ir.retail<-15?'var(--rd)':'var(--cy)';
- document.getElementById('hero').innerHTML=`
-  <div><div class="note">INSTITUTIONAL COMPOSITE</div><div class="big" style="color:${iCol}">${ir.institutional??'—'}</div>
-   <div class="note">OWN-DIX ${ir.own_dix??'—'}% · radar breadth ${ir.radar_breadth_pct??'—'}%</div></div>
-  <div><div class="note">RETAIL COMPOSITE</div><div class="big" style="color:${rCol}">${ir.retail??'—'}</div>
-   <div class="note">AAII spread ${ir.aaii_spread??'—'} · stablecoin 7d ${ir.stablecoin_7d_usd_m??'—'}M</div></div>
-  <div style="flex:1;min-width:220px"><div class="note">DIVERGENCE VERDICT</div>
-   <div class="big" style="font-size:19px;color:var(--am)">${ir.divergence||'—'}</div>
-   <div class="note">Hot money IN: <b class="g">${(d.hot_money?.top_inflows||[]).join(', ')}</b><br>
-   Hot money OUT: <b class="r">${(d.hot_money?.top_outflows||[]).join(', ')}</b></div></div>`;
- const C=d.hot_money?.countries||{};
- document.getElementById('ctry').innerHTML=Object.entries(C).map(([c,e])=>{
-  const col=e.score>18?'var(--gr)':e.score<-18?'var(--rd)':'var(--cy)';
-  return `<div class="tile" style="border-color:${col}55"><div class="c">${c}</div>
-   <div class="v" style="color:${col}">${e.score>0?'+':''}${e.score}</div>
-   <div class="m">ETF ${M(e.etf_5d_usd_m)}${e.fx_mom_pct!=null?' · FX '+(e.fx_mom_pct>0?'+':'')+e.fx_mom_pct+'%':''}${e.tic_12m_usd_b!=null?' · TIC '+e.tic_12m_usd_b+'B':''}</div>
-   <div class="m">${e.verdict}</div></div>`}).join('');
- const cls=Object.entries(d.asset_classes||{}).filter(([k,v])=>v.n).sort((a,b)=>b[1].net_5d_usd_m-a[1].net_5d_usd_m);
- const mx=Math.max(...cls.map(([k,v])=>Math.abs(v.net_5d_usd_m)))||1;
- document.getElementById('classes').innerHTML=cls.map(([k,v])=>{
-  const w=Math.abs(v.net_5d_usd_m)/mx*50, pos=v.net_5d_usd_m>=0;
-  return `<div class="bar"><div class="lbl">${k.replace(/_/g,' ')}</div>
-   <div class="tr"><div class="fill" style="${pos?'left:50%':'right:50%'};width:${w}%;background:${pos?'var(--gr)':'var(--rd)'}"></div></div>
-   <div class="val ${pos?'g':'r'}">${M(v.net_5d_usd_m)}</div></div>`}).join('');
- const sec=(d.sectors?.ranked)||[];const mx2=Math.max(...sec.map(s=>Math.abs(s.net_5d_usd_m)))||1;
- document.getElementById('sectors').innerHTML=sec.map(s=>{
-  const w=Math.abs(s.net_5d_usd_m)/mx2*50,pos=s.net_5d_usd_m>=0;
-  return `<div class="bar"><div class="lbl">${s.etf}</div>
-   <div class="tr"><div class="fill" style="${pos?'left:50%':'right:50%'};width:${w}%;background:${pos?'var(--gr)':'var(--rd)'}"></div></div>
-   <div class="val ${pos?'g':'r'}">${M(s.net_5d_usd_m)}</div></div>`}).join('');
- document.getElementById('leaders').innerHTML=
-  `<span class="g">LEADERS: ${(d.sectors?.leaders||[]).join(' ')}</span><span class="r">LAGGARDS: ${(d.sectors?.laggards||[]).join(' ')}</span>`;
- document.getElementById('ai').textContent=d.ai_brief||'AI brief unavailable this run.';
- document.getElementById('method').textContent=d.method||'';
+ let d;try{d=await(await fetch('data/global-flow-desk.json',{cache:'no-store'})).json()}catch(e){}
+ const app=document.getElementById('app');
+ if(!d||!d.inst_vs_retail){app.textContent='Feed unavailable — data/global-flow-desk.json failed strict JSON parse or fetch.';return}
+ document.getElementById('meta').textContent=`${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC · ${d.hot_money.n_scored} countries scored · engine v${d.version}`;
+ const IR=d.inst_vs_retail,H=d.history||[],HOT=d.hot_money,C=d.asset_classes||{},S=d.sectors||{},CP=d.capex||{};
+ const clsRows=Object.entries(C).map(([k,v])=>({nm:k.replace(/_/g,' '),v:v.net_5d_usd_m})).filter(r=>fin(r.v)).sort((a,b)=>b.v-a.v);
+ const secRows=(S.ranked||[]).map(x=>({nm:x.etf,v:x.net_5d_usd_m})).filter(r=>fin(r.v));
+ const ctry=Object.entries(HOT.countries||{}).map(([c,e])=>({nm:c,v:e.score,e})).sort((a,b)=>b.v-a.v);
+ const dial=(t,v,l,extra,sk)=>`<div class="dial">${sk||''}<h3>${t}</h3>
+   <div class="big" style="color:${v>10?'var(--gr)':v<-10?'var(--rd)':'var(--cy)'}">${fin(v)?(v>0?'+':'')+v.toFixed(1):'—'}</div>
+   <div class="lab" style="color:${v>10?'var(--gr)':v<-10?'var(--rd)':'var(--cy)'}">${esc(l)}</div>
+   <div class="bar"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.min(48,Math.abs(v||0)/2)}%;background:${col(v)}"></b><i></i></div>
+   <div class="comp">${extra}</div></div>`;
+ app.className='';app.innerHTML=`
+ <div class="hero">
+  ${dial('INSTITUTIONAL COMPOSITE',IR.institutional,IR.institutional>10?'ACCUMULATING':IR.institutional<-10?'DISTRIBUTING':'NEUTRAL',
+    `OWN-DIX ${F(IR.own_dix_pct)}% · radar breadth ${F(IR.radar_breadth_pct)}%`,spark(H,'inst'))}
+  ${dial('RETAIL COMPOSITE',IR.retail,IR.retail>10?'BUYING':IR.retail<-10?'FLEEING':'NEUTRAL',
+    `AAII spread ${fin(IR.aaii_spread_pct)?(IR.aaii_spread_pct>0?'+':'')+IR.aaii_spread_pct+'pts':'—'} · stablecoin 7d ${mUsd(IR.stablecoin_7d_usd_m)}`,spark(H,'retail'))}
+  <div class="dial"><h3>DIVERGENCE VERDICT</h3>
+   <div class="big" style="font-size:23px;color:${String(IR.divergence).includes('CONFLICT')?'var(--am)':'var(--cy)'}">${esc(IR.divergence)}</div>
+   <div class="comp" style="margin-top:12px">Hot money IN: <b class="g">${(HOT.top_inflows||[]).join(', ')}</b><br>Hot money OUT: <b class="r">${(HOT.top_outflows||[]).join(', ')}</b></div>
+   ${HOT.warming_note?`<div class="comp"><span class="chip warm">WARMING ×${(HOT.warming_etfs||[]).length}</span> ${esc(HOT.warming_note)}</div>`:''}</div>
+ </div>
+ <div class="dossier"><h3>🤖 AI DESK BRIEF</h3>${esc(d.ai_brief)}<div class="dsrc">source: ${d.ai_brief_src==='llm'?'LLM synthesis':'deterministic synthesis (LLM offline)'} · daily 22:50 UTC</div></div>
+ <div class="grid">
+  <div class="c wide"><h3>💵 HOT MONEY — COUNTRY MAP <small style="color:var(--fg3)">(country ETF 5d $ + TIC 12m Δ + FX 20d momentum)</small></h3>
+   ${ctry.map(x=>`<div class="kv"><span class="nm">${esc(x.nm)}</span>
+     <span class="hbar"><b style="width:${Math.min(100,Math.abs(x.v))}%;${x.v>=0?'left:0;':'right:0;'}background:${col(x.v)}"></b></span>
+     <b style="color:${col(x.v)}">${(x.v>0?'+':'')+x.v}</b>
+     <span class="comp" style="margin:0;min-width:150px;text-align:right">ETF ${mUsd(x.e.etf_5d_usd_m)}${fin(x.e.fx_mom_pct)?' · FX '+(x.e.fx_mom_pct>0?'+':'')+x.e.fx_mom_pct+'%':''}${fin(x.e.tic_12m_usd_b)?' · TIC '+(x.e.tic_12m_usd_b>0?'+':'')+x.e.tic_12m_usd_b+'B':''}</span>
+     <span class="chip ${x.e.verdict==='HOT MONEY IN'?'in':x.e.verdict==='HOT MONEY OUT'?'out':'neu'}">${x.e.verdict.replace('HOT MONEY ','')}</span></div>`).join('')}</div>
+  <div class="c"><h3>🏦 ASSET-CLASS LADDER (net 5d)</h3>${hbars(clsRows,mUsd)}</div>
+  <div class="c"><h3>🔄 SECTOR ROTATION (net 5d)</h3>${hbars(secRows,mUsd)}
+   <div class="comp">LEADERS <b class="g">${(S.leaders||[]).join(' ')}</b> · LAGGARDS <b class="r">${(S.laggards||[]).join(' ')}</b></div></div>
+  <div class="c wide"><h3>🏗️ CAPEX PULSE ${CP.status==='OK'?'':'<span class="chip warm">'+esc(CP.status)+'</span>'}</h3>
+   ${CP.status==='OK'?`<div class="kv"><span class="nm">HYPERSCALERS (AI buildout)</span><b class="cy">$${F(CP.hyperscalers_ttm_b)}B</b><b style="color:${col(CP.hyperscalers_yoy_pct)}">${fin(CP.hyperscalers_yoy_pct)?(CP.hyperscalers_yoy_pct>0?'+':'')+CP.hyperscalers_yoy_pct+'% yoy':''}</b></div>
+   <div class="kv"><span class="nm">MARKET (top-160)</span><b class="cy">$${F(CP.market_ttm_b)}B</b><b style="color:${col(CP.market_yoy_pct)}">${fin(CP.market_yoy_pct)?(CP.market_yoy_pct>0?'+':'')+CP.market_yoy_pct+'% yoy':''}</b></div>
+   <div class="comp">top accelerators: <b class="g">${(CP.top_accelerators||[]).join(' ')}</b>${CP.top_sector?` · hottest sector: <b class="a">${esc(CP.top_sector.name)} +${CP.top_sector.yoy_pct}%</b>`:''} · TTM capex, FMP quarterly, FX-converted</div>`:`<div class="comp">${esc(CP.source||'')}</div>`}</div>
+ </div>
+ <div class="c" style="margin-top:13px"><div class="comp">${esc(d.method)}</div></div>`;
 })();
-</script></div>
-<div id="capexv1" style="max-width:1180px;margin:12px auto 4px;padding:0 18px;font:13px -apple-system,Segoe UI,sans-serif"></div>
-<script>
-(async()=>{try{
- const r=await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/capex-pulse.json',{cache:'no-store'});const d=await r.json();
- const H=d.hyperscalers||{},M=d.market||{},B=(d.boards||{});
- const yc=v=>v>10?'#37d99a':v<0?'#ff5d6c':'#46c8ff';
- document.getElementById('capexv1').innerHTML=
- `<div style="display:flex;gap:16px;flex-wrap:wrap;background:#0e1420;border:1px solid #1e2836;border-radius:12px;padding:14px 18px">
-  <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">CAPEX PULSE — HYPERSCALERS (AI buildout)</div>
-   <div style="font-family:monospace;font-size:26px;font-weight:700;color:${yc(H.yoy_pct||0)}">$${H.total_ttm_b??'—'}B <span style="font-size:14px">${H.yoy_pct>0?'+':''}${H.yoy_pct??''}% yoy</span></div>
-   <div style="color:#5c6f88;font-size:10px">${(H.rows||[]).slice(0,5).map(x=>x.ticker+' $'+x.capex_ttm_b+'B').join(' · ')}</div></div>
-  <div><div style="color:#9db0c8;font-size:10.5px;letter-spacing:1.3px">MARKET (top-160)</div>
-   <div style="font-family:monospace;font-size:26px;font-weight:700;color:${yc(M.yoy_pct||0)}">$${M.capex_ttm_b??'—'}B <span style="font-size:14px">${M.yoy_pct>0?'+':''}${M.yoy_pct??''}%</span></div>
-   <div style="color:#5c6f88;font-size:10px">TTM capital expenditure, FMP quarterly</div></div>
-  <div><div style="color:#37d99a;font-size:10.5px;letter-spacing:1.3px">ACCELERATING</div>
-   <div style="font-family:monospace;font-size:12px;color:#37d99a;margin-top:6px">${(B.top_accelerators||[]).slice(0,5).map(x=>x.ticker+' +'+x.yoy_pct+'%').join('<br>')}</div></div>
-  <div><div style="color:#ff5d6c;font-size:10.5px;letter-spacing:1.3px">CUTTING</div>
-   <div style="font-family:monospace;font-size:12px;color:#ff5d6c;margin-top:6px">${(B.top_cutters||[]).slice(0,5).map(x=>x.ticker+' '+x.yoy_pct+'%').join('<br>')}</div></div>
- </div>`;
-}catch(e){}})();
-</script>
-</body></html>
+</script></div></body></html>
