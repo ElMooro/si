@@ -106,24 +106,23 @@ print("  VERDICT:", json.dumps(verdict))
 sect("C/4 ICI-FLOWS — runner-side seed via engine's own parsers")
 sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source")
 import lambda_function as ici
-print("  _live signature:", str(inspect.signature(ici._live)))
-try:
-    live = ici._live()
-    print("  _live -> type:", type(live).__name__,
-          "keys/len:", (sorted(live.keys())[:6] if isinstance(live, dict) else len(live) if hasattr(live, "__len__") else "?"))
-except Exception as e:
-    live = None; print("  _live() raised:", str(e)[:120])
+live_mmf = live_ltf = None
+for kind, tgt in (("mmf", "live_mmf"), ("flows", "live_ltf"), ("combined", "live_ltf"), ("ltf", "live_ltf")):
+    try:
+        out = ici._live(kind)
+        if out:
+            if tgt == "live_mmf" and live_mmf is None: live_mmf = out
+            if tgt == "live_ltf" and live_ltf is None: live_ltf = out
+            print("  _live(%r) -> %s entries" % (kind, len(out) if hasattr(out, "__len__") else "?"))
+    except Exception as e:
+        print("  _live(%r) raised: %s" % (kind, str(e)[:90]))
 def persist(key, doc):
     s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(doc, default=str).encode(), ContentType="application/json")
 seeded = {"mmf": 0, "ltf": 0}
-if isinstance(live, tuple) and len(live) == 2:
-    mmf_h, ltf_h = live
-elif isinstance(live, dict):
-    mmf_h, ltf_h = live.get("mmf") or live.get("mmf_h") or {}, live.get("ltf") or live.get("flows") or live.get("ltf_h") or {}
-else:
-    mmf_h, ltf_h = {}, {}
-if mmf_h: persist("data/history/ici-mmf.json", dict(sorted(mmf_h.items())[-800:])); seeded["mmf"] = len(mmf_h)
-if ltf_h: persist("data/history/ici-flows.json", dict(sorted(ltf_h.items())[-800:])); seeded["ltf"] = len(ltf_h)
+if isinstance(live_mmf, dict) and live_mmf:
+    persist("data/history/ici-mmf.json", dict(sorted(live_mmf.items())[-800:])); seeded["mmf"] = len(live_mmf)
+if isinstance(live_ltf, dict) and live_ltf:
+    persist("data/history/ici-flows.json", dict(sorted(live_ltf.items())[-800:])); seeded["ltf"] = len(live_ltf)
 R["ici_seeded"] = seeded
 print("  seeded:", seeded)
 
