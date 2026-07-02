@@ -1,0 +1,63 @@
+{
+ "ops": 2744,
+ "ts": "2026-07-02T23:17:37.042350+00:00",
+ "checks": {
+  "page.onchain_at_edge": {
+   "ok": true,
+   "detail": ""
+  },
+  "nav.entry_at_edge": {
+   "ok": true,
+   "detail": "manifest 22976 bytes"
+  },
+  "feed.cryptoquant-onchain.json": {
+   "ok": true,
+   "detail": "strict"
+  },
+  "feed.onchain-ratios.json": {
+   "ok": true,
+   "detail": "strict"
+  },
+  "feed.crypto-exchange-flows.json": {
+   "ok": true,
+   "detail": "strict"
+  },
+  "feed.crypto-miners.json": {
+   "ok": true,
+   "detail": "strict"
+  }
+ },
+ "fusion_map": {
+  "direct_2742": [
+   "crypto-exchange-flows",
+   "crypto-miners",
+   "onchain-ratios",
+   "signal-logger"
+  ],
+  "transitive_auto": {
+   "crypto-intel": [
+    "xf",
+    "miners",
+    "ratios"
+   ],
+   "crypto-confluence": [
+    "xf",
+    "miners",
+    "ratios"
+   ],
+   "cycle-clock": [
+    "xf",
+    "miners",
+    "ratios"
+   ],
+   "morning-intelligence": [
+    "ratios"
+   ],
+   "asymmetric-scorer": [
+    "ratios"
+   ]
+  },
+  "deferred_by_doctrine": "crypto_risk_score direct weighting \u2014 pending scorecard verdicts ~Jul-23"
+ },
+ "verdict": "ALL PASS (6)"
+}

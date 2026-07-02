@@ -1,28 +1,10 @@
-settling 20s…
-== AUDIT: cq adapter ==
-  PASS cq.domain_strict_json                      edge fetch + strict parse
-  PASS cq.status_live                             LIVE
-  PASS cq.eight_metrics                           ['btc_exchange_netflow', 'btc_exchange_reserve', 'btc_mpi', 'btc_mvrv', 'btc_sopr', 'btc_whale_ratio', 'eth_ex
-  PASS cq.composite_finite                        -0.24
-  PASS cq.fresh                                   staleness=1
-  PASS cq.no_errors                               None
-  PASS cq.z_complete                              []
-  PASS cq.history_depth                           {'btc_exchange_netflow': 366, 'btc_exchange_reserve': 366, 'eth_exchange_reserve': 365, 'btc_mpi': 365, 'btc_w
-  PASS cq.spec_plan_truths                        window=365 fmt=none
-== AUDIT: consumers ==
-  PASS ratios.cq_block                            ['btc_whale_ratio', 'btc_mvrv', 'btc_sopr', 'btc_exchange_netflow', 'btc_mpi']
-  PASS ratios.resurrected_fresh_legacy            ops 2742 - daily 21:20 UTC fresh=True legacy_keys=7
-  PASS xf.cq_block                                stablecoin z=-0.69
-  PASS xf.legacy_intact                           11
-  PASS miners.mpi_block                           {'value': -0.3504, 'z365': 0.04, 'pctl_1y': 55, 'wow': -0.2011, 'as_of': '2026-07-01', 'risk_sign': 1, 'gradin
-== AUDIT: schedules ==
-  PASS rule.justhodl-cryptoquant-daily            ENABLED cron(5 21 * * ? *) targets=1
-  PASS rule.justhodl-onchain-ratios-daily         ENABLED cron(20 21 * * ? *) targets=1
-== AUDIT: signal ledger (Dynamo, physical row) ==
-  PASS ledger.onchain_row_today                   pages=9 pred=NEUTRAL conf=0.4028 baseline=61410
-== AUDIT: registry + earlier-arc spot checks ==
-  PASS registry.onchain_family                    in map feed
-  PASS spot.gfd_page_v2                           10252 bytes
-  PASS spot.footprint_contract_v4                 [deterministic|516] Institutions are Risk On on the tape (risk-now +22.1: manage
-VERDICT: ALL PASS (20 checks)
-OPS 2743 COMPLETE — audited by the machine, not the founder
+waiting for pages deploy (first-party, ~90s)…
+  attempt 1: LIVE
+  PASS page.onchain_at_edge               
+  PASS nav.entry_at_edge                  manifest 22976 bytes
+  PASS feed.cryptoquant-onchain.json      strict
+  PASS feed.onchain-ratios.json           strict
+  PASS feed.crypto-exchange-flows.json    strict
+  PASS feed.crypto-miners.json            strict
+VERDICT: ALL PASS (6)
+OPS 2744 COMPLETE — the chain has a face
