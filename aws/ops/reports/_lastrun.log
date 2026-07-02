@@ -1,3 +1,5 @@
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
 
 ======== 1/3 INPUT FRESHNESS SNAPSHOT ========
   data/credit-stress.json                5.5h
@@ -6,15 +8,24 @@
   data/euro-fragmentation.json          15.2h
   data/yen-carry.json                   15.5h
   data/systemic-stress.json             15.5h
-  data/dealer-survey.json                5.5h
+  data/dealer-survey.json                5.6h
+
+======== 1b/3 SCHEMA PRINTS + upstream repairs ========
+  eurodollar-plumbing.json           keys:['engine', 'version', 'generated_at', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note', 'red_flags']
+  euro-fragmentation.json            keys:['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'fragmentation', 'bund_benchmark_10y_pct', 'countries', 'core_vs_periphery', 'france_focus', 'ecb_backstop']
+  bond-vol.json                      keys:['ok', 'version', 'generated_at', 'regime', 'composite_z_score', 'composite_percentile', 'regime_streak_days', 'trend', 'term_structure', 'funding_plumbing', 'playbook', 'risk_posture']
+  dealer-survey.json                 keys:['generated_at', 'latest_survey', 'history', 'fetch_duration_s', 'last_check', 'last_check_status']
+  settling 25s…
+  justhodl-bond-vol invoke -> {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.1\", \"regime\": \"NORMAL\", \"composite_z\": 0
+  justhodl-ici-flows repair skipped: An error occurred (ResourceNotFoundException) when calling the GetFunc
 
 ======== 2/3 DEPLOY + RUN v2 ========
-  settling 30s…
+  settling 20s…
   synced justhodl-bond-desk
   synced justhodl-signal-board
-  invoke -> {"ok": true, "world": 69.5, "regime": "ANXIOUS", "regions_live": 5}
+  invoke -> {"ok": true, "world": 66.9, "regime": "ANXIOUS", "regions_live": 5}
 {
- "world": 69.5,
+ "world": 66.9,
  "regime": "ANXIOUS",
  "hottest": {
   "region": "japan",
@@ -23,10 +34,10 @@
  "live": 5,
  "scores": {
   "us": 81.7,
-  "global_funding": 50.0,
-  "europe": 50.0,
+  "global_funding": 32.0,
+  "europe": 53.1,
   "japan": 100,
-  "em": 43.1
+  "em": 49.0
  },
  "us_flows": {
   "equity_to_bond_5d_usd": 31158692115.0,
@@ -37,9 +48,9 @@
  },
  "us_credit": {
   "source": "justhodl-credit-stress (ICE BofA ladder)",
-  "ccc_minus_bb_bps": 8.06,
-  "hy_minus_ig_bps": 1.99,
-  "bbb_minus_aaa_bps": 0.57,
+  "ccc_minus_bb_bps": 806.0,
+  "hy_minus_ig_bps": 199.0,
+  "bbb_minus_aaa_bps": 57.0,
   "composite_regime": "BENIGN",
   "fred_micro": {
    "status": "OK",
@@ -59,16 +70,16 @@
  "gf": {
   "severity": "ABUNDANT",
   "health": null,
-  "fed_swaps_bn": -3.0,
+  "fed_swaps_bn": null,
   "cnh_gap_pips": null,
-  "score": 50.0
+  "score": 32.0
  },
  "eu": {
   "fragmentation_score": null,
   "regime": "DISPERSION",
-  "btp_bund_bp": 0.0,
-  "btp_chg_1m_bp": 0.0,
-  "score": 50.0
+  "btp_bund_bp": 77.2,
+  "btp_chg_1m_bp": 3.9,
+  "score": 53.1
  },
  "jp": {
   "carry_stress": "RISING SHARPLY",
@@ -76,15 +87,15 @@
   "score": 100
  },
  "em": {
-  "em_hy_minus_us_hy_bps": 0.36,
+  "em_hy_minus_us_hy_bps": 36.0,
   "em_debt_flow_5d_usd": 278927609.0,
   "fresh": true,
-  "score": 43.1
+  "score": 49.0
  },
  "chart_n": 157,
- "equity_read": "GLOBAL FI FLASHES ANXIETY FOR EQUITIES \u2014 Hottest: JAPAN 100 \u00b7 US credit micro CCC-BB 806.0bps p99.7 \u039421d +22 \u00b7 Eq\u2
+ "equity_read": "GLOBAL FI FLASHES ANXIETY FOR EQUITIES \u2014 Hottest: JAPAN 100 \u00b7 US credit micro CCC-BB 806.0bps p99.7 \u039421d +22 \u00b7 Eq
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2712_bond_desk_global.py", line 89, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2712_bond_desk_global.py", line 103, in <module>
     assert len(d.get("chart_ccc_bb") or []) >= 180, "chart series too short"
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: chart series too short
