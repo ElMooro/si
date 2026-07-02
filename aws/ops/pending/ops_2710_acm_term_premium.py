@@ -152,3 +152,5 @@ with open("aws/ops/reports/2710_acm_term_premium.json", "w") as f:
 print("OPS 2710 COMPLETE — the fleet now runs on the real ACM series")
 
 # rev v2: weekly-downsample fix rerun
+
+# rev v3: block relocated above out dict

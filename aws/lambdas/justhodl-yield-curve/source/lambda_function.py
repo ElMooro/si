@@ -368,6 +368,21 @@ def lambda_handler(event=None, context=None):
             "message": f"Term premium proxy = {term_premium_proxy:+.0f}bps — TIPS/nominal/breakeven dislocation"
         })
 
+    _tp_bps, _tp_src, _tp_acm = term_premium_proxy, "proxy", None
+    try:
+        _aj = json.loads(S3.get_object(Bucket=BUCKET, Key="data/term-premium.json")["Body"].read())
+        _al = _aj.get("latest") or {}
+        _fresh = (datetime.now(timezone.utc).date() - datetime.strptime(_al.get("date", "1970-01-01"), "%Y-%m-%d").date()).days <= 10
+        if _fresh and isinstance(_al.get("tp10"), (int, float)):
+            _tp_bps = round(_al["tp10"] * 100, 1)
+            _tp_src = "ACM"
+            _tp_acm = {"date": _al["date"], "tp10_pct": _al["tp10"], "tp5_pct": _al.get("tp5"),
+                       "tp2_pct": _al.get("tp2"), "z_10y": _aj.get("z_10y"),
+                       "pctile": _aj.get("pctile_full_history"),
+                       "d21_bps": (_aj.get("deltas_bps") or {}).get("d21"),
+                       "regime": _aj.get("regime")}
+    except Exception as _e:
+        print(f"[yc] acm read: {str(_e)[:60]}")
     out = {
         "version": "1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -407,21 +422,6 @@ def lambda_handler(event=None, context=None):
     }
 
     body = json.dumps(out, default=str).encode("utf-8")
-    _tp_bps, _tp_src, _tp_acm = term_premium_proxy, "proxy", None
-    try:
-        _aj = json.loads(S3.get_object(Bucket=BUCKET, Key="data/term-premium.json")["Body"].read())
-        _al = _aj.get("latest") or {}
-        _fresh = (datetime.now(timezone.utc).date() - datetime.strptime(_al.get("date", "1970-01-01"), "%Y-%m-%d").date()).days <= 10
-        if _fresh and isinstance(_al.get("tp10"), (int, float)):
-            _tp_bps = round(_al["tp10"] * 100, 1)
-            _tp_src = "ACM"
-            _tp_acm = {"date": _al["date"], "tp10_pct": _al["tp10"], "tp5_pct": _al.get("tp5"),
-                       "tp2_pct": _al.get("tp2"), "z_10y": _aj.get("z_10y"),
-                       "pctile": _aj.get("pctile_full_history"),
-                       "d21_bps": (_aj.get("deltas_bps") or {}).get("d21"),
-                       "regime": _aj.get("regime")}
-    except Exception as _e:
-        print(f"[yc] acm read: {str(_e)[:60]}")
     S3.put_object(
         Bucket=BUCKET, Key=KEY, Body=body,
         ContentType="application/json", CacheControl="public, max-age=3600",
