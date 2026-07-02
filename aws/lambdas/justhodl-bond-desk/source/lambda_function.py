@@ -157,12 +157,17 @@ def _bps(v):
 def _fred_hist(series, start="2006-01-01"):
     url=("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s"
          "&file_type=json&sort_order=asc&observation_start=%s&limit=100000"%(series,FRED_KEY,start))
-    try:
-        with urllib.request.urlopen(url,timeout=25) as r:
-            obs=json.loads(r.read()).get("observations",[])
-        return [(o["date"],float(o["value"])) for o in obs if o.get("value") not in (".",None)]
-    except Exception as e:
-        print("[fredh]",series,str(e)[:60]); return []
+    for attempt in (0,1):
+        try:
+            time.sleep(0.5)  # throttle: five full-history pulls back-to-back can 429
+            with urllib.request.urlopen(url,timeout=25) as r:
+                obs=json.loads(r.read()).get("observations",[])
+            rows=[(o["date"],float(o["value"])) for o in obs if o.get("value") not in (".",None)]
+            if rows: return rows
+        except Exception as e:
+            print("[fredh]",series,"try%d"%attempt,str(e)[:60])
+        time.sleep(2.5)
+    return []
 
 def _fmp_hist(sym, frm="2007-01-01"):
     url=("https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=%s&from=%s&apikey=%s"%(sym,frm,FMP))
@@ -213,6 +218,8 @@ def _crisis_analogs():
         if not v: continue
         lib["crises"].append({"name":name,"date":date,"vector":[round(x,3) for x in v],
             "fwd":{sym:fwd(sym,date) for sym in px if fwd(sym,date)}})
+    if len(lib["crises"])<4:
+        raise RuntimeError("crisis vectors thin (%d) — FRED history pulls empty (likely 429)"%len(lib["crises"]))
     lib["norm"]=[max(0.25,st.pstdev([c["vector"][k] for c in lib["crises"]]) or 1) for k in range(6)]
     lib["elapsed_s"]=round(time.time()-t0,1)
     s3.put_object(Bucket=BUCKET,Key=ANALOG_KEY,Body=json.dumps(lib,separators=(",",":")).encode(),
@@ -399,9 +406,9 @@ def lambda_handler(event=None, context=None):
             sc=rich.get(code)
             tiles.append({"code":code,"label":label,"score":sc,"metric":"engine composite","src":"owned"})
         else:
-            ser=_fred(sid,140)
-            if len(ser)>=8:
-                cur=ser[0][1]; ago=ser[6][1]; chg=round(cur-ago,2)
+            ser=_fred(sid,400)  # monthly series: wide window (v3 observation_start math gave ~7 obs)
+            if len(ser)>=7:
+                cur=ser[0][1]; ago=ser[min(6,len(ser)-1)][1]; chg=round(cur-ago,2)
                 sc=_sub(max(-2.5,min(2.5,abs(chg)*2.2+(0.4 if chg>0 else -0.2))))
                 tiles.append({"code":code,"label":label,"score":sc,
                               "metric":"10y Δ6m %+.2fpp"%chg,"yield_10y":cur,"src":"FRED"})

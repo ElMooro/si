@@ -85,6 +85,7 @@ R["v3"] = {"world": d["world_anxiety"], "regime": d["regime"], "version": d.get(
            "chart_n": len(d.get("chart_ccc_bb") or [])}
 print(json.dumps({k: R["v3"][k] for k in ("world", "regime", "version", "tiles_live", "analog_status", "analog_n", "ai_status", "chart_n")}, indent=1))
 print("  TOP ANALOGS:", json.dumps(AN.get("top"), default=str)[:600])
+if AN.get("status") != "OK": print("  ANALOG ERR:", AN.get("err"))
 if d.get("ai_brief"): print("  AI BRIEF:", json.dumps(d["ai_brief"], default=str)[:500])
 assert d.get("version") == "3.0.0"
 assert len(live_tiles) >= 11, "tiles thin: %d" % len(live_tiles)
