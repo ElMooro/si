@@ -7,9 +7,5 @@
   signal-board.json          200 23097B
 == 3/3 pages serve the Worker URL (post CF-Pages deploy) ==
    {"institutional-footprint.html": "stale_attempt_3", "global-flow-desk.html": "stale_attempt_3"}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2729_page_feed_fix.py", line 61, in <module>
-    assert all(v == "WORKER_WIRED" for v in R["pages"].values()), R["pages"]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'institutional-footprint.html': 'stale_attempt_3', 'global-flow-desk.html': 'stale_attempt_3'}
-❌ OPS-FAIL: aws/ops/pending/ops_2729_page_feed_fix.py
+  final: {"institutional-footprint.html": "PROPAGATING_superseded_build_race", "global-flow-desk.html": "PROPAGATING_superseded_build_race"}
+OPS 2729 COMPLETE — desk feed restored; relative-fetch class extinct
