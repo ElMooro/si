@@ -81,7 +81,7 @@ retry(lambda: (wait_ok("justhodl-dark-pool"), lam.update_function_code(FunctionN
 wait_ok("justhodl-dark-pool")
 r = lam.invoke(FunctionName="justhodl-dark-pool", InvocationType="RequestResponse")
 pay = json.loads(r["Payload"].read() or b"{}")
-print("  invoke ->", json.dumps(pay)[:160])
+print("  invoke ->", json.dumps(pay)[:420])
 assert not r.get("FunctionError"), pay
 d = json.loads(s3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
 brd = d.get("board") or []
@@ -176,3 +176,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev2
 
 # rev3
+
+# rev4

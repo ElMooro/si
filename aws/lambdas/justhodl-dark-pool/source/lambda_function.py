@@ -253,6 +253,7 @@ def lambda_handler(event=None, context=None):
         if len(ser)>=15 and _st.pstdev(ser):
             zmap[t.upper()]=(_st.fmean(ser),_st.pstdev(ser))
     print("[v2] history z-map names:",len(zmap))
+    _diag={"fh_type":type(fh).__name__,"fh_tickers":len((fh.get("tickers") or {}) if isinstance(fh,dict) else {}),"zmap_n":len(zmap)}
     for r0 in _fs_rows(fs):
         t=(r0.get("ticker") or r0.get("symbol") or "").upper()
         sv=r0.get("short_vol") or r0.get("short_volume"); tv=r0.get("total_vol") or r0.get("total_volume")
@@ -273,7 +274,8 @@ def lambda_handler(event=None, context=None):
             if d.get("short_z") is not None:
                 if r.get("state")=="ACCUMULATION" and d["short_z"]<-0.5: r["conviction"]="HIGH"
                 if (r.get("price_5d_pct") or 0)>2 and d["short_z"]>0.8: r["flag"]="DISTRIBUTION_INTO_STRENGTH"
-    print("[v2] daily regsho joined %d/%d names"%(joined,len(rows)))
+    _diag["daily_n"]=len(daily); _diag["daily_z_n"]=sum(1 for v in daily.values() if v.get("short_z") is not None)
+    print("[v2] daily regsho joined %d/%d names"%(joined,len(rows)),_diag)
 
     wsum=vsum=0.0
     for t,d in daily.items():
@@ -349,4 +351,4 @@ def lambda_handler(event=None, context=None):
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "latest_week": latest_week, "n_scored": len(rows),
         "n_accumulation": len(accumulation), "n_picks": len(top_picks),
-        "top": [(r["ticker"], r["score"], r["state"], r["dark_pool_pct"], r["dark_accel"]) for r in rows[:8]]})}
+        "top": [(r["ticker"], r["score"], r["state"], r["dark_pool_pct"], r["dark_accel"]) for r in rows[:8]], "diag": _diag})}
