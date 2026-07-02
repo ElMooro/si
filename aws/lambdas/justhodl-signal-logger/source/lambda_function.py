@@ -238,6 +238,16 @@ def lambda_handler(event,context):
     if rv is not None:
         rv=float(rv)
         logged.append(log_sig("crypto_risk_score",rs.get("regime","?"),dir_score(rv,35,65),conf_ext(rv),"BTC-USD",[1,3,7,14],meta={"score":rv,"action":rs.get("action")}))
+    # onchain_composite_risk (ops 2742) - CryptoQuant entity-labeled composite (CANDIDATE).
+    # Hypothesis: z >= +0.75 (inflow/whale/valuation stretch) = BTC DOWN; z <= -0.75 (squeeze) = UP.
+    oc=fs3("data/cryptoquant-onchain.json")
+    ocz=oc.get("composite_onchain_risk_z")
+    if oc.get("status")=="LIVE" and ocz is not None:
+        opred=("DOWN" if ocz>=0.75 else ("UP" if ocz<=-0.75 else "NEUTRAL"))
+        oconf=min(0.9, 0.35+abs(ocz)*0.22)
+        logged.append(log_sig("onchain_composite_risk","ONCHAIN",opred,oconf,"BTC-USD",[1,3,7,14,21],
+                              meta={"z":ocz,"mvrv":((oc.get("metrics") or {}).get("btc_mvrv") or {}).get("value"),"grading":"PROVISIONAL"}))
+
     # crypto_dvol — implied-vol risk signal (CANDIDATE, to be graded by the scorecard).
     # Hypothesis (consistent with cycle-clock synthesis): elevated/rising BTC DVOL = risk-off
     # = BTC DOWN; low/falling = risk-on = UP. The scorecard decides if it has real edge.

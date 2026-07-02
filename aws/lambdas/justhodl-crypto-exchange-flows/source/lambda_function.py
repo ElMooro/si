@@ -194,6 +194,19 @@ def lambda_handler(event, context):
     out["sources"] = ["CoinMetrics community: FlowInExNtv / FlowOutExNtv / PriceUSD"]
     if diag:
         out["_diag"] = diag
+    # CryptoQuant fusion (ops 2742): entity-labeled netflow/reserves cross-check; free CM stack retained.
+    try:
+        cq = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cryptoquant-onchain.json")["Body"].read())
+        if cq.get("status") == "LIVE":
+            cm = cq.get("metrics") or {}
+            out["cryptoquant"] = {"btc_netflow": cm.get("btc_exchange_netflow"),
+                "btc_reserve": cm.get("btc_exchange_reserve"), "eth_reserve": cm.get("eth_exchange_reserve"),
+                "stablecoin_reserve": cm.get("stablecoin_exchange_reserve"),
+                "composite_onchain_risk_z": cq.get("composite_onchain_risk_z"),
+                "grading": "PROVISIONAL", "source": "cryptoquant"}
+    except Exception as e:
+        print("[xf] cq join skipped:", str(e)[:80])
+
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"statusCode": 200, "body": json.dumps({"regime": out.get("regime"),

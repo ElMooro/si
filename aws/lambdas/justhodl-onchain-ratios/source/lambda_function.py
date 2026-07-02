@@ -192,6 +192,21 @@ def interpret(btc: dict, eth: dict) -> str:
     return ". ".join(parts) if parts else "On-chain metrics in normal range."
 
 
+def _cq_join(doc, s3c, bucket):
+    """CryptoQuant fusion (ops 2742): whale ratio, MVRV, SOPR, netflow, MPI join the free-source ratios."""
+    try:
+        cq = json.loads(s3c.get_object(Bucket=bucket, Key="data/cryptoquant-onchain.json")["Body"].read())
+        if cq.get("status") == "LIVE":
+            cm = cq.get("metrics") or {}
+            doc["cryptoquant"] = {k: cm.get(k) for k in ("btc_whale_ratio", "btc_mvrv", "btc_sopr", "btc_exchange_netflow", "btc_mpi")}
+            doc["cryptoquant"]["composite_onchain_risk_z"] = cq.get("composite_onchain_risk_z")
+            doc["cryptoquant"]["grading"] = "PROVISIONAL"
+            doc["resurrected"] = "ops 2742 - daily 21:20 UTC"
+    except Exception as e:
+        print("[ratios] cq join skipped:", str(e)[:80])
+    return doc
+
+
 def lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
@@ -207,6 +222,7 @@ def lambda_handler(event, context):
         "interpretation": interp,
         "fetch_duration_s": round(time.time() - started, 1),
     }
+    output = _cq_join(output, s3, S3_BUCKET)
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                   Body=json.dumps(output).encode(),
                   ContentType="application/json", CacheControl="no-cache")

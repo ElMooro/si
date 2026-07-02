@@ -144,9 +144,27 @@ def lambda_handler(event=None, context=None):
             metrics[name] = {"value": round(vals[-1], 4), "z365": z, "pctl_1y": pctl,
                              "wow": round(vals[-1] - vals[-8], 4) if len(vals) >= 8 else None,
                              "as_of": dates[-1], "risk_sign": m.get("risk_sign", 0)}
-            time.sleep(0.3)
+            time.sleep(1.15)
         except Exception as e:
-            errors.append({"metric": name, "err": str(e)[:110]})
+            if "429" in str(e):
+                print("[cq] %s -> 429, retrying in 16s" % name)
+                time.sleep(16)
+                try:
+                    got, vk = _series(m, tok, limit=1000, from_format=spec.get("from_format", "none"))
+                    ser = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
+                    if len(ser) >= 60:
+                        hist[name] = ser
+                        dates = sorted(ser); vals = [ser[d] for d in dates]
+                        w = vals[-365:]
+                        z = round((vals[-1] - statistics.mean(w)) / statistics.stdev(w), 2) if len(w) >= 90 and statistics.stdev(w) > 0 else None
+                        pctl = round(100 * sum(1 for x in w if x <= vals[-1]) / len(w)) if len(w) >= 90 else None
+                        metrics[name] = {"value": round(vals[-1], 4), "z365": z, "pctl_1y": pctl,
+                                         "wow": round(vals[-1] - vals[-8], 4) if len(vals) >= 8 else None,
+                                         "as_of": dates[-1], "risk_sign": m.get("risk_sign", 0)}
+                        continue
+                except Exception as e2:
+                    e = e2
+            errors.append({"metric": name, "err": str(e)[:110]})  # ops 2742
             print("[cq] %s -> %s" % (name, str(e)[:110]))
     min_hist = 900 if spec.get("from_format") == "none" else 1200
     assert len(metrics) >= 4, "too few metrics live: %s errors=%s" % (list(metrics), errors)

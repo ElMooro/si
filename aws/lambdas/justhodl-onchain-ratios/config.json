@@ -36,5 +36,10 @@
     "justhodl-onchain-ratios-6h"
   ],
   "description": "BTC + ETH on-chain ratios (Glassnode-equivalent): MVRV, NVT, hash rate, ETH gas, ETH supply growth. CoinMetrics + mempool.space + etherscan.",
-  "memory": 768
+  "memory": 768,
+  "schedule": {
+    "name": "justhodl-onchain-ratios-daily",
+    "expression": "cron(20 21 * * ? *)",
+    "description": "Resurrected (ops 2742): on-chain ratios + CryptoQuant fusion"
+  }
 }

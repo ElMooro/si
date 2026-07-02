@@ -232,6 +232,14 @@ def lambda_handler(event, context):
     out["sources"] = ["blockchain.com charts: hash-rate / miners-revenue / difficulty / market-price"]
     if diag:
         out["_diag"] = diag
+    # CryptoQuant fusion (ops 2742): entity-labeled Miner Position Index joins blockchain.com economics.
+    try:
+        cq = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cryptoquant-onchain.json")["Body"].read())
+        if cq.get("status") == "LIVE" and (cq.get("metrics") or {}).get("btc_mpi"):
+            out["cryptoquant_mpi"] = dict(cq["metrics"]["btc_mpi"], grading="PROVISIONAL")
+    except Exception as e:
+        print("[miners] cq join skipped:", str(e)[:80])
+
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"statusCode": 200, "body": json.dumps({"ribbon": hribbon.get("state"),
