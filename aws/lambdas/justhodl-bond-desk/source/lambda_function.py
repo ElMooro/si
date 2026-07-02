@@ -52,8 +52,12 @@ def _s3json(k, d=None):
     except Exception: return d
 
 def _fred(series, limit=900):
+    # observation_start makes the URL unique -> bypasses the fleet _fred_shim
+    # same-URL cache that was serving stale short payloads.
+    start=(datetime.now(timezone.utc).date()-timedelta(days=int(limit*1.55))).isoformat()
     url=("https://api.stlouisfed.org/fred/series/observations?series_id=%s"
-         "&api_key=%s&file_type=json&sort_order=desc&limit=%d"%(series,FRED_KEY,limit))
+         "&api_key=%s&file_type=json&sort_order=desc&limit=%d&observation_start=%s"
+         %(series,FRED_KEY,limit,start))
     try:
         with urllib.request.urlopen(url, timeout=20) as r:
             obs=json.loads(r.read()).get("observations",[])
@@ -169,12 +173,12 @@ def lambda_handler(event=None, context=None):
     sf=_s3json("data/settlement-fails.json",{}) or {}
     tp=_s3json("data/term-premium.json",{}) or {}
     ds=_s3json("data/dealer-survey.json",{}) or {}
-    us_stress={"bond_vol_regime":bv.get("composite_regime"),
+    us_stress={"bond_vol_regime":bv.get("composite_regime") or bv.get("regime"),
                "bond_vol_pctile":bv.get("composite_percentile") or _first(bv,("composite_percentile",)),
                "auction_regime":au.get("regime") or _first(au,("regime",),(str,)),
                "fails_pctile":_first(sf,("pctile","percentile")),
                "acm_tp10_d21_bps":(tp.get("deltas_bps") or {}).get("d21"),
-               "dealer_survey":_first(ds,("stance","regime","summary"),(str,))}
+               "dealer_survey":_first(ds,("stance","positioning","summary","headline","regime"),(str,))}
     sz=(((us_stress["bond_vol_pctile"] or 50)-50)/25*0.5
         +((us_stress["fails_pctile"] or 50)-50)/25*0.3
         +max(0,(us_stress["acm_tp10_d21_bps"] or 0))/30*0.2)
@@ -187,7 +191,7 @@ def lambda_handler(event=None, context=None):
     # ─── GLOBAL FUNDING (eurodollar plumbing) ───
     pl=_s3json("data/eurodollar-plumbing.json",{}) or {}
     sev=_first(pl,("severity",),(str,)) or "?"
-    health=_first(pl,("health","health_score"))
+    health=_first(pl,("plumbing_health","health","composite_score","score"))
     swaps=_first(pl,("fed_swaps","value"),(int,float))
     GF={"severity":sev,"health":health,"fed_swaps_chg_bn":swaps,
         "cnh_gap_pips":_first(pl,("gap_pips",)),
@@ -212,8 +216,9 @@ def lambda_handler(event=None, context=None):
             for v in doc[:40]: _find_italy(v,depth+1)
     _find_italy(ef)
     ss=_s3json("data/systemic-stress.json",{}) or {}
-    EU={"fragmentation_score":_first(ef,("fragmentation_score","composite_score","frag_score","score")),
-        "regime":_first(ef,("regime",),(str,)),
+    frag=ef.get("fragmentation") if isinstance(ef.get("fragmentation"),dict) else ef
+    EU={"fragmentation_score":_first(frag,("score","fragmentation_score","composite_score")),
+        "regime":_first(frag,("regime","state"),(str,)) or _first(ef,("regime",),(str,)),
         "btp_bund_bp":_first(ita or ef,("spread_vs_bund_bp",)),
         "btp_chg_1m_bp":_first(ita or ef,("spread_change_1m_bp",)),
         "systemic_stress":_first(ss,("score","composite","level")),

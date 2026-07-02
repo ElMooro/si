@@ -68,12 +68,33 @@ for k in ("data/eurodollar-plumbing.json","data/euro-fragmentation.json","data/b
         print("  %-34s keys:%s"%(k.split("/")[-1],list(doc.keys())[:12]))
     except Exception as e: print("  %-34s ERR %s"%(k,str(e)[:40]))
 print("  settling 25s…"); time.sleep(25)
+ev = boto3.client("events", region_name=REGION)
+def ensure_fn(name):
+    cfg=json.load(open("aws/lambdas/%s/config.json"%name)); zb=zip_fn(name)
+    try:
+        lam.get_function(FunctionName=name); wait_ok(name)
+        retry(lambda: lam.update_function_code(FunctionName=name, ZipFile=zb), name); wait_ok(name)
+    except lam.exceptions.ResourceNotFoundException:
+        retry(lambda: lam.create_function(FunctionName=name, Runtime=cfg["runtime"], Role=cfg["role"],
+              Handler=cfg["handler"], Code={"ZipFile": zb}, Timeout=cfg.get("timeout",120),
+              MemorySize=cfg.get("memory",256), Architectures=cfg.get("architectures",["x86_64"]),
+              Description=cfg.get("description","")), name+" create"); wait_ok(name)
+        print("  CREATED", name)
+    sch=cfg.get("schedule")
+    if sch:
+        arn="arn:aws:lambda:%s:857687956942:function:%s"%(REGION,name)
+        ra=ev.put_rule(Name=sch["name"],ScheduleExpression=sch["expression"],State="ENABLED",
+                       Description=sch.get("description",""))["RuleArn"]
+        try: lam.add_permission(FunctionName=name,StatementId="evt-"+sch["name"],
+                Action="lambda:InvokeFunction",Principal="events.amazonaws.com",SourceArn=ra)
+        except lam.exceptions.ResourceConflictException: pass
+        ev.put_targets(Rule=sch["name"],Targets=[{"Id":"1","Arn":arn}])
 for fn in ("justhodl-bond-vol","justhodl-ici-flows"):
     try:
-        retry(lambda f=fn:(wait_ok(f),lam.update_function_code(FunctionName=f,ZipFile=zip_fn(f)))[-1],fn); wait_ok(fn)
+        ensure_fn(fn)
         rr=lam.invoke(FunctionName=fn,InvocationType="RequestResponse")
-        print("  %s invoke -> %s%s"%(fn,"ERR " if rr.get("FunctionError") else "",(rr["Payload"].read() or b"")[:110].decode("utf-8","ignore")))
-    except Exception as e: print("  %s repair skipped: %s"%(fn,str(e)[:70]))
+        print("  %s invoke -> %s%s"%(fn,"ERR " if rr.get("FunctionError") else "",(rr["Payload"].read() or b"")[:130].decode("utf-8","ignore")))
+    except Exception as e: print("  %s repair skipped: %s"%(fn,str(e)[:80]))
 
 sect("2/3 DEPLOY + RUN v2")
 print("  settling 20s…"); time.sleep(20)
