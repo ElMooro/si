@@ -1,11 +1,11 @@
 settling 30s…
 == 0/3 PAGES DEPLOY LOG (runner egress) ==
-   LOG_FETCH_FAILED: HTTP Error 403: Forbidden
+   LOG_FETCH_FAILED: HTTP Error 403: Server failed to authenticate the request. Make sure the value of Authorization header is formed correct
 == 1/3 CREATE + RUN positioning-analog ==
-  invoke -> {"errorMessage": "SPX history thin: 5000", "errorType": "AssertionError", "requestId": "64ba9b5d-40c6-44c8-9b25-711c69561df8", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 100, in lambda_handler\n    spx = spx_closes(); assert len(spx) > 5000, \"SPX history thin: %d\" % len(spx)\n"]
+  invoke -> {"errorMessage": "panel thin: 140 weeks", "errorType": "AssertionError", "requestId": "f33bc51d-c18e-4a99-87a8-5973099fa4cd", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 123, in lambda_handler\n    assert len(common) > 900, \"panel thin: %d weeks\" % len(common)\n"]}
 Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_2732_analog_pageslog.py", line 95, in <module>
     assert not r.get("FunctionError") and pay.get("ok"), pay
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': 'SPX history thin: 5000', 'errorType': 'AssertionError', 'requestId': '64ba9b5d-40c6-44c8-9b25-711c69561df8', 'stackTrace': ['  File "/var/task/lambda_function.py", line 100, in lambda_handler\n    spx = spx_closes(); assert len(spx) > 5000, "SPX history thin: %d" % len(spx)\n']}
+AssertionError: {'errorMessage': 'panel thin: 140 weeks', 'errorType': 'AssertionError', 'requestId': 'f33bc51d-c18e-4a99-87a8-5973099fa4cd', 'stackTrace': ['  File "/var/task/lambda_function.py", line 123, in lambda_handler\n    assert len(common) > 900, "panel thin: %d weeks" % len(common)\n']}
 ❌ OPS-FAIL: aws/ops/pending/ops_2732_analog_pageslog.py
