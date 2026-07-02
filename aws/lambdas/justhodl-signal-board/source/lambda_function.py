@@ -1020,6 +1020,20 @@ def n_naaim(d):
                                      " (prov)" if d.get("provisional") else "")
 
 
+def n_leverage(d):
+    """System-wide leverage cycle (FINRA margin + NFCI leverage + lev-ETF + crypto).
+    Excess-rolling / forced-delev = fragility; healthy rebuild = supportive."""
+    lm = d.get("leverage_monitor") or {}
+    ph = lm.get("phase")
+    if not ph:
+        return 0, "Leverage n/a"
+    sig = {"FORCED_DELEVERAGING": -2, "EXCESSIVE_ROLLING": -2, "EXCESSIVE_BUILDING": -1,
+           "COOLING": -1, "REBUILDING": 1, "LOW": 1}.get(ph, 0)
+    fy = ((lm.get("layers") or {}).get("retail_finra") or {}).get("yoy_pct")
+    return sig, "LEV %.0f %s%s" % (lm.get("cycle_score") or 0, ph,
+                                   " (FINRA %+.0f%% yoy)" % fy if fy is not None else "")
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1115,6 +1129,7 @@ FEEDS = [
     ("Estimate Revisions",     "equity tactical",  "data/estimate-revisions.json",   n_estimate_revisions),
     ("Risk Regime (RORO)",     "cross-asset",      "data/risk-regime.json",          n_risk_regime),
     ("NAAIM Positioning",      "sentiment",        "data/naaim.json",                n_naaim),
+    ("Leverage Cycle",         "leverage",         "data/margin-lending.json",       n_leverage),
 ]
 
 

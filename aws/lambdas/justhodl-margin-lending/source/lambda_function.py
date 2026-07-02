@@ -169,6 +169,197 @@ def maybe_telegram(msg):
         print(f"[tg] err: {e}")
 
 
+
+
+# ═══════════════ LEVERAGE MONITOR v2 (ops 2707) ═══════════════
+# Fills the true institutional gaps the v1 (quarterly Z.1) engine couldn't:
+# FINRA MONTHLY margin debt (the canonical retail-leverage series), Chicago
+# Fed NFCI Leverage subindex (weekly), OFR hedge-fund leverage (probe-gated),
+# plus synthesis of the fleet's own leveraged-ETF tilt + crypto OI/funding.
+import re as _re, zipfile as _zf, statistics as _st
+FINRA_HIST_KEY = "data/history/finra-margin.json"
+FINRA_URLS = [
+    "https://www.finra.org/investors/investing/investment-products/stocks/margin-statistics",
+    "https://www.finra.org/rules-guidance/key-topics/margin-accounts/margin-statistics",
+]
+_MONTHS = {m: i + 1 for i, m in enumerate(
+    ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
+
+
+def _ua_get(url, timeout=25, binary=False):
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) jh/1"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        b = r.read()
+    return b if binary else b.decode("utf-8", "ignore")
+
+
+def _xlsx_rows_coord(blob):
+    """Coordinate-aware xlsx reader (NAAIM lesson: doc-order shifts on empty cells)."""
+    z = _zf.ZipFile(io.BytesIO(blob))
+    shared = []
+    if "xl/sharedStrings.xml" in z.namelist():
+        sx = z.read("xl/sharedStrings.xml").decode("utf-8", "ignore")
+        shared = [_re.sub(r"<[^>]+>", "", m) for m in _re.findall(r"<si>(.*?)</si>", sx, _re.S)]
+    sheet = next((n for n in z.namelist() if _re.match(r"xl/worksheets/sheet1\.xml", n)), None)
+    if not sheet:
+        return []
+    xml = z.read(sheet).decode("utf-8", "ignore")
+    rows = []
+    for rxml in _re.findall(r"<row[^>]*>(.*?)</row>", xml, _re.S):
+        row = {}
+        for ref, ctype, cv in _re.findall(r'<c[^>]*?r="([A-Z]+)\d+"[^>]*?(?:t="(\w+)")?[^>]*>.*?<v>(.*?)</v>', rxml, _re.S):
+            if ctype == "s":
+                try:
+                    cv = shared[int(cv)]
+                except Exception:
+                    pass
+            col = 0
+            for ch in ref:
+                col = col * 26 + (ord(ch) - 64)
+            row[col - 1] = cv
+        if row:
+            rows.append([row.get(i, "") for i in range(max(row) + 1)])
+    return rows
+
+
+def _rows_to_finra(rows):
+    """rows (xlsx or html-table cells) -> {YYYY-MM: debit_$M}. Debit balances
+    live in the 100,000-2,000,000 $M band; month token or excel serial keys."""
+    out = {}
+    for row in rows:
+        ym = None
+        for cell in row[:3]:
+            c = str(cell).strip()
+            m = _re.match(r"([A-Za-z]{3,9})[\s\-/,]*'?(\d{2,4})$", c)
+            if m and m.group(1)[:3].lower() in _MONTHS:
+                y = int(m.group(2)); y += 2000 if y < 50 else 1900 if y < 100 else 0
+                ym = "%04d-%02d" % (y, _MONTHS[m.group(1)[:3].lower()]); break
+            try:
+                n = float(c)
+                if 30000 < n < 60000:
+                    d = datetime(1899, 12, 30) + timedelta(days=n)
+                    ym = d.strftime("%Y-%m"); break
+            except Exception:
+                pass
+        if not ym:
+            continue
+        for cell in row:
+            try:
+                v = float(str(cell).replace(",", "").replace("$", "").strip())
+            except Exception:
+                continue
+            if 100_000 <= v <= 2_000_000:
+                out[ym] = round(v, 0); break
+    return out
+
+
+def _finra_live():
+    """Best-effort live pull: discover xlsx (full history) else page table."""
+    for url in FINRA_URLS:
+        try:
+            html = _ua_get(url)
+        except Exception as e:
+            print(f"[lev] finra page {url[:60]}: {str(e)[:60]}"); continue
+        got = {}
+        for href in _re.findall(r'href="([^"]+\.xlsx[^"]*)"', html, _re.I):
+            if "margin" not in href.lower():
+                continue
+            u = href if href.startswith("http") else "https://www.finra.org" + href
+            try:
+                got = _rows_to_finra(_xlsx_rows_coord(_ua_get(u, binary=True, timeout=40)))
+                if got:
+                    print(f"[lev] finra xlsx parsed: {len(got)} months from {u[:70]}"); return got
+            except Exception as e:
+                print(f"[lev] finra xlsx fail: {str(e)[:60]}")
+        rows = [[_re.sub(r"<[^>]+>", " ", c).strip() for c in _re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, _re.S)]
+                for tr in _re.findall(r"<tr[^>]*>(.*?)</tr>", html, _re.S)]
+        got = _rows_to_finra(rows)
+        if got:
+            print(f"[lev] finra html table parsed: {len(got)} months"); return got
+    return {}
+
+
+def _finra_layer(market_cap_t):
+    hist = get_s3_json(FINRA_HIST_KEY, {}) or {}
+    hist = {k: v for k, v in hist.items() if _re.match(r"\d{4}-\d{2}$", str(k))}
+    live = {}
+    try:
+        live = _finra_live()
+    except Exception as e:
+        print(f"[lev] finra live err {str(e)[:60]}")
+    src = "live+stored" if live else "stored_only"
+    hist.update(live)
+    if hist:
+        put_s3_json(FINRA_HIST_KEY, hist)
+    ser = sorted(hist.items())
+    if not ser:
+        return {"status": "UNAVAILABLE", "source": src}, []
+    ym, vM = ser[-1]
+    vB = round(vM / 1000.0, 1)
+    def _at(back):
+        return ser[-1 - back][1] if len(ser) > back else None
+    yoy = round(100 * (vM / _at(12) - 1), 1) if _at(12) else None
+    m6 = round(100 * (vM / _at(6) - 1), 1) if _at(6) else None
+    yoys = []
+    for i in range(12, len(ser)):
+        p = ser[i - 12][1]
+        if p:
+            yoys.append(100 * (ser[i][1] / p - 1))
+    z = round((yoy - _st.fmean(yoys)) / _st.pstdev(yoys), 2) if yoy is not None and len(yoys) > 24 and _st.pstdev(yoys) else None
+    pct_cap = round(100 * vB / (market_cap_t * 1000), 2) if market_cap_t else None
+    if yoy is not None and yoy <= -15:
+        st = "FORCED_DELEVERAGING"
+    elif (z is not None and z >= 1.5) or (yoy is not None and yoy >= 45):
+        st = "EXCESSIVE_BUILD"
+    elif yoy is not None and yoy >= 15:
+        st = "BUILDING"
+    elif yoy is not None and yoy <= -5:
+        st = "CONTRACTING"
+    else:
+        st = "NORMAL"
+    layer = {"latest_b": vB, "latest_month": ym, "yoy_pct": yoy, "m6_pct": m6,
+             "yoy_z": z, "pct_of_market_cap": pct_cap, "months_n": len(ser),
+             "status": st, "source": src, "provisional": len(ser) < 24,
+             "note": "FINRA monthly debit balances in customers' securities margin accounts"}
+    chart = [{"date": k + "-01", "value": round(v / 1000.0, 1)} for k, v in ser[-300:]]
+    return layer, chart
+
+
+def _deep_nums(doc, keys, out=None, depth=0):
+    out = [] if out is None else out
+    if depth > 8:
+        return out
+    if isinstance(doc, dict):
+        for k, v in doc.items():
+            if isinstance(v, (int, float)) and any(t in str(k).lower() for t in keys):
+                out.append(float(v))
+            else:
+                _deep_nums(v, keys, out, depth + 1)
+    elif isinstance(doc, list):
+        for v in doc[:400]:
+            _deep_nums(v, keys, out, depth + 1)
+    return out
+
+
+def _ofr_hf_layer():
+    for u in ("https://www.financialresearch.gov/hedge-fund-monitor/api/series/leverage.json",
+              "https://www.financialresearch.gov/hedge-fund-monitor/data/leverage.json",
+              "https://www.financialresearch.gov/hedge-fund-monitor/chart-data/gross-leverage.json"):
+        try:
+            j = json.loads(_ua_get(u, timeout=15))
+            nums = _deep_nums(j, ("gross", "leverage", "value"))
+            if nums:
+                return {"status": "OK", "latest": nums[-1], "source": u}
+        except Exception:
+            continue
+    return {"status": "UNAVAILABLE",
+            "note": "OFR HF monitor exposes charts, no stable public JSON found; layer excluded from composite (weight renormalized)"}
+
+
+def _clamp_z(z, lim=2.5):
+    return max(-lim, min(lim, z))
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print("[margin-lending] starting")
@@ -295,9 +486,92 @@ def lambda_handler(event, context):
         interp = ("Leverage deeply suppressed. Often follows deleveraging events. "
                   "Bottoming conditions if other oversold indicators align.")
 
+
+    # ═══════════ LEVERAGE MONITOR v2 assembly (ops 2707) ═══════════
+    finra, finra_chart = _finra_layer(market_cap_t)
+
+    nfci = get_fred_series("NFCILEVERAGE", limit=900)  # weekly; + = tighter, - = leverage building
+    nfci_layer = {"status": "UNAVAILABLE"}
+    nfci_z = None
+    if nfci:
+        vals = [o["value"] for o in nfci]
+        cur = vals[0]
+        mu, sd = _st.fmean(vals), _st.pstdev(vals)
+        nfci_z = round((cur - mu) / sd, 2) if sd else None
+        d4 = round(cur - vals[4], 3) if len(vals) > 4 else None
+        st = ("DELEVERAGING_STRESS" if cur >= 0.6 else "TIGHTENING" if cur >= 0.15
+              else "LEVERAGE_HOT" if cur <= -0.6 else "BUILDING" if cur <= -0.15 else "NEUTRAL")
+        nfci_layer = {"latest": round(cur, 3), "z": nfci_z, "chg_4w": d4,
+                      "date": nfci[0]["date"], "status": st,
+                      "note": "Chicago Fed NFCI Leverage subindex; NEGATIVE = looser = leverage building"}
+
+    hf_layer = _ofr_hf_layer()
+
+    etf_layer = {"status": "UNAVAILABLE"}
+    radar = get_s3_json("data/capital-flow-radar.json", {}) or {}
+    lp = radar.get("leveraged_positioning")
+    if lp is not None:
+        nets = _deep_nums(lp, ("net",))
+        zs = _deep_nums(lp, ("z",))
+        etf_layer = {"status": "OK", "net_sum": round(sum(nets), 1) if nets else None,
+                     "n_complexes": len(nets), "avg_z": round(_st.fmean(zs), 2) if zs else None,
+                     "note": "fleet capital-flow-radar leveraged bull-minus-bear positioning"}
+
+    cr_layer = {"status": "UNAVAILABLE"}
+    cf = get_s3_json("data/crypto-funding.json", {}) or {}
+    fz = _deep_nums(cf, ("funding_z",))
+    oi = _deep_nums(cf, ("oi_usd",))
+    if fz or oi:
+        cr_layer = {"status": "OK",
+                    "funding_z_med": round(_st.median(fz), 2) if fz else None,
+                    "oi_usd_total_b": round(sum(oi) / 1e9, 1) if oi else None,
+                    "note": "fleet crypto-funding: perp funding z (crowding) + aggregate OI"}
+
+    comps = []
+    if finra.get("yoy_z") is not None:
+        comps.append((0.30, _clamp_z(finra["yoy_z"])))
+    elif finra.get("yoy_pct") is not None:
+        comps.append((0.30, _clamp_z(finra["yoy_pct"] / 20.0)))
+    if nfci_z is not None:
+        comps.append((0.25, _clamp_z(-nfci_z)))          # building = negative NFCI = +leverage
+    if isinstance(hf_layer.get("latest"), (int, float)):
+        comps.append((0.15, 0.0))                          # level w/o history: neutral until series accumulates
+    if etf_layer.get("avg_z") is not None:
+        comps.append((0.15, _clamp_z(etf_layer["avg_z"])))
+    if cr_layer.get("funding_z_med") is not None:
+        comps.append((0.15, _clamp_z(cr_layer["funding_z_med"])))
+    tw = sum(w for w, _ in comps) or 1.0
+    cycle = round(max(0, min(100, 50 + 20 * sum(w * z for w, z in comps) / tw)), 1)
+
+    prior_lm = (get_s3_json(S3_KEY_OUT, {}) or {}).get("leverage_monitor") or {}
+    d_cycle = round(cycle - prior_lm["cycle_score"], 1) if isinstance(prior_lm.get("cycle_score"), (int, float)) else None
+    fy = finra.get("yoy_pct")
+    if fy is not None and fy <= -15:
+        phase = "FORCED_DELEVERAGING"
+    elif cycle >= 70:
+        phase = "EXCESSIVE_ROLLING" if (d_cycle is not None and d_cycle < -1.5) else "EXCESSIVE_BUILDING"
+    elif cycle >= 55:
+        phase = "BUILDING"
+    elif cycle <= 35:
+        phase = "REBUILDING" if (d_cycle is not None and d_cycle > 1.5) else "LOW"
+    else:
+        phase = "COOLING" if (d_cycle is not None and d_cycle < -1.5) else "NEUTRAL"
+
+    LM = {"version": "2.0.0", "cycle_score": cycle, "phase": phase, "delta_vs_prior": d_cycle,
+          "n_layers_live": sum(1 for L in (finra, nfci_layer, hf_layer, etf_layer, cr_layer)
+                               if L.get("status") not in (None, "UNAVAILABLE")),
+          "layers": {"retail_finra": dict(finra, history=finra_chart),
+                     "system_nfci": nfci_layer, "hedge_funds_ofr": hf_layer,
+                     "spec_etf": etf_layer, "crypto": cr_layer},
+          "method": ("Composite of clamped z-scores, weights renormalized over live layers "
+                     "(retail .30 / NFCI .25 / HF .15 / lev-ETF .15 / crypto .15); "
+                     "phase = level x momentum quadrant + FINRA forced-deleveraging override")}
+    print(f"[lev] cycle={cycle} phase={phase} finra={finra.get('latest_b')}B "
+          f"yoy={fy} nfci={nfci_layer.get('latest')} layers={LM['n_layers_live']}/5")
+
     output = {
-        "schema_version": "1.0",
-        "method": "margin_lending_v1",
+        "schema_version": "2.0",
+        "method": "leverage_monitor_v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "margin_debt": {
             "absolute_usd_b": md_now,
@@ -346,11 +620,13 @@ def lambda_handler(event, context):
             "reasons": squeeze_reasons,
             "interpretation": interp,
         },
+        "leverage_monitor": LM,
         "duration_s": round(time.time() - t0, 2),
     }
 
     prior_run = get_s3_json(S3_KEY_OUT, {}) or {}
     put_s3_json(S3_KEY_OUT, output)
+    put_s3_json("data/leverage-monitor.json", output)   # page + fleet alias
 
     print(f"[margin-lending] md={md_pct_of_cap}% squeeze={squeeze_score}({squeeze_band})")
 
