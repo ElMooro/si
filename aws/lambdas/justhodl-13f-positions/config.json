@@ -27,5 +27,10 @@
     "justhodl-13f-positions-6h"
   ],
   "description": "Parse 13F infotables from 18 institutional funds. Compute NEW/ADD/TRIM/EXIT vs prior quarter. Aggregate by ticker. Caches per-accession to avoid re-parsing.",
-  "memory": 1024
+  "memory": 1024,
+  "schedule": {
+    "name": "justhodl-13f-positions-sched",
+    "expression": "cron(10 21 ? * MON-FRI *)",
+    "description": "13F holdings + adds/exits daily refresh"
+  }
 }

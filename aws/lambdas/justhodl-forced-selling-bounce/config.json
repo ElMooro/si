@@ -14,5 +14,10 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Forced-Selling Bounce every 30 min during US trading 13-21 UTC"
+  },
+  "schedule": {
+    "name": "justhodl-forced-selling-bounce-sched",
+    "expression": "cron(5 21 ? * MON-FRI *)",
+    "description": "Forced-selling / breadth divergence"
   }
 }

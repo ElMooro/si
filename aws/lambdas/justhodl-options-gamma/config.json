@@ -38,5 +38,10 @@
     "justhodl-options-gamma-30min"
   ],
   "description": "SPY dealer gamma exposure (GEX). Pulls full options chain via Polygon, computes Black-Scholes gamma, aggregates by strike/expiry, classifies regime.",
-  "memory": 1024
+  "memory": 1024,
+  "schedule": {
+    "name": "justhodl-options-gamma-sched",
+    "expression": "cron(30 20 ? * MON-FRI *)",
+    "description": "Options gamma surface"
+  }
 }

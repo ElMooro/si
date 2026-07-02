@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-institutional-footprint",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 768,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Surveillance desk: fusion of 13F/CFTC/GEX/skew/short-interest/dark-pool/flows into institutional posture (risk-now vs risk-forward), sector & stock buy/sell lists, conviction moves, AI dossier.",
+  "schedule": {
+    "name": "justhodl-institutional-footprint-daily",
+    "expression": "cron(10 23 ? * MON-FRI *)",
+    "description": "Nightly after the full smart-money fleet"
+  }
+}

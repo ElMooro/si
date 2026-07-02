@@ -15,5 +15,10 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "13F vs price divergence resolution weekly Tuesday 06 UTC"
+  },
+  "schedule": {
+    "name": "justhodl-13f-price-divergence-sched",
+    "expression": "cron(20 21 ? * MON-FRI *)",
+    "description": "13F aggregate vs price divergence"
   }
 }

@@ -1153,6 +1153,15 @@ def n_capex(d):
         hs.get("total_ttm_b") or 0,hy or 0,mk.get("capex_ttm_b") or 0,mk.get("yoy_pct") or 0)
 
 
+def n_footprint(d):
+    """Institutional posture: what they're doing vs what they're positioning for."""
+    p=d.get("posture") or {}
+    rn,rf=p.get("risk_now"),p.get("risk_forward")
+    if rn is None and rf is None: return 0,"Footprint n/a"
+    sig=1 if (rn or 0)>18 and (rf or 0)>-10 else -1 if (rf or 0)<-15 or (rn or 0)<-18 else 0
+    return sig,"INSTITUTIONS %s (%s) -> %s (%s) | feeds %s"%(p.get("now_label"),rn,p.get("forward_label"),rf,d.get("feeds_alive"))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1258,6 +1267,7 @@ FEEDS = [
     ("Factor Returns",         "equity",           "data/factor-returns.json",       n_factors),
     ("Stock X-Ray",            "equity",           "data/stock-xray.json",           n_xray),
     ("Global Flows",           "flow",             "data/global-flow-desk.json",     n_globalflows),
+    ("Institutional Footprint","flow",             "data/institutional-footprint.json", n_footprint),
     ("CapEx Pulse",            "equity",           "data/capex-pulse.json",          n_capex),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]

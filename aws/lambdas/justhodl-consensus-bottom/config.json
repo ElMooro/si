@@ -14,5 +14,10 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Consensus Bottom weekly Tue 07 UTC after divergence refresh at Tue 06 UTC"
+  },
+  "schedule": {
+    "name": "justhodl-consensus-bottom-sched",
+    "expression": "cron(25 21 ? * MON-FRI *)",
+    "description": "13F consensus-bottom marks"
   }
 }

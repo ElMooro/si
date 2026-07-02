@@ -4,5 +4,10 @@
   "Handler": "lambda_function.lambda_handler",
   "MemorySize": 512,
   "Timeout": 600,
-  "Description": "Tracks FINRA short volume + Polygon short interest. Detects squeeze risk, crowded shorts, distribution, covering."
+  "Description": "Tracks FINRA short volume + Polygon short interest. Detects squeeze risk, crowded shorts, distribution, covering.",
+  "schedule": {
+    "name": "justhodl-short-interest-sched",
+    "expression": "cron(15 21 ? * MON,WED *)",
+    "description": "FINRA short interest (biweekly pub)"
+  }
 }
