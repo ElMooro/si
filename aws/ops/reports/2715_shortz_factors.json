@@ -1,0 +1,82 @@
+{
+ "ops": 2715,
+ "ts": "2026-07-02T05:02:09.477759+00:00",
+ "dark_pool": {
+  "z_joined": 25,
+  "of": 60,
+  "high_conviction": [
+   "TEL",
+   "WAB",
+   "STT",
+   "EXPD",
+   "CNC",
+   "EXR",
+   "BXP",
+   "NEM",
+   "HSY",
+   "TECH",
+   "ESS",
+   "INCY"
+  ],
+  "dist_into_strength": [],
+  "own_dix": 57.68,
+  "sq_dix": 0.44503,
+  "history_store": {
+   "tickers": 13075,
+   "median_days": 35,
+   "max_days": 35,
+   "ge15": 11891
+  },
+  "join_forensics": {
+   "daily": 501,
+   "board": 60,
+   "inter": 25
+  },
+  "diag": {
+   "fh_type": "dict",
+   "fh_tickers": 13075,
+   "zmap_n": 11889,
+   "daily_n": 501,
+   "daily_z_n": 500,
+   "joined_all": 485,
+   "z_all": 485
+  },
+  "weekly_source": "FRESH"
+ },
+ "factors": {
+  "universe": 2998,
+  "ok_factors": {
+   "MOMENTUM": -6.407,
+   "VALUE": 1.775,
+   "QUALITY": 0.938,
+   "SIZE": 0.903,
+   "LOWVOL": 1.997
+  },
+  "thin": [],
+  "mom_crowding": 25.7,
+  "mom_pe_vs_univ": [
+   63.2,
+   21.7
+  ],
+  "regime": "LOWVOL leading / MOMENTUM lagging \u00b7 MOMENTUM_CRASH DEFENSIVE_BID",
+  "flags": [
+   "MOMENTUM_CRASH",
+   "DEFENSIVE_BID"
+  ],
+  "top_mom_names": [
+   "MU",
+   "SNDK",
+   "AMD",
+   "INTC",
+   "AMAT",
+   "MRVL",
+   "LRCX",
+   "NBIS"
+  ]
+ },
+ "board": {
+  "Factor Returns": "{\"engine\": \"Factor Returns\", \"category\": \"equity\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"read\": \"FACTORS LOWVOL leading / MOMENTUM lagging \\u00b7 MOMENTUM_CRASH DEFENSIVE (MOM L/S -6.41",
+  "Dark Pool": "{\"engine\": \"Dark Pool\", \"category\": \"flow\", \"signal\": 1, \"signal_label\": \"RISK-ON\", \"read\": \"DARK POOL own-DIX 57.7% BUYING PRESSURE (accum 283 / dist 62)\", \"as_of\": \"2026-07-02T05:03:14.723"
+ },
+ "page": "LIVE"
+}
