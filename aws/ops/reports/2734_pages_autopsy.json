@@ -1,0 +1,44 @@
+{
+ "ops": 2734,
+ "ts": "2026-07-02T18:03:48.484916+00:00",
+ "pages_build": {
+  "status": "building",
+  "error": null,
+  "commit": "07aa82a8",
+  "created": "2026-07-02T18:03:35Z"
+ },
+ "run": {
+  "id": 28607935124,
+  "sha": "01b7ce5e",
+  "attempt": 4
+ },
+ "deploy_log": {
+  "job": 84843590112,
+  "bytes": 3488,
+  "errors": [
+   "2026-07-02T18:01:09.3610822Z   timeout: 600000",
+   "2026-07-02T18:01:09.3611297Z   error_count: 10",
+   "2026-07-02T18:01:09.3612374Z   artifact_name: github-pages",
+   "2026-07-02T18:01:09.8343122Z Fetching artifact metadata for \"github-pages\" in this workflow run",
+   "2026-07-02T18:01:10.0840489Z Found 1 artifact(s)",
+   "2026-07-02T18:01:10.0855633Z \t\"artifact_id\": 8046207378,",
+   "2026-07-02T18:01:15.7968870Z ##[error]Deployment cancelled."
+  ],
+  "tail": [
+   "2026-07-02T18:01:09.8343122Z Fetching artifact metadata for \"github-pages\" in this workflow run",
+   "2026-07-02T18:01:10.0840489Z Found 1 artifact(s)",
+   "2026-07-02T18:01:10.0853942Z Creating Pages deployment with payload:",
+   "2026-07-02T18:01:10.0854941Z {",
+   "2026-07-02T18:01:10.0855633Z \t\"artifact_id\": 8046207378,",
+   "2026-07-02T18:01:10.0856892Z \t\"pages_build_version\": \"01b7ce5e562cbdc3ee6c407bc3075fe2861a803e\",",
+   "2026-07-02T18:01:10.0976296Z \t\"oidc_token\": \"***\"",
+   "2026-07-02T18:01:10.0977712Z }",
+   "2026-07-02T18:01:10.5357815Z Created deployment for 01b7ce5e562cbdc3ee6c407bc3075fe2861a803e, ID: 01b7ce5e562cbdc3ee6c407bc3075fe2861a803e",
+   "2026-07-02T18:01:15.5366696Z Getting Pages deployment status...",
+   "2026-07-02T18:01:15.7968870Z ##[error]Deployment cancelled.",
+   "2026-07-02T18:01:15.8269651Z Evaluate and set environment url",
+   "2026-07-02T18:01:15.8275663Z Evaluated environment url: https://justhodl.ai/",
+   "2026-07-02T18:01:15.8276752Z Cleaning up orphan processes"
+  ]
+ }
+}

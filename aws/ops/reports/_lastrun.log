@@ -1,14 +1,12 @@
 == A) pages builds latest ==
-   {"status": "building", "error": null, "commit": "38088193", "created": "2026-07-02T17:06:29Z"}
+   {"status": "building", "error": null, "commit": "07aa82a8", "created": "2026-07-02T18:03:35Z"}
 == B) newest failed deploy-job log ==
-  job 84832398548 log 4423B
-   E: 2026-07-02T17:04:40.2783716Z   timeout: 600000
-   E: 2026-07-02T17:04:40.2784439Z   error_count: 10
-   E: 2026-07-02T17:04:40.2785893Z   artifact_name: github-pages
-   E: 2026-07-02T17:04:40.6202705Z Fetching artifact metadata for "github-pages" in this workflow run
-   E: 2026-07-02T17:04:40.8407324Z Found 1 artifact(s)
-   E: 2026-07-02T17:04:40.8419071Z 	"artifact_id": 8046142939,
-   E: 2026-07-02T17:04:41.2267242Z ##[error]Creating Pages deployment failed
-   E: 2026-07-02T17:04:41.3531789Z ##[error]HttpError: Deployment request failed for 38088193c8de28089023eef3f39974f23a320991 due to in progress deployment. Please ca
-   E: 2026-07-02T17:04:41.3539769Z ##[error]Error: Failed to create deployment (status: 400) with build version 38088193c8de28089023eef3f39974f23a320991. Request ID 5
-OPS 2733 COMPLETE — root cause captured
+  job 84843590112 log 3488B
+   E: 2026-07-02T18:01:09.3610822Z   timeout: 600000
+   E: 2026-07-02T18:01:09.3611297Z   error_count: 10
+   E: 2026-07-02T18:01:09.3612374Z   artifact_name: github-pages
+   E: 2026-07-02T18:01:09.8343122Z Fetching artifact metadata for "github-pages" in this workflow run
+   E: 2026-07-02T18:01:10.0840489Z Found 1 artifact(s)
+   E: 2026-07-02T18:01:10.0855633Z 	"artifact_id": 8046207378,
+   E: 2026-07-02T18:01:15.7968870Z ##[error]Deployment cancelled.
+OPS 2734 COMPLETE — root cause captured
