@@ -1,9 +1,8 @@
 settling 30s…
 invoke -> {"ok": true, "classes": {"EQUITY_US": -40063.7, "EQUITY_INTL": -5922.3, "SECTORS": 858.7, "TREASURIES": -170.2, "CREDIT": -214.4, "TIPS": 941.1, "CRYPTO": -61.6, "COMMODITIES": 96.1, "THEMATIC": -124.9, "DIVIDEND_VALUE": 124.4, "GROWTH": -1068.3, "VOL": 0.0, "GOLD": -505.9, "SILVER": -52.2, "REAL_ESTATE": 55.4, "CASH": -17.7}, "inst": 21.
-{"populated_classes": 16, "hot": {"n": 6, "in": ["India", "Brazil", "China", "Japan", "EM (broad)"], "out": ["DM ex-US", "EM (broad)", "Japan", "China", "Brazil"]}, "inst_retail": {"institutional": 21.5, "retail": null, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": null, "stablecoin_7d_usd_m": null, "divergence": null}, "sectors": {"leaders": ["XLF", "XLV", "XLI"], "laggards": ["XLP", "XLB", "XLK"], "n": 11}, "ai": true}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2721_global_flow_desk.py", line 84, in <module>
-    assert HOT["n_scored"] >= 12, "country map thin: %d" % HOT["n_scored"]
-           ^^^^^^^^^^^^^^^^^^^^^
-AssertionError: country map thin: 6
-❌ OPS-FAIL: aws/ops/pending/ops_2721_global_flow_desk.py
+{"populated_classes": 16, "hot": {"n": 12, "in": ["UK", "Germany", "India", "Brazil", "South Korea"], "out": ["DM ex-US", "EM (broad)", "Taiwan", "Japan", "Australia"]}, "inst_retail": {"institutional": 21.5, "retail": -7.0, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": 0.08800000000000002, "stablecoin_7d_usd_m": -2872.1, "divergence": "ALIGNED NEUTRAL"}, "sectors": {"leaders": ["XLF", "XLV", "XLI"], "laggards": ["XLP", "XLB", "XLK"], "n": 11}, "ai": true}
+  src_counts: {'true_flows': 9, 'etf_global': 7} | warming: 13 ['EWW', 'EZA', 'TUR', 'EPOL', 'ARGT', 'EIDO', 'VNM', 'THD', 'EWQ', 'EWL', 'EWI', 'EWP', 'EWS']
+  inst_retail v2: {"institutional": 21.5, "retail": -7.0, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": 0.08800000000000002, "stablecoin_7d_usd_m": -2872.1, "divergence": "ALIGNED NEUTRAL"}
+board: {"engine": "Global Flows", "category": "flow", "signal": 0, "signal_label": "NEUTRAL", "read": "GLOBAL FLOWS inst 21.5 / retail -7.0 \u2014 ALIGNED NEUTRAL; hot in UK,Germany out DM ex-US,EM (broad)", "as_of": "2026-07-0
+page: propagating: HTTP Error 403: Forbidden
+OPS 2721 COMPLETE — the desk knows where money is going
