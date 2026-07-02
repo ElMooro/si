@@ -1,95 +1,162 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Institutional Footprint — JustHodl.AI</title><!-- v1.1.2 -->
+<title>Institutional Footprint — JustHodl.AI</title><!-- v2.0 -->
 <style>
-:root{--bg:#070b12;--card:#0d1420;--line:#1c2a3d;--fg:#dfe9f5;--fg2:#93a8c4;--fg3:#54687f;--cy:#3fd0ff;--am:#ffd24a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 500px at 70% -10%,#0e1a2e 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
-.wrap{max-width:1280px;margin:0 auto;padding:26px 18px 70px}
+:root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 75% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 18px 70px}
 h1{font-size:20px;margin:0 0 2px;letter-spacing:.4px}
-.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:18px}
-.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px}
-.dial{background:linear-gradient(160deg,var(--card),#0a111c);border:1px solid var(--line);border-radius:14px;padding:18px}
-.dial h3{margin:0 0 6px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2)}
-.big{font-family:var(--mono);font-size:34px;font-weight:800}
-.lab{font-family:var(--mono);font-size:12px;margin-top:2px}
-.bar{height:7px;background:#101a29;border-radius:5px;margin-top:10px;position:relative;overflow:hidden}
-.bar i{position:absolute;top:0;bottom:0;width:3px;background:#fff;left:50%}
+.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:13px;margin-bottom:14px}
+.dial{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:16px 17px;position:relative}
+.dial h3,.c h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2);font-weight:600}
+.big{font-family:var(--mono);font-size:33px;font-weight:800;line-height:1}
+.lab{font-family:var(--mono);font-size:11.5px;margin-top:4px}
+.bar{height:7px;background:#101a2b;border-radius:5px;margin-top:10px;position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;width:2px;background:#fff6;left:50%}
 .bar b{position:absolute;top:0;bottom:0;border-radius:5px}
 .comp{color:var(--fg3);font-size:10px;margin-top:8px;font-family:var(--mono);line-height:1.7}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:13px}
+.spark{position:absolute;right:14px;top:14px;opacity:.9}
+.dossier{background:linear-gradient(160deg,#0f1c31,#0a1322);border:1px solid #274668;border-radius:14px;padding:16px 20px;margin:0 0 14px;font-size:14px;line-height:1.7}
+.dossier h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.8px;color:var(--cy)}
+.dsrc{color:var(--fg3);font-size:10px;font-family:var(--mono);margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:13px}
 .c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
-.c h3{margin:0 0 10px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2)}
-.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin:4px 0}
+.wide{grid-column:1/-1}
+.kv{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--fg2);margin:5px 0;gap:8px}
+.kv .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar{flex:1;height:6px;background:#0f1828;border-radius:4px;margin:0 4px;position:relative;min-width:40px}
+.hbar b{position:absolute;top:0;bottom:0;border-radius:4px}
 .tk{color:var(--cy);cursor:pointer}
-.tag{display:inline-block;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);margin:2px 4px 2px 0;background:#0a111c}
+.tag{display:inline-flex;gap:5px;align-items:baseline;font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);margin:2px 5px 2px 0;background:#0a111d}
+.tag small{color:var(--fg3);font-size:9px}
 .g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}.vi{color:var(--vi)}
-.dossier{background:linear-gradient(160deg,#101a2c,#0b1220);border:1px solid #26405e;border-radius:12px;padding:16px 18px;margin:16px 0;font-size:13.5px;line-height:1.65}
-.dossier h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.6px;color:var(--cy)}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
-td,th{padding:6px 8px;border-bottom:1px solid #16233500;text-align:left;color:var(--fg2)}
-th{color:var(--fg3);font-size:10px;letter-spacing:1.2px}
-.load{color:var(--fg3);font-family:var(--mono);padding:40px;text-align:center}
+td,th{padding:6px 8px;text-align:left;color:var(--fg2);border-bottom:1px solid #131f3200}
+th{color:var(--fg3);font-size:10px;letter-spacing:1.2px;border-bottom:1px solid var(--line)}
+tr:hover td{background:#0e1626}
+td.num,th.num{text-align:right}
+.chip{font-size:9.5px;padding:2px 7px;border-radius:10px;font-family:var(--mono)}
+.chip.buy{background:#0d2b22;color:var(--gr);border:1px solid #1c4a3a}
+.chip.sell{background:#2d1218;color:var(--rd);border:1px solid #52222c}
+.chip.flat{background:#12203a;color:var(--cy);border:1px solid #22406b}
+.feeds{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.feeds span{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:5px;background:#0a1420;border:1px solid var(--line);color:var(--fg3)}
+.feeds span.dead{color:var(--rd);border-color:#52222c}
+.load{color:var(--fg3);font-family:var(--mono);padding:44px;text-align:center}
+svg text{font-family:var(--mono)}
+@media(max-width:700px){.big{font-size:27px}}
 </style></head><body><div class="wrap">
 <h1>🕵️ INSTITUTIONAL FOOTPRINT — SURVEILLANCE DESK</h1>
 <div class="sub" id="meta">Assembling dossier…</div>
 <div id="app" class="load">Loading…</div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
-const F=v=>(v===null||v===undefined||v==='')?'—':v;
-const m$=v=>v==null?'—':(v>0?'+':'')+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'B':v.toFixed(0)+'M');
+const fin=v=>Number.isFinite(v);
+const F=v=>fin(v)||typeof v==='string'?v:'—';
+const mUsd=v=>!fin(v)?'—':(v>0?'+':'−')+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'B':Math.abs(v).toFixed(0)+'M');
+const bUsd=v=>!fin(v)?'—':(v>0?'+':'−')+'$'+Math.abs(v).toFixed(1)+'B';
+const kCt=v=>!fin(v)?'—':(v>0?'+':'−')+Math.abs(v/1000).toFixed(0)+'k';
+const col=v=>!fin(v)?'var(--fg3)':v>0?'var(--gr)':v<0?'var(--rd)':'var(--cy)';
+const esc=s=>String(s??'').replace(/</g,'&lt;');
+function spark(rows,key,w=120,h=34){
+ const vs=rows.map(r=>r[key]).filter(fin); if(vs.length<3)return'';
+ const mn=Math.min(...vs,0),mx=Math.max(...vs,0),rg=(mx-mn)||1;
+ const pts=rows.filter(r=>fin(r[key])).map((r,i,a)=>`${(i/(a.length-1))*w},${h-((r[key]-mn)/rg)*h}`).join(' ');
+ const zero=h-((0-mn)/rg)*h;
+ return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  <line x1="0" y1="${zero}" x2="${w}" y2="${zero}" stroke="#ffffff22"/>
+  <polyline points="${pts}" fill="none" stroke="var(--cy)" stroke-width="1.6"/></svg>`;
+}
+function hbars(items,valKey,nmKey,fmt,max){
+ const mx=max??Math.max(...items.map(x=>Math.abs(x[valKey])||0),1);
+ return items.map(x=>{const v=x[valKey];const w=Math.min(100,Math.abs(v)/mx*100);
+  return `<div class="kv"><span class="nm ${x._tk?'tk':''}" ${x._tk?`onclick="location='/dossier.html?t=${x[nmKey]}'"`:''}>${esc(x[nmKey])}</span>
+   <span class="hbar"><b style="width:${w}%;${v>=0?'left:0;':'right:0;'}background:${col(v)}"></b></span>
+   <b style="color:${col(v)};white-space:nowrap">${fmt(v)}</b></div>`}).join('');
+}
+function tenorChart(cb,title){
+ if(!cb)return'';
+ const ents=Object.entries(cb).map(([t,v])=>[+t,v]).sort((a,b)=>a[0]-b[0]);
+ if(!ents.length)return'';
+ const W=Math.max(300,ents.length*46),H=120,mx=Math.max(...ents.map(e=>Math.abs(e[1])),1),zero=H/2;
+ const bars=ents.map(([t,v],i)=>{const bh=Math.abs(v)/mx*(H/2-16);const y=v>=0?zero-bh:zero;
+  return `<rect x="${i*46+10}" y="${y}" width="26" height="${Math.max(2,bh)}" rx="3" fill="${v>=0?'var(--gr)':'var(--rd)'}"/>
+   <text x="${i*46+23}" y="${H-2}" font-size="9" fill="var(--fg3)" text-anchor="middle">${t}y</text>
+   <text x="${i*46+23}" y="${v>=0?y-4:y+bh+11}" font-size="9" fill="${v>=0?'var(--gr)':'var(--rd)'}" text-anchor="middle">${v>0?'+':''}${v}</text>`}).join('');
+ return `<h3 style="margin-top:14px">${title}</h3><svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px">
+  <line x1="0" y1="${zero}" x2="${W}" y2="${zero}" stroke="#ffffff22"/>${bars}</svg>`;
+}
 (async()=>{
- let d;try{d=await (await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/institutional-footprint.json',{cache:'no-store'})).json()}catch(e){}
+ let d;try{d=await(await fetch('data/institutional-footprint.json',{cache:'no-store'})).json()}catch(e){}
  const app=document.getElementById('app');
- if(!d||!d.posture){app.textContent='Feed unavailable.';return}
- document.getElementById('meta').textContent=`${d.feeds_alive}/18 source feeds · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
- const P=d.posture,S=d.sectors||{},A=d.asset_classes||{},K=d.stocks||{},DP=d.dark_pool_footprint||{},CV=d.conviction_moves||[];
- const dial=(t,v,l,comps)=>{const col=v>15?'var(--gr)':v<-15?'var(--rd)':'var(--cy)';
-  const w=Math.min(48,Math.abs(v||0)/2), lft=v>=0?'50%':(50-w)+'%';
-  return `<div class="dial"><h3>${t}</h3><div class="big" style="color:${col}">${v??'—'}</div>
-   <div class="lab" style="color:${col}">${l||''}</div>
-   <div class="bar"><b style="left:${lft};width:${w}%;background:${col}"></b><i></i></div>
-   <div class="comp">${Object.entries(comps||{}).map(([k,x])=>k+' '+(x>0?'+':'')+x.toFixed(0)).join(' · ')}</div></div>`};
- const cls=Object.entries(A.etf_net_5d_usd_m||{}).filter(([k,v])=>v!=null).sort((a,b)=>b[1]-a[1]);
+ if(!d||!d.posture){app.textContent='Feed unavailable — data/institutional-footprint.json failed strict JSON parse or fetch.';return}
+ document.getElementById('meta').textContent=`${d.feeds_alive}/${d.feeds_total??18} source feeds · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC · engine v${d.version}`;
+ const P=d.posture,S=d.sectors||{},A=d.asset_classes||{},K=d.stocks||{},DP=d.dark_pool_footprint||{},CV=d.conviction_moves||[],L=d.asset_ledger||{},DS=d.dark_by_sector||{},PD=d.pd||{},SU=d.stocks_usd_13f||{},H=d.history||[];
+ const usdMap={};[...(SU.buys||[]),...(SU.sells||[])].forEach(r=>{if(usdMap[r.t]===undefined)usdMap[r.t]=r.usd_m});
+ const dial=(t,v,l,comps,sk)=>`<div class="dial">${sk||''}<h3>${t}</h3>
+   <div class="big" style="color:${v>15?'var(--gr)':v<-15?'var(--rd)':'var(--cy)'}">${F(v)}</div>
+   <div class="lab" style="color:${v>15?'var(--gr)':v<-15?'var(--rd)':'var(--cy)'}">${esc(l)}</div>
+   <div class="bar"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.min(48,Math.abs(v||0)/2)}%;background:${col(v)}"></b><i></i></div>
+   <div class="comp">${Object.entries(comps||{}).map(([k,x])=>`${k} ${x>0?'+':''}${(+x).toFixed(0)}`).join(' · ')}</div></div>`;
+ const dsRows=Object.entries(DS).map(([sec,v])=>({sec,usd_b:(v.dark_daily_usd_m_est??NaN)/1000,top:(v.top||[]).map(x=>x.t).join(' ')})).filter(r=>fin(r.usd_b));
+ const clsRows=Object.entries(A.etf_net_5d_usd_m||{}).filter(([,v])=>fin(v)).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+ const buys13=(K.institutions_buying_13f||[]).map(t=>({t,usd:usdMap[t]}));
+ const sells13=(K.institutions_selling_13f||[]).map(t=>({t,usd:usdMap[t]}));
+ const wholes=(DP.wholesaler_extremes||[]);
+ const feedTags=Object.entries(d.feeds||{}).map(([k,ok])=>`<span class="${ok?'':'dead'}">${k.replace('.json','').replace('data/','')}</span>`).join('');
  app.className='';app.innerHTML=`
  <div class="hero">
-  ${dial('WHAT THEY ARE DOING — RISK NOW',P.risk_now,P.now_label,P.now_components)}
-  ${dial('WHAT THEY ARE POSITIONING FOR — FORWARD',P.risk_forward,P.forward_label,P.fwd_components)}
-  <div class="dial"><h3>DARK-POOL FOOTPRINT</h3>
+  ${dial('WHAT THEY ARE DOING — RISK NOW',P.risk_now,P.now_label,P.now_components,spark(H,'now'))}
+  ${dial('WHAT THEY ARE POSITIONING FOR — FORWARD',P.risk_forward,P.forward_label,P.fwd_components,spark(H,'fwd'))}
+  <div class="dial">${spark(H,'dix')}<h3>DARK-POOL FOOTPRINT</h3>
    <div class="big" style="color:${DP.own_dix_pct>=57?'var(--gr)':DP.own_dix_pct<52?'var(--rd)':'var(--cy)'}">${F(DP.own_dix_pct)}%</div>
-   <div class="lab">${F(DP.read)} · accum ${F(DP.accumulation_n)} / dist ${F(DP.distribution_n)}</div>
-   <div class="comp">wholesaler extremes (mo ${F(DP.month)}): ${(DP.wholesaler_extremes||[]).slice(0,3).map(w=>w.ticker+' '+w.top_pct+'% '+(w.top_firm||'').split(' ')[0]).join(' · ')}</div></div>
+   <div class="lab">${esc(DP.read)} · accum <b class="g">${F(DP.accumulation_n)}</b> / dist <b class="r">${F(DP.distribution_n)}</b></div>
+   <div class="comp">full-book dark tape ≈ <b class="cy">$${fin(H.at(-1)?.dark_b)?H.at(-1).dark_b:'—'}B/day</b> · wholesaler mo ${F(DP.month)}</div></div>
+  <div class="dial"><h3>PRIMARY DEALERS — SETTLED UST BOOK</h3>
+   <div class="big" style="color:${col(PD.net_treasury_b)}">${bUsd(PD.net_treasury_b)}</div>
+   <div class="lab">coupons WoW ${bUsd(PD.wow_b)} · as of ${F(PD.as_of)}</div>
+   <div class="comp">${esc(PD.read)}</div></div>
  </div>
- ${d.ai_dossier?`<div class="dossier"><h3>🧠 ANALYST DOSSIER</h3>${d.ai_dossier}</div>`:''}
-
- <div class="c" style="margin-bottom:13px"><h3>ASSET LEDGER — LIT vs DARK vs FUTURES (institutional $)</h3>
-  <table><tr><th>CLASS</th><th>LIT ETF 5d $</th><th>DARK 1d $ (est)</th><th>CFTC NET-SPEC</th><th>VERDICT</th></tr>
-  ${Object.entries(d.asset_ledger||{}).map(([k,v])=>`<tr><td>${k}</td>
-    <td style="color:${(v.lit_etf_5d_usd_m||0)>0?'var(--gr)':'var(--rd)'}">${m$(v.lit_etf_5d_usd_m)}</td>
-    <td>${v.dark_daily_usd_m_est!=null?m$(v.dark_daily_usd_m_est):'—'}</td>
-    <td style="color:${(v.cftc_net_spec||0)>0?'var(--gr)':(v.cftc_net_spec||0)<0?'var(--rd)':'var(--fg3)'}">${F(v.cftc_net_spec)}</td>
-    <td class="${v.verdict==='BUYING'?'g':v.verdict==='SELLING'?'r':''}">${v.verdict}</td></tr>`).join('')}</table>
-  <div class="comp">DARK est = Σ per-name DAILY off-exchange volume × price (single-stock tape, equities/REITs); primary-dealer net ${F(d.primary_dealer_net)}</div></div>
- <div class="c" style="margin-bottom:13px"><h3>DARK $ BY SECTOR (top names)</h3>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(d.dark_by_sector||{}).slice(0,11).map(([sec,v])=>
-   `<span class="tag">${sec} <b class="cy">$${(v.dark_usd_5d_m_est/1000).toFixed(1)}B</b> ${v.top.map(x=>x.t).join(' ')}</span>`).join('')}</div></div>
+ <div class="dossier"><h3>🧠 ANALYST DOSSIER</h3>${esc(d.ai_dossier)}<div class="dsrc">source: ${d.ai_dossier_src==='llm'?'LLM synthesis':'deterministic synthesis (LLM offline)'} · regenerated nightly 23:10 UTC</div></div>
  <div class="grid">
-  <div class="c"><h3>SECTORS — INSTITUTIONS BUYING</h3>
-   ${(S.buying||[]).map(x=>`<div class="kv"><span>${x.complex}</span><b class="g">${m$(x.usd_5d_m)}</b></div>`).join('')}</div>
-  <div class="c"><h3>SECTORS — INSTITUTIONS SELLING</h3>
-   ${(S.selling||[]).map(x=>`<div class="kv"><span>${x.complex}</span><b class="r">${m$(x.usd_5d_m)}</b></div>`).join('')}</div>
-  <div class="c"><h3>ASSET CLASSES (5d $)</h3>
-   ${cls.slice(0,5).map(([k,v])=>`<div class="kv"><span>${k}</span><b class="g">${m$(v)}</b></div>`).join('')}
-   ${cls.slice(-4).map(([k,v])=>`<div class="kv"><span>${k}</span><b class="r">${m$(v)}</b></div>`).join('')}
-   <div class="comp">CFTC smart-money ${F(A.cftc&&A.cftc.smart_money_flow)} · risk-appetite ${F(A.cftc&&A.cftc.risk_appetite)}</div></div>
-  <div class="c"><h3>STOCKS — 13F BUYING</h3>${(K.institutions_buying_13f||[]).map(t=>`<span class="tag g tk" onclick="location='/dossier.html?t='+'${t}'">${t}</span>`).join('')||'<div class="comp">warming</div>'}
-   <h3 style="margin-top:12px">13F SELLING</h3>${(K.institutions_selling_13f||[]).map(t=>`<span class="tag r">${t}</span>`).join('')||'<div class="comp">warming</div>'}</div>
-  <div class="c"><h3>ACCUMULATION (dark pool)</h3>${(K.dark_pool_accumulation||[]).map(t=>`<span class="tag g tk" onclick="location='/dossier.html?t='+'${t}'">${t}</span>`).join('')||'—'}
-   <h3 style="margin-top:12px">⚠ DISTRIBUTION INTO STRENGTH</h3>${(K.distribution_into_strength||[]).map(t=>`<span class="tag a">${t}</span>`).join('')||'<div class="comp">none flagged</div>'}
-   ${K.double_confirmed_buys&&K.double_confirmed_buys.length?`<h3 style="margin-top:12px">★ DOUBLE-CONFIRMED (13F ∩ DARK POOL)</h3>${K.double_confirmed_buys.map(t=>`<span class="tag vi">${t}</span>`).join('')}`:''}</div>
-  <div class="c"><h3>CONVICTION MOVES</h3>
-   <table><tr><th>TICKER</th><th>SIGNAL</th><th>STAGE</th></tr>
-   ${CV.map(x=>`<tr><td class="tk" onclick="location='/dossier.html?t='+'${x.ticker}'">${x.ticker}</td><td style="color:${x.signal.includes('DIST')?'var(--am)':'var(--gr)'}">${x.signal}</td><td>${F(x.stage)}</td></tr>`).join('')}</table></div>
+  <div class="c wide"><h3>ASSET LEDGER — LIT vs DARK vs FUTURES vs DEALERS</h3>
+   <table><tr><th>CLASS</th><th class="num">LIT ETF 5d</th><th class="num">DARK 1d (est)</th><th class="num">CFTC NET-SPEC</th><th class="num">PD SETTLED</th><th>VERDICT</th></tr>
+   ${Object.entries(L).map(([k,v])=>`<tr><td>${k}</td>
+     <td class="num" style="color:${col(v.lit_etf_5d_usd_m)}">${mUsd(v.lit_etf_5d_usd_m)}</td>
+     <td class="num cy">${fin(v.dark_daily_usd_m_est)?'$'+(v.dark_daily_usd_m_est/1000).toFixed(1)+'B':'—'}</td>
+     <td class="num" style="color:${col(v.cftc_net_spec)}">${kCt(v.cftc_net_spec)}</td>
+     <td class="num" style="color:${col(v.pd_net_usd_b)}">${fin(v.pd_net_usd_b)?bUsd(v.pd_net_usd_b):'—'}</td>
+     <td><span class="chip ${v.verdict==='BUYING'?'buy':v.verdict==='SELLING'?'sell':'flat'}">${v.verdict}</span></td></tr>`).join('')}</table>
+   <div class="comp">DARK = Σ per-name daily off-exchange volume × price (single-stock tape). CFTC in contracts; z-layer & risk-appetite arm automatically as the 7-week COT cache accrues to 12. PD = NY Fed settled inventory book.</div>
+   ${tenorChart(PD.coupons_by_tenor_b,'PD TREASURY CURVE — NET SETTLED BY TENOR ($B)')}
+  </div>
+  <div class="c"><h3>DARK $/DAY BY SECTOR</h3>${hbars(dsRows.map(r=>({nm:r.sec+'  ·  '+r.top,v:r.usd_b})),'v','nm',v=>'$'+v.toFixed(1)+'B')}</div>
+  <div class="c"><h3>SECTOR COMPLEXES — 5d $ FLOW</h3>
+   ${hbars((S.buying||[]).map(x=>({nm:x.complex,v:x.usd_5d_m})),'v','nm',mUsd)}
+   <div style="height:6px"></div>
+   ${hbars((S.selling||[]).map(x=>({nm:x.complex,v:x.usd_5d_m})),'v','nm',mUsd)}</div>
+  <div class="c"><h3>ASSET CLASSES — 5d ETF $</h3>${hbars(clsRows.map(r=>({nm:r.k,v:r.v})),'v','nm',mUsd)}
+   <div class="comp">CFTC smart-money ${kCt(A.cftc&&A.cftc.smart_money_flow)} · risk-appetite ${F(A.cftc&&A.cftc.risk_appetite)} (arms ~5wks)</div></div>
+  <div class="c"><h3>13F — INSTITUTIONS BUYING <small style="color:var(--fg3)">(position $)</small></h3>
+   ${buys13.map(x=>`<span class="tag g"><b class="tk" onclick="location='/dossier.html?t=${x.t}'">${x.t}</b><small>${fin(x.usd)?'$'+(x.usd>=1000?(x.usd/1000).toFixed(1)+'B':x.usd.toFixed(0)+'M'):''}</small></span>`).join('')}
+   <h3 style="margin-top:12px">13F — SELLING</h3>
+   ${sells13.map(x=>`<span class="tag r"><b>${x.t}</b><small>${fin(x.usd)?'$'+(x.usd>=1000?(x.usd/1000).toFixed(1)+'B':x.usd.toFixed(0)+'M'):''}</small></span>`).join('')}</div>
+  <div class="c"><h3>DARK-POOL ACCUMULATION</h3>
+   ${(K.dark_pool_accumulation||[]).map(t=>`<span class="tag g tk" onclick="location='/dossier.html?t=${t}'">${t}</span>`).join('')||'—'}
+   <h3 style="margin-top:12px">⚠ DISTRIBUTION INTO STRENGTH</h3>
+   ${(K.distribution_into_strength||[]).map(t=>`<span class="tag a">${t}</span>`).join('')||'<div class="comp">none flagged today</div>'}
+   ${(K.double_confirmed_buys||[]).length?`<h3 style="margin-top:12px">★ DOUBLE-CONFIRMED (13F ∩ DARK)</h3>${K.double_confirmed_buys.map(t=>`<span class="tag vi">${t}</span>`).join('')}`:''}
+   <h3 style="margin-top:12px">WHOLESALER CONCENTRATION (real names)</h3>
+   ${wholes.length?wholes.map(w=>`<div class="kv"><span class="tk" onclick="location='/dossier.html?t=${w.ticker}'">${w.ticker}</span><span style="color:var(--fg3);font-size:10px">${esc(w.top_firm)}</span><b class="a">${w.top_pct}%</b></div>`).join(''):'<div class="comp">no concentrated names above filters</div>'}</div>
+  <div class="c wide"><h3>CONVICTION MOVES</h3>
+   <table><tr><th>TICKER</th><th>SIGNAL</th><th>SECTOR</th><th>STAGE</th><th class="num">13F $</th></tr>
+   ${CV.map(x=>`<tr><td class="tk" onclick="location='/dossier.html?t=${x.ticker}'">${x.ticker}</td>
+     <td style="color:${x.signal.includes('DIST')?'var(--am)':x.signal.includes('13F')?'var(--vi)':'var(--gr)'}">${esc(x.signal)}</td>
+     <td>${F(x.sector)}</td><td>${F(x.stage)}</td>
+     <td class="num">${fin(usdMap[x.ticker])?'$'+(usdMap[x.ticker]>=1000?(usdMap[x.ticker]/1000).toFixed(1)+'B':usdMap[x.ticker].toFixed(0)+'M'):'—'}</td></tr>`).join('')}</table></div>
  </div>
- <div class="comp" style="margin-top:14px">${d.method||''}</div>`;
+ <div class="c" style="margin-top:13px"><h3>SOURCE FEEDS ${d.feeds_alive}/${d.feeds_total??''}</h3><div class="feeds">${feedTags}</div>
+  <div class="comp" style="margin-top:8px">${esc(d.method)}</div></div>`;
 })();
 </script></div></body></html>

@@ -135,7 +135,10 @@ def lambda_handler(event=None, context=None):
     dxd = dp.get("dix") or {}
     mon = dp.get("monthly_ats") or {}
     smap = mon.get("share_map") or {}
-    conc = sorted(((t, v) for t, v in smap.items() if isinstance(v, dict) and _num(v.get("top_pct"))),
+    conc = sorted(((t, v) for t, v in smap.items()
+                   if isinstance(v, dict) and _num(v.get("top_pct"))
+                   and "de minimis" not in str(v.get("top_firm", "")).lower()
+                   and (v.get("n_firms") or 0) >= 5 and (v.get("sh") or 0) >= 5e7),
                   key=lambda kv: kv[1]["top_pct"], reverse=True)
     dark = {"own_dix_pct": dxd.get("own_dix_pct"), "read": dxd.get("read"),
             "accumulation_n": (dp.get("distribution") or {}).get("accumulation"),
@@ -225,8 +228,16 @@ def lambda_handler(event=None, context=None):
             elif isinstance(n, list):
                 for v in n[:40]: w(v, d + 1)
         w(doc); return out
-    stocks_usd = {"buys": _val_rows(f13, ("adds", "top_buys", "increas", "new_")),
-                  "sells": _val_rows(f13, ("exits", "top_sells", "decreas", "closed"))}
+    def _dedupe(rows):
+        seen, out = set(), []
+        for r0 in rows:
+            if r0["t"] in seen: continue
+            seen.add(r0["t"]); out.append(r0)
+        return out
+    stocks_usd = {"buys": _dedupe(_val_rows(f13, ("adds", "top_buys", "increas", "new_"))),
+                  "sells": _dedupe(_val_rows(f13, ("exits", "top_sells", "decreas", "closed")))}
+    _usd_map = {r0["t"]: r0.get("usd_m") for r0 in stocks_usd["buys"] + stocks_usd["sells"]}
+    adds = list(dict.fromkeys(adds)); exits = list(dict.fromkeys(exits))
     def _pd_extract():
         for key in ("data/nyfed-primary-dealer.json", "data/dealer-survey.json"):
             doc = F[key]
@@ -252,6 +263,13 @@ def lambda_handler(event=None, context=None):
                 return got, key.split("/")[-1]
         return None, "no net-position field in dealer feeds"
     pd_pos, pd_note = _pd_extract()
+    _pdfeed = F["data/nyfed-primary-dealer.json"] or {}
+    pd_block = {"net_treasury_b": _pdfeed.get("net_treasury_total_b"),
+                "wow_b": (_pdfeed.get("wow_usd_b") or {}).get("TREASURY_COUPONS"),
+                "as_of": _pdfeed.get("as_of"),
+                "coupons_by_tenor_b": (_pdfeed.get("by_tenor_usd_b") or {}).get("TREASURY_COUPONS"),
+                "tips_by_tenor_b": (_pdfeed.get("by_tenor_usd_b") or {}).get("TIPS"),
+                "read": _pdfeed.get("read")}
     if pd_pos is not None and "TREASURIES" in asset_ledger:
         asset_ledger["TREASURIES"]["pd_net_usd_b"] = pd_pos
 
@@ -297,6 +315,16 @@ def lambda_handler(event=None, context=None):
         c = xray.get(t) or {}
         conviction.append({"ticker": t, "signal": "DISTRIBUTION INTO STRENGTH", "stage": c.get("stage"), "sector": c.get("sec")})
 
+    # ── posture history (last 400 sessions; feed carries last 60) ──
+    HK = "data/history/institutional-footprint.json"
+    ph = _j(HK, {}) or {}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    ph[today] = {"now": risk_now, "fwd": risk_fwd, "dix": own_dix,
+                 "dark_b": round(sum(v["dark_daily_usd_m_est"] for v in dark_by_sector.values()) / 1e3, 1) if dark_by_sector else None}
+    ph = dict(sorted(ph.items())[-400:])
+    s3.put_object(Bucket=BUCKET, Key=HK, Body=json.dumps(ph).encode(), ContentType="application/json")
+    history = [{"d": k, **v} for k, v in list(ph.items())[-60:]]
+
     # ── AI dossier ──
     brief = None
     try:
@@ -308,17 +336,42 @@ def lambda_handler(event=None, context=None):
                   % (risk_now, now_label, risk_fwd, fwd_label,
                      [s0["complex"] for s0 in sectors["buying"][:3]], [s0["complex"] for s0 in sectors["selling"][:3]],
                      cftc_smart, own_dix, adds[:4], exits[:4], tail, gex))
-        brief = complete(prompt, tier="reason", max_tokens=260)
+        brief = complete(prompt, tier="reason", max_tokens=440)
+        if brief and not brief.rstrip().endswith((".", "!", "?")):
+            brief = brief.rsplit(".", 1)[0] + "." if "." in brief else None
     except Exception:
         brief = None
+    if not brief or len(brief) < 90:
+        top_buy = sectors["buying"][0]["complex"] if sectors["buying"] else "—"
+        top_sell = sectors["selling"][0]["complex"] if sectors["selling"] else "—"
+        curve = ""
+        cbt = pd_block.get("coupons_by_tenor_b") or {}
+        if len(cbt) >= 4:
+            lo = max(cbt.items(), key=lambda kv: kv[1]); hi = min(cbt.items(), key=lambda kv: kv[1])
+            curve = (" Dealer settled books run long %sy (+%.1fB) against short %sy (%.1fB) — an "
+                     "intermediation steepener versus the futures duration bid." % (lo[0], lo[1], hi[0], hi[1]))
+        brief = ("Institutions are %s on the tape (risk-now %+.1f: managers near full exposure, dark-pool "
+                 "bid %.1f%%) while positioning %s forward (%+.1f: tail hedges bid, buyback blackout deepening). "
+                 "The rotation is out of %s and broad beta into %s. In cash treasuries the ledger shows futures "
+                 "specs net long %s contracts against a dealer settled book of $%.1fB.%s"
+                 % (now_label.replace("-", " ").title(), risk_now or 0, own_dix or 0,
+                    "defensively" if (risk_fwd or 0) < 0 else "constructively", risk_fwd or 0,
+                    top_sell, top_buy,
+                    ("{:+,.0f}".format(cftc_by_class.get("TREASURIES"))) if cftc_by_class.get("TREASURIES") is not None else "—",
+                    pd_block.get("net_treasury_b") or 0, curve))
+        brief_src = "deterministic"
+    else:
+        brief_src = "llm"
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.4",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.2.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
                        "risk_forward": risk_fwd, "forward_label": fwd_label, "fwd_components": dict(parts_fwd)},
            "sectors": sectors, "asset_classes": asset_classes,
            "asset_ledger": asset_ledger, "dark_by_sector": dark_by_sector,
+           "pd": pd_block, "history": history,
+           "feeds_total": len(F), "ai_dossier_src": brief_src,
            "stocks_usd_13f": stocks_usd, "primary_dealer_net": pd_pos, "primary_dealer_note": pd_note,
            "stocks": stocks,
            "dark_pool_footprint": dark, "conviction_moves": conviction, "ai_dossier": brief,
