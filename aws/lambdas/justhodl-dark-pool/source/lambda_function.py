@@ -325,58 +325,53 @@ def lambda_handler(event=None, context=None):
                "history":[{"date":k,"value":v} for k,v in sorted(own_hist.items())][-260:],
                "method":"$vol-weighted (1 - short%%) across daily FINRA regsho TRF tape (%d names) — own DIX-style proxy, no third-party dependency"%len(daily)}
 
+    # ═══ v2.3 LAYER M — FINRA MONTHLY ATS, spec-driven (ops-discovered via metadata) ═══
     monthly={"status":"UNAVAILABLE"}
-    try:
-        def _fq(body):
-            rq=urllib.request.Request("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
-                 data=json.dumps(body).encode(),
-                 headers={"Content-Type":"application/json","Accept":"application/json","User-Agent":"jh/1"})
-            with urllib.request.urlopen(rq,timeout=25) as r:
-                return json.loads(r.read())
-        probe=_fq({"limit":1})  # self-discover real field names
-        if isinstance(probe,list) and probe:
-            keys=list(probe[0].keys())
-            symf=next((k for k in keys if "symbol" in k.lower()),None)
-            qtyf=next((k for k in keys if "quantity" in k.lower() or "shares" in k.lower()),None)
-            typf=next((k for k in keys if "typecode" in k.lower() or "summarytype" in k.lower()),None)
-            datf=next((k for k in keys if "date" in k.lower() or "month" in k.lower()),None)
-            body={"limit":5000}
-            if typf:
-                body["compareFilters"]=[{"compareType":"EQUAL","fieldName":typf,"fieldValue":"ATS_M_SMBL"}]
-            from datetime import timedelta as _td
-            start=(datetime.now(timezone.utc)-_td(days=70)).strftime("%Y-%m-%d")
-            attempts=[]
-            if datf:
-                attempts.append({**body,"dateRangeFilters":[{"fieldName":datf,"startDate":start}]})
-            attempts.append(dict(body))
-            attempts.append({"limit":5000})
-            mrows=None; _err=""
-            for _b in attempts:
-                try:
-                    mrows=_fq(_b)
-                    if isinstance(mrows,list) and mrows: break
-                except Exception as _e:
-                    _err=str(_e)[:60]; mrows=None
-            if mrows is None: raise RuntimeError(_err or "all attempts empty")
-            if isinstance(mrows,list) and mrows and symf:
-                latest=max((str(r0.get(datf) or "") for r0 in mrows), default="") if datf else ""
-                mrows=[r0 for r0 in mrows if not datf or str(r0.get(datf) or "")==latest]
-                blk={}
-                for r0 in mrows:
-                    t=str(r0.get(symf) or "").upper()
-                    q=r0.get(qtyf) if qtyf else None
-                    if t and isinstance(q,(int,float)): blk[t]=blk.get(t,0)+q
-                _mm=str((mrows[0].get(datf) if datf else "") or "")
-                monthly={"status":("OK" if _mm>="2026-01" else "OK_ARCHIVAL"),"n_symbols":len(blk),
-                         "month":(mrows[0].get(datf) if datf else None),
-                         "fields":{"symbol":symf,"qty":qtyf,"type":typf,"date":datf},
-                         "top_block_share":sorted(blk.items(),key=lambda kv:-kv[1])[:15]}
-            else:
-                monthly={"status":"UNAVAILABLE","fields_seen":keys[:10]}
-        else:
-            monthly={"status":"UNAVAILABLE","err":"probe empty"}
-    except Exception as e:
-        monthly={"status":"UNAVAILABLE","err":str(e)[:100]}
+    spec=_get_json("data/config/finra-monthly-spec.json") or {}
+    if spec.get("ats_code"):
+        try:
+            mb={"limit":6000,
+                "compareFilters":[{"compareType":"EQUAL","fieldName":"summaryTypeCode",
+                                   "fieldValue":spec["ats_code"]}]}
+            mreq=urllib.request.Request(FINRA.replace("weeklySummary","monthlySummary"),
+                  data=json.dumps(mb).encode(),
+                  headers={**UA,"Content-Type":"application/json","Accept":"application/json"})
+            with urllib.request.urlopen(mreq,timeout=40) as r:
+                mrows=json.loads(r.read())
+            qf,df,sf=spec.get("qty_field"),spec.get("date_field"),spec.get("sym_field","issueSymbolIdentifier")
+            want={r0["ticker"] for r0 in rows}
+            smap={}
+            mo=None
+            for m0 in (mrows if isinstance(mrows,list) else []):
+                t=(m0.get(sf) or "").upper()
+                if t in want and m0.get(qf) is not None:
+                    smap[t]=m0.get(qf); mo=mo or m0.get(df)
+            monthly={"status":"OK","month":mo,"n_rows":len(mrows) if isinstance(mrows,list) else 0,
+                     "share_map":smap,"joined":len(smap),"spec":spec}
+        except Exception as e:
+            monthly={"status":"ERR","err":str(e)[:100],"spec":spec}
+    # ═══ v2.3 QUIVER OFF-EXCHANGE — gated enrichment (flips on when token exists) ═══
+    qcfg=_get_json("data/config/quiver-offexchange.json") or {}
+    if qcfg.get("enabled"):
+        try:
+            import boto3 as _b3
+            _tok=_b3.client("ssm",region_name=REGION).get_parameter(
+                Name="/justhodl/quiver/token",WithDecryption=True)["Parameter"]["Value"]
+            qreq=urllib.request.Request("https://api.quiverquant.com/beta/live/offexchange",
+                  headers={**UA,"Authorization":"Bearer "+_tok,"Accept":"application/json"})
+            with urllib.request.urlopen(qreq,timeout=25) as r:
+                qrows=json.loads(r.read())
+            qmap={}
+            for q0 in (qrows if isinstance(qrows,list) else [])[:8000]:
+                t=(q0.get("Ticker") or q0.get("ticker") or "").upper()
+                v=q0.get("DPI") or q0.get("Dpi") or q0.get("dpi")
+                if t and v is not None: qmap[t]=v
+            joinedq=0
+            for r0 in rows:
+                if r0["ticker"] in qmap: r0["qv_dpi"]=qmap[r0["ticker"]]; joinedq+=1
+            monthly["quiver_dpi_joined"]=joinedq
+        except Exception as e:
+            qcfg={"enabled":True,"err":str(e)[:80]}
     print("[v2] monthly:",monthly.get("status"),"| own_dix:",own_dix,"vs sq:",sq_dix)
 
     # ═══ v2.4 LAYER Q — Quiver off-exchange DPI (env-keyed; definitive entitlement) ═══
