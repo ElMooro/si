@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 
 REGION, BUCKET = "us-east-1", "justhodl-dashboard-live"
 GH = "https://api.github.com/repos/ElMooro/si"
-TOK = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""  # public repo: optional
+TOK = os.environ.get("GH_API_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""  # run-ops.yml exports GH_API_TOKEN
 lam = boto3.client("lambda", region_name=REGION, config=Config(read_timeout=290, retries={"max_attempts": 1}))
 ev = boto3.client("events", region_name=REGION)
 s3 = boto3.client("s3", region_name=REGION)
@@ -126,3 +126,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2732_analog_pageslog.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2732 COMPLETE — history now testifies on the desk")
+
+# rev2 spx-chunks + GH_API_TOKEN

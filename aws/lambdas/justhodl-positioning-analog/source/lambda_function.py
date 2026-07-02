@@ -67,16 +67,20 @@ def fred(series, start="1996-01-01"):
     return out
 
 def spx_closes():
-    u = ("https://financialmodelingprep.com/stable/historical-price-eod/full"
-         "?symbol=%%5EGSPC&from=1996-01-01&apikey=" + FMP_KEY)
-    rows = _get(u.replace("%%", "%"), 60)
-    if isinstance(rows, dict): rows = rows.get("historical") or rows.get("data") or []
+    # FMP caps ~5000 rows per call — paginate by decade chunks and merge.
     out = {}
-    for r in rows:
-        d, c = r.get("date"), r.get("close") or r.get("adjClose")
-        if d and c:
-            try: out[d[:10]] = float(c)
-            except Exception: pass
+    for frm, to in (("1996-01-01", "2006-06-30"), ("2006-07-01", "2016-06-30"),
+                    ("2016-07-01", "2030-01-01")):
+        u = ("https://financialmodelingprep.com/stable/historical-price-eod/full"
+             "?symbol=%%5EGSPC&from=%s&to=%s&apikey=%s") % (frm, to, FMP_KEY)
+        rows = _get(u.replace("%%", "%"), 60)
+        if isinstance(rows, dict): rows = rows.get("historical") or rows.get("data") or []
+        for r in rows or []:
+            d, c = r.get("date"), r.get("close") or r.get("adjClose")
+            if d and c:
+                try: out[d[:10]] = float(c)
+                except Exception: pass
+        time.sleep(0.25)
     return dict(sorted(out.items()))
 
 def weekly(daily):  # last obs each ISO week -> {friday-ish date: v}
@@ -97,7 +101,7 @@ def label_for(date):
 
 def lambda_handler(event=None, context=None):
     print("[analog] pulling panels…")
-    spx = spx_closes(); assert len(spx) > 5000, "SPX history thin: %d" % len(spx)
+    spx = spx_closes(); assert len(spx) > 6500, "SPX history thin: %d" % len(spx)
     sdates = list(spx); scl = list(spx.values())
     vix, nfci = fred("VIXCLS"), fred("NFCI")
     hy, curve = fred("BAMLH0A0HYM2"), fred("T10Y3M")
