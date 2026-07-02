@@ -1,0 +1,83 @@
+{
+ "ops": 2704,
+ "ts": "2026-07-02T00:11:22.275398+00:00",
+ "naaim": {
+  "value": 98.59,
+  "date": "2026-06-24",
+  "z": 1.25,
+  "pctile": 93.8,
+  "state": "EUPHORIC",
+  "signal": -1,
+  "history_n": 1042,
+  "column_mode": "header:NAAIM Number",
+  "provisional": false
+ },
+ "composite": {
+  "naaim_component": {
+   "id": "NAAIM_EXPOSURE",
+   "ok": true,
+   "cadence": "weekly",
+   "latest_date": "2026-06-24",
+   "latest_value": 98.59,
+   "z_raw": 1.25,
+   "z_stress": -1.25,
+   "flipped": true,
+   "weight_base": 1.0,
+   "freshness_mult": 1.0,
+   "effective_weight": 1.0,
+   "lookback": 260,
+   "days_old": 8,
+   "n_history": 1042,
+   "provisional": false
+  },
+  "n_total": 6,
+  "composite_z": -0.057,
+  "state": "NEUTRAL"
+ },
+ "signal_board_row": "{\"engine\": \"NAAIM Positioning\", \"category\": \"sentiment\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"read\": \"NAAIM 99 EUPHORIC\", \"as_of\": \"2026-07-02T00:12:06+00:00\", \"stale\": false}",
+ "patent": {
+  "coverage": {
+   "fresh_this_run": 16,
+   "total": 16,
+   "universe": 76
+  },
+  "cursor": 54,
+  "n_results": 16,
+  "duration_s": 654.4,
+  "total_recent_grants": 295,
+  "spikes": 0,
+  "top_picks_n": 0,
+  "top5": [
+   {
+    "t": "GOOGL",
+    "s": 15,
+    "v": 1.22,
+    "n90": 4
+   },
+   {
+    "t": "META",
+    "s": 15,
+    "v": 0.76,
+    "n90": 4
+   },
+   {
+    "t": "TSLA",
+    "s": 15,
+    "v": 0.76,
+    "n90": 2
+   },
+   {
+    "t": "QCOM",
+    "s": 5,
+    "v": 0.29,
+    "n90": 105
+   },
+   {
+    "t": "AAPL",
+    "s": 0,
+    "v": 0.27,
+    "n90": 38
+   }
+  ]
+ }
+}
