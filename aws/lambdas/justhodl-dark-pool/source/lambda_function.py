@@ -218,6 +218,26 @@ def lambda_handler(event=None, context=None):
 
     # ── dark map for justhodl-ignition (fixes its dead P4 dark-share dimension) ──
     # {ticker: latest-week ATS shares} so ignition can compute dark_to_adv.
+    # ═══ v2 WEEKLY-DEGRADATION GUARD ═══
+    # This exact failure was observed live: a flaked FINRA weekly pull produced an
+    # all-NEUTRAL 0.0% board that would poison 7 downstream consumers. If the fresh
+    # weekly side is degraded, carry the prior published board (marked) — daily
+    # regsho fusion + own-DIX below still refresh on top of carried rows.
+    weekly_source = "FRESH"
+    _good = sum(1 for r in rows if (r.get("dark_pool_pct") or 0) > 0)
+    if _good < 200:
+        prev = _get_json(OUT_KEY) or {}
+        prows = prev.get("board") or []
+        if sum(1 for r in prows if (r.get("dark_pool_pct") or 0) > 0) >= 200:
+            print("[guard] weekly ATS degraded (%d good) — carrying prior board (%d rows, week %s)" % (
+                _good, len(prows), prev.get("latest_week")))
+            rows = prows
+            latest_week = prev.get("latest_week", latest_week)
+            accumulation = [r for r in rows if r.get("state") == "ACCUMULATION"]
+            distribution = [r for r in rows if r.get("state") == "DISTRIBUTION"]
+            top_picks = prev.get("top_picks") or top_picks
+            weekly_source = "CARRIED_STALE"
+
     # ═══ v2 LAYER D — DAILY regsho fusion (finra-short: short + TOTAL TRF volume) ═══
     # Weekly ATS lags 2-3wk; the daily off-exchange tape is already owned. Fusing gives a
     # daily pulse per name (short%% of off-exchange = sell-side pressure; LOW = DIX-style
@@ -324,7 +344,7 @@ def lambda_handler(event=None, context=None):
         "thesis": ("Per-name off-exchange accumulation from FINRA ATS transparency. Rising "
                    "dark-pool share of volume while price stays flat = quiet institutional "
                    "build that often precedes the move. Distinct from market-level DIX."),
-        "latest_week": latest_week, "n_scored": len(rows),
+        "latest_week": latest_week, "weekly_source": weekly_source, "n_scored": len(rows),
         "distribution": {"accumulation": len(accumulation), "distribution": len(distribution)},
         "board": rows[:60],
         "top_picks": top_picks,

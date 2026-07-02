@@ -122,7 +122,12 @@ import statistics as _s
 R["dark_pool"]["history_store"] = {"tickers": len(lens), "median_days": lens[len(lens)//2] if lens else 0,
                                    "max_days": lens[-1] if lens else 0, "ge15": sum(1 for x in lens if x >= 15)}
 print("  history store:", R["dark_pool"]["history_store"])
-assert z_n >= min(40, max(10, R["dark_pool"]["history_store"]["ge15"] // 3)), "short_z dormant beyond store age: %d" % z_n
+diag = pay.get("diag") or (json.loads(pay.get("body") or "{}").get("diag") if pay.get("body") else {}) or {}
+R["dark_pool"]["diag"] = diag
+R["dark_pool"]["weekly_source"] = d.get("weekly_source")
+print("  diag:", diag, "| weekly_source:", d.get("weekly_source"))
+assert diag.get("daily_z_n", 0) >= 300, "z pipeline broken: %s" % diag
+assert z_n >= 200, "board join thin (weekly side?): joined=%d weekly=%s" % (z_n, d.get("weekly_source"))
 assert isinstance(R["dark_pool"]["sq_dix"], (int, float)) or R["dark_pool"]["sq_dix"] is None
 
 sect("2/4 FACTOR-RETURNS — create + env from finviz-signals + run")
@@ -187,3 +192,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev4
 
 # rev5
+
+# rev6
