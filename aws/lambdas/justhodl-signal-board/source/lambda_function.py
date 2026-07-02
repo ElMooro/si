@@ -1086,12 +1086,12 @@ def n_termprem(d):
 
 
 def n_bonddesk(d):
-    """Fixed-income flow desk anxiety — what bond money is saying about equity risk."""
-    a=d.get("anxiety_score"); r=d.get("regime")
+    """GLOBAL fixed-income anxiety — regional blend of what bond money is pricing."""
+    a=d.get("world_anxiety") or d.get("anxiety_score"); r=d.get("regime")
     if not isinstance(a,(int,float)): return 0,"Bond desk n/a"
     sig={"STRESS":-2,"ANXIOUS":-1,"CALM":1}.get(r,0)
-    ap=((d.get("flows") or {}).get("credit_appetite_5d_usd") or 0)/1e9
-    return sig,"BOND DESK %.0f %s (credit %+.1fB/5d)"%(a,r,ap)
+    h=d.get("hottest_region") or {}
+    return sig,"GLOBAL FI %.0f %s (hot: %s %.0f)"%(a,r,(h.get("region") or "?").replace("_"," "),h.get("score") or 0)
 
 
 def n_rebalance(d):
