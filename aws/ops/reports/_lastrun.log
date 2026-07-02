@@ -19,9 +19,11 @@
  "own_dix": 57.68,
  "sq_dix": 0.44503
 }
+  store sample: A list [{'ts': 1778670753, 'date': '2026-05-12', 'svr': 0.48, 'short_vol': 311335.570592, 'total_vol': 648598.402123}, {'ts': 1778720402, 'date': '2026-05-13', 'svr': 0.562, 'short_vol': 512419.941846, 'total_vol': 911764.924355}, {'ts': 1778806802, 'date': '2026-05-
+  ops-side extraction: names with >=15 svr obs = 11891
   history store: {'tickers': 13075, 'median_days': 35, 'max_days': 35, 'ge15': 11891}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 100, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2715_shortz_factors.py", line 118, in <module>
     assert z_n >= min(40, max(10, R["dark_pool"]["history_store"]["ge15"] // 3)), "short_z dormant beyond store age: %d" % z_n
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: short_z dormant beyond store age: 25
