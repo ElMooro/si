@@ -5,6 +5,15 @@ compatibility_date = "2025-10-01"
 # Publish to <worker>.raafouis.workers.dev — same pattern as siblings.
 workers_dev = true
 
+# Zone routes: makes relative fetch('data/*.json') work on the live domain
+# for EVERY page, current and future (ops 2730 — Surveillance Desk 404 was
+# a class defect: the domain never had a /data/* route; legacy pages used
+# absolute proxy URLs, this month's pages use the clean relative form).
+routes = [
+  { pattern = "justhodl.ai/data/*", zone_name = "justhodl.ai" },
+  { pattern = "www.justhodl.ai/data/*", zone_name = "justhodl.ai" }
+]
+
 [observability]
 enabled = true
 
