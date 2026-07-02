@@ -73,9 +73,10 @@ def _get(url, tok, timeout=30):
         body = (he.read() or b"")[:180].decode("utf-8", "ignore")
         raise RuntimeError("HTTP %s %s :: %s" % (he.code, url.split("?")[0][-60:], body))
 
-def _series(spec_m, tok, frm=None, limit=1000):
+def _series(spec_m, tok, frm=None, limit=1000, from_format="plain"):
     q = dict(spec_m["params"]); q["limit"] = str(limit)
-    if frm: q["from"] = frm
+    if frm and from_format != "none":
+        q["from"] = (frm + "T000000") if from_format == "T" else frm
     url = BASE + spec_m["path"] + "?" + "&".join("%s=%s" % kv for kv in q.items())
     doc = _get(url, tok)
     rows = ((doc or {}).get("result") or {}).get("data") or (doc or {}).get("data") or []
@@ -115,10 +116,11 @@ def lambda_handler(event=None, context=None):
         name = m["name"]
         try:
             ser = dict(hist.get(name) or {})
+            ffmt = spec.get("from_format", "plain")
             if backfill and len(ser) < 1200:
                 frm = (now - timedelta(days=365 * 5 + 30)).strftime("%Y%m%d")
-                for _page in range(3):
-                    got, vk = _series(m, tok, frm=frm, limit=1000)
+                for _page in range(3 if ffmt != "none" else 1):
+                    got, vk = _series(m, tok, frm=frm, limit=1000, from_format=ffmt)
                     if not got: break
                     ser.update(got)
                     last = max(got)
@@ -146,6 +148,7 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             errors.append({"metric": name, "err": str(e)[:110]})
             print("[cq] %s -> %s" % (name, str(e)[:110]))
+    min_hist = 900 if spec.get("from_format") == "none" else 1200
     assert len(metrics) >= 4, "too few metrics live: %s errors=%s" % (list(metrics), errors)
     s3.put_object(Bucket=BUCKET, Key=SPEC_KEY, Body=json.dumps(spec, indent=1).encode(),
                   ContentType="application/json")
