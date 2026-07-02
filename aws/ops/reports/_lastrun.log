@@ -5,22 +5,22 @@
 
 ======== 2/4 DEPLOY + RUN v3 ========
   settling 25s…
-  invoke -> {"ok": true, "world": 66.9, "regime": "ANXIOUS", "regions_live": 5, "tiles": 6, "analogs": "ERROR", "ai": "LIVE"}
+  invoke -> {"ok": true, "world": 66.9, "regime": "ANXIOUS", "regions_live": 5, "tiles": 14, "analogs": "OK", "ai": "LIVE"}
 {
  "world": 66.9,
  "regime": "ANXIOUS",
  "version": "3.0.0",
- "tiles_live": 6,
- "analog_status": "ERROR",
- "analog_n": 0,
+ "tiles_live": 14,
+ "analog_status": "OK",
+ "analog_n": 10,
  "ai_status": "LIVE",
  "chart_n": 156
 }
-  TOP ANALOGS: null
-  AI BRIEF: {"interpretion": "Japan is the epicenter\u2014JGB yields surging 100bp in 6mo with carry stress rising sharply is unprecedented for a zero-rate anchor. US CCC/BB at 99.7th pctile signals deep low-quality credit distress despite abundant systemic funding. Bonds losing to equities suggests markets pricing reflation via BoJ normalization spillover, not recession. Term premium deeply compressed remains vulnerable.", "crisis_comparison": "Analogous to 1998 LTCM carry unwind and 2022 UK Gilt crisis\u2
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2713_bond_desk_v3.py", line 90, in <module>
-    assert len(live_tiles) >= 11, "tiles thin: %d" % len(live_tiles)
-           ^^^^^^^^^^^^^^^^^^^^^
-AssertionError: tiles thin: 6
-❌ OPS-FAIL: aws/ops/pending/ops_2713_bond_desk_v3.py
+  TOP ANALOGS: [{"name": "SVB bank stress", "date": "2023-03-13", "fwd": {"SPY": {"d21": 5.9, "d63": 12.6, "d126": 15.7}, "TLT": {"d21": 1.0, "d63": -3.4, "d126": -11.0}, "GLD": {"d21": 5.2, "d63": 2.3, "d126": -0.2}, "HYG": {"d21": 2.6, "d63": 2.2, "d126": 2.2}, "BTCUSD": {"d21": 14.8, "d63": 12.2, "d126": 24.5}}, "similarity_pct": 69.0}, {"name": "Taper tantrum", "date": "2013-06-24", "fwd": {"SPY": {"d21": 7.3, "d63": 8.2, "d126": 15.6}, "TLT": {"d21": -1.2, "d63": -2.9, "d126": -4.2}, "GLD": {"d21": 2.9, "d63": 2.9, "d126": -6.4}, "HYG": {"d21": 4.4, "d63": 3.7, "d126": 4.6}, "BTCUSD": {"d21": -3.1, "d63
+  AI BRIEF: {"interpretation": "Global bonds are pricing a Japan-centric duration shock (JGB 10Y +99bp 6M, carry stress RISING SHARPLY) while US credit micro shows extreme CCC/BB dispersion at 99.7th percentile. Abundant global funding (health 93.4) prevents systemic crisis, but $31B equity-to-bond rotation signals growing risk aversion. Term premium expected to compress (-20bp D21). The dislocation is real but contained by liquidity.", "crisis_comparison": "SVB analog (69% similarity): rate shock stressing
+
+======== 3/4 BOARD SANITY + PAGE ========
+  page: LIVE
+
+======== 4/4 REPORT ========
+OPS 2713 COMPLETE — world map + crisis DNA + AI layer

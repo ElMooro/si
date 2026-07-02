@@ -1,0 +1,211 @@
+{
+ "ops": 2713,
+ "ts": "2026-07-02T04:02:22.872215+00:00",
+ "env_keys": [],
+ "v3": {
+  "world": 66.9,
+  "regime": "ANXIOUS",
+  "version": "3.0.0",
+  "tiles_live": 14,
+  "tiles": [
+   {
+    "code": "us",
+    "score": 81.7,
+    "metric": "engine composite"
+   },
+   {
+    "code": "ca",
+    "score": 74.3,
+    "metric": "10y \u03946m +0.37pp"
+   },
+   {
+    "code": "mx",
+    "score": 90.6,
+    "metric": "10y \u03946m +0.74pp"
+   },
+   {
+    "code": "gb",
+    "score": 77.4,
+    "metric": "10y \u03946m +0.44pp"
+   },
+   {
+    "code": "ez",
+    "score": 53.1,
+    "metric": "engine composite"
+   },
+   {
+    "code": "ch",
+    "score": 69.0,
+    "metric": "10y \u03946m +0.25pp"
+   },
+   {
+    "code": "se",
+    "score": 62.0,
+    "metric": "10y \u03946m +0.09pp"
+   },
+   {
+    "code": "za",
+    "score": 51.7,
+    "metric": "10y \u03946m -0.13pp"
+   },
+   {
+    "code": "jp",
+    "score": 100,
+    "metric": "engine composite"
+   },
+   {
+    "code": "cn",
+    "score": 50.0,
+    "metric": "engine composite"
+   },
+   {
+    "code": "kr",
+    "score": 94.5,
+    "metric": "10y \u03946m +0.83pp"
+   },
+   {
+    "code": "au",
+    "score": 83.1,
+    "metric": "10y \u03946m +0.57pp"
+   },
+   {
+    "code": "em",
+    "score": 49.0,
+    "metric": "engine composite"
+   },
+   {
+    "code": "us_fund",
+    "score": 32.0,
+    "metric": "engine composite"
+   }
+  ],
+  "analog_status": "OK",
+  "analog_top": [
+   {
+    "name": "SVB bank stress",
+    "date": "2023-03-13",
+    "fwd": {
+     "SPY": {
+      "d21": 5.9,
+      "d63": 12.6,
+      "d126": 15.7
+     },
+     "TLT": {
+      "d21": 1.0,
+      "d63": -3.4,
+      "d126": -11.0
+     },
+     "GLD": {
+      "d21": 5.2,
+      "d63": 2.3,
+      "d126": -0.2
+     },
+     "HYG": {
+      "d21": 2.6,
+      "d63": 2.2,
+      "d126": 2.2
+     },
+     "BTCUSD": {
+      "d21": 14.8,
+      "d63": 12.2,
+      "d126": 24.5
+     }
+    },
+    "similarity_pct": 69.0
+   },
+   {
+    "name": "Taper tantrum",
+    "date": "2013-06-24",
+    "fwd": {
+     "SPY": {
+      "d21": 7.3,
+      "d63": 8.2,
+      "d126": 15.6
+     },
+     "TLT": {
+      "d21": -1.2,
+      "d63": -2.9,
+      "d126": -4.2
+     },
+     "GLD": {
+      "d21": 2.9,
+      "d63": 2.9,
+      "d126": -6.4
+     },
+     "HYG": {
+      "d21": 4.4,
+      "d63": 3.7,
+      "d126": 4.6
+     },
+     "BTCUSD": {
+      "d21": -3.1,
+      "d63": 17.6,
+      "d126": 102.7
+     }
+    },
+    "similarity_pct": 55.0
+   },
+   {
+    "name": "UK gilt / inflation shock",
+    "date": "2022-09-28",
+    "fwd": {
+     "SPY": {
+      "d21": 2.6,
+      "d63": 1.7,
+      "d126": 9.0
+     },
+     "TLT": {
+      "d21": -6.6,
+      "d63": -4.6,
+      "d126": 0.5
+     },
+     "GLD": {
+      "d21": 0.0,
+      "d63": 8.5,
+      "d126": 19.1
+     },
+     "HYG": {
+      "d21": 2.2,
+      "d63": 0.3,
+      "d126": 3.2
+     },
+     "BTCUSD": {
+      "d21": -1.5,
+      "d63": -11.6,
+      "d126": 22.3
+     }
+    },
+    "similarity_pct": 39.0
+   }
+  ],
+  "analog_n": 10,
+  "current_vector": [
+   1.53,
+   -0.26,
+   0.32,
+   2.016,
+   -0.31,
+   0.0
+  ],
+  "ai_status": "LIVE",
+  "ai_brief": {
+   "interpretation": "Global bonds are pricing a Japan-centric duration shock (JGB 10Y +99bp 6M, carry stress RISING SHARPLY) while US credit micro shows extreme CCC/BB dispersion at 99.7th percentile. Abundant global funding (health 93.4) prevents systemic crisis, but $31B equity-to-bond rotation signals growing risk aversion. Term premium expected to compress (-20bp D21). The dislocation is real but contained by liquidity.",
+   "crisis_comparison": "SVB analog (69% similarity): rate shock stressing duration-heavy holders. Today DIFFERS: funding abundant (not scarce), epicenter is Japan not US banks, and no acute liquidity event yet\u2014more slow-burn carry unwind than panic.",
+   "projections": {
+    "equities": "Vulnerable to Japan spillover; rotation not crash if funding stays abundant",
+    "duration": "Tactical bid from flight-to-quality; JGB contagion risk caps upside",
+    "credit": "CCC/BB extreme dispersion warns of low-quality pain; favor IG over HY",
+    "gold": "Supported by anxiety and real-rate hedge; modest upside",
+    "crypto": "Risk-off headwind but liquidity cushion limits severe downside"
+   },
+   "confidence": "MODERATE",
+   "watch": [
+    "JGB 10Y breaking 1.5% triggering forced carry unwinds",
+    "Fed swap usage spiking signaling funding stress emergence",
+    "CCC/BB spread widening past 850bps into credit event territory"
+   ]
+  },
+  "chart_n": 156
+ },
+ "page": "LIVE"
+}
