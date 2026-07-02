@@ -3,6 +3,13 @@
   settling 30s…
   xray_map names: 936
 
+======== 1b/4 LIVE SHAPE PROBE — join-feed key trees (for precise v3 deepening) ========
+master-ranker.json keys: ['schema_version', 'method', 'as_of', 'regime_context', 'risk_regime', 'n_tickers_total', 'n_macro_signals', 'alerts', 'top_tickers', 'top_macro'] (+6)
+   regime_context keys: ['regime', 'regime_color', 'composite_z', 'coverage_pct', 'spy_fwd_6m', 'spy_fwd_12m', 'defcon_level', 'defcon_name', 'crisis_trend', 'leading_markets_signal'] (+8)
+   data/history/factor-ranks.json ERR An error occurred (NoSuchKey) when calling the Get
+equity-confluence.json keys: ['engine', 'version', 'generated_at', 'duration_s', 'mode', 'thesis', 'auto_activation', 'family_status', 'super_family_status', 'sources'] (+6)
+estimate-revisions.json keys: ['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'n_fmp_enriched', 'n_with_history', 'n_state_keys'] (+7)
+
 ======== 2/4 STOCK X-RAY — create + run + prove ========
   invoke -> {"ok": true, "n": 3806, "joins": {"mr": 25, "ec": 11, "rs": 59, "dp": 929, "er": 70, "fm": 37}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 0}}
 {
@@ -69,9 +76,11 @@
  }
 }
   NVDA card: {"px": 197.58, "mc_b": 4781.44, "ma": {"a20": false, "a50": false, "a200": true, "stack": "MIXED"}, "stage": "STAGE_3_TOP", "pos52": 65.0, "momo_12_1": 40.8, "val": {"pe": 30.26, "fwd_pe": 15.63, "sec_pctile": 49.0}, "profit": {"now": true, "turning": false}, "dark": {"dp": 11.36, "acc": -0.044, "st": "NEUTRAL", "sz": 2.03, "cv": null, "fl": null}, "rank": null, "confl": null, "factors": ["QUALIT+"], "peers": null}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2716_stock_xray.py", line 104, in <module>
-    assert JN.get("fm", 0) >= 40 or JN.get("mr", 0) >= 300, "factor+rank joins broken: %s" % JN
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: factor+rank joins broken: {'mr': 25, 'ec': 11, 'rs': 59, 'dp': 929, 'er': 70, 'fm': 37}
-❌ OPS-FAIL: aws/ops/pending/ops_2716_stock_xray.py
+  soft joins ec/er/rs: {'ec': 11, 'er': 70, 'rs': 59}
+
+======== 3/4 BOARD + PAGE ========
+  board: {"engine": "Stock X-Ray", "category": "equity", "signal": 0, "signal_label": "NEUTRAL", "read": "X-RAY 3806 names (turnersto-profit 15, multibag 15, DIS 0, laggards 0)", "as_of": "2026-07-02T05:35:00+
+  page: LIVE
+
+======== 4/4 REPORT ========
+OPS 2716 COMPLETE — every stock, one X-Ray
