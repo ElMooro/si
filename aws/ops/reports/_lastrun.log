@@ -1,26 +1,16 @@
-settling 30s…
-== 0/3 catalog probe (runner-side truth) ==
-  catalog: 1539 series total, 22 net-position candidates
-    PDFRN2NSP - SECURITY NET SETTLED POSITION
-    PDSI10NSP - SECURITY NET SETTLED POSITION
-    PDSI20NSP - SECURITY NET SETTLED POSITION
-    PDSI2NSP - SECURITY NET SETTLED POSITION
-    PDSI30NSP - SECURITY NET SETTLED POSITION
-    PDSI3NSP - SECURITY NET SETTLED POSITION
-    PDSI5NSP - SECURITY NET SETTLED POSITION
-    PDSI7NSP - SECURITY NET SETTLED POSITION
-    PDST10NSP - SECURITY NET SETTLED POSITION
-    PDST30NSP - SECURITY NET SETTLED POSITION
-    PDST5NSP - SECURITY NET SETTLED POSITION
-    PDFRN2NSPC - SECURITY NET SETTLED POSITION - Change From Previous Week
-== 1/3 CREATE + RUN nyfed-pd ==
-  schedule: cron(30 21 ? * THU,FRI *)
-  invoke -> {"ok": true, "as_of": "2026-06-17", "classes": 3, "net_treasury_total_b": -9.9, "net_b": {"TREASURY_FRN": 1.7, "TREASURY_COUPONS": -10.3, "TIPS": -1.3}}
-  net_b: {"TREASURY_FRN": 1.7, "TREASURY_COUPONS": -10.3, "TIPS": -1.3}
-  UST total: $-9.9B | as_of 2026-06-17 | Dealer SETTLED book net SHORT $9.9B UST, coupons WoW +17.1B; curve: long 3y +5.5B / short 5y -7.5B
-  by_tenor: {"TREASURY_FRN": {"2": 1.7}, "TREASURY_COUPONS": {"2": 0.2, "3": 5.5, "5": -7.5, "7": 2.8, "10": -6.4, "20": -5.2, "30": 0.3}, "TIPS": {"5": -1.1, "10": -0.3, "30": 0.2}}
-  history depth: {'TREASURY_FRN': 400, 'TREASURY_COUPONS': 400, 'TIPS': 400}
-== 2/3 FOOTPRINT joins PD ==
-  footprint PD: {"net": -9.9, "note": "nyfed-primary-dealer.json", "tsy_row": {"lit_etf_5d_usd_m": -170.2, "dark_daily_usd_m_est": null, "cftc_net_spec": 419447.75, "verdict": "SELLING", "pd_net_usd_b": -9.9}}
-== 3/3 REPORT ==
-OPS 2728 COMPLETE — the dealers' own book is on the ledger
+== 1) S3 object truth (boto3) ==
+   {"exists": true, "bytes": 14330, "last_modified": "2026-07-02 14:30:09+00:00", "ctype": "application/json", "cache_control": "public, max-age=900", "top_keys": ["ai_dossier", "asset_classes", "asset_ledger", "conviction_moves", "dark_by_sector", "dark_pool_footprint", "engine", "feeds", "feeds_alive", "generated_at", "method", "posture"],
+== 2) HTTP chain ==
+  [domain] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
+  [s3-url] 200 ct=application/json cf=None | {"engine":"justhodl-institutional-footprint","version":"1.1.3","generated_at":"2026-07-02T14:30:08+00:00","feeds_alive":19,"feeds"
+  [workers.dev] 200 ct=application/json cf=None | {"engine":"justhodl-institutional-footprint","version":"1.1.3","generated_at":"2026-07-02T14:30:08+00:00","feeds_alive":19,"feeds"
+  [gfd-contrast] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
+== 3) deployed page vs repo ==
+  [page] 200 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"> <t
+   page bytes=9118 marker=True fetch-line=True
+== 4) remediation branches ==
+  -> domain serving error while S3 healthy: cache-busting re-put
+  [domain-after] 404 ct=text/html; charset=utf-8 cf=DYNAMIC | <!DOCTYPE html> <html>   <head>     <meta http-equiv="Content-type" content="text/html; charset=utf-8">     <meta http-equiv="Cont
+== 5) verdict ==
+  VERDICT: ROUTE_OR_CACHE_FAULT status=404 ct=text/html; charset=utf-8 cf=DYNAMIC
+OPS 2729 COMPLETE (diagnostic — verdict drives the fix)

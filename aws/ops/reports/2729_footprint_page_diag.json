@@ -1,0 +1,76 @@
+{
+ "ops": 2729,
+ "ts": "2026-07-02T14:56:35.398765+00:00",
+ "s3_obj": {
+  "exists": true,
+  "bytes": 14330,
+  "last_modified": "2026-07-02 14:30:09+00:00",
+  "ctype": "application/json",
+  "cache_control": "public, max-age=900",
+  "top_keys": [
+   "ai_dossier",
+   "asset_classes",
+   "asset_ledger",
+   "conviction_moves",
+   "dark_by_sector",
+   "dark_pool_footprint",
+   "engine",
+   "feeds",
+   "feeds_alive",
+   "generated_at",
+   "method",
+   "posture"
+  ],
+  "has_posture": true,
+  "version": "1.1.3",
+  "generated_at": "2026-07-02T14:30:08+00:00"
+ },
+ "p_domain": {
+  "url": "https://justhodl.ai/data/institutional-footprint.json",
+  "status": 404,
+  "ctype": "text/html; charset=utf-8",
+  "cf_cache": "DYNAMIC",
+  "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:"
+ },
+ "p_s3": {
+  "url": "https://justhodl-dashboard-live.s3.amazonaws.com/data/institutional-footprint.json",
+  "status": 200,
+  "ctype": "application/json",
+  "clen": 14330,
+  "cf_cache": null,
+  "age": null,
+  "head": "{\"engine\":\"justhodl-institutional-footprint\",\"version\":\"1.1.3\",\"generated_at\":\"2026-07-02T14:30:08+00:00\",\"feeds_alive\":19,\"feeds\":{\"13f-positions.json\":true,\"13f-aggregate.json\":false,\"13f-price-divergence.json\":true,\"c"
+ },
+ "p_proxy": {
+  "url": "https://justhodl-data-proxy.raafouis.workers.dev/institutional-footprint.json",
+  "status": 200,
+  "ctype": "application/json",
+  "clen": 14330,
+  "cf_cache": null,
+  "age": null,
+  "head": "{\"engine\":\"justhodl-institutional-footprint\",\"version\":\"1.1.3\",\"generated_at\":\"2026-07-02T14:30:08+00:00\",\"feeds_alive\":19,\"feeds\":{\"13f-positions.json\":true,\"13f-aggregate.json\":false,\"13f-price-divergence.json\":true,\"c"
+ },
+ "p_gfd": {
+  "url": "https://justhodl.ai/data/global-flow-desk.json",
+  "status": 404,
+  "ctype": "text/html; charset=utf-8",
+  "cf_cache": "DYNAMIC",
+  "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:"
+ },
+ "page_deployed": {
+  "status": 200,
+  "has_asset_ledger": false,
+  "bytes": 9118,
+  "has_marker": true,
+  "fetch_line": true
+ },
+ "reput": true,
+ "p_domain_after": {
+  "url": "https://justhodl.ai/data/institutional-footprint.json?cb=1783004206",
+  "status": 404,
+  "ctype": "text/html; charset=utf-8",
+  "cf_cache": "DYNAMIC",
+  "head": "<!DOCTYPE html>\n<html>\n  <head>\n    <meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\">\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; img-src data:"
+ },
+ "verdict": "ROUTE_OR_CACHE_FAULT status=404 ct=text/html; charset=utf-8 cf=DYNAMIC"
+}
