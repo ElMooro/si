@@ -52,8 +52,16 @@ def lambda_handler(event=None, context=None):
 
     today = datetime.now(timezone.utc).date()
     frm, to = today - timedelta(days=PRE + 6), today + timedelta(days=45)
-    cal = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&apikey=%s"
-               % (frm.isoformat(), to.isoformat(), FMP))
+    # FMP silently truncates long from/to ranges — chunk in 7-day windows.
+    cal, cur = [], frm
+    while cur <= to:
+        nxt = min(cur + timedelta(days=6), to)
+        j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit=3000&apikey=%s"
+                 % (cur.isoformat(), nxt.isoformat(), FMP))
+        if isinstance(j, list):
+            cal.extend(j)
+        cur = nxt + timedelta(days=1)
+    print("[blackout] calendar rows fetched (chunked):", len(cal))
     ed = {}
     for r in cal if isinstance(cal, list) else []:
         t = (r.get("symbol") or "").upper()
