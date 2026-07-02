@@ -212,3 +212,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2709_aaii_blackout.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2709 COMPLETE — positioning triad closed + corporate-bid switch live")
+
+# rev v3: chunked-calendar rerun trigger
