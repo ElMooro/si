@@ -32,6 +32,56 @@ def _j(k, d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
     except Exception: return d
 
+# ── FX: convert foreign reportedCurrency capex to USD ──
+# Primary: fleet FRED cache (data/fred-cache.json, DEX* daily); fallback: FMP
+# /stable/quote forex pairs. TTM and prior convert at the same spot, so yoy%%
+# is identical to the local-currency truth — only levels are translated.
+_FRED_DEX = {"JPY": ("DEXJPUS", "per_usd"), "CNY": ("DEXCHUS", "per_usd"),
+             "TWD": ("DEXTAUS", "per_usd"), "DKK": ("DEXDNUS", "per_usd"),
+             "KRW": ("DEXKOUS", "per_usd"), "INR": ("DEXINUS", "per_usd"),
+             "BRL": ("DEXBZUS", "per_usd"), "CHF": ("DEXSZUS", "per_usd"),
+             "SEK": ("DEXSDUS", "per_usd"), "HKD": ("DEXHKUS", "per_usd"),
+             "SGD": ("DEXSIUS", "per_usd"), "CAD": ("DEXCAUS", "per_usd"),
+             "MXN": ("DEXMXUS", "per_usd"), "ZAR": ("DEXSFUS", "per_usd"),
+             "NOK": ("DEXNOUS", "per_usd"), "EUR": ("DEXUSEU", "usd_per"),
+             "GBP": ("DEXUSUK", "usd_per"), "AUD": ("DEXUSAL", "usd_per"),
+             "NZD": ("DEXUSNZ", "usd_per")}
+_FX_CACHE = {}
+_FRED_DOC = {}
+
+def _usd_per(ccy):
+    """USD per 1 unit of ccy, memoized; FRED cache primary, FMP quote fallback."""
+    ccy = (ccy or "USD").upper()
+    if ccy == "USD": return 1.0, "native"
+    if ccy in _FX_CACHE: return _FX_CACHE[ccy]
+    rate, src = None, None
+    global _FRED_DOC
+    if not _FRED_DOC:
+        _FRED_DOC = _j("data/fred-cache.json", {}) or {}
+    m = _FRED_DEX.get(ccy)
+    if m:
+        ser = _FRED_DOC.get(m[0]) or []
+        for ob in ser[:10]:
+            v = ob.get("value") if isinstance(ob, dict) else None
+            if isinstance(v, (int, float)) and v > 0:
+                rate = (1.0 / v) if m[1] == "per_usd" else v
+                src = "FRED " + m[0]; break
+    if rate is None:
+        pair, inv = (ccy + "USD", False) if ccy in ("EUR", "GBP", "AUD", "NZD") else ("USD" + ccy, True)
+        try:
+            url = "https://financialmodelingprep.com/stable/quote?symbol=%s&apikey=%s" % (pair, FMP)
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "jh/1"}), timeout=15) as r:
+                q = json.loads(r.read())
+            px = (q[0] if isinstance(q, list) and q else {}).get("price")
+            if isinstance(px, (int, float)) and px > 0:
+                rate = (1.0 / px) if inv else px
+                src = "FMP " + pair
+        except Exception:
+            pass
+    _FX_CACHE[ccy] = (rate, src)
+    return rate, src
+
+
 def _fmp_cf(sym):
     url = ("https://financialmodelingprep.com/stable/cash-flow-statement"
            "?symbol=%s&period=quarter&limit=8&apikey=%s" % (sym, FMP))
@@ -58,6 +108,16 @@ def lambda_handler(event=None, context=None):
             cx = [abs(q.get("capitalExpenditure") or 0) for q in qs[:8]]
             ttm, prior = sum(cx[:4]), sum(cx[4:8])
             if ttm <= 0: fails += 1; continue
+            ccy = (qs[0].get("reportedCurrency") or "USD").upper()
+            fx_meta = None
+            if ccy != "USD":
+                rate, fsrc = _usd_per(ccy)
+                if rate is None:
+                    excluded.append({"ticker": t, "capex_ttm_b": round(ttm / 1e9, 1),
+                                     "why": "fx unavailable for %s" % ccy})
+                    continue
+                ttm *= rate; prior *= rate
+                fx_meta = {"ccy": ccy, "usd_per_ccy": round(rate, 6), "src": fsrc}
             yoy = round(100 * (ttm / prior - 1), 1) if prior > 0 else None
             c = cards.get(t) or {}
             mcb = c.get("mc_b")
@@ -67,16 +127,20 @@ def lambda_handler(event=None, context=None):
                 excluded.append({"ticker": t, "capex_ttm_b": round(ttm / 1e9, 1), "mc_b": mcb,
                                  "why": "capex>35%% mcap — FMP field contamination (financials)"})
                 continue
-            rows.append({"ticker": t, "sector": c.get("sec") or "?",
-                         "capex_ttm_b": round(ttm / 1e9, 2), "yoy_pct": yoy,
-                         "mc_b": c.get("mc_b"),
-                         "intensity_pct": round(100 * ttm / (c["mc_b"] * 1e9), 2) if c.get("mc_b") else None,
-                         "asof": qs[0].get("date")})
+            row = {"ticker": t, "sector": c.get("sec") or "?",
+                   "capex_ttm_b": round(ttm / 1e9, 2), "yoy_pct": yoy,
+                   "mc_b": c.get("mc_b"),
+                   "intensity_pct": round(100 * ttm / (c["mc_b"] * 1e9), 2) if c.get("mc_b") else None,
+                   "asof": qs[0].get("date")}
+            if fx_meta: row["fx"] = fx_meta
+            rows.append(row)
         except Exception:
             fails += 1
         time.sleep(0.1)
-    print("[capex] rows=%d fails=%d excluded=%d %s" % (len(rows), fails, len(excluded),
-          [e["ticker"] for e in excluded][:8]))
+    conv = [r for r in rows if r.get("fx")]
+    print("[capex] rows=%d fails=%d converted=%d %s excluded=%d %s" % (
+        len(rows), fails, len(conv), [(r["ticker"], r["fx"]["ccy"]) for r in conv][:8],
+        len(excluded), [e["ticker"] for e in excluded][:6]))
 
     sectors = {}
     for r in rows:
@@ -112,15 +176,18 @@ def lambda_handler(event=None, context=None):
     hist = dict(sorted(hist.items())[-400:])
     s3.put_object(Bucket=BUCKET, Key=HIST, Body=json.dumps(hist).encode(), ContentType="application/json")
 
-    doc = {"engine": "justhodl-capex-pulse", "version": "1.0.1",
+    doc = {"engine": "justhodl-capex-pulse", "version": "1.1.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "n": len(rows), "fails": fails,
            "market": {"capex_ttm_b": mkt_ttm, "yoy_pct": mkt_yoy, "universe": "top-%d mcap (stock-xray) + hyperscalers" % N_TOP},
            "hyperscalers": hyperscalers, "sectors": sectors, "boards": boards, "rows": rows,
            "excluded_outliers": excluded,
+           "fx_converted": [{"ticker": r["ticker"], **r["fx"], "capex_ttm_b": r["capex_ttm_b"]} for r in conv],
            "method": ("FMP /stable/cash-flow-statement quarterly x8 per name; TTM = last 4q "
                       "|capitalExpenditure|, yoy vs prior 4q; sector aggregates dollar-weighted; "
-                      "intensity = capex/mcap.")}
+                      "intensity = capex/mcap. Foreign issuers (FMP reportedCurrency != USD) converted "
+                      "to USD at spot (FRED DEX cache primary, FMP forex quote fallback); TTM and "
+                      "prior share the spot so yoy%% equals the local-currency truth.")}
     s3.put_object(Bucket=BUCKET, Key=OUT, Body=json.dumps(doc, separators=(",", ":"), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     return {"ok": True, "n": len(rows), "fails": fails, "mkt_ttm_b": mkt_ttm, "mkt_yoy": mkt_yoy,
