@@ -1,45 +1,11 @@
 
-======== 1/3 ICI reachability diagnosis (runner IP) ========
-   https://www.ici.org/research/stats -> {"code": 404}
-   https://www.ici.org/research/stats/mmf -> {"code": 200, "len": 331978, "title": "Release: Money Market Fund Assets | Investment Company Institute", "hrefs": ["https://www.ici.org/research/stats/mmf", "https://www.ici.org/research/stats/mmf", "/research/statistic
-
-======== 1b/3 ICI re-seed after root fix (runner) ========
-  [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [mmf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [mmf] discovered files=2 pages=6
-    · https://www.ici.org/mm_summary_data_2025.xls
-    · https://www.ici.org/mm_summary_data_2026.xls
-    · https://www.ici.org/research/stats/mmf
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/research/statistics/mutual-funds/monthly-money-market-fund-portfolio-data
-    · https://www.ici.org/MoneyMarketFunds
-    · https://www.ici.org/ResourceHubs/money-market-funds
-    · https://www.ici.org/topics/money-market-fund-assets
-  [ltf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [ltf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [ltf] discovered files=2 pages=8
-    · https://www.ici.org/statistical-report/combined_active_index_data_0526.xls
-    · https://www.ici.org/statistical-report/combined_active_index_data.xls
-    · https://www.ici.org/research/statistics/etfs/weekly-combined-estimated-etf-and-longterm-flows
-    · https://www.ici.org/research/statistics/mutual-funds/weekly-estimated-longterm-mutual-fund-flows
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/monthly-trends-in-mutual-fund-investing
-    · https://www.ici.org/researchstatisticsmutualfunds/quarterly-longterm-mutual-fund-asset-composition
-    · https://www.ici.org/research/statistics/etfs/weekly-estimated-etf-net-issuance
-    · https://www.ici.org/research/stats/trends_05_26
-    · https://www.ici.org/ici-viewpoints/etf-tax-treatment-supports-fairness-efficiency-and-longterm-investing
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data_0526: HTTP Error 403: Forbidden
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data.xls: HTTP Error 403: Forbidden
-  ici v2: {"ok": false, "err": "no ICI data (mmf=0 ltf=0) \u2014 seed histories"}
-  mmf data hrefs: ["/sites/default/files/ICI%20Favicon.ico", "https://www.ici.org/sites/default/files/color-theme-picker/color-theme-tac.css", "https://www.ici.org/sites/default/files/color-theme-picker/color-theme-seclaw.css", "/sites/default/files/css/css_s2eZcWLeWzWYIpAEh1T4oDoV4EB288ciIkB05gBgD6Q.css?delta=0&amp;language=en&amp;theme=ici_horizon&amp;include=eJx9UIFuAyEI_SGnn2RQ6ZUdilFs7_r1s1u7W9JtiYHHkwcvBIirV5mvunBgr7ipCQy3fdIdTV
-  mmf api tokens: []
-
-======== 2/3 DEPLOY dark-pool monthly fix + verify latest-month ========
-  settling 30s…
-  monthly v2: {"status": "OK_ARCHIVAL", "n_symbols": 24, "month": "2019-02-22"}
-  top blocks: [["GLNCY", 36295754], ["SFTBY", 6489679], ["FANUY", 6213187], ["BDORY", 4029131], ["TRYIY", 2327444], ["IMBBY", 2025428], ["JBSAY", 1877297], ["NSANY", 1825750]]
-  monthly err: None
-  verdict: ARCHIVAL dataset (OTC monthly, 2018-19 vintage) — weekly ATS remains the dark-pool source of truth
-
-======== 3/3 REPORT ========
-OPS 2719 COMPLETE
+======== 1/3 ICI SEED v3 — browser-header workbooks via engine's own parsers ========
+   mm_summary_data_2024.xls FAIL HTTP Error 404: Not Found
+   mm_summary_data_2025.xls -> 0 pts (total 0)
+   mm_summary_data_2026.xls -> 0 pts (total 0)
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2720_ici_quiver.py", line 89, in <module>
+    assert len(mmf_hist) >= 40, "MMF seed thin: %d" % len(mmf_hist)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: MMF seed thin: 0
+❌ OPS-FAIL: aws/ops/pending/ops_2720_ici_quiver.py
