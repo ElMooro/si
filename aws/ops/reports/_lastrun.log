@@ -1,80 +1,77 @@
 
-======== 1/4 DARK-POOL v2.0.1 — arm short_z from feed's z_score ========
+======== 1/4 DARK-POOL v2.2 (xray_map) + refresh feed ========
   settling 30s…
-  zip has zmap marker: False | zip bytes: 53197
-  CodeSha256 pre=8EKmJLBkNGJV post=aFaCRjiGP8XP changed=True
-  invoke head -> {"statusCode": 200, "body": "{\"ok\": true, \"latest_week\": \"2026-06-08\", \"n_scored\": 936, \"n_accumulation\": 283, \"n_picks\": 20, \"top\": [[\"BYD\", 93.2, \"ACCUMULATION\", 41.14, 0.707], [\"
-  invoke tail -> ", 36.89, 0.734], [\"BPOP\", 90.2, \"ACCUMULATION\", 34.94, 0.759], [\"DLR\", 89.6, \"ACCUMULATION\", 35.86, 0.892], [\"STT\", 88.7, \"ACCUMULATION\", 35.41, 0.885]], \"diag\": {\"fh_type\": \"dict\", \"fh_tickers\": 13075, \"zmap_n\": 11889, \"daily_n\": 501, \"daily_z_n\": 500, \"joined_all\": 485, \"z_all\": 485}}"}
-{
- "z_joined": 25,
- "of": 60,
- "high_conviction": [
-  "TEL",
-  "WAB",
-  "STT",
-  "EXPD",
-  "CNC",
-  "EXR",
-  "BXP",
-  "NEM",
-  "HSY",
-  "TECH",
-  "ESS",
-  "INCY"
- ],
- "dist_into_strength": [],
- "own_dix": 57.68,
- "sq_dix": 0.44503
-}
-  store sample: A list [{'ts': 1778670753, 'date': '2026-05-12', 'svr': 0.48, 'short_vol': 311335.570592, 'total_vol': 648598.402123}, {'ts': 1778720402, 'date': '2026-05-13', 'svr': 0.562, 'short_vol': 512419.941846, 'total_vol': 911764.924355}, {'ts': 1778806802, 'date': '2026-05-
-  ops-side extraction: names with >=15 svr obs = 11891
-  history store: {'tickers': 13075, 'median_days': 35, 'max_days': 35, 'ge15': 11891}
-  JOIN FORENSICS: daily=501 board=60 intersection=25
-  daily sample: ['A', 'AAPL', 'ABBV', 'ABNB', 'ABT', 'ACGL', 'ACN', 'ADBE']
-  board sample: ['AFG', 'AJG', 'ALLE', 'AMGN', 'AU', 'AVY', 'BLD', 'BPOP']
-  inter sample: ['AJG', 'ALLE', 'AMGN', 'AVY', 'BXP', 'CAH', 'CNC', 'CPT']
-  diag: {'fh_type': 'dict', 'fh_tickers': 13075, 'zmap_n': 11889, 'daily_n': 501, 'daily_z_n': 500, 'joined_all': 485, 'z_all': 485} | weekly_source: FRESH
+  xray_map names: 936
 
-======== 2/4 FACTOR-RETURNS — create + env from finviz-signals + run ========
-  finviz env keys: []
-  rule justhodl-factor-returns-daily cron(50 21 ? * MON-FRI *)
-  invoke -> {"ok": true, "drops": {"na": 5500, "px": 1122, "mc": 1113, "vol": 664}, "universe": 2998, "factors": {"MOMENTUM": -6.407, "VALUE": 1.775, "QUALITY": 0.938, "SIZE": 0.903, "LOWVOL": 1.997}, "regime": "LOWVOL leading / MOMENTUM lagging \u00b7 MOMENTUM_CRASH DEFE
+======== 2/4 STOCK X-RAY — create + run + prove ========
+  invoke -> {"ok": true, "n": 3806, "joins": {"mr": 0, "ec": 11, "rs": 59, "dp": 929, "er": 70, "fm": 0}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 0}}
 {
- "universe": 2998,
- "ok_factors": {
-  "MOMENTUM": -6.407,
-  "VALUE": 1.775,
-  "QUALITY": 0.938,
-  "SIZE": 0.903,
-  "LOWVOL": 1.997
+ "n_cards": 3806,
+ "joins": {
+  "mr": 0,
+  "ec": 11,
+  "rs": 59,
+  "dp": 929,
+  "er": 70,
+  "fm": 0
  },
- "thin": [],
- "mom_crowding": 25.7,
- "mom_pe_vs_univ": [
-  63.2,
-  21.7
- ],
- "regime": "LOWVOL leading / MOMENTUM lagging \u00b7 MOMENTUM_CRASH DEFENSIVE_BID",
- "flags": [
-  "MOMENTUM_CRASH",
-  "DEFENSIVE_BID"
- ],
- "top_mom_names": [
-  "MU",
-  "SNDK",
-  "AMD",
-  "INTC",
-  "AMAT",
-  "MRVL",
-  "LRCX",
-  "NBIS"
- ]
+ "boards": {
+  "multibagger_candidates": [
+   "ABUS",
+   "AXTI",
+   "CRNX",
+   "NUVB",
+   "CGON",
+   "ONDS",
+   "NUAI",
+   "RCAT"
+  ],
+  "turning_profitable": [
+   "QXO",
+   "PGEN",
+   "SBET",
+   "BMNR",
+   "BTGO",
+   "FWDI",
+   "ALM",
+   "TE"
+  ],
+  "accumulation_leaders": [
+   "TEL",
+   "IEX",
+   "WAB",
+   "STT",
+   "ESS",
+   "TECH",
+   "PSA",
+   "CAH"
+  ],
+  "dis_warnings": [],
+  "full_stack_highs": [
+   "MZYX",
+   "RAAQ",
+   "FVAV",
+   "BACC",
+   "AADX",
+   "CVBF",
+   "ESQ",
+   "PSO"
+  ],
+  "laggards_watch": []
+ },
+ "board_sizes": {
+  "multibagger_candidates": 15,
+  "turning_profitable": 15,
+  "accumulation_leaders": 15,
+  "dis_warnings": 0,
+  "full_stack_highs": 15,
+  "laggards_watch": 0
+ }
 }
-
-======== 3/4 BOARD + PAGES ========
-  board: {"engine": "Factor Returns", "category": "equity", "signal": -1, "signal_label": "RISK-OFF", "read": "FACTORS LOWVOL leading / MOMENTUM lagging \u00b7 MOMENTUM_CRASH DEFENSIVE (MOM L/S -6.41
-  board: {"engine": "Dark Pool", "category": "flow", "signal": 1, "signal_label": "RISK-ON", "read": "DARK POOL own-DIX 57.7% BUYING PRESSURE (accum 283 / dist 62)", "as_of": "2026-07-02T05:03:14.723
-  page: LIVE
-
-======== 4/4 REPORT ========
-OPS 2715 COMPLETE — flags armed + the style desk is live
+  NVDA card: {"px": 197.58, "mc_b": 4781.44, "ma": {"a20": false, "a50": false, "a200": true, "stack": "MIXED"}, "stage": "STAGE_3_TOP", "pos52": 65.0, "momo_12_1": 40.8, "val": {"pe": 30.26, "fwd_pe": 15.63, "sec_pctile": 49.0}, "profit": {"now": true, "turning": false}, "dark": {"dp": 11.36, "acc": -0.044, "st": "NEUTRAL", "sz": 2.03, "cv": null, "fl": null}, "rank": null, "confl": null, "factors": null, "peers": null}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2716_stock_xray.py", line 103, in <module>
+    assert JN.get("dp", 0) >= 500 and JN.get("fm", 0) >= 800, "core joins thin: %s" % JN
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: core joins thin: {'mr': 0, 'ec': 11, 'rs': 59, 'dp': 929, 'er': 70, 'fm': 0}
+❌ OPS-FAIL: aws/ops/pending/ops_2716_stock_xray.py
