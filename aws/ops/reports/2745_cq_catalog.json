@@ -1,0 +1,44 @@
+{
+ "ops": 2745,
+ "ts": "2026-07-02T23:46:22.387292+00:00",
+ "probe": {
+  "live": 53,
+  "dead": [
+   "btc_leverage_ratio"
+  ]
+ },
+ "live_run": {
+  "n": 52,
+  "categories": {
+   "exchange_flows": 5,
+   "flow_indicator": 5,
+   "market_indicator": 4,
+   "network_indicator": 6,
+   "miner_flows": 3,
+   "network_data": 11,
+   "market_data": 5,
+   "eth": 8,
+   "stablecoins": 5
+  },
+  "composite": -0.24,
+  "errors": [
+   {
+    "metric": "btc_ssr",
+    "err": "thin: 0"
+   }
+  ]
+ },
+ "series": {
+  "n": 52,
+  "btc_points": 530,
+  "twins": [
+   "btc_addresses_active",
+   "btc_fees_total",
+   "btc_hashrate",
+   "btc_mvrv",
+   "btc_supply_total",
+   "btc_tx_count"
+  ]
+ },
+ "page": "LIVE_v2"
+}

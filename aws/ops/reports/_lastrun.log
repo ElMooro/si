@@ -56,13 +56,14 @@ settling 25s…
   LIVE stablecoin_supply_total        keys=['supply_total', 'supply_minted', 'supply_burned']
   spec v2 written: 53 metrics, core-8 intact
 == 2/4 deploy engine v2 + full run ==
-  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 51, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 7, "stablecoins": 5}, "composite": -0.12, "extremes_ai": 5, "errors": 1}
-  categories: {'exchange_flows': 5, 'flow_indicator': 5, 'market_indicator': 4, 'network_indicator': 6, 'miner_flows': 3, 'network_data': 11, 'market_data': 5, 'eth': 7, 'stablecoins': 5}
-  hist_read coverage 51/51 | 2010-window 6 | corr 51
+  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "composite": -0.24, "extremes_ai": 5, "errors": 1}
+  categories: {'exchange_flows': 5, 'flow_indicator': 5, 'market_indicator': 4, 'network_indicator': 6, 'miner_flows': 3, 'network_data': 11, 'market_data': 5, 'eth': 8, 'stablecoins': 5}
+  hist_read coverage 52/52 | 2010-window 6 | corr 52
   sample: At today's level (2th percentile of 2010-present (Coin Metrics twin)), BTC's forward 21-day return has historically averaged +6.2% (median +3.3%, up 62% of the time, n=700).
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2745_cq_catalog.py", line 181, in <module>
-    assert all(k in M for k in core), "core-8 missing from run"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: core-8 missing from run
-❌ OPS-FAIL: aws/ops/pending/ops_2745_cq_catalog.py
+  series feed: 52 series, btc 530 pts (2010+), twins ['btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_mvrv']
+== 3/4 domain checks ==
+  strict: data/cryptoquant-onchain.json
+  strict: data/cryptoquant-series.json
+  page attempt 1: v2 LIVE
+== 4/4 report ==
+OPS 2745 COMPLETE — the whole catalog, probed and proven
