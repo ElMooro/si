@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>On-Chain Desk — CryptoQuant · JustHodl.AI</title><!-- ONCHAIN DESK v1 -->
+<style>
+:root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 18px 70px}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:.4px}
+.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:16px}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:13px;margin-bottom:14px}
+.dial{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:14px;padding:16px 17px}
+.dial h3,.c h3{margin:0 0 8px;font-size:10.5px;letter-spacing:1.6px;color:var(--fg2);font-weight:600}
+.big{font-family:var(--mono);font-size:32px;font-weight:800;line-height:1}
+.lab{font-family:var(--mono);font-size:11.5px;margin-top:5px}
+.comp{color:var(--fg3);font-size:10.5px;margin-top:9px;font-family:var(--mono);line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:13px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.wide{grid-column:1/-1}
+.mrow{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12px;margin:4px 0}
+.zbar{height:6px;background:#0f1828;border-radius:4px;margin:7px 0 3px;position:relative}
+.zbar i{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffffff44;left:50%}
+.zbar b{position:absolute;top:0;bottom:0;border-radius:4px}
+.chip{font-size:9.5px;padding:2px 7px;border-radius:10px;font-family:var(--mono)}
+.chip.prov{background:#2b230d;color:var(--am);border:1px solid #4a3d1c}
+.chip.ok{background:#0d2b22;color:var(--gr);border:1px solid #1c4a3a}
+.chip.miss{background:#2d1218;color:var(--rd);border:1px solid #52222c}
+.g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}.vi{color:var(--vi)}
+.load{color:var(--fg3);font-family:var(--mono);padding:44px;text-align:center}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+td,th{padding:5px 6px;border-bottom:1px solid #131f33;text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{color:var(--fg3);font-weight:600;font-size:10px;letter-spacing:1px}
+</style></head><body><div class="wrap">
+<h1>⛓️ ON-CHAIN DESK — CryptoQuant Entity-Labeled Flows</h1>
+<div class="sub" id="meta">Loading on-chain intelligence…</div>
+<div id="app" class="load">Loading…</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+const fin=v=>Number.isFinite(v);
+const nm={btc_exchange_netflow:"BTC Exchange Netflow (BTC/d)",btc_exchange_reserve:"BTC Exchange Reserve (BTC)",eth_exchange_reserve:"ETH Exchange Reserve (ETH)",btc_mpi:"Miner Position Index",btc_whale_ratio:"Exchange Whale Ratio",btc_mvrv:"MVRV Ratio",btc_sopr:"SOPR",stablecoin_exchange_reserve:"Stablecoin Exchange Reserve ($)"};
+const hint={btc_exchange_netflow:"inflows = distribution pressure",btc_exchange_reserve:"high reserve = sell-side capacity",eth_exchange_reserve:"high reserve = sell-side capacity",btc_mpi:"miners moving coins vs 1y norm",btc_whale_ratio:"top-10 inflow share = whale selling",btc_mvrv:"market vs realized value — cycle position",btc_sopr:"<1 = coins moving at a loss (capitulation)",stablecoin_exchange_reserve:"dry powder on exchanges (falling = draining)"};
+const col=v=>!fin(v)?"var(--fg3)":v>0?"var(--rd)":"var(--gr)";
+const fV=(k,v)=>!fin(v)?"—":k==="stablecoin_exchange_reserve"?"$"+(v/1e9).toFixed(1)+"B":Math.abs(v)>=1e6?(v/1e6).toFixed(2)+"M":Math.abs(v)>=1e3?(v/1e3).toFixed(1)+"k":v.toFixed(3);
+async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r.json()}catch(e){return null}}
+(async()=>{
+ const [d,rt,xf,mi]=await Promise.all([j("data/cryptoquant-onchain.json"),j("data/onchain-ratios.json"),j("data/crypto-exchange-flows.json"),j("data/crypto-miners.json")]);
+ const app=document.getElementById("app");
+ if(!d||!d.metrics){app.textContent="Feed unavailable — data/cryptoquant-onchain.json failed strict parse.";return}
+ document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · ${Object.keys(d.metrics).length}/8 metrics · staleness ${d.max_staleness_days}d · Professional plan (1y API window, accruing daily)`;
+ const M=d.metrics,cz=d.composite_onchain_risk_z;
+ const consumers=[["crypto-exchange-flows",!!(xf&&xf.cryptoquant)],["crypto-miners",!!(mi&&mi.cryptoquant_mpi)],["onchain-ratios",!!(rt&&rt.cryptoquant)],["signal-logger → ledger",true],["crypto-intel · confluence · cycle-clock",!!(xf&&xf.cryptoquant)],["morning-intel · asym-scorer",!!(rt&&rt.cryptoquant)]];
+ const cards=Object.keys(nm).map(k=>{const m=M[k];if(!m)return`<div class="c"><h3>${nm[k]}</h3><div class="comp">unavailable this run</div></div>`;
+  const z=m.z365,w=Math.min(48,Math.abs(z||0)*16);
+  return`<div class="c"><h3>${nm[k]}</h3>
+   <div class="mrow"><b style="font-size:19px">${fV(k,m.value)}</b><span class="${(m.wow||0)>0?"r":"g"}">${fin(m.wow)?((m.wow>0?"+":"")+fV(k,Math.abs(m.wow)*Math.sign(m.wow)))+" WoW":""}</span></div>
+   <div class="zbar"><b style="${z>=0?"left:50%":"right:50%"};width:${w}%;background:${col(z)}"></b><i></i></div>
+   <div class="mrow"><span style="color:${col(z)}">z ${fin(z)?(z>0?"+":"")+z.toFixed(2):"—"}</span><span class="cy">${fin(m.pctl_1y)?m.pctl_1y+"th pctl/1y":""}</span><span style="color:var(--fg3)">${m.as_of||""}</span></div>
+   <div class="comp">${hint[k]}</div></div>`}).join("");
+ app.className="";app.innerHTML=`
+ <div class="hero">
+  <div class="dial"><h3>COMPOSITE ON-CHAIN RISK <span class="chip prov">PROVISIONAL</span></h3>
+   <div class="big" style="color:${cz>0.5?"var(--rd)":cz<-0.5?"var(--gr)":"var(--cy)"}">${fin(cz)?(cz>0?"+":"")+cz.toFixed(2)+"z":"—"}</div>
+   <div class="lab" style="color:${cz>0.5?"var(--rd)":cz<-0.5?"var(--gr)":"var(--cy)"}">${cz>0.75?"DISTRIBUTION RISK":cz<-0.75?"SUPPLY SQUEEZE":"NEUTRAL"}</div>
+   <div class="comp">${d.read||""}</div></div>
+  <div class="dial"><h3>FORWARD LEDGER — onchain_composite_risk</h3>
+   <div class="lab" style="font-size:13px;margin-top:2px">Logged daily vs <b class="cy">BTC-USD</b> · horizons 1/3/7/14/21d · gate |z| ≥ 0.75</div>
+   <div class="comp">Every reading enters the signal ledger and is graded excess-vs-BTC with BH-FDR by the scorecard. First 21-day verdicts ≈ <b class="a">Jul 23</b>. Trust weights will be learned from outcomes — never hand-set.</div></div>
+  <div class="dial"><h3>FUSION MAP — WHERE THIS DATA FLOWS</h3>
+   <div class="comp" style="margin-top:4px">${consumers.map(c=>`<div class="mrow"><span>${c[0]}</span><span class="chip ${c[1]?"ok":"miss"}">${c[1]?"LIVE":"PENDING"}</span></div>`).join("")}</div></div>
+ </div>
+ <div class="grid">${cards}
+  <div class="c wide"><h3>METHOD</h3><div class="comp">${d.source||""} · spec-driven adapter (endpoint drift = config fix) · daily 21:05 UTC → ratios 21:20 → exchange-flows 21:55 · z/percentile windows = 365d (plan history window) · free Coin Metrics / blockchain.com / mempool sources retained in consumer engines as independent cross-checks · ${d.grading||""}</div></div>
+ </div>`;
+})();
+</script></div></body></html>
