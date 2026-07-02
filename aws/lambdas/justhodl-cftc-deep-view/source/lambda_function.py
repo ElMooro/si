@@ -370,19 +370,29 @@ def lambda_handler(event=None, context=None):
                         "cftc-futures-positioning-agent is running")})}
 
     # Cache structure: per memory, contains per-contract historical data
-    contracts_data = (cache.get("contracts")
-                        or cache.get("contracts_data")
-                        or cache.get("by_contract")
-                        or {})
-    contracts_meta = (cache.get("contract_metadata")
-                        or cache.get("meta")
-                        or {})
-
-    if not contracts_data:
-        # Try alternate shape: top-level keys are contract symbols
+    # SHAPE-AWARE selection: the upstream cache carries scalar metadata under
+    # keys like "contracts": 29 (a COUNT) — an `or`-chain happily grabs that
+    # int and everything downstream detonates. Accept only non-empty dicts.
+    contracts_data = None
+    for _k in ("contracts", "contracts_data", "by_contract", "data", "series"):
+        _v = cache.get(_k)
+        if isinstance(_v, dict) and _v:
+            contracts_data = _v
+            break
+    if contracts_data is None:
+        # Alternate shape: top-level keys are contract symbols
         contracts_data = {k: v for k, v in cache.items()
-                           if isinstance(v, list) and k.isalpha()}
+                           if isinstance(v, (list, dict)) and str(k)[:1].isalpha()
+                           and k not in ("meta", "contract_metadata", "generated_at", "engine", "version")}
+    _cm = None
+    for _k in ("contract_metadata", "meta", "metadata"):
+        _v = cache.get(_k)
+        if isinstance(_v, dict):
+            _cm = _v
+            break
+    contracts_meta = _cm or {}
 
+    print(f"[cftc-deep-view] cache keys={sorted(map(str, cache.keys()))[:14]}")
     print(f"[cftc-deep-view] loaded {len(contracts_data)} contracts from cache")
 
     analyses = []

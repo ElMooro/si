@@ -111,3 +111,5 @@ print("OPS 2725 COMPLETE — every asset class, lit and dark, on one ledger")
 # rev2 fullstack
 
 # rev3 frame-dump
+
+# rev4 shape-aware
