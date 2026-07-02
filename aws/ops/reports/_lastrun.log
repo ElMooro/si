@@ -3,9 +3,16 @@ settling 30s…
   cq -> {"ok": true, "status": "LIVE", "n_metrics": 8, "composite": -0.24, "staleness_d": 1, "errors": 0}
   metrics: 8 | errors: None | composite: -0.24
 == 2/6 onchain-ratios resurrection ==
+  ratios LIVE @ data/onchain-ratios.json | cq block ok | resurrected: ops 2742 - daily 21:20 UTC
+== 3/6 exchange-flows fusion ==
+  xf cq block ok | stablecoin: {"value": 63561385260.8275, "z365": -0.69, "pctl_1y": 21, "wow": -2092854733.2974, "as_of": "2026-07-01", "risk_sign": -
+== 4/6 miners fusion ==
+  miners MPI: {"value": -0.3504, "z365": 0.04, "pctl_1y": 55, "wow": -0.2011, "as_of": "2026-07-01", "risk_sign": 1, "grading": "PROVISIONAL"}
+== 5/6 signal-logger CANDIDATE ==
+  logger payload: {"statusCode": 200, "body": "{\"logged\": 115}"} | tail-hit: False
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2742_onchain_fusion.py", line 90, in <module>
-    assert okey, km
-           ^^^^
-AssertionError: ['data/cryptoquant-onchain.json']
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2742_onchain_fusion.py", line 120, in <module>
+    assert hit, "onchain signal not in log tail"
+           ^^^
+AssertionError: onchain signal not in log tail
 ❌ OPS-FAIL: aws/ops/pending/ops_2742_onchain_fusion.py
