@@ -1,7 +1,24 @@
 settling 30s…
-  latest_survey keys: ['discovered_at', 'fomc_date', 'note', 'source_url']
-  numeric sample: {}
-  PD: {"net": null, "note": "no net-position field in dealer feeds"}
-  13F $ confirm: [{"t": "KO", "usd_m": 30420.0}, {"t": "GOOGL", "usd_m": 15600.1}, {"t": "NVDA", "usd_m": 440.7}, {"t": "CVX", "usd_m": 417.0}]
-  page: LIVE
-OPS 2727 COMPLETE
+== 0/3 catalog probe (runner-side truth) ==
+  catalog: 1539 series total, 22 net-position candidates
+    PDFRN2NSP - SECURITY NET SETTLED POSITION
+    PDSI10NSP - SECURITY NET SETTLED POSITION
+    PDSI20NSP - SECURITY NET SETTLED POSITION
+    PDSI2NSP - SECURITY NET SETTLED POSITION
+    PDSI30NSP - SECURITY NET SETTLED POSITION
+    PDSI3NSP - SECURITY NET SETTLED POSITION
+    PDSI5NSP - SECURITY NET SETTLED POSITION
+    PDSI7NSP - SECURITY NET SETTLED POSITION
+    PDST10NSP - SECURITY NET SETTLED POSITION
+    PDST30NSP - SECURITY NET SETTLED POSITION
+    PDST5NSP - SECURITY NET SETTLED POSITION
+    PDFRN2NSPC - SECURITY NET SETTLED POSITION - Change From Previous Week
+== 1/3 CREATE + RUN nyfed-pd ==
+  schedule: cron(30 21 ? * THU,FRI *)
+  invoke -> {"errorMessage": "no PD series parsed \u2014 catalog drift?", "errorType": "AssertionError", "requestId": "639f7d58-2d85-4093-bd1a-16531b1e6554", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 100, in lambda_handler\n    assert per_class, \"no PD series parsed \u2014 catalog drift?\"\
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2728_nyfed_pd.py", line 92, in <module>
+    assert not r.get("FunctionError") and pay.get("ok"), pay
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'errorMessage': 'no PD series parsed — catalog drift?', 'errorType': 'AssertionError', 'requestId': '639f7d58-2d85-4093-bd1a-16531b1e6554', 'stackTrace': ['  File "/var/task/lambda_function.py", line 100, in lambda_handler\n    assert per_class, "no PD series parsed — catalog drift?"\n']}
+❌ OPS-FAIL: aws/ops/pending/ops_2728_nyfed_pd.py
