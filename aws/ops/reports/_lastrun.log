@@ -1,10 +1,21 @@
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
 
-======== 1/5 RUNNER PROBE + SEED (engine's own parse code) ========
-  [ltf] page https://www.ici.org/research/stats/combined: HTTP Error 404: Not Found
-  [ltf] page https://www.ici.org/research/stats/weekly: HTTP Error 404: Not Found
+======== 1/6 RUNNER SEED — AAII full history via sentiment.xls (xlrd) ========
+  xls seed unavailable: HTTP Error 403: Forbidden
+
+======== 2/6 DEPLOY aaii + composite + board; ensure AAII rule ========
+  settling 30s…
+  synced justhodl-aaii-sentiment
+  synced justhodl-put-call-extreme
+  synced justhodl-signal-board
+  rule justhodl-aaii-weekly ensured
+
+======== 3/6 RUN AAII + PROVE ========
+  {"week_ending": "2026-06-25", "bullish": 1.0, "bearish": 0.0, "spread": 1.0, "history_n": 10, "interp": "Retail investors are extremely bullish (100% vs 38% historical). Historically a contrarian sell signal \u2014 euphoria is when distributions usua"}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2709_ici_flows.py", line 33, in <module>
-    assert len(mmf_raw) >= 8, "MMF parse thin (%d) — do not deploy dead pillar" % len(mmf_raw)
-           ^^^^^^^^^^^^^^^^^
-AssertionError: MMF parse thin (0) — do not deploy dead pillar
-❌ OPS-FAIL: aws/ops/pending/ops_2709_ici_flows.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2709_aaii_blackout.py", line 136, in <module>
+    assert isinstance(L.get("bullish"), (int, float)) and 0.05 <= L["bullish"] <= 0.8, "bull frac insane"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: bull frac insane
+❌ OPS-FAIL: aws/ops/pending/ops_2709_aaii_blackout.py
