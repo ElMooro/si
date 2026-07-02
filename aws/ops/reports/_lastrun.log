@@ -1,47 +1,15 @@
 
-======== 1/5 QUIVER offexchange — token discovery + dual-header probe ========
-  token: NOT FOUND
-  probe: null
+======== 1/3 ICI reachability diagnosis (runner IP) ========
+   https://www.ici.org/research/stats -> {"code": 404}
+   https://www.ici.org/research/stats/mmf -> {"code": 200, "len": 331978, "title": "Release: Money Market Fund Assets | Investment Company Institute", "hrefs": ["https://www.ici.org/research/stats/mmf", "https://www.ici.org/research/stats/mmf", "/research/statistic
 
-======== 2/5 ICI SEED — run engine module on the runner (its fetchers, its _pj) ========
-  [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [mmf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [mmf] discovered files=2 pages=6
-    · https://www.ici.org/mm_summary_data_2025.xls
-    · https://www.ici.org/mm_summary_data_2026.xls
-    · https://www.ici.org/research/stats/mmf
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/research/statistics/mutual-funds/monthly-money-market-fund-portfolio-data
-    · https://www.ici.org/MoneyMarketFunds
-    · https://www.ici.org/ResourceHubs/money-market-funds
-    · https://www.ici.org/topics/money-market-fund-assets
-  [ltf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [ltf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [ltf] discovered files=2 pages=8
-    · https://www.ici.org/statistical-report/combined_active_index_data_0526.xls
-    · https://www.ici.org/statistical-report/combined_active_index_data.xls
-    · https://www.ici.org/research/statistics/etfs/weekly-combined-estimated-etf-and-longterm-flows
-    · https://www.ici.org/research/statistics/mutual-funds/weekly-estimated-longterm-mutual-fund-flows
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/monthly-trends-in-mutual-fund-investing
-    · https://www.ici.org/researchstatisticsmutualfunds/quarterly-longterm-mutual-fund-asset-composition
-    · https://www.ici.org/research/statistics/etfs/weekly-estimated-etf-net-issuance
-    · https://www.ici.org/research/stats/trends_05_26
-    · https://www.ici.org/ici-viewpoints/etf-tax-treatment-supports-fairness-efficiency-and-longterm-investing
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data_0526: HTTP Error 403: Forbidden
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data.xls: HTTP Error 403: Forbidden
-  runner-run: {"ok": false, "err": "no ICI data (mmf=0 ltf=0) \u2014 seed histories"}
-  lambda after-seed: ERR {"errorMessage": "no ICI data (mmf=0 ltf=0) — seed histories", "errorType": "RuntimeError", "requestId": "de04b592-46e1-4873-b351-44b3a0cbcbb6", "stackTrace": ["  File \"/var/t
-
-======== 3/5 DEPLOY dark-pool (self-discovering monthly) + stock-xray (ec books) ========
+======== 2/3 DEPLOY dark-pool monthly fix + verify latest-month ========
   settling 30s…
-  synced justhodl-dark-pool
-  synced justhodl-stock-xray
-  FINRA monthly: {"status": "OK", "n_symbols": 4388, "month": "2018-09-04", "fields": {"symbol": "issueSymbolIdentifier", "qty": "totalMonthlyShareQuantity", "type": "productTypeCode", "date": "lastUpdateDate"}, "err": null, "fields_seen": null}
-
-======== 4/5 X-RAY — prove confluence join depth ========
-  confluence book size: 11
-  xray -> {"ok": true, "n": 3809, "joins": {"mr": 25, "ec": 245, "rs": 59, "dp": 929, "er": 356, "fm": 1825}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "l
-
-======== 5/5 REPORT ========
-OPS 2718 COMPLETE — follow-up ledger cleared
+  monthly v2: {"status": "UNAVAILABLE", "n_symbols": null, "month": null}
+  top blocks: []
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2719_diag_ici_quiver.py", line 72, in <module>
+    assert mo.get("status") == "OK" and str(mo.get("month") or "") >= "2026-01", "not latest month: %s" % mo.get("month")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: not latest month: None
+❌ OPS-FAIL: aws/ops/pending/ops_2719_diag_ici_quiver.py
