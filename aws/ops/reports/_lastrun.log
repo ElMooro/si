@@ -1,52 +1,36 @@
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+settling 30s…
+justhodl-cross-asset-regime -> REVIVED {"statusCode": 200, "body": "{\"regime\": \"MIXED\", \"risk_score\": -7.89, \"risk_label\"
+justhodl-money-flow-state -> REVIVED {"ok": true, "n_stocks": 1812, "n_industries": 140, "top_in": "TSLA"}
+justhodl-gold-equity-rotation -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"EQUITY_DOMINANT_ACTIVE\", \"n_tic
+justhodl-sector-rotation -> REVIVED {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_sectors\": 11
+justhodl-sector-flow-state -> REVIVED {"ok": true, "n": 11, "ow": ["XLK", "XLF", "XLV", "XLI", "XLRE", "XLY"], "uw": ["XLB", "XL
+justhodl-sector-emergence -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"emerging\": [\"XLI\", \"XLV\"], \"n_sectors\
+justhodl-theme-rotation -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 38, \"rotating_in\": 21, \"leading
+justhodl-rotation-radar -> REVIVED {"statusCode": 200, "body": "{\"crypto_altseason\": 24, \"equity_rotation\": 27.2}"}
+justhodl-crypto-etf-flows -> REVIVED {"statusCode": 200, "body": "{\"btc_etf_regime\": \"STRONG OUTFLOW\", \"btc_30d_usd\": -70
+justhodl-crypto-exchange-flows -> REVIVED {"statusCode": 200, "body": "{\"regime\": \"HEAVY ACCUMULATION (outflow)\", \"cum_30d_btc\
+justhodl-stablecoin-flow -> REVIVED {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"prev\": \"CONTRACTING\", \"del
+justhodl-capital-flow-radar -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 46, \"pump_setups\": 15, \"pa
+justhodl-flow-confluence -> REVIVED {"statusCode": 200, "body": "{\"names\": 286, \"multi_engine\": 80, \"short_squeeze_setup\
+justhodl-sector-capital-fusion -> REVIVED {"ok": true, "sectors": 11, "divergences": 2, "headline": "2 sector divergence(s): Communi
+justhodl-fx-intelligence -> REVIVED {"statusCode": 200, "body": "USD STRENGTH (dollar pressure 70.1/100, NEUTRAL). Strongest v
+justhodl-sovereign-fiscal -> REVIVED {"statusCode": 200, "body": "{\"tic_holders\": 15, \"tic_as_of\": \"2025-12\", \"deficit_m
+justhodl-tic-flows -> REVIVED {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": tru
+REVIVED OK: 17 / 17
 
-======== A/4 FINRA MONTHLY — firm-level discovery + spec v2 ========
-   ATS_M_SMBL_FIRM -> Expecting value: line 1 column 1 (char 0)
-  codes live: ['OTC_M_SMBL_FIRM']
-  domainFilters probe rows: 40 | sample: {'issueSymbolIdentifier': 'AMD', 'marketParticipantName': 'FUTU CLEARING INC', 'totalMonthlyShareQuantity': 2327.5494, 'monthStartDate': '2026-04-01'}
-  SPEC v2: {"codes": ["OTC_M_SMBL_FIRM"], "qty_field": "totalMonthlyShareQuantity", "notional_field": "totalNotionalSum", "date_field": "monthStartDate", "sym_field": "issueSymbolIdentifier", "firm_field": "marketParticipantName", "discovered": "2026-07-02T07:12:40.745325+00:00"}
+── etf-true-flows COUNTRY verify ──
+  country tickers in feed: 12 ['MCHI', 'EWG', 'EWY', 'EWT', 'EWU', 'EWC', 'EWW', 'EZA', 'TUR', 'VNM', 'THD', 'EWQ']
 
-======== B/4 QUIVER OFF-EXCHANGE — verdict ========
-  VERDICT: {"enabled": false, "http": 401, "note": "requires paid Quiver token; congresstrading is their only no-auth endpoint. To activate: create SSM /justhodl/quiver/token + set enabled=true here."}
-
-======== C/4 ICI-FLOWS — store repair + fetch diag + kind-aware seed ========
-  repaired data/history/ici-mmf.json: dropped 20 malformed rows, kept 0
-  repaired data/history/ici-flows.json: dropped 33 malformed rows, kept 0
-  GET mmf -> 200 (332041 bytes)
-  GET combined -> HTTP Error 404: Not Found
-  [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [mmf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [mmf] discovered files=2 pages=6
-    · https://www.ici.org/mm_summary_data_2025.xls
-    · https://www.ici.org/mm_summary_data_2026.xls
-    · https://www.ici.org/research/stats/mmf
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/research/statistics/mutual-funds/monthly-money-market-fund-portfolio-data
-    · https://www.ici.org/MoneyMarketFunds
-    · https://www.ici.org/ResourceHubs/money-market-funds
-    · https://www.ici.org/topics/money-market-fund-assets
-  _live('mmf') -> 0 entries
-  [ltf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
-  [ltf] seed https://www.ici.org/sitemap.xml: HTTP Error 404: Not Found
-  [ltf] discovered files=2 pages=8
-    · https://www.ici.org/statistical-report/combined_active_index_data_0526.xls
-    · https://www.ici.org/statistical-report/combined_active_index_data.xls
-    · https://www.ici.org/research/statistics/etfs/weekly-combined-estimated-etf-and-longterm-flows
-    · https://www.ici.org/research/statistics/mutual-funds/weekly-estimated-longterm-mutual-fund-flows
-    · https://www.ici.org/weekly-money-market-mutual-fund-assets
-    · https://www.ici.org/monthly-trends-in-mutual-fund-investing
-    · https://www.ici.org/researchstatisticsmutualfunds/quarterly-longterm-mutual-fund-asset-composition
-    · https://www.ici.org/research/statistics/etfs/weekly-estimated-etf-net-issuance
-    · https://www.ici.org/research/stats/trends_05_26
-    · https://www.ici.org/ici-viewpoints/etf-tax-treatment-supports-fairness-efficiency-and-longterm-investing
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data_0526: HTTP Error 403: Forbidden
-  [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data.xls: HTTP Error 403: Forbidden
-  _live('ltf') -> 0 entries
-  seeded: {'mmf': 0, 'ltf': 0}
-
-======== D/4 DEPLOY dark-pool v2.3 + PROVE all three ========
-  settling 30s…
-  monthly: {"status": "OK", "month": "2026-04-01", "n_rows": null, "joined": 933}
-  concentration sample: {"AAL": {"sh": 2167448923.940517, "ntl": 28884.2, "top_firm": "CITADEL SECURITIES LLC", "top_pct": 28.6, "n_firms": 13}, "ADBE": {"sh": 79353861.10835302, "ntl": 21343.3, "top_firm": "De Minimis Firms", "top_pct": 21.8, "n_firms": 19}, "ADP": {"sh": 44961410.538262, "ntl": 9807.6, "top_firm": "De Mi
-  ici invoke -> {"errorMessage": "no ICI data (mmf=0 ltf=0) \u2014 seed histories", "errorType": "RuntimeError", "requestId": "9d7461df-ffe8-4e5e-8744-8f7b8924ff59", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 281, in 
-  ici verdict: {"status": "GATED", "note": "ici.org blocked from Lambda AND runner; engine gate intact; seed via manual upload or alt mirror \u2014 PENDING"}
-OPS 2719 COMPLETE — three follow-ups closed
+── key feed freshness after revival ──
+  data/capital-flow-radar.json              1.5 min
+  data/sector-rotation.json                 3.4 min
+  data/sovereign-fiscal.json                0.4 min
+  data/theme-rotation.json                  2.9 min
+  data/crypto-etf-flows.json                2.0 min
+  data/stablecoin-flow.json                 1.5 min
+  data/tic-flows.json                       0.2 min
+  data/fx-intelligence.json                 0.9 min
+  radar: {'version': '3.0.0', 'n_complexes': 46}
+OPS 2720 COMPLETE — the flow fleet breathes again

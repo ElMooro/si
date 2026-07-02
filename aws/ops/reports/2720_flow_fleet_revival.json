@@ -1,0 +1,120 @@
+{
+ "ops": 2720,
+ "ts": "2026-07-02T11:48:40.810418+00:00",
+ "engines": {
+  "justhodl-cross-asset-regime": {
+   "sched": "cron(35 20 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"MIXED\\\", \\\"risk_score\\\": -7.89, \\\"risk_label\\\": \\\"STRONG_RISK_OFF\\\", \\\"n_breaks\\\": 3, \\\"n_alerts\\\": 1, \\\"d"
+  },
+  "justhodl-money-flow-state": {
+   "sched": "cron(40 20 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"ok\": true, \"n_stocks\": 1812, \"n_industries\": 140, \"top_in\": \"TSLA\"}"
+  },
+  "justhodl-gold-equity-rotation": {
+   "sched": "cron(45 20 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"EQUITY_DOMINANT_ACTIVE\\\", \\\"n_tickets\\\": 1}\"}"
+  },
+  "justhodl-sector-rotation": {
+   "sched": "cron(5 21 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"n_sectors\\\": 11, \\\"n_ratios\\\": 14, \\\"n_rotating_in\\\": 1, \\\"n_rotating_out\\\""
+  },
+  "justhodl-sector-flow-state": {
+   "sched": "cron(15 21 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"ok\": true, \"n\": 11, \"ow\": [\"XLK\", \"XLF\", \"XLV\", \"XLI\", \"XLRE\", \"XLY\"], \"uw\": [\"XLB\", \"XLP\", \"XLE\"]}"
+  },
+  "justhodl-sector-emergence": {
+   "sched": "cron(20 21 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"emerging\\\": [\\\"XLI\\\", \\\"XLV\\\"], \\\"n_sectors\\\": 11}\"}"
+  },
+  "justhodl-theme-rotation": {
+   "sched": "cron(25 21 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"themes\\\": 38, \\\"rotating_in\\\": 21, \\\"leading\\\": 12}\"}"
+  },
+  "justhodl-rotation-radar": {
+   "sched": "cron(35 21 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"crypto_altseason\\\": 24, \\\"equity_rotation\\\": 27.2}\"}"
+  },
+  "justhodl-crypto-etf-flows": {
+   "sched": "cron(50 21 * * ? *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"btc_etf_regime\\\": \\\"STRONG OUTFLOW\\\", \\\"btc_30d_usd\\\": -7045638954, \\\"eth_etf_regime\\\": \\\"STRONG OUTFLOW\\\"}\"}"
+  },
+  "justhodl-crypto-exchange-flows": {
+   "sched": "cron(55 21 * * ? *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"regime\\\": \\\"HEAVY ACCUMULATION (outflow)\\\", \\\"cum_30d_btc\\\": -36706.1, \\\"verdict\\\": \\\"INVERTED\\\"}\"}"
+  },
+  "justhodl-stablecoin-flow": {
+   "sched": "rate(6 hours)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"state\\\": \\\"CONTRACTING\\\", \\\"prev\\\": \\\"CONTRACTING\\\", \\\"delta_30d\\\": -7490048797, \\\"signal\\\": 60.8}\"}"
+  },
+  "justhodl-capital-flow-radar": {
+   "sched": "cron(20 22 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"n_complexes\\\": 46, \\\"pump_setups\\\": 15, \\\"party_over\\\": 7, \\\"risk_appetite\\\": \\\"RISK_ON \\\\u2014 leverage"
+  },
+  "justhodl-flow-confluence": {
+   "sched": "cron(45 22 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"names\\\": 286, \\\"multi_engine\\\": 80, \\\"short_squeeze_setup\\\": 17, \\\"accumulation\\\": 25, \\\"distribution\\\": 25, \\\"stealth"
+  },
+  "justhodl-sector-capital-fusion": {
+   "sched": "cron(55 22 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"ok\": true, \"sectors\": 11, \"divergences\": 2, \"headline\": \"2 sector divergence(s): Communication Services (accumulation), Utilities (distribution)\"}"
+  },
+  "justhodl-fx-intelligence": {
+   "sched": "cron(0 13 ? * MON-FRI *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"USD STRENGTH (dollar pressure 70.1/100, NEUTRAL). Strongest vs USD: MXN; weakest: CAD.\"}"
+  },
+  "justhodl-sovereign-fiscal": {
+   "sched": "cron(0 14 ? * TUE *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"body\": \"{\\\"tic_holders\\\": 15, \\\"tic_as_of\\\": \\\"2025-12\\\", \\\"deficit_months\\\": 260, \\\"ttm_deficit_bn\\\": 1657.2, \\\"debt_tn\\\": 39.46"
+  },
+  "justhodl-tic-flows": {
+   "sched": "cron(15 14 ? * TUE *)",
+   "status": "REVIVED",
+   "resp": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\"}, \"body\": \"{\\\"ok\\\": true, \\\"composite\\\": 0, \\\"regime\\\": \\\"STRONG_FOREIGN_DEMAND\\\", "
+  }
+ },
+ "revived_ok": 17,
+ "country_present": [
+  "MCHI",
+  "EWG",
+  "EWY",
+  "EWT",
+  "EWU",
+  "EWC",
+  "EWW",
+  "EZA",
+  "TUR",
+  "VNM",
+  "THD",
+  "EWQ"
+ ],
+ "freshness_min": {
+  "data/capital-flow-radar.json": 1.5,
+  "data/sector-rotation.json": 3.4,
+  "data/sovereign-fiscal.json": 0.4,
+  "data/theme-rotation.json": 2.9,
+  "data/crypto-etf-flows.json": 2.0,
+  "data/stablecoin-flow.json": 1.5,
+  "data/tic-flows.json": 0.2,
+  "data/fx-intelligence.json": 0.9
+ },
+ "radar": {
+  "version": "3.0.0",
+  "n_complexes": 46
+ }
+}
