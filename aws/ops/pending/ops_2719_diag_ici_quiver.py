@@ -58,9 +58,23 @@ for url in ("https://www.ici.org/research/stats", "https://www.ici.org/research/
         R.setdefault("ici", {})[url] = {"err": str(e)[:80]}
     print("  ", url, "->", json.dumps(R["ici"][url], default=str)[:220])
 
+sect("1b/3 ICI re-seed after root fix (runner)")
+import sys
+sys.path.insert(0, "aws/lambdas/justhodl-ici-flows/source"); sys.path.insert(0, "aws/shared")
+try:
+    import lambda_function as ici
+    res = ici.lambda_handler({}, None)
+    R["ici_seed_v2"] = {"ok": True, "result": str(res)[:220]}
+except Exception as e:
+    R["ici_seed_v2"] = {"ok": False, "err": str(e)[:180]}
+print("  ici v2:", json.dumps(R["ici_seed_v2"])[:260])
+sys.path = sys.path[2:]; sys.modules.pop("lambda_function", None)
+
 sect("2/3 DEPLOY dark-pool monthly fix + verify latest-month")
 print("  settling 30s…"); time.sleep(30)
-retry(lambda: (wait_ok("justhodl-dark-pool"), lam.update_function_code(FunctionName="justhodl-dark-pool", ZipFile=zip_fn("justhodl-dark-pool")))[-1], "dp")
+for _fn in ("justhodl-dark-pool", "justhodl-ici-flows"):
+    retry(lambda f=_fn: (wait_ok(f), lam.update_function_code(FunctionName=f, ZipFile=zip_fn(f)))[-1], _fn)
+    wait_ok(_fn)
 wait_ok("justhodl-dark-pool")
 r = lam.invoke(FunctionName="justhodl-dark-pool", InvocationType="RequestResponse")
 assert not r.get("FunctionError"), r["Payload"].read()[:300]
@@ -69,10 +83,14 @@ R["finra_monthly_v2"] = {k: mo.get(k) for k in ("status", "n_symbols", "month")}
 R["finra_top_blocks"] = (mo.get("top_block_share") or [])[:8]
 print("  monthly v2:", json.dumps(R["finra_monthly_v2"], default=str))
 print("  top blocks:", json.dumps(R["finra_top_blocks"], default=str)[:220])
-assert mo.get("status") == "OK" and str(mo.get("month") or "") >= "2026-01", "not latest month: %s" % mo.get("month")
+print("  monthly err:", mo.get("err"))
+assert mo.get("status") == "OK", "monthly failed: %s" % mo
+assert str(mo.get("month") or "") >= "2026-01", "stale month: %s" % mo.get("month")
 
 sect("3/3 REPORT")
 os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2719_diag.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2719 COMPLETE")
+
+# rev2
