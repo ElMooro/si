@@ -7,10 +7,14 @@
   justhodl-factor-returns -> {"ok": true, "drops": {"na": 5500, "px": 1122, "mc": 1113, "vol": 664}, "universe": 2998, "factors": {"MOMENTUM": -6.407
   justhodl-estimate-revisions -> {"statusCode": 200, "body": "{\"status\": \"LIVE\", \"n_tracked\": 433, \"n_fmp_enriched\": 251, \"n_with_history\": 433
   deciles: {'MOMENTUM': {'long': 287, 'short': 287}, 'VALUE': {'long': 287, 'short': 287}, 'QUALITY': {'long': 258, 'short': 258}, 'SIZE': {'long': 299, 'short': 299}, 'LOWVOL': {'long': 298, 'short': 298}}
-  direction_map: 38 | universe: {'n_tracked': 433, 'n_with_history': 433, 'n_fmp_enriched': 251}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2717_join_deepening.py", line 69, in <module>
-    assert R["direction_map_n"] >= max(30, int(0.9 * min(_hist, 300))), "direction_map below evidence: %d vs hist %d" % (R["direction_map_n"], _hist)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: direction_map below evidence: 38 vs hist 433
-❌ OPS-FAIL: aws/ops/pending/ops_2717_join_deepening.py
+  direction_map: 382 | universe: {'n_tracked': 433, 'n_with_history': 433, 'n_fmp_enriched': 251}
+
+======== 2/3 X-RAY v3 — run + prove deepened joins ========
+  invoke -> {"ok": true, "n": 3806, "joins": {"mr": 25, "ec": 11, "rs": 59, "dp": 929, "er": 356, "fm": 1825}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 10}}
+  joins: {"mr": 25, "ec": 11, "rs": 59, "dp": 929, "er": 356, "fm": 1825, "peers_cards": 121}
+  boards: {"multibagger_candidates": [15, ["ABUS", "AXTI", "CRNX", "NUVB", "CGON", "ONDS"]], "turning_profitable": [15, ["QXO", "PGEN", "SBET", "BMNR", "BTGO", "FWDI"]], "accumulation_leaders": [15, ["TEL", "IEX", "WAB", "STT", "ESS", "TECH"]], "dis_warnings": [0, []], "full_stack_highs": [15, ["MZYX", "RAAQ", "FVAV", "BACC", "AADX", "CVBF"]], "laggards_watch": [10, ["ALB", "DAN", "CVX", "XOM", "HAL", "CEG"]]}
+  NVDA: {"rank": null, "factors": ["QUALIT+", "SIZE-"], "peers": ["GOOGL", "AMD", "META", "MSFT", "GOOG"], "est_rev": "FLAT", "confl": null}
+  er join (data-gated by baseline maturation, grows daily): 356
+
+======== 3/3 REPORT ========
+OPS 2717 COMPLETE — X-Ray joins at institutional depth
