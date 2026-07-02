@@ -1,0 +1,52 @@
+{
+ "ops": 2732,
+ "ts": "2026-07-02T17:02:43.874941+00:00",
+ "pages_deploy_errors": [
+  "LOG_FETCH_FAILED: HTTP Error 403: Server failed to authenticate the request. Make sure the value of Authorization header is formed correct"
+ ],
+ "analog": {
+  "weeks": 1578,
+  "dims": 6,
+  "verdict": "MIXED REGIME",
+  "as_of": "2026-06-26",
+  "vector": {
+   "vix": -0.19,
+   "nfci": -0.27,
+   "curve_10y3m": -0.6,
+   "spx_drawdown": 0.6,
+   "spx_mom_13w": 1.14,
+   "spx_rvol_4w": 0.08
+  },
+  "top3": [
+   {
+    "date": "1998-05-08",
+    "label": "unlabeled regime",
+    "similarity": 68.5,
+    "spx_fwd_1m_pct": 0.9,
+    "spx_fwd_3m_pct": -3.5
+   },
+   {
+    "date": "1998-01-30",
+    "label": "unlabeled regime",
+    "similarity": 64.3,
+    "spx_fwd_1m_pct": 7.3,
+    "spx_fwd_3m_pct": 13.8
+   },
+   {
+    "date": "2025-10-31",
+    "label": "unlabeled regime",
+    "similarity": 61.2,
+    "spx_fwd_1m_pct": -0.2,
+    "spx_fwd_3m_pct": -0.6
+   }
+  ],
+  "stats": {
+   "median_fwd_1m_pct": 0.8,
+   "median_fwd_3m_pct": 1.4,
+   "hit_rate_up_3m": 50
+  },
+  "outlook_src": "llm",
+  "outlook": "Today's environment most closely resembles the late-cycle euphoria of early 1998 and early 2021, where strong momentum and easy financial conditions temporarily overshadowed deep yield curve inversions. In those historical instances, markets experienced a brie"
+ },
+ "public_feed": true
+}
