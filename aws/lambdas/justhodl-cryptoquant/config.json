@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-cryptoquant",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "CryptoQuant on-chain vendor adapter: labeled exchange flows, whale ratio, MPI, MVRV/SOPR, stablecoin exchange reserves. Spec-driven, SSM-gated, 5y backfill, PROVISIONAL grading.",
+  "schedule": {
+    "name": "justhodl-cryptoquant-daily",
+    "expression": "cron(5 21 * * ? *)",
+    "description": "Daily on-chain pull ahead of crypto flow engines"
+  }
+}

@@ -227,6 +227,13 @@ KNOWN_ENGINE_SIGNALS = {
     },
 
     # ─── crypto family
+    "cryptoquant": {
+        "family": "crypto",
+        "signal_types": ["onchain_exchange_netflow", "onchain_stablecoin_reserve",
+                          "onchain_whale_ratio", "onchain_mvrv", "onchain_mpi",
+                          "onchain_composite_risk"],
+        "aliases": ["CryptoQuant On-Chain", "cryptoquant-onchain"],
+    },
     "crypto-narratives": {
         "family": "crypto",
         "signal_types": ["crypto_fear_greed", "crypto_risk_score", "crypto_narrative"],
