@@ -1,33 +1,11 @@
-settling 25s…
-== 1/3 PROBE: vendor error bodies + candidate walk ==
-  eth_exchange_reserve baseline -> 200 
-    RESOLVED eth_exchange_reserve -> /eth/exchange-flows/reserve {'exchange': 'all_exchange', 'window': 'day'} keys=['date', 'reserve', 'reserve_usd']
-  btc_mpi baseline -> 200 
-    RESOLVED btc_mpi -> /btc/flow-indicator/mpi {'window': 'day'} keys=['date', 'mpi']
-  btc_whale_ratio baseline -> 200 
-    RESOLVED btc_whale_ratio -> /btc/flow-indicator/exchange-whale-ratio {'exchange': 'all_exchange', 'window': 'day'} keys=['date', 'exchange_whale_ratio']
-  btc_mvrv baseline -> 200 
-    RESOLVED btc_mvrv -> /btc/market-indicator/mvrv {'window': 'day'} keys=['date', 'mvrv']
-  btc_sopr baseline -> 200 
-    RESOLVED btc_sopr -> /btc/market-indicator/sopr {'window': 'day'} keys=['a_sopr', 'date', 'lth_sopr', 'sopr', 'sth_sopr']
-  stablecoin_exchange_reserve baseline -> 400 {"result":{},"status":{"code":400,"description":"400 Bad Request: The browser (or proxy) sent a request that t
-    RESOLVED stablecoin_exchange_reserve -> /stablecoin/exchange-flows/reserve {'token': 'all_token', 'exchange': 'all_exchange', 'window': 'day'} keys=['date', 'reserve']
-== 1.5/3 PARAM MATRIX (backfill-only 400 isolation, FULL bodies) ==
-  mvrv[limit1000] -> 200 rows=365 
-  mvrv[from_plain] -> 400 rows=0 {"result":{},"status":{"code":400,"description":"400 Bad Request: Out of allowed request range.","message":"bad_request"}}
-
-  mvrv[from_T] -> 400 rows=0 {"result":{},"status":{"code":400,"description":"400 Bad Request: Out of allowed request range.","message":"bad_request"}}
-
-  mvrv[from_dash] -> 400 rows=0 {"result":{},"status":{"code":400,"description":"400 Bad Request: Invalid date format in from or to.","message":"bad_request"}}
-
-  mvrv[limit300] -> 200 rows=300 
-  from_format resolved: none
-  spec: plan_window=365d noted; reserve risk_signs corrected to +1
-== 2/3 redeploy + FULL BACKFILL run ==
-  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 7, "composite": -0.43, "staleness_d": 1, "errors": 1}
-  LIVE metrics: {"btc_exchange_netflow": [3212.0421, 0.75, 83], "btc_exchange_reserve": [2713611.6631, -0.94, 25], "eth_exchange_reserve": [15500729.7625, -1.05, 6], "btc_mpi": [-0.3504, 0.04, 55], "btc_whale_ratio": [0.5292, 0.12, 59], "btc_mvrv": [1.129, -1.39, 2], "btc_sopr": [0.9932, -0.57, 19]}
-  depth: {'btc_exchange_netflow': 366, 'btc_exchange_reserve': 366, 'eth_exchange_reserve': 365, 'btc_mpi': 365, 'btc_whale_ratio': 365, 'btc_mvrv': 365, 'btc_sopr': 365}
-  composite: -0.43 | On-chain risk composite -0.43z (netflow/whale/valuation up = distribution risk; stablecoin exchange reserves down = less dry powder)
-  remaining errors (full): [{"metric": "stablecoin_exchange_reserve", "err": "HTTP 429 s://api.cryptoquant.com/v1/stablecoin/exchange-flows/reserve :: {\"result\":{},\"status\":{\"code\":429,\"me"}]
-== 3/3 public feed strict ==
-OPS 2741 COMPLETE — on-chain seat FILLED with vendor-verified endpoints
+settling 30s…
+== 1/6 cq adapter -> 8/8 ==
+  cq -> {"ok": true, "status": "LIVE", "n_metrics": 8, "composite": -0.24, "staleness_d": 1, "errors": 0}
+  metrics: 8 | errors: None | composite: -0.24
+== 2/6 onchain-ratios resurrection ==
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2742_onchain_fusion.py", line 90, in <module>
+    assert okey, km
+           ^^^^
+AssertionError: ['data/cryptoquant-onchain.json']
+❌ OPS-FAIL: aws/ops/pending/ops_2742_onchain_fusion.py
