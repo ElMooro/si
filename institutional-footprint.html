@@ -62,13 +62,13 @@ const m$=v=>v==null?'—':(v>0?'+':'')+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'B
  ${d.ai_dossier?`<div class="dossier"><h3>🧠 ANALYST DOSSIER</h3>${d.ai_dossier}</div>`:''}
 
  <div class="c" style="margin-bottom:13px"><h3>ASSET LEDGER — LIT vs DARK vs FUTURES (institutional $)</h3>
-  <table><tr><th>CLASS</th><th>LIT ETF 5d $</th><th>DARK 5d $ (est)</th><th>CFTC NET-SPEC</th><th>VERDICT</th></tr>
+  <table><tr><th>CLASS</th><th>LIT ETF 5d $</th><th>DARK 1d $ (est)</th><th>CFTC NET-SPEC</th><th>VERDICT</th></tr>
   ${Object.entries(d.asset_ledger||{}).map(([k,v])=>`<tr><td>${k}</td>
     <td style="color:${(v.lit_etf_5d_usd_m||0)>0?'var(--gr)':'var(--rd)'}">${m$(v.lit_etf_5d_usd_m)}</td>
-    <td>${v.dark_5d_usd_m_est!=null?m$(v.dark_5d_usd_m_est):'—'}</td>
+    <td>${v.dark_daily_usd_m_est!=null?m$(v.dark_daily_usd_m_est):'—'}</td>
     <td style="color:${(v.cftc_net_spec||0)>0?'var(--gr)':(v.cftc_net_spec||0)<0?'var(--rd)':'var(--fg3)'}">${F(v.cftc_net_spec)}</td>
     <td class="${v.verdict==='BUYING'?'g':v.verdict==='SELLING'?'r':''}">${v.verdict}</td></tr>`).join('')}</table>
-  <div class="comp">DARK est = Σ per-name off-exchange volume × price (single-stock tape, equities/REITs); primary-dealer net ${F(d.primary_dealer_net)}</div></div>
+  <div class="comp">DARK est = Σ per-name DAILY off-exchange volume × price (single-stock tape, equities/REITs); primary-dealer net ${F(d.primary_dealer_net)}</div></div>
  <div class="c" style="margin-bottom:13px"><h3>DARK $ BY SECTOR (top names)</h3>
   <div style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(d.dark_by_sector||{}).slice(0,11).map(([sec,v])=>
    `<span class="tag">${sec} <b class="cy">$${(v.dark_usd_5d_m_est/1000).toFixed(1)}B</b> ${v.top.map(x=>x.t).join(' ')}</span>`).join('')}</div></div>

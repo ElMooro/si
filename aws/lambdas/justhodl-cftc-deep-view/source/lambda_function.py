@@ -448,6 +448,15 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print(f"[{symbol}] err: {str(e)[:120]}")
 
+    # Risk appetite: mean 1y spec z across risk-on categories (arms at n>=12)
+    _risk_zs = [(a.get("large_specs_1y") if a.get("large_specs_1y") is not None else a.get("z_specs_1y"))
+                for a in analyses
+                if isinstance(a, dict) and (a.get("large_specs_1y") is not None or a.get("z_specs_1y") is not None)
+                and any(c in (a.get("category") or "").lower()
+                        for c in ("equity", "crypto", "energy", "index"))]
+    risk_appetite = (round(max(0.0, min(100.0, 50 + 10 * statistics.mean(_risk_zs))), 1)
+                     if _risk_zs else None)
+
     # Aggregate state
     ok_count = sum(1 for a in analyses if a.get("status") == "ok")
     all_extremes = []
@@ -491,6 +500,7 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "state": state,
         "n_contracts_analyzed": ok_count,
+        "risk_appetite": risk_appetite,
         "n_extremes": len(all_extremes),
         "n_divergences": len(all_divergences),
         "top_divergences": all_divergences[:10],

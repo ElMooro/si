@@ -151,7 +151,7 @@ def lambda_handler(event=None, context=None):
     dark_by_sector = {}
     for sec, e in sorted(dark_sec.items(), key=lambda kv: kv[1]["usd_m"], reverse=True):
         nm = sorted(e["names"], key=lambda x: x[1], reverse=True)
-        dark_by_sector[sec] = {"dark_usd_5d_m_est": round(e["usd_m"], 1),
+        dark_by_sector[sec] = {"dark_daily_usd_m_est": round(e["usd_m"], 1),
                                "top": [{"t": t, "usd_m": round(u, 1), "state": st_} for t, u, st_ in nm[:3]]}
     CFTC_CLASS = {"EQUITY": ("es", "nq", "ym", "rty", "sp", "nas"), "TREASURIES": ("zn", "zb", "zf", "zt", "ty", "us "),
                   "GOLD": ("gc", "gold"), "SILVER": ("si", "silver"), "CRYPTO": ("btc", "bitcoin", "eth", "ether"),
@@ -179,15 +179,15 @@ def lambda_handler(event=None, context=None):
                   "REAL_ESTATE": ("REAL_ESTATE",), "CRYPTO": ("CRYPTO",), "COMMODITIES": ("COMMODITIES",),
                   "CASH": ("CASH",)}
     asset_ledger = {}
-    dark_eq = round(sum(v["dark_usd_5d_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "EQUITY"), 1)
-    dark_re = round(sum(v["dark_usd_5d_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "REAL_ESTATE"), 1)
+    dark_eq = round(sum(v["dark_daily_usd_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "EQUITY"), 1)
+    dark_re = round(sum(v["dark_daily_usd_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "REAL_ESTATE"), 1)
     for cls, gkeys in LEDGER_MAP.items():
         lit = None
         for gk in gkeys:
             v = classes.get(gk)
             if v is not None: lit = v; break
         asset_ledger[cls] = {"lit_etf_5d_usd_m": lit,
-                             "dark_5d_usd_m_est": dark_eq if cls == "EQUITY" else dark_re if cls == "REAL_ESTATE" else None,
+                             "dark_daily_usd_m_est": dark_eq if cls == "EQUITY" else dark_re if cls == "REAL_ESTATE" else None,
                              "cftc_net_spec": cftc_by_class.get(cls),
                              "verdict": ("BUYING" if (lit or 0) > 0 else "SELLING" if (lit or 0) < 0 else "FLAT") if lit is not None else "N/A"}
     # 13F per-stock dollars
@@ -201,16 +201,39 @@ def lambda_handler(event=None, context=None):
                         for it in v[:12]:
                             if isinstance(it, dict):
                                 t = it.get("ticker") or it.get("symbol")
-                                usd = _num(it.get("value") or it.get("marketValue") or it.get("usd") or it.get("position_usd"))
-                                if t: out.append({"t": t, "usd_m": round(usd / 1e6, 1) if usd and usd > 1e5 else usd})
+                                usd = None
+                                for vk in ("value", "marketValue", "market_value", "value_usd", "usd",
+                                           "position_usd", "notional", "dollar_value", "total_value",
+                                           "change_value", "changeValue", "val", "amount"):
+                                    usd = _num(it.get(vk))
+                                    if usd is not None: break
+                                if t: out.append({"t": t, "usd_m": (round(usd / 1e6, 1) if abs(usd) > 1e5
+                                                  else round(usd, 2)) if usd is not None else None})
                     else: w(v, d + 1)
             elif isinstance(n, list):
                 for v in n[:40]: w(v, d + 1)
         w(doc); return out
     stocks_usd = {"buys": _val_rows(f13, ("adds", "top_buys", "increas", "new_")),
                   "sells": _val_rows(f13, ("exits", "top_sells", "decreas", "closed"))}
-    pd_pos = _find(F["data/nyfed-primary-dealer.json"], ("net", "treasur")) or _find(F["data/nyfed-primary-dealer.json"], ("net", "position")) \
-             or _find(F["data/dealer-survey.json"], ("net", "position"))
+    def _pd_extract():
+        for key in ("data/nyfed-primary-dealer.json", "data/dealer-survey.json"):
+            doc = F[key]
+            if not doc: continue
+            ind = doc.get("indicators") if isinstance(doc.get("indicators"), dict) else None
+            if ind:
+                for k, v in ind.items():
+                    lk = str(k).lower()
+                    if "treasur" in lk and ("position" in lk or "net" in lk) and isinstance(v, dict):
+                        val, dt = _num(v.get("value")), str(v.get("date") or "")
+                        if val is not None and dt[:4] >= "2026":
+                            return val, "%s %s (%s)" % (k, dt, key.split("/")[-1])
+                        if val is not None:
+                            return None, "STALE_SHIM %s dated %s — rejected (real-data rule)" % (k, dt)
+            got = _find(doc, ("net", "treasur")) or _find(doc, ("net", "position"))
+            if got is not None:
+                return got, key.split("/")[-1]
+        return None, "feed absent"
+    pd_pos, pd_note = _pd_extract()
 
     # ── RISK-NOW composite ──
     naaim_z = _find(F["data/naaim.json"], ("z",)) or _find(F["data/naaim.json"], ("zscore",))
@@ -269,14 +292,14 @@ def lambda_handler(event=None, context=None):
     except Exception:
         brief = None
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.0",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.1",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
                        "risk_forward": risk_fwd, "forward_label": fwd_label, "fwd_components": dict(parts_fwd)},
            "sectors": sectors, "asset_classes": asset_classes,
            "asset_ledger": asset_ledger, "dark_by_sector": dark_by_sector,
-           "stocks_usd_13f": stocks_usd, "primary_dealer_net": pd_pos,
+           "stocks_usd_13f": stocks_usd, "primary_dealer_net": pd_pos, "primary_dealer_note": pd_note,
            "stocks": stocks,
            "dark_pool_footprint": dark, "conviction_moves": conviction, "ai_dossier": brief,
            "method": ("Fusion of the revived smart-money fleet (13F x3, CFTC COT, dealer GEX, options "
