@@ -124,6 +124,9 @@ assert len(bd["equity_read"]) > 60
 assert sum(1 for b in F["buckets"].values() if b["n"] > 0) >= 9, "buckets thin"
 
 sect("3/5 REBALANCE RADAR — create + run + prove (T+1 of Q2-end)")
+try: s3.delete_object(Bucket=BUCKET, Key="data/history/rebalance-eventstudy.json")
+except Exception: pass
+print("  purged cached event study (force 11y recompute)")
 ensure_fn("justhodl-rebalance-radar")
 r = lam.invoke(FunctionName="justhodl-rebalance-radar", InvocationType="RequestResponse")
 pay = json.loads(r["Payload"].read() or b"{}")
@@ -139,7 +142,7 @@ R["rebalance"] = {"calendar": C, "n_quarters": ES["n_quarters"],
                   "rotation": {"flag": RR["flag"], "severity": RR["severity"], "evidence": RR["evidence"][:4]}}
 print(json.dumps(R["rebalance"], indent=1, default=str)[:1400])
 assert C["in_rebalance_window"] is True, "Jul-1 must be inside T+3 window: %s" % C
-assert ES["n_quarters"] >= 28 and len(ES["assets"]) >= 6
+assert ES["n_quarters"] >= 34 and len(ES["assets"]) >= 6
 for a in ES["assets"].values():
     assert len(a["table"]) == 11
 assert W["n_complexes"] >= 20 and len(W["top_outflows"]) >= 5

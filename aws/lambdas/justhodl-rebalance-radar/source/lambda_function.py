@@ -34,8 +34,10 @@ def _s3json(k,d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET,Key=k)["Body"].read())
     except Exception: return d
 
-def _hist(sym, days=2700):
-    j=_get("https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=%s&apikey=%s"%(sym,FMP))
+def _hist(sym, days=2900):
+    # FMP full-history SILENTLY defaults to ~5y without from= -> pass 11y explicitly
+    frm=(datetime.now(timezone.utc).date()-timedelta(days=4050)).isoformat()
+    j=_get("https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=%s&from=%s&apikey=%s"%(sym,frm,FMP))
     rows=j if isinstance(j,list) else (j.get("historical") or [])
     out=sorted([(r["date"],float(r["close"])) for r in rows if r.get("close")],key=lambda x:x[0])
     return out[-days:]
