@@ -39,6 +39,14 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/dark-pool.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 S3 = boto3.client("s3", region_name=REGION)
+
+
+def _get_json(key, default=None):
+    """v2: S3 JSON reader (v1 fetched FINRA/Polygon directly and had none)."""
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return default
 FINRA = "https://api.finra.org/data/group/otcMarket/name/weeklySummary"
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com"}
 MIN_WEEKLY_VOL = 2_000_000   # liquidity gate (shares/week)

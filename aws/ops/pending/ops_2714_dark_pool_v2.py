@@ -61,9 +61,13 @@ except Exception:
     R["dix_feed_age_h"] = None; print("  data/dix.json MISSING")
 try:
     body = json.dumps({"limit": 3, "compareFilters": [{"compareType": "EQUAL", "fieldName": "summaryTypeCode", "fieldValue": "ATS_M_SMBL"}]}).encode()
-    j = json.loads(get("https://api.finra.org/data/group/otcMarket/name/monthlySummary", data=body,
-                       hdr={"Content-Type": "application/json", "Accept": "application/json"}))
-    R["finra_monthly_probe"] = ("OK n=%d keys=%s" % (len(j), sorted(j[0].keys())[:6])) if isinstance(j, list) and j else str(j)[:120]
+    raw = get("https://api.finra.org/data/group/otcMarket/name/monthlySummary", data=body,
+              hdr={"Content-Type": "application/json", "Accept": "application/json"})
+    try:
+        j = json.loads(raw)
+        R["finra_monthly_probe"] = ("OK n=%d keys=%s" % (len(j), sorted(j[0].keys())[:6])) if isinstance(j, list) and j else raw[:120]
+    except Exception:
+        R["finra_monthly_probe"] = "NON-JSON: " + raw[:120]
 except Exception as e:
     R["finra_monthly_probe"] = "ERR " + str(e)[:80]
 print("  FINRA monthly:", R["finra_monthly_probe"])
@@ -137,3 +141,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2714_dark_pool_v2.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2714 COMPLETE — dark pool now runs the full FINRA stack, daily")
+
+# rev2
