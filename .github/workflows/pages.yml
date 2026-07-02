@@ -1,0 +1,49 @@
+# First-party GitHub Pages deploy — lean whitelisted artifact (site files only).
+# Ops auto-commits touch aws/** and can NEVER trigger or cancel site deploys.
+name: Deploy site to Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - "*.html"
+      - "*.js"
+      - "*.css"
+      - "_redirects"
+      - "CNAME"
+      - "assets/**"
+      - "js/**"
+      - "css/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble lean site artifact
+        run: |
+          mkdir -p _site
+          shopt -s nullglob
+          cp -f *.html *.js *.css _site/ 2>/dev/null || true
+          for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
+          for d in assets js css img fonts; do [ -d "$d" ] && cp -r "$d" _site/; done
+          echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
