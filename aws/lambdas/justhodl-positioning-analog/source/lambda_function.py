@@ -179,7 +179,7 @@ def lambda_handler(event=None, context=None):
         t = complete(prompt, tier="reason", max_tokens=420)
         if t:
             t = str(t).strip().replace("**", "")
-            if any(k in t[:200] for k in ("Analyze", "Let me", "First,")):
+            if any(k in t[:200] for k in ("Analyze", "Let me", "First,", "Wait", "Hmm", "Actually", "Okay")):
                 ps = [p.strip() for p in t.split("\n\n") if len(p.strip()) >= 80]
                 t = ps[-1] if ps else ""
             if len(t) > 700: t = t[:700]

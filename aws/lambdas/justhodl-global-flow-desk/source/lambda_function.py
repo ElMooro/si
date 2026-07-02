@@ -87,6 +87,12 @@ def _clean_brief(txt):
         paras = [p for p in paras if "**" not in p[:6] and not p.lstrip().startswith(("1.", "2.", "-", "*"))]
         t = paras[-1] if paras else ""
     t = t.replace("**", "").replace("##", "").strip()
+    if t.split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):      # deliberation-opener leak
+        parts = [p.strip() for p in t.split(". ") if p.strip()]
+        while parts and parts[0].split(" ", 1)[0].rstrip(",.") in ("Wait", "Hmm", "Actually", "Okay", "OK", "So,", "Let me", "First", "Alright", "Now,", "Note:"):
+            parts.pop(0)
+        t = (". ".join(parts)).strip()
+        if t and not t.endswith((".", "!", "?")): t += "."
     if len(t) > 700: t = t[:700]
     if t and not t.rstrip().endswith((".", "!", "?")):
         t = t.rsplit(".", 1)[0] + "." if "." in t else ""
