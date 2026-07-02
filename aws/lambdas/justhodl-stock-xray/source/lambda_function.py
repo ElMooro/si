@@ -33,10 +33,10 @@ def _j(k,d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET,Key=k)["Body"].read())
     except Exception: return d
 
-def _tmap(doc, tick_keys=("ticker","symbol","t"), depth=0, out=None):
+def _tmap(doc, tick_keys=("ticker","symbol","sym","t"), depth=0, out=None):
     """Tolerant: harvest {TICKER: rowdict} from any feed shape."""
     if out is None: out={}
-    if depth>5: return out
+    if depth>7: return out
     if isinstance(doc,dict):
         for tk in tick_keys:
             t=doc.get(tk)
@@ -47,7 +47,7 @@ def _tmap(doc, tick_keys=("ticker","symbol","t"), depth=0, out=None):
                 out.setdefault(k,v)
             else: _tmap(v,tick_keys,depth+1,out)
     elif isinstance(doc,list):
-        for v in doc[:6000]: _tmap(v,tick_keys,depth+1,out)
+        for v in doc[:20000]: _tmap(v,tick_keys,depth+1,out)
     return out
 
 def _stage(a20,a50,a200,pos52,perf_h):
@@ -67,25 +67,49 @@ def lambda_handler(event=None, context=None):
         if pe and 0<pe<400 and sec: bysec.setdefault(sec,[]).append(pe)
     for v in bysec.values(): v.sort()
 
-    mr=_tmap(_j("data/master-rank.json",{}) or {})
+    mr=_tmap(_j("data/master-ranker.json",{}) or _j("data/master-rank.json",{}) or {})
     ec=_tmap(_j("data/equity-confluence.json",{}) or {})
     rs=_tmap(_j("data/resilience.json",{}) or {})
     dp=(_j("data/dark-pool.json",{}) or {}).get("xray_map") or {}
     er=_tmap(_j("data/estimate-revisions.json",{}) or {})
     bs=_tmap(_j("data/best-setups.json",{}) or {})
     bl=_tmap(_j("data/backlog.json",{}) or {})
-    fr=(_j("data/factor-ranks.json") or _j("data/history/factor-ranks.json") or {}).get("ranks") or {}
+    # factor decile memberships: prefer stored ranks file (any of 3 shapes),
+    # else derive from the LIVE factor-returns doc's top/bottom samples per factor.
     fmem={}
-    for f,d in fr.items():
-        for t in d.get("long",[]): fmem.setdefault(t,[]).append(f+"+")
-        for t in d.get("short",[]): fmem.setdefault(t,[]).append(f+"-")
+    fr=(_j("data/history/factor-ranks.json") or _j("data/factor-ranks.json") or {})
+    rk=fr.get("ranks") or fr.get("factors") or fr
+    if isinstance(rk,dict):
+        for f,d in rk.items():
+            if not isinstance(d,dict): continue
+            for key,tag in (("long","+"),("top","+"),("long_decile","+"),("short","-"),("bottom","-"),("short_decile","-")):
+                for t in (d.get(key) or []):
+                    if isinstance(t,str): fmem.setdefault(t.upper(),[]).append(f[:6]+tag)
+    if not fmem:
+        fd=_j("data/factor-returns.json",{}) or {}
+        for f,d in (fd.get("factors") or {}).items():
+            if not isinstance(d,dict): continue
+            for key,tag in (("top_names","+"),("long_sample","+"),("longs","+"),
+                            ("bottom_names","-"),("short_sample","-"),("shorts","-")):
+                for t in (d.get(key) or []):
+                    if isinstance(t,str): fmem.setdefault(t.upper(),[]).append(f[:6]+tag)
     graph=_j("data/polygon-related-graph.json",{}) or {}
     adj={}
-    for a,b in (graph.get("pairs") or graph.get("edges") or []):
-        adj.setdefault(a,[]).append(b); adj.setdefault(b,[]).append(a)
-    if not adj:
-        for t,ns in (graph.get("adjacency") or {}).items():
-            adj[t]=list(ns)[:8] if isinstance(ns,(list,tuple)) else []
+    def _edge(e):
+        if isinstance(e,(list,tuple)) and len(e)>=2: return e[0],e[1]
+        if isinstance(e,dict):
+            a=e.get("a") or e.get("source") or e.get("from"); b=e.get("b") or e.get("target") or e.get("to")
+            return a,b
+        return None,None
+    for e in (graph.get("pairs") or graph.get("edges") or []):
+        a,b=_edge(e)
+        if a and b: adj.setdefault(a,[]).append(b); adj.setdefault(b,[]).append(a)
+    src=graph.get("adjacency") or graph.get("map") or graph.get("related") or graph
+    if isinstance(src,dict):
+        for t,ns in src.items():
+            if isinstance(t,str) and t.isupper() and len(t)<=6 and isinstance(ns,(list,tuple)):
+                peers=[p for p in ns if isinstance(p,str)]
+                if peers: adj.setdefault(t,[]).extend(peers[:8])
 
     cards={}; joins={"mr":0,"ec":0,"rs":0,"dp":0,"er":0,"fm":0}
     for t,r in uni.items():
