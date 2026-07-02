@@ -1,67 +1,108 @@
 
-======== 1/4 FIELD COVERAGE IN LIVE UNIVERSE (are the idle columns actually populated?) ========
-  n=11397
-  insider_trans_pct     5398 non-null
-  inst_trans_pct        5060 non-null
-  eps_growth_qoq        5387 non-null
-  sales_growth_qoq      4790 non-null
-  perf_y                9599 non-null
-  off_50d_high_pct     11370 non-null
-  target_price          4649 non-null
-  analyst_recom         4599 non-null
+======== 1/4 LIVE ENTITLEMENT PROBE — v1/related-companies ========
+  NVDA  -> ['GOOGL', 'AMD', 'META', 'MSFT', 'GOOG', 'AMZN', 'TSLA', 'AAPL', 'AVGO', 'INTC']
+  AAPL  -> ['MSFT', 'AMZN', 'GOOGL', 'GOOG', 'NVDA', 'TSLA', 'META', 'NFLX', 'DIS', 'BRK.B']
+  CAT   -> ['DE', 'AOS', 'ETN', 'AIT', 'TEX', 'ASTE', 'MCD', 'WMT', 'IR', 'NVDA']
+  XOM   -> ['CVX', 'COP', 'TTE', 'OXY', 'FANG', 'EPD', 'EOG', 'VLO', 'MUSA', 'PSX']
+  LLY   -> ['ABBV', 'PFE', 'AMGN', 'VKTX', 'JNJ', 'MRK', 'BIIB', 'VRTX', 'INCY', 'NVDA']
+  ENTITLED (5/5 healthy)
 
-======== 2/4 DEPLOY v2.1 ========
+======== 2/4 DEPLOY v2.0 ========
   settling 30s for parallel deploy-lambdas…
-  engine synced
+  engine synced, timeout=300
 
-======== 3/4 RUN + PROVE (async + poll — 46 screens ~3-4 min) ========
-  landed after 161s
+======== 3/4 RUN + PROVE (async + poll) ========
+  landed after 31s
 {
- "quality_momo_n": 60,
- "quality_gap_n": 50,
- "smart_accum_n": 6,
- "coil_tag_counts": {
-  "HORIZONTAL_SR": 82,
-  "INST_ACCUMULATING": 70,
-  "TIGHT_50D": 93,
-  "INSIDER_BUYING_6M": 11,
-  "HORIZONTAL_SR_STRONG": 7,
-  "TL_SUPPORT": 4
+ "version": "2.0.0",
+ "graph_stats": {
+  "curated_edges": 182,
+  "confirmed_mutual": 16,
+  "confirmed_one_way": 40,
+  "unconfirmed": 126,
+  "discovered_nodes": 40,
+  "related_graph_key": "data/polygon-related-graph.json"
  },
- "coiled_row_has_new_fields": true,
- "new_reason_picks": 13,
- "picks_total": 58,
- "momo_top3": [
+ "n_nodes": 174,
+ "n_edges": 222,
+ "poly_edges": 40,
+ "related_artifact_n": 134,
+ "mutual_pairs_market": 157,
+ "confirmed_sample": [
   [
-   "SNDK",
-   4404.7
+   "MKSI",
+   "LRCX"
   ],
   [
-   "AXTI",
-   3176.0
+   "KLIC",
+   "AMKR"
   ],
   [
-   "ABVX",
-   1628.3
+   "MU",
+   "AMD"
+  ],
+  [
+   "NVDA",
+   "MSFT"
+  ],
+  [
+   "NVDA",
+   "META"
+  ],
+  [
+   "NVDA",
+   "GOOGL"
+  ],
+  [
+   "NVDA",
+   "AMZN"
+  ],
+  [
+   "NVDA",
+   "TSLA"
   ]
  ],
- "gap_top3": [
+ "discovered_sample": [
   [
-   "VKTX",
-   151.6
+   "DOCN",
+   "A"
   ],
   [
-   "NKTR",
-   138.0
+   "SMTC",
+   "A"
   ],
   [
-   "BCRX",
-   125.9
+   "GOOG",
+   "AAPL"
+  ],
+  [
+   "NFLX",
+   "AAPL"
+  ],
+  [
+   "VECO",
+   "ACLS"
+  ],
+  [
+   "COHU",
+   "ACLS"
+  ],
+  [
+   "CSCO",
+   "ADI"
+  ],
+  [
+   "CRM",
+   "ADI"
   ]
- ]
+ ],
+ "picks_total": 1,
+ "market_inferred_picks": 1,
+ "elapsed_s": 15.1
 }
+  retriggered equity-confluence (structural-family consumer)
 
 ======== 4/4 REPORT ========
-  wrote aws/ops/reports/2705_finviz_field_fusion.json
+  wrote aws/ops/reports/2706_related_graph.json
 
-OPS 2705 COMPLETE — paid-for fields now working
+OPS 2706 COMPLETE — dual-source supply-chain graph live
