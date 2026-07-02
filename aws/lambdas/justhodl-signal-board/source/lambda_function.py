@@ -1048,6 +1048,30 @@ def n_ici(d):
         ("$%+.0fB" % (eq / 1000)) if isinstance(eq, (int, float)) else "?")
 
 
+def n_aaii(d):
+    """AAII individual-investor survey — contrarian at extremes (bull-bear spread)."""
+    L = d.get("latest") or {}
+    sp = L.get("bull_bear_spread")
+    if not isinstance(sp, (int, float)):
+        return 0, "AAII n/a"
+    bull, bear = L.get("bullish"), L.get("bearish")
+    sig = 2 if (sp <= -0.30 or (bear or 0) >= 0.55) else 1 if sp <= -0.15 \
+        else -2 if (sp >= 0.30 or (bull or 0) >= 0.58) else -1 if sp >= 0.18 else 0
+    return sig, "AAII %.0f/%.0f spread %+.0fpp" % ((bull or 0) * 100, (bear or 0) * 100, sp * 100)
+
+
+def n_blackout(d):
+    """Buyback-blackout share of S&P mktcap — the corporate bid switch. High
+    blackout = buyback support absent into event risk; low = window open."""
+    now = d.get("now") or {}
+    p = now.get("blackout_mktcap_pct")
+    if not isinstance(p, (int, float)):
+        return 0, "Blackout n/a"
+    sig = -1 if p >= 60 else 1 if p <= 20 else 0
+    return sig, "Blackout %.0f%% of SPX cap · next-14d reporting %.0f%%" % (
+        p, (d.get("next_14d") or {}).get("reporting_mktcap_pct") or 0)
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1144,6 +1168,8 @@ FEEDS = [
     ("Risk Regime (RORO)",     "cross-asset",      "data/risk-regime.json",          n_risk_regime),
     ("NAAIM Positioning",      "sentiment",        "data/naaim.json",                n_naaim),
     ("Leverage Cycle",         "leverage",         "data/margin-lending.json",       n_leverage),
+    ("AAII Retail Sentiment",  "sentiment",        "data/aaii-sentiment.json",       n_aaii),
+    ("Buyback Blackout",       "flow",             "data/earnings-blackout.json",    n_blackout),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

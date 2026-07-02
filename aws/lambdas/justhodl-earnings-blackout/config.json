@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-earnings-blackout",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Buyback-blackout share of S&P 500 market cap (street proxy T-30/T+2) + 6-week forward curve + reporting intensity. The corporate-bid switch.",
+  "schedule": {
+    "name": "justhodl-blackout-daily",
+    "expression": "cron(30 11 * * ? *)",
+    "description": "Daily 11:30 UTC after calendar refresh"
+  }
+}

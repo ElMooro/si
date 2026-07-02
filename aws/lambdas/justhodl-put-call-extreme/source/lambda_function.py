@@ -333,6 +333,39 @@ def lambda_handler(event, context):
         except Exception as _e:
             signals.append({"id": "NAAIM_EXPOSURE", "ok": False, "error": str(_e)[:60],
                             "cadence": "weekly"})
+
+        # ── AAII bull-bear spread (ops 2709): the individual-investor half of
+        #    the positioning triad (NAAIM = managers). Low spread = retail fear
+        #    = stress-positive -> flipped. z vs the feed's own 26w history.
+        try:
+            import boto3 as _b3a
+            _aj = json.loads(_b3a.client("s3", region_name="us-east-1").get_object(
+                Bucket="justhodl-dashboard-live", Key="data/aaii-sentiment.json")["Body"].read())
+            _sp = (_aj.get("latest") or {}).get("bull_bear_spread")
+            _hist = [h.get("bull_bear_spread") for h in (_aj.get("history_26w") or [])
+                     if isinstance(h.get("bull_bear_spread"), (int, float))]
+            _aold = days_since((_aj.get("latest") or {}).get("week_ending") or "")
+            if isinstance(_sp, (int, float)) and len(_hist) >= 8:
+                _mu = sum(_hist) / len(_hist)
+                _sd = (sum((x - _mu) ** 2 for x in _hist) / len(_hist)) ** 0.5
+                _az = round((_sp - _mu) / _sd, 3) if _sd else 0.0
+                _aw = 0.6 if len(_hist) < 16 else 1.0
+                _af = freshness_score("weekly", _aold)
+                signals.append({"id": "AAII_SPREAD", "ok": True, "cadence": "weekly",
+                                "latest_date": (_aj.get("latest") or {}).get("week_ending"),
+                                "latest_value": round(_sp, 3),
+                                "z_raw": _az, "z_stress": round(-_az, 3), "flipped": True,
+                                "weight_base": _aw, "freshness_mult": round(_af, 3),
+                                "effective_weight": round(_aw * _af, 3),
+                                "lookback": len(_hist), "days_old": _aold,
+                                "n_history": len(_hist), "provisional": len(_hist) < 16})
+            else:
+                signals.append({"id": "AAII_SPREAD", "ok": False, "error": "insufficient",
+                                "cadence": "weekly"})
+        except Exception as _ea:
+            signals.append({"id": "AAII_SPREAD", "ok": False, "error": str(_ea)[:60],
+                            "cadence": "weekly"})
+
         composite_z, dispersion, valid = aggregate(signals)
         if composite_z is None:
             payload = {

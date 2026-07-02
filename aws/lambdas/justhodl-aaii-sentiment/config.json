@@ -36,5 +36,10 @@
     "justhodl-aaii-sentiment-daily"
   ],
   "description": "AAII Investor Sentiment Survey weekly retail bull/bear/neutral. Released Thursdays. Daily check for new release; 26-week z-scores; extreme flags.",
-  "memory": 512
+  "memory": 512,
+  "schedule": {
+    "name": "justhodl-aaii-weekly",
+    "expression": "cron(0 18 ? * THU,FRI *)",
+    "description": "AAII survey drops Thu ~10am ET; Fri retry, upsert-idempotent"
+  }
 }
