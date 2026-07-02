@@ -12,10 +12,17 @@
   rule justhodl-aaii-weekly ensured
 
 ======== 3/6 RUN AAII + PROVE ========
-  {"week_ending": "2026-06-25", "bullish": 1.0, "bearish": 0.0, "spread": 1.0, "history_n": 10, "interp": "Retail investors are extremely bullish (100% vs 38% historical). Historically a contrarian sell signal \u2014 euphoria is when distributions usua"}
+  {"week_ending": "2026-06-24", "bullish": 0.449, "bearish": 0.361, "spread": 0.088, "history_n": 21, "interp": "Sentiment is balanced (spread +9%). No contrarian signal."}
+
+======== 4/6 FUSION PROOF — composite 7th + two board rows ========
+  composite: {"aaii": {"id": "AAII_SPREAD", "ok": true, "cadence": "weekly", "latest_date": "2026-06-24", "latest_value": 0.088, "z_raw": 1.441, "z_stress": -1.441, "flipped": true, "weight_base": 1.0, "freshness_mult": 1.0, "effective_weight": 1.0, "lookback": 21, "days_old": 8, "n_history": 21, "provisional": false}, "n_total": 7, "composite_z": -0.158, "state": "NEUTRAL"}
+
+======== 5/6 CREATE + RUN earnings-blackout ========
+  invoke -> {"ok": true, "now_pct": 0.0, "state": "WINDOW_OPEN", "matched": 501}
+  {"now_pct": 0.0, "state": "WINDOW_OPEN", "caps_matched": 501, "with_dates": 9, "rep14": 0.0, "peak": {"date": "2026-07-14", "value": 2.1, "reporting_pct": 0.0}, "trough": {"date": "2026-07-02", "value": 0.0, "reporting_pct": 0.0}, "curve_n": 42}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2709_aaii_blackout.py", line 136, in <module>
-    assert isinstance(L.get("bullish"), (int, float)) and 0.05 <= L["bullish"] <= 0.8, "bull frac insane"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: bull frac insane
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2709_aaii_blackout.py", line 185, in <module>
+    assert N["n_with_dates"] >= 350, "earnings-date coverage thin: %s" % N
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: earnings-date coverage thin: {'blackout_mktcap_pct': 0.0, 'state': 'WINDOW_OPEN', 'n_members': 503, 'n_caps_matched': 501, 'n_with_dates': 9, 'total_cap_t': 72.58}
 ❌ OPS-FAIL: aws/ops/pending/ops_2709_aaii_blackout.py
