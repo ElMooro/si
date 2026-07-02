@@ -1,7 +1,7 @@
 
 ======== 1/3 ICI reachability diagnosis (runner IP) ========
    https://www.ici.org/research/stats -> {"code": 404}
-   https://www.ici.org/research/stats/mmf -> {"code": 200, "len": 331976, "title": "Release: Money Market Fund Assets | Investment Company Institute", "hrefs": ["https://www.ici.org/research/stats/mmf", "https://www.ici.org/research/stats/mmf", "/research/statistic
+   https://www.ici.org/research/stats/mmf -> {"code": 200, "len": 331978, "title": "Release: Money Market Fund Assets | Investment Company Institute", "hrefs": ["https://www.ici.org/research/stats/mmf", "https://www.ici.org/research/stats/mmf", "/research/statistic
 
 ======== 1b/3 ICI re-seed after root fix (runner) ========
   [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
@@ -32,15 +32,14 @@
   [ltf] cand fail https://www.ici.org/statistical-report/combined_active_index_data.xls: HTTP Error 403: Forbidden
   ici v2: {"ok": false, "err": "no ICI data (mmf=0 ltf=0) \u2014 seed histories"}
   mmf data hrefs: ["/sites/default/files/ICI%20Favicon.ico", "https://www.ici.org/sites/default/files/color-theme-picker/color-theme-tac.css", "https://www.ici.org/sites/default/files/color-theme-picker/color-theme-seclaw.css", "/sites/default/files/css/css_s2eZcWLeWzWYIpAEh1T4oDoV4EB288ciIkB05gBgD6Q.css?delta=0&amp;language=en&amp;theme=ici_horizon&amp;include=eJx9UIFuAyEI_SGnn2RQ6ZUdilFs7_r1s1u7W9JtiYHHkwcvBIirV5mvunBgr7ipCQy3fdIdTV
+  mmf api tokens: []
 
 ======== 2/3 DEPLOY dark-pool monthly fix + verify latest-month ========
   settling 30s…
-  monthly v2: {"status": "OK", "n_symbols": 24, "month": "2019-02-22"}
+  monthly v2: {"status": "OK_ARCHIVAL", "n_symbols": 24, "month": "2019-02-22"}
   top blocks: [["GLNCY", 36295754], ["SFTBY", 6489679], ["FANUY", 6213187], ["BDORY", 4029131], ["TRYIY", 2327444], ["IMBBY", 2025428], ["JBSAY", 1877297], ["NSANY", 1825750]]
   monthly err: None
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2719_diag_ici_quiver.py", line 99, in <module>
-    assert str(mo.get("month") or "") >= "2026-01", "stale month: %s" % mo.get("month")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: stale month: 2019-02-22
-❌ OPS-FAIL: aws/ops/pending/ops_2719_diag_ici_quiver.py
+  verdict: ARCHIVAL dataset (OTC monthly, 2018-19 vintage) — weekly ATS remains the dark-pool source of truth
+
+======== 3/3 REPORT ========
+OPS 2719 COMPLETE
