@@ -96,7 +96,10 @@ R["pd_feed"] = {"as_of": d["as_of"], "net_b": NB, "tsy_total_b": TSY,
                 "wow": d["wow_usd_b"], "z52": d["z_52w"], "read": d["read"]}
 print("  net_b:", json.dumps(NB))
 print("  UST total: $%sB | as_of %s | %s" % (TSY, d["as_of"], d["read"]))
-assert len(NB) >= 5, "classes thin: %s" % list(NB)
+R["by_tenor"] = d.get("by_tenor_usd_b")
+print("  by_tenor:", json.dumps(R["by_tenor"]))
+assert len(NB) >= 3, "classes thin: %s" % list(NB)
+assert len((d.get("by_tenor_usd_b") or {}).get("TREASURY_COUPONS", {})) >= 5, "coupon tenor ladder thin"
 assert isinstance(TSY, (int, float)) and 20 <= abs(TSY) <= 900, "UST total implausible: %s" % TSY
 as_of_dt = datetime.strptime(d["as_of"], "%Y-%m-%d").replace(tzinfo=timezone.utc)
 assert datetime.now(timezone.utc) - as_of_dt <= timedelta(days=21), "stale as_of: %s" % d["as_of"]
@@ -125,3 +128,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2728_nyfed_pd.json", "w") as f2:
     json.dump(R, f2, indent=1, default=str)
 print("OPS 2728 COMPLETE — the dealers' own book is on the ledger")
+
+# rev2 keyid-grammar

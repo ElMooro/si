@@ -30,17 +30,16 @@ BASE = "https://markets.newyorkfed.org/api/pd"
 UA = {"User-Agent": "JustHodl Research raafouis@gmail.com", "Accept": "application/json"}
 s3 = boto3.client("s3", region_name="us-east-1")
 
-CLASS_PATTERNS = {  # applied to lower(description); all require net+position-ish
-    "TREASURY_BILLS":   [r"\bbill"],
-    "TREASURY_COUPONS": [r"coupon"],
-    "TIPS":             [r"inflation[- ]protected|\btips\b"],
-    "TREASURY_FRN":     [r"floating"],
-    "AGENCY_DEBT":      [r"agency(?!.*mbs).*(debenture|debt)|debenture"],
-    "AGENCY_MBS":       [r"mbs|mortgage-backed"],
-    "CORPORATE":        [r"corporate"],
-    "MUNICIPAL":        [r"municipal|state and local"],
-    "ABS":              [r"asset-backed"],
-}
+# Catalog truth (ops-2728 probe): descriptions are generic ("SECURITY NET
+# SETTLED POSITION"); the class + tenor live in the KEYID grammar:
+#   PDSI{2,3,5,7,10,20,30}NSP  -> nominal Treasury COUPONS, tenor-bucket ladder
+#   PDST{5,10,30}NSP           -> TIPS (exact TIPS tenors)
+#   PDFRN{2}NSP                -> Floating Rate Notes
+#   *NSPC                      -> change-from-prior variants (skip; WoW computed here)
+# The API exposes the Treasury family only — but BY TENOR, i.e. dealer CURVE
+# positioning, which is richer than flat class totals.
+KEYID_RX = re.compile(r"^PD(SI|ST|FRN)(\d+)NSP$")
+FAM = {"SI": "TREASURY_COUPONS", "ST": "TIPS", "FRN": "TREASURY_FRN"}
 
 def _j(k, d=None):
     try: return json.loads(s3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
@@ -53,16 +52,16 @@ def _get(url, timeout=25):
 def _discover():
     cat = _get(BASE + "/list/timeseries.json", 35)
     rows = (cat or {}).get("pd", {}).get("timeseries", [])
-    spec = {c: [] for c in CLASS_PATTERNS}
+    spec = {}
     for r in rows:
-        kid, desc = r.get("keyid"), str(r.get("description") or "").lower()
-        if not kid or "net" not in desc: continue
-        if not ("position" in desc or "outright" in desc): continue
-        if "fail" in desc or "financing" in desc or "transaction" in desc: continue
-        for cls, pats in CLASS_PATTERNS.items():
-            if any(re.search(p, desc) for p in pats):
-                spec[cls].append({"keyid": kid, "desc": desc[:110]}); break
-    spec = {c: v for c, v in spec.items() if v}
+        kid = str(r.get("keyid") or "")
+        m = KEYID_RX.match(kid)
+        if not m: continue
+        cls, tenor = FAM[m.group(1)], int(m.group(2))
+        spec.setdefault(cls, []).append({"keyid": kid, "tenor_y": tenor,
+                                         "desc": str(r.get("description") or "")[:60]})
+    for v in spec.values():
+        v.sort(key=lambda x: x["tenor_y"])
     doc = {"classes": spec, "discovered": datetime.now(timezone.utc).isoformat(),
            "unit": "USD millions", "n_series": sum(len(v) for v in spec.values())}
     s3.put_object(Bucket=BUCKET, Key=SPEC_KEY, Body=json.dumps(doc).encode(),
@@ -77,11 +76,12 @@ def lambda_handler(event=None, context=None):
     classes = spec["classes"]
     per_class = {}
     series_used = {}
+    tenor_latest = {}   # cls -> {tenor: $B}
     for cls, items in classes.items():
         agg = {}   # asofdate -> summed value ($M)
         used = []
         for it in items[:14]:
-            kid = it["keyid"]
+            kid = it["keyid"]; tenor = it.get("tenor_y")
             try:
                 obs = _get("%s/get/%s.json" % (BASE, kid)).get("pd", {}).get("timeseries", [])
             except Exception as e:
@@ -92,7 +92,18 @@ def lambda_handler(event=None, context=None):
                 if v in (None, "", "*") or not d: continue
                 try: agg[d] = agg.get(d, 0.0) + float(v); n += 1
                 except Exception: continue
-            if n: used.append(kid)
+            if n:
+                used.append(kid)
+                last_d = max(d for d in agg)  # after this series merged
+                # per-tenor latest: recompute from this series' own last obs
+                own = [(o.get("asofdate"), o.get("value")) for o in obs
+                       if o.get("value") not in (None, "", "*")]
+                if own and tenor is not None:
+                    own.sort()
+                    try:
+                        tenor_latest.setdefault(cls, {})[tenor] = round(float(own[-1][1]) / 1e3, 1)
+                    except Exception:
+                        pass
             time.sleep(0.2)
         if agg:
             per_class[cls] = dict(sorted(agg.items()))
@@ -121,9 +132,12 @@ def lambda_handler(event=None, context=None):
            "as_of": as_of,
            "net_treasury_total_b": tsy,                  # flat alias for footprint _find
            "net_positions_usd_b": net_b, "wow_usd_b": wow_b, "z_52w": z52,
+           "by_tenor_usd_b": tenor_latest,
            "series_used": series_used,
-           "source": "NY Fed Primary Dealer Statistics (markets.newyorkfed.org/api/pd), "
-                     "weekly net outright positions, $B (reported $M)",
+           "source": "NY Fed Primary Dealer Statistics (markets.newyorkfed.org/api/pd): net "
+                     "settled positions, weekly, $B (reported $M). API exposes the Treasury "
+                     "family (coupons ladder / TIPS / FRN) by tenor; other classes are not in "
+                     "this endpoint.",
            "read": ("Dealers net %s $%.0fB UST%s" % (
                     "LONG" if tsy > 0 else "SHORT", abs(tsy),
                     "" if wow_b.get("TREASURY_COUPONS") is None else
