@@ -1,0 +1,46 @@
+{
+ "ops": 2733,
+ "ts": "2026-07-02T17:06:44.282551+00:00",
+ "pages_build": {
+  "status": "building",
+  "error": null,
+  "commit": "38088193",
+  "created": "2026-07-02T17:06:29Z"
+ },
+ "run": {
+  "id": 28607781746,
+  "sha": "38088193",
+  "attempt": 1
+ },
+ "deploy_log": {
+  "job": 84832398548,
+  "bytes": 4423,
+  "errors": [
+   "2026-07-02T17:04:40.2783716Z   timeout: 600000",
+   "2026-07-02T17:04:40.2784439Z   error_count: 10",
+   "2026-07-02T17:04:40.2785893Z   artifact_name: github-pages",
+   "2026-07-02T17:04:40.6202705Z Fetching artifact metadata for \"github-pages\" in this workflow run",
+   "2026-07-02T17:04:40.8407324Z Found 1 artifact(s)",
+   "2026-07-02T17:04:40.8419071Z \t\"artifact_id\": 8046142939,",
+   "2026-07-02T17:04:41.2267242Z ##[error]Creating Pages deployment failed",
+   "2026-07-02T17:04:41.3531789Z ##[error]HttpError: Deployment request failed for 38088193c8de28089023eef3f39974f23a320991 due to in progress deployment. Please cancel 219e599e084075228b16c504aed2751b36119fb0 first or wait for it to complete.",
+   "2026-07-02T17:04:41.3539769Z ##[error]Error: Failed to create deployment (status: 400) with build version 38088193c8de28089023eef3f39974f23a320991. Request ID 5C20:1D1EFC:4B75D6F:1134A7BA:6A469A28 Responded with: Deployment request failed for 38088193c8de28089023eef3f39974f23a320991 due to in progress deployment. Please cancel 219e599e084075228b16c504aed2751b36119fb0 first or wait for it to complete."
+  ],
+  "tail": [
+   "2026-07-02T17:04:40.8420415Z \t\"pages_build_version\": \"38088193c8de28089023eef3f39974f23a320991\",",
+   "2026-07-02T17:04:40.8498831Z \t\"oidc_token\": \"***\"",
+   "2026-07-02T17:04:40.8499727Z }",
+   "2026-07-02T17:04:41.2267242Z ##[error]Creating Pages deployment failed",
+   "2026-07-02T17:04:41.3531789Z ##[error]HttpError: Deployment request failed for 38088193c8de28089023eef3f39974f23a320991 due to in progress deployment. Please cancel 219e599e084075228b16c504aed2751b36119fb0 first or wait for it to complete.",
+   "at /home/runner/work/_actions/actions/deploy-pages/v5/node_modules/@octokit/request/dist-node/index.js:124:1",
+   "at processTicksAndRejections (node:internal/process/task_queues:104:5)",
+   "at createPagesDeployment (/home/runner/work/_actions/actions/deploy-pages/v5/src/internal/api-client.js:125:1)",
+   "at Deployment.create (/home/runner/work/_actions/actions/deploy-pages/v5/src/internal/deployment.js:73:1)",
+   "at main (/home/runner/work/_actions/actions/deploy-pages/v5/src/index.js:30:1)",
+   "2026-07-02T17:04:41.3539769Z ##[error]Error: Failed to create deployment (status: 400) with build version 38088193c8de28089023eef3f39974f23a320991. Request ID 5C20:1D1EFC:4B75D6F:1134A7BA:6A469A28 Responded with: Deployment request failed for 38088193c8de28089023eef3f39974f23a320991 due to in progress deployment. Please cancel 219e599e084075228b16c504aed2751b36119fb0 first or wait for it to complete.",
+   "2026-07-02T17:04:41.3917977Z Evaluate and set environment url",
+   "2026-07-02T17:04:41.3924218Z Evaluated environment url:",
+   "2026-07-02T17:04:41.3924826Z Cleaning up orphan processes"
+  ]
+ }
+}
