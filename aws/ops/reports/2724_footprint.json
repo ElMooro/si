@@ -1,0 +1,157 @@
+{
+ "ops": 2724,
+ "ts": "2026-07-02T12:56:55.255729+00:00",
+ "fleet": {
+  "justhodl-13f-positions": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": -0.0,
+   "head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body"
+  },
+  "justhodl-13f-price-divergence": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": null,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_divergences\\\": 0}\"}"
+  },
+  "justhodl-consensus-bottom": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": 0.2,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"state\\\": \\\"NO_CONSENSUS_BOTTOM\\\", \\\"n_qu"
+  },
+  "justhodl-cftc-deep-view": {
+   "ok": false,
+   "err": true,
+   "feed_age_min": 1406.9,
+   "head": "{\"errorMessage\": \"object of type 'int' has no len()\", \"errorType\": \"TypeError\", \"requestId\": \"d7e521bd-034b-4b"
+  },
+  "justhodl-dealer-gex": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": 0.0,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"success\\\": true, \\\"version\\\": \\\"1.3.0\\\", \\\"n_underlyings\\\": 10, \\\"spy_regime\\\""
+  },
+  "justhodl-options-gamma": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": 0.0,
+   "head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body"
+  },
+  "justhodl-options-flow": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": null,
+   "head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\", \"Acces"
+  },
+  "justhodl-skew-tail-hedging": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": -0.0,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"TAIL_HEDGE_BUILDING\\\", \\\"n_tickets\\\": 0}\"}"
+  },
+  "justhodl-catalyst-skew-premove": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": 59.0,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"state\\\": \\\"QUIET\\\", \\\"n_setups\\\": 0, \\\"n_bull\\\": 0, \\\"n_bear\\\": "
+  },
+  "justhodl-short-interest": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": -0.0,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"n_tickers\\\": 5770, \\\"n_squeeze_risk\\\": 5, \\\"n_crowded\\\": 53, \\\"duration_s\\\": 8"
+  },
+  "justhodl-forced-selling-bounce": {
+   "ok": true,
+   "err": false,
+   "feed_age_min": 899.3,
+   "head": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"version\\\": \\\"1.0.0\\\", \\\"state\\\": \\\"QUIET\\\", \\\"signal_strength\\\":"
+  }
+ },
+ "desk": {
+  "feeds_alive": 16,
+  "posture": {
+   "risk_now": 27.4,
+   "now_label": "RISK-ON",
+   "now_components": {
+    "naaim_z": 43.75,
+    "own_dix": 38.16,
+    "flow_breadth": 4.840000000000007,
+    "leverage_cycle": 22.819999999999993
+   },
+   "risk_forward": -36.5,
+   "forward_label": "POSITIONING FOR RISK-OFF",
+   "fwd_components": {
+    "tail_hedge_demand": -54.300000000000004,
+    "dealer_gex_sign": -35,
+    "buyback_blackout": -20.160000000000004
+   }
+  },
+  "sectors_buying": [
+   {
+    "complex": "Semiconductors",
+    "usd_5d_m": 2735.5
+   },
+   {
+    "complex": "Financials",
+    "usd_5d_m": 1884.3
+   },
+   {
+    "complex": "Dow",
+    "usd_5d_m": 1353.1
+   }
+  ],
+  "sectors_selling": [
+   {
+    "complex": "S&P 500 Broad",
+    "usd_5d_m": -16773.9
+   },
+   {
+    "complex": "Mega-Cap Tech (FANG+)",
+    "usd_5d_m": -10769.3
+   },
+   {
+    "complex": "Technology",
+    "usd_5d_m": -10407.8
+   }
+  ],
+  "adds": [
+   "KO",
+   "GOOGL",
+   "NVDA",
+   "CVX",
+   "AMZN",
+   "NVDA",
+   "GOOGL",
+   "AVGO"
+  ],
+  "exits": [
+   "V",
+   "MA",
+   "AMZN",
+   "PG",
+   "AMZN",
+   "SCHW",
+   "WYNN",
+   "MRK"
+  ],
+  "hi_conv": [
+   "TEL",
+   "WAB",
+   "STT",
+   "EXPD",
+   "CNC",
+   "EXR",
+   "BXP",
+   "NEM"
+  ],
+  "dis": [],
+  "double": [],
+  "own_dix": 57.68,
+  "conviction_n": 6,
+  "ai": true
+ },
+ "board": "{\"engine\": \"Institutional Footprint\", \"category\": \"flow\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"read\": \"INSTITUTIONS RISK-ON (27.4) -> POSITIONING FOR RISK-OFF (-36.5) | feeds 16\", \"as_of\": \"2026-07-02T13:00:42+00:0",
+ "page": "LIVE"
+}

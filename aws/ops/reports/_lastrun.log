@@ -1,7 +1,100 @@
-settling 30s…
-invoke -> {"ok": true, "n": 148, "fails": 10, "mkt_ttm_b": 1176.3, "mkt_yoy": 33.6, "hyp": {"ttm_b": 508.0, "yoy": 73.5}}
-fx_converted: [('TSM', 'TWD', 40.65, 'FMP USDTWD'), ('ASML', 'EUR', 2.47, 'FRED DEXUSEU'), ('RY', 'CAD', 1.51, 'FRED DEXCAUS'), ('BABA', 'CNY', 18.52, 'FRED DEXCHUS'), ('MUFG', 'JPY', 2.02, 'FRED DEXJPUS'), ('TD', 'CAD', 1.67, 'FRED DEXCAUS'), ('SAN', 'EUR', 3.8, 'FRED DEXUSEU'), ('TM', 'JPY', 30.92, 'FRED DEXJPUS'), ('SAP', 'EUR', 0.92, 'FRED DEXUSEU'), ('NVO', 'DKK', 13.42, 'FMP USDDKK'), ('SMFG', 'JPY', 1.21, 'FRED DEXJPUS'), ('BBVA', 'EUR', 1.76, 'FRED DEXUSEU'), ('UL', 'EUR', 3.64, 'FRED DEXUSEU'), ('HDB', 'INR', 0.43, 'FRED DEXINUS'), ('BTI', 'GBP', 1.53, 'FRED DEXUSUK'), ('BMO', 'CAD', 1.24, 'FRED DEXCAUS'), ('MFG', 'JPY', 0.63, 'FRED DEXJPUS'), ('ENB', 'CAD', 9.03, 'FRED DEXCAUS'), ('SONY', 'JPY', 2.84, 'FRED DEXJPUS'), ('BNS', 'CAD', 0.41, 'FRED DEXCAUS'), ('CM', 'CAD', 0.87, 'FRED DEXCAUS'), ('GSK', 'GBP', 2.73, 'FRED DEXUSUK'), ('SBS', 'BRL', 0.81, 'FRED DEXBZUS'), ('SNY', 'EUR', 3.08, 'FRED DEXUSEU')]
-excluded: []
-market: {"capex_ttm_b": 1176.3, "yoy_pct": 33.6, "universe": "top-160 mcap (stock-xray) + hyperscalers"} | hyperscalers: {"total_ttm_b": 508.0, "yoy_pct": 73.5}
-gfd capex: {"status": "OK", "source": "capex-pulse", "market_ttm_b": 1176.3, "market_yoy_pct": 33.6, "hyperscalers_ttm_b": 508.0, "hyperscalers_yoy_pct": 73.5, "top_sector": {"name": "Real Estate", "yoy_pct": 59.4}, "top_accelerato
-OPS 2723 COMPLETE — foreign capex published in USD
+/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+
+======== 1/3 REVIVE the surveillance fleet (11 engines, all were schedule:None) ========
+  settling 30s…
+  justhodl-13f-positions             ALIVE age=-0.0 {"statusCode": 200, "headers": {"Content-Type": "application/json", "A
+  justhodl-13f-price-divergence      ALIVE age=None {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_
+  justhodl-consensus-bottom          ALIVE age=0.2 {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.0\", \"
+  justhodl-cftc-deep-view            WOUNDED age=1406.9 {"errorMessage": "object of type 'int' has no len()", "errorType": "Ty
+  justhodl-dealer-gex                ALIVE age=0.0 {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.3.0\
+  justhodl-options-gamma             ALIVE age=0.0 {"statusCode": 200, "headers": {"Content-Type": "application/json", "A
+  justhodl-options-flow              ALIVE age=None {"statusCode": 200, "headers": {"Content-Type": "application/json", "A
+  justhodl-skew-tail-hedging         ALIVE age=-0.0 {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"TAIL_HEDGE_BU
+  justhodl-catalyst-skew-premove     ALIVE age=59.0 {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_
+  justhodl-short-interest            ALIVE age=-0.0 {"statusCode": 200, "body": "{\"n_tickers\": 5770, \"n_squeeze_risk\":
+  justhodl-forced-selling-bounce     ALIVE age=899.3 {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.0\", \"
+  ALIVE 10: ['justhodl-13f-positions', 'justhodl-13f-price-divergence', 'justhodl-consensus-bottom', 'justhodl-dealer-gex', 'justhodl-options-gamma', 'justhodl-options-flow', 'justhodl-skew-tail-hedging', 'justhodl-catalyst-skew-premove', 'justhodl-short-interest', 'justhodl-forced-selling-bounce']
+  WOUNDED 1: ['justhodl-cftc-deep-view']
+
+======== 2/3 FUSION DESK — create + run + prove ========
+  CREATED justhodl-institutional-footprint
+  invoke -> {"ok": true, "feeds_alive": 16, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -36.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 15, "exits": 15, "hi_conv": 15, "dis": 0, "conviction": 6}}
+{
+ "feeds_alive": 16,
+ "posture": {
+  "risk_now": 27.4,
+  "now_label": "RISK-ON",
+  "now_components": {
+   "naaim_z": 43.75,
+   "own_dix": 38.16,
+   "flow_breadth": 4.840000000000007,
+   "leverage_cycle": 22.819999999999993
+  },
+  "risk_forward": -36.5,
+  "forward_label": "POSITIONING FOR RISK-OFF",
+  "fwd_components": {
+   "tail_hedge_demand": -54.300000000000004,
+   "dealer_gex_sign": -35,
+   "buyback_blackout": -20.160000000000004
+  }
+ },
+ "sectors_buying": [
+  {
+   "complex": "Semiconductors",
+   "usd_5d_m": 2735.5
+  },
+  {
+   "complex": "Financials",
+   "usd_5d_m": 1884.3
+  },
+  {
+   "complex": "Dow",
+   "usd_5d_m": 1353.1
+  }
+ ],
+ "sectors_selling": [
+  {
+   "complex": "S&P 500 Broad",
+   "usd_5d_m": -16773.9
+  },
+  {
+   "complex": "Mega-Cap Tech (FANG+)",
+   "usd_5d_m": -10769.3
+  },
+  {
+   "complex": "Technology",
+   "usd_5d_m": -10407.8
+  }
+ ],
+ "adds": [
+  "KO",
+  "GOOGL",
+  "NVDA",
+  "CVX",
+  "AMZN",
+  "NVDA",
+  "GOOGL",
+  "AVGO"
+ ],
+ "exits": [
+  "V",
+  "MA",
+  "AMZN",
+  "PG",
+  "AMZN",
+  "SCHW",
+  "WYNN",
+  "MRK"
+ ],
+ "hi_conv": [
+  "TEL",
+  "WAB",
+  "STT",
+  "EXPD",
+  "
+
+======== 3/3 BOARD + PAGE + REPORT ========
+  board: {"engine": "Institutional Footprint", "category": "flow", "signal": -1, "signal_label": "RISK-OFF", "read": "INSTITUTIONS RISK-ON (27.4) -> POSITIONING FOR RISK-OFF (-36.5) | feeds 16", "as_of": "2026-07-02T13:00:42+00:0
+  page: LIVE
+OPS 2724 COMPLETE — the institutions are under surveillance
