@@ -15,10 +15,13 @@ settling 30s…
     PDFRN2NSPC - SECURITY NET SETTLED POSITION - Change From Previous Week
 == 1/3 CREATE + RUN nyfed-pd ==
   schedule: cron(30 21 ? * THU,FRI *)
-  invoke -> {"errorMessage": "no PD series parsed \u2014 catalog drift?", "errorType": "AssertionError", "requestId": "639f7d58-2d85-4093-bd1a-16531b1e6554", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 100, in lambda_handler\n    assert per_class, \"no PD series parsed \u2014 catalog drift?\"\
+  invoke -> {"ok": true, "as_of": "2026-06-17", "classes": 3, "net_treasury_total_b": -9.9, "net_b": {"TREASURY_FRN": 1.7, "TREASURY_COUPONS": -10.3, "TIPS": -1.3}}
+  net_b: {"TREASURY_FRN": 1.7, "TREASURY_COUPONS": -10.3, "TIPS": -1.3}
+  UST total: $-9.9B | as_of 2026-06-17 | Dealers net SHORT $10B UST, coupons WoW +17.1B
+  by_tenor: {"TREASURY_FRN": {"2": 1.7}, "TREASURY_COUPONS": {"2": 0.2, "3": 5.5, "5": -7.5, "7": 2.8, "10": -6.4, "20": -5.2, "30": 0.3}, "TIPS": {"5": -1.1, "10": -0.3, "30": 0.2}}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2728_nyfed_pd.py", line 92, in <module>
-    assert not r.get("FunctionError") and pay.get("ok"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': 'no PD series parsed — catalog drift?', 'errorType': 'AssertionError', 'requestId': '639f7d58-2d85-4093-bd1a-16531b1e6554', 'stackTrace': ['  File "/var/task/lambda_function.py", line 100, in lambda_handler\n    assert per_class, "no PD series parsed — catalog drift?"\n']}
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2728_nyfed_pd.py", line 103, in <module>
+    assert isinstance(TSY, (int, float)) and 20 <= abs(TSY) <= 900, "UST total implausible: %s" % TSY
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: UST total implausible: -9.9
 ❌ OPS-FAIL: aws/ops/pending/ops_2728_nyfed_pd.py
