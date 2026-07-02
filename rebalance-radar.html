@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rebalance Radar — JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:26px 18px 60px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
+.sub{color:var(--fg-3);font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
+.hero{display:flex;gap:18px;align-items:center;background:linear-gradient(135deg,var(--card),var(--bg-2));border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:14px;flex-wrap:wrap}
+.phase{font-family:var(--mono);font-size:13px;letter-spacing:2px;padding:8px 15px;border-radius:8px;border:1px solid var(--line);background:var(--bg-2)}
+.risk{background:var(--bg-2);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:10px;padding:14px 18px;margin-bottom:20px}
+.risk.ok{border-left-color:var(--green)}
+.risk h2{margin:0 0 8px;font-size:14px;letter-spacing:1px}
+.risk li{color:var(--fg-2);font-size:12px;font-family:var(--mono);margin:4px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.card h3{margin:0 0 8px;font-size:12px;letter-spacing:1.4px;color:var(--fg-2);font-weight:600}
+.big{font-family:var(--mono);font-size:22px;font-weight:700}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--fg-2);margin-top:4px}
+.note{color:var(--fg-3);font-size:11px;margin-top:9px;line-height:1.45}
+.method{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--fg-2);font-size:12px;line-height:1.6}
+.g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.c{color:var(--cyan)}
+.loading{color:var(--fg-3);font-family:var(--mono);padding:40px;text-align:center}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+td,th{padding:4px 7px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td:first-child,th:first-child{text-align:left;white-space:normal}
+.heat{font-weight:700}
+</style></head><body><div class="wrap">
+<h1>♻️ REBALANCE RADAR — QUARTER-END INSTITUTIONAL FLOWS</h1>
+<div class="sub" id="sub">Loading measured event study + live window forensics…</div>
+<div id="app" class="loading">Loading…</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
+async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
+const bn=v=>v==null?'—':(v/1e9).toFixed(2)+'B';
+const hc=v=>v>0.15?'g':v<-0.15?'r':'c';
+(async()=>{
+ const d=await getJSON('data/rebalance-radar.json');
+ const app=document.getElementById('app');
+ if(!d||!d.calendar){app.textContent='Feed unavailable.';return}
+ const C=d.calendar,RR=d.rotation_risk||{},W=d.window_forensics||{},L=W.cross_asset_legs||{},ES=d.event_study||{},Q=d.qtd_proxies||{};
+ document.getElementById('sub').innerHTML=`${ES.n_quarters} quarters studied · ${W.n_complexes} complexes tracked · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const esCols=Object.keys(ES.assets||{});
+ const offs=[-5,-4,-3,-2,-1,0,1,2,3,4,5];
+ const esHead='<tr><th>T-offset</th>'+esCols.map(s=>`<th>${s}</th>`).join('')+'</tr>';
+ const esRows=offs.map(o=>'<tr><td>T'+(o>=0?'+':'')+o+'</td>'+esCols.map(s=>{
+   const r=((ES.assets[s]||{}).table||[]).find(x=>x.offset===o);
+   return `<td class="heat ${r?hc(r.mean_pct):''}">${r?(r.mean_pct>0?'+':'')+r.mean_pct.toFixed(2):'—'}</td>`;}).join('')+'</tr>').join('');
+ const fl=(rows)=>rows.map(r=>`<tr><td>${r.complex}</td><td class="${r.net_flow_5d_usd<0?'r':'g'}">$${bn(r.net_flow_5d_usd)}</td><td>${r.price_5d_pct==null?'—':(r.price_5d_pct>0?'+':'')+r.price_5d_pct+'%'}</td><td>${r.qtd_vs_spy_pp==null?'—':(r.qtd_vs_spy_pp>0?'+':'')+r.qtd_vs_spy_pp+'pp'}</td><td>${(r.classification||r.mechanical_expectation||'—').replace(/_/g,' ')}</td></tr>`).join('');
+ app.className='';app.innerHTML=`
+ <div class="hero">
+   <div class="phase ${C.in_rebalance_window?'a':'c'}">${C.in_rebalance_window?'WINDOW OPEN':'WINDOW CLOSED'}</div>
+   <div class="phase">Q-end ${C.quarter_end} · T−${C.bdays_to_qtr_end}bd</div>
+   <div class="phase">prev Q-end ${C.prev_quarter_end} · T+${C.bdays_since_prev_qtr_end}bd</div>
+ </div>
+ <div class="risk ${RR.flag?'':'ok'}"><h2 class="${RR.flag?'r':'g'}">${RR.flag?'⚠️ ROTATION RISK — '+RR.severity:'✓ NO ROTATION SIGNATURE'}</h2>
+   <div style="font-size:12.5px;color:var(--fg-2);margin-bottom:6px">${RR.read||''}</div>
+   <ul>${(RR.evidence||[]).map(e=>`<li>• ${e}</li>`).join('')}</ul>
+   <div class="note">${RR.historical_context||''}</div></div>
+ <div class="grid">
+  <div class="card"><h3>CROSS-ASSET LEGS (5d)</h3>
+    <div class="kv"><span>AI / Semis / Tech</span><b class="${L.ai_semis_5d_usd<0?'r':'g'}">$${bn(L.ai_semis_5d_usd)}</b></div>
+    <div class="kv"><span>Bonds / Credit</span><b class="${L.bonds_5d_usd<0?'r':'g'}">$${bn(L.bonds_5d_usd)}</b></div>
+    <div class="kv"><span>Crypto</span><b class="${L.crypto_5d_usd<0?'r':'g'}">$${bn(L.crypto_5d_usd)}</b></div>
+    <div class="kv"><span>Gold</span><b class="${L.gold_5d_usd<0?'r':'g'}">$${bn(L.gold_5d_usd)}</b></div>
+    <div class="note">The rotation matrix behind the flag.</div></div>
+  <div class="card"><h3>QTD vs SPY (proxies)</h3>
+    ${Object.entries(Q).slice(0,8).map(([s,q])=>`<div class="kv"><span>${s}</span><b>${q.qtd_pct>0?'+':''}${q.qtd_pct}% · 5d ${q.d5_pct>0?'+':''}${q.d5_pct??'—'}%</b></div>`).join('')}
+    <div class="note">Mechanical pressure = trim what beat SPY by >4pp, add what lagged.</div></div>
+ </div>
+ <div class="grid">
+  <div class="card"><h3>TOP OUTFLOWS — WINDOW (mechanical vs excess)</h3>
+    <table><tr><th>complex</th><th>5d flow</th><th>px 5d</th><th>QTD vs SPY</th><th>class</th></tr>${fl(W.top_outflows||[])}</table></div>
+  <div class="card"><h3>TOP INFLOWS — WINDOW</h3>
+    <table><tr><th>complex</th><th>5d flow</th><th>px 5d</th><th>QTD vs SPY</th><th>class</th></tr>${fl(W.top_inflows||[])}</table></div>
+ </div>
+ <div class="card" style="margin-bottom:22px"><h3>EVENT STUDY — MEAN DAILY % AROUND QUARTER-END (${ES.n_quarters} quarters)</h3>
+   <table>${esHead}${esRows}</table>
+   <div class="note">Measured from full price history — this is what quarter-ends ACTUALLY do, per asset.</div></div>
+ <div class="method"><b>METHOD</b> — ${d.method||''}</div>`;
+})();
+</script></div></body></html>

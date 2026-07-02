@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bond Desk — JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--bg-2:#111722;--card:#0e1420;--line:#1e2836;--fg:#dfe7f3;--fg-2:#9db0c8;--fg-3:#5c6f88;--cyan:#46c8ff;--amber:#ffd24a;--red:#ff5d6c;--green:#37d99a;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:.4px}
+.sub{color:var(--fg-3);font-family:var(--mono);font-size:11.5px;margin-bottom:22px}
+.hero{display:flex;gap:22px;align-items:center;background:linear-gradient(135deg,var(--card),var(--bg-2));border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-bottom:14px;flex-wrap:wrap}
+.score{font-family:var(--mono);font-size:54px;font-weight:700;line-height:1}
+.phase{font-family:var(--mono);font-size:13px;letter-spacing:2px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg-2)}
+.read{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 16px;font-size:12.5px;color:var(--fg-2);margin-bottom:20px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.card h3{margin:0 0 8px;font-size:12px;letter-spacing:1.4px;color:var(--fg-2);font-weight:600}
+.big{font-family:var(--mono);font-size:22px;font-weight:700}
+.kv{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--fg-2);margin-top:4px}
+.note{color:var(--fg-3);font-size:11px;margin-top:9px;line-height:1.45}
+.method{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--fg-2);font-size:12px;line-height:1.6}
+.g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.c{color:var(--cyan)}
+.loading{color:var(--fg-3);font-family:var(--mono);padding:40px;text-align:center}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+td,th{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}
+td:first-child,th:first-child{text-align:left}
+</style></head><body><div class="wrap">
+<h1>🏦 BOND DESK — FIXED-INCOME FLOW & ANXIETY</h1>
+<div class="sub" id="sub">Loading the flow side of the bond market…</div>
+<div id="app" class="loading">Loading…</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+const PX=['','https://s3.amazonaws.com/justhodl-dashboard-live/'];
+async function getJSON(k){for(const p of PX){try{const r=await fetch(p+k,{cache:'no-store'});if(r.ok)return await r.json()}catch(e){}}return null}
+const rc=r=>({STRESS:'r',ANXIOUS:'a',UNEASY:'c',CALM:'g'}[r]||'c');
+const bn=v=>v==null?'—':(v/1e9).toFixed(2)+'B';
+(async()=>{
+ const d=await getJSON('data/bond-desk.json');
+ const app=document.getElementById('app');
+ if(!d||!d.flows){app.textContent='Feed unavailable.';return}
+ const F=d.flows,B=F.buckets||{},M=d.credit_micro||{},X=d.stress_crosschecks||{};
+ document.getElementById('sub').innerHTML=`${F.matched_tickers} ETFs matched · flow z ${F.provisional?'PROVISIONAL (accumulating)':'active'} · ${(d.generated_at||'').slice(0,16).replace('T',' ')} UTC`;
+ const rows=Object.entries(B).map(([k,b])=>`<tr><td>${k.replace(/_/g,' ')}</td><td class="${b.flow_5d_usd<0?'r':'g'}">$${bn(b.flow_5d_usd)}</td><td>$${bn(b.flow_21d_usd)}</td><td>${b.avg_z90??'—'}</td><td>${b.n}</td></tr>`).join('');
+ app.className='';app.innerHTML=`
+ <div class="hero">
+   <div><div class="score ${rc(d.regime)}">${d.anxiety_score}</div>
+   <div style="color:var(--fg-3);font-family:var(--mono);font-size:11px">bond-market anxiety / 100</div></div>
+   <div class="phase ${rc(d.regime)}">${d.regime}</div>
+ </div>
+ <div class="read"><b>EQUITY READ</b> — ${d.equity_read||''}</div>
+ <div class="grid">
+  <div class="card"><h3>CREDIT APPETITE (5d)</h3><div class="big ${F.credit_appetite_5d_usd<0?'r':'g'}">$${bn(F.credit_appetite_5d_usd)}</div>
+    <div class="kv"><span>HY+loans+EM vs govvies</span><b>z ${F.appetite_z??'prov.'}</b></div>
+    <div class="note">Negative = money leaving credit risk for safety.</div></div>
+  <div class="card"><h3>CCC − BB SPREAD (junk-within-junk)</h3><div class="big ${(M.d21_bps||0)>15?'r':(M.d21_bps||0)<-15?'g':'c'}">${M.ccc_bb_bps??'—'}bps</div>
+    <div class="kv"><span>percentile</span><b>${M.pctile??'—'}</b></div>
+    <div class="kv"><span>Δ 21d</span><b>${M.d21_bps==null?'—':(M.d21_bps>0?'+':'')+M.d21_bps}bps</b></div>
+    <div class="note">${M.read||'The truest credit-risk appetite gauge.'} HY OAS ${M.hy_oas_pct??'—'}%.</div></div>
+  <div class="card"><h3>DURATION TILT (5d flows)</h3><div class="big">${F.duration_tilt>0?'+':''}${F.duration_tilt}</div>
+    <div class="note">+1 = extending into long govvies · −1 = hiding in bills. TIPS share of belly ${(F.tips_share_of_belly*100).toFixed(0)}%.</div></div>
+  <div class="card"><h3>EQUITY → BOND ROTATION (5d)</h3><div class="big ${F.equity_to_bond_5d_usd>0?'a':'c'}">$${bn(F.equity_to_bond_5d_usd)}</div>
+    <div class="kv"><span>z</span><b>${F.eqbond_z??'prov.'}</b></div>
+    <div class="note">Positive = net money moving from core equity ETFs into fixed income.</div></div>
+  <div class="card"><h3>STRESS CROSS-CHECKS (owned engines)</h3>
+    <div class="kv"><span>bond-vol</span><b>${X.bond_vol_regime??'—'} ${X.bond_vol_pctile?('p'+X.bond_vol_pctile):''}</b></div>
+    <div class="kv"><span>auctions</span><b>${X.auction_regime??'—'}</b></div>
+    <div class="kv"><span>fails pctile</span><b>${X.fails_pctile??'—'}</b></div>
+    <div class="kv"><span>ACM TP Δ21d</span><b>${X.acm_tp10_d21_bps==null?'—':(X.acm_tp10_d21_bps>0?'+':'')+X.acm_tp10_d21_bps}bps</b></div></div>
+ </div>
+ <div class="card" style="margin-bottom:22px"><h3>FLOW LADDER — ALL BUCKETS</h3>
+   <table><tr><th>bucket</th><th>5d</th><th>21d</th><th>avg z90</th><th>n</th></tr>${rows}</table></div>
+ <div id="chart-anchor"><h1 style="font-size:14px;letter-spacing:1.5px;color:var(--fg-2)">ANXIETY SCORE — HISTORY</h1></div>
+ <div class="method" style="margin-top:18px"><b>METHOD</b> — ${d.method||''}</div>`;
+ const s=document.createElement('script');s.src='/jh-enhance.js';
+ s.setAttribute('data-feed','data/bond-desk.json');
+ s.setAttribute('data-line','history');
+ document.getElementById('chart-anchor').appendChild(s);
+})();
+</script></div></body></html>

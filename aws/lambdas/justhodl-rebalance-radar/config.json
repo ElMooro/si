@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-rebalance-radar",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Quarter/month-end institutional flow regime: measured event study (10y), mechanical-vs-excess flow forensics, leadership->crypto rotation-risk flag.",
+  "schedule": {
+    "name": "justhodl-rebalance-daily",
+    "expression": "cron(5 22 * * ? *)",
+    "description": "Daily 22:05 UTC post-close"
+  }
+}

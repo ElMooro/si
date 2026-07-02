@@ -1085,6 +1085,26 @@ def n_termprem(d):
                                                      d.get("pctile_full_history") or 0)
 
 
+def n_bonddesk(d):
+    """Fixed-income flow desk anxiety — what bond money is saying about equity risk."""
+    a=d.get("anxiety_score"); r=d.get("regime")
+    if not isinstance(a,(int,float)): return 0,"Bond desk n/a"
+    sig={"STRESS":-2,"ANXIOUS":-1,"CALM":1}.get(r,0)
+    ap=((d.get("flows") or {}).get("credit_appetite_5d_usd") or 0)/1e9
+    return sig,"BOND DESK %.0f %s (credit %+.1fB/5d)"%(a,r,ap)
+
+
+def n_rebalance(d):
+    """Quarter-end rebalance window + leadership->crypto rotation-risk flag."""
+    c=d.get("calendar") or {}; rr=d.get("rotation_risk") or {}
+    if not c: return 0,"Rebalance n/a"
+    if rr.get("flag"):
+        return (-2 if rr.get("severity")=="HIGH" else -1), "ROTATION RISK %s — leadership de-risking into crypto (Q-end window)"%rr.get("severity")
+    if c.get("in_rebalance_window"):
+        return 0,"Rebalance window OPEN (T%+d vs %s) — no rotation signature"%(-c.get("bdays_to_qtr_end",0) or c.get("bdays_since_prev_qtr_end",0),c.get("window_anchor"))
+    return 0,"Next quarter-end %s (%d bdays)"%(c.get("quarter_end"),c.get("bdays_to_qtr_end",0))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1184,6 +1204,8 @@ FEEDS = [
     ("AAII Retail Sentiment",  "sentiment",        "data/aaii-sentiment.json",       n_aaii),
     ("Buyback Blackout",       "flow",             "data/earnings-blackout.json",    n_blackout),
     ("Term Premium (ACM)",     "rates",            "data/term-premium.json",         n_termprem),
+    ("Bond Desk",              "rates",            "data/bond-desk.json",            n_bonddesk),
+    ("Rebalance Window",       "flow",             "data/rebalance-radar.json",      n_rebalance),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 
