@@ -115,10 +115,23 @@ def lambda_handler(event=None, context=None):
     au=_s3json("data/auction-crisis.json",{}) or {}
     sf=_s3json("data/settlement-fails.json",{}) or {}
     tp=_s3json("data/term-premium.json",{}) or {}
+    def _first_num(doc, keys, depth=0):
+        if depth>6: return None
+        if isinstance(doc,dict):
+            for k in keys:
+                if isinstance(doc.get(k),(int,float)): return doc[k]
+            for v in doc.values():
+                r=_first_num(v,keys,depth+1)
+                if r is not None: return r
+        elif isinstance(doc,list):
+            for v in doc[:40]:
+                r=_first_num(v,keys,depth+1)
+                if r is not None: return r
+        return None
     xchk={"bond_vol_regime":bv.get("composite_regime") or bv.get("regime"),
-          "bond_vol_pctile":bv.get("composite_percentile") or bv.get("percentile"),
+          "bond_vol_pctile":_first_num(bv,("composite_percentile","percentile")),
           "auction_regime":au.get("regime") or (au.get("latest") or {}).get("regime"),
-          "fails_pctile":(sf.get("latest") or sf).get("percentile") if sf else None,
+          "fails_pctile":_first_num(sf,("pctile","percentile")),
           "acm_tp10_d21_bps":(tp.get("deltas_bps") or {}).get("d21")}
 
     hist=_s3json(HIST,{}) or {}
