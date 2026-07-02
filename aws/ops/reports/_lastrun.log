@@ -1,5 +1,9 @@
 settling 30s…
-  global-flow-desk [deterministic|429] Money is leaving EQUITY_US ($40069M over 5d) and rotating toward SECTORS (+$873M), with XLF/XLV/XLI leading and XLP/XLB/XLK laggin
-  institutional-footprint [deterministic|516] Institutions are Risk On on the tape (risk-now +22.1: managers near full exposure, dark-pool bid 57.7%) while positioning defensiv
-  positioning-analog [deterministic|440] Today's condition vector sits closest to unlabeled regime (1998-05-08, similarity 68) with echoes of unlabeled regimes. From the t
-OPS 2739 COMPLETE — positive gate holds the line
+  SSM token: ABSENT
+== 1/3 create adapter + schedule ==
+  invoke -> {"ok": true, "status": "GATED_PENDING_KEY", "armed": 8}
+  GATED — armed metrics: ['btc_exchange_netflow', 'btc_exchange_reserve', 'eth_exchange_reserve', 'btc_mpi', 'btc_whale_ratio', 'btc_mvrv', 'btc_sopr', 'stablecoin_exchange_reserve']
+== 2/3 signal-map registration ==
+  onchain family registered in signal map
+== 3/3 public feed strict ==
+OPS 2740 COMPLETE — the on-chain seat is armed and waiting
