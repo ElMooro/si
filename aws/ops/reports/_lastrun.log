@@ -9,9 +9,10 @@
   triggered (will poll after fast proofs; engine budget 640s)
 == 3/5 NAAIM v1.2 PROOF (expect ~98.6 EUPHORIC per CEIC cross-check) ==
   invoke -> {"ok": true, "value": 4.0, "n": 1043, "state": "WASHED_OUT", "provisional": false}
-   {"value": 4.0, "date": "2026-06-25", "z": -3.2, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1043, "column_mode": "profile-fit:col1(med=71.6)", "provisional": false}
+   {"value": 4.0, "date": "2026-06-25", "z": -3.2, "pctile": 0.4, "state": "WASHED_OUT", "signal": 2, "history_n": 1043, "column_mode": "header:NAAIM Number", "provisional": false}
+  history tail: [{"date": "2026-06-17", "value": 92.83}, {"date": "2026-06-24", "value": 98.59}, {"date": "2026-06-25", "value": 4.0}]
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2704_naaim_column_patent_merge.py", line 89, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2704_naaim_column_patent_merge.py", line 90, in <module>
     assert isinstance(v, (int, float)) and 60 <= v <= 130, "value off vs known ~98.6: %s" % v
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: value off vs known ~98.6: 4.0
