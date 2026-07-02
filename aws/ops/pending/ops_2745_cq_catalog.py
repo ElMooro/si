@@ -36,17 +36,16 @@ CAND = [
  ("btc_exchange_inflow","exchange_flows","BTC Exchange Inflow","/btc/exchange-flows/inflow",AE,1,False,"BTC/d"),
  ("btc_exchange_outflow","exchange_flows","BTC Exchange Outflow","/btc/exchange-flows/outflow",AE,-1,False,"BTC/d"),
  ("btc_exchange_reserve","exchange_flows","BTC Exchange Reserve","/btc/exchange-flows/reserve",AE,1,True,"BTC"),
- ("btc_exchange_addr_in","exchange_flows","BTC Depositing Addresses","/btc/exchange-flows/addresses-count-inflow",AE,1,False,"addr/d"),
- ("btc_exchange_addr_out","exchange_flows","BTC Withdrawing Addresses","/btc/exchange-flows/addresses-count-outflow",AE,-1,False,"addr/d"),
+ ("btc_exchange_addr_in","exchange_flows","BTC Depositing Addresses","/btc/exchange-flows/addresses-count",AE,1,False,"addr/d"),
  ("btc_mpi","flow_indicator","Miner Position Index","/btc/flow-indicator/mpi",W,1,True,"idx"),
  ("btc_whale_ratio","flow_indicator","Exchange Whale Ratio","/btc/flow-indicator/exchange-whale-ratio",AE,1,True,"ratio"),
  ("btc_fund_flow_ratio","flow_indicator","Fund Flow Ratio","/btc/flow-indicator/fund-flow-ratio",AE,0,False,"ratio"),
- ("btc_stablecoins_ratio","flow_indicator","Exchange Stablecoins Ratio","/btc/flow-indicator/exchange-stablecoins-ratio",AE,0,False,"ratio"),
+ ("btc_stablecoins_ratio","flow_indicator","Stablecoins Ratio","/btc/flow-indicator/stablecoins-ratio",AE,0,False,"ratio"),
  ("btc_exchange_supply_ratio","flow_indicator","Exchange Supply Ratio","/btc/flow-indicator/exchange-supply-ratio",AE,1,False,"ratio"),
  ("btc_mvrv","market_indicator","MVRV Ratio","/btc/market-indicator/mvrv",W,1,True,"ratio"),
  ("btc_sopr","market_indicator","SOPR","/btc/market-indicator/sopr",W,1,True,"ratio"),
  ("btc_sopr_ratio","market_indicator","SOPR Ratio (LTH/STH)","/btc/market-indicator/sopr-ratio",W,0,False,"ratio"),
- ("btc_nupl","market_indicator","Net Unrealized P/L (NUPL)","/btc/market-indicator/nupl",W,1,False,"frac"),
+ ("btc_nupl","network_indicator","Net Unrealized P/L (NUPL)","/btc/network-indicator/nupl",W,1,False,"frac"),
  ("btc_realized_price","market_indicator","Realized Price","/btc/market-indicator/realized-price",W,0,False,"USD"),
  ("btc_ssr","market_indicator","Stablecoin Supply Ratio","/btc/market-indicator/stablecoin-supply-ratio",W,1,False,"ratio"),
  ("btc_nvt","network_indicator","NVT","/btc/network-indicator/nvt",W,1,False,"ratio"),
@@ -58,7 +57,7 @@ CAND = [
  ("btc_miner_outflow","miner_flows","Miner Outflow","/btc/miner-flows/outflow",AM,1,False,"BTC/d"),
  ("btc_miner_reserve","miner_flows","Miner Reserve","/btc/miner-flows/reserve",AM,-1,False,"BTC"),
  ("btc_tx_count","network_data","Transactions Count","/btc/network-data/transactions-count",W,0,False,"tx/d"),
- ("btc_addresses_active","network_data","Active Addresses","/btc/network-data/addresses-count-active",W,-1,False,"addr/d"),
+ ("btc_addresses_active","network_data","Addresses Count","/btc/network-data/addresses-count",W,-1,False,"addr/d"),
  ("btc_fees_total","network_data","Total Fees","/btc/network-data/fees",W,0,False,"BTC/d"),
  ("btc_fees_tx_mean","network_data","Mean Fee per Tx","/btc/network-data/fees-transaction",W,0,False,"BTC"),
  ("btc_blockreward","network_data","Block Reward","/btc/network-data/blockreward",W,0,False,"BTC/d"),
@@ -66,8 +65,8 @@ CAND = [
  ("btc_hashrate","network_data","Hashrate","/btc/network-data/hashrate",W,0,False,"H/s"),
  ("btc_utxo_count","network_data","UTXO Count","/btc/network-data/utxo-count",W,0,False,"utxo"),
  ("btc_velocity","network_data","Velocity","/btc/network-data/velocity",W,0,False,"idx"),
- ("btc_tokens_transferred","network_data","Tokens Transferred","/btc/network-data/tokens-transferred-total",W,0,False,"BTC/d"),
- ("btc_supply_total","network_data","Supply Total","/btc/network-data/supply-total",W,0,False,"BTC"),
+ ("btc_tokens_transferred","network_data","Tokens Transferred","/btc/network-data/tokens-transferred",W,0,False,"BTC/d"),
+ ("btc_supply_total","network_data","Supply","/btc/network-data/supply",W,0,False,"BTC"),
  ("btc_open_interest","market_data","Futures Open Interest","/btc/market-data/open-interest",AE,1,False,"USD"),
  ("btc_funding_rates","market_data","Funding Rates","/btc/market-data/funding-rates",AE,1,False,"%"),
  ("btc_liquidations","market_data","Liquidations","/btc/market-data/liquidations",AE,0,False,"USD/d"),
@@ -78,16 +77,15 @@ CAND = [
  ("eth_exchange_inflow","eth","ETH Exchange Inflow","/eth/exchange-flows/inflow",AE,1,False,"ETH/d"),
  ("eth_exchange_outflow","eth","ETH Exchange Outflow","/eth/exchange-flows/outflow",AE,-1,False,"ETH/d"),
  ("eth_exchange_reserve","eth","ETH Exchange Reserve","/eth/exchange-flows/reserve",AE,1,True,"ETH"),
- ("eth_addresses_active","eth","ETH Active Addresses","/eth/network-data/addresses-count-active",W,-1,False,"addr/d"),
+ ("eth_addresses_active","eth","ETH Addresses Count","/eth/network-data/addresses-count",W,-1,False,"addr/d"),
  ("eth_tx_count","eth","ETH Transactions Count","/eth/network-data/transactions-count",W,0,False,"tx/d"),
  ("eth_open_interest","eth","ETH Futures Open Interest","/eth/market-data/open-interest",AE,1,False,"USD"),
  ("eth_funding_rates","eth","ETH Funding Rates","/eth/market-data/funding-rates",AE,1,False,"%"),
- ("eth_leverage_ratio","eth","ETH Estimated Leverage Ratio","/eth/market-data/estimated-leverage-ratio",AE,1,False,"ratio"),
  ("stablecoin_exchange_reserve","stablecoins","Stablecoin Exchange Reserve","/stablecoin/exchange-flows/reserve",ST,-1,True,"USD"),
  ("stablecoin_exchange_netflow","stablecoins","Stablecoin Exchange Netflow","/stablecoin/exchange-flows/netflow",ST,-1,False,"USD/d"),
  ("stablecoin_exchange_inflow","stablecoins","Stablecoin Exchange Inflow","/stablecoin/exchange-flows/inflow",ST,-1,False,"USD/d"),
  ("stablecoin_exchange_outflow","stablecoins","Stablecoin Exchange Outflow","/stablecoin/exchange-flows/outflow",ST,1,False,"USD/d"),
- ("stablecoin_supply_total","stablecoins","Stablecoin Supply Total","/stablecoin/network-data/supply-total",STW,0,False,"USD"),
+ ("stablecoin_supply_total","stablecoins","Stablecoin Supply","/stablecoin/network-data/supply",STW,0,False,"USD"),
 ]
 TWINS = {"btc_mvrv": "CapMVRVCur", "btc_nvt": "NVTAdj", "btc_addresses_active": "AdrActCnt",
          "btc_tx_count": "TxCnt", "btc_fees_total": "FeeTotNtv", "btc_hashrate": "HashRate",
@@ -96,17 +94,21 @@ TWINS = {"btc_mvrv": "CapMVRVCur", "btc_nvt": "NVTAdj", "btc_addresses_active": 
 def hit(path, params):
     q = dict(params); q["limit"] = "3"
     url = BASE + path + "?" + "&".join("%s=%s" % kv for kv in q.items())
-    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOK, "User-Agent": "JustHodl/2.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=25) as r:
-            doc = json.loads(r.read())
-        rows = ((doc or {}).get("result") or {}).get("data") or []
-        keys = [k for k in rows[0] if k not in ("date", "datetime")] if rows else []
-        return 200, keys
-    except urllib.error.HTTPError as he:
-        return he.code, []
-    except Exception:
-        return None, []
+    for att in range(3):
+        req = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOK, "User-Agent": "JustHodl/2.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=25) as r:
+                doc = json.loads(r.read())
+            rows = ((doc or {}).get("result") or {}).get("data") or []
+            keys = [k for k in rows[0] if k not in ("date", "datetime")] if rows else []
+            return 200, keys
+        except urllib.error.HTTPError as he:
+            if he.code == 429 and att < 2:
+                time.sleep(22); continue
+            return he.code, []
+        except Exception:
+            return None, []
+    return 429, []
 
 print("settling 25s…"); time.sleep(25)
 print("== 1/4 CATALOG PROBE (%d candidates) ==" % len(CAND))
@@ -121,7 +123,7 @@ for name, cat, label, path, params, sign, incore, unit in CAND:
     else:
         dead.append({"name": name, "status": st})
         print("  dead %-30s %s" % (name, st))
-    time.sleep(1.1)
+    time.sleep(2.2)
 R["probe"] = {"live": len(live), "dead": [d["name"] for d in dead]}
 assert len(live) >= 30, "catalog thin: %d" % len(live)
 core = [m["name"] for m in live if m["in_composite"]]
@@ -206,3 +208,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2745_cq_catalog.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2745 COMPLETE — the whole catalog, probed and proven")
+
+# rev2 pacing + 429-retry + 404 path variants

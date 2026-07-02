@@ -236,10 +236,10 @@ def lambda_handler(event=None, context=None):
             step = max(1, len(dates) // 400)
             series_out[name] = {"d": dates[::step][-400:],
                                 "v": [round(ser[d], 6) for d in dates[::step][-400:]]}
-            time.sleep(1.15)
+            time.sleep(2.0)
         except Exception as e:
             if "429" in str(e):
-                time.sleep(16)
+                time.sleep(22)
                 try:
                     got = _series(m, tok, limit=1000)
                     if got:
