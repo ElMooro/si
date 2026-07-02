@@ -210,3 +210,4 @@ with open("aws/ops/reports/2745_cq_catalog.json", "w") as f:
 print("OPS 2745 COMPLETE — the whole catalog, probed and proven")
 
 # rev2 pacing + 429-retry + 404 path variants
+# rev3 attempt-loop core-safe

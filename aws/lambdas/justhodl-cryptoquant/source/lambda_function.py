@@ -204,49 +204,50 @@ def lambda_handler(event=None, context=None):
     metrics, errors, series_out = {}, [], {}
     for m in mets:
         name = m["name"]
-        try:
-            got = _series(m, tok, limit=1000)
-            ser = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
-            if len(ser) < 45: raise RuntimeError("thin: %d" % len(ser))
-            hist[name] = ser
-            dates = sorted(ser); vals = [ser[d] for d in dates]
-            w = vals[-365:]
-            z = round((vals[-1] - statistics.mean(w)) / statistics.stdev(w), 2) \
-                if len(w) >= 90 and statistics.stdev(w) > 0 else None
-            pctl = round(100 * sum(1 for x in w if x <= vals[-1]) / len(w)) if len(w) >= 90 else None
-            twin = twin_data.get(name)
-            stat_src = twin if twin and len(twin) > 900 else ser
-            window = "2010-present (Coin Metrics twin)" if stat_src is twin else \
-                     "the %d-day plan window (accruing daily)" % len(ser)
-            cur_for_stats = (sorted(stat_src.values())[
-                min(len(stat_src) - 1, int((pctl or 50) / 100 * (len(stat_src) - 1)))]
-                if stat_src is twin and pctl is not None else vals[-1])
-            cstats = _cond_stats(stat_src, px, cur_for_stats)
-            r, beta = _corr(ser, px)
-            metrics[name] = {"value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
-                             "wow": round(vals[-1] - vals[-8], 6) if len(vals) >= 8 else None,
-                             "as_of": dates[-1], "category": m.get("category", "other"),
-                             "label": m.get("label", name), "unit": m.get("unit"),
-                             "risk_sign": m.get("risk_sign", 0),
-                             "in_composite": bool(m.get("in_composite")),
-                             "corr_1y": r, "beta_1y": beta,
-                             "stats_window": window, "cond_stats": cstats,
-                             "hist_read": _hist_read(name, pctl, cstats, window),
-                             "twin": twins_cfg.get(name)}
-            step = max(1, len(dates) // 400)
-            series_out[name] = {"d": dates[::step][-400:],
-                                "v": [round(ser[d], 6) for d in dates[::step][-400:]]}
-            time.sleep(2.0)
-        except Exception as e:
-            if "429" in str(e):
-                time.sleep(22)
-                try:
-                    got = _series(m, tok, limit=1000)
-                    if got:
-                        hist[name] = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
-                        continue
-                except Exception as e2: e = e2
-            errors.append({"metric": name, "err": str(e)[:100]})
+        last_err = None
+        for attempt in range(2):
+            try:
+                got = _series(m, tok, limit=1000)
+                ser = dict(sorted({**(hist.get(name) or {}), **got}.items())[-2000:])
+                if len(ser) < 45: raise RuntimeError("thin: %d" % len(ser))
+                hist[name] = ser
+                dates = sorted(ser); vals = [ser[d] for d in dates]
+                w = vals[-365:]
+                z = round((vals[-1] - statistics.mean(w)) / statistics.stdev(w), 2) \
+                    if len(w) >= 90 and statistics.stdev(w) > 0 else None
+                pctl = round(100 * sum(1 for x in w if x <= vals[-1]) / len(w)) if len(w) >= 90 else None
+                twin = twin_data.get(name)
+                stat_src = twin if twin and len(twin) > 900 else ser
+                window = "2010-present (Coin Metrics twin)" if stat_src is twin else \
+                         "the %d-day plan window (accruing daily)" % len(ser)
+                cur_for_stats = (sorted(stat_src.values())[
+                    min(len(stat_src) - 1, int((pctl or 50) / 100 * (len(stat_src) - 1)))]
+                    if stat_src is twin and pctl is not None else vals[-1])
+                cstats = _cond_stats(stat_src, px, cur_for_stats)
+                r, beta = _corr(ser, px)
+                metrics[name] = {"value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
+                                 "wow": round(vals[-1] - vals[-8], 6) if len(vals) >= 8 else None,
+                                 "as_of": dates[-1], "category": m.get("category", "other"),
+                                 "label": m.get("label", name), "unit": m.get("unit"),
+                                 "risk_sign": m.get("risk_sign", 0),
+                                 "in_composite": bool(m.get("in_composite")),
+                                 "corr_1y": r, "beta_1y": beta,
+                                 "stats_window": window, "cond_stats": cstats,
+                                 "hist_read": _hist_read(name, pctl, cstats, window),
+                                 "twin": twins_cfg.get(name)}
+                step = max(1, len(dates) // 400)
+                series_out[name] = {"d": dates[::step][-400:],
+                                    "v": [round(ser[d], 6) for d in dates[::step][-400:]]}
+                last_err = None
+                break
+            except Exception as e:
+                last_err = e
+                if "429" in str(e) and attempt == 0:
+                    time.sleep(22); continue
+                break
+        if last_err is not None:
+            errors.append({"metric": name, "err": str(last_err)[:100]})
+        time.sleep(2.0)
     assert len(metrics) >= max(8, int(0.6 * len(mets))), \
         "too few live: %d/%d %s" % (len(metrics), len(mets), errors[:4])
     _put(HIST_KEY, hist)
