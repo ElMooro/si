@@ -30,9 +30,16 @@ import boto3
 
 BUCKET, OUT_KEY = "justhodl-dashboard-live", "data/ici-flows.json"
 H_MMF, H_LTF = "data/history/ici-mmf.json", "data/history/ici-flows.json"
-PAGES = {"mmf": ["https://www.ici.org/research/stats/mmf"],
-         "ltf": ["https://www.ici.org/research/stats/combined",
-                 "https://www.ici.org/research/stats/weekly"]}
+# ICI redesigned (ops 2709: old /research/stats/* paths 404 / JS-shell) — we
+# now DISCOVER sources: harvest hub pages + sitemap for data files, score by
+# tokens, try files (xls/csv) then pages-with-tables. Log-rich by design.
+SEEDS = ["https://www.ici.org/research/stats",
+         "https://www.ici.org/research/stats/mmf",
+         "https://www.ici.org/statistical-report",
+         "https://www.ici.org/research",
+         "https://www.ici.org/sitemap.xml"]
+TOKENS = {"mmf": ("money", "mmf", "money-market", "mm_"),
+          "ltf": ("combined", "flow", "weekly", "long-term", "longterm", "trends")}
 s3 = boto3.client("s3", region_name="us-east-1")
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) jh/1"}
 
@@ -112,11 +119,72 @@ def _num(c):
         return None
 
 
-def _find_xls(page_html, tokens):
-    for href in re.findall(r'href="([^"]+\.xlsx?[^"]*)"', page_html, re.I):
-        if any(t in href.lower() for t in tokens):
-            return href if href.startswith("http") else "https://www.ici.org" + href
-    return None
+def _abs(u):
+    return u if u.startswith("http") else "https://www.ici.org" + (u if u.startswith("/") else "/" + u)
+
+
+def _hrefs(html):
+    return re.findall(r'(?:href="|<loc>)([^"<]+)', html, re.I)
+
+
+def _discover(kind):
+    """Harvest hubs + sitemap; return ordered candidate URLs (files first)."""
+    toks = TOKENS[kind]
+    files, pages, seen = [], [], set()
+    frontier = list(SEEDS)
+    for depth in range(2):
+        nxt = []
+        for url in frontier[:14]:
+            try:
+                html = _get(url, timeout=20)
+            except Exception as e:
+                print("  [%s] seed %s: %s" % (kind, url[:60], str(e)[:50]))
+                continue
+            for h in _hrefs(html):
+                u = _abs(h.split("?")[0]) if "ici.org" in _abs(h) else None
+                if not u or u in seen:
+                    continue
+                seen.add(u)
+                low = u.lower()
+                if low.endswith("sitemap.xml") and depth == 0:
+                    nxt.append(u)
+                elif re.search(r"\.(xlsx?|csv)$", low) and any(t in low for t in toks):
+                    files.append(u)
+                elif any(t in low for t in toks) and not re.search(r"\.(pdf|zip|png|jpg)$", low):
+                    pages.append(u)
+        frontier = nxt
+    files = files[:8]
+    pages = [p for p in pages if p not in files][:8]
+    print("  [%s] discovered files=%d pages=%d" % (kind, len(files), len(pages)))
+    for u in (files + pages)[:10]:
+        print("    ·", u[:110])
+    return files + pages
+
+
+def _parse_blob(url, blob_or_text, want, binary):
+    if binary:
+        return _parse_table(_xlsx_rows(blob_or_text), want)
+    if url.lower().endswith(".csv"):
+        rows = [ln.split(",") for ln in blob_or_text.splitlines() if ln.strip()]
+        return _parse_table(rows, want)
+    rows = [[re.sub(r"<[^>]+>", " ", c).strip()
+             for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
+            for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", blob_or_text, re.S)]
+    got = _parse_table(rows, want)
+    if got:
+        return got
+    for h in _hrefs(blob_or_text):
+        u = _abs(h.split("?")[0])
+        if re.search(r"\.(xlsx?|csv)$", u.lower()):
+            try:
+                bin2 = u.lower().endswith((".xls", ".xlsx"))
+                got = _parse_blob(u, _get(u, timeout=45, binary=bin2), want, bin2)
+                if got:
+                    print("    nested file hit:", u[:100])
+                    return got
+            except Exception:
+                pass
+    return {}
 
 
 def _header_map(rows, want):
@@ -165,29 +233,15 @@ LTF_WANT = {"eq_dom": r"domestic", "eq_world": r"world|foreign|internat",
 
 def _live(kind):
     want = MMF_WANT if kind == "mmf" else LTF_WANT
-    tokens = ("mmf", "money") if kind == "mmf" else ("flow", "combined")
-    for url in PAGES[kind]:
+    for url in _discover(kind):
         try:
-            html = _get(url)
+            binary = url.lower().endswith((".xls", ".xlsx"))
+            got = _parse_blob(url, _get(url, timeout=45, binary=binary), want, binary)
+            if len(got) >= 4:
+                print("  [%s] parsed %d rows <- %s" % (kind, len(got), url[:100]))
+                return got
         except Exception as e:
-            print("  [%s] page %s: %s" % (kind, url[:50], str(e)[:60]))
-            continue
-        u = _find_xls(html, tokens)
-        if u:
-            try:
-                got = _parse_table(_xlsx_rows(_get(u, binary=True, timeout=45)), want)
-                if got:
-                    print("  [%s] xls parsed %d rows from %s" % (kind, len(got), u[:70]))
-                    return got
-            except Exception as e:
-                print("  [%s] xls fail: %s" % (kind, str(e)[:70]))
-        rows = [[re.sub(r"<[^>]+>", " ", c).strip()
-                 for c in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.S)]
-                for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S)]
-        got = _parse_table(rows, want)
-        if got:
-            print("  [%s] html table %d rows" % (kind, len(got)))
-            return got
+            print("  [%s] cand fail %s: %s" % (kind, url[:70], str(e)[:60]))
     return {}
 
 
