@@ -1132,6 +1132,17 @@ def n_xray(d):
         len(b.get("dis_warnings") or []),len(b.get("laggards_watch") or []))
 
 
+def n_globalflows(d):
+    """Where money is going: class ladder + inst/retail divergence + hot-money map."""
+    ir=(d.get("inst_vs_retail") or {}); hot=(d.get("hot_money") or {})
+    inst,ret=ir.get("institutional"),ir.get("retail")
+    if inst is None and not hot.get("n_scored"): return 0,"Global flows n/a"
+    sig=1 if (inst or 0)>30 and (ret or 0)>0 else -1 if (inst or 0)<-30 else 0
+    return sig,"GLOBAL FLOWS inst %s / retail %s — %s; hot in %s out %s"%(
+        inst,ret,(ir.get("divergence") or "")[:34],
+        ",".join((hot.get("top_inflows") or [])[:2]),",".join((hot.get("top_outflows") or [])[:2]))
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1236,6 +1247,7 @@ FEEDS = [
     ("Dark Pool",              "flow",             "data/dark-pool.json",            n_darkpool),
     ("Factor Returns",         "equity",           "data/factor-returns.json",       n_factors),
     ("Stock X-Ray",            "equity",           "data/stock-xray.json",           n_xray),
+    ("Global Flows",           "flow",             "data/global-flow-desk.json",     n_globalflows),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

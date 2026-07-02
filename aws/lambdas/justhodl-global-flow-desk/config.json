@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-global-flow-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 240,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Global capital-flow synthesis: asset-class $ ladder, sector rotation, institutional-vs-retail divergence, country hot-money map (ETF+TIC+FX), capex impulse, AI brief.",
+  "schedule": {
+    "name": "justhodl-global-flow-desk-daily",
+    "expression": "cron(50 22 ? * MON-FRI *)",
+    "description": "After the full flow chain (radar 22:20, confluence 22:45)"
+  }
+}
