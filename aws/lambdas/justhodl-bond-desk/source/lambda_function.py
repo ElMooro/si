@@ -154,11 +154,20 @@ def lambda_handler(event=None, context=None):
         pct=round(100*sum(1 for v in histv if v<=cur)/len(histv),1)
         d21=round(cur-cb[21][1],1) if len(cb)>21 else None
         micro={"status":"OK","ccc_bb_bps":cur,"pctile":pct,"d21_bps":d21}
-        wk=None
-        for d,v in cb[::-1][-1560:]:
-            iso=datetime.strptime(d,"%Y-%m-%d").isocalendar()
-            key="%d-%02d"%(iso[0],iso[1])
-            if key!=wk: chart.append({"date":d,"value":v}); wk=key
+    # chart: server-side WEEKLY aggregation (frequency=w) — deterministic length
+    def _fred_w(series,n=330):
+        start=(datetime.now(timezone.utc).date()-timedelta(days=int(n*7.6))).isoformat()
+        url=("https://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s"
+             "&file_type=json&sort_order=asc&frequency=w&aggregation_method=eop"
+             "&observation_start=%s&limit=%d"%(series,FRED_KEY,start,n+40))
+        try:
+            with urllib.request.urlopen(url,timeout=20) as r:
+                obs=json.loads(r.read()).get("observations",[])
+            return {o["date"]:float(o["value"]) for o in obs if o.get("value") not in (".",None)}
+        except Exception as e:
+            print("[fredw]",series,str(e)[:60]); return {}
+    cw,bw=_fred_w("BAMLH0A3HYC"),_fred_w("BAMLH0A1HYBB")
+    chart=[{"date":d,"value":round(cw[d]*100-bw[d]*100,1)} for d in sorted(cw) if d in bw]
     us_credit={"source":"justhodl-credit-stress (ICE BofA ladder)" if cs else "FRED",
                "ccc_minus_bb_bps":_bps(_first(cs,("ccc_minus_bb",))) or micro.get("ccc_bb_bps"),
                "hy_minus_ig_bps":_bps(_first(cs,("hy_minus_ig",))),

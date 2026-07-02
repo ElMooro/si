@@ -75,10 +75,14 @@ def ensure_fn(name):
         lam.get_function(FunctionName=name); wait_ok(name)
         retry(lambda: lam.update_function_code(FunctionName=name, ZipFile=zb), name); wait_ok(name)
     except lam.exceptions.ResourceNotFoundException:
-        retry(lambda: lam.create_function(FunctionName=name, Runtime=cfg["runtime"], Role=cfg["role"],
-              Handler=cfg["handler"], Code={"ZipFile": zb}, Timeout=cfg.get("timeout",120),
-              MemorySize=cfg.get("memory",256), Architectures=cfg.get("architectures",["x86_64"]),
-              Description=cfg.get("description","")), name+" create"); wait_ok(name)
+        role=cfg.get("role") or "arn:aws:iam::857687956942:role/lambda-execution-role"
+        rt=cfg.get("runtime") or "python3.12"
+        if rt not in ("python3.12","python3.11","python3.13"): rt="python3.12"
+        retry(lambda: lam.create_function(FunctionName=name, Runtime=rt, Role=role,
+              Handler=cfg.get("handler","lambda_function.lambda_handler"), Code={"ZipFile": zb},
+              Timeout=int(cfg.get("timeout") or 120), MemorySize=int(cfg.get("memory") or 256),
+              Architectures=cfg.get("architectures") or ["x86_64"],
+              Description=(cfg.get("description") or "")[:250]), name+" create"); wait_ok(name)
         print("  CREATED", name)
     sch=cfg.get("schedule")
     if sch:
