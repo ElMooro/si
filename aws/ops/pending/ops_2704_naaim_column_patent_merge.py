@@ -1,4 +1,4 @@
-"""ops 2704 v2 (rerun after naaim v1.3 coordinate-aware xlsx fix) — close out the two data additions with verified-correct data.
+"""ops 2704 v3 (rerun after naaim v1.4 page-junk gate) — close out the two data additions with verified-correct data.
 
 NAAIM v1.2: header/profile column selection (v1 ingested the MOST-BEARISH
 column — 4.0 vs true mean 98.59 on 2026-06-24, web-verified vs CEIC) +

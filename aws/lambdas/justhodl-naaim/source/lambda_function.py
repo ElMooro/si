@@ -178,6 +178,7 @@ def lambda_handler(event=None, context=None):
         m = re.search(_pat, html, re.I | re.S)
         if m and 0 <= float(m.group(1)) <= 200:
             latest_val = float(m.group(1))
+            print("  page match: %r -> %s" % (html[m.start():m.end()][:70], latest_val))
             break
     for dtxt in re.findall(r"([A-Z][a-z]+ \d{1,2}, \d{4})", html)[:6]:
         _d = _parse_date(dtxt)
@@ -202,8 +203,20 @@ def lambda_handler(event=None, context=None):
         hist.update(file_hist)
     cutoff = (today + timedelta(days=2)).isoformat()
     hist = {d: v for d, v in hist.items() if d <= cutoff and -30 <= v <= 200}
-    # trim trailing footer/misaligned junk: newest rows wildly off the local level
     latest_source = "file"
+    file_max = max(hist) if hist else None
+    file_tail = hist.get(file_max) if file_max else None
+    # page print may only EXTEND the audited file timeline, and only when it is
+    # level-consistent (±40) with the file tail — stray page numbers (the 4.0
+    # incident) are rejected, never overriding the file.
+    if (latest_val is not None and latest_date
+            and (file_max is None or latest_date > file_max)
+            and (file_tail is None or abs(latest_val - file_tail) <= 40)):
+        hist[latest_date] = latest_val
+        latest_source = "page"
+    elif latest_val is not None and file_tail is not None and abs(latest_val - file_tail) > 40:
+        print("  page print REJECTED as junk: %s vs file tail %s=%s" % (latest_val, file_max, file_tail))
+    # trim any remaining aberrant tail rows (footer junk) AFTER all upserts
     _trim = 0
     while len(hist) > 20 and _trim < 4:
         ds = sorted(hist)
@@ -212,17 +225,10 @@ def lambda_handler(event=None, context=None):
         if abs(tail - ref) > 50:
             print("  trimmed junk tail row %s=%s (local median %s)" % (ds[-1], tail, ref))
             del hist[ds[-1]]; _trim += 1
+            if ds[-1] == (latest_date or ""):
+                latest_source = "file"
         else:
             break
-    file_max = max(hist) if hist else None
-    if latest_val is not None and latest_date and (file_max is None or latest_date > file_max):
-        hist[latest_date] = latest_val
-        latest_source = "page"
-    elif latest_val is not None and file_max and abs(hist[file_max] - latest_val) > 25:
-        # page (phrase-gated) disagrees hard with file tail -> trust the page print
-        print("  page override: file tail %s=%s vs page %s" % (file_max, hist[file_max], latest_val))
-        hist[max(file_max, latest_date or file_max)] = latest_val
-        latest_source = "page_override"
     series = sorted(hist.items())
     if not series:
         raise RuntimeError("no NAAIM data parsed at all")
