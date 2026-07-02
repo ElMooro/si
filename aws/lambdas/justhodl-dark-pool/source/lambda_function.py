@@ -327,17 +327,41 @@ def lambda_handler(event=None, context=None):
 
     monthly={"status":"UNAVAILABLE"}
     try:
-        mreq=urllib.request.Request("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
-              data=json.dumps({"limit":900,"fields":["issueSymbolIdentifier","totalWeeklyShareQuantity","summaryTypeCode","monthStartDate"],
-                               "compareFilters":[{"compareType":"EQUAL","fieldName":"summaryTypeCode","fieldValue":"ATS_M_SMBL"}]}).encode(),
-              headers={"Content-Type":"application/json","Accept":"application/json","User-Agent":"jh/1"})
-        with urllib.request.urlopen(mreq,timeout=25) as r:
-            mrows=json.loads(r.read())
-        if isinstance(mrows,list) and mrows:
-            monthly={"status":"OK","n":len(mrows),"month":mrows[0].get("monthStartDate"),
-                     "note":"FINRA monthly ATS by symbol live — block-tier fusion staged next"}
+        def _fq(body):
+            rq=urllib.request.Request("https://api.finra.org/data/group/otcMarket/name/monthlySummary",
+                 data=json.dumps(body).encode(),
+                 headers={"Content-Type":"application/json","Accept":"application/json","User-Agent":"jh/1"})
+            with urllib.request.urlopen(rq,timeout=25) as r:
+                return json.loads(r.read())
+        probe=_fq({"limit":1})  # self-discover real field names
+        if isinstance(probe,list) and probe:
+            keys=list(probe[0].keys())
+            symf=next((k for k in keys if "symbol" in k.lower()),None)
+            qtyf=next((k for k in keys if "quantity" in k.lower() or "shares" in k.lower()),None)
+            typf=next((k for k in keys if "typecode" in k.lower() or "summarytype" in k.lower()),None)
+            datf=next((k for k in keys if "date" in k.lower() or "month" in k.lower()),None)
+            body={"limit":5000}
+            if typf:
+                body["compareFilters"]=[{"compareType":"EQUAL","fieldName":typf,"fieldValue":"ATS_M_SMBL"}]
+            try: mrows=_fq(body)
+            except Exception:
+                body.pop("compareFilters",None); mrows=_fq(body)
+            if isinstance(mrows,list) and mrows and symf:
+                blk={}
+                for r0 in mrows:
+                    t=str(r0.get(symf) or "").upper()
+                    q=r0.get(qtyf) if qtyf else None
+                    if t and isinstance(q,(int,float)): blk[t]=blk.get(t,0)+q
+                monthly={"status":"OK","n_symbols":len(blk),
+                         "month":(mrows[0].get(datf) if datf else None),
+                         "fields":{"symbol":symf,"qty":qtyf,"type":typf,"date":datf},
+                         "top_block_share":sorted(blk.items(),key=lambda kv:-kv[1])[:15]}
+            else:
+                monthly={"status":"UNAVAILABLE","fields_seen":keys[:10]}
+        else:
+            monthly={"status":"UNAVAILABLE","err":"probe empty"}
     except Exception as e:
-        monthly={"status":"UNAVAILABLE","err":str(e)[:80]}
+        monthly={"status":"UNAVAILABLE","err":str(e)[:100]}
     print("[v2] monthly:",monthly.get("status"),"| own_dix:",own_dix,"vs sq:",sq_dix)
 
     dark_map = {r["ticker"]: r["ats_shares_wk"] for r in rows}
