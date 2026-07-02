@@ -1,36 +1,9 @@
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
 settling 30s…
-justhodl-cross-asset-regime -> REVIVED {"statusCode": 200, "body": "{\"regime\": \"MIXED\", \"risk_score\": -7.89, \"risk_label\"
-justhodl-money-flow-state -> REVIVED {"ok": true, "n_stocks": 1812, "n_industries": 140, "top_in": "TSLA"}
-justhodl-gold-equity-rotation -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"state\": \"EQUITY_DOMINANT_ACTIVE\", \"n_tic
-justhodl-sector-rotation -> REVIVED {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.0.0\", \"n_sectors\": 11
-justhodl-sector-flow-state -> REVIVED {"ok": true, "n": 11, "ow": ["XLK", "XLF", "XLV", "XLI", "XLRE", "XLY"], "uw": ["XLB", "XL
-justhodl-sector-emergence -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"emerging\": [\"XLI\", \"XLV\"], \"n_sectors\
-justhodl-theme-rotation -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"themes\": 38, \"rotating_in\": 21, \"leading
-justhodl-rotation-radar -> REVIVED {"statusCode": 200, "body": "{\"crypto_altseason\": 24, \"equity_rotation\": 27.2}"}
-justhodl-crypto-etf-flows -> REVIVED {"statusCode": 200, "body": "{\"btc_etf_regime\": \"STRONG OUTFLOW\", \"btc_30d_usd\": -70
-justhodl-crypto-exchange-flows -> REVIVED {"statusCode": 200, "body": "{\"regime\": \"HEAVY ACCUMULATION (outflow)\", \"cum_30d_btc\
-justhodl-stablecoin-flow -> REVIVED {"statusCode": 200, "body": "{\"state\": \"CONTRACTING\", \"prev\": \"CONTRACTING\", \"del
-justhodl-capital-flow-radar -> REVIVED {"statusCode": 200, "body": "{\"ok\": true, \"n_complexes\": 46, \"pump_setups\": 15, \"pa
-justhodl-flow-confluence -> REVIVED {"statusCode": 200, "body": "{\"names\": 286, \"multi_engine\": 80, \"short_squeeze_setup\
-justhodl-sector-capital-fusion -> REVIVED {"ok": true, "sectors": 11, "divergences": 2, "headline": "2 sector divergence(s): Communi
-justhodl-fx-intelligence -> REVIVED {"statusCode": 200, "body": "USD STRENGTH (dollar pressure 70.1/100, NEUTRAL). Strongest v
-justhodl-sovereign-fiscal -> REVIVED {"statusCode": 200, "body": "{\"tic_holders\": 15, \"tic_as_of\": \"2025-12\", \"deficit_m
-justhodl-tic-flows -> REVIVED {"statusCode": 200, "headers": {"Content-Type": "application/json"}, "body": "{\"ok\": tru
-REVIVED OK: 17 / 17
-
-── etf-true-flows COUNTRY verify ──
-  country tickers in feed: 12 ['MCHI', 'EWG', 'EWY', 'EWT', 'EWU', 'EWC', 'EWW', 'EZA', 'TUR', 'VNM', 'THD', 'EWQ']
-
-── key feed freshness after revival ──
-  data/capital-flow-radar.json              1.5 min
-  data/sector-rotation.json                 3.4 min
-  data/sovereign-fiscal.json                0.4 min
-  data/theme-rotation.json                  2.9 min
-  data/crypto-etf-flows.json                2.0 min
-  data/stablecoin-flow.json                 1.5 min
-  data/tic-flows.json                       0.2 min
-  data/fx-intelligence.json                 0.9 min
-  radar: {'version': '3.0.0', 'n_complexes': 46}
-OPS 2720 COMPLETE — the flow fleet breathes again
+invoke -> {"ok": true, "classes": {"EQUITY_US": -40063.7, "EQUITY_INTL": -5922.3, "SECTORS": 858.7, "TREASURIES": -170.2, "CREDIT": -214.4, "TIPS": 941.1, "CRYPTO": -61.6, "COMMODITIES": 96.1, "THEMATIC": -124.9, "DIVIDEND_VALUE": 124.4, "GROWTH": -1068.3, "VOL": 0.0, "GOLD": -505.9, "SILVER": -52.2, "REAL_ESTATE": 55.4, "CASH": -17.7}, "inst": 21.
+{"populated_classes": 16, "hot": {"n": 6, "in": ["India", "Brazil", "China", "Japan", "EM (broad)"], "out": ["DM ex-US", "EM (broad)", "Japan", "China", "Brazil"]}, "inst_retail": {"institutional": 21.5, "retail": null, "own_dix": 57.68, "radar_breadth_pct": 52.2, "aaii_spread": null, "stablecoin_7d_usd_m": null, "divergence": null}, "sectors": {"leaders": ["XLF", "XLV", "XLI"], "laggards": ["XLP", "XLB", "XLK"], "n": 11}, "ai": true}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2721_global_flow_desk.py", line 84, in <module>
+    assert HOT["n_scored"] >= 12, "country map thin: %d" % HOT["n_scored"]
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: country map thin: 6
+❌ OPS-FAIL: aws/ops/pending/ops_2721_global_flow_desk.py
