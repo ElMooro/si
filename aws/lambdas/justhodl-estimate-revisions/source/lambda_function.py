@@ -219,7 +219,7 @@ def lambda_handler(event=None, context=None):
                   "daily snapshots (true revision deltas that accrue). estimate_strength "
                   "works immediately; revision deltas refine it over time.",
         "horizon_days": HORIZON_DAYS, "n_tracked": len(rows),
-        "direction_map": {**{r.get("ticker"): ("UP" if (r.get("eps_rev_pct") or 0) > 0.5 else "DOWN" if (r.get("eps_rev_pct") or 0) < -0.5 else "FLAT") for r in rows if r.get("ticker") and r.get("eps_rev_pct") is not None}, **{s0.get("ticker"): s0.get("direction") for s0 in signals if s0.get("ticker") and s0.get("direction")}},
+        "direction_map": (lambda _dm={}: ([_dm.update({r["ticker"]: ("UP" if v > 0.5 else "DOWN" if v < -0.5 else "FLAT")}) for r in rows if r.get("ticker") for v in [next((x for x in (r.get("eps_rev_recent"), r.get("eps_rev_pct"), (lambda st: (st - 50) / 5 if isinstance(st, (int, float)) else None)(r.get("estimate_strength"))) if x is not None), None)] if v is not None], _dm.update({s0.get("ticker"): s0.get("direction") for s0 in signals if s0.get("ticker") and s0.get("direction")}), _dm)[-1])(),
         "n_fmp_enriched": len(fmp), "n_with_history": n_with_history, "n_state_keys": len(live),
         "estimate_strength_leaders": strength_leaders,
         "upward_revisions": up[:40], "downward_revisions": down[:30],

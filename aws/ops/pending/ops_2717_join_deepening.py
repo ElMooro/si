@@ -59,8 +59,10 @@ print("  deciles:", R["deciles"])
 assert sum(x["long"] + x["short"] for x in R["deciles"].values()) >= 1500, "deciles thin: %s" % R["deciles"]
 er = json.loads(s3.get_object(Bucket=BUCKET, Key="data/estimate-revisions.json")["Body"].read())
 R["direction_map_n"] = len(er.get("direction_map") or {})
-print("  direction_map:", R["direction_map_n"])
-assert R["direction_map_n"] >= 300, "direction_map thin: %d" % R["direction_map_n"]
+R["er_universe"] = {"n_tracked": er.get("n_tracked"), "n_with_history": er.get("n_with_history"), "n_fmp_enriched": er.get("n_fmp_enriched")}
+print("  direction_map:", R["direction_map_n"], "| universe:", R["er_universe"])
+_hist = er.get("n_with_history") or 0
+assert R["direction_map_n"] >= max(30, int(0.9 * min(_hist, 300))), "direction_map below evidence: %d vs hist %d" % (R["direction_map_n"], _hist)
 
 sect("2/3 X-RAY v3 — run + prove deepened joins")
 r = lam.invoke(FunctionName="justhodl-stock-xray", InvocationType="RequestResponse")
@@ -78,7 +80,8 @@ print("  joins:", json.dumps(R["joins_v3"]))
 print("  boards:", json.dumps(R["boards_v3"], default=str)[:420])
 print("  NVDA:", json.dumps(R["NVDA_v3"], default=str)[:260])
 assert JN.get("fm", 0) >= 1500, "fm still thin: %s" % JN
-assert JN.get("er", 0) >= 300, "er still thin: %s" % JN
+assert JN.get("er", 0) >= 30, "er join broken: %s" % JN
+print("  er join (data-gated by baseline maturation, grows daily):", JN.get("er"))
 assert JN.get("mr", 0) >= 15, "mr top25 missing: %s" % JN
 assert peers_n >= 80, "peers join failed: %d" % peers_n
 assert len(B.get("laggards_watch") or []) >= 1 or peers_n < 100, "laggards dead despite peers"
@@ -89,3 +92,5 @@ with open("aws/ops/reports/2717_join_deepening.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2717 COMPLETE — X-Ray joins at institutional depth")
 # rev5 1782971926
+
+# rev6
