@@ -1072,6 +1072,19 @@ def n_blackout(d):
         p, (d.get("next_14d") or {}).get("reporting_mktcap_pct") or 0)
 
 
+def n_termprem(d):
+    """ACM 10y term premium — TP shocks (not expectations) drive bond-vigilante
+    risk-off; TP collapse = duration bid, discount-rate relief."""
+    L = d.get("latest") or {}
+    d21 = (d.get("deltas_bps") or {}).get("d21")
+    if not isinstance(L.get("tp10"), (int, float)):
+        return 0, "ACM n/a"
+    sig = -2 if (d21 or 0) >= 45 else -1 if (d21 or 0) >= 25 \
+        else 2 if (d21 or 0) <= -45 else 1 if (d21 or 0) <= -25 else 0
+    return sig, "TP10 %.2f%% Δ21d %+.0fbps p%.0f" % (L["tp10"], d21 or 0,
+                                                     d.get("pctile_full_history") or 0)
+
+
 FEEDS = [
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
@@ -1170,6 +1183,7 @@ FEEDS = [
     ("Leverage Cycle",         "leverage",         "data/margin-lending.json",       n_leverage),
     ("AAII Retail Sentiment",  "sentiment",        "data/aaii-sentiment.json",       n_aaii),
     ("Buyback Blackout",       "flow",             "data/earnings-blackout.json",    n_blackout),
+    ("Term Premium (ACM)",     "rates",            "data/term-premium.json",         n_termprem),
     ("Fund Flows (ICI)",       "flows",            "data/ici-flows.json",            n_ici),
 ]
 

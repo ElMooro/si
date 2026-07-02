@@ -383,7 +383,12 @@ def lambda_handler(event=None, context=None):
         },
         "spreads_bps": spreads,
         "butterfly_5y_bps": butterfly,
-        "term_premium_proxy_bps": term_premium_proxy,
+        # ops 2710: real ACM tp10 published into the legacy proxy field when
+        # fresh (<=10d), so cycle-clock + every reader inherit the true series;
+        # regression proxy retained as automatic fallback.
+        "term_premium_proxy_bps": _tp_bps,
+        "term_premium_source": _tp_src,
+        "term_premium_acm": _tp_acm,
         "curve_points": curve_points,
         "nominal_yields": nominal,
         "real_yields": real_yields,
@@ -402,6 +407,21 @@ def lambda_handler(event=None, context=None):
     }
 
     body = json.dumps(out, default=str).encode("utf-8")
+    _tp_bps, _tp_src, _tp_acm = term_premium_proxy, "proxy", None
+    try:
+        _aj = json.loads(S3.get_object(Bucket=BUCKET, Key="data/term-premium.json")["Body"].read())
+        _al = _aj.get("latest") or {}
+        _fresh = (datetime.now(timezone.utc).date() - datetime.strptime(_al.get("date", "1970-01-01"), "%Y-%m-%d").date()).days <= 10
+        if _fresh and isinstance(_al.get("tp10"), (int, float)):
+            _tp_bps = round(_al["tp10"] * 100, 1)
+            _tp_src = "ACM"
+            _tp_acm = {"date": _al["date"], "tp10_pct": _al["tp10"], "tp5_pct": _al.get("tp5"),
+                       "tp2_pct": _al.get("tp2"), "z_10y": _aj.get("z_10y"),
+                       "pctile": _aj.get("pctile_full_history"),
+                       "d21_bps": (_aj.get("deltas_bps") or {}).get("d21"),
+                       "regime": _aj.get("regime")}
+    except Exception as _e:
+        print(f"[yc] acm read: {str(_e)[:60]}")
     S3.put_object(
         Bucket=BUCKET, Key=KEY, Body=body,
         ContentType="application/json", CacheControl="public, max-age=3600",
