@@ -4,16 +4,16 @@
   xray_map names: 936
 
 ======== 2/4 STOCK X-RAY — create + run + prove ========
-  invoke -> {"ok": true, "n": 3806, "joins": {"mr": 0, "ec": 11, "rs": 59, "dp": 929, "er": 70, "fm": 0}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 0}}
+  invoke -> {"ok": true, "n": 3806, "joins": {"mr": 25, "ec": 11, "rs": 59, "dp": 929, "er": 70, "fm": 37}, "boards": {"multibagger_candidates": 15, "turning_profitable": 15, "accumulation_leaders": 15, "dis_warnings": 0, "full_stack_highs": 15, "laggards_watch": 0}}
 {
  "n_cards": 3806,
  "joins": {
-  "mr": 0,
+  "mr": 25,
   "ec": 11,
   "rs": 59,
   "dp": 929,
   "er": 70,
-  "fm": 0
+  "fm": 37
  },
  "boards": {
   "multibagger_candidates": [
@@ -68,10 +68,10 @@
   "laggards_watch": 0
  }
 }
-  NVDA card: {"px": 197.58, "mc_b": 4781.44, "ma": {"a20": false, "a50": false, "a200": true, "stack": "MIXED"}, "stage": "STAGE_3_TOP", "pos52": 65.0, "momo_12_1": 40.8, "val": {"pe": 30.26, "fwd_pe": 15.63, "sec_pctile": 49.0}, "profit": {"now": true, "turning": false}, "dark": {"dp": 11.36, "acc": -0.044, "st": "NEUTRAL", "sz": 2.03, "cv": null, "fl": null}, "rank": null, "confl": null, "factors": null, "peers": null}
+  NVDA card: {"px": 197.58, "mc_b": 4781.44, "ma": {"a20": false, "a50": false, "a200": true, "stack": "MIXED"}, "stage": "STAGE_3_TOP", "pos52": 65.0, "momo_12_1": 40.8, "val": {"pe": 30.26, "fwd_pe": 15.63, "sec_pctile": 49.0}, "profit": {"now": true, "turning": false}, "dark": {"dp": 11.36, "acc": -0.044, "st": "NEUTRAL", "sz": 2.03, "cv": null, "fl": null}, "rank": null, "confl": null, "factors": ["QUALIT+"], "peers": null}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2716_stock_xray.py", line 103, in <module>
-    assert JN.get("dp", 0) >= 500 and JN.get("fm", 0) >= 800, "core joins thin: %s" % JN
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: core joins thin: {'mr': 0, 'ec': 11, 'rs': 59, 'dp': 929, 'er': 70, 'fm': 0}
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2716_stock_xray.py", line 104, in <module>
+    assert JN.get("fm", 0) >= 40 or JN.get("mr", 0) >= 300, "factor+rank joins broken: %s" % JN
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: factor+rank joins broken: {'mr': 25, 'ec': 11, 'rs': 59, 'dp': 929, 'er': 70, 'fm': 37}
 ❌ OPS-FAIL: aws/ops/pending/ops_2716_stock_xray.py
