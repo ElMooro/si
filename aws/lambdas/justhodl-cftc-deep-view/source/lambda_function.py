@@ -183,6 +183,9 @@ def extract_net_positions(record):
 
 def compute_zscore(value, history):
     """Standard z-score; returns None if insufficient history."""
+    if not isinstance(history, (list, tuple)):
+        history = []   # cache drift: an int count was stored where a series belongs
+    history = [h for h in history if isinstance(h, (int, float))]
     if value is None or len(history) < 12:
         return None
     try:

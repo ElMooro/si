@@ -80,7 +80,8 @@ def lambda_handler(event=None, context=None):
         "data/options-gamma.json", "data/skew-tail-hedging.json", "data/short-interest.json",
         "data/breadth-divergence.json", "data/naaim.json", "data/dark-pool.json",
         "data/capital-flow-radar.json", "data/global-flow-desk.json", "data/leverage-monitor.json",
-        "data/factor-returns.json", "data/earnings-blackout.json", "data/stock-xray.json")}
+        "data/factor-returns.json", "data/earnings-blackout.json", "data/stock-xray.json",
+        "data/nyfed-primary-dealer.json", "data/dealer-survey.json")}
     fresh = {k.split("/")[-1]: bool(v) for k, v in F.items()}
     n_alive = sum(fresh.values())
     print("[fp] feeds alive %d/18" % n_alive, {k: v for k, v in fresh.items() if not v})
@@ -129,6 +130,84 @@ def lambda_handler(event=None, context=None):
             "distribution_n": (dp.get("distribution") or {}).get("distribution"),
             "wholesaler_extremes": [{"ticker": t, "top_firm": v.get("top_firm"), "top_pct": v.get("top_pct")} for t, v in conc[:6]],
             "month": mon.get("month")}
+
+    # ── ASSET LEDGER: LIT (ETF $) + DARK ($ from off-exchange tape) + CFTC futures ──
+    SEC2CLASS = {"Technology": "EQUITY", "Communication Services": "EQUITY", "Consumer Cyclical": "EQUITY",
+                 "Consumer Defensive": "EQUITY", "Healthcare": "EQUITY", "Industrials": "EQUITY",
+                 "Financial": "EQUITY", "Financial Services": "EQUITY", "Energy": "EQUITY",
+                 "Basic Materials": "EQUITY", "Utilities": "EQUITY", "Real Estate": "REAL_ESTATE"}
+    dark_sec = {}
+    for r in (dp.get("board") or []):
+        t = r.get("ticker"); vol = r.get("daily_off_exch_vol")
+        px = (xray.get(t) or {}).get("px")
+        if t and vol and px:
+            sec = (xray.get(t) or {}).get("sec") or "?"
+            e = dark_sec.setdefault(sec, {"usd_m": 0.0, "names": []})
+            usd = vol * px / 1e6
+            e["usd_m"] += usd; e["names"].append((t, usd, r.get("state")))
+    dark_by_sector = {}
+    for sec, e in sorted(dark_sec.items(), key=lambda kv: kv[1]["usd_m"], reverse=True):
+        nm = sorted(e["names"], key=lambda x: x[1], reverse=True)
+        dark_by_sector[sec] = {"dark_usd_5d_m_est": round(e["usd_m"], 1),
+                               "top": [{"t": t, "usd_m": round(u, 1), "state": st_} for t, u, st_ in nm[:3]]}
+    CFTC_CLASS = {"EQUITY": ("es", "nq", "ym", "rty", "sp", "nas"), "TREASURIES": ("zn", "zb", "zf", "zt", "ty", "us "),
+                  "GOLD": ("gc", "gold"), "SILVER": ("si", "silver"), "CRYPTO": ("btc", "bitcoin", "eth", "ether"),
+                  "FX_USD": ("dx", "dollar"), "ENERGY": ("cl", "crude", "ng", "natural")}
+    cftc_by_class = {}
+    def _cwalk(node, depth=0):
+        if depth > 4: return
+        if isinstance(node, dict):
+            nm = str(node.get("symbol") or node.get("contract") or node.get("name") or "").lower()
+            ns = None
+            for k in ("net_spec", "spec_net", "net_noncommercial", "noncomm_net", "net_position", "net_z", "z_net_spec"):
+                v = _num(node.get(k))
+                if v is not None: ns = v; break
+            if nm and ns is not None:
+                for cls, keys in CFTC_CLASS.items():
+                    if any(k in nm for k in keys):
+                        cftc_by_class.setdefault(cls, []).append(ns); break
+            for v in node.values(): _cwalk(v, depth + 1)
+        elif isinstance(node, list):
+            for v in node[:60]: _cwalk(v, depth + 1)
+    _cwalk(cftc)
+    cftc_by_class = {k: round(st.fmean(v), 2) for k, v in cftc_by_class.items() if v}
+    LEDGER_MAP = {"EQUITY": ("EQUITY_US",), "EQUITY_INTL": ("EQUITY_INTL",), "TREASURIES": ("TREASURIES",),
+                  "CREDIT": ("CREDIT",), "TIPS": ("TIPS",), "GOLD": ("GOLD",), "SILVER": ("SILVER",),
+                  "REAL_ESTATE": ("REAL_ESTATE",), "CRYPTO": ("CRYPTO",), "COMMODITIES": ("COMMODITIES",),
+                  "CASH": ("CASH",)}
+    asset_ledger = {}
+    dark_eq = round(sum(v["dark_usd_5d_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "EQUITY"), 1)
+    dark_re = round(sum(v["dark_usd_5d_m_est"] for s_, v in dark_by_sector.items() if SEC2CLASS.get(s_) == "REAL_ESTATE"), 1)
+    for cls, gkeys in LEDGER_MAP.items():
+        lit = None
+        for gk in gkeys:
+            v = classes.get(gk)
+            if v is not None: lit = v; break
+        asset_ledger[cls] = {"lit_etf_5d_usd_m": lit,
+                             "dark_5d_usd_m_est": dark_eq if cls == "EQUITY" else dark_re if cls == "REAL_ESTATE" else None,
+                             "cftc_net_spec": cftc_by_class.get(cls),
+                             "verdict": ("BUYING" if (lit or 0) > 0 else "SELLING" if (lit or 0) < 0 else "FLAT") if lit is not None else "N/A"}
+    # 13F per-stock dollars
+    def _val_rows(doc, subs):
+        out = []
+        def w(n, d=0):
+            if d > 5 or len(out) >= 12: return
+            if isinstance(n, dict):
+                for k, v in n.items():
+                    if any(s_ in str(k).lower() for s_ in subs) and isinstance(v, list):
+                        for it in v[:12]:
+                            if isinstance(it, dict):
+                                t = it.get("ticker") or it.get("symbol")
+                                usd = _num(it.get("value") or it.get("marketValue") or it.get("usd") or it.get("position_usd"))
+                                if t: out.append({"t": t, "usd_m": round(usd / 1e6, 1) if usd and usd > 1e5 else usd})
+                    else: w(v, d + 1)
+            elif isinstance(n, list):
+                for v in n[:40]: w(v, d + 1)
+        w(doc); return out
+    stocks_usd = {"buys": _val_rows(f13, ("adds", "top_buys", "increas", "new_")),
+                  "sells": _val_rows(f13, ("exits", "top_sells", "decreas", "closed"))}
+    pd_pos = _find(F["data/nyfed-primary-dealer.json"], ("net", "treasur")) or _find(F["data/nyfed-primary-dealer.json"], ("net", "position")) \
+             or _find(F["data/dealer-survey.json"], ("net", "position"))
 
     # ── RISK-NOW composite ──
     naaim_z = _find(F["data/naaim.json"], ("z",)) or _find(F["data/naaim.json"], ("zscore",))
@@ -187,12 +266,15 @@ def lambda_handler(event=None, context=None):
     except Exception:
         brief = None
 
-    doc = {"engine": "justhodl-institutional-footprint", "version": "1.0.0",
+    doc = {"engine": "justhodl-institutional-footprint", "version": "1.1.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "feeds_alive": n_alive, "feeds": fresh,
            "posture": {"risk_now": risk_now, "now_label": now_label, "now_components": dict(parts_now),
                        "risk_forward": risk_fwd, "forward_label": fwd_label, "fwd_components": dict(parts_fwd)},
-           "sectors": sectors, "asset_classes": asset_classes, "stocks": stocks,
+           "sectors": sectors, "asset_classes": asset_classes,
+           "asset_ledger": asset_ledger, "dark_by_sector": dark_by_sector,
+           "stocks_usd_13f": stocks_usd, "primary_dealer_net": pd_pos,
+           "stocks": stocks,
            "dark_pool_footprint": dark, "conviction_moves": conviction, "ai_dossier": brief,
            "method": ("Fusion of the revived smart-money fleet (13F x3, CFTC COT, dealer GEX, options "
                       "gamma, tail-hedging skew, short interest, forced-selling) with this quarter's "
