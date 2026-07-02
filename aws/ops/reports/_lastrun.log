@@ -1,10 +1,38 @@
 
 ======== 1/5 PROBES — flows feed key, FRED CCC/BB ========
-  data/etf-fund-flows.json exists: False
-  flow-ish keys: []
+  etf-flows/daily.json exists: True
+  BAMLH0A3HYC 2026-06-30 9.70
+  BAMLH0A1HYBB 2026-06-30 1.64
+
+======== 2/5 BOND DESK — create + run + prove ========
+  settling 30s…
+  ensured justhodl-bond-desk + justhodl-bond-desk-daily
+  invoke -> {"ok": true, "anxiety": 62.4, "regime": "ANXIOUS", "matched": 17}
+{
+ "anxiety": 62.4,
+ "regime": "ANXIOUS",
+ "matched": 17,
+ "duration_tilt": 0.818,
+ "credit_appetite_5d_b": 0.5,
+ "eq_to_bond_5d_b": 31.16,
+ "ccc_bb": {
+  "ccc_bb_bps": 806.0,
+  "pctile": 99.6,
+  "d21_bps": 22.0,
+  "read": "junk-within-junk WIDENING"
+ },
+ "xchk": {
+  "bond_vol_regime": "NORMAL",
+  "bond_vol_pctile": null,
+  "auction_regime": "CALM",
+  "fails_pctile": null,
+  "acm_tp10_d21_bps": -20.3
+ },
+ "equity_read": "BONDS FLASH ANXIETY FOR EQUITIES: Credit appetite positive ($0.5B risk-credit vs govvies 5d) \u00b7 CCC-BB 806bps (p100, \u039421d +22) \u2014 junk-within-junk WIDENING \u00b7 Duration tilt +0.82 (extending) \u00b7 Equity\u2192bond rotation $31.2B/5d"
+}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 88, in <module>
-    assert flows_key_ok, "flows feed key mismatch — fix engine constant before deploy"
-           ^^^^^^^^^^^^
-AssertionError: flows feed key mismatch — fix engine constant before deploy
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 112, in <module>
+    assert F["matched_tickers"] >= 25, "too few flow tickers matched: %d" % F["matched_tickers"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: too few flow tickers matched: 17
 ❌ OPS-FAIL: aws/ops/pending/ops_2711_bond_desk_rebalance.py
