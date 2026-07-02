@@ -93,8 +93,8 @@ assert not r.get("FunctionError"), pay
 d = json.loads(s3.get_object(Bucket=BUCKET, Key="data/dark-pool.json")["Body"].read())
 brd = d.get("board") or []
 z_n = sum(1 for x in brd if isinstance(x.get("daily_short_z"), (int, float)))
-hi = [x["ticker"] for x in brd if x.get("conviction") == "HIGH"][:10]
-dis = [x["ticker"] for x in brd if x.get("flag") == "DISTRIBUTION_INTO_STRENGTH"][:10]
+hi = (d.get("high_conviction") or [])[:12]
+dis = (d.get("distribution_into_strength") or [])[:12]
 R["dark_pool"] = {"z_joined": z_n, "of": len(brd), "high_conviction": hi, "dist_into_strength": dis,
                   "own_dix": (d.get("dix") or {}).get("own_dix_pct"), "sq_dix": (d.get("dix") or {}).get("squeezemetrics_dix")}
 print(json.dumps(R["dark_pool"], indent=1)[:500])
@@ -145,7 +145,7 @@ R["dark_pool"]["diag"] = diag
 R["dark_pool"]["weekly_source"] = d.get("weekly_source")
 print("  diag:", diag, "| weekly_source:", d.get("weekly_source"))
 assert diag.get("daily_z_n", 0) >= 300, "z pipeline broken: %s" % diag
-assert z_n >= 200, "board join thin (weekly side?): joined=%d weekly=%s" % (z_n, d.get("weekly_source"))
+assert diag.get("z_all", 0) >= 250 and diag.get("joined_all", 0) >= 400, "full-row fusion thin: %s" % diag
 assert isinstance(R["dark_pool"]["sq_dix"], (int, float)) or R["dark_pool"]["sq_dix"] is None
 
 sect("2/4 FACTOR-RETURNS — create + env from finviz-signals + run")
@@ -214,3 +214,5 @@ print("OPS 2715 COMPLETE — flags armed + the style desk is live")
 # rev6
 
 # rev7
+
+# rev8

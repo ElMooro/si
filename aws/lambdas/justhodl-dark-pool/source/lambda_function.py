@@ -295,6 +295,10 @@ def lambda_handler(event=None, context=None):
                 if r.get("state")=="ACCUMULATION" and d["short_z"]<-0.5: r["conviction"]="HIGH"
                 if (r.get("price_5d_pct") or 0)>2 and d["short_z"]>0.8: r["flag"]="DISTRIBUTION_INTO_STRENGTH"
     _diag["daily_n"]=len(daily); _diag["daily_z_n"]=sum(1 for v in daily.values() if v.get("short_z") is not None)
+    _diag["joined_all"]=joined
+    _diag["z_all"]=sum(1 for r in rows if r.get("daily_short_z") is not None)
+    hi_all=[r["ticker"] for r in rows if r.get("conviction")=="HIGH"]
+    dis_all=[r["ticker"] for r in rows if r.get("flag")=="DISTRIBUTION_INTO_STRENGTH"]
     print("[v2] daily regsho joined %d/%d names"%(joined,len(rows)),_diag)
 
     wsum=vsum=0.0
@@ -351,7 +355,9 @@ def lambda_handler(event=None, context=None):
         "top_accumulation": accumulation[:20],
         "top_distribution": distribution[:12],
         "dark_map": dark_map,
-        "daily_fusion": {"joined": joined, "of": len(rows), "source": "finra-short daily regsho (short + total TRF vol)"},
+        "daily_fusion": {"joined": joined, "of": len(rows), "z_all": _diag["z_all"],
+                         "source": "finra-short daily regsho (short + total TRF vol) + rolling-history z (11.9k names)"},
+        "high_conviction": hi_all[:40], "distribution_into_strength": dis_all[:40],
         "dix": dix_block, "monthly_ats": monthly,
         "data_source": "FINRA OTC Transparency weeklySummary (ATS+OTC) + Polygon grouped daily volume",
         "caveats": [
