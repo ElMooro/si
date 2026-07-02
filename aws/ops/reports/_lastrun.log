@@ -5,16 +5,17 @@ settling 30s…
    sample 'contracts' -> int 29
    sample 'data' -> dict keys ['6B', '6C', '6E', '6J', '6S', 'CL', 'CT', 'DX']
    sample 'timestamp' -> str 2026-07-02T13:31:33.209266+00:00
-  deployed sha: srR1yBWLPHFJ/uMZ61+L | handler: lambda_function.lambda_handler | modified: 2026-07-02T13:34:11
+  deployed sha: bGlUcQFkDaeTWteFqAe1 | handler: lambda_function.lambda_handler | modified: 2026-07-02T13:40:16
   cftc -> {"statusCode": 200, "body": "{\"ok\": true, \"version\": \"1.0.0\", \"state\": \"NORMAL_POSITIONING\", \"n_contracts_analyzed\": 0, \"n_extremes\": 0, \"n_divergences\": 0, \"top_3_divergences\": []}"}
-  cftc feed keys: ['academic_basis', 'all_contract_analyses', 'duration_seconds', 'engine', 'generated_at', 'methodology', 'n_contracts_analyzed', 'n_divergences', 'n_extremes', 'smart_money_map']
+  cftc feed keys: ['academic_basis', 'all_contract_analyses', 'duration_seconds', 'engine', 'generated_at', 'methodology', 'n_contracts_analyzed', 'n_divergences', 'n_extremes', 'smart_money_map'] | n_analyzed: 0
+  contract statuses: [('ES', 'insufficient_history', 7), ('NQ', 'insufficient_history', 7), ('YM', 'insufficient_history', 7), ('RTY', 'insufficient_history', 7), ('VX', 'insufficient_history', 7), ('ZB', 'insufficient_history', 7), ('ZN', 'insufficient_history', 7), ('ZF', 'insufficient_history', 7)]
 == 2/3 FOOTPRINT v1.1 ==
   invoke -> {"ok": true, "feeds_alive": 18, "risk_now": 27.4, "now": "RISK-ON", "risk_fwd": -36.5, "fwd": "POSITIONING FOR RISK-OFF", "sections": {"sectors": 46, "adds": 15, "exits": 15, "hi_conv": 15, "dis": 0, "conviction": 6}}
   LEDGER: {"EQUITY": {"lit_etf_5d_usd_m": -40063.7, "dark_5d_usd_m_est": 3660.7, "cftc_net_spec": null, "verdict": "SELLING"}, "EQUITY_INTL": {"lit_etf_5d_usd_m": -5922.3, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "TREASURIES": {"lit_etf_5d_usd_m": -170.2, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "CREDIT": {"lit_etf_5d_usd_m": -214.4, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "TIPS": {"lit_etf_5d_usd_m": 941.1, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "BUYING"}, "GOLD": {"lit_etf_5d_usd_m": -505.9, "dark_5d_usd_m_est": null, "cftc_net_spec": null, "verdict": "SELLING"}, "SILVER": {"lit_etf
   DARK sectors: {"Industrials": 1660.4, "Real Estate": 654.9, "Financial": 629.7, "Healthcare": 589.1, "Basic Materials": 480.1, "Technology": 175.5, "Consumer Cyclical": 125.9}
   13F $: {"buys": [{"t": "KO", "usd_m": null}, {"t": "GOOGL", "usd_m": null}, {"t": "NVDA", "usd_m": null}, {"t": "CVX", "usd_m": null}, {"t": "AMZN", "usd_m": null}], "sells": [{"t": "V", "usd_m": null}, {"t": "MA", "usd_m": null}, {"t": "AMZN", "usd_m": null}, {"t": "PG", "usd_m": null}, {"t": "AMZN", "usd
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2725_asset_ledger.py", line 103, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2725_asset_ledger.py", line 105, in <module>
     assert cftc_n >= 3, "cftc classes thin: %d (keys %s)" % (cftc_n, R["cftc"]["top_keys"])
            ^^^^^^^^^^^
 AssertionError: cftc classes thin: 0 (keys ['academic_basis', 'all_contract_analyses', 'duration_seconds', 'engine', 'generated_at', 'methodology', 'n_contracts_analyzed', 'n_divergences', 'n_extremes', 'smart_money_map'])
