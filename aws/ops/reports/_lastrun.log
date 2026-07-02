@@ -22,14 +22,12 @@ settling 25s…
 
   mvrv[limit300] -> 200 rows=300 
   from_format resolved: none
+  spec: plan_window=365d noted; reserve risk_signs corrected to +1
 == 2/3 redeploy + FULL BACKFILL run ==
-  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 7, "composite": 0.13, "staleness_d": 1, "errors": 1}
+  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 7, "composite": -0.43, "staleness_d": 1, "errors": 1}
   LIVE metrics: {"btc_exchange_netflow": [3212.0421, 0.75, 83], "btc_exchange_reserve": [2713611.6631, -0.94, 25], "eth_exchange_reserve": [15500729.7625, -1.05, 6], "btc_mpi": [-0.3504, 0.04, 55], "btc_whale_ratio": [0.5292, 0.12, 59], "btc_mvrv": [1.129, -1.39, 2], "btc_sopr": [0.9932, -0.57, 19]}
   depth: {'btc_exchange_netflow': 366, 'btc_exchange_reserve': 366, 'eth_exchange_reserve': 365, 'btc_mpi': 365, 'btc_whale_ratio': 365, 'btc_mvrv': 365, 'btc_sopr': 365}
-  composite: 0.13 | On-chain risk composite +0.13z (netflow/whale/valuation up = distribution risk; stablecoin exchange reserves down = less dry powder)
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2741_cq_probe.py", line 189, in <module>
-    assert min(depth[k] for k in M) >= min_hist, "backfill shallow (fmt=%s): %s" % (R.get("from_format"), depth)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: backfill shallow (fmt=none): {'btc_exchange_netflow': 366, 'btc_exchange_reserve': 366, 'eth_exchange_reserve': 365, 'btc_mpi': 365, 'btc_whale_ratio': 365, 'btc_mvrv': 365, 'btc_sopr': 365}
-❌ OPS-FAIL: aws/ops/pending/ops_2741_cq_probe.py
+  composite: -0.43 | On-chain risk composite -0.43z (netflow/whale/valuation up = distribution risk; stablecoin exchange reserves down = less dry powder)
+  remaining errors (full): [{"metric": "stablecoin_exchange_reserve", "err": "HTTP 429 s://api.cryptoquant.com/v1/stablecoin/exchange-flows/reserve :: {\"result\":{},\"status\":{\"code\":429,\"me"}]
+== 3/3 public feed strict ==
+OPS 2741 COMPLETE — on-chain seat FILLED with vendor-verified endpoints
