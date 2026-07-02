@@ -84,11 +84,9 @@ except ClientError as e:
     if e.response["Error"]["Code"] != "ResourceConflictException": raise
 ev.put_targets(Rule=sch["name"], Targets=[{"Id": "1",
     "Arn": "arn:aws:lambda:%s:857687956942:function:justhodl-onchain-ratios" % REGION}])
-src = io.open("aws/lambdas/justhodl-onchain-ratios/source/lambda_function.py", encoding="utf-8").read()
-km = re.findall(r"Key=\"(data/[^\"]+\.json)\"", src)
-okey = [k for k in km if "cryptoquant-onchain" not in k]
-assert okey, km
-okey = okey[-1]
+envv = (lam.get_function_configuration(FunctionName="justhodl-onchain-ratios")
+        .get("Environment", {}) or {}).get("Variables", {}) or {}
+okey = envv.get("S3_KEY", "data/onchain-ratios.json")
 pay, _ = invoke("justhodl-onchain-ratios")
 rd = json.loads(s3.get_object(Bucket=BUCKET, Key=okey)["Body"].read())
 assert rd.get("cryptoquant", {}).get("composite_onchain_risk_z") is not None, okey
@@ -171,3 +169,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2742_onchain_fusion.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2742 COMPLETE — on-chain flows through the fleet")
+
+# rev2 env-resolved ratios key
