@@ -1,23 +1,10 @@
-/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/zipfile/__init__.py:1624: UserWarning: Duplicate name: '_fred_shim.py'
-  return self._open_to_write(zinfo, force_zip64=force_zip64)
 
-======== 1/5 RUNNER PROBE — NY Fed ACM file reachable ========
-  ACMTermPremium.xls -> 10113024 bytes, magic d0cf11e0
-
-======== 2/5 CREATE + RUN justhodl-term-premium ========
-  settling 30s…
-  zip size 0.1 MB (xlrd vendored)
-  invoke -> {"ok": true, "date": "2026-06-29", "tp10": 0.4656, "n": 16224, "source": "live"}
-  {"date": "2026-06-29", "tp10": 0.4656, "tp5": 0.1477, "tp2": 0.0266, "z_10y": 1.42, "pctile": 28.2, "deltas": {"d5": -7.0, "d21": -20.3, "d63": -22.6}, "regime": {"level": "LOW_NORMAL", "momentum": "FALLING"}, "series_n": 16224, "first": "1961-06-14", "source": "live", "decomp": "10y yield = 3.95% expectations + 0.47% term premium", "identity": -0.0}
-
-======== 3/5 YIELD-CURVE — real value into the proxy field ========
-  synced justhodl-yield-curve
-  synced justhodl-signal-board
-  {"source": "ACM", "proxy_field_bps": 46.6, "acm_block": {"date": "2026-06-29", "tp10_pct": 0.4656, "tp5_pct": 0.1477, "tp2_pct": 0.0266, "z_10y": 1.42, "pctile": 28.2, "d21_bps": -20.3, "regime": {"level": "LOW_NORMAL", "momentum": "FALLING"}}}
-
-======== 4/5 BOARD ROW ========
-  board: {"engine": "Term Premium (ACM)", "category": "rates", "signal": 0, "signal_label": "NEUTRAL", "read": "TP10 0.47% \u039421d -20bps p28", "as_of": "2026-07-02T02:24:09+00:00", "stale": false}
-
-======== 5/5 PAGE + REPORT ========
-  page: LIVE
-OPS 2710 COMPLETE — the fleet now runs on the real ACM series
+======== 1/5 PROBES — flows feed key, FRED CCC/BB ========
+  data/etf-fund-flows.json exists: False
+  flow-ish keys: []
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2711_bond_desk_rebalance.py", line 88, in <module>
+    assert flows_key_ok, "flows feed key mismatch — fix engine constant before deploy"
+           ^^^^^^^^^^^^
+AssertionError: flows feed key mismatch — fix engine constant before deploy
+❌ OPS-FAIL: aws/ops/pending/ops_2711_bond_desk_rebalance.py
