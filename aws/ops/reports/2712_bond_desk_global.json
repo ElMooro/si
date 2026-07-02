@@ -1,0 +1,87 @@
+{
+ "ops": 2712,
+ "ts": "2026-07-02T03:46:04.980904+00:00",
+ "input_ages_h": {
+  "data/credit-stress.json": 5.7,
+  "data/ici-flows.json": null,
+  "data/eurodollar-plumbing.json": 15.7,
+  "data/euro-fragmentation.json": 15.4,
+  "data/yen-carry.json": 15.7,
+  "data/systemic-stress.json": 15.7,
+  "data/dealer-survey.json": 5.8
+ },
+ "fred_runner_probe_n": 157,
+ "v2": {
+  "world": 66.9,
+  "regime": "ANXIOUS",
+  "hottest": {
+   "region": "japan",
+   "score": 100
+  },
+  "live": 5,
+  "scores": {
+   "us": 81.7,
+   "global_funding": 32.0,
+   "europe": 53.1,
+   "japan": 100,
+   "em": 49.0
+  },
+  "us_flows": {
+   "equity_to_bond_5d_usd": 31158692115.0,
+   "credit_appetite_5d_usd": 504777307.0,
+   "duration_tilt": 0.818,
+   "ici_bond_weekly_usd_m": null,
+   "matched_tickers": 17
+  },
+  "us_credit": {
+   "source": "justhodl-credit-stress (ICE BofA ladder)",
+   "ccc_minus_bb_bps": 806.0,
+   "hy_minus_ig_bps": 199.0,
+   "bbb_minus_aaa_bps": 57.0,
+   "composite_regime": "BENIGN",
+   "fred_micro": {
+    "status": "OK",
+    "ccc_bb_bps": 806.0,
+    "pctile": 99.7,
+    "d21_bps": 22.0
+   }
+  },
+  "us_stress": {
+   "bond_vol_regime": "NORMAL",
+   "bond_vol_pctile": null,
+   "auction_regime": "CALM",
+   "fails_pctile": 59.1,
+   "acm_tp10_d21_bps": -20.3,
+   "dealer_survey": null
+  },
+  "gf": {
+   "severity": "ABUNDANT",
+   "health": 93.4,
+   "fed_swaps_bn": null,
+   "cnh_gap_pips": null,
+   "score": 32.0
+  },
+  "eu": {
+   "fragmentation_score": null,
+   "regime": "DISPERSION",
+   "btp_bund_bp": 77.2,
+   "btp_chg_1m_bp": 3.9,
+   "score": 53.1
+  },
+  "jp": {
+   "carry_stress": "RISING SHARPLY",
+   "jgb10_chg_6m_pp": 0.99,
+   "score": 100
+  },
+  "em": {
+   "em_hy_minus_us_hy_bps": 36.0,
+   "em_debt_flow_5d_usd": 278927609.0,
+   "fresh": true,
+   "score": 49.0
+  },
+  "chart_n": 156,
+  "equity_read": "GLOBAL FI FLASHES ANXIETY FOR EQUITIES \u2014 Hottest: JAPAN 100 \u00b7 US credit micro CCC-BB 806.0bps p99.7 \u039421d +22 \u00b7 Eq\u2192bond $31.2B/5d \u00b7 ICI bond $NoneM/wk \u00b7 USD funding ABUNDANT \u00b7 EU frag DISPERSION (BTP-Bund 77.2 \u03941m +3bp) \u00b7 JGB anchor: RISING SHARPLY (\u03946m +0.99pp)"
+ },
+ "board": "{\"engine\": \"Bond Desk\", \"category\": \"rates\", \"signal\": -1, \"signal_label\": \"RISK-OFF\", \"read\": \"GLOBAL FI 67 ANXIOUS (hot: japan 100)\", \"as_of\": \"2026-07-02T03:47:27+00:00\", \"stale\": false}",
+ "page": "LIVE"
+}
