@@ -1,30 +1,128 @@
 {
  "ops": 2752,
- "ts": "2026-07-03T13:14:43.604461+00:00",
- "trials": [
+ "rev": 3,
+ "ts": "2026-07-03T13:19:36.781209+00:00",
+ "krx_finding": "getJsonData HTTP 400 from AWS even on control bld w/ valid session => datacenter-IP block on data endpoint",
+ "naver": [
   {
-   "bld": "MDCSTAT02201",
-   "err": "HTTP Error 400: Bad Request"
+   "name": "m-api stock trend 005930",
+   "url": "https://m.stock.naver.com/api/stock/005930/trend",
+   "http": 200,
+   "len": 3534,
+   "has_investor_terms": true,
+   "json_list_first_keys": [
+    "itemCode",
+    "bizdate",
+    "foreignerPureBuyQuant",
+    "foreignerHoldRatio",
+    "organPureBuyQuant",
+    "individualPureBuyQuant",
+    "closePrice",
+    "compareToPreviousClosePrice",
+    "compareToPreviousPrice",
+    "accumulatedTradingVolume"
+   ],
+   "is_json": true
   },
   {
-   "bld": "MDCSTAT02202",
-   "err": "HTTP Error 400: Bad Request"
+   "name": "m-api stock investor 005930",
+   "url": "https://m.stock.naver.com/api/stock/005930/investor",
+   "err": "HTTP Error 404: 404"
   },
   {
-   "bld": "MDCSTAT02203",
-   "err": "HTTP Error 400: Bad Request"
+   "name": "m-api stock integration 005930",
+   "url": "https://m.stock.naver.com/api/stock/005930/integration",
+   "http": 200,
+   "len": 8957,
+   "has_investor_terms": true,
+   "json_keys": [
+    "stockEndType",
+    "itemCode",
+    "reutersCode",
+    "stockName",
+    "totalInfos",
+    "iconInfos",
+    "description",
+    "etfKeyIndicator",
+    "dealTrendInfos",
+    "researches",
+    "industryCode",
+    "industryCompareInfo"
+   ],
+   "is_json": true
   },
   {
-   "bld": "MDCSTAT02401",
-   "err": "HTTP Error 400: Bad Request"
+   "name": "api.stock foreignInstitution 005930",
+   "url": "https://api.stock.naver.com/stock/005930/foreignInstitution",
+   "err": "HTTP Error 404: Not Found"
+  },
+  {
+   "name": "m-api index KOSPI trend",
+   "url": "https://m.stock.naver.com/api/index/KOSPI/trend",
+   "http": 200,
+   "len": 104,
+   "has_investor_terms": true,
+   "json_keys": [
+    "bizdate",
+    "personalValue",
+    "foreignValue",
+    "institutionalValue"
+   ],
+   "is_json": true
+  },
+  {
+   "name": "m-api index KOSPI integration",
+   "url": "https://m.stock.naver.com/api/index/KOSPI/integration",
+   "http": 200,
+   "len": 10533,
+   "has_investor_terms": true,
+   "json_keys": [
+    "stockEndType",
+    "itemCode",
+    "reutersCode",
+    "stockName",
+    "totalInfos",
+    "description",
+    "dealTrendInfo",
+    "programTrendInfo",
+    "upDownStockInfo",
+    "enrollStocks",
+    "month"
+   ],
+   "is_json": true
+  },
+  {
+   "name": "legacy frgn html 005930",
+   "url": "https://finance.naver.com/item/frgn.naver?code=005930",
+   "http": 200,
+   "len": 167232,
+   "has_investor_terms": true,
+   "head": "<!--  global include -->  \t \t <html lang='ko'> <head>   \t \t\t<title>Ｚ : Npay </title> \t \t     <meta http-equiv=\"Content-Type\" content=\"text/h"
+  },
+  {
+   "name": "legacy investor trend day",
+   "url": "https://finance.naver.com/sise/investorDealTrendDay.naver",
+   "http": 200,
+   "len": 1768,
+   "has_investor_terms": false,
+   "head": "<html lang=\"ko\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\"> <title>Npay </title> <link rel=\"stylesheet\" typ"
   }
  ],
- "session_cookies": [
-  "__smVisitorID",
-  "JSESSIONID"
- ],
- "control": {
-  "err": "HTTP Error 400: Bad Request"
+ "naver_usable": {
+  "name": "m-api stock trend 005930",
+  "url": "https://m.stock.naver.com/api/stock/005930/trend",
+  "keys": [
+   "itemCode",
+   "bizdate",
+   "foreignerPureBuyQuant",
+   "foreignerHoldRatio",
+   "organPureBuyQuant",
+   "individualPureBuyQuant",
+   "closePrice",
+   "compareToPreviousClosePrice",
+   "compareToPreviousPrice",
+   "accumulatedTradingVolume"
+  ]
  },
- "verdict": "KRX rejects/blocks from AWS"
+ "verdict": "NAVER_USABLE: m-api stock trend 005930"
 }

@@ -1,14 +1,12 @@
-KST last trading day: 20260703
-session cookies: ['__smVisitorID', 'JSESSIONID']
+  m-api stock trend 005930           http=200 len=3534 inv_terms=True json=True
+  m-api stock investor 005930        ERR HTTP Error 404: 404
+  m-api stock integration 005930     http=200 len=8957 inv_terms=True json=True
+  api.stock foreignInstitution 005930 ERR HTTP Error 404: Not Found
+  m-api index KOSPI trend            http=200 len=104 inv_terms=True json=True
+  m-api index KOSPI integration      http=200 len=10533 inv_terms=True json=True
+  legacy frgn html 005930            http=200 len=167232 inv_terms=True json=None
+  legacy investor trend day          http=200 len=1768 inv_terms=False json=None
 
-== CONTROL: stock list MDCSTAT01901 ==
-  control ERR: HTTP Error 400: Bad Request
-
-== INVESTOR PROBES ==
-  MDCSTAT02201  ERR HTTP Error 400: Bad Request
-  MDCSTAT02202  ERR HTTP Error 400: Bad Request
-  MDCSTAT02203  ERR HTTP Error 400: Bad Request
-  MDCSTAT02401  ERR HTTP Error 400: Bad Request
-
-VERDICT: KRX rejects/blocks from AWS
-OPS 2752 rev2 COMPLETE
+VERDICT: NAVER_USABLE: m-api stock trend 005930
+usable endpoint: {"name": "m-api stock trend 005930", "url": "https://m.stock.naver.com/api/stock/005930/trend", "keys": ["itemCode", "bizdate", "foreignerPureBuyQuant", "foreignerHoldRatio", "organPureBuyQuant", "individualPureBuyQuant", "closePrice", "compareToPreviousClosePrice", "compareToPreviousPrice", "accumulatedTradingVolume"]}
+OPS 2752 rev3 COMPLETE — Korea source recon done
