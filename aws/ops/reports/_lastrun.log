@@ -1,15 +1,12 @@
 settling 15s…
 == 1/4 create/update lambda ==
+  updated
+== 2/4 EventBridge intraday cron ==
+== 3/4 invoke + verify ==
+  invoke -> {"errorMessage": "unsupported format character 'm' (0x6d) at index 81", "errorType": "ValueError", "requestId": "e0dd9d78-f130-476b-ae69-77d1fdf7fec4", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 229, in lambda_handler\n    \"convention\": \"dealer gamma = call_g*call_OI - put_g*pu
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2773_gex_engine.py", line 52, in <module>
-    lam.update_function_configuration(FunctionName=FN, Timeout=600, MemorySize=1024, Runtime=runtime,
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionConfiguration operation: The function could not be updated due to a concurrent update operation.
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2773_gex_engine.py", line 82, in <module>
+    assert not resp.get("FunctionError"), pay
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'errorMessage': "unsupported format character 'm' (0x6d) at index 81", 'errorType': 'ValueError', 'requestId': 'e0dd9d78-f130-476b-ae69-77d1fdf7fec4', 'stackTrace': ['  File "/var/task/lambda_function.py", line 229, in lambda_handler\n    "convention": "dealer gamma = call_g*call_OI - put_g*put_OI; +=long gamma/stabilizing; $ per 1% move; near-term <=%dDTE, strikes +/-%d%%" % (EXP_MAX_DAYS, int(STRIKE_BAND * 100)),\n']}
 ❌ OPS-FAIL: aws/ops/pending/ops_2773_gex_engine.py
