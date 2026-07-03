@@ -38,8 +38,11 @@ def cm_count(metric):
         if not url: break
     return n, None
 spec = json.loads(s3.get_object(Bucket=BUCKET, Key="data/config/cryptoquant-spec.json")["Body"].read())
-twins = dict(spec.get("twins") or {})
-for cq, cm in (("btc_nvt", "NVTAdj"), ("btc_difficulty", "DiffMean"), ("btc_velocity", "VelCur1yr"),
+twins = {}
+for cq, cm in (("btc_mvrv", "CapMVRVCur"), ("btc_addresses_active", "AdrActCnt"),
+               ("btc_tx_count", "TxCnt"), ("btc_fees_total", "FeeTotNtv"),
+               ("btc_hashrate", "HashRate"), ("btc_supply_total", "SplyCur"),
+               ("btc_nvt", "NVTAdj"), ("btc_difficulty", "DiffMean"), ("btc_velocity", "VelCur1yr"),
                ("btc_nvt_golden", "NVTAdj90"), ("btc_realized_price", "CapRealUSD")):
     n, err = cm_count(cm)
     ok = n >= 900
@@ -47,7 +50,7 @@ for cq, cm in (("btc_nvt", "NVTAdj"), ("btc_difficulty", "DiffMean"), ("btc_velo
     R.setdefault("twin_probe", {})[cm] = n
     if ok: twins[cq] = cm
     time.sleep(0.4)
-spec["twins"] = twins
+spec["twins"] = twins   # evidence-based only: community-tier ceiling
 s3.put_object(Bucket=BUCKET, Key="data/config/cryptoquant-spec.json",
               Body=json.dumps(spec, indent=1).encode(), ContentType="application/json")
 print("  twins now:", sorted(twins))
@@ -62,7 +65,7 @@ assert not r.get("FunctionError") and pay.get("ok"), pay
 sr = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cryptoquant-series.json")["Body"].read())
 twn = {k: len(v["d"]) for k, v in (sr.get("twins") or {}).items()}
 print("  series twins:", twn)
-assert len(twn) >= len(R["twins"]) - 1 and min(twn.values()) >= 900
+assert len(twn) == len(R["twins"]) and len(twn) >= 6 and min(twn.values()) >= 900
 d = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cryptoquant-onchain.json")["Body"].read())
 tw_metrics = [k for k in d["metrics"] if "2010" in (d["metrics"][k].get("stats_window") or "")]
 print("  metrics on 2010-window stats:", len(tw_metrics), tw_metrics)
@@ -89,3 +92,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2747_norm_twins.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2747 COMPLETE — the decade is visible and the scales agree")
+
+# rev2 evidence-based twin prune (CM community 403s pro metrics)
