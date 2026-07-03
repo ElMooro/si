@@ -1,0 +1,73 @@
+{
+ "ops": 2774,
+ "ts": "2026-07-03T19:24:09.496870+00:00",
+ "removed": [
+  "eventbridge:justhodl-gex-desk-intraday",
+  "lambda:justhodl-gex-desk",
+  "s3:data/gex-desk.json",
+  "s3:data/history/gex-desk.json"
+ ],
+ "kept_existing": {
+  "justhodl-dealer-gex": {
+   "state": "Active",
+   "runtime": "python3.12",
+   "last_modified": "2026-07-02T12:59:22.000+0000"
+  },
+  "justhodl-options-analytics": {
+   "state": "Active",
+   "runtime": "python3.12",
+   "last_modified": "2026-06-20T19:47:24.000+0000"
+  },
+  "justhodl-options-confluence": {
+   "state": "Active",
+   "runtime": "python3.12",
+   "last_modified": "2026-06-25T23:38:44.000+0000"
+  },
+  "justhodl-dix": {
+   "state": "Active",
+   "runtime": "python3.12",
+   "last_modified": "2026-05-31T13:21:53.000+0000"
+  },
+  "justhodl-opex-calendar": {
+   "state": "Active",
+   "runtime": "python3.12",
+   "last_modified": "2026-05-30T18:45:24.000+0000"
+  }
+ },
+ "verify_gone": {
+  "lambda": "gone",
+  "rule": "gone"
+ },
+ "existing_feeds": {
+  "data/dealer-gex.json": {
+   "exists": true,
+   "last_modified": "2026-07-03T19:07:24+00:00",
+   "bytes": 33233
+  },
+  "data/options-analytics.json": {
+   "exists": true,
+   "last_modified": "2026-07-03T13:00:53+00:00",
+   "bytes": 60112
+  },
+  "data/options-confluence.json": {
+   "exists": true,
+   "last_modified": "2026-06-23T16:31:16+00:00",
+   "bytes": 25772
+  },
+  "data/options-gamma.json": {
+   "exists": true,
+   "last_modified": "2026-07-03T14:55:50+00:00",
+   "bytes": 3873
+  },
+  "data/dix.json": {
+   "exists": true,
+   "last_modified": "2026-07-02T22:00:43+00:00",
+   "bytes": 2735
+  },
+  "data/opex-calendar.json": {
+   "exists": true,
+   "last_modified": "2026-07-03T11:00:43+00:00",
+   "bytes": 4054
+  }
+ }
+}
