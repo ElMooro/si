@@ -475,6 +475,9 @@ def lambda_handler(event=None, context=None):
                    for r in (doc["korea"].get("top_buy", []) + doc["korea"].get("top_sell", []))}
             kv = [krm.get(c) for c in b["kr_codes"] if krm.get(c) is not None]
             kr_sig = round(sum(kv)) if kv else None
+        hk_sig = None
+        if b.get("hk") and doc.get("hongkong", {}).get("status") == "LIVE":
+            hk_sig = doc["hongkong"].get("southbound_net_total")
         etf_ret = {e: _r(e) for e in b["us_etf"] if e in usr}
         name_ret = {n: _r(n) for n in b["us_names"] if n in usr}
         us5 = [v for v in list(etf_ret.values()) + list(name_ret.values()) if isinstance(v, (int, float))]
