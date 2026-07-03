@@ -1,69 +1,9 @@
 settling 25s…
-== 1/4 CATALOG PROBE (54 candidates) ==
-  LIVE btc_exchange_netflow           keys=['netflow_total']
-  LIVE btc_exchange_inflow            keys=['inflow_total', 'inflow_top10', 'inflow_mean']
-  LIVE btc_exchange_outflow           keys=['outflow_total', 'outflow_top10', 'outflow_mean']
-  LIVE btc_exchange_reserve           keys=['reserve', 'reserve_usd']
-  LIVE btc_exchange_addr_in           keys=['addresses_count_inflow', 'addresses_count_outflow']
-  LIVE btc_mpi                        keys=['mpi']
-  LIVE btc_whale_ratio                keys=['exchange_whale_ratio']
-  LIVE btc_fund_flow_ratio            keys=['fund_flow_ratio']
-  LIVE btc_stablecoins_ratio          keys=['stablecoins_ratio', 'stablecoins_ratio_usd']
-  LIVE btc_exchange_supply_ratio      keys=['exchange_supply_ratio']
-  LIVE btc_mvrv                       keys=['mvrv']
-  LIVE btc_sopr                       keys=['sopr', 'a_sopr', 'sth_sopr']
-  LIVE btc_sopr_ratio                 keys=['sopr_ratio']
-  LIVE btc_nupl                       keys=['nupl', 'nup', 'nul']
-  LIVE btc_realized_price             keys=['realized_price']
-  LIVE btc_ssr                        keys=['stablecoin_supply_ratio']
-  LIVE btc_nvt                        keys=['nvt']
-  LIVE btc_nvt_golden                 keys=['nvt_golden_cross']
-  LIVE btc_nvm                        keys=['nvm']
-  LIVE btc_puell                      keys=['puell_multiple']
-  LIVE btc_stock_to_flow              keys=['stock_to_flow', 'stock_to_flow_reversion']
-  LIVE btc_miner_netflow              keys=['netflow_total']
-  LIVE btc_miner_outflow              keys=['outflow_total', 'outflow_top10', 'outflow_mean']
-  LIVE btc_miner_reserve              keys=['reserve', 'reserve_usd']
-  LIVE btc_tx_count                   keys=['transactions_count_total', 'transactions_count_mean']
-  LIVE btc_addresses_active           keys=['addresses_count_active', 'addresses_count_receiver', 'addresses_count_sender']
-  LIVE btc_fees_total                 keys=['fees_block_mean', 'fees_block_mean_usd', 'fees_reward_percent']
-  LIVE btc_fees_tx_mean               keys=['fees_transaction_mean', 'fees_transaction_mean_usd', 'fees_transaction_median']
-  LIVE btc_blockreward                keys=['blockreward', 'blockreward_usd']
-  LIVE btc_difficulty                 keys=['difficulty']
-  LIVE btc_hashrate                   keys=['hashrate']
-  LIVE btc_utxo_count                 keys=['utxo_count']
-  LIVE btc_velocity                   keys=['velocity_supply_total']
-  LIVE btc_tokens_transferred         keys=['tokens_transferred_total', 'tokens_transferred_mean', 'tokens_transferred_median']
-  LIVE btc_supply_total               keys=['supply_new', 'supply_total']
-  LIVE btc_open_interest              keys=['open_interest']
-  LIVE btc_funding_rates              keys=['funding_rates']
-  LIVE btc_liquidations               keys=['long_liquidations', 'short_liquidations', 'long_liquidations_usd']
-  LIVE btc_taker_ratio                keys=['taker_buy_volume', 'taker_sell_volume', 'taker_buy_ratio']
-  LIVE btc_coinbase_premium           keys=['coinbase_premium_gap', 'coinbase_premium_index', 'coinbase_premium_gap_usdt_adjusted']
-  dead btc_leverage_ratio             404
-  LIVE eth_exchange_netflow           keys=['netflow_total']
-  LIVE eth_exchange_inflow            keys=['inflow_total', 'inflow_top10', 'inflow_mean']
-  LIVE eth_exchange_outflow           keys=['outflow_total', 'outflow_top10', 'outflow_mean']
-  LIVE eth_exchange_reserve           keys=['reserve', 'reserve_usd']
-  LIVE eth_addresses_active           keys=['addresses_count_active', 'addresses_count_sender', 'addresses_count_receiver']
-  LIVE eth_tx_count                   keys=['transactions_count_total', 'transactions_count_mean']
-  LIVE eth_open_interest              keys=['open_interest']
-  LIVE eth_funding_rates              keys=['funding_rates']
-  LIVE stablecoin_exchange_reserve    keys=['reserve']
-  LIVE stablecoin_exchange_netflow    keys=['netflow_total']
-  LIVE stablecoin_exchange_inflow     keys=['inflow_total', 'inflow_top10', 'inflow_mean']
-  LIVE stablecoin_exchange_outflow    keys=['outflow_total', 'outflow_top10', 'outflow_mean']
-  LIVE stablecoin_supply_total        keys=['supply_total', 'supply_minted', 'supply_burned']
-  spec v2 written: 53 metrics, core-8 intact
-== 2/4 deploy engine v2 + full run ==
-  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "composite": -0.24, "extremes_ai": 5, "errors": 1}
-  categories: {'exchange_flows': 5, 'flow_indicator': 5, 'market_indicator': 4, 'network_indicator': 6, 'miner_flows': 3, 'network_data': 11, 'market_data': 5, 'eth': 8, 'stablecoins': 5}
-  hist_read coverage 52/52 | 2010-window 6 | corr 52
-  sample: At today's level (2th percentile of 2010-present (Coin Metrics twin)), BTC's forward 21-day return has historically averaged +6.2% (median +3.3%, up 62% of the time, n=700).
-  series feed: 52 series, btc 530 pts (2010+), twins ['btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_mvrv']
-== 3/4 domain checks ==
-  strict: data/cryptoquant-onchain.json
-  strict: data/cryptoquant-series.json
-  page attempt 1: v2 LIVE
-== 4/4 report ==
-OPS 2745 COMPLETE — the whole catalog, probed and proven
+== 1/3 engine v2.1 + full run ==
+  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "composite": -0.24, "ex
+  master[deterministic|591]: Across all 52 on-chain metrics, the tape leans defensive: 9 metrics sit at levels that historically preceded positive 21-day BTC returns versus 33 at historically negativ
+  btc pts: 1458 | twins: {'btc_mvrv': 1457, 'btc_addresses_active': 1462, 'btc_tx_count': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462} | series len min/med/max: 365 365 371
+== 2/3 page v3 at edge ==
+  attempt 1: v3 LIVE
+== 3/3 report ==
+OPS 2746 COMPLETE — every metric scanned, every decade drawn
