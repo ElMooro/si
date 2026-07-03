@@ -289,7 +289,13 @@ def korea_market():
         try:
             doc = _get_json("https://m.stock.naver.com/api/index/%s/trend" % mkt,
                             headers={"User-Agent": UA["User-Agent"], "Referer": "https://m.stock.naver.com/"}, timeout=15)
-            rows = doc if isinstance(doc, list) else (doc.get("result") or doc.get("trends") or [])
+            if isinstance(doc, dict) and ("foreignValue" in doc or "bizdate" in doc):
+                rows = [doc]
+            elif isinstance(doc, list):
+                rows = doc
+            else:
+                rows = doc.get("result") or doc.get("trends") or doc.get("datas") or []
+            rows = [r for r in rows if isinstance(r, dict) and r.get("foreignValue") is not None]
             if rows:
                 latest = max(rows, key=lambda r: str(r.get("bizdate", "")))
                 out[mkt] = {"foreign_value": _num(latest.get("foreignValue")),
@@ -308,14 +314,19 @@ def korea_market():
 def hongkong_southbound():
     """Stock Connect SOUTHBOUND net (mainland -> HK, the HK foreign-flow analog)
     from HKEX daily-stat JS (SSE + SZSE Southbound)."""
+    last_err = None
     for back in range(0, 6):
         ymd = (datetime.now(timezone.utc) + timedelta(hours=8) - timedelta(days=back)).strftime("%Y%m%d")
         try:
-            txt = _http_bytes("https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_%se.js" % ymd).decode("utf-8", "ignore")
+            txt = _http_bytes("https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_%se.js" % ymd,
+                              headers={"Referer": "https://www.hkex.com.hk/"}).decode("utf-8", "ignore")
+        except Exception as e:
+            last_err = "fetch %s: %s" % (ymd, str(e)[:60]); continue
+        try:
             i, jdx = txt.find("["), txt.rfind("]")
             data = json.loads(txt[i:jdx + 1])
-        except Exception:
-            continue
+        except Exception as e:
+            last_err = "parse %s: %s len=%d head=%r" % (ymd, str(e)[:40], len(txt), txt[:50]); continue
         sb, asof = {}, None
         for blk in data:
             mkt = str(blk.get("market", ""))
@@ -338,7 +349,9 @@ def hongkong_southbound():
             tot = sum(v["net"] for v in sb.values())
             return {"status": "LIVE", "source": "HKEX Stock Connect", "as_of": asof,
                     "markets": sb, "southbound_net_total": round(tot), "unit": "HKD turnover"}
-    return {"status": "PENDING", "note": "HKEX daily-stat js unreachable/unparsed"}
+        if not last_err:
+            last_err = "no Southbound rows; markets=%s" % ([str(blk.get("market")) for blk in data][:6])
+    return {"status": "PENDING", "note": last_err or "no data"}
 
 
 def japan_jpx():
