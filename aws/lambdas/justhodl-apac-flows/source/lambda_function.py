@@ -20,7 +20,7 @@ Feeds: data/apac-flows.json (latest) + data/history/apac-flows.json (400d).
 No key faked; every source's success/failure is recorded in `sources`.
 """
 import os, json, re, time, urllib.request, urllib.error, urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import boto3
 
 BUCKET = "justhodl-dashboard-live"
@@ -73,6 +73,9 @@ BRIDGES = [
     {"name": "Memory / EV Battery (KR → US)", "sector": "Memory/Battery",
      "tw_codes": [], "kr_codes": ["000660", "373220", "006400"],
      "us_etf": ["LIT", "SMH"], "us_names": ["MU", "ALB", "TSLA"]},
+    {"name": "Southbound → US-listed China (HK → US)", "sector": "China Internet",
+     "tw_codes": [], "kr_codes": [], "hk": True,
+     "us_etf": ["KWEB", "FXI"], "us_names": ["BABA", "JD", "PDD"]},
 ]
 
 
@@ -270,6 +273,119 @@ def us_side():
     return flow
 
 
+def _http_bytes(url, headers=None, timeout=30):
+    h = {"User-Agent": UA["User-Agent"], "Accept": "*/*", "Accept-Language": "en,ko,ja,zh"}
+    if headers: h.update(headers)
+    req = urllib.request.Request(url, headers=h)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def korea_market():
+    """True market-wide Korea foreign/institution/individual net via Naver index
+    trend (KOSPI + KOSDAQ). Values are Naver net (KRW, ~100M-won units)."""
+    out = {}
+    for mkt in ("KOSPI", "KOSDAQ"):
+        try:
+            doc = _get_json("https://m.stock.naver.com/api/index/%s/trend" % mkt,
+                            headers={"User-Agent": UA["User-Agent"], "Referer": "https://m.stock.naver.com/"}, timeout=15)
+            rows = doc if isinstance(doc, list) else (doc.get("result") or doc.get("trends") or [])
+            if rows:
+                latest = max(rows, key=lambda r: str(r.get("bizdate", "")))
+                out[mkt] = {"foreign_value": _num(latest.get("foreignValue")),
+                            "institution_value": _num(latest.get("institutionalValue")),
+                            "individual_value": _num(latest.get("personalValue")),
+                            "as_of": str(latest.get("bizdate"))}
+        except Exception:
+            pass
+    if any("foreign_value" in v for v in out.values()):
+        tot = sum(v["foreign_value"] for v in out.values() if v.get("foreign_value") is not None)
+        out["total_foreign_value"] = round(tot)
+        out["unit"] = "KRW net (Naver index units)"
+    return out
+
+
+def hongkong_southbound():
+    """Stock Connect SOUTHBOUND net (mainland -> HK, the HK foreign-flow analog)
+    from HKEX daily-stat JS (SSE + SZSE Southbound)."""
+    for back in range(0, 6):
+        ymd = (datetime.now(timezone.utc) + timedelta(hours=8) - timedelta(days=back)).strftime("%Y%m%d")
+        try:
+            txt = _http_bytes("https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_%se.js" % ymd).decode("utf-8", "ignore")
+            i, jdx = txt.find("["), txt.rfind("]")
+            data = json.loads(txt[i:jdx + 1])
+        except Exception:
+            continue
+        sb, asof = {}, None
+        for blk in data:
+            mkt = str(blk.get("market", ""))
+            asof = asof or blk.get("date")
+            if "Southbound" not in mkt:
+                continue
+            for cont in blk.get("content", []):
+                tbl = cont.get("table") or {}
+                schema = tbl.get("schema") or []
+                headers = schema[0] if (schema and isinstance(schema[0], list)) else schema
+                bi = next((k for k, h in enumerate(headers) if "Buy Turnover" in str(h)), None)
+                si = next((k for k, h in enumerate(headers) if "Sell Turnover" in str(h)), None)
+                rows = tbl.get("data") or []
+                if bi is not None and si is not None and rows:
+                    row = rows[0] if isinstance(rows[0], list) else rows
+                    buy, sell = _num(row[bi]) if bi < len(row) else None, _num(row[si]) if si < len(row) else None
+                    if buy is not None and sell is not None:
+                        sb[mkt] = {"buy": buy, "sell": sell, "net": round(buy - sell)}
+        if sb:
+            tot = sum(v["net"] for v in sb.values())
+            return {"status": "LIVE", "source": "HKEX Stock Connect", "as_of": asof,
+                    "markets": sb, "southbound_net_total": round(tot), "unit": "HKD turnover"}
+    return {"status": "PENDING", "note": "HKEX daily-stat js unreachable/unparsed"}
+
+
+def japan_jpx():
+    """JPX weekly Trading-by-Type-of-Investors (TSE Prime). Foreign net = latest
+    week's Balance for Foreigners (JPY thousands)."""
+    try:
+        listing = _http_bytes("https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/index.html").decode("utf-8", "ignore")
+        vals = re.findall(r"[\w./_-]*stock_val[\w./_-]*\.xls", listing, re.I)
+        if not vals:
+            return {"status": "PENDING", "note": "no stock_val xls link"}
+        url = vals[0]
+        if url.startswith("/"): url = "https://www.jpx.co.jp" + url
+        xls = _http_bytes(url, timeout=45)
+        import xlrd
+        book = xlrd.open_workbook(file_contents=xls)
+        by_mkt = {}
+        for si in range(min(book.nsheets, 3)):
+            sh = book.sheet_by_index(si)
+            bal_cols, weeks = [], []
+            for i in range(min(sh.nrows, 14)):
+                rv = [str(sh.cell_value(i, j)) for j in range(sh.ncols)]
+                if not bal_cols and any(("Balance" in v or "差引き" in v) for v in rv):
+                    bal_cols = [j for j, v in enumerate(rv) if ("Balance" in v or "差引き" in v)]
+                if not weeks and any(("/" in v and ("~" in v or "～" in v)) for v in rv):
+                    weeks = [v for v in rv if "/" in v]
+            def net_for(label):
+                for i in range(sh.nrows):
+                    c0 = str(sh.cell_value(i, 0)).strip()
+                    if c0 == label:
+                        vb = [_num(sh.cell_value(i, c)) for c in bal_cols if c < sh.ncols]
+                        vb = [v for v in vb if v is not None]
+                        return vb[-1] if vb else None
+                return None
+            by_mkt[sh.name] = {"foreign_net": net_for("Foreigners"),
+                               "individual_net": net_for("Individuals"),
+                               "institution_net": net_for("Institutions")}
+            if si == 0 and weeks:
+                latest_week = weeks[-1]
+        prime = by_mkt.get("TSE Prime") or next(iter(by_mkt.values()), {})
+        return {"status": "LIVE", "source": "JPX weekly", "file": url.split("/")[-1],
+                "unit": "JPY thousands", "week": (latest_week if "latest_week" in dir() else None),
+                "foreign_net": prime.get("foreign_net"), "individual_net": prime.get("individual_net"),
+                "institution_net": prime.get("institution_net"), "by_market": by_mkt}
+    except Exception as e:
+        return {"status": "PENDING", "err": str(e)[:140]}
+
+
 def us_returns(symbols):
     """Real US recent returns via FMP. Tries multi-period price-change (stable +
     v3), falls back to stable/quote 1-day change. Returns {sym:{d5,m1,m3,d1}}."""
@@ -323,12 +439,21 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         doc["taiwan"] = {"status": "ERROR", "err": str(e)[:140]}
         doc["sources"]["twse_t86"] = False
-    # Korea (Naver — KRX blocks AWS)
+    # Korea per-stock (Naver — KRX blocks AWS) + TRUE market-wide via Naver index
     kr = korea_naver()
+    try:
+        kr["market_wide"] = korea_market()
+    except Exception as e:
+        kr["market_wide"] = {"err": str(e)[:80]}
     doc["korea"] = kr
     doc["sources"]["korea_naver"] = kr.get("status") == "LIVE"
-    # Japan placeholder
-    doc["japan"] = {"status": "PENDING_v1_1", "note": "JPX weekly investor-type flows (Thursday Excel)"}
+    doc["sources"]["korea_marketwide"] = (kr.get("market_wide") or {}).get("total_foreign_value") is not None
+    # Japan (JPX weekly Trading-by-Type-of-Investors)
+    doc["japan"] = japan_jpx()
+    doc["sources"]["japan_jpx"] = doc["japan"].get("status") == "LIVE"
+    # Hong Kong (Stock Connect Southbound = mainland -> HK flow)
+    doc["hongkong"] = hongkong_southbound()
+    doc["sources"]["hkex_southbound"] = doc["hongkong"].get("status") == "LIVE"
     # US catch-up bridges — attach REAL US returns (FMP) + divergence verdict
     usf = us_side()
     all_us = sorted({s for b in BRIDGES for s in (b["us_etf"] + b["us_names"])})
@@ -355,7 +480,7 @@ def lambda_handler(event=None, context=None):
         us5 = [v for v in list(etf_ret.values()) + list(name_ret.values()) if isinstance(v, (int, float))]
         us_avg5 = round(sum(us5) / len(us5), 2) if us5 else None
         # verdict: Asia buying (tw_sig>0) while US flat/down = US hasn't caught up = opportunity
-        asia_vals = [v for v in (tw_sig, kr_sig) if v is not None]
+        asia_vals = [v for v in (tw_sig, kr_sig, hk_sig) if v is not None]
         asia_net = sum(asia_vals) if asia_vals else None
         verdict = "insufficient data"
         if asia_net is not None and us_avg5 is not None:
@@ -368,7 +493,7 @@ def lambda_handler(event=None, context=None):
             else:
                 verdict = "both soft"
         bridges.append({"name": b["name"], "sector": b["sector"],
-                        "tw_foreign_net_shares": tw_sig, "kr_foreign_net_shares": kr_sig, "kr_codes": b["kr_codes"],
+                        "tw_foreign_net_shares": tw_sig, "kr_foreign_net_shares": kr_sig, "hk_southbound_net": hk_sig, "kr_codes": b["kr_codes"],
                         "us_etf": b["us_etf"], "us_names": b["us_names"],
                         "us_etf_ret5d": etf_ret or None, "us_name_ret5d": name_ret or None,
                         "us_avg_ret5d": us_avg5, "us_etf_5d_flow_usd": {e: usf.get(e) for e in b["us_etf"] if e in usf} or None,
