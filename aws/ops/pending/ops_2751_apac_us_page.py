@@ -42,10 +42,10 @@ def wait_ok(fn, budget=200):
 print("settling 15s…"); time.sleep(15)
 print("== 1/4 copy FMP key from infra -> apac env ==")
 fmp = None
-for donor in ("justhodl-theme-rotation", "justhodl-bond-desk", "justhodl-factor-returns", "justhodl-capex-tracker"):
+for donor in ("justhodl-fundamentals-engine", "justhodl-ma-tracker", "justhodl-starmine", "justhodl-earnings-pead", "justhodl-merger-arb", "justhodl-divergence-engine-v2", "justhodl-rotation-chain", "justhodl-insider-cluster-scanner"):
     try:
         env = (lam.get_function_configuration(FunctionName=donor).get("Environment", {}) or {}).get("Variables", {}) or {}
-        fmp = env.get("FMP_API_KEY") or env.get("FMP_KEY")
+        fmp = env.get("FMP_KEY") or env.get("FMP_API_KEY")
         if fmp:
             print("  FMP key sourced from %s (len %d)" % (donor, len(fmp))); break
     except ClientError:
@@ -53,7 +53,7 @@ for donor in ("justhodl-theme-rotation", "justhodl-bond-desk", "justhodl-factor-
 assert fmp, "no FMP key found in donor functions"
 wait_ok(FN)
 cur = (lam.get_function_configuration(FunctionName=FN).get("Environment", {}) or {}).get("Variables", {}) or {}
-cur.update({"FMP_API_KEY": fmp, "TZ": "UTC"})
+cur.update({"FMP_API_KEY": fmp, "FMP_KEY": fmp, "TZ": "UTC"})
 lam.update_function_configuration(FunctionName=FN, Environment={"Variables": cur})
 wait_ok(FN)
 R["fmp_key_wired"] = True
@@ -102,3 +102,5 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2751_apac_us_page.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2751 COMPLETE — APAC radar has a face and a US side")
+
+# rev2 donor=confirmed FMP_KEY holders
