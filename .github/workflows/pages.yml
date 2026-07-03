@@ -90,6 +90,7 @@ jobs:
       - name: Re-dispatch a fresh Pages run (deterministic retry cap)
         env:
           GH_TOKEN: ${{ secrets.PAGES_PAT }}
+          GH_REPO: ${{ github.repository }}
           RETRY_COUNT: ${{ github.event.inputs.retry_count || '0' }}
         run: |
           rc="${RETRY_COUNT:-0}"
