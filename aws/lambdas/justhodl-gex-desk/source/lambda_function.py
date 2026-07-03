@@ -2,7 +2,7 @@
 
 For an index + mega-cap universe, pulls the Polygon options chain (greeks + OI),
 and computes institutional-grade gamma positioning:
-  - Net GEX ($ per 1% move), call vs put dealer gamma
+  - Net GEX ($ per 1%% move), call vs put dealer gamma
   - Gamma-flip level (zero-gamma) via Black-Scholes re-pricing across a spot grid
     (proper method using each contract's IV/T, not a cumulative-strike proxy)
   - Call wall / put wall (gamma-concentration barriers)
@@ -226,7 +226,7 @@ def lambda_handler(event=None, context=None):
     idx_net = sum(v["net_gex_bn"] for k, v in live.items() if v.get("is_index"))
     doc = {"engine": "justhodl-gex-desk", "version": "1.0.0",
            "generated_at": now.isoformat(timespec="seconds"),
-           "convention": "dealer gamma = call_g*call_OI - put_g*put_OI; +=long gamma/stabilizing; $ per 1% move; near-term <=%dDTE, strikes +/-%d%%" % (EXP_MAX_DAYS, int(STRIKE_BAND * 100)),
+           "convention": "dealer gamma = call_g*call_OI - put_g*put_OI; +=long gamma/stabilizing; $ per 1%% move; near-term <=%dDTE, strikes +/-%d%%" % (EXP_MAX_DAYS, int(STRIKE_BAND * 100)),
            "universe": UNIVERSE, "n_live": len(live), "index_net_gex_bn": round(idx_net, 3),
            "read": read, "names": names, "status": "LIVE" if live else "DEGRADED"}
     # history (light snapshot)
