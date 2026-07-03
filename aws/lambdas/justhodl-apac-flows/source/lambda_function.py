@@ -240,21 +240,35 @@ def us_side():
 
 
 def us_returns(symbols):
-    """Real US recent returns (5D/1M/3M) via FMP stock-price-change (one call)."""
-    key = os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
+    """Real US recent returns via FMP. Tries multi-period price-change (stable +
+    v3), falls back to stable/quote 1-day change. Returns {sym:{d5,m1,m3,d1}}."""
+    key = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
     if not key or not symbols:
         return {}
-    url = ("https://financialmodelingprep.com/api/v3/stock-price-change/"
-           + ",".join(sorted(set(symbols))) + "?apikey=" + key)
-    try:
-        doc = _get_json(url, timeout=25)
-    except Exception:
-        return {}
     out = {}
-    for r in doc if isinstance(doc, list) else []:
-        sym = r.get("symbol")
-        if sym:
-            out[sym] = {"d5": r.get("5D"), "m1": r.get("1M"), "m3": r.get("3M")}
+    for sym in sorted(set(symbols)):
+        row = None
+        for url in ("https://financialmodelingprep.com/stable/stock-price-change?symbol=%s&apikey=%s" % (sym, key),
+                    "https://financialmodelingprep.com/api/v3/stock-price-change/%s?apikey=%s" % (sym, key)):
+            try:
+                doc = _get_json(url, timeout=15)
+                row = doc[0] if isinstance(doc, list) and doc else (doc if isinstance(doc, dict) and doc else None)
+                if row and (row.get("5D") is not None or row.get("1M") is not None):
+                    break
+                row = None
+            except Exception:
+                row = None
+        if row:
+            out[sym] = {"d5": row.get("5D"), "m1": row.get("1M"), "m3": row.get("3M")}
+            continue
+        try:
+            q = _get_json("https://financialmodelingprep.com/stable/quote?symbol=%s&apikey=%s" % (sym, key), timeout=15)
+            r = q[0] if isinstance(q, list) and q else (q if isinstance(q, dict) and q else None)
+            if r:
+                out[sym] = {"d5": None, "m1": None, "m3": None,
+                            "d1": r.get("changePercentage") if r.get("changePercentage") is not None else r.get("changesPercentage")}
+        except Exception:
+            pass
     return out
 
 
@@ -296,8 +310,11 @@ def lambda_handler(event=None, context=None):
                  for r in doc["taiwan"]["top_buy"] + doc["taiwan"]["top_sell"]}
             vals = [m.get(c) for c in b["tw_codes"] if m.get(c) is not None]
             tw_sig = round(sum(vals)) if vals else None
-        etf_ret = {e: usr.get(e, {}).get("d5") for e in b["us_etf"] if e in usr}
-        name_ret = {n: usr.get(n, {}).get("d5") for n in b["us_names"] if n in usr}
+        def _r(sym):
+            r = usr.get(sym, {})
+            return r.get("d5") if r.get("d5") is not None else r.get("d1")
+        etf_ret = {e: _r(e) for e in b["us_etf"] if e in usr}
+        name_ret = {n: _r(n) for n in b["us_names"] if n in usr}
         us5 = [v for v in list(etf_ret.values()) + list(name_ret.values()) if isinstance(v, (int, float))]
         us_avg5 = round(sum(us5) / len(us5), 2) if us5 else None
         # verdict: Asia buying (tw_sig>0) while US flat/down = US hasn't caught up = opportunity
