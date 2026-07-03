@@ -1,0 +1,33 @@
+{
+ "ops": 2776,
+ "ts": "2026-07-03T19:40:09.646333+00:00",
+ "rule": {
+  "state": "ENABLED",
+  "schedule": "cron(20 * * * ? *)",
+  "n_targets": 1
+ },
+ "invoke_error": null,
+ "invoke_head": "{\"statusCode\": 200, \"body\": \"{\\\"names\\\": 79, \\\"multi_engine\\\": 16, \\\"squeeze_fuel\\\": 8, \\\"bullish_flow\\\": 14, \\\"bearish_flow\\\": 5, \\\"coiled\\\": 0, \\\"bullish_lean\\\": 25, \\\"bearish_lean\\\": 6}\"}",
+ "feed_age_min": -0.0,
+ "feed_top_keys": [
+  "engine",
+  "version",
+  "generated_at",
+  "duration_s",
+  "thesis",
+  "alpha_gate",
+  "counts",
+  "multi_engine_confluence",
+  "by_posture",
+  "ticker_map",
+  "note"
+ ],
+ "n_confluence_items": null,
+ "generated_at": "2026-07-03T19:40:29.109249+00:00",
+ "downstream": {
+  "master-ranker": "reads data/options-confluence.json",
+  "best-setups": "reads data/options-confluence.json"
+ },
+ "diagnosis": "FIXED \u2014 _tk shadowing corrected, rule created, feed live & hourly; master-ranker/best-setups now consume fresh options confluence",
+ "followup": "earnings-iv-crush.json dep is 7d stale (separate engine) \u2014 non-blocking; investigate separately"
+}

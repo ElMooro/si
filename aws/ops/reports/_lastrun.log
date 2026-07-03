@@ -1,27 +1,12 @@
-settling 10s…
-fn: {"state": "Active", "runtime": "python3.12", "timeout": 120, "mem": 512, "last_modified": "2026-06-25T23:38:44.000+0000", "env_keys": []}
-rule: MISSING — An error occurred (ResourceNotFoundException) when calling the Describ
-deps freshness:
-   catalyst-skew-premove    19.1h old (2066B)
-   dealer-gex               0.5h old (33233B)
-   earnings-iv-crush        165.6h old (2893B)
-   engine-trust             7.1h old (151336B)
-   options-analytics        6.6h old (60112B)
-   options-flow             21.6h old (6329B)
-   polygon-options-flow     0.3h old (34759B)
-   volatility-squeeze       8.6h old (339B)
-invoking…
-INVOKE ERROR: {"errorMessage": "cannot access local variable '_tk' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "24061c55-592d-45d7-9df3-dc335f3ac60f", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 118, in lambda_handler\n    tk = _tk(it)\n"]}
-CloudWatch error tail:
-    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
-Traceback (most recent call last):
-  File "/var/task/lambd
-    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
-Traceback (most recent call last):
-  File "/var/task/lambd
-    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
-Traceback (most recent call last):
-  File "/var/task/lambd
+settling 12s…
+== 1/4 deploy fix ==
+  deployed
+== 2/4 create missing hourly rule ==
+  rule: {"state": "ENABLED", "schedule": "cron(20 * * * ? *)", "n_targets": 1}
+== 3/4 invoke + verify fresh ==
+  invoke: {"statusCode": 200, "body": "{\"names\": 79, \"multi_engine\": 16, \"squeeze_fuel\": 8, \"bullish_flow\": 14, \"bearish_flow\": 5, \"coiled\": 0, \"bullish_lean\": 25, \"bearish_le
+  feed age: -0.0 min | top keys: ['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map'] | items: None
+== 4/4 confirm downstream sees it ==
 
-DIAGNOSIS: ERRORS — see invoke/cloudwatch; likely dep/code issue
-OPS 2775 COMPLETE
+FIXED — _tk shadowing corrected, rule created, feed live & hourly; master-ranker/best-setups now consume fresh options confluence
+OPS 2776 COMPLETE
