@@ -1,10 +1,17 @@
 settling 15s…
 == 1/3 deploy (xlrd vendored) + invoke ==
   zip size: 0.2 MB
-  invoke -> {"errorMessage": "name 'hk_sig' is not defined", "errorType": "NameError", "requestId": "60ad2857-8e98-420f-8052-ededb83ce66d", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 483, in la
+  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": false, "japan_jpx": true, "hkex_southbound": false}, "tw_stocks": 1079, "tw_fore
+  SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": false, "japan_jpx": true, "hkex_southbound": false}
+
+== 2/3 verify JP / HK / KR-marketwide ==
+  KOREA market-wide: {}
+  JAPAN: {"status": "LIVE", "source": "JPX weekly", "file": "stock_val_1_260604.xls", "unit": "JPY thousands", "week": "06/22～06/26", "foreign_net": 1068065563.0, "individual_net": 911633499.0, "institution_net": 61892336.0, "by_market": {"TSE Prime": {"foreign_net": 1068065563.0, "individual_net": 911633499.0, "institution_net": 61892336.0}, "TSE Standard": {"foreign_net": 5645782.0, "individual_net": 118
+  HONG KONG: {"status": "PENDING", "note": "HKEX daily-stat js unreachable/unparsed"}
+  HK bridge: NONE
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2756_jp_hk_kr_build.py", line 51, in <module>
-    assert not resp.get("FunctionError"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': "name 'hk_sig' is not defined", 'errorType': 'NameError', 'requestId': '60ad2857-8e98-420f-8052-ededb83ce66d', 'stackTrace': ['  File "/var/task/lambda_function.py", line 483, in lambda_handler\n    asia_vals = [v for v in (tw_sig, kr_sig, hk_sig) if v is not None]\n']}
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2756_jp_hk_kr_build.py", line 70, in <module>
+    assert kr_mw.get("total_foreign_value") is not None, ("korea market-wide failed", kr_mw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('korea market-wide failed', {})
 ❌ OPS-FAIL: aws/ops/pending/ops_2756_jp_hk_kr_build.py
