@@ -1,0 +1,26 @@
+{
+ "ops": 2771,
+ "ts": "2026-07-03T18:47:02.270957+00:00",
+ "http": 200,
+ "status_field": "OK",
+ "n_contracts": 250,
+ "has_greeks": 243,
+ "has_open_interest": 250,
+ "spot": null,
+ "sample_contract_keys": [
+  "day",
+  "details",
+  "greeks",
+  "implied_volatility",
+  "open_interest",
+  "underlying_asset"
+ ],
+ "sample_greeks_keys": [
+  "delta",
+  "gamma",
+  "theta",
+  "vega"
+ ],
+ "verdict": "greeks/OI/spot missing \u2014 options DATA entitlement likely NOT on current plan",
+ "options_trades_http_error": "403"
+}

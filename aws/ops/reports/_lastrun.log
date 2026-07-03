@@ -1,4 +1,8 @@
-series_days: {"tw_semi": 63, "kr_memory": 120, "hk_south": 67}
-proven: [{"name": "Taiwan semis → SOXX", "lead_days": 10, "r": -0.399, "n": 51}, {"name": "Taiwan semis → SMH", "lead_days": 10, "r": -0.366, "n": 51}, {"name": "Korea memory → SMH", "lead_days": 3, "r": 0.287, "n": 87}, {"name": "Korea memory → MU", "lead_days": 3, "r": 0.278, "n": 87}]
-READ: FOLLOW-THROUGH — Korea memory → SMH (r=+0.29, 3d lead, n=87): Asia buying precedes US gains · CONTRARIAN — Taiwan semis → SOXX (r=-0.40, 10d, n=51): Asia buying precedes US weakness. 4 significant lead(s) across 7 pairs; regime-dependent.
-OPS 2770 COMPLETE
+key sourced from justhodl-portfolio-risk (len 32)
+http=200 status=OK contracts=250 w/greeks=243 w/OI=250 spot=None
+  sample keys: ['day', 'details', 'greeks', 'implied_volatility', 'open_interest', 'underlying_asset']
+  sample greeks: {'delta': 0.9990159434459986, 'gamma': 8.646708612730984e-06, 'theta': -0.0034393327714934943, 'vega': 0.013137264184934432}
+options trades HTTP 403
+
+VERDICT: greeks/OI/spot missing — options DATA entitlement likely NOT on current plan
+OPS 2771 COMPLETE
