@@ -1,0 +1,195 @@
+{
+ "ops": 2754,
+ "ts": "2026-07-03T15:48:56.257379+00:00",
+ "korea": [
+  {
+   "url": "https://m.stock.naver.com/api/index/KOSPI/integration",
+   "http": 200,
+   "ctype": "application/json;charset=UTF-8",
+   "len": 10533,
+   "invest_terms": [
+    "foreign"
+   ],
+   "json": true,
+   "keys": [
+    "stockEndType",
+    "itemCode",
+    "reutersCode",
+    "stockName",
+    "totalInfos",
+    "description",
+    "dealTrendInfo",
+    "programTrendInfo",
+    "upDownStockInfo",
+    "enrollStocks",
+    "month"
+   ]
+  },
+  {
+   "url": "https://m.stock.naver.com/api/index/KOSDAQ/integration",
+   "http": 200,
+   "ctype": "application/json;charset=UTF-8",
+   "len": 10438,
+   "invest_terms": [
+    "foreign"
+   ],
+   "json": true,
+   "keys": [
+    "stockEndType",
+    "itemCode",
+    "reutersCode",
+    "stockName",
+    "totalInfos",
+    "description",
+    "dealTrendInfo",
+    "programTrendInfo",
+    "upDownStockInfo",
+    "enrollStocks",
+    "month"
+   ]
+  },
+  {
+   "url": "https://m.stock.naver.com/api/index/KOSPI/trend",
+   "http": 200,
+   "ctype": "application/json;charset=UTF-8",
+   "len": 104,
+   "invest_terms": [
+    "foreign"
+   ],
+   "json": true,
+   "keys": [
+    "bizdate",
+    "personalValue",
+    "foreignValue",
+    "institutionalValue"
+   ]
+  },
+  {
+   "url": "https://api.stock.naver.com/index/KOSPI/basic",
+   "err": "HTTP Error 409: Conflict"
+  },
+  {
+   "url": "https://finance.naver.com/sise/sise_deal_trend.naver",
+   "err": "HTTP Error 404: 404"
+  },
+  {
+   "url": "https://finance.naver.com/sise/investorDealTrendDay.naver",
+   "http": 200,
+   "ctype": "text/html;charset=EUC-KR",
+   "len": 1768,
+   "invest_terms": [
+    "investor"
+   ],
+   "head": "<html lang=\"ko\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=euc-kr\"> <title>Npay </title> <link rel=\"stylesheet\" type=\"text/css\" href=\"https://ssl.pstatic.net/imgstock/static.p"
+  }
+ ],
+ "japan": [
+  {
+   "url": "https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/index.html",
+   "http": 200,
+   "ctype": "text/html",
+   "len": 36094,
+   "invest_terms": [
+    "investor"
+   ],
+   "xls_links": [
+    "/english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_vol_1_260604.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_val_1_260604.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001sisu-att/stock_vol_1_260603.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001sisu-att/stock_val_1_260603.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001q0ng-att/stock_vol_1_260602.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001q0ng-att/stock_val_1_260602.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001prht-att/stock_vol_1_260601.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001prht-att/stock_val_1_260601.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001na2m-att/stock_vol_1_260504.xls",
+    "/english/markets/statistics-equities/investor-type/vk0khi000001na2m-att/stock_val_1_260504.xls",
+    "/english/markets/statistics-equities/investor-type/tvdivq00000014fy-att/revision_information_e.xls"
+   ],
+   "head": "<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head prefix=\"og: http://ogp.me/ns# fb: http:"
+  },
+  {
+   "url": "https://www.jpx.co.jp/markets/statistics-equities/investor-type/index.html",
+   "http": 200,
+   "ctype": "text/html",
+   "len": 36471,
+   "invest_terms": [
+    "投資部門",
+    "海外",
+    "investor"
+   ],
+   "xls_links": [
+    "/markets/statistics-equities/investor-type/t13vrt000001iqby-att/stock_vol_1_260604.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001iqby-att/stock_val_1_260604.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001i8z5-att/stock_vol_1_260603.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001i8z5-att/stock_val_1_260603.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001fkjq-att/stock_vol_1_260602.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001fkjq-att/stock_val_1_260602.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001f92k-att/stock_vol_1_260601.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001f92k-att/stock_val_1_260601.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001eur3-att/stock_vol_1_260504.xls",
+    "/markets/statistics-equities/investor-type/t13vrt000001eur3-att/stock_val_1_260504.xls",
+    "/markets/statistics-equities/investor-type/tvdivq00000014fy-att/revision_information_j.xls"
+   ],
+   "head": "<!DOCTYPE html>\r\n<html lang=\"ja\">\r\n<head prefix=\"og: http://ogp.me/ns# fb: http:"
+  }
+ ],
+ "hongkong": [
+  {
+   "url": "https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_20260703e.js",
+   "http": 200,
+   "ctype": "application/javascript",
+   "len": 8700,
+   "invest_terms": [
+    "Southbound"
+   ],
+   "head": "tabData = [ { \"id\": 0, \"date\": \"2026-07-03\", \"market\": \"SSE Northbound\", \"tradingDay\": 1, \"content\": [ { \"style\": 1, \"table\": { \"classname\": \"tradingTable\", "
+  },
+  {
+   "url": "https://www1.hkex.com.hk/hkexwidget/data/getmutualmarketdata?lang=eng&token=&type=SB&qid=0&callback=jQuery",
+   "err": "HTTP Error 404: Not Found"
+  },
+  {
+   "url": "https://www.hkex.com.hk/Mutual-Market/Stock-Connect/Statistics/Historical-Daily?sc_lang=en",
+   "http": 200,
+   "ctype": "text/html; charset=utf-8",
+   "len": 251285,
+   "invest_terms": [
+    "Southbound"
+   ],
+   "head": " <!DOCTYPE html> <html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\" data-wf-page=\"5e37e0bcc62330e0912344e8\" class=\"market-hkex\" prefix=\"og: http://ogp.me/ns#\"> <head><title> H"
+  },
+  {
+   "url": "http://www.aastocks.com/en/stocks/market/dtsc/dtsc.aspx",
+   "http": 200,
+   "ctype": "text/html",
+   "len": 34467,
+   "invest_terms": [],
+   "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\"> <head> <title>AASTOCKS</title>"
+  },
+  {
+   "url": "http://www.aastocks.com/en/stocks/market/ahstockcompare/ah-price-compare",
+   "http": 200,
+   "ctype": "text/html",
+   "len": 34467,
+   "invest_terms": [],
+   "head": "﻿<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"> <html xmlns=\"http://www.w3.org/1999/xhtml\"> <head> <title>AASTOCKS</title>"
+  },
+  {
+   "url": "https://www.hkex.com.hk/-/media/HKEX-Market/Mutual-Market/Stock-Connect/Statistics/SB_Turnover/2026/SB_Turnover_202607.json",
+   "err": "HTTP Error 404: Not Found"
+  }
+ ],
+ "japan_download": {
+  "url": "https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_vol_1_260604.xls",
+  "http": 200,
+  "ctype": "application/vnd.ms-excel",
+  "len": 97792,
+  "is_xls": true,
+  "magic": "d0cf11e0"
+ },
+ "verdict": {
+  "korea_marketwide": "https://m.stock.naver.com/api/index/KOSPI/integration",
+  "japan": "https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_vol_1_260604.xls",
+  "hongkong": "https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_20260703e.js"
+ }
+}

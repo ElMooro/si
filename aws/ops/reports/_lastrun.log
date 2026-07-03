@@ -1,15 +1,35 @@
-settling 15s…
-== 1/3 deploy adapter + invoke ==
-  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "korea_naver": true}, "tw_stocks": 1079, "tw_foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u
-  KOREA status: LIVE | source: Naver Finance | as_of: 2026-07-03 | names: 16
-  KR foreign net total (shares): -2098044
-  KR sector flows: {"Autos": 295832, "Electronics": 90869, "Battery": 79566, "Biotech": 1805, "Materials": -21598, "Internet": -70534, "Financials": -318244, "Memory/Semis": -2110952}
-  KR tracked (Samsung/SKHynix/LGES): {"005930": -1365575.0, "000660": -745377.0, "373220": 81629.0}
-  KR top buys: [('Kia', 159566.0), ('LG Electronics', 90869.0), ('LG Energy Solution', 81629.0), ('Hyundai Motor', 76257.0)]
-  bridge: Semiconductors (TW → US)               TW=4419074 KR=-2110952 US5d=-3.46 [ASIA LEADING — US lagging (potential setup)]
-  bridge: AI Hardware / Foxconn build-out (TW →  TW=None KR=None US5d=-3.1 [insufficient data]
-  bridge: Memory / EV Battery (KR → US)          TW=None KR=-663748 US5d=-2.5 [both soft]
-== 2/3 page at edge ==
-  page attempt 1: LIVE
-== 3/3 report ==
-OPS 2753 COMPLETE — Korea live via Naver; both Asian legs feeding US bridges
+== KOREA market-wide ==
+  https://m.stock.naver.com/api/index/KOSPI/integration      http=200 len=10533 terms=['foreign'] keys=['stockEndType', 'itemCode', 'reutersCode', 'stockName', 'totalInfos', 'description', 'dealTrendInfo', 'programTrendInfo', 'upDownStockInfo', 'enrollStocks', 'month']
+  https://m.stock.naver.com/api/index/KOSDAQ/integration     http=200 len=10438 terms=['foreign'] keys=['stockEndType', 'itemCode', 'reutersCode', 'stockName', 'totalInfos', 'description', 'dealTrendInfo', 'programTrendInfo', 'upDownStockInfo', 'enrollStocks', 'month']
+  https://m.stock.naver.com/api/index/KOSPI/trend            http=200 len=104 terms=['foreign'] keys=['bizdate', 'personalValue', 'foreignValue', 'institutionalValue']
+  https://api.stock.naver.com/index/KOSPI/basic              http=None len=None terms=None keys=
+  https://finance.naver.com/sise/sise_deal_trend.naver       http=None len=None terms=None keys=
+  https://finance.naver.com/sise/investorDealTrendDay.naver  http=200 len=1768 terms=['investor'] keys=
+
+== JAPAN JPX ==
+  glish/markets/statistics-equities/investor-type/index.html http=200 xls_links=11
+       /english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_vol_1_260604.xls
+       /english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_val_1_260604.xls
+       /english/markets/statistics-equities/investor-type/vk0khi000001sisu-att/stock_vol_1_260603.xls
+       /english/markets/statistics-equities/investor-type/vk0khi000001sisu-att/stock_val_1_260603.xls
+       /english/markets/statistics-equities/investor-type/vk0khi000001q0ng-att/stock_vol_1_260602.xls
+       /english/markets/statistics-equities/investor-type/vk0khi000001q0ng-att/stock_val_1_260602.xls
+  co.jp/markets/statistics-equities/investor-type/index.html http=200 xls_links=11
+       /markets/statistics-equities/investor-type/t13vrt000001iqby-att/stock_vol_1_260604.xls
+       /markets/statistics-equities/investor-type/t13vrt000001iqby-att/stock_val_1_260604.xls
+       /markets/statistics-equities/investor-type/t13vrt000001i8z5-att/stock_vol_1_260603.xls
+       /markets/statistics-equities/investor-type/t13vrt000001i8z5-att/stock_val_1_260603.xls
+       /markets/statistics-equities/investor-type/t13vrt000001fkjq-att/stock_vol_1_260602.xls
+       /markets/statistics-equities/investor-type/t13vrt000001fkjq-att/stock_val_1_260602.xls
+  DL khi000001swf1-att/stock_vol_1_260604.xls http=200 len=97792 magic=d0cf11e0
+
+== HONG KONG Southbound ==
+  kex.com.hk/eng/csm/DailyStat/data_tab_daily_20260703e.js http=200 len=8700 terms=['Southbound']
+  marketdata?lang=eng&token=&type=SB&qid=0&callback=jQuery http=None len=None terms=None
+  ket/Stock-Connect/Statistics/Historical-Daily?sc_lang=en http=200 len=251285 terms=['Southbound']
+  http://www.aastocks.com/en/stocks/market/dtsc/dtsc.aspx  http=200 len=34467 terms=[]
+  cks.com/en/stocks/market/ahstockcompare/ah-price-compare http=200 len=34467 terms=[]
+  nect/Statistics/SB_Turnover/2026/SB_Turnover_202607.json http=None len=None terms=None
+
+VERDICT: {"korea_marketwide": "https://m.stock.naver.com/api/index/KOSPI/integration", "japan": "https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/vk0khi000001swf1-att/stock_vol_1_260604.xls", "hongkong": "https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_20260703e.js"}
+OPS 2754 COMPLETE — JP/HK/KR recon done
