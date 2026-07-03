@@ -1,18 +1,6 @@
-earnings-iv-crush.json age BEFORE: 168.8h
-invoking justhodl-earnings-iv-crush (RequestResponse, tail logs)…
-StatusCode: 200 | FunctionError: None
-── payload (first 800c) ──
-{"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_rich\": 0, \"n_cheap\": 0, \"n_total\": 0, \"duration_s\": 6.4}"}
-── tail log (last lines) ──
-   START RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff Version: $LATEST
-   earnings calendar returned 1913 events
-   unique upcoming earnings: 1411
-   enriching 0/80: 0ENN.L
-   enriching 20/80: APM
-   enriching 40/80: 6093.T
-   enriching 60/80: AQSZF
-   END RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff
-   REPORT RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff	Duration: 6378.03 ms	Billed Duration: 6662 ms	Memory Size: 1024 MB	Max Memory Used: 105 MB	Init Duration: 283.86 ms	
-   XRAY TraceId: 1-6a483c9f-38e452440054cfca5e16554b	SegmentId: 3f9f26d6f1e67107	Sampled: true
-earnings-iv-crush.json age AFTER: 0.0h (WROTE FRESH!)
-OPS 2787 COMPLETE · wrote_fresh=True
+lambda arn: arn:aws:lambda:us-east-1:857687956942:function:justhodl-earnings-iv-crush
+put_rule: arn:aws:events:us-east-1:857687956942:rule/justhodl-earnings-iv-crush-daily
+add_permission: granted
+put_targets: done
+VERIFY: rule ENABLED cron(50 21 * * ? *) -> targets ['justhodl-earnings-iv-crush']
+OPS 2788 COMPLETE — earnings-iv-crush now scheduled daily 21:50 UTC
