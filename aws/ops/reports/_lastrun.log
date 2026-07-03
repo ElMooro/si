@@ -1,77 +1,10 @@
-== KOREA KOSPI/trend layout ==
-  {"bizdate": "20260703", "personalValue": "-22,942", "foreignValue": "-21,750", "institutionalValue": "+44,079"}
-
-== HONG KONG data_tab_daily .js ==
-  date 20260703 len 8700
-  HEAD: tabData = [
-	{
-		"id": 0,
-		"date": "2026-07-03",
-		"market": "SSE Northbound",
-		"tradingDay": 1,
-		"content": [
-			{
-				"style": 1,
-				"table": {
-					"classname": "tradingTable",
-					"schema": [
-						["Total Turnover", "Total Trade Count", "DQB", "ETF Turnover"]
-					],
-					"tr": [
-						{
-							"td": [
-								["171,764.45"]
-							]
-						},
-						{
-							"td": [
-								["6,302,487"]
-							]
-						},
-						{
-							"td": [
-								["999,999,999"]
-							
-  SB-CTX: "date": "2026-07-03", "market": "SSE Southbound", "tradingDay": 1, "content": [ { "style": 1, "table": { "classname": "tradingTable", "schema": [ ["Total Turnover", "Buy Turnover", "Sell Turnover", "Total Trade Count",
-  SB-CTX: date": "2026-07-03", "market": "SZSE Southbound", "tradingDay": 1, "content": [ { "style": 1, "table": { "classname": "tradingTable", "schema": [ ["Total Turnover", "Buy Turnover", "Sell Turnover", "Total Trade Count",
-
-== JAPAN JPX xls dump ==
-  file: stock_val_1_260604.xls | sheet: TSE Prime 78x11
-  r00: 投資部門別　株式売買状況　東証プ
-  r01: Trading Value of
-  r03: 2026年6月第4週 2026/
-  r04: 千円,%  1,000 yen,
-  r05: 東証プライム総売買代金 | 総売買代金に占める合計及び自己・
-  r06: (売り買い合計) | Ratio of proprie
-  r07: Total trading va | 総計 Total | 自己取引 Proprietary | 委託取引 Brokerage
-  r08: 130,795,954,732 | 98.8% | 7.4% | 91.4%
-  r10: 06/15～06/19 | 06/22～06/26
-  r11: 金額 Value | 比率 Ratio | 差引き Balance | 金額 Value | 比率 Ratio | 差引き Balance
-  r12: 自己計 | 売り | Sales | 5,193,312,915 | 7.8 | 4,685,933,672 | 7.3
-  r13: Proprietary | 買い | Purchases | 5,197,495,592 | 7.8 | 4,182,677 | 4,985,785,234 | 7.7 | 299,851,562
-  r14: 合計 | Total | 10,390,808,507 | 7.8 | 9,671,718,906 | 7.5
-  r15: 委託計 | 売り | Sales | 61,402,340,656 | 92.2 | -49,582,814 | 59,920,713,423 | 92.7 | -239,329,170
-  r16: Brokerage | 買い | Purchases | 61,352,757,842 | 92.2 | 59,681,384,253 | 92.3
-  r17: 合計 | Total | 122,755,098,498 | 92.2 | 119,602,097,676 | 92.5
-  r18: 総　計 | 売り | Sales | 66,595,653,571 | 100.0 | -45,400,137 | 64,606,647,095 | 100.0
-  r19: Total | 買い | Purchases | 66,550,253,434 | 100.0 | 64,667,169,487 | 100.0 | 60,522,392
-  r20: 合計 | Total | 133,145,907,005 | 100.0 | 129,273,816,582 | 100.0
-  r22: 委託内訳　Brokerage T
-  r23: 法　人 | 売り | Sales | 3,479,293,076 | 5.7 | -633,903,291 | 2,562,688,677 | 4.3
-  r24: Institutions | 買い | Purchases | 2,845,389,785 | 4.6 | 2,624,581,013 | 4.4 | 61,892,336
-  r25: 合計 | Total | 6,324,682,861 | 5.2 | 5,187,269,690 | 4.3
-  r26: 個　人 | 売り | Sales | 18,817,515,971 | 30.6 | -470,123,277 | 18,504,310,542 | 30.9
-  r27: Individuals | 買い | Purchases | 18,347,392,694 | 29.9 | 19,415,944,041 | 32.5 | 911,633,499
-  r28: 合計 | Total | 37,164,908,665 | 30.3 | 37,920,254,583 | 31.7
-  r29: 海外投資家 | 売り | Sales | 38,888,398,219 | 63.3 | 38,635,896,628 | 64.5 | -1,208,567,543
-  r30: Foreigners | 買い | Purchases | 39,956,463,782 | 65.1 | 1,068,065,563 | 37,427,329,085 | 62.7
-  r31: 合計 | Total | 78,844,862,001 | 64.2 | 76,063,225,713 | 63.6
-  r32: 証券会社 | 売り | Sales | 217,133,390 | 0.4 | -13,621,809 | 217,817,576 | 0.4 | -4,287,462
-  r33: Securities Cos. | 買い | Purchases | 203,511,581 | 0.3 | 213,530,114 | 0.4
-  r34: 合計 | Total | 420,644,971 | 0.3 | 431,347,690 | 0.4
-  r36: 法人内訳　Institution
-  r37: 投資信託 | 売り | Sales | 1,226,694,200 | 2.0 | -551,101,079 | 612,961,586 | 1.0
-  r38: Investment | 買い | Purchases | 675,593,121 | 1.1 | 940,081,206 | 1.6 | 327,119,620
-  r39: Trusts | 合計 | Total | 1,902,287,321 | 1.5 | 1,553,042,792 | 1.3
-
-OPS 2755 COMPLETE — structures captured
+settling 15s…
+== 1/3 deploy (xlrd vendored) + invoke ==
+  zip size: 0.2 MB
+  invoke -> {"errorMessage": "name 'hk_sig' is not defined", "errorType": "NameError", "requestId": "60ad2857-8e98-420f-8052-ededb83ce66d", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 483, in la
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2756_jp_hk_kr_build.py", line 51, in <module>
+    assert not resp.get("FunctionError"), pay
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'errorMessage': "name 'hk_sig' is not defined", 'errorType': 'NameError', 'requestId': '60ad2857-8e98-420f-8052-ededb83ce66d', 'stackTrace': ['  File "/var/task/lambda_function.py", line 483, in lambda_handler\n    asia_vals = [v for v in (tw_sig, kr_sig, hk_sig) if v is not None]\n']}
+❌ OPS-FAIL: aws/ops/pending/ops_2756_jp_hk_kr_build.py
