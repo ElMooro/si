@@ -1,15 +1,13 @@
-dealer-gex SPY keys: ['symbol', 'spot', 'n_contracts_modeled', 'total_call_oi', 'total_put_oi', 'total_call_volume', 'total_put_volume', 'pcr_oi', 'pcr_volume', 'total_dealer_gex_dollars', 'total_dealer_gex_billions', 'zero_gamma_flip_level', 'spot_pct_to_flip', 'spot_above_flip', 'regime', 'trading_bias', 'total_vanna_dollars', 'total_charm_dollars_per_day', 'call_walls_top5', 'put_walls_top5', 'top_gamma_strikes', 'by_expiry', 'max_pain_by_expiry', 'iv_skew_30d', 'zero_dte']
-  by_strike schema: None len: None
-  by_expiry schema: None
-  market_composite keys: ['spy_regime', 'spy_gex_billions', 'spy_flip_level', 'spy_spot', 'spy_pct_to_flip', 'spy_trading_bias', 'qqq_regime', 'iwm_regime', 'index_gex_signs', 'composite_regime', 'composite_signal']
-  squeeze_candidates: 0 []
-options-gamma by_strike: dict n= 29 schema= ['call_gex', 'put_gex', 'net_gex', 'oi_call', 'oi_put']
-options-analytics board schema: ['ticker', 'spot', 'signal', 'score', 'price_confirm', 'gamma_regime', 'net_gex_musd_per_1pct', 'gamma_flip_strike', 'call_wall', 'put_wall', 'atm_iv_front', 'term_slope', 'term_structure', 'skew_25d', 'hv20', 'vrp', 'iv_rank', 'pcr_vol', 'pcr_oi', 'call_vol', 'put_vol', 'net_premium_usd', 'n_unusual', 'unusual', 'expiries', 'reasons'] n: 58
-dix current: {'date': '2026-07-02', 'price': 7483.24, 'dix': 0.40873, 'dix_pct': 40.87, 'gex': 6862495709.0, 'gex_billions': 6.862} | MAs: ['dix_5d_pct', 'dix_20d_pct', 'dix_60d_pct', 'dix_252d_pct', 'gex_5d', 'gex_20d', 'gex_60d']
-  dix-history: dict n= 32
-opex forward_expectations: ['1m', '3m', '12m'] | current_readings: ['next_opex', 'days_to_next_opex_trading', 'days_since_prior_opex_trading', 'is_quad_witching', 'max_pain', 'spy_current', 'pin_distance_pct', 'n_contracts_analyzed', 'top_strikes_by_oi']
-dealer-gex-history: dict n= 482
-catalyst-skew-premove top: ['engine', 'version', 'as_of', 'state', 'state_description', 'signal_strength', 'summary', 'bull_skew_setups', 'bear_skew_setups', 'balanced_setups', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
-earnings-iv-crush top: ['engine', 'version', 'as_of', 'state', 'previous_state', 'state_description', 'signal_strength', 'summary', 'current_readings', 'top_rich', 'top_cheap', 'fair_priced', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_episodes', 'why_now_explainer', 'methodology', 'sources', 'schedule', 'run_duration_seconds']
-volatility-squeeze top: ['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
-OPS 2779 COMPLETE
+attempt 1: partial (16876 bytes)
+attempt 2: partial (16876 bytes)
+attempt 3: partial (16876 bytes)
+attempt 4: partial (16876 bytes)
+attempt 5: partial (16876 bytes)
+attempt 6: partial (16876 bytes)
+attempt 7: partial (16876 bytes)
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2780_hubv2_verify.py", line 24, in <module>
+    assert okp, ("v2 not fully live", R.get("markers"))
+           ^^^
+AssertionError: ('v2 not fully live', {'OPTIONS HUB v2': False, 'NET GEX BY STRIKE': False, 'GEX BY EXPIRATION': False, 'DEALER GREEKS': False, 'POSITIONING BOARD': False, 'CATALYST SKEW': False, 'VOLATILITY SQUEEZE': False})
+❌ OPS-FAIL: aws/ops/pending/ops_2780_hubv2_verify.py
