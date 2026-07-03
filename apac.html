@@ -53,7 +53,7 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
  const app=document.getElementById("app");
  if(!d){app.textContent="Feed unavailable.";return}
  const tw=d.taiwan||{},src=d.sources||{};
- document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · Taiwan ${src.twse_t86?"LIVE":"—"} · Korea ${src.krx?"LIVE":"pending"} · US returns ${d.us_returns_live?"LIVE":"—"} · ${d.history_days||0}d history`;
+ document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · Taiwan ${src.twse_t86?"LIVE":"—"} · Korea ${(d.korea&&d.korea.status==="LIVE")?"LIVE":"pending"} · US returns ${d.us_returns_live?"LIVE":"—"} · ${d.history_days||0}d history`;
  let h=`<div class="read">🧭 ${d.read||"—"} ${tw.foreign_net_twd_bn!=null?`Market-wide foreign net today: <b style="color:${pc(tw.foreign_net_twd_bn)}">NT$${tw.foreign_net_twd_bn}B</b>.`:""} <span class="f3">The thesis: Taiwan/Korea foreign money often leads the US equivalent — a green "ASIA LEADING" verdict flags a US sector that may not have moved yet.</span></div>`;
 
  // BRIDGES (hero)
@@ -62,7 +62,8 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
   const rets=Object.assign({},b.us_etf_ret5d||{},b.us_name_ret5d||{});
   h+=`<div class="bcard"><h3>${b.name}</h3>
    <div class="verdict ${vclass(b.verdict)}">${b.verdict||"—"}</div>
-   <div class="leg"><span>Asia foreign net (shares)</span><b style="color:${pc(b.tw_foreign_net_shares)}">${b.tw_foreign_net_shares!=null?sh(b.tw_foreign_net_shares):"n/a"}</b></div>
+   ${b.tw_foreign_net_shares!=null?`<div class="leg"><span>🇹🇼 TW foreign net</span><b style="color:${pc(b.tw_foreign_net_shares)}">${sh(b.tw_foreign_net_shares)}</b></div>`:""}
+   ${b.kr_foreign_net_shares!=null?`<div class="leg"><span>🇰🇷 KR foreign net</span><b style="color:${pc(b.kr_foreign_net_shares)}">${sh(b.kr_foreign_net_shares)}</b></div>`:""}
    <div class="leg"><span>US peers avg 5-day</span><b style="color:${pc(b.us_avg_ret5d)}">${pct(b.us_avg_ret5d)}</b></div>
    <div class="retpills">${Object.keys(rets).map(k=>`<span class="pill" style="color:${pc(rets[k])}">${k} ${pct(rets[k])}</span>`).join("")||'<span class="pill f3">US returns wiring…</span>'}</div></div>`;
  }
@@ -82,9 +83,20 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
  }
 
  // Korea / Japan
- h+=`<h2 class="sec">KOREA · JAPAN</h2><div class="grid2">
-  <div class="pending"><b style="color:var(--fg2)">🇰🇷 Korea (KRX)</b><br>${src.krx?"LIVE":"Investor-type net flows (individual / foreign / institution) — KRX data endpoint resolves in v1.1. Samsung 005930 & SK Hynix 000660 will anchor the memory/AI bridge."}</div>
-  <div class="pending"><b style="color:var(--fg2)">🇯🇵 Japan (JPX)</b><br>Weekly trading-by-investor-type flows (foreigners vs individuals) — v1.1 (JPX publishes Thursdays).</div></div>`;
+ const kr=d.korea||{};
+ if(kr.status==="LIVE"&&kr.top_buy){
+  h+=`<h2 class="sec">KOREA — FOREIGN INVESTOR FLOWS (Naver, ${kr.as_of||""})</h2><div class="grid2">
+   <div class="c"><h3>TOP FOREIGN NET BUYS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
+   ${kr.top_buy.slice(0,8).map(x=>`<tr><td>${x.name}</td><td class="f3">${x.sector||"—"}</td><td class="g">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div>
+   <div class="c"><h3>TOP FOREIGN NET SELLS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
+   ${kr.top_sell.slice(0,8).map(x=>`<tr><td>${x.name}</td><td class="f3">${x.sector||"—"}</td><td class="r">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div></div>`;
+  const ks=kr.sector_flows_shares||{};const kmx=Math.max(1,...Object.values(ks).map(Math.abs));
+  h+=`<div class="c" style="margin-top:13px"><h3>KOREA FOREIGN NET BY SECTOR (shares)</h3>
+   ${Object.entries(ks).map(([k,v])=>`<div class="sbar"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/kmx*48}%;background:${pc(v)}"></b><span>${k}</span><em style="color:${pc(v)}">${sh(v)}</em></div>`).join("")}</div>`;
+ }else{
+  h+=`<h2 class="sec">KOREA · JAPAN</h2><div class="grid2"><div class="pending"><b style="color:var(--fg2)">🇰🇷 Korea</b><br>Naver source wiring…</div><div class="pending"><b style="color:var(--fg2)">🇯🇵 Japan (JPX)</b><br>Weekly investor-type flows — v1.1.</div></div>`;
+ }
+ if(kr.status==="LIVE"){h+=`<h2 class="sec">JAPAN</h2><div class="pending"><b style="color:var(--fg2)">🇯🇵 Japan (JPX)</b><br>Weekly trading-by-investor-type flows (foreigners vs individuals) — v1.1 (JPX publishes Thursdays).</div>`;}
 
  h+=`<div class="c" style="margin-top:16px"><div class="f3" style="font-family:var(--mono);font-size:10px">Sources: TWSE OpenAPI (T86 per-stock foreign net + BFI82U market foreign net) · US returns via FMP · daily 09:30 UTC after Asian close. Foreign-flow leadership is a context signal, not a trade instruction; rigorous lead-lag scoring activates once ~30d of history accrues.</div></div>`;
  app.className="";app.innerHTML=h;

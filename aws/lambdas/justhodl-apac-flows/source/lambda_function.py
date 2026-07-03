@@ -207,24 +207,55 @@ def taiwan_bfi():
     return {"foreign_net_twd": None}
 
 
-def korea_krx():
-    """Best-effort KRX market investor net. Never throws."""
-    today = datetime.now(timezone.utc).strftime("%Y%m%d")
-    headers = {"User-Agent": "Mozilla/5.0", "Referer": "http://data.krx.co.kr/",
-               "Content-Type": "application/x-www-form-urlencoded"}
-    for bld in ("dbms/MDC/STAT/standard/MDCSTAT02203", "dbms/MDC/STAT/standard/MDCSTAT02201"):
+KR_NAMES = {"005930": "Samsung Electronics", "000660": "SK Hynix", "373220": "LG Energy Solution",
+            "006400": "Samsung SDI", "051910": "LG Chem", "005380": "Hyundai Motor", "000270": "Kia",
+            "035420": "NAVER", "035720": "Kakao", "005490": "POSCO Holdings", "012330": "Hyundai Mobis",
+            "066570": "LG Electronics", "207940": "Samsung Biologics", "105560": "KB Financial",
+            "005490b": "", "000100": "Yuhan", "096770": "SK Innovation"}
+KR_SECTOR = {"005930": "Memory/Semis", "000660": "Memory/Semis",
+             "373220": "Battery", "006400": "Battery", "051910": "Battery", "096770": "Battery",
+             "005380": "Autos", "000270": "Autos", "012330": "Autos",
+             "035420": "Internet", "035720": "Internet",
+             "005490": "Materials", "066570": "Electronics", "207940": "Biotech", "105560": "Financials"}
+NAVER_TREND = "https://m.stock.naver.com/api/stock/%s/trend"
+
+
+def korea_naver():
+    """Per-stock foreign/institution/individual net + foreign hold ratio via Naver
+    mobile API (KRX data endpoint blocks AWS IPs; Naver is reachable)."""
+    out = []
+    for code in [c for c in KR_NAMES if KR_NAMES[c]]:
         try:
-            body = urllib.parse.urlencode({"bld": bld, "mktId": "STK", "strtDd": today, "endDd": today,
-                                           "trdVolVal": "2", "askBid": "3", "share": "1", "money": "1"}).encode()
-            req = urllib.request.Request(KRX, data=body, headers=headers)
-            with urllib.request.urlopen(req, timeout=25) as r:
-                doc = json.loads(r.read())
-            block = doc.get("output") or doc.get("OutBlock_1") or doc.get("block1") or []
-            if block:
-                return {"status": "LIVE", "bld": bld, "rows": len(block), "raw_keys": list(block[0])[:6]}
+            doc = _get_json(NAVER_TREND % code, headers={"User-Agent": UA["User-Agent"],
+                            "Referer": "https://m.stock.naver.com/"}, timeout=15)
+            rows = doc if isinstance(doc, list) else (doc.get("result") or doc.get("trends") or [])
+            if not rows:
+                continue
+            latest = max(rows, key=lambda r: str(r.get("bizdate", "")))
+            out.append({"code": code, "name": KR_NAMES[code], "sector": KR_SECTOR.get(code),
+                        "foreign_net_shares": _num(latest.get("foreignerPureBuyQuant")),
+                        "inst_net_shares": _num(latest.get("organPureBuyQuant")),
+                        "indiv_net_shares": _num(latest.get("individualPureBuyQuant")),
+                        "foreign_hold_pct": _num(latest.get("foreignerHoldRatio")),
+                        "as_of": str(latest.get("bizdate"))})
+            time.sleep(0.25)
         except Exception:
             continue
-    return {"status": "PENDING", "note": "KRX endpoint/bld to be resolved in v1.1 dedicated probe"}
+    if not out:
+        return {"status": "PENDING", "note": "Naver unreachable this run"}
+    out.sort(key=lambda x: (x["foreign_net_shares"] if x["foreign_net_shares"] is not None else -9e18), reverse=True)
+    sec = {}
+    for r in out:
+        if r["sector"] and r["foreign_net_shares"] is not None:
+            sec[r["sector"]] = sec.get(r["sector"], 0) + r["foreign_net_shares"]
+    tot = sum(r["foreign_net_shares"] for r in out if r["foreign_net_shares"] is not None)
+    bz = out[0]["as_of"]
+    return {"status": "LIVE", "source": "Naver Finance", "as_of": "%s-%s-%s" % (bz[:4], bz[4:6], bz[6:]) if len(bz) == 8 else bz,
+            "n_names": len(out), "foreign_net_total_shares": round(tot),
+            "top_buy": out[:8], "top_sell": list(reversed(out[-6:])),
+            "sector_flows_shares": {k: round(v) for k, v in sorted(sec.items(), key=lambda kv: kv[1], reverse=True)},
+            "tracked": {c: next((r["foreign_net_shares"] for r in out if r["code"] == c), None)
+                        for c in ("005930", "000660", "373220")}}
 
 
 def us_side():
@@ -292,10 +323,10 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         doc["taiwan"] = {"status": "ERROR", "err": str(e)[:140]}
         doc["sources"]["twse_t86"] = False
-    # Korea (best-effort)
-    kr = korea_krx()
+    # Korea (Naver — KRX blocks AWS)
+    kr = korea_naver()
     doc["korea"] = kr
-    doc["sources"]["krx"] = kr.get("status") == "LIVE"
+    doc["sources"]["korea_naver"] = kr.get("status") == "LIVE"
     # Japan placeholder
     doc["japan"] = {"status": "PENDING_v1_1", "note": "JPX weekly investor-type flows (Thursday Excel)"}
     # US catch-up bridges — attach REAL US returns (FMP) + divergence verdict
@@ -313,23 +344,31 @@ def lambda_handler(event=None, context=None):
         def _r(sym):
             r = usr.get(sym, {})
             return r.get("d5") if r.get("d5") is not None else r.get("d1")
+        kr_sig = None
+        if b["kr_codes"] and doc.get("korea", {}).get("status") == "LIVE":
+            krm = {r["code"]: r["foreign_net_shares"]
+                   for r in (doc["korea"].get("top_buy", []) + doc["korea"].get("top_sell", []))}
+            kv = [krm.get(c) for c in b["kr_codes"] if krm.get(c) is not None]
+            kr_sig = round(sum(kv)) if kv else None
         etf_ret = {e: _r(e) for e in b["us_etf"] if e in usr}
         name_ret = {n: _r(n) for n in b["us_names"] if n in usr}
         us5 = [v for v in list(etf_ret.values()) + list(name_ret.values()) if isinstance(v, (int, float))]
         us_avg5 = round(sum(us5) / len(us5), 2) if us5 else None
         # verdict: Asia buying (tw_sig>0) while US flat/down = US hasn't caught up = opportunity
+        asia_vals = [v for v in (tw_sig, kr_sig) if v is not None]
+        asia_net = sum(asia_vals) if asia_vals else None
         verdict = "insufficient data"
-        if tw_sig is not None and us_avg5 is not None:
-            if tw_sig > 0 and us_avg5 < 1.5:
+        if asia_net is not None and us_avg5 is not None:
+            if asia_net > 0 and us_avg5 < 1.5:
                 verdict = "ASIA LEADING — US lagging (potential setup)"
-            elif tw_sig > 0 and us_avg5 >= 1.5:
+            elif asia_net > 0 and us_avg5 >= 1.5:
                 verdict = "confirmed — both bid"
-            elif tw_sig < 0 and us_avg5 > 1.5:
+            elif asia_net < 0 and us_avg5 > 1.5:
                 verdict = "US extended, Asia foreign selling — caution"
             else:
                 verdict = "both soft"
         bridges.append({"name": b["name"], "sector": b["sector"],
-                        "tw_foreign_net_shares": tw_sig, "kr_codes": b["kr_codes"],
+                        "tw_foreign_net_shares": tw_sig, "kr_foreign_net_shares": kr_sig, "kr_codes": b["kr_codes"],
                         "us_etf": b["us_etf"], "us_names": b["us_names"],
                         "us_etf_ret5d": etf_ret or None, "us_name_ret5d": name_ret or None,
                         "us_avg_ret5d": us_avg5, "us_etf_5d_flow_usd": {e: usf.get(e) for e in b["us_etf"] if e in usf} or None,
