@@ -1,6 +1,3 @@
-lambda arn: arn:aws:lambda:us-east-1:857687956942:function:justhodl-earnings-iv-crush
-put_rule: arn:aws:events:us-east-1:857687956942:rule/justhodl-earnings-iv-crush-daily
-add_permission: granted
-put_targets: done
-VERIFY: rule ENABLED cron(50 21 * * ? *) -> targets ['justhodl-earnings-iv-crush']
-OPS 2788 COMPLETE — earnings-iv-crush now scheduled daily 21:50 UTC
+home: HTTP 200, 162742 bytes, ok=True
+options: HTTP 200, 35411 bytes, ok=True
+OPS 2789: PAGES HEALTHY
