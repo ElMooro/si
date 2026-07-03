@@ -1,20 +1,18 @@
-── FEED FRESHNESS (Options Desk) ──
-  dealer-gex.json                 1.7h  fresh
-  dealer-gex-history.json         1.7h  fresh
-  options-gamma.json              2.3h  fresh
-  options-analytics.json          9.8h  fresh
-  polygon-options-flow.json       3.5h  fresh
-  options-flow.json               0.8h  fresh
-  opex-calendar.json             11.8h  fresh
-  dix.json                        0.8h  fresh
-  catalyst-skew-premove.json      1.9h  fresh
-  earnings-iv-crush.json        168.8h  STALE
-  volatility-squeeze.json        11.8h  fresh
-  options-confluence.json         0.4h  fresh
-
-── earnings-iv-crush ENGINE DIAGNOSIS ──
-  lambda EXISTS · last_code_update 2026-05-30T18:33 · timeout 600s
-  ⚠️ NO EventBridge rule targets this lambda — NOT SCHEDULED (that's why it's stale)
-  last INVOCATION: 0.8h ago (2026-07-03T22:00)
-
-OPS 2786 COMPLETE
+earnings-iv-crush.json age BEFORE: 168.8h
+invoking justhodl-earnings-iv-crush (RequestResponse, tail logs)…
+StatusCode: 200 | FunctionError: None
+── payload (first 800c) ──
+{"statusCode": 200, "body": "{\"ok\": true, \"state\": \"QUIET\", \"n_rich\": 0, \"n_cheap\": 0, \"n_total\": 0, \"duration_s\": 6.4}"}
+── tail log (last lines) ──
+   START RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff Version: $LATEST
+   earnings calendar returned 1913 events
+   unique upcoming earnings: 1411
+   enriching 0/80: 0ENN.L
+   enriching 20/80: APM
+   enriching 40/80: 6093.T
+   enriching 60/80: AQSZF
+   END RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff
+   REPORT RequestId: 5a62f963-7da9-41c4-8ffc-e4b1801952ff	Duration: 6378.03 ms	Billed Duration: 6662 ms	Memory Size: 1024 MB	Max Memory Used: 105 MB	Init Duration: 283.86 ms	
+   XRAY TraceId: 1-6a483c9f-38e452440054cfca5e16554b	SegmentId: 3f9f26d6f1e67107	Sampled: true
+earnings-iv-crush.json age AFTER: 0.0h (WROTE FRESH!)
+OPS 2787 COMPLETE · wrote_fresh=True
