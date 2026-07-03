@@ -195,12 +195,15 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  const skk=spy.iv_skew_30d||{},zd=spy.zero_dte||{};
  document.getElementById('greeks').innerHTML=
   '<div class="kv" style="margin-bottom:10px">'+
+   '<div class="i"><span class="lab mute">DEX (delta $)</span><span class="v '+pc(spy.total_delta_dollars)+'">'+M$(spy.total_delta_dollars)+'</span></div>'+
+   '<div class="i"><span class="lab mute">VEX (vega $)</span><span class="v '+pc(spy.total_vega_dollars)+'">'+M$(spy.total_vega_dollars)+'</span></div>'+
    '<div class="i"><span class="lab mute">Vanna exposure</span><span class="v '+pc(spy.total_vanna_dollars)+'">'+M$(spy.total_vanna_dollars)+'</span></div>'+
    '<div class="i"><span class="lab mute">Charm $/day</span><span class="v '+pc(spy.total_charm_dollars_per_day)+'">'+M$(spy.total_charm_dollars_per_day)+'</span></div>'+
    '<div class="i"><span class="lab mute">0DTE GEX</span><span class="v">'+(zd.gex_billions!==undefined?BN(zd.gex_billions):'—')+'</span></div>'+
    '<div class="i"><span class="lab mute">0DTE OI%</span><span class="v">'+(zd.oi_pct!==undefined?N(zd.oi_pct,1)+'%':'—')+'</span></div></div>'+
   '<div style="font-size:10px;color:var(--text-mute);margin-bottom:3px">PUT/CALL RATIO (OI '+N(spy.pcr_oi,2)+' &middot; Vol '+N(spy.pcr_volume,2)+')</div>'+
   gauge(Math.min(spy.pcr_oi||1,3),0,3,1,'PCR '+N(spy.pcr_oi,2))+
+  '<div class="readout" style="margin:0 0 8px;border-left-color:var(--accent)">DEX '+M$(spy.total_delta_dollars)+' &middot; VEX '+M$(spy.total_vega_dollars)+' — '+((spy.total_delta_dollars||0)>=0?'dealers net long delta (hedge by selling strength)':'dealers net short delta (hedge by buying dips)')+'; '+((spy.total_vega_dollars||0)>=0?'long vega':'short vega (vol spikes hurt dealers)')+'.</div>'+
   '<div style="font-size:10px;color:var(--text-mute);margin:8px 0 3px">25&#916; IV SKEW (put '+(skk.p25_iv?(skk.p25_iv*100).toFixed(1)+'%':'—')+' vs call '+(skk.c25_iv?(skk.c25_iv*100).toFixed(1)+'%':'—')+')</div>'+
   '<div class="readout" style="margin:0;border-left-color:'+((skk.skew_pct||0)>15?'var(--neg)':'var(--info)')+'">Skew '+(skk.skew_pct?N(skk.skew_pct,0)+'%':'—')+' — '+((skk.skew_pct||0)>15?'downside puts bid (fear/hedging)':'balanced')+'. '+(skk.expiry||'')+'</div>';
  setFresh('f-greeks',dg&&dg.generated_at);
@@ -283,7 +286,7 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  else document.getElementById('vsq').innerHTML='<div class="err">unavailable</div>';
  setFresh('f-vs',vsq&&vsq.generated_at,30);
 
- document.getElementById('foot').innerHTML='Sources: dealer-gex (vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · polygon-options-flow · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. SpotGamma-grade dealer positioning from raw Polygon options greeks + OI. Click board headers to sort. Not investment advice.';
+ document.getElementById('foot').innerHTML='Sources: dealer-gex (DEX/VEX/vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · polygon-options-flow · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. SpotGamma-grade dealer positioning from raw Polygon options greeks + OI. Click board headers to sort. Not investment advice.';
 }).catch(function(e){document.getElementById('asof').textContent='load error: '+e;});
 </script>
 </body>
