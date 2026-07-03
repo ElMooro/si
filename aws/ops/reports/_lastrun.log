@@ -3,10 +3,13 @@ settling 15s…
   updated
 == 2/4 EventBridge intraday cron ==
 == 3/4 invoke + verify ==
-  invoke -> {"errorMessage": "unsupported format character 'm' (0x6d) at index 81", "errorType": "ValueError", "requestId": "e0dd9d78-f130-476b-ae69-77d1fdf7fec4", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 229, in lambda_handler\n    \"convention\": \"dealer gamma = call_g*call_OI - put_g*pu
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2773_gex_engine.py", line 82, in <module>
-    assert not resp.get("FunctionError"), pay
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'errorMessage': "unsupported format character 'm' (0x6d) at index 81", 'errorType': 'ValueError', 'requestId': 'e0dd9d78-f130-476b-ae69-77d1fdf7fec4', 'stackTrace': ['  File "/var/task/lambda_function.py", line 229, in lambda_handler\n    "convention": "dealer gamma = call_g*call_OI - put_g*put_OI; +=long gamma/stabilizing; $ per 1% move; near-term <=%dDTE, strikes +/-%d%%" % (EXP_MAX_DAYS, int(STRIKE_BAND * 100)),\n']}
-❌ OPS-FAIL: aws/ops/pending/ops_2773_gex_engine.py
+  invoke -> {"ok": true, "status": "LIVE", "n_live": 18, "spy_net_gex_bn": 3.632, "spy_flip": 734.86, "index_net_gex_bn": 0.658, "read": "SPY net GEX POSITIVE ($3.63B/1%) \u2014 dealers long gamma, sell rallies/buy dips \u2192 vol suppressed, mean-reverting. Spot 744.78 vs gamma-flip 734.86 (above flip); call w
+  n_live: 18 | index net GEX: 0.658 Bn
+  SPY: spot=744.78 net_gex=3.632Bn flip=734.86 call_wall=750 put_wall=745 max_pain=735 0DTE=NoneBn regime=vol-suppressed contracts=2000
+  NVDA  net_gex=-0.025Bn flip=195.06 wall(c/p)=200/180 regime=vol-amplifying
+  QQQ   net_gex=-1.777Bn flip=726.49 wall(c/p)=711/700 regime=vol-amplifying
+  TSLA  net_gex=0.112Bn flip=384.27 wall(c/p)=410/380 regime=vol-suppressed
+  AAPL  net_gex=0.906Bn flip=None wall(c/p)=310/270 regime=vol-suppressed
+  READ: SPY net GEX POSITIVE ($3.63B/1%) — dealers long gamma, sell rallies/buy dips → vol suppressed, mean-reverting. Spot 744.78 vs gamma-flip 734.86 (above flip); call wall 750, put wall 745, max pain 735.
+== 4/4 report ==
+OPS 2773 COMPLETE — GEX engine live on Polygon options

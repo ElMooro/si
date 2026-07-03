@@ -1,0 +1,52 @@
+{
+ "ops": 2773,
+ "ts": "2026-07-03T19:13:10.003963+00:00",
+ "schedule": "cron(0,30 13-20 ? * MON-FRI *)",
+ "n_live": 18,
+ "index_net_gex_bn": 0.658,
+ "spy": {
+  "spot": 744.78,
+  "net_gex_bn": 3.632,
+  "gamma_flip": 734.86,
+  "dist_to_flip_pct": 1.35,
+  "call_wall": 750,
+  "put_wall": 745,
+  "max_pain": 735,
+  "zero_dte_gex_bn": null,
+  "regime": "vol-suppressed",
+  "n_contracts": 2000
+ },
+ "sample": {
+  "NVDA": {
+   "net_gex_bn": -0.025,
+   "flip": 195.06,
+   "regime": "vol-amplifying"
+  },
+  "QQQ": {
+   "net_gex_bn": -1.777,
+   "flip": 726.49,
+   "regime": "vol-amplifying"
+  },
+  "TSLA": {
+   "net_gex_bn": 0.112,
+   "flip": 384.27,
+   "regime": "vol-suppressed"
+  },
+  "AAPL": {
+   "net_gex_bn": 0.906,
+   "flip": null,
+   "regime": "vol-suppressed"
+  },
+  "MU": {
+   "net_gex_bn": -0.194,
+   "flip": null,
+   "regime": "vol-amplifying"
+  },
+  "PLTR": {
+   "net_gex_bn": 0.047,
+   "flip": 117.86,
+   "regime": "vol-suppressed"
+  }
+ },
+ "read": "SPY net GEX POSITIVE ($3.63B/1%) \u2014 dealers long gamma, sell rallies/buy dips \u2192 vol suppressed, mean-reverting. Spot 744.78 vs gamma-flip 734.86 (above flip); call wall 750, put wall 745, max pain 735."
+}
