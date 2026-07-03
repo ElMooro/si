@@ -28,7 +28,8 @@ h2.sec{font-size:12px;font-family:var(--font-mono);letter-spacing:1px;color:var(
 .idxchip{font-family:var(--font-mono);font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--border)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:13px 14px}
 .card h3{margin:0 0 9px;font-size:12px;font-family:var(--font-mono);letter-spacing:.6px;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:8px}
 .fresh{font-family:var(--font-mono);font-size:9px;color:var(--text-mute);font-weight:400}.stale{color:var(--warn)}
@@ -75,10 +76,11 @@ svg text{font-family:var(--font-mono)}
 </div>
 
 <h2 class="sec">Key levels</h2>
-<div class="grid3">
+<div class="grid4">
 <div class="card"><h3>CALL WALLS (resistance)</h3><div id="cwalls"></div></div>
 <div class="card"><h3>PUT WALLS (support)</h3><div id="pwalls"></div></div>
 <div class="card"><h3>MAX PAIN BY EXPIRY</h3><div id="maxpain"></div></div>
+<div class="card"><h3>TOP GAMMA STRIKES (pins)</h3><div id="pins"></div></div>
 </div>
 
 <h2 class="sec">Confluence &amp; flow</h2>
@@ -89,6 +91,13 @@ svg text{font-family:var(--font-mono)}
 
 <h2 class="sec">Per-name options analytics board</h2>
 <div class="card"><h3>DEALER-POSITIONING BOARD (click headers to sort) <span class="fresh" id="f-board"></span></h3><div class="scrollbox gwrap"><div id="board"></div></div></div>
+
+<h2 class="sec">Squeeze setups · unusual activity · flow scanner</h2>
+<div class="grid2">
+<div class="card"><h3>GAMMA SQUEEZE SETUPS <span class="fresh" id="f-sqz"></span></h3><div id="sqz"></div></div>
+<div class="card"><h3>MOST UNUSUAL ACTIVITY <span class="fresh" id="f-unu"></span></h3><div id="unu"></div></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>OPTIONS FLOW SCANNER — QUALIFYING TICKERS <span class="fresh" id="f-scan"></span></h3><div id="scanstats"></div><div class="scrollbox gwrap"><div id="scan"></div></div></div>
 
 <h2 class="sec">Regime signals — DIX · OPEX · skew · earnings IV · squeeze</h2>
 <div class="grid2">
@@ -201,6 +210,7 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
    '<div class="i"><span class="lab mute">Charm $/day</span><span class="v '+pc(spy.total_charm_dollars_per_day)+'">'+M$(spy.total_charm_dollars_per_day)+'</span></div>'+
    '<div class="i"><span class="lab mute">0DTE GEX</span><span class="v">'+(zd.gex_billions!==undefined?BN(zd.gex_billions):'—')+'</span></div>'+
    '<div class="i"><span class="lab mute">0DTE OI%</span><span class="v">'+(zd.oi_pct!==undefined?N(zd.oi_pct,1)+'%':'—')+'</span></div></div>'+
+  '<div style="font-size:10px;color:var(--text-mute);margin-bottom:6px">OPEN INTEREST — calls <b>'+((spy.total_call_oi||0)/1e6).toFixed(2)+'M</b> &middot; puts <b>'+((spy.total_put_oi||0)/1e6).toFixed(2)+'M</b> &middot; '+N(spy.n_contracts_modeled,0)+' contracts modeled</div>'+
   '<div style="font-size:10px;color:var(--text-mute);margin-bottom:3px">PUT/CALL RATIO (OI '+N(spy.pcr_oi,2)+' &middot; Vol '+N(spy.pcr_volume,2)+')</div>'+
   gauge(Math.min(spy.pcr_oi||1,3),0,3,1,'PCR '+N(spy.pcr_oi,2))+
   '<div class="readout" style="margin:0 0 8px;border-left-color:var(--accent)">DEX '+M$(spy.total_delta_dollars)+' &middot; VEX '+M$(spy.total_vega_dollars)+' — '+((spy.total_delta_dollars||0)>=0?'dealers net long delta (hedge by selling strength)':'dealers net short delta (hedge by buying dips)')+'; '+((spy.total_vega_dollars||0)>=0?'long vega':'short vega (vol spikes hurt dealers)')+'.</div>'+
@@ -215,7 +225,7 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  document.getElementById('maxpain').innerHTML=Object.keys(mp).length?'<table>'+Object.entries(mp).slice(0,6).map(([d,s])=>'<tr><td>'+d.slice(5)+'</td><td class="gold">'+N(s,0)+'</td></tr>').join('')+'</table>':'<div class="err">—</div>';
 
  try{ if(conf&&conf.multi_engine_confluence){const items=conf.multi_engine_confluence.slice(0,14);
-  document.getElementById('conf').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:6px">'+(conf.counts?('names '+conf.counts.names+' · multi-engine '+conf.counts.multi_engine+' · squeeze-fuel '+conf.counts.squeeze_fuel):'')+'</div><table><tr><th>Ticker</th><th>Posture</th><th>Eng</th><th>Score</th><th>Flags</th></tr>'+
+  document.getElementById('conf').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:6px">'+(conf.counts?('names '+conf.counts.names+' · multi-engine '+conf.counts.multi_engine+' · squeeze-fuel '+conf.counts.squeeze_fuel+' · bull '+(conf.counts.bullish_flow||0)+'/'+(conf.counts.bullish_lean||0)+' · bear '+(conf.counts.bearish_flow||0)+'/'+(conf.counts.bearish_lean||0)):'')+'</div><table><tr><th>Ticker</th><th>Posture</th><th>Eng</th><th>Score</th><th>Flags</th></tr>'+
    items.map(it=>{const bull=/bull/i.test(it.posture);const fl=[];if(it.neg_gamma)fl.push('<span class="tag sq">sqz</span>');if(it.coiled)fl.push('<span class="tag co">coiled</span>');(it.tags||[]).slice(0,1).forEach(t=>fl.push('<span class="tag">'+t+'</span>'));
     return '<tr><td class="sym">'+it.ticker+'</td><td><span class="tag '+(bull?'pB':'pb')+'">'+((it.posture||'').replace('_FLOW','').replace('_',' '))+'</span></td><td class="dim">'+it.n_engines+'×</td><td class="'+pc(it.score)+'">'+N(it.score,1)+'</td><td>'+(fl.join('')||'<span class="mute">—</span>')+'</td></tr>';}).join('')+'</table>';
  } else document.getElementById('conf').innerHTML='<div class="err">confluence unavailable</div>';
@@ -249,6 +259,28 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
   window.__sortBoard('score');
  } else document.getElementById('board').innerHTML='<div class="err">board unavailable</div>';
  setFresh('f-board',oa&&oa.generated_at); }catch(_e){console.error('opt-section',_e);} 
+
+ try{ var _ss=(oa&&oa.squeeze_setups)||[];
+  document.getElementById('sqz').innerHTML=_ss.length?('<table><tr><th>Ticker</th><th>Signal</th><th>NetGEX$M</th><th>PCR</th><th>ATM IV</th><th>P/C wall</th></tr>'+_ss.slice(0,10).map(r=>'<tr><td class="sym">'+r.ticker+'</td><td class="'+(r.signal==='SQUEEZE_PRIMED'?'neg':'gold')+'" style="font-size:9px">'+(r.signal==='SQUEEZE_PRIMED'?'PRIMED':'SETUP')+'</td><td class="'+pc(r.net_gex_musd_per_1pct)+'">'+N(r.net_gex_musd_per_1pct,1)+'</td><td class="dim">'+N(r.pcr_vol,2)+'</td><td>'+(r.atm_iv_front?(r.atm_iv_front*100).toFixed(0)+'%':'—')+'</td><td class="mute" style="font-size:9px">'+N(r.put_wall,0)+'/'+N(r.call_wall,0)+'</td></tr>').join('')+'</table>'):'<div class="err">no squeeze setups</div>';
+ }catch(_e){console.error('opt-section',_e);}
+ setFresh('f-sqz',oa&&oa.generated_at);
+
+ try{ var _mu=(oa&&oa.most_unusual)||[];
+  document.getElementById('unu').innerHTML=_mu.length?('<table><tr><th>Ticker</th><th>Unusual</th><th>PCR</th><th>Net premium</th></tr>'+_mu.slice(0,12).map(r=>'<tr><td class="sym">'+r.ticker+'</td><td class="gold">'+r.n_unusual+'⚡</td><td class="dim">'+N(r.pcr_vol,2)+'</td><td class="'+((r.net_premium_usd||0)>=0?'pos':'neg')+'">$'+((r.net_premium_usd||0)/1e6).toFixed(1)+'M</td></tr>').join('')+'</table>'):'<div class="err">—</div>';
+ }catch(_e){console.error('opt-section',_e);}
+ setFresh('f-unu',oa&&oa.generated_at);
+
+ try{ if(of&&of.all_qualifying){var _sm=of.summary||{};var _aq=of.all_qualifying;
+  document.getElementById('scanstats').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:8px">Universe <b>'+(_sm.n_universe||'—')+'</b> scanned · Tier-A <b class="pos">'+(_sm.n_tier_a||_aq.filter(x=>/TIER_A/.test(x.tier||'')).length)+'</b> · Tier-B <b class="gold">'+(_sm.n_tier_b||_aq.filter(x=>/TIER_B/.test(x.tier||'')).length)+'</b> · FINRA joined <b>'+(_sm.n_finra_tickers||'—')+'</b></div>';
+  document.getElementById('scan').innerHTML='<table><tr><th>Ticker</th><th>Tier</th><th>Score</th><th>Spot</th><th>CPR Δ%</th><th>Call surge</th><th>Flags</th></tr>'+_aq.slice(0,40).map(t=>{var m=t.metrics||{};var ta=/TIER_A/.test(t.tier||'');var flags=(t.flags||[]).slice(0,3).map(f=>'<span class="tag '+(/SQUEEZE|SURG|3X|2X/.test(f)?'co':'')+'">'+f.replace(/_/g,' ')+'</span>').join('');
+   return '<tr><td class="sym">'+t.symbol+'</td><td><span class="tag '+(ta?'pB':'co')+'">'+((t.tier||'').replace('TIER_','T').replace('_BULLISH_FLOW',' bull').replace('_FLOW_BUILDING',' build'))+'</span></td><td class="gold">'+N(t.score,0)+'</td><td class="dim">'+N(m.spot,2)+'</td><td class="'+((m.cpr_change_pct||0)>=0?'pos':'neg')+'">'+N(m.cpr_change_pct,0)+'%</td><td class="'+((m.call_vol_surge||0)>=2?'pos':'dim')+'">'+N(m.call_vol_surge,1)+'×</td><td>'+(flags||'<span class="mute">—</span>')+'</td></tr>';}).join('')+'</table>';
+  } else { document.getElementById('scanstats').innerHTML=''; document.getElementById('scan').innerHTML='<div class="err">scanner feed unavailable</div>'; }
+ }catch(_e){console.error('opt-section',_e);}
+ setFresh('f-scan',of&&of.generated_at);
+
+ try{ var _tg=spy.top_gamma_strikes||[];
+  document.getElementById('pins').innerHTML=_tg.length?('<table>'+_tg.slice(0,5).map(g=>'<tr><td class="sym">'+N(g.strike,0)+'</td><td class="'+pc(g.gex_billions)+'">'+BN(g.gex_billions)+'</td></tr>').join('')+'</table>'):'<div class="err">—</div>';
+ }catch(_e){console.error('opt-section',_e);}
 
  try{ if(dix){const cur=dix.current||{},ma=dix.moving_averages||{},st=dix.statistics||{},dod=dix.day_over_day||{};
   document.getElementById('dix').innerHTML='<div class="kv" style="margin-bottom:9px">'+
