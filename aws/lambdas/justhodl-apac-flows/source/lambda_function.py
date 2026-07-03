@@ -463,39 +463,10 @@ def us_returns(symbols):
 
 
 def eastmoney_southbound():
-    """Southbound (南向: mainland -> HK) net via Eastmoney (datacenter-accessible,
-    unlike Akamai-fronted HKEX). Southbound legs = sh2hk + sz2hk (港股通沪/深).
-    Prefer daily-history endpoint (authoritative last trading day); fall back to
-    the real-time snapshot during market hours."""
+    """Southbound (南向: mainland -> HK) via Eastmoney kamt real-time. Southbound
+    legs are sh2hk + sz2hk (港股通沪/深 — unambiguous 'X to HK' naming; hk2sh/hk2sz
+    are Northbound into China). HKEX's own feed serves obfuscated bytes to AWS."""
     dump = {}
-    # A) daily history — reliable last-trading-day Southbound net (MUTUAL_TYPE 003/004)
-    try:
-        params = {"reportName": "RPT_MUTUAL_DEAL_HISTORY", "columns": "ALL", "source": "WEB",
-                  "sortColumns": "TRADE_DATE", "sortTypes": "-1", "pageSize": "10", "pageNumber": "1",
-                  "filter": chr(40) + "MUTUAL_TYPE in (" + chr(34) + "003" + chr(34) + "," + chr(34) + "004" + chr(34) + ")" + chr(41)}
-        url = "https://datacenter-web.eastmoney.com/api/data/v1/get?" + urllib.parse.urlencode(params)
-        doc2 = _get_json(url, headers={"User-Agent": UA["User-Agent"], "Referer": "https://data.eastmoney.com/"}, timeout=15)
-        res = (doc2.get("result") or {}).get("data") or []
-        if res:
-            dump["daily_keys"] = list(res[0])[:22]
-            dump["daily_first"] = {k: res[0].get(k) for k in list(res[0])[:22]}
-            netk = "NET_DEAL_AMT" if "NET_DEAL_AMT" in res[0] else next((k for k in res[0] if k.upper() in ("FUND_INFLOW", "NET_BUY_AMT")), None)
-            datek, typek = "TRADE_DATE", "MUTUAL_TYPE"
-            tmap = {"003": "港股通(沪) SH→HK", "004": "港股通(深) SZ→HK"}
-            legs, dates = {}, []
-            for t in ("003", "004"):
-                trecs = [r for r in res if str(r.get(typek)) == t and _num(r.get(netk)) is not None]
-                if trecs:
-                    lr = max(trecs, key=lambda r: str(r.get(datek)))
-                    legs[tmap[t]] = _num(lr.get(netk)); dates.append(str(lr.get(datek)))
-            if legs:
-                tot = sum(v for v in legs.values() if v is not None)
-                return {"status": "LIVE", "source": "Eastmoney Southbound (daily, settled)",
-                        "as_of": max(dates)[:10], "southbound_net_total": round(tot),
-                        "markets": legs, "net_field": netk, "unit": "亿元 (CNY 100M)", "_dump": dump}
-    except Exception as e:
-        dump["daily_err"] = str(e)[:90]
-    # B) real-time snapshot (Southbound = sh2hk + sz2hk)
     try:
         doc = _get_json("https://push2.eastmoney.com/api/qt/kamt/get?"
                         "fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58"
@@ -503,16 +474,19 @@ def eastmoney_southbound():
                         headers={"User-Agent": UA["User-Agent"], "Referer": "https://data.eastmoney.com/"}, timeout=15)
         data = doc.get("data") or {}
         dump["kamt_keys"] = list(data)
-        def _leg(k):
+        labels = {"sh2hk": "港股通(沪) SH→HK", "sz2hk": "港股通(深) SZ→HK"}
+        legs, ytd, asof = {}, {}, None
+        for k in ("sh2hk", "sz2hk"):
             leg = data.get(k) or {}
-            return _num(leg.get("dayNetAmtIn")), (leg.get("date2") or leg.get("date"))
-        shv, dt = _leg("sh2hk"); szv, _ = _leg("sz2hk")
-        nets = [x for x in (shv, szv) if x is not None]
-        if nets:
-            return {"status": "LIVE", "source": "Eastmoney HSGT (realtime)", "as_of": dt,
-                    "southbound_net_total": round(sum(nets)),
-                    "markets": {"港股通(沪) SH→HK": shv, "港股通(深) SZ→HK": szv},
-                    "unit": "CNY (Eastmoney, 万元)", "_dump": dump}
+            legs[labels[k]] = _num(leg.get("dayNetAmtIn"))
+            ytd[labels[k]] = _num(leg.get("yearNetAmtIn"))
+            asof = asof or leg.get("date2") or leg.get("date")
+        vals = [v for v in legs.values() if v is not None]
+        if vals:
+            return {"status": "LIVE", "source": "Eastmoney Southbound (Stock Connect)",
+                    "as_of": asof, "southbound_net_total": round(sum(vals)),
+                    "markets": legs, "ytd_net": ytd, "unit": "万元 (CNY 10k)",
+                    "note": "Southbound = mainland buying HK via Stock Connect"}
     except Exception as e:
         dump["kamt_err"] = str(e)[:90]
     return {"status": "PENDING", "note": "eastmoney parse pending", "_dump": dump}
