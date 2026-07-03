@@ -1,21 +1,12 @@
 settling 25s…
-== 1/3 twin probe (Coin Metrics community) ==
-  btc_mvrv           -> CapMVRVCur   pts=5828   WIRED
-  btc_addresses_active -> AdrActCnt    pts=5845   WIRED
-  btc_tx_count       -> TxCnt        pts=5845   WIRED
-  btc_fees_total     -> FeeTotNtv    pts=5845   WIRED
-  btc_hashrate       -> HashRate     pts=5845   WIRED
-  btc_supply_total   -> SplyCur      pts=5845   WIRED
-  btc_nvt            -> NVTAdj       pts=0      HTTP Error 403: Forbidden
-  btc_difficulty     -> DiffMean     pts=0      HTTP Error 403: Forbidden
-  btc_velocity       -> VelCur1yr    pts=0      HTTP Error 403: Forbidden
-  btc_nvt_golden     -> NVTAdj90     pts=0      HTTP Error 403: Forbidden
-  btc_realized_price -> CapRealUSD   pts=0      HTTP Error 403: Forbidden
-  twins now: ['btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_mvrv', 'btc_supply_total', 'btc_tx_count']
-== 2/3 engine rerun (series regen w/ new twins) ==
-  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "s
-  series twins: {'btc_mvrv': 1457, 'btc_addresses_active': 1462, 'btc_tx_count': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462}
-  metrics on 2010-window stats: 6 ['btc_mvrv', 'btc_tx_count', 'btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_supply_total']
-== 3/3 page v3.1 at edge ==
-  attempt 1: v3.1 LIVE
-OPS 2747 COMPLETE — the decade is visible and the scales agree
+== 1/4 spec: expanded twins ==
+  twins spec -> 15
+== 2/4 engine v2.2 + run ==
+  invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "co
+  twins delivered: {"btc_mvrv": 1457, "btc_tx_count": 1462, "btc_addresses_active": 1462, "btc_fees_total": 1462, "btc_hashrate": 1462, "btc_supply_total": 1462, "eth_addresses_active": 1331, "eth_tx_count": 1330}
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2747_charts_v4.py", line 70, in <module>
+    assert len(tw) >= 11, tw
+           ^^^^^^^^^^^^^
+AssertionError: {'btc_mvrv': 1457, 'btc_tx_count': 1462, 'btc_addresses_active': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462, 'eth_addresses_active': 1331, 'eth_tx_count': 1330}
+❌ OPS-FAIL: aws/ops/pending/ops_2747_charts_v4.py
