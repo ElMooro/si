@@ -87,16 +87,16 @@ print("  ALT beta %s exp:" % fa.get("beta_vs_btc"), [fa.get(h, {}).get("exp_pct"
 R["stables"] = {k: d["metrics"][k]["value"] for k in d["metrics"] if k in ("btc_ssr", "stablecoin_exchange_reserve", "stablecoin_exchange_netflow")}
 
 print("== 2/4 deploy + invoke widened consumers ==")
-for fn, key, need in (("justhodl-onchain-ratios", None, None),
-                      ("justhodl-crypto-exchange-flows", "data/crypto-exchange-flows.json", ("btc_inflow", "eth_netflow")),
-                      ("justhodl-crypto-miners", "data/crypto-miners.json", ("cryptoquant_miner",))):
+for fn, key, need, where in (("justhodl-onchain-ratios", None, None, None),
+                      ("justhodl-crypto-exchange-flows", "data/crypto-exchange-flows.json", ("btc_inflow", "eth_netflow"), "cryptoquant"),
+                      ("justhodl-crypto-miners", "data/crypto-miners.json", ("cryptoquant_miner",), "root")):
     deploy(fn)
     rr = lam.invoke(FunctionName=fn, InvocationType="RequestResponse")
     assert not rr.get("FunctionError"), (fn, rr["Payload"].read()[:160])
     if key:
         dd = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
-        blk = dd.get("cryptoquant") or {}
-        for n in need: assert n in blk, (fn, n, list(blk)[:6])
+        blk = dd if where == "root" else (dd.get(where) or {})
+        for n in need: assert n in blk, (fn, n, list(blk)[:8])
     print("  %s deployed+fresh" % fn)
 envv = (lam.get_function_configuration(FunctionName="justhodl-onchain-ratios").get("Environment", {}) or {}).get("Variables", {}) or {}
 rd = json.loads(s3.get_object(Bucket=BUCKET, Key=envv.get("S3_KEY", "data/onchain-ratios.json"))["Body"].read())
