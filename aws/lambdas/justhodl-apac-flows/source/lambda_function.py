@@ -19,7 +19,7 @@ REAL OFFICIAL FREE SOURCES (probe-not-guess; language-agnostic key detection):
 Feeds: data/apac-flows.json (latest) + data/history/apac-flows.json (400d).
 No key faked; every source's success/failure is recorded in `sources`.
 """
-import os, json, re, time, urllib.request, urllib.error, urllib.parse
+import os, gzip, zlib, json, re, time, urllib.request, urllib.error, urllib.parse
 from datetime import datetime, timezone, timedelta
 import boto3
 
@@ -281,6 +281,36 @@ def _http_bytes(url, headers=None, timeout=30):
         return r.read()
 
 
+def _http_text(url, headers=None, timeout=30):
+    """Robust text fetch: full browser headers, gzip/deflate decompression by
+    Content-Encoding and magic bytes, multi-charset decode."""
+    h = {"User-Agent": UA["User-Agent"],
+         "Accept": "text/javascript, application/json, text/html, */*",
+         "Accept-Encoding": "gzip, deflate", "Accept-Language": "en-US,en;q=0.9",
+         "Connection": "keep-alive"}
+    if headers: h.update(headers)
+    req = urllib.request.Request(url, headers=h)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        raw = r.read()
+        enc = (r.headers.get("Content-Encoding") or "").lower()
+    if "gzip" in enc or raw[:2] == b"\x1f\x8b":
+        try: raw = gzip.decompress(raw)
+        except Exception: pass
+    elif "deflate" in enc:
+        try: raw = zlib.decompress(raw)
+        except Exception:
+            try: raw = zlib.decompress(raw, -15)
+            except Exception: pass
+    for cdc in ("utf-8", "utf-16", "latin-1"):
+        try:
+            t = raw.decode(cdc)
+            if t.count(chr(0)) < len(t) // 4:
+                return t
+        except Exception:
+            continue
+    return raw.decode("utf-8", "ignore")
+
+
 def korea_market():
     """True market-wide Korea foreign/institution/individual net via Naver index
     trend (KOSPI + KOSDAQ). Values are Naver net (KRW, ~100M-won units)."""
@@ -318,8 +348,8 @@ def hongkong_southbound():
     for back in range(0, 6):
         ymd = (datetime.now(timezone.utc) + timedelta(hours=8) - timedelta(days=back)).strftime("%Y%m%d")
         try:
-            txt = _http_bytes("https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_%se.js" % ymd,
-                              headers={"Referer": "https://www.hkex.com.hk/"}).decode("utf-8", "ignore")
+            txt = _http_text("https://www.hkex.com.hk/eng/csm/DailyStat/data_tab_daily_%se.js" % ymd,
+                             headers={"Referer": "https://www.hkex.com.hk/Mutual-Market/Stock-Connect/Statistics/Historical-Daily?sc_lang=en"})
         except Exception as e:
             last_err = "fetch %s: %s" % (ymd, str(e)[:60]); continue
         try:
