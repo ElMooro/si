@@ -1,0 +1,104 @@
+{
+ "ops": 2767,
+ "ts": "2026-07-03T17:52:44.541933+00:00",
+ "series_days": {
+  "tw_semi": 64,
+  "kr_memory": 10,
+  "hk_south": 67
+ },
+ "proven": [
+  {
+   "name": "Taiwan semis → SOXX",
+   "lead_days": 10,
+   "r": -0.312,
+   "n": 52
+  },
+  {
+   "name": "Taiwan semis → SMH",
+   "lead_days": 10,
+   "r": -0.283,
+   "n": 52
+  }
+ ],
+ "read": "Taiwan semis → SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.31 (n=52, significant). Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal. Regime-dependent; strengthens as history grows.",
+ "pairs": [
+  {
+   "name": "Taiwan semis → SOXX",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.312,
+    "n": 52,
+    "t": -2.32,
+    "significant": true
+   }
+  },
+  {
+   "name": "Taiwan semis → SMH",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.283,
+    "n": 52,
+    "t": -2.09,
+    "significant": true
+   }
+  },
+  {
+   "name": "Taiwan semis → NVDA",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.25,
+    "n": 52,
+    "t": -1.82,
+    "significant": false
+   }
+  },
+  {
+   "name": "Korea memory → SMH",
+   "overlap": 9,
+   "best": {
+    "horizon": 1,
+    "r": -0.631,
+    "n": 8,
+    "t": -1.99,
+    "significant": false
+   }
+  },
+  {
+   "name": "Korea memory → MU",
+   "overlap": 9,
+   "best": {
+    "horizon": 1,
+    "r": -0.173,
+    "n": 8,
+    "t": -0.43,
+    "significant": false
+   }
+  },
+  {
+   "name": "HK Southbound → KWEB",
+   "overlap": 66,
+   "best": {
+    "horizon": 1,
+    "r": -0.093,
+    "n": 65,
+    "t": -0.74,
+    "significant": false
+   }
+  },
+  {
+   "name": "HK Southbound → FXI",
+   "overlap": 66,
+   "best": {
+    "horizon": 1,
+    "r": -0.087,
+    "n": 65,
+    "t": -0.69,
+    "significant": false
+   }
+  }
+ ],
+ "page": "LIVE"
+}

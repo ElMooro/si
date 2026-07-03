@@ -1,19 +1,14 @@
 settling 15s…
-== 1/4 create/update lambda ==
-  updated
-== 2/4 EventBridge daily 10:15 UTC ==
-== 3/4 invoke + verify ==
-  invoke -> {"ok": true, "status": "LIVE", "series_days": {"tw_semi": 64, "kr_memory": 10, "hk_south": 16}, "us_loaded": 6, "proven": 2, "read": "Taiwan semis \u2192 SOXX shows the strongest lead: Asian flow correlates with the US forward 10-day return at r=-0.37 (n=52). Positive = Asia buying tends to precede 
-  series_days: {"tw_semi": 64, "kr_memory": 10, "hk_south": 16}
-  US symbols loaded: ['FXI', 'KWEB', 'MU', 'NVDA', 'SMH', 'SOXX']
-  status: LIVE | proven leads: 2
-   Taiwan semis → SOXX        flow=64 overlap=62 best=r=-0.37 h=10d n=52 sig=True
-   Taiwan semis → SMH         flow=64 overlap=62 best=r=-0.34 h=10d n=52 sig=True
-   Taiwan semis → NVDA        flow=64 overlap=62 best=r=-0.19 h=10d n=52 sig=False
-   Korea memory → SMH         flow=10 overlap=9 best=r=-0.63 h=1d n=8 sig=False
-   Korea memory → MU          flow=10 overlap=9 best=r=-0.17 h=1d n=8 sig=False
-   HK Southbound → KWEB       flow=16 overlap=15 best=r=-0.28 h=1d n=14 sig=False
-   HK Southbound → FXI        flow=16 overlap=15 best=r=-0.27 h=1d n=14 sig=False
-  READ: Taiwan semis → SOXX shows the strongest lead: Asian flow correlates with the US forward 10-day return at r=-0.37 (n=52). Positive = Asia buying tends to precede US gains.
-== 4/4 report ==
-OPS 2766 COMPLETE — lead-lag engine live
+series_days: {"tw_semi": 64, "kr_memory": 10, "hk_south": 67}
+status: LIVE | proven: 2
+  Taiwan semis → SOXX        overlap=62 best=r=-0.31 h=10d n=52 sig=True
+  Taiwan semis → SMH         overlap=62 best=r=-0.28 h=10d n=52 sig=True
+  Taiwan semis → NVDA        overlap=62 best=r=-0.25 h=10d n=52 sig=False
+  Korea memory → SMH         overlap=9 best=r=-0.63 h=1d n=8 sig=False
+  Korea memory → MU          overlap=9 best=r=-0.17 h=1d n=8 sig=False
+  HK Southbound → KWEB       overlap=66 best=r=-0.09 h=1d n=65 sig=False
+  HK Southbound → FXI        overlap=66 best=r=-0.09 h=1d n=65 sig=False
+READ: Taiwan semis → SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.31 (n=52, significant). Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal. Regime-dependent; strengthens as history grows.
+== page section at edge ==
+  page attempt 1: LIVE
+OPS 2767 COMPLETE — lead-lag on the page
