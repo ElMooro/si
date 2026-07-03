@@ -19,9 +19,9 @@ settling 25s…
 == 2/4 engine v2.2 + run ==
   invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "co
   twins delivered: {"btc_mvrv": 1457, "btc_tx_count": 1462, "btc_addresses_active": 1462, "btc_fees_total": 1462, "btc_hashrate": 1462, "btc_supply_total": 1462, "btc_blockreward": 1462, "btc_realized_price": 1457, "eth_addresses_active": 1331, "eth_tx_count": 1330}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2747_charts_v4.py", line 96, in <module>
-    assert len(tw) >= 11, tw
-           ^^^^^^^^^^^^^
-AssertionError: {'btc_mvrv': 1457, 'btc_tx_count': 1462, 'btc_addresses_active': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462, 'btc_blockreward': 1462, 'btc_realized_price': 1457, 'eth_addresses_active': 1331, 'eth_tx_count': 1330}
-❌ OPS-FAIL: aws/ops/pending/ops_2747_charts_v4.py
+  metrics on 2010-window stats: 10
+  realized-price read: At today's level (19th percentile of 2010-present (Coin Metrics twin)), BTC's forward 21-day return has historically averaged +10.4% (median +2.1%, up 54% of the time, n=1166).
+== 3/4 page v4 at edge ==
+  attempt 1: v4 LIVE
+== 4/4 report ==
+OPS 2747 COMPLETE — every chart wears its full history
