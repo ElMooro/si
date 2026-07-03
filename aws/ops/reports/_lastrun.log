@@ -1,12 +1,15 @@
-  m-api stock trend 005930           http=200 len=3534 inv_terms=True json=True
-  m-api stock investor 005930        ERR HTTP Error 404: 404
-  m-api stock integration 005930     http=200 len=8957 inv_terms=True json=True
-  api.stock foreignInstitution 005930 ERR HTTP Error 404: Not Found
-  m-api index KOSPI trend            http=200 len=104 inv_terms=True json=True
-  m-api index KOSPI integration      http=200 len=10533 inv_terms=True json=True
-  legacy frgn html 005930            http=200 len=167232 inv_terms=True json=None
-  legacy investor trend day          http=200 len=1768 inv_terms=False json=None
-
-VERDICT: NAVER_USABLE: m-api stock trend 005930
-usable endpoint: {"name": "m-api stock trend 005930", "url": "https://m.stock.naver.com/api/stock/005930/trend", "keys": ["itemCode", "bizdate", "foreignerPureBuyQuant", "foreignerHoldRatio", "organPureBuyQuant", "individualPureBuyQuant", "closePrice", "compareToPreviousClosePrice", "compareToPreviousPrice", "accumulatedTradingVolume"]}
-OPS 2752 rev3 COMPLETE — Korea source recon done
+settling 15s…
+== 1/3 deploy adapter + invoke ==
+  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "korea_naver": true}, "tw_stocks": 1079, "tw_foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u
+  KOREA status: LIVE | source: Naver Finance | as_of: 2026-07-03 | names: 16
+  KR foreign net total (shares): -2098044
+  KR sector flows: {"Autos": 295832, "Electronics": 90869, "Battery": 79566, "Biotech": 1805, "Materials": -21598, "Internet": -70534, "Financials": -318244, "Memory/Semis": -2110952}
+  KR tracked (Samsung/SKHynix/LGES): {"005930": -1365575.0, "000660": -745377.0, "373220": 81629.0}
+  KR top buys: [('Kia', 159566.0), ('LG Electronics', 90869.0), ('LG Energy Solution', 81629.0), ('Hyundai Motor', 76257.0)]
+  bridge: Semiconductors (TW → US)               TW=4419074 KR=-2110952 US5d=-3.46 [ASIA LEADING — US lagging (potential setup)]
+  bridge: AI Hardware / Foxconn build-out (TW →  TW=None KR=None US5d=-3.1 [insufficient data]
+  bridge: Memory / EV Battery (KR → US)          TW=None KR=-663748 US5d=-2.5 [both soft]
+== 2/3 page at edge ==
+  page attempt 1: LIVE
+== 3/3 report ==
+OPS 2753 COMPLETE — Korea live via Naver; both Asian legs feeding US bridges
