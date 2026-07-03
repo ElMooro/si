@@ -1,0 +1,62 @@
+{
+ "ops": 2761,
+ "ts": "2026-07-03T16:50:04.938329+00:00",
+ "hongkong": {
+  "status": "LIVE",
+  "source": "Eastmoney Southbound (daily, settled)",
+  "southbound_net_total": 70,
+  "markets": {
+   "港股通(深) SZ→HK": 69.650000000002
+  },
+  "unit": "CNY (Eastmoney NET_DEAL_AMT)",
+  "note": null
+ },
+ "dump": {
+  "daily_keys": [
+   "MUTUAL_TYPE",
+   "TRADE_DATE",
+   "FUND_INFLOW",
+   "NET_DEAL_AMT",
+   "QUOTA_BALANCE",
+   "ACCUM_DEAL_AMT",
+   "BUY_AMT",
+   "SELL_AMT",
+   "LEAD_STOCKS_CODE",
+   "LEAD_STOCKS_NAME",
+   "LS_CHANGE_RATE",
+   "INDEX_CLOSE_PRICE",
+   "INDEX_CHANGE_RATE",
+   "HOLD_MARKET_CAP",
+   "DEAL_AMT",
+   "QUOTA_BALANCE_TEXT",
+   "DEAL_NUM"
+  ],
+  "daily_first": {
+   "MUTUAL_TYPE": "003",
+   "TRADE_DATE": "2026-07-03 00:00:00",
+   "FUND_INFLOW": null,
+   "NET_DEAL_AMT": null,
+   "QUOTA_BALANCE": null,
+   "ACCUM_DEAL_AMT": null,
+   "BUY_AMT": null,
+   "SELL_AMT": null,
+   "LEAD_STOCKS_CODE": "002148.SZ",
+   "LEAD_STOCKS_NAME": "北纬科技",
+   "LS_CHANGE_RATE": 10.07,
+   "INDEX_CLOSE_PRICE": 15597.51,
+   "INDEX_CHANGE_RATE": 0.64,
+   "HOLD_MARKET_CAP": null,
+   "DEAL_AMT": 219750.8,
+   "QUOTA_BALANCE_TEXT": "额度充足",
+   "DEAL_NUM": 7886615
+  }
+ },
+ "sources": {
+  "twse_t86": true,
+  "twse_bfi": true,
+  "korea_naver": true,
+  "korea_marketwide": true,
+  "japan_jpx": true,
+  "hk_southbound": true
+ }
+}
