@@ -1,16 +1,15 @@
-settling 15s…
-== 1/3 deploy (xlrd vendored) + invoke ==
-  zip size: 0.2 MB
-  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hkex_southbound": false}, "tw_stocks": 1079, "tw_forei
-  SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hkex_southbound": false}
-
-== 2/3 verify JP / HK / KR-marketwide ==
-  KOREA market-wide: {"KOSPI": {"foreign_value": -21750.0, "institution_value": 44079.0, "individual_value": -22942.0, "as_of": "20260703"}, "KOSDAQ": {"foreign_value": -202.0, "institution_value": -1037.0, "individual_value": 1075.0, "as_of": "20260703"}, "total_foreign_value": -21952, "unit": "KRW net (Naver index uni
-  JAPAN: {"status": "LIVE", "source": "JPX weekly", "file": "stock_val_1_260604.xls", "unit": "JPY thousands", "week": "06/22～06/26", "foreign_net": 1068065563.0, "individual_net": 911633499.0, "institution_net": 61892336.0, "by_market": {"TSE Prime": {"foreign_net": 1068065563.0, "individual_net": 911633499.0, "institution_net": 61892336.0}, "TSE Standard": {"foreign_net": 5645782.0, "individual_net": 118
-  HONG KONG: {"status": "PENDING", "note": "parse 20260703: Expecting value: line 1 column 1 (char 0 len=8700 head='\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"}
-  HK bridge: NONE
-  HK verdict: PENDING -> parse 20260703: Expecting value: line 1 column 1 (char 0 len=8700 head='\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
-== 3/3 page at edge ==
-  page attempt 1: LIVE
-OPS 2756 COMPLETE — Japan + Hong Kong + Korea-marketwide live
+{
+ "plain": {
+  "err": "HTTP Error 404: Not Found"
+ },
+ "identity": {
+  "err": "HTTP Error 404: Not Found"
+ },
+ "aastocks": {
+  "len": 34085,
+  "has_sb": false,
+  "head": "\ufeff<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n<html xmlns=\"http://www.w3"
+ }
+}
+tmp fn deleted
+OPS 2757 COMPLETE
