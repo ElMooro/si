@@ -222,7 +222,7 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  setFresh('f-conf',conf&&conf.generated_at); }catch(_e){console.error('opt-section',_e);} 
 
  try{ let fh='';if(pf&&(pf.extreme_call_flow||pf.bullish_call_flow)){const rows=[].concat(pf.extreme_call_flow||[],pf.bullish_call_flow||[]).slice(0,10);
-  fh+='<table><tr><th>Ticker</th><th>C/P</th><th>V/OI</th><th>IV</th><th>Blk</th><th>Alert</th></tr>'+rows.map(r=>{const al=String(r.alert_level||'').toUpperCase();const alc=al.indexOf('EXTREME')>=0?'neg':al.indexOf('BULL')>=0?'pos':'dim';
+  fh+='<table><tr><th>Ticker</th><th>C/P</th><th>V/OI</th><th>IV</th><th>Blk</th><th>Alert</th></tr>'+rows.map(r=>{var _alv=r.alert_level;var al=(_alv===3?'EXTREME':_alv===2?'NOTABLE':_alv===1?'ELEVATED':String(_alv||'—').toUpperCase());var alc=(_alv>=3?'neg':_alv===2?'gold':'dim');
    return '<tr><td class="sym">'+r.ticker+'</td><td class="pos">'+N(r.cv_pv_ratio,0)+'×</td><td class="dim">'+N(r.vol_oi_ratio,2)+'</td><td>'+(r.mean_iv?(100*r.mean_iv).toFixed(0)+'%':'—')+'</td><td class="'+((r.n_smart_money_blocks||0)>0?'gold':'mute')+'">'+(r.n_smart_money_blocks||0)+'</td><td class="'+alc+'">'+(al||'—')+'</td></tr>';}).join('')+'</table>';}
  if(of&&of.all_qualifying){const top=of.all_qualifying.filter(x=>/TIER_A/i.test(x.tier||'')).slice(0,6);if(top.length)fh+='<div class="mute" style="font-size:10px;margin:8px 0 4px">TIER-A scanner:</div><div class="chip-list">'+top.map(x=>'<span class="tag pB">'+x.symbol+' '+N(x.score,0)+'</span>').join('')+'</div>';}
  document.getElementById('flow').innerHTML=fh||'<div class="err">flow unavailable</div>';
