@@ -1,0 +1,75 @@
+{
+ "ops": 2759,
+ "ts": "2026-07-03T16:39:11.197074+00:00",
+ "hongkong": {
+  "status": "LIVE",
+  "source": "Eastmoney HSGT",
+  "southbound_net_total": 0,
+  "markets": {
+   "SH-Southbound": 0.0,
+   "SZ-Southbound": 0.0
+  },
+  "unit": "CNY (Eastmoney net, 万元)",
+  "note": null
+ },
+ "dump": {
+  "kamt_keys": [
+   "hk2sh",
+   "sh2hk",
+   "hk2sz",
+   "sz2hk"
+  ],
+  "legs": {
+   "hk2sh": {
+    "status": 3,
+    "dayNetAmtIn": 0.0,
+    "dayAmtRemain": 0.0,
+    "dayAmtThreshold": 5200000.0,
+    "date": "07-03",
+    "date2": "2026-07-03",
+    "monthNetAmtIn": 5200000.0,
+    "yearNetAmtIn": 5200000.0
+   },
+   "hk2sz": {
+    "status": 3,
+    "dayNetAmtIn": 0.0,
+    "dayAmtRemain": 0.0,
+    "dayAmtThreshold": 5200000.0,
+    "date": "07-03",
+    "date2": "2026-07-03",
+    "monthNetAmtIn": 5200000.0,
+    "yearNetAmtIn": 5200000.0
+   },
+   "sh2hk": {
+    "status": 3,
+    "dayNetAmtIn": 4200000.0,
+    "dayAmtRemain": 0.0,
+    "dayAmtThreshold": 4200000.0,
+    "date": "07-03",
+    "date2": "2026-07-03",
+    "monthNetAmtIn": 8400000.0,
+    "yearNetAmtIn": 483000000.0
+   },
+   "sz2hk": {
+    "status": 3,
+    "dayNetAmtIn": 4200000.0,
+    "dayAmtRemain": 0.0,
+    "dayAmtThreshold": 4200000.0,
+    "date": "07-03",
+    "date2": "2026-07-03",
+    "monthNetAmtIn": 8400000.0,
+    "yearNetAmtIn": 483000000.0
+   }
+  },
+  "scalar": {},
+  "daily_err": "URL can't contain control characters. '/api/data/v1/get?reportName=RPT_MUTUAL_DEAL_HISTORY"
+ },
+ "sources": {
+  "twse_t86": true,
+  "twse_bfi": true,
+  "korea_naver": true,
+  "korea_marketwide": true,
+  "japan_jpx": true,
+  "hk_southbound": true
+ }
+}

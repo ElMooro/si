@@ -1,6 +1,6 @@
 settling 15s…
-SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hkex_southbound": false}
-HONG KONG: {"status": "PENDING", "note": "parse 20260703: Expecting value: line 1 column 1 (char 0 len=8700 head='\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"}
-HK bridge: NONE (Southbound not live)
-HK STATUS: PENDING | net: None
-OPS 2758 COMPLETE
+SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hk_southbound": true}
+HK status: LIVE | source: Eastmoney HSGT | net: 0
+HK markets: {"SH-Southbound": 0.0, "SZ-Southbound": 0.0}
+EASTMONEY DUMP: {"kamt_keys": ["hk2sh", "sh2hk", "hk2sz", "sz2hk"], "legs": {"hk2sh": {"status": 3, "dayNetAmtIn": 0.0, "dayAmtRemain": 0.0, "dayAmtThreshold": 5200000.0, "date": "07-03", "date2": "2026-07-03", "monthNetAmtIn": 5200000.0, "yearNetAmtIn": 5200000.0}, "hk2sz": {"status": 3, "dayNetAmtIn": 0.0, "dayAmtRemain": 0.0, "dayAmtThreshold": 5200000.0, "date": "07-03", "date2": "2026-07-03", "monthNetAmtIn": 5200000.0, "yearNetAmtIn": 5200000.0}, "sh2hk": {"status": 3, "dayNetAmtIn": 4200000.0, "dayAmtRemain": 0.0, "dayAmtThreshold": 4200000.0, "date": "07-03", "date2": "2026-07-03", "monthNetAmtIn": 8400000.0, "yearNetAmtIn": 483000000.0}, "sz2hk": {"status": 3, "dayNetAmtIn": 4200000.0, "dayAmtRemain": 0.0, "dayAmtThreshold": 4200000.0, "date": "07-03", "date2": "2026-07-03", "monthNetAmtIn": 8400000.0, "yearNetAmtIn": 483000000.0}}, "scalar": {}, "daily_err": "URL can't contain control characte
+OPS 2759 COMPLETE
