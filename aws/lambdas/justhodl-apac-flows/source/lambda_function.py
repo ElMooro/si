@@ -25,7 +25,10 @@ import boto3
 
 BUCKET = "justhodl-dashboard-live"
 OUT, HIST = "data/apac-flows.json", "data/history/apac-flows.json"
-TWSE = "https://openapi.twse.com.tw/v1"
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*", "Referer": "https://www.twse.com.tw/"}
+TWSE_BASES = ("https://www.twse.com.tw/rwd/zh/fund/", "https://www.twse.com.tw/fund/")
 KRX = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -97,60 +100,95 @@ def _detect_key(row, want_substrings, must_numeric=False, avoid=()):
     return None
 
 
+def _twse(path, date_key, extra):
+    """TWSE legacy rwd JSON: walks back to the last trading day, tries both hosts.
+    Returns (fields, data_rows, date_used)."""
+    from datetime import timedelta
+    taipei = datetime.now(timezone.utc) + timedelta(hours=8)
+    for back in range(0, 9):
+        dt = (taipei - timedelta(days=back)).strftime("%Y%m%d")
+        for base in TWSE_BASES:
+            q = {date_key: dt, "response": "json"}; q.update(extra)
+            url = base + path + "?" + urllib.parse.urlencode(q)
+            try:
+                doc = _get_json(url, headers=UA, timeout=30)
+            except Exception:
+                continue
+            if str(doc.get("stat", "")).upper() != "OK":
+                continue
+            fields, data = doc.get("fields"), doc.get("data")
+            if not (fields and data):
+                for t in doc.get("tables") or []:
+                    if t.get("fields") and t.get("data"):
+                        fields, data = t["fields"], t["data"]; break
+            if fields and data:
+                return fields, data, dt
+    return None, None, None
+
+
+def _idx(fields, *subs, avoid=()):
+    for i, f in enumerate(fields):
+        fs = str(f)
+        if any(a in fs for a in avoid):
+            continue
+        if all(any(x in fs for x in ([sub] if isinstance(sub, str) else sub)) for sub in subs):
+            return i
+    return None
+
+
 def taiwan_t86():
-    """Per-stock foreign net buy/sell (shares). Language-agnostic key detection."""
-    rows = _get_json(TWSE + "/exchangeReport/T86")
-    if not isinstance(rows, list) or not rows:
-        raise RuntimeError("T86 empty")
-    sample = rows[0]
-    code_key = _detect_key(sample, ["code", "證券代號", "代號"]) or \
-        next((k for k in sample if re.match(r"^\d{4}$", str(sample[k]).strip())), None)
-    name_key = _detect_key(sample, ["name", "名稱"])
-    # foreign net: prefer the foreign-investors net-buy/sell column, excluding dealer sub-columns
-    fk = _detect_key(sample, ["外陸資買賣超", "外資買賣超", "foreigninvestors", "foreign investors"],
-                     must_numeric=True, avoid=("dealer", "自營"))
-    if not fk:
-        fk = _detect_key(sample, ["外", "foreign"], must_numeric=True, avoid=("dealer", "自營"))
-    trust_key = _detect_key(sample, ["投信", "trust"], must_numeric=True)
-    if not (code_key and fk):
-        raise RuntimeError("T86 key detect failed keys=%s" % list(sample)[:8])
+    """Per-stock foreign net buy/sell shares — TWSE T86 (legacy rwd JSON)."""
+    fields, data, dt = _twse("T86", "date", {"selectType": "ALL"})
+    if not fields:
+        raise RuntimeError("T86 unreachable/no-data on all hosts+dates")
+    ci = _idx(fields, ["證券代號", "代號", "Code"])
+    ni = _idx(fields, ["證券名稱", "名稱", "Name"])
+    fi = _idx(fields, "外", "買賣超", avoid=("自營",)) or _idx(fields, "外", "買賣超") or _idx(fields, "Foreign")
+    ti = _idx(fields, "投信", "買賣超")
+    if ci is None or fi is None:
+        raise RuntimeError("T86 col detect failed fields=%s" % fields[:6])
     out = []
-    for r in rows:
-        code = str(r.get(code_key, "")).strip()
-        fnet = _num(r.get(fk))
+    for r in data:
+        try:
+            code = str(r[ci]).strip()
+        except Exception:
+            continue
+        fnet = _num(r[fi]) if fi < len(r) else None
         if not re.match(r"^\d{4}$", code) or fnet is None:
             continue
-        out.append({"code": code, "name": TW_NAMES.get(code) or str(r.get(name_key, "")).strip(),
+        out.append({"code": code, "name": TW_NAMES.get(code) or (str(r[ni]).strip() if ni is not None and ni < len(r) else ""),
                     "foreign_net_shares": fnet,
-                    "trust_net_shares": _num(r.get(trust_key)) if trust_key else None,
+                    "trust_net_shares": (_num(r[ti]) if ti is not None and ti < len(r) else None),
                     "sector": TW_SECTOR.get(code)})
     out.sort(key=lambda x: x["foreign_net_shares"], reverse=True)
     sec = {}
     for r in out:
         if r["sector"]:
             sec[r["sector"]] = sec.get(r["sector"], 0) + r["foreign_net_shares"]
-    return {"foreign_col_detected": fk, "n_stocks": len(out),
-            "top_buy": out[:15], "top_sell": list(reversed(out[-15:])),
+    return {"as_of": "%s-%s-%s" % (dt[:4], dt[4:6], dt[6:]), "foreign_col_detected": str(fields[fi]),
+            "n_stocks": len(out), "top_buy": out[:15], "top_sell": list(reversed(out[-15:])),
             "sector_flows_shares": {k: round(v) for k, v in sorted(sec.items(), key=lambda kv: kv[1], reverse=True)},
             "tracked": {c: next((r["foreign_net_shares"] for r in out if r["code"] == c), None)
-                        for c in ("2330", "2454", "2317", "000660") if c in TW_NAMES}}
+                        for c in ("2330", "2454", "2317")}}
 
 
 def taiwan_bfi():
-    """Market-wide foreign net dollar (NT$) from BFI82U."""
-    rows = _get_json(TWSE + "/exchangeReport/BFI82U")
-    if not isinstance(rows, list) or not rows:
-        raise RuntimeError("BFI82U empty")
-    for r in rows:
-        label = " ".join(str(v) for v in r.values() if isinstance(v, str))
+    """Market-wide foreign net dollar (NT$) — TWSE BFI82U (legacy rwd JSON)."""
+    fields, data, dt = _twse("BFI82U", "dayDate", {"type": "day"})
+    if not fields:
+        return {"foreign_net_twd": None}
+    neti = _idx(fields, ["買賣差額", "買賣超", "差額", "Difference"])
+    buyi = _idx(fields, ["買進", "Buy"], avoid=("賣", "Sell"))
+    selli = _idx(fields, ["賣出", "Sell"])
+    for r in data:
+        label = str(r[0]) if r else ""
         if "外" in label or "foreign" in label.lower():
-            buy = _detect_key(r, ["買進", "buy"], must_numeric=True, avoid=("賣", "sell"))
-            sell = _detect_key(r, ["賣出", "sell"], must_numeric=True)
-            net = _detect_key(r, ["買賣超", "diff", "net"], must_numeric=True)
-            nv = _num(r.get(net)) if net else (
-                (_num(r.get(buy)) or 0) - (_num(r.get(sell)) or 0) if buy and sell else None)
+            nv = _num(r[neti]) if (neti is not None and neti < len(r)) else (
+                (_num(r[buyi]) or 0) - (_num(r[selli]) or 0)
+                if buyi is not None and selli is not None else None)
             if nv is not None:
-                return {"foreign_net_twd": round(nv), "foreign_net_twd_bn": round(nv / 1e9, 2)}
+                return {"foreign_net_twd": round(nv), "foreign_net_twd_bn": round(nv / 1e9, 2),
+                        "foreign_row": label}
     return {"foreign_net_twd": None}
 
 
