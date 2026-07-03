@@ -1,12 +1,21 @@
-settling 12s…
-== 1/4 deploy fix ==
-  deployed
-== 2/4 create missing hourly rule ==
-  rule: {"state": "ENABLED", "schedule": "cron(20 * * * ? *)", "n_targets": 1}
-== 3/4 invoke + verify fresh ==
-  invoke: {"statusCode": 200, "body": "{\"names\": 79, \"multi_engine\": 16, \"squeeze_fuel\": 8, \"bullish_flow\": 14, \"bearish_flow\": 5, \"coiled\": 0, \"bullish_lean\": 25, \"bearish_le
-  feed age: -0.0 min | top keys: ['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map'] | items: None
-== 4/4 confirm downstream sees it ==
-
-FIXED — _tk shadowing corrected, rule created, feed live & hourly; master-ranker/best-setups now consume fresh options confluence
-OPS 2776 COMPLETE
+── dealer-gex ── top:['generated_at', 'generated_at_unix', 'version', 'elapsed_seconds', 'calculation_config', 'market_composite', 'squeeze_candidates', 'underlyings']
+     map_underlyings_item_keys: ['symbol', 'spot', 'n_contracts_modeled', 'total_call_oi', 'total_put_oi', 'total_call_volume', 'total_put_volume', 'pcr_oi', 'pcr_volume', 'total_dealer_gex_dollars', 'total_dealer_gex_billions', 'zero_gamma_flip_level', 'spot_pct_to_flip', 'spot_above_flip']
+── options-gamma ── top:['generated_at', 'underlying', 'spot', 'vix', 'regime', 'interpretation', 'total_gex', 'by_expiry', 'by_strike', 'zero_gamma_strike', 'contracts_analyzed', 'fetch_duration_s']
+     map_by_strike_item_keys: ['call_gex', 'put_gex', 'net_gex', 'oi_call', 'oi_put']
+── options-confluence ── top:['engine', 'version', 'generated_at', 'duration_s', 'thesis', 'alpha_gate', 'counts', 'multi_engine_confluence', 'by_posture', 'ticker_map', 'note']
+     array_multi_engine_confluence_item_keys: ['ticker', 'score', 'engines', 'neg_gamma', 'coiled', 'tags', 'n_engines', 'posture']
+     array_multi_engine_confluence_sample: {'ticker': 'AAPL', 'score': '1.8', 'engines': "['dealer-gex', 'options-", 'neg_gamma': 'False', 'coiled': 'False', 'tags': '[]', 'n_engines': '3', 'posture': 'BULLISH_FLOW'}
+     map_ticker_map_item_keys: ['posture', 'score', 'n_engines', 'neg_gamma', 'coiled', 'tags']
+── dix ── top:['generated_at', 'generated_at_unix', 'version', 'source', 'data_date', 'elapsed_seconds', 'current', 'moving_averages', 'statistics', 'sustained_signals', 'day_over_day', 'dix_regime', 'gex_regime', 'combined_regime', 'combined_signal', 'regime_changed_from_prior']
+     map_backtest_forward_returns_by_dix_bucket_item_keys: ['<40', '40-42', '42-45', '45-47', '>=47']
+── opex-calendar ── top:['engine', 'version', 'as_of', 'state', 'previous_state', 'state_transition', 'signal_strength', 'days_to_next_opex', 'max_pain', 'dealer_gex_proxy', 'calendar', 'current_readings', 'trigger_conditions', 'forward_expectations', 'recommended_trade', 'historical_backtest']
+     array_trigger_conditions_item_keys: ['name', 'current', 'threshold', 'satisfied', 'weight']
+     array_trigger_conditions_sample: {'name': 'Inside OPEX window (T-5 ', 'current': 'NORMAL', 'threshold': 'PRE/OPEX/POST', 'satisfied': 'False', 'weight': '0.35'}
+     map_forward_expectations_item_keys: ['return_pct', 'win_rate_pct', 'basis', 'n']
+── polygon-options-flow ── top:['generated_at', 'elapsed_s', 'n_scanned', 'n_extreme', 'n_bullish', 'n_notable', 'extreme_call_flow', 'bullish_call_flow', 'notable_flow', 'all_results']
+     array_extreme_call_flow_item_keys: ['ticker', 'n_contracts', 'call_vol', 'put_vol', 'total_vol', 'total_oi', 'cv_pv_ratio', 'vol_oi_ratio', 'mean_iv', 'max_iv', 'otm_call_vol', 'n_smart_money_blocks', 'smart_money_blocks', 'underlying_price', 'signals', 'alert_level']
+     array_extreme_call_flow_sample: {'ticker': 'AMD', 'n_contracts': '250', 'call_vol': '62208', 'put_vol': '4', 'total_vol': '62212', 'total_oi': '45621', 'cv_pv_ratio': '15552.0', 'vol_oi_ratio': '1.364', 'mean_iv': '0.912', 'max_iv': '2.063'}
+── options-flow ── top:['schema_version', 'method', 'generated_at', 'duration_s', 'stats', 'summary', 'all_qualifying']
+     array_all_qualifying_item_keys: ['symbol', 'score', 'tier', 'flags', 'metrics']
+     array_all_qualifying_sample: {'symbol': 'SPCX', 'score': '80.0', 'tier': 'TIER_A_BULLISH_FLOW', 'flags': "['CPR_SURGING', 'CALL_VO", 'metrics': "{'spot': 162.0, 'n_call_"}
+OPS 2777 COMPLETE

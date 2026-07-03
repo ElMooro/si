@@ -1,0 +1,307 @@
+{
+ "ops": 2777,
+ "ts": "2026-07-03T19:45:25.376472+00:00",
+ "feeds": {
+  "dealer-gex": {
+   "top_keys": [
+    "generated_at",
+    "generated_at_unix",
+    "version",
+    "elapsed_seconds",
+    "calculation_config",
+    "market_composite",
+    "squeeze_candidates",
+    "underlyings"
+   ],
+   "map_underlyings_item_keys": [
+    "symbol",
+    "spot",
+    "n_contracts_modeled",
+    "total_call_oi",
+    "total_put_oi",
+    "total_call_volume",
+    "total_put_volume",
+    "pcr_oi",
+    "pcr_volume",
+    "total_dealer_gex_dollars",
+    "total_dealer_gex_billions",
+    "zero_gamma_flip_level",
+    "spot_pct_to_flip",
+    "spot_above_flip"
+   ],
+   "scalars": {
+    "generated_at": "2026-07-03T19:07:23.086627+00:00",
+    "generated_at_unix": "1783105643",
+    "version": "1.3.0",
+    "elapsed_seconds": "7.17"
+   }
+  },
+  "options-gamma": {
+   "top_keys": [
+    "generated_at",
+    "underlying",
+    "spot",
+    "vix",
+    "regime",
+    "interpretation",
+    "total_gex",
+    "by_expiry",
+    "by_strike",
+    "zero_gamma_strike",
+    "contracts_analyzed",
+    "fetch_duration_s"
+   ],
+   "map_by_strike_item_keys": [
+    "call_gex",
+    "put_gex",
+    "net_gex",
+    "oi_call",
+    "oi_put"
+   ],
+   "scalars": {
+    "generated_at": "2026-07-03T14:55:49+00:00",
+    "underlying": "SPY",
+    "spot": "744.78",
+    "vix": "16",
+    "regime": "neutral",
+    "interpretation": "Neutral gamma. Dealers near zero net pos",
+    "total_gex": "-49024681.0",
+    "zero_gamma_strike": "360",
+    "contracts_analyzed": "2500",
+    "fetch_duration_s": "0.9"
+   }
+  },
+  "options-confluence": {
+   "top_keys": [
+    "engine",
+    "version",
+    "generated_at",
+    "duration_s",
+    "thesis",
+    "alpha_gate",
+    "counts",
+    "multi_engine_confluence",
+    "by_posture",
+    "ticker_map",
+    "note"
+   ],
+   "array_multi_engine_confluence_item_keys": [
+    "ticker",
+    "score",
+    "engines",
+    "neg_gamma",
+    "coiled",
+    "tags",
+    "n_engines",
+    "posture"
+   ],
+   "array_multi_engine_confluence_sample": {
+    "ticker": "AAPL",
+    "score": "1.8",
+    "engines": "['dealer-gex', 'options-",
+    "neg_gamma": "False",
+    "coiled": "False",
+    "tags": "[]",
+    "n_engines": "3",
+    "posture": "BULLISH_FLOW"
+   },
+   "map_ticker_map_item_keys": [
+    "posture",
+    "score",
+    "n_engines",
+    "neg_gamma",
+    "coiled",
+    "tags"
+   ],
+   "scalars": {
+    "engine": "options-confluence",
+    "version": "1.0",
+    "generated_at": "2026-07-03T19:40:36.718131+00:00",
+    "duration_s": "0.3",
+    "thesis": "Fuses the fragmented options/dealer clus",
+    "alpha_gate": "ALPHA_NEGATIVE options engines dropped; ",
+    "note": "New synthesizer \u2014 consumable by best-set"
+   }
+  },
+  "dix": {
+   "top_keys": [
+    "generated_at",
+    "generated_at_unix",
+    "version",
+    "source",
+    "data_date",
+    "elapsed_seconds",
+    "current",
+    "moving_averages",
+    "statistics",
+    "sustained_signals",
+    "day_over_day",
+    "dix_regime",
+    "gex_regime",
+    "combined_regime",
+    "combined_signal",
+    "regime_changed_from_prior"
+   ],
+   "map_backtest_forward_returns_by_dix_bucket_item_keys": [
+    "<40",
+    "40-42",
+    "42-45",
+    "45-47",
+    ">=47"
+   ],
+   "scalars": {
+    "generated_at": "2026-07-02T22:00:42.376178+00:00",
+    "generated_at_unix": "1783029642",
+    "version": "1.0.0",
+    "source": "squeezemetrics.com/monitor/static/DIX.cs",
+    "data_date": "2026-07-02",
+    "elapsed_seconds": "0.26",
+    "dix_regime": "CAUTION",
+    "gex_regime": "POSITIVE",
+    "combined_regime": "DISTRIBUTION_CAPPED",
+    "combined_signal": "Distribution but dealers stabilize \u2014 slo",
+    "regime_changed_from_prior": "False",
+    "n_history_days": "3815",
+    "history_first_date": "2011-05-02"
+   }
+  },
+  "opex-calendar": {
+   "top_keys": [
+    "engine",
+    "version",
+    "as_of",
+    "state",
+    "previous_state",
+    "state_transition",
+    "signal_strength",
+    "days_to_next_opex",
+    "max_pain",
+    "dealer_gex_proxy",
+    "calendar",
+    "current_readings",
+    "trigger_conditions",
+    "forward_expectations",
+    "recommended_trade",
+    "historical_backtest"
+   ],
+   "array_trigger_conditions_item_keys": [
+    "name",
+    "current",
+    "threshold",
+    "satisfied",
+    "weight"
+   ],
+   "array_trigger_conditions_sample": {
+    "name": "Inside OPEX window (T-5 ",
+    "current": "NORMAL",
+    "threshold": "PRE/OPEX/POST",
+    "satisfied": "False",
+    "weight": "0.35"
+   },
+   "map_forward_expectations_item_keys": [
+    "return_pct",
+    "win_rate_pct",
+    "basis",
+    "n"
+   ],
+   "scalars": {
+    "engine": "opex-calendar",
+    "version": "1.1",
+    "as_of": "2026-07-03T11:00:42.343248Z",
+    "state": "NORMAL",
+    "previous_state": "NORMAL",
+    "state_transition": "False",
+    "signal_strength": "20",
+    "days_to_next_opex": "10",
+    "dealer_gex_proxy": "NEUTRAL",
+    "why_now_explainer": "### OPEX Calendar State: **Normal**\n\n**N",
+    "methodology": "Classify each trading day into OPEX regi",
+    "schedule": "Every 30 minutes during market hours (Po",
+    "run_duration_seconds": "0.03"
+   }
+  },
+  "polygon-options-flow": {
+   "top_keys": [
+    "generated_at",
+    "elapsed_s",
+    "n_scanned",
+    "n_extreme",
+    "n_bullish",
+    "n_notable",
+    "extreme_call_flow",
+    "bullish_call_flow",
+    "notable_flow",
+    "all_results"
+   ],
+   "array_extreme_call_flow_item_keys": [
+    "ticker",
+    "n_contracts",
+    "call_vol",
+    "put_vol",
+    "total_vol",
+    "total_oi",
+    "cv_pv_ratio",
+    "vol_oi_ratio",
+    "mean_iv",
+    "max_iv",
+    "otm_call_vol",
+    "n_smart_money_blocks",
+    "smart_money_blocks",
+    "underlying_price",
+    "signals",
+    "alert_level"
+   ],
+   "array_extreme_call_flow_sample": {
+    "ticker": "AMD",
+    "n_contracts": "250",
+    "call_vol": "62208",
+    "put_vol": "4",
+    "total_vol": "62212",
+    "total_oi": "45621",
+    "cv_pv_ratio": "15552.0",
+    "vol_oi_ratio": "1.364",
+    "mean_iv": "0.912",
+    "max_iv": "2.063"
+   },
+   "scalars": {
+    "generated_at": "2026-07-03T19:15:27.038685+00:00",
+    "elapsed_s": "1.0",
+    "n_scanned": "30",
+    "n_extreme": "6",
+    "n_bullish": "6",
+    "n_notable": "9"
+   }
+  },
+  "options-flow": {
+   "top_keys": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "duration_s",
+    "stats",
+    "summary",
+    "all_qualifying"
+   ],
+   "array_all_qualifying_item_keys": [
+    "symbol",
+    "score",
+    "tier",
+    "flags",
+    "metrics"
+   ],
+   "array_all_qualifying_sample": {
+    "symbol": "SPCX",
+    "score": "80.0",
+    "tier": "TIER_A_BULLISH_FLOW",
+    "flags": "['CPR_SURGING', 'CALL_VO",
+    "metrics": "{'spot': 162.0, 'n_call_"
+   },
+   "scalars": {
+    "schema_version": "1",
+    "method": "options_flow_scanner_v1",
+    "generated_at": "2026-07-02T22:00:32+00:00",
+    "duration_s": "4.0"
+   }
+  }
+ }
+}
