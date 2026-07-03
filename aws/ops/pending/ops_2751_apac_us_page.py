@@ -51,11 +51,16 @@ for donor in ("justhodl-fundamentals-engine", "justhodl-ma-tracker", "justhodl-s
     except ClientError:
         continue
 assert fmp, "no FMP key found in donor functions"
-wait_ok(FN)
-cur = (lam.get_function_configuration(FunctionName=FN).get("Environment", {}) or {}).get("Variables", {}) or {}
-cur.update({"FMP_API_KEY": fmp, "FMP_KEY": fmp, "TZ": "UTC"})
-lam.update_function_configuration(FunctionName=FN, Environment={"Variables": cur})
-wait_ok(FN)
+envset = False
+for attempt in range(6):
+    try:
+        wait_ok(FN)
+        lam.update_function_configuration(FunctionName=FN,
+            Environment={"Variables": {"FMP_API_KEY": fmp, "FMP_KEY": fmp, "TZ": "UTC"}})
+        wait_ok(FN); envset = True; break
+    except ClientError as e:
+        print("  env attempt %d: %s" % (attempt + 1, str(e)[:90])); time.sleep(15)
+assert envset, "env update failed after retries"
 R["fmp_key_wired"] = True
 
 print("== 2/4 deploy widened adapter + invoke ==")
@@ -104,3 +109,5 @@ with open("aws/ops/reports/2751_apac_us_page.json", "w") as f:
 print("OPS 2751 COMPLETE — APAC radar has a face and a US side")
 
 # rev2 donor=confirmed FMP_KEY holders
+
+# rev3 robust env-set (no read-merge)
