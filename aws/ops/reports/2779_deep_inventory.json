@@ -1,0 +1,857 @@
+{
+ "ops": 2779,
+ "ts": "2026-07-03T20:04:48.932177+00:00",
+ "dump": {
+  "dealer-gex": {
+   "underlying_all_keys": [
+    "symbol",
+    "spot",
+    "n_contracts_modeled",
+    "total_call_oi",
+    "total_put_oi",
+    "total_call_volume",
+    "total_put_volume",
+    "pcr_oi",
+    "pcr_volume",
+    "total_dealer_gex_dollars",
+    "total_dealer_gex_billions",
+    "zero_gamma_flip_level",
+    "spot_pct_to_flip",
+    "spot_above_flip",
+    "regime",
+    "trading_bias",
+    "total_vanna_dollars",
+    "total_charm_dollars_per_day",
+    "call_walls_top5",
+    "put_walls_top5",
+    "top_gamma_strikes",
+    "by_expiry",
+    "max_pain_by_expiry",
+    "iv_skew_30d",
+    "zero_dte"
+   ],
+   "scalars": {
+    "symbol": "SPY",
+    "spot": "744.78",
+    "n_contracts_modeled": "3812",
+    "total_call_oi": "2279877",
+    "total_put_oi": "6467153",
+    "total_call_volume": "1787564",
+    "total_put_volume": "2026952",
+    "pcr_oi": "2.837",
+    "pcr_volume": "1.134",
+    "total_dealer_gex_dollars": "-3055076237.0",
+    "total_dealer_gex_billions": "-3.055",
+    "zero_gamma_flip_level": "None",
+    "spot_pct_to_flip": "None",
+    "spot_above_flip": "False",
+    "regime": "STRONG_NEGATIVE_GAMMA",
+    "trading_bias": "Momentum/explosive \u00b7 gap risk \u00b7 trend pe",
+    "total_vanna_dollars": "411995849.0",
+    "total_charm_dollars_per_day": "-2218436.0"
+   },
+   "arr_call_walls_top5_schema": [
+    "strike",
+    "call_oi"
+   ],
+   "arr_call_walls_top5_len": 5,
+   "arr_call_walls_top5_sample": [
+    {
+     "strike": 760.0,
+     "call_oi": 136851
+    },
+    {
+     "strike": 750.0,
+     "call_oi": 128863
+    },
+    {
+     "strike": 755.0,
+     "call_oi": 88827
+    }
+   ],
+   "arr_put_walls_top5_schema": [
+    "strike",
+    "put_oi"
+   ],
+   "arr_put_walls_top5_len": 5,
+   "arr_put_walls_top5_sample": [
+    {
+     "strike": 550.0,
+     "put_oi": 525141
+    },
+    {
+     "strike": 600.0,
+     "put_oi": 311131
+    },
+    {
+     "strike": 630.0,
+     "put_oi": 279087
+    }
+   ],
+   "arr_top_gamma_strikes_schema": [
+    "strike",
+    "gex_dollars",
+    "gex_billions"
+   ],
+   "arr_top_gamma_strikes_len": 10,
+   "arr_top_gamma_strikes_sample": [
+    {
+     "strike": 740.0,
+     "gex_dollars": -1144405323.0,
+     "gex_billions": -1.144
+    },
+    {
+     "strike": 760.0,
+     "gex_dollars": 844407079.0,
+     "gex_billions": 0.844
+    },
+    {
+     "strike": 735.0,
+     "gex_dollars": -832982923.0,
+     "gex_billions": -0.833
+    }
+   ],
+   "obj_by_expiry": {
+    "2026-07-06": "{'gex_billions': 0.791, 'call_",
+    "2026-07-07": "{'gex_billions': -0.243, 'call",
+    "2026-07-08": "{'gex_billions': 0.036, 'call_",
+    "2026-07-09": "{'gex_billions': -0.012, 'call",
+    "2026-07-10": "{'gex_billions': -0.168, 'call",
+    "2026-07-13": "{'gex_billions': 0.055, 'call_",
+    "2026-07-14": "{'gex_billions': 0.006, 'call_",
+    "2026-07-15": "{'gex_billions': -0.004, 'call",
+    "2026-07-16": "{'gex_billions': -0.005, 'call",
+    "2026-07-17": "{'gex_billions': -2.231, 'call",
+    "2026-07-24": "{'gex_billions': 0.166, 'call_",
+    "2026-07-31": "{'gex_billions': -0.589, 'call"
+   },
+   "obj_max_pain_by_expiry": {
+    "2026-07-06": "745.0",
+    "2026-07-07": "745.0",
+    "2026-07-08": "744.0",
+    "2026-07-09": "745.0"
+   },
+   "obj_iv_skew_30d": {
+    "expiry": "2026-07-31",
+    "p25_iv": "0.1592",
+    "c25_iv": "0.1145",
+    "skew": "0.0447",
+    "skew_pct": "39.0"
+   },
+   "obj_zero_dte": {
+    "oi_pct": "0.0",
+    "vol_pct": "0.0",
+    "oi": "0",
+    "vol": "0",
+    "call_oi": "0",
+    "put_oi": "0",
+    "call_vol": "0",
+    "put_vol": "0",
+    "pcr_oi": "None",
+    "pcr_vol": "None",
+    "gex_billions": "0.0",
+    "call_walls_oi": "[]"
+   },
+   "market_composite": {
+    "spy_regime": "STRONG_NEGATIVE_GAMMA",
+    "spy_gex_billions": -3.055,
+    "spy_flip_level": null,
+    "spy_spot": 744.78,
+    "spy_pct_to_flip": null,
+    "spy_trading_bias": "Momentum/explosive \u00b7 gap risk \u00b7 trend persistence \u00b7 dealers amplify moves",
+    "qqq_regime": "NEGATIVE_GAMMA",
+    "iwm_regime": "NEGATIVE_GAMMA",
+    "index_gex_signs": "---",
+    "composite_regime": "ALL_NEGATIVE_GAMMA",
+    "composite_signal": "Strong negative gamma across all indices \u2014 volatility expanding, trend follow, reduce size"
+   },
+   "squeeze_candidates_schema": [],
+   "squeeze_candidates_n": 0
+  },
+  "options-gamma": {
+   "top": [
+    "generated_at",
+    "underlying",
+    "spot",
+    "vix",
+    "regime",
+    "interpretation",
+    "total_gex",
+    "by_expiry",
+    "by_strike",
+    "zero_gamma_strike",
+    "contracts_analyzed",
+    "fetch_duration_s"
+   ],
+   "spot": 744.78,
+   "zero_gamma_strike": 360,
+   "regime": "neutral",
+   "total_gex": -49024681.0,
+   "by_strike_type": "dict",
+   "by_strike_n": 29,
+   "by_strike_item_schema": [
+    "call_gex",
+    "put_gex",
+    "net_gex",
+    "oi_call",
+    "oi_put"
+   ],
+   "by_strike_sample": {
+    "600": {
+     "call_gex": 0.0,
+     "put_gex": -1969286.0,
+     "net_gex": -1969286.0,
+     "oi_call": 59,
+     "oi_put": 60574
+    },
+    "655": {
+     "call_gex": -0.0,
+     "put_gex": -1055181.0,
+     "net_gex": -1055181.0,
+     "oi_call": 25,
+     "oi_put": 7794
+    },
+    "670": {
+     "call_gex": 10136.0,
+     "put_gex": -2256803.0,
+     "net_gex": -2246667.0,
+     "oi_call": 98,
+     "oi_put": 7813
+    },
+    "675": {
+     "call_gex": 18890.0,
+     "put_gex": -2757213.0,
+     "net_gex": -2738324.0,
+     "oi_call": 140,
+     "oi_put": 9856
+    }
+   },
+   "by_expiry_type": "dict",
+   "by_expiry_sample": {
+    "2026-07-06": 362805316.0,
+    "2026-07-07": -567773172.0,
+    "2026-07-08": -1442642.0,
+    "2026-07-09": 45113297.0
+   }
+  },
+  "options-analytics": {
+   "top": [
+    "engine",
+    "version",
+    "ok",
+    "generated_at",
+    "thesis",
+    "universe_size",
+    "n_analyzed",
+    "distribution",
+    "board",
+    "top_picks",
+    "squeeze_setups",
+    "most_unusual",
+    "richest_iv_vrp",
+    "data_source",
+    "caveats",
+    "elapsed_s"
+   ],
+   "board_schema": [
+    "ticker",
+    "spot",
+    "signal",
+    "score",
+    "price_confirm",
+    "gamma_regime",
+    "net_gex_musd_per_1pct",
+    "gamma_flip_strike",
+    "call_wall",
+    "put_wall",
+    "atm_iv_front",
+    "term_slope",
+    "term_structure",
+    "skew_25d",
+    "hv20",
+    "vrp",
+    "iv_rank",
+    "pcr_vol",
+    "pcr_oi",
+    "call_vol",
+    "put_vol",
+    "net_premium_usd",
+    "n_unusual",
+    "unusual",
+    "expiries",
+    "reasons"
+   ],
+   "board_n": 58,
+   "board_sample": {
+    "ticker": "WMT",
+    "spot": 111.84,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 64.3,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -30.05,
+    "gamma_flip_strike": null,
+    "call_wall": 125,
+    "put_wall": 110,
+    "atm_iv_front": 0.246,
+    "term_slope": 0.0319,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0033,
+    "hv20": 0.2512,
+    "vrp": -0.0052,
+    "iv_rank": null,
+    "pcr_vol": 0.241,
+    "pcr_oi": 1.09,
+    "call_vol": 119141,
+    "put_vol": 28757,
+    "net_premium_usd": 6321732,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     },
+     {
+      "contract": "O:WMT260717C00111000",
+      "type": "call",
+      "strike": 111,
+      "exp": "2026-07-17",
+      "vol": 1968,
+      "oi": 627,
+      "vol_oi": 3.1
+     },
+     {
+      "contract": "O:WMT260717C00114000",
+      "type": "call",
+      "strike": 114,
+      "exp": "2026-07-17",
+      "vol": 605,
+      "oi": 214,
+      "vol_oi": 2.8
+     },
+     {
+      "contract": "O:WMT260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 1052,
+      "oi": 407,
+      "vol_oi": 2.6
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow"
+    ]
+   },
+   "top_picks_schema": [
+    "ticker",
+    "score",
+    "direction",
+    "signal",
+    "gamma_regime",
+    "net_gex_musd",
+    "pcr_vol",
+    "price_confirm",
+    "reasons"
+   ],
+   "top_picks_n": 6,
+   "top_picks_sample": {
+    "ticker": "WMT",
+    "score": 64.3,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -30.05,
+    "pcr_vol": 0.241,
+    "price_confirm": false,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow"
+    ]
+   },
+   "squeeze_setups_schema": [
+    "ticker",
+    "spot",
+    "signal",
+    "score",
+    "price_confirm",
+    "gamma_regime",
+    "net_gex_musd_per_1pct",
+    "gamma_flip_strike",
+    "call_wall",
+    "put_wall",
+    "atm_iv_front",
+    "term_slope",
+    "term_structure",
+    "skew_25d",
+    "hv20",
+    "vrp",
+    "iv_rank",
+    "pcr_vol",
+    "pcr_oi",
+    "call_vol",
+    "put_vol",
+    "net_premium_usd",
+    "n_unusual",
+    "unusual",
+    "expiries",
+    "reasons"
+   ],
+   "squeeze_setups_n": 6,
+   "squeeze_setups_sample": {
+    "ticker": "WMT",
+    "spot": 111.84,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 64.3,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -30.05,
+    "gamma_flip_strike": null,
+    "call_wall": 125,
+    "put_wall": 110,
+    "atm_iv_front": 0.246,
+    "term_slope": 0.0319,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0033,
+    "hv20": 0.2512,
+    "vrp": -0.0052,
+    "iv_rank": null,
+    "pcr_vol": 0.241,
+    "pcr_oi": 1.09,
+    "call_vol": 119141,
+    "put_vol": 28757,
+    "net_premium_usd": 6321732,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     },
+     {
+      "contract": "O:WMT260717C00111000",
+      "type": "call",
+      "strike": 111,
+      "exp": "2026-07-17",
+      "vol": 1968,
+      "oi": 627,
+      "vol_oi": 3.1
+     },
+     {
+      "contract": "O:WMT260717C00114000",
+      "type": "call",
+      "strike": 114,
+      "exp": "2026-07-17",
+      "vol": 605,
+      "oi": 214,
+      "vol_oi": 2.8
+     },
+     {
+      "contract": "O:WMT260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 1052,
+      "oi": 407,
+      "vol_oi": 2.6
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow"
+    ]
+   },
+   "most_unusual_schema": [
+    "ticker",
+    "n_unusual",
+    "pcr_vol",
+    "net_premium_usd",
+    "unusual"
+   ],
+   "most_unusual_n": 15,
+   "most_unusual_sample": {
+    "ticker": "RIVN",
+    "n_unusual": 11,
+    "pcr_vol": 0.36,
+    "net_premium_usd": 8333946,
+    "unusual": [
+     {
+      "contract": "O:RIVN260717C00024000",
+      "type": "call",
+      "strike": 24,
+      "exp": "2026-07-17",
+      "vol": 1501,
+      "oi": 4,
+      "vol_oi": 375.2
+     },
+     {
+      "contract": "O:RIVN260717C00021500",
+      "type": "call",
+      "strike": 21.5,
+      "exp": "2026-07-17",
+      "vol": 1128,
+      "oi": 21,
+      "vol_oi": 53.7
+     },
+     {
+      "contract": "O:RIVN260821P00019000",
+      "type": "put",
+      "strike": 19,
+      "exp": "2026-08-21",
+      "vol": 577,
+      "oi": 11,
+      "vol_oi": 52.5
+     }
+    ]
+   }
+  },
+  "dix": {
+   "top": [
+    "generated_at",
+    "generated_at_unix",
+    "version",
+    "source",
+    "data_date",
+    "elapsed_seconds",
+    "current",
+    "moving_averages",
+    "statistics",
+    "sustained_signals",
+    "day_over_day",
+    "dix_regime",
+    "gex_regime",
+    "combined_regime",
+    "combined_signal",
+    "regime_changed_from_prior",
+    "thresholds",
+    "backtest_forward_returns_by_dix_bucket",
+    "n_history_days",
+    "history_first_date"
+   ],
+   "current": {
+    "date": "2026-07-02",
+    "price": 7483.24,
+    "dix": 0.40873,
+    "dix_pct": 40.87,
+    "gex": 6862495709.0,
+    "gex_billions": 6.862
+   },
+   "moving_averages": {
+    "dix_5d_pct": 43.85,
+    "dix_20d_pct": 43.78,
+    "dix_60d_pct": 44.99,
+    "dix_252d_pct": 45.79,
+    "gex_5d": 3519524226.0,
+    "gex_20d": 3982110758.0,
+    "gex_60d": 6588700415.0
+   },
+   "statistics": {
+    "dix_z_score_60d": -1.64,
+    "dix_percentile_1y": 3.2,
+    "dix_percentile_5y": 2.2,
+    "dix_percentile_all_time": 23.7
+   },
+   "day_over_day": {
+    "dix_change_pp": -3.63,
+    "gex_change": 893097656.0,
+    "price_change_pct": 0.0
+   },
+   "sustained_signals": {
+    "n_last_5d_above_47": 0,
+    "n_last_20d_above_47": 0,
+    "n_last_5d_below_40": 0,
+    "n_last_20d_below_40": 0
+   },
+   "dix_regime": "CAUTION",
+   "gex_regime": "POSITIVE",
+   "combined_regime": "DISTRIBUTION_CAPPED",
+   "history_type": "dict",
+   "history_n": 32,
+   "history_sample": {
+    "generated_at": "2026-07-02T22:00:42.376178+00:00",
+    "n_days": 3815
+   }
+  },
+  "opex": {
+   "top": [
+    "engine",
+    "version",
+    "as_of",
+    "state",
+    "previous_state",
+    "state_transition",
+    "signal_strength",
+    "days_to_next_opex",
+    "max_pain",
+    "dealer_gex_proxy",
+    "calendar",
+    "current_readings",
+    "trigger_conditions",
+    "forward_expectations",
+    "recommended_trade",
+    "historical_backtest",
+    "historical_episodes",
+    "why_now_explainer",
+    "methodology",
+    "sources",
+    "schedule",
+    "run_duration_seconds"
+   ],
+   "forward_expectations": {
+    "1m": {
+     "return_pct": 0.6,
+     "win_rate_pct": 56,
+     "basis": "S&P 500 baseline drift",
+     "n": 0
+    },
+    "3m": {
+     "return_pct": 2.0,
+     "win_rate_pct": 60,
+     "basis": "S&P 500 baseline drift",
+     "n": 0
+    },
+    "12m": {
+     "return_pct": 9.0,
+     "win_rate_pct": 70,
+     "basis": "Long-run equity premium",
+     "n": 0
+    }
+   },
+   "current_readings": {
+    "next_opex": "2026-07-17",
+    "days_to_next_opex_trading": 10,
+    "days_since_prior_opex_trading": 10,
+    "is_quad_witching": false,
+    "max_pain": null,
+    "spy_current": null,
+    "pin_distance_pct": null,
+    "n_contracts_analyzed": 0,
+    "top_strikes_by_oi": []
+   },
+   "recommended_trade": {
+    "primary": {
+     "instrument": "Wait. No structural OPEX edge available.",
+     "thesis": "10 trading days to next OPEX (2026-07-17). Re-engage at T-5.",
+     "size_guidance": "n/a",
+     "max_loss": "n/a",
+     "expected_horizon": "Wait 5 days",
+     "expected_return_basis": "n/a"
+    },
+    "exit_rules": [
+     "Re-engage at PRE_OPEX state (T-5 to OPEX)",
+     "Watch for quad-witching weeks (Mar/Jun/Sep/Dec)"
+    ]
+   },
+   "historical_backtest": [],
+   "calendar_sample": {
+    "state": "NORMAL",
+    "today": "2026-07-03",
+    "next_opex": "2026-07-17",
+    "prior_opex": "2026-06-19",
+    "days_to_next_opex_trading": 10,
+    "days_since_prior_opex_trading": 10,
+    "is_next_quad_witching": false
+   },
+   "trigger_conditions": [
+    {
+     "name": "Inside OPEX window (T-5 to T+5)",
+     "current": "NORMAL",
+     "threshold": "PRE/OPEX/POST",
+     "satisfied": false,
+     "weight": 0.35
+    },
+    {
+     "name": "Quad witching (Mar/Jun/Sep/Dec)",
+     "current": false,
+     "threshold": true,
+     "satisfied": false,
+     "weight": 0.2
+    },
+    {
+     "name": "Live max-pain available",
+     "current": false,
+     "threshold": true,
+     "satisfied": false,
+     "weight": 0.2
+    },
+    {
+     "name": "Pin distance < 1.5% (pin pressure)",
+     "current": null,
+     "threshold": 1.5,
+     "satisfied": false,
+     "weight": 0.15
+    },
+    {
+     "name": "Sufficient historical backtest (n>=20)",
+     "current": 0,
+     "threshold": 20,
+     "satisfied": false,
+     "weight": 0.1
+    }
+   ]
+  },
+  "dealer-gex-history": {
+   "type": "dict",
+   "n": 482,
+   "sample": [
+    {
+     "ts": 1778665181,
+     "spy_gex_b": null,
+     "spy_flip": null,
+     "spy_spot": 738.18,
+     "spy_regime": null,
+     "qqq_gex_b": null,
+     "iwm_gex_b": null
+    }
+   ]
+  },
+  "catalyst-skew-premove": {
+   "top": [
+    "engine",
+    "version",
+    "as_of",
+    "state",
+    "state_description",
+    "signal_strength",
+    "summary",
+    "bull_skew_setups",
+    "bear_skew_setups",
+    "balanced_setups",
+    "trigger_conditions",
+    "forward_expectations",
+    "recommended_trade",
+    "historical_episodes",
+    "why_now_explainer",
+    "methodology",
+    "sources",
+    "schedule",
+    "run_duration_seconds"
+   ],
+   "generated_at": null,
+   "arr_trigger_conditions_schema": [
+    "name",
+    "current",
+    "threshold",
+    "satisfied",
+    "weight"
+   ],
+   "arr_trigger_conditions_n": 3,
+   "arr_trigger_conditions_sample": {
+    "name": "Directional setups",
+    "current": 0,
+    "threshold": ">=3",
+    "satisfied": false,
+    "weight": 0.5
+   }
+  },
+  "earnings-iv-crush": {
+   "top": [
+    "engine",
+    "version",
+    "as_of",
+    "state",
+    "previous_state",
+    "state_description",
+    "signal_strength",
+    "summary",
+    "current_readings",
+    "top_rich",
+    "top_cheap",
+    "fair_priced",
+    "trigger_conditions",
+    "forward_expectations",
+    "recommended_trade",
+    "historical_episodes",
+    "why_now_explainer",
+    "methodology",
+    "sources",
+    "schedule",
+    "run_duration_seconds"
+   ],
+   "generated_at": null,
+   "arr_trigger_conditions_schema": [
+    "name",
+    "current",
+    "threshold",
+    "satisfied",
+    "weight"
+   ],
+   "arr_trigger_conditions_n": 4,
+   "arr_trigger_conditions_sample": {
+    "name": "Earnings calendar populated",
+    "current": 938,
+    "threshold": ">=5",
+    "satisfied": true,
+    "weight": 0.1
+   }
+  },
+  "volatility-squeeze": {
+   "top": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "duration_s",
+    "stats",
+    "summary",
+    "all_qualifying"
+   ],
+   "generated_at": "2026-07-03T11:00:24+00:00"
+  }
+ }
+}
