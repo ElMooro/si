@@ -1,10 +1,19 @@
 settling 15s…
-SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hk_southbound": true}
-KR market-wide total foreign: -21952 | KOSPI+KOSDAQ
-JAPAN foreign net: 1068065563.0 ( 06/22～06/26 )
-HK Southbound: 4538 亿元 (CNY, Eastmoney net) | legs: {"港股通(沪) SH→HK": 4468.13, "港股通(深) SZ→HK": 69.650000000002}
-HK bridge: Southbound → US-listed China (HK → US) verdict: confirmed — both bid
-  HK: LIVE
-== page at edge ==
-  page attempt 1: LIVE
-OPS 2765 COMPLETE — APAC radar: 4 markets (TW/KR/JP/HK) + US bridges, all real
+== 1/4 create/update lambda ==
+  updated
+== 2/4 EventBridge daily 10:15 UTC ==
+== 3/4 invoke + verify ==
+  invoke -> {"ok": true, "status": "LIVE", "series_days": {"tw_semi": 64, "kr_memory": 10, "hk_south": 16}, "us_loaded": 6, "proven": 2, "read": "Taiwan semis \u2192 SOXX shows the strongest lead: Asian flow correlates with the US forward 10-day return at r=-0.37 (n=52). Positive = Asia buying tends to precede 
+  series_days: {"tw_semi": 64, "kr_memory": 10, "hk_south": 16}
+  US symbols loaded: ['FXI', 'KWEB', 'MU', 'NVDA', 'SMH', 'SOXX']
+  status: LIVE | proven leads: 2
+   Taiwan semis → SOXX        flow=64 overlap=62 best=r=-0.37 h=10d n=52 sig=True
+   Taiwan semis → SMH         flow=64 overlap=62 best=r=-0.34 h=10d n=52 sig=True
+   Taiwan semis → NVDA        flow=64 overlap=62 best=r=-0.19 h=10d n=52 sig=False
+   Korea memory → SMH         flow=10 overlap=9 best=r=-0.63 h=1d n=8 sig=False
+   Korea memory → MU          flow=10 overlap=9 best=r=-0.17 h=1d n=8 sig=False
+   HK Southbound → KWEB       flow=16 overlap=15 best=r=-0.28 h=1d n=14 sig=False
+   HK Southbound → FXI        flow=16 overlap=15 best=r=-0.27 h=1d n=14 sig=False
+  READ: Taiwan semis → SOXX shows the strongest lead: Asian flow correlates with the US forward 10-day return at r=-0.37 (n=52). Positive = Asia buying tends to precede US gains.
+== 4/4 report ==
+OPS 2766 COMPLETE — lead-lag engine live
