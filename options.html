@@ -214,21 +214,21 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
  const mp=spy.max_pain_by_expiry||{};
  document.getElementById('maxpain').innerHTML=Object.keys(mp).length?'<table>'+Object.entries(mp).slice(0,6).map(([d,s])=>'<tr><td>'+d.slice(5)+'</td><td class="gold">'+N(s,0)+'</td></tr>').join('')+'</table>':'<div class="err">—</div>';
 
- if(conf&&conf.multi_engine_confluence){const items=conf.multi_engine_confluence.slice(0,14);
+ try{ if(conf&&conf.multi_engine_confluence){const items=conf.multi_engine_confluence.slice(0,14);
   document.getElementById('conf').innerHTML='<div class="mute" style="font-size:10px;margin-bottom:6px">'+(conf.counts?('names '+conf.counts.names+' · multi-engine '+conf.counts.multi_engine+' · squeeze-fuel '+conf.counts.squeeze_fuel):'')+'</div><table><tr><th>Ticker</th><th>Posture</th><th>Eng</th><th>Score</th><th>Flags</th></tr>'+
    items.map(it=>{const bull=/bull/i.test(it.posture);const fl=[];if(it.neg_gamma)fl.push('<span class="tag sq">sqz</span>');if(it.coiled)fl.push('<span class="tag co">coiled</span>');(it.tags||[]).slice(0,1).forEach(t=>fl.push('<span class="tag">'+t+'</span>'));
     return '<tr><td class="sym">'+it.ticker+'</td><td><span class="tag '+(bull?'pB':'pb')+'">'+((it.posture||'').replace('_FLOW','').replace('_',' '))+'</span></td><td class="dim">'+it.n_engines+'×</td><td class="'+pc(it.score)+'">'+N(it.score,1)+'</td><td>'+(fl.join('')||'<span class="mute">—</span>')+'</td></tr>';}).join('')+'</table>';
  } else document.getElementById('conf').innerHTML='<div class="err">confluence unavailable</div>';
- setFresh('f-conf',conf&&conf.generated_at);
+ setFresh('f-conf',conf&&conf.generated_at); }catch(_e){console.error('opt-section',_e);} 
 
- let fh='';if(pf&&(pf.extreme_call_flow||pf.bullish_call_flow)){const rows=[].concat(pf.extreme_call_flow||[],pf.bullish_call_flow||[]).slice(0,10);
-  fh+='<table><tr><th>Ticker</th><th>C/P</th><th>V/OI</th><th>IV</th><th>Blk</th><th>Alert</th></tr>'+rows.map(r=>{const al=(r.alert_level||'').toUpperCase();const alc=al.indexOf('EXTREME')>=0?'neg':al.indexOf('BULL')>=0?'pos':'dim';
+ try{ let fh='';if(pf&&(pf.extreme_call_flow||pf.bullish_call_flow)){const rows=[].concat(pf.extreme_call_flow||[],pf.bullish_call_flow||[]).slice(0,10);
+  fh+='<table><tr><th>Ticker</th><th>C/P</th><th>V/OI</th><th>IV</th><th>Blk</th><th>Alert</th></tr>'+rows.map(r=>{const al=String(r.alert_level||'').toUpperCase();const alc=al.indexOf('EXTREME')>=0?'neg':al.indexOf('BULL')>=0?'pos':'dim';
    return '<tr><td class="sym">'+r.ticker+'</td><td class="pos">'+N(r.cv_pv_ratio,0)+'×</td><td class="dim">'+N(r.vol_oi_ratio,2)+'</td><td>'+(r.mean_iv?(100*r.mean_iv).toFixed(0)+'%':'—')+'</td><td class="'+((r.n_smart_money_blocks||0)>0?'gold':'mute')+'">'+(r.n_smart_money_blocks||0)+'</td><td class="'+alc+'">'+(al||'—')+'</td></tr>';}).join('')+'</table>';}
  if(of&&of.all_qualifying){const top=of.all_qualifying.filter(x=>/TIER_A/i.test(x.tier||'')).slice(0,6);if(top.length)fh+='<div class="mute" style="font-size:10px;margin:8px 0 4px">TIER-A scanner:</div><div class="chip-list">'+top.map(x=>'<span class="tag pB">'+x.symbol+' '+N(x.score,0)+'</span>').join('')+'</div>';}
  document.getElementById('flow').innerHTML=fh||'<div class="err">flow unavailable</div>';
- setFresh('f-flow',(pf&&pf.generated_at)||(of&&of.generated_at));
+ setFresh('f-flow',(pf&&pf.generated_at)||(of&&of.generated_at)); }catch(_e){console.error('opt-section',_e);} 
 
- if(oa&&oa.board){window.__board=oa.board;
+ try{ if(oa&&oa.board){window.__board=oa.board;
   window.__sortBoard=function(key){const dir=(window.__lastKey===key)?(window.__lastDir*-1):-1;window.__lastKey=key;window.__lastDir=dir;
    const b=window.__board.slice().sort((a,z)=>{let x=a[key],y=z[key];if(typeof x==='string'||typeof y==='string')return dir*((''+(x||'')).localeCompare(''+(y||'')));return dir*((x||0)-(y||0));});renderBoard(b);};
   function renderBoard(b){const cols=[['ticker','Ticker'],['signal','Signal'],['gamma_regime','Regime'],['net_gex_musd_per_1pct','GEX$M'],['gamma_flip_strike','Flip'],['call_wall','CWall'],['put_wall','PWall'],['skew_25d','25&#916;sk'],['iv_rank','IVrk'],['term_structure','Term'],['vrp','VRP'],['pcr_oi','PCR'],['score','Score']];
@@ -248,9 +248,9 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
      '<td class="gold">'+N(r.score,0)+'</td></tr>';}).join('')+'</table>';}
   window.__sortBoard('score');
  } else document.getElementById('board').innerHTML='<div class="err">board unavailable</div>';
- setFresh('f-board',oa&&oa.generated_at);
+ setFresh('f-board',oa&&oa.generated_at); }catch(_e){console.error('opt-section',_e);} 
 
- if(dix){const cur=dix.current||{},ma=dix.moving_averages||{},st=dix.statistics||{},dod=dix.day_over_day||{};
+ try{ if(dix){const cur=dix.current||{},ma=dix.moving_averages||{},st=dix.statistics||{},dod=dix.day_over_day||{};
   document.getElementById('dix').innerHTML='<div class="kv" style="margin-bottom:9px">'+
     '<div class="i"><span class="lab mute">DIX</span><span class="v" style="color:'+(cur.dix_pct>=45?'var(--pos)':cur.dix_pct<40?'var(--warn)':'var(--text)')+'">'+N(cur.dix_pct,1)+'%</span></div>'+
     '<div class="i"><span class="lab mute">DIX regime</span><span class="v" style="font-size:12px;color:'+(/accum|bull/i.test(dix.dix_regime||'')?'var(--pos)':'var(--warn)')+'">'+(dix.dix_regime||'—')+'</span></div>'+
@@ -260,9 +260,9 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
     [['5d',ma.dix_5d_pct],['20d',ma.dix_20d_pct],['60d',ma.dix_60d_pct],['1yr',ma.dix_252d_pct]].map(w=>'<tr><td>'+w[0]+' avg</td><td class="dim">'+N(w[1],1)+'%</td><td class="'+(cur.dix_pct>=w[1]?'pos':'neg')+'">'+(cur.dix_pct&&w[1]?((cur.dix_pct-w[1]>=0?'+':'')+(cur.dix_pct-w[1]).toFixed(1)):'')+'</td></tr>').join('')+'</table>'+
    '<div class="readout" style="margin:9px 0 0;border-left-color:var(--gold)">z '+N(st.dix_z_score_60d,2)+' · 1yr %ile '+N(st.dix_percentile_1y,1)+' · &#916;day '+(dod.dix_change_pp!==undefined?(dod.dix_change_pp>=0?'+':'')+N(dod.dix_change_pp,2)+'pp':'')+'. '+(cur.dix_pct<40?'Low DIX = distribution.':cur.dix_pct>=45?'High DIX = accumulation.':'Neutral.')+' <span class="mute">'+(cur.date||'')+'</span></div>';
  } else document.getElementById('dix').innerHTML='<div class="err">DIX unavailable</div>';
- setFresh('f-dix',dix&&dix.generated_at,30);
+ setFresh('f-dix',dix&&dix.generated_at,30); }catch(_e){console.error('opt-section',_e);} 
 
- if(opex){const fe=opex.forward_expectations||{},rt=(opex.recommended_trade||{}).primary||opex.recommended_trade||{},cr=opex.current_readings||{};
+ try{ if(opex){const fe=opex.forward_expectations||{},rt=(opex.recommended_trade||{}).primary||opex.recommended_trade||{},cr=opex.current_readings||{};
   document.getElementById('opex').innerHTML='<div class="kv" style="margin-bottom:9px">'+
     '<div class="i"><span class="lab mute">State</span><span class="v" style="font-size:13px;color:'+(opex.state==='NORMAL'?'var(--text-dim)':'var(--gold)')+'">'+(opex.state||'—')+'</span></div>'+
     '<div class="i"><span class="lab mute">Days&#8594;OPEX</span><span class="v">'+(opex.days_to_next_opex!==undefined?opex.days_to_next_opex:(cr.days_to_next_opex_trading!==undefined?cr.days_to_next_opex_trading:'—'))+'</span></div>'+
@@ -271,20 +271,20 @@ Promise.all([F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.
    (Object.keys(fe).length?'<table><tr><th>Horizon</th><th>Fwd ret</th><th>Win%</th></tr>'+Object.entries(fe).map(hv=>'<tr><td>'+hv[0]+'</td><td class="'+((hv[1].return_pct||0)>=0?'pos':'neg')+'">'+N(hv[1].return_pct,1)+'%</td><td class="dim">'+N(hv[1].win_rate_pct,0)+'%</td></tr>').join('')+'</table>':'')+
    ((rt.thesis||rt.instrument)?'<div class="readout" style="margin:9px 0 0">'+(rt.instrument||'')+(rt.thesis?' — '+rt.thesis:'')+'</div>':'');
  } else document.getElementById('opex').innerHTML='<div class="err">OPEX unavailable</div>';
- setFresh('f-opex',opex&&opex.as_of,12);
+ setFresh('f-opex',opex&&opex.as_of,12); }catch(_e){console.error('opt-section',_e);} 
 
  const skewList=(arr,cls,lab)=>{if(!arr||!arr.length)return '';return '<div class="mute" style="font-size:10px;margin:4px 0 2px">'+lab+'</div><div class="chip-list">'+arr.slice(0,6).map(x=>'<span class="tag '+cls+'">'+(x.ticker||x.symbol||x)+'</span>').join('')+'</div>';};
- if(cat){document.getElementById('catalyst').innerHTML=('<div class="dim" style="font-size:11px;margin-bottom:6px">'+(cat.summary||cat.state_description||cat.state||'')+'</div>'+skewList(cat.bull_skew_setups,'pB','Bull skew (calls bid)')+skewList(cat.bear_skew_setups,'pb','Bear skew (puts bid)'))||'<div class="err">no setups</div>';}
+ try{ if(cat){document.getElementById('catalyst').innerHTML=('<div class="dim" style="font-size:11px;margin-bottom:6px">'+(cat.summary||cat.state_description||cat.state||'')+'</div>'+skewList(cat.bull_skew_setups,'pB','Bull skew (calls bid)')+skewList(cat.bear_skew_setups,'pb','Bear skew (puts bid)'))||'<div class="err">no setups</div>';}
  else document.getElementById('catalyst').innerHTML='<div class="err">unavailable</div>';
- setFresh('f-cat',cat&&(cat.as_of||cat.generated_at),24);
+ setFresh('f-cat',cat&&(cat.as_of||cat.generated_at),24); }catch(_e){console.error('opt-section',_e);} 
 
- if(eiv){document.getElementById('eiv').innerHTML=('<div class="dim" style="font-size:11px;margin-bottom:6px">'+(eiv.summary||eiv.state_description||'')+'</div>'+skewList(eiv.top_rich,'pb','Rich IV (sell / crush)')+skewList(eiv.top_cheap,'pB','Cheap IV (buy)'))||'<div class="err">—</div>';}
+ try{ if(eiv){document.getElementById('eiv').innerHTML=('<div class="dim" style="font-size:11px;margin-bottom:6px">'+(eiv.summary||eiv.state_description||'')+'</div>'+skewList(eiv.top_rich,'pb','Rich IV (sell / crush)')+skewList(eiv.top_cheap,'pB','Cheap IV (buy)'))||'<div class="err">—</div>';}
  else document.getElementById('eiv').innerHTML='<div class="err">unavailable</div>';
- setFresh('f-eiv',eiv&&(eiv.as_of||eiv.generated_at),48);
+ setFresh('f-eiv',eiv&&(eiv.as_of||eiv.generated_at),48); }catch(_e){console.error('opt-section',_e);} 
 
- if(vsq&&vsq.all_qualifying){document.getElementById('vsq').innerHTML='<div class="dim" style="font-size:11px;margin-bottom:6px">'+((vsq.summary&&(vsq.summary.headline||vsq.summary.text))||(vsq.stats?('qualifying '+(vsq.stats.n_qualifying||vsq.all_qualifying.length)):''))+'</div><div class="chip-list">'+vsq.all_qualifying.slice(0,12).map(x=>'<span class="tag co">'+(x.symbol||x.ticker)+' '+(x.score?N(x.score,0):'')+'</span>').join('')+'</div>';}
+ try{ if(vsq&&vsq.all_qualifying){document.getElementById('vsq').innerHTML='<div class="dim" style="font-size:11px;margin-bottom:6px">'+((vsq.summary&&(vsq.summary.headline||vsq.summary.text))||(vsq.stats?('qualifying '+(vsq.stats.n_qualifying||vsq.all_qualifying.length)):''))+'</div><div class="chip-list">'+vsq.all_qualifying.slice(0,12).map(x=>'<span class="tag co">'+(x.symbol||x.ticker)+' '+(x.score?N(x.score,0):'')+'</span>').join('')+'</div>';}
  else document.getElementById('vsq').innerHTML='<div class="err">unavailable</div>';
- setFresh('f-vs',vsq&&vsq.generated_at,30);
+ setFresh('f-vs',vsq&&vsq.generated_at,30); }catch(_e){console.error('opt-section',_e);} 
 
  document.getElementById('foot').innerHTML='Sources: dealer-gex (DEX/VEX/vanna/charm/skew/by-strike/by-expiry/0DTE) · options-gamma · options-confluence · options-analytics (58-name board) · polygon-options-flow · options-flow-scanner · dix · opex-calendar · catalyst-skew-premove · earnings-iv-crush · volatility-squeeze. SpotGamma-grade dealer positioning from raw Polygon options greeks + OI. Click board headers to sort. Not investment advice.';
 }).catch(function(e){document.getElementById('asof').textContent='load error: '+e;});
