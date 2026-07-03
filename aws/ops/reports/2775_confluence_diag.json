@@ -1,0 +1,71 @@
+{
+ "ops": 2775,
+ "ts": "2026-07-03T19:34:29.618787+00:00",
+ "fn": {
+  "state": "Active",
+  "runtime": "python3.12",
+  "timeout": 120,
+  "mem": 512,
+  "last_modified": "2026-06-25T23:38:44.000+0000",
+  "env_keys": []
+ },
+ "rule": {
+  "exists": false,
+  "err": "An error occurred (ResourceNotFoundException) when calling the DescribeRule oper"
+ },
+ "deps": {
+  "catalyst-skew-premove": {
+   "exists": true,
+   "age_hours": 19.1,
+   "bytes": 2066
+  },
+  "dealer-gex": {
+   "exists": true,
+   "age_hours": 0.5,
+   "bytes": 33233
+  },
+  "earnings-iv-crush": {
+   "exists": true,
+   "age_hours": 165.6,
+   "bytes": 2893
+  },
+  "engine-trust": {
+   "exists": true,
+   "age_hours": 7.1,
+   "bytes": 151336
+  },
+  "options-analytics": {
+   "exists": true,
+   "age_hours": 6.6,
+   "bytes": 60112
+  },
+  "options-flow": {
+   "exists": true,
+   "age_hours": 21.6,
+   "bytes": 6329
+  },
+  "polygon-options-flow": {
+   "exists": true,
+   "age_hours": 0.3,
+   "bytes": 34759
+  },
+  "volatility-squeeze": {
+   "exists": true,
+   "age_hours": 8.6,
+   "bytes": 339
+  }
+ },
+ "stale_or_missing_deps": [
+  "earnings-iv-crush"
+ ],
+ "invoke": {
+  "function_error": "Unhandled",
+  "payload_head": "{\"errorMessage\": \"cannot access local variable '_tk' where it is not associated with a value\", \"errorType\": \"UnboundLocalError\", \"requestId\": \"24061c55-592d-45d7-9df3-dc335f3ac60f\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 118, in lambda_handler\\n    tk = _tk(it)\\n\"]}"
+ },
+ "cloudwatch_tail": [
+  "[ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 118, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0tk = _tk(it)",
+  "[ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 118, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0tk = _tk(it)",
+  "[ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 118, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0tk = _tk(it)"
+ ],
+ "diagnosis": "ERRORS \u2014 see invoke/cloudwatch; likely dep/code issue"
+}

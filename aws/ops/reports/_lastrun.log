@@ -1,21 +1,27 @@
 settling 10s…
-deleted rule justhodl-gex-desk-intraday
-deleted function justhodl-gex-desk
-deleted data/gex-desk.json
-deleted data/history/gex-desk.json
-verify: {"lambda": "gone", "rule": "gone"}
+fn: {"state": "Active", "runtime": "python3.12", "timeout": 120, "mem": 512, "last_modified": "2026-06-25T23:38:44.000+0000", "env_keys": []}
+rule: MISSING — An error occurred (ResourceNotFoundException) when calling the Describ
+deps freshness:
+   catalyst-skew-premove    19.1h old (2066B)
+   dealer-gex               0.5h old (33233B)
+   earnings-iv-crush        165.6h old (2893B)
+   engine-trust             7.1h old (151336B)
+   options-analytics        6.6h old (60112B)
+   options-flow             21.6h old (6329B)
+   polygon-options-flow     0.3h old (34759B)
+   volatility-squeeze       8.6h old (339B)
+invoking…
+INVOKE ERROR: {"errorMessage": "cannot access local variable '_tk' where it is not associated with a value", "errorType": "UnboundLocalError", "requestId": "24061c55-592d-45d7-9df3-dc335f3ac60f", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 118, in lambda_handler\n    tk = _tk(it)\n"]}
+CloudWatch error tail:
+    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
+Traceback (most recent call last):
+  File "/var/task/lambd
+    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
+Traceback (most recent call last):
+  File "/var/task/lambd
+    [ERROR] UnboundLocalError: cannot access local variable '_tk' where it is not associated with a value
+Traceback (most recent call last):
+  File "/var/task/lambd
 
-== EXISTING options subsystem ==
-  fn justhodl-dealer-gex -> Active
-  fn justhodl-options-analytics -> Active
-  fn justhodl-options-confluence -> Active
-  fn justhodl-dix -> Active
-  fn justhodl-opex-calendar -> Active
-  feed data/dealer-gex.json -> 2026-07-03T19:07 (33233)
-  feed data/options-analytics.json -> 2026-07-03T13:00 (60112)
-  feed data/options-confluence.json -> 2026-06-23T16:31 (25772)
-  feed data/options-gamma.json -> 2026-07-03T14:55 (3873)
-  feed data/dix.json -> 2026-07-02T22:00 (2735)
-  feed data/opex-calendar.json -> 2026-07-03T11:00 (4054)
-
-OPS 2774 COMPLETE — duplicate retired; existing subsystem confirmed
+DIAGNOSIS: ERRORS — see invoke/cloudwatch; likely dep/code issue
+OPS 2775 COMPLETE
