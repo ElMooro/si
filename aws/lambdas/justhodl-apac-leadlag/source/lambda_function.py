@@ -122,7 +122,7 @@ def kr_memory_history():
     return {k: round(v) for k, v in agg.items()}
 
 
-def hk_southbound_history(rows=95):
+def hk_southbound_history(rows=400):
     """Daily HK Southbound net (Eastmoney code 006 = total 港股通)."""
     out = {}
     try:
@@ -233,9 +233,11 @@ def lambda_handler(event=None, context=None):
     # human read
     if proven:
         top = max(proven, key=lambda r: abs(r["best"]["r"]))
-        doc["read"] = ("%s shows the strongest lead: Asian flow correlates with the US forward %d-day return at r=%.2f (n=%d). "
-                       "Positive = Asia buying tends to precede US gains." % (
-                           top["name"], top["best"]["horizon"], top["best"]["r"], top["best"]["n"]))
+        rr = top["best"]["r"]
+        direction = ("Asia buying tends to PRECEDE US gains (follow-through)" if rr > 0
+                     else "Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal")
+        doc["read"] = ("%s is the strongest lead: Asian flow[T] vs US forward %d-day return r=%+.2f (n=%d, significant). %s. Regime-dependent; strengthens as history grows." % (
+            top["name"], top["best"]["horizon"], rr, top["best"]["n"], direction))
     else:
         mx = max((r for r in results if r.get("best")), key=lambda r: abs(r["best"]["r"]), default=None)
         doc["read"] = ("No statistically significant lead-lag yet (need more history). Strongest so far: %s r=%.2f n=%d." % (

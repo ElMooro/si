@@ -70,8 +70,25 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
  }
  h+=`</div>`;
 
- // Taiwan detail
- if(tw.top_buy){
+
+ // LEAD-LAG (analytical crown)
+ const ll=await j("data/apac-leadlag.json");
+ if(ll&&ll.pairs){
+  h+=`<h2 class="sec">LEAD-LAG — DOES ASIAN FLOW PREDICT THE US? (${ll.status}, ${ll.window_days||140}d window)</h2>`;
+  const proven=(ll.proven_leads||[]);
+  h+=`<div class="read" style="margin-bottom:12px">📈 ${ll.read||"warming"} <span class="f3">r&gt;0 = Asia buying precedes US gains (follow-through); r&lt;0 = precedes US weakness (contrarian). Significance = |t|≥2 (~95%).</span></div>`;
+  h+=`<div class="bridges">`;
+  for(const p of ll.pairs){
+   const b=p.best;
+   const rv=b?b.r:null; const cls=b?(b.significant?(rv>=0?"v-lead":"v-caut"):"v-soft"):"v-soft";
+   h+=`<div class="bcard"><h3>${p.name}</h3><div class="f3" style="font-size:10.5px;margin-bottom:6px">${p.desc||""}</div>
+    <div class="verdict ${cls}">${b?`r=${(rv>=0?"+":"")+rv.toFixed(2)} · leads ${b.horizon}d · n=${b.n}${b.significant?" · SIGNIFICANT":" · not sig"}`:"insufficient history"}</div>
+    <div class="retpills">${(p.by_horizon||[]).map(x=>`<span class="pill" style="color:${x.significant?(x.r>=0?"var(--gr)":"var(--rd)"):"var(--fg3)"}">${x.horizon}d ${(x.r>=0?"+":"")+x.r.toFixed(2)}</span>`).join("")}</div>
+    <div class="f3" style="font-family:var(--mono);font-size:9.5px;margin-top:5px">overlap ${p.overlap_days}d</div></div>`;
+  }
+  h+=`</div>`;
+ }
+ // Taiwan detail if(tw.top_buy){
   h+=`<h2 class="sec">TAIWAN — FOREIGN INVESTOR FLOWS (TWSE, ${tw.as_of||""})</h2><div class="grid2">
    <div class="c"><h3>TOP FOREIGN NET BUYS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
    ${tw.top_buy.slice(0,10).map(x=>`<tr><td>${x.name||x.code}</td><td class="f3">${x.sector||"—"}</td><td class="g">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div>
