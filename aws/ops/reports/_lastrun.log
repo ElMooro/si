@@ -1,14 +1,7 @@
 settling 15s…
 == 1/4 engine timeout 900 + ASYNC invoke ==
   async fired; polling S3 for fresh forecasts (up to ~13 min)…
-  poll  1: age=11919s forecasts=YES
-  poll  2: age=11959s forecasts=YES
-  poll  3: age=11999s forecasts=YES
-  poll  4: age=12039s forecasts=YES
-  poll  5: age=12080s forecasts=YES
-  poll  6: age=12120s forecasts=YES
-  poll  7: age=12160s forecasts=YES
-  poll  8: age=321s forecasts=YES
+  poll  1: age=613s forecasts=YES
   BTC 1M/3M/6M/1Y: [-4.1, -13.0, -29.4, 217.4]
   BTC targets: [58919.0, 53451.0, 43375.0, 195005.0]
   ETH beta 1.27 exp: [-6.3, -16.3, -36.6, 276.1]
@@ -16,9 +9,10 @@ settling 15s…
 == 2/4 deploy + invoke widened consumers ==
   justhodl-onchain-ratios deployed+fresh
   justhodl-crypto-exchange-flows deployed+fresh
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2749_forecast_land.py", line 99, in <module>
-    for n in need: assert n in blk, (fn, n, list(blk)[:6])
-                          ^^^^^^^^
-AssertionError: ('justhodl-crypto-miners', 'cryptoquant_miner', [])
-❌ OPS-FAIL: aws/ops/pending/ops_2749_forecast_land.py
+  justhodl-crypto-miners deployed+fresh
+  ratios valuation suite live (nupl/puell/nvt_golden/realized/ssr)
+== 3/4 ledger forecast signal ==
+  cw-proof: [LOG] onchain_btc_forecast=BASE_RATE DOWN conf=0.73 baseline=$61455.00
+== 4/4 page card at edge ==
+  page forecast card at edge: True
+OPS 2749 COMPLETE — the desk looks forward, verified
