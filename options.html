@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚡ Options Desk · JustHodl.AI</title>
+<meta name="description" content="Unified options command center — dealer gamma exposure regime, multi-engine confluence, unusual options flow, DIX/GEX, and OPEX/0DTE gamma pinning. Institutional options intelligence computed from raw Polygon options data.">
+<style>
+:root{
+--bg:#0a0e14;--panel:#10151d;--panel-2:#141a24;--border:#1c2330;--border-hi:#2a3548;
+--accent:#a78bfa;--gold:#fbbf24;--info:#22d3ee;--pos:#00e676;--neg:#ff3d5a;--warn:#fb923c;--crit:#ef4444;
+--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479;
+--font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+--font-mono:"SF Mono",ui-monospace,"Roboto Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;padding-bottom:60px}
+a{color:var(--accent);text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:14px}
+h1{font-size:20px;margin:0 0 4px;letter-spacing:-.3px}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--gold);background:rgba(251,191,36,.12);padding:2px 7px;border-radius:3px;letter-spacing:.5px}
+.sub{font-family:var(--font-mono);font-size:11px;color:var(--text-mute)}
+.nav-links{display:flex;gap:14px;font-family:var(--font-mono);font-size:11px;flex-wrap:wrap}
+h2.sec{font-size:12px;font-family:var(--font-mono);letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin:22px 0 10px;border-left:3px solid var(--accent);padding-left:9px}
+.hero{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--border-hi);border-radius:10px;padding:16px 18px;display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+.hero .big{font-family:var(--font-mono);font-weight:800;font-size:30px;letter-spacing:-1px}
+.hero .lab{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px}
+.regime-pill{font-family:var(--font-mono);font-size:12px;font-weight:800;letter-spacing:.5px;padding:5px 12px;border-radius:4px;display:inline-block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.hero{gap:16px}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:13px 14px}
+.card h3{margin:0 0 9px;font-size:12px;font-family:var(--font-mono);letter-spacing:.6px;color:var(--text);display:flex;justify-content:space-between;align-items:center}
+.fresh{font-family:var(--font-mono);font-size:9px;color:var(--text-mute);font-weight:400}
+.stale{color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:right;font-family:var(--font-mono);font-size:9.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.4px;padding:4px 6px;border-bottom:1px solid var(--border);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px 6px;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);font-size:11.5px}
+tr:last-child td{border-bottom:none}
+.sym{font-weight:800;color:var(--text)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:3px;margin:1px 2px 1px 0;background:rgba(167,139,250,.12);color:var(--accent)}
+.tag.sq{background:rgba(255,61,90,.14);color:var(--neg)}
+.tag.co{background:rgba(251,191,36,.14);color:var(--gold)}
+.pB{background:rgba(0,230,118,.14);color:var(--pos)}
+.pb{background:rgba(255,61,90,.14);color:var(--neg)}
+.readout{background:var(--panel-2);border:1px solid var(--border);border-left:3px solid var(--info);border-radius:6px;padding:10px 13px;font-size:12.5px;color:var(--text-dim);margin-bottom:12px}
+.kv{display:flex;flex-wrap:wrap;gap:16px}
+.kv .i{display:flex;flex-direction:column;gap:2px}
+.kv .v{font-family:var(--font-mono);font-weight:800;font-size:17px}
+.err{color:var(--text-mute);font-family:var(--font-mono);font-size:11px;padding:6px 0}
+.foot{margin-top:26px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--text-mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div>
+<h1>⚡ Options Desk <span class="badge">OPTIONS HUB v1</span></h1>
+<div class="sub" id="asof">loading options intelligence…</div>
+</div>
+<div class="nav-links">
+<a href="/gex/">📐 GEX Dashboard</a>
+<a href="/options-analytics.html">🔬 Per-Name</a>
+<a href="/options-scanner.html">📡 Flow Scanner</a>
+<a href="/index.html">🏠 Home</a>
+</div>
+</header>
+
+<div id="hero"></div>
+
+<h2 class="sec">Dealer Gamma Exposure — by underlying</h2>
+<div id="gex-read"></div>
+<div class="card"><h3>NET DEALER GEX &amp; ZERO-GAMMA FLIP <span class="fresh" id="f-gex"></span></h3><div id="gex-table"></div></div>
+
+<div class="grid" style="margin-top:14px">
+<div class="card"><h3>MULTI-ENGINE CONFLUENCE <span class="fresh" id="f-conf"></span></h3><div id="conf"></div></div>
+<div class="card"><h3>UNUSUAL OPTIONS FLOW <span class="fresh" id="f-flow"></span></h3><div id="flow"></div></div>
+</div>
+
+<div class="grid" style="margin-top:14px">
+<div class="card"><h3>DIX &amp; GEX REGIME <span class="fresh" id="f-dix"></span></h3><div id="dix"></div></div>
+<div class="card"><h3>OPEX / 0DTE GAMMA PINNING <span class="fresh" id="f-opex"></span></h3><div id="opex"></div></div>
+</div>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<script>
+const F = k => fetch('/data/'+k+'?t='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+const num = (v,d=2)=> (v===null||v===undefined||isNaN(v))?'—':(+v).toLocaleString(undefined,{maximumFractionDigits:d});
+const bn = v => (v===null||v===undefined||isNaN(v))?'—':((+v>=0?'+':'')+(+v).toFixed(2)+'B');
+const pc = v => (+v>=0)?'pos':'neg';
+const ago = iso => { if(!iso) return ''; const m=(Date.now()-new Date(iso).getTime())/60000; if(m<90) return Math.round(m)+'m ago'; const h=m/60; if(h<48) return h.toFixed(1)+'h ago'; return Math.round(h/24)+'d ago'; };
+const staleCls = (iso,hrs=6) => (iso && (Date.now()-new Date(iso).getTime())/3600000>hrs)?'fresh stale':'fresh';
+
+Promise.all([
+ F('dealer-gex.json'),F('options-gamma.json'),F('options-confluence.json'),
+ F('polygon-options-flow.json'),F('options-flow.json'),F('dix.json'),F('opex-calendar.json')
+]).then(([dg,og,conf,pf,of,dix,opex])=>{
+
+ // ---- HERO: market GEX regime (options-gamma SPY + dealer-gex composite) ----
+ let heroSpot=og&&og.spot, vix=og&&og.vix, regime=(og&&og.regime)||'', interp=(og&&og.interpretation)||'';
+ let netGexBn=null, flip=og&&og.zero_gamma_strike;
+ if(dg&&dg.underlyings&&dg.underlyings.SPY){const s=dg.underlyings.SPY; heroSpot=s.spot||heroSpot; netGexBn=s.total_dealer_gex_billions; flip=s.zero_gamma_flip_level||flip;}
+ const posGamma = (netGexBn!==null? netGexBn>0 : /pos|neutral/i.test(regime));
+ const rc = posGamma?'var(--pos)':'var(--neg)';
+ document.getElementById('hero').innerHTML = `<div class="hero">
+   <div><div class="lab">SPY spot</div><div class="big">${num(heroSpot,2)}</div></div>
+   <div><div class="lab">Net dealer GEX (SPY)</div><div class="big ${netGexBn!==null?pc(netGexBn):''}">${netGexBn!==null?bn(netGexBn):num(og&&og.total_gex,0)}</div></div>
+   <div><div class="lab">Zero-gamma flip</div><div class="big">${num(flip,0)}</div></div>
+   <div><div class="lab">VIX</div><div class="big">${num(vix,1)}</div></div>
+   <div style="flex:1;min-width:220px">
+     <span class="regime-pill" style="background:${posGamma?'rgba(0,230,118,.14)':'rgba(255,61,90,.14)'};color:${rc}">${posGamma?'POSITIVE GAMMA · VOL-SUPPRESSED':'NEGATIVE GAMMA · VOL-AMPLIFIED'}</span>
+     <div class="dim" style="margin-top:7px;font-size:12px">${posGamma?'Dealers long gamma → sell rallies, buy dips. Mean-reverting; pins toward max pain.':'Dealers short gamma → chase moves, amplifying volatility. Trend-prone; breakouts extend.'}</div>
+   </div></div>`;
+ document.getElementById('asof').textContent = 'Live options intelligence · '+(dg&&dg.generated_at? new Date(dg.generated_at).toLocaleString():'');
+
+ // ---- DEALER GEX by underlying ----
+ if(dg&&dg.underlyings){
+   const rows=Object.values(dg.underlyings).sort((a,b)=>Math.abs(b.total_dealer_gex_billions||0)-Math.abs(a.total_dealer_gex_billions||0));
+   document.getElementById('gex-read').innerHTML = dg.market_composite ? `<div class="readout">Market composite: dealers are <b style="color:${rc}">${posGamma?'net long gamma':'net short gamma'}</b>. ${Object.values(dg.underlyings).filter(u=>u.spot_above_flip===false).length} of ${rows.length} names below their gamma-flip (short-gamma / trend-prone).</div>`:'';
+   document.getElementById('gex-table').innerHTML = `<table><tr><th>Sym</th><th>Spot</th><th>Net GEX</th><th>Flip</th><th>% to flip</th><th>PCR(OI)</th><th>Regime</th></tr>`+
+    rows.map(u=>{const above=u.spot_above_flip; return `<tr>
+      <td class="sym">${u.symbol}</td><td>${num(u.spot,2)}</td>
+      <td class="${pc(u.total_dealer_gex_billions)}">${bn(u.total_dealer_gex_billions)}</td>
+      <td>${num(u.zero_gamma_flip_level,0)}</td>
+      <td class="${(u.spot_pct_to_flip||0)>=0?'pos':'neg'}">${num(u.spot_pct_to_flip,1)}%</td>
+      <td class="dim">${num(u.pcr_oi,2)}</td>
+      <td class="${above?'pos':'neg'}">${above?'long γ':'short γ'}</td></tr>`;}).join('')+`</table>`;
+ } else document.getElementById('gex-table').innerHTML='<div class="err">dealer-gex feed unavailable</div>';
+ document.getElementById('f-gex').className=staleCls(dg&&dg.generated_at); document.getElementById('f-gex').textContent=ago(dg&&dg.generated_at);
+
+ // ---- MULTI-ENGINE CONFLUENCE (the synthesizer) ----
+ if(conf&&conf.multi_engine_confluence){
+   const items=conf.multi_engine_confluence.slice(0,16);
+   document.getElementById('conf').innerHTML = `<div class="mute" style="font-size:10.5px;margin-bottom:7px">${conf.counts?('names '+conf.counts.names+' · multi-engine '+conf.counts.multi_engine+' · squeeze-fuel '+conf.counts.squeeze_fuel):''}</div>`+
+    `<table><tr><th>Ticker</th><th>Posture</th><th>Engines</th><th>Score</th><th>Flags</th></tr>`+
+    items.map(it=>{const bull=/bull/i.test(it.posture);const flags=[]; if(it.neg_gamma)flags.push('<span class="tag sq">squeeze</span>'); if(it.coiled)flags.push('<span class="tag co">coiled</span>'); (it.tags||[]).slice(0,1).forEach(t=>flags.push('<span class="tag">'+t+'</span>'));
+      return `<tr><td class="sym">${it.ticker}</td>
+       <td><span class="tag ${bull?'pB':'pb'}">${(it.posture||'').replace('_FLOW','').replace('_',' ')}</span></td>
+       <td class="dim">${it.n_engines}×</td>
+       <td class="${(it.score||0)>=0?'pos':'neg'}">${num(it.score,1)}</td>
+       <td>${flags.join('')||'<span class="mute">—</span>'}</td></tr>`;}).join('')+`</table>`;
+ } else document.getElementById('conf').innerHTML='<div class="err">confluence feed unavailable</div>';
+ document.getElementById('f-conf').className=staleCls(conf&&conf.generated_at); document.getElementById('f-conf').textContent=ago(conf&&conf.generated_at);
+
+ // ---- UNUSUAL FLOW (polygon-options-flow + options-flow) ----
+ let flowHtml='';
+ if(pf&&(pf.extreme_call_flow||pf.bullish_call_flow)){
+   const rows=[].concat(pf.extreme_call_flow||[],pf.bullish_call_flow||[]).slice(0,10);
+   flowHtml += `<table><tr><th>Ticker</th><th>Call/Put</th><th>Vol/OI</th><th>IV</th><th>Blocks</th><th>Alert</th></tr>`+
+    rows.map(r=>{const al=(r.alert_level||'').toUpperCase();const alc=al.includes('EXTREME')?'neg':al.includes('BULL')?'pos':'dim';
+     return `<tr><td class="sym">${r.ticker}</td>
+      <td class="pos">${num(r.cv_pv_ratio,0)}×</td>
+      <td class="dim">${num(r.vol_oi_ratio,2)}</td>
+      <td>${r.mean_iv?(100*r.mean_iv).toFixed(0)+'%':'—'}</td>
+      <td class="${(r.n_smart_money_blocks||0)>0?'gold':'mute'}" style="${(r.n_smart_money_blocks||0)>0?'color:var(--gold)':''}">${r.n_smart_money_blocks||0}</td>
+      <td class="${alc}">${al||'—'}</td></tr>`;}).join('')+`</table>`;
+ }
+ if(of&&of.all_qualifying&&of.all_qualifying.length){
+   const top=of.all_qualifying.filter(x=>/TIER_A/i.test(x.tier||'')).slice(0,5);
+   if(top.length) flowHtml += `<div class="mute" style="font-size:10px;margin:8px 0 4px">TIER-A scanner flow:</div>`+
+     top.map(x=>`<span class="tag pB">${x.symbol} ${num(x.score,0)}</span>`).join('');
+ }
+ document.getElementById('flow').innerHTML = flowHtml || '<div class="err">flow feeds unavailable</div>';
+ const flowTs=(pf&&pf.generated_at)||(of&&of.generated_at);
+ document.getElementById('f-flow').className=staleCls(flowTs); document.getElementById('f-flow').textContent=ago(flowTs);
+
+ // ---- DIX & GEX (newly surfaced) ----
+ if(dix){
+   const cur=dix.current||{}; const dval=cur.dix||cur.DIX||cur.value||cur.dix_pct;
+   const combo=(dix.combined_regime||dix.combined_signal||'');
+   document.getElementById('dix').innerHTML = `<div class="kv" style="margin-bottom:10px">
+     <div class="i"><span class="lab mute">DIX</span><span class="v">${dval!==undefined?num(dval,1):'—'}</span></div>
+     <div class="i"><span class="lab mute">DIX regime</span><span class="v" style="font-size:13px;color:${/accum|bull|elev/i.test(dix.dix_regime||'')?'var(--pos)':/caut|distrib|bear/i.test(dix.dix_regime||'')?'var(--warn)':'var(--text)'}">${dix.dix_regime||'—'}</span></div>
+     <div class="i"><span class="lab mute">GEX regime</span><span class="v" style="font-size:13px;color:${/pos/i.test(dix.gex_regime||'')?'var(--pos)':'var(--neg)'}">${dix.gex_regime||'—'}</span></div>
+   </div>
+   <div class="readout" style="border-left-color:var(--gold);margin:0">${combo?('Combined: <b>'+combo+'</b>. '):''}DIX &gt;45% = institutions accumulating via dark pools; &lt;40% = distribution. DIX-rising + GEX-negative = explosive setup. <span class="mute">data ${dix.data_date||''}</span></div>`;
+ } else document.getElementById('dix').innerHTML='<div class="err">DIX feed unavailable</div>';
+ document.getElementById('f-dix').className=staleCls(dix&&dix.generated_at,30); document.getElementById('f-dix').textContent=ago(dix&&dix.generated_at);
+
+ // ---- OPEX / 0DTE (newly surfaced) ----
+ if(opex){
+   const fe=opex.forward_expectations||{}; const feKey=Object.keys(fe)[0]; const fev=feKey?fe[feKey]:null;
+   document.getElementById('opex').innerHTML = `<div class="kv" style="margin-bottom:10px">
+     <div class="i"><span class="lab mute">State</span><span class="v" style="font-size:14px;color:${opex.state==='NORMAL'?'var(--text-dim)':'var(--gold)'}">${opex.state||'—'}</span></div>
+     <div class="i"><span class="lab mute">Days to OPEX</span><span class="v">${opex.days_to_next_opex!==undefined?opex.days_to_next_opex:'—'}</span></div>
+     <div class="i"><span class="lab mute">Max pain</span><span class="v">${num(opex.max_pain,0)}</span></div>
+     <div class="i"><span class="lab mute">Signal</span><span class="v">${num(opex.signal_strength,0)}</span></div>
+   </div>`+
+   (opex.recommended_trade?`<div class="readout" style="margin:0 0 8px">${typeof opex.recommended_trade==='string'?opex.recommended_trade:(opex.recommended_trade.thesis||opex.recommended_trade.action||JSON.stringify(opex.recommended_trade).slice(0,140))}</div>`:'')+
+   (Array.isArray(opex.trigger_conditions)?`<table><tr><th>Trigger</th><th>Current</th><th>Set</th></tr>`+opex.trigger_conditions.slice(0,4).map(t=>`<tr><td>${t.name}</td><td class="dim">${t.current}</td><td class="${t.satisfied?'pos':'mute'}">${t.satisfied?'✓':'·'}</td></tr>`).join('')+`</table>`:'');
+ } else document.getElementById('opex').innerHTML='<div class="err">OPEX feed unavailable</div>';
+ document.getElementById('f-opex').className=staleCls(opex&&(opex.as_of),12); document.getElementById('f-opex').textContent=ago(opex&&opex.as_of);
+
+ document.getElementById('foot').innerHTML='Sources: justhodl-dealer-gex · options-gamma · options-confluence · polygon-options-flow · options-flow-scanner · dix · opex-calendar. SpotGamma-grade dealer positioning computed from raw Polygon options greeks + open interest. Not investment advice.';
+});
+</script>
+</body>
+</html>
