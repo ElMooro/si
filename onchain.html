@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>On-Chain Desk — Full CryptoQuant Catalog · JustHodl.AI</title><!-- ONCHAIN DESK v3 -->
+<title>On-Chain Desk — Full CryptoQuant Catalog · JustHodl.AI</title><!-- ONCHAIN DESK v4 -->
 <style>
 :root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--btc:#f7931a;--mono:'SF Mono',Consolas,monospace}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
@@ -25,10 +25,12 @@ h2.sec{font-size:12px;letter-spacing:2px;color:var(--cy);margin:22px 0 10px;bord
 .zbar{height:5px;background:#0f1828;border-radius:4px;margin:7px 0 2px;position:relative}
 .zbar i{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffffff44;left:50%}
 .zbar b{position:absolute;top:0;bottom:0;border-radius:4px}
-.chip{font-size:9px;padding:2px 6px;border-radius:9px;font-family:var(--mono);white-space:nowrap}
+.chip{font-size:9px;padding:2px 6px;border-radius:9px;font-family:var(--mono);white-space:nowrap;cursor:default}
 .chip.prov{background:#2b230d;color:var(--am);border:1px solid #4a3d1c}
 .chip.tw{background:#1a1030;color:var(--vi);border:1px solid #35245e}
 .chip.core{background:#0d2438;color:var(--cy);border:1px solid #1e4a6b}
+.tgl{cursor:pointer;background:#0c1524;color:var(--fg3);border:1px solid var(--line)}
+.tgl.on{background:#123151;color:var(--cy);border-color:#2b5b8c}
 .hist{font-size:11px;color:var(--fg2);margin-top:8px;line-height:1.55;border-left:2px solid #1e4a6b;padding-left:8px}
 .ai{font-size:11px;color:#cfe3ff;margin-top:7px;background:#0e1a30;border:1px solid #1d3556;border-radius:8px;padding:7px 9px;line-height:1.55}
 .g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}
@@ -36,71 +38,82 @@ h2.sec{font-size:12px;letter-spacing:2px;color:var(--cy);margin:22px 0 10px;bord
 #q{width:100%;max-width:420px;background:#0c1524;border:1px solid var(--line);border-radius:9px;color:var(--fg);padding:9px 12px;font:12px var(--mono);margin:2px 0 6px}
 .chwrap{cursor:zoom-in;position:relative}
 .chwrap:hover{outline:1px solid #234a72;border-radius:6px}
-svg.ch{width:100%;height:96px;display:block;margin-top:6px}
-.legend{font-family:var(--mono);font-size:9px;color:var(--fg3);display:flex;gap:10px;margin-top:2px;flex-wrap:wrap}
+svg.ch{width:100%;height:104px;display:block;margin-top:6px}
+.legend{font-family:var(--mono);font-size:9px;color:var(--fg3);display:flex;gap:9px;margin-top:2px;flex-wrap:wrap;align-items:center}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
 #modal{position:fixed;inset:0;background:#04070ccc;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
 #modal.on{display:flex}
-#mbox{background:var(--card);border:1px solid #2a4468;border-radius:16px;max-width:1180px;width:100%;padding:18px 22px;max-height:92vh;overflow:auto}
+#mbox{background:var(--card);border:1px solid #2a4468;border-radius:16px;max-width:1200px;width:100%;padding:18px 22px;max-height:93vh;overflow:auto}
 #mbox h3{margin:0;font-size:15px}
 #mx{float:right;cursor:pointer;color:var(--fg3);font-size:20px;line-height:1;padding:2px 8px}
 #mx:hover{color:var(--rd)}
-svg.big{width:100%;height:440px;display:block;margin-top:10px}
+svg.bigc{width:100%;height:450px;display:block;margin-top:8px}
 .axis{font:10px var(--mono);fill:#4f6580}
+.mbar{display:flex;gap:8px;margin-top:10px;align-items:center;font-family:var(--mono);font-size:10px;color:var(--fg3)}
 </style></head><body><div class="wrap">
 <h1>⛓️ ON-CHAIN DESK — Full CryptoQuant Catalog</h1>
 <div class="sub" id="meta">Loading catalog…</div>
 <div id="app" class="load">Loading…</div>
-<div id="modal" onclick="if(event.target.id==='modal')MC()"><div id="mbox"><span id="mx" onclick="MC()">✕</span><h3 id="mt"></h3><div id="msub" class="comp"></div><div id="mch"></div><div id="mhist"></div></div></div>
+<div id="modal" onclick="if(event.target.id==='modal')MC()"><div id="mbox"><span id="mx" onclick="MC()">✕</span><h3 id="mt"></h3><div id="msub" class="comp"></div><div class="mbar" id="mtg"></div><div id="mch"></div><div id="mhist"></div></div></div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
 const fin=v=>Number.isFinite(v);
 const CATS=[["market_indicator","VALUATION & CYCLE INDICATORS"],["exchange_flows","EXCHANGE FLOWS (ENTITY-LABELED)"],["market_data","DERIVATIVES, LEVERAGE & MARKET"],["flow_indicator","FLOW INDICATORS"],["miner_flows","MINER FLOWS"],["network_indicator","NETWORK INDICATORS"],["network_data","NETWORK ACTIVITY"],["stablecoins","STABLECOINS"],["eth","ETHEREUM"],["other","OTHER"]];
 const col=v=>!fin(v)?"var(--fg3)":v>0?"var(--rd)":"var(--gr)";
 const fV=(u,v)=>{if(!fin(v))return"—";const a=Math.abs(v);if(u==="USD"||u==="USD/d")return"$"+(a>=1e9?(v/1e9).toFixed(2)+"B":a>=1e6?(v/1e6).toFixed(1)+"M":v.toFixed(0));if(a>=1e9)return(v/1e9).toFixed(2)+"B";if(a>=1e6)return(v/1e6).toFixed(2)+"M";if(a>=1e4)return(v/1e3).toFixed(1)+"k";return a>=100?v.toFixed(1):v.toFixed(3)};
+const fP=v=>!fin(v)?"—":(v>0?"+":"")+(Math.abs(v)>=1000?(v/1000).toFixed(1)+"k":v.toFixed(0))+"%";
 async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r.json()}catch(e){return null}}
-let M={},SER={},TW={},BTC=null;
-function pick(k){
- // Longest real window: twin (2010->) primary when present; else the accruing CQ series.
- const tw=TW[k],s=SER[k];
- if(tw&&tw.d&&tw.d.length>600)return{main:tw,recent:s,label:"2010 → present (Coin Metrics twin) · cyan overlay = CryptoQuant 1y, accruing",tw:true};
- return{main:s,recent:null,label:s&&s.d?`history begins ${s.d[0]} — CryptoQuant plan window, accruing daily toward full depth`:"",tw:false};
-}
-function draw(k,W,H,axes){
- // NORM-SCALE v3.1: every line log-transformed when its range demands it, then
- // min-max normalized to a SHARED 0-100% vertical scale so metric and BTC are
- // directly comparable; raw ranges labeled on the modal axes.
- const P=pick(k);if(!P.main)return"";
- const pad=axes?{l:60,r:66,t:8,b:22}:{l:2,r:2,t:2,b:2};
+let M={},SER={},TW={},BTC=null,MODE={};
+function longest(k){const tw=TW[k],s=SER[k];return(tw&&tw.d&&tw.d.length>600)?{d:tw.d,v:tw.v,tw:true,cq:s}:{d:(s||{}).d||[],v:(s||{}).v||[],tw:false,cq:null}}
+function reb(d,v,t0){let i0=0;while(i0<d.length-1&&Date.parse(d[i0])<t0)i0++;const b=v[i0]||1e-12;return{d:d.slice(i0),v:v.slice(i0).map(x=>(x/b-1)*100}}
+function draw(k,W,H,axes,mode){
+ const P=longest(k);if(!P.d.length)return"";
+ const pad=axes?{l:64,r:70,t:10,b:24}:{l:2,r:2,t:3,b:3};
  const iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
- const t0=Date.parse(P.main.d[0]),t1=Date.parse(P.main.d[P.main.d.length-1]),tr=(t1-t0)||1;
- const X=d=>pad.l+((Date.parse(d)-t0)/tr)*iw;
- const needLog=v=>{const mn=Math.min(...v);return mn>0&&Math.max(...v)/mn>50};
- function norm(d,v,color,wd,op,useLog){
-  const tv=useLog?v.map(x=>Math.log10(Math.max(x,1e-12))):v;
-  const mn=Math.min(...tv),mx=Math.max(...tv),rg=(mx-mn)||1;
-  return`<polyline points="${d.map((dd,i)=>`${X(dd)},${pad.t+ih-((tv[i]-mn)/rg)*ih}`).join(" ")}" fill="none" stroke="${color}" stroke-width="${wd}" opacity="${op}"/>`}
- const mv=P.main.v,mLog=needLog(mv),mmin=Math.min(...mv),mmax=Math.max(...mv);
- let out=norm(P.main.d,mv,P.tw?"var(--vi)":"var(--cy)",axes?1.7:1.3,P.tw?0.95:1,mLog);
- if(P.recent&&P.recent.d){const rd=P.recent.d.filter(d=>Date.parse(d)>=t0);
-  out+=norm(rd,P.recent.v.slice(-rd.length),"var(--cy)",axes?2:1.5,1,mLog)}
- if(BTC){const bi=BTC.d.map((d,i)=>[d,i]).filter(x=>Date.parse(x[0])>=t0);
-  if(bi.length>3){const bv=bi.map(x=>BTC.v[x[1]]);
-   out+=norm(bi.map(x=>x[0]),bv,"var(--btc)",axes?1.6:1.2,0.85,true);
-   if(axes){const bmin=Math.min(...bv),bmax=Math.max(...bv);
-    out+=`<text class="axis" x="${W-pad.r+6}" y="${pad.t+10}">$${bmax>=1e3?(bmax/1e3).toFixed(0)+"k":bmax.toFixed(0)}</text><text class="axis" x="${W-pad.r+6}" y="${H-pad.b}">$${bmin<1?bmin.toFixed(2):bmin>=1e3?(bmin/1e3).toFixed(1)+"k":bmin.toFixed(0)}</text><text class="axis" x="${W-pad.r+6}" y="${pad.t+24}" fill="var(--btc)">BTC log</text>`}}}
- if(axes){
-  out+=`<text class="axis" x="2" y="${pad.t+10}">${fV(M[k].unit,mmax)}</text><text class="axis" x="2" y="${H-pad.b}">${fV(M[k].unit,mmin)}</text>`;
-  if(mLog)out+=`<text class="axis" x="2" y="${pad.t+24}">log</text>`;
-  out+=`<text class="axis" x="${pad.l}" y="${pad.t+10}" fill="#3c5b82">0–100% shared scale</text>`;
-  const y0=new Date(t0).getUTCFullYear(),y1=new Date(t1).getUTCFullYear();
-  for(let y=y0;y<=y1;y+=(y1-y0>8?2:1)){const t=Date.parse(y+"-01-01");if(t>=t0&&t<=t1)out+=`<line x1="${X(y+"-01-01")}" y1="${pad.t}" x2="${X(y+"-01-01")}" y2="${H-pad.b}" stroke="#ffffff10"/><text class="axis" x="${X(y+"-01-01")-12}" y="${H-6}">${y}</text>`}
+ // FULL mode: x-domain always 2010->today (BTC context everywhere). PCT mode: metric window, shared % axis.
+ const full=mode==="FULL";
+ const bd=BTC?BTC.d:[],bv=BTC?BTC.v:[];
+ const t0=full?Date.parse(bd[0]||P.d[0]):Date.parse(P.d[0]);
+ const t1=Date.parse((bd[bd.length-1])||P.d[P.d.length-1]);
+ const tr=(t1-t0)||1,X=t=>pad.l+((t-t0)/tr)*iw;
+ let out="",leg="";
+ if(full){
+  const mmin=Math.min(...P.v),mmax=Math.max(...P.v),mrg=(mmax-mmin)||1;
+  const lb=bv.map(x=>Math.log10(Math.max(x,1e-6))),bmin=Math.min(...lb),bmax=Math.max(...lb),brg=(bmax-bmin)||1;
+  out+=`<polyline points="${bd.map((dd,i)=>X(Date.parse(dd))+","+(pad.t+ih-((lb[i]-bmin)/brg)*ih)).join(" ")}" fill="none" stroke="var(--btc)" stroke-width="${axes?1.6:1.1}" opacity=".8"/>`;
+  const mt0=Date.parse(P.d[0]);
+  if(mt0>t0&&!P.tw)out+=`<line x1="${X(mt0)}" y1="${pad.t}" x2="${X(mt0)}" y2="${H-pad.b}" stroke="#3fd0ff55" stroke-dasharray="3 3"/>`+(axes?`<text class="axis" x="${X(mt0)+4}" y="${pad.t+12}" fill="var(--cy)">metric data →</text>`:"");
+  out+=`<polyline points="${P.d.map((dd,i)=>X(Date.parse(dd))+","+(pad.t+ih-((P.v[i]-mmin)/mrg)*ih)).join(" ")}" fill="none" stroke="${P.tw?"var(--vi)":"var(--cy)"}" stroke-width="${axes?1.8:1.4}"/>`;
+  if(P.tw&&P.cq)out+=`<polyline points="${P.cq.d.map((dd,i)=>X(Date.parse(dd))+","+(pad.t+ih-((P.cq.v[i]-mmin)/mrg)*ih)).join(" ")}" fill="none" stroke="var(--cy)" stroke-width="${axes?2:1.5}"/>`;
+  if(axes){out+=`<text class="axis" x="2" y="${pad.t+10}">${fV(M[k].unit,mmax)}</text><text class="axis" x="2" y="${H-pad.b}">${fV(M[k].unit,mmin)}</text>`;
+   out+=`<text class="axis" x="${W-pad.r+5}" y="${pad.t+10}" fill="var(--btc)">$${(Math.pow(10,bmax)/1e3).toFixed(0)}k</text><text class="axis" x="${W-pad.r+5}" y="${H-pad.b}" fill="var(--btc)">$${Math.pow(10,bmin).toFixed(2)}</text><text class="axis" x="${W-pad.r+5}" y="${pad.t+24}" fill="var(--btc)">BTC log</text>`}
+  leg=`<span><i class="dot" style="background:${P.tw?"var(--vi)":"var(--cy)"}"></i>metric ${P.tw?"2010→":"("+P.d[0]+" →, accruing)"}</span>${P.tw?'<span><i class="dot" style="background:var(--cy)"></i>CQ 1y</span>':""}<span><i class="dot" style="background:var(--btc)"></i>BTC 2010→ (log)</span>`;
+ }else{
+  const mr=reb(P.d,P.v,t0),bi=bd.map((dd,i)=>[dd,i]).filter(x=>Date.parse(x[0])>=t0);
+  const br=bi.length>3?reb(bi.map(x=>x[0]),bi.map(x=>bv[x[1]]),t0):null;
+  const all=[...mr.v,...(br?br.v:[0])],ymin=Math.min(...all,0),ymax=Math.max(...all,0),yrg=(ymax-ymin)||1;
+  const Y=v=>pad.t+ih-((v-ymin)/yrg)*ih;
+  out+=`<line x1="${pad.l}" y1="${Y(0)}" x2="${W-pad.r}" y2="${Y(0)}" stroke="#ffffff22"/>`;
+  if(br)out+=`<polyline points="${br.d.map((dd,i)=>X(Date.parse(dd))+","+Y(br.v[i])).join(" ")}" fill="none" stroke="var(--btc)" stroke-width="${axes?1.7:1.2}" opacity=".85"/>`;
+  out+=`<polyline points="${mr.d.map((dd,i)=>X(Date.parse(dd))+","+Y(mr.v[i])).join(" ")}" fill="none" stroke="${P.tw?"var(--vi)":"var(--cy)"}" stroke-width="${axes?1.9:1.4}"/>`;
+  if(axes){out+=`<text class="axis" x="2" y="${pad.t+10}">${fP(ymax)}</text><text class="axis" x="2" y="${Y(0)+3}">0%</text><text class="axis" x="2" y="${H-pad.b}">${fP(ymin)}</text>`}
+  leg=`<span><i class="dot" style="background:${P.tw?"var(--vi)":"var(--cy)"}"></i>metric %Δ</span><span><i class="dot" style="background:var(--btc)"></i>BTC %Δ</span><span>same axis · from ${P.d[0]}</span>`;
  }
- return`<svg class="${axes?"big":"ch"}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${out}</svg>`;
+ if(axes){const y0=new Date(t0).getUTCFullYear(),y1=new Date(t1).getUTCFullYear();
+  for(let y=y0+1;y<=y1;y+=(y1-y0>9?2:1)){const t=Date.parse(y+"-01-01");if(t>t0&&t<t1)out+=`<line x1="${X(t)}" y1="${pad.t}" x2="${X(t)}" y2="${H-pad.b}" stroke="#ffffff0e"/><text class="axis" x="${X(t)-12}" y="${H-7}">${y}</text>`}}
+ return{svg:`<svg class="${axes?"bigc":"ch"}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${out}</svg>`,leg};
 }
-function ME(k){const m=M[k];document.getElementById("mt").textContent=m.label+"  ·  "+fV(m.unit,m.value);
- document.getElementById("msub").textContent=`z ${m.z365>0?"+":""}${m.z365} · ${m.pctl_1y}th pctl/1y · ρ(BTC,1y) ${m.corr_1y} · window: ${m.stats_window} · all lines min–max normalized to a shared 0–100% scale (log where range > 50×)`;
- document.getElementById("mch").innerHTML=draw(k,1120,470,true)+`<div class="legend"><span><i class="dot" style="background:${pick(k).tw?"var(--vi)":"var(--cy)"}"></i>${pick(k).tw?"metric 2010→ (twin)":"metric (accruing)"}</span>${pick(k).tw?'<span><i class="dot" style="background:var(--cy)"></i>CryptoQuant 1y</span>':""}<span><i class="dot" style="background:var(--btc)"></i>BTC price (own scale)</span></div>`;
+function card(k){const m=M[k],mode=MODE[k]||(longest(k).tw?"FULL":"PCT"),r=draw(k,335,104,false,mode);
+ return`<div class="chwrap" onclick="ME('${k}')">${r.svg}</div>
+ <div class="legend">${r.leg}<span class="chip tgl ${mode==="FULL"?"on":""}" onclick="event.stopPropagation();TG('${k}','FULL')">2010 CTX</span><span class="chip tgl ${mode==="PCT"?"on":""}" onclick="event.stopPropagation();TG('${k}','PCT')">%Δ SAME-AXIS</span><span style="margin-left:auto">🔍 enlarge</span></div>`}
+function TG(k,m){MODE[k]=m;document.getElementById("ch_"+k).innerHTML=card(k)}
+let MK=null,MM=null;
+function ME(k,mode){MK=k;MM=mode||MODE[k]||(longest(k).tw?"FULL":"PCT");const m=M[k];
+ document.getElementById("mt").textContent=m.label+"  ·  "+fV(m.unit,m.value);
+ document.getElementById("msub").textContent=`z ${m.z365>0?"+":""}${m.z365} · ${m.pctl_1y}th pctl/1y · ρ(BTC,1y) ${m.corr_1y} · window: ${m.stats_window}`;
+ document.getElementById("mtg").innerHTML=`view: <span class="chip tgl ${MM==="FULL"?"on":""}" onclick="ME('${k}','FULL')">FULL 2010→ (BTC log)</span><span class="chip tgl ${MM==="PCT"?"on":""}" onclick="ME('${k}','PCT')">%Δ SAME-AXIS</span>`;
+ const r=draw(k,1140,450,true,MM);
+ document.getElementById("mch").innerHTML=r.svg+`<div class="legend">${r.leg}</div>`;
  document.getElementById("mhist").innerHTML=(m.hist_read?`<div class="hist" style="margin-top:12px">${m.hist_read}</div>`:"")+(m.ai_context?`<div class="ai">🤖 ${m.ai_context}</div>`:"");
  document.getElementById("modal").classList.add("on")}
 function MC(){document.getElementById("modal").classList.remove("on")}
@@ -111,30 +124,26 @@ function F(q){q=(q||"").toLowerCase();document.querySelectorAll(".c[data-k]").fo
  const app=document.getElementById("app");
  if(!d||!d.metrics){app.textContent="Feed unavailable.";return}
  M=d.metrics;SER=(S&&S.series)||{};TW=(S&&S.twins)||{};BTC=S&&S.btc;
- const cz=d.composite_onchain_risk_z;
- document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · ${d.n_metrics} metrics · ${Object.keys(d.categories||{}).length} categories · staleness ${d.max_staleness_days}d · click any chart to enlarge`;
- const nExt=Object.values(M).filter(m=>fin(m.pctl_1y)&&(m.pctl_1y<=5||m.pctl_1y>=95)).length;
- let html=`<div class="master"><h3>🤖 STATE OF CRYPTO — FULL ${d.n_metrics}-METRIC AI SCAN</h3>${d.ai_master_brief||"—"}<div class="dsrc">source: ${d.ai_master_src==="llm"?"LLM synthesis over the complete metric digest":"deterministic synthesis computed from all metrics (LLM offline — resumes automatically when providers are topped up)"} · refreshed daily 21:05 UTC</div></div>
+ const cz=d.composite_onchain_risk_z,nTw=Object.keys(TW).length;
+ document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · ${d.n_metrics} metrics · ${nTw} with 2010→ twins · staleness ${d.max_staleness_days}d · every chart carries full BTC-since-2010 context`;
+ let html=`<div class="master"><h3>🤖 STATE OF CRYPTO — FULL ${d.n_metrics}-METRIC AI SCAN</h3>${d.ai_master_brief||"—"}<div class="dsrc">source: ${d.ai_master_src==="llm"?"LLM synthesis over the complete metric digest":"deterministic synthesis computed from all metrics (LLM offline — auto-resumes when providers are topped up)"} · refreshed daily 21:05 UTC</div></div>
  <div class="hero">
   <div class="dial"><h3>COMPOSITE ON-CHAIN RISK <span class="chip prov">PROVISIONAL</span></h3>
    <div class="big" style="color:${cz>0.5?"var(--rd)":cz<-0.5?"var(--gr)":"var(--cy)"}">${fin(cz)?(cz>0?"+":"")+cz.toFixed(2)+"z":"—"}</div>
    <div class="comp">${d.read||""}</div></div>
-  <div class="dial"><h3>YEARLY EXTREMES</h3><div class="big" style="font-size:24px;color:var(--am)">${nExt}</div>
-   <div class="comp">metrics at ≤5th / ≥95th percentile of their year. AI narrates each; the master brief above synthesizes the whole board.</div></div>
-  <div class="dial"><h3>HISTORY & LEDGER</h3>
-   <div class="comp" style="margin-top:2px">Charts default to the <b class="cy">longest real window</b>: 2010→present via Coin Metrics twins where they exist (violet), else the accruing CryptoQuant window (CQ API history = 1y on Professional; deepens daily toward 2000d). Composite logged daily vs BTC-USD; first 21d verdicts ≈ <b class="a">Jul 23</b>.</div></div>
+  <div class="dial"><h3>CHART MODES</h3><div class="comp" style="margin-top:2px"><b class="cy">%Δ SAME-AXIS</b> rebases metric and BTC to the same percentage scale from the window start — direct co-movement reading. <b class="a">2010 CTX</b> draws the full BTC-since-2010 log line under every metric; twin metrics (violet) carry their own 2010→ history, others mark where their data begins (CQ plan window, deepening daily).</div></div>
+  <div class="dial"><h3>HISTORY & LEDGER</h3><div class="comp" style="margin-top:2px">${nTw} metrics on true 2010→ twins. Composite logged daily vs BTC-USD; first 21d verdicts ≈ <b class="a">Jul 23</b>.</div></div>
  </div><input id="q" placeholder="filter metrics… (reserve, funding, mvrv, puell…)" oninput="F(this.value)">`;
  for(const [ck,ct] of CATS){
   const ks=Object.keys(M).filter(k=>(M[k].category||"other")===ck).sort((a,b)=>Math.abs(50-(M[b].pctl_1y??50))-Math.abs(50-(M[a].pctl_1y??50)));
   if(!ks.length)continue;
   html+=`<h2 class="sec">${ct} · ${ks.length}</h2><div class="grid">`;
-  for(const k of ks){const m=M[k],z=m.z365,w=Math.min(48,Math.abs(z||0)*16),P=pick(k);
+  for(const k of ks){const m=M[k],z=m.z365,w=Math.min(48,Math.abs(z||0)*16),tw=longest(k).tw;
    html+=`<div class="c" data-k="${(k+" "+(m.label||"")).toLowerCase()}">
-    <div class="hd"><b>${m.label||k} ${m.in_composite?'<span class="chip core">CORE</span>':""}${P.tw?'<span class="chip tw">2010→</span>':""}</b><span class="val">${fV(m.unit,m.value)}</span></div>
+    <div class="hd"><b>${m.label||k} ${m.in_composite?'<span class="chip core">CORE</span>':""}${tw?'<span class="chip tw">2010→</span>':""}</b><span class="val">${fV(m.unit,m.value)}</span></div>
     <div class="mrow"><span style="color:${col(z)}">z ${fin(z)?(z>0?"+":"")+z.toFixed(2):"—"} · ${fin(m.pctl_1y)?m.pctl_1y+"th pctl":""}</span><span>${fin(m.corr_1y)?"ρ(BTC) "+m.corr_1y:""}</span></div>
     <div class="zbar"><b style="${z>=0?"left:50%":"right:50%"};width:${w}%;background:${col(z)}"></b><i></i></div>
-    <div class="chwrap" onclick="ME('${k}')">${draw(k,335,96,false)}</div>
-    <div class="legend"><span><i class="dot" style="background:${P.tw?"var(--vi)":"var(--cy)"}"></i>${P.tw?"2010→":"accruing"}</span><span><i class="dot" style="background:var(--btc)"></i>BTC</span><span>norm %</span><span style="margin-left:auto">🔍 click to enlarge</span></div>
+    <div id="ch_${k}">${card(k)}</div>
     ${m.hist_read?`<div class="hist">${m.hist_read}</div>`:""}
     ${m.ai_context?`<div class="ai">🤖 ${m.ai_context}</div>`:""}
    </div>`}

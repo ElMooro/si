@@ -97,12 +97,12 @@ def _btc_price(tok_unused=None):
     _put(BTC_KEY, {"_asof": today, "px": px})
     return px
 
-def _twin_series(cm_metric):
+def _cm_fetch(asset, cm_metric):
     out = {}
-    url = CM + "?assets=btc&metrics=%s&frequency=1d&page_size=10000&start_time=2010-07-01" % cm_metric
+    url = CM + "?assets=%s&metrics=%s&frequency=1d&page_size=10000&start_time=2010-07-01" % (asset, cm_metric)
     for _ in range(4):
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/2.0"})
-        with urllib.request.urlopen(req, timeout=40) as r:
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/2.2"})
+        with urllib.request.urlopen(req, timeout=45) as r:
             doc = json.loads(r.read())
         for row in doc.get("data") or []:
             v = row.get(cm_metric)
@@ -113,6 +113,17 @@ def _twin_series(cm_metric):
         if not nxt: break
         url = nxt
     return out
+
+def _twin_series(spec_val):
+    # spec twins values: "Metric" | "eth:Metric" | computed "A/B"
+    asset, expr = "btc", spec_val
+    if ":" in spec_val:
+        asset, expr = spec_val.split(":", 1)
+    if "/" in expr:
+        p, q = expr.split("/", 1)
+        A, B = _cm_fetch(asset, p), _cm_fetch(asset, q)
+        return {d: A[d] / B[d] for d in A if d in B and B[d]}
+    return _cm_fetch(asset, expr)
 
 def _fwd(px_dates, px, i, days):
     j = i + days
