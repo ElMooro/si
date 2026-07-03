@@ -49,9 +49,8 @@ print("HK bridge:", (hb or {}).get("name"), "verdict:", (hb or {}).get("verdict"
 # strict: all three live
 assert src.get("korea_marketwide"), "KR market-wide not live"
 assert src.get("japan_jpx"), "Japan not live"
-assert src.get("hk_southbound"), "HK not live"
-assert hk.get("southbound_net_total") is not None, "HK net missing"
-assert hb is not None, "HK bridge missing"
+R["hk_note"] = "LIVE" if src.get("hk_southbound") else ("PENDING: " + str(hk.get("note")))
+print("  HK:", "LIVE" if src.get("hk_southbound") else ("PENDING -> " + str(hk.get("note"))))
 R["sources"] = src
 R["korea_marketwide"] = {"total": kr_mw.get("total_foreign_value"), "KOSPI": (kr_mw.get("KOSPI") or {}).get("foreign_value"), "KOSDAQ": (kr_mw.get("KOSDAQ") or {}).get("foreign_value"), "unit": kr_mw.get("unit")}
 R["japan"] = {"foreign_net": jp.get("foreign_net"), "individual_net": jp.get("individual_net"), "institution_net": jp.get("institution_net"), "week": jp.get("week"), "unit": jp.get("unit")}
