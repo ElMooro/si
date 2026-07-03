@@ -43,7 +43,7 @@ def cq_rows(path, params, limit):
             return []
     return []
 
-print("settling 25s…"); time.sleep(25)
+print("settling 15s…"); time.sleep(15)
 print("== 1/5 spec: SSR limit-fix + per-token stables (twins UNTOUCHED) ==")
 spec = json.loads(s3.get_object(Bucket=BUCKET, Key="data/config/cryptoquant-spec.json")["Body"].read())
 names = {m["name"] for m in spec["metrics"]}
@@ -186,3 +186,4 @@ os.makedirs("aws/ops/reports", exist_ok=True)
 with open("aws/ops/reports/2748_forecast_desk.json", "w") as f:
     json.dump(R, f, indent=1, default=str)
 print("OPS 2748 COMPLETE — the desk now looks forward")
+# rev2 timeout-ceiling 30m; idempotent rerun after 15m cancel (zero-byte log)
