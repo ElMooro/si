@@ -202,6 +202,9 @@ def lambda_handler(event, context):
             out["cryptoquant"] = {"btc_netflow": cm.get("btc_exchange_netflow"),
                 "btc_reserve": cm.get("btc_exchange_reserve"), "eth_reserve": cm.get("eth_exchange_reserve"),
                 "stablecoin_reserve": cm.get("stablecoin_exchange_reserve"),
+                "usdt_reserve": cm.get("usdt_exchange_reserve"), "usdc_reserve": cm.get("usdc_exchange_reserve"),
+                "btc_inflow": cm.get("btc_exchange_inflow"), "btc_outflow": cm.get("btc_exchange_outflow"),
+                "eth_netflow": cm.get("eth_exchange_netflow"),
                 "composite_onchain_risk_z": cq.get("composite_onchain_risk_z"),
                 "grading": "PROVISIONAL", "source": "cryptoquant"}
     except Exception as e:

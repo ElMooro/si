@@ -58,7 +58,7 @@ def _get(url, tok, timeout=30):
         raise RuntimeError("HTTP %s %s :: %s" % (he.code, url.split("?")[0][-58:], body))
 
 def _series(m, tok, limit=1000):
-    q = dict(m.get("params") or {}); q["limit"] = str(limit)
+    q = dict(m.get("params") or {}); q["limit"] = str(m.get("limit") or limit)
     url = BASE + m["path"] + "?" + "&".join("%s=%s" % kv for kv in q.items())
     doc = _get(url, tok)
     rows = ((doc or {}).get("result") or {}).get("data") or []
@@ -114,6 +114,15 @@ def _cm_fetch(asset, cm_metric):
         url = nxt
     return out
 
+def _asset_price(asset, key):
+    cache = _j(key, {}) or {}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if cache.get("_asof") == today and len(cache.get("px") or {}) > 800:
+        return cache["px"]
+    px = _cm_fetch(asset, "PriceUSD")
+    _put(key, {"_asof": today, "px": px})
+    return px
+
 def _twin_series(spec_val):
     # spec twins values: "Metric" | "eth:Metric" | computed "A/B"
     asset, expr = "btc", spec_val
@@ -145,7 +154,7 @@ def _cond_stats(ser, px, cur):
     px_dates = sorted(px)
     pidx = {d: i for i, d in enumerate(px_dates)}
     out = {}
-    for h in (7, 21, 60):
+    for h in (7, 21, 30, 60, 90, 180, 365):
         rets = []
         for d in dates:
             if lo_v <= ser[d] <= hi_v and d in pidx:
@@ -205,6 +214,7 @@ def lambda_handler(event=None, context=None):
         return {"ok": True, "status": "GATED_PENDING_KEY", "armed": len(mets)}
 
     px = _btc_price()
+    epx = _asset_price("eth", "data/history/eth-price-cm.json")
     twins_cfg = dict(spec.get("twins") or {})
     twins_cfg.update(spec.get("twins_extra") or {})
     twin_data = {}
@@ -270,9 +280,14 @@ def lambda_handler(event=None, context=None):
                 cur_for_stats = (sorted(stat_src.values())[
                     min(len(stat_src) - 1, int((pctl or 50) / 100 * (len(stat_src) - 1)))]
                     if stat_src is twin and pctl is not None else vals[-1])
-                cstats = _cond_stats(stat_src, px, cur_for_stats)
-                r, beta = _corr(ser, px)
-                metrics[name] = {"value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
+                bpx = epx if name.startswith("eth_") else px
+                cstats = _cond_stats(stat_src, bpx, cur_for_stats)
+                r, beta = _corr(ser, bpx)
+                _mv = (twin_data.get(name) or ser)
+                _sv = [_mv[d] for d in sorted(_mv)]
+                _up = sum(1 for i in range(1, len(_sv)) if _sv[i] >= _sv[i - 1]) / max(1, len(_sv) - 1)
+                metrics[name] = {"monotonic": bool(_up >= 0.95 or _up <= 0.05),
+                                 "value": round(vals[-1], 6), "z365": z, "pctl_1y": pctl,
                                  "wow": round(vals[-1] - vals[-8], 6) if len(vals) >= 8 else None,
                                  "as_of": dates[-1], "category": m.get("category", "other"),
                                  "label": m.get("label", name), "unit": m.get("unit"),
@@ -328,9 +343,121 @@ def lambda_handler(event=None, context=None):
                   "series": series_out, "twins": tser,
                   "btc": {"d": pd[::pstep], "v": [round(px[d], 2) for d in pd[::pstep]]}})
 
+    # ── FORECAST DESK: percentile-conditional base-rate projections, ledger-graded ──
+    def _pctile(xs, p):
+        xs = sorted(xs); i = max(0, min(len(xs) - 1, int(p * (len(xs) - 1))))
+        return xs[i]
+    def _ensemble(names, hs):
+        out = {}
+        for h in hs:
+            means = [((metrics[k].get("cond_stats") or {}).get("fwd%d" % h) or {}).get("mean_pct")
+                     for k in names]
+            means = [m for m in means if m is not None]
+            if len(means) >= 3:
+                out["h%d" % h] = {"exp_pct": round(_pctile(means, 0.5), 1),
+                                  "p10_pct": round(_pctile(means, 0.1), 1),
+                                  "p90_pct": round(_pctile(means, 0.9), 1),
+                                  "n_metrics": len(means)}
+        return out
+    def _beta(px_a, px_b, days=730):
+        ds = [d for d in sorted(px_a) if d in px_b][-days:]
+        if len(ds) < 200: return None
+        ra = [px_a[ds[i]] / px_a[ds[i - 1]] - 1 for i in range(1, len(ds))]
+        rb = [px_b[ds[i]] / px_b[ds[i - 1]] - 1 for i in range(1, len(ds))]
+        mb = sum(rb) / len(rb); ma = sum(ra) / len(ra)
+        cov = sum((ra[i] - ma) * (rb[i] - mb) for i in range(len(ra)))
+        var = sum((b - mb) ** 2 for b in rb)
+        return round(cov / var, 2) if var else None
+    HORIZONS = (30, 90, 180, 365)
+    btc_names = [k for k, v in metrics.items()
+                 if not k.startswith("eth_") and not v.get("monotonic") and v.get("cond_stats")]
+    eth_names = [k for k, v in metrics.items()
+                 if k.startswith("eth_") and not v.get("monotonic") and v.get("cond_stats")]
+    btc_now = px[max(px)] if px else None
+    eth_now = epx[max(epx)] if epx else None
+    fb = _ensemble(btc_names, HORIZONS)
+    for h, v in fb.items():
+        if btc_now:
+            v["price_target"] = round(btc_now * (1 + v["exp_pct"] / 100), 0)
+            v["price_range"] = [round(btc_now * (1 + v["p10_pct"] / 100), 0),
+                                round(btc_now * (1 + v["p90_pct"] / 100), 0)]
+    beta_e = _beta(epx, px) or 1.4
+    fe_raw = _ensemble(eth_names, HORIZONS)
+    fe = {}
+    for h in HORIZONS:
+        kk = "h%d" % h
+        b = fb.get(kk)
+        if not b: continue
+        own = (fe_raw.get(kk) or {}).get("exp_pct")
+        exp = round(0.5 * own + 0.5 * b["exp_pct"] * beta_e, 1) if own is not None               else round(b["exp_pct"] * beta_e, 1)
+        fe[kk] = {"exp_pct": exp,
+                  "p10_pct": round(b["p10_pct"] * beta_e, 1), "p90_pct": round(b["p90_pct"] * beta_e, 1),
+                  "basis": "own+beta" if own is not None else "beta-link",
+                  "n_metrics": (fe_raw.get(kk) or {}).get("n_metrics", 0)}
+        if eth_now:
+            fe[kk]["price_target"] = round(eth_now * (1 + exp / 100), 0)
+            fe[kk]["price_range"] = [round(eth_now * (1 + fe[kk]["p10_pct"] / 100), 0),
+                                     round(eth_now * (1 + fe[kk]["p90_pct"] / 100), 0)]
+    ALT = ("ltc", "xrp", "doge", "ada", "bch")
+    apx_all = _j("data/history/alt-px-cm.json", {}) or {}
+    if apx_all.get("_asof") != datetime.now(timezone.utc).strftime("%Y-%m-%d"):
+        apx_all = {"_asof": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+        for a in ALT:
+            try: apx_all[a] = _cm_fetch(a, "PriceUSD")
+            except Exception: pass
+        _put("data/history/alt-px-cm.json", apx_all)
+    common = None
+    for a in ALT:
+        ds = set((apx_all.get(a) or {}))
+        common = ds if common is None else (common & ds)
+    common = sorted(d for d in (common or set()) if d >= "2017-01-01")
+    alt_idx = {}
+    if len(common) > 500:
+        base = {a: apx_all[a][common[0]] for a in ALT if apx_all.get(a)}
+        for d in common:
+            vals_a = [apx_all[a][d] / base[a] for a in base]
+            alt_idx[d] = sum(vals_a) / len(vals_a)
+    beta_a = _beta(alt_idx, px) if alt_idx else None
+    fa = {}
+    if beta_a:
+        for h in HORIZONS:
+            kk = "h%d" % h; b = fb.get(kk)
+            if b:
+                fa[kk] = {"exp_pct": round(b["exp_pct"] * beta_a, 1),
+                          "p10_pct": round(b["p10_pct"] * beta_a, 1),
+                          "p90_pct": round(b["p90_pct"] * beta_a, 1)}
+    fc_ai, fc_src = None, "deterministic"
+    fc_det = ("Base rates project BTC %+0.1f%% over 1 month, %+0.1f%% over 3 months, %+0.1f%% over 6 "
+              "months and %+0.1f%% over 12 months (ensemble medians across %d non-monotonic metrics at "
+              "their current percentiles); ETH carries a %.1fx beta and altcoins %.1fx, amplifying both "
+              "tails. These are historical conditional distributions, not promises — the ledger grades "
+              "every one of them."
+              % tuple([fb.get("h%d" % h, {}).get("exp_pct", 0.0) for h in HORIZONS]
+                      + [len(btc_names), beta_e, beta_a or 0.0]))
+    try:
+        from llm_router import complete
+        t = _clean_brief(complete(
+            "Respond with ONLY three to five plain prose sentences, no lists, no markdown, no quotes. "
+            "Percentile-conditional base rates from on-chain metrics project BTC forward returns of "
+            "%s pct over 30/90/180/365 days; ETH beta %.1f; altcoin-basket beta %.1f. Current BTC %s. "
+            "Give the institutional interpretation, the strongest horizon, and the biggest caveat."
+            % ("/".join(str(fb.get("h%d" % h, {}).get("exp_pct", "?")) for h in HORIZONS),
+               beta_e, beta_a or 0, btc_now), tier="reason", max_tokens=340))
+        if t: fc_ai, fc_src = t, "llm"
+    except Exception:
+        pass
+    forecasts = {"btc": fb, "eth": dict(fe, beta_vs_btc=beta_e), 
+                 "alt_basket": {"assets": list(ALT), "beta_vs_btc": beta_a, **fa},
+                 "btc_price_now": btc_now, "eth_price_now": eth_now,
+                 "ai": fc_ai or fc_det, "ai_src": fc_src,
+                 "method": ("Ensemble median of percentile-conditional forward returns across %d "
+                            "non-monotonic metrics (2010-window where twins exist); ETH = 50/50 own-metric "
+                            "ensemble + BTC beta-link; alts = %s equal-weight index beta-link. PROVISIONAL, "
+                            "ledger-graded, not financial advice." % (len(btc_names), "/".join(ALT)))}
+
     # ── MASTER BRIEF: full-catalog scan -> one read on where BTC/crypto stands ──
-    sup = [k for k, v in metrics.items() if ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) > 1.0]
-    con = [k for k, v in metrics.items() if ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) < -1.0]
+    sup = [k for k, v in metrics.items() if not v.get("monotonic") and ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) > 1.0]
+    con = [k for k, v in metrics.items() if not v.get("monotonic") and ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) < -1.0]
     ext_hi = [metrics[k]["label"] for k in metrics if (metrics[k].get("pctl_1y") or 50) >= 95][:5]
     ext_lo = [metrics[k]["label"] for k in metrics if (metrics[k].get("pctl_1y") or 50) <= 5][:5]
     mv = metrics.get("btc_mvrv") or {}
@@ -375,6 +502,7 @@ def lambda_handler(event=None, context=None):
                "plan_note": spec.get("plan_note"),
                "n_metrics": len(metrics), "categories": cats,
                "ai_master_brief": master, "ai_master_src": master_src,
+               "forecasts": forecasts,
                "metrics": metrics, "composite_onchain_risk_z": comp,
                "read": ("On-chain composite %+0.2fz across %d curated core metrics; %d total "
                         "catalog metrics live" % (comp, len(core), len(metrics))) if comp is not None else None,

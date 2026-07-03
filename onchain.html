@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>On-Chain Desk — Full CryptoQuant Catalog · JustHodl.AI</title><!-- ONCHAIN DESK v3.1 -->
+<title>On-Chain Desk — Full CryptoQuant Catalog · JustHodl.AI</title><!-- ONCHAIN DESK v3.1 --><!-- FORECAST DESK v1 -->
 <style>
 :root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--btc:#f7931a;--mono:'SF Mono',Consolas,monospace}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
@@ -117,6 +117,14 @@ function F(q){q=(q||"").toLowerCase();document.querySelectorAll(".c[data-k]").fo
  document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · ${d.n_metrics} metrics · ${nTw} with 2010→ history · charts share a percentile axis for like-for-like reads · click any chart to enlarge`;
  const nExt=Object.values(M).filter(m=>fin(m.pctl_1y)&&(m.pctl_1y<=5||m.pctl_1y>=95)).length;
  let html=`<div class="master"><h3>🤖 STATE OF CRYPTO — FULL ${d.n_metrics}-METRIC AI SCAN</h3>${d.ai_master_brief||"—"}<div class="dsrc">source: ${d.ai_master_src==="llm"?"LLM synthesis over the complete metric digest":"deterministic synthesis computed from all metrics (LLM offline — resumes automatically when providers are topped up)"} · refreshed daily 21:05 UTC</div></div>
+ ${d.forecasts?`<div class="master" style="border-color:#3a5a2f;background:linear-gradient(160deg,#0f1f14,#0a140d)"><h3 style="color:var(--gr)">🔮 BASE-RATE FORECASTS — 1M · 3M · 6M · 1Y <span class="chip prov">PROVISIONAL · LEDGER-GRADED</span></h3>
+ <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:4px">
+  <tr style="color:var(--fg3);font-size:10px"><th style="text-align:left">ASSET</th><th>1 MONTH</th><th>3 MONTHS</th><th>6 MONTHS</th><th>1 YEAR</th></tr>
+  ${["btc","eth","alt_basket"].map(A=>{const F=d.forecasts[A]||{};const nm=A==="btc"?"BTC $"+(d.forecasts.btc_price_now||0).toLocaleString():A==="eth"?"ETH $"+(d.forecasts.eth_price_now||0).toLocaleString()+" (β "+(F.beta_vs_btc||"—")+")":"ALTS "+((F.assets||[]).join("/"))+" (β "+(F.beta_vs_btc||"—")+")";
+   return`<tr style="border-top:1px solid #1a2c1f"><td style="text-align:left;padding:7px 0"><b>${nm}</b></td>${[30,90,180,365].map(h=>{const c=F["h"+h];if(!c)return"<td style=\'text-align:center\'>—</td>";const e=c.exp_pct;return`<td style="text-align:center;padding:7px 4px"><b style="color:${e>0?"var(--gr)":"var(--rd)"};font-size:14px">${e>0?"+":""}${e}%</b>${c.price_target?`<br><span style="color:var(--cy)">$${c.price_target.toLocaleString()}</span>`:""}<br><span style="color:var(--fg3);font-size:9.5px">${(c.p10_pct>0?"+":"")+c.p10_pct}% … ${(c.p90_pct>0?"+":"")+c.p90_pct}%</span></td>`}).join("")}</tr>`}).join("")}
+ </table>
+ <div style="font-size:12px;line-height:1.65;margin-top:9px">${d.forecasts.ai||""}</div>
+ <div class="dsrc">${d.forecasts.method||""} · narration: ${d.forecasts.ai_src}</div></div>`:""}
  <div class="hero">
   <div class="dial"><h3>COMPOSITE ON-CHAIN RISK <span class="chip prov">PROVISIONAL</span></h3>
    <div class="big" style="color:${cz>0.5?"var(--rd)":cz<-0.5?"var(--gr)":"var(--cy)"}">${fin(cz)?(cz>0?"+":"")+cz.toFixed(2)+"z":"—"}</div>

@@ -198,7 +198,7 @@ def _cq_join(doc, s3c, bucket):
         cq = json.loads(s3c.get_object(Bucket=bucket, Key="data/cryptoquant-onchain.json")["Body"].read())
         if cq.get("status") == "LIVE":
             cm = cq.get("metrics") or {}
-            doc["cryptoquant"] = {k: cm.get(k) for k in ("btc_whale_ratio", "btc_mvrv", "btc_sopr", "btc_exchange_netflow", "btc_mpi")}
+            doc["cryptoquant"] = {k: cm.get(k) for k in ("btc_whale_ratio", "btc_mvrv", "btc_sopr", "btc_exchange_netflow", "btc_mpi", "btc_nupl", "btc_puell", "btc_nvt_golden", "btc_realized_price", "btc_ssr")}
             doc["cryptoquant"]["composite_onchain_risk_z"] = cq.get("composite_onchain_risk_z")
             doc["cryptoquant"]["grading"] = "PROVISIONAL"
             doc["resurrected"] = "ops 2742 - daily 21:20 UTC"

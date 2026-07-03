@@ -237,6 +237,7 @@ def lambda_handler(event, context):
         cq = json.loads(s3.get_object(Bucket=BUCKET, Key="data/cryptoquant-onchain.json")["Body"].read())
         if cq.get("status") == "LIVE" and (cq.get("metrics") or {}).get("btc_mpi"):
             out["cryptoquant_mpi"] = dict(cq["metrics"]["btc_mpi"], grading="PROVISIONAL")
+            out["cryptoquant_miner"] = {k: cq["metrics"].get(k) for k in ("btc_miner_netflow", "btc_miner_outflow", "btc_miner_reserve", "btc_puell")}
     except Exception as e:
         print("[miners] cq join skipped:", str(e)[:80])
 

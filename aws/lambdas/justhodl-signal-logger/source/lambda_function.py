@@ -248,6 +248,15 @@ def lambda_handler(event,context):
         logged.append(log_sig("onchain_composite_risk","ONCHAIN",opred,oconf,"BTC-USD",[1,3,7,14,21],
                               meta={"z":ocz,"mvrv":((oc.get("metrics") or {}).get("btc_mvrv") or {}).get("value"),"grading":"PROVISIONAL"}))
 
+    # onchain_btc_forecast (ops 2748) - base-rate ensemble forecast, magnitude-graded.
+    fx=(oc.get("forecasts") or {}).get("btc") or {}
+    f90=(fx.get("h90") or {}).get("exp_pct")
+    if oc.get("status")=="LIVE" and f90 is not None:
+        fpred=("UP" if f90>2 else ("DOWN" if f90<-2 else "NEUTRAL"))
+        fconf=min(0.85, 0.3+abs(f90)/30.0)
+        logged.append(log_sig("onchain_btc_forecast","BASE_RATE",fpred,fconf,"BTC-USD",[30,90,180],
+                              magnitude=f90,meta={"h":{k:(v.get("exp_pct") if isinstance(v,dict) else None) for k,v in fx.items() if k.startswith("h")},"grading":"PROVISIONAL"}))
+
     # crypto_dvol — implied-vol risk signal (CANDIDATE, to be graded by the scorecard).
     # Hypothesis (consistent with cycle-clock synthesis): elevated/rising BTC DVOL = risk-off
     # = BTC DOWN; low/falling = risk-on = UP. The scorecard decides if it has real edge.
