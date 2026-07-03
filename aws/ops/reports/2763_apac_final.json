@@ -1,0 +1,41 @@
+{
+ "ops": 2763,
+ "ts": "2026-07-03T17:18:57.289424+00:00",
+ "sources": {
+  "twse_t86": true,
+  "twse_bfi": true,
+  "korea_naver": true,
+  "korea_marketwide": true,
+  "japan_jpx": true,
+  "hk_southbound": true
+ },
+ "korea_marketwide": {
+  "total": -21952,
+  "KOSPI": -21750.0,
+  "KOSDAQ": -202.0,
+  "unit": "KRW net (Naver index units)"
+ },
+ "japan": {
+  "foreign_net": 1068065563.0,
+  "individual_net": 911633499.0,
+  "institution_net": 61892336.0,
+  "week": "06/22～06/26",
+  "unit": "JPY thousands"
+ },
+ "hongkong": {
+  "net": 8400000,
+  "markets": {
+   "港股通(沪) SH→HK": 4200000.0,
+   "港股通(深) SZ→HK": 4200000.0
+  },
+  "as_of": "2026-07-03",
+  "unit": "万元 (CNY 10k)",
+  "source": "Eastmoney Southbound (Stock Connect)"
+ },
+ "hk_bridge": {
+  "verdict": "confirmed — both bid",
+  "hk_net": 8400000,
+  "us5d": 7.32
+ },
+ "page": "LIVE"
+}
