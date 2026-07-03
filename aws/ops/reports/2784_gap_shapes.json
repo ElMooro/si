@@ -1,0 +1,462 @@
+{
+ "ops": 2784,
+ "ts": "2026-07-03T21:35:33.935303+00:00",
+ "d": {
+  "flow": {
+   "top": [
+    "schema_version",
+    "method",
+    "generated_at",
+    "duration_s",
+    "stats",
+    "summary",
+    "all_qualifying"
+   ],
+   "summary": {
+    "top_25_overall": [
+     {
+      "symbol": "SPCX",
+      "score": 80.0,
+      "tier": "TIER_A_BULLISH_FLOW",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X",
+       "ABS_CPR_2X",
+       "HIGH_SHORT_SQUEEZE_SETUP"
+      ],
+      "spot": 162.0,
+      "cpr_recent": 2.51,
+      "cpr_change_pct": 60.3,
+      "call_vol_surge": 6.98,
+      "short_pct_change": 10.49
+     },
+     {
+      "symbol": "GOOGL",
+      "score": 78.0,
+      "tier": "TIER_A_BULLISH_FLOW",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X",
+       "ABS_CPR_3X"
+      ],
+      "spot": 359.91,
+      "cpr_recent": 15.91,
+      "cpr_change_pct": 372.3,
+      "call_vol_surge": 26.6,
+      "short_pct_change": 12.66
+     },
+     {
+      "symbol": "GOOG",
+      "score": 78.0,
+      "tier": "TIER_A_BULLISH_FLOW",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X",
+       "ABS_CPR_3X"
+      ],
+      "spot": 356.18,
+      "cpr_recent": 6.18,
+      "cpr_change_pct": 155.9,
+      "call_vol_surge": 10.74,
+      "short_pct_change": 11.88
+     },
+     {
+      "symbol": "AVGO",
+      "score": 70.0,
+      "tier": "TIER_A_BULLISH_FLOW",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X",
+       "SHORTS_COVERING"
+      ],
+      "spot": 360.45,
+      "cpr_recent": 0.19,
+      "cpr_change_pct": 61.5,
+      "call_vol_surge": 24.71,
+      "short_pct_change": -7.6
+     },
+     {
+      "symbol": "MSFT",
+      "score": 70.0,
+      "tier": "TIER_A_BULLISH_FLOW",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X",
+       "ABS_CPR_3X"
+      ],
+      "spot": 390.49,
+      "cpr_recent": 32.97,
+      "cpr_change_pct": 1065.8,
+      "call_vol_surge": 45.42,
+      "short_pct_change": 1.65
+     },
+     {
+      "symbol": "AAPL",
+      "score": 63.0,
+      "tier": "TIER_B_FLOW_BUILDING",
+      "flags": [
+       "CALL_VOL_3X",
+       "ABS_CPR_3X",
+       "SHORTS_COVERING"
+      ],
+      "spot": 308.63,
+      "cpr_recent": 14.28,
+      "cpr_change_pct": -55.6,
+      "call_vol_surge": 32.58,
+      "short_pct_change": -4.83
+     },
+     {
+      "symbol": "NVDA",
+      "score": 63.0,
+      "tier": "TIER_B_FLOW_BUILDING",
+      "flags": [
+       "CPR_SURGING",
+       "CALL_VOL_3X"
+      ],
+      "spot": 194.83,
+      "cpr_recent": 1.06,
+      "cpr_change_pct": 388.9,
+      "call_vol_surge": 52.13,
+      "short_pct_change": 6.25
+     },
+     {
+      "symbol": "AMZN",
+      "score": 60.0,
+      "tier": "TIER_B_FLOW_BUILDING",
+      "flags": [
+       "CPR_RISING",
+       "CALL_VOL_3X",
+       "ABS_CPR_3X"
+      ],
+      "spot": 242.67,
+      "cpr_recent": 13.99,
+      "cpr_change_pct": 46.5,
+      "call_vol_surge": 14.08,
+      "short_pct_change": -0.87
+     }
+    ],
+    "tier_a": [
+     "SPCX",
+     "GOOGL",
+     "GOOG",
+     "AVGO",
+     "MSFT"
+    ]
+   },
+   "n_all": 8,
+   "item_keys": [
+    "symbol",
+    "score",
+    "tier",
+    "flags",
+    "metrics"
+   ],
+   "sample": {
+    "symbol": "SPCX",
+    "score": 80.0,
+    "tier": "TIER_A_BULLISH_FLOW",
+    "flags": [
+     "CPR_SURGING",
+     "CALL_VOL_3X",
+     "ABS_CPR_2X",
+     "HIGH_SHORT_SQUEEZE_SETUP"
+    ],
+    "metrics": {
+     "spot": 162.0,
+     "n_call_contracts": 10,
+     "n_put_contracts": 10,
+     "avg_cpr_recent_5d": 2.51,
+     "avg_cpr_older": 1.57,
+     "cpr_change_pct": 60.3,
+     "total_call_vol_5d": 271244,
+     "total_put_vol_5d": 138963,
+     "call_vol_surge": 6.98,
+     "short_metrics": {
+      "recent_avg_short_pct": 64.2,
+      "older_avg_short_pct": 53.7,
+      "short_pct_change": 10.49,
+      "avg_total_vol_5d": 32623400,
+      "n_finra_days": 14
+     }
+    }
+   },
+   "tiers": [
+    "TIER_A_BULLISH_FLOW",
+    "TIER_B_FLOW_BUILDING"
+   ],
+   "metrics_keys": [
+    "spot",
+    "n_call_contracts",
+    "n_put_contracts",
+    "avg_cpr_recent_5d",
+    "avg_cpr_older",
+    "cpr_change_pct",
+    "total_call_vol_5d",
+    "total_put_vol_5d",
+    "call_vol_surge",
+    "short_metrics"
+   ]
+  },
+  "confluence": {
+   "counts": {
+    "names": 79,
+    "multi_engine": 16,
+    "squeeze_fuel": 8,
+    "bullish_flow": 14,
+    "bearish_flow": 5,
+    "coiled": 0,
+    "bullish_lean": 25,
+    "bearish_lean": 6
+   },
+   "by_posture_keys": [
+    "SQUEEZE_FUEL",
+    "BULLISH_FLOW",
+    "BEARISH_FLOW",
+    "COILED",
+    "BULLISH_LEAN",
+    "BEARISH_LEAN"
+   ],
+   "by_posture_sizes": {
+    "SQUEEZE_FUEL": 8,
+    "BULLISH_FLOW": 14,
+    "BEARISH_FLOW": 5,
+    "COILED": 0,
+    "BULLISH_LEAN": 25,
+    "BEARISH_LEAN": 6
+   },
+   "sample_item": {
+    "ticker": "AVGO",
+    "score": 0.5,
+    "engines": [
+     "options-analytics",
+     "polygon-options-flow"
+    ],
+    "neg_gamma": true,
+    "coiled": false,
+    "tags": [
+     "dealers short gamma"
+    ],
+    "n_engines": 2,
+    "posture": "SQUEEZE_FUEL"
+   },
+   "thesis": "Fuses the fragmented options/dealer cluster into one net posture per name. Cross-engine agreement (n_engines >= 2) is th",
+   "alpha_gate": "ALPHA_NEGATIVE options engines dropped; squeeze read lifted by ALPHA_PROVEN squeeze_risk."
+  },
+  "analytics": {
+   "top": [
+    "engine",
+    "version",
+    "ok",
+    "generated_at",
+    "thesis",
+    "universe_size",
+    "n_analyzed",
+    "distribution",
+    "board",
+    "top_picks",
+    "squeeze_setups",
+    "most_unusual",
+    "richest_iv_vrp",
+    "data_source",
+    "caveats",
+    "elapsed_s"
+   ],
+   "n_board": 58,
+   "squeeze_setups_n": 6,
+   "squeeze_item": {
+    "ticker": "WMT",
+    "spot": 111.84,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 64.3,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -30.05,
+    "gamma_flip_strike": null,
+    "call_wall": 125,
+    "put_wall": 110,
+    "atm_iv_front": 0.246,
+    "term_slope": 0.0319,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0033,
+    "hv20": 0.2512,
+    "vrp": -0.0052,
+    "iv_rank": null,
+    "pcr_vol": 0.241,
+    "pcr_oi": 1.09,
+    "call_vol": 119141,
+    "put_vol": 28757,
+    "net_premium_usd": 6321732,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     },
+     {
+      "contract": "O:WMT260717C00111000",
+      "type": "call",
+      "strike": 111,
+      "exp": "2026-07-17",
+      "vol": 1968,
+      "oi": 627,
+      "vol_oi": 3.1
+     },
+     {
+      "contract": "O:WMT260717C00114000",
+      "type": "call",
+      "strike": 114,
+      "exp": "2026-07-17",
+      "vol": 605,
+      "oi": 214,
+      "vol_oi": 2.8
+     },
+     {
+      "contract": "O:WMT260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 1052,
+      "oi": 407,
+      "vol_oi": 2.6
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow"
+    ]
+   },
+   "most_unusual_n": 15,
+   "unusual_item": {
+    "ticker": "RIVN",
+    "n_unusual": 11,
+    "pcr_vol": 0.36,
+    "net_premium_usd": 8333946,
+    "unusual": [
+     {
+      "contract": "O:RIVN260717C00024000",
+      "type": "call",
+      "strike": 24,
+      "exp": "2026-07-17",
+      "vol": 1501,
+      "oi": 4,
+      "vol_oi": 375.2
+     },
+     {
+      "contract": "O:RIVN260717C00021500",
+      "type": "call",
+      "strike": 21.5,
+      "exp": "2026-07-17",
+      "vol": 1128,
+      "oi": 21,
+      "vol_oi": 53.7
+     },
+     {
+      "contract": "O:RIVN260821P00019000",
+      "type": "put",
+      "strike": 19,
+      "exp": "2026-08-21",
+      "vol": 577,
+      "oi": 11,
+      "vol_oi": 52.5
+     }
+    ]
+   },
+   "caveats": [
+    "Discovery engine \u2014 MEASURE-BEFORE-TRUST. top_picks logged to signal-harvester (eng:options-analytics) for forward excess-vs-SPY grading; NOT wired into best-setups/master-ranker until the scorecard proves net-of-cost alpha.",
+    "GEX from 3 monthly expiries \u00d7 \u00b130% strikes (where dealer gamma concentrates); OI is EOD/T+1 settled, greeks/IV/volume current. No real-time NBBO (tick tier gated).",
+    "IV rank warms up as daily ATM-IV history accrues; VRP (IV vs 20d realized) is the day-1 rich/cheap gauge."
+   ],
+   "data_source": "Polygon /v3/snapshot/options (greeks+IV+OI+volume) + /v2/aggs (spot/HV)",
+   "counts": {}
+  },
+  "gex": {
+   "squeeze_candidates_n": 0,
+   "squeeze_item": null,
+   "spy_oi": {
+    "total_call_oi": 2279877,
+    "total_put_oi": 6467153,
+    "n_contracts_modeled": 3812,
+    "top_gamma_strikes": [
+     {
+      "strike": 740.0,
+      "gex_dollars": -1144405323.0,
+      "gex_billions": -1.144
+     },
+     {
+      "strike": 760.0,
+      "gex_dollars": 844407079.0,
+      "gex_billions": 0.844
+     },
+     {
+      "strike": 735.0,
+      "gex_dollars": -832982923.0,
+      "gex_billions": -0.833
+     },
+     {
+      "strike": 750.0,
+      "gex_dollars": 663443869.0,
+      "gex_billions": 0.663
+     },
+     {
+      "strike": 725.0,
+      "gex_dollars": -575602512.0,
+      "gex_billions": -0.576
+     },
+     {
+      "strike": 730.0,
+      "gex_dollars": -543567137.0,
+      "gex_billions": -0.544
+     },
+     {
+      "strike": 755.0,
+      "gex_dollars": 538684026.0,
+      "gex_billions": 0.539
+     },
+     {
+      "strike": 710.0,
+      "gex_dollars": -443743987.0,
+      "gex_billions": -0.444
+     },
+     {
+      "strike": 720.0,
+      "gex_dollars": -419656536.0,
+      "gex_billions": -0.42
+     },
+     {
+      "strike": 747.0,
+      "gex_dollars": 368699994.0,
+      "gex_billions": 0.369
+     }
+    ]
+   }
+  }
+ }
+}
