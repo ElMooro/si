@@ -1,13 +1,3 @@
-flow: n=8 tiers=['TIER_A_BULLISH_FLOW', 'TIER_B_FLOW_BUILDING']
-  item keys: ['symbol', 'score', 'tier', 'flags', 'metrics']
-  metrics keys: ['spot', 'n_call_contracts', 'n_put_contracts', 'avg_cpr_recent_5d', 'avg_cpr_older', 'cpr_change_pct', 'total_call_vol_5d', 'total_put_vol_5d', 'call_vol_surge', 'short_metrics']
-  summary: {"top_25_overall": [{"symbol": "SPCX", "score": 80.0, "tier": "TIER_A_BULLISH_FLOW", "flags": ["CPR_SURGING", "CALL_VOL_3X", "ABS_CPR_2X", "HIGH_SHORT_SQUEEZE_SETUP"], "spot": 162.0, "cpr_recent": 2.5
-  sample flags: ['CPR_SURGING', 'CALL_VOL_3X', 'ABS_CPR_2X', 'HIGH_SHORT_SQUEEZE_SETUP']
-confluence counts: {"names": 79, "multi_engine": 16, "squeeze_fuel": 8, "bullish_flow": 14, "bearish_flow": 5, "coiled": 0, "bullish_lean": 25, "bearish_lean": 6}
-  by_posture: {'SQUEEZE_FUEL': 8, 'BULLISH_FLOW': 14, 'BEARISH_FLOW': 5, 'COILED': 0, 'BULLISH_LEAN': 25, 'BEARISH_LEAN': 6}
-analytics: squeeze_setups=6 most_unusual=15
-  squeeze item: {"ticker": "WMT", "spot": 111.84, "signal": "GAMMA_SQUEEZE_SETUP", "score": 64.3, "price_confirm": false, "gamma_regime": "SHORT_GAMMA", "net_gex_musd_per_1pct": -30.05, "gamma_flip_strike": null, "call_wall": 125, "put_
-  unusual item: {"ticker": "RIVN", "n_unusual": 11, "pcr_vol": 0.36, "net_premium_usd": 8333946, "unusual": [{"contract": "O:RIVN260717C00024000", "type": "call", "strike": 24, "exp": "2026-07-17", "vol": 1501, "oi":
-gex squeeze_candidates: 0 | SPY OI call/put: 2279877 6467153 | contracts: 3812
-  top_gamma_strikes: [{"strike": 740.0, "gex_dollars": -1144405323.0, "gex_billions": -1.144}, {"strike": 760.0, "gex_dollars": 844407079.0, "gex_billions": 0.844}, {"strike": 735.0, "gex_dollars": -832982923.0, "gex_bill
-OPS 2784 COMPLETE
+attempt 1: ALL LIVE (35411 bytes) {'GAMMA SQUEEZE SETUPS': True, 'MOST UNUSUAL ACTIVITY': True, 'OPTIONS FLOW SCANNER — Q': True, 'TOP GAMMA STRIKES': True, 'OPEN INTEREST — calls': True}
+data: qualifying=8 squeeze_setups=6 most_unusual=15
+OPS 2785 COMPLETE
