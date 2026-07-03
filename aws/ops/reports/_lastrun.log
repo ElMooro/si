@@ -1,17 +1,21 @@
 settling 25s…
 == 1/3 twin probe (Coin Metrics community) ==
+  btc_mvrv           -> CapMVRVCur   pts=5828   WIRED
+  btc_addresses_active -> AdrActCnt    pts=5845   WIRED
+  btc_tx_count       -> TxCnt        pts=5845   WIRED
+  btc_fees_total     -> FeeTotNtv    pts=5845   WIRED
+  btc_hashrate       -> HashRate     pts=5845   WIRED
+  btc_supply_total   -> SplyCur      pts=5845   WIRED
   btc_nvt            -> NVTAdj       pts=0      HTTP Error 403: Forbidden
   btc_difficulty     -> DiffMean     pts=0      HTTP Error 403: Forbidden
   btc_velocity       -> VelCur1yr    pts=0      HTTP Error 403: Forbidden
   btc_nvt_golden     -> NVTAdj90     pts=0      HTTP Error 403: Forbidden
   btc_realized_price -> CapRealUSD   pts=0      HTTP Error 403: Forbidden
-  twins now: ['btc_addresses_active', 'btc_difficulty', 'btc_fees_total', 'btc_hashrate', 'btc_mvrv', 'btc_nvt', 'btc_supply_total', 'btc_tx_count']
+  twins now: ['btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_mvrv', 'btc_supply_total', 'btc_tx_count']
 == 2/3 engine rerun (series regen w/ new twins) ==
   invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "s
   series twins: {'btc_mvrv': 1457, 'btc_addresses_active': 1462, 'btc_tx_count': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462}
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2747_norm_twins.py", line 65, in <module>
-    assert len(twn) >= len(R["twins"]) - 1 and min(twn.values()) >= 900
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
-❌ OPS-FAIL: aws/ops/pending/ops_2747_norm_twins.py
+  metrics on 2010-window stats: 6 ['btc_mvrv', 'btc_tx_count', 'btc_addresses_active', 'btc_fees_total', 'btc_hashrate', 'btc_supply_total']
+== 3/3 page v3.1 at edge ==
+  attempt 1: v3.1 LIVE
+OPS 2747 COMPLETE — the decade is visible and the scales agree
