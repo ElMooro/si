@@ -1,0 +1,115 @@
+{
+ "ops": 2769,
+ "ts": "2026-07-03T18:26:49.570516+00:00",
+ "series_days": {
+  "tw_semi": 64,
+  "kr_memory": 120,
+  "hk_south": 67
+ },
+ "proven": [
+  {
+   "name": "Taiwan semis → SOXX",
+   "lead_days": 10,
+   "r": -0.373,
+   "n": 52
+  },
+  {
+   "name": "Taiwan semis → SMH",
+   "lead_days": 10,
+   "r": -0.335,
+   "n": 52
+  },
+  {
+   "name": "Korea memory → SMH",
+   "lead_days": 3,
+   "r": 0.287,
+   "n": 87
+  },
+  {
+   "name": "Korea memory → MU",
+   "lead_days": 3,
+   "r": 0.278,
+   "n": 87
+  }
+ ],
+ "read": "Taiwan semis → SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.37 (n=52, significant). Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal. Regime-dependent; strengthens as history grows.",
+ "pairs": [
+  {
+   "name": "Taiwan semis → SOXX",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.373,
+    "n": 52,
+    "t": -2.84,
+    "significant": true
+   }
+  },
+  {
+   "name": "Taiwan semis → SMH",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.335,
+    "n": 52,
+    "t": -2.51,
+    "significant": true
+   }
+  },
+  {
+   "name": "Taiwan semis → NVDA",
+   "overlap": 62,
+   "best": {
+    "horizon": 10,
+    "r": -0.195,
+    "n": 52,
+    "t": -1.41,
+    "significant": false
+   }
+  },
+  {
+   "name": "Korea memory → SMH",
+   "overlap": 90,
+   "best": {
+    "horizon": 3,
+    "r": 0.287,
+    "n": 87,
+    "t": 2.76,
+    "significant": true
+   }
+  },
+  {
+   "name": "Korea memory → MU",
+   "overlap": 90,
+   "best": {
+    "horizon": 3,
+    "r": 0.278,
+    "n": 87,
+    "t": 2.67,
+    "significant": true
+   }
+  },
+  {
+   "name": "HK Southbound → KWEB",
+   "overlap": 66,
+   "best": {
+    "horizon": 1,
+    "r": -0.093,
+    "n": 65,
+    "t": -0.74,
+    "significant": false
+   }
+  },
+  {
+   "name": "HK Southbound → FXI",
+   "overlap": 66,
+   "best": {
+    "horizon": 1,
+    "r": -0.087,
+    "n": 65,
+    "t": -0.69,
+    "significant": false
+   }
+  }
+ ]
+}
