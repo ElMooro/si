@@ -482,16 +482,17 @@ def eastmoney_southbound():
             netk = "NET_DEAL_AMT" if "NET_DEAL_AMT" in res[0] else next((k for k in res[0] if k.upper() in ("FUND_INFLOW", "NET_BUY_AMT")), None)
             datek, typek = "TRADE_DATE", "MUTUAL_TYPE"
             tmap = {"003": "港股通(沪) SH→HK", "004": "港股通(深) SZ→HK"}
-            valid = [r for r in res if _num(r.get(netk)) is not None]
-            if valid:
-                latest_date = max(str(r.get(datek)) for r in valid)
-                legs = {tmap.get(str(r.get(typek)), str(r.get(typek))): _num(r.get(netk))
-                        for r in valid if str(r.get(datek)) == latest_date}
+            legs, dates = {}, []
+            for t in ("003", "004"):
+                trecs = [r for r in res if str(r.get(typek)) == t and _num(r.get(netk)) is not None]
+                if trecs:
+                    lr = max(trecs, key=lambda r: str(r.get(datek)))
+                    legs[tmap[t]] = _num(lr.get(netk)); dates.append(str(lr.get(datek)))
+            if legs:
                 tot = sum(v for v in legs.values() if v is not None)
-                if legs:
-                    return {"status": "LIVE", "source": "Eastmoney Southbound (daily, settled)",
-                            "as_of": latest_date[:10], "southbound_net_total": round(tot),
-                            "markets": legs, "net_field": netk, "unit": "CNY (Eastmoney NET_DEAL_AMT)", "_dump": dump}
+                return {"status": "LIVE", "source": "Eastmoney Southbound (daily, settled)",
+                        "as_of": max(dates)[:10], "southbound_net_total": round(tot),
+                        "markets": legs, "net_field": netk, "unit": "亿元 (CNY 100M)", "_dump": dump}
     except Exception as e:
         dump["daily_err"] = str(e)[:90]
     # B) real-time snapshot (Southbound = sh2hk + sz2hk)

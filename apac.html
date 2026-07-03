@@ -119,9 +119,9 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
  h+=`<h2 class="sec">HONG KONG — STOCK CONNECT SOUTHBOUND (mainland → HK)</h2>`;
  if(hk.status==="LIVE"){
   const hm=hk.markets||{};
-  h+=`<div class="read" style="margin-bottom:11px">🇭🇰 <b>Southbound net today</b> (${hk.as_of||""}): <b style="color:${pc(hk.southbound_net_total)}">${sh(hk.southbound_net_total)}</b> <span class="f3">HKD turnover — mainland money ${(hk.southbound_net_total||0)>=0?"flowing INTO":"leaving"} Hong Kong. Rising Southbound is the HK analog of foreign accumulation.</span></div>
-  <div class="grid2"><div class="c"><h3>SOUTHBOUND BY CONNECT (net = buy − sell)</h3><table><tr><th>Channel</th><th>Buy</th><th>Sell</th><th>Net</th></tr>
-   ${Object.entries(hm).map(([m,v])=>`<tr><td>${m}</td><td class="f3">${sh(v.buy)}</td><td class="f3">${sh(v.sell)}</td><td class="${(v.net||0)>=0?"g":"r"}">${sh(v.net)}</td></tr>`).join("")}</table></div>
+  h+=`<div class="read" style="margin-bottom:11px">🇭🇰 <b>Southbound net</b> (${hk.as_of||""}): <b style="color:${pc(hk.southbound_net_total)}">${sh(hk.southbound_net_total)} ${hk.unit||""}</b> <span class="f3">— mainland money ${(hk.southbound_net_total||0)>=0?"flowing INTO":"leaving"} Hong Kong via Stock Connect. Rising Southbound is the HK analog of foreign accumulation. (source: ${hk.source||"Eastmoney"}; HKEX's own feed blocks datacenter IPs.)</span></div>
+  <div class="grid2"><div class="c"><h3>SOUTHBOUND BY CONNECT (net)</h3><table><tr><th>Channel</th><th>Net</th></tr>
+   ${Object.entries(hm).map(([m,v])=>{const n=(typeof v==="number")?v:(v&&v.net);return `<tr><td>${m}</td><td class="${(n||0)>=0?"g":"r"}">${sh(n)}</td></tr>`;}).join("")}</table></div>
    <div class="c"><h3>WHAT IT MEANS</h3><div class="f3" style="font-size:11px;line-height:1.6">Southbound = Shanghai/Shenzhen investors buying HK-listed stocks via Stock Connect. Sustained net buying often precedes strength in US-listed China names (KWEB/BABA/JD) — tracked in the Southbound→US bridge above.</div></div></div>`;
  }else{h+=`<div class="pending">🇭🇰 HKEX Southbound — ${hk.note||hk.err||"wiring"}</div>`;}
 
