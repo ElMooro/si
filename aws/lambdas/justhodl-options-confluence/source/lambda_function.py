@@ -185,9 +185,9 @@ def lambda_handler(event, context):
                       ("top_cheap", 0.15, "cheap IV into earnings (catalyst)")):
         for it in (ivc.get(L) or []):
             if isinstance(it, dict):
-                _tk = (it.get("ticker") or it.get("symbol") or "").upper()
-                if _tk:
-                    add(_tk, "earnings-iv", ds, tag=tg)
+                etk = (it.get("ticker") or it.get("symbol") or "").upper()
+                if etk:
+                    add(etk, "earnings-iv", ds, tag=tg)
 
     # ---- classify posture ----
     book = []
