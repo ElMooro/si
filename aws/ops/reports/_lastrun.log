@@ -5,16 +5,12 @@ settling 15s…
 == 2/4 EventBridge daily 09:30 UTC ==
   rule ENABLED, target attached
 == 3/4 invoke + PROBE all sources ==
-  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": false, "krx": false}, "tw_stocks": null, "tw_foreign_col": null, "tw_top_buy": null, "kr": "PENDING", "bridges": 3}
-  SOURCES: {"twse_t86": false, "krx": false}
-  TW: None stocks, foreign col 'None', net NT$NoneB
-  TW top foreign BUY: []
-  TW sector flows: {}
+  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "krx": false}, "tw_stocks": 1080, "tw_foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u71df\u5546)", "tw_top_buy": "\u83ef\u90a6\u96fb", "kr": "PENDING", "bridges": 3}
+  SOURCES: {"twse_t86": true, "twse_bfi": true, "krx": false}
+  TW: 1080 stocks, foreign col '外陸資買賣超股數(不含外資自營商)', net NT$-89.05B
+  TW top foreign BUY: [('華邦電', 41390209.0), ('Fubon Financial', 37126487.0), ('中石化', 32887176.0), ('國泰金', 25492148.0), ('Formosa Plastics', 25122957.0)]
+  TW sector flows: {"Financials": 30283647, "Materials": 28305808, "Shipping": 248067, "Telecom": -10360969, "Semiconductors": -31731880, "Electronics/Hardware": -81473968}
   KR: {"status": "PENDING", "note": "KRX endpoint/bld to be resolved in v1.1 dedicated probe"}
-  read: None
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2750_apac_flows.py", line 111, in <module>
-    assert d["sources"].get("twse_t86") and tw.get("n_stocks", 0) > 100, "Taiwan T86 core failed"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Taiwan T86 core failed
-❌ OPS-FAIL: aws/ops/pending/ops_2750_apac_flows.py
+  read: Taiwan foreign investors' biggest net buy today: 華邦電 (—); market foreign net NT$-89.0B. Leading sector by foreign flow: Financials.
+== 4/4 domain check ==
+OPS 2750 COMPLETE — Taiwan foreign-flow radar live; Korea probed

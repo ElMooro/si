@@ -1,0 +1,97 @@
+{
+ "ops": 2750,
+ "ts": "2026-07-03T05:46:17.830715+00:00",
+ "function": "ready",
+ "schedule": "cron(30 9 * * ? *)",
+ "sources": {
+  "twse_t86": true,
+  "twse_bfi": true,
+  "krx": false
+ },
+ "taiwan": {
+  "n_stocks": 1080,
+  "foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u71df\u5546)",
+  "foreign_net_twd_bn": -89.05,
+  "top_buy": [
+   [
+    "\u83ef\u90a6\u96fb",
+    null,
+    41390209.0
+   ],
+   [
+    "Fubon Financial",
+    "Financials",
+    37126487.0
+   ],
+   [
+    "\u4e2d\u77f3\u5316",
+    null,
+    32887176.0
+   ],
+   [
+    "\u570b\u6cf0\u91d1",
+    null,
+    25492148.0
+   ],
+   [
+    "Formosa Plastics",
+    "Materials",
+    25122957.0
+   ],
+   [
+    "\u570b\u55ac",
+    null,
+    16570600.0
+   ]
+  ],
+  "top_sell": [
+   [
+    "AU Optronics",
+    -46140222.0
+   ],
+   [
+    "\u5146\u8c50\u91d1",
+    -32265527.0
+   ],
+   [
+    "\u7b2c\u4e00\u91d1",
+    -28970241.0
+   ],
+   [
+    "\u6c38\u8c50\u91d1",
+    -27691057.0
+   ]
+  ],
+  "sector_flows": {
+   "Financials": 30283647,
+   "Materials": 28305808,
+   "Shipping": 248067,
+   "Telecom": -10360969,
+   "Semiconductors": -31731880,
+   "Electronics/Hardware": -81473968
+  }
+ },
+ "korea": {
+  "status": "PENDING",
+  "note": "KRX endpoint/bld to be resolved in v1.1 dedicated probe"
+ },
+ "bridges": [
+  [
+   "Semiconductors (TW \u2192 US)",
+   -24791515,
+   null
+  ],
+  [
+   "AI Hardware / Foxconn build-out (TW \u2192 US)",
+   -25247595,
+   null
+  ],
+  [
+   "Memory / EV Battery (KR \u2192 US)",
+   null,
+   null
+  ]
+ ],
+ "us_feed_available": false,
+ "feed_edge": "LIVE"
+}
