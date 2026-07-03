@@ -67,31 +67,39 @@ function pick(k){
  return{main:s,recent:null,label:s&&s.d?`history begins ${s.d[0]} — CryptoQuant plan window, accruing daily toward full depth`:"",tw:false};
 }
 function draw(k,W,H,axes){
+ // NORM-SCALE v3.1: every line log-transformed when its range demands it, then
+ // min-max normalized to a SHARED 0-100% vertical scale so metric and BTC are
+ // directly comparable; raw ranges labeled on the modal axes.
  const P=pick(k);if(!P.main)return"";
- const pad=axes?{l:56,r:64,t:8,b:22}:{l:2,r:2,t:2,b:2};
+ const pad=axes?{l:60,r:66,t:8,b:22}:{l:2,r:2,t:2,b:2};
  const iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
  const t0=Date.parse(P.main.d[0]),t1=Date.parse(P.main.d[P.main.d.length-1]),tr=(t1-t0)||1;
  const X=d=>pad.l+((Date.parse(d)-t0)/tr)*iw;
- function ln(d,v,color,wd,op,ymin,ymax){const rg=(ymax-ymin)||1;
-  return`<polyline points="${d.map((dd,i)=>`${X(dd)},${pad.t+ih-((v[i]-ymin)/rg)*ih}`).join(" ")}" fill="none" stroke="${color}" stroke-width="${wd}" opacity="${op}"/>`}
- // metric scale
- const mv=P.main.v,mmin=Math.min(...mv),mmax=Math.max(...mv);
- let out=ln(P.main.d,mv,P.tw?"var(--vi)":"var(--cy)",axes?1.7:1.3,P.tw?0.9:1,mmin,mmax);
- if(P.recent&&P.recent.d)out+=ln(P.recent.d.filter(d=>Date.parse(d)>=t0),P.recent.v.slice(-P.recent.d.filter(d=>Date.parse(d)>=t0).length),"var(--cy)",axes?2:1.5,1,mmin,mmax);
- // BTC overlay on its own scale, clipped to span
+ const needLog=v=>{const mn=Math.min(...v);return mn>0&&Math.max(...v)/mn>50};
+ function norm(d,v,color,wd,op,useLog){
+  const tv=useLog?v.map(x=>Math.log10(Math.max(x,1e-12))):v;
+  const mn=Math.min(...tv),mx=Math.max(...tv),rg=(mx-mn)||1;
+  return`<polyline points="${d.map((dd,i)=>`${X(dd)},${pad.t+ih-((tv[i]-mn)/rg)*ih}`).join(" ")}" fill="none" stroke="${color}" stroke-width="${wd}" opacity="${op}"/>`}
+ const mv=P.main.v,mLog=needLog(mv),mmin=Math.min(...mv),mmax=Math.max(...mv);
+ let out=norm(P.main.d,mv,P.tw?"var(--vi)":"var(--cy)",axes?1.7:1.3,P.tw?0.95:1,mLog);
+ if(P.recent&&P.recent.d){const rd=P.recent.d.filter(d=>Date.parse(d)>=t0);
+  out+=norm(rd,P.recent.v.slice(-rd.length),"var(--cy)",axes?2:1.5,1,mLog)}
  if(BTC){const bi=BTC.d.map((d,i)=>[d,i]).filter(x=>Date.parse(x[0])>=t0);
-  if(bi.length>3){const bv=bi.map(x=>BTC.v[x[1]]),bmin=Math.min(...bv),bmax=Math.max(...bv);
-   out+=ln(bi.map(x=>x[0]),bv,"var(--btc)",axes?1.6:1.2,0.8,bmin,bmax);
-   if(axes)out+=`<text class="axis" x="${W-pad.r+6}" y="${pad.t+10}">$${(bmax/1e3).toFixed(0)}k</text><text class="axis" x="${W-pad.r+6}" y="${H-pad.b}">$${bmin<1?bmin.toFixed(2):(bmin/1e3).toFixed(1)+"k"}</text><text class="axis" x="${W-pad.r+6}" y="${pad.t+24}" fill="var(--btc)">BTC</text>`}}
+  if(bi.length>3){const bv=bi.map(x=>BTC.v[x[1]]);
+   out+=norm(bi.map(x=>x[0]),bv,"var(--btc)",axes?1.6:1.2,0.85,true);
+   if(axes){const bmin=Math.min(...bv),bmax=Math.max(...bv);
+    out+=`<text class="axis" x="${W-pad.r+6}" y="${pad.t+10}">$${bmax>=1e3?(bmax/1e3).toFixed(0)+"k":bmax.toFixed(0)}</text><text class="axis" x="${W-pad.r+6}" y="${H-pad.b}">$${bmin<1?bmin.toFixed(2):bmin>=1e3?(bmin/1e3).toFixed(1)+"k":bmin.toFixed(0)}</text><text class="axis" x="${W-pad.r+6}" y="${pad.t+24}" fill="var(--btc)">BTC log</text>`}}}
  if(axes){
   out+=`<text class="axis" x="2" y="${pad.t+10}">${fV(M[k].unit,mmax)}</text><text class="axis" x="2" y="${H-pad.b}">${fV(M[k].unit,mmin)}</text>`;
+  if(mLog)out+=`<text class="axis" x="2" y="${pad.t+24}">log</text>`;
+  out+=`<text class="axis" x="${pad.l}" y="${pad.t+10}" fill="#3c5b82">0–100% shared scale</text>`;
   const y0=new Date(t0).getUTCFullYear(),y1=new Date(t1).getUTCFullYear();
   for(let y=y0;y<=y1;y+=(y1-y0>8?2:1)){const t=Date.parse(y+"-01-01");if(t>=t0&&t<=t1)out+=`<line x1="${X(y+"-01-01")}" y1="${pad.t}" x2="${X(y+"-01-01")}" y2="${H-pad.b}" stroke="#ffffff10"/><text class="axis" x="${X(y+"-01-01")-12}" y="${H-6}">${y}</text>`}
  }
  return`<svg class="${axes?"big":"ch"}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${out}</svg>`;
 }
 function ME(k){const m=M[k];document.getElementById("mt").textContent=m.label+"  ·  "+fV(m.unit,m.value);
- document.getElementById("msub").textContent=`z ${m.z365>0?"+":""}${m.z365} · ${m.pctl_1y}th pctl/1y · ρ(BTC,1y) ${m.corr_1y} · window: ${m.stats_window}`;
+ document.getElementById("msub").textContent=`z ${m.z365>0?"+":""}${m.z365} · ${m.pctl_1y}th pctl/1y · ρ(BTC,1y) ${m.corr_1y} · window: ${m.stats_window} · all lines min–max normalized to a shared 0–100% scale (log where range > 50×)`;
  document.getElementById("mch").innerHTML=draw(k,1120,470,true)+`<div class="legend"><span><i class="dot" style="background:${pick(k).tw?"var(--vi)":"var(--cy)"}"></i>${pick(k).tw?"metric 2010→ (twin)":"metric (accruing)"}</span>${pick(k).tw?'<span><i class="dot" style="background:var(--cy)"></i>CryptoQuant 1y</span>':""}<span><i class="dot" style="background:var(--btc)"></i>BTC price (own scale)</span></div>`;
  document.getElementById("mhist").innerHTML=(m.hist_read?`<div class="hist" style="margin-top:12px">${m.hist_read}</div>`:"")+(m.ai_context?`<div class="ai">🤖 ${m.ai_context}</div>`:"");
  document.getElementById("modal").classList.add("on")}
@@ -126,7 +134,7 @@ function F(q){q=(q||"").toLowerCase();document.querySelectorAll(".c[data-k]").fo
     <div class="mrow"><span style="color:${col(z)}">z ${fin(z)?(z>0?"+":"")+z.toFixed(2):"—"} · ${fin(m.pctl_1y)?m.pctl_1y+"th pctl":""}</span><span>${fin(m.corr_1y)?"ρ(BTC) "+m.corr_1y:""}</span></div>
     <div class="zbar"><b style="${z>=0?"left:50%":"right:50%"};width:${w}%;background:${col(z)}"></b><i></i></div>
     <div class="chwrap" onclick="ME('${k}')">${draw(k,335,96,false)}</div>
-    <div class="legend"><span><i class="dot" style="background:${P.tw?"var(--vi)":"var(--cy)"}"></i>${P.tw?"2010→":"accruing"}</span><span><i class="dot" style="background:var(--btc)"></i>BTC</span><span style="margin-left:auto">🔍 click to enlarge</span></div>
+    <div class="legend"><span><i class="dot" style="background:${P.tw?"var(--vi)":"var(--cy)"}"></i>${P.tw?"2010→":"accruing"}</span><span><i class="dot" style="background:var(--btc)"></i>BTC</span><span>norm %</span><span style="margin-left:auto">🔍 click to enlarge</span></div>
     ${m.hist_read?`<div class="hist">${m.hist_read}</div>`:""}
     ${m.ai_context?`<div class="ai">🤖 ${m.ai_context}</div>`:""}
    </div>`}
