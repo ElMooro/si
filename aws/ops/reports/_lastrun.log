@@ -1,8 +1,7 @@
-key sourced from justhodl-portfolio-risk (len 32)
-http=200 status=OK contracts=250 w/greeks=243 w/OI=250 spot=None
-  sample keys: ['day', 'details', 'greeks', 'implied_volatility', 'open_interest', 'underlying_asset']
-  sample greeks: {'delta': 0.9990159434459986, 'gamma': 8.646708612730984e-06, 'theta': -0.0034393327714934943, 'vega': 0.013137264184934432}
-options trades HTTP 403
+SPY spot: 744.78
+contracts in band: 1500 pages: 6
+NET GEX: $-0.05B /1%  (call +4.23B, put -4.28B)
+Call wall: 750 | Put wall: 745 | strikes: 171
 
-VERDICT: greeks/OI/spot missing — options DATA entitlement likely NOT on current plan
-OPS 2771 COMPLETE
+VERDICT: OPTIONS ENTITLED — full GEX pipeline runs on existing Polygon key, $0 new cost
+OPS 2772 COMPLETE
