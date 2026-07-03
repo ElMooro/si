@@ -479,17 +479,19 @@ def eastmoney_southbound():
         if res:
             dump["daily_keys"] = list(res[0])[:22]
             dump["daily_first"] = {k: res[0].get(k) for k in list(res[0])[:22]}
-            netk = next((k for k in res[0] if k.upper() in ("NET_DEAL_AMT", "NET_BUY_AMT", "FUND_INFLOW", "NETBUYAMT")), None)
-            datek = next((k for k in res[0] if "DATE" in k.upper()), None)
-            typek = next((k for k in res[0] if "MUTUAL_TYPE" in k.upper() or k.upper() == "BOARD_TYPE"), None)
-            if netk and datek:
-                latest_date = max(str(r.get(datek)) for r in res)
-                legs = {str(r.get(typek)): _num(r.get(netk)) for r in res if str(r.get(datek)) == latest_date}
+            netk = "NET_DEAL_AMT" if "NET_DEAL_AMT" in res[0] else next((k for k in res[0] if k.upper() in ("FUND_INFLOW", "NET_BUY_AMT")), None)
+            datek, typek = "TRADE_DATE", "MUTUAL_TYPE"
+            tmap = {"003": "港股通(沪) SH→HK", "004": "港股通(深) SZ→HK"}
+            valid = [r for r in res if _num(r.get(netk)) is not None]
+            if valid:
+                latest_date = max(str(r.get(datek)) for r in valid)
+                legs = {tmap.get(str(r.get(typek)), str(r.get(typek))): _num(r.get(netk))
+                        for r in valid if str(r.get(datek)) == latest_date}
                 tot = sum(v for v in legs.values() if v is not None)
                 if legs:
-                    return {"status": "LIVE", "source": "Eastmoney Southbound (daily)",
+                    return {"status": "LIVE", "source": "Eastmoney Southbound (daily, settled)",
                             "as_of": latest_date[:10], "southbound_net_total": round(tot),
-                            "markets": legs, "net_field": netk, "unit": "CNY (Eastmoney, 元)", "_dump": dump}
+                            "markets": legs, "net_field": netk, "unit": "CNY (Eastmoney NET_DEAL_AMT)", "_dump": dump}
     except Exception as e:
         dump["daily_err"] = str(e)[:90]
     # B) real-time snapshot (Southbound = sh2hk + sz2hk)
