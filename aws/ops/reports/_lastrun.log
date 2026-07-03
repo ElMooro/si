@@ -1,17 +1,15 @@
 settling 15s…
 == 1/4 copy FMP key from infra -> apac env ==
   FMP key sourced from justhodl-fundamentals-engine (len 32)
+== 2/4 deploy widened adapter + invoke ==
+  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "krx": false}, "tw_stocks": 1080, "tw_foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u71df\u5546)", "tw_top_buy": "Winbond (memory)",
+  sector rollup: {"Materials": 28531294, "Semiconductors": 5293402, "Shipping": -2107344, "Telecom": -28837914, "Financials": -50668178, "Electronics/Hardware": -72949522}
+  bridge: Semiconductors (TW → US)                 TWnet=-24791515 US5d=None [insufficient data]
+  bridge: AI Hardware / Foxconn build-out (TW → US TWnet=-25247595 US5d=None [insufficient data]
+  bridge: Memory / EV Battery (KR → US)            TWnet=None US5d=None [insufficient data]
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2751_apac_us_page.py", line 55, in <module>
-    cur = (lam.get_function_configuration(FunctionName=FN).get("Environment", {}) or {}).get("Variables", {}) or {}
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.TooManyRequestsException: An error occurred (TooManyRequestsException) when calling the GetFunctionConfiguration operation (reached max retries: 1): Rate exceeded
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2751_apac_us_page.py", line 81, in <module>
+    assert d.get("us_returns_live"), "US returns not live (FMP)"
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: US returns not live (FMP)
 ❌ OPS-FAIL: aws/ops/pending/ops_2751_apac_us_page.py
