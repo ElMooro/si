@@ -275,12 +275,16 @@ def lambda_handler(event=None, context=None):
            "read": None}
     # human read
     if proven:
-        top = max(proven, key=lambda r: abs(r["best"]["r"]))
-        rr = top["best"]["r"]
-        direction = ("Asia buying tends to PRECEDE US gains (follow-through)" if rr > 0
-                     else "Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal")
-        doc["read"] = ("%s is the strongest lead: Asian flow[T] vs US forward %d-day return r=%+.2f (n=%d, significant). %s. Regime-dependent; strengthens as history grows." % (
-            top["name"], top["best"]["horizon"], rr, top["best"]["n"], direction))
+        follow = [r for r in proven if r["best"]["r"] > 0]
+        contra = [r for r in proven if r["best"]["r"] < 0]
+        parts = []
+        if follow:
+            f = max(follow, key=lambda r: r["best"]["r"]); bf = f["best"]
+            parts.append("FOLLOW-THROUGH — %s (r=%+.2f, %dd lead, n=%d): Asia buying precedes US gains" % (f["name"], bf["r"], bf["horizon"], bf["n"]))
+        if contra:
+            c = min(contra, key=lambda r: r["best"]["r"]); bc = c["best"]
+            parts.append("CONTRARIAN — %s (r=%+.2f, %dd, n=%d): Asia buying precedes US weakness" % (c["name"], bc["r"], bc["horizon"], bc["n"]))
+        doc["read"] = " · ".join(parts) + (". %d significant lead(s) across %d pairs; regime-dependent." % (len(proven), len(results)))
     else:
         mx = max((r for r in results if r.get("best")), key=lambda r: abs(r["best"]["r"]), default=None)
         doc["read"] = ("No statistically significant lead-lag yet (need more history). Strongest so far: %s r=%.2f n=%d." % (
