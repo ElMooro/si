@@ -1,14 +1,16 @@
-settling 15s…
-series_days: {"tw_semi": 64, "kr_memory": 10, "hk_south": 67}
-status: LIVE | proven: 2
-  Taiwan semis → SOXX        overlap=62 best=r=-0.31 h=10d n=52 sig=True
-  Taiwan semis → SMH         overlap=62 best=r=-0.28 h=10d n=52 sig=True
-  Taiwan semis → NVDA        overlap=62 best=r=-0.25 h=10d n=52 sig=False
-  Korea memory → SMH         overlap=9 best=r=-0.63 h=1d n=8 sig=False
-  Korea memory → MU          overlap=9 best=r=-0.17 h=1d n=8 sig=False
-  HK Southbound → KWEB       overlap=66 best=r=-0.09 h=1d n=65 sig=False
-  HK Southbound → FXI        overlap=66 best=r=-0.09 h=1d n=65 sig=False
-READ: Taiwan semis → SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.31 (n=52, significant). Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal. Regime-dependent; strengthens as history grows.
-== page section at edge ==
-  page attempt 1: LIVE
-OPS 2767 COMPLETE — lead-lag on the page
+== A) mobile trend pagination ==
+  rows=10 span=20260703..20260622  m.stock.naver.com/api/stock/005930/trend
+  ERR HTTP Error 400: 400  r.com/api/stock/005930/trend?pageSize=90
+  rows=30 span=20260703..20260521  pi/stock/005930/trend?page=2&pageSize=30
+  rows=10 span=20260703..20260622  aver.com/api/stock/005930/trend?count=90
+
+== B) desktop frgn.naver paginated HTML (EUC-KR) ==
+  page 1: dates=21 sample dates=['2026.07.03', '2026.07.03', '2026.07.02', '...', '2026.06.08']
+     row: [('tah p10 gray03', '2026.07.03'), ('tah p11', '309,500'), ('blind', '상승'), ('tah p11 red02', '23,500'), ('tah p11 red01', '+8.22%'), ('tah p11', '31,498,600'), ('tah p11 red01', '+4,369,649'), ('tah p11 nv01', '-1,365,575'), ('tah p11', '2,732,503,622'), ('tah p11', '46.74%')]
+     row: [('tah p10 gray03', '2026.07.02'), ('tah p11', '286,000'), ('blind', '하락'), ('tah p11 nv01', '28,500'), ('tah p11 nv01', '-9.06%'), ('tah p11', '38,905,074'), ('tah p11 nv01', '-2,166,435'), ('tah p11 nv01', '-5,007,053'), ('tah p11', '2,733,869,197'), ('tah p11', '46.76%')]
+  page 4: dates=21 sample dates=['2026.07.03', '2026.04.06', '2026.04.03', '...', '2026.03.10']
+     row: [('tah p10 gray03', '2026.04.06'), ('tah p11', '193,100'), ('blind', '상승'), ('tah p11 red02', '6,900'), ('tah p11 red01', '+3.71%'), ('tah p11', '20,635,958'), ('tah p11 red01', '+1,672,994'), ('tah p11 red01', '+1,198,443'), ('tah p11', '2,867,201,462'), ('tah p11', '48.44%')]
+     row: [('tah p10 gray03', '2026.04.03'), ('tah p11', '186,200'), ('blind', '상승'), ('tah p11 red02', '7,800'), ('tah p11 red01', '+4.37%'), ('tah p11', '20,194,447'), ('tah p11 red01', '+1,916,117'), ('tah p11 red01', '+516,352'), ('tah p11', '2,865,838,096'), ('tah p11', '48.41%')]
+
+VERDICT: {"mobile_max_rows": 30, "desktop_rows_per_page": 21}
+OPS 2768 COMPLETE — Korea deep-history recon done
