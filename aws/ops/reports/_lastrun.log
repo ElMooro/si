@@ -1,3 +1,20 @@
-attempt 1: ALL LIVE (35411 bytes) {'GAMMA SQUEEZE SETUPS': True, 'MOST UNUSUAL ACTIVITY': True, 'OPTIONS FLOW SCANNER — Q': True, 'TOP GAMMA STRIKES': True, 'OPEN INTEREST — calls': True}
-data: qualifying=8 squeeze_setups=6 most_unusual=15
-OPS 2785 COMPLETE
+── FEED FRESHNESS (Options Desk) ──
+  dealer-gex.json                 1.7h  fresh
+  dealer-gex-history.json         1.7h  fresh
+  options-gamma.json              2.3h  fresh
+  options-analytics.json          9.8h  fresh
+  polygon-options-flow.json       3.5h  fresh
+  options-flow.json               0.8h  fresh
+  opex-calendar.json             11.8h  fresh
+  dix.json                        0.8h  fresh
+  catalyst-skew-premove.json      1.9h  fresh
+  earnings-iv-crush.json        168.8h  STALE
+  volatility-squeeze.json        11.8h  fresh
+  options-confluence.json         0.4h  fresh
+
+── earnings-iv-crush ENGINE DIAGNOSIS ──
+  lambda EXISTS · last_code_update 2026-05-30T18:33 · timeout 600s
+  ⚠️ NO EventBridge rule targets this lambda — NOT SCHEDULED (that's why it's stale)
+  last INVOCATION: 0.8h ago (2026-07-03T22:00)
+
+OPS 2786 COMPLETE
