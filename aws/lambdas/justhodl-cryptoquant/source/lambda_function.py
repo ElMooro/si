@@ -205,11 +205,45 @@ def lambda_handler(event=None, context=None):
         return {"ok": True, "status": "GATED_PENDING_KEY", "armed": len(mets)}
 
     px = _btc_price()
-    twins_cfg = spec.get("twins") or {}
+    twins_cfg = dict(spec.get("twins") or {})
+    twins_cfg.update(spec.get("twins_extra") or {})
     twin_data = {}
     for cqn, cmn in twins_cfg.items():
-        try: twin_data[cqn] = _twin_series(cmn)
+        try:
+            tw = _twin_series(cmn)
+            if len(tw) > 900: twin_data[cqn] = tw
         except Exception as e: print("[twin] %s -> %s" % (cmn, str(e)[:80]))
+    # DERIVED 2010-> twins from Coin Metrics raws (exact identities, real data):
+    #   NUPL = 1 - 1/MVRV ; RealizedPrice = CapRealUSD / SplyCur ;
+    #   Puell = IssContUSD / MA365(IssContUSD)
+    try:
+        raws = {}
+        for cm in ("CapMVRVCur", "CapRealUSD", "SplyCur", "IssContUSD"):
+            raws[cm] = _twin_series(cm)
+        mv = raws["CapMVRVCur"]
+        if len(mv) > 900:
+            twin_data.setdefault("btc_nupl", {d: 1.0 - 1.0 / v for d, v in mv.items() if v})
+            twins_cfg.setdefault("btc_nupl", "derived:1-1/CapMVRVCur")
+        cr, sp = raws["CapRealUSD"], raws["SplyCur"]
+        rp = {d: cr[d] / sp[d] for d in cr if d in sp and sp[d]}
+        if len(rp) > 900:
+            twin_data.setdefault("btc_realized_price", rp)
+            twins_cfg.setdefault("btc_realized_price", "derived:CapRealUSD/SplyCur")
+        iu = raws["IssContUSD"]
+        if len(iu) > 1200:
+            ds = sorted(iu); vs = [iu[d] for d in ds]
+            pu = {}
+            run = 0.0
+            for i, d in enumerate(ds):
+                run += vs[i]
+                if i >= 365: run -= vs[i - 365]
+                if i >= 364 and run:
+                    pu[d] = vs[i] / (run / 365.0)
+            if len(pu) > 900:
+                twin_data.setdefault("btc_puell", pu)
+                twins_cfg.setdefault("btc_puell", "derived:IssContUSD/MA365")
+    except Exception as e:
+        print("[derived-twin]", str(e)[:100])
 
     hist = _j(HIST_KEY, {}) or {}
     metrics, errors, series_out = {}, [], {}
