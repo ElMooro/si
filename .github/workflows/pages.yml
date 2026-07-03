@@ -24,6 +24,11 @@ on:
       - "css/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
+    inputs:
+      retry_count:
+        description: 'Internal self-heal retry counter (do not set manually)'
+        required: false
+        default: '0'
 permissions:
   contents: read
   pages: write
@@ -73,17 +78,18 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Re-dispatch a fresh Pages run (with circuit breaker)
+      - name: Re-dispatch a fresh Pages run (deterministic retry cap)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RETRY_COUNT: ${{ github.event.inputs.retry_count || '0' }}
         run: |
-          runs=$(gh api "/repos/${{ github.repository }}/actions/workflows/pages.yml/runs?per_page=40" \
-            --jq "[.workflow_runs[] | select((now - (.created_at|fromdate)) < 1200)] | length")
-          echo "Deploy site to Pages runs in the last 20 min: ${runs:-0}"
-          if [ "${runs:-0}" -ge 6 ]; then
-            echo "::warning::Circuit breaker tripped (${runs} runs in 20 min) — not re-dispatching. Site may need a manual check."
+          rc="${RETRY_COUNT:-0}"
+          case "$rc" in ''|*[!0-9]*) rc=0 ;; esac
+          next=$((rc + 1))
+          if [ "$rc" -ge 4 ]; then
+            echo "::warning::Self-heal retry cap reached (attempt $rc) — not re-dispatching. Pages may need a manual check."
             exit 0
           fi
-          echo "Re-dispatching a fresh run to redraw the artifact host (self-heal)…"
-          gh workflow run pages.yml --ref main
-          echo "Fresh run dispatched."
+          echo "Deploy hit an egress flake — re-dispatching a fresh run (attempt $next of 4) to redraw the artifact host…"
+          gh workflow run pages.yml --ref main -f retry_count="$next"
+          echo "Fresh run dispatched (retry_count=$next)."
