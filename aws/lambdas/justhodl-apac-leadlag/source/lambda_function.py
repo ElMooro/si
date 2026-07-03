@@ -55,6 +55,14 @@ def _get_json(url, headers=None, timeout=25):
         return json.loads(r.read())
 
 
+def _http_bytes(url, headers=None, timeout=20):
+    h = {"User-Agent": UA, "Accept": "*/*"}
+    if headers:
+        h.update(headers)
+    with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=timeout) as r:
+        return r.read()
+
+
 # ---------- Asian flow backfills ----------
 def tw_semi_history(cal_days=95):
     """Daily Taiwan foreign net (semis) via TWSE T86 date loop (rwd JSON)."""
@@ -102,23 +110,58 @@ def tw_semi_history(cal_days=95):
     return out
 
 
+def _kr_stock_foreign_hist(code, pages=6):
+    """Deep per-stock foreign net history via Naver desktop frgn.naver (EUC-KR,
+    ~20 trading days/page). Foreign net = 2nd signed-integer cell (기관 then 외국인).
+    Dedupe by date. Returns {date: foreign_net}."""
+    out = {}
+    for page in range(1, pages + 1):
+        try:
+            html = _http_bytes("https://finance.naver.com/item/frgn.naver?code=%s&page=%d" % (code, page),
+                               headers={"Referer": "https://finance.naver.com/item/frgn.naver?code=%s" % code}).decode("euc-kr", "ignore")
+        except Exception:
+            break
+        added = 0
+        for rh in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.S):
+            dm = re.search(r"(\d{4})\.(\d{2})\.(\d{2})", rh)
+            if not dm:
+                continue
+            signed = re.findall(r">\s*([+-][\d,]+)\s*<", rh)
+            if len(signed) >= 2:
+                fn = _num(signed[1])
+                if fn is not None:
+                    key = "%s-%s-%s" % (dm.group(1), dm.group(2), dm.group(3))
+                    if key not in out:
+                        out[key] = fn
+                        added += 1
+        if added == 0:
+            break
+        time.sleep(0.2)
+    return out
+
+
 def kr_memory_history():
-    """Daily Korea memory foreign net (Samsung + SK Hynix) via Naver trend lists."""
+    """Korea memory foreign net (Samsung + SK Hynix), deep history via desktop
+    frgn.naver; falls back to mobile trend (pageSize=30) if desktop is blocked."""
     agg = {}
     for code in KR_MEMORY:
-        try:
-            doc = _get_json("https://m.stock.naver.com/api/stock/%s/trend" % code,
-                            headers={"Referer": "https://m.stock.naver.com/"}, timeout=15)
-            rows = doc if isinstance(doc, list) else (doc.get("result") or [])
-            for r in rows:
-                bz = str(r.get("bizdate", ""))
-                if len(bz) == 8:
-                    key = "%s-%s-%s" % (bz[:4], bz[4:6], bz[6:])
-                    v = _num(r.get("foreignerPureBuyQuant"))
-                    if v is not None:
-                        agg[key] = agg.get(key, 0) + v
-        except Exception:
-            continue
+        h = _kr_stock_foreign_hist(code)
+        if len(h) < 15:  # desktop blocked/thin -> mobile fallback (~30d)
+            try:
+                doc = _get_json("https://m.stock.naver.com/api/stock/%s/trend?pageSize=30" % code,
+                                headers={"Referer": "https://m.stock.naver.com/"}, timeout=15)
+                rows = doc if isinstance(doc, list) else (doc.get("result") or [])
+                for r in rows:
+                    bz = str(r.get("bizdate", ""))
+                    if len(bz) == 8:
+                        k = "%s-%s-%s" % (bz[:4], bz[4:6], bz[6:])
+                        v = _num(r.get("foreignerPureBuyQuant"))
+                        if v is not None and k not in h:
+                            h[k] = v
+            except Exception:
+                pass
+        for d, v in h.items():
+            agg[d] = agg.get(d, 0) + v
     return {k: round(v) for k, v in agg.items()}
 
 
