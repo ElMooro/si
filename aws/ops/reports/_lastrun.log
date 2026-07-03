@@ -1,2 +1,11 @@
-attempt 1: LIVE (29639 bytes)
-OPS 2780 COMPLETE — Options Desk v2 live
+settling 12s…
+== deploy dealer-gex (DEX/VEX) ==
+  deployed
+== invoke (full model run) ==
+  invoke OK in 8.1s: {"statusCode": 200, "body": "{\"success\": true, \"version\": \"1.3.0\", \"n_underlyings\": 10, \"spy_regime\": \"STRONG_NEGATIVE_GAMMA\", \"spy_gex_b\": -3.055
+== verify new fields in feed ==
+  SPY: DEX=98664923718.0 VEX=-61623965.0 (spot 744.78, net_gex -3.055B)
+  QQQ: DEX=70939557683.0 VEX=-47234717.0 (spot 712.6, net_gex -2.5B)
+  IWM: DEX=17931572950.0 VEX=-20806249.0 (spot 297.58, net_gex -1.574B)
+
+OPS 2781 COMPLETE — DEX/VEX LIVE in dealer-gex.json
