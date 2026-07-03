@@ -1,31 +1,12 @@
-rows: 24
-  type=006 lead=02650.HK     hk=True net=4537.78000000001 date=2026-07-03 idx=23350.03
-  type=002 lead=02650.HK     hk=True net=4468.13 date=2026-07-03 idx=23350.03
-  type=005 lead=600376.SH    hk=False net=None date=2026-07-03 idx=4043.64
-  type=003 lead=002148.SZ    hk=False net=None date=2026-07-03 idx=15597.51
-  type=004 lead=02650.HK     hk=True net=69.650000000002 date=2026-07-03 idx=23350.03
-  type=001 lead=600376.SH    hk=False net=None date=2026-07-03 idx=4043.64
-  type=003 lead=002020.SZ    hk=False net=None date=2026-07-02 idx=15498.81
-  type=005 lead=603538.SH    hk=False net=None date=2026-07-02 idx=4028.9
-  type=001 lead=603538.SH    hk=False net=None date=2026-07-02 idx=4028.9
-  type=006 lead=02650.HK     hk=True net=-1974.14 date=2026-07-02 idx=23055.03
-  type=004 lead=02650.HK     hk=True net=-4251.35 date=2026-07-02 idx=23055.03
-  type=002 lead=02650.HK     hk=True net=2277.21 date=2026-07-02 idx=23055.03
-  type=001 lead=600783.SH    hk=False net=None date=2026-06-30 idx=4094.4
-  type=005 lead=000603.SZ    hk=False net=None date=2026-06-30 idx=4094.4
-  type=003 lead=000603.SZ    hk=False net=None date=2026-06-30 idx=16205.56
-  type=002 lead=01688.HK     hk=True net=5574.4 date=2026-06-30 idx=22881.02
-  type=006 lead=01688.HK     hk=True net=5895.22 date=2026-06-30 idx=22881.02
-  type=004 lead=01688.HK     hk=True net=320.82 date=2026-06-30 idx=22881.02
-  type=001 lead=600468.SH    hk=False net=None date=2026-06-29 idx=4073.9
-  type=005 lead=002407.SZ    hk=False net=None date=2026-06-29 idx=4073.9
-  type=003 lead=002407.SZ    hk=False net=None date=2026-06-29 idx=15812.87
-  type=006 lead=02617.HK     hk=True net=-10338.79 date=2026-06-29 idx=23026.68
-  type=002 lead=02617.HK     hk=True net=-5474.34 date=2026-06-29 idx=23026.68
-  type=004 lead=02617.HK     hk=True net=-4864.45 date=2026-06-29 idx=23026.68
-
-SOUTHBOUND (HK lead-stock) codes: ['006', '002', '004']
-   006 -> {'type': '006', 'lead': '02650.HK', 'is_hk_leadstock': True, 'net': 4537.78000000001, 'date': '2026-07-03', 'index': 23350.03}
-   002 -> {'type': '002', 'lead': '02650.HK', 'is_hk_leadstock': True, 'net': 4468.13, 'date': '2026-07-03', 'index': 23350.03}
-   004 -> {'type': '004', 'lead': '02650.HK', 'is_hk_leadstock': True, 'net': 69.650000000002, 'date': '2026-07-03', 'index': 23350.03}
-OPS 2764 COMPLETE
+settling 15s…
+SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hk_southbound": false}
+KR market-wide total foreign: -21952 | KOSPI+KOSDAQ
+JAPAN foreign net: 1068065563.0 ( 06/22～06/26 )
+HK Southbound: None None | legs: null
+HK bridge: None verdict: None
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2765_apac_final.py", line 52, in <module>
+    assert src.get("hk_southbound"), "HK not live"
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: HK not live
+❌ OPS-FAIL: aws/ops/pending/ops_2765_apac_final.py
