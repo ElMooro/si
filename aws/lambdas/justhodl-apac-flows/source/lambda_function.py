@@ -462,6 +462,56 @@ def us_returns(symbols):
     return out
 
 
+def eastmoney_southbound():
+    """Southbound (南向) net via Eastmoney open API (datacenter-accessible, unlike
+    Akamai-fronted HKEX). Real-time HSGT: Southbound = mainland money into HK."""
+    dump = {}
+    # A) real-time HSGT snapshot
+    try:
+        doc = _get_json("https://push2.eastmoney.com/api/qt/kamt/get?"
+                        "fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58"
+                        "&ut=b2884a393a59ad64002292a3e90d46a5",
+                        headers={"User-Agent": UA["User-Agent"], "Referer": "https://data.eastmoney.com/"}, timeout=15)
+        data = doc.get("data") or {}
+        dump["kamt_keys"] = list(data)
+        legs = {}
+        for k in ("hk2sh", "hk2sz", "sh2hk", "sz2hk"):
+            if isinstance(data.get(k), dict):
+                legs[k] = {kk: data[k].get(kk) for kk in list(data[k])[:10]}
+        dump["legs"] = legs
+        dump["scalar"] = {k: data.get(k) for k in data if not isinstance(data.get(k), (dict, list))}
+    except Exception as e:
+        dump["kamt_err"] = str(e)[:90]
+    # B) daily Southbound history (datacenter)
+    try:
+        doc2 = _get_json("https://datacenter-web.eastmoney.com/api/data/v1/get?"
+                         "reportName=RPT_MUTUAL_DEAL_HISTORY&columns=ALL&source=WEB&sortColumns=TRADE_DATE"
+                         "&sortTypes=-1&pageSize=3&pageNumber=1&filter=(MUTUAL_TYPE in (%22003%22,%22004%22))",
+                         headers={"User-Agent": UA["User-Agent"], "Referer": "https://data.eastmoney.com/"}, timeout=15)
+        res = (doc2.get("result") or {}).get("data") or []
+        if res:
+            dump["daily_keys"] = list(res[0])[:20]
+            dump["daily_first"] = {k: res[0].get(k) for k in list(res[0])[:20]}
+    except Exception as e:
+        dump["daily_err"] = str(e)[:90]
+    # best-effort extract from real-time legs: Southbound = hk2sh + hk2sz
+    def _leg_net(leg):
+        for key in ("netBuyAmt", "dayNetAmtIn", "f52", "DayNetAmtIn"):
+            v = _num(leg.get(key))
+            if v is not None:
+                return v
+        return None
+    legs = dump.get("legs") or {}
+    sh, sz = _leg_net(legs.get("hk2sh", {})), _leg_net(legs.get("hk2sz", {}))
+    nets = [x for x in (sh, sz) if x is not None]
+    if nets:
+        return {"status": "LIVE", "source": "Eastmoney HSGT",
+                "southbound_net_total": round(sum(nets)),
+                "markets": {"SH-Southbound": sh, "SZ-Southbound": sz},
+                "unit": "CNY (Eastmoney net, 万元)", "_dump": dump}
+    return {"status": "PENDING", "note": "eastmoney parse pending", "_dump": dump}
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     doc = {"engine": "justhodl-apac-flows", "version": "1.0.0",
@@ -494,9 +544,12 @@ def lambda_handler(event=None, context=None):
     # Japan (JPX weekly Trading-by-Type-of-Investors)
     doc["japan"] = japan_jpx()
     doc["sources"]["japan_jpx"] = doc["japan"].get("status") == "LIVE"
-    # Hong Kong (Stock Connect Southbound = mainland -> HK flow)
-    doc["hongkong"] = hongkong_southbound()
-    doc["sources"]["hkex_southbound"] = doc["hongkong"].get("status") == "LIVE"
+    # Hong Kong (Stock Connect Southbound). HKEX is Akamai-blocked from AWS -> Eastmoney.
+    hkd = hongkong_southbound()
+    if hkd.get("status") != "LIVE":
+        hkd = eastmoney_southbound()
+    doc["hongkong"] = hkd
+    doc["sources"]["hk_southbound"] = hkd.get("status") == "LIVE"
     # US catch-up bridges — attach REAL US returns (FMP) + divergence verdict
     usf = us_side()
     all_us = sorted({s for b in BRIDGES for s in (b["us_etf"] + b["us_names"])})
