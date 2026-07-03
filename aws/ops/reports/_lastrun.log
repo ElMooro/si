@@ -1,13 +1,2 @@
-attempt 1: partial (16876 bytes)
-attempt 2: partial (16876 bytes)
-attempt 3: partial (16876 bytes)
-attempt 4: partial (16876 bytes)
-attempt 5: partial (16876 bytes)
-attempt 6: partial (16876 bytes)
-attempt 7: partial (16876 bytes)
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2780_hubv2_verify.py", line 24, in <module>
-    assert okp, ("v2 not fully live", R.get("markers"))
-           ^^^
-AssertionError: ('v2 not fully live', {'OPTIONS HUB v2': False, 'NET GEX BY STRIKE': False, 'GEX BY EXPIRATION': False, 'DEALER GREEKS': False, 'POSITIONING BOARD': False, 'CATALYST SKEW': False, 'VOLATILITY SQUEEZE': False})
-❌ OPS-FAIL: aws/ops/pending/ops_2780_hubv2_verify.py
+attempt 1: LIVE (29639 bytes)
+OPS 2780 COMPLETE — Options Desk v2 live
