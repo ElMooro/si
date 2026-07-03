@@ -29,10 +29,6 @@ on:
         description: 'Internal self-heal retry counter (do not set manually)'
         required: false
         default: '0'
-      force_fail:
-        description: 'TEST ONLY: simulate a deploy egress miss to exercise self-heal'
-        required: false
-        default: '0'
 permissions:
   contents: read
   pages: write
@@ -66,11 +62,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: (self-heal test) simulate egress miss
-        if: github.event.inputs.force_fail == '1'
-        run: |
-          echo "TEST: simulating a Pages deploy egress miss to exercise self-heal"
-          exit 1
       - id: deployment
         continue-on-error: true
         uses: actions/deploy-pages@v4
