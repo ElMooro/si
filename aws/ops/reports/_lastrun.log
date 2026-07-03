@@ -1,12 +1,10 @@
 settling 15s…
-SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hk_southbound": false}
+SOURCES: {"twse_t86": true, "twse_bfi": true, "korea_naver": true, "korea_marketwide": true, "japan_jpx": true, "hk_southbound": true}
 KR market-wide total foreign: -21952 | KOSPI+KOSDAQ
 JAPAN foreign net: 1068065563.0 ( 06/22～06/26 )
-HK Southbound: None None | legs: null
-HK bridge: None verdict: None
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2765_apac_final.py", line 52, in <module>
-    assert src.get("hk_southbound"), "HK not live"
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: HK not live
-❌ OPS-FAIL: aws/ops/pending/ops_2765_apac_final.py
+HK Southbound: 4538 亿元 (CNY, Eastmoney net) | legs: {"港股通(沪) SH→HK": 4468.13, "港股通(深) SZ→HK": 69.650000000002}
+HK bridge: Southbound → US-listed China (HK → US) verdict: confirmed — both bid
+  HK: LIVE
+== page at edge ==
+  page attempt 1: LIVE
+OPS 2765 COMPLETE — APAC radar: 4 markets (TW/KR/JP/HK) + US bridges, all real
