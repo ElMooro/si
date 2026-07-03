@@ -1,13 +1,4 @@
-settling 15s…
-invoke -> {"ok": true, "status": "LIVE", "series_days": {"tw_semi": 64, "kr_memory": 120, "hk_south": 67}, "us_loaded": 6, "proven": 4, "read": "Taiwan semis \u2192 SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.37 (n=52, significant). Asia b
-series_days: {"tw_semi": 64, "kr_memory": 120, "hk_south": 67}
-status: LIVE | proven: 4
-  Taiwan semis → SOXX        overlap=62 best=r=-0.37 h=10d n=52 sig=True
-  Taiwan semis → SMH         overlap=62 best=r=-0.34 h=10d n=52 sig=True
-  Taiwan semis → NVDA        overlap=62 best=r=-0.20 h=10d n=52 sig=False
-  Korea memory → SMH         overlap=90 best=r=+0.29 h=3d n=87 sig=True
-  Korea memory → MU          overlap=90 best=r=+0.28 h=3d n=87 sig=True
-  HK Southbound → KWEB       overlap=66 best=r=-0.09 h=1d n=65 sig=False
-  HK Southbound → FXI        overlap=66 best=r=-0.09 h=1d n=65 sig=False
-READ: Taiwan semis → SOXX is the strongest lead: Asian flow[T] vs US forward 10-day return r=-0.37 (n=52, significant). Asia buying tends to PRECEDE US weakness — contrarian/exhaustion signal. Regime-dependent; strengthens as history grows.
-OPS 2769 COMPLETE — Korea now Taiwan-grade depth; memory→US rigorously testable
+series_days: {"tw_semi": 63, "kr_memory": 120, "hk_south": 67}
+proven: [{"name": "Taiwan semis → SOXX", "lead_days": 10, "r": -0.399, "n": 51}, {"name": "Taiwan semis → SMH", "lead_days": 10, "r": -0.366, "n": 51}, {"name": "Korea memory → SMH", "lead_days": 3, "r": 0.287, "n": 87}, {"name": "Korea memory → MU", "lead_days": 3, "r": 0.278, "n": 87}]
+READ: FOLLOW-THROUGH — Korea memory → SMH (r=+0.29, 3d lead, n=87): Asia buying precedes US gains · CONTRARIAN — Taiwan semis → SOXX (r=-0.40, 10d, n=51): Asia buying precedes US weakness. 4 significant lead(s) across 7 pairs; regime-dependent.
+OPS 2770 COMPLETE
