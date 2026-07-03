@@ -500,6 +500,8 @@ def analyze_underlying(symbol):
     total_gex = 0.0
     total_vanna = 0.0
     total_charm = 0.0
+    total_delta_dollars = 0.0   # DEX - dealer $ delta exposure (directional hedging pressure)
+    total_vega_dollars = 0.0    # VEX - dealer $ vega exposure (per 1 vol point)
     by_strike_gex = defaultdict(float)
     by_strike_oi = defaultdict(lambda: {"call_oi": 0, "put_oi": 0, "call_vol": 0, "put_vol": 0})
     by_expiry = defaultdict(lambda: {"gex": 0, "oi_call": 0, "oi_put": 0, "vol_call": 0, "vol_put": 0})
@@ -521,6 +523,15 @@ def analyze_underlying(symbol):
         total_gex += gex
         total_vanna += vanna
         total_charm += charm
+        # DEX / VEX - same dealer sign convention (call +1, put -1) as GEX/vanna/charm
+        _sgn = 1 if c.get("type") == "call" else -1
+        _oi_dv = c.get("open_interest") or 0
+        _dl = c.get("delta_polygon")
+        _vg = c.get("vega_polygon")
+        if _dl is not None and _oi_dv > 0:
+            total_delta_dollars += _sgn * _oi_dv * CONTRACT_MULTIPLIER * _dl * spot
+        if _vg is not None and _oi_dv > 0:
+            total_vega_dollars += _sgn * _oi_dv * CONTRACT_MULTIPLIER * _vg
         K = c["strike"]
         by_strike_gex[K] += gex
         is_call = c.get("type") == "call"
@@ -661,9 +672,11 @@ def analyze_underlying(symbol):
         "spot_above_flip": above_flip,
         "regime": regime,
         "trading_bias": bias,
-        # Vanna / charm
+        # Vanna / charm / DEX / VEX
         "total_vanna_dollars": round(total_vanna, 0),
         "total_charm_dollars_per_day": round(total_charm, 0),
+        "total_delta_dollars": round(total_delta_dollars, 0),
+        "total_vega_dollars": round(total_vega_dollars, 0),
         # Walls
         "call_walls_top5": [{"strike": k, "call_oi": v["call_oi"]} for k, v in call_walls],
         "put_walls_top5": [{"strike": k, "put_oi": v["put_oi"]} for k, v in put_walls],
