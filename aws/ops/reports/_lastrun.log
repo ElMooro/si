@@ -1,49 +1,14 @@
-probe date (KST last trading day): 20260703
-  MDCSTAT02201   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02201   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02201   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02201   ab=3 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02202   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02202   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02202   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02202   ab=3 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02203   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02203   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02203   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02203   ab=3 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02301   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02301   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02301   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02301   ab=3 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02302   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02302   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02302   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02302   ab=3 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02401   ab=1 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02401   ab=1 http  ERR HTTP Error 400: Bad Request
-  MDCSTAT02401   ab=3 https ERR HTTP Error 400: Bad Request
-  MDCSTAT02401   ab=3 http  ERR HTTP Error 400: Bad Request
+KST last trading day: 20260703
+session cookies: ['__smVisitorID', 'JSESSIONID']
 
-NO JSON WINNER — trying OTP->CSV fallback on MDCSTAT02201
-  OTP gen http=200 head=
+== CONTROL: stock list MDCSTAT01901 ==
+  control ERR: HTTP Error 400: Bad Request
 
+== INVESTOR PROBES ==
+  MDCSTAT02201  ERR HTTP Error 400: Bad Request
+  MDCSTAT02202  ERR HTTP Error 400: Bad Request
+  MDCSTAT02203  ERR HTTP Error 400: Bad Request
+  MDCSTAT02401  ERR HTTP Error 400: Bad Request
 
-
-
-
-
-
-
- 
- 
-
-
-	
-	
-		<html>
-<head>
-  <title>Error - KRX | Market Data System</title
-  OTP fallback err: HTTP Error 403: Forbidden
-
-VERDICT: KRX_JSON_BLOCKED_see_otp_probe
-OPS 2752 COMPLETE — KRX reconnaissance done
+VERDICT: KRX rejects/blocks from AWS
+OPS 2752 rev2 COMPLETE
