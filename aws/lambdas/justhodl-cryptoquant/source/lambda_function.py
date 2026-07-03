@@ -174,10 +174,10 @@ def _clean_brief(txt):
     t = str(txt).strip().replace("**", "").replace("##", "")
     if (not t[:1].isalpha() or not t[:1].isupper()
             or chr(34) in t or "[" in t or "]" in t): return None
-    if len(t) > 700: t = t[:700]
+    if len(t) > 900: t = t[:900]
     if t and not t.rstrip().endswith((".", "!", "?")):
         t = t.rsplit(".", 1)[0] + "." if "." in t else ""
-    return t if 90 <= len(t) <= 720 else None
+    return t if 90 <= len(t) <= 920 else None
 
 def lambda_handler(event=None, context=None):
     event = event or {}
@@ -235,9 +235,8 @@ def lambda_handler(event=None, context=None):
                                  "stats_window": window, "cond_stats": cstats,
                                  "hist_read": _hist_read(name, pctl, cstats, window),
                                  "twin": twins_cfg.get(name)}
-                step = max(1, len(dates) // 400)
-                series_out[name] = {"d": dates[::step][-400:],
-                                    "v": [round(ser[d], 6) for d in dates[::step][-400:]]}
+                series_out[name] = {"d": dates[-730:],
+                                    "v": [round(ser[d], 6) for d in dates[-730:]]}
                 last_err = None
                 break
             except Exception as e:
@@ -275,12 +274,49 @@ def lambda_handler(event=None, context=None):
     tser = {}
     for cqn, tw in twin_data.items():
         if tw:
-            td = sorted(tw); step = max(1, len(td) // 500)
+            td = sorted(tw); step = max(1, len(td) // 1200)
             tser[cqn] = {"d": td[::step], "v": [round(tw[d], 6) for d in td[::step]]}
-    pd = sorted(px); pstep = max(1, len(pd) // 500)
+    pd = sorted(px); pstep = max(1, len(pd) // 1200)
     _put(SERIES, {"generated_at": now.isoformat(timespec="seconds"),
                   "series": series_out, "twins": tser,
                   "btc": {"d": pd[::pstep], "v": [round(px[d], 2) for d in pd[::pstep]]}})
+
+    # ── MASTER BRIEF: full-catalog scan -> one read on where BTC/crypto stands ──
+    sup = [k for k, v in metrics.items() if ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) > 1.0]
+    con = [k for k, v in metrics.items() if ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0) < -1.0]
+    ext_hi = [metrics[k]["label"] for k in metrics if (metrics[k].get("pctl_1y") or 50) >= 95][:5]
+    ext_lo = [metrics[k]["label"] for k in metrics if (metrics[k].get("pctl_1y") or 50) <= 5][:5]
+    mv = metrics.get("btc_mvrv") or {}
+    master_det = ("Across all %d on-chain metrics, the tape leans %s: %d metrics sit at levels that "
+                  "historically preceded positive 21-day BTC returns versus %d at historically negative "
+                  "levels, and the curated composite reads %+0.2fz. Valuation is the loudest signal — "
+                  "MVRV at the %sth percentile of 2010-present has been followed by %+0.1f%% average "
+                  "21-day returns (n=%d). Yearly extremes right now: %s near highs; %s near lows. "
+                  "The main caveat is that exchange netflows and dry-powder trends must confirm before "
+                  "this reads as an all-clear."
+                  % (len(metrics), "constructive" if len(sup) >= len(con) else "defensive",
+                     len(sup), len(con), comp if comp is not None else 0.0,
+                     mv.get("pctl_1y", "?"),
+                     ((mv.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0.0),
+                     ((mv.get("cond_stats") or {}).get("fwd21") or {}).get("n", 0),
+                     ", ".join(ext_hi) or "none", ", ".join(ext_lo) or "none"))
+    master, master_src = master_det, "deterministic"
+    try:
+        from llm_router import complete
+        digest = "; ".join("%s pctl%s fwd21 %+0.1f%%" % (
+            v["label"], v.get("pctl_1y"), ((v.get("cond_stats") or {}).get("fwd21") or {}).get("mean_pct", 0.0))
+            for k, v in sorted(metrics.items(), key=lambda kv: abs(50 - (kv[1].get("pctl_1y") or 50)), reverse=True)[:16])
+        t = complete("Respond with ONLY four to six plain prose sentences, no lists, no markdown, no quotes. "
+                     "You scanned %d Bitcoin/crypto on-chain metrics. Composite risk %+0.2fz. "
+                     "Most extreme readings with their historical forward-21-day BTC returns at these levels: %s. "
+                     "Give one institutional read on where Bitcoin and crypto stand right now, the single "
+                     "biggest opportunity, the single biggest risk, and what would change the picture."
+                     % (len(metrics), comp if comp is not None else 0.0, digest),
+                     tier="reason", max_tokens=420)
+        t = _clean_brief(t)
+        if t: master, master_src = t, "llm"
+    except Exception:
+        pass
 
     stale = max((now - datetime.strptime(v["as_of"], "%Y-%m-%d").replace(tzinfo=timezone.utc)).days
                 for v in metrics.values())
@@ -291,6 +327,7 @@ def lambda_handler(event=None, context=None):
                "grading": "PROVISIONAL — scorecard excess-vs-BTC gates admission",
                "plan_note": spec.get("plan_note"),
                "n_metrics": len(metrics), "categories": cats,
+               "ai_master_brief": master, "ai_master_src": master_src,
                "metrics": metrics, "composite_onchain_risk_z": comp,
                "read": ("On-chain composite %+0.2fz across %d curated core metrics; %d total "
                         "catalog metrics live" % (comp, len(core), len(metrics))) if comp is not None else None,
