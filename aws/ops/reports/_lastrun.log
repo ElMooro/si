@@ -1,12 +1,27 @@
 settling 25s…
 == 1/4 spec: expanded twins ==
-  twins spec -> 15
+  twin btc_mvrv                   -> CapMVRVCur
+  twin btc_tx_count               -> TxCnt
+  twin btc_addresses_active       -> AdrActCnt
+  twin btc_fees_total             -> FeeTotNtv
+  twin btc_fees_tx_mean           -> None
+  twin btc_hashrate               -> HashRate
+  twin btc_difficulty             -> None
+  twin btc_supply_total           -> SplyCur
+  twin btc_velocity               -> None
+  twin btc_blockreward            -> IssTotNtv
+  twin btc_tokens_transferred     -> None
+  twin btc_nvt                    -> None
+  twin btc_realized_price         -> PriceUSD/CapMVRVCur
+  twin eth_addresses_active       -> eth:AdrActCnt
+  twin eth_tx_count               -> eth:TxCnt
+  twins spec -> 10
 == 2/4 engine v2.2 + run ==
   invoke -> {"ok": true, "status": "LIVE", "n_metrics": 52, "categories": {"exchange_flows": 5, "flow_indicator": 5, "market_indicator": 4, "network_indicator": 6, "miner_flows": 3, "network_data": 11, "market_data": 5, "eth": 8, "stablecoins": 5}, "co
-  twins delivered: {"btc_mvrv": 1457, "btc_tx_count": 1462, "btc_addresses_active": 1462, "btc_fees_total": 1462, "btc_hashrate": 1462, "btc_supply_total": 1462, "eth_addresses_active": 1331, "eth_tx_count": 1330}
+  twins delivered: {"btc_mvrv": 1457, "btc_tx_count": 1462, "btc_addresses_active": 1462, "btc_fees_total": 1462, "btc_hashrate": 1462, "btc_supply_total": 1462, "btc_blockreward": 1462, "btc_realized_price": 1457, "eth_addresses_active": 1331, "eth_tx_count": 1330}
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2747_charts_v4.py", line 70, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2747_charts_v4.py", line 96, in <module>
     assert len(tw) >= 11, tw
            ^^^^^^^^^^^^^
-AssertionError: {'btc_mvrv': 1457, 'btc_tx_count': 1462, 'btc_addresses_active': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462, 'eth_addresses_active': 1331, 'eth_tx_count': 1330}
+AssertionError: {'btc_mvrv': 1457, 'btc_tx_count': 1462, 'btc_addresses_active': 1462, 'btc_fees_total': 1462, 'btc_hashrate': 1462, 'btc_supply_total': 1462, 'btc_blockreward': 1462, 'btc_realized_price': 1457, 'eth_addresses_active': 1331, 'eth_tx_count': 1330}
 ❌ OPS-FAIL: aws/ops/pending/ops_2747_charts_v4.py
