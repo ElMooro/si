@@ -1,14 +1,49 @@
-settling 15s…
-== 1/4 copy FMP key from infra -> apac env ==
-  FMP key sourced from justhodl-fundamentals-engine (len 32)
-== 2/4 deploy widened adapter + invoke ==
-  invoke -> {"ok": true, "status": "LIVE", "sources": {"twse_t86": true, "twse_bfi": true, "krx": false}, "tw_stocks": 1080, "tw_foreign_col": "\u5916\u9678\u8cc7\u8cb7\u8ce3\u8d85\u80a1\u6578(\u4e0d\u542b\u5916\u8cc7\u81ea\u71df\u5546)", "tw_top_buy": "Winbond (memory)",
-  sector rollup: {"Materials": 28531294, "Semiconductors": 5293402, "Shipping": -2107344, "Telecom": -28837914, "Financials": -50668178, "Electronics/Hardware": -72949522}
-  bridge: Semiconductors (TW → US)                 TWnet=-24791515 US5d=-3.46 [both soft]
-  bridge: AI Hardware / Foxconn build-out (TW → US TWnet=-25247595 US5d=-3.1 [both soft]
-  bridge: Memory / EV Battery (KR → US)            TWnet=None US5d=-2.5 [insufficient data]
-  us_returns_live: True
-== 3/4 page at edge ==
-  page attempt 1: LIVE
-== 4/4 report ==
-OPS 2751 COMPLETE — APAC radar has a face and a US side
+probe date (KST last trading day): 20260703
+  MDCSTAT02201   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02201   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02201   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02201   ab=3 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02202   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02202   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02202   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02202   ab=3 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02203   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02203   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02203   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02203   ab=3 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02301   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02301   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02301   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02301   ab=3 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02302   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02302   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02302   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02302   ab=3 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02401   ab=1 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02401   ab=1 http  ERR HTTP Error 400: Bad Request
+  MDCSTAT02401   ab=3 https ERR HTTP Error 400: Bad Request
+  MDCSTAT02401   ab=3 http  ERR HTTP Error 400: Bad Request
+
+NO JSON WINNER — trying OTP->CSV fallback on MDCSTAT02201
+  OTP gen http=200 head=
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+	
+	
+		<html>
+<head>
+  <title>Error - KRX | Market Data System</title
+  OTP fallback err: HTTP Error 403: Forbidden
+
+VERDICT: KRX_JSON_BLOCKED_see_otp_probe
+OPS 2752 COMPLETE — KRX reconnaissance done
