@@ -19,7 +19,7 @@ REAL OFFICIAL FREE SOURCES (probe-not-guess; language-agnostic key detection):
 Feeds: data/apac-flows.json (latest) + data/history/apac-flows.json (400d).
 No key faked; every source's success/failure is recorded in `sources`.
 """
-import json, re, time, urllib.request, urllib.error, urllib.parse
+import os, json, re, time, urllib.request, urllib.error, urllib.parse
 from datetime import datetime, timezone
 import boto3
 
@@ -33,19 +33,34 @@ KRX = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 # Taiwan bellwethers + sector map (the names foreign money moves that lead US demand)
-TW_NAMES = {"2330": "TSMC", "2454": "MediaTek", "2317": "Hon Hai (Foxconn)", "2303": "UMC",
-            "3711": "ASE Technology", "2308": "Delta Electronics", "2382": "Quanta",
-            "2357": "Asus", "3034": "Novatek", "2379": "Realtek", "3231": "Wistron",
-            "2891": "CTBC Financial", "2412": "Chunghwa Telecom", "2881": "Fubon Financial",
-            "2603": "Evergreen Marine", "6505": "Formosa Petrochemical", "1301": "Formosa Plastics",
-            "2409": "AU Optronics", "3008": "LargAn", "2327": "Yageo"}
-TW_SECTOR = {"2330": "Semiconductors", "2454": "Semiconductors", "2303": "Semiconductors",
-             "3711": "Semiconductors", "3034": "Semiconductors", "2379": "Semiconductors",
-             "3008": "Semiconductors", "2327": "Semiconductors",
-             "2317": "Electronics/Hardware", "2308": "Electronics/Hardware", "2382": "Electronics/Hardware",
-             "2357": "Electronics/Hardware", "3231": "Electronics/Hardware", "2409": "Electronics/Hardware",
-             "2891": "Financials", "2881": "Financials",
-             "2412": "Telecom", "2603": "Shipping", "6505": "Materials", "1301": "Materials"}
+TW_NAMES = {
+    "2330": "TSMC", "2454": "MediaTek", "2303": "UMC", "3711": "ASE Technology",
+    "2344": "Winbond (memory)", "2408": "Nanya Tech (memory)", "2337": "Macronix (memory)",
+    "6770": "Powerchip (memory)", "3034": "Novatek", "2379": "Realtek", "3529": "eMemory",
+    "3661": "Alchip", "6488": "GlobalWafers", "5347": "Vanguard Intl Semi", "3006": "E Ink",
+    "3443": "GUC", "2449": "King Yuan", "3105": "Win Semiconductors",
+    "2317": "Hon Hai (Foxconn)", "2382": "Quanta", "3231": "Wistron", "2357": "Asus",
+    "2324": "Compal", "4938": "Pegatron", "2308": "Delta Electronics", "2301": "Lite-On",
+    "3481": "Innolux", "2409": "AU Optronics", "2474": "Catcher", "2377": "Micro-Star",
+    "2881": "Fubon Financial", "2882": "Cathay Financial", "2891": "CTBC Financial",
+    "2886": "Mega Financial", "2884": "E.SUN Financial", "2892": "First Financial",
+    "5880": "Taiwan Cooperative", "2887": "Taishin Financial", "2890": "SinoPac Financial",
+    "2412": "Chunghwa Telecom", "3045": "Taiwan Mobile", "4904": "FarEasTone",
+    "2603": "Evergreen Marine", "2609": "Yang Ming", "2615": "Wan Hai Lines",
+    "1301": "Formosa Plastics", "1303": "Nan Ya Plastics", "6505": "Formosa Petrochemical",
+    "1326": "Formosa Chemicals", "1101": "Taiwan Cement", "2327": "Yageo", "3008": "LargAn"}
+TW_SECTOR = {c: "Semiconductors" for c in
+             ["2330", "2454", "2303", "3711", "2344", "2408", "2337", "6770", "3034", "2379",
+              "3529", "3661", "6488", "5347", "3443", "2449", "3105", "2327", "3008"]}
+TW_SECTOR.update({c: "Electronics/Hardware" for c in
+                  ["2317", "2382", "3231", "2357", "2324", "4938", "2308", "2301", "3481",
+                   "2409", "2474", "2377", "3006"]})
+TW_SECTOR.update({c: "Financials" for c in
+                  ["2881", "2882", "2891", "2886", "2884", "2892", "5880", "2887", "2890"]})
+TW_SECTOR.update({c: "Telecom" for c in ["2412", "3045", "4904"]})
+TW_SECTOR.update({c: "Shipping" for c in ["2603", "2609", "2615"]})
+TW_SECTOR.update({c: "Materials" for c in ["1301", "1303", "6505", "1326", "1101"]})
+
 
 # Asia -> US catch-up bridges
 BRIDGES = [
@@ -224,6 +239,25 @@ def us_side():
     return flow
 
 
+def us_returns(symbols):
+    """Real US recent returns (5D/1M/3M) via FMP stock-price-change (one call)."""
+    key = os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
+    if not key or not symbols:
+        return {}
+    url = ("https://financialmodelingprep.com/api/v3/stock-price-change/"
+           + ",".join(sorted(set(symbols))) + "?apikey=" + key)
+    try:
+        doc = _get_json(url, timeout=25)
+    except Exception:
+        return {}
+    out = {}
+    for r in doc if isinstance(doc, list) else []:
+        sym = r.get("symbol")
+        if sym:
+            out[sym] = {"d5": r.get("5D"), "m1": r.get("1M"), "m3": r.get("3M")}
+    return out
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     doc = {"engine": "justhodl-apac-flows", "version": "1.0.0",
@@ -250,23 +284,42 @@ def lambda_handler(event=None, context=None):
     doc["sources"]["krx"] = kr.get("status") == "LIVE"
     # Japan placeholder
     doc["japan"] = {"status": "PENDING_v1_1", "note": "JPX weekly investor-type flows (Thursday Excel)"}
-    # US catch-up bridges
+    # US catch-up bridges — attach REAL US returns (FMP) + divergence verdict
     usf = us_side()
+    all_us = sorted({s for b in BRIDGES for s in (b["us_etf"] + b["us_names"])})
+    usr = us_returns(all_us)
     bridges = []
     for b in BRIDGES:
         tw_sig = None
         if b["tw_codes"] and doc.get("taiwan", {}).get("top_buy") is not None:
-            m = {r["code"]: r["foreign_net_shares"] for r in doc["taiwan"]["top_buy"] + doc["taiwan"]["top_sell"]}
+            m = {r["code"]: r["foreign_net_shares"]
+                 for r in doc["taiwan"]["top_buy"] + doc["taiwan"]["top_sell"]}
             vals = [m.get(c) for c in b["tw_codes"] if m.get(c) is not None]
             tw_sig = round(sum(vals)) if vals else None
-        us_flow = {e: usf.get(e) for e in b["us_etf"] if e in usf}
+        etf_ret = {e: usr.get(e, {}).get("d5") for e in b["us_etf"] if e in usr}
+        name_ret = {n: usr.get(n, {}).get("d5") for n in b["us_names"] if n in usr}
+        us5 = [v for v in list(etf_ret.values()) + list(name_ret.values()) if isinstance(v, (int, float))]
+        us_avg5 = round(sum(us5) / len(us5), 2) if us5 else None
+        # verdict: Asia buying (tw_sig>0) while US flat/down = US hasn't caught up = opportunity
+        verdict = "insufficient data"
+        if tw_sig is not None and us_avg5 is not None:
+            if tw_sig > 0 and us_avg5 < 1.5:
+                verdict = "ASIA LEADING — US lagging (potential setup)"
+            elif tw_sig > 0 and us_avg5 >= 1.5:
+                verdict = "confirmed — both bid"
+            elif tw_sig < 0 and us_avg5 > 1.5:
+                verdict = "US extended, Asia foreign selling — caution"
+            else:
+                verdict = "both soft"
         bridges.append({"name": b["name"], "sector": b["sector"],
-                        "tw_foreign_net_shares": tw_sig,
-                        "kr_codes": b["kr_codes"], "us_etf": b["us_etf"], "us_names": b["us_names"],
-                        "us_etf_5d_flow_usd": us_flow or None,
-                        "note": ("Asia foreign buying — check if US ETF flow has followed"
-                                 if (tw_sig or 0) > 0 else "watch")})
+                        "tw_foreign_net_shares": tw_sig, "kr_codes": b["kr_codes"],
+                        "us_etf": b["us_etf"], "us_names": b["us_names"],
+                        "us_etf_ret5d": etf_ret or None, "us_name_ret5d": name_ret or None,
+                        "us_avg_ret5d": us_avg5, "us_etf_5d_flow_usd": {e: usf.get(e) for e in b["us_etf"] if e in usf} or None,
+                        "verdict": verdict})
     doc["bridges"] = bridges
+    doc["us_returns_live"] = bool(usr)
+    doc["us_feed_available"] = bool(usf)
     doc["us_feed_available"] = bool(usf)
 
     # history

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>APAC → US Flow Radar · JustHodl.AI</title><!-- APAC RADAR v1 -->
+<style>
+:root{--bg:#06090f;--card:#0c1220;--card2:#0a0f1a;--line:#1b2940;--fg:#e2ecf8;--fg2:#8fa5c2;--fg3:#4f6580;--cy:#3fd0ff;--am:#ffcf4a;--rd:#ff5d6c;--gr:#2fe3a0;--vi:#a78bfa;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1100px 480px at 25% -8%,#0d1b31 0%,var(--bg) 55%);color:var(--fg);font:14px/1.55 -apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 18px 70px}
+h1{font-size:20px;margin:0 0 2px}
+.sub{color:var(--fg3);font-family:var(--mono);font-size:11px;margin-bottom:14px}
+.read{background:linear-gradient(160deg,#0f1c31,#0a1322);border:1px solid #274668;border-radius:14px;padding:15px 19px;margin:0 0 16px;font-size:14px;line-height:1.7}
+h2.sec{font-size:12px;letter-spacing:2px;color:var(--cy);margin:22px 0 11px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.bridges{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:13px}
+.bcard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+.bcard h3{margin:0 0 4px;font-size:14px}
+.verdict{font-family:var(--mono);font-size:11px;padding:5px 9px;border-radius:8px;margin:9px 0;display:inline-block;font-weight:600}
+.v-lead{background:#0d2b22;color:var(--gr);border:1px solid #1c4a3a}
+.v-conf{background:#0d2438;color:var(--cy);border:1px solid #1e4a6b}
+.v-caut{background:#2d1218;color:var(--rd);border:1px solid #52222c}
+.v-soft{background:#1a1c26;color:var(--fg3);border:1px solid #2a2f3e}
+.leg{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;margin:4px 0;gap:8px}
+.leg b{font-size:13px}
+.retpills{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:9px;border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.c{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.c h3{margin:0 0 9px;font-size:10.5px;letter-spacing:1.4px;color:var(--fg2)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+td,th{padding:5px 6px;border-bottom:1px solid #131f33;text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{color:var(--fg3);font-weight:600;font-size:9.5px;letter-spacing:.5px}
+.g{color:var(--gr)}.r{color:var(--rd)}.a{color:var(--am)}.cy{color:var(--cy)}.f3{color:var(--fg3)}
+.sbar{height:20px;border-radius:4px;margin:3px 0;position:relative;background:#0f1828}
+.sbar b{position:absolute;top:0;bottom:0;border-radius:4px}
+.sbar span{position:absolute;left:8px;top:2px;font-family:var(--mono);font-size:10px;color:#dfeaff}
+.sbar em{position:absolute;right:8px;top:2px;font-family:var(--mono);font-size:10px;font-style:normal}
+.pending{background:#12151f;border:1px dashed #2a3244;border-radius:12px;padding:16px;color:var(--fg3);font-family:var(--mono);font-size:11.5px;line-height:1.6}
+.load{color:var(--fg3);font-family:var(--mono);padding:44px;text-align:center}
+</style></head><body><div class="wrap">
+<h1>🌏 APAC → US Flow Radar</h1>
+<div class="sub" id="meta">Loading cross-market flows…</div>
+<div id="app" class="load">Loading…</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+const fin=v=>Number.isFinite(v);
+const sh=v=>!fin(v)?"—":(v>0?"+":"")+(Math.abs(v)>=1e6?(v/1e6).toFixed(1)+"M":Math.abs(v)>=1e3?(v/1e3).toFixed(0)+"k":v.toFixed(0));
+const pct=v=>!fin(v)?"—":(v>0?"+":"")+v.toFixed(1)+"%";
+const pc=v=>!fin(v)?"var(--fg3)":v>0?"var(--gr)":"var(--rd)";
+function vclass(v){if(!v)return"v-soft";if(v.includes("LEADING"))return"v-lead";if(v.includes("confirmed"))return"v-conf";if(v.includes("caution")||v.includes("extended"))return"v-caut";return"v-soft"}
+async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r.json()}catch(e){return null}}
+(async()=>{
+ const d=await j("data/apac-flows.json");
+ const app=document.getElementById("app");
+ if(!d){app.textContent="Feed unavailable.";return}
+ const tw=d.taiwan||{},src=d.sources||{};
+ document.getElementById("meta").textContent=`${(d.generated_at||"").slice(0,16).replace("T"," ")} UTC · Taiwan ${src.twse_t86?"LIVE":"—"} · Korea ${src.krx?"LIVE":"pending"} · US returns ${d.us_returns_live?"LIVE":"—"} · ${d.history_days||0}d history`;
+ let h=`<div class="read">🧭 ${d.read||"—"} ${tw.foreign_net_twd_bn!=null?`Market-wide foreign net today: <b style="color:${pc(tw.foreign_net_twd_bn)}">NT$${tw.foreign_net_twd_bn}B</b>.`:""} <span class="f3">The thesis: Taiwan/Korea foreign money often leads the US equivalent — a green "ASIA LEADING" verdict flags a US sector that may not have moved yet.</span></div>`;
+
+ // BRIDGES (hero)
+ h+=`<h2 class="sec">ASIA → US CATCH-UP BRIDGES</h2><div class="bridges">`;
+ for(const b of (d.bridges||[])){
+  const rets=Object.assign({},b.us_etf_ret5d||{},b.us_name_ret5d||{});
+  h+=`<div class="bcard"><h3>${b.name}</h3>
+   <div class="verdict ${vclass(b.verdict)}">${b.verdict||"—"}</div>
+   <div class="leg"><span>Asia foreign net (shares)</span><b style="color:${pc(b.tw_foreign_net_shares)}">${b.tw_foreign_net_shares!=null?sh(b.tw_foreign_net_shares):"n/a"}</b></div>
+   <div class="leg"><span>US peers avg 5-day</span><b style="color:${pc(b.us_avg_ret5d)}">${pct(b.us_avg_ret5d)}</b></div>
+   <div class="retpills">${Object.keys(rets).map(k=>`<span class="pill" style="color:${pc(rets[k])}">${k} ${pct(rets[k])}</span>`).join("")||'<span class="pill f3">US returns wiring…</span>'}</div></div>`;
+ }
+ h+=`</div>`;
+
+ // Taiwan detail
+ if(tw.top_buy){
+  h+=`<h2 class="sec">TAIWAN — FOREIGN INVESTOR FLOWS (TWSE, ${tw.as_of||""})</h2><div class="grid2">
+   <div class="c"><h3>TOP FOREIGN NET BUYS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
+   ${tw.top_buy.slice(0,10).map(x=>`<tr><td>${x.name||x.code}</td><td class="f3">${x.sector||"—"}</td><td class="g">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div>
+   <div class="c"><h3>TOP FOREIGN NET SELLS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
+   ${tw.top_sell.slice(0,10).map(x=>`<tr><td>${x.name||x.code}</td><td class="f3">${x.sector||"—"}</td><td class="r">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div></div>`;
+  const sf=tw.sector_flows_shares||{};const mx=Math.max(1,...Object.values(sf).map(Math.abs));
+  h+=`<div class="c" style="margin-top:13px"><h3>FOREIGN NET FLOW BY SECTOR (shares)</h3>
+   ${Object.entries(sf).map(([k,v])=>`<div class="sbar"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/mx*48}%;background:${pc(v)}"></b><span>${k}</span><em style="color:${pc(v)}">${sh(v)}</em></div>`).join("")}
+   <div class="f3" style="font-family:var(--mono);font-size:9.5px;margin-top:6px">midline = 0; right = net buying, left = net selling. Covers mapped large-caps.</div></div>`;
+ }
+
+ // Korea / Japan
+ h+=`<h2 class="sec">KOREA · JAPAN</h2><div class="grid2">
+  <div class="pending"><b style="color:var(--fg2)">🇰🇷 Korea (KRX)</b><br>${src.krx?"LIVE":"Investor-type net flows (individual / foreign / institution) — KRX data endpoint resolves in v1.1. Samsung 005930 & SK Hynix 000660 will anchor the memory/AI bridge."}</div>
+  <div class="pending"><b style="color:var(--fg2)">🇯🇵 Japan (JPX)</b><br>Weekly trading-by-investor-type flows (foreigners vs individuals) — v1.1 (JPX publishes Thursdays).</div></div>`;
+
+ h+=`<div class="c" style="margin-top:16px"><div class="f3" style="font-family:var(--mono);font-size:10px">Sources: TWSE OpenAPI (T86 per-stock foreign net + BFI82U market foreign net) · US returns via FMP · daily 09:30 UTC after Asian close. Foreign-flow leadership is a context signal, not a trade instruction; rigorous lead-lag scoring activates once ~30d of history accrues.</div></div>`;
+ app.className="";app.innerHTML=h;
+})();
+</script></div></body></html>
