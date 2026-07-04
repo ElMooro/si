@@ -16,5 +16,10 @@
   "architectures": [
     "x86_64"
   ],
-  "backfilled_at": "2026-04-25T01:22:52.558221+00:00"
+  "backfilled_at": "2026-04-25T01:22:52.558221+00:00",
+  "schedule": {
+    "rule_name": "census-economic-agent-daily",
+    "cron": "cron(30 14 * * ? *)",
+    "description": "Daily 14:30 UTC \u2014 Census retail/housing/durables refresh"
+  }
 }

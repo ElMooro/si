@@ -34,5 +34,10 @@
   "files_imported": 1,
   "secrets_sanitized": [],
   "imported_at": "2026-04-22T22:20:19+00:00",
-  "memory": 256
+  "memory": 256,
+  "schedule": {
+    "rule_name": "bea-economic-agent-daily",
+    "cron": "cron(15 14 * * ? *)",
+    "description": "Daily 14:15 UTC \u2014 BEA GDP/PCE/income refresh"
+  }
 }
