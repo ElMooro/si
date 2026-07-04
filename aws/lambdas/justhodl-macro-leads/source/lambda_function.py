@@ -39,9 +39,9 @@ def _get(url, timeout=30, headers=None):
 
 
 def fred_series(sid, obs=800):
-    """Return [(date, value)] ascending for a FRED series."""
+    """Return [(date, value)] ascending — the most-RECENT `obs` observations."""
     url = ("https://api.stlouisfed.org/fred/series/observations"
-           "?series_id=%s&api_key=%s&file_type=json&sort_order=asc&limit=%d" % (sid, FRED_KEY, obs))
+           "?series_id=%s&api_key=%s&file_type=json&sort_order=desc&limit=%d" % (sid, FRED_KEY, obs))
     d = json.loads(_get(url))
     out = []
     for o in d.get("observations", []):
@@ -51,6 +51,7 @@ def fred_series(sid, obs=800):
                 out.append((o["date"], float(v)))
             except Exception:
                 pass
+    out.sort()  # oldest -> newest
     return out
 
 
@@ -78,8 +79,21 @@ def zscore(series_vals):
     return round((series_vals[-1] - mu) / sd, 2)
 
 
-def stooq(symbol, days=400):
-    """Free daily close CSV from stooq (no key). Returns [(date, close)] ascending."""
+def _yahoo(symbol, rng="2y"):
+    """Free daily closes from Yahoo chart API. Returns [(date, close)] ascending."""
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=%s" % (symbol, rng)
+    d = json.loads(_get(url, timeout=30))
+    res = d["chart"]["result"][0]
+    ts = res["timestamp"]
+    closes = res["indicators"]["quote"][0]["close"]
+    out = []
+    for t, c in zip(ts, closes):
+        if c is not None:
+            out.append((datetime.utcfromtimestamp(t).strftime("%Y-%m-%d"), float(c)))
+    return out
+
+
+def stooq(symbol, days=500):
     raw = _get("https://stooq.com/q/d/l/?s=%s&i=d" % symbol, timeout=30).decode("utf-8", "ignore")
     out = []
     for ln in raw.splitlines()[1:]:
@@ -92,15 +106,24 @@ def stooq(symbol, days=400):
     return out[-days:]
 
 
+def _metal(yahoo_sym, stooq_sym):
+    for fn in (lambda: _yahoo(yahoo_sym), lambda: stooq(stooq_sym)):
+        try:
+            r = fn()
+            if r and len(r) > 30:
+                return r
+        except Exception:
+            continue
+    return []
+
+
 def block_metal_ratios():
-    """Copper/Gold + Gold/Silver ratios from free stooq daily data."""
+    """Copper/Gold + Gold/Silver ratios (Yahoo futures, stooq fallback)."""
     out = {}
     try:
-        gold = dict(stooq("xauusd"))
-        silver = dict(stooq("xagusd"))
-        copper = dict(stooq("hg.f"))     # COMEX copper $/lb
-        if not copper:
-            copper = dict(stooq("xcuusd"))
+        gold = dict(_metal("GC=F", "xauusd"))
+        silver = dict(_metal("SI=F", "xagusd"))
+        copper = dict(_metal("HG=F", "hg.f"))
         dcg = sorted(set(gold) & set(copper))
         cg = [(d, copper[d] / gold[d]) for d in dcg if gold[d]]
         dgs = sorted(set(gold) & set(silver))
@@ -115,6 +138,8 @@ def block_metal_ratios():
             out["gold_silver"] = {"ratio": round(gs[-1][1], 3), "z_1y": zscore(vals),
                                   "asof": gs[-1][0], "n": len(gs),
                                   "note": "high gold/silver = risk-off / deflation lean"}
+        if not cg and not gs:
+            out["error"] = "metals sources unavailable from Lambda IP"
     except Exception as e:
         out["error"] = str(e)[:150]
     return out
