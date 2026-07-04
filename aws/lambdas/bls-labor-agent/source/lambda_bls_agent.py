@@ -143,8 +143,9 @@ def lambda_handler(event=None, context=None):
         "wage_growth_yoy_pct": g(labor, "avg_hourly_earnings", "yoy_pct"),
         "job_openings_k": g(labor, "job_openings_k"),
         "quits_rate": g(labor, "quits_rate"),
-        "unit_labor_costs_yoy_pct": g(productivity, "unit_labor_costs", "yoy_pct"),
-        "productivity_yoy_pct": g(productivity, "nonfarm_productivity", "yoy_pct"),
+        "unit_labor_costs_qoq_pct": g(productivity, "unit_labor_costs", "value"),
+        "productivity_qoq_pct": g(productivity, "nonfarm_productivity", "value"),
+        "real_hourly_comp_qoq_pct": g(productivity, "real_hourly_comp", "value"),
         "labor_read": ("TIGHT" if (ur is not None and ur < 4.2) else "LOOSENING" if ur is not None else None),
         "inflation_read": ("ABOVE TARGET" if (core_yoy is not None and core_yoy > 2.5)
                            else "NEAR TARGET" if core_yoy is not None else None),
