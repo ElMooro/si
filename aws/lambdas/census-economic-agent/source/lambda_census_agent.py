@@ -32,36 +32,43 @@ CATEGORIES = {
 }
 
 
-def eits(category, data_type="SM", sa="yes"):
+def fetch_marts():
+    """One EITS call: get all MARTS series as output columns, filtered client-side.
+    (EITS rejects CATEGORY_CODE/DATA_TYPE_CODE as server-side predicates.)"""
     now = datetime.now(timezone.utc)
-    params = {"get": "cell_value", "CATEGORY_CODE": category, "DATA_TYPE_CODE": data_type,
-              "SEASONALLY_ADJ": sa, "time": "from %d-01" % (now.year - 2), "for": "us"}
+    params = {"get": "cell_value,category_code,data_type_code,seasonally_adj",
+              "time": "from %d" % (now.year - 2), "for": "us"}
     if API_KEY:
         params["key"] = API_KEY
     url = BASE + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/census"})
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=40) as r:
         rows = json.loads(r.read())
-    if not rows or len(rows) < 2:
-        return {"error": "no rows"}
     hdr = rows[0]
-    ci = hdr.index("cell_value")
-    ti = hdr.index("time") if "time" in hdr else None
-    pts = []
+    idx = {h: i for i, h in enumerate(hdr)}
+    ci, cat, dt, saj = idx["cell_value"], idx["category_code"], idx["data_type_code"], idx["seasonally_adj"]
+    ti = idx.get("time")
+    series = {}
     for row in rows[1:]:
         try:
-            pts.append((row[ti] if ti is not None else "", float(row[ci])))
+            v = float(row[ci])
         except Exception:
-            pass
+            continue
+        key = (row[cat], row[dt], row[saj])
+        t = row[ti] if ti is not None else ""
+        series.setdefault(key, []).append((t, v))
+    return series
+
+
+def pick(series, category, data_type="SM", sa="yes"):
+    pts = series.get((category, data_type, sa)) or []
     if not pts:
-        return {"error": "no numeric values"}
-    if ti is not None:
-        pts.sort()
-    val = pts[-1][1]
-    per = pts[-1][0]
+        return {"error": "not found (%s/%s/%s)" % (category, data_type, sa)}
+    pts.sort()
+    val, per = pts[-1][1], pts[-1][0]
     prior = pts[-2][1] if len(pts) > 1 else None
     yago = None
-    if ti is not None and "-" in per:
+    if "-" in per:
         y, m = per.split("-"); pk = f"{int(y)-1}-{m}"
         for p, v in pts:
             if p == pk:
@@ -71,19 +78,17 @@ def eits(category, data_type="SM", sa="yes"):
             "yoy_pct": round((val / yago - 1) * 100, 2) if yago else None}
 
 
-def safe(category):
-    try:
-        return eits(category)
-    except Exception as e:
-        return {"error": str(e)[:100]}
-
-
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     if not API_KEY:
         # EITS is usable keyless at low volume; continue but note it
         pass
-    retail = {name: safe(code) for name, code in CATEGORIES.items()}
+    try:
+        series = fetch_marts()
+        fetch_err = None
+    except Exception as e:
+        series, fetch_err = {}, str(e)[:140]
+    retail = {name: pick(series, code) for name, code in CATEGORIES.items()}
 
     def g(k, f="value_musd"):
         return (retail.get(k) or {}).get(f)
@@ -106,7 +111,7 @@ def lambda_handler(event=None, context=None):
     out = {
         "generated_at": now.isoformat(),
         "source": "U.S. Census Bureau MARTS / EITS API (api.census.gov) — direct, free",
-        "summary": summary, "retail": retail, "_series_live": n_live,
+        "summary": summary, "retail": retail, "_series_live": n_live, "_fetch_error": fetch_err,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=3600")

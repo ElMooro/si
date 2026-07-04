@@ -119,7 +119,7 @@ def lambda_handler(event=None, context=None):
         pi = line_series(d, "personal income", exact=True)
         dpi = line_series(d, "equals: disposable personal income", exact=True)
         pce = line_series(d, "personal consumption expenditures", exact=True)
-        sav = line_series(d, "personal saving rate", exact=True)
+        sav = line_series(d, "percentage of disposable personal income")
         piv, pip, piy = latest_and_yoy(pi)
         pcev, pcep, pcey = latest_and_yoy(pce)
         sv, sp, _ = latest_and_yoy(sav)
