@@ -40,6 +40,11 @@ INFLATION = {
     "ppi_core": "WPUFD49104",
     "eci_compensation": "CIU1010000000000A",
 }
+PRODUCTIVITY = {
+    "nonfarm_productivity": "PRS85006092",   # output per hour, nonfarm business (index)
+    "unit_labor_costs": "PRS85006112",       # unit labor costs, nonfarm business (index)
+    "real_hourly_comp": "PRS85006152",       # real hourly compensation (index)
+}
 
 
 def _call(url, payload):
@@ -118,6 +123,11 @@ def lambda_handler(event=None, context=None):
         inflation, api2 = fetch_bls(INFLATION); api = api or api2
     except Exception as e:
         errs.append("inflation:" + str(e)[:100]); inflation = {}
+    productivity = {}
+    try:
+        productivity, api3 = fetch_bls(PRODUCTIVITY); api = api or api3
+    except Exception as e:
+        errs.append("productivity:" + str(e)[:100]); productivity = {}
 
     def g(d, k, f="value"):
         return (d.get(k) or {}).get(f)
@@ -133,11 +143,13 @@ def lambda_handler(event=None, context=None):
         "wage_growth_yoy_pct": g(labor, "avg_hourly_earnings", "yoy_pct"),
         "job_openings_k": g(labor, "job_openings_k"),
         "quits_rate": g(labor, "quits_rate"),
+        "unit_labor_costs_yoy_pct": g(productivity, "unit_labor_costs", "yoy_pct"),
+        "productivity_yoy_pct": g(productivity, "nonfarm_productivity", "yoy_pct"),
         "labor_read": ("TIGHT" if (ur is not None and ur < 4.2) else "LOOSENING" if ur is not None else None),
         "inflation_read": ("ABOVE TARGET" if (core_yoy is not None and core_yoy > 2.5)
                            else "NEAR TARGET" if core_yoy is not None else None),
     }
-    n_live = sum(1 for d in (labor, inflation) for v in d.values()
+    n_live = sum(1 for d in (labor, inflation, productivity) for v in d.values()
                  if isinstance(v, dict) and v.get("value") is not None)
     out = {
         "generated_at": now.isoformat(),
@@ -145,6 +157,7 @@ def lambda_handler(event=None, context=None):
         "api_version": api,
         "key_valid": (api == "v2"),
         "summary": summary, "labor_market": labor, "inflation": inflation,
+        "productivity": productivity,
         "_series_live": n_live, "_error": "; ".join(errs) or None,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),

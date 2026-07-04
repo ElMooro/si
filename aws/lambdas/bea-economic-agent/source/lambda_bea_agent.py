@@ -97,6 +97,39 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         errs.append("gdp:" + str(e)[:80])
 
+    # GDP-GDI gap (recession signal), growth composition, corporate profits
+    try:
+        d = bea_table("T10701", "Q")   # % change in real GDP & real GDI
+        gpc, _, _ = latest_and_yoy(line_series(d, "gross domestic product", exact=True))
+        ipc, iq, _ = latest_and_yoy(line_series(d, "gross domestic income", exact=True))
+        gap = round(gpc - ipc, 2) if (gpc is not None and ipc is not None) else None
+        out["gdp_gdi"] = {
+            "real_gdp_pct": gpc, "real_gdi_pct": ipc, "gap_pct": gap, "quarter": iq,
+            "signal": ("GDI weaker than GDP — income side softer, recession-risk tell" if gap is not None and gap > 1.0
+                       else "GDI stronger than GDP — upside" if gap is not None and gap < -1.0
+                       else "income & output aligned" if gap is not None else None),
+        }
+    except Exception as e:
+        errs.append("gdp_gdi:" + str(e)[:70])
+    try:
+        d = bea_table("T10102", "Q")   # contributions to % change in real GDP (percentage points)
+        comp = {}
+        for key, lbl in [("consumption", "personal consumption expenditures"),
+                         ("investment", "gross private domestic investment"),
+                         ("net_exports", "net exports of goods and services"),
+                         ("government", "government consumption expenditures and gross investment")]:
+            v, _, _ = latest_and_yoy(line_series(d, lbl, exact=True))
+            comp[key] = v
+        out["gdp_contributions_pp"] = comp
+    except Exception as e:
+        errs.append("contrib:" + str(e)[:70])
+    try:
+        d = bea_table("T11200", "Q")   # corporate profits
+        cv, cq, cy = latest_and_yoy(line_series(d, "corporate profits with inventory valuation and capital consumption adjustments", exact=True))
+        out["corporate_profits"] = {"level_bil": cv, "yoy_pct": cy, "quarter": cq}
+    except Exception as e:
+        errs.append("profits:" + str(e)[:70])
+
     # PCE price index + core PCE (the Fed's gauge) — T20804 monthly index levels -> YoY
     try:
         d = bea_table("T20804", "M")

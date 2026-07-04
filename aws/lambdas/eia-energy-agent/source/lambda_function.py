@@ -39,7 +39,11 @@ EIA_PETROLEUM = {"PET.WCESTUS1.W": "US Crude Inventories ex-SPR (kbbl)",
                  "PET.WCRFPUS2.W": "US Crude Production (kbbl/d)",
                  "PET.WCSSTUS1.W": "US SPR Crude Stocks (kbbl)",
                  "PET.WGTSTUS1.W": "US Gasoline Stocks (kbbl)",
-                 "PET.WDISTUS1.W": "US Distillate Stocks (kbbl)"}
+                 "PET.WDISTUS1.W": "US Distillate Stocks (kbbl)",
+                 "PET.W_EPC0_SAX_YCUOK_MBBL.W": "Cushing OK Crude Stocks (kbbl)",
+                 "PET.WPULEUS3.W": "Refinery Utilization (% operable cap)",
+                 "PET.WGFUPUS2.W": "Gasoline Product Supplied / demand (kbbl/d)"}
+EIA_NATGAS = {"NG.NW2_EPG0_SWO_R48_BCF.W": "Working Gas in Storage, Lower 48 (Bcf)"}
 STEO = {"PAPR_OPEC": "OPEC Crude Production (Mb/d)", "PATC_WORLD": "World Petroleum Consumption (Mb/d)",
         "PASC_WORLD": "World Petroleum Supply (Mb/d)", "PAPR_NON_OPEC": "Non-OPEC Production (Mb/d)"}
 
@@ -89,8 +93,11 @@ def eia_v2(series_id):
         if not rows:
             return {"error": "empty"}
         cur = float(rows[0]["value"])
+        prev = float(rows[1]["value"]) if len(rows) > 1 else None
         y = float(rows[52]["value"]) if len(rows) > 52 else (float(rows[12]["value"]) if len(rows) > 12 else None)
         return {"period": rows[0].get("period"), "value": round(cur, 3),
+                "chg": round(cur - prev, 3) if prev is not None else None,
+                "chg_pct": round((cur - prev) / abs(prev) * 100, 2) if prev else None,
                 "yoy": round((cur - y) / abs(y) * 100, 2) if y else None,
                 "history": [{"p": r.get("period"), "v": float(r["value"])} for r in rows[:52][::-1]]}
     except Exception as e:
@@ -111,6 +118,10 @@ def build():
     for sid, label in STEO.items():
         d = eia_v2("STEO." + sid + ".M")
         steo[sid] = {"name": label, **({"data": d} if "error" not in d else {"error": d["error"]})}
+    natgas = {}
+    for sid, label in EIA_NATGAS.items():
+        d = eia_v2(sid)
+        natgas[sid] = {"name": label, **({"data": d} if "error" not in d else {"error": d["error"]})}
 
     def grp(keys):
         return {k: core[k] for k in keys if k in core}
@@ -124,6 +135,7 @@ def build():
         "natural_gas": grp(["PRCE_NOM_HENRY"]),
         "fuel_prices": grp(["MGWHUUS", "D2WHUUS"]),
         "inventories_production": eia,   # populates with a valid EIA key
+        "natural_gas_storage": natgas,   # weekly working gas in storage (Bcf) + WoW
         "steo_forecast": steo,           # populates with a valid EIA key
         "all_series": core,
         "metrics_ok": ok, "metrics_err": len(core) - ok,
