@@ -67,6 +67,9 @@ code{background:#0c1119;border:1px solid var(--border);border-radius:5px;padding
     <div class="card"><h3>14-day spend trend</h3><div class="trend" id="trend"></div><div class="lab mono" id="trend-lab" style="margin-top:8px;text-align:center"></div></div>
   </div>
 
+  <div class="sec">Burn-risk audit — every engine ranked</div>
+  <div class="card"><div id="burnhead" class="lab" style="margin-bottom:10px"></div><div style="max-height:440px;overflow:auto"><div id="burnaudit"><div class="err">loading…</div></div></div></div>
+
   <div class="sec">Controls</div>
   <div class="card">
     <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
@@ -144,6 +147,21 @@ function render(d){
     document.getElementById('trend-lab').textContent=pd.length?(pd[0].date+' → '+pd[pd.length-1].date+' · peak '+fmtUSD(mx)):'';
   }catch(e){ console.error('trend',e); }
 }
+
+(async function(){
+  try{
+    var urls=['data/llm-cost-audit.json','https://justhodl.ai/data/llm-cost-audit.json'];
+    var d=null;
+    for(var i=0;i<urls.length;i++){try{var r=await fetch(urls[i]+'?cb='+Date.now());if(r.ok){d=await r.json();break;}}catch(e){}}
+    if(!d){document.getElementById('burnaudit').innerHTML='<div class="err">audit feed not available yet</div>';return;}
+    var eng=(d.engines||[]).slice(0,25), tot=Number(d.est_total_daily_cost_uncapped||0);
+    document.getElementById('burnhead').innerHTML='Worst-case if <b>all</b> engines ran uncapped in normal mode: <b class="'+(tot>=15?'neg':'pos')+'">$'+tot.toFixed(2)+'/day</b> vs <b>$15</b> hard cap · '+(d.engines||[]).length+' engines · <span class="mute">updated '+new Date(d.generated_at).toLocaleString()+'</span>';
+    function pill(f){var neg=/SONNET|OPUS|BIG_TOKENS|HIGH_FREQ/.test(f),warn=/LOOP|RETRY|ONDEMAND/.test(f);return '<span class="pill" style="color:var(--'+(neg?'neg':warn?'gold':'text-mute')+')">'+f.replace(/_/g,' ').toLowerCase()+'</span>';}
+    document.getElementById('burnaudit').innerHTML='<table><tr><th>#</th><th>Engine</th><th>Est $/day</th><th>inv/24h</th><th>Model</th><th>Cap</th><th>Risk flags</th></tr>'+
+      eng.map(function(e){var cap=e.capped?('<span class="pos">'+e.capped+'/day</span>'):'<span class="mute">—</span>';
+        return '<tr><td class="mute">'+e.rank+'</td><td class="sym">'+String(e.engine||'').replace('justhodl-','')+'</td><td class="gold mono">$'+Number(e.est_daily_cost_usd||0).toFixed(2)+'</td><td class="dim">'+(e.inv_24h||0)+'</td><td>'+(e.model||'')+'</td><td>'+cap+'</td><td>'+(e.risk_flags||[]).filter(function(f){return f!=='UNCAPPED';}).map(pill).join(' ')+'</td></tr>';}).join('')+'</table>';
+  }catch(e){document.getElementById('burnaudit').innerHTML='<div class="err">audit render error</div>';}
+})();
 
 getJSON().then(render).catch(function(e){
   document.getElementById('engines').innerHTML='<div class="err">Cost feed not available yet — the dashboard populates on the next hourly aggregation.</div>';
