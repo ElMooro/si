@@ -41,13 +41,13 @@ def _num(v):
         return None
 
 
-def line_series(data, match):
-    """period->value for the first LineDescription containing `match` (case-insensitive)."""
+def line_series(data, match, exact=False):
+    """period->value for LineDescription matching `match` (exact or substring, case-insensitive)."""
     m = match.lower()
     ser = {}
     for row in data:
-        desc = (row.get("LineDescription") or "").lower()
-        if m in desc:
+        desc = (row.get("LineDescription") or "").strip().lower()
+        if (desc == m) if exact else (m in desc):
             v = _num(row.get("DataValue"))
             if v is not None:
                 ser[row.get("TimePeriod")] = v
@@ -113,16 +113,19 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         errs.append("pce:" + str(e)[:80])
 
-    # Personal income, DPI, saving rate — T20600 monthly
+    # Personal income, DPI, PCE, saving rate — T20600 monthly (exact line match)
     try:
         d = bea_table("T20600", "M")
-        pi = line_series(d, "personal income")
-        dpi = line_series(d, "disposable personal income")
-        sav = line_series(d, "personal saving rate")
+        pi = line_series(d, "personal income", exact=True)
+        dpi = line_series(d, "equals: disposable personal income", exact=True)
+        pce = line_series(d, "personal consumption expenditures", exact=True)
+        sav = line_series(d, "personal saving rate", exact=True)
         piv, pip, piy = latest_and_yoy(pi)
+        pcev, pcep, pcey = latest_and_yoy(pce)
         sv, sp, _ = latest_and_yoy(sav)
         out["income"] = {"personal_income_bil": piv, "personal_income_yoy_pct": piy,
                          "disposable_income_bil": latest_and_yoy(dpi)[0],
+                         "pce_level_bil": pcev, "pce_yoy_pct": pcey,
                          "saving_rate_pct": sv, "month": pip or sp}
     except Exception as e:
         errs.append("income:" + str(e)[:80])

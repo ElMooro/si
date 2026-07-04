@@ -1,11 +1,10 @@
 """
-bls-labor-agent — Bureau of Labor Statistics desk (the source behind CPI, PPI,
-the Employment Situation / NFP, JOLTS, and ECI). Persists to S3 so the platform
-consumes it directly from BLS, not just FRED's re-publication.
+bls-labor-agent — Bureau of Labor Statistics desk (CPI, PPI, Employment Situation/
+NFP, JOLTS, ECI). Persists to S3 (data/bls-labor.json).
 
-Key is read from env BLS_API_KEY (provisioned to SSM + Lambda env; never hardcoded).
-BLS API v2 with a registered key allows 50 series/request and returns MoM/YoY
-calculations inline. Real data only — a series that can't fetch records its error.
+Uses BLS v2 with a registered key (env BLS_API_KEY) when the key is VALID — that
+unlocks inline MoM/YoY calculations + higher limits. If the key is missing/invalid,
+falls back to the free keyless v1 API and computes changes locally. Real data only.
 """
 import os
 import json
@@ -18,7 +17,8 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/bls-labor.json"
 API_KEY = os.environ.get("BLS_API_KEY", "")
-BASE = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+V2 = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
+V1 = "https://api.bls.gov/publicAPI/v1/timeseries/data/"
 
 LABOR = {
     "unemployment_rate": "LNS14000000",
@@ -42,83 +42,91 @@ INFLATION = {
 }
 
 
+def _call(url, payload):
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(),
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=45) as r:
+        return json.loads(r.read())
+
+
 def fetch_bls(series_map):
     now = datetime.now(timezone.utc)
-    payload = {
-        "seriesid": list(series_map.values()),
-        "startyear": str(now.year - 2),
-        "endyear": str(now.year),
-        "registrationkey": API_KEY,
-        "calculations": True,
-    }
-    req = urllib.request.Request(BASE, data=json.dumps(payload).encode(),
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=40) as r:
-        resp = json.loads(r.read())
-    by_id = {}
-    for s in (resp.get("Results", {}) or {}).get("series", []):
-        by_id[s.get("seriesID")] = s.get("data", [])
-    out = {}
+    base = {"seriesid": list(series_map.values()),
+            "startyear": str(now.year - 2), "endyear": str(now.year)}
+    resp, api = None, None
+    if API_KEY:
+        try:
+            p = dict(base); p["registrationkey"] = API_KEY; p["calculations"] = True
+            r = _call(V2, p)
+            if r.get("status") == "REQUEST_SUCCEEDED" and (r.get("Results") or {}).get("series"):
+                resp, api = r, "v2"
+        except Exception:
+            pass
+    if resp is None:
+        r = _call(V1, base)
+        resp, api = r, "v1"
+    by_id = {s.get("seriesID"): s.get("data", []) for s in (resp.get("Results", {}) or {}).get("series", [])}
     inv = {v: k for k, v in series_map.items()}
+    out = {}
     for sid, rows in by_id.items():
         name = inv.get(sid, sid)
         if not rows:
             out[name] = {"series_id": sid, "error": "no data"}
             continue
+        pm = {}
+        for d in rows:
+            try:
+                pm[(d["year"], d["period"])] = float(d["value"])
+            except Exception:
+                pass
         latest = rows[0]
-        calc = latest.get("calculations", {}) or {}
-        pc = calc.get("pct_changes", {}) or {}
         try:
-            val = float(latest.get("value"))
+            val = float(latest["value"])
         except Exception:
-            val = latest.get("value")
-        out[name] = {
-            "series_id": sid,
-            "value": val,
-            "period": f"{latest.get('year')}-{latest.get('period','')[-2:]}",
-            "period_name": latest.get("periodName"),
-            "mom_pct": _f(pc.get("1")),
-            "3mo_pct": _f(pc.get("3")),
-            "yoy_pct": _f(pc.get("12")),
-        }
-    return out
-
-
-def _f(x):
-    try:
-        return float(x)
-    except Exception:
-        return None
+            val = None
+        ly, lp = latest["year"], latest["period"]
+        mom = yoy = None
+        if val is not None and len(rows) > 1:
+            try:
+                pv = float(rows[1]["value"]); mom = round((val / pv - 1) * 100, 2) if pv else None
+            except Exception:
+                pass
+        pk = (str(int(ly) - 1), lp)
+        if val is not None and pm.get(pk):
+            yoy = round((val / pm[pk] - 1) * 100, 2)
+        calc = (latest.get("calculations") or {}).get("pct_changes") or {}
+        try:
+            if calc.get("1") is not None: mom = float(calc["1"])
+            if calc.get("12") is not None: yoy = float(calc["12"])
+        except Exception:
+            pass
+        out[name] = {"series_id": sid, "value": val, "period": f"{ly}-{lp[-2:]}",
+                     "period_name": latest.get("periodName"), "mom_pct": mom, "yoy_pct": yoy}
+    return out, api
 
 
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
-    if not API_KEY:
-        body = {"generated_at": now.isoformat(), "error": "BLS_API_KEY not set"}
-        S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(body).encode(),
-                      ContentType="application/json")
-        return {"ok": False, "error": "no key"}
-
-    labor, inflation = {}, {}
-    err = None
+    labor = inflation = {}
+    api = None
+    errs = []
     try:
-        labor = fetch_bls(LABOR)
+        labor, api = fetch_bls(LABOR)
     except Exception as e:
-        err = "labor: " + str(e)[:120]
+        errs.append("labor:" + str(e)[:100]); labor = {}
     try:
-        inflation = fetch_bls(INFLATION)
+        inflation, api2 = fetch_bls(INFLATION); api = api or api2
     except Exception as e:
-        err = (err + " | " if err else "") + "inflation: " + str(e)[:120]
+        errs.append("inflation:" + str(e)[:100]); inflation = {}
 
     def g(d, k, f="value"):
         return (d.get(k) or {}).get(f)
 
     ur = g(labor, "unemployment_rate")
-    cpi_yoy = g(inflation, "cpi_all_items", "yoy_pct")
     core_yoy = g(inflation, "cpi_core", "yoy_pct")
     summary = {
         "unemployment_rate": ur,
-        "cpi_yoy_pct": cpi_yoy,
+        "cpi_yoy_pct": g(inflation, "cpi_all_items", "yoy_pct"),
         "core_cpi_yoy_pct": core_yoy,
         "shelter_yoy_pct": g(inflation, "cpi_shelter", "yoy_pct"),
         "core_services_yoy_pct": g(inflation, "cpi_core_services_sa", "yoy_pct"),
@@ -129,16 +137,16 @@ def lambda_handler(event=None, context=None):
         "inflation_read": ("ABOVE TARGET" if (core_yoy is not None and core_yoy > 2.5)
                            else "NEAR TARGET" if core_yoy is not None else None),
     }
-    n_live = sum(1 for d in (labor, inflation) for v in d.values() if "value" in v)
+    n_live = sum(1 for d in (labor, inflation) for v in d.values()
+                 if isinstance(v, dict) and v.get("value") is not None)
     out = {
         "generated_at": now.isoformat(),
-        "source": "U.S. Bureau of Labor Statistics API v2 (api.bls.gov) — direct, free",
-        "summary": summary,
-        "labor_market": labor,
-        "inflation": inflation,
-        "_series_live": n_live,
-        "_error": err,
+        "source": "U.S. Bureau of Labor Statistics API (api.bls.gov) — direct, free",
+        "api_version": api,
+        "key_valid": (api == "v2"),
+        "summary": summary, "labor_market": labor, "inflation": inflation,
+        "_series_live": n_live, "_error": "; ".join(errs) or None,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=3600")
-    return {"ok": True, "series_live": n_live}
+    return {"ok": True, "series_live": n_live, "api": api}
