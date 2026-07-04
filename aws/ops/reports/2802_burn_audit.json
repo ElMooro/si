@@ -1,0 +1,410 @@
+{
+ "ops": 2802,
+ "ts": "2026-07-04T17:10:01.721294+00:00",
+ "engines_audited": 58,
+ "top_burn_risk": [
+  {
+   "engine": "justhodl-news-wire",
+   "inv_24h": 144,
+   "inv_7d": 1005,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 2500,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": 1.0,
+   "capped": 1,
+   "est_daily_calls": 144,
+   "est_daily_cost_usd": 2.36,
+   "risk_flags": [
+    "HIGH_FREQ"
+   ],
+   "rank": 1
+  },
+  {
+   "engine": "justhodl-research-critique",
+   "inv_24h": 53,
+   "inv_7d": 204,
+   "err_7d": 1,
+   "callsites": 1,
+   "max_tokens": 800,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": true,
+   "runs_per_day_sched": null,
+   "capped": 1,
+   "est_daily_calls": 53,
+   "est_daily_cost_usd": 1.91,
+   "risk_flags": [
+    "HIGH_FREQ",
+    "SONNET"
+   ],
+   "rank": 2
+  },
+  {
+   "engine": "justhodl-research-papers",
+   "inv_24h": 1,
+   "inv_7d": 7,
+   "err_7d": 0,
+   "callsites": 2,
+   "max_tokens": 3500,
+   "model": "sonnet",
+   "loop": true,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 16,
+   "est_daily_cost_usd": 1.22,
+   "risk_flags": [
+    "SONNET",
+    "LOOP",
+    "UNCAPPED"
+   ],
+   "rank": 3
+  },
+  {
+   "engine": "justhodl-equity-research",
+   "inv_24h": 53,
+   "inv_7d": 649,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 6000,
+   "model": "reason",
+   "loop": false,
+   "on_demand": true,
+   "runs_per_day_sched": null,
+   "capped": 1,
+   "est_daily_calls": 53,
+   "est_daily_cost_usd": 0.72,
+   "risk_flags": [
+    "HIGH_FREQ"
+   ],
+   "rank": 4
+  },
+  {
+   "engine": "justhodl-ai-website-synthesis",
+   "inv_24h": 24,
+   "inv_7d": 169,
+   "err_7d": 1,
+   "callsites": 1,
+   "max_tokens": 4000,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 24,
+   "est_daily_cost_usd": 0.54,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 5
+  },
+  {
+   "engine": "justhodl-auction-crisis-ai",
+   "inv_24h": 24,
+   "inv_7d": 168,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 4000,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 24,
+   "est_daily_cost_usd": 0.54,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 6
+  },
+  {
+   "engine": "justhodl-ticker-deep-research",
+   "inv_24h": 24,
+   "inv_7d": 168,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 6000,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": 1,
+   "est_daily_calls": 24,
+   "est_daily_cost_usd": 0.54,
+   "risk_flags": [],
+   "rank": 7
+  },
+  {
+   "engine": "justhodl-ka-metrics",
+   "inv_24h": 3,
+   "inv_7d": 21,
+   "err_7d": 20,
+   "callsites": 1,
+   "max_tokens": 7000,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": true,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 3,
+   "est_daily_cost_usd": 0.25,
+   "risk_flags": [
+    "BIG_TOKENS",
+    "SONNET",
+    "ONDEMAND_UNCAPPED",
+    "RETRY_RISK",
+    "UNCAPPED"
+   ],
+   "rank": 8
+  },
+  {
+   "engine": "justhodl-debate-engine",
+   "inv_24h": 3,
+   "inv_7d": 19,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 600,
+   "model": "haiku",
+   "loop": true,
+   "on_demand": false,
+   "runs_per_day_sched": 1.0,
+   "capped": null,
+   "est_daily_calls": 24,
+   "est_daily_cost_usd": 0.21,
+   "risk_flags": [
+    "LOOP",
+    "RETRY_RISK",
+    "UNCAPPED"
+   ],
+   "rank": 9
+  },
+  {
+   "engine": "justhodl-khalid-metrics",
+   "inv_24h": 2,
+   "inv_7d": 17,
+   "err_7d": 14,
+   "callsites": 1,
+   "max_tokens": 7000,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": true,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 2,
+   "est_daily_cost_usd": 0.17,
+   "risk_flags": [
+    "BIG_TOKENS",
+    "SONNET",
+    "ONDEMAND_UNCAPPED",
+    "RETRY_RISK",
+    "UNCAPPED"
+   ],
+   "rank": 10
+  },
+  {
+   "engine": "justhodl-ai-brief-router",
+   "inv_24h": 6,
+   "inv_7d": 46,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 8000,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 6,
+   "est_daily_cost_usd": 0.13,
+   "risk_flags": [
+    "BIG_TOKENS",
+    "UNCAPPED"
+   ],
+   "rank": 11
+  },
+  {
+   "engine": "justhodl-fleet-monitor",
+   "inv_24h": 19,
+   "inv_7d": 127,
+   "err_7d": 27,
+   "callsites": 1,
+   "max_tokens": 1,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": 8.0,
+   "capped": null,
+   "est_daily_calls": 19,
+   "est_daily_cost_usd": 0.12,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 12
+  },
+  {
+   "engine": "justhodl-crypto-intel",
+   "inv_24h": 1,
+   "inv_7d": 21,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 3000,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 1,
+   "est_daily_cost_usd": 0.07,
+   "risk_flags": [
+    "SONNET",
+    "UNCAPPED"
+   ],
+   "rank": 13
+  },
+  {
+   "engine": "justhodl-fed-nlp",
+   "inv_24h": 8,
+   "inv_7d": 46,
+   "err_7d": 6,
+   "callsites": 1,
+   "max_tokens": 600,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": 4.0,
+   "capped": null,
+   "est_daily_calls": 8,
+   "est_daily_cost_usd": 0.07,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 14
+  },
+  {
+   "engine": "justhodl-financial-secretary",
+   "inv_24h": 1,
+   "inv_7d": 7,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 3000,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": true,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 1,
+   "est_daily_cost_usd": 0.07,
+   "risk_flags": [
+    "SONNET",
+    "ONDEMAND_UNCAPPED",
+    "UNCAPPED"
+   ],
+   "rank": 15
+  },
+  {
+   "engine": "justhodl-signal-backtest",
+   "inv_24h": 1,
+   "inv_7d": 11,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 1600,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 1,
+   "est_daily_cost_usd": 0.05,
+   "risk_flags": [
+    "SONNET",
+    "UNCAPPED"
+   ],
+   "rank": 16
+  },
+  {
+   "engine": "justhodl-alpha-daily-brief",
+   "inv_24h": 3,
+   "inv_7d": 20,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 1800,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": 1.0,
+   "capped": null,
+   "est_daily_calls": 3,
+   "est_daily_cost_usd": 0.04,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 17
+  },
+  {
+   "engine": "justhodl-flows-ai-analysis",
+   "inv_24h": 1,
+   "inv_7d": 7,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 800,
+   "model": "sonnet",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 1,
+   "est_daily_cost_usd": 0.04,
+   "risk_flags": [
+    "SONNET",
+    "UNCAPPED"
+   ],
+   "rank": 18
+  },
+  {
+   "engine": "justhodl-earnings-sentiment",
+   "inv_24h": 3,
+   "inv_7d": 18,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 800,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": 1.0,
+   "capped": null,
+   "est_daily_calls": 3,
+   "est_daily_cost_usd": 0.03,
+   "risk_flags": [
+    "RETRY_RISK",
+    "UNCAPPED"
+   ],
+   "rank": 19
+  },
+  {
+   "engine": "justhodl-rotation-radar",
+   "inv_24h": 2,
+   "inv_7d": 10,
+   "err_7d": 0,
+   "callsites": 1,
+   "max_tokens": 2000,
+   "model": "haiku",
+   "loop": false,
+   "on_demand": false,
+   "runs_per_day_sched": null,
+   "capped": null,
+   "est_daily_calls": 2,
+   "est_daily_cost_usd": 0.03,
+   "risk_flags": [
+    "UNCAPPED"
+   ],
+   "rank": 20
+  }
+ ],
+ "est_total_daily_cost_uncapped": 9.51,
+ "uncapped_high_risk": [
+  "justhodl-research-papers"
+ ],
+ "dashboard_json": "written"
+}

@@ -1,9 +1,19 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2802_burn_audit.py", line 99, in <module>
-    rpd, onurl = runs_per_day(d)
-                 ^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2802_burn_audit.py", line 76, in runs_per_day
-    sched = (c.get("schedule") or {}).get("cron")
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'str' object has no attribute 'get'
-❌ OPS-FAIL: aws/ops/pending/ops_2802_burn_audit.py
+=== TOP 15 BURN-RISK ===
+  #1  $2.36   calls/d=144     inv24=144   x1 @haiku  tok=2500  justhodl-news-wire HIGH_FREQ
+  #2  $1.91   calls/d=53      inv24=53    x1 @sonnet tok=800   justhodl-research-critique HIGH_FREQ,SONNET
+  #3  $1.22   calls/d=16      inv24=1     x2 @sonnet tok=3500  justhodl-research-papers SONNET,LOOP,UNCAPPED
+  #4  $0.72   calls/d=53      inv24=53    x1 @reason tok=6000  justhodl-equity-research HIGH_FREQ
+  #5  $0.54   calls/d=24      inv24=24    x1 @haiku  tok=4000  justhodl-ai-website-synthesis UNCAPPED
+  #6  $0.54   calls/d=24      inv24=24    x1 @haiku  tok=4000  justhodl-auction-crisis-ai UNCAPPED
+  #7  $0.54   calls/d=24      inv24=24    x1 @haiku  tok=6000  justhodl-ticker-deep-research 
+  #8  $0.25   calls/d=3       inv24=3     x1 @sonnet tok=7000  justhodl-ka-metrics BIG_TOKENS,SONNET,ONDEMAND_UNCAPPED,RETRY_RISK,UNCAPPED
+  #9  $0.21   calls/d=24      inv24=3     x1 @haiku  tok=600   justhodl-debate-engine LOOP,RETRY_RISK,UNCAPPED
+  #10 $0.17   calls/d=2       inv24=2     x1 @sonnet tok=7000  justhodl-khalid-metrics BIG_TOKENS,SONNET,ONDEMAND_UNCAPPED,RETRY_RISK,UNCAPPED
+  #11 $0.13   calls/d=6       inv24=6     x1 @haiku  tok=8000  justhodl-ai-brief-router BIG_TOKENS,UNCAPPED
+  #12 $0.12   calls/d=19      inv24=19    x1 @haiku  tok=1     justhodl-fleet-monitor UNCAPPED
+  #13 $0.07   calls/d=1       inv24=1     x1 @sonnet tok=3000  justhodl-crypto-intel SONNET,UNCAPPED
+  #14 $0.07   calls/d=8       inv24=8     x1 @haiku  tok=600   justhodl-fed-nlp UNCAPPED
+  #15 $0.07   calls/d=1       inv24=1     x1 @sonnet tok=3000  justhodl-financial-secretary SONNET,ONDEMAND_UNCAPPED,UNCAPPED
+
+uncapped high-risk: ['justhodl-research-papers']
+OPS 2802 COMPLETE
