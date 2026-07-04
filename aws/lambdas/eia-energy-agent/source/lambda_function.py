@@ -20,26 +20,28 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/eia-energy.json"
 
-# FRED series (EIA-sourced) -> (label, unit)
+# FRED series (EIA-sourced, still maintained on FRED) -> (label, unit).
+# NOTE: FRED discontinued the EIA WEEKLY petroleum-status series (crude stocks,
+# production, SPR, product stocks, imports/exports) — those now live only behind
+# the EIA API and populate via the eia_petroleum() block when a valid key is set.
 FRED_ENERGY = {
     "WTIPUUS":  ("DCOILWTICO",  "WTI Crude ($/bbl)", "$/bbl"),
     "BREPROD":  ("DCOILBRENTEU", "Brent Crude ($/bbl)", "$/bbl"),
     "PRCE_NOM_HENRY": ("DHHNGSP", "Henry Hub Nat Gas ($/MMBtu)", "$/MMBtu"),
-    "COPS_US":  ("WCESTUS1",  "US Crude Inventories ex-SPR (kbbl)", "kbbl"),
-    "COPRPUS":  ("WCRFPUS2",  "US Crude Production (kbbl/d)", "kbbl/d"),
-    "SPR_US":   ("WCSSTUS1",  "US SPR Crude Stocks (kbbl)", "kbbl"),
-    "GASO_STK": ("WGTSTUS1",  "US Gasoline Stocks (kbbl)", "kbbl"),
-    "DIST_STK": ("WDISTUS1",  "US Distillate Stocks (kbbl)", "kbbl"),
-    "CORIPUS":  ("WCEIMUS2",  "US Crude Imports (kbbl/d)", "kbbl/d"),
-    "COEXPUS":  ("WCREXUS2",  "US Crude Exports (kbbl/d)", "kbbl/d"),
     "MGWHUUS":  ("GASREGW",   "US Regular Gasoline ($/gal)", "$/gal"),
     "D2WHUUS":  ("GASDESW",   "US Diesel ($/gal)", "$/gal"),
 }
 
-# EIA STEO series (bonus — needs a valid EIA key)
+# EIA API series (bonus — populate only with a valid EIA_API_KEY). Free to register
+# at eia.gov/opendata; a key is emailed instantly. These are the weekly inventory /
+# production numbers plus STEO forecasts (OPEC output, world supply/demand).
+EIA_PETROLEUM = {"PET.WCESTUS1.W": "US Crude Inventories ex-SPR (kbbl)",
+                 "PET.WCRFPUS2.W": "US Crude Production (kbbl/d)",
+                 "PET.WCSSTUS1.W": "US SPR Crude Stocks (kbbl)",
+                 "PET.WGTSTUS1.W": "US Gasoline Stocks (kbbl)",
+                 "PET.WDISTUS1.W": "US Distillate Stocks (kbbl)"}
 STEO = {"PAPR_OPEC": "OPEC Crude Production (Mb/d)", "PATC_WORLD": "World Petroleum Consumption (Mb/d)",
-        "PASC_WORLD": "World Petroleum Supply (Mb/d)", "PAPR_NON_OPEC": "Non-OPEC Production (Mb/d)",
-        "PATC_OECD": "OECD Consumption (Mb/d)", "PATC_NON_OECD": "Non-OECD Consumption (Mb/d)"}
+        "PASC_WORLD": "World Petroleum Supply (Mb/d)", "PAPR_NON_OPEC": "Non-OPEC Production (Mb/d)"}
 
 
 def _get(url, timeout=20):
@@ -76,20 +78,21 @@ def fred_metric(sid):
         return {"error": "%s: %s" % (type(e).__name__, str(e)[:80])}
 
 
-def eia_steo(sid):
+def eia_v2(series_id):
+    """Fetch a legacy EIA series id via the v2 /seriesid route (needs valid key)."""
     if not EIA_KEY:
-        return {"error": "needs a valid EIA_API_KEY (STEO forecasts)"}
+        return {"error": "needs a valid EIA_API_KEY (free at eia.gov/opendata)"}
     try:
-        url = ("https://api.eia.gov/v2/steo/data/?api_key=%s&frequency=monthly&data[0]=value"
-               "&facets[seriesId][]=%s&sort[0][column]=period&sort[0][direction]=desc&length=24" % (EIA_KEY, sid))
+        url = "https://api.eia.gov/v2/seriesid/%s?api_key=%s" % (series_id, EIA_KEY)
         rows = json.loads(_get(url)).get("response", {}).get("data", [])
+        rows = sorted([r for r in rows if r.get("value") not in (None, "")], key=lambda r: r.get("period", ""), reverse=True)
         if not rows:
             return {"error": "empty"}
-        cur = float(rows[0]["value"]) if rows[0].get("value") else None
-        y = float(rows[12]["value"]) if len(rows) > 12 and rows[12].get("value") else None
-        return {"period": rows[0].get("period"), "value": cur,
-                "yoy": round((cur - y) / abs(y) * 100, 2) if cur and y else None,
-                "history": [{"p": r.get("period"), "v": float(r["value"]) if r.get("value") else None} for r in rows[:24]]}
+        cur = float(rows[0]["value"])
+        y = float(rows[52]["value"]) if len(rows) > 52 else (float(rows[12]["value"]) if len(rows) > 12 else None)
+        return {"period": rows[0].get("period"), "value": round(cur, 3),
+                "yoy": round((cur - y) / abs(y) * 100, 2) if y else None,
+                "history": [{"p": r.get("period"), "v": float(r["value"])} for r in rows[:52][::-1]]}
     except Exception as e:
         return {"error": "%s: %s" % (type(e).__name__, str(e)[:80])}
 
@@ -100,9 +103,13 @@ def build():
         d = fred_metric(sid)
         core[key] = {"name": label, "unit": unit, "fred": sid,
                      **({"data": d} if "error" not in d else {"error": d["error"]})}
+    eia = {}
+    for sid, label in EIA_PETROLEUM.items():
+        d = eia_v2(sid)
+        eia[sid] = {"name": label, **({"data": d} if "error" not in d else {"error": d["error"]})}
     steo = {}
     for sid, label in STEO.items():
-        d = eia_steo(sid)
+        d = eia_v2("STEO." + sid + ".M")
         steo[sid] = {"name": label, **({"data": d} if "error" not in d else {"error": d["error"]})}
 
     def grp(keys):
@@ -112,15 +119,16 @@ def build():
     return {
         "agent": "eia-energy-agent",
         "generated_at": datetime.utcnow().isoformat() + "Z",
-        "source": "FRED (EIA-sourced series) core + EIA STEO bonus",
-        "oil_markets": grp(["WTIPUUS", "BREPROD", "COPRPUS", "COPS_US", "SPR_US", "CORIPUS", "COEXPUS"]),
+        "source": "FRED (EIA-sourced daily/weekly prices) — live; EIA API blocks (inventories/production/STEO) need a valid EIA key",
+        "oil_markets": grp(["WTIPUUS", "BREPROD"]),
         "natural_gas": grp(["PRCE_NOM_HENRY"]),
-        "inventories": grp(["COPS_US", "SPR_US", "GASO_STK", "DIST_STK"]),
         "fuel_prices": grp(["MGWHUUS", "D2WHUUS"]),
-        "steo_forecast": steo,
+        "inventories_production": eia,   # populates with a valid EIA key
+        "steo_forecast": steo,           # populates with a valid EIA key
         "all_series": core,
         "metrics_ok": ok, "metrics_err": len(core) - ok,
-        "steo_available": bool(EIA_KEY),
+        "eia_key_present": bool(EIA_KEY),
+        "note": None if EIA_KEY else "Live: WTI/Brent/Henry Hub/gasoline/diesel via FRED. Add a free EIA API key (SSM/env EIA_API_KEY) to unlock crude inventories, production, SPR, and OPEC/world supply-demand.",
     }
 
 
