@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nowcast Desk · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
+.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);font-weight:600}
+.big{font-size:32px;font-weight:700;letter-spacing:.3px}
+.lab{color:var(--text-mute);font-size:11px}
+.note{color:var(--text-dim);font-size:12px;margin-top:8px;line-height:1.45}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.gold{color:var(--gold)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}.acc{color:var(--accent)}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.bd-hot{background:rgba(255,61,90,.14);color:var(--neg);border:1px solid rgba(255,61,90,.35)}
+.bd-cool{background:rgba(0,230,118,.12);color:var(--pos);border:1px solid rgba(0,230,118,.3)}
+.bd-neu{background:rgba(251,191,36,.12);color:var(--gold);border:1px solid rgba(251,191,36,.3)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;color:var(--text-mute);font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.err{color:var(--text-mute);font-size:12px}
+.quad{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.quad .rg{font-size:26px;font-weight:800;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Nowcast Desk</h1>
+  <div class="sub">The Fed's own real-time growth, inflation &amp; wage nowcasts — the terminal macro layer, reverse-engineered from free public sources. <span class="mute" id="asof"></span></div>
+
+  <div class="sec">Regime — where growth &amp; underlying inflation actually are right now</div>
+  <div class="card"><div id="quad"><div class="err">loading…</div></div></div>
+
+  <div class="sec">Growth &amp; labor</div>
+  <div class="grid2">
+    <div class="card"><h3>Atlanta Fed GDPNow — current-quarter real GDP</h3><div id="gdp"><div class="err">loading…</div></div></div>
+    <div class="card"><h3>Atlanta Fed Wage Growth Tracker</h3><div id="wage"><div class="err">loading…</div></div></div>
+  </div>
+
+  <div class="sec">Underlying inflation — the measures the Fed actually tracks</div>
+  <div class="card">
+    <div id="inflhead" class="lab" style="margin-bottom:10px"></div>
+    <div id="infl"><div class="err">loading…</div></div>
+    <div class="note">Headline CPI is noisy. These strip the volatile items (median, trimmed-mean) or slow-moving prices (sticky) to reveal the true inflation trend — exactly what Bloomberg's terminal surfaces and what the FOMC watches. Composite = mean of all five, vs the 2% target.</div>
+  </div>
+
+  <div class="sub mute" id="foot" style="margin-top:24px"></div>
+</div>
+<script>
+async function getJSON(){
+  var urls=['data/nowcast-desk.json','https://justhodl.ai/data/nowcast-desk.json','https://justhodl-dashboard-live.s3.amazonaws.com/data/nowcast-desk.json'];
+  for(var i=0;i<urls.length;i++){try{var r=await fetch(urls[i]+'?cb='+Date.now());if(r.ok)return await r.json();}catch(e){}}
+  throw new Error('feed unavailable');
+}
+function sgn(v,inv){if(v==null)return'';var p=inv?v<0:v>0;return '<span class="'+(p?'pos':(v?'neg':'mute'))+'">'+(v>0?'+':'')+v+'</span>';}
+function render(d){
+  try{document.getElementById('asof').textContent='· updated '+new Date(d.generated_at).toLocaleString();}catch(e){}
+  // quadrant
+  try{var q=d.nowcast_quadrant,el=document.getElementById('quad');
+    if(q){var hot=/OVERHEAT|STAGFLATION|HOT/.test(q.regime),cool=/GOLDILOCKS|SOFT LANDING|DISINFLATION/.test(q.regime);
+      var cls=hot?'bd-hot':cool?'bd-cool':'bd-neu';
+      el.innerHTML='<div class="quad"><span class="badge '+cls+'">'+q.regime+'</span><div class="rg mono '+(hot?'neg':cool?'pos':'gold')+'"></div><div class="lab">Growth <b class="'+(q.growth.indexOf("ABOVE")>=0?"pos":"neg")+'">'+q.growth+'</b> ('+q.gdpnow+'% GDPNow) · Inflation <b class="'+(q.inflation==="HOT"?"neg":q.inflation==="COOLING"?"pos":"gold")+'">'+q.inflation+'</b> ('+q.underlying_inflation+'% underlying)</div></div>';}
+    else el.innerHTML='<div class="err">quadrant unavailable</div>';
+  }catch(e){document.getElementById('quad').innerHTML='<div class="err">render error</div>';}
+  // gdp
+  try{var g=d.gdp_nowcast||{},el2=document.getElementById('gdp');
+    if(g.value!=null){var s=g.signal||'';var c=g.value>=2?'pos':g.value>=1?'gold':'neg';
+      el2.innerHTML='<div class="big mono '+c+'">'+g.value.toFixed(2)+'%</div><div class="lab">SAAR · '+s+' · as of '+g.asof+' '+(g.chg!=null?'('+sgn(g.chg)+' vs prior)':'')+'</div><div class="note">'+(g.note||'')+'.</div>';}
+    else el2.innerHTML='<div class="err">'+(g.error||'unavailable')+'</div>';
+  }catch(e){document.getElementById('gdp').innerHTML='<div class="err">render error</div>';}
+  // wage
+  try{var w=d.wage_growth_tracker||{},o=w.overall||{},el3=document.getElementById('wage');
+    if(o.value!=null){var rows='';['overall','job_switchers','job_stayers'].forEach(function(k){var m=w[k];if(m&&m.value!=null)rows+='<tr><td>'+m.label.replace(/Wage Growth.*?— /,'').replace(/ \(.*/,'')+'</td><td class="mono">'+m.value.toFixed(1)+'%</td><td>'+sgn(m.yoy,true)+'</td></tr>';});
+      el3.innerHTML='<div class="big mono gold">'+o.value.toFixed(1)+'%</div><div class="lab">median hourly wage growth, 3m MA</div>'+(w.switcher_premium_pct!=null?'<div class="note">Job-switcher premium: <b class="acc">'+w.switcher_premium_pct+'pp</b> — a labor-market tightness gauge.</div>':'')+'<table style="margin-top:8px"><tr><th>Cohort</th><th>Growth</th><th>YoY</th></tr>'+rows+'</table>';}
+    else el3.innerHTML='<div class="err">'+(o.error||'unavailable')+'</div>';
+  }catch(e){document.getElementById('wage').innerHTML='<div class="err">render error</div>';}
+  // underlying inflation
+  try{var inf=d.underlying_inflation||{},comp=inf.composite||{},el4=document.getElementById('infl');
+    if(comp.underlying_inflation_pct!=null){var c=comp.underlying_inflation_pct;
+      document.getElementById('inflhead').innerHTML='Composite underlying inflation <b class="'+(c>2.3?'neg':c<1.7?'pos':'gold')+' mono" style="font-size:22px">'+c.toFixed(2)+'%</b> · <span class="badge '+(c>2.3?'bd-hot':c<1.7?'bd-cool':'bd-neu')+'">'+comp.trend+'</span> · <span class="lab">'+(comp.vs_fed_target_bps>0?'+':'')+comp.vs_fed_target_bps+'bps vs 2% target · '+comp.n_measures+' measures</span>';
+      var order=['sticky_cpi','core_sticky_cpi','median_cpi','trimmed_mean_cpi','trimmed_mean_pce'];var rows='';
+      order.forEach(function(k){var m=inf[k];if(m&&m.value!=null)rows+='<tr><td>'+m.label+'</td><td class="mono '+(m.value>2.3?'neg':m.value<1.7?'pos':'gold')+'">'+m.value.toFixed(2)+'%</td><td>'+sgn(m.chg)+'</td></tr>';});
+      el4.innerHTML='<table><tr><th>Measure</th><th>Latest</th><th>Δ</th></tr>'+rows+'</table>';}
+    else el4.innerHTML='<div class="err">unavailable</div>';
+  }catch(e){document.getElementById('infl').innerHTML='<div class="err">render error</div>';}
+  try{document.getElementById('foot').textContent=(d.source||'');}catch(e){}
+}
+getJSON().then(render).catch(function(e){document.querySelectorAll('.err').forEach(function(n){n.textContent='feed not available yet';});});
+</script>
+</body>
+</html>
