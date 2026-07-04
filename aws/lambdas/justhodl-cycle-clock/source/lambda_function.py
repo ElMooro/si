@@ -501,6 +501,10 @@ def lambda_handler(event, context):
     vixc = load("data/vix-curve.json", "vix_curve")
     dollar = load("data/dollar-radar.json", "dollar_radar")
     epsrev = load("data/eps-revision-velocity.json", "eps_revisions")
+    # hard-data recession cluster (income-side GDP, freight, business investment)
+    bea_hd = load("data/bea-economic.json", "bea_hard_data")
+    mleads_hd = load("data/macro-leads.json", "macro_leads_hd")
+    census_hd = load("data/census-economic.json", "census_hard_data")
     # Phase 6 — broaden the synthesis across the fleet
     fedspeak = load("data/fed-speak.json", "fed_speak")
     fednlp = load("data/fed-nlp.json", "fed_nlp")
@@ -624,6 +628,50 @@ def lambda_handler(event, context):
         rp_max += 15
         if str(sr_app).upper() in ("RISK-OFF", "DEFENSIVE", "DEFENSIVE LEADERSHIP"):
             rp_votes += 15
+    # ── hard-data recession cluster: GDP-GDI gap (income vs output) + freight (goods
+    # economy) + core capex (business investment). Orthogonal to the yield-curve/credit/
+    # nowcast votes above; each adds its own max so the composite stays balanced —
+    # strong capex correctly contributes non-recessionary evidence, not just votes. ──
+    hard_data_recession = {}
+    _gg = _get(bea_hd, "gdp_gdi", default={}) or {}
+    _gdi_gap = _gg.get("gap_pct")
+    if _gdi_gap is not None:
+        hard_data_recession["gdp_gdi_gap_pct"] = _gdi_gap
+        hard_data_recession["real_gdi_pct"] = _gg.get("real_gdi_pct")
+        rp_max += 12
+        if _gdi_gap > 1.0:
+            rp_votes += 12       # GDI materially weaker than GDP — income-side recession tell
+        elif _gdi_gap > 0.5:
+            rp_votes += 6
+    _fr = _get(mleads_hd, "freight_activity", "composite", default={}) or {}
+    _fr_read = _fr.get("read")
+    if _fr_read:
+        hard_data_recession["freight_read"] = _fr_read
+        hard_data_recession["freight_yoy_pct"] = _fr.get("avg_yoy_pct")
+        rp_max += 10
+        if "CONTRACT" in _fr_read:
+            rp_votes += 10       # freight recession — goods economy contracting
+        elif "SOFT" in _fr_read or "FLAT" in _fr_read:
+            rp_votes += 4
+    _cx = _get(census_hd, "manufacturing_orders", "core_capex_orders", default={}) or {}
+    _cx_yoy = _cx.get("yoy_pct")
+    if _cx_yoy is not None:
+        hard_data_recession["core_capex_yoy_pct"] = _cx_yoy
+        rp_max += 10
+        if _cx_yoy < 0:
+            rp_votes += 10       # capex contracting — investment-cycle recession signal
+        elif _cx_yoy < 2:
+            rp_votes += 4
+        # strong capex (>2% YoY) adds max but zero votes = active non-recessionary evidence
+    if hard_data_recession:
+        _weak = sum(1 for c in [
+            (_gdi_gap is not None and _gdi_gap > 1.0),
+            (_fr_read and "CONTRACT" in _fr_read),
+            (_cx_yoy is not None and _cx_yoy < 0)] if c)
+        hard_data_recession["recession_signals"] = _weak
+        hard_data_recession["read"] = ("HARD DATA CONFIRMS RECESSION RISK" if _weak >= 2
+                                       else "HARD DATA MIXED — one soft read" if _weak == 1
+                                       else "HARD DATA NOT RECESSIONARY")
     recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
     sahm = _sahm()
     yc_decomp = {"real_10y_pct": _get(ycurve, "real_yields", "10Y_REAL", "value_pct"),
@@ -867,6 +915,7 @@ def lambda_handler(event, context):
         "macro_regime_quadrant": quad,
         "surprise_tilt": surprise, "asset_leadership": assets,
         "recession_prob_pct": recession_prob,
+        "hard_data_recession": hard_data_recession or None,
         "sahm": sahm,
         "yield_curve_regime": yc_regime, "yield_curve_decomp": yc_decomp,
         "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,
