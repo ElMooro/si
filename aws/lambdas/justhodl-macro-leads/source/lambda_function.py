@@ -226,7 +226,7 @@ def block_heavy_truck():
             if prev:
                 yoy = round(100.0 * (last[1] - prev) / prev, 1)
         vals = [v for _, v in s]
-        return {"units_saar_thousands": round(last[1], 1), "asof": last[0], "yoy_pct": yoy,
+        return {"saar_millions": round(last[1], 3), "asof": last[0], "yoy_pct": yoy,
                 "z_1y": zscore(vals), "note": "peaks tend to lead S&P 500 downturns by 12-18 months"}
     except Exception as e:
         return {"error": str(e)[:120]}
