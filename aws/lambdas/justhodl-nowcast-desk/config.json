@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-nowcast-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Terminal-grade free Fed nowcast suite: Atlanta GDPNow, underlying inflation (sticky/median/trimmed CPI+PCE), Atlanta Wage Growth Tracker, growth x inflation quadrant. FRED-sourced.",
+  "env": {},
+  "schedule": {"rule_name": "justhodl-nowcast-desk-daily", "cron": "cron(30 13 * * ? *)", "description": "Daily 13:30 UTC — refresh Fed nowcast desk"}
+}
