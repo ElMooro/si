@@ -87,6 +87,32 @@ def _install():
             except Exception:
                 body = None
 
+            # economy-mode + runaway guard for raw urllib callers (mirror the router):
+            # in economy mode, rewrite Sonnet/Opus -> Haiku; always cap max_tokens<=6000.
+            if body is not None:
+                try:
+                    import llm_cost as _lcg
+                    mutated = False
+                    mdl = str(body.get("model", ""))
+                    if _lcg._config().get("mode") == "economy" and ("sonnet" in mdl or "opus" in mdl):
+                        body["model"] = "claude-haiku-4-5-20251001"
+                        mutated = True
+                    try:
+                        if int(body.get("max_tokens") or 1024) > 6000:
+                            body["max_tokens"] = 6000
+                            mutated = True
+                    except Exception:
+                        pass
+                    if mutated:
+                        data = json.dumps(body).encode("utf-8")
+                        try:
+                            req.data = data
+                            req.remove_header("Content-length")
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+
             # cost governance: content-cache hit / hard budget cap (fail-safe)
             if body is not None:
                 try:

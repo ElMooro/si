@@ -5,7 +5,9 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
   "timeout": 300,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Real-time news wire: NewsAPI + FMP general/financial. Hash-dedupe, Claude batch classifies (tickers/themes/sentiment/urgency), per-headline impact-on-your-portfolio scoring. Top 10 24h surfaced + Telegram on urgency>=4 & impact>=6.",
   "env": {
@@ -19,7 +21,7 @@
   },
   "schedule": {
     "rule_name": "news-wire-15m",
-    "cron": "rate(15 minutes)",
-    "description": "Every 15m — high-velocity news with portfolio impact scoring"
+    "cron": "rate(30 minutes)",
+    "description": "Every 15m \u2014 high-velocity news with portfolio impact scoring"
   }
 }
