@@ -8,6 +8,11 @@ on:
     paths:
       - 'aws/lambdas/*/source/**'
       - 'aws/lambdas/*/config.json'
+      # Shared modules are bundled into every Lambda zip. A change here must
+      # fire this workflow so the detect step can redeploy the importers
+      # (the 2026-06-29 hardening added the handling but not this trigger path).
+      - 'aws/shared/**/*.py'
+      - 'aws/shared/*.py'
   workflow_dispatch:
     inputs:
       function:
