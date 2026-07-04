@@ -143,3 +143,5 @@ def _install():
 
 
 _install()
+
+# deploy-nudge: force redeploy of importers to pick up cost governance (ops 2790).

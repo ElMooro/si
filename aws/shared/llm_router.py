@@ -151,3 +151,5 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
         except Exception:
             pass
     return txt
+
+# deploy-nudge: force redeploy of importers to pick up cost governance (ops 2790).
