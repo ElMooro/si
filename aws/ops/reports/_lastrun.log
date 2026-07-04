@@ -1,7 +1,6 @@
-redeploy ages: {"justhodl-equity-research": 734.3, "justhodl-ticker-deep-research": 718.6, "justhodl-research-critique": 722.1, "justhodl-news-wire": 726.1}
-engine_caps (SSM): {"justhodl-equity-research": 1, "justhodl-ticker-deep-research": 1, "justhodl-news-wire": 1, "justhodl-research-critique": 1}
-config picked up caps: {"justhodl-equity-research": 1, "justhodl-ticker-deep-research": 1, "justhodl-news-wire": 1, "justhodl-research-critique": 1}
-news_wire_cron: None
-cap_logic: {"at_0_calls_allowed": true, "at_1_call_blocked": true}
-STATUS: CHECK
-OPS 2800 COMPLETE
+justhodl-equity-research | mod=2026-07-04T04:36:17 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
+justhodl-ticker-deep-research | mod=2026-07-04T04:52:00 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
+justhodl-research-critique | mod=2026-07-04T04:48:26 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
+justhodl-news-wire | mod=2026-07-04T04:44:29 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
+VERDICT: CAP CODE DEPLOYED
+OPS 2801 COMPLETE
