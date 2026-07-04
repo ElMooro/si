@@ -948,6 +948,38 @@ def lambda_handler(event, context):
     HIGH_BETA_SECTORS = {"Technology", "Consumer Cyclical", "Energy", "Financial Services",
                          "Basic Materials", "Communication Services", "Industrials"}
     DEFENSIVE_SECTORS = {"Utilities", "Consumer Defensive", "Healthcare", "Real Estate"}
+    ENERGY_MATERIALS = {"Energy", "Basic Materials", "Materials"}
+    # ── Nowcast-regime overlay (Fed growth×inflation nowcast: GDPNow + underlying inflation) ──
+    _nc_desk = fetch_json("data/nowcast-desk.json", max_age_h=48) or {}
+    _nc_quad = _nc_desk.get("nowcast_quadrant") or {}
+    _nc_regime = _nc_quad.get("regime")
+
+    def _nowcast_overlay(sector, base_score):
+        # regime-conditional macro tilt from the Fed nowcast desk. GOLDILOCKS favors
+        # high-beta; OVERHEAT/STAGFLATION favor energy/materials (real assets);
+        # STAGFLATION/DISINFLATION lift defensives and haircut cyclicals.
+        if not _nc_regime or not sector:
+            return base_score, 1.0, None
+        hb = sector in HIGH_BETA_SECTORS
+        dfn = sector in DEFENSIVE_SECTORS
+        em = sector in ENERGY_MATERIALS
+        r = _nc_regime
+        m = 1.0
+        if r == "GOLDILOCKS":
+            m = 1.06 if hb else (0.97 if dfn else 1.0)
+        elif r == "OVERHEAT":
+            m = 1.08 if em else (1.03 if hb else (0.98 if dfn else 1.0))
+        elif r == "STAGFLATION":
+            m = 1.08 if em else (1.05 if dfn else (0.90 if hb else 1.0))
+        elif r == "SOFT LANDING":
+            m = 1.03 if hb else 1.0
+        elif r.startswith("DISINFLATION"):
+            m = 0.90 if em else (1.06 if dfn else (0.95 if hb else 1.0))
+        m = round(m, 3)
+        if m == 1.0:
+            return base_score, 1.0, None
+        tag = "nowcast tailwind" if m > 1 else "nowcast headwind"
+        return round(base_score * m, 1), m, f"nowcast {r} {tag} ({sector})"
 
     def _ticker_sector(systems_dict):
         for v in systems_dict.values():
@@ -1075,6 +1107,7 @@ def lambda_handler(event, context):
         score, roro_mult, roro_note = _roro_overlay(_sector, score)
         score, liq_mult, liq_note = _liq_overlay(_sector, score)
         score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
+        score, nc_mult, nc_note = _nowcast_overlay(_sector, score)
         # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
         _cyc = _cycle_map.get(ticker)
         _cyc_phase = (_cyc or {}).get("phase")
@@ -1097,6 +1130,8 @@ def lambda_handler(event, context):
             rationale += " · " + liq_note
         if sf_note:
             rationale += " · " + sf_note
+        if nc_note:
+            rationale += " · " + nc_note
         if _cyc_warn:
             rationale += " · cycle: " + _cyc_warn
         if _rf:
@@ -1110,6 +1145,7 @@ def lambda_handler(event, context):
             "capital_flow_mult": cf_mult,
             "risk_regime_mult": roro_mult,
             "liquidity_regime_mult": liq_mult,
+            "nowcast_regime_mult": nc_mult,
             "cycle_phase": _cyc_phase,
             "cycle_warning": _cyc_warn,
             "red_flags": _rf,
@@ -1158,6 +1194,18 @@ def lambda_handler(event, context):
             "score": _rr_score, "regime": _rr_regime,
             "posture": _rr.get("posture"),
             "tells": (_rr.get("tells") or [])[:5],
+        },
+        "nowcast_regime": {
+            "regime": _nc_regime,
+            "gdpnow": _nc_quad.get("gdpnow"),
+            "underlying_inflation": _nc_quad.get("underlying_inflation"),
+            "growth": _nc_quad.get("growth"),
+            "inflation": _nc_quad.get("inflation"),
+            "tilt": ("energy/materials + defensives" if _nc_regime == "STAGFLATION"
+                     else "high-beta / cyclicals" if _nc_regime == "GOLDILOCKS"
+                     else "energy/materials + cyclicals" if _nc_regime == "OVERHEAT"
+                     else "defensives / duration" if (_nc_regime or "").startswith("DISINFLATION")
+                     else "balanced" if _nc_regime == "SOFT LANDING" else None),
         },
         "n_tickers_total": len(ticker_idx),
         "n_macro_signals": len(macro_signals),

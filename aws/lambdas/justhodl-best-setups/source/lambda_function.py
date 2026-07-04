@@ -288,6 +288,37 @@ def lambda_handler(event, context):
             return 1.0, None
         return m, f"RORO {_rr_regime} {'tailwind' if m > 1 else 'haircut'}"
 
+    # ── Fed nowcast growth×inflation regime gate (GDPNow + underlying inflation) ──
+    _nc_desk = read_json("data/nowcast-desk.json") or {}
+    _nc_q = _nc_desk.get("nowcast_quadrant") or {}
+    _nc_regime = _nc_q.get("regime")
+    _nc_quad_growth = _nc_q.get("growth")
+    _nc_quad_infl = _nc_q.get("inflation")
+    RR_ENERGY_MAT = {"Energy", "Basic Materials", "Materials"}
+
+    def _nowcast_scalar(sector):
+        """Fed nowcast regime gate: GOLDILOCKS→high-beta, OVERHEAT/STAGFLATION→energy/
+        materials, STAGFLATION/DISINFLATION→defensives & haircut cyclicals. (mult, note|None)."""
+        if not _nc_regime or not sector:
+            return 1.0, None
+        hb, dfn, em = sector in RR_HIGH_BETA, sector in RR_DEFENSIVE, sector in RR_ENERGY_MAT
+        r = _nc_regime
+        m = 1.0
+        if r == "GOLDILOCKS":
+            m = 1.05 if hb else (0.98 if dfn else 1.0)
+        elif r == "OVERHEAT":
+            m = 1.06 if em else (1.02 if hb else (0.99 if dfn else 1.0))
+        elif r == "STAGFLATION":
+            m = 1.06 if em else (1.04 if dfn else (0.92 if hb else 1.0))
+        elif r == "SOFT LANDING":
+            m = 1.02 if hb else 1.0
+        elif r.startswith("DISINFLATION"):
+            m = 0.92 if em else (1.05 if dfn else (0.96 if hb else 1.0))
+        m = round(m, 3)
+        if m == 1.0:
+            return 1.0, None
+        return m, f"nowcast {r} {'tailwind' if m > 1 else 'haircut'}"
+
     bond_vol = read_json("data/bond-vol.json") or {}
     massive = read_json("data/massive-signals.json") or {}
     bottleneck = read_json("data/bottleneck-boom.json") or {}
@@ -653,6 +684,11 @@ def lambda_handler(event, context):
         if _rr_mult != 1.0:
             composite = round(min(100.0, composite * _rr_mult), 1)
 
+        # ── Fed nowcast regime gate (growth×inflation): tilt by macro backdrop ──
+        _nc_mult, _nc_note = _nowcast_scalar(_eff_sector)
+        if _nc_mult != 1.0:
+            composite = round(min(100.0, composite * _nc_mult), 1)
+
         # ── CYCLE gate (accumulation-radar): a buy signal on a name distributing at a
         # top is lower quality. Tag the phase; gently haircut only the strongest tell
         # (LIKELY_TOP + bearish OBV divergence). Confirmation only, proven math otherwise intact. ──
@@ -758,6 +794,8 @@ def lambda_handler(event, context):
                 why_text += f" Note: bond-vol regime is {bv_regime} — size accordingly."
             if _rr_note:
                 why_text += f" Cross-asset RORO is {_rr_regime} — {_rr_note.split('RORO ')[-1]} applied."
+            if _nc_note:
+                why_text += f" Fed nowcast regime is {_nc_regime} ({_nc_quad_growth}/{_nc_quad_infl}) — {_nc_note.split('nowcast ')[-1]} applied."
             if _cyc_warning:
                 why_text += (f" Caution: the accumulation-radar has {tk} "
                              f"{'at a likely top with bearish volume divergence' if _cyc_warning == 'likely_top_bearish_divergence' else 'under distribution'} — "
@@ -773,6 +811,7 @@ def lambda_handler(event, context):
             "name": rec["name"],
             "conviction": round(composite, 1),
             "risk_regime_mult": _rr_mult,
+            "nowcast_regime_mult": _nc_mult,
             "cycle_phase": (_cyc or {}).get("phase"),
             "cycle_flag": (_cyc or {}).get("flag"),
             "cycle_warning": _cyc_warning,
@@ -949,6 +988,8 @@ def lambda_handler(event, context):
         "weight_source": weight_src,
         "bond_vol_regime": {"regime": bv_regime or None, "composite_z": bv_z,
                             "risk_posture": bv_posture, "conviction_multiplier": regime_mult},
+        "nowcast_regime": {"regime": _nc_regime, "growth": _nc_quad_growth, "inflation": _nc_quad_infl,
+                           "gdpnow": _nc_q.get("gdpnow"), "underlying_inflation": _nc_q.get("underlying_inflation")},
         "methodology": (
             "conviction = Σ(signal_strength × learned_weight) × confluence(1+0.22 "
             "per extra independent signal, cap 2.2) × 22, clamped 100. Weights are "
