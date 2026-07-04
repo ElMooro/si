@@ -78,19 +78,33 @@ def zscore(series_vals):
     return round((series_vals[-1] - mu) / sd, 2)
 
 
+def stooq(symbol, days=400):
+    """Free daily close CSV from stooq (no key). Returns [(date, close)] ascending."""
+    raw = _get("https://stooq.com/q/d/l/?s=%s&i=d" % symbol, timeout=30).decode("utf-8", "ignore")
+    out = []
+    for ln in raw.splitlines()[1:]:
+        p = ln.split(",")
+        if len(p) >= 5:
+            try:
+                out.append((p[0], float(p[4])))
+            except Exception:
+                pass
+    return out[-days:]
+
+
 def block_metal_ratios():
-    """Copper/Gold + Gold/Silver from FMP metals (COMEX-linked)."""
+    """Copper/Gold + Gold/Silver ratios from free stooq daily data."""
     out = {}
     try:
-        gold = fmp_hist("GCUSD")      # gold
-        silver = fmp_hist("SIUSD")    # silver
-        copper = fmp_hist("HGUSD")    # copper (per lb)
-        gmap = dict(gold); smap = dict(silver); cmap = dict(copper)
-        # align on common dates
-        dates = sorted(set(gmap) & set(cmap))
-        cg = [(d, cmap[d] / gmap[d]) for d in dates if gmap[d]]
-        dates2 = sorted(set(gmap) & set(smap))
-        gs = [(d, gmap[d] / smap[d]) for d in dates2 if smap[d]]
+        gold = dict(stooq("xauusd"))
+        silver = dict(stooq("xagusd"))
+        copper = dict(stooq("hg.f"))     # COMEX copper $/lb
+        if not copper:
+            copper = dict(stooq("xcuusd"))
+        dcg = sorted(set(gold) & set(copper))
+        cg = [(d, copper[d] / gold[d]) for d in dcg if gold[d]]
+        dgs = sorted(set(gold) & set(silver))
+        gs = [(d, gold[d] / silver[d]) for d in dgs if silver[d]]
         if cg:
             vals = [v for _, v in cg]
             out["copper_gold"] = {"ratio": round(cg[-1][1], 6), "z_1y": zscore(vals),
@@ -102,70 +116,48 @@ def block_metal_ratios():
                                   "asof": gs[-1][0], "n": len(gs),
                                   "note": "high gold/silver = risk-off / deflation lean"}
     except Exception as e:
-        out["error"] = str(e)[:120]
-    # FRED copper fallback for context if FMP metals empty
-    if "copper_gold" not in out:
-        try:
-            cop = fred_series("PCOPPUSDM", 240)
-            if cop:
-                out["copper_fred_monthly_usd_mt"] = {"value": cop[-1][1], "asof": cop[-1][0]}
-        except Exception:
-            pass
+        out["error"] = str(e)[:150]
     return out
 
 
 def block_rate_cut_diffusion():
-    """Net % of central banks whose last policy move was a cut, from BIS CBPOL."""
-    try:
-        # BIS SDMX v2 — monthly central-bank policy rates, all series, CSV
-        url = "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M..?format=csv&lastNObservations=18"
-        raw = _get(url, timeout=45).decode("utf-8", "ignore")
-        lines = [ln for ln in raw.splitlines() if ln.strip()]
-        if len(lines) < 2:
-            return {"error": "empty BIS response"}
-        hdr = lines[0].split(",")
-        # find the key column (series ref) and TIME/OBS
+    """Net % of central banks whose last policy move was a cut, from FRED's
+    consistent 'Immediate Rates: Central Bank Rates' (IRSTCB01{cc}M156N) series."""
+    countries = {"US": "US", "Euro area": "EZ", "Japan": "JP", "UK": "GB", "Canada": "CA",
+                 "Australia": "AU", "Switzerland": "CH", "Sweden": "SE", "Norway": "NO",
+                 "Korea": "KR", "Mexico": "MX", "Brazil": "BR", "India": "IN", "China": "CN",
+                 "S.Africa": "ZA", "Poland": "PL", "Turkey": "TR", "Indonesia": "ID",
+                 "N.Zealand": "NZ", "Chile": "CL"}
+    cutting = hiking = held = 0
+    detail = {}
+    for name, cc in countries.items():
         try:
-            i_ref = next(i for i, h in enumerate(hdr) if "REF_AREA" in h.upper())
-        except StopIteration:
-            i_ref = 1
-        try:
-            i_time = next(i for i, h in enumerate(hdr) if h.upper() in ("TIME_PERIOD", "TIME"))
-            i_val = next(i for i, h in enumerate(hdr) if h.upper() in ("OBS_VALUE", "VALUE"))
-        except StopIteration:
-            return {"error": "BIS columns not found"}
-        by_cb = {}
-        for ln in lines[1:]:
-            p = ln.split(",")
-            if len(p) <= max(i_ref, i_time, i_val):
+            s = fred_series("IRSTCB01%sM156N" % cc, 60)
+            if len(s) < 4:
                 continue
-            cb = p[i_ref]
-            try:
-                v = float(p[i_val])
-            except Exception:
-                continue
-            by_cb.setdefault(cb, []).append((p[i_time], v))
-        cutting = hiking = held = 0
-        for cb, obs in by_cb.items():
-            obs.sort()
-            if len(obs) < 2:
-                continue
-            last, prev = obs[-1][1], obs[-2][1]
-            if last < prev - 0.001:
-                cutting += 1
-            elif last > prev + 0.001:
-                hiking += 1
+            recent = [v for _, v in s][-13:]  # ~1y of monthly obs
+            last = recent[-1]
+            prev = None
+            for v in reversed(recent[:-1]):
+                if abs(v - last) > 0.02:
+                    prev = v
+                    break
+            if prev is None:
+                held += 1; detail[name] = "hold"
+            elif last < prev:
+                cutting += 1; detail[name] = "cut"
             else:
-                held += 1
-        n = cutting + hiking + held
-        if not n:
-            return {"error": "no CB moves parsed"}
-        return {"n_central_banks": n, "cutting": cutting, "hiking": hiking, "holding": held,
-                "net_pct_cutting": round(100.0 * (cutting - hiking) / n, 1),
-                "regime": ("EASING" if cutting > hiking else "TIGHTENING" if hiking > cutting else "ON_HOLD"),
-                "note": "net % of CBs whose last move was a cut minus hike — global monetary breadth"}
-    except Exception as e:
-        return {"error": str(e)[:150]}
+                hiking += 1; detail[name] = "hike"
+        except Exception:
+            continue
+    n = cutting + hiking + held
+    if not n:
+        return {"error": "no central-bank rate series fetched"}
+    return {"n_central_banks": n, "cutting": cutting, "hiking": hiking, "holding": held,
+            "net_pct_cutting": round(100.0 * (cutting - hiking) / n, 1),
+            "regime": ("EASING" if cutting > hiking else "TIGHTENING" if hiking > cutting else "ON_HOLD"),
+            "by_country": detail,
+            "note": "net % of central banks whose last move was a cut minus hike — global monetary breadth"}
 
 
 def block_gpr():
