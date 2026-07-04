@@ -1,4 +1,21 @@
-page: {"status": 200, "has_marker": true}
-feed: {"status": 200, "populated": ["copper_gold_silver", "rate_cut_diffusion", "geopolitical_risk", "heavy_truck_sales"]}
-STATUS: PAGE LIVE
-OPS 2810 COMPLETE
+{
+ "ready": true,
+ "verify": {
+  "populated": [
+   "copper_gold_silver",
+   "rate_cut_diffusion",
+   "geopolitical_risk",
+   "heavy_truck_sales"
+  ],
+  "copper_gold": 0.001486,
+  "copper_gold_z": 1.32,
+  "gold_silver": 66.661,
+  "rate_cut_net_pct": -25.0,
+  "rate_cut_regime": "TIGHTENING",
+  "n_cbs": 8,
+  "gpr": 173.6,
+  "heavy_truck": null,
+  "heavy_truck_yoy": -6.0
+ }
+}
+OPS 2807 COMPLETE
