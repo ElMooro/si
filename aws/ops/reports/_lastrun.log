@@ -1,39 +1,26 @@
 {
- "crude_inv_exSPR": {
-  "WCESTUS1": "ERR HTTP Error 400: Bad Request",
-  "WCRSTUS1": "ERR HTTP Error 400: Bad Request",
-  "WTTSTUS1": "ERR HTTP Error 400: Bad Request",
-  "W_EPC0_SAX_NUS_MBBL": "ERR HTTP Error 400: Bad Request"
- },
- "crude_production": {
-  "WCRFPUS2": "ERR HTTP Error 400: Bad Request",
-  "MCRFPUS2": "ERR HTTP Error 400: Bad Request",
-  "WPRD_EPC0_FPF_NUS_MBBLD": "ERR HTTP Error 400: Bad Request"
- },
- "SPR_stocks": {
-  "WCSSTUS1": "ERR HTTP Error 400: Bad Request",
-  "WCESTUS1": "ERR HTTP Error 400: Bad Request"
- },
- "gasoline_stocks": {
-  "WGTSTUS1": "ERR HTTP Error 400: Bad Request",
-  "WGFSTUS1": "ERR HTTP Error 400: Bad Request"
- },
- "distillate_stocks": {
-  "WDISTUS1": "ERR HTTP Error 400: Bad Request",
-  "WDIESTUS1": "ERR HTTP Error 400: Bad Request"
- },
- "crude_imports": {
-  "WCEIMUS2": "ERR HTTP Error 400: Bad Request",
-  "WCRIMUS2": "ERR HTTP Error 400: Bad Request"
- },
- "crude_exports": {
-  "WCREXUS2": "ERR HTTP Error 400: Bad Request",
-  "WCRExUS2": "ERR HTTP Error 400: Bad Request"
- },
- "natgas_storage": {
-  "NGSTOR": "ERR HTTP Error 400: Bad Request",
-  "WNGSTUS1": "ERR HTTP Error 400: Bad Request",
-  "NW2_EPG0_SWO_R48_BCF": "ERR HTTP Error 400: Bad Request"
- }
+ "crude_stocks": [],
+ "crude_production": [],
+ "natgas_storage": [],
+ "gasoline_stocks": [
+  {
+   "id": "M0127AUSM387NNBR",
+   "title": "Gasoline, Total Domestic Demand for United States",
+   "freq": "M",
+   "end": "1930-12-01"
+  },
+  {
+   "id": "M0127BUSM386NNBR",
+   "title": "Gasoline, Total Domestic Demand for United States",
+   "freq": "M",
+   "end": "1965-11-01"
+  },
+  {
+   "id": "M0514DUSM387NNBR",
+   "title": "Finished Gasoline Stocks, Total for United States",
+   "freq": "M",
+   "end": "1953-12-01"
+  }
+ ]
 }
-OPS 2812 COMPLETE
+OPS 2813 COMPLETE
