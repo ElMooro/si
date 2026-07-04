@@ -60,7 +60,9 @@ def _client(svc):
 
 
 # ---- config (warm-container cached, 5-min refresh) ----------------------------
-_cfg = {"t": 0.0, "mode": "normal", "budget": 25.0, "prices": None}
+_cfg = {"t": 0.0, "mode": "normal", "budget": 25.0, "prices": None, "engine_caps": {}}
+
+_CAPS_SSM = "/justhodl/llm/engine-daily-cap"
 
 
 def _config():
@@ -74,6 +76,10 @@ def _config():
             pass
         try:
             _cfg["budget"] = float(ssm.get_parameter(Name=_BUDGET_SSM)["Parameter"]["Value"])
+        except Exception:
+            pass
+        try:
+            _cfg["engine_caps"] = json.loads(ssm.get_parameter(Name=_CAPS_SSM)["Parameter"]["Value"])
         except Exception:
             pass
         try:
@@ -155,6 +161,10 @@ def log_cost(model, in_tok, out_tok, cached=False):
             UpdateExpression="ADD calls :one, real_calls :one, in_tok :i, out_tok :o, cost_usd :c",
             ExpressionAttributeValues={":one": {"N": "1"}, ":i": {"N": str(in_tok)},
                                        ":o": {"N": str(out_tok)}, ":c": {"N": "%.6f" % cost}})
+        try:
+            _cap_cache["n"][_ENGINE] = _cap_cache["n"].get(_ENGINE, 0) + 1  # same-container cap accuracy
+        except Exception:
+            pass
         return cost
     except Exception:
         return 0.0
@@ -189,6 +199,43 @@ def budget_ok():
         return _spent_today() < cfg["budget"]
     except Exception:
         return True  # fail OPEN on metering error — never break engines on our account
+
+
+# ---- per-engine daily call cap (rate-limit a shared/on-demand engine to N/day) --
+_cap_cache = {"t": 0.0, "n": {}}
+
+
+def _engine_real_calls_today(engine):
+    try:
+        r = _client("dynamodb").query(
+            TableName=_DDB_TABLE, KeyConditionExpression="#d = :d",
+            ExpressionAttributeNames={"#d": "date"},
+            ExpressionAttributeValues={":d": {"S": _today()}})
+        return sum(float(i.get("real_calls", {}).get("N", "0"))
+                   for i in r.get("Items", []) if i["engine_model"]["S"].startswith(engine + "|"))
+    except Exception:
+        return 0.0
+
+
+def within_daily_cap(engine=None):
+    """False -> engine hit its daily real-call quota; caller serves cache/deterministic.
+    Quota from SSM /justhodl/llm/engine-daily-cap JSON {engine: max_real_calls_per_day};
+    no entry = unlimited. Cache hits are NOT counted (free), so a capped engine still
+    serves everything already in its cache — only NEW model calls are gated."""
+    eng = engine or _ENGINE
+    try:
+        cap = (_config().get("engine_caps") or {}).get(eng)
+        if cap is None:
+            return True
+        cap = int(cap)
+        if time.time() - _cap_cache["t"] > 60:
+            _cap_cache["n"] = {}
+            _cap_cache["t"] = time.time()
+        if eng not in _cap_cache["n"]:
+            _cap_cache["n"][eng] = _engine_real_calls_today(eng)
+        return _cap_cache["n"][eng] < cap
+    except Exception:
+        return True  # fail OPEN — never break an engine on a cap error
 
 
 def economy_downgrade(tier):

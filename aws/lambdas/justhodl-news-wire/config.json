@@ -21,7 +21,7 @@
   },
   "schedule": {
     "rule_name": "news-wire-15m",
-    "cron": "rate(30 minutes)",
-    "description": "Every 15m \u2014 high-velocity news with portfolio impact scoring"
+    "cron": "cron(0 11 * * ? *)",
+    "description": "Daily 11:00 UTC \u2014 one news digest per day"
   }
 }

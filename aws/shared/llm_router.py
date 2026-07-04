@@ -134,6 +134,9 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
             if not llm_cost.budget_ok():
                 print("[llm_router] daily LLM budget cap hit (or mode=off) -> empty; engine uses deterministic fallback")
                 return ""
+            if not llm_cost.within_daily_cap():
+                print("[llm_router] engine daily call cap reached -> empty; engine uses deterministic fallback")
+                return ""
         except Exception:
             key = None
 

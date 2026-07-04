@@ -127,6 +127,8 @@ def _install():
                         return _FakeResp(_anthropic_shape(hit, model))
                     if not _lc.budget_ok():
                         return _FakeResp(_anthropic_shape("", model))  # -> deterministic fallback
+                    if not _lc.within_daily_cap():
+                        return _FakeResp(_anthropic_shape("", model))  # engine daily cap -> deterministic
                 except Exception:
                     _lc = None
 
