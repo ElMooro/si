@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-llm-cost-dashboard",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 120,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Aggregates the justhodl-llm-cost DDB ledger into data/llm-cost.json for the LLM Cost Desk. Per-day (14d) + per-engine/model (today) calls/cache-hit-rate/tokens/USD, today's spend vs SSM budget, governance mode, estimated cache savings.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "rule_name": "justhodl-llm-cost-dashboard-hourly",
+    "cron": "cron(5 * * * ? *)",
+    "description": "Hourly at :05 — refresh LLM cost ledger aggregation"
+  }
+}
