@@ -86,11 +86,10 @@ def lambda_handler(event=None, context=None):
            "gdp": {}, "pce_inflation": {}, "income": {}, "_error": None}
     errs = []
 
-    # Real GDP % change (annualized), quarterly — T10101 line 1
+    # Real GDP % change (annualized), quarterly — T10701 line "Gross domestic product (GDP)"
     try:
-        d = bea_table("T10101", "Q")
-        ser = line_series(d, "gross domestic product")
-        val, per, _ = latest_and_yoy(ser)
+        d = bea_table("T10701", "Q")
+        val, per, _ = latest_and_yoy(line_series(d, "gross domestic product (gdp)", exact=True))
         out["gdp"] = {"real_gdp_qoq_saar_pct": val, "quarter": per,
                       "signal": ("STRONG" if val and val >= 3 else "SOLID" if val and val >= 2
                                  else "SOFT" if val and val >= 1 else "STALL" if val is not None else None)}
