@@ -1,25 +1,39 @@
 {
- "ops": 2811,
- "ts": "2026-07-04T19:23:29.173990+00:00",
- "fred_from": "justhodl-china-liquidity",
- "fred_working": true,
- "invoke": {
-  "metrics_ok": 5,
-  "metrics_err": 7,
-  "s3": "data/eia-energy.json"
+ "crude_inv_exSPR": {
+  "WCESTUS1": "ERR HTTP Error 400: Bad Request",
+  "WCRSTUS1": "ERR HTTP Error 400: Bad Request",
+  "WTTSTUS1": "ERR HTTP Error 400: Bad Request",
+  "W_EPC0_SAX_NUS_MBBL": "ERR HTTP Error 400: Bad Request"
  },
- "feed": {
-  "generated_at": "2026-07-04T19:23:39.024783Z",
-  "metrics_ok": 5,
-  "WTI": 71.87,
-  "Brent": 71.59,
-  "HenryHub": 3.33,
-  "US_crude_inv_kbbl": null,
-  "US_crude_prod_kbd": null,
-  "SPR_kbbl": null,
-  "gasoline_usd_gal": 3.831,
-  "diesel_usd_gal": 4.668
+ "crude_production": {
+  "WCRFPUS2": "ERR HTTP Error 400: Bad Request",
+  "MCRFPUS2": "ERR HTTP Error 400: Bad Request",
+  "WPRD_EPC0_FPF_NUS_MBBLD": "ERR HTTP Error 400: Bad Request"
  },
- "status": "CHECK"
+ "SPR_stocks": {
+  "WCSSTUS1": "ERR HTTP Error 400: Bad Request",
+  "WCESTUS1": "ERR HTTP Error 400: Bad Request"
+ },
+ "gasoline_stocks": {
+  "WGTSTUS1": "ERR HTTP Error 400: Bad Request",
+  "WGFSTUS1": "ERR HTTP Error 400: Bad Request"
+ },
+ "distillate_stocks": {
+  "WDISTUS1": "ERR HTTP Error 400: Bad Request",
+  "WDIESTUS1": "ERR HTTP Error 400: Bad Request"
+ },
+ "crude_imports": {
+  "WCEIMUS2": "ERR HTTP Error 400: Bad Request",
+  "WCRIMUS2": "ERR HTTP Error 400: Bad Request"
+ },
+ "crude_exports": {
+  "WCREXUS2": "ERR HTTP Error 400: Bad Request",
+  "WCRExUS2": "ERR HTTP Error 400: Bad Request"
+ },
+ "natgas_storage": {
+  "NGSTOR": "ERR HTTP Error 400: Bad Request",
+  "WNGSTUS1": "ERR HTTP Error 400: Bad Request",
+  "NW2_EPG0_SWO_R48_BCF": "ERR HTTP Error 400: Bad Request"
+ }
 }
-OPS 2811 COMPLETE
+OPS 2812 COMPLETE
