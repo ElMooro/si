@@ -56,11 +56,13 @@ def _claude(prompt, model, max_tokens, system=None):
         "https://api.anthropic.com/v1/messages",
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "x-api-key": _ANTHROPIC_KEY,
-                 "anthropic-version": "2023-06-01"},
+                 "anthropic-version": "2023-06-01", "x-jh-internal": "router"},
     )
     with urllib.request.urlopen(req, timeout=60) as r:
         d = json.loads(r.read().decode())
-    return "".join(b.get("text", "") for b in d.get("content", []))
+    txt = "".join(b.get("text", "") for b in d.get("content", []))
+    u = d.get("usage") or {}
+    return txt, int(u.get("input_tokens") or 0), int(u.get("output_tokens") or 0)
 
 
 def _glm(prompt, model, max_tokens, system=None):
@@ -78,18 +80,74 @@ def _glm(prompt, model, max_tokens, system=None):
     with urllib.request.urlopen(req, timeout=90) as r:
         d = json.loads(r.read().decode())
     msg = d["choices"][0]["message"]
-    return msg.get("content") or msg.get("reasoning_content") or ""
+    txt = msg.get("content") or msg.get("reasoning_content") or ""
+    u = d.get("usage") or {}
+    return txt, int(u.get("prompt_tokens") or 0), int(u.get("completion_tokens") or 0)
 
 
-def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None):
-    """Single entry point. Returns the model's text. Falls back to Claude if GLM fails."""
+def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None,
+             cache_ttl=None, no_cache=False):
+    """Single entry point. Returns the model's text.
+
+    Cost-governed via aws/shared/llm_cost (content cache + daily budget cap +
+    per-engine metering). All governance is fail-safe: any error degrades to a
+    plain model call. `cache_ttl`/`no_cache` are optional; existing callers are
+    unaffected. Preserves the GLM->Sonnet reason-tier fallback.
+    """
+    try:
+        import llm_cost
+    except Exception:
+        llm_cost = None
+    if llm_cost is not None:
+        tier = llm_cost.economy_downgrade(tier)
+
+    # resolve model + provider
     if contains_proprietary or tier == "critical":
-        return _claude(prompt, SONNET if (contains_proprietary or tier == "critical") else HAIKU,
-                       max_tokens, system)
-    if tier == "reason":
+        model, kind = SONNET, "claude"
+    elif tier == "reason":
+        model, kind = GLM_REASON, "glm"
+    else:
+        model, kind = HAIKU, "claude"
+
+    msgs = _msgs(prompt)
+    key = None
+    if llm_cost is not None and not no_cache:
         try:
-            return _glm(prompt, GLM_REASON, max_tokens, system)
-        except Exception as e:
+            key = llm_cost.make_key(model, msgs, system, max_tokens)
+            hit = llm_cost.cache_get(key, cache_ttl)
+            if hit is not None:
+                try:
+                    import json as _j
+                    llm_cost.log_cost(model, llm_cost.estimate_tokens(_j.dumps(msgs, default=str)),
+                                      llm_cost.estimate_tokens(hit), cached=True)
+                except Exception:
+                    pass
+                return hit
+            if not llm_cost.budget_ok():
+                print("[llm_router] daily LLM budget cap hit (or mode=off) -> empty; engine uses deterministic fallback")
+                return ""
+        except Exception:
+            key = None
+
+    # real provider call (usage-instrumented)
+    try:
+        if kind == "glm":
+            txt, it, ot = _glm(prompt, GLM_REASON, max_tokens, system)
+        else:
+            txt, it, ot = _claude(prompt, model, max_tokens, system)
+    except Exception as e:
+        if kind == "glm":
             print(f"[llm_router] GLM failed ({e!r}); falling back to Sonnet")
-            return _claude(prompt, SONNET, max_tokens, system)
-    return _claude(prompt, HAIKU, max_tokens, system)  # bulk default
+            txt, it, ot = _claude(prompt, SONNET, max_tokens, system)
+            model = SONNET
+        else:
+            raise
+
+    if llm_cost is not None:
+        try:
+            llm_cost.log_cost(model, it, ot, cached=False)
+            if key and txt and txt.strip():
+                llm_cost.cache_put(key, txt, model)
+        except Exception:
+            pass
+    return txt

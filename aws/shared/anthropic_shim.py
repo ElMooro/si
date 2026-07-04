@@ -43,6 +43,20 @@ class _FakeResp:
         return False
 
 
+def _anthropic_shape(text, model="fallback"):
+    """Wrap plain text in the Anthropic messages response shape (bytes)."""
+    return json.dumps({
+        "id": "msg_shim",
+        "type": "message",
+        "role": "assistant",
+        "model": model,
+        "content": [{"type": "text", "text": text}],
+        "stop_reason": "end_turn",
+        "usage": {"input_tokens": 0, "output_tokens": 0},
+        "_via": "anthropic_shim",
+    }).encode("utf-8")
+
+
 def _install():
     if getattr(urllib.request, _PATCHED_FLAG, False):
         return
@@ -59,32 +73,69 @@ def _install():
         except Exception:
             url = ""
         if "api.anthropic.com" in url and data:
+            # llm_router-originated calls govern themselves -> pass straight through
             try:
-                return _orig(req, *args, **kwargs)          # Anthropic first
+                hdrs = getattr(req, "headers", {}) or {}
+                if any(str(k).lower() == "x-jh-internal" for k in hdrs):
+                    return _orig(req, *args, **kwargs)
+            except Exception:
+                pass
+
+            body, _lc, key = None, None, None
+            try:
+                body = json.loads(data.decode("utf-8", "ignore"))
+            except Exception:
+                body = None
+
+            # cost governance: content-cache hit / hard budget cap (fail-safe)
+            if body is not None:
+                try:
+                    import llm_cost as _lc
+                    model = body.get("model", "claude")
+                    key = _lc.make_key(model, body.get("messages"), body.get("system"),
+                                       body.get("max_tokens"))
+                    hit = _lc.cache_get(key)
+                    if hit is not None:
+                        _lc.log_cost(model, _lc.estimate_tokens(data.decode("utf-8", "ignore")),
+                                     _lc.estimate_tokens(hit), cached=True)
+                        return _FakeResp(_anthropic_shape(hit, model))
+                    if not _lc.budget_ok():
+                        return _FakeResp(_anthropic_shape("", model))  # -> deterministic fallback
+                except Exception:
+                    _lc = None
+
+            # real Anthropic call, with the existing llm_router fallback on failure
+            try:
+                resp = _orig(req, *args, **kwargs)
             except Exception as e:
                 try:
-                    body = json.loads(data.decode("utf-8", "ignore"))
                     from llm_router import complete
-                    txt = complete(
-                        body.get("messages") or "",
-                        tier="reason",                       # GLM-5.1 primary
-                        max_tokens=int(body.get("max_tokens") or 1024),
-                        system=body.get("system"),
-                    )
+                    txt = complete((body or {}).get("messages") or "", tier="reason",
+                                   max_tokens=int((body or {}).get("max_tokens") or 1024),
+                                   system=(body or {}).get("system"))
                     if txt and txt.strip():
-                        payload = json.dumps({
-                            "id": "msg_shim_fallback",
-                            "type": "message",
-                            "role": "assistant",
-                            "model": body.get("model", "fallback"),
-                            "content": [{"type": "text", "text": txt}],
-                            "stop_reason": "end_turn",
-                            "_via": "anthropic_shim->llm_router",
-                        }).encode("utf-8")
-                        return _FakeResp(payload)
+                        return _FakeResp(_anthropic_shape(txt, (body or {}).get("model", "fallback")))
                 except Exception:
                     pass
-                raise e                                       # both down → original error
+                raise e
+
+            # success -> read once, meter + cache, return identical bytes to the caller
+            try:
+                raw = resp.read()
+            except Exception:
+                return resp
+            try:
+                d = json.loads(raw.decode("utf-8", "ignore"))
+                txt = "".join(b.get("text", "") for b in d.get("content", []))
+                if _lc is not None and body is not None:
+                    u = d.get("usage") or {}
+                    _lc.log_cost(body.get("model", "claude"), int(u.get("input_tokens") or 0),
+                                 int(u.get("output_tokens") or 0), cached=False)
+                    if key and txt and txt.strip():
+                        _lc.cache_put(key, txt, body.get("model", "claude"))
+            except Exception:
+                pass
+            return _FakeResp(raw, resp.getcode())
         return _orig(req, *args, **kwargs)
 
     urllib.request.urlopen = _patched
