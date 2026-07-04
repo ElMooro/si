@@ -62,11 +62,23 @@ def lambda_handler(event, context):
         prices = {k: v for k, v in results.items() if k in ["MGWHUUS","D2WHUUS","RAIMUUS"]}
         world = {k: v for k, v in results.items() if k in ["PATC_WORLD","PASC_WORLD","PAPR_NON_OPEC","PATC_OECD","PATC_NON_OECD"]}
         ok = len([v for v in results.values() if v.get('data')])
-        return {'statusCode': 200, 'headers': h, 'body': json.dumps({
+        payload = {
             "agent": "eia-energy-agent", "ts": datetime.utcnow().isoformat(),
+            "generated_at": datetime.utcnow().isoformat() + "Z",
             "oil_markets": oil, "natural_gas": gas, "demand_indicators": demand,
             "electricity": power, "fuel_prices": prices, "global_supply_demand": world,
             "all_series": results, "metrics_ok": ok, "metrics_err": len(results) - ok
-        }, default=str)}
+        }
+        # write the feed to S3 (fail-safe: an S3 error must not break the HTTP response)
+        try:
+            import boto3
+            boto3.client("s3", region_name="us-east-1").put_object(
+                Bucket="justhodl-dashboard-live", Key="data/eia-energy.json",
+                Body=json.dumps(payload, default=str).encode(),
+                ContentType="application/json", CacheControl="max-age=3600")
+            payload["_s3"] = "data/eia-energy.json"
+        except Exception as se:
+            payload["_s3_error"] = str(se)[:150]
+        return {'statusCode': 200, 'headers': h, 'body': json.dumps(payload, default=str)}
     except Exception as e:
         return {'statusCode': 500, 'headers': h, 'body': json.dumps({'error': str(e), 'trace': traceback.format_exc()})}
