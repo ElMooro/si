@@ -89,7 +89,7 @@ ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 # Number of top pump candidates to research per Lambda invocation
 # Lower number = more depth per ticker, less risk of token overflow.
 # Each dossier needs ~1500-2000 tokens (bull + risk + framework). 10 tickers
-# × 1500 = 15K tokens for response → max_tokens=16000 gives headroom.
+# × 1500 = 15K tokens for response → max_tokens=6000 gives headroom.
 TOP_N_TICKERS = 10
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -364,7 +364,7 @@ def lambda_handler(event, context):
 
     try:
         t_claude = time.time()
-        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=16000)
+        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
         claude_elapsed = round(time.time() - t_claude, 2)
         print(f"[dr] Claude response in {claude_elapsed}s, {len(response_text)} chars")
     except Exception as e:

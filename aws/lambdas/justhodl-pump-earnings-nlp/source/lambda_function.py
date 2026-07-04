@@ -270,7 +270,7 @@ def lambda_handler(event, context):
 
     try:
         t_claude = time.time()
-        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=16000)
+        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
         claude_elapsed = round(time.time() - t_claude, 2)
         print(f"[pump-nlp] Claude: {len(response_text)} chars in {claude_elapsed}s")
     except Exception as e:

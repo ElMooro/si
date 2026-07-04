@@ -109,6 +109,14 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
     else:
         model, kind = HAIKU, "claude"
 
+    # cost guard: clamp output for non-critical tiers so no single call can run
+    # away to 16k tokens (the equity-research/ticker-deep-research class of drain).
+    if tier != "critical" and not contains_proprietary:
+        try:
+            max_tokens = min(int(max_tokens or 1024), 6000)
+        except Exception:
+            max_tokens = 6000
+
     msgs = _msgs(prompt)
     key = None
     if llm_cost is not None and not no_cache:
@@ -137,9 +145,9 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
             txt, it, ot = _claude(prompt, model, max_tokens, system)
     except Exception as e:
         if kind == "glm":
-            print(f"[llm_router] GLM failed ({e!r}); falling back to Sonnet")
-            txt, it, ot = _claude(prompt, SONNET, max_tokens, system)
-            model = SONNET
+            print(f"[llm_router] GLM failed ({e!r}); falling back to Haiku (cost-safe — NOT Sonnet)")
+            txt, it, ot = _claude(prompt, HAIKU, max_tokens, system)
+            model = HAIKU
         else:
             raise
 

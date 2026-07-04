@@ -2265,7 +2265,7 @@ def lambda_handler(event, context):
     try:
         t_claude = time.time()
         user_prompt = build_claude_prompt(payload)
-        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=16000)
+        response_text = claude_call(CLAUDE_SYSTEM, user_prompt, max_tokens=6000)
         claude_elapsed = round(time.time() - t_claude, 2)
         claude_diag["raw_chars"] = len(response_text)
         claude_diag["raw_head"] = response_text[:400]
