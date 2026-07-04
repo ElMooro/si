@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro Leads · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+a{color:var(--accent);text-decoration:none}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
+.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);font-weight:600}
+.big{font-size:30px;font-weight:700;letter-spacing:.3px}
+.lab{color:var(--text-mute);font-size:11px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.gold{color:var(--gold)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}.acc{color:var(--accent)}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.bd-hot{background:rgba(255,61,90,.12);color:var(--neg);border:1px solid rgba(255,61,90,.3)}
+.bd-warm{background:rgba(251,191,36,.12);color:var(--gold);border:1px solid rgba(251,191,36,.3)}
+.bd-cool{background:rgba(0,230,118,.12);color:var(--pos);border:1px solid rgba(0,230,118,.3)}
+.note{color:var(--text-mute);font-size:12px;margin-top:8px;line-height:1.45}
+.err{color:var(--text-mute);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;color:var(--text-mute);font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin:2px;border:1px solid var(--border-hi)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Macro Leads</h1>
+  <div class="sub">Free forward-looking macro indicators pulled straight from public origins — the MacroMicro-style signals, without the paywall. <span class="mute" id="asof"></span></div>
+
+  <div class="sec">Cyclical &amp; rate tells</div>
+  <div class="grid2">
+    <div class="card" id="copper-gold"><div class="err">loading…</div></div>
+    <div class="card" id="gold-silver"><div class="err">loading…</div></div>
+  </div>
+
+  <div class="sec">Global monetary regime</div>
+  <div class="card" id="rate-cut"><div class="err">loading…</div></div>
+
+  <div class="sec">Risk &amp; long-lead</div>
+  <div class="grid2">
+    <div class="card" id="gpr"><div class="err">loading…</div></div>
+    <div class="card" id="heavy-truck"><div class="err">loading…</div></div>
+  </div>
+
+  <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Real data only.</div>
+</div>
+<script>
+function zbadge(z){ if(z==null) return ''; var c=z>=1?'bd-hot':z<=-1?'bd-cool':'bd-warm'; return '<span class="badge '+c+'">z '+(z>0?'+':'')+z+'</span>'; }
+function el(id){return document.getElementById(id);}
+async function getJSON(){
+  var urls=['data/macro-leads.json','https://justhodl.ai/data/macro-leads.json','https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-leads.json'];
+  for(var i=0;i<urls.length;i++){ try{ var r=await fetch(urls[i]+'?cb='+Date.now()); if(r.ok) return await r.json(); }catch(e){} }
+  throw new Error('feed unavailable');
+}
+function render(d){
+  try{ if(d.generated_at) el('asof').textContent='· updated '+new Date(d.generated_at).toLocaleString(); }catch(e){}
+  var cgs=d.copper_gold_silver||{};
+  // copper/gold
+  try{ var cg=cgs.copper_gold; el('copper-gold').innerHTML = cg&&cg.ratio!=null
+    ? '<h3>Copper / Gold ratio</h3><div class="big mono">'+cg.ratio.toFixed(5)+' '+zbadge(cg.z_1y)+'</div><div class="note">'+cg.note+'. Elevated = growth/reflation lean, tends to lead the US 10Y yield higher.</div><div class="lab" style="margin-top:6px">as of '+(cg.asof||'')+'</div>'
+    : '<h3>Copper / Gold ratio</h3><div class="err">'+(cgs.error||'unavailable')+'</div>'; }catch(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">render error</div>'; }
+  // gold/silver
+  try{ var gs=cgs.gold_silver; el('gold-silver').innerHTML = gs&&gs.ratio!=null
+    ? '<h3>Gold / Silver ratio</h3><div class="big mono">'+gs.ratio.toFixed(1)+' '+zbadge(gs.z_1y)+'</div><div class="note">'+gs.note+'.</div><div class="lab" style="margin-top:6px">as of '+(gs.asof||'')+'</div>'
+    : '<h3>Gold / Silver ratio</h3><div class="err">unavailable</div>'; }catch(e){ el('gold-silver').innerHTML='<h3>Gold / Silver</h3><div class="err">render error</div>'; }
+  // rate-cut diffusion
+  try{ var rc=d.rate_cut_diffusion||{};
+    if(rc.net_pct_cutting!=null){
+      var reg=rc.regime||''; var c=reg==='EASING'?'bd-cool':reg==='TIGHTENING'?'bd-hot':'bd-warm';
+      var rows=Object.entries(rc.by_country||{}).map(function(kv){ var col=kv[1]==='cut'?'pos':kv[1]==='hike'?'neg':'mute'; return '<span class="pill '+col+'">'+kv[0]+': '+kv[1]+'</span>'; }).join(' ');
+      el('rate-cut').innerHTML='<h3>Rate-cut diffusion — net % of central banks easing</h3><div class="big">'+(rc.net_pct_cutting>0?'+':'')+rc.net_pct_cutting+'% <span class="badge '+c+'">'+reg+'</span></div><div class="note">'+rc.cutting+' cutting · '+rc.hiking+' hiking · '+rc.holding+' holding ('+rc.n_central_banks+' central banks). '+rc.note+'.</div><div style="margin-top:10px">'+rows+'</div>';
+    } else el('rate-cut').innerHTML='<h3>Rate-cut diffusion</h3><div class="err">'+(rc.error||'unavailable')+'</div>';
+  }catch(e){ el('rate-cut').innerHTML='<h3>Rate-cut diffusion</h3><div class="err">render error</div>'; }
+  // GPR
+  try{ var g=d.geopolitical_risk||{}; el('gpr').innerHTML = (typeof g.gpr==='number')
+    ? '<h3>Geopolitical Risk Index (GPR)</h3><div class="big mono">'+g.gpr.toFixed(1)+' '+zbadge(g.z_5y)+'</div><div class="note">'+g.note+'. Higher = more geopolitical stress priced into the tape.</div>'
+    : '<h3>Geopolitical Risk Index</h3><div class="err">'+(g.error||'unavailable')+'</div>'; }catch(e){ el('gpr').innerHTML='<h3>Geopolitical Risk</h3><div class="err">render error</div>'; }
+  // heavy truck
+  try{ var ht=d.heavy_truck_sales||{}; el('heavy-truck').innerHTML = (typeof ht.saar_millions==='number')
+    ? '<h3>US Heavy Truck Sales</h3><div class="big mono">'+(ht.saar_millions*1000).toFixed(0)+'k <span class="lab">SAAR</span> '+((ht.yoy_pct!=null)?'<span class="badge '+(ht.yoy_pct<0?'bd-hot':'bd-cool')+'">YoY '+(ht.yoy_pct>0?'+':'')+ht.yoy_pct+'%</span>':'')+'</div><div class="note">'+ht.note+'.</div>'
+    : '<h3>US Heavy Truck Sales</h3><div class="err">'+(ht.error||'unavailable')+'</div>'; }catch(e){ el('heavy-truck').innerHTML='<h3>Heavy Truck Sales</h3><div class="err">render error</div>'; }
+}
+getJSON().then(render).catch(function(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">feed unavailable</div>'; });
+</script>
+</body>
+</html>
