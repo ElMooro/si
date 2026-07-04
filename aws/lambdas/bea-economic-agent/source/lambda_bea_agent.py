@@ -100,8 +100,8 @@ def lambda_handler(event=None, context=None):
     # GDP-GDI gap (recession signal), growth composition, corporate profits
     try:
         d = bea_table("T10701", "Q")   # % change in real GDP & real GDI
-        gpc, _, _ = latest_and_yoy(line_series(d, "gross domestic product", exact=True))
-        ipc, iq, _ = latest_and_yoy(line_series(d, "gross domestic income", exact=True))
+        gpc, _, _ = latest_and_yoy(line_series(d, "gross domestic product (gdp)", exact=True))
+        ipc, iq, _ = latest_and_yoy(line_series(d, "gross domestic income (gdi)", exact=True))
         gap = round(gpc - ipc, 2) if (gpc is not None and ipc is not None) else None
         out["gdp_gdi"] = {
             "real_gdp_pct": gpc, "real_gdi_pct": ipc, "gap_pct": gap, "quarter": iq,
@@ -125,7 +125,7 @@ def lambda_handler(event=None, context=None):
         errs.append("contrib:" + str(e)[:70])
     try:
         d = bea_table("T11200", "Q")   # corporate profits
-        cv, cq, cy = latest_and_yoy(line_series(d, "corporate profits with inventory valuation and capital consumption adjustments", exact=True))
+        cv, cq, cy = latest_and_yoy(line_series(d, "corporate profits with iva and ccadj", exact=True))
         out["corporate_profits"] = {"level_bil": cv, "yoy_pct": cy, "quarter": cq}
     except Exception as e:
         errs.append("profits:" + str(e)[:70])
