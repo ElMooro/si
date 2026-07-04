@@ -54,6 +54,7 @@ tr:last-child td{border-bottom:none}
   <div class="grid2">
     <div class="card" id="gpr"><div class="err">loading…</div></div>
     <div class="card" id="heavy-truck"><div class="err">loading…</div></div>
+    <div class="card" id="freight"><div class="err">loading…</div></div>
   </div>
 
   <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Real data only.</div>
@@ -93,6 +94,14 @@ function render(d){
   try{ var ht=d.heavy_truck_sales||{}; el('heavy-truck').innerHTML = (typeof ht.saar_millions==='number')
     ? '<h3>US Heavy Truck Sales</h3><div class="big mono">'+(ht.saar_millions*1000).toFixed(0)+'k <span class="lab">SAAR</span> '+((ht.yoy_pct!=null)?'<span class="badge '+(ht.yoy_pct<0?'bd-hot':'bd-cool')+'">YoY '+(ht.yoy_pct>0?'+':'')+ht.yoy_pct+'%</span>':'')+'</div><div class="note">'+ht.note+'.</div>'
     : '<h3>US Heavy Truck Sales</h3><div class="err">'+(ht.error||'unavailable')+'</div>'; }catch(e){ el('heavy-truck').innerHTML='<h3>Heavy Truck Sales</h3><div class="err">render error</div>'; }
+  try{ var fr=d.freight_activity||{}; var comp=fr.composite||{};
+    if(comp.avg_yoy_pct!=null){
+      var reads=[['Cass shipments',(fr.cass_shipments||{}).yoy_pct],['BTS freight TSI',(fr.bts_freight_tsi||{}).yoy_pct],['Rail intermodal',(fr.rail_intermodal||{}).yoy_pct],['Truck tonnage',(fr.truck_tonnage||{}).yoy_pct]];
+      var rr=reads.map(function(x){return x[1]!=null?('<div class="lab" style="margin-top:3px">'+x[0]+': <span class="mono" style="color:'+(x[1]>0?'#00e676':x[1]<0?'#ff3d5a':'#8b96a8')+'">'+(x[1]>0?'+':'')+x[1]+'%</span></div>'):'';}).join('');
+      var cls=/EXPAND/.test(comp.read)?'bd-cool':/CONTRACT/.test(comp.read)?'bd-hot':'bd-neu';
+      el('freight').innerHTML='<h3>Freight &amp; trucking activity</h3><div class="big">'+(comp.avg_yoy_pct>0?'+':'')+comp.avg_yoy_pct+'% <span class="badge '+cls+'">'+comp.read+'</span></div><div class="note">'+comp.note+'.</div>'+rr;
+    } else el('freight').innerHTML='<h3>Freight activity</h3><div class="err">'+((fr.cass_shipments||{}).error||'unavailable')+'</div>';
+  }catch(e){ el('freight').innerHTML='<h3>Freight activity</h3><div class="err">render error</div>'; }
 }
 getJSON().then(render).catch(function(e){ el('copper-gold').innerHTML='<h3>Copper / Gold</h3><div class="err">feed unavailable</div>'; });
 </script>

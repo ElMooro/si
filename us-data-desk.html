@@ -72,7 +72,7 @@ function renderBLS(d){
   h+=card('Wage growth · YoY',(s.wage_growth_yoy_pct!=null?s.wage_growth_yoy_pct.toFixed(1)+'%':'—'),'cyan','avg hourly earnings');
   if(s.unit_labor_costs_qoq_pct!=null)h+=card('Unit labor costs · QoQ',(s.unit_labor_costs_qoq_pct>0?'+':'')+s.unit_labor_costs_qoq_pct+'%',(s.unit_labor_costs_qoq_pct>2?'neg':'gold'),'productivity '+(s.productivity_qoq_pct!=null?(s.productivity_qoq_pct>0?'+':'')+s.productivity_qoq_pct+'%':'—')+' · wage-price gauge');
   document.getElementById('blsCards').innerHTML=h;
-  var rows=[['Core CPI (ex food & energy)',s.core_cpi_yoy_pct],['Shelter',s.shelter_yoy_pct],['Core services (SA)',s.core_services_yoy_pct]];
+  var rows=[['Supercore (services ex-shelter) \u2605',s.supercore_yoy_pct],['Core CPI (ex food & energy)',s.core_cpi_yoy_pct],['Shelter',s.shelter_yoy_pct],['Core services (SA)',s.core_services_yoy_pct]];
   var t='<table><tr><th>Inflation component · YoY</th><th>Rate</th></tr>';
   rows.forEach(function(r){t+='<tr><td>'+r[0]+'</td><td class="mono '+(r[1]>3?'neg':r[1]>2.3?'gold':'pos')+'">'+(r[1]!=null?r[1].toFixed(2)+'%':'—')+'</td></tr>';});
   t+='</table>';
@@ -104,7 +104,9 @@ function renderCensus(d){
   var h='';
   h+=card('Retail sales · MoM',pct(s.retail_sales_mom_pct),'',(s.read?'<span class="badge '+(/STRONG|SOLID/.test(s.read)?'b-cool':/CONTRACT/.test(s.read)?'b-hot':'b-neu')+'">'+s.read+'</span> ':'')+(s.period||''));
   h+=card('Retail sales · YoY',pct(s.retail_sales_yoy_pct),'','$'+(s.retail_sales_musd!=null?(s.retail_sales_musd/1000).toFixed(1)+'B':'—')+'/mo');
-  h+=card('Ex-auto · MoM',pct(s.retail_ex_auto_mom_pct),'','control-group proxy · GDP-nowcast input');
+  h+=card('Ex-auto · MoM',pct(s.retail_ex_auto_mom_pct),'','retail excluding autos');
+  if(s.control_group_mom_pct!=null)h+=card('Control group · MoM',pct(s.control_group_mom_pct),'','+'+(s.control_group_yoy_pct!=null?s.control_group_yoy_pct+'% YoY':'')+' \u00b7 the GDP-nowcast input');
+  if(s.core_capex_mom_pct!=null)h+=card('Core capex orders · MoM',pct(s.core_capex_mom_pct),'','nondef ex-aircraft \u00b7 business-investment lead');
   document.getElementById('censusCards').innerHTML=h;
 }
 function renderEIA(d){
