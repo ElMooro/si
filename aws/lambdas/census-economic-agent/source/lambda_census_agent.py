@@ -34,7 +34,7 @@ CATEGORIES = {
 
 def eits(category, data_type="SM", sa="yes"):
     now = datetime.now(timezone.utc)
-    params = {"get": "cell_value,time", "CATEGORY_CODE": category, "DATA_TYPE_CODE": data_type,
+    params = {"get": "cell_value", "CATEGORY_CODE": category, "DATA_TYPE_CODE": data_type,
               "SEASONALLY_ADJ": sa, "time": "from %d-01" % (now.year - 2), "for": "us"}
     if API_KEY:
         params["key"] = API_KEY
