@@ -100,6 +100,55 @@ def block_underlying_inflation():
                       else "AT TARGET" if comp >= 1.7 else "BELOW TARGET"),
             "note": "mean of the Fed's underlying-inflation gauges — strips volatile components; what policy actually tracks",
         }
+    # Supercore (services less rent of shelter) — Powell's most-watched services-inflation cut (YoY)
+    sc = metric("CUSR0000SASL2RS", "Supercore CPI — services less rent of shelter")
+    if sc.get("yoy") is not None:
+        out["supercore"] = {"yoy_pct": sc["yoy"], "asof": sc.get("asof"),
+                            "sticky": sc["yoy"] > 3.0,
+                            "note": "core services ex-shelter — the stickiest, most policy-relevant inflation cut"}
+    return out
+
+
+def read_s3_json(key):
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
+
+
+def block_growth_confirmation():
+    """Cross-check GDPNow with hard data the nowcast doesn't otherwise see: the
+    GDP-GDI gap (income vs output side), freight (goods-economy pulse), and core
+    capital-goods orders (business investment). Orthogonal confirmation of the
+    growth axis — flags when GDPNow may over/understate the real economy."""
+    out = {}
+    gg = (read_s3_json("data/bea-economic.json").get("gdp_gdi") or {})
+    if gg.get("gap_pct") is not None:
+        out["gdp_gdi_gap_pct"] = gg["gap_pct"]
+        out["real_gdi_pct"] = gg.get("real_gdi_pct")
+    fr = ((read_s3_json("data/macro-leads.json").get("freight_activity") or {}).get("composite") or {})
+    if fr.get("avg_yoy_pct") is not None:
+        out["freight_yoy_pct"] = fr["avg_yoy_pct"]
+        out["freight_read"] = fr.get("read")
+    cx = ((read_s3_json("data/census-economic.json").get("manufacturing_orders") or {}).get("core_capex_orders") or {})
+    if cx.get("yoy_pct") is not None:
+        out["core_capex_yoy_pct"] = cx["yoy_pct"]
+    # tally soft vs firm hard reads
+    soft = firm = 0
+    if out.get("gdp_gdi_gap_pct") is not None:
+        if out["gdp_gdi_gap_pct"] > 1.0: soft += 1
+        elif out["gdp_gdi_gap_pct"] < -1.0: firm += 1
+    if out.get("freight_read"):
+        if "CONTRACT" in out["freight_read"]: soft += 1
+        elif "EXPAND" in out["freight_read"]: firm += 1
+    if out.get("core_capex_yoy_pct") is not None:
+        if out["core_capex_yoy_pct"] < 0: soft += 1
+        elif out["core_capex_yoy_pct"] > 5: firm += 1
+    n = sum(1 for k in ("gdp_gdi_gap_pct", "freight_read", "core_capex_yoy_pct") if out.get(k) is not None)
+    if n:
+        out["hard_data_bias"] = ("SOFTER than GDPNow" if soft > firm
+                                 else "FIRMER than GDPNow" if firm > soft else "CONFIRMS GDPNow")
+        out["n_hard_reads"] = n
     return out
 
 
@@ -123,6 +172,7 @@ def handler(event=None, context=None):
     gdp = block_gdp_nowcast()
     infl = block_underlying_inflation()
     wage = block_wage_tracker()
+    gconf = block_growth_confirmation()
 
     quadrant = None
     try:
@@ -139,6 +189,14 @@ def handler(event=None, context=None):
                       ("BELOW-TREND", "AT-TARGET"): "SOFT LANDING"}.get((growth, inflation), "MIXED")
             quadrant = {"growth": growth, "inflation": inflation, "regime": regime,
                         "gdpnow": g, "underlying_inflation": c}
+            sc = (infl.get("supercore") or {}).get("yoy_pct")
+            if sc is not None:
+                quadrant["supercore_yoy"] = sc
+            bias = gconf.get("hard_data_bias")
+            if bias:
+                quadrant["growth_confirmation"] = bias
+                quadrant["regime_confidence"] = ("HIGH — hard data confirms" if "CONFIRMS" in bias
+                                                 else "MODERATE — hard data (GDI/freight/capex) diverges from GDPNow")
     except Exception:
         pass
 
@@ -150,6 +208,7 @@ def handler(event=None, context=None):
         "source": "FRED — Atlanta/Cleveland/Dallas Fed nowcasts & underlying-inflation suite (free; the Bloomberg-terminal macro nowcast layer)",
         "gdp_nowcast": gdp,
         "underlying_inflation": infl,
+        "growth_confirmation": gconf,
         "wage_growth_tracker": wage,
         "nowcast_quadrant": quadrant,
         "_blocks_live": populated,
