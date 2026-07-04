@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>US Data Desk · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--cyan:#22d3ee;--text:#e6ecf3;--dim:#8b96a8;--mute:#5b6479}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:20px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--mute);margin:26px 0 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sec .src{color:var(--mute);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px}
+.card .lbl{color:var(--mute);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.card .big{font-size:26px;font-weight:700;margin:3px 0 2px}
+.card .meta{font-size:12px;color:var(--dim)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.gold{color:var(--gold)}.cyan{color:var(--cyan)}.dim{color:var(--dim)}.mute{color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+th{text-align:right;color:var(--mute);font-size:10px;text-transform:uppercase;letter-spacing:.6px;padding:6px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.err{color:var(--mute);font-size:12px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;letter-spacing:.4px}
+.b-hot{background:rgba(255,61,90,.14);color:var(--neg)}.b-cool{background:rgba(0,230,118,.12);color:var(--pos)}.b-neu{background:rgba(251,191,36,.12);color:var(--gold)}
+.note{color:var(--dim);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>US Data Desk</h1>
+  <div class="sub">The three federal statistical agencies behind every major US release — <b>BLS</b> (jobs &amp; inflation), <b>BEA</b> (GDP &amp; the Fed's PCE gauge), <b>Census</b> (the consumer) — pulled direct from source. <span class="mute" id="asof"></span></div>
+
+  <div class="sec">Labor &amp; inflation <span class="src">· Bureau of Labor Statistics</span></div>
+  <div class="grid" id="blsCards"><div class="err">loading…</div></div>
+  <div class="card" style="margin-top:14px"><div id="blsTable"><div class="err">loading…</div></div></div>
+
+  <div class="sec">Output &amp; the Fed's inflation gauge <span class="src">· Bureau of Economic Analysis</span></div>
+  <div class="grid" id="beaCards"><div class="err">loading…</div></div>
+
+  <div class="sec">The consumer <span class="src">· U.S. Census Bureau · Advance Retail Trade</span></div>
+  <div class="grid" id="censusCards"><div class="err">loading…</div></div>
+
+  <div class="sub mute" id="foot" style="margin-top:26px"></div>
+</div>
+<script>
+async function gj(path){
+  var urls=[path,'https://justhodl.ai/'+path,'https://justhodl-dashboard-live.s3.amazonaws.com/'+path];
+  for(var i=0;i<urls.length;i++){try{var r=await fetch(urls[i]+'?cb='+Date.now());if(r.ok)return await r.json();}catch(e){}}
+  return null;
+}
+function pct(v,inv){if(v==null)return '<span class="mute">—</span>';var p=inv?v<0:v>0;return '<span class="'+(v>0?(inv?'neg':'pos'):v<0?(inv?'pos':'neg'):'mute')+'">'+(v>0?'+':'')+v.toFixed(2)+'%</span>';}
+function card(lbl,big,bigcls,meta){return '<div class="card"><div class="lbl">'+lbl+'</div><div class="big '+(bigcls||'')+'">'+big+'</div><div class="meta">'+(meta||'')+'</div></div>';}
+
+function renderBLS(d){
+  if(!d){document.getElementById('blsCards').innerHTML='<div class="err">BLS feed unavailable</div>';return;}
+  var s=d.summary||{};
+  var inflBadge=s.inflation_read?('<span class="badge '+(/ABOVE/.test(s.inflation_read)?'b-hot':'b-cool')+'">'+s.inflation_read+'</span>'):'';
+  var h='';
+  h+=card('Unemployment rate',(s.unemployment_rate!=null?s.unemployment_rate+'%':'—'),(s.unemployment_rate>4.4?'gold':'pos'),(s.labor_read||''));
+  h+=card('CPI · year over year',(s.cpi_yoy_pct!=null?s.cpi_yoy_pct.toFixed(1)+'%':'—'),(s.cpi_yoy_pct>3?'neg':'gold'),'core '+(s.core_cpi_yoy_pct!=null?s.core_cpi_yoy_pct.toFixed(1)+'%':'—')+' '+inflBadge);
+  h+=card('Wage growth · YoY',(s.wage_growth_yoy_pct!=null?s.wage_growth_yoy_pct.toFixed(1)+'%':'—'),'cyan','avg hourly earnings');
+  document.getElementById('blsCards').innerHTML=h;
+  var rows=[['Core CPI (ex food & energy)',s.core_cpi_yoy_pct],['Shelter',s.shelter_yoy_pct],['Core services (SA)',s.core_services_yoy_pct]];
+  var t='<table><tr><th>Inflation component · YoY</th><th>Rate</th></tr>';
+  rows.forEach(function(r){t+='<tr><td>'+r[0]+'</td><td class="mono '+(r[1]>3?'neg':r[1]>2.3?'gold':'pos')+'">'+(r[1]!=null?r[1].toFixed(2)+'%':'—')+'</td></tr>';});
+  t+='</table>';
+  var lm=d.labor_market||{};
+  t+='<table style="margin-top:12px"><tr><th>Labor</th><th>Latest</th></tr>';
+  [['Job openings (JOLTS)',(lm.job_openings_k||{}).value,'k'],['Quits rate',(lm.quits_rate||{}).value,'%'],['Labor force participation',(lm.labor_force_participation||{}).value,'%']].forEach(function(r){
+    t+='<tr><td>'+r[0]+'</td><td class="mono">'+(r[1]!=null?(r[2]=='k'?Math.round(r[1]).toLocaleString():r[1])+r[2]:'—')+'</td></tr>';});
+  t+='</table>';
+  document.getElementById('blsTable').innerHTML=t;
+  if(d.key_valid===false){document.getElementById('foot').innerHTML='BLS running on the free public (v1) API — register a free BLS key at data.bls.gov/registrationEngine to unlock higher limits &amp; inline calculations. · '+(d.source||'');}
+}
+function renderBEA(d){
+  if(!d){document.getElementById('beaCards').innerHTML='<div class="err">BEA feed unavailable</div>';return;}
+  var g=d.gdp||{},p=d.pce_inflation||{},inc=d.income||{};
+  var h='';
+  h+=card('Real GDP · QoQ (SAAR)',(g.real_gdp_qoq_saar_pct!=null?g.real_gdp_qoq_saar_pct.toFixed(1)+'%':'—'),(g.real_gdp_qoq_saar_pct>=2?'pos':'gold'),(g.quarter||'')+' · '+(g.signal||''));
+  var core=p.core_pce_yoy_pct;
+  h+=card('Core PCE · the Fed\u2019s gauge',(core!=null?core.toFixed(2)+'%':'—'),(core>2.3?'neg':'pos'),(p.vs_fed_target_bps!=null?(p.vs_fed_target_bps>0?'+':'')+p.vs_fed_target_bps+'bps vs 2% target':'')+' '+(p.read?'<span class="badge '+(/ABOVE/.test(p.read)?'b-hot':'b-cool')+'">'+p.read+'</span>':''));
+  h+=card('Personal saving rate',(inc.saving_rate_pct!=null?inc.saving_rate_pct.toFixed(1)+'%':'—'),'cyan','income $'+(inc.personal_income_bil!=null?(inc.personal_income_bil/1e6).toFixed(1)+'T':'—'));
+  document.getElementById('beaCards').innerHTML=h;
+}
+function renderCensus(d){
+  if(!d){document.getElementById('censusCards').innerHTML='<div class="err">Census feed unavailable</div>';return;}
+  var s=d.summary||{};
+  var h='';
+  h+=card('Retail sales · MoM',pct(s.retail_sales_mom_pct),'',(s.read?'<span class="badge '+(/STRONG|SOLID/.test(s.read)?'b-cool':/CONTRACT/.test(s.read)?'b-hot':'b-neu')+'">'+s.read+'</span> ':'')+(s.period||''));
+  h+=card('Retail sales · YoY',pct(s.retail_sales_yoy_pct),'','$'+(s.retail_sales_musd!=null?(s.retail_sales_musd/1000).toFixed(1)+'B':'—')+'/mo');
+  h+=card('Ex-auto · MoM',pct(s.retail_ex_auto_mom_pct),'','control-group proxy · GDP-nowcast input');
+  document.getElementById('censusCards').innerHTML=h;
+}
+(async function(){
+  var bls=await gj('data/bls-labor.json');
+  var bea=await gj('data/bea-economic.json');
+  var cen=await gj('data/census-economic.json');
+  renderBLS(bls);renderBEA(bea);renderCensus(cen);
+  var t=[bls,bea,cen].map(function(x){return x&&x.generated_at;}).filter(Boolean).sort().pop();
+  if(t){try{document.getElementById('asof').textContent='· updated '+new Date(t).toLocaleString();}catch(e){}}
+})();
+</script>
+</body>
+</html>
