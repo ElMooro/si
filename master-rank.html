@@ -112,6 +112,9 @@ a { color: inherit; }
 .pill.cat-macro { background: rgba(96,165,250,.15); color: #60a5fa; }
 .pill.more { background: rgba(255,255,255,.06); color: var(--fg3); }
 .tc-rationale { font-size: 12px; color: var(--fg3); line-height: 1.45; }
+.tc-nc { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; margin-left: 6px; vertical-align: middle; }
+.tc-nc.up { background: rgba(34,197,94,.15); color: var(--green); }
+.tc-nc.dn { background: rgba(239,68,68,.13); color: var(--red); }
 
 .expand-chevron { font-size: 10px; color: var(--fg3); transition: transform .15s; }
 .tcard.open .expand-chevron { transform: rotate(90deg); color: var(--cyan); }
@@ -194,6 +197,7 @@ a { color: inherit; }
         <div class="rp-row"><span class="rp-label">Regime</span></div>
         <div class="rp-value" id="regime">—</div>
         <div class="rp-sub" id="regimeMeta">macro nowcast</div>
+        <div class="rp-sub" id="nowcastRegime" style="margin-top:6px"></div>
         <div class="rp-grid">
           <div class="rp-stat"><b id="fwd12m">—</b><span>SPY fwd 12m</span></div>
           <div class="rp-stat"><b id="nTier5">—</b><span>Tier 5+</span></div>
@@ -362,6 +366,7 @@ function renderDetailPanel(r) {
     fmtMult(r.capital_flow_mult, 'capital flow'),
     fmtMult(r.risk_regime_mult, 'RORO'),
     fmtMult(r.liquidity_regime_mult, 'liquidity'),
+    fmtMult(r.nowcast_regime_mult, 'nowcast'),
   ].filter(Boolean).join('');
   const flags = [
     r.red_flags && r.red_flags.length ? `<span class="flag-chip redflag">⚠ ${r.red_flags.join('; ')}</span>` : '',
@@ -417,11 +422,15 @@ function renderTickers() {
     const sysPills = shown.map(s => `<span class="pill ${catOf(s)}">${s.replace(/_/g,' ')}</span>`).join('')
       + (extra > 0 ? `<span class="pill more">+${extra}</span>` : '');
     const flagDot = (r.red_flags && r.red_flags.length) ? '<span class="tc-flag">⚠</span>' : '';
+    const ncm = r.nowcast_regime_mult;
+    const ncTilt = (ncm && ncm !== 1)
+      ? `<span class="tc-nc ${ncm>1?'up':'dn'}" title="Fed nowcast ${(DATA.nowcast_regime||{}).regime||''} sector tilt (×${ncm})">${ncm>1?'▲':'▼'} macro</span>`
+      : '';
     return `
       <div class="tcard" data-i="${i}">
         <div class="tcard-main">
           <div class="tc-rank">${i+1}</div>
-          <div class="tc-ticker-wrap"><span class="tc-ticker">${r.ticker || '?'}</span>${flagDot}</div>
+          <div class="tc-ticker-wrap"><span class="tc-ticker">${r.ticker || '?'}</span>${flagDot}${ncTilt}</div>
           ${renderMeter(r.n_systems || 0, trust)}
           <div class="tc-body">
             <div class="tc-pills">${sysPills}</div>
@@ -496,6 +505,16 @@ function renderHeader() {
   regEl.textContent = regime;
   regEl.className = 'rp-value regime-' + regime.replace(/\s+/g, '-');
   document.getElementById('regimeMeta').textContent = `score: ${ctx.composite_z ?? '—'} · coverage ${ctx.coverage_pct ?? '—'}%`;
+  const nc = DATA.nowcast_regime || {};
+  const ncHero = document.getElementById('nowcastRegime');
+  if (nc.regime) {
+    const hot = /STAGFLATION|OVERHEAT/.test(nc.regime);
+    const cool = /GOLDILOCKS|SOFT LANDING|DISINFLATION/.test(nc.regime);
+    const col = hot ? 'var(--red)' : cool ? 'var(--green)' : 'var(--amber)';
+    ncHero.innerHTML = `<span style="color:${col};font-weight:700">Fed nowcast: ${nc.regime}</span>` +
+      ` · growth ${nc.growth||'—'}${nc.gdpnow!=null?' ('+nc.gdpnow+'%)':''} · inflation ${nc.inflation||'—'}${nc.underlying_inflation!=null?' ('+nc.underlying_inflation+'%)':''}` +
+      (nc.tilt ? ` · tilt → <b>${nc.tilt}</b>` : '');
+  } else { ncHero.textContent = ''; }
   document.getElementById('fwd12m').textContent = ctx.spy_fwd_12m || '—';
   document.getElementById('nTier5').textContent = alerts.n_tier_5_plus_systems ?? '—';
   document.getElementById('nTier3').textContent = alerts.n_tier_3_plus_systems ?? '—';

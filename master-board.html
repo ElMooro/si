@@ -27,6 +27,8 @@ a{color:var(--cyan);text-decoration:none}
 .tbl tr:hover{background:var(--bg-1)}
 .tk{font-family:var(--mono);font-weight:800;font-size:15px;color:var(--fg-0)}
 .verdict{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.nc-tilt{font-size:11px;font-weight:700;margin-left:5px;cursor:help}
+.nc-tilt.up{color:var(--green)}.nc-tilt.dn{color:var(--red)}
 .v-STRONGBUY{background:rgba(38,255,175,.16);color:var(--green)}
 .v-BUY{background:rgba(34,211,238,.13);color:var(--cyan)}
 .v-TRIPLETHREAT,.v-QUADTHREAT,.v-BUILDOUTTHREAT{background:rgba(167,139,250,.16);color:var(--violet)}
@@ -69,7 +71,7 @@ a{color:var(--cyan);text-decoration:none}
 const PROXY_FALLBACK="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY_FALLBACK}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-let ALL=[],FILTER='all',SORT={k:'conviction',dir:-1};
+let ALL=[],FILTER='all',SORT={k:'conviction',dir:-1},NCREG=null;
 
 function vclass(v){return 'v-'+String(v||'').replace(/[^A-Z]/gi,'').toUpperCase();}
 function ago(ts){if(!ts)return '';const m=Math.round((Date.now()-new Date(ts).getTime())/60000);return m<60?m+'m ago':Math.round(m/60)+'h ago';}
@@ -82,6 +84,7 @@ async function load(){
   if(fp&&fp.regime)rs.push(`<span class="rchip">Plumbing <b>${esc(fp.regime)}</b>${fp.qt_ended_not_qe?' · QT≠QE':''}</span>`);
   if(cr&&cr.risk_level)rs.push(`<span class="rchip">Crypto Risk <b>${esc(cr.risk_level)}</b></span>`);
   if(bs&&bs.bond_vol_regime){const bvr=bs.bond_vol_regime;const lbl=(bvr&&typeof bvr==='object')?(bvr.regime||bvr.label||'—'):bvr;const cm=(bvr&&typeof bvr==='object'&&bvr.conviction_multiplier!=null)?` · conv ×${bvr.conviction_multiplier}`:'';rs.push(`<span class="rchip">Setups tuned for <b>${esc(lbl)}</b>${esc(cm)}</span>`);}
+  if(bs&&bs.nowcast_regime&&bs.nowcast_regime.regime){NCREG=bs.nowcast_regime;const nr=bs.nowcast_regime;const hot=/STAGFLATION|OVERHEAT/.test(nr.regime);const cool=/GOLDILOCKS|SOFT|DISINFLATION/.test(nr.regime);const col=hot?'var(--red)':cool?'var(--green)':'var(--amber)';rs.push(`<span class="rchip">Fed nowcast <b style="color:${col}">${esc(nr.regime)}</b>${nr.gdpnow!=null?' · GDP '+esc(nr.gdpnow)+'%':''}${nr.underlying_inflation!=null?' · infl '+esc(nr.underlying_inflation)+'%':''}</span>`);}
   document.getElementById('regime').innerHTML=rs.join('');
   if(!bs||!bs.top_setups){document.getElementById('board').innerHTML='<div class="loading">Board data unavailable right now.</div>';return;}
   ALL=bs.top_setups;
@@ -110,7 +113,7 @@ function render(){
     const lvls=s.entry?`E ${s.entry} · S ${s.stop||'—'} · T ${s.tp3||'—'}${s.rr?' · '+s.rr+'R':''}`:'—';
     h+=`<tr>
       <td style="color:var(--fg-3);font-family:var(--mono)">${i+1}</td>
-      <td><a href="/dossier.html?t=${esc(s.ticker)}" class="tk" style="color:var(--fg-0)">${esc(s.ticker)}</a>${s.brain_aligned?'<br><span class="brain-tag">🧠 brain</span>':''}</td>
+      <td><a href="/dossier.html?t=${esc(s.ticker)}" class="tk" style="color:var(--fg-0)">${esc(s.ticker)}</a>${(function(){var m=s.nowcast_regime_mult;return (m&&m!==1)?'<span class="nc-tilt '+(m>1?'up':'dn')+'" title="Fed nowcast '+esc((NCREG||{}).regime||'')+' sector tilt ×'+m+'">'+(m>1?'▲':'▼')+'</span>':'';})()}${s.brain_aligned?'<br><span class="brain-tag">🧠 brain</span>':''}</td>
       <td><span class="verdict ${vclass(s.verdict)}">${esc(s.verdict)}</span></td>
       <td><span class="conv-bar"><span class="f" style="width:${Math.min(100,conv)}%"></span></span><span style="font-family:var(--mono);color:${conv>=60?'var(--green)':conv>=45?'var(--cyan)':'var(--fg-2)'}">${conv}</span></td>
       <td><div class="sigs">${sigs}</div></td>
