@@ -100,11 +100,12 @@ def block_underlying_inflation():
                       else "AT TARGET" if comp >= 1.7 else "BELOW TARGET"),
             "note": "mean of the Fed's underlying-inflation gauges — strips volatile components; what policy actually tracks",
         }
-    # Supercore (services less rent of shelter) — Powell's most-watched services-inflation cut (YoY)
-    sc = metric("CUSR0000SASL2RS", "Supercore CPI — services less rent of shelter")
-    if sc.get("yoy") is not None:
-        out["supercore"] = {"yoy_pct": sc["yoy"], "asof": sc.get("asof"),
-                            "sticky": sc["yoy"] > 3.0,
+    # Supercore (services less rent of shelter) — Powell's most-watched services-inflation cut (YoY %)
+    sc_s = fred("CUSR0000SASL2RS")
+    if len(sc_s) >= 13 and sc_s[-13][1]:
+        sc_yoy = round((sc_s[-1][1] / sc_s[-13][1] - 1) * 100, 2)
+        out["supercore"] = {"yoy_pct": sc_yoy, "asof": sc_s[-1][0],
+                            "sticky": sc_yoy > 3.0,
                             "note": "core services ex-shelter — the stickiest, most policy-relevant inflation cut"}
     return out
 
