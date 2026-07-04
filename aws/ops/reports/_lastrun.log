@@ -1,17 +1,31 @@
-{
- "real_spend_usd": 0.0212,
- "real_calls": 5,
- "cache_hits": 0,
- "total_requests_served": 5,
- "cache_hit_rate_pct": 0.0,
- "days_with_real_data": 1,
- "recent_days": [
-  {
-   "date": "2026-07-04",
-   "cost": 0.0212,
-   "real_calls": 5,
-   "cache_hits": 0
-  }
- ]
-}
-OPS 2794 COMPLETE
+active LLM engines (7d): 53 | total invocations: 3012
+
+== TOP BY ESTIMATED OUTPUT COST (7d) ==
+  $25.24   inv7d=717    inv24h=106   x1 @reason max_tok=16000  justhodl-equity-research
+  $10.75   inv7d=168    inv24h=24    x1 @haiku max_tok=16000  justhodl-ticker-deep-research
+  $9.42    inv7d=942    inv24h=193   x1 @haiku max_tok=2500  justhodl-news-wire
+  $2.7     inv7d=169    inv24h=24    x1 @haiku max_tok=4000  justhodl-ai-website-synthesis
+  $2.69    inv7d=168    inv24h=24    x1 @haiku max_tok=4000  justhodl-auction-crisis-ai
+  $2.58    inv7d=215    inv24h=21    x1 @sonnet max_tok=0  justhodl-research-critique
+  $2.21    inv7d=21     inv24h=3     x1 @sonnet max_tok=7000  justhodl-ka-metrics
+  $1.89    inv7d=21     inv24h=1     x2 @sonnet max_tok=3000  justhodl-crypto-intel
+  $1.78    inv7d=17     inv24h=3     x1 @sonnet max_tok=7000  justhodl-khalid-metrics
+  $1.5     inv7d=47     inv24h=6     x1 @haiku max_tok=8000  justhodl-ai-brief-router
+  $0.73    inv7d=7      inv24h=1     x2 @sonnet max_tok=3500  justhodl-research-papers
+  $0.45    inv7d=7      inv24h=1     x1 @haiku max_tok=16000  justhodl-pump-earnings-nlp
+
+== TOP BY RAW INVOCATIONS (7d) ==
+  inv7d=942    inv24h=193   justhodl-news-wire (haiku)
+  inv7d=717    inv24h=106   justhodl-equity-research (reason)
+  inv7d=215    inv24h=21    justhodl-research-critique (sonnet)
+  inv7d=169    inv24h=24    justhodl-ai-website-synthesis (haiku)
+  inv7d=168    inv24h=24    justhodl-ticker-deep-research (haiku)
+  inv7d=168    inv24h=24    justhodl-auction-crisis-ai (haiku)
+  inv7d=117    inv24h=19    justhodl-fleet-monitor (haiku)
+  inv7d=47     inv24h=6     justhodl-ai-brief-router (haiku)
+  inv7d=44     inv24h=8     justhodl-fed-nlp (haiku)
+  inv7d=30     inv24h=5     justhodl-cb-stance (haiku)
+  inv7d=21     inv24h=3     justhodl-ka-metrics (sonnet)
+  inv7d=21     inv24h=1     justhodl-crypto-intel (sonnet)
+
+OPS 2795 COMPLETE
