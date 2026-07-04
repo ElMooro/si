@@ -48,6 +48,9 @@ tr:last-child td{border-bottom:none}
   <div class="sec">The consumer <span class="src">· U.S. Census Bureau · Advance Retail Trade</span></div>
   <div class="grid" id="censusCards"><div class="err">loading…</div></div>
 
+  <div class="sec">Energy <span class="src">· U.S. Energy Information Administration</span></div>
+  <div class="grid" id="eiaCards"><div class="err">loading…</div></div>
+
   <div class="sub mute" id="foot" style="margin-top:26px"></div>
 </div>
 <script>
@@ -67,6 +70,7 @@ function renderBLS(d){
   h+=card('Unemployment rate',(s.unemployment_rate!=null?s.unemployment_rate+'%':'—'),(s.unemployment_rate>4.4?'gold':'pos'),(s.labor_read||''));
   h+=card('CPI · year over year',(s.cpi_yoy_pct!=null?s.cpi_yoy_pct.toFixed(1)+'%':'—'),(s.cpi_yoy_pct>3?'neg':'gold'),'core '+(s.core_cpi_yoy_pct!=null?s.core_cpi_yoy_pct.toFixed(1)+'%':'—')+' '+inflBadge);
   h+=card('Wage growth · YoY',(s.wage_growth_yoy_pct!=null?s.wage_growth_yoy_pct.toFixed(1)+'%':'—'),'cyan','avg hourly earnings');
+  if(s.unit_labor_costs_qoq_pct!=null)h+=card('Unit labor costs · QoQ',(s.unit_labor_costs_qoq_pct>0?'+':'')+s.unit_labor_costs_qoq_pct+'%',(s.unit_labor_costs_qoq_pct>2?'neg':'gold'),'productivity '+(s.productivity_qoq_pct!=null?(s.productivity_qoq_pct>0?'+':'')+s.productivity_qoq_pct+'%':'—')+' · wage-price gauge');
   document.getElementById('blsCards').innerHTML=h;
   var rows=[['Core CPI (ex food & energy)',s.core_cpi_yoy_pct],['Shelter',s.shelter_yoy_pct],['Core services (SA)',s.core_services_yoy_pct]];
   var t='<table><tr><th>Inflation component · YoY</th><th>Rate</th></tr>';
@@ -88,6 +92,10 @@ function renderBEA(d){
   var core=p.core_pce_yoy_pct;
   h+=card('Core PCE · the Fed\u2019s gauge',(core!=null?core.toFixed(2)+'%':'—'),(core>2.3?'neg':'pos'),(p.vs_fed_target_bps!=null?(p.vs_fed_target_bps>0?'+':'')+p.vs_fed_target_bps+'bps vs 2% target':'')+' '+(p.read?'<span class="badge '+(/ABOVE/.test(p.read)?'b-hot':'b-cool')+'">'+p.read+'</span>':''));
   h+=card('Personal saving rate',(inc.saving_rate_pct!=null?inc.saving_rate_pct.toFixed(1)+'%':'—'),'cyan','income $'+(inc.personal_income_bil!=null?(inc.personal_income_bil/1e6).toFixed(1)+'T':'—'));
+  var gg=d.gdp_gdi||{},cp=d.corporate_profits||{},comp=d.gdp_contributions_pp||{};
+  if(gg.gap_pct!=null)h+=card('GDP\u2013GDI gap',(gg.gap_pct>0?'+':'')+gg.gap_pct+'pp',(Math.abs(gg.gap_pct)>1?'gold':'pos'),'GDP '+(gg.real_gdp_pct!=null?gg.real_gdp_pct+'%':'\u2014')+' vs GDI '+(gg.real_gdi_pct!=null?gg.real_gdi_pct+'%':'\u2014')+' \u00b7 '+(gg.signal||''));
+  if(cp.yoy_pct!=null)h+=card('Corporate profits \u00b7 YoY',(cp.yoy_pct>0?'+':'')+cp.yoy_pct.toFixed(1)+'%',(cp.yoy_pct>0?'pos':'neg'),'$'+(cp.level_bil!=null?(cp.level_bil/1e6).toFixed(2)+'T':'\u2014')+' \u00b7 '+(cp.quarter||''));
+  if(comp.consumption!=null)h+=card('Growth drivers \u00b7 QoQ (pp)','\u2192',' ','C '+comp.consumption+' \u00b7 I '+comp.investment+' \u00b7 NX '+comp.net_exports+' \u00b7 G '+comp.government);
   document.getElementById('beaCards').innerHTML=h;
 }
 function renderCensus(d){
@@ -99,12 +107,25 @@ function renderCensus(d){
   h+=card('Ex-auto · MoM',pct(s.retail_ex_auto_mom_pct),'','control-group proxy · GDP-nowcast input');
   document.getElementById('censusCards').innerHTML=h;
 }
+function renderEIA(d){
+  if(!d){document.getElementById('eiaCards').innerHTML='<div class="err">EIA feed unavailable</div>';return;}
+  function dv(blk,sid){var o=(d[blk]||{})[sid];return o&&o.data?o.data:null;}
+  var ng=dv('natural_gas_storage','NG.NW2_EPG0_SWO_R48_BCF.W');
+  var crude=dv('inventories_production','PET.WCESTUS1.W');
+  var refi=dv('inventories_production','PET.WPULEUS3.W');
+  var h='';
+  if(ng)h+=card('Nat-gas storage (Bcf)',Math.round(ng.value).toLocaleString(),'',(ng.chg!=null?(ng.chg>0?'<span class="pos">+'+ng.chg+' Bcf build</span>':'<span class="neg">'+ng.chg+' Bcf draw</span>'):'')+' \u00b7 Lower 48');
+  if(crude)h+=card('Crude inventories',(crude.value/1000).toFixed(1)+'M bbl',(crude.chg<0?'pos':'gold'),(crude.chg!=null?(crude.chg>0?'+':'')+(crude.chg/1000).toFixed(1)+'M WoW':'')+' \u00b7 ex-SPR');
+  if(refi)h+=card('Refinery utilization',(refi.value!=null?refi.value.toFixed(1)+'%':'\u2014'),(refi.value>=90?'pos':'gold'),'% operable capacity');
+  document.getElementById('eiaCards').innerHTML=h||'<div class="err">energy detail loading</div>';
+}
 (async function(){
   var bls=await gj('data/bls-labor.json');
   var bea=await gj('data/bea-economic.json');
   var cen=await gj('data/census-economic.json');
-  renderBLS(bls);renderBEA(bea);renderCensus(cen);
-  var t=[bls,bea,cen].map(function(x){return x&&x.generated_at;}).filter(Boolean).sort().pop();
+  var eia=await gj('data/eia-energy.json');
+  renderBLS(bls);renderBEA(bea);renderCensus(cen);renderEIA(eia);
+  var t=[bls,bea,cen,eia].map(function(x){return x&&x.generated_at;}).filter(Boolean).sort().pop();
   if(t){try{document.getElementById('asof').textContent='· updated '+new Date(t).toLocaleString();}catch(e){}}
 })();
 </script>
