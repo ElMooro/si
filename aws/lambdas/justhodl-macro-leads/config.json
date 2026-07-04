@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-macro-leads",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 150,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Free MacroMicro-style leading indicators missing from the fleet: copper/gold + gold/silver ratios, rate-cut diffusion (BIS CBPOL), geopolitical risk (GPR), heavy truck sales. Public origins, not MacroMicro API.",
+  "env": {},
+  "schedule": {"rule_name": "justhodl-macro-leads-daily", "cron": "cron(20 12 * * ? *)", "description": "Daily 12:20 UTC — refresh macro leading indicators"}
+}
