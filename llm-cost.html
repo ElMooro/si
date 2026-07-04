@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Cost Desk · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--border-hi:#2a3548;--accent:#a78bfa;--gold:#fbbf24;--pos:#00e676;--neg:#ff3d5a;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+a{color:var(--accent);text-decoration:none}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:.2px}
+.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);font-weight:600}
+.big{font-size:30px;font-weight:700;letter-spacing:.3px}
+.big.mono{font-size:28px}
+.lab{color:var(--text-mute);font-size:11px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.gold{color:var(--gold)}.dim{color:var(--text-dim)}.mute{color:var(--text-mute)}.acc{color:var(--accent)}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.bd-normal{background:rgba(0,230,118,.12);color:var(--pos);border:1px solid rgba(0,230,118,.3)}
+.bd-economy{background:rgba(251,191,36,.12);color:var(--gold);border:1px solid rgba(251,191,36,.3)}
+.bd-off{background:rgba(255,61,90,.12);color:var(--neg);border:1px solid rgba(255,61,90,.3)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;color:var(--text-mute);font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.sym{font-family:ui-monospace,monospace;color:var(--text)}
+.bar-track{height:10px;background:#0c1119;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:6px}
+.trend{display:flex;align-items:flex-end;gap:5px;height:110px;padding-top:6px}
+.trend .b{flex:1;min-width:6px;background:var(--accent);border-radius:3px 3px 0 0;position:relative;opacity:.85}
+.trend .b:hover{opacity:1}
+.note{font-size:12px;color:var(--text-dim);background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.18);border-radius:10px;padding:12px 14px;margin-top:8px}
+.err{color:var(--text-mute);font-size:12px;font-style:italic}
+code{background:#0c1119;border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--gold)}
+.pill{font-size:10px;padding:2px 7px;border-radius:12px;background:#0c1119;border:1px solid var(--border);color:var(--text-dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚙️ LLM Cost Desk <span id="mode"></span></h1>
+  <div class="sub">Fleet-wide LLM spend governed at the router chokepoint — content cache · per-engine metering · daily budget cap. <span id="asof" class="mute"></span></div>
+
+  <div class="grid3">
+    <div class="card"><h3>Today's spend</h3><div class="big mono" id="today-cost">—</div><div class="lab" id="today-sub"></div>
+      <div class="bar-track" style="margin-top:10px"><div class="bar-fill" id="budget-bar"></div></div>
+      <div class="lab" id="budget-lab" style="margin-top:5px"></div></div>
+    <div class="card"><h3>Cache hit rate (14d)</h3><div class="big mono acc" id="chr">—</div><div class="lab">of requests served from cache — zero model cost</div>
+      <div class="lab" id="chr-sub" style="margin-top:8px"></div></div>
+    <div class="card"><h3>Est. cache savings (14d)</h3><div class="big mono pos" id="savings">—</div><div class="lab">avoided model spend from cached requests</div>
+      <div class="lab" id="savings-sub" style="margin-top:8px"></div></div>
+  </div>
+
+  <div class="sec">Cost by engine — today</div>
+  <div class="card"><div id="engines"><div class="err">loading…</div></div></div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h3>Cost by model — today</h3><div id="models"><div class="err">loading…</div></div></div>
+    <div class="card"><h3>14-day spend trend</h3><div class="trend" id="trend"></div><div class="lab mono" id="trend-lab" style="margin-top:8px;text-align:center"></div></div>
+  </div>
+
+  <div class="sec">Controls</div>
+  <div class="card">
+    <div style="font-size:13px;color:var(--text-dim);line-height:1.7">
+      Governance is tuned live via SSM — no redeploy needed (5-min propagation):
+      <div style="margin-top:8px">• <b>Mode</b> <code>/justhodl/llm/mode</code> = <code>normal</code> · <code>economy</code> (force reason/critical → cheapest model) · <code>off</code> (all engines fall back to deterministic output, zero LLM spend).</div>
+      <div>• <b>Daily budget</b> <code>/justhodl/llm/daily-budget-usd</code> — hard ceiling; over it, engines return deterministic output for the rest of the day.</div>
+      <div>• <b>Prices</b> <code>/justhodl/llm/prices</code> — optional JSON override of per-model $/1M-token.</div>
+    </div>
+    <div class="note">The three savings levers, in order of impact: <b>content cache</b> (byte-identical requests skip the model entirely — the bulk of the cut), <b>economy routing</b> (cheapest capable model), and the <b>budget cap</b> (runaway guard). All governance is fail-safe: any error degrades to a normal model call, so it can never break an engine.</div>
+  </div>
+</div>
+
+<script>
+function fmtUSD(v){ v=Number(v||0); if(v>=100)return '$'+v.toFixed(0); if(v>=1)return '$'+v.toFixed(2); return '$'+v.toFixed(4); }
+function fmtInt(v){ return Number(v||0).toLocaleString(); }
+function fmtTok(v){ v=Number(v||0); if(v>=1e6)return (v/1e6).toFixed(2)+'M'; if(v>=1e3)return (v/1e3).toFixed(1)+'k'; return String(v); }
+
+async function getJSON(){
+  var urls=['data/llm-cost.json','https://justhodl.ai/data/llm-cost.json'];
+  for(var i=0;i<urls.length;i++){ try{ var r=await fetch(urls[i]+'?cb='+Date.now()); if(r.ok) return await r.json(); }catch(e){} }
+  throw new Error('feed unavailable');
+}
+
+function render(d){
+  // mode badge
+  try{
+    var m=(d.mode||'normal').toLowerCase();
+    document.getElementById('mode').innerHTML='<span class="badge bd-'+(['normal','economy','off'].indexOf(m)>=0?m:'normal')+'">'+m+'</span>';
+  }catch(e){}
+  try{ document.getElementById('asof').textContent='· updated '+new Date(d.generated_at).toLocaleString(); }catch(e){}
+
+  // today spend vs budget
+  try{
+    var t=d.today||{}, budget=Number(d.daily_budget_usd||0), used=Number(d.budget_used_pct||0);
+    document.getElementById('today-cost').textContent=fmtUSD(t.cost);
+    document.getElementById('today-sub').textContent=fmtInt(t.calls)+' calls · '+fmtInt(t.real_calls)+' real · '+fmtInt(t.cache_hits)+' cached';
+    var bar=document.getElementById('budget-bar');
+    bar.style.width=Math.min(100,used)+'%';
+    bar.style.background=used>=90?'var(--neg)':(used>=60?'var(--gold)':'var(--pos)');
+    document.getElementById('budget-lab').innerHTML=used+'% of '+fmtUSD(budget)+' daily budget';
+  }catch(e){ console.error('today',e); }
+
+  // cache hit rate + savings
+  try{
+    var tr=d.trailing_14d||{};
+    document.getElementById('chr').textContent=(tr.cache_hit_rate||0)+'%';
+    document.getElementById('chr-sub').textContent=fmtInt(tr.cache_hits)+' cached vs '+fmtInt(tr.real_calls)+' real calls (14d)';
+    document.getElementById('savings').textContent=fmtUSD(tr.est_cache_savings_usd);
+    document.getElementById('savings-sub').textContent='14-day real spend '+fmtUSD(tr.cost);
+  }catch(e){ console.error('savings',e); }
+
+  // per-engine
+  try{
+    var pe=d.per_engine||[];
+    document.getElementById('engines').innerHTML=pe.length?('<table><tr><th>Engine</th><th>Calls</th><th>Real</th><th>Cached</th><th>Hit rate</th><th>Cost</th></tr>'+
+      pe.map(function(e){var hr=Number(e.cache_hit_rate||0);return '<tr><td class="sym">'+e.engine+'</td><td>'+fmtInt(e.calls)+'</td><td class="dim">'+fmtInt(e.real_calls)+'</td><td class="acc">'+fmtInt(e.cache_hits)+'</td><td class="'+(hr>=50?'pos':(hr>0?'gold':'mute'))+'">'+hr+'%</td><td class="gold mono">'+fmtUSD(e.cost)+'</td></tr>';}).join('')+'</table>')
+      :'<div class="err">No LLM calls recorded today yet. This populates as engines run (both providers are currently on deterministic fallback until top-up).</div>';
+  }catch(e){ document.getElementById('engines').innerHTML='<div class="err">engine table unavailable</div>'; }
+
+  // per-model
+  try{
+    var pm=d.per_model||[];
+    document.getElementById('models').innerHTML=pm.length?('<table><tr><th>Model</th><th>Calls</th><th>In tok</th><th>Out tok</th><th>Cost</th></tr>'+
+      pm.map(function(m){return '<tr><td class="sym">'+m.model+'</td><td>'+fmtInt(m.calls)+'</td><td class="dim">'+fmtTok(m.in_tok)+'</td><td class="dim">'+fmtTok(m.out_tok)+'</td><td class="gold mono">'+fmtUSD(m.cost)+'</td></tr>';}).join('')+'</table>')
+      :'<div class="err">—</div>';
+  }catch(e){ document.getElementById('models').innerHTML='<div class="err">—</div>'; }
+
+  // 14-day trend
+  try{
+    var pd=d.per_day||[], mx=Math.max.apply(null,pd.map(function(x){return Number(x.cost||0);}).concat([0.0001]));
+    document.getElementById('trend').innerHTML=pd.map(function(x){
+      var h=Math.max(2,100*Number(x.cost||0)/mx);
+      return '<div class="b" style="height:'+h+'%" title="'+x.date+': '+fmtUSD(x.cost)+' · '+(x.cache_hit_rate||0)+'% cached"></div>';
+    }).join('');
+    document.getElementById('trend-lab').textContent=pd.length?(pd[0].date+' → '+pd[pd.length-1].date+' · peak '+fmtUSD(mx)):'';
+  }catch(e){ console.error('trend',e); }
+}
+
+getJSON().then(render).catch(function(e){
+  document.getElementById('engines').innerHTML='<div class="err">Cost feed not available yet — the dashboard populates on the next hourly aggregation.</div>';
+});
+</script>
+</body>
+</html>
