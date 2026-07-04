@@ -66,6 +66,9 @@ jobs:
           FINVIZ_AUTH: ${{ secrets.FINVIZ_AUTH }}
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
           GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYTHONPATH: ${{ github.workspace }}/aws/ops
         run: |
