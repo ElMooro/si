@@ -232,6 +232,41 @@ def block_heavy_truck():
         return {"error": str(e)[:120]}
 
 
+def block_freight():
+    """Freight & trucking activity — the real economy's goods-movement pulse and a
+    lead on industrial production. Cass Freight Index (shipments), BTS Freight TSI,
+    rail intermodal, and truck tonnage — all free on FRED."""
+    defs = {
+        "cass_shipments": ("FRGSHPUSM649NCIS", "Cass Freight Index — Shipments"),
+        "bts_freight_tsi": ("TSIFRGHT", "BTS Freight Transportation Services Index"),
+        "rail_intermodal": ("RAILFRTINTERMODAL", "Rail Intermodal Traffic"),
+        "truck_tonnage": ("TRUCKD11", "Truck freight index (D11)"),
+    }
+    out = {}
+    yoys = []
+    for k, (sid, lbl) in defs.items():
+        try:
+            s = fred_series(sid, 40)
+            if not s:
+                out[k] = {"error": "no data"}
+                continue
+            last = s[-1]
+            yoy = round(100.0 * (last[1] - s[-13][1]) / s[-13][1], 2) if len(s) >= 13 and s[-13][1] else None
+            out[k] = {"value": round(last[1], 2), "asof": last[0], "yoy_pct": yoy, "label": lbl}
+            if yoy is not None:
+                yoys.append(yoy)
+        except Exception as e:
+            out[k] = {"error": str(e)[:80]}
+    if yoys:
+        comp = round(sum(yoys) / len(yoys), 2)
+        out["composite"] = {
+            "avg_yoy_pct": comp, "n": len(yoys),
+            "read": ("EXPANDING" if comp > 1.5 else "SOFT / FLAT" if comp > -1.5 else "CONTRACTING (freight recession)"),
+            "note": "mean YoY across Cass / BTS / rail / truck — real-economy goods-movement pulse, leads industrial activity",
+        }
+    return out
+
+
 def handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {
@@ -241,8 +276,10 @@ def handler(event=None, context=None):
         "rate_cut_diffusion": block_rate_cut_diffusion(),
         "geopolitical_risk": block_gpr(),
         "heavy_truck_sales": block_heavy_truck(),
+        "freight_activity": block_freight(),
     }
-    populated = [k for k in ("copper_gold_silver", "rate_cut_diffusion", "geopolitical_risk", "heavy_truck_sales")
+    populated = [k for k in ("copper_gold_silver", "rate_cut_diffusion", "geopolitical_risk",
+                             "heavy_truck_sales", "freight_activity")
                  if isinstance(out[k], dict) and not out[k].get("error") and out[k]]
     out["_populated"] = populated
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),

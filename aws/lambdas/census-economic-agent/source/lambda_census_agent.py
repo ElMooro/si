@@ -21,6 +21,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/census-economic.json"
 API_KEY = os.environ.get("CENSUS_API_KEY", "")
+FRED_KEY = os.environ.get("FRED_API_KEY", "")
 BASE = "https://api.census.gov/data/timeseries/eits/marts"
 
 CATEGORIES = {
@@ -28,7 +29,19 @@ CATEGORIES = {
     "retail_trade": "44000",
     "retail_ex_auto": "44Y72",
     "motor_vehicles_parts": "441",
+    "gasoline_stations": "447",
+    "building_materials": "444",
     "food_services": "722",
+}
+# Retail control group = total retail & food services minus the volatile 4:
+# motor vehicles (441), gasoline (447), building materials (444), food services (722).
+# This is the exact BEA/GDP "control" definition — computed from published levels.
+CONTROL_MINUS = ["441", "447", "444", "722"]
+# Core capital-goods orders + durable goods — Census M3 survey, canonical on FRED.
+FRED_ORDERS = {
+    "core_capex_orders": ("NEWORDER", "Core capital-goods orders — nondefense ex-aircraft ($M)"),
+    "durable_goods_orders": ("DGORDER", "Durable goods new orders ($M)"),
+    "durable_ex_transport": ("ADXTNO", "Durable goods ex-transport new orders ($M)"),
 }
 
 
@@ -78,6 +91,50 @@ def pick(series, category, data_type="SM", sa="yes"):
             "yoy_pct": round((val / yago - 1) * 100, 2) if yago else None}
 
 
+def control_group(series):
+    """Retail control group = total(44X72) minus autos/gas/building/food-services,
+    computed at the level for every period, then MoM/YoY. The GDP-nowcast input."""
+    def lv(cat):
+        return {p: v for p, v in (series.get((cat, "SM", "yes")) or [])}
+    total = lv("44X72")
+    minus = [lv(c) for c in CONTROL_MINUS]
+    if not total:
+        return {"error": "no total"}
+    ctrl = {}
+    for p, v in total.items():
+        if all(p in m for m in minus):
+            ctrl[p] = v - sum(m[p] for m in minus)
+    if not ctrl:
+        return {"error": "incomplete components"}
+    pers = sorted(ctrl)
+    val, per = ctrl[pers[-1]], pers[-1]
+    prior = ctrl[pers[-2]] if len(pers) > 1 else None
+    yago = None
+    if "-" in per:
+        y, m = per.split("-"); yago = ctrl.get(f"{int(y)-1}-{m}")
+    return {"value_musd": round(val, 1), "period": per,
+            "mom_pct": round((val / prior - 1) * 100, 2) if prior else None,
+            "yoy_pct": round((val / yago - 1) * 100, 2) if yago else None}
+
+
+def fred_metric(sid):
+    try:
+        u = ("https://api.stlouisfed.org/fred/series/observations?series_id=%s"
+             "&api_key=%s&file_type=json&sort_order=desc&limit=30" % (sid, FRED_KEY))
+        obs = [o for o in json.loads(urllib.request.urlopen(u, timeout=20).read()).get("observations", [])
+               if o.get("value") not in (".", "", None)]
+        if not obs:
+            return {"error": "empty"}
+        cur = float(obs[0]["value"])
+        prev = float(obs[1]["value"]) if len(obs) > 1 else None
+        yago = float(obs[12]["value"]) if len(obs) > 12 else None
+        return {"value": round(cur, 1), "date": obs[0]["date"],
+                "mom_pct": round((cur - prev) / prev * 100, 2) if prev else None,
+                "yoy_pct": round((cur - yago) / yago * 100, 2) if yago else None}
+    except Exception as e:
+        return {"error": str(e)[:80]}
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     if not API_KEY:
@@ -89,6 +146,8 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         series, fetch_err = {}, str(e)[:140]
     retail = {name: pick(series, code) for name, code in CATEGORIES.items()}
+    control = control_group(series)
+    orders = {name: fred_metric(sid) for name, (sid, lbl) in FRED_ORDERS.items()} if FRED_KEY else {}
 
     def g(k, f="value_musd"):
         return (retail.get(k) or {}).get(f)
@@ -99,6 +158,11 @@ def lambda_handler(event=None, context=None):
         "retail_sales_mom_pct": total.get("mom_pct"),
         "retail_sales_yoy_pct": total.get("yoy_pct"),
         "retail_ex_auto_mom_pct": g("retail_ex_auto", "mom_pct"),
+        "control_group_mom_pct": control.get("mom_pct"),
+        "control_group_yoy_pct": control.get("yoy_pct"),
+        "core_capex_mom_pct": (orders.get("core_capex_orders") or {}).get("mom_pct"),
+        "core_capex_yoy_pct": (orders.get("core_capex_orders") or {}).get("yoy_pct"),
+        "durable_goods_mom_pct": (orders.get("durable_goods_orders") or {}).get("mom_pct"),
         "food_services_yoy_pct": g("food_services", "yoy_pct"),
         "period": total.get("period"),
         "read": None,
@@ -111,7 +175,8 @@ def lambda_handler(event=None, context=None):
     out = {
         "generated_at": now.isoformat(),
         "source": "U.S. Census Bureau MARTS / EITS API (api.census.gov) — direct, free",
-        "summary": summary, "retail": retail, "_series_live": n_live, "_fetch_error": fetch_err,
+        "summary": summary, "retail": retail, "control_group": control,
+        "manufacturing_orders": orders, "_series_live": n_live, "_fetch_error": fetch_err,
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=3600")
