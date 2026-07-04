@@ -1,14 +1,22 @@
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2806_macro_leads_fix.py", line 38, in <module>
-    lam.update_function_code(FunctionName=FN,ZipFile=buf.getvalue()); time.sleep(6)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. An update is in progress for resource: arn:aws:lambda:us-east-1:857687956942:function:justhodl-macro-leads
-❌ OPS-FAIL: aws/ops/pending/ops_2806_macro_leads_fix.py
+{
+ "fred_key_from": "justhodl-china-liquidity",
+ "fred_key_working": true,
+ "code_ready": true,
+ "cfg_ready": true,
+ "verify": {
+  "populated": [
+   "rate_cut_diffusion",
+   "geopolitical_risk",
+   "heavy_truck_sales"
+  ],
+  "copper_gold": null,
+  "gold_silver": null,
+  "rate_cut_net_pct": -16.7,
+  "rate_cut_regime": "TIGHTENING",
+  "n_cbs": 6,
+  "gpr": 173.6,
+  "heavy_truck": 0.3,
+  "heavy_truck_yoy": -8.3
+ }
+}
+OPS 2806 COMPLETE
