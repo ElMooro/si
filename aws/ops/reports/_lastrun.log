@@ -1,6 +1,9 @@
-justhodl-equity-research | mod=2026-07-04T04:36:17 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
-justhodl-ticker-deep-research | mod=2026-07-04T04:52:00 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
-justhodl-research-critique | mod=2026-07-04T04:48:26 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
-justhodl-news-wire | mod=2026-07-04T04:44:29 | router_cap=True shim_cap=True cost_fn=True haiku_fb=True
-VERDICT: CAP CODE DEPLOYED
-OPS 2801 COMPLETE
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2802_burn_audit.py", line 99, in <module>
+    rpd, onurl = runs_per_day(d)
+                 ^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2802_burn_audit.py", line 76, in runs_per_day
+    sched = (c.get("schedule") or {}).get("cron")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+❌ OPS-FAIL: aws/ops/pending/ops_2802_burn_audit.py
