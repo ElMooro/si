@@ -1,25 +1,19 @@
 {
- "ops": 2816,
- "ts": "2026-07-04T20:01:21.640778+00:00",
- "key_present": true,
- "key_len": 40,
- "eia_validate": {
-  "http": 200,
-  "rows": 2283
- },
- "unlocked": {
-  "eia_key_present": true,
-  "crude_inventories_kbbl": 408359.0,
-  "crude_production_kbd": 13810.0,
-  "SPR_kbbl": 325655.0,
-  "gasoline_stocks": 213966.0,
-  "OPEC_prod_Mbd": 29.362,
-  "world_consumption_Mbd": 106.904
- },
- "blocks_live": {
-  "inventories": 5,
-  "steo": 2
- },
- "status": "EIA KEY LIVE \u2014 full energy dashboard unlocked"
+ "fred_key": true,
+ "fn": "updated",
+ "schedule": "wired",
+ "verify": {
+  "blocks_live": 3,
+  "gdpnow": 1.19,
+  "gdpnow_signal": "SOFT",
+  "underlying_inflation": 2.88,
+  "infl_trend": "ABOVE TARGET",
+  "n_infl": 5,
+  "sticky_cpi": 3.12,
+  "median_cpi": 2.85,
+  "wage_overall": 3.5,
+  "regime": "STAGFLATION"
+ }
 }
-OPS 2816 COMPLETE
+STATUS: NOWCAST DESK LIVE
+OPS 2817 COMPLETE
