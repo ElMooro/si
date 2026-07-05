@@ -2658,7 +2658,12 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "1.1",  # bumped for regime_at_generation field
+        "schema_version": "2.0",  # v2: technicals + liquidity + growth-vs-mcap + quant-risk + backlog
+        "technicals":         v2.get("technicals"),
+        "liquidity_solvency": v2.get("liquidity"),
+        "growth_vs_mcap":     v2.get("growth_vs_mcap"),
+        "quant_risk":         v2.get("quant_risk"),
+        "backlog":            v2.get("backlog"),
         "ticker":         ticker,
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "from_cache":     False,
@@ -2728,11 +2733,6 @@ def lambda_handler(event, context):
             "balance_annual":    compact_balance(balance_annual),
             "cashflow_annual":   compact_cf(cashflow_annual),
             "income_quarterly":  compact_income(income_quarterly),
-            "technicals":        v2.get("technicals"),
-            "liquidity_solvency": v2.get("liquidity"),
-            "growth_vs_mcap":    v2.get("growth_vs_mcap"),
-            "quant_risk":        v2.get("quant_risk"),
-            "backlog":           v2.get("backlog"),
         },
         "metadata": {
             "data_sources_loaded":  n_ok,
