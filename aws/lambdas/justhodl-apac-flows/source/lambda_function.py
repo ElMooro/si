@@ -538,6 +538,22 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         doc["taiwan"] = {"status": "ERROR", "err": str(e)[:140]}
         doc["sources"]["twse_t86"] = False
+    # Taiwan FUNDAMENTAL leads (MOEA export orders + semiconductor production) — the
+    # hard-data backdrop to the foreign-flow signal above; the tech supply chain's
+    # forward pulse (export orders lead shipments 1-3mo; inventory-vs-production = chip bottleneck).
+    try:
+        tm = json.loads(s3.get_object(Bucket=BUCKET, Key="data/taiwan-moea.json")["Body"].read())
+        eo = tm.get("export_orders") or {}
+        sc = (tm.get("semiconductor") or {}).get("production") or {}
+        inv = (tm.get("semiconductor") or {}).get("inventory") or {}
+        doc["taiwan_fundamentals"] = {
+            "export_orders_yoy_pct": eo.get("yoy_3mma_pct"), "export_orders_read": eo.get("read"),
+            "semiconductor_production_yoy_pct": sc.get("yoy_3mma_pct"), "semiconductor_read": sc.get("read"),
+            "semiconductor_inventory_yoy_pct": inv.get("yoy_pct"),
+            "as_of": eo.get("latest_period"), "source": "Taiwan MOEA open data",
+            "note": "Booked orders lead shipments 1-3mo; the fundamental backdrop to the foreign-flow leadership signal."}
+    except Exception as e:
+        doc["taiwan_fundamentals"] = {"error": str(e)[:80]}
     # Korea per-stock (Naver — KRX blocks AWS) + TRUE market-wide via Naver index
     kr = korea_naver()
     try:

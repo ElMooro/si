@@ -867,6 +867,36 @@ def industry_pressure():
     return res, used, failed
 
 
+def taiwan_semi():
+    """Taiwan is the world's chip hub, so its semiconductor production, inventory and
+    export orders ARE the global chip-cycle supply/demand — the earliest hard read.
+    Inventory building FASTER than production while orders stay strong = supply
+    response underway (bottleneck relief ahead, fade tightness); production outrunning
+    inventory with strong orders = the bottleneck is forming."""
+    try:
+        d = json.loads(S3.get_object(Bucket=BUCKET, Key="data/taiwan-moea.json")["Body"].read())
+    except Exception as e:
+        return {"error": str(e)[:80]}
+    sc = d.get("semiconductor") or {}
+    prod = (sc.get("production") or {}).get("yoy_3mma_pct")
+    inv = (sc.get("inventory") or {}).get("yoy_pct")
+    eo = (d.get("export_orders") or {}).get("yoy_3mma_pct")
+    out = {"production_yoy_pct": prod, "inventory_yoy_pct": inv, "export_orders_yoy_pct": eo,
+           "as_of": (sc.get("production") or {}).get("latest_period"),
+           "note": "Taiwan = global chip hub; export orders lead 1-3mo, inventory-vs-production gap flags bottleneck forming/easing"}
+    if prod is not None and inv is not None:
+        gap = round(prod - inv, 1)   # production growth minus inventory growth
+        out["prod_minus_inv_gap_pp"] = gap
+        strong_demand = (eo is not None and eo > 5)
+        if gap > 5 and strong_demand:
+            out["read"] = "TIGHTENING — production outrunning inventory with strong orders (chip bottleneck forming)"
+        elif gap < -10:
+            out["read"] = "EASING — inventory building faster than production (supply response underway, bottleneck relief ahead — fade tightness)"
+        else:
+            out["read"] = "BALANCED"
+    return out
+
+
 def fmp(path, params):
     params["apikey"] = FMP_KEY
     u = f"https://financialmodelingprep.com/stable/{path}?" + urllib.parse.urlencode(params)
@@ -1345,7 +1375,7 @@ def lambda_handler(event=None, context=None):
         "engine": "bottleneck-boom", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "ppi_pricing": ppi, "concentration": concentration, "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
+        "industry_pressure": pressure, "physical_throughput": phys, "constraint_language": text_signal, "labor_bottleneck": labor, "trade_policy": trade, "capacity_response": capacity, "capital_availability": cap_avail, "inventory_signal": inventory, "backwardation": backwardn, "commercial_positioning": cot, "ppi_pricing": ppi, "concentration": concentration, "taiwan_semiconductor": taiwan_semi(), "leading_bottleneck_read": leading_read, "fred_used": used, "fred_failed": failed,
         "universe_source": src, "universe_n": len(universe), "scored_n": len(rows),
         "signals_logged": n_logged, "regime_at_log": regime,
         "top_calls": [r["ticker"] for r in top],
