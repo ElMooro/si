@@ -1,130 +1,136 @@
 {
- "ops": 2869,
- "ts": "2026-07-05T03:56:48.918950+00:00",
- "action": "updated",
- "invoke": {
-  "ok": true,
-  "master_ew": 24.6,
-  "n_firing": 34,
-  "n_divergences": 4
- },
- "master": {
-  "early_warning_0_100": 24.6,
-  "band": "WATCH",
-  "n_firing": 34,
-  "n_canaries": 46,
-  "n_divergences": 4,
-  "headline": "34 of 46 canaries firing across 6 mechanisms; early-warning 24.6 (WATCH). 4 cross-mechanism divergences."
- },
- "mechanisms": [
-  {
-   "key": "macro_grid",
-   "label": "Macro Hard-Data Leads",
-   "score": 35.8,
-   "band": "WATCH",
-   "n_firing": 9,
-   "n_total": 21
+ "ops": 2870,
+ "ts": "2026-07-05T04:22:33.656189+00:00",
+ "fred": {
+  "finland_exports": {
+   "sid": "XTEXVA01FIM664S",
+   "latest": 6783200000.0,
+   "date": "2026-03-01",
+   "n": 30
   },
-  {
-   "key": "funding",
-   "label": "Funding Plumbing & Market Internals",
-   "score": 5.3,
-   "band": "CALM",
-   "n_firing": 2,
-   "n_total": 30
+  "finland_prod": {
+   "sid": "PRINTO01FIQ661S",
+   "err": "HTTP Error 400: Bad Request"
   },
-  {
-   "key": "leading_markets",
-   "label": "Cycle-Phase Market Leadership",
-   "score": null,
-   "band": null,
-   "n_firing": 14,
-   "n_total": 19
+  "finland_lead_cli": {
+   "sid": "FINLOLITONOSTSAM",
+   "latest": 98.406,
+   "date": "2022-11-01",
+   "n": 30
   },
-  {
-   "key": "dollar",
-   "label": "Dollar Direction",
-   "score": 28,
-   "band": "LEAN PUMP",
-   "n_firing": 6,
-   "n_total": 9
+  "ppi_pulp_paper": {
+   "sid": "WPU0911",
+   "latest": 201.275,
+   "date": "2026-05-01",
+   "n": 30
   },
-  {
-   "key": "vol",
-   "label": "Volatility Turning Points",
-   "score": 33,
-   "band": "CALM",
-   "n_firing": 3,
-   "n_total": 8
+  "ppi_paper_mfg": {
+   "sid": "PCU322322",
+   "latest": 194.83,
+   "date": "2026-05-01",
+   "n": 30
   },
-  {
-   "key": "alerts",
-   "label": "Live Alert Flips (Sentinel)",
-   "score": 4,
-   "band": "ACTIVE",
-   "n_firing": 4,
-   "n_total": 190
+  "ppi_paperboard": {
+   "sid": "WPU0913",
+   "latest": 276.831,
+   "date": "2026-05-01",
+   "n": 30
+  },
+  "ism_mfg_pmi": {
+   "sid": "NAPM",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "ism_new_orders": {
+   "sid": "NAPMNOI",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "empire_state": {
+   "sid": "GACDISA",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "philly_fed": {
+   "sid": "GACDFSA",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "chicago_pmi": {
+   "sid": "CHIBGDANNUS",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "russell2000": {
+   "sid": "RU2000PR",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "sp500": {
+   "sid": "SP500",
+   "latest": 7483.24,
+   "date": "2026-07-02",
+   "n": 28
+  },
+  "russell_alt": {
+   "sid": "RUT",
+   "err": "HTTP Error 400: Bad Request"
+  },
+  "hqm_10yr": {
+   "sid": "HQMCB10YR",
+   "latest": 5.28,
+   "date": "2026-05-01",
+   "n": 30
+  },
+  "hqm_30yr": {
+   "sid": "HQMCB30YR",
+   "latest": 6.22,
+   "date": "2026-05-01",
+   "n": 30
+  },
+  "hqm_2yr": {
+   "sid": "HQMCB2YR",
+   "latest": 4.38,
+   "date": "2026-05-01",
+   "n": 30
+  },
+  "treasury_30y": {
+   "sid": "DGS30",
+   "latest": 4.97,
+   "date": "2026-07-01",
+   "n": 28
+  },
+  "treasury_10y": {
+   "sid": "DGS10",
+   "latest": 4.48,
+   "date": "2026-07-01",
+   "n": 28
   }
- ],
- "n_firing": 34,
- "top_firing": [
+ },
+ "brain_n": 9200,
+ "brain_idea_count": 2382,
+ "brain_ideas": [
   {
-   "mech": "vol",
-   "name": "Steep VIX contango (curve pricing calm)",
-   "stress": 65.0,
-   "band": "WARNING"
+   "cat": "philosophy",
+   "pinned": true,
+   "text": "When liquidity drains and the dollar is strong, risk assets struggle. Favor cash, gold, quality. My first clean macro note."
   },
   {
-   "mech": "vol",
-   "name": "Credit stress creeping under calm equity vol",
-   "stress": 65.0,
-   "band": "WARNING"
+   "cat": "philosophy",
+   "pinned": false,
+   "text": "It's important to note that various factors can influence these yields and their relationship, including market conditions, economic outlook, interest rate expectations, and investor sentiment. Therefore, analyzing the difference between these yields should be done in the broader context of market d"
   },
   {
-   "mech": "funding",
-   "name": "Quits rate (JOLTS): 1.9% (-0.20pp YoY) — workers stop quitting before ",
-   "stress": 62,
-   "band": "WARNING"
+   "cat": "philosophy",
+   "pinned": false,
+   "text": "If the 10-year high-quality market corporate bond par yield is significantly higher than the 10-year bond yield, it suggests that investors are demanding a higher yield to compensate for the additional credit risk associated with corporate bonds. This could indicate concerns about the financial heal"
   },
   {
-   "mech": "funding",
-   "name": "CCC−BB spread (stealth credit): 807bp (+16 3m) — junk's junk cracks fi",
-   "stress": 62,
-   "band": "WARNING"
+   "cat": "philosophy",
+   "pinned": false,
+   "text": "Credit default swaps (CDS): Credit default swaps are financial instruments that provide insurance against the risk of default on a loan or bond. The cost of CDS can provide insight into the perceived riskiness of lending to a particular bank, and changes in CDS spreads can indicate changes in the wi"
   },
   {
-   "mech": "macro_grid",
-   "name": "US building permits (housing lead)",
-   "stress": 60.9,
-   "band": "WARNING"
+   "cat": "philosophy",
+   "pinned": false,
+   "text": "HOW DOES THE FED RAISING OR CUTTING INTEREST RATES AFFECT THE GLOBAL LIQUIDITY?\nThe Federal Reserve raising or cutting interest rates directly influences global liquidity—the amount of money flowing through the world economy. Since the U.S. dollar is the dominant global currency, these moves ripple "
   },
   {
-   "mech": "macro_grid",
-   "name": "Real M2 money growth (monetary lead)",
-   "stress": 58.1,
-   "band": "ELEVATED"
-  },
-  {
-   "mech": "leading_markets",
-   "name": "Frontier Mkts (risk_appetite)",
-   "stress": 58,
-   "band": "ELEVATED"
-  },
-  {
-   "mech": "leading_markets",
-   "name": "Hong Kong (risk_appetite)",
-   "stress": 58,
-   "band": "ELEVATED"
-  }
- ],
- "divergences": [
-  "Trade boom vs financial tightening",
-  "Credit cracking beneath calm market internals",
-  "Expansion headline, but leaders flashing",
-  "Dollar firming while vol is calm"
- ],
- "brain_playbook_n": 8,
- "playbook_sample": [
-  "This is actually a very sophisticated market concept, but the core idea is surprisingly si",
-  "WHICH HURT RISK ASSETS THE MOST FED HIKING RATES OR QT?\nWhen it comes to 
-OPS 2869 COMPLETE
+   "cat": "philosophy",
+   "pinned": false,
+   "text": "FED draining liquidity through Reverse Repo (RRPONTSYD) makes investors run for safety (Go Risk OFF) and park thei
+OPS 2870 COMPLETE
