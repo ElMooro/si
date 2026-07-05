@@ -94,9 +94,8 @@ def _stooq_symbol(t: str) -> str:
 def fetch_stooq(ticker: str) -> dict:
     """Stooq CSV: returns last 60 days of OHLC data."""
     sym = ticker.upper()
-    key = os.environ.get("POLYGON_API_KEY") or os.environ.get("POLY_KEY") or ""
-    if not key:
-        return {"ok": False, "err": "no_polygon_key"}
+    key = (os.environ.get("POLYGON_KEY") or os.environ.get("POLYGON_API_KEY")
+           or os.environ.get("POLY_KEY") or "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
     # slot repurposed: Stooq blocks AWS Lambda egress, so the independent
     # cross-check source is Polygon daily aggs (same output contract).
     pmap = {"BTC-USD": "X:BTCUSD", "ETH-USD": "X:ETHUSD", "^VIX": "I:VIX",

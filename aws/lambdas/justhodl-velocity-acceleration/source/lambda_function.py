@@ -595,7 +595,11 @@ def lambda_handler(event, context):
     # Build output
     themes_summary = []
     if themes_doc and themes_doc.get("themes"):
-        for k, v in (themes_doc.get("themes") or {}).items():
+        _th = themes_doc.get("themes")
+        _items = (_th.items() if isinstance(_th, dict)
+                  else [((x.get("industry") or x.get("key") or str(i)), x)
+                        for i, x in enumerate(_th) if isinstance(x, dict)])
+        for k, v in _items:
             themes_summary.append({
                 "industry": k,
                 "label":    v.get("label"),
