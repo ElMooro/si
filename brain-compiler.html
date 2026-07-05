@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Brain Compiler — JustHodl AI</title>
+<style>
+:root{--bg:#0a0e14;--card:#121822;--bd:#1e2836;--tx:#e6edf3;--mut:#8b98a9;--acc:#39d0d8;--cov:#2ea043;--part:#d29922;--gap:#f85149}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}a{color:var(--acc);text-decoration:none}
+h1{font-size:25px;margin:0 0 2px}.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.hero{display:flex;gap:26px;flex-wrap:wrap;background:linear-gradient(135deg,#121822,#0d1420);border:1px solid var(--bd);border-radius:14px;padding:18px 22px;margin-bottom:18px}
+.hero div span{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.hero div b{font-size:26px}
+.sechd{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:24px 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:12px}
+.COVERED{background:#12261a;color:var(--cov)}.PARTIAL{background:#241d0e;color:var(--part)}.GAP{background:#2a1214;color:var(--gap)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;padding:7px 9px;border-bottom:1px solid var(--bd)}
+td{padding:8px 9px;border-bottom:1px solid #171f2b;vertical-align:top}
+.tag{font-size:10.5px;padding:2px 7px;border-radius:5px;background:#182230;color:var(--acc);margin-right:4px;display:inline-block;margin-bottom:2px}
+.eng{color:var(--mut);font-size:12px}.muted{color:var(--mut)}
+.filters button{background:#0f141d;border:1px solid var(--bd);color:var(--mut);padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;margin-right:6px}
+.filters button.on{background:#16324e;border-color:#2f81f7;color:#cfe3ff}
+.bq{border-left:3px solid var(--gap)}
+</style></head>
+<body><div class="wrap">
+<div><a href="/">← JustHodl</a> · <a href="/brain.html">Brain</a> · <a href="/canaries.html">War Room</a></div>
+<h1>🧠⚙️ Brain Compiler</h1>
+<div class="sub" id="sub">Monthly compile: every brain note → routed to the engine that implements it…</div>
+<div class="hero" id="hero"></div>
+<div class="sechd">🔴 Build Queue — concepts in the brain with NO engine coverage</div>
+<div id="bq"></div>
+<div class="sechd">Routed Claims</div>
+<div class="filters" id="filters"></div>
+<div class="card" style="padding:4px 4px 0"><table id="tbl"><thead><tr><th>Status</th><th>Claim (from brain)</th><th>Concepts</th><th>Routed to</th></tr></thead><tbody></tbody></table></div>
+</div>
+<script>
+let DATA=null,filt='all';
+async function getJSON(p){for(const u of [`https://justhodl.ai/${p}`,`https://s3.amazonaws.com/justhodl-dashboard-live/${p}`]){try{const r=await fetch(u,{cache:'no-store'});if(r.ok)return await r.json();}catch(e){}}throw 0;}
+function render(d){DATA=d;const s=d.summary||{};
+ document.getElementById('sub').textContent=(s.headline||'')+' · compiled '+new Date(d.generated_at).toLocaleString();
+ document.getElementById('hero').innerHTML=
+  `<div><span>Brain notes</span><b>${s.n_notes}</b></div><div><span>Testable claims</span><b>${s.n_claims}</b></div>
+   <div><span>Covered</span><b style="color:var(--cov)">${s.covered}</b></div>
+   <div><span>Partial</span><b style="color:var(--part)">${s.partial}</b></div>
+   <div><span>Gaps</span><b style="color:var(--gap)">${s.gaps}</b></div>
+   <div><span>Fleet coverage</span><b>${s.coverage_pct==null?'—':s.coverage_pct+'%'}</b></div>
+   <div><span>Registry engines</span><b>${s.n_registry_engines}</b></div>`;
+ document.getElementById('bq').innerHTML=(d.build_queue||[]).map(b=>
+  `<div class="card bq"><b>${b.concept}</b> — ${b.n_claims} claim(s) · suggested: <code>${b.suggested_engine}</code>
+   <div class="muted" style="margin-top:5px">${(b.sample_claims||[]).map(c=>'“'+c+'”').join('<br>')}</div></div>`).join('')
+  ||'<div class="card"><b style="color:var(--cov)">No gaps.</b> Every testable claim in the brain is covered by at least one engine.</div>';
+ document.getElementById('filters').innerHTML=['all','GAP','PARTIAL','COVERED'].map(f=>`<button class="${f==filt?'on':''}" onclick="filt='${f}';tbl()">${f}</button>`).join('');
+ tbl();}
+function tbl(){const rows=(DATA.claims||[]).filter(c=>filt=='all'||c.status==filt).slice(0,200);
+ document.querySelector('#tbl tbody').innerHTML=rows.map(c=>
+  `<tr><td><span class="pill ${c.status}">${c.status}</span>${c.pinned?' 📌':''}</td>
+   <td>${c.claim}</td>
+   <td>${(c.concepts||[]).map(x=>'<span class="tag">'+x+'</span>').join('')}</td>
+   <td class="eng">${(c.engines||[]).map(e=>e.engine.replace('justhodl-','')+' ('+e.score+')').join('<br>')||'—'}</td></tr>`).join('')
+  ||'<tr><td colspan="4" class="muted" style="padding:16px">None in this view.</td></tr>';}
+getJSON('data/brain-compiler.json').then(render).catch(()=>{document.getElementById('sub').textContent='Compiler feed not published yet — first run pending.';});
+</script></body></html>

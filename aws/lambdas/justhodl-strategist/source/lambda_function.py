@@ -44,6 +44,8 @@ CORE = ["data/risk-regime.json", "data/regime-composite.json", "data/crisis-comp
         "data/signal-board.json", "data/eurodollar-plumbing.json", "data/capital-flow-radar.json",
         "data/tail-risk.json", "data/master-ranker.json", "data/crisis-canaries.json",
         "data/regime-map.json",
+        "data/canary-warroom.json", "data/liquidity-inflection.json",
+        "data/cycle-clock.json", "data/nowcast-desk.json",
         "data/sector-emergence.json", "data/crypto-emergence.json"]
 
 # verdict vocabulary → (direction, extremity)
