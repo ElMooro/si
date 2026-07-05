@@ -94,24 +94,27 @@ def yahoo_spx():
 
 
 def stooq_spx():
-    """Deep S&P 500 closes via Stooq (^spx, 1928+). Primary for analog/backtest depth."""
+    """Deep S&P 500 closes (^GSPC via Yahoo chart, 1927+). Stooq blocks Lambda; same contract."""
     try:
+        u = ("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC"
+             "?range=max&interval=1d")
         raw = urllib.request.urlopen(
-            urllib.request.Request("https://stooq.com/q/d/l/?s=%5Espx&i=d",
-                                   headers={"User-Agent": "Mozilla/5.0"}), timeout=45).read()
-        lines = raw.decode("utf-8", "replace").strip().split("\n")
+            urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"}), timeout=45).read()
+        j = json.loads(raw)
+        res = j["chart"]["result"][0]
+        ts = res.get("timestamp") or []
+        cl = ((res.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
         out = {}
-        for ln in lines[1:]:
-            c = ln.split(",")
-            if len(c) >= 5 and c[0][:2] in ("19", "20"):
-                try:
-                    out[c[0]] = float(c[4])
-                except ValueError:
-                    pass
+        for t, c in zip(ts, cl):
+            if c is None:
+                continue
+            d = datetime.utcfromtimestamp(t).strftime("%Y-%m-%d")
+            out[d] = float(c)
         return out if len(out) > 5000 else None
     except Exception as e:
-        print(f"[spx] stooq failed: {str(e)[:70]}")
+        print(f"[spx] yahoo-deep failed: {str(e)[:70]}")
         return None
+
 
 
 def polygon_spy_closes():

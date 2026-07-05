@@ -41,6 +41,7 @@ import csv
 import io
 import json
 import os
+import datetime as _dt
 import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -92,17 +93,27 @@ def _stooq_symbol(t: str) -> str:
 
 def fetch_stooq(ticker: str) -> dict:
     """Stooq CSV: returns last 60 days of OHLC data."""
-    sym = _stooq_symbol(ticker)
-    url = f"https://stooq.com/q/d/l/?s={sym}&i=d"
+    sym = ticker.upper()
+    key = os.environ.get("POLYGON_API_KEY") or os.environ.get("POLY_KEY") or ""
+    if not key:
+        return {"ok": False, "err": "no_polygon_key"}
+    # slot repurposed: Stooq blocks AWS Lambda egress, so the independent
+    # cross-check source is Polygon daily aggs (same output contract).
+    pmap = {"BTC-USD": "X:BTCUSD", "ETH-USD": "X:ETHUSD", "^VIX": "I:VIX",
+            "^TNX": "I:TNX", "EURUSD=X": "C:EURUSD", "DXY": "I:DXY"}
+    psym = pmap.get(sym, sym)
+    end = _dt.date.today().isoformat()
+    start = (_dt.date.today() - _dt.timedelta(days=60)).isoformat()
+    url = (f"https://api.polygon.io/v2/aggs/ticker/{psym}/range/1/day/{start}/{end}"
+           f"?adjusted=true&sort=asc&limit=120&apiKey={key}")
     try:
-        raw = _fetch(url, timeout=10).decode("utf-8", errors="ignore")
+        j = json.loads(_fetch(url, timeout=10).decode("utf-8", errors="ignore"))
     except Exception as e:
         return {"ok": False, "err": str(e)}
-
-    if "no data" in raw.lower() or len(raw) < 30:
+    res = j.get("results") or []
+    if not res:
         return {"ok": False, "err": "no_data"}
-
-    rows = list(csv.DictReader(io.StringIO(raw)))
+    rows = [{"Close": str(r.get("c"))} for r in res if r.get("c") is not None]
     if not rows:
         return {"ok": False, "err": "empty"}
 

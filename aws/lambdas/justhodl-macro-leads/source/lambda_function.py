@@ -94,16 +94,14 @@ def _yahoo(symbol, rng="2y"):
 
 
 def stooq(symbol, days=500):
-    raw = _get("https://stooq.com/q/d/l/?s=%s&i=d" % symbol, timeout=30).decode("utf-8", "ignore")
-    out = []
-    for ln in raw.splitlines()[1:]:
-        p = ln.split(",")
-        if len(p) >= 5:
-            try:
-                out.append((p[0], float(p[4])))
-            except Exception:
-                pass
-    return out[-days:]
+    """Fallback slot (Stooq blocks Lambda): route to Yahoo with mapped futures symbols."""
+    ymap = {"gc.f": "GC=F", "si.f": "SI=F", "hg.f": "HG=F", "cl.f": "CL=F", "^spx": "%5EGSPC"}
+    try:
+        r = _yahoo(ymap.get(symbol.lower(), symbol))
+        return r[-days:] if r else []
+    except Exception:
+        return []
+
 
 
 def _metal(yahoo_sym, stooq_sym):

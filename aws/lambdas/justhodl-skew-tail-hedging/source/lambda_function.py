@@ -193,27 +193,22 @@ def yahoo_chart_history(symbol, days=300):
 
 
 def stooq_history(symbol_no_caret, days=300):
-    """Stooq CSV history fallback. Returns list of closes (newest first).
-    Reliable for CBOE indices that FMP/AlphaVantage don't carry."""
-    sym = symbol_no_caret.lower().lstrip("^")
-    url = f"https://stooq.com/q/d/l/?s={sym}&i=d"
+    """History fallback for CBOE indices via Yahoo chart (Stooq blocks Lambda).
+    Same contract: list of closes, newest first."""
+    sym = "%5E" + symbol_no_caret.upper().lstrip("^")
+    rng = "2y" if days > 120 else "6mo"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range={rng}&interval=1d"
     try:
-        csv_text = http_get(url, timeout=15, retries=2)
-        if not csv_text or "Date,Open,High,Low,Close" not in csv_text.split("\n", 1)[0]:
-            return []
-        lines = csv_text.strip().split("\n")
-        closes = []
-        for line in lines[1:]:
-            parts = line.split(",")
-            if len(parts) >= 5:
-                try:
-                    closes.append(float(parts[4]))
-                except (ValueError, IndexError):
-                    continue
+        raw = http_get(url, timeout=15, retries=2)
+        j = json.loads(raw)
+        res = j["chart"]["result"][0]
+        cl = ((res.get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+        closes = [float(c) for c in cl if c is not None]
         closes.reverse()
         return closes[:days]
     except Exception:
         return []
+
 
 
 def stooq_quote(symbol_no_caret):

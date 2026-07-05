@@ -35,6 +35,20 @@ _ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPI
 _zai_key_cache = None
 
 
+_DOWN = {}            # provider -> unix ts until which we skip it (circuit breaker)
+_COOLDOWN = 600       # 10 min: a dead provider is skipped instantly on warm containers
+
+
+def _tripped(kind):
+    import time as _t
+    return _DOWN.get(kind, 0) > _t.time()
+
+
+def _trip(kind):
+    import time as _t
+    _DOWN[kind] = _t.time() + _COOLDOWN
+
+
 def _zai_key():
     global _zai_key_cache
     if _zai_key_cache is None:
@@ -58,7 +72,7 @@ def _claude(prompt, model, max_tokens, system=None):
         headers={"Content-Type": "application/json", "x-api-key": _ANTHROPIC_KEY,
                  "anthropic-version": "2023-06-01", "x-jh-internal": "router"},
     )
-    with urllib.request.urlopen(req, timeout=60) as r:
+    with urllib.request.urlopen(req, timeout=35) as r:
         d = json.loads(r.read().decode())
     txt = "".join(b.get("text", "") for b in d.get("content", []))
     u = d.get("usage") or {}
@@ -77,7 +91,7 @@ def _glm(prompt, model, max_tokens, system=None):
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {_zai_key()}"},
     )
-    with urllib.request.urlopen(req, timeout=90) as r:
+    with urllib.request.urlopen(req, timeout=40) as r:
         d = json.loads(r.read().decode())
     msg = d["choices"][0]["message"]
     txt = msg.get("content") or msg.get("reasoning_content") or ""
@@ -140,19 +154,34 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
         except Exception:
             key = None
 
-    # real provider call (usage-instrumented)
+    # real provider call (usage-instrumented, breaker-aware, never raises:
+    # total provider failure returns "" so engines take their deterministic path)
     try:
         if kind == "glm":
+            if _tripped("glm"):
+                raise TimeoutError("glm circuit open")
             txt, it, ot = _glm(prompt, GLM_REASON, max_tokens, system)
         else:
+            if _tripped("claude"):
+                raise TimeoutError("claude circuit open")
             txt, it, ot = _claude(prompt, model, max_tokens, system)
     except Exception as e:
         if kind == "glm":
+            _trip("glm")
             print(f"[llm_router] GLM failed ({e!r}); falling back to Haiku (cost-safe — NOT Sonnet)")
-            txt, it, ot = _claude(prompt, HAIKU, max_tokens, system)
-            model = HAIKU
+            try:
+                if _tripped("claude"):
+                    raise TimeoutError("claude circuit open")
+                txt, it, ot = _claude(prompt, HAIKU, max_tokens, system)
+                model = HAIKU
+            except Exception as e2:
+                _trip("claude")
+                print(f"[llm_router] ALL providers down ({e2!r}) -> empty; engine uses deterministic fallback")
+                return ""
         else:
-            raise
+            _trip("claude")
+            print(f"[llm_router] {kind} failed ({e!r}) -> empty; engine uses deterministic fallback")
+            return ""
 
     if llm_cost is not None:
         try:
