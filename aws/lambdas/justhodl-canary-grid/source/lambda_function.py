@@ -109,6 +109,12 @@ SIGNALS = [
              "so falling export value flags weakening global industrial and construction demand.",
          cool="Chile's exports are firm — global metals and industrial demand look healthy "
               "(Dr. Copper's production side confirms)."),
+    dict(key="peru_copper", name="Peru copper production (Dr. Copper supply)", grid="commodity_cycle",
+         fred="feed:peru-copper:copper_production.history", kind="yoy", win=12, dir="fall", lead=2,
+         limit=160, unit="%YoY",
+         hot="Peru's mined copper output is falling — Peru + Chile are ~40% of world copper, so "
+             "contracting mine activity flags weakening industrial demand or supply disruption.",
+         cool="Peru's copper output is rising — mined supply and the industrial-metals cycle look healthy."),
     dict(key="lumber", name="Lumber & wood (PPI)", grid="commodity_cycle",
          fred="WPU081", kind="yoy", win=12, dir="fall", lead=2,
          limit=160, unit="%YoY",

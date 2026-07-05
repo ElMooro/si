@@ -1,0 +1,6 @@
+{
+  "description": "Peru copper production (BCRP) — Dr. Copper's supply side",
+  "timeout": 60,
+  "memory": 128,
+  "schedule": {"rule_name": "justhodl-peru-copper-daily", "cron": "cron(0 4 * * ? *)", "description": "Daily Peru BCRP copper production pull"}
+}
