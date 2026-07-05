@@ -45,6 +45,72 @@ def fred(sid, start="2010-01-01"):
         return {}
 
 
+def brain_predictors():
+    """Two operator-documented liquidity LEADS mined from the brain, wired ahead of the
+    engine's own net-liquidity impulse:
+      (1) 10y HQM corporate spread WIDENING front-runs liquidity trend reversals;
+      (2) a sharp 30y Treasury-yield DUMP has historically preceded QE."""
+    import bisect
+    out = {}
+    # (1) HQM 10y - Treasury 10y quality-credit spread + its trend
+    try:
+        hqm = fred("HQMCB10YR", "2005-01-01")     # monthly {date: yield}
+        t10 = fred("DGS10", "2005-01-01")          # daily
+        if hqm and t10:
+            t10s = sorted(t10.items()); tdates = [d for d, _ in t10s]
+            spread = {}
+            for d, v in sorted(hqm.items()):
+                i = bisect.bisect_right(tdates, d) - 1
+                if i >= 0:
+                    spread[d] = round(v - t10s[i][1], 3)
+            sd = sorted(spread)
+            if len(sd) >= 40:
+                cur = spread[sd[-1]]
+                d3 = (spread[sd[-1]] - spread[sd[-4]]) if len(sd) >= 4 else None
+                vals = [spread[d] for d in sd[-60:]]
+                mu = sum(vals) / len(vals)
+                sdv = (sum((x - mu) ** 2 for x in vals) / len(vals)) ** 0.5
+                z = round((cur - mu) / sdv, 2) if sdv else None
+                widening = (d3 is not None and d3 > 0.05)
+                state = ("WIDENING — liquidity-reversal warning" if widening and z and z > 0.5
+                         else "WIDENING" if widening
+                         else "COMPRESSED — benign" if (z is not None and z < -0.3) else "STABLE")
+                out["hqm_reversal_lead"] = {
+                    "spread_ppt": cur, "chg_3m_ppt": round(d3, 3) if d3 is not None else None,
+                    "z_5y": z, "state": state, "as_of": sd[-1],
+                    "read": ("Even top-rated (HQM) issuers are paying a widening premium over Treasuries — "
+                             "a documented early tell that the liquidity tide is about to turn down, ahead "
+                             "of the net-liquidity impulse itself." if widening else
+                             "The HQM-Treasury premium is contained — no early liquidity-reversal warning "
+                             "from quality credit.")}
+    except Exception as e:
+        out["hqm_reversal_lead"] = {"error": str(e)[:80]}
+    # (2) 30y Treasury-yield dump -> QE precursor
+    try:
+        t30 = fred("DGS30", "2005-01-01")
+        if t30:
+            s = sorted(t30.items()); dts = [d for d, _ in s]; vv = [v for _, v in s]
+            cur = vv[-1]
+            c3m = round(cur - vv[-63], 1) if len(vv) > 63 else None
+            c6m = round(cur - vv[-126], 1) if len(vv) > 126 else None
+            dump = (c3m is not None and c3m <= -0.40)
+            hard = (c3m is not None and c3m <= -0.70)
+            state = ("QE_WATCH — sharp 30y dump" if hard else
+                     "QE_LEAN — 30y falling" if dump else "NEUTRAL")
+            out["qe_precursor_30y"] = {
+                "yield_pct": round(cur, 2), "chg_3m_ppt": c3m, "chg_6m_ppt": c6m,
+                "state": state, "as_of": dts[-1],
+                "read": ("The long bond is collapsing — a hard 30-year dump reflects a deflation / "
+                         "flight-to-quality scramble that has historically forced the Fed toward QE."
+                         if hard else
+                         "The 30-year yield is easing lower — a mild move; watch for acceleration as a "
+                         "QE precursor." if dump else
+                         "The 30-year yield is not dumping — no QE-precursor signal.")}
+    except Exception as e:
+        out["qe_precursor_30y"] = {"error": str(e)[:80]}
+    return out
+
+
 def polygon_closes(ticker, start="2015-01-01"):
     end = datetime.now(timezone.utc).date().isoformat()
     u = (f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/{start}/{end}"
@@ -1484,6 +1550,10 @@ def lambda_handler(event=None, context=None):
         data_health.append({"feed": nm, "as_of": (asof[:10] if asof else None), "age_days": ag,
                             "status": ("stale" if (ag is not None and ag > maxd) else "fresh" if ag is not None else "n/a")})
 
+    try:
+        _bp = brain_predictors()
+    except Exception as e:
+        print(f"[brain_predictors] {str(e)[:80]}"); _bp = {}
     out = {"engine": "liquidity-inflection", "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1), "availability": avail,
@@ -1518,6 +1588,7 @@ def lambda_handler(event=None, context=None):
            "event_study_after_flips": studies, "lead_estimates": leads,
            "regime_returns": regime_returns, "lead_curves": lead_curves, "flip_log": flip_logs,
            "signals_logged": n_logged,
+           "brain_predictors": _bp,
            "methodology": ("Net-liquidity impulse = 13-week slope of WALCL−TGA−RRP, 3y z-score; flips "
                            "debounced |Δz|≥0.25. The composite liquidity regime blends the second "
                            "derivatives of net liquidity, bank reserves, global central-bank liquidity and "
