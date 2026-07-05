@@ -100,7 +100,7 @@ def _glm(prompt, model, max_tokens, system=None):
 
 
 def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, system=None,
-             cache_ttl=None, no_cache=False):
+             cache_ttl=None, no_cache=False, on_demand=False):
     """Single entry point. Returns the model's text.
 
     Cost-governed via aws/shared/llm_cost (content cache + daily budget cap +
@@ -153,6 +153,16 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
                 return ""
         except Exception:
             key = None
+
+    # on-demand mode: scheduled/background calls stop here (cache above stays free);
+    # only user-initiated calls (ask / ai-chat / page-AI button) pass on_demand=True.
+    if llm_cost is not None and not on_demand:
+        try:
+            if llm_cost.mode() == "on_demand":
+                print("[llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback")
+                return ""
+        except Exception:
+            pass
 
     # real provider call (usage-instrumented, breaker-aware, never raises:
     # total provider failure returns "" so engines take their deterministic path)

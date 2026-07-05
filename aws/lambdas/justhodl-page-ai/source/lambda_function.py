@@ -88,7 +88,7 @@ def _fmt_outlook(s, matched):
                            "BUILDING — not enough graded outcomes yet")}
 
 
-def gen_page_ai(page, meta, look, norm, explain_existing):
+def gen_page_ai(page, meta, look, norm, explain_existing, live=False):
     from llm_router import complete
     title = meta.get("title") or page
     data_files = meta.get("data_files") or []
@@ -114,7 +114,7 @@ def gen_page_ai(page, meta, look, norm, explain_existing):
     res = {}
     for attempt in range(2):
         try:
-            res = _parse_json(complete(prompt, tier="reason", max_tokens=850, system=sys))
+            res = _parse_json(complete(prompt, tier="reason", max_tokens=850, system=sys, on_demand=live))
         except Exception:
             res = {}
         if res.get("analysis") or res.get("what_it_is"): break
@@ -150,7 +150,7 @@ def live_mode(qs, manifest):
     look, norm = build_scorecard_lookup()
     explain_cache = _read("data/_cache/page-ai-explain.json") or {}
     try:
-        out, upd = gen_page_ai(page, meta, look, norm, explain_cache.get(page))
+        out, upd = gen_page_ai(page, meta, look, norm, explain_cache.get(page), live=True)
         out["mode"] = "live"
         out["generated_on_click"] = True
         _write(f"data/page-ai/{page}.json", out)

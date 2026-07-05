@@ -34,7 +34,7 @@ _DDB_TABLE = os.environ.get("LLM_COST_TABLE", "justhodl-llm-cost")
 _MODE_SSM = "/justhodl/llm/mode"
 _BUDGET_SSM = "/justhodl/llm/daily-budget-usd"
 _PRICES_SSM = "/justhodl/llm/prices"
-_DEFAULT_TTL = int(os.environ.get("LLM_CACHE_TTL", "72000"))       # 20h default
+_DEFAULT_TTL = int(os.environ.get("LLM_CACHE_TTL", "604800"))      # 7d default (explains/rationales are stable)
 _ENGINE = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "local")
 
 # Approximate public per-1M-token USD (input, output). SSM /justhodl/llm/prices
@@ -236,6 +236,17 @@ def within_daily_cap(engine=None):
         return _cap_cache["n"][eng] < cap
     except Exception:
         return True  # fail OPEN — never break an engine on a cap error
+
+
+def mode():
+    """Public: current global LLM mode (normal | economy | on_demand | off).
+    on_demand = scheduled/background calls are gated to ""; only calls flagged
+    on_demand=True by the router (user-initiated: ask, ai-chat, page-AI button)
+    reach a provider. Cache reads stay free in every mode."""
+    try:
+        return _config()["mode"]
+    except Exception:
+        return "normal"
 
 
 def economy_downgrade(tier):

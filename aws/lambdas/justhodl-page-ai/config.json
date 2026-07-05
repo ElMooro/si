@@ -7,6 +7,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "schedule": {
     "rule_name": "justhodl-page-ai-wave",
-    "cron": "cron(15 * * * ? *)"
+    "cron": "cron(10 5 * * ? *)",
+    "description": "Daily backfill wave (live click-gen is primary)"
   }
 }

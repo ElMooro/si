@@ -5,13 +5,16 @@
   "handler": "lambda_function.lambda_handler",
   "timeout": 180,
   "memory": 512,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "AI-generated rationale for trade tickets — 1-2 sentence why-this-setup explanations",
+  "description": "AI-generated rationale for trade tickets \u2014 1-2 sentence why-this-setup explanations",
   "environment_keys": [],
   "schedule": {
     "expression": "cron(5 * * * ? *)",
     "name": "justhodl-ticket-ai-rationale-hourly",
-    "description": "Hourly at :05 — refresh AI rationales for current trade tickets"
+    "description": "4x/day (was hourly)",
+    "cron": "cron(5 0/6 * * ? *)"
   }
 }
