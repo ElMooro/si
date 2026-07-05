@@ -309,7 +309,7 @@ Return ONLY valid JSON:
     req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=req_body,headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_KEY,"anthropic-version":"2023-06-01"},method="POST")
     try:
         print("Calling Claude...")
-        with urllib.request.urlopen(req,timeout=120) as resp:
+        with urllib.request.urlopen(req,timeout=280) as resp:
             result=json.loads(resp.read());text=""
             for block in result.get("content",[]):
                 if block.get("type")=="text":text+=block["text"]
