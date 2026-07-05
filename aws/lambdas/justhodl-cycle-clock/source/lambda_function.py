@@ -673,6 +673,52 @@ def lambda_handler(event, context):
         hard_data_recession["read"] = ("HARD DATA CONFIRMS RECESSION RISK" if _weak >= 2
                                        else "HARD DATA MIXED — one soft read" if _weak == 1
                                        else "HARD DATA NOT RECESSIONARY")
+    # ── manufacturing cycle LEAD: order backlog-to-shipments + demand-vs-supply
+    # spread (from bottleneck-boom's decades-deep Census M3 pressure) + Fed G.17
+    # capacity utilization. These turn BEFORE production and GDP — the earliest
+    # boom / slowdown / bust tell. Rising backlog + widening demand-supply spread +
+    # tightening capacity = boom building; backlog rolling over + slack = recession lead. ──
+    mfg_lead = {}
+    _tmfg = _get(bneck, "industry_pressure", "TOTAL_MFG", default={}) or {}
+    if _tmfg:
+        for k in ("backlog_to_shipments", "backlog_ratio_z", "backlog_yoy_pct",
+                  "new_orders_yoy_pct", "demand_supply_spread_pp", "spread_state",
+                  "bottleneck_forming", "direction"):
+            mfg_lead[k] = _tmfg.get(k)
+    _cu = _fred("MCUMFN")
+    _cu_chg = None
+    if _cu and len(_cu) >= 13:
+        _cu_now = _cu[-1][1]; _cu_chg = round(_cu_now - _cu[-13][1], 1)
+        mfg_lead["capacity_utilization_pct"] = round(_cu_now, 1)
+        mfg_lead["capacity_util_yoy_chg_pp"] = _cu_chg
+        mfg_lead["capacity_read"] = ("TIGHT — late-cycle / inflationary" if _cu_now >= 79
+                                     else "SLACK — spare capacity / slowdown" if _cu_now < 76 else "NORMAL")
+    if mfg_lead:
+        _boom = _bust = 0
+        if _tmfg.get("bottleneck_forming"):
+            _boom += 1
+        if _tmfg.get("spread_state") == "CLOSING":
+            _bust += 1
+        _noy = _tmfg.get("new_orders_yoy_pct")
+        if _noy is not None:
+            _boom += (1 if _noy > 4 else 0); _bust += (1 if _noy < 0 else 0)
+        _brz = _tmfg.get("backlog_ratio_z")
+        if _brz is not None:
+            _boom += (1 if _brz > 0.5 else 0); _bust += (1 if _brz < -0.5 else 0)
+        if _cu_chg is not None:
+            _boom += (1 if _cu_chg > 1.5 else 0); _bust += (1 if _cu_chg < -1.5 else 0)
+        mfg_lead["lead_verdict"] = (
+            "BOOM BUILDING — orders & backlog outrunning supply" if (_boom >= 2 and _boom > _bust)
+            else "CONTRACTING — orders & backlog rolling over (recession lead)" if (_bust >= 2 and _bust > _boom)
+            else "SLOWING" if _bust > _boom else "EXPANDING" if _boom > _bust else "NEUTRAL")
+        mfg_lead["note"] = ("manufacturing backlog-to-shipments + demand-supply spread + Fed G.17 capacity "
+                            "utilization — these lead production/GDP; the earliest boom/slowdown/bust tell")
+        # feed the LEADING verdict into the recession composite (balanced — a boom adds max + 0 votes)
+        rp_max += 12
+        if "CONTRACTING" in mfg_lead["lead_verdict"]:
+            rp_votes += 12
+        elif mfg_lead["lead_verdict"] == "SLOWING":
+            rp_votes += 5
     recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
     # ── profit / margin cycle: corporate profits (BEA) vs unit labor costs (BLS).
     # Classic investment-clock signal — late cycle is defined by margin compression
@@ -943,6 +989,7 @@ def lambda_handler(event, context):
         "surprise_tilt": surprise, "asset_leadership": assets,
         "recession_prob_pct": recession_prob,
         "hard_data_recession": hard_data_recession or None,
+        "manufacturing_cycle_lead": mfg_lead or None,
         "profit_margin_cycle": profit_margin_cycle,
         "sahm": sahm,
         "yield_curve_regime": yc_regime, "yield_curve_decomp": yc_decomp,
