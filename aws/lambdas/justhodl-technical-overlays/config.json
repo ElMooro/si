@@ -1,0 +1,13 @@
+{
+  "function_name": "justhodl-technical-overlays",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 256,
+  "timeout": 90,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "MA(20/50/200) + Bollinger overlays and signals (golden/death cross, %b, squeeze, MA stack). Real Polygon daily bars. Emits chart_series for Research Desk + confluence lean at PROBATIONARY trust (0 weight until matured via Edge Accuracy BH-FDR gate). Writes data/technical-overlays/<T>.json.",
+  "environment_keys": ["POLYGON_KEY"],
+  "schedule": {"rule_name": "justhodl-technical-overlays-daily", "cron": "cron(10 21 * * ? *)", "description": "Daily 21:10 UTC after US close — TA overlays + signals"}
+}
