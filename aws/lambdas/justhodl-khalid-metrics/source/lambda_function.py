@@ -314,7 +314,7 @@ Return ONLY valid JSON:
             text=text.strip()
             if text.startswith("```"):text=text.split("\n",1)[1]if"\n"in text else text[3:]
             if text.endswith("```"):text=text[:-3]
-            analysis=json.loads(text.strip())
+            analysis=_loads_repair(text.strip())
             analysis['generated']=datetime.now(timezone(timedelta(hours=-5))).isoformat()
             s3.put_object(Bucket=S3_BUCKET,Key='data/khalid-analysis.json',Body=json.dumps(analysis,indent=2).encode('utf-8'),ContentType='application/json')
             print(f"AI: grade={analysis.get('plumbing_health',{}).get('grade','?')}, crypto={analysis.get('crypto_outlook',{}).get('btc_regime','?')}")
