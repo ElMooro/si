@@ -1,99 +1,30 @@
 {
- "ops": 2866,
- "ts": "2026-07-05T03:28:48.012033+00:00",
- "new_canaries": {
-  "initial_claims": {
-   "avail": true,
-   "val": 222000.0,
-   "stress": 43.5,
-   "grid": "labor_industrial",
-   "age": 8,
-   "reason": null
-  },
-  "building_permits": {
-   "avail": true,
-   "val": -0.42,
-   "stress": 60.9,
-   "grid": "commodity_cycle",
-   "age": 65,
-   "reason": null
-  },
-  "yield_curve": {
-   "avail": true,
-   "val": 0.35,
-   "stress": 50.3,
-   "grid": "rates_credit",
-   "age": 3,
-   "reason": null
-  },
-  "hy_credit_oas": {
-   "avail": true,
-   "val": 2.75,
-   "stress": 28.0,
-   "grid": "rates_credit",
-   "age": 3,
-   "reason": null
-  },
-  "real_m2": {
-   "avail": true,
-   "val": 1.53,
-   "stress": 58.1,
-   "grid": "rates_credit",
-   "age": 65,
-   "reason": null
-  },
-  "lending_standards": {
-   "avail": true,
-   "val": 8.1,
-   "stress": 52.7,
-   "grid": "rates_credit",
-   "age": 95,
-   "reason": null
-  }
- },
- "grid": {
-  "avail": 21,
-  "total": 22,
-  "ew": 35.8,
-  "band": "WATCH"
- },
- "sub_grids": {
-  "trade_shipping": {
-   "label": "Trade & Shipping",
-   "score": 20.9,
-   "band": "WATCH",
-   "n_signals": 6,
-   "lead_months": 2.8
-  },
-  "commodity_cycle": {
-   "label": "Commodity Cycle",
-   "score": 47.0,
-   "band": "ELEVATED",
-   "n_signals": 5,
-   "lead_months": 2.8
-  },
-  "funding_plumbing": {
-   "label": "Funding Plumbing",
-   "score": 23.9,
-   "band": "WATCH",
-   "n_signals": 2,
-   "lead_months": 0.8
-  },
-  "labor_industrial": {
-   "label": "Labour & Industrial",
-   "score": 40.8,
-   "band": "ELEVATED",
-   "n_signals": 4,
-   "lead_months": 2.2
-  },
-  "rates_credit": {
-   "label": "Rates & Credit",
-   "score": 47.3,
-   "band": "ELEVATED",
-   "n_signals": 4,
-   "lead_months": 8.0
-  }
- },
- "status": "LIVE"
-}
-OPS 2866 COMPLETE
+ "ops": 2867,
+ "ts": "2026-07-05T03:46:36.103909+00:00",
+ "brain_total_notes": 9200,
+ "brain_canary_note_count": 198,
+ "brain_canary_notes": [
+  "Current situation:Analysts note that despite strong headlines, “market breadth has not kept pace with the rally,” meaning fewer stocks are powering the gains—particularly big tech and AI-related names. One strategist warns of “directional d",
+  "But when the curve suddenly steepens after inversion, it often signals a credit crisis brewing.",
+  "Inversions (short-term > long-term yields) are classic recession warnings.",
+  "Yield curve inversion / re-steepening",
+  "Bottom line: 4-week and 8-week bill auctions are the first place a liquidity crunch will show up. Watch for high tails, collapsing bid-to-cover, and surging dealer allotments there — those precede repo spikes and broader market stress by da",
+  "Auction types to monitor in order of earliest signal PriorityMaturity / TypeWhy it’s early warningHistorical examples#14-week T-billPurest liquidity gauge; smallest duration riskSept 2019 repo crisis, March 2020 COVID shock#28-week T-billSa",
+  "Why short-term bill auctions are the earliest canary Bills = pure liquidity instruments 4-week and 8-week bills are the closest thing to “cash” in the financial system. Large banks, money-market funds, and collateralized lending markets use",
+  "EACH FINANCIAL CRISIS IS MORE DANGEROUS THAN THE ONE BEFORE AND EACH BAILOUT GETS BIGGER THAN THE ONE BEFORE. \r\n\r\nTHE FEDERAL RESERVE HAS TWO MANDATES: 1- TO MAINTAIN STABLE PRICES (CONTROL INFLATION). 2- MAINTAIN MAXIMUM EMPLOYMENT.\r\n\r\nAut",
+  "EACH FINANCIAL CRISIS IS MORE DANGEROUS THAN THE ONE BEFORE AND EACH BAILOUT GETS BIGGER THAN THE ONE BEFORE. \r\n\r\nAuto Fib Extension on monthly is a great tool for profit taking in crypto.\r\n\r\nWHEN THE MONEY IN THE REVERSE REPO FACILITY DRIE",
+  "EACH FINANCIAL CRISIS IS MORE DANGEROUS THAN THE ONE BEFORE AND EACH BAILOUT GETS BIGGER THAN THE ONE BEFORE. \r\n\r\nForecasting the consequences of Fed policy is really difficult. But forecasting Fed policy is the easiest thing in the world b",
+  "These comprehensive implementations provide a robust framework for risk assessment, signal generation, trend reversal detection, and crisis warning systems. Each component is designed to work together to provide early warnings and actionabl",
+  "\"Monitor leading indicators closely\"",
+  "\"\"\"Analyze yield curve for inversion\"\"\"",
+  "# Check for regular bearish divergence (price makes higher high, indicator makes lower high)",
+  "# Check for regular bullish divergence (price makes lower low, indicator makes higher low)",
+  "\"\"\"Detect divergences between price and indicator\"\"\"",
+  "Machine Learning Models * LSTM/GRU for time series prediction * Random Forest/XGBoost for classification * Reinforcement learning for strategy optimization * Ensemble methods for robust predictions 5. Trend Reversal Detection Early Warning ",
+  "Yield curve analysis: Inversion detection",
+  "Divergence detection: Price vs. momentum indicators",
+  "Early warning for crises (liquidity crunch, credit stress, RRP depletion)",
+  "Trend reversal alerts (e.g., yield curve inversion, inflation pivots, SOFR stress)",
+  "That’s a powerful concept — building a platform that delivers actionable macro-financial intelligence with API-fed data, AI-driven signals, and early warning systems. Here's a detailed list of feature suggestions, data sources, and technica",
+  "i want to create a financial platform to fetch data from apis and to help trader gauge risk, buy signal, sell signal and ear
+OPS 2867 COMPLETE
