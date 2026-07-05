@@ -111,9 +111,26 @@ jobs:
             # redeploys, so consumers silently ran stale shared code (the
             # llm_router-not-bundled class of bug). Bounded to actual importers.
             if [ -n "$shared_changed" ]; then
+              # Transitive closure (2026-07-05): a changed shared module must also
+              # count shared modules that IMPORT it (llm_router change must redeploy
+              # anthropic_shim's importers too) — previously transitive consumers
+              # kept stale bundles (the ka/khalid-metrics class of bug).
+              smods=""
+              for sp in $shared_changed; do smods="$smods $(basename "$sp" .py)"; done
+              for _pass in 1 2 3; do
+                grew=""
+                for sm in $smods; do
+                  while IFS= read -r sf; do
+                    [ -z "$sf" ] && continue
+                    m=$(basename "$sf" .py)
+                    case " $smods $grew " in *" $m "*) ;; *) grew="$grew $m";; esac
+                  done < <(grep -rlE "(from|import)[[:space:]]+${sm}([^a-zA-Z0-9_]|\$)" aws/shared/*.py 2>/dev/null || true)
+                done
+                [ -z "$grew" ] && break
+                smods="$smods$grew"
+              done
               extra=""
-              for sp in $shared_changed; do
-                smod=$(basename "$sp" .py)
+              for smod in $smods; do
                 while IFS= read -r f; do
                   [ -z "$f" ] && continue
                   extra="$extra $(echo "$f" | awk -F/ '{print $3}')"

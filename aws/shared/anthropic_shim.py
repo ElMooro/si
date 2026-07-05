@@ -172,4 +172,4 @@ def _install():
 
 _install()
 
-# deploy-nudge: force redeploy of importers to pick up cost governance (ops 2790).
+# deploy-nudge: 2026-07-05 circuit-breaker propagation to ALL transitive importers (ops 2897).
