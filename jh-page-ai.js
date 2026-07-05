@@ -42,8 +42,34 @@
       "#jhpai-panel .num{font-size:18px;font-weight:700}"+
       "#jhpai-panel .muted{color:#6b7480;font-size:11px}"+
       "#jhpai-panel .x{position:absolute;top:9px;right:11px;cursor:pointer;color:#6b7480;font-size:19px;background:none;border:none}"+
-      "#jhpai-panel .row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}";
+      "#jhpai-panel .row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}"+
+      "#jhpai-panel .gen{display:block;width:100%;margin:4px 0 8px;padding:8px 10px;border-radius:9px;border:1px solid #3b2f63;"+
+      "background:linear-gradient(135deg,#2a1f4d,#1b1533);color:#cfc3ff;font-weight:700;font-size:12.5px;cursor:pointer}"+
+      "#jhpai-panel .gen:hover{border-color:#6d5ae0}#jhpai-panel .gen:disabled{opacity:.6;cursor:wait}";
     document.head.appendChild(s);
+  }
+
+  var LIVECFG = null;
+  function liveUrl() {
+    if (LIVECFG !== null) return Promise.resolve(LIVECFG);
+    return gj("data/page-ai-live.json").then(function (c) { LIVECFG = (c && c.url) || ""; return LIVECFG; });
+  }
+  function genFresh() {
+    var b = document.getElementById("jhpai-gen");
+    if (b) { b.disabled = true; b.textContent = "Generating\u2026"; }
+    liveUrl().then(function (u) {
+      if (!u) throw 0;
+      return fetch(u + "?mode=live&page=" + encodeURIComponent(pageName()) + "&t=" + Date.now())
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); });
+    }).then(function (d) {
+      data = d; render(d);
+    }).catch(function () {
+      var b2 = document.getElementById("jhpai-gen");
+      if (b2) { b2.disabled = false; b2.textContent = "\u2728 Generate AI analysis"; }
+      var p = document.getElementById("jhpai-panel");
+      if (p) { var n = document.createElement("div"); n.className = "muted"; n.style.marginTop = "8px";
+        n.textContent = "Live generation is unavailable right now \u2014 showing the cached brief."; p.appendChild(n); }
+    });
   }
 
   function outlookHtml(o) {
@@ -69,8 +95,11 @@
 
   function render(d) {
     var p = document.getElementById("jhpai-panel");
-    if (!d) { p.innerHTML = '<button class="x" data-x>&times;</button><div class="muted">No AI brief generated for this page yet — it fills in on the next AI wave.</div>'; return; }
+    if (!d) { p.innerHTML = '<button class="x" data-x>&times;</button><div class="muted">No AI brief for this page yet.</div><button id="jhpai-gen" class="gen">\u2728 Generate AI analysis</button><div class="muted" style="margin-top:6px">Click to analyze this page\u2019s live data now.</div>'; return; }
     var h = '<button class="x" data-x>&times;</button>';
+    h += '<button id="jhpai-gen" class="gen">\u2728 Generate AI analysis</button>';
+    h += '<div class="muted" style="margin-bottom:4px">' + (d.generated_on_click ? "fresh \u00b7 " : "cached \u00b7 ")
+       + esc(String(d.generated_at || "").slice(0, 16).replace("T", " ")) + " UTC</div>";
     h += '<h4>' + esc(d.title || d.page) + '</h4>';
     if (d.what_it_is) h += '<div class="sec"><div class="lbl">What this is</div><div class="txt">' + esc(d.what_it_is) + '</div></div>';
     if (d.what_it_does) h += '<div class="sec"><div class="lbl">How it works</div><div class="txt">' + esc(d.what_it_does) + '</div></div>';
@@ -94,7 +123,7 @@
         gj("data/page-ai/" + pageName() + ".json").then(function (d) { data = d; render(d); }); }
     }
     fab.addEventListener("click", function () { panel.classList.contains("open") ? panel.classList.remove("open") : open(); });
-    panel.addEventListener("click", function (e) { if (e.target.matches("[data-x]")) panel.classList.remove("open"); });
+    panel.addEventListener("click", function (e) { if (e.target.matches("[data-x]")) panel.classList.remove("open"); if (e.target.id === "jhpai-gen") genFresh(); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();

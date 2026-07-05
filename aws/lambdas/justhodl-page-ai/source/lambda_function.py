@@ -132,9 +132,46 @@ def gen_page_ai(page, meta, look, norm, explain_existing):
     return out, upd
 
 
+_CORS = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,OPTIONS",
+         "Access-Control-Allow-Headers": "*", "Content-Type": "application/json"}
+
+
+def live_mode(qs, manifest):
+    """On-demand generation: the user clicked the AI button on a page — generate THAT
+    page's analysis fresh, synchronously, and return it (also refreshing the cache).
+    This is the click-triggered path; the wave handler below is the batch fallback."""
+    raw = (qs.get("page") or "index").lower()
+    page = "".join(ch for ch in raw if ch.isalnum() or ch in "._-") or "index"
+    meta = manifest.get(page)
+    if not meta:
+        feeds = [f for f in (qs.get("feeds") or "").split(",") if f]
+        meta = {"title": page, "data_files": [f.replace("data/", "").replace(".json", "") for f in feeds][:4],
+                "engines": []}
+    look, norm = build_scorecard_lookup()
+    explain_cache = _read("data/_cache/page-ai-explain.json") or {}
+    try:
+        out, upd = gen_page_ai(page, meta, look, norm, explain_cache.get(page))
+        out["mode"] = "live"
+        out["generated_on_click"] = True
+        _write(f"data/page-ai/{page}.json", out)
+        if upd:
+            explain_cache[page] = upd
+            _write("data/_cache/page-ai-explain.json", explain_cache, cache="no-cache")
+        return {"statusCode": 200, "headers": _CORS, "body": json.dumps(out, default=str)}
+    except Exception as e:
+        return {"statusCode": 200, "headers": _CORS,
+                "body": json.dumps({"page": page, "error": str(e)[:120],
+                                    "note": "Live generation failed; any cached brief still applies."})}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
+    if ((event or {}).get("requestContext") or {}).get("http", {}).get("method") == "OPTIONS":
+        return {"statusCode": 204, "headers": _CORS}
     manifest = _read("data/page-ai-manifest.json") or {}
+    qs = (event or {}).get("queryStringParameters") or {}
+    if qs.get("mode") == "live":
+        return live_mode(qs, manifest)
     pages = list(manifest.keys())
     if not pages: return {"statusCode": 500, "body": "no manifest"}
     look, norm = build_scorecard_lookup()

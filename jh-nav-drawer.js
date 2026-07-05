@@ -52,24 +52,53 @@
   }
   function toggle() { drawer.classList.contains("jhnav-open") ? close() : open(); }
 
+  var lastM = null;
+  function getFavs(){ try { return JSON.parse(localStorage.getItem("jh_favs") || "[]"); } catch(e){ return []; } }
+  function setFavs(a){ try { localStorage.setItem("jh_favs", JSON.stringify(a.slice(0, 80))); } catch(e){} }
+  function toggleFav(h){ var f = getFavs(); var i = f.indexOf(h); if (i >= 0) f.splice(i, 1); else f.unshift(h); setFavs(f); }
+
   function render(m) {
+    lastM = m;
     var here = (location.pathname || "/").replace(/\/$/, "") || "/";
     var groupsEl = document.getElementById("jhnav-groups");
     var countEl = document.getElementById("jhnav-count");
     if (countEl) countEl.textContent = m.n_pages + " pages";
+    var favs = getFavs();
+    var titleByHref = {};
+    (m.categories || []).forEach(function (c) { (c.pages || []).forEach(function (p) { titleByHref[p.href] = p.title; }); });
+    function itemHtml(p) {
+      var isHere = p.href === here;
+      var on = favs.indexOf(p.href) >= 0;
+      return '<a class="jhnav-item' + (isHere ? " jhnav-here" : "") + '" href="' + esc(p.href) + '">'
+        + '<span class="jhnav-t">' + esc(p.title) + (isHere ? " \u2014 you\u2019re here" : "") + '</span>'
+        + '<span class="jhnav-star' + (on ? " on" : "") + '" data-fav="' + esc(p.href) + '" title="' + (on ? "Unfavorite" : "Favorite") + '">' + (on ? "\u2605" : "\u2606") + '</span></a>';
+    }
     var html = "";
+    var favPages = favs.filter(function (h) { return titleByHref[h]; }).map(function (h) { return { href: h, title: titleByHref[h] }; });
+    if (favPages.length) {
+      html += '<div class="jhnav-group jhnav-gopen jhnav-favgroup">'
+        + '<div class="jhnav-ghead"><span>\u2b50 Favorites <span class="jhnav-n">' + favPages.length + '</span></span><span class="jhnav-chev">\u25b8</span></div>'
+        + '<div class="jhnav-items">' + favPages.map(itemHtml).join("") + '</div></div>';
+    }
     (m.categories || []).forEach(function (cat, i) {
       var hasHere = (cat.pages || []).some(function (p) { return p.href === here; });
       if (hasHere) hereCatIndex = i;
       html += '<div class="jhnav-group' + (hasHere ? " jhnav-gopen" : "") + '" data-i="' + i + '">'
         + '<div class="jhnav-ghead"><span>' + esc(cat.name) + ' <span class="jhnav-n">' + cat.count + '</span></span><span class="jhnav-chev">\u25b8</span></div>'
-        + '<div class="jhnav-items">' + (cat.pages || []).map(function (p) {
-            var isHere = p.href === here;
-            return '<a class="jhnav-item' + (isHere ? " jhnav-here" : "") + '" href="' + esc(p.href) + '">' + esc(p.title) + (isHere ? " \u2014 you\u2019re here" : "") + '</a>';
-          }).join("") + '</div>'
+        + '<div class="jhnav-items">' + (cat.pages || []).map(itemHtml).join("") + '</div>'
         + '</div>';
     });
     groupsEl.innerHTML = html;
+    if (!groupsEl.__jhFavWired) {
+      groupsEl.__jhFavWired = true;
+      groupsEl.addEventListener("click", function (e) {
+        var st = e.target && e.target.classList && e.target.classList.contains("jhnav-star") ? e.target : null;
+        if (!st) return;
+        e.preventDefault(); e.stopPropagation();
+        toggleFav(st.getAttribute("data-fav"));
+        if (lastM) render(lastM);
+      }, true);
+    }
     var groups = groupsEl.querySelectorAll(".jhnav-group");
     for (var gi = 0; gi < groups.length; gi++) {
       (function (g) {
@@ -99,7 +128,12 @@
 
   function inject() {
     var styleEl = document.createElement("style");
-    styleEl.textContent = CSS;
+    styleEl.textContent = CSS
+      + ".jhnav-item{display:flex;justify-content:space-between;align-items:center;gap:8px}"
+      + ".jhnav-item .jhnav-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+      + ".jhnav-star{flex:none;color:#5a6675;font-size:13px;padding:0 3px;cursor:pointer}"
+      + ".jhnav-star.on{color:#ffd75e}.jhnav-star:hover{color:#ffd75e}"
+      + ".jhnav-favgroup .jhnav-ghead{color:#ffd75e}";
     document.head.appendChild(styleEl);
 
     backdrop = document.createElement("div");

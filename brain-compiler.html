@@ -60,4 +60,7 @@ function tbl(){const rows=(DATA.claims||[]).filter(c=>filt=='all'||c.status==fil
    <td class="eng">${(c.engines||[]).map(e=>e.engine.replace('justhodl-','')+' ('+e.score+')').join('<br>')||'—'}</td></tr>`).join('')
   ||'<tr><td colspan="4" class="muted" style="padding:16px">None in this view.</td></tr>';}
 getJSON('data/brain-compiler.json').then(render).catch(()=>{document.getElementById('sub').textContent='Compiler feed not published yet — first run pending.';});
-</script></body></html>
+</script>
+<script defer src="/jh-nav-drawer.js"></script>
+<script defer src="/jh-page-ai.js"></script>
+</body></html>
