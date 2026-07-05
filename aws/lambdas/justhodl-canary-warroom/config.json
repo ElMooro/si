@@ -1,0 +1,6 @@
+{
+  "description": "Unified Early-Warning War Room aggregator — 6 canary mechanisms + brain playbook",
+  "timeout": 60,
+  "memory": 256,
+  "schedule": {"rule_name": "justhodl-canary-warroom-hourly", "cron": "cron(50 * * * ? *)", "description": "Hourly canary war-room aggregation"}
+}

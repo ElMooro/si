@@ -1,111 +1,129 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crisis Canaries — 40+ Early-Warning Metrics — JustHodl AI</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Early-Warning War Room — JustHodl AI</title>
 <style>
-:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--cyan:#22d3ee;--green:#34d399;--red:#ff5577;--violet:#a78bfa;--amber:#fbbf24}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
-.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--red)}
-nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover,nav a.on{color:var(--red)}
-.wrap{max-width:1180px;margin:0 auto;padding:20px 22px}
-h1{font-size:23px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--red),var(--amber));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--fg2);font-size:13px;max-width:960px;line-height:1.6}
-.hero{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0;align-items:stretch}
-.g{background:var(--bg1);border:2px solid var(--border);border-radius:14px;padding:12px 17px;font-family:var(--mono)}
-.g b{font-size:24px}.g .m{font-size:10px;color:var(--fg3);margin-top:3px}
-.famchips{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 2px}
-.fc{font-family:var(--mono);font-size:10px;padding:4px 9px;border-radius:7px;background:var(--bg1);border:1px solid var(--border);color:var(--fg2)}
-.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:24px 0 9px;text-transform:uppercase}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px}
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
-.card.red{border-color:rgba(255,85,119,.55);background:rgba(255,85,119,.05)}
-.card.amber{border-color:rgba(251,191,36,.45)}
-.cn{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.cn b{font-size:13px}.cv{font-family:var(--mono);font-size:14px;font-weight:800;white-space:nowrap}
-.cd{color:var(--fg2);font-size:11.3px;line-height:1.55;margin-top:5px}
-.cm{font-family:var(--mono);font-size:9.5px;color:var(--fg3);margin-top:6px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap}
-.hi{color:var(--green)}.lo{color:var(--red)}.am{color:var(--amber)}
-#alerts{margin:10px 0}.al{font-family:var(--mono);font-size:12px;color:var(--red);padding:6px 12px;background:rgba(255,85,119,.06);border:1px solid rgba(255,85,119,.3);border-radius:9px;margin:5px 0}
-.note{color:var(--fg3);font-size:11px;margin-top:18px;line-height:1.65}
-button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg2);padding:6px 12px;font-family:var(--mono);font-size:11px;cursor:pointer;margin-left:auto}
-.loading{color:var(--fg3);font-family:var(--mono)}
-</style></head><body>
-<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
-<nav><a href="/">Desk</a><a href="/canaries.html" class="on">🐤 Canaries</a><a href="/canary-grid.html">Global Grid</a><a href="/eurodollar-stress.html">Eurodollar</a><a href="/systemic-risk.html">Systemic</a><a href="/alerts.html">Alerts</a></nav></header>
+  :root{--bg:#0a0e14;--card:#121822;--card2:#0f141d;--bd:#1e2836;--tx:#e6edf3;--mut:#8b98a9;
+    --calm:#2ea043;--watch:#2f81f7;--elev:#d29922;--warn:#e8730c;--crit:#f85149;--acc:#39d0d8;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1240px;margin:0 auto;padding:22px 18px 60px}
+  a{color:var(--acc);text-decoration:none}
+  h1{font-size:26px;margin:0 0 2px;letter-spacing:-.02em}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  .hero{display:flex;gap:20px;align-items:center;background:linear-gradient(135deg,#121822,#0d1420);border:1px solid var(--bd);border-radius:16px;padding:22px 24px;margin-bottom:18px;flex-wrap:wrap}
+  .gauge{text-align:center;min-width:150px}
+  .gauge .n{font-size:52px;font-weight:800;line-height:1}
+  .gauge .b{font-size:13px;font-weight:700;letter-spacing:.08em;margin-top:4px}
+  .hero .hl{flex:1;min-width:260px;font-size:15px;color:#cdd7e2}
+  .hero .stat{display:flex;gap:26px;margin-top:12px;flex-wrap:wrap}
+  .hero .stat div span{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .hero .stat div b{font-size:22px}
+  .sechd{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:26px 0 12px}
+  .grid{display:grid;gap:14px}
+  .mechs{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card .lbl{font-weight:700;font-size:14px}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;white-space:nowrap}
+  .card .sc{font-size:30px;font-weight:800;margin:6px 0 2px}
+  .card .hd{color:var(--mut);font-size:12.5px;margin-top:6px}
+  .card .ff{color:var(--mut);font-size:12px;margin-top:8px}
+  .diverg .card{border-left:3px solid var(--elev);background:linear-gradient(90deg,#1a1710,#121822 60%)}
+  .diverg .card .lbl{color:var(--elev)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--bd);cursor:pointer;user-select:none}
+  td{padding:9px 10px;border-bottom:1px solid #171f2b;vertical-align:top}
+  tr:hover td{background:#0e141d}
+  .tag{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:#182230;color:var(--acc)}
+  .bar{height:6px;border-radius:4px;background:#1b2534;overflow:hidden;min-width:60px}
+  .bar>i{display:block;height:100%}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .filters button{background:var(--card2);border:1px solid var(--bd);color:var(--mut);padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer}
+  .filters button.on{background:#16324e;border-color:#2f81f7;color:#cfe3ff}
+  .pb{background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:13px;color:#cdd7e2}
+  .pb .cat{font-size:10px;color:var(--acc);text-transform:uppercase;letter-spacing:.06em}
+  .pin{font-size:10px;color:var(--elev);font-weight:700}
+  .muted{color:var(--mut)} .rt{text-align:right}
+</style>
+</head>
+<body>
 <div class="wrap">
-<h1>Crisis Canaries — <span class="grad">40+ early-warning metrics</span></h1>
-<p class="sub">Every credible crisis lead the desk can measure live, in one cockpit: funding plumbing (SOFR tails, discount window, deposits), the labor cycle (Sahm, quits, overtime), the real economy (heavy trucks, permits, WEI), stealth credit (CCC−BB), the rates regime (the <b>un-inversion trigger</b> — recessions start when the curve re-steepens), global FX (<b>copper/gold with stage-1/2 driver decomposition</b>, AUD/JPY, the Chilean peso as copper-currency), market internals, and acute dollar-shortage tells (swap lines, foreign repo pool). Each canary carries its threshold, lead time, z-score, and source.</p>
-<div class="hero" id="hero"><span class="loading">Loading…</span></div>
-<div class="famchips" id="fams"></div>
-<div id="alerts"></div>
-<div class="sec">🤖 AI DESK BRIEFING</div>
-<div id="aibrief" style="background:var(--bg1);border:1px solid #a78bfa55;border-radius:12px;padding:13px 16px;color:var(--fg2)"><span class="loading">…</span></div>
-<div id="sections"></div>
-<div class="note" id="note"></div>
+  <div><a href="/">← JustHodl</a></div>
+  <h1>🚨 Early-Warning War Room</h1>
+  <div class="sub" id="sub">Loading every canary mechanism…</div>
+
+  <div class="hero" id="hero"></div>
+
+  <div id="divWrap"></div>
+
+  <div class="sechd">Six Mechanisms</div>
+  <div class="grid mechs" id="mechs"></div>
+
+  <div class="sechd">Firing Canaries — ranked by stress &amp; lead-time</div>
+  <div class="filters" id="filters"></div>
+  <div class="card" style="padding:4px 4px 0"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+
+  <div class="sechd">🧠 Operator Playbook — from the Brain</div>
+  <div class="grid" id="playbook" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))"></div>
 </div>
 <script>
-const PX='https://justhodl-data-proxy.raafouis.workers.dev';
-const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-const FAM_LABEL={labor:'Labor Cycle',real_economy:'Real Economy',credit:'Credit Quality (stealth)',rates_regime:'Rates Regime',global_fx:'Global / FX / Commodity-currencies',internals:'Market Internals',plumbing_extra:'Acute Dollar-Shortage Tells'};
-const FAM_ORDER=['global_fx','rates_regime','labor','credit','real_economy','internals','plumbing_extra'];
-let D=null;
-(async()=>{D=await gj('data/crisis-canaries.json');
-  if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
-  const lv=D.level_v3||D.level, cv=D.composite_v3??D.composite_score;
-  const col=lv==='ACUTE'?'var(--red)':lv==='ELEVATED'?'var(--amber)':lv==='WATCH'?'var(--cyan)':'var(--green)';
+const COL={CALM:'var(--calm)',WATCH:'var(--watch)',ELEVATED:'var(--elev)',WARNING:'var(--warn)',CRITICAL:'var(--crit)','NO DATA':'var(--mut)',ACTIVE:'var(--watch)',QUIET:'var(--calm)'};
+const col=b=>COL[(b||'').toUpperCase()]||'var(--mut)';
+async function getJSON(p){for(const u of [`https://justhodl.ai/${p}`,`https://s3.amazonaws.com/justhodl-dashboard-live/${p}`]){try{const r=await fetch(u,{cache:'no-store'});if(r.ok)return await r.json();}catch(e){}}throw 0;}
+let DATA=null,filt='all';
+function fmt(v){return v==null?'—':(typeof v==='number'?(Math.round(v*100)/100):v);}
+function render(d){
+  DATA=d;const m=d.master||{};
+  document.getElementById('sub').textContent='Unified across 6 mechanisms · updated '+new Date(d.generated_at).toLocaleString();
+  const ew=m.early_warning_0_100, c=col(m.band);
   document.getElementById('hero').innerHTML=
-   `<div class="g" style="border-color:${col}"><b style="color:${col}">${cv??'—'}</b><div class="m">COMPOSITE v3 · ${esc(lv)}<br>plumbing ${D.composite_score??'—'} · global ${D.global_score??'—'} · grid ${D.grid_score_ingested??'—'}</div></div>
-    <div class="g" style="border-color:${(D.red_count||0)?'var(--red)':'var(--border)'}"><b class="${(D.red_count||0)?'lo':'hi'}">${D.red_count??0}</b><div class="m">RED canaries<br>of ${D.n_global??'—'} global</div></div>
-    <div class="g"><b>${Object.keys(D.canaries||{}).length}</b><div class="m">total metrics live<br>(plumbing + global)</div></div>`;
-  document.getElementById('fams').innerHTML=FAM_ORDER.map(f=>{const s=(D.families||{})[f];if(!s)return '';
-    const c=s.red?'var(--red)':s.amber?'var(--amber)':'var(--green)';
-    return `<span class="fc" style="border-color:${c}">${FAM_LABEL[f]} · ${s.score} · ${s.red}R/${s.amber}A/${s.green}G</span>`;}).join('');
-  document.getElementById('alerts').innerHTML=(D.alerts||[]).map(a=>`<div class="al">⚠ ${esc(a)}</div>`).join('');
-  const cans=D.canaries||{};
-  const fams={},legacy={};
-  for(const[k,v]of Object.entries(cans)){if(v&&v.family)(fams[v.family]=fams[v.family]||{})[k]=v;else legacy[k]=v;}
-  const ord=s=>({RED:0,AMBER:1,GREEN:2}[s]??3);
-  let html='';
-  for(const f of FAM_ORDER){const g=fams[f];if(!g)continue;
-    html+=`<div class="sec">${FAM_LABEL[f]}</div><div class="grid">`+
-     Object.values(g).sort((a,b)=>ord(a.status)-ord(b.status)).map(c=>{
-      const dot=c.status==='RED'?'🔴':c.status==='AMBER'?'🟡':'🟢';
-      const vc=c.status==='RED'?'lo':c.status==='AMBER'?'am':'hi';
-      return `<div class="card ${(c.status||'').toLowerCase()}"><div class="cn"><b>${dot} ${esc(c.name)}</b><span class="cv ${vc}">${esc(c.value)}<span style="font-size:10px;color:var(--fg3)"> ${esc(c.unit)}</span></span></div>
-       <div class="cd">${esc(c.detail)}</div>
-       <div class="cm"><span>lead ${esc(c.lead)}${c.z!=null?' · z '+c.z:''}</span><span>${esc(c.as_of)} · ${esc(c.source)}</span></div></div>`;
-     }).join('')+'</div>';}
-  // legacy plumbing core (no family tag)
-  if(Object.keys(legacy).length){
-    html+='<div class="sec">Funding Plumbing — core (SOFR tails · discount window · deposits · auctions)</div><div class="grid">'+
-     Object.entries(legacy).map(([k,c])=>{if(!c||typeof c!=='object')return '';
-      const kv=Object.entries(c).filter(([a,b])=>typeof b!=='object').slice(0,5).map(([a,b])=>`<span style="margin-right:9px"><span style="color:var(--fg3)">${esc(a)}</span> <b>${esc(b)}</b></span>`).join('');
-      return `<div class="card"><div class="cn"><b>${esc(k.replace(/_/g,' '))}</b></div><div class="cd" style="font-family:var(--mono);font-size:10.5px">${kv}</div></div>`;}).join('')+'</div>';}
-  document.getElementById('sections').innerHTML=html;
-  const dl=document.createElement('button');dl.className='dl';dl.textContent='⬇ CSV all canaries';
-  dl.onclick=()=>{const rows=[];for(const[k,v]of Object.entries(cans)){if(v&&v.family)rows.push({key:k,...v});}
-    const cols=['key','family','name','value','unit','status','z','lead','as_of','source','detail'];
-    const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c2=>{const v=r[c2];return v==null?'':String(v).replace(/,/g,';').replace(/\n/g,' ');}).join(','))).join('\n');
-    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='justhodl-crisis-canaries.csv';a.click();};
-  document.getElementById('hero').appendChild(dl);
-  document.getElementById('note').textContent=`${D.methodology||''} v3 adds 31 global early-warning canaries across 7 families; composite_v3 blends plumbing (35%) + global (45%) + canary-grid ingest (20%). Stale series (>13m) auto-excluded. v${D.version} · ${D.generated_at} · Research, not advice.`;
-})();
-async function aiPanel(key,mount){
-  const el=document.getElementById(mount);
-  try{let r=await fetch('https://justhodl.ai/data/'+key+'.json?t='+Date.now()).catch(()=>null);
-    if(!r||!r.ok)r=await fetch(PX+'/data/'+key+'.json?t='+Date.now()).catch(()=>null);
-    if(!r||!r.ok)throw 0;
-    const b=await r.json();let h='';
-    if(b.headline)h+=`<div style="font-size:15px;font-weight:700;color:var(--fg-1);margin-bottom:8px">${esc(b.headline)}</div>`;
-    const skip=new Set(['context_id','title','output_key','generated_at','generated_at_utc','model','error','headline','tokens','cost_usd','schema_version']);
-    for(const[k,v]of Object.entries(b)){if(skip.has(k)||v==null)continue;
-      if(typeof v==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase">${esc(k.replace(/_/g,' '))}</b><div style="font-size:12.5px;line-height:1.65">${esc(v)}</div></div>`;
-      else if(Array.isArray(v)&&v.length&&typeof v[0]==='string')h+=`<div style="margin:7px 0"><b style="color:var(--violet);font-family:var(--mono);font-size:10px">${esc(k.replace(/_/g,' ').toUpperCase())}</b>${v.map(x=>`<div style="font-size:12.5px">• ${esc(x)}</div>`).join('')}</div>`;}
-    el.innerHTML=h||'<span class="loading">AI brief generates on the next router cycle.</span>';
-  }catch(e){el.innerHTML='<span class="loading">AI brief generates on the next 4-hour router cycle.</span>';}
+    `<div class="gauge"><div class="n" style="color:${c}">${ew==null?'—':ew}</div><div class="b" style="color:${c}">${m.band||''}</div><div class="muted" style="font-size:11px;margin-top:4px">early-warning</div></div>
+     <div class="hl">${m.headline||''}
+       <div class="stat">
+         <div><span>Firing</span><b>${m.n_firing}</b> <span style="display:inline">of ${m.n_canaries}</span></div>
+         <div><span>Divergences</span><b style="color:var(--elev)">${m.n_divergences}</b></div>
+       </div></div>`;
+  // divergences
+  const dv=d.divergences||[];
+  document.getElementById('divWrap').innerHTML = dv.length? 
+    `<div class="sechd">⚠️ Cross-Mechanism Divergences</div><div class="grid diverg" style="grid-template-columns:repeat(auto-fill,minmax(360px,1fr))">`+
+    dv.map(x=>`<div class="card"><div class="top"><div class="lbl">${x.title}</div><span class="pill" style="background:#231b0e;color:var(--elev)">${x.severity}</span></div><div class="hd">${x.read}</div></div>`).join('')+`</div>`:'';
+  // mechanism cards
+  document.getElementById('mechs').innerHTML=(d.mechanisms||[]).map(mc=>{
+    if(mc.unavailable)return `<div class="card"><div class="lbl muted">${mc.label}</div><div class="ff">feed unavailable</div></div>`;
+    const b=mc.band||'',cc=col(b);
+    const extra=mc.flashing_buckets?`<div class="ff">flashing: ${(mc.flashing_buckets||[]).join(', ')||'none'}</div>`:
+                mc.recent?`<div class="ff">${(mc.recent||[]).slice(0,2).map(r=>'· '+r).join('<br>')}</div>`:'';
+    return `<div class="card"><div class="top"><div class="lbl">${mc.label}</div><span class="pill" style="background:#0e1622;color:${cc};border:1px solid ${cc}55">${b||'—'}</span></div>
+      <div class="sc" style="color:${cc}">${mc.score==null?(mc.signal||'—'):mc.score}</div>
+      <div class="ff">${mc.n_firing==null?'':mc.n_firing+' firing / '+(mc.n_total||'?')+' watched'} · <span class="muted">${mc.scale||''}</span></div>
+      <div class="hd">${(mc.headline||'').slice(0,150)}</div>${extra}</div>`;}).join('');
+  // filters
+  const mechs=[...new Set((d.all_canaries||[]).map(c=>c.mechanism))];
+  document.getElementById('filters').innerHTML=['all',...mechs].map(f=>`<button class="${f==filt?'on':''}" onclick="filt='${f}';renderTbl()">${f=='all'?'All firing':f.replace('_',' ')}</button>`).join('');
+  renderTbl();
+  // playbook
+  document.getElementById('playbook').innerHTML=(d.brain_playbook||[]).map(p=>
+    `<div class="pb">${p.pinned?'<span class="pin">📌 PINNED</span> ':''}${p.cat?'<span class="cat">'+p.cat+'</span>':''}<div style="margin-top:5px">${(p.text||'').replace(/[\r\n]+/g,' ')}</div></div>`).join('')||'<div class="muted">No canary notes surfaced from the brain.</div>';
 }
-aiPanel('canaries-decisive-call','aibrief');
-</script>  <script src="/jh-enhance.js" data-feed="data/crisis-canaries.json" data-metrics="families.labor.score:Labor|families.real_economy.score:Real economy|families.credit.score:Credit|families.rates_regime.score:Rates regime|families.global_fx.score:Global FX|families.internals.score:Internals" data-title="Crisis canaries — family stress scores" data-sub="0 = calm, higher = more stress"></script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-</body></html>
+function renderTbl(){
+  const rows=(DATA.firing||[]).filter(c=>filt=='all'||c.mechanism==filt);
+  document.querySelector('#tbl thead').innerHTML='<tr><th>Mechanism</th><th>Canary</th><th>Band</th><th class="rt">Stress</th><th class="rt">Lead (mo)</th><th>Value</th><th>Read</th></tr>';
+  document.querySelector('#tbl tbody').innerHTML=rows.map(c=>{
+    const cc=col(c.band),st=c.stress==null?0:c.stress;
+    return `<tr><td><span class="tag">${c.mech_label||c.mechanism}</span></td>
+      <td><b>${c.name||''}</b></td>
+      <td><span class="pill" style="background:#0e1622;color:${cc}">${c.band||''}</span></td>
+      <td class="rt"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><span>${c.stress==null?'—':Math.round(st)}</span><div class="bar" style="width:64px"><i style="width:${st}%;background:${cc}"></i></div></div></td>
+      <td class="rt muted">${c.lead_months==null?'—':c.lead_months}</td>
+      <td class="muted">${fmt(c.value)} ${c.unit||''}</td>
+      <td class="muted">${(c.detail||'').slice(0,120)}</td></tr>`;}).join('')
+    ||'<tr><td colspan="7" class="muted" style="padding:18px">No firing canaries in this view — grid is calm.</td></tr>';
+}
+getJSON('data/canary-warroom.json').then(render).catch(()=>{document.getElementById('sub').textContent='Could not load war-room feed.';});
+</script>
+</body>
+</html>
