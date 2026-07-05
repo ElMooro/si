@@ -154,6 +154,31 @@ def process(series_id, name, group, freq, invert, weight):
     }
 
 
+def retail_control_group_context():
+    """Cross-reference the Census retail CONTROL GROUP (retail & food services ex
+    autos/gas/building/food-services) — the core retail read that feeds GDP and the
+    cleanest hard consumer-spending signal, alongside the standardised pulse."""
+    try:
+        d = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/census-economic.json")["Body"].read())
+    except Exception:
+        return {"available": False}
+    cg = d.get("control_group") or {}
+    mom = cg.get("mom_pct")
+    if mom is None:
+        return {"available": False}
+    yoy = cg.get("yoy_pct")
+    read = ("STRONG" if mom >= 0.5 else "SOLID" if mom >= 0.2
+            else "SOFT" if mom >= -0.2 else "CONTRACTING")
+    return {"available": True, "control_group_mom_pct": mom,
+            "control_group_yoy_pct": yoy, "period": cg.get("period"), "read": read,
+            "note": ("Retail control group (ex autos/gas/building/food-services) "
+                     "%+.2f%% MoM / %s%% YoY — the hard core-retail read that feeds "
+                     "GDP; %s." % (mom, "n/a" if yoy is None else yoy,
+                                   "confirms consumer resilience" if mom >= 0.2
+                                   else "flags consumer softening"))}
+
+
 def labor_leading_context():
     """Cross-reference the official labour engine (labor-leading)."""
     try:
@@ -286,6 +311,7 @@ def lambda_handler(event, context):
         "divergence": divergence,
         "lead_signal": lead,
         "official_labour_cross_ref": labor_leading_context(),
+        "retail_control_group": retail_control_group_context(),
         "components": comps,
         "n_series": len(SERIES),
         "n_ok": len(comps),

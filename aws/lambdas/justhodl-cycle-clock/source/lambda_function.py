@@ -505,6 +505,7 @@ def lambda_handler(event, context):
     bea_hd = load("data/bea-economic.json", "bea_hard_data")
     mleads_hd = load("data/macro-leads.json", "macro_leads_hd")
     census_hd = load("data/census-economic.json", "census_hard_data")
+    bls_hd = load("data/bls-labor.json", "bls_labor_hd")
     # Phase 6 — broaden the synthesis across the fleet
     fedspeak = load("data/fed-speak.json", "fed_speak")
     fednlp = load("data/fed-nlp.json", "fed_nlp")
@@ -673,6 +674,32 @@ def lambda_handler(event, context):
                                        else "HARD DATA MIXED — one soft read" if _weak == 1
                                        else "HARD DATA NOT RECESSIONARY")
     recession_prob = round(rp_votes / rp_max * 100) if rp_max else None
+    # ── profit / margin cycle: corporate profits (BEA) vs unit labor costs (BLS).
+    # Classic investment-clock signal — late cycle is defined by margin compression
+    # (labor costs outrunning profits). No dedicated aggregate-margin engine exists,
+    # so the macro clock is its natural home. Read-only, informational (not a
+    # recession vote — margin compression already shows up via nowcast/sector). ──
+    profit_margin_cycle = None
+    _cp_yoy = _get(bea_hd, "corporate_profits", "yoy_pct")
+    _ulc_qoq = _get(bls_hd, "summary", "unit_labor_costs_qoq_pct")
+    _prod_qoq = _get(bls_hd, "summary", "productivity_qoq_pct")
+    if _cp_yoy is not None or _ulc_qoq is not None:
+        if _cp_yoy is not None and _ulc_qoq is not None:
+            # profits growing well while labor costs contained = margin tailwind
+            if _cp_yoy >= 6 and _ulc_qoq <= 2.5:
+                mr = "EXPANDING — profits outrunning labor costs (margin tailwind)"
+            elif _cp_yoy < 0 or _ulc_qoq >= 4:
+                mr = "COMPRESSING — labor costs eating margins (late-cycle tell)"
+            else:
+                mr = "STABLE"
+        else:
+            mr = "PARTIAL"
+        profit_margin_cycle = {
+            "corp_profits_yoy_pct": _cp_yoy, "unit_labor_costs_qoq_pct": _ulc_qoq,
+            "productivity_qoq_pct": _prod_qoq, "read": mr,
+            "note": "aggregate corporate profits vs unit labor costs — margins compress late-cycle; "
+                    "expanding margins argue against imminent earnings recession",
+        }
     sahm = _sahm()
     yc_decomp = {"real_10y_pct": _get(ycurve, "real_yields", "10Y_REAL", "value_pct"),
                  "breakeven_10y_pct": _get(ycurve, "inflation_expectations", "10Y_BREAKEVEN", "value_pct"),
@@ -916,6 +943,7 @@ def lambda_handler(event, context):
         "surprise_tilt": surprise, "asset_leadership": assets,
         "recession_prob_pct": recession_prob,
         "hard_data_recession": hard_data_recession or None,
+        "profit_margin_cycle": profit_margin_cycle,
         "sahm": sahm,
         "yield_curve_regime": yc_regime, "yield_curve_decomp": yc_decomp,
         "vol_regime": vol_regime, "dollar_regime": dollar_regime, "eps_revision_breadth": eps_breadth,

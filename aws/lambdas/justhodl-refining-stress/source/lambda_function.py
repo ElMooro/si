@@ -157,6 +157,62 @@ def lambda_handler(event, context):
                   "note": ("OK" if abs(dev) <= 8 else
                            "FMP front-month vs FRED spot diverge %s%% — FRED likely lagged to %s" % (dev, fwd))}
 
+    # ── physical supply context from EIA (now that the EIA key is live) ──
+    # Cracks are the margin; refinery utilization + product stocks tell you WHY —
+    # tight products (low stocks, high runs) support cracks; loose = demand-soft.
+    supply_context = None
+    try:
+        eia = json.loads(boto3.client("s3").get_object(Bucket=BUCKET, Key="data/eia-energy.json")["Body"].read())
+    except Exception:
+        eia = {}
+    _inv = eia.get("inventories_production") or {}
+
+    def _eia(sid):
+        o = (_inv.get(sid) or {}).get("data")
+        return o if isinstance(o, dict) else {}
+
+    ru = _eia("PET.WPULEUS3.W")
+    if ru.get("value") is not None:
+        v = ru["value"]
+        metrics.append(metric("refinery_util", "Refinery utilization", round(v, 1), "% capacity",
+                              "green" if v >= 90 else "yellow" if v >= 85 else "red",
+                              "Refiners running hot supports margins and signals firm product demand; a drop = "
+                              "demand softening or heavy turnarounds.", None, ru.get("period")))
+    for sid, mid, lbl, det in (
+        ("PET.WDISTUS1.W", "distillate_stocks", "Distillate inventories",
+         "Low/falling diesel stocks = tight products = supportive of the distillate crack."),
+        ("PET.WGTSTUS1.W", "gasoline_stocks", "Gasoline inventories",
+         "Low/falling gasoline stocks = tight products = supportive of the gasoline crack."),
+    ):
+        m = _eia(sid)
+        if m.get("value") is not None:
+            yoy = m.get("yoy")
+            st = ("green" if (yoy is not None and yoy < -3) else "red" if (yoy is not None and yoy > 6) else "yellow")
+            metrics.append(metric(mid, lbl, round(m["value"] / 1000.0, 1), "M bbl", st,
+                                  "%s YoY %s%%." % (det, "n/a" if yoy is None else round(yoy, 1)),
+                                  None, m.get("period")))
+    cush = _eia("PET.W_EPC0_SAX_YCUOK_MBBL.W")
+    if cush.get("value") is not None:
+        yoy = cush.get("yoy")
+        metrics.append(metric("cushing_stocks", "Cushing crude stocks", round(cush["value"] / 1000.0, 1), "M bbl",
+                              "yellow" if (yoy is not None and abs(yoy) > 25) else "green",
+                              "WTI delivery-point crude at Cushing OK — very low = pricing dislocation risk, "
+                              "very high = glut. YoY %s%%." % ("n/a" if yoy is None else round(yoy, 1)),
+                              None, cush.get("period")))
+    if ru.get("value") is not None:
+        _dsy = (_eia("PET.WDISTUS1.W").get("yoy"))
+        _gsy = (_eia("PET.WGTSTUS1.W").get("yoy"))
+        tight = ru["value"] >= 90 and ((_dsy is not None and _dsy < 0) or (_gsy is not None and _gsy < 0))
+        loose = ru["value"] < 88 and ((_dsy is not None and _dsy > 5) or (_gsy is not None and _gsy > 5))
+        supply_context = {
+            "refinery_util_pct": round(ru["value"], 1),
+            "distillate_yoy_pct": _dsy, "gasoline_yoy_pct": _gsy,
+            "cushing_m_bbl": round(cush.get("value", 0) / 1000.0, 1) if cush.get("value") is not None else None,
+            "read": ("TIGHT — high runs + drawing product stocks support cracks" if tight
+                     else "LOOSE — soft runs + building product stocks pressure cracks" if loose
+                     else "BALANCED"),
+        }
+
     reds = sum(1 for m in metrics if m["status"] == "red")
     yellows = sum(1 for m in metrics if m["status"] == "yellow")
     regime = "DEMAND STRESS" if reds >= 2 else "SOFTENING" if (reds == 1 or yellows >= 2) else "HEALTHY"
@@ -168,9 +224,9 @@ def lambda_handler(event, context):
     out = {"engine": "justhodl-refining-stress",
            "generated": datetime.datetime.utcnow().isoformat() + "Z",
            "regime": regime, "summary": summary, "metrics": metrics,
+           "supply_context": supply_context,
            "data_quality": dq, "errors": errs,
-           "source": "FMP commodity futures (CL/BZ/RB/HO); FRED WTI cross-check",
-           "note_cushing": "Cushing physical-stocks leg pending valid EIA key (dead fleet-wide)"}
+           "source": "FMP commodity futures (CL/BZ/RB/HO); FRED WTI cross-check; EIA weekly refinery utilization + product stocks + Cushing (live)"}
     try:
         boto3.client("s3").put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
                                       ContentType="application/json", CacheControl="no-cache")
