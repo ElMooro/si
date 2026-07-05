@@ -193,6 +193,23 @@ SIGNALS = [
          hot="Banks are tightening lending standards on business loans — the Fed's loan-officer "
              "survey leads credit contraction and defaults by 2-4 quarters.",
          cool="Banks are easing or holding lending standards — credit availability is supportive."),
+    dict(key="finland_exports", name="Finland exports (euro cyclical bellwether)", grid="trade_shipping",
+         fred="XTEXVA01FIM664S", kind="yoy", win=12, dir="fall", lead=3, limit=200, unit="%YoY",
+         hot="Finnish exports are contracting — Finland is a small, open, forestry-and-capital-goods "
+             "economy whose trade turns early on the European and global industrial cycle.",
+         cool="Finnish exports are growing — the European industrial cycle backdrop is firm."),
+    dict(key="ppi_pulp_paper", name="PPI pulp & paper (packaging demand)", grid="commodity_cycle",
+         fred="WPU0911", kind="yoy", win=12, dir="fall", lead=4, limit=200, unit="%YoY",
+         hot="Pulp & paper producer prices are falling — paper and containerboard track packaging, "
+             "shipping and real goods demand, so softening prices flag a weakening real economy.",
+         cool="Pulp & paper prices are firm — packaging and goods demand is holding up."),
+    dict(key="hqm_credit_spread", name="HQM 10y - Treasury 10y credit spread", grid="rates_credit",
+         fred="spread:HQMCB10YR:DGS10", kind="level", win=12, dir="rise", lead=6, limit=180, unit="ppt",
+         hot="The high-quality corporate (HQM) 10y yield is pulling away from the 10y Treasury — even "
+             "top-rated issuers are being charged more for risk, a documented early tell of a liquidity "
+             "trend reversal before broader credit stress shows up.",
+         cool="The HQM-Treasury spread is compressed — investors see little extra risk in quality "
+              "corporate credit; liquidity conditions look benign."),
 ]
 GRID_WEIGHT = {"trade_shipping": 0.25, "commodity_cycle": 0.15,
                "funding_plumbing": 0.15, "labor_industrial": 0.20,
@@ -245,12 +262,38 @@ def _read_feed(spec):
         return []
 
 
+def _read_spread(spec, limit):
+    """spec='SID1:SID2' -> FRED series SID1 minus SID2, as-of aligned on SID1's dates,
+    newest-first. Lets the grid use derived credit spreads (e.g. HQM 10y - Treasury 10y)
+    as canaries even when the two legs publish at different frequencies."""
+    import bisect
+    try:
+        a, b = spec.split(":", 1)
+        oa = fred(a, limit)          # newest-first [(date, val)]
+        ob = fred(b, limit * 4)      # denser leg (may be daily) -> fetch more history
+        if not oa or not ob:
+            return []
+        bmap = sorted(((d, v) for d, v in ob), key=lambda x: x[0])  # ascending for as-of
+        bdates = [d for d, _ in bmap]
+        out = []
+        for d, v in oa:              # keep newest-first
+            i = bisect.bisect_right(bdates, d) - 1
+            if i >= 0:
+                out.append((d, round(v - bmap[i][1], 4)))
+        return out
+    except Exception as e:
+        print(f"[canary] spread {spec}: {e}")
+        return []
+
+
 def fetch_observations(sid, limit):
     """Source-agnostic fetch -> [(date, value), ...] newest-first.
-    'feed:ENGINE:dot.path' reads a platform feed; an id with '/' is DBnomics
-    (PROVIDER/DATASET/SERIES); otherwise it is a FRED series id."""
+    'feed:ENGINE:dot.path' reads a platform feed; 'spread:SID1:SID2' is a derived
+    FRED spread; an id with '/' is DBnomics; otherwise it is a FRED series id."""
     if str(sid).startswith("feed:"):
         return _read_feed(sid[5:])
+    if str(sid).startswith("spread:"):
+        return _read_spread(sid[7:], limit)
     if "/" in str(sid):
         try:
             from dbnomics import fetch_series
