@@ -303,7 +303,7 @@ Compare ECB vs Fed policy divergence — drives EUR/USD and global capital flows
 Return ONLY valid JSON:
 {{"plumbing_health":{{"score":<1-100>,"grade":"<A+ to F>","summary":"<2-3 sentences covering US+Europe>","key_signals":["<6 signals with numbers>"],"stress_points":["<areas of strain>"],"positive_signs":["<areas of strength>"]}},"crisis_comparison":{{"current_vs_2008":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"current_vs_2020":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"current_vs_2022":{{"similarity_pct":<0-100>,"summary":"<2-3 sentences>","key_differences":["<3 differences>"]}},"closest_historical_analog":"<period>","crisis_probability_6mo":<0-100>,"crisis_type_if_occurs":"<type>"}},"risk_regime":{{"stance":"<RISK-ON|RISK-OFF|NEUTRAL|TRANSITIONING>","confidence":<0-100>,"summary":"<3-4 sentences citing US+ECB metrics>","risk_on_signals":["<signals>"],"risk_off_signals":["<signals>"],"regime_duration_estimate":"<duration>","trigger_to_flip":"<trigger>","ecb_fed_divergence":"<policy divergence analysis>"}},"crypto_outlook":{{"btc_regime":"<ACCUMULATE|HOLD|DISTRIBUTE|AVOID>","cycle_position":"<Early Bull|Mid Bull|Late Bull|Blow-off Top|Early Bear|Capitulation|Accumulation>","cycle_confidence":<0-100>,"summary":"<4-5 sentences using global liquidity>","btc_correlation_to_liquidity":"<global liquidity impact>","dollar_impact_on_crypto":"<DXY+EUR/USD impact>","key_metrics_for_crypto":["<6 metrics including ECB>"],"comparison_to_past_tops":"<vs Nov 2021>","comparison_to_past_bottoms":"<vs Nov 2022>","expected_performance_3mo":"<outlook>","expected_performance_12mo":"<outlook>","biggest_risk_for_crypto":"<risk>","biggest_catalyst_for_crypto":"<catalyst>"}},"boom_bust_cycle":{{"phase":"<phase>","confidence":<0-100>,"position_in_cycle":<0-100>,"summary":"<3-4 sentences>","leading_indicators":["<indicators>"],"cycle_risks":["<risks>"]}},"risk_analysis":{{"overall_risk":"<LOW|MODERATE|ELEVATED|HIGH|EXTREME>","risk_score":<1-100>,"systemic_risk":"<US+Europe>","liquidity_risk":"<global>","credit_risk":"<US+Europe>","dollar_risk":"<USD+EUR>","dealer_stress":"<dealer+repo>","ecb_risk":"<European risks>","tail_risks":["<risks>"],"risk_trajectory":"<IMPROVING|STABLE|DETERIORATING>"}},"portfolio_recommendation":{{"regime":"<Risk-On|Neutral|Risk-Off|Defensive|Crisis>","conviction":"<LOW|MEDIUM|HIGH>","summary":"<3-4 sentences>","allocations":{{"us_equities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"european_equities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"international_equities":{{"weight":<0-100>,"bias":"<DM|EM|avoid>","reasoning":"<why>"}},"us_treasuries":{{"weight":<0-100>,"duration":"<duration>","reasoning":"<why>"}},"european_bonds":{{"weight":<0-100>,"bias":"<core|periphery|avoid>","reasoning":"<why>"}},"credit":{{"weight":<0-100>,"quality":"<quality>","reasoning":"<why>"}},"gold_commodities":{{"weight":<0-100>,"bias":"<bias>","reasoning":"<why>"}},"crypto":{{"weight":<0-100>,"bias":"<BTC heavy|ETH heavy|altcoins|avoid>","reasoning":"<why>"}},"cash":{{"weight":<0-100>,"reasoning":"<why>"}},"dollar_position":{{"stance":"<long|neutral|short>","reasoning":"<why>"}},"eur_position":{{"stance":"<long|neutral|short>","reasoning":"<why>"}}}},"top_trades":[{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}},{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}},{{"trade":"<idea>","rationale":"<why>","risk":"<risk>"}}],"hedges":["<hedge>","<hedge>"]}},"outlook":{{"1_month":"<outlook>","3_month":"<outlook>","6_month":"<outlook>","12_month":"<outlook>","biggest_risk":"<risk>","biggest_opportunity":"<opportunity>"}}}}"""
 
-    req_body=json.dumps({"model":"claude-sonnet-4-6","max_tokens":7000,"messages":[{"role":"user","content":prompt}]}).encode('utf-8')
+    req_body=json.dumps({"model":"claude-sonnet-4-6","max_tokens":8000,"messages":[{"role":"user","content":prompt}]}).encode('utf-8')
     req=urllib.request.Request("https://api.anthropic.com/v1/messages",data=req_body,headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_KEY,"anthropic-version":"2023-06-01"},method="POST")
     try:
         print("Calling Claude...")
@@ -372,3 +372,30 @@ def lambda_handler(event,context):
         return{'statusCode':200,'body':json.dumps({'status':'refreshed+analyzed','metrics':result['count'],'risk_index':result['risk_index'],'grade':grade,'phase':phase,'crypto':crypto,'errors':errs})}
     except Exception as e:
         print(f"ERROR:{e}");traceback.print_exc();return{'statusCode':500,'body':json.dumps({'error':str(e)})}
+
+
+def _repair_truncated_json(text):
+    """Salvage a JSON object cut off at max_tokens (ported from equity-research)."""
+    i=text.find("{")
+    if i<0: raise ValueError("no JSON object found")
+    s=text[i:]; stack=[]; in_str=False; esc=False; clean_idx=-1; clean_stack=None
+    for idx,ch in enumerate(s):
+        if in_str:
+            if esc: esc=False
+            elif ch=="\\": esc=True
+            elif ch=='"': in_str=False
+            continue
+        if ch=='"': in_str=True; continue
+        if ch in "{[": stack.append("}" if ch=="{" else "]")
+        elif ch in "}]":
+            if stack: stack.pop()
+            clean_idx,clean_stack=idx,list(stack)
+        elif ch==",": clean_idx,clean_stack=idx,list(stack)
+    if clean_idx<0: raise ValueError("cannot repair truncated JSON")
+    frag=s[:clean_idx+1].rstrip().rstrip(",")+"".join(reversed(clean_stack or []))
+    return json.loads(frag)
+
+def _loads_repair(t):
+    try: return json.loads(t)
+    except Exception:
+        d=_repair_truncated_json(t); d["_truncated_repaired"]=True; return d

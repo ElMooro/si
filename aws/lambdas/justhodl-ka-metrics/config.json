@@ -3,7 +3,7 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "timeout": 60,
+  "timeout": 300,
   "architectures": [
     "x86_64"
   ],
@@ -24,5 +24,5 @@
   "imported_at": "2026-05-06",
   "imported_from": "console (no prior version control)",
   "imported_via": "step 285 \u2014 re-imported after parallel session step 261 audit flagged it as deployed-not-in-repo",
-  "memory": 256
+  "memory": 512
 }
