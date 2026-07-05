@@ -1,0 +1,6 @@
+{
+  "description": "Singapore NODX (SingStat) — global trade + chip-cycle canary",
+  "timeout": 60,
+  "memory": 128,
+  "schedule": {"rule_name": "justhodl-singapore-nodx-daily", "cron": "cron(20 4 * * ? *)", "description": "Daily Singapore SingStat NODX pull"}
+}

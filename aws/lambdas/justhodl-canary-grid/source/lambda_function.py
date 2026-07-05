@@ -75,6 +75,13 @@ SIGNALS = [
          limit=160, unit="%YoY",
          hot="China's exports are shrinking — global goods demand is weakening.",
          cool="China's exports are growing — global goods demand looks steady."),
+    dict(key="singapore_nodx", name="Singapore NODX (trade + chip hub)", grid="trade_shipping",
+         fred="feed:singapore-nodx:nodx_total.history", kind="yoy", win=12, dir="fall", lead=2,
+         limit=160, unit="%YoY",
+         hot="Singapore's non-oil domestic exports are contracting — Singapore is a trade and "
+             "chip test/assembly hub, so falling NODX is a timely read on cooling global trade "
+             "and the electronics cycle.",
+         cool="Singapore's NODX is growing — global trade and the electronics cycle look firm."),
     dict(key="semiconductor_ip", name="Semiconductor production (chip cycle)", grid="trade_shipping",
          fred="IPG3344S", kind="yoy", win=12, dir="fall", lead=3,
          limit=160, unit="%YoY",
