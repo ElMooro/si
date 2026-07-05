@@ -439,6 +439,8 @@ def global_canaries(canaries, avail, alerts):
         10, 5, True, "the SVB-class canary"))
     put("korea_beta", lambda: ratio_canary("EWY", "SPY", "Korea (EWY) vs SPY", 10, 5,
         True, "global-trade beta, priced daily"))
+    put("small_large_breadth", lambda: ratio_canary("IWM", "SPY", "Russell 2000 vs S&P 500", 8, 4,
+        True, "small-caps lagging large-caps = narrowing breadth, risk appetite fading under the surface"))
 
     # PLUMBING EXTRAS
     def f_swaps():

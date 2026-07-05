@@ -211,6 +211,12 @@ SIGNALS = [
              "trend reversal before broader credit stress shows up.",
          cool="The HQM-Treasury spread is compressed — investors see little extra risk in quality "
               "corporate credit; liquidity conditions look benign."),
+    dict(key="cfnai_activity", name="Chicago Fed activity index (ISM/PMI proxy)", grid="labor_industrial",
+         fred="CFNAIMA3", kind="level", win=12, dir="fall", lead=1, limit=220, unit="index",
+         hot="The Chicago Fed National Activity Index (the broad, published free proxy for ISM/PMI, which "
+             "is itself proprietary) is running below trend; readings under -0.7 have historically marked "
+             "recessions already underway.",
+         cool="National economic activity is at or above trend — no PMI-style contraction signal."),
 ]
 GRID_WEIGHT = {"trade_shipping": 0.25, "commodity_cycle": 0.15,
                "funding_plumbing": 0.15, "labor_industrial": 0.20,
