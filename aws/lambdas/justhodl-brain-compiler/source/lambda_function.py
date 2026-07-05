@@ -101,18 +101,24 @@ def concepts_in(s):
 
 
 def match_engines(concept_names, registry):
-    """Score engines against the claim's concepts via the fleet registry."""
+    """Score engines against the claim's concepts via the fleet registry.
+    Matches: FRED-series prefix (HQMCB->HQMCB10YR), semantic snake_case keys
+    (sahm -> sahm_rule, qe -> qe_precursor_30y), then doc/name substring."""
     want = set()
     for c in concept_names:
         want.update(t.lower() for t in CONCEPTS[c][1])
     scores = defaultdict(int)
     for eng, meta in registry.items():
-        fred = {x.upper() for x in meta.get("fred", [])}
+        fred = [x.upper() for x in meta.get("fred", [])]
+        keys = meta.get("keys", [])
         blob = (eng + " " + meta.get("doc", "") + " " + " ".join(meta.get("outs", []))).lower()
         for t in want:
-            if t.upper() in fred:
-                scores[eng] += 2          # exact series match is strong
-            elif len(t) >= 3 and t in blob:
+            T = t.upper()
+            if any(f == T or f.startswith(T) for f in fred):
+                scores[eng] += 2                      # series-level match is strong
+            elif any(re.search(r"(^|_)" + re.escape(t) + r"(_|$)", k) for k in keys):
+                scores[eng] += 2                      # engine has a field named after the concept
+            elif len(t) >= 4 and t in blob:
                 scores[eng] += 1
     ranked = sorted(scores.items(), key=lambda kv: -kv[1])[:4]
     return [{"engine": e, "score": sc} for e, sc in ranked if sc > 0]
