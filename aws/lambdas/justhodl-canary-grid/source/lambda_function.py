@@ -111,7 +111,7 @@ SIGNALS = [
               "(Dr. Copper's production side confirms)."),
     dict(key="peru_copper", name="Peru copper production (Dr. Copper supply)", grid="commodity_cycle",
          fred="feed:peru-copper:copper_production.history", kind="yoy", win=12, dir="fall", lead=2,
-         limit=160, unit="%YoY",
+         limit=160, unit="%YoY", max_stale_days=180,
          hot="Peru's mined copper output is falling — Peru + Chile are ~40% of world copper, so "
              "contracting mine activity flags weakening industrial demand or supply disruption.",
          cool="Peru's copper output is rising — mined supply and the industrial-metals cycle look healthy."),
@@ -288,7 +288,8 @@ def eval_signal(sig):
                 "reason": f"no series resolved ({', '.join(map(str, ids))})"}
     # prefer the first source in preference order that is FRESH (<= hard
     # limit); only if none are fresh fall back to the freshest stale one.
-    fresh = [v for v in valid if v[0] <= STALE_HARD_DAYS]
+    stale_max = sig.get("max_stale_days", STALE_HARD_DAYS)
+    fresh = [v for v in valid if v[0] <= stale_max]
     pick = (min(fresh, key=lambda v: v[1]) if fresh
             else min(valid, key=lambda v: v[0]))
     series, used = pick[2], pick[3]
@@ -306,11 +307,11 @@ def eval_signal(sig):
             sig["cool"] if stress <= 40 else
             f"{sig['name']} is near its historical norm — neutral signal.")
     age = age_days(latest_date)
-    if age is not None and age > STALE_HARD_DAYS:
+    if age is not None and age > stale_max:
         return {**base, "available": False, "as_of": latest_date,
                 "age_days": age, "fred_series": used,
                 "reason": (f"stale — latest reading is {age}d old "
-                           f"(>{STALE_HARD_DAYS}d); excluded to keep the grid "
+                           f"(>{stale_max}d); excluded to keep the grid "
                            f"forward-looking")}
     return {**base, "available": True, "value": disp, "as_of": latest_date,
             "age_days": age,
