@@ -339,6 +339,368 @@ def _anthropic_call(system, user: str, max_tokens: int = 6000, use_cache: bool =
 
 
 # ═════════════════════════════════════════════════════════════════════
+# v2.0 INSTITUTIONAL MODULES — technicals (full TA), liquidity & solvency,
+# growth-vs-market-cap, quantitative risk, backlog/RPO join. Pure-python,
+# every block guarded: any failure degrades to {"available": False}.
+# ═════════════════════════════════════════════════════════════════════
+
+def _n2(o, k):
+    try:
+        v = (o or {}).get(k)
+        return float(v) if v is not None and v == v else None
+    except Exception:
+        return None
+
+
+def _sma(vals, n):
+    out = [None] * len(vals)
+    s = 0.0
+    for i, v in enumerate(vals):
+        s += v
+        if i >= n:
+            s -= vals[i - n]
+        if i >= n - 1:
+            out[i] = s / n
+    return out
+
+
+def _ema(vals, n):
+    out = [None] * len(vals)
+    if len(vals) < n:
+        return out
+    k = 2.0 / (n + 1)
+    e = sum(vals[:n]) / n
+    out[n - 1] = e
+    for i in range(n, len(vals)):
+        e = vals[i] * k + e * (1 - k)
+        out[i] = e
+    return out
+
+
+def _rsi14(closes, n=14):
+    out = [None] * len(closes)
+    if len(closes) <= n:
+        return out
+    gains = losses = 0.0
+    for i in range(1, n + 1):
+        d = closes[i] - closes[i - 1]
+        gains += max(d, 0); losses += max(-d, 0)
+    ag, al = gains / n, losses / n
+    out[n] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    for i in range(n + 1, len(closes)):
+        d = closes[i] - closes[i - 1]
+        ag = (ag * (n - 1) + max(d, 0)) / n
+        al = (al * (n - 1) + max(-d, 0)) / n
+        out[i] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    return out
+
+
+def _macd(closes, f=12, s=26, sig=9):
+    ef, es = _ema(closes, f), _ema(closes, s)
+    line = [None if (a is None or b is None) else a - b for a, b in zip(ef, es)]
+    vals = [v for v in line if v is not None]
+    signal = [None] * len(line)
+    if len(vals) >= sig:
+        off = len(line) - len(vals)
+        sg = _ema(vals, sig)
+        for i, v in enumerate(sg):
+            signal[off + i] = v
+    hist = [None if (a is None or b is None) else a - b for a, b in zip(line, signal)]
+    return line, signal, hist
+
+
+def _bollinger(closes, n=20, k=2.0):
+    mid = _sma(closes, n)
+    up, lo = [None] * len(closes), [None] * len(closes)
+    for i in range(n - 1, len(closes)):
+        w = closes[i - n + 1:i + 1]
+        m = mid[i]
+        var = sum((x - m) ** 2 for x in w) / n
+        sd = var ** 0.5
+        up[i], lo[i] = m + k * sd, m - k * sd
+    return mid, up, lo
+
+
+def _px_rows(raw_obj):
+    """Normalize FMP historical shapes -> ascending [{date,o,h,l,c,v}]."""
+    rows = raw_obj
+    if isinstance(rows, dict):
+        rows = rows.get("historical") or rows.get("results") or []
+    if not isinstance(rows, list):
+        return []
+    out = []
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        c = _n2(r, "close") if r.get("close") is not None else _n2(r, "price")
+        if c is None or not r.get("date"):
+            continue
+        out.append({"date": str(r["date"])[:10], "o": _n2(r, "open"), "h": _n2(r, "high"),
+                    "l": _n2(r, "low"), "c": c, "v": _n2(r, "volume") or 0.0})
+    out.sort(key=lambda x: x["date"])
+    return out
+
+
+def build_technicals(raw):
+    rows = _px_rows(raw.get("prices_full"))
+    if len(rows) < 60:
+        return {"available": False, "reason": "insufficient price history"}
+    rows = rows[-620:]
+    dates = [r["date"] for r in rows]
+    closes = [r["c"] for r in rows]
+    highs = [r["h"] if r["h"] is not None else r["c"] for r in rows]
+    lows = [r["l"] if r["l"] is not None else r["c"] for r in rows]
+    vols = [r["v"] for r in rows]
+    sma20, sma50 = _sma(closes, 20), _sma(closes, 50)
+    sma100, sma200 = _sma(closes, 100), _sma(closes, 200)
+    bb_m, bb_u, bb_l = _bollinger(closes, 20, 2.0)
+    rsi = _rsi14(closes)
+    m_line, m_sig, m_hist = _macd(closes)
+    # beta / corr vs SPY (2y daily)
+    beta = corr = None
+    try:
+        spy = {r["date"]: r["c"] for r in _px_rows(raw.get("spy_light"))}
+        pairs = [(closes[i] / closes[i - 1] - 1, spy[dates[i]] / spy[dates[i - 1]] - 1)
+                 for i in range(1, len(dates)) if dates[i] in spy and dates[i - 1] in spy and spy[dates[i - 1]]]
+        if len(pairs) > 120:
+            xs = [p[1] for p in pairs]; ys = [p[0] for p in pairs]
+            mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
+            cov = sum((x - mx) * (y - my) for x, y in pairs) / len(pairs)
+            vx = sum((x - mx) ** 2 for x in xs) / len(xs)
+            vy = sum((y - my) ** 2 for y in ys) / len(ys)
+            if vx > 0:
+                beta = round(cov / vx, 2)
+            if vx > 0 and vy > 0:
+                corr = round(cov / ((vx * vy) ** 0.5), 2)
+    except Exception:
+        pass
+    last = closes[-1]
+    hi52 = max(closes[-252:]) if len(closes) >= 252 else max(closes)
+    lo52 = min(closes[-252:]) if len(closes) >= 252 else min(closes)
+    rets30 = [closes[i] / closes[i - 1] - 1 for i in range(len(closes) - 29, len(closes))] if len(closes) > 30 else []
+    rvol30 = None
+    if rets30:
+        mu = sum(rets30) / len(rets30)
+        rvol30 = round(((sum((r - mu) ** 2 for r in rets30) / len(rets30)) ** 0.5) * (252 ** 0.5) * 100, 1)
+    adv63 = round(sum(closes[i] * vols[i] for i in range(len(closes) - 63, len(closes))) / 63 / 1e6, 1) if len(closes) >= 63 else None
+
+    def chg(nd):
+        return round((last / closes[-nd - 1] - 1) * 100, 1) if len(closes) > nd else None
+    def _r(a, d=2):
+        return [None if x is None else round(x, d) for x in a]
+    N = 504
+    series = {"dates": dates[-N:], "close": _r(closes[-N:]), "volume": [round(v) for v in vols[-N:]],
+              "sma20": _r(sma20[-N:]), "sma50": _r(sma50[-N:]), "sma100": _r(sma100[-N:]),
+              "sma200": _r(sma200[-N:]), "bb_upper": _r(bb_u[-N:]), "bb_lower": _r(bb_l[-N:]),
+              "rsi": _r(rsi[-N:], 1), "macd": _r(m_line[-N:], 3), "macd_signal": _r(m_sig[-N:], 3),
+              "macd_hist": _r(m_hist[-N:], 3)}
+    ml, ms = m_line[-1], m_sig[-1]
+    stats = {"last": round(last, 2), "chg_1m_pct": chg(21), "chg_3m_pct": chg(63),
+             "chg_6m_pct": chg(126), "chg_1y_pct": chg(252),
+             "high_52w": round(hi52, 2), "low_52w": round(lo52, 2),
+             "off_high_pct": round((last / hi52 - 1) * 100, 1),
+             "above_200sma": bool(sma200[-1] and last > sma200[-1]),
+             "above_50sma": bool(sma50[-1] and last > sma50[-1]),
+             "golden_cross": bool(sma50[-1] and sma200[-1] and sma50[-1] > sma200[-1]),
+             "rsi_last": series["rsi"][-1],
+             "macd_state": ("bullish" if (ml is not None and ms is not None and ml > ms) else
+                            "bearish" if (ml is not None and ms is not None) else None),
+             "realized_vol_30d_pct": rvol30, "beta_2y": beta, "spy_corr_2y": corr,
+             "adv_dollar_3m_musd": adv63}
+    return {"available": True, "series": series, "stats": stats}
+
+
+def build_liquidity(income_annual, balance_annual, cashflow_annual, ratios_ttm, technicals):
+    bs = balance_annual[0] if balance_annual else {}
+    inc = income_annual[0] if income_annual else {}
+    cf = cashflow_annual[0] if cashflow_annual else {}
+    rt = (ratios_ttm[0] if isinstance(ratios_ttm, list) and ratios_ttm else ratios_ttm) or {}
+    cash = (_n2(bs, "cashAndCashEquivalents") or 0) + (_n2(bs, "shortTermInvestments") or 0)
+    ca, cl = _n2(bs, "totalCurrentAssets"), _n2(bs, "totalCurrentLiabilities")
+    inv = _n2(bs, "inventory") or 0
+    st_debt, lt_debt = _n2(bs, "shortTermDebt") or 0, _n2(bs, "longTermDebt") or 0
+    tdebt = _n2(bs, "totalDebt") or (st_debt + lt_debt)
+    op_inc = _n2(inc, "operatingIncome")
+    int_exp = abs(_n2(inc, "interestExpense") or 0)
+    dep = _n2(cf, "depreciationAndAmortization") or 0
+    ebitda = (op_inc + dep) if op_inc is not None else None
+    ocf = _n2(cf, "operatingCashFlow") or _n2(cf, "netCashProvidedByOperatingActivities")
+    capex = abs(_n2(cf, "capitalExpenditure") or 0)
+    fcf = (ocf - capex) if ocf is not None else None
+    net_debt = tdebt - cash
+    out = {"available": True,
+           "cash_and_sti_b": round(cash / 1e9, 2),
+           "total_debt_b": round(tdebt / 1e9, 2),
+           "net_debt_b": round(net_debt / 1e9, 2),
+           "st_debt_b": round(st_debt / 1e9, 2), "lt_debt_b": round(lt_debt / 1e9, 2),
+           "current_ratio": round(ca / cl, 2) if ca and cl else _n2(rt, "currentRatioTTM"),
+           "quick_ratio": round((ca - inv) / cl, 2) if ca and cl else _n2(rt, "quickRatioTTM"),
+           "cash_ratio": round(cash / cl, 2) if cl else None,
+           "net_debt_to_ebitda": round(net_debt / ebitda, 2) if ebitda and ebitda > 0 else None,
+           "interest_coverage": round(op_inc / int_exp, 1) if op_inc is not None and int_exp > 0 else None,
+           "working_capital_b": round((ca - cl) / 1e9, 2) if ca is not None and cl is not None else None,
+           "fcf_annual_b": round(fcf / 1e9, 2) if fcf is not None else None,
+           "cash_runway_quarters": (round(cash / (abs(fcf) / 4), 1)
+                                    if (fcf is not None and fcf < 0 and cash > 0) else None),
+           "adv_dollar_3m_musd": (technicals.get("stats", {}) or {}).get("adv_dollar_3m_musd")
+                                  if isinstance(technicals, dict) else None}
+    cr = out["current_ratio"]; nde = out["net_debt_to_ebitda"]
+    if fcf is not None and fcf < 0 and out["cash_runway_quarters"] and out["cash_runway_quarters"] < 6:
+        read = "TIGHT — cash-burner with under 6 quarters of runway; financing risk is live."
+    elif nde is not None and nde > 3.5:
+        read = "LEVERED — net debt above 3.5x EBITDA; refinancing and rate sensitivity matter."
+    elif net_debt < 0:
+        read = "FORTRESS — net cash balance sheet; liquidity is a strategic weapon here."
+    elif cr is not None and cr < 1:
+        read = "WATCH — current liabilities exceed current assets."
+    else:
+        read = "ADEQUATE — no near-term liquidity constraint visible in the filings."
+    out["read"] = read
+    return out
+
+
+def build_growth_vs_mcap(raw, income_annual, cashflow_annual):
+    prof = raw.get("profile"); prof = prof[0] if isinstance(prof, list) and prof else (prof or {})
+    q = raw.get("quote"); q = q[0] if isinstance(q, list) and q else (q or {})
+    rt = raw.get("ratios_ttm"); rt = rt[0] if isinstance(rt, list) and rt else (rt or {})
+    km = raw.get("key_metrics_ttm"); km = km[0] if isinstance(km, list) and km else (km or {})
+    est = raw.get("estimates") if isinstance(raw.get("estimates"), list) else []
+    mcap = _n2(prof, "marketCap") or _n2(q, "marketCap")
+    revs = [_n2(r, "revenue") for r in income_annual[:6] if _n2(r, "revenue")]
+    fcfs = []
+    for r in cashflow_annual[:6]:
+        o = _n2(r, "operatingCashFlow") or _n2(r, "netCashProvidedByOperatingActivities")
+        c = abs(_n2(r, "capitalExpenditure") or 0)
+        if o is not None:
+            fcfs.append(o - c)
+
+    def cagr(series, yrs):
+        if len(series) > yrs and series[yrs] and series[yrs] > 0 and series[0] and series[0] > 0:
+            return round(((series[0] / series[yrs]) ** (1.0 / yrs) - 1) * 100, 1)
+        return None
+    rev_c3, rev_c5 = cagr(revs, 3), cagr(revs, 5)
+    rev_yoy = round((revs[0] / revs[1] - 1) * 100, 1) if len(revs) > 1 and revs[1] else None
+    fcf_c3 = cagr([f for f in fcfs], 3) if len(fcfs) > 3 and all(f and f > 0 for f in fcfs[:4]) else None
+    fcf_margin = round(fcfs[0] / revs[0] * 100, 1) if fcfs and revs and revs[0] else None
+    # forward growth from analyst estimates (next FY vs latest actual)
+    fwd_rev_g = fwd_eps_g = None
+    try:
+        e0 = est[0] if est else {}
+        er = _n2(e0, "revenueAvg") or _n2(e0, "estimatedRevenueAvg")
+        if er and revs:
+            fwd_rev_g = round((er / revs[0] - 1) * 100, 1)
+        ee = _n2(e0, "epsAvg") or _n2(e0, "estimatedEpsAvg")
+        eps_now = _n2(income_annual[0] if income_annual else {}, "epsdiluted") or _n2(income_annual[0] if income_annual else {}, "eps")
+        if ee and eps_now and eps_now > 0:
+            fwd_eps_g = round((ee / eps_now - 1) * 100, 1)
+    except Exception:
+        pass
+    pe = _n2(rt, "priceToEarningsRatioTTM") or _n2(rt, "peRatioTTM") or _n2(q, "pe")
+    ev_s = _n2(km, "evToSalesTTM") or _n2(rt, "evToSalesTTM") or _n2(rt, "priceToSalesRatioTTM")
+    fcf_yield = round(fcfs[0] / mcap * 100, 2) if fcfs and mcap else _n2(km, "freeCashFlowYieldTTM")
+    g_for_peg = fwd_eps_g if fwd_eps_g and fwd_eps_g > 0 else rev_c3
+    peg = round(pe / g_for_peg, 2) if pe and g_for_peg and g_for_peg > 0 else None
+    garp = round(ev_s / rev_c3, 2) if ev_s and rev_c3 and rev_c3 > 0 else None
+    rule40 = round((rev_yoy or 0) + (fcf_margin or 0), 1) if rev_yoy is not None or fcf_margin is not None else None
+    out = {"available": True, "market_cap_b": round(mcap / 1e9, 1) if mcap else None,
+           "rev_yoy_pct": rev_yoy, "rev_cagr_3y_pct": rev_c3, "rev_cagr_5y_pct": rev_c5,
+           "fcf_cagr_3y_pct": fcf_c3, "fcf_margin_pct": fcf_margin,
+           "fwd_rev_growth_pct": fwd_rev_g, "fwd_eps_growth_pct": fwd_eps_g,
+           "pe_ttm": round(pe, 1) if pe else None, "ev_to_sales": round(ev_s, 1) if ev_s else None,
+           "peg": peg, "ev_s_per_growth": garp, "fcf_yield_pct": round(fcf_yield, 2) if fcf_yield else None,
+           "rule_of_40": rule40}
+    if peg is not None and peg < 1:
+        read = "GROWTH AT A DISCOUNT — you are paying less than 1x P/E per point of growth."
+    elif garp is not None and garp > 1.2:
+        read = "EXPENSIVE VS GROWTH — the sales multiple outruns the growth rate; the market is paying for a future that must show up."
+    elif rule40 is not None and rule40 >= 40:
+        read = "RULE-OF-40 PASS — growth plus FCF margin clears the institutional efficiency bar."
+    else:
+        read = "IN LINE — valuation and growth are roughly matched; the edge must come from estimate revisions."
+    out["read"] = read
+    return out
+
+
+def build_quant_risk(raw, income_annual, cashflow_annual):
+    sc = raw.get("scores"); sc = sc[0] if isinstance(sc, list) and sc else (sc or {})
+    altman = _n2(sc, "altmanZScore")
+    piotroski = _n2(sc, "piotroskiScore")
+    shares = [_n2(r, "weightedAverageShsOutDil") or _n2(r, "weightedAverageShsOut") for r in income_annual[:5]]
+    shares = [s for s in shares if s]
+    dil_1y = round((shares[0] / shares[1] - 1) * 100, 1) if len(shares) > 1 and shares[1] else None
+    dil_3y = round(((shares[0] / shares[3]) ** (1 / 3) - 1) * 100, 1) if len(shares) > 3 and shares[3] else None
+    cf = cashflow_annual[0] if cashflow_annual else {}
+    inc = income_annual[0] if income_annual else {}
+    sbc = abs(_n2(cf, "stockBasedCompensation") or 0)
+    rev = _n2(inc, "revenue")
+    sbc_pct = round(sbc / rev * 100, 1) if rev else None
+    gms = [_n2(r, "grossProfitRatio") for r in income_annual[:4]]
+    gm_trend = round((gms[0] - gms[3]) * 100, 1) if len(gms) > 3 and gms[0] is not None and gms[3] is not None else None
+    flags = []
+    if altman is not None and altman < 1.8:
+        flags.append(f"Altman Z {altman:.1f} — distress zone")
+    if piotroski is not None and piotroski <= 3:
+        flags.append(f"Piotroski {int(piotroski)}/9 — weak fundamental quality")
+    if dil_1y is not None and dil_1y > 5:
+        flags.append(f"Dilution {dil_1y:+.1f}% shares YoY")
+    if sbc_pct is not None and sbc_pct > 10:
+        flags.append(f"SBC {sbc_pct:.0f}% of revenue")
+    if gm_trend is not None and gm_trend < -3:
+        flags.append(f"Gross margin down {gm_trend:.1f}pp over 3y")
+    return {"available": True, "altman_z": altman, "piotroski": piotroski,
+            "dilution_1y_pct": dil_1y, "dilution_3y_cagr_pct": dil_3y,
+            "sbc_pct_of_rev": sbc_pct, "gross_margin_3y_delta_pp": gm_trend,
+            "flags": flags,
+            "read": ("CLEAN — no quantitative distress or quality flags." if not flags
+                     else f"{len(flags)} flag(s): " + "; ".join(flags[:3]))}
+
+
+def read_backlog_join(ticker):
+    try:
+        obj = s3.get_object(Bucket=S3_BUCKET, Key="data/backlog.json")
+        d = json.loads(obj["Body"].read())
+        rows = d.get("names") or d.get("rows") or d.get("tickers") or d
+        ent = None
+        if isinstance(rows, dict):
+            ent = rows.get(ticker) or rows.get(ticker.upper())
+        elif isinstance(rows, list):
+            ent = next((r for r in rows if isinstance(r, dict)
+                        and str(r.get("ticker") or r.get("symbol") or "").upper() == ticker), None)
+        if not ent:
+            return {"available": False, "reason": "no backlog/RPO coverage for this name"}
+        def g(*keys):
+            for k in keys:
+                v = _n2(ent, k)
+                if v is not None:
+                    return v
+            return None
+        return {"available": True,
+                "rpo_b": g("rpo_b", "rpo_billion", "rpo") ,
+                "rpo_yoy_pct": g("rpo_yoy_pct", "rpo_yoy", "rpo_growth_yoy"),
+                "deferred_rev_yoy_pct": g("deferred_yoy_pct", "deferred_rev_yoy", "deferred_growth"),
+                "book_to_bill": g("book_to_bill", "btb"),
+                "note": ent.get("note") or ent.get("read") or "Contracted demand from the platform's RPO/backlog extractor.",
+                "as_of": d.get("generated_at")}
+    except Exception as e:
+        return {"available": False, "reason": str(e)[:80]}
+
+
+def build_v2_institutional(ticker, raw, income_annual, income_quarterly, balance_annual, cashflow_annual):
+    out = {}
+    for name, fn in (("technicals", lambda: build_technicals(raw)),
+                     ("liquidity", lambda: build_liquidity(income_annual, balance_annual,
+                                                            cashflow_annual, raw.get("ratios_ttm"), out.get("technicals") or {})),
+                     ("growth_vs_mcap", lambda: build_growth_vs_mcap(raw, income_annual, cashflow_annual)),
+                     ("quant_risk", lambda: build_quant_risk(raw, income_annual, cashflow_annual)),
+                     ("backlog", lambda: read_backlog_join(ticker))):
+        try:
+            out[name] = fn()
+        except Exception as e:
+            out[name] = {"available": False, "error": str(e)[:100]}
+    return out
+
+
+# ═════════════════════════════════════════════════════════════════════
 # Data fetching — all FMP endpoints in parallel
 # ═════════════════════════════════════════════════════════════════════
 
@@ -374,6 +736,10 @@ def fetch_all(ticker: str) -> Dict[str, Any]:
         "transcript_dates": ("earning-call-transcript-dates", {"symbol": ticker}),
         "prices_eod":       ("historical-price-eod/light",
                               {"symbol": ticker, "from": _date_n_years_ago(10)}),
+        "prices_full":      ("historical-price-eod/full",
+                              {"symbol": ticker, "from": _date_n_years_ago(2)}),
+        "spy_light":        ("historical-price-eod/light",
+                              {"symbol": "SPY", "from": _date_n_years_ago(2)}),
         "dividends":        ("dividends", {"symbol": ticker, "limit": 20}),
     }
 
@@ -2010,6 +2376,9 @@ def lambda_handler(event, context):
     income_quarterly = raw.get("income_quarterly") if isinstance(raw.get("income_quarterly"), list) else []
     balance_annual   = raw.get("balance_annual") if isinstance(raw.get("balance_annual"), list) else []
     cashflow_annual  = raw.get("cashflow_annual") if isinstance(raw.get("cashflow_annual"), list) else []
+    # ── v2.0 institutional modules (technicals / liquidity / growth-vs-mcap / quant-risk / backlog)
+    v2 = build_v2_institutional(ticker, raw, income_annual, income_quarterly,
+                                balance_annual, cashflow_annual)
     ratios_annual    = raw.get("ratios_annual") if isinstance(raw.get("ratios_annual"), list) else []
     ratios_ttm       = _first(raw.get("ratios_ttm")) or {}
     key_metrics      = raw.get("key_metrics") if isinstance(raw.get("key_metrics"), list) else []
@@ -2359,6 +2728,11 @@ def lambda_handler(event, context):
             "balance_annual":    compact_balance(balance_annual),
             "cashflow_annual":   compact_cf(cashflow_annual),
             "income_quarterly":  compact_income(income_quarterly),
+            "technicals":        v2.get("technicals"),
+            "liquidity_solvency": v2.get("liquidity"),
+            "growth_vs_mcap":    v2.get("growth_vs_mcap"),
+            "quant_risk":        v2.get("quant_risk"),
+            "backlog":           v2.get("backlog"),
         },
         "metadata": {
             "data_sources_loaded":  n_ok,

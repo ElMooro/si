@@ -259,6 +259,22 @@
              margin-top:30px; padding-bottom:20px; line-height:1.7;
              font-family:var(--font-mono); }
   .footer a { color:var(--text-dim); }
+/* ── v2 institutional additions ── */
+.ta-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 10px}
+.ta-chip{font-size:11.5px;padding:3px 9px;border-radius:12px;background:#141b26;border:1px solid #232e3e;color:#c7d2df}
+.ta-chip b{color:#fff}.ta-chip.up b{color:var(--green-bright,#5eead4)}.ta-chip.dn b{color:var(--red,#ff7b7b)}
+.ta-range{margin-left:auto;display:flex;gap:5px}
+.ta-range button{background:#0f141d;border:1px solid #232e3e;color:#8b98a9;padding:3px 11px;border-radius:14px;font-size:11.5px;cursor:pointer}
+.ta-range button.on{background:#16324e;border-color:#2f81f7;color:#cfe3ff}
+.ta-pane{display:block;width:100%;border:1px solid #1b2432;border-radius:10px;background:#0b1017;margin-bottom:6px}
+.ta-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:#8b98a9;margin:2px 2px 8px}
+.ta-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.v2grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;margin-top:8px}
+.v2read{margin-top:10px;font-size:12.5px;padding:8px 11px;border-radius:9px;background:#101823;border-left:3px solid var(--cyan,#39d0d8);color:#c9d3de}
+.v2read.warn{border-left-color:var(--amber,#fbbf24)}.v2read.bad{border-left-color:var(--red,#ff7b7b)}.v2read.good{border-left-color:var(--green-bright,#5eead4)}
+.v2flag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:11px;background:#2a1214;color:#ff9a9a;margin:3px 5px 0 0}
+.gauge{font-size:12px;padding:3px 10px;border-radius:11px;font-weight:700}
+.gauge.g{background:#12261a;color:var(--green-bright,#5eead4)}.gauge.a{background:#241d0e;color:var(--amber,#fbbf24)}.gauge.r{background:#2a1214;color:var(--red,#ff7b7b)}
 </style>
 </head>
 
@@ -539,6 +555,7 @@ function renderReport(d){
   let html = "";
   html += renderHero(d);
   html += renderPriceChart(d);          // price history + PT / fair-value bands
+  html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderScenarios(d);
   html += renderExecSummary(d);
   html += renderBullBear(d);
@@ -553,6 +570,10 @@ function renderReport(d){
   html += renderIndustryComparison(d); // company vs real industry/sector P/E
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
+  html += renderBacklogV2(d);           // v2: contracted demand — RPO / deferred revenue
+  html += renderGrowthVsMcap(d);        // v2: what you pay per point of growth
+  html += renderLiquidityV2(d);         // v2: liquidity & solvency
+  html += renderQuantRisk(d);           // v2: Altman / Piotroski / dilution / SBC
   html += renderEarningsTrack(d);
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
@@ -2623,6 +2644,201 @@ function renderMeta(d){
     $("tickerInput").value = tkr.toUpperCase();
     runResearch();
   }
+})();
+</script>
+<script>
+/* ═══ v2 INSTITUTIONAL RENDERERS — technicals canvas engine + fundamentals blocks ═══ */
+(function(){
+"use strict";
+var T=null, RANGE="1Y";
+function fnum(v,d){return (v===null||v===undefined||isNaN(v))?"—":Number(v).toFixed(d===undefined?2:d);}
+function pct(v){return (v===null||v===undefined)?"—":((v>0?"+":"")+Number(v).toFixed(1)+"%");}
+function cls(v){return v===null||v===undefined?"":(v>=0?"up":"dn");}
+function metric(l,v){return '<div class="metric"><div class="lbl">'+l+'</div><div class="val">'+v+'</div></div>';}
+
+window.renderTechnicals=function(d){
+  var t=d&&d.technicals; if(!t||!t.available||!t.series) return "";
+  T=t; var s=t.stats||{};
+  var chips=''+
+   '<span class="ta-chip">Last <b>$'+fnum(s.last)+'</b></span>'+
+   '<span class="ta-chip '+cls(s.chg_1m_pct)+'">1M <b>'+pct(s.chg_1m_pct)+'</b></span>'+
+   '<span class="ta-chip '+cls(s.chg_3m_pct)+'">3M <b>'+pct(s.chg_3m_pct)+'</b></span>'+
+   '<span class="ta-chip '+cls(s.chg_1y_pct)+'">1Y <b>'+pct(s.chg_1y_pct)+'</b></span>'+
+   '<span class="ta-chip">52w <b>$'+fnum(s.low_52w)+'–$'+fnum(s.high_52w)+'</b></span>'+
+   '<span class="ta-chip '+cls(s.off_high_pct)+'">Off-high <b>'+pct(s.off_high_pct)+'</b></span>'+
+   '<span class="ta-chip">RSI <b>'+fnum(s.rsi_last,0)+'</b></span>'+
+   '<span class="ta-chip">MACD <b>'+(s.macd_state||"—")+'</b></span>'+
+   '<span class="ta-chip">β(2y) <b>'+fnum(s.beta_2y)+'</b></span>'+
+   '<span class="ta-chip">RVol30 <b>'+fnum(s.realized_vol_30d_pct,1)+'%</b></span>'+
+   '<span class="ta-chip">ADV$ <b>'+fnum(s.adv_dollar_3m_musd,0)+'M</b></span>'+
+   '<span class="ta-chip">'+(s.above_200sma?'Above':'Below')+' 200-SMA · '+(s.golden_cross?'Golden cross':'50&lt;200')+'</span>';
+  setTimeout(taInit,0);
+  return '<section class="block"><div class="sub"><span class="ico">📊</span> Technical Chart — MAs · Bollinger · RSI · MACD · Volume</div>'+
+   '<div class="ta-head">'+chips+'<span class="ta-range">'+["6M","1Y","2Y"].map(function(r){return '<button data-r="'+r+'" class="'+(r===RANGE?"on":"")+'">'+r+'</button>';}).join("")+'</span></div>'+
+   '<div class="ta-legend"><span><i style="background:#39d0d8"></i>Close</span><span><i style="background:#fbbf24"></i>SMA20</span><span><i style="background:#6ea8fe"></i>SMA50</span><span><i style="background:#b58cff"></i>SMA100</span><span><i style="background:#ff7b7b"></i>SMA200</span><span><i style="background:rgba(57,208,216,.25)"></i>Bollinger 20,2</span></div>'+
+   '<canvas id="ta-price" class="ta-pane" height="300"></canvas>'+
+   '<canvas id="ta-vol" class="ta-pane" height="64"></canvas>'+
+   '<canvas id="ta-rsi" class="ta-pane" height="86"></canvas>'+
+   '<canvas id="ta-macd" class="ta-pane" height="96"></canvas></section>';
+};
+function taInit(){
+  var host=document.getElementById("ta-price"); if(!host||!T) return;
+  var wrap=host.parentElement;
+  wrap.querySelectorAll(".ta-range button").forEach(function(b){
+    b.onclick=function(){RANGE=b.getAttribute("data-r");wrap.querySelectorAll(".ta-range button").forEach(function(x){x.classList.toggle("on",x===b);});taDraw();};
+  });
+  taDraw();
+}
+function slice(a,n){return a.slice(-n);}
+function taDraw(){
+  if(!T) return;
+  var S=T.series, n={"6M":126,"1Y":252,"2Y":9999}[RANGE]||252;
+  var N=Math.min(n,S.close.length);
+  var c=slice(S.close,N),v=slice(S.volume,N),dt=slice(S.dates,N);
+  var s20=slice(S.sma20,N),s50=slice(S.sma50,N),s100=slice(S.sma100,N),s200=slice(S.sma200,N);
+  var bu=slice(S.bb_upper,N),bl=slice(S.bb_lower,N);
+  var rsi=slice(S.rsi,N),ml=slice(S.macd,N),ms=slice(S.macd_signal,N),mh=slice(S.macd_hist,N);
+  drawPrice("ta-price",dt,c,[["#fbbf24",s20],["#6ea8fe",s50],["#b58cff",s100],["#ff7b7b",s200]],bu,bl);
+  drawVol("ta-vol",c,v);
+  drawRSI("ta-rsi",rsi);
+  drawMACD("ta-macd",ml,ms,mh);
+}
+function ctx2(id){
+  var cv=document.getElementById(id); if(!cv) return null;
+  var w=cv.clientWidth||cv.parentElement.clientWidth||900, h=+cv.getAttribute("height");
+  var dpr=window.devicePixelRatio||1;
+  cv.width=w*dpr; cv.height=h*dpr; cv.style.height=h+"px";
+  var g=cv.getContext("2d"); g.scale(dpr,dpr);
+  return {g:g,w:w,h:h};
+}
+function yfn(min,max,h,pt,pb){var r=max-min||1;return function(v){return pt+(h-pt-pb)*(1-(v-min)/r);};}
+function xfn(n,w,pl,pr){return function(i){return pl+(w-pl-pr)*(n<=1?0:i/(n-1));};}
+function line(g,X,Y,arr,color,lw){
+  g.strokeStyle=color;g.lineWidth=lw||1.4;g.beginPath();var started=false;
+  for(var i=0;i<arr.length;i++){var v=arr[i];if(v===null||v===undefined){started=false;continue;}
+    var x=X(i),y=Y(v); if(!started){g.moveTo(x,y);started=true;}else g.lineTo(x,y);}
+  g.stroke();
+}
+function grid(g,w,h,pt,pb,pl,pr,min,max,fmt){
+  g.strokeStyle="#1a2330";g.fillStyle="#5d6b7d";g.font="10px -apple-system,Segoe UI,sans-serif";g.lineWidth=1;
+  for(var k=0;k<=3;k++){var val=min+(max-min)*k/3;var y=yfn(min,max,h,pt,pb)(val);
+    g.beginPath();g.moveTo(pl,y);g.lineTo(w-pr,y);g.stroke();
+    g.fillText(fmt(val),w-pr+4,y+3);}
+}
+function xdates(g,dt,X,h,pb){
+  g.fillStyle="#5d6b7d";g.font="10px -apple-system,Segoe UI,sans-serif";
+  var step=Math.max(1,Math.floor(dt.length/5));
+  for(var i=0;i<dt.length;i+=step){g.fillText(dt[i].slice(2),X(i)-16,h-pb+13);}
+}
+function drawPrice(id,dt,c,mas,bu,bl){
+  var o=ctx2(id); if(!o) return; var g=o.g,w=o.w,h=o.h,pl=8,pr=54,pt=8,pb=18;
+  var all=c.concat(bu.filter(function(x){return x!=null;}),bl.filter(function(x){return x!=null;}));
+  mas.forEach(function(m){all=all.concat(m[1].filter(function(x){return x!=null;}));});
+  var min=Math.min.apply(null,all)*0.995,max=Math.max.apply(null,all)*1.005;
+  var Y=yfn(min,max,h,pt,pb),X=xfn(c.length,w,pl,pr);
+  grid(g,w,h,pt,pb,pl,pr,min,max,function(v){return "$"+(v>=100?v.toFixed(0):v.toFixed(1));});
+  g.fillStyle="rgba(57,208,216,.10)";g.beginPath();var st=false;
+  for(var i=0;i<c.length;i++){if(bu[i]==null)continue;var x=X(i),y=Y(bu[i]);st?g.lineTo(x,y):(g.moveTo(x,y),st=true);}
+  for(var j=c.length-1;j>=0;j--){if(bl[j]==null)continue;g.lineTo(X(j),Y(bl[j]));}
+  g.closePath();g.fill();
+  mas.forEach(function(m){line(g,X,Y,m[1],m[0],1.1);});
+  line(g,X,Y,c,"#39d0d8",1.7);
+  var last=c[c.length-1];g.fillStyle="#39d0d8";g.fillRect(w-pr+1,Y(last)-8,50,15);
+  g.fillStyle="#04121a";g.font="bold 10px -apple-system,Segoe UI,sans-serif";g.fillText("$"+(last>=100?last.toFixed(0):last.toFixed(2)),w-pr+5,Y(last)+3);
+  xdates(g,dt,X,h,pb);
+}
+function drawVol(id,c,v){
+  var o=ctx2(id); if(!o) return; var g=o.g,w=o.w,h=o.h,pl=8,pr=54,pt=4,pb=4;
+  var max=Math.max.apply(null,v)||1,Y=yfn(0,max,h,pt,pb),X=xfn(v.length,w,pl,pr);
+  var bw=Math.max(1,(w-pl-pr)/v.length*0.75);
+  for(var i=0;i<v.length;i++){
+    g.fillStyle=(i>0&&c[i]>=c[i-1])?"rgba(94,234,212,.55)":"rgba(255,123,123,.5)";
+    g.fillRect(X(i)-bw/2,Y(v[i]),bw,(h-pb)-Y(v[i]));}
+  g.fillStyle="#5d6b7d";g.font="10px sans-serif";g.fillText("Volume",w-pr+4,12);
+}
+function drawRSI(id,rsi){
+  var o=ctx2(id); if(!o) return; var g=o.g,w=o.w,h=o.h,pl=8,pr=54,pt=6,pb=6;
+  var Y=yfn(0,100,h,pt,pb),X=xfn(rsi.length,w,pl,pr);
+  [[70,"#ff7b7b"],[30,"#5eead4"]].forEach(function(m){g.strokeStyle=m[1];g.setLineDash([4,4]);g.beginPath();g.moveTo(pl,Y(m[0]));g.lineTo(w-pr,Y(m[0]));g.stroke();g.setLineDash([]);g.fillStyle="#5d6b7d";g.font="9px sans-serif";g.fillText(m[0],w-pr+4,Y(m[0])+3);});
+  line(g,X,Y,rsi,"#e6b3ff",1.4);
+  g.fillStyle="#5d6b7d";g.font="10px sans-serif";g.fillText("RSI-14",pl+2,12);
+}
+function drawMACD(id,ml,ms,mh){
+  var o=ctx2(id); if(!o) return; var g=o.g,w=o.w,h=o.h,pl=8,pr=54,pt=6,pb=6;
+  var vals=ml.concat(ms,mh).filter(function(x){return x!=null;});
+  var mx=Math.max.apply(null,vals.map(Math.abs))||1;
+  var Y=yfn(-mx,mx,h,pt,pb),X=xfn(ml.length,w,pl,pr);
+  g.strokeStyle="#1a2330";g.beginPath();g.moveTo(pl,Y(0));g.lineTo(w-pr,Y(0));g.stroke();
+  var bw=Math.max(1,(w-pl-pr)/ml.length*0.7);
+  for(var i=0;i<mh.length;i++){if(mh[i]==null)continue;
+    g.fillStyle=mh[i]>=0?"rgba(94,234,212,.6)":"rgba(255,123,123,.55)";
+    var y=Y(mh[i]);g.fillRect(X(i)-bw/2,Math.min(y,Y(0)),bw,Math.abs(y-Y(0)));}
+  line(g,X,Y,ml,"#e6edf3",1.3);line(g,X,Y,ms,"#fbbf24",1.1);
+  g.fillStyle="#5d6b7d";g.font="10px sans-serif";g.fillText("MACD 12·26·9",pl+2,12);
+}
+window.addEventListener("resize",function(){if(T)taDraw();});
+
+function readCls(s){s=String(s||"");if(/FORTRESS|CLEAN|PASS|DISCOUNT/.test(s))return "good";if(/TIGHT/.test(s))return "bad";if(/LEVERED|flag|EXPENSIVE|WATCH/.test(s))return "warn";return "";}
+
+window.renderBacklogV2=function(d){
+  var b=d&&d.backlog; if(!b) return "";
+  if(!b.available) return '<section class="block"><div class="sub"><span class="ico">📦</span> Contracted Demand — Backlog / RPO</div><div style="color:#6b7480;font-size:12.5px">'+esc(b.reason||"No RPO coverage for this name in the extractor.")+'</div></section>';
+  return '<section class="block"><div class="sub"><span class="ico">📦</span> Contracted Demand — Backlog / RPO</div><div class="v2grid">'+
+    metric("RPO", b.rpo_b!=null?("$"+fnum(b.rpo_b,1)+"B"):"—")+
+    metric("RPO YoY", '<span class="'+cls(b.rpo_yoy_pct)+'">'+pct(b.rpo_yoy_pct)+'</span>')+
+    metric("Deferred rev YoY", pct(b.deferred_rev_yoy_pct))+
+    metric("Book-to-bill", fnum(b.book_to_bill))+
+    '</div><div class="v2read">'+esc(b.note||"")+'</div></section>';
+};
+window.renderGrowthVsMcap=function(d){
+  var g=d&&d.growth_vs_mcap; if(!g||!g.available) return "";
+  return '<section class="block"><div class="sub"><span class="ico">⚖️</span> Growth vs Market Cap — what you pay per point of growth</div><div class="v2grid">'+
+    metric("Market cap", g.market_cap_b!=null?("$"+fnum(g.market_cap_b,0)+"B"):"—")+
+    metric("Revenue YoY", pct(g.rev_yoy_pct))+
+    metric("Rev CAGR 3y / 5y", pct(g.rev_cagr_3y_pct)+" / "+pct(g.rev_cagr_5y_pct))+
+    metric("Fwd rev / EPS growth", pct(g.fwd_rev_growth_pct)+" / "+pct(g.fwd_eps_growth_pct))+
+    metric("P/E (ttm)", fnum(g.pe_ttm,1))+
+    metric("PEG", fnum(g.peg))+
+    metric("EV/S ÷ growth", fnum(g.ev_s_per_growth))+
+    metric("FCF yield", pct(g.fcf_yield_pct))+
+    metric("FCF margin", pct(g.fcf_margin_pct))+
+    metric("Rule of 40", fnum(g.rule_of_40,0))+
+    '</div><div class="v2read '+readCls(g.read)+'">'+esc(g.read||"")+'</div></section>';
+};
+window.renderLiquidityV2=function(d){
+  var L=d&&d.liquidity_solvency; if(!L||!L.available) return "";
+  return '<section class="block"><div class="sub"><span class="ico">💧</span> Liquidity &amp; Solvency</div><div class="v2grid">'+
+    metric("Cash + ST inv", "$"+fnum(L.cash_and_sti_b,1)+"B")+
+    metric("Total debt", "$"+fnum(L.total_debt_b,1)+"B")+
+    metric("Net debt", '<span class="'+(L.net_debt_b<0?"up":"")+'">$'+fnum(L.net_debt_b,1)+"B</span>")+
+    metric("Debt: ST / LT", "$"+fnum(L.st_debt_b,1)+"B / $"+fnum(L.lt_debt_b,1)+"B")+
+    metric("Current ratio", fnum(L.current_ratio))+
+    metric("Quick ratio", fnum(L.quick_ratio))+
+    metric("Net debt / EBITDA", fnum(L.net_debt_to_ebitda))+
+    metric("Interest coverage", fnum(L.interest_coverage,1)+"x")+
+    metric("FCF (annual)", "$"+fnum(L.fcf_annual_b,1)+"B")+
+    metric("Working capital", "$"+fnum(L.working_capital_b,1)+"B")+
+    (L.cash_runway_quarters!=null?metric("Cash runway", fnum(L.cash_runway_quarters,1)+" qtrs"):"")+
+    metric("Tradability (ADV$)", fnum(L.adv_dollar_3m_musd,0)+"M/day")+
+    '</div><div class="v2read '+readCls(L.read)+'">'+esc(L.read||"")+'</div></section>';
+};
+window.renderQuantRisk=function(d){
+  var q=d&&d.quant_risk; if(!q||!q.available) return "";
+  function zc(z){return z==null?"a":(z<1.8?"r":(z<3?"a":"g"));}
+  function pc(p){return p==null?"a":(p<=3?"r":(p<=6?"a":"g"));}
+  var flags=(q.flags||[]).map(function(f){return '<span class="v2flag">'+esc(f)+'</span>';}).join("");
+  return '<section class="block"><div class="sub"><span class="ico">🧮</span> Quantitative Risk — distress, quality, dilution</div>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px">'+
+    '<span class="gauge '+zc(q.altman_z)+'">Altman Z '+fnum(q.altman_z,1)+'</span>'+
+    '<span class="gauge '+pc(q.piotroski)+'">Piotroski '+(q.piotroski!=null?Math.round(q.piotroski)+"/9":"—")+'</span></div>'+
+    '<div class="v2grid">'+
+    metric("Share dilution 1y", pct(q.dilution_1y_pct))+
+    metric("Dilution 3y CAGR", pct(q.dilution_3y_cagr_pct))+
+    metric("SBC % of revenue", pct(q.sbc_pct_of_rev))+
+    metric("Gross margin Δ3y", (q.gross_margin_3y_delta_pp!=null?(q.gross_margin_3y_delta_pp>0?"+":"")+fnum(q.gross_margin_3y_delta_pp,1)+"pp":"—"))+
+    '</div>'+(flags?('<div style="margin-top:6px">'+flags+'</div>'):"")+
+    '<div class="v2read '+readCls(q.read)+'">'+esc(q.read||"")+'</div></section>';
+};
 })();
 </script>
   <script src="/jh-page-ai.js" defer></script>
