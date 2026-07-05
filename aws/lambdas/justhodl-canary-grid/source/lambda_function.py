@@ -195,6 +195,7 @@ SIGNALS = [
          cool="Banks are easing or holding lending standards — credit availability is supportive."),
     dict(key="finland_exports", name="Finland exports (euro cyclical bellwether)", grid="trade_shipping",
          fred="XTEXVA01FIM664S", kind="yoy", win=12, dir="fall", lead=3, limit=200, unit="%YoY",
+         max_stale_days=140,
          hot="Finnish exports are contracting — Finland is a small, open, forestry-and-capital-goods "
              "economy whose trade turns early on the European and global industrial cycle.",
          cool="Finnish exports are growing — the European industrial cycle backdrop is firm."),
@@ -269,8 +270,8 @@ def _read_spread(spec, limit):
     import bisect
     try:
         a, b = spec.split(":", 1)
-        oa = fred(a, limit)          # newest-first [(date, val)]
-        ob = fred(b, limit * 4)      # denser leg (may be daily) -> fetch more history
+        oa = [(d, v) for d, v in fred(a, limit) if v is not None]           # newest-first
+        ob = [(d, v) for d, v in fred(b, limit * 8) if v is not None]        # daily leg has holiday gaps -> drop None
         if not oa or not ob:
             return []
         bmap = sorted(((d, v) for d, v in ob), key=lambda x: x[0])  # ascending for as-of
