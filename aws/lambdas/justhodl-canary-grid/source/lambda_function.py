@@ -83,6 +83,19 @@ SIGNALS = [
              "cycle by a few quarters.",
          cool="Semiconductor output is expanding — the chip cycle is in an up-leg, a green "
               "light for the tech and capex economy."),
+    dict(key="taiwan_export_orders", name="Taiwan export orders (tech-demand lead)", grid="trade_shipping",
+         fred="feed:taiwan-moea:export_orders.history", kind="yoy", win=12, dir="fall", lead=3,
+         limit=160, unit="%YoY",
+         hot="Taiwan's export orders are contracting — Taiwan is the tech supply chain's "
+             "chokepoint and its BOOKED orders lead global shipments by 1-3 months, so this "
+             "is one of the earliest hard reads on a worldwide tech-demand downturn.",
+         cool="Taiwan's export orders are growing — booked global tech demand is firm 1-3 months out."),
+    dict(key="taiwan_semiconductor", name="Taiwan semiconductor production (chip cycle)", grid="trade_shipping",
+         fred="feed:taiwan-moea:semiconductor.production.history", kind="yoy", win=12, dir="fall", lead=3,
+         limit=160, unit="%YoY",
+         hot="Taiwan's chip production is rolling over — as the world's semiconductor hub this "
+             "is arguably the single best real chip-cycle bellwether, and it leads global tech capex.",
+         cool="Taiwan's chip production is expanding — the world's semiconductor engine is in an up-leg."),
     dict(key="copper", name="Copper price (Dr. Copper)", grid="commodity_cycle",
          fred="PCOPPUSDM", kind="yoy", win=12, dir="fall", lead=2,
          limit=160, unit="%YoY",
@@ -159,10 +172,31 @@ def fred(series_id, limit):
         return []
 
 
+def _read_feed(spec):
+    """spec = 'engine:dot.path.to.history' -> [(date, value)] newest-first from a
+    pre-computed platform feed (e.g. the Taiwan MOEA agent), so the canary grid can
+    consume signals that aren't on FRED/DBnomics. History rows are {'p':'YYYY-MM','v':x}."""
+    try:
+        engine, path = spec.split(":", 1)
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/%s.json" % engine)["Body"].read())
+        cur = d
+        for p in path.split("."):
+            cur = cur.get(p) if isinstance(cur, dict) else None
+        if not isinstance(cur, list):
+            return []
+        out = [("%s-28" % str(x.get("p"))[:7], x.get("v")) for x in cur if x.get("v") is not None]
+        return list(reversed(out))  # feed history is oldest-first
+    except Exception as e:
+        print(f"[canary] feed {spec}: {e}")
+        return []
+
+
 def fetch_observations(sid, limit):
     """Source-agnostic fetch -> [(date, value), ...] newest-first.
-    An id containing '/' is DBnomics (PROVIDER/DATASET/SERIES); otherwise
-    it is a FRED series id. Lets one signal try multiple sources."""
+    'feed:ENGINE:dot.path' reads a platform feed; an id with '/' is DBnomics
+    (PROVIDER/DATASET/SERIES); otherwise it is a FRED series id."""
+    if str(sid).startswith("feed:"):
+        return _read_feed(sid[5:])
     if "/" in str(sid):
         try:
             from dbnomics import fetch_series
