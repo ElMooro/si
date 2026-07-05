@@ -1,0 +1,10 @@
+{
+  "description": "Taiwan MOEA forward-momentum leads — export orders + semiconductor production (global chip-cycle bellwether)",
+  "timeout": 120,
+  "memory": 256,
+  "schedule": {
+    "rule_name": "justhodl-taiwan-moea-daily",
+    "cron": "cron(30 3 * * ? *)",
+    "description": "Daily Taiwan MOEA export orders + semiconductor production pull"
+  }
+}
