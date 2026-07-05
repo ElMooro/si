@@ -162,13 +162,46 @@ SIGNALS = [
              "capex cycle by a few quarters.",
          cool="Japan's manufacturing orders are growing — the global capex and industrial "
               "cycle looks supported."),
+    dict(key="initial_claims", name="US initial jobless claims (4wk avg)", grid="labor_industrial",
+         fred="IC4WSA", kind="level", win=12, dir="rise", lead=2, limit=420, unit="claims",
+         hot="US initial jobless claims are climbing — the earliest, highest-frequency crack in "
+             "the labour market; claims turn up before the unemployment rate does.",
+         cool="US jobless claims are low and stable — no early labour-market deterioration yet."),
+    dict(key="building_permits", name="US building permits (housing lead)", grid="commodity_cycle",
+         fred="PERMIT", kind="yoy", win=12, dir="fall", lead=6, limit=200, unit="%YoY",
+         hot="US building permits are falling — housing is the most rate-sensitive sector and "
+             "permits lead construction, jobs and the broader cycle by 6-12 months.",
+         cool="US building permits are holding up — the rate-sensitive housing pipeline is intact."),
+    dict(key="yield_curve", name="Yield curve 10y-2y (recession lead)", grid="rates_credit",
+         fred="T10Y2Y", kind="level", win=12, dir="fall", lead=12, limit=2600, unit="ppt",
+         hot="The 10y-2y yield curve is flattening toward or into inversion — historically the most "
+             "reliable single lead on recession, which tends to follow inversion by 12-18 months.",
+         cool="The yield curve has a healthy positive slope — no rates-based recession warning."),
+    dict(key="hy_credit_oas", name="High-yield credit spread (OAS)", grid="rates_credit",
+         fred="BAMLH0A0HYM2", kind="level", win=12, dir="rise", lead=2, limit=2600, unit="ppt",
+         hot="High-yield credit spreads are widening — credit markets crack before equities, so a "
+             "rising junk-bond risk premium is an early risk-off signal.",
+         cool="High-yield spreads are tight — credit markets are sanguine about default risk."),
+    dict(key="real_m2", name="Real M2 money growth (monetary lead)", grid="rates_credit",
+         fred="M2REAL", kind="yoy", win=12, dir="fall", lead=12, limit=200, unit="%YoY",
+         hot="Real money supply (M2) is contracting — tight monetary conditions lead economic "
+             "activity by about a year, a classic monetarist warning.",
+         cool="Real money supply is expanding — monetary conditions are supportive of activity."),
+    dict(key="lending_standards", name="Bank lending standards (SLOOS)", grid="rates_credit",
+         fred="DRTSCILM", kind="level", win=12, dir="rise", lead=6, limit=140, unit="net % tightening",
+         max_stale_days=140,
+         hot="Banks are tightening lending standards on business loans — the Fed's loan-officer "
+             "survey leads credit contraction and defaults by 2-4 quarters.",
+         cool="Banks are easing or holding lending standards — credit availability is supportive."),
 ]
-GRID_WEIGHT = {"trade_shipping": 0.30, "commodity_cycle": 0.20,
-               "funding_plumbing": 0.30, "labor_industrial": 0.20}
+GRID_WEIGHT = {"trade_shipping": 0.25, "commodity_cycle": 0.15,
+               "funding_plumbing": 0.15, "labor_industrial": 0.20,
+               "rates_credit": 0.25}
 GRID_LABEL = {"trade_shipping": "Trade & Shipping",
               "commodity_cycle": "Commodity Cycle",
               "funding_plumbing": "Funding Plumbing",
-              "labor_industrial": "Labour & Industrial"}
+              "labor_industrial": "Labour & Industrial",
+              "rates_credit": "Rates & Credit"}
 
 
 # ── helpers ──────────────────────────────────────────────────────────
