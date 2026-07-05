@@ -52,7 +52,7 @@ CORE = ["data/risk-regime.json", "data/regime-composite.json", "data/crisis-comp
 POS = {"RISK_ON": 1.0, "BULLISH": .7, "BULL": .7, "BUY": .7, "STRONG_BUY": 1.0, "EXPANDING": .7,
        "FAVOR": .7, "FAVOR-NOW": 1.0, "ACCUMULATION": .7, "GREED": .6, "EXTREME_GREED": 1.0,
        "LONG": .6, "OVERWEIGHT": .7, "POSITIVE": .6, "UPTREND": .7, "RISK-ON": 1.0, "EXPANSION": .7, "BROAD_TREND": .7, "NET_LONG": .6, "TRENDING_UP": .7, "LEADERS": .5}
-NEG = {"RISK_OFF": 1.0, "BEARISH": .7, "BEAR": .7, "SELL": .7, "STRONG_SELL": 1.0, "SLOWING": .6,
+NEG = {"RISK_OFF": 1.0, "WARNING": .7, "BEARISH": .7, "BEAR": .7, "SELL": .7, "STRONG_SELL": 1.0, "SLOWING": .6,
        "CONTRACTING": .8, "CONTRACTION": .8, "AVOID": .7, "DISTRIBUTION": .7, "FEAR": .6,
        "EXTREME_FEAR": 1.0, "SHORT": .6, "UNDERWEIGHT": .7, "NEGATIVE": .6, "DOWNTREND": .7,
        "STRESSED": .9, "ELEVATED": .6, "CRISIS": 1.0, "SEIZING": 1.0, "STRAINED": .8,

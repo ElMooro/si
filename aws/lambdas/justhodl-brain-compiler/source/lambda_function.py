@@ -61,7 +61,7 @@ CONCEPTS = {
     "MMF / money market funds":  (r"money market fund|\bmmf\b", ["mmf", "money market"]),
     "SLOOS / lending standards": (r"sloos|lending standards|loan officer", ["DRTSCILM", "sloos", "lending"]),
     "TIC / foreign flows":       (r"\btic\b|foreign (buy|sell|custody|holdings)", ["tic", "foreign", "custody"]),
-    "swap lines":                (r"swap line", ["swap line", "swap_line"]),
+    "swap lines":                (r"swap line", ["SWPT", "swap line", "swap_line"]),
     "term premium":              (r"term premium", ["term premium", "THREEFYTP"]),
     "credit spreads":            (r"credit spread", ["spread", "credit"]),
     "housing / permits":         (r"housing|building permit|mortgage", ["PERMIT", "housing", "mortgage"]),
@@ -106,28 +106,32 @@ def build_index(registry):
     idx = []
     for eng, meta in registry.items():
         fred = tuple(x.upper() for x in meta.get("fred", []))
+        kfull = tuple(meta.get("keys", []))
         parts = set()
-        for k in meta.get("keys", []):
+        for k in kfull:
             parts.update(p for p in k.split("_") if len(p) >= 2)
         blob = (eng + " " + meta.get("doc", "") + " " + " ".join(meta.get("outs", []))).lower()
-        idx.append((eng, fred, parts, blob))
+        idx.append((eng, fred, parts, kfull, blob))
     return idx
 
 
 def match_engines(concept_names, index):
     """Score engines against the claim's concepts: FRED prefix (HQMCB->HQMCB10YR),
-    semantic key parts (sahm -> sahm_rule, qe -> qe_precursor_30y), doc substring."""
+    semantic key parts (sahm -> sahm_rule), full snake_case keys (swap_line ->
+    swap_line_usage), then doc/name substring."""
     want = set()
     for c in concept_names:
         want.update(t.lower() for t in CONCEPTS[c][1])
     scores = defaultdict(int)
-    for eng, fred, parts, blob in index:
+    for eng, fred, parts, kfull, blob in index:
         for t in want:
             T = t.upper()
             if any(f.startswith(T) for f in fred):
                 scores[eng] += 2                      # series-level match is strong
             elif t in parts:
                 scores[eng] += 2                      # engine has a field named after the concept
+            elif "_" in t and any(t in k for k in kfull):
+                scores[eng] += 2                      # snake_case token inside a full key
             elif len(t) >= 4 and t in blob:
                 scores[eng] += 1
     ranked = sorted(scores.items(), key=lambda kv: -kv[1])[:4]
