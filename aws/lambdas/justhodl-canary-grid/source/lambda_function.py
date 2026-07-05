@@ -154,6 +154,14 @@ SIGNALS = [
              "global-risk bellwether and rising joblessness there has often "
              "preceded wider trouble.",
          cool="Swiss unemployment is flat to lower — the bellwether is calm."),
+    dict(key="japan_mfg_orders", name="Japan manufacturing orders (capex lead)", grid="labor_industrial",
+         fred="JPNPRMNTO01GYSAM", kind="level", win=12, dir="fall", lead=3, limit=220, unit="%YoY",
+         max_stale_days=120,
+         hot="Japan's manufacturing new orders are contracting — Japan is a major global "
+             "capital-goods supplier, so falling orders lead the worldwide industrial and "
+             "capex cycle by a few quarters.",
+         cool="Japan's manufacturing orders are growing — the global capex and industrial "
+              "cycle looks supported."),
 ]
 GRID_WEIGHT = {"trade_shipping": 0.30, "commodity_cycle": 0.20,
                "funding_plumbing": 0.30, "labor_industrial": 0.20}
