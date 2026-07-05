@@ -100,23 +100,33 @@ def concepts_in(s):
     return [name for name, (pat, _) in CONCEPTS.items() if re.search(pat, low)]
 
 
-def match_engines(concept_names, registry):
-    """Score engines against the claim's concepts via the fleet registry.
-    Matches: FRED-series prefix (HQMCB->HQMCB10YR), semantic snake_case keys
-    (sahm -> sahm_rule, qe -> qe_precursor_30y), then doc/name substring."""
+def build_index(registry):
+    """Precompute per-engine match structures ONCE (658 engines x 321 claims was
+    O(n*m*keys) with per-pair regex -> timed out; this makes matching set-based)."""
+    idx = []
+    for eng, meta in registry.items():
+        fred = tuple(x.upper() for x in meta.get("fred", []))
+        parts = set()
+        for k in meta.get("keys", []):
+            parts.update(p for p in k.split("_") if len(p) >= 2)
+        blob = (eng + " " + meta.get("doc", "") + " " + " ".join(meta.get("outs", []))).lower()
+        idx.append((eng, fred, parts, blob))
+    return idx
+
+
+def match_engines(concept_names, index):
+    """Score engines against the claim's concepts: FRED prefix (HQMCB->HQMCB10YR),
+    semantic key parts (sahm -> sahm_rule, qe -> qe_precursor_30y), doc substring."""
     want = set()
     for c in concept_names:
         want.update(t.lower() for t in CONCEPTS[c][1])
     scores = defaultdict(int)
-    for eng, meta in registry.items():
-        fred = [x.upper() for x in meta.get("fred", [])]
-        keys = meta.get("keys", [])
-        blob = (eng + " " + meta.get("doc", "") + " " + " ".join(meta.get("outs", []))).lower()
+    for eng, fred, parts, blob in index:
         for t in want:
             T = t.upper()
-            if any(f == T or f.startswith(T) for f in fred):
+            if any(f.startswith(T) for f in fred):
                 scores[eng] += 2                      # series-level match is strong
-            elif any(re.search(r"(^|_)" + re.escape(t) + r"(_|$)", k) for k in keys):
+            elif t in parts:
                 scores[eng] += 2                      # engine has a field named after the concept
             elif len(t) >= 4 and t in blob:
                 scores[eng] += 1
@@ -152,11 +162,12 @@ def lambda_handler(event=None, context=None):
                 break
         if len(claims) >= 800:
             break
-    # route every claim
+    # route every claim (index precomputed once — see build_index)
+    index = build_index(registry)
     gap_by_concept = defaultdict(list)
     n_cov = n_part = n_gap = 0
     for c in claims:
-        eng = match_engines(c["concepts"], registry)
+        eng = match_engines(c["concepts"], index)
         best = eng[0]["score"] if eng else 0
         if best >= 2:
             c["status"] = "COVERED"; n_cov += 1

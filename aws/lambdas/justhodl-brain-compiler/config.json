@@ -1,6 +1,10 @@
 {
   "description": "Brain->Fleet compiler: monthly routes every brain note's testable claims to engines, flags gaps, emits build queue",
-  "timeout": 120,
-  "memory": 512,
-  "schedule": {"rule_name": "justhodl-brain-compiler-monthly", "cron": "cron(0 6 1 * ? *)", "description": "Monthly brain compile (1st, 06:00 UTC)"}
+  "timeout": 300,
+  "memory": 1024,
+  "schedule": {
+    "rule_name": "justhodl-brain-compiler-monthly",
+    "cron": "cron(0 6 1 * ? *)",
+    "description": "Monthly brain compile (1st, 06:00 UTC)"
+  }
 }

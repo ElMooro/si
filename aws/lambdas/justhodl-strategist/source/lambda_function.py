@@ -62,6 +62,7 @@ NEU = {"NEUTRAL", "MIXED", "QUIET", "CALM", "NORMAL", "HOLD", "FUNCTIONING", "ST
 
 VERDICT_KEYS = ["regime", "posture", "composite_signal", "signal", "verdict", "stance", "call",
                 "bias", "recommendation", "defcon_name", "risk_regime", "gamma_regime",
+                "band", "quadrant", "hard_data_bias", "lead_verdict",
                 "overall_signal", "reading", "label", "state", "level", "status", "alpha_status",
                 "regime_headline", "headline", "outlook", "tilt", "conclusion", "assessment",
                 "takeaway", "winner", "direction", "trend", "phase", "mode", "classification",
@@ -158,6 +159,13 @@ def extract(d):
     direction = 0
     extremity = 0.0
     v = _verdict_from(d)
+    if not v:
+        # verdicts often live one level down (e.g. warroom "master", nowcast blocks)
+        for sub in list(d.values())[:8]:
+            if isinstance(sub, dict):
+                v = _verdict_from(sub)
+                if v:
+                    break
     if v:
         direction, extremity, verdict = v
     # numeric score fallback
