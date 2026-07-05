@@ -217,6 +217,14 @@ SIGNALS = [
              "is itself proprietary) is running below trend; readings under -0.7 have historically marked "
              "recessions already underway.",
          cool="National economic activity is at or above trend — no PMI-style contraction signal."),
+    dict(key="swap_line_usage", name="Fed central-bank swap lines (offshore USD stress)", grid="funding_plumbing",
+         fred="SWPT", kind="level", win=12, dir="rise", lead=1, limit=700, unit="$bn",
+         hot="Foreign central banks are drawing on the Fed's dollar swap lines — the clearest "
+             "official-sector signal of an offshore dollar squeeze; heavy usage marked 2008, 2020 "
+             "and the 2023 stress. (Brain note: PBoC separately runs 40+ RMB swap lines as the "
+             "parallel yuan liquidity network.)",
+         cool="Swap-line usage is near zero — no offshore dollar squeeze; the global USD funding "
+              "system is self-clearing."),
 ]
 GRID_WEIGHT = {"trade_shipping": 0.25, "commodity_cycle": 0.15,
                "funding_plumbing": 0.15, "labor_industrial": 0.20,
