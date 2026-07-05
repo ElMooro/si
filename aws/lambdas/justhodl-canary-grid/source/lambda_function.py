@@ -75,12 +75,27 @@ SIGNALS = [
          limit=160, unit="%YoY",
          hot="China's exports are shrinking — global goods demand is weakening.",
          cool="China's exports are growing — global goods demand looks steady."),
+    dict(key="semiconductor_ip", name="Semiconductor production (chip cycle)", grid="trade_shipping",
+         fred="IPG3344S", kind="yoy", win=12, dir="fall", lead=3,
+         limit=160, unit="%YoY",
+         hot="Semiconductor & electronics production is rolling over — the chip cycle is the "
+             "tip of the tech economy's spear and leads global capex and the manufacturing "
+             "cycle by a few quarters.",
+         cool="Semiconductor output is expanding — the chip cycle is in an up-leg, a green "
+              "light for the tech and capex economy."),
     dict(key="copper", name="Copper price (Dr. Copper)", grid="commodity_cycle",
          fred="PCOPPUSDM", kind="yoy", win=12, dir="fall", lead=2,
          limit=160, unit="%YoY",
          hot="Copper is falling hard — 'Dr. Copper' has a long record of "
              "sniffing out industrial slowdowns before the data confirms them.",
          cool="Copper is firm — industrial demand looks healthy."),
+    dict(key="chile_exports", name="Chile exports (Dr. Copper supply side)", grid="commodity_cycle",
+         fred="XTEXVA01CLM664S", kind="yoy", win=12, dir="fall", lead=2,
+         limit=160, unit="%YoY",
+         hot="Chile's exports are contracting — Chile is the world's largest copper producer, "
+             "so falling export value flags weakening global industrial and construction demand.",
+         cool="Chile's exports are firm — global metals and industrial demand look healthy "
+              "(Dr. Copper's production side confirms)."),
     dict(key="lumber", name="Lumber & wood (PPI)", grid="commodity_cycle",
          fred="WPU081", kind="yoy", win=12, dir="fall", lead=2,
          limit=160, unit="%YoY",
