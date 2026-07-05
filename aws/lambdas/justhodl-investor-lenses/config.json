@@ -5,9 +5,16 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 256,
   "timeout": 60,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Famous-investor valuation panel: Buffett owner-earnings, Graham Number, Lynch PEG, Greenblatt Magic Formula. Deterministic (no LLM), real FMP+FRED data. Product is lens DISAGREEMENT. Writes data/investor-lenses/<T>.json.",
-  "environment_keys": ["FMP_KEY", "FRED_API_KEY"],
-  "schedule": {"rule_name": "justhodl-investor-lenses-daily", "cron": "cron(15 13 * * ? *)", "description": "Daily 13:15 UTC — investor-lens fair values after fundamentals refresh"}
+  "schedule": {
+    "rule_name": "justhodl-investor-lenses-daily",
+    "cron": "cron(15 13 * * ? *)",
+    "description": "Daily 13:15 UTC \u2014 investor-lens fair values after fundamentals refresh"
+  },
+  "env": {},
+  "inherit_env": true
 }
