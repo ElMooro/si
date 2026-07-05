@@ -1,26 +1,14 @@
-{
- "ops": 2875,
- "ts": "2026-07-05T04:52:38.683472+00:00",
- "gen": "2026-07-05T04:53:19.852069+00:00",
- "usd_state": "CONTRACTING",
- "brain_predictors": {
-  "hqm_reversal_lead": {
-   "spread_ppt": 0.89,
-   "chg_3m_ppt": 0.21,
-   "z_5y": -0.75,
-   "state": "WIDENING",
-   "as_of": "2026-05-01",
-   "read": "Even top-rated (HQM) issuers are paying a widening premium over Treasuries — a documented early tell that the liquidity tide is about to turn down, ahead of the net-liquidity impulse itself."
-  },
-  "qe_precursor_30y": {
-   "yield_pct": 4.97,
-   "chg_3m_ppt": 0.1,
-   "chg_6m_ppt": 0.1,
-   "state": "NEUTRAL",
-   "as_of": "2026-07-01",
-   "read": "The 30-year yield is not dumping — no QE-precursor signal."
-  }
- },
- "status": "LIVE"
-}
-OPS 2875 COMPLETE
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2876_registry_compiler.py", line 45, in <module>
+    if ex: lam.update_function_code(FunctionName=FN,ZipFile=code); ready(); R["action"]="updated"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-brain-compiler is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
+❌ OPS-FAIL: aws/ops/pending/ops_2876_registry_compiler.py
