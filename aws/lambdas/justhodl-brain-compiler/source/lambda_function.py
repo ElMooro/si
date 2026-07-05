@@ -105,6 +105,8 @@ def build_index(registry):
     O(n*m*keys) with per-pair regex -> timed out; this makes matching set-based)."""
     idx = []
     for eng, meta in registry.items():
+        if eng == "justhodl-brain-compiler":
+            continue                                   # never route claims to ourselves (lexicon strings != coverage)
         fred = tuple(x.upper() for x in meta.get("fred", []))
         kfull = tuple(meta.get("keys", []))
         parts = set()
