@@ -172,7 +172,56 @@ def fetch_debt():
     return pts, (round(float(latest.get("tot_pub_debt_out_amt", 0)) / 1e12, 3) if latest else None), latest.get("record_date")
 
 
+
+# ── Treasury auction mirror (homepage Command Center d-auct slot) ──
+AUCTIONS_KEY = "data/treasury-auctions.json"
+_TD_UPCOMING = "https://www.treasurydirect.gov/TA_WS/securities/upcoming?format=json"
+_MMM = ("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
+
+def _fetch_upcoming_auctions():
+    try:
+        req = urllib.request.Request(_TD_UPCOMING, headers={"User-Agent": "justhodl/1.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            rows = json.loads(r.read().decode())
+    except Exception:
+        return None
+    out = []
+    for x in rows if isinstance(rows, list) else []:
+        d = (x.get("auctionDate") or "")[:10]
+        if not d:
+            continue
+        term = ((x.get("securityTerm") or "").upper()
+                .replace("-YEAR", "Y").replace("-MONTH", "M")
+                .replace("-WEEK", "W").replace("-DAY", "D"))
+        out.append({"date": d, "term": term,
+                    "type": (x.get("securityType") or "").upper(),
+                    "cusip": x.get("cusip"),
+                    "offering": x.get("offeringAmount"),
+                    "reopening": x.get("reopening")})
+    out.sort(key=lambda r: r["date"])
+    if not out:
+        return None
+    n = out[0]
+    label = f"{n['term']} {n['type'].split(' ')[0]} · {_MMM[int(n['date'][5:7])-1]} {n['date'][8:10]}"
+    from datetime import datetime, timezone
+    return {"generated": datetime.now(timezone.utc).isoformat(),
+            "next": label, "next_auction": n, "upcoming": out[:12],
+            "source": "TreasuryDirect TA_WS", "_data_quality": "real"}
+
+def _write_auctions_mirror():
+    try:
+        auc = _fetch_upcoming_auctions()
+        if auc:
+            S3.put_object(Bucket=BUCKET, Key=AUCTIONS_KEY,
+                          Body=json.dumps(auc).encode(),
+                          ContentType="application/json",
+                          CacheControl="max-age=300")
+            print(f"auctions mirror: next={auc['next']} ({len(auc['upcoming'])} upcoming)")
+    except Exception as e:
+        print("auctions mirror skipped:", e)
+
 def lambda_handler(event=None, context=None):
+    _write_auctions_mirror()
     now = datetime.now(timezone.utc).isoformat()
 
     # ---- TIC foreign demand ----
