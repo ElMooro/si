@@ -141,6 +141,11 @@ def main(root):
                             anchor + '<script src="/jh-chart-theme.js"></script>',
                             1)
                         break
+            if p.suffix.lower() == ".html" and "/jh-footer.js" not in s2:
+                for tag in ("</body>", "</BODY>"):
+                    if tag in s2:
+                        s2 = s2.replace(tag, '<script src="/jh-footer.js" defer></script>' + tag, 1)
+                        break
             if s2 != s:
                 p.write_text(s2, encoding="utf-8")
                 changed += 1
