@@ -1,11 +1,12 @@
-executing-against: 5775883283090b4ef4daaaa2d5475ec3e634795c
-[18:03:27] ✅ v1.2.15 deploy live attempt 1
-[18:03:27] ✅ jh-chart-theme.js live, interception + 4 libs: {'http': 200, 'bytes': 5202, 'all_lib_markers': True}
-[18:03:29] ✅ tag coverage: 365/365
-[18:03:29] ✅ chart-library pages unprotected: 0
-[18:03:29] ✅   spot chart-pro.html: themed=True
-[18:03:29] ✅   spot onchain.html: themed=True
-[18:03:29] ✅   spot dex.html: themed=True
+executing-against: 0ed31d9223f753fa173fd66443ea663c8c51e5d1
+[18:36:46] ✅ repair deploy live attempt 1
+[18:36:52] ✗ A pages structural: 360/366 bad=[('options-flow.html', 200, 916), ('positioning.html', 200, 892), ('intelligence.html', 200, 10699), ('charts.html', 200, 1411), ('asymmetric.html', 200, 910)]
+[18:36:53] ✅ A2 repaired blocks parse LIVE: 9/9
 
-→ Report written to aws/ops/reports/latest/2928.md
-DONE 2928 PASS
+→ Report written to aws/ops/reports/latest/2929.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2929_availability_audit.py", line 58, in <module>
+    reg = json.load(open("data/engine-registry.json"))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'data/engine-registry.json'
+❌ OPS-FAIL: aws/ops/pending/ops_2929_availability_audit.py
