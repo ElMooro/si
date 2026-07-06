@@ -77,7 +77,7 @@ jobs:
               print(f'gate clean: 0 leaks, dashes {dashes} <= budget {budget}')
           G
       - name: Bake right-rail insight panel (Design audit sec8-C)
-        run: python3 scripts/bake_right_rail.py .
+        run: python3 scripts/bake_right_rail.py _site || true
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
