@@ -452,8 +452,8 @@
       // Find max size for bar scaling
       const maxSize = Math.max(...recs.map(r => r.recommended_size_pct || 0), 0.01);
 
-      let html = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table class="rec-table"><thead><tr>'
+      let html = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">';
+      html += '<table class="rec-table"><thead><tr>';
         + '<th>SYM</th><th>NAME</th><th>SECTOR</th>'
         + '<th>CONV</th><th>DIMS</th><th>CLUSTER</th>'
         + '<th>SIZE %</th><th>RATIONALE</th>'
@@ -479,8 +479,8 @@
           </tr>`;
         }
       }
-      html += '</tbody></table>
-</div>';
+      html += '</tbody></table>';
+      html += '</div>';
       el.innerHTML = html;
     }
 

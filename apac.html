@@ -88,7 +88,8 @@ async function j(p){try{const r=await fetch(p,{cache:"no-store"});return await r
   }
   h+=`</div>`;
  }
- // Taiwan detail if(tw.top_buy){
+ // Taiwan detail
+  if(tw.top_buy){
   h+=`<h2 class="sec">TAIWAN — FOREIGN INVESTOR FLOWS (TWSE, ${tw.as_of||""})</h2><div class="grid2">
    <div class="c"><h3>TOP FOREIGN NET BUYS</h3><table><tr><th>Stock</th><th>Sector</th><th>Net shares</th></tr>
    ${tw.top_buy.slice(0,10).map(x=>`<tr><td>${x.name||x.code}</td><td class="f3">${x.sector||"—"}</td><td class="g">${sh(x.foreign_net_shares)}</td></tr>`).join("")}</table></div>
