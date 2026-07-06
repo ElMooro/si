@@ -3,155 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Signal Performance · JustHodl.AI</title>
-<meta name="description" content="Live, self-measured performance of JustHodl.AI signals — hit rate by tier, by horizon, and a cumulative signal-following curve.">
-<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<title>Proof · JustHodl AI</title>
+<meta name="description" content="The honest track record: live paper-book P&amp;L vs SPY, signal hit rates with Wilson lower bounds, FDR-gated engine alpha, and the mature signal backtest — including the results that aren't flattering.">
+<meta property="og:title" content="Proof · JustHodl AI">
+<meta property="og:description" content="Institutional Market Intelligence — the edge hedge funds pay for, free during early access.">
+<meta name="theme-color" content="#F0B429">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/jh-theme.css">
 <style>
-:root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--bg-3:#131929;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--red:#ff5577;--amber:#fbbf24;--violet:#a78bfa;--mono:'IBM Plex Mono','SF Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--fg-1);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
-a{color:var(--cyan);text-decoration:none}
-::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-.header{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:0 24px;background:var(--bg-1)}
-.brand{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:700;letter-spacing:.5px}
-.brand-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
-.nav{display:flex;gap:4px;margin-left:12px}
-.nav a{padding:7px 12px;font-size:12.5px;color:var(--fg-3);border-radius:5px;font-family:var(--mono)}
-.nav a:hover{color:var(--fg-1);background:var(--bg-2)}.nav a.active{color:var(--cyan)}
-.spacer{flex:1}
-.hero{text-align:center;padding:48px 24px 24px}
-.hero h1{font-size:32px;font-weight:800;color:var(--fg-0);letter-spacing:-.5px;margin-bottom:10px}
-.hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{font-size:15px;color:var(--fg-2);max-width:600px;margin:0 auto}
-.maturity-badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:var(--mono);font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid var(--border-bright);color:var(--fg-2)}
-.maturity-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--amber)}
-.maturity-badge.mature .dot{background:var(--green)}
-.wrap{max-width:1040px;margin:0 auto;padding:0 24px 64px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:28px 0}
-@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:18px}
-.kpi .v{font-family:var(--mono);font-size:30px;font-weight:800;color:var(--fg-0)}
-.kpi .v.green{color:var(--green)}.kpi .v.cyan{color:var(--cyan)}
-.kpi .l{font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-top:4px}
-.kpi .s{font-size:11px;color:var(--fg-3);margin-top:2px}
-.section{margin-top:32px}
-.section h2{font-size:18px;color:var(--fg-0);margin-bottom:6px}
-.section .sub{font-size:12.5px;color:var(--fg-3);margin-bottom:14px}
-#equity-chart{width:100%;height:300px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px}
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-th{text-align:left;padding:10px 14px;color:var(--fg-3);font-size:10px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);font-weight:700}
-th.num,td.num{text-align:right}
-td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--fg-1)}
-tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg-2)}
-.tier-name{color:var(--fg-0);font-weight:700}
-.hr-cell{font-weight:700}.hr-cell.good{color:var(--green)}.hr-cell.mid{color:var(--amber)}.hr-cell.low{color:var(--fg-3)}
-.ret.pos{color:var(--green)}.ret.neg{color:var(--red)}
-.bar{display:inline-block;height:6px;border-radius:3px;background:var(--cyan);vertical-align:middle;margin-left:8px}
-.disclaimer{margin-top:28px;font-size:11.5px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;padding:16px}
-.loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
-.footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
-[data-auth-slot]{display:flex;align-items:center}
-.jh-signin-btn{font-family:var(--mono);font-size:12.5px;font-weight:600;padding:7px 16px;border-radius:6px;background:var(--cyan);color:var(--bg);border:none;cursor:pointer}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--jh-bg);color:var(--jh-ink);font-family:"IBM Plex Sans",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 24px 40px}
+  .crumb{font:11px var(--jh-mono);letter-spacing:.08em;color:var(--jh-dim);margin-bottom:10px}
+  .crumb a{color:var(--jh-dim);text-decoration:none}
+  .crumb a:hover{color:var(--jh-amber)}
+  .ptitle{font:600 22px/1.2 var(--jh-mono);letter-spacing:.02em;margin:0 0 4px}
+  .pstamp{font:11px var(--jh-mono);color:var(--jh-dim);margin-bottom:22px}
+  .lede{font:14px/1.6 "IBM Plex Sans",sans-serif;color:#d8d1bf;max-width:760px;margin-bottom:28px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--jh-line);
+    border:1px solid var(--jh-line);margin-bottom:34px}
+  .kpi{background:var(--jh-panel);padding:16px 18px}
+  .kpi .l{font:10px var(--jh-mono);letter-spacing:.1em;color:var(--jh-dim);margin-bottom:8px}
+  .kpi .v{font:600 21px var(--jh-mono);font-variant-numeric:tabular-nums}
+  .kpi .v.up{color:#6fce8a}.kpi .v.down{color:#e07a6a}
+  .kpi .s{font:10.5px var(--jh-mono);color:var(--jh-dim);margin-top:4px}
+  .panel{background:var(--jh-panel);border:1px solid var(--jh-line);margin-bottom:22px}
+  .panel-h{display:flex;justify-content:space-between;align-items:baseline;padding:13px 18px;
+    border-bottom:1px solid var(--jh-line)}
+  .panel-h h2{font:600 11px var(--jh-mono);letter-spacing:.1em;margin:0;color:var(--jh-ink)}
+  .panel-h span{font:10.5px var(--jh-mono);color:var(--jh-dim)}
+  .panel-body{padding:16px 18px}
+  .note{font:12.5px/1.55 "IBM Plex Sans",sans-serif;color:#b5ad99;margin:0 0 14px}
+  .note b{color:var(--jh-ink)}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font:10px var(--jh-mono);letter-spacing:.08em;color:#6a6455;
+    padding:6px 10px;border-bottom:1px solid var(--jh-line)}
+  th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td{font:12px var(--jh-mono);padding:7px 10px;border-bottom:1px solid #1e1c15}
+  tr:hover td{background:var(--jh-panel-2)}
+  .pos{color:#6fce8a}.neg{color:#e07a6a}
+  .flag{display:inline-block;font:10px var(--jh-mono);letter-spacing:.06em;padding:2px 7px;
+    border:1px solid var(--jh-line);color:var(--jh-dim);margin-left:8px}
+  .honest{border-left:2px solid var(--jh-amber);padding:10px 14px;margin:0 0 16px;
+    background:rgba(240,180,41,.06);font:12.5px/1.55 "IBM Plex Sans",sans-serif;color:#d8d1bf}
+  .cta-link{display:inline-block;margin-top:6px;font:11px var(--jh-mono);color:var(--jh-amber);
+    text-decoration:none;letter-spacing:.03em}
+  .cta-link:hover{color:#ffd45e}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<header class="header">
-  <div class="brand"><span class="brand-dot"></span><span>JustHodl<span style="color:var(--fg-3)">.AI</span></span></div>
-  <nav class="nav">
-    <a href="/">Home</a>
-    <a href="/chart-pro.html">Chart Pro</a>
-    <a href="/pre-pump-radar.html">Radar</a>
-    <a href="/proof.html" class="active">Signal Performance</a>
-    <a href="/capital-flow.html">Capital Flow</a><a href="/opportunities.html">Opportunities</a><a href="/dislocations.html">Buy the Laggard</a><a href="/compounders.html">Compounders</a><a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html">Backlog</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a><a href="/pricing.html">Pricing</a>
-  </nav>
-  <div class="spacer"></div>
-  <div data-auth-slot></div>
-</header>
-<section class="hero">
-  <h1>The signals, <span class="grad">measured</span>.</h1>
-  <p>Every alert JustHodl.AI fires is scored against what actually happened. No cherry-picking — the self-improvement loop tracks every prediction, continuously. Here's the live record.</p>
-  <div class="maturity-badge" id="maturity"><span class="dot"></span><span id="maturity-text">loading…</span></div>
-</section>
-<div class="wrap"><div id="content"><div class="loading">Loading signal performance…</div></div></div>
-<div class="footer-note">JustHodl.AI is a research & analytics platform, not a registered investment advisor. Past signal performance does not guarantee future results.</div>
-<script src="/auth-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/auth.js"></script>
-<script>
-const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function hrClass(v){return v>=45?'good':v>=33?'mid':'low';}
-async function load(){
-  let doc=null;
-  try{const r=await fetch(`${PROXY}/data/track-record.json?t=${Date.now()}`);if(r.ok)doc=await r.json();}catch(e){}
-  if(!doc){document.getElementById('content').innerHTML='<div class="loading">Performance data not available yet — the self-improvement loop is still accumulating scored outcomes. Check back soon.</div>';return;}
-  const mb=document.getElementById('maturity'),mt=document.getElementById('maturity-text');
-  const mat=doc.maturity||'BOOTSTRAPPING';
-  mt.textContent=mat==='MATURE'?`Mature · ${doc.overall.n_predictions} scored predictions`:mat==='BUILDING'?`Building · ${doc.overall.n_predictions} scored (sample growing)`:`Bootstrapping · ${doc.overall.n_predictions} scored so far`;
-  if(mat==='MATURE')mb.classList.add('mature');
-  const o=doc.overall||{};let html='';
-  html+=`<div class="kpis">
-    <div class="kpi"><div class="v green">${o.hit_rate!=null?o.hit_rate+'%':'—'}</div><div class="l">Hit Rate</div><div class="s">≥+5% within window</div></div>
-    <div class="kpi"><div class="v cyan">${o.big_hit_rate!=null?o.big_hit_rate+'%':'—'}</div><div class="l">Big-Hit Rate</div><div class="s">≥+10% moves</div></div>
-    <div class="kpi"><div class="v">${o.avg_return!=null?(o.avg_return>=0?'+':'')+o.avg_return+'%':'—'}</div><div class="l">Avg Max Move</div><div class="s">per scored signal</div></div>
-    <div class="kpi"><div class="v">${o.n_predictions||0}</div><div class="l">Scored Signals</div><div class="s">${(doc.window||{}).trading_days||0} trading days</div></div></div>`;
-  html+=`<div class="section"><h2>Following the signals</h2><div class="sub">Cumulative, equal-weight, conservatively-scaled proxy of acting on every scored signal (starts at 100). Not a live traded P&L.</div><div id="equity-chart"></div></div>`;
-  const tiers=doc.by_tier||[];
-  if(tiers.length){
-    html+=`<div class="section"><h2>Hit rate by signal tier</h2><div class="sub">Which signals actually work — this is what the conviction engine weights by.</div><table><thead><tr><th>Signal Tier</th><th class="num">Hit Rate</th><th class="num">Avg Move</th><th class="num">Median</th><th class="num">N</th></tr></thead><tbody>`;
-    const maxN=Math.max(...tiers.map(t=>t.n));
-    tiers.forEach(t=>{html+=`<tr><td class="tier-name">${esc(t.tier.replace(/_/g,' '))}</td><td class="num hr-cell ${hrClass(t.hit_rate||0)}">${t.hit_rate!=null?t.hit_rate+'%':'—'}</td><td class="num ret ${(t.avg_return||0)>=0?'pos':'neg'}">${t.avg_return!=null?(t.avg_return>=0?'+':'')+t.avg_return+'%':'—'}</td><td class="num">${t.median_return!=null?t.median_return+'%':'—'}</td><td class="num">${t.n}<span class="bar" style="width:${Math.round((t.n/maxN)*40)}px"></span></td></tr>`;});
-    html+=`</tbody></table></div>`;
-  }
-  const hz=doc.by_horizon||[];
-  if(hz.length){
-    html+=`<div class="section"><h2>Hit rate by horizon</h2><div class="sub">How long the edge takes to play out.</div><table><thead><tr><th>Horizon</th><th class="num">Hit Rate</th><th class="num">N</th></tr></thead><tbody>`;
-    hz.forEach(h=>{html+=`<tr><td class="tier-name">${esc(h.horizon)}</td><td class="num hr-cell ${hrClass(h.hit_rate||0)}">${h.hit_rate!=null?h.hit_rate+'%':'—'}</td><td class="num">${h.n}</td></tr>`;});
-    html+=`</tbody></table></div>`;
-  }
-  html+=`<div class="disclaimer">${esc(doc.note||'')}<br><br>Calibration confidence: <b style="color:var(--cyan)">${esc(doc.calibration_confidence||'NONE')}</b> · Last updated ${esc((doc.generated_at||'').replace('T',' ').slice(0,16))} UTC</div>`;
-  document.getElementById('content').innerHTML=html;
-  loadBacktest();
-  const eq=doc.equity_curve||[];
-  if(eq.length>1&&typeof LightweightCharts!=='undefined'){
-    const el=document.getElementById('equity-chart');
-    const chart=LightweightCharts.createChart(el,{autoSize:true,layout:{background:{color:'#0c1018'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},rightPriceScale:{borderColor:'#1c2433'},timeScale:{borderColor:'#1c2433'},crosshair:{mode:1}});
-    const area=chart.addAreaSeries({lineColor:'#26ffaf',topColor:'rgba(38,255,175,0.25)',bottomColor:'rgba(38,255,175,0.02)',lineWidth:2});
-    const seen=new Set();const data=[];
-    eq.forEach(p=>{const t=Math.floor(new Date(p.date).getTime()/1000);if(!seen.has(t)&&isFinite(t)){seen.add(t);data.push({time:t,value:p.value});}});
-    data.sort((a,b)=>a.time-b.time);area.setData(data);chart.timeScale().fitContent();
-  }
-}
-load();
-async function loadBacktest(){
-  let bt=null;
-  try{const r=await fetch(`${PROXY}/data/signal-backtest.json?t=${Date.now()}`);if(r.ok)bt=await r.json();}catch(e){}
-  if(!bt||!bt.overall){return;}
-  const o=bt.overall;
-  const row=(label,a)=>a?`<tr><td class="tier-name">${esc(label)}</td><td class="num hr-cell ${a.win_rate>=50?'good':a.win_rate>=42?'mid':'low'}">${a.win_rate}%</td><td class="num ret ${a.avg>=0?'pos':'neg'}">${a.avg>=0?'+':''}${a.avg}%</td><td class="num">${a.median>=0?'+':''}${a.median}%</td><td class="num ret pos">${a.hit_5pct}%</td><td class="num">${a.n}</td></tr>`:'';
-  let h=`<div class="section" style="margin-top:36px"><h2>📈 Forward-Return Backtest <span style="font-size:12px;color:var(--fg-3)">(${esc(bt.maturity)})</span></h2>
-    <div class="sub">Actual price-based returns from each daily snapshot's entry to today — the real proof, by signal class. ${bt.n_observations} observations across ${bt.snapshots_used} snapshots.</div>
-    <div class="kpis" style="margin-bottom:18px">
-      <div class="kpi"><div class="v ${o.avg>=0?'green':''}">${o.avg>=0?'+':''}${o.avg}%</div><div class="l">Avg Return</div><div class="s">all signals</div></div>
-      <div class="kpi"><div class="v cyan">${o.win_rate}%</div><div class="l">Win Rate</div><div class="s">positive returns</div></div>
-      <div class="kpi"><div class="v">${o.hit_5pct}%</div><div class="l">Hit +5%</div><div class="s">of observations</div></div>
-      <div class="kpi"><div class="v">${o.n}</div><div class="l">Observations</div><div class="s">${esc(bt.maturity)}</div></div>
+<div class="wrap">
+  <div class="crumb"><a href="/">SYSTEM &amp; META</a> / PROOF</div>
+  <h1 class="ptitle">Proof</h1>
+  <div class="pstamp" id="stamp">UPDATED —</div>
+  <p class="lede">The honest track record. Not the numbers that make the best pitch — the actual numbers, including the ones that don't flatter. A live paper book marked daily against SPY, every signal's real hit rate down to the Wilson lower bound, which engines have proven statistically significant alpha net of trading costs after correcting for testing hundreds of them, and a 39,000-observation backtest with results broken out by verdict tier.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">PAPER BOOK EXCESS VS SPY</div><div class="v neg" id="k-excess">—</div><div class="s" id="k-days">since inception</div></div>
+    <div class="kpi"><div class="l">SIGNALS PROMOTED / DEPRECATED</div><div class="v" id="k-promo">—</div><div class="s">of signals graded</div></div>
+    <div class="kpi"><div class="l">ENGINES: PROVEN ALPHA</div><div class="v" id="k-alpha">—</div><div class="s">FDR-gated, net of cost</div></div>
+    <div class="kpi"><div class="l">BACKTEST WIN RATE</div><div class="v" id="k-winrate">—</div><div class="s" id="k-nobs">observations</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>PAPER BOOK — LIVE, MARKED DAILY VS SPY</h2><span id="pb-stamp"></span></div>
+    <div class="panel-body">
+      <div class="honest" id="pb-honest">Loading…</div>
+      <table>
+        <tr><th>NAV</th><th class="num">Total Return</th><th class="num">SPY Return</th><th class="num">Excess</th><th class="num">Sharpe</th><th class="num">Max DD</th></tr>
+        <tr id="pb-row"><td colspan="6">Loading…</td></tr>
+      </table>
     </div>
-    <table><thead><tr><th>Signal Class</th><th class="num">Win %</th><th class="num">Avg Ret</th><th class="num">Median</th><th class="num">Hit +5%</th><th class="num">N</th></tr></thead><tbody>`;
-  const bv=bt.by_verdict||{};
-  ['STRONG OPPORTUNITY','OPPORTUNITY','FAIR VALUE','HOLD / NEUTRAL','EXPENSIVE','HIGH RISK'].forEach(v=>{if(bv[v])h+=row('Verdict: '+v,bv[v]);});
-  const bc=bt.by_compounder_bucket||{};
-  ['compounder_80+','compounder_70-80','compounder_<70'].forEach(k=>{if(bc[k])h+=row(k.replace(/_/g,' '),bc[k]);});
-  const br=bt.by_revision||{};
-  Object.keys(br).forEach(k=>h+=row(k.replace(/_/g,' '),br[k]));
-  const bcap=bt.by_cap_bucket||{};
-  ['mega','large','mid','small','micro','nano'].forEach(k=>{if(bcap[k])h+=row('Cap: '+k,bcap[k]);});
-  h+=`</tbody></table><div class="disclaimer">${esc(bt.note||'')}</div></div>`;
-  document.getElementById('content').insertAdjacentHTML('beforeend',h);
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>SIGNAL SCORECARD — WILSON LOWER-BOUND HIT RATES</h2><span id="sc-stamp"></span></div>
+    <div class="panel-body">
+      <p class="note" id="sc-note">Loading…</p>
+      <table>
+        <thead><tr><th>Signal</th><th class="num">n</th><th class="num">Hit Rate</th><th class="num">Wilson LB</th></tr></thead>
+        <tbody id="sc-body"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>ENGINE ALPHA — FDR-GATED, NET OF TRADING COST</h2><span id="ea-stamp"></span></div>
+    <div class="panel-body">
+      <p class="note" id="ea-note">Loading…</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>SIGNAL BACKTEST — BY VERDICT TIER</h2><span id="bt-stamp"></span></div>
+    <div class="panel-body">
+      <p class="note" id="bt-note">Loading…</p>
+      <table>
+        <thead><tr><th>Verdict</th><th class="num">n</th><th class="num">Avg Fwd</th><th class="num">Median</th><th class="num">Win Rate</th><th class="num">Best</th><th class="num">Worst</th></tr></thead>
+        <tbody id="bt-body"><tr><td colspan="7">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-h"><h2>AUDIT TRAIL</h2></div>
+    <div class="panel-body">
+      <p class="note">Every desk publishes to timestamped storage. The audit trail lets you query what the system actually showed at any point in time — not a screenshot, the real published state.</p>
+      <a class="cta-link" href="/audit.html">OPEN THE AUDIT TRAIL →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+function fmtPct(v, dp){ dp = dp==null?2:dp; return (v>0?"+":"") + v.toFixed(dp) + "%"; }
+function cls(v){ return v>=0 ? "pos" : "neg"; }
+function esc(s){ return String(s).replace(/[&<>]/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
+
+function J(path){
+  return fetch("/" + path + "?t=" + Date.now(), {cache:"no-store"})
+    .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
 }
-if(window.JustHodlAuth)JustHodlAuth.init();
+
+document.getElementById("stamp").textContent = "UPDATED " + new Date().toLocaleString("en-US",
+  {timeZone:"America/New_York", hour:"2-digit", minute:"2-digit"}) + " ET";
+
+J("data/paper-book.json").then(function(pb){
+  if (!pb) { document.getElementById("pb-row").innerHTML = '<td colspan="6">Feed unavailable.</td>'; return; }
+  var excess = pb.excess_vs_spy_pct;
+  var k = document.getElementById("k-excess");
+  k.textContent = fmtPct(excess); k.className = "v " + (excess>=0?"up":"down");
+  document.getElementById("k-days").textContent = pb.n_days + " trading days since " + pb.inception;
+  document.getElementById("pb-stamp").textContent = "as of " + (pb.last_rebalance||"");
+  document.getElementById("pb-honest").innerHTML =
+    "<b>" + (excess>=0 ? "Ahead of SPY" : "Behind SPY") + " so far.</b> " + pb.n_days +
+    " trading days is a very small sample — not enough to draw conclusions either way, and we're not " +
+    "going to pretend otherwise. This number gets harder to game the longer it runs, which is the point.";
+  document.getElementById("pb-row").innerHTML =
+    "<td>$" + pb.nav.toLocaleString(undefined,{maximumFractionDigits:0}) + "</td>" +
+    '<td class="num ' + cls(pb.total_return_pct) + '">' + fmtPct(pb.total_return_pct) + "</td>" +
+    '<td class="num ' + cls(pb.benchmark_return_pct) + '">' + fmtPct(pb.benchmark_return_pct) + "</td>" +
+    '<td class="num ' + cls(excess) + '">' + fmtPct(excess) + "</td>" +
+    '<td class="num ' + cls(pb.sharpe) + '">' + pb.sharpe.toFixed(2) + "</td>" +
+    '<td class="num neg">' + fmtPct(pb.max_drawdown_pct) + "</td>";
+});
+
+J("data/signal-scorecard.json").then(function(sc){
+  if (!sc) { document.getElementById("sc-body").innerHTML = '<tr><td colspan="4">Feed unavailable.</td></tr>'; return; }
+  document.getElementById("k-promo").textContent = sc.n_promoted + " / " + sc.n_deprecated;
+  document.getElementById("sc-stamp").textContent = sc.n_signals_graded + " graded";
+  document.getElementById("sc-note").innerHTML =
+    sc.n_outcomes_scored.toLocaleString() + " outcomes scored across " + sc.n_signals_tracked +
+    " tracked signals. <b>" + sc.n_deprecated + " were deprecated</b> for failing to clear the bar — " +
+    "more than the " + sc.n_promoted + " that were kept. Average Wilson lower-bound across every graded " +
+    "signal (promoted and deprecated together): " + sc.avg_graded_wilson_lb.toFixed(3) + ".";
+  var rows = (sc.scorecard||[]).filter(function(r){ return (sc.promoted_signals||[]).indexOf(r.signal_type)>=0; })
+    .sort(function(a,b){ return b.wilson_lb - a.wilson_lb; }).slice(0,15);
+  document.getElementById("sc-body").innerHTML = rows.length ? rows.map(function(row){
+    return "<tr><td>" + esc(row.signal_type) + '</td><td class="num">' + row.n_scored +
+      '</td><td class="num">' + (row.hit_rate*100).toFixed(1) + '%</td><td class="num pos">' +
+      (row.wilson_lb*100).toFixed(1) + "%</td></tr>";
+  }).join("") : '<tr><td colspan="4">No promoted signals matched.</td></tr>';
+});
+
+J("data/engine-alpha.json").then(function(ea){
+  if (!ea) { document.getElementById("ea-note").textContent = "Feed unavailable."; return; }
+  document.getElementById("k-alpha").textContent = ea.n_alpha_proven;
+  document.getElementById("ea-stamp").textContent = "q=" + ea.fdr_q + " vs " + ea.benchmark;
+  document.getElementById("ea-note").innerHTML =
+    "Of the engines tested for genuine alpha (net of a 0.30% round-trip cost assumption, Benjamini-Hochberg " +
+    "FDR correction at q=" + ea.fdr_q + " across the full set), <b>" + ea.n_alpha_proven + " proved positive</b> " +
+    "and <b>" + ea.n_alpha_negative + " proved negative</b> — more failed than passed. That's the honest split " +
+    "after correcting for the fact that testing enough signals will always turn up some by chance.";
+});
+
+J("data/signal-backtest.json").then(function(bt){
+  if (!bt || !bt.overall) { document.getElementById("bt-body").innerHTML = '<tr><td colspan="7">Feed unavailable.</td></tr>'; return; }
+  var o = bt.overall;
+  document.getElementById("k-winrate").textContent = o.win_rate.toFixed(1) + "%";
+  document.getElementById("k-nobs").textContent = o.n.toLocaleString() + " observations";
+  document.getElementById("bt-stamp").textContent = bt.maturity + " · " + (bt.snapshots_used||"") + " snapshots";
+  document.getElementById("bt-note").innerHTML =
+    o.n.toLocaleString() + " graded observations, average forward outcome " + fmtPct(o.avg) +
+    " (median " + fmtPct(o.median) + "), " + o.win_rate.toFixed(1) + "% win rate. Range spans " +
+    fmtPct(o.best) + " to " + fmtPct(o.worst) + " — the tails are real and we're not clipping them.";
+  var order = ["STRONG OPPORTUNITY","OPPORTUNITY","FAIR VALUE","HIGH RISK","EXPENSIVE","HOLD / NEUTRAL"];
+  var keys = Object.keys(bt.by_verdict||{}).sort(function(a,b){
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia<0?99:ia) - (ib<0?99:ib);
+  });
+  document.getElementById("bt-body").innerHTML = keys.map(function(k){
+    var v = bt.by_verdict[k];
+    return "<tr><td>" + esc(k) + '</td><td class="num">' + v.n.toLocaleString() +
+      '</td><td class="num ' + cls(v.avg) + '">' + fmtPct(v.avg) + '</td><td class="num">' + fmtPct(v.median) +
+      '</td><td class="num">' + v.win_rate.toFixed(1) + '%</td><td class="num pos">' + fmtPct(v.best) +
+      '</td><td class="num neg">' + fmtPct(v.worst) + "</td></tr>";
+  }).join("");
+});
+})();
 </script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
 </body>
 </html>
