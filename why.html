@@ -580,6 +580,8 @@ function renderReport(d){
   html += renderInsiderActivity(d);  // SEC EDGAR Form 4 — async-fetched
   html += renderSectorFlow(d);        // ETF Capital Flows — async-fetched
   html += renderCritique(d);          // Devil's Advocate review — async-fetched
+  html += renderInvestorLenses(d);    // 🧭 Buffett/Graham/Lynch/Greenblatt — async-fetched
+  html += renderTechSignals(d);       // 📡 MA regime / Bollinger %b / squeeze — async-fetched
   html += renderEarningsCall(d);
   html += renderShortInterest(d);
   html += renderReturns(d);
@@ -595,6 +597,8 @@ function renderReport(d){
     fetchInsiderData(d.ticker);
     fetchSectorFlow(d);
     fetchCritique(d.ticker, d);
+    fetchInvestorLenses(d.ticker);
+    fetchTechSignals(d.ticker);
   }
 }
 
@@ -2651,6 +2655,142 @@ function renderMeta(d){
 (function(){
 "use strict";
 var T=null, RANGE="1Y";
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INVESTOR LENSES + TECHNICAL SIGNALS  (justhodl-investor-lenses / -technical-overlays)
+   Deterministic engines, async-fetched via the data proxy exactly like the
+   critique/insider blocks. Paint on success, stay quiet on failure.
+   ═══════════════════════════════════════════════════════════════════════ */
+const LENSES_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/data/investor-lenses";
+const TAOVL_CDN_BASE  = "https://justhodl-data-proxy.raafouis.workers.dev/data/technical-overlays";
+
+function renderInvestorLenses(d){
+  // synchronous placeholder; fetchInvestorLenses paints it
+  return `
+    <section class="block" id="lenses-section" data-ticker="${esc(d.ticker||'')}">
+      <h3><span class="ico">🧭</span> Investor Lenses
+        <span class="pill" id="lenses-pill">what would the greats pay…</span>
+      </h3>
+      <div id="lenses-body" style="padding:12px 0; font-size:12.5px">
+        <span style="opacity:0.6">Valuing through Buffett, Graham, Lynch &amp; Greenblatt…</span>
+      </div>
+    </section>`;
+}
+
+function paintLenses(doc){
+  const body = document.getElementById('lenses-body');
+  const pill = document.getElementById('lenses-pill');
+  if(!body || !doc || !doc.lenses){ if(pill) pill.textContent='no data'; return; }
+  const L = doc.lenses, S = doc.summary || {};
+  const price = doc.price;
+  const order = [['buffett','Buffett','owner earnings'],['graham','Graham','Graham Number'],
+                 ['lynch','Lynch','PEG fair value'],['greenblatt','Greenblatt','Magic Formula']];
+  function verdictChip(l){
+    if(!l || !l.ok) return '<span class="ta-chip">n/a</span>';
+    if(l.fair_value==null){ // Greenblatt ranks, no target
+      const pass = l.passes_screen;
+      return '<span class="ta-chip '+(pass?'up':'')+'">'+(pass?'candidate':'not cheap')+'</span>';
+    }
+    const up = l.upside_pct;
+    const tag = up>15?'CHEAP':(up<-15?'RICH':'FAIR');
+    const c = up>15?'up':(up<-15?'dn':'');
+    return '<span class="ta-chip '+c+'">'+tag+' '+pct(up)+'</span>';
+  }
+  let rows = order.map(function(o){
+    const l = L[o[0]]; if(!l) return '';
+    const fv = (l.fair_value!=null) ? ('$'+fnum(l.fair_value,0)) : '—';
+    const why = esc(l.why||o[2]);
+    return '<div style="display:grid;grid-template-columns:92px 74px 1fr;gap:10px;align-items:start;padding:7px 0;border-bottom:1px solid var(--border,#1a2330)">'
+      + '<div style="font-weight:700;color:var(--text)">'+o[1]+'</div>'
+      + '<div style="color:var(--accent,#39d0d8);font-weight:700">'+fv+'</div>'
+      + '<div><div style="margin-bottom:3px">'+verdictChip(l)+'</div>'
+      + '<div style="color:var(--text-muted);font-size:11px;line-height:1.45">'+why+'</div></div>'
+      + '</div>';
+  }).join('');
+  const med = S.lens_median_fair_value!=null ? ('$'+fnum(S.lens_median_fair_value,0)) : '—';
+  const medUp = S.median_upside_pct;
+  const readColor = S.lenses_disagree ? '#f59e0b' : (medUp>0?'#22c55e':'#ef4444');
+  const head = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    + '<span class="ta-chip">Price <b>$'+fnum(price,0)+'</b></span>'
+    + '<span class="ta-chip">Lens median <b>'+med+'</b>'+(medUp!=null?(' '+pct(medUp)):'')+'</span>'
+    + '<span class="ta-chip">Pass <b>'+(S.n_pass||0)+'/4</b></span></div>';
+  const read = S.read ? ('<div style="margin-top:10px;padding:9px 12px;border-left:3px solid '+readColor
+    +';background:rgba(148,163,184,.06);border-radius:4px;font-size:12px;color:var(--text-dim,#cbd5e1)"><b style="color:'
+    +readColor+'">Read:</b> '+esc(S.read)+'</div>') : '';
+  body.innerHTML = head + rows + read;
+  if(pill) pill.textContent = S.lenses_disagree ? 'lenses disagree' : 'lenses aligned';
+}
+
+async function fetchInvestorLenses(ticker){
+  const section = document.getElementById('lenses-section');
+  if(!section) return;
+  const pill = document.getElementById('lenses-pill');
+  const body = document.getElementById('lenses-body');
+  try {
+    const url = `${LENSES_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    const r = await fetchWithTimeout(url, 8000);
+    if(r && r.ok){ const data = await r.json(); if(data && data.lenses){ paintLenses(data); return; } }
+  } catch(e){ /* fall through */ }
+  // silent-ish: leave a soft note, this is a bonus panel
+  if(body) body.innerHTML = `<span style="color:var(--text-muted);font-size:11.5px">Investor-lens valuation for ${esc(ticker)} refreshes daily — check back shortly.</span>`;
+  if(pill) pill.textContent = 'pending';
+}
+
+function renderTechSignals(d){
+  return `
+    <section class="block" id="tasig-section" data-ticker="${esc(d.ticker||'')}">
+      <h3><span class="ico">📡</span> Technical Signals
+        <span class="pill" id="tasig-pill">reading the tape…</span>
+      </h3>
+      <div id="tasig-body" style="padding:12px 0; font-size:12.5px">
+        <span style="opacity:0.6">Computing MA regime, Bollinger %b &amp; squeeze…</span>
+      </div>
+    </section>`;
+}
+
+function paintTechSignals(doc){
+  const body = document.getElementById('tasig-body');
+  const pill = document.getElementById('tasig-pill');
+  if(!body || !doc || !doc.indicators){ if(pill) pill.textContent='no data'; return; }
+  const ind = doc.indicators, conf = doc.confluence || {};
+  const sigs = ind.signals || [];
+  function dirColor(dir){ return dir==='bull'?'#22c55e':(dir==='bear'?'#ef4444':'#94a3b8'); }
+  const chips = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    + '<span class="ta-chip">Price <b>$'+fnum(ind.price,0)+'</b></span>'
+    + '<span class="ta-chip">SMA200 <b>$'+fnum(ind.ma200,0)+'</b></span>'
+    + '<span class="ta-chip '+(ind.price>ind.ma200?'up':'dn')+'">'+(ind.price>ind.ma200?'Above':'Below')+' 200</span>'
+    + (ind.pct_b!=null?('<span class="ta-chip">%b <b>'+fnum(ind.pct_b,2)+'</b></span>'):'')
+    + '</div>';
+  let sigRows = sigs.length ? sigs.map(function(s){
+    const c = dirColor(s.dir);
+    return '<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border,#1a2330)">'
+      + '<span style="width:10px;height:10px;border-radius:50%;background:'+c+';display:inline-block;flex:none"></span>'
+      + '<div><b style="color:var(--text);text-transform:capitalize">'+esc(s.name.replace(/_/g,' '))+'</b>'
+      + ' <span style="color:'+c+';font-size:11px;text-transform:uppercase">'+esc(s.dir)+'</span>'
+      + '<div style="color:var(--text-muted);font-size:11px;line-height:1.4">'+esc(s.detail||'')+'</div></div></div>';
+  }).join('') : '<div style="color:var(--text-muted);font-size:11.5px">No active crossover/breakout signals — neutral tape.</div>';
+  const leanColor = conf.dir==='bull'?'#22c55e':(conf.dir==='bear'?'#ef4444':'#94a3b8');
+  const trustNote = '<div style="margin-top:10px;padding:8px 12px;border-left:3px solid #64748b;background:rgba(148,163,184,.06);border-radius:4px;font-size:11px;color:var(--text-muted)">'
+    + 'Net lean <b style="color:'+leanColor+'">'+(conf.dir||'neutral').toUpperCase()+'</b> ('+fnum(conf.lean,1)+'). '
+    + 'Status <b>'+(conf.trust_status||'PROBATIONARY')+'</b> — not yet weighted in the cross-signal confluence until it matures through the accuracy gate.</div>';
+  body.innerHTML = chips + sigRows + trustNote;
+  if(pill) pill.textContent = (conf.dir||'neutral');
+}
+
+async function fetchTechSignals(ticker){
+  const section = document.getElementById('tasig-section');
+  if(!section) return;
+  const pill = document.getElementById('tasig-pill');
+  const body = document.getElementById('tasig-body');
+  try {
+    const url = `${TAOVL_CDN_BASE}/${encodeURIComponent(ticker)}.json?v=${Date.now()}`;
+    const r = await fetchWithTimeout(url, 8000);
+    if(r && r.ok){ const data = await r.json(); if(data && data.indicators){ paintTechSignals(data); return; } }
+  } catch(e){ /* fall through */ }
+  if(body) body.innerHTML = `<span style="color:var(--text-muted);font-size:11.5px">Technical signals for ${esc(ticker)} refresh after each US close.</span>`;
+  if(pill) pill.textContent = 'pending';
+}
+
 function fnum(v,d){return (v===null||v===undefined||isNaN(v))?"—":Number(v).toFixed(d===undefined?2:d);}
 function pct(v){return (v===null||v===undefined)?"—":((v>0?"+":"")+Number(v).toFixed(1)+"%");}
 function cls(v){return v===null||v===undefined?"":(v>=0?"up":"dn");}
