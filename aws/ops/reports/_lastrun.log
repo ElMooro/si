@@ -1,9 +1,10 @@
-executing-against: 55767c9dc6195341d77ace9226ec21fef7e9618e
+executing-against: 63ee1e32b5a0d991e0066480d07d08a420467804
 ── (a) market-tape engine ──
+[02:30:39]   env bundle from confluence-meta: ['FMP_KEY', 'FRED_KEY', 'JH_BUCKET', 'POLYGON_KEY']
 
 → Report written to aws/ops/reports/latest/2914.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2914_command_center_verify.py", line 31, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2914_command_center_verify.py", line 37, in <module>
     deploy_lambda(report=r, function_name="justhodl-market-tape",
-TypeError: deploy_lambda() got an unexpected keyword argument 'inherit_env_from'
+TypeError: deploy_lambda() got an unexpected keyword argument 'smoke_test'
 ❌ OPS-FAIL: aws/ops/pending/ops_2914_command_center_verify.py
