@@ -1,0 +1,12 @@
+{
+  "function_name": "justhodl-subscribe",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 128,
+  "timeout": 10,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Morning Brief email capture -> DDB justhodl-subscribers. Function URL POST, endpoint published at data/subscribe-endpoint.json.",
+  "env": { "SUB_TABLE": "justhodl-subscribers" },
+  "inherit_env": false
+}
