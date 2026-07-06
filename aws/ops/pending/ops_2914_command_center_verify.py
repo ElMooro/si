@@ -28,10 +28,15 @@ def get(u, tries=3, to=20):
 out = {"engine": {}, "page": {}, "links": {}, "feeds": {}, "lint": {}}
 with report("2914") as r:
     r.section("(a) market-tape engine")
+    _lam0 = boto3.client("lambda", region_name="us-east-1")
+    _src = _lam0.get_function_configuration(FunctionName="justhodl-confluence-meta")
+    _bundle = { k: v for k, v in (_src.get("Environment", {}).get("Variables", {}) or {}).items()
+                if k in ("FMP_KEY", "FRED_KEY", "POLYGON_KEY") }
+    _bundle["JH_BUCKET"] = "justhodl-dashboard-live"
+    r.log(f"  env bundle from confluence-meta: {sorted(_bundle.keys())}")
     deploy_lambda(report=r, function_name="justhodl-market-tape",
                   source_dir=Path("aws/lambdas/justhodl-market-tape/source"),
-                  env_vars=None, inherit_env_from="justhodl-confluence-meta",
-                  timeout=30, memory=192, smoke_test=False)
+                  env_vars=_bundle, timeout=30, memory=192, smoke_test=False)
     sch = boto3.client("scheduler", region_name="us-east-1")
     lam = boto3.client("lambda", region_name="us-east-1")
     arn = lam.get_function_configuration(FunctionName="justhodl-market-tape")["FunctionArn"]
