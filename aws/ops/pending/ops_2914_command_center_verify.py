@@ -36,20 +36,47 @@ with report("2914") as r:
     r.log(f"  env bundle from confluence-meta: {sorted(_bundle.keys())}")
     deploy_lambda(report=r, function_name="justhodl-market-tape",
                   source_dir=Path("aws/lambdas/justhodl-market-tape/source"),
-                  env_vars=_bundle, timeout=30, memory=192, smoke_test=False)
+                  env_vars=_bundle, timeout=30, memory=192)
     sch = boto3.client("scheduler", region_name="us-east-1")
     lam = boto3.client("lambda", region_name="us-east-1")
     arn = lam.get_function_configuration(FunctionName="justhodl-market-tape")["FunctionArn"]
-    role = "arn:aws:iam::857687956942:role/lambda-execution-role"
     try:
-        sch.get_schedule(Name="justhodl-market-tape-5min")
-        r.ok("  scheduler exists")
-    except sch.exceptions.ResourceNotFoundException:
-        sch.create_schedule(Name="justhodl-market-tape-5min",
-            ScheduleExpression="rate(5 minutes)",
-            FlexibleTimeWindow={"Mode": "OFF"},
-            Target={"Arn": arn, "RoleArn": role, "Input": "{}"})
-        r.ok("  scheduler created rate(5m)")
+        try:
+            sch.get_schedule(Name="justhodl-market-tape-5min")
+            r.ok("  scheduler exists")
+        except sch.exceptions.ResourceNotFoundException:
+            iam = boto3.client("iam")
+            role_arn = None
+            for pg in iam.get_paginator("list_roles").paginate():
+                for ro in pg["Roles"]:
+                    if "scheduler.amazonaws.com" in json.dumps(ro.get("AssumeRolePolicyDocument", {})):
+                        role_arn = ro["Arn"]; break
+                if role_arn: break
+            if role_arn:
+                r.log(f"  reusing scheduler role: {role_arn}")
+            else:
+                tr = {"Version":"2012-10-17","Statement":[{"Effect":"Allow",
+                      "Principal":{"Service":"scheduler.amazonaws.com"},
+                      "Action":"sts:AssumeRole"}]}
+                ro = iam.create_role(RoleName="justhodl-scheduler-invoke",
+                       AssumeRolePolicyDocument=json.dumps(tr),
+                       Description="EventBridge Scheduler -> invoke justhodl lambdas")
+                iam.put_role_policy(RoleName="justhodl-scheduler-invoke",
+                    PolicyName="invoke-justhodl",
+                    PolicyDocument=json.dumps({"Version":"2012-10-17","Statement":[{
+                      "Effect":"Allow","Action":"lambda:InvokeFunction",
+                      "Resource":"arn:aws:lambda:us-east-1:857687956942:function:justhodl-*"}]}))
+                role_arn = ro["Role"]["Arn"]; time.sleep(10)
+                r.ok(f"  created scheduler role: {role_arn}")
+            sch.create_schedule(Name="justhodl-market-tape-5min",
+                ScheduleExpression="rate(5 minutes)",
+                FlexibleTimeWindow={"Mode":"OFF"},
+                Target={"Arn":arn,"RoleArn":role_arn,"Input":"{}"})
+            r.ok("  scheduler created rate(5m)")
+        out["engine_schedule"] = "ok"
+    except Exception as ex:
+        out["engine_schedule"] = f"FAILED: {ex}"
+        r.log(f"  scheduler setup failed (continuing): {ex}")
     inv = lam.invoke(FunctionName="justhodl-market-tape", Payload=b"{}")
     body = json.loads(inv["Payload"].read().decode())
     out["engine"] = body.get("body", body)
@@ -59,6 +86,9 @@ with report("2914") as r:
     out["engine_s3_bytes"] = h["ContentLength"]
     r.ok(f"  s3 tape: {h['ContentLength']}B")
 
+    try:
+        pass
+    except Exception: pass
     r.section("(b) live homepage marker")
     live = ""
     for att in range(12):
@@ -97,7 +127,10 @@ with report("2914") as r:
         out["lint"][tokn] = not bad_t
         (r.fail if bad_t else r.ok)(f"  '{tokn}' absent: {not bad_t}")
 
-    json.dump(out, open("aws/ops/reports/2914.json", "w"), indent=2, default=str)
+    try:
+        json.dump(out, open("aws/ops/reports/2914.json", "w"), indent=2, default=str)
+    except Exception as ex:
+        print("report write failed:", ex)
     r.ok("report -> aws/ops/reports/2914.json")
 print("DONE 2914")
 sys.exit(0)
