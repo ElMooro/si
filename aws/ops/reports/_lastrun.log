@@ -1,12 +1,7 @@
-executing-against: c04bf01eb66e5f45c10c34e246cbb13cde46b98b
-[21:09:25] ✅ v1.2.17 deploy live attempt 1
-[21:09:25] ✅ jh-right-rail.js live: http=200 bytes=3540
-[21:09:29] ✅ rail coverage LIVE: 238/366 (expect 238)
-[21:09:29] ✅ real freshness values landed: 375 (of 375 feed refs seen)
-[21:09:29] ✅   spot lce.html: feeds=['liquidity-credit-engine'] related=['Liquidity Intelligence', 'Treasury Auctions', 'Treasury Auction Crisis Detector · AI Edition', 'Treasury Multi-Instrument Dashboard - REAL DATA']
-[21:09:29] ✅   spot bonds.html: feeds=['auction-crisis', 'crisis-plumbing', 'move-index', 'report'] related=['Global Business Cycle', 'Macro Data', 'Fed Liquidity Dashboard - Live Market Intelligence', 'Activity Nowcast']
-[21:09:29] ✅   spot options.html: feeds=['catalyst-skew-premove', 'dealer-gex-history', 'dealer-gex', 'dix', 'earnings-iv-crush', 'opex-calendar'] related=['Desk', 'Cross-Asset Regime', 'Options Flow & Sentiment', 'Options Flow Scanner']
-[21:09:29] ✅   spot apac.html: feeds=['apac-flows', 'apac-leadlag'] related=['Crypto Opportunities — Retail Trade Tickets', 'Stablecoin Flow', 'DEX Intelligence Terminal', 'News Sentiment & Trends']
+executing-against: 4ef80fd3b97ba6df7d30477139a8106450c7bf63
+[21:27:54] ✅ v1.2.18 deploy live attempt 1
+[21:27:54] ✅ jh-rail.js retired: http=None (expect 404)
+[21:27:59] ✅ coverage: jh-right-rail=238/366 (expect 238) | old-system-traces=0 (expect 0)
 
-→ Report written to aws/ops/reports/latest/2932.md
-DONE 2932 PASS
+→ Report written to aws/ops/reports/latest/2933.md
+DONE 2933 PASS
