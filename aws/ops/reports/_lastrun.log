@@ -1,12 +1,18 @@
-executing-against: 046dcfbb619b79b807c8eabac6acae8f22c1a5a9
-── auctions mirror ──
-[04:13:41] ✅ S3 mirror fresh after ~12s (1727B)
-[04:13:41] ✅ live feed: {'http': 200, 'next': '13W BILL · JUL 06', 'n_upcoming': 12}
-── theme phase-1 ──
-[04:13:41] ✅ jh-theme.css 200 2168B tokens=True
-[04:13:41] ✅ drawer: {'http': 200, 'inject': True, 'screener_guard': True}
-[04:13:42] ✅ index v1.2.5 attempt 1
-[04:13:42] ✅ report -> 2921.json
+executing-against: bda5cce7022d4f7f2eb52b7d3e7f053163492ec1
+[04:41:56] ✅   v1.2.6: True
+[04:41:56] ✅   sidebar_container: True
+[04:41:56] ✅   mount: True
+[04:41:56] ✅   search_input: True
+[04:41:56] ✅   pin: True
+[04:41:56] ✅   favs_key: True
+[04:41:56] ✅   manifest_fetch: True
+[04:41:56] ✅   static_groups_gone: True
+[04:41:56] ✅   cmdk_slash: True
+[04:41:56] ✅   no_object_leak: True
+[04:41:56] ✅   drawer_suppression_order: True
+[04:41:56] ✅ manifest pages: 366
+[04:41:56] ✅ drawer intact on other 365 pages (favs key + cap-80 only): True
+[04:41:56] ✅ report -> 2922.json
 
-→ Report written to aws/ops/reports/latest/2921.md
-DONE 2921 PASS
+→ Report written to aws/ops/reports/latest/2922.md
+DONE 2922 PASS
