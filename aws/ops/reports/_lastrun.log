@@ -1,7 +1,13 @@
-executing-against: dfc84d3874a96c1b681379152c2ffffbad4ead77
-[20:16:56] ✅ registry: 661 entries, sample captured
-[20:16:56] ✅ manifest: 8 categories
-[20:16:57] ✅ sample pages inspected: ['lce.html', 'dex.html', 'auctions.html', 'about.html', 'directory.html']
+executing-against: ad541692909ab18c7ccaf2bd81e4e66f758de9d6
+[20:22:40] ✅ v1.2.17 deploy live attempt 1
+[20:22:40] ✅ registry doc-field populated: 132/661 engines
+[20:22:43] ✅ script-tag coverage: 365/365
+[20:22:43] ✅ predicted real-content renders: 233/365 pages resolve to a registered engine
+[20:22:43] ✅   spot lce.html: tagged=True would_render=True engine=justhodl-alert-router
+[20:22:43] ✅   spot dex.html: tagged=True would_render=False engine=None
+[20:22:43] ✅   spot auctions.html: tagged=True would_render=True engine=justhodl-kb-matcher
+[20:22:43] ✅   spot about.html: tagged=True would_render=False engine=None
+[20:22:43] ✅   spot directory.html: tagged=True would_render=False engine=None
 
-→ Report written to aws/ops/reports/latest/2931.md
-DONE 2931 PASS
+→ Report written to aws/ops/reports/latest/2932.md
+DONE 2932 PASS
