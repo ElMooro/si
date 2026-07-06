@@ -18,7 +18,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.3";
+<script>const JH_V="v1.2.4";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -204,8 +204,8 @@ first(["data/risk-regime.json"]).then(function(d){txt("hd-regime",g("regime",d))
 /* ── KPI strip ── */
 first(["data/report.json","data/khalid-adaptive.json","data/khalid-metrics.json"]).then(function(d){
   function deep(o,k){if(!o||typeof o!=="object")return null;if(typeof o[k]==="number")return o[k];for(var x in o){var v=deep(o[x],k);if(v!==null)return v;}return null;}
-  var ko=g("khalid_index",d);var kv=(typeof ko==="number")?ko:(ko&&typeof ko==="object"?(ko.value!=null?ko.value:(ko.index!=null?ko.index:ko.score)):null);if(kv==null)kv=deep(d,"khalid_index");txt("kpi-ka",num(kv,1));
-  var w=(ko&&typeof ko==="object"&&ko.wow!=null)?ko.wow:deep(d,"khalid_index_wow");if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
+  var ko=g("khalid_index",d);var kv=null;if(typeof ko==="number")kv=ko;else if(ko&&typeof ko==="object"){var ks=["value","index","score","index_0_100","composite","level_score"];for(var i=0;i<ks.length&&kv==null;i++){if(typeof ko[ks[i]]==="number")kv=ko[ks[i]];}if(kv==null){for(var kk in ko){if(typeof ko[kk]==="number"){kv=ko[kk];break;}}}}if(kv==null)kv=deep(d,"khalid_index");txt("kpi-ka",num(kv,1));
+  var w=null;if(ko&&typeof ko==="object"){var ws=["wow","wow_delta","delta_wow","w_w","change_wow"];for(var j=0;j<ws.length&&w==null;j++){if(typeof ko[ws[j]]==="number")w=ko[ws[j]];}}if(w==null)w=deep(d,"khalid_index_wow");if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
 }).catch(function(){});
 first(["data/us-cycle.json"]).then(function(d){txt("kpi-hmm",g("cycle_score.level",d)||g("regime",d));}).catch(function(){});
 first(["data/liquidity-inflection.json"]).then(function(d){
