@@ -8,41 +8,39 @@
   "use strict";
   if (window.__jhNavDrawer) return; window.__jhNavDrawer = true;
 
-  /* Amber Terminal theme overlay (phase 1) — token layer; /screener excluded (PROTECTED). */
+  /* Amber Terminal theme + sitewide chrome (phase 2). /screener PROTECTED-excluded. */
   try {
-    if (location.pathname.indexOf("/screener") !== 0 && !document.getElementById("jh-theme")) {
-      var _jt2 = 1; /* theme + chrome share the screener guard */
+    var _themed = location.pathname.indexOf("/screener") !== 0;
+    if (_themed && !document.getElementById("jh-theme")) {
+      var _jt = document.createElement("link");
+      _jt.id = "jh-theme"; _jt.rel = "stylesheet"; _jt.href = "/jh-theme.css";
+      (document.head || document.documentElement).prepend(_jt);
     }
-    if (location.pathname.indexOf("/screener") !== 0 &&
-        !document.querySelector("[data-jh-no-chrome]") && !document.getElementById("jh-chrome")) {
+    if (_themed && !document.querySelector("[data-jh-no-chrome]") && !document.getElementById("jh-chrome")) {
       var bar = document.createElement("div");
       bar.id = "jh-chrome"; bar.className = "jh-topbar";
       bar.innerHTML = '<a class="jhc-brand" href="/">JUSTHODL·AI</a>'
         + '<div class="jhc-tape" id="jhc-tape"></div>'
         + '<span class="jhc-clock" id="jhc-clock"></span>'
         + '<a class="jhc-cc" href="/">COMMAND CENTER →</a>';
-      var mount = function(){ document.body.insertBefore(bar, document.body.firstChild);
+      var mount = function () {
+        document.body.insertBefore(bar, document.body.firstChild);
         var ck = document.getElementById("jhc-clock");
-        var jt = function(){ var dd = new Date();
-          ck.textContent = dd.toLocaleTimeString("en-US",{hour12:false,timeZone:"America/New_York"}) + " ET"; };
+        var jt = function () { var dd = new Date();
+          ck.textContent = dd.toLocaleTimeString("en-US", {hour12:false, timeZone:"America/New_York"}) + " ET"; };
         jt(); setInterval(jt, 1000);
         fetch("/data/market-tape.json?t=" + Date.now(), {cache:"no-store"})
-          .then(function(r){ return r.json(); })
-          .then(function(dd){ var tp = document.getElementById("jhc-tape"); if (!tp) return;
-            (dd.items || []).forEach(function(it){
+          .then(function (r) { return r.json(); })
+          .then(function (dd) { var tp = document.getElementById("jhc-tape"); if (!tp) return;
+            (dd.items || []).forEach(function (it) {
               var sp = document.createElement("span"); sp.className = "jhc-chip";
               var cls = (typeof it.chg_pct === "number") ? (it.chg_pct >= 0 ? "jhc-up" : "jhc-dn") : "";
               var v = (it.display || "") + (typeof it.chg_pct === "number"
                 ? ((it.chg_pct >= 0 ? " +" : " ") + it.chg_pct.toFixed(1) + "%") : "");
               sp.innerHTML = "<b>" + it.label + "</b> <span class=\"" + cls + "\">" + v + "</span>";
               tp.appendChild(sp); }); })
-          .catch(function(){}); };
+          .catch(function () {}); };
       if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
-    }
-    if (false) {
-      var _jt = document.createElement("link");
-      _jt.id = "jh-theme"; _jt.rel = "stylesheet"; _jt.href = "/jh-theme.css";
-      (document.head || document.documentElement).prepend(_jt);
     }
   } catch (e) {}
 
@@ -123,7 +121,7 @@
       var hasHere = (cat.pages || []).some(function (p) { return p.href === here; });
       if (hasHere) hereCatIndex = i;
       html += '<div class="jhnav-group' + (hasHere ? " jhnav-gopen" : "") + '" data-i="' + i + '">'
-        + '<div class="jhnav-ghead"><span>' + esc(cat.name) + ' <span class="jhnav-n">' + cat.count + '</span></span><span class="jhnav-chev">\u25b8</span></div>'
+        + '<div class="jhnav-ghead"><span>' + esc(String(cat.name).replace(/^[^A-Za-z0-9]+ */,"")) + ' <span class="jhnav-n">' + cat.count + '</span></span><span class="jhnav-chev">\u25b8</span></div>'
         + '<div class="jhnav-items">' + (cat.pages || []).map(itemHtml).join("") + '</div>'
         + '</div>';
     });
