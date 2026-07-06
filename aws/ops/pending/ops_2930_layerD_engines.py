@@ -62,39 +62,68 @@ with report("2930") as r:
     r.ok(f"mapping: fresh={len(fresh)} stale={len(stale)} unmatched={len(unmatched)} "
          f"(page-referenced unmatched: {um_ref})")
 
+    RESOLVE = ["justhodl-ask-desk","justhodl-fleet-monitor","justhodl-ici-flows",
+               "justhodl-leadlag-graph","justhodl-watchlist"]
+    resolved = {}
+    for nm in RESOLVE:
+        stem = nm.replace("justhodl-", "").replace("-", "")
+        resolved[nm] = sorted(k for k in inv if stem in k.replace("-", "").replace("_", ""))[:5]
+    out["unmatched_resolution"] = resolved
+    r.ok("unmatched-name resolution: " + json.dumps(resolved))
+
     # ── remediation: inventory-drawdown + history-index ──
+    def find_function(hint):
+        try:
+            lam.get_function(FunctionName=hint); return hint
+        except Exception:
+            pass
+        stem = hint.replace("justhodl-", "").replace("-", "")
+        for page in lam.get_paginator("list_functions").paginate():
+            for f in page["Functions"]:
+                if stem in f["FunctionName"].replace("-", "").replace("_", ""):
+                    return f["FunctionName"]
+        return None
+
     def remediate(fn, feed):
+        real = find_function(fn)
+        if real is None:
+            return "FUNCTION-NOT-FOUND", s3_age_h(feed)
+        tag = "" if real == fn else f" (resolved->{real})"
         state = "none"
         try:
-            for rule in ev.list_rules(NamePrefix=f"{fn}")["Rules"]:
+            for rule in ev.list_rules(NamePrefix=f"{real}")["Rules"]:
                 state = rule["State"]
                 if state == "DISABLED":
                     ev.enable_rule(Name=rule["Name"]); state = "re-enabled " + rule["Name"]
         except Exception as ex:
             state = f"rules-err {ex}"
-        if state in ("none",):
+        if state == "none":
             try:
-                sched.create_schedule(Name=f"{fn}-daily", ScheduleExpression="cron(15 6 * * ? *)",
+                role_arn = boto3.client("iam").get_role(RoleName="justhodl-scheduler-invoke")["Role"]["Arn"]
+                sched.create_schedule(Name=f"{real}-daily", ScheduleExpression="cron(15 6 * * ? *)",
                     FlexibleTimeWindow={"Mode":"OFF"},
-                    Target={"Arn": lam.get_function(FunctionName=fn)["Configuration"]["FunctionArn"],
-                            "RoleArn": boto3.client("iam").get_role(RoleName="justhodl-scheduler-invoke")["Role"]["Arn"],
-                            "Input": "{}"})
+                    Target={"Arn": lam.get_function(FunctionName=real)["Configuration"]["FunctionArn"],
+                            "RoleArn": role_arn, "Input": "{}"})
                 state = "schedule-created"
             except Exception as ex:
                 state = f"sched-err {ex}"
-        lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
+        try:
+            lam.invoke(FunctionName=real, InvocationType="Event", Payload=b"{}")
+        except Exception as ex:
+            return f"invoke-err {ex}{tag}", s3_age_h(feed)
         for _ in range(20):
             a = s3_age_h(feed)
-            if a is not None and a < 0.15: return state, round(a,2)
+            if a is not None and a < 0.15: return state + tag, round(a, 2)
             time.sleep(9)
-        return state, s3_age_h(feed)
+        return state + tag, s3_age_h(feed)
     for fn, feed in (("justhodl-inventory-drawdown","data/inventory-drawdown.json"),
                      ("justhodl-history-index","data/history-index.json")):
         st, age = remediate(fn, feed)
         good = age is not None and age < 0.5
-        ok &= good
         out.setdefault("remediation", {})[fn] = {"schedule": st, "post_age_h": age}
         (r.ok if good else r.fail)(f"remediate {fn}: {st} -> feed age {age}h")
+        if st != "FUNCTION-NOT-FOUND":
+            ok &= good
 
     # ── ici-flows diagnostic ──
     lam.invoke(FunctionName="justhodl-ici-flows", InvocationType="Event", Payload=b"{}")
