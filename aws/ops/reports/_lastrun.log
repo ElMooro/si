@@ -1,32 +1,31 @@
-executing-against: 50ada0c15fb38ea05ce002ba26266fb4afd2301f
+executing-against: c6985c9afe6cbbea632abccddd4cd3cb4b965347
 ── capture backend ──
-[16:37:08] ✅   DDB table created (on-demand)
-[16:37:08]   zip: 873 bytes
+[16:44:42] ✅   DDB table exists
+[16:44:42]   zip: 873 bytes
 ── 1. Lambda ──
-[16:37:08]   Lambda exists — updating
-[16:37:11] ✅   ✓ updated justhodl-subscribe
-[16:37:12] ✅   ✓ Function URL: https://crqrgmkr2ie6jchl7ray5kymje0fsdql.lambda-url.us-east-1.on.aws/
+[16:44:42]   Lambda exists — updating
+[16:44:47] ✅   ✓ updated justhodl-subscribe
 ── 3. Smoke test ──
-[16:37:12]   invoking justhodl-subscribe…
-[16:37:13] ✅   ✓ smoke test passed
-[16:37:13]     ok                       False
-[16:37:13]     error                    invalid email
-[16:37:13] ✅   FnURL exists
-[16:37:13] ✅   endpoint published -> data/subscribe-endpoint.json
-[16:37:15] ✅   round-trip: {'post': 200, 'ok': True, 'ddb_stored': True, 'cleaned': True}
+[16:44:47]   invoking justhodl-subscribe…
+[16:44:48] ✅   ✓ smoke test passed
+[16:44:48]     ok                       False
+[16:44:48]     error                    invalid email
+[16:44:48] ✅   FnURL exists
+[16:44:48] ✅   endpoint published -> data/subscribe-endpoint.json
+[16:44:49] ✅   round-trip: {'post': 200, 'ok': True, 'ddb_stored': True, 'cleaned': True}
 ── live homepage: baked paint + funnel elements ──
-[16:37:15] ✅   v1.2.7: True
-[16:37:15] ✅   baked_tape: True
-[16:37:15] ✅   baked_ka: True
-[16:37:15] ✅   as_of_stamp: True
-[16:37:15] ✅   og_description: True
-[16:37:15] ✅   unified_title: True
-[16:37:15] ✅   hero_pitch: True
-[16:37:15] ✅   cta: True
-[16:37:15] ✅   subscribe_ui: True
-[16:37:15] ✗   residual_dashes_le_8: False
-[16:37:15]   residual dashes: 15
-[16:37:15] ✅ report -> 2923.json
+[16:44:49] ✅   v1.2.8: True
+[16:44:49] ✅   baked_tape: True
+[16:44:49] ✅   baked_ka: True
+[16:44:49] ✅   as_of_stamp: True
+[16:44:49] ✅   og_description: True
+[16:44:49] ✅   unified_title: True
+[16:44:49] ✅   hero_pitch: True
+[16:44:49] ✅   cta: True
+[16:44:49] ✅   subscribe_ui: True
+[16:44:49] ✗   residual_dashes_le_5: False
+[16:44:49]   residual dashes: 10
+[16:44:49] ✅ report -> 2923.json
 
 → Report written to aws/ops/reports/latest/2923.md
 DONE 2923 FAIL
