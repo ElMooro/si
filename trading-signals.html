@@ -122,8 +122,8 @@ h+="</div>";
 h+="</div></div>";
 
 h+="<div class='sec'><div class='st'>&#128200; Sector Signals — "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
-h+="<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%">
-<table><thead><tr><th>#</th><th>Sector</th><th>ETF</th><th>Score</th><th>Signal</th><th>Strength</th><th>Top Stocks</th></tr></thead><tbody>";
+h+="<div style='overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%'>";
+h += "<table><thead><tr><th>#</th><th>Sector</th><th>ETF</th><th>Score</th><th>Signal</th><th>Strength</th><th>Top Stocks</th></tr></thead><tbody>";
 for(var i=0;i<secs.length;i++){var s=secs[i];
 h+="<tr><td style='color:var(--dim)'>"+(i+1)+"</td><td style='font-weight:500'>"+s.sector+"</td>";
 h+="<td class='mono'>"+s.etf+"</td>";
@@ -131,8 +131,8 @@ h+="<td class='mono' style='color:"+cc(s.score)+"'>"+s.score+"</td>";
 h+="<td><span class='sig "+sc(s.score)+"'>"+(s.signal||"").replace(/_/g," ")+"</span></td>";
 h+="<td><div class='sb'><div class='sf' style='width:"+s.score+"%;background:"+cc(s.score)+"'></div></div></td>";
 h+="<td style='font-size:11px;color:var(--dim)'>"+(s.top_stocks||[]).join(", ")+"</td></tr>";}
-h+="</tbody></table>
-</div></div>";
+h+="</tbody></table>";
+h += "</div></div>";
 
 var comps=risk.components||{};
 h+="<div class='sec'><div class='st'>&#9888;&#65039; Risk Dashboard</div><div style='display:grid;grid-template-columns:repeat(5,1fr);gap:12px'>";
