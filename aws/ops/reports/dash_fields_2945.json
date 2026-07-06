@@ -1,0 +1,3823 @@
+{
+ "pump": {
+  "schema_version": "1.0",
+  "generated_at": "2026-07-06T23:42:12.376950+00:00",
+  "elapsed_sec": 0.43,
+  "sources_freshness": {
+   "brief_seconds": 36682,
+   "positioning_seconds": 1882,
+   "catalysts_seconds": 34890,
+   "clusters_seconds": 34021,
+   "early_seconds": 714
+  },
+  "sources_loaded": {
+   "brief": true,
+   "positioning": true,
+   "catalysts": true,
+   "clusters": true,
+   "early": true
+  },
+  "conviction": "B+",
+  "temperature": {
+   "label": "COOL",
+   "score": 44.7
+  },
+  "executive_summary": "DEPLOY LONG CONCENTRATION in 3 high-conviction pump names: PGR 15% (pump_likelihood 58.4, momentum 73.2, PUMP_CONFIRMED, +21.3% RS_SPY), BIIB 13% (pump_likelihood 62.2, 8-quarter TIER_A beats, +10.3% 20d), APH 10% (pump_likelihood 58.8, 81%",
+  "top_picks": [
+   {
+    "ticker": "PGR",
+    "catalyst_grade": "B",
+    "catalyst_type": null,
+    "position_pct": 15.0,
+    "pump_confirmed": false,
+    "thesis_1liner": "Financial Services pump leader: 58.4% pump_likelihood, 73.2 momentum, PUMP_CONFIRMED across 3 engines, RS_LEADER +21.3% vs SPY.",
+    "conviction": "HIGH"
+   },
+   {
+    "ticker": "BIIB",
+    "catalyst_grade": "B",
+    "catalyst_type": null,
+    "position_pct": 13.0,
+    "pump_confirmed": false,
+    "thesis_1liner": "Healthcare biotech PUMP_LIKELY: 62.2% pump_likelihood, 64.0 momentum, AT_52W_HIGH, 8-quarter TIER_A earnings beat streak, $1.67M lobbying spend.",
+    "conviction": "MEDIUM-HIGH"
+   },
+   {
+    "ticker": "APH",
+    "catalyst_grade": "B",
+    "catalyst_type": "MACRO_TAILWIND",
+    "position_pct": 15.0,
+    "pump_confirmed": true,
+    "thesis_1liner": "Technology connectivity leader: 58.8% pump_likelihood, 67.3 momentum, NEAR_52W_HIGH, 81% organic IT datacom growth (AI data center demand), record bookings 1.24",
+    "conviction": "MEDIUM-HIGH"
+   }
+  ],
+  "catalysts": {
+   "n_a_grade": 4,
+   "n_b_grade": 4,
+   "n_c_grade": 1,
+   "n_d_grade": 6,
+   "n_classified": 15,
+   "flagged": [
+    "PGR",
+    "PANW",
+    "VRTX",
+    "ABBV",
+    "CVS",
+    "ALL"
+   ]
+  },
+  "basket": {
+   "n_positions": 8,
+   "n_pump_confirmed": 1,
+   "total_exposure": 68.0
+  },
+  "clusters": [],
+  "suggested_additions": [],
+  "early": {
+   "trading_date": "2026-07-06",
+   "n_confirmed_today": 0,
+   "n_fresh": 0,
+   "n_aging": 0,
+   "n_actionable": 28,
+   "actionable": [
+    "ABBV",
+    "ABNB",
+    "ADI",
+    "ASML",
+    "AVGO",
+    "BB"
+   ]
+  }
+ },
+ "hedge": {
+  "scenario_class": null,
+  "target_budget_pct": 0.0,
+  "legs": [],
+  "placed_date": null,
+  "last_action": "UNWIND",
+  "updated_at": "2026-07-06T16:32:18.983882+00:00"
+ },
+ "options": {
+  "engine": "justhodl-options-analytics",
+  "version": "1.0.0",
+  "ok": true,
+  "generated_at": "2026-07-04T13:00:51.787123+00:00",
+  "thesis": "Per-name options analytics on the Polygon options entitlement: dealer gamma exposure (GEX/flip/walls), IV term structure + 25-delta skew + IV-vs-realized, and unusual options activity. Gamma regime tells you whether dealers amplify (short gamma \u2192 squeeze-prone) or dampen (long gamma \u2192 pinning) moves.",
+  "universe_size": 58,
+  "n_analyzed": 58,
+  "distribution": {
+   "short_gamma": 15,
+   "long_gamma": 43,
+   "squeeze_setups": 7,
+   "downside_hedging": 0
+  },
+  "board": [
+   {
+    "ticker": "WMT",
+    "spot": 111.84,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 64.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -30.09,
+    "gamma_flip_strike": null,
+    "call_wall": 125,
+    "put_wall": 110,
+    "atm_iv_front": 0.255,
+    "term_slope": 0.0247,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0038,
+    "hv20": 0.2512,
+    "vrp": 0.0038,
+    "iv_rank": null,
+    "pcr_vol": 0.241,
+    "pcr_oi": 1.09,
+    "call_vol": 119141,
+    "put_vol": 28757,
+    "net_premium_usd": 6321732,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     },
+     {
+      "contract": "O:WMT260717C00111000",
+      "type": "call",
+      "strike": 111,
+      "exp": "2026-07-17",
+      "vol": 1968,
+      "oi": 627,
+      "vol_oi": 3.1
+     },
+     {
+      "contract": "O:WMT260717C00114000",
+      "type": "call",
+      "strike": 114,
+      "exp": "2026-07-17",
+      "vol": 605,
+      "oi": 214,
+      "vol_oi": 2.8
+     },
+     {
+      "contract": "O:WMT260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 1052,
+      "oi": 407,
+      "vol_oi": 2.6
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "ORCL",
+    "spot": 140.27,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 62.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -33.75,
+    "gamma_flip_strike": null,
+    "call_wall": 162.5,
+    "put_wall": 130,
+    "atm_iv_front": 0.598,
+    "term_slope": 0.0506,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0557,
+    "hv20": 0.5433,
+    "vrp": 0.0547,
+    "iv_rank": null,
+    "pcr_vol": 0.411,
+    "pcr_oi": 2.39,
+    "call_vol": 61255,
+    "put_vol": 25155,
+    "net_premium_usd": 7644836,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:ORCL260717C00140000",
+      "type": "call",
+      "strike": 140,
+      "exp": "2026-07-17",
+      "vol": 4938,
+      "oi": 1988,
+      "vol_oi": 2.5
+     },
+     {
+      "contract": "O:ORCL260717C00145000",
+      "type": "call",
+      "strike": 145,
+      "exp": "2026-07-17",
+      "vol": 4706,
+      "oi": 1992,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "JPM",
+    "spot": 334.47,
+    "signal": "NEUTRAL",
+    "score": 62.6,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 101.86,
+    "gamma_flip_strike": 338.75,
+    "call_wall": 340,
+    "put_wall": 285,
+    "atm_iv_front": 0.3247,
+    "term_slope": -0.0776,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0809,
+    "hv20": 0.2489,
+    "vrp": 0.0758,
+    "iv_rank": null,
+    "pcr_vol": 0.277,
+    "pcr_oi": 1.037,
+    "call_vol": 26542,
+    "put_vol": 7356,
+    "net_premium_usd": 76956556,
+    "n_unusual": 8,
+    "unusual": [
+     {
+      "contract": "O:JPM260717C00280000",
+      "type": "call",
+      "strike": 280,
+      "exp": "2026-07-17",
+      "vol": 841,
+      "oi": 168,
+      "vol_oi": 5.0
+     },
+     {
+      "contract": "O:JPM260717C00270000",
+      "type": "call",
+      "strike": 270,
+      "exp": "2026-07-17",
+      "vol": 840,
+      "oi": 180,
+      "vol_oi": 4.7
+     },
+     {
+      "contract": "O:JPM260717C00285000",
+      "type": "call",
+      "strike": 285,
+      "exp": "2026-07-17",
+      "vol": 1680,
+      "oi": 395,
+      "vol_oi": 4.3
+     },
+     {
+      "contract": "O:JPM260717C00290000",
+      "type": "call",
+      "strike": 290,
+      "exp": "2026-07-17",
+      "vol": 2520,
+      "oi": 636,
+      "vol_oi": 4.0
+     },
+     {
+      "contract": "O:JPM260717C00295000",
+      "type": "call",
+      "strike": 295,
+      "exp": "2026-07-17",
+      "vol": 2903,
+      "oi": 810,
+      "vol_oi": 3.6
+     },
+     {
+      "contract": "O:JPM260717C00300000",
+      "type": "call",
+      "strike": 300,
+      "exp": "2026-07-17",
+      "vol": 2582,
+      "oi": 1057,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "NFLX",
+    "spot": 77.65,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 62.4,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -13.71,
+    "gamma_flip_strike": null,
+    "call_wall": 90,
+    "put_wall": 75,
+    "atm_iv_front": 0.5987,
+    "term_slope": -0.1805,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": -0.0278,
+    "hv20": 0.4122,
+    "vrp": 0.1865,
+    "iv_rank": null,
+    "pcr_vol": 0.349,
+    "pcr_oi": 1.024,
+    "call_vol": 112637,
+    "put_vol": 39290,
+    "net_premium_usd": 16075302,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:NFLX260717P00077000",
+      "type": "put",
+      "strike": 77,
+      "exp": "2026-07-17",
+      "vol": 1417,
+      "oi": 139,
+      "vol_oi": 10.2
+     },
+     {
+      "contract": "O:NFLX260717P00078000",
+      "type": "put",
+      "strike": 78,
+      "exp": "2026-07-17",
+      "vol": 1421,
+      "oi": 273,
+      "vol_oi": 5.2
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "AAPL",
+    "spot": 308.63,
+    "signal": "PINNED",
+    "score": 53.6,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 789.41,
+    "gamma_flip_strike": 283.75,
+    "call_wall": 310,
+    "put_wall": 270,
+    "atm_iv_front": 0.2641,
+    "term_slope": 0.0091,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0065,
+    "hv20": 0.3867,
+    "vrp": -0.1227,
+    "iv_rank": null,
+    "pcr_vol": 0.428,
+    "pcr_oi": 0.467,
+    "call_vol": 196218,
+    "put_vol": 83892,
+    "net_premium_usd": 120813913,
+    "n_unusual": 7,
+    "unusual": [
+     {
+      "contract": "O:AAPL260717P00307500",
+      "type": "put",
+      "strike": 307.5,
+      "exp": "2026-07-17",
+      "vol": 993,
+      "oi": 78,
+      "vol_oi": 12.7
+     },
+     {
+      "contract": "O:AAPL260717C00375000",
+      "type": "call",
+      "strike": 375,
+      "exp": "2026-07-17",
+      "vol": 1996,
+      "oi": 357,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:AAPL260918C00355000",
+      "type": "call",
+      "strike": 355,
+      "exp": "2026-09-18",
+      "vol": 674,
+      "oi": 145,
+      "vol_oi": 4.6
+     },
+     {
+      "contract": "O:AAPL260717C00322500",
+      "type": "call",
+      "strike": 322.5,
+      "exp": "2026-07-17",
+      "vol": 1814,
+      "oi": 413,
+      "vol_oi": 4.4
+     },
+     {
+      "contract": "O:AAPL260717P00302500",
+      "type": "put",
+      "strike": 302.5,
+      "exp": "2026-07-17",
+      "vol": 1359,
+      "oi": 386,
+      "vol_oi": 3.5
+     },
+     {
+      "contract": "O:AAPL260717C00307500",
+      "type": "call",
+      "strike": 307.5,
+      "exp": "2026-07-17",
+      "vol": 7250,
+      "oi": 3527,
+      "vol_oi": 2.1
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "DELL",
+    "spot": 394.32,
+    "signal": "NEUTRAL",
+    "score": 51.3,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 18.47,
+    "gamma_flip_strike": 407.5,
+    "call_wall": 450,
+    "put_wall": 320,
+    "atm_iv_front": 0.8367,
+    "term_slope": 0.012,
+    "term_structure": "FLAT",
+    "skew_25d": 0.046,
+    "hv20": 0.6161,
+    "vrp": 0.2207,
+    "iv_rank": null,
+    "pcr_vol": 0.263,
+    "pcr_oi": 0.472,
+    "call_vol": 15976,
+    "put_vol": 4206,
+    "net_premium_usd": 16435998,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:DELL260717C00500000",
+      "type": "call",
+      "strike": 500,
+      "exp": "2026-07-17",
+      "vol": 5303,
+      "oi": 2637,
+      "vol_oi": 2.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "SPY",
+    "spot": 744.78,
+    "signal": "PINNED",
+    "score": 49.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 5895.57,
+    "gamma_flip_strike": 714.5,
+    "call_wall": 750,
+    "put_wall": 630,
+    "atm_iv_front": 0.1292,
+    "term_slope": 0.0305,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.1675,
+    "hv20": 0.1798,
+    "vrp": -0.0506,
+    "iv_rank": null,
+    "pcr_vol": 0.09,
+    "pcr_oi": 1.033,
+    "call_vol": 189893,
+    "put_vol": 17176,
+    "net_premium_usd": 136212343,
+    "n_unusual": 3,
+    "unusual": [
+     {
+      "contract": "O:SPY260821C00746000",
+      "type": "call",
+      "strike": 746,
+      "exp": "2026-08-21",
+      "vol": 2923,
+      "oi": 767,
+      "vol_oi": 3.8
+     },
+     {
+      "contract": "O:SPY260918C00803000",
+      "type": "call",
+      "strike": 803,
+      "exp": "2026-09-18",
+      "vol": 1006,
+      "oi": 377,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:SPY260918C00774000",
+      "type": "call",
+      "strike": 774,
+      "exp": "2026-09-18",
+      "vol": 580,
+      "oi": 276,
+      "vol_oi": 2.1
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "TSLA",
+    "spot": 393.45,
+    "signal": "PINNED",
+    "score": 48.1,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 39.96,
+    "gamma_flip_strike": 457.5,
+    "call_wall": 420,
+    "put_wall": 350,
+    "atm_iv_front": 0.4617,
+    "term_slope": -0.0015,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0301,
+    "hv20": 0.6257,
+    "vrp": -0.164,
+    "iv_rank": null,
+    "pcr_vol": 0.537,
+    "pcr_oi": 0.977,
+    "call_vol": 153954,
+    "put_vol": 82706,
+    "net_premium_usd": 53847858,
+    "n_unusual": 5,
+    "unusual": [
+     {
+      "contract": "O:TSLA260717P00392500",
+      "type": "put",
+      "strike": 392.5,
+      "exp": "2026-07-17",
+      "vol": 3531,
+      "oi": 353,
+      "vol_oi": 10.0
+     },
+     {
+      "contract": "O:TSLA260717C00397500",
+      "type": "call",
+      "strike": 397.5,
+      "exp": "2026-07-17",
+      "vol": 729,
+      "oi": 271,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:TSLA260717C00392500",
+      "type": "call",
+      "strike": 392.5,
+      "exp": "2026-07-17",
+      "vol": 848,
+      "oi": 320,
+      "vol_oi": 2.6
+     },
+     {
+      "contract": "O:TSLA260717P00362500",
+      "type": "put",
+      "strike": 362.5,
+      "exp": "2026-07-17",
+      "vol": 1373,
+      "oi": 531,
+      "vol_oi": 2.6
+     },
+     {
+      "contract": "O:TSLA260717P00397500",
+      "type": "put",
+      "strike": 397.5,
+      "exp": "2026-07-17",
+      "vol": 817,
+      "oi": 335,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "RIVN",
+    "spot": 18.63,
+    "signal": "PINNED",
+    "score": 46.7,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 5.04,
+    "gamma_flip_strike": 15.75,
+    "call_wall": 20,
+    "put_wall": 14,
+    "atm_iv_front": 0.7778,
+    "term_slope": -0.0205,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": -0.0423,
+    "hv20": 0.8592,
+    "vrp": -0.0814,
+    "iv_rank": null,
+    "pcr_vol": 0.36,
+    "pcr_oi": 0.278,
+    "call_vol": 57109,
+    "put_vol": 20558,
+    "net_premium_usd": 8333946,
+    "n_unusual": 11,
+    "unusual": [
+     {
+      "contract": "O:RIVN260717C00024000",
+      "type": "call",
+      "strike": 24,
+      "exp": "2026-07-17",
+      "vol": 1501,
+      "oi": 4,
+      "vol_oi": 375.2
+     },
+     {
+      "contract": "O:RIVN260717C00021500",
+      "type": "call",
+      "strike": 21.5,
+      "exp": "2026-07-17",
+      "vol": 1128,
+      "oi": 21,
+      "vol_oi": 53.7
+     },
+     {
+      "contract": "O:RIVN260821P00019000",
+      "type": "put",
+      "strike": 19,
+      "exp": "2026-08-21",
+      "vol": 577,
+      "oi": 11,
+      "vol_oi": 52.5
+     },
+     {
+      "contract": "O:RIVN260717P00019500",
+      "type": "put",
+      "strike": 19.5,
+      "exp": "2026-07-17",
+      "vol": 1497,
+      "oi": 73,
+      "vol_oi": 20.5
+     },
+     {
+      "contract": "O:RIVN260717C00020500",
+      "type": "call",
+      "strike": 20.5,
+      "exp": "2026-07-17",
+      "vol": 1259,
+      "oi": 77,
+      "vol_oi": 16.4
+     },
+     {
+      "contract": "O:RIVN260717C00019500",
+      "type": "call",
+      "strike": 19.5,
+      "exp": "2026-07-17",
+      "vol": 1862,
+      "oi": 268,
+      "vol_oi": 6.9
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "INTC",
+    "spot": 120.35,
+    "signal": "PINNED",
+    "score": 46.0,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 24.62,
+    "gamma_flip_strike": 96.25,
+    "call_wall": 150,
+    "put_wall": 100,
+    "atm_iv_front": 0.9408,
+    "term_slope": -0.0228,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0637,
+    "hv20": 1.0398,
+    "vrp": -0.0991,
+    "iv_rank": null,
+    "pcr_vol": 0.319,
+    "pcr_oi": 0.683,
+    "call_vol": 87868,
+    "put_vol": 28024,
+    "net_premium_usd": 56399748,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:INTC260717C00126000",
+      "type": "call",
+      "strike": 126,
+      "exp": "2026-07-17",
+      "vol": 524,
+      "oi": 129,
+      "vol_oi": 4.1
+     },
+     {
+      "contract": "O:INTC260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 561,
+      "oi": 177,
+      "vol_oi": 3.2
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "NKE",
+    "spot": 44.09,
+    "signal": "PINNED",
+    "score": 45.7,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 5.19,
+    "gamma_flip_strike": 49.75,
+    "call_wall": 50,
+    "put_wall": 40,
+    "atm_iv_front": 0.3769,
+    "term_slope": -0.009,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0189,
+    "hv20": 0.388,
+    "vrp": -0.0111,
+    "iv_rank": null,
+    "pcr_vol": 0.376,
+    "pcr_oi": 0.815,
+    "call_vol": 49271,
+    "put_vol": 18509,
+    "net_premium_usd": 3419102,
+    "n_unusual": 5,
+    "unusual": [
+     {
+      "contract": "O:NKE260717P00044000",
+      "type": "put",
+      "strike": 44,
+      "exp": "2026-07-17",
+      "vol": 700,
+      "oi": 62,
+      "vol_oi": 11.3
+     },
+     {
+      "contract": "O:NKE260717C00044500",
+      "type": "call",
+      "strike": 44.5,
+      "exp": "2026-07-17",
+      "vol": 1158,
+      "oi": 252,
+      "vol_oi": 4.6
+     },
+     {
+      "contract": "O:NKE260717C00043500",
+      "type": "call",
+      "strike": 43.5,
+      "exp": "2026-07-17",
+      "vol": 1097,
+      "oi": 532,
+      "vol_oi": 2.1
+     },
+     {
+      "contract": "O:NKE260717C00045500",
+      "type": "call",
+      "strike": 45.5,
+      "exp": "2026-07-17",
+      "vol": 699,
+      "oi": 347,
+      "vol_oi": 2.0
+     },
+     {
+      "contract": "O:NKE260717P00043000",
+      "type": "put",
+      "strike": 43,
+      "exp": "2026-07-17",
+      "vol": 1195,
+      "oi": 590,
+      "vol_oi": 2.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "UNH",
+    "spot": 425.36,
+    "signal": "NEUTRAL",
+    "score": 43.7,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 76.88,
+    "gamma_flip_strike": 388.75,
+    "call_wall": 450,
+    "put_wall": 392.5,
+    "atm_iv_front": 0.4741,
+    "term_slope": -0.1446,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0194,
+    "hv20": 0.2839,
+    "vrp": 0.1902,
+    "iv_rank": null,
+    "pcr_vol": 0.454,
+    "pcr_oi": 0.545,
+    "call_vol": 6583,
+    "put_vol": 2990,
+    "net_premium_usd": 6878678,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "GME",
+    "spot": 22.82,
+    "signal": "NEUTRAL",
+    "score": 43.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 7.97,
+    "gamma_flip_strike": 22.25,
+    "call_wall": 25,
+    "put_wall": 21,
+    "atm_iv_front": 0.3468,
+    "term_slope": 0.083,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0347,
+    "hv20": 0.2483,
+    "vrp": 0.0986,
+    "iv_rank": null,
+    "pcr_vol": 0.223,
+    "pcr_oi": 0.374,
+    "call_vol": 33265,
+    "put_vol": 7413,
+    "net_premium_usd": 2192161,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:GME260821C00028000",
+      "type": "call",
+      "strike": 28,
+      "exp": "2026-08-21",
+      "vol": 1863,
+      "oi": 617,
+      "vol_oi": 3.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "MARA",
+    "spot": 12.4,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 42.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -0.35,
+    "gamma_flip_strike": null,
+    "call_wall": 16,
+    "put_wall": 12,
+    "atm_iv_front": 0.9398,
+    "term_slope": 0.0209,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0538,
+    "hv20": 0.8582,
+    "vrp": 0.0816,
+    "iv_rank": null,
+    "pcr_vol": 0.436,
+    "pcr_oi": 1.085,
+    "call_vol": 18062,
+    "put_vol": 7873,
+    "net_premium_usd": 723790,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:MARA260717C00012500",
+      "type": "call",
+      "strike": 12.5,
+      "exp": "2026-07-17",
+      "vol": 905,
+      "oi": 144,
+      "vol_oi": 6.3
+     },
+     {
+      "contract": "O:MARA260717P00010500",
+      "type": "put",
+      "strike": 10.5,
+      "exp": "2026-07-17",
+      "vol": 504,
+      "oi": 168,
+      "vol_oi": 3.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "SOFI",
+    "spot": 18.24,
+    "signal": "NEUTRAL",
+    "score": 42.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 8.74,
+    "gamma_flip_strike": 18.75,
+    "call_wall": 22,
+    "put_wall": 16.5,
+    "atm_iv_front": 0.5934,
+    "term_slope": 0.0591,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0045,
+    "hv20": 0.4828,
+    "vrp": 0.1106,
+    "iv_rank": null,
+    "pcr_vol": 0.23,
+    "pcr_oi": 0.518,
+    "call_vol": 85542,
+    "put_vol": 19702,
+    "net_premium_usd": 6145046,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "AMZN",
+    "spot": 242.67,
+    "signal": "PINNED",
+    "score": 42.1,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 233.43,
+    "gamma_flip_strike": 253.75,
+    "call_wall": 270,
+    "put_wall": 230,
+    "atm_iv_front": 0.3541,
+    "term_slope": 0.0258,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0201,
+    "hv20": 0.3725,
+    "vrp": -0.0184,
+    "iv_rank": null,
+    "pcr_vol": 0.253,
+    "pcr_oi": 0.555,
+    "call_vol": 95905,
+    "put_vol": 24297,
+    "net_premium_usd": 45463746,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:AMZN260717C00242500",
+      "type": "call",
+      "strike": 242.5,
+      "exp": "2026-07-17",
+      "vol": 12509,
+      "oi": 1477,
+      "vol_oi": 8.5
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "PLTR",
+    "spot": 129.3,
+    "signal": "PINNED",
+    "score": 41.6,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 10.86,
+    "gamma_flip_strike": 152.5,
+    "call_wall": 155,
+    "put_wall": 120,
+    "atm_iv_front": 0.5433,
+    "term_slope": 0.0409,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0372,
+    "hv20": 0.5909,
+    "vrp": -0.0476,
+    "iv_rank": null,
+    "pcr_vol": 0.477,
+    "pcr_oi": 0.99,
+    "call_vol": 82892,
+    "put_vol": 39557,
+    "net_premium_usd": 32070840,
+    "n_unusual": 3,
+    "unusual": [
+     {
+      "contract": "O:PLTR260717P00131000",
+      "type": "put",
+      "strike": 131,
+      "exp": "2026-07-17",
+      "vol": 545,
+      "oi": 111,
+      "vol_oi": 4.9
+     },
+     {
+      "contract": "O:PLTR260717C00132000",
+      "type": "call",
+      "strike": 132,
+      "exp": "2026-07-17",
+      "vol": 1969,
+      "oi": 596,
+      "vol_oi": 3.3
+     },
+     {
+      "contract": "O:PLTR260717C00131000",
+      "type": "call",
+      "strike": 131,
+      "exp": "2026-07-17",
+      "vol": 1521,
+      "oi": 536,
+      "vol_oi": 2.8
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "HOOD",
+    "spot": 112.73,
+    "signal": "PINNED",
+    "score": 41.4,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 36.43,
+    "gamma_flip_strike": 82.5,
+    "call_wall": 120,
+    "put_wall": 98,
+    "atm_iv_front": 0.7177,
+    "term_slope": 0.0008,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0714,
+    "hv20": 0.724,
+    "vrp": -0.0063,
+    "iv_rank": null,
+    "pcr_vol": 0.432,
+    "pcr_oi": 0.381,
+    "call_vol": 70352,
+    "put_vol": 30374,
+    "net_premium_usd": 59273102,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:HOOD260717P00109000",
+      "type": "put",
+      "strike": 109,
+      "exp": "2026-07-17",
+      "vol": 549,
+      "oi": 236,
+      "vol_oi": 2.3
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "UPST",
+    "spot": 34.78,
+    "signal": "NEUTRAL",
+    "score": 41.4,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.96,
+    "gamma_flip_strike": 34.75,
+    "call_wall": 40,
+    "put_wall": 27.5,
+    "atm_iv_front": 0.7684,
+    "term_slope": 0.0685,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0217,
+    "hv20": 0.6558,
+    "vrp": 0.1126,
+    "iv_rank": null,
+    "pcr_vol": 0.275,
+    "pcr_oi": 0.782,
+    "call_vol": 3096,
+    "put_vol": 850,
+    "net_premium_usd": 607314,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "LLY",
+    "spot": 1213.91,
+    "signal": "NEUTRAL",
+    "score": 41.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 113.62,
+    "gamma_flip_strike": 1167.5,
+    "call_wall": 1300,
+    "put_wall": 1000,
+    "atm_iv_front": 0.3742,
+    "term_slope": 0.0234,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0304,
+    "hv20": 0.3462,
+    "vrp": 0.028,
+    "iv_rank": null,
+    "pcr_vol": 0.212,
+    "pcr_oi": 0.551,
+    "call_vol": 14127,
+    "put_vol": 3001,
+    "net_premium_usd": 27462824,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:LLY260717C01400000",
+      "type": "call",
+      "strike": 1400,
+      "exp": "2026-07-17",
+      "vol": 6045,
+      "oi": 1569,
+      "vol_oi": 3.9
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "MSFT",
+    "spot": 390.49,
+    "signal": "PINNED",
+    "score": 40.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 378.77,
+    "gamma_flip_strike": 398.75,
+    "call_wall": 400,
+    "put_wall": 350,
+    "atm_iv_front": 0.3583,
+    "term_slope": 0.0238,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0123,
+    "hv20": 0.3871,
+    "vrp": -0.0288,
+    "iv_rank": null,
+    "pcr_vol": 0.293,
+    "pcr_oi": 0.422,
+    "call_vol": 110412,
+    "put_vol": 32388,
+    "net_premium_usd": 64703086,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "META",
+    "spot": 582.9,
+    "signal": "PINNED",
+    "score": 39.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 75.59,
+    "gamma_flip_strike": 697.5,
+    "call_wall": 650,
+    "put_wall": 550,
+    "atm_iv_front": 0.371,
+    "term_slope": 0.0375,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0123,
+    "hv20": 0.5288,
+    "vrp": -0.1578,
+    "iv_rank": null,
+    "pcr_vol": 0.383,
+    "pcr_oi": 0.718,
+    "call_vol": 75477,
+    "put_vol": 28921,
+    "net_premium_usd": 16704898,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:META260717P00552500",
+      "type": "put",
+      "strike": 552.5,
+      "exp": "2026-07-17",
+      "vol": 673,
+      "oi": 178,
+      "vol_oi": 3.8
+     },
+     {
+      "contract": "O:META260717C00665000",
+      "type": "call",
+      "strike": 665,
+      "exp": "2026-07-17",
+      "vol": 1659,
+      "oi": 592,
+      "vol_oi": 2.8
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "F",
+    "spot": 13.36,
+    "signal": "NEUTRAL",
+    "score": 37.7,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 1.16,
+    "gamma_flip_strike": 16.75,
+    "call_wall": 17,
+    "put_wall": 13,
+    "atm_iv_front": 0.3628,
+    "term_slope": 0.0386,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0135,
+    "hv20": 0.2868,
+    "vrp": 0.076,
+    "iv_rank": null,
+    "pcr_vol": 0.34,
+    "pcr_oi": 0.55,
+    "call_vol": 28510,
+    "put_vol": 9697,
+    "net_premium_usd": 523084,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "GM",
+    "spot": 76,
+    "signal": "NEUTRAL",
+    "score": 37.2,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 2.18,
+    "gamma_flip_strike": 89.5,
+    "call_wall": 85,
+    "put_wall": 75,
+    "atm_iv_front": 0.3605,
+    "term_slope": 0.0294,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0362,
+    "hv20": 0.3199,
+    "vrp": 0.0406,
+    "iv_rank": null,
+    "pcr_vol": 0.366,
+    "pcr_oi": 0.489,
+    "call_vol": 4115,
+    "put_vol": 1506,
+    "net_premium_usd": 501675,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:GM260717C00077500",
+      "type": "call",
+      "strike": 77.5,
+      "exp": "2026-07-17",
+      "vol": 528,
+      "oi": 255,
+      "vol_oi": 2.1
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "NVDA",
+    "spot": 194.83,
+    "signal": "PINNED",
+    "score": 36.8,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 84.08,
+    "gamma_flip_strike": 223.75,
+    "call_wall": 220,
+    "put_wall": 180,
+    "atm_iv_front": 0.3985,
+    "term_slope": 0.0298,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.035,
+    "hv20": 0.4091,
+    "vrp": -0.0106,
+    "iv_rank": null,
+    "pcr_vol": 0.497,
+    "pcr_oi": 0.803,
+    "call_vol": 208696,
+    "put_vol": 103774,
+    "net_premium_usd": 43070676,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:NVDA260717P00227500",
+      "type": "put",
+      "strike": 227.5,
+      "exp": "2026-07-17",
+      "vol": 811,
+      "oi": 88,
+      "vol_oi": 9.2
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "AVGO",
+    "spot": 360.45,
+    "signal": "NEUTRAL",
+    "score": 36.4,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -56.34,
+    "gamma_flip_strike": null,
+    "call_wall": 450,
+    "put_wall": 330,
+    "atm_iv_front": 0.5082,
+    "term_slope": 0.0247,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0471,
+    "hv20": 0.7203,
+    "vrp": -0.212,
+    "iv_rank": null,
+    "pcr_vol": 0.872,
+    "pcr_oi": 1.435,
+    "call_vol": 26686,
+    "put_vol": 23270,
+    "net_premium_usd": -29992304,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "IWM",
+    "spot": 297.58,
+    "signal": "SQUEEZE_PRIMED",
+    "score": 36.0,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -1124.77,
+    "gamma_flip_strike": null,
+    "call_wall": 300,
+    "put_wall": 290,
+    "atm_iv_front": 0.1966,
+    "term_slope": 0.0076,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0479,
+    "hv20": 0.2148,
+    "vrp": -0.0183,
+    "iv_rank": null,
+    "pcr_vol": 7.221,
+    "pcr_oi": 3.022,
+    "call_vol": 49843,
+    "put_vol": 359919,
+    "net_premium_usd": -39674573,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:IWM260717P00287000",
+      "type": "put",
+      "strike": 287,
+      "exp": "2026-07-17",
+      "vol": 101058,
+      "oi": 37442,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:IWM260717P00291000",
+      "type": "put",
+      "strike": 291,
+      "exp": "2026-07-17",
+      "vol": 15967,
+      "oi": 6775,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "short gamma, spot near call wall 300"
+    ]
+   },
+   {
+    "ticker": "MU",
+    "spot": 975.56,
+    "signal": "NEUTRAL",
+    "score": 35.8,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -35.36,
+    "gamma_flip_strike": null,
+    "call_wall": 1200,
+    "put_wall": 900,
+    "atm_iv_front": 1.1159,
+    "term_slope": -0.1384,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0852,
+    "hv20": 1.3548,
+    "vrp": -0.2389,
+    "iv_rank": null,
+    "pcr_vol": 0.909,
+    "pcr_oi": 1.211,
+    "call_vol": 48922,
+    "put_vol": 44470,
+    "net_premium_usd": 69626642,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "CRM",
+    "spot": 166.11,
+    "signal": "NEUTRAL",
+    "score": 34.1,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 12.11,
+    "gamma_flip_strike": 177.5,
+    "call_wall": 200,
+    "put_wall": 165,
+    "atm_iv_front": 0.4323,
+    "term_slope": 0.0436,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0245,
+    "hv20": 0.3833,
+    "vrp": 0.049,
+    "iv_rank": null,
+    "pcr_vol": 0.485,
+    "pcr_oi": 0.81,
+    "call_vol": 10995,
+    "put_vol": 5336,
+    "net_premium_usd": 2271508,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:CRM260717C00172500",
+      "type": "call",
+      "strike": 172.5,
+      "exp": "2026-07-17",
+      "vol": 524,
+      "oi": 210,
+      "vol_oi": 2.5
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "COIN",
+    "spot": 165.48,
+    "signal": "NEUTRAL",
+    "score": 34.1,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 1.79,
+    "gamma_flip_strike": 192.5,
+    "call_wall": 190,
+    "put_wall": 150,
+    "atm_iv_front": 0.7737,
+    "term_slope": 0.0024,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0021,
+    "hv20": 0.6996,
+    "vrp": 0.0741,
+    "iv_rank": null,
+    "pcr_vol": 0.497,
+    "pcr_oi": 1.136,
+    "call_vol": 17124,
+    "put_vol": 8514,
+    "net_premium_usd": 7840548,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "DIS",
+    "spot": 99.5,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 33.4,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -9.11,
+    "gamma_flip_strike": null,
+    "call_wall": 110,
+    "put_wall": 90,
+    "atm_iv_front": 0.2838,
+    "term_slope": 0.0171,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0288,
+    "hv20": 0.2739,
+    "vrp": 0.0099,
+    "iv_rank": null,
+    "pcr_vol": 0.465,
+    "pcr_oi": 1.095,
+    "call_vol": 6440,
+    "put_vol": 2996,
+    "net_premium_usd": 1122104,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "PYPL",
+    "spot": 45.47,
+    "signal": "PINNED",
+    "score": 33.4,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 7.21,
+    "gamma_flip_strike": 47.25,
+    "call_wall": 50,
+    "put_wall": 40,
+    "atm_iv_front": 0.3426,
+    "term_slope": 0.0684,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0123,
+    "hv20": 0.3451,
+    "vrp": -0.0025,
+    "iv_rank": null,
+    "pcr_vol": 0.191,
+    "pcr_oi": 0.984,
+    "call_vol": 21362,
+    "put_vol": 4089,
+    "net_premium_usd": 2195358,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:PYPL260717C00045500",
+      "type": "call",
+      "strike": 45.5,
+      "exp": "2026-07-17",
+      "vol": 1264,
+      "oi": 255,
+      "vol_oi": 5.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "QQQ",
+    "spot": 712.6,
+    "signal": "PINNED",
+    "score": 31.8,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 1220.5,
+    "gamma_flip_strike": 735.5,
+    "call_wall": 740,
+    "put_wall": 700,
+    "atm_iv_front": 0.249,
+    "term_slope": 0.0084,
+    "term_structure": "FLAT",
+    "skew_25d": 0.3353,
+    "hv20": 0.3483,
+    "vrp": -0.0993,
+    "iv_rank": null,
+    "pcr_vol": 0.464,
+    "pcr_oi": 0.864,
+    "call_vol": 157809,
+    "put_vol": 73168,
+    "net_premium_usd": 25044538,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "RIOT",
+    "spot": 22.11,
+    "signal": "NEUTRAL",
+    "score": 31.2,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -1.95,
+    "gamma_flip_strike": null,
+    "call_wall": 27,
+    "put_wall": 18,
+    "atm_iv_front": 1.0085,
+    "term_slope": -0.0465,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.06,
+    "hv20": 0.8196,
+    "vrp": 0.1888,
+    "iv_rank": null,
+    "pcr_vol": 2.453,
+    "pcr_oi": 1.625,
+    "call_vol": 29998,
+    "put_vol": 73590,
+    "net_premium_usd": -3510749,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:RIOT260717C00028000",
+      "type": "call",
+      "strike": 28,
+      "exp": "2026-07-17",
+      "vol": 24570,
+      "oi": 2059,
+      "vol_oi": 11.9
+     },
+     {
+      "contract": "O:RIOT260717P00017000",
+      "type": "put",
+      "strike": 17,
+      "exp": "2026-07-17",
+      "vol": 24328,
+      "oi": 3156,
+      "vol_oi": 7.7
+     },
+     {
+      "contract": "O:RIOT260717P00022000",
+      "type": "put",
+      "strike": 22,
+      "exp": "2026-07-17",
+      "vol": 11039,
+      "oi": 1888,
+      "vol_oi": 5.8
+     },
+     {
+      "contract": "O:RIOT260717C00025000",
+      "type": "call",
+      "strike": 25,
+      "exp": "2026-07-17",
+      "vol": 2253,
+      "oi": 575,
+      "vol_oi": 3.9
+     },
+     {
+      "contract": "O:RIOT260717P00021000",
+      "type": "put",
+      "strike": 21,
+      "exp": "2026-07-17",
+      "vol": 10710,
+      "oi": 3011,
+      "vol_oi": 3.6
+     },
+     {
+      "contract": "O:RIOT260821P00021000",
+      "type": "put",
+      "strike": 21,
+      "exp": "2026-08-21",
+      "vol": 596,
+      "oi": 176,
+      "vol_oi": 3.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "SMCI",
+    "spot": 27.22,
+    "signal": "NEUTRAL",
+    "score": 30.8,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -0.14,
+    "gamma_flip_strike": null,
+    "call_wall": 35,
+    "put_wall": 25,
+    "atm_iv_front": 0.9206,
+    "term_slope": 0.0537,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0187,
+    "hv20": 1.551,
+    "vrp": -0.6303,
+    "iv_rank": null,
+    "pcr_vol": 0.352,
+    "pcr_oi": 0.937,
+    "call_vol": 27477,
+    "put_vol": 9665,
+    "net_premium_usd": 3769627,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "ADBE",
+    "spot": 219.72,
+    "signal": "PINNED",
+    "score": 30.5,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 5.59,
+    "gamma_flip_strike": 237.5,
+    "call_wall": 250,
+    "put_wall": 200,
+    "atm_iv_front": 0.4461,
+    "term_slope": 0.0453,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0247,
+    "hv20": 0.5058,
+    "vrp": -0.0597,
+    "iv_rank": null,
+    "pcr_vol": 0.404,
+    "pcr_oi": 1.019,
+    "call_vol": 14511,
+    "put_vol": 5856,
+    "net_premium_usd": 3521808,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "UBER",
+    "spot": 74.43,
+    "signal": "PINNED",
+    "score": 30.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 6.03,
+    "gamma_flip_strike": 80.5,
+    "call_wall": 80,
+    "put_wall": 70,
+    "atm_iv_front": 0.3708,
+    "term_slope": 0.0294,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0076,
+    "hv20": 0.4598,
+    "vrp": -0.089,
+    "iv_rank": null,
+    "pcr_vol": 0.331,
+    "pcr_oi": 1.083,
+    "call_vol": 18835,
+    "put_vol": 6227,
+    "net_premium_usd": 1463614,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "AMC",
+    "spot": 1.89,
+    "signal": "PINNED",
+    "score": 30.1,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.26,
+    "gamma_flip_strike": null,
+    "call_wall": 2,
+    "put_wall": null,
+    "atm_iv_front": 1.186,
+    "term_slope": -0.1652,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0084,
+    "hv20": 1.4624,
+    "vrp": -0.2764,
+    "iv_rank": null,
+    "pcr_vol": 0.209,
+    "pcr_oi": 0.326,
+    "call_vol": 19265,
+    "put_vol": 4023,
+    "net_premium_usd": 273619,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "CHWY",
+    "spot": 20.85,
+    "signal": "PINNED",
+    "score": 30.1,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.93,
+    "gamma_flip_strike": 19.75,
+    "call_wall": 22.5,
+    "put_wall": 17.5,
+    "atm_iv_front": 0.5107,
+    "term_slope": 0.0567,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0429,
+    "hv20": 0.5647,
+    "vrp": -0.054,
+    "iv_rank": null,
+    "pcr_vol": 0.39,
+    "pcr_oi": 0.636,
+    "call_vol": 4179,
+    "put_vol": 1629,
+    "net_premium_usd": 296334,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "DKNG",
+    "spot": 25.89,
+    "signal": "PINNED",
+    "score": 30.0,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 3.68,
+    "gamma_flip_strike": 29.75,
+    "call_wall": 30,
+    "put_wall": 22.5,
+    "atm_iv_front": 0.6031,
+    "term_slope": -0.0067,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0056,
+    "hv20": 0.7368,
+    "vrp": -0.1337,
+    "iv_rank": null,
+    "pcr_vol": 0.24,
+    "pcr_oi": 0.461,
+    "call_vol": 3099,
+    "put_vol": 743,
+    "net_premium_usd": 217075,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "AMD",
+    "spot": 517.82,
+    "signal": "PINNED",
+    "score": 28.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 51.39,
+    "gamma_flip_strike": 375.0,
+    "call_wall": 600,
+    "put_wall": 400,
+    "atm_iv_front": 0.7691,
+    "term_slope": 0.0111,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0535,
+    "hv20": 0.8911,
+    "vrp": -0.122,
+    "iv_rank": null,
+    "pcr_vol": 0.76,
+    "pcr_oi": 0.672,
+    "call_vol": 32159,
+    "put_vol": 24440,
+    "net_premium_usd": 54295372,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:AMD260717P00455000",
+      "type": "put",
+      "strike": 455,
+      "exp": "2026-07-17",
+      "vol": 726,
+      "oi": 325,
+      "vol_oi": 2.2
+     },
+     {
+      "contract": "O:AMD260821C00630000",
+      "type": "call",
+      "strike": 630,
+      "exp": "2026-08-21",
+      "vol": 1300,
+      "oi": 586,
+      "vol_oi": 2.2
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "CVNA",
+    "spot": 68.6,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 26.6,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -4.62,
+    "gamma_flip_strike": null,
+    "call_wall": 74,
+    "put_wall": 60,
+    "atm_iv_front": 0.7461,
+    "term_slope": 0.0411,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0051,
+    "hv20": 0.7081,
+    "vrp": 0.038,
+    "iv_rank": null,
+    "pcr_vol": 0.603,
+    "pcr_oi": 1.372,
+    "call_vol": 4849,
+    "put_vol": 2926,
+    "net_premium_usd": 987698,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "BA",
+    "spot": 226.49,
+    "signal": "PINNED",
+    "score": 26.3,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 44.12,
+    "gamma_flip_strike": 238.75,
+    "call_wall": 230,
+    "put_wall": 200,
+    "atm_iv_front": 0.3321,
+    "term_slope": 0.0193,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0026,
+    "hv20": 0.3595,
+    "vrp": -0.0273,
+    "iv_rank": null,
+    "pcr_vol": 0.485,
+    "pcr_oi": 0.892,
+    "call_vol": 20530,
+    "put_vol": 9961,
+    "net_premium_usd": 2592185,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "GOOGL",
+    "spot": 359.91,
+    "signal": "PINNED",
+    "score": 25.9,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 136.88,
+    "gamma_flip_strike": 388.75,
+    "call_wall": 415,
+    "put_wall": 320,
+    "atm_iv_front": 0.34,
+    "term_slope": 0.0258,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.007,
+    "hv20": 0.3509,
+    "vrp": -0.0109,
+    "iv_rank": null,
+    "pcr_vol": 0.513,
+    "pcr_oi": 0.686,
+    "call_vol": 32637,
+    "put_vol": 16745,
+    "net_premium_usd": 7908963,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "BAC",
+    "spot": 58.73,
+    "signal": "NEUTRAL",
+    "score": 22.4,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 36.72,
+    "gamma_flip_strike": 57.25,
+    "call_wall": 60,
+    "put_wall": 50,
+    "atm_iv_front": 0.2978,
+    "term_slope": -0.0488,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0233,
+    "hv20": 0.1972,
+    "vrp": 0.1006,
+    "iv_rank": null,
+    "pcr_vol": 0.76,
+    "pcr_oi": 0.946,
+    "call_vol": 18822,
+    "put_vol": 14310,
+    "net_premium_usd": 1690914,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "MSTR",
+    "spot": 100.77,
+    "signal": "PINNED",
+    "score": 20.8,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 1.7,
+    "gamma_flip_strike": 124.5,
+    "call_wall": 125,
+    "put_wall": 80,
+    "atm_iv_front": 0.9556,
+    "term_slope": -0.0308,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.1225,
+    "hv20": 1.033,
+    "vrp": -0.0773,
+    "iv_rank": null,
+    "pcr_vol": 0.854,
+    "pcr_oi": 1.173,
+    "call_vol": 37851,
+    "put_vol": 32324,
+    "net_premium_usd": 7572430,
+    "n_unusual": 4,
+    "unusual": [
+     {
+      "contract": "O:MSTR260717P00098000",
+      "type": "put",
+      "strike": 98,
+      "exp": "2026-07-17",
+      "vol": 2179,
+      "oi": 21,
+      "vol_oi": 103.8
+     },
+     {
+      "contract": "O:MSTR260717P00102000",
+      "type": "put",
+      "strike": 102,
+      "exp": "2026-07-17",
+      "vol": 676,
+      "oi": 53,
+      "vol_oi": 12.8
+     },
+     {
+      "contract": "O:MSTR260717C00104000",
+      "type": "call",
+      "strike": 104,
+      "exp": "2026-07-17",
+      "vol": 804,
+      "oi": 134,
+      "vol_oi": 6.0
+     },
+     {
+      "contract": "O:MSTR260717C00109000",
+      "type": "call",
+      "strike": 109,
+      "exp": "2026-07-17",
+      "vol": 510,
+      "oi": 148,
+      "vol_oi": 3.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "CVX",
+    "spot": 169.2,
+    "signal": "NEUTRAL",
+    "score": 20.6,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 1.27,
+    "gamma_flip_strike": 198.75,
+    "call_wall": 175,
+    "put_wall": 165,
+    "atm_iv_front": 0.2624,
+    "term_slope": 0.0043,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0038,
+    "hv20": 0.2399,
+    "vrp": 0.0225,
+    "iv_rank": null,
+    "pcr_vol": 0.634,
+    "pcr_oi": 0.747,
+    "call_vol": 7366,
+    "put_vol": 4673,
+    "net_premium_usd": -473317,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "XOM",
+    "spot": 137.09,
+    "signal": "NEUTRAL",
+    "score": 18.9,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -2.91,
+    "gamma_flip_strike": null,
+    "call_wall": 160,
+    "put_wall": 135,
+    "atm_iv_front": 0.2821,
+    "term_slope": -0.005,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0283,
+    "hv20": 0.2313,
+    "vrp": 0.0508,
+    "iv_rank": null,
+    "pcr_vol": 0.879,
+    "pcr_oi": 0.805,
+    "call_vol": 13047,
+    "put_vol": 11470,
+    "net_premium_usd": -7207716,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:XOM260717P00165000",
+      "type": "put",
+      "strike": 165,
+      "exp": "2026-07-17",
+      "vol": 650,
+      "oi": 70,
+      "vol_oi": 9.3
+     },
+     {
+      "contract": "O:XOM260717P00132000",
+      "type": "put",
+      "strike": 132,
+      "exp": "2026-07-17",
+      "vol": 581,
+      "oi": 85,
+      "vol_oi": 6.8
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "MRVL",
+    "spot": 245.29,
+    "signal": "PINNED",
+    "score": 16.6,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 13.59,
+    "gamma_flip_strike": null,
+    "call_wall": 280,
+    "put_wall": 220,
+    "atm_iv_front": 1.052,
+    "term_slope": -0.0586,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.1174,
+    "hv20": 1.3018,
+    "vrp": -0.2498,
+    "iv_rank": null,
+    "pcr_vol": 0.795,
+    "pcr_oi": 0.639,
+    "call_vol": 25873,
+    "put_vol": 20557,
+    "net_premium_usd": 31976857,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "QCOM",
+    "spot": 176.25,
+    "signal": "NEUTRAL",
+    "score": 15.6,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -16.15,
+    "gamma_flip_strike": null,
+    "call_wall": 220,
+    "put_wall": 175,
+    "atm_iv_front": 0.6957,
+    "term_slope": -0.0153,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0264,
+    "hv20": 0.7842,
+    "vrp": -0.0885,
+    "iv_rank": null,
+    "pcr_vol": 0.881,
+    "pcr_oi": 1.555,
+    "call_vol": 15347,
+    "put_vol": 13515,
+    "net_premium_usd": -2327337,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "RBLX",
+    "spot": 55.41,
+    "signal": "PINNED",
+    "score": 14.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 4.06,
+    "gamma_flip_strike": 54.5,
+    "call_wall": 65,
+    "put_wall": 40,
+    "atm_iv_front": 0.7182,
+    "term_slope": 0.0492,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0513,
+    "hv20": 0.8158,
+    "vrp": -0.0976,
+    "iv_rank": null,
+    "pcr_vol": 0.722,
+    "pcr_oi": 0.595,
+    "call_vol": 6447,
+    "put_vol": 4652,
+    "net_premium_usd": 377967,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "AFRM",
+    "spot": 84.58,
+    "signal": "PINNED",
+    "score": 7.7,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 4.34,
+    "gamma_flip_strike": 74.5,
+    "call_wall": 95,
+    "put_wall": 65,
+    "atm_iv_front": 0.5882,
+    "term_slope": 0.0773,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0437,
+    "hv20": 0.6566,
+    "vrp": -0.0684,
+    "iv_rank": null,
+    "pcr_vol": 0.849,
+    "pcr_oi": 0.546,
+    "call_vol": 2053,
+    "put_vol": 1742,
+    "net_premium_usd": 807387,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "RGTI",
+    "spot": 17.94,
+    "signal": "NEUTRAL",
+    "score": 5.5,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -0.77,
+    "gamma_flip_strike": null,
+    "call_wall": 20,
+    "put_wall": 14,
+    "atm_iv_front": 1.0273,
+    "term_slope": 0.0351,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0656,
+    "hv20": 0.9766,
+    "vrp": 0.0508,
+    "iv_rank": null,
+    "pcr_vol": 1.066,
+    "pcr_oi": 1.746,
+    "call_vol": 6199,
+    "put_vol": 6606,
+    "net_premium_usd": -274933,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "SNAP",
+    "spot": 4.84,
+    "signal": "PINNED",
+    "score": 3.1,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.01,
+    "gamma_flip_strike": 5.75,
+    "call_wall": 6,
+    "put_wall": 4,
+    "atm_iv_front": 0.587,
+    "term_slope": 0.1466,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0692,
+    "hv20": 0.7289,
+    "vrp": -0.1419,
+    "iv_rank": null,
+    "pcr_vol": 0.939,
+    "pcr_oi": 1.039,
+    "call_vol": 5575,
+    "put_vol": 5236,
+    "net_premium_usd": -2942,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "ASTS",
+    "spot": 85.13,
+    "signal": "PINNED",
+    "score": 3.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 4.95,
+    "gamma_flip_strike": 97.5,
+    "call_wall": 100,
+    "put_wall": 70,
+    "atm_iv_front": 1.1083,
+    "term_slope": 0.0106,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0469,
+    "hv20": 1.3286,
+    "vrp": -0.2203,
+    "iv_rank": null,
+    "pcr_vol": 2.57,
+    "pcr_oi": 0.757,
+    "call_vol": 13688,
+    "put_vol": 35182,
+    "net_premium_usd": -29063912,
+    "n_unusual": 1,
+    "unusual": [
+     {
+      "contract": "O:ASTS260821P00085000",
+      "type": "put",
+      "strike": 85,
+      "exp": "2026-08-21",
+      "vol": 20716,
+      "oi": 1720,
+      "vol_oi": 12.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "IONQ",
+    "spot": 49.12,
+    "signal": "NEUTRAL",
+    "score": 2.1,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -3.43,
+    "gamma_flip_strike": null,
+    "call_wall": 60,
+    "put_wall": 40,
+    "atm_iv_front": 0.9471,
+    "term_slope": 0.0571,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0455,
+    "hv20": 0.9845,
+    "vrp": -0.0374,
+    "iv_rank": null,
+    "pcr_vol": 1.648,
+    "pcr_oi": 1.824,
+    "call_vol": 2932,
+    "put_vol": 4833,
+    "net_premium_usd": -716235,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": []
+   },
+   {
+    "ticker": "ARM",
+    "spot": 315.28,
+    "signal": "PINNED",
+    "score": 1.2,
+    "price_confirm": false,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.51,
+    "gamma_flip_strike": 238.75,
+    "call_wall": 390,
+    "put_wall": 285,
+    "atm_iv_front": 1.042,
+    "term_slope": -0.0348,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": 0.0761,
+    "hv20": 1.0913,
+    "vrp": -0.0493,
+    "iv_rank": null,
+    "pcr_vol": 0.98,
+    "pcr_oi": 0.871,
+    "call_vol": 6540,
+    "put_vol": 6407,
+    "net_premium_usd": 968115,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   },
+   {
+    "ticker": "LCID",
+    "spot": 6.08,
+    "signal": "PINNED",
+    "score": 0.0,
+    "price_confirm": true,
+    "gamma_regime": "LONG_GAMMA",
+    "net_gex_musd_per_1pct": 0.08,
+    "gamma_flip_strike": 6.75,
+    "call_wall": 7,
+    "put_wall": 6,
+    "atm_iv_front": 0.8059,
+    "term_slope": 0.132,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0324,
+    "hv20": 0.9831,
+    "vrp": -0.1772,
+    "iv_rank": null,
+    "pcr_vol": 1.271,
+    "pcr_oi": 0.87,
+    "call_vol": 3401,
+    "put_vol": 4324,
+    "net_premium_usd": -84525,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers long gamma (vol suppressed)"
+    ]
+   }
+  ],
+  "top_picks": [
+   {
+    "ticker": "WMT",
+    "score": 64.7,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -30.09,
+    "pcr_vol": 0.241,
+    "price_confirm": false,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "ORCL",
+    "score": 62.7,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -33.75,
+    "pcr_vol": 0.411,
+    "price_confirm": false,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "NFLX",
+    "score": 62.4,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -13.71,
+    "pcr_vol": 0.349,
+    "price_confirm": true,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "MARA",
+    "score": 42.7,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -0.35,
+    "pcr_vol": 0.436,
+    "price_confirm": false,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "IWM",
+    "score": 36.0,
+    "direction": "long",
+    "signal": "SQUEEZE_PRIMED",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -1124.77,
+    "pcr_vol": 7.221,
+    "price_confirm": true,
+    "reasons": [
+     "short gamma, spot near call wall 300"
+    ]
+   },
+   {
+    "ticker": "DIS",
+    "score": 33.4,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -9.11,
+    "pcr_vol": 0.465,
+    "price_confirm": true,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "CVNA",
+    "score": 26.6,
+    "direction": "long",
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd": -4.62,
+    "pcr_vol": 0.603,
+    "price_confirm": true,
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   }
+  ],
+  "squeeze_setups": [
+   {
+    "ticker": "WMT",
+    "spot": 111.84,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 64.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -30.09,
+    "gamma_flip_strike": null,
+    "call_wall": 125,
+    "put_wall": 110,
+    "atm_iv_front": 0.255,
+    "term_slope": 0.0247,
+    "term_structure": "CONTANGO",
+    "skew_25d": -0.0038,
+    "hv20": 0.2512,
+    "vrp": 0.0038,
+    "iv_rank": null,
+    "pcr_vol": 0.241,
+    "pcr_oi": 1.09,
+    "call_vol": 119141,
+    "put_vol": 28757,
+    "net_premium_usd": 6321732,
+    "n_unusual": 6,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     },
+     {
+      "contract": "O:WMT260717C00111000",
+      "type": "call",
+      "strike": 111,
+      "exp": "2026-07-17",
+      "vol": 1968,
+      "oi": 627,
+      "vol_oi": 3.1
+     },
+     {
+      "contract": "O:WMT260717C00114000",
+      "type": "call",
+      "strike": 114,
+      "exp": "2026-07-17",
+      "vol": 605,
+      "oi": 214,
+      "vol_oi": 2.8
+     },
+     {
+      "contract": "O:WMT260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 1052,
+      "oi": 407,
+      "vol_oi": 2.6
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "ORCL",
+    "spot": 140.27,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 62.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -33.75,
+    "gamma_flip_strike": null,
+    "call_wall": 162.5,
+    "put_wall": 130,
+    "atm_iv_front": 0.598,
+    "term_slope": 0.0506,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0557,
+    "hv20": 0.5433,
+    "vrp": 0.0547,
+    "iv_rank": null,
+    "pcr_vol": 0.411,
+    "pcr_oi": 2.39,
+    "call_vol": 61255,
+    "put_vol": 25155,
+    "net_premium_usd": 7644836,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:ORCL260717C00140000",
+      "type": "call",
+      "strike": 140,
+      "exp": "2026-07-17",
+      "vol": 4938,
+      "oi": 1988,
+      "vol_oi": 2.5
+     },
+     {
+      "contract": "O:ORCL260717C00145000",
+      "type": "call",
+      "strike": 145,
+      "exp": "2026-07-17",
+      "vol": 4706,
+      "oi": 1992,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "NFLX",
+    "spot": 77.65,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 62.4,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -13.71,
+    "gamma_flip_strike": null,
+    "call_wall": 90,
+    "put_wall": 75,
+    "atm_iv_front": 0.5987,
+    "term_slope": -0.1805,
+    "term_structure": "BACKWARDATION",
+    "skew_25d": -0.0278,
+    "hv20": 0.4122,
+    "vrp": 0.1865,
+    "iv_rank": null,
+    "pcr_vol": 0.349,
+    "pcr_oi": 1.024,
+    "call_vol": 112637,
+    "put_vol": 39290,
+    "net_premium_usd": 16075302,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:NFLX260717P00077000",
+      "type": "put",
+      "strike": 77,
+      "exp": "2026-07-17",
+      "vol": 1417,
+      "oi": 139,
+      "vol_oi": 10.2
+     },
+     {
+      "contract": "O:NFLX260717P00078000",
+      "type": "put",
+      "strike": 78,
+      "exp": "2026-07-17",
+      "vol": 1421,
+      "oi": 273,
+      "vol_oi": 5.2
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "MARA",
+    "spot": 12.4,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 42.7,
+    "price_confirm": false,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -0.35,
+    "gamma_flip_strike": null,
+    "call_wall": 16,
+    "put_wall": 12,
+    "atm_iv_front": 0.9398,
+    "term_slope": 0.0209,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0538,
+    "hv20": 0.8582,
+    "vrp": 0.0816,
+    "iv_rank": null,
+    "pcr_vol": 0.436,
+    "pcr_oi": 1.085,
+    "call_vol": 18062,
+    "put_vol": 7873,
+    "net_premium_usd": 723790,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:MARA260717C00012500",
+      "type": "call",
+      "strike": 12.5,
+      "exp": "2026-07-17",
+      "vol": 905,
+      "oi": 144,
+      "vol_oi": 6.3
+     },
+     {
+      "contract": "O:MARA260717P00010500",
+      "type": "put",
+      "strike": 10.5,
+      "exp": "2026-07-17",
+      "vol": 504,
+      "oi": 168,
+      "vol_oi": 3.0
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "IWM",
+    "spot": 297.58,
+    "signal": "SQUEEZE_PRIMED",
+    "score": 36.0,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -1124.77,
+    "gamma_flip_strike": null,
+    "call_wall": 300,
+    "put_wall": 290,
+    "atm_iv_front": 0.1966,
+    "term_slope": 0.0076,
+    "term_structure": "FLAT",
+    "skew_25d": 0.0479,
+    "hv20": 0.2148,
+    "vrp": -0.0183,
+    "iv_rank": null,
+    "pcr_vol": 7.221,
+    "pcr_oi": 3.022,
+    "call_vol": 49843,
+    "put_vol": 359919,
+    "net_premium_usd": -39674573,
+    "n_unusual": 2,
+    "unusual": [
+     {
+      "contract": "O:IWM260717P00287000",
+      "type": "put",
+      "strike": 287,
+      "exp": "2026-07-17",
+      "vol": 101058,
+      "oi": 37442,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:IWM260717P00291000",
+      "type": "put",
+      "strike": 291,
+      "exp": "2026-07-17",
+      "vol": 15967,
+      "oi": 6775,
+      "vol_oi": 2.4
+     }
+    ],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "short gamma, spot near call wall 300"
+    ]
+   },
+   {
+    "ticker": "DIS",
+    "spot": 99.5,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 33.4,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -9.11,
+    "gamma_flip_strike": null,
+    "call_wall": 110,
+    "put_wall": 90,
+    "atm_iv_front": 0.2838,
+    "term_slope": 0.0171,
+    "term_structure": "FLAT",
+    "skew_25d": -0.0288,
+    "hv20": 0.2739,
+    "vrp": 0.0099,
+    "iv_rank": null,
+    "pcr_vol": 0.465,
+    "pcr_oi": 1.095,
+    "call_vol": 6440,
+    "put_vol": 2996,
+    "net_premium_usd": 1122104,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   },
+   {
+    "ticker": "CVNA",
+    "spot": 68.6,
+    "signal": "GAMMA_SQUEEZE_SETUP",
+    "score": 26.6,
+    "price_confirm": true,
+    "gamma_regime": "SHORT_GAMMA",
+    "net_gex_musd_per_1pct": -4.62,
+    "gamma_flip_strike": null,
+    "call_wall": 74,
+    "put_wall": 60,
+    "atm_iv_front": 0.7461,
+    "term_slope": 0.0411,
+    "term_structure": "CONTANGO",
+    "skew_25d": 0.0051,
+    "hv20": 0.7081,
+    "vrp": 0.038,
+    "iv_rank": null,
+    "pcr_vol": 0.603,
+    "pcr_oi": 1.372,
+    "call_vol": 4849,
+    "put_vol": 2926,
+    "net_premium_usd": 987698,
+    "n_unusual": 0,
+    "unusual": [],
+    "expiries": [
+     "2026-07-17",
+     "2026-08-21",
+     "2026-09-18"
+    ],
+    "reasons": [
+     "dealers short gamma (amplify up-moves)",
+     "call-heavy flow",
+     "IV expanding"
+    ]
+   }
+  ],
+  "most_unusual": [
+   {
+    "ticker": "RIVN",
+    "n_unusual": 11,
+    "pcr_vol": 0.36,
+    "net_premium_usd": 8333946,
+    "unusual": [
+     {
+      "contract": "O:RIVN260717C00024000",
+      "type": "call",
+      "strike": 24,
+      "exp": "2026-07-17",
+      "vol": 1501,
+      "oi": 4,
+      "vol_oi": 375.2
+     },
+     {
+      "contract": "O:RIVN260717C00021500",
+      "type": "call",
+      "strike": 21.5,
+      "exp": "2026-07-17",
+      "vol": 1128,
+      "oi": 21,
+      "vol_oi": 53.7
+     },
+     {
+      "contract": "O:RIVN260821P00019000",
+      "type": "put",
+      "strike": 19,
+      "exp": "2026-08-21",
+      "vol": 577,
+      "oi": 11,
+      "vol_oi": 52.5
+     }
+    ]
+   },
+   {
+    "ticker": "JPM",
+    "n_unusual": 8,
+    "pcr_vol": 0.277,
+    "net_premium_usd": 76956556,
+    "unusual": [
+     {
+      "contract": "O:JPM260717C00280000",
+      "type": "call",
+      "strike": 280,
+      "exp": "2026-07-17",
+      "vol": 841,
+      "oi": 168,
+      "vol_oi": 5.0
+     },
+     {
+      "contract": "O:JPM260717C00270000",
+      "type": "call",
+      "strike": 270,
+      "exp": "2026-07-17",
+      "vol": 840,
+      "oi": 180,
+      "vol_oi": 4.7
+     },
+     {
+      "contract": "O:JPM260717C00285000",
+      "type": "call",
+      "strike": 285,
+      "exp": "2026-07-17",
+      "vol": 1680,
+      "oi": 395,
+      "vol_oi": 4.3
+     }
+    ]
+   },
+   {
+    "ticker": "AAPL",
+    "n_unusual": 7,
+    "pcr_vol": 0.428,
+    "net_premium_usd": 120813913,
+    "unusual": [
+     {
+      "contract": "O:AAPL260717P00307500",
+      "type": "put",
+      "strike": 307.5,
+      "exp": "2026-07-17",
+      "vol": 993,
+      "oi": 78,
+      "vol_oi": 12.7
+     },
+     {
+      "contract": "O:AAPL260717C00375000",
+      "type": "call",
+      "strike": 375,
+      "exp": "2026-07-17",
+      "vol": 1996,
+      "oi": 357,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:AAPL260918C00355000",
+      "type": "call",
+      "strike": 355,
+      "exp": "2026-09-18",
+      "vol": 674,
+      "oi": 145,
+      "vol_oi": 4.6
+     }
+    ]
+   },
+   {
+    "ticker": "WMT",
+    "n_unusual": 6,
+    "pcr_vol": 0.241,
+    "net_premium_usd": 6321732,
+    "unusual": [
+     {
+      "contract": "O:WMT260717C00118000",
+      "type": "call",
+      "strike": 118,
+      "exp": "2026-07-17",
+      "vol": 69468,
+      "oi": 1954,
+      "vol_oi": 35.6
+     },
+     {
+      "contract": "O:WMT260717C00113000",
+      "type": "call",
+      "strike": 113,
+      "exp": "2026-07-17",
+      "vol": 1547,
+      "oi": 276,
+      "vol_oi": 5.6
+     },
+     {
+      "contract": "O:WMT260717C00112000",
+      "type": "call",
+      "strike": 112,
+      "exp": "2026-07-17",
+      "vol": 3514,
+      "oi": 1093,
+      "vol_oi": 3.2
+     }
+    ]
+   },
+   {
+    "ticker": "RIOT",
+    "n_unusual": 6,
+    "pcr_vol": 2.453,
+    "net_premium_usd": -3510749,
+    "unusual": [
+     {
+      "contract": "O:RIOT260717C00028000",
+      "type": "call",
+      "strike": 28,
+      "exp": "2026-07-17",
+      "vol": 24570,
+      "oi": 2059,
+      "vol_oi": 11.9
+     },
+     {
+      "contract": "O:RIOT260717P00017000",
+      "type": "put",
+      "strike": 17,
+      "exp": "2026-07-17",
+      "vol": 24328,
+      "oi": 3156,
+      "vol_oi": 7.7
+     },
+     {
+      "contract": "O:RIOT260717P00022000",
+      "type": "put",
+      "strike": 22,
+      "exp": "2026-07-17",
+      "vol": 11039,
+      "oi": 1888,
+      "vol_oi": 5.8
+     }
+    ]
+   },
+   {
+    "ticker": "TSLA",
+    "n_unusual": 5,
+    "pcr_vol": 0.537,
+    "net_premium_usd": 53847858,
+    "unusual": [
+     {
+      "contract": "O:TSLA260717P00392500",
+      "type": "put",
+      "strike": 392.5,
+      "exp": "2026-07-17",
+      "vol": 3531,
+      "oi": 353,
+      "vol_oi": 10.0
+     },
+     {
+      "contract": "O:TSLA260717C00397500",
+      "type": "call",
+      "strike": 397.5,
+      "exp": "2026-07-17",
+      "vol": 729,
+      "oi": 271,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:TSLA260717C00392500",
+      "type": "call",
+      "strike": 392.5,
+      "exp": "2026-07-17",
+      "vol": 848,
+      "oi": 320,
+      "vol_oi": 2.6
+     }
+    ]
+   },
+   {
+    "ticker": "NKE",
+    "n_unusual": 5,
+    "pcr_vol": 0.376,
+    "net_premium_usd": 3419102,
+    "unusual": [
+     {
+      "contract": "O:NKE260717P00044000",
+      "type": "put",
+      "strike": 44,
+      "exp": "2026-07-17",
+      "vol": 700,
+      "oi": 62,
+      "vol_oi": 11.3
+     },
+     {
+      "contract": "O:NKE260717C00044500",
+      "type": "call",
+      "strike": 44.5,
+      "exp": "2026-07-17",
+      "vol": 1158,
+      "oi": 252,
+      "vol_oi": 4.6
+     },
+     {
+      "contract": "O:NKE260717C00043500",
+      "type": "call",
+      "strike": 43.5,
+      "exp": "2026-07-17",
+      "vol": 1097,
+      "oi": 532,
+      "vol_oi": 2.1
+     }
+    ]
+   },
+   {
+    "ticker": "MSTR",
+    "n_unusual": 4,
+    "pcr_vol": 0.854,
+    "net_premium_usd": 7572430,
+    "unusual": [
+     {
+      "contract": "O:MSTR260717P00098000",
+      "type": "put",
+      "strike": 98,
+      "exp": "2026-07-17",
+      "vol": 2179,
+      "oi": 21,
+      "vol_oi": 103.8
+     },
+     {
+      "contract": "O:MSTR260717P00102000",
+      "type": "put",
+      "strike": 102,
+      "exp": "2026-07-17",
+      "vol": 676,
+      "oi": 53,
+      "vol_oi": 12.8
+     },
+     {
+      "contract": "O:MSTR260717C00104000",
+      "type": "call",
+      "strike": 104,
+      "exp": "2026-07-17",
+      "vol": 804,
+      "oi": 134,
+      "vol_oi": 6.0
+     }
+    ]
+   },
+   {
+    "ticker": "SPY",
+    "n_unusual": 3,
+    "pcr_vol": 0.09,
+    "net_premium_usd": 136212343,
+    "unusual": [
+     {
+      "contract": "O:SPY260821C00746000",
+      "type": "call",
+      "strike": 746,
+      "exp": "2026-08-21",
+      "vol": 2923,
+      "oi": 767,
+      "vol_oi": 3.8
+     },
+     {
+      "contract": "O:SPY260918C00803000",
+      "type": "call",
+      "strike": 803,
+      "exp": "2026-09-18",
+      "vol": 1006,
+      "oi": 377,
+      "vol_oi": 2.7
+     },
+     {
+      "contract": "O:SPY260918C00774000",
+      "type": "call",
+      "strike": 774,
+      "exp": "2026-09-18",
+      "vol": 580,
+      "oi": 276,
+      "vol_oi": 2.1
+     }
+    ]
+   },
+   {
+    "ticker": "PLTR",
+    "n_unusual": 3,
+    "pcr_vol": 0.477,
+    "net_premium_usd": 32070840,
+    "unusual": [
+     {
+      "contract": "O:PLTR260717P00131000",
+      "type": "put",
+      "strike": 131,
+      "exp": "2026-07-17",
+      "vol": 545,
+      "oi": 111,
+      "vol_oi": 4.9
+     },
+     {
+      "contract": "O:PLTR260717C00132000",
+      "type": "call",
+      "strike": 132,
+      "exp": "2026-07-17",
+      "vol": 1969,
+      "oi": 596,
+      "vol_oi": 3.3
+     },
+     {
+      "contract": "O:PLTR260717C00131000",
+      "type": "call",
+      "strike": 131,
+      "exp": "2026-07-17",
+      "vol": 1521,
+      "oi": 536,
+      "vol_oi": 2.8
+     }
+    ]
+   },
+   {
+    "ticker": "ORCL",
+    "n_unusual": 2,
+    "pcr_vol": 0.411,
+    "net_premium_usd": 7644836,
+    "unusual": [
+     {
+      "contract": "O:ORCL260717C00140000",
+      "type": "call",
+      "strike": 140,
+      "exp": "2026-07-17",
+      "vol": 4938,
+      "oi": 1988,
+      "vol_oi": 2.5
+     },
+     {
+      "contract": "O:ORCL260717C00145000",
+      "type": "call",
+      "strike": 145,
+      "exp": "2026-07-17",
+      "vol": 4706,
+      "oi": 1992,
+      "vol_oi": 2.4
+     }
+    ]
+   },
+   {
+    "ticker": "NFLX",
+    "n_unusual": 2,
+    "pcr_vol": 0.349,
+    "net_premium_usd": 16075302,
+    "unusual": [
+     {
+      "contract": "O:NFLX260717P00077000",
+      "type": "put",
+      "strike": 77,
+      "exp": "2026-07-17",
+      "vol": 1417,
+      "oi": 139,
+      "vol_oi": 10.2
+     },
+     {
+      "contract": "O:NFLX260717P00078000",
+      "type": "put",
+      "strike": 78,
+      "exp": "2026-07-17",
+      "vol": 1421,
+      "oi": 273,
+      "vol_oi": 5.2
+     }
+    ]
+   },
+   {
+    "ticker": "INTC",
+    "n_unusual": 2,
+    "pcr_vol": 0.319,
+    "net_premium_usd": 56399748,
+    "unusual": [
+     {
+      "contract": "O:INTC260717C00126000",
+      "type": "call",
+      "strike": 126,
+      "exp": "2026-07-17",
+      "vol": 524,
+      "oi": 129,
+      "vol_oi": 4.1
+     },
+     {
+      "contract": "O:INTC260717C00123000",
+      "type": "call",
+      "strike": 123,
+      "exp": "2026-07-17",
+      "vol": 561,
+      "oi": 177,
+      "vol_oi": 3.2
+     }
+    ]
+   },
+   {
+    "ticker": "MARA",
+    "n_unusual": 2,
+    "pcr_vol": 0.436,
+    "net_premium_usd": 723790,
+    "unusual": [
+     {
+      "contract": "O:MARA260717C00012500",
+      "type": "call",
+      "strike": 12.5,
+      "exp": "2026-07-17",
+      "vol": 905,
+      "oi": 144,
+      "vol_oi": 6.3
+     },
+     {
+      "contract": "O:MARA260717P00010500",
+      "type": "put",
+      "strike": 10.5,
+      "exp": "2026-07-17",
+      "vol": 504,
+      "oi": 168,
+      "vol_oi": 3.0
+     }
+    ]
+   },
+   {
+    "ticker": "META",
+    "n_unusual": 2,
+    "pcr_vol": 0.383,
+    "net_premium_usd": 16704898,
+    "unusual": [
+     {
+      "contract": "O:META260717P00552500",
+      "type": "put",
+      "strike": 552.5,
+      "exp": "2026-07-17",
+      "vol": 673,
+      "oi": 178,
+      "vol_oi": 3.8
+     },
+     {
+      "contract": "O:META260717C00665000",
+      "type": "call",
+      "strike": 665,
+      "exp": "2026-07-17",
+      "vol": 1659,
+      "oi": 592,
+      "vol_oi": 2.8
+     }
+    ]
+   }
+  ],
+  "richest_iv_vrp": [
+   {
+    "ticker": "DELL",
+    "vrp": 0.2207,
+    "atm_iv": 0.8367,
+    "hv20": 0.6161
+   },
+   {
+    "ticker": "UNH",
+    "vrp": 0.1902,
+    "atm_iv": 0.4741,
+    "hv20": 0.2839
+   },
+   {
+    "ticker": "RIOT",
+    "vrp": 0.1888,
+    "atm_iv": 1.0085,
+    "hv20": 0.8196
+   },
+   {
+    "ticker": "NFLX",
+    "vrp": 0.1865,
+    "atm_iv": 0.5987,
+    "hv20": 0.4122
+   },
+   {
+    "ticker": "UPST",
+    "vrp": 0.1126,
+    "atm_iv": 0.7684,
+    "hv20": 0.6558
+   },
+   {
+    "ticker": "SOFI",
+    "vrp": 0.1106,
+    "atm_iv": 0.5934,
+    "hv20": 0.4828
+   },
+   {
+    "ticker": "BAC",
+    "vrp": 0.1006,
+    "atm_iv": 0.2978,
+    "hv20": 0.1972
+   },
+   {
+    "ticker": "GME",
+    "vrp": 0.0986,
+    "atm_iv": 0.3468,
+    "hv20": 0.2483
+   },
+   {
+    "ticker": "MARA",
+    "vrp": 0.0816,
+    "atm_iv": 0.9398,
+    "hv20": 0.8582
+   },
+   {
+    "ticker": "F",
+    "vrp": 0.076,
+    "atm_iv": 0.3628,
+    "hv20": 0.2868
+   },
+   {
+    "ticker": "JPM",
+    "vrp": 0.0758,
+    "atm_iv": 0.3247,
+    "hv20": 0.2489
+   },
+   {
+    "ticker": "COIN",
+    "vrp": 0.0741,
+    "atm_iv": 0.7737,
+    "hv20": 0.6996
+   }
+  ],
+  "data_source": "Polygon /v3/snapshot/options (greeks+IV+OI+volume) + /v2/aggs (spot/HV)",
+  "caveats": [
+   "Discovery engine \u2014 MEASURE-BEFORE-TRUST. top_picks logged to signal-harvester (eng:options-analytics) for forward excess-vs-SPY grading; NOT wired into best-setups/master-ranker until the scorecard proves net-of-cost alpha.",
+   "GEX from 3 monthly expiries \u00d7 \u00b130% strikes (where dealer gamma concentrates); OI is EOD/T+1 settled, greeks/IV/volume current. No real-time NBBO (tick tier gated).",
+   "IV rank warms up as daily ATM-IV history accrues; VRP (IV vs 20d realized) is the day-1 rich/cheap gauge."
+  ],
+  "elapsed_s": 1.7
+ }
+}
