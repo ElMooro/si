@@ -25,7 +25,7 @@ with report("2934") as r:
     ok &= c == 200 and "jh_sub" in js and "subscribe-endpoint" in js
     (r.ok if ok else r.fail)(f"jh-footer.js live: http={c} bytes={len(js)}")
 
-    idx_has = "jh-shared-footer" in idx
+    idx_has = 'src="/jh-footer.js"' in idx
     ok &= not idx_has
     (r.ok if not idx_has else r.fail)(f"index.html correctly WITHOUT shared footer (has own hero CTA): {not idx_has}")
 
@@ -38,7 +38,7 @@ with report("2934") as r:
     pages = [p["href"].lstrip("/") for cat in json.loads(mj)["categories"] for p in cat["pages"]]
     def chk(p):
         c2, b = get(f"https://justhodl.ai/{p}?t={int(time.time())}")
-        return p, c2 == 200 and "jh-shared-footer" in b
+        return p, c2 == 200 and 'src="/jh-footer.js"' in b
     n_with = 0
     with ThreadPoolExecutor(max_workers=12) as ex:
         for p, has in ex.map(chk, pages):
