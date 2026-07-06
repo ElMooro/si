@@ -18,7 +18,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.0";
+<script>const JH_V="v1.2.1";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -202,7 +202,7 @@ tick();setInterval(tick,1000);
 first(["data/risk-regime.json"]).then(function(d){txt("hd-regime",g("regime",d));}).catch(function(){});
 
 /* ── KPI strip ── */
-first(["data/data.json","data.json"]).then(function(d){
+first(["data/ka-metrics.json"]).then(function(d){
   txt("kpi-ka",num(g("khalid_index",d)||g("khalid_index.value",d),1));
   var w=g("khalid_index_wow",d);if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
 }).catch(function(){});
@@ -246,7 +246,7 @@ var ROWS=[
  ["d-tail",["data/hedge-book.json"],function(d){return g("state",d)||g("status",d);}],
  ["d-div",["data/cycle-clock.json"],function(d){var v=g("divergences",d);return Array.isArray(v)?(v.length+" ACTIVE"):v;}],
  ["d-optf",["data/options-analytics.json","data/polygon-options-flow.json"],function(d){return g("market_bias",d)||g("summary.bias",d)||g("alert_level",d);}],
- ["d-cot",["data/cot.json","data/cftc-cot.json"],function(d){var n=g("crowded",d)||g("n_crowded",d);return n!=null?(n+" CROWDED"):g("state",d);}],
+ ["d-cot",["https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json","https://api.justhodl.ai/agent/cftc-positioning/cot/all"],function(d){var a=g("crowded",d)||g("extremes",d);var n=Array.isArray(a)?a.length:g("n_crowded",d);return n!=null?(n+" CROWDED"):null;}],
  ["d-marb",["data/merger-arb.json"],function(d){var n=g("n_deals",d)||g("deals",d);return n!=null?(n+" DEALS"):g("state",d);}],
  ["d-pairs",["data/pairs-scanner.json"],function(d){return g("mtd",d)?pct(g("mtd",d),1)+" MTD":g("state",d);}],
  ["d-conv",["data/best-setups.json"],function(d){var a=g("setups",d)||g("top",d)||[];var n=Array.isArray(a)?a.filter(function(x){return /STRONG/.test(x.conviction||x.rating||"");}).length:null;return n!=null?(n+" NAMES"):null;}],
