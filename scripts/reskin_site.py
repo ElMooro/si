@@ -62,7 +62,9 @@ def map_rgb(r, g, b):
         if l < 0.22 or l > 0.85:
             return ramp(l)
         return "e0685f" if l >= 0.45 else "b04a43"
-    if 15 <= h < 65 and s >= 0.50:                    # ambers normalize
+    if 15 <= h < 65 and s >= 0.45:                    # ambers normalize
+        if l < 0.30:
+            return ramp(l)                            # dark browns = structure
         return "ffd479" if l >= 0.72 else ("f5b93e" if l >= 0.45 else "d99a2b")
     return None
 
