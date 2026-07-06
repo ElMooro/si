@@ -1,15 +1,8 @@
-executing-against: a634f7c4da8af066432b1f1741871b6dfe7f09c0
-[22:06:36] ✅ v1.2.20 deploy live attempt 1
-[22:06:36] ✅ homepage hero link present: True
-[22:06:36] ✅ nav-manifest includes proof.html: True
-[22:06:36] ✅ proof.html live: http=200 bytes=14083
-[22:06:36] ✅ full chrome present (drawer+footer+chart-theme): True
-[22:06:37] ✅ page's own inline JS parses (as served, post-pipeline): True
-[22:06:40] ✅   backing feed live: paper-book.json http=200
-[22:06:41] ✅   backing feed live: signal-scorecard.json http=200
-[22:06:41] ✅   backing feed live: engine-alpha.json http=200
-[22:06:41] ✅   backing feed live: signal-backtest.json http=200
-[22:06:42] ✅ audit trail link target resolves: audit.html http=200
+executing-against: 9090ef147099b889b46068f32826201bbdad8d73
+[22:27:45] ✅ v1.2.22 deploy live attempt 12
+[22:27:45] ✗ pricing.html: emoji removed / lock-in present / gradient removed = False
+[22:27:49] ✅ theme-color full population: missing=0 wrong=0 dup=0
 
-→ Report written to aws/ops/reports/latest/2937.md
-DONE 2937 PASS
+→ Report written to aws/ops/reports/latest/2938.md
+DONE 2938 FAIL
+❌ OPS-FAIL: aws/ops/pending/ops_2938_pricing_theme_verify.py
