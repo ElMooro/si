@@ -1,8 +1,9 @@
-executing-against: df28c9d01ff1f85eb9065952ff4fd73f22ffb4c8
-[22:31:33] ✅ v1.2.22 deploy live attempt 12
-[22:31:33] ✗ pricing.html: emoji removed / lock-in present / gradient removed = False
-[22:31:37] ✅ theme-color full population: missing=0 wrong=0 dup=0
+executing-against: f323292be8705cd5b6407bd574e58928a5ac6220
+[22:31:48] ✅ http=200 bytes=20649
+[22:31:48] ✅ rocket emoji present: False
+[22:31:48] ✅ 'lock in' present: True
+[22:31:48] ✅ 'linear-gradient' present: True
+[22:31:48] ✅ context around 'lock': 'ex: 100; }\n.jh-user-menu.open .jh-user-dropdown { display: block; }\n.jh-user-email { font-family: var(--font-mono); font-size: 11.5px; color'
 
-→ Report written to aws/ops/reports/latest/2938.md
-DONE 2938 FAIL
-❌ OPS-FAIL: aws/ops/pending/ops_2938_pricing_theme_verify.py
+→ Report written to aws/ops/reports/latest/2939.md
+DONE 2939 PASS
