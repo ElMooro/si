@@ -43,19 +43,26 @@ def ramp(l):
 
 
 def map_rgb(r, g, b):
-    """Return new (r,g,b) hex-string (no '#') or None to leave untouched."""
+    """Return new hex-string (no '#') or None. v3: LIGHTNESS DECIDES ROLE —
+    dark colors are STRUCTURE no matter how saturated (dark navies are ~50%+
+    saturated and must never become amber backgrounds); pale tints are LIGHT
+    structure. Accent window: 0.30 < l <= 0.82 with s >= 0.45 only."""
     h, s, l = hsl(r, g, b)
     if s < 0.06:
         return None                                   # true neutral
-    if 165 <= h <= 300:                               # the legacy cool band
-        if s >= 0.45:                                 # accent
-            return "f5b93e" if l >= 0.55 else ("d99a2b" if l >= 0.35 else "8a6a25")
-        return ramp(l)                                # slate / tinted gray
+    if 165 <= h <= 300:                               # legacy cool band
+        if l < 0.30 or l > 0.82 or s < 0.45:
+            return ramp(l)                            # structure / tint / slate
+        return "f5b93e" if l >= 0.55 else "d99a2b"    # true accents only
     if 90 <= h < 165 and s > 0.35:                    # greens -> calm semantic
+        if l < 0.25 or l > 0.85:
+            return ramp(l)
         return "6fce8a" if l >= 0.40 else "3f7d55"
     if (h >= 300 or h < 15) and s > 0.40:             # pinks/reds -> calm semantic
+        if l < 0.22 or l > 0.85:
+            return ramp(l)
         return "e0685f" if l >= 0.45 else "b04a43"
-    if 15 <= h < 65 and s >= 0.50:                    # oranges/ambers normalize
+    if 15 <= h < 65 and s >= 0.50:                    # ambers normalize
         return "ffd479" if l >= 0.72 else ("f5b93e" if l >= 0.45 else "d99a2b")
     return None
 
