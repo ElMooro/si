@@ -1,13 +1,12 @@
-executing-against: 2faabf730ef99faa32ece7cd91f1b6243980b424
-[20:55:14] ✅ v1.2.17 deploy live attempt 1
-[20:55:14] ✅ jh-right-rail.js live: http=200 bytes=3540
-[20:55:15] ✗ rail coverage LIVE: 0/366 (expect 238)
-[20:55:15] ✗ real freshness values landed: 0 (of 0 feed refs seen)
-[20:55:15] ✅   spot lce.html: feeds=[] related=[]
-[20:55:15] ✅   spot bonds.html: feeds=[] related=[]
-[20:55:15] ✅   spot options.html: feeds=[] related=[]
-[20:55:15] ✅   spot apac.html: feeds=[] related=[]
+executing-against: c04bf01eb66e5f45c10c34e246cbb13cde46b98b
+[21:09:25] ✅ v1.2.17 deploy live attempt 1
+[21:09:25] ✅ jh-right-rail.js live: http=200 bytes=3540
+[21:09:29] ✅ rail coverage LIVE: 238/366 (expect 238)
+[21:09:29] ✅ real freshness values landed: 375 (of 375 feed refs seen)
+[21:09:29] ✅   spot lce.html: feeds=['liquidity-credit-engine'] related=['Liquidity Intelligence', 'Treasury Auctions', 'Treasury Auction Crisis Detector · AI Edition', 'Treasury Multi-Instrument Dashboard - REAL DATA']
+[21:09:29] ✅   spot bonds.html: feeds=['auction-crisis', 'crisis-plumbing', 'move-index', 'report'] related=['Global Business Cycle', 'Macro Data', 'Fed Liquidity Dashboard - Live Market Intelligence', 'Activity Nowcast']
+[21:09:29] ✅   spot options.html: feeds=['catalyst-skew-premove', 'dealer-gex-history', 'dealer-gex', 'dix', 'earnings-iv-crush', 'opex-calendar'] related=['Desk', 'Cross-Asset Regime', 'Options Flow & Sentiment', 'Options Flow Scanner']
+[21:09:29] ✅   spot apac.html: feeds=['apac-flows', 'apac-leadlag'] related=['Crypto Opportunities — Retail Trade Tickets', 'Stablecoin Flow', 'DEX Intelligence Terminal', 'News Sentiment & Trends']
 
 → Report written to aws/ops/reports/latest/2932.md
-DONE 2932 FAIL
-❌ OPS-FAIL: aws/ops/pending/ops_2932_rail_verify.py
+DONE 2932 PASS
