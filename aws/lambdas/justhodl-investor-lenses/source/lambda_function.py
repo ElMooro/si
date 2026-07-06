@@ -33,7 +33,7 @@ import boto3
 
 S3_BUCKET = os.environ.get("JH_BUCKET", "justhodl-dashboard-live")
 S3_PREFIX = "data/investor-lenses"
-FMP_BASE = "https://financialmodelingprep.com/api/v3"
+FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_STABLE = "https://financialmodelingprep.com/stable"
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 
@@ -61,13 +61,13 @@ def fetch_fundamentals(ticker: str) -> dict:
     fmp = os.environ.get("FMP_KEY", "") or os.environ.get("FMP_API_KEY", "")
     t = ticker.upper()
 
-    profile = _get_json(f"{FMP_BASE}/profile/{t}?apikey={fmp}")
-    quote = _get_json(f"{FMP_BASE}/quote/{t}?apikey={fmp}")
-    income = _get_json(f"{FMP_BASE}/income-statement/{t}?period=annual&limit=12&apikey={fmp}")
-    balance = _get_json(f"{FMP_BASE}/balance-sheet-statement/{t}?period=annual&limit=12&apikey={fmp}")
-    cashflow = _get_json(f"{FMP_BASE}/cash-flow-statement/{t}?period=annual&limit=12&apikey={fmp}")
-    metrics = _get_json(f"{FMP_BASE}/key-metrics/{t}?period=annual&limit=12&apikey={fmp}")
-    growth = _get_json(f"{FMP_BASE}/financial-growth/{t}?period=annual&limit=6&apikey={fmp}")
+    profile = _get_json(f"{FMP_BASE}/profile?symbol={t}&apikey={fmp}")
+    quote = _get_json(f"{FMP_BASE}/quote?symbol={t}&apikey={fmp}")
+    income = _get_json(f"{FMP_BASE}/income-statement?symbol={t}&period=annual&limit=12&apikey={fmp}")
+    balance = _get_json(f"{FMP_BASE}/balance-sheet-statement?symbol={t}&period=annual&limit=12&apikey={fmp}")
+    cashflow = _get_json(f"{FMP_BASE}/cash-flow-statement?symbol={t}&period=annual&limit=12&apikey={fmp}")
+    metrics = _get_json(f"{FMP_BASE}/key-metrics?symbol={t}&period=annual&limit=12&apikey={fmp}")
+    growth = _get_json(f"{FMP_BASE}/financial-growth?symbol={t}&period=annual&limit=6&apikey={fmp}")
 
     if not profile or not quote:
         raise RuntimeError(f"no profile/quote for {t} (bad ticker or key)")
