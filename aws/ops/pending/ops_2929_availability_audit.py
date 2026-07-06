@@ -27,7 +27,8 @@ with report("2929") as r:
     pages = [p["href"].lstrip("/") for cat in json.loads(mj)["categories"] for p in cat["pages"]]
     def pchk(p):
         c2, b, _ = get(f"https://justhodl.ai/{p}?t={int(time.time())}")
-        okp = (c2 == 200 and len(b) > 2000 and "</html>" in b
+        stub = c2 == 200 and len(b) < 2000 and "http-equiv=\"refresh\"" in b
+        okp = stub or (c2 == 200 and len(b) > 2000 and "</html>" in b
                and ("screener" in p or p == "index.html" or
                     ("/jh-chart-theme.js" in b and "jh-nav-drawer.js" in b)))
         return p, okp, c2, len(b)
@@ -55,7 +56,8 @@ with report("2929") as r:
 
     # ── C: feeds referenced vs live, classified ──
     refs = json.load(open("aws/ops/reports/feeds_ref_2929.json"))
-    reg = json.load(open("data/engine-registry.json"))
+    c3, rb, _ = get(f"https://justhodl.ai/data/engine-registry.json?t={int(time.time())}")
+    reg = json.loads(rb)
     engines = set()
     for e in (reg.get("engines") or reg if isinstance(reg, list) else reg.get("engines", {})):
         engines.add((e.get("name") if isinstance(e, dict) else str(e)).lower())
