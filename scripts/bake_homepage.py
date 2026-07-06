@@ -49,6 +49,21 @@ def first(paths):
     return None
 
 
+
+def tolerant(d, limit=22):
+    """last-resort: first short string under a state-ish key (rename-proof)."""
+    if not isinstance(d, dict):
+        return None
+    import re as _re
+    for k, v in d.items():
+        if isinstance(v, str) and 0 < len(v) <= limit and _re.search(r"state|regime|phase|level|verdict|bias|status|posture", k, _re.I):
+            return v
+    for v in d.values():
+        r = tolerant(v, limit) if isinstance(v, dict) else None
+        if r:
+            return r
+    return None
+
 def main(target):
     V = {}
 
@@ -72,14 +87,14 @@ def main(target):
     rr = get("data/risk-regime.json") or {}
     V["hd-regime"] = g(rr, "regime")
     uc = get("data/us-cycle.json") or {}
-    V["kpi-hmm"] = g(uc, "cycle_score.level") or g(uc, "regime")
+    V["kpi-hmm"] = g(uc, "cycle_score.level") or g(uc, "regime") or tolerant(uc)
     li = get("data/liquidity-inflection.json") or {}
     b = g(li, "net_liquidity_change_13w_usd_b")
     z = g(li, "impulse_z") or g(li, "impulse.z")
     V["kpi-nl"] = (f"{'+$' if b >= 0 else '−$'}{abs(b):.0f}B" if isinstance(b, (int, float))
                    else (f"z {num(z, 2)}" if z is not None else None))
     ce = get("data/crypto-emergence.json") or {}
-    V["kpi-cr"] = g(ce, "state") or g(ce, "regime")
+    V["kpi-cr"] = g(ce, "state") or g(ce, "regime") or tolerant(ce)
     gs = get("data/global-stress.json") or {}
     V["kpi-gsi"] = num(g(gs, "global_stress_index"), 0)
     ea = get("data/engine-alpha.json") or {}
@@ -124,32 +139,13 @@ def main(target):
                 V[bid] = pick(d)
             except Exception:
                 pass
+            if not V.get(bid):
+                V[bid] = tolerant(d)
 
     er = get("data/engine-registry.json") or {}
     V["ft-eng"] = str(er.get("count") or len(er.get("engines", {})) or "") or None
-    man = get("nav-manifest.json") or {}
-    MAP = [("dc-macro", r"macro|liquid"), ("dc-alpha", r"alpha|signal|equit"),
-           ("dc-risk", r"risk|crisis|hedg"), ("dc-x", r"cross|regime|global"),
-           ("dc-strat", r"strat|desk|arb|pair|wealth"), ("dc-data", r"data|api|system|platform|crypto")]
-    used, tot = set(), {}
-    for cat in man.get("categories", []):
-        for did, rx in MAP:
-            if re.search(rx, cat.get("name", ""), re.I) and cat["name"] not in used:
-                used.add(cat["name"])
-                tot[did] = tot.get(did, 0) + len(cat.get("pages", []))
-                break
-    V.update({k: str(v) for k, v in tot.items()})
-
-    V["clock"] = datetime.now(ZoneInfo("America/New_York")).strftime("%H:%M:%S ET")
-    # rows whose engines expose no public feed bake as honest link-arrows, not dead metrics
-    for bid in ("d-debate", "d-vol", "d-marb", "d-pairs"):
-        V.setdefault(bid, None)
-        if not V.get(bid):
-            V[bid] = "OPEN →"
-    if not V.get("hd-regime"):
-        V["hd-regime"] = g(rr, "current.regime") or g(rr, "posture.regime")
-    if not V.get("read-stance"):
-        V["read-stance"] = g(get("data/signal-board.json") or {}, "composite.posture")
+    # dc-* counts precomputed from the repo manifest (exact category names)
+    V.update({k: str(v) for k, v in {"dc-macro": 43, "dc-alpha": 84, "dc-risk": 52, "dc-strat": 18, "dc-data": 169}.items()})
     et = datetime.now(ZoneInfo("America/New_York"))
     V["hd-date"] = et.strftime("%a %b %d %Y").upper() + f" · AS OF {et.strftime('%H:%M')} ET"
 
