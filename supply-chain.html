@@ -48,7 +48,8 @@ function perfColor(p){if(p==null)return '#5a6678';if(p>=25)return '#2fe08a';if(p
   const g=svg.append('g');
   svg.call(d3.zoom().scaleExtent([0.3,3]).on('zoom',ev=>g.attr('transform',ev.transform)));
   const link=g.append('g').selectAll('line').data(links).join('line')
-    .attr('stroke',l=>l.src==='polygon'?'#3a4a63':'#2a3647').attr('stroke-width',1)\n    .attr('stroke-dasharray',l=>l.src==='polygon'?'4,3':null).attr('marker-end',l=>l.src==='polygon'?null:'url(#arrow)');
+    .attr('stroke',l=>l.src==='polygon'?'#3a4a63':'#2a3647').attr('stroke-width',1)
+    .attr('stroke-dasharray',l=>l.src==='polygon'?'4,3':null).attr('marker-end',l=>l.src==='polygon'?null:'url(#arrow)');
   const node=g.append('g').selectAll('g').data(nodes).join('g').style('cursor','pointer')
     .call(d3.drag().on('start',(ev,n)=>{if(!ev.active)sim.alphaTarget(.3).restart();n.fx=n.x;n.fy=n.y;})
       .on('drag',(ev,n)=>{n.fx=ev.x;n.fy=ev.y;}).on('end',(ev,n)=>{if(!ev.active)sim.alphaTarget(0);n.fx=null;n.fy=null;}));
