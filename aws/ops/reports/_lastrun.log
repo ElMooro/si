@@ -1,12 +1,10 @@
-executing-against: 0ed31d9223f753fa173fd66443ea663c8c51e5d1
-[18:36:46] ✅ repair deploy live attempt 1
-[18:36:52] ✗ A pages structural: 360/366 bad=[('options-flow.html', 200, 916), ('positioning.html', 200, 892), ('intelligence.html', 200, 10699), ('charts.html', 200, 1411), ('asymmetric.html', 200, 910)]
-[18:36:53] ✅ A2 repaired blocks parse LIVE: 9/9
+executing-against: de9f843aadf6aa7560a4a44a12da43f3a672385c
+[18:43:49] ✅ repair deploy live attempt 1
+[18:43:51] ✗ A pages structural: 364/366 bad=[('intelligence.html', 200, 10699), ('charts.html', 200, 1411)]
+[18:43:54] ✅ A2 repaired blocks parse LIVE: 9/9
+[18:44:01] ✅ C feeds: 366/368 live | missing w/engine=1 no-engine=1 | fresh<24h=322 24-48h=9 stale>48h=35
+[18:44:01] ✅ D engines in registry: 661
 
 → Report written to aws/ops/reports/latest/2929.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2929_availability_audit.py", line 58, in <module>
-    reg = json.load(open("data/engine-registry.json"))
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: 'data/engine-registry.json'
+DONE 2929 FAIL
 ❌ OPS-FAIL: aws/ops/pending/ops_2929_availability_audit.py
