@@ -27,7 +27,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.9";
+<script>const JH_V="v1.2.10";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -329,9 +329,9 @@ function render(q){M.textContent="";var f=favs();q=(q||"").trim().toLowerCase();
   if(favPages.length){var fh=document.createElement("div");fh.className="jh-favhead";
     fh.textContent="\u2605 FAVORITES";M.appendChild(fh);
     favPages.forEach(function(p){M.appendChild(row(p));});}
-  CATS.forEach(function(c){var dt=document.createElement("details");
+  CATS.forEach(function(c){var dt=document.createElement("details");dt.open=true;
     var sm=document.createElement("summary");
-    var n=document.createElement("span");n.textContent=c.name;
+    var n=document.createElement("span");n.textContent=String(c.name).replace(/^[^A-Za-z0-9]+\s*/,"");
     var k=document.createElement("span");k.className="jh-cnt";k.textContent=c.pages.length;
     sm.appendChild(n);sm.appendChild(k);dt.appendChild(sm);
     c.pages.forEach(function(p){dt.appendChild(row(p));});M.appendChild(dt);});}

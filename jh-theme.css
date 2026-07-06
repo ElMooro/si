@@ -56,3 +56,17 @@
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--jh-amber-dim); }
 :focus-visible { outline: 1px solid var(--jh-amber); outline-offset: 2px; }
+
+/* ── phase 2: sitewide chrome (injected topbar) + element skin ── */
+.jh-topbar{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--jh-bg);
+  border-bottom:1px solid var(--jh-line);font-family:var(--jh-mono);font-size:12px;
+  overflow-x:auto;white-space:nowrap}
+.jhc-brand{color:var(--jh-amber);text-decoration:none;letter-spacing:.12em;font-weight:600}
+.jhc-tape{display:flex;gap:14px;flex:1;overflow:hidden}
+.jhc-chip b{color:var(--jh-dim);font-weight:500;margin-right:4px}
+.jhc-up{color:var(--jh-green)} .jhc-dn{color:var(--jh-red)}
+.jhc-clock{color:var(--jh-dim)} .jhc-cc{color:var(--jh-amber);text-decoration:none}
+h1,h2,h3{font-family:var(--jh-mono)}
+th{color:var(--jh-dim);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+td,th{border-bottom:1px solid var(--jh-line)}
+button{font-family:var(--jh-mono)}
