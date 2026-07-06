@@ -55,6 +55,27 @@ jobs:
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Bake last-known values into homepage (zero em-dash first paint)
         run: python3 scripts/bake_homepage.py _site/index.html || true
+      - name: CI gate — template leaks + dead-paint ratchet
+        run: |
+          python3 - <<'G'
+          import re, glob, os, sys
+          leaks, dashes = [], 0
+          for f in glob.glob('_site/**/*.html', recursive=True):
+              t = open(f, encoding='utf-8', errors='replace').read()
+              if re.search(r'{{[A-Z_]+}}', t): leaks.append(f)
+              t2 = re.sub(r'<[^>]*data-realtime[^>]*>.*?</[a-z]+>', '', t, flags=re.S)
+              dashes += t2.count('>—<')
+          if leaks: print('GATE FAIL template leaks:', leaks[:5]); sys.exit(1)
+          bpath = 'ci/dash_budget.txt'
+          if not os.path.exists(bpath):
+              os.makedirs('ci', exist_ok=True); open(bpath,'w').write(str(dashes))
+              print(f'gate bootstrap: dash budget set to {dashes}')
+          else:
+              budget = int(open(bpath).read().strip())
+              if dashes > budget: print(f'GATE FAIL dead-dash ratchet: {dashes} > {budget}'); sys.exit(1)
+              if dashes < budget: open(bpath,'w').write(str(dashes))
+              print(f'gate clean: 0 leaks, dashes {dashes} <= budget {budget}')
+          G
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
       - uses: actions/upload-pages-artifact@v3

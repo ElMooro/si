@@ -6,11 +6,11 @@ literals plus 1,000+ rgb()/hsl() forms; enumerating them is unwinnable. This
 engine parses EVERY color literal in EVERY format and classifies by HSL:
 
   cool band (hue 165–300, cyan→blue→purple):
-      saturated  -> amber accent tier by lightness (#f5b93e / #d99a2b / #8a6a25)
+      saturated  -> amber accent tier by lightness (#F0B429 / #C9942E / #8a6a25)
       desaturated (slate/tinted grays) -> warm structural ramp by lightness
   neon greens  -> calm semantic green (#6fce8a / #3f7d55)
-  pinks/reds   -> calm semantic red   (#e0685f / #b04a43)
-  amber family -> normalized (#f5b93e / #d99a2b / #ffd479)
+  pinks/reds   -> calm semantic red   (#E07A6A / #B85C4E)
+  amber family -> normalized (#F0B429 / #C9942E / #FFD45E)
   true neutrals (sat<6%) -> untouched
 
 Formats: #rgb #rgba #rrggbb #rrggbbaa, rgb()/rgba() (int+%), hsl()/hsla().
@@ -24,8 +24,8 @@ import re
 import sys
 from pathlib import Path
 
-WARM_RAMP = [(0.10, "0b0906"), (0.16, "141008"), (0.24, "1a150b"),
-             (0.34, "2a2318"), (0.46, "3a3428"), (0.60, "6a6455"),
+WARM_RAMP = [(0.10, "0C0B09"), (0.16, "12110C"), (0.24, "17150E"),
+             (0.34, "2B2820"), (0.46, "3A3628"), (0.60, "6a6455"),
              (0.75, "8a836f"), (0.86, "b5ad99"), (2.00, "e8e2d4")]
 SKIP_NAMES = {"index.html", "service-worker.js", "jh-theme.css"}
 
@@ -53,7 +53,7 @@ def map_rgb(r, g, b):
     if 165 <= h <= 300:                               # legacy cool band
         if l < 0.30 or l > 0.82 or s < 0.45:
             return ramp(l)                            # structure / tint / slate
-        return "f5b93e" if l >= 0.55 else "d99a2b"    # true accents only
+        return "F0B429" if l >= 0.55 else "C9942E"    # true accents only
     if 90 <= h < 165 and s > 0.35:                    # greens -> calm semantic
         if l < 0.25 or l > 0.85:
             return ramp(l)
@@ -61,11 +61,11 @@ def map_rgb(r, g, b):
     if (h >= 300 or h < 15) and s > 0.40:             # pinks/reds -> calm semantic
         if l < 0.22 or l > 0.85:
             return ramp(l)
-        return "e0685f" if l >= 0.45 else "b04a43"
+        return "E07A6A" if l >= 0.45 else "B85C4E"
     if 15 <= h < 65 and s >= 0.45:                    # ambers normalize
         if l < 0.30:
             return ramp(l)                            # dark browns = structure
-        return "ffd479" if l >= 0.72 else ("f5b93e" if l >= 0.45 else "d99a2b")
+        return "FFD45E" if l >= 0.72 else ("F0B429" if l >= 0.45 else "C9942E")
     return None
 
 
@@ -110,6 +110,8 @@ def sub_fn(m):
         return m.group(0)
 
 
+THEME_META = re.compile(r'(<meta[^>]*name="theme-color"[^>]*content=")[^"]*(")', re.I)
+
 def reskin_text(s):
     s2 = RE_HEX.sub(sub_hex, s)
     s2 = RE_FN.sub(sub_fn, s2)
@@ -128,6 +130,8 @@ def main(root):
         try:
             s = p.read_text(encoding="utf-8", errors="replace")
             s2 = reskin_text(s)
+            if p.suffix.lower() == ".html":
+                s2 = THEME_META.sub(lambda m: m.group(1) + "#F0B429" + m.group(2), s2)
             if (p.suffix.lower() == ".html"
                     and "/jh-chart-theme.js" not in s2):
                 for anchor in ("<head>", "<HEAD>"):

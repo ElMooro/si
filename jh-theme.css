@@ -7,16 +7,16 @@
    pages individually with real Amber components. */
 
 :root {
-  --jh-bg: #0b0906;
-  --jh-panel: #141008;
-  --jh-panel-2: #1a150b;
+  --jh-bg: #0C0B09;
+  --jh-panel: #12110C;
+  --jh-panel-2: #17150E;
   --jh-ink: #e8e2d4;
   --jh-dim: #8a836f;
-  --jh-amber: #f5b93e;
+  --jh-amber: #F0B429;
   --jh-amber-dim: #b8892e;
   --jh-green: #6fce8a;
-  --jh-red: #e0685f;
-  --jh-line: #2a2318;
+  --jh-red: #E07A6A;
+  --jh-line: #2B2820;
   --jh-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --jh-sans: "IBM Plex Sans", "Libre Franklin", system-ui, -apple-system, sans-serif;
   color-scheme: dark;
@@ -35,7 +35,7 @@
   color: var(--jh-ink);
 }
 :where(a) { color: var(--jh-amber); }
-:where(a:hover) { color: #ffd479; }
+:where(a:hover) { color: #FFD45E; }
 :where(code, pre, kbd, samp, td, th, tt) { font-family: var(--jh-mono); }
 :where(table) { border-color: var(--jh-line); }
 :where(hr) { border-color: var(--jh-line); }
@@ -45,7 +45,7 @@
 }
 
 /* shared affordances (safe to be opinionated) */
-::selection { background: var(--jh-amber); color: #0b0906; }
+::selection { background: var(--jh-amber); color: #0C0B09; }
 * { scrollbar-width: thin; scrollbar-color: var(--jh-amber-dim) var(--jh-bg); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--jh-bg); }

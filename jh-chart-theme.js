@@ -9,12 +9,12 @@
    always win — this layer only fills what was left unset. ES5, no deps. */
 (function () {
   "use strict";
-  var BG = "#0b0906", PANEL = "#141008", LINE = "#2a2318", LINE2 = "#3a3428",
+  var BG = "#0C0B09", PANEL = "#12110C", LINE = "#2B2820", LINE2 = "#3A3628",
       INK = "#e8e2d4", DIM = "#8a836f", MID = "#b5ad99",
-      AMBER = "#f5b93e", AMBER2 = "#d99a2b", GOLD = "#ffd479",
-      GREEN = "#6fce8a", RED = "#e0685f",
+      AMBER = "#F0B429", AMBER2 = "#C9942E", GOLD = "#FFD45E",
+      GREEN = "#6fce8a", RED = "#E07A6A",
       MONO = "'IBM Plex Mono', ui-monospace, Menlo, monospace",
-      WAY = [AMBER, GREEN, RED, AMBER2, MID, GOLD, "#3f7d55", "#b04a43"];
+      WAY = [AMBER, GREEN, RED, AMBER2, MID, GOLD, "#3f7d55", "#B85C4E"];
 
   function onGlobal(name, patch) {
     var cur = window[name];
