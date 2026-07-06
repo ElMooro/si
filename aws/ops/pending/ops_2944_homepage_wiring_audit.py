@@ -28,7 +28,8 @@ with report("2944") as r:
     r.ok(f"index.html live: http={c} bytes={len(idx)}")
     for sid in SLOTS:
         m = re.search(r'id="' + re.escape(sid) + r'"[^>]*>([^<]*)<', idx)
-        r.ok(f"  LIVE slot {sid}: {m.group(1)!r if m else 'NOT FOUND'}" if m else f"  LIVE slot {sid}: NOT FOUND IN HTML")
+        msg = f"  LIVE slot {sid}: {m.group(1)!r}" if m else f"  LIVE slot {sid}: NOT FOUND IN HTML"
+        r.ok(msg)
 
     for name, paths in FEEDS.items():
         found = None
