@@ -1,17 +1,16 @@
-executing-against: 68cfe8042dfae522349bd9bcde48afa15cf3aa56
-[21:38:08] ✅ v1.2.19 deploy live attempt 1
-[21:38:08] ✅ jh-footer.js live: http=200 bytes=3635
-[21:38:08] ✅ index.html correctly WITHOUT shared footer (has own hero CTA): True
-[21:38:08] ✅ screener untouched: http=None footer-script-present=n/a
-[21:38:12] ✗ footer coverage: 0/366 (expect 365, index excluded by design)
-[21:38:12] ✅   footer link resolves: About -> about.html http=200
-[21:38:12] ✅   footer link resolves: Glossary -> glossary.html http=200
-[21:38:12] ✅   footer link resolves: Pricing -> pricing.html http=200
-[21:38:12] ✅   footer link resolves: Status -> status.html http=200
-[21:38:12] ✅   footer link resolves: Terms -> terms.html http=200
-[21:38:13] ✅   footer link resolves: Privacy -> privacy.html http=200
-[21:38:13] ✅ subscribe-endpoint.json still live for the shared contract: True
+executing-against: bf75ddc02bd3af729edec0fc8dce7d332d2c22d1
+[21:42:16] ✅ v1.2.19 deploy live attempt 1
+[21:42:16] ✅ jh-footer.js live: http=200 bytes=3635
+[21:42:16] ✅ index.html correctly WITHOUT shared footer (has own hero CTA): True
+[21:42:16] ✅ screener untouched: http=None footer-script-present=n/a
+[21:42:32] ✅ footer coverage: 365/366 (expect 365, index excluded by design)
+[21:42:32] ✅   footer link resolves: About -> about.html http=200
+[21:42:32] ✅   footer link resolves: Glossary -> glossary.html http=200
+[21:42:32] ✅   footer link resolves: Pricing -> pricing.html http=200
+[21:42:32] ✅   footer link resolves: Status -> status.html http=200
+[21:42:32] ✅   footer link resolves: Terms -> terms.html http=200
+[21:42:32] ✅   footer link resolves: Privacy -> privacy.html http=200
+[21:42:32] ✅ subscribe-endpoint.json still live for the shared contract: True
 
 → Report written to aws/ops/reports/latest/2934.md
-DONE 2934 FAIL
-❌ OPS-FAIL: aws/ops/pending/ops_2934_footer_verify.py
+DONE 2934 PASS
