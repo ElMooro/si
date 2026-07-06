@@ -8,6 +8,16 @@
   "use strict";
   if (window.__jhNavDrawer) return; window.__jhNavDrawer = true;
 
+  /* Amber Terminal theme overlay (phase 1) — token layer; /screener excluded (PROTECTED). */
+  try {
+    if (location.pathname.indexOf("/screener") !== 0 && !document.getElementById("jh-theme")) {
+      var _jt = document.createElement("link");
+      _jt.id = "jh-theme"; _jt.rel = "stylesheet"; _jt.href = "/jh-theme.css";
+      (document.head || document.documentElement).prepend(_jt);
+    }
+  } catch (e) {}
+
+
   var CSS = ".jhnav-handle{position:fixed;top:50%;left:0;transform:translateY(-50%);width:22px;height:64px;background:#10151f;border:1px solid #1d2636;border-left:none;border-radius:0 10px 10px 0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:999997;color:#5d6b82;font-size:15px;transition:left .22s cubic-bezier(.4,0,.2,1),color .15s,border-color .15s;padding:0;font-family:inherit;box-shadow:2px 0 10px rgba(0,0,0,.25)}"
     + ".jhnav-handle:hover{color:#22d3ee;border-color:#22d3ee}"
     + ".jhnav-handle.jhnav-open{left:280px}"

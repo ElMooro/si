@@ -1,0 +1,58 @@
+/* jh-theme.css — AMBER TERMINAL site theme, phase 1 (token overlay).
+   Injected by jh-nav-drawer.js on every page EXCEPT /screener (PROTECTED).
+   Design source: Claude Design "1a Amber Terminal" (Command Center v2.0).
+   Strategy: CSS custom properties + :where() zero-specificity defaults, so any
+   page's own CSS always wins where it is explicit. This layer only fills the
+   gaps: base surfaces, type, links, selection, scrollbars. Phase 2 reskins
+   pages individually with real Amber components. */
+
+:root {
+  --jh-bg: #0b0906;
+  --jh-panel: #141008;
+  --jh-panel-2: #1a150b;
+  --jh-ink: #e8e2d4;
+  --jh-dim: #8a836f;
+  --jh-amber: #f5b93e;
+  --jh-amber-dim: #b8892e;
+  --jh-green: #6fce8a;
+  --jh-red: #e0685f;
+  --jh-line: #2a2318;
+  --jh-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --jh-sans: "IBM Plex Sans", "Libre Franklin", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+/* zero-specificity base — page CSS always overrides */
+:where(html) { background: var(--jh-bg); }
+:where(body) {
+  background: var(--jh-bg);
+  color: var(--jh-ink);
+  font-family: var(--jh-sans);
+}
+:where(h1, h2, h3, h4) {
+  font-family: var(--jh-mono);
+  letter-spacing: 0.02em;
+  color: var(--jh-ink);
+}
+:where(a) { color: var(--jh-amber); }
+:where(a:hover) { color: #ffd479; }
+:where(code, pre, kbd, samp, td, th, tt) { font-family: var(--jh-mono); }
+:where(table) { border-color: var(--jh-line); }
+:where(hr) { border-color: var(--jh-line); }
+:where(input, select, textarea, button) {
+  font-family: var(--jh-mono);
+  accent-color: var(--jh-amber);
+}
+
+/* shared affordances (safe to be opinionated) */
+::selection { background: var(--jh-amber); color: #0b0906; }
+* { scrollbar-width: thin; scrollbar-color: var(--jh-amber-dim) var(--jh-bg); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--jh-bg); }
+::-webkit-scrollbar-thumb {
+  background: var(--jh-line);
+  border-radius: 0;
+  border: 2px solid var(--jh-bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--jh-amber-dim); }
+:focus-visible { outline: 1px solid var(--jh-amber); outline-offset: 2px; }
