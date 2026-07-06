@@ -144,10 +144,48 @@ def main(target):
 
     er = get("data/engine-registry.json") or {}
     V["ft-eng"] = str(er.get("count") or len(er.get("engines", {})) or "") or None
-    # dc-* counts precomputed from the repo manifest (exact category names)
-    V.update({k: str(v) for k, v in {"dc-macro": 43, "dc-alpha": 84, "dc-risk": 52, "dc-strat": 18, "dc-data": 169}.items()})
+
+    # dc-* counts: exact, from the live manifest's real 8 categories.
+    # dc-x (Cross-Asset card: Divergences/Options Flow/COT) maps to Vol & Sentiment.
+    man = get("nav-manifest.json") or {}
+    order = [("dc-macro", r"macro|liquid"), ("dc-alpha", r"equit|alpha|signal"),
+             ("dc-x", r"vol|sentiment|cross"), ("dc-risk", r"risk|crisis"),
+             ("dc-strat", r"portfolio|execution|strat|wealth"),
+             ("dc-data", r"crypto|system|meta|research|tool|data")]
+    used = set()
+    for did, rx in order:
+        tot = 0
+        for cat in man.get("categories", []):
+            if cat["name"] not in used and re.search(rx, cat["name"], re.I):
+                used.add(cat["name"]); tot += cat.get("count", len(cat.get("pages", [])))
+        if tot:
+            V[did] = str(tot)
+    for cat in man.get("categories", []):        # leftovers -> platform bucket
+        if cat["name"] not in used:
+            V["dc-data"] = str(int(V.get("dc-data", "0")) + cat.get("count", 0))
+
+    # rows whose engines expose no public feed: honest link-arrows, never dead metrics
+    for bid in ("d-debate", "d-vol", "d-marb", "d-pairs"):
+        if not V.get(bid):
+            V[bid] = "OPEN →"
+    # schema-tolerant last resorts
+    if not V.get("hd-regime"):
+        V["hd-regime"] = g(rr, "current.regime") or g(rr, "posture.regime") or tolerant(rr)
+    for kid, src in (("kpi-hmm", uc), ("kpi-cr", ce), ("kpi-nl", li),
+                     ("read-stance", st)):
+        if not V.get(kid):
+            V[kid] = tolerant(src)
+    if not V.get("read-body"):
+        sb = get("data/signal-board.json") or {}
+        p = g(sb, "composite.posture") or tolerant(sb)
+        if p:
+            V["read-body"] = f"Composite posture {p} across the signal board."
+    for bid in ("d-pump", "d-tail", "d-optf"):
+        pass  # already tolerant()'d in the ROWS loop
+
     et = datetime.now(ZoneInfo("America/New_York"))
     V["hd-date"] = et.strftime("%a %b %d %Y").upper() + f" · AS OF {et.strftime('%H:%M')} ET"
+    V["clock"] = et.strftime("%H:%M:%S ET")
 
     s = open(target, encoding="utf-8").read()
     n = 0
