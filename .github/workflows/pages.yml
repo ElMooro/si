@@ -55,6 +55,8 @@ jobs:
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Bake last-known values into homepage (zero em-dash first paint)
         run: python3 scripts/bake_homepage.py _site/index.html || true
+      - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
+        run: python3 scripts/reskin_site.py _site || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
