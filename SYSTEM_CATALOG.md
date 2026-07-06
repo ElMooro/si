@@ -17,6 +17,7 @@
 - Runtime: **python3.12** for all Lambdas
 - S3 bucket: **justhodl-dashboard-live**
 - GitHub repo: **ElMooro/si** (main branch; auto-deploy via .github/workflows)
+- **AUTONOMY.md** = canonical autonomous deploy/verify protocol — read it every session before building
 - Site: **justhodl.ai** (GitHub Pages from root *.html)
 - API: **api.justhodl.ai** (Cloudflare Worker route)
 
