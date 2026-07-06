@@ -1,0 +1,72 @@
+[
+ [
+  "read-body fallback",
+  "data/signal-board.json",
+  "ALL candidate fields empty/missing",
+  [
+   "schema_version",
+   "method",
+   "generated_at",
+   "elapsed_s",
+   "composite_signal",
+   "composite_posture",
+   "n_engines",
+   "n_live",
+   "n_stale",
+   "categories",
+   "deep_read",
+   "engines",
+   "note"
+  ]
+ ],
+ [
+  "d-lce (Liquidity Desk)",
+  "data/liquidity-credit.json",
+  "FEED MISSING/UNREACHABLE",
+  null
+ ],
+ [
+  "d-cro fallback",
+  "data/risk-regime.json",
+  "ALL candidate fields empty/missing",
+  [
+   "engine",
+   "version",
+   "generated_at",
+   "risk_regime_score",
+   "risk_regime",
+   "scale",
+   "posture",
+   "participation",
+   "cross_border",
+   "systemic_stress",
+   "liquidity",
+   "capital_inflows",
+   "secondary_risk",
+   "blocks_used",
+   "components"
+  ]
+ ],
+ [
+  "d-conv (Conviction)",
+  "data/best-setups.json",
+  "ALL candidate fields empty/missing",
+  [
+   "schema_version",
+   "engine",
+   "generated_at",
+   "duration_s",
+   "weight_source",
+   "bond_vol_regime",
+   "nowcast_regime",
+   "methodology",
+   "stats",
+   "top_setups",
+   "quad_threats",
+   "triple_threats",
+   "buildout_threats",
+   "brain_aligned",
+   "structural_chokepoints"
+  ]
+ ]
+]
