@@ -1,20 +1,3 @@
-── HEAD freshness proof ──
-[00:31:05] ✅ runner HEAD = 0f72209fddcf
-── inherit_env evidence: bundle-source key counts ──
-[00:31:06]   justhodl-buyback-scanner: 1/9 std keys -> ['CMC_KEY']
-[00:31:06]   justhodl-confluence-meta: 3/9 std keys -> ['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY']
-── justhodl-investor-lenses ──
-[00:31:06] ✅   state=Active env=4 keys
-[00:31:06] ✅   classic rule justhodl-investor-lenses-daily: Input attached (17 tickers; before=EMPTY)
-[00:31:12] ✅   invoke=200 s3=2376B @ 2026-07-06 00:31:08+00:00
-── justhodl-technical-overlays ──
-[00:31:12] ✅   state=Active env=4 keys
-[00:31:12] ✗   NO schedule found for justhodl-technical-overlays — creating classic rule
-[00:31:12] ✅   created justhodl-technical-overlays-daily with Input
-[00:31:17] ✅   invoke=200 s3=33515B @ 2026-07-06 00:31:14+00:00
-[00:31:17] ✅ report -> aws/ops/reports/2910.json
-
-→ Report written to aws/ops/reports/latest/2910.md
 {
   "generated": "2026-07-06T00:31:05.764734+00:00",
   "engines": {
