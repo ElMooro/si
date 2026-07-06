@@ -137,3 +137,23 @@ button{font-family:var(--jh-mono)}
   .jhf-capture{width:100%}
   .jhf-capture input{flex:1;width:auto}
 }
+
+/* ── Self-hosted IBM Plex (design-audit sec11 perf ask): eliminates the
+   fonts.googleapis.com third-party request + DNS/connection round-trip that
+   67 pages were making. font-display:swap avoids invisible-text flash. */
+@font-face{font-family:'IBM Plex Mono';font-weight:400;font-style:normal;font-display:swap;
+  src:url('/fonts/mono/IBMPlexMono-Regular.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-weight:500;font-style:normal;font-display:swap;
+  src:url('/fonts/mono/IBMPlexMono-Medium.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-weight:600;font-style:normal;font-display:swap;
+  src:url('/fonts/mono/IBMPlexMono-SemiBold.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-weight:700;font-style:normal;font-display:swap;
+  src:url('/fonts/mono/IBMPlexMono-Bold.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:400;font-style:normal;font-display:swap;
+  src:url('/fonts/sans/IBMPlexSans-Regular.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:500;font-style:normal;font-display:swap;
+  src:url('/fonts/sans/IBMPlexSans-Medium.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:600;font-style:normal;font-display:swap;
+  src:url('/fonts/sans/IBMPlexSans-SemiBold.woff2') format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:700;font-style:normal;font-display:swap;
+  src:url('/fonts/sans/IBMPlexSans-Bold.woff2') format('woff2')}
