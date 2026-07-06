@@ -1,23 +1,11 @@
-executing-against: a94c3e078d202dc02cd1cc078e2998de9d321a6b
-[19:21:05] ✅ S3 inventory: 34169 objects under data/
-[19:21:05] ✅ registry: 661 engines | entry fields: ['doc', 'fred', 'loc', 'name', 'outs']
-[19:21:07] ✅ mapping: fresh=421 stale=26 unmatched=214 (page-referenced unmatched: ['justhodl-ask-desk', 'justhodl-fleet-monitor', 'justhodl-ici-flows', 'justhodl-leadlag-graph', 'justhodl-watchlist'])
-[19:21:17] ✅ remediate justhodl-inventory-drawdown: sched-err An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name justhodl-scheduler-invoke cannot be found. -> feed age 0.0h
+executing-against: 163035464349df2933f88e12c5cb6615aab51332
+[20:01:52] ✅ S3 inventory: 34176 objects under data/
+[20:01:53] ✅ registry: 661 engines | entry fields: ['doc', 'fred', 'loc', 'name', 'outs']
+[20:01:54] ✅ mapping: fresh=422 stale=25 unmatched=214 (page-referenced unmatched: ['justhodl-ask-desk', 'justhodl-fleet-monitor', 'justhodl-ici-flows', 'justhodl-leadlag-graph', 'justhodl-watchlist'])
+[20:01:54] ✅ unmatched-name resolution: {"justhodl-ask-desk": ["data/_askdesk/1781308108.json", "data/_askdesk/1781308120.json", "data/_askdesk/1781308528.json", "data/_askdesk/1781308545.json", "data/_askdesk/1781308742.json"], "justhodl-fleet-monitor": ["data/_fleet-monitor-alert-history.json", "data/_fleet-monitor.json"], "justhodl-ici-flows": ["data/history/ici-flows.json", "data/page-ai/ici-flows.json"], "justhodl-leadlag-graph": ["data/lead-lag-graph.json"], "justhodl-watchlist": ["data/page-ai/watchlist.json", "data/pre-disaster-watchlist.json", "data/user-watchlist.json"]}
+[20:02:05] ✅ remediate justhodl-inventory-drawdown: sched-err An error occurred (NoSuchEntity) when calling the GetRole operation: The role with name justhodl-scheduler-invoke cannot be found. -> feed age 0.0h
+[20:02:12] ✗ remediate justhodl-history-index: FUNCTION-NOT-FOUND -> feed age 679.0319420672125h
+[20:02:37] ✅ ici-flows diagnostic captured: [mmf] seed https://www.ici.org/research/stats: HTTP Error 404: Not Found
 
 → Report written to aws/ops/reports/latest/2930.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2930_layerD_engines.py", line 93, in <module>
-    st, age = remediate(fn, feed)
-              ^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2930_layerD_engines.py", line 85, in remediate
-    lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotFoundException) when calling the Invoke operation: Function not found: arn:aws:lambda:us-east-1:857687956942:function:justhodl-history-index
-❌ OPS-FAIL: aws/ops/pending/ops_2930_layerD_engines.py
+DONE 2930 PASS
