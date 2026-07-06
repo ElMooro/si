@@ -1,11 +1,14 @@
-executing-against: 5848ef022c3d20b29d820d1eec040ffc046ac9bc
-[22:39:53] ✅ v1.2.23 deploy live attempt 1
-[22:39:53] ✅   http 200: True
-[22:39:53] ✅   no rocket emoji: True
-[22:39:53] ✅   lock-in banner phrase present: True
-[22:39:53] ✅   zero gradients anywhere: True
-[22:39:53] ✅   theme-color present + canonical: True
-[22:39:53] ✅   full chrome present: True
+executing-against: d59af0f3df2d45eb3ec460b956e53727204d5808
+[23:16:44] ✅ v1.2.24 deploy live attempt 1
+[23:16:44] ✅   font live: mono/IBMPlexMono-Regular.woff2 http=200 bytes=49248 magic=b'wOF2'
+[23:16:44] ✅   font live: mono/IBMPlexMono-SemiBold.woff2 http=200 bytes=50600 magic=b'wOF2'
+[23:16:44] ✅   font live: sans/IBMPlexSans-Regular.woff2 http=200 bytes=63020 magic=b'wOF2'
+[23:16:44] ✅   font live: sans/IBMPlexSans-SemiBold.woff2 http=200 bytes=67060 magic=b'wOF2'
+[23:16:44] ✅ jh-theme.css carries @font-face rules: True
+[23:16:44] ✅ lce.html (pure IBM Plex page): Google Fonts fully removed = True
+[23:16:44] ✅ lce.html chrome still intact: True
+[23:16:44] ✅ 13f.html (mixed-family page): Fraunces kept, IBM Plex removed = True
+[23:16:44] ✅ investor.html: out-of-scope IBM+Plex+Serif correctly left alone = True
 
-→ Report written to aws/ops/reports/latest/2940.md
-DONE 2940 PASS
+→ Report written to aws/ops/reports/latest/2941.md
+DONE 2941 PASS
