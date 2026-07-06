@@ -203,8 +203,9 @@ first(["data/risk-regime.json"]).then(function(d){txt("hd-regime",g("regime",d))
 
 /* ── KPI strip ── */
 first(["data/khalid-metrics.json"]).then(function(d){
-  txt("kpi-ka",num(g("khalid_index",d)||g("khalid_index.value",d),1));
-  var w=g("khalid_index_wow",d);if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
+  function deep(o,k){if(!o||typeof o!=="object")return null;if(typeof o[k]==="number")return o[k];for(var x in o){var v=deep(o[x],k);if(v!==null)return v;}return null;}
+  txt("kpi-ka",num(deep(d,"khalid_index"),1));
+  var w=deep(d,"khalid_index_wow");if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
 }).catch(function(){});
 first(["data/us-cycle.json"]).then(function(d){txt("kpi-hmm",g("cycle_score.level",d)||g("regime",d));}).catch(function(){});
 first(["data/liquidity-inflection.json"]).then(function(d){
@@ -246,7 +247,7 @@ var ROWS=[
  ["d-tail",["data/hedge-book.json"],function(d){return g("state",d)||g("status",d);}],
  ["d-div",["data/cycle-clock.json"],function(d){var v=g("divergences",d);return Array.isArray(v)?(v.length+" ACTIVE"):v;}],
  ["d-optf",["data/options-analytics.json","data/polygon-options-flow.json"],function(d){return g("market_bias",d)||g("summary.bias",d)||g("alert_level",d);}],
- ["d-cot",["https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json","https://api.justhodl.ai/agent/cftc-positioning/cot/all"],function(d){var n=0,hit=false;for(var k in d){if(!Array.isArray(d[k]))continue;if(/crowd|extreme/i.test(k)){n+=d[k].length;hit=true;}}if(!hit&&Array.isArray(d.contracts)){n=d.contracts.filter(function(c){var z=c.z||c.zscore||c.z_score;return typeof z==="number"&&Math.abs(z)>=2;}).length;hit=n>0;}return hit?(n+" CROWDED"):null;}],
+ ["d-cot",["https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json","https://api.justhodl.ai/agent/cftc-positioning/cot/all"],function(d){if(Array.isArray(d.cluster_alerts))return d.cluster_alerts.length+" CROWDED";var n=0,hit=false;for(var k in d){if(!Array.isArray(d[k]))continue;if(/crowd|extreme/i.test(k)){n+=d[k].length;hit=true;}}if(!hit&&Array.isArray(d.contracts)){n=d.contracts.filter(function(c){var z=c.z||c.zscore||c.z_score;return typeof z==="number"&&Math.abs(z)>=2;}).length;hit=n>0;}return hit?(n+" CROWDED"):null;}],
  ["d-marb",["data/merger-arb.json"],function(d){var n=g("n_deals",d)||g("deals",d);return n!=null?(n+" DEALS"):g("state",d);}],
  ["d-pairs",["data/pairs-scanner.json"],function(d){return g("mtd",d)?pct(g("mtd",d),1)+" MTD":g("state",d);}],
  ["d-conv",["data/best-setups.json"],function(d){var a=g("setups",d)||g("top",d)||[];var n=Array.isArray(a)?a.filter(function(x){return /STRONG/.test(x.conviction||x.rating||"");}).length:null;return n!=null?(n+" NAMES"):null;}],
