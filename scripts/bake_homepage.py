@@ -140,6 +140,16 @@ def main(target):
                 break
     V.update({k: str(v) for k, v in tot.items()})
 
+    V["clock"] = datetime.now(ZoneInfo("America/New_York")).strftime("%H:%M:%S ET")
+    # rows whose engines expose no public feed bake as honest link-arrows, not dead metrics
+    for bid in ("d-debate", "d-vol", "d-marb", "d-pairs"):
+        V.setdefault(bid, None)
+        if not V.get(bid):
+            V[bid] = "OPEN →"
+    if not V.get("hd-regime"):
+        V["hd-regime"] = g(rr, "current.regime") or g(rr, "posture.regime")
+    if not V.get("read-stance"):
+        V["read-stance"] = g(get("data/signal-board.json") or {}, "composite.posture")
     et = datetime.now(ZoneInfo("America/New_York"))
     V["hd-date"] = et.strftime("%a %b %d %Y").upper() + f" · AS OF {et.strftime('%H:%M')} ET"
 
