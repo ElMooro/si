@@ -1,31 +1,31 @@
-executing-against: c6985c9afe6cbbea632abccddd4cd3cb4b965347
+executing-against: 2459aefe4a394e605c67c5a49f85869617cd437d
 ── capture backend ──
-[16:44:42] ✅   DDB table exists
-[16:44:42]   zip: 873 bytes
+[16:49:59] ✅   DDB table exists
+[16:49:59]   zip: 873 bytes
 ── 1. Lambda ──
-[16:44:42]   Lambda exists — updating
-[16:44:47] ✅   ✓ updated justhodl-subscribe
+[16:49:59]   Lambda exists — updating
+[16:50:03] ✅   ✓ updated justhodl-subscribe
 ── 3. Smoke test ──
-[16:44:47]   invoking justhodl-subscribe…
-[16:44:48] ✅   ✓ smoke test passed
-[16:44:48]     ok                       False
-[16:44:48]     error                    invalid email
-[16:44:48] ✅   FnURL exists
-[16:44:48] ✅   endpoint published -> data/subscribe-endpoint.json
-[16:44:49] ✅   round-trip: {'post': 200, 'ok': True, 'ddb_stored': True, 'cleaned': True}
+[16:50:03]   invoking justhodl-subscribe…
+[16:50:04] ✅   ✓ smoke test passed
+[16:50:04]     ok                       False
+[16:50:04]     error                    invalid email
+[16:50:04] ✅   FnURL exists
+[16:50:04] ✅   endpoint published -> data/subscribe-endpoint.json
+[16:50:06] ✅   round-trip: {'post': 200, 'ok': True, 'ddb_stored': True, 'cleaned': True}
 ── live homepage: baked paint + funnel elements ──
-[16:44:49] ✅   v1.2.8: True
-[16:44:49] ✅   baked_tape: True
-[16:44:49] ✅   baked_ka: True
-[16:44:49] ✅   as_of_stamp: True
-[16:44:49] ✅   og_description: True
-[16:44:49] ✅   unified_title: True
-[16:44:49] ✅   hero_pitch: True
-[16:44:49] ✅   cta: True
-[16:44:49] ✅   subscribe_ui: True
-[16:44:49] ✗   residual_dashes_le_5: False
-[16:44:49]   residual dashes: 10
-[16:44:49] ✅ report -> 2923.json
+[16:50:06] ✅   v1.2.9: True
+[16:50:06] ✅   baked_tape: True
+[16:50:06] ✅   baked_ka: True
+[16:50:06] ✅   as_of_stamp: True
+[16:50:06] ✅   og_description: True
+[16:50:06] ✅   unified_title: True
+[16:50:06] ✅   hero_pitch: True
+[16:50:06] ✅   cta: True
+[16:50:06] ✅   subscribe_ui: True
+[16:50:06] ✗   residual_dashes_le_5: False
+[16:50:06]   residual dashes: 13 -> ['clock', 'hd-regime', 'kpi-nl', 'read-body', 'read-stance', 'd-pump', 'd-debate', 'd-vol', 'd-tail', 'dc-x', 'd-optf', 'd-marb', 'd-pairs']
+[16:50:06] ✅ report -> 2923.json
 
 → Report written to aws/ops/reports/latest/2923.md
 DONE 2923 FAIL
