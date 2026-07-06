@@ -76,11 +76,11 @@ with report("2923") as r:
     idx = ""
     for att in range(12):
         c, idx = get(f"https://justhodl.ai/index.html?t={int(time.time())}")
-        if 'JH_V="v1.2.8"' in idx and re.search(r'id="tp-spx">[^<]*\d', idx):
+        if 'JH_V="v1.2.9"' in idx and re.search(r'id="tp-spx">[^<]*\d', idx):
             break
         time.sleep(18)
     checks = {
-        "v1.2.8": 'JH_V="v1.2.8"' in idx,
+        "v1.2.9": 'JH_V="v1.2.9"' in idx,
         "baked_tape": bool(re.search(r'id="tp-spx">[^<]*\d', idx)),
         "baked_ka": bool(re.search(r'id="kpi-ka">[^<]*\d', idx)),
         "as_of_stamp": "AS OF" in idx,
@@ -96,7 +96,10 @@ with report("2923") as r:
     ok_all &= all(checks.values())
     for k, v in checks.items():
         (r.ok if v else r.fail)(f"  {k}: {v}")
-    r.log(f"  residual dashes: {dashes}")
+    import re as _re
+    rem = _re.findall(r'id="([a-z0-9-]+)">—</span>', idx)
+    out["remaining_ids"] = rem
+    r.log(f"  residual dashes: {dashes} -> {rem}")
 
     json.dump(out, open("aws/ops/reports/2923.json", "w"), indent=2, default=str)
     r.ok("report -> 2923.json")
