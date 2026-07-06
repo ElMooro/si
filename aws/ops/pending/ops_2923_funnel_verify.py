@@ -76,11 +76,11 @@ with report("2923") as r:
     idx = ""
     for att in range(12):
         c, idx = get(f"https://justhodl.ai/index.html?t={int(time.time())}")
-        if 'JH_V="v1.2.7"' in idx and re.search(r'id="tp-spx">[^<]*\d', idx):
+        if 'JH_V="v1.2.8"' in idx and re.search(r'id="tp-spx">[^<]*\d', idx):
             break
         time.sleep(18)
     checks = {
-        "v1.2.7": 'JH_V="v1.2.7"' in idx,
+        "v1.2.8": 'JH_V="v1.2.8"' in idx,
         "baked_tape": bool(re.search(r'id="tp-spx">[^<]*\d', idx)),
         "baked_ka": bool(re.search(r'id="kpi-ka">[^<]*\d', idx)),
         "as_of_stamp": "AS OF" in idx,
@@ -91,7 +91,7 @@ with report("2923") as r:
         "subscribe_ui": 'id="jh-sub-e"' in idx,
     }
     dashes = idx.count('">—</span>')
-    checks["residual_dashes_le_8"] = dashes <= 8
+    checks["residual_dashes_le_5"] = dashes <= 5
     out["page"] = {"attempt": att + 1, "dashes": dashes, "checks": checks}
     ok_all &= all(checks.values())
     for k, v in checks.items():
