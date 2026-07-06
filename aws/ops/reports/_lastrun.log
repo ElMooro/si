@@ -1,9 +1,6 @@
-executing-against: d4f24d5104f4ab8e5f02b45da4feee46f9ff4afc
-[03:15:04] ✅ v1.2.3 page live attempt 1
-[03:15:05] ✗ KA report.json: {'http': 200, 'shape': 'dict', 'value': None, 'wow': None}
-[03:15:05] ✅ COT cluster_alerts: 0
-[03:15:05] ✅ registry n=661 gen=2026-07-06T03:12:12.883797+00:00 new={'justhodl-market-tape': True, 'justhodl-investor-lenses': True, 'justhodl-technical-overlays': True}
+executing-against: 518632b5590f2a8dd24d41ebc538a67e79bc33f5
+[03:20:28] ✅ v1.2.4 live attempt 1
+[03:20:28] ✅ KA dict keys=['gbc_avg_cli', 'gbc_global_phase', 'lce_composite', 'lce_state', 'leading_markets_signal', 'regime', 'score', 'signals', 'tenor_state', 'ts'] -> value=57
 
-→ Report written to aws/ops/reports/latest/2919.md
-DONE 2919 FAIL
-❌ OPS-FAIL: aws/ops/pending/ops_2919_audit_closeout.py
+→ Report written to aws/ops/reports/latest/2920.md
+DONE 2920 PASS
