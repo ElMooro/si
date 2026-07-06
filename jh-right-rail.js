@@ -81,4 +81,5 @@
     if (e.key === "Escape") shut();
   });
   if (window.matchMedia && window.matchMedia("(min-width: 1400px)").matches) open_();
+  else wrap.classList.add("jhr-open");   // <1400px: static reflow, always visible, no toggle needed
 })();

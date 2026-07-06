@@ -132,11 +132,6 @@ def main(root):
             s2 = reskin_text(s)
             if p.suffix.lower() == ".html":
                 s2 = THEME_META.sub(lambda m: m.group(1) + "#F0B429" + m.group(2), s2)
-            if p.suffix.lower() == ".html" and "/jh-rail.js" not in s2:
-                for tag in ("</body>", "</BODY>"):
-                    if tag in s2:
-                        s2 = s2.replace(tag, '<script src="/jh-rail.js" defer></script>' + tag, 1)
-                        break
             if (p.suffix.lower() == ".html"
                     and "/jh-chart-theme.js" not in s2):
                 for anchor in ("<head>", "<HEAD>"):
