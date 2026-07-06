@@ -114,16 +114,16 @@ def main(target):
         ("d-alpha", ["data/engine-alpha.json"],
          lambda d: f"{len(d.get('alpha_proven_signals', []))} PROVEN"),
         ("d-pump", ["data/pump-radar-summary.json"],
-         lambda d: (f"HOT ·{g(d,'hot') or g(d,'n_hot') or g(d,'hot_count')}"
-                    if (g(d, 'hot') or g(d, 'n_hot') or g(d, 'hot_count')) is not None
-                    else g(d, "state"))),
+         lambda d: g(d, "temperature.label") or g(d, "conviction")),
         ("d-cro", ["data/crisis-composite.json", "data/risk-regime.json"],
          lambda d: g(d, "defcon_level") or g(d, "posture.hedge") or g(d, "regime")),
-        ("d-tail", ["data/hedge-book.json"], lambda d: g(d, "state") or g(d, "status")),
+        ("d-tail", ["data/hedge-book.json"], lambda d: g(d, "last_action") or g(d, "scenario_class")),
         ("d-div", ["data/cycle-clock.json"],
          lambda d: f"{len(g(d,'divergences') or [])} ACTIVE" if isinstance(g(d, "divergences"), list) else None),
         ("d-optf", ["data/options-analytics.json"],
-         lambda d: g(d, "market_bias") or g(d, "summary.bias")),
+         lambda d: (lambda dist: ("LONG GAMMA" if dist.get("long_gamma", 0) > dist.get("short_gamma", 0)
+                                   else "SHORT GAMMA") if isinstance(dist, dict) and dist else None)
+                   (g(d, "distribution"))),
         ("d-cot", ["https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json"],
          lambda d: f"{len(d.get('cluster_alerts', []))} CROWDED" if isinstance(d.get("cluster_alerts"), list) else None),
         ("d-conv", ["data/best-setups.json"],
