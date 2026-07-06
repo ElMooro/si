@@ -23,6 +23,8 @@ on:
       - "js/**"
       - "css/**"
       - ".github/workflows/pages.yml"
+  schedule:
+    - cron: '*/15 * * * *'   # re-bake last-known homepage values
   workflow_dispatch:
     inputs:
       retry_count:
@@ -50,6 +52,8 @@ jobs:
           for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
           for d in assets js css img fonts; do [ -d "$d" ] && cp -r "$d" _site/; done
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
+      - name: Bake last-known values into homepage (zero em-dash first paint)
+        run: python3 scripts/bake_homepage.py _site/index.html || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

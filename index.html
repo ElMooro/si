@@ -4,7 +4,16 @@
 <!-- JH COMMAND CENTER v2.0 · design 1a AMBER TERMINAL · 2026-07-06 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JustHodl.AI — Command Center</title>
+<title>JustHodl.AI — Institutional Market Intelligence</title>
+<meta name="description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
+<meta property="og:title" content="JustHodl.AI — Institutional Market Intelligence">
+<meta property="og:description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://justhodl.ai/">
+<meta property="og:site_name" content="JustHodl.AI">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JustHodl.AI — Institutional Market Intelligence">
+<meta name="twitter:description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
 <meta name="theme-color" content="#facc15">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,7 +27,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.6";
+<script>const JH_V="v1.2.7";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -54,7 +63,7 @@ if ("serviceWorker" in navigator) {
             <span>GOLD <b style="color: #6fce8a;"><span id="tp-gold">—</span></b></span>
           </div>
           <div style="flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
-            <span style="color: #6fce8a;">● LIVE</span>
+            <span id="jh-cta" style="cursor:pointer;border:1px solid #f5b93e;color:#f5b93e;padding:4px 10px;font-size:11px;letter-spacing:.05em;font-family:'IBM Plex Mono',monospace;white-space:nowrap;margin-right:10px">GET THE MORNING BRIEF</span><span style="color: #6fce8a;">● LIVE</span>
             <span style="color: #8a836f;"><span id="clock">—</span></span>
           </div>
         </div>
@@ -79,7 +88,8 @@ if ("serviceWorker" in navigator) {
 
           <!-- stat tiles -->
           <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: #2b2820; border: 1px solid #2b2820;">
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">KA INDEX</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #f0b429; margin-top: 4px;"><span id="kpi-ka">—</span></div><div style="font-size: 10.5px; color: #6fce8a; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-ka-d">&nbsp;</span></div></div>
+            <div style="padding:0 0 10px;color:#8a836f;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.03em">The edge hedge funds pay for — free during early access. <a href="#" id="jh-cta2" style="color:#f5b93e;text-decoration:none">Get the Morning Brief →</a></div>
+<div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">KA INDEX</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #f0b429; margin-top: 4px;"><span id="kpi-ka">—</span></div><div style="font-size: 10.5px; color: #6fce8a; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-ka-d">&nbsp;</span></div></div>
             <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">REGIME</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: #6fce8a; margin-top: 8px;"><span id="kpi-hmm">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;">HMM 4-state</div></div>
             <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">NET LIQUIDITY</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 4px;"><span id="kpi-nl">—</span></div><div style="font-size: 10.5px; color: #6fce8a; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-nl-d">&nbsp;</span></div></div>
             <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">CRYPTO</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; margin-top: 8px;"><span id="kpi-cr">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-cr-d">&nbsp;</span></div></div>
@@ -338,6 +348,40 @@ fetch("/nav-manifest.json?t="+Date.now(),{cache:"no-store"}).then(function(r){re
        if(el)el.textContent=String((parseInt(el.textContent,10)||0)+c.pages.length);break;}}});
  }).catch(function(){});
 setOpen(pinned());if(P&&pinned())P.style.color="#f5b93e";
+})();
+</script>
+
+<div id="jh-sub" style="display:none;position:fixed;top:54px;right:16px;z-index:99999;background:#141008;border:1px solid #f5b93e;padding:14px;width:290px;font-family:'IBM Plex Mono',monospace">
+  <div style="color:#e8e2d4;font-size:12px;margin-bottom:8px">Daily 8AM ET institutional brief. Early access.</div>
+  <div style="display:flex;gap:6px"><input id="jh-sub-e" type="email" placeholder="you@fund.com" style="flex:1;background:#0b0906;border:1px solid #2a2318;color:#e8e2d4;padding:6px 8px;font:inherit;font-size:12px;min-width:0">
+  <button id="jh-sub-go" style="background:#f5b93e;border:0;color:#0b0906;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer">JOIN</button></div>
+  <div id="jh-sub-m" style="color:#8a836f;font-size:11px;margin-top:7px;min-height:14px"></div>
+</div>
+<script>
+(function(){"use strict";
+var P=document.getElementById("jh-sub"),E=document.getElementById("jh-sub-e"),
+    G=document.getElementById("jh-sub-go"),M=document.getElementById("jh-sub-m"),EP=null;
+function done(){["jh-cta","jh-cta2"].forEach(function(i){var b=document.getElementById(i);
+  if(b){b.textContent="✓ SUBSCRIBED";b.style.cursor="default";b.onclick=null;}});}
+if(localStorage.getItem("jh_sub")==="1")done();
+fetch("data/subscribe-endpoint.json?t="+Date.now(),{cache:"no-store"})
+ .then(function(r){return r.json();}).then(function(d){EP=d.url;}).catch(function(){});
+function open_(e){if(e)e.preventDefault();
+  if(localStorage.getItem("jh_sub")==="1")return;
+  P.style.display="block";setTimeout(function(){E.focus();},20);}
+["jh-cta","jh-cta2"].forEach(function(i){var b=document.getElementById(i);if(b)b.onclick=open_;});
+document.addEventListener("click",function(e){
+  if(P.style.display==="block"&&!P.contains(e.target)&&e.target.id!=="jh-cta"&&e.target.id!=="jh-cta2")P.style.display="none";});
+G.onclick=function(){var v=(E.value||"").trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v)){M.textContent="enter a valid email";return;}
+  if(!EP){M.textContent="endpoint warming — try again in a moment";return;}
+  M.textContent="…";
+  fetch(EP,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:v,source:"homepage"})})
+   .then(function(r){return r.json();}).then(function(d){
+     if(d&&d.ok){localStorage.setItem("jh_sub","1");M.textContent="✓ you're on the early-access list";
+       setTimeout(function(){P.style.display="none";done();},1200);}
+     else M.textContent=(d&&d.error)||"failed — try again";})
+   .catch(function(){M.textContent="network error — try again";});};
 })();
 </script>
 </body>
