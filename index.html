@@ -18,7 +18,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.1";
+<script>const JH_V="v1.2.2";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -202,7 +202,7 @@ tick();setInterval(tick,1000);
 first(["data/risk-regime.json"]).then(function(d){txt("hd-regime",g("regime",d));}).catch(function(){});
 
 /* ── KPI strip ── */
-first(["data/khalid-metrics.json"]).then(function(d){
+first(["data/khalid-adaptive.json","data/khalid-metrics.json"]).then(function(d){
   function deep(o,k){if(!o||typeof o!=="object")return null;if(typeof o[k]==="number")return o[k];for(var x in o){var v=deep(o[x],k);if(v!==null)return v;}return null;}
   txt("kpi-ka",num(deep(d,"khalid_index"),1));
   var w=deep(d,"khalid_index_wow");if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
