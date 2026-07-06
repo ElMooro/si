@@ -1,1 +1,13 @@
-executing-against: 01876e9f302e426992bf698a314a2f58d6ed3879
+executing-against: c5517970f7c626ed94853a9256914c628a0faa24
+[20:48:18] ✅ v1.2.17 deploy live attempt 1
+[20:48:18] ✅ jh-right-rail.js live: http=200 bytes=3540
+[20:48:24] ✗ rail coverage LIVE: 0/366 (expect 238)
+[20:48:24] ✗ real freshness values landed: 0 (of 0 feed refs seen)
+[20:48:24] ✅   spot lce.html: feeds=[] related=[]
+[20:48:24] ✅   spot bonds.html: feeds=[] related=[]
+[20:48:24] ✅   spot options.html: feeds=[] related=[]
+[20:48:24] ✅   spot apac.html: feeds=[] related=[]
+
+→ Report written to aws/ops/reports/latest/2932.md
+DONE 2932 FAIL
+❌ OPS-FAIL: aws/ops/pending/ops_2932_rail_verify.py
