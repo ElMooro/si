@@ -37,6 +37,7 @@
               var cls = (typeof it.chg_pct === "number") ? (it.chg_pct >= 0 ? "jhc-up" : "jhc-dn") : "";
               var v = (it.display || "") + (typeof it.chg_pct === "number"
                 ? ((it.chg_pct >= 0 ? " +" : " ") + it.chg_pct.toFixed(1) + "%") : "");
+              sp.setAttribute("data-sym", it.label || "");
               sp.innerHTML = "<b>" + it.label + "</b> <span class=\"" + cls + "\">" + v + "</span>";
               tp.appendChild(sp); }); })
           .catch(function () {}); };

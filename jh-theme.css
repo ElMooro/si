@@ -157,3 +157,14 @@ button{font-family:var(--jh-mono)}
   src:url('/fonts/sans/IBMPlexSans-SemiBold.woff2') format('woff2')}
 @font-face{font-family:'IBM Plex Sans';font-weight:700;font-style:normal;font-display:swap;
   src:url('/fonts/sans/IBMPlexSans-Bold.woff2') format('woff2')}
+
+/* ── mobile pass (design-audit sec12 PR8): topbar tape collapses to
+   SPX + BTC only <=640px (secondary chrome de-prioritized, not clipped) ── */
+@media (max-width:640px){
+  .jh-topbar{gap:8px;padding:8px 10px;flex-wrap:nowrap}
+  .jhc-clock,.jhc-cc{display:none}
+  .jhc-tape{gap:10px}
+  .jhc-tape .jhc-chip{display:none}
+  .jhc-tape .jhc-chip[data-sym="SPX"],
+  .jhc-tape .jhc-chip[data-sym="BTC"]{display:inline-flex}
+}
