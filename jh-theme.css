@@ -70,3 +70,21 @@ h1,h2,h3{font-family:var(--jh-mono)}
 th{color:var(--jh-dim);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
 td,th{border-bottom:1px solid var(--jh-line)}
 button{font-family:var(--jh-mono)}
+
+/* ── Right-rail template (design-audit §8-C) — additive dock, non-destructive ── */
+.jh-rail{position:fixed;top:96px;right:0;width:300px;max-height:calc(100vh - 116px);
+  overflow-y:auto;background:#12110C;border-left:1px solid #2B2820;border-top:1px solid #2B2820;
+  border-bottom:1px solid #2B2820;z-index:900;font-family:'IBM Plex Mono',ui-monospace,monospace;
+  box-shadow:-8px 0 24px rgba(0,0,0,.35)}
+.jh-rail-sec{padding:14px 16px;border-bottom:1px solid #1E1C15}
+.jh-rail-sec:last-child{border-bottom:none}
+.jh-rail-sec h4{margin:0 0 8px;font-size:10px;font-weight:600;letter-spacing:.12em;color:#6A6455}
+.jh-rail-sec p{margin:0;font-size:12.5px;line-height:1.5;color:#D8D1BF;font-family:'IBM Plex Sans',sans-serif}
+.jh-rail-sec code{font-size:11px;color:#B5AD99;word-break:break-all}
+.jh-rail-links{display:flex;flex-direction:column;gap:6px}
+.jh-rail-link{display:block;font-size:11.5px;color:#F0B429;text-decoration:none}
+.jh-rail-link:hover{color:#FFD45E}
+.jh-rail-dim{font-size:11.5px;color:#6A6455;font-family:'IBM Plex Sans',sans-serif}
+@media (max-width:1400px){.jh-rail{position:static;width:auto;max-height:none;margin:24px 0 0;
+  border:1px solid #2B2820;box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.jh-rail{scroll-behavior:auto}}
