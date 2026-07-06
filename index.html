@@ -18,7 +18,7 @@
 
 html,body{margin:0;background:#0b0906}
 #cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.5";
+<script>const JH_V="v1.2.6";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
@@ -26,6 +26,7 @@ if ("serviceWorker" in navigator) {
   });
 }</script>
 <script src="/wss-client.js" defer></script>
+<script>window.__jhNavDrawer=true;/* homepage runs the live sidebar; drawer suppressed here */</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>
 </head>
@@ -59,25 +60,11 @@ if ("serviceWorker" in navigator) {
         </div>
 
         <!-- sidebar -->
-        <div style="border-right: 1px solid #2b2820; background: #0f0e0a; padding: 14px 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden; font-family: 'IBM Plex Mono', monospace;">
+        <div id="jh-sidebar" style="border-right: 1px solid #2b2820; background: #0f0e0a; padding: 14px 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden; font-family: 'IBM Plex Mono', monospace;">
           <div style="margin: 0 12px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #2b2820; padding: 7px 10px; color: #8a836f; font-size: 11.5px;">
-            <span>⌕</span><span style="flex: 1;">Jump to any desk…</span><span style="border: 1px solid #3a3628; padding: 1px 5px; font-size: 10px;">⌘K</span>
+            <span>⌕</span><input id="jh-side-q" placeholder="Jump to any desk…" autocomplete="off" style="flex:1;background:transparent;border:0;outline:0;color:#e8e2d4;font:inherit;min-width:0"><span id="jh-side-pin" title="Pin sidebar open" style="cursor:pointer;color:#6a6455;font-size:12px">📌</span><span style="border: 1px solid #3a3628; padding: 1px 5px; font-size: 10px;">⌘K</span>
           </div>
-          <div style="padding: 6px 16px 4px; font-size: 10px; letter-spacing: 0.14em; color: #6a6455;">OVERVIEW</div>
-          <div style="margin: 0 8px; padding: 6px 10px; background: #f0b429; color: #14120c; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between;"><span><a href="/index.html" style="color:inherit;text-decoration:none">▣ Command Center</a></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px;"><a href="/today.html" style="color:inherit;text-decoration:none">☀ Today</a></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px;"><a href="/signal-board.html" style="color:inherit;text-decoration:none">★ Signal Board</a></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px;"><a href="/strategist.html" style="color:inherit;text-decoration:none">▤ Morning Brief</a></div>
-          <div style="padding: 12px 16px 4px; font-size: 10px; letter-spacing: 0.14em; color: #6a6455;">DESKS</div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/plumbing.html" style="color:inherit;text-decoration:none">≡ Macro &amp; Liquidity</a></span><span style="color: #6a6455;"><span id="sc-macro">—</span></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/risk-regime.html" style="color:inherit;text-decoration:none">⇄ Cross-Asset</a></span><span style="color: #6a6455;">9</span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/master-rank.html" style="color:inherit;text-decoration:none">α Alpha &amp; Signals</a></span><span style="color: #6a6455;"><span id="sc-alpha">—</span></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/risk-desk.html" style="color:inherit;text-decoration:none">⚠ Risk &amp; Hedging</a></span><span style="color: #6a6455;"><span id="sc-risk">—</span></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/directory.html" style="color:inherit;text-decoration:none">✂ Strategy Desks</a></span><span style="color: #6a6455;"><span id="sc-strat">—</span></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/portfolio-manager.html" style="color:inherit;text-decoration:none">$ Personal Wealth</a></span><span style="color: #6a6455;">3</span></div>
-          <div style="padding: 12px 16px 4px; font-size: 10px; letter-spacing: 0.14em; color: #6a6455;">PLATFORM</div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px; display: flex; justify-content: space-between;"><span><a href="/us-data-desk.html" style="color:inherit;text-decoration:none">⌬ Data &amp; APIs</a></span><span style="color: #6a6455;"><span id="sc-data">—</span></span></div>
-          <div style="margin: 0 8px; padding: 6px 10px; color: #b5ad99; font-size: 12px;"><a href="/llm-cost.html" style="color:inherit;text-decoration:none">⚙ System Health</a></div>
+          <div id="jh-side"></div>
           <div style="flex: 1;"></div>
           <div style="margin: 0 8px; padding: 8px 10px; border-top: 1px solid #2b2820; color: #6a6455; font-size: 10.5px;">v3.0 · <span id="ft-eng">—</span> engines live · 5m refresh</div>
         </div>
@@ -271,15 +258,87 @@ first(["data/engine-registry.json"]).then(function(d){
   var n=g("count",d)||Object.keys(g("engines",d)||{}).length;if(n)txt("ft-eng",n);}).catch(function(){});
 
 /* ── ⌘K → nav drawer if the shell exposes it; else hide the chip ── */
-document.addEventListener("keydown",function(e){
-  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();
-    if(window.jhNavToggle)window.jhNavToggle();
-    else{var b=document.querySelector("[data-jh-nav-toggle],#jh-nav-btn");if(b)b.click();}}});
+document.addEventListener("keydown",function(e){var k=e.key.toLowerCase();var typing=/input|textarea|select/i.test((e.target&&e.target.tagName)||"");if(((e.metaKey||e.ctrlKey)&&k==="k")||(k==="/"&&!typing)){e.preventDefault();if(window.jhSideOpen)window.jhSideOpen(true);}});
 
 /* ── 5-min refresh ── */
 setTimeout(function(){location.reload();},300000);
 })();
 
+</script>
+
+<style>
+#jh-sidebar{transition:width .18s ease;overflow:hidden}
+#jh-sidebar.jh-collapsed{width:44px !important;min-width:44px}
+#jh-sidebar.jh-collapsed #jh-side,#jh-sidebar.jh-collapsed #jh-side-q,
+#jh-sidebar.jh-collapsed #jh-side-pin,#jh-sidebar.jh-collapsed .jh-kbd,
+#jh-sidebar.jh-collapsed .jh-foot{display:none !important}
+#jh-side{overflow-y:auto;flex:1;font-family:'IBM Plex Mono',monospace}
+#jh-side details{border-top:1px solid #1e1a12}
+#jh-side summary{cursor:pointer;list-style:none;padding:7px 12px;color:#8a836f;font-size:10.5px;letter-spacing:.08em;display:flex;justify-content:space-between}
+#jh-side summary::-webkit-details-marker{display:none}
+#jh-side .jh-cnt{color:#5a5445}
+#jh-side .jh-row{display:flex;align-items:center;gap:7px;padding:3px 10px 3px 8px}
+#jh-side .jh-row a{color:#cfc7b2;text-decoration:none;font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#jh-side .jh-row a:hover{color:#f5b93e}
+#jh-side .jh-star{cursor:pointer;color:#3a3428;font-size:12px;border:0;background:none;padding:0}
+#jh-side .jh-star.on{color:#f5b93e}
+#jh-side .jh-favhead{padding:7px 12px;color:#f5b93e;font-size:10.5px;letter-spacing:.08em;border-top:1px solid #1e1a12}
+</style>
+<script>
+(function(){"use strict";
+var C=document.getElementById("jh-sidebar"),M=document.getElementById("jh-side"),
+    Q=document.getElementById("jh-side-q"),P=document.getElementById("jh-side-pin");
+if(!C||!M)return;
+var PAGES=[],CATS=[];
+function favs(){try{return JSON.parse(localStorage.getItem("jh_favs")||"[]");}catch(e){return[];}}
+function setFavs(a){try{localStorage.setItem("jh_favs",JSON.stringify(a.slice(0,80)));}catch(e){}}
+function pinned(){return localStorage.getItem("jh_sidebar")==="open";}
+function setOpen(o){C.classList.toggle("jh-collapsed",!o);}
+window.jhSideOpen=function(focus){setOpen(true);if(focus&&Q)setTimeout(function(){Q.focus();},30);};
+function close(){if(!pinned()){setOpen(false);if(Q)Q.blur();}}
+C.addEventListener("click",function(e){if(C.classList.contains("jh-collapsed")){window.jhSideOpen(true);e.stopPropagation();}});
+document.addEventListener("click",function(e){if(!C.contains(e.target))close();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")close();});
+if(P)P.addEventListener("click",function(e){e.stopPropagation();
+  localStorage.setItem("jh_sidebar",pinned()?"":"open");P.style.color=pinned()?"#f5b93e":"#6a6455";});
+function row(p){var f=favs(),d=document.createElement("div");d.className="jh-row";
+  var b=document.createElement("button");b.className="jh-star"+(f.indexOf(p.href)>-1?" on":"");b.textContent="\u2605";
+  b.onclick=function(e){e.stopPropagation();var a=favs(),i=a.indexOf(p.href);
+    if(i>-1)a.splice(i,1);else a.unshift(p.href);setFavs(a);render(Q?Q.value:"");};
+  var a2=document.createElement("a");a2.href=p.href;a2.textContent=p.title||p.href;a2.title=p.href;
+  d.appendChild(b);d.appendChild(a2);return d;}
+function render(q){M.textContent="";var f=favs();q=(q||"").trim().toLowerCase();
+  var favPages=f.map(function(h){for(var i=0;i<PAGES.length;i++)if(PAGES[i].href===h)return PAGES[i];
+    return {href:h,title:h.replace(/^\//,"").replace(/\.html$/,"")};});
+  if(q){var hits=PAGES.filter(function(p){return ((p.title||"")+" "+p.href).toLowerCase().indexOf(q)>-1;});
+    hits.sort(function(a,b){var fa=f.indexOf(a.href)>-1,fb=f.indexOf(b.href)>-1;
+      return fa===fb?(a.title||"").localeCompare(b.title||""):(fa?-1:1);});
+    var h=document.createElement("div");h.className="jh-favhead";
+    h.textContent=hits.length+" MATCH"+(hits.length===1?"":"ES");M.appendChild(h);
+    hits.forEach(function(p){M.appendChild(row(p));});return;}
+  if(favPages.length){var fh=document.createElement("div");fh.className="jh-favhead";
+    fh.textContent="\u2605 FAVORITES";M.appendChild(fh);
+    favPages.forEach(function(p){M.appendChild(row(p));});}
+  CATS.forEach(function(c){var dt=document.createElement("details");
+    var sm=document.createElement("summary");
+    var n=document.createElement("span");n.textContent=c.name;
+    var k=document.createElement("span");k.className="jh-cnt";k.textContent=c.pages.length;
+    sm.appendChild(n);sm.appendChild(k);dt.appendChild(sm);
+    c.pages.forEach(function(p){dt.appendChild(row(p));});M.appendChild(dt);});}
+if(Q)Q.addEventListener("input",function(){render(Q.value);});
+fetch("/nav-manifest.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();})
+ .then(function(m){CATS=m.categories||[];
+   CATS.forEach(function(c){(c.pages||[]).forEach(function(p){PAGES.push(p);});});
+   render("");
+   var MAP=[["dc-macro",/macro|liquid/i],["dc-alpha",/alpha|signal|equit/i],["dc-risk",/risk|crisis|hedg/i],
+            ["dc-x",/cross|regime|global/i],["dc-strat",/strat|desk|arb|pair|wealth/i],["dc-data",/data|api|system|platform|crypto/i]];
+   var used={};CATS.forEach(function(c){for(var i=0;i<MAP.length;i++){
+     if(MAP[i][1].test(c.name)&&!used[c.name]){used[c.name]=1;
+       var el=document.getElementById(MAP[i][0]);
+       if(el)el.textContent=String((parseInt(el.textContent,10)||0)+c.pages.length);break;}}});
+ }).catch(function(){});
+setOpen(pinned());if(P&&pinned())P.style.color="#f5b93e";
+})();
 </script>
 </body>
 </html>
