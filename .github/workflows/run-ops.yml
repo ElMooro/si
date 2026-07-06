@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 25
           # Use default GITHUB_TOKEN so we can push back reports
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,10 +52,31 @@ jobs:
           if [ -n "${{ github.event.inputs.script }}" ]; then
             echo "scripts=${{ github.event.inputs.script }}" >> $GITHUB_OUTPUT
           else
-            scripts=$(git diff --name-only HEAD^ HEAD | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' -)
+            # Anchor detection to the EXACT push boundaries — immune to auto-commits
+            # landing on main between the push and this run (the ops-1004 missed-script mode).
+            BASE="${{ github.event.before }}"
+            HEADSHA="${{ github.event.after || github.sha }}"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              BASE="HEAD^"
+            fi
+            git fetch -q --depth=50 origin "$BASE" "$HEADSHA" 2>/dev/null || true
+            scripts=$(git diff --name-only "$BASE" "$HEADSHA" 2>/dev/null | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
+            if [ -z "$scripts" ]; then
+              scripts=$(git diff --name-only HEAD^ HEAD | grep '^aws/ops/pending/.*\.py$' | paste -sd ' ' - || true)
+            fi
             echo "Scripts to run: $scripts"
             echo "scripts=$scripts" >> $GITHUB_OUTPUT
           fi
+
+      - name: Sync to freshest main (kill stale-checkout race)
+        run: |
+          # Execution always happens against the newest main at run time — a
+          # dispatch or delayed run can never zip/deploy from a stale tree
+          # (the 2026-07-05 stale-artifact incident). Detection above already
+          # ran against the push's own SHAs, so this cannot skip scripts.
+          git fetch -q origin main
+          git reset --hard origin/main >/dev/null
+          echo "executing-against: $(git rev-parse HEAD) — $(git log -1 --pretty=%s | head -c 70)"
 
       - name: Run script(s)
         if: steps.pick.outputs.scripts != ''
@@ -75,6 +96,7 @@ jobs:
           set -e
           mkdir -p aws/ops/reports
           : > aws/ops/reports/_lastrun.log
+          echo "executing-against: $(git rev-parse HEAD)" | tee -a aws/ops/reports/_lastrun.log
           for s in ${{ steps.pick.outputs.scripts }}; do
             # Skip files that are no longer in the working tree (e.g. moved
             # to ran/ or historical/ in the same push). git diff lists

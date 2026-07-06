@@ -47,9 +47,11 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   idempotent (create-or-update, conflict retries, EB rule + permission +
   smoke test). Do NOT hand-roll deploys.
 - `sys.exit(0)` at end; no module-level `return` (AST-checked historically).
-- ALWAYS print `git rev-parse HEAD` first — proves the runner checked out
-  your commit (guards the HEAD^..HEAD stale-checkout race: an auto-commit
-  landing between your push and the run makes diffs miss files).
+- run-ops now git-fetch + `reset --hard origin/main` BEFORE executing and
+  stamps `executing-against: <SHA>` as the first line of `_lastrun.log`
+  (hardened ops 2911) — stale-checkout is pipeline-impossible, and detection
+  is anchored to the push event's own before/after SHAs. Per-script HEAD
+  prints are no longer required (still fine as belt-and-braces).
 - Write a JSON report to `aws/ops/reports/<NNNN>.json`.
 - Long-running Lambda work: invoke as `InvocationType="Event"` + poll S3;
   never long sync-invokes.
@@ -68,8 +70,10 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   `?symbol=`; legacy `/api/v3/` path-style returns 403.
 - **Classic EventBridge rule cap (~300) is saturated** — new engines schedule
   via EventBridge Scheduler (see deploy-lambdas.yml `.eventbridge_scheduler`).
-- **Rapid multi-push sequences** confuse changed-file detection in BOTH
-  workflows. Prefer: one push per logical change; verify via the HEAD print.
+- **Rapid multi-push sequences**: run-ops is now immune (event-SHA detection
+  + pre-exec sync, ops 2911). deploy-lambdas still diffs the triggering event —
+  keep one push per logical change there; `workflow_dispatch function=<name>`
+  is the deterministic override.
 
 ## Session-start checklist
 
