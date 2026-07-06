@@ -131,7 +131,16 @@ def main(root):
             s = p.read_text(encoding="utf-8", errors="replace")
             s2 = reskin_text(s)
             if p.suffix.lower() == ".html":
-                s2 = THEME_META.sub(lambda m: m.group(1) + "#F0B429" + m.group(2), s2)
+                if THEME_META.search(s2):
+                    s2 = THEME_META.sub(lambda m: m.group(1) + "#F0B429" + m.group(2), s2)
+                else:
+                    # page never had a theme-color tag at all (89% of pages, discovered via
+                    # pricing.html) — insert one; a regex substitution can't create what isn't there
+                    for anchor in ("<head>", "<HEAD>"):
+                        if anchor in s2:
+                            s2 = s2.replace(
+                                anchor, anchor + '<meta name="theme-color" content="#F0B429">', 1)
+                            break
             if (p.suffix.lower() == ".html"
                     and "/jh-chart-theme.js" not in s2):
                 for anchor in ("<head>", "<HEAD>"):
