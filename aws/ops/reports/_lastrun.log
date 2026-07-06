@@ -1,70 +1,11 @@
-── HEAD freshness proof ──
-[00:31:05] ✅ runner HEAD = 0f72209fddcf
-── inherit_env evidence: bundle-source key counts ──
-[00:31:06]   justhodl-buyback-scanner: 1/9 std keys -> ['CMC_KEY']
-[00:31:06]   justhodl-confluence-meta: 3/9 std keys -> ['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY']
-── justhodl-investor-lenses ──
-[00:31:06] ✅   state=Active env=4 keys
-[00:31:06] ✅   classic rule justhodl-investor-lenses-daily: Input attached (17 tickers; before=EMPTY)
-[00:31:12] ✅   invoke=200 s3=2376B @ 2026-07-06 00:31:08+00:00
-── justhodl-technical-overlays ──
-[00:31:12] ✅   state=Active env=4 keys
-[00:31:12] ✗   NO schedule found for justhodl-technical-overlays — creating classic rule
-[00:31:12] ✅   created justhodl-technical-overlays-daily with Input
-[00:31:17] ✅   invoke=200 s3=33515B @ 2026-07-06 00:31:14+00:00
-[00:31:17] ✅ report -> aws/ops/reports/2910.json
+executing-against: 22f3f6d9d2e41e9e701b646323ddc40f260bd56d
+── sync-hardening proof ──
+[00:45:57] runner HEAD       : 22f3f6d9d2e41e9e701b646323ddc40f260bd56d
+[00:45:57] origin/main (now) : 22f3f6d9d2e41e9e701b646323ddc40f260bd56d
+[00:45:57] _lastrun line 1   : executing-against: 22f3f6d9d2e41e9e701b646323ddc40f260bd56d
+[00:45:57] ✅ executes against freshest main: True
+[00:45:57] ✅ SHA stamp is first log line   : True
+[00:45:57] ✅ report -> aws/ops/reports/2911.json
 
-→ Report written to aws/ops/reports/latest/2910.md
-{
-  "generated": "2026-07-06T00:31:05.764734+00:00",
-  "engines": {
-    "justhodl-investor-lenses": {
-      "state": "Active",
-      "env_keys": [
-        "FMP_KEY",
-        "FRED_KEY",
-        "JH_BUCKET",
-        "POLYGON_KEY"
-      ],
-      "schedule": {
-        "kind": "classic_rule",
-        "rule": "justhodl-investor-lenses-daily",
-        "had_input_before": false
-      },
-      "schedule_input_fixed": true,
-      "invoke_status": 200,
-      "invoke_body": "{\"AAPL\": {\"ok\": true, \"s3\": \"data/investor-lenses/AAPL.json\", \"read\": \"Buffett wait; Graham expensive; Lynch rich \\u2014 lenses disagree, that divergence is the signal.\"}, \"MSFT\": {\"ok\": true, \"s3\": \"data/investor-lenses/MSFT.json\", \"read\": \"Buffett wait; Graham expensive; Lynch rich \\u2014 lenses disagree, that divergence is the signal.\"}, \"NVDA\": {\"ok\": true, \"s3\": \"data/investor-lenses/NVDA.json\", \"read\": \"Buffett wait; Graham expensive; Lynch rich \\u2014 lenses disagree, that divergence is the signal.\"}}",
-      "s3_bytes": 2376,
-      "s3_modified": "2026-07-06 00:31:08+00:00"
-    },
-    "justhodl-technical-overlays": {
-      "state": "Active",
-      "env_keys": [
-        "FMP_KEY",
-        "FRED_KEY",
-        "JH_BUCKET",
-        "POLYGON_KEY"
-      ],
-      "schedule": {
-        "kind": "classic_rule_created",
-        "rule": "justhodl-technical-overlays-daily"
-      },
-      "schedule_input_fixed": true,
-      "invoke_status": 200,
-      "invoke_body": "{\"AAPL\": {\"ok\": true, \"s3\": \"data/technical-overlays/AAPL.json\", \"lean\": 1.8, \"trust\": \"PROBATIONARY\"}, \"MSFT\": {\"ok\": true, \"s3\": \"data/technical-overlays/MSFT.json\", \"lean\": -1.8, \"trust\": \"PROBATIONARY\"}, \"NVDA\": {\"ok\": true, \"s3\": \"data/technical-overlays/NVDA.json\", \"lean\": 1.0, \"trust\": \"PROBATIONARY\"}}",
-      "s3_bytes": 33515,
-      "s3_modified": "2026-07-06 00:31:14+00:00"
-    }
-  },
-  "runner_head": "0f72209fddcf",
-  "bundle_sources": {
-    "justhodl-buyback-scanner": [
-      "CMC_KEY"
-    ],
-    "justhodl-confluence-meta": [
-      "FMP_KEY",
-      "FRED_KEY",
-      "POLYGON_KEY"
-    ]
-  }
-}
+→ Report written to aws/ops/reports/latest/2911.md
+PROOF-2911 PASS
