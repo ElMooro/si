@@ -174,7 +174,7 @@ if ("serviceWorker" in navigator) {
 var Q="?t="+Date.now();
 function g(p,d){try{return p.split('.').reduce(function(o,k){return (o||{})[k];},d);}catch(e){return null;}}
 function txt(id,v){var el=document.getElementById(id);if(!el)return;
-  el.textContent=(v===null||v===undefined||v!==v||String(v)==="[object Object]")?"—":String(v);}
+  var sv=String(v);el.textContent=(v===null||v===undefined||v!==v||sv.indexOf("[object")>-1)?"—":sv;}
 function num(v,dp){return (typeof v==="number"&&isFinite(v))?v.toFixed(dp===undefined?1:dp):null;}
 function pct(v,dp){var n=num(v,dp);return n===null?null:((v>0?"+":"")+n+"%");}
 function J(url){return fetch(url+Q,{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json();});}
