@@ -26,9 +26,12 @@ with report("2930") as r:
     r.ok(f"S3 inventory: {len(inv)} objects under data/")
 
     reg = json.loads(s3.get_object(Bucket=B, Key="data/engine-registry.json")["Body"].read())
-    entries = reg["engines"] if isinstance(reg, dict) else reg
-    sample = sorted(entries[0].keys()) if entries and isinstance(entries[0], dict) else [type(entries[0]).__name__]
-    r.ok(f"registry: {len(entries)} engines | entry fields: {sample}")
+    raw = reg.get("engines", reg) if isinstance(reg, dict) else reg
+    if isinstance(raw, dict):
+        entries = [dict((v if isinstance(v, dict) else {}), name=k) for k, v in raw.items()]
+    else:
+        entries = [e if isinstance(e, dict) else {"name": str(e)} for e in raw]
+    r.ok(f"registry: {len(entries)} engines | entry fields: {sorted(entries[0].keys())}")
 
     refs = set(json.load(open("aws/ops/reports/feeds_ref_2929.json")))
     def feed_of(e):
