@@ -29,15 +29,25 @@
                 : (reg.engines && typeof reg.engines === "object")
                   ? Object.keys(reg.engines).map(function (k) { var v = reg.engines[k] || {}; v.name = v.name || k; return v; })
                   : (Array.isArray(reg) ? reg : []);
-    var engine = null;
+    function stem(s) { return s.replace(/^data\//, "").replace(/\.json$/, "").toLowerCase(); }
+    function toks(s) { return stem(s).split(/[-_]+/).filter(Boolean); }
+    var pageStem = stem(path.replace(/\.html?$/, ""));
+    var pageToks = toks(path.replace(/\.html?$/, ""));
+    var best = null, bestScore = 0;
     for (var i = 0; i < entries.length; i++) {
       var outs = entries[i].outs || [];
       for (var j2 = 0; j2 < outs.length; j2++) {
-        if (refList.indexOf(outs[j2]) !== -1) { engine = entries[i]; break; }
+        if (refList.indexOf(outs[j2]) === -1) continue;
+        var ot = toks(outs[j2]);
+        var shared = pageToks.filter(function (t) { return ot.indexOf(t) !== -1; }).length;
+        var initials = ot.map(function (t) { return t[0]; }).join("");
+        var sc = shared / Math.max(pageToks.length, ot.length, 1);
+        if (initials === pageStem || stem(outs[j2]) === pageStem) sc = 1;
+        if (sc > bestScore) { bestScore = sc; best = entries[i]; }
       }
-      if (engine) break;
     }
-    if (!engine) return;                      // no real engine behind this page — render nothing
+    var engine = bestScore > 0 ? best : null;
+    if (!engine) return;                      // no confidently-matched engine — render nothing rather than guess
 
     // ── related desks: real siblings from this page's manifest category ──
     var cat = null;
