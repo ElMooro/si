@@ -126,7 +126,7 @@ def lens_buffett(f: dict, rf: float) -> dict:
     inc = f["income"]
     cf = f["cashflow"]
     quote = f["quote"]
-    shares = _safe(quote, "sharesOutstanding") or _safe(f["profile"], "sharesOutstanding")
+    shares = _safe(quote, "sharesOutstanding") or (_safe(inc[0], "weightedAverageShsOutDil", "weightedAverageShsOut") if inc else None)
     price = _safe(quote, "price")
 
     if not inc or not cf or not shares or not price:
@@ -153,7 +153,7 @@ def lens_buffett(f: dict, rf: float) -> dict:
 
     # screen: Buffett wants consistent high ROE, low debt, wide margin
     metrics = f["metrics"]
-    roe = _avg([_safe(x, "roe") for x in metrics[:5]])
+    roe = _avg([_safe(x, "returnOnEquity", "roe") for x in metrics[:5]])
     passes = bool(roe and roe > 0.15 and owner_earnings > 0 and fair_value_mos >= price)
 
     return {
@@ -184,10 +184,16 @@ def lens_graham(f: dict) -> dict:
     inc = f["income"]
     balance = f["balance"]
     price = _safe(quote, "price")
-    eps = _safe(quote, "eps") or (_safe(inc[0], "eps") if inc else None)
+    eps = _safe(quote, "eps") or (_safe(inc[0], "epsDiluted", "eps") if inc else None)
+    # BVPS: stable has no bookValuePerShare; derive from equity / diluted shares
     bvps = None
-    if metrics:
-        bvps = _safe(metrics[0], "bookValuePerShare", "tangibleBookValuePerShare")
+    if balance and inc:
+        equity = _safe(balance[0], "totalStockholdersEquity", "totalEquity")
+        sh = _safe(inc[0], "weightedAverageShsOutDil", "weightedAverageShsOut")
+        if equity and sh:
+            bvps = equity / sh
+    # stable also returns a precomputed grahamNumber we can cross-check
+    graham_precomputed = _safe(metrics[0], "grahamNumber") if metrics else None
 
     if not price or not eps or not bvps or eps <= 0 or bvps <= 0:
         return {"name": "Graham", "ok": False,
@@ -199,8 +205,8 @@ def lens_graham(f: dict) -> dict:
     # defensive screen elements
     pe = price / eps
     pb = price / bvps
-    current_ratio = None
-    if balance:
+    current_ratio = _safe(metrics[0], "currentRatio") if metrics else None
+    if current_ratio is None and balance:
         ca = _safe(balance[0], "totalCurrentAssets")
         cl = _safe(balance[0], "totalCurrentLiabilities")
         if ca and cl:
@@ -233,7 +239,7 @@ def lens_lynch(f: dict) -> dict:
     growth = f["growth"]
     metrics = f["metrics"]
     price = _safe(quote, "price")
-    eps = _safe(quote, "eps")
+    eps = _safe(quote, "eps") or (_safe(f["income"][0], "epsDiluted", "eps") if f["income"] else None)
 
     # Lynch growth = sustainable EPS growth; use 3-5y earnings growth, capped 25%
     g = None
@@ -258,6 +264,10 @@ def lens_lynch(f: dict) -> dict:
 
     # dividend-adjusted PEG (Lynch's actual formula: (growth+yield)/PE)
     div_yield = _safe(quote, "dividendYield")
+    if div_yield is None and f["cashflow"] and _safe(quote, "marketCap"):
+        dp = abs(_safe(f["cashflow"][0], "commonDividendsPaid", "netDividendsPaid", default=0) or 0)
+        mc = _safe(quote, "marketCap")
+        div_yield = (dp / mc) if mc else None
     lynch_ratio = None
     if div_yield is not None:
         lynch_ratio = (g_pct + div_yield * 100) / pe
@@ -305,7 +315,7 @@ def lens_greenblatt(f: dict) -> dict:
         return {"name": "Greenblatt", "ok": False, "reason": "bad EBIT/EV"}
 
     earnings_yield = ebit / ev  # EBIT/EV — the "cheapness" leg
-    roic = _avg([_safe(x, "roic", "returnOnInvestedCapital") for x in metrics[:3]])
+    roic = _avg([_safe(x, "returnOnInvestedCapital", "roic") for x in metrics[:3]])
 
     # Greenblatt doesn't produce a price target; he ranks. We express the two
     # legs and a composite verdict. High EY + high ROIC = the sweet spot.
