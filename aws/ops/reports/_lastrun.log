@@ -1,10 +1,9 @@
-executing-against: de9f843aadf6aa7560a4a44a12da43f3a672385c
-[18:43:49] ✅ repair deploy live attempt 1
-[18:43:51] ✗ A pages structural: 364/366 bad=[('intelligence.html', 200, 10699), ('charts.html', 200, 1411)]
-[18:43:54] ✅ A2 repaired blocks parse LIVE: 9/9
-[18:44:01] ✅ C feeds: 366/368 live | missing w/engine=1 no-engine=1 | fresh<24h=322 24-48h=9 stale>48h=35
-[18:44:01] ✅ D engines in registry: 661
+executing-against: cdfa485e9e3d4d0c43385edc1feb674f1fb2b844
+[18:55:04] ✅ repair deploy live attempt 1
+[18:55:09] ✅ A pages structural: 366/366
+[18:55:11] ✅ A2 repaired blocks parse LIVE: 9/9
+[18:55:30] ✅ C feeds: 366/368 live | missing w/engine=1 no-engine=1 | fresh<24h=322 24-48h=9 stale>48h=35
+[18:55:30] ✅ D engines in registry: 661
 
 → Report written to aws/ops/reports/latest/2929.md
-DONE 2929 FAIL
-❌ OPS-FAIL: aws/ops/pending/ops_2929_availability_audit.py
+DONE 2929 PASS
