@@ -128,6 +128,15 @@ def main(root):
         try:
             s = p.read_text(encoding="utf-8", errors="replace")
             s2 = reskin_text(s)
+            if (p.suffix.lower() == ".html"
+                    and "/jh-chart-theme.js" not in s2):
+                for anchor in ("<head>", "<HEAD>"):
+                    if anchor in s2:
+                        s2 = s2.replace(
+                            anchor,
+                            anchor + '<script src="/jh-chart-theme.js"></script>',
+                            1)
+                        break
             if s2 != s:
                 p.write_text(s2, encoding="utf-8")
                 changed += 1
