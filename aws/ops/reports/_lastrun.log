@@ -1,8 +1,6 @@
-executing-against: ce0dc81c8c712a2b096bedb52c208ce4bf846be4
-[23:33:34] ✅ v1.2.25 deploy live attempt 1
-[23:33:34] ✅ jh-nav-drawer.js carries data-sym targeting: True
-[23:33:34] ✅ jh-theme.css carries the mobile collapse rule: True
-[23:33:34] ✅ live tape labels still match what the CSS targets: ['SPX', 'NDX', 'BTC', 'GOLD', 'US10Y', 'VIX', 'DXY']
-
-→ Report written to aws/ops/reports/latest/2943.md
-DONE 2943 PASS
+executing-against: 001bbb5e1f61b57484303fa9ad516f12dfda1465
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2944_homepage_wiring_audit.py", line 31
+    r.ok(f"  LIVE slot {sid}: {m.group(1)!r if m else 'NOT FOUND'}" if m else f"  LIVE slot {sid}: NOT FOUND IN HTML")
+                                            ^^
+SyntaxError: f-string: expecting ':' or '}'
+❌ OPS-FAIL: aws/ops/pending/ops_2944_homepage_wiring_audit.py
