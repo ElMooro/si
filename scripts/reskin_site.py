@@ -146,6 +146,14 @@ def main(root):
                     if tag in s2:
                         s2 = s2.replace(tag, '<script src="/jh-footer.js" defer></script>' + tag, 1)
                         break
+            if p.suffix.lower() == ".html" and "/jh-nav-drawer.js" not in s2:
+                # any BRAND-NEW page (built after the original one-time chrome sweep) needs this
+                # too, or it silently ships with no topbar/sidebar — make it self-healing like
+                # chart-theme/footer rather than relying on a one-time historical edit forever.
+                for tag in ("</body>", "</BODY>"):
+                    if tag in s2:
+                        s2 = s2.replace(tag, '<script src="/jh-nav-drawer.js" defer></script>' + tag, 1)
+                        break
             if s2 != s:
                 p.write_text(s2, encoding="utf-8")
                 changed += 1
