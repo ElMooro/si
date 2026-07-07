@@ -1,0 +1,33 @@
+{
+ "ops": 2977,
+ "function": "justhodl-gap-metrics",
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS",
+ "ts": "2026-07-07T21:16:24.894991+00:00",
+ "modules_ok": 8,
+ "ok": [
+  "baltic_dry",
+  "bill_share",
+  "em_carry",
+  "global_m2",
+  "muni_ratio",
+  "ofr_fsi",
+  "sloos",
+  "stock_bond_corr"
+ ],
+ "degraded": {
+  "revision_breadth": "no numeric revision field; row keys: ['baseline_date', 'baseline_eps_est', 'company', 'current_eps_est', 'days_to_earnings', 'direction', 'dispersion_pct', 'earnings_date', 'eps_rev_pct', 'eps_rev_recent_pct', 'estimate_strength', 'fiscal_period', 'fiscal_year', 'fwd_eps_growth_pct']",
+  "miner_margin": "only 0 miners parsed",
+  "cor3m": "only 1 closes"
+ },
+ "sloos": 8.1,
+ "stock_bond": {
+  "current_63d_corr": 0.415,
+  "regime": "POSITIVE"
+ },
+ "bill_share": 80.8,
+ "m2_yoy": -0.65,
+ "ofr_fsi": -2.682,
+ "muni_ratio": 0.708
+}

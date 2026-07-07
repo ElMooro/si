@@ -1,11 +1,14 @@
-executing-against: 3dcb94b8c4c3c81a0227c0139987350328d6a983
-── A/B. Repo scans ──
-── C. S3 context loads ──
-── D. Classification ──
-── E. Redundancy ──
-── F. Gap matrix cross-check ──
-── G. Assemble + upload ──
-[20:59:54] ✅ fleet audit live: 667 engines / 369 pages / 12 families; 16 genuine gaps (8 feasible now), 6 claims demoted to already-covered by evidence
-[20:59:54] FAILS=0 WARNS=0
+executing-against: 39eae3b95318a978145ec22ef07ad3457ce32853
+── 0. Source probes from the runner ──
+── 1. Deploy justhodl-gap-metrics ──
+[21:16:12]   zip: 8308 bytes
+── 1. Lambda ──
+[21:16:12]   Lambda missing — creating
+[21:16:17] ✅   ✓ created justhodl-gap-metrics
+── 2. Scheduler daily 21:45 UTC ──
+── 3. Synchronous first run ──
+── 4. Hard verify ──
+[21:16:24] ✅ gap-metrics LIVE: 8/11 OK; SLOOS 8.1% | stock-bond {"current_63d_corr": 0.415, "regime": "POSITIVE"} | bills 80.8% | M2 yoy -0.65% | OFR -2.682 | muni 0.708
+[21:16:24] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2976_fleet_audit_fix.md
+→ Report written to aws/ops/reports/latest/2977_gap_metrics.md
