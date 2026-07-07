@@ -39,7 +39,7 @@ def main():
         print(f"manifest published to S3 ({len(body)} bytes)")
         man = json.loads(body)
         c, b = get("data/engine-wiring.json")
-        rep.update(manifest_live_http=c)
+        rep.kv(manifest_live_http=c)
         wired = man["wired"]
 
         c, b = get("jh-wire.js")
@@ -107,7 +107,7 @@ def main():
                 orphan_n += 1
                 still_orphan.append([e.get("name"), outs[:2]])
 
-        rep.update(pages_checked=len(pages), pages_bad=bad_pages,
+        rep.kv(pages_checked=len(pages), pages_bad=bad_pages,
                    wire_lines_missing=missing_line, feeds_checked=len(feeds),
                    feeds_bad=bad_feeds, fleet_total=len(entries),
                    fleet_wired=wired_n, fleet_orphaned=orphan_n,
