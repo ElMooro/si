@@ -62,11 +62,22 @@ def main(build_dir="."):
         for k, a in zip(unique_feeds, ex.map(age_of, unique_feeds)):
             ages[k] = a
 
+    def referenced(out, src):
+        # Pages fetch feeds three ways: full path literal, constructed base+"name.json",
+        # or a quoted stem inside a JS key list. Any of them means the page displays it.
+        if out in src:
+            return True
+        bare = out.split("/")[-1]
+        if bare in src:
+            return True
+        stem = bare.rsplit(".", 1)[0]
+        return re.search(r'["\']' + re.escape(stem) + r'["\']', src) is not None
+
     rows = []
     for name, e in sorted(entries.items()):
         outs = e.get("outs") or []
         pages = sorted({p for p, src in page_src.items()
-                        if any(o in src for o in outs)}) if outs else []
+                        if any(referenced(o, src) for o in outs)}) if outs else []
         best_age = min((ages[o] for o in outs if ages.get(o) is not None), default=None)
         if not outs:
             status = "no-outs"

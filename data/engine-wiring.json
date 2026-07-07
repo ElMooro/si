@@ -1,0 +1,620 @@
+{
+ "v": 1,
+ "generated_by": "scripts/gen_engine_wiring.py",
+ "note": "Canonical engine\u2192page wiring for previously-orphaned feeds (ops 2944/2945 audit, corrected matcher). WIRED = displayed via jh-wire.js on that page. INTERNAL = feeds other engines by design. DEAD = engine output missing in S3; fix engine, then assign.",
+ "wired": [
+  {
+   "engine": "justhodl-activist-filings-scanner",
+   "feed": "data/activist-filings-state.json",
+   "page": "activist-13d.html",
+   "title": "ACTIVIST FILINGS STATE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-alert-backtester",
+   "feed": "data/alert-backtests.json",
+   "page": "alerts.html",
+   "title": "ALERT BACKTESTS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-sellside-views",
+   "feed": "data/sellside-views.json",
+   "page": "analyst-actions.html",
+   "title": "SELLSIDE VIEWS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-hkma-monitor",
+   "feed": "data/hkma.json",
+   "page": "apac.html",
+   "title": "HKMA MONITOR (Hong Kong)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-taiwan-moea",
+   "feed": "data/taiwan-moea.json",
+   "page": "apac.html",
+   "title": "TAIWAN MOEA ORDERS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-singapore-nodx",
+   "feed": "data/singapore-nodx.json",
+   "page": "apac.html",
+   "title": "SINGAPORE NODX",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-feed-catalog",
+   "feed": "data/feed-catalog.json",
+   "page": "api-docs.html",
+   "title": "FEED CATALOG",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-ark-holdings",
+   "feed": "data/ark-holdings-prev.json",
+   "page": "ark.html",
+   "title": "ARK HOLDINGS (prior snapshot / diff base)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-google-trends",
+   "feed": "data/google-trends.json",
+   "page": "attention.html",
+   "title": "GOOGLE TRENDS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-ticker-trends",
+   "feed": "data/ticker-trends.json",
+   "page": "attention.html",
+   "title": "TICKER SEARCH TRENDS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-stocktwits",
+   "feed": "data/ai-infra-stack.json",
+   "page": "attention.html",
+   "title": "RETAIL ATTENTION \u00b7 STOCKTWITS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-benzinga-earnings",
+   "feed": "data/benzinga-earnings-calendar.json",
+   "page": "benzinga.html",
+   "title": "BENZINGA EARNINGS CALENDAR",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-bond-trace",
+   "feed": "data/bond-trace.json",
+   "page": "bond-desk.html",
+   "title": "TRACE BOND TAPE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-alpha-calibrator",
+   "feed": "data/calibration-history.json",
+   "page": "calibration-fleet.html",
+   "title": "CALIBRATION HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-polygon-futures-curves",
+   "feed": "data/polygon-futures-curves.json",
+   "page": "carry.html",
+   "title": "FUTURES CURVES (Polygon)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-peer-comparison",
+   "feed": "data/peer-comparison.json",
+   "page": "compare.html",
+   "title": "PEER COMPARISON",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-coffee-can",
+   "feed": "data/coffee-can-holdings.json",
+   "page": "compounders.html",
+   "title": "COFFEE-CAN HOLDINGS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "cftc-futures-positioning-agent + justhodl-cftc-deep-view",
+   "feed": "data/cftc-all-cache.json",
+   "page": "cot-extremes.html",
+   "title": "CFTC 29-CONTRACT FULL CACHE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-cross-asset-rv",
+   "feed": "data/cross-asset-rv-history.json",
+   "page": "cross-asset-rv.html",
+   "title": "CROSS-ASSET RV HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-scorecard",
+   "feed": "data/crypto-engine-trust.json",
+   "page": "crypto-confluence.html",
+   "title": "CRYPTO ENGINE TRUST",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-etf-flows",
+   "feed": "data/crypto-etf-flows-history.json",
+   "page": "crypto-liquidity.html",
+   "title": "CRYPTO ETF FLOWS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-coinbase-premium",
+   "feed": "data/coinbase-premium-history.json",
+   "page": "crypto-liquidity.html",
+   "title": "COINBASE PREMIUM",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-basis",
+   "feed": "data/crypto-basis-history.json",
+   "page": "crypto-liquidity.html",
+   "title": "FUTURES BASIS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-hyperliquid-perps",
+   "feed": "data/hyperliquid-perps-history.json",
+   "page": "crypto-liquidity.html",
+   "title": "HYPERLIQUID PERPS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-dvol",
+   "feed": "data/crypto-dvol.json",
+   "page": "crypto-risk.html",
+   "title": "DERIBIT DVOL",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-gex",
+   "feed": "data/crypto-gex.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO GEX",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-funding",
+   "feed": "data/crypto-funding.json",
+   "page": "crypto-risk.html",
+   "title": "PERP FUNDING",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-options",
+   "feed": "data/crypto-options-history.json",
+   "page": "crypto-risk.html",
+   "title": "OPTIONS FLOW HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-options-surface",
+   "feed": "data/crypto-options-surface-history.json",
+   "page": "crypto-risk.html",
+   "title": "OPTIONS SURFACE HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-crypto-cot",
+   "feed": "data/crypto-cot-history.json",
+   "page": "crypto-risk.html",
+   "title": "CRYPTO COT HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-dix",
+   "feed": "data/dix-history.json",
+   "page": "dark-pool.html",
+   "title": "DIX HISTORY (dark-pool index)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-engine-signal-map",
+   "feed": "data/engine-signal-map.json",
+   "page": "dep-graph.html",
+   "title": "ENGINE\u2192SIGNAL MAP",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-fx-intelligence",
+   "feed": "data/fx-intelligence.json",
+   "page": "dollar.html",
+   "title": "FX INTELLIGENCE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-earnings-confluence",
+   "feed": "data/earnings-confluence.json",
+   "page": "earnings-whisper.html",
+   "title": "EARNINGS CONFLUENCE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-earnings-tone-velocity",
+   "feed": "data/earnings-tone-velocity.json",
+   "page": "earnings-whisper.html",
+   "title": "EARNINGS TONE VELOCITY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-macro-calendar",
+   "feed": "data/macro-calendar.json",
+   "page": "econ-calendar.html",
+   "title": "MACRO CALENDAR (companion feed)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-causality-scanner",
+   "feed": "data/causality-discoveries.json",
+   "page": "edge-discovery.html",
+   "title": "CAUSALITY DISCOVERIES",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-fed-nlp",
+   "feed": "data/fed-nlp.json",
+   "page": "fed-speak.html",
+   "title": "FED SPEECH NLP",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-feedback",
+   "feed": "data/feedback-summary.json",
+   "page": "feedback.html",
+   "title": "FEEDBACK SUMMARY",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-fedwatch-rate-probability",
+   "feed": "data/fedwatch.json",
+   "page": "fomc.html",
+   "title": "FEDWATCH RATE PROBABILITIES",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-gdelt-buzz",
+   "feed": "data/gdelt-buzz.json",
+   "page": "gdelt.html",
+   "title": "GDELT NEWS BUZZ",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-cb-stance",
+   "feed": "data/cb-stance.json",
+   "page": "global-macro.html",
+   "title": "GLOBAL CENTRAL-BANK STANCE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-china-liquidity",
+   "feed": "data/china-liquidity-history.json",
+   "page": "global-macro.html",
+   "title": "CHINA LIQUIDITY HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-global-markets",
+   "feed": "data/global-markets.json",
+   "page": "global-macro.html",
+   "title": "GLOBAL MARKETS BOARD",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-index-inclusion",
+   "feed": "data/finviz-index-membership.json",
+   "page": "index-recon.html",
+   "title": "INDEX MEMBERSHIP (FinViz)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-liquidity-profile",
+   "feed": "data/liquidity-profile.json",
+   "page": "liquidity.html",
+   "title": "LIQUIDITY PROFILE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-cost-anomaly",
+   "feed": "data/cost-anomaly.json",
+   "page": "llm-cost.html",
+   "title": "COST ANOMALY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-leading-markets",
+   "feed": "data/leading-markets-history.json",
+   "page": "macro-leads.html",
+   "title": "LEADING MARKETS HISTORY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-magnitude-distributions",
+   "feed": "data/magnitude-distributions.json",
+   "page": "market-extremes.html",
+   "title": "MOVE MAGNITUDE DISTRIBUTIONS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-peru-copper",
+   "feed": "data/peru-copper.json",
+   "page": "metals-miners.html",
+   "title": "PERU COPPER PRODUCTION",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-news-wire",
+   "feed": "data/news-wire-state.json",
+   "page": "news.html",
+   "title": "NEWS WIRE STATE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-nyfed-pd",
+   "feed": "data/nyfed-primary-dealer.json",
+   "page": "ny-fed.html",
+   "title": "PRIMARY DEALER POSITIONS",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-seasonality",
+   "feed": "data/seasonality.json",
+   "page": "patterns.html",
+   "title": "SEASONALITY MAP",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-earnings-pead",
+   "feed": "data/earnings-pead.json",
+   "page": "pead-signals.html",
+   "title": "PEAD SIGNALS FEED",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-engine-contribution",
+   "feed": "data/engine-contributions.json",
+   "page": "pnl-attribution.html",
+   "title": "ENGINE P&L CONTRIBUTIONS",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-political-stocks",
+   "feed": "data/congress-party-map.json",
+   "page": "political.html",
+   "title": "CONGRESS PARTY MAP",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-regime-anomaly",
+   "feed": "data/regime-anomaly.json",
+   "page": "regime.html",
+   "title": "REGIME ANOMALY",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-naaim",
+   "feed": "data/naaim.json",
+   "page": "sentiment.html",
+   "title": "NAAIM MANAGER EXPOSURE",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-stress-loadings",
+   "feed": "data/stress-factor-loadings.json",
+   "page": "stress.html",
+   "title": "STRESS FACTOR LOADINGS",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-supply-chain-linkage",
+   "feed": "data/supply-chain-linkage.json",
+   "page": "supply-chain.html",
+   "title": "SUPPLY-CHAIN LINKAGE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-event-flow-monitor",
+   "feed": "data/event-flow-health.json",
+   "page": "system-health.html",
+   "title": "EVENT-FLOW HEALTH",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-dr-snapshot",
+   "feed": "data/dr-snapshot-latest.json",
+   "page": "system-health.html",
+   "title": "DISASTER-RECOVERY SNAPSHOT",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-theme-detector",
+   "feed": "data/themes-detected.json",
+   "page": "themes.html",
+   "title": "THEMES DETECTED",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-theme-rotation-engine",
+   "feed": "data/theme-rotation-state.json",
+   "page": "themes.html",
+   "title": "THEME ROTATION STATE",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-trade-evaluator",
+   "feed": "data/trade-journal.json",
+   "page": "trade-journal.html",
+   "title": "TRADE JOURNAL (evaluator)",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-trade-journal",
+   "feed": "data/user-trades-stats.json",
+   "page": "trade-journal.html",
+   "title": "USER TRADE STATS",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-behavior-mirror",
+   "feed": "data/behavior-mirror.json",
+   "page": "trade-journal.html",
+   "title": "BEHAVIOR MIRROR",
+   "freshness_at_wiring": "STALE",
+   "via": "jh-wire.js"
+  },
+  {
+   "engine": "justhodl-schedule-liveness",
+   "feed": "data/schedule-liveness.json",
+   "page": "uptime.html",
+   "title": "SCHEDULE LIVENESS",
+   "freshness_at_wiring": "FRESH",
+   "via": "jh-wire.js"
+  }
+ ],
+ "internal": [
+  {
+   "engine": "justhodl-liquidity-agent",
+   "feed": "data/fred-cache.json",
+   "class": "INTERNAL-BY-DESIGN"
+  },
+  {
+   "engine": "justhodl-bond-regime-detector",
+   "feed": "data/fred-cache-secretary.json",
+   "class": "INTERNAL-BY-DESIGN"
+  },
+  {
+   "engine": "justhodl-flows-ai-analysis",
+   "feed": "data/crisis-knowledge-base.json",
+   "class": "INTERNAL-BY-DESIGN"
+  },
+  {
+   "engine": "justhodl-universe-builder",
+   "feed": "data/universe.json",
+   "class": "INTERNAL-BY-DESIGN"
+  },
+  {
+   "engine": "justhodl-factor-decomposition",
+   "feed": "data/factor-data-cache.json",
+   "class": "INTERNAL-BY-DESIGN"
+  }
+ ],
+ "dead": [
+  {
+   "engine": "justhodl-news-velocity",
+   "feed": "data/news-velocity-history.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-engine-robustness",
+   "feed": "data/engine-robustness.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-commodity-curves",
+   "feed": "data/commodity-curves-history.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-transcript-indexer",
+   "feed": "data/transcripts-index.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-transcript-query",
+   "feed": "data/transcripts-index.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-eurostat-history",
+   "feed": "data/ecb-confidence.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-analyst-consensus",
+   "feed": "data/analyst-consensus-history.json",
+   "class": "DEAD-FEED"
+  },
+  {
+   "engine": "justhodl-kill-switch",
+   "feed": "data/kill-switch-state.json",
+   "class": "DEAD-FEED"
+  }
+ ]
+}
