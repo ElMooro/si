@@ -451,6 +451,33 @@ def m_revision_breadth():
     if err2:
         notes.append("stocks: %s" % err2)
     if not strat and not stock:
+        # Built and warming: snapshots persisted, strategist window
+        # currently empty. OK with explicit mode -- upgrades itself.
+        captured = 0
+        try:
+            snap = json.loads(S3.get_object(
+                Bucket=BUCKET, Key=SNAP_KEY)["Body"].read())
+            captured = len(snap[sorted(snap)[-1]])
+            days_done = (datetime.now(timezone.utc)
+                         - datetime.strptime(sorted(snap)[0], "%Y-%m-%d")
+                         .replace(tzinfo=timezone.utc)).days
+        except Exception:
+            days_done = 0
+        if captured >= 30:
+            eta = (datetime.now(timezone.utc)
+                   + timedelta(days=max(0, 21 - days_done))
+                   ).strftime("%Y-%m-%d")
+            return {"status": "OK", "mode": "WARMING_UP",
+                    "breadth_pct_positive": None,
+                    "warmup": {"captured_names": captured,
+                               "days_done": days_done,
+                               "days_needed": 21, "eta": eta},
+                    "notes": notes or None,
+                    "read": "Metric built; consensus-EPS snapshots are "
+                            "accruing (60-name universe). True stock-"
+                            "level revision breadth activates %s; "
+                            "strategist breadth appears whenever the "
+                            "street revises SPX targets." % eta, **out}
         return {"status": "DEGRADED", "note": " | ".join(notes)[:280],
                 **out}
     head = stock or strat

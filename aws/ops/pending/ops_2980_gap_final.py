@@ -117,8 +117,16 @@ def main():
                    strategist=json.dumps(b.get("strategist"))[:160],
                    notes=json.dumps(b.get("notes"))[:160])
             st = b.get("strategist") or {}
-            if not (0 <= (b.get("breadth_pct_positive") or -1) <= 100
-                    and (st.get("n") or 0) >= 5):
+            if b.get("mode") == "WARMING_UP":
+                w = b.get("warmup") or {}
+                rep.kv(breadth_mode="WARMING_UP",
+                       warmup=json.dumps(w)[:140])
+                hl["breadth_basis"] = "WARMING_UP eta %s (%s names)" % (
+                    w.get("eta"), w.get("captured_names"))
+                if (w.get("captured_names") or 0) < 30:
+                    fails.append("warmup snapshot thin: %s" % w)
+            elif not (0 <= (b.get("breadth_pct_positive") or -1) <= 100
+                      and (st.get("n") or 0) >= 5):
                 fails.append("breadth v3 values off: %s"
                              % json.dumps(b)[:200])
             try:
