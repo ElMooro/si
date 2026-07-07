@@ -1,20 +1,42 @@
 {
  "ops": 2968,
  "function": "justhodl-equity-research",
- "fails": [
-  "bundle still thin after restore: 4 vars"
- ],
+ "fails": [],
  "warns": [],
- "verdict": "FAIL",
- "ts": "2026-07-07T18:25:56.329079+00:00",
+ "verdict": "PASS",
+ "ts": "2026-07-07T18:46:26.334698+00:00",
  "env_keys_before": [
   "ANTHROPIC_API_KEY",
-  "FMP_KEY"
+  "FMP_KEY",
+  "FRED_KEY",
+  "POLYGON_KEY"
  ],
  "env_keys_after": [
   "ANTHROPIC_API_KEY",
   "FMP_KEY",
   "FRED_KEY",
+  "POLYGON_API_KEY",
   "POLYGON_KEY"
- ]
+ ],
+ "gen_seconds": 76,
+ "ticker": "ORCL",
+ "fmp_industry": "Software - Infrastructure",
+ "finviz_industry": "Software - Infrastructure",
+ "match_confidence": 1.0,
+ "gap_h_pp": -19.9,
+ "gap_q_pp": -16.2,
+ "er_1y_pct": 20.4,
+ "components": {
+  "div_yield_pct": 1.41,
+  "inflation_pct": 3.02,
+  "net_buyback_yield_pct": -1.71,
+  "pe_median_10y": 29.8,
+  "pe_now": 23.74915993265993,
+  "pe_reversion_pct": 5.7,
+  "real_eps_growth_pct": 12.0
+ },
+ "screen_verdict": "LAGGARD_CATCHUP",
+ "rate_read": "Modest sensitivity: multiple duration is mid against a higher implied rate path.",
+ "exec_summary_len": 732,
+ "claude_model": null
 }

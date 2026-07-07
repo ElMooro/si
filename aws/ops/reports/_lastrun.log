@@ -1,8 +1,17 @@
-executing-against: 8bc2f5d4a2b8bbf4faedab914fb7ca31f7fb6044
+executing-against: f993d7951aceb3c651215b5203a4bd89c63b8c55
 ── 0. Facts: surviving env + donor bundle ──
 ── 1. Fill-gaps merge + config update + re-read assert ──
-[18:25:56] ✗ bundle still thin after restore: 4 vars
-[18:25:56] FAILS=1 WARNS=0
-[18:25:56] report written: /home/runner/work/si/si/aws/ops/reports/2968.json
+── 2. Re-verify Industry Compass on ORCL (fresh) ──
+[18:46:26] ✅ env restored (5 vars) + industry_compass proven on ORCL: Software - Infrastructure vs Software - Infrastructure (conf 1.0), gap_h -19.9pp, ER 20.4%, screen LAGGARD_CATCHUP
+[18:46:26] FAILS=0 WARNS=0
+[18:46:26] report written: /home/runner/work/si/si/aws/ops/reports/2968.json
 
 → Report written to aws/ops/reports/latest/2968_er_env_restore.md
+── 0. Context-feed probes from the runner ──
+── 1. Wait for deploy-lambdas to create justhodl-asset-discovery ──
+[18:46:27] ✗ inherit_env did not deliver ANTHROPIC_API_KEY -- router has no provider
+[18:46:27] FAILS=1 WARNS=0
+[18:46:27] report written: /home/runner/work/si/si/aws/ops/reports/2969.json
+
+→ Report written to aws/ops/reports/latest/2969_asset_discovery.md
+❌ OPS-FAIL: aws/ops/pending/ops_2969_asset_discovery.py
