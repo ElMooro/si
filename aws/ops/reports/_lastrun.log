@@ -1,11 +1,8 @@
-executing-against: e25c3efff2ed4a9968b78d2c770362808711f550
-── A/B. Repo scans ──
-── C. S3 context loads ──
-── D. Classification ──
-── E. Redundancy ──
-── F. Gap matrix cross-check ──
-── G. Assemble + upload ──
-[20:48:46] ✅ fleet audit live: 667 engines / 369 pages / 12 families; 16 genuine gaps (8 feasible now), 6 claims demoted to already-covered by evidence
-[20:48:46] FAILS=0 WARNS=0
+executing-against: ac3742e1237a3a5d4a82e01a47a8aad2bc545ef0
+── 1. Page live ──
+── 2. Public JSON (retry across CDN TTL) ──
+── 3. Nav surfaces live ──
+[20:55:58] ✅ fleet-audit live: page True, feed True, engines=667 gaps=16
+[20:55:58] FAILS=0 WARNS=1
 
-→ Report written to aws/ops/reports/latest/2974_fleet_audit.md
+→ Report written to aws/ops/reports/latest/2975_fleet_audit_live.md
