@@ -1,0 +1,20 @@
+{
+ "ops": 2968,
+ "function": "justhodl-equity-research",
+ "fails": [
+  "bundle still thin after restore: 4 vars"
+ ],
+ "warns": [],
+ "verdict": "FAIL",
+ "ts": "2026-07-07T18:25:56.329079+00:00",
+ "env_keys_before": [
+  "ANTHROPIC_API_KEY",
+  "FMP_KEY"
+ ],
+ "env_keys_after": [
+  "ANTHROPIC_API_KEY",
+  "FMP_KEY",
+  "FRED_KEY",
+  "POLYGON_KEY"
+ ]
+}

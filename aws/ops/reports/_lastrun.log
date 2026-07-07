@@ -1,7 +1,8 @@
-executing-against: 94e8879f71db7acb94accfd581aa69d0bb48ee1c
-── 0. Sibling-feed probes from the runner ──
-── 1. Wait for the parallel deploy-lambdas code update ──
-[18:17:38] FAILS=1 WARNS=0
-[18:17:38] report written: /home/runner/work/si/si/aws/ops/reports/2967.json
+executing-against: 8bc2f5d4a2b8bbf4faedab914fb7ca31f7fb6044
+── 0. Facts: surviving env + donor bundle ──
+── 1. Fill-gaps merge + config update + re-read assert ──
+[18:25:56] ✗ bundle still thin after restore: 4 vars
+[18:25:56] FAILS=1 WARNS=0
+[18:25:56] report written: /home/runner/work/si/si/aws/ops/reports/2968.json
 
-→ Report written to aws/ops/reports/latest/2967_industry_compass.md
+→ Report written to aws/ops/reports/latest/2968_er_env_restore.md
