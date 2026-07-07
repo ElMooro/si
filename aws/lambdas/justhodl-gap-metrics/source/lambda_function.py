@@ -784,9 +784,15 @@ def m_sifma_issuance():
     import re as _re
     page = http("https://www.sifma.org/resources/research/statistics/"
                 "us-corporate-bonds-statistics/", timeout=35)
-    links = _re.findall(r'href="([^"]+\.xlsx[^"]*)"', page)
+    links = _re.findall(r'href="([^"]+\.xlsx?[^"]*)"', page)
+    links += _re.findall(
+        r'"(https?:[^"]+?\.xlsx?)"', page)          # __NEXT_DATA__ JSON
+    links += [u.replace("\\/", "/") for u in _re.findall(
+        r'"(https?:\\/\\/[^"]+?\.xlsx?)"', page)]  # escaped JSON
     links = [l if l.startswith("http") else "https://www.sifma.org" + l
              for l in links]
+    seen = set()
+    links = [l for l in links if not (l in seen or seen.add(l))]
     pick = next((l for l in links if "corporate" in l.lower()),
                 links[0] if links else None)
     if not pick:

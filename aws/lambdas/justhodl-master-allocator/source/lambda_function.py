@@ -486,7 +486,7 @@ def compass_bridge(tilts, contributions):
         if str(comp.get("schema_version", "")) < "1.2":
             info["note"] = "compass schema < 1.2"
             return tilts, info
-        rf = deep_get(comp, "hurdle.cash_rf_pct") or 0.0
+        rf = (comp.get("hurdle") or {}).get("cash_rf_pct") or 0.0
         by_t = {a.get("ticker"): a for a in comp.get("assets") or []}
         excess = {}
         for sleeve, tkr in COMPASS_SLEEVE_MAP.items():
