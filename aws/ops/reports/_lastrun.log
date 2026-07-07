@@ -1,25 +1,20 @@
-executing-against: 96abed56fa915f67bf1b185398abe8b4c7516ed4
-── 1. SSM bootstrap ──
-── 2. Deploy tv-notes-ingest ──
-[03:30:16]   zip: 3228 bytes
+executing-against: 7323acb36da4bd3d4fb07e8749acf035dcea6e8f
+── 1. Read ingest config ──
+── 2. Deploy justhodl-tv-notes-crawler ──
+[03:49:58]   zip: 5276 bytes
 ── 1. Lambda ──
-[03:30:16]   Lambda exists — updating
-[03:30:21] ✅   ✓ updated justhodl-tv-notes-ingest
-── 3. Publish tv-ingest-config.json ──
-[03:30:22] ✅ config published
-── 4. Wire brain-compiler → TV notes merge ──
-[03:30:22] ✅ brain-compiler: TV notes merge wired
-[03:30:22]   zip: 5501 bytes
-── 1. Lambda ──
-[03:30:22]   Lambda exists — updating
-[03:30:25] ✅   ✓ updated justhodl-brain-compiler
-[03:30:25] ✅   ✓ Function URL: https://nzoe4a43sjqxv3wovbac6dpvs40kxzgy.lambda-url.us-east-1.on.aws/
-── 3. Smoke test ──
-[03:30:25]   invoking justhodl-brain-compiler…
-── 5. Live round-trip ──
-── 6. Status feed ──
-[03:30:41] ✅ status feed published
-tv-brain-v2: url=w4osroryszvlifgk4boofkh7cm0sel sentinel_brain=True mirror=True brain_compiler_wired=True
-[03:30:41] ✅ TV Notes → Brain v2 pipeline fully live
+[03:49:58]   Lambda exists — updating
+[03:50:06] ✅   ✓ updated justhodl-tv-notes-crawler
+── 2. EB rule + permissions ──
+[03:50:07] ✅   ✓ created rule justhodl-tv-notes-crawler-daily
+[03:50:07] ✅   ✓ target → justhodl-tv-notes-crawler
+[03:50:07] ✅   ✓ added invoke permission
+[03:50:07] ✅ crawler deployed with daily schedule
+── 3. Publish setup instructions ──
+[03:50:07] ✅ instructions written to data/tv-crawler-status.json
+── 4. Session cookie check ──
+[03:50:08] No session yet. Follow instructions in data/tv-crawler-status.json
+tv-crawler: deployed=True schedule=daily-06UTC session_in_ssm=False
+[03:50:08] ✅ justhodl-tv-notes-crawler deployed — add session cookie to SSM then it runs autonomously forever
 
-→ Report written to aws/ops/reports/latest/2957_tv_brain_v2.md
+→ Report written to aws/ops/reports/latest/2958_tv_crawler.md

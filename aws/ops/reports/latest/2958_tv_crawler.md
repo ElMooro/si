@@ -1,0 +1,35 @@
+## 1. Read ingest config
+
+**Status:** success  
+**Duration:** 10.6s  
+**Finished:** 2026-07-07T03:50:08+00:00  
+
+## Data
+
+| ingest_url | session_in_ssm | session_length | summary | token_ok |
+|---|---|---|---|---|
+| https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws |  |  |  | True |
+|  | False | 0 |  |  |
+|  |  |  | tv-crawler: deployed=True schedule=daily-06UTC session_in_ssm=False |  |
+
+## Log
+## 2. Deploy justhodl-tv-notes-crawler
+
+- `03:49:58`   zip: 5276 bytes
+## 1. Lambda
+
+- `03:49:58`   Lambda exists — updating
+- `03:50:06` ✅   ✓ updated justhodl-tv-notes-crawler
+## 2. EB rule + permissions
+
+- `03:50:07` ✅   ✓ created rule justhodl-tv-notes-crawler-daily
+- `03:50:07` ✅   ✓ target → justhodl-tv-notes-crawler
+- `03:50:07` ✅   ✓ added invoke permission
+- `03:50:07` ✅ crawler deployed with daily schedule
+## 3. Publish setup instructions
+
+- `03:50:07` ✅ instructions written to data/tv-crawler-status.json
+## 4. Session cookie check
+
+- `03:50:08` No session yet. Follow instructions in data/tv-crawler-status.json
+- `03:50:08` ✅ justhodl-tv-notes-crawler deployed — add session cookie to SSM then it runs autonomously forever
