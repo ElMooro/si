@@ -1,23 +1,60 @@
-executing-against: deac9ab022e7e13eb544dc43cb74394c63d35045
-nav pages: 366
-pages ok: 366/366 (redirect-stubs resolved: 5) down=none
-[02:00:13] redirect stub /asymmetric.html -> /deep-value.html
-[02:00:13] redirect stub /catalysts.html -> /catalyst-calendar.html
-[02:00:13] redirect stub /charts.html -> /chart-pro.html
-[02:00:13] redirect stub /options-flow.html -> /signal-board.html
-[02:00:13] redirect stub /positioning.html -> /cftc.html
-feeds referenced by pages: 426
-feeds live: 421/426 known-legacy-dead=5 unexplained-dead=0 unparseable=0
-[02:00:27] ⚠ KNOWN-LEGACY dead edgar_insiders.json <- /analytics.html | origins-era agent retired (Feb 2026 fleet migration)
-[02:00:27] ⚠ KNOWN-LEGACY dead equity_research.json <- /analytics.html | superseded by justhodl-equity-research schema 2.0 (why.html)
-[02:00:27] ⚠ KNOWN-LEGACY dead https://api.justhodl.ai/agent/secretary <- /alpha-compass.html | legacy multi-agent API endpoint, retired
-[02:00:27] ⚠ KNOWN-LEGACY dead ici-flows.json <- /ici-flows.html | ICI moved to anti-scraped .xls workbooks; parser rebuild pending
-[02:00:27] ⚠ KNOWN-LEGACY dead research_critique.json <- /analytics.html | origins-era critic agent retired
-engines: 661 | unique out keys: 715
-engines fresh=555 aging=14 stale=4 dead=6 no-outs=82
-[02:00:35] ⚠ dead engines: justhodl-engine-robustness,justhodl-eurostat-history,justhodl-ici-flows,justhodl-kill-switch,justhodl-transcript-indexer,justhodl-transcript-query
-[02:00:35] stale engines (>8d): justhodl-feedback,justhodl-history-api,justhodl-trade-journal,justhodl-watchlist
-pages=366/366 (stubs=5) feeds=421/426 (legacy-dead=5) engines fresh=555 aging=14 stale=4 dead=6 no-outs=82 t=25s
-[02:00:36] ✅ fleet certified: pages + as-written feeds + engines
+executing-against: 9810c853d97054cdfaa65685e47d6130abd88664
+── justhodl-dollar-radar ──
+[02:23:02]   zip: 13705 bytes
+── 1. Lambda ──
+[02:23:03]   Lambda exists — updating
+[02:23:05] ✅   ✓ updated justhodl-dollar-radar
+[02:23:06] ✅   ✓ Function URL: https://idieu25nczsbkbm6zwfbvrwtfi0harwl.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[02:23:06]   invoking justhodl-dollar-radar…
+[02:23:16] ✅   ✓ smoke test passed
+[02:23:16]     ok                       True
+[02:23:16]     dollar_pressure          22
+[02:23:16]     regime                   LEAN PUMP
+[02:23:16]     canaries                 12
+[02:23:16]     indices                  4
+[02:23:16]     bilaterals               10
+[02:23:16]     double_top               False
+[02:23:16]     double_bottom            False
+[02:23:16]     build_seconds            9.6
+── justhodl-risk-regime ──
+[02:23:16]   zip: 9893 bytes
+── 1. Lambda ──
+[02:23:16]   Lambda exists — updating
+[02:23:19] ✅   ✓ updated justhodl-risk-regime
+[02:23:19] ✅   ✓ Function URL: https://mktqs3qczaemqm3ihy3weuje2e0nmpcm.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[02:23:20]   invoking justhodl-risk-regime…
+[02:23:23] ✅   ✓ smoke test passed
+[02:23:23]     ok                       True
+[02:23:23]     risk_regime_score        19.5
+[02:23:23]     risk_regime              MILD_RISK_ON
+── justhodl-crypto-confluence ──
+[02:23:23]   zip: 5709 bytes
+── 1. Lambda ──
+[02:23:23]   Lambda exists — updating
+[02:23:26] ✅   ✓ updated justhodl-crypto-confluence
+[02:23:26] ✅   ✓ Function URL: https://qxzbarsj6gfvvhuizhig5xddp40egtva.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[02:23:27]   invoking justhodl-crypto-confluence…
+[02:23:28] ✅   ✓ smoke test passed
+[02:23:28]     bullish_any              13
+[02:23:28]     bullish_multi            1
+[02:23:28]     bearish_any              1
+── verify outputs on S3 ──
+[02:23:29] canary: Fed net liquidity (13w change) | -32472 $bn | PUMP (w 2.00)
+[02:23:29] canary: Fed balance sheet trend (QE/QT) | +0.74% / 13w | DUMP (w 1.50)
+[02:23:29] canary: Reverse repo (RRP) drain | +2 $bn / 13w | NEUTRAL (w 1.00)
+[02:23:29] canary: Treasury General Account | +32519 $bn / 13w | PUMP (w 1.00)
+[02:23:29] canary: US 10y real yield trend | +0.29 pp / 13w | PUMP (w 1.50)
+[02:23:29] canary: US-Germany 10y spread | 1.44 pp (-0.20 / 13w) | DUMP (w 1.00)
+[02:23:29] canary: Equity volatility (VIX safe-haven) | 15.8 | DUMP (w 1.00)
+[02:23:29] canary: High-yield credit spreads | 2.74% (-0.03 / 13w) | NEUTRAL (w 1.00)
+[02:23:29] canary: Dollar index momentum | 120.69 vs 50d/200d | PUMP (w 1.50)
+[02:23:29] canary: US 10y nominal yield trend | 4.49% (+0.09 pp / 13w) | NEUTRAL (w 1.25)
+[02:23:29] canary: Fed path repricing (2y yield) | 4.14% (+0.26 pp / 13w) | PUMP (w 1.00)
+[02:23:29] canary: Fed FX swap lines outstanding | 0.2 $bn | NEUTRAL (w 0.75)
+dollar v2: canaries=12 pressure=22 regime=LEAN PUMP | risk_tx=LEAN DUMP(-32) | rr_ctx=True cc_ctx=True hist=1
+[02:23:29] ✅ dollar engine v2 live end-to-end
 
-→ Report written to aws/ops/reports/latest/2950_fleet_health.md
+→ Report written to aws/ops/reports/latest/2952_dollar_engine_v2.md
