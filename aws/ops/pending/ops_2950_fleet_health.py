@@ -43,19 +43,35 @@ def get(url, to=12, body=True, tries=3):
                 time.sleep(4 + 5 * i)
     return None, b"", None, err
 
-def as_written_url(ref):
-    """The URL a browser would actually hit for this page reference."""
+KNOWN_LEGACY = {  # dead long before the 2026-07 redesign; tracked, not gating
+    "edgar_insiders.json": "origins-era agent retired (Feb 2026 fleet migration)",
+    "equity_research.json": "superseded by justhodl-equity-research schema 2.0 (why.html)",
+    "research_critique.json": "origins-era critic agent retired",
+    "ici-flows.json": "ICI moved to anti-scraped .xls workbooks; parser rebuild pending",
+    "agent/secretary": "legacy multi-agent API endpoint, retired",
+}
+
+def candidate_urls(ref):
+    """Every URL form the page could resolve this reference to. Pages use
+    literal /data/ paths, bare keys behind an S3/BUCKET const, or full URLs —
+    a feed is live if ANY real channel serves it."""
     ref = ref.strip()
     if any(c in ref for c in "{}$+ `") or ".." in ref:
-        return None
+        return None, []
     if ref.startswith("http"):
         if ("justhodl" not in ref) and ("workers.dev" not in ref):
-            return None
-        return ref.split("?")[0]
+            return None, []
+        u = ref.split("?")[0]
+        key = u.split(".com/", 1)[-1].split(".dev/", 1)[-1].lstrip("/")
+        key = key[5:] if key.startswith("data/") else key
+        return key, [u]
     p = ref.lstrip("/").split("?")[0]
     if not p.endswith(".json") or p.split("/")[-1] in EXCLUDE:
-        return None
-    return f"{BASE}/{p}" if p.startswith("data/") else f"{BASE}/data/{p}"
+        return None, []
+    if p.startswith("data/"):
+        key = p[5:]
+        return key, [f"{BASE}/{p}", f"{S3}/{key}"]
+    return p, [f"{S3}/{p}", f"{BASE}/data/{p}"]
 
 def main():
     with report("2950_fleet_health") as rep:
@@ -100,7 +116,7 @@ def main():
         if true_down:
             fails.append(f"pages down: {true_down[:12]}")
 
-        url_pages = {}
+        feed_refs = {}
         rx = [re.compile(r'["\'](/?data/[A-Za-z0-9_\-./]+\.json)'),
               re.compile(r'["\']((?:[A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.json)["\']'),
               re.compile(r'(https://[^"\'\s]+\.json)')]
@@ -110,39 +126,54 @@ def main():
             txt = bb.decode("utf-8", "replace")
             for r_ in rx:
                 for m in r_.findall(txt):
-                    u = as_written_url(m)
-                    if u:
-                        url_pages.setdefault(u, set()).add(p)
-        print(f"feed URLs referenced by pages (as written): {len(url_pages)}")
-        rep.kv(feed_urls_referenced=len(url_pages))
+                    key, urls = candidate_urls(m)
+                    if key:
+                        rec = feed_refs.setdefault(key, {"pages": set(), "urls": []})
+                        rec["pages"].add(p)
+                        for u in urls:
+                            if u not in rec["urls"]:
+                                rec["urls"].append(u)
+        print(f"feeds referenced by pages: {len(feed_refs)}")
+        rep.kv(feeds_referenced=len(feed_refs))
 
-        url_stat = {}
-        def check(u):
-            cc, bb, age, err = get(u)
-            okj = False
-            if cc == 200:
-                try:
-                    json.loads(bb)
-                    okj = True
-                except Exception:
-                    pass
-            return u, (cc, okj, age, err)
+        feed_stat = {}
+        def check(item):
+            key, rec = item
+            last = (None, False, None, "unchecked")
+            for u in rec["urls"]:
+                cc, bb, age, err = get(u)
+                if cc == 200:
+                    okj = False
+                    try:
+                        json.loads(bb)
+                        okj = True
+                    except Exception:
+                        pass
+                    return key, (200, okj, age, None, u)
+                last = (cc, False, age, err)
+            return key, (*last, None)
         with ThreadPoolExecutor(max_workers=6) as ex:
-            for u, st in ex.map(check, sorted(url_pages)):
-                url_stat[u] = st
-        dead = {u: v for u, v in url_stat.items() if v[0] != 200}
-        unparse = {u: v for u, v in url_stat.items() if v[0] == 200 and not v[1]}
-        print(f"feed URLs live: {len(url_stat)-len(dead)}/{len(url_stat)} dead={len(dead)} unparseable={len(unparse)}")
-        rep.kv(feed_urls_live=f"{len(url_stat)-len(dead)}/{len(url_stat)}",
-               feed_urls_unparseable=len(unparse))
-        for u, v in sorted(dead.items()):
-            short = u.replace(BASE + "/", "").replace(S3 + "/", "S3:")
-            rep.warn(f"DEAD feed {short} ({v[3] or v[0]}) <- " + ",".join(sorted(url_pages[u])[:5]))
-        for u in sorted(unparse):
-            short = u.replace(BASE + "/", "").replace(S3 + "/", "S3:")
-            rep.warn(f"UNPARSEABLE {short} <- " + ",".join(sorted(url_pages[u])[:4]))
-        if len(dead) > 5:
-            fails.append(f"{len(dead)} referenced feed URLs dead")
+            for key, st in ex.map(check, sorted(feed_refs.items())):
+                feed_stat[key] = st
+        dead = {k: v for k, v in feed_stat.items() if v[0] != 200}
+        legacy = {k: v for k, v in dead.items()
+                  if any(k.endswith(lg) for lg in KNOWN_LEGACY)}
+        hard_dead = {k: v for k, v in dead.items() if k not in legacy}
+        unparse = {k: v for k, v in feed_stat.items() if v[0] == 200 and not v[1]}
+        print(f"feeds live: {len(feed_stat)-len(dead)}/{len(feed_stat)} "
+              f"known-legacy-dead={len(legacy)} unexplained-dead={len(hard_dead)} unparseable={len(unparse)}")
+        rep.kv(feeds_live=f"{len(feed_stat)-len(dead)}/{len(feed_stat)}",
+               known_legacy_dead=len(legacy), unexplained_dead=len(hard_dead),
+               feeds_unparseable=len(unparse))
+        for k, v in sorted(hard_dead.items()):
+            rep.warn(f"DEAD feed {k} ({v[3] or v[0]}) <- " + ",".join(sorted(feed_refs[k]["pages"])[:5]))
+        for k, v in sorted(legacy.items()):
+            why = next(r for lg, r in KNOWN_LEGACY.items() if k.endswith(lg))
+            rep.warn(f"KNOWN-LEGACY dead {k} <- " + ",".join(sorted(feed_refs[k]["pages"])[:4]) + f" | {why}")
+        for k in sorted(unparse):
+            rep.warn(f"UNPARSEABLE {k} <- " + ",".join(sorted(feed_refs[k]["pages"])[:4]))
+        if hard_dead:
+            fails.append(f"{len(hard_dead)} referenced feeds dead (non-legacy)")
 
         c, b, _, _ = get("data/engine-registry.json")
         reg = json.loads(b) if c == 200 else {}
@@ -205,7 +236,7 @@ def main():
             fails.append("homepage identity wrong")
 
         line = (f"pages={len(pages)-len(true_down)}/{len(pages)} (stubs={len(redirects)}) "
-                f"feed-urls={len(url_stat)-len(dead)}/{len(url_stat)} "
+                f"feeds={len(feed_stat)-len(dead)}/{len(feed_stat)} (legacy-dead={len(legacy)}) "
                 f"engines fresh={e_fresh} aging={e_aging} stale={e_stale} dead={e_dead} no-outs={e_noouts} t={time.time()-t0:.0f}s")
         print(line)
         rep.kv(summary=line)
