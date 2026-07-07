@@ -26,6 +26,18 @@ def get(path, to=15):
     except Exception:
         return None, b""
 
+
+def get_json(path, tries=3):
+    for _ in range(tries):
+        c, b = get(path)
+        if c == 200:
+            try:
+                return json.loads(b)
+            except Exception:
+                pass
+        time.sleep(2)
+    return None
+
 def main():
     with report("2947_verify_engine_wiring") as rep:
         # /data/* is served by the CF Worker from S3 (never from the repo) —
@@ -72,13 +84,13 @@ def main():
                     bad_feeds.append(r)
 
         # fleet-wide recount with corrected matcher
-        c, b = get("data/engine-registry.json")
-        reg = json.loads(b)
+        reg = get_json("data/engine-registry.json")
+        assert reg is not None, "engine-registry.json unreachable or not JSON after retries"
         raw = reg.get("engines", reg) if isinstance(reg, dict) else reg
         entries = (raw if isinstance(raw, list)
                    else [{**(v if isinstance(v, dict) else {}), "name": k} for k, v in raw.items()])
-        c, b = get("data/nav-manifest.json")
-        nav = json.loads(b)
+        nav = get_json("nav-manifest.json") or get_json("data/nav-manifest.json")
+        assert nav is not None, "nav-manifest unreachable at root AND /data after retries"
         all_pages = sorted({it["href"].lstrip("/") for cat in nav.get("categories", nav if isinstance(nav, list) else [])
                             for it in (cat.get("items", cat.get("pages", [])) if isinstance(cat, dict) else [])
                             if isinstance(it, dict) and it.get("href", "").endswith(".html")})
