@@ -199,11 +199,38 @@ function build(d){
   });
   bil+='</tbody></table>';
 
+  // BBDXY replica -- Bloomberg Dollar Spot, back-engineered
+  const bb=d.bbdxy||{}; let bbx="";
+  if(bb.available&&bb.level!=null){
+    const b1=bb.breadth_spread_1m_pp;
+    const bc=b1==null?"var(--mute)":(b1>=0.35?"var(--red)":(b1<=-0.35?"var(--green)":"var(--mute)"));
+    bbx='<div class="sechead">BBDXY Replica &middot; Bloomberg Dollar Spot, Back-Engineered</div>'+
+      '<div class="card"><div class="ct">Basket '+esc(bb.level)+' <span class="cs">(rebased 100)</span>'+
+      ' <span class="pill" style="color:'+bc+';border-color:'+bc+'">BREADTH '+
+      (b1!=null?((b1>0?"+":"")+b1+"pp"):"&mdash;")+'</span></div>'+
+      '<div class="cm">1w '+fmtChg(bb.chg_1w_pct)+' &middot; 1m '+fmtChg(bb.chg_1m_pct)+
+      ' &middot; 3m '+fmtChg(bb.chg_3m_pct)+' &middot; 1y '+fmtChg(bb.chg_1y_pct)+
+      ' &middot; 1y range <b>'+(bb.range_pctile_1y!=null?bb.range_pctile_1y+"%ile":"&mdash;")+'</b></div>'+
+      '<div class="cs" style="margin-top:6px">'+esc(bb.breadth_verdict||"")+'</div>'+
+      '<div class="chart big" id="ch_bbdxy"></div>'+
+      '<table class="tbl" style="margin-top:10px"><thead><tr><th>Constituent</th><th>Weight</th>'+
+      '<th>USD 1M</th><th>Contrib 1M</th><th>USD 1Y</th><th>Contrib 1Y</th></tr></thead><tbody>';
+    (bb.constituents||[]).forEach(c=>{
+      bbx+='<tr><td><b>'+esc(c.currency)+'</b>'+(c.proxy?' <span class="cs">(CNY proxy)</span>':'')+
+        (c.present===false?' <span class="cs">(offline)</span>':'')+'</td>'+
+        '<td>'+esc(c.target_weight_pct)+'%</td>'+
+        pctCell(c.usd_chg_1m_pct)+ppCell(c.contrib_1m_pp)+
+        pctCell(c.usd_chg_1y_pct)+ppCell(c.contrib_1y_pp)+'</tr>';
+    });
+    bbx+='</tbody></table><div class="cs" style="margin-top:8px">'+esc(bb.basis||"")+
+      ' Weights effective '+esc(bb.weights_effective||"")+'. '+esc(bb.weights_source||"")+'</div></div>';
+  }
+
   const ts=d.generated_at?new Date(d.generated_at).toLocaleString():"";
   const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
     esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
 
-  document.getElementById("root").innerHTML=h+rt+can+tech+idx+bil+note;
+  document.getElementById("root").innerHTML=h+rt+can+tech+idx+bbx+bil+note;
 
   // render charts
   if(t.series&&t.series.length){
@@ -231,6 +258,37 @@ function build(d){
       charts.push(el);
     }
   });
+  if(bb.available&&bb.series&&bb.series.length){
+    const node=document.getElementById("ch_bbdxy");
+    if(node){
+      const el=echarts.init(node);
+      const ds=(bb.dxy_synth&&bb.dxy_synth.series)||[];
+      el.setOption({backgroundColor:"transparent",
+        grid:{left:44,right:12,top:26,bottom:22},
+        legend:{data:["BBDXY replica","DXY (synthetic, 1973 weights)"],top:0,
+          textStyle:{color:"#a8b3c7",fontSize:10,fontFamily:"monospace"},
+          itemWidth:14,itemHeight:2,icon:"rect"},
+        tooltip:{trigger:"axis",backgroundColor:"#0d1420",borderColor:"#1c2433",
+          textStyle:{color:"#e6ecf5",fontSize:11,fontFamily:"monospace"}},
+        xAxis:{type:"category",data:bb.series.map(x=>x[0]),
+          axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace"},
+          axisLine:{lineStyle:{color:"#1c2433"}}},
+        yAxis:{type:"value",scale:true,
+          axisLabel:{color:"#6f7b91",fontSize:9,fontFamily:"monospace"},
+          splitLine:{lineStyle:{color:"#141b28"}}},
+        series:[
+          {name:"BBDXY replica",type:"line",data:bb.series.map(x=>x[1]),
+           showSymbol:false,lineStyle:{width:2,color:"#ffd266"},itemStyle:{color:"#ffd266"}},
+          {name:"DXY (synthetic, 1973 weights)",type:"line",data:ds.map(x=>x[1]),
+           showSymbol:false,lineStyle:{width:1.4,color:"#00d4ff",type:"dashed"},itemStyle:{color:"#00d4ff"}}]});
+      charts.push(el);
+    }
+  }
+}
+function ppCell(v){
+  if(v==null)return '<td>&mdash;</td>';
+  const c=v>0?"var(--green)":(v<0?"var(--red)":"var(--mute)");
+  return '<td style="color:'+c+'">'+(v>0?"+":"")+v.toFixed(2)+'pp</td>';
 }
 function fmtChg(v){
   if(v==null)return '<b>&mdash;</b>';

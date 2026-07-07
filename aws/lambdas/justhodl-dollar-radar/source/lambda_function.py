@@ -33,6 +33,7 @@ shifts the odds on the dollar's next move from a cluster of leading
 signals -- it is not a day-trading oracle.
 """
 import json
+import math
 import os
 import time
 import urllib.parse
@@ -45,7 +46,7 @@ try:
 except Exception:
     pass
 
-SCHEMA = "2.0"
+SCHEMA = "3.0"
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/dollar-radar.json"
@@ -115,7 +116,203 @@ BILATERALS = [
     ("chf", "DEXSZUS", "CHF", False),
     ("inr", "DEXINUS", "INR", False),
     ("brl", "DEXBZUS", "BRL", False),
+    ("aud", "DEXUSAL", "AUD", True),   # USD per AUD -> invert
+    ("sgd", "DEXSIUS", "SGD", False),
+    ("twd", "DEXTAUS", "TWD", False),
 ]
+
+# ---- Bloomberg Dollar Spot Index (BBDXY) replica ----------------------------
+# Back-engineered from the published Bloomberg Currency Index methodology:
+# a fixed-weight geometric basket over the 12 constituent currencies, weights
+# set 50% Fed trade shares / 50% BIS FX-turnover liquidity, CNH capped at 7%,
+# sub-2% currencies dropped, rebalanced annually on the last business day of
+# June. The spot index maintains target weights daily, so a fixed-weight
+# geometric construction replicates it exactly up to the CNH/CNY proxy basis.
+BBDXY_WEIGHTS_EFFECTIVE = "2025-07-01"
+BBDXY_WEIGHTS_SOURCE = (
+    "Bloomberg 2025 BBDXY rebalance announcement -- target weights effective "
+    "after the close of 2025-06-30. Annual rebalance is the last business "
+    "day of June; swap in the 2026 table when Bloomberg publishes it.")
+BBDXY_WEIGHTS = {
+    "EUR": 29.47, "JPY": 12.38, "CAD": 11.65, "GBP": 10.27, "MXN": 9.62,
+    "CNH": 7.00, "CHF": 4.47, "AUD": 4.39, "KRW": 3.16, "INR": 2.83,
+    "SGD": 2.61, "TWD": 2.15}
+# FRED H.10 series per constituent: (series_id, invert). invert=True means
+# the series is quoted USD-per-unit and must be flipped to FX-per-USD so that
+# UP always means a stronger dollar. FRED carries no offshore CNH fix, so the
+# onshore CNY (DEXCHUS) stands in -- the CNH-CNY basis is normally well under
+# half a percent and is disclosed in the output.
+BBDXY_FRED = {
+    "EUR": ("DEXUSEU", True), "JPY": ("DEXJPUS", False),
+    "CAD": ("DEXCAUS", False), "GBP": ("DEXUSUK", True),
+    "MXN": ("DEXMXUS", False), "CNH": ("DEXCHUS", False),
+    "CHF": ("DEXSZUS", False), "AUD": ("DEXUSAL", True),
+    "KRW": ("DEXKOUS", False), "INR": ("DEXINUS", False),
+    "SGD": ("DEXSIUS", False), "TWD": ("DEXTAUS", False)}
+# ICE DXY, frozen 1973 weights -- computed on the same engine so the
+# BBDXY-minus-DXY spread isolates the EM/Asia leg of any dollar move.
+DXY_WEIGHTS = {"EUR": 57.6, "JPY": 13.6, "GBP": 11.9, "CAD": 9.1,
+               "SEK": 4.2, "CHF": 3.6}
+DXY_FRED = {"EUR": ("DEXUSEU", True), "JPY": ("DEXJPUS", False),
+            "GBP": ("DEXUSUK", True), "CAD": ("DEXCAUS", False),
+            "SEK": ("DEXSDUS", False), "CHF": ("DEXSZUS", False)}
+
+
+def _norm_fx_per_usd(series, invert):
+    """FRED tuples -> FX-per-USD tuples (UP = stronger dollar)."""
+    out = []
+    for d, v in series:
+        if v and v > 0:
+            out.append((d, (1.0 / v) if invert else v))
+    return out
+
+
+def _geometric_basket(fx_raw, weights, fred_map):
+    """Fixed-weight geometric USD basket from FRED dailies.
+
+    Returns (levels [(date, level)] rebased to 100 at the first date on
+    which every present constituent has a seed value, renormalised weights
+    actually used, and the list of missing constituents). Local-holiday
+    gaps are forward-filled, standard index practice."""
+    per_ccy = {}
+    for ccy in weights:
+        sid, invert = fred_map[ccy]
+        m = {}
+        for d, v in _norm_fx_per_usd(fx_raw.get(sid) or [], invert):
+            m[d] = v
+        if len(m) >= 60:
+            per_ccy[ccy] = m
+    missing = [c for c in weights if c not in per_ccy]
+    covered_w = sum(weights[c] for c in per_ccy)
+    total_w = sum(weights.values())
+    # weight-aware integrity gate: publish only while the live constituents
+    # still carry >=85 percent of the official basket weight (losing TWD is
+    # tolerable and renormalised; losing EUR is not) and at least half the
+    # constituent count remains.
+    if covered_w < 0.85 * total_w or len(per_ccy) < max(3, len(weights) // 2):
+        return [], {}, missing
+    tot = sum(weights[c] for c in per_ccy)
+    wr = {c: weights[c] / tot for c in per_ccy}
+    dates = sorted(set().union(*[set(m) for m in per_ccy.values()]))
+    last, levels, prev = {}, [], None
+    lvl = 100.0
+    for d in dates:
+        cur, full = {}, True
+        for c, m in per_ccy.items():
+            if d in m:
+                last[c] = m[d]
+            if c not in last:
+                full = False
+                break
+            cur[c] = last[c]
+        if not full:
+            continue
+        if prev is not None:
+            lr = 0.0
+            for c, wgt in wr.items():
+                lr += wgt * math.log(cur[c] / prev[c])
+            lvl *= math.exp(lr)
+        levels.append((d, lvl))
+        prev = cur
+    return levels, wr, missing
+
+
+def build_bbdxy(fx_raw, broad_series):
+    """The full back-engineered BBDXY block for the output JSON."""
+    levels, wr, missing = _geometric_basket(fx_raw, BBDXY_WEIGHTS, BBDXY_FRED)
+    dxy_levels, _, _ = _geometric_basket(fx_raw, DXY_WEIGHTS, DXY_FRED)
+    if len(levels) < 120:
+        return {"available": False, "missing": missing,
+                "note": "insufficient FRED FX coverage for the replica"}
+
+    def _chgs(s):
+        return {h: (round(chg_pct(s, dd), 2)
+                    if chg_pct(s, dd) is not None else None)
+                for h, dd in [("chg_1d_pct", 1), ("chg_1w_pct", 7),
+                              ("chg_1m_pct", 30), ("chg_3m_pct", 91),
+                              ("chg_6m_pct", 182), ("chg_1y_pct", 365)]}
+
+    rep = _chgs(levels)
+    dxy = _chgs(dxy_levels) if len(dxy_levels) >= 120 else {}
+
+    constituents = []
+    for ccy in sorted(BBDXY_WEIGHTS, key=lambda c: -BBDXY_WEIGHTS[c]):
+        sid, invert = BBDXY_FRED[ccy]
+        norm = _norm_fx_per_usd(fx_raw.get(sid) or [], invert)
+        row = {"currency": ccy, "fred_id": sid,
+               "target_weight_pct": BBDXY_WEIGHTS[ccy],
+               "present": ccy in wr}
+        if ccy == "CNH":
+            row["proxy"] = "onshore CNY (DEXCHUS) stands in for offshore CNH"
+        if norm and ccy in wr:
+            row["fx_per_usd"] = round(norm[-1][1], 4)
+            row["as_of"] = norm[-1][0]
+            for h, dd in [("usd_chg_1m_pct", 30), ("usd_chg_1y_pct", 365)]:
+                v = chg_pct(norm, dd)
+                row[h] = round(v, 2) if v is not None else None
+            for h, dd in [("contrib_1m_pp", 30), ("contrib_1y_pp", 365)]:
+                then = value_days_ago(norm, dd)
+                if then:
+                    row[h] = round(
+                        wr[ccy] * math.log(norm[-1][1] / then) * 100.0, 3)
+                else:
+                    row[h] = None
+        constituents.append(row)
+
+    breadth_1m = None
+    if rep.get("chg_1m_pct") is not None and dxy.get("chg_1m_pct") is not None:
+        breadth_1m = round(rep["chg_1m_pct"] - dxy["chg_1m_pct"], 2)
+    breadth_3m = None
+    if rep.get("chg_3m_pct") is not None and dxy.get("chg_3m_pct") is not None:
+        breadth_3m = round(rep["chg_3m_pct"] - dxy["chg_3m_pct"], 2)
+    if breadth_1m is None:
+        bverdict = "breadth unavailable"
+    elif breadth_1m >= 0.35:
+        bverdict = ("BROAD-LED -- the EM and Asia legs are outrunning the "
+                    "G10-heavy DXY, the classic offshore dollar-funding "
+                    "stress fingerprint")
+    elif breadth_1m <= -0.35:
+        bverdict = ("G10-LED -- the dollar move is concentrated in the "
+                    "majors; EM currencies are holding up better than DXY "
+                    "implies")
+    else:
+        bverdict = "IN LINE -- broad basket and DXY are moving together"
+
+    vs_broad_1m = None
+    if broad_series and rep.get("chg_1m_pct") is not None:
+        bc = chg_pct(broad_series, 30)
+        if bc is not None:
+            vs_broad_1m = round(rep["chg_1m_pct"] - bc, 2)
+
+    out = {"available": True,
+           "name": "BBDXY Replica -- Bloomberg Dollar Spot, back-engineered",
+           "basis": ("Fixed-weight geometric basket over the 12 official "
+                     "constituents, FRED H.10 noon-NY fixes, forward-filled "
+                     "over local holidays, rebased to 100 at the window "
+                     "start. Tracks Bloomberg BBDXY returns up to the "
+                     "CNH/CNY proxy basis."),
+           "weights_effective": BBDXY_WEIGHTS_EFFECTIVE,
+           "weights_source": BBDXY_WEIGHTS_SOURCE,
+           "level": round(levels[-1][1], 3), "as_of": levels[-1][0],
+           "range_pctile_1y": (round(pctile_1y(levels), 1)
+                               if pctile_1y(levels) is not None else None),
+           "missing": missing,
+           "constituents": constituents,
+           "breadth_spread_1m_pp": breadth_1m,
+           "breadth_spread_3m_pp": breadth_3m,
+           "breadth_verdict": bverdict,
+           "vs_fed_broad_1m_pp": vs_broad_1m,
+           "series": [[d, round(v, 3)] for d, v in levels[-260:]],
+           "dxy_synth": {"weights": DXY_WEIGHTS,
+                         "level": (round(dxy_levels[-1][1], 3)
+                                   if dxy_levels else None),
+                         "series": [[d, round(v, 3)]
+                                    for d, v in dxy_levels[-260:]],
+                         **dxy}}
+    out.update(rep)
+    return out
+
+
 # canary inputs
 CANARY_SERIES = ["WALCL", "WRESBAL", "RRPONTSYD", "WTREGEN", "DFII10",
                  "DGS10", "DGS2", "IRLTLT01DEM156N", "VIXCLS",
@@ -886,8 +1083,10 @@ def lambda_handler(event, context):
 
     # bilateral crosses -- normalised so UP = stronger dollar
     bilat_out = []
+    bilat_raw = {}
     for bkey, sid, ccy, invert in BILATERALS:
         s = fred_series(sid, start, key)
+        bilat_raw[sid] = s
         if not s:
             continue
         norm = [(d, (1.0 / v if (invert and v) else v)) for d, v in s]
@@ -901,6 +1100,14 @@ def lambda_handler(event, context):
             "chg_1y_pct": (round(chg_pct(norm, 365), 2)
                            if chg_pct(norm, 365) is not None else None),
         })
+
+    # ---- BBDXY replica (Bloomberg Dollar Spot, back-engineered) --------
+    fx_raw = dict(bilat_raw)
+    for _pair in list(BBDXY_FRED.values()) + list(DXY_FRED.values()):
+        _sid = _pair[0]
+        if not fx_raw.get(_sid):
+            fx_raw[_sid] = fred_series(_sid, start, key)
+    bbdxy = build_bbdxy(fx_raw, series_cache.get("DTWEXBGS") or [])
 
     # canary inputs
     fred = {}
@@ -976,6 +1183,7 @@ def lambda_handler(event, context):
         "canaries": canaries,
         "indices": indices_out,
         "bilaterals": bilat_out,
+        "bbdxy": bbdxy,
         "technicals": technicals,
         "risk_transmission": risk_tx,
         "history_key": HIST_KEY,
@@ -991,7 +1199,13 @@ def lambda_handler(event, context):
             "eurodollar relief valve), the Fed-vs-ECB/BoJ stance gap, "
             "China's credit impulse and CFTC positioning extremes -- "
             "plus the Risk-Asset Transmission dial that reads DXY x "
-            "US10Y for what they mean for risk assets."),
+            "US10Y for what they mean for risk assets. v3 adds the BBDXY "
+            "Replica -- the Bloomberg Dollar Spot Index back-engineered as "
+            "a fixed-weight geometric basket over its 12 official "
+            "constituents (official target weights, CNH capped at 7pct), "
+            "with per-currency contribution attribution and a broad-vs-DXY "
+            "breadth spread that isolates the EM and Asia leg of any "
+            "dollar move."),
         "disclaimer": (
             "A probabilistic dollar radar built from leading macro "
             "signals. It shifts the odds on the dollar's next move; it "
