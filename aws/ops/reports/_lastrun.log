@@ -1,16 +1,27 @@
-executing-against: 566c73d92fe5a434b968b00cdefb8729a0e87cf9
-── 1. Invoke justhodl-tv-notes-crawler ──
-[04:02:55] Firing crawler — this takes 1-5 min depending on note count…
-[harvest] 0 notes / 0 tickers in 21.3s
-── 2. Verify mirror ──
-[04:03:16] ⚠ Mirror is empty — TV may not expose a notes API on your plan; see next steps below
-── 3. Invoke justhodl-brain-compiler ──
-[04:03:16] Skipping brain-compiler (no notes yet)
-── 4. Status feed ──
-harvest: session_valid=False notes=0 tickers=0 mirror=0 brain_upserted=0
-[04:03:17] ✗ crawler returned ok=False — check session validity
-[04:03:17] ✗ session_valid=False — session may be stale or wrong
-FAILURES: crawler returned ok=False — check session validity | session_valid=False — session may be stale or wrong
+executing-against: b010bfd0823c9ea14f83f1b0b55f3c9189be265d
+[04:10:12] ⚠ sessionid_sign NOT in SSM — TV 403s without it.
+Run these two GitBash commands (already have sessionid):
 
-→ Report written to aws/ops/reports/latest/2959_tv_harvest_now.md
-❌ OPS-FAIL: aws/ops/pending/ops_2959_tv_harvest_now.py
+1. In Chrome on tradingview.com -> Ctrl+Shift+I -> Application
+   -> Cookies -> tradingview.com -> find 'sessionid_sign' row
+   -> double-click the Value column, copy the whole string
+
+2. GitBash command:
+   MSYS_NO_PATHCONV=1 aws ssm put-parameter --name /justhodl/tradingview/sessionid_sign --type SecureString --value "PASTE_SESSIONID_SIGN_HERE" --overwrite --region us-east-1
+
+The crawler will then work fully autonomously.
+── Deploy crawler v2 ──
+[04:10:12]   zip: 5780 bytes
+── 1. Lambda ──
+[04:10:12]   Lambda exists — updating
+[04:10:17] ✅   ✓ updated justhodl-tv-notes-crawler
+── 2. EB rule + permissions ──
+[04:10:17]   rule already correct: justhodl-tv-notes-crawler-daily (cron(0 6 * * ? *))
+[04:10:17] ✅   ✓ target → justhodl-tv-notes-crawler
+[04:10:17] ✅   ✓ added invoke permission
+── Fire immediate harvest ──
+tv-crawler-v2: session=True sign=False
+[04:10:44] ✗ session_valid=False even with sign — check cookie values
+
+→ Report written to aws/ops/reports/latest/2960_tv_crawler_v2.md
+❌ OPS-FAIL: aws/ops/pending/ops_2960_tv_crawler_v2.py
