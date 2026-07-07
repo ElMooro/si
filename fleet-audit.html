@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fleet Audit · JustHodl.AI</title>
+<meta name="description" content="Every engine audited: families, health, redundancy, umbrella consolidations, and the cross-checked institutional gap matrix">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --amber:#ffb13d; --red:#ff5c7a; --cyan:#00d4ff; --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:21px;font-weight:700;letter-spacing:.3px}
+.prov{font-size:10px;font-weight:700;letter-spacing:1.2px;padding:3px 10px;border-radius:3px;background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)}
+.fresh{font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.sub{color:var(--fg-3);font-size:12px;margin-bottom:18px}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-4)}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.macro{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mi{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.mi .l{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg-3)}
+.mi .v{font-family:var(--font-mono);font-size:17px;font-weight:600;margin-top:3px}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.fam{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px}
+.fam .t{display:flex;justify-content:space-between;font-weight:600}
+.fam .m{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);margin-top:3px}
+.chipf{font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);margin-left:6px}
+.chipf.now{background:rgba(56,255,168,.10);color:var(--green);border-color:rgba(56,255,168,.3)}
+.chipf.med{background:rgba(255,177,61,.10);color:var(--amber);border-color:rgba(255,177,61,.3)}
+.chipf.src{background:rgba(255,92,122,.10);color:var(--red);border-color:rgba(255,92,122,.3)}
+.gap{border-left:3px solid var(--cyan);background:var(--bg-elevated);border-radius:0 var(--radius) var(--radius) 0;padding:10px 12px;margin-bottom:8px}
+.gap b{font-size:13px}
+.gap .w{color:var(--fg-2);font-size:12px;margin-top:3px}
+.gap .meta{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin-top:4px}
+.umb{border-left:3px solid var(--violet);background:var(--bg-elevated);border-radius:0 var(--radius) var(--radius) 0;padding:10px 12px;margin-bottom:8px}
+.umb .act{font-size:9.5px;font-weight:700;letter-spacing:.7px;padding:2px 7px;border-radius:3px;background:rgba(167,139,250,.12);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
+.umb .tg{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);margin-top:4px}
+.cov{color:var(--fg-3);font-size:12px;padding:4px 0;border-bottom:1px solid rgba(120,145,180,0.06)}
+.cov b{color:var(--fg-2)}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px}
+.tbl th{text-align:left;font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg-3);padding:7px 9px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-raised)}
+.tbl td{padding:6px 9px;border-bottom:1px solid rgba(120,145,180,0.06);white-space:nowrap}
+.st{font-size:9.5px;font-weight:700;letter-spacing:.6px;padding:2px 7px;border-radius:3px}
+.st.wired{background:rgba(56,255,168,.10);color:var(--green)}
+.st.orph{background:rgba(255,177,61,.10);color:var(--amber)}
+.st.noout{background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border)}
+#q{width:100%;background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--fg-1);font-family:var(--font-mono);font-size:12px;margin-bottom:10px}
+.note{color:var(--cyan);font-size:11px;font-family:var(--font-sans);white-space:normal}
+.road li{margin:6px 0 6px 16px;color:var(--fg-2);font-size:12.5px}
+.err{padding:14px;border:1px solid rgba(255,92,122,.4);border-radius:var(--radius);background:rgba(255,92,122,.06);color:var(--red)}
+footer{margin-top:34px;color:var(--fg-4);font-size:11px}
+@media(max-width:700px){.boards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg">
+    <h1>🛰 Fleet Audit</h1>
+    <span class="prov">EVERY ENGINE · ONE DOCUMENT</span>
+    <span class="fresh" id="fresh">loading…</span>
+  </header>
+  <div class="sub">Repo-scan registry × wiring × trust verdicts × a curated institutional gap matrix — every proposed gap cross-checked against the corpus first. Zero LLM.</div>
+
+  <section>
+    <h2>Fleet Totals</h2>
+    <div class="macro" id="tot"></div>
+  </section>
+
+  <section>
+    <h2>Gap Matrix <span class="n">what a top desk would add · cross-checked · with the wiring target</span></h2>
+    <div class="boards">
+      <div class="card"><div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">GENUINE GAPS — nothing in 667 engines covers these</div><div id="gaps"></div></div>
+      <div class="card"><div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">ALREADY COVERED — claims demoted by evidence (honesty layer)</div><div id="cov"></div>
+        <div style="font-size:11px;color:var(--fg-3);margin:14px 0 8px">COMPASS v1.2 ROADMAP</div><ul class="road" id="road"></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Umbrella Actions <span class="n">consolidations · merges · one new desk</span></h2>
+    <div class="card" id="umb"></div>
+  </section>
+
+  <section>
+    <h2>Family Health <span class="n">engines · orphans · feedless · open gaps per family</span></h2>
+    <div class="boards"><div class="card" id="famL"></div><div class="card" id="famR"></div></div>
+  </section>
+
+  <section>
+    <h2>Every Engine <span class="n">searchable · family · status · trust · specific note where earned</span></h2>
+    <input id="q" placeholder="filter by name, family, status… (e.g. ORPHAN, Credit, insider)">
+    <div class="card" style="max-height:560px;overflow:auto"><table class="tbl" id="tbl"></table></div>
+  </section>
+
+  <footer>data/fleet-audit.json · rebuilt by ops on demand · methodology: ops-2876 repo-scan technique + engine-wiring + engine-trust + curated matrix with corpus cross-check</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function el(id){return document.getElementById(id);}
+function ago(iso){try{var m=(Date.now()-new Date(iso).getTime())/6e4;return m<90?Math.round(m)+"m ago":(m<2880?(m/60).toFixed(1)+"h ago":Math.round(m/1440)+"d ago");}catch(e){return"—";}}
+function chip(f){var c=f==="FEASIBLE_NOW"?"now":(f==="MEDIUM"?"med":"src");var t=f==="FEASIBLE_NOW"?"FEASIBLE NOW":f;return '<span class="chipf '+c+'">'+esc(t)+'</span>';}
+
+function load(){
+ fetch("/data/fleet-audit.json?t="+Date.now()).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}).then(function(d){
+  el("fresh").textContent="audit "+ago(d.generated_at)+" · ops "+esc(d.ops||"");
+  var T=d.totals||{};
+  el("tot").innerHTML=
+   '<div class="mi"><div class="l">Engines</div><div class="v">'+esc(T.engines)+'</div></div>'+
+   '<div class="mi"><div class="l">Pages</div><div class="v">'+esc(T.pages)+'</div></div>'+
+   '<div class="mi"><div class="l">Families</div><div class="v">'+esc(T.families)+'</div></div>'+
+   '<div class="mi"><div class="l">Wired (wiring doc)</div><div class="v up">'+esc(T.wired_per_wiring_doc==null?"—":T.wired_per_wiring_doc)+'</div></div>'+
+   '<div class="mi"><div class="l">Orphaned</div><div class="v flat" style="color:var(--amber)">'+esc(T.orphaned_per_wiring_doc==null?"—":T.orphaned_per_wiring_doc)+'</div></div>'+
+   '<div class="mi"><div class="l">Genuine gaps</div><div class="v" style="color:var(--cyan)">'+esc(T.gaps)+'</div></div>'+
+   '<div class="mi"><div class="l">Feasible now</div><div class="v up">'+esc(T.gaps_feasible_now)+'</div></div>'+
+   '<div class="mi"><div class="l">Demoted (covered)</div><div class="v">'+esc(T.already_covered)+'</div></div>';
+
+  var gm=(d.gap_matrix||{});
+  el("gaps").innerHTML=(gm.gaps||[]).map(function(g){
+   return '<div class="gap"><b>'+esc(g.id)+' · '+esc(g.name)+'</b>'+chip(g.feasibility)+
+     '<div class="w">'+esc(g.why)+'</div>'+
+     '<div class="meta">source: '+esc(g.source)+' → wire into: '+esc(g.wire_into)+' · family: '+esc(g.family)+'</div></div>';
+  }).join("")||'<div style="color:var(--fg-3)">none — the fleet covers the full curated matrix</div>';
+  el("cov").innerHTML=(gm.already_covered||[]).map(function(c){
+   return '<div class="cov"><b>'+esc(c.id)+' '+esc(c.name)+'</b> — evidence: <span style="font-family:var(--font-mono)">'+esc(c.evidence)+'</span></div>';
+  }).join("")||'<div style="color:var(--fg-3)">—</div>';
+  el("road").innerHTML=(d.compass_v12_roadmap||[]).map(function(r){return "<li>"+esc(r)+"</li>";}).join("");
+
+  el("umb").innerHTML=(d.umbrella_actions||[]).map(function(u){
+   var miss=(u.missing&&u.missing.length)?' <span style="color:var(--red);font-size:10px">missing: '+esc(u.missing.join(", "))+'</span>':'';
+   return '<div class="umb"><span class="act">'+esc(u.action)+'</span> <b>'+esc(u.name)+'</b>'+
+     '<div class="tg">'+esc((u.targets||[]).join(" · "))+miss+'</div>'+
+     '<div style="color:var(--fg-2);font-size:12px;margin-top:3px">'+esc(u.note)+'</div></div>';
+  }).join("");
+
+  var fams=(d.families||[]).slice().sort(function(a,b){return b.engines-a.engines;});
+  var half=Math.ceil(fams.length/2);
+  function famHTML(rows){return rows.map(function(f){
+   return '<div class="fam"><div class="t"><span>'+esc(f.family)+'</span><span style="font-family:var(--font-mono)">'+esc(f.engines)+'</span></div>'+
+     '<div class="m">orphans '+esc(f.orphans)+' · feedless '+esc(f.no_outs)+' · trust-graded '+esc(f.with_trust_verdict)+
+     (f.gap_items&&f.gap_items.length?' · gaps: <span style="color:var(--cyan)">'+esc(f.gap_items.join(", "))+'</span>':'')+'</div></div>';
+  }).join("");}
+  el("famL").innerHTML=famHTML(fams.slice(0,half));
+  el("famR").innerHTML=famHTML(fams.slice(half));
+
+  var eng=d.engines||{}; var names=Object.keys(eng).sort();
+  window.__rows=names.map(function(n){var e=eng[n];return {n:n,f:e.family,s:e.status,t:e.trust,o:(e.outs||[]).length,note:e.note};});
+  renderTbl("");
+  el("q").addEventListener("input",function(){renderTbl(this.value);});
+ }).catch(function(e){
+  el("tot").innerHTML='<div class="err">Could not load data/fleet-audit.json — '+esc(e.message)+'. Run ops 2974.</div>';
+ });
+}
+
+function renderTbl(q){
+ q=(q||"").toLowerCase();
+ var rows=(window.__rows||[]).filter(function(r){
+  return !q || r.n.toLowerCase().indexOf(q)>=0 || (r.f||"").toLowerCase().indexOf(q)>=0 || (r.s||"").toLowerCase().indexOf(q)>=0 || (r.t||"").toLowerCase().indexOf(q)>=0;
+ });
+ var h='<thead><tr><th>Engine</th><th>Family</th><th>Status</th><th>Outs</th><th>Trust</th><th>Note</th></tr></thead><tbody>';
+ h+=rows.slice(0,700).map(function(r){
+  var sc=r.s==="WIRED"?"wired":(r.s==="ORPHAN"?"orph":"noout");
+  return '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.f)+'</td><td><span class="st '+sc+'">'+esc(r.s)+'</span></td><td>'+esc(r.o)+'</td><td>'+esc(r.t||"—")+'</td><td class="note">'+esc(r.note||"")+'</td></tr>';
+ }).join("");
+ document.getElementById("tbl").innerHTML=h+"</tbody>";
+}
+load();
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
