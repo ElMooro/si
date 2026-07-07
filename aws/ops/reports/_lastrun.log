@@ -1,5 +1,8 @@
-executing-against: 4b64257866939364590ac785539a839b22f50067
-manifest published to S3 (16578 bytes)
-pages ok=49/49 lines-missing=0 feeds ok=68/68 | fleet: wired=579 orphaned=0 no-outs=82 of 661
+executing-against: 5b68d06ac7f161e2a79ce701db29f3fa2d3c6766
+homepage=OperatorConsole:True nav=0 pages=11/12 drawer=11 engines=661 ki=57
+[00:58:02] ✗ nav-manifest thin (0)
+[00:58:02] ✗ pages failing: ['screener.html']
+FAILURES: nav-manifest thin (0) | pages failing: ['screener.html']
 
-→ Report written to aws/ops/reports/latest/2947_verify_engine_wiring.md
+→ Report written to aws/ops/reports/latest/2948_verify_homepage_restore.md
+❌ OPS-FAIL: aws/ops/pending/ops_2948_verify_homepage_restore.py
