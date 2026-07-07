@@ -1,0 +1,37 @@
+{
+ "ops": 2982,
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS",
+ "ts": "2026-07-07T22:46:26.467702+00:00",
+ "schema": "1.2",
+ "corr_tickers": 30,
+ "clusters_n": 12,
+ "top_div_pair": {
+  "a": "INDA",
+  "b": "USO",
+  "corr": -0.67
+ },
+ "tlt_rate_beta": -14.48,
+ "spy_spy_beta": 1.0,
+ "scenario_assets": 30,
+ "tlt_scenarios": {
+  "plus_100bp_pct": -14.5,
+  "minus_100bp_pct": 14.5,
+  "recession_pct": 18.2,
+  "inflation_shock_pct": -29.4
+ },
+ "spy_scenarios": {
+  "plus_100bp_pct": -1.4,
+  "minus_100bp_pct": 1.4,
+  "recession_pct": -22.9,
+  "inflation_shock_pct": 5.2
+ },
+ "ledger": {
+  "entries_n": 1,
+  "since": "2026-07-07",
+  "graded_n": 0,
+  "grading": "WARMING_UP",
+  "first_grade_eta": "2027-07-02"
+ }
+}

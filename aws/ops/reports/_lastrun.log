@@ -1,11 +1,9 @@
-executing-against: 477af1cb562bfac684f328059c04fd86ad5674cd
-── A/B. Repo scans ──
-── C. S3 context loads ──
-── D. Classification ──
-── E. Redundancy ──
-── F. Gap matrix cross-check ──
-── G. Assemble + upload ──
-[22:09:31] ✅ fleet audit live: 668 engines / 370 pages / 12 families; 5 genuine gaps (1 feasible now), 17 claims demoted to already-covered by evidence
-[22:09:31] FAILS=0 WARNS=0
+executing-against: b94d16ae095dbfb93c0a6871c8e2974807a92775
+── 1. Race-safe deploy wait ──
+── 2. Invoke (full compass run) ──
+── 3. Doc verify ──
+── 4. Page live (runner-side) ──
+[22:46:26] ✅ COMPASS v1.2 LIVE: ledger vintage #1 (20 assets, first grade 2027-07-02) | matrix 30x30, 12 clusters, top diversifier {"a": "INDA", "b": "USO", "corr": -0.67} | TLT +100bp -14.5%, SPY recession -22.9% | page live
+[22:46:26] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2976_fleet_audit_fix.md
+→ Report written to aws/ops/reports/latest/2982_compass_v12.md
