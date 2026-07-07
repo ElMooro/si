@@ -605,6 +605,24 @@ table.tbl tr:last-child td{border-bottom: none}
 <script src="/ai-frontrun-kit.js"></script>
 <script src="/ai-frontrun-history-kit.js"></script>
 <script src="/jh-ai-insights.js?t=20260601a" defer></script>
+<style id="jh-amber-skin">
+/* AMBER SKIN (2026-07-07) — colors-only override to this morning's palette (jh-theme tokens).
+   Structure, layout, JS untouched. Fonts already IBM Plex (unchanged).
+   Rollback = revert this single commit. */
+:root{
+  --bg-base:#0C0B09; --bg-raised:#12110C; --bg-sunken:#080705; --bg-elevated:#17150E;
+  --bg-glow:rgba(240,180,41,0.04);
+  --border:rgba(196,178,128,0.14); --border-hover:rgba(196,178,128,0.30); --border-strong:rgba(240,180,41,0.45);
+  --green:#6fce8a; --green-dim:#3d7a52;
+  --amber:#F0B429; --amber-dim:#b8892e;
+  --red:#E07A6A; --red-dim:#8a4438;
+  --cyan:#F0B429; --cyan-dim:#b8892e; /* cyan accent role -> amber, per Amber Terminal */
+  --violet:#C9A96A;
+}
+::selection{background:rgba(240,180,41,0.25)}
+.badge.c{background:rgba(240,180,41,0.07)}
+#prePumpHero{background:linear-gradient(135deg,rgba(224,122,106,.05),rgba(201,169,106,.04) 50%,rgba(240,180,41,.03)) !important}
+</style>
 </head>
 <body>
 <!-- INTEL TERMINAL BANNER -->
