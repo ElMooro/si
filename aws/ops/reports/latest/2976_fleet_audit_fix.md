@@ -1,19 +1,20 @@
 ## A/B. Repo scans
 
 **Status:** success  
-**Duration:** 1.1s  
-**Finished:** 2026-07-07T20:59:54+00:00  
+**Duration:** 1.3s  
+**Finished:** 2026-07-07T22:09:31+00:00  
 
 ## Data
 
-| Commodities_and_Metals | Credit | Crypto | Equity_Signals | Global_and_Flows | Macro_and_Rates | Meta_and_Infra | Options_and_Vol | Portfolio_and_Exec | Research_and_LLM | Risk_and_Crisis | Unclassified | already_covered | covered_ids | engine_shared_outs | engines | gaps | orphaned | pages | single_feed_page_collisions | uploaded_kb | wired |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 667 |  |  | 369 |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | None |  |  |  | 68 |
-| 4 | 5 | 32 | 209 | 27 | 93 | 79 | 22 | 32 | 58 | 44 | 62 |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  | 394 |  |  |  |  | 9 |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  | 6 | ['M2', 'M3', 'M5', 'M6', 'M8', 'M12'] |  |  | 16 |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 170.6 |  |
+| Commodities_and_Metals | Credit | Crypto | Equity_Signals | Global_and_Flows | Macro_and_Rates | Meta_and_Infra | Options_and_Vol | Portfolio_and_Exec | Research_and_LLM | Risk_and_Crisis | Unclassified | already_covered | covered_ids | demoted_to_covered | engine_shared_outs | engines | gaps | orphaned | pages | shipped | single_feed_page_collisions | still_open | uploaded_kb | wired |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 668 |  |  | 370 |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | None |  |  |  |  |  | 68 |
+| 4 | 5 | 32 | 209 | 27 | 93 | 79 | 22 | 32 | 58 | 44 | 63 |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 394 |  |  |  |  |  | 8 |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  | 15 | ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M8', 'M11', 'M12', 'M14', 'M15', 'M16', 'M19', 'M20', 'M22'] |  |  |  | 7 |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  | ['M17', 'M18'] |  |  |  |  |  | 11 |  | ['M7', 'M10', 'M21'] |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 171.9 |  |
 
 ## Log
 ## C. S3 context loads
@@ -26,5 +27,5 @@
 
 ## G. Assemble + upload
 
-- `20:59:54` ✅ fleet audit live: 667 engines / 369 pages / 12 families; 16 genuine gaps (8 feasible now), 6 claims demoted to already-covered by evidence
-- `20:59:54` FAILS=0 WARNS=0
+- `22:09:31` ✅ fleet audit live: 668 engines / 370 pages / 12 families; 5 genuine gaps (1 feasible now), 17 claims demoted to already-covered by evidence
+- `22:09:31` FAILS=0 WARNS=0

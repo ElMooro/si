@@ -1,8 +1,11 @@
-executing-against: 5492b3357534e608dda8fed1033d4215bec310a5
-── 1. Race-safe deploy wait ──
-── 2. Invoke ──
-── 3. Verify 10+/11 with the two fixes ──
-[22:04:40] ✅ gap-metrics COMPLETE: 11/11 OK; implied-corr 7.94 (0.2th pctile) via CBOE; breadth None% (WARMING_UP eta 2026-07-28 (60 names)); stock-level warmup running with 60 names
-[22:04:40] FAILS=0 WARNS=0
+executing-against: 477af1cb562bfac684f328059c04fd86ad5674cd
+── A/B. Repo scans ──
+── C. S3 context loads ──
+── D. Classification ──
+── E. Redundancy ──
+── F. Gap matrix cross-check ──
+── G. Assemble + upload ──
+[22:09:31] ✅ fleet audit live: 668 engines / 370 pages / 12 families; 5 genuine gaps (1 feasible now), 17 claims demoted to already-covered by evidence
+[22:09:31] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2980_gap_final.md
+→ Report written to aws/ops/reports/latest/2976_fleet_audit_fix.md
