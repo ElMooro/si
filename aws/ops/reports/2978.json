@@ -1,0 +1,19 @@
+{
+ "ops": 2978,
+ "fails": [
+  "only 8/11 OK after fixes: {\"revision_breadth\": \"only 2 signed rows\", \"miner_margin\": \"only 0 miners parsed; errors: NEM: HTTP Error 403: Forbidden; GOLD: HTTP Error 403: Forbidden; AEM: HTTP Error 403: Forbidden\", \"cor3m\": \"no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)\"}"
+ ],
+ "warns": [
+  "revision_breadth still degraded: only 2 signed rows",
+  "miner_margin still degraded: only 0 miners parsed; errors: NEM: HTTP Error 403: Forbidden; GOLD: HTTP Error 403: Forbidden; AEM: HTTP Error 403: Forbidden",
+  "implied-corr best-effort still degraded (acceptable: no free symbol) -- no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)"
+ ],
+ "verdict": "FAIL",
+ "ts": "2026-07-07T21:26:12.131618+00:00",
+ "modules_ok": 8,
+ "degraded": {
+  "revision_breadth": "only 2 signed rows",
+  "miner_margin": "only 0 miners parsed; errors: NEM: HTTP Error 403: Forbidden; GOLD: HTTP Error 403: Forbidden; AEM: HTTP Error 403: Forbidden",
+  "cor3m": "no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)"
+ }
+}

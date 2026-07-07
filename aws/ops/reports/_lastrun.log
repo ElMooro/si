@@ -1,14 +1,9 @@
-executing-against: 39eae3b95318a978145ec22ef07ad3457ce32853
-── 0. Source probes from the runner ──
-── 1. Deploy justhodl-gap-metrics ──
-[21:16:12]   zip: 8308 bytes
-── 1. Lambda ──
-[21:16:12]   Lambda missing — creating
-[21:16:17] ✅   ✓ created justhodl-gap-metrics
-── 2. Scheduler daily 21:45 UTC ──
-── 3. Synchronous first run ──
-── 4. Hard verify ──
-[21:16:24] ✅ gap-metrics LIVE: 8/11 OK; SLOOS 8.1% | stock-bond {"current_63d_corr": 0.415, "regime": "POSITIVE"} | bills 80.8% | M2 yoy -0.65% | OFR -2.682 | muni 0.708
-[21:16:24] FAILS=0 WARNS=0
+executing-against: 5659b558af0abeefe980d88a33ac74ba043f0135
+── 1. Wait for gap-metrics code deploy ──
+── 2. Re-invoke ──
+── 3. Module verify (post-fix) ──
+── 4. Live pages (runner-side) ──
+[21:26:12] FAILS=1 WARNS=3
 
-→ Report written to aws/ops/reports/latest/2977_gap_metrics.md
+→ Report written to aws/ops/reports/latest/2978_gap_wiring.md
+❌ OPS-FAIL: aws/ops/pending/ops_2978_gap_wiring.py
