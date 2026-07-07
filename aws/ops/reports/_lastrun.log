@@ -1,12 +1,6 @@
-executing-against: 6b2cc9f6ebd1100524e7617398f1816722a3678d
+executing-against: 9bff40909903a46bb2a57d970da09be41860e592
 ── A. Orphan roster ──
+[23:39:02] FAILS=1
 
 → Report written to aws/ops/reports/latest/2984_u9_recon.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py", line 161, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py", line 59, in main
-    n = r.get("name") or r.get("engine")
-        ^^^^^
-AttributeError: 'str' object has no attribute 'get'
 ❌ OPS-FAIL: aws/ops/pending/ops_2984_u9_recon.py

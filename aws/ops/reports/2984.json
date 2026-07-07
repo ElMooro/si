@@ -1,0 +1,8 @@
+{
+ "ops": 2984,
+ "fails": [
+  "CRASH: Traceback (most recent call last):\n  File \"/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py\", line 146, in main\n    recon(rep, fails, hl)\n  File \"/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py\", line 53, in recon\n    n = r.get(\"name\") or r.get(\"engine\")\n        ^^^^^\nAttributeError: 'str' object has no attribute 'get'\n"
+ ],
+ "verdict": "FAIL",
+ "ts": "2026-07-07T23:39:02.390072+00:00"
+}
