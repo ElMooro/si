@@ -119,7 +119,7 @@ BILATERALS = [
 # canary inputs
 CANARY_SERIES = ["WALCL", "WRESBAL", "RRPONTSYD", "WTREGEN", "DFII10",
                  "DGS10", "DGS2", "IRLTLT01DEM156N", "VIXCLS",
-                 "BAMLH0A0HYM2", "DCOILWTICO", "SWPT"]
+                 "BAMLH0A0HYM2", "DCOILWTICO", "SWPT", "NFCI", "T10YIE"]
 
 # pattern parameters (mirrors justhodl-chart-patterns)
 SWING_W = 5
@@ -636,76 +636,195 @@ def build_canaries(fred, sib=None):
     return can, pressure
 
 
-def build_risk_transmission(fred):
-    """DXY x US10Y -> what the two most-watched dials say for RISK ASSETS.
+def build_risk_transmission(fred, sib=None):
+    """The RISK-ASSET TRANSMISSION dial -- the direct macro drivers of risk
+    assets pumping or dumping, anchored on the two most-watched dials:
+    DXY and US10Y (46% of the weight, per house doctrine).
 
-    A rising dollar and rising yields tighten global financial conditions
-    -- the classic risk-asset DUMP mix; a falling dollar with falling or
-    stable yields is the liquidity tailwind behind risk-asset PUMPs.
-    Score runs -100 (hard risk-asset DUMP pressure) to +100 (hard PUMP).
+    Every component is oriented risk-positive: +2 = pump fuel, -2 = dump
+    pressure. Score runs -100 (hard DUMP pressure) to +100 (hard PUMP fuel).
+    This is the DRIVER side (leading macro inputs); the RORO risk-regime
+    engine is the cross-asset CONFIRMATION side -- read them together.
     """
+    sib = sib or {}
     broad = fred.get("DTWEXBGS") or []
     dgs10 = fred.get("DGS10") or []
     dfii = fred.get("DFII10") or []
     comps = []
 
     def comp(label, reading, lean, weight, note):
-        comps.append({"label": label, "reading": reading, "lean": lean,
-                      "weight": weight, "note": note})
+        comps.append({"label": label, "reading": reading,
+                      "lean": max(-2, min(2, lean)), "weight": weight,
+                      "note": note})
 
+    # 1) DXY -- the global tightening dial (w .28)
     dx = chg_pct(broad, 21) if broad else None
     if dx is not None:
-        lean = _lean(dx, [-1.5, -0.4, 0.4, 1.5], [-2, -1, 0, 1, 2])
+        lean = _lean(dx, [-1.5, -0.4, 0.4, 1.5], [2, 1, 0, -1, -2])
         comp("DXY (broad) 1m", "%.2f (%+.2f%%)" % (broad[-1][1], dx),
-             lean, 0.45,
-             "Dollar up = global tightening, EM/commodity/crypto "
-             "headwind. Dollar down = tailwind.")
+             lean, 0.28,
+             "Dollar down = global easing and a tailwind for EM, "
+             "commodities and crypto; dollar up = tightening headwind.")
+
+    # 2) US10Y -- with the breakeven quality test (w .18)
     y10 = chg_abs(dgs10, 21) if dgs10 else None
+    hy = fred.get("BAMLH0A0HYM2") or []
+    hyd = chg_abs(hy, 21) if hy else None
+    be = chg_abs(fred.get("T10YIE") or [], 21)
     if y10 is not None:
-        lean = _lean(y10, [-0.25, -0.08, 0.08, 0.25], [-2, -1, 0, 1, 2])
+        lean = _lean(y10, [-0.25, -0.08, 0.08, 0.25], [2, 1, 0, -1, -2])
+        why = ""
+        if y10 > 0.08 and be is not None:
+            if be >= 0.6 * y10:
+                lean += 1
+                why = " Reflationary rise (breakevens carrying it) -- "
+                why += "less hostile for risk."
+            elif be <= 0.15 * y10:
+                why = (" Real-rate tightening (breakevens flat) -- the "
+                       "hostile kind of yield rise.")
+        elif y10 < -0.08 and hyd is not None and hyd > 0.15:
+            lean -= 1
+            why = (" Yields falling WITH credit widening -- a growth "
+                   "scare, not pump fuel.")
         comp("US10Y 1m", "%.2f%% (%+.2f pp)" % (dgs10[-1][1], y10),
-             lean, 0.35,
-             "Rising long yields compress equity multiples and raise "
-             "the hurdle for every risk asset.")
+             lean, 0.18,
+             "Rising long yields raise every hurdle rate." + why)
+
+    # 3) 10y real yield -- the discount rate (w .10)
     ry = chg_abs(dfii, 21) if dfii else None
     if ry is not None:
-        lean = _lean(ry, [-0.2, -0.06, 0.06, 0.2], [-2, -1, 0, 1, 2])
-        comp("US 10y real yield 1m", "%+.2f pp" % ry, lean, 0.20,
-             "The real yield is the cleanest discount rate -- rising "
-             "real yields hit long-duration risk (tech, crypto) "
-             "hardest.")
+        lean = _lean(ry, [-0.2, -0.06, 0.06, 0.2], [2, 1, 0, -1, -2])
+        comp("US 10y real yield 1m", "%+.2f pp" % ry, lean, 0.10,
+             "The cleanest discount rate -- rising real yields hit "
+             "long-duration risk (tech, crypto) hardest.")
+
+    # 4) Fed net liquidity -- the tide (w .12)
+    walcl = fred.get("WALCL") or []
+    rrp = fred.get("RRPONTSYD") or []
+    tga = fred.get("WTREGEN") or []
+    if walcl and rrp and tga:
+        try:
+            w0 = value_days_ago(walcl, 91)
+            r0 = value_days_ago(rrp, 91)
+            t0_ = value_days_ago(tga, 91)
+            if None not in (w0, r0, t0_):
+                nl_now = (walcl[-1][1] / 1000.0 - rrp[-1][1]
+                          - tga[-1][1] / 1000.0)
+                d = nl_now - (w0 / 1000.0 - r0 - t0_ / 1000.0)
+                lean = _lean(d, [-150, -40, 40, 150], [-2, -1, 0, 1, 2])
+                comp("Fed net liquidity 13w", "%+.0f $bn" % d, lean, 0.12,
+                     "Risk assets ride the liquidity tide: rising net "
+                     "liquidity (QE / RRP drain / TGA spend) is pump "
+                     "fuel; draining it is dump pressure.")
+        except Exception as e:
+            print("[rt netliq] %s" % e)
+
+    # 5) VIX -- risk appetite (w .10)
+    vix = fred.get("VIXCLS") or []
+    if vix:
+        lvl = vix[-1][1]
+        lean = _lean(lvl, [14, 18, 24, 30], [2, 1, 0, -1, -2])
+        d21 = chg_abs(vix, 21)
+        if d21 is not None and d21 > 4:
+            lean -= 1
+        comp("VIX", "%.1f" % lvl, lean, 0.10,
+             "Calm vol regimes let risk premia compress (pump); vol "
+             "spikes force de-risking (dump).")
+
+    # 6) HY credit spreads -- the equity canary (w .07)
+    if hy:
+        d = chg_abs(hy, 63)
+        if d is not None:
+            lean = _lean(d, [-0.5, -0.12, 0.12, 0.5], [2, 1, 0, -1, -2])
+            comp("HY credit spreads 13w",
+                 "%.2f%% (%+.2f)" % (hy[-1][1], d), lean, 0.07,
+                 "Credit leads equities: tightening spreads are pump "
+                 "confirmation; widening is the first dump tell.")
+
+    # 7) Bond volatility -- the collateral channel (w .05)
+    try:
+        bv = sib.get("bv") or {}
+        p = None
+        for k in ("composite_percentile", "composite_z_score",
+                  "composite_z"):
+            if isinstance(bv.get(k), (int, float)):
+                p = float(bv[k])
+                if "z" in k:  # map z to percentile-ish band
+                    p = 50.0 + max(-50.0, min(50.0, p * 20.0))
+                break
+        if p is not None:
+            lean = _lean(p, [25, 45, 60, 80], [2, 1, 0, -1, -2])
+            comp("Bond volatility (pctile)", "%.0f%%ile" % p, lean, 0.05,
+                 "Rate vol drives collateral haircuts and VaR limits -- "
+                 "calm bond vol is pump-permissive; a MOVE-style spike "
+                 "forces global de-grossing.")
+    except Exception as e:
+        print("[rt bondvol] %s" % e)
+
+    # 8) Financial conditions (NFCI) -- the official dial (w .05)
+    nfci = fred.get("NFCI") or []
+    if nfci:
+        d = chg_abs(nfci, 91)
+        if d is not None:
+            lean = _lean(d, [-0.1, -0.03, 0.03, 0.1], [2, 1, 0, -1, -2])
+            comp("Financial conditions (NFCI) 13w", "%+.2f" % d, lean,
+                 0.05,
+                 "The Chicago Fed's conditions index: easing conditions "
+                 "are pump fuel; tightening conditions choke risk.")
+
+    # 9) Oil shock -- the stagflation channel (w .05)
+    oil = fred.get("DCOILWTICO") or []
+    co = chg_pct(oil, 21) if oil else None
+    if co is not None:
+        lean = 0
+        note = "No energy shock in play."
+        if co > 30:
+            lean, note = -2, ("An oil spike is a tax on the world and a "
+                              "stagflation impulse -- hard dump pressure.")
+        elif co > 15:
+            lean, note = -1, "A fast oil rise pressures margins and CPI."
+        elif co < -25:
+            lean, note = -1, ("An oil crash of this speed usually means "
+                              "a demand scare, not a windfall.")
+        comp("Oil (WTI) 1m", "%.0f (%+.1f%%)" % (oil[-1][1], co), lean,
+             0.05, note)
 
     if not comps:
         return {"score": None, "verdict": "UNKNOWN", "components": [],
                 "note": "Insufficient data."}
     wsum = sum(c["weight"] for c in comps)
     raw = sum(c["lean"] * c["weight"] for c in comps) / wsum
-    score = int(round(-raw / 2.0 * 100.0))
+    score = int(round(raw / 2.0 * 100.0))
     if score >= 45:
-        verdict, note = "RISK PUMP", ("Dollar and yields are easing "
-                                      "together -- the liquidity mix that "
-                                      "fuels risk-asset pumps.")
+        verdict, note = "RISK PUMP", ("The direct drivers are aligned "
+                                      "easy -- the mix that fuels "
+                                      "risk-asset pumps.")
     elif score >= 15:
-        verdict, note = "LEAN PUMP", ("The dollar/rates mix tilts "
-                                      "supportive for risk assets.")
+        verdict, note = "LEAN PUMP", ("The driver mix tilts supportive "
+                                      "for risk assets.")
     elif score > -15:
-        verdict, note = "NEUTRAL", ("DXY and US10Y are not imposing a "
-                                    "direction on risk assets right now.")
+        verdict, note = "NEUTRAL", ("The direct drivers are not imposing "
+                                    "a direction on risk assets.")
     elif score > -45:
-        verdict, note = "LEAN DUMP", ("The dollar/rates mix tilts against "
-                                      "risk assets.")
+        verdict, note = "LEAN DUMP", ("The driver mix tilts against risk "
+                                      "assets.")
     else:
-        verdict, note = "RISK DUMP", ("Dollar and yields are rising "
-                                      "together -- the classic tightening "
-                                      "mix that dumps risk assets.")
+        verdict, note = "RISK DUMP", ("The direct drivers are aligned "
+                                      "tight -- the mix that dumps risk "
+                                      "assets.")
     return {"score": score, "verdict": verdict, "note": note,
             "components": comps,
+            "anchor": "DXY + US10Y carry 46% of the weight by design",
             "how_to_read": (
-                "Built only from the broad dollar index and the US 10y "
-                "(nominal + real), 1-month trends. -100 = both tightening "
-                "hard (risk-asset DUMP pressure); +100 = both easing "
-                "(risk-asset PUMP fuel). This is the transmission dial, "
-                "not a standalone trade signal.")}
+                "The direct macro drivers of risk assets, each oriented "
+                "+2 pump fuel to -2 dump pressure: DXY (28%), US10Y with "
+                "a breakeven quality test (18%), the 10y real yield "
+                "(10%), Fed net liquidity (12%), VIX (10%), HY credit "
+                "(7%), bond volatility (5%), Chicago Fed financial "
+                "conditions (5%) and oil shocks (5%). -100 = hard dump "
+                "pressure, +100 = hard pump fuel. This is the leading "
+                "DRIVER side; the RORO risk-regime engine is the "
+                "cross-asset CONFIRMATION side.")}
 
 
 def regime_of(pressure):
@@ -792,9 +911,10 @@ def lambda_handler(event, context):
 
     siblings = {"cb": read_json(CB_STANCE_KEY),
                 "cn": read_json(CHINA_KEY),
-                "cftc": read_json(CFTC_KEY)}
+                "cftc": read_json(CFTC_KEY),
+                "bv": read_json("data/bond-vol.json")}
     canaries, pressure = build_canaries(fred, siblings)
-    risk_tx = build_risk_transmission(fred)
+    risk_tx = build_risk_transmission(fred, siblings)
     regime, regime_note = regime_of(pressure)
     n_pump = sum(1 for c in canaries if c["lean"] > 0)
     n_dump = sum(1 for c in canaries if c["lean"] < 0)

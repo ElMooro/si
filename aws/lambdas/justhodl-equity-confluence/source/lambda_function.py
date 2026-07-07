@@ -247,6 +247,18 @@ def lambda_handler(event, context):
         "disclaimer": "Research tool. Not investment advice. Confluence is provisional until the scorecard proves the components.",
         "diagnostics": diag[-12:],
     }
+    try:
+        _dr = _read("data/dollar-radar.json") or {}
+        _rt = _dr.get("risk_transmission") or {}
+        out["dollar_context"] = {
+            "dollar_pressure": _dr.get("dollar_pressure"),
+            "dollar_regime": _dr.get("regime"),
+            "risk_transmission_score": _rt.get("score"),
+            "risk_transmission_verdict": _rt.get("verdict"),
+            "source": "justhodl-dollar-radar v2 dial (additive context; "
+                      "scores untouched pending scorecard)"}
+    except Exception as _e:
+        print("[dollar-context] %s" % _e)
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="no-cache, max-age=0")
     print("[equity-confluence v1] mode=%s proven_supers=%s | names any=%d 2+fam=%d 3+super=%d proven_book=%d" % (
