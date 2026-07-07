@@ -1,10 +1,12 @@
-executing-against: b0242f8dc6293374f096f3a7afe140627c61c931
-── A1. Hubs live ──
-── A2. Stubs redirecting ──
-── A3. Canonicals alive ──
-── A4. Nav live ──
-── B. Umbrella SHIPPED stamps on fleet-audit.json ──
-[22:54:49] ✅ U1-U7 VERIFIED LIVE + U1-U8 stamped SHIPPED: 3 hubs, 9 stubs, 6 canonicals, nav converging
-[22:54:49] FAILS=0 WARNS=0
+executing-against: 6b2cc9f6ebd1100524e7617398f1816722a3678d
+── A. Orphan roster ──
 
-→ Report written to aws/ops/reports/latest/2983_umbrella_verify.md
+→ Report written to aws/ops/reports/latest/2984_u9_recon.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py", line 161, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2984_u9_recon.py", line 59, in main
+    n = r.get("name") or r.get("engine")
+        ^^^^^
+AttributeError: 'str' object has no attribute 'get'
+❌ OPS-FAIL: aws/ops/pending/ops_2984_u9_recon.py
