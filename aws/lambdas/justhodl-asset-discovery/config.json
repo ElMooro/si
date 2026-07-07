@@ -1,0 +1,17 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 256,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Monthly emerging-asset discovery: one governed reason-tier LLM call over fleet-built context; PROVISIONAL candidates to data/asset-discovery.json + monthly history.",
+  "inherit_env": true,
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "schedule": {
+    "rule_name": "asset-discovery-monthly",
+    "cron": "cron(30 6 1 * ? *)",
+    "description": "Asset discovery agent — 06:30 UTC on the 1st of each month"
+  }
+}

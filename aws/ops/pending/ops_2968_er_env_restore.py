@@ -12,8 +12,9 @@ config update and preserves env). This script:
   (0) reports the surviving env keys (facts before repair), pulls the
       standard secrets bundle from donor justhodl-confluence-meta;
   (1) fill-gaps merge (survivors win on conflicts), update config, wait,
-      re-read, and hard-assert the bundle is whole (ANTHROPIC + FMP +
-      POLYGON present, >= 6 vars);
+      re-read, and hard-assert the presence contract (ANTHROPIC + FMP
+      + a POLYGON key + a FRED key -- what the code actually reads;
+      also aliases POLYGON_API_KEY, which the ER source reads);
   (2) re-run the full ops-2967 verification: force-refresh ORCL through
       the Lambda URL (async-cold aware) and hard-verify the
       industry_compass block + v2.0 regression (technicals/quant_risk
@@ -96,6 +97,9 @@ def main():
         rep.section("1. Fill-gaps merge + config update + re-read assert")
         merged = dict(pulled)
         merged.update(cur)          # survivors win on conflicts
+        if not merged.get("POLYGON_API_KEY") and merged.get("POLYGON_KEY"):
+            # the ER source reads POLYGON_API_KEY specifically
+            merged["POLYGON_API_KEY"] = merged["POLYGON_KEY"]
         LAM.update_function_configuration(
             FunctionName=FN, Environment={"Variables": merged})
         LAM.get_waiter("function_updated").wait(
@@ -103,14 +107,15 @@ def main():
         after = env_of(FN)
         hl["env_keys_after"] = sorted(after.keys())
         rep.kv(env_keys_after=sorted(after.keys()), env_n_after=len(after))
-        if len(after) < 6:
-            fail(rep, fails, "bundle still thin after restore: %d vars"
-                 % len(after))
-        for k in ("ANTHROPIC_API_KEY", "FMP_KEY"):
-            if not after.get(k):
-                fail(rep, fails, "restored env missing %s" % k)
-        if not (after.get("POLYGON_API_KEY") or after.get("POLYGON_KEY")):
-            fail(rep, fails, "restored env missing POLYGON key")
+        # presence-based contract (what the code actually reads), not a
+        # count guess: ANTHROPIC + FMP + a POLYGON key + a FRED key
+        for label, alts in (("ANTHROPIC_API_KEY", ("ANTHROPIC_API_KEY",)),
+                            ("FMP_KEY", ("FMP_KEY",)),
+                            ("POLYGON key", ("POLYGON_API_KEY",
+                                             "POLYGON_KEY")),
+                            ("FRED key", ("FRED_KEY", "FRED_API_KEY"))):
+            if not any(after.get(a) for a in alts):
+                fail(rep, fails, "restored env missing %s" % label)
         if fails:
             _write(rep, fails, warns, hl)
             return
@@ -258,6 +263,8 @@ def _write(rep, fails, warns, hl):
     rp.write_text(json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     rep.log("report written: %s" % rp)
+    if fails:
+        sys.exit(1)   # run-ops keys on the exit code (2966 convention)
 
 
 main()
