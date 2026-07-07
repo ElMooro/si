@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "JustHodl — TradingView Notes",
+  "short_name": "JH TV Notes",
+  "version": "1.0.0",
+  "description": "Harvest all your TradingView notes automatically and sync them to your JustHodl Brain.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://www.tradingview.com/*",
+    "https://pine-facade.tradingview.com/*",
+    "https://note-manager.tradingview.com/*",
+    "https://nzoe4a43sjqxv3wovbac6dpvs40kxzgy.lambda-url.us-east-1.on.aws/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.tradingview.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "JustHodl TV Notes — Click to harvest"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

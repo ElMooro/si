@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:300px;min-height:180px;
+    background:#0C0B09;color:#e8e2d4;
+    font:12px/1.5 "IBM Plex Mono",ui-monospace,monospace;
+    padding:16px;
+  }
+  .hd{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#F0B429;flex-shrink:0}
+  h1{color:#F0B429;font-size:14px;font-weight:bold}
+  .stat{font-size:28px;font-weight:bold;color:#F0B429;margin:4px 0}
+  .lbl{font-size:10px;color:#8a836f;text-transform:uppercase;letter-spacing:.06em}
+  .row{display:flex;gap:24px;margin-bottom:14px}
+  .col{flex:1}
+  .btn{
+    width:100%;padding:9px;
+    background:#F0B429;color:#0C0B09;
+    border:none;border-radius:5px;
+    font:bold 12px/1 "IBM Plex Mono",ui-monospace,monospace;
+    cursor:pointer;margin-bottom:6px;
+  }
+  .btn:hover{background:#ffc444}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:none;color:#F0B429;border:1px solid #F0B429}
+  .btn.ghost:hover{background:rgba(240,180,41,.08)}
+  .msg{font-size:11px;color:#6fce8a;min-height:16px;text-align:center}
+  .msg.err{color:#E07A6A}
+  .msg.warn{color:#F0B429}
+  .sep{border:none;border-top:1px solid #2B2820;margin:10px 0}
+  .link{color:#F0B429;text-decoration:none;font-size:11px}
+  .link:hover{text-decoration:underline}
+  #spinner{display:inline-block;animation:spin 1s linear infinite;margin-right:4px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+  <div class="hd">
+    <div class="dot"></div>
+    <h1>JustHodl · TV Notes</h1>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="lbl">Notes captured</div>
+      <div class="stat" id="count">–</div>
+    </div>
+    <div class="col">
+      <div class="lbl">Tickers</div>
+      <div class="stat" id="tickers">–</div>
+    </div>
+  </div>
+
+  <div id="statusLine" class="msg warn" style="margin-bottom:10px">Checking…</div>
+
+  <button class="btn" id="harvestBtn">▶ Start Harvest</button>
+  <button class="btn ghost" id="showBtn">Show Overlay on TV Page</button>
+  <button class="btn ghost" id="uploadBtn" style="margin-top:4px" disabled>Upload to Brain</button>
+
+  <hr class="sep">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <a class="link" href="https://justhodl.ai/tv-notes.html" target="_blank">tv-notes.html</a>
+    <a class="link" href="https://justhodl.ai/brain.html" target="_blank">brain.html</a>
+    <span id="confOk" style="font-size:10px;color:#8a836f"></span>
+  </div>
+
+  <div id="msg" class="msg" style="margin-top:8px"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>
