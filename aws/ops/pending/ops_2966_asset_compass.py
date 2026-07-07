@@ -269,9 +269,14 @@ def main():
             for t in ("BTC", "ETH", "USO", "DBC", "CPER"):
                 if by.get(t, {}).get("er_1y_pct") is not None:
                     fails.append("%s has fabricated ER (must be None)" % t)
-            if by.get("BTC") and not any("LOW_N" in f for f in
-                                         by["BTC"].get("flags", [])):
+            if by.get("BTC", {}).get("price") and \
+                    not any("LOW_N" in f for f in
+                            by["BTC"].get("flags", [])):
                 fails.append("BTC missing LOW_N honesty flag")
+            for t in ("BTC", "ETH"):
+                if by.get(t) and not by[t].get("price"):
+                    warns.append("%s: no price from CoinGecko or Polygon "
+                                 "X: pair this run" % t)
             boards = d.get("boards") or {}
             if not boards.get("er_ranking") or \
                     not boards.get("asymmetry_ranking"):

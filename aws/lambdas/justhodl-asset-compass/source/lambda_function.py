@@ -170,14 +170,18 @@ def polygon_ttm_div(ticker, price):
     return None
 
 
-def coingecko_daily(coin_id):
-    d = _http(f"https://api.coingecko.com/api/v3/coins/{coin_id}"
-              f"/market_chart?vs_currency=usd&days=1095&interval=daily",
-              timeout=30)
-    if not d:
-        return []
-    return [{"t": int(p[0]), "c": float(p[1]), "h": float(p[1]), "v": 0.0}
-            for p in (d.get("prices") or []) if p and p[1]]
+def crypto_daily(coin_id, poly_ticker):
+    """CoinGecko (keyless, backoff) -> Polygon X: pair fallback. Real data
+    on either path; [] only if both fail (row then flags NO_DATA)."""
+    for attempt in range(3):
+        d = _http(f"https://api.coingecko.com/api/v3/coins/{coin_id}"
+                  f"/market_chart?vs_currency=usd&days=1095&interval=daily",
+                  timeout=30, tries=1)
+        if d and d.get("prices"):
+            return [{"t": int(p[0]), "c": float(p[1]), "h": float(p[1]),
+                     "v": 0.0} for p in d["prices"] if p and p[1]]
+        time.sleep(2.0 + attempt * 2.0)
+    return polygon_daily(poly_ticker, 3)
 
 
 def s3_json(key):
@@ -421,9 +425,9 @@ def lambda_handler(event, context):
         if tkr in ("CASH",):
             continue
         if tkr == "BTC":
-            bars[tkr] = coingecko_daily("bitcoin")
+            bars[tkr] = crypto_daily("bitcoin", "X:BTCUSD")
         elif tkr == "ETH":
-            bars[tkr] = coingecko_daily("ethereum")
+            bars[tkr] = crypto_daily("ethereum", "X:ETHUSD")
         else:
             bars[tkr] = polygon_daily(tkr, 3)
             time.sleep(0.15)
@@ -478,7 +482,8 @@ def lambda_handler(event, context):
     # ── per-asset assembly ──
     assets = []
     for tkr, klass, label, dur, structural, model in UNIVERSE:
-        px = closes.get(tkr, [None])[-1] if tkr != "CASH" else 1.0
+        _cl = closes.get(tkr) or []
+        px = (_cl[-1] if _cl else None) if tkr != "CASH" else 1.0
         row = {"ticker": tkr, "class": klass, "label": label, "price": px,
                "structural": structural, "er_1y_pct": None,
                "er_components": {}, "flags": []}
