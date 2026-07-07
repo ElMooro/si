@@ -1,0 +1,20 @@
+{
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 240,
+  "memory": 256,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Fleet-audit gap matrix built: 11 modules (SLOOS, stock-bond corr regime, global USD-M2, OFR FSI, muni ratio, revision breadth, miner margins, EM carry proxy, freight pulse, bill share, implied corr). One key per module + data/gap-metrics.json index.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-confluence-meta",
+      "keys": ["FRED_KEY", "FRED_API_KEY", "POLYGON_API_KEY", "POLYGON_KEY", "FMP_API_KEY", "FMP_KEY"]
+    }
+  ],
+  "env": { "S3_BUCKET": "justhodl-dashboard-live" },
+  "schedule": {
+    "rule_name": "gap-metrics-daily",
+    "cron": "cron(45 21 * * ? *)",
+    "description": "Gap metrics daily 21:45 UTC (before asset-compass 22:15)"
+  }
+}
