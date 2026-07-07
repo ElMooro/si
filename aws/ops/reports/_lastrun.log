@@ -1,8 +1,8 @@
-executing-against: a993db1abf8816137ae0478439ed5fa802a466a8
+executing-against: 5492b3357534e608dda8fed1033d4215bec310a5
 ── 1. Race-safe deploy wait ──
 ── 2. Invoke ──
 ── 3. Verify 10+/11 with the two fixes ──
-[21:59:05] FAILS=1 WARNS=0
+[22:04:40] ✅ gap-metrics COMPLETE: 11/11 OK; implied-corr 7.94 (0.2th pctile) via CBOE; breadth None% (WARMING_UP eta 2026-07-28 (60 names)); stock-level warmup running with 60 names
+[22:04:40] FAILS=0 WARNS=0
 
 → Report written to aws/ops/reports/latest/2980_gap_final.md
-❌ OPS-FAIL: aws/ops/pending/ops_2980_gap_final.py
