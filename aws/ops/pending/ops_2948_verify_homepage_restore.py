@@ -58,15 +58,27 @@ def main():
 
         # 2) navigation actually lists the pages
         nav = get_json("data/nav-manifest.json") or {}
-        pages_list = nav.get("pages") or nav.get("items") or (nav if isinstance(nav, list) else [])
-        navn = len(pages_list)
+        hrefs = set()
+        def walk(x):
+            if isinstance(x, dict):
+                for k, v in x.items():
+                    if k in ("href", "url", "path") and isinstance(v, str):
+                        hrefs.add(v)
+                    walk(v)
+            elif isinstance(x, list):
+                for v in x:
+                    walk(v)
+            elif isinstance(x, str) and (x.endswith(".html") or x.endswith("/")):
+                hrefs.add(x)
+        walk(nav)
+        navn = len(hrefs)
         rep.kv(nav_manifest_pages=navn)
         if navn < 300:
             fails.append(f"nav-manifest thin ({navn})")
 
         # 3) core pages live + drawer wired
         sample = ["today.html", "plumbing.html", "options.html", "onchain.html",
-                  "apac.html", "screener.html", "why.html", "risk-desk.html",
+                  "apac.html", "screener/", "why.html", "risk-desk.html",
                   "flows.html", "engines.html", "signal-board.html", "llm-cost.html"]
         with ThreadPoolExecutor(max_workers=8) as ex:
             res = dict(zip(sample, ex.map(get, sample)))
