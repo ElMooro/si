@@ -79,6 +79,9 @@ jobs:
       - name: Bake right-rail insight panel (Design audit sec8-C)
         run: python3 scripts/bake_right_rail.py _site || true
 
+      - name: Bake engine directory (real live wiring status)
+        run: python3 scripts/bake_engine_directory.py _site || true
+
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
       - uses: actions/upload-pages-artifact@v3

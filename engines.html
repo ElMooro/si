@@ -1,69 +1,142 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Engine Explorer — every feed, inspectable — JustHodl AI</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Engine Directory · JustHodl AI</title>
+<meta name="description" content="Live status for all 661 registered engines: which page displays each one's output, and which are running with zero page anywhere — computed fresh on every deploy, not a static list.">
+<meta name="theme-color" content="#F0B429">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/jh-theme.css">
 <style>
-:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg-1:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',monospace;--green:#34d399;--cyan:#22d3ee;--violet:#a78bfa;--amber:#fbbf24}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg-1);font-family:Inter,system-ui,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);z-index:50}
-.brand{font-family:var(--mono);font-weight:800}.brand i{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--green)}
-nav a{color:var(--fg2);text-decoration:none;font-size:12px;margin-left:12px}nav a:hover,nav a.on{color:var(--green)}
-.wrap{max-width:1280px;margin:0 auto;padding:20px 22px}
-h1{font-size:22px;margin:4px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--fg2);font-size:13px;max-width:920px;line-height:1.6}
-.bar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:13px 0}
-input#q{background:var(--bg1);border:1px solid var(--border);border-radius:9px;color:var(--fg-1);padding:7px 12px;font-family:var(--mono);font-size:12px;width:230px}
-.tf span{font-family:var(--mono);font-size:11px;padding:5px 11px;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--fg2);background:var(--bg1);margin-right:5px}
-.tf span.on{color:#0a0e14;background:var(--cyan);font-weight:800}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:9px}
-.eg{background:var(--bg1);border:1px solid var(--border);border-radius:11px;padding:10px 12px;cursor:pointer}
-.eg:hover{border-color:var(--cyan)}
-.eg b{font-family:var(--mono);font-size:12.5px}
-.tag{font-family:var(--mono);font-size:8.5px;padding:1px 6px;border-radius:5px;margin-left:5px}
-.tP{background:rgba(52,211,153,.13);color:var(--green)}.tB{background:rgba(34,211,238,.13);color:var(--cyan)}.tI{background:rgba(251,191,36,.13);color:var(--amber)}
-.kk{font-family:var(--mono);font-size:9.5px;color:var(--fg3);margin-top:4px;word-break:break-all}
-#viewer{display:none;position:fixed;inset:0;background:rgba(6,9,14,.96);z-index:90;overflow:auto;padding:26px}
-#vbox{max-width:1080px;margin:0 auto;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:18px}
-pre{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;overflow:auto;max-height:70vh;white-space:pre-wrap;word-break:break-word}
-.x{float:right;cursor:pointer;font-family:var(--mono);color:var(--fg3)}
-.loading{color:var(--fg3);font-family:var(--mono)}
-.cnt{font-family:var(--mono);font-size:11px;color:var(--fg3)}
-</style></head><body>
-<header><div class="brand"><i></i>JustHodl<span style="color:var(--fg3)">.AI</span></div>
-<nav><a href="/">Desk</a><a href="/engines.html" class="on">🧭 Engines</a><a href="/signal-board.html">Board</a><a href="/directory.html">All pages</a><a href="/api-docs.html">API</a></nav></header>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--jh-bg);color:var(--jh-ink);font-family:"IBM Plex Sans",sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 24px 40px}
+  .crumb{font:11px var(--jh-mono);letter-spacing:.08em;color:var(--jh-dim);margin-bottom:10px}
+  .crumb a{color:var(--jh-dim);text-decoration:none}
+  .crumb a:hover{color:var(--jh-amber)}
+  .ptitle{font:600 22px/1.2 var(--jh-mono);letter-spacing:.02em;margin:0 0 4px}
+  .pstamp{font:11px var(--jh-mono);color:var(--jh-dim);margin-bottom:18px}
+  .lede{font:14px/1.6 "IBM Plex Sans",sans-serif;color:#d8d1bf;max-width:760px;margin-bottom:22px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--jh-line);
+    border:1px solid var(--jh-line);margin-bottom:20px}
+  .kpi{background:var(--jh-panel);padding:14px 16px;cursor:pointer;transition:background .1s}
+  .kpi:hover{background:var(--jh-panel-2)}
+  .kpi.active{outline:1px solid var(--jh-amber);outline-offset:-1px}
+  .kpi .l{font:10px var(--jh-mono);letter-spacing:.1em;color:var(--jh-dim);margin-bottom:6px}
+  .kpi .v{font:600 20px var(--jh-mono);font-variant-numeric:tabular-nums}
+  .kpi .v.wired{color:#6fce8a}.kpi .v.fresh{color:#f5b93e}.kpi .v.stale{color:#e07a6a}.kpi .v.noouts{color:var(--jh-dim)}
+  .controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  #q{flex:1;min-width:200px;background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);
+    padding:8px 12px;font:12.5px var(--jh-mono)}
+  #q:focus{outline:none;border-color:var(--jh-amber)}
+  .count{font:11px var(--jh-mono);color:var(--jh-dim)}
+  table{width:100%;border-collapse:collapse;background:var(--jh-panel);border:1px solid var(--jh-line)}
+  th{text-align:left;font:10px var(--jh-mono);letter-spacing:.08em;color:#6a6455;
+    padding:8px 10px;border-bottom:1px solid var(--jh-line);position:sticky;top:0;background:var(--jh-panel)}
+  td{font:11.5px var(--jh-mono);padding:7px 10px;border-bottom:1px solid #1e1c15;vertical-align:top}
+  tr:hover td{background:var(--jh-panel-2)}
+  .badge{display:inline-block;font:9.5px var(--jh-mono);letter-spacing:.04em;padding:2px 6px;border:1px solid}
+  .b-wired{color:#6fce8a;border-color:#6fce8a}
+  .b-fresh{color:#f5b93e;border-color:#f5b93e}
+  .b-stale{color:#e07a6a;border-color:#e07a6a}
+  .b-dead{color:#e07a6a;border-color:#6a6455;opacity:.7}
+  .b-noouts{color:var(--jh-dim);border-color:var(--jh-line)}
+  .pagelinks a{color:var(--jh-amber);text-decoration:none;margin-right:8px;font-size:11px}
+  .pagelinks a:hover{color:#FFD45E}
+  .dim{color:var(--jh-dim)}
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}
+    table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+</head>
+<body>
 <div class="wrap">
-<h1>Engine Explorer — <span class="grad">every feed, one click away</span></h1>
-<p class="sub">Every data-producing engine in the system, whether or not it has a dedicated page. <span class="tag tP">PAGE</span> opens its page, <span class="tag tB">BOARD</span> means it has a signal-board row, <span class="tag tI">FEED-ONLY</span> means raw output only — click any card to inspect the live JSON right here.</p>
-<div class="bar"><input id="q" placeholder="search engines…">
-<div class="tf" id="ff"><span data-f="all" class="on">ALL</span><span data-f="page">HAS PAGE</span><span data-f="board">BOARD-ONLY</span><span data-f="feed">FEED-ONLY</span></div>
-<span class="cnt" id="cnt"></span></div>
-<div class="grid" id="grid"><span class="loading">Loading manifest…</span></div>
+  <div class="crumb"><a href="/">SYSTEM &amp; META</a> / ENGINE DIRECTORY</div>
+  <h1 class="ptitle">Engine Directory</h1>
+  <div class="pstamp" id="stamp">UPDATED —</div>
+  <p class="lede">Every registered engine, computed fresh on every deploy — not a hand-maintained list. WIRED means at least one live page's actual source references that engine's real output file. ORPHAN means the engine is producing data (fresh or stale) with zero page anywhere displaying it.</p>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="controls">
+    <input id="q" type="text" placeholder="Search engine name or output file…" autocomplete="off">
+    <span class="count" id="count"></span>
+  </div>
+  <table>
+    <thead><tr><th>Engine</th><th>Status</th><th>Output</th><th>Last Update</th><th>Shown On</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
 </div>
-<div id="viewer"><div id="vbox"><span class="x" id="vx">✕ close</span><div id="vh"></div><pre id="vp"></pre></div></div>
+
+<script>window.__jhEngineData = __JH_ENGINE_DATA__;</script>
 <script>
-const PX='https://justhodl-data-proxy.raafouis.workers.dev';
-const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-let M=null,F='all';
-function cls(e){return e.page?'page':e.on_board?'board':'feed';}
+(function(){
+"use strict";
+var D = window.__jhEngineData || {rows:[], counts:{}, total:0};
+var filterStatus = null;
+
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+function badge(status){
+  var map = {wired:["b-wired","WIRED"], "orphan-fresh":["b-fresh","ORPHAN · FRESH"],
+    "orphan-stale":["b-stale","ORPHAN · STALE"], "orphan-dead":["b-dead","ORPHAN · DEAD FEED"],
+    "no-outs":["b-noouts","NO OUTPUT DECLARED"]};
+  var m = map[status] || ["b-noouts", status];
+  return '<span class="badge ' + m[0] + '">' + m[1] + "</span>";
+}
+function ageLabel(h){
+  if (h == null) return '<span class="dim">—</span>';
+  if (h < 1) return Math.round(h*60) + "m ago";
+  if (h < 48) return Math.round(h) + "h ago";
+  return Math.round(h/24) + "d ago";
+}
+
+document.getElementById("stamp").textContent = "UPDATED " + (D.generated_at || "—");
+
+var KPI_DEFS = [
+  ["wired", "WIRED", "wired"], ["orphan-fresh", "ORPHAN · FRESH", "fresh"],
+  ["orphan-stale", "ORPHAN · STALE", "stale"], ["no-outs", "NO OUTPUT DECLARED", "noouts"]
+];
+document.getElementById("kpis").innerHTML = KPI_DEFS.map(function(k){
+  var n = (D.counts[k[0]] || 0) + (k[0] === "orphan-stale" ? (D.counts["orphan-dead"] || 0) : 0);
+  return '<div class="kpi" data-status="' + k[0] + '"><div class="l">' + k[1] +
+    '</div><div class="v ' + k[2] + '">' + n + "</div></div>";
+}).join("");
+
 function render(){
-  const q=document.getElementById('q').value.trim().toLowerCase();
-  let rows=(M.engines||[]).filter(e=>(F==='all'||cls(e)===F)&&(!q||e.engine.toLowerCase().includes(q)||(e.keys||[]).join(' ').includes(q)));
-  document.getElementById('cnt').textContent=`${rows.length} of ${M.n_engines} engines · ${M.n_no_page} no page (${M.n_board_only} on board, ${M.n_invisible} feed-only)`;
-  document.getElementById('grid').innerHTML=rows.map((e,i)=>`<div class="eg" data-i="${(M.engines||[]).indexOf(e)}">
-    <b>${esc(e.engine.replace('justhodl-',''))}</b>${e.page?`<span class="tag tP">PAGE</span>`:e.on_board?'<span class="tag tB">BOARD</span>':'<span class="tag tI">FEED-ONLY</span>'}
-    <div class="kk">${(e.keys||[]).map(esc).join('<br>')}</div></div>`).join('')||'<span class="loading">no matches</span>';
-  document.querySelectorAll('.eg').forEach(c=>c.onclick=()=>open_(+c.dataset.i));
+  var q = (document.getElementById("q").value || "").toLowerCase();
+  var rows = D.rows.filter(function(row){
+    if (filterStatus === "orphan-stale" && row.status !== "orphan-stale" && row.status !== "orphan-dead") return false;
+    if (filterStatus && filterStatus !== "orphan-stale" && row.status !== filterStatus) return false;
+    if (!q) return true;
+    return row.name.toLowerCase().indexOf(q) >= 0 ||
+      (row.outs || []).some(function(o){ return o.toLowerCase().indexOf(q) >= 0; });
+  });
+  document.getElementById("count").textContent = rows.length + " of " + D.total;
+  document.getElementById("rows").innerHTML = rows.map(function(row){
+    var pages = (row.pages || []).length
+      ? '<span class="pagelinks">' + row.pages.map(function(p){
+          return '<a href="/' + p + '">' + p.replace(".html","") + "</a>";
+        }).join("") + "</span>"
+      : '<span class="dim">— none —</span>';
+    return "<tr><td>" + esc(row.name) + "</td><td>" + badge(row.status) + "</td><td>" +
+      esc((row.outs || [])[0] || "—") + "</td><td>" + ageLabel(row.age_h) + "</td><td>" + pages + "</td></tr>";
+  }).join("");
 }
-async function open_(i){const e=M.engines[i];
-  const v=document.getElementById('viewer');v.style.display='block';
-  document.getElementById('vh').innerHTML=`<b style="font-family:var(--mono)">${esc(e.engine)}</b> ${e.page?`· <a href="/${esc(e.page)}" style="color:var(--green)">open page →</a>`:''} · <span class="cnt">${esc((e.keys||[])[0]||'')}</span>`;
-  const pre=document.getElementById('vp');pre.textContent='loading live JSON…';
-  const d=await gj((e.keys||[])[0]);
-  pre.textContent=d?JSON.stringify(d,null,1).slice(0,120000):'feed unavailable (may be private-state or sharded)';
-}
-document.getElementById('vx').onclick=()=>document.getElementById('viewer').style.display='none';
-document.getElementById('ff').onclick=ev=>{const f=ev.target.dataset.f;if(!f)return;F=f;document.querySelectorAll('#ff span').forEach(x=>x.classList.toggle('on',x.dataset.f===f));render();};
-document.getElementById('q').addEventListener('input',render);
-(async()=>{M=await gj('data/engine-manifest.json');if(!M){document.getElementById('grid').innerHTML='<span class="loading">manifest pending first ops upload</span>';return;}render();})();
-</script>  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
-</body></html>
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("kpis").addEventListener("click", function(e){
+  var el = e.target.closest(".kpi");
+  if (!el) return;
+  var s = el.getAttribute("data-status");
+  filterStatus = (filterStatus === s) ? null : s;
+  Array.prototype.forEach.call(document.querySelectorAll(".kpi"), function(k){
+    k.classList.toggle("active", k.getAttribute("data-status") === filterStatus);
+  });
+  render();
+});
+render();
+})();
+</script>
+</body>
+</html>
