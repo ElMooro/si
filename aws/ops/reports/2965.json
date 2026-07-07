@@ -1,0 +1,21 @@
+{
+ "ops": 2965,
+ "function": "justhodl-repo-market",
+ "fails": [
+  "dollar-radar fusion missing (canaries=15, labels=['Fed net liquidity (13w change)', 'Fed balance sheet trend (QE/QT)', 'Reverse repo (RRP) drain', 'Treasury General Account', 'US 10y real yield trend', 'US-Germany 10y spread', 'Equity volatility (VIX safe-haven)', 'High-yield credit spreads', 'Dollar index momentum', 'Offshore dollar funding stress', 'Onshore repo stress (SOFR plumbing)', 'US 10y nominal yield trend', 'Fed path repricing (2y yield)', 'Fed FX swap lines outstanding', 'China credit impulse'])"
+ ],
+ "warns": [
+  "SRF latest probe failed: HTTP Error 400: Bad Request"
+ ],
+ "verdict": "FAIL",
+ "score": 17.9,
+ "regime": "CALM",
+ "tail_bps": 8.0,
+ "sofr_iorb_bps": -1.0,
+ "top_episode": {
+  "date": "2019-09-17",
+  "tail_bps": 375.0,
+  "sofr_iorb_bps": 315.0
+ },
+ "ts": "2026-07-07T06:16:32.355202+00:00"
+}

@@ -1,27 +1,29 @@
-executing-against: dae73c91b74a1235657390948a0858a029d34f8c
+executing-against: 81d40b1b74ea885ef9b1f1ea972de87f72afcdcd
 ── 0. Probe NY Fed markets API from the runner ──
 ── 1. Env bundle + create justhodl-repo-market ──
-[06:14:03]   zip: 9355 bytes
+[06:15:41]   zip: 9355 bytes
 ── 1. Lambda ──
-[06:14:03]   Lambda missing — creating
+[06:15:41]   Lambda missing — creating
+[06:15:46] ✅   ✓ created justhodl-repo-market
+── 2. EventBridge Scheduler schedule ──
+── 3. Synchronous first run + verify repo-market.json ──
+── 4. Deploy + verify the three fused consumers ──
+[06:15:58]   zip: 19120 bytes
+── 1. Lambda ──
+[06:15:58]   Lambda exists — updating
+[06:16:01] ✅   ✓ updated justhodl-dollar-radar
+[06:16:16]   zip: 10126 bytes
+── 1. Lambda ──
+[06:16:16]   Lambda exists — updating
+[06:16:21] ✅   ✓ updated justhodl-risk-regime
+[06:16:24]   zip: 13724 bytes
+── 1. Lambda ──
+[06:16:24]   Lambda exists — updating
+[06:16:27] ✅   ✓ updated justhodl-crisis-plumbing
+── 5. Live-path checks (warn-level, CDN/pages lag) ──
+── verdict ──
+[06:16:32] report written: /home/runner/work/si/si/aws/ops/reports/2965.json
+[06:16:32] FAILED: dollar-radar fusion missing (canaries=15, labels=['Fed net liquidity (13w change)', 'Fed balance sheet trend (QE/QT)', 'Reverse repo (RRP) drain', 'Treasury General Account', 'US 10y real yield trend', 'US-Germany 10y spread', 'Equity volatility (VIX safe-haven)', 'High-yield credit spreads', 'Dollar index momentum', 'Offshore dollar funding stress', 'Onshore repo stress (SOFR plumbing)', 'US 10y nominal yield trend', 'Fed path repricing (2y yield)', 'Fed FX swap lines outstanding', 'China credit impulse'])
 
 → Report written to aws/ops/reports/latest/2965_repo_market.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2965_repo_market.py", line 344, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2965_repo_market.py", line 114, in main
-    deploy_lambda(report=rep, function_name=FN,
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 248, in deploy_lambda
-    create_or_update_lambda(
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 102, in create_or_update_lambda
-    _lam.create_function(
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'Repo Market Desk - dedicated overnight-funding stress engine. NY Fed SOFR distribution (p1/p25/p75/p99 + volume), TGCR/BGCR/EFFR/OBFR, SOFR-IORB with IOER splice, RRP/SRF/discount-window/swap-line buffers, reserves drain, calendar context, episode ranking since 2018, 9-component 0-100 score + Telegram regime tripwires. data/repo-market.json.' at 'description' failed to satisfy constraint: Member must have length less than or equal to 256
 ❌ OPS-FAIL: aws/ops/pending/ops_2965_repo_market.py

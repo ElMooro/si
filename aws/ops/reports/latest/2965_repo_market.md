@@ -1,44 +1,66 @@
 ## 0. Probe NY Fed markets API from the runner
 
 **Status:** failure  
-**Duration:** 1.3s  
-**Finished:** 2026-07-07T06:14:03+00:00  
+**Duration:** 51.3s  
+**Finished:** 2026-07-07T06:16:32+00:00  
 
 ## Error
 
 ```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2965_repo_market.py", line 114, in main
-    deploy_lambda(report=rep, function_name=FN,
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 248, in deploy_lambda
-    create_or_update_lambda(
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 102, in create_or_update_lambda
-    _lam.create_function(
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateFunction operation: 1 validation error detected: Value 'Repo Market Desk - dedicated overnight-funding stress engine. NY Fed SOFR distribution (p1/p25/p75/p99 + volume), TGCR/BGCR/EFFR/OBFR, SOFR-IORB with IOER splice, RRP/SRF/discount-window/swap-line buffers, reserves drain, calendar context, episode ranking since 2018, 9-component 0-100 score + Telegram regime tripwires. data/repo-market.json.' at 'description' failed to satisfy constraint: Member must have length less than or equal to 256
-
+SystemExit: 1
 ```
 
 ## Data
 
-| env_keys | first_row_keys | probe_rows | sep17_row |
-|---|---|---|---|
-|  | ['effectiveDate', 'percentPercentile1', 'percentPercentile25', 'percentPercentile75', 'percentPercentile99', 'percentRate', 'revisionIndicator', 'type', 'volumeInBillions'] | 27 | [{"effectiveDate": "2019-09-17", "type": "SOFR", "percentRate": 5.25, "percentPercentile1": 2.25, "percentPercentile25": 5.0, "percentPercentile75": 5.85, "percentPercentile99": 9.0, "volumeInBillions": 1177, "revisionIndicator": ""}] |
-| ['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'S3_BUCKET', 'TELEGRAM_CHAT_ID', 'TELEGRAM_TOKEN'] |  |  |  |
+| age_min | cf_worker_regime | cf_worker_score | components_live | cp_expected_signal | cp_interp | cp_signal | cp_sofr_iorb_bps | dr_canaries | dr_repo_canary | env_keys | fails | first_row_keys | plumbing_body_status | plumbing_fn_error | plumbing_seconds | plumbing_status | probe_rows | radar_body_status | radar_fn_error | radar_seconds | radar_status | regime | regime_body_status | regime_fn_error | regime_seconds | regime_status | repo_html_panel_live | repo_market_body_status | repo_market_fn_error | repo_market_seconds | repo_market_status | repo_tail | role | rr_funding | rr_keys | rrp_bn | schedule | schema | score | sep17_row | si_series_n | sofr_iorb_bps | source | srf_bn | tail_bps | tail_pctile | tail_series_n | top_episodes | warns |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  |  |  | ['effectiveDate', 'percentPercentile1', 'percentPercentile25', 'percentPercentile75', 'percentPercentile99', 'percentRate', 'revisionIndicator', 'type', 'volumeInBillions'] |  |  |  |  | 27 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [{"effectiveDate": "2019-09-17", "type": "SOFR", "percentRate": 5.25, "percentPercentile1": 2.25, "percentPercentile25": 5.0, "percentPercentile75": 5.85, "percentPercentile99": 9.0, "volumeInBillions": 1177, "revisionIndicator": ""}] |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  | ['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'S3_BUCKET', 'TELEGRAM_CHAT_ID', 'TELEGRAM_TOKEN'] |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | arn:aws:iam::857687956942:role/justhodl-scheduler-role |  |  |  | created |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 200 | None | 10.8 | 200 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| 0.2 |  |  | 9 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | CALM |  |  |  |  |  |  |  |  |  |  |  |  |  | 2.7 |  | 1.0 | 17.9 |  | 260 | -1.0 | NY Fed markets API | 0.0 | 8.0 | 14.3 | 260 | [{"date": "2019-09-17", "tail_bps": 375.0, "sofr_iorb_bps": 315.0}, {"date": "2018-12-31", "tail_bps": 325.0, "sofr_iorb_bps": 60.0}, {"date": "2019-09-18", "tail_bps": 245.0, "sofr_iorb_bps": 45.0}, {"date": "2019-09-16", "tail_bps": 217.0, "sofr_iorb_bps": 33.0}, {"date": "2020-03-16", "tail_bps": 174.0, "sofr_iorb_bps": 16.0}] |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 200 | None | 14.2 | 200 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 200 | None | 3.2 | 200 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  | 200 | None | 3.8 | 200 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  | 15 | [{"label": "Onshore repo stress (SOFR plumbing)", "reading": "18/100, tail 8bps", "signal": "DUMP", "lean": -1, "weight": 1.5, "detail": "The dedicated repo-market engine: SOFR p99 tail, SOFR-IORB, RRP buffer and SRF take-up. A funding squeeze bids the dollar (PUMP); glassy repo lets it drift (DUMP) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | {"score": 0.38, "repo_stress_score": 17.9, "regime": "CALM", "tail_bps": 8.0, "sofr_iorb_bps": -1.0, "source": "repo-market engine"} | ['blocks_used', 'capital_inflows', 'components', 'cross_border', 'dollar_context', 'elapsed_s', 'engine', 'generated_at', 'liquidity', 'methodology', 'participation', 'posture'] |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  | NORMAL | Repo plumbing functioning normally | NORMAL | -1.0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | {"name": "SOFR p99 Tail (repo-market)", "available": true, "latest_date": "2026-07-02", "tail_bps": 8.0, "z_score_1y": -0.74, "pctile_since_2018": 14.3, "repo_stress_score": 17.9, "repo_regime": "CALM", "signal": "WATCH", "interpretation": "The 99th-percentile SOFR borrower is paying 8bps over the m |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | CALM | 17.9 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | True |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  |  | ["dollar-radar fusion missing (canaries=15, labels=['Fed net liquidity (13w change)', 'Fed balance sheet trend (QE/QT)', 'Reverse repo (RRP) drain', 'Treasury General Account', 'US 10y real yield trend', 'US-Germany 10y spread', 'Equity volatility (VIX safe-haven)', 'High-yield credit spreads', 'Dollar index momentum', 'Offshore dollar funding stress', 'Onshore repo stress (SOFR plumbing)', 'US 10y nominal yield trend', 'Fed path repricing (2y yield)', 'Fed FX swap lines outstanding', 'China credit impulse'])"] |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | ['SRF latest probe failed: HTTP Error 400: Bad Request'] |
 
 ## Log
 ## 1. Env bundle + create justhodl-repo-market
 
-- `06:14:03`   zip: 9355 bytes
+- `06:15:41`   zip: 9355 bytes
 ## 1. Lambda
 
-- `06:14:03`   Lambda missing — creating
+- `06:15:41`   Lambda missing — creating
+- `06:15:46` ✅   ✓ created justhodl-repo-market
+## 2. EventBridge Scheduler schedule
+
+## 3. Synchronous first run + verify repo-market.json
+
+## 4. Deploy + verify the three fused consumers
+
+- `06:15:58`   zip: 19120 bytes
+## 1. Lambda
+
+- `06:15:58`   Lambda exists — updating
+- `06:16:01` ✅   ✓ updated justhodl-dollar-radar
+- `06:16:16`   zip: 10126 bytes
+## 1. Lambda
+
+- `06:16:16`   Lambda exists — updating
+- `06:16:21` ✅   ✓ updated justhodl-risk-regime
+- `06:16:24`   zip: 13724 bytes
+## 1. Lambda
+
+- `06:16:24`   Lambda exists — updating
+- `06:16:27` ✅   ✓ updated justhodl-crisis-plumbing
+## 5. Live-path checks (warn-level, CDN/pages lag)
+
+## verdict
+
+- `06:16:32` report written: /home/runner/work/si/si/aws/ops/reports/2965.json
+- `06:16:32` FAILED: dollar-radar fusion missing (canaries=15, labels=['Fed net liquidity (13w change)', 'Fed balance sheet trend (QE/QT)', 'Reverse repo (RRP) drain', 'Treasury General Account', 'US 10y real yield trend', 'US-Germany 10y spread', 'Equity volatility (VIX safe-haven)', 'High-yield credit spreads', 'Dollar index momentum', 'Offshore dollar funding stress', 'Onshore repo stress (SOFR plumbing)', 'US 10y nominal yield trend', 'Fed path repricing (2y yield)', 'Fed FX swap lines outstanding', 'China credit impulse'])
