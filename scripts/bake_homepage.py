@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+# --- restore-guard (2026-07-07): this bake targets the Command Center v2 layout only.
+# The live homepage was restored to the pre-redesign Operator Console; do not touch it.
+import sys as _sys
+_html_path = _sys.argv[1] if len(_sys.argv) > 1 else '_site/index.html'
+try:
+    if 'JH COMMAND CENTER v2.0' not in open(_html_path, encoding='utf-8', errors='ignore').read():
+        print('bake_homepage: non-v2 index detected — skipping (restore-guard)')
+        _sys.exit(0)
+except FileNotFoundError:
+    _sys.exit(0)
+# --- end restore-guard
+
 """Bake last-known values into the homepage at Pages build time (finding 03).
 
 Runs inside pages.yml against _site/index.html. Fetches the SAME feeds the

@@ -1,388 +1,3037 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- JH COMMAND CENTER v2.0 · design 1a AMBER TERMINAL · 2026-07-06 -->
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JustHodl.AI — Institutional Market Intelligence</title>
-<meta name="description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
-<meta property="og:title" content="JustHodl.AI — Institutional Market Intelligence">
-<meta property="og:description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="JustHodl.AI — institutional-grade market intelligence: signal fusion, capital-flow tracking, AI screens, and macro regime across the full universe. Free during early access.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://justhodl.ai/">
 <meta property="og:site_name" content="JustHodl.AI">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JustHodl.AI — Institutional Market Intelligence">
-<meta name="twitter:description" content="The edge hedge funds pay for — free during early access. 80+ live engines, honest backtests, a 365-day audit trail.">
-<meta name="theme-color" content="#F0B429">
+<meta property="og:title" content="JustHodl AI — Institutional Market Intelligence">
+<meta property="og:description" content="Signal fusion, capital-flow, AI screens & macro regime across the full universe. The edge hedge funds pay for — free during early access.">
+<meta property="og:url" content="https://justhodl.ai/">
+<meta property="og:image" content="https://justhodl.ai/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JustHodl AI — Institutional Market Intelligence">
+<meta name="twitter:description" content="Signal fusion, capital-flow, AI screens & macro regime — free during early access.">
+<meta name="twitter:image" content="https://justhodl.ai/og-image.png">
+
+<title>JustHodl.AI · Operator Console</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#facc15">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JustHodl">
-<link rel="manifest" href="/manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  body { margin: 0; background: #1a1a1e; }
-
-html,body{margin:0;background:#0b0906}
-#cc a:hover{text-decoration:underline}</style>
-<script>const JH_V="v1.2.28";
+<script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
       .catch((e) => console.warn("[PWA] SW registration failed:", e));
   });
-}</script>
+}
+</script>
 <script src="/wss-client.js" defer></script>
-<script>window.__jhNavDrawer=true;/* homepage runs the live sidebar; drawer suppressed here */</script>
-<script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-page-ai.js" defer></script>
+<script src="/tenor-signals.js" defer></script>
+<script src="/liquidity-credit.js" defer></script>
+<script src="/liquidity-pulse.js" defer></script>
+<meta name="description" content="Real-time financial operator console. Live S&P 500 screener, AI stock research, options flow, cross-asset divergences, and KA Index regime detection.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ──────────────────────────────────────────────────────────────
+   DESIGN TOKENS — operator-console aesthetic
+   ────────────────────────────────────────────────────────────── */
+:root{
+  --bg-base:       #07090f;
+  --bg-raised:     #0e1320;
+  --bg-sunken:     #04050a;
+  --bg-elevated:   #131a2a;
+  --bg-glow:       rgba(0,212,255,0.04);
+  --border:        rgba(120,145,180,0.12);
+  --border-hover:  rgba(120,145,180,0.28);
+  --border-strong: rgba(120,145,180,0.40);
+  --fg-1: #e6ecf5;
+  --fg-2: #a8b3c7;
+  --fg-3: #6b7a92;
+  --fg-4: #3a4458;
+  --green:  #38ffa8;
+  --green-dim: #1b8a5c;
+  --amber:  #ffb13d;
+  --amber-dim: #8a5e10;
+  --red:    #ff5c7a;
+  --red-dim: #8a2c44;
+  --cyan:   #00d4ff;
+  --cyan-dim: #0a6080;
+  --violet: #a78bfa;
+  --font-mono: 'IBM Plex Mono', 'Berkeley Mono', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'IBM Plex Serif', ui-serif, Georgia, serif;
+  --radius: 4px;
+}
+
+/* RESET + BASE */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{
+  background: var(--bg-base);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+body{
+  min-height: 100vh;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0,212,255,0.012) 0,
+      rgba(0,212,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+}
+a{color: var(--cyan); text-decoration: none}
+a:hover{color: var(--fg-1)}
+button{font-family: inherit; cursor: pointer; background: none; border: none; color: inherit}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-sunken)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--fg-3)}
+
+/* ──────────────────────────────────────────────────────────────
+   TOP NAV — brand + links + system status
+   ────────────────────────────────────────────────────────────── */
+.topbar{
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(7,9,15,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex; align-items: center;
+  height: 52px;
+  gap: 28px;
+}
+.brand{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--fg-1);
+  display: flex; align-items: center; gap: 8px;
+}
+.brand .dot{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.45}}
+.brand span{color: var(--cyan); font-weight: 500}
+
+.fav-bar{
+  display: flex; gap: 8px; flex: 1;
+  overflow-x: auto; align-items: center;
+}
+.fav-pill{
+  --fc: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--fg-2);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.fav-pill:hover{color: var(--fc); border-color: var(--fc); background: var(--bg-glow)}
+
+.topbar-meta{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 1px;
+  display: flex; align-items: center; gap: 14px;
+}
+.status-pill{
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: rgba(56,255,168,0.06);
+  border: 1px solid var(--green-dim);
+  border-radius: 3px;
+  color: var(--green);
+  font-weight: 600;
+}
+.status-pill.degraded{background: rgba(255,177,61,0.06); border-color: var(--amber-dim); color: var(--amber)}
+.status-pill::before{
+  content:''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; box-shadow: 0 0 6px currentColor;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   PAGE CONTAINER
+   ────────────────────────────────────────────────────────────── */
+.page{
+  max-width: 1620px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   TOP STRIP — 6 at-a-glance cells
+   ────────────────────────────────────────────────────────────── */
+.strip{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  margin-bottom: 24px;
+  background: var(--border);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.strip-cell{
+  background: var(--bg-raised);
+  padding: 14px 18px;
+  position: relative;
+}
+.strip-cell:hover{background: var(--bg-elevated)}
+.strip-label{
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--fg-3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.strip-value{
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--fg-1);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.strip-sub{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 0.5px;
+}
+.strip-sub.green{color: var(--green)}
+.strip-sub.amber{color: var(--amber)}
+.strip-sub.red{color: var(--red)}
+.strip-sub.cyan{color: var(--cyan)}
+
+@media (max-width: 1024px){
+  .strip{grid-template-columns: repeat(3, 1fr)}
+}
+@media (max-width: 600px){
+  .strip{grid-template-columns: repeat(2, 1fr)}
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ALERT BANNER (phase warning)
+   ────────────────────────────────────────────────────────────── */
+.alert{
+  position: relative;
+  padding: 18px 24px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  display: flex; gap: 24px; align-items: center;
+}
+.alert.crisis{border-left-color: var(--red)}
+.alert.bull{border-left-color: var(--green)}
+.alert-headline{
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--amber);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.alert.crisis .alert-headline{color: var(--red)}
+.alert.bull .alert-headline{color: var(--green)}
+.alert-body{
+  font-size: 13px;
+  color: var(--fg-2);
+  flex: 1;
+  line-height: 1.6;
+}
+.alert-action{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--fg-1);
+  background: rgba(255,177,61,0.06);
+  padding: 8px 14px;
+  border: 1px solid var(--amber-dim);
+  border-radius: 3px;
+  flex-shrink: 0;
+  max-width: 380px;
+}
+.alert.crisis .alert-action{background: rgba(255,92,122,0.06); border-color: var(--red-dim); color: var(--fg-1)}
+@media (max-width: 900px){
+  .alert{flex-direction: column; align-items: flex-start; gap: 12px}
+  .alert-action{max-width: 100%}
+}
+
+/* ──────────────────────────────────────────────────────────────
+   GRID + CARDS
+   ────────────────────────────────────────────────────────────── */
+.grid{
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.zone-head{
+  grid-column: span 12;
+  display: flex; align-items: center; gap: 10px;
+  margin: 8px 0 -6px;
+  padding: 0 2px;
+}
+.zone-head:first-child{ margin-top: 0 }
+.zone-head b{
+  --zc: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+  color: var(--zc);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.zone-head i{
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.card{
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  transition: border-color .2s;
+}
+.card:hover{border-color: var(--border-hover)}
+
+/* corner brackets — desk-v2 signature */
+.card::before, .card::after{
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+  border-color: var(--border-strong);
+  border-style: solid;
+}
+.card::before{
+  top: 6px; left: 6px;
+  border-width: 1px 0 0 1px;
+}
+.card::after{
+  bottom: 6px; right: 6px;
+  border-width: 0 1px 1px 0;
+}
+
+/* card spans */
+.col-12{grid-column: span 12}
+.col-8{grid-column: span 8}
+.col-7{grid-column: span 7}
+.col-6{grid-column: span 6}
+.col-5{grid-column: span 5}
+.col-4{grid-column: span 4}
+@media (max-width: 1100px){
+  .col-7,.col-8{grid-column: span 12}
+  .col-4,.col-5{grid-column: span 6}
+}
+@media (max-width: 700px){
+  .col-4,.col-5,.col-6{grid-column: span 12}
+}
+
+/* card structure */
+.card-head{
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  color: var(--fg-2);
+  text-transform: uppercase;
+}
+.card-subtitle{
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--fg-3);
+  letter-spacing: 1px;
+}
+.card-action{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--cyan);
+  text-transform: uppercase;
+}
+.card-action:hover{color: var(--fg-1)}
+
+/* ──────────────────────────────────────────────────────────────
+   READOUT (key/value with mono numbers)
+   ────────────────────────────────────────────────────────────── */
+.readout{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.readout-key{
+  color: var(--fg-3);
+  letter-spacing: 0.5px;
+}
+.readout-val{
+  color: var(--fg-1);
+  font-weight: 500;
+  text-align: right;
+}
+.readout-val.g{color: var(--green)}
+.readout-val.a{color: var(--amber)}
+.readout-val.r{color: var(--red)}
+.readout-val.c{color: var(--cyan)}
+
+/* ──────────────────────────────────────────────────────────────
+   BIG NUMBER (hero readouts inside cards)
+   ────────────────────────────────────────────────────────────── */
+.bignum{
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 600;
+  color: var(--fg-1);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.bignum-sub{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--fg-3);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   TABLE STYLE for setup lists
+   ────────────────────────────────────────────────────────────── */
+table.tbl{
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+table.tbl th{
+  text-align: left;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: var(--fg-3);
+  font-size: 9px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+table.tbl th.r{text-align: right}
+table.tbl td{
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(120,145,180,0.06);
+  color: var(--fg-2);
+}
+table.tbl td.r{text-align: right}
+table.tbl tr:hover td{background: rgba(120,145,180,0.04)}
+table.tbl tr:last-child td{border-bottom: none}
+.sym{
+  font-weight: 600;
+  color: var(--fg-1);
+  letter-spacing: 0.5px;
+}
+.sym a{color: var(--fg-1)}
+.sym a:hover{color: var(--cyan)}
+
+/* ──────────────────────────────────────────────────────────────
+   BARS + GAUGES
+   ────────────────────────────────────────────────────────────── */
+.bar{
+  height: 4px; background: var(--bg-sunken);
+  border-radius: 2px; overflow: hidden;
+  margin: 4px 0;
+}
+.bar-fill{
+  height: 100%;
+  background: var(--cyan);
+  transition: width .6s ease;
+}
+.bar-fill.g{background: var(--green)}
+.bar-fill.a{background: var(--amber)}
+.bar-fill.r{background: var(--red)}
+
+/* gauge — circular indicator */
+.gauge{
+  width: 72px; height: 72px;
+  position: relative;
+  flex-shrink: 0;
+}
+.gauge svg{width: 100%; height: 100%; transform: rotate(-90deg)}
+.gauge-num{
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px; font-weight: 600;
+  color: var(--fg-1);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   QUICK ACTIONS — tile launcher
+   ────────────────────────────────────────────────────────────── */
+.tools{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+.tool{
+  display: block;
+  padding: 18px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative;
+  transition: all .2s;
+  text-decoration: none;
+}
+.tool:hover{
+  background: var(--bg-glow);
+  border-color: var(--cyan-dim);
+  transform: translateY(-1px);
+}
+.tool-icon{
+  font-family: var(--font-mono);
+  font-size: 22px;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+.tool-name{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--fg-1);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tool-desc{
+  font-size: 11px;
+  color: var(--fg-3);
+  line-height: 1.5;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   STATES — loading + error
+   ────────────────────────────────────────────────────────────── */
+.skel{
+  background: linear-gradient(90deg, var(--bg-elevated) 0%, var(--bg-raised) 50%, var(--bg-elevated) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 3px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height: 14px; margin-bottom: 8px}
+.skel-line.short{width: 60%}
+
+.err{
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 8px 0;
+}
+.muted{color: var(--fg-3); font-style: italic; font-size: 11px}
+
+/* ──────────────────────────────────────────────────────────────
+   BADGES + PILLS
+   ────────────────────────────────────────────────────────────── */
+.badge{
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  background: var(--bg-elevated);
+  color: var(--fg-2);
+  border: 1px solid var(--border);
+}
+.badge.g{color: var(--green); border-color: var(--green-dim); background: rgba(56,255,168,0.05)}
+.badge.a{color: var(--amber); border-color: var(--amber-dim); background: rgba(255,177,61,0.05)}
+.badge.r{color: var(--red); border-color: var(--red-dim); background: rgba(255,92,122,0.05)}
+.badge.c{color: var(--cyan); border-color: var(--cyan-dim); background: rgba(0,212,255,0.05)}
+.badge.v{color: var(--violet); border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.05)}
+
+/* ──────────────────────────────────────────────────────────────
+   FOOTER
+   ────────────────────────────────────────────────────────────── */
+.footer{
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  margin-top: 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--fg-3);
+  text-transform: uppercase;
+}
+.footer .meta{display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 8px}
+.footer .meta span{color: var(--fg-4)}
+
+</style>
+<script src="/ai-synthesis-kit.js"></script>
+<script src="/ai-frontrun-kit.js"></script>
+<script src="/ai-frontrun-history-kit.js"></script>
+<script src="/jh-ai-insights.js?t=20260601a" defer></script>
 </head>
 <body>
-<div id="cc" style="display:flex;flex-direction:column;min-height:100vh;">
-      <div style="display: flex; align-items: baseline; gap: 12px; font-family: 'IBM Plex Mono', monospace;">
-        <span style="background: #f0b429; color: #14120c; font-weight: 600; font-size: 13px; padding: 3px 9px;">
-      </div>
-
-      <div data-screen-label="1a Amber Terminal" style="width: 1240px; height: 840px; background: #0c0b09; color: #e8e2d4; font-family: 'IBM Plex Sans', sans-serif; display: grid; grid-template-columns: 236px 1fr; grid-template-rows: 40px 1fr; border: 1px solid #2b2820; overflow: hidden;">
-
-        <!-- topbar -->
-        <div style="grid-column: 1 / 3; display: flex; align-items: center; gap: 0; border-bottom: 1px solid #2b2820; background: #0f0e0a;">
-          <div style="width: 236px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-right: 1px solid #2b2820; height: 100%; box-sizing: border-box;">
-            <span style="width: 10px; height: 10px; background: #f0b429; flex: none;"></span>
-            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.12em; color: #f0b429;"><a href="/index.html" style="color:inherit;text-decoration:none">JUSTHODL·AI</a></span>
-          </div>
-          <div style="flex: 1; display: flex; align-items: center; gap: 24px; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8a836f; overflow: hidden; white-space: nowrap;">
-            <span>SPX <b style="color: #6fce8a;"><span id="tp-spx">—</span></b></span>
-            <span>NDX <b style="color: #6fce8a;"><span id="tp-ndx">—</span></b></span>
-            <span>US10Y <b style="color: #e8e2d4;"><span id="tp-10y">—</span></b></span>
-            <span>DXY <b style="color: #e07a6a;"><span id="tp-dxy">—</span></b></span>
-            <span>BTC <b style="color: #6fce8a;"><span id="tp-btc">—</span></b></span>
-            <span>VIX <b style="color: #e8e2d4;"><span id="tp-vix">—</span></b></span>
-            <span>GOLD <b style="color: #6fce8a;"><span id="tp-gold">—</span></b></span>
-          </div>
-          <div style="flex: none; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
-            <span id="jh-cta" style="cursor:pointer;border:1px solid #F0B429;color:#F0B429;padding:4px 10px;font-size:11px;letter-spacing:.05em;font-family:'IBM Plex Mono',monospace;white-space:nowrap;margin-right:10px">GET THE MORNING BRIEF</span><span style="color: #6fce8a;">● LIVE</span>
-            <span style="color: #8a836f;"><span id="clock">—</span></span>
-          </div>
-        </div>
-
-        <!-- sidebar -->
-        <div id="jh-sidebar" style="border-right: 1px solid #2b2820; background: #0f0e0a; padding: 14px 0; display: flex; flex-direction: column; gap: 2px; overflow: hidden; font-family: 'IBM Plex Mono', monospace;">
-          <div style="margin: 0 12px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #2b2820; padding: 7px 10px; color: #8a836f; font-size: 11.5px;">
-            <span>⌕</span><input id="jh-side-q" placeholder="Jump to any desk…" autocomplete="off" style="flex:1;background:transparent;border:0;outline:0;color:#e8e2d4;font:inherit;min-width:0"><span id="jh-side-pin" title="Pin sidebar open" style="cursor:pointer;color:#6a6455;font-size:12px">📌</span><span style="border: 1px solid #3a3628; padding: 1px 5px; font-size: 10px;">⌘K</span>
-          </div>
-          <div id="jh-side"></div>
-          <div style="flex: 1;"></div>
-          <div style="margin: 0 8px; padding: 8px 10px; border-top: 1px solid #2b2820; color: #6a6455; font-size: 10.5px;">v3.0 · <span id="ft-eng">—</span> engines live · 5m refresh</div>
-        </div>
-
-        <!-- main -->
-        <div style="padding: 22px 24px; overflow: hidden; display: flex; flex-direction: column; gap: 18px;">
-          <div style="display: flex; align-items: baseline; gap: 14px;">
-            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; letter-spacing: 0.06em;">COMMAND CENTER</div>
-            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8a836f;"><span id="hd-date">—</span></div>
-            <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #14120c; background: #6fce8a; padding: 3px 10px; font-weight: 600;">REGIME · <span id="hd-regime">—</span></div>
-          </div>
-
-          <!-- stat tiles -->
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: #2b2820; border: 1px solid #2b2820;">
-            <div style="padding:0 0 10px;color:#8a836f;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.03em">The edge hedge funds pay for — free during early access. <a href="#" id="jh-cta2" style="color:#F0B429;text-decoration:none">Get the Morning Brief →</a> · <a href="/proof.html" style="color:#F0B429;text-decoration:none">See the proof →</a></div>
-<div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">KA INDEX</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #f0b429; margin-top: 4px;"><span id="kpi-ka">—</span></div><div style="font-size: 10.5px; color: #6fce8a; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-ka-d">&nbsp;</span></div></div>
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">REGIME</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: #6fce8a; margin-top: 8px;"><span id="kpi-hmm">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;">HMM 4-state</div></div>
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">NET LIQUIDITY</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; margin-top: 4px;"><span id="kpi-nl">—</span></div><div style="font-size: 10.5px; color: #6fce8a; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-nl-d">&nbsp;</span></div></div>
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">CRYPTO</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; margin-top: 8px;"><span id="kpi-cr">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-cr-d">&nbsp;</span></div></div>
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">STRESS (GSI)</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #6fce8a; margin-top: 4px;"><span id="kpi-gsi">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;">low · 0–100</div></div>
-            <div style="background: #12110c; padding: 12px 14px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8a836f;">EDGE LIVE</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: #f0b429; margin-top: 4px;"><span id="kpi-edge">—</span></div><div style="font-size: 10.5px; color: #8a836f; font-family: 'IBM Plex Mono', monospace;"><span id="kpi-edge-d">of — engines</span></div></div>
-          </div>
-
-          <!-- flagship -->
-          <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; align-items: center; gap: 24px;">
-            <div style="flex: none;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #f0b429;">★ TODAY'S READ</div><div style="font-size: 13.5px; color: #d8d1bf; margin-top: 5px; max-width: 560px; line-height: 1.45;"><span id="read-body">—</span><b style="color: #6fce8a;"><span id="read-stance">—</span></b><span id="read-agree"></span></div></div>
-            <div style="margin-left: auto; display: flex; gap: 8px;">
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; border: 1px solid #f0b429; color: #f0b429; padding: 6px 12px; font-weight: 600;"><a href="/signal-board.html" style="color:inherit;text-decoration:none">SIGNAL BOARD →</a></span>
-              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; border: 1px solid #3a3628; color: #b5ad99; padding: 6px 12px;"><a href="/strategist.html" style="color:inherit;text-decoration:none">FULL BRIEF →</a></span>
-            </div>
-          </div>
-
-          <!-- hub cards -->
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1;">
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">≡ MACRO &amp; LIQUIDITY</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-macro">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/plumbing.html" style="color:inherit;text-decoration:none">Liquidity &amp; Credit Engine</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-lce">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/plumbing.html" style="color:inherit;text-decoration:none">Treasury Auctions</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;"><span id="d-auct">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/cycle-clock.html" style="color:inherit;text-decoration:none">Global Business Cycle</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-gbc">—</span></span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/plumbing.html" style="color:inherit;text-decoration:none">ALL MACRO →</a></div>
-            </div>
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">α ALPHA &amp; SIGNALS</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-alpha">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/alpha-scoreboard.html" style="color:inherit;text-decoration:none">Alpha Scoreboard</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #f0b429;"><span id="d-alpha">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/pre-pump-radar.html" style="color:inherit;text-decoration:none">Pre-Pump Radar</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e07a6a;"><span id="d-pump">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/strategist.html" style="color:inherit;text-decoration:none">Debate Engine</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;"><span id="d-debate">—</span></span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/master-rank.html" style="color:inherit;text-decoration:none">ALL ALPHA →</a></div>
-            </div>
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">⚠ RISK &amp; HEDGING</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-risk">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/risk-desk.html" style="color:inherit;text-decoration:none">Risk Desk (CRO)</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-cro">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/risk-desk.html" style="color:inherit;text-decoration:none">Vol Turning-Point Radar</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #f0b429;"><span id="d-vol">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/risk-desk.html" style="color:inherit;text-decoration:none">Tail Hedge Overlay</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;"><span id="d-tail">—</span></span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/risk-desk.html" style="color:inherit;text-decoration:none">ALL RISK →</a></div>
-            </div>
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">⇄ CROSS-ASSET</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-x">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/cycle-clock.html" style="color:inherit;text-decoration:none">Divergences</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e07a6a;"><span id="d-div">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/options.html" style="color:inherit;text-decoration:none">Options Flow</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-optf">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/charts.html" style="color:inherit;text-decoration:none">COT Extremes</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;"><span id="d-cot">—</span></span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/risk-regime.html" style="color:inherit;text-decoration:none">ALL CROSS-ASSET →</a></div>
-            </div>
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">✂ STRATEGY DESKS</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-strat">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/merger-arb.html" style="color:inherit;text-decoration:none">Merger-Arb Desk</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;"><span id="d-marb">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/pairs.html" style="color:inherit;text-decoration:none">Pairs Desk</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-pairs">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/master-rank.html" style="color:inherit;text-decoration:none">Conviction Engine</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #f0b429;"><span id="d-conv">—</span></span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/directory.html" style="color:inherit;text-decoration:none">ALL DESKS →</a></div>
-            </div>
-            <div style="border: 1px solid #2b2820; background: #12110c; padding: 14px 16px; display: flex; flex-direction: column; gap: 9px;">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;">⌬ DATA &amp; SYSTEM</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #6a6455;"><span id="dc-data">—</span> desks</span></div>
-              <div style="height: 1px; background: #2b2820;"></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/llm-cost.html" style="color:inherit;text-decoration:none">Fleet Health</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #6fce8a;"><span id="d-fleet">—</span></span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/chart-pro.html" style="color:inherit;text-decoration:none">Charts Terminal</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;">OPEN →</span></div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px;"><span style="color: #b5ad99;"><a href="/fred.html" style="color:inherit;text-decoration:none">FRED / Fed Data</a></span><span style="font-family: 'IBM Plex Mono', monospace; color: #e8e2d4;">OPEN →</span></div>
-              <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #f0b429;"><a href="/us-data-desk.html" style="color:inherit;text-decoration:none">ALL DATA →</a></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 1a tokens -->
-      
-    </div>
-<script>
-/* JH Command Center binder — real data only. Every slot fetches a live feed;
-   404/parse failure renders an em-dash, never a fake number. Page-gate safe. */
-(function(){
-"use strict";
-var Q="?t="+Date.now();
-function g(p,d){try{return p.split('.').reduce(function(o,k){return (o||{})[k];},d);}catch(e){return null;}}
-function txt(id,v){var el=document.getElementById(id);if(!el)return;
-  var sv=String(v);el.textContent=(v===null||v===undefined||v!==v||sv.indexOf("[object")>-1)?"—":sv;}
-function num(v,dp){return (typeof v==="number"&&isFinite(v))?v.toFixed(dp===undefined?1:dp):null;}
-function pct(v,dp){var n=num(v,dp);return n===null?null:((v>0?"+":"")+n+"%");}
-function J(url){return fetch(url+Q,{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json();});}
-function first(urls){ // try candidates in order
-  return urls.reduce(function(p,u){return p.catch(function(){return J(u);});},Promise.reject());}
-
-/* ── market tape (data-driven: renders whatever the engine truly serves) ── */
-first(["data/market-tape.json"]).then(function(d){
-  var m={SPX:"tp-spx",NDX:"tp-ndx",US10Y:"tp-10y",DXY:"tp-dxy",BTC:"tp-btc",VIX:"tp-vix",GOLD:"tp-gold"};
-  (d.items||[]).forEach(function(it){
-    var id=m[it.label];if(!id)return;
-    var v=it.display||num(it.value,it.value>1000?0:it.value>100?1:2);
-    if(it.chg_pct!==undefined&&it.chg_pct!==null){var p=pct(it.chg_pct,1);if(p)v=v+" "+p;}
-    txt(id,v);
-  });
-}).catch(function(){});
-
-/* ── header ── */
-(function(){var d=new Date();
- txt("hd-date",d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"2-digit",year:"numeric"}).toUpperCase()
-   +" · "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"America/New_York"})+" ET");})();
-function tick(){var d=new Date();
- txt("clock",d.toLocaleTimeString("en-US",{hour12:false,timeZone:"America/New_York"})+" ET");}
-tick();setInterval(tick,1000);
-first(["data/risk-regime.json"]).then(function(d){txt("hd-regime",g("regime",d));}).catch(function(){});
-
-/* ── KPI strip ── */
-first(["data/report.json","data/khalid-adaptive.json","data/khalid-metrics.json"]).then(function(d){
-  function deep(o,k){if(!o||typeof o!=="object")return null;if(typeof o[k]==="number")return o[k];for(var x in o){var v=deep(o[x],k);if(v!==null)return v;}return null;}
-  var ko=g("khalid_index",d);var kv=null;if(typeof ko==="number")kv=ko;else if(ko&&typeof ko==="object"){var ks=["value","index","score","index_0_100","composite","level_score"];for(var i=0;i<ks.length&&kv==null;i++){if(typeof ko[ks[i]]==="number")kv=ko[ks[i]];}if(kv==null){for(var kk in ko){if(typeof ko[kk]==="number"){kv=ko[kk];break;}}}}if(kv==null)kv=deep(d,"khalid_index");txt("kpi-ka",num(kv,1));
-  var w=null;if(ko&&typeof ko==="object"){var ws=["wow","wow_delta","delta_wow","w_w","change_wow"];for(var j=0;j<ws.length&&w==null;j++){if(typeof ko[ws[j]]==="number")w=ko[ws[j]];}}if(w==null)w=deep(d,"khalid_index_wow");if(typeof w==="number")txt("kpi-ka-d",(w>=0?"▲ +":"▼ ")+Math.abs(w).toFixed(1)+" w/w");
-}).catch(function(){});
-first(["data/us-cycle.json"]).then(function(d){txt("kpi-hmm",g("cycle_score.level",d)||g("regime",d));}).catch(function(){});
-first(["data/liquidity-inflection.json"]).then(function(d){
-  var b=g("net_liquidity_change_13w_usd_b",d);var z=g("impulse_z",d)||g("impulse.z",d);
-  txt("kpi-nl",b!==null&&b!==undefined?((b>=0?"+$":"−$")+Math.abs(b).toFixed(0)+"B"):(z!=null?("z "+num(z,2)):null));
-  var st=g("state",d)||g("verdict",d);if(st)txt("kpi-nl-d",String(st).toLowerCase());
-}).catch(function(){});
-first(["data/crypto-emergence.json"]).then(function(d){
-  txt("kpi-cr",g("state",d)||g("regime",d));var s=g("substate",d)||g("phase",d);if(s)txt("kpi-cr-d",String(s).toLowerCase());
-}).catch(function(){});
-first(["data/global-stress.json"]).then(function(d){txt("kpi-gsi",num(g("global_stress_index",d),0));}).catch(function(){});
-first(["data/engine-alpha.json"]).then(function(d){
-  var p=(g("alpha_proven_signals",d)||[]).length;var t=Object.keys(g("engines",d)||{}).length;
-  txt("kpi-edge",p);if(t)txt("kpi-edge-d","of "+t+" engines proven");
-}).catch(function(){});
-
-/* ── Today's read ── */
-first(["data/strategist.json"]).then(function(d){
-  txt("read-body",g("headline",d)||g("read",d)||g("summary",d));
-  txt("read-stance",g("stance",d)||g("verdict",d));
-  var a=g("agree",d)||g("engines_agree",d);if(a)txt("read-agree","— "+a);
-}).catch(function(){
-  first(["data/signal-board.json"]).then(function(d){
-    txt("read-body",g("summary",d)||("Composite posture "+(g("composite.posture",d)||"—")));
-    txt("read-stance",g("composite.posture",d)||g("posture",d));
-  }).catch(function(){});
-});
-
-/* ── desk rows: [id, candidate feeds, pick] ── */
-var ROWS=[
- ["d-lce",["data/liquidity-credit.json","data/eurodollar-plumbing.json"],function(d){return g("state",d)||g("verdict",d);}],
- ["d-auct",["data/treasury-auctions.json","data/plumbing-history.json"],function(d){return g("next",d)||g("next_auction",d);}],
- ["d-gbc",["data/global-business-cycle.json"],function(d){return g("aggregate.global_phase",d);}],
- ["d-alpha",["data/alpha-scoreboard.json","data/engine-alpha.json"],function(d){var s=g("tier_s",d);return s!=null?s+" TIER-S":((g("alpha_proven_signals",d)||[]).length+" PROVEN");}],
- ["d-pump",["data/pump-radar-summary.json"],function(d){var n=g("hot",d)||g("n_hot",d)||g("hot_count",d);return n!=null?("HOT ·"+n):g("state",d);}],
- ["d-debate",["data/debate.json","data/strategist.json"],function(d){return g("next_run",d)||g("stance",d);}],
- ["d-cro",["data/crisis-composite.json","data/risk-regime.json"],function(d){return g("defcon_level",d)||g("posture.hedge",d)||g("regime",d);}],
- ["d-vol",["data/vol-radar.json","data/volatility-squeeze.json"],function(d){return g("state",d)||g("regime",d);}],
- ["d-tail",["data/hedge-book.json"],function(d){return g("state",d)||g("status",d);}],
- ["d-div",["data/cycle-clock.json"],function(d){var v=g("divergences",d);return Array.isArray(v)?(v.length+" ACTIVE"):v;}],
- ["d-optf",["data/options-analytics.json","data/polygon-options-flow.json"],function(d){return g("market_bias",d)||g("summary.bias",d)||g("alert_level",d);}],
- ["d-cot",["https://justhodl-dashboard-live.s3.amazonaws.com/cot/extremes/current.json","https://api.justhodl.ai/agent/cftc-positioning/cot/all"],function(d){if(Array.isArray(d.cluster_alerts))return d.cluster_alerts.length+" CROWDED";var n=0,hit=false;for(var k in d){if(!Array.isArray(d[k]))continue;if(/crowd|extreme/i.test(k)){n+=d[k].length;hit=true;}}if(!hit&&Array.isArray(d.contracts)){n=d.contracts.filter(function(c){var z=c.z||c.zscore||c.z_score;return typeof z==="number"&&Math.abs(z)>=2;}).length;hit=n>0;}return hit?(n+" CROWDED"):null;}],
- ["d-marb",["data/merger-arb.json"],function(d){var n=g("n_deals",d)||g("deals",d);return n!=null?(n+" DEALS"):g("state",d);}],
- ["d-pairs",["data/pairs-scanner.json"],function(d){return g("mtd",d)?pct(g("mtd",d),1)+" MTD":g("state",d);}],
- ["d-conv",["data/best-setups.json"],function(d){var a=g("setups",d)||g("top",d)||[];var n=Array.isArray(a)?a.filter(function(x){return /STRONG/.test(x.conviction||x.rating||"");}).length:null;return n!=null?(n+" NAMES"):null;}],
- ["d-fleet",["data/engine-registry.json"],function(d){var n=g("count",d)||Object.keys(g("engines",d)||d||{}).length;return n?n+" ENGINES":null;}],
-];
-ROWS.forEach(function(r){first(r[1]).then(function(d){txt(r[0],r[2](d));}).catch(function(){});});
-
-/* ── sidebar counts + footer from nav-manifest / engine-registry ── */
-first(["/nav-manifest.json","nav-manifest.json"]).then(function(m){
-  var pages=Array.isArray(m)?m:(m.pages||[]);
-  function zc(rx){return pages.filter(function(p){return rx.test((p.zone||p.group||"")+" "+(p.path||p.href||""));}).length||null;}
-  txt("sc-macro",zc(/macro|liquid|plumb/i));txt("sc-alpha",zc(/alpha|signal|rank/i));
-  txt("sc-risk",zc(/risk|hedge|crisis/i));txt("sc-strat",zc(/strat|desk|pair|merger/i));
-  txt("sc-data",zc(/data|api|fred|chart/i));
-  ["dc-macro","dc-alpha","dc-risk","dc-x","dc-strat","dc-data"].forEach(function(id,i){
-    var v=[zc(/macro|liquid|plumb/i),zc(/alpha|signal|rank/i),zc(/risk|hedge|crisis/i),
-           zc(/cross|regime|asset/i),zc(/strat|desk|pair|merger/i),zc(/data|api|fred|chart/i)][i];
-    txt(id,v);});
-}).catch(function(){});
-first(["data/engine-registry.json"]).then(function(d){
-  var n=g("count",d)||Object.keys(g("engines",d)||{}).length;if(n)txt("ft-eng",n);}).catch(function(){});
-
-/* ── ⌘K → nav drawer if the shell exposes it; else hide the chip ── */
-document.addEventListener("keydown",function(e){var k=e.key.toLowerCase();var typing=/input|textarea|select/i.test((e.target&&e.target.tagName)||"");if(((e.metaKey||e.ctrlKey)&&k==="k")||(k==="/"&&!typing)){e.preventDefault();if(window.jhSideOpen)window.jhSideOpen(true);}});
-
-/* ── 5-min refresh ── */
-setTimeout(function(){location.reload();},300000);
-})();
-
-</script>
-
-<style>
-#jh-sidebar{transition:width .18s ease;overflow:hidden}
-#jh-sidebar.jh-collapsed{width:44px !important;min-width:44px}
-#jh-sidebar.jh-collapsed #jh-side,#jh-sidebar.jh-collapsed #jh-side-q,
-#jh-sidebar.jh-collapsed #jh-side-pin,#jh-sidebar.jh-collapsed .jh-kbd,
-#jh-sidebar.jh-collapsed .jh-foot{display:none !important}
-#jh-side{overflow-y:auto;flex:1;font-family:'IBM Plex Mono',monospace}
-#jh-side details{border-top:1px solid #1e1a12}
-#jh-side summary{cursor:pointer;list-style:none;padding:7px 12px;color:#8a836f;font-size:10.5px;letter-spacing:.08em;display:flex;justify-content:space-between}
-#jh-side summary::-webkit-details-marker{display:none}
-#jh-side .jh-cnt{color:#5a5445}
-#jh-side .jh-row{display:flex;align-items:center;gap:7px;padding:3px 10px 3px 8px}
-#jh-side .jh-row a{color:#cfc7b2;text-decoration:none;font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#jh-side .jh-row a:hover{color:#F0B429}
-#jh-side .jh-star{cursor:pointer;color:#3a3428;font-size:12px;border:0;background:none;padding:0}
-#jh-side .jh-star.on{color:#F0B429}
-#jh-side .jh-favhead{padding:7px 12px;color:#F0B429;font-size:10.5px;letter-spacing:.08em;border-top:1px solid #1e1a12}
-</style>
-<script>
-(function(){"use strict";
-var C=document.getElementById("jh-sidebar"),M=document.getElementById("jh-side"),
-    Q=document.getElementById("jh-side-q"),P=document.getElementById("jh-side-pin");
-if(!C||!M)return;
-var PAGES=[],CATS=[];
-function favs(){try{return JSON.parse(localStorage.getItem("jh_favs")||"[]");}catch(e){return[];}}
-function setFavs(a){try{localStorage.setItem("jh_favs",JSON.stringify(a.slice(0,80)));}catch(e){}}
-function pinned(){return localStorage.getItem("jh_sidebar")==="open";}
-function setOpen(o){C.classList.toggle("jh-collapsed",!o);}
-window.jhSideOpen=function(focus){setOpen(true);if(focus&&Q)setTimeout(function(){Q.focus();},30);};
-function close(){if(!pinned()){setOpen(false);if(Q)Q.blur();}}
-C.addEventListener("click",function(e){if(C.classList.contains("jh-collapsed")){window.jhSideOpen(true);e.stopPropagation();}});
-document.addEventListener("click",function(e){if(!C.contains(e.target))close();});
-document.addEventListener("keydown",function(e){if(e.key==="Escape")close();});
-if(P)P.addEventListener("click",function(e){e.stopPropagation();
-  localStorage.setItem("jh_sidebar",pinned()?"":"open");P.style.color=pinned()?"#F0B429":"#6a6455";});
-function row(p){var f=favs(),d=document.createElement("div");d.className="jh-row";
-  var b=document.createElement("button");b.className="jh-star"+(f.indexOf(p.href)>-1?" on":"");b.textContent="\u2605";
-  b.onclick=function(e){e.stopPropagation();var a=favs(),i=a.indexOf(p.href);
-    if(i>-1)a.splice(i,1);else a.unshift(p.href);setFavs(a);render(Q?Q.value:"");};
-  var a2=document.createElement("a");a2.href=p.href;a2.textContent=p.title||p.href;a2.title=p.href;
-  d.appendChild(b);d.appendChild(a2);return d;}
-function render(q){M.textContent="";var f=favs();q=(q||"").trim().toLowerCase();
-  var favPages=f.map(function(h){for(var i=0;i<PAGES.length;i++)if(PAGES[i].href===h)return PAGES[i];
-    return {href:h,title:h.replace(/^\//,"").replace(/\.html$/,"")};});
-  if(q){var hits=PAGES.filter(function(p){return ((p.title||"")+" "+p.href).toLowerCase().indexOf(q)>-1;});
-    hits.sort(function(a,b){var fa=f.indexOf(a.href)>-1,fb=f.indexOf(b.href)>-1;
-      return fa===fb?(a.title||"").localeCompare(b.title||""):(fa?-1:1);});
-    var h=document.createElement("div");h.className="jh-favhead";
-    h.textContent=hits.length+" MATCH"+(hits.length===1?"":"ES");M.appendChild(h);
-    hits.forEach(function(p){M.appendChild(row(p));});return;}
-  if(favPages.length){var fh=document.createElement("div");fh.className="jh-favhead";
-    fh.textContent="\u2605 FAVORITES";M.appendChild(fh);
-    favPages.forEach(function(p){M.appendChild(row(p));});}
-  CATS.forEach(function(c){var dt=document.createElement("details");dt.open=true;
-    var sm=document.createElement("summary");
-    var n=document.createElement("span");n.textContent=String(c.name).replace(/^[^A-Za-z0-9]+\s*/,"");
-    var k=document.createElement("span");k.className="jh-cnt";k.textContent=c.pages.length;
-    sm.appendChild(n);sm.appendChild(k);dt.appendChild(sm);
-    c.pages.forEach(function(p){dt.appendChild(row(p));});M.appendChild(dt);});}
-if(Q)Q.addEventListener("input",function(){render(Q.value);});
-fetch("/nav-manifest.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();})
- .then(function(m){CATS=m.categories||[];
-   CATS.forEach(function(c){(c.pages||[]).forEach(function(p){PAGES.push(p);});});
-   render("");
-   var MAP=[["dc-macro",/macro|liquid/i],["dc-alpha",/alpha|signal|equit/i],["dc-risk",/risk|crisis|hedg/i],
-            ["dc-x",/cross|regime|global/i],["dc-strat",/strat|desk|arb|pair|wealth/i],["dc-data",/data|api|system|platform|crypto/i]];
-   var used={};CATS.forEach(function(c){for(var i=0;i<MAP.length;i++){
-     if(MAP[i][1].test(c.name)&&!used[c.name]){used[c.name]=1;
-       var el=document.getElementById(MAP[i][0]);
-       if(el)el.textContent=String((parseInt(el.textContent,10)||0)+c.pages.length);break;}}});
- }).catch(function(){});
-setOpen(pinned());if(P&&pinned())P.style.color="#F0B429";
-})();
-</script>
-
-<div id="jh-sub" style="display:none;position:fixed;top:54px;right:16px;z-index:99999;background:#141008;border:1px solid #F0B429;padding:14px;width:290px;font-family:'IBM Plex Mono',monospace">
-  <div style="color:#e8e2d4;font-size:12px;margin-bottom:8px">Daily 8AM ET institutional brief. Early access.</div>
-  <div style="display:flex;gap:6px"><input id="jh-sub-e" type="email" placeholder="you@fund.com" style="flex:1;background:#0b0906;border:1px solid #2a2318;color:#e8e2d4;padding:6px 8px;font:inherit;font-size:12px;min-width:0">
-  <button id="jh-sub-go" style="background:#F0B429;border:0;color:#0b0906;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer">JOIN</button></div>
-  <div id="jh-sub-m" style="color:#8a836f;font-size:11px;margin-top:7px;min-height:14px"></div>
+<!-- INTEL TERMINAL BANNER -->
+<div style="background:linear-gradient(135deg,#0a0f1a,#0f1524);border-bottom:2px solid #00d68f;padding:11px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-family:'IBM Plex Sans',-apple-system,sans-serif">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <span style="font-size:10px;color:#00f4a8;background:rgba(0,214,143,0.12);padding:4px 9px;border-radius:12px;border:1px solid rgba(0,214,143,0.3);font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:0.5px">NEW</span>
+    <span style="font-size:13px;font-weight:600;color:#e8ecf4">⚡ Institutional Intelligence Terminal</span>
+    <span style="font-size:11px;color:#8b95ad">13-feed multi-cap pump detection · 1,809 stocks · auto-updating</span>
+  </div>
+  <a href="/intel/" style="font-size:11px;font-weight:600;color:#00f4a8;background:rgba(0,214,143,0.1);padding:7px 16px;border-radius:5px;border:1px solid rgba(0,214,143,0.4);text-decoration:none;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px">OPEN TERMINAL →</a>
 </div>
+<!-- /INTEL BANNER -->
+
+<!-- ────────── TOP NAV ────────── -->
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="dot"></span>JUSTHODL<span>·AI</span>
+  </a>
+  <nav class="fav-bar">
+    <a href="/screener/" class="fav-pill" style="--fc:#facc15">🔎 Screener</a>
+    <a href="/risk-regime.html" class="fav-pill" style="--fc:#60a5fa">⚖️ Risk Regime</a>
+    <a href="/inflection.html" class="fav-pill" style="--fc:#22d3ee">🌊 Liquidity</a>
+    <a href="/deal-scanner.html" class="fav-pill" style="--fc:#26ffaf">🤝 Deals</a>
+    <a href="/master-rank.html" class="fav-pill" style="--fc:#a78bfa">🏆 Master Rank</a>
+    <a href="/portfolio-manager.html" class="fav-pill" style="--fc:#ef4444">💼 Portfolio</a>
+    <a href="/brain.html" class="fav-pill" style="--fc:#facc15">🧠 Brain</a>
+  </nav>
+  <div data-auth-slot style="margin-left:auto"></div>
+  <div class="topbar-meta">
+    <span id="clock">—</span>
+    <span class="status-pill" id="sysStatus">OPERATIONAL</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ────────── RESEARCH SEARCH (any ticker → institutional 19-section memo) ────────── -->
+  <div class="research-search" style="background:linear-gradient(135deg, rgba(250,204,21,.05) 0%, rgba(34,211,238,.03) 100%); border:1px solid rgba(250,204,21,.25); border-radius:10px; padding:18px 22px; margin-bottom:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <div style="flex:0 0 auto; font-size:24px">🔬</div>
+    <div style="flex:1 1 240px; min-width:240px">
+      <div style="font-size:14px; font-weight:700; color:var(--accent); margin-bottom:3px; letter-spacing:.02em">Institutional Research Desk</div>
+      <div style="font-size:11.5px; color:var(--text-dim); line-height:1.5">19-section hedge-fund-grade research on any stock · bull/base/bear scenarios · peer comparison · earnings call sentiment · 20-year financials</div>
+    </div>
+    <form id="research-search-form" onsubmit="goResearch(event)" style="display:flex; gap:8px; flex:0 0 auto; align-items:center" autocomplete="off">
+      <input id="research-search-input" type="text" placeholder="AAPL, NVDA, JPM…"
+             style="background:var(--bg-base); border:1px solid var(--border); color:var(--text); padding:9px 14px; border-radius:6px; font-family:var(--font-mono); font-size:13px; width:170px; outline:none; text-transform:uppercase"
+             autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8">
+      <button type="submit"
+              style="background:var(--accent); color:#000; border:none; padding:9px 18px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; letter-spacing:.04em; transition:background 0.15s">
+        RESEARCH ↗
+      </button>
+    </form>
+    <div style="flex:1 0 100%; font-size:10.5px; color:var(--text-muted); padding-top:4px">
+      Quick picks (pre-cached, instant):
+      <a href="/why.html?ticker=AAPL" style="color:var(--cyan); margin-left:6px; text-decoration:none">AAPL</a>
+      <a href="/why.html?ticker=MSFT" style="color:var(--cyan); margin-left:8px; text-decoration:none">MSFT</a>
+      <a href="/why.html?ticker=NVDA" style="color:var(--cyan); margin-left:8px; text-decoration:none">NVDA</a>
+      <a href="/why.html?ticker=GOOGL" style="color:var(--cyan); margin-left:8px; text-decoration:none">GOOGL</a>
+      <a href="/why.html?ticker=JPM" style="color:var(--cyan); margin-left:8px; text-decoration:none">JPM</a>
+      <a href="/why.html?ticker=KO" style="color:var(--cyan); margin-left:8px; text-decoration:none">KO</a>
+      <a href="/why.html?ticker=TSLA" style="color:var(--cyan); margin-left:8px; text-decoration:none">TSLA</a>
+      <a href="/why.html?ticker=UBER" style="color:var(--cyan); margin-left:8px; text-decoration:none">UBER</a>
+      <a href="/why.html?ticker=AVGO" style="color:var(--cyan); margin-left:8px; text-decoration:none">AVGO</a>
+      <span style="margin-left:10px; color:var(--text-muted)">·</span>
+      <a href="/compare.html?tickers=AAPL,MSFT,GOOGL" style="color:var(--accent); margin-left:8px; text-decoration:none; font-weight:600">compare 2-3 tickers →</a>
+    </div>
+  </div>
+  <script>
+  function goResearch(ev){
+    if(ev) ev.preventDefault();
+    var inp = document.getElementById('research-search-input');
+    if(!inp) return false;
+    var t = (inp.value || '').trim().toUpperCase();
+    if(!t) return false;
+    if(!/^[A-Z0-9.\-]{1,8}$/.test(t)) {
+      inp.style.borderColor = '#ef4444';
+      inp.focus();
+      setTimeout(function(){ inp.style.borderColor = ''; }, 1500);
+      return false;
+    }
+    window.location.href = '/why.html?ticker=' + encodeURIComponent(t);
+    return false;
+  }
+  </script>
+
+  <!-- ────────── WATCHLIST (localStorage-backed, auto-refresh stale entries) ────────── -->
+  <div id="watchlist-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:18px">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+      <div style="display:flex; align-items:center; gap:8px">
+        <span style="font-size:16px">⭐</span>
+        <span style="font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.02em">My Watchlist</span>
+        <span id="wl-count" style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono)"></span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center">
+        <input id="wl-add-input" type="text" placeholder="add ticker"
+               style="background:var(--bg-base); border:1px solid var(--border); color:var(--text); padding:5px 9px; border-radius:5px; font-family:var(--font-mono); font-size:11.5px; width:90px; outline:none; text-transform:uppercase"
+               autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="8"
+               onkeydown="if(event.key==='Enter'){wlAddFromInput();event.preventDefault();}">
+        <button onclick="wlAddFromInput()" style="background:rgba(250,204,21,.15); color:var(--accent); border:1px solid var(--accent); padding:5px 11px; border-radius:5px; font-size:11px; cursor:pointer; font-weight:700">+ ADD</button>
+        <button onclick="wlRefreshAll()" title="Refresh all (force CDN re-fetch)" style="background:transparent; color:var(--text-dim); border:1px solid var(--border); padding:5px 9px; border-radius:5px; font-size:11px; cursor:pointer">↻</button>
+      </div>
+    </div>
+    <div id="wl-rows" style="display:flex; flex-direction:column; gap:5px"></div>
+    <div id="wl-empty" style="display:none; padding:18px; text-align:center; color:var(--text-muted); font-size:11.5px; line-height:1.6">
+      No tickers in your watchlist yet. Add one above, or
+      <a href="javascript:wlSeed()" style="color:var(--cyan)">load 5 sample stocks</a>.
+      <br><span style="font-size:10.5px">Tip: ratings + prices auto-refresh in the background (24h stale check).</span>
+    </div>
+  </div>
+  <style>
+  .wl-row {
+    display:grid; grid-template-columns: 64px 1fr 80px 60px 80px 24px;
+    gap:10px; align-items:center; padding:7px 10px;
+    background:var(--bg-base); border:1px solid var(--border-light);
+    border-radius:6px; font-size:12px; transition: background 0.15s;
+  }
+  .wl-row:hover { background:var(--bg-elev); }
+  .wl-row .tkr { font-family:var(--font-mono); font-weight:700; color:var(--accent); }
+  .wl-row .co  { color:var(--text-dim); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .wl-row .px  { font-family:var(--font-mono); font-size:12px; text-align:right; color:var(--text); }
+  .wl-row .chg { font-family:var(--font-mono); font-size:11px; text-align:right; }
+  .wl-row .chg.up   { color:#26ffaf; }
+  .wl-row .chg.down { color:#ef4444; }
+  .wl-row .verdict-pill {
+    font-family:var(--font-mono); font-size:10px; font-weight:700;
+    padding:3px 7px; border-radius:4px; text-align:center; letter-spacing:.04em;
+  }
+  .wl-row .verdict-pill.STRONG_BUY  { background:#26ffaf; color:#000; }
+  .wl-row .verdict-pill.BUY         { background:rgba(38,255,175,.18); color:#26ffaf; border:1px solid #26ffaf; }
+  .wl-row .verdict-pill.HOLD        { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid #f59e0b; }
+  .wl-row .verdict-pill.SELL        { background:rgba(239,68,68,.18); color:#ef4444; border:1px solid #ef4444; }
+  .wl-row .verdict-pill.STRONG_SELL { background:#ef4444; color:#000; }
+  .wl-row .verdict-pill.LOADING     { background:transparent; color:var(--text-muted); border:1px dashed var(--border-strong); }
+  .wl-row .verdict-pill.NA          { background:transparent; color:var(--text-muted); border:1px dashed var(--border-strong); }
+  .wl-row .wl-x {
+    cursor:pointer; color:var(--text-muted); text-align:center; font-size:14px;
+    opacity:0.5; transition: opacity 0.15s, color 0.15s;
+  }
+  .wl-row .wl-x:hover { opacity:1; color:#ef4444; }
+  .wl-row a { color:inherit; text-decoration:none; }
+  </style>
+  <script>
+  // ═══ Watchlist ═══════════════════════════════════════════════════
+  // localStorage-backed list. Each ticker's research is pulled from the
+  // CDN (no Lambda hit unless stale > 24h). Renders rating pill + price
+  // + change. Auto-refreshes stale entries on page load.
+  (function(){
+    const LS_KEY = 'justhodl_watchlist_v1';
+    const CDN = 'https://justhodl-data-proxy.raafouis.workers.dev/equity-research';
+    const STALE_MS = 24 * 3600 * 1000;
+
+    function wlGet(){
+      try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+      catch(e){ return []; }
+    }
+    function wlSet(arr){
+      try { localStorage.setItem(LS_KEY, JSON.stringify(arr.slice(0, 20))); }
+      catch(e){}
+    }
+
+    window.wlAdd = function(t){
+      t = (t||'').trim().toUpperCase();
+      if(!t) return;
+      if(!/^[A-Z0-9.\-]{1,8}$/.test(t)) return;
+      const list = wlGet();
+      if(list.includes(t)) return;
+      list.push(t);
+      wlSet(list);
+      wlRender();
+    };
+    window.wlRemove = function(t){
+      const list = wlGet().filter(x => x !== t);
+      wlSet(list);
+      wlRender();
+    };
+    window.wlAddFromInput = function(){
+      const inp = document.getElementById('wl-add-input');
+      if(!inp) return;
+      window.wlAdd(inp.value);
+      inp.value = '';
+      inp.focus();
+    };
+    window.wlSeed = function(){
+      ['AAPL','MSFT','NVDA','JPM','AMZN'].forEach(t => window.wlAdd(t));
+    };
+    window.wlRefreshAll = function(){
+      const list = wlGet();
+      list.forEach(t => fetchAndPaint(t, true));
+    };
+
+    async function fetchAndPaint(ticker, forceFresh){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      const url = CDN + '/' + encodeURIComponent(ticker) + '.json?v=' + Date.now();
+      try {
+        const r = await fetch(url, { cache: forceFresh ? 'no-cache' : 'default' });
+        if(!r.ok){
+          paintError(ticker, r.status === 404 ? 'no data' : 'fetch err');
+          return;
+        }
+        const doc = await r.json();
+        paintRow(ticker, doc);
+      } catch(e){
+        paintError(ticker, 'offline');
+      }
+    }
+
+    function paintError(ticker, msg){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      row.innerHTML = `
+        <a href="/why.html?ticker=${ticker}" class="tkr">${ticker}</a>
+        <a href="/why.html?ticker=${ticker}" class="co">— ${msg} —</a>
+        <span class="px">—</span>
+        <span class="chg">—</span>
+        <span class="verdict-pill NA">N/A</span>
+        <span class="wl-x" onclick="wlRemove('${ticker}')">×</span>`;
+    }
+
+    function paintRow(ticker, d){
+      const row = document.getElementById('wl-row-' + ticker);
+      if(!row) return;
+      const co = (d.company && d.company.name) || ticker;
+      const q  = d.quote || {};
+      const v  = d.verdict || {};
+      const rating = (v.rating || 'HOLD').replace(/\s+/g,'_');
+      const ratingDisplay = (v.rating || 'HOLD').replace(/_/g, ' ');
+      const px = q.price != null ? '$' + Number(q.price).toFixed(2) : '—';
+      const chg = q.change_pct;
+      let chgHtml = '—';
+      if(chg != null && !isNaN(chg)){
+        const cls = chg >= 0 ? 'up' : 'down';
+        const sign = chg >= 0 ? '+' : '';
+        chgHtml = `<span class="chg ${cls}">${sign}${Number(chg).toFixed(2)}%</span>`;
+      }
+      row.innerHTML = `
+        <a href="/why.html?ticker=${ticker}" class="tkr">${ticker}</a>
+        <a href="/why.html?ticker=${ticker}" class="co" title="${co}">${co}</a>
+        <span class="px">${px}</span>
+        ${chgHtml}
+        <a href="/why.html?ticker=${ticker}" class="verdict-pill ${rating}" title="${v.verdict_rationale ? v.verdict_rationale.slice(0,200) : ''}">${ratingDisplay}</a>
+        <span class="wl-x" onclick="wlRemove('${ticker}')" title="Remove">×</span>`;
+    }
+
+    window.wlRender = function(){
+      const list = wlGet();
+      const wrap = document.getElementById('wl-rows');
+      const empty = document.getElementById('wl-empty');
+      const count = document.getElementById('wl-count');
+      if(!wrap) return;
+      count.textContent = list.length ? `(${list.length})` : '';
+      if(list.length === 0){
+        wrap.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      wrap.innerHTML = list.map(t => `
+        <div class="wl-row" id="wl-row-${t}">
+          <a href="/why.html?ticker=${t}" class="tkr">${t}</a>
+          <span class="co">loading…</span>
+          <span class="px">—</span>
+          <span class="chg">—</span>
+          <span class="verdict-pill LOADING">…</span>
+          <span class="wl-x" onclick="wlRemove('${t}')">×</span>
+        </div>`).join('');
+      // Fetch all in parallel
+      list.forEach(t => fetchAndPaint(t, false));
+    };
+
+    document.addEventListener('DOMContentLoaded', window.wlRender);
+  })();
+  </script>
+
+  <!-- AI Master Synthesis (CIO desk consensus from all 30 desks) -->
+  <div id="ai-synthesis" style="margin-bottom:18px"></div>
+  <script>if(window.JHAISynth)JHAISynth.mount("ai-synthesis","desk-consensus");</script>
+
+  <!-- AI Front-Run Sniffer (institutional flow anomaly detector) -->
+  <div id="ai-frontrun" style="margin-bottom:18px"></div>
+  <script>if(window.JHAIFront)JHAIFront.mount("ai-frontrun","frontrun-sniffer");</script>
+
+  <!-- Front-Run 7-day History Chart -->
+  <div id="ai-frontrun-history" style="margin-bottom:18px"></div>
+  <script>if(window.JHAIFrontHist)JHAIFrontHist.mount("ai-frontrun-history","frontrun-sniffer-history");</script>
+
+  <!-- ⭐ Command Center: flagship tools -->
+  <div style="background:linear-gradient(180deg,#141b27,#10151e);border:1px solid #2b3a4f;border-radius:12px;padding:12px 14px;margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:.08em;color:#7c8ba0;margin-bottom:9px;font-weight:700">⭐ COMMAND CENTER · the brain</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px"><a href="/strategist.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#a78bfa1a;border:1px solid #a78bfa;border-radius:7px;padding:6px 11px;white-space:nowrap">🧠 STRATEGIST</a><a href="/regime-map.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#f5b3431a;border:1px solid #f5b343;border-radius:7px;padding:6px 11px;white-space:nowrap">🗺 RISK MAP</a><a href="/cycle-clock.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#46c8ff1a;border:1px solid #46c8ff;border-radius:7px;padding:6px 11px;white-space:nowrap">🕐 CYCLE CLOCK</a><a href="/sector-emergence.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#3fd68c1a;border:1px solid #3fd68c;border-radius:7px;padding:6px 11px;white-space:nowrap">🌱 SECTOR EMERGENCE</a><a href="/crypto-emergence.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#ff9f431a;border:1px solid #ff9f43;border-radius:7px;padding:6px 11px;white-space:nowrap">🪙 CRYPTO EMERGENCE</a><a href="/strategy-portfolio.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#3fd68c1a;border:1px solid #3fd68c;border-radius:7px;padding:6px 11px;white-space:nowrap">📈 PROVEN BOOK</a><a href="/paper-book.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#46c8ff1a;border:1px solid #46c8ff;border-radius:7px;padding:6px 11px;white-space:nowrap">💼 PAPER BOOK</a><a href="/edge-discovery.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#a78bfa1a;border:1px solid #a78bfa;border-radius:7px;padding:6px 11px;white-space:nowrap">🔬 EDGE DISCOVERY</a><a href="/interpretation-scorecard.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#f5b3431a;border:1px solid #f5b343;border-radius:7px;padding:6px 11px;white-space:nowrap">⚖️ INTERP SCORECARD</a><a href="/risk-regime.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#60a5fa1a;border:1px solid #60a5fa;border-radius:7px;padding:6px 11px;white-space:nowrap">⚖️ RORO</a><a href="/directory.html" style="color:#e8eef6;text-decoration:none;font:700 12px -apple-system,sans-serif;background:#3fd68c1a;border:1px solid #3fd68c;border-radius:7px;padding:6px 11px;white-space:nowrap">📁 ALL PAGES</a></div>
+  </div>
+  <!-- 🕐 Cycle & Liquidity Clock (macro position synthesizer) -->
+  <div id="cycle-clock-card" style="background:var(--bg-card,#121822);border:1px solid var(--border,#24303f);border-radius:12px;padding:13px 16px;margin-bottom:14px"></div>
+  <!-- Risk Map (cross-asset dispersion) -->
+  <div id="risk-map-card" style="background:var(--bg-card,#121822);border:1px solid var(--border,#24303f);border-radius:12px;padding:13px 16px;margin-bottom:14px"></div>
+  <!-- Emergence (early-innings bulls) -->
+  <div id="emergence-card" style="background:var(--bg-card,#121822);border:1px solid var(--border,#24303f);border-radius:12px;padding:13px 16px;margin-bottom:14px"></div>
+  <!-- ────────── TOP STRIP ────────── -->
+  <div class="strip" id="strip">
+    <div id="home-regime-ribbon" style="margin:0 0 8px"></div><div class="strip-cell" data-cell="regime">
+      <div class="strip-label">REGIME</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="ka">
+      <div class="strip-label">KA INDEX</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="liquidity">
+      <div class="strip-label">LIQUIDITY</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="crypto">
+      <div class="strip-label">CRYPTO</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="edge">
+      <div class="strip-label">EDGE</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="risk">
+      <div class="strip-label">DEPLOYED</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+  </div>
+
+  <!-- ────────── ALERT / PHASE BANNER ────────── -->
+  <div class="alert" id="alertBanner" style="display:none">
+    <div class="alert-headline" id="alertHead">—</div>
+    <div class="alert-body" id="alertBody">—</div>
+    <div class="alert-action" id="alertAction">—</div>
+  </div>
+
+  <!-- ────────── MAIN GRID ────────── -->
+  <div class="grid">
+
+    <div class="zone-head"><b style="--zc:#facc15">Today's read</b><i></i></div>
+    <!-- ★ Signal Board — Flagship cross-asset posture (20-engine synthesis) -->
+    <section class="card col-12" id="signalBoardCard" style="border-left:3px solid #facc15">
+      <div class="card-head">
+        <div>
+          <div class="card-title">SIGNAL BOARD <span style="color:#facc15;font-weight:600">★</span></div>
+          <div class="card-subtitle" id="sbSub">Cross-asset posture · 20-engine synthesis</div>
+        </div>
+        <a href="/signal-board.html" class="card-action">DETAIL →</a>
+      </div>
+      <div id="signalBoardBody" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1.6fr;gap:16px;align-items:center">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Composite Posture</div>
+          <div id="sbPosture" style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="sbSignal" style="font-size:12px;color:var(--muted);margin-top:2px">signal —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Engines Live</div>
+          <div id="sbLive" style="font-size:24px;font-weight:600;color:var(--text)">—</div>
+          <div id="sbStale" style="font-size:12px;color:var(--muted);margin-top:2px">— stale</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Last Update</div>
+          <div id="sbAsOf" style="font-size:13px;color:var(--text);line-height:1.4">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Movers</div>
+          <div id="sbMovers" style="font-size:12px;line-height:1.6;color:var(--text)">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PRE-PUMP RADAR hero card — the catalyst-aware pump-hunter desk ═══ -->
+    <section class="card col-12" id="prePumpHero" style="border-left:3px solid #ef4444;background:linear-gradient(135deg,rgba(239,68,68,.05),rgba(167,139,250,.04) 50%,rgba(0,212,255,.03))">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🔥 PRE-PUMP RADAR <span style="color:#ef4444;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(239,68,68,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
+          <div class="card-subtitle" id="ppSub">Catalyst-aware pump-hunter desk · loading…</div>
+        </div>
+        <a href="/pre-pump-radar.html" class="card-action" style="color:#ef4444">OPEN DESK →</a>
+      </div>
+      <div id="prePumpBody" style="display:grid;grid-template-columns:1.2fr 1.2fr 2fr 1.4fr;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Conviction</div>
+          <div id="ppConviction" style="font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="ppTemperature" style="font-size:12px;color:var(--muted);margin-top:2px">temp —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">A-grade Catalysts</div>
+          <div id="ppAGrade" style="font-size:28px;font-weight:600;color:#26ffaf">—</div>
+          <div id="ppPumpConf" style="font-size:12px;color:var(--muted);margin-top:2px">pump confirmed —</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Top Picks</div>
+          <div id="ppPicks" style="font-size:12px;line-height:1.65;color:var(--text)">loading…</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Catalyst Clusters</div>
+          <div id="ppClusters" style="font-size:12px;line-height:1.55;color:var(--text)">—</div>
+          <div id="ppEarly" style="font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Retail Sentiment hero -->
+    <section class="card col-12" id="retailHero" style="border-left:3px solid #22d3ee;background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.04) 60%,rgba(38,255,175,.03))">
+      <div class="card-head">
+        <div>
+          <div class="card-title">📱 RETAIL SENTIMENT <span style="color:#22d3ee;font-weight:600;font-size:11px;letter-spacing:1.5px;background:rgba(34,211,238,.15);padding:2px 8px;border-radius:3px;margin-left:6px">LIVE</span></div>
+          <div class="card-subtitle" id="rtSub">What retail is buying, talking about &amp; excited about — Reddit × StockTwits, paired with price · loading…</div>
+        </div>
+        <a href="/retail/" class="card-action" style="color:#22d3ee">OPEN DESK →</a>
+      </div>
+      <div id="retailBody" style="display:grid;grid-template-columns:1.1fr 1.3fr 3fr;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Regime</div>
+          <div id="rtRegime" style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)">—</div>
+          <div id="rtMentions" style="font-size:12px;color:var(--muted);margin-top:2px">— mentions</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">Buzz vs price</div>
+          <div id="rtMomDiv" style="font-size:13px;line-height:1.7;color:var(--text)">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🔥 Hottest right now</div>
+          <div id="rtHottest" style="font-size:12px;line-height:1.9;color:var(--text)">loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Today's Setups -->
+    <section class="card col-7">
+      <div class="card-head">
+        <div>
+          <div class="card-title">TODAY'S SETUPS</div>
+          <div class="card-subtitle" id="setupsSub">—</div>
+        </div>
+        <a href="/screener/" class="card-action">SCREENER →</a>
+      </div>
+      <div id="setupsBody">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div>
+        <div class="skel skel-line"></div><div class="skel skel-line short"></div>
+      </div>
+    </section>
+
+    <!-- Risk Recommendations -->
+    <section class="card col-5">
+      <div class="card-head">
+        <div>
+          <div class="card-title">RISK RECS</div>
+          <div class="card-subtitle" id="riskSub">—</div>
+        </div>
+        <a href="/risk.html" class="card-action">DETAIL →</a>
+      </div>
+      <div id="riskBody">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div>
+        <div class="skel skel-line short"></div>
+      </div>
+    </section>
+
+    <!-- Stress-Test Simulator -->
+    <section class="card col-5" style="border-left:3px solid #ef4444">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🌪 STRESS TEST</div>
+          <div class="card-subtitle">scenario engine · 10 presets · 5 macro factors</div>
+        </div>
+        <a href="/stress.html" class="card-action" style="color:#ef4444">RUN →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Apply a hypothetical shock — equity, vol, rates, dollar, commodity — and see
+        per-asset P&amp;L on a $100k portfolio with regime-amplified historical betas
+        from 1,142 days of Polygon data. Click presets like <em>GFC 2008</em>,
+        <em>COVID March 2020</em>, <em>Volmageddon</em>, or build custom shocks with sliders.
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <a href="/stress.html?preset=gfc_2008" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏚️ GFC 2008</a>
+        <a href="/stress.html?preset=covid_march_2020" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">😷 COVID</a>
+        <a href="/stress.html?preset=fed_pivot_dovish" style="background:rgba(34,197,94,0.12);color:#22c55e;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🕊️ Fed pivot</a>
+        <a href="/stress.html?preset=stagflation_1970s" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">💸 Stagflation</a>
+      </div>
+    </section>
+
+    <div class="zone-head"><b style="--zc:#22d3ee">Macro &amp; liquidity</b><i></i></div>
+    <!-- Treasury Auctions — full interpretation page -->
+    <section class="card col-6" style="border-left:3px solid #3b82f6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🏛️ TREASURY AUCTIONS</div>
+          <div class="card-subtitle">live tape · crisis comparison · BTC overlay · risk-on forward returns</div>
+        </div>
+        <a href="/auctions.html" class="card-action" style="color:#3b82f6">DEEP DIVE →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Comprehensive interpretation of every US Treasury auction. Score versus 6 codified crisis patterns
+        (calibrated to GFC 2008 + COVID 2020 anchors). Compare today's tape to <em>BTC tops</em>
+        (Dec 2017, Apr 2021, Nov 2021, Mar 2024, Dec 2024), <em>BTC bottoms</em> (Mar 2020, Nov 2022),
+        <em>bull/bear runs</em>, and <em>risk-on forward returns</em> by regime.
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <a href="/auctions.html#tape" style="background:rgba(59,130,246,0.12);color:#3b82f6;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">📋 Live tape</a>
+        <a href="/auctions.html#btc" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">₿ BTC overlay</a>
+        <a href="/auctions.html#crisis" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏚️ Crisis</a>
+        <a href="/auction-crisis.html" style="background:rgba(34,197,94,0.12);color:#22c55e;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🚨 Detector</a>
+      </div>
+    </section>
+
+    <!-- Bonds & Yield Curve — full interpretation page -->
+    <section class="card col-6" style="border-left:3px solid #06b6d4">
+      <div class="card-head">
+        <div>
+          <div class="card-title">📈 BONDS &amp; YIELD CURVE</div>
+          <div class="card-subtitle">live yields · curve shape · bond regime · cross-asset playbook</div>
+        </div>
+        <a href="/bonds.html" class="card-action" style="color:#06b6d4">DETAIL →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Live US Treasury curve, real rates, breakevens, and bond-regime detector. Each regime tells you
+        what to do with risk assets — when bond regime says <em>flight-to-quality</em>, equities suffer;
+        when <em>convexity unwind</em>, vol explodes. Cross-asset playbook for each regime state.
+      </div>
+    </section>
+
+    <!-- LCE — Liquidity & Credit Engine -->
+    <section class="card col-6" style="border-left:3px solid #10b981">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🟢 LIQUIDITY &amp; CREDIT ENGINE</div>
+          <div class="card-subtitle" id="lceSub">51 FRED series · 5 categories · auto-updates every 6h</div>
+        </div>
+        <a href="/lce.html" class="card-action" style="color:#10b981">EXPLORE →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Every Khalid-spec liquidity and credit signal in one place. Fed balance sheet (H.4.1),
+        primary credit + central-bank swap lines, ICE BofA OAS by quality (CCC/BB/B + AAA-BBB + Euro + EM),
+        full HQM corporate curve, and the <em>Senior Loan Officer Survey</em> — bank tightening on C&amp;I,
+        CRE (3 sub-types), credit cards, auto, mortgages. Per-series WoW · MoM · QoQ · YoY · z(1y) · z(5y)
+        with regime classification feeding back into KI, risk dashboard, morning brief, AI chat, and allocator.
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <a href="/lce.html#cat-balance_sheet" style="background:rgba(16,185,129,0.12);color:#10b981;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏦 Fed Balance</a>
+        <a href="/lce.html#cat-liquidity_facilities" style="background:rgba(6,182,212,0.12);color:#06b6d4;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">💧 Facilities</a>
+        <a href="/lce.html#cat-credit_spreads" style="background:rgba(167,139,250,0.12);color:#a78bfa;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">📉 Spreads</a>
+        <a href="/lce.html#cat-corporate_yields" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏢 HQM</a>
+        <a href="/lce.html#cat-lending_standards" style="background:rgba(239,68,68,0.12);color:#ef4444;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🏦 SLOOS</a>
+      </div>
+    </section>
+
+    <!-- GLOBAL BUSINESS CYCLE — OECD CLI world map -->
+    <section class="card col-6" style="border-left:3px solid #8b5cf6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">🌍 GLOBAL BUSINESS CYCLE</div>
+          <div class="card-subtitle">OECD CLI · 35 economies · world map · 4-phase classification</div>
+        </div>
+        <a href="/global-cycle.html" class="card-action" style="color:#8b5cf6">MAP →</a>
+      </div>
+      <div style="padding:10px 0;font-size:12px;color:var(--text-dim,#888);line-height:1.55">
+        Color-coded world map showing every major economy's current business cycle phase
+        (<span style="color:#22c55e">Expansion</span>, <span style="color:#f59e0b">At Risk</span>,
+        <span style="color:#ef4444">Recession</span>, <span style="color:#3b82f6">Recovery</span>)
+        using OECD Composite Leading Indicators from FRED across 35 countries. GDP-weighted phase
+        breadth drives a global regime classifier that feeds the Khalid Index, risk dashboard recession
+        subscore, allocator (country tilts on EEM/EFA/EWG/FXI), morning brief, and AI chat.
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <a href="/global-cycle.html#world-map" style="background:rgba(139,92,246,0.12);color:#8b5cf6;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🗺️ World Map</a>
+        <a href="/global-cycle.html#regionGrid" style="background:rgba(34,197,94,0.12);color:#22c55e;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">🌐 By Region</a>
+        <a href="/global-cycle.html#ladder" style="background:rgba(245,158,11,0.12);color:#f59e0b;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">⚖️ Cross-Asset</a>
+        <a href="https://www.economy.com/economicview/tracker/5/Global-Business-Cycle-Map" target="_blank" rel="noopener" style="background:rgba(148,163,184,0.12);color:#94a3b8;padding:4px 10px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600">↗ Moody's</a>
+      </div>
+    </section>
+
+    <!-- KA Index breakdown -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">KA INDEX</div>
+          <div class="card-subtitle" id="kaSub">—</div>
+        </div>
+        <a href="/intelligence.html" class="card-action">REPORT →</a>
+      </div>
+      <div id="kaBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Liquidity Stack -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">LIQUIDITY STACK</div>
+          <div class="card-subtitle" id="liqSub">—</div>
+        </div>
+        <a href="/liquidity.html" class="card-action">DETAIL →</a>
+      </div>
+      <div id="liqBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <div class="zone-head"><b style="--zc:#a78bfa">Cross-asset &amp; positioning</b><i></i></div>
+    <!-- Cross-Asset Divergences -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">CROSS-ASSET DIVERGENCES</div>
+          <div class="card-subtitle" id="divSub">—</div>
+        </div>
+        <a href="/desk.html" class="card-action">DESK →</a>
+      </div>
+      <div id="divBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Options Flow Pulse -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">OPTIONS FLOW</div>
+          <div class="card-subtitle" id="flowSub">—</div>
+        </div>
+        <a href="/flow.html" class="card-action">DETAIL →</a>
+      </div>
+      <div id="flowBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Crypto Regime -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">CRYPTO REGIME</div>
+          <div class="card-subtitle" id="cryptoSub">—</div>
+        </div>
+        <a href="/crypto/" class="card-action">DETAIL →</a>
+      </div>
+      <div id="cryptoBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- COT Extremes -->
+    <section class="card col-6">
+      <div class="card-head">
+        <div>
+          <div class="card-title">COT EXTREMES</div>
+          <div class="card-subtitle" id="cotSub">—</div>
+        </div>
+        <a href="/positioning/" class="card-action">DETAIL →</a>
+      </div>
+      <div id="cotBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <div class="zone-head"><b style="--zc:#26ffaf">Your portfolio</b><i></i></div>
+    <!-- PnL Tracker -->
+    <section class="card col-12">
+      <div class="card-head">
+        <div>
+          <div class="card-title">HYPOTHETICAL PNL — KA STRATEGY vs BUY+HOLD</div>
+          <div class="card-subtitle" id="pnlSub">—</div>
+        </div>
+        <a href="/desk.html" class="card-action">DESK →</a>
+      </div>
+      <div id="pnlBody">
+        <div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="card col-12">
+      <div class="card-head">
+        <div>
+          <div class="card-title">QUICK ACTIONS</div>
+          <div class="card-subtitle">Real working surfaces</div>
+        </div>
+      </div>
+
+      <div class="zone-head"><b style="--zc:#60a5fa">Deep intelligence</b><i></i></div>
+      <!-- ────────── INTELLIGENCE PIPELINE (NEW BUILD STACK) ────────── -->
+      <div style="margin-bottom:24px;padding:14px 16px;background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(34,211,238,.04));border:1px solid rgba(167,139,250,.18);border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="card-title" style="font-size:13px;letter-spacing:1.5px;color:#facc15">🧠 INTELLIGENCE PIPELINE</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px">8-factor α → confluence → regime → debate → sizing → journal</div>
+        </div>
+        <div class="card-subtitle" style="margin-bottom:14px;color:var(--fg-3);font-size:11px;line-height:1.5">
+          The 6 pages of the new alpha → portfolio decision stack. α picks → adversarial debate → Kelly-sized into your DDB book → catalyst countdown → outcomes tracked in a real ledger.
+        </div>
+        <div class="tools">
+          <a class="tool" href="/alpha/" style="border-left:3px solid #facc15">
+            <div class="tool-icon" style="color:#facc15">α</div>
+            <div class="tool-name">ALPHA SCOREBOARD</div>
+            <div class="tool-desc">v1.1.0 · 8-factor composite (Quality · Growth · Momentum · Smart Money · Sentiment · Analysts · Insiders · Options Flow) · 503 stocks tiered S/A/B/C/D · hourly</div>
+          </a>
+          <a class="tool" href="/debate/" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">⚔</div>
+            <div class="tool-name">DEBATE ENGINE</div>
+            <div class="tool-desc">5 Claude personas in parallel: 💎 Value · 🚀 Growth · 🌐 Macro · 📊 Quant · 🐻 Short. Bear case FORCED into every analysis. Daily 12:15 UTC.</div>
+          </a>
+          <a class="tool" href="/trades/" style="border-left:3px solid #22c55e">
+            <div class="tool-icon" style="color:#22c55e">📓</div>
+            <div class="tool-name">TRADE JOURNAL</div>
+            <div class="tool-desc">Auto-logs every TIER S/A confluence, regime pick, debate verdict. Evaluates at 1d/7d/30d/90d/180d. Real win rate per strategy after 90 days.</div>
+          </a>
+          <a class="tool" href="/calibration/" style="border-left:3px solid #facc15">
+            <div class="tool-icon" style="color:#facc15">📐</div>
+            <div class="tool-name">ALPHA CALIBRATION</div>
+            <div class="tool-desc">Weekly self-improvement loop · Information Coefficients + OLS factor attribution + Bayesian shrinkage with guardrails. Champion/challenger A/B. Auto-tunes alpha weights from real outcomes.</div>
+          </a>
+          <a class="tool" href="/portfolio/" style="border-left:3px solid #06b6d4">
+            <div class="tool-icon" style="color:#06b6d4">📊</div>
+            <div class="tool-name">PORTFOLIO TRACKER</div>
+            <div class="tool-desc">DDB-backed real positions + watchlist · enriched with alpha/confluence/regime per name · P&amp;L · sector mix · hourly snapshots</div>
+          </a>
+          <a class="tool" href="/sizing/" style="border-left:3px solid #fbbf24">
+            <div class="tool-icon" style="color:#fbbf24">📐</div>
+            <div class="tool-name">KELLY SIZING</div>
+            <div class="tool-desc">Regime-adjusted quarter-Kelly · ADD/TRIM/HOLD per position · entry candidates for unowned TIER S/A · drawdown circuit breaker</div>
+          </a>
+          <a class="tool" href="/catalyst/" style="border-left:3px solid #fb923c">
+            <div class="tool-icon" style="color:#fb923c">🗓</div>
+            <div class="tool-name">CATALYST CALENDAR</div>
+            <div class="tool-desc">FOMC · Treasury auctions · earnings · witching · rebalance. Position-aware T-3 / T-1 / T-0 Telegram alerts for your book.</div>
+          </a>
+          <a class="tool" href="/anomaly/" style="border-left:3px solid #ef4444">
+            <div class="tool-icon" style="color:#ef4444">⚠</div>
+            <div class="tool-name">ANOMALY &amp; BLACK-SWAN</div>
+            <div class="tool-desc">v3.0 · 41 institutional detectors · 12 categories · Macro Stress Score 0-100. NFCI/ANFCI/STLFSI4 financial conditions + real yields + recession nowcasts + net liquidity composite. Crisis cluster alerts.</div>
+          </a>
+          <a class="tool" href="/rotation/" style="border-left:3px solid #22d3ee">
+            <div class="tool-icon" style="color:#22d3ee">🔄</div>
+            <div class="tool-name">SECTOR ROTATION</div>
+            <div class="tool-desc">v1.0 · 11 SPDR sectors + 14 cross-asset ratios · 9 institutional signals composite-scored (RS+acceleration · CMF · OBV slope · MFI · MA position · volume surge · regime fit · sub-sector confirmation). Early-rotation alerts.</div>
+          </a>
+          <a class="tool" href="/gex/" style="border-left:3px solid #fbbf24">
+            <div class="tool-icon" style="color:#fbbf24">📐</div>
+            <div class="tool-name">DEALER GEX & POSITIONING</div>
+            <div class="tool-desc">SpotGamma-grade. Models market-maker options inventory across SPY/QQQ/IWM + 7 names. Zero-gamma flip levels · vanna/charm exposure · max pain · IV skew · 0DTE concentration · squeeze candidates. Regime classification drives trading bias.</div>
+          </a>
+          <a class="tool" href="/short/" style="border-left:3px solid #dc2626">
+            <div class="tool-icon" style="color:#dc2626">🩸</div>
+            <div class="tool-name">FINRA SHORT VOLUME</div>
+            <div class="tool-desc">Daily institutional short-selling intelligence. Per-ticker SVR, z-score vs 60d distribution, days-to-cover, climax detection. S&P 500 universe · 90-day rolling history · price-strength overlay · squeeze setup scoring. Sourced from FINRA Reg SHO daily file.</div>
+          </a>
+        </div>
+      </div>
+      <!-- ────────── /INTELLIGENCE PIPELINE ────────── -->
+
+      <!-- ────────── PERSONAL WEALTH TRIANGLE ────────── -->
+      <div style="margin-bottom:24px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(16,185,129,.04));border:1px solid rgba(245,158,11,.20);border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="card-title" style="font-size:13px;letter-spacing:1.5px;color:#f59e0b">💰 PERSONAL WEALTH</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px">where to allocate → am I on track → what I keep after tax</div>
+        </div>
+        <div class="card-subtitle" style="margin-bottom:14px;color:var(--fg-3);font-size:11px;line-height:1.5">
+          The three-engine personal wealth stack. Forward returns across every asset retail can own → 10,000-sim Monte Carlo to retirement → after-tax optimization with tax-loss harvesting and asset location.
+        </div>
+        <div class="tools">
+          <a class="tool" href="/compass.html" style="border-left:3px solid #f59e0b">
+            <div class="tool-icon" style="color:#f59e0b">🧭</div>
+            <div class="tool-name">CAPITAL COMPASS</div>
+            <div class="tool-desc">Where does $10,000 pay you the most over 10 years? Forward expected returns across 15 asset classes measured against 30 years of history. Bogle/Damodaran methodology · weekly.</div>
+          </a>
+          <a class="tool" href="/wealth-plan.html" style="border-left:3px solid #10b981">
+            <div class="tool-icon" style="color:#10b981">📈</div>
+            <div class="tool-name">WEALTH PLAN</div>
+            <div class="tool-desc">10,000 Monte-Carlo simulations from today through age 95. Will you make it? Lifecycle glide path · sequence-of-returns risk · required-savings solver. Live forward returns.</div>
+          </a>
+          <a class="tool" href="/tax-plan.html" style="border-left:3px solid #fbbf24">
+            <div class="tool-icon" style="color:#fbbf24">🧾</div>
+            <div class="tool-name">TAX PLAN</div>
+            <div class="tool-desc">After-tax wealth: tax-loss harvesting candidates with substitute ETFs · asset location optimizer (taxable/IRA/Roth) · after-tax forward returns · 2026 federal+state+NIIT.</div>
+          </a>
+        </div>
+      </div>
+      <!-- ────────── /PERSONAL WEALTH TRIANGLE ────────── -->
+
+      <!-- ────────── MORE INTELLIGENCE ────────── -->
+      <div style="margin-bottom:24px;padding:14px 16px;background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.03));border:1px solid rgba(34,211,238,.16);border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="card-title" style="font-size:13px;letter-spacing:1.5px;color:#22d3ee">🔎 MORE INTELLIGENCE</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px">recently shipped engines</div>
+        </div>
+        <div class="tools">
+          <a class="tool" href="/crypto-opportunities.html" style="border-left:3px solid #f7931a">
+            <div class="tool-icon" style="color:#f7931a">₿</div>
+            <div class="tool-name">CRYPTO OPPORTUNITIES</div>
+            <div class="tool-desc">Retail crypto trade tickets — entry/stop/target with conviction scoring across the liquid crypto universe.</div>
+          </a>
+          <a class="tool" href="/carry-surface.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">〰</div>
+            <div class="tool-name">CARRY SURFACE</div>
+            <div class="tool-desc">Cross-asset carry term structure — where you're paid to wait vs where carry is negative across FX, rates, commodities, vol.</div>
+          </a>
+          <a class="tool" href="/eurodollar.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">💵</div>
+            <div class="tool-name">EURODOLLAR STRESS</div>
+            <div class="tool-desc">Offshore dollar-funding stress composite — 8 FRED signals (FSI, HY/IG OAS, VIX, broad dollar, T-bills, 10Y vol, SOFR–Fed Funds) scored 0-100 hourly. The global dollar-squeeze early warning.</div>
+          </a>
+          <a class="tool" href="/kill-theses.html" style="border-left:3px solid #ef4444">
+            <div class="tool-icon" style="color:#ef4444">☠</div>
+            <div class="tool-name">KILL THESES</div>
+            <div class="tool-desc">Adversarial pre-mortem — the strongest bear case forced against every position before you commit capital.</div>
+          </a>
+          <a class="tool" href="/signal-halflife.html" style="border-left:3px solid #fbbf24">
+            <div class="tool-icon" style="color:#fbbf24">⏳</div>
+            <div class="tool-name">SIGNAL HALF-LIFE</div>
+            <div class="tool-desc">How fast each signal decays — the alpha shelf-life per engine so you act before edge evaporates.</div>
+          </a>
+          <a class="tool" href="/calls.html" style="border-left:3px solid #22c55e">
+            <div class="tool-icon" style="color:#22c55e">📞</div>
+            <div class="tool-name">CALLS</div>
+            <div class="tool-desc">Conviction calls ledger — directional ideas with entry context and outcome tracking.</div>
+          </a>
+          <a class="tool" href="/today.html" style="border-left:3px solid #06b6d4">
+            <div class="tool-icon" style="color:#06b6d4">☀</div>
+            <div class="tool-name">TODAY</div>
+            <div class="tool-desc">The single-screen daily briefing — what changed overnight and what matters for your book today.</div>
+          </a>
+          <a class="tool" href="/read.html" style="border-left:3px solid #94a3b8">
+            <div class="tool-icon" style="color:#94a3b8">📖</div>
+            <div class="tool-name">THE READ</div>
+            <div class="tool-desc">The narrative synthesis — the platform's current read on the market in plain language.</div>
+          </a>
+          <a class="tool" href="/census.html" style="border-left:3px solid #60a5fa">
+            <div class="tool-icon" style="color:#60a5fa">🏛</div>
+            <div class="tool-name">CENSUS / FED LIQUIDITY</div>
+            <div class="tool-desc">Census economic series + Fed liquidity dashboard — the macro plumbing layer.</div>
+          </a>
+          <a class="tool" href="/observability.html" style="border-left:3px solid #34d399">
+            <div class="tool-icon" style="color:#34d399">📡</div>
+            <div class="tool-name">FLEET OBSERVABILITY</div>
+            <div class="tool-desc">System health across all engines — freshness, error rates, schedule status for the full Lambda fleet.</div>
+          </a>
+          <a class="tool" href="/downloads.html" style="border-left:3px solid #94a3b8">
+            <div class="tool-icon" style="color:#94a3b8">⬇</div>
+            <div class="tool-name">DOWNLOADS</div>
+            <div class="tool-desc">Export data, reports, and snapshots from the terminal.</div>
+          </a>
+          <a class="tool" href="/notifications.html" style="border-left:3px solid #fbbf24">
+            <div class="tool-icon" style="color:#fbbf24">🔔</div>
+            <div class="tool-name">NOTIFICATIONS</div>
+            <div class="tool-desc">Push notification settings and alert history.</div>
+          </a>
+        </div>
+      </div>
+      <!-- ────────── /MORE INTELLIGENCE ────────── -->
+
+      <div class="tools">
+        <a class="tool" href="/stock/?symbol=AAPL">
+          <div class="tool-icon">$</div>
+          <div class="tool-name">STOCK ANALYZER</div>
+          <div class="tool-desc">Charts, fundamentals, AI research, financials, earnings — for any S&P 500 ticker</div>
+        </a>
+        <a class="tool" href="/screener/">
+          <div class="tool-icon">▥</div>
+          <div class="tool-name">S&P 500 SCREENER</div>
+          <div class="tool-desc">503 stocks · 30+ metrics · Piotroski · Altman Z · Golden/Death cross</div>
+        </a>
+        <a class="tool" href="/chart-patterns.html">
+          <div class="tool-icon">📈</div>
+          <div class="tool-name">CHART PATTERN SCANNER</div>
+          <div class="tool-desc">Daily S&P 500 scan · 200-DMA cross-ups/downs · double tops &amp; double bottoms · CONFIRMED/FORMING · with charts</div>
+        </a>
+        <a class="tool" href="/intelligence.html">
+          <div class="tool-icon">⚯</div>
+          <div class="tool-name">INTELLIGENCE</div>
+          <div class="tool-desc">KA Index regime detection · pre-crisis warnings · risk metrics</div>
+        </a>
+        <a class="tool" href="/edge.html">
+          <div class="tool-icon">∮</div>
+          <div class="tool-name">EDGE ENGINE</div>
+          <div class="tool-desc">Options flow · fund sentiment · earnings momentum · liquidity composite</div>
+        </a>
+        <a class="tool" href="/liquidity.html">
+          <div class="tool-icon">≡</div>
+          <div class="tool-name">FED LIQUIDITY</div>
+          <div class="tool-desc">Net liquidity · TGA · RRP · Fed balance sheet · SPY signal</div>
+        </a>
+        <a class="tool" href="/dollar.html">
+          <div class="tool-icon">$</div>
+          <div class="tool-name">DOLLAR RADAR</div>
+          <div class="tool-desc">Pump/dump canary composite · FRED trade-weighted dollar family · DXY double tops/bottoms · net-liquidity driven</div>
+        </a>
+        <a class="tool" href="/flow.html">
+          <div class="tool-icon">≋</div>
+          <div class="tool-name">OPTIONS FLOW</div>
+          <div class="tool-desc">VIX · put/call · gamma exposure · ETF flows · sentiment composite</div>
+        </a>
+        <a class="tool" href="/crypto/">
+          <div class="tool-icon">₿</div>
+          <div class="tool-name">CRYPTO INTEL</div>
+          <div class="tool-desc">TVL · stablecoins · BTC dominance · funding · DEX volume · fear/greed</div>
+        </a>
+        <a class="tool" href="/positioning/">
+          <div class="tool-icon">⊞</div>
+          <div class="tool-name">COT POSITIONING</div>
+          <div class="tool-desc">29 contracts · TFF + Disagg + Legacy · 7 categories · weekly auto-refresh</div>
+        </a>
+        <a class="tool" href="/desk.html">
+          <div class="tool-icon">▤</div>
+          <div class="tool-name">DESK CONSOLE</div>
+          <div class="tool-desc">All Phase outputs in one view · regime · divergences · COT · risk · setups</div>
+        </a>
+        <a class="tool" href="/valuations.html">
+          <div class="tool-icon">∝</div>
+          <div class="tool-name">VALUATIONS</div>
+          <div class="tool-desc">CAPE · Buffett indicator · 18 cross-asset valuation metrics</div>
+        </a>
+        <a class="tool" href="/risk.html">
+          <div class="tool-icon">⚠</div>
+          <div class="tool-name">RISK SIZER</div>
+          <div class="tool-desc">Kelly sizing · sector clustering · drawdown circuit breakers</div>
+        </a>
+        <a class="tool" href="/volatility.html">
+          <div class="tool-icon">⌇</div>
+          <div class="tool-name">VOLATILITY MONITOR</div>
+          <div class="tool-desc">VIX · MOVE · SKEW · cross-asset vol regime · divergence detection · 5min refresh</div>
+        </a>
+        <a class="tool" href="/ath.html">
+          <div class="tool-icon">↗</div>
+          <div class="tool-name">ATH TRACKER</div>
+          <div class="tool-desc">All-time-high distance · monthly bars back to 1990</div>
+        </a>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">BACKTEST &amp; PERFORMANCE</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Track record · per-signal P&amp;L attribution · calibration weights</div>
+        <div class="tools">
+          <a class="tool" href="/backtest.html">
+            <div class="tool-icon">∑</div>
+            <div class="tool-name">BACKTEST</div>
+            <div class="tool-desc">v2.0.1 honest backtest · arithmetic Sharpe with bootstrap CI · per-signal contribution · v1.1/v1.2 comparison</div>
+          </a>
+          <a class="tool" href="/performance.html">
+            <div class="tool-icon">⌥</div>
+            <div class="tool-name">PERFORMANCE</div>
+            <div class="tool-desc">Paper portfolio P&amp;L vs SPY buy-and-hold · open positions · signal-source breakdown · win rate</div>
+          </a>
+          <a class="tool" href="/weights.html">
+            <div class="tool-icon">⊞</div>
+            <div class="tool-name">CALIBRATION WEIGHTS</div>
+            <div class="tool-desc">How signal trust evolves week-over-week · weight trajectories · accuracy snapshots from SSM</div>
+          </a>
+          <a class="tool" href="/horizons.html">
+            <div class="tool-icon">⫾</div>
+            <div class="tool-name">HORIZONS</div>
+            <div class="tool-desc">Per-horizon signal accuracy (day_1/3/7/14/30/90) · horizon-aware weights · best window per signal</div>
+          </a>
+          <a class="tool" href="/sizing.html">
+            <div class="tool-icon">⊿</div>
+            <div class="tool-name">POSITION SIZING</div>
+            <div class="tool-desc">Risk parity · Kelly fraction · volatility targeting · concentration caps</div>
+          </a>
+          <a class="tool" href="/signals.html">
+            <div class="tool-icon">⚡</div>
+            <div class="tool-name">SIGNALS</div>
+            <div class="tool-desc">Live signal ledger · current calibration weights · latest fires · methodology</div>
+          </a>
+          <a class="tool" href="/brief.html">
+            <div class="tool-icon">📰</div>
+            <div class="tool-name">MORNING BRIEF</div>
+            <div class="tool-desc">8AM ET daily AI brief · macro outlook · regime call · horizon-aware action items</div>
+          </a>
+          <a class="tool" href="/macro-data.html">
+            <div class="tool-icon">⌬</div>
+            <div class="tool-name">MACRO NOWCAST</div>
+            <div class="tool-desc">Composite z-score nowcast · 7 FRED series · regime classification · refreshed every 6h</div>
+          </a>
+          <a class="tool" href="/audit.html">
+            <div class="tool-icon">⌗</div>
+            <div class="tool-name">AUDIT TRAIL</div>
+            <div class="tool-desc">Time-series snapshot index · every feed every 5min in DynamoDB · 'what did the system show at &lt;ts&gt;' query</div>
+          </a>
+          <a class="tool" href="/event-study.html">
+            <div class="tool-icon">⌚</div>
+            <div class="tool-name">EVENT STUDY</div>
+            <div class="tool-desc">SPY forward returns around 8 algorithmically-detected macro events · Fed cuts/hikes · curve · VIX · credit · daily refresh</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">DATA SOURCES &amp; ANALYTICS</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Specialized tools and raw data terminals</div>
+        <div class="tools">
+          <a class="tool" href="/charts.html">
+            <div class="tool-icon">⌬</div>
+            <div class="tool-name">CHARTS TERMINAL</div>
+            <div class="tool-desc">Bloomberg-style charting · 200+ series · multi-timeframe technical analysis</div>
+          </a>
+          <a class="tool" href="/auctions.html">
+            <div class="tool-icon">⊟</div>
+            <div class="tool-name">TREASURY AUCTIONS</div>
+            <div class="tool-desc">UST auction calendar · bid-to-cover · indirect bidder share · primary dealer flow</div>
+          </a>
+          <a class="tool" href="/dex.html">
+            <div class="tool-icon">⫸</div>
+            <div class="tool-name">DEX TERMINAL</div>
+            <div class="tool-desc">DEX volume · token flows · pool TVL · cross-chain liquidity scanner</div>
+          </a>
+          <a class="tool" href="/carry.html">
+            <div class="tool-icon">⥂</div>
+            <div class="tool-name">CARRY SIGNALS</div>
+            <div class="tool-desc">FX carry trade · cross-currency basis · funding spreads · yield differentials</div>
+          </a>
+          <a class="tool" href="/ml-predictions.html">
+            <div class="tool-icon">⌖</div>
+            <div class="tool-name">ML PREDICTIONS</div>
+            <div class="tool-desc">Machine learning forecasts · 4h refresh · regime classification · confidence bands</div>
+          </a>
+          <a class="tool" href="/desk-v2.html">
+            <div class="tool-icon">▤</div>
+            <div class="tool-name">DESK · V2</div>
+            <div class="tool-desc">Operator console v2 — design language source · phase outputs · setups</div>
+          </a>
+          <a class="tool" href="/reports.html">
+            <div class="tool-icon">▦</div>
+            <div class="tool-name">REPORTS</div>
+            <div class="tool-desc">Daily/weekly briefs · scorecards · calibration history · Telegram log</div>
+          </a>
+          <a class="tool" href="/system.html">
+            <div class="tool-icon">⚭</div>
+            <div class="tool-name">SYSTEM HEALTH</div>
+            <div class="tool-desc">78-component health monitor · Lambda invocations · S3 freshness · live alerts</div>
+          </a>
+          <a class="tool" href="/alerts.html">
+            <div class="tool-icon">⚡</div>
+            <div class="tool-name">ALERTS</div>
+            <div class="tool-desc">Last 100 fired alerts · Telegram + webhook delivery audit · severity distribution · multi-channel routing</div>
+          </a>
+          <a class="tool" href="/audit.html">
+            <div class="tool-icon">⏱</div>
+            <div class="tool-name">AUDIT TRAIL</div>
+            <div class="tool-desc">Time-series snapshots of every feed · DynamoDB · 365d TTL · "what did the system show at &lt;timestamp&gt;?"</div>
+          </a>
+          <a class="tool" href="/errors.html">
+            <div class="tool-icon">⚠</div>
+            <div class="tool-name">ERRORS</div>
+            <div class="tool-desc">Self-hosted error tracking · 11 critical Lambdas instrumented · structured JSON · traceback + log stream</div>
+          </a>
+          <a class="tool" href="/investor.html">
+            <div class="tool-icon">⚐</div>
+            <div class="tool-name">LEGENDARY INVESTORS</div>
+            <div class="tool-desc">6 investor personas (Buffett · Munger · Burry · Druckenmiller · Lynch · Wood) analyze any S&amp;P 500 ticker</div>
+          </a>
+          <a class="tool" href="/dxy.html">
+            <div class="tool-icon">$</div>
+            <div class="tool-name">DOLLAR STRENGTH</div>
+            <div class="tool-desc">DXY broad · major (G10) · OITP · Fed nominal trade-weighted indices · 5min refresh</div>
+          </a>
+          <a class="tool" href="/forensic.html">
+            <div class="tool-icon">⚐</div>
+            <div class="tool-name">FORENSIC SCREEN</div>
+            <div class="tool-desc">Beneish M-Score · Sloan accruals · WC divergence · goodwill bloat — earnings quality red flags across SP500, 12h refresh</div>
+          </a>
+          <a class="tool" href="/bonds.html">
+            <div class="tool-icon">⊟</div>
+            <div class="tool-name">BOND INDICES</div>
+            <div class="tool-desc">ICE BofA US Corp Master · High Yield · Treasury benchmarks · 1D/1W/1M/3M changes</div>
+          </a>
+          <a class="tool" href="/macro-data.html">
+            <div class="tool-icon">⌗</div>
+            <div class="tool-name">MACRO DATA</div>
+            <div class="tool-desc">Global manufacturing PMI · banking sector loans · BEA GDP &amp; national accounts</div>
+          </a>
+          <a class="tool" href="/sentiment.html">
+            <div class="tool-icon">⊕</div>
+            <div class="tool-name">SENTIMENT &amp; TRENDS</div>
+            <div class="tool-desc">News sentiment · Google search trends · crypto + finance behavioral signals</div>
+          </a>
+          <a class="tool" href="/repo.html">
+            <div class="tool-icon">⚯</div>
+            <div class="tool-name">REPO &amp; PRE-CRISIS</div>
+            <div class="tool-desc">57-metric plumbing health · phase classification · pre-crisis warnings · 30min refresh</div>
+          </a>
+          <a class="tool" href="/crisis.html">
+            <div class="tool-icon">⚠</div>
+            <div class="tool-name">CRISIS &amp; PLUMBING</div>
+            <div class="tool-desc">Official Fed stress indices · MMF flows · cross-currency basis · yield curve · 6h refresh</div>
+          </a>
+          <a class="tool" href="/regime.html">
+            <div class="tool-icon">⏣</div>
+            <div class="tool-name">REGIME &amp; ANOMALY</div>
+            <div class="tool-desc">Hidden Markov Model 4-state regime detector · Mahalanobis anomaly layer · daily refit</div>
+          </a>
+          <a class="tool" href="/correlation.html">
+            <div class="tool-icon">▦</div>
+            <div class="tool-name">CORRELATION BREAKS</div>
+            <div class="tool-desc">10-asset 60d rolling correlation matrix · Frobenius z-score · pairs breaking 1Y norms · daily refresh</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">INSTITUTIONAL EDGE STACK <span style="color:var(--purple);font-weight:600">· 10 engines</span></div>
+        <div class="card-subtitle" style="margin-bottom:14px">Hedge-fund-grade alpha catalogue · academic-prior-anchored · retail-readable why-now · live trade tickets</div>
+        <div class="tools">
+          <a class="tool" href="/vix-capitulation.html" style="border-left:3px solid #ff5577">
+            <div class="tool-icon" style="color:#ff5577">①</div>
+            <div class="tool-name">VIX BACKWARDATION TRIGGER</div>
+            <div class="tool-desc">VX1/VX2 ratio &amp; term-structure inversion · spike-detection on regime flips · contrarian SPX long ticket · Carr-Wu vol-arb prior</div>
+          </a>
+          <a class="tool" href="/insider-buys.html" style="border-left:3px solid #26ffaf">
+            <div class="tool-icon" style="color:#26ffaf">②</div>
+            <div class="tool-name">INSIDER OPEN-MARKET BUY CLUSTER</div>
+            <div class="tool-desc">SEC Form 4 fresh open-market clusters · multi-insider conviction · Lakonishok-Lee +6-9% 12m drift edge · per-name ticket</div>
+          </a>
+          <a class="tool" href="/breadth-thrust.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">③</div>
+            <div class="tool-name">BREADTH THRUST (ZWEIG)</div>
+            <div class="tool-desc">10d advance-ratio crossing 61.5% from below · NYSE McClellan confirm · post-thrust 12m +24% historical · long-equity ticket</div>
+          </a>
+          <a class="tool" href="/vol-target-unwind.html" style="border-left:3px solid #ff7a18">
+            <div class="tool-icon" style="color:#ff7a18">④</div>
+            <div class="tool-name">VOL-TARGET FUND UNWIND</div>
+            <div class="tool-desc">Realised-vol regime jumps trigger systematic deleveraging · forced flow timing · CTA &amp; risk-parity flow window · counter-trend ticket</div>
+          </a>
+          <a class="tool" href="/russell-recon.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">⑤</div>
+            <div class="tool-name">RUSSELL RECON FRONT-RUN</div>
+            <div class="tool-desc">$10.6T benchmarked AUM forced-flow window · predicted adds/deletes/migrations · Madhavan-Ming 2003 +4-8% pre-rebal alpha · April-June calendar</div>
+          </a>
+          <a class="tool" href="/buyback-scanner.html" style="border-left:3px solid #ffd266">
+            <div class="tool-icon" style="color:#ffd266">⑥</div>
+            <div class="tool-name">BUYBACK AUTHORIZATION + DRIFT</div>
+            <div class="tool-desc">8-K fresh-program scanner · $-sized + insider cross-confirm · Ikenberry/Peyer-Vermaelen +8-12% 90d drift · per-tranche ticket</div>
+          </a>
+          <a class="tool" href="/stablecoin-flow.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">⑦</div>
+            <div class="tool-name">STABLECOIN MINT-FLOW</div>
+            <div class="tool-desc">USDT/USDC net mint vs burn 30d · BTC fwd-correlation · EXPLOSIVE/PARABOLIC regime detector · crypto-leverage rotation ticket</div>
+          </a>
+          <a class="tool" href="/opex-calendar.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">⑧</div>
+            <div class="tool-name">OPEX · 0DTE GAMMA CALENDAR</div>
+            <div class="tool-desc">3rd-Friday OPEX + quad-witching state machine · Polygon max-pain · dealer gamma proxy · pin-comp &amp; post-OPEX drift tickets</div>
+          </a>
+          <a class="tool" href="/activist-13d.html" style="border-left:3px solid #ff5577">
+            <div class="tool-icon" style="color:#ff5577">⑨</div>
+            <div class="tool-name">ACTIVIST 13D · &lt;5-DAY ALERT</div>
+            <div class="tool-desc">18-name activist roster · SEC EDGAR fresh SC 13D · Brav-Jiang-Partnoy-Thomas +6-12% 12m alpha · multi-activist confluence ticket</div>
+          </a>
+          <a class="tool" href="/rv-iv-scanner.html" style="border-left:3px solid #26ffaf">
+            <div class="tool-icon" style="color:#26ffaf">⑩</div>
+            <div class="tool-name">RV/IV · VARIANCE RISK PREMIUM</div>
+            <div class="tool-desc">Yang-Zhang RV vs ATM IV scanner · cross-sectional dispersion regime · VRP-rich/cheap basket · earnings-vol-crush tickets · daily post-close</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">RISK, HEDGING &amp; VOLATILITY</div>
+        <div class="card-subtitle" style="margin-bottom:14px">CRO cockpit · tail-hedge execution stack · volatility &amp; market-cycle radars</div>
+        <div class="tools">
+          <a class="tool" href="/risk-desk.html" style="border-left:3px solid #ff5577">
+            <div class="tool-icon" style="color:#ff5577">⊕</div>
+            <div class="tool-name">RISK DESK</div>
+            <div class="tool-desc">14-engine CRO cockpit · firm risk board, tail hedge, stress desks, factor &amp; attribution · live intraday severity strip</div>
+          </a>
+          <a class="tool" href="/firm-risk-board.html">
+            <div class="tool-icon">▣</div>
+            <div class="tool-name">FIRM RISK BOARD</div>
+            <div class="tool-desc">Firm-wide risk synthesis · single posture across every desk · exposure, leverage &amp; limit breaches · daily</div>
+          </a>
+          <a class="tool" href="/tail-hedge.html">
+            <div class="tool-icon">⊘</div>
+            <div class="tool-name">TAIL HEDGE OVERLAY</div>
+            <div class="tool-desc">Tail-exposure gap vs the soft loss limit · sizes the required protection sleeve by scenario class</div>
+          </a>
+          <a class="tool" href="/hedge-planner.html">
+            <div class="tool-icon">◎</div>
+            <div class="tool-name">HEDGE PLANNER</div>
+            <div class="tool-desc">Hedge execution ticket · worked legs by sleeve class · vol-radar timing overlay · pre-trade checks</div>
+          </a>
+          <a class="tool" href="/hedge-pnl.html">
+            <div class="tool-icon">◢</div>
+            <div class="tool-name">HEDGE P&amp;L</div>
+            <div class="tool-desc">Hedge carry scorecard · cumulative premium spent vs convex stress payoff · is the sleeve earning its carry</div>
+          </a>
+          <a class="tool" href="/vol-radar.html" style="border-left:3px solid #ff7a18">
+            <div class="tool-icon" style="color:#ff7a18">◉</div>
+            <div class="tool-name">VOL TURNING-POINT RADAR</div>
+            <div class="tool-desc">Spike-risk &amp; exhaustion canaries across 7 vol engines · COILED → PEAKING posture · 6-hourly</div>
+          </a>
+          <a class="tool" href="/market-extremes.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">◍</div>
+            <div class="tool-name">MARKET CYCLE EXTREMES</div>
+            <div class="tool-desc">Tops &amp; bottoms radar · euphoria/distribution signature + capitulation engine · cycle-position dial 0–100</div>
+          </a>
+          <a class="tool" href="/global-stress.html" style="border-left:3px solid #ff5577">
+            <div class="tool-icon" style="color:#ff5577">🌐</div>
+            <div class="tool-name">GLOBAL STRESS MATRIX</div>
+            <div class="tool-desc">World equity &amp; bond-market stress · 6 equity + 4 bond markets scored 0–100 · worst flashes red</div>
+          </a>
+          <a class="tool" href="/gsi-calibration.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">📊</div>
+            <div class="tool-name">GSI CALIBRATION</div>
+            <div class="tool-desc">Per-dimension IC vs forward 21d SPY drawdown · empirical weight evolution · paired-obs scatter · self-improving GSI</div>
+          </a>
+          <a class="tool" href="/calibration-fleet.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">🔬</div>
+            <div class="tool-name">CALIBRATION FLEET</div>
+            <div class="tool-desc">Universal IC loop across the signal fleet · 10 engines fit to forward SPY drawdown · PREDICTIVE/NOISE/CONTRARIAN rating per engine · SSM weight map for synthesizers</div>
+          </a>
+          <a class="tool" href="/master-allocator.html" style="border-left:3px solid #ffd266">
+            <div class="tool-icon" style="color:#ffd266">🎯</div>
+            <div class="tool-name">MASTER ALLOCATOR</div>
+            <div class="tool-desc">Top-of-firm capital allocation · IC-weighted tactical tilts on a 60/30/10 strategic benchmark · DEFENSIVE→RISK_ON posture · 800bp active-risk budget · per-asset rationale</div>
+          </a>
+          <a class="tool" href="/signal-orthogonality.html" style="border-left:3px solid #ff7a18">
+            <div class="tool-icon" style="color:#ff7a18">🧮</div>
+            <div class="tool-name">SIGNAL ORTHOGONALITY</div>
+            <div class="tool-desc">Pairwise Spearman correlation audit across the fleet · greedy clustering at |corr|≥0.80 · keeper recommendation by IC · effective-information-rank</div>
+          </a>
+          <a class="tool" href="/horizons-gsi.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">📊</div>
+            <div class="tool-name">GSI HORIZONS</div>
+            <div class="tool-desc">Term structure of stress · the same six-dim GSI calibrated at 5d / 21d / 63d / 252d · tactical vs cycle divergence detector · per-horizon weights + IC</div>
+          </a>
+          <a class="tool" href="/live-pulse.html" style="border-left:3px solid #ffd266">
+            <div class="tool-icon" style="color:#ffd266">⚡</div>
+            <div class="tool-name">LIVE PULSE</div>
+            <div class="tool-desc">Fast intraday stress · SPY/VIX/DXY/MOVE every 15 min · 0–100 pulse vs morning batch GSI drift · auto-refresh 30s · Telegram tripwire on EVENT</div>
+          </a>
+          <a class="tool" href="/live.html" style="border-left:3px solid #26ffaf">
+            <div class="tool-icon" style="color:#26ffaf">⟿</div>
+            <div class="tool-name">LIVE STREAM</div>
+            <div class="tool-desc">Real-time institutional signal fanout · WebSocket push the moment any of 7 tracked engines moves enough to matter · per-engine cards pulse + rolling delta tape · auto-reconnect</div>
+          </a>
+          <a class="tool" href="/vrp.html">
+            <div class="tool-icon">∿</div>
+            <div class="tool-name">VOLATILITY RISK PREMIUM</div>
+            <div class="tool-desc">Implied (VIX) minus realised (SPY) vol · VRP at 9d/30d/3m · percentile &amp; ex-post scorecard · RICH/THIN regime</div>
+          </a>
+          <a class="tool" href="/econ-calendar.html">
+            <div class="tool-icon">▤</div>
+            <div class="tool-name">ECONOMIC CALENDAR</div>
+            <div class="tool-desc">Forward macro-release calendar · consensus vs prior · tier-1 release countdown · recent surprise tally</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">FIRM RISK DESKS</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Firm-wide risk capstones &middot; exposure, factor, stress &amp; attribution</div>
+        <div class="tools">
+          <a class="tool" href="/factor-risk.html" style="border-left:3px solid #ff5577">
+            <div class="tool-icon" style="color:#ff5577">▤</div>
+            <div class="tool-name">FACTOR RISK MODEL</div>
+            <div class="tool-desc">Multi-factor decomposition of the book &middot; market, size, value, momentum &amp; quality betas &middot; contribution to variance &middot; daily</div>
+          </a>
+          <a class="tool" href="/firm-book.html">
+            <div class="tool-icon">▣</div>
+            <div class="tool-name">FIRM BOOK</div>
+            <div class="tool-desc">Consolidated firm-wide position book &middot; net &amp; gross exposure, sector &amp; asset weights &middot; the single source of truth for what the firm holds</div>
+          </a>
+          <a class="tool" href="/firm-stress.html">
+            <div class="tool-icon">◈</div>
+            <div class="tool-name">STRESS DESK</div>
+            <div class="tool-desc">15-scenario firm P&amp;L stress test &middot; historical &amp; hypothetical shocks &middot; worst-case loss per scenario &middot; daily</div>
+          </a>
+          <a class="tool" href="/liquidity-capacity.html">
+            <div class="tool-icon">◒</div>
+            <div class="tool-name">LIQUIDITY MONITOR</div>
+            <div class="tool-desc">Book liquidation capacity &middot; days-to-liquidate per position &middot; portfolio-level liquidity score &middot; daily</div>
+          </a>
+          <a class="tool" href="/merger-arb-risk.html">
+            <div class="tool-icon">⚠</div>
+            <div class="tool-name">MERGER-ARB BOOK RISK</div>
+            <div class="tool-desc">Deal-break stress on the merger-arb book &middot; spread risk, financing &amp; regulatory break scenarios &middot; daily</div>
+          </a>
+          <a class="tool" href="/pnl-attribution.html">
+            <div class="tool-icon">◰</div>
+            <div class="tool-name">P&amp;L ATTRIBUTION</div>
+            <div class="tool-desc">Return decomposition across desks, factors &amp; positions &middot; what actually drove the book's P&amp;L &middot; daily</div>
+          </a>
+          <a class="tool" href="/risk-monitor.html">
+            <div class="tool-icon">◉</div>
+            <div class="tool-name">RISK MONITOR</div>
+            <div class="tool-desc">Live firm risk monitor &middot; VaR, exposure &amp; limit usage &middot; continuous</div>
+          </a>
+          <a class="tool" href="/risk-radar.html">
+            <div class="tool-icon">◎</div>
+            <div class="tool-name">RISK RADAR</div>
+            <div class="tool-desc">Cross-engine risk synthesis radar &middot; early-warning read across every desk</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">STRATEGY DESKS &amp; SCANNERS</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Live trading desks &amp; universe scanners</div>
+        <div class="tools">
+          <a class="tool" href="/merger-arb.html" style="border-left:3px solid #00d4ff">
+            <div class="tool-icon" style="color:#00d4ff">✂</div>
+            <div class="tool-name">MERGER-ARBITRAGE DESK</div>
+            <div class="tool-desc">Live M&amp;A deal screen &middot; annualised spread, completion odds &amp; expected return per deal</div>
+          </a>
+          <a class="tool" href="/pairs-arb.html">
+            <div class="tool-icon">≡</div>
+            <div class="tool-name">PAIRS DESK</div>
+            <div class="tool-desc">Statistical-arbitrage pairs book &middot; cointegration, z-score entries &amp; live pair P&amp;L</div>
+          </a>
+          <a class="tool" href="/pairs-scanner.html">
+            <div class="tool-icon">⊜</div>
+            <div class="tool-name">PAIRS SCANNER</div>
+            <div class="tool-desc">Scans the universe for cointegrated, mean-reverting pairs &middot; ranked by edge</div>
+          </a>
+          <a class="tool" href="/spinoff-desk.html">
+            <div class="tool-icon">✂</div>
+            <div class="tool-name">SPIN-OFF DESK</div>
+            <div class="tool-desc">Corporate spin-off tracker &middot; post-spin opportunity screen &amp; forced-selling setups</div>
+          </a>
+          <a class="tool" href="/index-recon.html">
+            <div class="tool-icon">⇄</div>
+            <div class="tool-name">INDEX RECONSTITUTION DESK</div>
+            <div class="tool-desc">Index add / delete forecasts &middot; positioning ahead of the rebalance flow</div>
+          </a>
+          <a class="tool" href="/dividend-growth.html">
+            <div class="tool-icon">▲</div>
+            <div class="tool-name">DIVIDEND COMPOUNDERS</div>
+            <div class="tool-desc">Dividend-growth screen &middot; payout durability, growth streak &amp; yield-on-cost</div>
+          </a>
+          <a class="tool" href="/conviction.html">
+            <div class="tool-icon">★</div>
+            <div class="tool-name">CONVICTION ENGINE</div>
+            <div class="tool-desc">Multi-signal conviction scoring across the equity universe &middot; the highest-conviction names</div>
+          </a>
+          <a class="tool" href="/options-scanner.html">
+            <div class="tool-icon">◉</div>
+            <div class="tool-name">OPTIONS FLOW SCANNER</div>
+            <div class="tool-desc">Unusual options activity &middot; large prints, sweeps &amp; implied directional bets</div>
+          </a>
+          <a class="tool" href="/signal-scorecard.html">
+            <div class="tool-icon">✓</div>
+            <div class="tool-name">SIGNAL SCORECARD</div>
+            <div class="tool-desc">Track record of every signal &middot; hit rate, edge &amp; calibration over time</div>
+          </a>
+          <a class="tool" href="/portfolio.html">
+            <div class="tool-icon">◓</div>
+            <div class="tool-name">PORTFOLIO</div>
+            <div class="tool-desc">Personal portfolio book &middot; positions, P&amp;L &amp; risk</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">MACRO, INTEL &amp; DATA ENGINES</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Macro regime, narrative intelligence &amp; data feeds</div>
+        <div class="tools">
+          <a class="tool" href="/cross-asset.html" style="border-left:3px solid #a78bfa">
+            <div class="tool-icon" style="color:#a78bfa">◈</div>
+            <div class="tool-name">CROSS-ASSET REGIME</div>
+            <div class="tool-desc">Cross-asset regime classifier &middot; equities, rates, credit, FX &amp; commodities in one read</div>
+          </a>
+          <a class="tool" href="/analogs.html">
+            <div class="tool-icon">⧖</div>
+            <div class="tool-name">HISTORICAL ANALOGS</div>
+            <div class="tool-desc">Finds the closest historical market regimes to today &middot; and what happened next</div>
+          </a>
+          <a class="tool" href="/yen-carry.html">
+            <div class="tool-icon">¥</div>
+            <div class="tool-name">YEN CARRY &amp; BOJ LIQUIDITY</div>
+            <div class="tool-desc">Yen carry-trade stress monitor &middot; BOJ liquidity, USDJPY &amp; unwind risk</div>
+          </a>
+          <a class="tool" href="/cot-extremes.html">
+            <div class="tool-icon">◭</div>
+            <div class="tool-name">COT EXTREMES</div>
+            <div class="tool-desc">CFTC Commitments-of-Traders positioning extremes &middot; crowded longs &amp; shorts</div>
+          </a>
+          <a class="tool" href="/activity-nowcast.html">
+            <div class="tool-icon">◷</div>
+            <div class="tool-name">ACTIVITY NOWCAST</div>
+            <div class="tool-desc">Real-time US economic activity nowcast &middot; GDP-tracking from high-frequency data</div>
+          </a>
+          <a class="tool" href="/consumer-pulse.html">
+            <div class="tool-icon">◔</div>
+            <div class="tool-name">CONSUMER &amp; LABOUR PULSE</div>
+            <div class="tool-desc">Consumer spending &amp; labour-market health monitor</div>
+          </a>
+          <a class="tool" href="/dealer-survey.html">
+            <div class="tool-icon">▦</div>
+            <div class="tool-name">NY FED DEALER SURVEY</div>
+            <div class="tool-desc">Primary-dealer survey signals &middot; positioning &amp; rate expectations</div>
+          </a>
+          <a class="tool" href="/narrative.html">
+            <div class="tool-icon">▩</div>
+            <div class="tool-name">NARRATIVE DENSITY</div>
+            <div class="tool-desc">Tracks which market narratives are intensifying across the news flow</div>
+          </a>
+          <a class="tool" href="/gdelt.html">
+            <div class="tool-icon">◉</div>
+            <div class="tool-name">GDELT SENTIMENT</div>
+            <div class="tool-desc">Global news-event sentiment from the GDELT feed</div>
+          </a>
+          <a class="tool" href="/fleet-health.html">
+            <div class="tool-icon">⚙</div>
+            <div class="tool-name">FLEET HEALTH</div>
+            <div class="tool-desc">System-wide engine health monitor &middot; data freshness &amp; pipeline status</div>
+          </a>
+          <a class="tool" href="/benzinga.html">
+            <div class="tool-icon">◈</div>
+            <div class="tool-name">BENZINGA</div>
+            <div class="tool-desc">Benzinga news &amp; analyst-action feed</div>
+          </a>
+          <a class="tool" href="/eia.html">
+            <div class="tool-icon">▰</div>
+            <div class="tool-name">EIA ENERGY</div>
+            <div class="tool-desc">US Energy Information Administration data &middot; inventories, production &amp; prices</div>
+          </a>
+          <a class="tool" href="/nasdaq-datalink.html">
+            <div class="tool-icon">∇</div>
+            <div class="tool-name">NASDAQ DATA LINK</div>
+            <div class="tool-desc">NASDAQ Data Link economic &amp; financial datasets</div>
+          </a>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;padding-top:18px;border-top:1px solid var(--border)">
+        <div class="card-title" style="margin-bottom:6px">RAW DATA APIS</div>
+        <div class="card-subtitle" style="margin-bottom:14px">Direct API surfaces · government &amp; institutional data feeds</div>
+        <div class="tools">
+          <a class="tool" href="/ka/">
+            <div class="tool-icon">∇</div>
+            <div class="tool-name">KA METRICS</div>
+            <div class="tool-desc">Full KA Index breakdown · 13 metric components · score history · daily refresh</div>
+          </a>
+          <a class="tool" href="/fred.html">
+            <div class="tool-icon">⌭</div>
+            <div class="tool-name">FRED · FED DATA</div>
+            <div class="tool-desc">Federal Reserve Economic Data · 800K+ series · macro time-series with TTL cache</div>
+          </a>
+          <a class="tool" href="/fmp.html">
+            <div class="tool-icon">⊞</div>
+            <div class="tool-name">FMP FUNDAMENTALS</div>
+            <div class="tool-desc">Financial Modeling Prep premium · S&amp;P 500 fundamentals · ratios · scores</div>
+          </a>
+          <a class="tool" href="/ofr.html">
+            <div class="tool-icon">⛬</div>
+            <div class="tool-name">OFR STRESS</div>
+            <div class="tool-desc">Office of Financial Research · systemic stress index · cross-sector risk</div>
+          </a>
+          <a class="tool" href="/treasury-auctions.html">
+            <div class="tool-icon">⊟</div>
+            <div class="tool-name">UST AUCTIONS · DETAIL</div>
+            <div class="tool-desc">US Treasury auction deep-dive · all maturities · historical bid-to-cover</div>
+          </a>
+          <a class="tool" href="/ny-fed.html">
+            <div class="tool-icon">⌗</div>
+            <div class="tool-name">NY FED</div>
+            <div class="tool-desc">NY Fed primary dealer survey · GC repo rates · SOFR · Treasury operations</div>
+          </a>
+          <a class="tool" href="/ecb.html">
+            <div class="tool-icon">€</div>
+            <div class="tool-name">ECB · EUROZONE</div>
+            <div class="tool-desc">ECB policy rates · Bund yields · inflation expectations · TLTRO operations</div>
+          </a>
+          <a class="tool" href="/bls.html">
+            <div class="tool-icon">⌛</div>
+            <div class="tool-name">BLS · LABOR</div>
+            <div class="tool-desc">Bureau of Labor Statistics · NFP · CPI · wages · JOLTS · unemployment</div>
+          </a>
+          <a class="tool" href="/trading-signals.html">
+            <div class="tool-icon">⚡</div>
+            <div class="tool-name">TRADING SIGNALS</div>
+            <div class="tool-desc">Real-time multi-asset trading signals · entry/exit · confidence-weighted</div>
+          </a>
+          <a class="tool" href="/ai_predictions.html">
+            <div class="tool-icon">⌖</div>
+            <div class="tool-name">AI PREDICTIONS · LEGACY</div>
+            <div class="tool-desc">Earlier ML prediction dashboard · keep for historical comparison</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="tenor-signals-panel"></div>
+<div id="liquidity-credit-panel" style="margin-top:18px"></div>
+<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
+
+</div>
+</main>
+
+<!-- ────────── FOOTER ────────── -->
+<footer class="footer">
+  <div>JUSTHODL · AI · OPERATOR CONSOLE</div>
+  <div class="meta">
+    <span id="footUpdated">—</span>
+    <span>·</span>
+    <span>v3.0 desk-v2</span>
+    <span>·</span>
+    <span>auto-refresh 5m</span>
+  </div>
+</footer>
+
 <script>
-(function(){"use strict";
-var P=document.getElementById("jh-sub"),E=document.getElementById("jh-sub-e"),
-    G=document.getElementById("jh-sub-go"),M=document.getElementById("jh-sub-m"),EP=null;
-function done(){["jh-cta","jh-cta2"].forEach(function(i){var b=document.getElementById(i);
-  if(b){b.textContent="✓ SUBSCRIBED";b.style.cursor="default";b.onclick=null;}});}
-if(localStorage.getItem("jh_sub")==="1")done();
-fetch("data/subscribe-endpoint.json?t="+Date.now(),{cache:"no-store"})
- .then(function(r){return r.json();}).then(function(d){EP=d.url;}).catch(function(){});
-function open_(e){if(e)e.preventDefault();
-  if(localStorage.getItem("jh_sub")==="1")return;
-  P.style.display="block";setTimeout(function(){E.focus();},20);}
-["jh-cta","jh-cta2"].forEach(function(i){var b=document.getElementById(i);if(b)b.onclick=open_;});
-document.addEventListener("click",function(e){
-  if(P.style.display==="block"&&!P.contains(e.target)&&e.target.id!=="jh-cta"&&e.target.id!=="jh-cta2")P.style.display="none";});
-G.onclick=function(){var v=(E.value||"").trim().toLowerCase();
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v)){M.textContent="enter a valid email";return;}
-  if(!EP){M.textContent="endpoint warming — try again in a moment";return;}
-  M.textContent="…";
-  fetch(EP,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({email:v,source:"homepage"})})
-   .then(function(r){return r.json();}).then(function(d){
-     if(d&&d.ok){localStorage.setItem("jh_sub","1");M.textContent="✓ you're on the early-access list";
-       setTimeout(function(){P.style.display="none";done();},1200);}
-     else M.textContent=(d&&d.error)||"failed — try again";})
-   .catch(function(){M.textContent="network error — try again";});};
+/* ──────────────────────────────────────────────────────────────
+   DATA SOURCES — read through Cloudflare proxy worker for edge caching + auto-gzip.
+   Worker auto-compresses application/json at the edge (typically 60-80% wire savings).
+   Same S3 paths as before, just routed through the proxy.
+   ────────────────────────────────────────────────────────────── */
+const S3 = 'https://justhodl-data-proxy.raafouis.workers.dev';
+const SOURCES = {
+  intel:    `${S3}/intelligence-report.json`,
+  edge:     `${S3}/edge-data.json`,
+  liq:      `${S3}/liquidity-data.json`,
+  flow:     `${S3}/flow-data.json`,
+  crypto:   `${S3}/crypto-intel.json`,
+  regime:   `${S3}/regime/current.json`,
+  div:      `${S3}/divergence/current.json`,
+  cot:      `${S3}/cot/extremes/current.json`,
+  risk:     `${S3}/risk/recommendations.json`,
+  setups:   `${S3}/opportunities/asymmetric-equity.json`,
+  pnl:      `${S3}/portfolio/pnl-daily.json`,
+  signalBoard: `${S3}/data/signal-board.json`,
+  retail:   `${S3}/data/retail-sentiment.json`,
+};
+
+// Pre-pump radar — single slim fetch (~3 KB raw, ~700B gzipped via edge).
+// Replaces the previous 5-file fetch totaling 137.5 KB.
+// File is built by justhodl-prepump-summary Lambda every 30 min.
+const PP_SOURCES = {
+  ppSummary:  `${S3}/data/pump-radar-summary.json`,
+};
+
+const STATE = {data: {}, errors: {}, lastUpdate: null};
+
+/* ──────────────────────────────────────────────────────────────
+   HELPERS
+   ────────────────────────────────────────────────────────────── */
+function fmt$(n, decimals=2){
+  if(n==null || isNaN(n)) return '—';
+  const a = Math.abs(n);
+  if(a >= 1e12) return '$'+(n/1e12).toFixed(decimals)+'T';
+  if(a >= 1e9)  return '$'+(n/1e9).toFixed(decimals)+'B';
+  if(a >= 1e6)  return '$'+(n/1e6).toFixed(decimals)+'M';
+  if(a >= 1e3)  return '$'+(n/1e3).toFixed(decimals)+'K';
+  return '$'+n.toFixed(decimals);
+}
+function fmtNum(n, decimals=1){
+  if(n==null || isNaN(n)) return '—';
+  return Number(n).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+}
+function fmtPct(n, decimals=1){
+  if(n==null || isNaN(n)) return '—';
+  const sign = n >= 0 ? '+' : '';
+  return sign + Number(n).toFixed(decimals) + '%';
+}
+function fmtAge(iso){
+  if(!iso) return '—';
+  try{
+    const t = typeof iso === 'string' ? new Date(iso).getTime() : iso;
+    const dt = (Date.now() - t) / 1000;
+    if(dt < 60) return Math.floor(dt) + 's ago';
+    if(dt < 3600) return Math.floor(dt/60) + 'm ago';
+    if(dt < 86400) return Math.floor(dt/3600) + 'h ago';
+    return Math.floor(dt/86400) + 'd ago';
+  }catch(e){return '—'}
+}
+function escHtml(s){
+  if(s==null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+}
+function classFor(v, breaks=[]){
+  // breaks: e.g. [{lt:30, c:'r'}, {lt:60, c:'a'}, {c:'g'}]
+  if(v==null || isNaN(v)) return '';
+  for(const b of breaks){
+    if(b.lt === undefined || v < b.lt) return b.c;
+  }
+  return '';
+}
+
+async function fetchJson(url){
+  const r = await fetch(url, {cache:'no-cache'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+function setStripCell(name, value, sub, subClass=''){
+  const cell = document.querySelector(`[data-cell="${name}"]`);
+  if(!cell) return;
+  cell.querySelector('.strip-value').textContent = value;
+  const subEl = cell.querySelector('.strip-sub');
+  subEl.textContent = sub;
+  subEl.className = 'strip-sub' + (subClass ? ' '+subClass : '');
+}
+
+function setError(elId, msg){
+  document.getElementById(elId).innerHTML = `<div class="err">⚠ ${escHtml(msg)}</div>`;
+}
+
+function updateClock(){
+  const d = new Date();
+  const utc = d.toISOString().slice(11,16) + ' UTC';
+  document.getElementById('clock').textContent = utc;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   RENDERERS
+   ────────────────────────────────────────────────────────────── */
+
+// ── ALERT BANNER (intelligence-report.json)
+function renderAlert(d){
+  const banner = document.getElementById('alertBanner');
+  if(!d){return}
+  const phase = d.phase || 'STABLE';
+  const cls = phase === 'CRISIS' ? 'crisis' : (phase === 'BULL' ? 'bull' : '');
+  banner.className = 'alert' + (cls ? ' '+cls : '');
+  banner.style.display = 'flex';
+  const headline = d.headline || phase;
+  // strip emoji-as-symbol noise but keep readable
+  document.getElementById('alertHead').textContent = headline.replace(/^\s+|\s+$/g, '');
+  document.getElementById('alertBody').textContent = d.headline_detail || d.forecast || '';
+  document.getElementById('alertAction').textContent = d.action_required || '';
+}
+
+// ── TOP STRIP
+function renderStrip(){
+  const intel = STATE.data.intel || {};
+  const edge = STATE.data.edge || {};
+  const liq = STATE.data.liq || {};
+  const crypto = STATE.data.crypto || {};
+  const regime = STATE.data.regime || {};
+  const risk = STATE.data.risk || {};
+
+  // REGIME (Phase 1A bond regime)
+  if(regime.regime){
+    const cls = regime.regime === 'RISK_ON' ? 'green' : (regime.regime === 'RISK_OFF' ? 'red' : 'cyan');
+    setStripCell('regime', regime.regime, `strength ${fmtNum(regime.regime_strength,1)}/100`, cls);
+  }
+
+  // KA INDEX (intelligence-report)
+  if(intel.scores){
+    const ki = intel.scores.ka_index ?? intel.scores.khalid_index;
+    const phase = intel.phase || '';
+    const cls = ki >= 70 ? 'green' : (ki >= 40 ? 'amber' : 'red');
+    setStripCell('ka', ki!=null ? ki+'' : '—', phase, cls);
+  }
+
+  // LIQUIDITY (liquidity-data)
+  if(liq.core && liq.core.net_liquidity){
+    const nl = liq.core.net_liquidity;
+    const v = nl.value_bn;
+    // value_bn is billions; guard against an upstream millions-scaled value
+    const nlT = v == null ? null : (Math.abs(v) >= 100000 ? v/1e6 : v/1000);
+    const display = nlT != null ? '$'+nlT.toFixed(1)+'T' : '—';
+    const cls = nl.label === 'BULLISH' ? 'green' : nl.label === 'BEARISH' ? 'red' : 'amber';
+    setStripCell('liquidity', display, nl.label || '—', cls);
+  }
+
+  // CRYPTO (crypto-intel)
+  if(crypto.global_market){
+    const gm = crypto.global_market;
+    setStripCell('crypto',
+      gm.total_mcap_fmt || '—',
+      `BTC.D ${fmtNum(gm.btc_dominance,1)}%`,
+      'cyan');
+  }
+
+  // EDGE (edge-data)
+  if(edge.composite_score != null){
+    const sc = edge.composite_score;
+    const cls = sc >= 60 ? 'green' : (sc >= 40 ? 'amber' : 'red');
+    setStripCell('edge', sc+'', edge.regime || 'NEUTRAL', cls);
+  }
+
+  // RISK (risk/recommendations)
+  if(risk.summary){
+    const pct = risk.summary.total_recommended_size_pct;
+    const ideas = risk.summary.n_candidate_ideas;
+    setStripCell('risk',
+      pct != null ? pct.toFixed(0)+'%' : '—',
+      `${ideas||0} ideas · ${risk.summary.n_clusters||0} clusters`,
+      'cyan');
+  }
+}
+
+// ── TODAY'S SETUPS
+function renderSetups(){
+  const d = STATE.data.setups;
+  const body = document.getElementById('setupsBody');
+  if(!d){body.innerHTML = '<div class="muted">No setup data available</div>'; return}
+
+  const setups = (d.top_setups || []).slice(0, 7);
+  const sub = `${d.summary?.n_setups || 0} qualified · ${fmtAge(d.as_of)}`;
+  document.getElementById('setupsSub').textContent = sub;
+
+  if(!setups.length){body.innerHTML = '<div class="muted">No qualified setups today</div>'; return}
+
+  let html = `
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>SYM</th><th>SECTOR</th>
+          <th class="r">PRICE</th><th class="r">P/E</th>
+          <th class="r">PIO</th><th class="r">ALTMAN</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for(const s of setups){
+    const pio = s.piotroski;
+    const pioCls = pio >= 8 ? 'g' : pio >= 6 ? '' : 'a';
+    const altman = s.altmanZ != null ? s.altmanZ : null;
+    const altCls = altman == null ? '' : (altman > 3 ? 'g' : altman > 1.81 ? 'a' : 'r');
+    html += `
+      <tr>
+        <td class="sym"><a href="/stock/?symbol=${encodeURIComponent(s.symbol)}">${escHtml(s.symbol)}</a></td>
+        <td>${escHtml((s.sector||'—').slice(0,12))}</td>
+        <td class="r">${fmt$(s.price)}</td>
+        <td class="r">${s.peRatio != null ? fmtNum(s.peRatio,1) : '—'}</td>
+        <td class="r"><span class="badge ${pioCls}">${pio||'—'}</span></td>
+        <td class="r ${altCls}">${altman != null ? altman.toFixed(2) : '—'}</td>
+      </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+// ── RISK RECOMMENDATIONS
+function renderRisk(){
+  const d = STATE.data.risk;
+  const body = document.getElementById('riskBody');
+  if(!d){body.innerHTML = '<div class="muted">No risk data</div>'; return}
+
+  const recs = (d.sized_recommendations || []).slice(0, 6);
+  const sub = `${d.summary?.total_recommended_size_pct?.toFixed(0) || 0}% deployed · ${fmtAge(d.as_of)}`;
+  document.getElementById('riskSub').textContent = sub;
+
+  if(!recs.length){body.innerHTML = '<div class="muted">No recommendations</div>'; return}
+
+  let html = `<table class="tbl"><thead><tr><th>SYM</th><th>SECTOR</th><th class="r">SIZE</th></tr></thead><tbody>`;
+  for(const r of recs){
+    const sz = r.recommended_size_pct;
+    const cls = sz > 4 ? 'g' : sz > 2 ? 'c' : '';
+    html += `
+      <tr>
+        <td class="sym"><a href="/stock/?symbol=${encodeURIComponent(r.symbol)}">${escHtml(r.symbol)}</a></td>
+        <td>${escHtml((r.sector||'—').slice(0,12))}</td>
+        <td class="r"><span class="badge ${cls}">${sz != null ? sz.toFixed(2) + '%' : '—'}</span></td>
+      </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+// ── KA INDEX BREAKDOWN
+function renderKa(){
+  const d = STATE.data.intel;
+  const body = document.getElementById('kaBody');
+  if(!d || !d.scores){body.innerHTML = '<div class="muted">No intelligence report</div>'; return}
+
+  const s = d.scores;
+  document.getElementById('kaSub').textContent = `${d.phase || 'STABLE'} · ${fmtAge(d.generated_at)}`;
+  const ki = s.ka_index ?? s.khalid_index;
+  const kiCls = ki >= 70 ? 'g' : ki >= 40 ? 'a' : 'r';
+
+  let html = `
+    <div style="display:flex;gap:24px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div>
+        <div class="bignum ${kiCls === 'r' ? 'r' : ''}" style="${kiCls==='g'?'color:var(--green)':kiCls==='a'?'color:var(--amber)':'color:var(--red)'}">${ki != null ? ki : '—'}</div>
+        <div class="bignum-sub">/ 100 · ${escHtml(d.regime?.ka || d.regime?.khalid || 'STABLE')}</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="readout">
+          <span class="readout-key">CRISIS DISTANCE</span><span class="readout-val">${s.crisis_distance != null ? s.crisis_distance : '—'}</span>
+          <span class="readout-key">PLUMBING STRESS</span><span class="readout-val">${s.plumbing_stress != null ? s.plumbing_stress : '—'}</span>
+          <span class="readout-key">ML RISK</span><span class="readout-val">${s.ml_risk_score != null ? s.ml_risk_score : '—'}</span>
+          <span class="readout-key">CARRY RISK</span><span class="readout-val">${s.carry_risk_score != null ? s.carry_risk_score : '—'}</span>
+          <span class="readout-key">CALIBRATED</span><span class="readout-val c">${s.calibrated_composite != null ? s.calibrated_composite.toFixed(1) : '—'}</span>
+        </div>
+      </div>
+    </div>`;
+
+  // Crisis factors
+  if(d.signals?.crisis_factors?.length){
+    html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div class="card-subtitle" style="margin-bottom:8px">CRISIS FACTORS · ${d.signals.crisis_signals||0}</div>`;
+    for(const f of d.signals.crisis_factors.slice(0,3)){
+      html += `<div style="font-family:var(--font-mono);font-size:11px;color:var(--red);margin-bottom:4px">▸ ${escHtml(f)}</div>`;
+    }
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ── LIQUIDITY STACK
+function renderLiq(){
+  const d = STATE.data.liq;
+  const body = document.getElementById('liqBody');
+  if(!d || !d.core){body.innerHTML = '<div class="muted">No liquidity data</div>'; return}
+
+  const c = d.core;
+  document.getElementById('liqSub').textContent = `${c.net_liquidity?.label || 'NEUTRAL'} · ${fmtAge(d.meta?.generated_at)}`;
+  const nlBn = c.net_liquidity?.value_bn;
+  const fedBn = c.fed_balance_sheet?.value_bn;
+  const tgaBn = c.tga?.value_bn;
+  const rrpBn = c.rrp?.value_bn;
+  const rrpAna = d.components?.rrp_analysis;
+  const tgaAna = d.components?.tga_analysis;
+
+  let html = `
+    <div style="display:flex;gap:20px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <div>
+        <div class="bignum c">${nlBn != null ? '$'+((Math.abs(nlBn)>=100000?nlBn/1e6:nlBn/1000)).toFixed(1)+'T' : '—'}</div>
+        <div class="bignum-sub">NET LIQUIDITY</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="readout">
+          <span class="readout-key">FED B/S</span><span class="readout-val">${fedBn != null ? '$'+(fedBn/1000).toFixed(2)+'T' : '—'}</span>
+          <span class="readout-key">TGA</span><span class="readout-val">${tgaBn != null ? '$'+(tgaBn/1000).toFixed(2)+'T' : '—'}</span>
+          <span class="readout-key">RRP</span><span class="readout-val ${rrpBn < 1 ? 'r' : ''}">${rrpBn != null ? '$'+rrpBn.toFixed(2)+'B' : '—'}</span>
+        </div>
+      </div>
+    </div>`;
+
+  if(rrpAna || tgaAna){
+    html += `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px">`;
+    if(rrpAna){
+      const sigCls = rrpAna.signal?.includes('BULLISH') ? 'g' : rrpAna.signal?.includes('BEARISH') ? 'r' : 'a';
+      html += `<div style="margin-bottom:6px"><span class="badge ${sigCls}">${escHtml(rrpAna.signal||'—')}</span> <span style="color:var(--fg-3)">${escHtml(rrpAna.note||'')}</span></div>`;
+    }
+    if(tgaAna){
+      const sigCls = tgaAna.signal?.includes('BULLISH') ? 'g' : tgaAna.signal?.includes('BEARISH') ? 'r' : 'a';
+      html += `<div><span class="badge ${sigCls}">${escHtml(tgaAna.signal||'—')}</span> <span style="color:var(--fg-3)">${escHtml(tgaAna.note||'')}</span></div>`;
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+
+// ── CROSS-ASSET DIVERGENCES
+function renderDiv(){
+  const d = STATE.data.div;
+  const body = document.getElementById('divBody');
+  if(!d){body.innerHTML = '<div class="muted">No divergence data</div>'; return}
+
+  const rels = (d.relationships || [])
+    .filter(r => r.status === 'ok')
+    .sort((a,b) => Math.abs(b.z_score||0) - Math.abs(a.z_score||0))
+    .slice(0, 5);
+
+  document.getElementById('divSub').textContent = `${d.summary?.n_extreme||0} extreme · ${d.summary?.n_relationships_total||0} pairs · ${fmtAge(d.as_of)}`;
+
+  if(!rels.length){body.innerHTML = '<div class="muted">No active divergences</div>'; return}
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+  for(const r of rels){
+    const z = r.z_score || 0;
+    const cls = Math.abs(z) > 3 ? 'r' : Math.abs(z) > 2 ? 'a' : '';
+    const sign = z >= 0 ? '+' : '';
+    html += `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(120,145,180,0.06);font-family:var(--font-mono);font-size:11px">
+        <div style="flex:1">
+          <div style="color:var(--fg-1);font-weight:500">${escHtml(r.name||r.id)}</div>
+          <div style="color:var(--fg-3);font-size:10px;margin-top:2px">${escHtml(r.mispricing||'—')}</div>
+        </div>
+        <div style="text-align:right">
+          <span class="badge ${cls}">z ${sign}${z.toFixed(2)}</span>
+        </div>
+      </div>`;
+  }
+  html += '</div>';
+  body.innerHTML = html;
+}
+
+// ── OPTIONS FLOW
+function renderFlow(){
+  const d = STATE.data.flow;
+  const body = document.getElementById('flowBody');
+  if(!d || !d.data){body.innerHTML = '<div class="muted">No flow data</div>'; return}
+
+  const dt = d.data;
+  const vix = dt.vix_complex?.vix?.value;
+  const pc = dt.put_call?.total_put_call_ratio;
+  const pcSig = dt.put_call?.pc_signal;
+  const gex = dt.gamma_exposure?.total_gex;
+  const gexReg = dt.gamma_exposure?.regime;
+  const spy = dt.gamma_exposure?.spy_price;
+  const composite = dt.sentiment?.composite;
+
+  document.getElementById('flowSub').textContent = `${gexReg||'—'} · ${fmtAge(d.timestamp)}`;
+
+  const pcCls = pcSig === 'COMPLACENCY' ? 'a' : pcSig === 'PANIC' ? 'r' : 'g';
+  const gexCls = gexReg?.includes('POSITIVE') ? 'g' : gexReg?.includes('NEGATIVE') ? 'r' : 'a';
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px">
+      <div>
+        <div class="bignum">${vix != null ? vix.toFixed(2) : '—'}</div>
+        <div class="bignum-sub">VIX</div>
+      </div>
+      <div>
+        <div class="bignum">${spy != null ? '$'+spy.toFixed(2) : '—'}</div>
+        <div class="bignum-sub">SPY</div>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="readout-key">PUT/CALL</span><span class="readout-val ${pcCls}">${pc != null ? pc.toFixed(3) : '—'} · ${escHtml(pcSig||'—')}</span>
+      <span class="readout-key">GAMMA</span><span class="readout-val ${gexCls}">${gex != null ? fmtNum(gex/1000,1)+'K' : '—'} · ${escHtml(gexReg||'—')}</span>`;
+  if(composite){
+    html += `<span class="readout-key">SENTIMENT</span><span class="readout-val">${escHtml(composite.label || composite.score || '—')}</span>`;
+  }
+  html += `</div>`;
+  body.innerHTML = html;
+}
+
+// ── CRYPTO REGIME
+function renderCrypto(){
+  const d = STATE.data.crypto;
+  const body = document.getElementById('cryptoBody');
+  if(!d){body.innerHTML = '<div class="muted">No crypto data</div>'; return}
+
+  const gm = d.global_market || {};
+  const stables = d.stablecoins || {};
+  const tvl = d.tvl || {};
+  const dex = d.dex || {};
+
+  document.getElementById('cryptoSub').textContent = `${stables.net_signal || '—'} · ${fmtAge(d.generated_at)}`;
+
+  const stableCls = stables.net_signal === 'INFLOW' || stables.net_signal === 'MINTING' ? 'g' :
+                    stables.net_signal === 'OUTFLOW' || stables.net_signal === 'BURNING' ? 'r' : 'a';
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div>
+        <div class="bignum c">${gm.total_mcap_fmt || '—'}</div>
+        <div class="bignum-sub">TOTAL MCAP</div>
+      </div>
+      <div>
+        <div class="bignum">${gm.btc_dominance != null ? gm.btc_dominance.toFixed(1)+'%' : '—'}</div>
+        <div class="bignum-sub">BTC DOMINANCE</div>
+      </div>
+    </div>
+    <div class="readout">
+      <span class="readout-key">ETH DOMINANCE</span><span class="readout-val">${gm.eth_dominance != null ? gm.eth_dominance.toFixed(1)+'%' : '—'}</span>
+      <span class="readout-key">STABLECOINS</span><span class="readout-val ${stableCls}">${stables.total_mcap_fmt || '—'} · ${escHtml(stables.net_signal||'—')}</span>
+      <span class="readout-key">TVL</span><span class="readout-val">${tvl.formatted || '—'}</span>
+      <span class="readout-key">DEX 24H</span><span class="readout-val">${dex.total_24h_fmt || '—'}</span>
+      <span class="readout-key">24H CHG</span><span class="readout-val ${gm.mcap_change_24h >= 0 ? 'g' : 'r'}">${gm.mcap_change_24h != null ? fmtPct(gm.mcap_change_24h, 2) : '—'}</span>
+    </div>`;
+  body.innerHTML = html;
+}
+
+// ── COT EXTREMES
+function renderCot(){
+  const d = STATE.data.cot;
+  const body = document.getElementById('cotBody');
+  if(!d){body.innerHTML = '<div class="muted">No COT data</div>'; return}
+
+  const contracts = (d.contracts || [])
+    .filter(c => c.status === 'ok' && c.percentile != null)
+    .sort((a,b) => {
+      // Sort by extremeness: closer to 0 or 100 first
+      const aExt = Math.max(a.percentile, 100-a.percentile);
+      const bExt = Math.max(b.percentile, 100-b.percentile);
+      return bExt - aExt;
+    })
+    .slice(0, 6);
+
+  document.getElementById('cotSub').textContent = `${d.summary?.n_extreme||0} extreme · ${d.summary?.n_processed||0} contracts · ${fmtAge(d.as_of)}`;
+
+  if(!contracts.length){body.innerHTML = '<div class="muted">No extreme positioning</div>'; return}
+
+  let html = `<table class="tbl"><thead><tr><th>CONTRACT</th><th>CAT</th><th class="r">PCTILE</th><th class="r">SIGNAL</th></tr></thead><tbody>`;
+  for(const c of contracts){
+    const pct = c.percentile;
+    const cls = pct >= 95 ? 'r' : pct >= 80 ? 'a' : pct <= 5 ? 'r' : pct <= 20 ? 'a' : '';
+    const signalText = pct >= 95 ? 'CROWDED LONG' : pct >= 80 ? 'LONG' : pct <= 5 ? 'CROWDED SHORT' : pct <= 20 ? 'SHORT' : 'NEUTRAL';
+    html += `
+      <tr>
+        <td class="sym">${escHtml(c.name||c.contract)}</td>
+        <td>${escHtml((c.category||'').slice(0,8))}</td>
+        <td class="r">${pct.toFixed(0)}%</td>
+        <td class="r"><span class="badge ${cls}">${signalText}</span></td>
+      </tr>`;
+  }
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+// ── PNL TRACKER
+function renderPnl(){
+  const d = STATE.data.pnl;
+  const body = document.getElementById('pnlBody');
+  if(!d){body.innerHTML = '<div class="muted">No PnL data</div>'; return}
+
+  const days = d.days_since_inception || 0;
+  document.getElementById('pnlSub').textContent = `Day ${days} · inception ${d.inception || '—'} · ${fmtAge(d.generated_at)}`;
+
+  const bh = d.buy_and_hold || {};
+  const ks = d.ka_strategy ?? d.khalid_strategy ?? {};
+  const delta = d.delta_pct;
+  const alpha = d.system_alpha;
+
+  const bhCls = bh.return_pct >= 0 ? 'g' : 'r';
+  const ksCls = ks.return_pct >= 0 ? 'g' : 'r';
+  const aCls = alpha >= 0 ? 'g' : 'r';
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:16px">
+      <div>
+        <div class="bignum-sub" style="margin-bottom:6px">BUY+HOLD</div>
+        <div class="bignum ${bhCls}" style="font-size:24px;color:var(--${bhCls === 'g' ? 'green' : 'red'})">${fmtPct(bh.return_pct,2)}</div>
+        <div class="bignum-sub" style="margin-top:4px">${fmt$(bh.current_value_usd)}</div>
+      </div>
+      <div>
+        <div class="bignum-sub" style="margin-bottom:6px">KA STRAT</div>
+        <div class="bignum ${ksCls}" style="font-size:24px;color:var(--${ksCls === 'g' ? 'green' : 'red'})">${fmtPct(ks.return_pct,2)}</div>
+        <div class="bignum-sub" style="margin-top:4px">${fmt$(ks.current_value_usd)}</div>
+      </div>
+      <div>
+        <div class="bignum-sub" style="margin-bottom:6px">SYSTEM ALPHA</div>
+        <div class="bignum ${aCls}" style="font-size:24px;color:var(--${aCls === 'g' ? 'green' : 'red'})">${fmtPct(alpha,2)}</div>
+        <div class="bignum-sub" style="margin-top:4px">vs B+H</div>
+      </div>
+      <div>
+        <div class="bignum-sub" style="margin-bottom:6px">CURRENT PHASE</div>
+        <div class="bignum a" style="font-size:18px;color:var(--amber);font-weight:600">${escHtml(d.current_phase || '—')}</div>
+        <div class="bignum-sub" style="margin-top:4px">${escHtml(d.current_regime||'—')}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--fg-4);font-style:italic;border-top:1px solid var(--border);padding-top:10px">
+      ${escHtml(d.DISCLAIMER || 'Hypothetical — for tracking only')}
+    </div>`;
+
+  body.innerHTML = html;
+}
+
+// ── SIGNAL BOARD (flagship cross-asset posture, 20-engine synthesis)
+function renderSignalBoard(){
+  const d = STATE.data.signalBoard;
+  if(!d) return;
+
+  const posture = d.composite_posture || '—';
+  const signal = d.composite_signal;
+  const nLive = d.n_live ?? 0;
+  const nEngines = d.n_engines ?? 0;
+  const nStale = d.n_stale ?? 0;
+  const generated = d.generated_at || '';
+
+  // Color the posture text based on direction
+  const postureEl = document.getElementById('sbPosture');
+  if(postureEl){
+    let color = 'var(--text)';
+    if(posture.includes('RISK-ON') && !posture.includes('OFF')) color = '#10b981';
+    else if(posture.includes('RISK-OFF')) color = '#ef4444';
+    else if(posture.includes('MILDLY RISK-ON')) color = '#10b981';
+    else if(posture.includes('MILDLY RISK-OFF')) color = '#f59e0b';
+    else color = '#facc15';
+    postureEl.textContent = posture;
+    postureEl.style.color = color;
+  }
+
+  const sigEl = document.getElementById('sbSignal');
+  if(sigEl && signal != null){
+    const arrow = signal > 0 ? '↑' : (signal < 0 ? '↓' : '·');
+    sigEl.textContent = `signal ${arrow} ${signal>=0?'+':''}${Number(signal).toFixed(2)} (range -2..+2)`;
+  }
+
+  const liveEl = document.getElementById('sbLive');
+  if(liveEl) liveEl.textContent = `${nLive}/${nEngines}`;
+
+  const staleEl = document.getElementById('sbStale');
+  if(staleEl) staleEl.textContent = `${nStale} stale · ${nEngines-nLive-nStale} no-data`;
+
+  const asOfEl = document.getElementById('sbAsOf');
+  if(asOfEl && generated){
+    try{
+      const t = new Date(generated);
+      asOfEl.textContent = t.toUTCString().slice(5, 22) + ' UTC';
+    }catch(e){
+      asOfEl.textContent = generated.slice(0,19);
+    }
+  }
+
+  // Top movers: highest |signal| engines that are live
+  const moversEl = document.getElementById('sbMovers');
+  if(moversEl && Array.isArray(d.engines)){
+    const live = d.engines.filter(e => e.signal != null && !e.stale);
+    const sorted = live.slice().sort((a,b) => Math.abs(b.signal) - Math.abs(a.signal));
+    const top = sorted.slice(0, 4);
+    if(top.length === 0){
+      moversEl.textContent = 'No live signals';
+    }else{
+      moversEl.innerHTML = top.map(e => {
+        const color = e.signal > 0 ? '#10b981' : (e.signal < 0 ? '#ef4444' : 'var(--muted)');
+        const arrow = e.signal > 0 ? '+' : (e.signal < 0 ? '−' : '·');
+        const name = (e.engine || '').slice(0, 22);
+        return `<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--muted);font-size:11px">${escHtml(name)}</span><span style="color:${color};font-weight:600">${arrow}${Math.abs(e.signal)}</span></div>`;
+      }).join('');
+    }
+  }
+
+  // Update subtitle with category breakdown
+  const subEl = document.getElementById('sbSub');
+  if(subEl && d.categories){
+    const cats = Object.entries(d.categories).map(([k,v]) => `${k} ${v.signal>=0?'+':''}${Number(v.signal).toFixed(1)}`).join(' · ');
+    subEl.textContent = cats || 'Cross-asset posture · 20-engine synthesis';
+  }
+}
+
+// ── PRE-PUMP RADAR hero card (catalyst-aware pump-hunter desk) ───────
+// Loaded LAZILY — after main dashboard renders. Doesn't block initial paint.
+async function loadPrePumpRadar(){
+  // Fire all 5 fetches in parallel. They don't block the dashboard because
+  // this runs AFTER the main loadAll() completes.
+  const entries = Object.entries(PP_SOURCES);
+  const tasks = entries.map(async ([key, url]) => {
+    try {
+      const data = await fetchJson(url);
+      STATE.data[key] = data;
+    } catch(e) {
+      STATE.errors[key] = e.message;
+    }
+  });
+  await Promise.allSettled(tasks);
+  renderPrePumpRadar();
+}
+
+function renderPrePumpRadar(){
+  // Reads single slim summary file (data/pump-radar-summary.json) built
+  // by justhodl-prepump-summary Lambda — ~3 KB raw, ~700B over the wire.
+  const s = STATE.data.ppSummary;
+  if(!s){
+    // Summary file not loaded yet or failed; leave placeholders
+    return;
+  }
+
+  // ── Conviction grade
+  const conviction = s.conviction || '—';
+  const tempLabel  = (s.temperature && s.temperature.label) || '';
+  const tempScore  = s.temperature && s.temperature.score;
+  const convEl = document.getElementById('ppConviction');
+  if(convEl){
+    convEl.textContent = conviction;
+    let c = 'var(--text)';
+    if(conviction.startsWith('A')) c = '#10b981';
+    else if(conviction.startsWith('B+') || conviction === 'B') c = '#22d3ee';
+    else if(conviction.startsWith('B')) c = '#facc15';
+    else if(conviction.startsWith('C')) c = '#f59e0b';
+    else if(conviction.startsWith('D')) c = '#ef4444';
+    convEl.style.color = c;
+  }
+  const tempEl = document.getElementById('ppTemperature');
+  if(tempEl){
+    let str = tempLabel || '—';
+    if(tempScore != null) str = `${tempLabel || '—'} · ${Number(tempScore).toFixed(0)}/100`;
+    tempEl.textContent = `temp ${str}`;
+  }
+
+  // ── A-grade catalysts + pump-confirmed count
+  const nA = (s.catalysts && s.catalysts.n_a_grade) || 0;
+  const nB = (s.catalysts && s.catalysts.n_b_grade) || 0;
+  const nPC = (s.basket && s.basket.n_pump_confirmed) || 0;
+  const nPos = (s.basket && s.basket.n_positions) || 0;
+  const aEl = document.getElementById('ppAGrade');
+  if(aEl){
+    aEl.textContent = String(nA);
+    aEl.title = `${nA} A-grade + ${nB} B-grade catalysts`;
+  }
+  const pcEl = document.getElementById('ppPumpConf');
+  if(pcEl){
+    pcEl.textContent = `${nPC} of ${nPos} pump-confirmed`;
+  }
+
+  // ── Top picks
+  const picksEl = document.getElementById('ppPicks');
+  if(picksEl){
+    const picks = s.top_picks || [];
+    if(picks.length){
+      picksEl.innerHTML = picks.slice(0, 3).map(p => {
+        const cg = p.catalyst_grade || '?';
+        const cgColor = cg === 'A' ? '#10b981' : cg === 'B' ? '#22d3ee' : cg === 'C' ? '#f59e0b' : cg === 'D' ? '#ef4444' : 'var(--muted)';
+        const ct = (p.catalyst_type || '').replace(/_/g, ' ').slice(0, 20);
+        const sz = (p.position_pct != null) ? ` <span style="color:#ef4444;font-weight:700">${Number(p.position_pct).toFixed(1)}%</span>` : '';
+        return `<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px"><span style="color:var(--text);font-weight:700;font-size:13px">${escHtml(p.ticker || '—')}</span><span style="background:${cgColor};color:#0b0e13;font-weight:700;padding:1px 5px;border-radius:2px;font-size:9px">${escHtml(cg)}</span><span style="color:var(--muted);font-size:10.5px">${escHtml(ct)}</span>${sz}</div>`;
+      }).join('');
+    } else {
+      picksEl.textContent = 'No positions';
+    }
+  }
+
+  // ── Clusters + early detection
+  const clusEl = document.getElementById('ppClusters');
+  if(clusEl){
+    const clusters = s.clusters || [];
+    if(clusters.length){
+      clusEl.innerHTML = clusters.map(c => {
+        const qg = c.quality || '?';
+        const qColor = qg === 'A' ? '#10b981' : qg === 'B' ? '#22d3ee' : qg === 'C' ? '#f59e0b' : '#ef4444';
+        const type = (c.type || '').replace('TEMPORAL_', '').replace('THEMATIC_', '');
+        const members = (c.members || []).slice(0, 4).join(', ');
+        return `<div><span style="color:${qColor};font-weight:700">${escHtml(qg)}</span> ${escHtml(type)}: ${escHtml(members)}</div>`;
+      }).join('');
+    } else {
+      clusEl.textContent = 'No active clusters';
+    }
+    const sa = s.suggested_additions || [];
+    if(sa.length){
+      clusEl.innerHTML += `<div style="margin-top:3px;color:#a78bfa;font-size:11px">💡 Consider: ${sa.slice(0,3).map(x => escHtml(x.ticker || '?')).join(', ')}</div>`;
+    }
+  }
+  const earlyEl = document.getElementById('ppEarly');
+  if(earlyEl && s.early){
+    const e = s.early;
+    const tickers = (e.actionable || []).slice(0, 4).join(', ');
+    earlyEl.innerHTML = `<span style="color:#10b981">${e.n_confirmed_today} confirmed</span> · <span style="color:#22d3ee">${e.n_fresh} fresh</span> · <span style="color:#f59e0b">${e.n_aging} aging</span>${tickers ? ' · ' + escHtml(tickers) : ''}`;
+  }
+
+  // ── Subtitle from executive_summary
+  const subEl = document.getElementById('ppSub');
+  if(subEl){
+    const exec = s.executive_summary || '';
+    if(exec){
+      subEl.textContent = exec.slice(0, 130) + (exec.length > 130 ? '…' : '');
+    } else {
+      subEl.textContent = `Catalyst-aware pump-hunter desk · ${nPos} positions · ${nA} A-grade catalysts`;
+    }
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   FETCH ORCHESTRATION — parallel, fault-tolerant
+   ────────────────────────────────────────────────────────────── */
+function renderRetailHero(){
+  const d = STATE.data.retail; if(!d) return;
+  const r = d.ranked || {}, md = d.market_regime_data || {};
+  const regime = d.market_regime || '—';
+  const rc = {MANIA:'#ff3d5a',ELEVATED:'#fb923c',NORMAL:'#22d3ee',QUIET:'#8b96a8'}[regime] || 'var(--text)';
+  const el = id => document.getElementById(id);
+  if(el('rtRegime')){ el('rtRegime').textContent = regime; el('rtRegime').style.color = rc; }
+  if(el('rtMentions')) el('rtMentions').textContent = (md.total_mentions!=null ? md.total_mentions.toLocaleString() : '—') + ' mentions' + (md.delta_pct!=null ? ` (${md.delta_pct>=0?'+':''}${md.delta_pct}% vs prior)` : '');
+  if(el('rtSub')) el('rtSub').textContent = `What retail is buying, talking about & excited about — Reddit × StockTwits, paired with price · ${d.n_with_price||0} price-confirmed`;
+  const mom = r.momentum_confirmed||[], div = r.fading_divergence||[];
+  if(el('rtMomDiv')){
+    const momS = mom.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
+    const divS = div.slice(0,3).map(e=>e.ticker).join(', ') || 'none';
+    el('rtMomDiv').innerHTML = `<span style="color:#26ffaf">🚀 ${mom.length} confirmed</span> <span style="color:var(--muted)">${momS}</span><br><span style="color:#ff5577">⚠ ${div.length} diverging</span> <span style="color:var(--muted)">${divS}</span>`;
+  }
+  const hot = (r.hottest||[]).slice(0,5);
+  if(el('rtHottest')){
+    el('rtHottest').innerHTML = hot.length ? hot.map(e=>{
+      const chg = e.change_pct;
+      const chgStr = chg==null ? '' : `<span style="color:${chg>=0?'#26ffaf':'#ff5577'}">${chg>=0?'+':''}${chg.toFixed(1)}%</span>`;
+      const bz = {MOMENTUM:'🚀',IGNITION:'✨',DIVERGENCE:'⚠',RISING:'↑',FADING:'↓',STEADY:'·'}[e.buzz_state]||'·';
+      return `<span style="display:inline-block;margin-right:16px;white-space:nowrap"><b style="color:var(--text)">${e.ticker}</b> <span style="color:#fbbf24">${e.heat||0}🔥</span> ${bz} ${chgStr}</span>`;
+    }).join('') : 'no data';
+  }
+}
+
+async function loadAll(){
+  const tasks = Object.entries(SOURCES).map(async ([key, url]) => {
+    try{
+      const data = await fetchJson(url);
+      STATE.data[key] = data;
+      delete STATE.errors[key];
+    }catch(e){
+      STATE.errors[key] = e.message;
+    }
+  });
+  await Promise.allSettled(tasks);
+
+  // Render alert + strip first (depend on multiple sources)
+  if(STATE.data.intel) renderAlert(STATE.data.intel);
+  renderStrip();
+
+  // Flagship cross-asset posture card (top of grid)
+  if(STATE.data.signalBoard) renderSignalBoard();
+  else if(STATE.errors.signalBoard){
+    const sb = document.getElementById('signalBoardBody');
+    if(sb) sb.innerHTML = `<div class="err" style="grid-column:1/-1">⚠ Signal-board feed unavailable</div>`;
+  }
+
+  if(STATE.data.retail) renderRetailHero();
+  else if(STATE.errors.retail){ const b=document.getElementById('rtHottest'); if(b) b.innerHTML='<span class="err">⚠ retail feed unavailable</span>'; }
+
+  // PRE-PUMP RADAR — fire-and-forget, doesn't block other renders.
+  // Page becomes interactive immediately; card fills in when its 5 fetches return.
+  loadPrePumpRadar();
+
+  // Render each card, even if some failed
+  if(STATE.data.setups) renderSetups();
+  else if(STATE.errors.setups) setError('setupsBody', STATE.errors.setups);
+
+  if(STATE.data.risk) renderRisk();
+  else if(STATE.errors.risk) setError('riskBody', STATE.errors.risk);
+
+  if(STATE.data.intel) renderKa();
+  else if(STATE.errors.intel) setError('kaBody', STATE.errors.intel);
+
+  if(STATE.data.liq) renderLiq();
+  else if(STATE.errors.liq) setError('liqBody', STATE.errors.liq);
+
+  if(STATE.data.div) renderDiv();
+  else if(STATE.errors.div) setError('divBody', STATE.errors.div);
+
+  if(STATE.data.flow) renderFlow();
+  else if(STATE.errors.flow) setError('flowBody', STATE.errors.flow);
+
+  if(STATE.data.crypto) renderCrypto();
+  else if(STATE.errors.crypto) setError('cryptoBody', STATE.errors.crypto);
+
+  if(STATE.data.cot) renderCot();
+  else if(STATE.errors.cot) setError('cotBody', STATE.errors.cot);
+
+  if(STATE.data.pnl) renderPnl();
+  else if(STATE.errors.pnl) setError('pnlBody', STATE.errors.pnl);
+
+  // System status pill — public-facing, calm. Many sources can fail for the
+  // anonymous viewer (CORS/auth) without the platform being "down", so we never
+  // expose alarming red counts to visitors.
+  const errCount = Object.keys(STATE.errors).length;
+  const total = Object.keys(SOURCES).length;
+  const pill = document.getElementById('sysStatus');
+  if(errCount > total * 0.5){
+    pill.classList.remove('degraded');
+    pill.textContent = 'LIVE';
+  }else{
+    pill.classList.remove('degraded');
+    pill.textContent = 'LIVE';
+  }
+
+  // Footer last update
+  STATE.lastUpdate = Date.now();
+  document.getElementById('footUpdated').textContent = 'updated ' + new Date().toISOString().slice(11,19) + ' UTC';
+}
+
+/* ──────────────────────────────────────────────────────────────
+   BOOT
+   ────────────────────────────────────────────────────────────── */
+updateClock();
+setInterval(updateClock, 1000);
+loadAll();
+setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
+
+</script>
+
+<footer style="border-top:1px solid #1c2433;margin-top:40px;padding:28px 24px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6f7b91">
+  <div style="margin-bottom:8px">
+    <a href="/about.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">About</a>·
+    <a href="/contact.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Contact</a>·
+    <a href="/glossary.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Glossary</a>·
+    <a href="/download.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Download</a>·
+    <a href="/pricing.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Pricing</a>·
+    <a href="/status.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Status</a>·
+    <a href="/terms.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Terms</a>·
+    <a href="/privacy.html" style="color:#6f7b91;margin:0 9px;text-decoration:none">Privacy</a>
+  </div>
+  <div>© 2026 JustHodl.AI · Research &amp; analytics, not investment advice.</div>
+</footer>
+<script src="/cmdk.js"></script>
+<script src="/symbol-bar.js"></script>
+<script src="/auth-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(window.JustHodlAuth)JustHodlAuth.init();});</script>
+<script src="/affiliates.js"></script>
+<script>window.addEventListener("load",function(){if(window.Affiliates)Affiliates.renderFooterBar();});</script>
+<script src="/regime-ribbon.js"></script>
+<script>window.addEventListener("load",function(){if(window.RegimeRibbon)RegimeRibbon.mount({target:"home-regime-ribbon",position:"inline"});});</script>
+<script>
+(function(){
+ var PX="https://justhodl-data-proxy.raafouis.workers.dev";
+ function gj(p){return fetch("https://justhodl.ai/"+p+"?t="+Date.now()).then(function(r){if(r.ok)return r.json();throw 0;}).catch(function(){return fetch(PX+"/"+p+"?t="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});});}
+ function tx(v){return v>0?"#3fd68c":v<0?"#ff5c6c":"#aebccd";}
+ var RC={"BIFURCATED":"#f5b343","BROAD RISK-ON":"#3fd68c","BROAD RISK-OFF":"#ff5c6c","NARROW / CONCENTRATED":"#f5b343","MIXED / ROTATIONAL":"#7c8ba0"};
+ gj("data/regime-map.json").then(function(d){
+   var el=document.getElementById("risk-map-card"); if(!el||!d||!d.ok)return;
+   var r=d.regime, c=RC[r.label]||"#7c8ba0";
+   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style="font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('');}
+   el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
+     +'<div><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">RISK MAP</span> <b style="color:'+c+';font-size:15px;margin-left:5px">'+r.label+'</b> <span style="font-size:10.5px;color:#536074;font-family:monospace">eq '+(r.equity_avg>0?'+':'')+r.equity_avg+' · crypto '+(r.crypto_avg>0?'+':'')+r.crypto_avg+' · breadth '+r.equity_breadth_pct+'%</span></div>'
+     +'<a href="/regime-map.html" style="font-size:11px;color:#46c8ff;text-decoration:none">full board &rarr;</a></div>'
+     +'<div style="font-size:12px;color:#aebccd;margin-bottom:8px;line-height:1.45">'+r.summary+'</div>'
+     +'<div style="font-size:11px"><span style="color:#3fd68c;font-weight:600">BOOMING </span>'+chips(d.booming)+'</div>'
+     +'<div style="font-size:11px;margin-top:4px"><span style="color:#ff5c6c;font-weight:600">DESTROYED </span>'+chips(d.destroyed)+'</div>';
+ });
 })();
 </script>
+<script>
+(function(){
+ var PX="https://justhodl-data-proxy.raafouis.workers.dev";
+ function gj(p){return fetch("https://justhodl.ai/"+p+"?t="+Date.now()).then(function(r){if(r.ok)return r.json();throw 0;}).catch(function(){return fetch(PX+"/"+p+"?t="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});});}
+ var SC={EMERGING:"#3fd68c",CONFIRMED:"#46c8ff","CONFIRMED BULL":"#46c8ff",BASING:"#a78bfa",TRANSITION:"#f5b343","EXTENDED / TOP-RISK":"#ff9f43",EXTENDED:"#ff9f43",DECLINING:"#ff5c6c","BEAR / DECLINING":"#ff5c6c"};
+ Promise.all([gj("data/crypto-emergence.json"),gj("data/sector-emergence.json")]).then(function(a){
+   var ce=a[0],se=a[1],el=document.getElementById("emergence-card"); if(!el||(!ce&&!se))return;
+   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">EMERGENCE \u00b7 early-innings bulls</span><span><a href="/sector-emergence.html" style="font-size:11px;color:#46c8ff;text-decoration:none">sectors</a> \u00b7 <a href="/crypto-emergence.html" style="font-size:11px;color:#46c8ff;text-decoration:none">crypto &rarr;</a></span></div>';
+   if(ce&&ce.ok){var c=SC[ce.complex_stage]||"#7c8ba0",tr=ce.triggers||{};
+     h+='<div style="font-size:12px;margin-bottom:5px"><b style="color:'+c+'">Crypto: '+ce.complex_stage+'</b> <span style="font-family:monospace;font-size:11px;color:#536074">BTC '+(tr.btc_pct_to_200d>0?"+":"")+tr.btc_pct_to_200d+'% vs 200d \u00b7 MVRV '+(ce.mvrv!=null?ce.mvrv:"\u2013")+' \u00b7 breadth '+ce.breadth_pct_above_50d+'%</span></div>';}
+   if(se&&se.ok){var lead=(se.sectors||[]).slice(0,3).map(function(o){var sc=SC[o.stage]||"#aebccd";return '<span style="font-family:monospace;font-size:11px;margin-right:10px"><span style="color:'+sc+'">'+o.ticker+'</span> '+o.stage.toLowerCase()+'</span>';}).join("");
+     h+='<div style="font-size:12px"><b style="color:#aebccd">Sectors:</b> '+lead+'</div>';}
+   el.innerHTML=h;
+ });
+})();
+</script>
+<script>
+(function(){
+ var PX="https://justhodl-data-proxy.raafouis.workers.dev";
+ function gj(p){return fetch("https://justhodl.ai/"+p+"?t="+Date.now()).then(function(r){if(r.ok)return r.json();throw 0;}).catch(function(){return fetch(PX+"/"+p+"?t="+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});});}
+ var PC={'EARLY CYCLE':'#3fd68c','MID CYCLE':'#46c8ff','LATE-MID CYCLE':'#7fc4ff','LATE CYCLE':'#f5b343','DOWNTURN':'#ff5c6c','UNKNOWN':'#7c8ba0'};
+ var SC={'LOW':'#3fd68c','LOW \u00b7 WATCH':'#7fe0a8','RISING':'#f5b343','ELEVATED':'#ffb066','HIGH':'#ff7a5c','ACUTE':'#ff5c6c','UNKNOWN':'#7c8ba0'};
+ gj("data/cycle-clock.json").then(function(d){
+   var el=document.getElementById("cycle-clock-card"); if(!el||!d||!d.cycle)return;
+   var cy=d.cycle,lq=d.liquidity,pc=PC[cy.phase]||"#aebccd",sc=SC[lq.level]||"#aebccd";
+   var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">\ud83d\udd50 CYCLE &amp; LIQUIDITY CLOCK</span><a href="/cycle-clock.html" style="font-size:11px;color:#46c8ff;text-decoration:none">full read &rarr;</a></div>';
+   h+='<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:baseline;margin-bottom:6px">';
+   h+='<span style="font-size:15px;font-weight:800;color:'+pc+'">'+cy.phase+'</span>';
+   h+='<span style="font-family:monospace;font-size:12px;color:#7c8ba0">'+(cy.quadrant||'')+' \u00b7 growth '+cy.growth_direction+' \u00b7 inflation '+cy.inflation_direction+'</span>';
+   h+='</div>';
+   h+='<div style="display:flex;gap:10px;align-items:center;margin-bottom:7px"><span style="font-size:11px;color:#536074">squeeze risk</span><span style="font-family:monospace;font-size:13px;font-weight:700;color:'+sc+'">'+(lq.squeeze_risk_score==null?'\u2013':lq.squeeze_risk_score)+' \u00b7 '+lq.level+'</span><span style="font-size:11px;color:#536074">'+(lq.aggregate_liquidity_regime||'')+' liquidity</span></div>';
+   h+='<div style="font-size:11.5px;color:#aebccd;line-height:1.5">'+(d.verdict||'')+'</div>';
+   el.innerHTML=h;
+ });
+})();
+</script>
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
 </body>
 </html>
