@@ -1,7 +1,10 @@
-executing-against: f754e51bbbd0f9d2023e251150e4f26260d501f4
-[00:03:00] ✅ real_gap (has real outs[], zero page anywhere): 111
-[00:03:00] ✅   of these: FRESH<24h=90  STALE>=24h=13  feed-missing/dead=8
-[00:03:00] ✅ no_outs_declared (registry metadata gap or non-display infra): 82
+executing-against: edb4e34d62363d7c12594500d12832a1c079e5bd
+[00:14:59] ✅ v1.2.26 deploy live attempt 1
+[00:14:59] ✅ engines.html: http=200 bake marker replaced=True
+[00:14:59] ✅   total=661 counts={'no-outs': 82, 'orphan-fresh': 97, 'wired': 468, 'orphan-stale': 9, 'orphan-dead': 5}
+[00:14:59] ✅ chrome present: True
+[00:14:59] ✅ nav-manifest: engines.html present, 366 total, 366 unique (want 366/366)
+[00:14:59] ✅ directory.html links to engines.html + stale count fixed: True
 
-→ Report written to aws/ops/reports/latest/2945.md
-DONE 2945 PASS
+→ Report written to aws/ops/reports/latest/2946.md
+DONE 2946 PASS
