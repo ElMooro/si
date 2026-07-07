@@ -1,10 +1,11 @@
-executing-against: b01711918c9faae99da91496e944d4fa0fab111c
-── 1. Wait for the parallel deploy-lambdas code update ──
-── 2. Synchronous run ──
-── 3. Hard verify schema 1.1 ──
-── 4. Live page v2 ──
-[20:12:20] ✅ v1.1 LIVE: 31 assets / 20 modeled; HYG ER 3.39% (carry 5.9, OAS pctile 10.3); reads+horizons on all; corr on 30; UNG barred; page v2 live
-[20:12:20] FAILS=0 WARNS=0
-[20:12:20] report written: /home/runner/work/si/si/aws/ops/reports/2973.json
+executing-against: e25c3efff2ed4a9968b78d2c770362808711f550
+── A/B. Repo scans ──
+── C. S3 context loads ──
+── D. Classification ──
+── E. Redundancy ──
+── F. Gap matrix cross-check ──
+── G. Assemble + upload ──
+[20:48:46] ✅ fleet audit live: 667 engines / 369 pages / 12 families; 16 genuine gaps (8 feasible now), 6 claims demoted to already-covered by evidence
+[20:48:46] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2973_asset_compass_v11.md
+→ Report written to aws/ops/reports/latest/2974_fleet_audit.md
