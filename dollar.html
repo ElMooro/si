@@ -143,6 +143,19 @@ function build(d){
     '<div class="pscale"><span>-100 DUMP</span><span>0</span><span>PUMP +100</span></div>'+
     '<div class="hl" style="margin-top:8px">'+esc(d.headline||"")+'</div></div>';
 
+  // risk-asset transmission (v2) -- DXY x US10Y read for risk assets
+  let rt='';
+  const x=d.risk_transmission;
+  if(x&&x.verdict&&x.score!=null){
+    const xc=x.score>=15?"var(--green)":(x.score<=-15?"var(--red)":"var(--mute)");
+    rt='<div class="sechead">Risk-Asset Transmission &middot; DXY &times; US10Y</div>'+
+      '<div class="card" style="border-left:3px solid '+xc+'">'+
+      '<div class="ct">'+esc(x.verdict)+' <span style="color:'+xc+'">'+
+      (x.score>0?"+":"")+esc(x.score)+' / 100</span></div>'+
+      '<div class="cm">'+(x.components||[]).map(c=>esc(c.label)+' <b>'+esc(c.reading)+'</b>').join(' &middot; ')+'</div>'+
+      '<div class="cs" style="margin-top:6px">'+esc(x.note||"")+'</div></div>';
+  }
+
   // canaries
   let can='<div class="sechead">Pump / Dump Canaries</div>';
   (d.canaries||[]).forEach(c=>{can+=canaryRow(c);});
@@ -190,7 +203,7 @@ function build(d){
   const note='<div class="note">'+esc(d.how_to_read||"")+'<br><br>'+
     esc(d.disclaimer||"")+'</div><div class="timestamp">updated '+esc(ts)+'</div>';
 
-  document.getElementById("root").innerHTML=h+can+tech+idx+bil+note;
+  document.getElementById("root").innerHTML=h+rt+can+tech+idx+bil+note;
 
   // render charts
   if(t.series&&t.series.length){

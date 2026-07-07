@@ -573,6 +573,18 @@ def lambda_handler(event, context):
         "methodology": "Weighted cross-asset RORO; blocks reweighted over live inputs. "
                        "Massive VIX/futures not entitled -> VIX/credit sourced from FRED.",
     }
+    try:
+        _dr = _read("data/dollar-radar.json") or {}
+        _rt = _dr.get("risk_transmission") or {}
+        out["dollar_context"] = {
+            "dollar_pressure": _dr.get("dollar_pressure"),
+            "dollar_regime": _dr.get("regime"),
+            "risk_transmission_score": _rt.get("score"),
+            "risk_transmission_verdict": _rt.get("verdict"),
+            "source": "justhodl-dollar-radar v2 (additive context; not "
+                      "folded into risk_regime_score pending scorecard)"}
+    except Exception as _e:
+        print("[dollar-context] %s" % _e)
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
 

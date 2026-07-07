@@ -45,11 +45,15 @@ try:
 except Exception:
     pass
 
-SCHEMA = "1.0"
+SCHEMA = "2.0"
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/dollar-radar.json"
 EURODOLLAR_KEY = "data/eurodollar-stress.json"
+CB_STANCE_KEY = "data/cb-stance.json"
+CHINA_KEY = "data/china-liquidity.json"
+CFTC_KEY = "data/cftc-all-cache.json"
+HIST_KEY = "data/dollar-radar-history.json"
 
 s3 = boto3.client("s3")
 SSM = boto3.client("ssm")
@@ -115,7 +119,7 @@ BILATERALS = [
 # canary inputs
 CANARY_SERIES = ["WALCL", "WRESBAL", "RRPONTSYD", "WTREGEN", "DFII10",
                  "DGS10", "DGS2", "IRLTLT01DEM156N", "VIXCLS",
-                 "BAMLH0A0HYM2", "DCOILWTICO"]
+                 "BAMLH0A0HYM2", "DCOILWTICO", "SWPT"]
 
 # pattern parameters (mirrors justhodl-chart-patterns)
 SWING_W = 5
@@ -301,9 +305,10 @@ def _lean(value, thresholds, signs):
     return signs[-1]
 
 
-def build_canaries(fred):
+def build_canaries(fred, sib=None):
     """Returns (canary_list, composite_pressure)."""
     can = []
+    sib = sib or {}
 
     def add(label, value_txt, lean, weight, detail):
         can.append({
@@ -466,6 +471,127 @@ def build_canaries(fred):
             "currency is bid hard (PUMP). Easy funding lets it drift "
             "lower (DUMP).")
 
+
+    # 11) US 10Y NOMINAL YIELD TREND  (the risk-asset co-pilot) ----------
+    if dgs10:
+        d = chg_abs(dgs10, 63)
+        if d is not None:
+            lean = _lean(d, [-0.35, -0.1, 0.1, 0.35], [-2, -1, 0, 1, 2])
+            add("US 10y nominal yield trend",
+                "%.2f%% (%+.2f pp / 13w)" % (dgs10[-1][1], d), lean, 1.25,
+                "Rising 10y yields raise the dollar's carry and pull "
+                "capital in (PUMP); falling yields release it (DUMP). "
+                "With DXY, this is the primary risk-asset transmission "
+                "channel.")
+
+    # 12) POLICY REPRICING  (2y front end) -------------------------------
+    dgs2 = fred.get("DGS2") or []
+    if dgs2:
+        d = chg_abs(dgs2, 63)
+        if d is not None:
+            lean = _lean(d, [-0.4, -0.12, 0.12, 0.4], [-2, -1, 0, 1, 2])
+            add("Fed path repricing (2y yield)",
+                "%.2f%% (%+.2f pp / 13w)" % (dgs2[-1][1], d), lean, 1.0,
+                "The 2y is the market's Fed dot. Front-end repricing "
+                "higher = hawkish surprise (PUMP); lower = dovish "
+                "surprise (DUMP).")
+
+    # 13) FED SWAP LINES  (eurodollar shortage relief valve) -------------
+    swpt = fred.get("SWPT") or []
+    if swpt:
+        bn = swpt[-1][1] / 1000.0
+        lean = _lean(bn, [1, 10, 60, 150], [0, 1, 1, 2, 2])
+        add("Fed FX swap lines outstanding",
+            "%.1f $bn" % bn, lean, 0.75,
+            "Foreign central banks tap Fed swap lines only when offshore "
+            "dollars are scarce -- usage confirms a eurodollar shortage "
+            "(PUMP), even as the facility caps how violent the squeeze "
+            "can get.")
+
+    # 14) CB POLICY STANCE GAP  (Fed vs ECB/BoJ, from cb-stance engine) --
+    try:
+        cbj = sib.get("cb") or {}
+        def _stance_num(node):
+            r = str(((node or {}).get("regime")) or "").upper()
+            if "HAWK" in r:
+                return 1.0
+            if "DOVISH" in r or "EASING" in r:
+                return -1.0
+            return 0.0 if r else None
+        fed_n = _stance_num(cbj.get("fed"))
+        peers = [x for x in (_stance_num(cbj.get("ecb")),
+                             _stance_num(cbj.get("boj"))) if x is not None]
+        if fed_n is not None and peers:
+            gap = fed_n - sum(peers) / len(peers)
+            lean = max(-2, min(2, int(round(gap))))
+            add("CB stance gap (Fed vs ECB/BoJ)",
+                "Fed %s vs peers" % (str((cbj.get("fed") or {})
+                                         .get("regime", "?")).upper()),
+                lean, 1.0,
+                "A Fed more hawkish than the ECB and BoJ widens the "
+                "policy gap in the dollar's favour (PUMP); a Fed easing "
+                "into hawkish peers narrows it (DUMP).")
+    except Exception as e:
+        print("[canary cb-stance] %s" % e)
+
+    # 15) CHINA CREDIT IMPULSE  (global reflation channel) ---------------
+    try:
+        cn = sib.get("cn") or {}
+        ci = None
+        for k in ("credit_impulse_pp", "credit_impulse"):
+            v = cn.get(k)
+            if isinstance(v, (int, float)):
+                ci = float(v)
+                break
+            if isinstance(v, dict) and isinstance(v.get("value"),
+                                                  (int, float)):
+                ci = float(v["value"])
+                break
+        if ci is not None:
+            lean = _lean(ci, [-2, -0.5, 0.5, 2], [2, 1, 0, -1, -2])
+            add("China credit impulse",
+                "%+.1f pp" % ci, lean, 0.75,
+                "Accelerating Chinese credit reflates global trade and "
+                "commodity demand, pulling capital out of dollars "
+                "(DUMP); a credit contraction starves it and supports "
+                "the dollar (PUMP).")
+    except Exception as e:
+        print("[canary china] %s" % e)
+
+    # 16) SPECULATIVE USD POSITIONING  (contrarian at extremes) ----------
+    try:
+        cf = sib.get("cftc") or {}
+        rows = (cf.get("contracts") or cf.get("data") or
+                (cf if isinstance(cf, list) else []))
+        if isinstance(rows, dict):
+            rows = list(rows.values())
+        pct = None
+        for r in rows or []:
+            if not isinstance(r, dict):
+                continue
+            name = str(r.get("name") or r.get("market") or
+                       r.get("contract") or "").upper()
+            if "DOLLAR" in name and "INDEX" in name:
+                for k in ("net_pctile", "pctile", "net_pct_rank",
+                          "pct_rank", "percentile"):
+                    if isinstance(r.get(k), (int, float)):
+                        pct = float(r[k])
+                        break
+                break
+        if pct is not None:
+            lean = 0
+            if pct >= 88:
+                lean = -1
+            elif pct <= 12:
+                lean = 1
+            add("Speculative USD positioning (CFTC)",
+                "%.0f%%ile net long" % pct, lean, 0.5,
+                "Crowded speculative dollar longs are fuel for a squeeze "
+                "lower (contrarian DUMP risk); a washed-out short base "
+                "is fuel for a rip higher (contrarian PUMP).")
+    except Exception as e:
+        print("[canary cftc] %s" % e)
+
     # ---- composite ------------------------------------------------------
     if not can:
         return [], None
@@ -473,6 +599,78 @@ def build_canaries(fred):
     raw = sum(c["lean"] * c["weight"] for c in can) / wsum  # -2..+2
     pressure = round(raw / 2.0 * 100.0)                     # -100..+100
     return can, pressure
+
+
+def build_risk_transmission(fred):
+    """DXY x US10Y -> what the two most-watched dials say for RISK ASSETS.
+
+    A rising dollar and rising yields tighten global financial conditions
+    -- the classic risk-asset DUMP mix; a falling dollar with falling or
+    stable yields is the liquidity tailwind behind risk-asset PUMPs.
+    Score runs -100 (hard risk-asset DUMP pressure) to +100 (hard PUMP).
+    """
+    broad = fred.get("DTWEXBGS") or []
+    dgs10 = fred.get("DGS10") or []
+    dfii = fred.get("DFII10") or []
+    comps = []
+
+    def comp(label, reading, lean, weight, note):
+        comps.append({"label": label, "reading": reading, "lean": lean,
+                      "weight": weight, "note": note})
+
+    dx = chg_pct(broad, 21) if broad else None
+    if dx is not None:
+        lean = _lean(dx, [-1.5, -0.4, 0.4, 1.5], [-2, -1, 0, 1, 2])
+        comp("DXY (broad) 1m", "%.2f (%+.2f%%)" % (broad[-1][1], dx),
+             lean, 0.45,
+             "Dollar up = global tightening, EM/commodity/crypto "
+             "headwind. Dollar down = tailwind.")
+    y10 = chg_abs(dgs10, 21) if dgs10 else None
+    if y10 is not None:
+        lean = _lean(y10, [-0.25, -0.08, 0.08, 0.25], [-2, -1, 0, 1, 2])
+        comp("US10Y 1m", "%.2f%% (%+.2f pp)" % (dgs10[-1][1], y10),
+             lean, 0.35,
+             "Rising long yields compress equity multiples and raise "
+             "the hurdle for every risk asset.")
+    ry = chg_abs(dfii, 21) if dfii else None
+    if ry is not None:
+        lean = _lean(ry, [-0.2, -0.06, 0.06, 0.2], [-2, -1, 0, 1, 2])
+        comp("US 10y real yield 1m", "%+.2f pp" % ry, lean, 0.20,
+             "The real yield is the cleanest discount rate -- rising "
+             "real yields hit long-duration risk (tech, crypto) "
+             "hardest.")
+
+    if not comps:
+        return {"score": None, "verdict": "UNKNOWN", "components": [],
+                "note": "Insufficient data."}
+    wsum = sum(c["weight"] for c in comps)
+    raw = sum(c["lean"] * c["weight"] for c in comps) / wsum
+    score = int(round(-raw / 2.0 * 100.0))
+    if score >= 45:
+        verdict, note = "RISK PUMP", ("Dollar and yields are easing "
+                                      "together -- the liquidity mix that "
+                                      "fuels risk-asset pumps.")
+    elif score >= 15:
+        verdict, note = "LEAN PUMP", ("The dollar/rates mix tilts "
+                                      "supportive for risk assets.")
+    elif score > -15:
+        verdict, note = "NEUTRAL", ("DXY and US10Y are not imposing a "
+                                    "direction on risk assets right now.")
+    elif score > -45:
+        verdict, note = "LEAN DUMP", ("The dollar/rates mix tilts against "
+                                      "risk assets.")
+    else:
+        verdict, note = "RISK DUMP", ("Dollar and yields are rising "
+                                      "together -- the classic tightening "
+                                      "mix that dumps risk assets.")
+    return {"score": score, "verdict": verdict, "note": note,
+            "components": comps,
+            "how_to_read": (
+                "Built only from the broad dollar index and the US 10y "
+                "(nominal + real), 1-month trends. -100 = both tightening "
+                "hard (risk-asset DUMP pressure); +100 = both easing "
+                "(risk-asset PUMP fuel). This is the transmission dial, "
+                "not a standalone trade signal.")}
 
 
 def regime_of(pressure):
@@ -557,11 +755,17 @@ def lambda_handler(event, context):
     fred["DTWEXBGS"] = series_cache.get("DTWEXBGS") or fred_series(
         "DTWEXBGS", start, key)
 
-    canaries, pressure = build_canaries(fred)
+    siblings = {"cb": read_json(CB_STANCE_KEY),
+                "cn": read_json(CHINA_KEY),
+                "cftc": read_json(CFTC_KEY)}
+    canaries, pressure = build_canaries(fred, siblings)
+    risk_tx = build_risk_transmission(fred)
     regime, regime_note = regime_of(pressure)
     n_pump = sum(1 for c in canaries if c["lean"] > 0)
     n_dump = sum(1 for c in canaries if c["lean"] < 0)
-    prev_regime = read_prev_output().get("regime")
+    _prev = read_prev_output()
+    prev_regime = _prev.get("regime")
+    prev_risk = (_prev.get("risk_transmission") or {}).get("verdict")
 
     # technicals + patterns on the broad dollar
     broad = fred.get("DTWEXBGS") or []
@@ -599,6 +803,9 @@ def lambda_handler(event, context):
     headline = ("Dollar Pressure %+d/100 -- %s. %d canaries lean pump, "
                 "%d lean dump.%s" % (pressure if pressure is not None else 0,
                                      regime, n_pump, n_dump, pat))
+    if risk_tx.get("score") is not None:
+        headline += (" Risk-asset transmission: %s (%+d)."
+                     % (risk_tx["verdict"], risk_tx["score"]))
 
     out = {
         "schema_version": SCHEMA,
@@ -615,6 +822,8 @@ def lambda_handler(event, context):
         "indices": indices_out,
         "bilaterals": bilat_out,
         "technicals": technicals,
+        "risk_transmission": risk_tx,
+        "history_key": HIST_KEY,
         "how_to_read": (
             "Dollar Pressure runs -100 (hard DUMP) to +100 (hard PUMP). It "
             "is a weighted vote of ten leading canaries -- net liquidity, "
@@ -622,7 +831,12 @@ def lambda_handler(event, context):
             "rate gap, the VIX safe-haven bid, credit spreads, dollar "
             "momentum and offshore funding stress. Liquidity in (QE, RRP "
             "drain, TGA drawdown) weighs the dollar DOWN; liquidity out "
-            "(QT, RRP build, TGA rebuild) holds it UP."),
+            "(QT, RRP build, TGA rebuild) holds it UP. v2 adds the US10Y "
+            "trend, 2y Fed-path repricing, Fed swap-line usage (the "
+            "eurodollar relief valve), the Fed-vs-ECB/BoJ stance gap, "
+            "China's credit impulse and CFTC positioning extremes -- "
+            "plus the Risk-Asset Transmission dial that reads DXY x "
+            "US10Y for what they mean for risk assets."),
         "disclaimer": (
             "A probabilistic dollar radar built from leading macro "
             "signals. It shifts the odds on the dollar's next move; it "
@@ -638,6 +852,26 @@ def lambda_handler(event, context):
         print("S3 write fail: %s" % e)
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": str(e)})}
+
+    # --- daily history ledger (append-only, capped) --------------------
+    try:
+        hist = read_json(HIST_KEY)
+        rows = hist.get("rows") if isinstance(hist, dict) else hist
+        rows = rows if isinstance(rows, list) else []
+        today = now.strftime("%Y-%m-%d")
+        rows = [r for r in rows if r.get("date") != today]
+        rows.append({"date": today, "ts": now.isoformat(),
+                     "dollar_pressure": pressure, "regime": regime,
+                     "risk_score": risk_tx.get("score"),
+                     "risk_verdict": risk_tx.get("verdict")})
+        rows = rows[-800:]
+        s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+                      Body=json.dumps({"rows": rows,
+                                       "updated": now.isoformat()},
+                                      default=str).encode("utf-8"),
+                      ContentType="application/json")
+    except Exception as e:
+        print("[history] %s" % e)
 
     # --- regime-flip tripwire -- fires only on a flip INTO a hard regime,
     # comparing to the previous run, so it never spams while a regime holds.
@@ -664,6 +898,24 @@ def lambda_handler(event, context):
                 "flooding the system with dollars. Typically risk-on.\n\n"
                 "justhodl.ai/dollar.html" % (p, prev_regime or "n/a"))
             alerted = "DOLLAR DUMP"
+        rv, prv = risk_tx.get("verdict"), prev_risk
+        if rv == "RISK DUMP" and prv != "RISK DUMP":
+            send_telegram(
+                "\U0001F534 <b>RISK-ASSET TRANSMISSION -- flip</b>\n\n"
+                "DXY x US10Y -> <b>RISK DUMP</b> (%+d)\n(was %s)\n\n"
+                "Dollar and yields are tightening together -- the classic "
+                "mix that dumps risk assets.\n\njusthodl.ai/dollar.html"
+                % (risk_tx.get("score") or 0, prv or "n/a"))
+            alerted = (alerted or "") + "+RISK DUMP"
+        elif rv == "RISK PUMP" and prv != "RISK PUMP":
+            send_telegram(
+                "\U0001F7E2 <b>RISK-ASSET TRANSMISSION -- flip</b>\n\n"
+                "DXY x US10Y -> <b>RISK PUMP</b> (%+d)\n(was %s)\n\n"
+                "Dollar and yields are easing together -- the liquidity "
+                "mix that fuels risk-asset pumps.\n\n"
+                "justhodl.ai/dollar.html"
+                % (risk_tx.get("score") or 0, prv or "n/a"))
+            alerted = (alerted or "") + "+RISK PUMP"
     except Exception as e:
         print("[tg] flip alert err: %s" % e)
 
