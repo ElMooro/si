@@ -1,0 +1,16 @@
+{
+ "ops": 2980,
+ "fails": [
+  "revision_breadth not OK: strategist: strategist revisions thin (0 signed of 0) | stocks: WARMING_UP: snapshot history 0d of 21d needed (60 names captured today)"
+ ],
+ "warns": [],
+ "verdict": "FAIL",
+ "ts": "2026-07-07T21:59:05.498526+00:00",
+ "naaim_finding": "healthy weekly series; 2026-07-01 print 84.69 NEUTRAL, 1043-row history, schedule ENABLED (ops 2979) -- 'stale' was a cadence mismatch, not a fault",
+ "modules_ok": 10,
+ "degraded": {
+  "revision_breadth": "strategist: strategist revisions thin (0 signed of 0) | stocks: WARMING_UP: snapshot history 0d of 21d needed (60 names captured today)"
+ },
+ "implied_corr": 7.63,
+ "implied_corr_pctile": 0.0
+}
