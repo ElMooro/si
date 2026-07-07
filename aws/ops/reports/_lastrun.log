@@ -1,35 +1,34 @@
-executing-against: acd87ca906e9598b3abb33b43c825fbc1f901d50
-nav pages: 366
-pages ok: 366/366 (redirect-stubs resolved: 5) down=none
-[01:48:41] redirect stub /asymmetric.html -> /deep-value.html
-[01:48:41] redirect stub /catalysts.html -> /catalyst-calendar.html
-[01:48:41] redirect stub /charts.html -> /chart-pro.html
-[01:48:41] redirect stub /options-flow.html -> /signal-board.html
-[01:48:41] redirect stub /positioning.html -> /cftc.html
-feed URLs referenced by pages (as written): 532
-feed URLs live: 517/532 dead=15 unparseable=0
-[01:48:57] ⚠ DEAD feed https://api.justhodl.ai/agent/secretary (http403) <- /alpha-compass.html
-[01:48:57] ⚠ DEAD feed data/cot/extremes/current.json (http403) <- /desk-v2.html,/desk.html
-[01:48:57] ⚠ DEAD feed data/crypto-intel.json (http403) <- /desk-v2.html
-[01:48:57] ⚠ DEAD feed data/divergence/current.json (http403) <- /desk-v2.html,/desk.html,/news.html
-[01:48:57] ⚠ DEAD feed data/edgar_insiders.json (http403) <- /analytics.html
-[01:48:57] ⚠ DEAD feed data/equity_research.json (http403) <- /analytics.html
-[01:48:57] ⚠ DEAD feed data/ici-flows.json (http403) <- /ici-flows.html
-[01:48:57] ⚠ DEAD feed data/intelligence-report.json (http403) <- /desk-v2.html
-[01:48:57] ⚠ DEAD feed data/investor-debate/_index.json (http403) <- /desk-v2.html,/desk.html
-[01:48:57] ⚠ DEAD feed data/opportunities/asymmetric-equity.json (http403) <- /desk-v2.html,/desk.html
-[01:48:57] ⚠ DEAD feed data/portfolio/pnl-daily.json (http403) <- /desk-v2.html,/desk.html
-[01:48:57] ⚠ DEAD feed data/portfolio/signal-portfolio-state.json (http403) <- /ticker.html
-[01:48:57] ⚠ DEAD feed data/regime/current.json (http403) <- /desk-v2.html,/desk.html
-[01:48:57] ⚠ DEAD feed data/research_critique.json (http403) <- /analytics.html
-[01:48:57] ⚠ DEAD feed data/risk/recommendations.json (http403) <- /desk-v2.html,/desk.html
-engines: 661 | unique out keys: 715
-engines fresh=555 aging=14 stale=4 dead=6 no-outs=82
-[01:49:07] ⚠ dead engines: justhodl-engine-robustness,justhodl-eurostat-history,justhodl-ici-flows,justhodl-kill-switch,justhodl-transcript-indexer,justhodl-transcript-query
-[01:49:07] stale engines (>8d): justhodl-feedback,justhodl-history-api,justhodl-trade-journal,justhodl-watchlist
-pages=366/366 (stubs=5) feed-urls=517/532 engines fresh=555 aging=14 stale=4 dead=6 no-outs=82 t=28s
-[01:49:07] ✗ 15 referenced feed URLs dead
-FAILURES: 15 referenced feed URLs dead
+executing-against: 065e1c02cd5769308dc26c76812f5fcc078d6ed1
+NESTED cot/extremes/current.json: worker=403 s3=200 lm=Fri, 03 Jul 2026 19:00:46 GMT
+[01:54:02] NESTED cot/extremes/current.json: worker=403 s3=200 lm=Fri, 03 Jul 2026 19:00:46 GMT
+NESTED divergence/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
+[01:54:02] NESTED divergence/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
+NESTED investor-debate/_index.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:22:46 GMT
+[01:54:03] NESTED investor-debate/_index.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:22:46 GMT
+NESTED opportunities/asymmetric-equity.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:15 GMT
+[01:54:04] NESTED opportunities/asymmetric-equity.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:15 GMT
+NESTED portfolio/pnl-daily.json: worker=403 s3=200 lm=Mon, 01 Jun 2026 22:00:28 GMT
+[01:54:04] NESTED portfolio/pnl-daily.json: worker=403 s3=200 lm=Mon, 01 Jun 2026 22:00:28 GMT
+NESTED portfolio/signal-portfolio-state.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:00:30 GMT
+[01:54:05] NESTED portfolio/signal-portfolio-state.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:00:30 GMT
+NESTED regime/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 18:06:24 GMT
+[01:54:06] NESTED regime/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 18:06:24 GMT
+NESTED risk/recommendations.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:18 GMT
+[01:54:07] NESTED risk/recommendations.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:18 GMT
+LEGACY crypto-intel.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 14:55:53 GMT
+[01:54:08] LEGACY crypto-intel.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 14:55:53 GMT
+LEGACY edgar_insiders.json: worker=403 s3=403
+[01:54:08] LEGACY edgar_insiders.json: worker=403 s3=403
+LEGACY equity_research.json: worker=403 s3=403
+[01:54:09] LEGACY equity_research.json: worker=403 s3=403
+LEGACY research_critique.json: worker=403 s3=403
+[01:54:09] LEGACY research_critique.json: worker=403 s3=403
+LEGACY intelligence-report.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
+[01:54:10] LEGACY intelligence-report.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
+LEGACY ici-flows.json: worker=403 s3=403
+[01:54:11] LEGACY ici-flows.json: worker=403 s3=403
+AGENT https://api.justhodl.ai/agent/secretary: 403
+[01:54:11] AGENT https://api.justhodl.ai/agent/secretary: 403
+[01:54:11] ✅ probe complete
 
-→ Report written to aws/ops/reports/latest/2950_fleet_health.md
-❌ OPS-FAIL: aws/ops/pending/ops_2950_fleet_health.py
+→ Report written to aws/ops/reports/latest/2951_dead_feed_probe.md
