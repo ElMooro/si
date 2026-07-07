@@ -1,12 +1,25 @@
-executing-against: 6ec4213a33dc2e1a166c03c5d91e5139a8ec3255
-[03:23:18] minted /justhodl/brain/uid
-[03:23:19] minted /justhodl/tvnotes/ingest-token
-[03:23:19]   zip: 3228 bytes
+executing-against: 96abed56fa915f67bf1b185398abe8b4c7516ed4
+── 1. SSM bootstrap ──
+── 2. Deploy tv-notes-ingest ──
+[03:30:16]   zip: 3228 bytes
 ── 1. Lambda ──
-[03:23:19]   Lambda missing — creating
-[03:23:22] ✅   ✓ created justhodl-tv-notes-ingest
-[03:23:22] ✅   ✓ Function URL: https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/
-tv-notes: url=w4osroryszvlifgk4boofkh7 health=True dryrun=True brain_write=True mirror_sentinel=True
-[03:23:34] ✅ TV notes pipeline live: ingest deployed, brain round-trip proven, config published
+[03:30:16]   Lambda exists — updating
+[03:30:21] ✅   ✓ updated justhodl-tv-notes-ingest
+── 3. Publish tv-ingest-config.json ──
+[03:30:22] ✅ config published
+── 4. Wire brain-compiler → TV notes merge ──
+[03:30:22] ✅ brain-compiler: TV notes merge wired
+[03:30:22]   zip: 5501 bytes
+── 1. Lambda ──
+[03:30:22]   Lambda exists — updating
+[03:30:25] ✅   ✓ updated justhodl-brain-compiler
+[03:30:25] ✅   ✓ Function URL: https://nzoe4a43sjqxv3wovbac6dpvs40kxzgy.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[03:30:25]   invoking justhodl-brain-compiler…
+── 5. Live round-trip ──
+── 6. Status feed ──
+[03:30:41] ✅ status feed published
+tv-brain-v2: url=w4osroryszvlifgk4boofkh7cm0sel sentinel_brain=True mirror=True brain_compiler_wired=True
+[03:30:41] ✅ TV Notes → Brain v2 pipeline fully live
 
-→ Report written to aws/ops/reports/latest/2956_tv_notes_pipeline.md
+→ Report written to aws/ops/reports/latest/2957_tv_brain_v2.md

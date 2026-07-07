@@ -143,6 +143,29 @@ def match_engines(concept_names, index):
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     brain = gj("data/brain.json") or {}
+    # ── merge TradingView notes from the mirror (additive, idempotent) ──
+    try:
+        tv_mirror = gj("data/tradingview-notes.json") or {}
+        tv_notes  = tv_mirror.get("notes") or []
+        brain_ids = {n.get("id") for n in (brain.get("notes") or [])}
+        added_tv  = 0
+        for tn in tv_notes:
+            if not isinstance(tn, dict): continue
+            text = str(tn.get("text") or "").strip()
+            if len(text) < 20: continue
+            sym  = str(tn.get("symbol") or "UNTAGGED").upper()
+            nid  = tn.get("id") or ("tv-" + __import__("hashlib").sha1(
+                       (sym + "|" + text[:120]).encode()).hexdigest()[:16])
+            if nid in brain_ids: continue
+            body = "[TV:%s] %s" % (sym, text)
+            if not brain.get("notes"): brain["notes"] = []
+            brain["notes"].append({"id": nid, "cat": "thesis",
+                "text": body, "pinned": False,
+                "created": tn.get("created"), "_tv_symbol": sym})
+            brain_ids.add(nid); added_tv += 1
+        if added_tv: print("[tv-merge] +%d TV notes merged into brain" % added_tv)
+    except Exception as _tv_e:
+        print("[tv-merge] %s" % _tv_e)
     notes = brain.get("notes") or (brain if isinstance(brain, list) else [])
     registry = (gj("data/engine-registry.json") or {}).get("engines", {})
     claims, seen = [], set()
