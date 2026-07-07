@@ -555,10 +555,21 @@ def build_canaries(fred, sib=None):
             if isinstance(v, (int, float)):
                 ci = float(v)
                 break
-            if isinstance(v, dict) and isinstance(v.get("value"),
-                                                  (int, float)):
-                ci = float(v["value"])
-                break
+            if isinstance(v, dict):
+                for kk in ("pp", "impulse_pp", "value", "latest", "yoy",
+                           "yoy_pp", "current", "level", "impulse"):
+                    if isinstance(v.get(kk), (int, float)):
+                        ci = float(v[kk])
+                        break
+                if ci is None:
+                    nums = [x for x in v.values()
+                            if isinstance(x, (int, float))]
+                    if nums:
+                        ci = float(nums[0])
+                if ci is not None:
+                    break
+        if ci is not None and not (-15 < ci < 15):
+            ci = None  # unit sanity: credit impulse lives in single digits
         if ci is not None:
             lean = _lean(ci, [-2, -0.5, 0.5, 2], [2, 1, 0, -1, -2])
             add("China credit impulse",
@@ -582,16 +593,25 @@ def build_canaries(fred, sib=None):
         for r in rows or []:
             if not isinstance(r, dict):
                 continue
-            name = str(r.get("name") or r.get("market") or
-                       r.get("contract") or r.get("contract_name") or
-                       r.get("market_and_exchange_names") or "").upper()
-            if "DOLLAR" in name and "INDEX" in name:
-                for k in ("net_pctile", "pctile", "net_pct_rank",
-                          "pct_rank", "percentile", "pctile_3y",
-                          "net_pctile_3y", "noncomm_pctile"):
-                    if isinstance(r.get(k), (int, float)):
-                        pct = float(r[k])
+            blob = " ".join(str(v) for v in r.values()
+                            if isinstance(v, str)).upper()
+            if ("DOLLAR" in blob and "INDEX" in blob) or " DX " in blob:
+                for k, v in r.items():
+                    lk = str(k).lower()
+                    if (isinstance(v, (int, float)) and
+                            ("pctile" in lk or "percentile" in lk or
+                             "pct_rank" in lk)):
+                        pct = float(v)
                         break
+                if pct is None:
+                    for k, v in r.items():
+                        lk = str(k).lower()
+                        if (isinstance(v, (int, float)) and
+                                (lk == "z" or "zscore" in lk or
+                                 lk == "z_score")):
+                            # map z to an effective percentile band
+                            pct = 50.0 + max(-50.0, min(50.0, v * 20.0))
+                            break
                 break
         if pct is not None:
             lean = 0
