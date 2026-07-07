@@ -1,43 +1,41 @@
-executing-against: 802a2a1a43852c0a3c59eaad8dbd98ac5191ff28
-sibling data/eurodollar-stress.json: dict keys=as_of,v,composite_score,severity,regime,n_signals_used,n_signals_total,n_failures,signals,hot_signals,cold_signals,failures
-[02:34:31] sibling data/eurodollar-stress.json: dict keys=as_of,v,composite_score,severity,regime,n_signals_used,n_signals_total,n_failures,signals,hot_signals,cold_signals,failures
-sibling data/cb-stance.json: dict keys=generated_at,generated_at_unix,version,model,elapsed_seconds,n_fomc_statements_scored,fed,regime_changed_from_prior,new_statement_since_last_run
-[02:34:31] sibling data/cb-stance.json: dict keys=generated_at,generated_at_unix,version,model,elapsed_seconds,n_fomc_statements_scored,fed,regime_changed_from_prior,new_statement_since_last_run
-sibling data/china-liquidity.json: dict keys=schema_version,method,generated_at,elapsed_s,fred_failed,series_resolved,regime,regime_read,money,credit_impulse,interbank_rate,currency
-[02:34:31] sibling data/china-liquidity.json: dict keys=schema_version,method,generated_at,elapsed_s,fred_failed,series_resolved,regime,regime_read,money,credit_impulse,interbank_rate,currency
-sibling data/cftc-all-cache.json: dict keys=source,contracts,data,timestamp,cached_at
-[02:34:31] sibling data/cftc-all-cache.json: dict keys=source,contracts,data,timestamp,cached_at
-[02:34:31]   zip: 14170 bytes
+executing-against: d5d8bb9b28a2ad627d773121efec27ff17f734d1
+[03:03:05]   zip: 15706 bytes
 ── 1. Lambda ──
-[02:34:32]   Lambda exists — updating
-[02:34:37] ✅   ✓ updated justhodl-dollar-radar
+[03:03:05]   Lambda exists — updating
+[03:03:10] ✅   ✓ updated justhodl-dollar-radar
 ── 3. Smoke test ──
-[02:34:37]   invoking justhodl-dollar-radar…
-[02:34:46] ✅   ✓ smoke test passed
-[02:34:46]     ok                       True
-[02:34:46]     dollar_pressure          6
-[02:34:46]     regime                   NEUTRAL
-[02:34:46]     canaries                 14
-[02:34:46]     indices                  4
-[02:34:46]     bilaterals               10
-[02:34:46]     double_top               False
-[02:34:46]     double_bottom            False
-[02:34:46]     build_seconds            8.2
-[02:34:46] canary: Fed net liquidity (13w change) | +14 $bn | NEUTRAL
-[02:34:46] canary: Fed balance sheet trend (QE/QT) | +0.74% / 13w | DUMP
-[02:34:46] canary: Reverse repo (RRP) drain | +2 $bn / 13w | NEUTRAL
-[02:34:46] canary: Treasury General Account | +33 $bn / 13w | NEUTRAL
-[02:34:46] canary: US 10y real yield trend | +0.29 pp / 13w | PUMP
-[02:34:46] canary: US-Germany 10y spread | 1.44 pp (-0.20 / 13w) | DUMP
-[02:34:46] canary: Equity volatility (VIX safe-haven) | 15.8 | DUMP
-[02:34:46] canary: High-yield credit spreads | 2.74% (-0.03 / 13w) | NEUTRAL
-[02:34:46] canary: Dollar index momentum | 120.69 vs 50d/200d | PUMP
-[02:34:46] canary: Offshore dollar funding stress | 39/100 | NEUTRAL
-[02:34:46] canary: US 10y nominal yield trend | 4.49% (+0.09 pp / 13w) | NEUTRAL
-[02:34:46] canary: Fed path repricing (2y yield) | 4.14% (+0.26 pp / 13w) | PUMP
-[02:34:46] canary: Fed FX swap lines outstanding | 0.2 $bn | NEUTRAL
-[02:34:46] canary: China credit impulse | -5.5 pp | PUMP
-v2.1: canaries=14 pressure=6 NEUTRAL | risk=LEAN DUMP(-32) | tga=+33 $bn / 13w netliq=+14 $bn
-[02:34:46] ✅ dollar v2.1 verified live: engine, units, page, consumers
+[03:03:10]   invoking justhodl-dollar-radar…
+[03:03:21] ✅   ✓ smoke test passed
+[03:03:21]     ok                       True
+[03:03:21]     dollar_pressure          6
+[03:03:21]     regime                   NEUTRAL
+[03:03:21]     canaries                 14
+[03:03:21]     indices                  4
+[03:03:21]     bilaterals               10
+[03:03:21]     double_top               False
+[03:03:21]     double_bottom            False
+[03:03:21]     build_seconds            10.0
+[03:03:21]   zip: 5449 bytes
+── 1. Lambda ──
+[03:03:21]   Lambda exists — updating
+[03:03:24] ✅   ✓ updated justhodl-equity-confluence
+[03:03:24] ✅   ✓ Function URL: https://j3xczgcqiq7x674vprqyj7st240dzriw.lambda-url.us-east-1.on.aws/
+── 3. Smoke test ──
+[03:03:25]   invoking justhodl-equity-confluence…
+[03:03:27] ✅   ✓ smoke test passed
+[03:03:27]     mode                     PROVEN
+[03:03:27]     confluence               17
+[03:03:27]     proven_book              5
+[03:03:27] driver: DXY (broad) 1m | 120.69 (+0.48%) | lean -1 (w 0.28)
+[03:03:27] driver: US10Y 1m | 4.49% (+0.04 pp) | lean +0 (w 0.18)
+[03:03:27] driver: US 10y real yield 1m | +0.10 pp | lean -1 (w 0.10)
+[03:03:27] driver: Fed net liquidity 13w | +14 $bn | lean +0 (w 0.12)
+[03:03:27] driver: VIX | 15.8 | lean +1 (w 0.10)
+[03:03:27] driver: HY credit spreads 13w | 2.74% (-0.03) | lean +0 (w 0.07)
+[03:03:27] driver: Bond volatility (pctile) | 38%ile | lean +1 (w 0.05)
+[03:03:27] driver: Financial conditions (NFCI) 13w | -0.05 | lean +1 (w 0.05)
+[03:03:27] driver: Oil (WTI) 1m | 72 (-24.3%) | lean +0 (w 0.05)
+dial v2: 9 drivers -> NEUTRAL(-9) | dollar NEUTRAL(6) | eq-ctx=True
+[03:03:27] ✅ risk dial v2 live; fleet inherits via 17 direct + 12 hub readers
 
-→ Report written to aws/ops/reports/latest/2954_dollar_v2_final.md
+→ Report written to aws/ops/reports/latest/2955_risk_dial_v2.md

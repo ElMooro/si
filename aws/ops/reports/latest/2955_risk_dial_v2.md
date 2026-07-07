@@ -1,0 +1,54 @@
+- `03:03:05`   zip: 15706 bytes
+## 1. Lambda
+**Status:** success  
+**Duration:** 22.4s  
+**Finished:** 2026-07-07T03:03:27+00:00  
+
+## Data
+
+| canaries | dial_components | dollar_pressure | ec_verdict | equity_confluence_ctx | risk_score | risk_verdict | summary |
+|---|---|---|---|---|---|---|---|
+| 14 | 9 | 6 |  |  | -9 | NEUTRAL |  |
+|  |  |  | NEUTRAL | True |  |  |  |
+|  |  |  |  |  |  |  | dial v2: 9 drivers -> NEUTRAL(-9) | dollar NEUTRAL(6) | eq-ctx=True |
+
+## Log
+
+- `03:03:05`   Lambda exists — updating
+- `03:03:10` ✅   ✓ updated justhodl-dollar-radar
+## 3. Smoke test
+
+- `03:03:10`   invoking justhodl-dollar-radar…
+- `03:03:21` ✅   ✓ smoke test passed
+- `03:03:21`     ok                       True
+- `03:03:21`     dollar_pressure          6
+- `03:03:21`     regime                   NEUTRAL
+- `03:03:21`     canaries                 14
+- `03:03:21`     indices                  4
+- `03:03:21`     bilaterals               10
+- `03:03:21`     double_top               False
+- `03:03:21`     double_bottom            False
+- `03:03:21`     build_seconds            10.0
+- `03:03:21`   zip: 5449 bytes
+## 1. Lambda
+
+- `03:03:21`   Lambda exists — updating
+- `03:03:24` ✅   ✓ updated justhodl-equity-confluence
+- `03:03:24` ✅   ✓ Function URL: https://j3xczgcqiq7x674vprqyj7st240dzriw.lambda-url.us-east-1.on.aws/
+## 3. Smoke test
+
+- `03:03:25`   invoking justhodl-equity-confluence…
+- `03:03:27` ✅   ✓ smoke test passed
+- `03:03:27`     mode                     PROVEN
+- `03:03:27`     confluence               17
+- `03:03:27`     proven_book              5
+- `03:03:27` driver: DXY (broad) 1m | 120.69 (+0.48%) | lean -1 (w 0.28)
+- `03:03:27` driver: US10Y 1m | 4.49% (+0.04 pp) | lean +0 (w 0.18)
+- `03:03:27` driver: US 10y real yield 1m | +0.10 pp | lean -1 (w 0.10)
+- `03:03:27` driver: Fed net liquidity 13w | +14 $bn | lean +0 (w 0.12)
+- `03:03:27` driver: VIX | 15.8 | lean +1 (w 0.10)
+- `03:03:27` driver: HY credit spreads 13w | 2.74% (-0.03) | lean +0 (w 0.07)
+- `03:03:27` driver: Bond volatility (pctile) | 38%ile | lean +1 (w 0.05)
+- `03:03:27` driver: Financial conditions (NFCI) 13w | -0.05 | lean +1 (w 0.05)
+- `03:03:27` driver: Oil (WTI) 1m | 72 (-24.3%) | lean +0 (w 0.05)
+- `03:03:27` ✅ risk dial v2 live; fleet inherits via 17 direct + 12 hub readers
