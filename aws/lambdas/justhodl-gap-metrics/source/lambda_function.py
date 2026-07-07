@@ -348,7 +348,8 @@ def m_revision_breadth():
         return {"status": "DEGRADED",
                 "note": "no row array found; top keys: %s"
                 % list(doc)[:8] if isinstance(doc, dict) else "n/a", **out}
-    fields = ("eps_revision_3m", "revision_3m", "rev_3m", "net_revision",
+    fields = ("eps_rev_pct", "eps_rev_recent_pct", "eps_revision_3m",
+              "revision_3m", "rev_3m", "net_revision",
               "eps_change_pct", "revision_pct", "delta_pct", "change_3m",
               "eps_rev", "delta", "change")
     fld = None
@@ -390,13 +391,16 @@ def m_miner_margin():
            "(top GDX names) vs GLD"}
     if not FMP:
         return {"status": "DEGRADED", "note": "no FMP key in env", **out}
-    per = {}
+    per, errs = {}, []
     for t in MINERS:
         try:
             d = json.loads(http(
                 "https://financialmodelingprep.com/api/v3/"
                 "income-statement/%s?period=quarter&limit=8&apikey=%s"
                 % (t, FMP), timeout=20))
+            if isinstance(d, dict) and d.get("Error Message"):
+                errs.append("%s: %s" % (t, str(d["Error Message"])[:60]))
+                continue
             if isinstance(d, list) and len(d) >= 5:
                 now = d[0].get("operatingIncomeRatio")
                 ya = d[4].get("operatingIncomeRatio")
@@ -406,11 +410,13 @@ def m_miner_margin():
                               "margin_yr_ago_pct": round(100 * ya, 1),
                               "delta_pp": round(100 * (now - ya), 1)}
             time.sleep(0.12)
-        except Exception:
+        except Exception as e:
+            errs.append("%s: %s" % (t, str(e)[:60]))
             continue
     if len(per) < 5:
-        return {"status": "DEGRADED", "note": "only %d miners parsed"
-                % len(per), **out}
+        return {"status": "DEGRADED", "note": "only %d miners parsed; "
+                "errors: %s" % (len(per), "; ".join(errs[:3]) or "none"),
+                **out}
     deltas = sorted(v["delta_pp"] for v in per.values())
     med = deltas[len(deltas) // 2]
     gld = [b["c"] for b in polygon_daily("GLD", 2)]
@@ -520,18 +526,29 @@ def m_bill_share():
 
 
 def m_cor3m():
-    out = {"gap_id": "M9", "source": "Yahoo ^COR3M (best-effort)"}
+    out = {"gap_id": "M9",
+           "source": "Yahoo implied-correlation indices (best-effort)"}
+    closes, used = [], None
+    for sym in ("%5ECOR3M", "%5ECOR90D", "%5ECOR1M", "%5ECOR30D"):
+        try:
+            d = json.loads(http(
+                "https://query1.finance.yahoo.com/v8/finance/chart/"
+                + sym + "?range=1y&interval=1d", timeout=20))
+            res = (d.get("chart") or {}).get("result") or []
+            q = ((res[0].get("indicators") or {}).get("quote")
+                 or [{}])[0] if res else {}
+            cs = [c for c in (q.get("close") or []) if c is not None]
+            if len(cs) >= 60:
+                closes, used = cs, sym.replace("%5E", "^")
+                break
+        except Exception:
+            continue
     try:
-        d = json.loads(http(
-            "https://query1.finance.yahoo.com/v8/finance/chart/%5ECOR3M"
-            "?range=1y&interval=1d", timeout=20))
-        res = (d.get("chart") or {}).get("result") or []
-        q = ((res[0].get("indicators") or {}).get("quote") or [{}])[0] \
-            if res else {}
-        closes = [c for c in (q.get("close") or []) if c is not None]
         if len(closes) < 60:
-            return {"status": "DEGRADED", "note": "only %d closes"
-                    % len(closes), **out}
+            return {"status": "DEGRADED", "note": "no implied-corr "
+                    "symbol returned >=60 closes (tried COR3M/COR90D/"
+                    "COR1M/COR30D)", **out}
+        out["source"] = "Yahoo " + (used or "")
         cur = round(closes[-1], 2)
         return {"status": "OK", "implied_corr_3m": cur,
                 "pctile_1y": pctile(cur, closes),

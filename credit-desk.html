@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Credit Desk · JustHodl.AI</title>
+<meta name="description" content="Unified credit surface: HY/IG expected returns and OAS percentiles, SLOOS lending standards, muni/Treasury ratio, liquidity-credit engine, CDS proxy — the fleet's thinnest family, consolidated">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --border:rgba(120,145,180,0.12);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --amber:#ffb13d; --red:#ff5c7a; --cyan:#00d4ff; --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:21px;font-weight:700}
+.prov{font-size:10px;font-weight:700;letter-spacing:1.2px;padding:3px 10px;border-radius:3px;background:rgba(167,139,250,.10);color:var(--violet);border:1px solid rgba(167,139,250,.35)}
+.fresh{font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.sub{color:var(--fg-3);font-size:12px;margin-bottom:18px}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);margin-left:8px}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.macro{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}
+.mi{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.mi .l{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg-3)}
+.mi .v{font-family:var(--font-mono);font-size:17px;font-weight:600;margin-top:3px}
+.mi .s{font-size:10.5px;color:var(--fg-3);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}.flat{color:var(--amber)}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.crow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(120,145,180,0.06);font-size:12.5px}
+.crow:last-child{border-bottom:none}
+.crow b{font-family:var(--font-mono)}
+.rd{border-left:3px solid var(--cyan);background:var(--bg-elevated);padding:8px 11px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--fg-2);margin-top:8px}
+.links a{display:inline-block;margin:3px 10px 3px 0;font-size:12px}
+.err{color:var(--red);font-size:12px}
+footer{margin-top:34px;color:var(--fg-4);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg">
+    <h1>🏦 Credit Desk</h1>
+    <span class="prov">UMBRELLA U8 · FLEET AUDIT</span>
+    <span class="fresh" id="fresh">loading…</span>
+  </header>
+  <div class="sub">The fleet's thinnest family, consolidated: junk-bond and IG expected returns with spread-percentile cushion (asset-compass credit sleeve), bank lending standards (SLOOS), muni cheapness, the liquidity-credit engine, and the CDS proxy — one front door.</div>
+
+  <section>
+    <h2>Credit Dashboard <span class="n">compass sleeve · OAS 10y percentiles · gap-metrics</span></h2>
+    <div class="macro" id="dash"></div>
+  </section>
+
+  <section>
+    <h2>Credit ERs · Why / Why Not <span class="n">from asset-compass v1.1 — deterministic reads</span></h2>
+    <div class="boards" id="reads"></div>
+  </section>
+
+  <section>
+    <h2>Related Desks <span class="n">the umbrella's members</span></h2>
+    <div class="card links">
+      <a href="/asset-compass.html">Asset Compass (credit sleeve)</a>
+      <a href="/lce.html">Liquidity &amp; Credit Engine</a>
+      <a href="/cds-monitor.html">CDS Monitor</a>
+      <a href="/bond-vol.html">Bond Vol Composite</a>
+      <a href="/risk.html">Risk Regime (funding block)</a>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function el(id){return document.getElementById(id);}
+function fnum(v,d){return (v==null||isNaN(v))?"—":Number(v).toFixed(d==null?2:d);}
+function ago(iso){try{var m=(Date.now()-new Date(iso).getTime())/6e4;return m<90?Math.round(m)+"m ago":(m<2880?(m/60).toFixed(1)+"h ago":Math.round(m/1440)+"d ago");}catch(e){return"—";}}
+function g(u){return fetch(u+"?t="+Date.now()).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});}
+
+Promise.allSettled([
+ g("/data/asset-compass.json"),
+ g("/data/sloos.json"),
+ g("/data/muni-ratio.json")
+]).then(function(rs){
+ var ac=rs[0].status==="fulfilled"?rs[0].value:null;
+ var sl=rs[1].status==="fulfilled"?rs[1].value:null;
+ var mu=rs[2].status==="fulfilled"?rs[2].value:null;
+ el("fresh").textContent=(ac?("compass "+ago(ac.generated_at)):"compass unavailable")+(sl?(" · sloos "+ago(sl.generated_at)):"");
+
+ var cc=(ac&&ac.credit_context)||{};
+ var amap={}; ((ac&&ac.assets)||[]).forEach(function(a){amap[a.ticker]=a;});
+ var rf=(ac&&ac.hurdle&&ac.hurdle.cash_rf_pct);
+ var h="";
+ ["HYG","LQD","EMB","MUB"].forEach(function(t){
+  var a=amap[t]||{};
+  var ex=a.excess_vs_cash_pp;
+  h+='<div class="mi"><div class="l">'+esc(t)+' · 12m ER</div><div class="v '+((a.er_1y_pct||0)>=(rf||0)?"up":"dn")+'">'+fnum(a.er_1y_pct)+'%</div><div class="s">vs cash '+(ex==null?"—":((ex>0?"+":"")+fnum(ex,1)+"pp"))+'</div></div>';
+ });
+ Object.keys(cc).forEach(function(k){var s=cc[k]; if(!s)return;
+  var tone=s.pctile_10y==null?"":(s.pctile_10y>=70?"up":(s.pctile_10y<=25?"dn":"flat"));
+  h+='<div class="mi"><div class="l">'+esc(s.label||k)+'</div><div class="v">'+fnum(s.now_pct)+'%</div><div class="s '+tone+'">'+fnum(s.pctile_10y,0)+'th pctile · '+(s.pctile_10y==null?"":(s.pctile_10y>=70?"wide cushion":(s.pctile_10y<=25?"thin cushion":"mid")))+'</div></div>';
+ });
+ if(sl&&sl.status==="OK"){
+  h+='<div class="mi"><div class="l">SLOOS · C&amp;I tightening</div><div class="v '+(sl.headline_pct_tightening>5?"dn":"up")+'">'+fnum(sl.headline_pct_tightening,1)+'%</div><div class="s">'+esc(sl.direction)+' · '+fnum(sl.headline_pctile_history,0)+'th pctile</div></div>';
+ }
+ if(mu&&mu.status==="OK"){
+  h+='<div class="mi"><div class="l">Muni / 10y UST</div><div class="v">'+fnum(mu.muni_treasury_ratio,3)+'</div><div class="s">'+esc(mu.band)+'</div></div>';
+ }
+ el("dash").innerHTML=h||'<div class="err">No credit feeds available yet.</div>';
+
+ var rh="";
+ ["HYG","LQD","EMB","MUB"].forEach(function(t){
+  var a=amap[t]; if(!a)return;
+  var rd=a.read||{},hz=a.horizon||{};
+  rh+='<div class="card"><div style="display:flex;justify-content:space-between"><b>'+esc(t)+' · '+esc(a.label||"")+'</b><span style="font-family:var(--font-mono)">'+fnum(a.er_1y_pct)+'%</span></div>'+
+    (rd.bull&&rd.bull.length?'<div class="crow"><span style="color:var(--green)">+ '+esc(rd.bull[0])+'</span></div>':'')+
+    (rd.bear&&rd.bear.length?rd.bear.slice(0,2).map(function(b){return '<div class="crow"><span style="color:var(--red)">− '+esc(b)+'</span></div>';}).join(""):'')+
+    (rd.net?'<div class="rd">'+esc(rd.net)+(hz.hold?' · ⏳ '+esc(hz.hold):'')+'</div>':'')+
+    '</div>';
+ });
+ el("reads").innerHTML=rh||'<div class="card err">Compass credit reads unavailable.</div>';
+}).catch(function(e){
+ el("dash").innerHTML='<div class="err">Load failed: '+esc(e.message)+'</div>';
+});
+})();
+</script>
+<script src="/jh-wire.js" defer data-feeds="data/sloos.json|justhodl-gap-metrics|SLOOS LENDING STANDARDS;data/muni-ratio.json|justhodl-gap-metrics|MUNI / TREASURY RATIO;data/liquidity-credit-engine.json|justhodl-lce|LIQUIDITY &amp; CREDIT ENGINE;data/cds-proxy.json|justhodl-cds-proxy|CDS PROXY"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
