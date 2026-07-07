@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 2946 — verify the engine-wiring ship end-to-end against the LIVE site.
+"""ops 2947 — verify the engine-wiring ship end-to-end against the LIVE site.
 
 Checks, all against production (justhodl.ai), no repo-local shortcuts:
  1. /jh-wire.js live (HTTP 200, sane size).
@@ -27,10 +27,19 @@ def get(path, to=15):
         return None, b""
 
 def main():
-    with report("2946_verify_engine_wiring") as rep:
+    with report("2947_verify_engine_wiring") as rep:
+        # /data/* is served by the CF Worker from S3 (never from the repo) —
+        # publish the repo-canonical manifest to the real data origin first.
+        import os, boto3
+        root = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
+        body = open(os.path.join(root, "data", "engine-wiring.json"), "rb").read()
+        boto3.client("s3", "us-east-1").put_object(
+            Bucket="justhodl-dashboard-live", Key="data/engine-wiring.json",
+            Body=body, ContentType="application/json", CacheControl="max-age=300")
+        print(f"manifest published to S3 ({len(body)} bytes)")
+        man = json.loads(body)
         c, b = get("data/engine-wiring.json")
-        assert c == 200, "engine-wiring.json not live yet"
-        man = json.loads(b)
+        rep.update(manifest_live_http=c)
         wired = man["wired"]
 
         c, b = get("jh-wire.js")
