@@ -1,10 +1,10 @@
-executing-against: fa4bb946b291fbfee77a3df9fe224c894be88698
-── A. Orphan roster ──
-── B. Compass universe ──
-── C. dealer-gex live keys ──
-── D. SIFMA + Truflation probes ──
-── E. Allocator live shape ──
-[23:42:25] FAILS=1
+executing-against: f1fbf5a70fa92b81c488808a776678e90af21955
+── 0. Deploy gates (both lambdas) ──
+── 1. SIFMA live (M7) ──
+── 2. Allocator bridge live ──
+── 3. dealer-gex zero_dte content (M10 ruling) ──
+── 4. Orphan recompute (first principles) ──
+── 5. Audit stamps ──
+[23:50:19] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2984_u9_recon.md
-❌ OPS-FAIL: aws/ops/pending/ops_2984_u9_recon.py
+→ Report written to aws/ops/reports/latest/2985_bridge_sifma_orphans.md
