@@ -319,9 +319,20 @@ jobs:
                 # env overrides on top. This preserves ops-patched secrets
                 # (FMP_KEY, TELEGRAM_*, etc.) across redeploys — config.json need
                 # only declare non-secret vars like MAX_WORKERS.
+                #
+                # Hardened (2026-07-07 incident): a FAILED env read must never be
+                # treated as "empty env" — that turned the merge into a replace
+                # and nuked justhodl-equity-research down to its cfg-inherited
+                # vars. On read failure we now SKIP the config update entirely
+                # (code is already deployed; env/timeout can wait) and surface a
+                # warning instead of silently destroying the secrets bundle.
+                env_read_ok=1
                 existing_env=$(aws lambda get-function-configuration \
                   --function-name "$fn" --region "${{ secrets.AWS_REGION }}" \
-                  --query 'Environment.Variables' --output json 2>/dev/null || echo "{}")
+                  --query 'Environment.Variables' --output json 2>/dev/null) || env_read_ok=0
+                if [ "$env_read_ok" = "0" ]; then
+                  echo "::warning::$fn: env read FAILED — skipping config update to preserve the existing env bundle (code deploy already applied)"
+                else
                 if [ -z "$existing_env" ] || [ "$existing_env" = "null" ]; then
                   existing_env="{}"
                 fi
@@ -342,6 +353,7 @@ jobs:
                 aws lambda wait function-updated \
                   --function-name "$fn" \
                   --region "${{ secrets.AWS_REGION }}"
+                fi
               fi
             else
               echo "Lambda $fn does not exist — creating"
