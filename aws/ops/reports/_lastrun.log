@@ -1,15 +1,105 @@
-executing-against: 738d7c5f86a8564f7154f75ffffd4784719546fa
-── 0. Env bundle + live-feed probes from the runner ──
-── 1. Deploy justhodl-asset-compass ──
-[17:57:18]   zip: 10459 bytes
-── 1. Lambda ──
-[17:57:18]   Lambda exists — updating
-[17:57:21] ✅   ✓ updated justhodl-asset-compass
-── 2. EventBridge Scheduler schedule ──
-── 3. Synchronous first run + hard verify ──
-── 4. Sibling context (warn-only) ──
-── verdict ──
-[17:57:55] FAILS=0 WARNS=1
-[17:57:55] report written: /home/runner/work/si/si/aws/ops/reports/2966.json
-
-→ Report written to aws/ops/reports/latest/2966_asset_compass.md
+executing-against: d3d9dacbd8a65be45522b990e3c6b3e07398e616
+{
+ "ops": 2876,
+ "ts": "2026-07-07T18:01:34.465517+00:00",
+ "registry_engines": 666,
+ "top_domains": {
+  "financialmodelingprep.com": 298,
+  "api.telegram.org": 184,
+  "api.polygon.io": 152,
+  "api.stlouisfed.org": 134,
+  "justhodl.ai": 132,
+  "api.anthropic.com": 60,
+  "sec.gov": 41,
+  "data-api.ecb.europa.eu": 24
+ },
+ "action": "updated",
+ "invoke": {
+  "ok": true,
+  "claims": 321,
+  "covered": 157,
+  "gaps": 26
+ },
+ "summary": {
+  "n_notes": 9200,
+  "n_claims": 321,
+  "covered": 157,
+  "partial": 138,
+  "gaps": 26,
+  "n_registry_engines": 666,
+  "coverage_pct": 48.9,
+  "headline": "321 testable claims compiled from 9200 brain notes: 157 covered by the fleet, 138 partial, 26 gaps queued for build."
+ },
+ "build_queue": [
+  {
+   "concept": "japan / BOJ / yen",
+   "n": 13
+  },
+  {
+   "concept": "QE",
+   "n": 10
+  },
+  {
+   "concept": "Sahm rule",
+   "n": 1
+  },
+  {
+   "concept": "swap lines",
+   "n": 1
+  },
+  {
+   "concept": "bank reserves",
+   "n": 1
+  }
+ ],
+ "gap_samples": [
+  {
+   "concept": "japan / BOJ / yen",
+   "claim": "EUR/USD, JPY/USD) — would be a leading signal in the funding markets."
+  },
+  {
+   "concept": "QE",
+   "claim": "Why it matters: Elevated stress levels may lead the Fed to implement QE to stabilize markets."
+  },
+  {
+   "concept": "Sahm rule",
+   "claim": "Sahm rule over 0.5 means a recession."
+  },
+  {
+   "concept": "swap lines",
+   "claim": "Peoples Bank of China extends permanent swap lines in RMB to over 40 peers, with outstanding balances in 2023 of about $33 billion"
+  }
+ ],
+ "covered_sample": [
+  {
+   "claim": "Copper/Gold Ratio shows future 10 year treasury Bond yield, it leads 10 year Treasury by about a year.",
+   "eng": [
+    "justhodl-divergence-engine-v2",
+    "justhodl-macro-leads"
+   ]
+  },
+  {
+   "claim": "When it comes to hurting risk assets—like stocks, crypto, tech companies, or emerging markets—both Fed rate hi",
+   "eng": [
+    "justhodl-liquidity-agent",
+    "justhodl-liquidity-inflection"
+   ]
+  },
+  {
+   "claim": "Historical data (Fed balance sheet shrinks) ties QT to sharper risk asset drops than rate hikes alone.",
+   "eng": [
+    "justhodl-liquidity-agent",
+    "justhodl-liquidity-inflection"
+   ]
+  },
+  {
+   "claim": "It’s less predictable—markets freak when the Fed’s balance sheet shrinks unexpectedly.",
+   "eng": [
+    "justhodl-liquidity-agent",
+    "justhodl-liquidity-inflection"
+   ]
+  }
+ ],
+ "status": "LIVE"
+}
+OPS 2876 COMPLETE
