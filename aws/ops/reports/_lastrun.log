@@ -1,34 +1,23 @@
-executing-against: 065e1c02cd5769308dc26c76812f5fcc078d6ed1
-NESTED cot/extremes/current.json: worker=403 s3=200 lm=Fri, 03 Jul 2026 19:00:46 GMT
-[01:54:02] NESTED cot/extremes/current.json: worker=403 s3=200 lm=Fri, 03 Jul 2026 19:00:46 GMT
-NESTED divergence/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
-[01:54:02] NESTED divergence/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
-NESTED investor-debate/_index.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:22:46 GMT
-[01:54:03] NESTED investor-debate/_index.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:22:46 GMT
-NESTED opportunities/asymmetric-equity.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:15 GMT
-[01:54:04] NESTED opportunities/asymmetric-equity.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:15 GMT
-NESTED portfolio/pnl-daily.json: worker=403 s3=200 lm=Mon, 01 Jun 2026 22:00:28 GMT
-[01:54:04] NESTED portfolio/pnl-daily.json: worker=403 s3=200 lm=Mon, 01 Jun 2026 22:00:28 GMT
-NESTED portfolio/signal-portfolio-state.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:00:30 GMT
-[01:54:05] NESTED portfolio/signal-portfolio-state.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 22:00:30 GMT
-NESTED regime/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 18:06:24 GMT
-[01:54:06] NESTED regime/current.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 18:06:24 GMT
-NESTED risk/recommendations.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:18 GMT
-[01:54:07] NESTED risk/recommendations.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:18 GMT
-LEGACY crypto-intel.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 14:55:53 GMT
-[01:54:08] LEGACY crypto-intel.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 14:55:53 GMT
-LEGACY edgar_insiders.json: worker=403 s3=403
-[01:54:08] LEGACY edgar_insiders.json: worker=403 s3=403
-LEGACY equity_research.json: worker=403 s3=403
-[01:54:09] LEGACY equity_research.json: worker=403 s3=403
-LEGACY research_critique.json: worker=403 s3=403
-[01:54:09] LEGACY research_critique.json: worker=403 s3=403
-LEGACY intelligence-report.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
-[01:54:10] LEGACY intelligence-report.json: worker=403 s3=200 lm=Mon, 06 Jul 2026 11:00:16 GMT
-LEGACY ici-flows.json: worker=403 s3=403
-[01:54:11] LEGACY ici-flows.json: worker=403 s3=403
-AGENT https://api.justhodl.ai/agent/secretary: 403
-[01:54:11] AGENT https://api.justhodl.ai/agent/secretary: 403
-[01:54:11] ✅ probe complete
+executing-against: deac9ab022e7e13eb544dc43cb74394c63d35045
+nav pages: 366
+pages ok: 366/366 (redirect-stubs resolved: 5) down=none
+[02:00:13] redirect stub /asymmetric.html -> /deep-value.html
+[02:00:13] redirect stub /catalysts.html -> /catalyst-calendar.html
+[02:00:13] redirect stub /charts.html -> /chart-pro.html
+[02:00:13] redirect stub /options-flow.html -> /signal-board.html
+[02:00:13] redirect stub /positioning.html -> /cftc.html
+feeds referenced by pages: 426
+feeds live: 421/426 known-legacy-dead=5 unexplained-dead=0 unparseable=0
+[02:00:27] ⚠ KNOWN-LEGACY dead edgar_insiders.json <- /analytics.html | origins-era agent retired (Feb 2026 fleet migration)
+[02:00:27] ⚠ KNOWN-LEGACY dead equity_research.json <- /analytics.html | superseded by justhodl-equity-research schema 2.0 (why.html)
+[02:00:27] ⚠ KNOWN-LEGACY dead https://api.justhodl.ai/agent/secretary <- /alpha-compass.html | legacy multi-agent API endpoint, retired
+[02:00:27] ⚠ KNOWN-LEGACY dead ici-flows.json <- /ici-flows.html | ICI moved to anti-scraped .xls workbooks; parser rebuild pending
+[02:00:27] ⚠ KNOWN-LEGACY dead research_critique.json <- /analytics.html | origins-era critic agent retired
+engines: 661 | unique out keys: 715
+engines fresh=555 aging=14 stale=4 dead=6 no-outs=82
+[02:00:35] ⚠ dead engines: justhodl-engine-robustness,justhodl-eurostat-history,justhodl-ici-flows,justhodl-kill-switch,justhodl-transcript-indexer,justhodl-transcript-query
+[02:00:35] stale engines (>8d): justhodl-feedback,justhodl-history-api,justhodl-trade-journal,justhodl-watchlist
+pages=366/366 (stubs=5) feeds=421/426 (legacy-dead=5) engines fresh=555 aging=14 stale=4 dead=6 no-outs=82 t=25s
+[02:00:36] ✅ fleet certified: pages + as-written feeds + engines
 
-→ Report written to aws/ops/reports/latest/2951_dead_feed_probe.md
+→ Report written to aws/ops/reports/latest/2950_fleet_health.md
