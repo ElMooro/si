@@ -1,0 +1,649 @@
+"""justhodl-asset-compass — forward-looking cross-asset Expected-Return +
+Asymmetry engine. The capital-allocation layer of the fleet.
+
+Every sibling engine answers "what is happening?" (regime, flows, stress,
+dislocations). None answers the allocator's question: "over the NEXT 12
+months, what is each investable asset class expected to return, and where
+is the upside/downside skew most favorable?" This engine does, with every
+number decomposed and traceable — Grinold-Kroner style, the way GMO /
+Research Affiliates publish capital-market assumptions, plus a formalized
+asymmetry model ("huge upside, small downside") with an explicit
+survival gate so deep-drawdown value traps are never auto-blessed.
+
+BLOCKS
+══════
+1. MACRO FORWARD (FRED, all market-implied — not opinions):
+   • rf_now            = 1y Treasury (DGS1)
+   • rf_1y_forward     = implied 1y rate 1y ahead from the curve:
+                         (1+DGS2)^2/(1+DGS1) − 1   (pure expectations)
+   • infl_1y_expected  = Cleveland Fed 1-yr expected inflation (EXPINF1YR,
+                         fallback T10YIE)
+   • real_1y_forward   = rf_1y_forward − infl_1y_expected
+   • growth pulse      = payrolls 3m momentum z + retail sales 3m z −
+                         unemployment 3m rise (each z vs its own 10y
+                         history) → real-growth proxy 0–3% for equity g.
+2. PER-ASSET 1Y EXPECTED RETURN (er_components published for every asset):
+   • Cash: DGS1.  • UST via IEF/TLT: y10 − D·Δy10_fwd (curve-implied Δ).
+   • TIPS: DFII10 + expected inflation − D·Δreal.
+   • Gold: expected-inflation anchor + β(gold, real-rate)·Δreal_fwd —
+     β is OLS-estimated from raw daily data (must rediscover the proven
+     negative gold↔DFII10 relation or the ops verify fails) + trend tilt.
+   • Silver: gold ER + gold/silver-ratio mean-reversion (10y z).
+   • Miners: β(GDX,GLD)·gold ER − cost drag.
+   • REITs: TTM distribution yield + inflation + escalator (assumption,
+     flagged) — rate-sensitivity noted.
+   • Equity ETFs (SPY/QQQ/IWM/EFA/EEM): TTM dividend yield + nominal
+     growth (infl + growth-pulse real g) + 200-dma stretch reversion.
+   • Commodities (DBC/USO/CPER), BTC/ETH: NO fabricated ER — no
+     yield/earnings anchor exists, so er_1y=None with an honest note;
+     ranked on asymmetry/trend/breakout instead. BTC/ETH consume
+     data/crypto-cycle-risk.json for cycle context; n_cycles≈4 flagged.
+3. ASYMMETRY (all assets): upside = recovery-to-3y-high; downside =
+   distance to the asset's own 95th-percentile historical drawdown depth;
+   raw ratio + drawdown-percentile + trend confirmation → asym_score
+   0-100. SURVIVAL GATE: structural assets (broad indices, gold, USTs)
+   are gated only by trend; narrow/cyclical assets (GDX, USO, SLV, BTC,
+   ETH, CPER) must show trend confirmation (px>50dma or rising 50dma)
+   before status=ACTIONABLE, else WATCH — "down 75%" alone is upside on
+   things that cannot die, and a value trap on things that can.
+4. BREAKOUT SCAN (incl. the requested gold/silver charts): 20d Bollinger
+   bandwidth percentile (squeeze), 52w range position, 60d-high breaks
+   with volume thrust → SQUEEZE / COILED / BREAKOUT / EXTENDED / TRENDING
+   / NONE.
+5. SIBLING FUSION (warn-only, defensive): risk-regime label,
+   cross-asset-regime RORO, cross-asset-rv dislocations count attached
+   for context.
+
+DATA: FRED (key via env/SSM), Polygon daily aggs + dividends, CoinGecko
+(keyless) for BTC/ETH, sibling S3 JSONs. Real, auto-updating, no demo
+data. OUTPUT: data/asset-compass.json  Schedule: daily 22:15 UTC.
+STATUS: PROVISIONAL per Edge-Accuracy standard — enters the alpha-grading
+loop; no edge is claimed until excess-vs-SPY stats prove it.
+"""
+import json
+import math
+import os
+import time
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
+
+import boto3
+
+BUCKET   = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
+OUT_KEY  = "data/asset-compass.json"
+S3       = boto3.client("s3", region_name="us-east-1")
+SSM      = boto3.client("ssm", region_name="us-east-1")
+POLY_KEY = os.environ.get("POLYGON_API_KEY") or os.environ.get("POLYGON_KEY", "")
+FRED_URL = "https://api.stlouisfed.org/fred/series/observations"
+
+UNIVERSE = [
+    # ticker, class, label, duration, structural?, er_model
+    ("CASH", "cash",      "Cash (1y T-bill)",      0.0,  True,  "cash"),
+    ("IEF",  "bonds",     "US Treasuries 7-10y",   7.6,  True,  "ust"),
+    ("TLT",  "bonds",     "US Treasuries 20y+",   16.5,  True,  "ust"),
+    ("TIP",  "bonds",     "US TIPS",               6.9,  True,  "tips"),
+    ("GLD",  "metals",    "Gold",                  0.0,  True,  "gold"),
+    ("SLV",  "metals",    "Silver",                0.0,  False, "silver"),
+    ("GDX",  "metals",    "Gold Miners",           0.0,  False, "miners"),
+    ("VNQ",  "reits",     "US REITs",              0.0,  True,  "reit"),
+    ("SPY",  "equities",  "US Large Cap",          0.0,  True,  "equity"),
+    ("QQQ",  "equities",  "US Growth/Tech",        0.0,  True,  "equity"),
+    ("IWM",  "equities",  "US Small Cap",          0.0,  True,  "equity"),
+    ("EFA",  "equities",  "Intl Developed",        0.0,  True,  "equity"),
+    ("EEM",  "equities",  "Emerging Markets",      0.0,  True,  "equity"),
+    ("DBC",  "commodities","Broad Commodities",    0.0,  True,  "none"),
+    ("USO",  "commodities","Crude Oil",            0.0,  False, "none"),
+    ("CPER", "commodities","Copper",               0.0,  False, "none"),
+    ("BTC",  "crypto",    "Bitcoin",               0.0,  False, "none"),
+    ("ETH",  "crypto",    "Ethereum",              0.0,  False, "none"),
+]
+
+# ───────────────────────── http / data plumbing ─────────────────────────
+
+def _http(url, timeout=25, tries=2):
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={
+                "User-Agent": "justhodl-asset-compass/1.0",
+                "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
+        except Exception:
+            if i == tries - 1:
+                return None
+            time.sleep(1.2)
+
+
+def get_fred_key():
+    for k in ("FRED_API_KEY", "FRED_KEY", "FRED_TOKEN"):
+        if os.environ.get(k):
+            return os.environ[k]
+    try:
+        return SSM.get_parameter(Name="/justhodl/fred/api-key",
+                                 WithDecryption=True)["Parameter"]["Value"]
+    except Exception:
+        return ""
+
+
+def fred_series(series_id, start, key):
+    """→ list of (date_str, float) ascending; '.' rows skipped."""
+    q = urllib.parse.urlencode({
+        "series_id": series_id, "api_key": key, "file_type": "json",
+        "observation_start": start, "sort_order": "asc", "limit": 100000})
+    d = _http(f"{FRED_URL}?{q}") or {}
+    out = []
+    for o in d.get("observations") or []:
+        v = o.get("value")
+        if v not in (None, "", "."):
+            try:
+                out.append((o["date"], float(v)))
+            except Exception:
+                pass
+    return out
+
+
+def polygon_daily(ticker, years):
+    frm = (datetime.now(timezone.utc) - timedelta(days=int(years * 365.25))
+           ).strftime("%Y-%m-%d")
+    to = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    url = (f"https://api.polygon.io/v2/aggs/ticker/{ticker}/range/1/day/"
+           f"{frm}/{to}?adjusted=true&sort=asc&limit=50000&apiKey={POLY_KEY}")
+    d = _http(url) or {}
+    rows = d.get("results") or []
+    return [{"t": r["t"], "c": float(r["c"]), "h": float(r.get("h", r["c"])),
+             "v": float(r.get("v", 0.0))} for r in rows
+            if isinstance(r.get("c"), (int, float))]
+
+
+def polygon_ttm_div(ticker, price):
+    url = (f"https://api.polygon.io/v3/reference/dividends?ticker={ticker}"
+           f"&limit=20&order=desc&sort=ex_dividend_date&apiKey={POLY_KEY}")
+    d = _http(url) or {}
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=370)
+              ).strftime("%Y-%m-%d")
+    ttm = sum(float(r.get("cash_amount") or 0.0)
+              for r in (d.get("results") or [])
+              if str(r.get("ex_dividend_date", "")) >= cutoff)
+    if price and ttm > 0:
+        return round(ttm / price * 100.0, 2)
+    return None
+
+
+def coingecko_daily(coin_id):
+    d = _http(f"https://api.coingecko.com/api/v3/coins/{coin_id}"
+              f"/market_chart?vs_currency=usd&days=1095&interval=daily",
+              timeout=30)
+    if not d:
+        return []
+    return [{"t": int(p[0]), "c": float(p[1]), "h": float(p[1]), "v": 0.0}
+            for p in (d.get("prices") or []) if p and p[1]]
+
+
+def s3_json(key):
+    try:
+        return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
+
+# ─────────────────────────── pure math core ───────────────────────────
+# (module-level pure functions: unit-testable, no I/O, no magic numbers
+#  beyond published weights)
+
+def implied_1y1y(y1_pct, y2_pct):
+    """Curve-implied 1y rate 1y forward, in %, from 1y and 2y spot."""
+    y1, y2 = y1_pct / 100.0, y2_pct / 100.0
+    return round((((1.0 + y2) ** 2) / (1.0 + y1) - 1.0) * 100.0, 3)
+
+
+def implied_fwd_10y(y1_pct, y10_pct):
+    """Approx expected 10y yield in 1y: solve 10·y10 = 1·y1 + 9·f."""
+    return round((10.0 * y10_pct - y1_pct) / 9.0, 3)
+
+
+def bond_er(y_now, duration, dy_expected_pp):
+    """1y total-return est: carry − duration × expected yield change."""
+    return round(y_now - duration * dy_expected_pp, 2)
+
+
+def ols_beta(xs, ys):
+    """Slope of y on x. Pure python, returns (beta, n)."""
+    n = min(len(xs), len(ys))
+    if n < 60:
+        return None, n
+    xs, ys = xs[-n:], ys[-n:]
+    mx, my = sum(xs) / n, sum(ys) / n
+    cov = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    var = sum((x - mx) ** 2 for x in xs)
+    if var <= 0:
+        return None, n
+    return cov / var, n
+
+
+def zscore_latest(series, lookback=None):
+    s = series[-lookback:] if lookback else series
+    n = len(s)
+    if n < 30:
+        return None
+    m = sum(s) / n
+    sd = math.sqrt(sum((v - m) ** 2 for v in s) / n)
+    if sd <= 0:
+        return None
+    return round((s[-1] - m) / sd, 2)
+
+
+def drawdown_series(closes):
+    dds, peak = [], -1e18
+    for c in closes:
+        peak = max(peak, c)
+        dds.append(c / peak - 1.0)
+    return dds
+
+
+def percentile_of(value, population):
+    if not population:
+        return None
+    below = sum(1 for v in population if v <= value)
+    return round(below / len(population) * 100.0, 1)
+
+
+def sma(vals, n):
+    if len(vals) < n:
+        return None
+    return sum(vals[-n:]) / n
+
+
+def asymmetry(price, high_3y, dd_now, dd_hist):
+    """upside %, downside %, raw ratio. downside = fall to the asset's own
+    95th-pctile historical drawdown depth measured from the SAME peak."""
+    upside = min((high_3y / price - 1.0) * 100.0, 200.0) if price else None
+    deep = sorted(dd_hist)
+    if not deep or price is None:
+        return upside, None, None
+    p95_depth = deep[max(0, int(0.05 * len(deep)) - 1)]  # e.g. −0.42
+    p95_depth = min(p95_depth, -0.05)
+    downside = max(((1.0 + p95_depth) / (1.0 + dd_now) - 1.0) * 100.0, -90.0)
+    if downside >= -0.5:
+        ratio = 25.0
+    else:
+        ratio = min(round((upside or 0.0) / abs(downside), 2), 25.0)
+    return (round(upside, 1) if upside is not None else None,
+            round(downside, 1), ratio)
+
+
+def breakout_state(closes, highs, vols):
+    """SQUEEZE / COILED / BREAKOUT / EXTENDED / TRENDING / NONE + metrics."""
+    if len(closes) < 260:
+        return {"state": "NONE", "note": "insufficient history"}
+    px = closes[-1]
+    # 20d Bollinger bandwidth series over last year
+    bw = []
+    for i in range(len(closes) - 252, len(closes)):
+        w = closes[i - 19:i + 1]
+        if len(w) < 20:
+            continue
+        m = sum(w) / 20.0
+        sd = math.sqrt(sum((v - m) ** 2 for v in w) / 20.0)
+        bw.append((4.0 * sd / m) if m else 0.0)
+    bw_pct = percentile_of(bw[-1], bw) if bw else None
+    hi52, lo52 = max(closes[-252:]), min(closes[-252:])
+    rng_pos = round((px - lo52) / (hi52 - lo52) * 100.0, 1) if hi52 > lo52 else None
+    hi60_prior = max(highs[-61:-1])
+    v20 = sma(vols, 20) or 0.0
+    v_prior = (sum(vols[-120:-20]) / 100.0) if len(vols) >= 120 else 0.0
+    vol_ratio = round(v20 / v_prior, 2) if v_prior > 0 else None
+    s50 = sma(closes, 50)
+    ext_pct = round((px / s50 - 1.0) * 100.0, 1) if s50 else None
+    state = "NONE"
+    if px > hi60_prior and (vol_ratio is None or vol_ratio >= 1.15):
+        state = "BREAKOUT"
+    elif ext_pct is not None and ext_pct > 15.0:
+        state = "EXTENDED"
+    elif bw_pct is not None and bw_pct <= 10.0:
+        state = "SQUEEZE"
+    elif bw_pct is not None and bw_pct <= 25.0 and px >= 0.95 * hi60_prior:
+        state = "COILED"
+    elif s50 and px > s50 and rng_pos is not None and rng_pos > 60.0:
+        state = "TRENDING"
+    return {"state": state, "bb_width_pctile_1y": bw_pct,
+            "range_52w_pos_pct": rng_pos,
+            "dist_to_52w_high_pct": round((hi52 / px - 1.0) * 100.0, 1),
+            "vol_20d_ratio": vol_ratio, "ext_vs_50dma_pct": ext_pct}
+
+
+def trend_of(closes):
+    s50, s200 = sma(closes, 50), sma(closes, 200)
+    px = closes[-1] if closes else None
+    if not (px and s50 and s200):
+        return {"label": "UNKNOWN", "ok": False}
+    s50_prev = sma(closes[:-10], 50)
+    rising50 = bool(s50_prev and s50 > s50_prev)
+    if px > s50 > s200:
+        lab = "UPTREND"
+    elif px > s200:
+        lab = "RECOVERING"
+    elif px > s50:
+        lab = "BASING"
+    else:
+        lab = "DOWNTREND"
+    return {"label": lab, "ok": bool(px > s50 or rising50),
+            "px_vs_50dma_pct": round((px / s50 - 1.0) * 100.0, 1),
+            "px_vs_200dma_pct": round((px / s200 - 1.0) * 100.0, 1),
+            "sma50_rising": rising50}
+
+
+def growth_pulse(pay_z, ret_z, un_chg):
+    """Real-growth proxy for equity g, 0–3%. Weights published here."""
+    raw = 1.5 + 0.5 * (pay_z or 0.0) + 0.3 * (ret_z or 0.0) \
+        - 0.6 * max(un_chg or 0.0, 0.0) * 10.0
+    return round(min(max(raw, 0.0), 3.0), 2)
+
+
+def asym_score(ratio, dd_pctile, trend_ok, bo_state):
+    """0-100: 40% ratio (cap 5×), 30% drawdown depth pctile (deeper=more),
+    15% trend confirmation, 15% coiled/breakout bonus."""
+    if ratio is None:
+        return None
+    r = min(ratio, 5.0) / 5.0 * 40.0
+    d = ((100.0 - dd_pctile) / 100.0 * 30.0) if dd_pctile is not None else 15.0
+    t = 15.0 if trend_ok else 0.0
+    b = 15.0 if bo_state in ("COILED", "BREAKOUT", "SQUEEZE") else 0.0
+    return round(r + d + t + b, 1)
+
+# ─────────────────────────────── engine ───────────────────────────────
+
+def _mom_z(series_vals, step=3):
+    """z of the latest 3-period momentum vs its own 10y momentum history."""
+    if len(series_vals) < step + 40:
+        return None, None
+    moms = [(series_vals[i] / series_vals[i - step] - 1.0) * 100.0
+            for i in range(step, len(series_vals)) if series_vals[i - step]]
+    return zscore_latest(moms), round(moms[-1], 2)
+
+
+def build_macro_forward(fkey):
+    start10 = (datetime.now(timezone.utc) - timedelta(days=3660)
+               ).strftime("%Y-%m-%d")
+    s = {sid: fred_series(sid, start10, fkey)
+         for sid in ("DGS1", "DGS2", "DGS10", "DFII10", "T10YIE",
+                     "EXPINF1YR", "PAYEMS", "RSAFS", "UNRATE")}
+    last = {k: (v[-1][1] if v else None) for k, v in s.items()}
+    y1, y2, y10 = last.get("DGS1"), last.get("DGS2"), last.get("DGS10")
+    infl = last.get("EXPINF1YR") or last.get("T10YIE")
+    infl_src = "EXPINF1YR (Cleveland Fed 1y)" if last.get("EXPINF1YR") \
+        else "T10YIE (10y breakeven fallback)"
+    rf_fwd = implied_1y1y(y1, y2) if (y1 is not None and y2 is not None) else None
+    y10_fwd = implied_fwd_10y(y1, y10) if (y1 is not None and y10 is not None) else None
+    pay_z, pay_mom = _mom_z([v for _, v in s.get("PAYEMS") or []])
+    ret_z, ret_mom = _mom_z([v for _, v in s.get("RSAFS") or []])
+    un = [v for _, v in s.get("UNRATE") or []]
+    un_chg = round(un[-1] - un[-4], 2) if len(un) >= 4 else None
+    g = growth_pulse(pay_z, ret_z, un_chg)
+    real_fwd = round(rf_fwd - infl, 2) if (rf_fwd is not None and infl is not None) else None
+    dfii = last.get("DFII10")
+    return {
+        "rf_now_pct": y1, "rf_1y_forward_pct": rf_fwd,
+        "rf_direction_next_year": (None if (rf_fwd is None or y1 is None) else
+                                   ("LOWER" if rf_fwd < y1 - 0.10 else
+                                    "HIGHER" if rf_fwd > y1 + 0.10 else "FLAT")),
+        "y10_now_pct": y10, "y10_1y_forward_pct": y10_fwd,
+        "infl_1y_expected_pct": infl, "infl_source": infl_src,
+        "real_1y_forward_pct": real_fwd, "real_10y_now_pct": dfii,
+        "delta_real_expected_pp": (round(real_fwd - (y1 - infl), 2)
+                                   if None not in (real_fwd, y1, infl) else None),
+        "growth": {"payrolls_3m_mom_pct": pay_mom, "payrolls_z": pay_z,
+                   "retail_3m_mom_pct": ret_mom, "retail_z": ret_z,
+                   "unrate_3m_chg_pp": un_chg,
+                   "real_growth_proxy_pct": g},
+        "note": ("All forward values are market-implied (Treasury curve, "
+                 "Cleveland Fed expectations) — the market's next-12m "
+                 "pricing, not a forecast by this engine."),
+        "_fred_last": last,
+    }
+
+
+def lambda_handler(event, context):
+    t0 = time.time()
+    warns = []
+    fkey = get_fred_key()
+    macro = build_macro_forward(fkey)
+    y1 = macro.get("rf_now_pct")
+    y10, y10f = macro.get("y10_now_pct"), macro.get("y10_1y_forward_pct")
+    infl = macro.get("infl_1y_expected_pct")
+    dfii = macro.get("real_10y_now_pct")
+    g = (macro.get("growth") or {}).get("real_growth_proxy_pct") or 1.5
+    dy10 = round(y10f - y10, 3) if None not in (y10f, y10) else 0.0
+    dreal = macro.get("delta_real_expected_pp") or 0.0
+
+    # ── price history ──
+    bars, closes = {}, {}
+    for tkr, *_ in UNIVERSE:
+        if tkr in ("CASH",):
+            continue
+        if tkr == "BTC":
+            bars[tkr] = coingecko_daily("bitcoin")
+        elif tkr == "ETH":
+            bars[tkr] = coingecko_daily("ethereum")
+        else:
+            bars[tkr] = polygon_daily(tkr, 3)
+            time.sleep(0.15)
+        closes[tkr] = [b["c"] for b in bars[tkr]]
+        if len(closes[tkr]) < 200:
+            warns.append(f"{tkr}: only {len(closes[tkr])} bars")
+    gld10 = polygon_daily("GLD", 10)
+    slv10 = polygon_daily("SLV", 10)
+
+    # ── data-derived betas (must rediscover reality, not assume it) ──
+    beta_gold_real, beta_gold_n = None, 0
+    fred_dfii = fred_series("DFII10", (datetime.now(timezone.utc)
+                            - timedelta(days=1200)).strftime("%Y-%m-%d"), fkey)
+    if fred_dfii and closes.get("GLD"):
+        dmap = {d: v for d, v in fred_dfii}
+        gmap = {datetime.fromtimestamp(b["t"] / 1000, tz=timezone.utc)
+                .strftime("%Y-%m-%d"): b["c"] for b in bars["GLD"]}
+        days = sorted(set(dmap) & set(gmap))
+        xs, ys = [], []
+        for a, b in zip(days, days[1:]):
+            dx = (dmap[b] - dmap[a]) * 100.0            # bps change in real yld
+            dy = (gmap[b] / gmap[a] - 1.0) * 100.0      # % change in gold
+            if abs(dx) < 60:
+                xs.append(dx); ys.append(dy)
+        slope, beta_gold_n = ols_beta(xs, ys)
+        if slope is not None:
+            beta_gold_real = round(slope * 100.0, 2)    # % per +100bp real
+    beta_gdx_gold = None
+    if closes.get("GDX") and closes.get("GLD"):
+        n = min(len(closes["GDX"]), len(closes["GLD"]), 500)
+        gx = [closes["GDX"][-n + i + 1] / closes["GDX"][-n + i] - 1.0
+              for i in range(n - 1)]
+        gl = [closes["GLD"][-n + i + 1] / closes["GLD"][-n + i] - 1.0
+              for i in range(n - 1)]
+        b, _ = ols_beta(gl, gx)
+        beta_gdx_gold = round(b, 2) if b is not None else None
+
+    gsr_z, gsr_now = None, None
+    if gld10 and slv10:
+        smap = {b["t"]: b["c"] for b in slv10}
+        ratio = [b["c"] / smap[b["t"]] for b in gld10
+                 if b["t"] in smap and smap[b["t"]]]
+        if len(ratio) > 500:
+            gsr_now = round(ratio[-1], 2)
+            gsr_z = zscore_latest(ratio)
+
+    cyc = s3_json("data/crypto-cycle-risk.json")
+    rr = s3_json("data/risk-regime.json")
+    xar = s3_json("data/cross-asset-regime.json")
+    xrv = s3_json("data/cross-asset-rv.json")
+
+    # ── per-asset assembly ──
+    assets = []
+    for tkr, klass, label, dur, structural, model in UNIVERSE:
+        px = closes.get(tkr, [None])[-1] if tkr != "CASH" else 1.0
+        row = {"ticker": tkr, "class": klass, "label": label, "price": px,
+               "structural": structural, "er_1y_pct": None,
+               "er_components": {}, "flags": []}
+        if tkr == "CASH":
+            row["er_1y_pct"] = y1
+            row["er_components"] = {"carry_pct": y1, "model": "1y T-bill"}
+            row["asym"] = {"status": "N/A"}
+            row["trend"] = {"label": "N/A", "ok": True}
+            row["breakout"] = {"state": "NONE"}
+            assets.append(row); continue
+        cl = closes.get(tkr) or []
+        if not cl:
+            row["flags"].append("NO_DATA"); assets.append(row); continue
+        hs = [b["h"] for b in bars[tkr]]
+        vs = [b["v"] for b in bars[tkr]]
+        tr = trend_of(cl)
+        bo = breakout_state(cl, hs, vs)
+        dds = drawdown_series(cl)
+        dd_now = dds[-1]
+        # long history for the drawdown distribution where we have it
+        dd_hist = drawdown_series([b["c"] for b in (
+            gld10 if tkr == "GLD" else slv10 if tkr == "SLV" else bars[tkr])])
+        up, dn, ratio = asymmetry(px, max(cl), dd_now, dd_hist)
+        dd_pct = percentile_of(dd_now, dd_hist)
+        gate_ok = bool(tr.get("ok")) if not structural else True
+        status = ("ACTIONABLE" if (ratio or 0) >= 1.5 and gate_ok and
+                  tr.get("label") != "DOWNTREND"
+                  else "WATCH" if (ratio or 0) >= 1.5
+                  else "NEUTRAL")
+        if not structural and not tr.get("ok"):
+            row["flags"].append("SURVIVAL_GATE: needs trend confirmation "
+                                "(can-die asset in downtrend)")
+        row["asym"] = {"upside_pct": up, "downside_pct": dn,
+                       "ratio": ratio, "dd_now_pct": round(dd_now * 100, 1),
+                       "dd_depth_pctile_hist": dd_pct, "status": status,
+                       "score": asym_score(ratio, dd_pct, tr.get("ok"),
+                                           bo.get("state"))}
+        row["trend"], row["breakout"] = tr, bo
+
+        ec = row["er_components"]
+        if model == "ust" and None not in (y10, y10f):
+            row["er_1y_pct"] = bond_er(y10, dur, dy10)
+            ec.update(carry_pct=y10, duration=dur,
+                      expected_dy10_pp=dy10, model="curve-implied fwd 10y")
+        elif model == "tips" and None not in (dfii, infl):
+            row["er_1y_pct"] = round(bond_er(dfii, dur, dreal) + infl, 2)
+            ec.update(real_yield_pct=dfii, infl_accrual_pct=infl,
+                      duration=dur, expected_dreal_pp=dreal)
+        elif model == "gold":
+            tilt = 1.0 if tr["label"] in ("UPTREND", "RECOVERING") else -1.0
+            if infl is not None:
+                b = beta_gold_real if beta_gold_real is not None else -25.0
+                row["er_1y_pct"] = round(infl + b * dreal + tilt, 2)
+                ec.update(infl_anchor_pct=infl,
+                          beta_pct_per_100bp_real=beta_gold_real,
+                          beta_obs=beta_gold_n, expected_dreal_pp=dreal,
+                          trend_tilt_pct=tilt,
+                          model="inflation anchor + data-fit real-rate beta")
+        elif model == "silver":
+            g_er = next((a["er_1y_pct"] for a in assets
+                         if a["ticker"] == "GLD"), None)
+            if g_er is not None:
+                rv = round(min(max(1.5 * (gsr_z or 0.0), -6.0), 6.0), 2)
+                row["er_1y_pct"] = round(g_er + rv, 2)
+                ec.update(gold_er_pct=g_er, gsr_now=gsr_now, gsr_z_10y=gsr_z,
+                          gsr_reversion_pct=rv,
+                          model="gold ER + gold/silver-ratio 10y reversion")
+        elif model == "miners":
+            g_er = next((a["er_1y_pct"] for a in assets
+                         if a["ticker"] == "GLD"), None)
+            if g_er is not None and beta_gdx_gold:
+                row["er_1y_pct"] = round(beta_gdx_gold * g_er - 1.0, 2)
+                ec.update(gold_er_pct=g_er, beta_gdx_gold=beta_gdx_gold,
+                          cost_drag_pct=-1.0)
+        elif model == "reit":
+            yld = polygon_ttm_div(tkr, px)
+            if yld and infl is not None:
+                row["er_1y_pct"] = round(yld + infl + 0.75, 2)
+                ec.update(ttm_dist_yield_pct=yld, infl_pct=infl,
+                          real_escalator_pct=0.75,
+                          spread_vs_10y_pp=(round(yld - y10, 2)
+                                            if y10 is not None else None),
+                          assumption="0.75% real NOI escalator",
+                          rate_sensitivity="negative to rising y10")
+                row["flags"].append("ASSUMPTION: real escalator 0.75%")
+        elif model == "equity":
+            yld = polygon_ttm_div(tkr, px)
+            s200 = sma(cl, 200)
+            stretch = ((px / s200 - 1.0) * 100.0) if s200 else 0.0
+            val = round(min(max(-0.35 * stretch, -4.0), 4.0), 2)
+            if yld is not None and infl is not None:
+                row["er_1y_pct"] = round(yld + infl + g + val, 2)
+                ec.update(ttm_div_yield_pct=yld, infl_pct=infl,
+                          real_growth_proxy_pct=g,
+                          stretch_vs_200dma_pct=round(stretch, 1),
+                          valuation_reversion_pct=val,
+                          model="Grinold-Kroner lite: yield+growth+reversion",
+                          omitted="buyback yield (needs holdings data; "
+                                  "stock-level GK lands in equity-research)")
+        else:
+            row["er_1y_pct"] = None
+            ec.update(model="no yield/earnings anchor — ranked on "
+                            "asymmetry/trend/breakout only")
+            if klass == "crypto":
+                row["flags"].append("LOW_N: ~4 halving cycles of history; "
+                                    "asymmetry stats are low-confidence")
+                if tkr == "BTC" and isinstance(cyc, dict) and cyc:
+                    row["cycle_context"] = {
+                        "crypto_cycle_risk": cyc.get("composite_score")
+                        or cyc.get("score"),
+                        "phase": cyc.get("phase") or cyc.get("cycle_phase")}
+        assets.append(row)
+
+    er_rank = sorted([a for a in assets if a["er_1y_pct"] is not None],
+                     key=lambda a: a["er_1y_pct"], reverse=True)
+    as_rank = sorted([a for a in assets if (a.get("asym") or {}).get("score")],
+                     key=lambda a: a["asym"]["score"], reverse=True)
+    bo_watch = [a["ticker"] for a in assets if (a.get("breakout") or {})
+                .get("state") in ("BREAKOUT", "COILED", "SQUEEZE")]
+
+    out = {
+        "schema_version": "1.0",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "engine": "justhodl-asset-compass", "status": "PROVISIONAL",
+        "macro_forward": {k: v for k, v in macro.items()
+                          if k != "_fred_last"},
+        "betas": {"gold_vs_real_rate_pct_per_100bp": beta_gold_real,
+                  "gold_beta_obs": beta_gold_n,
+                  "gdx_vs_gold": beta_gdx_gold,
+                  "gold_silver_ratio": gsr_now, "gsr_z_10y": gsr_z},
+        "assets": assets,
+        "boards": {
+            "er_ranking": [{"ticker": a["ticker"], "label": a["label"],
+                            "er_1y_pct": a["er_1y_pct"]} for a in er_rank],
+            "asymmetry_ranking": [{"ticker": a["ticker"],
+                                   "label": a["label"],
+                                   "score": a["asym"]["score"],
+                                   "ratio": a["asym"].get("ratio"),
+                                   "status": a["asym"].get("status")}
+                                  for a in as_rank[:10]],
+            "breakout_watch": bo_watch},
+        "context": {"risk_regime": (rr or {}).get("regime")
+                    or (rr or {}).get("label"),
+                    "cross_asset_roro": (xar or {}).get("risk_score")
+                    or (xar or {}).get("roro_score"),
+                    "rv_dislocations": len([r for r in
+                                            ((xrv or {}).get("relationships")
+                                             or []) if str(r.get("state", ""))
+                                            .upper() == "DISLOCATED"])},
+        "methodology": {
+            "er": "Grinold-Kroner style decomposition per class; every "
+                  "component published in er_components; assets without a "
+                  "yield/earnings anchor carry er=None (never fabricated).",
+            "asymmetry": "upside = recovery to 3y high (cap 200%); downside "
+                         "= move to own 95th-pctile historical drawdown "
+                         "depth; survival gate on can-die assets.",
+            "forward_macro": "market-implied only (curve + Cleveland Fed).",
+            "horizon": "12 months"},
+        "warns": warns,
+        "elapsed_s": round(time.time() - t0, 1),
+    }
+    S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(out, default=str).encode(),
+                  ContentType="application/json", CacheControl="max-age=300")
+    return {"statusCode": 200,
+            "body": json.dumps({"ok": True, "assets": len(assets),
+                                "er_modeled": len(er_rank),
+                                "warns": len(warns)})}
