@@ -1,0 +1,231 @@
+- `01:27:24` ⚠ DEAD referenced feed ...json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed 13f-aggregate.json (http=None) <- pages: /engines.html
+**Status:** failure  
+**Duration:** 56.0s  
+**Finished:** 2026-07-07T01:27:24+00:00  
+
+## Error
+
+```
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2950_fleet_health.py", line 141, in main
+    for o in (e.get("outs") or []):
+              ^^^^^
+AttributeError: 'str' object has no attribute 'get'
+
+```
+
+## Data
+
+| feeds_live | feeds_older_30d | feeds_referenced | feeds_unparseable | nav_pages | pages_down | pages_ok |
+|---|---|---|---|---|---|---|
+|  |  |  |  | 366 |  |  |
+|  |  |  |  |  | /asymmetric.html,/catalysts.html,/charts.html,/options-flow.html,/positioning.html | 361/366 |
+|  |  | 825 |  |  |  |  |
+| 629/825 | 8 |  | 0 |  |  |  |
+
+## Log
+- `01:27:24` ⚠ DEAD referenced feed aaii.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed analyst-consensus-history.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed asymmetric-setups.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed beneish-m-score.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed bond-regime.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed canaries.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed cascade-track-record.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed commodity-curves-history.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed cot/extremes/current.json (http=None) <- pages: /cot-extremes.html,/desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed credit-spreads.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed crypto-intel.json (http=None) <- pages: /desk-v2.html
+- `01:27:24` ⚠ DEAD referenced feed data/10kq-filings.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/13f-positions.json (http=None) <- pages: /13f.html
+- `01:27:24` ⚠ DEAD referenced feed data/8k-filings.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/aaii-sentiment.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/activist-13d.json (http=None) <- pages: /activist-13d.html
+- `01:27:24` ⚠ DEAD referenced feed data/allocator.json (http=None) <- pages: /allocator.html
+- `01:27:24` ⚠ DEAD referenced feed data/alpha-compass.json (http=None) <- pages: /alpha-compass.html
+- `01:27:24` ⚠ DEAD referenced feed data/alpha-scoreboard-research.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/altseason.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/asymmetric-scorer.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/auction-crisis.json (http=None) <- pages: /auctions.html,/bonds.html
+- `01:27:24` ⚠ DEAD referenced feed data/backlog.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/basket-var.json (http=None) <- pages: /risk.html
+- `01:27:24` ⚠ DEAD referenced feed data/beneish.json (http=None) <- pages: /beneish.html
+- `01:27:24` ⚠ DEAD referenced feed data/best-setups.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/bond-vol.json (http=None) <- pages: /bond-vol.html
+- `01:27:24` ⚠ DEAD referenced feed data/buyback-scanner.json (http=None) <- pages: /buyback-scanner.html
+- `01:27:24` ⚠ DEAD referenced feed data/calibration-snapshot.json (http=None) <- pages: /accuracy.html
+- `01:27:24` ⚠ DEAD referenced feed data/capital-flow.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/carry-surface.json (http=None) <- pages: /carry-surface.html,/carry.html
+- `01:27:24` ⚠ DEAD referenced feed data/cascade-calibration.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/cascade-validation-log.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/catalyst-calendar.json (http=None) <- pages: /catalyst-calendar.html,/chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/catalyst-clusters.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/catalysts.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/compound-signals.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/convergence-radar.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/correlation-breaks.json (http=None) <- pages: /correlation.html
+- `01:27:24` ⚠ DEAD referenced feed data/crisis-composite.json (http=None) <- pages: /defcon.html
+- `01:27:24` ⚠ DEAD referenced feed data/crisis-plumbing.json (http=None) <- pages: /bonds.html,/crisis.html
+- `01:27:24` ⚠ DEAD referenced feed data/cross-asset-regime.json (http=None) <- pages: /cross-asset.html
+- `01:27:24` ⚠ DEAD referenced feed data/crypto-opportunities.json (http=None) <- pages: /crypto-opportunities.html
+- `01:27:24` ⚠ DEAD referenced feed data/dark-pool.json (http=None) <- pages: /dark-pool.html
+- `01:27:24` ⚠ DEAD referenced feed data/dealer-survey.json (http=None) <- pages: /dealer-survey.html,/signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/deep-value-overlap.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/deep-value.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/devils-advocate.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/dislocations.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/divergence-v2.json (http=None) <- pages: /divergence-v2.html
+- `01:27:24` ⚠ DEAD referenced feed data/dollar-radar.json (http=None) <- pages: /dollar.html
+- `01:27:24` ⚠ DEAD referenced feed data/early-movers.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/earnings-whisper.json (http=None) <- pages: /earnings-whisper.html
+- `01:27:24` ⚠ DEAD referenced feed data/eia-energy.json (http=None) <- pages: /eia.html
+- `01:27:24` ⚠ DEAD referenced feed data/episode-compass.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/episode-reference.json (http=None) <- pages: /yield-curve.html
+- `01:27:24` ⚠ DEAD referenced feed data/eps-revision-velocity.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/exchange-flows.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/executive-intel.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/factor-risk.json (http=None) <- pages: /factor-risk.html
+- `01:27:24` ⚠ DEAD referenced feed data/fed-speak.json (http=None) <- pages: /fed-speak.html
+- `01:27:24` ⚠ DEAD referenced feed data/finra-short.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/firm-book.json (http=None) <- pages: /firm-book.html
+- `01:27:24` ⚠ DEAD referenced feed data/firm-risk-board.json (http=None) <- pages: /firm-risk-board.html
+- `01:27:24` ⚠ DEAD referenced feed data/firm-stress.json (http=None) <- pages: /firm-stress.html
+- `01:27:24` ⚠ DEAD referenced feed data/forward-returns.json (http=None) <- pages: /compass.html
+- `01:27:24` ⚠ DEAD referenced feed data/gdelt-news.json (http=None) <- pages: /gdelt.html,/signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/global-business-cycle.json (http=None) <- pages: /global-cycle.html
+- `01:27:24` ⚠ DEAD referenced feed data/global-macro.json (http=None) <- pages: /global-macro.html
+- `01:27:24` ⚠ DEAD referenced feed data/gsi-calibration.json (http=None) <- pages: /gsi-calibration.html
+- `01:27:24` ⚠ DEAD referenced feed data/hedge-planner.json (http=None) <- pages: /hedge-planner.html
+- `01:27:24` ⚠ DEAD referenced feed data/historical-analogs.json (http=None) <- pages: /analogs.html
+- `01:27:24` ⚠ DEAD referenced feed data/implied-prob.json (http=None) <- pages: /implied-prob.html
+- `01:27:24` ⚠ DEAD referenced feed data/insider-clusters.json (http=None) <- pages: /alpha-scoreboard.html,/chart-pro.html,/insider-drawdown.html
+- `01:27:24` ⚠ DEAD referenced feed data/institutional-positions.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/kill-theses.json (http=None) <- pages: /kill-theses.html
+- `01:27:24` ⚠ DEAD referenced feed data/labor-leading.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/liquidity-capacity.json (http=None) <- pages: /liquidity-capacity.html
+- `01:27:24` ⚠ DEAD referenced feed data/liquidity-credit-engine.json (http=None) <- pages: /lce.html
+- `01:27:24` ⚠ DEAD referenced feed data/liquidity-flow.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/macro-leads.json (http=None) <- pages: /macro-leads.html
+- `01:27:24` ⚠ DEAD referenced feed data/macro-nowcast.json (http=None) <- pages: /alpha-scoreboard.html,/macro-data.html
+- `01:27:24` ⚠ DEAD referenced feed data/market-internals.json (http=None) <- pages: /market-internals.html
+- `01:27:24` ⚠ DEAD referenced feed data/market-map.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/master-ranker.json (http=None) <- pages: /master-rank.html
+- `01:27:24` ⚠ DEAD referenced feed data/merger-arb-risk.json (http=None) <- pages: /merger-arb-risk.html
+- `01:27:24` ⚠ DEAD referenced feed data/momentum-leaders.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/momentum-scanner.json (http=None) <- pages: /momentum.html
+- `01:27:24` ⚠ DEAD referenced feed data/move-index.json (http=None) <- pages: /bonds.html
+- `01:27:24` ⚠ DEAD referenced feed data/narrative-density.json (http=None) <- pages: /narrative.html
+- `01:27:24` ⚠ DEAD referenced feed data/nowcast-desk.json (http=None) <- pages: /nowcast-desk.html
+- `01:27:24` ⚠ DEAD referenced feed data/oecd-cli.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/onchain-ratios.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/opex-calendar.json (http=None) <- pages: /opex-calendar.html
+- `01:27:24` ⚠ DEAD referenced feed data/opportunities-research.json (http=None) <- pages: /opportunities.html
+- `01:27:24` ⚠ DEAD referenced feed data/opportunities.json (http=None) <- pages: /chart-pro.html,/opportunities.html
+- `01:27:24` ⚠ DEAD referenced feed data/opportunity-calibration.json (http=None) <- pages: /opportunities.html
+- `01:27:24` ⚠ DEAD referenced feed data/options-flow.json (http=None) <- pages: /options-scanner.html
+- `01:27:24` ⚠ DEAD referenced feed data/options-gamma.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/pair-trades.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/pairs-scanner.json (http=None) <- pages: /pairs-scanner.html,/pairs.html
+- `01:27:24` ⚠ DEAD referenced feed data/pead-signals.json (http=None) <- pages: /pead-signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/plumbing-history.json (http=None) <- pages: /plumbing.html
+- `01:27:24` ⚠ DEAD referenced feed data/plumbing-stress.json (http=None) <- pages: /plumbing.html
+- `01:27:24` ⚠ DEAD referenced feed data/pnl-attribution.json (http=None) <- pages: /pnl-attribution.html
+- `01:27:24` ⚠ DEAD referenced feed data/political-ai-investigation.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/political-intel.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/polygon-options-flow.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/portfolio-analytics.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/predictability.json (http=None) <- pages: /predictability.html
+- `01:27:24` ⚠ DEAD referenced feed data/predictions-snapshots/latest.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/price-redundancy.json (http=None) <- pages: /signals.html
+- `01:27:24` ⚠ DEAD referenced feed data/pump-earnings-nlp.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/pump-mechanics.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/pump-positioning.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/pump-radar-brief.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/radar-backtest.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/regime.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/report.json (http=None) <- pages: /ath.html,/bonds.html
+- `01:27:24` ⚠ DEAD referenced feed data/retail-sentiment.json (http=None) <- pages: /chart-pro.html
+- `01:27:24` ⚠ DEAD referenced feed data/risk-monitor.json (http=None) <- pages: /risk-monitor.html
+- `01:27:24` ⚠ DEAD referenced feed data/risk-radar.json (http=None) <- pages: /risk-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/rotation-radar.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/russell-recon-frontrun.json (http=None) <- pages: /russell-recon.html
+- `01:27:24` ⚠ DEAD referenced feed data/rv-iv-scanner.json (http=None) <- pages: /rv-iv-scanner.html
+- `01:27:24` ⚠ DEAD referenced feed data/sector-groups.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/sector-rotation.json (http=None) <- pages: /alpha-scoreboard.html,/sectors.html
+- `01:27:24` ⚠ DEAD referenced feed data/sector-tilt.json (http=None) <- pages: /sector-tilt.html
+- `01:27:24` ⚠ DEAD referenced feed data/signal-board.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/signal-genealogy.json (http=None) <- pages: /signal-genealogy.html
+- `01:27:24` ⚠ DEAD referenced feed data/signal-halflife.json (http=None) <- pages: /signal-halflife.html
+- `01:27:24` ⚠ DEAD referenced feed data/sizing.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/smart-beta.json (http=None) <- pages: /smart-beta.html
+- `01:27:24` ⚠ DEAD referenced feed data/smart-money-clusters.json (http=None) <- pages: /alpha-scoreboard.html
+- `01:27:24` ⚠ DEAD referenced feed data/stablecoin-flow.json (http=None) <- pages: /stablecoin-flow.html
+- `01:27:24` ⚠ DEAD referenced feed data/starmine.json (http=None) <- pages: /starmine.html
+- `01:27:24` ⚠ DEAD referenced feed data/stock-valuations.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/supply-inflection.json (http=None) <- pages: /supply-inflection.html
+- `01:27:24` ⚠ DEAD referenced feed data/systemic-stress.json (http=None) <- pages: /systemic-stress.html
+- `01:27:24` ⚠ DEAD referenced feed data/tail-hedge.json (http=None) <- pages: /tail-hedge.html
+- `01:27:24` ⚠ DEAD referenced feed data/tape-reader.json (http=None) <- pages: /tape-reader.html
+- `01:27:24` ⚠ DEAD referenced feed data/theme-cascade.json (http=None) <- pages: /chart-pro.html,/pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/theme-tiers.json (http=None) <- pages: /alpha-scoreboard.html,/theme-tiers.html
+- `01:27:24` ⚠ DEAD referenced feed data/themes.json (http=None) <- pages: /api-docs.html,/pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/ticker-research-bundle.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/track-record.json (http=None) <- pages: /opportunities.html
+- `01:27:24` ⚠ DEAD referenced feed data/trade-tickets-ai-rationale.json (http=None) <- pages: /chart-pro.html,/pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/trade-tickets.json (http=None) <- pages: /chart-pro.html,/pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/upside-radar.json (http=None) <- pages: /api-docs.html
+- `01:27:24` ⚠ DEAD referenced feed data/user-watchlist.json (http=None) <- pages: /master-rank.html,/watchlist.html
+- `01:27:24` ⚠ DEAD referenced feed data/velocity-acceleration.json (http=None) <- pages: /pre-pump-radar.html
+- `01:27:24` ⚠ DEAD referenced feed data/vix-curve.json (http=None) <- pages: /signals.html,/vix-curve.html
+- `01:27:24` ⚠ DEAD referenced feed data/vol-regime.json (http=None) <- pages: /vol-regime.html
+- `01:27:24` ⚠ DEAD referenced feed data/vol-target-unwind.json (http=None) <- pages: /vol-target-unwind.html
+- `01:27:24` ⚠ DEAD referenced feed data/yield-curve.json (http=None) <- pages: /yield-curve.html
+- `01:27:24` ⚠ DEAD referenced feed divergence-current.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed divergence.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed divergence/current.json (http=None) <- pages: /desk-v2.html,/desk.html,/news.html
+- `01:27:24` ⚠ DEAD referenced feed dollar-strength.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed earnings-calendar.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed ecb-cache.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed ecb-confidence.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed ecb-data.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed edgar_insiders.json (http=None) <- pages: /analytics.html
+- `01:27:24` ⚠ DEAD referenced feed edge-data.json (http=None) <- pages: /edge.html,/engines.html
+- `01:27:24` ⚠ DEAD referenced feed engine-robustness.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed equity_research.json (http=None) <- pages: /analytics.html
+- `01:27:24` ⚠ DEAD referenced feed flow-data.json (http=None) <- pages: /flow.html,/vol.html
+- `01:27:24` ⚠ DEAD referenced feed foo.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed gross-leverage.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed ici-flows.json (http=None) <- pages: /engines.html,/ici-flows.html
+- `01:27:24` ⚠ DEAD referenced feed intelligence-report.json (http=None) <- pages: /desk-v2.html
+- `01:27:24` ⚠ DEAD referenced feed investor-debate/_index.json (http=None) <- pages: /desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed justhodl-dashboard-live/data/macro-nowcast.json (http=None) <- pages: /chart-macro.html
+- `01:27:24` ⚠ DEAD referenced feed khalid-index.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed kill-switch-state.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed liquidity-data.json (http=None) <- pages: /liquidity.html
+- `01:27:24` ⚠ DEAD referenced feed news-velocity-history.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed opportunities/asymmetric-equity.json (http=None) <- pages: /desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed portfolio.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed portfolio/pnl-daily.json (http=None) <- pages: /desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed portfolio/signal-portfolio-state.json (http=None) <- pages: /ticker.html
+- `01:27:24` ⚠ DEAD referenced feed portfolio/sizer-v2.json (http=None) <- pages: /position-sizer.html
+- `01:27:24` ⚠ DEAD referenced feed predictions.json (http=None) <- pages: /ml-predictions.html,/trading-signals.html
+- `01:27:24` ⚠ DEAD referenced feed quote-snapshot.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed regime-read.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed regime/current.json (http=None) <- pages: /bonds.html,/desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed repo-data.json (http=None) <- pages: /repo.html
+- `01:27:24` ⚠ DEAD referenced feed reports/scorecard.json (http=None) <- pages: /reports.html
+- `01:27:24` ⚠ DEAD referenced feed research_critique.json (http=None) <- pages: /analytics.html
+- `01:27:24` ⚠ DEAD referenced feed risk/recommendations.json (http=None) <- pages: /desk-v2.html,/desk.html
+- `01:27:24` ⚠ DEAD referenced feed transcripts-index.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed user-alert-rules.json (http=None) <- pages: /engines.html
+- `01:27:24` ⚠ DEAD referenced feed valuations-data.json (http=None) <- pages: /valuations-macro.html
+- `01:27:24` old feed (> 30d) congress-party-map.json age=36d <- /engines.html
+- `01:27:24` old feed (> 30d) feedback-summary.json age=64d <- /engines.html
+- `01:27:24` old feed (> 30d) history-api-url.json age=61d <- /audit.html
+- `01:27:24` old feed (> 30d) ka-config.json age=71d <- /engines.html
+- `01:27:24` old feed (> 30d) khalid-config.json age=130d <- /engines.html
+- `01:27:24` old feed (> 30d) user-trades-stats.json age=60d <- /engines.html
+- `01:27:24` old feed (> 30d) user-trades.json age=60d <- /engines.html
+- `01:27:24` old feed (> 30d) user-watchlist.json age=60d <- /engines.html
