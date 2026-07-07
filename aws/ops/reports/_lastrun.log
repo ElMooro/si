@@ -1,10 +1,11 @@
-executing-against: edb4e34d62363d7c12594500d12832a1c079e5bd
-[00:14:59] ✅ v1.2.26 deploy live attempt 1
-[00:14:59] ✅ engines.html: http=200 bake marker replaced=True
-[00:14:59] ✅   total=661 counts={'no-outs': 82, 'orphan-fresh': 97, 'wired': 468, 'orphan-stale': 9, 'orphan-dead': 5}
-[00:14:59] ✅ chrome present: True
-[00:14:59] ✅ nav-manifest: engines.html present, 366 total, 366 unique (want 366/366)
-[00:14:59] ✅ directory.html links to engines.html + stale count fixed: True
+executing-against: 50109791ad0c23f5bc7726b58e7d6a0f3df79e78
 
-→ Report written to aws/ops/reports/latest/2946.md
-DONE 2946 PASS
+→ Report written to aws/ops/reports/latest/2946_verify_engine_wiring.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2946_verify_engine_wiring.py", line 114, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2946_verify_engine_wiring.py", line 32, in main
+    assert c == 200, "engine-wiring.json not live yet"
+           ^^^^^^^^
+AssertionError: engine-wiring.json not live yet
+❌ OPS-FAIL: aws/ops/pending/ops_2946_verify_engine_wiring.py
