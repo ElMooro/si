@@ -1,29 +1,28 @@
-executing-against: 81d40b1b74ea885ef9b1f1ea972de87f72afcdcd
+executing-against: 4e72a47324901ae35af40e186294eb26020e2244
 ── 0. Probe NY Fed markets API from the runner ──
 ── 1. Env bundle + create justhodl-repo-market ──
-[06:15:41]   zip: 9355 bytes
+[06:19:34]   zip: 9355 bytes
 ── 1. Lambda ──
-[06:15:41]   Lambda missing — creating
-[06:15:46] ✅   ✓ created justhodl-repo-market
+[06:19:34]   Lambda exists — updating
+[06:19:39] ✅   ✓ updated justhodl-repo-market
 ── 2. EventBridge Scheduler schedule ──
 ── 3. Synchronous first run + verify repo-market.json ──
 ── 4. Deploy + verify the three fused consumers ──
-[06:15:58]   zip: 19120 bytes
+[06:19:51]   zip: 19120 bytes
 ── 1. Lambda ──
-[06:15:58]   Lambda exists — updating
-[06:16:01] ✅   ✓ updated justhodl-dollar-radar
-[06:16:16]   zip: 10126 bytes
+[06:19:52]   Lambda exists — updating
+[06:19:57] ✅   ✓ updated justhodl-dollar-radar
+[06:20:14]   zip: 10126 bytes
 ── 1. Lambda ──
-[06:16:16]   Lambda exists — updating
-[06:16:21] ✅   ✓ updated justhodl-risk-regime
-[06:16:24]   zip: 13724 bytes
+[06:20:14]   Lambda exists — updating
+[06:20:17] ✅   ✓ updated justhodl-risk-regime
+[06:20:20]   zip: 13724 bytes
 ── 1. Lambda ──
-[06:16:24]   Lambda exists — updating
-[06:16:27] ✅   ✓ updated justhodl-crisis-plumbing
+[06:20:20]   Lambda exists — updating
+[06:20:25] ✅   ✓ updated justhodl-crisis-plumbing
 ── 5. Live-path checks (warn-level, CDN/pages lag) ──
 ── verdict ──
-[06:16:32] report written: /home/runner/work/si/si/aws/ops/reports/2965.json
-[06:16:32] FAILED: dollar-radar fusion missing (canaries=15, labels=['Fed net liquidity (13w change)', 'Fed balance sheet trend (QE/QT)', 'Reverse repo (RRP) drain', 'Treasury General Account', 'US 10y real yield trend', 'US-Germany 10y spread', 'Equity volatility (VIX safe-haven)', 'High-yield credit spreads', 'Dollar index momentum', 'Offshore dollar funding stress', 'Onshore repo stress (SOFR plumbing)', 'US 10y nominal yield trend', 'Fed path repricing (2y yield)', 'Fed FX swap lines outstanding', 'China credit impulse'])
+[06:20:29] report written: /home/runner/work/si/si/aws/ops/reports/2965.json
+[06:20:29] PASS -- repo market engine live and fused into dollar-radar, risk-regime and crisis-plumbing
 
 → Report written to aws/ops/reports/latest/2965_repo_market.md
-❌ OPS-FAIL: aws/ops/pending/ops_2965_repo_market.py
