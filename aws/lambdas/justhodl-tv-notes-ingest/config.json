@@ -1,0 +1,8 @@
+{
+  "description": "TradingView notes -> Brain ingest: token-gated write path from the operator's own browser session into the real Brain store + data/tradingview-notes.json mirror",
+  "timeout": 60,
+  "memory": 256,
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "function_url": true
+}

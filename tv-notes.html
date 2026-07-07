@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TradingView Notes → Brain · JustHodl</title>
+<style>
+:root{--bg:#0C0B09;--panel:#12110C;--ink:#e8e2d4;--dim:#8a836f;--amber:#F0B429;--line:#2B2820;--green:#6fce8a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 "IBM Plex Mono",monospace;padding:24px}
+.wrap{max-width:840px;margin:0 auto}
+h1{color:var(--amber);font-size:20px;margin:0 0 4px}
+.sub{color:var(--dim);margin-bottom:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:16px}
+.step{display:flex;gap:12px;margin-bottom:14px}
+.num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--amber);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:bold}
+.step div{flex:1}
+code,pre{background:#080705;border:1px solid var(--line);border-radius:5px;color:var(--green)}
+code{padding:2px 6px}
+pre{padding:12px;overflow:auto;white-space:pre-wrap;word-break:break-all;position:relative}
+button{background:var(--amber);color:var(--bg);border:0;border-radius:5px;padding:8px 14px;font-weight:bold;cursor:pointer;font-family:inherit}
+button.ghost{background:none;color:var(--amber);border:1px solid var(--amber)}
+.kv{color:var(--dim)}.kv b{color:var(--ink)}
+.stat{font-size:28px;color:var(--amber)}
+.warn{color:var(--dim);font-size:12px;border-left:2px solid var(--line);padding-left:10px;margin-top:8px}
+a{color:var(--amber)}
+</style></head>
+<body><div class="wrap">
+<h1>TradingView Notes → Brain</h1>
+<div class="sub">Harvest every text note you've written under any ticker on TradingView and load them straight into your Brain — from your own logged-in browser, no credentials shared.</div>
+
+<div class="card">
+  <div class="kv">Notes already harvested into the mirror: <span class="stat" id="cnt">…</span></div>
+  <div class="kv" id="upd"></div>
+</div>
+
+<div class="card">
+  <div class="step"><div class="num">1</div><div>
+    Open <a href="https://www.tradingview.com/chart/" target="_blank">TradingView</a> in the same Chrome where you're logged in. Open a chart, then the <b>Notes</b> widget (right-side panel, or press <code>Alt</code>+<code>N</code>) and click <b>All notes</b> at the top-right of that widget.
+  </div></div>
+  <div class="step"><div class="num">2</div><div>
+    Press <code>F12</code> → <b>Console</b> tab. Paste the line below and hit Enter. A small amber panel appears bottom-right of TradingView.
+    <pre id="loader">javascript:(function(){var s=document.createElement('script');s.src='https://justhodl.ai/tools/tv-export.js?t='+Date.now();document.body.appendChild(s);})();</pre>
+    <button class="ghost" onclick="cp('loader')">copy loader</button>
+    <div class="warn">Chrome may block the first paste in console with a "warning" — type <b>allow pasting</b> once, press Enter, then paste again.</div>
+  </div></div>
+  <div class="step"><div class="num">3</div><div>
+    In the <b>All notes</b> list, click through each symbol that has a note. The panel counts them as they're captured — no copy-paste needed. When the count stops climbing, press <b>UPLOAD</b>.
+  </div></div>
+  <div class="step"><div class="num">4</div><div>
+    Done. Your notes are in the Brain, tagged <code>[TV:SYMBOL]</code>, deduped, and visible at <a href="/brain.html">brain.html</a>. The next brain-compiler run routes them to the engines that can use them.
+  </div></div>
+</div>
+
+<div class="card" id="cfgcard" style="display:none">
+  <div class="kv" style="margin-bottom:8px">Manual config (only if the console reports a CORS block):</div>
+  <div class="kv">INGEST URL &nbsp;<b id="iu">—</b> <button class="ghost" onclick="cp('iu')">copy</button></div>
+  <div class="kv" style="margin-top:6px">INGEST TOKEN <b id="it">—</b> <button class="ghost" onclick="cp('it')">copy</button></div>
+</div>
+
+<div class="warn">
+Everything runs inside your own browser session on tradingview.com. The extractor only reads your notes and sends them to your own JustHodl ingest endpoint — nothing else leaves the page, and nothing sends until you press UPLOAD. TradingView has no official notes API, so this rides your live session; if TV changes their internal note API, the capture may need a refresh.
+</div>
+</div>
+
+<script>
+function cp(id){var el=document.getElementById(id);var t=el.innerText||el.textContent;navigator.clipboard.writeText(t.trim()).then(function(){event.target.textContent='copied';setTimeout(function(){event.target.textContent=event.target.textContent.replace('copied','copy');},1200);});}
+var S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+fetch(S3+"/data/tradingview-notes.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  document.getElementById("cnt").textContent=(d&&d.count!=null)?d.count:0;
+  if(d&&d.updated)document.getElementById("upd").innerHTML="last upload: <b>"+new Date(d.updated).toLocaleString()+"</b>";
+}).catch(()=>{document.getElementById("cnt").textContent="0";});
+fetch(S3+"/data/tv-ingest-config.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(c=>{
+  if(c&&c.ingest_url){document.getElementById("cfgcard").style.display="block";
+    document.getElementById("iu").textContent=c.ingest_url;
+    document.getElementById("it").textContent=c.token||"(in SSM)";}
+}).catch(()=>{});
+</script>
+</body></html>
