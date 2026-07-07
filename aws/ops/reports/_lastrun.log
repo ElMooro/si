@@ -1,16 +1,15 @@
-executing-against: 6fd05a90a6f5093a4d92957e1df31e642f5ab9f2
+executing-against: 738d7c5f86a8564f7154f75ffffd4784719546fa
 ── 0. Env bundle + live-feed probes from the runner ──
 ── 1. Deploy justhodl-asset-compass ──
-[17:53:33]   zip: 10313 bytes
+[17:57:18]   zip: 10459 bytes
 ── 1. Lambda ──
-[17:53:33]   Lambda missing — creating
-[17:53:36] ✅   ✓ created justhodl-asset-compass
+[17:57:18]   Lambda exists — updating
+[17:57:21] ✅   ✓ updated justhodl-asset-compass
 ── 2. EventBridge Scheduler schedule ──
 ── 3. Synchronous first run + hard verify ──
 ── 4. Sibling context (warn-only) ──
 ── verdict ──
-[17:53:48] FAILS=2 WARNS=1
-[17:53:48] report written: /home/runner/work/si/si/aws/ops/reports/2966.json
+[17:57:55] FAILS=0 WARNS=1
+[17:57:55] report written: /home/runner/work/si/si/aws/ops/reports/2966.json
 
 → Report written to aws/ops/reports/latest/2966_asset_compass.md
-❌ OPS-FAIL: aws/ops/pending/ops_2966_asset_compass.py
