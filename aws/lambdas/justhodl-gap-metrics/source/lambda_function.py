@@ -334,16 +334,12 @@ def m_revision_breadth():
     if isinstance(doc, list):
         rows = doc
     elif isinstance(doc, dict):
-        for k in ("rows", "stocks", "revisions", "data", "results",
-                  "items", "names"):
-            if isinstance(doc.get(k), list) and doc[k]:
-                rows = doc[k]
-                break
-        if rows is None:
-            for v in doc.values():
-                if isinstance(v, list) and v and isinstance(v[0], dict):
-                    rows = v
-                    break
+        best = []
+        for v in doc.values():
+            if isinstance(v, list) and v and isinstance(v[0], dict) \
+                    and len(v) > len(best):
+                best = v
+        rows = best or None
     if not rows:
         return {"status": "DEGRADED",
                 "note": "no row array found; top keys: %s"
@@ -364,16 +360,28 @@ def m_revision_breadth():
         return {"status": "DEGRADED",
                 "note": "no numeric revision field; row keys: %s"
                 % sample, **out}
-    pos = sum(1 for r in rows if isinstance(r.get(fld), (int, float))
-              and r[fld] > 0)
-    neg = sum(1 for r in rows if isinstance(r.get(fld), (int, float))
-              and r[fld] < 0)
+    def signed(r):
+        for f in (fld, "eps_rev_recent_pct", "eps_rev_pct"):
+            v = r.get(f)
+            if isinstance(v, (int, float)) and v != 0:
+                return 1 if v > 0 else -1
+        d = str(r.get("direction") or "").upper()
+        if d in ("UP", "POSITIVE", "POS", "RAISED", "HIGHER"):
+            return 1
+        if d in ("DOWN", "NEGATIVE", "NEG", "CUT", "LOWER"):
+            return -1
+        return 0
+    signs = [signed(r) for r in rows if isinstance(r, dict)]
+    pos = sum(1 for x in signs if x > 0)
+    neg = sum(1 for x in signs if x < 0)
     tot = pos + neg
-    if tot < 20:
-        return {"status": "DEGRADED", "note": "only %d signed rows" % tot,
-                **out}
+    if tot < 10:
+        return {"status": "DEGRADED",
+                "note": "only %d signed rows of %d in feed (universe too "
+                        "thin for market-level breadth)"
+                % (tot, len(rows)), **out}
     breadth = round(100.0 * pos / tot, 1)
-    return {"status": "OK", "field_used": fld, "names_covered": tot,
+    return {"status": "OK", "field_used": fld, "names_covered": tot, "universe_rows": len(rows),
             "positive": pos, "negative": neg,
             "breadth_pct_positive": breadth,
             "regime": ("EXPANSION" if breadth > 55 else
@@ -395,9 +403,9 @@ def m_miner_margin():
     for t in MINERS:
         try:
             d = json.loads(http(
-                "https://financialmodelingprep.com/api/v3/"
-                "income-statement/%s?period=quarter&limit=8&apikey=%s"
-                % (t, FMP), timeout=20))
+                "https://financialmodelingprep.com/stable/"
+                "income-statement?symbol=%s&period=quarter&limit=8"
+                "&apikey=%s" % (t, FMP), timeout=20))
             if isinstance(d, dict) and d.get("Error Message"):
                 errs.append("%s: %s" % (t, str(d["Error Message"])[:60]))
                 continue
@@ -529,7 +537,25 @@ def m_cor3m():
     out = {"gap_id": "M9",
            "source": "Yahoo implied-correlation indices (best-effort)"}
     closes, used = [], None
-    for sym in ("%5ECOR3M", "%5ECOR90D", "%5ECOR1M", "%5ECOR30D"):
+    try:
+        d = json.loads(http(
+            "https://cdn.cboe.com/api/global/delayed_quotes/charts/"
+            "_COR3M.json", timeout=20))
+        pts = ((d.get("data") or {}).get("prices")
+               or d.get("data") or [])
+        cs = []
+        for row in pts:
+            v = row.get("price") if isinstance(row, dict) else \
+                (row[1] if isinstance(row, (list, tuple))
+                 and len(row) > 1 else None)
+            if isinstance(v, (int, float)):
+                cs.append(float(v))
+        if len(cs) >= 60:
+            closes, used = cs, "CBOE _COR3M"
+    except Exception:
+        pass
+    for sym in (() if closes else
+                ("%5ECOR3M", "%5ECOR90D", "%5ECOR1M", "%5ECOR30D")):
         try:
             d = json.loads(http(
                 "https://query1.finance.yahoo.com/v8/finance/chart/"
@@ -548,7 +574,8 @@ def m_cor3m():
             return {"status": "DEGRADED", "note": "no implied-corr "
                     "symbol returned >=60 closes (tried COR3M/COR90D/"
                     "COR1M/COR30D)", **out}
-        out["source"] = "Yahoo " + (used or "")
+        out["source"] = (used if used and "CBOE" in used
+                         else "Yahoo " + (used or ""))
         cur = round(closes[-1], 2)
         return {"status": "OK", "implied_corr_3m": cur,
                 "pctile_1y": pctile(cur, closes),

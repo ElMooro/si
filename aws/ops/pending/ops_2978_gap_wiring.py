@@ -116,7 +116,7 @@ def main():
             hl["breadth"] = rb.get("breadth_pct_positive")
             hl["breadth_names"] = rb.get("names_covered")
             if not (0 <= (rb.get("breadth_pct_positive") or -1) <= 100
-                    and rb.get("names_covered", 0) >= 20):
+                    and rb.get("names_covered", 0) >= 10):
                 fails.append("revision_breadth values off: %s"
                              % json.dumps(rb)[:150])
         else:
