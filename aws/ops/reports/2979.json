@@ -1,0 +1,63 @@
+{
+ "ops": 2979,
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS",
+ "ts": "2026-07-07T21:51:11.499873+00:00",
+ "naaim_doc": {
+  "generated_at": "2026-07-03T17:30:15+00:00",
+  "latest": {
+   "date": "2026-07-01",
+   "value": 84.69
+  },
+  "history_n": 1043,
+  "column_mode": "header:NAAIM Number",
+  "latest_source": "file"
+ },
+ "naaim_schedules": {
+  "rule:justhodl-naaim-weekly": "ENABLED cron(30 17 ? * THU,FRI *)"
+ },
+ "naaim_invoke": {
+  "fn_error": null,
+  "body": "{\"ok\": true, \"value\": 84.69, \"n\": 1043, \"state\": \"NEUTRAL\", \"provisional\": false}",
+  "log_tail": "START RequestId: b988b82e-d802-4638-9c4d-b234f3aa50c8 Version: $LATEST\npage match: 'number is*:</h4' -> 4.0\npage latest (gated): 2026-07-02 = 4.0\nhistory file parsed: 1043 rows via header:NAAIM Number from https://naaim.org/wp-content/uploads/2026/07/USE_Data-since-Inception_2026-07-01\nfile canonical (1043 rows, header:NAAIM Number) \u2014 prior accumulation discarded\npage print REJECTED as junk: 4.0 vs file tail 2026-07-01=84.69\nwrote data/naaim.json n=1043 cur=84.7 z=0.58 pct=65.8 state=NEUTRAL\nEND RequestId: b988b82e-d802-4638-9c4d-b234f3aa50c8\nREPORT RequestId: b988b82e-d802-4638-9c4d-b234f3aa50c8\tDuration: 1040.27 ms\tBilled Duration: 1645 ms\tMemory Size: 256 MB\tMax Memory Used: 102 MB\tInit Duration: 604.20 ms\t\nXRAY TraceId: 1-6a4d74cc-7ded0e6b33a014b7337309fa\tSegmentId: 0133324294777dc4\tSampled: true\t\n"
+ },
+ "naaim_probes": {
+  "page": {
+   "status": 200,
+   "bytes": 4000,
+   "head": "<!DOCTYPE html>\n<html dir=\"ltr\" lang=\"en-US\" prefix=\"og: https://ogp.me/ns#\" class=\"no-js no-svg\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<link rel=\"preconnect\""
+  }
+ },
+ "sellside_shape": {
+  "type": "dict",
+  "top_keys": [
+   "schema_version",
+   "method",
+   "generated_at",
+   "target_year",
+   "n_firms",
+   "spx_consensus",
+   "all_firm_targets",
+   "recent_revisions_30d",
+   "macro_consensus",
+   "interpretation"
+  ],
+  "rows_n": 0
+ },
+ "cboe_probes": {
+  "hist_json": {
+   "status": 200,
+   "bytes": 4000,
+   "head": "{\"timestamp\": \"2026-07-07 21:01:11\", \"data\": [{\"date\": \"2006-01-03\", \"volume\": \"0.0\", \"open\": \"31.340000\", \"high\": \"31.340000\", \"low\": \"31.340000\", \"close\": \"31.340000\"}, {\"date\": \"2006-01-04\", \"volume\": \"0.0\", \"open\": \""
+  },
+  "chart_json": {
+   "error": "HTTP Error 403: Forbidden"
+  },
+  "indices_csv": {
+   "status": 200,
+   "bytes": 4000,
+   "head": "DATE,OPEN,HIGH,LOW,CLOSE\n01/03/2006,31.340000,31.340000,31.340000,31.340000\n01/04/2006,31.120000,31.120000,31.120000,31.120000\n01/05/2006,30.920000,30.920000,30.920000,30.920000\n01/06/2006,30.240000,30.240000,30.240000,3"
+  }
+ }
+}
