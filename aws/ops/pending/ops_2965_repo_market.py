@@ -239,7 +239,11 @@ def main():
                    if c.get("label") == "Onshore repo stress (SOFR plumbing)"]
             rep.kv(dr_canaries=len(cans), dr_repo_canary=json.dumps(
                 hit[:1])[:300])
-            if len(cans) != 13 or not hit:
+            # Label-based: the canary set is sibling-dependent (FX swap
+            # lines + China credit impulse only render when their feeds
+            # are live), so a fixed count is the wrong assert. 15 live at
+            # the time of writing; >=13 guards against wholesale loss.
+            if not hit or len(cans) < 13:
                 fails.append("dollar-radar fusion missing (canaries=%s, "
                              "labels=%s)" % (len(cans), labels))
         except Exception as e:
