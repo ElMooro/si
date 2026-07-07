@@ -1,12 +1,10 @@
 {
  "ops": 2973,
  "function": "justhodl-asset-compass",
- "fails": [
-  "public JSON not yet 1.1 (CDN cache?)"
- ],
+ "fails": [],
  "warns": [],
- "verdict": "FAIL",
- "ts": "2026-07-07T20:10:02.832895+00:00",
+ "verdict": "PASS",
+ "ts": "2026-07-07T20:12:20.374603+00:00",
  "priced_n": 31,
  "er_modeled_n": 20,
  "hyg_er": 3.39,
@@ -29,7 +27,7 @@
   {
    "ticker": "VNQ",
    "label": "US REITs",
-   "er_1y_pct": 7.29,
+   "er_1y_pct": 7.3,
    "excess_vs_cash_pp": 3.3
   }
  ],
@@ -43,8 +41,8 @@
   {
    "ticker": "VNQ",
    "label": "US REITs",
-   "corr_spy_90d": 0.3,
-   "er_1y_pct": 7.29
+   "corr_spy_90d": 0.31,
+   "er_1y_pct": 7.3
   }
  ],
  "asym_top3": [
@@ -58,7 +56,7 @@
   {
    "ticker": "SOL",
    "label": "Solana",
-   "score": 83.9,
+   "score": 83.8,
    "ratio": 25.0,
    "status": "ACTIONABLE"
   },
@@ -66,7 +64,7 @@
    "ticker": "INDA",
    "label": "India",
    "score": 82.0,
-   "ratio": 10.41,
+   "ratio": 10.29,
    "status": "ACTIONABLE"
   }
  ],
