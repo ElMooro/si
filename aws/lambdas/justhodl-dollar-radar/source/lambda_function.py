@@ -329,8 +329,8 @@ def build_canaries(fred, sib=None):
             t = value_days_ago(tga, days)
             if None in (w, r, t):
                 return None
-            return w / 1000.0 - r - t
-        nl_now = walcl[-1][1] / 1000.0 - rrp[-1][1] - tga[-1][1]
+            return w / 1000.0 - r - t / 1000.0
+        nl_now = walcl[-1][1] / 1000.0 - rrp[-1][1] - tga[-1][1] / 1000.0
         nl_then = netliq_at(91)
         if nl_then:
             d = nl_now - nl_then
@@ -368,6 +368,7 @@ def build_canaries(fred, sib=None):
     if tga:
         d = chg_abs(tga, 91)
         if d is not None:
+            d = d / 1000.0  # WTREGEN is $mn; report in $bn
             # TGA rising -> Treasury drains reserves -> PUMP
             lean = _lean(d, [-150, -40, 40, 150], [-2, -1, 0, 1, 2])
             add("Treasury General Account",
@@ -458,7 +459,8 @@ def build_canaries(fred, sib=None):
     # 10) OFFSHORE DOLLAR FUNDING STRESS (eurodollar engine) -------------
     ed = read_json(EURODOLLAR_KEY)
     ed_score = None
-    for k in ("stress_score", "composite", "score", "stress"):
+    for k in ("stress_score", "composite", "composite_score", "score",
+              "stress", "stress_index", "eurodollar_stress", "level"):
         if isinstance(ed.get(k), (int, float)):
             ed_score = ed.get(k)
             break
@@ -518,9 +520,13 @@ def build_canaries(fred, sib=None):
             if "DOVISH" in r or "EASING" in r:
                 return -1.0
             return 0.0 if r else None
-        fed_n = _stance_num(cbj.get("fed"))
-        peers = [x for x in (_stance_num(cbj.get("ecb")),
-                             _stance_num(cbj.get("boj"))) if x is not None]
+        low = {str(k).lower(): v for k, v in cbj.items()
+               if isinstance(v, dict)}
+        fed_n = _stance_num(low.get("fed"))
+        peers = [x for x in (_stance_num(low.get("ecb")),
+                             _stance_num(low.get("boj")),
+                             _stance_num(low.get("boe")))
+                 if x is not None]
         if fed_n is not None and peers:
             gap = fed_n - sum(peers) / len(peers)
             lean = max(-2, min(2, int(round(gap))))
@@ -537,8 +543,14 @@ def build_canaries(fred, sib=None):
     # 15) CHINA CREDIT IMPULSE  (global reflation channel) ---------------
     try:
         cn = sib.get("cn") or {}
+        for nest in ("latest", "current", "summary", "china"):
+            if isinstance(cn.get(nest), dict):
+                cn = {**cn.get(nest), **{k: v for k, v in cn.items()
+                                         if not isinstance(v, dict)}}
+                break
         ci = None
-        for k in ("credit_impulse_pp", "credit_impulse"):
+        for k in ("credit_impulse_pp", "credit_impulse", "impulse_pp",
+                  "credit_impulse_yoy"):
             v = cn.get(k)
             if isinstance(v, (int, float)):
                 ci = float(v)
@@ -561,7 +573,8 @@ def build_canaries(fred, sib=None):
     # 16) SPECULATIVE USD POSITIONING  (contrarian at extremes) ----------
     try:
         cf = sib.get("cftc") or {}
-        rows = (cf.get("contracts") or cf.get("data") or
+        rows = (cf.get("contracts") or cf.get("data") or cf.get("all") or
+                cf.get("extremes") or cf.get("rows") or
                 (cf if isinstance(cf, list) else []))
         if isinstance(rows, dict):
             rows = list(rows.values())
@@ -570,10 +583,12 @@ def build_canaries(fred, sib=None):
             if not isinstance(r, dict):
                 continue
             name = str(r.get("name") or r.get("market") or
-                       r.get("contract") or "").upper()
+                       r.get("contract") or r.get("contract_name") or
+                       r.get("market_and_exchange_names") or "").upper()
             if "DOLLAR" in name and "INDEX" in name:
                 for k in ("net_pctile", "pctile", "net_pct_rank",
-                          "pct_rank", "percentile"):
+                          "pct_rank", "percentile", "pctile_3y",
+                          "net_pctile_3y", "noncomm_pctile"):
                     if isinstance(r.get(k), (int, float)):
                         pct = float(r[k])
                         break
