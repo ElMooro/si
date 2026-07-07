@@ -1,8 +1,8 @@
-- `00:58:02` ✗ nav-manifest thin (0)
-- `00:58:02` ✗ pages failing: ['screener.html']
+- `01:01:14` ✗ nav-manifest thin (0)
+- `01:01:14` ✗ pages failing: ['screener/']
 **Status:** failure  
-**Duration:** 7.8s  
-**Finished:** 2026-07-07T00:58:02+00:00  
+**Duration:** 6.9s  
+**Finished:** 2026-07-07T01:01:14+00:00  
 
 ## Error
 
@@ -16,7 +16,7 @@ SystemExit: 1
 |---|---|---|---|---|---|---|---|---|---|---|---|
 |  |  |  |  |  | 155988 | True |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  | 0 |  |  |
-|  | screener.html |  | 11/12 |  |  |  |  |  |  | 11/12 |  |
+|  | screener/ |  | 11/12 |  |  |  |  |  |  | 11/12 |  |
 |  |  | 49121 |  |  |  |  |  |  |  |  |  |
 | 23511 |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  | 661 |  |  |  |  |  |  |  |
