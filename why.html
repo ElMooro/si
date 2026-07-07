@@ -2678,7 +2678,7 @@ var T=null, RANGE="1Y";
 const LENSES_CDN_BASE = "https://justhodl-data-proxy.raafouis.workers.dev/data/investor-lenses";
 const TAOVL_CDN_BASE  = "https://justhodl-data-proxy.raafouis.workers.dev/data/technical-overlays";
 
-function renderInvestorLenses(d){
+window.renderInvestorLenses=function(d){
   // synchronous placeholder; fetchInvestorLenses paints it
   return `
     <section class="block" id="lenses-section" data-ticker="${esc(d.ticker||'')}">
@@ -2735,7 +2735,7 @@ function paintLenses(doc){
   if(pill) pill.textContent = S.lenses_disagree ? 'lenses disagree' : 'lenses aligned';
 }
 
-async function fetchInvestorLenses(ticker){
+window.fetchInvestorLenses=async function(ticker){
   const section = document.getElementById('lenses-section');
   if(!section) return;
   const pill = document.getElementById('lenses-pill');
@@ -2750,7 +2750,7 @@ async function fetchInvestorLenses(ticker){
   if(pill) pill.textContent = 'pending';
 }
 
-function renderTechSignals(d){
+window.renderTechSignals=function(d){
   return `
     <section class="block" id="tasig-section" data-ticker="${esc(d.ticker||'')}">
       <h3><span class="ico">📡</span> Technical Signals
@@ -2791,7 +2791,7 @@ function paintTechSignals(doc){
   if(pill) pill.textContent = (conf.dir||'neutral');
 }
 
-async function fetchTechSignals(ticker){
+window.fetchTechSignals=async function(ticker){
   const section = document.getElementById('tasig-section');
   if(!section) return;
   const pill = document.getElementById('tasig-pill');
