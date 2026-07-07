@@ -1,9 +1,7 @@
-executing-against: 512a3c6c51704efa859ae10b2dc027d7d5602b0f
-[23:58:01] ✅ manifest pages: 367
-[23:58:01] ✅ registry engines: 661
-[23:58:03] ✅ fetched 366/367 page sources (7400093 chars total)
-[23:58:08] ✅ WIRED (>=1 page references an actual outs[] file): 468/661
-[23:58:08] ✅ ORPHANED (zero pages reference any outs[] file): 193/661
+executing-against: f754e51bbbd0f9d2023e251150e4f26260d501f4
+[00:03:00] ✅ real_gap (has real outs[], zero page anywhere): 111
+[00:03:00] ✅   of these: FRESH<24h=90  STALE>=24h=13  feed-missing/dead=8
+[00:03:00] ✅ no_outs_declared (registry metadata gap or non-display infra): 82
 
-→ Report written to aws/ops/reports/latest/2944.md
-DONE 2944 PASS
+→ Report written to aws/ops/reports/latest/2945.md
+DONE 2945 PASS
