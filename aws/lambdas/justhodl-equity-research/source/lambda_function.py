@@ -80,7 +80,9 @@ OUTPUT (JSON)
 """
 
 import json
+import math
 import os
+import re
 import sys
 import time
 import traceback
@@ -685,6 +687,263 @@ def read_backlog_join(ticker):
         return {"available": False, "reason": str(e)[:80]}
 
 
+# ═════════════════════════════════════════════════════════════════════
+# v2.1 INDUSTRY COMPASS — stock vs its official Finviz industry
+#   (1) stock perf windows vs industry perf windows (gap quantified)
+#   (2) stock-level Grinold-Kroner 12m ER, every component published
+#   (3) laggard-catchup screen: industry pumped + stock lagged + growth
+#       intact + cheaper than industry  → asymmetric catch-up candidate
+#   (4) rate sensitivity vs the market-implied next-12m rate path
+# Zero LLM cost. Consumes data/finviz-groups.json + data/asset-compass.json.
+# ═════════════════════════════════════════════════════════════════════
+
+_IND_DROP = {"and", "the", "of", "industry", "industries", "other", "misc"}
+
+
+def _norm_ind(s):
+    s = (s or "").lower().replace("&", " and ").replace("—", " ").replace("–", " ")
+    s = re.sub(r"[^a-z0-9 ]+", " ", s)
+    return [w for w in s.split() if w not in _IND_DROP]
+
+
+def _match_industry(fmp_industry, rows):
+    """Exact normalized match first, else best token-Jaccard ≥ 0.5.
+    Returns (row, confidence) or (None, None)."""
+    toks = set(_norm_ind(fmp_industry))
+    if not toks or not rows:
+        return None, None
+    best, best_j = None, 0.0
+    for r in rows:
+        rt = set(_norm_ind(r.get("name")))
+        if not rt:
+            continue
+        if rt == toks:
+            return r, 1.0
+        j = len(toks & rt) / len(toks | rt)
+        if j > best_j:
+            best, best_j = r, j
+    if best is not None and best_j >= 0.5:
+        return best, round(best_j, 2)
+    return None, None
+
+
+def _stock_perf_windows(prices_eod):
+    """perf_m/q/h/y % from FMP EOD (descending by date), mirroring
+    Finviz group windows (21/63/126/252 trading days)."""
+    if not isinstance(prices_eod, list) or len(prices_eod) < 30:
+        return {}
+    prices = sorted(prices_eod, key=lambda p: p.get("date") or "")
+    closes = [(_safe_num(p, "price") or _safe_num(p, "close")) for p in prices]
+    closes = [c for c in closes if c and c > 0]
+    if len(closes) < 30:
+        return {}
+
+    def perf(n):
+        if len(closes) <= n or not closes[-1 - n]:
+            return None
+        return round((closes[-1] / closes[-1 - n] - 1.0) * 100.0, 1)
+    return {"perf_m": perf(21), "perf_q": perf(63),
+            "perf_h": perf(126), "perf_y": perf(252)}
+
+
+def _median(vals):
+    v = sorted(vals)
+    n = len(v)
+    if not n:
+        return None
+    return v[n // 2] if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2.0
+
+
+def build_industry_compass(raw, income_annual, cashflow_annual):
+    prof = _first(raw.get("profile")) or {}
+    quote = _first(raw.get("quote")) or {}
+    rt = _first(raw.get("ratios_ttm")) or {}
+    px = _safe_num(quote, "price")
+    fmp_ind = prof.get("industry")
+
+    # ── shared macro anchors (from the live asset-compass engine) ──
+    infl, rf_dir, infl_src = None, None, None
+    try:
+        mac = json.loads(s3.get_object(Bucket=S3_BUCKET,
+                                       Key="data/asset-compass.json")["Body"].read())
+        mf = mac.get("macro_forward") or {}
+        infl = _safe_num(mf, "infl_1y_expected_pct")
+        rf_dir = mf.get("rf_direction_next_year")
+        infl_src = mf.get("infl_source")
+    except Exception:
+        pass
+    infl_flag = None
+    if infl is None:
+        infl, infl_flag = 2.5, "FALLBACK: asset-compass macro unavailable; 2.5% assumed"
+
+    # ── industry row (official Finviz group aggregates) ──
+    ind_row, conf = None, None
+    try:
+        fg = json.loads(s3.get_object(Bucket=S3_BUCKET,
+                                      Key="data/finviz-groups.json")["Body"].read())
+        ind_row, conf = _match_industry(fmp_ind, fg.get("industries") or [])
+    except Exception:
+        pass
+
+    sp = _stock_perf_windows(raw.get("prices_eod"))
+    gaps, ind_perf = {}, {}
+    if ind_row:
+        for w in ("perf_m", "perf_q", "perf_h", "perf_y"):
+            iv = _safe_num(ind_row, w)
+            ind_perf[w] = iv
+            if iv is not None and sp.get(w) is not None:
+                gaps[w] = round(sp[w] - iv, 1)
+
+    # ── stock-level Grinold-Kroner (12m), every component real + published ──
+    pe_now = (_safe_num(rt, "priceToEarningsRatioTTM")
+              or _safe_num(rt, "peRatioTTM") or _safe_num(quote, "pe"))
+    dy = bby = None
+    inc0 = income_annual[0] if income_annual else {}
+    shs0 = (_safe_num(inc0, "weightedAverageShsOutDil")
+            or _safe_num(inc0, "weightedAverageShsOut"))
+    if cashflow_annual and px and shs0:
+        cf0 = cashflow_annual[0]
+        div_paid = abs(_safe_num(cf0, "commonDividendsPaid")
+                       or _safe_num(cf0, "netDividendsPaid")
+                       or _safe_num(cf0, "dividendsPaid") or 0.0)
+        if div_paid:
+            dy = round(div_paid / (px * shs0) * 100.0, 2)
+    if len(income_annual) >= 2 and shs0:
+        shs1 = (_safe_num(income_annual[1], "weightedAverageShsOutDil")
+                or _safe_num(income_annual[1], "weightedAverageShsOut"))
+        if shs1:
+            bby = round((shs1 - shs0) / shs1 * 100.0, 2)  # + = net shrink
+
+    # forward nominal EPS growth: nearest future analyst FY vs latest FY EPS
+    eps0 = _safe_num(inc0, "epsdiluted") or _safe_num(inc0, "epsDiluted") \
+        or _safe_num(inc0, "eps")
+    g_fwd = None
+    est = raw.get("estimates") if isinstance(raw.get("estimates"), list) else []
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    fut = sorted([e for e in est if (e.get("date") or "") >= today],
+                 key=lambda e: e.get("date") or "")
+    if fut and eps0 and eps0 > 0:
+        e_fwd = _safe_num(fut[0], "epsAvg") or _safe_num(fut[0], "estimatedEpsAvg")
+        if e_fwd:
+            g_fwd = round((e_fwd / eps0 - 1.0) * 100.0, 1)
+    # historical 5y EPS CAGR as the sanity anchor
+    g_hist = None
+    if len(income_annual) >= 6 and eps0 and eps0 > 0:
+        eps5 = _safe_num(income_annual[5], "epsdiluted") \
+            or _safe_num(income_annual[5], "epsDiluted") \
+            or _safe_num(income_annual[5], "eps")
+        if eps5 and eps5 > 0:
+            g_hist = round(((eps0 / eps5) ** 0.2 - 1.0) * 100.0, 1)
+    g_used = None
+    if g_fwd is not None and g_hist is not None:
+        g_used = min(g_fwd, max(g_hist, 0.0) + 10.0)   # fwd, capped near history
+    elif g_fwd is not None:
+        g_used = g_fwd
+    elif g_hist is not None:
+        g_used = g_hist
+    g_real = (round(max(min(g_used - infl, 12.0), -5.0), 1)
+              if g_used is not None else None)
+
+    # partial P/E reversion toward the stock's own 10y median
+    ratios_annual = raw.get("ratios_annual") \
+        if isinstance(raw.get("ratios_annual"), list) else []
+    pes_hist = [(_safe_num(r, "priceToEarningsRatio")
+                 or _safe_num(r, "priceEarningsRatio")) for r in ratios_annual[:10]]
+    pes_hist = [p for p in pes_hist if p and 0 < p < 200]
+    pe_med = round(_median(pes_hist), 1) if len(pes_hist) >= 5 else None
+    rev = None
+    if pe_med and pe_now and pe_now > 0:
+        rev = round(max(min(25.0 * math.log(pe_med / pe_now), 8.0), -8.0), 1)
+
+    er = comp = None
+    if g_real is not None and pe_now:
+        parts = [dy or 0.0, bby or 0.0, infl, g_real, rev or 0.0]
+        er = round(sum(parts), 1)
+        comp = {"div_yield_pct": dy, "net_buyback_yield_pct": bby,
+                "inflation_pct": round(infl, 2), "infl_source": infl_src,
+                "real_eps_growth_pct": g_real,
+                "eps_growth_fwd_nominal_pct": g_fwd,
+                "eps_cagr_5y_hist_pct": g_hist,
+                "pe_reversion_pct": rev, "pe_now": pe_now,
+                "pe_median_10y": pe_med,
+                "model": "Grinold-Kroner: DY + net buyback + inflation + "
+                         "real EPS growth + 25% P/E reversion to own 10y "
+                         "median (capped ±8)"}
+        if infl_flag:
+            comp["flag"] = infl_flag
+
+    # ── laggard-catchup screen (asymmetry theory at stock level) ──
+    screen = {"verdict": "N/A", "why": []}
+    if ind_row and gaps:
+        pumped = ((ind_perf.get("perf_h") or 0) >= 15.0
+                  or (ind_perf.get("perf_q") or 0) >= 10.0)
+        lagged = ((gaps.get("perf_h") is not None and gaps["perf_h"] <= -10.0)
+                  or (gaps.get("perf_q") is not None and gaps["perf_q"] <= -8.0))
+        ind_g = _safe_num(ind_row, "eps_g_n5y")
+        growth_ok = (g_fwd is not None
+                     and g_fwd >= max(10.0, ind_g if ind_g is not None else 0.0))
+        ind_pe = _safe_num(ind_row, "pe")
+        value_ok = (pe_now is not None and ind_pe is not None
+                    and pe_now <= ind_pe)
+        w = screen["why"]
+        w.append(f"industry 6m {ind_perf.get('perf_h')}% / 3m "
+                 f"{ind_perf.get('perf_q')}% ({'pumped' if pumped else 'not pumped'})")
+        w.append(f"stock gap vs industry: 6m {gaps.get('perf_h')}pp / "
+                 f"3m {gaps.get('perf_q')}pp ({'lagging' if lagged else 'in line'})")
+        w.append(f"fwd EPS growth {g_fwd}% vs industry next-5y {ind_g}% "
+                 f"({'intact' if growth_ok else 'not superior'})")
+        w.append(f"P/E {pe_now} vs industry {ind_pe} "
+                 f"({'cheaper' if value_ok else 'not cheaper'})")
+        if pumped and lagged and growth_ok and value_ok:
+            screen["verdict"] = "LAGGARD_CATCHUP"
+        elif pumped and lagged and (growth_ok or value_ok):
+            screen["verdict"] = "PARTIAL"
+        else:
+            screen["verdict"] = "NONE"
+        screen["thresholds"] = {"industry_pumped": "6m≥+15% or 3m≥+10%",
+                                "stock_lagged": "gap 6m≤−10pp or 3m≤−8pp",
+                                "growth": "fwd EPS ≥ max(10%, industry n5y)",
+                                "value": "P/E ≤ industry P/E"}
+
+    # ── rate sensitivity vs the market-implied next-12m path ──
+    dur = None
+    if pe_now:
+        dur = ("LONG" if pe_now > 30 else "MID" if pe_now >= 15 else "SHORT")
+    rate = {"duration_bucket": dur, "earnings_yield_pct":
+            (round(100.0 / pe_now, 1) if pe_now else None),
+            "rate_env_next_12m": rf_dir,
+            "read": None}
+    if dur and rf_dir:
+        if rf_dir == "HIGHER" and dur == "LONG":
+            rate["read"] = ("Headwind: market prices rates higher over 12m "
+                            "and this is a long-duration multiple.")
+        elif rf_dir == "LOWER" and dur == "LONG":
+            rate["read"] = ("Tailwind: market prices rates lower over 12m; "
+                            "long-duration multiples benefit most.")
+        else:
+            rate["read"] = ("Modest sensitivity: multiple duration is "
+                            f"{dur.lower()} against a {rf_dir.lower()} "
+                            "implied rate path.")
+
+    return {"available": True,
+            "fmp_industry": fmp_ind,
+            "finviz_industry": (ind_row or {}).get("name"),
+            "match_confidence": conf,
+            "stock_perf": sp or None,
+            "industry_perf": ind_perf or None,
+            "perf_gap_pp": gaps or None,
+            "industry_valuation": ({k: _safe_num(ind_row, k) for k in
+                                    ("pe", "fwd_pe", "peg", "ps",
+                                     "eps_g_n5y", "sales_g_5y")}
+                                   if ind_row else None),
+            "expected_return_1y": {"er_1y_pct": er, "components": comp},
+            "laggard_catchup": screen,
+            "rate_sensitivity": rate,
+            "note": ("Industry aggregates are official Finviz group exports; "
+                     "macro anchors are market-implied from the live "
+                     "asset-compass engine. No LLM used in this module.")}
+
+
 def build_v2_institutional(ticker, raw, income_annual, income_quarterly, balance_annual, cashflow_annual):
     out = {}
     for name, fn in (("technicals", lambda: build_technicals(raw)),
@@ -692,6 +951,7 @@ def build_v2_institutional(ticker, raw, income_annual, income_quarterly, balance
                                                             cashflow_annual, raw.get("ratios_ttm"), out.get("technicals") or {})),
                      ("growth_vs_mcap", lambda: build_growth_vs_mcap(raw, income_annual, cashflow_annual)),
                      ("quant_risk", lambda: build_quant_risk(raw, income_annual, cashflow_annual)),
+                     ("industry_compass", lambda: build_industry_compass(raw, income_annual, cashflow_annual)),
                      ("backlog", lambda: read_backlog_join(ticker))):
         try:
             out[name] = fn()
@@ -2658,11 +2918,12 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "2.0",  # v2: technicals + liquidity + growth-vs-mcap + quant-risk + backlog
+        "schema_version": "2.1",  # v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
         "quant_risk":         v2.get("quant_risk"),
+        "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "ticker":         ticker,
         "generated_at":   datetime.now(timezone.utc).isoformat(),
