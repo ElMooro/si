@@ -48,11 +48,26 @@ def _ssm(name, env_key=None):
         return None
 
 # ── TV HTTP client ──────────────────────────────────────────────────────────
+_SIGN = ""    # set in lambda_handler before any tv_get calls
+_DEV  = ""
+
+
+def _build_cookie(session):
+    """Full cookie string — TV 403s when sessionid_sign is absent on newer builds."""
+    parts = ["sessionid=%s" % session]
+    if _SIGN:
+        parts.append("sessionid_sign=%s" % _SIGN)
+    if _DEV:
+        parts.append("device_t=%s" % _DEV)
+    parts.append("timezone=UTC")
+    return "; ".join(parts)
+
+
 def tv_get(path, session, params=None, timeout=20):
     qs = ("?" + urllib.parse.urlencode(params)) if params else ""
     url = TV_BASE + path + qs
     req = urllib.request.Request(url, headers={
-        "Cookie":           "sessionid=%s" % session,
+        "Cookie":           _build_cookie(session),
         "User-Agent":       ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                              "AppleWebKit/537.36 (KHTML, like Gecko) "
                              "Chrome/124.0.0.0 Safari/537.36"),
@@ -316,15 +331,33 @@ def lambda_handler(event, context):
     now = datetime.now(timezone.utc)
     print("[crawler] starting at", now.isoformat())
 
-    session      = _ssm("/justhodl/tradingview/sessionid", "TV_SESSION")
-    ingest_url   = _ssm("/justhodl/tvnotes/ingest-url",   "TV_INGEST_URL")
-    token        = _ssm("/justhodl/tvnotes/ingest-token", "INGEST_TOKEN")
+    # TV needs sessionid + sessionid_sign together (newer versions reject sessionid alone)
+    session    = (_ssm("/justhodl/tradingview/sessionid",      "TV_SESSION")      or "").strip().strip('"').strip("'")
+    sign       = (_ssm("/justhodl/tradingview/sessionid_sign", "TV_SESSION_SIGN") or "").strip().strip('"').strip("'")
+    device_t   = (_ssm("/justhodl/tradingview/device_t",       "TV_DEVICE_T")     or "").strip().strip('"').strip("'")
+    ingest_url = _ssm("/justhodl/tvnotes/ingest-url",   "TV_INGEST_URL")
+    token      = _ssm("/justhodl/tvnotes/ingest-token", "INGEST_TOKEN")
+    global _SIGN, _DEV
+    _SIGN, _DEV = sign, device_t
+    print("[crawler] session_len=%d sign_len=%d device_t_len=%d"
+          % (len(session), len(sign), len(device_t)))
 
     if not session:
-        msg = ("TV_SESSION not in SSM. Add it: aws ssm put-parameter "
-               "--name /justhodl/tradingview/sessionid --type SecureString "
-               "--value YOUR_TV_SESSIONID_COOKIE --overwrite --region us-east-1")
-        print("[crawler] MISSING SESSION:", msg)
+        msg = ("TV session cookie missing. In Chrome on tradingview.com:\n"
+               "1. Press Ctrl+Shift+I (NOT F12 — TV captures F12)\n"
+               "2. Click 'Application' tab -> Cookies -> tradingview.com\n"
+               "3. Copy the VALUE of 'sessionid' (the long string)\n"
+               "4. Also copy VALUE of 'sessionid_sign'\n"
+               "Run in GitBash:\n"
+               "  MSYS_NO_PATHCONV=1 aws ssm put-parameter "
+               "--name /justhodl/tradingview/sessionid "
+               "--type SecureString --value \"YOUR_SESSIONID\" "
+               "--overwrite --region us-east-1\n"
+               "  MSYS_NO_PATHCONV=1 aws ssm put-parameter "
+               "--name /justhodl/tradingview/sessionid_sign "
+               "--type SecureString --value \"YOUR_SESSIONID_SIGN\" "
+               "--overwrite --region us-east-1")
+        print("[crawler] MISSING SESSION\n" + msg)
         status = {"ok": False, "error": "session_missing",
                   "instructions": msg, "updated": now.isoformat()}
         S3.put_object(Bucket=BUCKET, Key=STATUS_KEY,
