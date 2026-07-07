@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TradingView Notes → Brain · JustHodl</title>
+<title>TradingView Notes Chrome Extension · JustHodl</title>
 <style>
-:root{--bg:#0C0B09;--panel:#12110C;--ink:#e8e2d4;--dim:#8a836f;--amber:#F0B429;--line:#2B2820;--green:#6fce8a}
+:root{--bg:#0C0B09;--panel:#12110C;--ink:#e8e2d4;--dim:#8a836f;--amber:#F0B429;--line:#2B2820;--green:#6fce8a;--red:#E07A6A}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 "IBM Plex Mono",monospace;padding:24px}
 .wrap{max-width:820px;margin:0 auto}
 h1{color:var(--amber);font-size:22px;margin:0 0 4px}
@@ -11,114 +11,80 @@ h1{color:var(--amber);font-size:22px;margin:0 0 4px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:16px}
 .step{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
 .num{flex:0 0 30px;height:30px;border-radius:50%;background:var(--amber);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;margin-top:2px}
-.step div{flex:1}
-.bm-box{background:#050403;border:2px solid var(--amber);border-radius:6px;padding:12px;margin:10px 0;word-break:break-all;font-size:10px;color:var(--green);height:80px;overflow-y:auto;cursor:text;user-select:all;resize:none;width:100%;outline:none}
-button{background:var(--amber);color:var(--bg);border:0;border-radius:5px;padding:8px 18px;font-weight:bold;cursor:pointer;font-family:inherit;font-size:13px}
-button.ghost{background:none;color:var(--amber);border:1px solid var(--amber)}
-code{background:#080705;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12px}
-kbd{background:#1a1a14;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:12px}
+button{background:var(--amber);color:var(--bg);border:0;border-radius:5px;padding:10px 20px;font-weight:bold;cursor:pointer;font-family:inherit;font-size:14px}
+button:hover{opacity:.9}
+code{background:#080705;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:12px}
+kbd{background:#1a1a14;border:1px solid var(--line);border-radius:4px;padding:2px 7px;font-size:12px}
 .warn{color:var(--dim);font-size:12px;border-left:2px solid var(--line);padding-left:10px;margin:10px 0}
 .big{font-size:15px;font-weight:bold;color:var(--amber);margin-bottom:12px}
-.stat{font-size:32px;color:var(--amber);font-weight:bold}
+.stat{font-size:28px;color:var(--amber);font-weight:bold}
 a{color:var(--amber)}
-#status{padding:8px 12px;border-radius:5px;font-size:12px;margin-top:6px;display:none}
+.badge{display:inline-block;background:rgba(240,180,41,.15);border:1px solid var(--amber);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--amber);margin-left:8px}
 </style></head>
 <body><div class="wrap">
-<h1>TradingView Notes → Brain</h1>
-<div class="sub">Harvest every note you've written under any ticker on TradingView and load them straight into your Brain — from your own logged-in browser, no credentials shared.</div>
+<h1>TV Notes Chrome Extension <span class="badge">v1.0.0</span></h1>
+<div class="sub">Fully autonomous — installs in Chrome, auto-harvests every note across all your watchlists, uploads to Brain with one click. No DevTools, no pasting, no F12.</div>
 
-<div class="card">
-  <div style="display:flex;gap:32px;align-items:center">
-    <div><div style="color:var(--dim);font-size:12px">Notes in mirror</div><div class="stat" id="cnt">…</div></div>
-    <div><div style="color:var(--dim);font-size:12px">Last upload</div><div style="color:var(--ink);font-size:13px" id="upd">—</div></div>
+<div class="card" style="display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <div style="color:var(--dim);font-size:12px">Notes in Brain mirror</div>
+    <div class="stat" id="cnt">…</div>
+    <div style="color:var(--dim);font-size:12px" id="upd"></div>
   </div>
+  <button onclick="downloadExt()" style="font-size:16px;padding:12px 24px">⬇ Download Extension</button>
 </div>
 
 <div class="card">
-  <div class="big">⚡ Three steps — no F12, no DevTools, no paste</div>
+  <div class="big">📦 Install once — works forever</div>
 
   <div class="step">
     <div class="num">1</div>
     <div>
-      Press <kbd>Ctrl+Shift+O</kbd> in Chrome to open <b>Bookmark Manager</b>.<br>
-      In the left panel, right-click <b>Bookmarks bar</b> → <b>Add new bookmark</b>.
+      <b>Download the extension</b> — click the button above or <a id="dlLink" href="#">download directly</a>. Save the .zip file anywhere convenient (e.g. <code>Downloads</code>).<br>
+      <div class="warn">⚠ Don't extract inside a cloud-synced folder (OneDrive/Google Drive) — Chrome may have trouble loading extensions from there.</div>
     </div>
   </div>
 
   <div class="step">
     <div class="num">2</div>
     <div>
-      <b>Name:</b> type <code>JH TV Notes</code><br>
-      <b>URL:</b> click inside the box below (it auto-selects all), then <kbd>Ctrl+C</kbd> to copy, and paste it as the bookmark URL. Click <b>Save</b>.<br>
-      <textarea class="bm-box" id="bmUrl" readonly onclick="this.select()" spellcheck="false">Loading bookmarklet…</textarea>
-      <button onclick="copyBm()" style="margin-top:4px">Copy bookmarklet URL</button>
-      <span id="cpd" style="color:var(--green);margin-left:10px;font-size:12px;display:none">✓ Copied!</span>
-      <div class="warn">⚠ The URL starts with <code>javascript:</code> — that's correct. It's a bookmarklet, not a website address.</div>
+      <b>Extract the zip.</b> Right-click the downloaded <code>jh-tv-extension.zip</code> → <b>Extract All</b> → choose a permanent location like <code>C:\Users\Adam\jh-tv-extension\</code> and click Extract.
     </div>
   </div>
 
   <div class="step">
     <div class="num">3</div>
     <div>
-      Go to <a href="https://www.tradingview.com/chart/" target="_blank">tradingview.com</a> (logged in) and <b>click "JH TV Notes" in your bookmarks bar</b>.<br>
-      An <b>amber panel</b> appears bottom-right. It automatically tries TV's internal notes API. Also open the <b>Notes widget → All Notes</b> and click through each symbol — every note that loads is captured. When the count stops climbing, press <b>UPLOAD TO BRAIN</b>.
+      <b>Load in Chrome.</b> In Chrome, go to <code>chrome://extensions</code>, enable <b>Developer mode</b> (toggle, top-right), then click <b>Load unpacked</b> and select the extracted folder.<br>
+      You'll see the amber <b>JH</b> icon appear in your Chrome toolbar.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div>
+      <b>Open TradingView.</b> Go to <a href="https://www.tradingview.com/chart/" target="_blank">tradingview.com</a> (logged in). The extension auto-starts immediately — an amber panel appears bottom-right showing harvest progress. When it stops counting up, press <b>UPLOAD TO BRAIN</b>.<br>
+      <div class="warn">The extension also opens the Notes panel automatically and scrolls through your watchlists. Just let it run — it takes 1–5 minutes depending on how many notes you have.</div>
     </div>
   </div>
 </div>
 
-<div class="card" id="fallbackCard" style="display:none">
-  <div class="big" style="color:var(--dim)">If the bookmarks bar isn't visible</div>
-  <div style="color:var(--dim);font-size:13px">Show it: <kbd>Ctrl+Shift+B</kbd> in Chrome. Or right-click the Chrome toolbar and enable <b>Show bookmarks bar</b>.</div>
+<div class="card">
+  <div class="big" style="margin-bottom:8px">🔄 Ongoing auto-sync</div>
+  <div style="color:var(--dim);font-size:13px">After install, every time you open TradingView the extension runs automatically. New notes you write get picked up within minutes. The Brain-compiler routes them to your fleet engines on each run.</div>
 </div>
 
-<div class="warn">Everything runs inside your own browser. The bookmarklet is self-contained — all JavaScript inline, no external scripts loaded. Nothing leaves until you press UPLOAD. Notes are tagged <code>[TV:SYMBOL]</code> and deduplicated. Brain-compiler routes them to every matching engine on its next run.</div>
-
+<div class="warn">The extension only reads your notes and sends them to your own JustHodl ingest endpoint. No data goes anywhere else. Token and URL are compiled into the extension at build time.</div>
 </div>
+
 <script>
+var DL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/tools/jh-tv-extension.zip";
+document.getElementById("dlLink").href = DL;
+function downloadExt(){ window.location.href = DL; }
 var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
-
-// Load bookmarklet from S3 config
-fetch(S3 + "/data/tv-bookmarklet.json?t=" + Date.now())
-  .then(function(r){ return r.ok ? r.json() : null; })
-  .then(function(d){
-    if(d && d.bookmarklet){
-      document.getElementById('bmUrl').value = d.bookmarklet;
-    } else {
-      document.getElementById('bmUrl').value = "(loading failed — refresh page)";
-    }
-  })
-  .catch(function(){
-    // fallback: load via CF worker
-    fetch("https://justhodl.ai/data/tv-bookmarklet.json?t=" + Date.now())
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){
-        if(d && d.bookmarklet) document.getElementById('bmUrl').value = d.bookmarklet;
-      })
-      .catch(function(){ document.getElementById('bmUrl').value = "(fetch failed)"; });
-  });
-
-// Mirror stats
-fetch(S3 + "/data/tradingview-notes.json?t=" + Date.now())
-  .then(function(r){ return r.ok ? r.json() : null; })
-  .then(function(d){
-    document.getElementById('cnt').textContent = (d && d.count != null) ? d.count : 0;
-    if(d && d.updated) document.getElementById('upd').textContent = new Date(d.updated).toLocaleString();
-  })
-  .catch(function(){ document.getElementById('cnt').textContent = "0"; });
-
-// Show bookmarks bar hint after delay
-setTimeout(function(){ document.getElementById('fallbackCard').style.display = 'block'; }, 3000);
-
-function copyBm(){
-  var el = document.getElementById('bmUrl');
-  el.select();
-  navigator.clipboard.writeText(el.value).then(function(){
-    var s = document.getElementById('cpd');
-    s.style.display = 'inline';
-    setTimeout(function(){ s.style.display = 'none'; }, 2000);
-  }).catch(function(){
-    document.execCommand('copy');
-  });
-}
+fetch(S3+"/data/tradingview-notes.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+  document.getElementById("cnt").textContent=d&&d.count!=null?d.count:0;
+  if(d&&d.updated)document.getElementById("upd").textContent="Last sync: "+new Date(d.updated).toLocaleString();
+}).catch(()=>{ document.getElementById("cnt").textContent="0"; });
 </script>
 </body></html>

@@ -1,10 +1,22 @@
-executing-against: fd2fffc83f7d3bdd035cccc548be6f8ea28dc313
-── 1. Get ingest credentials ──
-── 2. Build self-contained bookmarklet ──
-── 3. Publish ──
-[04:36:45] ✅ tv-bookmarklet.json published to S3
-[04:36:45] ✅ tv-notes.html rebuilt with self-contained bookmarklet
-bookmarklet: len=6730 ingest=True token=True
-[04:36:45] ✅ self-contained bookmarklet built and published
+executing-against: 6a44949b69008160792ee2c74b81644da2c6c81b
+── 1. Credentials ──
+── 2. Bake credentials ──
+[04:58:41] ✅ credentials baked into background.js
+── 3. Package ZIP ──
+[04:58:41]   background.js
+[04:58:41]   content.js
+[04:58:41]   icons/icon128.png
+[04:58:41]   icons/icon16.png
+[04:58:41]   icons/icon48.png
+[04:58:41]   manifest.json
+[04:58:41]   popup.html
+[04:58:41]   popup.js
+[04:58:41] ✅ jh-tv-extension.zip built
+── 4. Publish to S3 ──
+[04:58:41] ✅ zip published to S3 data/tools/jh-tv-extension.zip
+── 5. Rebuild tv-notes.html ──
+[04:58:41] ✅ tv-notes.html rebuilt with extension install guide
+ext: zip=12KB files=8 ingest_baked=True
+[04:58:41] ✅ extension built and published — ready to install
 
-→ Report written to aws/ops/reports/latest/2962_bookmarklet.md
+→ Report written to aws/ops/reports/latest/2963_extension_build.md
