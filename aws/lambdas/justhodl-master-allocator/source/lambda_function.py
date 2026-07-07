@@ -460,6 +460,95 @@ def enforce_risk_budget(target, benchmark, max_active_bps):
 
 
 # ============== handler ==================================================
+# ═══════════ compass bridge (v1.2 fusion — ops 2985) ═══════════
+COMPASS_SLEEVE_MAP = {
+    "us_equity": "SPY", "intl_dev_eq": "EFA", "em_equity": "EEM",
+    "ust_long": "TLT", "ust_short": "IEF", "ig_credit": "LQD",
+    "gold": "GLD", "btc": "BTC", "cash": "CASH",
+}
+COMPASS_TILT_K = 0.35        # pp of tilt per pp of relative excess ER
+COMPASS_TILT_CAP = 2.0       # per-sleeve bound, pp
+COMPASS_LAYER_CAP = 6.0      # total |layer| bound, pp
+
+
+def compass_bridge(tilts, contributions):
+    """Fuse asset-compass v1.2 into the allocation: each sleeve is
+    tilted toward/away by its compass excess-vs-cash ER relative to
+    the mapped-universe average, bounded per sleeve and in total.
+    The v1.2 correlation matrix gates the duration tilt: in a
+    positive stock-bond-correlation regime (SPY-TLT 90d corr > +0.30)
+    duration is not a hedge, so a positive compass duration tilt is
+    zeroed (never forced negative). Failure-isolated: any error
+    leaves the allocation untouched."""
+    info = {"used": False}
+    try:
+        comp = read_json("data/asset-compass.json")
+        if str(comp.get("schema_version", "")) < "1.2":
+            info["note"] = "compass schema < 1.2"
+            return tilts, info
+        rf = deep_get(comp, "hurdle.cash_rf_pct") or 0.0
+        by_t = {a.get("ticker"): a for a in comp.get("assets") or []}
+        excess = {}
+        for sleeve, tkr in COMPASS_SLEEVE_MAP.items():
+            er = (by_t.get(tkr) or {}).get("er_1y_pct")
+            if er is not None:
+                excess[sleeve] = er - rf
+        if len(excess) < 6:
+            info["note"] = "only %d sleeves mapped" % len(excess)
+            return tilts, info
+        avg = sum(excess.values()) / len(excess)
+        # stock-bond regime from the v1.2 matrix
+        co = comp.get("correlations") or {}
+        spy_tlt = None
+        try:
+            tk = co.get("tickers") or []
+            i, j = tk.index("SPY"), tk.index("TLT")
+            spy_tlt = (co.get("matrix") or [])[i][j]
+        except Exception:
+            pass
+        layer = {}
+        for sleeve, ex in excess.items():
+            t = clamp(COMPASS_TILT_K * (ex - avg),
+                      -COMPASS_TILT_CAP, COMPASS_TILT_CAP)
+            layer[sleeve] = t
+        dur_gated = False
+        if isinstance(spy_tlt, (int, float)) and spy_tlt > 0.30:
+            for sl in ("ust_long", "ust_short"):
+                if layer.get(sl, 0.0) > 0:
+                    layer[sl] = 0.0
+                    dur_gated = True
+        tot = sum(abs(v) for v in layer.values())
+        if tot > COMPASS_LAYER_CAP:
+            k = COMPASS_LAYER_CAP / tot
+            layer = {a: v * k for a, v in layer.items()}
+        for sleeve, t in layer.items():
+            if abs(t) < 0.05:
+                continue
+            tilts[sleeve] = tilts.get(sleeve, 0.0) + t
+            contributions.setdefault(sleeve, []).append({
+                "signal": "Asset Compass ER (v1.2)",
+                "value": round(excess[sleeve] + rf, 2),
+                "intensity": round((excess[sleeve] - avg) / 10.0, 3),
+                "tilt_pp": round(t, 2),
+                "ic": None, "weight": COMPASS_TILT_K,
+                "state": "compass-er"})
+        info = {"used": True, "cash_rf_pct": rf,
+                "spy_tlt_corr_90d": spy_tlt,
+                "duration_hedge_gated": dur_gated,
+                "sleeves_mapped": len(excess),
+                "tilts_pp": {a: round(v, 2) for a, v in layer.items()
+                             if abs(v) >= 0.05},
+                "note": ("positive stock-bond-corr regime: compass "
+                         "duration overweight zeroed" if dur_gated
+                         else "ER-relative tilts, bounded +/-%.1fpp"
+                         % COMPASS_TILT_CAP)}
+    except Exception as e:
+        info = {"used": False, "error": str(e)[:120]}
+    return tilts, info
+# ═══════════════════ end compass bridge ═══════════════════
+
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -467,6 +556,9 @@ def lambda_handler(event, context):
     ic_weights = load_ic_weights()
     raw_tilts, contributions, weight_sum = aggregate_tilts(
         signals, ic_weights)
+
+    # compass v1.2 fusion layer (additive, bounded, failure-isolated)
+    raw_tilts, compass_info = compass_bridge(raw_tilts, contributions)
 
     # provisional target = benchmark + tilts
     target = {a: BENCHMARK[a] + raw_tilts[a] for a in ASSETS}
@@ -516,6 +608,7 @@ def lambda_handler(event, context):
     # publish
     report = {
         "as_of": datetime.now(timezone.utc).isoformat(),
+        "compass_bridge": compass_info,
         "posture": posture,
         "confidence": confidence,
         "active_risk_bps": round(active_bps * 100, 0),

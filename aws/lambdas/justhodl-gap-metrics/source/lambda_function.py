@@ -725,6 +725,117 @@ def m_cor3m():
         return {"status": "DEGRADED", "note": str(e)[:90], **out}
 
 
+def _http_bytes(url, timeout=40):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def _xlsx_rows(blob, max_sheets=3):
+    """Stdlib xlsx reader: shared strings + first sheets -> rows of
+    cell values (strings/floats). No pandas/openpyxl in Lambda."""
+    import io
+    import re as _re
+    import zipfile
+    z = zipfile.ZipFile(io.BytesIO(blob))
+    shared = []
+    if "xl/sharedStrings.xml" in z.namelist():
+        sx = z.read("xl/sharedStrings.xml").decode("utf-8", "replace")
+        shared = [_re.sub(r"<[^>]+>", "", m)
+                  for m in _re.findall(r"<si>(.*?)</si>", sx, _re.S)]
+    rows_all = []
+    sheets = sorted(n for n in z.namelist()
+                    if n.startswith("xl/worksheets/sheet"))[:max_sheets]
+    for sh in sheets:
+        xml = z.read(sh).decode("utf-8", "replace")
+        for rm in _re.finditer(r"<row[^>]*>(.*?)</row>", xml, _re.S):
+            row = []
+            for cm in _re.finditer(r"<c([^>]*)>(.*?)</c>|<c([^>]*)/>",
+                                   rm.group(1), _re.S):
+                attrs = cm.group(1) or cm.group(3) or ""
+                inner = cm.group(2) or ""
+                tm = _re.search(r'\bt="(\w+)"', attrs)
+                t = tm.group(1) if tm else None
+                im = _re.search(r"<is>.*?<t[^>]*>(.*?)</t>", inner,
+                                _re.S)
+                vm = _re.search(r"<v>(.*?)</v>", inner, _re.S)
+                if im is not None:
+                    row.append(im.group(1))
+                elif vm is None:
+                    row.append(None)
+                elif t == "s":
+                    try:
+                        row.append(shared[int(vm.group(1))])
+                    except Exception:
+                        row.append(vm.group(1))
+                else:
+                    try:
+                        row.append(float(vm.group(1)))
+                    except ValueError:
+                        row.append(vm.group(1))
+            rows_all.append(row)
+    return rows_all
+
+
+def m_sifma_issuance():
+    """M7: US corporate bond issuance (IG vs HY, monthly) scraped from
+    SIFMA's statistics page -> latest month + YoY. Every failure path
+    returns DEGRADED with the reason; no fabrication ever."""
+    import re as _re
+    page = http("https://www.sifma.org/resources/research/statistics/"
+                "us-corporate-bonds-statistics/", timeout=35)
+    links = _re.findall(r'href="([^"]+\.xlsx[^"]*)"', page)
+    links = [l if l.startswith("http") else "https://www.sifma.org" + l
+             for l in links]
+    pick = next((l for l in links if "corporate" in l.lower()),
+                links[0] if links else None)
+    if not pick:
+        return {"status": "DEGRADED",
+                "reason": "no xlsx link on SIFMA stats page",
+                "links_seen": len(links)}
+    rows = _xlsx_rows(_http_bytes(pick))
+    ig_row = hy_row = None
+    date_row = None
+    for r in rows:
+        head = " ".join(str(x) for x in r[:3] if x).lower()
+        if ig_row is None and "investment grade" in head:
+            ig_row = r
+        if hy_row is None and "high yield" in head:
+            hy_row = r
+        if date_row is None and sum(
+                1 for x in r if isinstance(x, str)
+                and _re.match(r"^\d{4}$|^[A-Z][a-z]{2}", str(x))) > 6:
+            date_row = r
+    def _tail_nums(r, n=14):
+        vals = [x for x in (r or []) if isinstance(x, float)]
+        return vals[-n:]
+    ig, hy = _tail_nums(ig_row), _tail_nums(hy_row)
+    if not ig or not hy:
+        return {"status": "DEGRADED",
+                "reason": "IG/HY rows not found in workbook",
+                "xlsx": pick.rsplit("/", 1)[-1][:60],
+                "rows_scanned": len(rows)}
+    def _yoy(v):
+        return (round((v[-1] / v[-13] - 1) * 100, 1)
+                if len(v) >= 13 and v[-13] else None)
+    hy_share = (round(100.0 * hy[-1] / (hy[-1] + ig[-1]), 1)
+                if (hy[-1] + ig[-1]) else None)
+    return {"status": "OK",
+            "source": "SIFMA US corporate bond statistics (xlsx)",
+            "workbook": pick.rsplit("/", 1)[-1][:80],
+            "ig_latest_bn": round(ig[-1], 1),
+            "hy_latest_bn": round(hy[-1], 1),
+            "ig_yoy_pct": _yoy(ig), "hy_yoy_pct": _yoy(hy),
+            "hy_share_pct": hy_share,
+            "read": ("HY issuance %s vs IG %s (HY share %s%%) -- "
+                     "issuance windows open when HY share expands; "
+                     "a slammed-shut HY market front-runs spread "
+                     "stress." % (hy[-1], ig[-1], hy_share)),
+            "note": "monthly $bn; last %d obs kept" % len(hy),
+            "history_ig": ig, "history_hy": hy}
+
+
+
 MODULES = [
     ("sloos", "data/sloos.json", m_sloos),
     ("stock_bond_corr", "data/stock-bond-corr.json", m_stock_bond_corr),
@@ -737,6 +848,7 @@ MODULES = [
     ("baltic_dry", "data/baltic-dry.json", m_baltic_dry),
     ("bill_share", "data/bill-share.json", m_bill_share),
     ("cor3m", "data/implied-corr.json", m_cor3m),
+    ("sifma_issuance", "data/sifma-issuance.json", m_sifma_issuance),
 ]
 
 
