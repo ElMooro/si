@@ -1,39 +1,35 @@
-executing-against: bfa5aaae6385f0deea5915786356b0de136b98ee
+executing-against: acd87ca906e9598b3abb33b43c825fbc1f901d50
 nav pages: 366
-pages ok: 361/366 down=['/asymmetric.html', '/catalysts.html', '/charts.html', '/options-flow.html', '/positioning.html']
-feeds referenced by pages: 419
-feeds live: 396/419 dead=23 unparseable=0
-[01:36:32] ⚠ DEAD referenced feed cot/extremes/current.json (http=None) <- /cot-extremes.html,/desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed crypto-intel.json (http=None) <- /desk-v2.html
-[01:36:32] ⚠ DEAD referenced feed divergence/current.json (http=None) <- /desk-v2.html,/desk.html,/news.html
-[01:36:32] ⚠ DEAD referenced feed edgar_insiders.json (http=None) <- /analytics.html
-[01:36:32] ⚠ DEAD referenced feed edge-data.json (http=None) <- /edge.html
-[01:36:32] ⚠ DEAD referenced feed equity_research.json (http=None) <- /analytics.html
-[01:36:32] ⚠ DEAD referenced feed flow-data.json (http=None) <- /flow.html,/vol.html
-[01:36:32] ⚠ DEAD referenced feed ici-flows.json (http=None) <- /ici-flows.html
-[01:36:32] ⚠ DEAD referenced feed intelligence-report.json (http=None) <- /desk-v2.html
-[01:36:32] ⚠ DEAD referenced feed investor-debate/_index.json (http=None) <- /desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed justhodl-dashboard-live/data/macro-nowcast.json (http=None) <- /chart-macro.html
-[01:36:32] ⚠ DEAD referenced feed liquidity-data.json (http=None) <- /liquidity.html
-[01:36:32] ⚠ DEAD referenced feed opportunities/asymmetric-equity.json (http=None) <- /desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed portfolio/pnl-daily.json (http=None) <- /desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed portfolio/signal-portfolio-state.json (http=None) <- /ticker.html
-[01:36:32] ⚠ DEAD referenced feed portfolio/sizer-v2.json (http=None) <- /position-sizer.html
-[01:36:32] ⚠ DEAD referenced feed predictions.json (http=None) <- /ml-predictions.html,/trading-signals.html
-[01:36:32] ⚠ DEAD referenced feed regime/current.json (http=None) <- /bonds.html,/desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed repo-data.json (http=None) <- /repo.html
-[01:36:32] ⚠ DEAD referenced feed reports/scorecard.json (http=None) <- /reports.html
-[01:36:32] ⚠ DEAD referenced feed research_critique.json (http=None) <- /analytics.html
-[01:36:32] ⚠ DEAD referenced feed risk/recommendations.json (http=None) <- /desk-v2.html,/desk.html
-[01:36:32] ⚠ DEAD referenced feed valuations-data.json (http=None) <- /valuations-macro.html
-engines: 661 | unique outs: 713 (new to check: 330)
+pages ok: 366/366 (redirect-stubs resolved: 5) down=none
+[01:48:41] redirect stub /asymmetric.html -> /deep-value.html
+[01:48:41] redirect stub /catalysts.html -> /catalyst-calendar.html
+[01:48:41] redirect stub /charts.html -> /chart-pro.html
+[01:48:41] redirect stub /options-flow.html -> /signal-board.html
+[01:48:41] redirect stub /positioning.html -> /cftc.html
+feed URLs referenced by pages (as written): 532
+feed URLs live: 517/532 dead=15 unparseable=0
+[01:48:57] ⚠ DEAD feed https://api.justhodl.ai/agent/secretary (http403) <- /alpha-compass.html
+[01:48:57] ⚠ DEAD feed data/cot/extremes/current.json (http403) <- /desk-v2.html,/desk.html
+[01:48:57] ⚠ DEAD feed data/crypto-intel.json (http403) <- /desk-v2.html
+[01:48:57] ⚠ DEAD feed data/divergence/current.json (http403) <- /desk-v2.html,/desk.html,/news.html
+[01:48:57] ⚠ DEAD feed data/edgar_insiders.json (http403) <- /analytics.html
+[01:48:57] ⚠ DEAD feed data/equity_research.json (http403) <- /analytics.html
+[01:48:57] ⚠ DEAD feed data/ici-flows.json (http403) <- /ici-flows.html
+[01:48:57] ⚠ DEAD feed data/intelligence-report.json (http403) <- /desk-v2.html
+[01:48:57] ⚠ DEAD feed data/investor-debate/_index.json (http403) <- /desk-v2.html,/desk.html
+[01:48:57] ⚠ DEAD feed data/opportunities/asymmetric-equity.json (http403) <- /desk-v2.html,/desk.html
+[01:48:57] ⚠ DEAD feed data/portfolio/pnl-daily.json (http403) <- /desk-v2.html,/desk.html
+[01:48:57] ⚠ DEAD feed data/portfolio/signal-portfolio-state.json (http403) <- /ticker.html
+[01:48:57] ⚠ DEAD feed data/regime/current.json (http403) <- /desk-v2.html,/desk.html
+[01:48:57] ⚠ DEAD feed data/research_critique.json (http403) <- /analytics.html
+[01:48:57] ⚠ DEAD feed data/risk/recommendations.json (http403) <- /desk-v2.html,/desk.html
+engines: 661 | unique out keys: 715
 engines fresh=555 aging=14 stale=4 dead=6 no-outs=82
-[01:38:53] ⚠ dead engines: justhodl-engine-robustness,justhodl-eurostat-history,justhodl-ici-flows,justhodl-kill-switch,justhodl-transcript-indexer,justhodl-transcript-query
-[01:38:53] stale engines (>8d): justhodl-feedback,justhodl-history-api,justhodl-trade-journal,justhodl-watchlist
-pages=361/366 ref-feeds=396/419 engines fresh=555 aging=14 stale=4 dead=6 no-outs=82 t=232s
-[01:38:53] ✗ pages down: ['/asymmetric.html', '/catalysts.html', '/charts.html', '/options-flow.html', '/positioning.html']
-[01:38:53] ✗ 23 referenced feeds dead
-FAILURES: pages down: ['/asymmetric.html', '/catalysts.html', '/charts.html', '/options-flow.html', '/positioning.html'] | 23 referenced feeds dead
+[01:49:07] ⚠ dead engines: justhodl-engine-robustness,justhodl-eurostat-history,justhodl-ici-flows,justhodl-kill-switch,justhodl-transcript-indexer,justhodl-transcript-query
+[01:49:07] stale engines (>8d): justhodl-feedback,justhodl-history-api,justhodl-trade-journal,justhodl-watchlist
+pages=366/366 (stubs=5) feed-urls=517/532 engines fresh=555 aging=14 stale=4 dead=6 no-outs=82 t=28s
+[01:49:07] ✗ 15 referenced feed URLs dead
+FAILURES: 15 referenced feed URLs dead
 
 → Report written to aws/ops/reports/latest/2950_fleet_health.md
 ❌ OPS-FAIL: aws/ops/pending/ops_2950_fleet_health.py
