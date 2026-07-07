@@ -277,6 +277,22 @@ def lambda_handler(event, context):
     if liq_s is not None:
         blocks.append(("liquidity_regime", 0.15, liq_s)); results["liquidity_regime"] = liq_m
 
+    # funding block -- overnight repo plumbing from the repo-market engine
+    rp = _read("data/repo-market.json") or {}
+    rp_score = rp.get("repo_stress_score")
+    if isinstance(rp_score, (int, float)):
+        # 0-100 stress -> [-1..+1] risk signal: calm funding is mildly
+        # risk-on, a seizing repo market is fully risk-off.
+        f_s = max(-1.0, min(1.0, (35.0 - rp_score) / 45.0))
+        blocks.append(("funding", 0.15, f_s))
+        results["funding"] = {
+            "score": round(f_s, 2), "repo_stress_score": rp_score,
+            "regime": rp.get("regime"),
+            "tail_bps": (rp.get("distribution") or {}).get("tail_bps"),
+            "sofr_iorb_bps": ((rp.get("spreads") or {}).get("sofr_iorb")
+                              or {}).get("bps"),
+            "source": "repo-market engine"}
+
     tw = sum(w for _, w, _ in blocks)
     composite = sum(w * s for _, w, s in blocks) / tw if tw else 0.0
     score = round(_clip(composite) * 100, 1)

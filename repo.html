@@ -130,6 +130,54 @@ table.tbl tr:last-child td{border-bottom:none}
     <div class="sub">57-metric plumbing health monitor · phase classification · Financial Secretary v2.2 endpoints</div>
   </div>
 
+  <!-- ═══ REPO MARKET DESK · dedicated engine (data/repo-market.json) ═══ -->
+  <div id="jh-repo-desk" style="margin:18px 0 26px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--bg-raised);padding:16px 18px">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px">
+      <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:1.5px;color:var(--amber)">REPO MARKET DESK</div>
+      <div style="font-size:11px;color:var(--fg-3)">SOFR distribution engine &middot; NY Fed p1/p25/p75/p99 + facilities &middot; the black-swan tripwire layer</div>
+      <div id="rmd-asof" style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--fg-4)"></div>
+    </div>
+    <div id="rmd-body"><div style="color:var(--fg-3);font-family:var(--font-mono);font-size:11px;padding:14px">LOADING REPO DESK&hellip;</div></div>
+  </div>
+  <script>
+  (async function(){
+    const E=s=>String(s==null?"\u2014":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+    const col=v=>v==null?"var(--fg-3)":(v>=60?"var(--red)":(v>=40?"var(--amber)":"var(--green)"));
+    function spark(series,w,h,color){
+      if(!series||series.length<10)return"";
+      const vs=series.map(x=>x[1]),mn=Math.min(...vs),mx=Math.max(...vs),rg=(mx-mn)||1;
+      const pts=vs.map((v,i)=>((i/(vs.length-1))*w).toFixed(1)+","+((h-4)-((v-mn)/rg)*(h-10)+3).toFixed(1)).join(" ");
+      return '<svg width="'+w+'" height="'+h+'" style="display:block"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" points="'+pts+'"/></svg>'
+        +'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--fg-4);font-family:var(--font-mono)"><span>'+E(series[0][0])+'</span><span>lo '+mn.toFixed(1)+' &middot; hi '+mx.toFixed(1)+'</span><span>'+E(series[series.length-1][0])+'</span></div>';
+    }
+    let d;
+    try{ d=await (await fetch("/data/repo-market.json?t="+Date.now())).json(); }
+    catch(e){ document.getElementById("rmd-body").innerHTML='<div style="color:var(--fg-3);font-family:var(--font-mono);font-size:11px;padding:14px">repo-market feed unavailable</div>'; return; }
+    const sc=d.repo_stress_score, dist=d.distribution||{}, sp=d.spreads||{}, fa=d.facilities||{}, ep=d.episodes||{}, cal=d.calendar||{};
+    const si=(sp.sofr_iorb||{}), rc=col(sc);
+    const cell=(l,v,s,c)=>'<div style="background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;min-width:118px;flex:1"><div style="font-size:9px;letter-spacing:1px;color:var(--fg-3);font-family:var(--font-mono)">'+l+'</div><div style="font-family:var(--font-mono);font-size:16px;color:'+(c||"var(--fg-1)")+';margin:2px 0">'+v+'</div><div style="font-size:9px;color:var(--fg-4)">'+s+'</div></div>';
+    let h='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">';
+    h+=cell("STRESS SCORE",E(sc)+'<span style="font-size:10px;color:var(--fg-3)">/100</span>','<b style="color:'+rc+'">'+E(d.regime)+'</b>'+((cal.quarter_end_window)?' &middot; Q-END WINDOW':''),rc);
+    h+=cell("P99 TAIL",E(dist.tail_bps)+"bps","p99 vs median &middot; "+E(dist.tail_pctile_since_2018)+"%ile since 2018",col((dist.tail_bps||0)>=15?70:(dist.tail_bps||0)>=8?45:10));
+    h+=cell("SOFR &minus; IORB",(si.bps>0?"+":"")+E(si.bps)+"bps","z "+E(si.z_1y)+" &middot; "+E(si.pctile_since_2018)+"%ile",col((si.bps||0)>=8?70:(si.bps||0)>=3?45:10));
+    h+=cell("CEILING ROOM",E((sp.ceiling_room||{}).bps)+"bps","to the SRF rate");
+    h+=cell("RRP BUFFER","$"+E(fa.rrp_usd_bn)+"B","shock absorber left");
+    h+=cell("SRF TAKE-UP","$"+E(fa.srf_usd_bn)+"B","anyone paying the ceiling is news");
+    h+='</div>';
+    h+='<div style="font-size:12px;color:var(--fg-2);margin-bottom:12px;line-height:1.55">'+E(d.headline)+'</div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">';
+    h+='<div><div style="font-size:10px;letter-spacing:1px;color:var(--fg-3);font-family:var(--font-mono);margin-bottom:6px">P99 TAIL &middot; 1Y (bps)</div>'+spark(dist.series_tail_1y,470,84,"var(--amber)")+'<div style="font-size:10px;letter-spacing:1px;color:var(--fg-3);font-family:var(--font-mono);margin:12px 0 6px">SOFR &minus; IORB &middot; 1Y (bps)</div>'+spark(si.series_1y,470,84,"var(--cyan)")+'</div>';
+    h+='<div><div style="font-size:10px;letter-spacing:1px;color:var(--fg-3);font-family:var(--font-mono);margin-bottom:6px">COMPONENTS</div><table style="width:100%;border-collapse:collapse;font-size:11px">';
+    (d.components||[]).forEach(c=>{h+='<tr style="border-bottom:1px solid var(--border)"><td style="padding:4px 6px;color:var(--fg-2)">'+E(c.label)+'</td><td style="padding:4px 6px;font-family:var(--font-mono);color:var(--fg-1)">'+E(c.reading)+'</td><td style="padding:4px 6px;font-family:var(--font-mono);color:'+col(c.subscore)+'">'+E(c.subscore)+'</td><td style="padding:4px 6px;color:var(--fg-4);font-family:var(--font-mono)">w '+E(c.weight)+'</td></tr>';});
+    h+='</table><div style="font-size:10px;letter-spacing:1px;color:var(--fg-3);font-family:var(--font-mono);margin:12px 0 4px">WORST TAIL DAYS SINCE 2018</div><div style="font-size:11px;color:var(--fg-2);font-family:var(--font-mono)">';
+    (ep.top_tail_days||[]).forEach(t=>{h+=E(t.date)+" &middot; tail "+E(t.tail_bps)+"bps &middot; SOFR-IORB "+(t.sofr_iorb_bps>0?"+":"")+E(t.sofr_iorb_bps)+"bps<br>";});
+    h+='</div></div></div>';
+    h+='<div style="font-size:10px;color:var(--fg-4);margin-top:12px;line-height:1.5">'+E(d.how_to_read)+'</div>';
+    document.getElementById("rmd-body").innerHTML=h;
+    document.getElementById("rmd-asof").textContent="as of "+(d.as_of||"")+" \u00b7 "+(d.source_primary||"");
+  })();
+  </script>
+
   <div class="strip" id="strip">
     <div class="strip-cell" id="phaseCell"><div class="label">PHASE</div><div class="value" id="phaseVal">—</div><div class="sub" id="phaseSub">market regime</div></div>
     <div class="strip-cell" id="scoreCell"><div class="label">SCORE</div><div class="value" id="scoreVal">—</div><div class="sub" id="scoreSub">/100</div></div>

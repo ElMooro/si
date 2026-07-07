@@ -670,6 +670,21 @@ def build_canaries(fred, sib=None):
             "currency is bid hard (PUMP). Easy funding lets it drift "
             "lower (DUMP).")
 
+    # 10b) ONSHORE REPO PLUMBING  (repo-market engine sidecar) -----------
+    rp = (sib.get("repo") or {})
+    rp_score = rp.get("repo_stress_score")
+    if isinstance(rp_score, (int, float)):
+        lean = _lean(rp_score, [20, 40, 60, 80], [-1, 0, 1, 2, 2])
+        rp_tail = (rp.get("distribution") or {}).get("tail_bps")
+        add("Onshore repo stress (SOFR plumbing)",
+            "%.0f/100%s" % (rp_score,
+                            (", tail %.0fbps" % rp_tail)
+                            if isinstance(rp_tail, (int, float)) else ""),
+            lean, 1.5,
+            "The dedicated repo-market engine: SOFR p99 tail, SOFR-IORB, "
+            "RRP buffer and SRF take-up. A funding squeeze bids the "
+            "dollar (PUMP); glassy repo lets it drift (DUMP).")
+
 
     # 11) US 10Y NOMINAL YIELD TREND  (the risk-asset co-pilot) ----------
     if dgs10:
@@ -1119,7 +1134,8 @@ def lambda_handler(event, context):
     siblings = {"cb": read_json(CB_STANCE_KEY),
                 "cn": read_json(CHINA_KEY),
                 "cftc": read_json(CFTC_KEY),
-                "bv": read_json("data/bond-vol.json")}
+                "bv": read_json("data/bond-vol.json"),
+                "repo": read_json("data/repo-market.json")}
     canaries, pressure = build_canaries(fred, siblings)
     risk_tx = build_risk_transmission(fred, siblings)
     regime, regime_note = regime_of(pressure)

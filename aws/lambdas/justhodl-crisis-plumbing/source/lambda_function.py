@@ -240,9 +240,13 @@ CROSS_CURRENCY_BASIS_INPUTS = {
 # The 5 highest-leverage missing signals identified by gap analysis:
 #   1. SOFR-IORB spread — daily, the cleanest single repo stress signal
 #      Computed: SOFR (Secured Overnight Financing Rate) − IORB (Interest On
-#      Reserve Balances). When SOFR > IORB, banks have cash to lend to repo
-#      (stress easing). When SOFR < IORB by more than a few bps, cash is
-#      being hoarded (stress rising — what happened in Sep 2019 + March 2020).
+#      Reserve Balances). Stress is SOFR printing ABOVE the admin rate:
+#      cash is scarce and repo borrowers pay up over the risk-free floor
+#      (Sep-2019 peaked near +300bps over; quarter-end squeezes print
+#      +10-25bps). SOFR persistently BELOW IORB is the abundant-reserves
+#      calm state (the 2021-24 RRP era). Direction corrected ops 2965 --
+#      the original buckets were inverted and would have read a Sep-2019
+#      repeat as NORMAL.
 #   2. HY OAS (BAMLH0A0HYM2) — daily, the credit-fear gauge
 #   3. 10Y TIPS breakeven (T10YIE) — daily, inflation expectations
 #   4. 10Y Real Rate (DFII10) — daily, recession risk + USD funding cost
@@ -301,6 +305,57 @@ FUNDING_CREDIT_SIGNALS = {
 }
 
 
+def _augment_repo_tail(out):
+    """Fuse the dedicated repo-market engine's p99 tail into the funding
+    signals. The tail (99th-percentile SOFR minus the median) widens days
+    before the median moves -- the earliest black-swan tell this section
+    carries. Sidecar-read from data/repo-market.json; freshness-gated."""
+    try:
+        rp = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/repo-market.json")["Body"].read())
+        gen = rp.get("generated_at", "")
+        age_h = None
+        try:
+            age_h = (datetime.now(timezone.utc) -
+                     datetime.fromisoformat(gen)).total_seconds() / 3600.0
+        except Exception:
+            pass
+        dist = rp.get("distribution") or {}
+        tail = dist.get("tail_bps")
+        if age_h is None or age_h > 48 or not isinstance(tail, (int, float)):
+            out["REPO_TAIL_P99"] = {"name": "SOFR p99 Tail (repo-market)",
+                                    "available": False}
+            return
+        if tail >= 30:
+            sig = "CRISIS"
+        elif tail >= 15:
+            sig = "ELEVATED"
+        elif tail >= 8:
+            sig = "WATCH"
+        else:
+            sig = "NORMAL"
+        out["REPO_TAIL_P99"] = {
+            "name": "SOFR p99 Tail (repo-market)",
+            "available": True,
+            "latest_date": rp.get("as_of"),
+            "tail_bps": tail,
+            "z_score_1y": dist.get("tail_z_1y"),
+            "pctile_since_2018": dist.get("tail_pctile_since_2018"),
+            "repo_stress_score": rp.get("repo_stress_score"),
+            "repo_regime": rp.get("regime"),
+            "signal": sig,
+            "interpretation": (
+                "The 99th-percentile SOFR borrower is paying %.0fbps over "
+                "the median -- the marginal-borrower rate that widened "
+                "for days ahead of the Sep-2019 seizure. Sourced from the "
+                "dedicated justhodl-repo-market engine." % tail),
+        }
+    except Exception as e:
+        print("[repo-tail] sidecar unavailable: %s" % e)
+        out["REPO_TAIL_P99"] = {"name": "SOFR p99 Tail (repo-market)",
+                                "available": False}
+
+
 def compute_funding_credit_signals(observations_map):
     """Build the funding-credit-signals section. SOFR-IORB is computed
     from the two underlying series; everything else is direct FRED + threshold
@@ -333,12 +388,14 @@ def compute_funding_credit_signals(observations_map):
                 std = var ** 0.5 if var > 0 else 1
                 z = round((spread_bps - mean) / std, 2) if std > 0 else 0
 
-            # Bucket: more negative = more stress (cash hoarding)
-            if spread_bps <= -15:
+            # Bucket: more POSITIVE = more stress. SOFR above the admin
+            # rate means cash is scarce and the marginal repo borrower is
+            # paying over the risk-free floor (direction fixed ops 2965).
+            if spread_bps >= 20:
                 signal = "CRISIS"
-            elif spread_bps <= -7:
+            elif spread_bps >= 8:
                 signal = "ELEVATED"
-            elif spread_bps <= -3:
+            elif spread_bps >= 3:
                 signal = "WATCH"
             else:
                 signal = "NORMAL"
@@ -355,13 +412,18 @@ def compute_funding_credit_signals(observations_map):
                 "std_1y_bps": round(std, 2) if std is not None else None,
                 "signal": signal,
                 "interpretation": (
-                    "SOFR < IORB by ≥15bps = severe cash hoarding (Sep-2019 / March-2020 pattern)"
+                    "SOFR >= 20bps ABOVE IORB = severe funding squeeze "
+                    "(the Sep-2019 direction: cash scarce, repo paying "
+                    "far over the risk-free floor)"
                     if signal == "CRISIS" else
-                    "SOFR < IORB by ≥7bps = elevated repo stress"
+                    "SOFR >= 8bps above IORB = elevated repo stress"
                     if signal == "ELEVATED" else
-                    "Mild repo stress (SOFR < IORB by 3-7bps)"
+                    "SOFR 3-8bps above IORB = firming repo, watch "
+                    "quarter-end context"
                     if signal == "WATCH" else
-                    "Repo plumbing functioning normally"
+                    ("Repo plumbing functioning normally"
+                     + (" (SOFR below IORB = abundant reserves)"
+                        if spread_bps <= -3 else ""))
                 ),
             }
         else:
@@ -882,6 +944,7 @@ def _do_handler(event, context):
     # The 5 highest-leverage missing crisis indicators:
     #   SOFR-IORB spread, HY OAS, IG BBB OAS, T10YIE, DFII10, SLOOS C&I tightening
     funding_credit = compute_funding_credit_signals(observations_map)
+    _augment_repo_tail(funding_credit)
 
     # 7. Yield curve stress signals
     yc_results = {}

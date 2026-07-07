@@ -1,0 +1,22 @@
+{
+ "function_name": "justhodl-repo-market",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 240,
+ "architectures": ["x86_64"],
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "description": "Repo Market Desk - dedicated overnight-funding stress engine. NY Fed markets API (SOFR/TGCR/BGCR with volume-weighted p1/p25/p75/p99 percentiles + volume, SRF ops) + FRED (IORB with IOER splice, RRP + award, reserves, TGA, discount window, swap lines, ceiling). Computes the p99 tail (the Sep-2019 early-warning metric), full spread stack, facility buffers, calendar-adjusted context, episode ranking since 2018, and a 9-component 0-100 repo stress score with regime tripwires. data/repo-market.json.",
+ "inherit_env": true,
+ "environment": {
+  "S3_BUCKET": "justhodl-dashboard-live"
+ },
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-repo-market-daily",
+  "cron": "cron(35 13,21 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Repo Market Desk - 13:35 UTC (after the NY Fed 8am ET reference-rate publication) and 21:35 UTC (post-close + H.4.1 Thursdays)."
+ }
+}
