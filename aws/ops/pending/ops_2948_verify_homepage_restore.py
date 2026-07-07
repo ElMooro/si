@@ -57,7 +57,7 @@ def main():
             fails.append("homepage is not the restored Operator Console")
 
         # 2) navigation actually lists the pages
-        nav = get_json("data/nav-manifest.json") or {}
+        nav = get_json("nav-manifest.json") or {}  # drawer fetches ROOT path (Pages-served), not /data/
         hrefs = set()
         def walk(x):
             if isinstance(x, dict):
@@ -78,13 +78,15 @@ def main():
 
         # 3) core pages live + drawer wired
         sample = ["today.html", "plumbing.html", "options.html", "onchain.html",
-                  "apac.html", "screener/", "why.html", "risk-desk.html",
+                  "apac.html", "chart-pro.html", "why.html", "risk-desk.html",
                   "flows.html", "engines.html", "signal-board.html", "llm-cost.html"]
         with ThreadPoolExecutor(max_workers=8) as ex:
             res = dict(zip(sample, ex.map(get, sample)))
         bad = [p for p, (c, b) in res.items() if c != 200 or len(b) < 3000]
         drawer = sum(1 for _, b in res.values() if b and b"jh-nav-drawer" in b)
         rep.kv(sample_pages_ok=f"{len(sample)-len(bad)}/{len(sample)}", drawer_wired=f"{drawer}/{len(sample)}", bad_pages=",".join(bad) or "none")
+        sc, sb = get("screener/")
+        rep.kv(screener_probe=f"http={sc} bytes={len(sb)} (protected page — non-browser agents blocked by design; informational only)")
         if bad:
             fails.append(f"pages failing: {bad}")
 
