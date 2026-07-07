@@ -320,92 +320,154 @@ def m_muni_ratio():
         return {"status": "DEGRADED", "note": str(e)[:100], **out}
 
 
-def _largest_rows(doc):
-    if isinstance(doc, list):
-        return doc
-    best = []
-    if isinstance(doc, dict):
-        for v in doc.values():
-            if isinstance(v, list) and v and isinstance(v[0], dict) \
-                    and len(v) > len(best):
-                best = v
-    return best
+
+BREADTH_UNIVERSE = [
+    "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "AVGO", "TSLA",
+    "LLY", "JPM", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "JNJ",
+    "ABBV", "WMT", "NFLX", "CRM", "BAC", "ORCL", "MRK", "KO", "AMD",
+    "CVX", "PEP", "ADBE", "TMO", "LIN", "MCD", "CSCO", "ACN", "ABT",
+    "WFC", "IBM", "GE", "QCOM", "CAT", "TXN", "AMGN", "DHR", "INTU",
+    "DIS", "PFE", "UBER", "NOW", "SPGI", "GS", "NEE", "RTX", "BKNG",
+    "HON", "UNP", "LOW", "AXP", "SYK", "T"]
+SNAP_KEY = "data/gap-est-snapshots.json"
+
+
+def _strategist_breadth():
+    """Breadth of sell-side STRATEGIST SPX-target revisions (30d)."""
+    doc = json.loads(S3.get_object(
+        Bucket=BUCKET, Key="data/sellside-views.json")["Body"].read())
+    revs = doc.get("recent_revisions_30d") or []
+    ups = dns = 0
+    for r in revs:
+        if not isinstance(r, dict):
+            continue
+        new = old = None
+        for kn in ("new_target", "new", "to", "target_new", "target"):
+            if isinstance(r.get(kn), (int, float)):
+                new = r[kn]
+                break
+        for ko in ("old_target", "old", "from", "prior", "previous",
+                   "target_old"):
+            if isinstance(r.get(ko), (int, float)):
+                old = r[ko]
+                break
+        if new is not None and old is not None and new != old:
+            ups, dns = (ups + 1, dns) if new > old else (ups, dns + 1)
+            continue
+        d = str(r.get("direction") or r.get("action") or "").upper()
+        if any(t in d for t in ("UP", "RAIS", "HIGHER", "POS")):
+            ups += 1
+        elif any(t in d for t in ("DOWN", "CUT", "LOWER", "NEG")):
+            dns += 1
+    tot = ups + dns
+    if tot < 5:
+        return None, "strategist revisions thin (%d signed of %d)" % (
+            tot, len(revs))
+    return {"breadth_pct_positive": round(100.0 * ups / tot, 1),
+            "up": ups, "down": dns, "n": tot,
+            "basis": "SPX strategist target revisions, 30d"}, None
+
+
+def _stock_breadth():
+    """TRUE stock-level revision breadth via FMP estimate snapshots:
+    store today's next-FY consensus EPS per name, diff vs the oldest
+    snapshot >=21 days back. Honest WARMING_UP until history exists."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        store = json.loads(S3.get_object(
+            Bucket=BUCKET, Key=SNAP_KEY)["Body"].read())
+    except Exception:
+        store = {}
+    snap = {}
+    for t in BREADTH_UNIVERSE:
+        try:
+            d = json.loads(http(
+                "https://financialmodelingprep.com/stable/"
+                "analyst-estimates?symbol=%s&period=annual&limit=2"
+                "&apikey=%s" % (t, FMP), timeout=15))
+            if isinstance(d, list) and d:
+                row = d[0]
+                for f in ("epsAvg", "estimatedEpsAvg", "epsAvgEstimate",
+                          "eps_avg"):
+                    if isinstance(row.get(f), (int, float)):
+                        snap[t] = row[f]
+                        break
+            time.sleep(0.08)
+        except Exception:
+            continue
+    if len(snap) >= 30:
+        store[today] = snap
+        keep = sorted(store)[-45:]
+        store = {k: store[k] for k in keep}
+        put(SNAP_KEY, store)
+    dates = sorted(store)
+    base_date = None
+    for d0 in dates:
+        if (datetime.strptime(today, "%Y-%m-%d")
+                - datetime.strptime(d0, "%Y-%m-%d")).days >= 21:
+            base_date = d0
+    if not base_date:
+        first = dates[0] if dates else today
+        days = (datetime.strptime(today, "%Y-%m-%d")
+                - datetime.strptime(first, "%Y-%m-%d")).days
+        return None, ("WARMING_UP: snapshot history %dd of 21d needed "
+                      "(%d names captured today)" % (days, len(snap)))
+    base = store[base_date]
+    ups = dns = 0
+    for t, v in store.get(dates[-1], {}).items():
+        b = base.get(t)
+        if isinstance(b, (int, float)) and isinstance(v, (int, float)):
+            if v > b * 1.001:
+                ups += 1
+            elif v < b * 0.999:
+                dns += 1
+    tot = ups + dns
+    if tot < 15:
+        return None, "only %d names moved vs %s" % (tot, base_date)
+    return {"breadth_pct_positive": round(100.0 * ups / tot, 1),
+            "up": ups, "down": dns, "n": tot,
+            "vs_date": base_date,
+            "basis": "next-FY consensus EPS, %d-name universe"
+                     % len(BREADTH_UNIVERSE)}, None
 
 
 def m_revision_breadth():
     out = {"gap_id": "M11",
-           "source": "estimate-revisions feed, sellside analyst actions "
-                     "fallback"}
-    tried = []
-    for key, kind in (("data/estimate-revisions.json", "eps"),
-                      ("data/sellside-views.json", "actions")):
-        try:
-            doc = json.loads(S3.get_object(
-                Bucket=BUCKET, Key=key)["Body"].read())
-        except Exception as e:
-            tried.append("%s unavailable: %s" % (key, str(e)[:50]))
-            continue
-        r = _breadth_from(doc, kind)
-        if r.get("_ok"):
-            r.pop("_ok")
-            r["source_key"] = key
-            return {"status": "OK", **r, **out}
-        tried.append("%s: %s" % (key, r.get("note")))
-    return {"status": "DEGRADED", "note": " | ".join(tried)[:300], **out}
-
-
-def _breadth_from(doc, kind):
-    rows = _largest_rows(doc) or None
-    if not rows:
-        return {"note": "no row array; top keys: %s"
-                % (list(doc)[:8] if isinstance(doc, dict) else "n/a")}
-    fields = ("eps_rev_pct", "eps_rev_recent_pct", "eps_revision_3m",
-              "revision_3m", "rev_3m", "net_revision",
-              "eps_change_pct", "revision_pct", "delta_pct", "change_3m",
-              "eps_rev", "delta", "change")
-    fld = None
-    for f in fields:
-        if any(isinstance(r.get(f), (int, float)) for r in rows[:25]
-               if isinstance(r, dict)):
-            fld = f
-            break
-    def signed(r):
-        if kind == "eps":
-            for f in (fld, "eps_rev_recent_pct", "eps_rev_pct"):
-                if f and isinstance(r.get(f), (int, float)) and r[f] != 0:
-                    return 1 if r[f] > 0 else -1
-            d = str(r.get("direction") or "").upper()
-        else:
-            d = str(r.get("action") or r.get("rating_change")
-                    or r.get("change") or r.get("direction")
-                    or r.get("type") or "").upper()
-        if any(t in d for t in ("UPGRADE", "RAISED", "HIGHER", "UP",
-                                "POSITIVE", "POS", "OVERWEIGHT-FROM",
-                                "BUY-FROM")):
-            return 1
-        if any(t in d for t in ("DOWNGRADE", "CUT", "LOWER", "DOWN",
-                                "NEGATIVE", "NEG")):
-            return -1
-        return 0
-    signs = [signed(r) for r in rows if isinstance(r, dict)]
-    pos = sum(1 for x in signs if x > 0)
-    neg = sum(1 for x in signs if x < 0)
-    tot = pos + neg
-    if tot < 10:
-        sample = sorted({k for r in rows[:6] if isinstance(r, dict)
-                         for k in r})[:12]
-        return {"note": "only %d signed of %d rows; keys: %s"
-                % (tot, len(rows), sample)}
-    breadth = round(100.0 * pos / tot, 1)
-    return {"_ok": True, "field_used": fld or kind,
-            "names_covered": tot, "universe_rows": len(rows),
-            "positive": pos, "negative": neg,
-            "breadth_pct_positive": breadth,
-            "regime": ("EXPANSION" if breadth > 55 else
-                       "CONTRACTION" if breadth < 45 else "NEUTRAL"),
-            "read": "Share of positive estimate/rating actions across "
-                    "the covered universe. Breadth leads the EPS "
-                    "cycle; watch crossings of 50."}
+           "source": "strategist SPX-target revisions (sellside-views) + "
+                     "stock-level FMP estimate snapshot diff (21d)"}
+    notes = []
+    strat, err = None, None
+    try:
+        strat, err = _strategist_breadth()
+    except Exception as e:
+        err = str(e)[:80]
+    if err:
+        notes.append("strategist: %s" % err)
+    stock, err2 = None, None
+    try:
+        stock, err2 = _stock_breadth()
+    except Exception as e:
+        err2 = str(e)[:80]
+    if err2:
+        notes.append("stocks: %s" % err2)
+    if not strat and not stock:
+        return {"status": "DEGRADED", "note": " | ".join(notes)[:280],
+                **out}
+    head = stock or strat
+    return {"status": "OK",
+            "breadth_pct_positive": head["breadth_pct_positive"],
+            "names_covered": head["n"],
+            "headline_basis": head["basis"],
+            "strategist": strat, "stocks": stock,
+            "notes": notes or None,
+            "regime": ("EXPANSION" if head["breadth_pct_positive"] > 55
+                       else "CONTRACTION"
+                       if head["breadth_pct_positive"] < 45
+                       else "NEUTRAL"),
+            "read": "Share of positive estimate revisions -- strategist "
+                    "SPX targets now, true stock-level consensus after "
+                    "a 21-day snapshot warmup. Breadth leads the EPS "
+                    "cycle.", **out}
 
 
 MINERS = ["NEM", "GOLD", "AEM", "WPM", "FNV", "KGC", "GFI", "RGLD"]
@@ -585,15 +647,21 @@ def m_cor3m():
                 continue
         if d is None:
             raise RuntimeError("no CBOE path")
-        pts = ((d.get("data") or {}).get("prices")
-               or d.get("data") or [])
+        raw = d.get("data")
+        pts = (raw.get("prices") if isinstance(raw, dict)
+               else raw) or []
         cs = []
         for row in pts:
-            v = row.get("price") if isinstance(row, dict) else \
-                (row[1] if isinstance(row, (list, tuple))
-                 and len(row) > 1 else None)
-            if isinstance(v, (int, float)):
-                cs.append(float(v))
+            v = None
+            if isinstance(row, dict):
+                v = row.get("close", row.get("price"))
+            elif isinstance(row, (list, tuple)) and len(row) > 1:
+                v = row[1]
+            try:
+                if v is not None:
+                    cs.append(float(v))
+            except (TypeError, ValueError):
+                continue
         if len(cs) >= 60:
             closes, used = cs, "CBOE _COR3M"
     except Exception:
