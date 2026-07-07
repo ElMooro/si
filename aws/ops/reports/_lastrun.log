@@ -1,11 +1,12 @@
-executing-against: 50109791ad0c23f5bc7726b58e7d6a0f3df79e78
+executing-against: c6bfae04a0214e1da7102d2516ff2b5b417e6c1a
+manifest published to S3 (16578 bytes)
 
-→ Report written to aws/ops/reports/latest/2946_verify_engine_wiring.md
+→ Report written to aws/ops/reports/latest/2947_verify_engine_wiring.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2946_verify_engine_wiring.py", line 114, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2947_verify_engine_wiring.py", line 123, in <module>
     main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2946_verify_engine_wiring.py", line 32, in main
-    assert c == 200, "engine-wiring.json not live yet"
-           ^^^^^^^^
-AssertionError: engine-wiring.json not live yet
-❌ OPS-FAIL: aws/ops/pending/ops_2946_verify_engine_wiring.py
+  File "/home/runner/work/si/si/aws/ops/pending/ops_2947_verify_engine_wiring.py", line 42, in main
+    rep.update(manifest_live_http=c)
+    ^^^^^^^^^^
+AttributeError: 'Report' object has no attribute 'update'
+❌ OPS-FAIL: aws/ops/pending/ops_2947_verify_engine_wiring.py
