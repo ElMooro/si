@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Insider Desk · JustHodl.AI</title>
+<meta name="description" content="Unified insider-activity surface: radar, raw trades, enriched buys, cluster detection, drawdown-context buying">
+<style>
+:root{--bg-base:#07090f;--bg-raised:#0e1320;--bg-elevated:#131a2a;--border:rgba(120,145,180,0.12);--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--green:#38ffa8;--amber:#ffb13d;--cyan:#00d4ff;--violet:#a78bfa;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;--radius:4px}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:21px;font-weight:700}
+.prov{font-size:10px;font-weight:700;letter-spacing:1.2px;padding:3px 10px;border-radius:3px;background:rgba(167,139,250,.10);color:var(--violet);border:1px solid rgba(167,139,250,.35)}
+.sub{color:var(--fg-3);font-size:12px;margin-bottom:18px}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:8px;text-transform:none;letter-spacing:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.mc{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;display:block}
+.mc:hover{border-color:rgba(0,212,255,.4)}
+.mc b{color:var(--fg-1);font-size:13.5px}
+.mc .d{color:var(--fg-3);font-size:11.5px;margin-top:4px}
+.mc .u{font-family:var(--font-mono);font-size:10px;color:var(--cyan);margin-top:6px}
+footer{margin-top:34px;color:#3a4458;font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg"><h1>🕵️ Insider Desk</h1><span class="prov">UMBRELLA U1 · FLEET AUDIT</span></header>
+  <div class="sub">Five insider surfaces, four engines, one front door. Live cards below pull each engine's real feed; the member pages carry the full depth.</div>
+  <section>
+    <h2>Member Surfaces <span class="n">full-depth pages — this hub links, never duplicates</span></h2>
+    <div class="cards">
+      <a class="mc" href="/insider.html"><b>Insider Radar</b><div class="d">Composite insider-signal radar — the top-level read.</div><div class="u">/insider.html</div></a>
+      <a class="mc" href="/insiders.html"><b>Raw Insider Tape</b><div class="d">Every filing, unfiltered — the source stream.</div><div class="u">/insiders.html</div></a>
+      <a class="mc" href="/insider-buys.html"><b>Enriched Buys</b><div class="d">Open-market buys enriched with context and conviction scoring.</div><div class="u">/insider-buys.html</div></a>
+      <a class="mc" href="/insider-clusters.html"><b>Cluster Detection</b><div class="d">Multiple insiders, same name, same window — the strongest pattern.</div><div class="u">/insider-clusters.html</div></a>
+      <a class="mc" href="/insider-drawdown.html"><b>Drawdown Buying</b><div class="d">Insiders buying INTO drawdowns — conviction against the tape.</div><div class="u">/insider-drawdown.html</div></a>
+    </div>
+  </section>
+
+  <footer>One front door per fleet-audit umbrella U1 — member pages remain live and canonical for their depth; this desk is the map plus the live pulse.</footer>
+</div>
+<script src="/jh-wire.js" defer data-feeds="data/insider-radar.json|justhodl-insider-radar|INSIDER RADAR;data/insider-trades.json|justhodl-insider-trades|RAW INSIDER TAPE;data/insider-buys-enriched.json|justhodl-insider-buys|ENRICHED BUYS;data/insider-clusters.json|justhodl-insider-clusters|CLUSTER DETECTION"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>

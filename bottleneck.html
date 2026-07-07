@@ -1,74 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bottleneck Boom — JustHodl AI</title>
-<meta name="description" content="Supply-bottleneck boom detector: industry backlog/orders pressure (Census M3) × per-stock revenue acceleration and revenue-to-market-cap. Every call closed-loop graded.">
-<style>
-:root{--bg:#0a0e14;--bg1:#10151f;--bg2:#161d2a;--border:#1d2636;--fg0:#e8edf5;--fg2:#a8b3c7;--fg3:#5d6b82;--mono:'IBM Plex Mono',ui-monospace,monospace;--cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#ff5577;--violet:#a78bfa}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg0);font-family:Inter,system-ui,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,14,20,.93);backdrop-filter:blur(8px);z-index:50}
-.brand{font-family:var(--mono);font-weight:800;letter-spacing:1px}.brand .dot{display:inline-block;width:8px;height:8px;background:var(--violet);border-radius:50%;margin-right:7px;box-shadow:0 0 9px var(--violet)}
-nav a{color:var(--fg2);text-decoration:none;font-size:12.5px;margin-left:14px}nav a:hover{color:var(--cyan)}nav a.on{color:var(--cyan)}
-.wrap{max-width:1180px;margin:0 auto;padding:22px}
-h1{font-size:26px;margin:6px 0}.grad{background:linear-gradient(90deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--fg2);font-size:13.5px;line-height:1.6;max-width:880px}
-.sec{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--fg3);margin:26px 0 10px;text-transform:uppercase}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:10px}
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:14px}
-.card.warn{border-color:rgba(251,191,36,.5)}.card.hot{border-color:rgba(255,85,119,.55)}
-.lbl{font-family:var(--mono);font-size:10.5px;color:var(--fg3);letter-spacing:1px;text-transform:uppercase}
-.val{font-size:24px;font-weight:800;margin:4px 0}.vsub{font-size:11px;color:var(--fg2);font-family:var(--mono)}
-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:right;padding:10px 10px;border-bottom:1px solid var(--border);background:var(--bg2)}
-th:first-child,td:first-child{text-align:left}td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono)}
-td.nm{font-family:Inter;color:var(--fg2);font-size:11.5px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.boom{font-weight:800}.b-hot{color:var(--red)}.b-warm{color:var(--amber)}.b-ok{color:var(--green)}
-.chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:8px;border:1px solid var(--border);color:var(--fg2)}
-.note{color:var(--fg3);font-size:11.5px;line-height:1.6;margin-top:22px;border-top:1px solid var(--border);padding-top:12px}
-.loading{text-align:center;color:var(--fg3);font-family:var(--mono);padding:40px}
-.topcalls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
-.tc{font-family:var(--mono);font-weight:800;font-size:13px;padding:7px 13px;border-radius:10px;background:var(--bg2);border:1px solid var(--violet);color:var(--fg0)}
-</style></head><body>
-<header><div class="brand"><span class="dot"></span>JustHodl<span style="color:var(--fg3)">.AI</span></div>
-<nav><a href="/">Desk</a><a href="/apex.html">Apex</a><a href="/master-board.html">Setups</a><a href="/bottleneck.html" class="on">🏭 Bottleneck</a><a href="/ignition.html">🔥 Ignition</a><a href="/confluence.html">🧬 Confluence</a><a href="/skill.html">Skill</a><a href="/alerts.html">Alerts</a></nav></header>
-<div class="wrap">
-<h1>Supply-Bottleneck <span class="grad">Boom Detector</span></h1>
-<p class="sub">The AI-infra re-ratings of this cycle were visible quarters early in one place: <b>demand outrunning supply</b> — industry backlogs swelling against shipments while specific companies showed revenue <i>acceleration</i> on still-cheap revenue-to-market-cap. This engine fuses Census M3 backlog/orders pressure (decades of monthly data) with per-name capture metrics, and — unlike anyone else — <b>logs every top call into the closed loop</b> to be graded vs SPY at 5/21/63 days. The score has to earn its keep on <a href="/skill.html" style="color:var(--cyan)">/skill.html</a>.</p>
-<div class="sec">🏭 Industry Bottleneck Pressure — Census M3 via FRED</div>
-<div class="grid" id="pressure"><div class="loading">Loading…</div></div>
-<div class="sec">🚀 Top Calls (logged to closed loop today)</div>
-<div class="topcalls" id="topcalls"></div>
-<div class="sec">📊 Boom Ranking — capture × pressure</div>
-<div id="ranktable"><div class="loading">Loading…</div></div>
-<div class="note" id="note"></div>
-</div>
-<script>
-const PX='https://justhodl-data-proxy.raafouis.workers.dev';
-async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
-const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const f=(v,d=1,suf='')=>v==null?'—':(typeof v==='number'?v.toFixed(d):v)+suf;
-function bcls(b){return b>=72?'b-hot':b>=58?'b-warm':'b-ok';}
-async function load(){
-  const d=await gj('data/bottleneck-boom.json');
-  if(!d){document.getElementById('pressure').innerHTML='<div class="loading">bottleneck-boom.json unavailable — first run pending.</div>';return;}
-  const P=d.industry_pressure||{};
-  const cards=[];
-  for(const[g,e]of Object.entries(P)){
-    if(g==='SEMIS_IP_STRAIN'){cards.push(`<div class="card"><div class="lbl">Semis IP strain</div><div class="val">${f(e.ip_yoy_pct,1,'%')}</div><div class="vsub">output YoY · z ${f(e.ip_yoy_z,2)} · ${esc(e.as_of)}</div></div>`);continue;}
-    const p=e.pressure_0_100;const cls=p>=70?'hot':p>=55?'warn':'';
-    cards.push(`<div class="card ${cls}"><div class="lbl">${esc(g.replace(/_/g,' '))}</div><div class="val">${f(p,1)}<span style="font-size:13px;color:var(--fg3)">/100</span></div><div class="vsub">backlog/ship ${f(e.backlog_to_shipments,3)} (z ${f(e.backlog_ratio_z,2)}) · new orders ${f(e.new_orders_yoy_pct,1,'%')} yoy (z ${f(e.new_orders_yoy_z,2)}) · ${esc(e.as_of)}</div></div>`);
-  }
-  document.getElementById('pressure').innerHTML=cards.join('');
-  document.getElementById('topcalls').innerHTML=(d.top_calls||[]).map(t=>`<span class="tc">${esc(t)}</span>`).join('')||'<span class="chip">none today</span>';
-  const rows=(d.ranks||[]).slice(0,28).map((r,i)=>`<tr>
-    <td><b>${esc(r.ticker)}</b></td><td class="nm">${esc(r.name)}</td>
-    <td class="boom ${bcls(r.boom_score)}">${f(r.boom_score,1)}</td>
-    <td>${f(r.rev_growth_yoy,1,'%')}</td><td style="color:${(r.rev_accel_pp||0)>=0?'var(--green)':'var(--red)'}">${r.rev_accel_pp!=null?(r.rev_accel_pp>=0?'+':'')+r.rev_accel_pp+'pp':'—'}</td>
-    <td>${f(r.rev_to_mcap_pct,1,'%')}</td><td>${f(r.inv_turnover,2)}</td>
-    <td><span class="chip">${esc((r.pressure_group||'').split('_')[0])} ${f(r.group_pressure,0)}</span></td></tr>`).join('');
-  document.getElementById('ranktable').innerHTML=`<table><thead><tr><th>Ticker</th><th>Name</th><th title="company capture z-blend shaded by industry pressure">Boom</th><th>Rev YoY</th><th title="this quarter's YoY minus last quarter's YoY">Accel</th><th title="revenue / market cap = 1 ÷ P/S (TTM)">Rev/MCap</th><th>Inv turn</th><th>Pressure</th></tr></thead><tbody>${rows}</tbody></table>`;
-  document.getElementById('note').innerHTML=`${esc(d.methodology)}<br>Universe: ${esc(d.universe_source)} (${d.scored_n}/${d.universe_n} scored) · FRED series live: ${(d.fred_used||[]).join(', ')}${(d.fred_failed||[]).length?' · failed: '+(d.fred_failed||[]).join(', '):''} · ${d.signals_logged} calls logged (regime ${esc(d.regime_at_log)}) · v${esc(d.version)} · ${esc(d.generated_at)} · Research, not advice.`;
-}
-load();
-</script>  <script src="/jh-enhance.js" data-feed="data/bottleneck-boom.json" data-bars="ranks:ticker:mkt_cap" data-title="Bottleneck-boom — ranked names (market cap)" data-sub="supply-bottleneck beneficiaries" ></script>
-  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Consolidated · JustHodl.AI</title>
+<meta http-equiv="refresh" content="0;url=/bottleneck-boom.html">
+<link rel="canonical" href="https://justhodl.ai/bottleneck-boom.html">
+<meta name="robots" content="noindex">
+<script>location.replace("/bottleneck-boom.html"+location.search+location.hash);</script>
+</head><body style="background:#07090f;color:#a8b3c7;font-family:monospace;padding:40px">
+This surface was consolidated. Continue to <a style="color:#00d4ff" href="/bottleneck-boom.html">/bottleneck-boom.html</a>.
 </body></html>
