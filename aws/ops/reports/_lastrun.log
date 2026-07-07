@@ -1,20 +1,16 @@
-executing-against: 7323acb36da4bd3d4fb07e8749acf035dcea6e8f
-── 1. Read ingest config ──
-── 2. Deploy justhodl-tv-notes-crawler ──
-[03:49:58]   zip: 5276 bytes
-── 1. Lambda ──
-[03:49:58]   Lambda exists — updating
-[03:50:06] ✅   ✓ updated justhodl-tv-notes-crawler
-── 2. EB rule + permissions ──
-[03:50:07] ✅   ✓ created rule justhodl-tv-notes-crawler-daily
-[03:50:07] ✅   ✓ target → justhodl-tv-notes-crawler
-[03:50:07] ✅   ✓ added invoke permission
-[03:50:07] ✅ crawler deployed with daily schedule
-── 3. Publish setup instructions ──
-[03:50:07] ✅ instructions written to data/tv-crawler-status.json
-── 4. Session cookie check ──
-[03:50:08] No session yet. Follow instructions in data/tv-crawler-status.json
-tv-crawler: deployed=True schedule=daily-06UTC session_in_ssm=False
-[03:50:08] ✅ justhodl-tv-notes-crawler deployed — add session cookie to SSM then it runs autonomously forever
+executing-against: 566c73d92fe5a434b968b00cdefb8729a0e87cf9
+── 1. Invoke justhodl-tv-notes-crawler ──
+[04:02:55] Firing crawler — this takes 1-5 min depending on note count…
+[harvest] 0 notes / 0 tickers in 21.3s
+── 2. Verify mirror ──
+[04:03:16] ⚠ Mirror is empty — TV may not expose a notes API on your plan; see next steps below
+── 3. Invoke justhodl-brain-compiler ──
+[04:03:16] Skipping brain-compiler (no notes yet)
+── 4. Status feed ──
+harvest: session_valid=False notes=0 tickers=0 mirror=0 brain_upserted=0
+[04:03:17] ✗ crawler returned ok=False — check session validity
+[04:03:17] ✗ session_valid=False — session may be stale or wrong
+FAILURES: crawler returned ok=False — check session validity | session_valid=False — session may be stale or wrong
 
-→ Report written to aws/ops/reports/latest/2958_tv_crawler.md
+→ Report written to aws/ops/reports/latest/2959_tv_harvest_now.md
+❌ OPS-FAIL: aws/ops/pending/ops_2959_tv_harvest_now.py
