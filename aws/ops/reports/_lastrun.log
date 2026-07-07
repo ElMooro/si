@@ -1,10 +1,11 @@
-executing-against: 4fd0f18dbaefbc5aecb149d96f5e6bd894a3df41
-── 1. Live why.html serves the fix ──
-── 2. Comprehensive re-scan: no OTHER render function has the same trapped-scope bug ──
-[19:29:55] ✅ no other pipeline function has an unexported bare declaration inside the v2 IIFE
-── 3. Equity-research Lambda: TSM document itself healthy (isolates the bug as client-side only) ──
-[19:31:11] ✅ live why.html confirmed fixed: all 4 exports present, no broken bare declarations, no sibling instances of the same bug, and the TSM data source is healthy
-[19:31:11] FAILS=0 WARNS=0
-[19:31:11] report written: /home/runner/work/si/si/aws/ops/reports/2972.json
+executing-against: 2fcfe487db3bf53369f6bcacfe5ba3f1a6979653
+── 1. Wait for the parallel deploy-lambdas code update ──
+── 2. Synchronous run ──
+── 3. Hard verify schema 1.1 ──
+── 4. Live page v2 ──
+[20:10:02] ✗ public JSON not yet 1.1 (CDN cache?)
+[20:10:02] FAILS=1 WARNS=0
+[20:10:02] report written: /home/runner/work/si/si/aws/ops/reports/2973.json
 
-→ Report written to aws/ops/reports/latest/2972_why_scoping_fix_verify.md
+→ Report written to aws/ops/reports/latest/2973_asset_compass_v11.md
+❌ OPS-FAIL: aws/ops/pending/ops_2973_asset_compass_v11.py

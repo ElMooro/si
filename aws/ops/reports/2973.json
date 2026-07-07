@@ -1,0 +1,85 @@
+{
+ "ops": 2973,
+ "function": "justhodl-asset-compass",
+ "fails": [
+  "public JSON not yet 1.1 (CDN cache?)"
+ ],
+ "warns": [],
+ "verdict": "FAIL",
+ "ts": "2026-07-07T20:10:02.832895+00:00",
+ "priced_n": 31,
+ "er_modeled_n": 20,
+ "hyg_er": 3.39,
+ "hyg_carry": 5.9,
+ "hyg_oas_pctile": 10.3,
+ "gold_beta": -5.79,
+ "er_top3": [
+  {
+   "ticker": "AMLP",
+   "label": "Midstream MLPs",
+   "er_1y_pct": 10.6,
+   "excess_vs_cash_pp": 6.6
+  },
+  {
+   "ticker": "FXI",
+   "label": "China Large Cap",
+   "er_1y_pct": 9.91,
+   "excess_vs_cash_pp": 6.0
+  },
+  {
+   "ticker": "VNQ",
+   "label": "US REITs",
+   "er_1y_pct": 7.29,
+   "excess_vs_cash_pp": 3.3
+  }
+ ],
+ "diversifiers": [
+  {
+   "ticker": "AMLP",
+   "label": "Midstream MLPs",
+   "corr_spy_90d": -0.24,
+   "er_1y_pct": 10.6
+  },
+  {
+   "ticker": "VNQ",
+   "label": "US REITs",
+   "corr_spy_90d": 0.3,
+   "er_1y_pct": 7.29
+  }
+ ],
+ "asym_top3": [
+  {
+   "ticker": "UNG",
+   "label": "Natural Gas",
+   "score": 96.8,
+   "ratio": 25.0,
+   "status": "WATCH"
+  },
+  {
+   "ticker": "SOL",
+   "label": "Solana",
+   "score": 83.9,
+   "ratio": 25.0,
+   "status": "ACTIONABLE"
+  },
+  {
+   "ticker": "INDA",
+   "label": "India",
+   "score": 82.0,
+   "ratio": 10.41,
+   "status": "ACTIONABLE"
+  }
+ ],
+ "hyg_read": {
+  "bull": [
+   "COILED: volatility compressed near the top of the range \u2014 energy stored"
+  ],
+  "bear": [
+   "Fails the cash hurdle: ER 3.4% vs 4.0% risk-free",
+   "Price below falling 50dma \u2014 no trend confirmation",
+   "Spreads at the 10th pctile of 10y \u2014 thin cushion, priced for perfection",
+   "ER leans on a modeled assumption (2.30%/yr long-run credit-loss rate)"
+  ],
+  "net": "Nothing compelling at today's prices."
+ }
+}
