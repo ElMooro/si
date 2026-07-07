@@ -320,30 +320,45 @@ def m_muni_ratio():
         return {"status": "DEGRADED", "note": str(e)[:100], **out}
 
 
-def m_revision_breadth():
-    out = {"gap_id": "M11",
-           "source": "aggregates existing data/estimate-revisions.json"}
-    try:
-        doc = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="data/estimate-revisions.json")
-            ["Body"].read())
-    except Exception as e:
-        return {"status": "DEGRADED", "note": "feed unavailable: %s"
-                % str(e)[:70], **out}
-    rows = None
+def _largest_rows(doc):
     if isinstance(doc, list):
-        rows = doc
-    elif isinstance(doc, dict):
-        best = []
+        return doc
+    best = []
+    if isinstance(doc, dict):
         for v in doc.values():
             if isinstance(v, list) and v and isinstance(v[0], dict) \
                     and len(v) > len(best):
                 best = v
-        rows = best or None
+    return best
+
+
+def m_revision_breadth():
+    out = {"gap_id": "M11",
+           "source": "estimate-revisions feed, sellside analyst actions "
+                     "fallback"}
+    tried = []
+    for key, kind in (("data/estimate-revisions.json", "eps"),
+                      ("data/sellside-views.json", "actions")):
+        try:
+            doc = json.loads(S3.get_object(
+                Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception as e:
+            tried.append("%s unavailable: %s" % (key, str(e)[:50]))
+            continue
+        r = _breadth_from(doc, kind)
+        if r.get("_ok"):
+            r.pop("_ok")
+            r["source_key"] = key
+            return {"status": "OK", **r, **out}
+        tried.append("%s: %s" % (key, r.get("note")))
+    return {"status": "DEGRADED", "note": " | ".join(tried)[:300], **out}
+
+
+def _breadth_from(doc, kind):
+    rows = _largest_rows(doc) or None
     if not rows:
-        return {"status": "DEGRADED",
-                "note": "no row array found; top keys: %s"
-                % list(doc)[:8] if isinstance(doc, dict) else "n/a", **out}
+        return {"note": "no row array; top keys: %s"
+                % (list(doc)[:8] if isinstance(doc, dict) else "n/a")}
     fields = ("eps_rev_pct", "eps_rev_recent_pct", "eps_revision_3m",
               "revision_3m", "rev_3m", "net_revision",
               "eps_change_pct", "revision_pct", "delta_pct", "change_3m",
@@ -354,21 +369,22 @@ def m_revision_breadth():
                if isinstance(r, dict)):
             fld = f
             break
-    if not fld:
-        sample = sorted({k for r in rows[:10] if isinstance(r, dict)
-                         for k in r})[:14]
-        return {"status": "DEGRADED",
-                "note": "no numeric revision field; row keys: %s"
-                % sample, **out}
     def signed(r):
-        for f in (fld, "eps_rev_recent_pct", "eps_rev_pct"):
-            v = r.get(f)
-            if isinstance(v, (int, float)) and v != 0:
-                return 1 if v > 0 else -1
-        d = str(r.get("direction") or "").upper()
-        if d in ("UP", "POSITIVE", "POS", "RAISED", "HIGHER"):
+        if kind == "eps":
+            for f in (fld, "eps_rev_recent_pct", "eps_rev_pct"):
+                if f and isinstance(r.get(f), (int, float)) and r[f] != 0:
+                    return 1 if r[f] > 0 else -1
+            d = str(r.get("direction") or "").upper()
+        else:
+            d = str(r.get("action") or r.get("rating_change")
+                    or r.get("change") or r.get("direction")
+                    or r.get("type") or "").upper()
+        if any(t in d for t in ("UPGRADE", "RAISED", "HIGHER", "UP",
+                                "POSITIVE", "POS", "OVERWEIGHT-FROM",
+                                "BUY-FROM")):
             return 1
-        if d in ("DOWN", "NEGATIVE", "NEG", "CUT", "LOWER"):
+        if any(t in d for t in ("DOWNGRADE", "CUT", "LOWER", "DOWN",
+                                "NEGATIVE", "NEG")):
             return -1
         return 0
     signs = [signed(r) for r in rows if isinstance(r, dict)]
@@ -376,19 +392,20 @@ def m_revision_breadth():
     neg = sum(1 for x in signs if x < 0)
     tot = pos + neg
     if tot < 10:
-        return {"status": "DEGRADED",
-                "note": "only %d signed rows of %d in feed (universe too "
-                        "thin for market-level breadth)"
-                % (tot, len(rows)), **out}
+        sample = sorted({k for r in rows[:6] if isinstance(r, dict)
+                         for k in r})[:12]
+        return {"note": "only %d signed of %d rows; keys: %s"
+                % (tot, len(rows), sample)}
     breadth = round(100.0 * pos / tot, 1)
-    return {"status": "OK", "field_used": fld, "names_covered": tot, "universe_rows": len(rows),
+    return {"_ok": True, "field_used": fld or kind,
+            "names_covered": tot, "universe_rows": len(rows),
             "positive": pos, "negative": neg,
             "breadth_pct_positive": breadth,
             "regime": ("EXPANSION" if breadth > 55 else
                        "CONTRACTION" if breadth < 45 else "NEUTRAL"),
-            "read": "%% of covered names with positive EPS revisions. "
-                    "Breadth leads the EPS cycle; watch crossings of "
-                    "50.", **out}
+            "read": "Share of positive estimate/rating actions across "
+                    "the covered universe. Breadth leads the EPS "
+                    "cycle; watch crossings of 50."}
 
 
 MINERS = ["NEM", "GOLD", "AEM", "WPM", "FNV", "KGC", "GFI", "RGLD"]
@@ -410,8 +427,17 @@ def m_miner_margin():
                 errs.append("%s: %s" % (t, str(d["Error Message"])[:60]))
                 continue
             if isinstance(d, list) and len(d) >= 5:
-                now = d[0].get("operatingIncomeRatio")
-                ya = d[4].get("operatingIncomeRatio")
+                def ratio(row):
+                    r = row.get("operatingIncomeRatio")
+                    if isinstance(r, (int, float)):
+                        return r
+                    oi, rev = row.get("operatingIncome"), \
+                        row.get("revenue")
+                    if isinstance(oi, (int, float)) and \
+                            isinstance(rev, (int, float)) and rev:
+                        return oi / rev
+                    return None
+                now, ya = ratio(d[0]), ratio(d[4])
                 if isinstance(now, (int, float)) and \
                         isinstance(ya, (int, float)):
                     per[t] = {"margin_now_pct": round(100 * now, 1),
@@ -422,9 +448,18 @@ def m_miner_margin():
             errs.append("%s: %s" % (t, str(e)[:60]))
             continue
     if len(per) < 5:
+        try:
+            sample = json.loads(http(
+                "https://financialmodelingprep.com/stable/"
+                "income-statement?symbol=NEM&period=quarter&limit=2"
+                "&apikey=%s" % FMP, timeout=20))
+            sk = sorted(sample[0])[:16] if isinstance(sample, list) \
+                and sample else str(sample)[:120]
+        except Exception as e:
+            sk = "sample failed: %s" % str(e)[:60]
         return {"status": "DEGRADED", "note": "only %d miners parsed; "
-                "errors: %s" % (len(per), "; ".join(errs[:3]) or "none"),
-                **out}
+                "errors: %s; NEM row keys: %s"
+                % (len(per), "; ".join(errs[:3]) or "none", sk), **out}
     deltas = sorted(v["delta_pp"] for v in per.values())
     med = deltas[len(deltas) // 2]
     gld = [b["c"] for b in polygon_daily("GLD", 2)]
@@ -538,9 +573,18 @@ def m_cor3m():
            "source": "Yahoo implied-correlation indices (best-effort)"}
     closes, used = [], None
     try:
-        d = json.loads(http(
-            "https://cdn.cboe.com/api/global/delayed_quotes/charts/"
-            "_COR3M.json", timeout=20))
+        d = None
+        for path in ("charts/historical/_COR3M.json",
+                     "charts/_COR3M.json"):
+            try:
+                d = json.loads(http(
+                    "https://cdn.cboe.com/api/global/delayed_quotes/"
+                    + path, timeout=20))
+                break
+            except Exception:
+                continue
+        if d is None:
+            raise RuntimeError("no CBOE path")
         pts = ((d.get("data") or {}).get("prices")
                or d.get("data") or [])
         cs = []
