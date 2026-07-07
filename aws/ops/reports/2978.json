@@ -1,19 +1,16 @@
 {
  "ops": 2978,
- "fails": [
-  "only 8/11 OK after fixes: {\"revision_breadth\": \"only 2 signed rows of 40 in feed (universe too thin for market-level breadth)\", \"miner_margin\": \"only 0 miners parsed; errors: none\", \"cor3m\": \"no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)\"}"
- ],
+ "fails": [],
  "warns": [
-  "revision_breadth still degraded: only 2 signed rows of 40 in feed (universe too thin for market-level breadth)",
-  "miner_margin still degraded: only 0 miners parsed; errors: none",
+  "revision_breadth still degraded: data/estimate-revisions.json: only 2 signed of 40 rows; keys: ['baseline_date', 'baseline_eps_est', 'company', 'current_eps_est', 'days_to_earnings', 'direction', 'dispersion_pct', 'earnings_date', 'eps_rev_pct', 'eps_rev_recent_pct', 'estimate_strength', 'fiscal_period'] | data/sellside-views.json:",
   "implied-corr best-effort still degraded (acceptable: no free symbol) -- no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)"
  ],
- "verdict": "FAIL",
- "ts": "2026-07-07T21:32:23.644230+00:00",
- "modules_ok": 8,
+ "verdict": "PASS",
+ "ts": "2026-07-07T21:45:43.122646+00:00",
+ "modules_ok": 9,
  "degraded": {
-  "revision_breadth": "only 2 signed rows of 40 in feed (universe too thin for market-level breadth)",
-  "miner_margin": "only 0 miners parsed; errors: none",
+  "revision_breadth": "data/estimate-revisions.json: only 2 signed of 40 rows; keys: ['baseline_date', 'baseline_eps_est', 'company', 'current_eps_est', 'days_to_earnings', 'direction', 'dispersion_pct', 'earnings_date', 'eps_rev_pct', 'eps_rev_recent_pct', 'estimate_strength', 'fiscal_period'] | data/sellside-views.json:",
   "cor3m": "no implied-corr symbol returned >=60 closes (tried COR3M/COR90D/COR1M/COR30D)"
- }
+ },
+ "miner_median_delta_pp": 15.4
 }

@@ -1,9 +1,9 @@
-executing-against: b38bf15d8e555c6848357a81b02b4c3fe2f0e825
+executing-against: fefdd14f38fe0026347d3215c6385a5cde5045fa
 ── 1. Wait for gap-metrics code deploy ──
 ── 2. Re-invoke ──
 ── 3. Module verify (post-fix) ──
 ── 4. Live pages (runner-side) ──
-[21:32:23] FAILS=1 WARNS=3
+[21:45:43] ✅ gap matrix WIRED: 9/11 modules OK; 10 pages + credit-desk live; feedless pages ofr/metals-miners/activity-nowcast now have real feeds
+[21:45:43] FAILS=0 WARNS=2
 
 → Report written to aws/ops/reports/latest/2978_gap_wiring.md
-❌ OPS-FAIL: aws/ops/pending/ops_2978_gap_wiring.py
