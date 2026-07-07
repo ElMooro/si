@@ -137,7 +137,7 @@ def main():
         deploy_lambda(report=rep, function_name=FN,
                       source_dir=AWS_DIR / "lambdas" / FN / "source",
                       env_vars=env, timeout=240, memory=256,
-                      description='Asset Compass - forward-looking cross-asset expected-return + asymmetry engine. Market-implied next-12m rf/inflation (curve + Cleveland Fed), Grinold-Kroner ER per class with published components, upside/downside asymmetry with survival gate, gold/silver breakout scan, data-fit gold-vs-real-rate beta. data/asset-compass.json. PROVISIONAL.',
+                      description='Asset Compass - forward cross-asset expected-return + asymmetry engine. Market-implied next-12m rf/inflation, Grinold-Kroner ER per class, asymmetry with survival gate, gold/silver breakouts. data/asset-compass.json. PROVISIONAL.',
                       create_function_url=False, smoke=False)
 
         rep.section("2. EventBridge Scheduler schedule")
