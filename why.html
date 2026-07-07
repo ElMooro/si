@@ -273,6 +273,19 @@
 .v2read{margin-top:10px;font-size:12.5px;padding:8px 11px;border-radius:9px;background:#101823;border-left:3px solid var(--cyan,#39d0d8);color:#c9d3de}
 .v2read.warn{border-left-color:var(--amber,#fbbf24)}.v2read.bad{border-left-color:var(--red,#ff7b7b)}.v2read.good{border-left-color:var(--green-bright,#5eead4)}
 .v2flag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:11px;background:#2a1214;color:#ff9a9a;margin:3px 5px 0 0}
+.ictbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}
+.ictbl th{text-align:right;color:#6b7480;font-weight:500;font-size:11px;padding:3px 10px;border-bottom:1px solid #1b2431}
+.ictbl th:first-child,.ictbl td.lbl{text-align:left;color:#8b96a5}
+.ictbl td{text-align:right;padding:4px 10px;border-bottom:1px solid #131b26}
+.icer{margin-top:12px;padding-top:10px;border-top:1px dashed #1b2431}
+.icerbig{font-size:22px;font-weight:700;letter-spacing:.3px}
+.icerlbl{font-size:12px;font-weight:400;color:#8b96a5;margin-left:6px}
+.icverdict{display:inline-block;margin-top:12px;font-size:12px;font-weight:700;letter-spacing:.6px;padding:5px 14px;border-radius:4px}
+.icverdict.g{background:rgba(56,255,168,.12);color:#38ffa8;border:1px solid rgba(56,255,168,.35)}
+.icverdict.a{background:rgba(255,177,61,.10);color:#ffb13d;border:1px solid rgba(255,177,61,.35)}
+.icverdict.r0{background:#141a24;color:#6b7480;border:1px solid #1b2431}
+.icwhy{margin:8px 0 0 16px;font-size:12px;color:#8b96a5}
+.icwhy li{margin:2px 0}
 .gauge{font-size:12px;padding:3px 10px;border-radius:11px;font-weight:700}
 .gauge.g{background:#12261a;color:var(--green-bright,#5eead4)}.gauge.a{background:#241d0e;color:var(--amber,#fbbf24)}.gauge.r{background:#2a1214;color:var(--red,#ff7b7b)}
 </style>
@@ -568,6 +581,7 @@ function renderReport(d){
   html += renderOptions(d);            // OMON: implied move, IV, skew, P/C OI
   html += renderPeerComparison(d);
   html += renderIndustryComparison(d); // company vs real industry/sector P/E
+  html += renderIndustryCompass(d);    // v2.1: official Finviz industry join — perf gaps, stock GK ER, laggard-catchup, rate read
   html += renderFinancialHealth(d);
   html += renderGrowth(d);
   html += renderBacklogV2(d);           // v2: contracted demand — RPO / deferred revenue
@@ -2978,6 +2992,36 @@ window.renderQuantRisk=function(d){
     metric("Gross margin Δ3y", (q.gross_margin_3y_delta_pp!=null?(q.gross_margin_3y_delta_pp>0?"+":"")+fnum(q.gross_margin_3y_delta_pp,1)+"pp":"—"))+
     '</div>'+(flags?('<div style="margin-top:6px">'+flags+'</div>'):"")+
     '<div class="v2read '+readCls(q.read)+'">'+esc(q.read||"")+'</div></section>';
+};
+window.renderIndustryCompass=function(d){
+  var ic=d&&d.industry_compass; if(!ic) return "";
+  if(!ic.available) return '<section class="block"><div class="sub"><span class="ico">🧭</span> Industry Compass — stock vs official industry</div><div style="color:#6b7480;font-size:12.5px">'+esc(ic.error||"Module unavailable for this name.")+'</div></section>';
+  var sp=ic.stock_perf||{}, ip=ic.industry_perf||{}, gp=ic.perf_gap_pp||{};
+  function gapRow(lbl,w){
+    var s=sp[w],i=ip[w],g=gp[w];
+    return '<tr><td class="lbl">'+lbl+'</td><td class="'+cls(s)+'">'+pct(s)+'</td><td class="'+cls(i)+'">'+pct(i)+'</td><td class="'+cls(g)+'" style="font-weight:600">'+(g==null?"—":((g>0?"+":"")+fnum(g,1)+"pp"))+'</td></tr>';
+  }
+  var er=(ic.expected_return_1y||{}), erv=er.er_1y_pct, c=er.components||{};
+  var sc=ic.laggard_catchup||{}, v=sc.verdict||"N/A";
+  var vcls=v==="LAGGARD_CATCHUP"?"g":(v==="PARTIAL"?"a":"r0");
+  var vlab=v==="LAGGARD_CATCHUP"?"LAGGARD CATCH-UP SETUP":(v==="PARTIAL"?"PARTIAL SETUP":(v==="NONE"?"NO CATCH-UP SETUP":"N/A"));
+  var why=(sc.why||[]).map(function(w){return '<li>'+esc(w)+'</li>';}).join("");
+  var rs=ic.rate_sensitivity||{};
+  return '<section class="block"><div class="sub"><span class="ico">🧭</span> Industry Compass — '+esc(ic.fmp_industry||"?")+' vs Finviz "'+esc(ic.finviz_industry||"no match")+'"'+(ic.match_confidence!=null?(' <span style="color:#6b7480;font-size:11px">(match '+fnum(ic.match_confidence*100,0)+'%)</span>'):'')+'</div>'+
+    '<table class="ictbl"><thead><tr><th></th><th>Stock</th><th>Industry</th><th>Gap</th></tr></thead><tbody>'+
+    gapRow("1 month","perf_m")+gapRow("3 months","perf_q")+gapRow("6 months","perf_h")+gapRow("1 year","perf_y")+
+    '</tbody></table>'+
+    (erv!=null?('<div class="icer"><div class="icerbig '+cls(erv)+'">'+pct(erv)+'<span class="icerlbl"> expected 12m return</span></div><div class="v2grid">'+
+      metric("Dividend yield",pct(c.div_yield_pct))+
+      metric("Net buyback yield",pct(c.net_buyback_yield_pct))+
+      metric("Inflation",pct(c.inflation_pct))+
+      metric("Real EPS growth",pct(c.real_eps_growth_pct))+
+      metric("P/E reversion",pct(c.pe_reversion_pct))+
+      metric("P/E now vs 10y med",fnum(c.pe_now,1)+" / "+fnum(c.pe_median_10y,1))+
+      '</div><div style="color:#6b7480;font-size:11px;margin-top:2px">'+esc(c.model||"")+'</div></div>'):'')+
+    '<div class="icverdict '+vcls+'">'+vlab+'</div>'+(why?('<ul class="icwhy">'+why+'</ul>'):'')+
+    (rs.read?('<div class="v2read '+(String(rs.read).indexOf("Headwind")===0?"bad":(String(rs.read).indexOf("Tailwind")===0?"good":""))+'">⏱ '+esc(rs.read)+' <span style="color:#6b7480">(duration: '+esc(rs.duration_bucket||"—")+', earnings yield '+pct(rs.earnings_yield_pct)+')</span></div>'):'')+
+    '</section>';
 };
 })();
 </script>

@@ -87,17 +87,14 @@ def main():
             _write(rep, fails, warns, hl)
             return
 
-        rep.section("1. Wait for deploy-lambdas to create %s" % FN)
-        cfg = None
+        rep.section("1. Wait for deploy-lambdas: function + ANTHROPIC key")
+        cfg, env = None, {}
         for _ in range(45):
             try:
                 cfg = LAM.get_function_configuration(FunctionName=FN)
-                lm = datetime.fromisoformat(
-                    cfg["LastModified"].replace("+0000", "+00:00"))
-                age = (datetime.now(timezone.utc) - lm).total_seconds()
-                if cfg.get("State") in ("Active", "Pending") and \
-                        cfg.get("LastUpdateStatus") in ("Successful",
-                                                        None) and age < 900:
+                env = (cfg.get("Environment") or {}).get("Variables") or {}
+                if cfg.get("State") == "Active" and \
+                        env.get("ANTHROPIC_API_KEY"):
                     break
             except LAM.exceptions.ResourceNotFoundException:
                 cfg = None
@@ -107,7 +104,6 @@ def main():
                  "create failed or [skip-deploy] leaked into the commit")
             _write(rep, fails, warns, hl)
             return
-        env = (cfg.get("Environment") or {}).get("Variables") or {}
         rep.kv(state=cfg.get("State"), timeout_s=cfg.get("Timeout"),
                memory_mb=cfg.get("MemorySize"), env_n=len(env),
                env_keys=sorted(env.keys()))

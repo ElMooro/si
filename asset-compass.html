@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Asset Compass · JustHodl.AI</title>
+<meta name="description" content="Forward cross-asset expected returns · asymmetry ranking with survival gate · gold/silver breakout scan · monthly emerging-asset discovery">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:21px;font-weight:700;letter-spacing:.3px}
+.prov{font-size:10px;font-weight:700;letter-spacing:1.2px;padding:3px 10px;border-radius:3px;background:rgba(255,177,61,.10);color:var(--amber);border:1px solid rgba(255,177,61,.35)}
+.fresh{font-family:var(--font-mono);font-size:11px;color:var(--fg-3)}
+.sub{color:var(--fg-3);font-size:12px;margin-bottom:18px}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-4)}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.macro{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.mi{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.mi .l{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--fg-3)}
+.mi .v{font-family:var(--font-mono);font-size:17px;font-weight:600;margin-top:3px}
+.mi .s{font-size:10.5px;color:var(--fg-3);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}.flat{color:var(--amber)}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.rowbar{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(120,145,180,0.06)}
+.rowbar:last-child{border-bottom:none}
+.rowbar .tk{font-family:var(--font-mono);font-weight:600;width:44px;flex:none}
+.rowbar .lb{color:var(--fg-3);font-size:11px;width:110px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bartrack{flex:1;height:9px;background:var(--bg-sunken);border-radius:2px;position:relative;overflow:hidden}
+.barfill{position:absolute;top:0;bottom:0;border-radius:2px}
+.rowbar .nv{font-family:var(--font-mono);font-size:12px;width:58px;text-align:right;flex:none}
+.badge{font-size:9.5px;font-weight:700;letter-spacing:.7px;padding:2px 7px;border-radius:3px;flex:none}
+.badge.act{background:rgba(56,255,168,.12);color:var(--green);border:1px solid rgba(56,255,168,.3)}
+.badge.wat{background:rgba(255,177,61,.10);color:var(--amber);border:1px solid rgba(255,177,61,.3)}
+.badge.neu{background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border)}
+.badge.bo{background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.3)}
+.badge.sq{background:rgba(167,139,250,.12);color:var(--violet);border:1px solid rgba(167,139,250,.3)}
+.gate{color:var(--red);font-size:10px}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--fg-3);font-weight:600;text-align:right;padding:6px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{font-family:var(--font-mono);text-align:right;padding:6px 9px;border-bottom:1px solid rgba(120,145,180,0.06);white-space:nowrap}
+.tbl td .fl{font-family:var(--font-sans);font-size:10px;color:var(--fg-3)}
+.betas{display:flex;gap:22px;flex-wrap:wrap;font-family:var(--font-mono);font-size:12.5px}
+.betas .b .l{color:var(--fg-3);font-family:var(--font-sans);font-size:10.5px;letter-spacing:.6px;text-transform:uppercase}
+.betas .b .v{font-size:16px;font-weight:600;margin-top:2px}
+.disc{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px}
+.dc{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.dc:hover{border-color:var(--border-hover)}
+.dc .hd{display:flex;align-items:baseline;gap:8px}
+.dc .tk{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--cyan)}
+.dc .cl{font-size:10px;color:var(--fg-3);letter-spacing:.6px;text-transform:uppercase}
+.dc .th{margin-top:6px;font-size:12.5px}
+.dc .kv{margin-top:7px;font-size:11px;color:var(--fg-3)}
+.dc .kv b{color:var(--fg-2);font-weight:600}
+.monthread{margin-top:8px;padding:9px 12px;border-left:3px solid var(--cyan);background:var(--bg-elevated);font-size:12.5px;border-radius:0 var(--radius) var(--radius) 0}
+.gated{margin-top:8px;padding:9px 12px;border-left:3px solid var(--amber);background:rgba(255,177,61,.05);font-size:12px;color:var(--fg-2);border-radius:0 var(--radius) var(--radius) 0}
+.meth{margin-top:26px;font-size:11px;color:var(--fg-3);line-height:1.7}
+.err{padding:14px;border:1px solid rgba(255,92,122,.3);background:rgba(255,92,122,.05);border-radius:var(--radius);color:var(--fg-2)}
+@media(max-width:700px){.rowbar .lb{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg">
+    <h1>🧭 Asset Compass</h1>
+    <span class="prov">PROVISIONAL</span>
+    <span class="fresh" id="fresh">loading…</span>
+  </header>
+  <div class="sub">Forward 12-month expected returns across the investable universe · asymmetric-setup ranking with survival gate · gold/silver + breakout scan · monthly emerging-asset discovery. Every number decomposed; anchor-less assets carry no fabricated ER.</div>
+
+  <div id="err"></div>
+
+  <section>
+    <h2>Macro Forward <span class="n">market-implied · curve + Cleveland Fed</span></h2>
+    <div class="macro" id="macro"></div>
+  </section>
+
+  <section>
+    <div class="boards">
+      <div class="card"><h2>Expected Return · 12m <span class="n">Grinold-Kroner per class</span></h2><div id="erb"></div></div>
+      <div class="card"><h2>Asymmetry Ranking <span class="n">upside vs residual downside · survival-gated</span></h2><div id="asb"></div></div>
+      <div class="card"><h2>Breakout / Coil Watch <span class="n">20d BB width pctile · 60d highs · vol confirm</span></h2><div id="bob"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Data-Fit Relationships <span class="n">rediscovered from raw daily data, not assumed</span></h2>
+    <div class="card"><div class="betas" id="betas"></div></div>
+  </section>
+
+  <section>
+    <h2>Monthly Discovery <span class="n">one governed LLM call · validator-enforced · may honestly return zero</span></h2>
+    <div id="disc"></div>
+  </section>
+
+  <section>
+    <h2>Full Universe <span class="n">every asset, every component</span></h2>
+    <div class="card" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+  </section>
+
+  <div class="meth" id="meth"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fnum(v,d){return (v===null||v===undefined||isNaN(v))?"—":Number(v).toFixed(d===undefined?2:d);}
+function pct(v,d){return (v===null||v===undefined)?"—":((v>0?"+":"")+Number(v).toFixed(d===undefined?1:d)+"%");}
+function cls(v){return v==null?"":(v>0?"up":(v<0?"dn":"flat"));}
+function ago(iso){try{var s=(Date.now()-new Date(iso).getTime())/1e3;if(s<90)return Math.round(s)+"s ago";if(s<5400)return Math.round(s/60)+"m ago";return (s/3600).toFixed(1)+"h ago";}catch(e){return "—";}}
+
+function badge(st){
+  if(st==="ACTIONABLE")return '<span class="badge act">ACTIONABLE</span>';
+  if(st==="WATCH")return '<span class="badge wat">WATCH</span>';
+  if(st==="BREAKOUT")return '<span class="badge bo">BREAKOUT</span>';
+  if(st==="SQUEEZE"||st==="COILED")return '<span class="badge sq">'+esc(st)+'</span>';
+  if(!st||st==="N/A"||st==="NONE")return '';
+  return '<span class="badge neu">'+esc(st)+'</span>';
+}
+
+function renderMacro(mf,betas){
+  var dir=mf.rf_direction_next_year, dcls=dir==="LOWER"?"up":(dir==="HIGHER"?"dn":"flat");
+  var g=(mf.growth||{});
+  document.getElementById("macro").innerHTML=
+    '<div class="mi"><div class="l">Risk-free · now → 1y fwd</div><div class="v">'+fnum(mf.rf_now_pct)+'% → <span class="'+dcls+'">'+fnum(mf.rf_1y_forward_pct)+'%</span></div><div class="s">market prices rates <b class="'+dcls+'">'+esc(dir||"—")+'</b> over 12m</div></div>'+
+    '<div class="mi"><div class="l">Inflation · next 12m</div><div class="v">'+fnum(mf.infl_1y_expected_pct)+'%</div><div class="s">'+esc(mf.infl_source||"")+'</div></div>'+
+    '<div class="mi"><div class="l">10y · now → 1y fwd</div><div class="v">'+fnum(mf.y10_now_pct)+'% → '+fnum(mf.y10_1y_forward_pct)+'%</div><div class="s">curve-implied forward</div></div>'+
+    '<div class="mi"><div class="l">Real growth proxy</div><div class="v">'+fnum(g.real_growth_proxy_pct)+'%</div><div class="s">payrolls z '+fnum(g.payrolls_z,1)+' · retail z '+fnum(g.retail_z,1)+'</div></div>'+
+    '<div class="mi"><div class="l">Gold β vs real rate</div><div class="v '+cls(-(betas.gold_vs_real_rate_pct_per_100bp||0))+'">'+fnum(betas.gold_vs_real_rate_pct_per_100bp)+'%</div><div class="s">per +100bp real · n='+esc(betas.gold_beta_obs||"—")+'</div></div>';
+}
+
+function renderER(assets){
+  var rows=assets.filter(function(a){return a.er_1y_pct!=null;}).sort(function(a,b){return b.er_1y_pct-a.er_1y_pct;});
+  var mx=Math.max.apply(null,rows.map(function(a){return Math.abs(a.er_1y_pct);}).concat([1]));
+  document.getElementById("erb").innerHTML=rows.map(function(a){
+    var w=Math.abs(a.er_1y_pct)/mx*100, pos=a.er_1y_pct>=0;
+    var comp=a.er_components||{}; var tip=Object.keys(comp).filter(function(k){return typeof comp[k]!=="object";}).map(function(k){return k+": "+comp[k];}).join("\n");
+    return '<div class="rowbar" title="'+esc(tip)+'"><span class="tk">'+esc(a.ticker)+'</span><span class="lb">'+esc(a.label||"")+'</span><div class="bartrack"><div class="barfill" style="width:'+w.toFixed(1)+'%;'+(pos?"background:var(--green-dim)":"background:var(--red-dim)")+'"></div></div><span class="nv '+cls(a.er_1y_pct)+'">'+pct(a.er_1y_pct)+'</span></div>';
+  }).join("")||'<div class="err">no ER-modeled assets</div>';
+}
+
+function renderAsym(assets){
+  var rows=assets.filter(function(a){return a.asym&&a.asym.score!=null;}).sort(function(a,b){return b.asym.score-a.asym.score;});
+  document.getElementById("asb").innerHTML=rows.slice(0,12).map(function(a){
+    var s=a.asym, gated=(a.flags||[]).some(function(f){return String(f).indexOf("SURVIVAL_GATE")===0;});
+    return '<div class="rowbar" title="upside '+pct(s.upside_pct)+' / downside '+pct(s.downside_pct)+' / drawdown now '+fnum(s.dd_now_pct,1)+'%"><span class="tk">'+esc(a.ticker)+'</span><span class="lb">'+esc(a.label||"")+'</span><div class="bartrack"><div class="barfill" style="width:'+Math.min(s.score,100)+'%;background:linear-gradient(90deg,var(--cyan),var(--violet))"></div></div><span class="nv">'+fnum(s.score,0)+'</span><span class="nv" style="width:44px;color:var(--fg-3)">'+(s.ratio!=null?fnum(s.ratio,1)+"×":"—")+'</span>'+badge(s.status)+(gated?'<span class="gate" title="can-die asset in downtrend — needs trend confirmation">⛔</span>':'')+'</div>';
+  }).join("")||'<div class="err">no asymmetry data</div>';
+}
+
+function renderBO(assets){
+  var rows=assets.filter(function(a){return a.breakout&&["BREAKOUT","SQUEEZE","COILED","TRENDING","EXTENDED"].indexOf(a.breakout.state)>=0;});
+  rows.sort(function(a,b){var o={BREAKOUT:0,SQUEEZE:1,COILED:2,TRENDING:3,EXTENDED:4};return o[a.breakout.state]-o[b.breakout.state];});
+  document.getElementById("bob").innerHTML=(rows.map(function(a){
+    var b=a.breakout;
+    return '<div class="rowbar"><span class="tk">'+esc(a.ticker)+'</span><span class="lb">'+esc(a.label||"")+'</span>'+badge(b.state)+'<span class="nv" style="width:auto;color:var(--fg-3)" title="Bollinger bandwidth percentile (1y)">bbw '+fnum(b.bb_width_pctile_1y,0)+'</span><span class="nv" style="width:auto;color:var(--fg-3)" title="52-week range position">rng '+fnum(b.range_52w_pos_pct,0)+'%</span><span class="nv" style="width:auto;color:var(--fg-3)" title="20d vs prior 100d volume">vol '+fnum(b.vol_20d_ratio,2)+'×</span></div>';
+  }).join(""))||'<div style="color:var(--fg-3);font-size:12px">Nothing coiled, squeezed or breaking right now — clean tape.</div>';
+}
+
+function renderBetas(b,gsrz){
+  document.getElementById("betas").innerHTML=
+    '<div class="b"><div class="l">Gold vs real 10y</div><div class="v '+cls(-(b.gold_vs_real_rate_pct_per_100bp||0))+'">'+fnum(b.gold_vs_real_rate_pct_per_100bp)+'% / +100bp</div></div>'+
+    '<div class="b"><div class="l">Obs</div><div class="v">'+esc(b.gold_beta_obs||"—")+'</div></div>'+
+    '<div class="b"><div class="l">GDX β vs gold</div><div class="v">'+fnum(b.gdx_vs_gold)+'×</div></div>'+
+    '<div class="b"><div class="l">Gold/Silver ratio (ETF)</div><div class="v">'+fnum(b.gold_silver_ratio)+'</div></div>'+
+    '<div class="b"><div class="l">GSR z · 10y</div><div class="v '+cls(-(b.gsr_z_10y||0))+'">'+fnum(b.gsr_z_10y)+'</div></div>';
+}
+
+function renderDisc(dd){
+  var el=document.getElementById("disc");
+  if(!dd||!dd.generated_at){el.innerHTML='<div class="gated">Discovery engine has not produced a document yet — first monthly run pending.</div>';return;}
+  var h='<div style="font-size:11px;color:var(--fg-3)">month '+esc(dd.month)+' · '+esc(dd.llm_status)+' · '+ago(dd.generated_at)+'</div>';
+  if(dd.month_read)h+='<div class="monthread">'+esc(dd.month_read)+'</div>';
+  if(dd.llm_status==="GATED_OR_DOWN")h+='<div class="gated">Router gated this month\'s call (budget cap / mode) — honest empty set, nothing fabricated.</div>';
+  var c=dd.candidates||[];
+  if(c.length)h+='<div class="disc">'+c.map(function(x){
+    return '<div class="dc"><div class="hd"><span class="tk">'+esc(x.ticker)+'</span><span class="cl">'+esc(x.asset_class||"")+'</span><span style="flex:1"></span><span style="font-size:11px;color:var(--fg-3)">'+esc(x.name||"")+'</span></div>'+
+      '<div class="th">'+esc(x.thesis||"")+'</div>'+
+      '<div class="kv"><b>Driver:</b> '+esc(x.structural_driver||"—")+'</div>'+
+      '<div class="kv"><b>Asymmetry:</b> '+esc(x.asymmetry_note||"—")+'</div>'+
+      '<div class="kv"><b>Kills it:</b> '+esc(x.risk||"—")+'</div>'+
+      '<div class="kv"><b>Confirms:</b> '+esc(x.confirming_data||"—")+'</div></div>';
+  }).join("")+'</div>';
+  else if(dd.llm_status==="OK")h+='<div class="gated">Model honestly found nothing genuinely new this month.</div>';
+  el.innerHTML=h;
+}
+
+function renderTbl(assets){
+  var head='<thead><tr><th>Asset</th><th>Price</th><th>ER 12m</th><th>Upside</th><th>Downside</th><th>Ratio</th><th>DD now</th><th>Trend</th><th>Breakout</th><th>Status</th></tr></thead>';
+  var body=assets.map(function(a){
+    var s=a.asym||{},t=a.trend||{},b=a.breakout||{};
+    var fl=(a.flags||[]).length?'<div class="fl">'+esc((a.flags||[]).join(" · "))+'</div>':'';
+    return '<tr><td><b>'+esc(a.ticker)+'</b> <span style="color:var(--fg-3)">'+esc(a.label||"")+'</span>'+fl+'</td>'+
+      '<td>'+(a.ticker==="CASH"?"—":fnum(a.price))+'</td>'+
+      '<td class="'+cls(a.er_1y_pct)+'">'+(a.er_1y_pct!=null?pct(a.er_1y_pct):"<span style='color:var(--fg-4)'>no anchor</span>")+'</td>'+
+      '<td class="up">'+pct(s.upside_pct)+'</td><td class="dn">'+pct(s.downside_pct)+'</td>'+
+      '<td>'+(s.ratio!=null?fnum(s.ratio,1)+"×":"—")+'</td>'+
+      '<td class="'+cls(s.dd_now_pct)+'">'+fnum(s.dd_now_pct,1)+'%</td>'+
+      '<td>'+esc(t.label||"—")+'</td><td>'+esc(b.state||"—")+'</td><td>'+badge(s.status)+'</td></tr>';
+  }).join("");
+  document.getElementById("tbl").innerHTML=head+'<tbody>'+body+'</tbody>';
+}
+
+async function load(){
+  var d=null,dd=null;
+  try{ d=await (await fetch("/data/asset-compass.json?t="+Date.now())).json(); }
+  catch(e){ document.getElementById("err").innerHTML='<div class="err">asset-compass.json unavailable: '+esc(e.message)+'</div>'; return; }
+  try{ dd=await (await fetch("/data/asset-discovery.json?t="+Date.now())).json(); }catch(e){ dd=null; }
+  document.getElementById("fresh").textContent="engine "+ago(d.generated_at)+" · "+esc(d.status||"");
+  var betas=d.betas||{};
+  renderMacro(d.macro_forward||{},betas);
+  renderER(d.assets||[]);
+  renderAsym(d.assets||[]);
+  renderBO(d.assets||[]);
+  renderBetas(betas);
+  renderDisc(dd);
+  renderTbl(d.assets||[]);
+  var m=d.methodology||{};
+  document.getElementById("meth").innerHTML='<b>Methodology.</b> '+esc(m.er||"")+' '+esc(m.asymmetry||"")+' '+esc(m.forward_macro||"")+' Status '+esc(d.status||"")+' per the Edge-Accuracy standard: no edge is claimed until proposals and rankings are scored against forward returns net of SPY.';
+}
+load();
+setInterval(load,1800000);
+})();
+</script>
+
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
