@@ -1,0 +1,21 @@
+{
+ "ops": 2966,
+ "function": "justhodl-asset-compass",
+ "fails": [
+  "justhodl-asset-compass invoke failed: {\"errorMessage\": \"list index out of range\", \"errorType\": \"IndexError\", \"requestId\": \"02926b45-9201-41ad-abee-4a6f7f64f99f\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 481, in lambda_handler\\n    px = closes.get(tkr, [None])[-1] if tkr != \\\"CASH\\\" else 1.0\\n\"]}",
+  "cannot read data/asset-compass.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+ ],
+ "warns": [
+  "risk-regime context not attached"
+ ],
+ "verdict": "FAIL",
+ "rf_now": null,
+ "rf_1y_fwd": null,
+ "rf_dir": null,
+ "infl_1y": null,
+ "gold_beta": null,
+ "er_top3": [],
+ "asym_top3": [],
+ "breakout_watch": null,
+ "ts": "2026-07-07T17:53:48.269093+00:00"
+}
