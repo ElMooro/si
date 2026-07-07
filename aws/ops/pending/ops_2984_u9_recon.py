@@ -48,35 +48,36 @@ def recon(rep, fails, hl):
     rep.section("A. Orphan roster")
     wiring = s3_json("data/engine-wiring.json") or {}
     audit = s3_json("data/fleet-audit.json") or {}
-    fam, outs = {}, {}
-    for r in (audit.get("rows") or audit.get("engines") or []):
-        n = r.get("name") or r.get("engine")
-        if n:
-            fam[n] = r.get("family") or r.get("category") or "?"
-            o = r.get("outs") or r.get("out_keys") or []
-            outs[n] = o if isinstance(o, list) else [o]
-    roster = []
+    eng = audit.get("engines") or {}
+    wdet = {}
     for o in (wiring.get("orphan_detail") or []):
-        n = o.get("name")
-        roster.append({"name": n, "family": fam.get(n) or "?",
-                       "out": (o.get("freshest_key")
-                               or (outs.get(n) or [None])[0]),
-                       "age_h": o.get("age_h")
-                       or o.get("freshest_age_h"),
-                       "status": o.get("status") or o.get("state")})
-    fresh = [r for r in roster
-             if str(r.get("status") or "").upper().startswith("FRESH")
-             or (isinstance(r.get("age_h"), (int, float))
-                 and r["age_h"] <= 72)]
+        nm = o.get("name") or ""
+        wdet[nm] = o
+        wdet["justhodl-" + nm] = o
+    roster = []
+    for name, r in sorted(eng.items()):
+        if not isinstance(r, dict) or r.get("status") != "ORPHAN":
+            continue
+        w = wdet.get(name) or {}
+        roster.append({"name": name,
+                       "family": r.get("family") or "?",
+                       "out": (r.get("outs") or [None])[0],
+                       "outs_n": len(r.get("outs") or []),
+                       "age_h": w.get("age_h")
+                       or w.get("freshest_age_h"),
+                       "wstat": w.get("status") or w.get("state"),
+                       "trust": r.get("trust")})
+    fresh = [x for x in roster
+             if str(x.get("wstat") or "").upper().startswith("FRESH")
+             or (isinstance(x.get("age_h"), (int, float))
+                 and x["age_h"] <= 72)]
     rep.kv(orphans_total=len(roster), orphans_fresh=len(fresh),
-           families=json.dumps(sorted({str(r["family"])
-                                       for r in fresh})))
+           families=json.dumps(sorted({str(x["family"])
+                                       for x in roster})))
     hl["orphan_roster"] = roster
     hl["orphans_fresh_n"] = len(fresh)
-    hl["wiring_keys"] = sorted(wiring.keys())
     if len(roster) < 50:
-        fails.append("orphan roster small: %d (wiring keys: %s)"
-                     % (len(roster), sorted(wiring.keys())[:12]))
+        fails.append("orphan roster small: %d" % len(roster))
 
     rep.section("B. Compass universe")
     comp = s3_json("data/asset-compass.json") or {}
