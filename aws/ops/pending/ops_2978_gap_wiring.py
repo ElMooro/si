@@ -66,13 +66,23 @@ def main():
     with report("2978_gap_wiring") as rep:
 
         rep.section("1. Wait for gap-metrics code deploy")
+        # RACE FIX: run-ops and deploy-lambdas start in parallel on the
+        # same push. The old gate (age<720s) accepted the PREVIOUS
+        # push's deploy while this push's update was still in flight,
+        # so two runs invoked stale code. New rule: give the deploy
+        # workflow a 75s head start, then require Successful AND
+        # LastModified inside a 30-min window that necessarily contains
+        # this push's deploy when source changed (ops-only pushes ride
+        # the previous deploy, which the window also covers).
+        time.sleep(75)
         fresh = False
-        for _ in range(45):
+        for _ in range(50):
             cfg = LAM.get_function_configuration(FunctionName=FN)
             lm = datetime.fromisoformat(
                 cfg["LastModified"].replace("+0000", "+00:00"))
             age = (datetime.now(timezone.utc) - lm).total_seconds()
-            if cfg.get("LastUpdateStatus") == "Successful" and age < 720:
+            if cfg.get("LastUpdateStatus") == "Successful" \
+                    and age < 1800:
                 env_n = len((cfg.get("Environment") or {})
                             .get("Variables") or {})
                 rep.kv(deploy_age_s=int(age), env_vars=env_n)
@@ -82,7 +92,7 @@ def main():
                 break
             time.sleep(8)
         if not fresh:
-            fails.append("no fresh deploy within ~6min")
+            fails.append("no successful deploy inside 30-min window")
         if fails:
             _write(rep, fails, warns, hl)
             return
