@@ -83,21 +83,94 @@ UNIVERSE = [
     ("IEF",  "bonds",     "US Treasuries 7-10y",   7.6,  True,  "ust"),
     ("TLT",  "bonds",     "US Treasuries 20y+",   16.5,  True,  "ust"),
     ("TIP",  "bonds",     "US TIPS",               6.9,  True,  "tips"),
+    ("HYG",  "credit",    "US High Yield (junk)",  3.6,  True,  "credit"),
+    ("LQD",  "credit",    "US IG Corporates",      8.4,  True,  "credit"),
+    ("EMB",  "credit",    "EM Sovereign Debt",     7.2,  True,  "credit"),
+    ("MUB",  "credit",    "US Munis",              6.4,  True,  "credit"),
     ("GLD",  "metals",    "Gold",                  0.0,  True,  "gold"),
     ("SLV",  "metals",    "Silver",                0.0,  False, "silver"),
     ("GDX",  "metals",    "Gold Miners",           0.0,  False, "miners"),
+    ("PPLT", "metals",    "Platinum",              0.0,  False, "none"),
     ("VNQ",  "reits",     "US REITs",              0.0,  True,  "reit"),
+    ("AMLP", "reits",     "Midstream MLPs",        0.0,  True,  "mlp"),
     ("SPY",  "equities",  "US Large Cap",          0.0,  True,  "equity"),
     ("QQQ",  "equities",  "US Growth/Tech",        0.0,  True,  "equity"),
     ("IWM",  "equities",  "US Small Cap",          0.0,  True,  "equity"),
     ("EFA",  "equities",  "Intl Developed",        0.0,  True,  "equity"),
     ("EEM",  "equities",  "Emerging Markets",      0.0,  True,  "equity"),
+    ("EWJ",  "equities",  "Japan",                 0.0,  True,  "equity_intl"),
+    ("FXI",  "equities",  "China Large Cap",       0.0,  False, "equity_intl"),
+    ("INDA", "equities",  "India",                 0.0,  True,  "equity_intl"),
     ("DBC",  "commodities","Broad Commodities",    0.0,  True,  "none"),
+    ("DBA",  "commodities","Agriculture",          0.0,  True,  "none"),
     ("USO",  "commodities","Crude Oil",            0.0,  False, "none"),
+    ("UNG",  "commodities","Natural Gas",          0.0,  False, "none"),
     ("CPER", "commodities","Copper",               0.0,  False, "none"),
+    ("URA",  "commodities","Uranium Miners",       0.0,  False, "none"),
     ("BTC",  "crypto",    "Bitcoin",               0.0,  False, "none"),
     ("ETH",  "crypto",    "Ethereum",              0.0,  False, "none"),
+    ("SOL",  "crypto",    "Solana",                0.0,  False, "none"),
 ]
+
+# credit ER inputs: long-run annual credit-loss assumptions (published; the
+# spread pays you for these) — HY ~2.3%/yr, IG ~0.15%, EM sov ~0.60%,
+# munis ~0.10% (Moody's/S&P long-run default×LGD ballparks, flagged as
+# ASSUMPTION in components), plus which FRED OAS series gives live context.
+CREDIT_META = {
+    "HYG": {"loss_pct": 2.30, "oas_fred": "BAMLH0A0HYM2", "oas_label": "HY OAS"},
+    "LQD": {"loss_pct": 0.15, "oas_fred": "BAMLC0A0CM",  "oas_label": "IG OAS"},
+    "EMB": {"loss_pct": 0.60, "oas_fred": None,           "oas_label": None},
+    "MUB": {"loss_pct": 0.10, "oas_fred": None,           "oas_label": None},
+}
+
+# structurally decaying futures products: the ETF can bleed even when spot
+# goes sideways (contango roll). UNG is the canonical case — barred from
+# ACTIONABLE outright; USO carries the milder tactical-only flag.
+DECAY = {
+    "UNG": ("STRUCTURAL_DECAY: contango roll drag — trade in days-weeks, "
+            "never buy-and-hold", True),   # True = hard-bar from ACTIONABLE
+    "USO": ("ROLL_DRAG: futures roll cost — tactical exposure only", False),
+}
+
+# investment-horizon map: (suggested hold, why that horizon) — the basis is
+# the point; a horizon without a mechanism is just a guess.
+HORIZON = {
+    "CASH": ("any", "parking; no path risk"),
+    "IEF":  ("~8y", "hold to duration immunizes the rate path"),
+    "TLT":  ("~16y or tactical", "duration immunization is impractical at 16y — "
+             "most holders are making a tactical rate bet"),
+    "TIP":  ("~7y", "hold to duration; inflation accrual does the work"),
+    "HYG":  ("2-4y", "a full credit-spread cycle; carry needs time to beat defaults"),
+    "LQD":  ("3-5y", "spread cycle + duration; carry compounds slowly"),
+    "EMB":  ("2-4y", "EM spread cycle; expect drawdowns around dollar spikes"),
+    "MUB":  ("3-5y", "tax-adjusted carry compounds; low turnover asset"),
+    "GLD":  ("regime asset", "hold while real rates fall or as portfolio "
+             "insurance — no fixed horizon"),
+    "SLV":  ("6-18m tactical", "high-beta gold proxy; ride the metal regime, "
+             "exit when it turns"),
+    "GDX":  ("6-18m tactical", "leveraged gold expression via miner equity"),
+    "PPLT": ("6-18m tactical", "thin industrial market; cyclical demand"),
+    "VNQ":  ("3-5y", "income + escalator compounding; rate-sensitive entry matters"),
+    "AMLP": ("3-5y", "distribution compounding; volume-linked toll-road cash flows"),
+    "SPY":  ("3-5y minimum", "the equity premium needs time to realize"),
+    "QQQ":  ("3-5y minimum", "same premium, longer duration — bigger drawdowns"),
+    "IWM":  ("3-5y minimum", "small-cap premium is lumpy; patience required"),
+    "EFA":  ("3-5y minimum", "equity premium + currency noise"),
+    "EEM":  ("3-5y minimum", "EM premium is real but violent"),
+    "EWJ":  ("2-4y", "governance/BOJ normalization theme horizon"),
+    "FXI":  ("1-3y tactical", "policy-cycle driven; thesis-dependent"),
+    "INDA": ("3-5y+", "structural growth compounding story"),
+    "DBC":  ("1-6m tactical", "futures roll — not a buy-and-hold vehicle"),
+    "DBA":  ("1-6m tactical", "futures roll; weather/season driven"),
+    "USO":  ("weeks-months", "tactical only — roll drag taxes long holds"),
+    "UNG":  ("days-weeks TRADE ONLY", "structural contango decay"),
+    "CPER": ("1-6m tactical", "futures roll; electrification theme via COPX "
+             "is the long-hold version"),
+    "URA":  ("1-3y thematic", "miner equity — fuel-cycle repricing takes quarters"),
+    "BTC":  ("full cycle ~4y", "halving cycle; size for -70% interim drawdowns"),
+    "ETH":  ("full cycle ~4y", "same cycle, higher beta"),
+    "SOL":  ("full cycle ~4y", "youngest history of the three — thinnest evidence"),
+}
 
 # ───────────────────────── http / data plumbing ─────────────────────────
 
@@ -354,6 +427,156 @@ def asym_score(ratio, dd_pctile, trend_ok, bo_state):
     b = 15.0 if bo_state in ("COILED", "BREAKOUT", "SQUEEZE") else 0.0
     return round(r + d + t + b, 1)
 
+
+def corr_returns(a_closes, b_closes, n=90):
+    """Pearson correlation of daily % changes over the last n overlapping
+    observations. Aligns from the tail; None if too thin."""
+    if not a_closes or not b_closes:
+        return None
+    m = min(len(a_closes), len(b_closes), n + 1)
+    if m < 40:
+        return None
+    ra = [a_closes[-m + i + 1] / a_closes[-m + i] - 1.0 for i in range(m - 1)
+          if a_closes[-m + i]]
+    rb = [b_closes[-m + i + 1] / b_closes[-m + i] - 1.0 for i in range(m - 1)
+          if b_closes[-m + i]]
+    k = min(len(ra), len(rb))
+    if k < 40:
+        return None
+    ra, rb = ra[-k:], rb[-k:]
+    ma, mb = sum(ra) / k, sum(rb) / k
+    cov = sum((x - ma) * (y - mb) for x, y in zip(ra, rb))
+    va = sum((x - ma) ** 2 for x in ra)
+    vb = sum((y - mb) ** 2 for y in rb)
+    if va <= 0 or vb <= 0:
+        return None
+    return round(cov / math.sqrt(va * vb), 2)
+
+
+def credit_er(ttm_yield, loss_pct, dur, dy10):
+    """Credit 12m ER: carry − long-run credit-loss assumption − duration ×
+    expected parallel shift (dy10 as the shift proxy — flagged assumption)."""
+    if ttm_yield is None:
+        return None, {}
+    dur_fx = round(-dur * (dy10 or 0.0), 2)
+    er = round(ttm_yield - loss_pct + dur_fx, 2)
+    return er, {"carry_ttm_yield_pct": ttm_yield,
+                "credit_loss_assumption_pct": -loss_pct,
+                "duration_effect_pct": dur_fx, "duration": dur,
+                "assumption": "long-run default×LGD loss rate; parallel "
+                              "curve shift (dy10) applied to duration"}
+
+
+def build_read(row, rf, rf_dir, dreal, oas_pctile=None):
+    """Deterministic bull/bear case per asset from the engine's OWN numbers.
+    Zero LLM. Every line is traceable to a published field."""
+    bull, bear = [], []
+    er = row.get("er_1y_pct")
+    s = row.get("asym") or {}
+    tr = row.get("trend") or {}
+    bo = (row.get("breakout") or {}).get("state")
+    flags = row.get("flags") or []
+    corr = row.get("corr_spy_90d")
+    dur = row.get("_dur") or 0.0
+    tkr = row.get("ticker")
+
+    # hurdle vs cash — the first institutional question
+    if er is not None and rf is not None:
+        ex = round(er - rf, 1)
+        row["excess_vs_cash_pp"] = ex
+        dn = s.get("downside_pct")
+        if dn is not None and dn < -1:
+            row["premium_per_unit_downside"] = round(ex / abs(dn), 2)
+        if ex >= 2.0:
+            bull.append("Pays +%.1fpp over cash for the risk" % ex)
+        elif ex <= 0.0:
+            bear.append("Fails the cash hurdle: ER %.1f%% vs %.1f%% "
+                        "risk-free" % (er, rf))
+    if er is None:
+        bear.append("No yield/earnings anchor — ranked on asymmetry and "
+                    "trend only")
+
+    # asymmetry + gate
+    ratio = s.get("ratio")
+    if ratio is not None and ratio >= 3 and s.get("status") == "ACTIONABLE":
+        bull.append("Asymmetric setup: %.0fx upside/downside with trend "
+                    "confirmed" % ratio)
+    if ratio is not None and ratio >= 3 and s.get("status") == "WATCH":
+        bear.append("Max asymmetry but still in a downtrend — survival "
+                    "gate holding it at WATCH")
+    if tr.get("label") == "DOWNTREND":
+        bear.append("Price below falling 50dma — no trend confirmation")
+    if tr.get("label") == "UPTREND":
+        bull.append("Confirmed uptrend (price > 50dma > 200dma)")
+    if bo in ("SQUEEZE", "COILED"):
+        bull.append("%s: volatility compressed near the top of the range — "
+                    "energy stored" % bo)
+    if bo == "BREAKOUT":
+        bull.append("Volume-confirmed breakout through the 60d ceiling")
+    if bo == "EXTENDED":
+        bear.append("Extended >15%% above the 50dma — chase risk")
+
+    # rates
+    if dur >= 5 and rf_dir == "HIGHER":
+        bear.append("Long duration (%.0fy) against a market pricing rates "
+                    "HIGHER over 12m" % dur)
+    if dur >= 5 and rf_dir == "LOWER":
+        bull.append("Long duration (%.0fy) with the market pricing rates "
+                    "LOWER — convexity tailwind" % dur)
+
+    # gold/real-rate mechanism
+    if tkr in ("GLD", "SLV", "GDX") and dreal is not None:
+        if dreal < -0.05:
+            bull.append("Market-implied real rates FALLING (%.2fpp) — the "
+                        "proven gold driver is a tailwind" % dreal)
+        elif dreal > 0.05:
+            bear.append("Market-implied real rates RISING (%.2fpp) — the "
+                        "proven gold headwind" % dreal)
+
+    # credit spread cushion
+    if oas_pctile is not None:
+        if oas_pctile >= 70:
+            bull.append("Spreads at the %.0fth pctile of 10y — wide "
+                        "cushion against losses" % oas_pctile)
+        elif oas_pctile <= 25:
+            bear.append("Spreads at the %.0fth pctile of 10y — thin "
+                        "cushion, priced for perfection" % oas_pctile)
+
+    # diversification
+    if corr is not None and er is not None:
+        if corr <= 0.30:
+            bull.append("Low correlation to SPY (%.2f) — genuine "
+                        "diversifier right now" % corr)
+        elif corr >= 0.85 and tkr != "SPY":
+            bear.append("Correlation %.2f to SPY — adds no diversification"
+                        % corr)
+
+    # structural flags
+    for f in flags:
+        if f.startswith("STRUCTURAL_DECAY"):
+            bear.append("Bleeds on contango roll even in flat spot — "
+                        "buy-and-hold is structurally negative")
+        elif f.startswith("ROLL_DRAG"):
+            bear.append("Futures roll cost taxes long holds — tactical "
+                        "vehicle only")
+        elif f.startswith("LOW_N"):
+            bear.append("Only ~4 cycles of history — asymmetry stats are "
+                        "low-confidence")
+        elif f.startswith("ASSUMPTION"):
+            bear.append("ER leans on a modeled assumption (%s)"
+                        % f.split(":", 1)[-1].strip())
+
+    st = s.get("status")
+    net = ("Setup live: %s, hold %s." % (st, (row.get("horizon") or {})
+           .get("hold", "—")) if st == "ACTIONABLE" else
+           "Asymmetry present, trigger absent — wait for trend."
+           if st == "WATCH" else
+           "Carry it for the premium, not the timing."
+           if (er is not None and rf is not None and er - rf >= 2
+               and st != "ACTIONABLE") else
+           "Nothing compelling at today's prices.")
+    return {"bull": bull[:4], "bear": bear[:4], "net": net}
+
 # ─────────────────────────────── engine ───────────────────────────────
 
 def _mom_z(series_vals, step=3):
@@ -428,6 +651,8 @@ def lambda_handler(event, context):
             bars[tkr] = crypto_daily("bitcoin", "X:BTCUSD")
         elif tkr == "ETH":
             bars[tkr] = crypto_daily("ethereum", "X:ETHUSD")
+        elif tkr == "SOL":
+            bars[tkr] = crypto_daily("solana", "X:SOLUSD")
         else:
             bars[tkr] = polygon_daily(tkr, 3)
             time.sleep(0.15)
@@ -436,6 +661,21 @@ def lambda_handler(event, context):
             warns.append(f"{tkr}: only {len(closes[tkr])} bars")
     gld10 = polygon_daily("GLD", 10)
     slv10 = polygon_daily("SLV", 10)
+
+    # ── credit-spread context: current OAS + its 10y percentile ──
+    start10y = (datetime.now(timezone.utc)
+                - timedelta(days=3660)).strftime("%Y-%m-%d")
+    oas_ctx = {}
+    for _tk, cm in CREDIT_META.items():
+        sid = cm.get("oas_fred")
+        if not sid or sid in oas_ctx:
+            continue
+        ser = fred_series(sid, start10y, fkey) or []
+        vals = [v for _, v in ser if v is not None]
+        if len(vals) > 500:
+            oas_ctx[sid] = {"now_pct": round(vals[-1], 2),
+                            "pctile_10y": percentile_of(vals[-1], vals),
+                            "label": cm.get("oas_label")}
 
     # ── data-derived betas (must rediscover reality, not assume it) ──
     beta_gold_real, beta_gold_n = None, 0
@@ -558,6 +798,31 @@ def lambda_handler(event, context):
                 row["er_1y_pct"] = round(beta_gdx_gold * g_er - 1.0, 2)
                 ec.update(gold_er_pct=g_er, beta_gdx_gold=beta_gdx_gold,
                           cost_drag_pct=-1.0)
+        elif model == "credit":
+            yld = polygon_ttm_div(tkr, px)
+            cm = CREDIT_META.get(tkr, {})
+            er_c, comp_c = credit_er(yld, cm.get("loss_pct", 0.5),
+                                     dur, dy10)
+            if er_c is not None:
+                row["er_1y_pct"] = er_c
+                ec.update(comp_c)
+                sid = cm.get("oas_fred")
+                if sid and sid in oas_ctx:
+                    ec.update(oas_now_pct=oas_ctx[sid]["now_pct"],
+                              oas_pctile_10y=oas_ctx[sid]["pctile_10y"],
+                              oas_series=oas_ctx[sid]["label"])
+                row["flags"].append("ASSUMPTION: %.2f%%/yr long-run "
+                                    "credit-loss rate" % cm.get("loss_pct",
+                                                                0.5))
+        elif model == "mlp":
+            yld = polygon_ttm_div(tkr, px)
+            if yld and infl is not None:
+                row["er_1y_pct"] = round(yld + infl, 2)
+                ec.update(ttm_dist_yield_pct=yld, infl_pct=infl,
+                          model="distribution carry + inflation passthrough",
+                          assumption="distribution sustainability not "
+                                     "modeled; volume-linked cash flows")
+                row["flags"].append("ASSUMPTION: distributions sustained")
         elif model == "reit":
             yld = polygon_ttm_div(tkr, px)
             if yld and infl is not None:
@@ -569,33 +834,77 @@ def lambda_handler(event, context):
                           assumption="0.75% real NOI escalator",
                           rate_sensitivity="negative to rising y10")
                 row["flags"].append("ASSUMPTION: real escalator 0.75%")
-        elif model == "equity":
+        elif model in ("equity", "equity_intl"):
             yld = polygon_ttm_div(tkr, px)
             s200 = sma(cl, 200)
             stretch = ((px / s200 - 1.0) * 100.0) if s200 else 0.0
             val = round(min(max(-0.35 * stretch, -4.0), 4.0), 2)
+            g_use = round(g * 0.5, 2) if model == "equity_intl" else g
             if yld is not None and infl is not None:
-                row["er_1y_pct"] = round(yld + infl + g + val, 2)
+                row["er_1y_pct"] = round(yld + infl + g_use + val, 2)
                 ec.update(ttm_div_yield_pct=yld, infl_pct=infl,
-                          real_growth_proxy_pct=g,
+                          real_growth_proxy_pct=g_use,
                           stretch_vs_200dma_pct=round(stretch, 1),
                           valuation_reversion_pct=val,
                           model="Grinold-Kroner lite: yield+growth+reversion",
                           omitted="buyback yield (needs holdings data; "
                                   "stock-level GK lands in equity-research)")
+                if model == "equity_intl":
+                    ec["assumption"] = ("US growth proxy halved as the "
+                                        "global-cycle stand-in — no local "
+                                        "nowcast wired yet")
+                    row["flags"].append("ASSUMPTION: US-cycle growth proxy")
         else:
             row["er_1y_pct"] = None
             ec.update(model="no yield/earnings anchor — ranked on "
                             "asymmetry/trend/breakout only")
             if klass == "crypto":
                 row["flags"].append("LOW_N: ~4 halving cycles of history; "
-                                    "asymmetry stats are low-confidence")
+                                    "asymmetry stats are low-confidence"
+                                    if tkr != "SOL" else
+                                    "LOW_N: youngest major chain — thinnest "
+                                    "cycle evidence of the three")
                 if tkr == "BTC" and isinstance(cyc, dict) and cyc:
                     row["cycle_context"] = {
                         "crypto_cycle_risk": cyc.get("composite_score")
                         or cyc.get("score"),
                         "phase": cyc.get("phase") or cyc.get("cycle_phase")}
+        # structural-decay products: flag, and hard-bar UNG from ACTIONABLE
+        if tkr in DECAY:
+            note, hard_bar = DECAY[tkr]
+            row["flags"].append(note)
+            if hard_bar and (row.get("asym") or {}).get("status") \
+                    == "ACTIONABLE":
+                row["asym"]["status"] = "WATCH"
+                row["flags"].append("BARRED from ACTIONABLE: decay product")
         assets.append(row)
+
+    # ── v1.1 enrichment: correlation, horizon, deterministic reads ──
+    dur_map = {t[0]: t[3] for t in UNIVERSE}
+    dreal = macro.get("delta_real_expected_pp")
+    spy_cl = closes.get("SPY") or []
+    for row in assets:
+        tkr = row["ticker"]
+        if tkr != "CASH" and tkr != "SPY":
+            row["corr_spy_90d"] = corr_returns(closes.get(tkr) or [],
+                                               spy_cl, 90)
+        elif tkr == "SPY":
+            row["corr_spy_90d"] = 1.0
+        hz = HORIZON.get(tkr)
+        if hz:
+            row["horizon"] = {"hold": hz[0], "basis": hz[1]}
+            if (row.get("breakout") or {}).get("state") in ("BREAKOUT",
+                                                            "SQUEEZE",
+                                                            "COILED"):
+                row["horizon"]["note"] = "tactical window open"
+        row["_dur"] = dur_map.get(tkr, 0.0)
+        oas_p = None
+        cm = CREDIT_META.get(tkr)
+        if cm and cm.get("oas_fred") in oas_ctx:
+            oas_p = oas_ctx[cm["oas_fred"]]["pctile_10y"]
+        row["read"] = build_read(row, y1, macro.get(
+            "rf_direction_next_year"), dreal, oas_p)
+        row.pop("_dur", None)
 
     er_rank = sorted([a for a in assets if a["er_1y_pct"] is not None],
                      key=lambda a: a["er_1y_pct"], reverse=True)
@@ -603,13 +912,21 @@ def lambda_handler(event, context):
                      key=lambda a: a["asym"]["score"], reverse=True)
     bo_watch = [a["ticker"] for a in assets if (a.get("breakout") or {})
                 .get("state") in ("BREAKOUT", "COILED", "SQUEEZE")]
+    diversifiers = sorted(
+        [a for a in assets if a.get("corr_spy_90d") is not None
+         and a["corr_spy_90d"] <= 0.35 and a["er_1y_pct"] is not None
+         and y1 is not None and a["er_1y_pct"] > y1],
+        key=lambda a: a["corr_spy_90d"])
 
     out = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "engine": "justhodl-asset-compass", "status": "PROVISIONAL",
         "macro_forward": {k: v for k, v in macro.items()
                           if k != "_fred_last"},
+        "hurdle": {"cash_rf_pct": y1,
+                   "note": "every ER should be judged as excess over this"},
+        "credit_context": oas_ctx or None,
         "betas": {"gold_vs_real_rate_pct_per_100bp": beta_gold_real,
                   "gold_beta_obs": beta_gold_n,
                   "gdx_vs_gold": beta_gdx_gold,
@@ -617,7 +934,13 @@ def lambda_handler(event, context):
         "assets": assets,
         "boards": {
             "er_ranking": [{"ticker": a["ticker"], "label": a["label"],
-                            "er_1y_pct": a["er_1y_pct"]} for a in er_rank],
+                            "er_1y_pct": a["er_1y_pct"],
+                            "excess_vs_cash_pp": a.get("excess_vs_cash_pp")}
+                           for a in er_rank],
+            "diversifiers": [{"ticker": a["ticker"], "label": a["label"],
+                              "corr_spy_90d": a["corr_spy_90d"],
+                              "er_1y_pct": a["er_1y_pct"]}
+                             for a in diversifiers[:8]],
             "asymmetry_ranking": [{"ticker": a["ticker"],
                                    "label": a["label"],
                                    "score": a["asym"]["score"],
@@ -637,6 +960,20 @@ def lambda_handler(event, context):
             "er": "Grinold-Kroner style decomposition per class; every "
                   "component published in er_components; assets without a "
                   "yield/earnings anchor carry er=None (never fabricated).",
+            "credit": "carry (TTM distribution) minus a published long-run "
+                      "credit-loss assumption minus duration x expected "
+                      "curve shift; OAS level + 10y percentile published "
+                      "for cushion context.",
+            "reads": "bull/bear cases are deterministic — every line is "
+                     "generated from the engine's own published numbers "
+                     "(hurdle vs cash, asymmetry, trend, rates, spreads, "
+                     "correlation, structural flags). No LLM.",
+            "horizon": "per-asset suggested hold with its mechanism "
+                       "(duration immunization, premium realization, "
+                       "spread cycle, halving cycle, roll decay).",
+            "correlation": "90d Pearson of daily returns vs SPY; "
+                           "diversifiers board = corr <= 0.35 AND ER "
+                           "above cash.",
             "asymmetry": "upside = recovery to 3y high (cap 200%); downside "
                          "= move to own 95th-pctile historical drawdown "
                          "depth; survival gate on can-die assets.",

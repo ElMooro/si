@@ -72,6 +72,20 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12px}
 .dc .kv b{color:var(--fg-2);font-weight:600}
 .monthread{margin-top:8px;padding:9px 12px;border-left:3px solid var(--cyan);background:var(--bg-elevated);font-size:12.5px;border-radius:0 var(--radius) var(--radius) 0}
 .gated{margin-top:8px;padding:9px 12px;border-left:3px solid var(--amber);background:rgba(255,177,61,.05);font-size:12px;color:var(--fg-2);border-radius:0 var(--radius) var(--radius) 0}
+.chip{font-size:11px;font-weight:600;letter-spacing:.4px;padding:5px 12px;border-radius:14px;background:var(--bg-elevated);color:var(--fg-3);border:1px solid var(--border);cursor:pointer;user-select:none}
+.chip.on{background:rgba(0,212,255,.12);color:var(--cyan);border-color:rgba(0,212,255,.4)}
+tr.assetrow{cursor:pointer}
+tr.assetrow:hover td{background:rgba(0,212,255,.03)}
+tr.readrow td{background:var(--bg-sunken);padding:12px 14px;font-family:var(--font-sans);white-space:normal;text-align:left}
+.rd{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.rd{grid-template-columns:1fr}}
+.rd .col h4{font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.rd .col.bu h4{color:var(--green)}.rd .col.be h4{color:var(--red)}
+.rd ul{margin-left:15px;font-size:12px;color:var(--fg-2)}
+.rd li{margin:3px 0}
+.rdnet{grid-column:1/-1;margin-top:4px;padding:7px 10px;border-left:3px solid var(--cyan);background:var(--bg-elevated);font-size:12px;border-radius:0 var(--radius) var(--radius) 0}
+.rdhz{grid-column:1/-1;font-size:11.5px;color:var(--fg-3)}
+.rdhz b{color:var(--fg-1)}
 .meth{margin-top:26px;font-size:11px;color:var(--fg-3);line-height:1.7}
 .err{padding:14px;border:1px solid rgba(255,92,122,.3);background:rgba(255,92,122,.05);border-radius:var(--radius);color:var(--fg-2)}
 @media(max-width:700px){.rowbar .lb{display:none}}
@@ -98,12 +112,13 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12px}
       <div class="card"><h2>Expected Return · 12m <span class="n">Grinold-Kroner per class</span></h2><div id="erb"></div></div>
       <div class="card"><h2>Asymmetry Ranking <span class="n">upside vs residual downside · survival-gated</span></h2><div id="asb"></div></div>
       <div class="card"><h2>Breakout / Coil Watch <span class="n">20d BB width pctile · 60d highs · vol confirm</span></h2><div id="bob"></div></div>
+      <div class="card"><h2>Diversifiers · Right Now <span class="n">corr ≤ 0.35 to SPY and beats cash</span></h2><div id="dvb"></div></div>
     </div>
   </section>
 
   <section>
     <h2>Data-Fit Relationships <span class="n">rediscovered from raw daily data, not assumed</span></h2>
-    <div class="card"><div class="betas" id="betas"></div></div>
+    <div class="card"><div class="betas" id="betas"></div><div class="betas" id="credit" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)"></div></div>
   </section>
 
   <section>
@@ -112,7 +127,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12px}
   </section>
 
   <section>
-    <h2>Full Universe <span class="n">every asset, every component</span></h2>
+    <h2>Full Universe <span class="n">every asset, every component — click a row for the bull/bear case</span></h2>
+    <div id="clsfilter" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px"></div>
     <div class="card" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
   </section>
 
@@ -184,6 +200,33 @@ function renderBetas(b,gsrz){
     '<div class="b"><div class="l">GSR z · 10y</div><div class="v '+cls(-(b.gsr_z_10y||0))+'">'+fnum(b.gsr_z_10y)+'</div></div>';
 }
 
+function renderCredit(cc){
+  var el=document.getElementById("credit");
+  if(!cc){el.innerHTML="";return;}
+  var h="";
+  Object.keys(cc).forEach(function(k){
+    var s=cc[k]; if(!s)return;
+    var p=s.pctile_10y, tone=p==null?"":(p>=70?"up":(p<=25?"dn":""));
+    h+='<div class="b"><div class="l">'+esc(s.label||k)+' · now</div><div class="v">'+fnum(s.now_pct)+'%</div></div>'+
+       '<div class="b"><div class="l">'+esc(s.label||k)+' · 10y pctile</div><div class="v '+tone+'">'+fnum(p,0)+'</div><div class="l" style="text-transform:none;letter-spacing:0">'+(p==null?"":(p>=70?"wide cushion":(p<=25?"thin cushion":"mid-range")))+'</div></div>';
+  });
+  el.innerHTML=h||"";
+  el.style.display=h?"":"none";
+}
+
+function renderDiversifiers(dv,assets){
+  var el=document.getElementById("dvb");
+  var rows=dv&&dv.length?dv:null;
+  if(!rows){
+    // schema-1.0 fallback: derive from assets client-side
+    rows=(assets||[]).filter(function(a){return a.corr_spy_90d!=null&&a.corr_spy_90d<=0.35&&a.er_1y_pct!=null;})
+      .sort(function(a,b){return a.corr_spy_90d-b.corr_spy_90d;}).slice(0,8);
+  }
+  el.innerHTML=(rows||[]).map(function(a){
+    return '<div class="rowbar"><span class="tk">'+esc(a.ticker)+'</span><span class="lb">'+esc(a.label||"")+'</span><div class="bartrack"><div class="barfill" style="width:'+Math.min(Math.abs(a.corr_spy_90d)*100,100)+'%;background:var(--violet)"></div></div><span class="nv" title="90d correlation to SPY">'+fnum(a.corr_spy_90d)+'</span><span class="nv '+cls(a.er_1y_pct)+'" title="12m expected return">'+pct(a.er_1y_pct)+'</span></div>';
+  }).join("")||'<div style="color:var(--fg-3);font-size:12px">Nothing currently combines low correlation with a positive cash-beating ER — SPY beta is doing all the work.</div>';
+}
+
 function renderDisc(dd){
   var el=document.getElementById("disc");
   if(!dd||!dd.generated_at){el.innerHTML='<div class="gated">Discovery engine has not produced a document yet — first monthly run pending.</div>';return;}
@@ -203,20 +246,59 @@ function renderDisc(dd){
   el.innerHTML=h;
 }
 
-function renderTbl(assets){
-  var head='<thead><tr><th>Asset</th><th>Price</th><th>ER 12m</th><th>Upside</th><th>Downside</th><th>Ratio</th><th>DD now</th><th>Trend</th><th>Breakout</th><th>Status</th></tr></thead>';
-  var body=assets.map(function(a){
-    var s=a.asym||{},t=a.trend||{},b=a.breakout||{};
+var CLSFILTER="all";
+function renderTbl(assets,rf){
+  window.__assets=assets; window.__rf=rf;
+  var classes=["all"]; assets.forEach(function(a){if(classes.indexOf(a["class"])<0)classes.push(a["class"]);});
+  document.getElementById("clsfilter").innerHTML=classes.map(function(c){
+    return '<span class="chip'+(CLSFILTER===c?" on":"")+'" data-c="'+esc(c)+'">'+esc(c)+'</span>';
+  }).join("");
+  document.getElementById("clsfilter").onclick=function(e){
+    var c=e.target&&e.target.getAttribute&&e.target.getAttribute("data-c");
+    if(c){CLSFILTER=c;renderTbl(window.__assets,window.__rf);}
+  };
+  var rows=assets.filter(function(a){return CLSFILTER==="all"||a["class"]===CLSFILTER;});
+  var head='<thead><tr><th>Asset</th><th>Price</th><th>ER 12m</th><th title="ER minus the 1y T-bill — the hurdle every asset must clear">vs Cash</th><th>Upside</th><th>Downside</th><th>Ratio</th><th title="90d correlation of daily returns to SPY">Corr</th><th>Trend</th><th>Horizon</th><th>Status</th></tr></thead>';
+  var body=rows.map(function(a,i){
+    var s=a.asym||{},t=a.trend||{},b=a.breakout||{},hz=a.horizon||{};
     var fl=(a.flags||[]).length?'<div class="fl">'+esc((a.flags||[]).join(" · "))+'</div>':'';
-    return '<tr><td><b>'+esc(a.ticker)+'</b> <span style="color:var(--fg-3)">'+esc(a.label||"")+'</span>'+fl+'</td>'+
+    var ex=a.excess_vs_cash_pp;
+    if(ex==null&&a.er_1y_pct!=null&&rf!=null)ex=Math.round((a.er_1y_pct-rf)*10)/10;
+    return '<tr class="assetrow" data-i="'+i+'"><td><b>'+esc(a.ticker)+'</b> <span style="color:var(--fg-3)">'+esc(a.label||"")+'</span>'+fl+'</td>'+
       '<td>'+(a.ticker==="CASH"?"—":fnum(a.price))+'</td>'+
       '<td class="'+cls(a.er_1y_pct)+'">'+(a.er_1y_pct!=null?pct(a.er_1y_pct):"<span style='color:var(--fg-4)'>no anchor</span>")+'</td>'+
+      '<td class="'+cls(ex)+'">'+(ex!=null?((ex>0?"+":"")+fnum(ex,1)+"pp"):"—")+'</td>'+
       '<td class="up">'+pct(s.upside_pct)+'</td><td class="dn">'+pct(s.downside_pct)+'</td>'+
       '<td>'+(s.ratio!=null?fnum(s.ratio,1)+"×":"—")+'</td>'+
-      '<td class="'+cls(s.dd_now_pct)+'">'+fnum(s.dd_now_pct,1)+'%</td>'+
-      '<td>'+esc(t.label||"—")+'</td><td>'+esc(b.state||"—")+'</td><td>'+badge(s.status)+'</td></tr>';
+      '<td>'+(a.corr_spy_90d!=null?fnum(a.corr_spy_90d):"—")+'</td>'+
+      '<td>'+esc(t.label||"—")+'</td>'+
+      '<td style="font-family:var(--font-sans);font-size:11px" title="'+esc(hz.basis||"")+'">'+esc(hz.hold||"—")+'</td>'+
+      '<td>'+badge(s.status)+'</td></tr>';
   }).join("");
   document.getElementById("tbl").innerHTML=head+'<tbody>'+body+'</tbody>';
+  document.querySelectorAll("#tbl tr.assetrow").forEach(function(tr){
+    tr.addEventListener("click",function(){toggleRead(tr,rows[+tr.getAttribute("data-i")]);});
+  });
+}
+
+function toggleRead(tr,a){
+  var nxt=tr.nextElementSibling;
+  if(nxt&&nxt.classList.contains("readrow")){nxt.remove();return;}
+  document.querySelectorAll("#tbl tr.readrow").forEach(function(x){x.remove();});
+  var rd=a.read||{},hz=a.horizon||{},comp=a.er_components||{};
+  var li=function(arr){return (arr||[]).map(function(x){return "<li>"+esc(x)+"</li>";}).join("")||"<li style='color:var(--fg-4)'>nothing flagged</li>";};
+  var compTip=Object.keys(comp).filter(function(k){return typeof comp[k]!=="object";})
+    .map(function(k){return esc(k)+": "+esc(String(comp[k]));}).join(" · ");
+  var row=document.createElement("tr");
+  row.className="readrow";
+  row.innerHTML='<td colspan="11"><div class="rd">'+
+    '<div class="col bu"><h4>Why you would</h4><ul>'+li(rd.bull)+'</ul></div>'+
+    '<div class="col be"><h4>Why you wouldn\'t</h4><ul>'+li(rd.bear)+'</ul></div>'+
+    (rd.net?'<div class="rdnet">'+esc(rd.net)+'</div>':'')+
+    (hz.hold?'<div class="rdhz">⏳ <b>'+esc(hz.hold)+'</b> — '+esc(hz.basis||"")+(hz.note?' · <span style="color:var(--cyan)">'+esc(hz.note)+'</span>':'')+'</div>':'')+
+    (compTip?'<div class="rdhz" style="opacity:.75">Σ '+compTip+'</div>':'')+
+    '</div></td>';
+  tr.parentNode.insertBefore(row,tr.nextSibling);
 }
 
 async function load(){
@@ -224,15 +306,19 @@ async function load(){
   try{ d=await (await fetch("/data/asset-compass.json?t="+Date.now())).json(); }
   catch(e){ document.getElementById("err").innerHTML='<div class="err">asset-compass.json unavailable: '+esc(e.message)+'</div>'; return; }
   try{ dd=await (await fetch("/data/asset-discovery.json?t="+Date.now())).json(); }catch(e){ dd=null; }
-  document.getElementById("fresh").textContent="engine "+ago(d.generated_at)+" · "+esc(d.status||"");
+  document.getElementById("fresh").textContent="engine "+ago(d.generated_at)+" · "+esc(d.status||"")+(d.schema_version?" · v"+esc(d.schema_version):"");
   var betas=d.betas||{};
+  var rf=(d.hurdle||{}).cash_rf_pct;
+  if(rf==null)rf=(d.macro_forward||{}).rf_now_pct;
   renderMacro(d.macro_forward||{},betas);
   renderER(d.assets||[]);
   renderAsym(d.assets||[]);
   renderBO(d.assets||[]);
   renderBetas(betas);
+  renderCredit(d.credit_context||null);
+  renderDiversifiers((d.boards||{}).diversifiers,d.assets||[]);
   renderDisc(dd);
-  renderTbl(d.assets||[]);
+  renderTbl(d.assets||[],rf);
   var m=d.methodology||{};
   document.getElementById("meth").innerHTML='<b>Methodology.</b> '+esc(m.er||"")+' '+esc(m.asymmetry||"")+' '+esc(m.forward_macro||"")+' Status '+esc(d.status||"")+' per the Edge-Accuracy standard: no edge is claimed until proposals and rankings are scored against forward returns net of SPY.';
 }
