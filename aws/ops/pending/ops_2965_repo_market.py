@@ -114,16 +114,7 @@ def main():
         deploy_lambda(report=rep, function_name=FN,
                       source_dir=AWS_DIR / "lambdas" / FN / "source",
                       env_vars=env, timeout=240, memory=256,
-                      description=("Repo Market Desk - dedicated overnight-"
-                                   "funding stress engine. NY Fed SOFR "
-                                   "distribution (p1/p25/p75/p99 + volume), "
-                                   "TGCR/BGCR/EFFR/OBFR, SOFR-IORB with "
-                                   "IOER splice, RRP/SRF/discount-window/"
-                                   "swap-line buffers, reserves drain, "
-                                   "calendar context, episode ranking since "
-                                   "2018, 9-component 0-100 score + "
-                                   "Telegram regime tripwires. "
-                                   "data/repo-market.json."),
+                      description='Repo Market Desk - dedicated overnight-funding stress engine. NY Fed SOFR distribution (p1/p25/p75/p99 + volume) + full spread stack + facility buffers + episode ranking since 2018. 9-component 0-100 score, Telegram tripwires. data/repo-market.json.',
                       create_function_url=False, smoke=False)
 
         rep.section("2. EventBridge Scheduler schedule")
