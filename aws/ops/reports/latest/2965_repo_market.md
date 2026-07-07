@@ -2,7 +2,7 @@
 
 **Status:** failure  
 **Duration:** 1.3s  
-**Finished:** 2026-07-07T06:08:25+00:00  
+**Finished:** 2026-07-07T06:14:03+00:00  
 
 ## Error
 
@@ -38,7 +38,7 @@ botocore.exceptions.ClientError: An error occurred (ValidationException) when ca
 ## Log
 ## 1. Env bundle + create justhodl-repo-market
 
-- `06:08:24`   zip: 9355 bytes
+- `06:14:03`   zip: 9355 bytes
 ## 1. Lambda
 
-- `06:08:24`   Lambda missing — creating
+- `06:14:03`   Lambda missing — creating
