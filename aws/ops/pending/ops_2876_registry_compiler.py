@@ -1,6 +1,6 @@
 """ops 2876 — build fleet engine-registry + source-utilization from repo scan, upload to S3,
 boto3-create justhodl-brain-compiler (monthly), run first compile, verify."""
-# regen 2026-07-07T18:02Z: re-run to register justhodl-asset-compass (ops 2966)
+# regen 2026-07-07T19:0xZ: re-run to register justhodl-asset-discovery + wire-flip asset-compass/discovery (pages now reference their data keys)
 import os, io, json, re, glob, time, zipfile, boto3
 from collections import Counter
 from datetime import datetime, timezone
