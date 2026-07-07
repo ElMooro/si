@@ -127,6 +127,24 @@ tr.readrow td{background:var(--bg-sunken);padding:12px 14px;font-family:var(--fo
   </section>
 
   <section>
+    <h2>Scenario Table <span class="n">v1.2 · empirical 3y betas · linear first-order</span></h2>
+    <div class="card" style="overflow-x:auto"><table class="tbl" id="scen"></table><div class="n" id="scennote" style="margin-top:8px"></div></div>
+  </section>
+
+  <section>
+    <h2>Correlation Structure <span class="n">v1.2 · 90d pairwise · greedy clusters at 0.6</span></h2>
+    <div class="grid2">
+      <div class="card"><h2 style="font-size:12px">Clusters <span class="n">assets that move together</span></h2><div id="clus"></div></div>
+      <div class="card"><h2 style="font-size:12px">Most-Diversifying Pairs <span class="n">lowest 90d correlations in the universe</span></h2><div id="divp"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Forecast Ledger <span class="n">v1.2 · monthly ER vectors graded at 12m · edge-accuracy style</span></h2>
+    <div class="card" id="ledg"></div>
+  </section>
+
+  <section>
     <h2>Full Universe <span class="n">every asset, every component — click a row for the bull/bear case</span></h2>
     <div id="clsfilter" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px"></div>
     <div class="card" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
@@ -200,6 +218,43 @@ function renderBetas(b,gsrz){
     '<div class="b"><div class="l">GSR z · 10y</div><div class="v '+cls(-(b.gsr_z_10y||0))+'">'+fnum(b.gsr_z_10y)+'</div></div>';
 }
 
+
+function renderScenarios(sc){
+  var t=document.getElementById("scen"),nt=document.getElementById("scennote");
+  if(!sc||!sc.assets||!Object.keys(sc.assets).length){t.closest("section").style.display="none";return;}
+  var cols=[["plus_100bp_pct","+100bp"],["minus_100bp_pct","\u2212100bp"],["recession_pct","Recession"],["inflation_shock_pct","Inflation shock"]];
+  function cell(v){if(v==null)return"<td>\u2014</td>";var c=v>0.05?"up":(v<-0.05?"dn":"");return'<td class="'+c+'">'+(v>0?"+":"")+v.toFixed(1)+"%</td>";}
+  var ts=Object.keys(sc.assets).sort(function(a,b){return (sc.assets[a].recession_pct==null?9e9:sc.assets[a].recession_pct)-(sc.assets[b].recession_pct==null?9e9:sc.assets[b].recession_pct);});
+  t.innerHTML="<tr><th>Asset</th>"+cols.map(function(c){return"<th>"+c[1]+"</th>";}).join("")+"</tr>"+
+    ts.map(function(k){var r=sc.assets[k];return"<tr><td><b>"+esc(k)+"</b></td>"+cols.map(function(c){return cell(r[c[0]]);}).join("")+"</tr>";}).join("");
+  nt.textContent=sc.note||"";
+}
+function renderCorr(co){
+  var c=document.getElementById("clus"),p=document.getElementById("divp");
+  if(!co||!co.clusters){c.closest("section").style.display="none";return;}
+  c.innerHTML=co.clusters.filter(function(cl){return cl.tickers.length>1;}).map(function(cl){
+    return'<div style="margin:6px 0"><span style="font-family:var(--font-mono);color:var(--cyan)">'+cl.tickers.map(esc).join(" \u00b7 ")+'</span> <span class="n">avg '+(cl.avg_internal_corr==null?"\u2014":cl.avg_internal_corr.toFixed(2))+"</span></div>";
+  }).join("")||'<div class="n">No multi-asset clusters at 0.6 \u2014 unusually dispersed universe.</div>';
+  var singles=co.clusters.filter(function(cl){return cl.tickers.length===1;}).map(function(cl){return cl.tickers[0];});
+  if(singles.length)c.innerHTML+='<div class="n" style="margin-top:8px">Standalone: '+singles.map(esc).join(", ")+"</div>";
+  p.innerHTML=(co.most_diversifying_pairs||[]).map(function(q){
+    return'<div class="crow"><span>'+esc(q.a)+" \u2194 "+esc(q.b)+'</span><b class="'+(q.corr<0?"up":"")+'">'+q.corr.toFixed(2)+"</b></div>";
+  }).join("");
+}
+function renderLedger(l){
+  var e=document.getElementById("ledg");
+  if(!l){e.closest("section").style.display="none";return;}
+  var h='<div class="betas"><div><span class="n">Vectors logged</span><br><b style="font-size:16px">'+(l.entries_n||0)+"</b></div>"+
+        '<div><span class="n">Since</span><br><b>'+esc(l.since||"\u2014")+"</b></div>"+
+        '<div><span class="n">Vintages graded</span><br><b>'+(l.graded_n||0)+"</b></div>";
+  if(l.latest_grade){var g=l.latest_grade;
+    h+='<div><span class="n">Latest grade ('+esc(g.vintage)+")</span><br><b>MAE "+g.mae_pp+"pp \u00b7 hit "+g.hit_rate_excess_vs_cash+"%</b></div>";
+  }else{
+    h+='<div><span class="n">First grading</span><br><b>'+esc(l.first_grade_eta||"\u2014")+' <span class="n">(12m after vintage #1)</span></b></div>';
+  }
+  h+="</div>"+'<div class="n" style="margin-top:9px">Every monthly ER vector is stored and graded against realized 12-month returns \u2014 the compass earns or loses credibility the same way every other engine does. Price-only realized (dividends excluded), sign-hit on excess-vs-cash.</div>';
+  e.innerHTML=h;
+}
 function renderCredit(cc){
   var el=document.getElementById("credit");
   if(!cc){el.innerHTML="";return;}
@@ -316,6 +371,9 @@ async function load(){
   renderBO(d.assets||[]);
   renderBetas(betas);
   renderCredit(d.credit_context||null);
+  renderScenarios(d.scenarios||null);
+  renderCorr(d.correlations||null);
+  renderLedger(d.forecast_ledger||null);
   renderDiversifiers((d.boards||{}).diversifiers,d.assets||[]);
   renderDisc(dd);
   renderTbl(d.assets||[],rf);

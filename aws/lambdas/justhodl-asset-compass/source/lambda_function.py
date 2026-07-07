@@ -629,6 +629,215 @@ def build_macro_forward(fkey):
     }
 
 
+# ══════════════════════ v1.2: ledger · matrix · scenarios ══════════════════════
+LEDGER_KEY = "data/compass-forecast-ledger.json"
+
+
+def _bars_date_map(bl):
+    out = {}
+    for b in bl or []:
+        try:
+            out[datetime.fromtimestamp(b["t"] / 1000, tz=timezone.utc)
+                .strftime("%Y-%m-%d")] = float(b["c"])
+        except Exception:
+            continue
+    return out
+
+
+def factor_betas(bars, closes, fkey):
+    """Empirical per-asset sensitivities from 3y of REAL daily data:
+    rate_beta  = % move per +100bp Δ 10y nominal (DGS10)
+    bei_beta   = % move per +100bp Δ 10y breakeven (T10YIE)
+    spy_beta   = beta to SPY daily returns
+    All via the same OLS used by the gold acid test. None when <120 obs."""
+    start = (datetime.now(timezone.utc) - timedelta(days=1150)
+             ).strftime("%Y-%m-%d")
+    y10 = dict(fred_series("DGS10", start, fkey))
+    bei = dict(fred_series("T10YIE", start, fkey))
+    fdates = sorted(set(y10) & set(bei))
+    spy_ret = None
+    if closes.get("SPY") and len(closes["SPY"]) > 130:
+        c = closes["SPY"]
+        spy_ret = [c[i + 1] / c[i] - 1.0 for i in range(len(c) - 1) if c[i]]
+    per = {}
+    for tkr, bl in bars.items():
+        dmap = _bars_date_map(bl)
+        rets, dys, dbs = [], [], []
+        prev = None
+        for d in fdates:
+            if d not in dmap:
+                continue
+            if prev is not None:
+                p0, p1 = dmap[prev], dmap[d]
+                if p0:
+                    rets.append(p1 / p0 - 1.0)
+                    dys.append(y10[d] - y10[prev])
+                    dbs.append(bei[d] - bei[prev])
+            prev = d
+        rate_b = bei_b = None
+        if len(rets) >= 120:
+            rb, _ = ols_beta(dys, rets)
+            bb, _ = ols_beta(dbs, rets)
+            rate_b = round(rb * 100, 2) if rb is not None else None
+            bei_b = round(bb * 100, 2) if bb is not None else None
+        spy_b = None
+        c = closes.get(tkr)
+        if spy_ret and c and len(c) > 130:
+            r = [c[i + 1] / c[i] - 1.0 for i in range(len(c) - 1) if c[i]]
+            k = min(len(r), len(spy_ret))
+            b, _ = ols_beta(spy_ret[-k:], r[-k:])
+            spy_b = round(b, 2) if b is not None else None
+        per[tkr] = {"rate_beta_pct_per_100bp": rate_b,
+                    "bei_beta_pct_per_100bp": bei_b,
+                    "spy_beta": spy_b,
+                    "obs": len(rets)}
+    return per
+
+
+def corr_matrix_31(closes):
+    tks = sorted(t for t, c in closes.items() if c and len(c) > 95)
+    n = len(tks)
+    M = [[1.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            c = corr_returns(closes[tks[i]], closes[tks[j]], 90)
+            v = round(c, 3) if c is not None else None
+            M[i][j] = M[j][i] = v
+    # greedy clusters at 0.6
+    used, clusters = set(), []
+    for i in range(n):
+        if i in used:
+            continue
+        grp = [i]
+        used.add(i)
+        for j in range(n):
+            if j in used:
+                continue
+            if all(isinstance(M[k][j], float) and M[k][j] >= 0.6
+                   for k in grp):
+                grp.append(j)
+                used.add(j)
+        vals = [M[a][b] for a in grp for b in grp if a < b
+                and isinstance(M[a][b], float)]
+        clusters.append({"tickers": [tks[k] for k in grp],
+                         "avg_internal_corr": round(
+                             sum(vals) / len(vals), 2) if vals else None})
+    pairs = [(M[i][j], tks[i], tks[j]) for i in range(n)
+             for j in range(i + 1, n) if isinstance(M[i][j], float)]
+    pairs.sort(key=lambda x: x[0])
+    return {"tickers": tks, "window_days": 90, "matrix": M,
+            "clusters": sorted(clusters,
+                               key=lambda c: -len(c["tickers"])),
+            "most_diversifying_pairs": [
+                {"a": a, "b": b, "corr": round(v, 3)}
+                for v, a, b in pairs[:8]]}
+
+
+SCENARIOS_NOTE = ("Linear first-order from empirical 3y betas. "
+                  "recession = SPY -25% + rates -150bp; "
+                  "inflation_shock = breakeven +100bp + nominal +75bp. "
+                  "Approximations, not guarantees; convexity ignored.")
+
+
+def scenario_table(betas):
+    rows = {}
+    for tkr, b in betas.items():
+        rb, sb, bb = (b.get("rate_beta_pct_per_100bp"),
+                      b.get("spy_beta"),
+                      b.get("bei_beta_pct_per_100bp"))
+        if rb is None and sb is None:
+            continue
+
+        def cap(x):
+            return None if x is None else round(max(-80.0, min(80.0, x)), 1)
+        rec = None
+        if sb is not None:
+            rec = sb * -25.0 + (rb or 0.0) * -1.5
+        infl = None
+        if bb is not None or rb is not None:
+            infl = (bb or 0.0) * 1.0 + (rb or 0.0) * 0.75
+        rows[tkr] = {"plus_100bp_pct": cap(rb),
+                     "minus_100bp_pct": cap(-rb if rb is not None
+                                            else None),
+                     "recession_pct": cap(rec),
+                     "inflation_shock_pct": cap(infl)}
+    return {"note": SCENARIOS_NOTE, "assets": rows}
+
+
+def ledger_update(assets, y1):
+    """Monthly ER snapshots; edge-accuracy-style grading at 12m:
+    realized 12m PRICE return per asset vs forecast ER, sign-hit on
+    excess-vs-cash. Price-only (dividends excluded), stated."""
+    led = s3_json(LEDGER_KEY) or {}
+    entries = led.get("entries") or []
+    graded = led.get("graded") or []
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    def days(a, b):
+        return (datetime.strptime(a, "%Y-%m-%d")
+                - datetime.strptime(b, "%Y-%m-%d")).days
+    px_now = {a["ticker"]: a.get("price") for a in assets}
+    if not entries or days(today, entries[-1]["date"]) >= 28:
+        snap = {a["ticker"]: {"er_1y_pct": a["er_1y_pct"],
+                              "price": a.get("price")}
+                for a in assets
+                if a.get("er_1y_pct") is not None and a.get("price")}
+        if len(snap) >= 15:
+            entries.append({"date": today, "cash_rf_pct": y1,
+                            "n": len(snap), "assets": snap})
+            entries = entries[-120:]
+    done = {g["date"] for g in graded}
+    for e in entries:
+        if e["date"] in done or days(today, e["date"]) < 360:
+            continue
+        rows, hits, errs = [], 0, []
+        for t, sn in (e.get("assets") or {}).items():
+            p0, p1 = sn.get("price"), px_now.get(t)
+            if not (p0 and p1):
+                continue
+            realized = round((p1 / p0 - 1.0) * 100, 2)
+            err = round(realized - sn["er_1y_pct"], 2)
+            rf = e.get("cash_rf_pct") or 0.0
+            hit = (sn["er_1y_pct"] > rf) == (realized > rf)
+            hits += 1 if hit else 0
+            errs.append(abs(err))
+            rows.append({"ticker": t, "forecast_er_pct": sn["er_1y_pct"],
+                         "realized_12m_pct": realized, "error_pp": err,
+                         "hit_excess_vs_cash": hit})
+        if rows:
+            graded.append({"date": e["date"], "graded_at": today,
+                           "n": len(rows),
+                           "mae_pp": round(sum(errs) / len(errs), 2),
+                           "hit_rate_excess_vs_cash": round(
+                               100.0 * hits / len(rows), 1),
+                           "assets": rows})
+    led = {"method": "edge-accuracy style: monthly ER vectors graded "
+                     "at 12m; realized = price-only total (dividends "
+                     "excluded, stated); hit = sign agreement on "
+                     "excess-vs-cash", "entries": entries,
+           "graded": graded[-60:]}
+    S3.put_object(Bucket=BUCKET, Key=LEDGER_KEY,
+                  Body=json.dumps(led, separators=(",", ":")).encode(),
+                  ContentType="application/json",
+                  CacheControl="public, max-age=900")
+    first = entries[0]["date"] if entries else today
+    eta = (datetime.strptime(first, "%Y-%m-%d")
+           + timedelta(days=360)).strftime("%Y-%m-%d")
+    summary = {"entries_n": len(entries), "since": first,
+               "graded_n": len(graded)}
+    if graded:
+        g = graded[-1]
+        summary["latest_grade"] = {
+            "vintage": g["date"], "n": g["n"], "mae_pp": g["mae_pp"],
+            "hit_rate_excess_vs_cash": g["hit_rate_excess_vs_cash"]}
+    else:
+        summary["grading"] = "WARMING_UP"
+        summary["first_grade_eta"] = eta
+    return summary
+# ═══════════════════════════ end v1.2 block ═══════════════════════════
+
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     warns = []
@@ -918,8 +1127,23 @@ def lambda_handler(event, context):
          and y1 is not None and a["er_1y_pct"] > y1],
         key=lambda a: a["corr_spy_90d"])
 
+
+    # ── v1.2: correlations, factor betas, scenarios, forecast ledger ──
+    v12 = {}
+    try:
+        fb = factor_betas(bars, closes, fkey)
+        v12["factor_betas"] = fb
+        v12["correlations"] = corr_matrix_31(closes)
+        v12["scenarios"] = scenario_table(fb)
+    except Exception as e:
+        warns.append("v12 analytics: %s" % str(e)[:120])
+    try:
+        v12["forecast_ledger"] = ledger_update(assets, y1)
+    except Exception as e:
+        warns.append("v12 ledger: %s" % str(e)[:120])
+
     out = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "engine": "justhodl-asset-compass", "status": "PROVISIONAL",
         "macro_forward": {k: v for k, v in macro.items()
@@ -932,6 +1156,10 @@ def lambda_handler(event, context):
                   "gdx_vs_gold": beta_gdx_gold,
                   "gold_silver_ratio": gsr_now, "gsr_z_10y": gsr_z},
         "assets": assets,
+        "correlations": v12.get("correlations"),
+        "factor_betas": v12.get("factor_betas"),
+        "scenarios": v12.get("scenarios"),
+        "forecast_ledger": v12.get("forecast_ledger"),
         "boards": {
             "er_ranking": [{"ticker": a["ticker"], "label": a["label"],
                             "er_1y_pct": a["er_1y_pct"],
