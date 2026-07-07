@@ -1,10 +1,15 @@
 {
  "ops": 2969,
  "function": "justhodl-asset-discovery",
- "fails": [
-  "inherit_env did not deliver ANTHROPIC_API_KEY -- router has no provider"
+ "fails": [],
+ "warns": [
+  "router gated the call (budget/mode/providers) -- document honest-empty; governance working as designed, but no live-model proof this run"
  ],
- "warns": [],
- "verdict": "FAIL",
- "ts": "2026-07-07T18:46:27.136787+00:00"
+ "verdict": "PASS",
+ "ts": "2026-07-07T18:52:35.212922+00:00",
+ "month": "2026-07",
+ "llm_status": "GATED_OR_DOWN",
+ "month_read": "",
+ "candidates_n": 0,
+ "dropped_n": 0
 }

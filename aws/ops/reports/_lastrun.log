@@ -1,17 +1,18 @@
-executing-against: f993d7951aceb3c651215b5203a4bd89c63b8c55
-── 0. Facts: surviving env + donor bundle ──
-── 1. Fill-gaps merge + config update + re-read assert ──
-── 2. Re-verify Industry Compass on ORCL (fresh) ──
-[18:46:26] ✅ env restored (5 vars) + industry_compass proven on ORCL: Software - Infrastructure vs Software - Infrastructure (conf 1.0), gap_h -19.9pp, ER 20.4%, screen LAGGARD_CATCHUP
-[18:46:26] FAILS=0 WARNS=0
-[18:46:26] report written: /home/runner/work/si/si/aws/ops/reports/2968.json
-
-→ Report written to aws/ops/reports/latest/2968_er_env_restore.md
+executing-against: 2c72bcc9fac64fd5f2a400215e1174d2eeaf1be5
 ── 0. Context-feed probes from the runner ──
-── 1. Wait for deploy-lambdas to create justhodl-asset-discovery ──
-[18:46:27] ✗ inherit_env did not deliver ANTHROPIC_API_KEY -- router has no provider
-[18:46:27] FAILS=1 WARNS=0
-[18:46:27] report written: /home/runner/work/si/si/aws/ops/reports/2969.json
+── 1. Wait for deploy-lambdas: function + ANTHROPIC key ──
+── 2. Synchronous first run (this month's record) ──
+── 3. Hard verify data/asset-discovery.json ──
+[18:52:35] ✅ discovery live: 2026-07 llm=GATED_OR_DOWN candidates=0 (none) -- ''
+[18:52:35] FAILS=0 WARNS=1
+[18:52:35] report written: /home/runner/work/si/si/aws/ops/reports/2969.json
 
 → Report written to aws/ops/reports/latest/2969_asset_discovery.md
-❌ OPS-FAIL: aws/ops/pending/ops_2969_asset_discovery.py
+── 0. Wait for the pages deploy (live-site polling) ──
+── 1. Public /data/ proxy serves both engine JSONs ──
+── 2. Renderer wiring sanity in the live payloads ──
+[18:54:16] ✅ live: https://justhodl.ai/asset-compass.html (compass 0.9h old, er board 13, asym 10; discovery None/None) + why.html Industry Compass renderer
+[18:54:16] FAILS=0 WARNS=1
+[18:54:16] report written: /home/runner/work/si/si/aws/ops/reports/2970.json
+
+→ Report written to aws/ops/reports/latest/2970_asset_compass_page.md
