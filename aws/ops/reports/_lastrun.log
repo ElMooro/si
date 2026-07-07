@@ -1,5 +1,7 @@
-executing-against: aa67eea3409774b317cbcd545336b002d6937f82
-homepage=OperatorConsole:True nav=366 pages=12/12 drawer=12 engines=661 ki=57
-[01:04:23] ✅ homepage restore verified live end-to-end
+executing-against: 7c33709a99c681e54b65829b4955e4af10076849
+skin=True console=True scripts=31 pages=8/8 nav=366
+[01:15:58] ✗ script count drift (31 != 30)
+FAILURES: script count drift (31 != 30)
 
-→ Report written to aws/ops/reports/latest/2948_verify_homepage_restore.md
+→ Report written to aws/ops/reports/latest/2949_verify_amber_skin.md
+❌ OPS-FAIL: aws/ops/pending/ops_2949_verify_amber_skin.py
