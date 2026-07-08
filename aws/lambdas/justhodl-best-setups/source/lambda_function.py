@@ -301,7 +301,7 @@ def lambda_handler(event, context):
         "Consumer Cyclical": "Consumer Discretionary",
         "Consumer Defensive": "Consumer Staples",
         "Basic Materials": "Materials"}
-    _ind_by_sector, _ind_meta = {}, {}
+    _ind_by_sector, _ind_meta, _ind_credit = {}, {}, {}
     try:
         _ir = read_json("data/industry-rotation.json") or {}
         _gen = _ir.get("generated_at") or ""
@@ -314,6 +314,7 @@ def lambda_handler(event, context):
             pass
         if _age_h is not None and _age_h <= 60:
             _ind_by_sector = _ir.get("by_sector_name") or {}
+            _ind_credit = _ir.get("industry_credit") or {}
             _ind_meta = {"generated_at": _gen,
                          "age_h": round(_age_h, 1),
                          "sectors": len(_ind_by_sector),
@@ -333,16 +334,28 @@ def lambda_handler(event, context):
         sc = row["leadership_score"]
         m = 0.94 + 0.12 * (sc / 100.0)          # [0.94 .. 1.06]
         tag = row.get("tag")
-        if tag == "BREAKDOWN":
+        if tag == "CONFIRMED_DETERIORATION":
+            # price BREAKDOWN + balance-sheet DANGER agreeing --
+            # strictly worse than BREAKDOWN alone
+            m = max(0.85, m * 0.90)
+        elif tag == "BREAKDOWN":
             m = max(0.88, m * 0.93)
         if row.get("crowded"):
             m *= 0.98
+        cred = (_ind_credit.get(row.get("etf")) or {}).get("read")
+        if cred == "DANGER" and tag != "CONFIRMED_DETERIORATION":
+            # many distressed balance sheets inside the industry
+            # (Khalid's high-CDS rule) even without a price breakdown
+            m *= 0.95
         m = round(max(0.85, min(1.08, m)), 3)
-        note = ("INDUSTRY %s score %d%s%s"
+        note = ("INDUSTRY %s score %d%s%s%s"
                 % (row.get("etf"), sc,
-                   " BREAKDOWN" if tag == "BREAKDOWN" else
-                   (" ABSORPTION" if tag == "ABSORPTION" else ""),
-                   " CROWDED" if row.get("crowded") else ""))
+                   " CONFIRMED_DETERIORATION"
+                   if tag == "CONFIRMED_DETERIORATION" else
+                   (" BREAKDOWN" if tag == "BREAKDOWN" else
+                    (" ABSORPTION" if tag == "ABSORPTION" else "")),
+                   " CROWDED" if row.get("crowded") else "",
+                   " CREDIT-DANGER" if cred == "DANGER" else ""))
         return m, (note if abs(m - 1.0) > 0.004 else None), row
 
     # ── FACTOR-REGIME appetite prior (style ratios: factors trend).
@@ -884,7 +897,10 @@ def lambda_handler(event, context):
                 why_text += f" Cross-asset RORO is {_rr_regime} — {_rr_note.split('RORO ')[-1]} applied."
             if _ind_note:
                 why_text += f" {_ind_note}: its industry group is "
-                why_text += ("breaking down — conviction haircut."
+                why_text += ("breaking down with distressed balance "
+                             "sheets — strong haircut."
+                             if "CONFIRMED_DETERIORATION" in _ind_note
+                             else "breaking down — conviction haircut."
                              if "BREAKDOWN" in _ind_note else
                              ("a leadership group — conviction boost."
                               if _ind_mult > 1.0 else

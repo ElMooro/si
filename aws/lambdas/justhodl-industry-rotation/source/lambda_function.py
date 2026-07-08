@@ -233,6 +233,7 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             if mom3 is not None and len(spy) >= 64 else None)
     b = beta_to(closes, spy)
     ah = alpha_horizons(closes, spy, b)
+    raw = alpha_horizons(closes, spy, 0.0)   # beta=0 => raw returns
     dump_x, reb_x = dump_rebound(closes, spy)
     crowded = crowded_flag(closes, spy)
     score = 0
@@ -270,7 +271,7 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "ratio_slope_20d_pct": slope,
             "rel_mom_3m_pp": rel3, "rel_mom_pctile": pr,
             "beta_spy_1y": round(b, 2) if b is not None else None,
-            "alpha_mom": ah,
+            "alpha_mom": ah, "raw_mom": raw,
             "dump_day_excess_bps": dump_x,
             "rebound_excess_bps": reb_x,
             "crowded": crowded,
@@ -331,6 +332,46 @@ def soldiers_of(holdings, res_idx):
     hits = [dict(res_idx[h["ticker"]], weight_pct=h["weight_pct"])
             for h in holdings if h["ticker"] in res_idx]
     return hits[:8]
+
+
+def polygon_daily_cv(tkr, days=560):
+    """Closes + volumes (same aggs call carries both -- zero extra
+    API cost for the Raschke volume layer)."""
+    to = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    frm = (datetime.now(timezone.utc) - timedelta(days=days)
+           ).strftime("%Y-%m-%d")
+    d = _http("https://api.polygon.io/v2/aggs/ticker/%s/range/1/day/"
+              "%s/%s?adjusted=true&sort=asc&limit=5000&apiKey=%s"
+              % (tkr, frm, to, POLY))
+    bars = (d or {}).get("results") or []
+    return ([float(b["c"]) for b in bars],
+            [float(b.get("v") or 0) for b in bars])
+
+
+def volume_metrics(closes, vols):
+    """Email volume layer: up-vol vs down-vol (demand), recent volume
+    vs 50d avg (breakout fuel), pullback volume dry-up (selling
+    pressure weakening). Confirmation, not the main signal."""
+    n = min(len(closes), len(vols))
+    if n < 60:
+        return None
+    c, v = closes[-n:], vols[-n:]
+    up = dn = 0.0
+    for i in range(n - 20, n):
+        if c[i] > c[i - 1]:
+            up += v[i]
+        elif c[i] < c[i - 1]:
+            dn += v[i]
+    updown = round(up / dn, 2) if dn > 0 else None
+    v50 = sum(v[-50:]) / 50.0
+    v5 = sum(v[-5:]) / 5.0
+    vol_vs50 = round(100.0 * v5 / v50) if v50 > 0 else None
+    dn_days = [v[i] for i in range(n - 15, n) if c[i] < c[i - 1]]
+    dryup = (bool(sum(dn_days) / len(dn_days) < 0.9 * v50)
+             if dn_days and v50 > 0 else None)
+    return {"updown_vol_ratio_20d": updown,
+            "vol_5d_vs_50d_pct": vol_vs50,
+            "pullback_vol_dryup": dryup}
 
 
 def fmp_scores(tkr):
@@ -406,9 +447,9 @@ def lambda_handler(event=None, context=None):
     regime = regime_of(spy)
     rr = s3_json("data/risk-regime.json") or {}
 
-    closes = {}
+    closes, volumes = {}, {}
     for t in UNIVERSE:
-        closes[t] = polygon_daily(t)
+        closes[t], volumes[t] = polygon_daily_cv(t)
         if len(closes[t]) < 210:
             warns.append("%s: %d bars" % (t, len(closes[t])))
         time.sleep(0.14)
@@ -422,6 +463,58 @@ def lambda_handler(event=None, context=None):
 
     rows = [ladder_row(t, c, spy, regime, blend_pop)
             for t, c in closes.items() if len(c) >= 210]
+    for r in rows:
+        r["volume"] = volume_metrics(closes.get(r["etf"], []),
+                                     volumes.get(r["etf"], []))
+
+    # ── Raschke 100-pt scorecard (the email's exact weights):
+    # abs-mom 25 / rel-RS 25 / MA 15 / resilience 15 / breadth 10 /
+    # volume 5 / fundamental 5. breadth+fundamental need holdings
+    # (measured in the contenders pass below); until then
+    # basis=core85, honestly rescaled and labeled. ──
+    raw_pop = [x["raw_mom"]["blend"] for x in rows
+               if x["raw_mom"].get("blend") is not None]
+    dump_pop = [x["dump_day_excess_bps"] for x in rows
+                if x["dump_day_excess_bps"] is not None]
+    reb_pop = [x["rebound_excess_bps"] for x in rows
+               if x["rebound_excess_bps"] is not None]
+
+    def _band(sc):
+        return ("LEADERSHIP" if sc >= 80 else
+                "STRONG_WATCH" if sc >= 65 else
+                "NEUTRAL" if sc >= 50 else
+                "WEAK" if sc >= 35 else "AVOID")
+
+    for r in rows:
+        abs_c = (pct_rank(r["raw_mom"].get("blend"), raw_pop)
+                 or 50) / 100.0 * 25
+        rel_c = ((r["rel_mom_pctile"] or 50) / 100.0 * 15
+                 + (5 if r["ratio_above_50dma"] else 0)
+                 + (5 if r["ratio_3m_high"] else 0))
+        ma_c = ((6 if r["above_sma50"] else 0)
+                + (4 if r["above_sma100"] else 0)
+                + (5 if r["above_sma200"] else 0))
+        res_c = ((pct_rank(r["dump_day_excess_bps"], dump_pop)
+                  or 50) / 100.0 * 8
+                 + (pct_rank(r["rebound_excess_bps"], reb_pop)
+                    or 50) / 100.0 * 7)
+        vm = r.get("volume") or {}
+        ud = vm.get("updown_vol_ratio_20d")
+        vol_c = (5 if (ud or 0) >= 1.3 else
+                 3 if (ud or 0) >= 1.1 else
+                 1.5 if (ud or 0) >= 0.9 else
+                 0 if ud is not None else None)
+        core = abs_c + rel_c + ma_c + res_c + (vol_c or 0)
+        basis = 85 if vol_c is not None else 80
+        r["scorecard_components"] = {
+            "abs_mom_25": round(abs_c, 1), "rel_rs_25": round(rel_c, 1),
+            "ma_trend_15": ma_c, "resilience_15": round(res_c, 1),
+            "volume_5": vol_c, "breadth_10": None,
+            "fundamental_5": None}
+        r["scorecard_100"] = round(core * 100.0 / basis, 1)
+        r["scorecard_basis"] = "core%d" % basis
+        r["scorecard_band"] = _band(r["scorecard_100"])
+    rows.sort(key=lambda r: -(r.get("scorecard_100") or 0))
     rows.sort(key=lambda r: -r["leadership_score"])
 
     # self-accruing history -> 20d rank delta
@@ -481,6 +574,25 @@ def lambda_handler(event=None, context=None):
                 "read": ("BROAD" if pct >= 60
                          else "NARROW" if pct < 40 else "MIXED")}
 
+    rev_pos = set(pead_pos)
+    try:
+        er = s3_json("data/estimate-revisions.json") or {}
+        for r_ in (er.get("top_picks") or []):
+            t_ = r_.get("ticker")
+            if t_ and (r_.get("eps_rev_pct") or r_.get("score")
+                       or 0) > 0:
+                rev_pos.add(t_.upper())
+    except Exception:
+        pass
+
+    def fundamental_confirm(holds):
+        if not holds:
+            return None
+        n = min(8, len(holds))
+        hits = sum(1 for h in holds[:n]
+                   if h["ticker"].upper() in rev_pos)
+        return round(100.0 * hits / n)
+
     leaders = []
     for r in rows[:5]:
         holds, reason = None, "not attempted"
@@ -504,10 +616,27 @@ def lambda_handler(event=None, context=None):
                 x["vs_etf_3m_pp"] = round(s3m - etf_3m, 1)
                 x["vs_spy_3m_pp"] = round(s3m - spy_3m, 1)
                 x["chain_intact"] = bool(s3m > etf_3m > spy_3m)
+        br = breadth_of(holds)
+        fc = fundamental_confirm(holds)
+        if br is not None and r.get("scorecard_100") is not None:
+            comp = r["scorecard_components"]
+            comp["breadth_10"] = round(br["pct_above_50d"] / 10.0, 1)
+            comp["fundamental_5"] = (round(min(5.0, fc / 10.0), 1)
+                                     if fc is not None else None)
+            core = (comp["abs_mom_25"] + comp["rel_rs_25"]
+                    + comp["ma_trend_15"] + comp["resilience_15"]
+                    + (comp["volume_5"] or 0) + comp["breadth_10"]
+                    + (comp["fundamental_5"] or 0))
+            basis = (85 if comp["volume_5"] is not None else 80) \
+                + 10 + (5 if comp["fundamental_5"] is not None else 0)
+            r["scorecard_100"] = round(core * 100.0 / basis, 1)
+            r["scorecard_basis"] = "full%d" % basis
+            r["scorecard_band"] = _band(r["scorecard_100"])
+        r["fundamental_confirm_pct"] = fc
         leaders.append(dict(
             r, holdings_top=holds,
             holdings_reason=(None if holds else reason),
-            breadth=breadth_of(holds),
+            breadth=br, fundamental_confirm_pct=fc,
             resilient_names=sold))
 
     # ── industry credit-danger: leaders + breakdown cluster ──
@@ -549,6 +678,30 @@ def lambda_handler(event=None, context=None):
             if r_["tag"] == "BREAKDOWN" and c.get("read") == "DANGER":
                 r_["tag"] = "CONFIRMED_DETERIORATION"
 
+    try:
+        fl = s3_json("data/etf-fund-flows.json") or {}
+        fmap = {}
+
+        def _fw(o):
+            if isinstance(o, dict):
+                t = o.get("ticker")
+                if t and ("flow_21d_usd" in o or "flow_5d_usd" in o):
+                    fmap.setdefault(
+                        t.upper(),
+                        {"flow_21d_usd": o.get("flow_21d_usd"),
+                         "flow_label": o.get("label")})
+                for v_ in o.values():
+                    _fw(v_)
+            elif isinstance(o, list):
+                for v_ in o:
+                    _fw(v_)
+        _fw(fl)
+        for r in rows:
+            if r["etf"] in fmap:
+                r["fund_flows"] = fmap[r["etf"]]
+    except Exception:
+        pass
+
     fv = s3_json("data/finviz-groups.json") or {}
     by_sector = {}
     for r in rows:
@@ -559,7 +712,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "2.1",
+        "engine": "justhodl-industry-rotation", "version": "3.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -584,6 +737,7 @@ def lambda_handler(event=None, context=None):
             "dump_rebound": "mean excess bps/day on SPY worst-decile / "
                             "best-decile days, trailing 126d -- the "
                             "weakness and rebound tests quantified",
+            "scorecard_100": "Raschke weights abs25/relRS25/MA15/resilience15/breadth10/vol5/fund5; partial data honestly rescaled with scorecard_basis; bands 80+ LEADERSHIP / 65 STRONG_WATCH / 50 NEUTRAL / 35 WEAK / <35 AVOID",
             "industry_credit": "per-name Altman-Z aggregation (Z<1.8 distress); DANGER when >=30% distressed or median<1.8 -- the many-high-CDS rule on the honest free proxy; banks excluded (Altman invalid), covered by cds-proxy sector OAS",
             "crowded": "2y RS line >=95th own-percentile + 20d ratio "
                        "slope negative (long-horizon reversal caution)",
