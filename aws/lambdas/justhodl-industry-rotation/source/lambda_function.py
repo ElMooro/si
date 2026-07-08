@@ -70,7 +70,14 @@ INDUSTRIES = {
     "URA": ("Uranium", "Energy"),
     "KWEB": ("China Internet", "Communication Services"),
     "LIT": ("Lithium & Battery", "Materials"),
-    "PAVE": ("Infrastructure", "Industrials")}
+    "PAVE": ("Infrastructure", "Industrials"),
+    "XES": ("Oil Equipment & Svcs", "Energy"),
+    "COPX": ("Copper Miners", "Materials"),
+    "XAR": ("Aerospace & Defense Eq", "Industrials"),
+    "GRID": ("Smart Grid / Electrification", "Utilities"),
+    "WCLD": ("Cloud Software", "Technology"),
+    "XTN": ("Transportation Eq", "Industrials"),
+    "XHB": ("Homebuilders Broad", "Consumer Discretionary")}
 UNIVERSE = list(SECTORS) + list(INDUSTRIES)
 
 
@@ -237,6 +244,15 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
     pr = pct_rank(ah.get("blend"), blend_pop)
     score += round((pr or 0) / 5.0)          # 0-20
     score = min(100, score)
+    ratio_3m_high = bool(len(ratio) >= 63
+                         and ratio[-1] >= max(ratio[-63:]))
+    if dump_x is not None and reb_x is not None:
+        res_read = ("RESILIENT_LEADER" if dump_x > 0 and reb_x > 0
+                    else "DEFENSIVE_ONLY" if dump_x > 0
+                    else "HIGH_BETA_PROFILE" if reb_x > 0
+                    else "WEAK_BOTH_WAYS")
+    else:
+        res_read = None
     tag = None
     if regime == "WEAK" and ab50 and (slope or 0) > 0 and score >= 65:
         tag = "ABSORPTION"
@@ -258,6 +274,8 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "dump_day_excess_bps": dump_x,
             "rebound_excess_bps": reb_x,
             "crowded": crowded,
+            "ratio_3m_high": ratio_3m_high,
+            "resilience_read": res_read,
             "leadership_score": score, "tag": tag}
 
 
@@ -313,6 +331,70 @@ def soldiers_of(holdings, res_idx):
     hits = [dict(res_idx[h["ticker"]], weight_pct=h["weight_pct"])
             for h in holdings if h["ticker"] in res_idx]
     return hits[:8]
+
+
+def fmp_scores(tkr):
+    if not FMP:
+        return None
+    d = _http("https://financialmodelingprep.com/stable/"
+              "financial-scores?symbol=%s&apikey=%s" % (tkr, FMP))
+    if isinstance(d, list) and d:
+        d = d[0]
+    if not isinstance(d, dict):
+        return None
+    z = d.get("altmanZScore")
+    try:
+        return float(z) if z is not None else None
+    except Exception:
+        return None
+
+
+def industry_credit(etfs, holdings_by_etf, warns):
+    """Khalid's CDS doctrine with honest free data: real single-name
+    CDS is paywalled ($20K+/yr, per justhodl-cds-proxy), so the
+    per-company credit proxy is Altman Z (the standard distress score
+    already used fleet-wide). An industry is IN DANGER when many of
+    its own companies screen distressed -- exactly the many-high-CDS
+    rule, on the balance-sheet proxy. Z<1.8 distress, 1.8-3 grey.
+    Financials excluded per-name (Altman is invalid for banks --
+    standard practice; sector-level OAS from cds-proxy covers them).
+    """
+    out = {}
+    fin_skip = {"XLF", "KRE", "KBE"}
+    for etf in etfs:
+        holds = holdings_by_etf.get(etf) or []
+        if not holds:
+            continue
+        if etf in fin_skip:
+            out[etf] = {"read": "N/A_FINANCIALS",
+                        "note": "Altman invalid for banks; see "
+                                "cds-proxy sector OAS"}
+            continue
+        zs = []
+        for h in holds[:8]:
+            try:
+                z = fmp_scores(h["ticker"])
+            except Exception:
+                z = None
+            if z is not None and -10 < z < 100:
+                zs.append(z)
+            time.sleep(0.1)
+        if len(zs) < 4:
+            out[etf] = {"read": "INSUFFICIENT",
+                        "n_scored": len(zs)}
+            continue
+        zs.sort()
+        med = zs[len(zs) // 2]
+        distress = round(100.0 * sum(1 for z in zs if z < 1.8)
+                         / len(zs))
+        grey = round(100.0 * sum(1 for z in zs if 1.8 <= z < 3.0)
+                     / len(zs))
+        read = ("DANGER" if distress >= 30 or med < 1.8 else
+                "WATCH" if distress >= 15 or med < 2.5 else "OK")
+        out[etf] = {"n_scored": len(zs), "median_z": round(med, 2),
+                    "distress_pct": distress, "grey_pct": grey,
+                    "read": read}
+    return out
 
 
 def lambda_handler(event=None, context=None):
@@ -409,13 +491,63 @@ def lambda_handler(event=None, context=None):
         if holds is None:
             warns.append("holdings skip %s: %s" % (r["etf"], reason))
         sold = soldiers_of(holds, res_idx)
+        etf_3m = _ret(closes.get(r["etf"], []), 64, 1)
+        spy_3m = _ret(spy, 64, 1)
         for x in sold:
             x["pead"] = x["ticker"].upper() in pead_pos
+            t = x["ticker"]
+            if t not in hold_cache:
+                hold_cache[t] = polygon_daily(t, 220)
+                time.sleep(0.12)
+            s3m = _ret(hold_cache[t], 64, 1)
+            if None not in (s3m, etf_3m, spy_3m):
+                x["vs_etf_3m_pp"] = round(s3m - etf_3m, 1)
+                x["vs_spy_3m_pp"] = round(s3m - spy_3m, 1)
+                x["chain_intact"] = bool(s3m > etf_3m > spy_3m)
         leaders.append(dict(
             r, holdings_top=holds,
             holdings_reason=(None if holds else reason),
             breadth=breadth_of(holds),
             resilient_names=sold))
+
+    # ── industry credit-danger: leaders + breakdown cluster ──
+    holdings_by_etf = {l["etf"]: l.get("holdings_top") for l in leaders}
+    bkdn_rows = [r for r in rows if r["tag"] == "BREAKDOWN"][:8]
+    for r_ in bkdn_rows:
+        if r_["etf"] not in holdings_by_etf:
+            try:
+                h_, why_ = fmp_holdings(r_["etf"])
+            except Exception as e:
+                h_, why_ = None, str(e)[:80]
+            if h_ is None:
+                warns.append("bkdn holdings skip %s: %s"
+                             % (r_["etf"], why_))
+            holdings_by_etf[r_["etf"]] = h_
+    credit = {}
+    try:
+        credit = industry_credit(list(holdings_by_etf),
+                                 holdings_by_etf, warns)
+    except Exception as e:
+        warns.append("industry_credit: %s" % str(e)[:100])
+    # sector-level OAS enrichment from the existing cds-proxy engine
+    try:
+        cp = s3_json("data/cds-proxy.json") or {}
+        for etf, sec in (("XLF", "financials"), ("XLE", "energy"),
+                         ("XLK", "tech"), ("XLRE", "reits")):
+            row_ = (cp.get("sectors") or {}).get(sec)
+            if row_ and etf in credit:
+                credit[etf]["sector_oas"] = row_
+            elif row_:
+                credit[etf] = {"read": "SECTOR_OAS_ONLY",
+                               "sector_oas": row_}
+    except Exception:
+        pass
+    for r_ in rows:
+        c = credit.get(r_["etf"])
+        if c:
+            r_["credit_read"] = c.get("read")
+            if r_["tag"] == "BREAKDOWN" and c.get("read") == "DANGER":
+                r_["tag"] = "CONFIRMED_DETERIORATION"
 
     fv = s3_json("data/finviz-groups.json") or {}
     by_sector = {}
@@ -427,7 +559,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "2.0",
+        "engine": "justhodl-industry-rotation", "version": "2.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -452,6 +584,7 @@ def lambda_handler(event=None, context=None):
             "dump_rebound": "mean excess bps/day on SPY worst-decile / "
                             "best-decile days, trailing 126d -- the "
                             "weakness and rebound tests quantified",
+            "industry_credit": "per-name Altman-Z aggregation (Z<1.8 distress); DANGER when >=30% distressed or median<1.8 -- the many-high-CDS rule on the honest free proxy; banks excluded (Altman invalid), covered by cds-proxy sector OAS",
             "crowded": "2y RS line >=95th own-percentile + 20d ratio "
                        "slope negative (long-horizon reversal caution)",
             "breadth": "leaders: % of holdings above own 50d; "
@@ -465,6 +598,7 @@ def lambda_handler(event=None, context=None):
         "breakdown_watch": [r["etf"] for r in rows
                             if r["tag"] == "BREAKDOWN"],
         "by_sector_name": by_sector,
+        "industry_credit": credit,
         "finviz_sector_perf_attached": bool(fv),
         "score_history": hist,
         "rank_note": rank_note,
