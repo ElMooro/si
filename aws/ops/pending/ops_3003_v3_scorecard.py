@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3002 -- THEORY-STACK UPGRADE verify (Khalid email, 15-theory
+"""ops 3003 -- THEORY-STACK UPGRADE verify (Khalid email, 15-theory
 institutional blueprint applied where genuinely missing):
 (A) industry-rotation v2.0: Jegadeesh-Titman skip-month multi-horizon
     momentum, beta-adjusted alpha-RS (BAB separation), quantified
@@ -77,8 +77,8 @@ def invoke(fn):
 
 def main():
     fails, warns = [], []
-    out = {"ops": 3002, "ts": datetime.now(timezone.utc).isoformat()}
-    with report("3002_v3_scorecard") as rep:
+    out = {"ops": 3003, "ts": datetime.now(timezone.utc).isoformat()}
+    with report("3003_v3_scorecard") as rep:
 
         rep.section("1. Gates + factor-regime bootstrap")
         time.sleep(75)
@@ -358,7 +358,7 @@ def main():
 def _w(rep, out, fails, warns):
     out["fails"], out["warns"] = fails, warns
     out["verdict"] = "PASS" if not fails else "FAIL"
-    (AWS_DIR / "ops" / "reports" / "3002.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3003.json").write_text(
         json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     if fails:
@@ -371,8 +371,8 @@ except SystemExit:
     raise
 except Exception as e:
     import traceback
-    (AWS_DIR / "ops" / "reports" / "3002.json").write_text(json.dumps(
-        {"ops": 3002, "verdict": "FAIL",
+    (AWS_DIR / "ops" / "reports" / "3003.json").write_text(json.dumps(
+        {"ops": 3003, "verdict": "FAIL",
          "fails": ["CRASH: %s" % str(e)[:200]],
          "trace": traceback.format_exc()[-1500:],
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))

@@ -489,7 +489,7 @@ def lambda_handler(event=None, context=None):
         abs_c = (pct_rank(r["raw_mom"].get("blend"), raw_pop)
                  or 50) / 100.0 * 25
         rel_c = ((r["rel_mom_pctile"] or 50) / 100.0 * 15
-                 + (5 if r["ratio_above_50dma"] else 0)
+                 + (5 if r["ratio_above_50d"] else 0)
                  + (5 if r["ratio_3m_high"] else 0))
         ma_c = ((6 if r["above_sma50"] else 0)
                 + (4 if r["above_sma100"] else 0)
