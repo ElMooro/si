@@ -678,24 +678,34 @@ def lambda_handler(event=None, context=None):
             if r_["tag"] == "BREAKDOWN" and c.get("read") == "DANGER":
                 r_["tag"] = "CONFIRMED_DETERIORATION"
 
-    # Fund-flows live as PER-TICKER files under etf-flows/{T}.json
-    # (verified: the summary doc carries no per-ticker rows). 40 cheap
-    # S3 reads, display-only, each defensive.
+    # Fund-flows: the writer produces etf-flows/daily.json with a
+    # per-ticker "metrics" map (verified in its put_object calls --
+    # there are NO per-ticker files). One read, defensive to
+    # dict-keyed or list-of-rows shapes. Display-only.
     flows_hit = 0
-    for r in rows:
-        try:
-            fj = s3_json("etf-flows/%s.json" % r["etf"])
-            if isinstance(fj, dict):
-                node = fj if "flow_21d_usd" in fj else next(
-                    (v for v in fj.values() if isinstance(v, dict)
-                     and "flow_21d_usd" in v), None)
-                if node:
-                    r["fund_flows"] = {
-                        "flow_21d_usd": node.get("flow_21d_usd"),
-                        "flow_label": node.get("label")}
-                    flows_hit += 1
-        except Exception:
-            continue
+    try:
+        fd = s3_json("etf-flows/daily.json") or {}
+        met = fd.get("metrics") or {}
+        fmap = {}
+        if isinstance(met, dict):
+            for k, v in met.items():
+                if isinstance(v, dict):
+                    t = (v.get("ticker") or k or "").upper()
+                    if "flow_21d_usd" in v or "flow_5d_usd" in v:
+                        fmap[t] = v
+        elif isinstance(met, list):
+            for v in met:
+                if isinstance(v, dict) and v.get("ticker"):
+                    fmap[v["ticker"].upper()] = v
+        for r in rows:
+            v = fmap.get(r["etf"])
+            if v:
+                r["fund_flows"] = {
+                    "flow_21d_usd": v.get("flow_21d_usd"),
+                    "flow_label": v.get("label")}
+                flows_hit += 1
+    except Exception as e:
+        warns.append("flows join err: %s" % str(e)[:80])
     warns.append("fund_flows joined: %d/%d" % (flows_hit, len(rows)))
 
     fv = s3_json("data/finviz-groups.json") or {}
