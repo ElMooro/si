@@ -114,6 +114,88 @@ def pct_rank(x, pop):
     return round(100.0 * sum(1 for p in pop if p <= x) / len(pop), 1)
 
 
+def beta_to(etf, spy, n=252):
+    m = min(len(etf), len(spy), n + 1)
+    if m < 130:
+        return None
+    re = [etf[-m + i + 1] / etf[-m + i] - 1 for i in range(m - 1)
+          if etf[-m + i]]
+    rs = [spy[-m + i + 1] / spy[-m + i] - 1 for i in range(m - 1)
+          if spy[-m + i]]
+    k = min(len(re), len(rs))
+    re, rs = re[-k:], rs[-k:]
+    mu_e, mu_s = sum(re) / k, sum(rs) / k
+    var = sum((x - mu_s) ** 2 for x in rs)
+    if var <= 0:
+        return None
+    return sum((a - mu_e) * (b - mu_s) for a, b in zip(re, rs)) / var
+
+
+def _ret(c, a, b):
+    """% return from index -a to index -b (a>b), None if short."""
+    if len(c) < a or not c[-a]:
+        return None
+    return (c[-b] / c[-a] - 1.0) * 100
+
+
+def alpha_horizons(etf, spy, b):
+    """Jegadeesh-Titman skip-month + beta-adjusted (BAB separation):
+    alpha_h = ETF_h - beta*SPY_h, horizons 3m raw, 6m and 12m each
+    SKIPPING the most recent month (reversal noise)."""
+    if b is None:
+        b = 1.0
+    out = {}
+    for key, a, e in (("3m", 64, 1), ("6m_skip", 148, 22),
+                      ("12m1_skip", 274, 22)):
+        re_, rs_ = _ret(etf, a, e), _ret(spy, a, e)
+        out[key] = (round(re_ - b * rs_, 2)
+                    if None not in (re_, rs_) else None)
+    w = {"3m": 0.5, "6m_skip": 0.3, "12m1_skip": 0.2}
+    parts = [(w[k], v) for k, v in out.items() if v is not None]
+    out["blend"] = (round(sum(wt * v for wt, v in parts)
+                          / sum(wt for wt, _ in parts), 2)
+                    if parts else None)
+    return out
+
+
+def dump_rebound(etf, spy, look=126):
+    """The email's weakness + rebound tests, QUANTIFIED: mean excess
+    return (bps/day) on SPY's worst-decile and best-decile days in the
+    trailing window. Positive dump excess = refuses to break = hidden
+    demand."""
+    m = min(len(etf), len(spy), look + 1)
+    if m < 60:
+        return None, None
+    re = [etf[-m + i + 1] / etf[-m + i] - 1 for i in range(m - 1)]
+    rs = [spy[-m + i + 1] / spy[-m + i] - 1 for i in range(m - 1)]
+    srt = sorted(rs)
+    k = max(6, len(rs) // 10)
+    lo, hi = srt[k - 1], srt[-k]
+    dumps = [(a - b) for a, b in zip(re, rs) if b <= lo]
+    pops = [(a - b) for a, b in zip(re, rs) if b >= hi]
+    d = round(sum(dumps) / len(dumps) * 10000) if len(dumps) >= 6 else None
+    r = round(sum(pops) / len(pops) * 10000) if len(pops) >= 6 else None
+    return d, r
+
+
+def crowded_flag(etf, spy):
+    """De Bondt-Thaler long-horizon caution: 2y relative-strength line
+    at its 95th+ percentile of its own range AND 20d ratio slope now
+    negative -> extended + decelerating = CROWDED."""
+    m = min(len(etf), len(spy))
+    if m < 300:
+        return False
+    r = [etf[-m + i] / spy[-m + i] for i in range(m) if spy[-m + i]]
+    cur = r[-1]
+    peak = max(r[-21:])
+    cur_p = 100.0 * sum(1 for x in r if x <= cur) / len(r)
+    peak_p = 100.0 * sum(1 for x in r if x <= peak) / len(r)
+    slope20 = (r[-1] / r[-21] - 1.0) if len(r) >= 21 and r[-21] else 0
+    # peak at extreme highs within the month, still elevated now,
+    # rolling over -- but NOT already broken (that's BREAKDOWN's job)
+    return peak_p >= 95.0 and cur_p >= 85.0 and slope20 < 0
+
+
 def regime_of(spy):
     px = spy[-1]
     s20, s50 = sma(spy, 20), sma(spy, 50)
@@ -125,7 +207,7 @@ def regime_of(spy):
     return "NEUTRAL"
 
 
-def ladder_row(tkr, closes, spy, regime, mom3_pop):
+def ladder_row(tkr, closes, spy, regime, blend_pop):
     px = closes[-1]
     s50, s100, s200 = sma(closes, 50), sma(closes, 100), sma(closes, 200)
     ab50 = bool(s50 and px > s50)
@@ -142,13 +224,17 @@ def ladder_row(tkr, closes, spy, regime, mom3_pop):
                   * 100, 2) if len(closes) >= 64 else None)
     rel3 = (round(mom3 - ((spy[-1] / spy[-64] - 1.0) * 100), 2)
             if mom3 is not None and len(spy) >= 64 else None)
+    b = beta_to(closes, spy)
+    ah = alpha_horizons(closes, spy, b)
+    dump_x, reb_x = dump_rebound(closes, spy)
+    crowded = crowded_flag(closes, spy)
     score = 0
     score += 20 if ab50 else 0
     score += 15 if ab100 else 0
     score += 15 if ab200 else 0
     score += 15 if ratio_above else 0
     score += 15 if (slope or 0) > 0 else 0
-    pr = pct_rank(rel3, mom3_pop)
+    pr = pct_rank(ah.get("blend"), blend_pop)
     score += round((pr or 0) / 5.0)          # 0-20
     score = min(100, score)
     tag = None
@@ -167,6 +253,11 @@ def ladder_row(tkr, closes, spy, regime, mom3_pop):
             "above_sma200": ab200, "ratio_above_50d": ratio_above,
             "ratio_slope_20d_pct": slope,
             "rel_mom_3m_pp": rel3, "rel_mom_pctile": pr,
+            "beta_spy_1y": round(b, 2) if b is not None else None,
+            "alpha_mom": ah,
+            "dump_day_excess_bps": dump_x,
+            "rebound_excess_bps": reb_x,
+            "crowded": crowded,
             "leadership_score": score, "tag": tag}
 
 
@@ -240,13 +331,14 @@ def lambda_handler(event=None, context=None):
             warns.append("%s: %d bars" % (t, len(closes[t])))
         time.sleep(0.14)
 
-    mom3_pop = []
+    blend_pop = []
     for t, c in closes.items():
-        if len(c) >= 64 and len(spy) >= 64:
-            mom3_pop.append((c[-1] / c[-64] - 1.0) * 100
-                            - (spy[-1] / spy[-64] - 1.0) * 100)
+        if len(c) >= 148:
+            v = alpha_horizons(c, spy, beta_to(c, spy)).get("blend")
+            if v is not None:
+                blend_pop.append(v)
 
-    rows = [ladder_row(t, c, spy, regime, mom3_pop)
+    rows = [ladder_row(t, c, spy, regime, blend_pop)
             for t, c in closes.items() if len(c) >= 210]
     rows.sort(key=lambda r: -r["leadership_score"])
 
@@ -273,6 +365,40 @@ def lambda_handler(event=None, context=None):
     res_doc = s3_json("data/resilience.json")
     res_idx = resilience_index(res_doc)
     warns.append("resilience_index: %d tickers loaded" % len(res_idx))
+    pead_pos = set()
+    try:
+        et = s3_json("data/earnings-tracker.json") or {}
+        for r_ in (et.get("pead_signals") or []):
+            if (r_.get("eps_surprise_pct") or 0) > 0 and r_.get("ticker"):
+                pead_pos.add(r_["ticker"].upper())
+    except Exception:
+        pass
+    hold_cache = {}
+
+    def breadth_of(holds):
+        """Hong-Stein diffusion / email step 5: % of the army's own
+        soldiers above their 50d. BROAD>=60, NARROW<40 (one-megacap
+        warning)."""
+        if not holds:
+            return None
+        above = tot = 0
+        for h in holds:
+            t = h["ticker"]
+            if t not in hold_cache:
+                hold_cache[t] = polygon_daily(t, 220)
+                time.sleep(0.12)
+            c = hold_cache[t]
+            s50 = sma(c, 50)
+            if s50 and c:
+                tot += 1
+                above += 1 if c[-1] > s50 else 0
+        if not tot:
+            return None
+        pct = round(100.0 * above / tot)
+        return {"pct_above_50d": pct, "n_priced": tot,
+                "read": ("BROAD" if pct >= 60
+                         else "NARROW" if pct < 40 else "MIXED")}
+
     leaders = []
     for r in rows[:5]:
         holds, reason = None, "not attempted"
@@ -282,10 +408,14 @@ def lambda_handler(event=None, context=None):
             reason = str(e)[:100]
         if holds is None:
             warns.append("holdings skip %s: %s" % (r["etf"], reason))
+        sold = soldiers_of(holds, res_idx)
+        for x in sold:
+            x["pead"] = x["ticker"].upper() in pead_pos
         leaders.append(dict(
             r, holdings_top=holds,
             holdings_reason=(None if holds else reason),
-            resilient_names=soldiers_of(holds, res_idx)))
+            breadth=breadth_of(holds),
+            resilient_names=sold))
 
     fv = s3_json("data/finviz-groups.json") or {}
     by_sector = {}
@@ -297,7 +427,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "1.0",
+        "engine": "justhodl-industry-rotation", "version": "2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -313,7 +443,19 @@ def lambda_handler(event=None, context=None):
         "method": {
             "leadership_score": "SMA50 +20, SMA100 +15, SMA200 +15, "
                                 "ratio>50dMA +15, ratio 20d slope>0 "
-                                "+15, 3m rel-mom percentile /5 (0-20)",
+                                "+15, alpha-momentum blend percentile "
+                                "/5 (0-20)",
+            "alpha_momentum": "beta-adjusted (1y OLS) excess returns; "
+                              "blend = 0.5*3m + 0.3*6m-skip-month + "
+                              "0.2*12m-minus-1m (Jegadeesh-Titman skip "
+                              "+ BAB separation of RS from beta)",
+            "dump_rebound": "mean excess bps/day on SPY worst-decile / "
+                            "best-decile days, trailing 126d -- the "
+                            "weakness and rebound tests quantified",
+            "crowded": "2y RS line >=95th own-percentile + 20d ratio "
+                       "slope negative (long-horizon reversal caution)",
+            "breadth": "leaders: % of holdings above own 50d; "
+                       "BROAD>=60 / NARROW<40",
             "absorption": "regime WEAK + above SMA50 + rising ratio + "
                           "score>=65", "universe_n": len(rows)},
         "ladder": rows,

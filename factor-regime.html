@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Factor Regime · JustHodl.AI</title>
+<meta name="description" content="Style-ETF ratio trend and thrust detector: which factor regimes are leading, basing, or thrusting — the stock-altseason radar.">
+<style>
+:root{--bg-base:#07090f;--bg-raised:#0e1320;--border:rgba(120,145,180,0.12);--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--green:#38ffa8;--red:#ff5470;--amber:#ffb13d;--cyan:#00d4ff;--violet:#a78bfa;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:21px;font-weight:700}
+.fresh{font-family:var(--font-mono);font-size:10px;color:var(--fg-3)}
+.sub{color:var(--fg-3);font-size:12px;margin:4px 0 16px}
+.banner{border:1px solid var(--border);border-radius:4px;padding:12px 16px;background:var(--bg-raised);display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+.banner b{font-size:17px}
+.RISK_ON{color:var(--green)}.RISK_OFF{color:var(--red)}.MIXED{color:var(--amber)}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:8px;text-transform:none;letter-spacing:0}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:13px 15px}
+table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px}
+.tbl th{color:var(--fg-3);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:5px 8px;border-bottom:1px solid rgba(120,145,180,0.06)}
+.st{font-size:9px;font-weight:700;letter-spacing:.8px;padding:2px 7px;border-radius:3px}
+.st.LEADING{background:rgba(56,255,168,.12);color:var(--green);border:1px solid rgba(56,255,168,.4)}
+.st.FADING{background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)}
+.st.BASING{background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)}
+.st.LAGGING{background:rgba(255,84,112,.10);color:var(--red);border:1px solid rgba(255,84,112,.35)}
+.st.THRUST{background:rgba(167,139,250,.14);color:var(--violet);border:1px solid rgba(167,139,250,.5)}
+.up{color:var(--green)}.dn{color:var(--red)}
+.meth{margin-top:30px;color:var(--fg-3);font-size:11px;border-top:1px dashed var(--border);padding-top:12px}
+#err{color:var(--red);font-family:var(--font-mono);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg"><h1>🧭 Factor Regime</h1><span class="fresh" id="fresh">loading…</span></header>
+  <div class="sub">Factors themselves trend. Each row is a style ratio (numerator vs denominator ETF): its trend state against its own 50-day average, and <b>THRUST</b> — a ratio that based below its average for weeks and just crossed up, which can mark a new leadership regime for that style. This is the tradeable-regime view; <a href="/factor-returns.html">factor-returns</a> is the complementary daily cross-sectional factor P&L from the full stock universe.</div>
+  <div id="err"></div>
+  <div class="banner" id="banner"></div>
+
+  <section id="thrsec" style="display:none">
+    <h2>Fresh Thrusts <span class="n">based below the 50d ratio MA ≥40 of the last 60 sessions, crossed up within 10 — the altseason tell</span></h2>
+    <div class="card" id="thr"></div>
+  </section>
+
+  <section>
+    <h2>Style Ratio Board <span class="n">state = above/below own 50d MA × 20d slope</span></h2>
+    <div class="card" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+  </section>
+
+  <div class="meth" id="meth"></div>
+</div>
+<script>
+(function(){
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fetchJSON(p){var t=Date.now();
+  return fetch(p+"?v="+t).then(function(r){if(!r.ok)throw 0;return r.json();})
+  .catch(function(){return fetch("https://justhodl.ai/"+p+"?v="+t).then(function(r){return r.json();});});}
+fetchJSON("data/factor-regime.json").then(function(d){
+  document.getElementById("fresh").textContent="generated "+(d.generated_at||"").slice(0,16).replace("T"," ")+"Z";
+  var ra=d.risk_appetite_score, rr=d.risk_appetite_read||"—";
+  document.getElementById("banner").innerHTML=
+    '<div><span style="font-size:10px;color:var(--fg-3)">RISK APPETITE (style-ratio z composite)</span><br><b class="'+esc(rr)+'">'+(ra==null?"—":(ra>0?"+":"")+ra)+" · "+esc(rr)+"</b></div>"+
+    '<div><span style="font-size:10px;color:var(--fg-3)">LEADING STYLES</span><br><b style="font-size:13px">'+((d.leading_styles||[]).map(esc).join(" · ")||"none")+"</b></div>"+
+    '<div style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">thrusts: '+((d.thrusts||[]).length)+"</div>";
+  if((d.thrusts||[]).length){
+    document.getElementById("thrsec").style.display="";
+    document.getElementById("thr").innerHTML=(d.thrusts||[]).map(function(t){return '<div style="padding:4px 0"><span class="st THRUST">THRUST</span> &nbsp;<b>'+esc(t)+"</b></div>";}).join("");
+  }
+  document.getElementById("tbl").innerHTML=
+    "<tr><th>Ratio</th><th>What it measures</th><th>State</th><th>20d</th><th>63d</th><th>z 1y</th><th></th></tr>"+
+    (d.pairs||[]).map(function(r){
+      if(r.error)return "<tr><td><b>"+esc(r.pair)+"</b></td><td colspan=6 style=\"color:var(--fg-3)\">"+esc(r.error)+"</td></tr>";
+      function sl(v){return v==null?"<td>—</td>":'<td class="'+(v>0?"up":(v<0?"dn":""))+'">'+(v>0?"+":"")+v+"%</td>";}
+      return "<tr><td><b>"+esc(r.pair)+"</b></td><td style=\"color:var(--fg-3)\">"+esc(r.note)+'</td><td><span class="st '+esc(r.state)+'">'+esc(r.state)+"</span></td>"+sl(r.slope_20d_pct)+sl(r.slope_63d_pct)+
+      '<td class="'+((r.z_1y||0)>0?"up":"dn")+'">'+(r.z_1y==null?"—":r.z_1y)+"</td><td>"+(r.thrust?'<span class="st THRUST">THRUST</span>':"")+"</td></tr>";
+    }).join("");
+  var mm=d.method||{};
+  document.getElementById("meth").innerHTML="<b>Method.</b> State: "+esc(mm.state)+". Thrust: "+esc(mm.thrust)+". Risk appetite: "+esc(mm.risk_appetite)+". Rationale: factor returns exhibit their own momentum, and leadership rotates — growth/value, size, high-beta/low-vol, quality, speculative appetite. Tracking the ratios directly catches regime turns that single-stock scans miss. All data real: Polygon daily closes, zero LLM.";
+}).catch(function(e){document.getElementById("err").textContent="feed unavailable — engine may not have run yet";});
+})();
+</script>
+<script src="/jh-wire.js" defer data-feeds="data/factor-regime.json|justhodl-factor-regime|FACTOR REGIME;data/factor-returns.json|justhodl-factor-returns|FACTOR L/S RETURNS"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>

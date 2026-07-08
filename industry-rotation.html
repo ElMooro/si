@@ -90,22 +90,24 @@ fetchJSON("data/industry-rotation.json").then(function(d){
   }
   var rows=d.ladder||[];
   document.getElementById("tbl").innerHTML=
-    "<tr><th>ETF</th><th>Group</th><th>Kind</th><th>50d</th><th>100d</th><th>200d</th><th>Ratio&gt;50d</th><th>Ratio 20d</th><th>3m rel</th><th>Score</th><th>Δrank 20d</th><th></th></tr>"+
+    "<tr><th>ETF</th><th>Group</th><th>Kind</th><th>50d</th><th>100d</th><th>200d</th><th>Ratio&gt;50d</th><th>Ratio 20d</th><th>α-RS blend</th><th>Dump-day</th><th>Rebound</th><th>Score</th><th>Δrank 20d</th><th></th></tr>"+
     rows.map(function(r){
       var sl=r.ratio_slope_20d_pct, rd=r.rank_delta_20d;
       return "<tr><td><b>"+esc(r.etf)+"</b></td><td>"+esc(r.name)+"</td><td style=\"color:var(--fg-3)\">"+esc(r.kind[0])+"</td><td>"+dot(r.above_sma50)+"</td><td>"+dot(r.above_sma100)+"</td><td>"+dot(r.above_sma200)+"</td><td>"+dot(r.ratio_above_50d)+"</td>"+
       '<td class="'+(sl>0?"up":(sl<0?"dn":""))+'">'+(sl==null?"—":(sl>0?"+":"")+sl+"%")+"</td>"+
-      '<td class="'+(r.rel_mom_3m_pp>0?"up":"dn")+'">'+(r.rel_mom_3m_pp==null?"—":(r.rel_mom_3m_pp>0?"+":"")+r.rel_mom_3m_pp+"pp")+"</td>"+
+      (function(){var a=(r.alpha_mom||{}).blend;return '<td class="'+((a||0)>0?"up":"dn")+'">'+(a==null?"\u2014":(a>0?"+":"")+a+"pp")+"</td>";})()+
+      (function(){var v=r.dump_day_excess_bps;return '<td class="'+((v||0)>0?"up":(v<0?"dn":""))+'">'+(v==null?"\u2014":(v>0?"+":"")+v+"bp")+"</td>";})()+
+      (function(){var v=r.rebound_excess_bps;return '<td class="'+((v||0)>0?"up":(v<0?"dn":""))+'">'+(v==null?"\u2014":(v>0?"+":"")+v+"bp")+"</td>";})()+
       "<td><b>"+r.leadership_score+"</b></td>"+
       '<td class="'+(rd>0?"up":(rd<0?"dn":""))+'">'+(rd==null?"—":(rd>0?"+":"")+rd)+"</td>"+
-      "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+"</td></tr>";
+      "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+(r.crowded?' <span class="tag" style="background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)">CROWDED</span>':"")+"</td></tr>";
     }).join("");
   document.getElementById("ranknote").textContent=d.rank_note||"";
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
     var h=(l.holdings_top||[]).map(function(x){return "<span>"+esc(x.ticker)+" "+esc(x.weight_pct)+"%</span>";}).join("");
-    var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+"</span>";}).join("");
+    var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+(x.pead?' · <b style="color:var(--violet)">PEAD+</b>':"")+"</span>";}).join("");
     return '<div class="lc"><h3>'+esc(l.etf)+" — "+esc(l.name)+' <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">score '+l.leadership_score+(l.tag?' · <span class="tag '+esc(l.tag)+'">'+esc(l.tag)+"</span>":"")+"</span></h3>"+
-      '<div class="m">'+dot(l.above_sma50)+" 50d "+dot(l.above_sma100)+" 100d "+dot(l.above_sma200)+" 200d · ratio 20d "+(l.ratio_slope_20d_pct>0?"+":"")+esc(l.ratio_slope_20d_pct)+"% · 3m rel "+(l.rel_mom_3m_pp>0?"+":"")+esc(l.rel_mom_3m_pp)+"pp</div>"+
+      '<div class="m">'+dot(l.above_sma50)+" 50d "+dot(l.above_sma100)+" 100d "+dot(l.above_sma200)+" 200d · ratio 20d "+(l.ratio_slope_20d_pct>0?"+":"")+esc(l.ratio_slope_20d_pct)+"% · \u03b1-RS "+(function(){var a=(l.alpha_mom||{}).blend;return a==null?"\u2014":((a>0?"+":"")+a+"pp");})()+" · dump-day "+(l.dump_day_excess_bps==null?"\u2014":((l.dump_day_excess_bps>0?"+":"")+l.dump_day_excess_bps+"bp"))+(l.breadth?" · breadth "+l.breadth.pct_above_50d+"% <b style=\"color:"+(l.breadth.read==="BROAD"?"var(--green)":(l.breadth.read==="NARROW"?"var(--red)":"var(--amber)"))+"\">"+l.breadth.read+"</b> ("+l.breadth.n_priced+" priced)":"")+"</div>"+
       (h?'<div style="font-size:10px;color:var(--fg-3);margin-bottom:4px">TOP HOLDINGS</div><div class="sold">'+h+"</div>":
          '<div style="font-size:10px;color:var(--fg-3)">Holdings unavailable: '+esc(l.holdings_reason||"no data")+"</div>")+
       (rn?'<div style="font-size:10px;color:var(--fg-3);margin:8px 0 4px">RESILIENT NAMES INSIDE (2-factor residual survivors of the resilience engine)</div><div class="sold">'+rn+"</div>":
