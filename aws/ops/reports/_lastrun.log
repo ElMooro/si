@@ -1,10 +1,6 @@
-executing-against: 34ff888cbc1a97b4078bb83a996e1e64288221f7
-── 1. Deploy gate (env persists per 2968 fix) ──
-── 2. Invoke ──
-── 3. Doc verify ──
-── 4. Pages live ──
-── 5. Soldiers diagnostic ──
-[01:09:59] ✅ SOLDIERS FIX VERIFIED: regime STRONG | ladder 33 | top [["CIBR", 99, null], ["XBI", 98, null], ["JETS", 98, null]] | soldiers [{"etf": "CIBR", "holdings_n": 12, "reason": null, "resilient_n": 0}, {"etf": "XBI", "holdings_n": 12, "reason": null, "resilient_n": 0}, {"etf": "JETS", "holdings_n": 12, "reason": null, "resilient_n": 1}, {"etf": "IBB", "holdings_n": 12, "reason": null, "resilient_n": 0}, {"etf": "IYT", "holdings_n": 12, "reason": null, "resilient_n": 1}]
-[01:09:59] FAILS=0 WARNS=0
+executing-against: 65f327ef10cd0f9dd168dca8a8a1e138d966251a
+── 1. Gates + factor-regime bootstrap ──
+[01:39:39] FAILS=1 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2997_soldiers_fix.md
+→ Report written to aws/ops/reports/latest/2998_theory_stack.md
+❌ OPS-FAIL: aws/ops/pending/ops_2998_theory_stack.py
