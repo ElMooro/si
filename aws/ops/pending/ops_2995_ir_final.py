@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""ops 2994 -- industry-rotation ENV FIX + full verify. 2992 gate caught
-env nuked (deploy-lambdas creates functions without env; env is set by
-ops per the 2977 convention and PRESERVED on later deploys per the 2968
-fix). Sequence: settle; copy donor env from justhodl-confluence-meta
-(key-filtered) + S3_BUCKET via update_function_configuration; wait
-Successful with env>=3; ensure schedule; invoke; run the complete 2992
-verification battery."""
+"""ops 2995 -- industry-rotation FINAL FIX: the fleet schedules via
+EventBridge RULES through the shared helper (ensure_eb_rule: put_rule +
+put_targets + add_permission), NOT the Scheduler API with an invoke
+role -- 2993/2994 crashed on RoleArn=None ParamValidation because the
+assumed scheduler role does not exist. Sequence: settle; idempotent
+donor-env apply (confluence-meta keys + S3_BUCKET); wait Successful
+env>=3; ensure_eb_rule industry-rotation-daily cron(35 21 * * ? *);
+invoke; complete 2992 verification battery. Crash guard: any uncaught
+exception still writes report + traceback."""
 import json
 import sys
 import time
@@ -16,11 +18,11 @@ from pathlib import Path
 import boto3
 from botocore.config import Config
 from ops_report import report
+from _lambda_deploy_helpers import ensure_eb_rule
 
 LAM = boto3.client("lambda", region_name="us-east-1",
                    config=Config(read_timeout=310, connect_timeout=10,
                                  retries={"max_attempts": 0}))
-SCHED = boto3.client("scheduler", region_name="us-east-1")
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 AWS_DIR = Path(__file__).resolve().parents[2]
@@ -35,28 +37,10 @@ def s3_json(key):
 
 
 def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "ops-2994",
+    req = urllib.request.Request(url, headers={"User-Agent": "ops-2995",
                                                "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.read().decode("utf-8", "replace")
-
-
-def ensure_schedule(rep):
-    arn = LAM.get_function_configuration(FunctionName=FN)["FunctionArn"]
-    role = [r for r in boto3.client("iam").list_roles(MaxItems=1000)
-            ["Roles"] if r["RoleName"] == "justhodl-scheduler-invoke"]
-    role_arn = role[0]["Arn"] if role else None
-    body = dict(Name="industry-rotation-daily",
-                ScheduleExpression="cron(35 21 * * ? *)",
-                FlexibleTimeWindow={"Mode": "OFF"},
-                Target={"Arn": arn, "RoleArn": role_arn, "Input": "{}"},
-                State="ENABLED")
-    try:
-        SCHED.create_schedule(**body)
-        rep.kv(schedule="created")
-    except SCHED.exceptions.ConflictException:
-        SCHED.update_schedule(**body)
-        rep.kv(schedule="updated")
 
 
 def wait_status(want_env=None, tries=50):
@@ -74,11 +58,11 @@ def wait_status(want_env=None, tries=50):
 
 def main():
     fails, warns = [], []
-    out = {"ops": 2994, "ts": datetime.now(timezone.utc).isoformat()}
-    with report("2994_ir_envfix2") as rep:
+    out = {"ops": 2995, "ts": datetime.now(timezone.utc).isoformat()}
+    with report("2995_ir_final") as rep:
 
-        rep.section("1. Settle + env fix")
-        time.sleep(70)
+        rep.section("1. Settle + idempotent env + EB rule")
+        time.sleep(60)
         wait_status()
         donor = (LAM.get_function_configuration(FunctionName=DONOR)
                  .get("Environment") or {}).get("Variables") or {}
@@ -89,17 +73,30 @@ def main():
             fails.append("donor env thin: %s" % sorted(env))
             _w(rep, out, fails, warns)
             return
-        LAM.update_function_configuration(
-            FunctionName=FN, Environment={"Variables": env},
-            Timeout=240, MemorySize=512)
+        try:
+            LAM.update_function_configuration(
+                FunctionName=FN, Environment={"Variables": env},
+                Timeout=240, MemorySize=512)
+        except Exception as e:
+            if "ResourceConflict" not in str(e):
+                raise
+            time.sleep(20)
+            LAM.update_function_configuration(
+                FunctionName=FN, Environment={"Variables": env})
         cfg, env_n = wait_status(want_env=3)
         rep.kv(env_vars=env_n, update=cfg.get("LastUpdateStatus"))
         out["env_vars"] = env_n
         if env_n < 3:
-            fails.append("env still thin after update: %d" % env_n)
+            fails.append("env still thin: %d" % env_n)
             _w(rep, out, fails, warns)
             return
-        ensure_schedule(rep)
+        try:
+            ensure_eb_rule(report=rep,
+                           rule_name="industry-rotation-daily",
+                           schedule="cron(35 21 * * ? *)",
+                           function_name=FN)
+        except Exception as e:
+            fails.append("eb rule: %s" % str(e)[:140])
 
         rep.section("2. Invoke")
         t0 = time.time()
@@ -210,7 +207,7 @@ def main():
 def _w(rep, out, fails, warns):
     out["fails"], out["warns"] = fails, warns
     out["verdict"] = "PASS" if not fails else "FAIL"
-    (AWS_DIR / "ops" / "reports" / "2994.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "2995.json").write_text(
         json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     if fails:
@@ -221,10 +218,12 @@ try:
     main()
 except SystemExit:
     raise
-except Exception:
+except Exception as e:
     import traceback
-    (AWS_DIR / "ops" / "reports" / "2994.json").write_text(json.dumps(
-        {"ops": 2994, "verdict": "FAIL",
-         "crash_traceback": traceback.format_exc()[-3000:]}, indent=1))
+    (AWS_DIR / "ops" / "reports" / "2995.json").write_text(json.dumps(
+        {"ops": 2995, "verdict": "FAIL",
+         "fails": ["CRASH: %s" % str(e)[:200]],
+         "trace": traceback.format_exc()[-1500:],
+         "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
     sys.exit(1)
 sys.exit(0)
