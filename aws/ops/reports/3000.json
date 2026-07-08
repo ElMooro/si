@@ -1,0 +1,88 @@
+{
+ "ops": 3000,
+ "ts": "2026-07-08T02:04:14.505869+00:00",
+ "industry_context": {
+  "meta": {
+   "generated_at": "2026-07-08T01:46:28.880702+00:00",
+   "age_h": 0.3,
+   "sectors": 11,
+   "market_regime": "STRONG"
+  },
+  "factor_appetite": 45.9
+ },
+ "setups_n": 50,
+ "with_industry_fields": 50,
+ "sample_boosted": [
+  {
+   "t": "GILD",
+   "etf": "XLV",
+   "score": 94,
+   "mult": 1.053
+  },
+  {
+   "t": "OTIS",
+   "etf": "XLI",
+   "score": 89,
+   "mult": 1.047
+  },
+  {
+   "t": "BAC",
+   "etf": "XLF",
+   "score": 86,
+   "mult": 1.043
+  },
+  {
+   "t": "NEM",
+   "etf": "XLB",
+   "score": 72,
+   "mult": 1.026
+  },
+  {
+   "t": "AOS",
+   "etf": "XLI",
+   "score": 89,
+   "mult": 1.047
+  }
+ ],
+ "sample_haircut": [
+  {
+   "t": "LEN",
+   "etf": "XLY",
+   "score": 32,
+   "tag": null,
+   "mult": 0.978
+  },
+  {
+   "t": "BKNG",
+   "etf": "XLY",
+   "score": 32,
+   "tag": null,
+   "mult": 0.978
+  },
+  {
+   "t": "AMZN",
+   "etf": "XLY",
+   "score": 32,
+   "tag": null,
+   "mult": 0.978
+  },
+  {
+   "t": "META",
+   "etf": "XLC",
+   "score": 5,
+   "tag": "BREAKDOWN",
+   "mult": 0.88
+  },
+  {
+   "t": "DIS",
+   "etf": "XLC",
+   "score": 5,
+   "tag": "BREAKDOWN",
+   "mult": 0.88
+  }
+ ],
+ "why_mentions": 47,
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS"
+}
