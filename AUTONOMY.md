@@ -86,3 +86,34 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
 
 *Everything lives on AWS/GitHub/justhodl.ai — reachable from any browser on
 any machine; nothing is ever installed locally.*
+
+## Dual-store contract (added 2026-07-08 at Khalid's direction)
+
+This protocol is stored in TWO places, deliberately redundant:
+
+1. **Claude memory, edit #2 — the "⛔ MASTER BOOTSTRAP" card.** PROTECTED:
+   never deleted, replaced, trimmed, or compressed without Khalid's explicit
+   approval. It is the authoritative in-memory copy and additionally carries
+   the credentials index (this file, being in a public repo, does not).
+   Every chat reads it FIRST, before anything else.
+2. **This file (AUTONOMY.md)** — the git-versioned mirror. Even if memory
+   were ever lost, `git clone` + this file restores the full protocol; the
+   memory card can then be rebuilt from it (minus credentials, recovered per
+   the index below).
+
+If either copy is lost or drifts, restore it from the other.
+
+## Credentials index (locations only — no secrets in this public file)
+
+- **Deploy PAT ("Claude-Deploy", classic, repo+workflow, no expiry):** in the
+  protected memory card; also recoverable from conversation history and from
+  this repo's git history (~5 occurrences). Rotation to a fine-grained token
+  remains a standing KHALID action item.
+- **Data-provider API keys** (AlphaVantage / NewsAPI / CMC / FMP / BEA / BLS /
+  Census / EIA / FRED fallback): in the "Keys:" memory edit; live copies in
+  Lambda env vars (runtime source of truth) and SSM.
+- **Gov-data, Z.ai, admin tokens:** AWS SSM under `/justhodl/*` (92 params).
+- **GitHub Actions secrets** (ANTHROPIC / TELEGRAM / PAGES_PAT / gov keys):
+  injected into run-ops.yml env; added via sealed-box PUT to
+  `actions/secrets/{NAME}`.
+- Khalid's standing instruction: use these autonomously, without asking.
