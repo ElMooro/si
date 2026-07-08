@@ -1,0 +1,81 @@
+{
+ "ops": 3002,
+ "ts": "2026-07-08T02:31:54.352779+00:00",
+ "fr_env": 3,
+ "fr_risk_appetite": 45.9,
+ "fr_read": "RISK_ON",
+ "fr_pairs_ok": 11,
+ "fr_thrusts": [
+  "USMV/SPY (MINVOL_DEFENSE)"
+ ],
+ "fr_leading": [
+  "SMALL_SIZE",
+  "EQUAL_WEIGHT_BREADTH",
+  "QUALITY",
+  "MINVOL_DEFENSE",
+  "SPECULATIVE_APPETITE",
+  "BIOTECH_RISK_APPETITE"
+ ],
+ "fr_sample": [
+  {
+   "pair": "QQQ/SPY",
+   "label": "GROWTH_LARGE",
+   "note": "mega-growth vs the market",
+   "sign": 1,
+   "ratio": 0.9488,
+   "above_50d": false,
+   "slope_20d_pct": -0.75,
+   "slope_63d_pct": 6.24,
+   "z_1y": 1.33,
+   "state": "LAGGING",
+   "thrust": false
+  },
+  {
+   "pair": "IWM/SPY",
+   "label": "SMALL_SIZE",
+   "note": "small caps vs the market (size factor)",
+   "sign": 1,
+   "ratio": 0.3961,
+   "above_50d": true,
+   "slope_20d_pct": 3.73,
+   "slope_63d_pct": 3.43,
+   "z_1y": 1.71,
+   "state": "LEADING",
+   "thrust": false
+  },
+  {
+   "pair": "RSP/SPY",
+   "label": "EQUAL_WEIGHT_BREADTH",
+   "note": "equal-weight vs cap-weight -- breadth of participation",
+   "sign": 1,
+   "ratio": 0.2872,
+   "above_50d": true,
+   "slope_20d_pct": 1.92,
+   "slope_63d_pct": -2.42,
+   "z_1y": 0.15,
+   "state": "LEADING",
+   "thrust": false
+  },
+  {
+   "pair": "SPHB/SPLV",
+   "label": "HIGH_BETA_VS_LOWVOL",
+   "note": "risk appetite: high beta vs low vol (BAB in ETF form)",
+   "sign": 1,
+   "ratio": 1.8959,
+   "above_50d": false,
+   "slope_20d_pct": -2.75,
+   "slope_63d_pct": 19.2,
+   "z_1y": 1.33,
+   "state": "LAGGING",
+   "thrust": false
+  }
+ ],
+ "bs_setups": 50,
+ "bs_credit_mentions": 0,
+ "bs_min_mult": 0.88,
+ "fails": [
+  "IR invoke: {\"errorMessage\": \"'ratio_above_50dma'\", \"errorType\": \"KeyError\", \"requestId\": \"1b16b7ce-7d8d-4428-aaaf-3600851f13bc\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 492, in lambda_handler\\n    + (5 if r[\\\"ratio_above_50dma\\\"] else 0)\\n"
+ ],
+ "warns": [],
+ "verdict": "FAIL"
+}
