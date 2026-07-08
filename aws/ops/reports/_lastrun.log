@@ -1,10 +1,9 @@
-executing-against: b29c622da8341be919ca750cbae6575ad18a03dd
-── 1. Settle + idempotent env + EB rule ──
-[00:54:30] ✅   ✓ created rule industry-rotation-daily
-[00:54:30] ✅   ✓ target → justhodl-industry-rotation
-[00:54:30] ✅   ✓ added invoke permission
+executing-against: 08259acbfcc30c97b808af971c76dc1dcb9bf3c8
+── 1. Deploy gate (env persists per 2968 fix) ──
 ── 2. Invoke ──
-[00:54:34] FAILS=1 WARNS=0
+── 3. Doc verify ──
+── 4. Pages live ──
+[01:01:09] ✅ INDUSTRY ROTATION LIVE: regime STRONG | ladder 33 | top [["CIBR", 99, null], ["XBI", 98, null], ["JETS", 98, null]] | absorption []
+[01:01:09] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2995_ir_final.md
-❌ OPS-FAIL: aws/ops/pending/ops_2995_ir_final.py
+→ Report written to aws/ops/reports/latest/2996_ir_live.md
