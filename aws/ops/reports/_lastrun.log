@@ -1,13 +1,13 @@
-executing-against: b782b484dd9b56feba4da8ea2404c2a12eb350ff
+executing-against: f8cdfb78d7630b2324ad4b8ce1aeefe791e95407
 ── 1. Gates + factor-regime bootstrap ──
-[02:33:18]   rule already correct: factor-regime-daily (cron(28 21 * * ? *))
-[02:33:18] ✅   ✓ target → justhodl-factor-regime
-[02:33:18] ✅   ✓ added invoke permission
+[02:39:16]   rule already correct: factor-regime-daily (cron(28 21 * * ? *))
+[02:39:16] ✅   ✓ target → justhodl-factor-regime
+[02:39:16] ✅   ✓ added invoke permission
 ── 2. Invoke factor-regime ──
 ── 3. Invoke industry-rotation v2 ──
 ── 4b. Best-setups credit-penalty path ──
 ── 4. Pages live ──
-[02:33:57] FAILS=1 WARNS=0
+[02:39:58] ✅ THEORY STACK LIVE: FR appetite 45.9 (RISK_ON), thrusts ["USMV/SPY (MINVOL_DEFENSE)"] | IR v2 top [["XBI", 98, 13.69, 6, false], ["CIBR", 98, 16.73, -2, false], ["XTN", 95, 6.6, -43, false]] | crowded ["XLK"]
+[02:39:58] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/3002_v3_scorecard.md
-❌ OPS-FAIL: aws/ops/pending/ops_3002_v3_scorecard.py
+→ Report written to aws/ops/reports/latest/3003_v3_scorecard.md
