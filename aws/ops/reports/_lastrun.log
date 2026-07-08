@@ -1,10 +1,11 @@
-executing-against: d49350dc1f2d8f54dd6e3ab99fe3df1637c17494
+executing-against: c86f35573e03a95f19d9d4567401449ab45f59c9
+── 0. Diagnose live env (root cause: key sourcing) ──
+── 1. Deploy the fixed engine ──
+[22:19:06]   zip: 10417 bytes
+── 1. Lambda ──
+[22:19:06]   Lambda exists — updating
+[22:19:09] ✅   ✓ updated justhodl-nobrainer-rationale
 ── 2. Regenerate (Event invoke + S3 poll) ──
-── 3. Verify the board ──
-── 4. Live page checks (warn-level, pages CDN lag) ──
-── verdict ──
-[21:33:51] FAIL: LLM still failing: ok=0 fail=7 errs=['all LLM paths returned empty', 'all LLM paths returned empty']
-[21:33:51] FAIL: theses too short/empty (0 long of 7)
 
-→ Report written to aws/ops/reports/latest/3008_nobrainer_thesis_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3008_nobrainer_thesis_verify.py
+→ Report written to aws/ops/reports/latest/3009_nobrainer_thesis_v2.md
+❌ OPS-FAIL: aws/ops/pending/ops_3009_nobrainer_thesis_v2.py
