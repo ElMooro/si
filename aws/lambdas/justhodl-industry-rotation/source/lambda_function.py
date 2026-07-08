@@ -37,8 +37,10 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/industry-rotation.json"
 
 import os
-POLY = os.environ.get("POLYGON_API_KEY", "")
-FMP = os.environ.get("FMP_API_KEY", "")
+POLY = (os.environ.get("POLYGON_API_KEY")
+        or os.environ.get("POLYGON_KEY") or "")
+FMP = (os.environ.get("FMP_API_KEY")
+       or os.environ.get("FMP_KEY") or "")
 
 SECTORS = {
     "XLK": "Technology", "XLF": "Financials", "XLE": "Energy",
@@ -216,7 +218,8 @@ def lambda_handler(event=None, context=None):
     warns = []
     spy = polygon_daily("SPY")
     if len(spy) < 210:
-        raise RuntimeError("SPY history short: %d" % len(spy))
+        raise RuntimeError("SPY history short: %d (poly_key=%s)"
+                           % (len(spy), bool(POLY)))
     regime = regime_of(spy)
     rr = s3_json("data/risk-regime.json") or {}
 
