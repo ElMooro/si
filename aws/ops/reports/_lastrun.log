@@ -1,7 +1,8 @@
-executing-against: 677a3d5749c3025eb51b00794464cb4300d3731b
-── 1. IR deploy gate + flows v3 ──
-── 2. Suspect sync invokes (error capture) ──
-[02:57:21] ✅ flows 35/40 | suspects: {"justhodl-engine-robustness": "ok", "justhodl-ici-flows": "Unhandled"}
-[02:57:21] FAILS=0
+executing-against: cc77cff1616dddd2ddd236cfac170dcda381c227
+── 1. Preflight dogfood (lints itself + the new tools) ──
+── 2. STATE.md generator runs clean ──
+── 3. Engine health ping (repo-market + fused consumers) ──
+── verdict ──
+[20:20:16] PASS -- concurrency + STATE.md + preflight all live
 
-→ Report written to aws/ops/reports/latest/3005_flows_v3_deepdive.md
+→ Report written to aws/ops/reports/latest/3006_flow_hardening_probe.md
