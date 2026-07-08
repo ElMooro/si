@@ -1,5 +1,11 @@
 name: Run Ops Script
 
+# Serialize runs: accidental double-triggers (push+dispatch, rapid pushes)
+# QUEUE instead of racing each other on AWS mutations + the commit-back.
+concurrency:
+  group: run-ops-serial
+  cancel-in-progress: false
+
 # Runs any Python script pushed to aws/ops/pending/*.py with AWS credentials.
 # After a successful run the script should be manually moved to aws/ops/history/
 # (or left in pending/ if it's idempotent and meant to be re-run).
@@ -125,6 +131,11 @@ jobs:
           done
           if [ "${FAIL:-0}" = "1" ]; then exit 1; fi
 
+      - name: Regenerate STATE.md snapshot
+        if: always()
+        continue-on-error: true
+        run: python aws/ops/_gen_state.py || true
+
       - name: Commit any new/changed reports or imports
         if: always()
         run: |
@@ -140,8 +151,8 @@ jobs:
           ROOT_HTML=( ./*.html )
           ROOT_JS=( ./*.js )
           shopt -u nullglob
-          if [ -n "$(git status --porcelain aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ 2>/dev/null)" ]; then
-            git add aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ 2>/dev/null || git add aws/ops/reports/ aws/ops/audit/ aws/lambdas/
+          if [ -n "$(git status --porcelain STATE.md aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ 2>/dev/null)" ]; then
+            git add STATE.md aws/ops/reports/ aws/ops/audit/ aws/ops/pending/ aws/ops/ran/ aws/ops/historical/ aws/lambdas/ aws/shared/ "${ROOT_HTML[@]}" "${ROOT_JS[@]}" cloudflare/ 2>/dev/null || git add STATE.md aws/ops/reports/ aws/ops/audit/ aws/lambdas/
             git commit -m "ops: auto-commit from run ${{ github.run_id }} (${{ job.status }}) [skip-deploy]"
             git push || (git pull --rebase origin main && git push)
             echo "Committed changes"
