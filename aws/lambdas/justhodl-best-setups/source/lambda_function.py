@@ -288,6 +288,86 @@ def lambda_handler(event, context):
             return 1.0, None
         return m, f"RORO {_rr_regime} {'tailwind' if m > 1 else 'haircut'}"
 
+    # ── INDUSTRY LEADERSHIP prior (Khalid doctrine: regime -> industry
+    # ETF leadership -> strongest stocks; Moskowitz-Grinblatt). Each
+    # setup's conviction is tilted by its parent sector's leadership
+    # score from justhodl-industry-rotation, penalized on BREAKDOWN
+    # (broken ladder in a strong tape) and lightly on CROWDED (2y RS
+    # extreme rolling over). Bounded, failure-isolated: any problem
+    # with the feed leaves conviction untouched. ──
+    _FINVIZ_TO_GICS = {
+        "Financial": "Financials", "Financial Services": "Financials",
+        "Healthcare": "Health Care",
+        "Consumer Cyclical": "Consumer Discretionary",
+        "Consumer Defensive": "Consumer Staples",
+        "Basic Materials": "Materials"}
+    _ind_by_sector, _ind_meta = {}, {}
+    try:
+        _ir = read_json("data/industry-rotation.json") or {}
+        _gen = _ir.get("generated_at") or ""
+        _age_h = None
+        try:
+            _age_h = (datetime.now(timezone.utc)
+                      - datetime.fromisoformat(_gen)
+                      ).total_seconds() / 3600.0
+        except Exception:
+            pass
+        if _age_h is not None and _age_h <= 60:
+            _ind_by_sector = _ir.get("by_sector_name") or {}
+            _ind_meta = {"generated_at": _gen,
+                         "age_h": round(_age_h, 1),
+                         "sectors": len(_ind_by_sector),
+                         "market_regime": (_ir.get("market_regime")
+                                           or {}).get("state")}
+        else:
+            _ind_meta = {"note": "industry-rotation feed stale/absent",
+                         "age_h": _age_h}
+    except Exception as _e:
+        _ind_meta = {"note": "industry feed error: %s" % str(_e)[:80]}
+
+    def _industry_prior(sector):
+        g = _FINVIZ_TO_GICS.get(sector, sector)
+        row = _ind_by_sector.get(g)
+        if not row or row.get("leadership_score") is None:
+            return 1.0, None, None
+        sc = row["leadership_score"]
+        m = 0.94 + 0.12 * (sc / 100.0)          # [0.94 .. 1.06]
+        tag = row.get("tag")
+        if tag == "BREAKDOWN":
+            m = max(0.88, m * 0.93)
+        if row.get("crowded"):
+            m *= 0.98
+        m = round(max(0.85, min(1.08, m)), 3)
+        note = ("INDUSTRY %s score %d%s%s"
+                % (row.get("etf"), sc,
+                   " BREAKDOWN" if tag == "BREAKDOWN" else
+                   (" ABSORPTION" if tag == "ABSORPTION" else ""),
+                   " CROWDED" if row.get("crowded") else ""))
+        return m, (note if abs(m - 1.0) > 0.004 else None), row
+
+    # ── FACTOR-REGIME appetite prior (style ratios: factors trend).
+    # Deliberately SMALL [0.97..1.03] and only for high-beta sectors,
+    # because RORO already regime-gates -- this is the style-ratio
+    # layer, additive context not a second regime gate. ──
+    _fa_score = None
+    try:
+        _fr = read_json("data/factor-regime.json") or {}
+        _fa_score = _fr.get("risk_appetite_score")
+    except Exception:
+        pass
+
+    def _factor_appetite_mult(sector):
+        if not isinstance(_fa_score, (int, float)):
+            return 1.0, None
+        if sector not in RR_HIGH_BETA:
+            return 1.0, None
+        m = 1.0 + max(-60.0, min(60.0, _fa_score)) / 60.0 * 0.03
+        m = round(m, 3)
+        if abs(m - 1.0) <= 0.005:
+            return 1.0, None
+        return m, ("FACTOR appetite %+.0f %s"
+                   % (_fa_score, "tailwind" if m > 1 else "haircut"))
+
     # ── Fed nowcast growth×inflation regime gate (GDPNow + underlying inflation) ──
     _nc_desk = read_json("data/nowcast-desk.json") or {}
     _nc_q = _nc_desk.get("nowcast_quadrant") or {}
@@ -689,6 +769,14 @@ def lambda_handler(event, context):
         if _nc_mult != 1.0:
             composite = round(min(100.0, composite * _nc_mult), 1)
 
+        # ── Industry-leadership + factor-appetite priors (theory stack) ──
+        _ind_mult, _ind_note, _ind_row = _industry_prior(_eff_sector)
+        if _ind_mult != 1.0:
+            composite = round(min(100.0, composite * _ind_mult), 1)
+        _fa_mult, _fa_note = _factor_appetite_mult(_eff_sector)
+        if _fa_mult != 1.0:
+            composite = round(min(100.0, composite * _fa_mult), 1)
+
         # ── CYCLE gate (accumulation-radar): a buy signal on a name distributing at a
         # top is lower quality. Tag the phase; gently haircut only the strongest tell
         # (LIKELY_TOP + bearish OBV divergence). Confirmation only, proven math otherwise intact. ──
@@ -794,6 +882,15 @@ def lambda_handler(event, context):
                 why_text += f" Note: bond-vol regime is {bv_regime} — size accordingly."
             if _rr_note:
                 why_text += f" Cross-asset RORO is {_rr_regime} — {_rr_note.split('RORO ')[-1]} applied."
+            if _ind_note:
+                why_text += f" {_ind_note}: its industry group is "
+                why_text += ("breaking down — conviction haircut."
+                             if "BREAKDOWN" in _ind_note else
+                             ("a leadership group — conviction boost."
+                              if _ind_mult > 1.0 else
+                              "lagging — mild haircut."))
+            if _fa_note:
+                why_text += f" {_fa_note}."
             if _nc_note:
                 why_text += f" Fed nowcast regime is {_nc_regime} ({_nc_quad_growth}/{_nc_quad_infl}) — {_nc_note.split('nowcast ')[-1]} applied."
             if _cyc_warning:
@@ -811,6 +908,13 @@ def lambda_handler(event, context):
             "name": rec["name"],
             "conviction": round(composite, 1),
             "risk_regime_mult": _rr_mult,
+            "industry_mult": _ind_mult,
+            "industry_etf": (_ind_row or {}).get("etf"),
+            "industry_score": (_ind_row or {}).get("leadership_score"),
+            "industry_tag": ((_ind_row or {}).get("tag")
+                             or ("CROWDED" if (_ind_row or {})
+                                 .get("crowded") else None)),
+            "factor_regime_mult": _fa_mult,
             "nowcast_regime_mult": _nc_mult,
             "cycle_phase": (_cyc or {}).get("phase"),
             "cycle_flag": (_cyc or {}).get("flag"),
@@ -1050,6 +1154,8 @@ def lambda_handler(event, context):
                               "note": "Each pick now carries its premortem failure mode; contested picks show both sides; lead-lag tailwinds flag picks whose leader already moved."},
         "structural_at_trough": [s for s in setups if s.get("structural_setup")][:15],
         "by_verdict": dict(by_verdict),
+        "industry_context": {"meta": _ind_meta,
+                             "factor_appetite": _fa_score},
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
                   Body=json.dumps(output, default=str).encode(),
