@@ -1,5 +1,10 @@
-executing-against: 49edb8a70a9550251a12749ccd48e62ff907d2f3
-── 1. Settle + env fix ──
+executing-against: b29c622da8341be919ca750cbae6575ad18a03dd
+── 1. Settle + idempotent env + EB rule ──
+[00:54:30] ✅   ✓ created rule industry-rotation-daily
+[00:54:30] ✅   ✓ target → justhodl-industry-rotation
+[00:54:30] ✅   ✓ added invoke permission
+── 2. Invoke ──
+[00:54:34] FAILS=1 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2994_ir_envfix2.md
-❌ OPS-FAIL: aws/ops/pending/ops_2994_ir_envfix2.py
+→ Report written to aws/ops/reports/latest/2995_ir_final.md
+❌ OPS-FAIL: aws/ops/pending/ops_2995_ir_final.py

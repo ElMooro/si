@@ -1,0 +1,10 @@
+{
+ "ops": 2995,
+ "ts": "2026-07-08T00:53:23.121546+00:00",
+ "env_vars": 4,
+ "fails": [
+  "invoke: {\"errorMessage\": \"SPY history short: 0\", \"errorType\": \"RuntimeError\", \"requestId\": \"630dea78-a58c-4a23-8a7a-c6f9c4d3e79a\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 219, in lambda_handler\\n    raise RuntimeError(\\\"SPY history short: %d\\\" % len(spy))\\n\"]}"
+ ],
+ "warns": [],
+ "verdict": "FAIL"
+}
