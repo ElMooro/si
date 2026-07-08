@@ -107,7 +107,7 @@
       var tword = /TOP/.test(ne.type || "") ? "a market top" : /BOTTOM/.test(ne.type || "") ? "a market bottom" : "a crisis";
       html += '<div class="jhk-row"><div class="jhk-h"><span class="jhk-hl">' + esc(ind.label) + '</span>' +
         '<span class="jhk-hc">now <b style="color:var(--txt,#e6eaf2)">' + ind.current + (ind.unit || "") + '</b> · <span class="jhk-badge" style="background:rgba(255,255,255,.05);color:' + pctColor(ind.percentile) + '">' + ind.percentile + 'th pctile</span></span></div>' +
-        '<div class="jhk-near">Closest analog: <b style="color:' + epTypeColor(ne.type || "") + '">' + esc(ne.name || "—") + '</b> — ' + tword + ' (was ' + ne.value + (ind.unit || "") + ').</div>' +
+        (ne && ne.name ? '<div class="jhk-near">Closest analog: <b style="color:' + epTypeColor(ne.type || "") + '">' + esc(ne.name) + '</b> — ' + tword + (ne.value != null ? ' (was ' + ne.value + (ind.unit || "") + ')' : '') + '.</div>' : '') +
         episodeRank(ind, ref.episodes) + '</div>';
     });
     el.innerHTML = html || '<div class="jhk-load">no matching indicators</div>';

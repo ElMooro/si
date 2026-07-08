@@ -1,0 +1,11 @@
+{
+ "function_name": "justhodl-nobrainer-rationale",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 512,
+ "timeout": 780,
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "inherit_env": true,
+ "description": "Nobrainer Layer 5 - thesis writer. Capped compound lane (MAX_COMPOUND_SLOTS=4) + MU-grade floor (MIN_MU_SLOTS=3), all_scored fundamentals join, resilient LLM chain (compat -> direct -> llm_router bulk). data/nobrainers-rationale.json."
+}

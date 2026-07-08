@@ -64,13 +64,18 @@ MIN_SCORE = float(os.environ.get("MIN_SCORE", "55.0"))
 # CRED HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 def get_anthropic_key():
-    if ANTHROPIC_KEY:
-        return ANTHROPIC_KEY
-    try:
-        return SSM.get_parameter(Name="/justhodl/anthropic/api-key", WithDecryption=True)["Parameter"]["Value"]
-    except Exception as e:
-        print(f"[ssm-anthropic] {e}")
-        return None
+    """Fleet-standard key chain: ANTHROPIC_API_KEY env first (the name every
+    other engine uses), legacy ANTHROPIC_KEY second, SSM variants last."""
+    for envk in ("ANTHROPIC_API_KEY", "ANTHROPIC_KEY"):
+        if os.environ.get(envk):
+            return os.environ[envk]
+    for pth in ("/justhodl/anthropic/api-key", "/justhodl/anthropic-api-key"):
+        try:
+            return SSM.get_parameter(Name=pth,
+                                     WithDecryption=True)["Parameter"]["Value"]
+        except Exception as e:
+            print(f"[ssm-anthropic] {pth}: {e}")
+    return None
 
 
 def get_telegram_token():
@@ -96,29 +101,37 @@ def get_telegram_chat_id():
 def call_anthropic(prompt, key, max_tokens=1500):
     try:
         import claude_compat
-        _r = claude_compat.messages({"model": ANTHROPIC_MODEL, "max_tokens": max_tokens,
-                                     "messages": [{"role": "user", "content": prompt}]})
+        _r = claude_compat.messages({"model": ANTHROPIC_MODEL,
+                                     "max_tokens": max_tokens,
+                                     "messages": [{"role": "user",
+                                                   "content": prompt}]})
         if (_r.get("content") or [{}])[0].get("text", "").strip():
             return _r
-    except Exception:
-        pass
-    url = "https://api.anthropic.com/v1/messages"
-    body = json.dumps({
-        "model": ANTHROPIC_MODEL,
-        "max_tokens": max_tokens,
-        "messages": [{"role": "user", "content": prompt}],
-    }).encode()
-    req = urllib.request.Request(
-        url,
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": key,
-            "anthropic-version": "2023-06-01",
-        },
-    )
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        return json.loads(resp.read().decode())
+    except Exception as e:
+        print(f"[claude-compat] {e}")
+    if key:
+        try:
+            url = "https://api.anthropic.com/v1/messages"
+            body = json.dumps({"model": ANTHROPIC_MODEL,
+                               "max_tokens": max_tokens,
+                               "messages": [{"role": "user",
+                                             "content": prompt}]}).encode()
+            req = urllib.request.Request(url, data=body, headers={
+                "Content-Type": "application/json", "x-api-key": key,
+                "anthropic-version": "2023-06-01"})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                r = json.loads(resp.read().decode())
+            if (r.get("content") or [{}])[0].get("text", "").strip():
+                return r
+        except Exception as e:
+            print(f"[anthropic-direct] {e}")
+    # Fleet-standard resilient fallback -- the whole board can never 0/12 again
+    from llm_router import complete
+    txt = complete(prompt, tier="bulk", max_tokens=max_tokens) or ""
+    if not txt.strip():
+        raise RuntimeError("all LLM paths returned empty")
+    return {"content": [{"type": "text", "text": txt}],
+            "usage": {"via": "llm_router"}}
 
 
 def extract_text(claude_response):
@@ -520,61 +533,75 @@ def lambda_handler(event=None, context=None):
     candidates = []
     seen = set()
 
-    # Force-include all tier-3 compound names (max signal — must have a thesis)
-    tier3_names = [c for c in compound_by_ticker.values() if c.get("n_systems", 0) >= 3]
-    for cs in sorted(tier3_names, key=lambda x: -(x.get("compound_score") or 0)):
+    # Compound lane is CAPPED -- this engine exists for tier-2/3 downstream
+    # names (the MU/SNDK pattern); megacap multi-system signals get a few
+    # slots, they do not own the board. Real L4 records are preferred via
+    # the all_scored join so cards carry fundamentals whenever they exist.
+    all_scored = layer4.get("all_scored") or []
+    all_by_ticker = {x.get("ticker"): x for x in all_scored if x.get("ticker")}
+    MAX_COMPOUND_SLOTS = int(os.environ.get("MAX_COMPOUND_SLOTS", "4"))
+    MIN_MU_SLOTS = int(os.environ.get("MIN_MU_SLOTS", "3"))
+
+    def _compound_entry(cs, prio):
         sym = cs.get("symbol")
-        if not sym or sym in seen:
-            continue
-        if sym in nb_by_ticker:
-            entry = dict(nb_by_ticker[sym])
-            entry["_compound_priority"] = "TIER_3"
-            entry["_compound_score"] = cs.get("compound_score")
-            entry["_compound_systems"] = cs.get("systems", [])
-            candidates.append(entry)
+        base = nb_by_ticker.get(sym) or all_by_ticker.get(sym)
+        if base:
+            entry = dict(base)
         else:
-            # Synthesize a minimal nobrainer-shape entry from compound details
             details = cs.get("details") or {}
             nb_d = details.get("nobrainers") or {}
             sm_d = details.get("smart_money") or {}
             ev_d = details.get("eps_velocity") or {}
             entry = {
                 "ticker": sym,
-                "name": nb_d.get("name") or sm_d.get("name") or ev_d.get("company") or sym,
+                "name": (nb_d.get("name") or sm_d.get("name")
+                         or ev_d.get("company") or sym),
                 "theme_etf": nb_d.get("theme") or "COMPOUND",
                 "theme_name": nb_d.get("theme") or "Compound multi-system",
-                "theme_phase": "COMPOUND",
+                "theme_phase": "MULTI-SYSTEM",
                 "tier": nb_d.get("tier") or 0,
-                "asymmetric_score": cs.get("compound_score", 0) / 5.0,  # normalize
+                "asymmetric_score": (cs.get("compound_score") or 0) / 5.0,
                 "flag": "COMPOUND_PRIORITY",
-                "factors": {},
-                "fundamentals": {},
-                "valuation_components": {},
-                "supply_signals": [],
+                "factors": {}, "fundamentals": {},
+                "valuation_components": {}, "supply_signals": [],
                 "next_earnings": None,
-                "_compound_priority": "TIER_3",
-                "_compound_score": cs.get("compound_score"),
-                "_compound_systems": cs.get("systems", []),
             }
-            candidates.append(entry)
-        seen.add(sym)
+        entry["_compound_priority"] = prio
+        entry["_compound_score"] = cs.get("compound_score")
+        entry["_compound_systems"] = cs.get("systems", [])
+        return entry
 
-    # Tier-2 with compound_score >= 200 (high conviction)
-    tier2_high = [c for c in compound_by_ticker.values()
-                   if c.get("n_systems") == 2 and (c.get("compound_score") or 0) >= 200]
-    for cs in sorted(tier2_high, key=lambda x: -(x.get("compound_score") or 0)):
+    candidates, seen = [], set()
+    comp_pool = sorted([c for c in compound_by_ticker.values()
+                        if c.get("n_systems", 0) >= 3],
+                       key=lambda x: -(x.get("compound_score") or 0))
+    comp_pool += sorted([c for c in compound_by_ticker.values()
+                         if c.get("n_systems") == 2
+                         and (c.get("compound_score") or 0) >= 200],
+                        key=lambda x: -(x.get("compound_score") or 0))
+    for cs in comp_pool:
+        if sum(1 for c in candidates
+               if c.get("_compound_priority")) >= MAX_COMPOUND_SLOTS:
+            break
         sym = cs.get("symbol")
         if not sym or sym in seen:
             continue
-        if sym in nb_by_ticker:
-            entry = dict(nb_by_ticker[sym])
-            entry["_compound_priority"] = "TIER_2_HIGH"
-            entry["_compound_score"] = cs.get("compound_score")
-            entry["_compound_systems"] = cs.get("systems", [])
-            candidates.append(entry)
-            seen.add(sym)
+        prio = "TIER_3" if cs.get("n_systems", 0) >= 3 else "TIER_2_HIGH"
+        candidates.append(_compound_entry(cs, prio))
+        seen.add(sym)
 
-    # Then top nobrainers up to N_THESES total
+    # Guarantee MU-grade representation -- the page's headline pattern
+    mu_tickers = {m.get("ticker") for m in mu_grade if m.get("ticker")}
+    for x in mu_grade:
+        if sum(1 for c in candidates
+               if c.get("ticker") in mu_tickers) >= MIN_MU_SLOTS:
+            break
+        tk = x.get("ticker")
+        if tk and tk not in seen and len(candidates) < N_THESES:
+            candidates.append(x)
+            seen.add(tk)
+
+    # Fill the rest from the nobrainer leaderboard proper
     for x in nb_top:
         tk = x.get("ticker")
         if tk and tk not in seen:

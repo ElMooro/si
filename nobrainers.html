@@ -298,12 +298,16 @@ function renderTheses(layer4, layer5) {
       <div class="thesis-head">
         <div>
           <div class="thesis-ticker tier-${cls}">${c.ticker || t.ticker}<span>${(c.name || "").slice(0,40)}</span></div>
-          <div class="dim mono" style="font-size:10px;margin-top:6px;letter-spacing:1px">${c.theme_etf || t.theme_etf} · <span class="phase-${c.theme_phase}">${c.theme_phase || ""}</span> · TIER ${c.tier || t.tier}</div>
+          <div class="dim mono" style="font-size:10px;margin-top:6px;letter-spacing:1px">${c.theme_etf || t.theme_etf}${(c.theme_phase && c.theme_phase !== (c.theme_etf || t.theme_etf)) ? ` · <span class="phase-${c.theme_phase}">${c.theme_phase}</span>` : ""} · TIER ${c.tier ?? t.tier}</div>
         </div>
         <div class="thesis-score tier-${cls}">${fmtScore(t.asymmetric_score)}<span class="vsub">${(c.flag || t.flag || "").replace("TIER_","")}</span></div>
       </div>
 
-      <div class="thesis-meta">
+      ${((c.flag === "COMPOUND_PRIORITY" || t.flag === "COMPOUND_PRIORITY") && fund.market_cap == null) ? `
+      <div class="dim mono" style="font-size:10px;letter-spacing:1px;text-transform:uppercase">Multi-system compound signal · outside the tier-2/3 nobrainer metric universe</div>
+      <div>${(c._compound_systems || []).map(s => `<span class="supply-pill">${s}</span>`).join("")}
+        ${c._compound_score != null ? `<span class="supply-pill">compound ${c._compound_score}</span>` : ""}</div>
+      ` : `<div class="thesis-meta">
         <div class="m"><span class="lbl">theme</span><span class="val">${fmtScore(f.theme_attribution)}</span></div>
         <div class="m"><span class="lbl">supply</span><span class="val">${fmtScore(f.supply_inflection)}</span></div>
         <div class="m"><span class="lbl">val asym</span><span class="val">${fmtScore(f.valuation_asym)}</span></div>
@@ -320,7 +324,7 @@ function renderTheses(layer4, layer5) {
         <div><span class="lbl">Gross Margin</span><span class="val">${fmtPct(fund.gross_margin)}</span></div>
         <div><span class="lbl">Rev Growth</span><span class="val">${fmtPct(fund.rev_growth_ttm)}</span></div>
         <div><span class="lbl">Earnings</span><span class="val mono">${fmtDate(c.next_earnings)}</span></div>
-      </div>
+      </div>`}
 
       ${supplySigs.length ? `<div class="dim mono" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:-2px">Supply tightness signals</div>
         <div>${supplySigs.map(s => `<span class="supply-pill">${s.signal} ${s.score?.toFixed?.(0) || "?"}</span>`).join("")}</div>` : ""}
