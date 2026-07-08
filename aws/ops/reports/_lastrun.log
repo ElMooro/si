@@ -1,10 +1,5 @@
-executing-against: 59b3c28e99cdfa180002fb795a68230e13a93443
-── 0. Gates ──
-── 1. Adopted pages live (repo truth + live sample) ──
-── 2. Orphan recount ──
-── 3. SIFMA retry ──
-── 4. Allocator rf fix live ──
-── 5. Audit stamps ──
-[23:58:44] FAILS=0 WARNS=0
+executing-against: efdfd5d7a5ab32b50bc012e4acd23e6812f6064a
+[00:00:15] FAILS=1 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2986_u9_close.md
+→ Report written to aws/ops/reports/latest/2984_orphan_dump.md
+❌ OPS-FAIL: aws/ops/pending/ops_2984_orphan_dump.py
