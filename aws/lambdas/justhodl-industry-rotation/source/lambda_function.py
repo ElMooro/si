@@ -678,29 +678,25 @@ def lambda_handler(event=None, context=None):
             if r_["tag"] == "BREAKDOWN" and c.get("read") == "DANGER":
                 r_["tag"] = "CONFIRMED_DETERIORATION"
 
-    try:
-        fl = s3_json("data/etf-fund-flows.json") or {}
-        fmap = {}
-
-        def _fw(o):
-            if isinstance(o, dict):
-                t = o.get("ticker")
-                if t and ("flow_21d_usd" in o or "flow_5d_usd" in o):
-                    fmap.setdefault(
-                        t.upper(),
-                        {"flow_21d_usd": o.get("flow_21d_usd"),
-                         "flow_label": o.get("label")})
-                for v_ in o.values():
-                    _fw(v_)
-            elif isinstance(o, list):
-                for v_ in o:
-                    _fw(v_)
-        _fw(fl)
-        for r in rows:
-            if r["etf"] in fmap:
-                r["fund_flows"] = fmap[r["etf"]]
-    except Exception:
-        pass
+    # Fund-flows live as PER-TICKER files under etf-flows/{T}.json
+    # (verified: the summary doc carries no per-ticker rows). 40 cheap
+    # S3 reads, display-only, each defensive.
+    flows_hit = 0
+    for r in rows:
+        try:
+            fj = s3_json("etf-flows/%s.json" % r["etf"])
+            if isinstance(fj, dict):
+                node = fj if "flow_21d_usd" in fj else next(
+                    (v for v in fj.values() if isinstance(v, dict)
+                     and "flow_21d_usd" in v), None)
+                if node:
+                    r["fund_flows"] = {
+                        "flow_21d_usd": node.get("flow_21d_usd"),
+                        "flow_label": node.get("label")}
+                    flows_hit += 1
+        except Exception:
+            continue
+    warns.append("fund_flows joined: %d/%d" % (flows_hit, len(rows)))
 
     fv = s3_json("data/finviz-groups.json") or {}
     by_sector = {}
