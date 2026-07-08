@@ -125,13 +125,63 @@ def call_anthropic(prompt, key, max_tokens=1500):
                 return r
         except Exception as e:
             print(f"[anthropic-direct] {e}")
-    # Fleet-standard resilient fallback -- the whole board can never 0/12 again
+    # Fleet-standard resilient fallback
     from llm_router import complete
     txt = complete(prompt, tier="bulk", max_tokens=max_tokens) or ""
     if not txt.strip():
         raise RuntimeError("all LLM paths returned empty")
     return {"content": [{"type": "text", "text": txt}],
             "usage": {"via": "llm_router"}}
+
+
+def deterministic_thesis(c):
+    """Budget-off / kill-switch fallback: a structured numeric read built
+    purely from Layer-4 data, so the board NEVER renders dead cards. Marked
+    clearly as non-LLM."""
+    f = c.get("factors") or {}
+    fund = c.get("fundamentals") or {}
+    parts = []
+    parts.append("%s (%s) -- %s on %s, tier %s, asymmetric score %.0f."
+                 % (c.get("ticker"), (c.get("name") or "")[:40],
+                    c.get("flag") or "", c.get("theme_etf") or "",
+                    c.get("tier"), c.get("asymmetric_score") or 0))
+    if c.get("_compound_systems"):
+        parts.append("Multi-system compound: flagged by %s (compound score "
+                     "%s)." % (", ".join(c["_compound_systems"]),
+                               c.get("_compound_score")))
+    fbits = []
+    for k, lbl in (("theme_attribution", "theme"),
+                   ("supply_inflection", "supply"),
+                   ("valuation_asym", "valuation asymmetry"),
+                   ("catalyst_prox", "catalyst proximity")):
+        v = f.get(k)
+        if isinstance(v, (int, float)):
+            fbits.append("%s %.0f" % (lbl, v))
+    if fbits:
+        parts.append("Factor scores: " + ", ".join(fbits) + ".")
+    vbits = []
+    if isinstance(fund.get("mcap_to_rev"), (int, float)):
+        vbits.append("mcap/rev %.2fx" % fund["mcap_to_rev"])
+    if isinstance(fund.get("p_e"), (int, float)):
+        vbits.append("P/E %.1f" % fund["p_e"])
+    if isinstance(fund.get("fcf_yield"), (int, float)):
+        vbits.append("FCF yield %.1f%%" % (fund["fcf_yield"] * 100))
+    if isinstance(fund.get("rev_growth_ttm"), (int, float)):
+        vbits.append("rev growth %.1f%%" % (fund["rev_growth_ttm"] * 100))
+    if isinstance(fund.get("gross_margin"), (int, float)):
+        vbits.append("gross margin %.1f%%" % (fund["gross_margin"] * 100))
+    if vbits:
+        parts.append("Valuation/quality: " + ", ".join(vbits) + ".")
+    sup = [s.get("signal") for s in (c.get("supply_signals") or [])
+           if s.get("signal")]
+    if sup:
+        parts.append("Supply tightness signals: " + ", ".join(sup[:5]) + ".")
+    if c.get("next_earnings"):
+        parts.append("Next earnings: %s." % c["next_earnings"])
+    parts.append("(LLM narrative unavailable this run -- cost-governance "
+                 "kill-switch or budget cap; this is the deterministic "
+                 "numeric read from Layer 4. Not investment advice.)")
+    return "\n\n".join(parts)
 
 
 def extract_text(claude_response):
@@ -631,6 +681,7 @@ def lambda_handler(event=None, context=None):
     theses = []
     n_ok = 0
     n_fail = 0
+    n_deterministic = 0
     for c in candidates:
         ticker = c.get("ticker")
         theme = c.get("theme_etf")
@@ -667,13 +718,16 @@ def lambda_handler(event=None, context=None):
                     body = he.read().decode()[:200]
                 except Exception:
                     pass
-                err = f"HTTP {he.code}: {body}"
+                err = f"llm_unavailable: HTTP {he.code}: {body}"
                 print(f"[rationale] {ticker}/{theme} ERR {err}")
-                n_fail += 1
+                thesis_text = deterministic_thesis(c)
+                n_deterministic += 1
             except Exception as e:
                 err = str(e)
                 print(f"[rationale] {ticker}/{theme} ERR {err}")
-                n_fail += 1
+                thesis_text = deterministic_thesis(c)
+                err = f"llm_unavailable: {err}"
+                n_deterministic += 1
 
         thesis_block = {
             "ticker": ticker,
@@ -711,6 +765,7 @@ def lambda_handler(event=None, context=None):
         "n_theses": len(theses),
         "n_claude_ok": n_ok,
         "n_claude_fail": n_fail,
+        "n_deterministic": n_deterministic,
         "min_score_threshold": MIN_SCORE,
         "model": ANTHROPIC_MODEL,
         "skipped_claude": skip,
