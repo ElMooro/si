@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 2993 -- industry-rotation ENV FIX + full verify. 2992 gate caught
+"""ops 2994 -- industry-rotation ENV FIX + full verify. 2992 gate caught
 env nuked (deploy-lambdas creates functions without env; env is set by
 ops per the 2977 convention and PRESERVED on later deploys per the 2968
 fix). Sequence: settle; copy donor env from justhodl-confluence-meta
@@ -35,7 +35,7 @@ def s3_json(key):
 
 
 def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "ops-2993",
+    req = urllib.request.Request(url, headers={"User-Agent": "ops-2994",
                                                "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.read().decode("utf-8", "replace")
@@ -74,8 +74,8 @@ def wait_status(want_env=None, tries=50):
 
 def main():
     fails, warns = [], []
-    out = {"ops": 2993, "ts": datetime.now(timezone.utc).isoformat()}
-    with report("2993_ir_envfix") as rep:
+    out = {"ops": 2994, "ts": datetime.now(timezone.utc).isoformat()}
+    with report("2994_ir_envfix2") as rep:
 
         rep.section("1. Settle + env fix")
         time.sleep(70)
@@ -210,12 +210,21 @@ def main():
 def _w(rep, out, fails, warns):
     out["fails"], out["warns"] = fails, warns
     out["verdict"] = "PASS" if not fails else "FAIL"
-    (AWS_DIR / "ops" / "reports" / "2993.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "2994.json").write_text(
         json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     if fails:
         sys.exit(1)
 
 
-main()
+try:
+    main()
+except SystemExit:
+    raise
+except Exception:
+    import traceback
+    (AWS_DIR / "ops" / "reports" / "2994.json").write_text(json.dumps(
+        {"ops": 2994, "verdict": "FAIL",
+         "crash_traceback": traceback.format_exc()[-3000:]}, indent=1))
+    sys.exit(1)
 sys.exit(0)
