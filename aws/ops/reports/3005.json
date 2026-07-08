@@ -1,0 +1,62 @@
+{
+ "ops": 3005,
+ "ts": "2026-07-08T02:55:25.785878+00:00",
+ "ondemand_reclassified": [
+  "justhodl-history-api",
+  "justhodl-trade-journal",
+  "justhodl-transcript-indexer",
+  "justhodl-transcript-query",
+  "justhodl-watchlist",
+  "justhodl-feedback",
+  "justhodl-kill-switch"
+ ],
+ "flows_joined": 35,
+ "flows_sample": [
+  {
+   "etf": "XBI",
+   "flow_21d_usd": 962048982.85,
+   "flow_label": null
+  },
+  {
+   "etf": "CIBR",
+   "flow_21d_usd": 43014000.0,
+   "flow_label": null
+  },
+  {
+   "etf": "IBB",
+   "flow_21d_usd": 437760339.25,
+   "flow_label": null
+  },
+  {
+   "etf": "XLV",
+   "flow_21d_usd": 585113585.4000001,
+   "flow_label": null
+  },
+  {
+   "etf": "IYT",
+   "flow_21d_usd": -176013467.64999998,
+   "flow_label": null
+  },
+  {
+   "etf": "KRE",
+   "flow_21d_usd": 1061723433.5500001,
+   "flow_label": null
+  }
+ ],
+ "join_warn": "fund_flows joined: 35/40",
+ "suspect_diag": {
+  "justhodl-engine-robustness": {
+   "secs": 1.1,
+   "fn_error": null,
+   "body": "{\"statusCode\": 200, \"body\": \"{\\\"ok\\\": true, \\\"no_action\\\": \\\"no_engines_with_sufficient_history\\\", \\\"min_snapshots_required\\\": 10}\"}"
+  },
+  "justhodl-ici-flows": {
+   "secs": 8.4,
+   "fn_error": "Unhandled",
+   "body": "{\"errorMessage\": \"no ICI data (mmf=0 ltf=0) \\u2014 seed histories\", \"errorType\": \"RuntimeError\", \"requestId\": \"e1bc21df-0230-47c3-964d-8b66cb27f83c\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 281, in lambda_handler\\n    raise RuntimeError(\\\"no ICI data (mmf=%d ltf=%d) \\u2014 seed histories\\\" % (len(mmf_h), len(ltf_h)))\\n\"]}"
+  }
+ },
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS"
+}

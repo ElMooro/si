@@ -1,26 +1,7 @@
-executing-against: 0477339f76e8177bde5e305d5ecb2348ca476702
-── 1. IR deploy gate + invoke (flows join) ──
-── 2. Registry load + freshness recompute ──
-── 3. Poke + evidence + safe fixes ──
-[02:53:03] ✅   ✓ created rule engine-contribution-daily-resurrected
-[02:53:03] ✅   ✓ target → justhodl-engine-contribution
-[02:53:04] ✅   ✓ added invoke permission
-[02:53:04] ✅   ✓ created rule causality-scanner-daily-resurrected
-[02:53:04] ✅   ✓ target → justhodl-causality-scanner
-[02:53:04] ✅   ✓ added invoke permission
-[02:53:04] ✅   ✓ created rule behavior-mirror-daily-resurrected
-[02:53:04] ✅   ✓ target → justhodl-behavior-mirror
-[02:53:04] ✅   ✓ added invoke permission
-[02:53:05] ✅   ✓ created rule stress-loadings-daily-resurrected
-[02:53:05] ✅   ✓ target → justhodl-stress-loadings
-[02:53:05] ✅   ✓ added invoke permission
-[02:53:05] ✅   ✓ created rule opportunity-calibrator-daily-resurrected
-[02:53:05] ✅   ✓ target → justhodl-opportunity-calibrator
-[02:53:05] ✅   ✓ added invoke permission
-[02:53:05] ✅   ✓ created rule beneish-daily-resurrected
-[02:53:05] ✅   ✓ target → justhodl-beneish
-[02:53:06] ✅   ✓ added invoke permission
-[02:53:06] FAILS=1
+executing-against: 677a3d5749c3025eb51b00794464cb4300d3731b
+── 1. IR deploy gate + flows v3 ──
+── 2. Suspect sync invokes (error capture) ──
+[02:57:21] ✅ flows 35/40 | suspects: {"justhodl-engine-robustness": "ok", "justhodl-ici-flows": "Unhandled"}
+[02:57:21] FAILS=0
 
-→ Report written to aws/ops/reports/latest/3004_flows_orphan_triage.md
-❌ OPS-FAIL: aws/ops/pending/ops_3004_flows_orphan_triage.py
+→ Report written to aws/ops/reports/latest/3005_flows_v3_deepdive.md
