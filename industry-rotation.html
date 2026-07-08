@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Industry Rotation · JustHodl.AI</title>
+<meta name="description" content="Market regime → industry-ETF leadership → strongest stocks. Absorption detection: industries holding their MA ladder with rising SPY ratios while the tape is weak.">
+<style>
+:root{--bg-base:#07090f;--bg-raised:#0e1320;--border:rgba(120,145,180,0.12);--fg-1:#e6ecf5;--fg-2:#a8b3c7;--fg-3:#6b7a92;--green:#38ffa8;--red:#ff5470;--amber:#ffb13d;--cyan:#00d4ff;--violet:#a78bfa;--font-mono:'IBM Plex Mono',ui-monospace,monospace;--font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5}
+a{color:var(--cyan);text-decoration:none}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 18px 60px}
+header.pg{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:21px;font-weight:700}
+.fresh{font-family:var(--font-mono);font-size:10px;color:var(--fg-3)}
+.sub{color:var(--fg-3);font-size:12px;margin:4px 0 16px}
+.banner{border:1px solid var(--border);border-radius:4px;padding:12px 16px;background:var(--bg-raised);display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+.banner b{font-size:17px}
+.STRONG{color:var(--green)}.WEAK{color:var(--red)}.NEUTRAL{color:var(--amber)}
+section{margin-top:22px}
+h2{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--fg-2);margin-bottom:10px}
+h2 .n{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-left:8px;text-transform:none;letter-spacing:0}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:13px 15px}
+table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px}
+.tbl th{color:var(--fg-3);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-weight:500}
+.tbl td{padding:5px 8px;border-bottom:1px solid rgba(120,145,180,0.06)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2a3448}
+.dot.on{background:var(--green)}
+.tag{font-size:9px;font-weight:700;letter-spacing:.8px;padding:2px 7px;border-radius:3px}
+.tag.ABSORPTION{background:rgba(56,255,168,.12);color:var(--green);border:1px solid rgba(56,255,168,.4)}
+.tag.BREAKDOWN{background:rgba(255,84,112,.12);color:var(--red);border:1px solid rgba(255,84,112,.4)}
+.up{color:var(--green)}.dn{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.lc{background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:12px 14px;margin-bottom:12px}
+.lc h3{font-size:14px}
+.lc .m{font-family:var(--font-mono);font-size:10.5px;color:var(--fg-3);margin:4px 0 8px}
+.sold{display:flex;gap:7px;flex-wrap:wrap}
+.sold span{font-family:var(--font-mono);font-size:10.5px;border:1px solid var(--border);border-radius:3px;padding:2px 7px;color:var(--fg-2)}
+.meth{margin-top:30px;color:var(--fg-3);font-size:11px;border-top:1px dashed var(--border);padding-top:12px}
+#err{color:var(--red);font-family:var(--font-mono);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="pg"><h1>🎖️ Industry Rotation</h1><span class="fresh" id="fresh">loading…</span></header>
+  <div class="sub">Market regime → industry-ETF leadership → strongest soldiers. The premium signal is <b>absorption</b>: the tape is weak, but an industry holds its 50/100/200 ladder with a rising ETF/SPY ratio — someone is buying the supply.</div>
+  <div id="err"></div>
+  <div class="banner" id="banner"></div>
+
+  <section id="abssec" style="display:none">
+    <h2>Absorption Watch <span class="n">weak tape · intact ladder · rising ratio — institutional footprints</span></h2>
+    <div class="card" id="abs"></div>
+  </section>
+
+  <section>
+    <h2>Leadership Ladder <span class="n">score = MA ladder 50 + ratio trend 30 + 3m relative momentum 20</span></h2>
+    <div class="card" style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+    <div class="n" id="ranknote" style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3);margin-top:6px"></div>
+  </section>
+
+  <section>
+    <h2>Leaders · Strongest Soldiers <span class="n">top-5 armies → top holdings + resilient names inside</span></h2>
+    <div id="leaders"></div>
+  </section>
+
+  <div class="meth" id="meth"></div>
+</div>
+<script>
+(function(){
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function dot(b){return '<span class="dot'+(b?' on':'')+'"></span>';}
+function fetchJSON(p){var t=Date.now();
+  return fetch(p+"?v="+t).then(function(r){if(!r.ok)throw 0;return r.json();})
+  .catch(function(){return fetch("https://justhodl.ai/"+p+"?v="+t).then(function(r){return r.json();});});}
+fetchJSON("data/industry-rotation.json").then(function(d){
+  document.getElementById("fresh").textContent="generated "+(d.generated_at||"").slice(0,16).replace("T"," ")+"Z · "+(d.method&&d.method.universe_n)+" ETFs";
+  var mr=d.market_regime||{};
+  document.getElementById("banner").innerHTML=
+    '<div><span class="n" style="font-size:10px;color:var(--fg-3)">MARKET REGIME</span><br><b class="'+esc(mr.state)+'">'+esc(mr.state)+"</b></div>"+
+    '<div><span style="color:var(--fg-3)">SPY</span> <b>'+esc(mr.spy)+"</b><br><span style=\"font-family:var(--font-mono);font-size:10px\">"+dot(mr.spy_above_sma20)+" 20d &nbsp;"+dot(mr.spy_above_sma50)+" 50d</span></div>"+
+    (mr.risk_regime_score!=null?'<div><span style="color:var(--fg-3)">Risk-Regime</span><br><b>'+esc(mr.risk_regime_score)+'</b> <span style="font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">'+esc(mr.risk_regime||"")+"</span></div>":"")+
+    '<div style="margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--fg-3)">absorption: '+((d.absorption_watch||[]).length)+" · breakdown: "+((d.breakdown_watch||[]).length)+"</div>";
+  if((d.absorption_watch||[]).length){
+    document.getElementById("abssec").style.display="";
+    document.getElementById("abs").innerHTML=(d.ladder||[]).filter(function(r){return r.tag==="ABSORPTION";}).map(function(r){
+      return '<div style="display:flex;gap:14px;align-items:baseline;padding:4px 0"><b style="min-width:52px">'+esc(r.etf)+"</b><span>"+esc(r.name)+'</span><span class="up" style="font-family:var(--font-mono)">ratio +'+esc(r.ratio_slope_20d_pct)+"% / 20d</span><span style=\"font-family:var(--font-mono);color:var(--fg-3)\">score "+r.leadership_score+"</span></div>";
+    }).join("");
+  }
+  var rows=d.ladder||[];
+  document.getElementById("tbl").innerHTML=
+    "<tr><th>ETF</th><th>Group</th><th>Kind</th><th>50d</th><th>100d</th><th>200d</th><th>Ratio&gt;50d</th><th>Ratio 20d</th><th>3m rel</th><th>Score</th><th>Δrank 20d</th><th></th></tr>"+
+    rows.map(function(r){
+      var sl=r.ratio_slope_20d_pct, rd=r.rank_delta_20d;
+      return "<tr><td><b>"+esc(r.etf)+"</b></td><td>"+esc(r.name)+"</td><td style=\"color:var(--fg-3)\">"+esc(r.kind[0])+"</td><td>"+dot(r.above_sma50)+"</td><td>"+dot(r.above_sma100)+"</td><td>"+dot(r.above_sma200)+"</td><td>"+dot(r.ratio_above_50d)+"</td>"+
+      '<td class="'+(sl>0?"up":(sl<0?"dn":""))+'">'+(sl==null?"—":(sl>0?"+":"")+sl+"%")+"</td>"+
+      '<td class="'+(r.rel_mom_3m_pp>0?"up":"dn")+'">'+(r.rel_mom_3m_pp==null?"—":(r.rel_mom_3m_pp>0?"+":"")+r.rel_mom_3m_pp+"pp")+"</td>"+
+      "<td><b>"+r.leadership_score+"</b></td>"+
+      '<td class="'+(rd>0?"up":(rd<0?"dn":""))+'">'+(rd==null?"—":(rd>0?"+":"")+rd)+"</td>"+
+      "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+"</td></tr>";
+    }).join("");
+  document.getElementById("ranknote").textContent=d.rank_note||"";
+  document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
+    var h=(l.holdings_top||[]).map(function(x){return "<span>"+esc(x.ticker)+" "+esc(x.weight_pct)+"%</span>";}).join("");
+    var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.state?" · "+esc(x.state):"")+"</span>";}).join("");
+    return '<div class="lc"><h3>'+esc(l.etf)+" — "+esc(l.name)+' <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">score '+l.leadership_score+(l.tag?' · <span class="tag '+esc(l.tag)+'">'+esc(l.tag)+"</span>":"")+"</span></h3>"+
+      '<div class="m">'+dot(l.above_sma50)+" 50d "+dot(l.above_sma100)+" 100d "+dot(l.above_sma200)+" 200d · ratio 20d "+(l.ratio_slope_20d_pct>0?"+":"")+esc(l.ratio_slope_20d_pct)+"% · 3m rel "+(l.rel_mom_3m_pp>0?"+":"")+esc(l.rel_mom_3m_pp)+"pp</div>"+
+      (h?'<div style="font-size:10px;color:var(--fg-3);margin-bottom:4px">TOP HOLDINGS</div><div class="sold">'+h+"</div>":"")+
+      (rn?'<div style="font-size:10px;color:var(--fg-3);margin:8px 0 4px">RESILIENT NAMES INSIDE (2-factor residual survivors)</div><div class="sold">'+rn+"</div>":"")+
+      "</div>";
+  }).join("")||'<div class="card" style="color:var(--fg-3)">No leaders scored yet.</div>';
+  document.getElementById("meth").innerHTML="<b>Method.</b> "+esc((d.method||{}).leadership_score)+". Absorption: "+esc((d.method||{}).absorption)+". Rationale: past winning industries tend to keep leading, and a large share of single-stock momentum is explained by industry membership (Moskowitz &amp; Grinblatt 1999; AQR industry-momentum research) — so the ladder filters the army before the soldiers. Relative strength while SPY is below its short moving averages indicates rotation and supply absorption rather than beta. All data real: Polygon daily bars, risk-regime engine, resilience engine, FMP holdings where available.";
+}).catch(function(e){document.getElementById("err").textContent="feed unavailable — engine may not have run yet";});
+})();
+</script>
+<script src="/jh-wire.js" defer data-feeds="data/industry-rotation.json|justhodl-industry-rotation|INDUSTRY ROTATION;data/finviz-groups.json|justhodl-finviz-groups|FINVIZ GROUP AGGREGATES"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>

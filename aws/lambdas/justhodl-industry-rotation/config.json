@@ -1,0 +1,7 @@
+{
+  "runtime": "python3.12",
+  "timeout": 240,
+  "memory": 512,
+  "inherit_env_from": "justhodl-confluence-meta",
+  "schedule": {"name": "industry-rotation-daily", "expression": "cron(35 21 * * ? *)"}
+}
