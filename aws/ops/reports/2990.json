@@ -1,0 +1,43 @@
+{
+ "ops": 2990,
+ "ts": "2026-07-08T00:10:52.154552+00:00",
+ "alloc_key": "data/allocator.json",
+ "bridge": {
+  "used": null,
+  "spy_tlt_corr_90d": null,
+  "duration_hedge_gated": null,
+  "sleeves_mapped": null,
+  "note": null
+ },
+ "bridge_tilts": null,
+ "sifma": {
+  "status": "DEGRADED",
+  "reason": null,
+  "note": null
+ },
+ "gap_modules_ok": 11,
+ "gap_status": {
+  "M7": "ATTEMPTED",
+  "M10": "COVERED",
+  "M21": "OPEN"
+ },
+ "u9_recount": 0,
+ "totals": {
+  "engines": 668,
+  "pages": 370,
+  "families": 12,
+  "wired_per_wiring_doc": 68,
+  "orphaned_per_wiring_doc": null,
+  "gaps": 5,
+  "gaps_open": 3,
+  "gaps_shipped": 11,
+  "gaps_feasible_now": 1,
+  "already_covered": 17
+ },
+ "crypto_risk_feed_refs": 15,
+ "fails": [],
+ "warns": [
+  "bridge present but used=false: None"
+ ],
+ "verdict": "PASS"
+}
