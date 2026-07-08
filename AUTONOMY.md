@@ -133,3 +133,10 @@ If either copy is lost or drifts, restore it from the other.
   reports-failure dup-race is structurally gone).
 - **CLAUDE.md** (repo root): thin pointer so Claude Code auto-loads this
   protocol natively if/when sessions move there.
+
+## Fleet-state knowledge base (2026-07-08)
+
+Deep fleet/engine state lives in **docs/memory-archive/** (verbatim archive
+of migrated memory edits + README contract). Grep it before building
+anything — it is a primary audit-first source alongside the repo, STATE.md
+and past chats. Memory edits are now mostly one-line pointers into it.

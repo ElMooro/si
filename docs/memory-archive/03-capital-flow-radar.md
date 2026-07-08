@@ -1,0 +1,7 @@
+# Memory archive — edit #03 (migrated verbatim 2026-07-08, Khalid-approved memory diet)
+
+Source: Claude memory edit #03. This file is the authoritative archive; the memory slot now holds a one-line pointer here. Grep this directory before building anything fleet-related.
+
+---
+
+CAPITAL FLOW RADAR (justhodl-capital-flow-radar, data/capital-flow-radar.json, daily 22:30 UTC) v3.0.0 — institutional sector $-flow → pump/dump + dollar-tide engine. 46 complexes incl new bond-positioning (Long Treasuries 20Y, Intermediate 7-10Y), Cybersecurity, Mid Caps (IJH core), Cannabis, Quantum Computing, Robotics/AI. LEVERAGED POSITIONING board: per-complex bull-lev minus bear-lev + 20-name single-stock board (added MU/NFLX/TSM/BABA/CRWD/BRK/HOOD; MU leveraged-bullish ~+$145M, AVGO/AAPL bearish, semis SOXL dominant outflow). Fed by justhodl-etf-fund-flows whose universe = 300 ETFs (full coverage-verified 2x/3x long+short via ETF Global api.polygon.io/etf-global/v1/fund-flows, ~1d lag). PATTERN: probe candidate tickers for coverage BEFORE integrating (ops 1936 probe→1937/1938 integrate). Wired into master-ranker (_cf_overlay mult) + best-setups (SECTOR_CAPITAL_FLOW prior 0.72) + signal-harvester ledger (auto-discovers data/*.json, top_pick_cascade→eng:capital-flow-radar rows in DDB justhodl-signals, PROVEN). Dashboard capital-flow-radar.html live (auto-renders schema). Telegram transition alerts (state diff data/capital-flow-radar-state.json). AI Chat Lambda justhodl-ai-chat URL https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/. Last ops = 1938.
