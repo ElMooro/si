@@ -1,0 +1,113 @@
+{
+ "ops": 2997,
+ "ts": "2026-07-08T01:08:35.558741+00:00",
+ "env_vars": 4,
+ "regime": {
+  "state": "STRONG",
+  "spy": 747.71,
+  "spy_above_sma20": true,
+  "spy_above_sma50": true,
+  "risk_regime_score": 24.2,
+  "risk_regime": "MILD_RISK_ON"
+ },
+ "ladder_n": 33,
+ "top5": [
+  [
+   "CIBR",
+   99,
+   null
+  ],
+  [
+   "XBI",
+   98,
+   null
+  ],
+  [
+   "JETS",
+   98,
+   null
+  ],
+  [
+   "IBB",
+   96,
+   null
+  ],
+  [
+   "IYT",
+   96,
+   null
+  ]
+ ],
+ "bottom3": [
+  [
+   "KWEB",
+   2
+  ],
+  [
+   "GDX",
+   1
+  ],
+  [
+   "URA",
+   1
+  ]
+ ],
+ "absorption": [],
+ "breakdown": [
+  "TAN",
+  "LIT",
+  "OIH",
+  "XLE",
+  "XOP",
+  "XLC",
+  "XME",
+  "KWEB",
+  "GDX",
+  "URA"
+ ],
+ "rank_note": "WARMING_UP: rank_delta_20d activates after 21 sessions (1/21 accrued)",
+ "doc_warns": [
+  "resilience_index: 62 tickers loaded"
+ ],
+ "leaders_with_soldiers": 5,
+ "sector_map_n": 11,
+ "page_ok": true,
+ "wires_ok": 2,
+ "soldiers_detail": [
+  {
+   "etf": "CIBR",
+   "holdings_n": 12,
+   "reason": null,
+   "resilient_n": 0
+  },
+  {
+   "etf": "XBI",
+   "holdings_n": 12,
+   "reason": null,
+   "resilient_n": 0
+  },
+  {
+   "etf": "JETS",
+   "holdings_n": 12,
+   "reason": null,
+   "resilient_n": 1
+  },
+  {
+   "etf": "IBB",
+   "holdings_n": 12,
+   "reason": null,
+   "resilient_n": 0
+  },
+  {
+   "etf": "IYT",
+   "holdings_n": 12,
+   "reason": null,
+   "resilient_n": 1
+  }
+ ],
+ "any_holdings": true,
+ "resilience_index_size": "resilience_index: 62 tickers loaded",
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS"
+}
