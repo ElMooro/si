@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""ops 3009 -- Nobrainer Hunter L5, round 2: root cause of the 0-ok/12-fail
+"""ops 3010 -- Nobrainer Hunter L5, round 3 (VERIFY-ONLY, no deploy step):
+round 2 (ops 3009) re-broke the Lambda by ALSO deploying via the local
+ops-helper zipfile, which does not bundle aws/shared -- clobbering the
+correct deploy-lambdas.yml deploy that had already succeeded seconds
+earlier on the SAME push (run 28979683625, confirmed green). Structural
+fix: this script does NOT deploy at all. Any fn importing aws/shared
+(nearly all of them) must be deployed ONLY via deploy-lambdas.yml --
+never mix that with an ops-script deploy_lambda() call in the same
+push. Original round-2 root-cause analysis stands unchanged: root cause of the 0-ok/12-fail
 board was TWO bugs stacked. (1) Selection: compound lane had no cap and
 synthesized blank tier-0 megacap entries -- fixed round 1 (verified via
 manual deploy-lambdas dispatch: real tier-2/3 mix, n_compound=1/n_real=6
@@ -21,7 +29,6 @@ from pathlib import Path
 
 import boto3
 from botocore.config import Config
-from _lambda_deploy_helpers import deploy_lambda
 from ops_report import report
 
 SSM = boto3.client("ssm", region_name="us-east-1")
@@ -41,37 +48,7 @@ def s3_json(key):
 
 def main():
     fails, warns = [], []
-    with report("3009_nobrainer_thesis_v2") as rep:
-        rep.section("0. Diagnose live env (root cause: key sourcing)")
-        live = LAM.get_function_configuration(FunctionName=FN)
-        env = (live.get("Environment") or {}).get("Variables") or {}
-        rep.kv(env_keys=sorted(env.keys()), timeout=live.get("Timeout"),
-               memory=live.get("MemorySize"))
-        if "ANTHROPIC_API_KEY" not in env and "ANTHROPIC_KEY" not in env:
-            try:
-                donor = LAM.get_function_configuration(
-                    FunctionName="justhodl-research-critique")
-                denv = (donor.get("Environment") or {}
-                        ).get("Variables") or {}
-                if denv.get("ANTHROPIC_API_KEY"):
-                    env["ANTHROPIC_API_KEY"] = denv["ANTHROPIC_API_KEY"]
-                    rep.log("ANTHROPIC_API_KEY copied from donor "
-                            "justhodl-research-critique")
-            except Exception as e:
-                warns.append("donor key copy failed: %s" % str(e)[:120])
-
-        rep.section("1. Deploy the fixed engine")
-        deploy_lambda(report=rep, function_name=FN,
-                      source_dir=AWS_DIR / "lambdas" / FN / "source",
-                      env_vars=env,
-                      timeout=max(live.get("Timeout") or 0, 780),
-                      memory=max(live.get("MemorySize") or 0, 512),
-                      description="Nobrainer L5 thesis writer - capped "
-                                  "compound lane, MU-grade floor, "
-                                  "all_scored join, resilient LLM chain. "
-                                  "data/nobrainers-rationale.json.",
-                      create_function_url=False, smoke=False)
-
+    with report("3010_nobrainer_thesis_v3") as rep:
         rep.section("2. Regenerate (Event invoke + S3 poll)")
         prev_gen = ""
         try:
@@ -209,11 +186,11 @@ def main():
 
 
 def _write(rep, fails, warns, extra):
-    payload = {"ops": 3009, "fails": fails, "warns": warns,
+    payload = {"ops": 3010, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3009.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3010.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

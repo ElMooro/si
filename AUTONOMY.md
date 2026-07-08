@@ -140,3 +140,29 @@ Deep fleet/engine state lives in **docs/memory-archive/** (verbatim archive
 of migrated memory edits + README contract). Grep it before building
 anything — it is a primary audit-first source alongside the repo, STATE.md
 and past chats. Memory edits are now mostly one-line pointers into it.
+
+## Trap: never deploy via ops-helper for shared-importing functions (2026-07-08)
+
+`deploy_lambda()` in `_lambda_deploy_helpers.py` zips ONLY the function's
+own `source/` dir -- it does NOT bundle `aws/shared/*.py`. Any function
+that imports shared modules (`claude_compat`, `anthropic_shim`,
+`llm_router`, `_fred_shim`, `equity_enrich`, etc. -- i.e. nearly all of
+them) will crash on cold start if deployed this way, with no import error
+visible from the sandbox (invoke just times out / never writes fresh
+output).
+
+`deploy-lambdas.yml`, by contrast, DOES bundle `aws/shared/**/*.py` into
+every function's zip, and it auto-triggers on any push touching
+`aws/lambdas/<fn>/{source/**,config.json}` -- which any lambda-source
+commit already does.
+
+**Rule: if an ops script's commit ALSO touches lambda source/config, do
+NOT additionally call `deploy_lambda()` inside that ops script.**
+`deploy-lambdas.yml` already has it covered on the same push. Calling the
+ops-helper deploy too doesn't just waste time -- it can CLOBBER the
+correct bundled deploy with a broken unbundled one if it runs after
+(observed live: 2026-07-08, justhodl-nobrainer-rationale, ops 3009 -- a
+verified-good deploy-lambdas.yml deploy was overwritten by the ops
+script's own deploy_lambda() call seconds later, reintroducing the exact
+ImportError crash the push was meant to fix). Ops scripts that push lambda
+changes should be VERIFY-ONLY: invoke + poll + assert, nothing else.
