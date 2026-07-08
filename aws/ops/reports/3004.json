@@ -1,0 +1,387 @@
+{
+ "ops": 3004,
+ "ts": "2026-07-08T02:49:01.418464+00:00",
+ "flows_joined": 0,
+ "flows_sample": [],
+ "skipped_on_demand": [
+  "justhodl-ai-chat",
+  "justhodl-ask-desk",
+  "justhodl-cds-proxy",
+  "justhodl-chat-api",
+  "justhodl-equity-research",
+  "justhodl-page-ai",
+  "justhodl-page-ai-commentary",
+  "justhodl-telegram-bot",
+  "justhodl-ticker-deep-research",
+  "justhodl-tv-notes-crawler",
+  "justhodl-tv-notes-ingest"
+ ],
+ "stale_found": [
+  [
+   "justhodl-history-api",
+   709.8
+  ],
+  [
+   "justhodl-nyfed-pd",
+   101.3
+  ],
+  [
+   "justhodl-forward-orders",
+   85.3
+  ],
+  [
+   "justhodl-beneish",
+   71.8
+  ],
+  [
+   "justhodl-edge-discovery",
+   63.8
+  ],
+  [
+   "justhodl-engine-contribution",
+   62.8
+  ],
+  [
+   "justhodl-stress-loadings",
+   62.8
+  ],
+  [
+   "justhodl-forward-returns",
+   62.8
+  ],
+  [
+   "justhodl-behavior-mirror",
+   61.8
+  ],
+  [
+   "justhodl-opportunity-calibrator",
+   59.3
+  ],
+  [
+   "justhodl-causality-scanner",
+   53.8
+  ]
+ ],
+ "dead_found": [
+  [
+   "justhodl-engine-robustness",
+   null
+  ],
+  [
+   "justhodl-trade-journal",
+   1475
+  ],
+  [
+   "justhodl-transcript-indexer",
+   null
+  ],
+  [
+   "justhodl-eurostat-history",
+   null
+  ],
+  [
+   "justhodl-watchlist",
+   1475
+  ],
+  [
+   "justhodl-transcript-query",
+   null
+  ],
+  [
+   "justhodl-ici-flows",
+   null
+  ],
+  [
+   "justhodl-feedback",
+   1550
+  ],
+  [
+   "justhodl-kill-switch",
+   null
+  ]
+ ],
+ "evidence": {
+  "justhodl-engine-contribution": {
+   "prev_age_h": 62.8,
+   "outs": [
+    "data/engine-contributions.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.05,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-causality-scanner": {
+   "prev_age_h": 53.8,
+   "outs": [
+    "data/causality-discoveries.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.04,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-behavior-mirror": {
+   "prev_age_h": 61.8,
+   "outs": [
+    "data/behavior-mirror.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.03,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-nyfed-pd": {
+   "prev_age_h": 101.3,
+   "outs": [
+    "data/nyfed-primary-dealer.json"
+   ],
+   "exists": true,
+   "rules": [
+    "justhodl-nyfed-pd-weekly"
+   ],
+   "rule_states": {
+    "justhodl-nyfed-pd-weekly": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": -0.03,
+   "verdict": "REFRESHED_HAS_RULE"
+  },
+  "justhodl-stress-loadings": {
+   "prev_age_h": 62.8,
+   "outs": [
+    "data/stress-factor-loadings.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.03,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-opportunity-calibrator": {
+   "prev_age_h": 59.3,
+   "outs": [
+    "data/opportunity-calibration.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.04,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-forward-orders": {
+   "prev_age_h": 85.3,
+   "outs": [
+    "data/forward-orders.json"
+   ],
+   "exists": true,
+   "rules": [
+    "forward-orders-daily"
+   ],
+   "rule_states": {
+    "forward-orders-daily": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": -0.05,
+   "verdict": "REFRESHED_HAS_RULE"
+  },
+  "justhodl-history-api": {
+   "prev_age_h": 709.8,
+   "outs": [
+    "data/history-index.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": 709.81,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-beneish": {
+   "prev_age_h": 71.8,
+   "outs": [
+    "data/beneish.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": -0.05,
+   "verdict": "RESURRECTED_SCHEDULED"
+  },
+  "justhodl-forward-returns": {
+   "prev_age_h": 62.8,
+   "outs": [
+    "data/forward-returns.json"
+   ],
+   "exists": true,
+   "rules": [
+    "forward-returns-weekly"
+   ],
+   "rule_states": {
+    "forward-returns-weekly": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": -0.03,
+   "verdict": "REFRESHED_HAS_RULE"
+  },
+  "justhodl-edge-discovery": {
+   "prev_age_h": 63.8,
+   "outs": [
+    "data/edge-discovery-graduated.json",
+    "data/edge-discovery.json"
+   ],
+   "exists": true,
+   "rules": [
+    "justhodl-edge-discovery-weekly"
+   ],
+   "rule_states": {
+    "justhodl-edge-discovery-weekly": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": -0.03,
+   "verdict": "REFRESHED_HAS_RULE"
+  },
+  "justhodl-engine-robustness": {
+   "prev_age_h": null,
+   "outs": [
+    "data/engine-robustness.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": null,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-trade-journal": {
+   "prev_age_h": 1475,
+   "outs": [
+    "data/user-trades-stats.json",
+    "data/user-trades.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": 1475.4,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-transcript-indexer": {
+   "prev_age_h": null,
+   "outs": [
+    "data/transcripts-index.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": null,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-eurostat-history": {
+   "prev_age_h": null,
+   "outs": [
+    "data/ecb-confidence.json"
+   ],
+   "exists": false,
+   "err": "An error occurred (ResourceNotFoundException) when calling the GetFunctionConfiguration operation: Function not found: a",
+   "verdict": "REGISTRY_GHOST_OR_ERR"
+  },
+  "justhodl-watchlist": {
+   "prev_age_h": 1475,
+   "outs": [
+    "data/user-watchlist.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": 1475.4,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-transcript-query": {
+   "prev_age_h": null,
+   "outs": [
+    "data/transcripts-index.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": null,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-ici-flows": {
+   "prev_age_h": null,
+   "outs": [
+    "data/ici-flows.json"
+   ],
+   "exists": true,
+   "rules": [
+    "justhodl-ici-flows-weekly"
+   ],
+   "rule_states": {
+    "justhodl-ici-flows-weekly": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": null,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-feedback": {
+   "prev_age_h": 1550,
+   "outs": [
+    "data/feedback-summary.json"
+   ],
+   "exists": true,
+   "rules": [],
+   "rule_states": {},
+   "poked": true,
+   "age_after_poke_h": 1550.02,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  },
+  "justhodl-kill-switch": {
+   "prev_age_h": null,
+   "outs": [
+    "data/kill-switch-state.json"
+   ],
+   "exists": true,
+   "rules": [
+    "justhodl-kill-switch-check"
+   ],
+   "rule_states": {
+    "justhodl-kill-switch-check": "ENABLED"
+   },
+   "poked": true,
+   "age_after_poke_h": null,
+   "verdict": "NO_WRITE_AFTER_POKE"
+  }
+ },
+ "scheduled": [
+  "justhodl-engine-contribution",
+  "justhodl-causality-scanner",
+  "justhodl-behavior-mirror",
+  "justhodl-stress-loadings",
+  "justhodl-opportunity-calibrator",
+  "justhodl-beneish"
+ ],
+ "verdict_counts": {
+  "RESURRECTED_SCHEDULED": 6,
+  "REFRESHED_HAS_RULE": 4,
+  "NO_WRITE_AFTER_POKE": 9,
+  "REGISTRY_GHOST_OR_ERR": 1
+ },
+ "fails": [
+  "flows joined only 0/40"
+ ],
+ "warns": [],
+ "verdict": "FAIL"
+}

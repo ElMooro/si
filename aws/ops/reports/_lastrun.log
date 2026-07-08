@@ -1,13 +1,26 @@
-executing-against: f8cdfb78d7630b2324ad4b8ce1aeefe791e95407
-── 1. Gates + factor-regime bootstrap ──
-[02:39:16]   rule already correct: factor-regime-daily (cron(28 21 * * ? *))
-[02:39:16] ✅   ✓ target → justhodl-factor-regime
-[02:39:16] ✅   ✓ added invoke permission
-── 2. Invoke factor-regime ──
-── 3. Invoke industry-rotation v2 ──
-── 4b. Best-setups credit-penalty path ──
-── 4. Pages live ──
-[02:39:58] ✅ THEORY STACK LIVE: FR appetite 45.9 (RISK_ON), thrusts ["USMV/SPY (MINVOL_DEFENSE)"] | IR v2 top [["XBI", 98, 13.69, 6, false], ["CIBR", 98, 16.73, -2, false], ["XTN", 95, 6.6, -43, false]] | crowded ["XLK"]
-[02:39:58] FAILS=0 WARNS=0
+executing-against: 0477339f76e8177bde5e305d5ecb2348ca476702
+── 1. IR deploy gate + invoke (flows join) ──
+── 2. Registry load + freshness recompute ──
+── 3. Poke + evidence + safe fixes ──
+[02:53:03] ✅   ✓ created rule engine-contribution-daily-resurrected
+[02:53:03] ✅   ✓ target → justhodl-engine-contribution
+[02:53:04] ✅   ✓ added invoke permission
+[02:53:04] ✅   ✓ created rule causality-scanner-daily-resurrected
+[02:53:04] ✅   ✓ target → justhodl-causality-scanner
+[02:53:04] ✅   ✓ added invoke permission
+[02:53:04] ✅   ✓ created rule behavior-mirror-daily-resurrected
+[02:53:04] ✅   ✓ target → justhodl-behavior-mirror
+[02:53:04] ✅   ✓ added invoke permission
+[02:53:05] ✅   ✓ created rule stress-loadings-daily-resurrected
+[02:53:05] ✅   ✓ target → justhodl-stress-loadings
+[02:53:05] ✅   ✓ added invoke permission
+[02:53:05] ✅   ✓ created rule opportunity-calibrator-daily-resurrected
+[02:53:05] ✅   ✓ target → justhodl-opportunity-calibrator
+[02:53:05] ✅   ✓ added invoke permission
+[02:53:05] ✅   ✓ created rule beneish-daily-resurrected
+[02:53:05] ✅   ✓ target → justhodl-beneish
+[02:53:06] ✅   ✓ added invoke permission
+[02:53:06] FAILS=1
 
-→ Report written to aws/ops/reports/latest/3003_v3_scorecard.md
+→ Report written to aws/ops/reports/latest/3004_flows_orphan_triage.md
+❌ OPS-FAIL: aws/ops/pending/ops_3004_flows_orphan_triage.py
