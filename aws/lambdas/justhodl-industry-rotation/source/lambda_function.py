@@ -171,47 +171,57 @@ def ladder_row(tkr, closes, spy, regime, mom3_pop):
 
 
 def fmp_holdings(tkr):
+    """Real ETF constituents (what the fund HOLDS), not etf-holder
+    (legacy: who owns ETF SHARES -- backwards). /stable/etf/holdings is
+    the current FMP endpoint; returns (holdings, reason) so failures
+    are diagnosable, never silent."""
     if not FMP:
-        return None
-    d = _http("https://financialmodelingprep.com/stable/etf-holder"
+        return None, "no FMP key in env"
+    d = _http("https://financialmodelingprep.com/stable/etf/holdings"
               "?symbol=%s&apikey=%s" % (tkr, FMP))
     if not isinstance(d, list) or not d:
-        return None
+        return None, ("etf/holdings empty/non-list for %s (plan-gated "
+                      "or wrong symbol) -- resp head: %s"
+                      % (tkr, json.dumps(d)[:120]))
     rows = sorted(
-        (r for r in d if r.get("asset")),
-        key=lambda r: -(r.get("weightPercentage") or 0))[:10]
-    return [{"ticker": r.get("asset"),
-             "weight_pct": round(r.get("weightPercentage") or 0, 2)}
-            for r in rows] or None
+        (r for r in d if (r.get("asset") or r.get("symbol"))),
+        key=lambda r: -(r.get("weightPercentage")
+                        or r.get("weightPercent") or 0))[:12]
+    out = [{"ticker": (r.get("asset") or r.get("symbol")),
+           "weight_pct": round(r.get("weightPercentage")
+                               or r.get("weightPercent") or 0, 2)}
+          for r in rows]
+    return (out, None) if out else (None, "zero usable rows for %s" % tkr)
 
 
-def resilient_join(doc, etf, sector_name):
-    """Rows from data/resilience.json whose best-fit sector ETF or
-    sector string matches. Defensive to field naming."""
+def resilience_index(doc):
+    """Ground-truth schema (read from justhodl-resilience source, not
+    guessed): rows live under about_to_boom / all_resilient / top_picks,
+    keyed by ticker, with fields resilience (0-100) + stage
+    (ABSORBING/COILED/IGNITING). No sector field exists anywhere in the
+    row -- so joining happens on TICKER MEMBERSHIP in real ETF holdings,
+    never on a sector-name string match."""
+    idx = {}
     if not doc:
+        return idx
+    for k in ("all_resilient", "top_picks", "about_to_boom"):
+        for r in (doc.get(k) or []):
+            t = r.get("ticker")
+            if t and t not in idx:
+                idx[t] = {"ticker": t, "stage": r.get("stage"),
+                          "resilience": r.get("resilience")}
+    return idx
+
+
+def soldiers_of(holdings, res_idx):
+    """Holdings of the leading ETF that ALSO show up on the resilience
+    engine's watchlist -- genuinely idiosyncratically strong, not just
+    riding the ETF's own beta."""
+    if not holdings:
         return []
-    rows = None
-    for k in ("resilient", "names", "rows", "items", "assets"):
-        if isinstance(doc.get(k), list):
-            rows = doc[k]
-            break
-    if rows is None:
-        rows = next((v for v in doc.values()
-                     if isinstance(v, list) and v
-                     and isinstance(v[0], dict)
-                     and ("ticker" in v[0] or "symbol" in v[0])), [])
-    hits = []
-    for r in rows:
-        blob = json.dumps(r)
-        if ('"%s"' % etf) in blob or (
-                sector_name and sector_name in blob):
-            hits.append({"ticker": r.get("ticker") or r.get("symbol"),
-                         "state": r.get("state") or r.get("status"),
-                         "score": r.get("score")
-                         or r.get("resilience_score")})
-        if len(hits) >= 8:
-            break
-    return hits
+    hits = [dict(res_idx[h["ticker"]], weight_pct=h["weight_pct"])
+            for h in holdings if h["ticker"] in res_idx]
+    return hits[:8]
 
 
 def lambda_handler(event=None, context=None):
@@ -261,19 +271,21 @@ def lambda_handler(event=None, context=None):
 
     # soldiers for the top-5 leaders
     res_doc = s3_json("data/resilience.json")
+    res_idx = resilience_index(res_doc)
+    warns.append("resilience_index: %d tickers loaded" % len(res_idx))
     leaders = []
     for r in rows[:5]:
-        holds = None
+        holds, reason = None, "not attempted"
         try:
-            holds = fmp_holdings(r["etf"])
-        except Exception:
-            pass
+            holds, reason = fmp_holdings(r["etf"])
+        except Exception as e:
+            reason = str(e)[:100]
         if holds is None:
-            warns.append("holdings skip %s" % r["etf"])
+            warns.append("holdings skip %s: %s" % (r["etf"], reason))
         leaders.append(dict(
             r, holdings_top=holds,
-            resilient_names=resilient_join(
-                res_doc, r["etf"], r["parent_sector"])))
+            holdings_reason=(None if holds else reason),
+            resilient_names=soldiers_of(holds, res_idx)))
 
     fv = s3_json("data/finviz-groups.json") or {}
     by_sector = {}
