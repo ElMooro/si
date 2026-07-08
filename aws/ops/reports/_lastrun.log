@@ -1,8 +1,11 @@
-executing-against: cc77cff1616dddd2ddd236cfac170dcda381c227
-── 1. Preflight dogfood (lints itself + the new tools) ──
-── 2. STATE.md generator runs clean ──
-── 3. Engine health ping (repo-market + fused consumers) ──
-── verdict ──
-[20:20:16] PASS -- concurrency + STATE.md + preflight all live
+executing-against: a533aa71b381bd2d33711006acd5b64e29e3db9d
+── 0. Diagnose live env (root cause: key sourcing) ──
+── 1. Deploy the fixed engine ──
+[21:14:40]   zip: 9702 bytes
+── 1. Lambda ──
+[21:14:40]   Lambda exists — updating
+[21:14:43] ✅   ✓ updated justhodl-nobrainer-rationale
+── 2. Regenerate (Event invoke + S3 poll) ──
 
-→ Report written to aws/ops/reports/latest/3006_flow_hardening_probe.md
+→ Report written to aws/ops/reports/latest/3007_nobrainer_thesis_fix.md
+❌ OPS-FAIL: aws/ops/pending/ops_3007_nobrainer_thesis_fix.py
