@@ -1,6 +1,12 @@
-executing-against: 65f327ef10cd0f9dd168dca8a8a1e138d966251a
+executing-against: a52f8c8c5e04c673ae41cb66e8dd02f68e2dfbd8
 ── 1. Gates + factor-regime bootstrap ──
-[01:39:39] FAILS=1 WARNS=0
+[01:46:07] ✅   ✓ created rule factor-regime-daily
+[01:46:07] ✅   ✓ target → justhodl-factor-regime
+[01:46:07] ✅   ✓ added invoke permission
+── 2. Invoke factor-regime ──
+── 3. Invoke industry-rotation v2 ──
+── 4. Pages live ──
+[01:46:29] ✅ THEORY STACK LIVE: FR appetite 45.9 (RISK_ON), thrusts ["USMV/SPY (MINVOL_DEFENSE)"] | IR v2 top [["CIBR", 99, 16.73, -2, false], ["XBI", 98, 13.69, 6, false], ["IBB", 95, 4.07, 28, false]] | crowded ["XLK"]
+[01:46:29] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/2998_theory_stack.md
-❌ OPS-FAIL: aws/ops/pending/ops_2998_theory_stack.py
+→ Report written to aws/ops/reports/latest/2999_theory_stack_v2.md
