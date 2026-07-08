@@ -1,0 +1,240 @@
+{
+ "ops": 3001,
+ "ts": "2026-07-08T02:12:29.428010+00:00",
+ "fr_env": 3,
+ "fr_risk_appetite": 45.9,
+ "fr_read": "RISK_ON",
+ "fr_pairs_ok": 11,
+ "fr_thrusts": [
+  "USMV/SPY (MINVOL_DEFENSE)"
+ ],
+ "fr_leading": [
+  "SMALL_SIZE",
+  "EQUAL_WEIGHT_BREADTH",
+  "QUALITY",
+  "MINVOL_DEFENSE",
+  "SPECULATIVE_APPETITE",
+  "BIOTECH_RISK_APPETITE"
+ ],
+ "fr_sample": [
+  {
+   "pair": "QQQ/SPY",
+   "label": "GROWTH_LARGE",
+   "note": "mega-growth vs the market",
+   "sign": 1,
+   "ratio": 0.9488,
+   "above_50d": false,
+   "slope_20d_pct": -0.75,
+   "slope_63d_pct": 6.24,
+   "z_1y": 1.33,
+   "state": "LAGGING",
+   "thrust": false
+  },
+  {
+   "pair": "IWM/SPY",
+   "label": "SMALL_SIZE",
+   "note": "small caps vs the market (size factor)",
+   "sign": 1,
+   "ratio": 0.3961,
+   "above_50d": true,
+   "slope_20d_pct": 3.73,
+   "slope_63d_pct": 3.43,
+   "z_1y": 1.71,
+   "state": "LEADING",
+   "thrust": false
+  },
+  {
+   "pair": "RSP/SPY",
+   "label": "EQUAL_WEIGHT_BREADTH",
+   "note": "equal-weight vs cap-weight -- breadth of participation",
+   "sign": 1,
+   "ratio": 0.2872,
+   "above_50d": true,
+   "slope_20d_pct": 1.92,
+   "slope_63d_pct": -2.42,
+   "z_1y": 0.15,
+   "state": "LEADING",
+   "thrust": false
+  },
+  {
+   "pair": "SPHB/SPLV",
+   "label": "HIGH_BETA_VS_LOWVOL",
+   "note": "risk appetite: high beta vs low vol (BAB in ETF form)",
+   "sign": 1,
+   "ratio": 1.8959,
+   "above_50d": false,
+   "slope_20d_pct": -2.75,
+   "slope_63d_pct": 19.2,
+   "z_1y": 1.33,
+   "state": "LAGGING",
+   "thrust": false
+  }
+ ],
+ "ir_version": "2.1",
+ "ir_ladder_n": 40,
+ "ir_top5": [
+  [
+   "CIBR",
+   98,
+   16.73,
+   -2,
+   false
+  ],
+  [
+   "XBI",
+   98,
+   13.69,
+   6,
+   false
+  ],
+  [
+   "XTN",
+   95,
+   6.6,
+   -43,
+   false
+  ],
+  [
+   "XLV",
+   94,
+   3.13,
+   104,
+   false
+  ],
+  [
+   "IBB",
+   94,
+   4.07,
+   28,
+   false
+  ]
+ ],
+ "ir_crowded": [
+  "XLK"
+ ],
+ "ir_breadth": [
+  [
+   "CIBR",
+   {
+    "pct_above_50d": 75,
+    "n_priced": 12,
+    "read": "BROAD"
+   }
+  ],
+  [
+   "XBI",
+   {
+    "pct_above_50d": 100,
+    "n_priced": 12,
+    "read": "BROAD"
+   }
+  ],
+  [
+   "XTN",
+   {
+    "pct_above_50d": 100,
+    "n_priced": 12,
+    "read": "BROAD"
+   }
+  ],
+  [
+   "XLV",
+   {
+    "pct_above_50d": 83,
+    "n_priced": 12,
+    "read": "BROAD"
+   }
+  ],
+  [
+   "IBB",
+   {
+    "pct_above_50d": 100,
+    "n_priced": 12,
+    "read": "BROAD"
+   }
+  ]
+ ],
+ "ir_pead_soldiers": 0,
+ "industry_credit": {
+  "CIBR": {
+   "read": "OK",
+   "median_z": 9.53,
+   "distress_pct": 0,
+   "n_scored": 8
+  },
+  "XBI": {
+   "read": "OK",
+   "median_z": 28.44,
+   "distress_pct": 0,
+   "n_scored": 7
+  },
+  "XTN": {
+   "read": "DANGER",
+   "median_z": 1.44,
+   "distress_pct": 75,
+   "n_scored": 8
+  },
+  "XLV": {
+   "read": "OK",
+   "median_z": 3.38,
+   "distress_pct": 0,
+   "n_scored": 8
+  },
+  "IBB": {
+   "read": "OK",
+   "median_z": 13.46,
+   "distress_pct": 0,
+   "n_scored": 8
+  },
+  "XME": {
+   "read": "OK",
+   "median_z": 4.53,
+   "distress_pct": 12,
+   "n_scored": 8
+  },
+  "COPX": {
+   "read": "OK",
+   "median_z": 3.43,
+   "distress_pct": 12,
+   "n_scored": 8
+  },
+  "XLC": {
+   "read": "OK",
+   "median_z": 7.88,
+   "distress_pct": 12,
+   "n_scored": 8
+  },
+  "GDX": {
+   "read": "OK",
+   "median_z": 6.64,
+   "distress_pct": 0,
+   "n_scored": 8
+  },
+  "URA": {
+   "read": "OK",
+   "median_z": 7.7,
+   "distress_pct": 0,
+   "n_scored": 7
+  },
+  "KWEB": {
+   "read": "DANGER",
+   "median_z": 4.21,
+   "distress_pct": 38,
+   "n_scored": 8
+  }
+ },
+ "confirmed_det": [
+  "KWEB"
+ ],
+ "resilience_reads": {
+  "WEAK_BOTH_WAYS": 3,
+  "RESILIENT_LEADER": 4,
+  "HIGH_BETA_PROFILE": 19,
+  "DEFENSIVE_ONLY": 14
+ },
+ "soldier_chain_fields": 2,
+ "ir_v2_fields_ok": 40,
+ "fails": [],
+ "warns": [],
+ "verdict": "PASS"
+}

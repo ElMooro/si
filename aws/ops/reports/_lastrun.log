@@ -1,8 +1,12 @@
-executing-against: 84f47d943eb2ca7e1cb7caa80c13b4d65531ee75
-── 1. Deploy gate ──
-── 2. Invoke (production ranker, long) ──
-── 3. Doc verify ──
-[02:05:35] ✅ FUSION LIVE: 50/50 setups carry industry priors | boosted 25 haircut 6 | appetite 45.9 | why mentions 47
-[02:05:35] FAILS=0 WARNS=0
+executing-against: 1d3beb8862abeaee159c6cbc12cd021848057e38
+── 1. Gates + factor-regime bootstrap ──
+[02:13:53]   rule already correct: factor-regime-daily (cron(28 21 * * ? *))
+[02:13:53] ✅   ✓ target → justhodl-factor-regime
+[02:13:53] ✅   ✓ added invoke permission
+── 2. Invoke factor-regime ──
+── 3. Invoke industry-rotation v2 ──
+── 4. Pages live ──
+[02:14:48] ✅ THEORY STACK LIVE: FR appetite 45.9 (RISK_ON), thrusts ["USMV/SPY (MINVOL_DEFENSE)"] | IR v2 top [["CIBR", 98, 16.73, -2, false], ["XBI", 98, 13.69, 6, false], ["XTN", 95, 6.6, -43, false]] | crowded ["XLK"]
+[02:14:48] FAILS=0 WARNS=0
 
-→ Report written to aws/ops/reports/latest/3000_setups_fusion.md
+→ Report written to aws/ops/reports/latest/3001_v21_credit.md
