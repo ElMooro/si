@@ -1,10 +1,15 @@
-executing-against: 888fb5b55435c909543c9c754b82c86be91c71ea
-── 1. Settle + env fix ──
+## 1. Settle + env fix
 
-→ Report written to aws/ops/reports/latest/2993_ir_envfix.md
+**Status:** failure  
+**Duration:** 77.9s  
+**Finished:** 2026-07-08T00:41:00+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_2993_ir_envfix.py", line 220, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_2993_ir_envfix.py", line 102, in main
     ensure_schedule(rep)
   File "/home/runner/work/si/si/aws/ops/pending/ops_2993_ir_envfix.py", line 55, in ensure_schedule
@@ -25,4 +30,15 @@ Traceback (most recent call last):
     raise ParamValidationError(report=report.generate_report())
 botocore.exceptions.ParamValidationError: Parameter validation failed:
 Invalid type for parameter Target.RoleArn, value: None, type: <class 'NoneType'>, valid types: <class 'str'>
-❌ OPS-FAIL: aws/ops/pending/ops_2993_ir_envfix.py
+
+```
+
+## Data
+
+| env_keys | env_vars | update |
+|---|---|---|
+| ['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'S3_BUCKET'] |  |  |
+|  | 4 | Successful |
+
+## Log
+
