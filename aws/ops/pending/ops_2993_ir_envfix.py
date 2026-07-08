@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""ops 2992 -- INDUSTRY ROTATION v1.0 (Khalid doctrine: regime ->
-industry-ETF leadership -> strongest soldiers; absorption = weak tape +
-intact 50/100/200 ladder + rising ETF/SPY ratio). Deploy-gate (75s +
-Successful<=30min + env guard), create schedule if absent, invoke,
-verify doc coherence, verify page live, wire checks on sectors/
-signal-board live sources."""
+"""ops 2993 -- industry-rotation ENV FIX + full verify. 2992 gate caught
+env nuked (deploy-lambdas creates functions without env; env is set by
+ops per the 2977 convention and PRESERVED on later deploys per the 2968
+fix). Sequence: settle; copy donor env from justhodl-confluence-meta
+(key-filtered) + S3_BUCKET via update_function_configuration; wait
+Successful with env>=3; ensure schedule; invoke; run the complete 2992
+verification battery."""
 import json
 import sys
 import time
@@ -24,6 +25,9 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 AWS_DIR = Path(__file__).resolve().parents[2]
 FN = "justhodl-industry-rotation"
+DONOR = "justhodl-confluence-meta"
+KEYS = ["FRED_KEY", "FRED_API_KEY", "POLYGON_API_KEY", "POLYGON_KEY",
+        "FMP_API_KEY", "FMP_KEY"]
 
 
 def s3_json(key):
@@ -31,7 +35,7 @@ def s3_json(key):
 
 
 def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "ops-2992",
+    req = urllib.request.Request(url, headers={"User-Agent": "ops-2993",
                                                "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.read().decode("utf-8", "replace")
@@ -45,8 +49,7 @@ def ensure_schedule(rep):
     body = dict(Name="industry-rotation-daily",
                 ScheduleExpression="cron(35 21 * * ? *)",
                 FlexibleTimeWindow={"Mode": "OFF"},
-                Target={"Arn": arn, "RoleArn": role_arn,
-                        "Input": "{}"},
+                Target={"Arn": arn, "RoleArn": role_arn, "Input": "{}"},
                 State="ENABLED")
     try:
         SCHED.create_schedule(**body)
@@ -56,35 +59,44 @@ def ensure_schedule(rep):
         rep.kv(schedule="updated")
 
 
+def wait_status(want_env=None, tries=50):
+    cfg, env_n = {}, 0
+    for _ in range(tries):
+        cfg = LAM.get_function_configuration(FunctionName=FN)
+        env_n = len((cfg.get("Environment") or {}).get("Variables")
+                    or {})
+        if cfg.get("LastUpdateStatus") == "Successful" and \
+                (want_env is None or env_n >= want_env):
+            return cfg, env_n
+        time.sleep(6)
+    return cfg, env_n
+
+
 def main():
     fails, warns = [], []
-    out = {"ops": 2992, "ts": datetime.now(timezone.utc).isoformat()}
-    with report("2992_industry_rotation") as rep:
+    out = {"ops": 2993, "ts": datetime.now(timezone.utc).isoformat()}
+    with report("2993_ir_envfix") as rep:
 
-        rep.section("1. Deploy gate")
-        time.sleep(75)
-        fresh = False
-        for _ in range(50):
-            try:
-                cfg = LAM.get_function_configuration(FunctionName=FN)
-            except Exception:
-                time.sleep(8)
-                continue
-            lm = datetime.fromisoformat(
-                cfg["LastModified"].replace("+0000", "+00:00"))
-            age = (datetime.now(timezone.utc) - lm).total_seconds()
-            if cfg.get("LastUpdateStatus") == "Successful" and age < 1800:
-                env_n = len((cfg.get("Environment") or {})
-                            .get("Variables") or {})
-                rep.kv(deploy_age_s=int(age), env_vars=env_n)
-                if env_n < 3:
-                    fails.append("env nuked: %d" % env_n)
-                fresh = True
-                break
-            time.sleep(8)
-        if not fresh:
-            fails.append("no fresh successful deploy")
-        if fails:
+        rep.section("1. Settle + env fix")
+        time.sleep(70)
+        wait_status()
+        donor = (LAM.get_function_configuration(FunctionName=DONOR)
+                 .get("Environment") or {}).get("Variables") or {}
+        env = {k: v for k, v in donor.items() if k in KEYS}
+        env["S3_BUCKET"] = BUCKET
+        rep.kv(env_keys=sorted(env))
+        if len(env) < 3:
+            fails.append("donor env thin: %s" % sorted(env))
+            _w(rep, out, fails, warns)
+            return
+        LAM.update_function_configuration(
+            FunctionName=FN, Environment={"Variables": env},
+            Timeout=240, MemorySize=512)
+        cfg, env_n = wait_status(want_env=3)
+        rep.kv(env_vars=env_n, update=cfg.get("LastUpdateStatus"))
+        out["env_vars"] = env_n
+        if env_n < 3:
+            fails.append("env still thin after update: %d" % env_n)
             _w(rep, out, fails, warns)
             return
         ensure_schedule(rep)
@@ -198,7 +210,7 @@ def main():
 def _w(rep, out, fails, warns):
     out["fails"], out["warns"] = fails, warns
     out["verdict"] = "PASS" if not fails else "FAIL"
-    (AWS_DIR / "ops" / "reports" / "2992.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "2993.json").write_text(
         json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     if fails:

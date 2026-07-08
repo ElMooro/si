@@ -1,7 +1,20 @@
 {
   "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
   "timeout": 240,
   "memory": 512,
-  "inherit_env_from": "justhodl-confluence-meta",
-  "schedule": {"name": "industry-rotation-daily", "expression": "cron(35 21 * * ? *)"}
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Regime -> industry-ETF leadership -> strongest soldiers. 33-ETF MA ladder + ETF/SPY ratio trend + 3m rel-mom; ABSORPTION divergence under weakness; leaders drill into holdings + resilience survivors.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-confluence-meta",
+      "keys": ["FRED_KEY", "FRED_API_KEY", "POLYGON_API_KEY", "POLYGON_KEY", "FMP_API_KEY", "FMP_KEY"]
+    }
+  ],
+  "env": { "S3_BUCKET": "justhodl-dashboard-live" },
+  "schedule": {
+    "rule_name": "industry-rotation-daily",
+    "cron": "cron(35 21 * * ? *)",
+    "description": "Industry rotation daily 21:35 UTC (before gap-metrics 21:45, compass 22:15)"
+  }
 }
