@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 2998 -- THEORY-STACK UPGRADE verify (Khalid email, 15-theory
+"""ops 2999 -- THEORY-STACK UPGRADE verify (Khalid email, 15-theory
 institutional blueprint applied where genuinely missing):
 (A) industry-rotation v2.0: Jegadeesh-Titman skip-month multi-horizon
     momentum, beta-adjusted alpha-RS (BAB separation), quantified
@@ -41,7 +41,7 @@ def s3_json(key):
 
 
 def get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "ops-2998",
+    req = urllib.request.Request(url, headers={"User-Agent": "ops-2999",
                                                "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.read().decode("utf-8", "replace")
@@ -77,8 +77,8 @@ def invoke(fn):
 
 def main():
     fails, warns = [], []
-    out = {"ops": 2998, "ts": datetime.now(timezone.utc).isoformat()}
-    with report("2998_theory_stack") as rep:
+    out = {"ops": 2999, "ts": datetime.now(timezone.utc).isoformat()}
+    with report("2999_theory_stack_v2") as rep:
 
         rep.section("1. Gates + factor-regime bootstrap")
         time.sleep(75)
@@ -86,9 +86,40 @@ def main():
         rep.kv(ir_gate=ok_ir, ir_env=env_ir)
         if not ok_ir:
             fails.append("IR gate: env=%d" % env_ir)
+        try:
+            LAM.get_function_configuration(FunctionName=FR)
+            rep.kv(fr_exists=True)
+        except Exception:
+            # deploy-lambdas create-branch no-op (known intermittent,
+            # memory-documented). Remedy: create from the runner's own
+            # checkout via zipfile -> create_function.
+            import io
+            import zipfile
+            rep.kv(fr_exists=False, action="ops-side create_function")
+            srcdir = AWS_DIR / "lambdas" / FR / "source"
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w",
+                                 zipfile.ZIP_DEFLATED) as z:
+                for f in srcdir.rglob("*.py"):
+                    z.write(f, f.relative_to(srcdir))
+            donor0 = (LAM.get_function_configuration(
+                FunctionName=DONOR).get("Environment")
+                or {}).get("Variables") or {}
+            env0 = {k: v for k, v in donor0.items() if k in KEYS}
+            env0["S3_BUCKET"] = BUCKET
+            LAM.create_function(
+                FunctionName=FR, Runtime="python3.12",
+                Role="arn:aws:iam::857687956942:role/"
+                     "lambda-execution-role",
+                Handler="lambda_function.lambda_handler",
+                Code={"ZipFile": buf.getvalue()},
+                Timeout=180, MemorySize=512,
+                Environment={"Variables": env0},
+                Description="Style-ETF ratio trend/thrust regime "
+                            "detector (factor momentum)")
         ok_fr, _ = gate(FR, need_env=False)
         if not ok_fr:
-            fails.append("FR not deployed")
+            fails.append("FR still not Active after create")
         if fails:
             _w(rep, out, fails, warns)
             return
@@ -229,7 +260,7 @@ def main():
 def _w(rep, out, fails, warns):
     out["fails"], out["warns"] = fails, warns
     out["verdict"] = "PASS" if not fails else "FAIL"
-    (AWS_DIR / "ops" / "reports" / "2998.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "2999.json").write_text(
         json.dumps(out, indent=1))
     rep.log("FAILS=%d WARNS=%d" % (len(fails), len(warns)))
     if fails:
@@ -242,8 +273,8 @@ except SystemExit:
     raise
 except Exception as e:
     import traceback
-    (AWS_DIR / "ops" / "reports" / "2998.json").write_text(json.dumps(
-        {"ops": 2998, "verdict": "FAIL",
+    (AWS_DIR / "ops" / "reports" / "2999.json").write_text(json.dumps(
+        {"ops": 2999, "verdict": "FAIL",
          "fails": ["CRASH: %s" % str(e)[:200]],
          "trace": traceback.format_exc()[-1500:],
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
