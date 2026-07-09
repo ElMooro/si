@@ -1,9 +1,6 @@
-executing-against: f6a8d265abac1e2226521c45f88d9559c64ceba7
-── 0. Wait for deploys ──
-── 1. Warroom v4 regeneration ──
-── 3. Live page checks (CDN lag = warn-level) ──
-[23:25:31] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
-── verdict ──
-[23:25:31] PASS -- barometer 36.6 (WATCH) over 292 equal votes; full inventory live
+executing-against: 345dc2df577f973829f715348f6e4bb1ada973c2
+── 1. Ensure engine exists + settled ──
+── 2. Event study run ──
 
-→ Report written to aws/ops/reports/latest/3027_visual_barometer.md
+→ Report written to aws/ops/reports/latest/3028_earned_weights.md
+❌ OPS-FAIL: aws/ops/pending/ops_3028_earned_weights.py
