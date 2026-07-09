@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""ops 3019 -- rows-expansion CLOSE. 3018 diagnosis: the warroom CRASHED
+"""ops 3020 -- rows FINAL. 3019 lost a deploy race: invoked 16s into the
+deploy run at LastModified-age 0.0 while the Lambda still served the
+pre-fix package (LastUpdateStatus mid-flight). wait_fresh now also
+requires LastUpdateStatus=Successful + State=Active + settle sleep.
+The type-fix deploy has since completed green -- this is the clean
+rerun.
+
+Prior: ops 3019 -- rows-expansion CLOSE. 3018 diagnosis: the warroom CRASHED
 mid-run on TypeError float<str -- crisis-canaries member 'lead' is a
 STRING (e.g. 2-6w) and entered the firing sort beside float
 lead_months; output never wrote, so all asserts read stale v3 data.
@@ -69,13 +76,20 @@ def s3_json(key):
 
 
 def wait_fresh(fn, max_min=8):
+    """Fresh AND settled: LastModified flips the instant update_function_code
+    is called, while invokes can still execute the OLD package until
+    LastUpdateStatus==Successful (3019 lesson: invoked 16s after the deploy
+    run started and hit pre-fix code at age 0.0)."""
     for _ in range(int(max_min * 3)):
         try:
             c = LAM.get_function_configuration(FunctionName=fn)
             lm = datetime.fromisoformat(
                 c["LastModified"].replace("+0000", "+00:00"))
             age = (datetime.now(timezone.utc) - lm).total_seconds() / 60.0
-            if age < 12:
+            settled = (c.get("LastUpdateStatus") in (None, "Successful")
+                       and c.get("State") in (None, "Active"))
+            if age < 12 and settled:
+                time.sleep(8)   # publish settle
                 return age
         except Exception:
             pass
@@ -85,7 +99,7 @@ def wait_fresh(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3019_rows_close") as rep:
+    with report("3020_rows_final") as rep:
         rep.section("0. Wait for deploys")
         ages = {fn: wait_fresh(fn) for fn in
                 ("justhodl-canary-warroom",)}
@@ -163,11 +177,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3019, "fails": fails, "warns": warns,
+    payload = {"ops": 3020, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3019.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3020.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

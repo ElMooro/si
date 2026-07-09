@@ -166,3 +166,11 @@ verified-good deploy-lambdas.yml deploy was overwritten by the ops
 script's own deploy_lambda() call seconds later, reintroducing the exact
 ImportError crash the push was meant to fix). Ops scripts that push lambda
 changes should be VERIFY-ONLY: invoke + poll + assert, nothing else.
+
+## Trap: LastModified is not "deployed" (2026-07-09)
+
+`update_function_code` flips `LastModified` immediately, but invokes can
+still execute the OLD package until `LastUpdateStatus == "Successful"`.
+Any verify script that waits on code freshness MUST check
+`LastUpdateStatus`/`State` too (plus a short settle sleep), or it can
+invoke pre-fix code at age 0.0 — observed live ops 3019.
