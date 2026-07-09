@@ -1,12 +1,9 @@
-executing-against: 4f83c04fc3edaee0bcba6f00ccb74d0603bde7f3
+executing-against: 09376acaaeefec9688ad2b430eb6522071f573f4
 ── 0. Wait for deploys ──
-── 0.7 Refresh plumbing aggregator + probe live schema ──
 ── 1. Warroom v4 regeneration ──
 ── 3. Live page checks (CDN lag = warn-level) ──
-[22:30:19] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
+[22:36:35] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[22:30:19] FAIL: plumbing rows=0 (<18)
-[22:30:19] FAIL: n_votes=250 did not grow past 250
+[22:36:35] PASS -- barometer 36.7 (WATCH) over 272 equal votes; full inventory live
 
-→ Report written to aws/ops/reports/latest/3023_plumbing_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3023_plumbing_close.py
+→ Report written to aws/ops/reports/latest/3024_plumbing_final.md
