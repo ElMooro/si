@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""ops 3012 -- Canary Grid v2 round 2: 3011 landed 49/55 live; this push fixes the 3 dead feeds (btp_bund -> ECB Maastricht IRS via ecbspread:, igrea_global -> +BDRY dry-bulk feed fallback, global_fx_reserves -> 5 graceful sum permutations incl. TRESEGXMM052N euro-area alt) and adds a runner-side FRED id probe to name dead legs definitively. VERIFY-only (no deploys here: this push's
+"""ops 3013 -- Canary Grid v2 round 3 (CLOSE). Round-2 probe proved the
+paradox: IGREA + both IRLTLT01 legs ALIVE on FRED from the runner, DEAD
+from the grid Lambda -- classic burst rate-limiting (100+ FRED calls,
+no throttle, tail canaries 429d). Fixes this push: fred() throttled
+0.13s + one retry on 429/5xx; global_fx_reserves collapsed to the
+probe-proven CN+US+JP trio (CH leg HTTP-400 dead, EZ stale-2018, XM
+dead -- the 4 doomed permutations were themselves burning ~20 calls
+right before the tail); btp_bund candidates reordered proven-FRED
+spread first. Same verify chain + probe below.
+
+ops 3012 -- Canary Grid v2 round 2: 3011 landed 49/55 live; this push fixes the 3 dead feeds (btp_bund -> ECB Maastricht IRS via ecbspread:, igrea_global -> +BDRY dry-bulk feed fallback, global_fx_reserves -> 5 graceful sum permutations incl. TRESEGXMM052N euro-area alt) and adds a runner-side FRED id probe to name dead legs definitively. VERIFY-only (no deploys here: this push's
 lambda-source changes trigger deploy-lambdas.yml, which bundles correctly;
 per AUTONOMY.md trap doc, ops scripts never also deploy).
 
@@ -133,7 +143,7 @@ def invoke_and_poll(rep, fn, out_key, minutes, fails, sync=False):
 
 def main():
     fails, warns = [], []
-    with report("3012_canary_v2_fix") as rep:
+    with report("3013_canary_v2_close") as rep:
         rep.section("0. Wait for this push's deploys to land")
         for _ in range(15):
             _, age = fn_fresh("justhodl-canary-grid")
@@ -250,11 +260,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3012, "fails": fails, "warns": warns,
+    payload = {"ops": 3013, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3012.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3013.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

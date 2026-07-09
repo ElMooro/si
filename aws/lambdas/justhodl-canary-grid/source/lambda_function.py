@@ -37,6 +37,7 @@ Research / education only — not financial advice.
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
@@ -261,12 +262,8 @@ SIGNALS = [
          hot="4-week bill yields are being driven BELOW the Fed's floor -- a scramble into the "
              "safest, shortest collateral; money is paying for safety, a flight-to-quality tell.",
          cool="Front bills trade in line with the policy floor -- no safety scramble."),
-    dict(key="global_fx_reserves", name="Global CB FX reserves ex-gold (CN+US+JP+CH+EA)", grid="funding_plumbing",
-         fred=["sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N+TRESEGEZM052N",
-               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N+TRESEGXMM052N",
-               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N",
-               "sum:TRESEGCNM052N+TRESEGJPM052N+TRESEGCHM052N",
-               "sum:TRESEGCNM052N+TRESEGJPM052N"],
+    dict(key="global_fx_reserves", name="Global CB FX reserves ex-gold (CN+US+JP)", grid="funding_plumbing",
+         fred="sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N",
          kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
          hot="Global central-bank FX reserves are contracting -- the world's official dollar-liquidity "
              "pool is shrinking, which historically tightens global financial conditions and pressures "
@@ -315,8 +312,8 @@ SIGNALS = [
              "worldwide consumer products & services demand is deteriorating.",
          cool="Global consumer discretionary is trending up -- world consumer demand is priced firm."),
     dict(key="btp_bund", name="BTP-Bund spread (euro sovereign stress)", grid="rates_credit",
-         fred=["ecbspread:IRS/M.IT.L.L40.CI.0000.EUR.N.Z|IRS/M.DE.L.L40.CI.0000.EUR.N.Z",
-               "spread:IRLTLT01ITM156N:IRLTLT01DEM156N"],
+         fred=["spread:IRLTLT01ITM156N:IRLTLT01DEM156N",
+               "ecbspread:IRS/M.IT.L.L40.CI.0000.EUR.N.Z|IRS/M.DE.L.L40.CI.0000.EUR.N.Z"],
          kind="level", win=12, dir="rise", lead=3,
          limit=220, unit="ppt",
          hot="Italy's 10y is pulling away from Germany's -- the euro area's classic sovereign-stress "
@@ -424,14 +421,40 @@ GRID_LABEL = {"trade_shipping": "Trade & Shipping",
 
 
 # ── helpers ──────────────────────────────────────────────────────────
+_FRED_LAST_CALL = [0.0]
+
+
 def fred(series_id, limit):
-    """Return [(date, value|None), ...] newest-first, or [] on failure."""
+    """Return [(date, value|None), ...] newest-first, or [] on failure.
+    v2: throttled (>=0.13s between calls) + one retry on HTTP 429/5xx --
+    the 55-signal grid makes 100+ FRED calls per run and the un-throttled
+    burst was getting the tail of the list rate-limited."""
+    for attempt in (0, 1):
+        try:
+            gap = time.time() - _FRED_LAST_CALL[0]
+            if gap < 0.13:
+                time.sleep(0.13 - gap)
+            _FRED_LAST_CALL[0] = time.time()
+            url = ("https://api.stlouisfed.org/fred/series/observations"
+                   f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
+                   f"&sort_order=desc&limit={limit}")
+            with urllib.request.urlopen(url, timeout=25) as r:
+                obs = json.loads(r.read()).get("observations", [])
+            break
+        except urllib.error.HTTPError as he:
+            if attempt == 0 and he.code in (429, 500, 502, 503):
+                print(f"[canary] FRED {series_id}: HTTP {he.code}, retrying")
+                time.sleep(3)
+                continue
+            print(f"[canary] FRED {series_id}: {he}")
+            return []
+        except Exception as e:
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            print(f"[canary] FRED {series_id}: {e}")
+            return []
     try:
-        url = ("https://api.stlouisfed.org/fred/series/observations"
-               f"?series_id={series_id}&api_key={FRED_KEY}&file_type=json"
-               f"&sort_order=desc&limit={limit}")
-        with urllib.request.urlopen(url, timeout=25) as r:
-            obs = json.loads(r.read()).get("observations", [])
         out = []
         for o in obs:
             try:
