@@ -281,8 +281,13 @@ def build_proxies():
     pl_specs = []
     POLAR = {"DRISCFLM": "rise", "UEMP27OV": "rise", "MCUMFN": "fall",
              "CASFRIW027SBOG": "rise", "RMFSL": "rise"}
-    for ind in (ph.get("indicators") or []):
-        iid = ind.get("id")
+    inds = ph.get("indicators")
+    ind_items = (list(inds.items()) if isinstance(inds, dict) else
+                 [(x.get("id"), x) for x in inds]
+                 if isinstance(inds, list) else [])
+    for iid, ind in ind_items:
+        if not isinstance(ind, dict):
+            continue
         if iid in POLAR and ind.get("history"):
             mon = {str(p[0])[:7]: float(p[1]) for p in ind["history"]
                    if p and p[1] is not None}

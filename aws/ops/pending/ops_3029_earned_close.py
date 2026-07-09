@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""ops 3028 -- EARNED WEIGHTS arc (Khalid go). Chain:
+"""ops 3029 -- earned weights CLOSE. 3028: plumbing-history indicators is a DICT keyed by id (its writer confirms), engine iterated it as a list of dicts -> str.get crash. Reader now handles both shapes.
+
+Prior: ops 3028 -- EARNED WEIGHTS arc (Khalid go). Chain:
 1. ensure justhodl-warroom-weights exists (deploy-lambdas create-branch is
    INTERMITTENT per doctrine -- verify get_function, fallback boto3
    create_function from this checkout, env copied from donor
@@ -86,7 +88,7 @@ def ensure_fn(rep):
 
 def main():
     fails, warns = [], []
-    with report("3028_earned_weights") as rep:
+    with report("3029_earned_close") as rep:
         rep.section("1. Ensure engine exists + settled")
         if not ensure_fn(rep):
             fails.append("warroom-weights fn not ready")
@@ -188,11 +190,11 @@ def main():
 
 
 def _fin(rep, fails, warns, extra):
-    payload = {"ops": 3028, "fails": fails, "warns": warns,
+    payload = {"ops": 3029, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3028.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3029.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
