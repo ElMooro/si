@@ -319,6 +319,62 @@ def norm_cftc(d):
     return card, [can]
 
 
+def norm_global_stress(d):
+    """Global Stress Matrix per-instrument rows (Khalid 2026-07-09): the 10
+    market TAPE-stress scores (drawdown/vol/trend -- a different metric
+    from the RS-based leadership rows) + the credit-tier OAS ladder, each
+    already 0-100. Deliberately skipped as double-counts: the escalation
+    dimensions and hot_signals (derived composites / echoes of feeds that
+    are already canaries here), the eq/bond/global composites (the card
+    carries the index), and tier DISPERSION (the CCC-BB member canary is
+    already live in the funding mechanism)."""
+    cans = []
+    for arr_key, kind in (("equities", "equity"), ("bonds", "bond")):
+        for r in (d.get(arr_key) or []):
+            st = r.get("stress")
+            if st is None:
+                continue
+            cans.append({"mechanism": "global_stress",
+                         "mech_label": "Global Stress Matrix",
+                         "name": "Tape stress — %s (%s)"
+                                 % (r.get("market") or "?", kind),
+                         "stress": st, "band": _band(st),
+                         "lead_months": 0.25,
+                         "value": r.get("drawdown_pct"), "unit": "% dd",
+                         "detail": "%s · vol pctile %s · vs 200dma %s%%"
+                                   % (r.get("level") or "?",
+                                      r.get("vol_percentile"),
+                                      r.get("below_sma200_pct")),
+                         "firing": st >= 55})
+    credit = d.get("credit") or d.get("credit_stress") or next(
+        (v for v in d.values() if isinstance(v, dict)
+         and isinstance(v.get("spreads"), list)), {})
+    for r in (credit.get("spreads") or []):
+        st = r.get("stress_score")
+        if st is None:
+            continue
+        cans.append({"mechanism": "global_stress",
+                     "mech_label": "Global Stress Matrix",
+                     "name": "Credit tier — %s" % (r.get("name") or "?"),
+                     "stress": st, "band": _band(st), "lead_months": 1,
+                     "value": r.get("oas_pct"), "unit": "% OAS",
+                     "detail": "%s · 1y pctile %s · 1m chg %sbp"
+                               % (r.get("level") or "?",
+                                  r.get("percentile_1y"),
+                                  r.get("change_1m_bps")),
+                     "firing": st >= 55})
+    gsi = d.get("global_stress_index")
+    card = {"key": "global_stress", "label": "Global Stress Matrix (tape)",
+            "score": gsi, "band": _band(gsi),
+            "headline": "Per-market tape stress (drawdown/vol/trend) + "
+                        "credit-tier ladder; composites/escalation dims "
+                        "excluded as double-counts.",
+            "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c["firing"]),
+            "scale": "0-100 tape stress"}
+    return card, cans
+
+
 def norm_alerts(d):
     """EVERY live sentinel state as its own row (Khalid 2026-07-09).
     Honest correction: the old '212 watched' was the rolling ALERT-BUFFER
@@ -452,6 +508,7 @@ MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json
          ("data/ciss-stress.json", norm_ciss),
          ("data/factor-regime.json", norm_factor_regime),
          ("data/cftc-all-cache.json", norm_cftc),
+         ("data/global-stress.json", norm_global_stress),
          ("data/alert-sentinel.json", norm_alerts)]
 
 
@@ -499,7 +556,7 @@ def lambda_handler(event=None, context=None):
         elif c.get("mechanism") in ("macro_grid", "leading_markets",
                                     "dollar", "vol", "ciss",
                                     "factor_regime", "cftc", "funding",
-                                    "alerts"):
+                                    "alerts", "global_stress"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
@@ -514,7 +571,7 @@ def lambda_handler(event=None, context=None):
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
-                      "headline": "%d of %d canaries firing across 9 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
+                      "headline": "%d of %d canaries firing across 10 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
                           len(firing), len(all_cans), master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),
