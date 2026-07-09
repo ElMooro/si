@@ -1,11 +1,10 @@
-executing-against: 291810dc41204982439c38260de3f39c4712330a
-── 0. Wait for this push's deploys to land ──
-── 0.5 FRED id probe (runner-side, definitive) ──
-── 1. Risk-ratios engine ──
-── 2. Canary grid v2 regeneration ──
-── 3. Leading markets +3 ──
-── 4. War room aggregation ──
+executing-against: cb79a9898f8fc954b243feca01ced77dd07f1081
+── 0. Wait for deploys ──
+── 1. Warroom regeneration + barometer ──
+── 2. Signal-board fusion ──
+── 3. Live page checks (CDN lag = warn-level) ──
+[19:01:58] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[18:46:21] PASS -- canary grid v2 live: 55 signals, 52 available
+[19:01:58] PASS -- barometer 34.6 (WATCH) over 128 equal votes; full inventory live
 
-→ Report written to aws/ops/reports/latest/3014_canary_v2_final.md
+→ Report written to aws/ops/reports/latest/3015_warroom_barometer.md
