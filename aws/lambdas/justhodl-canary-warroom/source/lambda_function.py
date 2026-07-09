@@ -408,6 +408,8 @@ def norm_plumbing(d):
             continue
         st = m.get("stress_score_0_100")
         if st is None:
+            st = m.get("stress_score")   # the aggregator's actual field
+        if st is None:
             st = m.get("stress")
         if st is None:
             continue

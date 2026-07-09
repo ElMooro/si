@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""ops 3023 -- plumbing mechanism CLOSE. 3022: zero rows because the LIVE
+"""ops 3024 -- plumbing FINAL. 3023 probe proved schema fine + data fresh
+(29 with data); root cause: the aggregator publishes the field as
+'stress_score', not 'stress_score_0_100'. Reader field chain fixed.
+Live file already fresh -- refresh section dropped.
+
+Prior: ops 3023 -- plumbing mechanism CLOSE. 3022: zero rows because the LIVE
 plumbing-stress.json predates the raw_indicators schema in the repo
 source. This run refreshes the aggregator first (Event+poll), probes
 the live schema into the report, and the reader now accepts both the
@@ -118,7 +123,7 @@ def wait_fresh(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3023_plumbing_close") as rep:
+    with report("3024_plumbing_final") as rep:
         rep.section("0. Wait for deploys")
         ages = {fn: wait_fresh(fn) for fn in
                 ("justhodl-canary-warroom",)}
@@ -128,33 +133,6 @@ def main():
             fails.append("canary-warroom code not fresh after wait")
             _finish(rep, fails, warns, {})
             sys.exit(1)
-
-        rep.section("0.7 Refresh plumbing aggregator + probe live schema")
-        prev_asof = ""
-        try:
-            pj = s3_json("data/plumbing-stress.json")
-            prev_asof = pj.get("as_of", "")
-            sample = {}
-            ri = pj.get("raw_indicators")
-            if isinstance(ri, dict) and ri:
-                k0 = sorted(ri.keys())[0]
-                sample = {k0: sorted((ri[k0] or {}).keys())}
-            rep.kv(live_keys=sorted(pj.keys())[:12],
-                   raw_ind_type=type(ri).__name__, sample=sample)
-        except Exception as e:
-            rep.kv(plumbing_probe="unreadable: %s" % str(e)[:100])
-        LAM.invoke(FunctionName="justhodl-plumbing-aggregator",
-                   InvocationType="Event", Payload=b"{}")
-        for _ in range(21):                      # up to 7 min
-            time.sleep(20)
-            try:
-                pj = s3_json("data/plumbing-stress.json")
-                if pj.get("as_of", "") > prev_asof:
-                    break
-            except Exception:
-                continue
-        rep.kv(plumbing_asof=pj.get("as_of"),
-               plumbing_n_with_data=pj.get("n_with_data"))
 
         rep.section("1. Warroom v4 regeneration")
         r = LAM.invoke(FunctionName="justhodl-canary-warroom",
@@ -226,11 +204,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3023, "fails": fails, "warns": warns,
+    payload = {"ops": 3024, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3023.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3024.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
