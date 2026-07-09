@@ -1,4 +1,4 @@
-executing-against: 8793a6b7f5ed042a3449bb9f3a66f0142d0785b8
+executing-against: 291810dc41204982439c38260de3f39c4712330a
 ── 0. Wait for this push's deploys to land ──
 ── 0.5 FRED id probe (runner-side, definitive) ──
 ── 1. Risk-ratios engine ──
@@ -6,7 +6,6 @@ executing-against: 8793a6b7f5ed042a3449bb9f3a66f0142d0785b8
 ── 3. Leading markets +3 ──
 ── 4. War room aggregation ──
 ── verdict ──
-[18:37:59] FAIL: btp_bund canary unavailable (HARD)
+[18:46:21] PASS -- canary grid v2 live: 55 signals, 52 available
 
-→ Report written to aws/ops/reports/latest/3013_canary_v2_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3013_canary_v2_close.py
+→ Report written to aws/ops/reports/latest/3014_canary_v2_final.md
