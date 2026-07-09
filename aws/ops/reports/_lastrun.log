@@ -1,12 +1,13 @@
-executing-against: d34ccd89537358fa062e150f254a6505c88240c7
+executing-against: 441554c1f97e421df9d81e8d155f4b96a57e0c2c
 ── 0. Wait for this push's deploys to land ──
+── 0.5 FRED id probe (runner-side, definitive) ──
 ── 1. Risk-ratios engine ──
 ── 2. Canary grid v2 regeneration ──
 ── 3. Leading markets +3 ──
 ── 4. War room aggregation ──
 ── verdict ──
-[18:14:06] FAIL: btp_bund canary unavailable (HARD)
-[18:14:06] FAIL: igrea_global canary unavailable (HARD)
+[18:24:16] FAIL: btp_bund canary unavailable (HARD)
+[18:24:16] FAIL: igrea_global canary unavailable (HARD)
 
-→ Report written to aws/ops/reports/latest/3011_canary_v2_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3011_canary_v2_verify.py
+→ Report written to aws/ops/reports/latest/3012_canary_v2_fix.md
+❌ OPS-FAIL: aws/ops/pending/ops_3012_canary_v2_fix.py
