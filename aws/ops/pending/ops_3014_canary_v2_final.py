@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""ops 3013 -- Canary Grid v2 round 3 (CLOSE). Round-2 probe proved the
+"""ops 3014 -- Canary Grid v2 FINAL. Round-3 closed the 429 class (igrea
+went LIVE); the last two dead canaries were the 95-day staleness gate:
+btp_bund legs (OECD monthly, latest 2026-04 = 99d) and the reserves
+composite (IMF IFS, US leg 130d) both exceed STALE_HARD_DAYS on normal
+publication lag. Fixed with explicit max_stale_days=150/160, the exact
+mechanism the grid already uses for SLOOS (140) and Peru (180).
+
+ops 3013 -- Canary Grid v2 round 3 (CLOSE). Round-2 probe proved the
 paradox: IGREA + both IRLTLT01 legs ALIVE on FRED from the runner, DEAD
 from the grid Lambda -- classic burst rate-limiting (100+ FRED calls,
 no throttle, tail canaries 429d). Fixes this push: fred() throttled
@@ -143,7 +150,7 @@ def invoke_and_poll(rep, fn, out_key, minutes, fails, sync=False):
 
 def main():
     fails, warns = [], []
-    with report("3013_canary_v2_close") as rep:
+    with report("3014_canary_v2_final") as rep:
         rep.section("0. Wait for this push's deploys to land")
         for _ in range(15):
             _, age = fn_fresh("justhodl-canary-grid")
@@ -260,11 +267,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3013, "fails": fails, "warns": warns,
+    payload = {"ops": 3014, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3013.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3014.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

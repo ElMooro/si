@@ -265,6 +265,7 @@ SIGNALS = [
     dict(key="global_fx_reserves", name="Global CB FX reserves ex-gold (CN+US+JP)", grid="funding_plumbing",
          fred="sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N",
          kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
+         max_stale_days=160,
          hot="Global central-bank FX reserves are contracting -- the world's official dollar-liquidity "
              "pool is shrinking, which historically tightens global financial conditions and pressures "
              "risk assets (the operator's cross-CB reserve composite).",
@@ -314,7 +315,7 @@ SIGNALS = [
     dict(key="btp_bund", name="BTP-Bund spread (euro sovereign stress)", grid="rates_credit",
          fred=["spread:IRLTLT01ITM156N:IRLTLT01DEM156N",
                "ecbspread:IRS/M.IT.L.L40.CI.0000.EUR.N.Z|IRS/M.DE.L.L40.CI.0000.EUR.N.Z"],
-         kind="level", win=12, dir="rise", lead=3,
+         kind="level", win=12, dir="rise", lead=3, max_stale_days=150,
          limit=220, unit="ppt",
          hot="Italy's 10y is pulling away from Germany's -- the euro area's classic sovereign-stress "
              "fault line is widening.",
