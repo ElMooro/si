@@ -375,6 +375,56 @@ def norm_global_stress(d):
     return card, cans
 
 
+PLUMBING_DEDUPE = {
+    # already voting elsewhere in the warroom -- excluded to keep the
+    # equal-weight barometer honest (one canary, one vote):
+    "TEMPHELPS",   # macro grid temp_help
+    "MCUMFN",      # macro grid mfg_capacity (CUMFNS)
+    "CISS_US", "CISS_EA", "CISS_CN",   # CISS mechanism carries all series
+    "DTWEXBGS",    # dollar mechanism trend canary
+    "SWP1690",     # macro grid swap_line_usage (SWPT total)
+}
+
+
+def norm_plumbing(d):
+    """Every plumbing-aggregator indicator as its own row (Khalid
+    2026-07-09): PD fails deliver/receive, ECB ILM claims/liabilities,
+    SLOOS raising-spreads (large/small) + collateral requirements,
+    cash/deposits at foreign-related banks, securities in bank credit,
+    retail MMF balances, labour-slack cluster, INDPRO, margin loans,
+    real/EM/AFE dollar indices, HK funding trio -- each at the engine's
+    own stress_score_0_100. Duplicates of rows already voting are
+    skipped (PLUMBING_DEDUPE, listed on the card)."""
+    cans = []
+    for iid, m in sorted((d.get("raw_indicators") or {}).items()):
+        if iid in PLUMBING_DEDUPE or not isinstance(m, dict):
+            continue
+        st = m.get("stress_score_0_100")
+        if st is None:
+            continue
+        cans.append({"mechanism": "plumbing",
+                     "mech_label": "Plumbing & Stress",
+                     "name": m.get("label") or iid,
+                     "stress": st, "band": _band(st), "lead_months": 0.5,
+                     "value": m.get("value"),
+                     "unit": "pctile %s" % m.get("percentile"),
+                     "detail": "[%s] %s" % (m.get("layer") or "?",
+                                            (m.get("interp") or "")[:140]),
+                     "firing": st >= 55})
+    comp = d.get("composite_score")
+    card = {"key": "plumbing", "label": "Plumbing & Stress (aggregator)",
+            "score": comp, "band": _band(comp),
+            "headline": "Every plumbing-aggregator indicator as a canary "
+                        "at its own 0-100 stress; %d duplicates of rows "
+                        "already voting excluded (temp help, capacity, "
+                        "CISS US/EA/CN, broad dollar, Fed swaps)."
+                        % len(PLUMBING_DEDUPE),
+            "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c["firing"]),
+            "scale": "0-100 stress"}
+    return card, cans
+
+
 def norm_alerts(d):
     """EVERY live sentinel state as its own row (Khalid 2026-07-09).
     Honest correction: the old '212 watched' was the rolling ALERT-BUFFER
@@ -509,6 +559,7 @@ MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json
          ("data/factor-regime.json", norm_factor_regime),
          ("data/cftc-all-cache.json", norm_cftc),
          ("data/global-stress.json", norm_global_stress),
+         ("data/plumbing-stress.json", norm_plumbing),
          ("data/alert-sentinel.json", norm_alerts)]
 
 
@@ -556,7 +607,7 @@ def lambda_handler(event=None, context=None):
         elif c.get("mechanism") in ("macro_grid", "leading_markets",
                                     "dollar", "vol", "ciss",
                                     "factor_regime", "cftc", "funding",
-                                    "alerts", "global_stress"):
+                                    "alerts", "global_stress", "plumbing"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
@@ -571,7 +622,7 @@ def lambda_handler(event=None, context=None):
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
-                      "headline": "%d of %d canaries firing across 10 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
+                      "headline": "%d of %d canaries firing across 11 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
                           len(firing), len(all_cans), master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),
