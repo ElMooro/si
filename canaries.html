@@ -103,27 +103,72 @@ function render(d){
       <div class="sc" style="color:${cc}">${mc.score==null?(mc.signal||'—'):mc.score}</div>
       <div class="ff">${mc.n_firing==null?'':mc.n_firing+' firing / '+(mc.n_total||'?')+' watched'} · <span class="muted">${mc.scale||''}</span></div>
       <div class="hd">${(mc.headline||'').slice(0,150)}</div>${extra}</div>`;}).join('');
-  // master barometer — equal weight per canary
-  const B=d.barometer||{};
-  if(B.score!=null){
-    const s=Math.max(0,Math.min(100,B.score)),bc=col(B.band);
-    const ang=Math.PI*(1-s/100),R=118,cx=140,cy=132;
-    const nx=cx+R*Math.cos(ang),ny=cy-R*Math.sin(ang);
-    const arc=(a0,a1,color,w)=>{const x0=cx+R*Math.cos(Math.PI*(1-a0/100)),y0=cy-R*Math.sin(Math.PI*(1-a0/100)),x1=cx+R*Math.cos(Math.PI*(1-a1/100)),y1=cy-R*Math.sin(Math.PI*(1-a1/100));return `<path d="M ${x0} ${y0} A ${R} ${R} 0 0 1 ${x1} ${y1}" stroke="${color}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`};
-    document.getElementById('baro').innerHTML=`<div class="card" style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;padding:14px 18px">
-      <svg width="280" height="150" viewBox="0 0 280 150">
-        ${arc(0,20,'var(--calm)',10)}${arc(20,40,'var(--watch)',10)}${arc(40,60,'var(--elev)',10)}${arc(60,80,'var(--warn)',10)}${arc(80,100,'var(--crit)',10)}
-        <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${bc}" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="${cx}" cy="${cy}" r="7" fill="${bc}"/>
-        <text x="${cx}" y="${cy-34}" text-anchor="middle" style="font-size:34px;font-weight:700;fill:${bc}">${s}</text>
-        <text x="${cx}" y="${cy-14}" text-anchor="middle" style="font-size:12px;fill:${bc};letter-spacing:2px">${B.band||''}</text>
-      </svg>
-      <div style="flex:1;min-width:230px">
-        <div class="lbl">MASTER CANARY BAROMETER</div>
-        <div class="hd" style="margin-top:6px">Equal-weight average of every watched canary on this page — each of the <b>${B.n_votes||'?'}</b> canaries counts exactly the same, across all mechanisms.</div>
-        <div class="ff muted" style="margin-top:6px">${B.note||''}</div>
-      </div></div>`;
-  }
+  // ── RISK VISUAL BAROMETER (live data; layout per Khalid 2026-07-09) ──
+  const B=d.barometer||{},V=(B.views||{}),PM=V.per_mechanism||{},PC=V.per_canary||{};
+  window._BARO={pm:PM,pc:PC};window._VIEW=window._VIEW||'pm';
+  window.renderBaro=function(){
+    const vw=window._VIEW,cur=vw=='pm'?PM:PC;
+    const s=Math.max(0,Math.min(100,cur.score==null?0:cur.score));
+    const B5=['CALM','GUARDED','ELEVATED','HIGH RISK','CRISIS'];
+    const B5C=['var(--calm)','var(--watch)','var(--elev)','var(--warn)','var(--crit)'];
+    const bi=Math.min(4,Math.floor(s/20)),bc=B5C[bi],b5=cur.band5||B5[bi];
+    const GUIDE={CALM:'Normal conditions. Low stress.',GUARDED:'Early signs of stress.',ELEVATED:'Heightened risk conditions. Stay vigilant and monitor closely.','HIGH RISK':'Significant stress. Mitigate risk.',CRISIS:'Extreme stress. High probability of dislocation.'};
+    const cx=170,cy=158,R=128;
+    const P=a=>[cx+R*Math.cos(Math.PI*(1-a/100)),cy-R*Math.sin(Math.PI*(1-a/100))];
+    const seg=(a0,a1,c)=>{const[x0,y0]=P(a0),[x1,y1]=P(a1);return `<path d="M ${x0} ${y0} A ${R} ${R} 0 0 1 ${x1} ${y1}" stroke="${c}" stroke-width="22" fill="none"/>`};
+    const lab=(a,t)=>{const[x,y]=[cx+(R+26)*Math.cos(Math.PI*(1-a/100)),cy-(R+26)*Math.sin(Math.PI*(1-a/100))];return `<text x="${x}" y="${y}" text-anchor="middle" style="font-size:9px;letter-spacing:1px;fill:var(--mut)">${t}</text>`};
+    const[nx,ny]=P(s);
+    const mechRows=Object.entries(PM.by_mechanism||{}).map(([k,m],i)=>{
+      const mi=Math.min(4,Math.floor((m.score||0)/20));
+      const segs=B5C.map((c,j)=>`<div style="flex:1;height:9px;border-radius:2px;background:${c};opacity:${j==mi?1:.28}"></div>`).join('');
+      const pos=Math.max(1,Math.min(99,m.score||0));
+      return `<div class="card" style="padding:9px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <div style="font-size:12px"><span class="tag">${i+1}</span> <b>${m.label||k}</b></div>
+          <div style="font-size:11px;color:${B5C[mi]}">${m.band5||''} · ${m.score}</div></div>
+        <div style="position:relative;margin-top:7px">
+          <div style="display:flex;gap:3px">${segs}</div>
+          <div style="position:absolute;top:-4px;left:${pos}%;transform:translateX(-50%) rotate(45deg);width:8px;height:8px;background:#fff;border:1px solid #000"></div>
+        </div>
+        <div class="ff muted" style="margin-top:5px">${m.n_canaries} canaries · equal within</div></div>`;}).join('');
+    document.getElementById('baro').innerHTML=`
+    <div class="card" style="padding:16px 18px">
+      <div style="text-align:center">
+        <div class="lbl" style="letter-spacing:3px">RISK VISUAL BAROMETER</div>
+        <div class="ff muted" style="margin-top:2px">${PM.n_mechanisms||12} CANARY MECHANISMS · LIVE DATA</div>
+        <div style="margin-top:8px">
+          <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:11px">Per mechanism (${PM.n_mechanisms||'?'} votes)</button>
+          <button class="${vw=='pc'?'on':''}" onclick="_VIEW='pc';renderBaro()" style="font-size:11px">Per canary (${PC.n_votes||'?'} votes)</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-top:10px">
+        <div style="flex:1;min-width:300px;display:grid;gap:8px">${mechRows.split('</div><div class="card"').slice(0,6).join('</div><div class="card"')||''}</div>
+        <div style="min-width:340px;text-align:center">
+          <svg width="340" height="200" viewBox="0 0 340 200">
+            ${seg(0,20,B5C[0])}${seg(20,40,B5C[1])}${seg(40,60,B5C[2])}${seg(60,80,B5C[3])}${seg(80,100,B5C[4])}
+            ${lab(10,'CALM')}${lab(30,'GUARDED')}${lab(50,'ELEVATED')}${lab(70,'HIGH RISK')}${lab(90,'CRISIS')}
+            <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#e8c26a" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="${cx}" cy="${cy}" r="8" fill="#e8c26a"/>
+            <text x="${cx}" y="${cy-40}" text-anchor="middle" style="font-size:36px;font-weight:700;fill:${bc}">${s}</text>
+          </svg>
+          <div class="card" style="border:1px solid ${bc}55;padding:10px;margin-top:-6px">
+            <div style="font-size:20px;font-weight:700;letter-spacing:2px;color:${bc}">${b5}</div>
+            <div class="ff" style="margin-top:3px">${GUIDE[b5]||''}</div>
+            <div class="ff muted" style="margin-top:5px">${vw=='pm'?'Equal weight per mechanism — each mechanism is one vote (its canaries equal within). Fixes the row-count bias.':(B.note||'')}</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:300px;display:grid;gap:8px">${mechRows.split('</div><div class="card"').slice(6).map((x,i)=>i==0?'<div class="card"'+x:x).join('</div><div class="card"')||''}</div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px" class="ff muted">
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--calm)"></i> CALM 0-20</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--watch)"></i> GUARDED 20-40</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--elev)"></i> ELEVATED 40-60</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--warn)"></i> HIGH RISK 60-80</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:var(--crit)"></i> CRISIS 80-100</span>
+      </div>
+    </div>`;
+  };
+  if(PM.score!=null||PC.score!=null)renderBaro();
   // filters
   const mechs=[...new Set((d.all_canaries||[]).map(c=>c.mechanism))];
   document.getElementById('filters').innerHTML=['all','everything',...mechs].map(f=>`<button class="${f==filt?'on':''}" onclick="filt='${f}';renderTbl()">${f=='all'?'All firing':f=='everything'?'Everything watched':f.replace('_',' ')}</button>`).join('');

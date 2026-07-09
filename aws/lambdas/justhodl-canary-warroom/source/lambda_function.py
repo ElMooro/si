@@ -205,6 +205,14 @@ def norm_vol(d):
     return card, cans
 
 
+def _band5(v):
+    """5-level display label for the visual barometer."""
+    if v is None:
+        return "NO DATA"
+    return ("CALM" if v < 20 else "GUARDED" if v < 40 else
+            "ELEVATED" if v < 60 else "HIGH RISK" if v < 80 else "CRISIS")
+
+
 def norm_ciss(d):
     """EVERY ECB systemic-stress series the ciss-stress engine carries
     (composite, bond/equity/FX/money-market/fin-intermediary sub-indices,
@@ -687,7 +695,34 @@ def lambda_handler(event=None, context=None):
                                     "eurodollar"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
+    # ── per-mechanism view: each mechanism = ONE vote = the mean stress
+    # of its member canaries (canaries stay equal WITHIN a mechanism).
+    # Fixes the row-count artifact where a feed publishing more series
+    # would outvote a single-series mechanism 50-to-1.
+    mech_view = {}
+    for card in cards:
+        mk = card.get("key")
+        member = [c.get("stress") for c in all_cans
+                  if c.get("mechanism") == mk
+                  and isinstance(c.get("stress"), (int, float))
+                  and not c.get("family_member")]
+        ms = round(sum(member) / len(member), 1) if member else None
+        if ms is not None:
+            mech_view[mk] = {"score": ms, "band": _band(ms),
+                             "band5": _band5(ms),
+                             "label": card.get("label"),
+                             "n_canaries": len(member)}
+    pm_vals = [v["score"] for v in mech_view.values()]
+    pm = round(sum(pm_vals) / len(pm_vals), 1) if pm_vals else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
+                 "views": {
+                     "per_canary": {"score": baro, "band": _band(baro),
+                                    "band5": _band5(baro),
+                                    "n_votes": len(votes)},
+                     "per_mechanism": {"score": pm, "band": _band(pm),
+                                       "band5": _band5(pm),
+                                       "n_mechanisms": len(pm_vals),
+                                       "by_mechanism": mech_view}},
                  "method": "equal_weight_per_canary",
                  "note": ("Every watched canary = one equal vote of its "
                           "0-100 stress — including every individual "
@@ -706,4 +741,4 @@ def lambda_handler(event=None, context=None):
            "note": "Unified early-warning across every canary mechanism the platform runs, plus the operator's own brain playbook. Real aggregated data — not advice."}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
-    return {"ok": True, "barometer": baro, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
+    return {"ok": True, "barometer": baro, "per_mechanism": pm, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
