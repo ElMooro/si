@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""ops 3016 -- Canary v3 (Khalid 10-item list + full CISS board) VERIFY.
+"""ops 3017 -- v3 CLOSE: single remaining fail was norm_cftc iterating
+top-level cache values; contracts live under d["data"] (ground-truthed
+from the writer: result={"source","contracts",<int>,"data":{...}}).
+Reader fixed. Rerun of: ops 3016 -- Canary v3 (Khalid 10-item list + full CISS board) VERIFY.
 Shipped: grid +8 (discount window, fin CP-bill TED-successor, BBB-AAA
 fallen-angel pipeline, 2s10s bull-steepening VELOCITY, BKLN/HYG,
 copper/gold, SMH/ACWI, MOVE/VIX); risk-ratios +4 metrics (+minimal
@@ -64,7 +67,7 @@ def wait_fresh(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3016_canary_v3_verify") as rep:
+    with report("3017_canary_v3_close") as rep:
         rep.section("0. Wait for deploys")
         ages = {fn: wait_fresh(fn) for fn in
                 ("justhodl-canary-warroom", "justhodl-signal-board",
@@ -191,11 +194,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3016, "fails": fails, "warns": warns,
+    payload = {"ops": 3017, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3016.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3017.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

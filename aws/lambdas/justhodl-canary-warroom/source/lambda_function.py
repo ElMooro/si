@@ -248,8 +248,10 @@ def norm_cftc(d):
     positioning at percentile extremes is a contrarian turn signal in both
     directions."""
     extremes, reversals, n_scored = [], [], 0
-    values = (d.values() if isinstance(d, dict) else
-              d if isinstance(d, list) else [])
+    container = (d.get("data") if isinstance(d, dict)
+                 and isinstance(d.get("data"), dict) else d)
+    values = (container.values() if isinstance(container, dict) else
+              container if isinstance(container, list) else [])
     for c in values:
         if not isinstance(c, dict) or "signals" not in c:
             continue
