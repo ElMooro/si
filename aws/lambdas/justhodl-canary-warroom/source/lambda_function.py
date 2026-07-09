@@ -396,10 +396,19 @@ def norm_plumbing(d):
     own stress_score_0_100. Duplicates of rows already voting are
     skipped (PLUMBING_DEDUPE, listed on the card)."""
     cans = []
-    for iid, m in sorted((d.get("raw_indicators") or {}).items()):
+    raw = d.get("raw_indicators")
+    if isinstance(raw, dict):
+        items = sorted(raw.items())
+    elif isinstance(d.get("indicators"), list):     # older schema
+        items = [(m.get("id"), m) for m in d["indicators"]]
+    else:
+        items = []
+    for iid, m in items:
         if iid in PLUMBING_DEDUPE or not isinstance(m, dict):
             continue
         st = m.get("stress_score_0_100")
+        if st is None:
+            st = m.get("stress")
         if st is None:
             continue
         cans.append({"mechanism": "plumbing",
