@@ -1,0 +1,17 @@
+{
+ "ops": 3018,
+ "fails": [
+  "funding member rows=9 (<15)",
+  "family aggregates present ALONGSIDE members -- double-count risk",
+  "sentinel rows=0 (<6)",
+  "n_votes=178 did not grow past 178"
+ ],
+ "warns": [
+  "barometer note not updated"
+ ],
+ "verdict": "FAIL",
+ "ts": "2026-07-09T21:18:01.433330+00:00",
+ "barometer": 32.7,
+ "n_votes": 178,
+ "n_canaries": 156
+}

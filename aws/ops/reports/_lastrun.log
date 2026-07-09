@@ -1,11 +1,13 @@
-executing-against: b9320a0ff25602522f88f55ddad8b08f954fe6f8
+executing-against: 58bd8ae70f56e7fc0833b0d1ad13bbfc849ec351
 ── 0. Wait for deploys ──
-── 1. Risk-ratios v3 (4 new metrics) ──
-── 2. Grid v3 regeneration (+8 canaries) ──
-── 2b. Warroom v3 (9 mechanisms + barometer) ──
+── 1. Warroom v4 regeneration ──
 ── 3. Live page checks (CDN lag = warn-level) ──
-[19:54:09] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
+[21:18:01] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[19:54:09] PASS -- barometer 32.7 (WATCH) over 178 equal votes; full inventory live
+[21:18:01] FAIL: funding member rows=9 (<15)
+[21:18:01] FAIL: family aggregates present ALONGSIDE members -- double-count risk
+[21:18:01] FAIL: sentinel rows=0 (<6)
+[21:18:01] FAIL: n_votes=178 did not grow past 178
 
-→ Report written to aws/ops/reports/latest/3017_canary_v3_close.md
+→ Report written to aws/ops/reports/latest/3018_rows_expansion.md
+❌ OPS-FAIL: aws/ops/pending/ops_3018_rows_expansion.py
