@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3011 -- Canary Grid v2 expansion VERIFY (no deploys here: this push's
+"""ops 3012 -- Canary Grid v2 round 2: 3011 landed 49/55 live; this push fixes the 3 dead feeds (btp_bund -> ECB Maastricht IRS via ecbspread:, igrea_global -> +BDRY dry-bulk feed fallback, global_fx_reserves -> 5 graceful sum permutations incl. TRESEGXMM052N euro-area alt) and adds a runner-side FRED id probe to name dead legs definitively. VERIFY-only (no deploys here: this push's
 lambda-source changes trigger deploy-lambdas.yml, which bundles correctly;
 per AUTONOMY.md trap doc, ops scripts never also deploy).
 
@@ -133,7 +133,7 @@ def invoke_and_poll(rep, fn, out_key, minutes, fails, sync=False):
 
 def main():
     fails, warns = [], []
-    with report("3011_canary_v2_verify") as rep:
+    with report("3012_canary_v2_fix") as rep:
         rep.section("0. Wait for this push's deploys to land")
         for _ in range(15):
             _, age = fn_fresh("justhodl-canary-grid")
@@ -142,6 +142,29 @@ def main():
             time.sleep(20)
         rep.kv(canary_grid_code_age_min=round(age or -1, 1))
         ensure_risk_ratios(rep, warns)
+
+        rep.section("0.5 FRED id probe (runner-side, definitive)")
+        import urllib.request as _ur
+        FKEY = "2f057499936072679d8843d7fce99989"
+        probe_ids = ["TRESEGCNM052N", "TRESEGUSM052N", "TRESEGJPM052N",
+                     "TRESEGCHM052N", "TRESEGEZM052N", "TRESEGXMM052N",
+                     "IGREA", "IRLTLT01ITM156N", "IRLTLT01DEM156N"]
+        probe = {}
+        for pid in probe_ids:
+            try:
+                u = ("https://api.stlouisfed.org/fred/series/observations"
+                     "?series_id=%s&api_key=%s&file_type=json"
+                     "&sort_order=desc&limit=3" % (pid, FKEY))
+                with _ur.urlopen(u, timeout=20) as r:
+                    obs = json.loads(r.read()).get("observations", [])
+                live = [o for o in obs if o.get("value") not in (".", None)]
+                probe[pid] = "%d rows, latest %s=%s" % (
+                    len(obs),
+                    live[0].get("date") if live else "-",
+                    live[0].get("value") if live else "-")
+            except Exception as e:
+                probe[pid] = "DEAD: %s" % str(e)[:60]
+        rep.kv(fred_probe=json.dumps(probe))
 
         rep.section("1. Risk-ratios engine")
         rr = invoke_and_poll(rep, "justhodl-risk-ratios",
@@ -227,11 +250,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3011, "fails": fails, "warns": warns,
+    payload = {"ops": 3012, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3011.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3012.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))

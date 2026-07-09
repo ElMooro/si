@@ -263,7 +263,10 @@ SIGNALS = [
          cool="Front bills trade in line with the policy floor -- no safety scramble."),
     dict(key="global_fx_reserves", name="Global CB FX reserves ex-gold (CN+US+JP+CH+EA)", grid="funding_plumbing",
          fred=["sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N+TRESEGEZM052N",
-               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N"],
+               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N+TRESEGXMM052N",
+               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N",
+               "sum:TRESEGCNM052N+TRESEGJPM052N+TRESEGCHM052N",
+               "sum:TRESEGCNM052N+TRESEGJPM052N"],
          kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
          hot="Global central-bank FX reserves are contracting -- the world's official dollar-liquidity "
              "pool is shrinking, which historically tightens global financial conditions and pressures "
@@ -312,7 +315,9 @@ SIGNALS = [
              "worldwide consumer products & services demand is deteriorating.",
          cool="Global consumer discretionary is trending up -- world consumer demand is priced firm."),
     dict(key="btp_bund", name="BTP-Bund spread (euro sovereign stress)", grid="rates_credit",
-         fred="spread:IRLTLT01ITM156N:IRLTLT01DEM156N", kind="level", win=12, dir="rise", lead=3,
+         fred=["ecbspread:IRS/M.IT.L.L40.CI.0000.EUR.N.Z|IRS/M.DE.L.L40.CI.0000.EUR.N.Z",
+               "spread:IRLTLT01ITM156N:IRLTLT01DEM156N"],
+         kind="level", win=12, dir="rise", lead=3,
          limit=220, unit="ppt",
          hot="Italy's 10y is pulling away from Germany's -- the euro area's classic sovereign-stress "
              "fault line is widening.",
@@ -396,8 +401,9 @@ SIGNALS = [
          hot="Manufacturing payrolls are shrinking -- goods-sector labour is the cyclical edge of the "
              "job market and it turns before services.",
          cool="Manufacturing employment is stable to growing -- no goods-sector labour crack."),
-    dict(key="igrea_global", name="Global real activity (Kilian IGREA)", grid="labor_industrial",
-         fred="IGREA", kind="level", win=12, dir="fall", lead=2,
+    dict(key="igrea_global", name="Global real activity (IGREA / dry-bulk shipping)", grid="labor_industrial",
+         fred=["IGREA", "feed:risk-ratios:bdry.history"],
+         kind="level", win=12, dir="fall", lead=2,
          limit=260, unit="index",
          hot="The Kilian index of global real economic activity (built from shipping freight) is "
              "falling -- world trade volume is decelerating in real time.",

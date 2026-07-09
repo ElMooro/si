@@ -14,6 +14,8 @@ equity leads that FRED cannot provide:
                for global consumer products & services demand.
   eem_rvol  -- EEM 21-day realized volatility, annualized %: emerging-market
                volatility without the discontinued VXEEM.
+  bdry      -- BDRY dry-bulk shipping ETF: the investable Baltic-Dry /
+               Kilian-style global real-activity proxy.
   oil_term  -- WTI front-month minus 2nd-month ($, Yahoo futures): positive
                = backwardation. Flagged per the operator's doctrine that a
                flip in the oil curve has preceded major stress events.
@@ -144,7 +146,7 @@ def metric(latest_pair, unit, history):
 def lambda_handler(event, context):
     t0 = time.time()
     px = {t: poly_daily(t) for t in
-          ("HYG", "LQD", "ANGL", "ACWI", "RXI", "EEM")}
+          ("HYG", "LQD", "ANGL", "ACWI", "RXI", "EEM", "BDRY")}
     for t, s in px.items():
         print("[px] %s %d rows" % (t, len(s)))
 
@@ -172,6 +174,8 @@ def lambda_handler(event, context):
     out["eem_rvol"] = metric(None, "% ann.",
                              realized_vol([[d, v] for d, v in px["EEM"]]))
     out["eem_rvol"]["name"] = "Emerging-market realized vol (EEM 21d)"
+    out["bdry"] = metric(None, "$", [[d, v] for d, v in px["BDRY"]])
+    out["bdry"]["name"] = "Dry-bulk shipping (BDRY, Baltic-Dry proxy)"
 
     # oil term structure: WTI front vs 2nd month (Yahoo futures, best-effort)
     front = yahoo_daily("CL=F")
@@ -190,7 +194,7 @@ def lambda_handler(event, context):
     out["build_seconds"] = round(time.time() - t0, 1)
 
     n_live = sum(1 for k in ("hyg_lqd", "angl_hyg", "hyg", "acwi", "rxi",
-                             "eem_rvol", "oil_term")
+                             "eem_rvol", "oil_term", "bdry")
                  if out[k].get("available"))
     out["n_live"] = n_live
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
