@@ -88,7 +88,10 @@ def norm_crisis(d):
                          "mech_label": "Funding & Internals",
                          "name": m.get("name") or key,
                          "stress": st, "band": _band(st),
-                         "lead_months": m.get("lead") or 0.5,
+                         "lead_months": (m.get("lead")
+                                          if isinstance(m.get("lead"),
+                                                        (int, float))
+                                          else 0.5),
                          "value": m.get("value"), "unit": m.get("unit"),
                          "detail": "[%s · %s] %s" % (
                              m.get("family") or "?", m["status"],
@@ -466,7 +469,10 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             cards.append({"key": key, "error": str(e)[:80]})
     firing = [c for c in all_cans if c.get("firing")]
-    firing.sort(key=lambda c: (-(c.get("stress") or 0), c.get("lead_months") or 99))
+    def _lead_num(c):
+        v = c.get("lead_months")
+        return float(v) if isinstance(v, (int, float)) else 99.0
+    firing.sort(key=lambda c: (-(c.get("stress") or 0), _lead_num(c)))
     # master early-warning = weighted blend of the mechanisms that publish a 0-100 stress
     grid = next((c for c in cards if c.get("key") == "macro_grid"), {})
     fund = next((c for c in cards if c.get("key") == "funding"), {})

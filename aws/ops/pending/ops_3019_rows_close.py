@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""ops 3018 -- full-row expansion VERIFY (Khalid: funding members + all
+"""ops 3019 -- rows-expansion CLOSE. 3018 diagnosis: the warroom CRASHED
+mid-run on TypeError float<str -- crisis-canaries member 'lead' is a
+STRING (e.g. 2-6w) and entered the firing sort beside float
+lead_months; output never wrote, so all asserts read stale v3 data.
+Fixed: numeric coercion at row creation + type-safe sort key. Also
+trimmed section-0 to the one fn this push deploys.
+
+Prior: ops 3018 -- full-row expansion VERIFY (Khalid: funding members + all
 sentinel states as individual page rows, all voting). Warroom v4:
 norm_crisis emits EVERY member from crisis-canaries {name, family,
 status RED/AMBER/GREEN, value, detail} (family aggregates now
@@ -78,11 +85,10 @@ def wait_fresh(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3018_rows_expansion") as rep:
+    with report("3019_rows_close") as rep:
         rep.section("0. Wait for deploys")
         ages = {fn: wait_fresh(fn) for fn in
-                ("justhodl-canary-warroom", "justhodl-signal-board",
-                 "justhodl-morning-intelligence")}
+                ("justhodl-canary-warroom",)}
         rep.kv(code_ages_min={k: (round(v, 1) if v is not None else "STALE")
                               for k, v in ages.items()})
         if ages["justhodl-canary-warroom"] is None:
@@ -157,11 +163,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3018, "fails": fails, "warns": warns,
+    payload = {"ops": 3019, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3018.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3019.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
