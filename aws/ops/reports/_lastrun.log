@@ -1,13 +1,13 @@
-executing-against: 58bd8ae70f56e7fc0833b0d1ad13bbfc849ec351
+executing-against: 7328f8a9d9c5dd29fb788d34a813c0afb5aa4c41
 ── 0. Wait for deploys ──
 ── 1. Warroom v4 regeneration ──
 ── 3. Live page checks (CDN lag = warn-level) ──
-[21:18:01] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
+[21:21:42] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[21:18:01] FAIL: funding member rows=9 (<15)
-[21:18:01] FAIL: family aggregates present ALONGSIDE members -- double-count risk
-[21:18:01] FAIL: sentinel rows=0 (<6)
-[21:18:01] FAIL: n_votes=178 did not grow past 178
+[21:21:42] FAIL: funding member rows=9 (<15)
+[21:21:42] FAIL: family aggregates present ALONGSIDE members -- double-count risk
+[21:21:42] FAIL: sentinel rows=0 (<6)
+[21:21:42] FAIL: n_votes=178 did not grow past 178
 
-→ Report written to aws/ops/reports/latest/3018_rows_expansion.md
-❌ OPS-FAIL: aws/ops/pending/ops_3018_rows_expansion.py
+→ Report written to aws/ops/reports/latest/3019_rows_close.md
+❌ OPS-FAIL: aws/ops/pending/ops_3019_rows_close.py
