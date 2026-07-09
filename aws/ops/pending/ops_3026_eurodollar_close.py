@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""ops 3025 -- Eurodollar Funding Plumbing as the 12th warroom mechanism
+"""ops 3026 -- eurodollar CLOSE. 3025 failed on a FALSE-POSITIVE in the
+leak-check itself: the "HIBOR" substring caught the deliberately-kept
+CNH HIBOR rows (offshore-YUAN funding -- a different market from the
+deduped HKD HIBOR-SOFR). Dedupe was correct; assert narrowed.
+
+Prior: ops 3025 -- Eurodollar Funding Plumbing as the 12th warroom mechanism
 (Khalid: add whatever is missing from eurodollar.html). ~16 new rows
 (SOFR tail, TGA, EFFR-IORB, bill-OIS, OFR-FSI, IG OAS, FIMA/SRF/ECB
 backstops, UST fails, foreign custody, net-due-foreign, CNH complex,
@@ -130,7 +135,7 @@ def wait_fresh(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3025_eurodollar_mech") as rep:
+    with report("3026_eurodollar_close") as rep:
         rep.section("0. Wait for deploys")
         ages = {fn: wait_fresh(fn) for fn in
                 ("justhodl-canary-warroom",)}
@@ -163,8 +168,8 @@ def main():
         mech_keys = [m.get("key") for m in (d.get("mechanisms") or [])]
         leak = [c["name"] for c in ed if any(t in c["name"] for t in (
             "SOFR \u2212 IORB", "ON RRP", "Reserves", "swap line",
-            "Broad dollar", "HIBOR", "HY credit OAS", "CP\u2212OIS",
-            "Nonfin CP"))]
+            "Broad dollar", "HIBOR \u2212 SOFR", "HIBOR-SOFR",
+            "HY credit OAS", "CP\u2212OIS", "Nonfin CP"))]
         rep.kv(eurodollar_rows=len(ed),
                eurodollar_firing=sum(1 for c in ed if c["firing"]),
                mechanisms=mech_keys, dedupe_leaks=leak,
@@ -213,11 +218,11 @@ def main():
 
 
 def _finish(rep, fails, warns, extra):
-    payload = {"ops": 3025, "fails": fails, "warns": warns,
+    payload = {"ops": 3026, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3025.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3026.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
