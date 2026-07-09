@@ -120,6 +120,24 @@ def yahoo_daily(symbol, rng="6mo"):
         return []
 
 
+FRED_KEY = os.environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
+
+
+def fred_series(sid, limit):
+    """[(date, value)] for one FRED series -- minimal, stdlib-only."""
+    url = ("https://api.stlouisfed.org/fred/series/observations"
+           "?series_id=%s&api_key=%s&file_type=json&sort_order=desc"
+           "&limit=%d" % (sid, FRED_KEY, limit))
+    d = http_json(url) or {}
+    out = []
+    for o in d.get("observations") or []:
+        try:
+            out.append((o.get("date"), float(o.get("value"))))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
 MONTH_CODES = "FGHJKMNQUVXZ"
 
 
@@ -146,7 +164,8 @@ def metric(latest_pair, unit, history):
 def lambda_handler(event, context):
     t0 = time.time()
     px = {t: poly_daily(t) for t in
-          ("HYG", "LQD", "ANGL", "ACWI", "RXI", "EEM", "BDRY")}
+          ("HYG", "LQD", "ANGL", "ACWI", "RXI", "EEM", "BDRY",
+           "BKLN", "CPER", "GLD", "SMH")}
     for t, s in px.items():
         print("[px] %s %d rows" % (t, len(s)))
 
@@ -176,6 +195,27 @@ def lambda_handler(event, context):
     out["eem_rvol"]["name"] = "Emerging-market realized vol (EEM 21d)"
     out["bdry"] = metric(None, "$", [[d, v] for d, v in px["BDRY"]])
     out["bdry"]["name"] = "Dry-bulk shipping (BDRY, Baltic-Dry proxy)"
+    out["bkln_hyg"] = metric(None, "ratio",
+                             ratio_series(px["BKLN"], px["HYG"]))
+    out["bkln_hyg"]["name"] = "Leveraged loans vs HY (BKLN/HYG)"
+    out["copper_gold"] = metric(None, "ratio",
+                                ratio_series(px["CPER"], px["GLD"]))
+    out["copper_gold"]["name"] = "Copper/Gold growth-vs-fear (CPER/GLD)"
+    out["smh_acwi"] = metric(None, "ratio",
+                             ratio_series(px["SMH"], px["ACWI"]))
+    out["smh_acwi"]["name"] = "Semis vs world (SMH/ACWI)"
+    # MOVE/VIX: bond vol relative to equity vol (Yahoo ^MOVE / FRED VIXCLS)
+    move = yahoo_daily("^MOVE", rng="2y")
+    vix = fred_series("VIXCLS", 600)
+    mv = []
+    if move and vix:
+        vmap = dict(vix)
+        for dte, m in move:
+            v = vmap.get(dte)
+            if v not in (None, 0):
+                mv.append([dte, round(m / v, 3)])
+    out["move_vix"] = metric(None, "ratio", mv)
+    out["move_vix"]["name"] = "Bond vol vs equity vol (MOVE/VIX)"
 
     # oil term structure: WTI front vs 2nd month (Yahoo futures, best-effort)
     front = yahoo_daily("CL=F")
@@ -194,7 +234,8 @@ def lambda_handler(event, context):
     out["build_seconds"] = round(time.time() - t0, 1)
 
     n_live = sum(1 for k in ("hyg_lqd", "angl_hyg", "hyg", "acwi", "rxi",
-                             "eem_rvol", "oil_term", "bdry")
+                             "eem_rvol", "oil_term", "bdry", "bkln_hyg",
+                             "copper_gold", "smh_acwi", "move_vix")
                  if out[k].get("available"))
     out["n_live"] = n_live
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,

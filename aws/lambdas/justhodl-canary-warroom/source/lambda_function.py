@@ -173,6 +173,118 @@ def norm_vol(d):
     return card, cans
 
 
+def norm_ciss(d):
+    """EVERY ECB systemic-stress series the ciss-stress engine carries
+    (composite, bond/equity/FX/money-market/fin-intermediary sub-indices,
+    correlation, SovCISS, every country) -- one canary per series, stress =
+    the series' own percentile of its full history. Defensive to either a
+    dict-of-series or list-of-series payload; auto-includes any series the
+    self-discovering engine adds later."""
+    cans = []
+    container = d.get("series") or d.get("indices") or d
+    items = (list(container.values()) if isinstance(container, dict)
+             else container if isinstance(container, list) else [])
+    for s in items:
+        if not isinstance(s, dict):
+            continue
+        st_block = s.get("stats") or s
+        pct = st_block.get("pctile")
+        if pct is None:
+            continue
+        label = (s.get("label") or s.get("name") or s.get("key") or "?")
+        st = round(float(pct), 1)
+        cans.append({"mechanism": "ciss", "mech_label": "CISS (ECB)",
+                     "name": "CISS: %s" % label, "stress": st,
+                     "band": _band(st), "lead_months": 1,
+                     "value": st_block.get("latest"),
+                     "unit": "idx (pctile %s)" % pct,
+                     "detail": "ECB systemic-stress series at its %sth "
+                               "percentile of full history; z=%s, 1y chg "
+                               "%s." % (pct, st_block.get("zscore"),
+                                        st_block.get("chg_1y")),
+                     "firing": st >= 60})
+        if len(cans) >= 40:
+            break
+    comp = next((c for c in cans if "Composite" in c["name"]), None)
+    card = {"key": "ciss", "label": "CISS Systemic Stress (ECB)",
+            "score": comp.get("stress") if comp else None,
+            "band": comp.get("band") if comp else "NO DATA",
+            "headline": "Every ECB CISS series as a canary — stress = each "
+                        "series' percentile of its own full history.",
+            "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c["firing"]),
+            "scale": "0-100 (history percentile)"}
+    return card, cans
+
+
+def norm_factor_regime(d):
+    """Style-ratio risk-appetite z from the factor-regime engine
+    (reuse-don't-rebuild: the radar already computes it)."""
+    sc = d.get("risk_appetite_score")
+    if sc is None:
+        return {"key": "factor_regime", "label": "Factor Risk Appetite",
+                "unavailable": True}, []
+    st = round(max(0.0, min(100.0, 50 - sc / 2.0)), 1)
+    can = {"mechanism": "factor_regime", "mech_label": "Factor Appetite",
+           "name": "Style-ratio risk appetite (factor regime)",
+           "stress": st, "band": _band(st), "lead_months": 1,
+           "value": sc, "unit": "score -100..100",
+           "detail": "Signed mean z across the 11 style ratios: %s. "
+                     "Deep risk-off appetite in factor leadership precedes "
+                     "index-level weakness." % (d.get("risk_appetite_read")
+                                                or "?"),
+           "firing": st >= 60}
+    card = {"key": "factor_regime", "label": "Factor Risk Appetite",
+            "score": st, "band": can["band"],
+            "headline": "Risk appetite %s (%s) from the 11-ratio style "
+                        "radar." % (sc, d.get("risk_appetite_read") or "?"),
+            "n_total": 1, "n_firing": int(can["firing"]),
+            "scale": "0-100 stress (from -100..100 appetite)"}
+    return card, [can]
+
+
+def norm_cftc(d):
+    """Spec-positioning extremes from the COT agent cache -- crowded
+    positioning at percentile extremes is a contrarian turn signal in both
+    directions."""
+    extremes, reversals, n_scored = [], [], 0
+    values = (d.values() if isinstance(d, dict) else
+              d if isinstance(d, list) else [])
+    for c in values:
+        if not isinstance(c, dict) or "signals" not in c:
+            continue
+        n_scored += 1
+        sig = c.get("signals") or {}
+        nm = c.get("name") or c.get("contract") or "?"
+        if sig.get("extreme"):
+            extremes.append(nm)
+        if sig.get("reversal_risk"):
+            reversals.append(nm)
+    if not n_scored:
+        return {"key": "cftc", "label": "CFTC Positioning Extremes",
+                "unavailable": True}, []
+    n = len(extremes)
+    st = round(min(90.0, 25 + 8.0 * n), 1)
+    can = {"mechanism": "cftc", "mech_label": "CFTC Positioning",
+           "name": "Spec-positioning extremes (%d of %d contracts)"
+                   % (n, n_scored),
+           "stress": st, "band": _band(st), "lead_months": 2,
+           "value": n, "unit": "contracts at extreme",
+           "detail": "Extreme: %s. Reversal-risk: %s. Crowded futures "
+                     "positioning at percentile extremes marks contrarian "
+                     "turn risk both directions."
+                     % (", ".join(extremes[:8]) or "none",
+                        ", ".join(reversals[:6]) or "none"),
+           "firing": n >= 3}
+    card = {"key": "cftc", "label": "CFTC Positioning Extremes",
+            "score": st, "band": can["band"],
+            "headline": "%d of %d COT contracts at positioning extremes; "
+                        "%d reversal-risk." % (n, n_scored, len(reversals)),
+            "n_total": n_scored, "n_firing": n,
+            "scale": "0-100 (from extreme count)"}
+    return card, [can]
+
+
 def norm_alerts(d):
     recent = [str(x)[:90] for x in (d.get("changes") or [])][:8]
     card = {"key": "alerts", "label": "Live Alert Flips (Sentinel)", "score": d.get("n_changes"),
@@ -248,7 +360,11 @@ def brain_playbook():
 
 MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json", norm_crisis),
          ("data/leading-markets.json", norm_leading_markets), ("data/dollar-radar.json", norm_dollar),
-         ("data/vol-radar.json", norm_vol), ("data/alert-sentinel.json", norm_alerts)]
+         ("data/vol-radar.json", norm_vol),
+         ("data/ciss-stress.json", norm_ciss),
+         ("data/factor-regime.json", norm_factor_regime),
+         ("data/cftc-all-cache.json", norm_cftc),
+         ("data/alert-sentinel.json", norm_alerts)]
 
 
 def lambda_handler(event=None, context=None):
@@ -290,7 +406,8 @@ def lambda_handler(event=None, context=None):
         if c.get("synthetic_family"):
             votes.extend([st] * int(c.get("n_members") or 1))
         elif c.get("mechanism") in ("macro_grid", "leading_markets",
-                                    "dollar", "vol"):
+                                    "dollar", "vol", "ciss",
+                                    "factor_regime", "cftc"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
@@ -303,7 +420,7 @@ def lambda_handler(event=None, context=None):
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
-                      "headline": "%d of %d canaries firing across 6 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
+                      "headline": "%d of %d canaries firing across 9 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
                           len(firing), len(all_cans), master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),

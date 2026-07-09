@@ -406,6 +406,60 @@ SIGNALS = [
          hot="The Kilian index of global real economic activity (built from shipping freight) is "
              "falling -- world trade volume is decelerating in real time.",
          cool="Global real activity is at or above trend -- world trade volume is healthy."),
+    # -- v3 additions (2026-07-09, Khalid go on the 10-item list) --
+    dict(key="discount_window", name="Fed discount-window borrowing (stigma tell)", grid="funding_plumbing",
+         fred="WLCFLPCL", kind="level", win=52, dir="rise", lead=0.5,
+         limit=340, unit="$mn",
+         hot="Banks are borrowing at the Fed's discount window despite the stigma -- one of the "
+             "purest stress tells in existence; primary-credit usage front-ran SVB by days.",
+         cool="Discount-window usage is near zero -- no bank is desperate enough to pay the stigma."),
+    dict(key="fin_cp_bill", name="Financial CP - 3m T-bill (TED successor)", grid="funding_plumbing",
+         fred="spread:RIFSPPFAAD90NB:DTB3", kind="level", win=63, dir="rise", lead=1,
+         limit=1300, unit="ppt",
+         hot="Financial commercial paper is pricing a rising premium over T-bills -- the modern TED "
+             "spread; BANK short-term funding is tightening (the twin fault line to the corporate "
+             "CP-FF canary).",
+         cool="Financial CP trades near bills -- bank funding markets are calm."),
+    dict(key="bbb_aaa", name="BBB - AAA spread (fallen-angel pipeline)", grid="rates_credit",
+         fred="spread:BAMLC0A4CBBB:BAMLC0A1CAAA", kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="ppt",
+         hot="The BBB-AAA spread is widening -- the cliff INSIDE investment grade; the fallen-angel "
+             "pipeline pressurizes before names actually drop into junk (pairs with ANGL/HYG which "
+             "watches angels already fallen).",
+         cool="The IG quality curve is flat -- no fallen-angel pipeline pressure."),
+    dict(key="curve_velocity", name="2s10s bull-steepening velocity (the trigger)", grid="rates_credit",
+         fred="T10Y2Y", kind="diff", win=63, dir="rise", lead=6,
+         limit=1300, unit="ppt 3m",
+         hot="The 2s10s curve is re-steepening FAST -- rapid bull-steepening off an inversion is "
+             "historically the recession TRIGGER (the front end collapsing on cut expectations), "
+             "distinct from the inversion itself which is only the warning. The level canary "
+             "cannot see this.",
+         cool="Curve slope is changing gradually -- no violent front-end repricing."),
+    dict(key="bkln_hyg", name="Leveraged loans vs HY (BKLN/HYG)", grid="global_risk",
+         fred="feed:risk-ratios:bkln_hyg.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="Floating-rate leveraged loans are underperforming fixed high-yield -- rate-driven "
+             "credit stress specifically; loans crack first when the cost of floating money bites.",
+         cool="Loans trade in line with HY -- no rate-specific credit stress."),
+    dict(key="copper_gold", name="Copper/Gold ratio (growth vs fear)", grid="global_risk",
+         fred="feed:risk-ratios:copper_gold.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="Copper is falling against gold -- the single cleanest growth-vs-fear ratio is rolling "
+             "over, a lead on cyclicals and bond yields (the ratio is the signal, not either leg).",
+         cool="Copper/gold is stable or rising -- growth is being priced over fear."),
+    dict(key="smh_acwi", name="Semiconductors vs world (SMH/ACWI)", grid="global_risk",
+         fred="feed:risk-ratios:smh_acwi.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="Semis are underperforming the world index -- the highest-beta, earliest-cycle equity "
+             "group tops before the index does.",
+         cool="Semis lead or match the world tape -- the earliest-cycle group is healthy."),
+    dict(key="move_vix", name="Bond vol vs equity vol (MOVE/VIX)", grid="global_risk",
+         fred="feed:risk-ratios:move_vix.history", kind="level", win=63, dir="rise", lead=1,
+         limit=600, unit="ratio",
+         hot="Bond volatility is elevated relative to equity volatility -- stress is living in RATES "
+             "and has not transmitted to equities yet; that pre-transmission window is the early-"
+             "warning use case itself.",
+         cool="MOVE/VIX is normal -- no untransmitted rate stress."),
 ]
 # v2 2026-07-09: 6th sub-grid `global_risk` (market-priced risk-appetite
 # canaries -- credit ETF ratios, global equity tape, EM vol, oil term
