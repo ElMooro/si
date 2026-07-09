@@ -1,6 +1,10 @@
-executing-against: 345dc2df577f973829f715348f6e4bb1ada973c2
+executing-against: e9f99c4432cd51ee36d3e3eae2014f95a1d948bd
 ── 1. Ensure engine exists + settled ──
 ── 2. Event study run ──
+── 3. Warroom earned view ──
+── 4. Monthly schedule (EventBridge Scheduler) ──
+── 5. Live page (warn-level) ──
+── verdict ──
+[23:50:22] PASS -- earned 40.1 vs per-mech 40.5; 8 learned
 
-→ Report written to aws/ops/reports/latest/3028_earned_weights.md
-❌ OPS-FAIL: aws/ops/pending/ops_3028_earned_weights.py
+→ Report written to aws/ops/reports/latest/3029_earned_close.md
