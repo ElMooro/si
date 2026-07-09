@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""ops 3018 -- full-row expansion VERIFY (Khalid: funding members + all
+sentinel states as individual page rows, all voting). Warroom v4:
+norm_crisis emits EVERY member from crisis-canaries {name, family,
+status RED/AMBER/GREEN, value, detail} (family aggregates now
+fallback-only); norm_alerts expands the live sentinel SNAPSHOT --
+honest correction: the old 212 was the alert-BUFFER length, not a
+rule count; what exists per-item is the live state book (breakouts,
+red canaries, thrusts, hyper-pumps, insider declines, papers, scalar
+watches), risk-ON states at LOW stress. Barometer votes now include
+funding + alerts mechanisms.
+
+Prior scope: ops 3017 -- v3 CLOSE: single remaining fail was norm_cftc iterating
+top-level cache values; contracts live under d["data"] (ground-truthed
+from the writer: result={"source","contracts",<int>,"data":{...}}).
+Reader fixed. Rerun of: ops 3016 -- Canary v3 (Khalid 10-item list + full CISS board) VERIFY.
+Shipped: grid +8 (discount window, fin CP-bill TED-successor, BBB-AAA
+fallen-angel pipeline, 2s10s bull-steepening VELOCITY, BKLN/HYG,
+copper/gold, SMH/ACWI, MOVE/VIX); risk-ratios +4 metrics (+minimal
+FRED fetch for VIXCLS, Yahoo ^MOVE probe); warroom +3 mechanisms
+(norm_ciss = EVERY ECB CISS series as a canary at its own history
+percentile, norm_factor_regime appetite z, norm_cftc positioning
+extremes) -- all voting in the equal-weight barometer (headline now
+9 mechanisms). This script re-runs the chain and asserts.
+
+Prior scope: ops 3015 -- War Room barometer + full-inventory + fusion VERIFY.
+
+Shipped this push (all deploys via deploy-lambdas.yml on this same push;
+this script is verify-only per AUTONOMY.md):
+  1. warroom v2: leading-markets/dollar/vol normalizers now emit EVERY
+     watched canary (calm ones graded, firing rules unchanged); funding
+     gains per-family aggregate rows; NEW top-level `barometer` =
+     equal-weight mean stress, one vote per watched canary (Khalid spec),
+     sentinel alert-rules excluded as binary flips.
+  2. canaries.html: top SVG barometer gauge + 'Everything watched'
+     inventory tab rendering all_canaries incl calm.
+  3. Fusion: signal-board feed "Early-Warning War Room" (barometer ->
+     -2..+2) + morning-intelligence EARLY_WARNING_WARROOM prompt line.
+     (strategist already consumes warroom; crisis-composite deliberately
+     NOT wired -- it consumes the raw grid, wiring the warroom too would
+     double-count.)"""
+import json
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+import boto3
+from botocore.config import Config
+from ops_report import report
+
+LAM = boto3.client("lambda", region_name="us-east-1",
+                   config=Config(read_timeout=300,
+                                 retries={"max_attempts": 0}))
+S3 = boto3.client("s3", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
+AWS_DIR = Path(__file__).resolve().parents[2]
+
+
+def s3_json(key):
+    return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+
+
+def wait_fresh(fn, max_min=8):
+    for _ in range(int(max_min * 3)):
+        try:
+            c = LAM.get_function_configuration(FunctionName=fn)
+            lm = datetime.fromisoformat(
+                c["LastModified"].replace("+0000", "+00:00"))
+            age = (datetime.now(timezone.utc) - lm).total_seconds() / 60.0
+            if age < 12:
+                return age
+        except Exception:
+            pass
+        time.sleep(20)
+    return None
+
+
+def main():
+    fails, warns = [], []
+    with report("3018_rows_expansion") as rep:
+        rep.section("0. Wait for deploys")
+        ages = {fn: wait_fresh(fn) for fn in
+                ("justhodl-canary-warroom", "justhodl-signal-board",
+                 "justhodl-morning-intelligence")}
+        rep.kv(code_ages_min={k: (round(v, 1) if v is not None else "STALE")
+                              for k, v in ages.items()})
+        if ages["justhodl-canary-warroom"] is None:
+            fails.append("canary-warroom code not fresh after wait")
+            _finish(rep, fails, warns, {})
+            sys.exit(1)
+
+        rep.section("1. Warroom v4 regeneration")
+        r = LAM.invoke(FunctionName="justhodl-canary-warroom",
+                       InvocationType="RequestResponse", Payload=b"{}")
+        rep.kv(invoke=json.loads(r["Payload"].read() or b"{}"))
+        d = s3_json("data/canary-warroom.json")
+        baro = d.get("barometer") or {}
+        cans = d.get("all_canaries") or []
+        fund = [c for c in cans if c.get("mechanism") == "funding"]
+        alrt = [c for c in cans if c.get("mechanism") == "alerts"]
+        fund_green = sum(1 for c in fund if not c.get("firing"))
+        fund_fam = sum(1 for c in fund if c.get("synthetic_family"))
+        alrt_calm = sum(1 for c in alrt if not c.get("firing"))
+        rep.kv(barometer=baro.get("score"), band=baro.get("band"),
+               n_votes=baro.get("n_votes"), n_canaries=len(cans),
+               funding_rows=len(fund), funding_green=fund_green,
+               funding_family_fallback=fund_fam,
+               sentinel_rows=len(alrt), sentinel_informational=alrt_calm,
+               note=(baro.get("note") or "")[:120])
+        if len(fund) < 15:
+            fails.append("funding member rows=%d (<15)" % len(fund))
+        if fund_fam and len(fund) > fund_fam:
+            fails.append("family aggregates present ALONGSIDE members -- "
+                         "double-count risk")
+        if fund_green < 3:
+            fails.append("no GREEN member rows -- members not expanding")
+        if len(alrt) < 6:
+            fails.append("sentinel rows=%d (<6)" % len(alrt))
+        if (baro.get("n_votes") or 0) <= 178:
+            fails.append("n_votes=%s did not grow past 178"
+                         % baro.get("n_votes"))
+        if "sentinel state" not in (baro.get("note") or ""):
+            warns.append("barometer note not updated")
+
+        rep.section("3. Live page checks (CDN lag = warn-level)")
+        try:
+            import urllib.request
+            req = urllib.request.Request(
+                "https://justhodl.ai/canaries.html?v=%d" % time.time(),
+                headers={"User-Agent": "Mozilla/5.0 ops-3015"})
+            page = urllib.request.urlopen(req, timeout=25).read().decode(
+                "utf-8", "replace")
+            ok_g = "MASTER CANARY BAROMETER" in page
+            ok_t = "Everything watched" in page
+            rep.kv(page_gauge=ok_g, page_everything_tab=ok_t)
+            if not (ok_g and ok_t):
+                warns.append("pages not propagated yet (gauge=%s tab=%s)"
+                             % (ok_g, ok_t))
+        except Exception as e:
+            warns.append("live page check: %s" % str(e)[:120])
+        rep.log("morning-intelligence wiring verified by deploy + compile; "
+                "prompt line lands in tomorrow's 8AM brief (not invoked "
+                "here -- LLM cost discipline).")
+
+        rep.section("verdict")
+        _finish(rep, fails, warns,
+                {"barometer": baro.get("score"), "n_votes": baro.get(
+                    "n_votes"), "n_canaries": len(cans)})
+        if fails:
+            for f in fails:
+                rep.log("FAIL: %s" % f)
+            sys.exit(1)
+        rep.log("PASS -- barometer %s (%s) over %s equal votes; full "
+                "inventory live" % (baro.get("score"), baro.get("band"),
+                                    baro.get("n_votes")))
+
+
+def _finish(rep, fails, warns, extra):
+    payload = {"ops": 3018, "fails": fails, "warns": warns,
+               "verdict": "FAIL" if fails else "PASS",
+               "ts": datetime.now(timezone.utc).isoformat()}
+    payload.update(extra)
+    (AWS_DIR / "ops" / "reports" / "3018.json").write_text(
+        json.dumps(payload, indent=1))
+    rep.kv(verdict=payload["verdict"], n_fails=len(fails),
+           n_warns=len(warns))
+
+
+main()
+sys.exit(0)

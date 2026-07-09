@@ -71,35 +71,64 @@ def norm_macro_grid(d):
 
 
 def norm_crisis(d):
+    """EVERY individual plumbing/internals member canary as its own row
+    (Khalid 2026-07-09). data/crisis-canaries.json carries a full member
+    dict {key: {name, family, value, unit, status RED/AMBER/GREEN, detail,
+    z, lead}}; family aggregates + alert strings are kept only as the
+    fallback if that dict is ever absent."""
     cans = []
-    # the engine already distilled the firing ones into alerts[]
-    for a in (d.get("alerts") or []):
-        cans.append({"mechanism": "funding", "mech_label": "Funding & Internals",
-                     "name": str(a)[:70], "stress": 62, "band": "WARNING",
-                     "lead_months": 0.5, "detail": str(a), "firing": True,
-                     "family_member": True})
+    members = d.get("canaries") or {}
+    if isinstance(members, dict):
+        for key, m in sorted(members.items()):
+            if not isinstance(m, dict) or m.get("status") not in (
+                    "RED", "AMBER", "GREEN"):
+                continue
+            st = {"RED": 62, "AMBER": 45, "GREEN": 18}[m["status"]]
+            cans.append({"mechanism": "funding",
+                         "mech_label": "Funding & Internals",
+                         "name": m.get("name") or key,
+                         "stress": st, "band": _band(st),
+                         "lead_months": m.get("lead") or 0.5,
+                         "value": m.get("value"), "unit": m.get("unit"),
+                         "detail": "[%s · %s] %s" % (
+                             m.get("family") or "?", m["status"],
+                             (m.get("detail") or "")[:140]),
+                         "firing": m["status"] == "RED"})
+    if not cans:   # fallback: legacy family-aggregate + alert view
+        for a in (d.get("alerts") or []):
+            cans.append({"mechanism": "funding",
+                         "mech_label": "Funding & Internals",
+                         "name": str(a)[:70], "stress": 62,
+                         "band": "WARNING", "lead_months": 0.5,
+                         "detail": str(a), "firing": True,
+                         "family_member": True})
+        for fname, fv in (d.get("families") or {}).items():
+            fsc = fv.get("score")
+            n = fv.get("n") or 0
+            if fsc is None or not n:
+                continue
+            cans.append({"mechanism": "funding",
+                         "mech_label": "Funding & Internals",
+                         "name": "Funding family — %s (%d watched)"
+                                 % (fname, n),
+                         "stress": fsc, "band": _band(fsc),
+                         "lead_months": 0.5,
+                         "value": "%d red / %d amber" % (
+                             fv.get("red") or 0, fv.get("amber") or 0),
+                         "detail": "Aggregate of the %d %s-family "
+                                   "canaries." % (n, fname),
+                         "firing": (fsc or 0) >= 50,
+                         "synthetic_family": True, "n_members": n})
     fams = d.get("families") or {}
-    for fname, fv in fams.items():
-        fsc = fv.get("score")
-        n = fv.get("n") or 0
-        if fsc is None or not n:
-            continue
-        cans.append({"mechanism": "funding", "mech_label": "Funding & Internals",
-                     "name": "Funding family — %s (%d watched)" % (fname, n),
-                     "stress": fsc, "band": _band(fsc), "lead_months": 0.5,
-                     "value": "%d red / %d amber" % (fv.get("red") or 0,
-                                                     fv.get("amber") or 0),
-                     "detail": "Aggregate of the %d %s-family plumbing "
-                               "canaries on the crisis board." % (n, fname),
-                     "firing": (fsc or 0) >= 50,
-                     "synthetic_family": True, "n_members": n})
     card = {"key": "funding", "label": "Funding Plumbing & Market Internals",
-            "score": d.get("composite_score"), "band": (d.get("level") or "").upper(),
+            "score": d.get("composite_score"),
+            "band": (d.get("level") or "").upper(),
             "headline": d.get("headline") or (d.get("read")),
-            "families": {k: {"score": v.get("score"), "red": v.get("red"), "amber": v.get("amber"), "n": v.get("n")}
+            "families": {k: {"score": v.get("score"), "red": v.get("red"),
+                             "amber": v.get("amber"), "n": v.get("n")}
                          for k, v in fams.items()},
-            "n_total": sum((v.get("n") or 0) for v in fams.values()),
-            "n_firing": sum((v.get("red") or 0) for v in fams.values()),
+            "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c.get("firing")),
             "scale": "0-100 stress"}
     return card, cans
 
@@ -288,14 +317,68 @@ def norm_cftc(d):
 
 
 def norm_alerts(d):
+    """EVERY live sentinel state as its own row (Khalid 2026-07-09).
+    Honest correction: the old '212 watched' was the rolling ALERT-BUFFER
+    length, not a rule count. What is expandable is the live snapshot --
+    each breakout, red canary, thrust, serious hyper-pump, insider decline,
+    paper, value-pump and scalar watch state. Risk-ON states carry LOW
+    stress; risk-OFF carry high; informational rows are non-firing."""
+    snap = d.get("snapshot") or {}
+    CAT = {  # key: (label, per-item stress, firing, direction note)
+        "canary_reds":    ("Crisis canary RED", 62, True,  "risk-off"),
+        "hp_serious":     ("Hyper-pump serious", 55, True,  "froth risk"),
+        "insider_decline": ("Insider-decline name", 55, True, "risk-off"),
+        "breakouts":      ("Breakout", 22, True,  "risk-on"),
+        "thrusts":        ("Breadth thrust", 22, True, "risk-on"),
+        "value_pump":     ("Value-pump name", 30, True, "rotation"),
+        "papers":         ("New research note", 35, False, "info"),
+    }
+    cans = []
+    names = snap.get("_canary_names") or {}
+    for key, (label, st, fire, note) in CAT.items():
+        items = snap.get(key)
+        if isinstance(items, dict):
+            items = sorted(items.keys())
+        if not isinstance(items, (list, tuple)):
+            continue
+        for it in items[:60]:
+            nm, extra = (names.get(it) or (None, None)) if \
+                key == "canary_reds" else (None, None)
+            cans.append({"mechanism": "alerts",
+                         "mech_label": "Sentinel (live states)",
+                         "name": "%s: %s" % (label, nm or it),
+                         "stress": st, "band": _band(st),
+                         "lead_months": 0.25,
+                         "detail": "%s%s" % ((extra + " · ") if extra
+                                             else "", note),
+                         "firing": bool(fire)})
+    for skey, label in (("altseason_phase", "Altseason phase"),
+                        ("breadth_regime_day", "Breadth regime"),
+                        ("semis_off_low", "Semis off low"),
+                        ("smallcap_vs_high", "Small-caps vs high-beta"),
+                        ("sizing_gross", "Sizing gross"),
+                        ("ul_leader", "Underlooked #1")):
+        v = snap.get(skey)
+        if v in (None, "", [], {}):
+            continue
+        cans.append({"mechanism": "alerts",
+                     "mech_label": "Sentinel (live states)",
+                     "name": "%s: %s" % (label, str(v)[:48]),
+                     "stress": 30, "band": _band(30), "lead_months": 0.25,
+                     "detail": "Current sentinel watch state.",
+                     "firing": False})
     recent = [str(x)[:90] for x in (d.get("changes") or [])][:8]
-    card = {"key": "alerts", "label": "Live Alert Flips (Sentinel)", "score": d.get("n_changes"),
-            "band": "ACTIVE" if (d.get("n_changes") or 0) else "QUIET", "headline": None,
-            "recent": recent, "n_total": d.get("buffer_n"), "n_firing": d.get("n_changes")}
-    return card, []
+    card = {"key": "alerts", "label": "Live Alert Flips (Sentinel)",
+            "score": d.get("n_changes"),
+            "band": "ACTIVE" if (d.get("n_changes") or 0) else "QUIET",
+            "headline": "Every live sentinel state expanded below; the "
+                        "alert buffer holds %s recent flips."
+                        % (d.get("buffer_n") or 0),
+            "recent": recent, "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c["firing"]),
+            "buffer_n": d.get("buffer_n")}
+    return card, cans
 
-
-# ── cross-mechanism divergences ──────────────────────────────────────
 def divergences(cards):
     out = []
     by = {c["key"]: c for c in cards}
@@ -409,14 +492,17 @@ def lambda_handler(event=None, context=None):
             votes.extend([st] * int(c.get("n_members") or 1))
         elif c.get("mechanism") in ("macro_grid", "leading_markets",
                                     "dollar", "vol", "ciss",
-                                    "factor_regime", "cftc"):
+                                    "factor_regime", "cftc", "funding",
+                                    "alerts"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
                  "method": "equal_weight_per_canary",
                  "note": ("Every watched canary = one equal vote of its "
-                          "0-100 stress. Sentinel alert-rules (binary "
-                          "flips) shown separately, not averaged.")}
+                          "0-100 stress — including every individual "
+                          "funding-plumbing member and every live "
+                          "sentinel state (operator instruction "
+                          "2026-07-09).")}
     out = {"engine": "justhodl-canary-warroom", "generated_at": now.isoformat(),
            "barometer": barometer,
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
