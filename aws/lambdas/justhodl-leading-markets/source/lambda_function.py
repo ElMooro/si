@@ -7,7 +7,7 @@ watches RELATIVE STRENGTH vs the global benchmark, not just absolute trend:
 leaders underperforming while indices are still up is the divergence that
 precedes tops.
 
-THE 5 CANARY BUCKETS (19 markets via liquid US-listed ETFs)
+THE 5 CANARY BUCKETS (22 markets via liquid US-listed ETFs)
 ═══════════════════════════════════════════════════════════
   RISK_APPETITE   FM, EEM, EWH
       the marginal risk capital — sentiment & liquidity; tops/bottoms first
@@ -54,6 +54,9 @@ BENCHMARK = "ACWI"  # MSCI All-Country World — the relative-strength yardstick
 # canary universe — ETF, market name, bucket
 UNIVERSE = [
     ("FM",   "Frontier Mkts", "risk_appetite"),
+    ("EWX",  "EM Small Cap",  "risk_appetite"),
+    ("VPL",  "Pacific (VPL)", "risk_appetite"),
+    ("RXI",  "Global Consumer Disc.", "risk_appetite"),
     ("EEM",  "Emerging Mkts", "risk_appetite"),
     ("EWH",  "Hong Kong",     "risk_appetite"),
     ("EWT",  "Taiwan",        "trade_cycle"),

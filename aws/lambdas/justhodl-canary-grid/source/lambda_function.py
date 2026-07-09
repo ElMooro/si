@@ -225,15 +225,196 @@ SIGNALS = [
              "parallel yuan liquidity network.)",
          cool="Swap-line usage is near zero — no offshore dollar squeeze; the global USD funding "
               "system is self-clearing."),
+    # -- v2 additions (2026-07-09, Khalid directive): faster market-priced
+    # global-risk leads + funding/reserve plumbing + euro & EM credit +
+    # manufacturing block. Everything above is UNCHANGED. --
+    dict(key="repo_sofr_iorb", name="Repo rate stress (SOFR - IORB)", grid="funding_plumbing",
+         fred="spread:SOFR:IORB", kind="level", win=63, dir="rise", lead=1,
+         limit=1300, unit="ppt",
+         hot="SOFR is printing above the Fed's admin rate -- overnight repo cash is scarce and "
+             "borrowers are paying up over the risk-free floor, the Sep-2019 stress direction. "
+             "The dedicated repo-market engine carries the full distribution.",
+         cool="SOFR sits at or below IORB -- the repo market is funding itself without strain."),
+    dict(key="rrp_parking", name="Reverse repo 13w change (cash parking at the Fed)", grid="funding_plumbing",
+         fred="RRPONTSYD", kind="diff", win=63, dir="rise", lead=1,
+         limit=1300, unit="$bn 13w",
+         hot="Cash is flowing INTO the Fed's reverse-repo facility -- investors parking at the "
+             "risk-free window instead of funding markets is a classic risk-off liquidity drain "
+             "(operator doctrine: RRP build-ups precede fire-sale spirals).",
+         cool="Reverse-repo balances are flat or draining -- parked cash is flowing back out as "
+              "risk-asset fuel."),
+    dict(key="bank_reserves", name="Bank reserves (system cash cushion)", grid="funding_plumbing",
+         fred="WRESBAL", kind="mom", win=52, dir="fall", lead=2,
+         limit=340, unit="%52wk",
+         hot="Total bank reserves are draining year-over-year -- the cash side of every funding "
+             "market is thinning, and reserve scarcity is what turned Sep-2019 from calm to seizure.",
+         cool="Bank reserves are stable or growing -- the system cash cushion is intact."),
+    dict(key="cp3m_ff", name="3m commercial paper - fed funds (credit access)", grid="funding_plumbing",
+         fred=["spread:RIFSPPNAAD90NB:DFF", "spread:CPN3M:DFF", "spread:DCPN3M:DFF"],
+         kind="level", win=63, dir="rise", lead=1, limit=1300, unit="ppt",
+         hot="Corporates are paying a rising premium over fed funds for 3-month paper -- "
+             "short-term credit access is tightening, an early liquidity-and-credit-conditions tell.",
+         cool="The CP-fed funds spread is thin -- companies borrow short freely; credit conditions easy."),
+    dict(key="bill4w_floor", name="4-week T-bill vs IORB (flight to bills)", grid="funding_plumbing",
+         fred="spread:DTB4WK:IORB", kind="level", win=63, dir="fall", lead=1,
+         limit=1300, unit="ppt",
+         hot="4-week bill yields are being driven BELOW the Fed's floor -- a scramble into the "
+             "safest, shortest collateral; money is paying for safety, a flight-to-quality tell.",
+         cool="Front bills trade in line with the policy floor -- no safety scramble."),
+    dict(key="global_fx_reserves", name="Global CB FX reserves ex-gold (CN+US+JP+CH+EA)", grid="funding_plumbing",
+         fred=["sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N+TRESEGEZM052N",
+               "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N+TRESEGCHM052N"],
+         kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
+         hot="Global central-bank FX reserves are contracting -- the world's official dollar-liquidity "
+             "pool is shrinking, which historically tightens global financial conditions and pressures "
+             "risk assets (the operator's cross-CB reserve composite).",
+         cool="Global FX reserves are growing -- official liquidity is expanding beneath risk assets."),
+    dict(key="euribor3m", name="3m Euribor repricing (euro rate path)", grid="funding_plumbing",
+         fred="ecb:FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA", kind="diff", win=6, dir="rise", lead=2,
+         limit=200, unit="ppt 6m",
+         hot="3-month Euribor is repricing sharply higher -- the euro front end (the successor to the "
+             "eurodollar-futures signal, which died with LIBOR) is tightening global funding conditions.",
+         cool="Euribor is stable to lower -- no hawkish repricing shock from the euro front end."),
+    dict(key="hyg_lqd", name="Junk vs IG credit (HYG/LQD)", grid="global_risk",
+         fred="feed:risk-ratios:hyg_lqd.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="High-yield is underperforming investment-grade -- credit risk appetite is rolling over, "
+             "and credit reprices before equities because bondholders are senior and paranoid.",
+         cool="Junk credit is holding or outperforming IG -- risk appetite in credit is intact."),
+    dict(key="fallen_angels_rs", name="Fallen angels vs broad HY (ANGL/HYG)", grid="global_risk",
+         fred="feed:risk-ratios:angl_hyg.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="Fallen angels are lagging broad high-yield -- the quality seam inside junk is tearing, "
+             "an early stress tell within credit itself.",
+         cool="Fallen angels trade in line with HY -- no internal quality stress in junk."),
+    dict(key="hy_etf", name="High-yield bond ETF tape (HYG)", grid="global_risk",
+         fred="feed:risk-ratios:hyg.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="The high-yield bond ETF itself is trending down -- the most liquid daily read on junk "
+             "credit is deteriorating.",
+         cool="HYG is trending flat to up -- the daily junk-credit tape is calm."),
+    dict(key="acwi_tape", name="Global equity tape (MSCI ACWI)", grid="global_risk",
+         fred="feed:risk-ratios:acwi.history", kind="mom", win=63, dir="fall", lead=0.5,
+         limit=600, unit="%3m",
+         hot="The MSCI All-Country World index is in a 3-month downtrend -- the global equity tape "
+             "itself has turned.",
+         cool="ACWI is trending up -- the global equity tape is constructive."),
+    dict(key="em_vol", name="Emerging-market volatility (EEM 21d realized)", grid="global_risk",
+         fred="feed:risk-ratios:eem_rvol.history", kind="level", win=63, dir="rise", lead=1,
+         limit=600, unit="% ann.",
+         hot="Emerging-market realized volatility is elevated -- EM is the funding-sensitive marginal "
+             "risk trade and its vol rises before global stress broadens.",
+         cool="EM realized vol is subdued -- the marginal risk trade is calm."),
+    dict(key="global_consumer", name="Global consumer discretionary (RXI proxy)", grid="global_risk",
+         fred="feed:risk-ratios:rxi.history", kind="mom", win=63, dir="fall", lead=1,
+         limit=600, unit="%3m",
+         hot="Global consumer-discretionary equities are rolling over -- the investable read on "
+             "worldwide consumer products & services demand is deteriorating.",
+         cool="Global consumer discretionary is trending up -- world consumer demand is priced firm."),
+    dict(key="btp_bund", name="BTP-Bund spread (euro sovereign stress)", grid="rates_credit",
+         fred="spread:IRLTLT01ITM156N:IRLTLT01DEM156N", kind="level", win=12, dir="rise", lead=3,
+         limit=220, unit="ppt",
+         hot="Italy's 10y is pulling away from Germany's -- the euro area's classic sovereign-stress "
+             "fault line is widening.",
+         cool="The BTP-Bund spread is compressed -- euro sovereign risk is quiet."),
+    dict(key="euro_hy_oas", name="Euro high-yield OAS (ICE BofA)", grid="rates_credit",
+         fred="BAMLHE00EHYIOAS", kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="ppt",
+         hot="Euro junk spreads are widening -- European credit markets are repricing default risk, "
+             "typically before European equities do.",
+         cool="Euro HY spreads are tight -- European credit is sanguine."),
+    dict(key="em_corp_oas", name="EM corporate bond OAS (ICE BofA)", grid="rates_credit",
+         fred="BAMLEMCBPIOAS", kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="ppt",
+         hot="Emerging-market corporate spreads are widening -- the funding-sensitive EM corporate "
+             "sector cracks early when global dollar conditions tighten.",
+         cool="EM corporate spreads are tight -- EM credit access is easy."),
+    dict(key="em_hy_oas", name="EM high-yield OAS (ICE BofA)", grid="rates_credit",
+         fred="BAMLEMHBHYCRPIOAS", kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="ppt",
+         hot="EM high-yield spreads are blowing out -- the riskiest EM credit is the first tier to "
+             "be cut off when global liquidity turns.",
+         cool="EM high-yield spreads are contained."),
+    dict(key="us_hy_ytw", name="US HY semi-annual yield to worst", grid="rates_credit",
+         fred=["BAMLH0A0HYM2SYTW", "BAMLH0A0HYM2EY"], kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="%",
+         hot="The absolute yield demanded to hold US junk is climbing -- the all-in cost of risky "
+             "corporate funding is tightening regardless of the spread decomposition.",
+         cool="US HY all-in yields are stable to lower -- junk funding costs are easy."),
+    dict(key="em_hy_ytw", name="EM HY semi-annual yield to worst", grid="rates_credit",
+         fred=["BAMLEMHBHYCRPISYTW", "BAMLEMHBHYCRPIEY"], kind="level", win=63, dir="rise", lead=2,
+         limit=1300, unit="%",
+         hot="The all-in yield on EM junk is climbing -- the world's most fragile credit tier is "
+             "being repriced.",
+         cool="EM HY all-in yields are contained."),
+    dict(key="eu_curve_30_5", name="Euro AAA curve 30y-5y slope", grid="rates_credit",
+         fred="ecbspread:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_30Y|YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_5Y",
+         kind="level", win=63, dir="fall", lead=6, limit=600, unit="ppt",
+         hot="The euro AAA curve is flattening between 5y and 30y -- Europe's long-horizon growth and "
+             "term-premium read is deteriorating, the euro parallel of a US curve warning.",
+         cool="The euro 30y-5y slope is healthy -- no European curve warning."),
+    dict(key="global_metals", name="Global metals price index (IMF)", grid="commodity_cycle",
+         fred="PMETAINDEXM", kind="yoy", win=12, dir="fall", lead=2,
+         limit=200, unit="%YoY",
+         hot="The IMF global metals index is falling -- the broad industrial-metals complex (beyond "
+             "copper) is pricing weakening world demand.",
+         cool="Global metals prices are firm -- broad industrial demand is holding."),
+    dict(key="chile_tot_proxy", name="Chile terms-of-trade proxy (copper/Brent)", grid="commodity_cycle",
+         fred="ratio:PCOPPUSDM:POILBREUSDM", kind="yoy", win=12, dir="fall", lead=2,
+         limit=200, unit="%YoY",
+         hot="Chile's terms of trade are deteriorating (export copper falling vs import energy) -- "
+             "the copper-economy squeeze that leads commodity-cycle downturns.",
+         cool="Chile's terms of trade are improving -- the copper economies earn more per barrel."),
+    dict(key="peru_tot_proxy", name="Peru terms-of-trade proxy (metals/Brent)", grid="commodity_cycle",
+         fred="ratio:PMETAINDEXM:POILBREUSDM", kind="yoy", win=12, dir="fall", lead=2,
+         limit=200, unit="%YoY",
+         hot="Peru's terms of trade are deteriorating (metals basket falling vs energy) -- the "
+             "Andean commodity complex is being squeezed.",
+         cool="Peru's terms of trade are improving -- the metals exporters' income is expanding."),
+    dict(key="oil_term", name="Oil term structure (WTI front-2nd)", grid="commodity_cycle",
+         fred="feed:risk-ratios:oil_term.history", kind="level", win=63, dir="rise", lead=1,
+         limit=200, unit="$/bbl",
+         hot="WTI has flipped into backwardation (front above 2nd month) -- flagged per operator "
+             "doctrine as a structure shift that has preceded major financial stress events; at "
+             "minimum it marks an abrupt physical-market regime change worth respecting.",
+         cool="The WTI curve is in normal contango -- no term-structure regime shift."),
+    dict(key="core_capex_orders", name="Core capex orders (nondef ex-aircraft)", grid="labor_industrial",
+         fred="NEWORDER", kind="yoy", win=12, dir="fall", lead=3,
+         limit=200, unit="%YoY",
+         hot="Core capital-goods orders are contracting -- the cleanest forward read on business "
+             "investment, which leads industrial production and earnings.",
+         cool="Core capex orders are growing -- the business-investment pipeline is intact."),
+    dict(key="mfg_capacity", name="Manufacturing capacity utilization", grid="labor_industrial",
+         fred="CUMFNS", kind="level", win=12, dir="fall", lead=2,
+         limit=200, unit="%",
+         hot="Factory capacity utilization is sliding -- slack is opening up in manufacturing, which "
+             "precedes layoffs and capex cuts.",
+         cool="Capacity utilization is steady -- factories are running near their normal load."),
+    dict(key="mfg_employment", name="Manufacturing employment", grid="labor_industrial",
+         fred="MANEMP", kind="yoy", win=12, dir="fall", lead=2,
+         limit=200, unit="%YoY",
+         hot="Manufacturing payrolls are shrinking -- goods-sector labour is the cyclical edge of the "
+             "job market and it turns before services.",
+         cool="Manufacturing employment is stable to growing -- no goods-sector labour crack."),
+    dict(key="igrea_global", name="Global real activity (Kilian IGREA)", grid="labor_industrial",
+         fred="IGREA", kind="level", win=12, dir="fall", lead=2,
+         limit=260, unit="index",
+         hot="The Kilian index of global real economic activity (built from shipping freight) is "
+             "falling -- world trade volume is decelerating in real time.",
+         cool="Global real activity is at or above trend -- world trade volume is healthy."),
 ]
-GRID_WEIGHT = {"trade_shipping": 0.25, "commodity_cycle": 0.15,
-               "funding_plumbing": 0.15, "labor_industrial": 0.20,
-               "rates_credit": 0.25}
+# v2 2026-07-09: 6th sub-grid `global_risk` (market-priced risk-appetite
+# canaries -- credit ETF ratios, global equity tape, EM vol, oil term
+# structure) at 0.15; others scaled so weights still sum to 1.00.
+GRID_WEIGHT = {"trade_shipping": 0.22, "commodity_cycle": 0.13,
+               "funding_plumbing": 0.14, "labor_industrial": 0.17,
+               "rates_credit": 0.19, "global_risk": 0.15}
 GRID_LABEL = {"trade_shipping": "Trade & Shipping",
               "commodity_cycle": "Commodity Cycle",
               "funding_plumbing": "Funding Plumbing",
               "labor_industrial": "Labour & Industrial",
-              "rates_credit": "Rates & Credit"}
+              "rates_credit": "Rates & Credit",
+              "global_risk": "Global Risk Appetite"}
 
 
 # ── helpers ──────────────────────────────────────────────────────────
@@ -270,7 +451,13 @@ def _read_feed(spec):
             cur = cur.get(p) if isinstance(cur, dict) else None
         if not isinstance(cur, list):
             return []
-        out = [("%s-28" % str(x.get("p"))[:7], x.get("v")) for x in cur if x.get("v") is not None]
+        out = []
+        for x in cur:
+            if isinstance(x, dict) and x.get("v") is not None:
+                out.append(("%s-28" % str(x.get("p"))[:7], x.get("v")))
+            elif (isinstance(x, (list, tuple)) and len(x) == 2
+                  and x[1] is not None):
+                out.append((str(x[0])[:10], x[1]))   # daily [[date, val]]
         return list(reversed(out))  # feed history is oldest-first
     except Exception as e:
         print(f"[canary] feed {spec}: {e}")
@@ -301,6 +488,126 @@ def _read_spread(spec, limit):
         return []
 
 
+def _read_ratio(spec, limit):
+    """spec='SID1:SID2' -> FRED SID1 / SID2, as-of aligned on SID1's dates.
+    Terms-of-trade style proxies (export-basket price over import-basket
+    price) without a paid ToT feed."""
+    import bisect
+    try:
+        a, b = spec.split(":", 1)
+        oa = [(d, v) for d, v in fred(a, limit) if v is not None]
+        ob = [(d, v) for d, v in fred(b, limit * 8) if v is not None]
+        if not oa or not ob:
+            return []
+        bmap = sorted(ob, key=lambda x: x[0])
+        bdates = [d for d, _ in bmap]
+        out = []
+        for d, v in oa:
+            i = bisect.bisect_right(bdates, d) - 1
+            if i >= 0 and bmap[i][1] not in (0, None):
+                out.append((d, round(v / bmap[i][1], 5)))
+        return out
+    except Exception as e:
+        print(f"[canary] ratio {spec}: {e}")
+        return []
+
+
+def _read_sum(spec, limit):
+    """spec='SID1+SID2-SID3...' -> multi-series FRED composite, as-of aligned
+    on the FIRST leg's dates with forward-fill of the others. Built for the
+    global central-bank FX-reserves aggregate (CN+US+JP+CH+EA reserves ex
+    gold): falling global reserves = global dollar-liquidity drain."""
+    import bisect
+    import re as _re
+    try:
+        parts = _re.findall(r"([+-]?)([A-Za-z0-9_]+)", spec)
+        legs = [(sgn or "+", sid) for sgn, sid in parts]
+        base_sign, base_id = legs[0]
+        base = [(d, v) for d, v in fred(base_id, limit) if v is not None]
+        if not base:
+            return []
+        others = []
+        for sgn, sid in legs[1:]:
+            ob = sorted(((d, v) for d, v in fred(sid, limit * 2)
+                         if v is not None), key=lambda x: x[0])
+            if not ob:
+                print(f"[canary] sum leg {sid}: no data")
+                return []
+            others.append((1.0 if sgn == "+" else -1.0,
+                           [d for d, _ in ob], ob))
+        out = []
+        for d, v in base:
+            total = v * (1.0 if base_sign == "+" else -1.0)
+            ok = True
+            for mult, bdates, ob in others:
+                i = bisect.bisect_right(bdates, d) - 1
+                if i < 0:
+                    ok = False
+                    break
+                total += mult * ob[i][1]
+            if ok:
+                out.append((d, round(total, 2)))
+        return out
+    except Exception as e:
+        print(f"[canary] sum {spec}: {e}")
+        return []
+
+
+def _ecb_series(key, limit):
+    """key='FLOW/SERIES.KEY' from the ECB SDMX data API -> [(date, value)]
+    newest-first. Covers the euro yield curve and Euribor, which FRED
+    dropped or never carried."""
+    try:
+        flow, series = key.split("/", 1)
+        url = ("https://data-api.ecb.europa.eu/service/data/%s/%s"
+               "?format=csvdata&lastNObservations=%d" % (flow, series, limit))
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "justhodl-canary-grid/2.0", "Accept": "text/csv"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            text = r.read().decode("utf-8", "replace")
+        lines = [l for l in text.splitlines() if l.strip()]
+        if len(lines) < 2:
+            return []
+        hdr = [h.strip().upper() for h in lines[0].split(",")]
+        ti = hdr.index("TIME_PERIOD")
+        vi = hdr.index("OBS_VALUE")
+        out = []
+        for line in lines[1:]:
+            cols = line.split(",")
+            try:
+                out.append((cols[ti].strip()[:10], float(cols[vi])))
+            except (ValueError, IndexError):
+                continue
+        out.sort(key=lambda x: x[0], reverse=True)
+        return out
+    except Exception as e:
+        print(f"[canary] ecb {key}: {e}")
+        return []
+
+
+def _read_ecbspread(spec, limit):
+    """spec='FLOW/KEYA|FLOW/KEYB' -> ECB series A minus B, as-of aligned.
+    Built for the euro AAA curve 30y-5y slope."""
+    import bisect
+    try:
+        a, b = spec.split("|", 1)
+        oa = _ecb_series(a, limit)
+        ob = _ecb_series(b, limit * 2)
+        if not oa or not ob:
+            return []
+        bmap = sorted(ob, key=lambda x: x[0])
+        bdates = [d for d, _ in bmap]
+        out = []
+        for d, v in oa:
+            i = bisect.bisect_right(bdates, d) - 1
+            if i >= 0:
+                out.append((d, round(v - bmap[i][1], 4)))
+        return out
+    except Exception as e:
+        print(f"[canary] ecbspread {spec}: {e}")
+        return []
+
+
 def fetch_observations(sid, limit):
     """Source-agnostic fetch -> [(date, value), ...] newest-first.
     'feed:ENGINE:dot.path' reads a platform feed; 'spread:SID1:SID2' is a derived
@@ -309,6 +616,14 @@ def fetch_observations(sid, limit):
         return _read_feed(sid[5:])
     if str(sid).startswith("spread:"):
         return _read_spread(sid[7:], limit)
+    if str(sid).startswith("ratio:"):
+        return _read_ratio(sid[6:], limit)
+    if str(sid).startswith("sum:"):
+        return _read_sum(sid[4:], limit)
+    if str(sid).startswith("ecbspread:"):
+        return _read_ecbspread(sid[10:], limit)
+    if str(sid).startswith("ecb:"):
+        return _ecb_series(sid[4:], limit)
     if "/" in str(sid):
         try:
             from dbnomics import fetch_series

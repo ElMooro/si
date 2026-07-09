@@ -1,0 +1,18 @@
+{
+ "function_name": "justhodl-risk-ratios",
+ "region": "us-east-1",
+ "runtime": "python3.12",
+ "handler": "lambda_function.lambda_handler",
+ "memory": 256,
+ "timeout": 180,
+ "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+ "inherit_env": true,
+ "description": "Daily market-priced risk-appetite ratios for the canary grid: HYG/LQD, ANGL/HYG fallen angels, HYG, ACWI, RXI global consumer, EEM 21d realized vol, WTI front-2nd term structure. Polygon + Yahoo. data/risk-ratios.json.",
+ "eventbridge_scheduler": {
+  "schedule_name": "justhodl-risk-ratios-daily",
+  "cron": "cron(40 21 * * ? *)",
+  "timezone": "UTC",
+  "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+  "description": "Risk ratios - daily post-close 21:40 UTC."
+ }
+}
