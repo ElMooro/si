@@ -1,10 +1,12 @@
-executing-against: cb79a9898f8fc954b243feca01ced77dd07f1081
+executing-against: 4381695ab9a5e3f7810cd072efe3aef95b23dd24
 ── 0. Wait for deploys ──
-── 1. Warroom regeneration + barometer ──
-── 2. Signal-board fusion ──
+── 1. Risk-ratios v3 (4 new metrics) ──
+── 2. Grid v3 regeneration (+8 canaries) ──
+── 2b. Warroom v3 (9 mechanisms + barometer) ──
 ── 3. Live page checks (CDN lag = warn-level) ──
-[19:01:58] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
+[19:32:37] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[19:01:58] PASS -- barometer 34.6 (WATCH) over 128 equal votes; full inventory live
+[19:32:37] FAIL: cftc canary missing
 
-→ Report written to aws/ops/reports/latest/3015_warroom_barometer.md
+→ Report written to aws/ops/reports/latest/3016_canary_v3_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3016_canary_v3_verify.py
