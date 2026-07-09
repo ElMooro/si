@@ -436,6 +436,70 @@ def norm_plumbing(d):
     return card, cans
 
 
+EURODOLLAR_DEDUPE = {
+    # concept already voting elsewhere (one canary, one vote):
+    "sofr_iorb",     # grid repo_sofr_iorb
+    "on_rrp",        # grid rrp_parking
+    "reserves",      # grid bank_reserves
+    "fed_swaps",     # grid swap_line_usage
+    "broad_dollar",  # dollar mechanism
+    "hy_oas",        # grid hy_credit_oas
+    "cp_ois",        # grid fin_cp_bill (same fault line, OIS leg)
+    "cpn_ois",       # grid cp3m_ff (same fault line, FF leg)
+}
+
+
+def norm_eurodollar(d):
+    """Every eurodollar-plumbing metric as its own row (Khalid 2026-07-09):
+    SOFR p99 tail, TGA, EFFR-IORB, bill-OIS, OFR-FSI funding, IG OAS,
+    FIMA repo, Fed SRF, ECB USD provision, UST settlement fails, foreign
+    custody (Snider tell), net-due-to-foreign, CNH complex (escape valve +
+    HIBOR ON/3M), JPY, offshore stablecoin USD -- stress = the metric's
+    own percentile where published, else its green/yellow/red status.
+    Eight concept-duplicates of rows already voting are skipped
+    (EURODOLLAR_DEDUPE; hk_* covered by the plumbing HK trio)."""
+    STATUS_ST = {"green": 18.0, "yellow": 50.0, "red": 78.0}
+    cans = []
+    for lkey, layer in (d.get("layers") or {}).items():
+        if not isinstance(layer, dict):
+            continue
+        for m in (layer.get("metrics") or []):
+            if not isinstance(m, dict):
+                continue
+            mid = m.get("id") or ""
+            if mid in EURODOLLAR_DEDUPE or mid.startswith("hk_"):
+                continue
+            pct = m.get("pctile")
+            st = (round(float(pct), 1) if isinstance(pct, (int, float))
+                  else STATUS_ST.get(m.get("status")))
+            if st is None or m.get("value") is None:
+                continue
+            cans.append({"mechanism": "eurodollar",
+                         "mech_label": "Eurodollar Plumbing",
+                         "name": "€$ %s — %s" % (lkey, m.get("label")
+                                                 or mid),
+                         "stress": st, "band": _band(st),
+                         "lead_months": 0.5,
+                         "value": m.get("value"), "unit": m.get("unit"),
+                         "detail": "[%s · %s] %s" % (
+                             layer.get("title") or lkey,
+                             (m.get("status") or "?").upper(),
+                             (m.get("detail") or "")[:130]),
+                         "firing": (m.get("status") == "red" or st >= 60)})
+    ph = d.get("plumbing_health")
+    score = round(100 - ph, 1) if isinstance(ph, (int, float)) else None
+    card = {"key": "eurodollar", "label": "Eurodollar Funding Plumbing",
+            "score": score, "band": _band(score),
+            "headline": "Every offshore-USD plumbing metric as a canary "
+                        "(stress = its own percentile or status); 8 "
+                        "concept-duplicates + the HK trio excluded as "
+                        "already voting.",
+            "n_total": len(cans),
+            "n_firing": sum(1 for c in cans if c["firing"]),
+            "scale": "0-100 (100 - plumbing_health)"}
+    return card, cans
+
+
 def norm_alerts(d):
     """EVERY live sentinel state as its own row (Khalid 2026-07-09).
     Honest correction: the old '212 watched' was the rolling ALERT-BUFFER
@@ -571,6 +635,7 @@ MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json
          ("data/cftc-all-cache.json", norm_cftc),
          ("data/global-stress.json", norm_global_stress),
          ("data/plumbing-stress.json", norm_plumbing),
+         ("data/eurodollar-plumbing.json", norm_eurodollar),
          ("data/alert-sentinel.json", norm_alerts)]
 
 
@@ -618,7 +683,8 @@ def lambda_handler(event=None, context=None):
         elif c.get("mechanism") in ("macro_grid", "leading_markets",
                                     "dollar", "vol", "ciss",
                                     "factor_regime", "cftc", "funding",
-                                    "alerts", "global_stress", "plumbing"):
+                                    "alerts", "global_stress", "plumbing",
+                                    "eurodollar"):
             votes.append(st)
     baro = round(sum(votes) / len(votes), 1) if votes else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
@@ -633,7 +699,7 @@ def lambda_handler(event=None, context=None):
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
-                      "headline": "%d of %d canaries firing across 11 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
+                      "headline": "%d of %d canaries firing across 12 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
                           len(firing), len(all_cans), master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),
