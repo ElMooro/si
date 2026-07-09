@@ -76,8 +76,23 @@ def norm_crisis(d):
     for a in (d.get("alerts") or []):
         cans.append({"mechanism": "funding", "mech_label": "Funding & Internals",
                      "name": str(a)[:70], "stress": 62, "band": "WARNING",
-                     "lead_months": 0.5, "detail": str(a), "firing": True})
+                     "lead_months": 0.5, "detail": str(a), "firing": True,
+                     "family_member": True})
     fams = d.get("families") or {}
+    for fname, fv in fams.items():
+        fsc = fv.get("score")
+        n = fv.get("n") or 0
+        if fsc is None or not n:
+            continue
+        cans.append({"mechanism": "funding", "mech_label": "Funding & Internals",
+                     "name": "Funding family — %s (%d watched)" % (fname, n),
+                     "stress": fsc, "band": _band(fsc), "lead_months": 0.5,
+                     "value": "%d red / %d amber" % (fv.get("red") or 0,
+                                                     fv.get("amber") or 0),
+                     "detail": "Aggregate of the %d %s-family plumbing "
+                               "canaries on the crisis board." % (n, fname),
+                     "firing": (fsc or 0) >= 50,
+                     "synthetic_family": True, "n_members": n})
     card = {"key": "funding", "label": "Funding Plumbing & Market Internals",
             "score": d.get("composite_score"), "band": (d.get("level") or "").upper(),
             "headline": d.get("headline") or (d.get("read")),
@@ -94,13 +109,20 @@ def norm_leading_markets(d):
     for m in (d.get("markets") or []):
         contracting = (m.get("regime") == "CONTRACTION") or (m.get("rs_state") == "lagging")
         if contracting:
-            cans.append({"mechanism": "leading_markets", "mech_label": "Market Leadership",
-                         "name": "%s (%s)" % (m.get("market") or m.get("etf"), m.get("bucket")),
-                         "stress": 58 if m.get("regime") == "CONTRACTION" else 48,
-                         "band": "ELEVATED", "lead_months": 3,
-                         "value": "%s%% 3m rs" % m.get("rs_3m_pct"),
-                         "detail": "%s vs ACWI — %s, %s" % (m.get("market"), m.get("regime"), m.get("rs_state")),
-                         "firing": True})
+            st = 58 if m.get("regime") == "CONTRACTION" else 48
+        elif m.get("regime") == "EXPANSION" and m.get("rs_state") == "leading":
+            st = 22
+        elif m.get("regime") == "SLOWING":
+            st = 40
+        else:
+            st = 30
+        cans.append({"mechanism": "leading_markets", "mech_label": "Market Leadership",
+                     "name": "%s (%s)" % (m.get("market") or m.get("etf"), m.get("bucket")),
+                     "stress": st, "band": _band(st) if not contracting else "ELEVATED",
+                     "lead_months": 3,
+                     "value": "%s%% 3m rs" % m.get("rs_3m_pct"),
+                     "detail": "%s vs ACWI — %s, %s" % (m.get("market"), m.get("regime"), m.get("rs_state")),
+                     "firing": bool(contracting)})
     card = {"key": "leading_markets", "label": "Cycle-Phase Market Leadership",
             "signal": d.get("turning_point_signal"), "headline": d.get("signal_read"),
             "flashing_buckets": d.get("flashing_buckets"), "benchmark": d.get("benchmark"),
@@ -112,12 +134,18 @@ def norm_dollar(d):
     cans = []
     for c in (d.get("canaries") or []):
         lean = (c.get("lean") or c.get("signal") or "")
-        firing = str(lean).upper() not in ("", "NEUTRAL", "FLAT")
-        if firing:
-            cans.append({"mechanism": "dollar", "mech_label": "Dollar",
-                         "name": c.get("label"), "stress": 50, "band": "WATCH",
-                         "lead_months": 1, "value": c.get("reading"),
-                         "detail": "%s — %s" % (lean, c.get("detail") or ""), "firing": True})
+        lu = str(lean).upper()
+        firing = lu not in ("", "NEUTRAL", "FLAT")
+        st = 55 if "PUMP" in lu or lu.startswith(("1", "2", "+")) else \
+             42 if "DUMP" in lu or lu.startswith("-") else 30
+        if not firing:
+            st = 30
+        cans.append({"mechanism": "dollar", "mech_label": "Dollar",
+                     "name": c.get("label"), "stress": st,
+                     "band": "WATCH" if firing else _band(st),
+                     "lead_months": 1, "value": c.get("reading"),
+                     "detail": "%s — %s" % (lean, c.get("detail") or ""),
+                     "firing": bool(firing)})
     card = {"key": "dollar", "label": "Dollar Direction", "score": d.get("dollar_pressure"),
             "band": d.get("regime"), "headline": d.get("headline"),
             "n_total": len(d.get("canaries") or []), "n_firing": len(cans),
@@ -131,9 +159,12 @@ def norm_vol(d):
         if c.get("firing"):
             mx = c.get("max") or 1
             st = round(40 + 25 * (c.get("points", 0) / mx), 0)
-            cans.append({"mechanism": "vol", "mech_label": "Volatility",
-                         "name": c.get("label"), "stress": st, "band": _band(st),
-                         "lead_months": 0.5, "detail": c.get("detail"), "firing": True})
+        else:
+            st = 25
+        cans.append({"mechanism": "vol", "mech_label": "Volatility",
+                     "name": c.get("label"), "stress": st, "band": _band(st),
+                     "lead_months": 0.5, "detail": c.get("detail"),
+                     "firing": bool(c.get("firing"))})
     sc = d.get("scores") or {}
     card = {"key": "vol", "label": "Volatility Turning Points", "score": sc.get("spike_risk"),
             "band": d.get("posture"), "headline": d.get("headline"),
@@ -244,7 +275,31 @@ def lambda_handler(event=None, context=None):
     den = sum(w for v, w in parts if v is not None)
     master_ew = round(num / den, 1) if den else None
     divs = divergences(cards)
+    # ── MASTER BAROMETER (Khalid spec 2026-07-09): EQUAL WEIGHT PER CANARY.
+    # Every watched canary gets exactly one vote of its 0-100 stress —
+    # macro grid, market leadership, dollar, vol each per-canary; funding
+    # counts each family's score once per member canary (the alert rows are
+    # members of those families, so they are excluded to avoid double
+    # counting). Sentinel alert-rules are binary flips, not stress gauges,
+    # and are shown separately, not averaged.
+    votes = []
+    for c in all_cans:
+        st = c.get("stress")
+        if st is None or c.get("family_member"):
+            continue
+        if c.get("synthetic_family"):
+            votes.extend([st] * int(c.get("n_members") or 1))
+        elif c.get("mechanism") in ("macro_grid", "leading_markets",
+                                    "dollar", "vol"):
+            votes.append(st)
+    baro = round(sum(votes) / len(votes), 1) if votes else None
+    barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
+                 "method": "equal_weight_per_canary",
+                 "note": ("Every watched canary = one equal vote of its "
+                          "0-100 stress. Sentinel alert-rules (binary "
+                          "flips) shown separately, not averaged.")}
     out = {"engine": "justhodl-canary-warroom", "generated_at": now.isoformat(),
+           "barometer": barometer,
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
@@ -255,4 +310,4 @@ def lambda_handler(event=None, context=None):
            "note": "Unified early-warning across every canary mechanism the platform runs, plus the operator's own brain playbook. Real aggregated data — not advice."}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
-    return {"ok": True, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
+    return {"ok": True, "barometer": baro, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}

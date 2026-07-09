@@ -241,6 +241,7 @@ def load_all():
         "global_stress":"data/global-stress.json",
         # ─── Cross-asset Risk-On/Risk-Off synthesizer (Massive FX+options + FRED VIX/credit) ──
         "risk_regime":"data/risk-regime.json",
+        "canary_warroom":"data/canary-warroom.json",
         "hot_money":"data/hot-money.json",
         "accum_radar":"data/accumulation-radar.json",
         # ─── Cross-asset FLOW: where money is actually rotating ──
@@ -735,6 +736,14 @@ def extract_metrics(data,weights):
             "global_bond_stress": gs.get("bond_stress"),
             "global_worst_market": (gs.get("worst_market") or {}).get("market"),
             "global_flashing_red": gs.get("flashing_red") or [],
+        })(),
+        # Early-Warning War Room — equal-weight canary barometer
+        **(lambda wr=data.get("canary_warroom", {}): {
+            "warroom_barometer": (wr.get("barometer") or {}).get("score"),
+            "warroom_band": (wr.get("barometer") or {}).get("band"),
+            "warroom_n_votes": (wr.get("barometer") or {}).get("n_votes"),
+            "warroom_headline": ((wr.get("master") or {}).get("headline")
+                                 or "")[:220],
         })(),
         # Cross-asset Risk-On/Risk-Off synthesizer (risk-regime)
         **(lambda rr=data.get("risk_regime", {}): {
@@ -1274,6 +1283,7 @@ def build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "DOLLAR_RADAR: Dollar Pressure "+str(m.get("dollar_pressure") if m.get("dollar_pressure") is not None else "?")+"/±100 — regime "+str(m.get("dollar_regime") or "?")+" ("+str(m.get("dollar_canaries_pump") or 0)+" pump vs "+str(m.get("dollar_canaries_dump") or 0)+" dump canaries firing). Positive = USD squeeze/PUMP (risk-off, tighter global dollar liquidity); negative = DUMP (Fed QE/repo liquidity flood, risk-on)."+(" Dollar index double-top — reversal-lower risk." if m.get("dollar_double_top") else "")+(" Dollar index double-bottom — reversal-higher risk." if m.get("dollar_double_bottom") else ""),
         # ═══ Global Stress Matrix — world equity & bond stress (2026-05-19)
         "GLOBAL_STRESS: world-markets stress index "+str(m.get("global_stress_index") if m.get("global_stress_index") is not None else "?")+"/100 ("+str(m.get("global_stress_level") or "?")+") — equity stress "+str(m.get("global_equity_stress") if m.get("global_equity_stress") is not None else "?")+", bond stress "+str(m.get("global_bond_stress") if m.get("global_bond_stress") is not None else "?")+". Most stressed: "+str(m.get("global_worst_market") or "none")+((". Flashing red (ACUTE): "+"; ".join(m.get("global_flashing_red"))) if m.get("global_flashing_red") else ". Nothing flashing red.")+"",
+        "EARLY_WARNING_WARROOM: barometer "+str(m.get("warroom_barometer") if m.get("warroom_barometer") is not None else "?")+"/100 ("+str(m.get("warroom_band") or "?")+") — equal-weight mean stress of all "+str(m.get("warroom_n_votes") or "?")+" watched canaries across six mechanisms (macro leads, funding plumbing, market leadership, dollar, vol). Master: "+str(m.get("warroom_headline") or "?")+"",
         "RISK_REGIME(RORO): "+str(m.get("roro_score") if m.get("roro_score") is not None else "?")+"/100 ("+str(m.get("roro_regime") or "?")+") — cross-asset risk-on/off from Massive FX+options + FRED VIX/credit. Posture: "+str(m.get("roro_posture") or "?")+" size×"+str(m.get("roro_size_mult") or "?")+". Tells: "+("; ".join(m.get("roro_tells") or []) or "none")+"",
         # ═══ Cross-asset FLOW — where money is actually rotating ════════
         "CROSS_ASSET_FLOW: foreign cross-border regime "+str(m.get("flow_foreign_regime") or "?")+" — into US Treasuries "+str(m.get("flow_treasuries_mo_b") if m.get("flow_treasuries_mo_b") is not None else "?")+"$B/mo, corp bonds "+str(m.get("flow_corp_bonds_mo_b") if m.get("flow_corp_bonds_mo_b") is not None else "?")+"$B/mo, equities "+str(m.get("flow_equities_mo_b") if m.get("flow_equities_mo_b") is not None else "?")+"$B/mo. Hard assets/dollar 20d: gold "+str(m.get("flow_gold_20d") if m.get("flow_gold_20d") is not None else "?")+"%, dollar "+str(m.get("flow_dollar_20d") if m.get("flow_dollar_20d") is not None else "?")+"%, long bonds "+str(m.get("flow_bonds_tlt_20d") if m.get("flow_bonds_tlt_20d") is not None else "?")+"% (metals regime "+str(m.get("flow_metals_state") or "?")+"). Sector conviction: "+(", ".join(m.get("flow_top_sectors") or []) or "?")+". This is the *direction* of money (the RORO line above is the risk *score*) — falling gold+rising dollar+bond bid = risk-off rotation toward havens.",

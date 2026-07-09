@@ -1162,7 +1162,19 @@ def n_footprint(d):
     return sig,"INSTITUTIONS %s (%s) -> %s (%s) | feeds %s"%(p.get("now_label"),rn,p.get("forward_label"),rf,d.get("feeds_alive"))
 
 
+def n_canary_warroom(d):
+    b = d.get("barometer") or {}
+    sc = b.get("score")
+    if sc is None:
+        return 0, "War-room barometer n/a"
+    sig = 1 if sc < 25 else 0 if sc < 40 else -1 if sc < 55 else -2
+    m = d.get("master") or {}
+    return sig, (f"War-room barometer {sc}/100 ({b.get('band')}), "
+                 f"{m.get('n_firing')}/{m.get('n_canaries')} canaries firing")
+
+
 FEEDS = [
+    ("Early-Warning War Room", "macro", "data/canary-warroom.json", n_canary_warroom),
     ("PM Decision",        "positioning",      "data/pm-decision.json",        n_pm_decision),
     ("Cross-Asset RV",     "relative value",   "data/cross-asset-rv.json",     n_cross_asset_rv),
     ("Fundamentals X-Ray", "equity valuation", "data/fundamentals.json",       n_fundamentals),
