@@ -1,10 +1,9 @@
-executing-against: 4a94198b51cc98722f06f0aa696eebdd3bfbed4c
+executing-against: aa290b798929a4983357f397754c9eb3a736b5d3
 ── 0. Wait for deploys ──
 ── 1. Warroom v4 regeneration ──
 ── 3. Live page checks (CDN lag = warn-level) ──
-[22:51:01] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
+[23:00:04] morning-intelligence wiring verified by deploy + compile; prompt line lands in tomorrow's 8AM brief (not invoked here -- LLM cost discipline).
 ── verdict ──
-[22:51:01] FAIL: dedupe leaked: ['€$ hubs — CNH HIBOR overnight (offshore-yuan funding)', '€$ hubs — CNH HIBOR 3-month (term offshore-yuan)']
+[23:00:04] PASS -- barometer 36.6 (WATCH) over 292 equal votes; full inventory live
 
-→ Report written to aws/ops/reports/latest/3025_eurodollar_mech.md
-❌ OPS-FAIL: aws/ops/pending/ops_3025_eurodollar_mech.py
+→ Report written to aws/ops/reports/latest/3026_eurodollar_close.md
