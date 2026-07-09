@@ -714,6 +714,19 @@ def lambda_handler(event=None, context=None):
                              "n_canaries": len(member)}
     pm_vals = [v["score"] for v in mech_view.values()]
     pm = round(sum(pm_vals) / len(pm_vals), 1) if pm_vals else None
+    # ── earned view: per-mechanism scores x event-study weights ──
+    wj = gj("data/warroom-weights.json") or {}
+    wmap = {k: (v.get("weight") or 1.0)
+            for k, v in (wj.get("mechanisms") or {}).items()}
+    num = den = 0.0
+    for mk, mv in mech_view.items():
+        w = float(wmap.get(mk, 1.0))
+        mv["weight"] = round(w, 3)
+        mv["weight_status"] = ((wj.get("mechanisms") or {}).get(mk) or
+                               {}).get("status", "EQUAL_PRIOR")
+        num += w * mv["score"]
+        den += w
+    earned = round(num / den, 1) if den else None
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
                  "views": {
                      "per_canary": {"score": baro, "band": _band(baro),
@@ -722,7 +735,13 @@ def lambda_handler(event=None, context=None):
                      "per_mechanism": {"score": pm, "band": _band(pm),
                                        "band5": _band5(pm),
                                        "n_mechanisms": len(pm_vals),
-                                       "by_mechanism": mech_view}},
+                                       "by_mechanism": mech_view},
+                     "earned": {"score": earned, "band": _band(earned),
+                                "band5": _band5(earned),
+                                "n_mechanisms": len(pm_vals),
+                                "weights_asof": wj.get("generated_at"),
+                                "n_learned": wj.get("n_learned"),
+                                "method": (wj.get("method") or "")[:220]}},
                  "method": "equal_weight_per_canary",
                  "note": ("Every watched canary = one equal vote of its "
                           "0-100 stress — including every individual "
@@ -741,4 +760,4 @@ def lambda_handler(event=None, context=None):
            "note": "Unified early-warning across every canary mechanism the platform runs, plus the operator's own brain playbook. Real aggregated data — not advice."}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
-    return {"ok": True, "barometer": baro, "per_mechanism": pm, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
+    return {"ok": True, "barometer": baro, "per_mechanism": pm, "earned": earned, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}

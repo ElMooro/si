@@ -104,10 +104,10 @@ function render(d){
       <div class="ff">${mc.n_firing==null?'':mc.n_firing+' firing / '+(mc.n_total||'?')+' watched'} · <span class="muted">${mc.scale||''}</span></div>
       <div class="hd">${(mc.headline||'').slice(0,150)}</div>${extra}</div>`;}).join('');
   // ── RISK VISUAL BAROMETER (live data; layout per Khalid 2026-07-09) ──
-  const B=d.barometer||{},V=(B.views||{}),PM=V.per_mechanism||{},PC=V.per_canary||{};
+  const B=d.barometer||{},V=(B.views||{}),PM=V.per_mechanism||{},PC=V.per_canary||{},EW=V.earned||{};
   window._BARO={pm:PM,pc:PC};window._VIEW=window._VIEW||'pm';
   window.renderBaro=function(){
-    const vw=window._VIEW,cur=vw=='pm'?PM:PC;
+    const vw=window._VIEW,cur=vw=='pm'?PM:(vw=='ew'?EW:PC);
     const s=Math.max(0,Math.min(100,cur.score==null?0:cur.score));
     const B5=['CALM','GUARDED','ELEVATED','HIGH RISK','CRISIS'];
     const B5C=['var(--calm)','var(--watch)','var(--elev)','var(--warn)','var(--crit)'];
@@ -125,7 +125,7 @@ function render(d){
       return `<div class="card" style="padding:9px 12px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <div style="font-size:12px"><span class="tag">${i+1}</span> <b>${m.label||k}</b></div>
-          <div style="font-size:11px;color:${B5C[mi]}">${m.band5||''} · ${m.score}</div></div>
+          <div style="font-size:11px;color:${B5C[mi]}">${m.band5||''} · ${m.score}${m.weight!=null?' <span class="muted">×'+m.weight+(m.weight_status=='LEARNED'?'':'*')+'</span>':''}</div></div>
         <div style="position:relative;margin-top:7px">
           <div style="display:flex;gap:3px">${segs}</div>
           <div style="position:absolute;top:-4px;left:${pos}%;transform:translateX(-50%) rotate(45deg);width:8px;height:8px;background:#fff;border:1px solid #000"></div>
@@ -138,6 +138,7 @@ function render(d){
         <div class="ff muted" style="margin-top:2px">${PM.n_mechanisms||12} CANARY MECHANISMS · LIVE DATA</div>
         <div style="margin-top:8px">
           <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:11px">Per mechanism (${PM.n_mechanisms||'?'} votes)</button>
+          <button class="${vw=='ew'?'on':''}" onclick="_VIEW='ew';renderBaro()" style="font-size:11px">Earned weights (${EW.n_learned||0} learned)</button>
           <button class="${vw=='pc'?'on':''}" onclick="_VIEW='pc';renderBaro()" style="font-size:11px">Per canary (${PC.n_votes||'?'} votes)</button>
         </div>
       </div>
@@ -154,7 +155,7 @@ function render(d){
           <div class="card" style="border:1px solid ${bc}55;padding:10px;margin-top:-6px">
             <div style="font-size:20px;font-weight:700;letter-spacing:2px;color:${bc}">${b5}</div>
             <div class="ff" style="margin-top:3px">${GUIDE[b5]||''}</div>
-            <div class="ff muted" style="margin-top:5px">${vw=='pm'?'Equal weight per mechanism — each mechanism is one vote (its canaries equal within). Fixes the row-count bias.':(B.note||'')}</div>
+            <div class="ff muted" style="margin-top:5px">${vw=='pm'?'Equal weight per mechanism — each mechanism is one vote (its canaries equal within). Fixes the row-count bias.':vw=='ew'?('Event-study weights vs 8 crisis windows, 50% shrunk to equal, clamped [0.6, 1.6]. * = equal prior (no deep history). '+(EW.method||'')):(B.note||'')}</div>
           </div>
         </div>
         <div style="flex:1;min-width:300px;display:grid;gap:8px">${mechRows.split('</div><div class="card"').slice(6).map((x,i)=>i==0?'<div class="card"'+x:x).join('</div><div class="card"')||''}</div>
