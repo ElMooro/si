@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 MAXDAYS = 235          # buffer depth (v1.4: +35 so the 50/200 cross scan has a 15-session window)
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -566,6 +566,13 @@ def lambda_handler(event=None, context=None):
         return None
 
     rev_bottoms, rev_tops = [], []
+    dma_up, dma_dn = [], []
+
+    def _v50_at(v, i):
+        if i < 50:
+            return None
+        return sum(v[i - 50:i]) / 50.0 or None
+
     for r in rows:
         if r.get("class") not in ("stock", "etf"):
             continue
@@ -588,6 +595,32 @@ def lambda_handler(event=None, context=None):
         obv = _obv(c, v)
         px_hh = max(c[-20:]) >= max(c[-40:-20])
         obv_hh = max(obv[-20:]) >= max(obv[-40:-20])
+
+        # ── universe-wide 200DMA break scan (v1.4.2, no gates) ──
+        for back in range(1, 13):
+            i = len(c) - back
+            s1 = _sma_s(c, 200, i + 1)
+            s0 = _sma_s(c, 200, i)
+            if None in (s1, s0):
+                break
+            crossed_up = c[i - 1] <= s0 and c[i] > s1
+            crossed_dn = c[i - 1] >= s0 and c[i] < s1
+            if not (crossed_up or crossed_dn):
+                continue
+            v50b = _v50_at(v, i) or 1.0
+            vrb = round(v[i] / v50b, 2)
+            row200 = {"ticker": r["ticker"], "class": r["class"],
+                      "sessions_ago": back,
+                      "vol_ratio_on_break": vrb,
+                      "vol_confirm": vrb >= 1.5,
+                      "pct_vs_200dma": round(
+                          (c[-1] / (sma200 or c[-1]) - 1) * 100, 1),
+                      "still_beyond": (c[-1] > sma200) if crossed_up
+                      else (c[-1] < sma200),
+                      "phase": r.get("phase"),
+                      "radar_flag": r.get("flag")}
+            (dma_up if crossed_up else dma_dn).append(row200)
+            break  # most recent cross only
 
         down_ctx = (c[-45] < (_sma_s(c, 200, len(c) - 45) or c[-45])
                     and min(c[-60:]) <= lo252 * 1.03)
@@ -754,6 +787,16 @@ def lambda_handler(event=None, context=None):
 
     rev_bottoms.sort(key=lambda x: -x["score"])
     rev_tops.sort(key=lambda x: -x["score"])
+    for arr in (dma_up, dma_dn):
+        arr.sort(key=lambda x: (x["sessions_ago"],
+                                -x["vol_ratio_on_break"]))
+    out["dma200_breaks"] = {
+        "up": dma_up[:25], "down": dma_dn[:25],
+        "note": ("every scanned name that crossed the 200-day "
+                 "moving average within 12 sessions -- no reversal "
+                 "gates; vol_confirm = break-day volume >=1.5x its "
+                 "own 50d average (institutional participation); "
+                 "still_beyond = the break is holding today")}
     out["reversals"] = {
         "bottoms": rev_bottoms[:15], "tops": rev_tops[:15],
         "n_scanned": len(rows),

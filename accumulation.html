@@ -82,6 +82,22 @@ function revCard(r, kind){
    + `<div style="font-size:10.5px;color:var(--fg3);margin-top:4px">${(r.evidence||[]).slice(0,4).map(esc).join(' · ')}</div>`
    + `<div class="bar"><span style="width:${Math.min(100,r.score)}%;background:${ac}"></span></div></div>`;
 }
+function dma200Section(d){
+  const b = d.dma200_breaks || {};
+  const up = b.up || [], dn = b.down || [];
+  const row = (r, good) => `<div class="card ${good?'b':'t'}"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${r.vol_confirm?'var(--gold,#e8c86a)':'var(--fg3)'};border:1px solid ${r.vol_confirm?'var(--gold,#e8c86a)':'var(--fg3)'}55">${r.vol_confirm?'VOL ✓':'quiet'}</span></div>`
+    + `<div class="l2">${r.sessions_ago} session${r.sessions_ago>1?'s':''} ago · 🔊 ${r.vol_ratio_on_break}× on the break · now ${r.pct_vs_200dma>0?'+':''}${r.pct_vs_200dma}% vs 200DMA${r.still_beyond?'':' · <b style="color:var(--amb)">back-tested through</b>'}</div>`
+    + (r.phase?`<div class="chips"><span class="chp" style="color:var(--cy,#4fc3f7)">${esc(r.phase)}</span></div>`:'')
+    + `</div>`;
+  let h2 = '<div class="sec" style="border:1px solid var(--cy,#4fc3f7);border-radius:10px;padding:10px 12px;margin:14px 0" id="dma200-breaks">';
+  h2 += '<h2 style="color:var(--cy,#4fc3f7);margin:0 0 2px">📏 200DMA BREAKS — the institutional trend line, universe-wide</h2>';
+  h2 += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Every scanned name that crossed the 200-day moving average within 12 sessions — no reversal gates. <b>VOL ✓</b> = the break printed on ≥1.5× that name\'s own 50-day volume (institutions participating). Quiet breaks fail far more often.</div>';
+  h2 += `<div class="grp" style="color:var(--grn)">⬆ Crossed ABOVE (${up.length})</div>`;
+  h2 += up.length ? `<div class="grid">${up.map(r=>row(r,true)).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">none in the last 12 sessions</div>';
+  h2 += `<div class="grp" style="color:var(--red)">⬇ Crossed BELOW (${dn.length})</div>`;
+  h2 += dn.length ? `<div class="grid">${dn.map(r=>row(r,false)).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">none in the last 12 sessions</div>';
+  return h2 + '</div>';
+}
 function reversalSection(d){
   const rv = d.reversals || {};
   const bt = rv.bottoms || [], tp = rv.tops || [];
@@ -130,6 +146,7 @@ function block(book,kind){
   h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
   h+=confirmedSection(d);
   h+=reversalSection(d);
+  h+=dma200Section(d);
   h+=`<div class="sec top">⚠️ Likely TOPS <span class="n">— over-extended + distribution / bearish divergence</span></div>`+block(d.tops,'t');
   h+=`<div class="sec bot">✅ Likely BOTTOMS <span class="n">— oversold + accumulation / bullish divergence</span></div>`+block(d.bottoms,'b');
   h+=`<div class="sec" style="color:var(--cyan)">Under accumulation <span class="n">— buying pressure in a base</span></div>`+block(d.accumulating,'acc');
