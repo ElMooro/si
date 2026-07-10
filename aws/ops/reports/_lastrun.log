@@ -1,7 +1,9 @@
-executing-against: f2d6518b1f03f63c9b2b6cb9084798abb2a08238
-── 1. Whales v1.2 first (radar depends on it) ──
-── 2. Radar v1.3.0 (reads the fresh whale map) ──
+executing-against: 26cd761ccfcc0005a3e9208761800a04053e06a1
+── 1. Radar 1.3.1 (ma_state provider) ──
+── 2. IR 3.1 (RRG + transitions + breadth) ──
+── 3. Page (warn-level) ──
 ── verdict ──
-[13:39:26] PASS
+[14:38:20] FAIL: breadth on 22 rows (<28)
 
-→ Report written to aws/ops/reports/latest/3053_confluence_seq.md
+→ Report written to aws/ops/reports/latest/3054_rrg_breadth.md
+❌ OPS-FAIL: aws/ops/pending/ops_3054_rrg_breadth.py
