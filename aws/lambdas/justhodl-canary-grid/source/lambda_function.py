@@ -460,6 +460,21 @@ SIGNALS = [
              "and has not transmitted to equities yet; that pre-transmission window is the early-"
              "warning use case itself.",
          cool="MOVE/VIX is normal -- no untransmitted rate stress."),
+    dict(key="swiss_reserves", name="Swiss FX reserve assets (SNB, via IMF)", grid="funding_plumbing",
+         fred=["IMF/IFS/M.CH.RAFA_USD", "IMF/IRFCL/M.CH.RAFA_USD"],
+         kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
+         max_stale_days=170,
+         hot="Swiss reserve assets are shrinking -- the SNB leg of the global reserve "
+             "composite (FRED id died) restored via IMF; CB reserve drawdowns mark "
+             "dollar-shortage defense.",
+         cool="Swiss reserves stable or growing -- no defensive drawdown."),
+    dict(key="ea_reserves", name="Euro-area reserve assets (ECB, via IMF)", grid="funding_plumbing",
+         fred=["IMF/IFS/M.U2.RAFA_USD", "IMF/IRFCL/M.U2.RAFA_USD"],
+         kind="mom", win=12, dir="fall", lead=3, limit=220, unit="%12m",
+         max_stale_days=170,
+         hot="Euro-area reserve assets are shrinking -- the EA leg of the reserve "
+             "composite (FRED series stale-2018) restored via IMF.",
+         cool="Euro-area reserves stable or growing."),
 ]
 # v2 2026-07-09: 6th sub-grid `global_risk` (market-priced risk-appetite
 # canaries -- credit ETF ratios, global equity tape, EM vol, oil term

@@ -248,11 +248,11 @@ def build_proxies():
     container = ciss.get("series") or ciss.get("indices") or ciss
     items = (container.values() if isinstance(container, dict)
              else container if isinstance(container, list) else [])
-    for s in items:
-        if isinstance(s, dict) and "Composite" in str(s.get("label")):
-            comp_hist = {str(p[0])[:7]: float(p[1])
-                         for p in (s.get("history") or [])
-                         if p and p[1] is not None}
+    for row in items:
+        if isinstance(row, dict) and "Composite" in str(row.get("label")):
+            pts = row.get("points") or row.get("history") or []
+            comp_hist = {str(pt[0])[:7]: float(pt[1])
+                         for pt in pts if pt and pt[1] is not None}
             break
     if comp_hist:
         P["ciss"] = ([{"monthly": comp_hist, "dir": "rise"}],
@@ -302,9 +302,49 @@ def build_proxies():
     P["eurodollar"] = ([{"monthly": cust, "dir": "fall"},
                         {"monthly": swpt, "dir": "rise"}],
                        "foreign custody (inv) + Fed swap lines")
-    P["factor_regime"] = (None, "style-ratio history rebuild queued -- "
-                                "equal prior")
-    P["cftc"] = (None, "COT full-history build queued -- equal prior")
+    iwf = fmp_monthly("IWF", "2000-08-01") if FMP else {}
+    iwd = fmp_monthly("IWD", "2000-08-01") if FMP else {}
+    iwm = fmp_monthly("IWM", "2000-08-01") if FMP else {}
+    def _mom6(r):
+        ms = sorted(r.keys())
+        return {ms[i]: (r[ms[i]] / r[ms[i - 6]] - 1) * 100
+                for i in range(6, len(ms)) if r[ms[i - 6]]}
+    gv = {m: iwf[m] / iwd[m] for m in iwf if m in iwd and iwd[m]}
+    sl = {m: iwm[m] / spy[m] for m in iwm if m in spy and spy[m]}
+    if gv and sl:
+        P["factor_regime"] = ([{"monthly": _mom6(gv), "dir": "fall"},
+                               {"monthly": _mom6(sl), "dir": "fall"}],
+                              "style-appetite 6m momentum: IWF/IWD + "
+                              "IWM/SPY (2000->)")
+    else:
+        P["factor_regime"] = (None, "style ETF history unavailable")
+    cftc_specs = []
+    for code, nm in (("13874A", "E-mini S&P"), ("043602", "10Y note"),
+                     ("088691", "Gold"), ("067651", "WTI crude")):
+        rows = _get("https://publicreporting.cftc.gov/resource/"
+                    "6dca-aqww.json?cftc_contract_market_code=%s"
+                    "&$select=report_date_as_yyyy_mm_dd,"
+                    "noncomm_positions_long_all,"
+                    "noncomm_positions_short_all,open_interest_all"
+                    "&$order=report_date_as_yyyy_mm_dd&$limit=50000"
+                    % code, timeout=45) or []
+        mon = {}
+        for r in rows:
+            try:
+                oi = float(r["open_interest_all"])
+                if oi <= 0:
+                    continue
+                net = (float(r["noncomm_positions_long_all"])
+                       - float(r["noncomm_positions_short_all"]))
+                mon[r["report_date_as_yyyy_mm_dd"][:7]] = abs(net / oi)
+            except (KeyError, TypeError, ValueError):
+                continue
+        if len(mon) > 120:
+            cftc_specs.append({"monthly": mon, "dir": "rise"})
+        print("[weights] cftc %s (%s): %d months" % (nm, code, len(mon)))
+    P["cftc"] = ((cftc_specs, "|net spec / OI| crowding: ES, ZN, GC, CL "
+                  "via CFTC public API (1995->)") if len(cftc_specs) >= 3
+                 else (None, "socrata history unavailable"))
     P["alerts"] = (None, "live-state sentinel has no reconstructable "
                          "history -- equal prior (structural)")
     return P
