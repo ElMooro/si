@@ -216,7 +216,25 @@ function render(d){
             <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per mechanism (${entries.length} votes)</span><b style="color:${cband(PM.score)}">${PM.score} ${PM.band5||''}</b></div>
             <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Earned weights (${EW.n_learned||0} learned)</span><b style="color:${cband(EW.score)}">${EW.score} ${EW.band5||''}</b></div>
             <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per canary (${PC.n_votes||'?'} votes)</span><b style="color:${cband(PC.score)}">${PC.score} ${PC.band5||''}</b></div>
-            <div class="muted" style="margin-top:6px;font-size:10px">Composite = Σ(weight × mechanism stress) ÷ Σ weights. All three views computed every run from the same 290+ live canaries. Weights re-studied monthly. Full evidence: <a href="https://justhodl.ai/data/warroom-weights.json" style="color:${GOLD}">warroom-weights.json</a>.</div></div></div>`;
+            <div class="muted" style="margin-top:6px;font-size:10px">Composite = Σ(weight × mechanism stress) ÷ Σ weights. All three views computed every run from the same 290+ live canaries. Weights re-studied monthly. Full evidence: <a href="https://justhodl.ai/data/warroom-weights.json" style="color:${GOLD}">warroom-weights.json</a>.</div></div></div>
+      <div id="replayWrap" style="margin-top:14px"></div>`;
+    fetch('data/warroom-replay.json?v='+Date.now()).then(r=>r.json()).then(rp=>{
+      const M=rp.months||[],EQ=rp.equal||[],EWs=rp.earned||[];if(!M.length)return;
+      const W=1060,H=230,L=44,Rm=12,T=16,Bm=30,pw=W-L-Rm,ph=H-T-Bm;
+      const x=i=>L+pw*i/(M.length-1),y=v=>T+ph*(1-Math.max(0,Math.min(100,v))/100);
+      const path=arr=>{let d='',pen=false;arr.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)+' ';pen=true});return d};
+      const mIdx=mm=>{const i=M.findIndex(v=>v>=mm);return i<0?M.length-1:i};
+      const shades=(rp.crises||[]).map(c=>{const x0=x(mIdx(c[0])),x1=x(mIdx(c[1]));return `<rect x="${x0}" y="${T}" width="${Math.max(2,x1-x0)}" height="${ph}" fill="#e03d2f14"/><text x="${(x0+x1)/2}" y="${T+10}" text-anchor="middle" style="font-size:8px;fill:#e03d2f99">${c[2]}</text>`}).join('');
+      const grid=[20,40,60,80].map(g=>`<line x1="${L}" y1="${y(g)}" x2="${W-Rm}" y2="${y(g)}" stroke="#22304433"/><text x="${L-6}" y="${y(g)+3}" text-anchor="end" style="font-size:9px;fill:var(--mut)">${g}</text>`).join('');
+      const yrs=M.map((mm,i)=>mm.endsWith('-01')&&+mm.slice(0,4)%4==0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle" style="font-size:9px;fill:var(--mut)">${mm.slice(0,4)}</text>`:'').join('');
+      document.getElementById('replayWrap').innerHTML=`<div class="card" style="padding:14px;border:1px solid #2a3444">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><b style="letter-spacing:1px">BAROMETER REPLAY — 1996 → TODAY (proxy)</b>
+        <span class="ff muted" style="font-size:10px"><i style="display:inline-block;width:18px;height:3px;background:${GOLD};vertical-align:middle"></i> earned weights &nbsp;<i style="display:inline-block;width:18px;height:3px;background:#5b8dd6;vertical-align:middle"></i> equal &nbsp;<i style="display:inline-block;width:12px;height:9px;background:#e03d2f22;vertical-align:middle"></i> crisis windows</span></div>
+        <svg width="100%" viewBox="0 0 ${W} ${H}" style="margin-top:8px">${shades}${grid}
+          <path d="${path(EQ)}" stroke="#5b8dd6" stroke-width="1.6" fill="none" opacity=".8"/>
+          <path d="${path(EWs)}" stroke="${GOLD}" stroke-width="2.2" fill="none"/>${yrs}</svg>
+        <div class="ff muted" style="font-size:10px;margin-top:4px">${rp.note||''}</div></div>`;
+    }).catch(()=>{});
   };
   if(PM.score!=null||PC.score!=null)renderBaro();
   // filters

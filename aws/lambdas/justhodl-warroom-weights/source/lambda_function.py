@@ -167,7 +167,7 @@ def m_add(mth, k):
     return "%04d-%02d" % (y, m)
 
 
-def event_study(stress):
+def event_study(stress, lead_months=LEAD_MONTHS):
     if not stress:
         return None
     months = sorted(stress.keys())
@@ -175,14 +175,14 @@ def event_study(stress):
     hits, leads, covered = 0, [], 0
     excused = set()
     for c0, c1, _name in CRISES:
-        for k in range(-LEAD_MONTHS, 1):
+        for k in range(-lead_months, 1):
             excused.add(m_add(c0, k))
         cur = c0
         while cur <= m_add(c1, QUIET_BUFFER):
             excused.add(cur)
             cur = m_add(cur, 1)
     for c0, c1, name in CRISES:
-        w0 = m_add(c0, -LEAD_MONTHS)
+        w0 = m_add(c0, -lead_months)
         if first > w0 or last < c0:
             continue                       # proxy doesn't span this event
         covered += 1
@@ -350,8 +350,12 @@ def build_proxies():
     return P
 
 
+MECH_STRESS = {}
+
+
 def lambda_handler(event=None, context=None):
     started = time.time()
+    MECH_STRESS.clear()
     proxies = build_proxies()
     mech, raws = {}, {}
     for key, (specs, note) in proxies.items():
@@ -360,15 +364,30 @@ def lambda_handler(event=None, context=None):
                          "note": note}
             continue
         stress = mech_proxy(specs)
-        es = event_study(stress)
-        if not es or es["n_crises_covered"] < 3:
+        horizons = {}
+        for hz in (3, 6, 12):
+            r = event_study(stress, lead_months=hz)
+            if r:
+                horizons[hz] = r
+        if not horizons or max(h["n_crises_covered"]
+                               for h in horizons.values()) < 3:
             mech[key] = {"status": "EQUAL_PRIOR", "weight": 1.0,
                          "note": note + " -- <3 crises covered"}
             continue
+        best_hz = max(horizons, key=lambda hz:
+                      horizons[hz]["raw_score"])
+        es = dict(horizons[best_hz])
         es["status"] = "LEARNED"
         es["note"] = note
+        es["best_horizon_months"] = best_hz
+        es["horizons"] = {str(hz): {kk: h[kk] for kk in
+                          ("hit_rate", "mean_lead_months",
+                           "false_alarm_rate", "raw_score",
+                           "n_crises_covered")}
+                          for hz, h in horizons.items()}
         mech[key] = es
         raws[key] = es["raw_score"]
+        MECH_STRESS[key] = stress
     if raws:
         mean_raw = sum(raws.values()) / len(raws)
         for key, r in raws.items():
@@ -376,7 +395,37 @@ def lambda_handler(event=None, context=None):
             w = 0.5 * 1.0 + 0.5 * norm          # 50% shrink to equal
             mech[key]["weight"] = round(max(0.6, min(1.6, w)), 3)
             mech[key]["weight_prenorm"] = round(norm, 3)
-    out = {"engine": "justhodl-warroom-weights", "schema": "1.0",
+    # ── historical replay (item 1): proxy-based monthly composite,
+    # equal-per-mechanism AND earned-weighted, 1996-> with crisis shading
+    # data. Honest label: PROXY replay -- the live normalizers differ,
+    # this shows how these mechanism composites would have read.
+    axis = months_axis(list(MECH_STRESS.values())) if MECH_STRESS else []
+    axis = [m for m in axis if m >= "1996-01"]
+    replay_eq, replay_ew = [], []
+    for mo in axis:
+        pts, wpts, wsum = [], 0.0, 0.0
+        for mk, st in MECH_STRESS.items():
+            v = st.get(mo)
+            if v is None:
+                continue
+            pts.append(v)
+            w = mech.get(mk, {}).get("weight", 1.0)
+            wpts += w * v
+            wsum += w
+        replay_eq.append(round(sum(pts) / len(pts), 1) if pts else None)
+        replay_ew.append(round(wpts / wsum, 1) if wsum else None)
+    replay = {"months": axis, "equal": replay_eq, "earned": replay_ew,
+              "crises": CRISES,
+              "note": "PROXY replay: monthly mechanism proxies (same "
+                      "series as the event study) composited with "
+                      "today's weights -- shows how the barometer "
+                      "framework would have read; live normalizers "
+                      "differ in detail."}
+    S3.put_object(Bucket=BUCKET, Key="data/warroom-replay.json",
+                  Body=json.dumps(replay).encode(),
+                  ContentType="application/json",
+                  CacheControl="max-age=3600")
+    out = {"engine": "justhodl-warroom-weights", "schema": "1.1",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "method": ("Per-mechanism monthly proxy (rolling %dm "
                       "percentile) event-studied vs %d curated crisis "
