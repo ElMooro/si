@@ -398,7 +398,10 @@ def polygon_daily_cv(tkr, days=560):
               % (tkr, frm, to, POLY))
     bars = (d or {}).get("results") or []
     return ([float(b["c"]) for b in bars],
-            [float(b.get("v") or 0) for b in bars])
+            [float(b.get("v") or 0) for b in bars],
+            [datetime.fromtimestamp(b["t"] / 1000, tz=timezone.utc
+                                    ).strftime("%Y-%m-%d")
+             for b in bars])
 
 
 def volume_metrics(closes, vols):
@@ -500,9 +503,10 @@ def lambda_handler(event=None, context=None):
     regime = regime_of(spy)
     rr = s3_json("data/risk-regime.json") or {}
 
-    closes, volumes = {}, {}
+    closes, volumes, bar_dates = {}, {}, {}
     for t in UNIVERSE:
-        closes[t], volumes[t] = polygon_daily_cv(t)
+        closes[t], volumes[t], bar_dates[t] = \
+            polygon_daily_cv(t, days=1300)
         if len(closes[t]) < 210:
             warns.append("%s: %d bars" % (t, len(closes[t])))
         time.sleep(0.14)
@@ -1045,6 +1049,107 @@ def lambda_handler(event=None, context=None):
     for r_ in rows:
         if r_["etf"] in apac_chips:
             r_["apac"] = apac_chips[r_["etf"]][:2]
+
+    # ══ v3.4 (items 12-17) ══
+    from datetime import date as _date
+    cur_month = datetime.now(timezone.utc).month
+    ranked_now = sorted(rows, key=lambda x: -x["leadership_score"])
+    rank_now = {r_["etf"]: i for i, r_ in enumerate(ranked_now)}
+    q_cut = max(1, len(rows) // 5)
+    for r_ in rows:
+        t = r_["etf"]
+        c = closes.get(t) or []
+        # (12) ratio sparkline vs SPY, 126d sampled every 5
+        n_ = min(len(c), len(spy))
+        if n_ >= 130:
+            ra_ = [c[-n_ + i] / spy[-n_ + i] for i in range(n_)
+                   if spy[-n_ + i]]
+            r_["ratio_spark"] = [round(v / ra_[-126], 4)
+                                 for v in ra_[-126::5]]
+        # (13) vol-adjusted momentum (63d return / 63d vol)
+        if len(c) >= 65:
+            rets = [c[i] / c[i - 1] - 1 for i in
+                    range(len(c) - 63, len(c))]
+            mu = sum(rets) / len(rets)
+            sd = (sum((x - mu) ** 2 for x in rets)
+                  / len(rets)) ** 0.5 or 1e-9
+            r_["sharpe_mom_63d"] = round(mu / sd * (252 ** 0.5), 2)
+        # (15) seasonality: this month's hit rate over available years
+        dts = bar_dates.get(t) or []
+        if len(dts) == len(c) and len(c) > 300:
+            by_ym = {}
+            for i in range(len(c)):
+                ym = dts[i][:7]
+                by_ym.setdefault(ym, []).append(c[i])
+            mrets = []
+            yms = sorted(by_ym)
+            for j in range(1, len(yms)):
+                if int(yms[j][5:7]) == cur_month:
+                    p0 = by_ym[yms[j - 1]][-1]
+                    p1 = by_ym[yms[j]][-1]
+                    if p0:
+                        mrets.append(p1 / p0 - 1)
+            if len(mrets) >= 3:
+                r_["seasonality"] = {
+                    "month": cur_month,
+                    "hit_pct": round(100.0 * sum(1 for x in mrets
+                                                 if x > 0)
+                                     / len(mrets)),
+                    "avg_pct": round(100.0 * sum(mrets)
+                                     / len(mrets), 2),
+                    "n_years": len(mrets)}
+        # (16)+(17) from score_history
+        hh = hist.get(t) or []
+        if len(hh) >= 6:
+            old5 = {e2["etf"]: i2 for i2, e2 in enumerate(sorted(
+                [{"etf": k2, "s": (v2[-6]["s"] if len(v2) >= 6
+                                   else None)}
+                 for k2, v2 in hist.items()
+                 if len(v2) >= 6],
+                key=lambda x: -(x["s"] or -1)))}
+            if t in old5:
+                r_["rank_delta_5d"] = old5[t] - rank_now[t]
+        streak = 0
+        ranks_hist = []
+        for back in range(1, min(len(hh), 40) + 1):
+            snap = sorted(
+                [(k2, v2[-back]["s"]) for k2, v2 in hist.items()
+                 if len(v2) >= back],
+                key=lambda x: -x[1])
+            pos = next((i2 for i2, (k2, _s) in enumerate(snap)
+                        if k2 == t), None)
+            if pos is not None and pos < q_cut:
+                streak += 1
+            else:
+                break
+        if rank_now[t] < q_cut:
+            r_["leader_streak"] = streak + 1
+    # (14) pair-spread board: top-3 vs bottom-3 by scorecard
+    sc_rows = [r_ for r_ in rows if r_.get("scorecard_100") is not None]
+    sc_rows.sort(key=lambda x: -x["scorecard_100"])
+    pair_board = []
+    for i2 in range(min(3, len(sc_rows) // 2)):
+        lo, sh = sc_rows[i2], sc_rows[-(i2 + 1)]
+        cl, cs = closes.get(lo["etf"]) or [], closes.get(sh["etf"]) \
+            or []
+        n2 = min(len(cl), len(cs))
+        spread_spark = None
+        if n2 >= 130:
+            sp_ = [cl[-n2 + k] / cs[-n2 + k] for k in range(n2)
+                   if cs[-n2 + k]]
+            spread_spark = [round(v / sp_[-126], 4)
+                            for v in sp_[-126::5]]
+        pair_board.append({
+            "long": lo["etf"], "short": sh["etf"],
+            "long_score": lo["scorecard_100"],
+            "short_score": sh["scorecard_100"],
+            "spread_63d_pct": (round(((cl[-1] / cl[-64])
+                                      / (cs[-1] / cs[-64]) - 1)
+                                     * 100, 2)
+                               if len(cl) >= 64 and len(cs) >= 64
+                               else None),
+            "spread_spark": spread_spark,
+            "note": "research spread, not advice; beta-unadjusted"})
     credit = {}
     try:
         credit = industry_credit(list(holdings_by_etf),
@@ -1111,7 +1216,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.3",
+        "engine": "justhodl-industry-rotation", "version": "3.4",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -1158,7 +1263,7 @@ def lambda_handler(event=None, context=None):
         "ew_cw": ew_cw, "ma_events": ma_events,
         "cycle_context": cycle_context,
         "risk_appetite": risk_appetite,
-        "join_hits": join_hits,
+        "join_hits": join_hits, "pair_board": pair_board,
         "rank_note": rank_note,
         "warns": warns[:20]}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
