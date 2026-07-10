@@ -1,9 +1,7 @@
-executing-against: 196ebd21c7706ed5ffbc09b592c9892a57ac7493
-── 1. Wait for pages deploy (poll marker) ──
-── 2. Assert every fix live ──
-── 3. SEO layer (canonical/OG + fresh sitemap) ──
+executing-against: 4a1e1308b2ac2a1572e84ce6622a72b331d27d06
+── 1. Origin vs CF ──
+── 2. Re-assert the remaining audit items live ──
 ── verdict ──
-[15:59:01] FAIL: OpenBB still on ofr.html
+[16:05:12] PASS -- origin clean; any residue is CF TTL
 
-→ Report written to aws/ops/reports/latest/3062_audit_fixes.md
-❌ OPS-FAIL: aws/ops/pending/ops_3062_audit_fixes.py
+→ Report written to aws/ops/reports/latest/3063_ofr_cache.md
