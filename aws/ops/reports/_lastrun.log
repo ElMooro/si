@@ -1,13 +1,5 @@
-executing-against: fb4f0d24170a788bad085fab9e67e06348a4b2f5
+executing-against: f1b65e4ec38f04a21945af23a8937218b20cdbc4
 ── 1. Ensure engine exists + settled ──
-── 1.5 Probes (DBnomics reserves + Truflation M21) ──
-── 1.7 Grid v3.1 regeneration (Swiss+EA legs, SOFT) ──
-── 2. Event study run ──
-── 3. Warroom earned view ──
-── 4. Monthly schedule (EventBridge Scheduler) ──
-── 5. Live page (warn-level) ──
-── verdict ──
-[00:33:18] FAIL: warroom code not settled
 
-→ Report written to aws/ops/reports/latest/3030_queue_sweep.md
-❌ OPS-FAIL: aws/ops/pending/ops_3030_queue_sweep.py
+→ Report written to aws/ops/reports/latest/3031_earned_refresh.md
+❌ OPS-FAIL: aws/ops/pending/ops_3031_earned_refresh.py
