@@ -1,0 +1,9 @@
+{
+ "ops": 3047,
+ "fails": [
+  "engine FunctionError: {\"errorMessage\": \"POLYGON key missing\", \"errorType\": \"RuntimeError\", \"requestId\": \"b92a770e-7c92-4a13-84e3-613428ff991f\", \"stackTrace\": [\"  File \\\"/var/task/lambda_function.py\\\", line 317, in lambda_handler\\n    raise RuntimeError(\\\"POLYGON key missing\\\")\\n\"]}"
+ ],
+ "warns": [],
+ "verdict": "FAIL",
+ "ts": "2026-07-10T04:56:40.744414+00:00"
+}
