@@ -708,10 +708,22 @@ def lambda_handler(event=None, context=None):
                   and not c.get("family_member")]
         ms = round(sum(member) / len(member), 1) if member else None
         if ms is not None:
+            fire = [c.get("stress") for c in all_cans
+                    if c.get("mechanism") == mk and c.get("firing")
+                    and isinstance(c.get("stress"), (int, float))]
+            fpct = round(100.0 * len(fire) / len(member), 1)
+            fmean = round(sum(fire) / len(fire), 1) if fire else None
             mech_view[mk] = {"score": ms, "band": _band(ms),
                              "band5": _band5(ms),
                              "label": card.get("label"),
-                             "n_canaries": len(member)}
+                             "n_canaries": len(member),
+                             "firing_pct": fpct,
+                             "firing_mean_stress": fmean,
+                             "breadth_flag": ("BROAD_NOT_DEEP" if
+                                              fpct >= 40 and (fmean or 0)
+                                              < 70 else "DEEP" if
+                                              (fmean or 0) >= 75 else
+                                              None)}
     pm_vals = [v["score"] for v in mech_view.values()]
     pm = round(sum(pm_vals) / len(pm_vals), 1) if pm_vals else None
     # ── earned view: per-mechanism scores x event-study weights ──
@@ -755,7 +767,88 @@ def lambda_handler(event=None, context=None):
                                "alarms, from the live event-study "
                                "(8 windows, 1997-2023)",
                   "n_qualifying": len(leads), "leads": leads}
+    # ── history + velocity (Khalid item 1+3): one snapshot per UTC
+    # date (engine runs hourly -- today's entry is overwritten), capped
+    # 1200 days; 21d velocity = delta vs the nearest snapshot >=21 days
+    # older. None until history accrues -- honest warm-up.
+    today = now.strftime("%Y-%m-%d")
+    hist = gj("data/warroom-history.json") or []
+    if not isinstance(hist, list):
+        hist = []
+    n_fire_total = sum(1 for c in all_cans if c.get("firing"))
+    entry = {"d": today, "pc": baro, "pm": pm, "ew": earned,
+             "votes": len(votes), "nfire": n_fire_total,
+             "mech": {k: v["score"] for k, v in mech_view.items()},
+             "fire": {k: [v.get("firing_pct"),
+                          v.get("firing_mean_stress")]
+                      for k, v in mech_view.items()}}
+    hist = [h for h in hist if h.get("d") != today] + [entry]
+    hist = sorted(hist, key=lambda h: h.get("d", ""))[-1200:]
+    try:
+        S3.put_object(Bucket=BUCKET, Key="data/warroom-history.json",
+                      Body=json.dumps(hist).encode(),
+                      ContentType="application/json",
+                      CacheControl="max-age=600")
+    except Exception as e:
+        print("[warroom] history write: %s" % e)
+
+    def _vel(field):
+        cur = entry.get(field)
+        base = None
+        for h in reversed(hist[:-1]):
+            try:
+                dd = (datetime.strptime(today, "%Y-%m-%d")
+                      - datetime.strptime(h["d"], "%Y-%m-%d")).days
+            except Exception:
+                continue
+            if dd >= 21:
+                base = h.get(field)
+                break
+        if cur is None or base is None:
+            return None
+        return round(cur - base, 1)
+    mech_vel = {}
+    for mk in mech_view:
+        base = None
+        for h in reversed(hist[:-1]):
+            try:
+                dd = (datetime.strptime(today, "%Y-%m-%d")
+                      - datetime.strptime(h["d"], "%Y-%m-%d")).days
+            except Exception:
+                continue
+            if dd >= 21 and mk in (h.get("mech") or {}):
+                base = h["mech"][mk]
+                break
+        if base is not None:
+            mech_vel[mk] = round(mech_view[mk]["score"] - base, 1)
+            mech_view[mk]["velocity_21d"] = mech_vel[mk]
+    velocity = {"per_canary_21d": _vel("pc"),
+                "per_mechanism_21d": _vel("pm"),
+                "earned_21d": _vel("ew"),
+                "by_mechanism": mech_vel,
+                "history_days": len(hist),
+                "note": "21d change; null until 21 days of history "
+                        "accrue (started 2026-07-09)."}
+    b_pcts = [v["firing_pct"] for v in mech_view.values()]
+    f_means = [v["firing_mean_stress"] for v in mech_view.values()
+               if v.get("firing_mean_stress") is not None]
+    breadth_intensity = {
+        "firing_total": n_fire_total, "n_canaries": len(all_cans),
+        "firing_pct": round(100.0 * n_fire_total /
+                            max(1, len(all_cans)), 1),
+        "mean_firing_stress": (round(sum(f_means) / len(f_means), 1)
+                               if f_means else None),
+        "mean_mech_firing_pct": (round(sum(b_pcts) / len(b_pcts), 1)
+                                 if b_pcts else None),
+        "divergence": ("BREADTH_WITHOUT_INTENSITY" if b_pcts and
+                       sum(b_pcts) / len(b_pcts) >= 30 and f_means and
+                       sum(f_means) / len(f_means) < 68 else None),
+        "note": "Breadth = how MANY canaries are flashing; intensity = "
+                "how HOT the flashing ones run. Broad-but-cool tapes "
+                "differ from narrow-but-burning ones."}
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
+                 "velocity": velocity,
+                 "breadth_intensity": breadth_intensity,
                  "conviction_leads": conviction,
                  "views": {
                      "per_canary": {"score": baro, "band": _band(baro),

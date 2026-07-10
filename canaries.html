@@ -145,7 +145,8 @@ function render(d){
         <div style="position:relative;margin-top:9px">
           <div style="display:flex;gap:4px">${segs}</div>
           <div style="position:absolute;top:-5px;left:${pos}%;transform:translateX(-50%) rotate(45deg);width:11px;height:11px;background:#fff;border:1.5px solid #0a0f18;box-shadow:0 1px 4px #000c"></div></div>
-        <div style="display:flex;margin-top:4px">${B5.map((t,j)=>`<span style="flex:1;text-align:center;font-size:8.5px;font-weight:700;letter-spacing:.4px;color:${SEGC[j]}">${t}</span>`).join('')}</div></div>`;};
+        <div style="display:flex;margin-top:4px">${B5.map((t,j)=>`<span style="flex:1;text-align:center;font-size:8.5px;font-weight:700;letter-spacing:.4px;color:${SEGC[j]}">${t}</span>`).join('')}</div>
+        <div class="ff muted" style="display:flex;justify-content:space-between;margin-top:3px;font-size:9.5px"><span>${m.firing_pct!=null?m.firing_pct+'% firing':''}${m.firing_mean_stress!=null?' @ '+m.firing_mean_stress:''}</span><span>${m.velocity_21d!=null?('21d '+(m.velocity_21d>0?'+':'')+m.velocity_21d+(m.velocity_21d>2?' ▲':m.velocity_21d<-2?' ▼':'')):''}</span></div></div>`;};
     const entries=Object.entries(PM.by_mechanism||{});
     const left=entries.slice(0,6).map(mechCard).join('<div style="height:10px"></div>');
     const right=entries.slice(6).map((e,i)=>mechCard(e,i+6)).join('<div style="height:10px"></div>');
@@ -180,7 +181,11 @@ function render(d){
           ${gauge}
           <div style="border:1.5px solid ${GOLD}88;border-radius:12px;padding:14px;margin-top:6px;background:#0b101a">
             <div style="font-size:30px;font-weight:900;letter-spacing:3px;color:${bc}">${b5}</div>
-            <div style="color:#e8ecf3;font-size:14px;margin-top:4px;line-height:1.45">${GUIDE[b5]||''}</div></div>
+            <div style="color:#e8ecf3;font-size:14px;margin-top:4px;line-height:1.45">${GUIDE[b5]||''}</div>
+            ${(()=>{const vel=B.velocity||{},bi2=B.breadth_intensity||{};const vv=vw=='pm'?vel.per_mechanism_21d:(vw=='ew'?vel.earned_21d:vel.per_canary_21d);
+              const vchip=vv==null?`<span class="muted">velocity: warming (${vel.history_days||1}d history)</span>`:`<span style="color:${vv>2?'#e03d2f':vv<-2?'#2e9e4f':'#cfd6e2'}">21d velocity: <b>${vv>0?'+':''}${vv}</b> ${vv>2?'▲ rising':vv<-2?'▼ cooling':'→ flat'}</span>`;
+              const div=bi2.divergence?`<div style="margin-top:5px;color:#f08c1e;font-size:11px;font-weight:700">⚠ ${bi2.divergence.replace(/_/g,' ')}: ${bi2.firing_pct}% flashing but mean firing stress only ${bi2.mean_firing_stress}</div>`:'';
+              return `<div class="ff" style="margin-top:7px;font-size:11px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">${vchip}<span class="muted">breadth ${bi2.firing_total}/${bi2.n_canaries} firing (${bi2.firing_pct}%) · intensity ${bi2.mean_firing_stress??'—'}</span></div>${div}`})()}</div>
           <div style="border:1px solid #2b3547;border-radius:12px;padding:12px;margin-top:12px;background:#0b101a">
             <div style="color:${GOLD};font-weight:800;letter-spacing:3px;font-size:13px">RISK LEVEL LEGEND</div>
             <div style="display:flex;gap:8px;margin-top:10px">
