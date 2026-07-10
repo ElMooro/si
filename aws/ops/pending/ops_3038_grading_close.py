@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""ops 3037 -- Push C+D (all-8 items 2,6,7,8): warroom v12 emits a
+"""ops 3038 -- grading CLOSE. 3037 fail was a verification artifact: the
+harvester response was string-truncated at 400 chars before the
+membership check, then a Limit=200 filtered Scan on a huge table
+guaranteed a miss. Now parses the response body JSON and checks
+engines_hit membership directly.
+
+Prior: ops 3037 -- Push C+D (all-8 items 2,6,7,8): warroom v12 emits a
 harvester-gradeable stance (earned<40 -> LONG SPY; >=55 -> LONG SH
 inverse ETF, since the harvester grades all picks LONG); per-mechanism
 feed_as_of/age/stale on cards; page: lead-time lane, card drill-down,
@@ -46,7 +52,7 @@ def wait_fresh_settled(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3037_grading_health") as rep:
+    with report("3038_grading_close") as rep:
         rep.section("1. Warroom v12 regen")
         if wait_fresh_settled("justhodl-canary-warroom") is None:
             fails.append("warroom not fresh")
@@ -76,25 +82,18 @@ def main():
         if not any(isinstance(v, (int, float)) for v in ages.values()):
             fails.append("feed_age_h not populated")
 
-        rep.section("2. Harvester ingest")
+        rep.section("2. Harvester ingest (proper verification)")
         r = LAM.invoke(FunctionName="justhodl-signal-harvester",
                        InvocationType="RequestResponse", Payload=b"{}")
-        body = json.loads(r["Payload"].read() or b"{}")
-        blob = json.dumps(body)[:400]
-        rep.kv(harvester=blob)
-        ok_row = "canary-warroom" in blob
-        if not ok_row:
-            ddb = boto3.resource("dynamodb", region_name="us-east-1")
-            t = ddb.Table("justhodl-signals")
-            sc = t.scan(FilterExpression=boto3.dynamodb.conditions.Attr(
-                "signal_type").eq("eng:canary-warroom"), Limit=200,
-                Select="COUNT")
-            rep.kv(ddb_rows=sc.get("Count"))
-            ok_row = (sc.get("Count") or 0) >= 1
-        if picks and not ok_row:
-            fails.append("no eng:canary-warroom row after harvest")
-        rep.log("scorecard grading matures in ~3 weeks; alpha verdict "
-                "will appear in engine-alpha.json automatically.")
+        raw = json.loads(r["Payload"].read() or b"{}")
+        body = raw.get("body")
+        body = json.loads(body) if isinstance(body, str) else (body or raw)
+        engines_hit = body.get("engines") or []
+        rep.kv(n_written=body.get("n_written"),
+               n_engines=len(engines_hit),
+               warroom_in_engines="canary-warroom" in engines_hit)
+        if picks and "canary-warroom" not in engines_hit:
+            fails.append("canary-warroom absent from harvested engines")
 
         rep.section("3. Live page (warn-level)")
         try:
@@ -124,10 +123,10 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    payload = {"ops": 3037, "fails": fails, "warns": warns,
+    payload = {"ops": 3038, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
-    (AWS_DIR / "ops" / "reports" / "3037.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3038.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
