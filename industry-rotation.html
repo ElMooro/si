@@ -67,7 +67,7 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
 
   <section>
     <h2>RRG &mdash; Relative Rotation Map <span class="n">JdK-style RS-Ratio &times; RS-Momentum &middot; clockwise through LEADING &rarr; WEAKENING &rarr; LAGGING &rarr; IMPROVING &middot; 12-point trails</span></h2>
-    <div class="card"><div id="rrg-movers" style="font-size:11px;color:var(--fg-3);margin-bottom:6px"></div><div id="rrg-cards" class="qgrid"></div><details style="margin-top:8px"><summary style="cursor:pointer;color:var(--fg-3);font-size:11px">show the classic RRG scatter map (advanced)</summary><div id="rrg"></div></details>
+    <div class="card"><div id="rrg-movers" style="font-size:11px;color:var(--fg-3);margin-bottom:6px"></div><div id="rrg-cards" class="qgrid"></div><details style="margin-top:8px"><summary style="cursor:pointer;color:var(--fg-3);font-size:11px">show the rotation barcode + classic RRG map (advanced)</summary><div id="rrg-barcode" style="margin:8px 0"></div><div id="rrg"></div></details>
     <div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Transitions are the actionable signal: IMPROVING&rarr;LEADING = canonical buy, WEAKENING&rarr;LAGGING = confirmed weakness. IMPROVING&rarr;LEADING crossings are logged to the closed loop and graded forward vs SPY &mdash; measure-before-trust.</div></div>
   </section>
   <section>
@@ -106,6 +106,21 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
 (function(){
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
+function renderRRGBarcode(d){
+  var g=d.rrg||{};var ks=Object.keys(g);var el=document.getElementById("rrg-barcode");if(!el||!ks.length)return;
+  var QC={LEADING:"#38ffa8",WEAKENING:"#ffb13d",LAGGING:"#ff5d5d",IMPROVING:"#00d4ff"};
+  function qOf(x,y){return x>=100?(y>=100?"LEADING":"WEAKENING"):(y>=100?"IMPROVING":"LAGGING");}
+  var items=ks.map(function(t){var e=g[t];var tr=(e.trail||[]).concat([[e.x,e.y]]);
+    return {t:t,q:qOf(e.x,e.y),st:Math.sqrt(Math.pow(e.x-100,2)+Math.pow(e.y-100,2)),segs:tr.map(function(p){return qOf(p[0],p[1]);})};});
+  var order={LEADING:0,IMPROVING:1,WEAKENING:2,LAGGING:3};
+  items.sort(function(a,b){return (order[a.q]-order[b.q])||(b.st-a.st);});
+  el.innerHTML='<div style="font-size:10px;color:var(--fg-3);margin:2px 0 6px">ROTATION BARCODE — each row = one ETF, left→right = the last ~12 weeks of quadrant membership. Color flips are the rotations.</div>'
+    +items.map(function(o){
+      return '<div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="width:46px;font:600 10px var(--font-mono,monospace);color:'+QC[o.q]+'">'+esc(o.t)+'</span>'
+        +'<span style="display:flex;height:12px;border-radius:3px;overflow:hidden;flex:1;max-width:420px">'
+        +o.segs.map(function(q){return '<span style="flex:1;background:'+QC[q]+';opacity:0.8" title="'+q+'"></span>';}).join("")
+        +"</span></div>";}).join("");
+}
 function renderRRGCards(d){
   var g=d.rrg||{};var ks=Object.keys(g);var el=document.getElementById("rrg-cards");if(!el)return;
   if(!ks.length){el.innerHTML='<div style="color:var(--fg-3)">warming \u2014 first RRG pass</div>';return;}
@@ -242,7 +257,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
       (function(){var sc=r.scorecard_100,b=r.scorecard_band;if(sc==null)return"<td>\u2014</td>";var col=b==="LEADERSHIP"?"var(--green)":(b==="STRONG_WATCH"?"var(--cyan)":(b==="WEAK"||b==="AVOID"?"var(--red)":"var(--fg-2)"));return '<td><b style="color:'+col+'">'+sc+'</b> <span style="font-size:9px;color:var(--fg-3)" title="basis '+esc(r.scorecard_basis||"")+'">'+esc((b||"").replace("_"," "))+"</span></td>";})()+
       (function(){var c=r.credit_read;if(!c)return"<td>\u2014</td>";var col=c==="DANGER"?"var(--red)":(c==="WATCH"?"var(--amber)":(c==="OK"?"var(--green)":"var(--fg-3)"));return '<td style="color:'+col+';font-size:10px">'+esc(c)+"</td>";})()+
       "<td><b>"+r.leadership_score+"</b>"+(r.leader_streak?' <span style="font-size:9px;color:var(--cyan)" title="consecutive sessions in top quintile">'+r.leader_streak+"d</span>":"")+"</td>"+
-      '<td class="'+(rd>0?"up":(rd<0?"dn":""))+'">'+(rd==null?"—":(rd>0?"+":"")+rd)+(r.rank_delta_5d!=null?' <span style="font-size:9px;color:var(--fg-3)" title="5-session rank change">('+(r.rank_delta_5d>0?'+':'')+r.rank_delta_5d+' 5d)</span>':'')+"</td>"+
+      '<td class="'+(rd>0?"up":(rd<0?"dn":""))+'">'+(rd==null?"—":(rd>0?"+":"")+rd+(r.rank_delta_days&&r.rank_delta_days<20?'<span style="font-size:8px;color:var(--fg-3)"> '+r.rank_delta_days+'d</span>':''))+(r.rank_delta_5d!=null?' <span style="font-size:9px;color:var(--fg-3)" title="5-session rank change">('+(r.rank_delta_5d>0?'+':'')+r.rank_delta_5d+' 5d)</span>':'')+"</td>"+
       "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+(r.crowded?' <span class="tag" style="background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)">CROWDED</span>':"")+(r.ratio_3m_high?' <span class="tag" style="background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)">RS 3M-HIGH</span>':"")+(r.wyckoff?' <span class="tag" style="background:rgba(79,195,247,.10);color:#4fc3f7;border:1px solid rgba(79,195,247,.35)" title="Wyckoff phase since '+esc(r.wyckoff.begin||"")+'">'+esc(r.wyckoff.phase.slice(0,6))+"</span>":"")+(r.smart_money?((r.smart_money.whale_usd?' <span class="tag" title="13F conviction flow" style="color:'+(r.smart_money.whale_usd>0?"var(--green)":"var(--red)")+';border:1px solid rgba(107,122,146,.4)">\ud83d\udc0b '+(r.smart_money.whale_usd>0?"+":"\u2212")+"$"+Math.abs(r.smart_money.whale_usd/1e6).toFixed(0)+"M</span>":"")+(r.smart_money.dark_pool?' <span class="tag" style="color:'+(r.smart_money.dark_pool==="ACCUMULATION"?"var(--green)":"var(--red)")+'">DP</span>':"")+(r.smart_money.capital_flow?' <span class="tag" style="color:'+(r.smart_money.capital_flow==="ACCUMULATING"?"var(--green)":"var(--red)")+'">CF</span>':"")+(r.smart_money.options?' <span class="tag" style="color:var(--cyan)" title="options-confluence posture">OPT '+esc(String(r.smart_money.options).slice(0,8))+"</span>":"")):"")+(r.rev_plus_hits&&r.rev_plus_hits.n?' <span class="tag" style="color:var(--green);border:1px solid rgba(56,255,168,.3)" title="holdings on estimate-revisions top picks: '+esc((r.rev_plus_hits.names||[]).join(" "))+'">ER+ '+r.rev_plus_hits.n+"</span>":"")+(r.seasonality?' <span class="tag" style="color:var(--fg-2);border:1px solid rgba(107,122,146,.4)" title="this month historical: '+r.seasonality.hit_pct+'% positive, avg '+r.seasonality.avg_pct+'% over '+r.seasonality.n_years+'y (small sample)">SEAS '+r.seasonality.hit_pct+'%/'+r.seasonality.n_years+"y</span>":"")+(r.apac?r.apac.map(function(a){return ' <span class="tag" style="color:var(--amber)" title="'+esc(a.src)+'">APAC '+esc(a.note)+" r"+a.r+"</span>";}).join(""):"")+(r.ew_cw?(r.ew_cw.read==="NARROW"?' <span class="tag" style="background:rgba(255,93,93,.10);color:var(--red);border:1px solid rgba(255,93,93,.4)" title="equal-weight twin '+esc(r.ew_cw.ew)+' lagging cap-weight — generals without soldiers">EW NARROW</span>':(r.ew_cw.read==="BROAD"?' <span class="tag" style="background:rgba(56,255,168,.08);color:var(--green);border:1px solid rgba(56,255,168,.3)" title="equal-weight '+esc(r.ew_cw.ew)+' confirming">EW BROAD</span>':""))  :"")+(r.resilience_read==="DEFENSIVE_ONLY"?' <span class="tag" style="background:rgba(107,122,146,.15);color:var(--fg-3);border:1px solid rgba(107,122,146,.4)" title="holds dumps but no upside acceleration — defensive trap">DEF-ONLY</span>':(r.resilience_read==="RESILIENT_LEADER"?' <span class="tag" style="background:rgba(56,255,168,.10);color:var(--green);border:1px solid rgba(56,255,168,.35)">RESILIENT+</span>':""))+"</td></tr>";
     }).join("");return _x;}
   function wireLadder(){
@@ -269,11 +284,20 @@ fetchJSON("data/industry-rotation.json").then(function(d){
     apply();
   }
   document.getElementById("ranknote").textContent=d.rank_note||"";
-  renderRRGCards(d);renderRRG(d);renderTrans(d);renderMAev(d);renderCycle(d);renderAppetite(d);renderPairs(d);
+  window.__rrg=d.rrg||{};renderRRGCards(d);renderRRGBarcode(d);renderRRG(d);renderTrans(d);renderMAev(d);renderCycle(d);renderAppetite(d);renderPairs(d);
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
-    var h=(l.holdings_top||[]).map(function(x){return "<span>"+esc(x.ticker)+" "+esc(x.weight_pct)+"%</span>";}).join("");
+    var h=(l.holdings_top||[]).map(function(x){
+      var PC={ACCUMULATION:"var(--cyan)",MARKUP:"var(--green)",DISTRIBUTION:"var(--amber)",MARKDOWN:"var(--red)"};
+      var chips=(x.phase?'<b style="color:'+(PC[x.phase]||"var(--fg-3)")+'" title="Wyckoff '+esc(x.phase)+(x.phase_begin?" since "+esc(x.phase_begin):"")+'"> '+esc(x.phase[0])+"</b>":"")
+        +(x.whale_musd?'<b style="color:'+(x.whale_musd>0?"var(--green)":"var(--red)")+'" title="13F conviction flow"> \ud83d\udc0b'+(x.whale_musd>0?"+":"\u2212")+Math.abs(x.whale_musd)+"M</b>":"")
+        +(x.er_plus?'<b style="color:var(--green)" title="on the estimate-revisions top picks"> ER+</b>':"");
+      var w=Math.min(100,(x.weight_pct||0)*4);
+      return '<span style="position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;bottom:0;width:'+w+'%;background:rgba(0,212,255,0.10)"></span><span style="position:relative">'+esc(x.ticker)+" "+esc(x.weight_pct)+"%"+chips+"</span></span>";
+    }).join("");
+    var q=(window.__rrg||{})[l.etf];var QC2={LEADING:"#38ffa8",WEAKENING:"#ffb13d",LAGGING:"#ff5d5d",IMPROVING:"#00d4ff"};
+    var qchip=q?(' <span style="font-size:10px;color:'+(QC2[q.quad||((q.x>=100)?(q.y>=100?"LEADING":"WEAKENING"):(q.y>=100?"IMPROVING":"LAGGING"))]||"var(--fg-3)")+'">'+esc(q.quad||((q.x>=100)?(q.y>=100?"LEADING":"WEAKENING"):(q.y>=100?"IMPROVING":"LAGGING")))+"</span>"):"";
     var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+(x.chain_intact?' · <b style="color:var(--cyan)" title="stock &gt; ETF &gt; SPY, 3m">CHAIN</b>':"")+(x.vs_etf_3m_pp!=null?" · vsETF "+(x.vs_etf_3m_pp>0?"+":"")+x.vs_etf_3m_pp+"pp":"")+(x.pead?' · <b style="color:var(--violet)">PEAD+</b>':"")+"</span>";}).join("");
-    return '<div class="lc"><h3>'+esc(l.etf)+" — "+esc(l.name)+' <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">score '+l.leadership_score+(l.tag?' · <span class="tag '+esc(l.tag)+'">'+esc(l.tag)+"</span>":"")+"</span></h3>"+
+    return '<div class="lc"><h3>'+esc(l.etf)+" — "+esc(l.name)+qchip+' <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">score '+l.leadership_score+(l.tag?' · <span class="tag '+esc(l.tag)+'">'+esc(l.tag)+"</span>":"")+"</span></h3>"+
       '<div class="m">'+dot(l.above_sma50)+" 50d "+dot(l.above_sma100)+" 100d "+dot(l.above_sma200)+" 200d · ratio 20d "+(l.ratio_slope_20d_pct>0?"+":"")+esc(l.ratio_slope_20d_pct)+"% · \u03b1-RS "+(function(){var a=(l.alpha_mom||{}).blend;return a==null?"\u2014":((a>0?"+":"")+a+"pp");})()+" · dump-day "+(l.dump_day_excess_bps==null?"\u2014":((l.dump_day_excess_bps>0?"+":"")+l.dump_day_excess_bps+"bp"))+(l.volume&&l.volume.updown_vol_ratio_20d!=null?" · U/D vol "+l.volume.updown_vol_ratio_20d+(l.volume.pullback_vol_dryup?" <span style=\"color:var(--green)\" title=\"pullback volume dry-up: selling pressure weakening\">DRY-UP</span>":""):"")+(l.fund_flows&&l.fund_flows.flow_21d_usd!=null?" · flows 21d "+(l.fund_flows.flow_21d_usd>=0?"+":"")+Math.round(l.fund_flows.flow_21d_usd/1e6)+"M":"")+(l.fundamental_confirm_pct!=null?" · fund-confirm "+l.fundamental_confirm_pct+"%":"")+(l.breadth?" · breadth "+l.breadth.pct_above_50d+"% <b style=\"color:"+(l.breadth.read==="BROAD"?"var(--green)":(l.breadth.read==="NARROW"?"var(--red)":"var(--amber)"))+"\">"+l.breadth.read+"</b> ("+l.breadth.n_priced+" priced)":"")+"</div>"+
       (h?'<div style="font-size:10px;color:var(--fg-3);margin-bottom:4px">TOP HOLDINGS</div><div class="sold">'+h+"</div>":
          '<div style="font-size:10px;color:var(--fg-3)">Holdings unavailable: '+esc(l.holdings_reason||"no data")+"</div>")+

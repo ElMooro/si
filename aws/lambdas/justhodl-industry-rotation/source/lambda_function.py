@@ -582,16 +582,23 @@ def lambda_handler(event=None, context=None):
     hist = dict(sorted(hist.items())[-45:])
     dates = sorted(hist)
     rank_note = None
-    if len(dates) >= 21:
-        old = hist[dates[-21]]
+    if len(dates) >= 3:
+        back = min(21, len(dates))
+        old = hist[dates[-back]]
         old_rank = {e: i for i, (e, _) in enumerate(
             sorted(old.items(), key=lambda kv: -kv[1]))}
         for i, r in enumerate(rows):
             if r["etf"] in old_rank:
                 r["rank_delta_20d"] = old_rank[r["etf"]] - i
+                r["rank_delta_days"] = back - 1
+        if back < 21:
+            rank_note = ("ADAPTIVE: rank delta measured over the %d "
+                         "sessions accrued so far; converges to 20d "
+                         "at 21 sessions (%d/21)"
+                         % (back - 1, len(dates)))
     else:
-        rank_note = ("WARMING_UP: rank_delta_20d activates after 21 "
-                     "sessions (%d/21 accrued)" % len(dates))
+        rank_note = ("WARMING_UP: rank delta needs 3+ sessions "
+                     "(%d/21 accrued)" % len(dates))
 
     # soldiers for the top-5 leaders
     res_doc = s3_json("data/resilience.json")
@@ -972,6 +979,20 @@ def lambda_handler(event=None, context=None):
         holds = (holdings_by_etf.get(t) or [])[:25]
         hits = [h["ticker"] for h in holds
                 if h.get("ticker") in _er]
+        # v3.5: fleet chips on every soldier (phase/whale/ER+)
+        for h in holds:
+            ht = h.get("ticker")
+            if not ht:
+                continue
+            php = _ph.get(ht) or {}
+            if php.get("phase") and php["phase"] != "NEUTRAL":
+                h["phase"] = php["phase"]
+                h["phase_begin"] = php.get("begin")
+            whu = (_wh.get(ht) or {}).get("conviction_flow_usd")
+            if whu and abs(whu) >= 25e6:
+                h["whale_musd"] = round(whu / 1e6)
+            if ht in _er:
+                h["er_plus"] = True
         if holds:
             r_["rev_plus_hits"] = {"n": len(hits),
                                    "of": len(holds),
@@ -1216,7 +1237,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.4",
+        "engine": "justhodl-industry-rotation", "version": "3.5",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
