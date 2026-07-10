@@ -923,16 +923,17 @@ export default {
       // GET /yf-ohlc?symbol=BTC-USD&range=1y → Yahoo Finance chart (crypto/forex/etc)
       const symbol = (url.searchParams.get("symbol") || "").trim();
       const range = (url.searchParams.get("range") || "1y").trim();
+      const interval = ["1d","1wk","1mo"].includes((url.searchParams.get("interval") || "1d").trim()) ? (url.searchParams.get("interval") || "1d").trim() : "1d";
       if (!symbol || !/^[A-Za-z0-9.=^\-]{1,20}$/.test(symbol)) {
         return new Response(JSON.stringify({ error: "invalid symbol" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const yCacheKey = new Request(`https://yf.cache/${symbol}/${range}`, { method: "GET" });
+      const yCacheKey = new Request(`https://yf.cache/${symbol}/${range}/${interval}`, { method: "GET" });
       const yc = caches.default;
       const yhit = await yc.match(yCacheKey);
       if (yhit) { const b = await yhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
       try {
-        const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=${encodeURIComponent(range)}`;
+        const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${encodeURIComponent(range)}`;
         const resp = await fetch(yUrl, {
           headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept": "application/json" },
           cf: { cacheTtl: 300, cacheEverything: true },

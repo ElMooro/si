@@ -1744,6 +1744,16 @@ a:hover { text-decoration: underline; }
 // ═══════════════════════════════════════════════════════════════════════
 
 const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+const JH_INDEX_MAP = { SPX:'^GSPC', GSPC:'^GSPC', NDX:'^NDX', IXIC:'^IXIC', COMP:'^IXIC', DJI:'^DJI', DJIA:'^DJI', RUT:'^RUT', VIX:'^VIX', SOX:'^SOX', TNX:'^TNX', TYX:'^TYX', FVX:'^FVX', DXY:'DX-Y.NYB', HSI:'^HSI', N225:'^N225', NI225:'^N225', DAX:'^GDAXI', FTSE:'^FTSE', STOXX50E:'^STOXX50E', KS11:'^KS11', TWII:'^TWII' };
+const JH_Y_RANGE = d => d >= 9999 ? 'max' : d > 1830 ? '10y' : d > 1300 ? '5y' : d > 500 ? '2y' : d > 140 ? '1y' : '6mo';
+async function jhYahooBars(sym, days) {
+  try {
+    const iv = days >= 9999 ? '1wk' : '1d';
+    const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(sym)}&range=${JH_Y_RANGE(days)}&interval=${iv}`);
+    const d = await r.json();
+    return (d.bars || []).map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.value || 0 }));
+  } catch (e) { return []; }
+}
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 min
 
 // ─── STATE ─────────────────────────────────────────────────────────
@@ -4233,7 +4243,7 @@ class NativeChart {
     if (type) State.symbolType[ticker] = type;  // cache the guess
     if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
     if (type === 'forex') return this.renderYahoo(ticker, this.fxToYahoo(ticker), 'Forex');
-    const INDEX_MAP = { SPX:'^GSPC', GSPC:'^GSPC', NDX:'^NDX', IXIC:'^IXIC', COMP:'^IXIC', DJI:'^DJI', DJIA:'^DJI', RUT:'^RUT', VIX:'^VIX', SOX:'^SOX', TNX:'^TNX', TYX:'^TYX', FVX:'^FVX', DXY:'DX-Y.NYB', HSI:'^HSI', N225:'^N225', NI225:'^N225', DAX:'^GDAXI', FTSE:'^FTSE', STOXX50E:'^STOXX50E', KS11:'^KS11', TWII:'^TWII' };
+    const INDEX_MAP = JH_INDEX_MAP;
     if ((type && String(type).toLowerCase().includes('index')) || INDEX_MAP[ticker]) {
       State.symbolType[ticker] = 'index';
       return this.renderYahoo(ticker, INDEX_MAP[ticker] || ('^' + ticker), 'Index');
@@ -4668,7 +4678,7 @@ class NativeChart {
       </div>`;
     try {
       const cmY = State.changeMode;
-      const yRange = (cmY === 'yoy' || cmY === 'qoq') ? '2y' : '1y';
+      const yRange = (cmY === 'yoy' || cmY === 'qoq') ? '2y' : JH_Y_RANGE((State.tf || {}).days || 250);
       const r = await fetch(`${PROXY}/yf-ohlc?symbol=${encodeURIComponent(yahooSym)}&range=${yRange}`);
       const data = await r.json();
       const bars = data.bars || [];
@@ -4806,9 +4816,16 @@ class NativeChart {
         const need = { dod: 30, wow: 60, mom: 200, qoq: 400, yoy: 800 }[cm] || 0;
         days = Math.max(days, need);
       }
-      const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${days}`);
-      const data = await r.json();
-      const bars = data.bars || [];
+      const jhYSym = JH_INDEX_MAP[ticker] || ticker.replace(/\./g, '-');
+      let bars = [], jhSrc = 'Polygon';
+      if (tf.days >= 9999) { bars = await jhYahooBars(jhYSym, tf.days); if (bars.length) jhSrc = 'Yahoo full history'; }
+      if (!bars.length) {
+        const r = await fetch(`${PROXY}/ohlc?ticker=${encodeURIComponent(ticker)}&mult=${tf.mult}&span=${tf.span}&days=${days}`);
+        const data = await r.json();
+        bars = data.bars || [];
+      }
+      if (!bars.length) { bars = await jhYahooBars(jhYSym, days); if (bars.length) jhSrc = 'Yahoo fallback'; }
+      if (jhSrc !== 'Polygon') { const jm = document.getElementById(`nch-meta-${paneIdx}`); if (jm) jm.textContent = jhSrc; }
       const loadingEl = document.getElementById(`nch-loading-${paneIdx}`);
       if (loadingEl) loadingEl.style.display = 'none';
       if (!bars.length) {
@@ -6459,7 +6476,7 @@ async function init() {
   const rightDrawer = document.getElementById('right-sidebar');
   const edgeLeft = document.getElementById('edge-tab-left');
   const edgeRight = document.getElementById('edge-tab-right');
-  function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); }
+  function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); try { localStorage.setItem('jh_wl_open', open ? '1' : '0'); } catch (e) {} }
   function setRight(open) { rightDrawer.classList.toggle('open', open); edgeRight.classList.toggle('hidden', open); }
   const setupsDrawer = document.getElementById('setups-drawer');
   // setups drawer removed 2026-07-10; alerts button lives in the toolbar now
@@ -6472,7 +6489,7 @@ async function init() {
   });
   // Render the setups board (and surface it on first load — it's the headline)
   UI.renderSetups();
-  setLeft(true);
+  setLeft(localStorage.getItem('jh_wl_open') === '1');  // watchlist hidden unless summoned (Khalid 2026-07-10)
   setSetups(true);
   
   // ── Live streaming quotes (WebSocket; replaces 60s polling feel) ──
