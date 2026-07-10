@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""ops 3030 -- queue sweep (Khalid): weights v2 (CISS points-field fix,
+"""ops 3031 -- earned-view refresh. 3030 completed probes (all 4 DBnomics
+IMF reserve ids LIVE; all Truflation free endpoints 404 -> M21 parked
+DATA-GATED with evidence), grid v3.1 (Swiss 15.31/EA 26.3 LIVE),
+weights v2 (11 LEARNED, CISS x1.323 best); only the section-3 gate
+wrongly demanded a <12-min-old warroom on a push that did not touch
+it. Settled-only gate here; asserts new weights flowed into the
+earned view.
+
+Prior: ops 3030 -- queue sweep (Khalid): weights v2 (CISS points-field fix,
 CFTC socrata full-history crowding proxy ES/ZN/GC/CL, factor IWF/IWD+
 IWM/SPY appetite) -> expect >=10 LEARNED; grid v3.1 Swiss+EA reserve
 legs via DBnomics IMF candidates (SOFT until probe); probes for
@@ -95,112 +103,21 @@ def ensure_fn(rep):
 
 def main():
     fails, warns = [], []
-    with report("3030_queue_sweep") as rep:
+    with report("3031_earned_refresh") as rep:
         rep.section("1. Ensure engine exists + settled")
         if not ensure_fn(rep):
             fails.append("warroom-weights fn not ready")
             _fin(rep, fails, warns, {})
             sys.exit(1)
 
-        rep.section("1.5 Probes (DBnomics reserves + Truflation M21)")
-        import urllib.request as _ur
-        probe = {}
-        for pid in ("IMF/IFS/M.CH.RAFA_USD", "IMF/IRFCL/M.CH.RAFA_USD",
-                    "IMF/IFS/M.U2.RAFA_USD", "IMF/IRFCL/M.U2.RAFA_USD"):
-            try:
-                u = ("https://api.db.nomics.world/v22/series/%s"
-                     "?observations=1&format=json" % pid)
-                with _ur.urlopen(_ur.Request(u, headers={"User-Agent":
-                                 "ops3030"}), timeout=25) as r:
-                    j = json.loads(r.read())
-                docs = (j.get("series") or {}).get("docs") or []
-                per = docs[0].get("period", []) if docs else []
-                probe[pid] = ("%d docs, latest %s" % (len(docs),
-                              per[-1] if per else "-"))
-            except Exception as e:
-                probe[pid] = "ERR %s" % str(e)[:60]
-        for tu in ("https://api.truflation.com/current?format=json",
-                   "https://api.truflation.com/index/current",
-                   "https://truflation.com/api/us-inflation"):
-            try:
-                with _ur.urlopen(_ur.Request(tu, headers={"User-Agent":
-                                 "Mozilla/5.0"}), timeout=20) as r:
-                    body = r.read()[:200].decode("utf-8", "replace")
-                probe[tu] = "HTTP %s: %s" % (r.status, body[:90])
-            except Exception as e:
-                probe[tu] = "ERR %s" % str(e)[:70]
-        rep.kv(probes=json.dumps(probe))
-
-        rep.section("1.7 Grid v3.1 regeneration (Swiss+EA legs, SOFT)")
-        if wait_settled("justhodl-canary-grid") is None:
-            warns.append("grid code not settled -- skipping regen")
-        else:
-            prev = ""
-            try:
-                prev = s3_json("data/canary-grid.json").get(
-                    "generated_at", "")
-            except Exception:
-                pass
-            LAM.invoke(FunctionName="justhodl-canary-grid",
-                       InvocationType="Event", Payload=b"{}")
-            cg = None
-            for _ in range(30):
-                time.sleep(20)
-                try:
-                    cand = s3_json("data/canary-grid.json")
-                    if cand.get("generated_at", "") > prev:
-                        cg = cand
-                        break
-                except Exception:
-                    continue
-            if cg:
-                sig = {x.get("key"): x for x in cg.get("signals") or []}
-                for k in ("swiss_reserves", "ea_reserves"):
-                    ok = (sig.get(k) or {}).get("available")
-                    rep.kv(**{k: "%s %s" % ("LIVE" if ok else "DEAD",
-                                            (sig.get(k) or {}).get(
-                                                "value"))})
-                    if not ok:
-                        warns.append("%s unavailable (probe-gated soft; "
-                                     "see probes)" % k)
-            else:
-                warns.append("grid regen timeout")
-
-        rep.section("2. Event study run")
-        r = LAM.invoke(FunctionName=FN, InvocationType="RequestResponse",
-                       Payload=b"{}")
-        body = json.loads(r["Payload"].read() or b"{}")
-        rep.kv(invoke=json.dumps(body)[:300])
-        if body.get("errorMessage"):
-            fails.append("weights engine crashed: %s"
-                         % body["errorMessage"][:150])
-            _fin(rep, fails, warns, {})
-            sys.exit(1)
-        wj = s3_json("data/warroom-weights.json")
-        mechs = wj.get("mechanisms") or {}
-        weights = {k: v.get("weight") for k, v in mechs.items()}
-        learned = {k: v for k, v in mechs.items()
-                   if v.get("status") == "LEARNED"}
-        rep.kv(n_mechanisms=len(mechs), n_learned=len(learned),
-               weights=json.dumps(weights),
-               learned_detail=json.dumps({k: {
-                   "hit": v.get("hit_rate"), "lead": v.get(
-                       "mean_lead_months"), "fa": v.get(
-                       "false_alarm_rate"), "n": v.get(
-                       "n_crises_covered")} for k, v in learned.items()}))
-        if len(mechs) < 12:
-            fails.append("mechanisms=%d (<12)" % len(mechs))
-        if len(learned) < 10:
-            fails.append("learned=%d (<10 -- ciss/cftc/factor should "
-                         "graduate)" % len(learned))
-        bad = [k for k, w in weights.items()
-               if not isinstance(w, (int, float)) or w < 0.6 or w > 1.6]
-        if bad:
-            fails.append("weights out of clamp: %s" % bad)
-
         rep.section("3. Warroom earned view")
-        if wait_settled("justhodl-canary-warroom") is None:
-            fails.append("warroom code not settled")
+        try:
+            c = LAM.get_function_configuration(
+                FunctionName="justhodl-canary-warroom")
+            if c.get("LastUpdateStatus") not in (None, "Successful"):
+                fails.append("warroom mid-update")
+        except Exception as e:
+            fails.append("warroom config: %s" % str(e)[:80])
         r = LAM.invoke(FunctionName="justhodl-canary-warroom",
                        InvocationType="RequestResponse", Payload=b"{}")
         rep.kv(warroom_invoke=json.dumps(
@@ -218,6 +135,9 @@ def main():
             fails.append("earned view missing")
         if ew.get("weights_asof") is None:
             fails.append("earned view not reading weights file")
+        if (ew.get("n_learned") or 0) < 11:
+            fails.append("earned view n_learned=%s (<11 -- stale weights)"
+                         % ew.get("n_learned"))
 
         rep.section("4. Monthly schedule (EventBridge Scheduler)")
         try:
@@ -262,11 +182,11 @@ def main():
 
 
 def _fin(rep, fails, warns, extra):
-    payload = {"ops": 3030, "fails": fails, "warns": warns,
+    payload = {"ops": 3031, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3030.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3031.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
