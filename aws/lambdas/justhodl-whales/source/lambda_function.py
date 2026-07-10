@@ -127,6 +127,7 @@ def fetch_positions(cik, year, quarter):
     """{symbol: {shares, value}} for one filer-quarter, paginated.
     Empty dict = no filing found for that quarter."""
     out = {}
+    prev_sig = None
     for page in range(MAX_PAGES):
         url = ("https://financialmodelingprep.com/stable/"
                "institutional-ownership/extract?cik=%s&year=%d"
@@ -135,6 +136,15 @@ def fetch_positions(cik, year, quarter):
         rows = _get(url)
         if not rows or not isinstance(rows, list):
             break
+        # duplicate-page guard: out-of-range pages on big filers can
+        # re-serve data -> share counts multiply -> $260B phantom flows
+        # (2026Q1 first-run lesson). Signature = first+last row + len.
+        sig = (len(rows),
+               json.dumps(rows[0], sort_keys=True)[:120],
+               json.dumps(rows[-1], sort_keys=True)[:120])
+        if sig == prev_sig:
+            break
+        prev_sig = sig
         for h in rows:
             sym = h.get("symbol")
             if not sym or len(sym) > 6:
@@ -150,7 +160,7 @@ def fetch_positions(cik, year, quarter):
                 out[sym]["value"] += val
             else:
                 out[sym] = {"shares": sh, "value": val}
-        if len(rows) < 100:
+        if len(rows) < 100:      # short page = last page (any size)
             break
     return out
 
@@ -189,6 +199,12 @@ def fund_diff(args):
                       "action": action,
                       "shares_now": round(csh),
                       "value_now": round((c or {}).get("value", 0.0))})
+    fund_total = sum(v["value"] for v in cur.values()) or 1.0
+    dropped = [m for m in moves if abs(m["flow_usd"]) > 1.5 * fund_total]
+    if dropped:
+        print("[whales] %s: dropped %d implausible rows (>1.5x book)"
+              % (name, len(dropped)))
+    moves = [m for m in moves if abs(m["flow_usd"]) <= 1.5 * fund_total]
     moves.sort(key=lambda m: -abs(m["flow_usd"]))
     return {"cik": cik, "name": name, "custodial": custodial, "ok": True,
             "quarter": "%dQ%d" % (y, q),
