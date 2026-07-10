@@ -1391,6 +1391,9 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="corr-btn" title="Correlation matrix of your watchlist">
       <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="3.5" height="3.5"/><rect x="6.25" y="2" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="2" width="3.5" height="3.5" opacity="0.25"/><rect x="2" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="6.25" y="6.25" width="3.5" height="3.5"/><rect x="10.5" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="2" y="10.5" width="3.5" height="3.5" opacity="0.25"/><rect x="6.25" y="10.5" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="10.5" width="3.5" height="3.5"/></svg>
     </button>
+    <button class="layout-btn" id="fusion-btn" title="Engine fusion: Wyckoff phases, insider clusters, whale flow, MA events on the chart" style="color:#26ffaf">⚡ FUSION</button>
+    <button class="layout-btn" id="sr-btn" title="Auto support/resistance from pivot clusters">S/R</button>
+    <button class="layout-btn" id="avwap-btn" title="Anchored VWAP: toggle, then click any bar to anchor. Auto-anchors at the current Wyckoff phase begin.">AVWAP</button>
     <button class="layout-btn" id="sync-btn" title="Sync native chart panes — pan/zoom together">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8a3 3 0 0 1 3-3h2M11 8a3 3 0 0 1-3 3H6"/><path d="M9 3l1.5 2L9 7M7 13l-1.5-2L7 9"/></svg>
     </button>
@@ -2782,7 +2785,7 @@ class UI {
     const html = members.map(m => {
       const changeClass = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'dn' : 'flat';
       const selected = m.ticker === State.activeTicker ? 'selected' : '';
-      const sigDots = m.signals.map(s => `<span class="wl-badge" style="border-color:${s.color};color:${s.color}" title="${this.esc(s.label)}">${s.icon}</span>`).join('');
+      const sigDots = [...((window.JHF && JHF.badges(m.ticker)) || []), ...m.signals].map(s => `<span class="wl-badge" style="border-color:${s.color};color:${s.color}" title="${this.esc(s.label)}">${s.icon}</span>`).join('');
       const lastStr = m.last != null ? '$' + m.last.toFixed(2) : '—';
       const chgStr = m.changePct != null ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '—';
       const isFav = WatchlistManager.isFavorite(m.ticker);
@@ -4337,6 +4340,22 @@ class NativeChart {
       if (t) events.push({ time: t, position: 'belowBar', color: '#fbbf24', shape: 'circle',
         text: '👥' + (ins.n_insiders || ins.cluster_size || '') });
     }
+    // ── JH FUSION markers (Wyckoff begin/end, insider clusters, ETF MA
+    // events) — engine-fused; every merge path inherits these ──
+    try {
+      const F = (window.State && State.fusion) || {};
+      if (State.fusionOn !== false) {
+        const ph = (F.phaseFull && F.phaseFull[ticker]) || null;
+        const segs = ph ? [...(ph.history||[]), (ph.phase && ph.phase !== 'NEUTRAL' ? {type: ph.phase, begin: ph.begin, end: null} : null)].filter(Boolean) : [];
+        const PC = {ACCUMULATION:'#26ffaf', DISTRIBUTION:'#ff5577', MARKUP:'#22d3ee', MARKDOWN:'#c084fc', NEUTRAL_RANGE:'#8b96a8'};
+        segs.forEach(sg => {
+          const tb = snap(sg.begin); if (tb) events.push({ time: tb, position: 'belowBar', color: PC[sg.type]||'#8b96a8', shape: 'arrowUp', text: '\u25c6' + (sg.type||'').slice(0,4) });
+          if (sg.end) { const te = snap(sg.end); if (te) events.push({ time: te, position: 'aboveBar', color: PC[sg.type]||'#8b96a8', shape: 'arrowDown', text: (sg.resolved||'END').slice(0,4) }); }
+        });
+        ((F.insDates && F.insDates[ticker]) || []).forEach(d => { const t = snap(d); if (t) events.push({ time: t, position: 'belowBar', color: '#e8c86a', shape: 'arrowUp', text: 'INS' }); });
+        ((F.maEvents && F.maEvents[ticker]) || []).forEach(ev => { const t = snap(ev.date); if (t) events.push({ time: t, position: ev.bullish ? 'belowBar' : 'aboveBar', color: ev.bullish ? '#26ffaf' : '#ff5577', shape: ev.bullish ? 'arrowUp' : 'arrowDown', text: ev.event.indexOf('GOLDEN')>=0?'GC':ev.event.indexOf('DEATH')>=0?'DC':ev.event.replace('CROSS_','').replace('ABOVE_','\u2191').replace('BELOW_','\u2193') }); });
+      }
+    } catch (e) {}
     // Merge markers that snap to the same bar (avoid overlap clutter)
     const byTime = {};
     events.forEach(e => {
@@ -4887,6 +4906,7 @@ class NativeChart {
       
       // Crosshair OHLC legend (follows cursor) + quick stats
       NativeChart.attachLegend(paneIdx, chart, candleSeries, bars, ticker);
+      try { JHF.chartApply(paneIdx, chart, candleSeries, bars, ticker); } catch (e) { console.warn('fusion', e); }
       // ── JustHodl Signal Overlays — the moat ──
       try { SignalOverlay.apply(chart, candleSeries, bars, ticker); } catch (e) {}
       
@@ -6513,5 +6533,118 @@ if (document.readyState === 'loading') {
 <script src="/cmdk.js"></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>
+/* ═══ JH FUSION — the fleet, fused into the terminal (2026-07-10) ═══
+   Wyckoff dated phases + range lines, auto S/R pivots, Anchored VWAP
+   (auto @ phase begin + click anchors), insider/MA-event markers,
+   engine badges in the watchlist. Real feeds only. */
+class JHF {
+  static async load() {
+    const P = "https://justhodl-data-proxy.raafouis.workers.dev/data/";
+    const g = async (k) => { try { const r = await fetch(P + k + "?t=" + Math.floor(Date.now()/3e5)); return r.ok ? r.json() : null; } catch (e) { return null; } };
+    const [pd, wh, dp, mr, bs, rs, ir, ins] = await Promise.all([
+      g("phase-detector.json"), g("whales.json"), g("dark-pool.json"),
+      g("master-ranker.json"), g("best-setups.json"), g("resilience.json"),
+      g("industry-rotation.json"), g("insider-radar.json")]);
+    const F = {};
+    F.phaseAll = (pd && pd.phases_all) || {};
+    F.phaseFull = (pd && pd.tickers) || {};
+    F.whale = {}; Object.entries((wh && wh.stocks) || {}).forEach(([t, v]) => { if (v.conviction_flow_usd) F.whale[t] = v.conviction_flow_usd; });
+    F.dp = {}; (((dp || {}).board) || []).forEach(r => { if (r.ticker && r.state !== "NEUTRAL") F.dp[r.ticker] = r.state; });
+    F.rank = {}; (((mr || {}).top_tickers) || []).forEach((r, i) => { if (r.ticker) F.rank[r.ticker] = i + 1; });
+    F.setup = {}; const bsr = (bs && (bs.setups || bs.records || bs.by_verdict)) || null;
+    if (Array.isArray(bsr)) bsr.forEach(r => { if (r.ticker && r.verdict) F.setup[r.ticker] = r.verdict; });
+    else if (bsr && typeof bsr === "object") Object.entries(bsr).forEach(([v, arr]) => (Array.isArray(arr) ? arr : []).forEach(r => { const t = (r && r.ticker) || (typeof r === "string" ? r : null); if (t) F.setup[t] = v; }));
+    F.res = {}; (((rs || {}).resilient) || []).forEach(r => { if (r.ticker) F.res[r.ticker] = true; });
+    F.maEvents = {}; (((ir || {}).ma_events) || []).forEach(e => { (F.maEvents[e.etf] = F.maEvents[e.etf] || []).push(e); });
+    F.insDates = {}; const buys = ((ins || {}).latest_buys) || [];
+    const clusterT = new Set([...(((ins || {}).clusters) || []), ...(((ins || {}).decline_clusters) || [])].map(c => c.ticker).filter(Boolean));
+    buys.forEach(b => { if (b.ticker && b.date && clusterT.has(b.ticker)) (F.insDates[b.ticker] = F.insDates[b.ticker] || []).push(b.date); });
+    State.fusion = F;
+    if (State.fusionOn === undefined) State.fusionOn = true;
+    if (State.srOn === undefined) State.srOn = true;
+    try { if (window.WatchlistManager && WatchlistManager.render) WatchlistManager.render(); } catch (e) {}
+    try { if (State.activeTicker && window.NativeChart) NativeChart.render(State.activeTicker); } catch (e) {}
+    console.log("[JHF] fusion loaded:", Object.keys(F.phaseAll).length, "phased,", Object.keys(F.whale).length, "whale");
+  }
+  static badges(t) {
+    const F = State.fusion; if (!F || State.fusionOn === false) return [];
+    const out = [];
+    if (F.rank[t]) out.push({ icon: "#" + F.rank[t], color: "#22d3ee", label: "Master-ranker rank " + F.rank[t] });
+    const v = F.setup[t]; if (v && /BUY/i.test(String(v))) out.push({ icon: /STRONG/i.test(String(v)) ? "SB" : "B", color: "#26ffaf", label: "Best-setups: " + v });
+    const p = F.phaseAll[t]; if (p && p.p && p.p !== "NEUTRAL") out.push({ icon: p.p[0], color: (p.p === "ACCUMULATION" || p.p === "MARKUP") ? "#26ffaf" : "#ff5577", label: "Wyckoff " + p.p + (p.b ? " since " + p.b : "") });
+    if (F.dp[t]) out.push({ icon: "\u25d0", color: F.dp[t] === "ACCUMULATION" ? "#26ffaf" : "#ff5577", label: "Dark pool " + F.dp[t] });
+    const w = F.whale[t]; if (w && Math.abs(w) >= 25e6) out.push({ icon: "\ud83d\udc0b", color: w > 0 ? "#26ffaf" : "#ff5577", label: "13F whales " + (w > 0 ? "+" : "\u2212") + "$" + Math.abs(w / 1e6).toFixed(0) + "M" });
+    if (F.res[t]) out.push({ icon: "R", color: "#e8c86a", label: "Resilience: flow-confirmed absorber" });
+    return out;
+  }
+  static _tp(b) { const hh = (b.high != null ? b.high : (b.h != null ? b.h : b.close)); const ll = (b.low != null ? b.low : (b.l != null ? b.l : b.close)); return (hh + ll + b.close) / 3; }
+  static avwapSeries(bars, fromTime) {
+    let cv = 0, cpv = 0; const pts = [];
+    for (const b of bars) { if (b.time < fromTime) continue; const v = (b.volume != null ? b.volume : (b.v || 0)); cv += v; cpv += this._tp(b) * v; if (cv > 0) pts.push({ time: b.time, value: cpv / cv }); }
+    return pts;
+  }
+  static autoSR(bars, k, maxL) {
+    k = k || 4; maxL = maxL || 6;
+    const n = bars.length; if (n < 40) return [];
+    const hi = bars.map(b => (b.high != null ? b.high : (b.h != null ? b.h : b.close)));
+    const lo = bars.map(b => (b.low != null ? b.low : (b.l != null ? b.l : b.close)));
+    let atr = 0; for (let i = n - 14; i < n; i++) atr += Math.max(hi[i] - lo[i], Math.abs(hi[i] - bars[i-1].close), Math.abs(lo[i] - bars[i-1].close)); atr /= 14;
+    const piv = [];
+    for (let i = k; i < n - k; i++) {
+      let ph = true, pl = true;
+      for (let j = 1; j <= k; j++) { if (hi[i] < hi[i-j] || hi[i] < hi[i+j]) ph = false; if (lo[i] > lo[i-j] || lo[i] > lo[i+j]) pl = false; }
+      if (ph) piv.push(hi[i]); if (pl) piv.push(lo[i]);
+    }
+    piv.sort((a, b) => a - b);
+    const tol = Math.max(atr * 0.35, 1e-9), lv = [];
+    for (const p of piv) { const L = lv[lv.length-1]; if (L && Math.abs(p - L.sum / L.n) <= tol) { L.sum += p; L.n++; } else lv.push({ sum: p, n: 1 }); }
+    return lv.filter(L => L.n >= 2).sort((a, b) => b.n - a.n).slice(0, maxL).map(L => ({ price: L.sum / L.n, touches: L.n }));
+  }
+  static chartApply(paneIdx, chart, series, bars, ticker) {
+    const F = State.fusion || {};
+    State._jhfLines = State._jhfLines || {};
+    (State._jhfLines[paneIdx] || []).forEach(fn => { try { fn(); } catch (e) {} });
+    State._jhfLines[paneIdx] = [];
+    const keep = (rm) => State._jhfLines[paneIdx].push(rm);
+    const ph = F.phaseFull && F.phaseFull[ticker];
+    const meta = document.getElementById("nch-meta-" + paneIdx);
+    if (State.fusionOn !== false && ph && ph.phase && ph.phase !== "NEUTRAL") {
+      if (meta && meta.innerHTML.indexOf("\u25c6") < 0) { const c = (ph.phase === "ACCUMULATION" || ph.phase === "MARKUP") ? "#26ffaf" : "#ff5577"; meta.innerHTML = '<span style="color:' + c + ';font-weight:700">\u25c6 ' + ph.phase + (ph.begin ? " since " + ph.begin : "") + (ph.pressure != null ? " \u00b7 pressure " + ph.pressure : "") + "</span> \u00b7 " + meta.innerHTML; }
+      const pairs = [["range_high", "#ff5577", "phase resistance"], ["range_low", "#26ffaf", "phase support"]];
+      for (const pr of pairs) { if (ph[pr[0]] != null) { const pl = series.createPriceLine({ price: ph[pr[0]], color: pr[1], lineWidth: 1, lineStyle: 2, title: pr[2] }); keep(() => { try { series.removePriceLine(pl); } catch (e) {} }); } }
+    }
+    if (State.srOn !== false) { for (const L of this.autoSR(bars)) { const pl = series.createPriceLine({ price: +L.price.toFixed(2), color: "rgba(160,174,192,0.55)", lineWidth: 1, lineStyle: 3, title: "S/R \u00d7" + L.touches }); keep(() => { try { series.removePriceLine(pl); } catch (e) {} }); } }
+    const key = "jh_avwap_" + ticker;
+    let anchors = []; try { anchors = JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) {}
+    const pAll = F.phaseAll && F.phaseAll[ticker];
+    if (State.fusionOn !== false && pAll && pAll.b && !anchors.length) { const t0 = Math.floor(new Date(pAll.b).getTime() / 1000); if (isFinite(t0)) anchors = [{ t: t0, auto: true }]; }
+    for (const a of anchors.slice(0, 4)) {
+      const pts = this.avwapSeries(bars, a.t); if (pts.length < 3) continue;
+      const ls = chart.addLineSeries({ color: a.auto ? "#e8c86a" : "#f4a940", lineWidth: 2, lastValueVisible: true, title: "AVWAP " + new Date(a.t * 1000).toISOString().slice(0, 10) + (a.auto ? " (phase begin)" : "") });
+      ls.setData(pts); keep(() => { try { chart.removeSeries(ls); } catch (e) {} });
+    }
+    if (!chart._jhfClick) { chart._jhfClick = true; chart.subscribeClick(p => {
+      if (!State.avwapMode || !p || !p.time) return;
+      const kk = "jh_avwap_" + State.activeTicker;
+      let arr = []; try { arr = JSON.parse(localStorage.getItem(kk) || "[]"); } catch (e) {}
+      arr = arr.filter(a => !a.auto); arr.push({ t: p.time }); if (arr.length > 4) arr.shift();
+      localStorage.setItem(kk, JSON.stringify(arr));
+      NativeChart.render(State.activeTicker);
+    }); }
+  }
+}
+(function jhfWire() {
+  const b = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+  const wire = () => {
+    b("fusion-btn", e => { State.fusionOn = State.fusionOn === false; e.currentTarget.classList.toggle("active", State.fusionOn !== false); try { WatchlistManager.render(); } catch (x) {} if (State.activeTicker) NativeChart.render(State.activeTicker); });
+    b("sr-btn", e => { State.srOn = State.srOn === false; e.currentTarget.classList.toggle("active", State.srOn !== false); if (State.activeTicker) NativeChart.render(State.activeTicker); });
+    b("avwap-btn", e => { State.avwapMode = !State.avwapMode; e.currentTarget.classList.toggle("active", State.avwapMode); e.currentTarget.textContent = State.avwapMode ? "AVWAP \u2295click" : "AVWAP"; });
+  };
+  const boot = () => { wire(); JHF.load().catch(() => {}); };
+  if (document.readyState === "complete") setTimeout(boot, 900); else window.addEventListener("load", () => setTimeout(boot, 900));
+  setInterval(() => JHF.load().catch(() => {}), 360000);
+})();
+</script>
 </body>
 </html>
