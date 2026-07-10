@@ -1,10 +1,15 @@
-executing-against: a2ea4c0f5da1e2f4f0fe0677a64ffab1840ca493
-── 1. Ensure engine ──
+## 1. Ensure engine
 
-→ Report written to aws/ops/reports/latest/3044_phase_detector.md
+**Status:** failure  
+**Duration:** 0.7s  
+**Finished:** 2026-07-10T04:11:22+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3044_phase_detector.py", line 212, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3044_phase_detector.py", line 82, in main
     if not ensure_fn(rep):
            ^^^^^^^^^^^^^^
@@ -19,4 +24,14 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-phase-detector
-❌ OPS-FAIL: aws/ops/pending/ops_3044_phase_detector.py
+
+```
+
+## Data
+
+| action | fn_exists |
+|---|---|
+| boto3 create_function | False |
+
+## Log
+
