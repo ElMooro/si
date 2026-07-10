@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0f18">
+<title>Whales · JustHodl.AI</title>
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+body{background:#070b12;color:#e8ecf3;font-family:'IBM Plex Sans',system-ui,sans-serif;margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding:18px}
+.card{background:#0d131d;border:1px solid #2a3444;border-radius:12px;padding:14px}
+.lbl{font-size:11px;letter-spacing:2px;color:#8b96a8;font-weight:700}
+.ff{font-size:12px}.muted{color:#8b96a8}
+.tag{border:1px solid #35b6e0;color:#35b6e0;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:#8b96a8;text-align:left;padding:6px 8px;font-size:10px;letter-spacing:1px;border-bottom:1px solid #22304466}
+td{padding:6px 8px;border-bottom:1px solid #16202f}
+.pos{color:#2e9e4f}.neg{color:#e03d2f}
+.chip{display:inline-block;background:#132033;border:1px solid #2a3444;border-radius:4px;padding:1px 6px;margin:1px;font-size:10px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr!important}}
+</style></head><body>
+<div class="wrap">
+<h1 style="font-size:34px;font-weight:900;letter-spacing:1px;margin:8px 0 2px">WHALES ARE HOLDING 👀👀</h1>
+<div class="ff muted" id="sub">loading the roster…</div>
+<div id="boards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px" class="grid2"></div>
+<div class="card" style="margin-top:12px"><div class="lbl">PER-STOCK WHALE FLOWS — conviction roster, latest 13F quarter vs prior</div>
+<div style="overflow-x:auto"><table id="tbl"><thead><tr><th>TICKER</th><th>CONVICTION FLOW $</th><th>NET FLOW $ (incl banks)</th><th>WHO'S BUYING</th><th>WHO'S SELLING</th><th>NEW</th><th>EXITED</th><th>HOLDERS</th></tr></thead><tbody></tbody></table></div></div>
+<div class="lbl" style="margin-top:16px">THE WHALES — largest reported books first</div>
+<div id="whales" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:8px"></div>
+<div class="card ff muted" style="margin-top:14px;font-size:11px" id="honesty"></div>
+</div>
+<script>
+const usd=v=>{const a=Math.abs(v);const s=a>=1e9?(a/1e9).toFixed(2)+'B':a>=1e6?(a/1e6).toFixed(1)+'M':Math.round(a/1e3)+'K';return (v<0?'−$':'+$')+s};
+fetch('data/whales.json?v='+Date.now()).then(r=>r.json()).then(d=>{
+  document.getElementById('sub').innerHTML=`<b>${d.quarter}</b> vs prior · ${d.n_whales_ok} whales reporting · ${d.n_stocks_moved} stocks with ≥$2M whale moves · updated ${(d.generated_at||'').slice(0,10)}${d.n_failed?` · <span style="color:#f08c1e">${d.n_failed} filers unavailable: ${(d.failed||[]).join(', ')}</span>`:''}`;
+  const B=[["🐋 WHALES BUYING — $ inflow leaders","whale_inflow_leaders","conviction_flow_usd"],["🩸 WHALES SELLING — $ outflow leaders","whale_outflow_leaders","conviction_flow_usd"],["✨ FRESH ACCUMULATION — brand-new positions","fresh_accumulation","conviction_flow_usd"],["🚪 FULL DISTRIBUTION — complete exits","full_distribution","conviction_flow_usd"]];
+  document.getElementById('boards').innerHTML=B.map(([t,k,f])=>`<div class="card"><div class="lbl">${t}</div>
+    ${((d.boards||{})[k]||[]).slice(0,10).map(r=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #16202f">
+      <span><b>${r.symbol}</b> <span class="ff muted">${(k=='fresh_accumulation'?r.new_by:k=='full_distribution'?r.exit_by:(r[f]>0?r.buyers:r.sellers)).slice(0,3).join(' · ')}</span></span>
+      <b class="${r[f]>0?'pos':'neg'}">${usd(r[f])}</b></div>`).join('')||'<div class="ff muted">none this quarter</div>'}</div>`).join('');
+  const rows=Object.entries(d.stocks||{}).slice(0,120);
+  document.querySelector('#tbl tbody').innerHTML=rows.map(([sym,v])=>`<tr>
+    <td><b>${sym}</b></td>
+    <td class="${v.conviction_flow_usd>=0?'pos':'neg'}"><b>${usd(v.conviction_flow_usd)}</b></td>
+    <td class="${v.net_flow_usd>=0?'pos':'neg'}">${usd(v.net_flow_usd)}</td>
+    <td>${(v.buyers||[]).slice(0,4).map(b=>`<span class="chip">${b}</span>`).join('')}</td>
+    <td>${(v.sellers||[]).slice(0,4).map(b=>`<span class="chip">${b}</span>`).join('')}</td>
+    <td>${(v.new_by||[]).length?`<span class="pos">●${v.new_by.length}</span>`:''}</td>
+    <td>${(v.exit_by||[]).length?`<span class="neg">●${v.exit_by.length}</span>`:''}</td>
+    <td class="muted">${v.n_holders}</td></tr>`).join('');
+  document.getElementById('whales').innerHTML=(d.whales||[]).map(w=>`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${w.name}${w.custodial?' <span class="tag" style="border-color:#f08c1e;color:#f08c1e">BANK/CUSTODIAL</span>':''}</b><span class="ff muted">${w.quarter}</span></div>
+    <div class="ff muted" style="margin-top:2px">$${(w.total_value_usd/1e9).toFixed(1)}B reported · ${w.n_positions} positions · ${w.n_moves} moves ≥$2M</div>
+    <div style="margin-top:6px">${(w.top_moves||[]).slice(0,6).map(m=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span><b>${m.symbol}</b> <span class="ff muted">${m.action}</span></span><span class="${m.flow_usd>0?'pos':'neg'}">${usd(m.flow_usd)}</span></div>`).join('')}</div></div>`).join('');
+  document.getElementById('honesty').textContent=(d.honesty||'')+' '+(d.method||'');
+}).catch(e=>{document.getElementById('sub').textContent='feed unavailable: '+e});
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+</body></html>
