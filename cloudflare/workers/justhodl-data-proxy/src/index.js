@@ -933,7 +933,9 @@ export default {
       const yhit = await yc.match(yCacheKey);
       if (yhit) { const b = await yhit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
       try {
-        const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${encodeURIComponent(range)}`;
+        const yUrl = range === "max"
+          ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&period1=0&period2=${Math.floor(Date.now() / 1000)}`
+          : `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${encodeURIComponent(range)}`;
         const resp = await fetch(yUrl, {
           headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36", "Accept": "application/json" },
           cf: { cacheTtl: 300, cacheEverything: true },
