@@ -1,18 +1,11 @@
-executing-against: 8c197947ad6950badd3fc9febac721d073029e9c
-── 1. Wait for this push's deploy ──
-── 2. Sync run + log tail ──
-[13:10:56] tail:
-START RequestId: c84fd17f-416d-4531-9f94-dbffee24e901 Version: $LATEST
-breadth cache: 46 entries, 1 newly fetched
-spy_history rows: 5026
-breadth-thrust: state=NULL ema=0.5109 whaley=BULLISH coppock=POSITIVE sig=25 n_hist=8
-END RequestId: c84fd17f-416d-4531-9f94-dbffee24e901
-REPORT RequestId: c84fd17f-416d-4531-9f94-dbffee24e901	Duration: 1126.09 ms	Billed Duration: 1675 ms	Memory Size: 512 MB	Max Memory Used: 111 MB	Init Duration: 548.91 ms	
-XRAY TraceId: 1-6a50ef5e-139b4d1c2c275d8b7605d43d	SegmentId: 5d886b996f1cd6ff	Sampled: true	
-
-── 3. Assert the five symptoms are gone ──
-── 4. Page NO-SETUP banner (warn-level, CDN lag) ──
+executing-against: 3dd2e4da6393175ea82f197486245089af619833
+── 1. Wait both deploys, invoke both ──
+── 2. Radar v1.3.0 asserts ──
+── 3. Whales v1.2 asserts ──
+── 4. Pages (warn-level, CDN) ──
 ── verdict ──
-[13:10:57] PASS -- breadth-thrust healed
+[13:32:56] FAIL: whales join=400
+[13:32:56] FAIL: sector_flows=0 (<6)
 
-→ Report written to aws/ops/reports/latest/3051_breadth_fix.md
+→ Report written to aws/ops/reports/latest/3052_confluence_upgrade.md
+❌ OPS-FAIL: aws/ops/pending/ops_3052_confluence_upgrade.py
