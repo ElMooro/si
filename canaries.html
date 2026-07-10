@@ -113,57 +113,76 @@ function render(d){
     const vw=window._VIEW,cur=vw=='pm'?PM:(vw=='ew'?EW:PC);
     const s=Math.max(0,Math.min(100,cur.score==null?0:cur.score));
     const bi=Math.min(4,Math.floor(s/20)),bc=B5C[bi],b5=cur.band5||B5[bi];
-    const cx=170,cy=158,R=126;
-    const P=a=>[cx+R*Math.cos(Math.PI*(1-a/100)),cy-R*Math.sin(Math.PI*(1-a/100))];
-    const seg=(a0,a1,c)=>{const[x0,y0]=P(a0),[x1,y1]=P(a1);return `<path d="M ${x0} ${y0} A ${R} ${R} 0 0 1 ${x1} ${y1}" stroke="${c}" stroke-width="24" fill="none"/>`};
-    const lab=(a,t)=>{const x=cx+(R+28)*Math.cos(Math.PI*(1-a/100)),y=cy-(R+28)*Math.sin(Math.PI*(1-a/100));return `<text x="${x}" y="${y}" text-anchor="middle" style="font-size:9px;letter-spacing:1px;fill:#cbd3df;font-weight:600">${t}</text>`};
-    const[nx,ny]=P(s);
+    const ICONS=['🍃','🛡️','📈','🔥','⚠️'];
+    const MICON={macro_grid:'📊',funding:'🛡️',leading_markets:'🌐',dollar:'💲',vol:'〰️',ciss:'⚖️',factor_regime:'🧭',cftc:'📶',global_stress:'🌍',plumbing:'🔧',eurodollar:'💱',alerts:'🦢'};
+    // ── gauge: filled donut wedges, labels+icons inside, ticks, tapered needle ──
+    const cx=245,cy=232,R2=214,R1=112;
+    const pt=(a,r)=>[cx+r*Math.cos(Math.PI*(1-a/100)),cy-r*Math.sin(Math.PI*(1-a/100))];
+    const wedge=(a0,a1,c)=>{const[x0,y0]=pt(a0,R2),[x1,y1]=pt(a1,R2),[x2,y2]=pt(a1,R1),[x3,y3]=pt(a0,R1);
+      return `<path d="M ${x0} ${y0} A ${R2} ${R2} 0 0 1 ${x1} ${y1} L ${x2} ${y2} A ${R1} ${R1} 0 0 0 ${x3} ${y3} Z" fill="${c}" stroke="#0a0f18" stroke-width="3"/>`};
+    const wlab=(a,t,ic)=>{const[x,y]=pt(a,(R1+R2)/2);return `<text x="${x}" y="${y-6}" text-anchor="middle" style="font-size:14px;font-weight:800;fill:#fff;text-shadow:0 1px 3px #0009">${t}</text><text x="${x}" y="${y+18}" text-anchor="middle" style="font-size:16px">${ic}</text>`};
+    let ticks='';for(let a=2;a<100;a+=4){const[x0,y0]=pt(a,R1+2),[x1,y1]=pt(a,R1+(a%20<4?16:9));ticks+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#0a0f18" stroke-width="2.5"/>`;}
+    const[ntx,nty]=pt(s,R2-26),[nlx,nly]=pt(s>6?s-4:0,34),[nrx,nry]=pt(s<94?s+4:100,34);
+    const gauge=`<svg width="490" height="268" viewBox="0 0 490 268">
+      <defs><radialGradient id="hub" cx="35%" cy="30%"><stop offset="0%" stop-color="#5a636f"/><stop offset="45%" stop-color="#22282f"/><stop offset="100%" stop-color="#0c0f13"/></radialGradient>
+      <linearGradient id="ndl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffe9ad"/><stop offset="55%" stop-color="${GOLD}"/><stop offset="100%" stop-color="#9a7420"/></linearGradient></defs>
+      ${wedge(0,20,'#2e9e4f')}${wedge(20,40,'#e8c227')}${wedge(40,60,'#f08c1e')}${wedge(60,80,'#e03d2f')}${wedge(80,100,'#b3241f')}
+      ${ticks}
+      ${wlab(10,'CALM','🍃')}${wlab(30,'GUARDED','🛡️')}${wlab(50,'ELEVATED','📈')}${wlab(70,'HIGH RISK','🔥')}${wlab(90,'CRISIS','⚠️')}
+      <polygon points="${ntx},${nty} ${nlx},${nly} ${nrx},${nry}" fill="url(#ndl)" stroke="#6d5314" stroke-width="1.5"/>
+      <circle cx="${cx}" cy="${cy}" r="26" fill="url(#hub)" stroke="#000" stroke-width="2"/>
+      <ellipse cx="${cx-8}" cy="${cy-10}" rx="9" ry="6" fill="#ffffff22"/></svg>`;
+    // ── mechanism cards: cyan number chip, green icon, always-lit segments, white diamond ──
+    const SEGC=['#2e9e4f','#e8c227','#f08c1e','#e03d2f','#b3241f'];
     const mechCard=([k,m],i)=>{
-      const mi=Math.min(4,Math.floor((m.score||0)/20));
-      const segs=B5C.map((c,j)=>`<div style="flex:1;height:11px;border-radius:2px;background:${c};opacity:${j==mi?1:.22};box-shadow:${j==mi?'0 0 6px '+c:'none'}"></div>`).join('');
-      const pos=Math.max(2,Math.min(98,m.score||0));
-      const wbadge=m.weight!=null?`<span style="color:${GOLD}">×${m.weight}${m.weight_status=='LEARNED'?'':'*'}</span>`:'';
-      return `<div class="card" style="padding:10px 13px;border:1px solid #2a3444">
-        <div style="display:flex;align-items:center;gap:9px">
-          <span style="background:#132033;border:1px solid ${GOLD}66;color:${GOLD};font-weight:700;font-size:11px;border-radius:4px;padding:2px 7px">${i+1}</span>
-          <b style="font-size:12.5px;flex:1">${m.label||k}</b>
-          <span style="font-size:11px;color:${B5C[mi]}">${m.score} ${wbadge}</span></div>
-        <div style="position:relative;margin-top:8px">
-          <div style="display:flex;gap:3px">${segs}</div>
-          <div style="position:absolute;top:-5px;left:${pos}%;transform:translateX(-50%) rotate(45deg);width:9px;height:9px;background:#fff;border:1.5px solid #0a0f18;box-shadow:0 0 4px #fff"></div></div>
-        <div style="display:flex;justify-content:space-between;margin-top:4px" class="ff muted">
-          ${B5.map((t,j)=>`<span style="font-size:8px;letter-spacing:.5px;color:${j==mi?B5C[mi]:'var(--mut)'}">${t}</span>`).join('')}</div></div>`;};
+      const pos=Math.max(2,Math.min(98,m.score||0)),mi=Math.min(4,Math.floor((m.score||0)/20));
+      const segs=SEGC.map(c=>`<div style="flex:1;height:13px;border-radius:2.5px;background:${c}"></div>`).join('');
+      return `<div style="background:#0d131dee;border:1px solid #2b3547;border-radius:10px;padding:11px 14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="border:1.5px solid #35b6e0;color:#35b6e0;font-weight:800;font-size:13px;border-radius:5px;padding:1px 8px;background:#0a1622">${i+1}</span>
+          <span style="font-size:19px;filter:hue-rotate(0deg)">${MICON[k]||'📊'}</span>
+          <b style="font-size:14px;color:#fff;flex:1">${m.label||k}</b></div>
+        <div style="position:relative;margin-top:9px">
+          <div style="display:flex;gap:4px">${segs}</div>
+          <div style="position:absolute;top:-5px;left:${pos}%;transform:translateX(-50%) rotate(45deg);width:11px;height:11px;background:#fff;border:1.5px solid #0a0f18;box-shadow:0 1px 4px #000c"></div></div>
+        <div style="display:flex;margin-top:4px">${B5.map((t,j)=>`<span style="flex:1;text-align:center;font-size:8.5px;font-weight:700;letter-spacing:.4px;color:${SEGC[j]}">${t}</span>`).join('')}</div></div>`;};
     const entries=Object.entries(PM.by_mechanism||{});
-    const left=entries.slice(0,6).map(mechCard).join(''),right=entries.slice(6).map((e,i)=>mechCard(e,i+6)).join('');
-    const mScores=Object.fromEntries(entries.map(([k,m])=>[m.label||k,{s:m.score,w:m.weight,st:m.weight_status}]));
+    const left=entries.slice(0,6).map(mechCard).join('<div style="height:10px"></div>');
+    const right=entries.slice(6).map((e,i)=>mechCard(e,i+6)).join('<div style="height:10px"></div>');
     document.getElementById('baro').innerHTML=`
-    <div class="card" style="padding:18px;border:1px solid ${GOLD}44">
+    <div style="background:#070b12;border:1.5px solid ${GOLD}55;border-radius:14px;padding:20px 18px 14px;box-shadow:inset 0 0 60px #000">
       <div style="text-align:center">
-        <div style="font-size:26px;font-weight:800;letter-spacing:2px">EARLY-WARNING WAR ROOM</div>
-        <div style="color:${GOLD};letter-spacing:4px;font-size:13px;margin-top:2px">— RISK VISUAL BAROMETER —</div>
-        <div style="display:inline-block;margin-top:8px;border:1px solid ${GOLD}88;border-radius:6px;padding:4px 16px;color:${GOLD};font-weight:700;letter-spacing:2px;font-size:12px">${entries.length||12} CANARY MECHANISMS · LIVE</div>
-        <div style="margin-top:9px">
-          <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:11px">Equal per mechanism</button>
-          <button class="${vw=='ew'?'on':''}" onclick="_VIEW='ew';renderBaro()" style="font-size:11px">Earned weights (${EW.n_learned||0} learned)</button>
-          <button class="${vw=='pc'?'on':''}" onclick="_VIEW='pc';renderBaro()" style="font-size:11px">Per canary (${PC.n_votes||'?'})</button></div></div>
-      <div style="display:flex;gap:16px;align-items:stretch;flex-wrap:wrap;margin-top:12px">
-        <div style="flex:1;min-width:300px;display:grid;gap:9px">${left}</div>
-        <div style="min-width:350px;max-width:380px;text-align:center;align-self:center">
-          <svg width="350" height="196" viewBox="0 0 350 196">
-            ${seg(0,20,B5C[0])}${seg(20,40,B5C[1])}${seg(40,60,B5C[2])}${seg(60,80,B5C[3])}${seg(80,100,B5C[4])}
-            ${lab(10,'CALM')}${lab(30,'GUARDED')}${lab(50,'ELEVATED')}${lab(70,'HIGH RISK')}${lab(90,'CRISIS')}
-            <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${GOLD}" stroke-width="6" stroke-linecap="round"/>
-            <circle cx="${cx}" cy="${cy}" r="9" fill="#131a26" stroke="${GOLD}" stroke-width="3"/>
-            <text x="${cx}" y="${cy-42}" text-anchor="middle" style="font-size:38px;font-weight:800;fill:${bc}">${s}</text></svg>
-          <div class="card" style="border:1.5px solid ${bc};padding:12px;margin-top:-4px;background:#0d1420">
-            <div style="font-size:22px;font-weight:800;letter-spacing:3px;color:${bc}">${b5}</div>
-            <div class="ff" style="margin-top:4px">${GUIDE[b5]||''}</div>
-            <div class="ff muted" style="margin-top:6px;font-size:10px">${vw=='pm'?'Each mechanism = one equal vote (canaries equal within).':vw=='ew'?'Event-study weights vs 8 crisis windows, 50% shrunk to equal, clamp [0.6,1.6]. * = equal prior.':(B.note||'')}</div></div></div>
-        <div style="flex:1;min-width:300px;display:grid;gap:9px">${right}</div></div>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;border-top:1px solid #22304433;padding-top:11px">
-        ${B5.map((t,j)=>`<div style="text-align:center;min-width:118px"><div style="height:12px;border-radius:3px;background:${B5C[j]};margin-bottom:4px"></div><b style="font-size:10px;letter-spacing:1px;color:${B5C[j]}">${t}</b><div class="ff muted" style="font-size:9px">${GUIDE[B5[j]]}</div></div>`).join('')}</div>
+        <div style="font-size:40px;font-weight:900;letter-spacing:2px;color:#f2f4f8;text-shadow:0 2px 8px #000">EARLY-WARNING WAR ROOM</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:2px">
+          <div style="flex:1;max-width:180px;height:2px;background:linear-gradient(90deg,transparent,${GOLD})"></div>
+          <div style="color:${GOLD};letter-spacing:6px;font-size:17px;font-weight:700">RISK VISUAL BAROMETER</div>
+          <div style="flex:1;max-width:180px;height:2px;background:linear-gradient(90deg,${GOLD},transparent)"></div></div>
+        <div style="display:inline-block;margin-top:12px;border:1.5px solid ${GOLD};color:${GOLD};font-weight:800;letter-spacing:3px;font-size:15px;padding:6px 26px;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);background:#10151f">${entries.length||12} CANARY MECHANISMS</div>
+        <div style="margin-top:8px">
+          <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:10.5px">Equal per mechanism</button>
+          <button class="${vw=='ew'?'on':''}" onclick="_VIEW='ew';renderBaro()" style="font-size:10.5px">Earned weights (${EW.n_learned||0})</button>
+          <button class="${vw=='pc'?'on':''}" onclick="_VIEW='pc';renderBaro()" style="font-size:10.5px">Per canary (${PC.n_votes||'?'})</button></div></div>
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:12px">
+        <div style="flex:1;min-width:300px">${left}</div>
+        <div style="min-width:500px;max-width:520px;text-align:center">
+          ${gauge}
+          <div style="border:1.5px solid ${GOLD}88;border-radius:12px;padding:14px;margin-top:6px;background:#0b101a">
+            <div style="font-size:30px;font-weight:900;letter-spacing:3px;color:${bc}">${b5}</div>
+            <div style="color:#e8ecf3;font-size:14px;margin-top:4px;line-height:1.45">${GUIDE[b5]||''}</div></div>
+          <div style="border:1px solid #2b3547;border-radius:12px;padding:12px;margin-top:12px;background:#0b101a">
+            <div style="color:${GOLD};font-weight:800;letter-spacing:3px;font-size:13px">RISK LEVEL LEGEND</div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              ${B5.map((t,j)=>`<div style="flex:1;text-align:center"><div style="height:16px;border-radius:3px;background:${SEGC[j]};box-shadow:0 0 8px ${SEGC[j]}66"></div><div style="font-weight:800;font-size:11px;letter-spacing:.5px;color:${SEGC[j]};margin-top:5px">${t}</div><div style="font-size:9px;color:#cfd6e2;line-height:1.35;margin-top:2px">${GUIDE[t]}</div></div>`).join('')}</div></div></div>
+        <div style="flex:1;min-width:300px">${right}</div></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:16px;border-top:1px solid ${GOLD}33;padding-top:11px">
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,${GOLD}88,transparent)"></div>
+        <span style="width:34px;height:34px;border:1.5px solid ${GOLD};border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:17px;background:#10151f">🐤</span>
+        <span style="color:#e8ecf3;font-size:13px">Composite early-warning view — <b style="color:${GOLD}">live</b> canary metrics on <b style="color:${GOLD}">JustHodl.ai</b></span>
+        <div style="flex:1;height:1.5px;background:linear-gradient(90deg,transparent,${GOLD}88)"></div></div>
     </div>
-    <div class="card" style="margin-top:12px;padding:16px;border:1px solid #2a3444">
+    <div class="card" style="margin-top:12px;padding:16px;border:1px solid #2a3444" id="methWrap"></div>`;
+    const cband=v=>B5C[Math.min(4,Math.floor((v||0)/20))];
+    document.getElementById('methWrap').innerHTML=`
       <div style="text-align:center;font-size:19px;font-weight:800;letter-spacing:1px">HOW THE BAROMETER WAS BUILT</div>
       <div style="text-align:center;color:${GOLD};font-size:11px;letter-spacing:2px">METHODOLOGY — LIVE VALUES, NOT ILLUSTRATIVE</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:12px">
@@ -171,17 +190,16 @@ function render(d){
           <div class="ff" style="margin-top:6px">${entries.map(([k,m],i)=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span><span class="tag">${i+1}</span> ${m.label||k}</span><span class="muted">${m.n_canaries} canaries</span></div>`).join('')}</div></div>
         <div><div class="lbl" style="color:${GOLD}">STEP 2 — 0-100 STRESS → 5 LEVELS</div>
           <div class="ff" style="margin-top:6px">${B5.map((t,j)=>`<div style="display:flex;align-items:center;gap:8px;padding:3px 0"><i style="width:26px;height:12px;border-radius:3px;background:${B5C[j]};display:inline-block"></i><b style="width:78px;color:${B5C[j]}">${t}</b><span class="muted">${j*20}–${j*20+20}</span><span class="muted" style="flex:1;text-align:right;font-size:10px">${GUIDE[t]}</span></div>`).join('')}
-          <div class="muted" style="margin-top:6px;font-size:10px">Every canary is normalised to 0-100 stress by its own engine (percentile of its full history, z-score, or status map) — mechanical readings, no forecasts.</div></div></div>
-        <div><div class="lbl" style="color:${GOLD}">STEP 3 — LIVE SCORES × WEIGHTS</div>
-          <div class="ff" style="margin-top:6px">${entries.map(([k,m])=>{const mi=Math.min(4,Math.floor((m.score||0)/20));return `<div style="display:flex;justify-content:space-between;padding:2px 0"><span>${m.label||k}</span><span><b style="color:${B5C[mi]}">${m.score}</b> <span style="color:${GOLD};font-size:10px">×${m.weight!=null?m.weight:1}${m.weight_status=='LEARNED'?'':'*'}</span></span></div>`}).join('')}
-          <div class="muted" style="margin-top:5px;font-size:10px">Weights are EARNED: event-study vs 8 crisis windows (1997→2023) — hit-rate, lead months, false-alarm penalty — 50% shrunk to equal, clamped [0.6,1.6]. * = equal prior (no deep history).</div></div>
+          <div class="muted" style="margin-top:6px;font-size:10px">Every canary is normalised to 0-100 stress by its own engine (percentile of its full history, z-score, or status map) — mechanical readings, no forecasts.</div></div>
+        <div><div class="lbl" style="color:${GOLD}">STEP 3 — LIVE SCORES × EARNED WEIGHTS</div>
+          <div class="ff" style="margin-top:6px">${entries.map(([k,m])=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span>${m.label||k}</span><span><b style="color:${cband(m.score)}">${m.score}</b> <span style="color:${GOLD};font-size:10px">×${m.weight!=null?m.weight:1}${m.weight_status=='LEARNED'?'':'*'}</span></span></div>`).join('')}
+          <div class="muted" style="margin-top:5px;font-size:10px">Weights are EARNED: event-study vs 8 crisis windows (1997→2023) — hit-rate, lead months, false-alarm penalty — 50% shrunk to equal, clamped [0.6,1.6]. * = equal prior.</div></div>
         <div><div class="lbl" style="color:${GOLD}">STEP 4 — THE COMPOSITES (LIVE)</div>
           <div class="ff" style="margin-top:6px">
-            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per mechanism (${entries.length} votes)</span><b style="color:${B5C[Math.min(4,Math.floor((PM.score||0)/20))]}">${PM.score} ${PM.band5||''}</b></div>
-            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Earned weights (${EW.n_learned||0} learned)</span><b style="color:${B5C[Math.min(4,Math.floor((EW.score||0)/20))]}">${EW.score} ${EW.band5||''}</b></div>
-            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per canary (${PC.n_votes||'?'} votes)</span><b style="color:${B5C[Math.min(4,Math.floor((PC.score||0)/20))]}">${PC.score} ${PC.band5||''}</b></div>
-            <div class="muted" style="margin-top:6px;font-size:10px">Composite = Σ(weight × mechanism stress) ÷ Σ weights. All three views computed every run from the same 290+ live canaries — pick your lens with the toggle above. Weights re-studied monthly. Full method + per-mechanism evidence in <a href="https://justhodl.ai/data/warroom-weights.json" style="color:${GOLD}">warroom-weights.json</a>.</div></div></div></div>
-    </div>`;
+            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per mechanism (${entries.length} votes)</span><b style="color:${cband(PM.score)}">${PM.score} ${PM.band5||''}</b></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Earned weights (${EW.n_learned||0} learned)</span><b style="color:${cband(EW.score)}">${EW.score} ${EW.band5||''}</b></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Equal per canary (${PC.n_votes||'?'} votes)</span><b style="color:${cband(PC.score)}">${PC.score} ${PC.band5||''}</b></div>
+            <div class="muted" style="margin-top:6px;font-size:10px">Composite = Σ(weight × mechanism stress) ÷ Σ weights. All three views computed every run from the same 290+ live canaries. Weights re-studied monthly. Full evidence: <a href="https://justhodl.ai/data/warroom-weights.json" style="color:${GOLD}">warroom-weights.json</a>.</div></div></div>`;
   };
   if(PM.score!=null||PC.score!=null)renderBaro();
   // filters
