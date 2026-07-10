@@ -85,7 +85,7 @@ function renderBreadth(d){
     ${(rows||[]).slice(0,10).map(r=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #16202f">
       <span><b>${r.symbol}</b> <span class="ff muted">${r.n_buying}&#9650; / ${r.n_selling}&#9660;${r.sector?' &middot; '+r.sector:''}</span></span>
       <b class="${pos?'pos':'neg'}">${pos?'+':''}${r.breadth}</b></div>`).join('')||'<div class="ff muted">none</div>'}</div>`;
-  document.getElementById('breadth').innerHTML=mk('&#128011; MOST WHALES BUYING &mdash; breadth leaders',d.breadth_buying,true)+mk('&#129656; MOST WHALES SELLING',d.breadth_selling,false);
+  document.getElementById('breadth').innerHTML=mk('🐋 MOST WHALES BUYING &mdash; breadth leaders',d.breadth_buying,true)+mk('🩸 MOST WHALES SELLING',d.breadth_selling,false);
 }
 </script>
 <script src="/jh-nav-drawer.js" defer></script>

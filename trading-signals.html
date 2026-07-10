@@ -105,7 +105,7 @@ h+="<div class='bc'><div class='bl'>US 10Y</div><div class='bv'>"+fmt(snap.us_10
 h+="<div class='bc'><div class='bl'>Regime</div><div class='bv' style='color:var(--cyan);font-size:15px'>"+(es.market_regime||"-").replace(/_/g," ")+"</div><div class='bs'>"+(es.regime_description||"")+"</div></div>";
 h+="</div>";
 
-h+="<div class='sec'><div class='st'>&#128640; Active Trade Signals ("+trades.length+")</div><div class='tg'>";
+h+="<div class='sec'><div class='st'>🚀 Active Trade Signals ("+trades.length+")</div><div class='tg'>";
 for(var i=0;i<trades.length;i++){
 var t=trades[i];
 var isLong=t.trade.indexOf("LONG")===0;
@@ -121,7 +121,7 @@ h+="</div>";
 }
 h+="</div></div>";
 
-h+="<div class='sec'><div class='st'>&#128200; Sector Signals — "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
+h+="<div class='sec'><div class='st'>📈 Sector Signals — "+(sec.macro_regime||"").replace(/_/g," ")+"</div>";
 h+="<div style='overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%'>";
 h += "<table><thead><tr><th>#</th><th>Sector</th><th>ETF</th><th>Score</th><th>Signal</th><th>Strength</th><th>Top Stocks</th></tr></thead><tbody>";
 for(var i=0;i<secs.length;i++){var s=secs[i];
@@ -147,7 +147,7 @@ h+="</div></div>";
 
 var co=carry.opportunities||[];
 if(co.length){
-h+="<div class='sec'><div class='st'>&#128177; Carry Trade Opportunities</div><div class='tg'>";
+h+="<div class='sec'><div class='st'>💱 Carry Trade Opportunities</div><div class='tg'>";
 for(var i=0;i<co.length;i++){var o=co[i];
 h+="<div class='tc'><div class='th'><div class='tn'>"+o.trade+"</div><span class='tag "+(o.risk==="HIGH"?"lo":o.risk==="MODERATE"?"md":"hi")+"'>"+o.risk+"</span></div>";
 h+="<div class='tt'>"+o.rationale+"</div>";

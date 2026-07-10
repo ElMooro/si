@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Errors · JustHodl.AI</title>
+<meta name="robots" content="noindex,nofollow">
 <meta name="description" content="Self-hosted error tracking — every uncaught exception across critical Lambdas, structured and searchable.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,7 +103,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),tr
   <div class="section">
     <div class="section-eyebrow">Stream</div>
     <h2 class="section-title">Last 200 errors</h2>
-    <p class="section-blurb">Reverse chronological. Click a row to expand traceback excerpt. Full traceback + log stream link is in <code>s3://justhodl-dashboard-live/errors/&lt;lambda&gt;/&lt;timestamp&gt;.json</code>.</p>
+    <p class="section-blurb">Reverse chronological. Click a row to expand traceback excerpt. Full traceback + log stream link is in <code>the internal error store</code>.</p>
     <div class="err-list" id="err-list">
       <div class="empty">Loading…</div>
     </div>
@@ -114,8 +115,8 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),tr
 
 <footer style="background:var(--bg1);border-top:1px solid var(--brd);margin-top:48px;padding:20px 0;font-family:var(--mono);font-size:11px">
   <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:24px;color:var(--t3)">
-    <span>Engine: <span style="color:var(--t2)">@track_errors decorator (aws/shared/_sentry_lite.py)</span></span>
-    <span>Storage: <span style="color:var(--t2)">s3://justhodl-dashboard-live/errors/</span></span>
+    <span>Engine: <span style="color:var(--t2)">@track_errors decorator (the fleet's shared error hook)</span></span>
+    <span>Storage: <span style="color:var(--t2)">the internal error store </span></span>
     <span>Instrumented: <span style="color:var(--t2)">11 critical Lambdas</span></span>
     <span id="last-updated">—</span>
   </div>

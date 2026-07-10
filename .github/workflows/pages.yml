@@ -84,6 +84,8 @@ jobs:
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
+      - name: Bake SEO layer (canonical/OG/description + sitemap)
+        run: python3 scripts/bake_seo.py _site || true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
