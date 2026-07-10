@@ -1,11 +1,7 @@
-executing-against: 83b37796e18e3b3cbbe5c56859262ab77e8777b5
+executing-against: eb5dceeaadfb3adf5406c48e9c60029c2ffdc74d
+── 0. Phase-detector (publishes phases_all) ──
 ── 1. Radar ma_state (already live from 3054) ──
 ── 2. IR 3.1 (RRG + transitions + breadth) ──
-── 2b. Arc B: EW/CW + MA events ──
-── 2c. Arc C: six fleet joins ──
-── 3. Page (warn-level) ──
-── verdict ──
-[15:12:30] FAIL: wyckoff join=2 (<10)
 
-→ Report written to aws/ops/reports/latest/3057_fleet_joins.md
-❌ OPS-FAIL: aws/ops/pending/ops_3057_fleet_joins.py
+→ Report written to aws/ops/reports/latest/3058_fleet_joins.md
+❌ OPS-FAIL: aws/ops/pending/ops_3058_fleet_joins.py
