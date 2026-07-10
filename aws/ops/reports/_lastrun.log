@@ -1,13 +1,8 @@
-executing-against: 1435a2b9cdbbf7bb1308c47101af8eaecf6037ab
+executing-against: 3d3099f30506ad1d9ce797a8bd7c3f35ae908ebc
 ── 1. Warroom v12 regen ──
 ── 2. Harvester ingest (proper verification) ──
+── 3. Live page (warn-level) ──
+── verdict ──
+[03:01:24] PASS
 
-→ Report written to aws/ops/reports/latest/3038_grading_close.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3038_grading_close.py", line 135, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3038_grading_close.py", line 93, in main
-    n_engines=len(engines_hit),
-              ^^^^^^^^^^^^^^^^
-TypeError: object of type 'int' has no len()
-❌ OPS-FAIL: aws/ops/pending/ops_3038_grading_close.py
+→ Report written to aws/ops/reports/latest/3039_grading_final.md
