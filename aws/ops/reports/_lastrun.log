@@ -1,8 +1,7 @@
-executing-against: bd91248d08ed349a274e02e5f7dfef3b9ae9135c
-── 1. Deploy gate + invoke ──
-── 2. Reversals schema + separation ──
-── 3. Page live ──
+executing-against: beb738a0d71628dec9d8fad3d0f37800d9f4a65c
+── 1. Plain-URL page (browser-style) ──
+── 2. Plain-URL data JSON ──
 ── verdict ──
-[21:40:11] PASS
+[22:50:35] PASS -- browser-path serves the reversal build
 
-→ Report written to aws/ops/reports/latest/3077_dma200.md
+→ Report written to aws/ops/reports/latest/3078_browser_view.md
