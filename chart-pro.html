@@ -1395,6 +1395,11 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="fusion-btn" title="Engine fusion: Wyckoff phases, insider clusters, whale flow, MA events on the chart" style="color:#26ffaf">⚡ FUSION</button>
     <button class="layout-btn" id="sr-btn" title="Auto support/resistance from pivot clusters">S/R</button>
     <button class="layout-btn" id="avwap-btn" title="Anchored VWAP: toggle, then click any bar to anchor. Auto-anchors at the current Wyckoff phase begin.">AVWAP</button>
+    <button class="layout-btn" id="vp-btn" title="Volume Profile (visible range): volume-at-price + POC + 70% value area">VP</button>
+    <button class="layout-btn" id="log-btn" title="Logarithmic price scale — essential on MAX/deep history">LOG</button>
+    <button class="layout-btn" id="rs-btn" title="Relative strength vs SPY overlay (rebased to 1.0)">RS</button>
+    <button class="layout-btn" id="measure-btn" title="Measure: toggle, then click two points — Δ%, bars, days">📏</button>
+    <button class="layout-btn" id="shot-btn" title="Export chart as PNG (watermarked)">📷</button>
     <button class="layout-btn" id="sync-btn" title="Sync native chart panes — pan/zoom together">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8a3 3 0 0 1 3-3h2M11 8a3 3 0 0 1-3 3H6"/><path d="M9 3l1.5 2L9 7M7 13l-1.5-2L7 9"/></svg>
     </button>
@@ -6686,7 +6691,7 @@ class JHF {
     return lv.filter(L => L.n >= 2).sort((a, b) => b.n - a.n).slice(0, maxL).map(L => ({ price: L.sum / L.n, touches: L.n }));
   }
   static chartApply(paneIdx, chart, series, bars, ticker) {
-    (State._charts = State._charts || {})[paneIdx] = chart;
+    (State._charts = State._charts || {})[paneIdx] = { chart, series, bars, ticker };
     const F = State.fusion || {};
     State._jhfLines = State._jhfLines || {};
     (State._jhfLines[paneIdx] || []).forEach(fn => { try { fn(); } catch (e) {} });
@@ -6709,7 +6714,24 @@ class JHF {
       const ls = chart.addLineSeries({ color: a.auto ? "#e8c86a" : "#f4a940", lineWidth: 2, lastValueVisible: true, title: "AVWAP " + new Date(a.t * 1000).toISOString().slice(0, 10) + (a.auto ? " (phase begin)" : "") });
       ls.setData(pts); keep(() => { try { chart.removeSeries(ls); } catch (e) {} });
     }
+    // key stats strip + fusion chips on the chart itself
+    try { this.statsStrip(paneIdx, series, bars, ticker); } catch (e) {}
+    // 52w high/low reference lines (daily views only)
+    if (State.fusionOn !== false && (State.tf || {}).span === 'day' && bars.length >= 252) {
+      const w = bars.slice(-252);
+      const hi = Math.max(...w.map(b => b.high ?? b.close));
+      const lo = Math.min(...w.map(b => b.low ?? b.close));
+      [[hi, '52w high', 'rgba(38,255,175,0.45)'], [lo, '52w low', 'rgba(255,85,119,0.45)']].forEach(([pr, tt, col]) => {
+        const pl = series.createPriceLine({ price: pr, color: col, lineWidth: 1, lineStyle: 4, title: tt });
+        keep(() => { try { series.removePriceLine(pl); } catch (e) {} });
+      });
+    }
+    // volume profile / log scale / RS overlay
+    try { if (State.vpOn) this.volumeProfile(paneIdx, chart, series, bars); } catch (e) {}
+    try { series.priceScale().applyOptions({ mode: State.logScale ? 1 : 0 }); } catch (e) {}
+    if (State.rsOn) this.rsOverlay(paneIdx, chart, series, bars, ticker, keep);
     if (!chart._jhfClick) { chart._jhfClick = true; chart.subscribeClick(p => {
+      if (State.measureMode && p && p.time && p.point) { JHF.measureClick(paneIdx, p); return; }
       if (!State.avwapMode || !p || !p.time) return;
       const kk = "jh_avwap_" + State.activeTicker;
       let arr = []; try { arr = JSON.parse(localStorage.getItem(kk) || "[]"); } catch (e) {}
@@ -6718,24 +6740,157 @@ class JHF {
       NativeChart.render(State.activeTicker);
     }); }
   }
+
+  static statsStrip(paneIdx, series, bars, ticker) {
+    if (bars.length < 30) return;
+    const host = document.getElementById('nch-chart-' + paneIdx);
+    if (!host) return;
+    const last = bars[bars.length - 1];
+    const w = bars.slice(-Math.min(252, bars.length));
+    const hi = Math.max(...w.map(b => b.high ?? b.close));
+    const offHi = (last.close / hi - 1) * 100;
+    let atr = 0;
+    for (let i = bars.length - 14; i < bars.length; i++) {
+      const b = bars[i], pv = bars[i - 1].close;
+      atr += Math.max((b.high ?? b.close) - (b.low ?? b.close), Math.abs((b.high ?? b.close) - pv), Math.abs((b.low ?? b.close) - pv));
+    }
+    atr = atr / 14 / last.close * 100;
+    const v20 = bars.slice(-21, -1).reduce((s, b) => s + (b.volume || 0), 0) / 20;
+    const rvol = v20 ? (last.volume || 0) / v20 : 0;
+    let el = host.querySelector('.jhf-stats');
+    if (!el) { el = document.createElement('div'); el.className = 'jhf-stats'; el.style.cssText = 'position:absolute;left:8px;bottom:26px;z-index:7;font:600 10px var(--font-mono,monospace);color:#8b96a8;background:rgba(10,14,22,0.72);border:1px solid rgba(107,122,146,0.25);border-radius:6px;padding:3px 8px;pointer-events:none;display:flex;gap:10px;align-items:center'; host.appendChild(el); }
+    const chips = (window.JHF ? JHF.badges(ticker) : []).slice(0, 5).map(b => `<span style="color:${b.color}" title="${b.label}">${b.icon}</span>`).join(' ');
+    el.innerHTML = `<span style="color:${offHi > -2 ? 'var(--green)' : offHi < -20 ? 'var(--red)' : '#c9d4e6'}">52w ${offHi >= 0 ? '+' : ''}${offHi.toFixed(1)}%</span><span>ATR ${atr.toFixed(1)}%</span><span style="color:${rvol >= 1.5 ? 'var(--amber)' : '#8b96a8'}">RVOL ${rvol.toFixed(1)}×</span>${chips ? '<span style="border-left:1px solid rgba(107,122,146,0.35);padding-left:8px">' + chips + '</span>' : ''}`;
+  }
+  static volumeProfile(paneIdx, chart, series, bars) {
+    const host = document.getElementById('nch-chart-' + paneIdx);
+    if (!host || bars.length < 20) return;
+    let cv = host.querySelector('.jhf-vp');
+    if (!cv) { cv = document.createElement('canvas'); cv.className = 'jhf-vp'; cv.style.cssText = 'position:absolute;top:0;right:0;height:100%;width:130px;z-index:5;pointer-events:none'; host.appendChild(cv); }
+    const draw = () => {
+      const r = chart.timeScale().getVisibleRange();
+      const vis = r ? bars.filter(b => b.time >= r.from && b.time <= r.to) : bars;
+      if (vis.length < 5) return;
+      const lo = Math.min(...vis.map(b => b.low ?? b.close));
+      const hi = Math.max(...vis.map(b => b.high ?? b.close));
+      const NB = 44, bins = new Array(NB).fill(0), step = (hi - lo) / NB || 1e-9;
+      for (const b of vis) { const tp = ((b.high ?? b.close) + (b.low ?? b.close) + b.close) / 3; const k = Math.min(NB - 1, Math.max(0, Math.floor((tp - lo) / step))); bins[k] += b.volume || 0; }
+      const tot = bins.reduce((a, x) => a + x, 0) || 1;
+      let poc = 0; bins.forEach((v, i) => { if (v > bins[poc]) poc = i; });
+      // 70% value area expanding from POC
+      let va = bins[poc], vlo = poc, vhi = poc;
+      while (va / tot < 0.70 && (vlo > 0 || vhi < NB - 1)) {
+        const dn = vlo > 0 ? bins[vlo - 1] : -1, up = vhi < NB - 1 ? bins[vhi + 1] : -1;
+        if (up >= dn) { vhi++; va += bins[vhi]; } else { vlo--; va += bins[vlo]; }
+      }
+      const H = host.clientHeight, W = 130, dpr = window.devicePixelRatio || 1;
+      cv.width = W * dpr; cv.height = H * dpr;
+      const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+      const mx = Math.max(...bins) || 1;
+      for (let i = 0; i < NB; i++) {
+        const pTop = series.priceToCoordinate(lo + (i + 1) * step);
+        const pBot = series.priceToCoordinate(lo + i * step);
+        if (pTop == null || pBot == null) continue;
+        const bw = (bins[i] / mx) * (W - 6);
+        const inVA = i >= vlo && i <= vhi;
+        g.fillStyle = i === poc ? 'rgba(232,200,106,0.85)' : inVA ? 'rgba(34,211,238,0.30)' : 'rgba(107,122,146,0.18)';
+        g.fillRect(W - bw, Math.min(pTop, pBot) + 0.5, bw, Math.abs(pBot - pTop) - 1);
+      }
+      const yPoc = series.priceToCoordinate(lo + (poc + 0.5) * step);
+      if (yPoc != null) { g.strokeStyle = 'rgba(232,200,106,0.9)'; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(0, yPoc); g.lineTo(W, yPoc); g.stroke(); g.setLineDash([]); g.fillStyle = 'rgba(232,200,106,0.95)'; g.font = '600 9px monospace'; g.fillText('POC ' + (lo + (poc + 0.5) * step).toFixed(2), 4, yPoc - 3); }
+    };
+    draw();
+    chart.timeScale().subscribeVisibleTimeRangeChange(draw);
+    if (!host._jhfRo) { host._jhfRo = new ResizeObserver(() => { try { draw(); } catch (e) {} }); host._jhfRo.observe(host); }
+  }
+  static rsOverlay(paneIdx, chart, series, bars, ticker, keep) {
+    if (ticker === 'SPY') return;
+    (async () => {
+      try {
+        const tf = State.tf || { days: 250 };
+        const kk = 'spy_' + (tf.days || 250) + '_' + (tf.span || 'day');
+        State._spyCache = State._spyCache || {};
+        let spy = State._spyCache[kk];
+        if (!spy) {
+          const r = await fetch(`${PROXY}/ohlc?ticker=SPY&mult=${tf.mult || 1}&span=${tf.span || 'day'}&days=${tf.days || 250}`);
+          spy = ((await r.json()).bars || []);
+          if (!spy.length) spy = await jhYahooBars('SPY', tf.days || 250);
+          State._spyCache[kk] = spy;
+        }
+        const sm = new Map(spy.map(b => [b.time, b.close]));
+        const pts = [];
+        for (const b of bars) { const s = sm.get(b.time); if (s) pts.push({ time: b.time, value: b.close / s }); }
+        if (pts.length < 10) return;
+        const base = pts[0].value || 1;
+        const norm = pts.map(p => ({ time: p.time, value: p.value / base }));
+        const ls = chart.addLineSeries({ color: '#c084fc', lineWidth: 1, priceScaleId: 'jhf-rs', lastValueVisible: true, title: 'RS vs SPY' });
+        ls.setData(norm);
+        chart.priceScale('jhf-rs').applyOptions({ visible: false });
+        keep(() => { try { chart.removeSeries(ls); } catch (e) {} });
+      } catch (e) {}
+    })();
+  }
+  static measureClick(paneIdx, p) {
+    const H = (State._charts || {})[paneIdx];
+    if (!H) return;
+    const price = H.series.coordinateToPrice(p.point.y);
+    if (price == null) return;
+    State._measure = State._measure || {};
+    const m = State._measure[paneIdx];
+    const meta = document.getElementById('nch-meta-' + paneIdx);
+    if (!m) {
+      State._measure[paneIdx] = { t: p.time, p: price };
+      if (meta) meta.textContent = 'MEASURE: point A set — click point B';
+    } else {
+      const i1 = H.bars.findIndex(b => b.time === m.t), i2 = H.bars.findIndex(b => b.time === p.time);
+      const nb = (i1 >= 0 && i2 >= 0) ? Math.abs(i2 - i1) : 0;
+      const dd = Math.round(Math.abs(p.time - m.t) / 86400);
+      const pct = (price / m.p - 1) * 100;
+      const ls = H.chart.addLineSeries({ color: '#e8c86a', lineWidth: 1, lineStyle: 2, priceScaleId: 'right', lastValueVisible: false, crosshairMarkerVisible: false });
+      ls.setData([{ time: Math.min(m.t, p.time), value: m.t <= p.time ? m.p : price }, { time: Math.max(m.t, p.time), value: m.t <= p.time ? price : m.p }]);
+      (State._jhfLines[paneIdx] = State._jhfLines[paneIdx] || []).push(() => { try { H.chart.removeSeries(ls); } catch (e) {} });
+      if (meta) meta.innerHTML = `<b style="color:var(--amber)">MEASURE ${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</b> · ${nb} bars · ${dd}d`;
+      delete State._measure[paneIdx];
+    }
+  }
+  static async screenshot() {
+    const H = (State._charts || {})[State.activeChartPane];
+    if (!H) return;
+    try {
+      const src = H.chart.takeScreenshot();
+      const out = document.createElement('canvas');
+      out.width = src.width; out.height = src.height;
+      const g = out.getContext('2d');
+      g.drawImage(src, 0, 0);
+      g.font = '600 12px monospace'; g.fillStyle = 'rgba(139,150,168,0.9)';
+      const label = `${H.ticker} · ${new Date().toISOString().slice(0, 10)} · justhodl.ai`;
+      g.fillText(label, out.width - g.measureText(label).width - 12, out.height - 10);
+      out.toBlob(bl => { const a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = `${H.ticker}_${new Date().toISOString().slice(0, 10)}.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+    } catch (e) { console.warn('screenshot', e); }
+  }
 }
 (function jhfWire() {
   const b = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
   const wire = () => {
     b("fusion-btn", e => { State.fusionOn = State.fusionOn === false; e.currentTarget.classList.toggle("active", State.fusionOn !== false); try { WatchlistManager.render(); } catch (x) {} if (State.activeTicker) NativeChart.render(State.activeTicker); });
     b("sr-btn", e => { State.srOn = State.srOn === false; e.currentTarget.classList.toggle("active", State.srOn !== false); if (State.activeTicker) NativeChart.render(State.activeTicker); });
-    b("avwap-btn", e => { State.avwapMode = !State.avwapMode; e.currentTarget.classList.toggle("active", State.avwapMode); e.currentTarget.textContent = State.avwapMode ? "AVWAP \u2295click" : "AVWAP"; });
+    b("vp-btn", e => { State.vpOn = !State.vpOn; e.currentTarget.classList.toggle("active", State.vpOn); const H=(State._charts||{})[State.activeChartPane]; if (!State.vpOn && H) { const host=document.getElementById('nch-chart-'+State.activeChartPane); const c=host&&host.querySelector('.jhf-vp'); if(c)c.remove(); } else if (State.activeTicker) NativeChart.render(State.activeTicker); });
+  b("log-btn", e => { State.logScale = !State.logScale; e.currentTarget.classList.toggle("active", State.logScale); const H=(State._charts||{})[State.activeChartPane]; if (H) try { H.series.priceScale().applyOptions({ mode: State.logScale ? 1 : 0 }); } catch (x) {} });
+  b("rs-btn", e => { State.rsOn = !State.rsOn; e.currentTarget.classList.toggle("active", State.rsOn); if (State.activeTicker) NativeChart.render(State.activeTicker); });
+  b("measure-btn", e => { State.measureMode = !State.measureMode; e.currentTarget.classList.toggle("active", State.measureMode); if (!State.measureMode && State._measure) State._measure = {}; });
+  b("shot-btn", () => JHF.screenshot());
+  b("avwap-btn", e => { State.avwapMode = !State.avwapMode; e.currentTarget.classList.toggle("active", State.avwapMode); e.currentTarget.textContent = State.avwapMode ? "AVWAP \u2295click" : "AVWAP"; });
   };
   const jhLadder = () => Array.from(document.querySelectorAll('.tf-btn[data-days]'));
   const jhStep = (dir) => { const L = jhLadder(); const i = L.findIndex(x => x.classList.contains('active')); const j = Math.min(Math.max((i < 0 ? L.findIndex(x => x.dataset.span === 'day') : i) + dir, 0), L.length - 1); if (j !== i && L[j]) L[j].click(); };
   b('tf-zoom-in', () => jhStep(-1));
   b('tf-zoom-out', () => jhStep(1));
-  b('tf-fit', () => { try { const c = (State._charts || {})[State.activeChartPane]; if (c) c.timeScale().fitContent(); } catch (e) {} });
+  b('tf-fit', () => { try { const c = (State._charts || {})[State.activeChartPane]; if (c) c.chart.timeScale().fitContent(); } catch (e) {} });
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
     if (e.key === '+' || e.key === '=') { e.preventDefault(); jhStep(-1); }
     else if (e.key === '-' || e.key === '_') { e.preventDefault(); jhStep(1); }
-    else if (e.key === '0') { e.preventDefault(); const c = (State._charts || {})[State.activeChartPane]; if (c) try { c.timeScale().fitContent(); } catch (x) {} }
+    else if (e.key === '0') { e.preventDefault(); const c = (State._charts || {})[State.activeChartPane]; if (c) try { c.chart.timeScale().fitContent(); } catch (x) {} }
   });
   const boot = () => { wire(); JHF.load().catch(() => {}); };
   if (document.readyState === "complete") setTimeout(boot, 900); else window.addEventListener("load", () => setTimeout(boot, 900));
