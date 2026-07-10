@@ -1,7 +1,9 @@
-executing-against: beb738a0d71628dec9d8fad3d0f37800d9f4a65c
-── 1. Plain-URL page (browser-style) ──
-── 2. Plain-URL data JSON ──
+executing-against: b7afdcca36be4869406eb1c43695b1e21269c31a
+── 1. Deploy gate + invoke ──
+── 2. Reversals schema + separation ──
+── 2b. dma200_breaks boards ──
+── 3. Page live ──
 ── verdict ──
-[22:50:35] PASS -- browser-path serves the reversal build
+[23:08:53] PASS
 
-→ Report written to aws/ops/reports/latest/3078_browser_view.md
+→ Report written to aws/ops/reports/latest/3079_dma200_boards.md
