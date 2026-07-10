@@ -1,11 +1,12 @@
-executing-against: 968a28621de3cddbfa9b63dc37e8c3ef24450d14
-── 0. Phase-detector (publishes phases_all) ──
+executing-against: 73c7f8da4f989eea608a77cda615667e47da15de
+── 0. Phase-detector phases_all (live from 3059) ──
 ── 1. Radar ma_state (already live from 3054) ──
 ── 2. IR 3.1 (RRG + transitions + breadth) ──
 ── 2b. Arc B: EW/CW + MA events ──
 ── 2c. Arc C: six fleet joins ──
+── 2d. Arc D: items 12-17 ──
 ── 3. Page (warn-level) ──
 ── verdict ──
-[15:32:30] PASS -- Arc A live
+[15:39:32] PASS -- Arc A live
 
-→ Report written to aws/ops/reports/latest/3059_fleet_joins.md
+→ Report written to aws/ops/reports/latest/3060_arc_d.md
