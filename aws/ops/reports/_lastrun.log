@@ -1,8 +1,9 @@
-executing-against: 3d3099f30506ad1d9ce797a8bd7c3f35ae908ebc
-── 1. Warroom v12 regen ──
-── 2. Harvester ingest (proper verification) ──
-── 3. Live page (warn-level) ──
+executing-against: ef756f6afc3db28d0a91020a64c0927e63d8d5d1
+── 1. Ensure engine ──
+── 2. Run the diff (Event + poll) ──
+── 3. Weekly schedule ──
+── 4. Live page (warn-level) ──
 ── verdict ──
-[03:01:24] PASS
+[03:40:25] PASS -- 2026Q1: 33 whales, 7919 stocks moved
 
-→ Report written to aws/ops/reports/latest/3039_grading_final.md
+→ Report written to aws/ops/reports/latest/3040_whales.md
