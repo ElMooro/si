@@ -1,4 +1,8 @@
-executing-against: c2b9c269b6b2446b9bb24a3102a6a9ed7861048b
-[01:06:12] PASS -- all mock markers live
+executing-against: e3e2a3f09304424db80751e91578509b7923d5ec
+── 1. Wait warroom settled (this push deploys it) ──
+── 2. Regenerate + assert strip ──
+── 3. Live page (warn-level) ──
+── verdict ──
+[02:24:21] PASS -- 2 conviction leads live
 
-→ Report written to aws/ops/reports/latest/3033_visual_check.md
+→ Report written to aws/ops/reports/latest/3034_conviction_strip.md
