@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""ops 3038 -- grading CLOSE. 3037 fail was a verification artifact: the
+"""ops 3039 -- grading FINAL. 3038: the harvester response field
+"engines" is a COUNT (int), len() crashed. Definitive check now =
+paginated DDB scan for eng:canary-warroom rows logged in the last
+40 min (stops at first hit).
+
+Prior: ops 3038 -- grading CLOSE. 3037 fail was a verification artifact: the
 harvester response was string-truncated at 400 chars before the
 membership check, then a Limit=200 filtered Scan on a huge table
 guaranteed a miss. Now parses the response body JSON and checks
@@ -52,7 +57,7 @@ def wait_fresh_settled(fn, max_min=8):
 
 def main():
     fails, warns = [], []
-    with report("3038_grading_close") as rep:
+    with report("3039_grading_final") as rep:
         rep.section("1. Warroom v12 regen")
         if wait_fresh_settled("justhodl-canary-warroom") is None:
             fails.append("warroom not fresh")
@@ -88,12 +93,29 @@ def main():
         raw = json.loads(r["Payload"].read() or b"{}")
         body = raw.get("body")
         body = json.loads(body) if isinstance(body, str) else (body or raw)
-        engines_hit = body.get("engines") or []
         rep.kv(n_written=body.get("n_written"),
-               n_engines=len(engines_hit),
-               warroom_in_engines="canary-warroom" in engines_hit)
-        if picks and "canary-warroom" not in engines_hit:
-            fails.append("canary-warroom absent from harvested engines")
+               engines_count=body.get("engines"))
+        # definitive: recent eng:canary-warroom rows in the ledger
+        from boto3.dynamodb.conditions import Attr
+        ddb = boto3.resource("dynamodb", region_name="us-east-1")
+        t = ddb.Table("justhodl-signals")
+        cutoff = int(time.time()) - 2400
+        cnt, lek = 0, None
+        for _ in range(60):
+            kw = {"Select": "COUNT",
+                  "FilterExpression": Attr("signal_type").eq(
+                      "eng:canary-warroom") & Attr("logged_epoch").gt(
+                      cutoff)}
+            if lek:
+                kw["ExclusiveStartKey"] = lek
+            pg = t.scan(**kw)
+            cnt += pg.get("Count", 0)
+            lek = pg.get("LastEvaluatedKey")
+            if not lek or cnt:
+                break
+        rep.kv(recent_warroom_rows=cnt)
+        if picks and cnt < 1:
+            fails.append("no recent eng:canary-warroom ledger row")
 
         rep.section("3. Live page (warn-level)")
         try:
@@ -123,10 +145,10 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    payload = {"ops": 3038, "fails": fails, "warns": warns,
+    payload = {"ops": 3039, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
-    (AWS_DIR / "ops" / "reports" / "3038.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3039.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
