@@ -83,23 +83,48 @@ def _fmp_get(path, params=None):
 
 
 def fetch_spy_history(years=20):
-    end = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    start = ((datetime.now(timezone.utc)
-              - timedelta(days=365 * years))
-             .strftime("%Y-%m-%d"))
-    try:
-        d = _fmp_get("/historical-price-eod/light",
-                     {"symbol": "SPY", "from": start, "to": end})
-        if isinstance(d, list):
-            rows = d
-        elif isinstance(d, dict) and "historical" in d:
-            rows = d["historical"]
-        else:
-            rows = []
-        return sorted(rows, key=lambda x: x.get("date", ""))
-    except Exception as e:
-        print("spy history fail: %s" % e)
-        return []
+    """Proven fleet pattern: /stable/historical-price-eod/full in
+    bounded ~5y windows (the old single 20y /light call returned
+    empty -- root cause of Whaley PENDING-in-July, Coppock
+    INSUFFICIENT_DATA, forwards n=0, episodes []). Polygon fallback
+    (~5y entitlement) if FMP dies entirely."""
+    now = datetime.now(timezone.utc)
+    out = {}
+    for back in range(years, 0, -5):
+        frm = (now - timedelta(days=365 * back)).strftime("%Y-%m-%d")
+        to = (now - timedelta(days=365 * max(0, back - 5))
+              ).strftime("%Y-%m-%d")
+        try:
+            d = _fmp_get("/historical-price-eod/full",
+                         {"symbol": "SPY", "from": frm, "to": to})
+            rows = (d if isinstance(d, list)
+                    else (d or {}).get("historical") or [])
+            for r in rows:
+                dt, cl = r.get("date"), (r.get("close")
+                                         or r.get("price"))
+                if dt and cl:
+                    out[dt] = {"date": dt, "close": cl}
+        except Exception as e:
+            print("spy chunk %s..%s fail: %s" % (frm, to, e))
+    if len(out) < 350:
+        try:
+            frm = (now - timedelta(days=365 * 5)).strftime("%Y-%m-%d")
+            to = now.strftime("%Y-%m-%d")
+            url = ("https://api.polygon.io/v2/aggs/ticker/SPY/range/1/"
+                   "day/%s/%s?adjusted=true&sort=asc&limit=5000&apiKey="
+                   "%s" % (frm, to, POLYGON_KEY))
+            req = urllib.request.Request(url, headers={"User-Agent":
+                                                       "justhodl/1.0"})
+            with urllib.request.urlopen(req, timeout=25) as r:
+                for a in (json.loads(r.read()).get("results") or []):
+                    dt = datetime.fromtimestamp(
+                        a["t"] / 1000, tz=timezone.utc
+                    ).strftime("%Y-%m-%d")
+                    out.setdefault(dt, {"date": dt, "close": a["c"]})
+        except Exception as e:
+            print("polygon SPY fallback fail: %s" % e)
+    print("spy_history rows: %d" % len(out))
+    return sorted(out.values(), key=lambda x: x["date"])
 
 
 def price_at_or_after(history, target_iso):
@@ -633,6 +658,7 @@ def lambda_handler(event, context):
             "zweig_window_max": zweig.get("max_in_window"),
             "zweig_thresholds": zweig.get("thresholds"),
             "n_breadth_days_cached": len(history),
+            "spy_history_n": len(spy_hist),
             "newly_fetched_this_run": fetched,
             "whaley": whaley,
             "coppock": coppock,

@@ -137,7 +137,7 @@ function renderState(d){
   if(d.state_transition)sub.push('transition: '+d.state_transition);
   return '<div class="state-banner s-'+s+'">'+
     '<div><div class="state-label">Zweig State</div>'+
-    '<div class="state-value">'+esc(d.state)+'</div>'+
+    '<div class="state-value">'+esc(d.state==='NULL'?'NO SETUP':d.state)+'</div>'+(d.state==='NULL'?'<div class="sub-info">state machine: NULL (waiting -- this signal fires once every 4\u20137 years)</div>':'')+
     '<div class="sub-info">'+sub.join(' &middot; ')+'</div></div>'+
     '<div><div class="strength">'+esc(d.signal_strength||0)+'</div>'+
     '<div class="strength-l">signal strength / 100</div></div></div>';
