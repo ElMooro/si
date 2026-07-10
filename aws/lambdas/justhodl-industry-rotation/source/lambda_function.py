@@ -705,8 +705,35 @@ def lambda_handler(event=None, context=None):
     # 50/200-DMA, from accumulation-radar's ma_state (per-name MA flags
     # across its 487-name universe; prior close). Practitioner
     # threshold: >=70% above 50d = healthy trend. ──
-    _ma = (s3_json("data/accumulation-radar.json") or {}
-           ).get("ma_state") or {}
+    _ma = dict((s3_json("data/accumulation-radar.json") or {}
+                ).get("ma_state") or {})
+    # gap-fill (3054 finding: 18/40 ETFs hold small-caps outside the
+    # radar's 487-name universe): compute above-50/200 directly from
+    # Polygon for uncovered holdings, capped at 12 fills per ETF.
+    _fill_budget = 220
+    for r_ in rows:
+        if _fill_budget <= 0:
+            break
+        holds = (holdings_by_etf.get(r_["etf"]) or [])[:25]
+        missing = [h["ticker"] for h in holds
+                   if h.get("ticker") and h["ticker"] not in _ma][:12]
+        need = 5 - sum(1 for h in holds
+                       if h.get("ticker") in _ma)
+        if need <= 0:
+            continue
+        for tk_ in missing:
+            if _fill_budget <= 0:
+                break
+            try:
+                c_ = polygon_daily(tk_, days=320)
+                _fill_budget -= 1
+                if len(c_) >= 200:
+                    s50_, s200_ = sma(c_, 50), sma(c_, 200)
+                    _ma[tk_] = [1 if s50_ and c_[-1] > s50_ else 0,
+                                1 if s200_ and c_[-1] > s200_ else 0]
+                time.sleep(0.12)
+            except Exception:
+                _fill_budget -= 1
     for r_ in rows:
         holds = (holdings_by_etf.get(r_["etf"]) or [])[:25]
         cov = [(h["ticker"], _ma[h["ticker"]]) for h in holds
