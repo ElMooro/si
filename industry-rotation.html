@@ -56,6 +56,10 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
     <div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Transitions are the actionable signal: IMPROVING&rarr;LEADING = canonical buy, WEAKENING&rarr;LAGGING = confirmed weakness. IMPROVING&rarr;LEADING crossings are logged to the closed loop and graded forward vs SPY &mdash; measure-before-trust.</div></div>
   </section>
   <section>
+    <h2>MA-Cross Events <span class="n">dated crossings of 50/100/200-DMA &middot; golden &amp; death crosses &middot; golden crosses graded in the closed loop</span></h2>
+    <div class="card" id="maev"></div>
+  </section>
+  <section>
     <h2>RRG Transitions <span class="n">dated quadrant crossings &middot; last 60</span></h2>
     <div class="card" id="rrgtrans"></div>
   </section>
@@ -105,6 +109,12 @@ function renderRRG(d){
     s+='<text x="'+(X(e.x)+6).toFixed(1)+'" y="'+(Y(e.y)+4).toFixed(1)+'" font-size="10.5" font-weight="700" fill="'+c+'">'+t+'</text>';});
   document.getElementById("rrg").innerHTML=s+"</svg>";
 }
+function renderMAev(d){
+  var ev=d.ma_events||[];
+  document.getElementById("maev").innerHTML=ev.length?ev.slice(0,24).map(function(e){
+    return '<div style="display:flex;gap:10px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(107,122,146,.15)"><b style="min-width:52px">'+esc(e.etf)+'</b><span style="color:var(--fg-3);font-size:11px">'+esc(e.date)+'</span><b style="color:'+(e.bullish?"var(--green)":"var(--red)")+'">'+esc(e.event.replace(/_/g," "))+'</b></div>';
+  }).join(""):'<span style="color:var(--fg-3)">no MA crossings recorded yet — events accrue daily from today</span>';
+}
 function renderTrans(d){
   var tr=d.rrg_transitions||[];
   document.getElementById("rrgtrans").innerHTML=tr.length?tr.slice(0,20).map(function(t){
@@ -145,10 +155,10 @@ fetchJSON("data/industry-rotation.json").then(function(d){
       (function(){var c=r.credit_read;if(!c)return"<td>\u2014</td>";var col=c==="DANGER"?"var(--red)":(c==="WATCH"?"var(--amber)":(c==="OK"?"var(--green)":"var(--fg-3)"));return '<td style="color:'+col+';font-size:10px">'+esc(c)+"</td>";})()+
       "<td><b>"+r.leadership_score+"</b></td>"+
       '<td class="'+(rd>0?"up":(rd<0?"dn":""))+'">'+(rd==null?"—":(rd>0?"+":"")+rd)+"</td>"+
-      "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+(r.crowded?' <span class="tag" style="background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)">CROWDED</span>':"")+(r.ratio_3m_high?' <span class="tag" style="background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)">RS 3M-HIGH</span>':"")+(r.resilience_read==="DEFENSIVE_ONLY"?' <span class="tag" style="background:rgba(107,122,146,.15);color:var(--fg-3);border:1px solid rgba(107,122,146,.4)" title="holds dumps but no upside acceleration — defensive trap">DEF-ONLY</span>':(r.resilience_read==="RESILIENT_LEADER"?' <span class="tag" style="background:rgba(56,255,168,.10);color:var(--green);border:1px solid rgba(56,255,168,.35)">RESILIENT+</span>':""))+"</td></tr>";
+      "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+(r.crowded?' <span class="tag" style="background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)">CROWDED</span>':"")+(r.ratio_3m_high?' <span class="tag" style="background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)">RS 3M-HIGH</span>':"")+(r.ew_cw?(r.ew_cw.read==="NARROW"?' <span class="tag" style="background:rgba(255,93,93,.10);color:var(--red);border:1px solid rgba(255,93,93,.4)" title="equal-weight twin '+esc(r.ew_cw.ew)+' lagging cap-weight — generals without soldiers">EW NARROW</span>':(r.ew_cw.read==="BROAD"?' <span class="tag" style="background:rgba(56,255,168,.08);color:var(--green);border:1px solid rgba(56,255,168,.3)" title="equal-weight '+esc(r.ew_cw.ew)+' confirming">EW BROAD</span>':""))  :"")+(r.resilience_read==="DEFENSIVE_ONLY"?' <span class="tag" style="background:rgba(107,122,146,.15);color:var(--fg-3);border:1px solid rgba(107,122,146,.4)" title="holds dumps but no upside acceleration — defensive trap">DEF-ONLY</span>':(r.resilience_read==="RESILIENT_LEADER"?' <span class="tag" style="background:rgba(56,255,168,.10);color:var(--green);border:1px solid rgba(56,255,168,.35)">RESILIENT+</span>':""))+"</td></tr>";
     }).join("");
   document.getElementById("ranknote").textContent=d.rank_note||"";
-  renderRRG(d);renderTrans(d);
+  renderRRG(d);renderTrans(d);renderMAev(d);
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
     var h=(l.holdings_top||[]).map(function(x){return "<span>"+esc(x.ticker)+" "+esc(x.weight_pct)+"%</span>";}).join("");
     var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+(x.chain_intact?' · <b style="color:var(--cyan)" title="stock &gt; ETF &gt; SPY, 3m">CHAIN</b>':"")+(x.vs_etf_3m_pp!=null?" · vsETF "+(x.vs_etf_3m_pp>0?"+":"")+x.vs_etf_3m_pp+"pp":"")+(x.pead?' · <b style="color:var(--violet)">PEAD+</b>':"")+"</span>";}).join("");

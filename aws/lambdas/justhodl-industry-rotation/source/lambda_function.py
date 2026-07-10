@@ -79,6 +79,13 @@ INDUSTRIES = {
     "XTN": ("Transportation Eq", "Industrials"),
     "XHB": ("Homebuilders Broad", "Consumer Discretionary")}
 UNIVERSE = list(SECTORS) + list(INDUSTRIES)
+# v3.2: Invesco equal-weight twins (post-2023 tickers) for
+# narrowness detection -- cap-weight rising while equal-weight lags
+# = generals without soldiers.
+EW_TWINS = {"XLK": "RSPT", "XLF": "RSPF", "XLV": "RSPH",
+            "XLY": "RSPD", "XLP": "RSPS", "XLE": "RSPG",
+            "XLI": "RSPN", "XLB": "RSPM", "XLRE": "RSPR",
+            "XLU": "RSPU", "XLC": "RSPC"}
 
 
 def _http(url, timeout=25, tries=2):
@@ -809,6 +816,96 @@ def lambda_handler(event=None, context=None):
                              "v": "3.1", "transition": "IMP->LEAD"}})
     except Exception as e:
         warns.append("rrg loop-log: %s" % str(e)[:70])
+
+    # ── v3.2 EQUAL-WEIGHT vs CAP-WEIGHT divergence (item 4) ──
+    ew_cw = {}
+    for cw, ew in EW_TWINS.items():
+        try:
+            ec = polygon_daily(ew, days=420)
+            time.sleep(0.12)
+        except Exception:
+            ec = []
+        cwc = closes.get(cw) or []
+        n_ = min(len(ec), len(cwc))
+        if n_ < 140:
+            continue
+        ratio_ = [ec[-n_ + i] / cwc[-n_ + i] for i in range(n_)
+                  if cwc[-n_ + i]]
+        base_ = sma(ratio_, 63)
+        sl20 = (round((ratio_[-1] / ratio_[-21] - 1.0) * 100, 2)
+                if len(ratio_) >= 21 and ratio_[-21] else None)
+        read_ = ("BROAD" if base_ and ratio_[-1] >= base_ else
+                 "NARROW" if sl20 is not None and sl20 < -1.0
+                 else "THINNING")
+        ew_cw[cw] = {"ew": ew, "ew_cw_20d_pct": sl20,
+                     "above_63d_base": bool(base_
+                                            and ratio_[-1] >= base_),
+                     "read": read_}
+    for r_ in rows:
+        if r_["etf"] in ew_cw:
+            r_["ew_cw"] = ew_cw[r_["etf"]]
+
+    # ── v3.2 DATED MA-CROSS EVENTS (item 5) ──
+    prev_ma_ev = prev.get("ma_events") or []
+    new_ev = []
+    for t, c in closes.items():
+        if len(c) < 210:
+            continue
+        for n_, lbl in ((50, "50D"), (100, "100D"), (200, "200D")):
+            s_now = sma(c, n_)
+            s_prev = sma(c[:-1], n_)
+            if not (s_now and s_prev):
+                continue
+            if c[-2] <= s_prev and c[-1] > s_now:
+                new_ev.append({"etf": t, "date": today_iso,
+                               "event": "CROSS_ABOVE_%s" % lbl,
+                               "bullish": True})
+            elif c[-2] >= s_prev and c[-1] < s_now:
+                new_ev.append({"etf": t, "date": today_iso,
+                               "event": "CROSS_BELOW_%s" % lbl,
+                               "bullish": False})
+        g50n, g200n = sma(c, 50), sma(c, 200)
+        g50p, g200p = sma(c[:-3], 50), sma(c[:-3], 200)
+        if all((g50n, g200n, g50p, g200p)):
+            if g50p <= g200p and g50n > g200n:
+                new_ev.append({"etf": t, "date": today_iso,
+                               "event": "GOLDEN_CROSS",
+                               "bullish": True})
+            elif g50p >= g200p and g50n < g200n:
+                new_ev.append({"etf": t, "date": today_iso,
+                               "event": "DEATH_CROSS",
+                               "bullish": False})
+    ma_events = (new_ev + [e for e in prev_ma_ev
+                           if e.get("date") != today_iso])[:80]
+    try:
+        from decimal import Decimal
+        nowt2 = datetime.now(timezone.utc)
+        tbl2 = boto3.resource("dynamodb", "us-east-1").Table(
+            "justhodl-signals")
+        for ev in new_ev:
+            if ev["event"] != "GOLDEN_CROSS":
+                continue
+            px2 = closes.get(ev["etf"], [None])[-1]
+            if not px2:
+                continue
+            tbl2.put_item(Item={
+                "signal_id": "irgc-UP#%s#%s" % (ev["etf"], today_iso),
+                "signal_type": "ir_golden_cross",
+                "predicted_direction": "UP",
+                "signal_value": "1", "confidence": Decimal("0.55"),
+                "measure_against": "ticker_vs_benchmark",
+                "baseline_price": str(round(px2, 2)),
+                "benchmark": "SPY",
+                "check_windows": ["day_5", "day_21", "day_63"],
+                "outcomes": {}, "accuracy_scores": {},
+                "status": "pending", "logged_at": nowt2.isoformat(),
+                "logged_epoch": int(nowt2.timestamp()),
+                "horizon_days_primary": 63, "schema_version": "2",
+                "ttl": int(nowt2.timestamp()) + 150 * 86400,
+                "metadata": {"engine": "industry-rotation",
+                             "v": "3.2", "event": "GOLDEN_CROSS"}})
+    except Exception as e:
+        warns.append("ma-event loop-log: %s" % str(e)[:70])
     credit = {}
     try:
         credit = industry_credit(list(holdings_by_etf),
@@ -875,7 +972,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.1",
+        "engine": "justhodl-industry-rotation", "version": "3.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -919,6 +1016,7 @@ def lambda_handler(event=None, context=None):
         "finviz_sector_perf_attached": bool(fv),
         "score_history": hist,
         "rrg": rrg, "rrg_transitions": rrg_transitions,
+        "ew_cw": ew_cw, "ma_events": ma_events,
         "rank_note": rank_note,
         "warns": warns[:20]}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
