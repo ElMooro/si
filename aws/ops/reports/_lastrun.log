@@ -1,17 +1,7 @@
-executing-against: 93a5e7da484cb2eb2e3d343f4f070a4f63f76362
-── 1. Ensure engine ──
-── 1b. Repair env (deploy-lambdas created fn WITHOUT donor env -- 3047 evidence: POLYGON key missing, 3ms crash) ──
-── 2. Segment the market (SYNC + log tail) ──
-[05:02:31] engine log tail:
-START RequestId: 73a8a641-b9fb-4732-9281-12bdc26d7942 Version: $LATEST
-[phase] 683 analyzed, counts={'ACCUMULATION': 15, 'DISTRIBUTION': 27, 'MARKUP': 41, 'MARKDOWN': 18, 'NEUTRAL_RANGE': 21, 'NEUTRAL': 561}, 11s
-END RequestId: 73a8a641-b9fb-4732-9281-12bdc26d7942
-REPORT RequestId: 73a8a641-b9fb-4732-9281-12bdc26d7942	Duration: 11455.17 ms	Billed Duration: 11983 ms	Memory Size: 2048 MB	Max Memory Used: 194 MB	Init Duration: 527.24 ms	
-XRAY TraceId: 1-6a507cda-41ef8849326a781f7dfde971	SegmentId: d508d0a0b8c084fd	Sampled: true	
+executing-against: 6466d6820ca181ec1fc9a03fe5cbc6770fccc0c4
+── 1. S3 object ──
+── 2. Routes (runner-side) ──
+── 3. Engine + schedule ──
+[13:01:23] evidence-only pass done
 
-── 3. Daily schedule ──
-── 4. Live page (warn-level) ──
-── verdict ──
-[05:02:32] PASS -- 683 analyzed, counts {'ACCUMULATION': 15, 'DISTRIBUTION': 27, 'MARKUP': 41, 'MARKDOWN': 18, 'NEUTRAL_RANGE': 21, 'NEUTRAL': 561}
-
-→ Report written to aws/ops/reports/latest/3048_phase_detector.md
+→ Report written to aws/ops/reports/latest/3049_breadth_diag.md
