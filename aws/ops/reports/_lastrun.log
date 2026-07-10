@@ -1,22 +1,6 @@
-executing-against: a2ea4c0f5da1e2f4f0fe0677a64ffab1840ca493
+executing-against: 869544617bb2bf80cfa19007816138bdaf538389
 ── 1. Ensure engine ──
+── 2. Segment the market (Event + poll, long) ──
 
-→ Report written to aws/ops/reports/latest/3044_phase_detector.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3044_phase_detector.py", line 212, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3044_phase_detector.py", line 82, in main
-    if not ensure_fn(rep):
-           ^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3044_phase_detector.py", line 67, in ensure_fn
-    LAM.create_function(
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the CreateFunction operation: Function already exist: justhodl-phase-detector
-❌ OPS-FAIL: aws/ops/pending/ops_3044_phase_detector.py
+→ Report written to aws/ops/reports/latest/3045_phase_detector.md
+❌ OPS-FAIL: aws/ops/pending/ops_3045_phase_detector.py
