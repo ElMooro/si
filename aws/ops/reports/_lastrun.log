@@ -1,8 +1,10 @@
-executing-against: bf2b41e349e1d7ee5196797ae2fbb99e1d76cbd8
-── 1. Wait for pages deploy ──
-── 2. /ohlc worker route (runner-side) ──
-── 3. Fusion feed freshness (S3) ──
+executing-against: ec7e45dface1b32a1c987775e3fe5fda217713d8
+── 1. Page live (post-CDN) ──
+── 2. Worker: full-history cap live ──
+── 3. Index route (Yahoo path) ──
 ── verdict ──
-[16:43:57] PASS -- Chart Pro fusion live
+[17:30:17] FAIL: /ohlc days=9999 never exceeded 300 weekly bars (cap not live?)
+[17:30:17] FAIL: yf-ohlc ^GSPC: not enough arguments for format string
 
-→ Report written to aws/ops/reports/latest/3064_chartpro_fusion.md
+→ Report written to aws/ops/reports/latest/3065_chartpro_cleanup.md
+❌ OPS-FAIL: aws/ops/pending/ops_3065_chartpro_cleanup.py
