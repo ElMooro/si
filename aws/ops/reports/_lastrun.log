@@ -1,11 +1,7 @@
-executing-against: 3dd2e4da6393175ea82f197486245089af619833
-── 1. Wait both deploys, invoke both ──
-── 2. Radar v1.3.0 asserts ──
-── 3. Whales v1.2 asserts ──
-── 4. Pages (warn-level, CDN) ──
+executing-against: f2d6518b1f03f63c9b2b6cb9084798abb2a08238
+── 1. Whales v1.2 first (radar depends on it) ──
+── 2. Radar v1.3.0 (reads the fresh whale map) ──
 ── verdict ──
-[13:32:56] FAIL: whales join=400
-[13:32:56] FAIL: sector_flows=0 (<6)
+[13:39:26] PASS
 
-→ Report written to aws/ops/reports/latest/3052_confluence_upgrade.md
-❌ OPS-FAIL: aws/ops/pending/ops_3052_confluence_upgrade.py
+→ Report written to aws/ops/reports/latest/3053_confluence_seq.md
