@@ -657,6 +657,20 @@ def lambda_handler(event=None, context=None):
             continue
         try:
             card, cans = fn(d)
+            asof = (d.get("generated_at") or d.get("as_of")
+                    or d.get("timestamp") or d.get("updated_at"))
+            card["feed_as_of"] = asof
+            try:
+                dtv = datetime.fromisoformat(
+                    str(asof).replace("Z", "+00:00"))
+                if dtv.tzinfo is None:
+                    dtv = dtv.replace(tzinfo=timezone.utc)
+                card["feed_age_h"] = round(
+                    (now - dtv).total_seconds() / 3600.0, 1)
+                card["stale"] = card["feed_age_h"] > 36
+            except Exception:
+                card["feed_age_h"] = None
+                card["stale"] = None
             cards.append(card); all_cans.extend(cans)
         except Exception as e:
             cards.append({"key": key, "error": str(e)[:80]})
@@ -870,7 +884,24 @@ def lambda_handler(event=None, context=None):
                           "funding-plumbing member and every live "
                           "sentinel state (operator instruction "
                           "2026-07-09).")}
+    # ── forward grading (Khalid item 2): emit a harvester-compatible
+    # SPY stance from the EARNED view so the scorecard grades the
+    # barometer itself (forward excess-vs-SPY, signed by direction).
+    # FLAT band (40-55) emits nothing -- no gradeable claim.
+    picks = []
+    if earned is not None:
+        if earned < 40:
+            picks = [{"ticker": "SPY", "direction": "LONG",
+                      "score": round(40 - earned, 1),
+                      "note": "barometer risk-on band"}]
+        elif earned >= 55:
+            # harvester grades all picks LONG -- express risk-off as
+            # LONG the inverse-S&P ETF (real instrument, faithful sign)
+            picks = [{"ticker": "SH", "direction": "LONG",
+                      "score": round(earned - 55 + 5, 1),
+                      "note": "barometer risk-off band (inverse ETF)"}]
     out = {"engine": "justhodl-canary-warroom", "generated_at": now.isoformat(),
+           "top_picks": picks,
            "barometer": barometer,
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),

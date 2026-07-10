@@ -48,7 +48,7 @@
   .pin{font-size:10px;color:var(--elev);font-weight:700}
   .muted{color:var(--mut)} .rt{text-align:right}
 </style>
-</head>
+<style>@media(max-width:760px){#baro [style*="min-width:500px"]{min-width:0!important;max-width:100%!important;width:100%}#baro svg{max-width:100%;height:auto}#baro div[style*="font-size:40px"]{font-size:24px!important}#baro div[style*="letter-spacing:6px"]{letter-spacing:2px!important;font-size:13px!important}}</style></head>
 <body>
 <div class="wrap">
   <div><a href="/">← JustHodl</a></div>
@@ -137,7 +137,7 @@ function render(d){
     const mechCard=([k,m],i)=>{
       const pos=Math.max(2,Math.min(98,m.score||0)),mi=Math.min(4,Math.floor((m.score||0)/20));
       const segs=SEGC.map(c=>`<div style="flex:1;height:13px;border-radius:2.5px;background:${c}"></div>`).join('');
-      return `<div style="background:#0d131dee;border:1px solid #2b3547;border-radius:10px;padding:11px 14px">
+      return `<div onclick="filt='${k}';window._VIEW=window._VIEW;renderTbl();document.getElementById('tbl').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;background:#0d131dee;border:1px solid #2b3547;border-radius:10px;padding:11px 14px" title="Click to filter the inventory to this mechanism">
         <div style="display:flex;align-items:center;gap:10px">
           <span style="border:1.5px solid #35b6e0;color:#35b6e0;font-weight:800;font-size:13px;border-radius:5px;padding:1px 8px;background:#0a1622">${i+1}</span>
           <span style="font-size:19px;filter:hue-rotate(0deg)">${MICON[k]||'📊'}</span>
@@ -158,6 +158,7 @@ function render(d){
           <div style="flex:1;max-width:180px;height:2px;background:linear-gradient(90deg,transparent,${GOLD})"></div>
           <div style="color:${GOLD};letter-spacing:6px;font-size:17px;font-weight:700">RISK VISUAL BAROMETER</div>
           <div style="flex:1;max-width:180px;height:2px;background:linear-gradient(90deg,${GOLD},transparent)"></div></div>
+        ${(()=>{const mechsArr=(d.mechanisms||[]);const stale=mechsArr.filter(x=>x.stale===true);const fresh=mechsArr.length-stale.length;return `<div class="ff" style="margin-top:6px;font-size:10.5px;color:${stale.length?'#f08c1e':'#2e9e4f'}">data health: ${fresh}/${mechsArr.length} feeds fresh${stale.length?' · stale: '+stale.map(x=>x.key).join(', '):''}</div>`})()}
         <div style="display:inline-block;margin-top:12px;border:1.5px solid ${GOLD};color:${GOLD};font-weight:800;letter-spacing:3px;font-size:15px;padding:6px 26px;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);background:#10151f">${entries.length||12} CANARY MECHANISMS</div>
         <div style="margin-top:8px">
           <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:10.5px">Equal per mechanism</button>
@@ -191,6 +192,15 @@ function render(d){
             <div style="display:flex;gap:8px;margin-top:10px">
               ${B5.map((t,j)=>`<div style="flex:1;text-align:center"><div style="height:16px;border-radius:3px;background:${SEGC[j]};box-shadow:0 0 8px ${SEGC[j]}66"></div><div style="font-weight:800;font-size:11px;letter-spacing:.5px;color:${SEGC[j]};margin-top:5px">${t}</div><div style="font-size:9px;color:#cfd6e2;line-height:1.35;margin-top:2px">${GUIDE[t]}</div></div>`).join('')}</div></div></div>
         <div style="flex:1;min-width:300px">${right}</div></div>
+      ${(()=>{const F=(d.firing||[]).filter(c=>typeof c.lead_months=='number');if(!F.length)return '';
+        const MC={macro_grid:'#5b8dd6',funding:'#2e9e4f',leading_markets:'#8a6fd8',dollar:'#3fae9e',vol:'#e8c227',ciss:'#f08c1e',factor_regime:'#c46ad0',cftc:'#e05c8f',global_stress:'#35b6e0',plumbing:'#a3b34a',eurodollar:'#d68f4a',alerts:'#9aa4b5'};
+        const W2=1060,H2=88,L2=30,R2b=16,lane=W2-L2-R2b;const xm=l=>L2+lane*Math.min(12,Math.max(0.1,l))/12;
+        const byX={};F.forEach(c=>{const k=Math.round(xm(c.lead_months));byX[k]=(byX[k]||0)+1;c._yi=byX[k]});
+        const dots=F.map(c=>`<circle cx="${xm(c.lead_months).toFixed(1)}" cy="${(H2-26-((c._yi-1)%5)*9).toFixed(1)}" r="4" fill="${MC[c.mechanism]||'#889'}" opacity=".9"><title>${(c.name||'').replace(/"/g,'')} — ${c.lead_months}mo lead · stress ${c.stress}</title></circle>`).join('');
+        const ticks2=[0.25,1,2,3,6,9,12].map(t=>`<line x1="${xm(t)}" y1="${H2-20}" x2="${xm(t)}" y2="${H2-14}" stroke="#44506a"/><text x="${xm(t)}" y="${H2-4}" text-anchor="middle" style="font-size:9px;fill:var(--mut)">${t<1?'wks':t+'mo'}</text>`).join('');
+        return `<div style="margin-top:14px;border:1px solid #2a3444;border-radius:10px;padding:10px 12px;background:#0b101a">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap"><b style="font-size:12px;letter-spacing:1px">FIRING CANARIES BY LEAD-TIME</b><span class="ff muted" style="font-size:10px">how far ahead each flashing canary historically leads — hover for names</span></div>
+          <svg width="100%" viewBox="0 0 ${W2} ${H2}"><line x1="${L2}" y1="${H2-20}" x2="${W2-R2b}" y2="${H2-20}" stroke="#44506a"/>${ticks2}${dots}</svg></div>`})()}
       <div style="display:flex;align-items:center;gap:14px;margin-top:16px;border-top:1px solid ${GOLD}33;padding-top:11px">
         <div style="flex:1;height:1.5px;background:linear-gradient(90deg,${GOLD}88,transparent)"></div>
         <span style="width:34px;height:34px;border:1.5px solid ${GOLD};border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:17px;background:#10151f">🐤</span>
@@ -248,7 +258,8 @@ function render(d){
 function renderTbl(){
   const rows=(filt=='everything'
       ? (DATA.all_canaries||[]).slice().sort((a,b)=>(b.stress||0)-(a.stress||0))
-      : (DATA.firing||[]).filter(c=>filt=='all'||c.mechanism==filt));
+      : filt=='all' ? (DATA.firing||[])
+      : (DATA.all_canaries||[]).filter(c=>c.mechanism==filt).sort((a,b)=>(b.stress||0)-(a.stress||0)));
   document.querySelector('#tbl thead').innerHTML='<tr><th>Mechanism</th><th>Canary</th><th>Band</th><th class="rt">Stress</th><th class="rt">Lead (mo)</th><th>Value</th><th>Read</th></tr>';
   document.querySelector('#tbl tbody').innerHTML=rows.map(c=>{
     const cc=col(c.band),st=c.stress==null?0:c.stress;
