@@ -1391,6 +1391,7 @@ a:hover { text-decoration: underline; }
     <button class="layout-btn" id="corr-btn" title="Correlation matrix of your watchlist">
       <svg viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="2" width="3.5" height="3.5"/><rect x="6.25" y="2" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="2" width="3.5" height="3.5" opacity="0.25"/><rect x="2" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="6.25" y="6.25" width="3.5" height="3.5"/><rect x="10.5" y="6.25" width="3.5" height="3.5" opacity="0.5"/><rect x="2" y="10.5" width="3.5" height="3.5" opacity="0.25"/><rect x="6.25" y="10.5" width="3.5" height="3.5" opacity="0.5"/><rect x="10.5" y="10.5" width="3.5" height="3.5"/></svg>
     </button>
+    <button class="layout-btn" id="alert-builder-btn" title="Custom alerts" style="color:var(--amber)">🔔 Alerts</button>
     <button class="layout-btn" id="fusion-btn" title="Engine fusion: Wyckoff phases, insider clusters, whale flow, MA events on the chart" style="color:#26ffaf">⚡ FUSION</button>
     <button class="layout-btn" id="sr-btn" title="Auto support/resistance from pivot clusters">S/R</button>
     <button class="layout-btn" id="avwap-btn" title="Anchored VWAP: toggle, then click any bar to anchor. Auto-anchors at the current Wyckoff phase begin.">AVWAP</button>
@@ -1415,19 +1416,9 @@ a:hover { text-decoration: underline; }
 
   <!-- Edge tabs to pull out the drawers -->
   <div class="edge-tab edge-tab-left" id="edge-tab-left"><span class="et-icon">📋</span>WATCHLIST</div>
-  <div class="edge-tab edge-tab-setups" id="edge-tab-setups"><span class="et-icon">⚡</span>TODAY'S SETUPS</div>
   <div class="edge-tab edge-tab-right" id="edge-tab-right"><span class="et-icon">🧠</span>INTEL</div>
 
-  <!-- ─── SETUPS DRAWER (unified conviction board) ─── -->
-  <aside class="setups-drawer" id="setups-drawer">
-    <div class="setups-head">
-      <span class="setups-title">⚡ Today's Highest-Conviction Setups</span>
-      <span class="setups-meta" id="setups-meta"></span>
-      <button class="wl-sel-act" id="alert-builder-btn" title="Custom alerts" style="margin-left:auto;color:var(--amber);border:1px solid var(--amber);width:auto;padding:0 10px;font-size:11px;font-family:var(--font-mono)">🔔 Alerts</button>
-      <button class="drawer-close" id="close-setups" style="position:static;margin-left:8px">×</button>
-    </div>
-    <div class="setups-body" id="setups-body"><div class="wl-loading">Loading fused conviction…</div></div>
-  </aside>
+  
 
   <!-- ─── LEFT SIDEBAR: Watchlists (TradingView-style) ─── -->
   <aside class="left-sidebar" id="left-sidebar">
@@ -1502,8 +1493,10 @@ a:hover { text-decoration: underline; }
         <button class="tf-btn" data-mult="5" data-span="minute" data-days="5">5m</button>
         <button class="tf-btn" data-mult="1" data-span="hour" data-days="30">1H</button>
         <button class="tf-btn active" data-mult="1" data-span="day" data-days="250">1D</button>
+        <button class="tf-btn" data-mult="1" data-span="day" data-days="1825">5Y</button>
         <button class="tf-btn" data-mult="1" data-span="week" data-days="1825">1W</button>
         <button class="tf-btn" data-mult="1" data-span="month" data-days="3650">1M</button>
+        <button class="tf-btn" data-mult="1" data-span="week" data-days="9999" title="Full available history (Polygon)">MAX</button>
       </div>
       <div class="tf-bar chg-bar" id="chg-bar" title="FRED-style period-over-period % change">
         <button class="chg-btn active" data-chg="price">Price</button>
@@ -2582,6 +2575,7 @@ class UI {
   }
   
   static renderSetups() {
+    return;  // conviction drawer removed 2026-07-10 (Khalid)
     const doc = State.best_setups || {};
     const setups = doc.top_setups || [];
     const triples = doc.triple_threats || setups.filter(s => s.triple_threat);
@@ -4239,6 +4233,11 @@ class NativeChart {
     if (type) State.symbolType[ticker] = type;  // cache the guess
     if (type === 'crypto') return this.renderYahoo(ticker, this.cryptoToYahoo(ticker), 'Crypto');
     if (type === 'forex') return this.renderYahoo(ticker, this.fxToYahoo(ticker), 'Forex');
+    const INDEX_MAP = { SPX:'^GSPC', GSPC:'^GSPC', NDX:'^NDX', IXIC:'^IXIC', COMP:'^IXIC', DJI:'^DJI', DJIA:'^DJI', RUT:'^RUT', VIX:'^VIX', SOX:'^SOX', TNX:'^TNX', TYX:'^TYX', FVX:'^FVX', DXY:'DX-Y.NYB', HSI:'^HSI', N225:'^N225', NI225:'^N225', DAX:'^GDAXI', FTSE:'^FTSE', STOXX50E:'^STOXX50E', KS11:'^KS11', TWII:'^TWII' };
+    if ((type && String(type).toLowerCase().includes('index')) || INDEX_MAP[ticker]) {
+      State.symbolType[ticker] = 'index';
+      return this.renderYahoo(ticker, INDEX_MAP[ticker] || ('^' + ticker), 'Index');
+    }
     return this.renderEquity(ticker);
   }
   
@@ -5747,7 +5746,6 @@ class CommandPalette {
   static commands() {
     return [
       { icon: '🔍', label: 'Search any symbol or macro series', hint: '/', group: 'Navigate', run: () => { const si=document.getElementById('search-input'); if(si){si.focus();si.select();} } },
-      { icon: '⚡', label: "Open Today's Setups", hint: '\\', group: 'Navigate', run: () => { UI.renderSetups(); window.__jhDrawers.setSetups(true); } },
       { icon: '📋', label: 'Toggle Watchlist', hint: '[', group: 'Navigate', run: () => window.__jhDrawers.setLeft(true) },
       { icon: '🧠', label: 'Toggle Intel panel', hint: ']', group: 'Navigate', run: () => window.__jhDrawers.setRight(true) },
       { icon: '🧠', label: 'AI Read this chart', hint: '', group: 'Analyze', run: () => ChartAI.read() },
@@ -6464,15 +6462,8 @@ async function init() {
   function setLeft(open) { leftDrawer.classList.toggle('open', open); edgeLeft.classList.toggle('hidden', open); }
   function setRight(open) { rightDrawer.classList.toggle('open', open); edgeRight.classList.toggle('hidden', open); }
   const setupsDrawer = document.getElementById('setups-drawer');
-  const edgeSetups = document.getElementById('edge-tab-setups');
-  function setSetups(open) { setupsDrawer.classList.toggle('open', open); edgeSetups.classList.toggle('hidden', open); }
-  window.__jhDrawers = { setLeft, setRight, setSetups };
-  edgeLeft.addEventListener('click', () => setLeft(true));
-  edgeRight.addEventListener('click', () => setRight(true));
-  edgeSetups.addEventListener('click', () => { UI.renderSetups(); setSetups(true); });
-  document.getElementById('close-left').addEventListener('click', () => setLeft(false));
-  document.getElementById('close-right').addEventListener('click', () => setRight(false));
-  document.getElementById('close-setups').addEventListener('click', () => setSetups(false));
+  // setups drawer removed 2026-07-10; alerts button lives in the toolbar now
+  function setSetups() {}
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === '[') { e.preventDefault(); setLeft(!leftDrawer.classList.contains('open')); }

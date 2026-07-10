@@ -1081,7 +1081,7 @@ export default {
     if (url.pathname === "/ohlc") {
       // GET /ohlc?ticker=AAPL&mult=1&span=day&days=180 → Polygon aggregates (any interval)
       const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
-      const days = Math.min(parseInt(url.searchParams.get("days") || "180", 10) || 180, 3650);
+      const days = Math.min(parseInt(url.searchParams.get("days") || "180", 10) || 180, 12000);
       const mult = Math.min(parseInt(url.searchParams.get("mult") || "1", 10) || 1, 60);
       const span = (url.searchParams.get("span") || "day").trim();
       const validSpans = ["minute", "hour", "day", "week", "month"];
