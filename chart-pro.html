@@ -1536,6 +1536,7 @@ a:hover { text-decoration: underline; }
           <label class="ind-opt"><input type="checkbox" data-ind="bollinger"> Bollinger Bands (20,2)</label>
           <label class="ind-opt"><input type="checkbox" data-ind="rsi"> RSI (14)</label>
           <label class="ind-opt"><input type="checkbox" data-ind="macd"> MACD (12,26,9)</label>
+          <label class="ind-opt"><input type="checkbox" data-ind="roc"> Δ% Multi-ROC — WoW·MoM·QoQ·YoY (trend reversals)</label>
         </div>
       </div>
       <button class="tool-btn ai-btn" id="ai-read-btn" title="AI reads the current chart + all JustHodl signals">🧠 AI Read</button>
@@ -4460,6 +4461,39 @@ class NativeChart {
       c.timeScale().fitContent();
       subs.push(c);
     }
+    // Δ% Multi-ROC — WoW/MoM/QoQ/YoY on one zero-line pane.
+    // Zero-crossings and short-horizon lines crossing long-horizon
+    // lines are the trend-reversal reads (KST/Coppock family).
+    const rocEl = document.getElementById(`nch-roc-${paneIdx}`);
+    if (rocEl) {
+      const span = (State.tf || {}).span || 'day';
+      const LB = span === 'day' ? { W: 5, M: 21, Q: 63, Y: 252 }
+        : span === 'week' ? { W: 1, M: 4, Q: 13, Y: 52 }
+        : span === 'month' ? { M: 1, Q: 3, Y: 12 } : null;
+      const lbl = document.getElementById(`nch-roc-label-${paneIdx}`);
+      if (!LB) {
+        if (lbl) lbl.textContent = 'Δ% ROC — daily/weekly/monthly timeframes only';
+      } else {
+        const c = LightweightCharts.createChart(rocEl, baseOpts(132));
+        const COLS = { W: '#22d3ee', M: '#26ffaf', Q: '#c084fc', Y: '#e8c86a' };
+        const NAMES = { W: 'WoW', M: 'MoM', Q: 'QoQ', Y: 'YoY' };
+        let zeroed = false;
+        Object.entries(LB).forEach(([k, lb]) => {
+          if (closes.length <= lb + 2) return;
+          const pts = [];
+          for (let i = lb; i < closes.length; i++) {
+            if (closes[i - lb]) pts.push({ time: bars[i].time, value: (closes[i] / closes[i - lb] - 1) * 100 });
+          }
+          if (pts.length < 3) return;
+          const s = c.addLineSeries({ color: COLS[k], lineWidth: k === 'Y' ? 2 : 1, lastValueVisible: true, priceLineVisible: false, title: NAMES[k] });
+          s.setData(pts);
+          if (!zeroed) { s.createPriceLine({ price: 0, color: 'rgba(139,150,168,0.55)', lineWidth: 1, lineStyle: 0, title: '0' }); zeroed = true; }
+        });
+        if (lbl) lbl.innerHTML = 'Δ% ROC · ' + Object.keys(LB).map(k => `<span style="color:${COLS[k]}">${NAMES[k]}</span>`).join(' ') + ' <span style="color:#6f7b91">— zero-cross = reversal</span>';
+        c.timeScale().fitContent();
+        subs.push(c);
+      }
+    }
     // Sync time scales: when main moves, move subs
     if (subs.length) {
       const sync = (src, others) => {
@@ -4827,9 +4861,9 @@ class NativeChart {
     const paneIdx = State.activeChartPane;
     const container = document.getElementById(`tv-container-${paneIdx}`);
     if (!container) return;
-    const subActive = State.indicators.rsi || State.indicators.macd;
+    const subActive = State.indicators.rsi || State.indicators.macd || State.indicators.roc;
     const nSub = (State.indicators.rsi ? 1 : 0) + (State.indicators.macd ? 1 : 0);
-    const mainH = subActive ? `calc(100% - ${nSub * 110 + 28}px)` : '100%';
+    const mainH = subActive ? `calc(100% - ${nSub * 110 + (State.indicators.roc ? 132 : 0) + 28}px)` : '100%';
     container.innerHTML = `
       <div class="native-chart-wrap" style="display:flex;flex-direction:column">
         <div class="native-chart-head"><div class="nch-sym">${UI.esc(ticker)}</div><div class="nch-meta" id="nch-meta-${paneIdx}">loading…</div></div>
@@ -4837,6 +4871,7 @@ class NativeChart {
         <div id="nch-chart-${paneIdx}" style="width:100%;height:${mainH};flex:none"></div>
         ${State.indicators.rsi ? `<div class="ind-subchart" id="nch-rsi-${paneIdx}" style="height:110px"><span class="ind-sub-label">RSI (14)</span></div>` : ''}
         ${State.indicators.macd ? `<div class="ind-subchart" id="nch-macd-${paneIdx}" style="height:110px"><span class="ind-sub-label">MACD (12,26,9)</span></div>` : ''}
+        ${State.indicators.roc ? `<div class="ind-subchart" id="nch-roc-${paneIdx}" style="height:132px"><span class="ind-sub-label" id="nch-roc-label-${paneIdx}">Δ% ROC</span></div>` : ''}
       </div>`;
     
     try {
@@ -4847,6 +4882,10 @@ class NativeChart {
       if (cm && cm !== 'price') {
         const need = { dod: 30, wow: 60, mom: 200, qoq: 400, yoy: 800 }[cm] || 0;
         days = Math.max(days, need);
+      }
+      if (State.indicators.roc) {
+        const ext = { day: 280, week: 400, month: 420 }[tf.span] || 0;
+        if (ext) days = Math.max(days, (tf.days || 250) + ext);
       }
       const jhYSym = JH_INDEX_MAP[ticker] || ticker.replace(/\./g, '-');
       let bars = [], jhSrc = 'Polygon';
