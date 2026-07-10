@@ -1,12 +1,9 @@
-executing-against: 73c7f8da4f989eea608a77cda615667e47da15de
-── 0. Phase-detector phases_all (live from 3059) ──
-── 1. Radar ma_state (already live from 3054) ──
-── 2. IR 3.1 (RRG + transitions + breadth) ──
-── 2b. Arc B: EW/CW + MA events ──
-── 2c. Arc C: six fleet joins ──
-── 2d. Arc D: items 12-17 ──
-── 3. Page (warn-level) ──
+executing-against: 001edc1eaa6650857d9496a5614fdd32c806a61d
+── 1. Wait for pages deploy (poll marker) ──
+── 2. Assert every fix live ──
+── 3. SEO layer (canonical/OG + fresh sitemap) ──
 ── verdict ──
-[15:39:32] PASS -- Arc A live
+[15:56:03] FAIL: OpenBB still on ofr.html
 
-→ Report written to aws/ops/reports/latest/3060_arc_d.md
+→ Report written to aws/ops/reports/latest/3061_audit_fixes.md
+❌ OPS-FAIL: aws/ops/pending/ops_3061_audit_fixes.py
