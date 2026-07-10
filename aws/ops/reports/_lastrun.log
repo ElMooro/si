@@ -1,9 +1,6 @@
-executing-against: 7cf5e6cd2f2bbff219ba7d7b89886de1dfb00d47
-── 1. Page live ──
-── 2. Worker: Yahoo full history (decades) ──
-── 3. Index + fallback routes ──
+executing-against: 30c9c430280d8e1cead90c6880a37455f8de49f9
+── 1. AAPL depth matrix ──
 ── verdict ──
-[18:28:14] FAIL: AAPL range=max never reached pre-1995 weekly history
+[18:29:55] PASS -- deep history reachable; wire page to the deepest combo
 
-→ Report written to aws/ops/reports/latest/3068_fullhistory.md
-❌ OPS-FAIL: aws/ops/pending/ops_3068_fullhistory.py
+→ Report written to aws/ops/reports/latest/3069_ymax_probe.md
