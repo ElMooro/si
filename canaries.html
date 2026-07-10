@@ -162,6 +162,18 @@ function render(d){
           <button class="${vw=='pm'?'on':''}" onclick="_VIEW='pm';renderBaro()" style="font-size:10.5px">Equal per mechanism</button>
           <button class="${vw=='ew'?'on':''}" onclick="_VIEW='ew';renderBaro()" style="font-size:10.5px">Earned weights (${EW.n_learned||0})</button>
           <button class="${vw=='pc'?'on':''}" onclick="_VIEW='pc';renderBaro()" style="font-size:10.5px">Per canary (${PC.n_votes||'?'})</button></div></div>
+      ${(B.conviction_leads&&B.conviction_leads.leads&&B.conviction_leads.leads.length)?`
+      <div style="margin-top:12px;border:1.5px solid ${GOLD};border-radius:10px;background:linear-gradient(180deg,#141a08,#0b101a);padding:10px 14px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="color:${GOLD};font-weight:900;letter-spacing:2px;font-size:12.5px">★ HIGHEST-CONVICTION LEADS</span>
+          <span class="ff muted" style="font-size:10px">evidence-gated: ≥75% crisis hit-rate · ≤20% false alarms · live from <a href="https://justhodl.ai/data/warroom-weights.json" style="color:${GOLD}">warroom-weights.json</a></span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          ${B.conviction_leads.leads.map(l=>{const li=Math.min(4,Math.floor((l.score||0)/20));return `<div style="flex:1;min-width:260px;border:1px solid ${GOLD}55;border-radius:8px;padding:8px 12px;background:#0d131d;display:flex;align-items:center;gap:12px">
+            <span style="font-size:19px">${MICON[l.key]||'📊'}</span>
+            <div style="flex:1"><b style="font-size:13px;color:#fff">${l.label}</b>
+              <div class="ff" style="font-size:10.5px;color:#cfd6e2;margin-top:2px">led <b style="color:${GOLD}">${l.hits}/${l.n_crises}</b> crises · <b style="color:${GOLD}">${l.mean_lead_months}mo</b> avg lead · <b style="color:${GOLD}">${Math.round((l.false_alarm_rate||0)*100)}%</b> false alarms · ×${l.weight}</div></div>
+            <span style="font-weight:800;color:${B5C[li]};font-size:15px">${l.score}<div style="font-size:8.5px;letter-spacing:.5px;text-align:right">${l.band5||''}</div></span></div>`}).join('')}</div></div>`:`
+      <div style="margin-top:12px;border:1px dashed ${GOLD}66;border-radius:10px;padding:8px 14px" class="ff muted">★ Highest-conviction leads: no mechanism currently meets the ≥75% hit-rate / ≤20% false-alarm bar — the honest answer when evidence is thin.</div>`}
       <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:12px">
         <div style="flex:1;min-width:300px">${left}</div>
         <div style="min-width:500px;max-width:520px;text-align:center">

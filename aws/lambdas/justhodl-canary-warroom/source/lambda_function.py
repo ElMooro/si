@@ -727,7 +727,36 @@ def lambda_handler(event=None, context=None):
         num += w * mv["score"]
         den += w
     earned = round(num / den, 1) if den else None
+    # ── Highest-conviction leads (Khalid 2026-07-09): evidence-gated
+    # strip -- ONLY mechanisms whose event-study record shows >=75%
+    # crisis hit-rate AND <=20% false alarms. Computed from the live
+    # weights file every run; if nothing qualifies the strip says so.
+    leads = []
+    for mk, mv in (wj.get("mechanisms") or {}).items():
+        if mv.get("status") != "LEARNED":
+            continue
+        hr, fa = mv.get("hit_rate"), mv.get("false_alarm_rate")
+        if hr is None or fa is None or hr < 0.75 or fa > 0.20:
+            continue
+        leads.append({"key": mk,
+                      "label": (mech_view.get(mk) or {}).get("label")
+                      or mk,
+                      "score": (mech_view.get(mk) or {}).get("score"),
+                      "band5": (mech_view.get(mk) or {}).get("band5"),
+                      "hit_rate": hr,
+                      "hits": mv.get("hits"),
+                      "n_crises": mv.get("n_crises_covered"),
+                      "mean_lead_months": mv.get("mean_lead_months"),
+                      "false_alarm_rate": fa,
+                      "weight": mv.get("weight")})
+    leads.sort(key=lambda x: (-(x["hit_rate"] or 0),
+                              x["false_alarm_rate"] or 1))
+    conviction = {"criterion": ">=75% crisis hit-rate and <=20% false "
+                               "alarms, from the live event-study "
+                               "(8 windows, 1997-2023)",
+                  "n_qualifying": len(leads), "leads": leads}
     barometer = {"score": baro, "band": _band(baro), "n_votes": len(votes),
+                 "conviction_leads": conviction,
                  "views": {
                      "per_canary": {"score": baro, "band": _band(baro),
                                     "band5": _band5(baro),
