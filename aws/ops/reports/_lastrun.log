@@ -1,7 +1,8 @@
-executing-against: 4a1e1308b2ac2a1572e84ce6622a72b331d27d06
-── 1. Origin vs CF ──
-── 2. Re-assert the remaining audit items live ──
+executing-against: bf2b41e349e1d7ee5196797ae2fbb99e1d76cbd8
+── 1. Wait for pages deploy ──
+── 2. /ohlc worker route (runner-side) ──
+── 3. Fusion feed freshness (S3) ──
 ── verdict ──
-[16:05:12] PASS -- origin clean; any residue is CF TTL
+[16:43:57] PASS -- Chart Pro fusion live
 
-→ Report written to aws/ops/reports/latest/3063_ofr_cache.md
+→ Report written to aws/ops/reports/latest/3064_chartpro_fusion.md
