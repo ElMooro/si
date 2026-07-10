@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 MAXDAYS = 200          # buffer depth
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -524,6 +524,13 @@ def lambda_handler(event=None, context=None):
              and r.get("confirm_n", 0) >= 2],
             key=lambda r: (-r["confirm_n"], -r["top_score"]))[:15],
         "join_coverage": joined,
+        # v1.3.1: compact per-name MA state for fleet-wide breadth
+        # joins (industry-rotation internal breadth etc.)
+        "ma_state": {r["ticker"]: [1 if (r.get("pct_vs_50dma") or 0) > 0
+                                   else 0,
+                                   1 if (r.get("pct_vs_200dma") or 0) > 0
+                                   else 0]
+                     for r in rows if r.get("pct_vs_50dma") is not None},
     }
 
     # ── closed loop: log LIKELY_BOTTOM (UP) + LIKELY_TOP (DOWN), graded vs benchmark ──

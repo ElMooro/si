@@ -50,6 +50,16 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
   <div id="err"></div>
   <div class="banner" id="banner"></div>
 
+  <section>
+    <h2>RRG &mdash; Relative Rotation Map <span class="n">JdK-style RS-Ratio &times; RS-Momentum &middot; clockwise through LEADING &rarr; WEAKENING &rarr; LAGGING &rarr; IMPROVING &middot; 12-point trails</span></h2>
+    <div class="card"><div id="rrg"></div>
+    <div style="font-size:10.5px;color:var(--fg-3);margin-top:6px">Transitions are the actionable signal: IMPROVING&rarr;LEADING = canonical buy, WEAKENING&rarr;LAGGING = confirmed weakness. IMPROVING&rarr;LEADING crossings are logged to the closed loop and graded forward vs SPY &mdash; measure-before-trust.</div></div>
+  </section>
+  <section>
+    <h2>RRG Transitions <span class="n">dated quadrant crossings &middot; last 60</span></h2>
+    <div class="card" id="rrgtrans"></div>
+  </section>
+
   <section id="abssec" style="display:none">
     <h2>Absorption Watch <span class="n">weak tape · intact ladder · rising ratio — institutional footprints</span></h2>
     <div class="card" id="abs"></div>
@@ -71,6 +81,37 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
 <script>
 (function(){
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+function renderRRG(d){
+  var g=d.rrg||{};var ks=Object.keys(g);if(!ks.length){document.getElementById("rrg").innerHTML="warming — first RRG pass";return;}
+  var W=940,H=560,cx=W/2,cy=H/2;
+  var xs=[],ys=[];ks.forEach(function(t){var e=g[t];xs.push(e.x);ys.push(e.y);(e.trail||[]).forEach(function(p){xs.push(p[0]);ys.push(p[1]);});});
+  var span=Math.max(4.5,Math.max.apply(null,xs.map(function(v){return Math.abs(v-100);}).concat(ys.map(function(v){return Math.abs(v-100);}))))*1.12;
+  function X(v){return cx+(v-100)/span*(W/2-30);}function Y(v){return cy-(v-100)/span*(H/2-26);}
+  var QC={LEADING:"#38ffa8",WEAKENING:"#ffb13d",LAGGING:"#ff5d5d",IMPROVING:"#00d4ff"};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:#0a0f16;border-radius:8px">';
+  s+='<rect x="'+cx+'" y="0" width="'+(W/2)+'" height="'+cy+'" fill="#38ffa8" opacity="0.05"/>';
+  s+='<rect x="'+cx+'" y="'+cy+'" width="'+(W/2)+'" height="'+cy+'" fill="#ffb13d" opacity="0.05"/>';
+  s+='<rect x="0" y="'+cy+'" width="'+cx+'" height="'+cy+'" fill="#ff5d5d" opacity="0.05"/>';
+  s+='<rect x="0" y="0" width="'+cx+'" height="'+cy+'" fill="#00d4ff" opacity="0.05"/>';
+  s+='<line x1="'+cx+'" y1="0" x2="'+cx+'" y2="'+H+'" stroke="#2a3444"/><line x1="0" y1="'+cy+'" x2="'+W+'" y2="'+cy+'" stroke="#2a3444"/>';
+  s+='<text x="'+(W-14)+'" y="18" text-anchor="end" font-size="12" font-weight="800" fill="#38ffa8">LEADING</text>';
+  s+='<text x="'+(W-14)+'" y="'+(H-10)+'" text-anchor="end" font-size="12" font-weight="800" fill="#ffb13d">WEAKENING</text>';
+  s+='<text x="14" y="'+(H-10)+'" font-size="12" font-weight="800" fill="#ff5d5d">LAGGING</text>';
+  s+='<text x="14" y="18" font-size="12" font-weight="800" fill="#00d4ff">IMPROVING</text>';
+  ks.forEach(function(t){var e=g[t],c=QC[e.quadrant]||"#8b96a8";
+    var tr=(e.trail||[]);if(tr.length>1){s+='<polyline fill="none" stroke="'+c+'" stroke-width="1.3" opacity="0.5" points="'+tr.map(function(p){return X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1);}).join(" ")+'"/>';}
+    s+='<circle cx="'+X(e.x).toFixed(1)+'" cy="'+Y(e.y).toFixed(1)+'" r="4.5" fill="'+c+'"><title>'+t+" "+e.quadrant+" · RS "+e.x+" / Mom "+e.y+'</title></circle>';
+    s+='<text x="'+(X(e.x)+6).toFixed(1)+'" y="'+(Y(e.y)+4).toFixed(1)+'" font-size="10.5" font-weight="700" fill="'+c+'">'+t+'</text>';});
+  document.getElementById("rrg").innerHTML=s+"</svg>";
+}
+function renderTrans(d){
+  var tr=d.rrg_transitions||[];
+  document.getElementById("rrgtrans").innerHTML=tr.length?tr.slice(0,20).map(function(t){
+    return '<div style="display:flex;gap:10px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(107,122,146,.15)"><b style="min-width:52px">'+esc(t.etf)+'</b><span style="color:var(--fg-3);font-size:11px">'+esc(t.date)+'</span><span>'+esc(t.from)+' &rarr; <b style="color:'+(t.bullish?"var(--green)":"var(--red)")+'">'+esc(t.to)+'</b></span>'+(t.bullish?'<span class="tag" style="color:var(--green);border:1px solid rgba(56,255,168,.4)">BULLISH</span>':'')+'</div>';
+  }).join(""):'<span style="color:var(--fg-3)">no quadrant crossings recorded yet — transitions accrue daily from today</span>';
+}
+
 function dot(b){return '<span class="dot'+(b?' on':'')+'"></span>';}
 function fetchJSON(p){var t=Date.now();
   return fetch(p+"?v="+t).then(function(r){if(!r.ok)throw 0;return r.json();})
@@ -91,7 +132,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
   }
   var rows=d.ladder||[];
   document.getElementById("tbl").innerHTML=
-    "<tr><th>ETF</th><th>Group</th><th>Kind</th><th>50d</th><th>100d</th><th>200d</th><th>Ratio&gt;50d</th><th>Ratio 20d</th><th>α-RS blend</th><th>Dump-day</th><th>Rebound</th><th>Scorecard</th><th>Credit</th><th>Score</th><th>Δrank 20d</th><th></th></tr>"+
+    "<tr><th>ETF</th><th>Group</th><th>Kind</th><th>50d</th><th>100d</th><th>200d</th><th>Ratio&gt;50d</th><th>Ratio 20d</th><th>α-RS blend</th><th>Dump-day</th><th>Rebound</th><th>Breadth</th><th>Scorecard</th><th>Credit</th><th>Score</th><th>Δrank 20d</th><th></th></tr>"+
     rows.map(function(r){
       var sl=r.ratio_slope_20d_pct, rd=r.rank_delta_20d;
       return "<tr><td><b>"+esc(r.etf)+"</b></td><td>"+esc(r.name)+"</td><td style=\"color:var(--fg-3)\">"+esc(r.kind[0])+"</td><td>"+dot(r.above_sma50)+"</td><td>"+dot(r.above_sma100)+"</td><td>"+dot(r.above_sma200)+"</td><td>"+dot(r.ratio_above_50d)+"</td>"+
@@ -99,6 +140,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
       (function(){var a=(r.alpha_mom||{}).blend;return '<td class="'+((a||0)>0?"up":"dn")+'">'+(a==null?"\u2014":(a>0?"+":"")+a+"pp")+"</td>";})()+
       (function(){var v=r.dump_day_excess_bps;return '<td class="'+((v||0)>0?"up":(v<0?"dn":""))+'">'+(v==null?"\u2014":(v>0?"+":"")+v+"bp")+"</td>";})()+
       (function(){var v=r.rebound_excess_bps;return '<td class="'+((v||0)>0?"up":(v<0?"dn":""))+'">'+(v==null?"\u2014":(v>0?"+":"")+v+"bp")+"</td>";})()+
+      (function(){var b=r.internal_breadth;if(!b)return"<td>\u2014</td>";var col=b.read==="HEALTHY"?"var(--green)":(b.read==="NARROW"?"var(--red)":"var(--amber)");return '<td style="color:'+col+'" title="'+b.pct_above_200d+'% above 200d · '+b.n_covered+'/'+b.n_holdings+' holdings covered">'+b.pct_above_50d+'%<span style="font-size:9px;color:var(--fg-3)"> '+esc(b.read)+"</span></td>";})()+
       (function(){var sc=r.scorecard_100,b=r.scorecard_band;if(sc==null)return"<td>\u2014</td>";var col=b==="LEADERSHIP"?"var(--green)":(b==="STRONG_WATCH"?"var(--cyan)":(b==="WEAK"||b==="AVOID"?"var(--red)":"var(--fg-2)"));return '<td><b style="color:'+col+'">'+sc+'</b> <span style="font-size:9px;color:var(--fg-3)" title="basis '+esc(r.scorecard_basis||"")+'">'+esc((b||"").replace("_"," "))+"</span></td>";})()+
       (function(){var c=r.credit_read;if(!c)return"<td>\u2014</td>";var col=c==="DANGER"?"var(--red)":(c==="WATCH"?"var(--amber)":(c==="OK"?"var(--green)":"var(--fg-3)"));return '<td style="color:'+col+';font-size:10px">'+esc(c)+"</td>";})()+
       "<td><b>"+r.leadership_score+"</b></td>"+
@@ -106,6 +148,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
       "<td>"+(r.tag?'<span class="tag '+esc(r.tag)+'">'+esc(r.tag)+"</span>":"")+(r.crowded?' <span class="tag" style="background:rgba(255,177,61,.12);color:var(--amber);border:1px solid rgba(255,177,61,.4)">CROWDED</span>':"")+(r.ratio_3m_high?' <span class="tag" style="background:rgba(0,212,255,.10);color:var(--cyan);border:1px solid rgba(0,212,255,.35)">RS 3M-HIGH</span>':"")+(r.resilience_read==="DEFENSIVE_ONLY"?' <span class="tag" style="background:rgba(107,122,146,.15);color:var(--fg-3);border:1px solid rgba(107,122,146,.4)" title="holds dumps but no upside acceleration — defensive trap">DEF-ONLY</span>':(r.resilience_read==="RESILIENT_LEADER"?' <span class="tag" style="background:rgba(56,255,168,.10);color:var(--green);border:1px solid rgba(56,255,168,.35)">RESILIENT+</span>':""))+"</td></tr>";
     }).join("");
   document.getElementById("ranknote").textContent=d.rank_note||"";
+  renderRRG(d);renderTrans(d);
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
     var h=(l.holdings_top||[]).map(function(x){return "<span>"+esc(x.ticker)+" "+esc(x.weight_pct)+"%</span>";}).join("");
     var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+(x.chain_intact?' · <b style="color:var(--cyan)" title="stock &gt; ETF &gt; SPY, 3m">CHAIN</b>':"")+(x.vs_etf_3m_pp!=null?" · vsETF "+(x.vs_etf_3m_pp>0?"+":"")+x.vs_etf_3m_pp+"pp":"")+(x.pead?' · <b style="color:var(--violet)">PEAD+</b>':"")+"</span>";}).join("");

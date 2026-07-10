@@ -115,6 +115,52 @@ def sma(v, n):
     return sum(v[-n:]) / n if len(v) >= n else None
 
 
+def _roll_z(series, i, n):
+    w = series[max(0, i - n + 1):i + 1]
+    if len(w) < 20:
+        return 0.0
+    m = sum(w) / len(w)
+    sd = (sum((v - m) ** 2 for v in w) / len(w)) ** 0.5 or 1e-9
+    return max(-3.5, min(3.5, (series[i] - m) / sd))
+
+
+def rrg_of(closes, spy, trail_pts=12, step=5):
+    """JdK-style RRG approximation (open formulations per StockCharts/
+    TradingView community implementations): RS-Ratio = 100 + z of the
+    smoothed ETF/SPY ratio vs its 63d base (trend of relative
+    performance); RS-Momentum = 100 + z of the 10d ROC of RS-Ratio
+    (leading turn detector). Trail sampled every `step` sessions."""
+    n = min(len(closes), len(spy))
+    if n < 160:
+        return None
+    ratio = [closes[-n + i] / spy[-n + i] for i in range(n)
+             if spy[-n + i]]
+    m = len(ratio)
+    sm = [sum(ratio[max(0, i - 9):i + 1]) / min(10, i + 1)
+          for i in range(m)]
+    base = [sum(sm[max(0, i - 62):i + 1]) / min(63, i + 1)
+            for i in range(m)]
+    rs = [100.0 * sm[i] / base[i] if base[i] else 100.0
+          for i in range(m)]
+    rsr = [100.0 + 1.5 * _roll_z(rs, i, 126) for i in range(m)]
+    roc = [rsr[i] - rsr[i - 10] if i >= 10 else 0.0 for i in range(m)]
+    rsm = [100.0 + 1.5 * _roll_z(roc, i, 126) for i in range(m)]
+
+    def quad(x, y):
+        if x >= 100 and y >= 100:
+            return "LEADING"
+        if x >= 100:
+            return "WEAKENING"
+        if y >= 100:
+            return "IMPROVING"
+        return "LAGGING"
+    trail = [[round(rsr[i], 2), round(rsm[i], 2)]
+             for i in range(m - 1 - step * (trail_pts - 1), m, step)
+             if 0 <= i < m]
+    x, y = round(rsr[-1], 2), round(rsm[-1], 2)
+    return {"x": x, "y": y, "quadrant": quad(x, y), "trail": trail}
+
+
 def pct_rank(x, pop):
     if x is None or not pop:
         return None
@@ -641,17 +687,101 @@ def lambda_handler(event=None, context=None):
 
     # ── industry credit-danger: leaders + breakdown cluster ──
     holdings_by_etf = {l["etf"]: l.get("holdings_top") for l in leaders}
-    bkdn_rows = [r for r in rows if r["tag"] == "BREAKDOWN"][:8]
-    for r_ in bkdn_rows:
+    # v3.1: holdings for the WHOLE universe -- internal breadth needs
+    # every army's soldier list, not just leaders + breakdowns.
+    for r_ in rows:
         if r_["etf"] not in holdings_by_etf:
             try:
                 h_, why_ = fmp_holdings(r_["etf"])
             except Exception as e:
                 h_, why_ = None, str(e)[:80]
             if h_ is None:
-                warns.append("bkdn holdings skip %s: %s"
-                             % (r_["etf"], why_))
+                warns.append("holdings skip %s: %s"
+                             % (r_["etf"], why_[:60]))
             holdings_by_etf[r_["etf"]] = h_
+            time.sleep(0.12)
+
+    # ── v3.1 INTERNAL BREADTH: % of top-25 holdings above their own
+    # 50/200-DMA, from accumulation-radar's ma_state (per-name MA flags
+    # across its 487-name universe; prior close). Practitioner
+    # threshold: >=70% above 50d = healthy trend. ──
+    _ma = (s3_json("data/accumulation-radar.json") or {}
+           ).get("ma_state") or {}
+    for r_ in rows:
+        holds = (holdings_by_etf.get(r_["etf"]) or [])[:25]
+        cov = [(h["ticker"], _ma[h["ticker"]]) for h in holds
+               if h.get("ticker") in _ma]
+        if len(cov) >= 5:
+            r_["internal_breadth"] = {
+                "pct_above_50d": round(100.0 * sum(v[0] for _, v in cov)
+                                       / len(cov)),
+                "pct_above_200d": round(100.0 * sum(v[1] for _, v in cov)
+                                        / len(cov)),
+                "n_covered": len(cov), "n_holdings": len(holds),
+                "read": ("HEALTHY" if sum(v[0] for _, v in cov)
+                         / len(cov) >= 0.70 else
+                         "NARROW" if sum(v[0] for _, v in cov)
+                         / len(cov) < 0.40 else "MIXED")}
+        else:
+            r_["internal_breadth"] = None
+
+    # ── v3.1 RRG: quadrant map + trails + dated transitions ──
+    rrg = {}
+    for t, c in closes.items():
+        if len(c) >= 210:
+            g = rrg_of(c, spy)
+            if g:
+                rrg[t] = g
+    prev_rrg = prev.get("rrg") or {}
+    prev_trans = prev.get("rrg_transitions") or []
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    new_trans = []
+    for t, g in rrg.items():
+        was = (prev_rrg.get(t) or {}).get("quadrant")
+        if was and was != g["quadrant"]:
+            new_trans.append({"etf": t, "date": today_iso,
+                              "from": was, "to": g["quadrant"],
+                              "x": g["x"], "y": g["y"],
+                              "bullish": (was, g["quadrant"]) in
+                              (("IMPROVING", "LEADING"),
+                               ("LAGGING", "IMPROVING"),
+                               ("WEAKENING", "LEADING"))})
+    rrg_transitions = (new_trans + [t_ for t_ in prev_trans
+                                    if t_.get("date") != today_iso]
+                       )[:60]
+    # closed loop: IMPROVING->LEADING is the canonical RRG buy signal;
+    # graded forward vs SPY like every other engine.
+    try:
+        from decimal import Decimal
+        nowt = datetime.now(timezone.utc)
+        tbl = boto3.resource("dynamodb", "us-east-1").Table(
+            "justhodl-signals")
+        for tr in new_trans:
+            if not (tr["from"] == "IMPROVING"
+                    and tr["to"] == "LEADING"):
+                continue
+            px_ = closes.get(tr["etf"], [None])[-1]
+            if not px_:
+                continue
+            tbl.put_item(Item={
+                "signal_id": "irrrg-UP#%s#%s" % (tr["etf"], today_iso),
+                "signal_type": "ir_rrg_improving_to_leading",
+                "predicted_direction": "UP",
+                "signal_value": str(tr["x"]),
+                "confidence": Decimal("0.55"),
+                "measure_against": "ticker_vs_benchmark",
+                "baseline_price": str(round(px_, 2)),
+                "benchmark": "SPY",
+                "check_windows": ["day_5", "day_21", "day_63"],
+                "outcomes": {}, "accuracy_scores": {},
+                "status": "pending", "logged_at": nowt.isoformat(),
+                "logged_epoch": int(nowt.timestamp()),
+                "horizon_days_primary": 21, "schema_version": "2",
+                "ttl": int(nowt.timestamp()) + 120 * 86400,
+                "metadata": {"engine": "industry-rotation",
+                             "v": "3.1", "transition": "IMP->LEAD"}})
+    except Exception as e:
+        warns.append("rrg loop-log: %s" % str(e)[:70])
     credit = {}
     try:
         credit = industry_credit(list(holdings_by_etf),
@@ -718,7 +848,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.0",
+        "engine": "justhodl-industry-rotation", "version": "3.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -761,6 +891,7 @@ def lambda_handler(event=None, context=None):
         "industry_credit": credit,
         "finviz_sector_perf_attached": bool(fv),
         "score_history": hist,
+        "rrg": rrg, "rrg_transitions": rrg_transitions,
         "rank_note": rank_note,
         "warns": warns[:20]}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
