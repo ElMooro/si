@@ -1,10 +1,9 @@
-executing-against: ec7e45dface1b32a1c987775e3fe5fda217713d8
+executing-against: 13f59d14514b0783b063e673d1f8261c1f29a716
 ── 1. Page live (post-CDN) ──
 ── 2. Worker: full-history cap live ──
 ── 3. Index route (Yahoo path) ──
 ── verdict ──
-[17:30:17] FAIL: /ohlc days=9999 never exceeded 300 weekly bars (cap not live?)
-[17:30:17] FAIL: yf-ohlc ^GSPC: not enough arguments for format string
+[17:36:04] FAIL: yf-ohlc ^GSPC: not enough arguments for format string
 
-→ Report written to aws/ops/reports/latest/3065_chartpro_cleanup.md
-❌ OPS-FAIL: aws/ops/pending/ops_3065_chartpro_cleanup.py
+→ Report written to aws/ops/reports/latest/3066_chartpro_cleanup.md
+❌ OPS-FAIL: aws/ops/pending/ops_3066_chartpro_cleanup.py
