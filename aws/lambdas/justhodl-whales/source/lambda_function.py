@@ -295,8 +295,10 @@ def lambda_handler(event=None, context=None):
             return None
 
     sec_map = {}
-    for doc_key in ("data/data.json", "data/master-ranker.json",
-                    "data/best-setups.json"):
+    for doc_key in ("screener/data.json",
+                    "data/opportunities.json",
+                    "data/dislocations.json",
+                    "data/capital-flow-radar.json"):
         doc = _feed(doc_key)
         stack = [doc]
         while stack:
@@ -399,7 +401,7 @@ def lambda_handler(event=None, context=None):
            "cross_coverage": cross,
            "stocks": {sym: v for sym, v in sorted(
                stocks.items(),
-               key=lambda kv: -abs(kv[1]["conviction_flow_usd"]))[:400]},
+               key=lambda kv: -abs(kv[1]["conviction_flow_usd"]))[:1500]},
            "method": ("Flow $ = Delta-shares x latest quarter price-per-"
                       "share (value/shares), so price drift is not "
                       "counted as trading. Conviction flow excludes the "
