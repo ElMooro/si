@@ -1,10 +1,10 @@
-executing-against: c102635d4946ddac67d2dfc714fd8528088649fd
+executing-against: 5c694d216863d955ce77d048f78edd75bde69229
 ── 1. Ensure engine ──
 ── 2. Run the diff (Event + poll) ──
 ── 3. Weekly schedule ──
 ── 4. Live page (warn-level) ──
 ── verdict ──
-[03:45:13] FAIL: Citadel positions=5970 (pagination suspect)
+[03:50:36] FAIL: Citadel positions=5970 (pagination suspect)
 
-→ Report written to aws/ops/reports/latest/3041_whales_close.md
-❌ OPS-FAIL: aws/ops/pending/ops_3041_whales_close.py
+→ Report written to aws/ops/reports/latest/3042_whales_final.md
+❌ OPS-FAIL: aws/ops/pending/ops_3042_whales_final.py
