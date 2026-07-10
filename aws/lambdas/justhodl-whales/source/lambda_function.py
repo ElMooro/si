@@ -284,12 +284,119 @@ def lambda_handler(event=None, context=None):
                    | {"top_moves": f["moves"][:8]} for f in funds]
     whale_cards.sort(key=lambda w: -w["total_value_usd"])
 
-    out = {"engine": "justhodl-whales", "schema": "1.0",
+
+    # ── v1.2 (Khalid 2026-07-10): sector rollup + whale breadth +
+    # per-whale net stance + dark-pool/Wyckoff cross-join chips ──
+    def _feed(key):
+        try:
+            return json.loads(S3.get_object(
+                Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return None
+
+    sec_map = {}
+    for doc_key in ("data/data.json", "data/master-ranker.json",
+                    "data/best-setups.json"):
+        doc = _feed(doc_key)
+        stack = [doc]
+        while stack:
+            o = stack.pop()
+            if isinstance(o, dict):
+                t = o.get("ticker") or o.get("symbol") or o.get("t")
+                s = o.get("sector") or o.get("sectorName")
+                if isinstance(t, str) and isinstance(s, str) and t and s:
+                    sec_map.setdefault(t.upper(), s)
+                stack.extend(o.values())
+            elif isinstance(o, list):
+                stack.extend(o)
+    sector_agg = {}
+    for sym, v in stocks.items():
+        f = v.get("conviction_flow_usd") or 0
+        sec = sec_map.get(sym.upper())
+        if not sec:
+            continue
+        a = sector_agg.setdefault(sec, {"sector": sec, "inflow_usd": 0,
+                                        "outflow_usd": 0, "net_usd": 0,
+                                        "top_in": [], "top_out": []})
+        if f > 0:
+            a["inflow_usd"] += f
+            a["top_in"].append((sym, f))
+        elif f < 0:
+            a["outflow_usd"] += f
+            a["top_out"].append((sym, f))
+        a["net_usd"] += f
+    sector_flows = []
+    for a in sector_agg.values():
+        a["top_in"] = [s for s, _ in sorted(a["top_in"],
+                                            key=lambda x: -x[1])[:3]]
+        a["top_out"] = [s for s, _ in sorted(a["top_out"],
+                                             key=lambda x: x[1])[:3]]
+        for k in ("inflow_usd", "outflow_usd", "net_usd"):
+            a[k] = round(a[k])
+        sector_flows.append(a)
+    sector_flows.sort(key=lambda a: -abs(a["net_usd"]))
+
+    breadth = []
+    for sym, v in stocks.items():
+        nb, ns = len(v.get("buyers") or []), len(v.get("sellers") or [])
+        f = v.get("conviction_flow_usd") or 0
+        if nb + ns >= 5 and abs(f) >= 50_000_000:
+            breadth.append({"symbol": sym, "n_buying": nb,
+                            "n_selling": ns, "breadth": nb - ns,
+                            "conviction_flow_usd": f,
+                            "sector": sec_map.get(sym.upper())})
+    breadth_buying = sorted(breadth, key=lambda r: (-r["breadth"],
+                            -r["conviction_flow_usd"]))[:15]
+    breadth_selling = sorted(breadth, key=lambda r: (r["breadth"],
+                             r["conviction_flow_usd"]))[:15]
+
+    for w in whale_cards:
+        try:
+            w["net_flow_usd"] = round(sum(
+                m.get("flow_usd") or 0 for m in w.get("top_moves")
+                or []))
+        except Exception:
+            w["net_flow_usd"] = None
+
+    dpm = {r.get("ticker", "").upper(): r.get("state")
+           for r in ((_feed("data/dark-pool.json") or {}).get("board")
+                     or []) if r.get("ticker")}
+    phm = {s.upper(): {"phase": v.get("phase"), "begin": v.get("begin")}
+           for s, v in ((_feed("data/phase-detector.json") or {}
+                         ).get("tickers") or {}).items()}
+    radar = _feed("data/accumulation-radar.json") or {}
+    rfm = {}
+    for grp in ("tops", "bottoms", "accumulating", "distributing"):
+        for cl in ("stocks", "etfs", "countries"):
+            for r in ((radar.get(grp) or {}).get(cl) or []):
+                t = (r.get("ticker") or "").upper()
+                if t:
+                    rfm.setdefault(t, r.get("flag") or r.get("phase"))
+    for sym, v in stocks.items():
+        u = sym.upper()
+        if u in dpm:
+            v["dark_pool"] = dpm[u]
+        if u in phm:
+            v["wyckoff"] = phm[u]
+        if u in rfm:
+            v["radar"] = rfm[u]
+        if u in sec_map:
+            v["sector"] = sec_map[u]
+    cross = {"dark_pool": len(dpm), "wyckoff": len(phm),
+             "radar": len(rfm), "sectors": len(sec_map)}
+    print("[whales v1.2] sector_flows=%d breadth=%d cross=%s"
+          % (len(sector_flows), len(breadth), cross))
+
+    out = {"engine": "justhodl-whales", "schema": "1.2",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "quarter": "%dQ%d" % (y, q),
            "n_whales_ok": len(funds), "n_failed": len(failed),
            "failed": failed, "n_stocks_moved": len(stocks),
            "boards": boards, "whales": whale_cards,
+           "sector_flows": sector_flows[:14],
+           "breadth_buying": breadth_buying,
+           "breadth_selling": breadth_selling,
+           "cross_coverage": cross,
            "stocks": {sym: v for sym, v in sorted(
                stocks.items(),
                key=lambda kv: -abs(kv[1]["conviction_flow_usd"]))[:400]},

@@ -21,6 +21,9 @@ td{padding:6px 8px;border-bottom:1px solid #16202f}
 <div class="wrap">
 <h1 style="font-size:34px;font-weight:900;letter-spacing:1px;margin:8px 0 2px">WHALES ARE HOLDING 👀👀</h1>
 <div class="ff muted" id="sub">loading the roster…</div>
+<div class="card" style="margin-top:12px"><div class="lbl">TOP WHALE $ FLOWS &mdash; one glance</div><div id="flowviz"></div></div>
+<div class="card" style="margin-top:12px"><div class="lbl">SECTOR NET FLOWS &mdash; where whale money rotated</div><div id="secviz"></div></div>
+<div id="breadth" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px" class="grid3"></div>
 <div id="boards" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px" class="grid2"></div>
 <div class="card" style="margin-top:12px"><div class="lbl">PER-STOCK WHALE FLOWS — conviction roster, latest 13F quarter vs prior</div>
 <div style="overflow-x:auto"><table id="tbl"><thead><tr><th>TICKER</th><th>CONVICTION FLOW $</th><th>NET FLOW $ (incl banks)</th><th>WHO'S BUYING</th><th>WHO'S SELLING</th><th>NEW</th><th>EXITED</th><th>HOLDERS</th></tr></thead><tbody></tbody></table></div></div>
@@ -39,7 +42,7 @@ fetch('data/whales.json?v='+Date.now()).then(r=>r.json()).then(d=>{
       <b class="${r[f]>0?'pos':'neg'}">${usd(r[f])}</b></div>`).join('')||'<div class="ff muted">none this quarter</div>'}</div>`).join('');
   const rows=Object.entries(d.stocks||{}).slice(0,120);
   document.querySelector('#tbl tbody').innerHTML=rows.map(([sym,v])=>`<tr>
-    <td><b>${sym}</b></td>
+    <td><b>${sym}</b>${v.dark_pool&&v.dark_pool!=='NEUTRAL'?` <span class='chip' style='color:${v.dark_pool==='ACCUMULATION'?'#3fd57a':'#ff7b6e'}'>DP:${v.dark_pool.slice(0,4)}</span>`:''}${v.wyckoff?` <span class='chip' style='color:#4fc3f7'>${v.wyckoff.phase.slice(0,6)}${v.wyckoff.begin?' '+v.wyckoff.begin.slice(5):''}</span>`:''}${v.radar?` <span class='chip' style='color:#e8c86a'>${v.radar}</span>`:''}<div class='ff muted' style='font-size:9.5px'>${v.sector||''}</div></td>
     <td class="${v.conviction_flow_usd>=0?'pos':'neg'}"><b>${usd(v.conviction_flow_usd)}</b></td>
     <td class="${v.net_flow_usd>=0?'pos':'neg'}">${usd(v.net_flow_usd)}</td>
     <td>${(v.buyers||[]).slice(0,4).map(b=>`<span class="chip">${b}</span>`).join('')}</td>
@@ -49,10 +52,41 @@ fetch('data/whales.json?v='+Date.now()).then(r=>r.json()).then(d=>{
     <td class="muted">${v.n_holders}</td></tr>`).join('');
   document.getElementById('whales').innerHTML=(d.whales||[]).map(w=>`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:baseline"><b>${w.name}${w.custodial?' <span class="tag" style="border-color:#f08c1e;color:#f08c1e">BANK/CUSTODIAL</span>':''}</b><span class="ff muted">${w.quarter}</span></div>
-    <div class="ff muted" style="margin-top:2px">$${(w.total_value_usd/1e9).toFixed(1)}B reported · ${w.n_positions} positions · ${w.n_moves} moves ≥$2M</div>
+    <div class="ff muted" style="margin-top:2px">$${(w.total_value_usd/1e9).toFixed(1)}B reported · ${w.n_positions} positions · ${w.n_moves} moves &ge;$2M${w.net_flow_usd!=null?` &middot; top-moves net <b class='${w.net_flow_usd>=0?"pos":"neg"}'>${usd(w.net_flow_usd)}</b>`:''}</div>
     <div style="margin-top:6px">${(w.top_moves||[]).slice(0,6).map(m=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span><b>${m.symbol}</b> <span class="ff muted">${m.action}</span></span><span class="${m.flow_usd>0?'pos':'neg'}">${usd(m.flow_usd)}</span></div>`).join('')}</div></div>`).join('');
+  renderFlowViz(d);renderSecViz(d);renderBreadth(d);
   document.getElementById('honesty').textContent=(d.honesty||'')+' '+(d.method||'');
 }).catch(e=>{document.getElementById('sub').textContent='feed unavailable: '+e});
+
+function svgBars(rows,valKey,labKey,extraKey){
+  if(!rows||!rows.length)return '<div class="ff muted">no data</div>';
+  const mx=Math.max(...rows.map(r=>Math.abs(r[valKey])))||1;
+  const W=900,RH=22,H=rows.length*RH+6,mid=W/2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`;
+  rows.forEach((r,i)=>{const y=i*RH+3,v=r[valKey],bw=Math.abs(v)/mx*(W/2-150);
+    const x=v>=0?mid+2:mid-2-bw,c=v>=0?'#2e9e4f':'#e03d2f';
+    s+=`<rect x="${x}" y="${y}" width="${Math.max(2,bw)}" height="${RH-7}" rx="3" fill="${c}" opacity="0.85"><title>${r[labKey]} ${usd(v)}</title></rect>`;
+    s+=`<text x="${v>=0?mid-6:mid+6}" y="${y+11}" text-anchor="${v>=0?'end':'start'}" font-size="11" font-weight="700" fill="#e8ecf3">${r[labKey]}</text>`;
+    s+=`<text x="${v>=0?x+bw+5:x-5}" y="${y+11}" text-anchor="${v>=0?'start':'end'}" font-size="10.5" fill="${c}">${usd(v)}${extraKey&&r[extraKey]?' &middot; '+r[extraKey]:''}</text>`;});
+  s+=`<line x1="${mid}" y1="0" x2="${mid}" y2="${H}" stroke="#2a3444"/>`;
+  return s+'</svg>';
+}
+function renderFlowViz(d){
+  const st=Object.entries(d.stocks||{}).map(([s,v])=>({sym:s,f:v.conviction_flow_usd||0}));
+  const rows=[...st.sort((a,b)=>b.f-a.f).slice(0,8),...st.sort((a,b)=>a.f-b.f).slice(0,8).reverse()].sort((a,b)=>b.f-a.f);
+  document.getElementById('flowviz').innerHTML=svgBars(rows,'f','sym');
+}
+function renderSecViz(d){
+  const rows=(d.sector_flows||[]).slice(0,12).map(a=>({s:a.sector,n:a.net_usd,x:(a.net_usd>=0?a.top_in:a.top_out).join(' ')}));
+  document.getElementById('secviz').innerHTML=rows.length?svgBars(rows,'n','s','x'):'<div class="ff muted">sector map warming</div>';
+}
+function renderBreadth(d){
+  const mk=(t,rows,pos)=>`<div class="card"><div class="lbl">${t}</div><div class="ff muted" style="font-size:10px">breadth = # whales buying &minus; # selling (&ge;5 involved, &ge;$50M net)</div>
+    ${(rows||[]).slice(0,10).map(r=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #16202f">
+      <span><b>${r.symbol}</b> <span class="ff muted">${r.n_buying}&#9650; / ${r.n_selling}&#9660;${r.sector?' &middot; '+r.sector:''}</span></span>
+      <b class="${pos?'pos':'neg'}">${pos?'+':''}${r.breadth}</b></div>`).join('')||'<div class="ff muted">none</div>'}</div>`;
+  document.getElementById('breadth').innerHTML=mk('&#128011; MOST WHALES BUYING &mdash; breadth leaders',d.breadth_buying,true)+mk('&#129656; MOST WHALES SELLING',d.breadth_selling,false);
+}
 </script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-page-ai.js" defer></script>

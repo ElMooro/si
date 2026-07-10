@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 MAXDAYS = 200          # buffer depth
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -249,6 +249,13 @@ def lambda_handler(event=None, context=None):
             t = (_it.get("ticker") or _it.get("symbol") or "").upper() if isinstance(_it, dict) else str(_it).upper()
             if t:
                 cb_set.add(t)
+    def feed(key):
+        try:
+            return json.loads(S3.get_object(
+                Bucket=BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return None
+
     rows = []
     for tk in buf["universe"]:
         rec = buf["tickers"].get(tk)
@@ -384,6 +391,96 @@ def lambda_handler(event=None, context=None):
          and (r["phase"] == "DISTRIBUTION" or ((r.get("pct_vs_50dma") or 0) < 0 and r["obv_trend"] < 0))],
         key=lambda r: -(r.get("rs_126d") or 0))[:12]]
 
+
+    # ── v1.3.0 SMART-MONEY CONFLUENCE (Khalid 2026-07-10): join the
+    # fleet's independent accumulation/distribution lenses per name --
+    # dark-pool prints, 13F whale $ flow, Wyckoff dated phases, insider
+    # clusters -- and count agreements with the radar's own read. ──
+    dp_map, wh_map, ph_map, ins_buy, ins_sell = {}, {}, {}, set(), set()
+    try:
+        for r in (feed("data/dark-pool.json") or {}).get("board") or []:
+            if r.get("ticker"):
+                dp_map[r["ticker"].upper()] = {
+                    "state": r.get("state"),
+                    "pct": r.get("dark_pool_pct"),
+                    "accel": r.get("dark_accel")}
+    except Exception as e:
+        print("[join] dark-pool: %s" % e)
+    try:
+        for sym, v in ((feed("data/whales.json") or {}).get("stocks")
+                       or {}).items():
+            wh_map[sym.upper()] = v.get("conviction_flow_usd")
+    except Exception as e:
+        print("[join] whales: %s" % e)
+    try:
+        for sym, v in ((feed("data/phase-detector.json") or {}
+                        ).get("tickers") or {}).items():
+            ph_map[sym.upper()] = {"phase": v.get("phase"),
+                                   "begin": v.get("begin"),
+                                   "days": v.get("days_in_phase")}
+    except Exception as e:
+        print("[join] phase-detector: %s" % e)
+    try:
+        ir = feed("data/insider-radar.json") or {}
+        for c in (ir.get("clusters") or []) + (ir.get("decline_clusters")
+                                               or []):
+            t = (c.get("ticker") or "").upper()
+            if t:
+                ins_buy.add(t)
+    except Exception as e:
+        print("[join] insider-radar: %s" % e)
+    try:
+        for c in ((feed("data/insider-sell-clusters.json") or {}
+                   ).get("clusters") or []):
+            t = (c.get("ticker") or "").upper()
+            if t:
+                ins_sell.add(t)
+    except Exception:
+        pass                                   # optional feed
+
+    WHALE_MIN = 25_000_000
+    for row in rows:
+        tk = row["ticker"].upper()
+        confirms_b, confirms_t = [], []
+        dp = dp_map.get(tk)
+        if dp:
+            row["dark_pool"] = dp
+            if dp.get("state") == "ACCUMULATION":
+                confirms_b.append("DARK_POOL")
+            elif dp.get("state") == "DISTRIBUTION":
+                confirms_t.append("DARK_POOL")
+        wf = wh_map.get(tk)
+        if wf is not None:
+            row["whale_flow_usd"] = wf
+            if wf >= WHALE_MIN:
+                confirms_b.append("WHALES_13F")
+            elif wf <= -WHALE_MIN:
+                confirms_t.append("WHALES_13F")
+        ph = ph_map.get(tk)
+        if ph and ph.get("phase") not in (None, "NEUTRAL"):
+            row["wyckoff"] = ph
+            if ph["phase"] in ("ACCUMULATION", "MARKUP"):
+                confirms_b.append("WYCKOFF_PHASE")
+            elif ph["phase"] in ("DISTRIBUTION", "MARKDOWN"):
+                confirms_t.append("WYCKOFF_PHASE")
+        if tk in ins_buy:
+            row["insider"] = "BUY_CLUSTER"
+            confirms_b.append("INSIDERS")
+        elif tk in ins_sell:
+            row["insider"] = "SELL_CLUSTER"
+            confirms_t.append("INSIDERS")
+        side_b = row["flag"] == "LIKELY_BOTTOM" or \
+            row["phase"] == "ACCUMULATION"
+        side_t = row["flag"] == "LIKELY_TOP" or \
+            row["phase"] == "DISTRIBUTION"
+        row["confirms"] = confirms_b if side_b else \
+            confirms_t if side_t else []
+        row["confirm_n"] = len(row["confirms"])
+    joined = {"dark_pool": len(dp_map), "whales": len(wh_map),
+              "wyckoff": len(ph_map),
+              "insiders": len(ins_buy) + len(ins_sell)}
+    print("[join] coverage %s" % joined)
+
     out = {
         "engine": "accumulation-radar", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -414,6 +511,19 @@ def lambda_handler(event=None, context=None):
                          "countries": [r for r in by("country", "top_score") if r["phase"] == "DISTRIBUTION"][:12]},
         "market_leaders": market_leaders,
         "leaders_fading": leaders_fading,
+        "confirmed_bottoms": sorted(
+            [r for r in rows
+             if (r["flag"] == "LIKELY_BOTTOM"
+                 or r["phase"] == "ACCUMULATION")
+             and r.get("confirm_n", 0) >= 2],
+            key=lambda r: (-r["confirm_n"], -r["bottom_score"]))[:15],
+        "confirmed_tops": sorted(
+            [r for r in rows
+             if (r["flag"] == "LIKELY_TOP"
+                 or r["phase"] == "DISTRIBUTION")
+             and r.get("confirm_n", 0) >= 2],
+            key=lambda r: (-r["confirm_n"], -r["top_score"]))[:15],
+        "join_coverage": joined,
     }
 
     # ── closed loop: log LIKELY_BOTTOM (UP) + LIKELY_TOP (DOWN), graded vs benchmark ──
