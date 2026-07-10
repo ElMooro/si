@@ -906,6 +906,155 @@ def lambda_handler(event=None, context=None):
                              "v": "3.2", "event": "GOLDEN_CROSS"}})
     except Exception as e:
         warns.append("ma-event loop-log: %s" % str(e)[:70])
+
+    # ══ v3.3 FLEET JOINS (items 6-11 of Khalid's 17) ══
+    def _g(o, *ks, default=None):
+        for k in ks:
+            if not isinstance(o, dict):
+                return default
+            o = o.get(k)
+        return o if o is not None else default
+
+    # (8) Wyckoff dated phase per ETF (phase-detector top-400 map)
+    _ph = (s3_json("data/phase-detector.json") or {}).get("tickers") \
+        or {}
+    # (7) smart-money: whales $, dark-pool state, capital-flow,
+    #     options-confluence posture
+    _wh = (s3_json("data/whales.json") or {}).get("stocks") or {}
+    _dp = {r0.get("ticker"): r0.get("state") for r0 in
+           ((s3_json("data/dark-pool.json") or {}).get("board") or [])
+           if r0.get("ticker")}
+    _cf = s3_json("data/capital-flow.json") or {}
+    _cft = {}
+    for side in ("accumulating", "distributing"):
+        for r0 in (_cf.get(side) or []):
+            t0 = r0.get("ticker") or r0.get("etf")
+            if t0:
+                _cft[t0] = side.upper()
+    _oc = {r0.get("ticker"): r0.get("posture") or r0.get("state")
+           for r0 in ((s3_json("data/options-confluence.json") or {}
+                       ).get("multi_engine_confluence") or [])
+           if r0.get("ticker")}
+    # (10) revision-breadth positive set
+    _er = {r0.get("ticker") for r0 in
+           ((s3_json("data/estimate-revisions.json") or {}
+             ).get("top_picks") or []) if r0.get("ticker")}
+    join_hits = {"wyckoff": 0, "whales": 0, "dark_pool": 0,
+                 "capital_flow": 0, "options": 0, "rev_hits": 0}
+    for r_ in rows:
+        t = r_["etf"]
+        sm = {}
+        if t in _ph and _ph[t].get("phase") not in (None, "NEUTRAL"):
+            r_["wyckoff"] = {"phase": _ph[t]["phase"],
+                             "begin": _ph[t].get("begin")}
+            join_hits["wyckoff"] += 1
+        if t in _wh and _wh[t].get("conviction_flow_usd"):
+            sm["whale_usd"] = _wh[t]["conviction_flow_usd"]
+            join_hits["whales"] += 1
+        if _dp.get(t) and _dp[t] != "NEUTRAL":
+            sm["dark_pool"] = _dp[t]
+            join_hits["dark_pool"] += 1
+        if t in _cft:
+            sm["capital_flow"] = _cft[t]
+            join_hits["capital_flow"] += 1
+        if _oc.get(t):
+            sm["options"] = _oc[t]
+            join_hits["options"] += 1
+        if sm:
+            r_["smart_money"] = sm
+        holds = (holdings_by_etf.get(t) or [])[:25]
+        hits = [h["ticker"] for h in holds
+                if h.get("ticker") in _er]
+        if holds:
+            r_["rev_plus_hits"] = {"n": len(hits),
+                                   "of": len(holds),
+                                   "names": hits[:5]}
+            join_hits["rev_hits"] += 1 if hits else 0
+
+    # (6) Stovall cycle conditioning via cycle-clock
+    _cc = s3_json("data/cycle-clock.json") or {}
+    phase_txt = str(_g(_cc, "phase") or _g(_cc, "cycle",
+                   "phase") or _g(_cc, "verdict")
+                    or "").upper()
+    stovall = {"EARLY": ["XLY", "XLF", "XLI", "XLB", "XRT", "ITB",
+                         "XHB", "KRE"],
+               "MID": ["XLK", "XLC", "XLI", "SMH", "IGV", "FDN"],
+               "LATE": ["XLE", "XLB", "XLP", "XLV", "XLU", "XES",
+                        "OIH", "XOP", "XME"],
+               "RECESSION": ["XLP", "XLV", "XLU"]}
+    key = ("RECESSION" if "RECESS" in phase_txt or "CONTRACT"
+           in phase_txt else "LATE" if "LATE" in phase_txt else
+           "EARLY" if "EARLY" in phase_txt else
+           "MID" if "MID" in phase_txt else None)
+    cycle_context = None
+    if key:
+        exp = stovall[key]
+        top8 = [r_["etf"] for r_ in sorted(
+            rows, key=lambda x: -x["leadership_score"])[:8]]
+        cycle_context = {
+            "phase_raw": phase_txt[:80], "phase_bucket": key,
+            "expected_leaders": exp,
+            "actual_top8": top8,
+            "aligned": [t for t in top8 if t in exp],
+            "anomalies": [t for t in top8 if t not in exp
+                          and t not in ("XLV", "XLP", "XLU")]}
+
+    # (9) XLY/XLP risk-appetite strip (+ factor-regime z)
+    risk_appetite = None
+    xly, xlp = closes.get("XLY") or [], closes.get("XLP") or []
+    n_ = min(len(xly), len(xlp))
+    if n_ >= 140:
+        ra = [xly[-n_ + i] / xlp[-n_ + i] for i in range(n_)
+              if xlp[-n_ + i]]
+        ma126 = sma(ra, 126)
+        fr_z = _g(s3_json("data/factor-regime.json") or {},
+                  "risk_appetite", "z")
+        risk_appetite = {
+            "xly_xlp": round(ra[-1], 4),
+            "vs_126d_ma_pct": (round((ra[-1] / ma126 - 1) * 100, 2)
+                               if ma126 else None),
+            "slope_20d_pct": (round((ra[-1] / ra[-21] - 1) * 100, 2)
+                              if len(ra) >= 21 else None),
+            "read": ("RISK_ON" if ma126 and ra[-1] > ma126 else
+                     "RISK_OFF"),
+            "factor_regime_z": fr_z,
+            "spark": [round(v, 4) for v in ra[-126::5]]}
+
+    # (11) APAC lead-lag chips for semi armies
+    apac_chips = {}
+    _ap = s3_json("data/apac.json") or {}
+    def _find_r(blob, needle):
+        stack = [blob]
+        while stack:
+            o = stack.pop()
+            if isinstance(o, dict):
+                txt = json.dumps({k: o[k] for k in list(o)[:6]},
+                                 default=str).lower()
+                if needle in txt and ("corr" in txt or "r" in o):
+                    for kk in ("r", "corr", "correlation"):
+                        if isinstance(o.get(kk), (int, float)):
+                            return round(o[kk], 2)
+                stack.extend(o.values())
+            elif isinstance(o, list):
+                stack.extend(o)
+        return None
+    tw_r = _find_r(_ap, "taiwan")
+    kr_r = _find_r(_ap, "korea")
+    for t in ("SMH",):
+        chips = []
+        if tw_r is not None:
+            chips.append({"src": "TW semi flows", "r": tw_r,
+                          "note": "contrarian" if tw_r < 0
+                          else "follow-through"})
+        if kr_r is not None:
+            chips.append({"src": "KR memory flows", "r": kr_r,
+                          "note": "follow-through" if kr_r > 0
+                          else "contrarian"})
+        if chips:
+            apac_chips[t] = chips
+    for r_ in rows:
+        if r_["etf"] in apac_chips:
+            r_["apac"] = apac_chips[r_["etf"]]
     credit = {}
     try:
         credit = industry_credit(list(holdings_by_etf),
@@ -972,7 +1121,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.2",
+        "engine": "justhodl-industry-rotation", "version": "3.3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -1017,6 +1166,9 @@ def lambda_handler(event=None, context=None):
         "score_history": hist,
         "rrg": rrg, "rrg_transitions": rrg_transitions,
         "ew_cw": ew_cw, "ma_events": ma_events,
+        "cycle_context": cycle_context,
+        "risk_appetite": risk_appetite,
+        "join_hits": join_hits,
         "rank_note": rank_note,
         "warns": warns[:20]}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
