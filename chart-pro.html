@@ -1496,7 +1496,11 @@ a:hover { text-decoration: underline; }
         <button class="tf-btn" data-mult="1" data-span="day" data-days="1825">5Y</button>
         <button class="tf-btn" data-mult="1" data-span="week" data-days="1825">1W</button>
         <button class="tf-btn" data-mult="1" data-span="month" data-days="3650">1M</button>
-        <button class="tf-btn" data-mult="1" data-span="week" data-days="9999" title="Full available history (Polygon)">MAX</button>
+        <button class="tf-btn" data-mult="1" data-span="week" data-days="9999" title="Full available history ">MAX</button>
+        <span style="width:1px;height:14px;background:var(--border-bright);margin:0 3px"></span>
+        <button class="tf-btn" id="tf-zoom-in" title="Finer interval (also: + key)">+</button>
+        <button class="tf-btn" id="tf-zoom-out" title="Coarser interval (also: − key)">−</button>
+        <button class="tf-btn" id="tf-fit" title="Fit all bars in view (also: 0 key)">⌂</button>
       </div>
       <div class="tf-bar chg-bar" id="chg-bar" title="FRED-style period-over-period % change">
         <button class="chg-btn active" data-chg="price">Price</button>
@@ -1746,6 +1750,29 @@ a:hover { text-decoration: underline; }
 const PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
 const JH_INDEX_MAP = { SPX:'^GSPC', GSPC:'^GSPC', NDX:'^NDX', IXIC:'^IXIC', COMP:'^IXIC', DJI:'^DJI', DJIA:'^DJI', RUT:'^RUT', VIX:'^VIX', SOX:'^SOX', TNX:'^TNX', TYX:'^TYX', FVX:'^FVX', DXY:'DX-Y.NYB', HSI:'^HSI', N225:'^N225', NI225:'^N225', DAX:'^GDAXI', FTSE:'^FTSE', STOXX50E:'^STOXX50E', KS11:'^KS11', TWII:'^TWII' };
 const JH_Y_RANGE = d => d >= 9999 ? 'max' : d > 1830 ? '10y' : d > 1300 ? '5y' : d > 500 ? '2y' : d > 140 ? '1y' : '6mo';
+const JH_FAV_KEY = 'jh_metric_favs';
+function jhFavs() { try { return JSON.parse(localStorage.getItem(JH_FAV_KEY) || '[]'); } catch (e) { return []; } }
+function jhFavHas(t) { return jhFavs().some(f => f.ticker === t); }
+function jhFavToggle(item) {
+  const a = jhFavs();
+  const i = a.findIndex(f => f.ticker === item.ticker);
+  if (i >= 0) a.splice(i, 1);
+  else a.unshift({ ticker: item.ticker, kind: item.kind || 'equity', name: item.name || '', display: item.display || '', type: item.type || '', full: item.full || '' });
+  if (a.length > 40) a.pop();
+  try { localStorage.setItem(JH_FAV_KEY, JSON.stringify(a)); } catch (e) {}
+}
+function jhChartable(s) {
+  // Only symbols our chart can actually render: US equities/ETFs
+  // (Polygon+Yahoo), mapped indices (Yahoo ^), 6-letter forex (Yahoo =X).
+  const t = (s.type || '').toLowerCase();
+  const ex = (s.exchange || '').toUpperCase();
+  const sym = (s.symbol || s.ticker || '').toUpperCase();
+  if (['stock', 'dr', 'fund', 'etf', 'reit', 'preferred'].includes(t))
+    return /NASDAQ|NYSE|AMEX|ARCA|BATS|CBOE|OTC/.test(ex);
+  if (t === 'index') return !!JH_INDEX_MAP[sym];
+  if (t === 'forex') return /^[A-Z]{6}$/.test(sym);
+  return false;
+}
 async function jhYahooBars(sym, days) {
   try {
     const iv = days >= 9999 ? '1wk' : '1d';
@@ -5020,15 +5047,29 @@ class UniverseSearch {
   static close() { document.getElementById('search-modal').classList.remove('open'); }
   
   static renderEmpty() {
-    document.getElementById('search-modal-body').innerHTML =
-      '<div class="search-empty">Search your entire universe — tickers, ETFs, crypto, forex, futures, and 800k FRED macro series. Your JustHodl signals show first.</div>';
-    document.getElementById('search-result-count').textContent = '0 results';
+    this._lastQ = '';
+    const favs = jhFavs().slice(0, 12).map(f => ({ ...f }));
+    const ks = State.knownSymbols || {};
+    const favSet = new Set(favs.map(f => f.ticker));
+    const recents = Object.entries(ks)
+      .sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0))
+      .filter(([t]) => !favSet.has(t)).slice(0, 8)
+      .map(([t, v]) => ({ ticker: t, kind: v.kind || 'equity', name: '' }));
+    if (!favs.length && !recents.length) {
+      document.getElementById('search-modal-body').innerHTML =
+        '<div class="search-empty">Search everything the chart can draw — US stocks &amp; ETFs, major indices, forex, and 800k FRED macro series. ★ a result to pin it here.</div>';
+      document.getElementById('search-result-count').textContent = '0 results';
+      return;
+    }
+    this._groups = { favorites: favs, recents, justhodl: [], equity: [], macro: [] };
+    this.renderGrouped(this._groups);
   }
   
   static onInput(query) {
     clearTimeout(this.debounceTimer);
     this.focusIdx = 0;
     query = (query || '').trim();
+    this._lastQ = query;
     if (!query) { this.renderEmpty(); return; }
     // Bump sequence so stale async responses are dropped
     this._seq = (this._seq || 0) + 1;
@@ -5048,6 +5089,7 @@ class UniverseSearch {
           const localTickers = new Set(local.map(l => l.ticker));
           this._groups.equity = (d.symbols || [])
             .filter(s => !localTickers.has((s.symbol||'').toUpperCase()))
+            .filter(s => jhChartable(s))
             .map(s => ({ ticker: s.symbol, name: s.description, kind: 'equity', type: s.type, exchange: s.exchange, full: s.full }));
           this.renderGrouped(this._groups);
         }).catch(()=>{});
@@ -5065,8 +5107,15 @@ class UniverseSearch {
   
   static renderGrouped(groups, partial = false) {
     const body = document.getElementById('search-modal-body');
-    // Flatten for keyboard nav (order: justhodl, equity, macro)
-    this.currentResults = [...groups.justhodl, ...groups.equity, ...groups.macro];
+    // Favorites first, then recents, signals, equities, macro
+    const q = (this._lastQ || '').toUpperCase();
+    groups.favorites = groups.favorites || (q ? jhFavs().filter(f =>
+      f.ticker.toUpperCase().includes(q) || (f.display || '').toUpperCase().includes(q) || (f.name || '').toUpperCase().includes(q)
+    ).slice(0, 8) : []);
+    groups.recents = groups.recents || [];
+    const favSet2 = new Set(groups.favorites.map(f => f.ticker));
+    for (const g of ['justhodl', 'equity', 'macro']) groups[g] = (groups[g] || []).filter(r => !favSet2.has(r.ticker));
+    this.currentResults = [...groups.favorites, ...groups.recents, ...groups.justhodl, ...groups.equity, ...groups.macro];
     if (this.currentResults.length === 0) {
       body.innerHTML = partial
         ? '<div class="search-empty">Searching universe + macro…</div>'
@@ -5083,33 +5132,48 @@ class UniverseSearch {
         return row;
       }).join('');
     };
+    const star = (r, i) => `<span class="sr-fav" data-i="${i}" title="${jhFavHas(r.ticker) ? 'Unpin favorite' : 'Pin as favorite — shows first'}" style="cursor:pointer;padding:0 6px;color:${jhFavHas(r.ticker) ? 'var(--amber)' : 'var(--fg-3)'}">${jhFavHas(r.ticker) ? '★' : '☆'}</span>`;
+    const genRow = (r, i) => `<div class="search-result us-row ${i===this.focusIdx?'focus':''}" data-ticker="${UI.esc(r.ticker)}" data-kind="${UI.esc(r.kind || 'equity')}" data-full="${UI.esc(r.full||'')}">
+        <span class="sr-ticker" ${r.kind==='macro' ? 'style="color:var(--violet)"' : ''}>${UI.esc(r.display || r.ticker)}</span>
+        <span class="sr-name">${UI.esc(r.name||'')}</span>
+        <span class="sr-price">${UI.esc((r.type||r.kind||'').slice(0,5))}</span>
+        ${star(r, i)}<span class="sr-chg">→</span></div>`;
     let html = '';
+    html += section('★ Favorites', groups.favorites, genRow);
+    html += section('⏱ Recent', groups.recents, genRow);
     html += section('★ Your JustHodl Signals', groups.justhodl, (r, i) => {
       const badges = (r.sources||[]).slice(0,4).map(s => `<span class="us-badge ${s.toLowerCase()}">${s}</span>`).join('');
       return `<div class="search-result us-row ${i===this.focusIdx?'focus':''}" data-ticker="${UI.esc(r.ticker)}" data-kind="justhodl">
         <span class="sr-ticker">${UI.esc(r.ticker)}</span>
         <span class="sr-name">${UI.esc(r.name||'')} ${badges}</span>
         <span class="sr-price" style="color:var(--green)">signal</span>
-        <span class="sr-chg">→</span></div>`;
+        ${star(r, i)}<span class="sr-chg">→</span></div>`;
     });
-    html += section('Equities · ETFs · Crypto · Forex · Futures', groups.equity, (r, i) => {
+    html += section('US Equities · ETFs · Indices · Forex', groups.equity, (r, i) => {
       const tc = (r.type||'').toLowerCase();
       return `<div class="search-result us-row ${i===this.focusIdx?'focus':''}" data-ticker="${UI.esc(r.ticker)}" data-kind="equity" data-full="${UI.esc(r.full||'')}">
         <span class="sr-ticker">${UI.esc(r.ticker)}</span>
         <span class="sr-name">${UI.esc(r.name||'')}</span>
         <span class="sr-price"><span class="us-type ${tc}">${UI.esc((r.type||'eq').slice(0,3))}</span> ${UI.esc(r.exchange||'')}</span>
-        <span class="sr-chg">→</span></div>`;
+        ${star(r, i)}<span class="sr-chg">→</span></div>`;
     });
     html += section('Macro · FRED economic series', groups.macro, (r, i) => {
       return `<div class="search-result us-row ${i===this.focusIdx?'focus':''}" data-ticker="${UI.esc(r.ticker)}" data-kind="macro">
         <span class="sr-ticker" style="color:var(--violet)">${UI.esc(r.display||r.ticker)}</span>
         <span class="sr-name">${UI.esc(r.name||'')}</span>
         <span class="sr-price">${UI.esc(r.units||'')} · ${UI.esc(r.frequency||'')}</span>
-        <span class="sr-chg">→</span></div>`;
+        ${star(r, i)}<span class="sr-chg">→</span></div>`;
     });
     body.innerHTML = html;
     document.getElementById('search-result-count').textContent =
       `${this.currentResults.length} (${groups.justhodl.length} signals · ${groups.equity.length} mkt · ${groups.macro.length} macro)`;
+    body.querySelectorAll('.sr-fav').forEach(el => {
+      el.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const it = this.currentResults[+el.dataset.i];
+        if (it) { jhFavToggle(it); this._lastQ ? this.onInput(this._lastQ) : this.renderEmpty(); }
+      });
+    });
     body.querySelectorAll('.us-row').forEach(el => {
       el.addEventListener('click', () => this.select(el.dataset.ticker, el.dataset.kind, el.dataset.full));
     });
@@ -5185,7 +5249,15 @@ class HeaderSearch {
       if (seq !== this._seq) return;
       const lt = new Set(local.map(l => l.ticker));
       this._groups.equity = (d.symbols || []).filter(s => !lt.has((s.symbol||'').toUpperCase()))
+        .filter(s => jhChartable(s))
         .map(s => ({ ticker: s.symbol, name: s.description, kind: 'equity', type: s.type, exchange: s.exchange, full: s.full }));
+      const qU = q.toUpperCase();
+      const hfav = jhFavs().filter(f => f.ticker.toUpperCase().includes(qU) || (f.name||'').toUpperCase().includes(qU) || (f.display||'').toUpperCase().includes(qU)).slice(0, 5);
+      if (hfav.length) {
+        const hs = new Set(hfav.map(f => f.ticker));
+        this._groups.equity = this._groups.equity.filter(r => !hs.has(r.ticker));
+        this._groups.favorites = hfav;
+      }
       this.render();
     }).catch(()=>{});
     fetch(`${PROXY}/fred-search?text=${enc}`).then(r => r.ok ? r.json() : {series:[]}).then(d => {
@@ -5198,16 +5270,20 @@ class HeaderSearch {
   static render(partial) {
     const dd = document.getElementById('hsearch-dropdown');
     const g = this._groups || { justhodl: [], equity: [], macro: [] };
-    this.results = [...g.justhodl, ...g.equity, ...g.macro];
+    g.favorites = g.favorites || [];
+    this.results = [...g.favorites, ...g.justhodl, ...g.equity, ...g.macro];
     dd.classList.add('open');
     if (!this.results.length) { dd.innerHTML = `<div class="hs-empty">${partial ? 'Searching…' : 'No matches'}</div>`; return; }
     let idx = 0; let html = '';
     const section = (label, items, fn) => { if (!items.length) return ''; let s = `<div class="hs-group">${label}</div>`; items.forEach(it => { s += fn(it, idx); idx++; }); return s; };
+    html += section('★ Favorites', g.favorites, (r, i) => {
+      return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}"><span class="hs-tk" style="color:var(--amber)">${UI.esc(r.display || r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag">${UI.esc(r.kind||'fav')}</span></div>`;
+    });
     html += section('★ Your JustHodl signals', g.justhodl, (r, i) => {
       const badges = (r.sources||[]).slice(0,3).map(x => `<span class="hs-badge">${x}</span>`).join('');
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}<span class="hs-badges">${badges}</span></span><span class="hs-tag signal">signal</span></div>`;
     });
-    html += section('Equities · ETFs · Crypto · Forex · Futures', g.equity, (r, i) => {
+    html += section('US Equities · ETFs · Indices · Forex', g.equity, (r, i) => {
       const tc = (r.type||'').toLowerCase();
       return `<div class="hs-row ${i===this.sel?'sel':''}" data-ticker="${UI.esc(r.ticker)}" data-i="${i}" data-full="${UI.esc(r.full||'')}" data-type="${UI.esc(tc)}"><span class="hs-tk">${UI.esc(r.ticker)}</span><span class="hs-name">${UI.esc(r.name||'')}</span><span class="hs-tag ${tc}">${UI.esc((r.type||'eq'))} ${UI.esc(r.exchange||'')}</span></div>`;
     });
@@ -6610,6 +6686,7 @@ class JHF {
     return lv.filter(L => L.n >= 2).sort((a, b) => b.n - a.n).slice(0, maxL).map(L => ({ price: L.sum / L.n, touches: L.n }));
   }
   static chartApply(paneIdx, chart, series, bars, ticker) {
+    (State._charts = State._charts || {})[paneIdx] = chart;
     const F = State.fusion || {};
     State._jhfLines = State._jhfLines || {};
     (State._jhfLines[paneIdx] || []).forEach(fn => { try { fn(); } catch (e) {} });
@@ -6649,6 +6726,17 @@ class JHF {
     b("sr-btn", e => { State.srOn = State.srOn === false; e.currentTarget.classList.toggle("active", State.srOn !== false); if (State.activeTicker) NativeChart.render(State.activeTicker); });
     b("avwap-btn", e => { State.avwapMode = !State.avwapMode; e.currentTarget.classList.toggle("active", State.avwapMode); e.currentTarget.textContent = State.avwapMode ? "AVWAP \u2295click" : "AVWAP"; });
   };
+  const jhLadder = () => Array.from(document.querySelectorAll('.tf-btn[data-days]'));
+  const jhStep = (dir) => { const L = jhLadder(); const i = L.findIndex(x => x.classList.contains('active')); const j = Math.min(Math.max((i < 0 ? L.findIndex(x => x.dataset.span === 'day') : i) + dir, 0), L.length - 1); if (j !== i && L[j]) L[j].click(); };
+  b('tf-zoom-in', () => jhStep(-1));
+  b('tf-zoom-out', () => jhStep(1));
+  b('tf-fit', () => { try { const c = (State._charts || {})[State.activeChartPane]; if (c) c.timeScale().fitContent(); } catch (e) {} });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); jhStep(-1); }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); jhStep(1); }
+    else if (e.key === '0') { e.preventDefault(); const c = (State._charts || {})[State.activeChartPane]; if (c) try { c.timeScale().fitContent(); } catch (x) {} }
+  });
   const boot = () => { wire(); JHF.load().catch(() => {}); };
   if (document.readyState === "complete") setTimeout(boot, 900); else window.addEventListener("load", () => setTimeout(boot, 900));
   setInterval(() => JHF.load().catch(() => {}), 360000);
