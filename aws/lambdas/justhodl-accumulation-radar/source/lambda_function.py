@@ -35,7 +35,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 MAXDAYS = 235          # buffer depth (v1.4: +35 so the 50/200 cross scan has a 15-session window)
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
@@ -605,6 +605,15 @@ def lambda_handler(event=None, context=None):
                 score += 20
                 dated = True
                 ev.append("reclaimed the 50DMA within 12 sessions")
+            up200 = (c[-1] > sma200
+                     and any(c[-i] < (_sma_s(c, 200, len(c) - i)
+                                      or 9e9)
+                             for i in range(5, 13)))
+            if up200:
+                score += 20
+                dated = True
+                ev.append("BROKE ABOVE the 200DMA within 12 "
+                          "sessions (Weinstein Stage 2 transition)")
             if sma50 > sma50_p5:
                 score += 10
                 ev.append("50DMA slope turned up")
@@ -613,7 +622,7 @@ def lambda_handler(event=None, context=None):
                 score += 20
                 dated = True
                 ev.append("BREAKOUT above the 3-month range")
-            volc = (brk or reclaim) and vr_today >= 1.5
+            volc = (brk or reclaim or up200) and vr_today >= 1.5
             if volc:
                 score += 15
                 ev.append("volume-confirmed: %.1fx the 50d average "
@@ -646,6 +655,9 @@ def lambda_handler(event=None, context=None):
                     "score": min(100, score),
                     "tier": "CONFIRMED" if volc else "EARLY",
                     "evidence": ev, "breakout": brk,
+                    "broke_200dma_up": bool(up200),
+                    "pct_vs_200dma": round(
+                        (c[-1] / sma200 - 1) * 100, 1),
                     "vol_confirm": bool(volc),
                     "vol_ratio_today": round(vr_today, 2),
                     "up_down_vol_20d": ud,
@@ -674,6 +686,15 @@ def lambda_handler(event=None, context=None):
                 score += 20
                 dated = True
                 ev.append("lost the 50DMA within 12 sessions")
+            dn200 = (c[-1] < sma200
+                     and any(c[-i] > (_sma_s(c, 200, len(c) - i)
+                                      or 0)
+                             for i in range(5, 13)))
+            if dn200:
+                score += 20
+                dated = True
+                ev.append("BROKE BELOW the 200DMA within 12 "
+                          "sessions (Weinstein Stage 4 transition)")
             if sma50 < sma50_p5:
                 score += 10
                 ev.append("50DMA slope rolled over")
@@ -682,7 +703,7 @@ def lambda_handler(event=None, context=None):
                 score += 20
                 dated = True
                 ev.append("BREAKDOWN below the 3-month range")
-            volc = (brkdn or lose) and vr_today >= 1.5
+            volc = (brkdn or lose or dn200) and vr_today >= 1.5
             if volc:
                 score += 15
                 ev.append("volume-confirmed: %.1fx the 50d average "
@@ -717,6 +738,9 @@ def lambda_handler(event=None, context=None):
                     "score": min(100, score),
                     "tier": "CONFIRMED" if volc else "EARLY",
                     "evidence": ev, "breakdown": brkdn,
+                    "broke_200dma_down": bool(dn200),
+                    "pct_vs_200dma": round(
+                        (c[-1] / sma200 - 1) * 100, 1),
                     "vol_confirm": bool(volc),
                     "vol_ratio_today": round(vr_today, 2),
                     "distribution_days_25": dist,
@@ -739,14 +763,17 @@ def lambda_handler(event=None, context=None):
                 "sessions ago) + traded within 3% of the 252d low in "
                 "the last 60 sessions",
                 "a DATED trigger within 12-15 sessions is required: "
-                "50DMA reclaim, 3-month breakout, or golden cross",
+                "50DMA reclaim, a break ABOVE the 200DMA "
+                "(Weinstein Stage 2), 3-month breakout, or golden "
+                "cross",
                 "volume must confirm for the CONFIRMED tier: trigger "
                 "volume >=1.5x the 50d average (O'Neil/IBD)"],
             "top_signals": [
                 "context gate: prior uptrend + within 3% of the 252d "
                 "high in the last 60 sessions",
-                "dated trigger: 50DMA loss, 3-month breakdown, or "
-                "death cross within 15 sessions",
+                "dated trigger: 50DMA loss, a break BELOW the 200DMA "
+                "(Weinstein Stage 4), 3-month breakdown, or death "
+                "cross within 15 sessions",
                 "conviction selling: >=1.5x volume on the break "
                 "and/or >=5 distribution days in 25 sessions (IBD)"],
             "volume_guide": [

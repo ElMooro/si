@@ -63,6 +63,9 @@ function revCard(r, kind){
   const tierC = r.tier === 'CONFIRMED' ? 'var(--gold,#e8c86a)' : 'var(--fg3)';
   const chps = [];
   if (good && r.breakout) chps.push('<span class="chp" style="color:var(--grn);font-weight:800">BREAKOUT</span>');
+  if (good && r.broke_200dma_up) chps.push('<span class="chp" style="color:var(--grn);font-weight:800" title="fresh break ABOVE the 200-day moving average — the institutional trend line; Weinstein Stage 2 transition. On ≥1.5× volume this is a regime change, not noise.">200DMA ↑</span>');
+  if (!good && r.broke_200dma_down) chps.push('<span class="chp" style="color:var(--red);font-weight:800" title="fresh break BELOW the 200-day moving average — Weinstein Stage 4 transition; the most-watched long-term level giving way">200DMA ↓</span>');
+  if (r.pct_vs_200dma != null) chps.push(`<span class="chp" style="color:var(--fg3)" title="distance from the 200-day moving average">${r.pct_vs_200dma>0?'+':''}${r.pct_vs_200dma}% vs 200DMA</span>`);
   if (!good && r.breakdown) chps.push('<span class="chp" style="color:var(--red);font-weight:800">BREAKDOWN</span>');
   chps.push(`<span class="chp" style="color:${r.vol_ratio_today>=1.5?'var(--gold,#e8c86a)':'var(--fg3)'}" title="today's volume vs the 50-day average — ≥1.5× = institutional participation confirming the move">🔊 ${r.vol_ratio_today}×</span>`);
   if (good && r.up_down_vol_20d != null) chps.push(`<span class="chp" style="color:${r.up_down_vol_20d>=1.3?'var(--grn)':'var(--fg3)'}" title="up-day volume ÷ down-day volume, 20 sessions — >1.3 = accumulation tape">U/D ${r.up_down_vol_20d}</span>`);
@@ -84,12 +87,12 @@ function reversalSection(d){
   const bt = rv.bottoms || [], tp = rv.tops || [];
   let h = '<div class="sec" style="border:1px solid var(--grn);border-radius:10px;padding:10px 12px;margin:14px 0;background:#07130c" id="rev-bottoms">';
   h += '<h2 style="color:var(--grn);margin:0 0 2px">⬆ TREND REVERSALS — bottomed, now turning up</h2>';
-  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior downtrend + a <b>dated trigger inside 12–15 sessions</b> (50DMA reclaim, 3-month breakout, or golden cross). <b>CONFIRMED</b> = the trigger printed on ≥1.5× the 50-day volume — institutions, not drift.</div>';
+  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior downtrend + a <b>dated trigger inside 12–15 sessions</b> (50DMA reclaim, <b>200DMA upside break</b>, 3-month breakout, or golden cross). <b>CONFIRMED</b> = the trigger printed on ≥1.5× the 50-day volume — institutions, not drift.</div>';
   h += bt.length ? `<div class="grid">${bt.map(r=>revCard(r,'b')).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">no fresh bottom reversals today — honest zero beats a forced list</div>';
   h += '</div>';
   h += '<div class="sec" style="border:1px solid var(--red);border-radius:10px;padding:10px 12px;margin:14px 0;background:#160a0c" id="rev-tops">';
   h += '<h2 style="color:var(--red);margin:0 0 2px">⬇ TREND REVERSALS — topped, dump starting</h2>';
-  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior uptrend within 3% of the 252-day high + a dated break: 50DMA loss, 3-month breakdown, or death cross. Conviction selling = ≥1.5× volume on the break and/or ≥5 distribution days in 25 sessions.</div>';
+  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior uptrend within 3% of the 252-day high + a dated break: 50DMA loss, <b>200DMA downside break</b>, 3-month breakdown, or death cross. Conviction selling = ≥1.5× volume on the break and/or ≥5 distribution days in 25 sessions.</div>';
   h += tp.length ? `<div class="grid">${tp.map(r=>revCard(r,'t')).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">no fresh top reversals today</div>';
   h += '</div>';
   const m = rv.method || {};
