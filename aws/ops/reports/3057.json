@@ -1,0 +1,16 @@
+{
+ "ops": 3057,
+ "verdict": "FAIL",
+ "fails": [
+  "wyckoff join=2 (<10)"
+ ],
+ "warns": [
+  "transitions empty -- first pass seeds quadrants, crossings accrue from tomorrow",
+  "rev_hits low: 0",
+  "no APAC chips (feed schema miss -- warn-level)",
+  "dark_pool join=0 (membership may be honest)",
+  "capital_flow join=0 (membership may be honest)",
+  "options join=0 (membership may be honest)"
+ ],
+ "ts": "2026-07-10T15:12:30.143022+00:00"
+}

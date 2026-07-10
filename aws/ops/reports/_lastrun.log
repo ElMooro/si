@@ -1,9 +1,11 @@
-executing-against: 064554481956f1a8be8b5c9b0250afb8e7acfeae
+executing-against: 83b37796e18e3b3cbbe5c56859262ab77e8777b5
 ── 1. Radar ma_state (already live from 3054) ──
 ── 2. IR 3.1 (RRG + transitions + breadth) ──
 ── 2b. Arc B: EW/CW + MA events ──
+── 2c. Arc C: six fleet joins ──
 ── 3. Page (warn-level) ──
 ── verdict ──
-[14:50:39] PASS -- Arc A live
+[15:12:30] FAIL: wyckoff join=2 (<10)
 
-→ Report written to aws/ops/reports/latest/3056_ewcw_maevents.md
+→ Report written to aws/ops/reports/latest/3057_fleet_joins.md
+❌ OPS-FAIL: aws/ops/pending/ops_3057_fleet_joins.py
