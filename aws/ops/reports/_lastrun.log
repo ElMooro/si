@@ -1,8 +1,10 @@
-executing-against: e9a7dc0275678ed2dd9c9dfb483ff8d4fae121e0
-── 1. Wait weights fn settled ──
-── 2. Re-study (3 horizons) + replay ──
+executing-against: 2b4cfa94d80a7c207455f8b26f71e48b68edae79
+── 1. Warroom v12 regen ──
+── 2. Harvester ingest ──
+[02:50:32] scorecard grading matures in ~3 weeks; alpha verdict will appear in engine-alpha.json automatically.
 ── 3. Live page (warn-level) ──
 ── verdict ──
-[02:41:55] PASS
+[02:50:32] FAIL: no eng:canary-warroom row after harvest
 
-→ Report written to aws/ops/reports/latest/3036_multihorizon_replay.md
+→ Report written to aws/ops/reports/latest/3037_grading_health.md
+❌ OPS-FAIL: aws/ops/pending/ops_3037_grading_health.py
