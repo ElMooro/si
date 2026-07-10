@@ -80,7 +80,7 @@ BANKS = [  # custodial=True tier -- flows shown separately, honesty note
     ("0000070858", "Bank of America"),
 ]
 MIN_FLOW_USD = 2_000_000     # ignore dust deltas
-MAX_PAGES = 40
+MAX_PAGES = 130   # Citadel ~12.5k positions / ~150-row pages -- 40 truncated the mega-quants (fake EXITs on the tail, 3041 lesson)
 
 
 def _get(url, timeout=30):

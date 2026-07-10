@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""ops 3041 -- whales CLOSE. First run passed structurally but printed
+"""ops 3042 -- whales FINAL. 3041: magnitudes fixed but Citadel=5970 vs known ~12,508 -- MAX_PAGES=40 truncated mega-quant books (tail names past the cap in one quarter read as fake EXITs). Cap 130; assert tightened 9k-20k.
+
+Prior: ops 3041 -- whales CLOSE. First run passed structurally but printed
 impossible magnitudes ($260B single-stock flows on quant-heavy names)
 while Berkshire book was exact -- pagination repeat on big filers
 (len<100 break never fires at 1000-row pages; out-of-range pages
@@ -78,7 +80,7 @@ def ensure_fn(rep):
 
 def main():
     fails, warns = [], []
-    with report("3041_whales_close") as rep:
+    with report("3042_whales_final") as rep:
         rep.section("1. Ensure engine")
         if not ensure_fn(rep):
             fails.append("fn not ready")
@@ -144,7 +146,7 @@ def main():
                         infl[:1] + outf[:1]), default=0)
         rep.kv(citadel_positions=(cit or {}).get("n_positions"),
                max_single_flow=max_flow)
-        if cit and not (6000 <= cit["n_positions"] <= 20000):
+        if cit and not (9000 <= cit["n_positions"] <= 20000):
             fails.append("Citadel positions=%s (pagination suspect)"
                          % cit["n_positions"])
         if max_flow > 30_000_000_000:
@@ -198,11 +200,11 @@ def main():
 
 
 def _fin(rep, fails, warns, extra):
-    payload = {"ops": 3041, "fails": fails, "warns": warns,
+    payload = {"ops": 3042, "fails": fails, "warns": warns,
                "verdict": "FAIL" if fails else "PASS",
                "ts": datetime.now(timezone.utc).isoformat()}
     payload.update(extra)
-    (AWS_DIR / "ops" / "reports" / "3041.json").write_text(
+    (AWS_DIR / "ops" / "reports" / "3042.json").write_text(
         json.dumps(payload, indent=1))
     rep.kv(verdict=payload["verdict"], n_fails=len(fails),
            n_warns=len(warns))
