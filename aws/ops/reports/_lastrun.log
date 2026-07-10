@@ -1,8 +1,9 @@
-executing-against: 3b735206f2265e1cd29d57b1acec081c9201de81
-── 1. Page live (post-CDN) ──
-── 2. Worker: full-history cap live ──
-── 3. Index route (Yahoo path) ──
+executing-against: 7cf5e6cd2f2bbff219ba7d7b89886de1dfb00d47
+── 1. Page live ──
+── 2. Worker: Yahoo full history (decades) ──
+── 3. Index + fallback routes ──
 ── verdict ──
-[17:41:39] PASS
+[18:28:14] FAIL: AAPL range=max never reached pre-1995 weekly history
 
-→ Report written to aws/ops/reports/latest/3067_chartpro_cleanup.md
+→ Report written to aws/ops/reports/latest/3068_fullhistory.md
+❌ OPS-FAIL: aws/ops/pending/ops_3068_fullhistory.py
