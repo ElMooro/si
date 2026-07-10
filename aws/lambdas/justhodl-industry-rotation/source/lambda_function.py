@@ -916,8 +916,11 @@ def lambda_handler(event=None, context=None):
         return o if o is not None else default
 
     # (8) Wyckoff dated phase per ETF (phase-detector top-400 map)
-    _ph = (s3_json("data/phase-detector.json") or {}).get("tickers") \
-        or {}
+    _pdj = s3_json("data/phase-detector.json") or {}
+    _ph = {t: {"phase": v.get("p"), "begin": v.get("b")}
+           for t, v in (_pdj.get("phases_all") or {}).items()}
+    if not _ph:
+        _ph = _pdj.get("tickers") or {}
     # (7) smart-money: whales $, dark-pool state, capital-flow,
     #     options-confluence posture
     _wh = (s3_json("data/whales.json") or {}).get("stocks") or {}
@@ -1020,41 +1023,28 @@ def lambda_handler(event=None, context=None):
             "factor_regime_z": fr_z,
             "spark": [round(v, 4) for v in ra[-126::5]]}
 
-    # (11) APAC lead-lag chips for semi armies
+    # (11) APAC lead-lag chips: read apac-leadlag's proven pairs
+    # directly (3057 lesson: heuristic walker missed the schema --
+    # pairs[].best{horizon,r,n} with names like "Taiwan semis -> SMH")
+    _ap = s3_json("data/apac-leadlag.json") or \
+        s3_json("data/apac.json") or {}
     apac_chips = {}
-    _ap = s3_json("data/apac.json") or {}
-    def _find_r(blob, needle):
-        stack = [blob]
-        while stack:
-            o = stack.pop()
-            if isinstance(o, dict):
-                txt = json.dumps({k: o[k] for k in list(o)[:6]},
-                                 default=str).lower()
-                if needle in txt and ("corr" in txt or "r" in o):
-                    for kk in ("r", "corr", "correlation"):
-                        if isinstance(o.get(kk), (int, float)):
-                            return round(o[kk], 2)
-                stack.extend(o.values())
-            elif isinstance(o, list):
-                stack.extend(o)
-        return None
-    tw_r = _find_r(_ap, "taiwan")
-    kr_r = _find_r(_ap, "korea")
-    for t in ("SMH",):
-        chips = []
-        if tw_r is not None:
-            chips.append({"src": "TW semi flows", "r": tw_r,
-                          "note": "contrarian" if tw_r < 0
-                          else "follow-through"})
-        if kr_r is not None:
-            chips.append({"src": "KR memory flows", "r": kr_r,
-                          "note": "follow-through" if kr_r > 0
-                          else "contrarian"})
-        if chips:
-            apac_chips[t] = chips
+    for pr in (_ap.get("pairs") or []):
+        best = pr.get("best") or {}
+        nm = pr.get("name") or ""
+        r_val = best.get("r")
+        if r_val is None:
+            continue
+        for t in ("SMH", "SOXX"):
+            if nm.endswith(t) or (" %s" % t) in nm:
+                apac_chips.setdefault(t, []).append(
+                    {"src": nm, "r": r_val,
+                     "lead_days": best.get("horizon"),
+                     "note": "follow-through" if r_val > 0
+                     else "contrarian"})
     for r_ in rows:
         if r_["etf"] in apac_chips:
-            r_["apac"] = apac_chips[r_["etf"]]
+            r_["apac"] = apac_chips[r_["etf"]][:2]
     credit = {}
     try:
         credit = industry_credit(list(holdings_by_etf),

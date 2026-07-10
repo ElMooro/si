@@ -398,6 +398,9 @@ def lambda_handler(event=None, context=None):
            "phase_counts": ncur, "boards": boards,
            "tickers": {t: tickers[t] for t in sorted(keep)
                        if t in tickers},
+           "phases_all": {t: {"p": v["phase"],
+                              "b": v.get("begin")}
+                          for t, v in tickers.items()},
            "method": ("Wyckoff-grounded daily-bar segmentation: 63d "
                       "trend gate -> climax (vol>=2.2x 50d avg, range>="
                       "1.5x ATR14, close off the extreme) -> trading "
