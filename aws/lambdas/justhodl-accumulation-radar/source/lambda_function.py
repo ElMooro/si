@@ -35,8 +35,8 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/accumulation-radar.json"
 BUF_KEY = "data/_cycle/pv.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
-VERSION = "1.3.1"
-MAXDAYS = 200          # buffer depth
+VERSION = "1.4.0"
+MAXDAYS = 235          # buffer depth (v1.4: +35 so the 50/200 cross scan has a 15-session window)
 MIN_PTS = 60           # minimum history to score a name
 N_STOCKS = 420         # liquid US stocks in the universe (+ ETFs below)
 
@@ -531,6 +531,243 @@ def lambda_handler(event=None, context=None):
                                    1 if (r.get("pct_vs_200dma") or 0) > 0
                                    else 0]
                      for r in rows if r.get("pct_vs_50dma") is not None},
+    }
+
+    # ══ v1.4.0 REVERSAL TRANSITIONS — the fresh turn, volume-proven ══
+    # Wyckoff spring/UTAD transitions; Weinstein Stage 1->2 / 3->4
+    # across the long MA on volume; O'Neil/IBD >=150% breakout volume
+    # + distribution-day clusters; Granville OBV leads price;
+    # capitulation = seller exhaustion.
+    def _sma_s(c, n, i=None):
+        i = len(c) if i is None else i
+        if i < n:
+            return None
+        return sum(c[i - n:i]) / n
+
+    def _obv(c, v):
+        o, out_ = 0, [0]
+        for i in range(1, len(c)):
+            o += v[i] if c[i] > c[i - 1] else (-v[i] if c[i] < c[i - 1]
+                                               else 0)
+            out_.append(o)
+        return out_
+
+    def _cross_within(c, fast, slow, k, direction):
+        for back in range(1, k + 1):
+            i = len(c) - back
+            f1, s1 = _sma_s(c, fast, i + 1), _sma_s(c, slow, i + 1)
+            f0, s0 = _sma_s(c, fast, i), _sma_s(c, slow, i)
+            if None in (f1, s1, f0, s0):
+                return None
+            if direction == "up" and f0 <= s0 and f1 > s1:
+                return back
+            if direction == "dn" and f0 >= s0 and f1 < s1:
+                return back
+        return None
+
+    rev_bottoms, rev_tops = [], []
+    for r in rows:
+        if r.get("class") not in ("stock", "etf"):
+            continue
+        rec = buf.get("tickers", {}).get(r["ticker"]) or {}
+        c, v = rec.get("c") or [], rec.get("v") or []
+        if len(c) < 205 or len(v) != len(c) or not c[-1]:
+            continue
+        sma50 = _sma_s(c, 50)
+        sma50_p5 = _sma_s(c, 50, len(c) - 5)
+        sma200 = _sma_s(c, 200)
+        if None in (sma50, sma50_p5, sma200):
+            continue
+        hi252 = max(c[-252:] if len(c) >= 252 else c)
+        lo252 = min(c[-252:] if len(c) >= 252 else c)
+        v50 = sum(v[-51:-1]) / 50.0 or 1.0
+        vr_today = v[-1] / v50
+        upv = sum(v[-i] for i in range(1, 21) if c[-i] > c[-i - 1])
+        dnv = sum(v[-i] for i in range(1, 21) if c[-i] < c[-i - 1])
+        ud = round(upv / dnv, 2) if dnv else None
+        obv = _obv(c, v)
+        px_hh = max(c[-20:]) >= max(c[-40:-20])
+        obv_hh = max(obv[-20:]) >= max(obv[-40:-20])
+
+        down_ctx = (c[-45] < (_sma_s(c, 200, len(c) - 45) or c[-45])
+                    and min(c[-60:]) <= lo252 * 1.03)
+        if down_ctx:
+            ev, score, dated = [], 0, False
+            if min(c[-20:]) > min(c[-40:-20]) * 1.005:
+                score += 15
+                ev.append("higher low: 20d floor %.2f > prior %.2f"
+                          % (min(c[-20:]), min(c[-40:-20])))
+            reclaim = (c[-1] > sma50
+                       and any(c[-i] < (_sma_s(c, 50, len(c) - i)
+                                        or 9e9)
+                               for i in range(5, 13)))
+            if reclaim:
+                score += 20
+                dated = True
+                ev.append("reclaimed the 50DMA within 12 sessions")
+            if sma50 > sma50_p5:
+                score += 10
+                ev.append("50DMA slope turned up")
+            brk = c[-1] > max(c[-64:-1])
+            if brk:
+                score += 20
+                dated = True
+                ev.append("BREAKOUT above the 3-month range")
+            volc = (brk or reclaim) and vr_today >= 1.5
+            if volc:
+                score += 15
+                ev.append("volume-confirmed: %.1fx the 50d average "
+                          "on the trigger (O'Neil >=1.5x)" % vr_today)
+            if ud and ud >= 1.3:
+                score += 8
+                ev.append("accumulation tape: up/down volume %.2f"
+                          % ud)
+            if obv_hh and not px_hh:
+                score += 8
+                ev.append("OBV higher high while price lags "
+                          "(Granville bull divergence)")
+            gc = _cross_within(c, 50, 200, 15, "up")
+            if gc:
+                score += 8
+                dated = True
+                ev.append("GOLDEN CROSS %d session(s) ago "
+                          "(lagging confirmation)" % gc)
+            lo40 = min(c[-40:])
+            lo_i = max(i for i in range(len(c) - 40, len(c))
+                       if c[i] == lo40) if lo40 in c[-40:] else None
+            capit = (lo_i is not None and v[lo_i] > 2.5 * v50)
+            if capit:
+                score += 6
+                ev.append("capitulation volume at the low "
+                          "(seller exhaustion)")
+            if dated and score >= 45:
+                rev_bottoms.append({
+                    "ticker": r["ticker"], "class": r["class"],
+                    "score": min(100, score),
+                    "tier": "CONFIRMED" if volc else "EARLY",
+                    "evidence": ev, "breakout": brk,
+                    "vol_confirm": bool(volc),
+                    "vol_ratio_today": round(vr_today, 2),
+                    "up_down_vol_20d": ud,
+                    "obv_bull_div": bool(obv_hh and not px_hh),
+                    "golden_cross_sessions_ago": gc,
+                    "capitulation": bool(capit),
+                    "pct_off_252d_low": round(
+                        (c[-1] / lo252 - 1) * 100, 1),
+                    "phase": r.get("phase"),
+                    "radar_flag": r.get("flag"),
+                    "confirm_n": r.get("confirm_n", 0)})
+            continue
+
+        up_ctx = (c[-45] > (_sma_s(c, 200, len(c) - 45) or 0)
+                  and max(c[-60:]) >= hi252 * 0.97)
+        if up_ctx:
+            ev, score, dated = [], 0, False
+            if max(c[-20:]) < max(c[-40:-20]) * 0.995:
+                score += 15
+                ev.append("lower high: 20d peak %.2f < prior %.2f"
+                          % (max(c[-20:]), max(c[-40:-20])))
+            lose = (c[-1] < sma50
+                    and any(c[-i] > (_sma_s(c, 50, len(c) - i) or 0)
+                            for i in range(5, 13)))
+            if lose:
+                score += 20
+                dated = True
+                ev.append("lost the 50DMA within 12 sessions")
+            if sma50 < sma50_p5:
+                score += 10
+                ev.append("50DMA slope rolled over")
+            brkdn = c[-1] < min(c[-64:-1])
+            if brkdn:
+                score += 20
+                dated = True
+                ev.append("BREAKDOWN below the 3-month range")
+            volc = (brkdn or lose) and vr_today >= 1.5
+            if volc:
+                score += 15
+                ev.append("volume-confirmed: %.1fx the 50d average "
+                          "on the break (conviction selling)"
+                          % vr_today)
+            dist = sum(1 for i in range(1, 26)
+                       if len(c) > i + 1
+                       and c[-i] < c[-i - 1] * 0.998
+                       and v[-i] > v[-i - 1])
+            if dist >= 5:
+                score += 10
+                ev.append("distribution cluster: %d distribution "
+                          "days in 25 sessions (IBD >=5)" % dist)
+            if px_hh and not obv_hh:
+                score += 8
+                ev.append("OBV lower high vs price high "
+                          "(Granville bear divergence)")
+            dc = _cross_within(c, 50, 200, 15, "dn")
+            if dc:
+                score += 8
+                dated = True
+                ev.append("DEATH CROSS %d session(s) ago "
+                          "(lagging confirmation)" % dc)
+            churn = vr_today >= 1.8 and abs(c[-1] / c[-2] - 1) < 0.004
+            if churn:
+                score += 5
+                ev.append("churn: heavy volume, no progress near "
+                          "highs (distribution signature)")
+            if dated and score >= 45:
+                rev_tops.append({
+                    "ticker": r["ticker"], "class": r["class"],
+                    "score": min(100, score),
+                    "tier": "CONFIRMED" if volc else "EARLY",
+                    "evidence": ev, "breakdown": brkdn,
+                    "vol_confirm": bool(volc),
+                    "vol_ratio_today": round(vr_today, 2),
+                    "distribution_days_25": dist,
+                    "obv_bear_div": bool(px_hh and not obv_hh),
+                    "death_cross_sessions_ago": dc,
+                    "pct_off_252d_high": round(
+                        (c[-1] / hi252 - 1) * 100, 1),
+                    "phase": r.get("phase"),
+                    "radar_flag": r.get("flag"),
+                    "confirm_n": r.get("confirm_n", 0)})
+
+    rev_bottoms.sort(key=lambda x: -x["score"])
+    rev_tops.sort(key=lambda x: -x["score"])
+    out["reversals"] = {
+        "bottoms": rev_bottoms[:15], "tops": rev_tops[:15],
+        "n_scanned": len(rows),
+        "method": {
+            "bottom_signals": [
+                "context gate: prior downtrend (below the 200DMA 45 "
+                "sessions ago) + traded within 3% of the 252d low in "
+                "the last 60 sessions",
+                "a DATED trigger within 12-15 sessions is required: "
+                "50DMA reclaim, 3-month breakout, or golden cross",
+                "volume must confirm for the CONFIRMED tier: trigger "
+                "volume >=1.5x the 50d average (O'Neil/IBD)"],
+            "top_signals": [
+                "context gate: prior uptrend + within 3% of the 252d "
+                "high in the last 60 sessions",
+                "dated trigger: 50DMA loss, 3-month breakdown, or "
+                "death cross within 15 sessions",
+                "conviction selling: >=1.5x volume on the break "
+                "and/or >=5 distribution days in 25 sessions (IBD)"],
+            "volume_guide": [
+                "volume = participation and conviction; a move on "
+                "expanding volume is institutions, a move on "
+                "shrinking volume is drift",
+                "breakouts WITHOUT >=1.5x volume fail far more often "
+                "-- that is why CONFIRMED requires it",
+                "up/down volume ratio >1.3 over 20 sessions = "
+                "accumulation tape; <0.8 = distribution tape",
+                "OBV (cumulative signed volume) tends to LEAD price "
+                "at turns -- divergence flags the reversal early",
+                "climactic volume at a low = seller exhaustion; "
+                "heavy volume with no progress at a high = churn"],
+            "citations": [
+                "Wyckoff: springs / UTAD, phase transitions",
+                "Weinstein Stage Analysis: 1->2 and 3->4 across the "
+                "long-term MA on volume",
+                "O'Neil / IBD: >=150% breakout volume; "
+                "distribution-day clusters",
+                "Granville: On-Balance Volume leads price"]},
     }
 
     # ── closed loop: log LIKELY_BOTTOM (UP) + LIKELY_TOP (DOWN), graded vs benchmark ──

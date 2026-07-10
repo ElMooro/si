@@ -57,6 +57,51 @@ function chips(r){
   const n=r.confirm_n>=2?`<span class="chp" style="color:var(--gold,#e8c86a);font-weight:800">★${r.confirm_n} CONFIRM</span>`:'';
   return `<div class="chips">${n}${c.join('')}</div>`;
 }
+function revCard(r, kind){
+  const good = kind === 'b';
+  const ac = good ? 'var(--grn)' : 'var(--red)';
+  const tierC = r.tier === 'CONFIRMED' ? 'var(--gold,#e8c86a)' : 'var(--fg3)';
+  const chps = [];
+  if (good && r.breakout) chps.push('<span class="chp" style="color:var(--grn);font-weight:800">BREAKOUT</span>');
+  if (!good && r.breakdown) chps.push('<span class="chp" style="color:var(--red);font-weight:800">BREAKDOWN</span>');
+  chps.push(`<span class="chp" style="color:${r.vol_ratio_today>=1.5?'var(--gold,#e8c86a)':'var(--fg3)'}" title="today's volume vs the 50-day average — ≥1.5× = institutional participation confirming the move">🔊 ${r.vol_ratio_today}×</span>`);
+  if (good && r.up_down_vol_20d != null) chps.push(`<span class="chp" style="color:${r.up_down_vol_20d>=1.3?'var(--grn)':'var(--fg3)'}" title="up-day volume ÷ down-day volume, 20 sessions — >1.3 = accumulation tape">U/D ${r.up_down_vol_20d}</span>`);
+  if (!good && r.distribution_days_25 != null) chps.push(`<span class="chp" style="color:${r.distribution_days_25>=5?'var(--red)':'var(--fg3)'}" title="down days on rising volume in 25 sessions — ≥5 marks tops (IBD)">DIST ${r.distribution_days_25}d</span>`);
+  if (r.obv_bull_div) chps.push('<span class="chp" style="color:var(--grn)" title="OBV made a higher high while price did not — volume leads price up (Granville)">OBV÷↑</span>');
+  if (r.obv_bear_div) chps.push('<span class="chp" style="color:var(--red)" title="price made a higher high but OBV did not — volume abandoning the rally">OBV÷↓</span>');
+  if (r.golden_cross_sessions_ago) chps.push(`<span class="chp" style="color:var(--grn)" title="50DMA crossed above the 200DMA — lagging but powerful trend confirmation">GOLDEN ✕ ${r.golden_cross_sessions_ago}d ago</span>`);
+  if (r.death_cross_sessions_ago) chps.push(`<span class="chp" style="color:var(--red)" title="50DMA crossed below the 200DMA — the downtrend is now structural">DEATH ✕ ${r.death_cross_sessions_ago}d ago</span>`);
+  if (r.capitulation) chps.push('<span class="chp" style="color:var(--gold,#e8c86a)" title="climactic volume at the low — seller exhaustion">CAPITULATION</span>');
+  if (r.phase) chps.push(`<span class="chp" style="color:var(--cy,#4fc3f7)">${esc(r.phase)}</span>`);
+  const pos = good ? `+${r.pct_off_252d_low}% off the 252d low` : `${r.pct_off_252d_high}% off the 252d high`;
+  return `<div class="card ${kind}"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${tierC};border:1px solid ${tierC}55">${esc(r.tier)}</span></div>`
+   + `<div class="l2">${pos}</div><div class="chips">${chps.join('')}</div>`
+   + `<div style="font-size:10.5px;color:var(--fg3);margin-top:4px">${(r.evidence||[]).slice(0,4).map(esc).join(' · ')}</div>`
+   + `<div class="bar"><span style="width:${Math.min(100,r.score)}%;background:${ac}"></span></div></div>`;
+}
+function reversalSection(d){
+  const rv = d.reversals || {};
+  const bt = rv.bottoms || [], tp = rv.tops || [];
+  let h = '<div class="sec" style="border:1px solid var(--grn);border-radius:10px;padding:10px 12px;margin:14px 0;background:#07130c" id="rev-bottoms">';
+  h += '<h2 style="color:var(--grn);margin:0 0 2px">⬆ TREND REVERSALS — bottomed, now turning up</h2>';
+  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior downtrend + a <b>dated trigger inside 12–15 sessions</b> (50DMA reclaim, 3-month breakout, or golden cross). <b>CONFIRMED</b> = the trigger printed on ≥1.5× the 50-day volume — institutions, not drift.</div>';
+  h += bt.length ? `<div class="grid">${bt.map(r=>revCard(r,'b')).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">no fresh bottom reversals today — honest zero beats a forced list</div>';
+  h += '</div>';
+  h += '<div class="sec" style="border:1px solid var(--red);border-radius:10px;padding:10px 12px;margin:14px 0;background:#160a0c" id="rev-tops">';
+  h += '<h2 style="color:var(--red);margin:0 0 2px">⬇ TREND REVERSALS — topped, dump starting</h2>';
+  h += '<div style="font-size:11px;color:var(--fg3);margin-bottom:8px">Prior uptrend within 3% of the 252-day high + a dated break: 50DMA loss, 3-month breakdown, or death cross. Conviction selling = ≥1.5× volume on the break and/or ≥5 distribution days in 25 sessions.</div>';
+  h += tp.length ? `<div class="grid">${tp.map(r=>revCard(r,'t')).join('')}</div>` : '<div class="grp" style="color:var(--fg3)">no fresh top reversals today</div>';
+  h += '</div>';
+  const m = rv.method || {};
+  h += '<div class="sec" style="border:1px solid var(--fg3);border-radius:10px;padding:10px 12px;margin:14px 0" id="rev-method">';
+  h += '<h2 style="color:var(--cy,#4fc3f7);margin:0 0 6px">📚 How we call reversals — and what the volume means</h2>';
+  h += '<div style="font-size:11.5px;line-height:1.55;color:var(--fg2,#c9d4e6)">';
+  h += '<b style="color:var(--grn)">Bottoms:</b> ' + (m.bottom_signals||[]).map(esc).join(' → ') + '.<br>';
+  h += '<b style="color:var(--red)">Tops:</b> ' + (m.top_signals||[]).map(esc).join(' → ') + '.<br><br>';
+  h += '<b style="color:var(--gold,#e8c86a)">Volume — how to read it and trade it:</b><br>' + (m.volume_guide||[]).map(x=>'• '+esc(x)).join('<br>');
+  h += '<br><br><span style="color:var(--fg3)">Grounding: ' + (m.citations||[]).map(esc).join(' · ') + '.</span></div></div>';
+  return h;
+}
 function confirmedSection(d){
   const cb=d.confirmed_bottoms||[],ct=d.confirmed_tops||[];
   if(!cb.length&&!ct.length)return '';
@@ -81,6 +126,7 @@ function block(book,kind){
   let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;
   h+=`<div class="thesis">${esc(d.thesis||'')}</div>`;
   h+=confirmedSection(d);
+  h+=reversalSection(d);
   h+=`<div class="sec top">⚠️ Likely TOPS <span class="n">— over-extended + distribution / bearish divergence</span></div>`+block(d.tops,'t');
   h+=`<div class="sec bot">✅ Likely BOTTOMS <span class="n">— oversold + accumulation / bullish divergence</span></div>`+block(d.bottoms,'b');
   h+=`<div class="sec" style="color:var(--cyan)">Under accumulation <span class="n">— buying pressure in a base</span></div>`+block(d.accumulating,'acc');
