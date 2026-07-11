@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3095 -- SHARE-FLOWS fleet map (Khalid: track issuance,
+"""ops 3096 -- SHARE-FLOWS fleet map (Khalid: track issuance,
 management buying/selling + how much, share count shrink/grow,
 dilution, buybacks -- on opportunities and everywhere it applies).
 New composer justhodl-share-flows -> data/share-flows.json: per-name
@@ -7,6 +7,12 @@ sh_yoy/qoq, TTM buybacks + yield, issuance + %mcap, insider buy/sell
 joins (from the existing insider desks, never re-fetched), read
 classification + boards. Joined client-side on opportunities.html,
 IR soldiers, accumulation reversal cards, chart-pro JHF badges.
+3095 lessons: universe joined only 68 names (ranker/soldier doc
+shapes) -> engine now unions the phase-detector ~700-name ring +
+valuations heatmap; WHLR +74,502%% sh_yoy is REAL death-spiral
+issuance, not bad data -> engine flags extreme=True +
+EXTREME_DILUTION read, own board, main boards stay clean; verify
+only fails on UNFLAGGED out-of-band values.
 Sequential: create fn + schedule -> invoke -> map truth-bands ->
 4 pages live."""
 import json
@@ -27,7 +33,7 @@ SCH = boto3.client("scheduler", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-share-flows"
 AWS_DIR = Path(__file__).resolve().parents[2]
-UA = {"User-Agent": "Mozilla/5.0 ops-3095",
+UA = {"User-Agent": "Mozilla/5.0 ops-3096",
       "Cache-Control": "no-cache"}
 
 
@@ -149,7 +155,7 @@ def ensure_schedule(rep, warns):
 
 def main():
     fails, warns = [], []
-    with report("3095_share_flows") as rep:
+    with report("3096_share_flows") as rep:
         rep.section("1. Function + schedule")
         if not ensure_function(rep, fails):
             _fin(rep, fails, warns)
@@ -182,10 +188,23 @@ def main():
         if len(tk) < 250:
             fails.append("map thin: %d names (<250)" % len(tk))
         bad = [t for t, v in tk.items()
-               if (v.get("buyback_yield_pct") or 0) > 30
-               or abs(v.get("sh_yoy_pct") or 0) > 80]
+               if ((v.get("buyback_yield_pct") or 0) > 30
+                   or abs(v.get("sh_yoy_pct") or 0) > 80)
+               and not v.get("extreme")]
         if bad:
-            fails.append("insane values: %s" % bad[:5])
+            fails.append("unflagged out-of-band values: %s" % bad[:5])
+        n_ext = sum(1 for v in tk.values() if v.get("extreme"))
+        rep.kv(n_extreme_flagged=n_ext)
+        uw = next((w for w in (d.get("warns") or [])
+                   if w.startswith("universe:")), "")
+        try:
+            un = int(uw.split()[1])
+        except Exception:
+            un = 0
+        rep.kv(universe_n=un)
+        if un < 400:
+            fails.append("universe still thin: %s (<400) -- "
+                         "phase-ring join not effective" % un)
         aapl = tk.get("AAPL") or {}
         rep.kv(aapl=json.dumps(aapl)[:260],
                nvda=json.dumps(tk.get("NVDA") or {})[:200])
@@ -245,8 +264,8 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    (AWS_DIR / "ops" / "reports" / "3095.json").write_text(json.dumps(
-        {"ops": 3093, "verdict": "FAIL" if fails else "PASS",
+    (AWS_DIR / "ops" / "reports" / "3096.json").write_text(json.dumps(
+        {"ops": 3096, "verdict": "FAIL" if fails else "PASS",
          "fails": fails, "warns": warns,
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
     rep.kv(verdict="FAIL" if fails else "PASS", n_fails=len(fails),

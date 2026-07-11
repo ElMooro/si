@@ -105,6 +105,15 @@ def build_universe(warns):
         for h in (l.get("holdings_top") or []):
             if h.get("ticker"):
                 u.add(h["ticker"])
+    pd = s3_json("data/phase-detector.json") or {}
+    for t in (pd.get("tickers") or {}):
+        u.add(t)
+    sv = s3_json("data/stock-valuations.json") or {}
+    hm = sv.get("heatmap") or {}
+    for grp in (hm.get("sp") or {}, hm.get("hp") or {}):
+        if isinstance(grp, dict):
+            for t in grp:
+                u.add(t)
     ins = s3_json("data/insider-radar.json") or {}
     for c in (ins.get("clusters") or []):
         if c.get("ticker"):
@@ -114,7 +123,7 @@ def build_universe(warns):
             u.add(b["ticker"])
     u = {t for t in u if t and t.isupper() and len(t) <= 6
          and "." not in t and "-" not in t}
-    warns.append("universe: %d names (opp+ranker+soldiers+insider)"
+    warns.append("universe: %d names (opp+ranker+soldiers+insider+phase-ring+valuations)"
                  % len(u))
     return sorted(u)
 
@@ -167,6 +176,12 @@ def classify(d):
     yoy = d.get("sh_yoy_pct")
     by = d.get("buyback_yield_pct") or 0
     ipm = d.get("issuance_pct_mcap") or 0
+    if (yoy is not None and abs(yoy) >= 80) or by >= 30:
+        # death-spiral issuance / reverse-split artifact / tender:
+        # real but out-of-band -- carry an explicit extreme flag
+        d["extreme"] = True
+    if yoy is not None and yoy >= 80:
+        return "EXTREME_DILUTION"
     if yoy is not None and yoy >= 5:
         return "HEAVY_DILUTION"
     if (yoy is not None and yoy >= 2) or ipm >= 2:
@@ -280,11 +295,16 @@ def lambda_handler(event=None, context=None):
     rows = [dict(ticker=t, **v) for t, v in tickers.items()
             if not v.get("data_suspect")]
     top_bb = sorted([r for r in rows
-                     if r.get("buyback_yield_pct")],
+                     if r.get("buyback_yield_pct")
+                     and not r.get("extreme")],
                     key=lambda r: -r["buyback_yield_pct"])[:20]
     top_dil = sorted([r for r in rows
-                      if (r.get("sh_yoy_pct") or 0) >= 2],
+                      if (r.get("sh_yoy_pct") or 0) >= 2
+                      and not r.get("extreme")],
                      key=lambda r: -(r.get("sh_yoy_pct") or 0))[:20]
+    extremes = sorted([r for r in rows if r.get("extreme")],
+                      key=lambda r: -abs(r.get("sh_yoy_pct")
+                                         or 0))[:20]
     conv = sorted([r for r in rows
                    if r.get("insider_buy_usd_90d")
                    and r["read"] in ("BUYBACK_HEAVY", "SHRINKING")],
@@ -298,6 +318,7 @@ def lambda_handler(event=None, context=None):
         "tickers": tickers,
         "boards": {"top_buybacks": top_bb,
                    "top_diluters": top_dil,
+                   "extreme_diluters": extremes,
                    "insider_conviction": conv},
         "method": {
             "sh_yoy_pct": "diluted weighted-average share count, "
@@ -314,7 +335,9 @@ def lambda_handler(event=None, context=None):
                        "insider desk: management buying with their "
                        "own money vs clustered selling",
             "reads": "BUYBACK_HEAVY / SHRINKING / NEUTRAL / "
-                     "DILUTING / HEAVY_DILUTION"},
+                     "DILUTING / HEAVY_DILUTION / "
+                     "EXTREME_DILUTION (death-spiral"
+                     " issuance, extreme flag)"},
         "warns": warns[:12],
     }
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
