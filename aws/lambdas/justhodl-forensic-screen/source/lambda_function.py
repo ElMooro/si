@@ -136,6 +136,44 @@ def _ttm(rows):
     return out
 
 
+def fetch_history(symbol: str):
+    """5 fiscal years of the numbers Khalid charts: revenue, NI,
+    margins, EPS, FCF, shares. Oldest -> newest."""
+    inc = _fmp("income-statement", {"symbol": symbol,
+                                    "period": "annual", "limit": 5})
+    cf = _fmp("cash-flow-statement", {"symbol": symbol,
+                                      "period": "annual", "limit": 5})
+    if not (isinstance(inc, list) and inc):
+        return None
+    cfm = {r.get("fiscalYear") or r.get("calendarYear")
+           or (r.get("date") or "")[:4]: r
+           for r in (cf if isinstance(cf, list) else [])}
+    out = []
+    for r in inc:
+        fy = r.get("fiscalYear") or r.get("calendarYear") \
+            or (r.get("date") or "")[:4]
+        c = cfm.get(fy) or {}
+        rev = sf(r.get("revenue"))
+        ocf = sf(c.get("operatingCashFlow") or
+                 c.get("netCashProvidedByOperatingActivities"))
+        capex = sf(c.get("capitalExpenditure"))
+        row = {"fy": fy, "revenue": rev,
+               "net_income": sf(r.get("netIncome")),
+               "eps": sf(r.get("epsDiluted") or r.get("eps")),
+               "gross_margin_pct": None, "op_margin_pct": None,
+               "fcf": None}
+        gp, oi = sf(r.get("grossProfit")), sf(r.get("operatingIncome"))
+        if rev and gp is not None:
+            row["gross_margin_pct"] = round(gp / rev * 100, 1)
+        if rev and oi is not None:
+            row["op_margin_pct"] = round(oi / rev * 100, 1)
+        if ocf is not None and capex is not None:
+            row["fcf"] = ocf - abs(capex)
+        out.append(row)
+    out.reverse()
+    return out or None
+
+
 def fetch_statements(symbol: str):
     """Quarterly limit=9 -> TTM windows. Enables the M-Score TREND
     (now vs one quarter ago) at the same 3-call cost; annual fallback
@@ -537,6 +575,15 @@ def lambda_handler(event=None, context=None):
             elif mp is not None and mn is not None:
                 forensic["m_trend_suspect"] = True
         forensic["symbol"] = symbol
+        try:
+            forensic["history"] = fetch_history(symbol)
+        except Exception:
+            forensic["history"] = None
+        sfv = sfl.get(symbol) or {}
+        for k in ("pe_ttm", "ps_ttm", "peg", "fcf_yield_pct",
+                  "market_cap"):
+            if sfv.get(k) is not None:
+                forensic[k] = sfv[k]
         forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
         forensic["sector"] = row.get("sector")
         forensic.update(compute_strength(stmts, row.get("sector")))
@@ -604,6 +651,16 @@ def lambda_handler(event=None, context=None):
     for sec2, vals in by_sec.items():
         v = sorted(vals)
         sec_med[sec2] = v[len(v) // 2]
+    val_med = {}
+    for metric in ("pe_ttm", "ps_ttm", "peg", "fcf_yield_pct"):
+        by = {}
+        for r in results:
+            if r.get(metric) is not None:
+                by.setdefault(r.get("sector") or "Unknown",
+                              []).append(r[metric])
+        for sec2, vals in by.items():
+            v = sorted(vals)
+            val_med.setdefault(sec2, {})[metric] = v[len(v) // 2]
     for r in results:
         vals = sorted(by_sec.get(r.get("sector") or "Unknown", []))
         ss = r.get("strength_score")
@@ -673,10 +730,11 @@ def lambda_handler(event=None, context=None):
             "wc_divergence_flag": 0.20,
             "goodwill_bloat_flag": 0.40,
         },
-        "version": "2.0.0",
+        "version": "2.2.0",
         "fortress_financials": fortress,
         "problem_financials": problems[:40],
         "sector_strength_medians": sec_med,
+        "sector_valuation_medians": val_med,
         "n_strength": len(strong),
         "most_concerning_top_25": most_concerning,
         "cleanest_top_25": cleanest,

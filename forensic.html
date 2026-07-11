@@ -320,6 +320,31 @@ async function load(){
   const ALLR = {}; (data.all_results||[]).forEach(r=>{ if(r.symbol) ALLR[r.symbol]=r; });
   const SMED = data.sector_strength_medians||{};
   const box=(l,v,c)=>`<span style="background:#11161f;border:1px solid #1c2433;border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">${l} <b style="color:${c||'#e6eaf2'}">${v}</b></span>`;
+  const VMED = data.sector_valuation_medians||{};
+  function sparkbar(hist,key,label,fmt,color){
+    const vals=hist.map(r=>r[key]);
+    if(vals.every(v=>v==null))return'';
+    const nums=vals.filter(v=>v!=null);
+    const mx=Math.max(...nums.map(Math.abs))||1;
+    const W=210,H=86,bw=W/hist.length-8;
+    const bars=hist.map((r,i)=>{
+      const v=r[key];if(v==null)return'';
+      const bh=Math.max(2,Math.abs(v)/mx*54);
+      const y=v>=0?60-bh:60;
+      return `<rect x="${i*(W/hist.length)+4}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${v>=0?color:'#ff5577'}" opacity="0.9"><title>${r.fy}: ${fmt(v)}</title></rect><text x="${i*(W/hist.length)+4+bw/2}" y="78" text-anchor="middle" font-size="8" fill="#6f7b91" font-family="monospace">${String(r.fy).slice(-2)}</text>`;
+    }).join('');
+    const last=nums[nums.length-1];
+    return `<div style="background:#11161f;border:1px solid #1c2433;border-radius:8px;padding:10px 12px"><div style="font-family:monospace;font-size:10px;color:#6f7b91;letter-spacing:.5px;margin-bottom:4px">${label} · latest ${fmt(last)}</div><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${bars}</svg></div>`;
+  }
+  const fUsd=v=>{const a=Math.abs(v);const s=v<0?'−$':'$';return a>=1e9?s+(a/1e9).toFixed(1)+'B':a>=1e6?s+(a/1e6).toFixed(0)+'M':s+a.toFixed(0);};
+  const fPct=v=>v.toFixed(1)+'%';
+  const fEps=v=>'$'+v.toFixed(2);
+  function vsBox(l,v,med,invert){
+    if(v==null)return'';
+    const better=med==null?null:(invert?v>med:v<med);
+    const c=better==null?'#e6eaf2':better?'#26ffaf':'#ffd266';
+    return `<span style="background:#11161f;border:1px solid #1c2433;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:12px;color:#a8b3c7">${l} <b style="color:${c}">${v.toFixed(1)}</b>${med!=null?` <span style="color:#6f7b91">vs ${med.toFixed(1)} sector</span>`:''}</span>`;
+  }
   function flook(sym){
     const r=ALLR[sym]; const el=document.getElementById('flookup'); el.style.display='block';
     if(!r){ el.innerHTML=`<h3 style="margin:0">${sym}</h3><div style="color:#6f7b91;font-family:monospace;font-size:12px;padding:8px 0">not in the S&P 500 forensic universe — for any other stock use the <a href="/share-flows.html?ticker=${sym}" style="color:#00d4ff">share-flows desk</a> or <a href="/why.html?ticker=${sym}" style="color:#00d4ff">research desk</a></div>`; return; }
@@ -345,6 +370,20 @@ async function load(){
     ${box('Alt-Z',r.altman_z??'—')}${box('Piotroski',r.piotroski??'—')}
     ${box('Rev growth',r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—')}
     </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+    ${vsBox('P/E',r.pe_ttm,(VMED[r.sector]||{}).pe_ttm,false)}
+    ${vsBox('P/S',r.ps_ttm,(VMED[r.sector]||{}).ps_ttm,false)}
+    ${vsBox('PEG',r.peg,(VMED[r.sector]||{}).peg,false)}
+    ${vsBox('FCF yield',r.fcf_yield_pct,(VMED[r.sector]||{}).fcf_yield_pct,true)}
+    </div>
+    ${(r.history&&r.history.length>=3)?`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+      ${sparkbar(r.history,'revenue','REVENUE — 5 FISCAL YEARS',fUsd,'#00d4ff')}
+      ${sparkbar(r.history,'net_income','NET INCOME',fUsd,'#26ffaf')}
+      ${sparkbar(r.history,'fcf','FREE CASH FLOW',fUsd,'#ffd266')}
+      ${sparkbar(r.history,'gross_margin_pct','GROSS MARGIN %',fPct,'#a78bfa')}
+      ${sparkbar(r.history,'op_margin_pct','OPERATING MARGIN %',fPct,'#f472b6')}
+      ${sparkbar(r.history,'eps','EPS (DILUTED)',fEps,'#38bdf8')}
+    </div>`:''}
     <div style="color:#a8b3c7;font-size:12.5px;line-height:1.5">${why.length?('⚑ '+why.join('<br>⚑ ')):'No forensic red flags triggered — financials read clean on this screen.'} <a href="/share-flows.html?ticker=${sym}" style="color:#00d4ff">capital-return forensics ↗</a> · <a href="/why.html?ticker=${sym}" style="color:#00d4ff">full research ↗</a></div>`;
   }
   const FQ=document.getElementById('fq'),FS=document.getElementById('fsugg');
