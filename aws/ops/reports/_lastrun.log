@@ -1,8 +1,9 @@
-executing-against: b0cfb1120ca45a295fea8d7c53504f1fc730b469
+executing-against: 360ebb8fcbbe996f9c8e6742b11a9a3e1965d814
 ── 1. Function + schedule ──
 ── 2. Invoke + map truth ──
 ── 3. Four pages live (this-push markers) ──
 ── verdict ──
-[03:26:46] PASS
+[03:27:41] FAIL: sell side still empty -- management selling not tracked
 
-→ Report written to aws/ops/reports/latest/3096_share_flows.md
+→ Report written to aws/ops/reports/latest/3097_share_flows_v11.md
+❌ OPS-FAIL: aws/ops/pending/ops_3097_share_flows_v11.py
