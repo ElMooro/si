@@ -47,7 +47,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -78,6 +78,18 @@ def s3_json(key):
 
 def build_universe(warns):
     u = set()
+    # phase-detector is the widest curated fleet universe (~683
+    # dollar-volume-ranked common stocks) -- primary source
+    ph = s3_json("data/phase-detector.json") or {}
+    u.update((ph.get("tickers") or {}).keys())
+    # generic ticker harvest from the richer insider docs
+    for key in ("data/insider-clusters.json",
+                "data/insider-buys-enriched.json"):
+        doc = s3_json(key) or {}
+        for lk in ("clusters", "rows", "buys", "strong"):
+            for r in (doc.get(lk) or []):
+                if isinstance(r, dict) and r.get("ticker"):
+                    u.add(r["ticker"])
     opp = s3_json("data/opportunities.json") or {}
     for r in (opp.get("opportunities") or opp.get("rows") or []):
         t = r.get("ticker") or r.get("symbol")
@@ -173,42 +185,53 @@ def lambda_handler(event=None, context=None):
     prev_t = prev.get("tickers") or {}
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-    # insider joins (composed, not re-fetched)
-    ins = s3_json("data/insider-radar.json") or {}
-    ibuy = {}
-    for c in (ins.get("clusters") or []):
+    # insider joins (composed, not re-fetched).
+    # justhodl-insider-trades emits the raw Form-4 tape with
+    # side=buy/sell -- the fleet's real management buy/sell truth.
+    ibuy, isell = {}, {}
+    itr = s3_json("data/insider-trades.json") or {}
+    for c in (itr.get("clusters") or []):
         t = c.get("ticker")
         if t:
             ibuy[t] = {"insider_buy_usd_90d":
                        round(c.get("total_value") or 0),
-                       "insider_n_buyers": c.get("n_insiders")}
-    for b in (ins.get("latest_buys") or []):
-        t = b.get("ticker")
-        if t and t not in ibuy:
-            ibuy[t] = {"insider_buy_usd_90d":
-                       round(b.get("value") or 0) or None,
-                       "insider_n_buyers": 1}
-    isell = {}
-    for key in ("data/insider-sell-clusters.json",
-                "data/insider-sells.json",
-                "data/insider-sell-cluster.json"):
-        doc = s3_json(key)
-        if not doc:
+                       "insider_n_buyers":
+                       c.get("insider_count")
+                       or c.get("n_insiders")}
+    bsum, bwho, ssum, swho = {}, {}, {}, {}
+    for x in (itr.get("transactions") or []):
+        t = x.get("ticker")
+        if not t or not isinstance(x, dict):
             continue
-        for c in (doc.get("clusters") or doc.get("rows")
-                  or doc.get("sells") or []):
+        v = x.get("value") or 0
+        who = x.get("insider") or x.get("name") or ""
+        if x.get("side") == "sell":
+            ssum[t] = ssum.get(t, 0) + v
+            swho.setdefault(t, set()).add(who)
+        elif x.get("side") == "buy":
+            bsum[t] = bsum.get(t, 0) + v
+            bwho.setdefault(t, set()).add(who)
+    for t, v in bsum.items():
+        if t not in ibuy and v:
+            ibuy[t] = {"insider_buy_usd_90d": round(v),
+                       "insider_n_buyers": len(bwho.get(t) or ())}
+    for t, v in ssum.items():
+        if v:
+            isell[t] = {"insider_sell_usd_recent": round(v),
+                        "insider_n_sellers": len(swho.get(t)
+                                                 or ())}
+    if not ibuy:  # fallback: legacy radar doc
+        ins = s3_json("data/insider-radar.json") or {}
+        for c in (ins.get("clusters") or []):
             t = c.get("ticker")
             if t:
-                isell[t] = {"insider_sell_usd_recent":
-                            round(c.get("total_value")
-                                  or c.get("value") or 0),
-                            "insider_n_sellers":
-                            c.get("n_insiders") or c.get("n")}
-        warns.append("sell feed joined: %s (%d names)"
-                     % (key, len(isell)))
-        break
+                ibuy[t] = {"insider_buy_usd_90d":
+                           round(c.get("total_value") or 0),
+                           "insider_n_buyers": c.get("n_insiders")}
+    warns.append("insider join: %d buy names / %d sell names "
+                 "(insider-trades tape)" % (len(ibuy), len(isell)))
     if not isell:
-        warns.append("no insider-sell doc found -- sells omitted "
+        warns.append("no sell rows in tape -- sells omitted "
                      "honestly")
 
     tickers = {}
@@ -244,10 +267,18 @@ def lambda_handler(event=None, context=None):
                 time.sleep(0.04)
         d.update(ibuy.get(t) or {})
         d.update(isell.get(t) or {})
+        # split/adjustment-mismatch guard: quarterly weighted-avg
+        # share counts across a reverse split produce impossible
+        # jumps -- keep the real number (never fake data) but flag
+        # it so pages and boards can exclude it honestly
+        if abs(d.get("sh_yoy_pct") or 0) > 80 \
+                or abs(d.get("sh_qoq_pct") or 0) > 40:
+            d["data_suspect"] = True
         d["read"] = classify(d)
         tickers[t] = d
 
-    rows = [dict(ticker=t, **v) for t, v in tickers.items()]
+    rows = [dict(ticker=t, **v) for t, v in tickers.items()
+            if not v.get("data_suspect")]
     top_bb = sorted([r for r in rows
                      if r.get("buyback_yield_pct")],
                     key=lambda r: -r["buyback_yield_pct"])[:20]
