@@ -1346,6 +1346,14 @@ def lambda_handler(event=None, context=None):
         "cycle_context": cycle_context,
         "risk_appetite": risk_appetite,
         "join_hits": join_hits, "pair_board": pair_board,
+        "rr_debug": {"n_quotes": len(_soldier_q),
+                     "fmp_key_set": bool(FMP),
+                     "first": (lambda kv: {"t": kv[0],
+                                           "price": kv[1].get("price"),
+                                           "pa50": kv[1].get("priceAvg50")}
+                               if kv else None)(
+                                   next(iter(_soldier_q.items()),
+                                        None))},
         "rank_note": rank_note,
         "warns": warns[:20]}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
