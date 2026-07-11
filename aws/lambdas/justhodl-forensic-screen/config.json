@@ -2,9 +2,13 @@
   "function_name": "justhodl-forensic-screen",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_mb": 512,
-  "timeout_s": 600,
+  "memory_mb": 1024,
+  "timeout_s": 840,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "environment_keys": ["S3_BUCKET", "FMP_KEY", "N_TICKERS"],
-  "description": "Forensic accounting screen — Beneish M-Score + Sloan accruals + WC divergence + goodwill bloat for top 200 SP500. 12h schedule."
+  "environment_keys": [
+    "S3_BUCKET",
+    "FMP_KEY",
+    "N_TICKERS"
+  ],
+  "description": "Forensic accounting + financial-strength desk -- Beneish M-Score, Sloan accruals, WC divergence, goodwill bloat + three-statement strength grade (income/balance/cash legs), industry percentiles, fortress + problem boards. Full S&P 500. 12h schedule."
 }

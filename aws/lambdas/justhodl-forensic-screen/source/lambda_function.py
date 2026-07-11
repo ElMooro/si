@@ -70,7 +70,7 @@ OUTPUT_KEY = os.environ.get("OUTPUT_KEY", "data/forensic-screen.json")
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 FMP_BASE = "https://financialmodelingprep.com/stable"
 USER_AGENT = os.environ.get("USER_AGENT", "JustHodl Forensic Screen raafouis@gmail.com")
-N_TICKERS = int(os.environ.get("N_TICKERS", "200"))   # top by mcap
+N_TICKERS = int(os.environ.get("N_TICKERS", "503"))   # full S&P 500
 HTTP_TIMEOUT = 12
 
 # Beneish thresholds
@@ -128,6 +128,9 @@ def fetch_statements(symbol: str):
     if len(income) < 2 or len(balance) < 2 or len(cashflow) < 2:
         return None
 
+    scores = _fmp("financial-scores", {"symbol": symbol})
+    scores = scores[0] if isinstance(scores, list) and scores else \
+        (scores if isinstance(scores, dict) else {})
     return {
         "income_t":  income[0],   # most recent
         "income_p":  income[1],   # prior
@@ -135,6 +138,7 @@ def fetch_statements(symbol: str):
         "balance_p": balance[1],
         "cashflow_t": cashflow[0],
         "cashflow_p": cashflow[1],
+        "scores": scores,
     }
 
 
@@ -297,6 +301,104 @@ def compute_beneish(s):
     return out
 
 
+FIN_SECTORS = {"Financial Services", "Financials", "Financial",
+               "Insurance", "Real Estate", "Banks"}
+
+
+def compute_strength(st, sector):
+    """Institutional three-statement strength 0-100 + A+..F grade.
+    Income 30 / Balance 35 / Cash 35. Sector-aware: Z + goodwill +
+    FCF legs are not meaningful for financials -- equity/assets and
+    CFO backing carry the balance/cash legs there."""
+    it, ip = st["income_t"], st["income_p"]
+    bt = st["balance_t"]
+    ct = st["cashflow_t"]
+    sc = st.get("scores") or {}
+    fin = (sector or "") in FIN_SECTORS
+    legs = {}
+
+    inc = 0
+    rev_t, rev_p = sf(it.get("revenue")), sf(ip.get("revenue"))
+    g = None
+    if rev_t and rev_p:
+        g = (rev_t / rev_p - 1) * 100
+        inc += 12 if g > 10 else 8 if g > 0 else 0
+    gm_t = safe_div(sf(it.get("grossProfit")), rev_t)
+    gm_p = safe_div(sf(ip.get("grossProfit")), rev_p)
+    if gm_t is not None and gm_p is not None and gm_t >= gm_p - 0.005:
+        inc += 8
+    om_t = safe_div(sf(it.get("operatingIncome")), rev_t)
+    om_p = safe_div(sf(ip.get("operatingIncome")), rev_p)
+    if om_t is not None and om_t > 0:
+        inc += 5
+        if om_p is not None and om_t > om_p:
+            inc += 5
+    legs["income"] = min(30, inc)
+
+    bal = 0
+    z = sf(sc.get("altmanZScore"))
+    if fin:
+        ea = safe_div(sf(bt.get("totalStockholdersEquity")),
+                      sf(bt.get("totalAssets")))
+        if ea is not None:
+            bal += 15 if ea > 0.08 else 7 if ea > 0.05 else 0
+    elif z is not None:
+        bal += 15 if z >= 3 else 7 if z >= 1.8 else 0
+    ebitda = sf(it.get("ebitda"))
+    nd = (sf(bt.get("totalDebt")) or 0) - (
+        sf(bt.get("cashAndCashEquivalents")) or 0)
+    nde = safe_div(nd, ebitda) if ebitda and ebitda > 0 else None
+    if nde is not None:
+        bal += 10 if nde < 1 else 6 if nde < 2 else 0
+    elif nd <= 0:
+        bal += 10
+    cr = safe_div(sf(bt.get("totalCurrentAssets")),
+                  sf(bt.get("totalCurrentLiabilities")))
+    if cr is not None and cr >= 1.2:
+        bal += 5
+    if not fin:
+        gw = safe_div(sf(bt.get("goodwill")), sf(bt.get("totalAssets")))
+        if gw is None or gw < 0.20:
+            bal += 5
+    else:
+        bal += 5
+    legs["balance"] = min(35, bal)
+
+    cash = 0
+    ni = sf(it.get("netIncome"))
+    ocf = sf(ct.get("operatingCashFlow")) or \
+        sf(ct.get("netCashProvidedByOperatingActivities"))
+    backing = safe_div(ocf, ni) if ni and ni > 0 else None
+    if backing is not None:
+        cash += 12 if backing >= 1 else 6 if backing >= 0.8 else 0
+    elif ocf and ocf > 0:
+        cash += 6
+    capex = abs(sf(ct.get("capitalExpenditure")) or 0)
+    if not fin:
+        fcfm = safe_div((ocf or 0) - capex, rev_t)
+        if fcfm is not None:
+            cash += 10 if fcfm > 0.05 else 5 if fcfm > 0 else 0
+        if ocf and safe_div(capex, ocf) is not None and \
+                capex / ocf < 0.6:
+            cash += 5
+    else:
+        cash += 15 if (ocf or 0) > 0 else 0
+    pio = sf(sc.get("piotroskiScore"))
+    if pio is not None:
+        cash += 8 if pio >= 7 else 4 if pio >= 5 else 0
+    legs["cash"] = min(35, cash)
+
+    total = legs["income"] + legs["balance"] + legs["cash"]
+    grade = ("A+" if total >= 88 else "A" if total >= 80 else
+             "A-" if total >= 74 else "B+" if total >= 68 else
+             "B" if total >= 60 else "B-" if total >= 54 else
+             "C+" if total >= 48 else "C" if total >= 40 else
+             "D" if total >= 30 else "F")
+    return {"strength_score": total, "strength_grade": grade,
+            "strength_legs": legs, "altman_z": z, "piotroski": pio,
+            "rev_growth_pct": round(g, 1) if g is not None else None}
+
+
 def composite_concern_score(forensic):
     """0-100 — how concerning is this stock from a forensic POV.
     Higher = more concerning."""
@@ -342,33 +444,54 @@ def lambda_handler(event=None, context=None):
     print(f"[forensic] universe: {len(universe)} tickers (top by mcap)")
 
     # 2. Fetch + score each
+    try:
+        sfl = json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="data/share-flows.json")["Body"].read()
+        ).get("tickers") or {}
+    except Exception:
+        sfl = {}
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     results = []
-    n_ok = 0
-    n_skipped = 0
-    n_errors = 0
-    for i, row in enumerate(universe):
+    n_ok = n_skipped = n_errors = 0
+
+    def one(row):
         symbol = row.get("symbol") or row.get("ticker")
         if not symbol:
-            continue
-        try:
-            stmts = fetch_statements(symbol)
-            if not stmts:
-                n_skipped += 1
+            return None, "skip"
+        stmts = fetch_statements(symbol)
+        if not stmts:
+            return None, "skip"
+        forensic = compute_beneish(stmts)
+        forensic["symbol"] = symbol
+        forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
+        forensic["sector"] = row.get("sector")
+        forensic.update(compute_strength(stmts, row.get("sector")))
+        cs = composite_concern_score(forensic)
+        sfr = sfl.get(symbol) or {}
+        if sfr.get("extreme") or sfr.get("read") == "EXTREME_DILUTION":
+            cs = min(100, cs + 15)
+            forensic["dilution_flag"] = True
+        elif (sfr.get("sh_yoy_pct") or 0) >= 5:
+            cs = min(100, cs + 8)
+            forensic["dilution_flag"] = True
+        forensic["concern_score"] = cs
+        return forensic, "ok"
+
+    with ThreadPoolExecutor(max_workers=10) as exe:
+        futs = {exe.submit(one, row): row for row in universe}
+        for fu in as_completed(futs):
+            try:
+                r, st = fu.result()
+            except Exception as e:
+                n_errors += 1
+                print("  err:", e)
                 continue
-            forensic = compute_beneish(stmts)
-            forensic["symbol"] = symbol
-            forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
-            forensic["sector"] = row.get("sector")
-            forensic["concern_score"] = composite_concern_score(forensic)
-            results.append(forensic)
-            n_ok += 1
-            # Tiny rate-limiting between calls
-            if i % 10 == 9:
-                time.sleep(0.3)
-        except Exception as e:
-            n_errors += 1
-            print(f"  err {symbol}: {e}")
-            continue
+            if st == "ok" and r:
+                results.append(r)
+                n_ok += 1
+            else:
+                n_skipped += 1
 
     # 3. Sort + pick highlights
     results.sort(key=lambda x: -(x.get("concern_score") or 0))
@@ -387,6 +510,37 @@ def lambda_handler(event=None, context=None):
     cleanest = [r for r in non_financial if r.get("m_score") is not None]
     cleanest.sort(key=lambda x: x.get("m_score") or 999)
     cleanest = cleanest[:25]
+
+    # industry-relative strength percentile + sector medians
+    by_sec = {}
+    for r in results:
+        if r.get("strength_score") is not None:
+            by_sec.setdefault(r.get("sector") or "Unknown",
+                              []).append(r["strength_score"])
+    sec_med = {}
+    for sec2, vals in by_sec.items():
+        v = sorted(vals)
+        sec_med[sec2] = v[len(v) // 2]
+    for r in results:
+        vals = sorted(by_sec.get(r.get("sector") or "Unknown", []))
+        ss = r.get("strength_score")
+        if ss is not None and len(vals) >= 5:
+            r["industry_pctile"] = round(
+                100.0 * sum(1 for x in vals if x <= ss) / len(vals))
+
+    strong = [r for r in results if r.get("strength_score") is not None
+              and all(r.get("strength_legs", {}).get(k) is not None
+                      for k in ("income", "balance", "cash"))]
+    fortress = sorted(strong,
+                      key=lambda x: (-x["strength_score"],
+                                     x.get("concern_score") or 0))
+    fortress = [r for r in fortress
+                if (r.get("concern_score") or 0) < 40][:25]
+    problems = sorted([r for r in results
+                       if (r.get("concern_score") or 0) >= 40
+                       or (r.get("strength_score") or 100) <= 35],
+                      key=lambda x: (-(x.get("concern_score") or 0),
+                                     x.get("strength_score") or 0))
 
     # 4. Distribution stats
     m_scores = [r.get("m_score") for r in results if r.get("m_score") is not None]
@@ -436,6 +590,11 @@ def lambda_handler(event=None, context=None):
             "wc_divergence_flag": 0.20,
             "goodwill_bloat_flag": 0.40,
         },
+        "version": "2.0.0",
+        "fortress_financials": fortress,
+        "problem_financials": problems[:40],
+        "sector_strength_medians": sec_med,
+        "n_strength": len(strong),
         "most_concerning_top_25": most_concerning,
         "cleanest_top_25": cleanest,
         "all_results": results,   # full list for the page to filter

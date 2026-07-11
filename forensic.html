@@ -106,6 +106,30 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),tr
   </div>
 
   <div class="section">
+    <div class="section-eyebrow">Strength</div>
+    <h2 class="section-title">🏰 Best financials — fortress income statement, balance sheet &amp; cash flow</h2>
+    <p class="section-blurb">Three-statement institutional strength grade (income 30 · balance 35 · cash 35): revenue growth &amp; margin trend, Altman-Z / leverage / liquidity (equity-to-assets for financials), cash backing of earnings (CFO ÷ NI), FCF margin, capex discipline, Piotroski. <strong>%ile</strong> is strength rank within the company's own sector. Names with active forensic flags are excluded from this board even with a high grade.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="fortress-table">
+        <thead><tr><th>Symbol</th><th>Sector</th><th class="num">Grade</th><th class="num">Strength</th><th class="num">Ind %ile</th><th class="num">Income</th><th class="num">Balance</th><th class="num">Cash</th><th class="num">Alt-Z</th><th class="num">Piotroski</th></tr></thead>
+        <tbody id="fortress-body"><tr><td colspan="10" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Problems</div>
+    <h2 class="section-title">🚩 Problem financials — S&amp;P 500 names failing the institutional screen</h2>
+    <p class="section-blurb">Concern score ≥ 40 (forensic flags: Beneish, Sloan accruals, WC divergence, goodwill bloat, extreme dilution) or three-statement strength ≤ 35. <strong>Not a sell list</strong> — a due-diligence queue: these are the 10-Ks whose footnotes deserve your hours.</p>
+    <div class="scroll-x">
+      <table class="dv-table" id="problems-table">
+        <thead><tr><th>Symbol</th><th>Sector</th><th class="num">Concern</th><th class="num">Strength</th><th class="num">Grade</th><th class="num">M-Score</th><th class="num">Sloan</th><th>Why flagged</th></tr></thead>
+        <tbody id="problems-body"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="section-eyebrow">High-concern</div>
     <h2 class="section-title">Most concerning — earnings quality red flags</h2>
     <p class="section-blurb">Sorted by composite concern score (0-100). Higher = more red flags triggered. <strong>This is not a sell list</strong> — many of these stocks may have legitimate accounting reasons. It's a starting point for due diligence on which names deserve a closer look at their 10-K footnotes. <strong>Financial-sector stocks (banks, insurers, REITs) are excluded</strong> — Beneish (1999) was designed for non-financial firms and produces spurious flags on financials.</p>
@@ -261,6 +285,25 @@ async function load(){
   document.getElementById('kpis').innerHTML = kpis.map(k =>
     `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
   ).join('');
+
+  // Fortress + problem boards (v2.0)
+  const gcol = g => g && g[0]==='A' ? 'style="color:#26ffaf;font-weight:700"' : g && g[0]==='B' ? 'style="color:#00d4ff"' : g==='F'||g==='D' ? 'style="color:#ff5577;font-weight:700"' : '';
+  const ft = data.fortress_financials || [];
+  document.getElementById('fortress-body').innerHTML = ft.length ? ft.map(r => {
+    const L = r.strength_legs || {};
+    return `<tr><td><strong>${r.symbol}</strong></td><td>${r.sector||'—'}</td><td class="num" ${gcol(r.strength_grade)}>${r.strength_grade||'—'}</td><td class="num">${r.strength_score??'—'}</td><td class="num">${r.industry_pctile!=null?r.industry_pctile+'%':'—'}</td><td class="num">${L.income??'—'}/30</td><td class="num">${L.balance??'—'}/35</td><td class="num">${L.cash??'—'}/35</td><td class="num">${r.altman_z??'—'}</td><td class="num">${r.piotroski??'—'}</td></tr>`;
+  }).join('') : '<tr><td colspan="10" class="empty">awaiting first v2 run</td></tr>';
+  const pb = data.problem_financials || [];
+  document.getElementById('problems-body').innerHTML = pb.length ? pb.map(r => {
+    const why = [];
+    if (r.m_flag) why.push('M-Score');
+    if (r.sloan_high_risk) why.push('accruals');
+    if (r.wc_divergence_flag) why.push('WC divergence');
+    if (r.goodwill_bloat_flag) why.push('goodwill');
+    if (r.dilution_flag) why.push('dilution');
+    if ((r.strength_score||100) <= 35) why.push('weak financials');
+    return `<tr><td><strong>${r.symbol}</strong></td><td>${r.sector||'—'}</td><td class="num" style="color:#ff5577">${r.concern_score??'—'}</td><td class="num">${r.strength_score??'—'}</td><td class="num" ${gcol(r.strength_grade)}>${r.strength_grade||'—'}</td><td class="num">${r.m_score??'—'}</td><td class="num">${r.sloan_accruals!=null?(r.sloan_accruals*100).toFixed(1)+'%':'—'}</td><td>${why.join(' · ')||'—'}</td></tr>`;
+  }).join('') : '<tr><td colspan="8" class="empty">awaiting first v2 run</td></tr>';
 
   // Most concerning
   const concerning = data.most_concerning_top_25 || [];
