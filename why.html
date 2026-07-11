@@ -3079,16 +3079,16 @@ window.renderIndustryCompass=function(d){
     try{
       var meta=(document.body.textContent.match(/·\s*([A-Za-z &\-\/,]+?)\s*·\s*(NASDAQ|NYSE|AMEX|OTC)/)||[])[1]||'';
       var indName=(meta||'').trim();
-      var IR=DOCS.ir||{}; var pools=[].concat(IR.leaders||[],IR.soldiers_by_industry?Object.keys(IR.soldiers_by_industry).map(function(k){return{industry:k}}):[],IR.regiments||[]);
+      var IR=DOCS.ir||{}; var pools=[].concat(IR.ladder||[],IR.leaders||[]);
       var hit=null,best=0;
       pools.forEach(function(l){var nm=(l.industry||l.name||'').toLowerCase(); if(!nm)return;
         var q=indName.toLowerCase(); if(!q)return;
         var s=(nm===q)?3:(nm.indexOf(q)>=0||q.indexOf(nm)>=0)?2:0;
         if(s>best){best=s;hit=l;}});
       if(hit){
-        var sc=hit.score!=null?hit.score:hit.total_score;
-        var tr=hit.trend||hit.momentum_trend||'';
-        var det=hit.deterioration||hit.confirmed_deterioration||hit.cds_danger;
+        var sc=hit.leadership_score!=null?hit.leadership_score:(hit.score!=null?hit.score:hit.total_score);
+        var tr=hit.tag||hit.trend||hit.momentum_trend||'';
+        var det=hit.deterioration||hit.confirmed_deterioration||hit.cds_danger||hit.tag==='BREAKDOWN';
         var fl=hit.fund_flows_5d_usd!=null?hit.fund_flows_5d_usd:(hit.flows||{}).net_5d;
         var growing=(sc!=null&&sc>=55&&!det)?'GROWING / LEADING':(det||( sc!=null&&sc<35))?'SHRINKING / IN TROUBLE':'MIXED';
         var gcol=growing.indexOf('GROW')===0?'#26ffaf':growing.indexOf('SHRINK')===0?'#ff5577':'#ffd266';
