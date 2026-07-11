@@ -1,8 +1,9 @@
-executing-against: 4fd69acff9abd952fc20ded89309af841b0b0ca8
-── 1. Function + schedule ──
-── 2. Invoke + map truth ──
-── 3. Search-bar profile live (this-push) ──
+executing-against: 0e82506d7c185f2f0582d981c2b1286f545984ec
+── 1. Deploy + invoke ──
+── 2. Doc truth ──
+── 3. Page live (this-push) ──
 ── verdict ──
-[03:45:07] PASS
+[18:10:05] FAIL: financials without fcf_nm: ['MOH']
 
-→ Report written to aws/ops/reports/latest/3101_share_flows_v131.md
+→ Report written to aws/ops/reports/latest/3102_buyback_fcf_truth.md
+❌ OPS-FAIL: aws/ops/pending/ops_3102_buyback_fcf_truth.py
