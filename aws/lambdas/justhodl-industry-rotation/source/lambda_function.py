@@ -414,6 +414,7 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "above_sma20": bool(sma(closes, 20)
                                 and px > sma(closes, 20)),
             "pct_vs_sma50": pct50, "pct_vs_sma200": pct200,
+            "closes_66": [round(x, 2) for x in closes[-66:]],
             "golden_cross_sessions_ago": gx,
             "death_cross_sessions_ago": dx,
             "rsi14": rsi14, "macd": macd_x, "bb": bb,
@@ -1582,7 +1583,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "4.1",
+        "engine": "justhodl-industry-rotation", "version": "4.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "

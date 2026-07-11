@@ -570,6 +570,10 @@ function renderReport(d){
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
+  html += '<section class="block" id="jh-conviction"><div class="sub"><span class="ico">&#128737;</span> Fleet Conviction &mdash; what every system says about this name</div><div style="color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);font-size:11px">composing live boards&hellip;</div></section>';
+  html += '<div id="jh-rspair"></div>';
+  html += renderRiskTrade(d);           // v2.1: drawdown/vol/Sortino + tradability
+  try{window.__rd=d;}catch(e){}
   html += renderScenarios(d);
   html += renderExecSummary(d);
   html += renderBullBear(d);
@@ -2811,6 +2815,34 @@ function pct(v){return (v===null||v===undefined)?"—":((v>0?"+":"")+Number(v).t
 function cls(v){return v===null||v===undefined?"":(v>=0?"up":"dn");}
 function metric(l,v){return '<div class="metric"><div class="lbl">'+l+'</div><div class="val">'+v+'</div></div>';}
 
+window.renderRiskTrade=function(d){
+  var t=d&&d.technicals; if(!t||!t.series||!t.series.close) return "";
+  var c=(t.series.close||[]).filter(function(x){return x!=null&&isFinite(x);});
+  if(c.length<70) return "";
+  function maxDD(a){var pk=a[0],dd=0;for(var i=1;i<a.length;i++){if(a[i]>pk)pk=a[i];var x=a[i]/pk-1;if(x<dd)dd=x;}return dd*100;}
+  var dd1=maxDD(c.slice(-252)),dd2=maxDD(c);
+  var rets=[];for(var i=1;i<c.length;i++)rets.push(c[i]/c[i-1]-1);
+  function ann(a){if(!a.length)return null;var m=a.reduce(function(p,q){return p+q;},0)/a.length;var v=a.reduce(function(p,q){return p+(q-m)*(q-m);},0)/a.length;return Math.sqrt(v)*Math.sqrt(252)*100;}
+  var v20=ann(rets.slice(-20)),v1y=ann(rets.slice(-252));
+  var r1=rets.slice(-252);var mu=r1.reduce(function(p,q){return p+q;},0)/r1.length;
+  var neg=r1.filter(function(x){return x<0;});
+  var dvar=neg.length?neg.reduce(function(p,q){return p+q*q;},0)/r1.length:0;
+  var sortino=dvar>0?(mu*252)/(Math.sqrt(dvar)*Math.sqrt(252)):null;
+  var st=t.stats||{};var adv=st.adv_dollar_3m_musd;
+  var mcap=d.market_cap||((d.hero||{}).market_cap)||((d.quote||{}).marketCap)||((d.profile||{}).mktCap)||null;
+  var build=(adv&&mcap)?((mcap*0.01)/(adv*1e6*0.10)):null;
+  function cell(k,v,col){return '<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">'+k+'</div><div style="font-size:15px;margin-top:2px;font-family:var(--mono,monospace);color:'+(col||'var(--fg-1,#e8edf5)')+'">'+v+'</div></div>';}
+  var h='<section class="block" id="jh-risktrade"><div class="sub"><span class="ico">&#9878;</span> Risk &amp; Tradability</div><div style="display:flex;gap:10px;flex-wrap:wrap">';
+  h+=cell('Max drawdown 1y',dd1.toFixed(1)+'%',dd1<-30?'#ff5577':dd1<-15?'#ffd266':'#26ffaf');
+  h+=cell('Max drawdown 2y',dd2.toFixed(1)+'%',dd2<-40?'#ff5577':'#ffd266');
+  if(v20!=null)h+=cell('Realized vol 20d',v20.toFixed(0)+'% ann');
+  if(v1y!=null)h+=cell('Realized vol 1y',v1y.toFixed(0)+'% ann');
+  if(sortino!=null)h+=cell('Sortino 1y',sortino.toFixed(2),sortino>=1?'#26ffaf':sortino<0?'#ff5577':'#ffd266');
+  if(adv!=null)h+=cell('ADV$ 3m','$'+adv.toFixed(0)+'M');
+  if(build!=null)h+=cell('Days to build 1% position',build.toFixed(1)+'d @ 10% ADV',build>10?'#ffd266':'#26ffaf');
+  h+='</div><div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">Computed from the 504-session series and 3m dollar-ADV on this page. Sortino uses daily downside deviation, rf&asymp;0. Days-to-build assumes taking 10% of average daily dollar volume &mdash; the institutional footprint constraint.</div></section>';
+  return h;
+};
 window.renderMomentum=function(d){
   var t=d&&d.technicals; if(!t||!t.available||!t.series||!t.series.close) return "";
   var c=(t.series.close||[]).filter(function(x){return x!=null&&isFinite(x);});
@@ -3078,7 +3110,7 @@ window.renderIndustryCompass=function(d){
   var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
   var DOCS={}, TK=null, TRIES=0;
   function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
-  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];tick();});
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json'),gj('data/master-ranker.json'),gj('data/accumulation-radar.json'),gj('data/insider-radar.json'),gj('data/best-setups.json'),gj('data/finra-short.json'),gj('data/ai-rerating-radar.json'),gj('data/estimate-revisions.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];DOCS.mr=a[4];DOCS.ac=a[5];DOCS.ins=a[6];DOCS.bs=a[7];DOCS.fs=a[8];DOCS.rr=a[9];DOCS.er=a[10];tick();});
   function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
   function render(t){
     var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();
@@ -3144,6 +3176,85 @@ window.renderIndustryCompass=function(d){
         if(hit.golden_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','GOLDEN CROSS '+hit.golden_cross_sessions_ago+' sessions ago \u2014 Stage-2 confirmation','#26ffaf'));
         else if(hit.death_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','DEATH CROSS '+hit.death_cross_sessions_ago+' sessions ago \u2014 structural downtrend','#ff5577'));
         else if(hit.pct_vs_sma200!=null)rows.push(box('Industry 50/200 cross','none in the last 60 sessions'));
+        /* ---- v2.1 Fleet Conviction Strip + RS pair (Khalid roadmap #1-#4) ---- */
+        try{
+          var T=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+          if(T){
+            function scanArr(arr,key){key=key||'ticker';var out=null;(arr||[]).forEach(function(r){if(r&&String(r[key]||r.ticker||r.symbol||'').toUpperCase()===T)out=r;});return out;}
+            function anyArrays(doc){var hitr=null;if(!doc)return null;Object.keys(doc).forEach(function(k){if(Array.isArray(doc[k])&&!hitr)hitr=scanArr(doc[k]);});return hitr;}
+            var sys=[];
+            function add(name,read,detail,href){sys.push({n:name,r:read,d:detail,h:href});}
+            /* 1 master-rank */
+            var mrr=scanArr((DOCS.mr||{}).top_tickers||(DOCS.mr||{}).rows);
+            add('MASTER-RANK',mrr?'BULL':null,mrr?((mrr.n_systems||(mrr.systems||[]).length||'?')+' systems agree'):'not ranked','/master-rank.html');
+            /* 2 accumulation */
+            var A=DOCS.ac||{},acB=null,acS=null;
+            [['confirmed_bottoms','CONFIRMED BOTTOM'],['accumulating','ACCUMULATION']].forEach(function(p){var d0=A[p[0]];var r0=Array.isArray(d0)?scanArr(d0):(d0?(scanArr(d0.stocks)||scanArr(d0.etfs)||scanArr(d0.countries)):null);if(r0&&!acB)acB=p[1];});
+            if(!acB&&scanArr(((A.reversals||{}).bottoms)))acB='BOTTOM REVERSAL';
+            [['confirmed_tops','CONFIRMED TOP'],['distributing','DISTRIBUTION']].forEach(function(p){var d0=A[p[0]];var r0=Array.isArray(d0)?scanArr(d0):(d0?(scanArr(d0.stocks)||scanArr(d0.etfs)||scanArr(d0.countries)):null);if(r0&&!acS)acS=p[1];});
+            if(!acS&&scanArr(((A.reversals||{}).tops)))acS='TOP REVERSAL';
+            add('ACCUMULATION',acB?'BULL':acS?'BEAR':null,acB||acS||'no phase flag','/accumulation.html');
+            /* 3 insider */
+            var I=DOCS.ins||{};var dc=scanArr(I.decline_clusters),cl2=scanArr(I.clusters);
+            add('INSIDER',(dc||cl2)?'BULL':null,dc?'cluster after -25% decline (star signal)':cl2?'insider cluster':'no cluster','/insider.html');
+            /* 4 share-flows */
+            var sfr=((DOCS.sf||{}).tickers||{})[T];
+            var sfRead=sfr?(sfr.read||''):null;var sfFl=(sfr&&sfr.flags)||[];
+            add('SHARE-FLOWS',sfRead?((sfRead==='BUYBACK_HEAVY'||sfRead==='SHRINKING')?'BULL':(sfRead.indexOf('DILUT')>=0)?'BEAR':(sfFl.indexOf('MGMT_SELLING_INTO_BUYBACK')>=0)?'FLAG':'NEUT'):null,sfRead?sfRead.replace(/_/g,' ').toLowerCase()+(sfFl.length?' \u00b7 '+sfFl.join('/').toLowerCase().replace(/_/g,' '):''):'not covered','/share-flows.html');
+            /* 5 forensic */
+            var fo2=null;((DOCS.fo||{}).all_results||[]).forEach(function(r){if(r.symbol===T)fo2=r;});
+            add('FORENSIC',fo2?((fo2.concern_score||0)>=40||fo2.m_deteriorating?'FLAG':(fo2.strength_grade&&fo2.strength_grade[0]<='B')?'BULL':'NEUT'):null,fo2?((fo2.strength_grade||'?')+' financials \u00b7 concern '+(fo2.concern_score!=null?fo2.concern_score:'-')):'not screened','/forensic.html?ticker='+T);
+            /* 6 industry (reuse hit verdict) */
+            add('INDUSTRY',hit?(growing.indexOf('GROW')===0?'BULL':growing.indexOf('SHRINK')===0?'BEAR':'NEUT'):null,hit?growing.toLowerCase():'no industry match','/industry-rotation.html');
+            /* 7 squeeze / finra */
+            var fq=((DOCS.fs||{}).by_ticker||{})[T]||scanArr((DOCS.fs||{}).squeeze_candidates);
+            add('SHORT/SQUEEZE',fq?((fq.dtc_hot||(fq.squeeze_score||0)>0)?'FLAG':'NEUT'):null,fq?('DTC '+(fq.days_to_cover!=null?fq.days_to_cover:'-')+(fq.squeeze_score?' \u00b7 squeeze score '+fq.squeeze_score:'')):'no FINRA row','/squeeze.html');
+            /* 8 AI-rerating (roadmap #2) */
+            var rr=anyArrays(DOCS.rr);var rz=rr?(rr.z!=null?rr.z:(rr.z_resid!=null?rr.z_resid:rr.zscore)):null;
+            var rGap=rr?(rr.gap_pct!=null?rr.gap_pct:(rr.upside_pct!=null?rr.upside_pct:null)):null;
+            add('AI-RERATING',rr?((rz!=null&&rz<=-0.5)||(rGap!=null&&rGap>=15)?'BULL':((rz!=null&&rz>=0.5)||(rGap!=null&&rGap<=-15))?'BEAR':'NEUT'):null,rr?((rz!=null?'z '+(+rz).toFixed(2)+' vs modeled multiple':'')+(rGap!=null?' \u00b7 '+(rGap>0?'+':'')+(+rGap).toFixed(0)+'% to model':'')||'in universe'):'not in regression universe','/ai-rerating.html');
+            /* 9 estimate revisions (roadmap #3) */
+            var E=DOCS.er||{};var er=(E.tickers||{})[T]||anyArrays(E);
+            var up=er?(er.upward_revisions!=null?er.upward_revisions:er.up):null,dn=er?(er.downward_revisions!=null?er.downward_revisions:er.down):null;
+            var evp=er?(er.eps_rev_recent_pct!=null?er.eps_rev_recent_pct:er.eps_rev_pct):null;
+            add('REVISIONS',er?(((up||0)>(dn||0)&&(evp==null||evp>=0))?'BULL':((dn||0)>(up||0))?'BEAR':'NEUT'):null,er?('revisions 30d: '+(up!=null?up:'-')+'\u2191 / '+(dn!=null?dn:'-')+'\u2193'+(evp!=null?' \u00b7 EPS est '+(evp>0?'+':'')+evp+'%':'')):'no coverage','/estimate-revisions.html');
+            /* 10 best-setups */
+            var bsr=anyArrays(DOCS.bs);
+            add('BEST-SETUPS',bsr?'BULL':null,bsr?('fused setup'+(bsr.score!=null?' \u00b7 score '+bsr.score:'')+(bsr.conviction?' \u00b7 '+bsr.conviction:'')):'not on board','/best-setups.html');
+            var live=sys.filter(function(x){return x.r!==null;});
+            var bull=live.filter(function(x){return x.r==='BULL';}).length;
+            var bear=live.filter(function(x){return x.r==='BEAR';}).length;
+            var flag=live.filter(function(x){return x.r==='FLAG';}).length;
+            var CC={BULL:'#26ffaf',BEAR:'#ff5577',FLAG:'#ffd266',NEUT:'#5d6b82'};
+            var chips=sys.map(function(x){var col=x.r?CC[x.r]:'#2a3448';
+              return '<a href="'+x.h+'" style="text-decoration:none"><span style="display:inline-block;margin:3px;padding:5px 9px;border:1px solid '+col+'66;border-radius:8px;font-family:var(--mono,monospace);font-size:10.5px;color:'+(x.r?col:'#5d6b82')+'" title="'+x.d.replace(/"/g,'&quot;')+'"><b>'+x.n+'</b> '+(x.r||'no data')+'<br><span style="color:var(--fg3,#5d6b82);font-size:9.5px">'+x.d+'</span></span></a>';}).join('');
+            var verdict=bull+' of '+live.length+' systems constructive'+(bear?' \u00b7 '+bear+' bearish':'')+(flag?' \u00b7 '+flag+' caution flag'+(flag>1?'s':''):'');
+            var vc=bull>=bear&&bull>=Math.ceil(live.length*0.6)?'#26ffaf':bear>bull?'#ff5577':'#ffd266';
+            var el=document.getElementById('jh-conviction');
+            if(el)el.innerHTML='<div class="sub"><span class="ico">&#128737;</span> Fleet Conviction &mdash; what every system says about this name</div>'
+              +'<div style="font-family:var(--mono,monospace);font-size:15px;font-weight:800;color:'+vc+';margin:4px 0 7px">'+verdict+'</div>'
+              +'<div>'+chips+'</div>'
+              +'<div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">Each chip is a live board from the fleet, refreshed on its own daily/intraday cycle \u2014 click through for the full read. Constructive = independent systems, not one model repeated.</div>';
+            /* ---- RS vs own industry ETF (roadmap #4) ---- */
+            try{
+              var rd=window.__rd||{};var sc=(((rd.technicals||{}).series||{}).close||[]).filter(function(x){return x!=null;});
+              var ec=hit&&hit.closes_66;
+              if(sc.length>=66&&ec&&ec.length>=40){
+                var n=Math.min(sc.length,ec.length,66);
+                var st2=sc.slice(-n),et=ec.slice(-n);
+                var ratio=[];for(var i2=0;i2<n;i2++)ratio.push(st2[i2]/et[i2]);
+                var ch3=(ratio[n-1]/ratio[0]-1)*100;
+                var ch1=n>21?(ratio[n-1]/ratio[n-22]-1)*100:null;
+                var rsHigh=ratio[n-1]>=Math.max.apply(null,ratio);
+                var col2=ch3>=0?'#26ffaf':'#ff5577';
+                var el2=document.getElementById('jh-rspair');
+                if(el2)el2.innerHTML='<section class="block"><div class="sub"><span class="ico">&#9876;</span> Relative Strength vs own industry ('+(hit.etf||'')+')</div>'
+                  +'<div style="font-family:var(--mono,monospace);font-size:13px">stock/'+(hit.etf||'ETF')+' ratio: <b style="color:'+col2+'">'+(ch3>0?'+':'')+ch3.toFixed(1)+'% over 3m</b>'+(ch1!=null?' \u00b7 '+(ch1>0?'+':'')+ch1.toFixed(1)+'% 1m':'')+(rsHigh?' \u00b7 <b style="color:#26ffaf">RS NEW HIGH</b>':'')+'</div>'
+                  +'<div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:5px">Outperforming its own industry is the O\u0027Neil/Raschke leadership test \u2014 absolute momentum (above) tells you the tide, this tells you the boat. Aligned by trading-session tail, 66 sessions.</div></section>';
+              }
+            }catch(e4){}
+          }
+        }catch(e3){}
         try{var irg=IR.generated_at;if(irg){var ageH=(Date.now()-new Date(irg).getTime())/36e5;
           var fr=ageH.toFixed(1)+'h old \u00b7 daily 21:35 UTC run';
           rows.push(box('Industry data freshness',ageH>30?fr+' \u00b7 STALE - daily run missed':fr,ageH>30?'#ffd266':'#26ffaf'));}}catch(e2){}
