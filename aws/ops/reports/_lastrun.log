@@ -1,8 +1,9 @@
-executing-against: bea7ed726402641c2dfb52682f10cc96d0b7fdfa
-── 1. Forensic trend ──
-── 2. Opportunity forensic gate ──
+executing-against: ccb6d2edf9bcc4f28449bb6c4595db0349c7e1ee
+── 1. Deploy + invoke ──
+── 2. Doc truth ──
 ── 3. Page live (this-push) ──
 ── verdict ──
-[20:15:45] PASS
+[20:42:25] FAIL: page marker missing: vs sector
 
-→ Report written to aws/ops/reports/latest/3111_forensic_trend_gate.md
+→ Report written to aws/ops/reports/latest/3112_search_5y.md
+❌ OPS-FAIL: aws/ops/pending/ops_3112_search_5y.py
