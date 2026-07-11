@@ -321,8 +321,8 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "price": round(px, 2),
             "above_sma50": ab50, "above_sma100": ab100,
             "above_sma200": ab200,
-            "above_sma20": (sma(c, 20) is not None
-                            and c[-1] > sma(c, 20)),
+            "above_sma20": bool(sma(closes, 20)
+                                and px > sma(closes, 20)),
             "ratio_above_50d": ratio_above,
             "ratio_slope_20d_pct": slope,
             "rel_mom_3m_pp": rel3, "rel_mom_pctile": pr,
