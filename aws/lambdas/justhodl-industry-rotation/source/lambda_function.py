@@ -273,6 +273,77 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
     ab50 = bool(s50 and px > s50)
     ab100 = bool(s100 and px > s100)
     ab200 = bool(s200 and px > s200)
+    # v3.7 technicals for the Cross Board
+    def _ema_series(vals, n_):
+        k = 2.0 / (n_ + 1)
+        e = vals[0]
+        out_e = [e]
+        for v_ in vals[1:]:
+            e = v_ * k + e * (1 - k)
+            out_e.append(e)
+        return out_e
+
+    rsi14 = None
+    if len(closes) >= 30:
+        g_, l_ = 0.0, 0.0
+        for i in range(-14, 0):
+            d_ = closes[i] - closes[i - 1]
+            g_ += max(d_, 0)
+            l_ += max(-d_, 0)
+        ag, al = g_ / 14, l_ / 14
+        for i in range(-14, 0):
+            pass
+        rsi14 = round(100 - 100 / (1 + (ag / al if al else 99)), 1)
+    macd_x = None
+    if len(closes) >= 60:
+        e12 = _ema_series(closes[-120:], 12)
+        e26 = _ema_series(closes[-120:], 26)
+        line = [a - b for a, b in zip(e12, e26)]
+        sig = _ema_series(line, 9)
+        hist_ = [a - b for a, b in zip(line, sig)]
+        cross, cd = None, None
+        for back in range(1, 6):
+            if hist_[-back - 1] <= 0 < hist_[-back]:
+                cross, cd = "UP", back
+                break
+            if hist_[-back - 1] >= 0 > hist_[-back]:
+                cross, cd = "DOWN", back
+                break
+        macd_x = {"hist": round(hist_[-1], 3), "cross": cross,
+                  "cross_days": cd}
+    bb = None
+    if len(closes) >= 150:
+        widths = []
+        for i in range(len(closes) - 130, len(closes)):
+            w_ = closes[i - 19:i + 1]
+            m_ = sum(w_) / 20
+            sd_ = (sum((x - m_) ** 2 for x in w_) / 20) ** 0.5
+            widths.append(4 * sd_ / m_ if m_ else 0)
+        w20 = closes[-20:]
+        mid = sum(w20) / 20
+        sd = (sum((x - mid) ** 2 for x in w20) / 20) ** 0.5
+        up_, lo_ = mid + 2 * sd, mid - 2 * sd
+        pct_b = round((px - lo_) / (up_ - lo_), 2) if up_ > lo_ \
+            else None
+        wsort = sorted(widths)
+        squeeze = widths[-1] <= wsort[max(0, len(wsort) // 5 - 1)]
+        bb = {"pct_b": pct_b,
+              "width_pct": round(widths[-1] * 100, 2),
+              "squeeze": bool(squeeze),
+              "at": ("UPPER" if pct_b is not None and pct_b >= 0.95
+                     else "LOWER" if pct_b is not None
+                     and pct_b <= 0.05 else "MID")}
+    extremes = []
+    for n_, tag_hi, tag_lo in ((5, "W-HI", "W-LO"),
+                               (21, "M-HI", "M-LO"),
+                               (252, "52W-HI", "52W-LO")):
+        if len(closes) >= n_ + 1:
+            hi_, lo_ = max(closes[-n_:]), min(closes[-n_:])
+            if px >= hi_ * 0.9925:
+                extremes.append(tag_hi)
+            elif px <= lo_ * 1.0075:
+                extremes.append(tag_lo)
+
     n = min(len(closes), len(spy))
     ratio = [closes[-n + i] / spy[-n + i] for i in range(n)
              if spy[-n + i]]
@@ -323,6 +394,8 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "above_sma200": ab200,
             "above_sma20": bool(sma(closes, 20)
                                 and px > sma(closes, 20)),
+            "rsi14": rsi14, "macd": macd_x, "bb": bb,
+            "extremes": extremes,
             "ratio_above_50d": ratio_above,
             "ratio_slope_20d_pct": slope,
             "rel_mom_3m_pp": rel3, "rel_mom_pctile": pr,
@@ -602,6 +675,30 @@ def lambda_handler(event=None, context=None):
     else:
         rank_note = ("WARMING_UP: rank delta needs 3+ sessions "
                      "(%d/21 accrued)" % len(dates))
+
+    def fmp_estimates(tkr):
+        """Analyst estimates -> forward EPS (next FY) + 3y EPS CAGR.
+        Basis for Khalid's forward-PEG framework."""
+        d_ = _http("https://financialmodelingprep.com/stable/"
+                   "analyst-estimates?symbol=%s&period=annual"
+                   "&limit=4&apikey=%s" % (tkr, FMP))
+        rows_ = [r_ for r_ in (d_ or [])
+                 if r_.get("epsAvg") or r_.get("estimatedEpsAvg")]
+        if not rows_:
+            return None
+        rows_.sort(key=lambda r_: r_.get("date") or "")
+        eps = [(r_.get("epsAvg") or r_.get("estimatedEpsAvg"))
+               for r_ in rows_]
+        fwd = eps[0]
+        cagr = None
+        if len(eps) >= 3 and eps[0] and eps[0] > 0 and eps[-1] \
+                and eps[-1] > 0:
+            yrs = len(eps) - 1
+            cagr = ((eps[-1] / eps[0]) ** (1.0 / yrs) - 1) * 100
+        return {"fwd_eps": fwd, "eps_cagr_pct":
+                (round(cagr, 1) if cagr is not None else None)}
+
+    _soldier_est = {}
 
     def fmp_quotes(tickers):
         """/stable/quote is single-symbol only (fleet precedent:
@@ -1043,6 +1140,18 @@ def lambda_handler(event=None, context=None):
                     if cand and cand < px:
                         stop = cand
                         break
+                if q_.get("pe"):
+                    h["pe"] = round(q_["pe"], 1)
+                if ht not in _soldier_est:
+                    _soldier_est[ht] = fmp_estimates(ht)
+                est = _soldier_est.get(ht)
+                if est and est.get("fwd_eps") and est["fwd_eps"] > 0:
+                    fpe = px / est["fwd_eps"]
+                    h["fwd_pe"] = round(fpe, 1)
+                    g = est.get("eps_cagr_pct")
+                    if g and g > 0:
+                        h["eps_cagr_pct"] = g
+                        h["peg_fwd"] = round(fpe / g, 2)
                 if stop and up > 0:
                     dn = px / stop - 1
                     dn = max(dn, 0.01)
@@ -1298,7 +1407,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.6",
+        "engine": "justhodl-industry-rotation", "version": "3.7",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "

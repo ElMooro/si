@@ -75,7 +75,7 @@ table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-
     <div class="card" id="pairs"></div>
   </section>
   <section>
-    <h2>Cross Board <span class="n">where every army sits vs its 20/50/100/200-day MAs \u00b7 \u25cf above \u25cb below \u00b7 \u2191\u2193 = crossed within 6 sessions \u00b7 golden/death = 50\u00d7200</span></h2>
+    <h2>Cross Board <span class="n">where every army sits vs its 20/50/100/200-day MAs · ● above ○ below · ↑↓ = crossed within 6 sessions · golden/death = 50×200 · plus Wyckoff · Bollinger %B + SQUEEZE · RSI · MACD · period extremes</span></h2>
     <div class="card" style="max-height:60vh;overflow:auto" id="crossboard"></div>
   </section>
   <section>
@@ -210,9 +210,15 @@ function renderCrossBoard(d){
     if(x)return '<td><b style="color:var(--red)" title="50DMA crossed below 200DMA">DEATH '+x+"</b></td>";
     for(var i=0;i<ev.length;i++){var e=ev[i];if(e.etf===t&&(e.event==="GOLDEN_CROSS"||e.event==="DEATH_CROSS")){return '<td style="color:var(--fg-3);font-size:10px" title="most recent">'+(e.event==="GOLDEN_CROSS"?"golden":"death")+" "+e.date.slice(5)+"</td>";}}
     return '<td style="color:var(--fg-3)">\u2014</td>';}
-  el.innerHTML='<table class="tbl" style="width:auto"><thead><tr><th>ETF</th><th title="price vs 20-day MA">20D</th><th>50D</th><th>100D</th><th>200D</th><th>GC / DC</th></tr></thead><tbody>'
+  el.innerHTML='<table class="tbl" style="width:auto"><thead><tr><th>ETF</th><th title="price vs 20-day MA">20D</th><th>50D</th><th>100D</th><th>200D</th><th title="Wyckoff phase from the phase-detector">WYCK</th><th title="Bollinger %B (0=lower band, 1=upper) · SQUEEZE = bandwidth in its tightest 20% of 6 months — compression precedes expansion">BB</th><th>RSI</th><th title="MACD histogram sign · ↑↓ = signal cross within 5 sessions">MACD</th><th title="sitting at 5d/21d/252d highs or lows (within 0.75%)">EXTREMES</th><th>GC / DC</th></tr></thead><tbody>'
     +rows.map(function(r){return "<tr><td><b>"+esc(r.etf)+"</b> <span style=\"color:var(--fg-3);font-size:9px\">"+r.leadership_score+"</span></td>"
-      +cell(r.etf,r.above_sma20,20)+cell(r.etf,r.above_sma50,50)+cell(r.etf,r.above_sma100,100)+cell(r.etf,r.above_sma200,200)+gc(r.etf)+"</tr>";}).join("")
+      +cell(r.etf,r.above_sma20,20)+cell(r.etf,r.above_sma50,50)+cell(r.etf,r.above_sma100,100)+cell(r.etf,r.above_sma200,200)
+      +(function(){var w=r.wyckoff;if(!w)return '<td style="color:var(--fg-3)">—</td>';var PC={ACCUMULATION:"var(--cyan)",MARKUP:"var(--green)",DISTRIBUTION:"var(--amber)",MARKDOWN:"var(--red)"};return '<td><b style="color:'+(PC[w.phase]||"var(--fg-3)")+'" title="since '+esc(w.begin||"")+'">'+esc(w.phase.slice(0,4))+"</b></td>";})()
+      +(function(){var b=r.bb;if(!b)return "<td>—</td>";var col=b.at==="UPPER"?"var(--green)":(b.at==="LOWER"?"var(--red)":"var(--fg-2)");return '<td title="%B '+b.pct_b+' · bandwidth '+b.width_pct+'%">'+'<span style="color:'+col+'">'+(b.pct_b==null?"—":b.pct_b)+"</span>"+(b.squeeze?' <b style="color:var(--amber)" title="Bollinger squeeze: bandwidth in its tightest quintile of ~6 months — big moves tend to follow compression">SQUEEZE</b>':"")+"</td>";})()
+      +(function(){var v=r.rsi14;if(v==null)return "<td>—</td>";var col=v>=70?"var(--amber)":(v<=30?"var(--cyan)":"var(--fg-2)");return '<td style="color:'+col+'" title="RSI(14): 70+ stretched, 30- washed out">'+v+"</td>";})()
+      +(function(){var m=r.macd;if(!m)return "<td>—</td>";var s2=m.hist>0?'<span style="color:var(--green)">+</span>':'<span style="color:var(--red)">−</span>';return "<td>"+s2+(m.cross?' <b style="color:'+(m.cross==="UP"?"var(--green)":"var(--red)")+'" title="signal cross '+m.cross_days+' session(s) ago">'+(m.cross==="UP"?"↑":"↓")+m.cross_days+"d</b>":"")+"</td>";})()
+      +(function(){var ex=r.extremes||[];if(!ex.length)return '<td style="color:var(--fg-3)">—</td>';return "<td>"+ex.map(function(x){var hi=x.indexOf("HI")>=0;return '<b style="color:'+(hi?"var(--green)":"var(--red)")+';font-size:9px;margin-right:4px">'+esc(x)+"</b>";}).join("")+"</td>";})()
+      +gc(r.etf)+"</tr>";}).join("")
     +"</tbody></table>";
 }
 function renderCycle(d){
@@ -318,6 +324,8 @@ fetchJSON("data/industry-rotation.json").then(function(d){
         +(x.er_plus?'<b style="color:var(--green)" title="on the estimate-revisions top picks"> ER+</b>':"")
         +(x.acc_state?'<b style="color:'+(x.acc_state==="ACCUMULATION"?"var(--green)":"var(--red)")+'" title="accumulation-radar state"> '+(x.acc_state==="ACCUMULATION"?"ACC":"DIST")+"</b>":"")
         +(x.dp?'<b style="color:'+(x.dp==="ACCUMULATION"?"var(--green)":"var(--red)")+'" title="dark-pool prints read '+esc(x.dp)+'"> DP</b>':"")
+        +(x.pe||x.fwd_pe?'<b style="color:var(--fg-2)" title="trailing P/E'+(x.fwd_pe?" · forward P/E "+x.fwd_pe:"")+(x.eps_cagr_pct?" · est EPS CAGR "+x.eps_cagr_pct+"%":"")+'"> PE '+(x.pe||x.fwd_pe)+"</b>":"")
+        +(x.peg_fwd!=null?'<b style="color:'+(x.peg_fwd<1?"var(--green)":(x.peg_fwd<=1.5?"var(--fg-2)":(x.peg_fwd<=2?"var(--amber)":"var(--red)")))+'" title="forward PEG = forward P/E ÷ est EPS CAGR (whole number). <1 = growth discounted · 1–1.5 = fair · >2 = heavily priced. Ignores debt/quality — confirm revenue, margins, share count.">  fPEG '+x.peg_fwd+"</b>":"")
         +(x.rr?'<b style="color:'+(x.rr.ratio>=2?"var(--green)":(x.rr.ratio>=1?"var(--amber)":"var(--red)"))+'" title="risk:reward framework — upside to the 52-week high vs downside to '+esc(x.rr.stop_basis)+' support. Not a prediction.">  \u2191'+x.rr.up_pct+"% / \u2193"+x.rr.down_pct+"% = "+x.rr.ratio+"R</b>":"");
       var w=Math.min(100,(x.weight_pct||0)*4);
       return '<span style="position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;bottom:0;width:'+w+'%;background:rgba(0,212,255,0.10)"></span><span style="position:relative">'+esc(x.ticker)+" "+esc(x.weight_pct)+"%"+chips+"</span></span>";
@@ -327,7 +335,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
     var rn=(l.resilient_names||[]).map(function(x){return '<span style="border-color:rgba(56,255,168,.35);color:var(--green)">'+esc(x.ticker)+(x.stage?" · "+esc(x.stage):"")+(x.chain_intact?' · <b style="color:var(--cyan)" title="stock &gt; ETF &gt; SPY, 3m">CHAIN</b>':"")+(x.vs_etf_3m_pp!=null?" · vsETF "+(x.vs_etf_3m_pp>0?"+":"")+x.vs_etf_3m_pp+"pp":"")+(x.pead?' · <b style="color:var(--violet)">PEAD+</b>':"")+"</span>";}).join("");
     return '<div class="lc"><h3>'+esc(l.etf)+" — "+esc(l.name)+qchip+' <span style="font-family:var(--font-mono);font-size:11px;color:var(--fg-3)">score '+l.leadership_score+(l.tag?' · <span class="tag '+esc(l.tag)+'">'+esc(l.tag)+"</span>":"")+"</span></h3>"+
       '<div class="m">'+dot(l.above_sma50)+" 50d "+dot(l.above_sma100)+" 100d "+dot(l.above_sma200)+" 200d · ratio 20d "+(l.ratio_slope_20d_pct>0?"+":"")+esc(l.ratio_slope_20d_pct)+"% · \u03b1-RS "+(function(){var a=(l.alpha_mom||{}).blend;return a==null?"\u2014":((a>0?"+":"")+a+"pp");})()+" · dump-day "+(l.dump_day_excess_bps==null?"\u2014":((l.dump_day_excess_bps>0?"+":"")+l.dump_day_excess_bps+"bp"))+(l.volume&&l.volume.updown_vol_ratio_20d!=null?" · U/D vol "+l.volume.updown_vol_ratio_20d+(l.volume.pullback_vol_dryup?" <span style=\"color:var(--green)\" title=\"pullback volume dry-up: selling pressure weakening\">DRY-UP</span>":""):"")+(l.fund_flows&&l.fund_flows.flow_21d_usd!=null?" · flows 21d "+(l.fund_flows.flow_21d_usd>=0?"+":"")+Math.round(l.fund_flows.flow_21d_usd/1e6)+"M":"")+(l.fundamental_confirm_pct!=null?" · fund-confirm "+l.fundamental_confirm_pct+"%":"")+(l.breadth?" · breadth "+l.breadth.pct_above_50d+"% <b style=\"color:"+(l.breadth.read==="BROAD"?"var(--green)":(l.breadth.read==="NARROW"?"var(--red)":"var(--amber)"))+"\">"+l.breadth.read+"</b> ("+l.breadth.n_priced+" priced)":"")+"</div>"+
-      (h?'<div style="font-size:10px;color:var(--fg-3);margin-bottom:4px">TOP HOLDINGS</div><div class="sold">'+h+"</div>":
+      (h?'<div style="font-size:10px;color:var(--fg-3);margin-bottom:4px">TOP HOLDINGS <span style="font-weight:400">· R:R reads: ↑room to the 52w high / ↓distance to nearest MA support = reward per unit of risk (4R = $4 up per $1 of risk) · fPEG = forward P/E ÷ growth</span></div><div class="sold">'+h+"</div>":
          '<div style="font-size:10px;color:var(--fg-3)">Holdings unavailable: '+esc(l.holdings_reason||"no data")+"</div>")+
       (rn?'<div style="font-size:10px;color:var(--fg-3);margin:8px 0 4px">RESILIENT NAMES INSIDE (2-factor residual survivors of the resilience engine)</div><div class="sold">'+rn+"</div>":
           (h?'<div style="font-size:10px;color:var(--fg-3);margin-top:6px">None of these holdings are on the resilience watchlist right now.</div>':""))+
