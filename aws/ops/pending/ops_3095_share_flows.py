@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3094 -- SHARE-FLOWS fleet map (Khalid: track issuance,
+"""ops 3095 -- SHARE-FLOWS fleet map (Khalid: track issuance,
 management buying/selling + how much, share count shrink/grow,
 dilution, buybacks -- on opportunities and everywhere it applies).
 New composer justhodl-share-flows -> data/share-flows.json: per-name
@@ -27,7 +27,7 @@ SCH = boto3.client("scheduler", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-share-flows"
 AWS_DIR = Path(__file__).resolve().parents[2]
-UA = {"User-Agent": "Mozilla/5.0 ops-3094",
+UA = {"User-Agent": "Mozilla/5.0 ops-3095",
       "Cache-Control": "no-cache"}
 
 
@@ -116,14 +116,32 @@ def ensure_schedule(rep, warns):
     except SCH.exceptions.ResourceNotFoundException:
         arn = L.get_function(FunctionName=FN)["Configuration"][
             "FunctionArn"]
+        # 3094 lesson: don't guess the scheduler role -- copy the
+        # RoleArn from an existing fleet schedule
+        role = None
+        try:
+            for pg in SCH.get_paginator("list_schedules").paginate(
+                    GroupName="default"):
+                for it in pg.get("Schedules", []):
+                    if it["Name"].startswith("justhodl"):
+                        det = SCH.get_schedule(
+                            Name=it["Name"], GroupName="default")
+                        role = det["Target"]["RoleArn"]
+                        break
+                if role:
+                    break
+        except Exception as e:
+            warns.append("role discovery: %s" % str(e)[:80])
+        if not role:
+            warns.append("no fleet schedule to copy role from -- "
+                         "schedule skipped (engine still runs via "
+                         "manual/ops invokes)")
+            return
         SCH.create_schedule(
             Name="justhodl-share-flows-daily", GroupName="default",
             ScheduleExpression="cron(35 13 * * ? *)",
             FlexibleTimeWindow={"Mode": "OFF"},
-            Target={"Arn": arn,
-                    "RoleArn": "arn:aws:iam::857687956942:role/"
-                               "eventbridge-scheduler-lambda",
-                    "Input": "{}"})
+            Target={"Arn": arn, "RoleArn": role, "Input": "{}"})
         rep.kv(schedule="created 13:35 UTC daily")
     except Exception as e:
         warns.append("schedule: %s" % str(e)[:90])
@@ -131,7 +149,7 @@ def ensure_schedule(rep, warns):
 
 def main():
     fails, warns = [], []
-    with report("3094_share_flows") as rep:
+    with report("3095_share_flows") as rep:
         rep.section("1. Function + schedule")
         if not ensure_function(rep, fails):
             _fin(rep, fails, warns)
@@ -227,7 +245,7 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    (AWS_DIR / "ops" / "reports" / "3094.json").write_text(json.dumps(
+    (AWS_DIR / "ops" / "reports" / "3095.json").write_text(json.dumps(
         {"ops": 3093, "verdict": "FAIL" if fails else "PASS",
          "fails": fails, "warns": warns,
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
