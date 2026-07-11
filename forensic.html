@@ -95,6 +95,11 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),tr
     <h1 class="hero-title">Where <em>earnings quality breaks down</em> before the price does.</h1>
     <p class="hero-blurb">Four institutional-grade red flags across the SP500: <strong>Beneish M-Score</strong> (manipulation), <strong>Sloan accruals</strong> (earnings quality), <strong>working-capital divergence</strong> (channel stuffing / receivables buildup), and <strong>goodwill bloat</strong> (write-down tail risk). Screens top 200 by market cap every 12 hours.</p>
     <div class="kpi-strip" id="kpis"></div>
+    <div style="position:relative;margin-top:14px;max-width:460px">
+      <input id="fq" placeholder="SEARCH ANY S&amp;P 500 STOCK — full forensic + strength read" maxlength="8" autocomplete="off" style="width:100%;background:#11161f;border:1px solid #1c2433;border-radius:8px;color:#e6eaf2;padding:10px 14px;font-family:ui-monospace,Menlo,monospace;font-size:14px;text-transform:uppercase">
+      <div id="fsugg" style="display:none;position:absolute;top:44px;z-index:30;background:#11161f;border:1px solid #1c2433;border-radius:8px;width:100%;overflow:hidden"></div>
+    </div>
+    <div id="flookup" style="display:none;background:#0f131a;border:1px solid #1c2433;border-radius:10px;padding:16px;margin-top:12px"></div>
   </header>
 
   <div class="primer">
@@ -281,6 +286,8 @@ async function load(){
     { l: 'Sloan flagged', v: s.n_sloan_flagged || 0, sub: `accruals > 10%` },
     { l: 'WC divergence', v: s.n_wc_divergence_flagged || 0, sub: `receivables > +20% revenue` },
     { l: 'Goodwill bloat', v: s.n_goodwill_bloat_flagged || 0, sub: `goodwill > 40% TA` },
+    { l: 'A-grade financials', v: (data.all_results||[]).filter(r=>r.strength_grade&&r.strength_grade[0]==='A').length, sub: 'three-statement strength' },
+    { l: 'D/F financials', v: (data.all_results||[]).filter(r=>r.strength_grade==='D'||r.strength_grade==='F').length, sub: 'weak across statements' },
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k =>
     `<div class="kpi"><span class="kpi-label">${k.l}</span><span class="kpi-val">${k.v}</span><span class="kpi-sub">${k.sub}</span></div>`
@@ -304,6 +311,48 @@ async function load(){
     if ((r.strength_score||100) <= 35) why.push('weak financials');
     return `<tr><td><strong>${r.symbol}</strong></td><td>${r.sector||'—'}</td><td class="num" style="color:#ff5577">${r.concern_score??'—'}</td><td class="num">${r.strength_score??'—'}</td><td class="num" ${gcol(r.strength_grade)}>${r.strength_grade||'—'}</td><td class="num">${r.m_score??'—'}</td><td class="num">${r.sloan_accruals!=null?(r.sloan_accruals*100).toFixed(1)+'%':'—'}</td><td>${why.join(' · ')||'—'}</td></tr>`;
   }).join('') : '<tr><td colspan="8" class="empty">awaiting first v2 run</td></tr>';
+
+  // Search: full per-name forensic + strength read
+  const ALLR = {}; (data.all_results||[]).forEach(r=>{ if(r.symbol) ALLR[r.symbol]=r; });
+  const SMED = data.sector_strength_medians||{};
+  const box=(l,v,c)=>`<span style="background:#11161f;border:1px solid #1c2433;border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">${l} <b style="color:${c||'#e6eaf2'}">${v}</b></span>`;
+  function flook(sym){
+    const r=ALLR[sym]; const el=document.getElementById('flookup'); el.style.display='block';
+    if(!r){ el.innerHTML=`<h3 style="margin:0">${sym}</h3><div style="color:#6f7b91;font-family:monospace;font-size:12px;padding:8px 0">not in the S&P 500 forensic universe — for any other stock use the <a href="/share-flows.html?ticker=${sym}" style="color:#00d4ff">share-flows desk</a> or <a href="/why.html?ticker=${sym}" style="color:#00d4ff">research desk</a></div>`; return; }
+    const L=r.strength_legs||{}; const med=SMED[r.sector];
+    const why=[]; if(r.m_flag)why.push('Beneish M-Score flag — statistically resembles earnings manipulators');
+    if(r.sloan_high_risk)why.push('High accruals — earnings not backed by cash (Sloan)');
+    if(r.wc_divergence_flag)why.push('Receivables growing far faster than revenue — channel-stuffing pattern');
+    if(r.goodwill_bloat_flag)why.push('Goodwill-heavy balance sheet — impairment tail risk');
+    if(r.dilution_flag)why.push('Dilution — share count expanding materially');
+    if((r.fin_suppressed_flags||[]).length)why.push('Note: Beneish/accrual flags suppressed — financial-sector accounting makes them spurious');
+    const gc=r.strength_grade&&r.strength_grade[0]==='A'?'#26ffaf':r.strength_grade&&r.strength_grade[0]==='B'?'#00d4ff':(r.strength_grade==='D'||r.strength_grade==='F')?'#ff5577':'#ffd266';
+    el.innerHTML=`<h3 style="margin:0 0 8px">${sym} <span style="color:${gc};font-family:monospace">${r.strength_grade||'—'}</span> <span style="color:#6f7b91;font-size:12px">${r.sector||''}</span></h3>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+    ${box('Strength',(r.strength_score??'—')+'/100',gc)}
+    ${box('Industry %ile',r.industry_pctile!=null?r.industry_pctile+'%':'—')}
+    ${med!=null?box('Sector median',med):''}
+    ${box('Income leg',(L.income??'—')+'/30')}${box('Balance leg',(L.balance??'—')+'/35')}${box('Cash leg',(L.cash??'—')+'/35')}
+    ${box('Concern',(r.concern_score??'—')+'/100',(r.concern_score||0)>=40?'#ff5577':'#26ffaf')}
+    ${box('M-Score',r.m_score??'—',(r.m_flag)?'#ff5577':'#a8b3c7')}
+    ${box('Sloan accruals',r.sloan_accruals!=null?(r.sloan_accruals*100).toFixed(1)+'%':'—')}
+    ${box('Alt-Z',r.altman_z??'—')}${box('Piotroski',r.piotroski??'—')}
+    ${box('Rev growth',r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—')}
+    </div>
+    <div style="color:#a8b3c7;font-size:12.5px;line-height:1.5">${why.length?('⚑ '+why.join('<br>⚑ ')):'No forensic red flags triggered — financials read clean on this screen.'} <a href="/share-flows.html?ticker=${sym}" style="color:#00d4ff">capital-return forensics ↗</a> · <a href="/why.html?ticker=${sym}" style="color:#00d4ff">full research ↗</a></div>`;
+  }
+  const FQ=document.getElementById('fq'),FS=document.getElementById('fsugg');
+  FQ.addEventListener('input',e=>{const v=e.target.value.trim().toUpperCase();
+    if(!v){FS.style.display='none';return}
+    const hits=Object.keys(ALLR).filter(t=>t.startsWith(v)).sort().slice(0,8);
+    if(!hits.length){FS.style.display='none';return}
+    FS.innerHTML=hits.map(t=>`<div class="fsi" data-t="${t}" style="padding:8px 14px;cursor:pointer;font-family:monospace;font-size:13px;display:flex;justify-content:space-between"><b>${t}</b><span style="color:#6f7b91">${ALLR[t].strength_grade||''} · concern ${ALLR[t].concern_score??''}</span></div>`).join('');
+    FS.style.display='block';
+    FS.querySelectorAll('.fsi').forEach(d=>{d.onmouseenter=()=>d.style.background='#1c2433';d.onmouseleave=()=>d.style.background='';d.onclick=()=>{FQ.value=d.dataset.t;FS.style.display='none';flook(d.dataset.t);}});
+  });
+  FQ.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim().toUpperCase();if(v){FS.style.display='none';flook(v);}}});
+  const p0=new URLSearchParams(location.search).get('ticker');
+  if(p0){FQ.value=p0.toUpperCase();flook(p0.toUpperCase());}
 
   // Most concerning
   const concerning = data.most_concerning_top_25 || [];
@@ -364,9 +413,8 @@ async function load(){
 load();
 </script>
 
-<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
+</div>
 <script src="/interp-kit.js"></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','BAMLH0A0HYM2']);});</script>
   <script src="/jh-enhance.js" data-feed="data/forensic-screen.json" data-bars="all_results:symbol:m_score" data-title="Forensic screen — Beneish M-score (higher = more suspect)" data-sub="earnings-manipulation risk" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>

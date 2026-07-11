@@ -399,10 +399,20 @@ def compute_strength(st, sector):
             "rev_growth_pct": round(g, 1) if g is not None else None}
 
 
-def composite_concern_score(forensic):
+def composite_concern_score(forensic, sector=None):
     """0-100 — how concerning is this stock from a forensic POV.
-    Higher = more concerning."""
+    Higher = more concerning. For financial-sector names the Beneish /
+    Sloan / WC-divergence legs are ZEROED — Beneish (1999) covers
+    non-financial firms only; bank balance-sheet structure produces
+    spurious flags (3108 problem board was bank-heavy for exactly this
+    reason). Financials can still be flagged via goodwill, dilution
+    (added by caller) and weak three-statement strength."""
+    fin = (sector or "") in FIN_SECTORS
     score = 0
+    if fin:
+        if forensic.get("goodwill_bloat_flag"):
+            score += 15
+        return score
     if forensic.get("m_score") is not None:
         m = forensic["m_score"]
         if m > -0.5:
@@ -467,7 +477,14 @@ def lambda_handler(event=None, context=None):
         forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
         forensic["sector"] = row.get("sector")
         forensic.update(compute_strength(stmts, row.get("sector")))
-        cs = composite_concern_score(forensic)
+        if (row.get("sector") or "") in FIN_SECTORS:
+            for k in ("m_flag", "sloan_high_risk",
+                      "wc_divergence_flag"):
+                if forensic.get(k):
+                    forensic[k] = False
+                    forensic.setdefault("fin_suppressed_flags",
+                                        []).append(k)
+        cs = composite_concern_score(forensic, row.get("sector"))
         sfr = sfl.get(symbol) or {}
         if sfr.get("extreme") or sfr.get("read") == "EXTREME_DILUTION":
             cs = min(100, cs + 15)
