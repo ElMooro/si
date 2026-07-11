@@ -73,13 +73,18 @@
     wrap.classList.remove("jhr-open");
     panel.setAttribute("aria-hidden", "true"); tab.setAttribute("aria-expanded", "false");
   }
+  function remember(v) { try { localStorage.setItem("jh_rail_open", v ? "1" : "0"); } catch (e) {} }
   tab.addEventListener("click", function () {
-    wrap.classList.contains("jhr-open") ? shut() : open_();
+    var willOpen = !wrap.classList.contains("jhr-open");
+    willOpen ? open_() : shut(); remember(willOpen);
   });
-  close.addEventListener("click", shut);
+  close.addEventListener("click", function () { shut(); remember(false); });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") shut();
+    if (e.key === "Escape") { shut(); remember(false); }
   });
-  if (window.matchMedia && window.matchMedia("(min-width: 1400px)").matches) open_();
-  else wrap.classList.add("jhr-open");   // <1400px: static reflow, always visible, no toggle needed
+  // Hidden unless summoned (Khalid 2026-07-11) -- opens only on the
+  // "i" tab, remembers the choice, same pattern as the nav drawer.
+  var saved = null;
+  try { saved = localStorage.getItem("jh_rail_open"); } catch (e) {}
+  if (saved === "1") open_(); else shut();
 })();

@@ -320,7 +320,10 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "parent_sector": parent or SECTORS.get(tkr),
             "price": round(px, 2),
             "above_sma50": ab50, "above_sma100": ab100,
-            "above_sma200": ab200, "ratio_above_50d": ratio_above,
+            "above_sma200": ab200,
+            "above_sma20": (sma(c, 20) is not None
+                            and c[-1] > sma(c, 20)),
+            "ratio_above_50d": ratio_above,
             "ratio_slope_20d_pct": slope,
             "rel_mom_3m_pp": rel3, "rel_mom_pctile": pr,
             "beta_spy_1y": round(b, 2) if b is not None else None,
@@ -600,7 +603,32 @@ def lambda_handler(event=None, context=None):
         rank_note = ("WARMING_UP: rank delta needs 3+ sessions "
                      "(%d/21 accrued)" % len(dates))
 
+    def fmp_quotes(tickers):
+        """Batch /stable/quote: price, priceAvg50/200, yearHigh/Low --
+        the raw legs for the soldier risk:reward framework."""
+        out_q = {}
+        for i in range(0, len(tickers), 25):
+            chunk = ",".join(tickers[i:i + 25])
+            d_ = _http("https://financialmodelingprep.com/stable/"
+                       "quote?symbol=%s&apikey=%s" % (chunk, FMP))
+            for q_ in (d_ or []):
+                if q_.get("symbol"):
+                    out_q[q_["symbol"]] = q_
+        return out_q
+
     # soldiers for the top-5 leaders
+    _accj = s3_json("data/accumulation-radar.json") or {}
+    _acc_set = {x.get("ticker") for x in
+                ((_accj.get("accumulating") or {}).get("stocks")
+                 or [])}
+    _dist_set = {x.get("ticker") for x in
+                 ((_accj.get("distributing") or {}).get("stocks")
+                  or [])}
+    _dpmap = {r0.get("ticker"): r0.get("state") for r0 in
+              ((s3_json("data/dark-pool.json") or {}).get("board")
+               or []) if r0.get("state") not in (None, "NEUTRAL")}
+    _soldier_q = {}
+
     res_doc = s3_json("data/resilience.json")
     res_idx = resilience_index(res_doc)
     warns.append("resilience_index: %d tickers loaded" % len(res_idx))
@@ -862,7 +890,8 @@ def lambda_handler(event=None, context=None):
     for t, c in closes.items():
         if len(c) < 210:
             continue
-        for n_, lbl in ((50, "50D"), (100, "100D"), (200, "200D")):
+        for n_, lbl in ((20, "20D"), (50, "50D"), (100, "100D"),
+                        (200, "200D")):
             s_now = sma(c, n_)
             s_prev = sma(c[:-1], n_)
             if not (s_now and s_prev):
@@ -977,6 +1006,9 @@ def lambda_handler(event=None, context=None):
         if sm:
             r_["smart_money"] = sm
         holds = (holdings_by_etf.get(t) or [])[:25]
+        _soldier_q.update(fmp_quotes(
+            [h0["ticker"] for h0 in holds if h0.get("ticker")
+             and h0["ticker"] not in _soldier_q]))
         hits = [h["ticker"] for h in holds
                 if h.get("ticker") in _er]
         # v3.5: fleet chips on every soldier (phase/whale/ER+)
@@ -993,6 +1025,34 @@ def lambda_handler(event=None, context=None):
                 h["whale_musd"] = round(whu / 1e6)
             if ht in _er:
                 h["er_plus"] = True
+            if ht in _acc_set:
+                h["acc_state"] = "ACCUMULATION"
+            elif ht in _dist_set:
+                h["acc_state"] = "DISTRIBUTION"
+            if _dpmap.get(ht):
+                h["dp"] = _dpmap[ht]
+            q_ = _soldier_q.get(ht)
+            if q_ and q_.get("price"):
+                px = q_["price"]
+                up = (q_.get("yearHigh") or 0) / px - 1
+                stop = None
+                for cand in (q_.get("priceAvg50"),
+                             q_.get("priceAvg200"),
+                             q_.get("yearLow")):
+                    if cand and cand < px:
+                        stop = cand
+                        break
+                if stop and up > 0:
+                    dn = px / stop - 1
+                    dn = max(dn, 0.01)
+                    h["rr"] = {"up_pct": round(up * 100, 1),
+                               "down_pct": round(dn * 100, 1),
+                               "ratio": round(up / dn, 1),
+                               "stop_basis": ("50DMA" if stop ==
+                                              q_.get("priceAvg50")
+                                              else "200DMA" if stop ==
+                                              q_.get("priceAvg200")
+                                              else "52w low")}
         if holds:
             r_["rev_plus_hits"] = {"n": len(hits),
                                    "of": len(holds),
@@ -1237,7 +1297,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.5",
+        "engine": "justhodl-industry-rotation", "version": "3.6",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
