@@ -273,6 +273,25 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
     ab50 = bool(s50 and px > s50)
     ab100 = bool(s100 and px > s100)
     ab200 = bool(s200 and px > s200)
+    # v4.1: MA distances + SMA50xSMA200 golden/death cross (why.html
+    # industry join -- Khalid: show where the industry stands vs its
+    # moving averages and whether a golden or death cross occurred).
+    pct50 = round((px / s50 - 1) * 100, 2) if s50 else None
+    pct200 = round((px / s200 - 1) * 100, 2) if s200 else None
+    gx = dx = None
+    if len(closes) >= 261:
+        def _sma_at(i, n_):
+            return sum(closes[i - n_ + 1:i + 1]) / n_
+        last = len(closes) - 1
+        for back in range(1, 61):
+            p50, p200 = _sma_at(last - back, 50), _sma_at(last - back, 200)
+            c50, c200 = _sma_at(last - back + 1, 50), _sma_at(last - back + 1, 200)
+            if p50 <= p200 and c50 > c200:
+                gx = back
+                break
+            if p50 >= p200 and c50 < c200:
+                dx = back
+                break
     # v3.7 technicals for the Cross Board
     def _ema_series(vals, n_):
         k = 2.0 / (n_ + 1)
@@ -394,6 +413,9 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "above_sma200": ab200,
             "above_sma20": bool(sma(closes, 20)
                                 and px > sma(closes, 20)),
+            "pct_vs_sma50": pct50, "pct_vs_sma200": pct200,
+            "golden_cross_sessions_ago": gx,
+            "death_cross_sessions_ago": dx,
             "rsi14": rsi14, "macd": macd_x, "bb": bb,
             "extremes": extremes,
             "ratio_above_50d": ratio_above,
@@ -1560,7 +1582,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "4.0",
+        "engine": "justhodl-industry-rotation", "version": "4.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "

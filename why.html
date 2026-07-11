@@ -569,6 +569,7 @@ function renderReport(d){
   html += renderHero(d);
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
+  html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
   html += renderScenarios(d);
   html += renderExecSummary(d);
   html += renderBullBear(d);
@@ -2810,6 +2811,38 @@ function pct(v){return (v===null||v===undefined)?"—":((v>0?"+":"")+Number(v).t
 function cls(v){return v===null||v===undefined?"":(v>=0?"up":"dn");}
 function metric(l,v){return '<div class="metric"><div class="lbl">'+l+'</div><div class="val">'+v+'</div></div>';}
 
+window.renderMomentum=function(d){
+  var t=d&&d.technicals; if(!t||!t.available||!t.series||!t.series.close) return "";
+  var c=(t.series.close||[]).filter(function(x){return x!=null&&isFinite(x);});
+  if(c.length<70) return "";
+  var px=c[c.length-1];
+  function ret(n,skip){skip=skip||0;var i=c.length-1-skip,j=c.length-1-n;if(j<0||i<=j||!c[j])return null;return (c[i]/c[j]-1)*100;}
+  function smaAt(i,n){if(i+1<n)return null;var s2=0;for(var k=i-n+1;k<=i;k++)s2+=c[k];return s2/n;}
+  var rows=[["1M",ret(21)],["3M",ret(63)],["6M",ret(126)],["12M",ret(252)],["12-1 (skip-month)",ret(252,21)]];
+  var s50=smaAt(c.length-1,50),s200=smaAt(c.length-1,200);
+  var gx=null,dx=null;
+  if(c.length>=261){var last=c.length-1;
+    for(var back=1;back<=60;back++){
+      var p50=smaAt(last-back,50),p200=smaAt(last-back,200),c50=smaAt(last-back+1,50),c200=smaAt(last-back+1,200);
+      if(p50==null||p200==null)break;
+      if(p50<=p200&&c50>c200){gx=back;break;}
+      if(p50>=p200&&c50<c200){dx=back;break;}
+    }}
+  function pc(v){return v==null?"&mdash;":('<b style="color:'+(v>=0?"#26ffaf":"#ff5577")+'">'+(v>0?"+":"")+v.toFixed(1)+"%</b>");}
+  var h='<section class="block" id="jh-momentum"><div class="sub"><span class="ico">&#9201;</span> Momentum &amp; Trend &mdash; explicit reads</div>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono,monospace);font-size:12px">';
+  rows.forEach(function(r){h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">'+r[0]+'</div><div style="font-size:15px;margin-top:2px">'+pc(r[1])+'</div></div>';});
+  var trend=[];
+  if(s50!=null)trend.push('vs SMA50 '+pc((px/s50-1)*100));
+  if(s200!=null)trend.push('vs SMA200 '+pc((px/s200-1)*100));
+  var xr;
+  if(gx!=null)xr='<b style="color:#26ffaf" title="SMA50 crossed above SMA200 &mdash; Stage-2 institutional trend confirmation">GOLDEN CROSS '+gx+' session'+(gx>1?'s':'')+' ago</b>';
+  else if(dx!=null)xr='<b style="color:#ff5577" title="SMA50 crossed below SMA200 &mdash; the downtrend is structural">DEATH CROSS '+dx+' session'+(dx>1?'s':'')+' ago</b>';
+  else xr='<span style="color:var(--fg3,#5d6b82)">no 50/200 cross in the last 60 sessions</span>';
+  h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">Trend &amp; 50/200 cross</div><div style="font-size:12px;margin-top:3px">'+trend.join(' &middot; ')+'<br>'+xr+'</div></div>';
+  h+='</div><div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">12-1 = Jegadeesh-Titman momentum: trailing 12 months skipping the most recent month (reversal noise). Computed from the same 504-session series charted above.</div></section>';
+  return h;
+};
 window.renderTechnicals=function(d){
   var t=d&&d.technicals; if(!t||!t.available||!t.series) return "";
   T=t; var s=t.stats||{};
@@ -3097,6 +3130,15 @@ window.renderIndustryCompass=function(d){
         if(tr)rows.push(box('Industry trend',String(tr).replace(/_/g,' ')));
         if(det)rows.push(box('Industry warning','CONFIRMED DETERIORATION — even strong names fight the tide','#ff5577'));
         if(fl!=null)rows.push(box('Industry ETF flows 5d',(fl>0?'+$':'-$')+Math.abs(fl/1e6).toFixed(0)+'M',fl>0?'#26ffaf':'#ff5577'));
+        var rm=hit.raw_mom||{};
+        if(rm['3m']!=null||hit.rel_mom_3m_pp!=null)rows.push(box('Industry momentum',(rm['3m']!=null?((rm['3m']>0?'+':'')+rm['3m']+'% 3m'):'')+(hit.rel_mom_3m_pp!=null?' \u00b7 '+(hit.rel_mom_3m_pp>0?'+':'')+hit.rel_mom_3m_pp+'pp vs SPY':'')+(hit.rel_mom_pctile!=null?' \u00b7 '+hit.rel_mom_pctile+'th pctile':''),((rm['3m']!=null?rm['3m']:hit.rel_mom_3m_pp)||0)>=0?'#26ffaf':'#ff5577'));
+        if(rm['12m1_skip']!=null)rows.push(box('Industry 12-1 momentum (skip-month)',(rm['12m1_skip']>0?'+':'')+rm['12m1_skip']+'% vs SPY beta-adj',rm['12m1_skip']>=0?'#26ffaf':'#ff5577'));
+        var lad=[],ab=0,tot=0;[['20','above_sma20'],['50','above_sma50'],['100','above_sma100'],['200','above_sma200']].forEach(function(p){if(hit[p[1]]!=null){tot++;if(hit[p[1]])ab++;lad.push((hit[p[1]]?'\u25b2':'\u25bc')+p[0]);}});
+        var dist=[];if(hit.pct_vs_sma50!=null)dist.push((hit.pct_vs_sma50>0?'+':'')+hit.pct_vs_sma50+'% vs 50DMA');if(hit.pct_vs_sma200!=null)dist.push((hit.pct_vs_sma200>0?'+':'')+hit.pct_vs_sma200+'% vs 200DMA');
+        if(lad.length)rows.push(box('Industry vs moving averages',lad.join(' ')+(dist.length?' \u00b7 '+dist.join(' \u00b7 '):''),ab===tot?'#26ffaf':ab===0?'#ff5577':'#ffd266'));
+        if(hit.golden_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','GOLDEN CROSS '+hit.golden_cross_sessions_ago+' sessions ago \u2014 Stage-2 confirmation','#26ffaf'));
+        else if(hit.death_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','DEATH CROSS '+hit.death_cross_sessions_ago+' sessions ago \u2014 structural downtrend','#ff5577'));
+        else if(hit.pct_vs_sma200!=null)rows.push(box('Industry 50/200 cross','none in the last 60 sessions'));
       }
     }catch(e){}
     if(!rows.length) return;
