@@ -1,10 +1,15 @@
-executing-against: 2227377463ff0cc3635d9b6a59e3e701c84a3855
-── 1. Function + schedule ──
+## 1. Function + schedule
 
-→ Report written to aws/ops/reports/latest/3093_share_flows.md
+**Status:** failure  
+**Duration:** 0.7s  
+**Finished:** 2026-07-11T03:08:10+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3093_share_flows.py", line 217, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3093_share_flows.py", line 115, in main
     if not ensure_function(rep, fails):
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -19,4 +24,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ResourceConflictException: An error occurred (ResourceConflictException) when calling the UpdateFunctionCode operation: The operation cannot be performed at this time. The resource arn:aws:lambda:us-east-1:857687956942:function:justhodl-share-flows is currently in the following state: 'Pending'. StateReasonCode: 'Creating'
-❌ OPS-FAIL: aws/ops/pending/ops_3093_share_flows.py
+
+```
+
+## Log
+
