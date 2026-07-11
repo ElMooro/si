@@ -3028,5 +3028,73 @@ window.renderIndustryCompass=function(d){
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-wire.js" defer data-feeds="data/alpha-brief.json|justhodl-alpha-daily-brief|ALPHA DAILY BRIEF;data/behavior-mirror.json|justhodl-behavior-mirror|BEHAVIOR MIRROR;data/buzz-velocity.json|justhodl-buzz-velocity|BUZZ VELOCITY;data/gdelt-buzz.json|justhodl-gdelt-buzz|GDELT BUZZ;data/news-velocity-history.json|justhodl-news-velocity|NEWS VELOCITY;data/news-wire-state.json|justhodl-news-wire|NEWS WIRE;data/polygon-futures-curves.json|justhodl-polygon-futures-curves|POLYGON FUTURES CURVES;data/sec-filings-intel.json|justhodl-sec-filings-intel|SEC FILINGS INTEL"></script>
+
+<script>
+/* ── 🔬 Fleet Forensic & Capital-Flows join (ops 3114) ──
+   Composes the desks built since this page shipped: forensic-screen v2.2
+   (Beneish M + quarterly trend, Sloan, strength grade + legs, industry
+   %ile, sector valuation medians), share-flows v1.4 (dilution read, net
+   buyback, SBC wash, insider $), buyback-engine v1.1 (fresh
+   authorizations, blackout window, board membership). */
+(function(){
+  var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
+  var DOCS={}, TK=null, TRIES=0;
+  function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json')]).then(function(a){
+    DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];tick();});
+  function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
+  function render(t){
+    var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();
+    var fo=((DOCS.fo||{}).all_results||[]).filter(function(r){return r.symbol===t;})[0];
+    var sf=(((DOCS.sf||{}).tickers)||{})[t];
+    var bb=(((DOCS.bb||{}).tickers)||{})[t];
+    if(!fo&&!sf&&!bb) return;
+    var vm=((DOCS.fo||{}).sector_valuation_medians||{})[fo?fo.sector:null]||{};
+    var rows=[];
+    if(fo){
+      var gc=fo.strength_grade&&fo.strength_grade[0]==='A'?'#26ffaf':fo.strength_grade&&fo.strength_grade[0]==='B'?'#00d4ff':(fo.strength_grade==='D'||fo.strength_grade==='F')?'#ff5577':'#ffd266';
+      var L=fo.strength_legs||{};
+      rows.push(box('Statement strength',(fo.strength_grade||'—')+' · '+(fo.strength_score!=null?fo.strength_score+'/100':'—'),gc));
+      rows.push(box('Income/Balance/Cash legs',(L.income!=null?L.income:'—')+'/30 · '+(L.balance!=null?L.balance:'—')+'/35 · '+(L.cash!=null?L.cash:'—')+'/35'));
+      if(fo.industry_pctile!=null)rows.push(box('Strength vs own sector',fo.industry_pctile+'th %ile'));
+      rows.push(box('Forensic concern',(fo.concern_score!=null?fo.concern_score+'/100':'—'),(fo.concern_score||0)>=40?'#ff5577':'#26ffaf'));
+      if(fo.m_score!=null)rows.push(box('Beneish M-Score',fo.m_score+(fo.m_flag?' ⚑':''),fo.m_flag?'#ff5577':'#a8b3c7'));
+      if(fo.m_score_delta_q!=null)rows.push(box('ΔM vs 1q ago',(fo.m_score_delta_q>0?'+':'')+fo.m_score_delta_q+(fo.m_deteriorating?' DETERIORATING':''),fo.m_deteriorating?'#ff5577':'#26ffaf'));
+      if(fo.sloan_accruals!=null)rows.push(box('Sloan accruals',(fo.sloan_accruals*100).toFixed(1)+'%',fo.sloan_high_risk?'#ff5577':'#a8b3c7'));
+      if(fo.pe_ttm!=null&&vm.pe_ttm!=null)rows.push(box('P/E vs sector median',fo.pe_ttm.toFixed(1)+' vs '+vm.pe_ttm.toFixed(1),fo.pe_ttm<vm.pe_ttm?'#26ffaf':'#ffd266'));
+      if(fo.fcf_yield_pct!=null&&vm.fcf_yield_pct!=null)rows.push(box('FCF yield vs sector',fo.fcf_yield_pct.toFixed(1)+'% vs '+vm.fcf_yield_pct.toFixed(1)+'%',fo.fcf_yield_pct>vm.fcf_yield_pct?'#26ffaf':'#ffd266'));
+    }
+    if(sf){
+      if(sf.read&&sf.read!=='NEUTRAL')rows.push(box('Capital-return read',sf.read.replace(/_/g,' '),sf.read.indexOf('DILUT')>=0?'#ff5577':'#26ffaf'));
+      if(sf.buyback_net_yield_pct!=null)rows.push(box('NET buyback yield',(sf.buyback_net_yield_pct>0?'+':'')+sf.buyback_net_yield_pct+'%/yr',sf.buyback_net_yield_pct>0?'#26ffaf':'#ff5577'));
+      if(sf.sbc_pct_mcap!=null)rows.push(box('Stock comp',sf.sbc_pct_mcap+'% mcap/yr',sf.sbc_pct_mcap>=3?'#ff5577':'#a8b3c7'));
+      if((sf.flags||[]).length)rows.push(box('Flags',sf.flags.join(' · '),'#ffd266'));
+    }
+    if(bb){
+      if(bb.auth_pct_mcap!=null)rows.push(box('Fresh buyback authorization',bb.auth_pct_mcap+'% of mcap','#26ffaf'));
+      if(bb.in_blackout)rows.push(box('Buyback blackout','IN BLACKOUT — corporate bid off','#ff5577'));
+      else if(bb.days_to_blackout!=null)rows.push(box('Blackout starts','in '+bb.days_to_blackout+'d',bb.days_to_blackout<=7?'#ffd266':'#a8b3c7'));
+      if(bb.high_conviction_pump)rows.push(box('Buyback board','🚀 PUMP SETUP','#26ffaf'));
+    }
+    if(!rows.length) return;
+    var sec=document.createElement('section');
+    sec.id='jh-fleet-forensic'; sec.className='block';
+    sec.innerHTML='<div class="sub"><span class="ico">🔬</span> Forensic &amp; Capital Flows — fleet cross-read</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px">'+rows.join('')+'</div>'+
+      '<div style="font-size:11px;color:#6f7b91;font-family:monospace">composed live from forensic-screen v2.2 · share-flows v1.4 · buyback-engine v1.1 · <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff">full forensic read ↗</a> · <a href="/share-flows.html?ticker='+t+'" style="color:#00d4ff">capital-return forensics ↗</a></div>';
+    var anchor=null;
+    var subs=document.querySelectorAll('section.block .sub');
+    for(var i=0;i<subs.length;i++){if(subs[i].textContent.indexOf('Quantitative Risk')>=0){anchor=subs[i].closest('section');break;}}
+    if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(sec,anchor.nextSibling);}
+    else{var m=document.querySelector('main')||document.body;m.appendChild(sec);}
+  }
+  function tick(){
+    var t=(typeof currentTicker==='function'?currentTicker():null)||new URLSearchParams(location.search).get('ticker');
+    t=t?String(t).toUpperCase():null;
+    if(t&&t!==TK&&(DOCS.fo||DOCS.sf||DOCS.bb)){TK=t;try{render(t);}catch(e){}}
+    if(TRIES++<600)setTimeout(tick,2000);
+  }
+})();
+</script>
 </body>
 </html>
