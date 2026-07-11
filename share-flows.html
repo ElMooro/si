@@ -61,8 +61,9 @@ a.tk{color:var(--cyan);text-decoration:none;font-weight:700}
 <b>How to read this desk.</b> The ground truth of dilution is the <b>diluted share count</b> — if it grows, every headline buyback is losing the race. <b>Net buyback</b> = TTM repurchases minus TTM new issuance from the cash-flow statement; a company can announce billions in buybacks that only mop up stock-comp issuance — we flag that <b>SBC WASH</b>. <b>Insider money</b> is joined from the Form-4 desks: open-market purchases are real conviction with management's own cash; the sell side uses the 5-factor opportunistic-sale filter (routine 10b5-1 noise removed). The nastiest pattern on Wall Street — the company buying back stock with shareholder cash while management sells its own — has its own board below. Research, not advice.
 </div>
 
-<div class="search">
-<input id="q" placeholder="TICKER — look up any covered stock" maxlength="8">
+<div class="search" style="position:relative;flex-direction:column;align-items:flex-start">
+<input id="q" placeholder="TICKER — search any covered stock (price · market cap · shares · P/E · dilution)" maxlength="8" autocomplete="off" style="max-width:440px">
+<div id="sugg" style="display:none;position:absolute;top:44px;z-index:20;background:var(--panel2);border:1px solid var(--line);border-radius:8px;max-width:440px;width:100%;overflow:hidden"></div>
 </div>
 <div id="lookup"></div>
 
@@ -125,7 +126,15 @@ function lookup(sym){
  if(!r){el.style.display='block';el.innerHTML='<h3>'+sym+'</h3><div class="loading">not in coverage ('+(D?Object.keys(BY).length:0)+' names — opportunity + ranker + soldier + insider universes)</div>';return}
  el.style.display='block';
  const warn=r.data_suspect?'<div class="bnote" style="color:var(--yellow)">⚠ share-count prints span a split/adjustment mismatch — percentages are real filings math but not economically comparable</div>':'';
+ const shs=v=>v==null?'—':v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(1)+'M':String(v);
  el.innerHTML='<h3><a class="tk" href="/chart-pro.html?ticker='+sym+'">'+sym+'</a> '+vb(r.read)+' '+fl(r.flags)+'</h3>'+
+ '<div class="kv" style="margin-bottom:6px">'+
+ (r.price!=null?'<span>Price <b>$'+Number(r.price).toFixed(2)+'</b></span>':'')+
+ (r.market_cap!=null?'<span>Market cap <b>'+usd(r.market_cap)+'</b></span>':'')+
+ (r.shares_outstanding!=null?'<span>Shares outstanding <b>'+shs(r.shares_outstanding)+'</b></span>':'')+
+ (r.pe_ttm!=null?'<span>P/E (TTM) <b>'+Number(r.pe_ttm).toFixed(1)+'</b></span>':'')+
+ (r.ps_ttm!=null?'<span>P/S (TTM) <b>'+Number(r.ps_ttm).toFixed(1)+'</b></span>':'')+
+ '</div>'+
  '<div class="kv">'+
  '<span class="'+((r.sh_yoy_pct||0)<0?'g':'b')+'">Share count yoy <b>'+pc(r.sh_yoy_pct)+'</b></span>'+
  (r.sh_qoq_pct!=null?'<span>qoq <b>'+pc(r.sh_qoq_pct)+'</b></span>':'')+
@@ -163,7 +172,18 @@ function lookup(sym){
  $('b4').outerHTML=boardTable(B.sbc_washers);
  $('b5').outerHTML=boardTable(B.top_diluters);
  $('b6').outerHTML=boardTable(B.extreme_diluters);
- $('q').addEventListener('keydown',e=>{if(e.key==='Enter'){const s=e.target.value.trim().toUpperCase();if(s)lookup(s);}});
+ const SG=$('sugg');
+ $('q').addEventListener('keydown',e=>{if(e.key==='Enter'){const s=e.target.value.trim().toUpperCase();if(s){SG.style.display='none';lookup(s);}}});
+ $('q').addEventListener('input',e=>{
+  const v=e.target.value.trim().toUpperCase();
+  if(!v){SG.style.display='none';return}
+  const hits=Object.keys(BY).filter(t=>t.startsWith(v)).sort().slice(0,8);
+  if(!hits.length){SG.style.display='none';return}
+  SG.innerHTML=hits.map(t=>{const r=BY[t];return '<div class="sgi" data-t="'+t+'" style="padding:8px 14px;cursor:pointer;font-family:var(--mono);font-size:13px;display:flex;justify-content:space-between;gap:14px"><b>'+t+'</b><span style="color:var(--dim)">'+(r.market_cap!=null?usd(r.market_cap):'')+' '+(r.pe_ttm!=null?'PE '+Number(r.pe_ttm).toFixed(0):'')+'</span></div>'}).join('');
+  SG.style.display='block';
+  SG.querySelectorAll('.sgi').forEach(d=>{d.onmouseenter=()=>d.style.background='var(--line)';d.onmouseleave=()=>d.style.background='';d.onclick=()=>{$('q').value=d.dataset.t;SG.style.display='none';lookup(d.dataset.t);}});
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.search'))SG.style.display='none';});
  const p=new URLSearchParams(location.search).get('ticker');
  if(p){$('q').value=p.toUpperCase();lookup(p.toUpperCase());}
 })();

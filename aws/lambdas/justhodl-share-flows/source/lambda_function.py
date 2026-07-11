@@ -22,7 +22,7 @@ Sources (all real):
     -sum(commonStockRepurchased), issuance = sum(commonStockIssued))
   • FMP /stable/income-statement (quarterly weightedAverageShsOutDil
     -> QoQ / YoY share-count change: the dilution truth)
-  • FMP /stable/quote marketCap -> buyback yield / issuance %
+  • FMP /stable/quote marketCap/price/sharesOutstanding; /stable/ratios-ttm pe_ttm/ps_ttm (quote has NO pe -- 3091)
   • data/insider-radar.json (Form-4 open-market BUY clusters:
     n_insiders, total_value) + any data/insider-sell* doc present
     (sell clusters) — joined, never re-fetched.
@@ -48,7 +48,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -150,7 +150,23 @@ def fetch_name(t):
         q = q[0]
     if not isinstance(q, dict):
         q = {}
+    rt = _http("https://financialmodelingprep.com/stable/"
+               "ratios-ttm?symbol=%s&apikey=%s" % (t, FMP))
+    if isinstance(rt, list) and rt:
+        rt = rt[0]
+    if not isinstance(rt, dict):
+        rt = {}
     out = {}
+    if q.get("price"):
+        out["price"] = round(q["price"], 2)
+    if q.get("sharesOutstanding"):
+        out["shares_outstanding"] = round(q["sharesOutstanding"])
+    pe = rt.get("priceToEarningsRatioTTM")
+    if isinstance(pe, (int, float)) and -2000 < pe < 5000:
+        out["pe_ttm"] = round(pe, 1)
+    ps = rt.get("priceToSalesRatioTTM")
+    if isinstance(ps, (int, float)) and 0 < ps < 5000:
+        out["ps_ttm"] = round(ps, 1)
     if isinstance(cf, list) and len(cf) >= 4:
         rep = [c.get("commonStockRepurchased") or 0 for c in cf[:4]]
         iss = [c.get("commonStockIssued") or 0 for c in cf[:4]]
@@ -181,6 +197,7 @@ def fetch_name(t):
     if not mcap and q.get("price") and q.get("sharesOutstanding"):
         mcap = q["price"] * q["sharesOutstanding"]
     if mcap:
+        out["market_cap"] = round(mcap)
         if out.get("buyback_ttm_usd"):
             out["buyback_yield_pct"] = round(
                 out["buyback_ttm_usd"] / mcap * 100, 2)
@@ -321,7 +338,7 @@ def lambda_handler(event=None, context=None):
                        - datetime.fromisoformat(
                            cached["as_of"])).days
                 keep = (age <= CACHE_DAYS
-                        and "buyback_net_ttm_usd" in cached)
+                        and "market_cap" in cached)
             except Exception:
                 pass
         (cached_ok.__setitem__(t, cached) if keep
