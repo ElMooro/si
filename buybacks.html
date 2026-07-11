@@ -103,7 +103,7 @@ function card(r,accent){
     metric("Shares YoY",sr==null?"—":(sr>0?"−":"+")+Math.abs(sr).toFixed(2)+"%",sr>0?"pos":sr<0?"neg":"neu"),
     metric("Auth %mcap",au==null?"—":au.toFixed(1)+"%","cat"),
     metric("Div yield",pct(dv),"div"),
-    metric("FCF yield",fc==null?"—":fc.toFixed(1)+"%",fc>=6?"pos":"val"),
+    metric("FCF yield",r.fcf_nm?"n/m (financial)":fc==null?"—":fc.toFixed(1)+"%",fc>=6?"pos":"val"),
     metric("Shareholder",pct(r.shareholder_yield),r.shareholder_yield>0?"pos":"neu")
   ].join("");
   const flags=[];
@@ -111,6 +111,7 @@ function card(r,accent){
   if(r.active_execution)flags.push('<span class="flag go">● buying now</span>');
   if(r.asr)flags.push('<span class="flag">ASR</span>');
   if(r.debt_funded)flags.push('<span class="flag warn">⚠ debt-funded</span>');
+  if(r.extreme)flags.push('<span class="flag warn">☠️ extreme dilution — verify splits/ATM</span>');
   const kl=(r.class||"").replace(/^[^\sA-Z]+\s*/,"");
   return `<div class="card a-${accent}">
     <div class="top"><span class="sym">${esc(r.symbol)}</span>${r.company_name?`<span class="nm">${esc(r.company_name)}</span>`:""}<span class="klass a-${accent}">${esc(kl||"—")}</span></div>

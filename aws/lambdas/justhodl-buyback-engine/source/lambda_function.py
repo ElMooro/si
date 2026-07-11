@@ -133,11 +133,22 @@ def analyze_ticker(t):
     active = last_q_repo > 0
 
     mcap = None
-    fcf_yield = None
     if isinstance(km, list) and km:
         mcap = float(km[0].get("marketCap") or 0) or None
-        fcfq = km[0].get("freeCashFlowYield")
-        fcf_yield = float(fcfq) * 4 * 100 if fcfq is not None else None  # quarterly→annualized %
+    # FCF yield SELF-COMPUTED from the same 4 quarters (FMP's derived
+    # freeCashFlowYield x4 printed DCGO at -32,762,564% -- never trust
+    # a vendor-derived ratio we can compute from primaries already paid for)
+    fcf_yield = None
+    fcf_nm = False
+    sec = (prof.get("sector") or "")
+    ind = (prof.get("industry") or "")
+    fin_like = ("Financial" in sec or any(w in ind for w in
+                ("Bank", "Insurance", "Capital Markets", "Credit",
+                 "Asset Management", "Mortgage", "REIT")))
+    if fin_like:
+        # OCF for banks/insurers is float + balance-sheet motion --
+        # FCF yield is not a cheapness signal there (BAC 47% class)
+        fcf_nm = True
 
     # share count trend (YoY): newest vs ~4 quarters back
     sr_pct = None
@@ -153,6 +164,18 @@ def analyze_ticker(t):
 
     if not mcap or mcap <= 0:
         return None
+    if not fin_like:
+        try:
+            ocf = sum(float(q.get("operatingCashFlow") or
+                            q.get("netCashProvidedByOperatingActivities")
+                            or 0) for q in q4)
+            capex = sum(abs(float(q.get("capitalExpenditure") or 0))
+                        for q in q4)
+            fy = (ocf - capex) / mcap * 100
+            if -150 <= fy <= 150:
+                fcf_yield = round(fy, 2)
+        except Exception:
+            pass
     gross_yield = round(gross_repo / mcap * 100, 2)
     net_yield = round(net_buyback / mcap * 100, 2)
     div_yield = round(ttm_div / mcap * 100, 2)
@@ -172,7 +195,8 @@ def analyze_ticker(t):
         "dividend_yield": div_yield, "shareholder_yield": shareholder_yield,
         "active_execution": active, "last_q_repurchase": round(last_q_repo, 0),
         "share_count_reduction_yoy": sr_pct, "shares_now": shares_now,
-        "fcf_yield_annualized": round(fcf_yield, 2) if fcf_yield is not None else None,
+        "fcf_yield_annualized": fcf_yield, "fcf_nm": fcf_nm,
+        "extreme": (sr_pct is not None and abs(sr_pct) >= 80),
         "debt_funded": debt_funded, "net_issuer": net_issuer,
     }
 
@@ -198,6 +222,8 @@ def classify_and_score(d, auth_pct, insider):
     num = sum(s * w for _, s, w in comps)
     den = sum(w for _, s, w in comps)
     score = round(num / den, 1) if den else 0.0
+    if d.get("debt_funded"):
+        score = round(max(0.0, score - 8.0), 1)
 
     cheap = fcfY is not None and fcfY >= 6.0
     net_issuer = d.get("net_issuer")
@@ -309,7 +335,8 @@ def lambda_handler(event=None, context=None):
         "scanner_state": scanner.get("state"),
         "high_conviction_pumps": top(lambda x: x["high_conviction_pump"],
                                      lambda x: (x.get("auth_pct_mcap") or 0, x["buyback_score"])),
-        "fresh_authorizations": top(lambda x: x.get("auth_pct_mcap"),
+        "fresh_authorizations": top(lambda x: x.get("auth_pct_mcap")
+                                    and not x.get("extreme"),
                                     lambda x: (x.get("auth_pct_mcap") or 0)),
         "net_shrinkers": top(lambda x: (x["share_count_reduction_yoy"] or 0) >= 1
                              and x["net_buyback_ttm"] > 0 and not x.get("net_issuer"),
