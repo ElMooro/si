@@ -279,6 +279,45 @@ def lambda_handler(event=None, context=None):
         if tk not in universe:
             universe.append(tk)
 
+    # ── blackout join: market-wide FMP earnings calendar, chunked 7d
+    # (calendar truncates long ranges -- earnings-blackout engine lesson),
+    # same street-proxy window [T-30d, T+2d]. ~8 calls per run total.
+    import datetime as _dt
+    _today = _dt.datetime.now(_dt.timezone.utc).date()
+    next_earn = {}
+    cur = _today
+    to = _today + _dt.timedelta(days=45)
+    while cur <= to:
+        nxt = min(cur + _dt.timedelta(days=6), to)
+        j = fmp("earnings-calendar?from=%s&to=%s&limit=3000"
+                % (cur.isoformat(), nxt.isoformat()))
+        for r in j if isinstance(j, list) else []:
+            tt = up(r.get("symbol"))
+            dd = r.get("date")
+            if tt and dd and (tt not in next_earn or dd < next_earn[tt]):
+                next_earn[tt] = dd
+        cur = nxt + _dt.timedelta(days=1)
+    bo_agg = (_read("data/earnings-blackout.json") or {}).get("now") or {}
+
+    # ── share-flows join: P/E + insider $ from the sibling desk, composed
+    sfl = (_read("data/share-flows.json") or {}).get("tickers") or {}
+
+    def blackout_fields(t):
+        d0 = next_earn.get(t)
+        if not d0:
+            return {}
+        try:
+            e = _dt.date.fromisoformat(d0)
+        except Exception:
+            return {}
+        start = e - _dt.timedelta(days=30)
+        f = {"next_earnings": d0}
+        if start <= _today <= e + _dt.timedelta(days=2):
+            f["in_blackout"] = True
+        elif _today < start:
+            f["days_to_blackout"] = (start - _today).days
+        return f
+
     tickers = {}
     n_fmp_ok = 0
     excluded = []
@@ -309,27 +348,60 @@ def lambda_handler(event=None, context=None):
             bits.append(f"cheap (FCF yield {d['fcf_yield_annualized']}%)")
         if d["debt_funded"]:
             bits.append("⚠ debt-funded")
-        tickers[t] = {**d, "auth_pct_mcap": auth_pct, "buyback_score": score, "class": klass,
+        bo = blackout_fields(t)
+        if pump and bo.get("in_blackout"):
+            bits.append("🔇 in blackout — corporate bid off until "
+                        "~2d post-earnings")
+        elif pump and (bo.get("days_to_blackout") or 99) <= 7:
+            bits.append("⏳ blackout starts in %dd"
+                        % bo["days_to_blackout"])
+        sf = sfl.get(t) or {}
+        sfj = {k2: sf[k2] for k2 in
+               ("pe_ttm", "insider_buy_usd_90d", "insider_n_buyers",
+                "insider_sell_usd_recent", "insider_n_sellers")
+               if sf.get(k2) is not None}
+        tickers[t] = {**d, **bo, **sfj,
+                      "auth_pct_mcap": auth_pct, "buyback_score": score, "class": klass,
                       "high_conviction_pump": pump, "cheap": cheap,
                       "company": a.get("company"), "announcement_date": a.get("announcement_date"),
                       "asr": a.get("asr"), "filing_url": a.get("filing_url"),
                       "why": "; ".join(bits)}
 
+    # dual-class collapse: same company under two tickers (FOX/FOXA)
+    # double-counts one capital-return program on every board -- keep
+    # the larger class on boards, chip the sibling, keep both in map
+    byname = {}
+    for t, v in tickers.items():
+        nm = (v.get("company_name") or v.get("company") or "").strip().lower()
+        if nm:
+            byname.setdefault(nm, []).append(t)
+    for nm, ts in byname.items():
+        if len(ts) > 1:
+            ts.sort(key=lambda x: -(tickers[x].get("market_cap") or 0))
+            keep = ts[0]
+            tickers[keep]["dual_class_with"] = ts[1:]
+            for o in ts[1:]:
+                tickers[o]["dual_class_with"] = [keep]
+                tickers[o]["board_suppressed"] = True
+
     rows = list(tickers.values())
 
     def top(pred, key, n=25):
-        r = [x for x in rows if pred(x)]
+        r = [x for x in rows if pred(x)
+             and not x.get("board_suppressed")]
         r.sort(key=key, reverse=True)
         return r[:n]
 
     out = {
-        "engine": "buyback-engine", "version": "1.0.0",
+        "engine": "buyback-engine", "version": "1.1.0",
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "thesis": ("Unified buyback intelligence: fresh authorizations (catalyst) + actual execution "
                    "+ net-of-dilution + share-count shrink + valuation. Net buyback yield and a "
                    "genuinely shrinking share count separate real returns of capital from SBC offset."),
         "universe_n": len(universe), "n_scored": len(tickers), "n_fmp_resolved": n_fmp_ok,
         "n_excluded": len(excluded), "excluded_sample": excluded[:40],
+        "market_blackout": {"pct": bo_agg.get("blackout_mktcap_pct"),
+                            "state": bo_agg.get("state")},
         "counts": {k: len([x for x in rows if x["class"] == k]) for k in
                    ["🚀 FRESH_LARGE_AUTH", "💪 NET_SHRINKER", "💰 HIGH_SHAREHOLDER_YIELD",
                     "🎯 CHEAP_REPURCHASER", "⚠️ DILUTION_OFFSET", "ACTIVE", "NEUTRAL"]},

@@ -94,6 +94,8 @@ const SECTIONS=[
  {key:"dilution_offset_warnings",accent:"rd",dot:"rd",title:"⚠️ Dilution-Offset Warnings",
   blurb:"Gross buybacks that only neutralize (or fail to neutralize) stock-comp dilution — share count flat or rising despite repurchases. The headline buyback is largely theater. Avoid mistaking these for real returns of capital."}
 ];
+function insNet(r){const b=r.insider_buy_usd_90d||0,x=r.insider_sell_usd_recent||0;const n=b-x;if(!b&&!x)return"—";const a=Math.abs(n);return(n<0?"−$":"+$")+(a>=1e6?(a/1e6).toFixed(1)+"M":(a/1e3).toFixed(0)+"K");}
+function insCls(r){const b=r.insider_buy_usd_90d||0,x=r.insider_sell_usd_recent||0;return(b-x)>0?"pos":(b-x)<0?"neg":"neu";}
 function metric(label,value,cls){return `<div class="met"><div class="ml">${label}</div><div class="mv ${cls||"neu"}">${value}</div></div>`;}
 function card(r,accent){
   const nb=r.net_buyback_yield, sr=r.share_count_reduction_yoy, au=r.auth_pct_mcap,
@@ -104,7 +106,9 @@ function card(r,accent){
     metric("Auth %mcap",au==null?"—":au.toFixed(1)+"%","cat"),
     metric("Div yield",pct(dv),"div"),
     metric("FCF yield",r.fcf_nm?"n/m (financial)":fc==null?"—":fc.toFixed(1)+"%",fc>=6?"pos":"val"),
-    metric("Shareholder",pct(r.shareholder_yield),r.shareholder_yield>0?"pos":"neu")
+    metric("Shareholder",pct(r.shareholder_yield),r.shareholder_yield>0?"pos":"neu"),
+    metric("P/E",r.pe_ttm==null?"—":r.pe_ttm.toFixed(1),"neu"),
+    metric("Insider net",insNet(r),insCls(r))
   ].join("");
   const flags=[];
   if(r.high_conviction_pump)flags.push('<span class="flag pump">🚀 PUMP SETUP</span>');
@@ -112,6 +116,9 @@ function card(r,accent){
   if(r.asr)flags.push('<span class="flag">ASR</span>');
   if(r.debt_funded)flags.push('<span class="flag warn">⚠ debt-funded</span>');
   if(r.extreme)flags.push('<span class="flag warn">☠️ extreme dilution — verify splits/ATM</span>');
+  if(r.in_blackout)flags.push('<span class="flag warn">🔇 in blackout — corporate bid off</span>');
+  else if(r.days_to_blackout!=null&&r.days_to_blackout<=7)flags.push('<span class="flag warn">⏳ blackout in '+r.days_to_blackout+'d</span>');
+  if(r.dual_class_with&&r.dual_class_with.length)flags.push('<span class="flag">dual-class: '+r.dual_class_with.join("/")+'</span>');
   const kl=(r.class||"").replace(/^[^\sA-Z]+\s*/,"");
   return `<div class="card a-${accent}">
     <div class="top"><span class="sym">${esc(r.symbol)}</span>${r.company_name?`<span class="nm">${esc(r.company_name)}</span>`:""}<span class="klass a-${accent}">${esc(kl||"—")}</span></div>
@@ -131,7 +138,8 @@ function render(d){
   const c=document.getElementById("content");
   if(!d){c.innerHTML='<div class="loading">Could not load buyback data. <a href="javascript:location.reload()">Retry</a></div>';return;}
   const cn=d.counts||{};
-  document.getElementById("meta").innerHTML=`${d.n_scored||0} names · updated ${d.generated_at?new Date(d.generated_at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}`;
+  const mb=d.market_blackout||{};
+  document.getElementById("meta").innerHTML=`${d.n_scored||0} names · updated ${d.generated_at?new Date(d.generated_at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}`+(mb.pct!=null?` · market blackout ${mb.pct}% (${(mb.state||"").replace(/_/g," ")})`:"");
   let h=`<div class="hero"><p>${esc(d.thesis||"")}</p>
     <div class="ctx">
       <span class="c">🚀 <b>${cn["🚀 FRESH_LARGE_AUTH"]||0}</b> fresh large auth</span>
