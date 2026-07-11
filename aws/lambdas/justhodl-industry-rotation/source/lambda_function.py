@@ -687,16 +687,32 @@ def lambda_handler(event=None, context=None):
         if not rows_:
             return None
         rows_.sort(key=lambda r_: r_.get("date") or "")
+        today_s = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        fut = [r_ for r_ in rows_
+               if (r_.get("date") or "") > today_s] or rows_
         eps = [(r_.get("epsAvg") or r_.get("estimatedEpsAvg"))
-               for r_ in rows_]
+               for r_ in fut]
         fwd = eps[0]
         cagr = None
-        if len(eps) >= 3 and eps[0] and eps[0] > 0 and eps[-1] \
+        if len(eps) >= 2 and eps[0] and eps[0] > 0 and eps[-1] \
                 and eps[-1] > 0:
             yrs = len(eps) - 1
             cagr = ((eps[-1] / eps[0]) ** (1.0 / yrs) - 1) * 100
         return {"fwd_eps": fwd, "eps_cagr_pct":
                 (round(cagr, 1) if cagr is not None else None)}
+
+    _soldier_pe = {}
+
+    def fmp_pe_ttm(tkr):
+        d_ = _http("https://financialmodelingprep.com/stable/"
+                   "ratios-ttm?symbol=%s&apikey=%s" % (tkr, FMP))
+        row_ = (d_ or [{}])[0] if isinstance(d_, list) else (d_ or {})
+        for k_ in ("priceToEarningsRatioTTM", "peRatioTTM",
+                   "priceEarningsRatioTTM"):
+            v_ = row_.get(k_)
+            if v_ and 0 < v_ < 500:
+                return round(v_, 1)
+        return None
 
     _soldier_est = {}
 
@@ -1140,11 +1156,12 @@ def lambda_handler(event=None, context=None):
                     if cand and cand < px:
                         stop = cand
                         break
-                t_eps = q_.get("eps")
-                if q_.get("pe"):
-                    h["pe"] = round(q_["pe"], 1)
-                elif t_eps and t_eps > 0:
-                    h["pe"] = round(px / t_eps, 1)
+                if ht not in _soldier_pe:
+                    _soldier_pe[ht] = fmp_pe_ttm(ht)
+                pe_t = _soldier_pe.get(ht)
+                t_eps = (px / pe_t) if pe_t else None
+                if pe_t:
+                    h["pe"] = pe_t
                 if ht not in _soldier_est:
                     _soldier_est[ht] = fmp_estimates(ht)
                 est = _soldier_est.get(ht)
@@ -1430,7 +1447,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.8",
+        "engine": "justhodl-industry-rotation", "version": "3.9",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
