@@ -506,7 +506,14 @@ def volume_metrics(closes, vols):
             "pullback_vol_dryup": dryup}
 
 
+FIN_CACHE = {}
+
+
 def fmp_scores(tkr):
+    """Full /stable/financial-scores payload (Altman Z + Piotroski
+    F-Score both live here) -- cached, one call per name per run."""
+    if tkr in FIN_CACHE:
+        return FIN_CACHE[tkr]
     if not FMP:
         return None
     d = _http("https://financialmodelingprep.com/stable/"
@@ -514,12 +521,92 @@ def fmp_scores(tkr):
     if isinstance(d, list) and d:
         d = d[0]
     if not isinstance(d, dict):
+        FIN_CACHE[tkr] = None
         return None
-    z = d.get("altmanZScore")
-    try:
-        return float(z) if z is not None else None
-    except Exception:
+    def _f(k):
+        try:
+            v = d.get(k)
+            return float(v) if v is not None else None
+        except Exception:
+            return None
+    out = {"z": _f("altmanZScore"),
+           "piotroski": (int(_f("piotroskiScore"))
+                         if _f("piotroskiScore") is not None
+                         else None)}
+    FIN_CACHE[tkr] = out
+    return out
+
+
+def fmp_growth(tkr):
+    """Latest-FY growth legs for Khalid's confirm list: revenue,
+    net income (margin direction), share count (dilution)."""
+    d = _http("https://financialmodelingprep.com/stable/"
+              "financial-growth?symbol=%s&limit=1&apikey=%s"
+              % (tkr, FMP))
+    if isinstance(d, list) and d:
+        d = d[0]
+    if not isinstance(d, dict):
         return None
+    def _p(*keys):
+        for k in keys:
+            v = d.get(k)
+            if v is not None:
+                try:
+                    return round(float(v) * 100, 1)
+                except Exception:
+                    pass
+        return None
+    return {"rev_g": _p("revenueGrowth"),
+            "ni_g": _p("netIncomeGrowth"),
+            "sh_g": _p("weightedAverageSharesGrowth",
+                       "weightedAverageSharesDilutedGrowth")}
+
+
+def fin_grade(sc, gr):
+    """Financial-statement grade: Piotroski 45% + Altman zone 25% +
+    revenue growth 10% + margin direction 10% + dilution 10%.
+    Letter bands A+..F. Returns None when the statements are silent."""
+    if not sc or sc.get("piotroski") is None:
+        return None
+    pts, mx = sc["piotroski"] * 5.0, 45.0
+    z = sc.get("z")
+    if z is not None:
+        mx += 25
+        pts += 25 if z > 2.99 else (12 if z >= 1.81 else 0)
+    if gr:
+        if gr.get("rev_g") is not None:
+            mx += 10
+            rg = gr["rev_g"]
+            pts += 10 if rg > 15 else (7 if rg > 5 else
+                                       (4 if rg > 0 else 0))
+        if gr.get("ni_g") is not None and gr.get("rev_g") is not None:
+            mx += 10
+            pts += 10 if gr["ni_g"] >= gr["rev_g"] else \
+                (5 if gr["ni_g"] > 0 else 0)
+        if gr.get("sh_g") is not None:
+            mx += 10
+            sh = gr["sh_g"]
+            pts += 10 if sh <= 0 else (6 if sh <= 2 else 0)
+    score = round(pts * 100.0 / mx)
+    for cut, letter in ((85, "A+"), (78, "A"), (72, "A-"),
+                        (65, "B+"), (58, "B"), (52, "B-"),
+                        (45, "C+"), (38, "C"), (30, "C-"),
+                        (20, "D")):
+        if score >= cut:
+            return {"grade": letter, "score": score,
+                    "f_score": sc["piotroski"], "z": z,
+                    "z_zone": (None if z is None else
+                               "SAFE" if z > 2.99 else
+                               "GREY" if z >= 1.81 else "DISTRESS"),
+                    **{k: (gr or {}).get(k)
+                       for k in ("rev_g", "ni_g", "sh_g")}}
+    return {"grade": "F", "score": score,
+            "f_score": sc["piotroski"], "z": z,
+            "z_zone": (None if z is None else
+                       "SAFE" if z > 2.99 else
+                       "GREY" if z >= 1.81 else "DISTRESS"),
+            **{k: (gr or {}).get(k)
+               for k in ("rev_g", "ni_g", "sh_g")}}
 
 
 def industry_credit(etfs, holdings_by_etf, warns):
@@ -546,7 +633,8 @@ def industry_credit(etfs, holdings_by_etf, warns):
         zs = []
         for h in holds[:8]:
             try:
-                z = fmp_scores(h["ticker"])
+                _sc = fmp_scores(h["ticker"])
+                z = _sc.get("z") if _sc else None
             except Exception:
                 z = None
             if z is not None and -10 < z < 100:
@@ -742,6 +830,11 @@ def lambda_handler(event=None, context=None):
               ((s3_json("data/dark-pool.json") or {}).get("board")
                or []) if r0.get("state") not in (None, "NEUTRAL")}
     _soldier_q = {}
+    _prev_fin = {}
+    for _l0 in (prev.get("leaders") or []):
+        for _h0 in (_l0.get("holdings_top") or []):
+            if _h0.get("ticker") and _h0.get("fin"):
+                _prev_fin[_h0["ticker"]] = _h0["fin"]
 
     res_doc = s3_json("data/resilience.json")
     res_idx = resilience_index(res_doc)
@@ -1203,6 +1296,26 @@ def lambda_handler(event=None, context=None):
                                               else "200DMA" if stop ==
                                               q_.get("priceAvg200")
                                               else "52w low")}
+            # v4.0 financial-statement grade (7-day cache via prev)
+            pf = _prev_fin.get(ht)
+            fresh_ok = False
+            if pf and pf.get("as_of"):
+                try:
+                    _age = (datetime.now(timezone.utc)
+                            - datetime.fromisoformat(
+                                pf["as_of"] + "T00:00:00+00:00")
+                            ).days
+                    fresh_ok = _age <= 7
+                except Exception:
+                    pass
+            if fresh_ok:
+                h["fin"] = pf
+            else:
+                fg = fin_grade(fmp_scores(ht), fmp_growth(ht))
+                if fg:
+                    fg["as_of"] = datetime.now(
+                        timezone.utc).strftime("%Y-%m-%d")
+                    h["fin"] = fg
         if holds:
             r_["rev_plus_hits"] = {"n": len(hits),
                                    "of": len(holds),
@@ -1447,7 +1560,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.9",
+        "engine": "justhodl-industry-rotation", "version": "4.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
