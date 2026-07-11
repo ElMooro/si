@@ -100,6 +100,10 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(255,23,74,.04),tr
       <div id="fsugg" style="display:none;position:absolute;top:44px;z-index:30;background:#11161f;border:1px solid #1c2433;border-radius:8px;width:100%;overflow:hidden"></div>
     </div>
     <div id="flookup" style="display:none;background:#0f131a;border:1px solid #1c2433;border-radius:10px;padding:16px;margin-top:12px"></div>
+    <div style="margin-top:12px">
+      <label style="color:#6f7b91;font-family:monospace;font-size:12px;margin-right:8px">SECTOR FILTER</label>
+      <select id="secf" style="background:#11161f;border:1px solid #1c2433;border-radius:8px;color:#e6eaf2;padding:8px 12px;font-family:ui-monospace,monospace;font-size:13px"><option value="">All sectors</option></select>
+    </div>
   </header>
 
   <div class="primer">
@@ -325,6 +329,7 @@ async function load(){
     if(r.wc_divergence_flag)why.push('Receivables growing far faster than revenue — channel-stuffing pattern');
     if(r.goodwill_bloat_flag)why.push('Goodwill-heavy balance sheet — impairment tail risk');
     if(r.dilution_flag)why.push('Dilution — share count expanding materially');
+    if(r.m_deteriorating)why.push('M-Score DETERIORATING vs one quarter ago (Δ +'+(r.m_score_delta_q??'')+') — trajectory toward the manipulation zone matters more than level');
     if((r.fin_suppressed_flags||[]).length)why.push('Note: Beneish/accrual flags suppressed — financial-sector accounting makes them spurious');
     const gc=r.strength_grade&&r.strength_grade[0]==='A'?'#26ffaf':r.strength_grade&&r.strength_grade[0]==='B'?'#00d4ff':(r.strength_grade==='D'||r.strength_grade==='F')?'#ff5577':'#ffd266';
     el.innerHTML=`<h3 style="margin:0 0 8px">${sym} <span style="color:${gc};font-family:monospace">${r.strength_grade||'—'}</span> <span style="color:#6f7b91;font-size:12px">${r.sector||''}</span></h3>
@@ -335,6 +340,7 @@ async function load(){
     ${box('Income leg',(L.income??'—')+'/30')}${box('Balance leg',(L.balance??'—')+'/35')}${box('Cash leg',(L.cash??'—')+'/35')}
     ${box('Concern',(r.concern_score??'—')+'/100',(r.concern_score||0)>=40?'#ff5577':'#26ffaf')}
     ${box('M-Score',r.m_score??'—',(r.m_flag)?'#ff5577':'#a8b3c7')}
+    ${r.m_score_delta_q!=null?box('ΔM vs -1q',(r.m_score_delta_q>0?'+':'')+r.m_score_delta_q,r.m_deteriorating?'#ff5577':'#26ffaf'):''}
     ${box('Sloan accruals',r.sloan_accruals!=null?(r.sloan_accruals*100).toFixed(1)+'%':'—')}
     ${box('Alt-Z',r.altman_z??'—')}${box('Piotroski',r.piotroski??'—')}
     ${box('Rev growth',r.rev_growth_pct!=null?r.rev_growth_pct+'%':'—')}
@@ -351,6 +357,19 @@ async function load(){
     FS.querySelectorAll('.fsi').forEach(d=>{d.onmouseenter=()=>d.style.background='#1c2433';d.onmouseleave=()=>d.style.background='';d.onclick=()=>{FQ.value=d.dataset.t;FS.style.display='none';flook(d.dataset.t);}});
   });
   FQ.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim().toUpperCase();if(v){FS.style.display='none';flook(v);}}});
+  // sector filter across all boards (Sector is column 2 everywhere)
+  const SEL=document.getElementById('secf');
+  [...new Set((data.all_results||[]).map(r=>r.sector).filter(Boolean))].sort().forEach(sx=>{const o=document.createElement('option');o.value=sx;o.textContent=sx;SEL.appendChild(o);});
+  SEL.addEventListener('change',()=>{
+    const v=SEL.value;
+    ['fortress-body','problems-body','concerning-body','clean-body'].forEach(id=>{
+      const b=document.getElementById(id);if(!b)return;
+      [...b.querySelectorAll('tr')].forEach(tr=>{
+        const c=tr.cells&&tr.cells[1];if(!c)return;
+        tr.style.display=(!v||c.textContent===v)?'':'none';
+      });
+    });
+  });
   const p0=new URLSearchParams(location.search).get('ticker');
   if(p0){FQ.value=p0.toUpperCase();flook(p0.toUpperCase());}
 

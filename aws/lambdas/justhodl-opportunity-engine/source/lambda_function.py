@@ -442,7 +442,7 @@ def guru_metrics(s):
 
 
 # ─────────────────────────── score a stock ──────────────────────────
-def score_stock(s, mr, fund, short_state, bench, weights, sflow=None):
+def score_stock(s, mr, fund, short_state, bench, weights, sflow=None, foren=None):
     sym = s.get("symbol") or s.get("ticker")
     price = num(s.get("price"))
     if not sym or not price:
@@ -516,6 +516,15 @@ def score_stock(s, mr, fund, short_state, bench, weights, sflow=None):
     if num(sf.get("buyback_net_yield_pct")) and \
             num(sf.get("buyback_net_yield_pct")) >= 2:
         q += 6
+    # ── forensic risk gate (Khalid): concern_score from the
+    # accounting-forensics desk penalizes quality like dilution does
+    fo = foren or {}
+    fo_c = num(fo.get("concern_score"))
+    if fo_c is not None:
+        if fo_c >= 60:
+            q -= 20
+        elif fo_c >= 40:
+            q -= 10
     quality_score = clamp(q)
 
     g = 50
@@ -571,6 +580,11 @@ def score_stock(s, mr, fund, short_state, bench, weights, sflow=None):
         risks.append("Carries heavy debt relative to equity")
     if pe is not None and pe < 0:
         risks.append("Not currently profitable")
+    if fo_c is not None and fo_c >= 40:
+        risks.append(f"Forensic accounting red flags — concern "
+                     f"{fo_c:.0f}/100 on the fraud screen"
+                     + (" (M-Score deteriorating)"
+                        if fo.get("m_deteriorating") else ""))
     if sf_read == "EXTREME_DILUTION" or sf.get("extreme"):
         risks.append("Death-spiral issuance — share count exploding, "
                      "your stake is being printed away")
@@ -662,6 +676,10 @@ def score_stock(s, mr, fund, short_state, bench, weights, sflow=None):
                  "fwd_pe": fpe, "trailing_pe": pe},
         "market_cap": (num(s.get("marketCap")) or num(s.get("market_cap"))
                        or sf.get("market_cap")),
+        "forensic": ({"concern_score": fo_c,
+                      "strength_grade": fo.get("strength_grade"),
+                      "m_deteriorating": fo.get("m_deteriorating")}
+                     if fo else None),
         "capital_return": ({k2: sf.get(k2) for k2 in
                             ("sh_yoy_pct", "buyback_net_yield_pct",
                              "read", "pe_ttm", "ps_ttm", "peg",
@@ -828,6 +846,10 @@ def lambda_handler(event, context):
     shorts = {x.get("ticker"): x.get("state") for x in
               (load("data/short-pressure.json") or {}).get("names", [])}
     sfl = (load("data/share-flows.json") or {}).get("tickers") or {}
+    fmap = {r.get("symbol"): r for r in
+            (load("data/forensic-screen.json") or {}).get("all_results")
+            or [] if r.get("symbol")}
+    print(f"[opp] forensic join: {len(fmap)} names")
     print(f"[opp] share-flows join: {len(sfl)} names")
     prev = load(OUT_KEY)
 
@@ -866,7 +888,7 @@ def lambda_handler(event, context):
     for s in universe:
         sym = s.get("symbol") or s.get("ticker")
         r = score_stock(s, mr.get(sym), fund.get(sym), shorts.get(sym),
-                         bench, weights, sfl.get(sym))
+                         bench, weights, sfl.get(sym), fmap.get(sym))
         if r:
             # ── NEW: growth-vs-industry intelligence ──
             ind_key = s.get("industry") or s.get("sector") or "Unknown"

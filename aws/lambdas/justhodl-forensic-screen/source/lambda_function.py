@@ -117,8 +117,53 @@ def safe_div(a, b):
 
 # ─── Statement fetch ────────────────────────────────────────────────────
 
+FLOW_KEYS = ("revenue", "costOfRevenue", "grossProfit",
+             "generalAndAdministrativeExpenses",
+             "sellingGeneralAndAdministrativeExpenses",
+             "depreciationAndAmortization", "netIncome",
+             "operatingIncome", "ebitda", "operatingCashFlow",
+             "netCashProvidedByOperatingActivities",
+             "capitalExpenditure")
+
+
+def _ttm(rows):
+    """Synthetic TTM statement: flow fields summed over 4 quarters
+    (None if any quarter missing the field)."""
+    out = {}
+    for k in FLOW_KEYS:
+        vals = [sf(r.get(k)) for r in rows]
+        out[k] = sum(vals) if all(v is not None for v in vals) else None
+    return out
+
+
 def fetch_statements(symbol: str):
-    """Fetch 2 most recent annual income/balance/cashflow statements."""
+    """Quarterly limit=9 -> TTM windows. Enables the M-Score TREND
+    (now vs one quarter ago) at the same 3-call cost; annual fallback
+    when quarterly history is short."""
+    income = _fmp("income-statement", {"symbol": symbol, "period": "quarter", "limit": 9})
+    balance = _fmp("balance-sheet-statement", {"symbol": symbol, "period": "quarter", "limit": 9})
+    cashflow = _fmp("cash-flow-statement", {"symbol": symbol, "period": "quarter", "limit": 9})
+    if all(isinstance(x, list) and len(x) >= 8
+           for x in (income, balance, cashflow)):
+        st = {
+            "income_t": _ttm(income[0:4]), "income_p": _ttm(income[4:8]),
+            "balance_t": balance[0], "balance_p": balance[4],
+            "cashflow_t": _ttm(cashflow[0:4]),
+            "cashflow_p": _ttm(cashflow[4:8]),
+        }
+        if all(len(x) >= 9 for x in (income, balance, cashflow)):
+            st["prev_q"] = {
+                "income_t": _ttm(income[1:5]), "income_p": _ttm(income[5:9]),
+                "balance_t": balance[1], "balance_p": balance[5],
+                "cashflow_t": _ttm(cashflow[1:5]),
+                "cashflow_p": _ttm(cashflow[5:9]),
+            }
+        scores = _fmp("financial-scores", {"symbol": symbol})
+        scores = scores[0] if isinstance(scores, list) and scores else \
+            (scores if isinstance(scores, dict) else {})
+        st["scores"] = scores
+        return st
+    # annual fallback (short history)
     income = _fmp("income-statement", {"symbol": symbol, "period": "annual", "limit": 2})
     balance = _fmp("balance-sheet-statement", {"symbol": symbol, "period": "annual", "limit": 2})
     cashflow = _fmp("cash-flow-statement", {"symbol": symbol, "period": "annual", "limit": 2})
@@ -473,6 +518,15 @@ def lambda_handler(event=None, context=None):
         if not stmts:
             return None, "skip"
         forensic = compute_beneish(stmts)
+        if stmts.get("prev_q"):
+            prevf = compute_beneish(stmts["prev_q"])
+            mp = prevf.get("m_score")
+            mn = forensic.get("m_score")
+            if mp is not None and mn is not None:
+                forensic["m_score_prev_q"] = mp
+                forensic["m_score_delta_q"] = round(mn - mp, 4)
+                forensic["m_deteriorating"] = (
+                    mn - mp >= 0.15 and mn > -2.5)
         forensic["symbol"] = symbol
         forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
         forensic["sector"] = row.get("sector")
@@ -485,6 +539,9 @@ def lambda_handler(event=None, context=None):
                     forensic.setdefault("fin_suppressed_flags",
                                         []).append(k)
         cs = composite_concern_score(forensic, row.get("sector"))
+        if forensic.get("m_deteriorating") and \
+                (row.get("sector") or "") not in FIN_SECTORS:
+            cs = min(100, cs + 10)
         sfr = sfl.get(symbol) or {}
         if sfr.get("extreme") or sfr.get("read") == "EXTREME_DILUTION":
             cs = min(100, cs + 15)
