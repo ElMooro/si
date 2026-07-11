@@ -76,6 +76,10 @@ function revCard(r, kind){
   if (r.death_cross_sessions_ago) chps.push(`<span class="chp" style="color:var(--red)" title="50DMA crossed below the 200DMA — the downtrend is now structural">DEATH ✕ ${r.death_cross_sessions_ago}d ago</span>`);
   if (r.capitulation) chps.push('<span class="chp" style="color:var(--gold,#e8c86a)" title="climactic volume at the low — seller exhaustion">CAPITULATION</span>');
   if (r.phase) chps.push(`<span class="chp" style="color:var(--cy,#4fc3f7)">${esc(r.phase)}</span>`);
+  const sf=(window.__sf||{})[r.ticker];
+  if (sf && sf.sh_yoy_pct!=null && sf.sh_yoy_pct>=2) chps.push(`<span class="chp" style="color:var(--red)" title="share count +${sf.sh_yoy_pct}% yoy — dilution adds supply into the breakdown">DILUTING</span>`);
+  if (sf && sf.buyback_yield_pct>=2) chps.push(`<span class="chp" style="color:var(--grn)" title="buying back ${sf.buyback_yield_pct}%/yr of the float — a real bid under the reversal">BUYBACK ${sf.buyback_yield_pct}%</span>`);
+  if (sf && sf.insider_buy_usd_90d) chps.push(`<span class="chp" style="color:var(--grn)" title="insider open-market buys">INS +$${(sf.insider_buy_usd_90d/1e6).toFixed(1)}M</span>`);
   const pos = good ? `+${r.pct_off_252d_low}% off the 252d low` : `${r.pct_off_252d_high}% off the 252d high`;
   return `<div class="card ${kind}"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${tierC};border:1px solid ${tierC}55">${esc(r.tier)}</span></div>`
    + `<div class="l2">${pos}</div><div class="chips">${chps.join('')}</div>`
@@ -140,6 +144,7 @@ function block(book,kind){
   return h||'<div class="grp" style="color:var(--fg3)">none flagged today</div>';
 }
 (async function(){
+  const sfw=await gj('data/share-flows.json');window.__sf=(sfw&&sfw.tickers)||{};
   const d=await gj('data/accumulation-radar.json');const w=document.getElementById('w');
   window.__d=d;if(!d||!d.tops){w.innerHTML='<div class="hd"><h1>Accumulation / Distribution Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
   let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;

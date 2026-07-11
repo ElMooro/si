@@ -6670,10 +6670,10 @@ class JHF {
   static async load() {
     const P = "https://justhodl-data-proxy.raafouis.workers.dev/data/";
     const g = async (k) => { try { const r = await fetch(P + k + "?t=" + Math.floor(Date.now()/3e5)); return r.ok ? r.json() : null; } catch (e) { return null; } };
-    const [pd, wh, dp, mr, bs, rs, ir, ins] = await Promise.all([
+    const [pd, wh, dp, mr, bs, rs, ir, ins, sf] = await Promise.all([
       g("phase-detector.json"), g("whales.json"), g("dark-pool.json"),
       g("master-ranker.json"), g("best-setups.json"), g("resilience.json"),
-      g("industry-rotation.json"), g("insider-radar.json")]);
+      g("industry-rotation.json"), g("insider-radar.json"), g("share-flows.json")]);
     const F = {};
     F.phaseAll = (pd && pd.phases_all) || {};
     F.phaseFull = (pd && pd.tickers) || {};
@@ -6685,6 +6685,7 @@ class JHF {
     else if (bsr && typeof bsr === "object") Object.entries(bsr).forEach(([v, arr]) => (Array.isArray(arr) ? arr : []).forEach(r => { const t = (r && r.ticker) || (typeof r === "string" ? r : null); if (t) F.setup[t] = v; }));
     F.res = {}; (((rs || {}).resilient) || []).forEach(r => { if (r.ticker) F.res[r.ticker] = true; });
     F.maEvents = {}; (((ir || {}).ma_events) || []).forEach(e => { (F.maEvents[e.etf] = F.maEvents[e.etf] || []).push(e); });
+    F.sf = (sf && sf.tickers) || {};
     F.insDates = {}; const buys = ((ins || {}).latest_buys) || [];
     const clusterT = new Set([...(((ins || {}).clusters) || []), ...(((ins || {}).decline_clusters) || [])].map(c => c.ticker).filter(Boolean));
     buys.forEach(b => { if (b.ticker && b.date && clusterT.has(b.ticker)) (F.insDates[b.ticker] = F.insDates[b.ticker] || []).push(b.date); });
@@ -6698,6 +6699,13 @@ class JHF {
   static badges(t) {
     const F = State.fusion; if (!F || State.fusionOn === false) return [];
     const out = [];
+    const s = F.sf && F.sf[t];
+    if (s) {
+      if (s.buyback_yield_pct >= 1) out.push({ icon: "BB", color: "var(--up,#38ffa8)", label: "buying back " + s.buyback_yield_pct + "%/yr of the float (TTM repurchases / mcap)" });
+      if (s.sh_yoy_pct != null && s.sh_yoy_pct >= 2) out.push({ icon: "DIL", color: "var(--dn,#ff5d5d)", label: "share count +" + s.sh_yoy_pct + "% yoy \u2014 dilution" });
+      else if (s.sh_yoy_pct != null && s.sh_yoy_pct <= -1) out.push({ icon: "SH\u2212", color: "var(--up,#38ffa8)", label: "share count " + s.sh_yoy_pct + "% yoy \u2014 float shrinking" });
+      if (s.insider_buy_usd_90d) out.push({ icon: "INS", color: "var(--up,#38ffa8)", label: "insider open-market buys +$" + (s.insider_buy_usd_90d / 1e6).toFixed(1) + "M" });
+    }
     if (F.rank[t]) out.push({ icon: "#" + F.rank[t], color: "#22d3ee", label: "Master-ranker rank " + F.rank[t] });
     const v = F.setup[t]; if (v && /BUY/i.test(String(v))) out.push({ icon: /STRONG/i.test(String(v)) ? "SB" : "B", color: "#26ffaf", label: "Best-setups: " + v });
     const p = F.phaseAll[t]; if (p && p.p && p.p !== "NEUTRAL") out.push({ icon: p.p[0], color: (p.p === "ACCUMULATION" || p.p === "MARKUP") ? "#26ffaf" : "#ff5577", label: "Wyckoff " + p.p + (p.b ? " since " + p.b : "") });

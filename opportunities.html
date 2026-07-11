@@ -176,6 +176,19 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:"b-red",dim:"b-dim"};
 const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
 let DATA=null, BYSYM={}, RESEARCH={}, FILTER={sector:"",verdict:""};
+let SF={};
+fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d&&d.tickers){SF=d.tickers;try{render()}catch(e){}}}).catch(()=>{});
+function sfChips(t){
+  const s=SF[t];if(!s)return "";
+  const c=[];
+  if(s.buyback_yield_pct)c.push(`<b style="color:var(--green,#38ffa8)" title="cash spent buying back stock over the trailing 12 months, as % of market cap — management returning capital and shrinking the float">BUYBACK ${s.buyback_yield_pct}%/yr</b>`);
+  if(s.sh_yoy_pct!=null)c.push(`<b style="color:${s.sh_yoy_pct<=-1?"var(--green,#38ffa8)":(s.sh_yoy_pct>=2?"var(--red,#ff5d5d)":"var(--dim,#8a93a6)")}" title="diluted share count vs a year ago — negative = float shrinking (good), positive = dilution from issuance/SBC">SHARES ${s.sh_yoy_pct>0?"+":""}${s.sh_yoy_pct}% yoy</b>`);
+  if(s.issuance_pct_mcap>=1)c.push(`<b style="color:var(--red,#ff5d5d)" title="stock issued over the trailing 12 months as % of market cap">ISSUED ${s.issuance_pct_mcap}%</b>`);
+  if(s.insider_buy_usd_90d)c.push(`<b style="color:var(--green,#38ffa8)" title="open-market insider BUYS (Form 4) — management buying with their own money${s.insider_n_buyers?", "+s.insider_n_buyers+" insider(s)":""}">INSIDERS +$${(s.insider_buy_usd_90d/1e6).toFixed(1)}M</b>`);
+  if(s.insider_sell_usd_recent)c.push(`<b style="color:var(--red,#ff5d5d)" title="clustered opportunistic insider selling (5-factor filtered)">INSIDER SELLS −$${(s.insider_sell_usd_recent/1e6).toFixed(1)}M</b>`);
+  if(s.read&&s.read!=="NEUTRAL")c.push(`<b style="color:${s.read.indexOf("DILUT")>=0?"var(--red,#ff5d5d)":"var(--green,#38ffa8)"}">${s.read.replace("_"," ")}</b>`);
+  return c.length?`<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;margin:4px 0 2px">${c.join("")}</div>`:"";
+}
 
 /* ── watchlist (saved on this device) ── */
 const WL=()=>{try{return JSON.parse(localStorage.getItem("jh_watchlist")||"[]")}catch{return[]}};
@@ -351,6 +364,7 @@ function card(r,full){
     <span class="badge ${bc}">${esc(r.verdict)}</span>
     <div class="bottom">${esc(r.bottom_line||"")}</div>
     ${valueLine(r)}
+    ${sfChips(r.ticker)}
     <ul class="pts">${ops||'<li style="color:var(--dim);font-size:11px">No standout positives</li>'}${risks}</ul>
     <div class="scores">
       <span>opportunity <b>${r.opportunity_score}</b>/100</span>
