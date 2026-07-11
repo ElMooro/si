@@ -144,7 +144,8 @@ def analyze_ticker(t):
     ind = (prof.get("industry") or "")
     fin_like = ("Financial" in sec or any(w in ind for w in
                 ("Bank", "Insurance", "Capital Markets", "Credit",
-                 "Asset Management", "Mortgage", "REIT")))
+                 "Asset Management", "Mortgage", "REIT",
+                 "Healthcare Plans", "Financial")))
     if fin_like:
         # OCF for banks/insurers is float + balance-sheet motion --
         # FCF yield is not a cheapness signal there (BAC 47% class)

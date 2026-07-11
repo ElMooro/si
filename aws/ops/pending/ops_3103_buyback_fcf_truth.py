@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3102 -- BUYBACK-ENGINE FCF-yield truth (Khalid caught DCGO at
+"""ops 3103 -- BUYBACK-ENGINE FCF-yield truth (Khalid caught DCGO at
 -32,762,564.1%). Root cause: FMP's derived freeCashFlowYield trusted
 and x4'd. Fixes verified here: (1) FCF yield SELF-COMPUTED from the
 cash-flow quarters already fetched (OCF - capex TTM / mcap), banded
@@ -7,7 +7,7 @@ to +/-150; (2) financials (banks/insurers/REITs/asset mgrs) carry
 fcf_nm=True -- OCF there is float, not free cash (BAC 47% / MOH 62%
 / GS -50% class of nonsense); (3) |shares dYoY|>=80 -> extreme flag,
 never surfaced on the fresh-authorizations board (TONX +56,978%);
-(4) debt-funded buybacks take a -8 score haircut. Page shows n/m
+(4) debt-funded buybacks take a -8 score haircut. 3102 lesson: MOH files as Healthcare/Healthcare Plans -- managed-care float is insurer economics, keyword added. Page shows n/m
 (financial) + skull tag."""
 import json, sys, time, urllib.request
 from datetime import datetime, timezone
@@ -20,7 +20,7 @@ S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-buyback-engine"
 AWS_DIR = Path(__file__).resolve().parents[2]
-UA = {"User-Agent": "Mozilla/5.0 ops-3102", "Cache-Control": "no-cache"}
+UA = {"User-Agent": "Mozilla/5.0 ops-3103", "Cache-Control": "no-cache"}
 
 
 def get(url):
@@ -31,7 +31,7 @@ def get(url):
 
 def main():
     fails, warns = [], []
-    with report("3102_buyback_fcf_truth") as rep:
+    with report("3103_buyback_fcf_truth") as rep:
         rep.section("1. Deploy + invoke")
         import io, zipfile
         src = (AWS_DIR / "lambdas" / FN / "source" /
@@ -66,8 +66,8 @@ def main():
                         ).total_seconds() < 1500:
                     cand = json.loads(o["Body"].read())
                     tt = cand.get("tickers") or {}
-                    if tt and any(v.get("fcf_nm") is not None
-                                  for v in tt.values()):
+                    moh = tt.get("MOH") or {}
+                    if tt and (moh.get("fcf_nm") or "MOH" not in tt):
                         d = cand
                         break
             except Exception:
@@ -134,8 +134,8 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    (AWS_DIR / "ops" / "reports" / "3102.json").write_text(json.dumps(
-        {"ops": 3102, "verdict": "FAIL" if fails else "PASS",
+    (AWS_DIR / "ops" / "reports" / "3103.json").write_text(json.dumps(
+        {"ops": 3103, "verdict": "FAIL" if fails else "PASS",
          "fails": fails, "warns": warns,
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
     rep.kv(verdict="FAIL" if fails else "PASS", n_fails=len(fails),
