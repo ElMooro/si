@@ -433,7 +433,15 @@ function renderTickers() {
     if(f.fcf_yield_pct!=null)b.push('FCF '+f.fcf_yield_pct.toFixed(1)+'%');
     if(f.sh_yoy_pct!=null)b.push('SHARES '+(f.sh_yoy_pct>0?'+':'')+f.sh_yoy_pct+'% yoy');
     if(f.buyback_net_yield_pct)b.push('NET BB '+f.buyback_net_yield_pct+'%');
-    return b.length?'<div style="font-size:10px;color:var(--fg3);font-family:var(--mono,monospace);margin-top:3px;letter-spacing:.2px">'+b.join(' · ')+'</div>':'';
+    const fo=(window.FOMAP||{})[t];
+    if(fo){
+      if(fo.strength_grade){const gc=fo.strength_grade[0]==='A'?'#26ffaf':fo.strength_grade[0]==='B'?'#00d4ff':(fo.strength_grade==='D'||fo.strength_grade==='F')?'#ff5577':'#ffd266';b.push('<b style="color:'+gc+'" title="three-statement strength (income/balance/cash) — forensic desk">'+fo.strength_grade+' financials</b>');}
+      if((fo.concern_score||0)>=40)b.push('<b style="color:#ff5577" title="forensic concern — Beneish/accruals/WC/goodwill/dilution">⚑ concern '+fo.concern_score+'</b>');
+      if(fo.m_deteriorating)b.push('<b style="color:#ff5577" title="Beneish M-Score deteriorating vs prior quarter">M↑ deteriorating</b>');
+      if(fo.industry_pctile!=null)b.push('<span title="strength percentile within own sector">'+fo.industry_pctile+'th %ile sector</span>');
+    }
+    const links=' <a href="/why.html?ticker='+t+'" style="color:#00d4ff;text-decoration:none" title="full research desk">research ↗</a> <a href="/forensic.html?ticker='+t+'" style="color:#00d4ff;text-decoration:none" title="forensic + strength read">forensic ↗</a>';
+    return b.length?'<div style="font-size:10px;color:var(--fg3);font-family:var(--mono,monospace);margin-top:3px;letter-spacing:.2px">'+b.join(' · ')+links+'</div>':'';
   }
     const ncm = r.nowcast_regime_mult;
     const ncTilt = (ncm && ncm !== 1)
@@ -455,7 +463,7 @@ function renderTickers() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('')+'<div style="font-size:11px;color:var(--fg3);font-family:var(--mono,monospace);padding:10px 2px;border-top:1px solid var(--line,#1c2433);margin-top:10px">Methodology: unified cross-engine rank fused from the fleet\'s signal families; each card composes live fundamentals (share-flows v1.4: MCAP · PE · PEG · P/S · FCF · dilution · net buyback) and the forensic desk (three-statement strength grade, concern, M-Score trend, sector percentile). Research, not investment advice.</div>';
   document.getElementById('tickerHost').innerHTML = html || '<div class="loader">No tickers match</div>';
 
   document.querySelectorAll('.tcard').forEach(card => {
@@ -560,6 +568,7 @@ function renderHealthStrip() {
 async function load() {
   try {
     window.SFMAP=window.SFMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{if(d&&d.tickers){window.SFMAP=d.tickers;try{applyFilters()}catch(e){}}}).catch(()=>{});
+    window.FOMAP=window.FOMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/forensic-screen.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{if(d&&d.all_results){const m={};d.all_results.forEach(r=>{if(r.symbol)m[r.symbol]=r});window.FOMAP=m;try{applyFilters()}catch(e){}}}).catch(()=>{});
   const [r] = await Promise.all([fetch(URL + '?_=' + Date.now()), loadWatchlist()]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
