@@ -733,6 +733,9 @@ def lambda_handler(event, context):
         "clusters": clusters[:30],
         "big_buys": big_buys[:30],
         "transactions": [t for t in all_txns if t["side"] == "buy"][:500],   # cap for size
+        # management SELLING (share-flows joins this; parsed all along,
+        # was dropped at output until 2026-07-11)
+        "sell_transactions": [t for t in all_txns if t["side"] == "sell"][:500],
     }
 
     body = json.dumps(output).encode("utf-8")

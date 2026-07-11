@@ -47,7 +47,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -214,7 +214,8 @@ def lambda_handler(event=None, context=None):
                        c.get("insider_count")
                        or c.get("n_insiders")}
     bsum, bwho, ssum, swho = {}, {}, {}, {}
-    for x in (itr.get("transactions") or []):
+    for x in ((itr.get("transactions") or [])
+              + (itr.get("sell_transactions") or [])):
         t = x.get("ticker")
         if not t or not isinstance(x, dict):
             continue
