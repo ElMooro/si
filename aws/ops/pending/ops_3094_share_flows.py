@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3093 -- SHARE-FLOWS fleet map (Khalid: track issuance,
+"""ops 3094 -- SHARE-FLOWS fleet map (Khalid: track issuance,
 management buying/selling + how much, share count shrink/grow,
 dilution, buybacks -- on opportunities and everywhere it applies).
 New composer justhodl-share-flows -> data/share-flows.json: per-name
@@ -27,7 +27,7 @@ SCH = boto3.client("scheduler", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-share-flows"
 AWS_DIR = Path(__file__).resolve().parents[2]
-UA = {"User-Agent": "Mozilla/5.0 ops-3093",
+UA = {"User-Agent": "Mozilla/5.0 ops-3094",
       "Cache-Control": "no-cache"}
 
 
@@ -53,10 +53,31 @@ def ensure_function(rep, fails):
            if any(s in k for s in ("FMP", "FRED", "POLYGON"))}
     if "FMP_API_KEY" not in env and "FMP_KEY" in env:
         env["FMP_API_KEY"] = env["FMP_KEY"]
+    def _wait_active():
+        for _ in range(40):
+            c = L.get_function_configuration(FunctionName=FN)
+            if c.get("State") in ("Active", None) and \
+                    c.get("LastUpdateStatus") in ("Successful",
+                                                  None):
+                return True
+            time.sleep(8)
+        return False
+
     try:
         L.get_function(FunctionName=FN)
-        L.update_function_code(FunctionName=FN,
-                               ZipFile=buf.getvalue())
+        # deploy-lambdas creates this fn on the same push -- wait out
+        # 'Creating' then update with conflict retry (3093 lesson)
+        _wait_active()
+        for att in range(6):
+            try:
+                L.update_function_code(FunctionName=FN,
+                                       ZipFile=buf.getvalue())
+                break
+            except Exception as e:
+                if "ResourceConflict" not in str(e) or att == 5:
+                    raise
+                time.sleep(15)
+                _wait_active()
         for _ in range(20):
             st = L.get_function_configuration(
                 FunctionName=FN).get("LastUpdateStatus")
@@ -110,7 +131,7 @@ def ensure_schedule(rep, warns):
 
 def main():
     fails, warns = [], []
-    with report("3093_share_flows") as rep:
+    with report("3094_share_flows") as rep:
         rep.section("1. Function + schedule")
         if not ensure_function(rep, fails):
             _fin(rep, fails, warns)
@@ -206,7 +227,7 @@ def main():
 
 
 def _fin(rep, fails, warns):
-    (AWS_DIR / "ops" / "reports" / "3093.json").write_text(json.dumps(
+    (AWS_DIR / "ops" / "reports" / "3094.json").write_text(json.dumps(
         {"ops": 3093, "verdict": "FAIL" if fails else "PASS",
          "fails": fails, "warns": warns,
          "ts": datetime.now(timezone.utc).isoformat()}, indent=1))
