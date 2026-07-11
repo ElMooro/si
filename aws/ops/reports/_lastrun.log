@@ -1,14 +1,9 @@
-executing-against: 1de179f67649962abbe0829117a3b8ed4630500b
-[01:20:51] START RequestId: dd5e074f-085b-4e94-bf1f-52c777e6bf8e Version: $LATEST
-[01:20:51] [ERROR] NameError: name 'c' is not defined
-[01:20:51] Traceback (most recent call last):
-[01:20:51]   File "/var/task/lambda_function.py", line 524, in lambda_handler
-[01:20:51]     rows = [ladder_row(t, c, spy, regime, blend_pop)
-[01:20:51]   File "/var/task/lambda_function.py", line 324, in ladder_row
-[01:20:51]     "above_sma20": (sma(c, 20) is not None
-[01:20:51] END RequestId: dd5e074f-085b-4e94-bf1f-52c777e6bf8e
-[01:20:51] REPORT RequestId: dd5e074f-085b-4e94-bf1f-52c777e6bf8e	Duration: 9409.36 ms	Billed Duration: 9897 ms	Memory Size: 1024 MB	Max Memory Used: 104 MB	Init Duration: 487.43 ms	
-[01:20:51] XRAY TraceId: 1-6a519a69-3a8499cc278b58cf20e57837	SegmentId: 3bce56adc445296c	Sampled: true	
+executing-against: 5f97e52b9d8c24715f848bd1e79985d0e1ced3d6
+── 0. Engine v3.5: invoke + adaptive delta ──
+── 1. Page live (this-push marker) ──
+── 2. Rail hidden-by-default (site-wide) ──
+── verdict ──
+[01:28:10] FAIL: rr on 0 soldiers (<10)
 
-→ Report written to aws/ops/reports/latest/3084_v36_tail.md
-❌ OPS-FAIL: aws/ops/pending/ops_3084_v36_tail.py
+→ Report written to aws/ops/reports/latest/3085_rail_rr_cross.md
+❌ OPS-FAIL: aws/ops/pending/ops_3085_rail_rr_cross.py
