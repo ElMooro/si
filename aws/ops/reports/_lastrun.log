@@ -1,8 +1,9 @@
-executing-against: 5df2135fd053a915505fd5804cb59682ddb931d0
-── 1. Deploy + invoke ──
-── 2. Doc truth: financials clean ──
+executing-against: 7e08656986f898a70d13b1829c503417dfb403c7
+── 1. Forensic trend ──
+── 2. Opportunity forensic gate ──
 ── 3. Page live (this-push) ──
 ── verdict ──
-[19:56:24] PASS
+[20:11:36] FAIL: insane dM values: ['CMS', 'SNPS', 'UNP', 'WY', 'BNY']
 
-→ Report written to aws/ops/reports/latest/3109_forensic_fin_search.md
+→ Report written to aws/ops/reports/latest/3110_forensic_trend_gate.md
+❌ OPS-FAIL: aws/ops/pending/ops_3110_forensic_trend_gate.py
