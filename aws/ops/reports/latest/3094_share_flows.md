@@ -1,7 +1,12 @@
-executing-against: f8738f2eb9ada92aa855c86668dc315d0c7287f9
-── 1. Function + schedule ──
+## 1. Function + schedule
 
-→ Report written to aws/ops/reports/latest/3094_share_flows.md
+**Status:** failure  
+**Duration:** 14.8s  
+**Finished:** 2026-07-11T03:14:00+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_3094_share_flows.py", line 113, in ensure_schedule
     SCH.get_schedule(Name="justhodl-share-flows-daily",
@@ -18,8 +23,8 @@ botocore.errorfactory.ResourceNotFoundException: An error occurred (ResourceNotF
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3094_share_flows.py", line 238, in <module>
-    main()
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3094_share_flows.py", line 139, in main
     ensure_schedule(rep, warns)
   File "/home/runner/work/si/si/aws/ops/pending/ops_3094_share_flows.py", line 119, in ensure_schedule
@@ -33,4 +38,14 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.ValidationException: An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role.
-❌ OPS-FAIL: aws/ops/pending/ops_3094_share_flows.py
+
+```
+
+## Data
+
+| fn |
+|---|
+| updated |
+
+## Log
+
