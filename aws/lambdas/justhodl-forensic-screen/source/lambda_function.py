@@ -522,11 +522,20 @@ def lambda_handler(event=None, context=None):
             prevf = compute_beneish(stmts["prev_q"])
             mp = prevf.get("m_score")
             mn = forensic.get("m_score")
-            if mp is not None and mn is not None:
+            # deltas are only meaningful when both windows scored the
+            # SAME component set; a field present in one window only
+            # produces non-comparable M values (3110: |dM|>5 artifacts)
+            same_comps = (sorted(prevf.get("components_missing") or [])
+                          == sorted(forensic.get("components_missing")
+                                    or []))
+            if mp is not None and mn is not None and same_comps \
+                    and abs(mn - mp) <= 3:
                 forensic["m_score_prev_q"] = mp
                 forensic["m_score_delta_q"] = round(mn - mp, 4)
                 forensic["m_deteriorating"] = (
                     mn - mp >= 0.15 and mn > -2.5)
+            elif mp is not None and mn is not None:
+                forensic["m_trend_suspect"] = True
         forensic["symbol"] = symbol
         forensic["mcap"] = sf(row.get("mcap") or row.get("marketCap"))
         forensic["sector"] = row.get("sector")
