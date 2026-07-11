@@ -2840,7 +2840,12 @@ window.renderMomentum=function(d){
   else if(dx!=null)xr='<b style="color:#ff5577" title="SMA50 crossed below SMA200 &mdash; the downtrend is structural">DEATH CROSS '+dx+' session'+(dx>1?'s':'')+' ago</b>';
   else xr='<span style="color:var(--fg3,#5d6b82)">no 50/200 cross in the last 60 sessions</span>';
   h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">Trend &amp; 50/200 cross</div><div style="font-size:12px;margin-top:3px">'+trend.join(' &middot; ')+'<br>'+xr+'</div></div>';
-  h+='</div><div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">12-1 = Jegadeesh-Titman momentum: trailing 12 months skipping the most recent month (reversal noise). Computed from the same 504-session series charted above.</div></section>';
+  var ds=(t.series.dates||[]);var lastD=ds.length?String(ds[ds.length-1]).slice(0,10):null;
+  var staleS='';
+  if(lastD){var ageD=(Date.now()-new Date(lastD+'T00:00:00Z').getTime())/864e5;
+    if(ageD>5)staleS=' <b class="jh-fresh" style="color:#ffd266" title="last close in the series is more than 5 days old - the research doc regenerates on the next view after its 24h cache expires">STALE SERIES ('+Math.round(ageD)+'d)</b>';}
+  var cacheS=d.generated_at?(' \u00b7 doc '+String(d.generated_at).slice(0,16).replace('T',' ')+'Z'+(d.from_cache?' (24h cache)':' (fresh)')):'';
+  h+='</div><div class="jh-fresh" style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">12-1 = Jegadeesh-Titman momentum: trailing 12 months skipping the most recent month (reversal noise). Computed from the same 504-session series charted above.'+(lastD?' Series as of '+lastD:'')+staleS+cacheS+' \u00b7 auto-refreshes with every research-doc cycle.</div></section>';
   return h;
 };
 window.renderTechnicals=function(d){
@@ -3139,6 +3144,9 @@ window.renderIndustryCompass=function(d){
         if(hit.golden_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','GOLDEN CROSS '+hit.golden_cross_sessions_ago+' sessions ago \u2014 Stage-2 confirmation','#26ffaf'));
         else if(hit.death_cross_sessions_ago!=null)rows.push(box('Industry 50/200 cross','DEATH CROSS '+hit.death_cross_sessions_ago+' sessions ago \u2014 structural downtrend','#ff5577'));
         else if(hit.pct_vs_sma200!=null)rows.push(box('Industry 50/200 cross','none in the last 60 sessions'));
+        try{var irg=IR.generated_at;if(irg){var ageH=(Date.now()-new Date(irg).getTime())/36e5;
+          var fr=ageH.toFixed(1)+'h old \u00b7 daily 21:35 UTC run';
+          rows.push(box('Industry data freshness',ageH>30?fr+' \u00b7 STALE - daily run missed':fr,ageH>30?'#ffd266':'#26ffaf'));}}catch(e2){}
       }
     }catch(e){}
     if(!rows.length) return;
