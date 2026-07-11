@@ -40,6 +40,7 @@ import json
 import os
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
@@ -47,7 +48,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.1.1"
+VERSION = "1.2.1"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -142,7 +143,7 @@ def fetch_name(t):
                "&limit=5&apikey=%s" % (t, FMP)) or []
     inc = _http("https://financialmodelingprep.com/stable/"
                 "income-statement?symbol=%s&period=quarter"
-                "&limit=6&apikey=%s" % (t, FMP)) or []
+                "&limit=13&apikey=%s" % (t, FMP)) or []
     q = _http("https://financialmodelingprep.com/stable/"
               "quote?symbol=%s&apikey=%s" % (t, FMP))
     if isinstance(q, list) and q:
@@ -157,6 +158,14 @@ def fetch_name(t):
                                             if x < 0))
         out["issuance_ttm_usd"] = round(sum(x for x in iss
                                             if x > 0))
+        out["buyback_net_ttm_usd"] = (out["buyback_ttm_usd"]
+                                      - out["issuance_ttm_usd"])
+        sbc = [c.get("stockBasedCompensation") or 0 for c in cf[:4]]
+        out["sbc_ttm_usd"] = round(sum(abs(x) for x in sbc))
+        dv = [c.get("netDividendsPaid")
+              or c.get("dividendsPaid") or 0 for c in cf[:4]]
+        out["div_ttm_usd"] = round(sum(abs(x) for x in dv if x < 0)
+                                   or sum(abs(x) for x in dv))
     sh = [r.get("weightedAverageShsOutDil")
           or r.get("weightedAverageShsOut")
           for r in inc if isinstance(r, dict)]
@@ -165,6 +174,9 @@ def fetch_name(t):
         out["sh_qoq_pct"] = round((sh[0] / sh[1] - 1) * 100, 2)
     if len(sh) >= 5 and sh[4]:
         out["sh_yoy_pct"] = round((sh[0] / sh[4] - 1) * 100, 2)
+    if len(sh) >= 13 and sh[12] and sh[12] > 0:
+        out["sh_3y_cagr_pct"] = round(
+            ((sh[0] / sh[12]) ** (1.0 / 3) - 1) * 100, 2)
     mcap = q.get("marketCap")
     if not mcap and q.get("price") and q.get("sharesOutstanding"):
         mcap = q["price"] * q["sharesOutstanding"]
@@ -175,6 +187,17 @@ def fetch_name(t):
         if out.get("issuance_ttm_usd"):
             out["issuance_pct_mcap"] = round(
                 out["issuance_ttm_usd"] / mcap * 100, 2)
+        if out.get("buyback_net_ttm_usd") is not None:
+            out["buyback_net_yield_pct"] = round(
+                out["buyback_net_ttm_usd"] / mcap * 100, 2)
+        if out.get("sbc_ttm_usd"):
+            out["sbc_pct_mcap"] = round(
+                out["sbc_ttm_usd"] / mcap * 100, 2)
+        if out.get("buyback_net_ttm_usd") is not None \
+                or out.get("div_ttm_usd"):
+            out["total_shareholder_yield_pct"] = round(
+                ((out.get("buyback_net_ttm_usd") or 0)
+                 + (out.get("div_ttm_usd") or 0)) / mcap * 100, 2)
     return out or None
 
 
@@ -192,11 +215,36 @@ def classify(d):
         return "HEAVY_DILUTION"
     if (yoy is not None and yoy >= 2) or ipm >= 2:
         return "DILUTING"
-    if by >= 2 and (yoy is None or yoy < 0.5):
+    nby = d.get("buyback_net_yield_pct")
+    if (nby if nby is not None else by) >= 2 \
+            and (yoy is None or yoy < 0.5):
         return "BUYBACK_HEAVY"
     if yoy is not None and yoy <= -1:
         return "SHRINKING"
     return "NEUTRAL"
+
+
+def flag_row(d):
+    """Forensic flags -- from fields already on the row."""
+    f = []
+    gross = d.get("buyback_yield_pct") or 0
+    net = d.get("buyback_net_yield_pct")
+    yoy = d.get("sh_yoy_pct")
+    if gross >= 1 and net is not None and net < gross * 0.4 \
+            and (yoy is None or yoy > -0.5):
+        f.append("SBC_WASH")
+    if (d.get("sbc_pct_mcap") or 0) >= 3:
+        f.append("HEAVY_SBC")
+    if gross >= 1.5 and (d.get("insider_sell_usd_recent") or 0) \
+            >= 2_000_000 and not d.get("insider_buy_usd_90d"):
+        f.append("MGMT_SELLING_INTO_BUYBACK")
+    if (d.get("insider_buy_usd_90d") or 0) >= 1_000_000 \
+            and (d.get("insider_n_buyers") or 0) >= 2:
+        f.append("INSIDER_CONVICTION")
+    if d.get("read") in ("DILUTING", "HEAVY_DILUTION") \
+            and (d.get("insider_buy_usd_90d") or 0) >= 250_000:
+        f.append("MGMT_BUYING_DESPITE_DILUTION")
+    return f
 
 
 def lambda_handler(event=None, context=None):
@@ -262,9 +310,9 @@ def lambda_handler(event=None, context=None):
         warns.append("no sell rows in tape -- sells omitted "
                      "honestly")
 
-    tickers = {}
-    fresh_used = 0
-    for t in build_universe(warns):
+    universe = build_universe(warns)
+    cached_ok, need = {}, []
+    for t in universe:
         cached = prev_t.get(t)
         keep = False
         if cached and cached.get("as_of"):
@@ -272,27 +320,48 @@ def lambda_handler(event=None, context=None):
                 age = (datetime.fromisoformat(today)
                        - datetime.fromisoformat(
                            cached["as_of"])).days
-                keep = age <= CACHE_DAYS
+                keep = (age <= CACHE_DAYS
+                        and "buyback_net_ttm_usd" in cached)
             except Exception:
                 pass
-        if keep:
-            d = {k: v for k, v in cached.items()
+        (cached_ok.__setitem__(t, cached) if keep
+         else need.append(t))
+
+    # threaded fresh fetch -- the sequential 3-call crawl only
+    # reached ~65 names inside the time guard (3095 lesson #2)
+    fresh = {}
+    deadline = t0 + 760
+    with ThreadPoolExecutor(max_workers=10) as exe:
+        futs = {exe.submit(fetch_name, t): t
+                for t in need[:MAX_FRESH_FETCH]}
+        for fu in as_completed(futs):
+            t2 = futs[fu]
+            try:
+                r2 = fu.result()
+            except Exception:
+                r2 = None
+            if r2:
+                r2["as_of"] = today
+                fresh[t2] = r2
+            if time.time() > deadline:
+                warns.append("deadline at %d fresh" % len(fresh))
+                break
+    fresh_used = len(fresh)
+    warns.append("fresh %d / needed %d (budget %d)"
+                 % (fresh_used, len(need), MAX_FRESH_FETCH))
+
+    tickers = {}
+    for t in universe:
+        if t in fresh:
+            d = fresh[t]
+        elif t in cached_ok:
+            d = {k: v for k, v in cached_ok[t].items()
+                 if not k.startswith("insider")}
+        elif prev_t.get(t):
+            d = {k: v for k, v in prev_t[t].items()
                  if not k.startswith("insider")}
         else:
-            if fresh_used >= MAX_FRESH_FETCH \
-                    or time.time() - t0 > 560:
-                if cached:
-                    d = {k: v for k, v in cached.items()
-                         if not k.startswith("insider")}
-                else:
-                    continue
-            else:
-                d = fetch_name(t)
-                fresh_used += 1
-                if not d:
-                    continue
-                d["as_of"] = today
-                time.sleep(0.04)
+            continue
         d.update(ibuy.get(t) or {})
         d.update(isell.get(t) or {})
         # split/adjustment-mismatch guard: quarterly weighted-avg
@@ -303,6 +372,9 @@ def lambda_handler(event=None, context=None):
                 or abs(d.get("sh_qoq_pct") or 0) > 40:
             d["data_suspect"] = True
         d["read"] = classify(d)
+        fl = flag_row(d)
+        if fl:
+            d["flags"] = fl
         tickers[t] = d
 
     rows = [dict(ticker=t, **v) for t, v in tickers.items()
@@ -322,6 +394,16 @@ def lambda_handler(event=None, context=None):
                    if r.get("insider_buy_usd_90d")
                    and r["read"] in ("BUYBACK_HEAVY", "SHRINKING")],
                   key=lambda r: -r["insider_buy_usd_90d"])[:15]
+    washers = sorted([r for r in rows
+                      if "SBC_WASH" in (r.get("flags") or [])
+                      and not r.get("extreme")],
+                     key=lambda r: -(r.get("buyback_yield_pct")
+                                     or 0))[:20]
+    selling = sorted([r for r in rows
+                      if "MGMT_SELLING_INTO_BUYBACK"
+                      in (r.get("flags") or [])],
+                     key=lambda r: -(r.get("insider_sell_usd_recent")
+                                     or 0))[:20]
 
     out = {
         "version": VERSION,
@@ -330,6 +412,8 @@ def lambda_handler(event=None, context=None):
         "fresh_fetched": fresh_used,
         "tickers": tickers,
         "boards": {"top_buybacks": top_bb,
+                   "sbc_washers": washers,
+                   "mgmt_selling_into_buyback": selling,
                    "top_diluters": top_dil,
                    "extreme_diluters": extremes,
                    "insider_conviction": conv},
@@ -344,6 +428,23 @@ def lambda_handler(event=None, context=None):
                                  "-- 2%+ is a heavy repurchaser",
             "issuance_pct_mcap": "TTM stock issued / market cap -- "
                                  "2%+ meaningfully dilutive",
+            "buyback_net_yield_pct": "NET buyback (TTM repurchases"
+                                     " minus TTM issuance) / mcap --"
+                                     " gross spend that only mops up"
+                                     " stock-comp issuance is flagged"
+                                     " SBC_WASH",
+            "sbc_pct_mcap": "TTM stock-based compensation / mcap --"
+                            " the silent annual dilution tax; >=3%"
+                            " flagged HEAVY_SBC",
+            "total_shareholder_yield_pct": "(net buyback + dividends)"
+                                           " / mcap",
+            "sh_3y_cagr_pct": "3-year CAGR of the diluted share"
+                              " count",
+            "flags": "SBC_WASH / HEAVY_SBC /"
+                     " MGMT_SELLING_INTO_BUYBACK (company buys,"
+                     " insiders dump >=$2M) / INSIDER_CONVICTION"
+                     " (2+ insiders, >=$1M open-market) /"
+                     " MGMT_BUYING_DESPITE_DILUTION",
             "insider": "Form-4 open-market activity from the "
                        "insider desk: management buying with their "
                        "own money vs clustered selling",

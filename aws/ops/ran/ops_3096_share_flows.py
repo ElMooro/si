@@ -219,6 +219,25 @@ def main():
                              % yo)
         else:
             warns.append("AAPL not in universe today")
+        # v1.2 asserts (this push): net buyback / SBC / 3Y CAGR /
+        # flags / threaded coverage
+        v12 = [v for v in tk.values() if "buyback_net_ttm_usd" in v]
+        rep.kv(n_v12_rows=len(v12),
+               n_sbc=sum(1 for v in v12 if v.get("sbc_ttm_usd")),
+               n_flagged=sum(1 for v in tk.values()
+                             if v.get("flags")))
+        if not v12:
+            fails.append("no v1.2 rows (net buyback/SBC absent)")
+        a2 = tk.get("AAPL") or {}
+        if a2.get("buyback_net_yield_pct") is not None \
+                and not (0.5 <= a2["buyback_net_yield_pct"] <= 5.0):
+            fails.append("AAPL NET bb yield %s outside 0.5-5"
+                         % a2["buyback_net_yield_pct"])
+        if a2.get("total_shareholder_yield_pct") is not None \
+                and not (0.5 <= a2["total_shareholder_yield_pct"]
+                         <= 6.0):
+            fails.append("AAPL total yield %s outside 0.5-6"
+                         % a2["total_shareholder_yield_pct"])
         bd = d.get("boards") or {}
         rep.kv(top_bb=json.dumps((bd.get("top_buybacks")
                                   or [])[:3])[:220],
@@ -226,10 +245,16 @@ def main():
                                    or [])[:3])[:220])
         if not bd.get("top_buybacks"):
             fails.append("top_buybacks board empty")
+        rep.kv(sbc_washers=len(bd.get("sbc_washers") or []),
+               mgmt_selling=len(bd.get(
+                   "mgmt_selling_into_buyback") or []))
 
         rep.section("3. Four pages live (this-push markers)")
         pages = {
-            "opportunities.html": ("sfChips", "SHARES ", "BUYBACK "),
+            "share-flows.html": ("Share Flows", "NET buyback",
+                                 "extreme_diluters"),
+            "opportunities.html": ("sfChips", "SHARES ", "BUYBACK ",
+                                   "Capital return"),
             "industry-rotation.html": ("window.__sf", " BB '"),
             "accumulation.html": ("DILUTING", "window.__sf"),
             "chart-pro.html": ('g("share-flows.json")', '"DIL"'),

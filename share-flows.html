@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Share Flows · Buybacks, Dilution &amp; Insider Money · JustHodl.AI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🔬</text></svg>">
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 80px}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:.3px}
+.sub{color:var(--mute);font-size:13px;margin-bottom:18px}
+.kpi{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:12px;color:var(--mute);margin-bottom:20px}
+.kpi b{color:var(--txt)}
+.explain{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:22px;color:var(--mute);font-size:13px}
+.explain b{color:var(--txt)}
+.search{display:flex;gap:8px;margin-bottom:22px}
+.search input{flex:1;max-width:340px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:10px 14px;font-family:var(--mono);font-size:14px;text-transform:uppercase}
+.search input:focus{outline:none;border-color:var(--cyan)}
+#lookup{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:26px;display:none}
+#lookup h3{margin:0 0 10px;font-size:16px}
+.kv{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.kv span{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-family:var(--mono);font-size:12px;color:var(--mute)}
+.kv span b{color:var(--txt)}
+.kv .g b{color:var(--green)}.kv .b b{color:var(--red)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.5px}
+.v-BUYBACK_HEAVY{background:rgba(38,255,175,.14);color:var(--green)}
+.v-SHRINKING{background:rgba(0,212,255,.14);color:var(--cyan)}
+.v-NEUTRAL{background:rgba(168,179,199,.14);color:var(--mute)}
+.v-DILUTING{background:rgba(255,122,24,.14);color:var(--orange)}
+.v-HEAVY_DILUTION{background:rgba(255,85,119,.16);color:var(--red)}
+.v-EXTREME_DILUTION{background:rgba(255,85,119,.28);color:var(--red);border:1px solid var(--red)}
+.flag{display:inline-block;margin:2px 4px 0 0;padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;background:rgba(255,210,102,.12);color:var(--yellow)}
+.flag.bad{background:rgba(255,85,119,.12);color:var(--red)}
+.flag.good{background:rgba(38,255,175,.12);color:var(--green)}
+h2{font-size:16px;margin:30px 0 4px}
+.bnote{color:var(--dim);font-size:12px;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:right;color:var(--dim);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.up{color:var(--green)}td.dn{color:var(--red)}
+tr:hover td{background:var(--panel2)}
+a.tk{color:var(--cyan);text-decoration:none;font-weight:700}
+.loading{color:var(--dim);font-family:var(--mono);padding:30px 0}
+.tblwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔬 Share Flows — buybacks, dilution &amp; insider money</h1>
+<div class="sub" id="sub">Who is really returning capital — and who is quietly printing shares. Loading…</div>
+<div class="kpi" id="kpi"></div>
+
+<div class="explain">
+<b>How to read this desk.</b> The ground truth of dilution is the <b>diluted share count</b> — if it grows, every headline buyback is losing the race. <b>Net buyback</b> = TTM repurchases minus TTM new issuance from the cash-flow statement; a company can announce billions in buybacks that only mop up stock-comp issuance — we flag that <b>SBC WASH</b>. <b>Insider money</b> is joined from the Form-4 desks: open-market purchases are real conviction with management's own cash; the sell side uses the 5-factor opportunistic-sale filter (routine 10b5-1 noise removed). The nastiest pattern on Wall Street — the company buying back stock with shareholder cash while management sells its own — has its own board below. Research, not advice.
+</div>
+
+<div class="search">
+<input id="q" placeholder="TICKER — look up any covered stock" maxlength="8">
+</div>
+<div id="lookup"></div>
+
+<h2>🥩 Top buybacks — biggest real repurchasers</h2>
+<p class="bnote">Ranked by TTM buyback yield. Cross-check the net column — gross spend with a flat share count means issuance is eating it.</p>
+<div class="tblwrap"><div class="loading" id="b1">loading…</div></div>
+
+<h2>👤 Insider conviction — management buying while the float shrinks</h2>
+<p class="bnote">Open-market insider buys on names already classified BUYBACK_HEAVY or SHRINKING — capital return plus skin in the game.</p>
+<div class="tblwrap"><div class="loading" id="b2">loading…</div></div>
+
+<h2>🚩 Mgmt selling into the buyback</h2>
+<p class="bnote">Company repurchasing ≥1.5% of its market cap while insiders opportunistically net-sold ≥ $2M — shareholder cash supports the price, management supplies the shares.</p>
+<div class="tblwrap"><div class="loading" id="b3">loading…</div></div>
+
+<h2>🧼 SBC washers — buybacks that don't shrink anything</h2>
+<p class="bnote">Meaningful gross buyback, but issuance eats ≥60% of it and the share count isn't falling.</p>
+<div class="tblwrap"><div class="loading" id="b4">loading…</div></div>
+
+<h2>☠️ Extreme dilution — death-spiral issuance</h2>
+<p class="bnote">Share count up ≥80% yoy or out-of-band prints — real numbers (never hidden), usually toxic financings, ATMs at any price, or reverse-split cycles. Treat as radioactive.</p>
+<div class="tblwrap"><div class="loading" id="b6">loading…</div></div>
+
+<h2>🖨️ Top diluters — share count growing fastest</h2>
+<p class="bnote">Your ownership stake shrinks every quarter you hold. Sometimes justified (funded growth), often not — check runway and insider flow.</p>
+<div class="tblwrap"><div class="loading" id="b5">loading…</div></div>
+</div>
+
+<script>
+let D=null,BY={};
+const $=id=>document.getElementById(id);
+const usd=v=>{if(v==null)return'—';const a=Math.abs(v);const s=v<0?'−':'';
+ if(a>=1e9)return s+'$'+(a/1e9).toFixed(1)+'B';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';
+ if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+a.toFixed(0)};
+const pc=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%';
+const vb=v=>'<span class="badge v-'+(v||'NEUTRAL')+'">'+(v||'—').replace(/_/g,' ')+'</span>';
+const fl=f=>(f||[]).map(x=>{const c=x==='INSIDER_CONVICTION'?'good':(x==='MGMT_SELLING_INTO_BUYBACK'||x==='SBC_WASH')?'bad':'';return'<span class="flag '+c+'">'+x.replace(/_/g,' ')+'</span>'}).join('');
+const cls=v=>v==null?'':v<0?'up':'dn';
+const clsU=v=>v==null?'':v>0?'up':'dn';
+const insNet=r=>{const b=r.insider_buy_usd_90d||0,s=r.insider_sell_usd_recent||0;return(b||s)?b-s:null};
+
+function boardTable(rows){
+ if(!rows||!rows.length)return'<div class="loading">none currently</div>';
+ return'<table><thead><tr><th>Stock</th><th>Read</th><th>Δ shares yoy</th><th>3Y CAGR</th><th>Buyback TTM</th><th>Net BB yield</th><th>Issued %mcap</th><th>SBC %mcap</th><th>Total yield</th><th>Insider net</th><th>Flags</th></tr></thead><tbody>'+
+ rows.map(r=>'<tr><td><a class="tk" href="/chart-pro.html?ticker='+r.ticker+'">'+r.ticker+'</a></td>'+
+ '<td>'+vb(r.read)+'</td>'+
+ '<td class="'+cls(r.sh_yoy_pct)+'">'+pc(r.sh_yoy_pct)+'</td>'+
+ '<td class="'+cls(r.sh_3y_cagr_pct)+'">'+pc(r.sh_3y_cagr_pct)+'</td>'+
+ '<td>'+usd(r.buyback_ttm_usd)+'</td>'+
+ '<td class="'+clsU(r.buyback_net_yield_pct)+'">'+pc(r.buyback_net_yield_pct)+'</td>'+
+ '<td class="'+(r.issuance_pct_mcap>=2?'dn':'')+'">'+(r.issuance_pct_mcap==null?'—':Number(r.issuance_pct_mcap).toFixed(1)+'%')+'</td>'+
+ '<td class="'+(r.sbc_pct_mcap>=3?'dn':'')+'">'+(r.sbc_pct_mcap==null?'—':Number(r.sbc_pct_mcap).toFixed(1)+'%')+'</td>'+
+ '<td class="'+clsU(r.total_shareholder_yield_pct)+'">'+pc(r.total_shareholder_yield_pct)+'</td>'+
+ '<td class="'+clsU(insNet(r))+'">'+usd(insNet(r))+'</td>'+
+ '<td style="text-align:left">'+fl(r.flags)+'</td></tr>').join('')+'</tbody></table>';
+}
+
+function lookup(sym){
+ const r=BY[sym];const el=$('lookup');
+ if(!r){el.style.display='block';el.innerHTML='<h3>'+sym+'</h3><div class="loading">not in coverage ('+(D?Object.keys(BY).length:0)+' names — opportunity + ranker + soldier + insider universes)</div>';return}
+ el.style.display='block';
+ const warn=r.data_suspect?'<div class="bnote" style="color:var(--yellow)">⚠ share-count prints span a split/adjustment mismatch — percentages are real filings math but not economically comparable</div>':'';
+ el.innerHTML='<h3><a class="tk" href="/chart-pro.html?ticker='+sym+'">'+sym+'</a> '+vb(r.read)+' '+fl(r.flags)+'</h3>'+
+ '<div class="kv">'+
+ '<span class="'+((r.sh_yoy_pct||0)<0?'g':'b')+'">Share count yoy <b>'+pc(r.sh_yoy_pct)+'</b></span>'+
+ (r.sh_qoq_pct!=null?'<span>qoq <b>'+pc(r.sh_qoq_pct)+'</b></span>':'')+
+ (r.sh_3y_cagr_pct!=null?'<span class="'+(r.sh_3y_cagr_pct<0?'g':'b')+'">3Y CAGR <b>'+pc(r.sh_3y_cagr_pct)+'/yr</b></span>':'')+
+ '<span>Buyback TTM <b>'+usd(r.buyback_ttm_usd)+'</b>'+(r.buyback_yield_pct!=null?' ('+Number(r.buyback_yield_pct).toFixed(1)+'% mcap)':'')+'</span>'+
+ '<span class="'+((r.issuance_pct_mcap||0)>=2?'b':'')+'">Issued TTM <b>'+usd(r.issuance_ttm_usd)+'</b>'+(r.issuance_pct_mcap!=null?' ('+Number(r.issuance_pct_mcap).toFixed(1)+'%)':'')+'</span>'+
+ (r.buyback_net_yield_pct!=null?'<span class="'+(r.buyback_net_yield_pct>0?'g':'b')+'">NET buyback yield <b>'+pc(r.buyback_net_yield_pct)+'</b></span>':'')+
+ (r.sbc_ttm_usd!=null?'<span class="'+((r.sbc_pct_mcap||0)>=3?'b':'')+'">Stock comp TTM <b>'+usd(r.sbc_ttm_usd)+'</b>'+(r.sbc_pct_mcap!=null?' ('+Number(r.sbc_pct_mcap).toFixed(1)+'% mcap/yr)':'')+'</span>':'')+
+ (r.div_ttm_usd?'<span>Dividends TTM <b>'+usd(r.div_ttm_usd)+'</b></span>':'')+
+ (r.total_shareholder_yield_pct!=null?'<span class="'+(r.total_shareholder_yield_pct>0?'g':'b')+'">Total shareholder yield <b>'+pc(r.total_shareholder_yield_pct)+'</b></span>':'')+
+ (r.insider_buy_usd_90d?'<span class="g">Insider buys 90d <b>'+usd(r.insider_buy_usd_90d)+'</b>'+(r.insider_n_buyers?' ('+r.insider_n_buyers+' insiders)':'')+'</span>':'')+
+ (r.insider_sell_usd_recent?'<span class="b">Insider opportunistic sells <b>'+usd(r.insider_sell_usd_recent)+'</b>'+(r.insider_n_sellers?' ('+r.insider_n_sellers+' insiders)':'')+'</span>':'')+
+ ((!r.insider_buy_usd_90d&&!r.insider_sell_usd_recent)?'<span>Insider flow <b>quiet</b> — no clustered Form-4 activity</span>':'')+
+ '</div>'+warn;
+}
+
+(async()=>{
+ try{const r=await fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?t='+Date.now());if(r.ok)D=await r.json();}catch{}
+ if(!D){$('sub').textContent='AWAITING FIRST RUN — the engine runs daily at 13:35 UTC.';return}
+ BY=D.tickers||{};
+ const rows=Object.entries(BY).map(([t,v])=>({ticker:t,...v}));
+ const rc={};rows.forEach(r=>{rc[r.read]=(rc[r.read]||0)+1});
+ $('sub').textContent='Who is really returning capital — and who is quietly printing shares. Updated '+(D.generated_at||D.as_of||'').slice(0,16).replace('T',' ')+' UTC.';
+ $('kpi').innerHTML='<span><b>'+rows.length+'</b> stocks covered</span>'+
+  '<span style="color:var(--green)"><b>'+(rc['BUYBACK_HEAVY']||0)+'</b> buyback-heavy</span>'+
+  '<span style="color:var(--cyan)"><b>'+(rc['SHRINKING']||0)+'</b> shrinking</span>'+
+  '<span><b>'+(rc['NEUTRAL']||0)+'</b> neutral</span>'+
+  '<span style="color:var(--orange)"><b>'+(rc['DILUTING']||0)+'</b> diluting</span>'+
+  '<span style="color:var(--red)"><b>'+(rc['HEAVY_DILUTION']||0)+'</b> heavy dilution</span>'+
+  ((rc['EXTREME_DILUTION']||0)?'<span style="color:var(--red)"><b>'+rc['EXTREME_DILUTION']+'</b> ☠️ extreme</span>':'');
+ const B=D.boards||{};
+ $('b1').outerHTML=boardTable(B.top_buybacks);
+ $('b2').outerHTML=boardTable(B.insider_conviction);
+ $('b3').outerHTML=boardTable(B.mgmt_selling_into_buyback);
+ $('b4').outerHTML=boardTable(B.sbc_washers);
+ $('b5').outerHTML=boardTable(B.top_diluters);
+ $('b6').outerHTML=boardTable(B.extreme_diluters);
+ $('q').addEventListener('keydown',e=>{if(e.key==='Enter'){const s=e.target.value.trim().toUpperCase();if(s)lookup(s);}});
+ const p=new URLSearchParams(location.search).get('ticker');
+ if(p){$('q').value=p.toUpperCase();lookup(p.toUpperCase());}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+</body>
+</html>

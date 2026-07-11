@@ -296,16 +296,16 @@ function _bn(v){if(v==null)return '\u2014';const a=Math.abs(v),s=v<0?'-':'';if(a
 function _r1(v){return v==null?'\u2014':Math.round(v*10)/10;}
 function _spark(vals,color){const v=(vals||[]).filter(x=>x!=null);if(v.length<2)return'';const w=170,h=32,mn=Math.min(...v),mx=Math.max(...v),rng=(mx-mn)||1;const pts=v.map((x,i)=>((i/(v.length-1))*w)+','+(h-2-((x-mn)/rng)*(h-4))).join(' ');return '<svg class="dspark" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" points="'+pts+'"/></svg>';}
 function deepDrawer(tk){
-  const v=RESEARCH[tk]; if(!v||!v.thesis) return '';
+  const v=RESEARCH[tk]||{}; if(!v.thesis&&!SF[tk]) return '';
   const psp=v.price_spark||[];
   const ph=v.price!=null?'<div class="dphdr"><span class="dpx">$'+_r1(v.price)+'</span>'+
     (v.ret_1m!=null?'<span class="drt '+(v.ret_1m>=0?'up':'dn')+'">'+(v.ret_1m>=0?'+':'')+v.ret_1m+'%<i>1M</i></span>':'')+
     (v.ret_3m!=null?'<span class="drt '+(v.ret_3m>=0?'up':'dn')+'">'+(v.ret_3m>=0?'+':'')+v.ret_3m+'%<i>3M</i></span>':'')+
     (psp.length>2?_spark(psp,(v.ret_3m||0)>=0?'#26ffaf':'#ff5577'):'')+'</div>':'';
   const sb=v.flags_bull||[],sx=v.flags_bear||[];
-  const score='<div class="dscore"><div class="dscol bull"><div class="dhd"><b>'+(v.score_bull||0)+'</b> for</div><ul>'+(sb.length?sb.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li class="z">none</li>')+'</ul></div>'+
+  const score=!v.thesis?'':'<div class="dscore"><div class="dscol bull"><div class="dhd"><b>'+(v.score_bull||0)+'</b> for</div><ul>'+(sb.length?sb.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li class="z">none</li>')+'</ul></div>'+
     '<div class="dscol bear"><div class="dhd"><b>'+(v.score_bear||0)+'</b> against</div><ul>'+(sx.length?sx.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li class="z">no red flags</li>')+'</ul></div></div>';
-  const th='<div class="dbox"><span class="dlbl">The plain-English case \u2014 and the main risk</span>'+esc(v.thesis)+'</div>';
+  const th=v.thesis?'<div class="dbox"><span class="dlbl">The plain-English case \u2014 and the main risk</span>'+esc(v.thesis)+'</div>':'';
   const be=v.bear?'<div class="dbox bear"><span class="dlbl">Why it might be cheap for a reason \u2014 and the tell</span>'+esc(v.bear)+'</div>':'';
   let qb=[];
   if(v.cash_conv!=null)qb.push('<span class="'+(v.cash_conv>=80?'g':v.cash_conv<50?'b':'')+'">Cash conv <b>'+v.cash_conv+'%</b></span>');
@@ -322,13 +322,33 @@ function deepDrawer(tk){
   if(v.insider_sig)cb.push('<span class="'+(v.insider_sig==='selling'?'b':v.insider_sig==='buying'?'g':'')+'">\ud83d\udc64 Insiders <b>'+v.insider_sig+'</b></span>');
   if(v.fwd_rev_growth!=null)cb.push('<span class="'+(v.fwd_rev_growth>0?'g':'b')+'">\ud83d\udd2e Fwd rev <b>'+(v.fwd_rev_growth>=0?'+':'')+_r1(v.fwd_rev_growth)+'%</b></span>');
   const conf=cb.length?'<div class="dsub"><h5>Confirmation \u2014 who else is positioned</h5><div class="dkv">'+cb.join('')+'</div></div>':'';
+  let capret='';const sfd=SF[tk];
+  if(sfd){
+    const _usd=x=>{if(x==null)return'\u2014';const a=Math.abs(x),sg=x<0?'\u2212':'';return a>=1e9?sg+'$'+(a/1e9).toFixed(1)+'B':a>=1e6?sg+'$'+(a/1e6).toFixed(1)+'M':sg+'$'+Math.round(a/1e3)+'K'};
+    const _pc=x=>x==null?'\u2014':(x>0?'+':'')+Number(x).toFixed(1)+'%';
+    let fb=[];
+    fb.push('<span class="'+((sfd.sh_yoy_pct||0)<0?'g':(sfd.sh_yoy_pct||0)>=1?'b':'')+'">Share count yoy <b>'+_pc(sfd.sh_yoy_pct)+'</b></span>');
+    if(sfd.sh_3y_cagr_pct!=null)fb.push('<span class="'+(sfd.sh_3y_cagr_pct<0?'g':sfd.sh_3y_cagr_pct>=1?'b':'')+'">3Y <b>'+_pc(sfd.sh_3y_cagr_pct)+'/yr</b></span>');
+    if(sfd.buyback_ttm_usd)fb.push('<span class="g">Buyback TTM <b>'+_usd(sfd.buyback_ttm_usd)+'</b></span>');
+    if(sfd.buyback_net_yield_pct!=null)fb.push('<span class="'+(sfd.buyback_net_yield_pct>0?'g':'b')+'">NET buyback <b>'+_pc(sfd.buyback_net_yield_pct)+'</b> <i>of mcap</i></span>');
+    if(sfd.issuance_ttm_usd)fb.push('<span class="'+((sfd.issuance_pct_mcap||0)>=2?'b':'')+'">Issued <b>'+_usd(sfd.issuance_ttm_usd)+'</b></span>');
+    if(sfd.sbc_pct_mcap!=null)fb.push('<span class="'+(sfd.sbc_pct_mcap>=3?'b':'')+'">Stock comp <b>'+Number(sfd.sbc_pct_mcap).toFixed(1)+'%</b> <i>mcap/yr</i></span>');
+    if(sfd.total_shareholder_yield_pct!=null)fb.push('<span class="'+(sfd.total_shareholder_yield_pct>0?'g':'')+'">Total yield <b>'+_pc(sfd.total_shareholder_yield_pct)+'</b></span>');
+    if(sfd.insider_buy_usd_90d)fb.push('<span class="g">\ud83d\udc64 Mgmt bought <b>'+_usd(sfd.insider_buy_usd_90d)+'</b>'+(sfd.insider_n_buyers?' <i>'+sfd.insider_n_buyers+' insiders</i>':'')+'</span>');
+    if(sfd.insider_sell_usd_recent)fb.push('<span class="b">\ud83d\udc64 Mgmt sold <b>'+_usd(sfd.insider_sell_usd_recent)+'</b>'+(sfd.insider_n_sellers?' <i>'+sfd.insider_n_sellers+' insiders</i>':'')+'</span>');
+    const rd=sfd.read||'NEUTRAL';
+    const vcol=rd==='BUYBACK_HEAVY'?'var(--green)':rd==='SHRINKING'?'var(--cyan)':(rd==='HEAVY_DILUTION'||rd==='EXTREME_DILUTION')?'var(--red)':rd==='DILUTING'?'var(--orange)':'var(--dim)';
+    const flg=(sfd.flags||[]).map(x=>'<span style="color:'+(x==='INSIDER_CONVICTION'?'var(--green)':'var(--yellow)')+'">'+x.replace(/_/g,' ')+'</span>').join(' \u00b7 ');
+    const susp=sfd.data_suspect?' <span style="color:var(--yellow)">\u26a0 split-adjusted prints</span>':'';
+    capret='<div class="dsub"><h5>Capital return &amp; dilution \u2014 is the float shrinking? <b style="color:'+vcol+'">'+rd.replace(/_/g,' ')+'</b>'+(flg?' \u00b7 '+flg:'')+susp+' <a href="/share-flows.html?ticker='+encodeURIComponent(tk)+'" style="color:var(--cyan);text-decoration:none">full forensics \u2197</a></h5><div class="dkv">'+fb.join('')+'</div></div>';
+  }
   let fin='';const F=v.financials||[];
   if(F.length){
     const rows=F.map(f=>'<tr><td class="l">'+esc(f.year)+'</td><td>'+_bn(f.revenue)+'</td><td>'+(f.gm==null?'\u2014':f.gm+'%')+'</td><td>'+(f.om==null?'\u2014':f.om+'%')+'</td><td class="'+((f.nm||0)>=0?'up':'dn')+'">'+(f.nm==null?'\u2014':f.nm+'%')+'</td><td class="'+((f.fcf||0)>=0?'up':'dn')+'">'+_bn(f.fcf)+'</td><td>'+(f.eps==null?'\u2014':'$'+_r1(f.eps))+'</td></tr>').join('');
     fin='<div class="dsub"><h5>10-year financials</h5>'+_spark(F.map(f=>f.revenue),'#00d4ff')+'<table class="dfin"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross</th><th>Op</th><th>Net</th><th>Free cash</th><th>EPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
   const cl='<a class="dchart" href="/chart-pro.html?ticker='+encodeURIComponent(tk)+'">Open full chart &amp; technicals \u2197</a>';
-  return '<details class="deep"><summary>\ud83d\udd2c Deep research \u2014 thesis, financials, scorecard</summary><div class="deepbody">'+ph+score+th+be+qual+conf+fin+cl+'</div></details>';
+  return '<details class="deep"><summary>\ud83d\udd2c Deep research \u2014 thesis, financials, scorecard</summary><div class="deepbody">'+ph+score+th+be+qual+conf+capret+fin+cl+'</div></details>';
 }
 
 function card(r,full){
