@@ -41,7 +41,7 @@ function card(r,kind){
   const ph=PHC[r.phase]||'var(--fg3)';
   const sv=kind==='t'?r.top_score:kind==='b'?r.bottom_score:(r.phase==='DISTRIBUTION'?r.top_score:r.bottom_score);
   const sc=kind==='t'||r.phase==='DISTRIBUTION'?'var(--red)':'var(--grn)';
-  return `<div class="card ${kind}"><div class="r1"><span class="tk">${esc(r.ticker)} ${r.label?'<span class="lb">'+esc(r.label)+'</span>':''}</span>`
+  return `<div class="card ${kind}" data-jhf="${esc(r.ticker)}" data-jhf-read><div class="r1"><span class="tk">${esc(r.ticker)} ${r.label?'<span class="lb">'+esc(r.label)+'</span>':''}</span>`
    +`<span class="ph" style="color:${ph};border:1px solid ${ph}55">${esc(r.phase)}</span></div>`
    +`<div class="l2">${metric(r)}</div>`
    +chips(r)
@@ -81,7 +81,7 @@ function revCard(r, kind){
   if (sf && sf.buyback_yield_pct>=2) chps.push(`<span class="chp" style="color:var(--grn)" title="buying back ${sf.buyback_yield_pct}%/yr of the float — a real bid under the reversal">BUYBACK ${sf.buyback_yield_pct}%</span>`);
   if (sf && sf.insider_buy_usd_90d) chps.push(`<span class="chp" style="color:var(--grn)" title="insider open-market buys">INS +$${(sf.insider_buy_usd_90d/1e6).toFixed(1)}M</span>`);
   const pos = good ? `+${r.pct_off_252d_low}% off the 252d low` : `${r.pct_off_252d_high}% off the 252d high`;
-  return `<div class="card ${kind}"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${tierC};border:1px solid ${tierC}55">${esc(r.tier)}</span></div>`
+  return `<div class="card ${kind}" data-jhf="${esc(r.ticker)}" data-jhf-read><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${tierC};border:1px solid ${tierC}55">${esc(r.tier)}</span></div>`
    + `<div class="l2">${pos}</div><div class="chips">${chps.join('')}</div>`
    + `<div style="font-size:10.5px;color:var(--fg3);margin-top:4px">${(r.evidence||[]).slice(0,4).map(esc).join(' · ')}</div>`
    + `<div class="bar"><span style="width:${Math.min(100,r.score)}%;background:${ac}"></span></div></div>`;
@@ -162,4 +162,5 @@ function block(book,kind){
 </script><script src="/jh-nav-drawer.js" defer></script>
 
 <script defer src="/jh-page-ai.js"></script>
+<script src="/jh-fund-chips.js" defer></script>
 </body></html>

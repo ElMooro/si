@@ -51,11 +51,11 @@ let D=null;
     <div class="g"><b style="font-size:13px">${esc(D.source_used)}</b><div class="m">source · ${D.n_raw} raw rows</div></div>`;
   const dc=D.decline_clusters||[];
   document.getElementById('dc').innerHTML=dc.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Buys</th><th>Total $</th><th>Span</th><th>60d ret</th><th>P/S</th><th>Names</th></tr></thead><tbody>${
-   dc.map(c=>`<tr style="background:rgba(251,191,36,.05)"><td class="l"><b>${esc(c.ticker)}</b></td><td>${c.n_insiders}</td><td>${c.n_buys}</td><td class="hi">${usd(c.total_value)}</td><td>${c.span_days}d</td><td class="lo">${c.ret_60d_pct}%</td><td>${c.ps_ttm??'—'}×</td><td class="l" style="font-size:10px">${esc((c.names||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`
+   dc.map(c=>`<tr style="background:rgba(251,191,36,.05)"><td class="l"><b>${esc(c.ticker)}</b><div data-jhf="${esc(c.ticker)}" data-jhf-read></div></td><td>${c.n_insiders}</td><td>${c.n_buys}</td><td class="hi">${usd(c.total_value)}</td><td>${c.span_days}d</td><td class="lo">${c.ret_60d_pct}%</td><td>${c.ps_ttm??'—'}×</td><td class="l" style="font-size:10px">${esc((c.names||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`
    :'<div class="loading">None in window — this list is empty most days; that is the point.</div>';
   const cl=D.clusters||[];
   document.getElementById('cl').innerHTML=cl.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Total $</th><th>Span</th><th>Top rank w</th><th>60d ret</th><th>P/S</th><th>Window</th></tr></thead><tbody>${
-   cl.map(c=>`<tr><td class="l"><b>${esc(c.ticker)}</b></td><td>${c.n_insiders}</td><td>${usd(c.total_value)}</td><td>${c.span_days}d</td><td>${c.max_rank_w}×</td><td class="${(c.ret_60d_pct||0)<0?'lo':'hi'}">${c.ret_60d_pct??'—'}%</td><td>${c.ps_ttm??'—'}×</td><td style="font-size:10px">${esc(c.first)} → ${esc(c.last)}</td></tr>`).join('')}</tbody></table>`
+   cl.map(c=>`<tr><td class="l"><b>${esc(c.ticker)}</b><div data-jhf="${esc(c.ticker)}"></div></td><td>${c.n_insiders}</td><td>${usd(c.total_value)}</td><td>${c.span_days}d</td><td>${c.max_rank_w}×</td><td class="${(c.ret_60d_pct||0)<0?'lo':'hi'}">${c.ret_60d_pct??'—'}%</td><td>${c.ps_ttm??'—'}×</td><td style="font-size:10px">${esc(c.first)} → ${esc(c.last)}</td></tr>`).join('')}</tbody></table>`
    :'<div class="loading">No clusters in window.</div>';
   const b=D.latest_buys||[];
   document.getElementById('buys').innerHTML=b.length?`<table><thead><tr><th>Date</th><th>Ticker</th><th>Insider</th><th>Title</th><th>Shares</th><th>Px</th><th>Value</th><th>W</th></tr></thead><tbody>${
@@ -98,4 +98,5 @@ aiPanel('insider-radar-decisive-call','aibrief');
 </script>  <script src="/jh-enhance.js" data-feed="data/insider-radar.json" data-bars="latest_buys:ticker:value" data-title="Insider radar — recent buys ($ value)" data-sub="latest Form 4 purchases" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 </body></html>

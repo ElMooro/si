@@ -449,6 +449,8 @@ function renderTickers() {
             <div class="tc-pills">${sysPills}</div>
             <div class="tc-rationale">${r.rationale||''}</div>
             ${sfLine(r.ticker)}
+            ${(r.systems&&r.systems.length)?`<div style="font-size:10px;color:var(--fg3);font-family:var(--mono,monospace);margin-top:3px">WHY: ${r.n_systems||r.systems.length} systems agree — ${r.systems.slice(0,8).join(' · ')}${r.systems.length>8?' +'+(r.systems.length-8):''}</div>`:''}
+            <div data-jhf="${r.ticker}" data-jhf-read></div>
           </div>
         </div>
       </div>
@@ -590,5 +592,6 @@ setInterval(load, 5*60*1000);
   <script src="/jh-enhance.js" data-feed="data/master-ranker.json" data-bars="top_tickers:ticker:score" data-title="Master ranker — top tickers" data-sub="unified cross-engine rank" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 </body>
 </html>

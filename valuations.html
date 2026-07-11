@@ -109,7 +109,7 @@ function renderB(){
   let rows=(D.hp||[]);if(FLAGF==='clean')rows=rows.filter(r=>!(r.flags||[]).length);
   document.getElementById('hp').innerHTML=rows.slice(0,40).map((r,i)=>{
     const col=r.score>=75?'var(--green)':r.score>=55?'var(--amber)':'var(--fg3)';
-    return `<div class="card ${(r.flags||[]).length?'fl':''}">
+    return `<div class="card ${(r.flags||[]).length?'fl':''}" data-jhf="${r.ticker||r.symbol||''}" data-jhf-read>
      <div style="display:flex;align-items:center;gap:11px">
       <b style="font-family:var(--mono);font-size:15px;min-width:64px">#${i+1} ${esc(r.t)}</b>${r.metrics?.net_cash?'<span class="pill pCHEAP" style="margin-left:2px">NET CASH</span>':''}
       <div class="scorebar"><i style="width:${r.score}%;background:${col}"></i></div>
@@ -198,4 +198,5 @@ async function aiPanel(key,mount){
 aiPanel('stock-valuations-decisive-call','aibrief');
 </script>  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 </body></html>

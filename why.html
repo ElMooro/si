@@ -3040,8 +3040,7 @@ window.renderIndustryCompass=function(d){
   var S3B='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/';
   var DOCS={}, TK=null, TRIES=0;
   function gj(k){return fetch(S3B+k+'?_='+Date.now()).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});}
-  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json')]).then(function(a){
-    DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];tick();});
+  Promise.all([gj('data/forensic-screen.json'),gj('data/share-flows.json'),gj('data/buyback-engine.json'),gj('data/industry-rotation.json')]).then(function(a){DOCS.fo=a[0];DOCS.sf=a[1];DOCS.bb=a[2];DOCS.ir=a[3];tick();});
   function box(l,v,c){return '<span style="background:var(--panel2,#11161f);border:1px solid var(--line,#1c2433);border-radius:6px;padding:5px 10px;font-family:ui-monospace,monospace;font-size:12px;color:#a8b3c7">'+l+' <b style="color:'+(c||'#e6eaf2')+'">'+v+'</b></span>';}
   function render(t){
     var old=document.getElementById('jh-fleet-forensic'); if(old) old.remove();
@@ -3076,6 +3075,30 @@ window.renderIndustryCompass=function(d){
       else if(bb.days_to_blackout!=null)rows.push(box('Blackout starts','in '+bb.days_to_blackout+'d',bb.days_to_blackout<=7?'#ffd266':'#a8b3c7'));
       if(bb.high_conviction_pump)rows.push(box('Buyback board','🚀 PUMP SETUP','#26ffaf'));
     }
+    /* industry health: a fine stock in a shrinking industry is in trouble */
+    try{
+      var meta=(document.body.textContent.match(/·\s*([A-Za-z &\-\/,]+?)\s*·\s*(NASDAQ|NYSE|AMEX|OTC)/)||[])[1]||'';
+      var indName=(meta||'').trim();
+      var IR=DOCS.ir||{}; var pools=[].concat(IR.leaders||[],IR.soldiers_by_industry?Object.keys(IR.soldiers_by_industry).map(function(k){return{industry:k}}):[],IR.regiments||[]);
+      var hit=null,best=0;
+      pools.forEach(function(l){var nm=(l.industry||l.name||'').toLowerCase(); if(!nm)return;
+        var q=indName.toLowerCase(); if(!q)return;
+        var s=(nm===q)?3:(nm.indexOf(q)>=0||q.indexOf(nm)>=0)?2:0;
+        if(s>best){best=s;hit=l;}});
+      if(hit){
+        var sc=hit.score!=null?hit.score:hit.total_score;
+        var tr=hit.trend||hit.momentum_trend||'';
+        var det=hit.deterioration||hit.confirmed_deterioration||hit.cds_danger;
+        var fl=hit.fund_flows_5d_usd!=null?hit.fund_flows_5d_usd:(hit.flows||{}).net_5d;
+        var growing=(sc!=null&&sc>=55&&!det)?'GROWING / LEADING':(det||( sc!=null&&sc<35))?'SHRINKING / IN TROUBLE':'MIXED';
+        var gcol=growing.indexOf('GROW')===0?'#26ffaf':growing.indexOf('SHRINK')===0?'#ff5577':'#ffd266';
+        rows.push(box('Industry health ('+(hit.industry||hit.name)+')',growing,gcol));
+        if(sc!=null)rows.push(box('Industry rotation score',Math.round(sc)+'/100 '+(hit.grade?('· '+hit.grade):'')));
+        if(tr)rows.push(box('Industry trend',String(tr).replace(/_/g,' ')));
+        if(det)rows.push(box('Industry warning','CONFIRMED DETERIORATION — even strong names fight the tide','#ff5577'));
+        if(fl!=null)rows.push(box('Industry ETF flows 5d',(fl>0?'+$':'-$')+Math.abs(fl/1e6).toFixed(0)+'M',fl>0?'#26ffaf':'#ff5577'));
+      }
+    }catch(e){}
     if(!rows.length) return;
     var sec=document.createElement('section');
     sec.id='jh-fleet-forensic'; sec.className='block';

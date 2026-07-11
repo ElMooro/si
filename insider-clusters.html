@@ -277,7 +277,7 @@ function renderCard(c) {
   const mcapStr = mcap ? (mcap >= 1e9 ? `$${(mcap/1e9).toFixed(1)}B` : mcap >= 1e6 ? `$${(mcap/1e6).toFixed(0)}M` : '?') : '?';
 
   return `
-    <div class="${cardCls}">
+    <div class="${cardCls}" data-jhf="${escape(c.ticker||'')}" data-jhf-read>
       <div class="card-header">
         <div>
           <div class="card-ticker">${escape(c.ticker||'?')}</div>
@@ -347,5 +347,6 @@ async function load() {
   <script src="/jh-enhance.js" data-feed="data/insider-clusters.json" data-bars="clusters:ticker:score" data-title="Insider clusters — cluster score" data-sub="coordinated insider buying" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-fund-chips.js" defer></script>
 </body>
 </html>
