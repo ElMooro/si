@@ -1140,18 +1140,41 @@ def lambda_handler(event=None, context=None):
                     if cand and cand < px:
                         stop = cand
                         break
+                t_eps = q_.get("eps")
                 if q_.get("pe"):
                     h["pe"] = round(q_["pe"], 1)
+                elif t_eps and t_eps > 0:
+                    h["pe"] = round(px / t_eps, 1)
                 if ht not in _soldier_est:
                     _soldier_est[ht] = fmp_estimates(ht)
                 est = _soldier_est.get(ht)
                 if est and est.get("fwd_eps") and est["fwd_eps"] > 0:
-                    fpe = px / est["fwd_eps"]
-                    h["fwd_pe"] = round(fpe, 1)
+                    fwd_eps = est["fwd_eps"]
+                    basis = "estimates"
                     g = est.get("eps_cagr_pct")
-                    if g and g > 0:
-                        h["eps_cagr_pct"] = g
-                        h["peg_fwd"] = round(fpe / g, 2)
+                    # ADR currency guard (TSM lesson, ops 3090):
+                    # FMP estimates for foreign filers come back in
+                    # LOCAL currency (TSM ~368 TWD vs $11.5 USD ADR
+                    # EPS -> fPE 0.9). Level is unusable, but the
+                    # GROWTH RATIO is currency-invariant -- so
+                    # normalize: fwd = trailing_usd * (1 + growth).
+                    if t_eps and t_eps > 0 and \
+                            not (0.2 <= fwd_eps / t_eps <= 5.0):
+                        if g and g > -60:
+                            fwd_eps = t_eps * (1 + g / 100.0)
+                            basis = "normalized"
+                        else:
+                            fwd_eps = None
+                    if fwd_eps and fwd_eps > 0:
+                        fpe = px / fwd_eps
+                        if 3 <= fpe <= 150:
+                            h["fwd_pe"] = round(fpe, 1)
+                            h["fwd_pe_basis"] = basis
+                            if g and g > 0:
+                                h["eps_cagr_pct"] = g
+                                peg = fpe / g
+                                if 0.1 <= peg <= 10:
+                                    h["peg_fwd"] = round(peg, 2)
                 if stop and up > 0:
                     dn = px / stop - 1
                     dn = max(dn, 0.01)
@@ -1407,7 +1430,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "3.7",
+        "engine": "justhodl-industry-rotation", "version": "3.8",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
