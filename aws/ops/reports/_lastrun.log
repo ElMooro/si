@@ -1,7 +1,9 @@
-executing-against: 5e20e569a5d93bdb181623dc4c275bf35d73f156
-── 1. Page live (this-push) ──
-── 2. Source docs present for the join ──
+executing-against: 7ba631244486a9c551f3d73f874025e70948018a
+── 1. Docs joinable ──
+── 2. Pages live (this-push) ──
 ── verdict ──
-[21:13:51] PASS
+[21:26:23] FAIL: industry-rotation has too few named industries: 5
+[21:26:23] FAIL: industries without scores: only 0 scored
 
-→ Report written to aws/ops/reports/latest/3114_research_fleet_join.md
+→ Report written to aws/ops/reports/latest/3115_quality_propagation.md
+❌ OPS-FAIL: aws/ops/pending/ops_3115_quality_propagation.py
