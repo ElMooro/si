@@ -442,7 +442,7 @@ def guru_metrics(s):
 
 
 # ─────────────────────────── score a stock ──────────────────────────
-def score_stock(s, mr, fund, short_state, bench, weights):
+def score_stock(s, mr, fund, short_state, bench, weights, sflow=None):
     sym = s.get("symbol") or s.get("ticker")
     price = num(s.get("price"))
     if not sym or not price:
@@ -500,6 +500,22 @@ def score_stock(s, mr, fund, short_state, bench, weights):
         q += 8
     if fcfy is not None:
         q += 8 if fcfy > 5 else (-8 if fcfy < 0 else 0)
+    # ── capital-return / dilution leg (share-flows join, Khalid) ──
+    sf = sflow or {}
+    sf_yoy = num(sf.get("sh_yoy_pct"))
+    sf_read = sf.get("read")
+    if sf_read == "EXTREME_DILUTION" or sf.get("extreme"):
+        q -= 35
+    elif sf_yoy is not None:
+        if sf_yoy >= 5:
+            q -= 15
+        elif sf_yoy >= 2:
+            q -= 8
+        elif sf_yoy <= -1:
+            q += 8
+    if num(sf.get("buyback_net_yield_pct")) and \
+            num(sf.get("buyback_net_yield_pct")) >= 2:
+        q += 6
     quality_score = clamp(q)
 
     g = 50
@@ -555,6 +571,16 @@ def score_stock(s, mr, fund, short_state, bench, weights):
         risks.append("Carries heavy debt relative to equity")
     if pe is not None and pe < 0:
         risks.append("Not currently profitable")
+    if sf_read == "EXTREME_DILUTION" or sf.get("extreme"):
+        risks.append("Death-spiral issuance — share count exploding, "
+                     "your stake is being printed away")
+    elif sf_yoy is not None and sf_yoy >= 5:
+        risks.append(f"Heavy dilution — share count +{sf_yoy:.0f}% YoY")
+    if sf_yoy is not None and sf_yoy <= -3 and \
+            num(sf.get("buyback_net_yield_pct") or 0) >= 2:
+        ops.append(f"Shrinking float — net buyback "
+                   f"{sf.get('buyback_net_yield_pct')}%/yr with share "
+                   f"count {sf_yoy}% YoY")
     if fpe is not None and pe is not None and pe > 0 and fpe > pe * 1.2:
         risks.append("Analysts expect earnings to fall next year")
     if short_state == "PRESSURE BUILDING":
@@ -634,6 +660,13 @@ def score_stock(s, mr, fund, short_state, bench, weights):
                  "moat": guru["moat"],
                  "analyst_consensus": grades,
                  "fwd_pe": fpe, "trailing_pe": pe},
+        "market_cap": (num(s.get("marketCap")) or num(s.get("market_cap"))
+                       or sf.get("market_cap")),
+        "capital_return": ({k2: sf.get(k2) for k2 in
+                            ("sh_yoy_pct", "buyback_net_yield_pct",
+                             "read", "pe_ttm", "ps_ttm", "peg",
+                             "fcf_yield_pct", "extreme")
+                            if sf.get(k2) is not None} or None),
         "entry_zone_below": entry,
         "vs_industry": scard,
         "opportunities": ops[:4],
@@ -794,6 +827,8 @@ def lambda_handler(event, context):
             (load("data/fundamentals.json") or {}).get("companies", [])}
     shorts = {x.get("ticker"): x.get("state") for x in
               (load("data/short-pressure.json") or {}).get("names", [])}
+    sfl = (load("data/share-flows.json") or {}).get("tickers") or {}
+    print(f"[opp] share-flows join: {len(sfl)} names")
     prev = load(OUT_KEY)
 
     universe = screener.get("stocks", [])
@@ -831,7 +866,7 @@ def lambda_handler(event, context):
     for s in universe:
         sym = s.get("symbol") or s.get("ticker")
         r = score_stock(s, mr.get(sym), fund.get(sym), shorts.get(sym),
-                         bench, weights)
+                         bench, weights, sfl.get(sym))
         if r:
             # ── NEW: growth-vs-industry intelligence ──
             ind_key = s.get("industry") or s.get("sector") or "Unknown"

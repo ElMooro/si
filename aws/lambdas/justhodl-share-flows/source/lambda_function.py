@@ -48,7 +48,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.3.1"
+VERSION = "1.4.0"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -196,8 +196,40 @@ def fetch_name(t):
     mcap = q.get("marketCap")
     if not mcap and q.get("price") and q.get("sharesOutstanding"):
         mcap = q["price"] * q["sharesOutstanding"]
+    # TTM revenue / EPS growth + FCF from the SAME payloads (zero cost)
+    rev = [r.get("revenue") for r in inc if isinstance(r, dict)]
+    ni = [r.get("netIncome") for r in inc if isinstance(r, dict)]
+    if len(rev) >= 8 and all(x is not None for x in rev[:8]):
+        r_now, r_ago = sum(rev[:4]), sum(rev[4:8])
+        if r_ago:
+            out["rev_growth_yoy_pct"] = round(
+                (r_now / abs(r_ago) - 1) * 100, 1)
+    eps_g = None
+    if len(ni) >= 8 and len(sh) >= 8 and all(
+            x is not None for x in ni[:8]) and sh[0] and sh[4]:
+        e_now = sum(ni[:4]) / sh[0]
+        e_ago = sum(ni[4:8]) / sh[4]
+        if e_ago > 0 and e_now > 0:
+            eps_g = (e_now / e_ago - 1) * 100
+            out["eps_growth_yoy_pct"] = round(eps_g, 1)
+    pe_v = out.get("pe_ttm")
+    if pe_v and pe_v > 0 and eps_g and eps_g > 1:
+        peg = pe_v / eps_g
+        if 0 < peg < 50:
+            out["peg"] = round(peg, 2)
     if mcap:
         out["market_cap"] = round(mcap)
+        try:
+            ocf = sum(float(c.get("operatingCashFlow") or
+                            c.get("netCashProvidedByOperatingActivities")
+                            or 0) for c in cf[:4])
+            cap = sum(abs(float(c.get("capitalExpenditure") or 0))
+                      for c in cf[:4])
+            fy = (ocf - cap) / mcap * 100
+            if -150 <= fy <= 150:
+                out["fcf_yield_pct"] = round(fy, 2)
+        except Exception:
+            pass
         if not out.get("shares_outstanding") and q.get("price"):
             # /stable/quote has no sharesOutstanding (3100 verbatim)
             out["shares_outstanding"] = round(mcap / q["price"])

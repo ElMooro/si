@@ -181,6 +181,12 @@ fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flo
 function sfChips(t){
   const s=SF[t];if(!s)return "";
   const c=[];
+  const mc=s.market_cap;
+  if(mc)c.push(`<b style="color:var(--txt,#e6eaf2)" title="market capitalization">MCAP ${mc>=1e12?(mc/1e12).toFixed(2)+"T":mc>=1e9?(mc/1e9).toFixed(1)+"B":(mc/1e6).toFixed(0)+"M"}</b>`);
+  if(s.pe_ttm!=null)c.push(`<b style="color:var(--dim,#8a93a6)" title="trailing P/E">PE ${s.pe_ttm.toFixed(1)}</b>`);
+  if(s.peg!=null)c.push(`<b style="color:${s.peg<=1.5?"var(--green,#38ffa8)":s.peg>=4?"var(--red,#ff5d5d)":"var(--dim,#8a93a6)"}" title="PEG — trailing P/E ÷ TTM EPS growth">PEG ${s.peg.toFixed(1)}</b>`);
+  if(s.ps_ttm!=null)c.push(`<b style="color:var(--dim,#8a93a6)" title="trailing price/sales">P/S ${s.ps_ttm.toFixed(1)}</b>`);
+  if(s.fcf_yield_pct!=null)c.push(`<b style="color:${s.fcf_yield_pct>=6?"var(--green,#38ffa8)":s.fcf_yield_pct<0?"var(--red,#ff5d5d)":"var(--dim,#8a93a6)"}" title="TTM free-cash-flow yield (OCF − capex ÷ market cap)">FCF ${s.fcf_yield_pct.toFixed(1)}%</b>`);
   if(s.buyback_yield_pct)c.push(`<b style="color:var(--green,#38ffa8)" title="cash spent buying back stock over the trailing 12 months, as % of market cap — management returning capital and shrinking the float">BUYBACK ${s.buyback_yield_pct}%/yr</b>`);
   if(s.sh_yoy_pct!=null)c.push(`<b style="color:${s.sh_yoy_pct<=-1?"var(--green,#38ffa8)":(s.sh_yoy_pct>=2?"var(--red,#ff5d5d)":"var(--dim,#8a93a6)")}" title="diluted share count vs a year ago — negative = float shrinking (good), positive = dilution from issuance/SBC">SHARES ${s.sh_yoy_pct>0?"+":""}${s.sh_yoy_pct}% yoy</b>`);
   if(s.issuance_pct_mcap>=1)c.push(`<b style="color:var(--red,#ff5d5d)" title="stock issued over the trailing 12 months as % of market cap">ISSUED ${s.issuance_pct_mcap}%</b>`);

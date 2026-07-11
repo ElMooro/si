@@ -422,6 +422,19 @@ function renderTickers() {
     const sysPills = shown.map(s => `<span class="pill ${catOf(s)}">${s.replace(/_/g,' ')}</span>`).join('')
       + (extra > 0 ? `<span class="pill more">+${extra}</span>` : '');
     const flagDot = (r.red_flags && r.red_flags.length) ? '<span class="tc-flag">⚠</span>' : '';
+
+  function sfLine(t){
+    const f=(window.SFMAP||{})[t];if(!f)return'';
+    const b=[];const mc=f.market_cap;
+    if(mc)b.push('MCAP '+(mc>=1e12?(mc/1e12).toFixed(2)+'T':mc>=1e9?(mc/1e9).toFixed(1)+'B':(mc/1e6).toFixed(0)+'M'));
+    if(f.pe_ttm!=null)b.push('PE '+f.pe_ttm.toFixed(1));
+    if(f.peg!=null)b.push('PEG '+f.peg.toFixed(1));
+    if(f.ps_ttm!=null)b.push('P/S '+f.ps_ttm.toFixed(1));
+    if(f.fcf_yield_pct!=null)b.push('FCF '+f.fcf_yield_pct.toFixed(1)+'%');
+    if(f.sh_yoy_pct!=null)b.push('SHARES '+(f.sh_yoy_pct>0?'+':'')+f.sh_yoy_pct+'% yoy');
+    if(f.buyback_net_yield_pct)b.push('NET BB '+f.buyback_net_yield_pct+'%');
+    return b.length?'<div style="font-size:10px;color:var(--fg3);font-family:var(--mono,monospace);margin-top:3px;letter-spacing:.2px">'+b.join(' · ')+'</div>':'';
+  }
     const ncm = r.nowcast_regime_mult;
     const ncTilt = (ncm && ncm !== 1)
       ? `<span class="tc-nc ${ncm>1?'up':'dn'}" title="Fed nowcast ${(DATA.nowcast_regime||{}).regime||''} sector tilt (×${ncm})">${ncm>1?'▲':'▼'} macro</span>`
@@ -435,6 +448,7 @@ function renderTickers() {
           <div class="tc-body">
             <div class="tc-pills">${sysPills}</div>
             <div class="tc-rationale">${r.rationale||''}</div>
+            ${sfLine(r.ticker)}
           </div>
         </div>
       </div>
@@ -543,7 +557,8 @@ function renderHealthStrip() {
 
 async function load() {
   try {
-    const [r] = await Promise.all([fetch(URL + '?_=' + Date.now()), loadWatchlist()]);
+    window.SFMAP=window.SFMAP||{};fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?_='+Date.now()).then(x=>x.ok?x.json():null).then(d=>{if(d&&d.tickers){window.SFMAP=d.tickers;try{applyFilters()}catch(e){}}}).catch(()=>{});
+  const [r] = await Promise.all([fetch(URL + '?_=' + Date.now()), loadWatchlist()]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     DATA = await r.json();
     renderHeader();
