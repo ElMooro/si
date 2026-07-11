@@ -91,13 +91,19 @@ def build_universe(warns):
                 if isinstance(r, dict) and r.get("ticker"):
                     u.add(r["ticker"])
     opp = s3_json("data/opportunities.json") or {}
-    for r in (opp.get("opportunities") or opp.get("rows") or []):
-        t = r.get("ticker") or r.get("symbol")
+    for r in (opp.get("all") or opp.get("opportunities")
+              or opp.get("rows") or []):
+        t = (r.get("ticker") or r.get("symbol")) \
+            if isinstance(r, dict) else (r if isinstance(r, str)
+                                         else None)
         if t:
             u.add(t)
     mr = s3_json("data/master-ranker.json") or {}
-    for r in (mr.get("rows") or mr.get("rankings") or [])[:250]:
-        t = r.get("ticker") or r.get("symbol")
+    for r in (mr.get("top_tickers") or mr.get("rows")
+              or mr.get("rankings") or [])[:300]:
+        t = (r.get("ticker") or r.get("symbol")) \
+            if isinstance(r, dict) else (r if isinstance(r, str)
+                                         else None)
         if t:
             u.add(t)
     ir = s3_json("data/industry-rotation.json") or {}
@@ -221,10 +227,16 @@ def lambda_handler(event=None, context=None):
             continue
         v = x.get("value") or 0
         who = x.get("insider") or x.get("name") or ""
-        if x.get("side") == "sell":
+        _sd = str(x.get("side") or x.get("type")
+                  or x.get("transactionType")
+                  or x.get("acquisitionOrDisposition")
+                  or "").strip().lower()
+        if _sd in ("sell", "s", "sale", "d", "disposition",
+                   "s-sale"):
             ssum[t] = ssum.get(t, 0) + v
             swho.setdefault(t, set()).add(who)
-        elif x.get("side") == "buy":
+        elif _sd in ("buy", "b", "p", "purchase", "a",
+                     "acquisition", "p-purchase"):
             bsum[t] = bsum.get(t, 0) + v
             bwho.setdefault(t, set()).add(who)
     for t, v in bsum.items():
