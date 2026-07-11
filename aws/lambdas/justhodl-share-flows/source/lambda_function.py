@@ -48,7 +48,7 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/share-flows.json"
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 FMP = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
        or "")
 MAX_FRESH_FETCH = 420          # per-run new-name budget
@@ -198,6 +198,9 @@ def fetch_name(t):
         mcap = q["price"] * q["sharesOutstanding"]
     if mcap:
         out["market_cap"] = round(mcap)
+        if not out.get("shares_outstanding") and q.get("price"):
+            # /stable/quote has no sharesOutstanding (3100 verbatim)
+            out["shares_outstanding"] = round(mcap / q["price"])
         if out.get("buyback_ttm_usd"):
             out["buyback_yield_pct"] = round(
                 out["buyback_ttm_usd"] / mcap * 100, 2)
@@ -338,7 +341,7 @@ def lambda_handler(event=None, context=None):
                        - datetime.fromisoformat(
                            cached["as_of"])).days
                 keep = (age <= CACHE_DAYS
-                        and "market_cap" in cached)
+                        and cached.get("_v") == VERSION)
             except Exception:
                 pass
         (cached_ok.__setitem__(t, cached) if keep
@@ -359,6 +362,7 @@ def lambda_handler(event=None, context=None):
                 r2 = None
             if r2:
                 r2["as_of"] = today
+                r2["_v"] = VERSION
                 fresh[t2] = r2
             if time.time() > deadline:
                 warns.append("deadline at %d fresh" % len(fresh))
