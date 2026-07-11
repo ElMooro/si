@@ -604,16 +604,17 @@ def lambda_handler(event=None, context=None):
                      "(%d/21 accrued)" % len(dates))
 
     def fmp_quotes(tickers):
-        """Batch /stable/quote: price, priceAvg50/200, yearHigh/Low --
-        the raw legs for the soldier risk:reward framework."""
+        """/stable/quote is single-symbol only (fleet precedent:
+        13f-price-divergence, activist-13d -- the comma batch returns
+        empty, 3085 lesson). Serial singles: price, priceAvg50/200,
+        yearHigh/Low -- the raw legs for the soldier risk:reward."""
         out_q = {}
-        for i in range(0, len(tickers), 25):
-            chunk = ",".join(tickers[i:i + 25])
+        for tk in tickers:
             d_ = _http("https://financialmodelingprep.com/stable/"
-                       "quote?symbol=%s&apikey=%s" % (chunk, FMP))
-            for q_ in (d_ or []):
-                if q_.get("symbol"):
-                    out_q[q_["symbol"]] = q_
+                       "quote?symbol=%s&apikey=%s" % (tk, FMP))
+            if isinstance(d_, list) and d_ and d_[0].get("symbol"):
+                out_q[d_[0]["symbol"]] = d_[0]
+            time.sleep(0.04)
         return out_q
 
     # soldiers for the top-5 leaders
