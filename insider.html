@@ -35,14 +35,36 @@ button.dl{background:var(--bg1);border:1px solid var(--border);border-radius:9px
 <div class="sec">Latest open-market buys (30d)</div><button class="dl" id="dl">⬇ CSV buys</button><div id="buys"></div>
 <div class="sec" style="color:#22d3ee">⚡ Finviz insider breadth — whole-market</div><div id="fvins"></div>
 <div class="note" id="note"></div>
+<div class="note" id="meth">Methodology: clusters require 2+ distinct insiders inside a 14-day window, officer-rank weighted; the starred board intersects clusters with a -25%+ 60-day decline (the highest-value historical pattern). Each row composes live fundamentals from the share-flows engine v1.4 (net buyback yield, dilution, SBC weight, mgmt-selling-into-buyback) and the forensic desk (three-statement strength grade, concern score, M-Score trend, sector strength percentile) - display composition only, no signal weighting changed. Research, not investment advice.</div>
 </div>
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev';
 const esc=s=>String(s==null?'—':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const usd=v=>v==null?'—':'$'+(v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v.toFixed(0));
+function qLine(t){
+  if(!t)return'';
+  const b=[];const fo=(window.FOMAP||{})[t];
+  if(fo){
+    if(fo.strength_grade){const gc=fo.strength_grade[0]==='A'?'#26ffaf':fo.strength_grade[0]==='B'?'#00d4ff':(fo.strength_grade==='D'||fo.strength_grade==='F')?'#ff5577':'#ffd266';b.push('<b style="color:'+gc+'" title="three-statement strength (income/balance/cash) - forensic desk">'+fo.strength_grade+' financials</b>');}
+    if((fo.concern_score||0)>=40)b.push('<b style="color:#ff5577" title="forensic concern - Beneish/accruals/WC/goodwill/dilution">&#9873; concern '+fo.concern_score+'</b>');
+    if(fo.m_deteriorating)b.push('<b style="color:#ff5577" title="Beneish M-Score deteriorating vs prior quarter">M&#8593; deteriorating</b>');
+    if(fo.industry_pctile!=null)b.push('<span title="strength percentile within own sector">'+fo.industry_pctile+'th %ile sector</span>');
+  }
+  const f=(window.SFMAP||{})[t];
+  if(f){
+    const fl=f.flags||[];
+    if(f.buyback_net_yield_pct>=1&&(f.sh_yoy_pct==null||f.sh_yoy_pct<0.5))b.push('<b style="color:#34d399" title="company retiring float while insiders buy their own stock - double conviction">NET BB '+f.buyback_net_yield_pct+'%</b>');
+    if(fl.indexOf('MGMT_SELLING_INTO_BUYBACK')>=0)b.push('<b style="color:#ff5577" title="the buyback supports the price while management sells personal stock into it">mgmt selling into buyback</b>');
+    if(f.sh_yoy_pct!=null&&f.sh_yoy_pct>=2)b.push('<b style="color:#fbbf24" title="share count rising - these insider buys must beat the dilution to matter">DILUTING +'+f.sh_yoy_pct+'% yoy</b>');
+    if((f.sbc_pct_mcap||0)>=3)b.push('<span style="color:#fbbf24" title="stock-based comp vs market cap - SBC washes buybacks">SBC '+f.sbc_pct_mcap+'%</span>');
+  }
+  const links=' <a href="/why.html?ticker='+t+'" style="color:#22d3ee;text-decoration:none" title="full research desk">research &#8599;</a> <a href="/forensic.html?ticker='+t+'" style="color:#22d3ee;text-decoration:none" title="forensic + strength read">forensic &#8599;</a>';
+  return '<div style="font-size:10px;color:var(--fg3);font-family:var(--mono);margin-top:3px;letter-spacing:.2px;font-weight:400;text-align:left">'+b.join(' &middot; ')+links+'</div>';
+}
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PX}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
 let D=null;
-(async()=>{D=await gj('data/insider-radar.json');
+(async()=>{const [d0,sfw,fow]=await Promise.all([gj('data/insider-radar.json'),gj('data/share-flows.json'),gj('data/forensic-screen.json')]);D=d0;
+  window.SFMAP=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   if(!D){document.getElementById('hero').innerHTML='<span class="loading">first run pending</span>';return;}
   document.getElementById('hero').innerHTML=
    `<div class="g" style="border-color:var(--green)"><b style="color:var(--green)">${D.n_buys}</b><div class="m">open-market buys (30d)<br>vs ${D.n_sells} sells</div></div>
@@ -51,11 +73,11 @@ let D=null;
     <div class="g"><b style="font-size:13px">${esc(D.source_used)}</b><div class="m">source · ${D.n_raw} raw rows</div></div>`;
   const dc=D.decline_clusters||[];
   document.getElementById('dc').innerHTML=dc.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Buys</th><th>Total $</th><th>Span</th><th>60d ret</th><th>P/S</th><th>Names</th></tr></thead><tbody>${
-   dc.map(c=>`<tr style="background:rgba(251,191,36,.05)"><td class="l"><b>${esc(c.ticker)}</b><div data-jhf="${esc(c.ticker)}" data-jhf-read></div></td><td>${c.n_insiders}</td><td>${c.n_buys}</td><td class="hi">${usd(c.total_value)}</td><td>${c.span_days}d</td><td class="lo">${c.ret_60d_pct}%</td><td>${c.ps_ttm??'—'}×</td><td class="l" style="font-size:10px">${esc((c.names||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`
+   dc.map(c=>`<tr style="background:rgba(251,191,36,.05)"><td class="l"><b>${esc(c.ticker)}</b>${qLine(c.ticker)}<div data-jhf="${esc(c.ticker)}" data-jhf-read></div></td><td>${c.n_insiders}</td><td>${c.n_buys}</td><td class="hi">${usd(c.total_value)}</td><td>${c.span_days}d</td><td class="lo">${c.ret_60d_pct}%</td><td>${c.ps_ttm??'—'}×</td><td class="l" style="font-size:10px">${esc((c.names||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`
    :'<div class="loading">None in window — this list is empty most days; that is the point.</div>';
   const cl=D.clusters||[];
   document.getElementById('cl').innerHTML=cl.length?`<table><thead><tr><th>Ticker</th><th>Insiders</th><th>Total $</th><th>Span</th><th>Top rank w</th><th>60d ret</th><th>P/S</th><th>Window</th></tr></thead><tbody>${
-   cl.map(c=>`<tr><td class="l"><b>${esc(c.ticker)}</b><div data-jhf="${esc(c.ticker)}"></div></td><td>${c.n_insiders}</td><td>${usd(c.total_value)}</td><td>${c.span_days}d</td><td>${c.max_rank_w}×</td><td class="${(c.ret_60d_pct||0)<0?'lo':'hi'}">${c.ret_60d_pct??'—'}%</td><td>${c.ps_ttm??'—'}×</td><td style="font-size:10px">${esc(c.first)} → ${esc(c.last)}</td></tr>`).join('')}</tbody></table>`
+   cl.map(c=>`<tr><td class="l"><b>${esc(c.ticker)}</b>${qLine(c.ticker)}<div data-jhf="${esc(c.ticker)}"></div></td><td>${c.n_insiders}</td><td>${usd(c.total_value)}</td><td>${c.span_days}d</td><td>${c.max_rank_w}×</td><td class="${(c.ret_60d_pct||0)<0?'lo':'hi'}">${c.ret_60d_pct??'—'}%</td><td>${c.ps_ttm??'—'}×</td><td style="font-size:10px">${esc(c.first)} → ${esc(c.last)}</td></tr>`).join('')}</tbody></table>`
    :'<div class="loading">No clusters in window.</div>';
   const b=D.latest_buys||[];
   document.getElementById('buys').innerHTML=b.length?`<table><thead><tr><th>Date</th><th>Ticker</th><th>Insider</th><th>Title</th><th>Shares</th><th>Px</th><th>Value</th><th>W</th></tr></thead><tbody>${
@@ -66,7 +88,7 @@ let D=null;
   const fvel=document.getElementById('fvins');
   if(fvel){
     const chip=(t,c)=>`<span style="display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;margin:2px;border:1px solid ${c};border-radius:4px">${esc(t)}</span>`;
-    const tbl=(arr)=>arr.length?`<table><thead><tr><th>Ticker</th><th>Sector</th><th>Price</th><th>1M</th></tr></thead><tbody>${arr.map(x=>`<tr><td class="l"><b>${esc(x.ticker)}</b></td><td class="l" style="font-size:10px">${esc(x.sector||'')}</td><td>${x.price??'—'}</td><td class="${(x.perf_m||0)<0?'lo':'hi'}">${x.perf_m!=null?(x.perf_m>0?'+':'')+x.perf_m+'%':'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="loading">none</div>';
+    const tbl=(arr)=>arr.length?`<table><thead><tr><th>Ticker</th><th>Sector</th><th>Price</th><th>1M</th></tr></thead><tbody>${arr.map(x=>`<tr><td class="l"><b>${esc(x.ticker)}</b>${qLine(x.ticker)}</td><td class="l" style="font-size:10px">${esc(x.sector||'')}</td><td>${x.price??'—'}</td><td class="${(x.perf_m||0)<0?'lo':'hi'}">${x.perf_m!=null?(x.perf_m>0?'+':'')+x.perf_m+'%':'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="loading">none</div>';
     fvel.innerHTML=`
       <div style="margin-bottom:10px;font-size:12px;color:var(--fg2)">Finviz flags recent insider activity across the whole market — broader than the Form-4 desk above. Names confirmed by <b>both</b> sources are strongest.</div>
       ${fc.length?`<div style="margin:8px 0"><b style="color:#22d3ee;font-family:var(--mono);font-size:11px">✓ CONFIRMED BY BOTH (Form-4 ∩ Finviz) — ${fc.length}</b><br>${fc.map(t=>chip(t,'rgba(34,211,238,.6)')).join('')}</div>`:''}

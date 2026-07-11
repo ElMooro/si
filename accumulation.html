@@ -32,6 +32,18 @@ h1{font-size:21px;margin:0 0 2px;letter-spacing:-.3px}.sub{color:var(--fg2);font
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return r.json();}catch(e){}return null;}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function qLine(t){
+  if(!t)return'';
+  const b=[];const fo=(window.FOMAP||{})[t];
+  if(fo){
+    if(fo.strength_grade){const gc=fo.strength_grade[0]==='A'?'#26ffaf':fo.strength_grade[0]==='B'?'#00d4ff':(fo.strength_grade==='D'||fo.strength_grade==='F')?'#ff5577':'#ffd266';b.push('<b style="color:'+gc+'" title="three-statement strength (income/balance/cash) - forensic desk">'+fo.strength_grade+' financials</b>');}
+    if((fo.concern_score||0)>=40)b.push('<b style="color:#ff5577" title="forensic concern - Beneish/accruals/WC/goodwill/dilution">&#9873; concern '+fo.concern_score+'</b>');
+    if(fo.m_deteriorating)b.push('<b style="color:#ff5577" title="Beneish M-Score deteriorating vs prior quarter">M&#8593; deteriorating</b>');
+    if(fo.industry_pctile!=null)b.push('<span title="strength percentile within own sector">'+fo.industry_pctile+'th %ile sector</span>');
+  }
+  const links=' <a href="/why.html?ticker='+t+'" style="color:#22d3ee;text-decoration:none" title="full research desk">research &#8599;</a> <a href="/forensic.html?ticker='+t+'" style="color:#22d3ee;text-decoration:none" title="forensic + strength read">forensic &#8599;</a>';
+  return '<div style="font-size:10px;color:var(--fg3);font-family:var(--mono,monospace);margin-top:4px;letter-spacing:.2px">'+b.join(' &middot; ')+links+'</div>';
+}
 const PHC={ACCUMULATION:'var(--cyan)',MARKUP:'var(--grn)',DISTRIBUTION:'var(--amb)',MARKDOWN:'var(--red)',NEUTRAL:'var(--fg3)'};
 function metric(r){
   const div=r.divergence==='bearish'?'<span class="div-b">bearish div</span>':r.divergence==='bullish'?'<span class="div-u">bullish div</span>':'';
@@ -45,6 +57,7 @@ function card(r,kind){
    +`<span class="ph" style="color:${ph};border:1px solid ${ph}55">${esc(r.phase)}</span></div>`
    +`<div class="l2">${metric(r)}</div>`
    +chips(r)
+   +qLine(r.ticker)
    +`<div class="bar"><span style="width:${Math.min(100,sv)}%;background:${sc}"></span></div></div>`;
 }
 function chips(r){
@@ -84,6 +97,7 @@ function revCard(r, kind){
   return `<div class="card ${kind}" data-jhf="${esc(r.ticker)}" data-jhf-read><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${tierC};border:1px solid ${tierC}55">${esc(r.tier)}</span></div>`
    + `<div class="l2">${pos}</div><div class="chips">${chps.join('')}</div>`
    + `<div style="font-size:10.5px;color:var(--fg3);margin-top:4px">${(r.evidence||[]).slice(0,4).map(esc).join(' · ')}</div>`
+   + qLine(r.ticker)
    + `<div class="bar"><span style="width:${Math.min(100,r.score)}%;background:${ac}"></span></div></div>`;
 }
 function dma200Section(d){
@@ -92,6 +106,7 @@ function dma200Section(d){
   const row = (r, good) => `<div class="card ${good?'b':'t'}"><div class="r1"><span class="tk">${esc(r.ticker)}</span><span class="ph" style="color:${r.vol_confirm?'var(--gold,#e8c86a)':'var(--fg3)'};border:1px solid ${r.vol_confirm?'var(--gold,#e8c86a)':'var(--fg3)'}55">${r.vol_confirm?'VOL ✓':'quiet'}</span></div>`
     + `<div class="l2">${r.sessions_ago} session${r.sessions_ago>1?'s':''} ago · 🔊 ${r.vol_ratio_on_break}× on the break · now ${r.pct_vs_200dma>0?'+':''}${r.pct_vs_200dma}% vs 200DMA${r.still_beyond?'':' · <b style="color:var(--amb)">back-tested through</b>'}</div>`
     + (r.phase?`<div class="chips"><span class="chp" style="color:var(--cy,#4fc3f7)">${esc(r.phase)}</span></div>`:'')
+    + qLine(r.ticker)
     + `</div>`;
   let h2 = '<div class="sec" style="border:1px solid var(--cy,#4fc3f7);border-radius:10px;padding:10px 12px;margin:14px 0" id="dma200-breaks">';
   h2 += '<h2 style="color:var(--cy,#4fc3f7);margin:0 0 2px">📏 200DMA BREAKS — the institutional trend line, universe-wide</h2>';
@@ -144,7 +159,7 @@ function block(book,kind){
   return h||'<div class="grp" style="color:var(--fg3)">none flagged today</div>';
 }
 (async function(){
-  const sfw=await gj('data/share-flows.json');window.__sf=(sfw&&sfw.tickers)||{};
+  const [sfw,fow]=await Promise.all([gj('data/share-flows.json'),gj('data/forensic-screen.json')]);window.__sf=(sfw&&sfw.tickers)||{};window.FOMAP={};if(fow&&fow.all_results)fow.all_results.forEach(x=>{if(x.symbol)window.FOMAP[x.symbol]=x});
   const d=await gj('data/accumulation-radar.json');const w=document.getElementById('w');
   window.__d=d;if(!d||!d.tops){w.innerHTML='<div class="hd"><h1>Accumulation / Distribution Radar</h1></div><div class="loading">No data yet — runs daily after close.</div>';return;}
   let h=`<div class="hd"><h1>🔄 Accumulation / Distribution Radar</h1><div class="sub">Wyckoff cycle across stocks, ETFs &amp; countries — who's being accumulated vs distributed, and what's most likely at a top or a bottom.</div><div class="meta">${(d.generated_at||'').slice(0,16).replace('T',' ')}Z · ${d.n_scored} names scored · ${d.buffer_days}d history · v${esc(d.version||'')}</div></div>`;
@@ -156,7 +171,7 @@ function block(book,kind){
   h+=`<div class="sec bot">✅ Likely BOTTOMS <span class="n">— oversold + accumulation / bullish divergence</span></div>`+block(d.bottoms,'b');
   h+=`<div class="sec" style="color:var(--cyan)">Under accumulation <span class="n">— buying pressure in a base</span></div>`+block(d.accumulating,'acc');
   h+=`<div class="sec" style="color:var(--amb)">Under distribution <span class="n">— selling pressure near highs</span></div>`+block(d.distributing,'dist');
-  h+=`<div class="foot">Per name: OBV (volume confirmation), Chaikin Money Flow 20d (intrabar buying/selling), RSI(14), price vs 50/200-DMA, position in the 200-day range, and price-vs-OBV divergence — combined into a Wyckoff phase and top/bottom composites. LIKELY_BOTTOM (UP) and LIKELY_TOP (DOWN) calls are logged and graded on forward excess-vs-benchmark (SPY for stocks/ETFs, ACWX for countries) — measure-before-trust.</div>`;
+  h+=`<div class="foot">Per name: OBV (volume confirmation), Chaikin Money Flow 20d (intrabar buying/selling), RSI(14), price vs 50/200-DMA, position in the 200-day range, and price-vs-OBV divergence — combined into a Wyckoff phase and top/bottom composites. LIKELY_BOTTOM (UP) and LIKELY_TOP (DOWN) calls are logged and graded on forward excess-vs-benchmark (SPY for stocks/ETFs, ACWX for countries) — measure-before-trust. Methodology: phases and reversal tiers are volume-gated exactly as before; each card now also composes the forensic desk live (three-statement strength grade, concern score, M-Score trend, sector strength percentile) plus share-flows dilution/buyback context - display composition only, zero change to signal weighting. Research, not investment advice.</div>`;
   w.innerHTML=h;
 })();
 </script><script src="/jh-nav-drawer.js" defer></script>
