@@ -1,45 +1,74 @@
-executing-against: 91070c24274eb33afae82ec3687977bcffae6fe2
-ops 3170 — Thesis Engine v2 (1990-2026)
-── 1. Deploy v2 ──
-[22:18:21]   zip: 66044 bytes
+executing-against: 7e040fc149a41548f0b316f6e7c41b66314f387a
+ops 3171 — Khalid's brain wired into the fleet
+── 1. LLM policy window (restored at close) ──
+[22:24:39] mode on_demand → normal for this run (his explicit ask was to analyse EVERY note; restored at close)
+── 2. Deploy notes-intel + run ──
+[22:24:39]   zip: 61455 bytes
 ── 1. Lambda ──
-[22:18:22]   Lambda exists — updating
-[22:18:30] ✅   ✓ updated justhodl-thesis-engine
+[22:24:39]   Lambda missing — creating
+[22:24:45] ✅   ✓ created justhodl-notes-intel
+[22:24:45] ✅   ✓ Function URL: https://t4euu4wtx37ysfohnqbn3jbnv40dvrhc.lambda-url.us-east-1.on.aws/
 ── 2. EB rule + permissions ──
-[22:18:31]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[22:18:31] ✅   ✓ target → justhodl-thesis-engine
-[22:18:31] ✅   ✓ added invoke permission
-── 2. Deep run (first pass backfills 1990→today) ──
-[22:18:31] invoke 1 fired
-── 3. FAMILY COMPOSITES — the aggregated evidence ──
-[22:20:13]   STRESS     n=6  comp -0.234 | SPY13w  -0.82% hit-edge  -4.6pp t= -0.42 n_eff= 26.0 | halves   -3.3/  1.67 | sign 6/6 p=0.0312
-[22:20:13]   LIQUIDITY  n=4  comp -1.143 | SPY13w  -0.15% hit-edge  -1.2pp t= -0.07 n_eff= 18.0 | halves  -4.85/   2.0 | sign 0/4 p=0.125
-[22:20:13] ── REGIME-CONDITIONAL (each vs that regime's own base rate):
-[22:20:13]   STRESS     NEUTRAL    SPY13w   2.05% vs regime base   2.87% → excess  -0.82% t= -0.42 n_eff=26.0
-[22:20:13]   LIQUIDITY  NEUTRAL    SPY13w   2.72% vs regime base   2.87% → excess  -0.15% t= -0.07 n_eff=18.0
-── 4. Per-thesis detail (36 years of evidence) ──
-[22:20:13] ── SPY base rates since 1990: 4w 0.89% · 13w 2.87% · 26w 5.8%
-[22:20:13] ── ranked by overlap-corrected t on 13w forward SPY:
-[22:20:13]   Red list                             hist  1993-34 act   7.7% | excess    2.0% hit-edge   8.5pp t=  1.44 n_eff= 34.2
-[22:20:13]   Commercial Banks                     hist  1993-42 act  22.2% | excess  -1.91% hit-edge -12.2pp t= -1.17 n_eff= 30.2
-[22:20:13]   71699273                             hist  1993-42 act  30.0% | excess  -1.96% hit-edge -11.2pp t= -1.09 n_eff= 29.8
-[22:20:13]   Financial Conditions                 hist  1994-29 act   9.1% | excess  -2.01% hit-edge -13.7pp t= -0.99 n_eff= 26.9
-[22:20:13]   Draining Liquidity                   hist  2014-16 act   0.0% | excess   1.63% hit-edge   8.5pp t=  0.91 n_eff= 12.5
-[22:20:13]   Economy                              hist  1993-34 act  40.0% | excess  -1.77% hit-edge -10.6pp t= -0.88 n_eff= 28.1
-[22:20:13]   fed plumbing                         hist  1993-42 act   4.8% | excess  -1.68% hit-edge -11.4pp t= -0.87 n_eff= 27.2
-[22:20:13]   Feds Monetary Policy: Fed tighten mo hist  2003-28 act   0.0% | excess   1.51% hit-edge   7.0pp t=  0.84 n_eff= 21.0
-[22:20:13]   Financial Crisis Signs               hist  1993-42 act  14.3% | excess  -1.41% hit-edge -10.3pp t= -0.76 n_eff= 29.7
-[22:20:13]   Commercial banks                     hist  1993-42 act  20.0% | excess  -1.24% hit-edge -11.7pp t= -0.75 n_eff= 27.3
-[22:20:13]   Danger                               hist  2003-35 act  22.2% | excess  -1.64% hit-edge  -8.6pp t= -0.71 n_eff= 20.5
-[22:20:13]   Fed Interest Rates                   hist  1997-30 act  10.0% | excess  -1.37% hit-edge -11.4pp t= -0.71 n_eff= 23.8
-[22:20:13]   Financial Crisis                     hist  1993-34 act  11.1% | excess  -1.02% hit-edge  -6.5pp t= -0.55 n_eff= 27.2
-[22:20:13]   Financial Stress                     hist  1993-34 act  10.0% | excess  -0.98% hit-edge  -8.5pp t= -0.53 n_eff= 29.9
-[22:20:13]   Bitcoin : Nikkei TOP and Bottom in U hist  1993-34 act   3.7% | excess   0.91% hit-edge   3.9pp t=   0.5 n_eff= 29.4
-[22:20:13]   Bitcoin - Global Liquidity: GOLD ALW hist  1993-34 act  12.9% | excess    0.8% hit-edge   3.3pp t=  0.44 n_eff= 30.2
-── 5. Page ──
-[22:20:13] ✅ theses.html live
-[22:20:13] ⚠ no regime-gated edge either — the panels are context, not timing, in every policy state
-[22:20:13] ⚠ no composite clears FDR+stability — aggregation did not rescue the signal; these panels describe regimes rather than time them
-[22:20:13] ⚠ still zero FDR survivors even on 36y — the honest read: these panels describe regimes, they do not time SPY. Keep them as context, not as timing signals.
+[22:24:46] ✅   ✓ created rule notes-intel-daily
+[22:24:46] ✅   ✓ target → justhodl-notes-intel
+[22:24:46] ✅   ✓ added invoke permission
+[22:32:25] ── his most-researched names (recency-weighted stance):
+[22:32:25]   DXY      288 notes  MIXED    (-0.04)  last 2025-08-01  The US Dollar acts as the inverse to all global assets and the world's
+[22:32:25]   FEDFUNDS 218 notes  MIXED    (-0.15)  last 2025-09-23  [TV:FRED:FEDFUNDS] THE INITIAL BIGGER EFFECTS TEND TO BE MONETARY LIQU
+[22:32:25]   SPX      162 notes  MIXED    (-0.18)  last 2026-06-27  Earnings are the primary driver of stock prices, mechanically expandin
+[22:32:25]   NVDA      64 notes  MIXED    (-0.04)  last 2026-07-12  The trader is systematically executing a scale probe on NVDA to increm
+[22:32:25]   MU        63 notes  MIXED    (+0.00)  last 2026-07-12  The trader is executing a systematic scale probe operation on MU to te
+[22:32:25]   STX       63 notes  MIXED    (+0.00)  last 2026-07-12  The trader is systematically executing a scale probe across multiple i
+[22:32:25]   AAPL      62 notes  MIXED    (+0.00)  last 2026-07-12  [TV:AAPL] ops3161 scale probe 1783886735 #53 — thesis line with enough
+[22:32:25]   MOVE      48 notes  MIXED    (+0.53)  last 2025-08-26  Credit spreads act as the ultimate leading indicator for market stress
+[22:32:25]   US10Y     46 notes  MIXED    (-0.01)  last 2025-04-21  A rapid, unjustified waterfall decline in US10Y yields signals severe 
+[22:32:25]   CL1!      38 notes  MIXED    (+0.02)  last 2025-04-10  [TV:NYMEX:CL1!] $55 is the cost of production of an oil barrel.
+[22:32:25]   GOLD      36 notes  MIXED    (+0.12)  last 2025-10-21  Gold raising its hand at all-time highs signals something is dramatica
+[22:32:25]   SOFR      32 notes  MIXED    (-0.07)  last 2025-05-14  [TV:FRED:SOFR] Most Important Today
+Global Usage	Benchmark
+🥇 Most cr
+[22:32:25] ✅ 3573 notes compiled → 540 tickers indexed (9 LLM views)
+[22:32:25] ── macro themes in his untagged notes: CREDIT=2212, RATES=1885, DOLLAR=1351, LIQUIDITY=1249, CRISIS=736, INFLATION=631, CRYPTO=483, EQUITY=350
+── 3. Wire into the ranking engines ──
+[22:32:26]   zip: 78186 bytes
+── 1. Lambda ──
+[22:33:26]   Lambda exists — updating
+[22:33:32] ✅   ✓ updated justhodl-best-setups
+── 3. Smoke test ──
+[22:33:32]   invoking justhodl-best-setups…
+[22:33:37] ✅   ✓ smoke test passed
+[22:33:37]     ok                       True
+[22:33:37]     n_setups                 524
+[22:33:37]     strong_buy               3
+[22:33:37]     buy                      15
+[22:33:37]     weight_source            prior-only
+[22:33:37]   zip: 69312 bytes
+── 1. Lambda ──
+[22:33:37]   Lambda exists — updating
+[22:33:41] ✅   ✓ updated justhodl-alpha-compass
+── 2. EB rule + permissions ──
+[22:33:42]   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
+[22:33:42] ✅   ✓ target → justhodl-alpha-compass
+[22:33:42] ✅   ✓ added invoke permission
+── 3. Smoke test ──
+[22:33:42]   invoking justhodl-alpha-compass…
+[22:33:43] ✗   ✗ FunctionError: Unhandled
+[22:33:43]   body: {"errorMessage": "name 'fetch_json' is not defined", "errorType": "NameError", "requestId": "2825d9cb-e05a-4aea-9488-f8e3a8768f34", "stackTrace": ["  File \"/var/task/_sentry_lite.py\", line 68, in wrapped\n    return handler(event, context)\n", "  File \"/var/task/lambda_function.py\", line 850, in handler\n    NOTES_IDX = (fetch_json(\"data/notes-index.json\") or {}).get(\"index\") or {}\n"]}
+[22:33:44] (join counts populate on each engine's next scheduled run — the readers are deployed)
+── 4. Thesis-engine regime fix ──
+[22:33:44]   zip: 66261 bytes
+── 1. Lambda ──
+[22:33:44]   Lambda exists — updating
+[22:33:50] ✅   ✓ updated justhodl-thesis-engine
+── 2. EB rule + permissions ──
+[22:33:51]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[22:33:51] ✅   ✓ target → justhodl-thesis-engine
+[22:33:51] ✅   ✓ added invoke permission
+[22:35:13]   regime debug: {"ff_obs": 0, "bs_obs": 0, "ff_non_null": 0, "ff_first": null, "ff_last": null}
+── 5. Restore FinOps policy ──
+[22:35:13] mode restored to on_demand
+[22:35:13] ✗ justhodl-master-ranker: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/lambdas/justhodl-master-ranker/config.json'
+[22:35:13] ✗ regime still degenerate: {'EASING': 0, 'NEUTRAL': 1746, 'TIGHTENING': 0} debug={'ff_obs': 0, 'bs_obs': 0, 'ff_non_null': 0, 'ff_first': None, 'ff_last': None}
 
-→ Report written to aws/ops/reports/latest/3170_regime_gate.md
+→ Report written to aws/ops/reports/latest/3171_notes_intel.md
+❌ OPS-FAIL: aws/ops/pending/ops_3171_notes_intel.py
