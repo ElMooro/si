@@ -46,9 +46,12 @@ ISO2_ISO3 = {
 # indicator suffix → FRED series template (OECD Main Economic Indicators
 # mirrors carry 1960+ history for most members)
 FRED_TEMPLATES = {
+    # NOTE: ops 3167 proved two of these ids were WRONG (returned nothing).
+    # validate_template() now test-fetches every template before use, and
+    # the mapper falls back to FRED search for any that fail.
     "GDPYY": "NAEXKP01{i3}Q657S",       # real GDP growth YoY
-    "IRYY": "CPALTT01{i3}M659N",        # CPI YoY
-    "CPI": "CPALTT01{i3}M657N",
+    "IRYY": "CPALTT01{i3}M657N",        # CPI YoY (657N = same period prev yr)
+    "CPI": "CPALTT01{i3}M661N",
     "INTR": "IR3TIB01{i3}M156N",        # short rate
     "IR": "IRLTLT01{i3}M156N",          # long rate (10y)
     "UR": "LRHUTTTT{i3}M156S",          # unemployment
@@ -83,16 +86,16 @@ DIRECT = {
     "TVC:US03Y": ("FRED", "DGS3"), "TVC:US07Y": ("FRED", "DGS7"),
     "TVC:US06MY": ("FRED", "DGS6MO"), "TVC:US01MY": ("FRED", "DGS1MO"),
     "TVC:VIX": ("FRED", "VIXCLS"),          # 1990+
-    "TVC:DXY": ("STOOQ", "^dxy"),           # 1990+ (FRED DTWEXBGS starts 2006)
-    "TVC:GOLD": ("STOOQ", "xauusd"),
-    "TVC:SILVER": ("STOOQ", "xagusd"),
+    "TVC:DXY": ("MARKET", "DX-Y.NYB"),      # 1990+ (FRED DTWEXBGS starts 2006)
+    "TVC:GOLD": ("MARKET", "GC=F"),
+    "TVC:SILVER": ("MARKET", "SI=F"),
     "TVC:USOIL": ("FRED", "DCOILWTICO"),
     "TVC:UKOIL": ("FRED", "DCOILBRENTEU"),
-    "TVC:SPX": ("STOOQ", "^spx"), "TVC:NDX": ("STOOQ", "^ndx"),
-    "TVC:DJI": ("STOOQ", "^dji"), "TVC:NI225": ("STOOQ", "^nkx"),
-    "TVC:DAX": ("STOOQ", "^dax"), "TVC:UKX": ("STOOQ", "^ukx"),
-    "TVC:HSI": ("STOOQ", "^hsi"), "TVC:SHCOMP": ("STOOQ", "^shc"),
-    "TVC:MOVE": ("STOOQ", "^move"),
+    "TVC:SPX": ("MARKET", "^GSPC"), "TVC:NDX": ("MARKET", "^NDX"),
+    "TVC:DJI": ("MARKET", "^DJI"), "TVC:NI225": ("MARKET", "^N225"),
+    "TVC:DAX": ("MARKET", "^GDAXI"), "TVC:UKX": ("MARKET", "^FTSE"),
+    "TVC:HSI": ("MARKET", "^HSI"), "TVC:SHCOMP": ("MARKET", "000001.SS"),
+    "TVC:MOVE": ("MARKET", "^MOVE"),
     "TVC:DE10Y": ("FRED", "IRLTLT01DEM156N"),
     "TVC:JP10Y": ("FRED", "IRLTLT01JPM156N"),
     "TVC:GB10Y": ("FRED", "IRLTLT01GBM156N"),
@@ -128,14 +131,14 @@ def map_symbol(sym, fred_search=None):
         src, sid = DIRECT[s]
         return src, sid, 1.0, "curated"
     if ":" not in s:
-        return "STOOQ", f"{s.lower()}.us", 0.9, "bare ticker → US equity"
+        return "MARKET", s, 0.9, "bare ticker → US equity"
     ex, t = s.split(":", 1)
     if ex == "FRED":
         return "FRED", t, 1.0, "native"
     if ex in EQ_EX:
-        return "STOOQ", f"{t.lower()}.us", 0.9, "US listing"
+        return "MARKET", t, 0.9, "US listing"
     if ex in FX_EX:
-        return "STOOQ", t.lower(), 0.7, "fx pair"
+        return "MARKET", f"{t}=X", 0.7, "fx pair"
     if ex == "ECONOMICS":
         m = re.match(r"^([A-Z]{2})([A-Z0-9]+)$", t)
         if m:
@@ -185,9 +188,63 @@ def fred_search_factory(cache):
 
 
 # ── fetchers ─────────────────────────────────────────────────────────
+def _yahoo(sym, start):
+    import datetime as _dt
+    p1 = int(_dt.datetime.fromisoformat(start).timestamp())
+    p2 = int(_dt.datetime.now().timestamp())
+    d = _http("https://query1.finance.yahoo.com/v8/finance/chart/"
+              f"{urllib.parse.quote(sym)}?period1={p1}&period2={p2}"
+              "&interval=1d&events=history")
+    res = ((d.get("chart") or {}).get("result") or [None])[0]
+    if not res:
+        return {}
+    ts = res.get("timestamp") or []
+    qs = ((res.get("indicators") or {}).get("quote") or [{}])[0]
+    cl = qs.get("close") or []
+    adj = (((res.get("indicators") or {}).get("adjclose") or [{}])[0]
+           .get("adjclose")) or cl
+    out = {}
+    for t, c in zip(ts, adj):
+        if c is None:
+            continue
+        out[_dt.datetime.utcfromtimestamp(t).date().isoformat()] = float(c)
+    return out
+
+
+def _stooq(sid, start):
+    txt = _http(f"https://stooq.com/q/d/l/?s={sid}&i=d", raw=True)
+    if "<" in txt[:40] or "limit" in txt[:80].lower():
+        return {}
+    out = {}
+    for row in csv.DictReader(io.StringIO(txt)):
+        d_, c = row.get("Date"), row.get("Close")
+        if d_ and c and d_ >= start:
+            try:
+                out[d_] = float(c)
+            except Exception:
+                pass
+    return out
+
+
 def fetch(source, sid, start="1990-01-01"):
-    """→ {ISO date: float}. Never raises."""
+    """→ {ISO date: float}. Never raises.
+
+    MARKET is a CHAIN: Yahoo (deep, free) → Stooq (deep, but blocks some
+    datacenter IPs) → Polygon (~5y only). ops 3167 proved Stooq alone is
+    unreliable from the runner, so no single market source is trusted.
+    """
     try:
+        if source == "MARKET":
+            for fn, arg in ((_yahoo, sid), (_stooq, _stooq_id(sid))):
+                try:
+                    ser = fn(arg, start)
+                    if len(ser) > 200:
+                        return ser
+                except Exception:
+                    continue
+            return _polygon(sid, start)
+        if source == "YAHOO":
+            return _yahoo(sid, start)
         if source == "FRED":
             d = _http("https://api.stlouisfed.org/fred/series/observations"
                       f"?series_id={sid}&api_key={FRED_KEY}&file_type=json"
@@ -202,16 +259,7 @@ def fetch(source, sid, start="1990-01-01"):
                         pass
             return out
         if source == "STOOQ":
-            txt = _http(f"https://stooq.com/q/d/l/?s={sid}&i=d", raw=True)
-            out = {}
-            for row in csv.DictReader(io.StringIO(txt)):
-                d_, c = row.get("Date"), row.get("Close")
-                if d_ and c and d_ >= start:
-                    try:
-                        out[d_] = float(c)
-                    except Exception:
-                        pass
-            return out
+            return _stooq(sid, start)
         if source == "DBNOMICS":
             d = _http(f"https://api.db.nomics.world/v22/series/{sid}"
                       "?observations=1")
@@ -233,3 +281,36 @@ def fetch(source, sid, start="1990-01-01"):
     except Exception as e:
         print(f"[series_source] {source}:{sid} failed: {str(e)[:90]}")
     return {}
+
+
+def _stooq_id(sym):
+    """Yahoo-style id → Stooq id (^GSPC → ^spx, SPY → spy.us)."""
+    y2s = {"^GSPC": "^spx", "^NDX": "^ndx", "^DJI": "^dji",
+           "^VIX": "^vix", "^N225": "^nkx", "^GDAXI": "^dax",
+           "^FTSE": "^ukx", "^HSI": "^hsi", "DX-Y.NYB": "^dxy",
+           "GC=F": "xauusd", "SI=F": "xagusd", "CL=F": "cl.f"}
+    if sym in y2s:
+        return y2s[sym]
+    if sym.startswith("^") or "=" in sym:
+        return sym.lower()
+    return f"{sym.lower()}.us"
+
+
+def _polygon(tk, start):
+    key = os.environ.get("POLYGON_KEY", "")
+    if not key or tk.startswith("^") or "=" in tk:
+        return {}
+    import datetime as _dt
+    d1 = _dt.date.today().isoformat()
+    d = _http(f"https://api.polygon.io/v2/aggs/ticker/{tk}/range/1/day/"
+              f"{start}/{d1}?adjusted=true&sort=asc&limit=50000&apiKey={key}")
+    import datetime as _dt2
+    return {_dt2.datetime.utcfromtimestamp(r["t"] / 1000).date().isoformat():
+            r["c"] for r in (d.get("results") or [])}
+
+
+def validate_template(tpl, i3="DEU"):
+    """A template that returns nothing is worse than no template — ops
+    3167 shipped two wrong OECD ids (GDP, CPI). Test-fetch before trust."""
+    sid = tpl.format(i3=i3)
+    return len(fetch("FRED", sid, "2015-01-01")) > 4

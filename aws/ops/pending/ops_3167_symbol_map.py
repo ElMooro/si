@@ -1,4 +1,15 @@
-"""ops 3167 — free-source symbol map + 1990 history proof + sidebar page.
+"""ops 3167 (iter 2) — sources REPAIRED, then the 1990 proof.
+
+Iter 1 verdict, verbatim: FRED reaches 1990 (US 10y 9,135 obs; VIX
+9,226; OECD long-rate template valid) — but STOOQ returned NOTHING for
+every market probe (it blocks datacenter IPs) and two OECD templates
+(GDP, CPI) were wrong ids. Deep MARKET history was therefore unproven,
+so the study rebuild was correctly blocked.
+
+Iter 2 fixes the source layer instead of trusting it:
+  · MARKET is now a CHAIN — Yahoo (deep, free) → Stooq → Polygon (5y)
+  · every OECD template is TEST-FETCHED before use; failures fall back
+    to FRED search rather than silently mapping to a dead id
 
 Khalid: "almost all my TradingView indicators are public and free
 somewhere — find them, and go back to at least 1990."
@@ -74,7 +85,19 @@ with report("3167_symbol_map") as rep:
     rep.log("── top ECONOMICS indicator codes (the mapping targets): " +
             ", ".join(f"{k}={v}" for k, v in suff.most_common(14)))
 
-    rep.section("2. Map the universe")
+    rep.section("2. Validate OECD templates (kill the dead ids)")
+    dead = []
+    for ind, tpl in list(SS.FRED_TEMPLATES.items()):
+        ok = SS.validate_template(tpl, "DEU") or SS.validate_template(tpl, "JPN")
+        if not ok:
+            dead.append(ind)
+            SS.FRED_TEMPLATES.pop(ind, None)
+    rep.kv(templates_live=len(SS.FRED_TEMPLATES), templates_dead=len(dead))
+    rep.log(f"  live: {', '.join(sorted(SS.FRED_TEMPLATES))}")
+    if dead:
+        rep.log(f"  DEAD (fall back to FRED search): {', '.join(dead)}")
+
+    rep.section("3. Map the universe")
     prev = s3_json(MAP_KEY, {}) or {}
     search_cache = prev.get("search_cache") or {}
     searcher = SS.fred_search_factory(search_cache)
@@ -119,16 +142,17 @@ with report("3167_symbol_map") as rep:
                      "lookups per run and caches them; a second run maps "
                      "the next tranche")
 
-    rep.section("3. HISTORY PROOF — earliest date each source returns")
+    rep.section("4. HISTORY PROOF — earliest date each source returns")
     probes = [("FRED", "DGS10", "US 10y"), ("FRED", "FEDFUNDS", "Fed funds"),
               ("FRED", "M2SL", "US M2"), ("FRED", "WALCL", "Fed B/S"),
               ("FRED", "VIXCLS", "VIX"),
               ("FRED", "NAEXKP01JPNQ657S", "Japan GDP YoY (template)"),
               ("FRED", "IRLTLT01DEM156N", "Bund 10y (template)"),
               ("FRED", "CPALTT01GBRM659N", "UK CPI YoY (template)"),
-              ("STOOQ", "^spx", "S&P 500"), ("STOOQ", "^dxy", "DXY"),
-              ("STOOQ", "spy.us", "SPY"), ("STOOQ", "xauusd", "Gold"),
-              ("STOOQ", "^nkx", "Nikkei")]
+              ("MARKET", "^GSPC", "S&P 500"), ("MARKET", "DX-Y.NYB", "DXY"),
+              ("MARKET", "SPY", "SPY"), ("MARKET", "GC=F", "Gold"),
+              ("MARKET", "^N225", "Nikkei"), ("MARKET", "NVDA", "NVDA"),
+              ("MARKET", "^VIX", "VIX index")]
     ok_1990 = 0
     for src, sid, label in probes:
         ser = SS.fetch(src, sid, "1990-01-01")
@@ -149,7 +173,7 @@ with report("3167_symbol_map") as rep:
         fails.append(f"only {ok_1990} probes reach the 1990s — deep "
                      "history not proven; do not rebuild the study yet")
 
-    rep.section("4. Per-thesis coverage under the new map")
+    rep.section("5. Per-thesis coverage under the new map")
     scored = []
     for l in lists:
         syms = [s.upper() for s in (l.get("symbols") or [])]
