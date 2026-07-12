@@ -1,0 +1,61 @@
+# ops 3164 — brain verify · mirror hygiene · resolver census
+
+**Status:** success  
+**Duration:** 1.4s  
+**Finished:** 2026-07-12T20:52:57+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| coverage_pct | distinct_tickers | duplicates_removed | n_fails | n_warns | notes_after | notes_before | res_crypto | res_formula | res_fred | res_poly | res_unresolved | tagged | unique_symbols | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  | 540 | 203 |  |  | 3573 | 3776 |  |  |  |  |  | 3279 |  |  |
+|  |  |  |  |  |  |  | 36 | 132 | 546 | 1663 | 4130 |  | 6507 |  |
+| 36.5 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  |  |  | 0 | 1 |  |  |  |  |  |  |  |  |  | PASS |
+
+## Log
+## A. Brain read-back (authed)
+
+- `20:52:57`   https://api.justhodl.ai/brain/brain-930ffa48-60a1-4b11-8726-8848d1b827f9/notes: HTTP Error 403: Forbidden
+- `20:52:57`   https://api.justhodl.ai/brain/notes: HTTP Error 403: Forbidden
+- `20:52:57`   https://justhodl.ai/api/brain/brain-930ffa48-60a1-4b11-8726-8848d1b827f9/notes: HTTP Error 404: Not Found
+- `20:52:57`   https://justhodl.ai/api/brain/notes: HTTP Error 404: Not Found
+## B. Mirror normalize + dedupe
+
+- `20:52:57` ── most-noted (post-normalize): DXY(288), FEDFUNDS(218), SPX(162), NVDA(64), MU(63), STX(63), AAPL(62), MOVE(48), US10Y(46), CL1!(38)
+- `20:52:57` ✅ mirror normalized: 203 prefix-duplicates collapsed → 3573 unique notes
+## C. Resolver coverage over the real universe
+
+- `20:52:57`   UNRESOLVED    4130  (63.5%)
+- `20:52:57`   POLY          1663  (25.6%)
+- `20:52:57`   FRED           546  (8.4%)
+- `20:52:57`   FORMULA        132  (2.0%)
+- `20:52:57`   CRYPTO          36  (0.6%)
+- `20:52:57` ── unresolved reasons: econ_unmapped=1863, exchange_unsupported=1851, tvc_unmapped=211, formula_with_unresolvable_operand=205
+- `20:52:57` ── per-list coverage (thesis lists, ≥20 members):
+- `20:52:57`   100%   40/40   Commercial banks
+- `20:52:57`   100%   36/36   Corp Yields
+- `20:52:57`   100%   31/31   Commercial banks
+- `20:52:57`   100%   29/29   Global Commodities prices
+- `20:52:57`   100%   26/26   3X ETF
+- `20:52:57`   100%   22/22   Energy and oil stocks
+- `20:52:57`    97%   37/38   Commercial Banks
+- `20:52:57`    97%   29/30   Fed Balance sheet
+- `20:52:57`    96%  262/273  Brent Johnson Portfolio: THE SHORTTERM SWING
+- `20:52:57`    96%   50/52   Different Types of Stock indexes
+- `20:52:57`    96%   22/23   GLOBAL EQUITY
+- `20:52:57`    95%  123/129  Banking Sector : Banks = Liquidity Proxy Eve
+- `20:52:57`    93%   28/30   Feds
+- `20:52:57`    92%   69/75   Global ETFs
+- `20:52:57`    90%   80/89   fed plumbing
+- `20:52:57`    90%   38/42   Consumers
+- `20:52:57`    89%   81/91   Basic Materials
+- `20:52:57`    89%   24/27   Global Bonds
+- `20:52:57` ✅ 36.5% of the universe is priceable today — enough to build thesis states
+- `20:52:57` ⚠ brain GET is admin-gated from the runner — WRITES were confirmed by the ingest (brain_upserted on every chunk) and data/tradingview-notes.json is the store the brain-compiler reads
