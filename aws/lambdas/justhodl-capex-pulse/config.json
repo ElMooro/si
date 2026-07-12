@@ -14,5 +14,14 @@
     "name": "justhodl-capex-pulse-daily",
     "expression": "cron(40 20 ? * MON-FRI *)",
     "description": "Daily 20:40 UTC before global-flow-desk 22:50"
-  }
+  },
+  "inherit_env": [
+    {
+      "from_function": "justhodl-confluence-meta",
+      "keys": [
+        "FRED_KEY",
+        "FRED_API_KEY"
+      ]
+    }
+  ]
 }

@@ -88,6 +88,46 @@ def _fmp_cf(sym):
     with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "jh/1"}), timeout=20) as r:
         return json.loads(r.read())
 
+def _fred_intentions():
+    """Macro capex-intentions layer -- regional-Fed survey expectations
+    lead actual capex by roughly 6 months (capex-predictor deepening,
+    leg 1). Philly Fed Future Capital Expenditures diffusion index via
+    FRED. Real data only; emits None cleanly if key/series unavailable."""
+    import os, urllib.request, urllib.parse, json as _j
+    key = os.environ.get("FRED_KEY") or os.environ.get("FRED_API_KEY")
+    if not key:
+        return None
+    out = {}
+    for name, sid in (("philly_future_capex", "CEFDFSA066MSFRBPHI"),):
+        try:
+            q = urllib.parse.urlencode({
+                "series_id": sid, "api_key": key, "file_type": "json",
+                "sort_order": "desc", "limit": 13})
+            obs = _j.loads(urllib.request.urlopen(
+                "https://api.stlouisfed.org/fred/series/observations?"
+                + q, timeout=20).read()).get("observations") or []
+            vals = [(o["date"], float(o["value"])) for o in obs
+                    if o.get("value") not in (None, ".", "")]
+            if len(vals) < 4:
+                continue
+            latest_d, latest_v = vals[0]
+            avg3 = round(sum(v for _, v in vals[:3]) / 3, 1)
+            yr = next((v for d, v in vals if d <= latest_d[:4]
+                       and abs((int(latest_d[:4]) - int(d[:4])) * 12
+                               + int(latest_d[5:7]) - int(d[5:7])) >= 12),
+                      None)
+            out[name] = {"series": sid, "asof": latest_d,
+                         "latest": round(latest_v, 1), "avg_3m": avg3,
+                         "delta_12m": (round(latest_v - yr, 1)
+                                       if yr is not None else None),
+                         "read": ("EXPANSION" if avg3 > 10 else
+                                  "CONTRACTION" if avg3 < 0 else
+                                  "FLAT")}
+        except Exception:
+            continue
+    return out or None
+
+
 def lambda_handler(event=None, context=None):
     x = _j("data/stock-xray.json", {}) or {}
     cards = x.get("cards") or {}
@@ -180,7 +220,7 @@ def lambda_handler(event=None, context=None):
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "n": len(rows), "fails": fails,
            "market": {"capex_ttm_b": mkt_ttm, "yoy_pct": mkt_yoy, "universe": "top-%d mcap (stock-xray) + hyperscalers" % N_TOP},
-           "hyperscalers": hyperscalers, "sectors": sectors, "boards": boards, "rows": rows,
+           "macro_intentions": _fred_intentions(), "capex_intentions_v": "1.0", "hyperscalers": hyperscalers, "sectors": sectors, "boards": boards, "rows": rows,
            "excluded_outliers": excluded,
            "fx_converted": [{"ticker": r["ticker"], **r["fx"], "capex_ttm_b": r["capex_ttm_b"]} for r in conv],
            "method": ("FMP /stable/cash-flow-statement quarterly x8 per name; TTM = last 4q "
