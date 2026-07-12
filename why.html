@@ -3255,7 +3255,7 @@ window.renderIndustryCompass=function(d){
             /* ---- RS vs own industry ETF (roadmap #4) ---- */
             try{
               var rd=window.__rd||{};var sc=(((rd.technicals||{}).series||{}).close||[]).filter(function(x){return x!=null;});
-              var ec=hit&&hit.closes_66;
+              var ec=((IR.closes66||{})[hit&&hit.etf])||(hit&&hit.closes_66);
               if(sc.length>=66&&ec&&ec.length>=40){
                 var n=Math.min(sc.length,ec.length,66);
                 var st2=sc.slice(-n),et=ec.slice(-n);

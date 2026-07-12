@@ -414,7 +414,6 @@ def ladder_row(tkr, closes, spy, regime, blend_pop):
             "above_sma20": bool(sma(closes, 20)
                                 and px > sma(closes, 20)),
             "pct_vs_sma50": pct50, "pct_vs_sma200": pct200,
-            "closes_66": [round(x, 2) for x in closes[-66:]],
             "golden_cross_sessions_ago": gx,
             "death_cross_sessions_ago": dx,
             "rsi14": rsi14, "macd": macd_x, "bb": bb,
@@ -707,6 +706,8 @@ def lambda_handler(event=None, context=None):
 
     rows = [ladder_row(t, c, spy, regime, blend_pop)
             for t, c in closes.items() if len(c) >= 210]
+    closes66 = {t: [round(x, 2) for x in c[-66:]]
+                for t, c in closes.items() if len(c) >= 66}
     for r in rows:
         r["volume"] = volume_metrics(closes.get(r["etf"], []),
                                      volumes.get(r["etf"], []))
@@ -1583,7 +1584,7 @@ def lambda_handler(event=None, context=None):
                 "tag": r["tag"]}
 
     out = {
-        "engine": "justhodl-industry-rotation", "version": "4.2",
+        "engine": "justhodl-industry-rotation", "version": "4.3",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "doctrine": "regime -> industry leadership -> strongest "
                     "soldiers; divergence under weakness = absorption "
@@ -1616,7 +1617,7 @@ def lambda_handler(event=None, context=None):
                        "BROAD>=60 / NARROW<40",
             "absorption": "regime WEAK + above SMA50 + rising ratio + "
                           "score>=65", "universe_n": len(rows)},
-        "ladder": rows,
+        "closes66": closes66, "ladder": rows,
         "leaders": leaders,
         "absorption_watch": [r["etf"] for r in rows
                              if r["tag"] == "ABSORPTION"],
