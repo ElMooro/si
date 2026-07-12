@@ -1,36 +1,28 @@
 # ops 3153 — first GLM exception, verbatim
 
 **Status:** failure  
-**Duration:** 94.6s  
-**Finished:** 2026-07-12T06:12:10+00:00  
+**Duration:** 0.3s  
+**Finished:** 2026-07-12T06:14:15+00:00  
 
 ## Error
 
 ```
-SystemExit: 1
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3153_first_exception.py", line 48, in <module>
+    cfgf = json.loads((AWS_DIR / "lambdas" / FN / "config.json").read_text())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/ops/lambdas/justhodl-premortem-engine/config.json'
+
 ```
 
-## Data
-
-| doc_fresh | n_fails | n_warns | rich | verdict |
-|---|---|---|---|---|
-| True |  |  | 0 |  |
-|  | 1 | 0 |  | FAIL |
-
 ## Log
-- `06:10:43` cold invoke fired
-## CW of THIS run
+## 0. Redeploy premortem w/ patched router (GLM timeout 130s)
 
-- `06:12:10` CW: [INFO]	2026-07-12T06:10:44.463Z	d2b5f768-0a0f-47ed-9a97-76d9860ea4b5	premortem-engine starting v1
-- `06:12:10` CW: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
-- `06:12:10` CW: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
-- `06:12:10` CW: [llm_router] ALL providers down (<HTTPError 400: 'Bad Request'>) -> empty; engine uses deterministic fallback
-- `06:12:10` CW: [llm_router] ALL providers down (<HTTPError 400: 'Bad Request'>) -> empty; engine uses deterministic fallback
-- `06:12:10` CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
-- `06:12:10` CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
-- `06:12:10` CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
-- `06:12:10` ✅ ROOT: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
-## Class-specific fix
-
-- `06:12:10` FinOps policy restored (on_demand). Owner switch to re-enable background LLM fleet-wide: /justhodl/llm/mode = normal
-- `06:12:10` ✗ root exception above requires the next fix class
