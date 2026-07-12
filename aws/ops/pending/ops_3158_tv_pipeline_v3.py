@@ -79,6 +79,31 @@ with report("3158_tv_pipeline_v3") as rep:
     rep.kv(function_url=furl)
 
     rep.section("2. E2E: notes + watchlists through the real pipe")
+    LOGS = boto3.client("logs", region_name=REGION)
+    def cw_tail(mins=4):
+        try:
+            ev = LOGS.filter_log_events(
+                logGroupName=f"/aws/lambda/{FN}",
+                startTime=int(time.time() * 1000) - mins * 60 * 1000,
+                limit=30)
+            for e in (ev.get("events") or [])[-10:]:
+                m = e["message"].strip()
+                if any(k in m for k in ("Error", "Traceback", "  File",
+                                         "tv-ingest", "Exception")):
+                    rep.log(f"CW: {m[:220]}")
+        except Exception as _e:
+            rep.log(f"CW read: {str(_e)[:80]}")
+    # health GET first — isolates import-level crash from handler logic
+    try:
+        hr = urllib.request.urlopen(urllib.request.Request(
+            furl, headers={"User-Agent": "ops"}), timeout=20)
+        rep.ok(f"health GET {hr.status}: {hr.read().decode()[:120]}")
+    except Exception as e:
+        rep.log(f"health GET failed: {str(e)[:100]}")
+        time.sleep(6)
+        cw_tail()
+        fails.append("module-level crash on GET — CW above")
+
     token = SSM.get_parameter(Name="/justhodl/tvnotes/ingest-token",
                               WithDecryption=True)["Parameter"]["Value"]
     stamp = int(time.time())
@@ -96,8 +121,14 @@ with report("3158_tv_pipeline_v3") as rep:
     req = urllib.request.Request(
         furl, data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=30) as r:
-        resp = json.loads(r.read().decode())
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            resp = json.loads(r.read().decode())
+    except Exception as e:
+        time.sleep(6)
+        cw_tail()
+        fails.append(f"E2E POST failed: {str(e)[:100]} — CW above")
+        resp = {}
     rep.kv(e2e_status=resp.get("ok"),
            brain_upserted=resp.get("brain_upserted"),
            mirror_added=resp.get("mirror_added"),
@@ -105,12 +136,14 @@ with report("3158_tv_pipeline_v3") as rep:
     if resp.get("watchlists_saved") != 2:
         fails.append(f"watchlists_saved={resp.get('watchlists_saved')} "
                      "(expected 2)")
-    wdoc = s3_json("data/tv-watchlists.json")
+    wdoc = {"lists": []}
+    if resp:
+        wdoc = s3_json("data/tv-watchlists.json")
     ids = {l["id"] for l in wdoc.get("lists") or []}
-    if f"e2e-a-{stamp}" in ids and f"e2e-b-{stamp}" in ids:
+    if resp and f"e2e-a-{stamp}" in ids and f"e2e-b-{stamp}" in ids:
         rep.ok(f"tv-watchlists.json live: {wdoc.get('n_lists')} lists, "
                "e2e lists present with full membership")
-    else:
+    elif resp:
         fails.append("e2e lists missing from tv-watchlists.json")
     # cleanup: delete the note; strip e2e lists from the doc
     note_id = None
