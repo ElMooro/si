@@ -29,6 +29,7 @@ S3 = boto3.client("s3")
 SSM = boto3.client("ssm")
 BUCKET = "justhodl-dashboard-live"
 MIRROR_KEY = "data/tradingview-notes.json"
+WATCHLISTS_KEY = "data/tv-watchlists.json"
 BRAIN_BASES = ["https://api.justhodl.ai",
                "https://justhodl-data-proxy.raafouis.workers.dev"]
 MAX_NOTES = 2000
@@ -123,6 +124,43 @@ def _norm(raw):
             "_symbol": symbol}
 
 
+
+
+def _save_watchlists(watchlists):
+    """ops 3158: watchlists ARE the predictive unit — mirror them for the
+    tracker engine. Merge by list id: latest sync wins per list."""
+    if not watchlists or not isinstance(watchlists, list):
+        return 0
+    from datetime import datetime, timezone
+    clean = []
+    for l in watchlists[:200]:
+        if not isinstance(l, dict):
+            continue
+        syms = [str(x)[:40] for x in (l.get("symbols") or [])
+                if isinstance(x, str)][:500]
+        name = str(l.get("name") or "").strip()[:120]
+        if name and syms:
+            clean.append({"id": str(l.get("id") or name)[:80],
+                          "name": name, "symbols": syms,
+                          "n": len(syms), "color": l.get("color")})
+    if not clean:
+        return 0
+    try:
+        prev = json.loads(S3.get_object(Bucket=BUCKET,
+                          Key=WATCHLISTS_KEY)["Body"].read())
+        by_id = {l["id"]: l for l in prev.get("lists") or []}
+    except Exception:
+        by_id = {}
+    for l in clean:
+        by_id[l["id"]] = l
+    doc = {"generated_at": datetime.now(timezone.utc).isoformat(),
+           "source": "tv-extension", "n_lists": len(by_id),
+           "lists": sorted(by_id.values(), key=lambda x: x["name"].lower())}
+    S3.put_object(Bucket=BUCKET, Key=WATCHLISTS_KEY,
+                  Body=json.dumps(doc).encode(),
+                  ContentType="application/json")
+    return len(clean)
+
 def lambda_handler(event, context):
     method = (event.get("requestContext", {}).get("http", {})
               .get("method") or event.get("httpMethod") or "POST").upper()
@@ -145,6 +183,12 @@ def lambda_handler(event, context):
         return _resp(403, {"ok": False, "error": "bad token"})
     uid = _ssm("/justhodl/brain/uid", "BRAIN_UID")
 
+    wl_saved = 0
+    try:
+        wl_saved = _save_watchlists(req.get("watchlists"))
+    except Exception as _e:
+        print(f"[tv-ingest] watchlists save failed: {str(_e)[:120]}")
+
     # ---- delete mode (used by ops self-test cleanup) --------------------
     if req.get("delete_ids"):
         ids = [str(i) for i in req["delete_ids"]][:50]
@@ -160,6 +204,10 @@ def lambda_handler(event, context):
     # ---- ingest ----------------------------------------------------------
     raw = req.get("notes") or []
     if not isinstance(raw, list) or not raw:
+        if wl_saved:
+            return _resp(200, {"ok": True, "brain_upserted": 0,
+                               "mirror_added": 0,
+                               "watchlists_saved": wl_saved})
         return _resp(400, {"ok": False, "error": "notes[] required"})
     raw = raw[:MAX_NOTES]
     notes, rejected = [], 0
