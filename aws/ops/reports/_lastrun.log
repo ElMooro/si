@@ -1,40 +1,43 @@
-executing-against: 74670aeef7f93c785f04ed3cf09f6d49de963476
-ops 3164 — brain verify · mirror hygiene · resolver census
-── A. Brain read-back (authed) ──
-[20:52:57]   https://api.justhodl.ai/brain/brain-930ffa48-60a1-4b11-8726-8848d1b827f9/notes: HTTP Error 403: Forbidden
-[20:52:57]   https://api.justhodl.ai/brain/notes: HTTP Error 403: Forbidden
-[20:52:57]   https://justhodl.ai/api/brain/brain-930ffa48-60a1-4b11-8726-8848d1b827f9/notes: HTTP Error 404: Not Found
-[20:52:57]   https://justhodl.ai/api/brain/notes: HTTP Error 404: Not Found
-── B. Mirror normalize + dedupe ──
-[20:52:57] ── most-noted (post-normalize): DXY(288), FEDFUNDS(218), SPX(162), NVDA(64), MU(63), STX(63), AAPL(62), MOVE(48), US10Y(46), CL1!(38)
-[20:52:57] ✅ mirror normalized: 203 prefix-duplicates collapsed → 3573 unique notes
-── C. Resolver coverage over the real universe ──
-[20:52:57]   UNRESOLVED    4130  (63.5%)
-[20:52:57]   POLY          1663  (25.6%)
-[20:52:57]   FRED           546  (8.4%)
-[20:52:57]   FORMULA        132  (2.0%)
-[20:52:57]   CRYPTO          36  (0.6%)
-[20:52:57] ── unresolved reasons: econ_unmapped=1863, exchange_unsupported=1851, tvc_unmapped=211, formula_with_unresolvable_operand=205
-[20:52:57] ── per-list coverage (thesis lists, ≥20 members):
-[20:52:57]   100%   40/40   Commercial banks
-[20:52:57]   100%   36/36   Corp Yields
-[20:52:57]   100%   31/31   Commercial banks
-[20:52:57]   100%   29/29   Global Commodities prices
-[20:52:57]   100%   26/26   3X ETF
-[20:52:57]   100%   22/22   Energy and oil stocks
-[20:52:57]    97%   37/38   Commercial Banks
-[20:52:57]    97%   29/30   Fed Balance sheet
-[20:52:57]    96%  262/273  Brent Johnson Portfolio: THE SHORTTERM SWING
-[20:52:57]    96%   50/52   Different Types of Stock indexes
-[20:52:57]    96%   22/23   GLOBAL EQUITY
-[20:52:57]    95%  123/129  Banking Sector : Banks = Liquidity Proxy Eve
-[20:52:57]    93%   28/30   Feds
-[20:52:57]    92%   69/75   Global ETFs
-[20:52:57]    90%   80/89   fed plumbing
-[20:52:57]    90%   38/42   Consumers
-[20:52:57]    89%   81/91   Basic Materials
-[20:52:57]    89%   24/27   Global Bonds
-[20:52:57] ✅ 36.5% of the universe is priceable today — enough to build thesis states
-[20:52:57] ⚠ brain GET is admin-gated from the runner — WRITES were confirmed by the ingest (brain_upserted on every chunk) and data/tradingview-notes.json is the store the brain-compiler reads
+executing-against: face721430115b3ea712fadcda1af35c2a2ea226
+ops 3165 — Thesis Engine
+── 1. Deploy ──
+[21:26:30] env keys: ['FRED_KEY', 'POLYGON_KEY', 'S3_BUCKET']
+[21:26:30]   zip: 58564 bytes
+── 1. Lambda ──
+[21:26:30]   Lambda exists — updating
+[21:26:37] ✅   ✓ updated justhodl-thesis-engine
+[21:26:37] ✅   ✓ Function URL: https://e2kamt5p6takze7mxepzkp7bbi0lsqwq.lambda-url.us-east-1.on.aws/
+── 2. EB rule + permissions ──
+[21:26:38] ✅   ✓ created rule thesis-engine-daily
+[21:26:38] ✅   ✓ target → justhodl-thesis-engine
+[21:26:38] ✅   ✓ added invoke permission
+── 2. First run (cold: full history backfill) ──
+[21:26:38] async invoke fired — backfilling ~550 FRED + ~1,700 Polygon series, then event-studying every thesis
+── 3. Results ──
+[21:27:19] ── STRONGEST LEADS (|t| on 21d forward SPY):
+[21:27:19]   Business Cycle                             act  25.0% ( 52.2p) | SPY21 excess   2.36% hit  92.2% t=  8.59 n=141
+[21:27:19]   Economy                                    act  44.8% ( 67.0p) | SPY21 excess   2.62% hit  96.9% t=  7.56 n=97
+[21:27:19]   Country ETFs                               act  45.5% ( 67.4p) | SPY21 excess   0.33% hit  81.8% t=  0.74 n=99
+[21:27:19]   Employment                                 act  66.7% ( 78.3p) | SPY21 excess   2.58% hit  82.5% t=  6.07 n=97
+[21:27:19]   EuroDollar banks                           act  77.8% ( 86.1p) | SPY21 excess  -0.51% hit  77.5% t= -2.23 n=120  ★FIRING
+[21:27:19]   Credit Spreads                             act  30.0% ( 80.7p) | SPY21 excess    1.9% hit  88.7% t=  6.41 n=141  ★FIRING
+[21:27:19]   Europe Stocks Indices                      act  25.0% ( 42.2p) | SPY21 excess  -0.53% hit  69.1% t= -1.59 n=149
+[21:27:19]   Fed Interest Rates                         act  37.5% ( 59.9p) | SPY21 excess   0.06% hit  78.7% t=  0.36 n=127
+[21:27:19]   Consumers                                  act  18.2% ( 53.5p) | SPY21 excess   1.48% hit  91.3% t=   6.2 n=127
+[21:27:19]   Financial Conditions                       act  36.4% ( 83.5p) | SPY21 excess   2.04% hit  90.3% t=  6.13 n=113  ★FIRING
+[21:27:19]   fed powell holding                         act  40.0% ( 55.3p) | SPY21 excess   0.54% hit  75.5% t=  1.87 n=143
+[21:27:19]   Credit Risk                                act  20.0% ( 76.7p) | SPY21 excess   1.91% hit  87.3% t=  5.51 n=110
+[21:27:19] ✅ 56 theses scored · 34 carry a statistically significant 21d lead (|t|>=2, n>=20) · 24 firing today
+[21:27:19] ── SIGNIFICANT (these are the ones that actually lead):
+[21:27:19]   · Business Cycle: risk-ON tell — SPY 21d +2.36% vs base, hit 92.2%, t=8.59, n=141
+[21:27:19]   · Economy: risk-ON tell — SPY 21d +2.62% vs base, hit 96.9%, t=7.56, n=97
+[21:27:19]   · Employment: risk-ON tell — SPY 21d +2.58% vs base, hit 82.5%, t=6.07, n=97
+[21:27:19]   · EuroDollar banks: risk-OFF tell — SPY 21d -0.51% vs base, hit 77.5%, t=-2.23, n=120
+[21:27:19]   · Credit Spreads: risk-ON tell — SPY 21d +1.90% vs base, hit 88.7%, t=6.41, n=141
+[21:27:19]   · Consumers: risk-ON tell — SPY 21d +1.48% vs base, hit 91.3%, t=6.2, n=127
+[21:27:19]   · Financial Conditions: risk-ON tell — SPY 21d +2.04% vs base, hit 90.3%, t=6.13, n=113
+[21:27:19]   · Credit Risk: risk-ON tell — SPY 21d +1.91% vs base, hit 87.3%, t=5.51, n=110
+── 4. Page ──
+[21:27:19] ⚠ page: HTTP Error 404: Not Found
 
-→ Report written to aws/ops/reports/latest/3164_brain_verify_resolver.md
+→ Report written to aws/ops/reports/latest/3165_thesis_engine.md
