@@ -844,7 +844,7 @@ def handler(event, context):
     # ops 3171: Khalid's own notes as desk context
     notes_idx = {k: {"n": v["n_notes"], "stance": v["stance"],
                      "score": v["stance_score"]}
-                 for k, v in ((fetch_json("data/notes-index.json") or {})
+                 for k, v in ((safe_load("data/notes-index.json") or {})
                               .get("index") or {}).items()}
     kill_idx = _index_kill(kill)
     sizer_idx = _index_sizer(sizer)
