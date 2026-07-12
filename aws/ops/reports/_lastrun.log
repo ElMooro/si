@@ -1,19 +1,20 @@
-executing-against: 3836667502f69c5bfec02d8e9d2ec66d89d0d01f
-ops 3158 — TV pipeline v3 (notes + WATCHLISTS)
-── 1. Deploy ingest lambda ──
-[18:46:33]   zip: 55787 bytes
+executing-against: 363ecadf07d19571274483a0bbaa3ac22a1a0f1a
+ops 3159 — watchlist tracker
+── 1. Harvest state (did the sync land?) ──
+── 2. Deploy engine ──
+[19:40:06]   zip: 55815 bytes
 ── 1. Lambda ──
-[18:46:33]   Lambda exists — updating
-[18:46:36] ✅   ✓ updated justhodl-tv-notes-ingest
-── 2. E2E: notes + watchlists through the real pipe ──
-[18:46:37] ✅ health GET 200: {"ok": true, "service": "tv-notes-ingest", "mirror_count": 1}
-[18:46:39] ✅ tv-watchlists.json live: 2 lists, e2e lists present with full membership
-[18:46:41] e2e note deleted via delete_ids
-[18:46:41] e2e watchlists stripped — doc clean for the real sync
-── 3. Package extension 1.1.0 ──
-[18:46:41] ✅ zip → repo tools/ + S3 tools/jh-tv-extension.zip
-── 4. Download path verification ──
-[18:46:41] ✅ tv-ingest-config.json: HTTP 200 (276 bytes)
-[18:46:41] ⚠ jh-tv-extension.zip: HTTP Error 403: Forbidden
+[19:40:06]   Lambda missing — creating
+[19:40:10] ✅   ✓ created justhodl-tv-watchlist-tracker
+[19:40:11] ✅   ✓ Function URL: https://2iyd6dxs6v42xn6kotklhs33jm0mzfwx.lambda-url.us-east-1.on.aws/
+── 2. EB rule + permissions ──
+[19:40:11] ✅   ✓ created rule tv-watchlist-tracker-daily
+[19:40:11] ✅   ✓ target → justhodl-tv-watchlist-tracker
+[19:40:11] ✅   ✓ added invoke permission
+── 3. Invoke + gate ──
+[19:40:23] ✅ engine armed in WAITING_FIRST_SYNC — self-activates on tomorrow's run after sync
+── 4. Page board (warn-only) ──
+[19:40:24] ⚠ no real watchlists yet — extension sync pending; engine ships in WAITING state and self-activates
+[19:40:24] ⚠ CDN pre-board (self-heals)
 
-→ Report written to aws/ops/reports/latest/3158_tv_pipeline_v3.md
+→ Report written to aws/ops/reports/latest/3159_wl_tracker.md
