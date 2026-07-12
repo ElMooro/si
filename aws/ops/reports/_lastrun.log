@@ -1,64 +1,65 @@
-executing-against: 8decb7d17551e96c4f5cd2bbb69ca04e7c9f6bd8
+executing-against: a76c49995fb99997b54e85ab87475ab432310be2
 ops 3145 — Fusion Wave 1 (5 engines, additive)
 ── A. industry-rotation ← divergence fields ──
-[04:40:34]   zip: 73610 bytes
+[05:07:28]   zip: 73655 bytes
 ── 1. Lambda ──
-[04:40:34]   Lambda exists — updating
-[04:40:39] ✅   ✓ updated justhodl-industry-rotation
-[04:40:40] ✅   ✓ Function URL: https://x4cqrcvjdgjkpk2pvx4e6sjtjy0ofxna.lambda-url.us-east-1.on.aws/
+[05:07:28]   Lambda exists — updating
+[05:07:31] ✅   ✓ updated justhodl-industry-rotation
 ── 2. EB rule + permissions ──
-[04:40:40]   rule already correct: industry-rotation-daily (cron(35 21 * * ? *))
-[04:40:40] ✅   ✓ target → justhodl-industry-rotation
-[04:40:41] ✅   ✓ added invoke permission
+[05:07:32]   rule already correct: industry-rotation-daily (cron(35 21 * * ? *))
+[05:07:32] ✅   ✓ target → justhodl-industry-rotation
+[05:07:32] ✅   ✓ added invoke permission
 ── 3. Smoke test ──
-[04:40:41]   invoking justhodl-industry-rotation…
-[04:45:51] ✅ A live: e.g. None → None
+[05:07:32]   invoking justhodl-industry-rotation…
+[05:12:46] A: IR top-level keys: ['absorption_watch', 'breakdown_watch', 'by_sector_name', 'closes66', 'cycle_context', 'doctrine', 'engine', 'ew_cw', 'finviz_sector_perf_attached', 'generated_at', 'industry_credit', 'join_hits', 'ladder', 'leaders']
+[05:12:46] ✅ A: quadrants live — e.g. XLK NEUTRAL
 ── B. best-setups ← earnings + squeeze + IR flow quadrant ──
-[04:45:52]   zip: 72700 bytes
+[05:12:46]   zip: 72756 bytes
 ── 1. Lambda ──
-[04:45:52]   Lambda exists — updating
-[04:45:55] ✅   ✓ updated justhodl-best-setups
-[04:45:56] ✅   ✓ Function URL: https://42527xww5a3b6fnidjwuugpzpq0rbiox.lambda-url.us-east-1.on.aws/
+[05:12:47]   Lambda exists — updating
+[05:12:50] ✅   ✓ updated justhodl-best-setups
 ── 2. EB rule + permissions ──
-[04:45:56] ✅   ✓ updated schedule on justhodl-best-setups-hourly
-[04:45:56] ✅   ✓ target → justhodl-best-setups
-[04:45:57] ✅   ✓ added invoke permission
+[05:12:50]   rule already correct: justhodl-best-setups-hourly (cron(10 * * * ? *))
+[05:12:50] ✅   ✓ target → justhodl-best-setups
+[05:12:50] ✅   ✓ added invoke permission
 ── 3. Smoke test ──
-[04:45:57]   invoking justhodl-best-setups…
-[04:46:01] ✅   ✓ smoke test passed
-[04:46:01]     ok                       True
-[04:46:01]     n_setups                 527
-[04:46:01]     strong_buy               3
-[04:46:01]     buy                      15
-[04:46:01]     weight_source            prior-only
-[04:46:02] ✅ B live on 50 setups
+[05:12:50]   invoking justhodl-best-setups…
+[05:12:55] ✅   ✓ smoke test passed
+[05:12:55]     ok                       True
+[05:12:55]     n_setups                 527
+[05:12:55]     strong_buy               3
+[05:12:55]     buy                      15
+[05:12:55]     weight_source            prior-only
+[05:12:55] ✅ B live on 50 setups
 ── C. master-ranker ← kill-theses + squeeze-fuel overlays ──
 ── D. convergence-radar ← early_signals block ──
-[04:53:07]   zip: 65647 bytes
+[05:20:05]   zip: 65801 bytes
 ── 1. Lambda ──
-[04:54:07]   Lambda exists — updating
-[04:54:13] ✅   ✓ updated justhodl-convergence-radar
-[04:54:13] ✅   ✓ Function URL: https://nrjt2ax6fecycews4sxnqfuhpi0uihax.lambda-url.us-east-1.on.aws/
+[05:20:06]   Lambda exists — updating
+[05:20:11] ✅   ✓ updated justhodl-convergence-radar
 ── 3. Smoke test ──
-[04:54:13]   invoking justhodl-convergence-radar…
-[04:54:15] ✗   ✗ FunctionError: Unhandled
-[04:54:15]   body: {"errorMessage": "unsupported operand type(s) for +: 'dict' and 'list'", "errorType": "TypeError", "requestId": "c8a8ad89-944e-423e-808b-8a76627ee81c", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 1199, in lambda_handler\n    \"universe_new\": _top((_uni.get(\"threshold_crossers\") or [])\n"]}
+[05:20:11]   invoking justhodl-convergence-radar…
+[05:20:13] ✅   ✓ smoke test passed
+[05:20:13]     status                   ok
+[05:20:13]     elapsed_sec              1.34
+[05:20:13]     n_tickers                179
+[05:20:13]     n_ultra                  15
+[05:20:13]     n_high                   42
+[05:20:13]     alert_sent               False
+[05:20:14] ✅ D live: talent=0 restruct=5 universe=6
 ── E. alpha-daily-brief ← desk-sheet (smoke off) ──
-[05:01:22]   zip: 58273 bytes
+[05:20:14]   zip: 58273 bytes
 ── 1. Lambda ──
-[05:01:22]   Lambda exists — updating
-[05:01:25] ✅   ✓ updated justhodl-alpha-daily-brief
-[05:01:26] ✅   ✓ Function URL: https://s2wq5oajenqawpdhh572ocedta0unvdn.lambda-url.us-east-1.on.aws/
+[05:20:14]   Lambda exists — updating
+[05:20:19] ✅   ✓ updated justhodl-alpha-daily-brief
 ── 2. EB rule + permissions ──
-[05:01:26]   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
-[05:01:26] ✅   ✓ target → justhodl-alpha-daily-brief
-[05:01:27] ✅   ✓ added invoke permission
-[05:01:27] ✅ E deployed — desk-sheet block lands in next scheduled brief (LLM run skipped in-op by design)
-[05:01:27] ⚠ B: zero flow quadrants — IR join fields not propagating
-[05:01:27] ✗ A deploy: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-industry-rotation/invocations"
-[05:01:27] ✗ C deploy: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/lambdas/justhodl-master-ranker/config.json'
-[05:01:27] ✗ C: master-ranker.json never freshened
-[05:01:27] ✗ D: convergence-radar.json never freshened
+[05:20:20]   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
+[05:20:20] ✅   ✓ target → justhodl-alpha-daily-brief
+[05:20:20] ✅   ✓ added invoke permission
+[05:20:20] ✅ E deployed — desk-sheet block lands in next scheduled brief (LLM run skipped in-op by design)
+[05:20:20] ✗ A deploy: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-industry-rotation/invocations"
+[05:20:20] ✗ C deploy: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/lambdas/justhodl-master-ranker/config.json'
+[05:20:20] ✗ C: master-ranker.json never freshened
 
 → Report written to aws/ops/reports/latest/3145_fusion_wave1.md
 ❌ OPS-FAIL: aws/ops/pending/ops_3145_fusion_wave1.py
