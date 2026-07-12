@@ -190,6 +190,10 @@ def lambda_handler(event, context):
                (_ecal if isinstance(_ecal, list) else [])):
         if isinstance(_r, dict) and _r.get("ticker") and _r.get("date"):
             _edates.setdefault(_r["ticker"].upper(), _r["date"])
+    # ops 3171: KHALID'S OWN NOTES — his research is the highest-signal
+    # proprietary input on the platform; a setup that contradicts his own
+    # written thesis should say so out loud.
+    _notes_idx = (read_json("data/notes-index.json") or {}).get("index") or {}
     _sqf = read_json("data/squeeze-fuel.json") or {}
     _sq_idx = {}
     _sq_rows = (_sqf.get("board") or _sqf.get("rows")
@@ -954,6 +958,11 @@ def lambda_handler(event, context):
             "earnings_in_days": _eid,
             "earnings_flag": bool(_eid is not None and 0 <= _eid <= 7),
             "squeeze_fuel": _sq_idx.get(tk),
+            "khalid_note": (lambda _n: {
+                "n": _n["n_notes"], "stance": _n["stance"],
+                "score": _n["stance_score"], "last": _n["last_note_at"],
+                "view": (_n.get("llm_view") or {}).get("view"),
+            } if _n else None)(_notes_idx.get(str(tk).upper())),
             "industry_flow_quadrant": ((_ind_row or {}).get("fund_flows")
                                         or {}).get("quadrant"),
             "industry_flow_z": ((_ind_row or {}).get("fund_flows")

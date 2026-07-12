@@ -1159,6 +1159,8 @@ def lambda_handler(event, context):
     #    structurally indispensable (curated / LLM-confirmed / supply-chain hub). Context for
     #    durability, not a score change — a top rank on a chokepoint is a higher-quality rank.
     # ── ops 3145 fusion overlays (additive context, no score change) ──
+    # ops 3171: Khalid's own notes ride the ranking as context
+    _notes_idx = (fetch_json("data/notes-index.json") or {}).get("index") or {}
     _kill = fetch_json("data/kill-theses.json") or {}
     _kill_idx = {}
     for _t in (_kill.get("theses") or []):
@@ -1176,15 +1178,21 @@ def lambda_handler(event, context):
     _sqf_idx = {(r.get("ticker") or "").upper():
                 {"score": r.get("score"), "state": r.get("state")}
                 for r in (_sqf.get("board") or []) if r.get("ticker")}
-    n_kill = n_sqf = 0
+    n_kill = n_sqf = n_notes = 0
     for t in top_tickers:
         if t["ticker"] in _kill_idx:
             t["kill_risk"] = _kill_idx[t["ticker"]]
             n_kill += 1
+        _kn = _notes_idx.get(str(t.get("ticker") or "").upper())
+        if _kn:                              # ops 3171: his own research
+            t["khalid_note"] = {"n": _kn["n_notes"], "stance": _kn["stance"],
+                                "score": _kn["stance_score"],
+                                "last": _kn["last_note_at"]}
+            n_notes += 1
         if t["ticker"] in _sqf_idx:
             t["squeeze_fuel"] = _sqf_idx[t["ticker"]]
             n_sqf += 1
-    print(f"[ranker] fusion overlays: kill_risk={n_kill} squeeze_fuel={n_sqf}")
+    print(f"[ranker] fusion overlays: kill_risk={n_kill} squeeze_fuel={n_sqf} khalid_notes={n_notes}")
 
     _ck = fetch_json("data/chokepoint.json") or {}
     _structural = _ck.get("structural_names") or {}

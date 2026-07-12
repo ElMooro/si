@@ -242,6 +242,12 @@ def lambda_handler(event, context):
     fresh_cut = (now - timedelta(days=6)).isoformat()
     todo = [k for k, m in need.items()
             if k not in cache or state.get("stamp", "") < fresh_cut]
+    # ops 3171: the regime series are 2 cheap calls — never let them ride
+    # a stale cache (3170 shipped 1,746 all-NEUTRAL weeks because they
+    # were missing entirely and the failure was silent)
+    for k in ("__FF__", "__BS__"):
+        if k not in todo:
+            todo.append(k)
     fetched = 0
 
     def pull(item):
@@ -304,7 +310,12 @@ def lambda_handler(event, context):
         regime.append(r)
     reg_counts = {k: regime.count(k)
                   for k in ("EASING", "NEUTRAL", "TIGHTENING")}
-    print(f"[thesis2] regime weeks: {reg_counts}")
+    reg_debug = {"ff_obs": len(cache.get("__FF__") or {}),
+                 "bs_obs": len(cache.get("__BS__") or {}),
+                 "ff_non_null": sum(1 for x in ff if x is not None),
+                 "ff_first": next((x for x in ff if x is not None), None),
+                 "ff_last": ff[-1] if ff else None}
+    print(f"[thesis2] regime weeks: {reg_counts} debug: {reg_debug}")
 
     base = {h: [r for r in (fwd(spy, i, h) for i in range(len(grid)))
                 if r is not None] for h in HORIZONS}
@@ -612,7 +623,7 @@ def lambda_handler(event, context):
 
     doc = {"generated_at": now.isoformat(), "version": "2.2", "status": "LIVE",
            "families": families,
-           "regime_weeks": reg_counts,
+           "regime_weeks": reg_counts, "regime_debug": reg_debug,
            "regime_now": regime[-1] if regime else None,
            "history_start": START, "grid": "weekly",
            "n_weeks": len(grid), "n_theses": len(rows),

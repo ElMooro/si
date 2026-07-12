@@ -524,6 +524,9 @@ def _index_best_setups(best) -> dict:
     return out
 
 
+NOTES_IDX = {}   # ops 3171: filled in the handler, read by the express builder
+
+
 def _index_kill(kill) -> dict:
     out = {}
     for t in (kill or {}).get("theses") or []:
@@ -578,6 +581,10 @@ def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx):
             "entry": bs.get("entry"), "stop": bs.get("stop"),
             "target": bs.get("target"),
             "kill_risk": kill_idx.get(tk),
+            "khalid_note": (lambda _n: {"n": _n["n_notes"],
+                                        "stance": _n["stance"],
+                                        "score": _n["stance_score"]}
+                            if _n else None)(NOTES_IDX.get(str(tk).upper())),
             "sizer": sizer_idx.get(tk),
         })
 
@@ -838,6 +845,9 @@ def handler(event, context):
         if isinstance(r, dict):
             single_by_src.setdefault(str(r.get("source") or ""), []).append(r)
     best_idx = _index_best_setups(best)
+    # ops 3171: Khalid's own notes as desk context
+    global NOTES_IDX
+    NOTES_IDX = (fetch_json("data/notes-index.json") or {}).get("index") or {}
     kill_idx = _index_kill(kill)
     sizer_idx = _index_sizer(sizer)
 
