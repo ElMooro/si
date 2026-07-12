@@ -1,31 +1,22 @@
-"""justhodl-thesis-engine v1.0 — ops 3165.
+"""justhodl-thesis-engine v2.0 — ops 3168 (DEEP HISTORY, 1990-2026).
 
-Khalid's 207 TradingView watchlists are not stock baskets — they are
-NAMED THESES ("Financial Crisis Signs", "fed plumbing", "Banking Sector:
-Banks = Liquidity Proxy"), each holding the indicator set that argues
-the thesis. This engine makes each one measurable:
+v1 ran on ~2 years (Polygon caps at 5y): n_eff ~5 per thesis, so nothing
+could clear FDR — an honest null, but a powerless one.
 
-  1. RESOLVE members → live series
-       FRED:*           → FRED API (546 in his universe)
-       NASDAQ/NYSE/…    → Polygon daily closes (1,663)
-       TVC:/ECONOMICS:* → mapped to FRED where a true equivalent exists
-       formulas         → arithmetic evaluated over resolved operands
-                          (e.g. FRED:FEDFUNDS-FRED:BAMLHE00EHYIEY)
-  2. ACTIVATION INDEX — per member, z-score vs trailing 252 obs; per
-     thesis per date, activation = share of members at |z| >= 1.5.
-     Polarity-agnostic on purpose: a thesis panel is "firing" when an
-     unusual share of ITS OWN indicators sit at extremes.
-  3. EVENT STUDY — days in the top activation quintile vs forward SPY
-     5/21/63d returns, against the unconditional base rate. Reports mean
-     excess, hit rate, t-stat, n. This answers "does this thesis lead?"
-     from HISTORY instead of waiting weeks for forward grading.
-  4. SIGNALS — theses that are FIRING NOW and carry a significant
-     historical edge (|t| >= 2, n >= 20) emit into justhodl-signals with
-     the direction the DATA showed (never a lexicon guess), so the live
-     scorecard keeps grading them.
+v2 rebuilds on 36 years via aws/shared/series_source.py:
+  FRED    US + OECD macro (1990+; one template covers ~50 countries)
+  MARKET  Yahoo -> Stooq -> Polygon chain (S&P/DXY/VIX/Nikkei all 1990)
+  data/symbol-map.json (ops 3167) supplies the resolved source per symbol.
 
-State (gzipped series cache) in data/thesis-state.json.gz keeps daily
-runs cheap. Output: data/thesis-engine.json
+Grid is WEEKLY (~1,900 weeks vs 500 days) because Khalid's members are
+mostly weekly/monthly macro. Forward SPY horizons 4/13/26 weeks, with:
+  · overlap-corrected t  (n_eff = n / horizon — daily/weekly sampling of
+    h-period forward returns shares h-1 periods between neighbours)
+  · hit-edge vs SPY's OWN base rate
+  · Benjamini-Hochberg FDR q=0.10 across every thesis tested
+Only FDR survivors that are firing today emit into justhodl-signals.
+
+Output: data/thesis-engine.json   State: data/thesis-state-v2.json.gz
 """
 
 import gzip
@@ -34,46 +25,34 @@ import json
 import math
 import os
 import re
+import sys
 import time
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-POLY = os.environ.get("POLYGON_KEY", "")
-FRED = (os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY")
-        or "2f057499936072679d8843d7fce99989")
-OUT_KEY = "data/thesis-engine.json"
-STATE_KEY = "data/thesis-state.json.gz"
-LISTS_KEY = "data/tv-watchlists.json"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import series_source as SS  # bundled from aws/shared by the deploy helper
 
-LOOKBACK_DAYS = 780          # ~3y calendar
-MIN_MEMBERS = 8              # a thesis needs a real evidence set
-MAX_MEMBERS = 120            # cap the 500-symbol monsters
-Z_FIRE = 1.5                 # member is "extreme"
-MIN_COVERAGE = 0.45          # >=45% of members must resolve
+BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
+OUT_KEY = "data/thesis-engine.json"
+STATE_KEY = "data/thesis-state-v2.json.gz"
+LISTS_KEY = "data/tv-watchlists.json"
+MAP_KEY = "data/symbol-map.json"
+
+START = "1990-01-01"
+MIN_MEMBERS = 8
+MAX_MEMBERS = 60
+MIN_COVERAGE = 0.45
+Z_FIRE = 1.5
+Z_WIN = 156                 # 3y rolling window on the weekly grid
+HORIZONS = (4, 13, 26)      # weeks
+FETCH_BUDGET_S = 620
 
 S3 = boto3.client("s3", region_name="us-east-1")
 
-TVC_FRED = {"US02Y": "DGS2", "US03MY": "DTB3", "US10Y": "DGS10",
-            "US30Y": "DGS30", "US05Y": "DGS5", "US01Y": "DGS1",
-            "US03Y": "DGS3", "US07Y": "DGS7", "US06MY": "DGS6MO",
-            "DXY": "DTWEXBGS", "VIX": "VIXCLS", "USOIL": "DCOILWTICO",
-            "US02YY": "DGS2", "US10YY": "DGS10", "US05YY": "DGS5",
-            "JP10Y": "IRLTLT01JPM156N", "DE10Y": "IRLTLT01DEM156N",
-            "GB10Y": "IRLTLT01GBM156N"}
-ECON_FRED = {"USCBBS": "WALCL", "USINTR": "FEDFUNDS", "USIRYY": "CPIAUCSL",
-             "USUR": "UNRATE", "USM2": "M2SL", "USBBS": "WALCL",
-             "USINBR": "TOTRESNS", "USNFP": "PAYEMS", "USCCPI": "CPIAUCSL",
-             "USRRP": "RRPONTSYD", "USBOI": "NAPM"}
-EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
-OPS_RE = re.compile(r"[+\-*/()]")
-NUM_RE = re.compile(r"^[\d.]+$")
 
-
-# ── infra ────────────────────────────────────────────────────────────
 def s3_get(key, default=None, gz=False):
     try:
         b = S3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
@@ -95,123 +74,39 @@ def s3_put(key, doc, gz=False):
                   ContentType="application/json")
 
 
-def http(url, timeout=25):
-    req = urllib.request.Request(url, headers={"User-Agent": "jh-thesis/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode())
+# ── weekly grid ──────────────────────────────────────────────────────
+def week_key(iso):
+    y, m, d = (int(x) for x in iso[:10].split("-"))
+    iso_y, iso_w, _ = date(y, m, d).isocalendar()
+    return f"{iso_y}-{iso_w:02d}"
 
 
-# ── resolver ─────────────────────────────────────────────────────────
-def resolve(sym):
-    s = str(sym).strip().upper()
-    if not s:
-        return None, None
-    if OPS_RE.search(s):
-        ops = [o.strip() for o in re.split(r"[+\-*/()]", s)
-               if o.strip() and not NUM_RE.match(o.strip())]
-        if not ops:
-            return None, None
-        if all(resolve(o)[0] in ("FRED", "POLY") for o in ops):
-            return "FORMULA", s
-        return None, None
-    if ":" not in s:
-        return "POLY", s
-    ex, t = s.split(":", 1)
-    if ex == "FRED":
-        return "FRED", t
-    if ex == "TVC":
-        f = TVC_FRED.get(t)
-        return ("FRED", f) if f else (None, None)
-    if ex == "ECONOMICS":
-        f = ECON_FRED.get(t)
-        return ("FRED", f) if f else (None, None)
-    if ex in EQ_EX:
-        return "POLY", t
-    return None, None
+def to_weekly(series):
+    """last observation of each ISO week."""
+    out = {}
+    for d, v in sorted(series.items()):
+        out[week_key(d)] = v
+    return out
 
 
-# ── fetchers ─────────────────────────────────────────────────────────
-def fred_series(sid, start):
-    try:
-        d = http("https://api.stlouisfed.org/fred/series/observations"
-                 f"?series_id={sid}&api_key={FRED}&file_type=json"
-                 f"&observation_start={start}")
-        out = {}
-        for o in d.get("observations") or []:
-            v = o.get("value")
-            if v not in (".", "", None):
-                try:
-                    out[o["date"]] = float(v)
-                except Exception:
-                    pass
-        return sid, out
-    except Exception:
-        return sid, {}
-
-
-def poly_series(tk, d0, d1):
-    try:
-        d = http(f"https://api.polygon.io/v2/aggs/ticker/{tk}/range/1/day/"
-                 f"{d0}/{d1}?adjusted=true&sort=asc&limit=900&apiKey={POLY}")
-        return tk, {datetime.utcfromtimestamp(r["t"] / 1000).date().isoformat():
-                    r["c"] for r in (d.get("results") or [])}
-    except Exception:
-        return tk, {}
-
-
-# ── math ─────────────────────────────────────────────────────────────
-def ffill(series, dates):
-    """align a sparse series onto the date grid, forward-filled."""
+def ffill(weekly, grid):
     out, last = [], None
-    for d in dates:
-        if d in series:
-            last = series[d]
+    for w in grid:
+        if w in weekly:
+            last = weekly[w]
         out.append(last)
     return out
 
 
-def eval_formula(expr, resolved, dates):
-    """arithmetic over aligned member series; None where any operand is None."""
-    toks = re.findall(r"[A-Z0-9_:.!]+|[+\-*/()]|\d+\.?\d*", expr)
-    cols = {}
-    for t in toks:
-        if OPS_RE.fullmatch(t) or NUM_RE.match(t):
-            continue
-        k, h = resolve(t)
-        key = f"{k}:{h}"
-        if key in resolved:
-            cols[t] = resolved[key]
-    if not cols:
-        return None
-    out = []
-    for i in range(len(dates)):
-        e = expr
-        ok = True
-        for t, col in sorted(cols.items(), key=lambda x: -len(x[0])):
-            v = col[i] if i < len(col) else None
-            if v is None:
-                ok = False
-                break
-            e = e.replace(t, f"({v})")
-        if not ok or re.search(r"[A-Z]", e):
-            out.append(None)
-            continue
-        try:
-            val = eval(e, {"__builtins__": {}}, {})  # noqa: S307 — operands
-            out.append(float(val) if math.isfinite(val) else None)
-        except Exception:
-            out.append(None)
-    return out
-
-
-def zscores(vals, win=252):
+# ── stats ────────────────────────────────────────────────────────────
+def zscores(vals, win=Z_WIN):
     out = []
     for i in range(len(vals)):
         if vals[i] is None:
             out.append(None)
             continue
         hist = [v for v in vals[max(0, i - win):i + 1] if v is not None]
-        if len(hist) < 40:
+        if len(hist) < 30:
             out.append(None)
             continue
         mu = sum(hist) / len(hist)
@@ -220,17 +115,13 @@ def zscores(vals, win=252):
     return out
 
 
-def fwd_ret(spy, i, h):
-    if i + h >= len(spy) or spy[i] is None or spy[i + h] is None:
+def fwd(spy, i, h):
+    if i + h >= len(spy) or not spy[i] or not spy[i + h]:
         return None
     return (spy[i + h] / spy[i] - 1) * 100
 
 
 def tstat(sample, base, horizon=1):
-    """Overlap-corrected t. Sampling forward h-day returns on EVERY day
-    makes neighbouring observations share h-1 days: the effective sample
-    is ~n/h, and a naive t is inflated by ~sqrt(h) (ops 3166 — the first
-    run printed t=8.59 where the honest figure was ~1.9)."""
     n = len(sample)
     if n < 8:
         return 0.0
@@ -243,23 +134,42 @@ def tstat(sample, base, horizon=1):
 
 
 def norm_p(t):
-    """two-sided p from a normal approximation (no scipy in the runtime)."""
-    z = abs(t)
-    p = math.erfc(z / math.sqrt(2))
-    return min(1.0, max(1e-9, p))
+    return min(1.0, max(1e-9, math.erfc(abs(t) / math.sqrt(2))))
 
 
 def bh_fdr(pvals, q=0.10):
-    """Benjamini-Hochberg: which of the tested theses survive multiple
-    testing at FDR q. 56 theses tested => naive p<0.05 guarantees ~3
-    false positives."""
     idx = sorted(range(len(pvals)), key=lambda i: pvals[i])
-    m = len(pvals)
-    keep = set()
+    m, keep = len(pvals), set()
     for rank, i in enumerate(idx, 1):
         if pvals[i] <= q * rank / m:
             keep = set(idx[:rank])
     return keep
+
+
+def eval_formula(expr, cols, grid_len):
+    toks = [t for t in re.findall(r"[A-Z0-9_:.!^=\-]+", expr)
+            if t in cols]
+    if not toks:
+        return None
+    out = []
+    for i in range(grid_len):
+        e = expr
+        ok = True
+        for t in sorted(toks, key=len, reverse=True):
+            v = cols[t][i] if i < len(cols[t]) else None
+            if v is None:
+                ok = False
+                break
+            e = e.replace(t, f"({v})")
+        if not ok or re.search(r"[A-Z]{2,}", e):
+            out.append(None)
+            continue
+        try:
+            val = eval(e, {"__builtins__": {}}, {})  # operands only
+            out.append(float(val) if math.isfinite(val) else None)
+        except Exception:
+            out.append(None)
+    return out
 
 
 # ── main ─────────────────────────────────────────────────────────────
@@ -269,172 +179,159 @@ def lambda_handler(event, context):
     src = s3_get(LISTS_KEY) or {}
     lists = [l for l in (src.get("lists") or [])
              if not str(l.get("id", "")).startswith("e2e-")]
-    if not lists:
+    smap = (s3_get(MAP_KEY) or {}).get("map") or {}
+    if not lists or not smap:
         s3_put(OUT_KEY, {"generated_at": now.isoformat(),
-                         "status": "WAITING_FIRST_SYNC"})
-        return {"ok": True, "status": "WAITING_FIRST_SYNC"}
+                         "status": "WAITING_MAP"})
+        return {"ok": False, "status": "WAITING_MAP"}
 
-    # 1. resolve every member; keep theses with a real evidence set
-    theses = []
-    need_fred, need_poly = set(), set()
+    # 1. theses + the series they need
+    theses, need = [], {}
     for l in lists:
         syms = [s.upper() for s in (l.get("symbols") or [])][:MAX_MEMBERS]
-        mem = []
-        for s in syms:
-            k, h = resolve(s)
-            if not k:
-                continue
-            mem.append((k, h, s))
-            if k == "FRED":
-                need_fred.add(h)
-            elif k == "POLY":
-                need_poly.add(h)
-            elif k == "FORMULA":
-                for o in re.split(r"[+\-*/()]", h):
-                    o = o.strip()
-                    if not o or NUM_RE.match(o):
-                        continue
-                    ok, oh = resolve(o)
-                    if ok == "FRED":
-                        need_fred.add(oh)
-                    elif ok == "POLY":
-                        need_poly.add(oh)
-        cov = len(mem) / max(1, len(syms))
-        if len(mem) >= MIN_MEMBERS and cov >= MIN_COVERAGE:
-            theses.append({"id": str(l.get("id")), "name": l.get("name"),
-                           "members": mem, "n_total": len(syms),
-                           "n_resolved": len(mem), "coverage": round(cov, 2)})
-    need_poly.add("SPY")
-    print(f"[thesis] {len(theses)} theses · {len(need_fred)} FRED · "
-          f"{len(need_poly)} POLY")
+        mem = [s for s in syms if s in smap]
+        if len(mem) < MIN_MEMBERS or len(mem) / max(1, len(syms)) < MIN_COVERAGE:
+            continue
+        theses.append({"id": str(l.get("id")), "name": l.get("name"),
+                       "members": mem, "n_total": len(syms),
+                       "coverage": round(len(mem) / len(syms), 2)})
+        for s in mem:
+            m = smap[s]
+            if m["source"] == "FORMULA":
+                for o in re.split(r"[+\-*/()]", m["id"]):
+                    o = o.strip().upper()
+                    if o and o in smap and smap[o]["source"] != "FORMULA":
+                        need[o] = smap[o]
+            else:
+                need[s] = m
+    need["__SPY__"] = {"source": "MARKET", "id": "SPY"}
+    print(f"[thesis2] {len(theses)} theses · {len(need)} series to fetch")
 
-    # 2. fetch series (state cache keeps daily runs cheap)
+    # 2. fetch (state cache; weekly to keep memory sane)
     state = s3_get(STATE_KEY, {}, gz=True) or {}
-    cache = state.get("series") or {}
-    fresh = state.get("as_of") == now.date().isoformat()
-    d1 = now.date().isoformat()
-    d0 = (now.date() - timedelta(days=LOOKBACK_DAYS)).isoformat()
+    cache = state.get("weekly") or {}
+    fresh_cut = (now - timedelta(days=6)).isoformat()
+    todo = [k for k, m in need.items()
+            if k not in cache or state.get("stamp", "") < fresh_cut]
+    fetched = 0
 
-    if not fresh:
-        want_f = [s for s in need_fred if s]
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for sid, ser in ex.map(lambda s: fred_series(s, d0), want_f):
-                if ser:
-                    cache[f"FRED:{sid}"] = ser
-        want_p = sorted(need_poly)
-        with ThreadPoolExecutor(max_workers=8) as ex:
-            for tk, ser in ex.map(lambda t: poly_series(t, d0, d1), want_p):
-                if ser:
-                    cache[f"POLY:{tk}"] = ser
-                if time.time() - t0 > 640:
+    def pull(item):
+        k, m = item
+        ser = SS.fetch(m["source"], m["id"], START)
+        return k, (to_weekly(ser) if ser else {})
+
+    if todo:
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            for k, w in ex.map(pull, [(k, need[k]) for k in todo]):
+                if w:
+                    cache[k] = w
+                    fetched += 1
+                if time.time() - t0 > FETCH_BUDGET_S:
                     break
-        state = {"as_of": d1, "series": cache}
+        state = {"stamp": now.isoformat(), "weekly": cache}
         s3_put(STATE_KEY, state, gz=True)
-    print(f"[thesis] series cached: {len(cache)} · {round(time.time()-t0)}s")
+    print(f"[thesis2] cache={len(cache)} fetched={fetched} "
+          f"{round(time.time()-t0)}s")
 
-    # 3. common date grid = SPY trading days
-    spy_ser = cache.get("POLY:SPY") or {}
-    dates = sorted(spy_ser.keys())[-520:]
-    if len(dates) < 120:
+    # 3. weekly grid from SPY
+    spy_w = cache.get("__SPY__") or {}
+    if len(spy_w) < 300:
         s3_put(OUT_KEY, {"generated_at": now.isoformat(),
-                         "status": "NO_PRICE_GRID"})
-        return {"ok": False, "error": "no SPY grid"}
-    spy = ffill(spy_ser, dates)
+                         "status": "NO_BENCHMARK",
+                         "spy_weeks": len(spy_w)})
+        return {"ok": False, "error": "spy history missing"}
+    grid = sorted(spy_w.keys())
+    spy = ffill(spy_w, grid)
 
-    # 4. per-member z-series (aligned + memoized)
-    aligned, zcache = {}, {}
-    for key, ser in cache.items():
-        aligned[key] = ffill(ser, dates)
-    for key, col in aligned.items():
-        zcache[key] = zscores(col)
+    aligned = {k: ffill(w, grid) for k, w in cache.items()}
+    zc = {k: zscores(col) for k, col in aligned.items()}
 
-    # 5. per-thesis activation + event study
-    base = {h: [r for r in (fwd_ret(spy, i, h) for i in range(len(dates)))
-                if r is not None] for h in (5, 21, 63)}
+    base = {h: [r for r in (fwd(spy, i, h) for i in range(len(grid)))
+                if r is not None] for h in HORIZONS}
     base_mu = {h: (sum(v) / len(v) if v else 0.0) for h, v in base.items()}
     base_hit = {h: (100 * sum(1 for x in v if x > 0) / len(v) if v else 0.0)
                 for h, v in base.items()}
 
+    # 4. per-thesis activation + event study
     rows = []
     for th in theses:
         zs = []
-        for k, h, orig in th["members"]:
-            if k == "FORMULA":
-                col = eval_formula(h, aligned, dates)
+        for s in th["members"]:
+            m = smap[s]
+            if m["source"] == "FORMULA":
+                col = eval_formula(m["id"], aligned, len(grid))
                 if col:
                     zs.append(zscores(col))
-            else:
-                z = zcache.get(f"{k}:{h}")
-                if z:
-                    zs.append(z)
+            elif s in zc:
+                zs.append(zc[s])
         if len(zs) < MIN_MEMBERS:
             continue
         act = []
-        for i in range(len(dates)):
+        for i in range(len(grid)):
             live = [z[i] for z in zs if i < len(z) and z[i] is not None]
             act.append(round(100 * sum(1 for v in live if abs(v) >= Z_FIRE)
-                             / len(live), 1) if len(live) >= MIN_MEMBERS
-                       else None)
+                             / len(live), 1)
+                       if len(live) >= MIN_MEMBERS else None)
         valid = [a for a in act if a is not None]
-        if len(valid) < 120:
+        if len(valid) < 150:                     # need real history
             continue
         srt = sorted(valid)
         p80 = srt[int(0.8 * len(srt))]
         cur = act[-1]
-        pct_now = round(100 * sum(1 for a in valid if a <= (cur or 0))
-                        / len(valid), 1) if cur is not None else None
+        pct_now = (round(100 * sum(1 for a in valid if a <= cur) / len(valid), 1)
+                   if cur is not None else None)
         study = {}
-        for hz in (5, 21, 63):
-            sample = [fwd_ret(spy, i, hz) for i in range(len(dates) - hz)
-                      if act[i] is not None and act[i] >= p80]
-            sample = [s for s in sample if s is not None]
-            if len(sample) >= 12:
-                mu = sum(sample) / len(sample)
-                t_adj = tstat(sample, base_mu[hz], horizon=hz)
-                hit = 100 * sum(1 for s in sample if s > 0) / len(sample)
-                study[f"d{hz}"] = {
-                    "n": len(sample),
-                    "n_effective": round(len(sample) / hz, 1),
+        for h in HORIZONS:
+            samp = [fwd(spy, i, h) for i in range(len(grid) - h)
+                    if act[i] is not None and act[i] >= p80]
+            samp = [x for x in samp if x is not None]
+            if len(samp) >= 20:
+                mu = sum(samp) / len(samp)
+                hit = 100 * sum(1 for x in samp if x > 0) / len(samp)
+                t = tstat(samp, base_mu[h], horizon=h)
+                study[f"w{h}"] = {
+                    "n": len(samp), "n_effective": round(len(samp) / h, 1),
                     "spy_fwd_mean_pct": round(mu, 2),
-                    "excess_vs_base_pct": round(mu - base_mu[hz], 2),
+                    "excess_vs_base_pct": round(mu - base_mu[h], 2),
                     "hit_rate_pct": round(hit, 1),
-                    "base_hit_rate_pct": round(base_hit[hz], 1),
-                    "hit_edge_pp": round(hit - base_hit[hz], 1),
-                    "t_stat": t_adj,
-                    "p_value": round(norm_p(t_adj), 4),
+                    "base_hit_rate_pct": round(base_hit[h], 1),
+                    "hit_edge_pp": round(hit - base_hit[h], 1),
+                    "t_stat": t, "p_value": round(norm_p(t), 4),
                 }
-        best = max((v.get("t_stat", 0) for v in study.values()),
-                   key=abs, default=0)
+        if not study:
+            continue
+        key = study.get("w13") or list(study.values())[0]
         rows.append({
-            "id": th["id"], "name": th["name"],
-            "n_members": len(zs), "n_total": th["n_total"],
-            "coverage": th["coverage"],
+            "id": th["id"], "name": th["name"], "n_members": len(zs),
+            "n_total": th["n_total"], "coverage": th["coverage"],
+            "history_weeks": len(valid),
+            "history_from": grid[len(grid) - len(valid)] if valid else None,
             "activation_now": cur, "activation_pctile": pct_now,
             "fire_threshold_p80": round(p80, 1),
             "firing": bool(cur is not None and cur >= p80),
             "event_study": study,
-            "peak_abs_t": abs(best),
+            "peak_abs_t": abs(key.get("t_stat", 0)),
+            # back-compat with the page's d21 column
+            "event_study_d21": key,
         })
 
-    # multiple-testing control across every thesis tested today
-    pv = [((r.get("event_study") or {}).get("d21") or {}).get("p_value", 1.0)
-          for r in rows]
-    survivors = bh_fdr(pv, q=0.10) if pv else set()
+    pv = [r["event_study"].get("w13", {}).get("p_value", 1.0) for r in rows]
+    surv = bh_fdr(pv, q=0.10) if pv else set()
     for i, r in enumerate(rows):
-        r["fdr_pass"] = i in survivors
-    rows.sort(key=lambda r: (not r.get("fdr_pass"), -(r["peak_abs_t"] or 0)))
+        r["fdr_pass"] = i in surv
+    rows.sort(key=lambda r: (not r["fdr_pass"], -r["peak_abs_t"]))
 
-    # 6. emit live signals for firing theses with a proven historical edge
+    # 5. emit — FDR survivors that are firing now
     logged = 0
     if rows and (now.weekday() == 0 or (event or {}).get("force_emit")):
         try:
             from decimal import Decimal
             tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
-            for r in rows[:15]:
-                st = (r["event_study"] or {}).get("d21") or {}
-                if (not r["firing"] or not r.get("fdr_pass")
-                        or abs(st.get("t_stat", 0)) < 2
-                        or st.get("n_effective", 0) < 6):
+            for r in rows:
+                st = r["event_study"].get("w13") or {}
+                if not (r["firing"] and r["fdr_pass"]
+                        and abs(st.get("t_stat", 0)) >= 2
+                        and st.get("n_effective", 0) >= 8):
                     continue
                 direction = "DOWN" if st["excess_vs_base_pct"] < 0 else "UP"
                 slug = re.sub(r"[^a-z0-9]+", "_",
@@ -444,49 +341,55 @@ def lambda_handler(event, context):
                     "signal_type": f"thesis_{slug}"[:48],
                     "predicted_direction": direction,
                     "signal_value": str(r["activation_now"]),
-                    "confidence": Decimal(str(min(0.75, 0.5 + abs(
-                        st["t_stat"]) / 20))),
+                    "confidence": Decimal(str(round(min(0.75, 0.5 + abs(
+                        st["t_stat"]) / 20), 3))),
                     "measure_against": "benchmark_forward_return",
-                    "baseline_price": str(spy[-1]),
-                    "benchmark": "SPY",
-                    "check_windows": ["day_5", "day_21", "day_63"],
+                    "baseline_price": str(spy[-1]), "benchmark": "SPY",
+                    "check_windows": ["day_21", "day_63", "day_126"],
                     "outcomes": {}, "accuracy_scores": {},
                     "status": "pending", "logged_at": now.isoformat(),
                     "logged_epoch": int(now.timestamp()),
-                    "horizon_days_primary": 21, "schema_version": "2",
-                    "ttl": int(now.timestamp()) + 120 * 86400,
-                    "metadata": {"engine": "thesis-engine",
+                    "horizon_days_primary": 63, "schema_version": "2",
+                    "ttl": int(now.timestamp()) + 200 * 86400,
+                    "metadata": {"engine": "thesis-engine-v2",
                                  "thesis": r["name"],
-                                 "activation_pctile": r["activation_pctile"],
-                                 "hist_t": st["t_stat"], "hist_n": st["n"]},
-                    "rationale": (f"Khalid thesis '{r['name']}' firing "
-                                  f"({r['activation_now']}% of members at "
-                                  f"|z|>=1.5, {r['activation_pctile']}th pct). "
-                                  f"History: SPY 21d excess "
+                                 "hist_t": st["t_stat"],
+                                 "hist_n_eff": st["n_effective"],
+                                 "history_from": r["history_from"]},
+                    "rationale": (f"'{r['name']}' firing "
+                                  f"({r['activation_now']}% of members |z|>=1.5, "
+                                  f"{r['activation_pctile']}th pct). Since "
+                                  f"{r['history_from']}: SPY 13w excess "
                                   f"{st['excess_vs_base_pct']}% "
-                                  f"(t={st['t_stat']}, n={st['n']})"),
+                                  f"(t={st['t_stat']}, n_eff={st['n_effective']})"),
                 })
                 logged += 1
         except Exception as e:
-            print(f"[thesis] emit failed: {str(e)[:140]}")
+            print(f"[thesis2] emit failed: {str(e)[:140]}")
 
-    doc = {"generated_at": now.isoformat(), "version": "1.0", "status": "LIVE",
-           "n_theses": len(rows), "signals_logged": logged,
-           "spy_base_rates_pct": {f"d{h}": round(v, 2)
-                                  for h, v in base_mu.items()},
-           "method": ("each watchlist = a thesis; members z-scored vs 252-obs "
-                      "history; activation = % of members at |z|>=1.5; days in "
-                      "the top activation quintile are event-studied against "
-                      "forward SPY returns. t-stats are OVERLAP-CORRECTED "
-                      "(effective n = n/horizon, since daily sampling of h-day "
-                      "forward returns shares h-1 days between neighbours) and "
-                      "screened by Benjamini-Hochberg FDR at q=0.10 across all "
-                      "theses tested. hit_edge_pp is the hit rate ABOVE SPY's "
-                      "own base rate — the only honest way to read it."),
-           "n_fdr_survivors": sum(1 for r in rows if r.get("fdr_pass")),
+    doc = {"generated_at": now.isoformat(), "version": "2.0", "status": "LIVE",
+           "history_start": START, "grid": "weekly",
+           "n_weeks": len(grid), "n_theses": len(rows),
+           "n_fdr_survivors": sum(1 for r in rows if r["fdr_pass"]),
+           "signals_logged": logged, "series_cached": len(cache),
+           "spy_base_rates_pct": {f"w{h}": round(base_mu[h], 2)
+                                  for h in HORIZONS},
+           "spy_base_rates_pct_compat": {"d5": round(base_mu[4], 2),
+                                         "d21": round(base_mu[13], 2),
+                                         "d63": round(base_mu[26], 2)},
+           "method": ("each watchlist = a thesis. Members resolved to FREE "
+                      "deep sources (FRED 1990+, Yahoo/Stooq market chain), "
+                      "z-scored on a 3y rolling window over a WEEKLY grid "
+                      "back to 1990; activation = % of members at |z|>=1.5; "
+                      "top-quintile activation weeks are event-studied vs "
+                      "forward SPY (4/13/26w). t is OVERLAP-CORRECTED "
+                      "(n_eff = n/horizon) and screened by Benjamini-Hochberg "
+                      "FDR q=0.10 across all theses. Only FDR survivors emit "
+                      "signals."),
            "theses": rows, "elapsed_s": round(time.time() - t0, 1)}
     s3_put(OUT_KEY, doc)
     print(json.dumps({"ok": True, "n_theses": len(rows),
-                      "signals_logged": logged,
-                      "elapsed": doc["elapsed_s"]}))
-    return {"ok": True, "n_theses": len(rows), "signals_logged": logged}
+                      "fdr": doc["n_fdr_survivors"], "weeks": len(grid),
+                      "signals": logged, "elapsed": doc["elapsed_s"]}))
+    return {"ok": True, "n_theses": len(rows),
+            "fdr_survivors": doc["n_fdr_survivors"], "signals_logged": logged}

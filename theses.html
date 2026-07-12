@@ -32,9 +32,9 @@
     var esc=function(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var sig=function(t){return Math.abs(t)>=2?'strong':'';};
     var col=function(v){return v==null?'':(v>=0?'pos':'neg');};
-    s.innerHTML=d.n_theses+' theses scored · SPY base rates: 5d '+d.spy_base_rates_pct.d5+'% · 21d '+d.spy_base_rates_pct.d21+'% · 63d '+d.spy_base_rates_pct.d63+'% · '+(d.signals_logged||0)+' live signals · updated '+esc((d.generated_at||'').slice(0,16).replace('T',' '))+' UTC';
+    var b=d.spy_base_rates_pct||{}; s.innerHTML=d.n_theses+' theses · history from <b>'+(d.history_start||'?')+'</b> ('+(d.n_weeks||0)+' weeks) · <b style="color:var(--jh-amber,#F0B429)">'+(d.n_fdr_survivors||0)+'</b> survive FDR · SPY base: 4w '+(b.w4!=null?b.w4:'—')+'% · 13w '+(b.w13!=null?b.w13:'—')+'% · 26w '+(b.w26!=null?b.w26:'—')+'% · '+(d.signals_logged||0)+' live signals · '+esc((d.generated_at||'').slice(0,16).replace('T',' '))+' UTC';
     var rows=(d.theses||[]).map(function(t){
-      var e=(t.event_study||{}).d21||{};
+      var e=(t.event_study||{}).w13||t.event_study_d21||{};
       return '<tr>'+
         '<td>'+esc(t.name)+(t.firing?' <span class="fire">FIRING</span>':'')+'</td>'+
         '<td class="num">'+t.n_members+'/'+t.n_total+'</td>'+
@@ -46,7 +46,7 @@
         '<td class="num">'+(e.n_effective==null?'—':e.n_effective)+'</td>'+
         '<td>'+(t.fdr_pass?'<span class="fire">FDR ✓</span>':'')+'</td></tr>';
     }).join('');
-    b.innerHTML='<table><thead><tr><th>Thesis (your watchlist)</th><th class="num">Resolved</th><th class="num">Activation</th><th class="num">Pctile</th><th class="num">SPY 21d excess</th><th class="num">Hit edge</th><th class="num">t (adj)</th><th class="num">n eff</th><th>FDR</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    b.innerHTML='<table><thead><tr><th>Thesis (your watchlist)</th><th class="num">Resolved</th><th class="num">Activation</th><th class="num">Pctile</th><th class="num">SPY 13w excess</th><th class="num">Hit edge</th><th class="num">t (adj)</th><th class="num">n eff</th><th>FDR</th></tr></thead><tbody>'+rows+'</tbody></table>';
     document.getElementById('method').textContent=d.method+' · Only FDR ✓ rows survive multiple-testing across all theses. Negative excess = the thesis firing preceded SPY weakness (a working risk-off tell).';
   }).catch(function(){document.getElementById('sub').textContent='Feed unavailable.';});
 })();
