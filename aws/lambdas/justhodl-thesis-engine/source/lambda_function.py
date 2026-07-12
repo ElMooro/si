@@ -42,6 +42,33 @@ LISTS_KEY = "data/tv-watchlists.json"
 MAP_KEY = "data/symbol-map.json"
 
 START = "1990-01-01"
+
+# Families are defined by KHALID'S OWN NAMING — never by the signs the
+# study produced. Selecting a family because its members "looked
+# negative" would be fitting the noise we just measured (ops 3169).
+FAMILIES = [
+    ("STRESS", ("crisis", "stress", "danger", "plumbing", "black swan",
+                "recession", "distress", "default", "contagion", "risk")),
+    ("LIQUIDITY", ("liquidity", "m2", "balance sheet", "repo", "draining",
+                   "money supply", "reserve", "qe", "qt", "printing")),
+    ("CREDIT", ("credit", "spread", "yield", "bond", "corp", "junk",
+                "high yield", "ig", "hy")),
+    ("GROWTH", ("economy", "employment", "consumer", "business cycle",
+                "gdp", "pmi", "manufactur", "retail", "industrial", "job")),
+    ("INFLATION", ("inflation", "cpi", "ppi", "food", "commodit", "price")),
+    ("DOLLAR", ("dxy", "dollar", "currenc", "eurodollar", "fx", "forex")),
+    ("BREADTH", ("breadth", "equity", "stock", "indices", "index",
+                 "sector", "market")),
+    ("CRYPTO", ("bitcoin", "crypto", "btc")),
+]
+
+
+def family_of(name):
+    n = str(name or "").lower()
+    for fam, keys in FAMILIES:
+        if any(k in n for k in keys):
+            return fam
+    return None
 MIN_MEMBERS = 8
 MAX_MEMBERS = 60
 MIN_COVERAGE = 0.45
@@ -253,7 +280,7 @@ def lambda_handler(event, context):
                 for h, v in base.items()}
 
     # 4. per-thesis activation + event study
-    rows = []
+    rows, act_series = [], {}
     for th in theses:
         zs = []
         for s in th["members"]:
@@ -301,7 +328,9 @@ def lambda_handler(event, context):
         if not study:
             continue
         key = study.get("w13") or list(study.values())[0]
+        act_series[str(th["id"])] = act
         rows.append({
+            "family": family_of(th["name"]),
             "id": th["id"], "name": th["name"], "n_members": len(zs),
             "n_total": th["n_total"], "coverage": th["coverage"],
             "history_weeks": len(valid),
@@ -314,6 +343,102 @@ def lambda_handler(event, context):
             # back-compat with the page's d21 column
             "event_study_d21": key,
         })
+
+    # ── 4b. FAMILY COMPOSITES (ops 3169) ────────────────────────────
+    # Nine stress panels each showed a negative forward-SPY tilt but none
+    # survived FDR alone: classic weak-correlated-signal aggregation.
+    # Pooling them into one composite raises power AND collapses the
+    # multiple-testing penalty from 56 tests to ~8.
+    def study_series(sig, thr_pct=80):
+        """event-study any 0-100 activation-like series against SPY."""
+        v = [x for x in sig if x is not None]
+        if len(v) < 200:
+            return None, None
+        thr = sorted(v)[int(thr_pct / 100 * len(v))]
+        out = {}
+        for h in HORIZONS:
+            samp = [fwd(spy, i, h) for i in range(len(grid) - h)
+                    if sig[i] is not None and sig[i] >= thr]
+            samp = [x for x in samp if x is not None]
+            if len(samp) >= 20:
+                mu = sum(samp) / len(samp)
+                hit = 100 * sum(1 for x in samp if x > 0) / len(samp)
+                t = tstat(samp, base_mu[h], horizon=h)
+                out[f"w{h}"] = {
+                    "n": len(samp), "n_effective": round(len(samp) / h, 1),
+                    "excess_vs_base_pct": round(mu - base_mu[h], 2),
+                    "hit_rate_pct": round(hit, 1),
+                    "hit_edge_pp": round(hit - base_hit[h], 1),
+                    "t_stat": t, "p_value": round(norm_p(t), 4)}
+        return out, thr
+
+    def half_study(sig, half):
+        """same study restricted to the first/second half of history —
+        an edge that only exists in one half is a period artefact."""
+        cut = len(grid) // 2
+        lo, hi = (0, cut) if half == 1 else (cut, len(grid))
+        v = [x for x in sig[lo:hi] if x is not None]
+        if len(v) < 80:
+            return None
+        thr = sorted(v)[int(0.8 * len(v))]
+        h = 13
+        samp = [fwd(spy, i, h) for i in range(lo, min(hi, len(grid) - h))
+                if sig[i] is not None and sig[i] >= thr]
+        samp = [x for x in samp if x is not None]
+        if len(samp) < 15:
+            return None
+        mu = sum(samp) / len(samp)
+        return {"n": len(samp), "n_effective": round(len(samp) / h, 1),
+                "excess_vs_base_pct": round(mu - base_mu[h], 2),
+                "t_stat": tstat(samp, base_mu[h], horizon=h)}
+
+    families = []
+    for fam, _ in FAMILIES:
+        mem = [r for r in rows if r.get("family") == fam]
+        if len(mem) < 3:
+            continue
+        # z-score each member's activation on a rolling window, then average:
+        # panels fire at different natural rates, z puts them on one scale
+        zacts = [zscores(act_series[r["id"]]) for r in mem
+                 if r["id"] in act_series]
+        comp = []
+        for i in range(len(grid)):
+            live = [z[i] for z in zacts if i < len(z) and z[i] is not None]
+            comp.append(round(sum(live) / len(live), 3)
+                        if len(live) >= max(3, len(zacts) // 2) else None)
+        st, thr = study_series(comp)
+        if not st:
+            continue
+        # sign test across members: how many tilt the same way?
+        signs = [1 if (r["event_study"].get("w13", {})
+                       .get("excess_vs_base_pct", 0)) < 0 else 0 for r in mem]
+        k, n = sum(signs), len(signs)
+        maj = max(k, n - k)
+        # two-sided binomial tail under p=0.5
+        p_sign = min(1.0, 2 * sum(math.comb(n, j) for j in range(maj, n + 1))
+                     / (2 ** n))
+        families.append({
+            "family": fam, "n_theses": len(mem),
+            "members": [r["name"] for r in mem][:12],
+            "composite_now": comp[-1],
+            "fire_threshold": round(thr, 3),
+            "firing": bool(comp[-1] is not None and comp[-1] >= thr),
+            "event_study": st,
+            "half1": half_study(comp, 1), "half2": half_study(comp, 2),
+            "sign_test": {"n_theses": n, "n_negative": k,
+                          "p_value": round(p_sign, 4)},
+            "peak_abs_t": abs((st.get("w13") or {}).get("t_stat", 0)),
+        })
+    fpv = [(f["event_study"].get("w13") or {}).get("p_value", 1.0)
+           for f in families]
+    fsurv = bh_fdr(fpv, q=0.10) if fpv else set()
+    for i, f in enumerate(families):
+        f["fdr_pass"] = i in fsurv
+        h1 = (f.get("half1") or {}).get("excess_vs_base_pct")
+        h2 = (f.get("half2") or {}).get("excess_vs_base_pct")
+        f["stable"] = bool(h1 is not None and h2 is not None
+                           and (h1 < 0) == (h2 < 0))
+    families.sort(key=lambda f: (not f["fdr_pass"], -f["peak_abs_t"]))
 
     pv = [r["event_study"].get("w13", {}).get("p_value", 1.0) for r in rows]
     surv = bh_fdr(pv, q=0.10) if pv else set()
@@ -367,7 +492,50 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"[thesis2] emit failed: {str(e)[:140]}")
 
-    doc = {"generated_at": now.isoformat(), "version": "2.0", "status": "LIVE",
+    # composite signals — the aggregated, FDR-and-stability-screened ones
+    for f in families:
+        st = f["event_study"].get("w13") or {}
+        if not (f["firing"] and f["fdr_pass"] and f["stable"]
+                and abs(st.get("t_stat", 0)) >= 2):
+            continue
+        try:
+            from decimal import Decimal
+            tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+            direction = "DOWN" if st["excess_vs_base_pct"] < 0 else "UP"
+            tbl.put_item(Item={
+                "signal_id": f"thesisfam-{f['family'].lower()}#"
+                             f"{now.date().isoformat()}",
+                "signal_type": f"thesis_family_{f['family'].lower()}"[:48],
+                "predicted_direction": direction,
+                "signal_value": str(f["composite_now"]),
+                "confidence": Decimal(str(round(min(0.8, 0.55 + abs(
+                    st["t_stat"]) / 20), 3))),
+                "measure_against": "benchmark_forward_return",
+                "baseline_price": str(spy[-1]), "benchmark": "SPY",
+                "check_windows": ["day_21", "day_63", "day_126"],
+                "outcomes": {}, "accuracy_scores": {}, "status": "pending",
+                "logged_at": now.isoformat(),
+                "logged_epoch": int(now.timestamp()),
+                "horizon_days_primary": 63, "schema_version": "2",
+                "ttl": int(now.timestamp()) + 200 * 86400,
+                "metadata": {"engine": "thesis-engine-v2",
+                             "family": f["family"],
+                             "n_theses": f["n_theses"],
+                             "hist_t": st["t_stat"],
+                             "half1": (f.get("half1") or {}).get("t_stat"),
+                             "half2": (f.get("half2") or {}).get("t_stat")},
+                "rationale": (f"{f['family']} composite firing "
+                              f"({f['n_theses']} of Khalid's panels pooled). "
+                              f"Since 1990: SPY 13w "
+                              f"{st['excess_vs_base_pct']}% vs base, "
+                              f"t={st['t_stat']}, stable across both halves"),
+            })
+            logged += 1
+        except Exception as e:
+            print(f"[thesis2] family emit failed: {str(e)[:120]}")
+
+    doc = {"generated_at": now.isoformat(), "version": "2.1", "status": "LIVE",
+           "families": families,
            "history_start": START, "grid": "weekly",
            "n_weeks": len(grid), "n_theses": len(rows),
            "n_fdr_survivors": sum(1 for r in rows if r["fdr_pass"]),

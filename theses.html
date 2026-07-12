@@ -19,6 +19,7 @@
 <div class="wrap">
   <h1>🧭 Thesis Engine <span style="font-size:12px;color:var(--jh-dim,#8a836f);font-weight:400">— your TradingView watchlists, measured</span></h1>
   <div class="sub" id="sub">Loading…</div>
+  <div id="families" style="margin-bottom:26px"></div>
   <div id="board">…</div>
   <div class="meta" id="method"></div>
 </div>
@@ -33,6 +34,27 @@
     var sig=function(t){return Math.abs(t)>=2?'strong':'';};
     var col=function(v){return v==null?'':(v>=0?'pos':'neg');};
     var b=d.spy_base_rates_pct||{}; s.innerHTML=d.n_theses+' theses · history from <b>'+(d.history_start||'?')+'</b> ('+(d.n_weeks||0)+' weeks) · <b style="color:var(--jh-amber,#F0B429)">'+(d.n_fdr_survivors||0)+'</b> survive FDR · SPY base: 4w '+(b.w4!=null?b.w4:'—')+'% · 13w '+(b.w13!=null?b.w13:'—')+'% · 26w '+(b.w26!=null?b.w26:'—')+'% · '+(d.signals_logged||0)+' live signals · '+esc((d.generated_at||'').slice(0,16).replace('T',' '))+' UTC';
+    // family composites (the aggregated, higher-power view)
+    var fams=(d.families||[]);
+    if(fams.length){
+      document.getElementById('families').innerHTML =
+        '<h2 style="font-size:15px;margin:0 0 6px">🧬 Family Composites <span style="font-size:11px;color:var(--jh-dim,#8a836f);font-weight:400">— your panels pooled by theme (higher power, 8 tests not 56)</span></h2>'+
+        '<table><thead><tr><th>Family</th><th class="num">Panels</th><th class="num">Composite</th><th class="num">SPY 13w excess</th><th class="num">Hit edge</th><th class="num">t (adj)</th><th class="num">Sign test p</th><th>Stable</th><th>Status</th></tr></thead><tbody>'+
+        fams.map(function(f){
+          var e=(f.event_study||{}).w13||{}; var st=f.sign_test||{};
+          return '<tr>'+
+            '<td class="strong">'+esc(f.family)+(f.firing?' <span class="fire">FIRING</span>':'')+'</td>'+
+            '<td class="num">'+f.n_theses+'</td>'+
+            '<td class="num">'+(f.composite_now==null?'—':f.composite_now)+'</td>'+
+            '<td class="num '+col(e.excess_vs_base_pct)+'">'+(e.excess_vs_base_pct==null?'—':(e.excess_vs_base_pct>0?'+':'')+e.excess_vs_base_pct+'%')+'</td>'+
+            '<td class="num '+col(e.hit_edge_pp)+'">'+(e.hit_edge_pp==null?'—':(e.hit_edge_pp>0?'+':'')+e.hit_edge_pp+'pp')+'</td>'+
+            '<td class="num '+sig(e.t_stat||0)+'">'+(e.t_stat==null?'—':e.t_stat)+'</td>'+
+            '<td class="num">'+(st.p_value==null?'—':st.p_value)+' <span style="color:var(--jh-dim,#8a836f)">('+(st.n_negative||0)+'/'+(st.n_theses||0)+' neg)</span></td>'+
+            '<td>'+(f.stable?'<span class="pos">both halves ✓</span>':'<span class="neg">one half only</span>')+'</td>'+
+            '<td>'+(f.fdr_pass?'<span class="fire">FDR ✓</span>':'—')+'</td></tr>';
+        }).join('')+'</tbody></table>'+
+        '<div class="meta" style="margin-top:6px">Composite = rolling-z of each panel\'s activation, averaged. Families come from YOUR list names (never from observed signs). "Stable" = the edge holds in BOTH halves of 1990-2026, so it is not a single-era artefact.</div>';
+    }
     var rows=(d.theses||[]).map(function(t){
       var e=(t.event_study||{}).w13||t.event_study_d21||{};
       return '<tr>'+
