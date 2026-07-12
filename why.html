@@ -3221,6 +3221,23 @@ window.renderIndustryCompass=function(d){
             /* 10 best-setups */
             var bsr=anyArrays(DOCS.bs);
             add('BEST-SETUPS',bsr?'BULL':null,bsr?('fused setup'+(bsr.score!=null?' \u00b7 score '+bsr.score:'')+(bsr.conviction?' \u00b7 '+bsr.conviction:'')):'not on board','/best-setups.html');
+            /* 11 capex (Sparkline caveat: heavy spenders derate; suppliers benefit) */
+            var cpx=null;try{cpx=arguments;}catch(e5){}
+            gj('data/capex-pulse.json').then(function(cpd){
+              try{
+                var cr=null;((cpd||{}).rows||[]).forEach(function(r){if(String(r.ticker).toUpperCase()===T)cr=r;});
+                var fwp=gj('data/forward-orders.json');
+                fwp.then(function(fwd){
+                  var fr=null;if(fwd)Object.keys(fwd).forEach(function(k){if(Array.isArray(fwd[k]))fwd[k].forEach(function(r){if(String(r.ticker||r.symbol||'').toUpperCase()===T)fr=r;});});
+                  var extra=[];
+                  if(cr)extra.push({n:'CAPEX',r:(cr.yoy_pct!=null&&cr.yoy_pct>=40)?'FLAG':'NEUT',d:(cr.yoy_pct!=null?('capex '+(cr.yoy_pct>0?'+':'')+cr.yoy_pct+'% yoy, $'+cr.capex_ttm_b+'B ttm'):'$'+cr.capex_ttm_b+'B ttm')+((cr.yoy_pct||0)>=40?' \u2014 heavy ramp: FCF strain risk, suppliers benefit':''),h:'/industry-rotation.html#jh-capexflow'});
+                  if(fr)extra.push({n:'FWD-ORDERS',r:(fr.score||0)>=60?'BULL':'NEUT',d:'RPO/backlog score '+(fr.score!=null?fr.score:'?')+'/100 \u2014 demand already booked',h:'/industry-rotation.html#jh-capexflow'});
+                  if(extra.length){var el3=document.getElementById('jh-conviction');
+                    if(el3){var CC2={BULL:'#26ffaf',BEAR:'#ff5577',FLAG:'#ffd266',NEUT:'#5d6b82'};
+                      el3.querySelector('div:last-child').insertAdjacentHTML('beforebegin','<div>'+extra.map(function(x){var col=CC2[x.r];return '<a href="'+x.h+'" style="text-decoration:none"><span style="display:inline-block;margin:3px;padding:5px 9px;border:1px solid '+col+'66;border-radius:8px;font-family:var(--mono,monospace);font-size:10.5px;color:'+col+'"><b>'+x.n+'</b> '+x.r+'<br><span style="color:var(--fg3,#5d6b82);font-size:9.5px">'+x.d+'</span></span></a>';}).join('')+'</div>');}}
+                });
+              }catch(e6){}
+            });
             var live=sys.filter(function(x){return x.r!==null;});
             var bull=live.filter(function(x){return x.r==='BULL';}).length;
             var bear=live.filter(function(x){return x.r==='BEAR';}).length;

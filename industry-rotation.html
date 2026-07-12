@@ -349,5 +349,36 @@ fetchJSON("data/industry-rotation.json").then(function(d){
 </script>
 <script src="/jh-wire.js" defer data-feeds="data/industry-rotation.json|justhodl-industry-rotation|INDUSTRY ROTATION;data/finviz-groups.json|justhodl-finviz-groups|FINVIZ GROUP AGGREGATES"></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>
+/* v4.2 CAPEX-FLOW BOOM PREDICTOR (ops 3126) — where corporate money is going, and which industries it lands on.
+   Research basis: spenders derate (Sparkline 1995-2025: top 1y-capex-growth quintile underperforms sector peers in all 10 GICS),
+   receivers boom (steel/power/cooling/utilities/semis downstream of tech capex); RPO+capex = locked demand being built. */
+(async function(){
+  async function gj(p){try{const r=await fetch('https://justhodl.ai/'+p+'?t='+Date.now());if(r.ok)return r.json();}catch(e){}try{const r=await fetch('https://justhodl-data-proxy.raafouis.workers.dev/'+p+'?t='+Date.now());if(r.ok)return r.json();}catch(e){}return null;}
+  const [cp,ir,sp,fw]=await Promise.all([gj('data/capex-pulse.json'),gj('data/industry-rotation.json'),gj('data/structural-pre-signals.json'),gj('data/forward-orders.json')]);
+  if(!cp||!cp.sectors)return;
+  const LAD={};((ir||{}).ladder||[]).forEach(r=>{if(r.etf)LAD[r.etf]=r;});
+  const secs=Object.entries(cp.sectors).map(([k,v])=>{const yoy=v.prior_proxy_b?((v.capex_ttm_b/v.prior_proxy_b-1)*100):null;return {sec:k,ttm:v.capex_ttm_b,yoy:yoy,n:v.n};}).filter(x=>x.ttm>1).sort((a,b)=>(b.yoy||-99)-(a.yoy||-99));
+  const RECV={'Technology':['SMH','XLI','XLU','URA','XME'],'Communication Services':['SMH','XLI','XLU','URA'],'Consumer Discretionary':['SMH','XLI','XLU'],'Energy':['OIH','XES','XLI'],'Industrials':['XLB','XME'],'Health Care':['XLI'],'Healthcare':['XLI'],'Utilities':['XLI','XLB','XME'],'Financials':['XLK'],'Materials':['XLI'],'Real Estate':['XLI','XLB']};
+  function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+  const g='#26ffaf',rr='#ff5577',am='#ffd266',fg3='#5d6b82';
+  let rows=secs.slice(0,10).map(x=>{
+    const recv=(RECV[x.sec]||[]).map(e=>LAD[e]).filter(Boolean).map(l=>'<a href="#" onclick="return false" style="text-decoration:none;color:'+((l.leadership_score||0)>=55?g:(l.leadership_score||0)<35?rr:am)+'" title="receiving industry — current leadership '+(l.leadership_score||'?')+'/100 '+esc(l.tag||'')+'">'+esc(l.etf)+' '+(l.leadership_score!=null?Math.round(l.leadership_score):'?')+'</a>').join(' &middot; ');
+    const yc=x.yoy==null?fg3:x.yoy>=15?g:x.yoy<=0?rr:am;
+    return '<tr><td style="text-align:left;padding:6px 8px;border-bottom:1px solid #1d2636"><b>'+esc(x.sec)+'</b> <span style="color:'+fg3+'">('+x.n+' names)</span></td><td style="padding:6px 8px;border-bottom:1px solid #1d2636;font-family:monospace">$'+x.ttm.toFixed(0)+'B</td><td style="padding:6px 8px;border-bottom:1px solid #1d2636;font-family:monospace;color:'+yc+'">'+(x.yoy!=null?(x.yoy>0?'+':'')+x.yoy.toFixed(1)+'%':'&mdash;')+'</td><td style="text-align:left;padding:6px 8px;border-bottom:1px solid #1d2636;font-size:11px">'+(recv||'<span style="color:'+fg3+'">&mdash;</span>')+'</td></tr>';}).join('');
+  const hyp=cp.hyperscalers&&cp.hyperscalers.capex_ttm_b?'<div style="font-family:monospace;font-size:12px;margin:6px 0"><b style="color:'+am+'">HYPERSCALER TILE:</b> $'+cp.hyperscalers.capex_ttm_b.toFixed(0)+'B ttm'+(cp.hyperscalers.yoy_pct!=null?' ('+(cp.hyperscalers.yoy_pct>0?'+':'')+cp.hyperscalers.yoy_pct+'% yoy)':'')+' &mdash; the single largest spend stream; its receivers are semis, power, cooling, land.</div>':'';
+  const nsp=sp?Object.values(sp).filter(Array.isArray).reduce((a,b)=>a+b.length,0):0;
+  const nfw=fw?Object.values(fw).filter(Array.isArray).reduce((a,b)=>a+b.length,0):0;
+  const el=document.createElement('section');el.id='jh-capexflow';
+  el.style.cssText='max-width:1180px;margin:22px auto;padding:14px 18px;background:#10151f;border:1px solid #1d2636;border-radius:14px;color:#e8edf5;font-family:Inter,system-ui,sans-serif';
+  el.innerHTML='<h2 style="margin:0 0 4px;font-size:17px;color:'+am+'">&#128176; WHERE THE CAPEX IS GOING &mdash; boom predictor</h2>'
+   +'<div style="font-size:11.5px;color:#a8b3c7;margin-bottom:8px">Corporate capital expenditure by spending sector (real dollars, FMP cash-flow statements, ~160-name universe) mapped to the <b>receiving industries</b> with their live rotation leadership scores. The trade is the receiver, not the spender: top capex-growth names underperform sector peers (Sparkline, 1995-2025), while suppliers of the buildout book the revenue. RPO + capex ramp = demand already contracted, capacity being built.</div>'
+   +hyp
+   +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>'
+   +'<th style="text-align:left;padding:6px 8px;color:'+fg3+';font-size:9.5px;letter-spacing:1px">SPENDING SECTOR</th><th style="text-align:left;padding:6px 8px;color:'+fg3+';font-size:9.5px">CAPEX TTM</th><th style="text-align:left;padding:6px 8px;color:'+fg3+';font-size:9.5px">YOY</th><th style="text-align:left;padding:6px 8px;color:'+fg3+';font-size:9.5px;letter-spacing:1px">DOWNSTREAM BENEFICIARIES (leadership /100)</th></tr></thead><tbody>'+rows+'</tbody></table>'
+   +'<div style="font-size:10px;color:'+fg3+';font-family:monospace;margin-top:8px">Cross-reads live on the desk: structural pre-signals (capex language in filings, earliest tell): '+nsp+' items &middot; forward-orders (RPO/backlog/book-to-bill, demand already booked): '+nfw+' items &middot; sector capex dollars refresh daily with capex-pulse. Methodology: capex flows lead supplier revenue; acceleration (yoy) ranks the table.</div>';
+  document.body.appendChild(el);
+})();
+</script>
 </body>
 </html>
