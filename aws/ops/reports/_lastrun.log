@@ -1,7 +1,14 @@
-executing-against: 17a50dda463da7ec038147faf4b689901a9efc95
-── 1. Regenerate AAPL on new bundle (S3 doc gate) ──
-── 2. Page live (this-push) ──
-── verdict ──
-[02:30:41] PASS
+executing-against: bf78ed60454f53e8a5503bb7db141280527c238f
+── 1. Gate on CODE truth (LastModified), settle updates ──
+[02:37:51] code landed via deploy-lambdas -- gate PASS
+── 2. Key probe + env/description/runtime sync ──
 
-→ Report written to aws/ops/reports/latest/3133_earnings_vol_edge.md
+→ Report written to aws/ops/reports/latest/3134_bls_desk_land.md
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3134_bls_desk_land.py", line 298, in <module>
+    main()
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3134_bls_desk_land.py", line 119, in main
+    rep.row(check="runner BLS key valid on v2", ok=key_ok, value=key_msg)
+    ^^^^^^^
+AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
+❌ OPS-FAIL: aws/ops/pending/ops_3134_bls_desk_land.py
