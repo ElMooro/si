@@ -610,6 +610,32 @@ export default {
       return new Response("method not allowed", { status: 405, headers: corsHeaders() });
     }
 
+
+    // ── Supabase JWT verification (ops 3156) ────────────────────────────
+    // Returns the verified supabase user id for Authorization: Bearer <jwt>,
+    // or null. 120s in-memory cache per isolate keeps latency ~0 on bursts.
+    globalThis.__jhTokCache = globalThis.__jhTokCache || new Map();
+    async function verifySupabaseUser() {
+      try {
+        const h = request.headers.get("Authorization") || "";
+        if (!h.startsWith("Bearer ") || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) return null;
+        const tok = h.slice(7).trim();
+        if (tok.length < 20) return null;
+        const now = Date.now();
+        const hit = globalThis.__jhTokCache.get(tok);
+        if (hit && hit.exp > now) return hit.uid;
+        const r = await fetch(env.SUPABASE_URL + "/auth/v1/user", {
+          headers: { "apikey": env.SUPABASE_SERVICE_KEY, "Authorization": "Bearer " + tok } });
+        if (!r.ok) return null;
+        const u = await r.json();
+        const uid = u && u.id;
+        if (!uid) return null;
+        if (globalThis.__jhTokCache.size > 500) globalThis.__jhTokCache.clear();
+        globalThis.__jhTokCache.set(tok, { uid, exp: now + 120000 });
+        return uid;
+      } catch (e) { return null; }
+    }
+
     // GET  /userdata/:uid           → returns stored JSON blob for user
     // PUT  /userdata/:uid {json}    → stores JSON blob for user
     // Keyed by anonymous device UID generated client-side. Backed by KV.
@@ -623,9 +649,20 @@ export default {
         return new Response(JSON.stringify({ error: "user store unavailable" }),
           { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
-      const kvKey = `u:${uid}`;
+      // ops 3156: authenticated requests bind to the VERIFIED supabase uid —
+      // the path uid can no longer touch another user's blob. Anonymous
+      // (device-id) traffic is isolated in its own namespace.
+      const verifiedUid = await verifySupabaseUser();
+      const authed = !!verifiedUid;
+      if (!authed && (request.headers.get("Authorization") || "").startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "invalid token" }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      const kvKey = authed ? `u:${verifiedUid}` : `anon:${uid}`;
+      const legacyKey = `u:${uid}`;  // pre-3156 anonymous blobs lived here
       if (request.method === "GET") {
-        const stored = await env.USER_DATA.get(kvKey);
+        let stored = await env.USER_DATA.get(kvKey);
+        if (!stored && !authed) stored = await env.USER_DATA.get(legacyKey);
         return new Response(stored || JSON.stringify({ empty: true }),
           { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...corsHeaders() } });
       }
@@ -685,6 +722,32 @@ export default {
       }
     }
 
+    if (url.pathname === "/billing-portal" && request.method === "POST") {
+      // Stripe customer portal for the VERIFIED user (manage/cancel plan).
+      if (!env.STRIPE_SECRET || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY)
+        return jsonResp({ error: "billing not configured" }, 503);
+      const vUid = await verifySupabaseUser();
+      if (!vUid) return jsonResp({ error: "auth required" }, 401);
+      try {
+        const pr = await fetch(env.SUPABASE_URL + "/rest/v1/profiles?id=eq." + vUid + "&select=stripe_customer_id", {
+          headers: { "apikey": env.SUPABASE_SERVICE_KEY,
+                     "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY } });
+        const rows = await pr.json();
+        const cust = rows && rows[0] && rows[0].stripe_customer_id;
+        if (!cust) return jsonResp({ error: "no billing profile" }, 404);
+        const form = new URLSearchParams();
+        form.set("customer", cust);
+        form.set("return_url", "https://justhodl.ai/settings.html");
+        const r = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + env.STRIPE_SECRET,
+                     "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString() });
+        const d = await r.json();
+        return jsonResp({ url: d.url || null }, r.ok ? 200 : 502);
+      } catch (e) { return jsonResp({ error: String(e).slice(0, 80) }, 500); }
+    }
+
     if (url.pathname === "/create-checkout" && request.method === "POST") {
       // Create a Stripe Checkout session for a signed-in user. Body: {priceId,
       // userId, email, returnUrl}. Requires STRIPE_SECRET env (test or live).
@@ -705,6 +768,9 @@ export default {
         form.set("client_reference_id", userId);          // ties session → our user
         form.set("metadata[user_id]", userId);
         form.set("subscription_data[metadata][user_id]", userId);
+        const plan = ((b.plan || "pro") + "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 12) || "pro";
+        form.set("metadata[plan]", plan);
+        form.set("subscription_data[metadata][plan]", plan);
         if (email) form.set("customer_email", email);
         const r = await fetch("https://api.stripe.com/v1/checkout/sessions", {
           method: "POST",
@@ -737,14 +803,14 @@ export default {
         let userId = null, plan = null;
         if (type === "checkout.session.completed") {
           userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
-          plan = "pro";
+          plan = (obj.metadata && obj.metadata.plan) || "pro";
         } else if (type === "customer.subscription.deleted" ||
                    (type === "customer.subscription.updated" && obj.status !== "active" && obj.status !== "trialing")) {
           userId = obj.metadata && obj.metadata.user_id;
           plan = "free";
         } else if (type === "customer.subscription.updated" && (obj.status === "active" || obj.status === "trialing")) {
           userId = obj.metadata && obj.metadata.user_id;
-          plan = "pro";
+          plan = (obj.metadata && obj.metadata.plan) || "pro";
         }
         if (userId && plan) {
           // Update Supabase profiles.plan via REST (service role bypasses RLS)

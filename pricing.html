@@ -276,7 +276,7 @@ async function startCheckout(planId) {
   try {
     const r = await fetch((cfg.syncBase || 'https://justhodl-data-proxy.raafouis.workers.dev') + '/create-checkout', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId, userId: user.id, email: user.email, returnUrl: location.origin })
+      body: JSON.stringify({ priceId, plan: (btn.dataset.plan||'pro'), userId: user.id, email: user.email, returnUrl: location.origin })
     });
     const d = await r.json();
     if (d.url) { location.href = d.url; }              // → Stripe-hosted checkout
