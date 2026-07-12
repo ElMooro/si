@@ -231,17 +231,30 @@ def lambda_handler(event, context):
                            "rejected": rejected,
                            "sample": notes[:2]})
 
-    # brain upserts in chunks (route enforces its own filters + dedupe)
+    # brain upserts — PARALLEL (ops 3161: 1,983-note harvests were timing
+    # out on serial writes; 8 workers keep a 200-note request well inside
+    # the lambda budget). Brain failure is NEVER fatal: the S3 mirror still
+    # captures everything, and the first error is returned verbatim so the
+    # extension can show it instead of a blank "upload failed".
+    from concurrent.futures import ThreadPoolExecutor
     brain_ok = brain_err = 0
-    for i in range(0, len(notes), 300):
-        chunk = [{k: v for k, v in n.items() if not k.startswith("_")}
-                 for n in notes[i:i + 300]]
-        d = _brain_put({"notes_upsert": chunk}, uid)
-        if d.get("ok"):
-            brain_ok += len(chunk)
-        else:
-            brain_err += len(chunk)
-            print("[brain] chunk fail: %s" % json.dumps(d)[:300])
+    brain_error_sample = None
+    chunks = [[{k: v for k, v in n.items() if not k.startswith("_")}
+               for n in notes[i:i + 100]]
+              for i in range(0, len(notes), 100)]
+    if chunks:
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            results = list(ex.map(
+                lambda c: (len(c), _brain_put({"notes_upsert": c}, uid)),
+                chunks))
+        for n_c, d in results:
+            if d.get("ok"):
+                brain_ok += n_c
+            else:
+                brain_err += n_c
+                if brain_error_sample is None:
+                    brain_error_sample = json.dumps(d)[:200]
+                print("[brain] chunk fail: %s" % json.dumps(d)[:300])
 
     # mirror merge (id-idempotent)
     m = _mirror_read()
@@ -256,7 +269,9 @@ def lambda_handler(event, context):
     m["notes"] = m["notes"][-15000:]
     _mirror_write(m)
 
-    out = {"ok": brain_err == 0, "received": len(raw),
+    out = {"ok": (brain_err == 0 or added > 0 or brain_ok > 0),
+           "brain_error_sample": brain_error_sample,
+           "received": len(raw),
            "normalized": len(notes), "rejected": rejected,
            "brain_upserted": brain_ok, "brain_failed": brain_err,
            "watchlists_saved": wl_saved,

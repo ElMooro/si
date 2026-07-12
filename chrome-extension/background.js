@@ -90,45 +90,71 @@ async function getConfig() {
 
 // ── Upload notes to Lambda ────────────────────────────────────────────────────
 async function uploadNotes(notes, cfg, watchlists) {
-  if (!notes?.length) return { ok: false, error: 'no notes' };
-  if (!cfg.url || cfg.url === 'INGEST_URL_PLACEHOLDER') {
+  if (!cfg?.url || cfg.url.includes('PLACEHOLDER')) {
     return { ok: false, error: 'Ingest URL not configured' };
   }
+  const post = async (body) => {
+    const r = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const txt = await r.text();
+    let data = {};
+    try { data = JSON.parse(txt); } catch (e) {}
+    return { status: r.status, ok: r.ok, data, txt };
+  };
 
-  let brainOk = 0, brainErr = 0, mirrorAdded = 0, wlSaved = 0;
-  const chunkSize = 200;
+  let wlSaved = 0, firstErr = null;
 
-  for (let i = 0; i < notes.length; i += chunkSize) {
-    const chunk = notes.slice(i, i + chunkSize);
+  // ops 3161: watchlists go FIRST, in their own request. Previously they
+  // rode chunk 0 — so a note-chunk failure silently killed the watchlists
+  // too. They are the smaller, more valuable payload; they land first.
+  if (watchlists?.length) {
     try {
-      const resp = await fetch(cfg.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'User-Agent': 'JH-TV-Extension/1.0' },
-        body: JSON.stringify(i === 0 ? { token: cfg.token, notes: chunk, watchlists: (watchlists||[]) } : { token: cfg.token, notes: chunk }),
-      });
-      if (!resp.ok) {
+      const r = await post({ token: cfg.token, notes: [], watchlists });
+      if (r.ok) wlSaved = r.data.watchlists_saved || 0;
+      else firstErr = `watchlists HTTP ${r.status}: ${r.txt.slice(0, 120)}`;
+    } catch (e) { firstErr = 'watchlists: ' + String(e).slice(0, 100); }
+  }
+
+  // notes: small chunks so no single request can blow the budget
+  let brainOk = 0, brainErr = 0, mirrorAdded = 0, sent = 0;
+  const SIZE = 40;
+  const total = notes?.length || 0;
+  for (let i = 0; i < total; i += SIZE) {
+    const chunk = notes.slice(i, i + SIZE);
+    try {
+      const r = await post({ token: cfg.token, notes: chunk });
+      if (!r.ok) {
         brainErr += chunk.length;
-        console.warn('[JH] Upload chunk failed:', resp.status);
-        continue;
+        if (!firstErr) firstErr = `HTTP ${r.status}: ${r.txt.slice(0, 140)}`;
+      } else {
+        brainOk += r.data.brain_upserted || 0;
+        mirrorAdded += r.data.mirror_added || 0;
+        if (!firstErr && r.data.brain_error_sample) {
+          firstErr = 'brain: ' + String(r.data.brain_error_sample).slice(0, 140);
+        }
       }
-      const data = await resp.json();
-      brainOk    += data.brain_upserted || 0;
-      brainErr   += data.brain_errors   || 0;
-      mirrorAdded += data.mirror_added  || 0;
-      wlSaved     = data.watchlists_saved || wlSaved;
     } catch (e) {
       brainErr += chunk.length;
-      console.error('[JH] Upload error:', e);
+      if (!firstErr) firstErr = String(e).slice(0, 140);
     }
-    await new Promise(r => setTimeout(r, 150));
+    sent += chunk.length;
+    try {
+      chrome.runtime.sendMessage({ action: 'upload_progress', sent, total, brainOk });
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 80));
   }
 
   return {
-    ok: brainErr === 0 || brainOk > 0,
+    ok: wlSaved > 0 || brainOk > 0 || mirrorAdded > 0,
     brain_upserted: brainOk,
     brain_errors: brainErr,
     mirror_added: mirrorAdded,
     watchlists_saved: wlSaved,
-    total_sent: notes.length,
+    total_sent: total,
+    error: firstErr,
   };
 }
+

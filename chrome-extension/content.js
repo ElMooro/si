@@ -28,6 +28,7 @@
     text = String(text == null ? "" : text).trim();
     if (text.length < 2 || text.length > 20000) return false;
     sym = String(sym || "UNTAGGED").toUpperCase();
+    if (sym.indexOf(":") >= 0) sym = sym.split(":")[1] || sym;  // NASDAQ:AAPL -> AAPL
     var t = ts || Date.now();
     if (typeof t === "string") { var p = Date.parse(t); t = isNaN(p) ? Date.now() : p; }
     if (t < 1e12) t = t * 1000;
@@ -143,8 +144,11 @@
   var statusEl, listEl, btn;
   function paint() {
     if (!statusEl) return;
-    statusEl.innerHTML = '<b style="color:#F0B429">' + STORE.size + '</b> notes · <b style="color:#F0B429">'
-      + LISTS.size + '</b> watchlists · ' + TICKERS.size + ' tickers';
+    var tagged = 0;
+    STORE.forEach(function (n) { if (n.symbol !== "UNTAGGED") tagged++; });
+    statusEl.innerHTML = '<b style="color:#F0B429">' + STORE.size + '</b> notes (' + tagged +
+      ' tagged) · <b style="color:#F0B429">' + LISTS.size + '</b> watchlists · ' +
+      TICKERS.size + ' tickers';
     var rows = [];
     SEEN.forEach(function (v, k) {
       rows.push('<div style="font-size:10px;color:#8a836f;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
@@ -167,14 +171,22 @@
     if (!notes.length && !lists.length) { msg("Nothing captured yet.", "#E07A6A"); return; }
     btn.disabled = true;
     msg("Uploading " + notes.length + " notes · " + lists.length + " watchlists…", "#F0B429");
+    chrome.runtime.onMessage.addListener(function (m) {
+      if (m && m.action === "upload_progress") {
+        msg("Uploading " + m.sent + "/" + m.total + " notes \u00b7 " +
+            (m.brainOk || 0) + " in Brain\u2026", "#F0B429");
+      }
+    });
     chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists },
       function (res) {
         if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
           msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +
-              (res.watchlists_saved || 0) + " watchlists \u2192 tracker", "#6fce8a");
+              (res.watchlists_saved || 0) + " watchlists \u2192 tracker" +
+              (res.brain_errors ? " (" + res.brain_errors + " failed)" : ""), "#6fce8a");
           btn.textContent = "SYNC COMPLETE";
         } else {
-          msg("\u274c " + ((res && res.error) || "upload failed"), "#E07A6A");
+          msg("\u274c " + ((res && res.error) || "upload failed \u2014 see service worker console"),
+              "#E07A6A");
           btn.disabled = false;
         }
       });
@@ -212,9 +224,8 @@
     var O = location.origin;
     [O + "/api/v1/symbols_list/custom/?source=web",
      O + "/api/v1/symbols_list/colored/?source=web",
-     O + "/api/v1/symbols_list/active/?source=web",
-     "https://note-manager.tradingview.com/notes/getall/",
-     "https://note-manager.tradingview.com/notes/getall/?source=web"]
+     O + "/textnotes/getall/",
+     O + "/textnotes/getall/?source=web"]
       .forEach(function (u, i) { setTimeout(function () { replay(u); }, 500 + i * 350); });
     setTimeout(function () { replay(O + "/api/v1/symbols_list/custom/?source=web"); }, 4500);
   }
