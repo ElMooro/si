@@ -209,4 +209,6 @@ with report("3171_notes_intel") as rep:
         rep.fail(f)
     rep.kv(n_fails=len(fails), n_warns=len(warns),
            verdict="PASS" if not fails else "FAIL")
-    sys.exit(1 if fails else 0)
+    if fails:
+        sys.exit(1)
+    sys.exit(0)
