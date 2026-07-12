@@ -286,12 +286,26 @@ def lambda_handler(event, context):
     grid = sorted(spy_w.keys())
     spy = align(spy_w, grid)
 
-    # ── 3. z-scores ONCE PER SYMBOL (shared across all 207 engines) ──
+    # ── 3. z ONCE PER SYMBOL, on its NATIVE observations ─────────────
+    # ops 3177 correctness fix: World Bank series are ANNUAL. Forward-
+    # filling them onto a weekly grid and then z-scoring over a 156-week
+    # window means the window holds ~3 distinct numbers — garbage z. So
+    # z is computed on the symbol's OWN observation sequence (an annual
+    # series is scored against its own decades of history) and only then
+    # projected onto the weekly grid.
     zc = {}
     for k, w in cache.items():
-        if k in need or k == "__SPY__":
-            zc[k] = rolling_z(align(w, grid))
-    print(f"[wl] z-scored {len(zc)} symbols in {round(time.time()-t0)}s")
+        if k not in need and k != "__SPY__":
+            continue
+        obs = sorted(w.keys())
+        if len(obs) < 12:
+            continue
+        vals = array("f", [float(w[o]) for o in obs])
+        zs = rolling_z(vals, win=min(Z_WIN, max(12, len(vals))))
+        zmap = {obs[i]: zs[i] for i in range(len(obs))}
+        zc[k] = align(zmap, grid)          # forward-fill the Z, not the level
+    print(f"[wl] z-scored {len(zc)} symbols (native-frequency) in "
+          f"{round(time.time()-t0)}s")
 
     base = {h: [r for r in (fwd(spy, i, h) for i in range(len(grid)))
                 if r is not None] for h in HORIZONS}

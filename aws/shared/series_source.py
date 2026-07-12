@@ -107,6 +107,41 @@ DIRECT = {
     "INDEX:BTCUSD": ("COINGECKO", "bitcoin"),
 }
 
+# ops 3177: TradingView's ECONOMICS:{ISO2}{IND} codes are public data behind
+# proprietary names. World Bank (free, no key, 1960+, ~200 countries) carries
+# the ones FRED's OECD mirrors miss — and these codes REPEAT across Khalid's
+# lists, so each mapping activates several dormant engines at once.
+ECON_WB = {
+    "GDPYY": "NY.GDP.MKTP.KD.ZG",     # real GDP growth  (168 in his universe)
+    "GDP": "NY.GDP.MKTP.CD",
+    "GDG": "GC.DOD.TOTL.GD.ZS",       # govt debt / GDP   (164)
+    "BOT": "NE.RSB.GNFS.CD",          # trade balance     (186)
+    "FER": "FI.RES.TOTL.CD",          # FX reserves       (121)
+    "DIR": "FR.INR.DPST",             # deposit rate      (150)
+    "LIR": "FR.INR.LEND",             # lending rate
+    "IRYY": "FP.CPI.TOTL.ZG",         # CPI YoY
+    "CPI": "FP.CPI.TOTL.ZG",
+    "FI": "FP.CPI.TOTL.ZG",           # food inflation → CPI proxy (174)
+    "UR": "SL.UEM.TOTL.ZS",           # unemployment
+    "CS": "NE.CON.PRVT.KD.ZG",        # consumer spending (30)
+    "CAG": "BN.CAB.XOKA.GD.ZS",       # current account / GDP (28)
+    "EXP": "NE.EXP.GNFS.CD",
+    "IMP": "NE.IMP.GNFS.CD",
+    "MS": "FM.LBL.BMNY.GD.ZS",        # broad money / GDP
+    "FDI": "BX.KLT.DINV.WD.GD.ZS",
+    "POP": "SP.POP.TOTL",
+    "GS": "NY.GNS.ICTR.ZS",           # gross savings
+    "MIW": "NY.GDP.PCAP.CD",          # income proxy
+    "IP": "NV.IND.TOTL.KD.ZG",        # industrial production growth
+    "IPRI": "TM.VAL.MRCH.XD.WD",      # import price index
+    "EPRI": "TX.VAL.MRCH.XD.WD",      # export price index
+    "MIN": "NY.GDP.MINR.RT.ZS",
+}
+
+# TradingView ISO2 quirks → World Bank ISO2
+TV_WB = {"EU": "EMU", "SZ": "CH", "UK": "GB", "SY": "SY", "SP": "ES",
+         "GE": "DE", "SW": "SE", "SF": "ZA", "KS": "KR", "CI": "CL"}
+
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
 FX_EX = {"FX", "OANDA", "FOREXCOM", "FX_IDC", "SAXO"}
 OPS_RE = re.compile(r"[+\-*/()]")
@@ -146,8 +181,13 @@ def map_symbol(sym, fred_search=None):
             i2, ind = m.groups()
             i3 = ISO2_ISO3.get(i2)
             tpl = FRED_TEMPLATES.get(ind)
-            if i3 and tpl:
+            if i3 and tpl:                       # OECD monthly (best history)
                 return "FRED", tpl.format(i3=i3), 0.85, f"OECD template {ind}"
+            wb = ECON_WB.get(ind)
+            if wb:                               # World Bank annual, 1960+
+                iso2 = TV_WB.get(i2, i2)
+                return ("WORLDBANK", f"{iso2}|{wb}", 0.8,
+                        f"world-bank {ind}")
         if fred_search:
             hit = fred_search(t)
             if hit:
@@ -271,6 +311,10 @@ def fetch(source, sid, start="1990-01-01"):
             return out
         if source == "STOOQ":
             return _stooq(sid, start)
+        if source == "WORLDBANK":
+            return _worldbank(sid, start)
+        if source == "DBNOMICS_V2":
+            return _dbnomics(sid, start)
         if source == "DBNOMICS":
             d = _http(f"https://api.db.nomics.world/v22/series/{sid}"
                       "?observations=1")
@@ -292,6 +336,42 @@ def fetch(source, sid, start="1990-01-01"):
     except Exception as e:
         print(f"[series_source] {source}:{sid} failed: {str(e)[:90]}")
     return {}
+
+
+def _worldbank(spec, start):
+    """spec = 'ISO2|INDICATOR'. Free, no key, 1960+, ~200 countries."""
+    iso2, ind = spec.split("|", 1)
+    d = _http(f"https://api.worldbank.org/v2/country/{iso2}/indicator/{ind}"
+              f"?format=json&per_page=300&date={start[:4]}:2026")
+    if not isinstance(d, list) or len(d) < 2 or not d[1]:
+        return {}
+    out = {}
+    for row in d[1]:
+        v, y = row.get("value"), row.get("date")
+        if v is not None and y:
+            out[f"{y}-12-31"] = float(v)
+    return out
+
+
+def _dbnomics(sid, start):
+    d = _http(f"https://api.db.nomics.world/v22/series/{sid}?observations=1")
+    docs = ((d.get("series") or {}).get("docs") or [])
+    if not docs:
+        return {}
+    per = docs[0].get("period") or []
+    val = docs[0].get("value") or []
+    out = {}
+    for p_, v in zip(per, val):
+        if not isinstance(v, (int, float)):
+            continue
+        iso = str(p_)
+        if len(iso) == 4:
+            iso = f"{iso}-12-31"
+        elif len(iso) == 7:
+            iso = f"{iso}-28"
+        if iso >= start:
+            out[iso] = float(v)
+    return out
 
 
 def _stooq_id(sym):
