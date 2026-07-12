@@ -1,4 +1,4 @@
-"""ops 3153 — the first exception, verbatim.
+"""ops 3153 (iter 2) — land GLM timeout fix in a policy test-window.
 
 Cold container + mode=normal + wall 1.1s means the FIRST GLM call dies
 in milliseconds (then breaker + credit-dead Haiku cascade). Every CW
@@ -40,6 +40,22 @@ with report("3153_first_exception") as rep:
     fails, warns = [], []
     rep.heading("ops 3153 — first GLM exception, verbatim")
 
+    rep.section("0. Redeploy premortem w/ patched router (GLM timeout 130s)")
+    from pathlib import Path
+    from _lambda_deploy_helpers import deploy_lambda
+    AWS_DIR = Path(__file__).resolve().parents[1]
+    live = LAM.get_function_configuration(FunctionName=FN)
+    cfgf = json.loads((AWS_DIR / "lambdas" / FN / "config.json").read_text())
+    deploy_lambda(report=rep, function_name=FN,
+                  source_dir=AWS_DIR / "lambdas" / FN / "source",
+                  env_vars=(live.get("Environment") or {}).get("Variables") or {},
+                  eb_rule_name=(cfgf.get("schedule") or {}).get("rule_name"),
+                  eb_schedule=(cfgf.get("schedule") or {}).get("cron"),
+                  timeout=cfgf.get("timeout", 600),
+                  memory=cfgf.get("memory", 1024),
+                  description=(cfgf.get("description") or "")[:250],
+                  smoke=False)
+
     SSM.put_parameter(Name="/justhodl/llm/mode", Value="normal",
                       Type="String", Overwrite=True)
     cfg = LAM.get_function_configuration(FunctionName=FN)
@@ -56,7 +72,7 @@ with report("3153_first_exception") as rep:
     rep.log("cold invoke fired")
 
     doc = None
-    deadline = time.time() + 240
+    deadline = time.time() + 700
     while time.time() < deadline:
         try:
             d = s3_json("data/kill-theses.json")
@@ -146,8 +162,15 @@ with report("3153_first_exception") as rep:
                         f"{str(kc.get('risk') or kc.get('condition') or kc)[:140]}")
         else:
             fails.append("post-fix still thin — CW above")
-    elif len(rich) < 5:
-        fails.append("root exception above requires the next fix class")
+    elif len(rich) >= 5:
+        rep.ok(f"KILL PIPELINE LIVE: {len(rich)} rich theses (GLM lane)")
+        for t in [x for x in ((doc or {}).get("theses") or [])
+                  if x.get("kill_conditions")][:4]:
+            kc = (t.get("kill_conditions") or [{}])[0]
+            rep.log(f"  · {t.get('symbol')}: "
+                    f"{str(kc.get('risk') or kc.get('condition') or kc)[:140]}")
+    else:
+        fails.append(f"{len(rich)} rich post-timeout-fix — CW above names it")
 
     SSM.put_parameter(Name="/justhodl/llm/mode", Value="on_demand",
                       Type="String", Overwrite=True)
