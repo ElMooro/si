@@ -1,8 +1,8 @@
 # ops 3135 — Alpha Compass v2.0 (desk sheet)
 
 **Status:** failure  
-**Duration:** 3.0s  
-**Finished:** 2026-07-12T03:05:50+00:00  
+**Duration:** 308.1s  
+**Finished:** 2026-07-12T03:22:35+00:00  
 
 ## Error
 
@@ -19,9 +19,23 @@ SystemExit: 1
 ## Log
 ## 1. FMP key sourcing + deploy
 
-- `03:05:47` ✅ FMP key live (SPY=754.95)
-- `03:05:47`   zip: 9020 bytes
+- `03:17:27` ✅ FMP key live (SPY=754.95)
+- `03:17:27`   zip: 9030 bytes
 ## 1. Lambda
 
-- `03:05:47`   Lambda exists — updating
-- `03:05:50` ✗ deploy failed: An error occurred (ValidationException) when calling the UpdateFunctionConfiguration operation: 1 validation error detected: Value 'Alpha Compass v2.0 — desk sheet: regime fusion (composite+RORO+facto
+- `03:17:27`   Lambda exists — updating
+- `03:17:30` ✅   ✓ updated justhodl-alpha-compass
+- `03:17:30` ✅   ✓ Function URL: https://twrxehdhjooijroqjp2ey4k6ci0bcwnd.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `03:17:31`   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
+- `03:17:31` ✅   ✓ target → justhodl-alpha-compass
+- `03:17:31` ✅   ✓ added invoke permission
+## 3. Smoke test
+
+- `03:17:31`   invoking justhodl-alpha-compass…
+- `03:17:32` ✗   ✗ FunctionError: Unhandled
+- `03:17:32`   body: {"errorMessage": "Unable to import module 'lambda_function': No module named '_sentry_lite'", "errorType": "Runtime.ImportModuleError", "requestId": "", "stackTrace": []}
+## 2. Poll S3 for fresh v2 output
+
+- `03:22:35` ✗ v2 output never freshened in S3
