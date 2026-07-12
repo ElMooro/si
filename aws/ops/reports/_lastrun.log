@@ -1,46 +1,82 @@
-executing-against: 03d6d843f903311cc4e9a0bbded5e8a5b2e9f0a1
+executing-against: f47f4813ccc0ea3d9dcd7d019f469f61762692e5
 ops 3167 — free-source symbol map (1990+)
 ── 1. Universe census ──
-[21:42:38] ── top ECONOMICS indicator codes (the mapping targets): BOT=186, FI=174, GDPYY=168, GDG=164, DIR=150, FER=121, CBBS=89, BCOI=73, IPRI=59, INTR=38, INBR=31, CS=30, CAG=28, NO=28
-── 2. Map the universe ──
-[21:49:41]   UNMAPPED    3612  (55.5%)
-[21:49:41]   STOOQ       1739  (26.7%)
-[21:49:41]   FRED         782  (12.0%)
-[21:49:41]   FORMULA      337  (5.2%)
-[21:49:41]   COINGECKO     37  (0.6%)
-[21:49:41] ✅ symbol-map.json written: 2895/6507 symbols on a free source (44.5%)
-── 3. HISTORY PROOF — earliest date each source returns ──
-[21:49:42]   US 10y                       FRED   DGS10                1990-01-02 → 2026-07-09  (9135 obs)
-[21:49:42]   Fed funds                    FRED   FEDFUNDS             1990-01-01 → 2026-06-01  (438 obs)
-[21:49:42]   US M2                        FRED   M2SL                 1990-01-01 → 2026-05-01  (437 obs)
-[21:49:43]   Fed B/S                      FRED   WALCL                2002-12-18 → 2026-07-08  (1230 obs)
-[21:49:43]   VIX                          FRED   VIXCLS               1990-01-02 → 2026-07-09  (9226 obs)
+[21:51:50] ── top ECONOMICS indicator codes (the mapping targets): BOT=186, FI=174, GDPYY=168, GDG=164, DIR=150, FER=121, CBBS=89, BCOI=73, IPRI=59, INTR=38, INBR=31, CS=30, CAG=28, NO=28
+── 2. Validate OECD templates (kill the dead ids) ──
+[series_source] FRED:NAEXKP01DEUQ657S failed: HTTP Error 400: Bad Request
 [series_source] FRED:NAEXKP01JPNQ657S failed: HTTP Error 400: Bad Request
-[21:49:44]   Bund 10y (template)          FRED   IRLTLT01DEM156N      1990-01-01 → 2026-05-01  (437 obs)
+[series_source] FRED:CPALTT01DEUM657N failed: HTTP Error 400: Bad Request
+[series_source] FRED:CPALTT01JPNM657N failed: HTTP Error 400: Bad Request
+[series_source] FRED:CPALTT01DEUM661N failed: HTTP Error 400: Bad Request
+[series_source] FRED:CPALTT01JPNM661N failed: HTTP Error 400: Bad Request
+[series_source] FRED:IR3TIB01DEUM156N failed: HTTP Error 400: Bad Request
+[series_source] FRED:IR3TIB01JPNM156N failed: HTTP Error 400: Bad Request
+[series_source] FRED:IRLTLT01DEUM156N failed: HTTP Error 400: Bad Request
+[series_source] FRED:IRLTLT01JPNM156N failed: HTTP Error 400: Bad Request
+[series_source] FRED:LRHUTTTTDEUM156S failed: HTTP Error 400: Bad Request
+[series_source] FRED:LRHUTTTTJPNM156S failed: HTTP Error 400: Bad Request
+[series_source] FRED:MABMM301DEUM189S failed: HTTP Error 400: Bad Request
+[series_source] FRED:MABMM301JPNM189S failed: HTTP Error 400: Bad Request
+[series_source] FRED:MABMM301DEUM189S failed: HTTP Error 400: Bad Request
+[series_source] FRED:MABMM301JPNM189S failed: HTTP Error 400: Bad Request
+[series_source] FRED:BSCICP03DEUM665S failed: HTTP Error 400: Bad Request
+[series_source] FRED:BSCICP03JPNM665S failed: HTTP Error 400: Bad Request
+[series_source] FRED:CSCICP03DEUM665S failed: HTTP Error 400: Bad Request
+[series_source] FRED:CSCICP03JPNM665S failed: HTTP Error 400: Bad Request
+[series_source] FRED:PRINTO01DEUM657S failed: HTTP Error 400: Bad Request
+[series_source] FRED:PRINTO01JPNM657S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTEXVA01DEUM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTEXVA01JPNM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTIMVA01DEUM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTIMVA01JPNM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTNTVA01DEUM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:XTNTVA01JPNM667S failed: HTTP Error 400: Bad Request
+[series_source] FRED:SPASTT01DEUM657N failed: HTTP Error 400: Bad Request
+[series_source] FRED:SPASTT01JPNM657N failed: HTTP Error 400: Bad Request
+[21:51:58]   live: CLI, HOU
+[21:51:58]   DEAD (fall back to FRED search): GDPYY, IRYY, CPI, INTR, IR, UR, M2, M3, BCOI, CCI, PROD, EXP, IMP, BOT, SP
+── 3. Map the universe ──
+[21:59:01]   UNMAPPED    3612  (55.5%)
+[21:59:01]   STOOQ       1739  (26.7%)
+[21:59:01]   FRED         782  (12.0%)
+[21:59:01]   FORMULA      337  (5.2%)
+[21:59:01]   COINGECKO     37  (0.6%)
+[21:59:01] ✅ symbol-map.json written: 2895/6507 symbols on a free source (44.5%)
+── 4. HISTORY PROOF — earliest date each source returns ──
+[21:59:01]   US 10y                       FRED   DGS10                1990-01-02 → 2026-07-09  (9135 obs)
+[21:59:01]   Fed funds                    FRED   FEDFUNDS             1990-01-01 → 2026-06-01  (438 obs)
+[21:59:02]   US M2                        FRED   M2SL                 1990-01-01 → 2026-05-01  (437 obs)
+[21:59:02]   Fed B/S                      FRED   WALCL                2002-12-18 → 2026-07-08  (1230 obs)
+[21:59:02]   VIX                          FRED   VIXCLS               1990-01-02 → 2026-07-09  (9226 obs)
+[series_source] FRED:NAEXKP01JPNQ657S failed: HTTP Error 400: Bad Request
+[21:59:03]   Bund 10y (template)          FRED   IRLTLT01DEM156N      1990-01-01 → 2026-05-01  (437 obs)
 [series_source] FRED:CPALTT01GBRM659N failed: HTTP Error 400: Bad Request
-── 4. Per-thesis coverage under the new map ──
-[21:49:47] ── coverage by thesis (top 14):
-[21:49:47]   100%   40/40   Commercial banks
-[21:49:47]   100%   36/36   Corp Yields
-[21:49:47]   100%   31/31   Commercial banks
-[21:49:47]   100%   29/29   Global Commodities prices
-[21:49:47]   100%   26/26   3X ETF
-[21:49:47]   100%   22/22   Energy and oil stocks
-[21:49:47]    97%   37/38   Commercial Banks
-[21:49:47]    97%   34/35   Credit Spreads
-[21:49:47]    97%   29/30   Fed Balance sheet
-[21:49:47]    96%  263/273  Brent Johnson Portfolio: THE SHORTTERM SWING
-[21:49:47]    96%   50/52   Different Types of Stock indexes
-[21:49:47]    96%   24/25   Credit Risk
-[21:49:47]    96%   22/23   GLOBAL EQUITY
-[21:49:47]    95%  123/129  Banking Sector : Banks = Liquidity Proxy Eve
-[21:49:47] ⚠ coverage under 50% — FRED-search budget spends 500 lookups per run and caches them; a second run maps the next tranche
-[21:49:47] ⚠ probe empty: FRED:NAEXKP01JPNQ657S (Japan GDP YoY (template))
-[21:49:47] ⚠ probe empty: FRED:CPALTT01GBRM659N (UK CPI YoY (template))
-[21:49:47] ⚠ probe empty: STOOQ:^spx (S&P 500)
-[21:49:47] ⚠ probe empty: STOOQ:^dxy (DXY)
-[21:49:47] ⚠ probe empty: STOOQ:spy.us (SPY)
-[21:49:47] ✗ only 5 probes reach the 1990s — deep history not proven; do not rebuild the study yet
+[21:59:03]   S&P 500                      MARKET ^GSPC                1990-01-02 → 2026-07-10  (9197 obs)
+[21:59:03]   DXY                          MARKET DX-Y.NYB             1990-01-01 → 2026-07-10  (9306 obs)
+[21:59:04]   SPY                          MARKET SPY                  1993-01-29 → 2026-07-10  (8418 obs)
+[21:59:04]   Gold                         MARKET GC=F                 2000-08-30 → 2026-07-10  (6488 obs)
+[21:59:04]   Nikkei                       MARKET ^N225                1990-01-04 → 2026-07-10  (8962 obs)
+[21:59:05]   NVDA                         MARKET NVDA                 1999-01-22 → 2026-07-10  (6908 obs)
+[21:59:05]   VIX index                    MARKET ^VIX                 1990-01-02 → 2026-07-10  (9198 obs)
+[21:59:05] ✅ 10/15 probes deliver 1990s-or-earlier history — the thesis study can be rebuilt on 35 years instead of 2
+── 5. Per-thesis coverage under the new map ──
+[21:59:05] ── coverage by thesis (top 14):
+[21:59:05]   100%   40/40   Commercial banks
+[21:59:05]   100%   36/36   Corp Yields
+[21:59:05]   100%   31/31   Commercial banks
+[21:59:05]   100%   29/29   Global Commodities prices
+[21:59:05]   100%   26/26   3X ETF
+[21:59:05]   100%   22/22   Energy and oil stocks
+[21:59:05]    97%   37/38   Commercial Banks
+[21:59:05]    97%   34/35   Credit Spreads
+[21:59:05]    97%   29/30   Fed Balance sheet
+[21:59:05]    96%  263/273  Brent Johnson Portfolio: THE SHORTTERM SWING
+[21:59:05]    96%   50/52   Different Types of Stock indexes
+[21:59:05]    96%   24/25   Credit Risk
+[21:59:05]    96%   22/23   GLOBAL EQUITY
+[21:59:05]    95%  123/129  Banking Sector : Banks = Liquidity Proxy Eve
+[21:59:05] ⚠ coverage under 50% — FRED-search budget spends 500 lookups per run and caches them; a second run maps the next tranche
+[21:59:05] ⚠ probe empty: FRED:NAEXKP01JPNQ657S (Japan GDP YoY (template))
+[21:59:05] ⚠ probe empty: FRED:CPALTT01GBRM659N (UK CPI YoY (template))
 
 → Report written to aws/ops/reports/latest/3167_symbol_map.md
-❌ OPS-FAIL: aws/ops/pending/ops_3167_symbol_map.py
