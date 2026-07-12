@@ -1,77 +1,12 @@
-executing-against: fac236c3f9aa3c901106a41eabae35760dc5c5db
-ops 3145 — Fusion Wave 1 (5 engines, additive)
-── A. industry-rotation ← divergence fields ──
-[05:36:27]   zip: 73655 bytes
-── 1. Lambda ──
-[05:36:27]   Lambda exists — updating
-[05:36:30] ✅   ✓ updated justhodl-industry-rotation
-── 2. EB rule + permissions ──
-[05:36:31]   rule already correct: industry-rotation-daily (cron(35 21 * * ? *))
-[05:36:31] ✅   ✓ target → justhodl-industry-rotation
-[05:36:31] ✅   ✓ added invoke permission
-[05:36:31]   justhodl-industry-rotation: async invoke fired (long-runner; sync smoke would blow the 60s client read-timeout)
-[05:39:09] A: IR top-level keys: ['absorption_watch', 'breakdown_watch', 'by_sector_name', 'closes66', 'cycle_context', 'doctrine', 'engine', 'ew_cw', 'finviz_sector_perf_attached', 'generated_at', 'industry_credit', 'join_hits', 'ladder', 'leaders']
-[05:39:09] ✅ A: quadrants live — e.g. XLK NEUTRAL
-── B. best-setups ← earnings + squeeze + IR flow quadrant ──
-[05:39:09]   zip: 72756 bytes
-── 1. Lambda ──
-[05:39:09]   Lambda exists — updating
-[05:39:12] ✅   ✓ updated justhodl-best-setups
-── 2. EB rule + permissions ──
-[05:39:13]   rule already correct: justhodl-best-setups-hourly (cron(10 * * * ? *))
-[05:39:13] ✅   ✓ target → justhodl-best-setups
-[05:39:13] ✅   ✓ added invoke permission
-── 3. Smoke test ──
-[05:39:13]   invoking justhodl-best-setups…
-[05:39:18] ✅   ✓ smoke test passed
-[05:39:18]     ok                       True
-[05:39:18]     n_setups                 527
-[05:39:18]     strong_buy               3
-[05:39:18]     buy                      15
-[05:39:18]     weight_source            prior-only
-[05:39:18] ✅ B live on 50 setups
-── C. master-ranker ← kill-theses + squeeze-fuel overlays ──
-[05:39:19]   justhodl-master-ranker: no repo config — using live function config
-[05:39:19]   zip: 69295 bytes
-── 1. Lambda ──
-[05:39:19]   Lambda exists — updating
-[05:39:24] ✅   ✓ updated justhodl-master-ranker
-── 3. Smoke test ──
-[05:39:25]   invoking justhodl-master-ranker…
-[05:39:31] ✅   ✓ smoke test passed
-[05:39:31]     ok                       True
-[05:39:31]     n_tickers                25
-[05:39:31]     n_macro                  9
-[05:39:31]     n_tier_3_plus            91
-[05:39:31]     n_tier_5_plus            46
-[05:39:31]     regime                   SLOWING
-[05:39:31]     duration_s               5.82
-[05:39:32] ✅ C live: kill=0 squeeze=0 on 25 names
-── D. convergence-radar ← early_signals block ──
-[05:39:32]   zip: 65801 bytes
-── 1. Lambda ──
-[05:39:32]   Lambda exists — updating
-[05:39:36] ✅   ✓ updated justhodl-convergence-radar
-── 3. Smoke test ──
-[05:39:36]   invoking justhodl-convergence-radar…
-[05:39:39] ✅   ✓ smoke test passed
-[05:39:39]     status                   ok
-[05:39:39]     elapsed_sec              1.34
-[05:39:39]     n_tickers                179
-[05:39:39]     n_ultra                  15
-[05:39:39]     n_high                   42
-[05:39:39]     alert_sent               False
-[05:39:39] ✅ D live: talent=0 restruct=5 universe=6
-── E. alpha-daily-brief ← desk-sheet (smoke off) ──
-[05:39:39]   zip: 58273 bytes
-── 1. Lambda ──
-[05:39:40]   Lambda exists — updating
-[05:39:43] ✅   ✓ updated justhodl-alpha-daily-brief
-── 2. EB rule + permissions ──
-[05:39:43]   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
-[05:39:44] ✅   ✓ target → justhodl-alpha-daily-brief
-[05:39:44] ✅   ✓ added invoke permission
-[05:39:44] ✅ E deployed — desk-sheet block lands in next scheduled brief (LLM run skipped in-op by design)
-[05:39:44] ⚠ C: no overlay hits on today's top names — verify sources non-empty
+executing-against: 11c079fe49b842a043896c97f68accf2279e2732
+ops 3146 — IR quadrant chip + overlay-source audit
+── 1. Overlay sources vs master-ranker top names ──
+[05:47:17] kill-theses tickers: 
+[05:47:17] master-ranker top:   ALL, AMD, FDX, FISV, FITB, FIX, FWDI, GL, GM, GOOG, HPE, KEYS, KMX, LRCX, MIDD, MU, NEM, OC, ORCL, OXY, PLTR, PWR, SNDK, SPG, STX
+[05:47:17] ✅ squeeze overlap 0 legitimate: high-SI board disjoint from quality leaders today
+── 2. IR page chip on CDN (warn-only) ──
+[05:48:32] ⚠ CDN still on prior page — max-age=600 self-heals; chip data is already in the feed either way
+[05:48:32] ✗ kill-theses feed EMPTY — premortem engine needs a look
 
-→ Report written to aws/ops/reports/latest/3145_fusion_wave1.md
+→ Report written to aws/ops/reports/latest/3146_ir_chip_and_sources.md
+❌ OPS-FAIL: aws/ops/pending/ops_3146_ir_chip_and_sources.py
