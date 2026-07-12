@@ -161,10 +161,11 @@ def fmp_quotes(tickers) -> dict:
     tks = sorted({t for t in tickers if t and isinstance(t, str)})[:40]
     if not tks or not FMP_KEY:
         return {}
-    url = ("https://financialmodelingprep.com/stable/quote?symbol="
-           + urllib.parse.quote(",".join(tks)) + "&apikey=" + FMP_KEY)
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "jh-compass/2.0"})
+    def _hit(sym):
+        url = ("https://financialmodelingprep.com/stable/quote?symbol="
+               + urllib.parse.quote(sym, safe=",") + "&apikey=" + FMP_KEY)
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "jh-compass/2.0"})
         with urllib.request.urlopen(req, timeout=10) as r:
             rows = json.loads(r.read().decode("utf-8"))
         out = {}
@@ -173,9 +174,21 @@ def fmp_quotes(tickers) -> dict:
             if tk and px:
                 out[tk] = px
         return out
+
+    try:
+        got = _hit(",".join(tks))
+        if got:
+            return got
+        print("[compass] fmp batch empty — falling back to singles")
     except Exception as e:
-        print(f"[compass] fmp quotes failed: {e}")
-        return {}
+        print(f"[compass] fmp batch failed: {e} — falling back to singles")
+    out = {}
+    for tk in tks[:8]:
+        try:
+            out.update(_hit(tk))
+        except Exception as e:
+            print(f"[compass] fmp {tk} failed: {e}")
+    return out
 
 
 # ───────────────────────────── regime fusion ─────────────────────────────
@@ -196,25 +209,38 @@ def _color(label) -> str:
     return _COLORS.get(str(label or "").upper(), "#8896b0")
 
 
+def _lbl(v):
+    """Coerce any regime-ish value to a display string (dig into dicts)."""
+    if v is None:
+        return None
+    if isinstance(v, dict):
+        return _lbl(first_of(v, "label", "meta_regime", "regime", "verdict",
+                             "state", "stance", "posture", "call", "name"))
+    s = str(v).strip()
+    return s if s and not s.startswith("{") else None
+
+
 def fuse_regime(rcomp, roro, factor, dollar, sizer, conviction) -> dict:
     sources = []
 
-    comp_lbl = first_of(rcomp, "regime", "composite_regime", "master_regime",
-                        "label", "verdict", "headline_regime")
-    comp_score = fnum(first_of(rcomp, "score", "master", "composite_score",
+    comp_lbl = _lbl(first_of(rcomp, "meta_regime", "regime",
+                             "composite_regime", "meta_class", "label",
+                             "verdict"))
+    comp_score = fnum(first_of(rcomp, "composite_score", "score", "master",
                                "master_score"))
     if comp_lbl or comp_score is not None:
         sources.append({"k": "composite", "label": "Regime Composite",
                         "value": comp_lbl, "score": comp_score,
                         "color": _color(comp_lbl)})
 
-    roro_lbl = first_of(roro, "posture", "regime", "state")
-    roro_score = fnum(first_of(roro, "score", "composite_score", "roro_score"))
+    roro_lbl = _lbl(first_of(roro, "posture", "regime", "state"))
+    roro_score = fnum(first_of(roro, "score", "composite_score", "roro_score",
+                               "posture.score"))
     if roro_lbl:
         sources.append({"k": "roro", "label": "RORO", "value": roro_lbl,
                         "score": roro_score, "color": _color(roro_lbl)})
 
-    fac_lbl = first_of(factor, "appetite", "regime", "stance", "label")
+    fac_lbl = _lbl(first_of(factor, "appetite", "regime", "stance", "label"))
     if not fac_lbl:
         th = factor.get("thrusts") if isinstance(factor, dict) else None
         if isinstance(th, list) and th:
@@ -230,7 +256,7 @@ def fuse_regime(rcomp, roro, factor, dollar, sizer, conviction) -> dict:
                         "value": rt.get("verdict"), "score": fnum(rt.get("score")),
                         "color": _color(rt.get("verdict"))})
 
-    book = first_of(conviction, "book_posture")
+    book = _lbl(first_of(conviction, "book_posture"))
     book_net = fnum(first_of(conviction, "book_net_signal"))
     if book:
         sources.append({"k": "book", "label": "Engine Book", "value": book,
