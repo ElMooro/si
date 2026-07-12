@@ -527,9 +527,9 @@ def _index_best_setups(best) -> dict:
 def _index_kill(kill) -> dict:
     out = {}
     for t in (kill or {}).get("theses") or []:
-        if not isinstance(t, dict):
+        if not isinstance(t, dict) or t.get("error"):
             continue
-        tk = str(t.get("ticker") or "").upper()
+        tk = str(t.get("symbol") or t.get("ticker") or "").upper()
         if not tk:
             continue
         conds = t.get("kill_conditions") or []

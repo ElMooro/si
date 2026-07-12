@@ -1162,7 +1162,9 @@ def lambda_handler(event, context):
     _kill = fetch_json("data/kill-theses.json") or {}
     _kill_idx = {}
     for _t in (_kill.get("theses") or []):
-        _tk = (_t.get("ticker") or "").upper()
+        if _t.get("error"):
+            continue
+        _tk = (_t.get("symbol") or _t.get("ticker") or "").upper()
         if not _tk:
             continue
         _c = _t.get("kill_conditions") or []
