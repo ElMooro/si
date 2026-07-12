@@ -1,12 +1,10 @@
-executing-against: 04534b6aa46cb5cb37fa87f6e43756124eea1a53
-ops 3149 — governance probe → premortem final gate
-── 1. Live governance state (verbatim) ──
-── 2. Narrow restores ──
-[05:58:28] ✅ mode on_demand with only $0.00/8 spent — stuck switch, restored to normal
-── 3. Premortem invoke + gate ──
-[05:58:28] async invoke fired
-[05:59:29] error sample: {"symbol": "NVDA", "error": "empty", "raw": null}
-[05:59:29] ✗ LLM path open but only 0 rich theses — errors above name the residual
+executing-against: 2cc88310a2e4ce1d94073e45452173b924594b91
+ops 3150 — cold-start premortem, final gate
+── 1. Container recycle (env nonce) ──
+[06:00:55] ✅ env nonce applied — next invoke is a cold container
+── 2. Invoke + gate ──
+[06:01:56] error sample: {"symbol": "NVDA", "error": "empty", "raw": null}
+[06:01:56] ✗ still 0 rich after cold start — error sample above names the next layer
 
-→ Report written to aws/ops/reports/latest/3149_llm_governance_premortem.md
-❌ OPS-FAIL: aws/ops/pending/ops_3149_llm_governance_premortem.py
+→ Report written to aws/ops/reports/latest/3150_premortem_coldstart.md
+❌ OPS-FAIL: aws/ops/pending/ops_3150_premortem_coldstart.py
