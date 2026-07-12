@@ -46,11 +46,20 @@ def s3_json(key):
     return json.loads(o["Body"].read().decode("utf-8"))
 
 
-def dep(rep, fn, smoke=True):
-    cfg = json.loads((AWS_DIR / "lambdas" / fn / "config.json").read_text())
+def dep(rep, fn, smoke=True, invoke_async=False):
     lam = boto3.client("lambda", region_name=REGION)
-    env = (lam.get_function_configuration(FunctionName=fn)
-           .get("Environment") or {}).get("Variables") or {}
+    live = lam.get_function_configuration(FunctionName=fn)
+    env = (live.get("Environment") or {}).get("Variables") or {}
+    cfg_path = AWS_DIR / "lambdas" / fn / "config.json"
+    if cfg_path.exists():
+        cfg = json.loads(cfg_path.read_text())
+    else:
+        # config-orphan (source committed, config never was) — fall back
+        # to the LIVE function configuration; schedule left untouched
+        rep.log(f"  {fn}: no repo config — using live function config")
+        cfg = {"timeout": live.get("Timeout", 300),
+               "memory": live.get("MemorySize", 512),
+               "description": live.get("Description", "")}
     sched = cfg.get("schedule") or {}
     deploy_lambda(
         report=rep, function_name=fn,
@@ -61,6 +70,10 @@ def dep(rep, fn, smoke=True):
         timeout=cfg.get("timeout", 300), memory=cfg.get("memory", 512),
         description=(cfg.get("description") or "")[:250], smoke=smoke,
     )
+    if invoke_async:
+        lam.invoke(FunctionName=fn, InvocationType="Event", Payload=b"{}")
+        rep.log(f"  {fn}: async invoke fired (long-runner; sync smoke "
+                "would blow the 60s client read-timeout)")
 
 
 def wait_fresh(key, t0, secs=300):
@@ -84,7 +97,7 @@ with report("3145_fusion_wave1") as rep:
     rep.section("A. industry-rotation ← divergence fields")
     tA = datetime.now(timezone.utc)
     try:
-        dep(rep, "justhodl-industry-rotation")
+        dep(rep, "justhodl-industry-rotation", smoke=False, invoke_async=True)
     except Exception as e:
         fails.append(f"A deploy: {str(e)[:150]}")
     ir = wait_fresh("data/industry-rotation.json", tA, 780)
