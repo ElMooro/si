@@ -81,7 +81,8 @@ def wait_fresh(key, t0, secs=300):
     while time.time() < deadline:
         try:
             d = s3_json(key)
-            if datetime.fromisoformat(d["generated_at"]) >= t0:
+            ts = d.get("generated_at") or d.get("as_of") or d.get("updated_at")
+            if ts and datetime.fromisoformat(ts) >= t0:
                 return d
         except Exception:
             pass
