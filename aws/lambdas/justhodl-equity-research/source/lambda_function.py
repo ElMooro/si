@@ -1774,6 +1774,84 @@ def compute_capital_allocation(cf_annual: list, income_annual: list,
     }
 
 
+def build_earnings_vol_edge(prices_eod, earnings_rows, options_block, next_earnings_date):
+    """#6 EARNINGS-VOL EDGE (delta on top of live implied-move block).
+    Realized earnings reaction (bracket max of BMO/AMC gap) over last <=8 prints vs
+    options-implied move -> RICH/CHEAP/FAIR vol read + PEAD drift T+1/T+5/T+20 by beat/miss.
+    All real market data: FMP EOD closes x FMP /stable/earnings dates; nothing fabricated."""
+    import datetime as _dt, bisect
+    try:
+        prices = prices_eod.get("historical") if isinstance(prices_eod, dict) else prices_eod
+        rows = []
+        for p in (prices or []):
+            d = p.get("date"); c = _safe_num(p, "price") or _safe_num(p, "close")
+            if d and c and c > 0:
+                rows.append((d[:10], c))
+        rows.sort()
+        dates = [r[0] for r in rows]; closes = [r[1] for r in rows]
+        if len(rows) < 60 or not isinstance(earnings_rows, list):
+            return {"status": "insufficient_history"}
+        today = _dt.date.today().isoformat()
+        def _sp(er):
+            a = _safe_num(er, "epsActual"); e = _safe_num(er, "epsEstimated")
+            if a is None or e is None or abs(e) < 1e-9: return None
+            return round((a - e) / abs(e) * 100.0, 1)
+        past = sorted([er for er in earnings_rows if er.get("date") and er["date"][:10] < today
+                       and _safe_num(er, "epsActual") is not None],
+                      key=lambda er: er["date"], reverse=True)[:8]
+        prints = []
+        for er in past:
+            ed = er["date"][:10]
+            j = bisect.bisect_left(dates, ed)
+            i_pre = j - 1
+            i_ed  = j if j < len(dates) and dates[j] == ed else None
+            i_post = (i_ed + 1) if i_ed is not None else j
+            if i_pre < 0 or i_post >= len(dates): continue
+            cands = []
+            if i_ed is not None:
+                cands.append((abs(closes[i_ed] / closes[i_pre] - 1.0), i_ed))
+                cands.append((abs(closes[i_post] / closes[i_ed] - 1.0), i_post))
+            else:
+                cands.append((abs(closes[i_post] / closes[i_pre] - 1.0), i_post))
+            mv, t0 = max(cands)
+            def _dr(k):
+                return round((closes[t0 + k] / closes[t0] - 1.0) * 100.0, 1) if t0 + k < len(closes) else None
+            sp = _sp(er)
+            bucket = "beat" if (sp is not None and sp > 0.5) else ("miss" if (sp is not None and sp < -0.5) else "inline")
+            prints.append({"date": ed, "eps_surprise_pct": sp, "bucket": bucket,
+                           "reaction_move_pct": round(mv * 100.0, 1),
+                           "t1_pct": _dr(1), "t5_pct": _dr(5), "t20_pct": _dr(20)})
+        if len(prints) < 4:
+            return {"status": "insufficient_history", "prints_used": len(prints)}
+        moves = sorted(p["reaction_move_pct"] for p in prints)
+        n = len(moves)
+        med = round((moves[n // 2] if n % 2 else (moves[n // 2 - 1] + moves[n // 2]) / 2.0), 1)
+        implied = options_block.get("implied_move_pct") if isinstance(options_block, dict) else None
+        verdict = ratio = None
+        if implied is not None and med and med > 0:
+            ratio = round(float(implied) / med, 2)
+            verdict = "RICH" if ratio >= 1.25 else ("CHEAP" if ratio <= 0.80 else "FAIR")
+        pead = {}
+        for b in ("beat", "miss", "inline"):
+            bp = [p for p in prints if p["bucket"] == b]
+            def _avg(k):
+                v = [p[k] for p in bp if p[k] is not None]
+                return round(sum(v) / len(v), 1) if v else None
+            pead[b] = {"n": len(bp), "t1_pct": _avg("t1_pct"), "t5_pct": _avg("t5_pct"), "t20_pct": _avg("t20_pct")}
+        d2e = None
+        if next_earnings_date:
+            try: d2e = (_dt.date.fromisoformat(next_earnings_date[:10]) - _dt.date.today()).days
+            except Exception: d2e = None
+        return {"status": "ok", "next_earnings": next_earnings_date, "days_to_earnings": d2e,
+                "implied_move_pct": implied, "median_realized_move_pct": med,
+                "implied_vs_realized_ratio": ratio, "vol_verdict": verdict,
+                "prints_used": len(prints), "prints": prints, "pead": pead,
+                "method": "reaction = max(BMO gap, AMC gap) around FMP report date; PEAD drift from reaction close; beat/miss = +/-0.5% EPS surprise"}
+    except Exception as _e:
+        print(f"[evx] build failed: {type(_e).__name__}: {str(_e)[:120]}")
+        return {"status": "error"}
+
+
 def compute_earnings_track_record(earnings_rows: list) -> dict:
     """Institutional-style earnings beat/miss analysis.
 
@@ -2569,7 +2647,7 @@ def lambda_handler(event, context):
             cached = json.loads(obj["Body"].read())
             cached["from_cache"] = True
             cached["cache_age_seconds"] = int(time.time() - _iso_to_epoch(cached.get("generated_at")))
-            if cached["cache_age_seconds"] < CACHE_TTL:
+            if cached["cache_age_seconds"] < CACHE_TTL and "earnings_vol_edge" in cached:
                 print(f"[cache] HIT {ticker} age={cached['cache_age_seconds']}s")
                 if is_internal_async:
                     return {"ok": True, "from_cache": True, "ticker": ticker}
@@ -2858,6 +2936,12 @@ def lambda_handler(event, context):
         print(f"[options] build failed: {type(_e).__name__}: {str(_e)[:120]}")
         options_expectations = None
 
+    try:
+        earnings_vol_edge = build_earnings_vol_edge(prices_eod, earnings, options_expectations, next_earnings_date)
+    except Exception as _e:
+        print(f"[evx] wrap failed: {_e}")
+        earnings_vol_edge = {"status": "error"}
+
     payload = {
         "ticker":          ticker,
         "company":         company_block,
@@ -2867,6 +2951,7 @@ def lambda_handler(event, context):
         "business_mix":    business_mix,
         "analyst_ratings": analyst_ratings,
         "options_expectations": options_expectations,
+        "earnings_vol_edge": earnings_vol_edge,
         "growth":          {**growth_metrics, **fcf_metrics, **qty_consistency},
         "margins":         margin_trend,
         "balance_quality": balance_qual,
@@ -2918,7 +3003,7 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "2.1",  # v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": "2.2",  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
@@ -2954,6 +3039,7 @@ def lambda_handler(event, context):
         "business_mix":        business_mix,
         "analyst_ratings":     analyst_ratings,
         "options_expectations": options_expectations,
+        "earnings_vol_edge": earnings_vol_edge,
         "price_history":       price_history,
         "scenarios":           _enrich_scenarios(
             claude_synthesis.get("scenarios"), current_price

@@ -594,6 +594,7 @@ function renderReport(d){
   html += renderLiquidityV2(d);         // v2: liquidity & solvency
   html += renderQuantRisk(d);           // v2: Altman / Piotroski / dilution / SBC
   html += renderEarningsTrack(d);
+  html += renderEarningsVolEdge(d);  // #6 realized-vs-implied + PEAD
   html += renderCapitalAllocation(d);
   html += renderInstitutionalActivity(d);
   html += renderInsiderActivity(d);  // SEC EDGAR Form 4 — async-fetched
@@ -1417,6 +1418,33 @@ function renderGrowth(d){
       </div>
       ${qHtml}
     </section>`;
+}
+
+function renderEarningsVolEdge(d){
+  const e = d.earnings_vol_edge;
+  if(!e || e.status !== 'ok') return '';
+  const vcol = e.vol_verdict==='RICH' ? '#ff5c5c' : (e.vol_verdict==='CHEAP' ? '#37d67a' : '#d9b036');
+  const fmt = v => (v===null||v===undefined) ? '--' : (v>0?'+':'')+v+'%';
+  const cd  = (e.days_to_earnings!==null && e.days_to_earnings!==undefined) ? ` (in ${e.days_to_earnings}d)` : '';
+  const pr  = (e.pead && e.pead.beat) ? e.pead : null;
+  const peadRow = b => pr && pr[b] && pr[b].n ? `<tr><td>After ${b}s (n=${pr[b].n})</td><td>${fmt(pr[b].t1_pct)}</td><td>${fmt(pr[b].t5_pct)}</td><td>${fmt(pr[b].t20_pct)}</td></tr>` : '';
+  const strip = (e.prints||[]).map(p=>`<span class="pill" title="EPS surprise ${p.eps_surprise_pct===null?'n/a':p.eps_surprise_pct+'%'} (${p.bucket})">${esc(p.date)} · ${p.reaction_move_pct}%</span>`).join(' ');
+  let verdictLine = '';
+  if(e.vol_verdict){
+    verdictLine = `<div class="evx-verdict" style="margin:6px 0"><span class="pill" style="border-color:${vcol};color:${vcol};font-weight:700">${e.vol_verdict} VOL</span>
+      <span style="margin-left:8px">options imply <b>${e.implied_move_pct}%</b> vs <b>${e.median_realized_move_pct}%</b> median realized over last ${e.prints_used} prints (ratio ${e.implied_vs_realized_ratio}x)</span></div>`;
+  } else {
+    verdictLine = `<div class="evx-verdict" style="margin:6px 0">Median realized earnings move: <b>${e.median_realized_move_pct}%</b> over last ${e.prints_used} prints (no listed options-implied move to compare)</div>`;
+  }
+  return `
+  <section class="block" id="evx-block">
+    <h3><span class="ico">🎚️</span> Earnings-Vol Edge <span class="pill">next: ${esc(e.next_earnings||'--')}${cd}</span></h3>
+    ${verdictLine}
+    <table class="mini"><thead><tr><th>PEAD drift</th><th>T+1</th><th>T+5</th><th>T+20</th></tr></thead>
+    <tbody>${peadRow('beat')}${peadRow('miss')}${peadRow('inline')}</tbody></table>
+    <div style="margin-top:6px">${strip}</div>
+    <div class="foot">Method: ${esc(e.method||'')}. RICH = implied &gt;= 1.25x realized median; CHEAP &lt;= 0.80x. Real FMP EOD + /stable/earnings data only.</div>
+  </section>`;
 }
 
 function renderEarningsTrack(d){
