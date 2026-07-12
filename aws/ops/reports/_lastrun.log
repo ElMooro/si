@@ -1,46 +1,64 @@
-executing-against: a8159069fb999eb66f1949457e884487b6b89f60
-ops 3177 — ECONOMICS mapped → dormant engines wake
-── 1. World Bank probes (does the data actually come back?) ──
-[23:30:53]   Brazil debt/GDP            2010 → 2024  (15 obs)
-[23:30:54]   Zimbabwe deposit rate      1990 → 2025  (30 obs)
-[23:30:54]   Cambodia trade balance     1993 → 2025  (33 obs)
-[23:30:55]   China FX reserves          1990 → 2025  (36 obs)
-[23:30:55]   Japan GDP growth           1990 → 2025  (36 obs)
-[23:30:56]   India CPI                  1990 → 2025  (36 obs)
-── 2. Re-map the universe ──
-[23:36:05]   UNMAPPED      2624  (40.3%)
-[23:36:05]   MARKET        1739  (26.7%)
-[23:36:05]   WORLDBANK      988  (15.2%)
-[23:36:05]   FRED           782  (12.0%)
-[23:36:05]   FORMULA        337  (5.2%)
-[23:36:05]   COINGECKO       37  (0.6%)
-[23:36:05] ✅ symbol-map rewritten: 44.5% → 59.7% (+988 symbols)
-── 3. Re-run the engine fleet on the wider map ──
-[23:36:05]   zip: 65701 bytes
+executing-against: b90325c5d78d28faed72f4a44479bddd12359065
+ops 3178 — his engines enhance the fleet
+── 1. Deploy the fusion engine + run ──
+[23:55:15]   zip: 62953 bytes
 ── 1. Lambda ──
-[23:36:05]   Lambda exists — updating
-[23:36:08] ✅   ✓ updated justhodl-wl-engines
+[23:55:15]   Lambda missing — creating
+[23:55:20] ✅   ✓ created justhodl-wl-fusion
+[23:55:20] ✅   ✓ Function URL: https://xzhzjkdrhhgb5tpkhz2ypzm72i0ovdte.lambda-url.us-east-1.on.aws/
 ── 2. EB rule + permissions ──
-[23:36:09]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[23:36:09] ✅   ✓ target → justhodl-wl-engines
-[23:36:09] ✅   ✓ added invoke permission
-[23:40:52] ── themes: OTHER=62, LIQUIDITY=23, CREDIT=23, BREADTH=15, GROWTH=12, STRESS=11, RATES=10, DOLLAR=5, INFLATION=4, CRYPTO=2
-[23:40:52] ✅ ACTIVE engines 53 → 96 (+43 woken by the ECONOMICS map)
-[23:40:52] ── FIRING (20):
-[23:40:52]   Foreign Exchange Reserves        [LIQUIDITY] act  69.2% (100.0p) t= -0.82 lit: ECONOMICS:PTFER, ECONOMICS:DEFER, ECONOM
-[23:40:52]   82604570                         [OTHER    ] act  75.0% ( 96.1p) t=  0.44 lit: AMEX:IXN, FRED:W006RC1Q027SBEA, NASDAQ:D
-[23:40:52]   Frontier Market ETFS             [OTHER    ] act  85.7% ( 93.5p) t=  0.75 lit: NASDAQ:MSSCX, NASDAQ:MSSVX, NASDAQ:MSSYX
-[23:40:52]   Different Types of Stock indexes [BREADTH  ] act  92.9% ( 93.4p) t=  0.26 lit: NASDAQ:PTH, NASDAQ:PIE, NASDAQ:FYT, AMEX
-[23:40:52]   Commodities : are often rented b [INFLATION] act  78.9% ( 91.3p) t= -0.65 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:P
-[23:40:52]   82577015                         [OTHER    ] act  50.0% ( 89.9p) t=  0.21 lit: NASDAQ:COOP, FRED:WFRBLB50107, NASDAQ:MA
-[23:40:52]   EuroDollar Predict future moves: [LIQUIDITY] act  47.4% ( 89.8p) t= -0.36 lit: NASDAQ:PIE, TVC:NI225, FX_IDC:USDINR, FX
-[23:40:52]   Energy and oil stocks            [BREADTH  ] act  77.3% ( 89.6p) t=  0.42 lit: NYSE:MPC, NYSE:INSW, NYSE:VLO, NYSE:PSX,
-[23:40:52]   EuroDollar banks                 [DOLLAR   ] act  77.8% ( 88.5p) t= -0.33 lit: NYSE:UBS, NYSE:MS, NYSE:HSBC, NYSE:C, NY
-[23:40:52]   Emerging Markets Liquidity: $ Fl [LIQUIDITY] act  81.8% ( 87.6p) t=  1.54 lit: AMEX:EEMO, AMEX:ECON, AMEX:EEMV, AMEX:XS
-[23:40:52]   fed powell holding               [RATES    ] act  70.0% ( 87.2p) t=   1.3 lit: AMEX:GSSC, AMEX:EEM, AMEX:SCHD, NYSE:IGD
-[23:40:52]   Global Commodities prices        [INFLATION] act  71.4% ( 86.9p) t= -2.28 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:P
-[23:40:52]   Ai stocks                        [BREADTH  ] act  76.9% ( 85.5p) t= -0.29 lit: NASDAQ:AMAT, NASDAQ:ALAB, NASDAQ:MRVL, N
-[23:40:52]   Countries Balance of Trade       [OTHER    ] act  51.7% ( 84.8p) t=  1.45 lit: ECONOMICS:CRBOT, ECONOMICS:GNBOT, ECONOM
-[23:40:52]   Global ETFs                      [OTHER    ] act  71.0% ( 83.9p) t=  0.41 lit: AMEX:DEEP, NASDAQ:PIE, AMEX:PEXL, NASDAQ
+[23:55:21] ✅   ✓ created rule wl-fusion-daily
+[23:55:21] ✅   ✓ target → justhodl-wl-fusion
+[23:55:21] ✅   ✓ added invoke permission
+── 3. Smoke test ──
+[23:55:21]   invoking justhodl-wl-fusion…
+── 2. THEME PRESSURE — what his research says right now ──
+[23:55:23]   BREADTH    EXTREME  pressure  81.8p  firing 5/7  proven 0  top: Different Types of Sto, Energy and oil stocks
+[23:55:23]   INFLATION  ELEVATED pressure  67.2p  firing 2/3  proven 0  top: Commodities : are ofte, Global Commodities pri
+[23:55:23]   LIQUIDITY  ELEVATED pressure  62.1p  firing 4/12  proven 0  top: Foreign Exchange Reser, EuroDollar Predict fut
+[23:55:23]   OTHER      QUIET    pressure  54.6p  firing 7/28  proven 0  top: 82604570, Frontier Market ETFS
+[23:55:23]   DOLLAR     QUIET    pressure  54.0p  firing 1/5  proven 0  top: EuroDollar banks
+[23:55:23]   CRYPTO     QUIET    pressure  52.0p  firing 0/2  proven 0  top: 
+[23:55:23]   STRESS     QUIET    pressure  51.6p  firing 0/9  proven 0  top: 
+[23:55:23]   GROWTH     QUIET    pressure  44.0p  firing 0/10  proven 0  top: 
+[23:55:23]   CREDIT     QUIET    pressure  30.9p  firing 0/13  proven 0  top: 
+[23:55:23]   RATES      QUIET    pressure  24.1p  firing 1/7  proven 0  top: fed powell holding
+── 3. DIVERGENCES — where he disagrees with the platform ──
+[23:55:23] ✅ 3 divergence(s) — the questions worth asking today
+[23:55:23]   ⚡ LIQUIDITY: HIS panels ELEVATED (62.1p, 4/12 firing) vs global-liquidity = 'NEUTRAL'
+[23:55:23]       his loudest: Foreign Exchange Reserves, EuroDollar Predict future moves: DXY pumping means tightening and liquidity drying up in the Eurodollar system.
+[23:55:23]   ⚡ INFLATION: HIS panels ELEVATED (67.2p, 2/3 firing) vs macro-nowcast = 'SLOWING'
+[23:55:23]       his loudest: Commodities : are often rented but rarely bought for the long-run., Global Commodities prices
+[23:55:23]   ⚡ BREADTH: HIS panels EXTREME (81.8p, 5/7 firing) vs breadth-thrust = 'NULL'
+[23:55:23]       his loudest: Different Types of Stock indexes, Energy and oil stocks
+── 4. Consumers redeployed (additive-only contract) ──
+[23:55:23]   zip: 81372 bytes
+── 1. Lambda ──
+[23:55:23]   Lambda exists — updating
+[23:55:26] ✅   ✓ updated justhodl-best-setups
+── 3. Smoke test ──
+[23:55:26]   invoking justhodl-best-setups…
+[23:55:31] ✅   ✓ smoke test passed
+[23:55:31]     ok                       True
+[23:55:31]     n_setups                 524
+[23:55:31]     strong_buy               3
+[23:55:31]     buy                      15
+[23:55:31]     weight_source            prior-only
+[23:55:31]   zip: 72188 bytes
+── 1. Lambda ──
+[23:55:31]   Lambda exists — updating
+[23:55:34] ✅   ✓ updated justhodl-alpha-compass
+── 2. EB rule + permissions ──
+[23:55:35]   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
+[23:55:35] ✅   ✓ target → justhodl-alpha-compass
+[23:55:35] ✅   ✓ added invoke permission
+── 3. Smoke test ──
+[23:55:35]   invoking justhodl-alpha-compass…
+[23:55:37] ✅   ✓ smoke test passed
+[23:55:37]     ok                       True
+[23:55:37]     cards                    6
+[23:55:37]     regime                   Normal
+── 5. Proof the contract holds ──
+[23:55:37] ✅ ZERO proven panels today → every multiplier is exactly 1.0. His research is attached as CONTEXT to every setup and the desk, but it cannot move a score until it earns the right. That is the contract working, not a failure.
 
-→ Report written to aws/ops/reports/latest/3177_econ_map.md
+→ Report written to aws/ops/reports/latest/3178_fusion.md
