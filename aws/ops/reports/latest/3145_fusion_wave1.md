@@ -1,8 +1,8 @@
 # ops 3145 — Fusion Wave 1 (5 engines, additive)
 
 **Status:** failure  
-**Duration:** 772.1s  
-**Finished:** 2026-07-12T05:20:20+00:00  
+**Duration:** 626.8s  
+**Finished:** 2026-07-12T05:32:56+00:00  
 
 ## Error
 
@@ -18,81 +18,95 @@ SystemExit: 1
 |  |  |  |  |  |  |  |  |  |  |  |  | 60 |  |
 | 6 | 50 | 37 | 46 | 0 |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  | {"talent": 0, "restructuring": 5, "buildout": 23, "universe": 6} |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  | 3 | 0 |  | FAIL |
+|  |  |  |  |  |  |  |  |  |  | 1 | 0 |  | FAIL |
 
 ## Log
 ## A. industry-rotation ← divergence fields
 
-- `05:07:28`   zip: 73655 bytes
+- `05:22:29`   zip: 73655 bytes
 ## 1. Lambda
 
-- `05:07:28`   Lambda exists — updating
-- `05:07:31` ✅   ✓ updated justhodl-industry-rotation
+- `05:22:30`   Lambda exists — updating
+- `05:22:35` ✅   ✓ updated justhodl-industry-rotation
 ## 2. EB rule + permissions
 
-- `05:07:32`   rule already correct: industry-rotation-daily (cron(35 21 * * ? *))
-- `05:07:32` ✅   ✓ target → justhodl-industry-rotation
-- `05:07:32` ✅   ✓ added invoke permission
-## 3. Smoke test
-
-- `05:07:32`   invoking justhodl-industry-rotation…
-- `05:12:46` A: IR top-level keys: ['absorption_watch', 'breakdown_watch', 'by_sector_name', 'closes66', 'cycle_context', 'doctrine', 'engine', 'ew_cw', 'finviz_sector_perf_attached', 'generated_at', 'industry_credit', 'join_hits', 'ladder', 'leaders']
-- `05:12:46` ✅ A: quadrants live — e.g. XLK NEUTRAL
+- `05:22:36`   rule already correct: industry-rotation-daily (cron(35 21 * * ? *))
+- `05:22:36` ✅   ✓ target → justhodl-industry-rotation
+- `05:22:36` ✅   ✓ added invoke permission
+- `05:22:36`   justhodl-industry-rotation: async invoke fired (long-runner; sync smoke would blow the 60s client read-timeout)
+- `05:25:12` A: IR top-level keys: ['absorption_watch', 'breakdown_watch', 'by_sector_name', 'closes66', 'cycle_context', 'doctrine', 'engine', 'ew_cw', 'finviz_sector_perf_attached', 'generated_at', 'industry_credit', 'join_hits', 'ladder', 'leaders']
+- `05:25:12` ✅ A: quadrants live — e.g. XLK NEUTRAL
 ## B. best-setups ← earnings + squeeze + IR flow quadrant
 
-- `05:12:46`   zip: 72756 bytes
+- `05:25:12`   zip: 72756 bytes
 ## 1. Lambda
 
-- `05:12:47`   Lambda exists — updating
-- `05:12:50` ✅   ✓ updated justhodl-best-setups
+- `05:25:13`   Lambda exists — updating
+- `05:25:18` ✅   ✓ updated justhodl-best-setups
 ## 2. EB rule + permissions
 
-- `05:12:50`   rule already correct: justhodl-best-setups-hourly (cron(10 * * * ? *))
-- `05:12:50` ✅   ✓ target → justhodl-best-setups
-- `05:12:50` ✅   ✓ added invoke permission
+- `05:25:18`   rule already correct: justhodl-best-setups-hourly (cron(10 * * * ? *))
+- `05:25:18` ✅   ✓ target → justhodl-best-setups
+- `05:25:19` ✅   ✓ added invoke permission
 ## 3. Smoke test
 
-- `05:12:50`   invoking justhodl-best-setups…
-- `05:12:55` ✅   ✓ smoke test passed
-- `05:12:55`     ok                       True
-- `05:12:55`     n_setups                 527
-- `05:12:55`     strong_buy               3
-- `05:12:55`     buy                      15
-- `05:12:55`     weight_source            prior-only
-- `05:12:55` ✅ B live on 50 setups
+- `05:25:19`   invoking justhodl-best-setups…
+- `05:25:23` ✅   ✓ smoke test passed
+- `05:25:23`     ok                       True
+- `05:25:23`     n_setups                 527
+- `05:25:23`     strong_buy               3
+- `05:25:23`     buy                      15
+- `05:25:23`     weight_source            prior-only
+- `05:25:24` ✅ B live on 50 setups
 ## C. master-ranker ← kill-theses + squeeze-fuel overlays
 
-## D. convergence-radar ← early_signals block
-
-- `05:20:05`   zip: 65801 bytes
+- `05:25:24`   justhodl-master-ranker: no repo config — using live function config
+- `05:25:24`   zip: 69295 bytes
 ## 1. Lambda
 
-- `05:20:06`   Lambda exists — updating
-- `05:20:11` ✅   ✓ updated justhodl-convergence-radar
+- `05:25:24`   Lambda exists — updating
+- `05:25:30` ✅   ✓ updated justhodl-master-ranker
+- `05:25:30` ✅   ✓ Function URL: https://w7lzez5775cpzukzl7ks5cypvu0pqaxq.lambda-url.us-east-1.on.aws/
 ## 3. Smoke test
 
-- `05:20:11`   invoking justhodl-convergence-radar…
-- `05:20:13` ✅   ✓ smoke test passed
-- `05:20:13`     status                   ok
-- `05:20:13`     elapsed_sec              1.34
-- `05:20:13`     n_tickers                179
-- `05:20:13`     n_ultra                  15
-- `05:20:13`     n_high                   42
-- `05:20:13`     alert_sent               False
-- `05:20:14` ✅ D live: talent=0 restruct=5 universe=6
-## E. alpha-daily-brief ← desk-sheet (smoke off)
+- `05:25:30`   invoking justhodl-master-ranker…
+- `05:25:38` ✅   ✓ smoke test passed
+- `05:25:38`     ok                       True
+- `05:25:38`     n_tickers                25
+- `05:25:38`     n_macro                  9
+- `05:25:38`     n_tier_3_plus            91
+- `05:25:38`     n_tier_5_plus            46
+- `05:25:38`     regime                   SLOWING
+- `05:25:38`     duration_s               6.25
+## D. convergence-radar ← early_signals block
 
-- `05:20:14`   zip: 58273 bytes
+- `05:32:40`   zip: 65801 bytes
 ## 1. Lambda
 
-- `05:20:14`   Lambda exists — updating
-- `05:20:19` ✅   ✓ updated justhodl-alpha-daily-brief
+- `05:32:40`   Lambda exists — updating
+- `05:32:46` ✅   ✓ updated justhodl-convergence-radar
+## 3. Smoke test
+
+- `05:32:46`   invoking justhodl-convergence-radar…
+- `05:32:49` ✅   ✓ smoke test passed
+- `05:32:49`     status                   ok
+- `05:32:49`     elapsed_sec              1.35
+- `05:32:49`     n_tickers                179
+- `05:32:49`     n_ultra                  15
+- `05:32:49`     n_high                   42
+- `05:32:49`     alert_sent               False
+- `05:32:49` ✅ D live: talent=0 restruct=5 universe=6
+## E. alpha-daily-brief ← desk-sheet (smoke off)
+
+- `05:32:49`   zip: 58273 bytes
+## 1. Lambda
+
+- `05:32:50`   Lambda exists — updating
+- `05:32:55` ✅   ✓ updated justhodl-alpha-daily-brief
 ## 2. EB rule + permissions
 
-- `05:20:20`   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
-- `05:20:20` ✅   ✓ target → justhodl-alpha-daily-brief
-- `05:20:20` ✅   ✓ added invoke permission
-- `05:20:20` ✅ E deployed — desk-sheet block lands in next scheduled brief (LLM run skipped in-op by design)
-- `05:20:20` ✗ A deploy: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-industry-rotation/invocations"
-- `05:20:20` ✗ C deploy: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/lambdas/justhodl-master-ranker/config.json'
-- `05:20:20` ✗ C: master-ranker.json never freshened
+- `05:32:56`   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
+- `05:32:56` ✅   ✓ target → justhodl-alpha-daily-brief
+- `05:32:56` ✅   ✓ added invoke permission
+- `05:32:56` ✅ E deployed — desk-sheet block lands in next scheduled brief (LLM run skipped in-op by design)
+- `05:32:56` ✗ C: master-ranker.json never freshened
