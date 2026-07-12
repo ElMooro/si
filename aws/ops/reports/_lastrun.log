@@ -1,14 +1,17 @@
-executing-against: bf78ed60454f53e8a5503bb7db141280527c238f
+executing-against: aae6f0076aea9c3d13eee5a999bf132bc4e8c3b2
 ── 1. Gate on CODE truth (LastModified), settle updates ──
-[02:37:51] code landed via deploy-lambdas -- gate PASS
+[02:39:21] code landed via deploy-lambdas -- gate PASS
 ── 2. Key probe + env/description/runtime sync ──
+[02:39:22] function env BLS_API_KEY == runner secret
+[02:39:22] config updated (runtime -> python3.12, desc, env)
+── 3. Invoke async + poll S3 for fresh employment doc ──
+[02:39:37] fresh doc: generated_at=2026-07-12T02:39:26.275897+00:00 api=v2 key_valid=True
+── 4. Content assertions + headline numbers ──
+── 5. Legacy regression: bls-labor.json still publishing ──
+── 6. Public feed URL + live page cutover ──
+── 7. Retire the failed 3133 gate script ──
+[02:39:38] moved ops_3133_bls_employment_desk.py -> ran/ (unpassable desc-gate superseded by this op)
+── verdict ──
+[02:39:38] PASS
 
 → Report written to aws/ops/reports/latest/3134_bls_desk_land.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3134_bls_desk_land.py", line 298, in <module>
-    main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3134_bls_desk_land.py", line 119, in main
-    rep.row(check="runner BLS key valid on v2", ok=key_ok, value=key_msg)
-    ^^^^^^^
-AttributeError: 'Report' object has no attribute 'row'. Did you mean: 'rows'?
-❌ OPS-FAIL: aws/ops/pending/ops_3134_bls_desk_land.py
