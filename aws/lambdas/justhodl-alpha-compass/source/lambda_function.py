@@ -49,7 +49,11 @@ from decimal import Decimal
 import boto3
 from botocore.exceptions import ClientError
 
-from _sentry_lite import track_errors
+try:
+    from _sentry_lite import track_errors
+except ImportError:  # zip built without aws/shared injection — degrade
+    def track_errors(f):
+        return f
 
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"

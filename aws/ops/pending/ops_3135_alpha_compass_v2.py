@@ -22,6 +22,7 @@ THIS OP
 
 import json
 import os
+import shutil
 import sys
 import time
 import urllib.request
@@ -103,6 +104,17 @@ with report("3135_alpha_compass_v2") as rep:
 
     env_vars = {"FMP_API_KEY": fmp} if fmp else {}
     sched = CFG.get("schedule") or {}
+
+    # helpers' build_zip zips source_dir only; the fleet workflow injects
+    # aws/shared/*.py — mirror that here for the modules this lambda imports
+    shim = AWS_DIR / "shared" / "_sentry_lite.py"
+    if shim.exists():
+        shutil.copy(shim, SRC / "_sentry_lite.py")
+        rep.log("injected aws/shared/_sentry_lite.py into zip source")
+    else:
+        warns.append("aws/shared/_sentry_lite.py missing — lambda falls back "
+                     "to no-op decorator")
+
     try:
         deploy_lambda(
             report=rep, function_name=FN, source_dir=SRC,
