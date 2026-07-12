@@ -1,25 +1,34 @@
-executing-against: 7807c0431c57b957ab261b98f3dea1ce443b945f
-ops 3142 — self-healing Telegram send path
-── 1. Deploy v2.1.1 ──
-[03:51:19]   zip: 63917 bytes
+executing-against: 222f95e9688c21ea08b9646510c14d5276b74037
+ops 3143 — Flow-Price Divergence layer
+── 1. Deploy (env preserved from live function) ──
+[04:15:35] preserving env keys: ['POLYGON_KEY']
+[04:15:35]   zip: 67575 bytes
 ── 1. Lambda ──
-[03:51:20]   Lambda exists — updating
-[03:51:26] ✅   ✓ updated justhodl-alpha-compass
+[04:15:35]   Lambda exists — updating
+[04:15:41] ✅   ✓ updated justhodl-etf-fund-flows
 ── 2. EB rule + permissions ──
-[03:51:27]   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
-[03:51:27] ✅   ✓ target → justhodl-alpha-compass
-[03:51:27] ✅   ✓ added invoke permission
+[04:15:42]   rule already correct: justhodl-etf-fund-flows-daily (cron(0 22 * * ? *))
+[04:15:42] ✅   ✓ target → justhodl-etf-fund-flows
+[04:15:42] ✅   ✓ added invoke permission
 ── 3. Smoke test ──
-[03:51:27]   invoking justhodl-alpha-compass…
-[03:51:29] ✅   ✓ smoke test passed
-[03:51:29]     ok                       True
-[03:51:29]     cards                    7
-[03:51:29]     regime                   Normal
-── 2. Output still healthy ──
-[03:51:29] ✅ fresh · 30d n=24 · 90d n=86 · regime=Normal
-── 3. Heal-path exercise + CW detail ──
-[03:51:42] CW: [compass] could not load data/_telegram-chat.json: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-[03:51:42] CW: [compass] telegram failed: {"ok":false,"error_code":403,"description":"Forbidden: bot can't initiate conversation with a user"}
-[03:51:42] ⚠ AWAITING ONE TAP: open t.me/Justhodl_bot and press Start — the next scheduled run (every 3h at :50) self-arms and persists the chat for the whole fleet to reuse
+[04:15:42]   invoking justhodl-etf-fund-flows…
+[04:15:45] ✅   ✓ smoke test passed
+[04:15:45]     ok                       True
+[04:15:45]     elapsed_s                1.9
+[04:15:45]     n_etfs_ok                300
+[04:15:45]     regime                   TRANSITION
+── 2. Fresh composite with divergence board ──
+── 3. Gates ──
+[04:15:45] ✅ quadrant coverage 100.0% of 300 ETFs
+[04:15:45]   stealth: GDXU (2x_goldminers_bull) z=7.45 ret21d=-17.88% aum21d=4.56% score=7.28
+[04:15:45]   stealth: BOIL (2x_natgas_bull) z=2.58 ret21d=-21.53% aum21d=21.21% score=2.56
+[04:15:45]   stealth: UCO (2x_crude_bull) z=1.61 ret21d=-22.85% aum21d=9.61% score=1.6
+[04:15:45]   stealth: TMF (3x_treasury) z=1.47 ret21d=-3.17% aum21d=-8.25% score=0.55
+[04:15:45]   distrib: GGLS (1x_googl_bear) z=-1.31 ret21d=2.25% aum21d=11.58% score=0.36
+[04:15:45]   distrib: WCLD (cloud) z=-1.32 ret21d=7.28% aum21d=-13.35% score=0.95
+[04:15:45]   distrib: MSTZ (1x_mstr_bear) z=-1.62 ret21d=44.7% aum21d=-100.6% score=1.62
+[04:15:45]   distrib: KOLD (2x_natgas_bear) z=-1.7 ret21d=22.24% aum21d=-35.26% score=1.69
+[04:15:45]   distrib: AMUU (2x_amzn_bull) z=-2.73 ret21d=33.74% aum21d=-9.13% score=2.73
+[04:15:45] ✅ legacy metric fields intact (industry-rotation join safe)
 
-→ Report written to aws/ops/reports/latest/3142_telegram_selfheal.md
+→ Report written to aws/ops/reports/latest/3143_etf_divergence.md
