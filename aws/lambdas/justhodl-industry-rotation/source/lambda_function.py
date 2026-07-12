@@ -1586,7 +1586,10 @@ def lambda_handler(event=None, context=None):
             by_sector[r["name"]] = {
                 "etf": r["etf"],
                 "leadership_score": r["leadership_score"],
-                "tag": r["tag"]}
+                "tag": r["tag"],
+                "crowded": r.get("crowded"),
+                # ops 3145: divergence layer must survive into the join map
+                "fund_flows": r.get("fund_flows")}
 
     out = {
         "engine": "justhodl-industry-rotation", "version": "4.3",

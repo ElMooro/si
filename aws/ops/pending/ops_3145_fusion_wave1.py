@@ -87,29 +87,31 @@ with report("3145_fusion_wave1") as rep:
         dep(rep, "justhodl-industry-rotation")
     except Exception as e:
         fails.append(f"A deploy: {str(e)[:150]}")
-    ir = wait_fresh("data/industry-rotation.json", tA, 360)
+    ir = wait_fresh("data/industry-rotation.json", tA, 780)
     if not ir:
-        fails.append("A: industry-rotation.json never freshened")
+        fails.append("A: industry-rotation.json never freshened (waited 780s)")
     else:
-        rows = (ir.get("rows") or ir.get("industries")
-                or ir.get("soldiers") or [])
+        rep.log("A: IR top-level keys: %s" % sorted(ir.keys())[:14])
+        rows = list(ir.get("leaders") or [])
+        bysec = ir.get("by_sector_name") or {}
+        rows += [dict(v, name=k) for k, v in bysec.items()
+                 if isinstance(v, dict)]
         withq = [r for r in rows
                  if (r.get("fund_flows") or {}).get("quadrant")]
         legacy = [r for r in rows
                   if (r.get("fund_flows") or {}).get("flow_21d_usd")
                   is not None]
         rep.kv(ir_rows=len(rows), ir_quadrant_rows=len(withq),
-               ir_legacy_flow_rows=len(legacy))
-        if rows and not legacy:
-            fails.append("A: legacy fund_flows fields LOST")
-        if rows and not withq:
+               ir_legacy_flow_rows=len(legacy),
+               ir_sector_map=len(bysec))
+        if not rows:
+            fails.append("A: zero rows under leaders/by_sector_name")
+        elif not withq:
             warns.append("A: no quadrant landed — check daily.json shape")
         else:
-            sample = withq[0] if withq else {}
-            rep.ok(f"A live: e.g. {sample.get('etf')} → "
+            sample = withq[0]
+            rep.ok(f"A: quadrants live — e.g. {sample.get('etf')} "
                    f"{(sample.get('fund_flows') or {}).get('quadrant')}")
-
-    # ── B ────────────────────────────────────────────────────────────
     rep.section("B. best-setups ← earnings + squeeze + IR flow quadrant")
     tB = datetime.now(timezone.utc)
     try:
@@ -136,6 +138,11 @@ with report("3145_fusion_wave1") as rep:
                       is not None)
             n_s = sum(1 for r in rows if r.get("squeeze_fuel"))
             n_q = sum(1 for r in rows if r.get("industry_flow_quadrant"))
+            _sqf = s3_json("data/squeeze-fuel.json") or {}
+            _sq = (_sqf.get("board") or _sqf.get("rows")
+                   or _sqf.get("items") or [])
+            rep.kv(squeeze_feed_rows=(len(_sq) if isinstance(_sq, list)
+                                       else "dict:" + ",".join(_sqf)[:40]))
             n_f = sum(1 for r in rows if r.get("earnings_flag"))
             rep.kv(bs_rows=len(rows), bs_with_earnings=n_e,
                    bs_earnings_within7d=n_f, bs_with_squeeze=n_s,

@@ -1187,25 +1187,37 @@ def lambda_handler(event, context):
             if len(out) >= n:
                 break
         return out
+    def _rows(v):
+        """Feeds wrap rows inconsistently: list | {'items':[...]} |
+        {'rows':[...]} (universe-discovery ships {'n','items'} — the
+        dict+list TypeError that broke run 29180045737)."""
+        if isinstance(v, list):
+            return v
+        if isinstance(v, dict):
+            for k in ("items", "rows", "list"):
+                if isinstance(v.get(k), list):
+                    return v[k]
+        return []
+
     early_signals = {
-        "talent_moves": _top(_tal.get("moves") or _tal.get("rows") or [],
+        "talent_moves": _top(_rows(_tal.get("moves") or _tal.get("rows")),
                              ("ticker", "company", "form", "direction",
                               "role", "signal", "date")),
-        "restructuring": _top(_str.get("restructuring") or [],
+        "restructuring": _top(_rows(_str.get("restructuring")),
                               ("ticker", "company", "period_ending",
                                "items", "date")),
-        "buildout": _top(_str.get("buildout") or _str.get("buildout_raw")
-                         or [], ("ticker", "company", "signal", "date")),
-        "universe_new": _top((_uni.get("threshold_crossers") or [])
-                             + (_uni.get("ipos") or []),
+        "buildout": _top(_rows(_str.get("buildout") or _str.get("buildout_raw")),
+                         ("ticker", "company", "signal", "date")),
+        "universe_new": _top(_rows(_uni.get("threshold_crossers"))
+                             + _rows(_uni.get("ipos")),
                              ("ticker", "company", "source", "date",
                               "market_cap")),
         "counts": {
-            "talent": len(_tal.get("moves") or _tal.get("rows") or []),
-            "restructuring": len(_str.get("restructuring") or []),
-            "buildout": len(_str.get("buildout") or
-                            _str.get("buildout_raw") or []),
-            "universe": len(_uni.get("threshold_crossers") or []),
+            "talent": len(_rows(_tal.get("moves") or _tal.get("rows"))),
+            "restructuring": len(_rows(_str.get("restructuring"))),
+            "buildout": len(_rows(_str.get("buildout") or
+                                   _str.get("buildout_raw"))),
+            "universe": len(_rows(_uni.get("threshold_crossers"))),
         },
         "note": ("fused from talent-migration + structural-pre-signals + "
                  "universe-discovery (previously unconsumed engines)"),

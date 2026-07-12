@@ -192,7 +192,11 @@ def lambda_handler(event, context):
             _edates.setdefault(_r["ticker"].upper(), _r["date"])
     _sqf = read_json("data/squeeze-fuel.json") or {}
     _sq_idx = {}
-    for _r in (_sqf.get("board") or []):
+    _sq_rows = (_sqf.get("board") or _sqf.get("rows")
+                or _sqf.get("items") or [])
+    if isinstance(_sq_rows, dict):
+        _sq_rows = _sq_rows.get("items") or _sq_rows.get("rows") or []
+    for _r in _sq_rows:
         _t = (_r.get("ticker") or "").upper()
         if _t:
             _sq_idx[_t] = {"score": _r.get("score"), "state": _r.get("state")}
