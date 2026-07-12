@@ -91,7 +91,9 @@ def _glm(prompt, model, max_tokens, system=None):
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {_zai_key()}"},
     )
-    with urllib.request.urlopen(req, timeout=40) as r:
+    # GLM-5.1 reasoning on real prompts routinely exceeds 40s (ops 3153
+    # verbatim: read timeout -> breaker -> credit-dead Haiku -> empty).
+    with urllib.request.urlopen(req, timeout=130) as r:
         d = json.loads(r.read().decode())
     msg = d["choices"][0]["message"]
     txt = msg.get("content") or msg.get("reasoning_content") or ""
