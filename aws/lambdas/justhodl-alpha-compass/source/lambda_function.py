@@ -156,39 +156,67 @@ def dir_sign(direction) -> int:
 
 # ───────────────────────────── FMP quotes ─────────────────────────────
 
-def fmp_quotes(tickers) -> dict:
-    """Batch last prices via FMP /stable/quote. {} on any failure."""
-    tks = sorted({t for t in tickers if t and isinstance(t, str)})[:40]
-    if not tks or not FMP_KEY:
+def fmp_eod(ticker, dfrom, dto) -> dict:
+    """{date: close} via FMP /stable/historical-price-eod/light.
+    Defensive on shape (list vs {'historical': [...]}); {} on failure."""
+    if not FMP_KEY or not ticker:
         return {}
-    def _hit(sym):
-        url = ("https://financialmodelingprep.com/stable/quote?symbol="
-               + urllib.parse.quote(sym, safe=",") + "&apikey=" + FMP_KEY)
+    url = ("https://financialmodelingprep.com/stable/historical-price-eod/"
+           f"light?symbol={urllib.parse.quote(ticker)}"
+           f"&from={dfrom}&to={dto}&apikey={FMP_KEY}")
+    try:
         req = urllib.request.Request(
-            url, headers={"User-Agent": "jh-compass/2.0"})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            rows = json.loads(r.read().decode("utf-8"))
+            url, headers={"User-Agent": "jh-compass/2.1"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        rows = data.get("historical") if isinstance(data, dict) else data
         out = {}
         for r_ in rows if isinstance(rows, list) else []:
-            tk, px = r_.get("symbol"), fnum(r_.get("price"))
-            if tk and px:
-                out[tk] = px
+            d = r_.get("date")
+            px = fnum(r_.get("price") or r_.get("close") or r_.get("adjClose"))
+            if d and px:
+                out[str(d)[:10]] = px
         return out
-
-    try:
-        got = _hit(",".join(tks))
-        if got:
-            return got
-        print("[compass] fmp batch empty — falling back to singles")
     except Exception as e:
-        print(f"[compass] fmp batch failed: {e} — falling back to singles")
-    out = {}
-    for tk in tks[:8]:
-        try:
-            out.update(_hit(tk))
-        except Exception as e:
-            print(f"[compass] fmp {tk} failed: {e}")
-    return out
+        print(f"[compass] eod {ticker} failed: {e}")
+        return {}
+
+
+def px_on_or_before(series: dict, iso_date: str):
+    """Close on iso_date, else nearest earlier session (≤5d back)."""
+    if not series:
+        return None
+    from datetime import date, timedelta as _td
+    try:
+        d = date.fromisoformat(iso_date[:10])
+    except Exception:
+        return None
+    for k in range(6):
+        px = series.get((d - _td(days=k)).isoformat())
+        if px:
+            return px
+    return None
+
+
+TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+
+def send_telegram(msg: str) -> bool:
+    if not TG_TOKEN or not TG_CHAT:
+        return False
+    try:
+        body = json.dumps({"chat_id": TG_CHAT, "text": msg,
+                           "parse_mode": "HTML",
+                           "disable_web_page_preview": True}).encode()
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+            data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status == 200
+    except Exception as e:
+        print(f"[compass] telegram failed: {e}")
+        return False
 
 
 # ───────────────────────────── regime fusion ─────────────────────────────
@@ -507,62 +535,139 @@ def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx):
 
 # ───────────────────────────── track record ─────────────────────────────
 
-def update_track_record(hist, top_calls, now):
-    entries = hist.get("entries") or []
-    today = now.date().isoformat()
+GRADE_HORIZON_D = 14          # calendar days, close-to-close
+SNAP_PREFIX = "data/conviction/snapshots/"
+BACKFILL_LOOKBACK_D = 120
 
-    need_px = {e["tk"] for e in entries
-               if e.get("ret") is None and e.get("px")}
-    todays = [(c["subject"], dir_sign(c.get("direction")),
-               (c.get("express") or {}).get("primary"))
-              for c in top_calls]
-    need_px |= {tk for _, _, tk in todays if tk}
-    quotes = fmp_quotes(need_px)
+
+def primary_vehicle(subject, direction):
+    sgn = dir_sign(direction)
+    if sgn == 0:
+        return None, 0
+    spec = SUBJECT_VEHICLES.get(subject) or {}
+    leg = spec.get("long") if sgn > 0 else spec.get("short")
+    return (leg[0] if leg else None), sgn
+
+
+def list_snapshots(now):
+    """Snapshot dates within the backfill window, ascending."""
+    from datetime import timedelta as _td
+    cutoff = (now.date() - _td(days=BACKFILL_LOOKBACK_D)).isoformat()
+    dates, token = [], None
+    try:
+        while True:
+            kw = {"Bucket": BUCKET, "Prefix": SNAP_PREFIX, "MaxKeys": 1000}
+            if token:
+                kw["ContinuationToken"] = token
+            resp = s3.list_objects_v2(**kw)
+            for o in resp.get("Contents") or []:
+                d = o["Key"][len(SNAP_PREFIX):][:10]
+                if len(d) == 10 and d >= cutoff:
+                    dates.append(d)
+            if not resp.get("IsTruncated"):
+                break
+            token = resp.get("NextContinuationToken")
+    except Exception as e:
+        print(f"[compass] snapshot list failed: {e}")
+    return sorted(set(dates))
+
+
+def backfill_entries(hist, now):
+    """One-time ingest of historical conviction top-3 calls as track
+    entries (idempotent; dedup on (date, subject))."""
+    if hist.get("backfill_done"):
+        return 0
+    entries = hist.setdefault("entries", [])
+    have = {(e.get("d"), e.get("subject")) for e in entries}
+    added = 0
+    for d in list_snapshots(now):
+        snap = safe_load(f"{SNAP_PREFIX}{d}.json")
+        setups = snap.get("setups") or []
+        setups.sort(key=lambda r: -(fnum(r.get("conviction")) or 0))
+        for st in setups[:3]:
+            subj = st.get("subject")
+            tk, sgn = primary_vehicle(subj, st.get("direction"))
+            if not tk or (d, subj) in have:
+                continue
+            entries.append({"d": d, "subject": subj, "dir": sgn, "tk": tk,
+                            "px": None, "ret": None, "src": "backfill"})
+            have.add((d, subj))
+            added += 1
+    hist["backfill_done"] = True
+    print(f"[compass] backfill ingested {added} historical calls")
+    return added
+
+
+def update_track_record(hist, top_calls, now):
+    """Fixed-horizon self-grading: every call is graded close-to-close at
+    entry-date +{H}d, direction-signed, from FMP EOD. Comparable across
+    time — no since-call drift."""
+    from datetime import date, timedelta as _td
+    today = now.date()
+    today_iso = today.isoformat()
+    entries = hist.setdefault("entries", [])
+
+    # append today's live top calls
+    have_today = {(e["d"], e["subject"]) for e in entries
+                  if e.get("d") == today_iso}
+    for c in top_calls:
+        subj = c.get("subject")
+        tk, sgn = primary_vehicle(subj, c.get("direction"))
+        ex = (c.get("express") or {})
+        tk = ex.get("primary") or tk
+        if not tk or sgn == 0 or (today_iso, subj) in have_today:
+            continue
+        entries.append({"d": today_iso, "subject": subj, "dir": sgn,
+                        "tk": tk, "px": None, "ret": None, "src": "live"})
+
+    # fetch EOD series for every ticker still needing prices
+    open_e = [e for e in entries if e.get("ret") is None and e.get("tk")]
+    tickers = sorted({e["tk"] for e in open_e})[:15]
+    dmin = min((e["d"] for e in open_e), default=today_iso)
+    dfrom = (date.fromisoformat(dmin) - _td(days=6)).isoformat()
+    series = {tk: fmp_eod(tk, dfrom, today_iso) for tk in tickers}
+    quotes_ok = any(series.values())
 
     graded_now = 0
-    for e in entries:
-        if e.get("ret") is not None or not e.get("px"):
-            continue
+    for e in open_e:
+        ser = series.get(e["tk"]) or {}
+        if e.get("px") is None:
+            e["px"] = px_on_or_before(ser, e["d"])
         try:
-            age = (now.date() - datetime.fromisoformat(e["d"]).date()).days
+            gdate = date.fromisoformat(e["d"]) + _td(days=GRADE_HORIZON_D)
         except Exception:
             continue
-        q = quotes.get(e["tk"])
-        if age >= 7 and q:
-            e["ret"] = round(e["dir"] * (q / e["px"] - 1) * 100, 2)
-            e["graded"] = today
-            graded_now += 1
+        if today >= gdate and e.get("px"):
+            exit_px = px_on_or_before(ser, gdate.isoformat())
+            if exit_px:
+                e["ret"] = round(e["dir"] * (exit_px / e["px"] - 1) * 100, 2)
+                e["graded"] = today_iso
+                graded_now += 1
 
-    have_today = {(e["subject"], e["tk"]) for e in entries if e["d"] == today}
-    for subject, sgn, tk in todays:
-        if not tk or sgn == 0 or (subject, tk) in have_today:
-            continue
-        px = quotes.get(tk)
-        if px:
-            entries.append({"d": today, "subject": subject, "dir": sgn,
-                            "tk": tk, "px": px, "ret": None})
-
-    entries = entries[-500:]
-    hist["entries"] = entries
+    entries.sort(key=lambda e: e.get("d") or "")
+    hist["entries"] = entries[-800:]
 
     def trail(days):
-        cut = now.timestamp() - days * 86400
-        g = [e for e in entries if e.get("ret") is not None
-             and datetime.fromisoformat(e["d"]).replace(
-                 tzinfo=timezone.utc).timestamp() >= cut]
+        cut = (today - _td(days=days)).isoformat()
+        g = [e for e in hist["entries"]
+             if e.get("ret") is not None and e.get("d", "") >= cut]
         if not g:
             return {"n": 0, "hit_rate": None, "avg_ret": None}
         hits = sum(1 for e in g if e["ret"] > 0)
         return {"n": len(g), "hit_rate": round(hits / len(g), 3),
                 "avg_ret": round(statistics.fmean(e["ret"] for e in g), 2)}
 
-    recent = [e for e in entries if e.get("ret") is not None][-8:]
+    recent = [e for e in hist["entries"] if e.get("ret") is not None][-8:]
     return hist, {
+        "method": f"fixed {GRADE_HORIZON_D}d horizon, EOD close-to-close, "
+                  "direction-signed, primary vehicle",
+        "horizon_days": GRADE_HORIZON_D,
         "trail_30d": trail(30), "trail_90d": trail(90),
         "graded_this_run": graded_now,
-        "open_calls": sum(1 for e in entries if e.get("ret") is None),
+        "open_calls": sum(1 for e in hist["entries"]
+                          if e.get("ret") is None),
         "recent": list(reversed(recent)),
-        "quotes_available": bool(quotes),
+        "quotes_available": quotes_ok,
     }
 
 
@@ -601,10 +706,15 @@ def build_card(setup, rank, magdist, scorecard, emap, risk_mult,
     ex = express(setup.get("subject"), setup.get("direction"),
                  single_by_src, best_idx, kill_idx, sizer_idx)
 
-    # stop/target resolution ladder
+    # stop/target resolution ladder (a non-negative bottom quartile is
+    # not a stop — refuse degenerate p25>=0, ops 3138 beta card)
     stop_pct = stats.get("p25")
     target_pct = stats.get("p75")
     st_basis = "realised distribution (p25/p75)" if stop_pct is not None else None
+    if stop_pct is not None and stop_pct >= 0:
+        stop_pct = None
+        st_basis = "realised p75 target; p25 non-negative -> no stop" \
+            if target_pct is not None else None
     if stop_pct is None and ex["names"]:
         n0 = ex["names"][0]
         if n0.get("entry") and n0.get("stop"):
@@ -645,6 +755,12 @@ def handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
 
+    if isinstance(event, dict) and event.get("test_telegram"):
+        ok = send_telegram("\u2705 <b>Alpha Compass</b> \u2014 tripwire "
+                           "armed (top-call flips, entries/drops, "
+                           "\u0394conv \u2265 15)")
+        return {"statusCode": 200, "body": json.dumps({"telegram": ok})}
+
     conviction = safe_load(K_CONVICTION)
     magdist    = safe_load(K_MAGDIST)
     scorecard  = safe_load(K_SCORECARD)
@@ -679,8 +795,36 @@ def handler(event, context):
              for i, s in enumerate(setups[:13])]
     top_calls, watchlist = cards[:3], cards[3:]
 
+    backfilled = backfill_entries(hist, now)
     hist, track = update_track_record(hist, top_calls, now)
+    track["backfilled_this_run"] = backfilled
     changes, delta_map = run_deltas(prev, cards)
+
+    # Telegram tripwire: top-call turnover or big conviction moves
+    try:
+        prev_top1 = ((prev.get("top_calls") or [{}])[0]).get("subject")
+        new_top1 = (top_calls[0].get("subject") if top_calls else None)
+        big = [m for m in changes.get("moves") or [] if abs(m["delta"]) >= 15]
+        if prev.get("generated_at") and (
+                changes.get("entered") or changes.get("dropped")
+                or big or (prev_top1 and new_top1 != prev_top1)):
+            t1 = top_calls[0] if top_calls else {}
+            lines = [f"\U0001F9ED <b>Alpha Compass</b> \u00b7 {regime['label']}",
+                     f"#1 {new_top1} \u2014 {t1.get('direction')} "
+                     f"(conv {t1.get('conviction')})"]
+            if prev_top1 and new_top1 != prev_top1:
+                lines.append(f"top call flip: {prev_top1} \u2192 {new_top1}")
+            for sub in changes.get("entered") or []:
+                lines.append(f"+ entered: {sub}")
+            for sub in changes.get("dropped") or []:
+                lines.append(f"\u2212 dropped: {sub}")
+            for m in big:
+                lines.append(f"\u0394 {m['subject']}: {m['from']:g}"
+                             f" \u2192 {m['to']:g}")
+            lines.append("justhodl.ai/alpha-compass.html")
+            send_telegram("\n".join(lines))
+    except Exception as e:
+        print(f"[compass] tripwire skipped: {e}")
     for c in cards:
         c["delta_conviction"] = delta_map.get(c["subject"])
 
