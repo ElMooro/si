@@ -1,9 +1,15 @@
-executing-against: df8d4c7192109bcdd89f64cfe36690c58d62be54
-ops 3168 — Thesis Engine v2 (1990-2026)
-── 1. Deploy v2 ──
+# ops 3168 — Thesis Engine v2 (1990-2026)
 
-→ Report written to aws/ops/reports/latest/3168_thesis_deep.md
+**Status:** failure  
+**Duration:** 0.0s  
+**Finished:** 2026-07-12T22:04:25+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3168_thesis_deep.py", line 49, in <module>
     cfg = json.loads((AWS_DIR / "lambdas" / FN / "config.json").read_text())
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,4 +20,9 @@ Traceback (most recent call last):
     return io.open(self, mode, buffering, encoding, errors, newline)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/ops/lambdas/justhodl-thesis-engine/config.json'
-❌ OPS-FAIL: aws/ops/pending/ops_3168_thesis_deep.py
+
+```
+
+## Log
+## 1. Deploy v2
+
