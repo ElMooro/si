@@ -3017,6 +3017,17 @@ def lambda_handler(event, context):
     # (PublicReadEquityResearch statement, see ops 1151), not per-object ACL.
     try:
         body_bytes = json.dumps(document, default=str).encode("utf-8")
+        # /stable/quote lacks v3 avgVolume -- derive 50d avg from the doc's own
+        # technicals volume series (real data, zero extra API). ops 3132.
+        try:
+            if (document.get("quote") or {}).get("avg_volume") is None:
+                _vv = (((document.get("technicals") or {}).get("series") or {}).get("volume") or [])
+                _vv = [x for x in _vv[-50:] if x]
+                if len(_vv) >= 20:
+                    document["quote"]["avg_volume"] = round(sum(_vv) / len(_vv))
+        except Exception:
+            pass
+
         s3.put_object(
             Bucket=S3_BUCKET, Key=cache_key,
             Body=body_bytes,

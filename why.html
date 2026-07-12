@@ -747,12 +747,12 @@ function renderHero(d){
         </div>
       </div>
       <div class="hero-verdict">
-        <div class="rating ${v.rating || ''}">${esc(v.rating || "—").replace(/_/g," ")}</div>
+        ${v.rating?`<div class="rating ${v.rating}">${esc(v.rating).replace(/_/g," ")}</div>`:`<div style="font-size:11.5px;color:var(--text-dim);line-height:1.5">AI verdict pending — populates on the next refresh; every quantitative section on this page is live.</div>`}
         ${v.price_target_12m != null ? `
           <div class="pt">12m PT: <b>${fmtPrice(v.price_target_12m)}</b>
             ${v.upside_pct != null ? ` (<span class="${v.upside_pct >= 0 ? 'up' : 'down'}">${fmtPct(v.upside_pct)}</span>)` : ""}
           </div>` : ""}
-        <div class="conv">${esc(v.conviction_grade || "—")}</div>
+        ${v.conviction_grade?`<div class="conv">${esc(v.conviction_grade)}</div>`:``}
         ${v.confidence_pct != null ? ` · <span style="font-family:var(--font-mono); color:var(--text-dim); font-size:11px">${v.confidence_pct}% confidence</span>` : ""}
         ${v.position_size_pct != null ? `<div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-top:6px">Position: <b style="color:var(--accent)">${v.position_size_pct}%</b> · Horizon: <b style="color:var(--text)">${v.time_horizon_months || "—"}mo</b></div>` : ""}
         ${v.verdict_rationale ? `<div style="margin-top:8px; font-size:11.5px; color:var(--text-dim); line-height:1.5">${esc(v.verdict_rationale)}</div>` : ""}
