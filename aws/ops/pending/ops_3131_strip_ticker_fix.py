@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3131 -- CONVICTION STRIP TICKER FIX + ASCII HEADERS + DELTA
+"""ops 3131 (retry after 8432911 partial push) -- CONVICTION STRIP TICKER FIX + ASCII HEADERS + DELTA
 SPEC (Khalid: are Tier-2 items already on why.html? -- live-render
 audit says PARTIALLY YES). Corrections: (1) Fleet Conviction strip
 gated on a ?ticker= URL param the Research Desk does not always set,

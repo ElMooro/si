@@ -570,7 +570,7 @@ function renderReport(d){
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
-  html += '<section class="block" id="jh-conviction"><div class="sub"><span class="ico">&#128737;</span> Fleet Conviction &mdash; what every system says about this name</div><div style="color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);font-size:11px">composing live boards&hellip;</div></section>';
+  html += '<section class="block" id="jh-conviction"><div class="sub"><span class="ico">::</span> Fleet Conviction &mdash; what every system says about this name</div><div style="color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);font-size:11px">composing live boards&hellip;</div></section>';
   html += '<div id="jh-rspair"></div>';
   html += renderRiskTrade(d);           // v2.1: drawdown/vol/Sortino + tradability
   try{window.__rd=d;}catch(e){}
@@ -2832,7 +2832,7 @@ window.renderRiskTrade=function(d){
   var mcap=d.market_cap||((d.hero||{}).market_cap)||((d.quote||{}).marketCap)||((d.profile||{}).mktCap)||null;
   var build=(adv&&mcap)?((mcap*0.01)/(adv*1e6*0.10)):null;
   function cell(k,v,col){return '<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">'+k+'</div><div style="font-size:15px;margin-top:2px;font-family:var(--mono,monospace);color:'+(col||'var(--fg-1,#e8edf5)')+'">'+v+'</div></div>';}
-  var h='<section class="block" id="jh-risktrade"><div class="sub"><span class="ico">&#9878;</span> Risk &amp; Tradability</div><div style="display:flex;gap:10px;flex-wrap:wrap">';
+  var h='<section class="block" id="jh-risktrade"><div class="sub"><span class="ico">::</span> Risk &amp; Tradability</div><div style="display:flex;gap:10px;flex-wrap:wrap">';
   h+=cell('Max drawdown 1y',dd1.toFixed(1)+'%',dd1<-30?'#ff5577':dd1<-15?'#ffd266':'#26ffaf');
   h+=cell('Max drawdown 2y',dd2.toFixed(1)+'%',dd2<-40?'#ff5577':'#ffd266');
   if(v20!=null)h+=cell('Realized vol 20d',v20.toFixed(0)+'% ann');
@@ -2861,7 +2861,7 @@ window.renderMomentum=function(d){
       if(p50>=p200&&c50<c200){dx=back;break;}
     }}
   function pc(v){return v==null?"&mdash;":('<b style="color:'+(v>=0?"#26ffaf":"#ff5577")+'">'+(v>0?"+":"")+v.toFixed(1)+"%</b>");}
-  var h='<section class="block" id="jh-momentum"><div class="sub"><span class="ico">&#9201;</span> Momentum &amp; Trend &mdash; explicit reads</div>';
+  var h='<section class="block" id="jh-momentum"><div class="sub"><span class="ico">::</span> Momentum &amp; Trend &mdash; explicit reads</div>';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono,monospace);font-size:12px">';
   rows.forEach(function(r){h+='<div style="background:var(--bg1,#10151f);border:1px solid var(--border,#1d2636);border-radius:10px;padding:9px 13px"><div style="font-size:9.5px;letter-spacing:1px;color:var(--fg3,#5d6b82);text-transform:uppercase">'+r[0]+'</div><div style="font-size:15px;margin-top:2px">'+pc(r[1])+'</div></div>';});
   var trend=[];
@@ -3178,7 +3178,7 @@ window.renderIndustryCompass=function(d){
         else if(hit.pct_vs_sma200!=null)rows.push(box('Industry 50/200 cross','none in the last 60 sessions'));
         /* ---- v2.1 Fleet Conviction Strip + RS pair (Khalid roadmap #1-#4) ---- */
         try{
-          var T=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+          var T=String(((window.__rd||{}).ticker)||new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
           if(T){
             function scanArr(arr,key){key=key||'ticker';var out=null;(arr||[]).forEach(function(r){if(r&&String(r[key]||r.ticker||r.symbol||'').toUpperCase()===T)out=r;});return out;}
             function anyArrays(doc){var hitr=null;if(!doc)return null;Object.keys(doc).forEach(function(k){if(Array.isArray(doc[k])&&!hitr)hitr=scanArr(doc[k]);});return hitr;}
@@ -3248,7 +3248,7 @@ window.renderIndustryCompass=function(d){
             var verdict=bull+' of '+live.length+' systems constructive'+(bear?' \u00b7 '+bear+' bearish':'')+(flag?' \u00b7 '+flag+' caution flag'+(flag>1?'s':''):'');
             var vc=bull>=bear&&bull>=Math.ceil(live.length*0.6)?'#26ffaf':bear>bull?'#ff5577':'#ffd266';
             var el=document.getElementById('jh-conviction');
-            if(el)el.innerHTML='<div class="sub"><span class="ico">&#128737;</span> Fleet Conviction &mdash; what every system says about this name</div>'
+            if(el)el.innerHTML='<div class="sub"><span class="ico">::</span> Fleet Conviction &mdash; what every system says about this name</div>'
               +'<div style="font-family:var(--mono,monospace);font-size:15px;font-weight:800;color:'+vc+';margin:4px 0 7px">'+verdict+'</div>'
               +'<div>'+chips+'</div>'
               +'<div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:6px">Each chip is a live board from the fleet, refreshed on its own daily/intraday cycle \u2014 click through for the full read. Constructive = independent systems, not one model repeated.</div>';
@@ -3265,7 +3265,7 @@ window.renderIndustryCompass=function(d){
                 var rsHigh=ratio[n-1]>=Math.max.apply(null,ratio);
                 var col2=ch3>=0?'#26ffaf':'#ff5577';
                 var el2=document.getElementById('jh-rspair');
-                if(el2)el2.innerHTML='<section class="block"><div class="sub"><span class="ico">&#9876;</span> Relative Strength vs own industry ('+(hit.etf||'')+')</div>'
+                if(el2)el2.innerHTML='<section class="block"><div class="sub"><span class="ico">::</span> Relative Strength vs own industry ('+(hit.etf||'')+')</div>'
                   +'<div style="font-family:var(--mono,monospace);font-size:13px">stock/'+(hit.etf||'ETF')+' ratio: <b style="color:'+col2+'">'+(ch3>0?'+':'')+ch3.toFixed(1)+'% over 3m</b>'+(ch1!=null?' \u00b7 '+(ch1>0?'+':'')+ch1.toFixed(1)+'% 1m':'')+(rsHigh?' \u00b7 <b style="color:#26ffaf">RS NEW HIGH</b>':'')+'</div>'
                   +'<div style="font-size:10px;color:var(--fg3,#5d6b82);font-family:var(--mono,monospace);margin-top:5px">Outperforming its own industry is the O\u0027Neil/Raschke leadership test \u2014 absolute momentum (above) tells you the tide, this tells you the boat. Aligned by trading-session tail, 66 sessions.</div></section>';
               }
