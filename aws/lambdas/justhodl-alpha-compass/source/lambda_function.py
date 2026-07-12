@@ -524,9 +524,6 @@ def _index_best_setups(best) -> dict:
     return out
 
 
-NOTES_IDX = {}   # ops 3171: filled in the handler, read by the express builder
-
-
 def _index_kill(kill) -> dict:
     out = {}
     for t in (kill or {}).get("theses") or []:
@@ -557,7 +554,8 @@ def _index_sizer(sizer) -> dict:
     return out
 
 
-def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx):
+def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx,
+            notes_idx=None):
     sign = dir_sign(direction)
     spec = SUBJECT_VEHICLES.get(subject) or {"long": [], "short": [], "note": ""}
     leg = spec["long"] if sign >= 0 else spec["short"]
@@ -581,10 +579,7 @@ def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx):
             "entry": bs.get("entry"), "stop": bs.get("stop"),
             "target": bs.get("target"),
             "kill_risk": kill_idx.get(tk),
-            "khalid_note": (lambda _n: {"n": _n["n_notes"],
-                                        "stance": _n["stance"],
-                                        "score": _n["stance_score"]}
-                            if _n else None)(NOTES_IDX.get(str(tk).upper())),
+            "khalid_note": (notes_idx or {}).get(str(tk).upper()),
             "sizer": sizer_idx.get(tk),
         })
 
@@ -760,12 +755,13 @@ def run_deltas(prev, cards):
 # ───────────────────────────── card builder ─────────────────────────────
 
 def build_card(setup, rank, magdist, scorecard, emap, risk_mult,
-               single_by_src, best_idx, kill_idx, sizer_idx):
+               single_by_src, best_idx, kill_idx, sizer_idx,
+               notes_idx):
     engines = setup.get("contributing_engines") or []
     stats = resolve_stats(engines, magdist, scorecard, emap)
     sizing = theme_kelly(stats, setup.get("conviction"), risk_mult)
     ex = express(setup.get("subject"), setup.get("direction"),
-                 single_by_src, best_idx, kill_idx, sizer_idx)
+                 single_by_src, best_idx, kill_idx, sizer_idx, notes_idx)
 
     # stop/target resolution ladder (a non-negative bottom quartile is
     # not a stop — refuse degenerate p25>=0, ops 3138 beta card)
@@ -846,8 +842,10 @@ def handler(event, context):
             single_by_src.setdefault(str(r.get("source") or ""), []).append(r)
     best_idx = _index_best_setups(best)
     # ops 3171: Khalid's own notes as desk context
-    global NOTES_IDX
-    NOTES_IDX = (fetch_json("data/notes-index.json") or {}).get("index") or {}
+    notes_idx = {k: {"n": v["n_notes"], "stance": v["stance"],
+                     "score": v["stance_score"]}
+                 for k, v in ((fetch_json("data/notes-index.json") or {})
+                              .get("index") or {}).items()}
     kill_idx = _index_kill(kill)
     sizer_idx = _index_sizer(sizer)
 
@@ -855,7 +853,8 @@ def handler(event, context):
     setups.sort(key=lambda r: -(fnum(r.get("conviction")) or 0))
 
     cards = [build_card(s, i + 1, magdist, scorecard, emap, risk_mult,
-                        single_by_src, best_idx, kill_idx, sizer_idx)
+                        single_by_src, best_idx, kill_idx, sizer_idx,
+                        notes_idx)
              for i, s in enumerate(setups[:13])]
     top_calls, watchlist = cards[:3], cards[3:]
 

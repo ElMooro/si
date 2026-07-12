@@ -27,8 +27,9 @@ import re
 import urllib.parse
 import urllib.request
 
+FRED_FALLBACK = "2f057499936072679d8843d7fce99989"
 FRED_KEY = (os.environ.get("FRED_API_KEY") or os.environ.get("FRED_KEY")
-            or "2f057499936072679d8843d7fce99989")
+            or FRED_FALLBACK)
 
 ISO2_ISO3 = {
     "US": "USA", "EU": "EA19", "JP": "JPN", "CN": "CHN", "GB": "GBR",
@@ -246,9 +247,19 @@ def fetch(source, sid, start="1990-01-01"):
         if source == "YAHOO":
             return _yahoo(sid, start)
         if source == "FRED":
-            d = _http("https://api.stlouisfed.org/fred/series/observations"
-                      f"?series_id={sid}&api_key={FRED_KEY}&file_type=json"
-                      f"&observation_start={start}")
+            # ops 3172: a STALE FRED key in the lambda env silently returned
+            # nothing (3170/3171 shipped 1,746 all-NEUTRAL regime weeks off
+            # this). Try the env key, then always retry the known-good one.
+            d = {}
+            for _k in (FRED_KEY, FRED_FALLBACK):
+                try:
+                    d = _http("https://api.stlouisfed.org/fred/series/"
+                              f"observations?series_id={sid}&api_key={_k}"
+                              f"&file_type=json&observation_start={start}")
+                    if d.get("observations"):
+                        break
+                except Exception:
+                    continue
             out = {}
             for o in d.get("observations") or []:
                 v = o.get("value")
