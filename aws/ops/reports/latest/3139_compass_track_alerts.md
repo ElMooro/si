@@ -1,0 +1,57 @@
+# ops 3139 — instant track record + Telegram tripwires
+
+**Status:** success  
+**Duration:** 11.4s  
+**Finished:** 2026-07-12T03:44:23+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| backfill_done | backfilled | graded | history_entries | horizon | n_fails | n_warns | open_calls | t30 | t90 | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  | 124 | 86 |  | 14 |  |  | 41 | {"n": 24, "hit_rate": 0.583, "avg_ret": 2.1} | {"n": 86, "hit_rate": 0.395, "avg_ret": -1.75} |  |
+| True |  |  | 127 |  |  |  |  |  |  |  |
+|  |  |  |  |  | 0 | 1 |  |  |  | PASS |
+
+## Log
+## 1. Deploy (env from donor configs)
+
+- `03:44:12` env keys wired: ['FMP_API_KEY', 'TELEGRAM_CHAT_ID', 'TELEGRAM_TOKEN']
+- `03:44:12`   zip: 63336 bytes
+## 1. Lambda
+
+- `03:44:12`   Lambda exists — updating
+- `03:44:17` ✅   ✓ updated justhodl-alpha-compass
+## 2. EB rule + permissions
+
+- `03:44:17`   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
+- `03:44:17` ✅   ✓ target → justhodl-alpha-compass
+- `03:44:17` ✅   ✓ added invoke permission
+## 3. Smoke test
+
+- `03:44:17`   invoking justhodl-alpha-compass…
+- `03:44:22` ✅   ✓ smoke test passed
+- `03:44:22`     ok                       True
+- `03:44:22`     cards                    7
+- `03:44:22`     regime                   Normal
+## 2. Fresh output (backfill runs inside this invoke)
+
+## 3. Track-record gates
+
+- `03:44:22` ✅ track live: 30d 0.583 hit / 2.1% avg (n=24) · 90d 0.395 / -1.75% (n=86)
+- `03:44:22`   · 2026-06-28 US macro / housing cycle ITB → 6.81%
+- `03:44:22`   · 2026-06-28 Crypto BITI → 11.36%
+- `03:44:22`   · 2026-06-27 Broad risk / equity beta SPY → 3.56%
+- `03:44:22`   · 2026-06-27 Crypto IBIT → 7.03%
+- `03:44:22`   · 2026-06-27 US macro / housing cycle ITB → 6.81%
+## 4. Degenerate-stop gate
+
+- `03:44:22` ✅ no non-negative stops on realised-dist cards
+## 5. Telegram armed test
+
+- `03:44:23` ⚠ test_telegram returned false — token/chat check
