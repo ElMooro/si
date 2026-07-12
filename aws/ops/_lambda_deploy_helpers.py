@@ -47,8 +47,21 @@ _eb = boto3.client("events", region_name=REGION)
 
 
 def build_zip(source_dir: Path) -> bytes:
+    """Zip a lambda source dir for deployment.
+
+    Mirrors deploy-lambdas.yml (2026-05-31 pattern): bundle aws/shared/*.py
+    first, then the source dir — a local copy of the same filename wins
+    (preserves per-Lambda overrides). Without this, helper-deployed zips
+    missed shared modules like _sentry_lite (ops 3135 Runtime.ImportModuleError).
+    """
     buf = io.BytesIO()
+    shared_dir = Path(__file__).resolve().parents[1] / "shared"
+    local_names = {f.name for f in source_dir.rglob("*.py") if f.is_file()}
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        if shared_dir.is_dir():
+            for f in sorted(shared_dir.glob("*.py")):
+                if f.name not in local_names and "__pycache__" not in str(f):
+                    z.write(f, f.name)
         for f in source_dir.rglob("*"):
             if f.is_file() and "__pycache__" not in str(f) and not f.name.endswith(".pyc"):
                 z.write(f, str(f.relative_to(source_dir)))
