@@ -1,49 +1,48 @@
-"""justhodl-alpha-compass — single-screen landing payload.
+"""justhodl-alpha-compass v2.0 — the desk sheet.
 
 THE CONSUMER QUESTION
 ─────────────────────
-"What do I buy RIGHT NOW, how much, and where do I get out if I'm wrong?"
+"What do I buy RIGHT NOW, how much, where do I get out — and has this page
+been right before?"
 
-This Lambda is the joiner. It does not generate signals. It does not score
-conviction. It does not learn anything. It assembles the platform's own
-research output into one institutional-format card, the way a desk briefing
-note is structured.
+v1 was a joiner that joined on vocabularies that never matched:
+  • regime read data/regime-flag.json — a key NO engine produces → "Unknown"
+  • sizer join looked for by_subject/recommendations — sizer-v2 publishes
+    ticker-keyed positions/setups → sizing always null
+  • scorecard/magdist lookups used conviction FAMILY tokens against
+    signal_type vocabularies → dash-wall on every card
+  • conviction setups are THEMES with no tickers → nothing tradeable shown
 
-INPUT FEEDS  (all already published by other engines)
-──────────────────────────────────────────────────────
-  conviction.json                  → top-of-system setups, 0-100 score, evidence
-  magnitude-distributions.json     → realised return distribution per signal-stack
-  signal-scorecard.json            → per-signal hit rate (Wilson LB), avg return
-  portfolio/sizer-v2.json          → horizon-aware Kelly position sizing
-  data/regime-flag.json (or eq.)   → current macro regime, for context badge
-  miss-summary.json                → 30d miss totals (shown as "coverage state")
+v2 fixes every join against the REAL schemas and adds the institutional
+layers a desk sheet needs:
 
-OUTPUT
-──────
-  data/alpha-compass.json — consumed by alpha-compass.html:
-    {
-      generated_at, regime, regime_label, regime_color,
-      top_calls:   [ { rank, ticker, label, direction, conviction,
-                         confidence_band, n_engines, n_families,
-                         thesis, invalidation,
-                         hist: { n, median, p25, p75, win_rate, ... },
-                         sizing: { kelly_pct, dollar_at_100k, ... },
-                         stop_pct,  # from p25 of historical stack
-                         target_pct # from p75 of historical stack
-                     }, ... ],   # top 3
-      watchlist:   [ ... ],     # next 5-10
-      coverage:    { misses_30d_total, near_misses_30d, top_uncovered_sectors },
-      links: { ... }
-    }
+  1. REGIME FUSION      regime-composite + RORO + factor-regime + dollar
+                        transmission dial + sizer risk-multiplier + book
+                        posture → one strip, per-source chips, playbook line.
+  2. EXPRESSION LAYER   theme → liquid vehicles (direction-aware legs) +
+                        single names joined from conviction.single_names,
+                        best-setups (entry/stop/target), kill-theses (bear
+                        case), sizer-v2 (per-ticker Kelly).
+  3. STATS LADDER       magdist stack match (3 candidate vocabularies) →
+                        scorecard aggregate → conviction prior. Every card
+                        shows numbers and DECLARES its evidence tier.
+  4. THEME KELLY        quarter-Kelly from resolved win-rate/payoff, scaled
+                        by conviction and the sizer's regime risk-multiplier.
+  5. TRACK RECORD       self-grading: every run snapshots its calls with
+                        entry prints (FMP quote), grades ≥7d-old calls,
+                        publishes trailing 30/90d hit-rate. Accountability.
+  6. Δ SINCE LAST RUN   new / dropped / conviction moves vs previous output.
 
-SCHEDULE
-────────
-cron(0 */3 * * ? *) — every 3 hours, matching conviction-engine cadence.
+OUTPUT data/alpha-compass.json (schema 2.0) + data/alpha-compass-history.json
+Consumed by alpha-compass.html. Runs every 3h at :50 (after conviction :45).
 """
 
 import json
 import os
 import statistics
+import time
+import urllib.request
+import urllib.parse
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -55,19 +54,52 @@ from _sentry_lite import track_errors
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 
-KEY_CONVICTION  = "data/conviction.json"
-KEY_MAGDIST     = "data/magnitude-distributions.json"
-KEY_SCORECARD   = "data/signal-scorecard.json"
-KEY_SIZER       = "portfolio/sizer-v2.json"
-KEY_REGIME      = "data/regime-flag.json"
-KEY_MISS_SUMMARY = "data/miss-summary.json"
-KEY_ENGINE_MAP  = "data/engine-signal-map.json"
-OUTPUT_KEY      = "data/alpha-compass.json"
+K_CONVICTION = "data/conviction.json"
+K_MAGDIST    = "data/magnitude-distributions.json"
+K_SCORECARD  = "data/signal-scorecard.json"
+K_SIZER      = "portfolio/sizer-v2.json"
+K_RCOMP      = "data/regime-composite.json"
+K_RORO       = "data/risk-regime.json"
+K_FACTOR     = "data/factor-regime.json"
+K_DOLLAR     = "data/dollar-radar.json"
+K_KILL       = "data/kill-theses.json"
+K_BEST       = "data/best-setups.json"
+K_MISS       = "data/miss-summary.json"
+K_EMAP       = "data/engine-signal-map.json"
+OUT_KEY      = "data/alpha-compass.json"
+HIST_KEY     = "data/alpha-compass-history.json"
+
+FMP_KEY = os.environ.get("FMP_API_KEY", "")
+
+# Theme → liquid expression vehicles. Leg chosen by call direction.
+SUBJECT_VEHICLES = {
+    "Crypto": {
+        "long": ["IBIT", "ETHA", "COIN", "MSTR"], "short": ["BITI"],
+        "note": "spot-BTC/ETH ETFs + high-beta equities"},
+    "US macro / housing cycle": {
+        "long": ["ITB", "XHB", "DHI"], "short": ["ITB", "XHB"],
+        "note": "homebuilder ETFs; short leg = short the builders"},
+    "US equity — positioning": {
+        "long": ["IWM", "SPY"], "short": ["RWM", "SH"],
+        "note": "covering squeezes hit small-cap beta hardest"},
+    "US equity — value tilt": {
+        "long": ["IWD", "RSP", "IVE"], "short": ["IWF"],
+        "note": "cleanest pair: long IWD / short IWF"},
+    "Broad risk / equity beta": {
+        "long": ["SPY", "QQQ"], "short": ["SH", "PSQ"],
+        "note": "index beta, direction-signed"},
+    "Cross-asset relative value": {
+        "long": [], "short": [],
+        "note": "pair-specific — see cross-asset-rv desk"},
+    "Supply shortage / scarcity": {
+        "long": [], "short": [],
+        "note": "single-name driven — scarcity radar picks below"},
+}
 
 s3 = boto3.client("s3", region_name=REGION)
 
 
-def _decimal_default(o):
+def _dec(o):
     if isinstance(o, Decimal):
         return float(o)
     if isinstance(o, datetime):
@@ -76,7 +108,6 @@ def _decimal_default(o):
 
 
 def safe_load(key: str) -> dict:
-    """Load a JSON object from S3. Returns {} on any failure (graceful degrade)."""
     try:
         obj = s3.get_object(Bucket=BUCKET, Key=key)
         return json.loads(obj["Body"].read().decode("utf-8"))
@@ -85,351 +116,611 @@ def safe_load(key: str) -> dict:
         return {}
 
 
-def _engine_name(e) -> str:
-    """Extract a stable lowercased name from a contributing-engine record.
-
-    conviction-engine writes `signal` as a NUMERIC level (-2..+2) so we
-    cannot use it as a name — we look for family / engine / name fields
-    in priority order. Defensive against any value type.
-    """
-    if not isinstance(e, dict):
-        return ""
-    for k in ("family", "engine", "name", "signal_type", "signal_label", "id"):
-        v = e.get(k)
-        if v is None:
-            continue
-        try:
-            s = str(v).strip().lower()
-        except Exception:
-            continue
-        if s:
-            return s
-    return ""
+def first_of(d: dict, *keys):
+    """First non-empty value among keys; supports 'a.b' dotted paths."""
+    if not isinstance(d, dict):
+        return None
+    for k in keys:
+        cur = d
+        ok = True
+        for part in k.split("."):
+            if isinstance(cur, dict) and part in cur:
+                cur = cur[part]
+            else:
+                ok = False
+                break
+        if ok and cur not in (None, "", [], {}):
+            return cur
+    return None
 
 
-def expand_engine_to_signal_types(contributing_engines: list,
-                                    engine_map: dict) -> set:
-    """Given conviction's contributing_engines, return the set of underlying
-    signal_types they collectively represent (via engine-signal-map.json).
-    
-    Each contributing engine has a 'family' field (e.g. 'crisis-monitor',
-    'equity-value'). engine_map.by_family is a dict { family → [signal_types] }.
-    We union all relevant signal_types across the families present.
-    """
-    if not engine_map or not contributing_engines:
-        return set()
-    by_family = engine_map.get("by_family") or {}
-    if not isinstance(by_family, dict):
-        return set()
-    
-    out = set()
-    for e in contributing_engines:
+def fnum(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def dir_sign(direction) -> int:
+    d = str(direction or "").upper()
+    if d.startswith("RISK-ON") or "LONG" in d:
+        return 1
+    if d.startswith("RISK-OFF") or "SHORT" in d or "DEFENSIVE" in d:
+        return -1
+    return 0
+
+
+# ───────────────────────────── FMP quotes ─────────────────────────────
+
+def fmp_quotes(tickers) -> dict:
+    """Batch last prices via FMP /stable/quote. {} on any failure."""
+    tks = sorted({t for t in tickers if t and isinstance(t, str)})[:40]
+    if not tks or not FMP_KEY:
+        return {}
+    url = ("https://financialmodelingprep.com/stable/quote?symbol="
+           + urllib.parse.quote(",".join(tks)) + "&apikey=" + FMP_KEY)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "jh-compass/2.0"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            rows = json.loads(r.read().decode("utf-8"))
+        out = {}
+        for r_ in rows if isinstance(rows, list) else []:
+            tk, px = r_.get("symbol"), fnum(r_.get("price"))
+            if tk and px:
+                out[tk] = px
+        return out
+    except Exception as e:
+        print(f"[compass] fmp quotes failed: {e}")
+        return {}
+
+
+# ───────────────────────────── regime fusion ─────────────────────────────
+
+_COLORS = {
+    "RISK-ON": "#00e68a", "RISK_ON": "#00e68a", "EXPANSION": "#00e68a",
+    "MILDLY RISK-ON": "#7ae0b0", "GOLDILOCKS": "#00e68a",
+    "NEUTRAL": "#4dabf7", "NORMAL": "#4dabf7", "STABLE": "#4dabf7",
+    "NEUTRAL / MIXED": "#4dabf7", "MIXED": "#4dabf7",
+    "TRANSITION": "#ffd43b", "CAUTION": "#ffd43b", "WATCH": "#ffd43b",
+    "MILDLY RISK-OFF": "#ffa94d",
+    "RISK-OFF": "#ff4757", "RISK_OFF": "#ff4757", "CRISIS": "#ff4757",
+    "CONTRACTION": "#ff922b", "STRESS": "#ff922b",
+}
+
+
+def _color(label) -> str:
+    return _COLORS.get(str(label or "").upper(), "#8896b0")
+
+
+def fuse_regime(rcomp, roro, factor, dollar, sizer, conviction) -> dict:
+    sources = []
+
+    comp_lbl = first_of(rcomp, "regime", "composite_regime", "master_regime",
+                        "label", "verdict", "headline_regime")
+    comp_score = fnum(first_of(rcomp, "score", "master", "composite_score",
+                               "master_score"))
+    if comp_lbl or comp_score is not None:
+        sources.append({"k": "composite", "label": "Regime Composite",
+                        "value": comp_lbl, "score": comp_score,
+                        "color": _color(comp_lbl)})
+
+    roro_lbl = first_of(roro, "posture", "regime", "state")
+    roro_score = fnum(first_of(roro, "score", "composite_score", "roro_score"))
+    if roro_lbl:
+        sources.append({"k": "roro", "label": "RORO", "value": roro_lbl,
+                        "score": roro_score, "color": _color(roro_lbl)})
+
+    fac_lbl = first_of(factor, "appetite", "regime", "stance", "label")
+    if not fac_lbl:
+        th = factor.get("thrusts") if isinstance(factor, dict) else None
+        if isinstance(th, list) and th:
+            fac_lbl = f"{len(th)} style thrusts live"
+    if fac_lbl:
+        sources.append({"k": "factor", "label": "Factor Regime",
+                        "value": fac_lbl, "score": None,
+                        "color": _color(fac_lbl)})
+
+    rt = (dollar or {}).get("risk_transmission") or {}
+    if rt.get("verdict"):
+        sources.append({"k": "dollar", "label": "Risk-Asset Transmission",
+                        "value": rt.get("verdict"), "score": fnum(rt.get("score")),
+                        "color": _color(rt.get("verdict"))})
+
+    book = first_of(conviction, "book_posture")
+    book_net = fnum(first_of(conviction, "book_net_signal"))
+    if book:
+        sources.append({"k": "book", "label": "Engine Book", "value": book,
+                        "score": book_net, "color": _color(book)})
+
+    risk_mult = fnum(first_of(sizer, "risk_multiplier")) or 1.0
+    decisive = first_of(sizer, "decisive_call")
+
+    headline = comp_lbl or roro_lbl or book or "Unknown"
+    playbook_bits = []
+    if decisive:
+        playbook_bits.append(f"Sizer: {decisive}")
+    playbook_bits.append(f"risk multiplier ×{risk_mult:g}")
+    if rt.get("verdict"):
+        playbook_bits.append(f"$-transmission {rt['verdict']}")
+
+    return {
+        "label": str(headline).replace("_", " ").title()
+                 if headline != "Unknown" else "Unknown",
+        "color": _color(headline),
+        "score": comp_score if comp_score is not None else roro_score,
+        "risk_multiplier": round(risk_mult, 2),
+        "decisive_call": decisive,
+        "sources": sources,
+        "playbook": " · ".join(playbook_bits),
+    }
+
+
+# ───────────────────────────── stats ladder ─────────────────────────────
+
+def _engine_tokens(engines) -> tuple:
+    """(engine-name set, family set) lowercased."""
+    names, fams = set(), set()
+    for e in engines or []:
         if not isinstance(e, dict):
             continue
-        family = e.get("family")
-        if family and family in by_family:
-            for st in by_family[family] or []:
-                if st:
-                    out.add(str(st).strip().lower())
+        n = str(e.get("engine") or e.get("name") or "").strip().lower()
+        f = str(e.get("family") or "").strip().lower()
+        if n:
+            names.add(n)
+        if f:
+            fams.add(f)
+    return names, fams
+
+
+def _mapped_signal_types(fams, emap) -> set:
+    by_fam = (emap or {}).get("by_family") or {}
+    out = set()
+    for f in fams:
+        for st in by_fam.get(f) or []:
+            if st:
+                out.add(str(st).strip().lower())
     return out
 
 
-def find_matching_stack(stacks: list, contributing_engines: list,
-                         engine_map: dict = None,
-                         horizon_hint: int = 30) -> dict:
-    """Match a conviction setup to a published magdist stack.
-
-    TWO MATCHING PATHS:
-      A. Family expansion (preferred): use engine-signal-map to expand each
-         family → underlying signal_types, then Jaccard-match against stacks.
-      B. Name overlap (fallback): direct Jaccard on engine names — used when
-         engine_map isn't available.
-
-    Returns the best-scoring stack at the requested horizon (or any horizon).
-    """
-    if not stacks or not contributing_engines:
-        return {}
-
-    # Build the candidate signal-type set
-    candidate_via_map = expand_engine_to_signal_types(contributing_engines, engine_map or {})
-    candidate_via_names = set()
-    for e in contributing_engines:
-        name = _engine_name(e)
-        if name:
-            candidate_via_names.add(name)
-    
-    # Prefer the family-expanded set if it's substantially larger
-    candidate = candidate_via_map if len(candidate_via_map) >= len(candidate_via_names) else candidate_via_names
-    if not candidate:
-        return {}
-
+def _best_stack(stacks, candidate, horizon_hint=30):
     best, best_score = None, 0.0
-    best_via = None
     for s in stacks:
-        members = set(str(x).strip().lower() for x in (s.get("signals") or []) if x)
+        members = {str(x).strip().lower() for x in (s.get("signals") or []) if x}
         if not members:
             continue
         inter = candidate & members
         if not inter:
             continue
-        union = candidate | members
-        jaccard = len(inter) / len(union)
-        horizon_match = 1.0 if s.get("horizon_days") == horizon_hint else 0.5
-        score = jaccard * horizon_match
+        j = len(inter) / len(candidate | members)
+        score = j * (1.0 if s.get("horizon_days") == horizon_hint else 0.6)
         if score > best_score:
-            best, best_score, best_via = s, score, ("family_map" if candidate is candidate_via_map else "name_overlap")
-
-    if best and best_score >= 0.15:  # lower threshold since family expansion is fuzzier
-        # Attach the match method for debugging
-        match = dict(best)
-        match["_match_via"] = best_via
-        match["_match_score"] = round(best_score, 3)
-        return match
-    return {}
+            best, best_score = s, score
+    return best, best_score
 
 
-def stop_target_from_distribution(stack_match: dict) -> tuple:
-    """Derive stop and target percentages from the realised return distribution.
+def resolve_stats(engines, magdist, scorecard, emap) -> dict:
+    """Tier A magdist → Tier B scorecard → Tier C prior. Never dashes."""
+    names, fams = _engine_tokens(engines)
+    mapped = _mapped_signal_types(fams, emap)
+    stacks = (magdist or {}).get("stacks") or []
 
-    Institutional convention:
-      • Stop  ≈ p25 of historical realised returns (you accept the bottom
-                quartile of outcomes; below this you take the loss).
-      • Target ≈ p75 of historical realised returns (you take profit at the
-                  upper-quartile expectation; above this is gravy).
-    """
-    if not stack_match:
-        return None, None
-    p25 = stack_match.get("p25")
-    p75 = stack_match.get("p75")
-    return (
-        round(p25, 1) if p25 is not None else None,
-        round(p75, 1) if p75 is not None else None,
-    )
-
-
-def scorecard_lookup(scorecard: dict, engines: list) -> dict:
-    """Aggregate scorecard metrics across the engines in a setup.
-
-    Resilient: lowercases lookup keys, skips records that don't have a
-    matching signal-type entry. Uses _engine_name() to extract the engine's
-    name (NOT the numeric signal level emitted by conviction-engine).
-    """
-    if not scorecard or not engines:
-        return {}
-    by_type = scorecard.get("by_signal_type") or scorecard.get("signals") or {}
-    if isinstance(by_type, list):
-        by_type = {
-            (r.get("signal_type") or r.get("name") or "").strip().lower(): r
-            for r in by_type if isinstance(r, dict)
-        }
-    elif isinstance(by_type, dict):
-        by_type = {k.strip().lower() if isinstance(k, str) else k: v
-                   for k, v in by_type.items()}
-    hits, ns, avg_returns, grades = [], [], [], []
-    for e in engines:
-        name = _engine_name(e)
-        if not name:
+    # Tier A — realised distribution
+    best, best_score, via = None, 0.0, None
+    for cand, tag in ((mapped, "family_map"), (names, "engine_names"),
+                      (fams, "family_names")):
+        if not cand:
             continue
-        rec = by_type.get(name)
+        b, sc = _best_stack(stacks, cand)
+        if sc > best_score:
+            best, best_score, via = b, sc, tag
+    if best and best_score >= 0.12:
+        return {
+            "source": "magdist", "match_via": via,
+            "match_score": round(best_score, 3),
+            "n": best.get("n"), "median": fnum(best.get("median")),
+            "p25": fnum(best.get("p25")), "p75": fnum(best.get("p75")),
+            "win_rate": fnum(best.get("win_rate")),
+            "horizon_days": best.get("horizon_days"),
+        }
+
+    # Tier B — scorecard aggregate across all three vocabularies
+    by_type = (scorecard or {}).get("by_signal_type") \
+        or (scorecard or {}).get("signals") or {}
+    if isinstance(by_type, list):
+        by_type = {str(r.get("signal_type") or r.get("name") or "").lower(): r
+                   for r in by_type if isinstance(r, dict)}
+    elif isinstance(by_type, dict):
+        by_type = {str(k).lower(): v for k, v in by_type.items()}
+    ns, lbs, ars = [], [], []
+    for tok in (names | fams | mapped):
+        rec = by_type.get(tok)
         if not isinstance(rec, dict):
             continue
-        n = rec.get("n_scored") or rec.get("n")
-        wlb = rec.get("wilson_lb") or rec.get("hit_rate_lb")
-        ar = rec.get("avg_return") or rec.get("mean_return")
-        grade = rec.get("grade")
-        if n is not None:
-            try: ns.append(int(n))
-            except (TypeError, ValueError): pass
-        if wlb is not None:
-            try: hits.append(float(wlb))
-            except (TypeError, ValueError): pass
+        n = fnum(rec.get("n_scored") or rec.get("n"))
+        lb = fnum(rec.get("wilson_lb") or rec.get("hit_rate_lb"))
+        ar = fnum(rec.get("avg_return") or rec.get("mean_return"))
+        if n:
+            ns.append(n)
+        if lb is not None:
+            lbs.append(lb)
         if ar is not None:
-            try: avg_returns.append(float(ar))
-            except (TypeError, ValueError): pass
-        if grade: grades.append(str(grade))
-    if not (ns or hits or avg_returns):
-        return {}
+            ars.append(ar)
+    if lbs or ars:
+        return {
+            "source": "scorecard",
+            "n": int(sum(ns)) if ns else None,
+            "median": round(statistics.fmean(ars), 2) if ars else None,
+            "p25": None, "p75": None,
+            "win_rate": round(statistics.fmean(lbs), 3) if lbs else None,
+            "engines_with_record": len(lbs) or len(ars),
+        }
+
+    # Tier C — conviction prior only
+    return {"source": "prior", "n": None, "median": None, "p25": None,
+            "p75": None, "win_rate": None}
+
+
+# ───────────────────────────── sizing ─────────────────────────────
+
+def theme_kelly(stats, conviction, risk_mult) -> dict:
+    conv = (fnum(conviction) or 0) / 100.0
+    src = stats.get("source")
+    W = stats.get("win_rate")
+    if src == "magdist" and W and stats.get("p25") is not None \
+            and stats.get("p75") is not None and abs(stats["p25"]) > 0.05:
+        R = abs(stats["p75"]) / abs(stats["p25"])
+        f = max(0.0, W - (1 - W) / max(R, 0.1))
+        basis = f"quarter-Kelly on realised dist (W={W:.0%}, R={R:.2f})"
+    elif src == "scorecard" and W:
+        R = 1.5
+        f = max(0.0, W - (1 - W) / R)
+        basis = f"quarter-Kelly est. (scorecard W={W:.0%}, R=1.5 assumed)"
+    else:
+        f = 0.08  # small prior full-Kelly proxy
+        basis = "conservative prior — no graded history for this stack yet"
+    pct = min(0.08, 0.25 * f * conv * risk_mult)
     return {
-        "engines_with_record": len(ns) if ns else len(hits),
-        "median_n":           int(statistics.median(ns)) if ns else None,
-        "min_wilson_lb":      round(min(hits), 3) if hits else None,
-        "mean_wilson_lb":     round(statistics.fmean(hits), 3) if hits else None,
-        "mean_avg_return":    round(statistics.fmean(avg_returns), 3) if avg_returns else None,
-        "best_grade":         max(grades) if grades else None,
+        "kelly_pct": round(pct * 100, 2),
+        "dollar_at_100k": int(round(pct * 100000, -1)),
+        "basis": basis,
+        "source": src,
     }
 
 
-def sizer_lookup(sizer: dict, subject: str, ticker: str) -> dict:
-    """Find sizing recommendation for this subject or ticker in sizer-v2 output."""
-    if not sizer:
-        return {}
-    by_key = sizer.get("by_subject") or sizer.get("recommendations") or {}
-    if isinstance(by_key, list):
-        # Match by either subject or ticker
-        for r in by_key:
-            if not isinstance(r, dict):
-                continue
-            if (r.get("subject") == subject) or (r.get("ticker") == ticker):
-                return r
-        return {}
-    if isinstance(by_key, dict):
-        return by_key.get(subject) or by_key.get(ticker) or {}
-    return {}
+# ───────────────────────────── expression layer ─────────────────────────────
+
+def _index_best_setups(best) -> dict:
+    rows = None
+    for k in ("setups", "rows", "best_setups", "top", "items", "ranked"):
+        v = (best or {}).get(k)
+        if isinstance(v, list) and v and isinstance(v[0], dict):
+            rows = v
+            break
+    out = {}
+    for r in rows or []:
+        tk = str(r.get("ticker") or "").upper()
+        if not tk:
+            continue
+        out[tk] = {
+            "conviction": fnum(r.get("conviction") or r.get("score")),
+            "entry": fnum(r.get("entry")),
+            "stop": fnum(r.get("stop") or r.get("stop_loss")),
+            "target": fnum(first_of(r, "target", "t1", "price_target",
+                                    "targets.0")),
+        }
+    return out
 
 
-def regime_context(regime_json: dict) -> dict:
-    """Normalise a regime payload into a small badge object."""
-    if not regime_json:
-        return {"label": "Unknown", "color": "#888", "regime": None}
-    reg = (regime_json.get("regime")
-           or regime_json.get("market_regime")
-           or regime_json.get("dominant_regime")
-           or "")
-    reg_label = str(reg).replace("_", " ").title() if reg else "Unknown"
-    # crude colour mapping — UI can override
-    colour = {
-        "RISK_ON":     "#00e68a", "EXPANSION":  "#00e68a",
-        "NORMAL":      "#4dabf7", "STABLE":     "#4dabf7",
-        "TRANSITION":  "#ffd43b", "CAUTION":    "#ffd43b",
-        "RISK_OFF":    "#ff4757", "CRISIS":     "#ff4757",
-        "CONTRACTION": "#ff922b",
-    }.get(reg.upper() if isinstance(reg, str) else "", "#888")
-    return {
-        "label": reg_label,
-        "color": colour,
-        "regime": reg,
-        "khalid_score": regime_json.get("khalid_score") or regime_json.get("score"),
+def _index_kill(kill) -> dict:
+    out = {}
+    for t in (kill or {}).get("theses") or []:
+        if not isinstance(t, dict):
+            continue
+        tk = str(t.get("ticker") or "").upper()
+        if not tk:
+            continue
+        conds = t.get("kill_conditions") or []
+        first = ""
+        if conds and isinstance(conds[0], dict):
+            first = (conds[0].get("risk") or conds[0].get("condition") or "")
+        elif conds:
+            first = str(conds[0])
+        out[tk] = (first or t.get("risk") or "")[:160]
+    return out
+
+
+def _index_sizer(sizer) -> dict:
+    out = {}
+    for sec in ("positions", "setups"):
+        for r in (sizer or {}).get(sec) or []:
+            tk = str(r.get("ticker") or "").upper()
+            if tk and tk not in out:
+                out[tk] = {"weight_pct": fnum(r.get("weight_used")),
+                           "dollar_size": fnum(r.get("dollar_size")),
+                           "bucket": sec}
+    return out
+
+
+def express(subject, direction, single_by_src, best_idx, kill_idx, sizer_idx):
+    sign = dir_sign(direction)
+    spec = SUBJECT_VEHICLES.get(subject) or {"long": [], "short": [], "note": ""}
+    leg = spec["long"] if sign >= 0 else spec["short"]
+    side = "LONG" if sign > 0 else ("SHORT" if sign < 0 else "WATCH")
+    vehicles = [{"ticker": t, "side": side} for t in leg[:4]]
+
+    names = []
+    pool = []
+    if subject == "Supply shortage / scarcity":
+        pool = single_by_src.get("scarcity-radar", [])
+    elif subject == "US equity — value tilt":
+        pool = single_by_src.get("opportunity", [])
+    for r in pool[:3]:
+        tk = str(r.get("ticker") or "").upper()
+        if not tk:
+            continue
+        bs = best_idx.get(tk) or {}
+        names.append({
+            "ticker": tk, "company": r.get("company"),
+            "verdict": r.get("verdict"), "score": fnum(r.get("score")),
+            "entry": bs.get("entry"), "stop": bs.get("stop"),
+            "target": bs.get("target"),
+            "kill_risk": kill_idx.get(tk),
+            "sizer": sizer_idx.get(tk),
+        })
+
+    primary = (names[0]["ticker"] if names
+               else (vehicles[0]["ticker"] if vehicles else None))
+    return {"vehicles": vehicles, "names": names, "primary": primary,
+            "side": side, "note": spec.get("note", "")}
+
+
+# ───────────────────────────── track record ─────────────────────────────
+
+def update_track_record(hist, top_calls, now):
+    entries = hist.get("entries") or []
+    today = now.date().isoformat()
+
+    need_px = {e["tk"] for e in entries
+               if e.get("ret") is None and e.get("px")}
+    todays = [(c["subject"], dir_sign(c.get("direction")),
+               (c.get("express") or {}).get("primary"))
+              for c in top_calls]
+    need_px |= {tk for _, _, tk in todays if tk}
+    quotes = fmp_quotes(need_px)
+
+    graded_now = 0
+    for e in entries:
+        if e.get("ret") is not None or not e.get("px"):
+            continue
+        try:
+            age = (now.date() - datetime.fromisoformat(e["d"]).date()).days
+        except Exception:
+            continue
+        q = quotes.get(e["tk"])
+        if age >= 7 and q:
+            e["ret"] = round(e["dir"] * (q / e["px"] - 1) * 100, 2)
+            e["graded"] = today
+            graded_now += 1
+
+    have_today = {(e["subject"], e["tk"]) for e in entries if e["d"] == today}
+    for subject, sgn, tk in todays:
+        if not tk or sgn == 0 or (subject, tk) in have_today:
+            continue
+        px = quotes.get(tk)
+        if px:
+            entries.append({"d": today, "subject": subject, "dir": sgn,
+                            "tk": tk, "px": px, "ret": None})
+
+    entries = entries[-500:]
+    hist["entries"] = entries
+
+    def trail(days):
+        cut = now.timestamp() - days * 86400
+        g = [e for e in entries if e.get("ret") is not None
+             and datetime.fromisoformat(e["d"]).replace(
+                 tzinfo=timezone.utc).timestamp() >= cut]
+        if not g:
+            return {"n": 0, "hit_rate": None, "avg_ret": None}
+        hits = sum(1 for e in g if e["ret"] > 0)
+        return {"n": len(g), "hit_rate": round(hits / len(g), 3),
+                "avg_ret": round(statistics.fmean(e["ret"] for e in g), 2)}
+
+    recent = [e for e in entries if e.get("ret") is not None][-8:]
+    return hist, {
+        "trail_30d": trail(30), "trail_90d": trail(90),
+        "graded_this_run": graded_now,
+        "open_calls": sum(1 for e in entries if e.get("ret") is None),
+        "recent": list(reversed(recent)),
+        "quotes_available": bool(quotes),
     }
 
 
-def build_card(setup: dict, magdist: dict, scorecard: dict, sizer: dict,
-                rank: int, engine_map: dict = None) -> dict:
-    """Assemble one institutional-format card."""
+# ───────────────────────────── deltas ─────────────────────────────
+
+def run_deltas(prev, cards):
+    prev_map = {}
+    for c in (prev.get("top_calls") or []) + (prev.get("watchlist") or []):
+        if c.get("subject"):
+            prev_map[c["subject"]] = fnum(c.get("conviction")) or 0
+    new_map = {c["subject"]: fnum(c.get("conviction")) or 0
+               for c in cards if c.get("subject")}
+    entered = sorted(set(new_map) - set(prev_map))
+    dropped = sorted(set(prev_map) - set(new_map))
+    moves = []
+    for s in set(new_map) & set(prev_map):
+        d = new_map[s] - prev_map[s]
+        if abs(d) >= 8:
+            moves.append({"subject": s, "from": prev_map[s],
+                          "to": new_map[s], "delta": round(d, 1)})
+    moves.sort(key=lambda m: -abs(m["delta"]))
+    delta_by_subject = {s: round(new_map[s] - prev_map[s], 1)
+                        for s in set(new_map) & set(prev_map)}
+    return ({"entered": entered, "dropped": dropped, "moves": moves[:6],
+             "prev_generated_at": prev.get("generated_at")},
+            delta_by_subject)
+
+
+# ───────────────────────────── card builder ─────────────────────────────
+
+def build_card(setup, rank, magdist, scorecard, emap, risk_mult,
+               single_by_src, best_idx, kill_idx, sizer_idx):
     engines = setup.get("contributing_engines") or []
-    horizon_hint = 30
-    stack_match = find_matching_stack(
-        magdist.get("stacks") or [], engines,
-        engine_map=engine_map, horizon_hint=horizon_hint
-    )
-    stop_pct, target_pct = stop_target_from_distribution(stack_match)
-    scard = scorecard_lookup(scorecard, engines)
+    stats = resolve_stats(engines, magdist, scorecard, emap)
+    sizing = theme_kelly(stats, setup.get("conviction"), risk_mult)
+    ex = express(setup.get("subject"), setup.get("direction"),
+                 single_by_src, best_idx, kill_idx, sizer_idx)
 
-    # Try to find the top ticker for this setup (conviction-engine may have
-    # surfaced one or more underneath the subject card).
-    top_tickers = setup.get("top_tickers") or setup.get("tickers") or []
-    primary_ticker = None
-    if top_tickers and isinstance(top_tickers, list):
-        first = top_tickers[0]
-        if isinstance(first, dict):
-            primary_ticker = first.get("ticker") or first.get("symbol")
-        elif isinstance(first, str):
-            primary_ticker = first
+    # stop/target resolution ladder
+    stop_pct = stats.get("p25")
+    target_pct = stats.get("p75")
+    st_basis = "realised distribution (p25/p75)" if stop_pct is not None else None
+    if stop_pct is None and ex["names"]:
+        n0 = ex["names"][0]
+        if n0.get("entry") and n0.get("stop"):
+            stop_pct = round((n0["stop"] / n0["entry"] - 1) * 100, 1)
+            st_basis = f"best-setups levels on {n0['ticker']}"
+        if n0.get("entry") and n0.get("target"):
+            target_pct = round((n0["target"] / n0["entry"] - 1) * 100, 1)
 
-    sizing = sizer_lookup(sizer, setup.get("subject"), primary_ticker)
-
-    card = {
-        "rank":              rank,
-        "subject":           setup.get("subject"),
-        "ticker":            primary_ticker,
-        "direction":         setup.get("direction"),
-        "conviction":        setup.get("conviction"),
-        "confidence_band":   setup.get("confidence"),
-        "n_engines":         setup.get("n_engines"),
-        "n_families":        setup.get("n_families"),
-        "agreement_pct":     setup.get("agreement_pct"),
-        "thesis":            setup.get("thesis"),
-        "invalidation":      setup.get("invalidation"),
-        "engines": [
-            {
-                "name":     _engine_name(e),
-                "signal":   e.get("signal") if isinstance(e, dict) else None,
-                "label":    (e.get("signal_label") or e.get("family")
-                              or _engine_name(e)) if isinstance(e, dict) else None,
-                "read":     e.get("read") if isinstance(e, dict) else None,
-                "skill":    e.get("skill_weight") if isinstance(e, dict) else None,
-            } for e in engines[:8] if isinstance(e, dict)
-        ],
-        "distribution": {
-            **stack_match,
-        } if stack_match else None,
-        "scorecard": scard or None,
-        "sizing": {
-            "kelly_pct":     sizing.get("kelly_pct") or sizing.get("fraction"),
-            "dollar_at_100k": sizing.get("dollar_at_100k") or sizing.get("nominal"),
-            "horizon":       sizing.get("horizon") or sizing.get("horizon_days"),
-        } if sizing else None,
-        "stop_pct":   stop_pct,
+    return {
+        "rank": rank,
+        "subject": setup.get("subject"),
+        "direction": setup.get("direction"),
+        "conviction": setup.get("conviction"),
+        "confidence_band": setup.get("confidence"),
+        "n_engines": setup.get("n_engines"),
+        "n_families": setup.get("n_families"),
+        "agreement_pct": setup.get("agreement_pct"),
+        "thesis": setup.get("thesis"),
+        "invalidation": setup.get("invalidation"),
+        "engines": [{
+            "name": e.get("engine"), "family": e.get("family"),
+            "signal": e.get("signal"), "read": e.get("read"),
+            "skill": e.get("skill"),
+        } for e in engines[:8] if isinstance(e, dict)],
+        "stats": stats,
+        "sizing": sizing,
+        "express": ex,
+        "stop_pct": stop_pct,
         "target_pct": target_pct,
-        "tickers":    top_tickers[:5] if isinstance(top_tickers, list) else [],
+        "stop_target_basis": st_basis,
     }
-    return card
 
+
+# ───────────────────────────── handler ─────────────────────────────
 
 @track_errors
 def handler(event, context):
-    started = datetime.now(timezone.utc)
+    t0 = time.time()
+    now = datetime.now(timezone.utc)
 
-    conviction   = safe_load(KEY_CONVICTION)
-    magdist      = safe_load(KEY_MAGDIST)
-    scorecard    = safe_load(KEY_SCORECARD)
-    sizer        = safe_load(KEY_SIZER)
-    regime_json  = safe_load(KEY_REGIME)
-    miss_summary = safe_load(KEY_MISS_SUMMARY)
-    engine_map   = safe_load(KEY_ENGINE_MAP)
+    conviction = safe_load(K_CONVICTION)
+    magdist    = safe_load(K_MAGDIST)
+    scorecard  = safe_load(K_SCORECARD)
+    sizer      = safe_load(K_SIZER)
+    rcomp      = safe_load(K_RCOMP)
+    roro       = safe_load(K_RORO)
+    factor     = safe_load(K_FACTOR)
+    dollar     = safe_load(K_DOLLAR)
+    kill       = safe_load(K_KILL)
+    best       = safe_load(K_BEST)
+    miss       = safe_load(K_MISS)
+    emap       = safe_load(K_EMAP)
+    prev       = safe_load(OUT_KEY)
+    hist       = safe_load(HIST_KEY) or {"entries": []}
 
-    setups = (conviction.get("setups")
-              or conviction.get("conviction_sheet")
-              or conviction.get("ranked") or [])
-    if setups and isinstance(setups, list):
-        setups.sort(key=lambda r: -(r.get("conviction") or 0))
+    regime = fuse_regime(rcomp, roro, factor, dollar, sizer, conviction)
+    risk_mult = regime["risk_multiplier"]
 
-    top_calls = [build_card(s, magdist, scorecard, sizer, i + 1, engine_map=engine_map)
-                 for i, s in enumerate(setups[:3])]
-    watchlist = [build_card(s, magdist, scorecard, sizer, i + 4, engine_map=engine_map)
-                 for i, s in enumerate(setups[3:13])]
+    single_by_src = {}
+    for r in conviction.get("single_names") or []:
+        if isinstance(r, dict):
+            single_by_src.setdefault(str(r.get("source") or ""), []).append(r)
+    best_idx = _index_best_setups(best)
+    kill_idx = _index_kill(kill)
+    sizer_idx = _index_sizer(sizer)
 
+    setups = conviction.get("setups") or []
+    setups.sort(key=lambda r: -(fnum(r.get("conviction")) or 0))
+
+    cards = [build_card(s, i + 1, magdist, scorecard, emap, risk_mult,
+                        single_by_src, best_idx, kill_idx, sizer_idx)
+             for i, s in enumerate(setups[:13])]
+    top_calls, watchlist = cards[:3], cards[3:]
+
+    hist, track = update_track_record(hist, top_calls, now)
+    changes, delta_map = run_deltas(prev, cards)
+    for c in cards:
+        c["delta_conviction"] = delta_map.get(c["subject"])
+
+    totals = (miss or {}).get("totals") or {}
+    oou = totals.get("out_of_universe") or 0
     coverage = {
-        "miss_summary_30d_totals": miss_summary.get("totals") or {},
-        "top_recurring_misses":    list((miss_summary.get("top_recurring_tickers") or {}).items())[:10],
+        "miss_summary_30d_totals": totals,
+        "note": ("Misses are dominated by out-of-universe names — coverage "
+                 "is a universe-expansion lever, not a signal-quality flaw."
+                 if oou and oou >= max(
+                     (v for k, v in totals.items()
+                      if k != "out_of_universe" and isinstance(v, (int, float))),
+                     default=0)
+                 else "Miss mix is spread across causes — see miss desk."),
     }
 
-    output = {
-        "schema_version":  "1.0",
-        "generated_at":    started.isoformat(),
-        "regime":          regime_context(regime_json),
-        "top_calls":       top_calls,
-        "watchlist":       watchlist,
-        "coverage":        coverage,
+    def feed_meta(d, extra=None):
+        m = {"present": bool(d), "as_of": first_of(d or {}, "generated_at",
+                                                   "as_of", "ts")}
+        if extra:
+            m.update(extra)
+        return m
+
+    out = {
+        "schema_version": "2.0",
+        "generated_at": now.isoformat(),
+        "elapsed_s": round(time.time() - t0, 2),
+        "regime": regime,
+        "track_record": track,
+        "changes": changes,
+        "top_calls": top_calls,
+        "watchlist": watchlist,
+        "coverage": coverage,
         "source_feeds": {
-            "conviction":              {"present": bool(conviction), "as_of": conviction.get("generated_at")},
-            "magnitude_distributions": {"present": bool(magdist),    "as_of": magdist.get("generated_at"),
-                                         "stacks": magdist.get("totals", {}).get("published_stacks")},
-            "scorecard":               {"present": bool(scorecard)},
-            "sizer":                   {"present": bool(sizer)},
-            "miss_summary":            {"present": bool(miss_summary)},
-            "engine_signal_map":       {"present": bool(engine_map),
-                                         "families": len(engine_map.get("by_family", {})) if engine_map else 0},
+            "conviction": feed_meta(conviction),
+            "magnitude_distributions": feed_meta(
+                magdist, {"stacks": len((magdist or {}).get("stacks") or [])}),
+            "scorecard": feed_meta(scorecard),
+            "sizer": feed_meta(sizer),
+            "regime_composite": feed_meta(rcomp),
+            "risk_regime": feed_meta(roro),
+            "factor_regime": feed_meta(factor),
+            "dollar_radar": feed_meta(dollar),
+            "kill_theses": feed_meta(kill),
+            "best_setups": feed_meta(best),
+            "miss_summary": feed_meta(miss),
+            "engine_signal_map": feed_meta(
+                emap, {"families": len((emap or {}).get("by_family") or {})}),
         },
     }
 
-    s3.put_object(
-        Bucket=BUCKET, Key=OUTPUT_KEY,
-        Body=json.dumps(output, default=_decimal_default, separators=(",", ":")).encode("utf-8"),
-        ContentType="application/json",
-        CacheControl="public, max-age=300",
-    )
+    s3.put_object(Bucket=BUCKET, Key=HIST_KEY,
+                  Body=json.dumps(hist, default=_dec,
+                                  separators=(",", ":")).encode(),
+                  ContentType="application/json",
+                  CacheControl="public, max-age=300")
+    s3.put_object(Bucket=BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(out, default=_dec,
+                                  separators=(",", ":")).encode(),
+                  ContentType="application/json",
+                  CacheControl="public, max-age=300")
 
-    print(f"[compass] top_calls={len(top_calls)} watchlist={len(watchlist)} "
-          f"regime={output['regime']['label']}")
+    tiers = [c["stats"]["source"] for c in cards]
+    print(f"[compass] v2 cards={len(cards)} regime={regime['label']} "
+          f"sources={len(regime['sources'])} tiers={tiers} "
+          f"graded={track['graded_this_run']} "
+          f"quotes={track['quotes_available']}")
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "ok": True,
-            "top_calls": len(top_calls),
-            "watchlist": len(watchlist),
-        }),
-    }
+    return {"statusCode": 200,
+            "body": json.dumps({"ok": True, "cards": len(cards),
+                                "regime": regime["label"]})}
 
 
 lambda_handler = handler

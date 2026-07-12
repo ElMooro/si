@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Alpha Compass · JustHodl.AI</title>
-<meta name="description" content="Top 3 highest-conviction calls across the platform's 270+ engines — with realised distributions, sizing, and regime context. The institutional landing screen.">
+<!-- AC_SCHEMA_2.0 -->
+<meta name="description" content="The desk sheet: top conviction calls with regime fusion, tradeable expression, realised-distribution stats, quarter-Kelly sizing, and a self-grading track record.">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -32,11 +33,31 @@ a{color:var(--blue);text-decoration:none}
 
 .container{max-width:1500px;margin:0 auto;padding:22px 24px}
 
-.regime-strip{display:flex;align-items:center;gap:18px;background:var(--bg-card);border:1px solid var(--brd);border-radius:12px;padding:14px 22px;margin-bottom:24px}
+.regime-strip{background:var(--bg-card);border:1px solid var(--brd);border-radius:12px;padding:14px 22px;margin-bottom:14px}
+.regime-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .regime-strip .regime-label{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;font-family:JetBrains Mono,monospace}
 .regime-strip .regime-value{font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace}
 .regime-strip .regime-dot{width:12px;height:12px;border-radius:50%}
 .regime-strip .regime-meta{margin-left:auto;font-size:11px;color:var(--t2);font-family:JetBrains Mono,monospace}
+.regime-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rchip{font-family:JetBrains Mono,monospace;font-size:10.5px;padding:4px 10px;border-radius:5px;border:1px solid var(--brd);background:rgba(255,255,255,.02);display:flex;gap:6px;align-items:center}
+.rchip .k{color:var(--t3);letter-spacing:.5px}
+.rchip .v{font-weight:700}
+.playbook{margin-top:9px;font-size:11px;color:var(--t2);font-family:JetBrains Mono,monospace}
+
+.track-strip{display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--bg1);border:1px solid var(--brd);border-radius:12px;padding:12px 18px;margin-bottom:14px;font-family:JetBrains Mono,monospace}
+.track-strip .tk{font-size:10px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase}
+.track-cell{display:flex;flex-direction:column;gap:2px}
+.track-cell .big{font-size:17px;font-weight:700}
+.track-recent{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.tr-pill{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--brd)}
+.tr-pill.pos{color:var(--green);background:rgba(0,230,138,.08)}
+.tr-pill.neg{color:var(--red);background:rgba(255,71,87,.08)}
+
+.changes-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;font-family:JetBrains Mono,monospace}
+.ch-chip{font-size:10.5px;padding:4px 10px;border-radius:5px;border:1px solid var(--brd);color:var(--t2)}
+.ch-chip b{color:var(--t1)}
+.ch-chip.up b{color:var(--green)}.ch-chip.dn b{color:var(--red)}
 
 .section-head{display:flex;align-items:center;gap:12px;margin:24px 0 14px}
 .section-head h2{font-size:17px;font-weight:600}
@@ -54,24 +75,34 @@ a{color:var(--blue);text-decoration:none}
 .cc-rank{position:absolute;top:14px;right:14px;font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;letter-spacing:1px}
 .cc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:10px}
 .cc-subject{font-size:13px;color:var(--t2);font-weight:500;text-transform:uppercase;letter-spacing:1.2px;font-family:JetBrains Mono,monospace}
-.cc-ticker{font-size:26px;font-weight:700;font-family:JetBrains Mono,monospace;margin-top:3px;color:var(--t1)}
-.cc-direction{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-top:4px;font-family:JetBrains Mono,monospace;letter-spacing:1px}
+.cc-direction{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;margin-top:6px;font-family:JetBrains Mono,monospace;letter-spacing:1px}
 .cc-direction.up{background:rgba(0,230,138,.15);color:var(--green)}
 .cc-direction.down{background:rgba(255,71,87,.15);color:var(--red)}
 .cc-direction.neutral{background:rgba(255,212,59,.15);color:var(--yellow)}
-
 .cc-conviction{text-align:right;padding-left:8px}
 .cc-conviction .num{font-size:36px;font-weight:700;font-family:JetBrains Mono,monospace;line-height:1;color:var(--t1)}
 .cc-conviction .lbl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;font-family:JetBrains Mono,monospace}
+.delta-chip{font-size:10px;font-family:JetBrains Mono,monospace;font-weight:700;margin-top:3px}
+.delta-chip.pos{color:var(--green)}.delta-chip.neg{color:var(--red)}
 
-.gauge{height:6px;background:var(--bg0);border-radius:6px;margin:14px 0;overflow:hidden}
+.gauge{height:6px;background:var(--bg0);border-radius:6px;margin:12px 0;overflow:hidden}
 .gauge-fill{height:100%;border-radius:6px;transition:width .8s ease;background:linear-gradient(90deg,var(--blue),var(--green))}
 
-.cc-thesis{font-size:13px;color:var(--t1);line-height:1.55;margin:10px 0 14px;font-style:italic;border-left:2px solid var(--brd2);padding-left:10px}
-.cc-invalidation{font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-top:6px}
-.cc-invalidation b{color:var(--red);font-weight:600}
+.cc-thesis{font-size:13px;color:var(--t1);line-height:1.55;margin:10px 0 12px;font-style:italic;border-left:2px solid var(--brd2);padding-left:10px}
 
-.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:14px 0;padding:12px;background:rgba(255,255,255,.02);border:1px solid var(--brd);border-radius:8px}
+.tier-badge{display:inline-block;font-size:9px;font-family:JetBrains Mono,monospace;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:3px;text-transform:uppercase}
+.tier-magdist{background:rgba(0,230,138,.14);color:var(--green)}
+.tier-scorecard{background:rgba(77,171,247,.14);color:var(--blue)}
+.tier-prior{background:rgba(137,150,176,.14);color:var(--t2)}
+
+.dist-wrap{margin:12px 0 4px}
+.dist-lbls{display:flex;justify-content:space-between;font-size:9.5px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-bottom:3px}
+.dist-bar{position:relative;height:14px;background:var(--bg0);border-radius:5px;border:1px solid var(--brd)}
+.dist-range{position:absolute;top:2px;bottom:2px;background:linear-gradient(90deg,rgba(255,71,87,.35),rgba(0,230,138,.35));border-radius:3px}
+.dist-median{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--t1)}
+.dist-zero{position:absolute;top:0;bottom:0;width:1px;background:var(--t3);opacity:.6}
+
+.cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:12px 0;padding:12px;background:rgba(255,255,255,.02);border:1px solid var(--brd);border-radius:8px}
 .cc-grid .row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:JetBrains Mono,monospace;font-size:11px}
 .cc-grid .row .k{color:var(--t3);letter-spacing:.5px}
 .cc-grid .row .v{color:var(--t1);font-weight:600}
@@ -79,17 +110,33 @@ a{color:var(--blue);text-decoration:none}
 .cc-grid .row .v.neg{color:var(--red)}
 .cc-grid .row .v.warn{color:var(--yellow)}
 
+.express{margin:12px 0}
+.express .lbl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:JetBrains Mono,monospace}
+.veh-row{display:flex;gap:6px;flex-wrap:wrap}
+.veh{font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;border:1px solid var(--brd2)}
+.veh.long{color:var(--green);background:rgba(0,230,138,.07)}
+.veh.short{color:var(--red);background:rgba(255,71,87,.07)}
+.veh.watch{color:var(--yellow);background:rgba(255,212,59,.07)}
+.name-chip{display:block;margin-top:6px;font-family:JetBrains Mono,monospace;font-size:10.5px;padding:6px 10px;border-radius:6px;border:1px solid var(--brd);background:rgba(255,255,255,.015)}
+.name-chip .nc-t{font-weight:700;color:var(--t1)}
+.name-chip .nc-m{color:var(--t3)}
+.name-chip .nc-kill{display:block;color:var(--orange);margin-top:2px;font-size:9.5px}
+.express .note{font-size:9.5px;color:var(--t3);margin-top:5px;font-family:JetBrains Mono,monospace}
+
 .cc-engines{margin-top:8px}
 .cc-engines .lbl{font-size:9px;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:JetBrains Mono,monospace}
-.cc-engine{display:flex;justify-content:space-between;font-size:10.5px;padding:3px 0;border-bottom:1px solid rgba(26,39,68,.4);font-family:JetBrains Mono,monospace}
-.cc-engine .e-name{color:var(--t2)}
-.cc-engine .e-read{color:var(--t1);font-weight:500}
+.cc-engine{display:flex;justify-content:space-between;font-size:10.5px;padding:3px 0;border-bottom:1px solid rgba(26,39,68,.4);font-family:JetBrains Mono,monospace;gap:10px}
+.cc-engine .e-name{color:var(--t2);white-space:nowrap}
+.cc-engine .e-read{color:var(--t1);font-weight:500;text-align:right}
+.cc-invalidation{font-size:11px;color:var(--t3);font-family:JetBrains Mono,monospace;margin-top:8px}
+.cc-invalidation b{color:var(--red);font-weight:600}
 
 .watchlist-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--bg1);border:1px solid var(--brd);border-radius:12px;overflow:hidden;font-size:12px;font-family:JetBrains Mono,monospace}
-.watchlist-table th{text-align:left;padding:12px 14px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--brd);font-weight:600}
-.watchlist-table td{padding:12px 14px;border-bottom:1px solid rgba(26,39,68,.5)}
+.watchlist-table th{text-align:left;padding:11px 12px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--brd);font-weight:600}
+.watchlist-table td{padding:11px 12px;border-bottom:1px solid rgba(26,39,68,.5)}
 .watchlist-table tr:last-child td{border-bottom:none}
 .watchlist-table tr:hover td{background:rgba(77,171,247,.03)}
+.wl-wrap{overflow-x:auto}
 .pill{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9.5px;font-weight:600;letter-spacing:.5px}
 .pill-up{background:rgba(0,230,138,.12);color:var(--green)}
 .pill-dn{background:rgba(255,71,87,.12);color:var(--red)}
@@ -101,6 +148,12 @@ a{color:var(--blue);text-decoration:none}
 .coverage .row .it{display:flex;gap:8px}
 .coverage .row .it .k{color:var(--t3);text-transform:uppercase;letter-spacing:1px;font-size:10px}
 .coverage .row .it .v{color:var(--t1);font-weight:600}
+.coverage .note{margin-top:9px;font-size:11px;color:var(--t2)}
+
+.provenance{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.prov-chip{font-family:JetBrains Mono,monospace;font-size:9.5px;padding:3px 8px;border-radius:4px;border:1px solid var(--brd);color:var(--t3)}
+.prov-chip.fresh{color:var(--t2)}
+.prov-chip.missing{color:var(--red)}
 
 .loading{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:14px}
 .spinner{width:42px;height:42px;border:3px solid var(--brd);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
@@ -114,6 +167,7 @@ a{color:var(--blue);text-decoration:none}
   .container{padding:14px}
   .topbar{padding:10px 16px}
   .topbar-right span:nth-child(2){display:none}
+  .track-recent{margin-left:0}
 }
 </style>
 </head>
@@ -132,197 +186,205 @@ a{color:var(--blue);text-decoration:none}
 
 <div class="container">
   <div id="app">
-    <div class="loading">
-      <div class="spinner"></div>
-      <div style="color:var(--t2);font-size:13px;font-family:JetBrains Mono,monospace">Loading alpha compass…</div>
+    <div class="loading"><div class="spinner"></div>
+      <div class="mono" style="color:var(--t3);font-size:12px">Assembling the desk sheet…</div>
     </div>
   </div>
 </div>
 
 <script>
-"use strict";
-const DATA_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-compass.json";
-const FALLBACK_PROXY = "https://api.justhodl.ai/agent/secretary?key=data/alpha-compass.json";
+const FEEDS=['data/alpha-compass.json',
+  'https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-compass.json'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(v,d=1,suf='')=>v==null||isNaN(v)?'—':(+v).toFixed(d)+suf;
+const sgnCls=v=>v==null?'':(v>0?'pos':v<0?'neg':'');
+const dirCls=d=>{d=String(d||'').toUpperCase();return d.startsWith('RISK-ON')?'up':d.startsWith('RISK-OFF')?'down':'neutral'};
+const dirIcon=d=>({up:'▲',down:'▼',neutral:'●'})[dirCls(d)];
+const age=iso=>{if(!iso)return null;const m=(Date.now()-new Date(iso))/6e4;
+  return m<90?Math.round(m)+'m':m<2880?(m/60).toFixed(1)+'h':Math.round(m/1440)+'d'};
 
-function fmt(n, d){ if(n==null||isNaN(n)) return "—"; const s=(d===0?n.toFixed(0):n.toFixed(d??2)); return s; }
-function pct(n,d){ if(n==null||isNaN(n)) return "—"; const sign=n>0?"+":""; return sign+fmt(n,d??1)+"%"; }
-function pctClass(n){ if(n==null) return ""; return n>0?"pos":n<0?"neg":""; }
-function dirCls(d){ if(!d) return "neutral"; const u=d.toUpperCase(); if(u.includes("UP")||u.includes("LONG")||u.includes("OVER")) return "up"; if(u.includes("DOWN")||u.includes("SHORT")||u.includes("UNDER")) return "down"; return "neutral"; }
-function dirArrow(d){ const c=dirCls(d); return c==="up"?"▲":c==="down"?"▼":"●"; }
-function safe(s){ return s==null?"":String(s).replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-async function loadData(){
-  try{
-    const r = await fetch(DATA_URL+"?t="+Date.now(),{cache:"no-store"});
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    return await r.json();
-  }catch(e){
-    console.warn("primary fetch fail, trying proxy:",e);
-    const r2 = await fetch(FALLBACK_PROXY+"&t="+Date.now(),{cache:"no-store"});
-    if(!r2.ok) throw new Error("proxy "+r2.status);
-    return await r2.json();
-  }
+async function load(){
+  for(const u of FEEDS){try{
+    const r=await fetch(u+'?t='+Date.now(),{cache:'no-store'});
+    if(r.ok){const j=await r.json();if(j&&j.top_calls)return j;}
+  }catch(e){}}
+  return null;
 }
 
-function renderRegime(reg){
-  if(!reg) return "";
+function regimeStrip(d){
+  const r=d.regime||{};
+  const chips=(r.sources||[]).map(s=>`<div class="rchip">
+    <span class="k">${esc(s.label)}</span>
+    <span class="v" style="color:${esc(s.color||'#8896b0')}">${esc(s.value??'—')}${s.score!=null?` (${fmt(s.score,0)})`:''}</span></div>`).join('');
   return `<div class="regime-strip">
-    <span class="regime-dot" style="background:${reg.color||"#888"}"></span>
-    <div>
-      <div class="regime-label">Macro Regime</div>
-      <div class="regime-value">${safe(reg.label||"Unknown")}</div>
+    <div class="regime-top">
+      <span class="regime-label">Macro Regime</span>
+      <span class="regime-dot" style="background:${esc(r.color||'#888')}"></span>
+      <span class="regime-value" style="color:${esc(r.color||'#888')}">${esc(r.label||'Unknown')}</span>
+      ${r.risk_multiplier!=null?`<span class="rchip"><span class="k">RISK MULT</span><span class="v">×${fmt(r.risk_multiplier,2)}</span></span>`:''}
+      <span class="regime-meta">${d.generated_at?'as of '+age(d.generated_at)+' ago':''}</span>
     </div>
-    <div class="regime-meta">
-      ${reg.khalid_score!=null?`Khalid Score: <b style="color:var(--t1)">${fmt(reg.khalid_score,1)}</b>`:""}
-    </div>
+    ${chips?`<div class="regime-chips">${chips}</div>`:''}
+    ${r.playbook?`<div class="playbook">▸ ${esc(r.playbook)}</div>`:''}
   </div>`;
 }
 
-function renderCard(c){
-  if(!c) return "";
-  const dc = dirCls(c.direction);
-  const arr = dirArrow(c.direction);
-  const conv = c.conviction ?? 0;
-  const d = c.distribution || {};
-  const sc = c.scorecard || {};
-  const sz = c.sizing || {};
-  const engines = c.engines || [];
-  const tk = c.ticker || (c.tickers && c.tickers[0]?.ticker) || c.subject || "—";
-  return `<div class="call-card ${dc}">
+function trackStrip(d){
+  const t=d.track_record;if(!t)return'';
+  const c=(w,o)=>`<div class="track-cell"><span class="tk">${w}</span>
+    <span class="big ${sgnCls(o.avg_ret)}">${o.n?fmt(o.hit_rate*100,0,'%'):'—'}</span>
+    <span class="tk" style="letter-spacing:0">${o.n?`${o.n} graded · avg ${fmt(o.avg_ret,1,'%')}`:'no graded calls yet'}</span></div>`;
+  const rec=(t.recent||[]).map(e=>`<span class="tr-pill ${e.ret>0?'pos':'neg'}" title="${esc(e.subject)} · ${e.d}">${esc(e.tk)} ${e.ret>0?'+':''}${fmt(e.ret,1)}%</span>`).join('');
+  return `<div class="track-strip">
+    <div class="track-cell"><span class="tk">Compass Track Record</span>
+      <span class="tk" style="letter-spacing:0;color:var(--t2)">self-graded · ${t.open_calls??0} open</span></div>
+    ${c('30-day hit',t.trail_30d||{})}${c('90-day hit',t.trail_90d||{})}
+    <div class="track-recent">${rec}</div></div>`;
+}
+
+function changesBar(d){
+  const c=d.changes;if(!c)return'';
+  const bits=[];
+  (c.entered||[]).forEach(s=>bits.push(`<span class="ch-chip up">NEW <b>${esc(s)}</b></span>`));
+  (c.dropped||[]).forEach(s=>bits.push(`<span class="ch-chip dn">OUT <b>${esc(s)}</b></span>`));
+  (c.moves||[]).forEach(m=>bits.push(`<span class="ch-chip ${m.delta>0?'up':'dn'}">${esc(m.subject)} <b>${m.delta>0?'+':''}${fmt(m.delta,0)}</b></span>`));
+  return bits.length?`<div class="changes-bar"><span class="ch-chip" style="border-color:var(--brd2)">Δ since last run</span>${bits.join('')}</div>`:'';
+}
+
+function distBar(st){
+  if(!st||st.p25==null||st.p75==null)return'';
+  const lo=Math.min(st.p25,0),hi=Math.max(st.p75,0),span=hi-lo||1;
+  const x=v=>((v-lo)/span*100).toFixed(1)+'%';
+  return `<div class="dist-wrap">
+    <div class="dist-lbls"><span>p25 ${fmt(st.p25,1)}%</span><span>median ${fmt(st.median,1)}%</span><span>p75 ${fmt(st.p75,1)}%</span></div>
+    <div class="dist-bar">
+      <div class="dist-range" style="left:${x(st.p25)};width:${(Math.max(st.p75-st.p25,0)/span*100).toFixed(1)}%"></div>
+      <div class="dist-zero" style="left:${x(0)}"></div>
+      ${st.median!=null?`<div class="dist-median" style="left:${x(st.median)}"></div>`:''}
+    </div></div>`;
+}
+
+function tierBadge(st){
+  const s=(st&&st.source)||'prior';
+  const lbl={magdist:'REALISED DIST',scorecard:'SCORECARD EST',prior:'PRIOR ONLY'}[s]||s;
+  return `<span class="tier-badge tier-${esc(s)}">${lbl}</span>`;
+}
+
+function expressBlock(ex){
+  if(!ex)return'';
+  const vehs=(ex.vehicles||[]).map(v=>`<span class="veh ${v.side.toLowerCase()}">${v.side==='SHORT'?'−':v.side==='LONG'?'+':'~'} ${esc(v.ticker)}</span>`).join('');
+  const names=(ex.names||[]).map(n=>{
+    const lv=[n.entry!=null?`in ${fmt(n.entry,2)}`:null,n.stop!=null?`stop ${fmt(n.stop,2)}`:null,n.target!=null?`tgt ${fmt(n.target,2)}`:null].filter(Boolean).join(' · ');
+    return `<span class="name-chip"><span class="nc-t">${esc(n.ticker)}</span>
+      <span class="nc-m"> ${esc(n.verdict||'')}${n.score!=null?' · '+fmt(n.score,0):''}${lv?' · '+lv:''}</span>
+      ${n.kill_risk?`<span class="nc-kill">⚠ ${esc(n.kill_risk)}</span>`:''}</span>`;}).join('');
+  return `<div class="express"><div class="lbl">Express via</div>
+    ${vehs?`<div class="veh-row">${vehs}</div>`:''}${names}
+    ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}</div>`;
+}
+
+function card(c){
+  const st=c.stats||{},sz=c.sizing||{};
+  const dc=c.delta_conviction;
+  return `<div class="call-card ${dirCls(c.direction)}">
     <div class="cc-rank">#${c.rank}</div>
-    <div class="cc-head">
-      <div>
-        <div class="cc-subject">${safe(c.subject||"")}</div>
-        <div class="cc-ticker">${safe(tk)}</div>
-        <span class="cc-direction ${dc}">${arr} ${safe(c.direction||"NEUTRAL")}</span>
-      </div>
-      <div class="cc-conviction">
-        <div class="num">${fmt(conv,0)}</div>
-        <div class="lbl">${safe(c.confidence_band||"")}</div>
-      </div>
+    <div class="cc-head"><div>
+      <div class="cc-subject">${esc(c.subject)}</div>
+      <span class="cc-direction ${dirCls(c.direction)}">${dirIcon(c.direction)} ${esc(c.direction||'')}</span>
+    </div><div class="cc-conviction">
+      <div class="num">${fmt(c.conviction,0)}</div><div class="lbl">${esc(c.confidence_band||'CONVICTION')}</div>
+      ${dc!=null&&dc!==0?`<div class="delta-chip ${dc>0?'pos':'neg'}">${dc>0?'▲':'▼'} ${Math.abs(dc)}</div>`:''}
+    </div></div>
+    <div class="gauge"><div class="gauge-fill" style="width:${Math.min(100,c.conviction||0)}%"></div></div>
+    <div class="cc-thesis">${esc(c.thesis||'')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      ${tierBadge(st)}
+      <span class="mono" style="font-size:9.5px;color:var(--t3)">${st.horizon_days?st.horizon_days+'d horizon':''}${st.match_score?' · match '+st.match_score:''}</span>
     </div>
-    <div class="gauge"><div class="gauge-fill" style="width:${Math.min(100,Math.max(0,conv))}%"></div></div>
-    ${c.thesis?`<div class="cc-thesis">${safe(c.thesis)}</div>`:""}
+    ${distBar(st)}
     <div class="cc-grid">
-      <div class="row"><span class="k">Target</span><span class="v pos">${c.target_pct!=null?pct(c.target_pct,1):"—"}</span></div>
-      <div class="row"><span class="k">Stop</span><span class="v neg">${c.stop_pct!=null?pct(c.stop_pct,1):"—"}</span></div>
-      <div class="row"><span class="k">Sample (n)</span><span class="v">${d.n||"—"}</span></div>
-      <div class="row"><span class="k">Win rate</span><span class="v ${d.win_rate>=0.55?"pos":d.win_rate>=0.45?"":"neg"}">${d.win_rate!=null?(d.win_rate*100).toFixed(0)+"%":"—"}</span></div>
-      <div class="row"><span class="k">Median</span><span class="v ${pctClass(d.median)}">${pct(d.median,1)}</span></div>
-      <div class="row"><span class="k">P25 → P75</span><span class="v">${pct(d.p25,1)} → ${pct(d.p75,1)}</span></div>
-      <div class="row"><span class="k">Engines</span><span class="v">${c.n_engines||"—"} / ${c.n_families||"—"} fam</span></div>
-      <div class="row"><span class="k">Agreement</span><span class="v">${c.agreement_pct!=null?c.agreement_pct+"%":"—"}</span></div>
-      ${sc.mean_wilson_lb!=null?`<div class="row"><span class="k">Scorecard WLB</span><span class="v">${(sc.mean_wilson_lb*100).toFixed(0)}%</span></div>`:""}
-      ${sz.kelly_pct!=null?`<div class="row"><span class="k">Kelly size</span><span class="v warn">${(sz.kelly_pct*100).toFixed(1)}%</span></div>`:""}
+      <div class="row"><span class="k">Win rate</span><span class="v">${st.win_rate!=null?fmt(st.win_rate*100,0,'%'):'—'}</span></div>
+      <div class="row"><span class="k">Sample (n)</span><span class="v">${st.n??'—'}</span></div>
+      <div class="row"><span class="k">Median</span><span class="v ${sgnCls(st.median)}">${fmt(st.median,1,'%')}</span></div>
+      <div class="row"><span class="k">Stop / Target</span><span class="v"><span class="neg">${fmt(c.stop_pct,1,'%')}</span> / <span class="pos">${fmt(c.target_pct,1,'%')}</span></span></div>
+      <div class="row"><span class="k">Size (¼-Kelly)</span><span class="v warn">${fmt(sz.kelly_pct,2,'%')}</span></div>
+      <div class="row"><span class="k">$ at 100k</span><span class="v">${sz.dollar_at_100k!=null?'$'+sz.dollar_at_100k.toLocaleString():'—'}</span></div>
+      <div class="row"><span class="k">Engines</span><span class="v">${c.n_engines??'—'} / ${c.n_families??'—'} fam</span></div>
+      <div class="row"><span class="k">Agreement</span><span class="v">${fmt(c.agreement_pct,0,'%')}</span></div>
     </div>
-    ${engines.length?`<div class="cc-engines">
-      <div class="lbl">Contributing engines</div>
-      ${engines.slice(0,5).map(e=>`<div class="cc-engine">
-        <span class="e-name">${safe(e.label||e.signal||"")}</span>
-        <span class="e-read">${safe(e.read||"")}</span>
-      </div>`).join("")}
-    </div>`:""}
-    ${c.invalidation?`<div class="cc-invalidation">Invalidation: <b>${safe(c.invalidation)}</b></div>`:""}
+    ${sz.basis?`<div class="mono" style="font-size:9.5px;color:var(--t3);margin:-4px 0 8px">size basis: ${esc(sz.basis)}</div>`:''}
+    ${c.stop_target_basis?`<div class="mono" style="font-size:9.5px;color:var(--t3);margin:-2px 0 8px">stop/target: ${esc(c.stop_target_basis)}</div>`:''}
+    ${expressBlock(c.express)}
+    <div class="cc-engines"><div class="lbl">Contributing engines</div>
+      ${(c.engines||[]).slice(0,5).map(e=>`<div class="cc-engine"><span class="e-name">${esc(e.name||e.family||'')}</span><span class="e-read">${esc((e.read||'').slice(0,60))}</span></div>`).join('')}
+    </div>
+    ${c.invalidation?`<div class="cc-invalidation"><b>Invalidation:</b> ${esc(c.invalidation)}</div>`:''}
   </div>`;
 }
 
-function renderWatchlist(list){
-  if(!list||!list.length) return "";
-  return `<table class="watchlist-table">
-    <thead><tr>
-      <th>#</th><th>Subject / Ticker</th><th>Dir</th><th>Conv</th>
-      <th>Median</th><th>P25-P75</th><th>Win%</th><th>N</th>
-      <th>Engines</th><th>Stop</th><th>Target</th>
-    </tr></thead>
-    <tbody>
-    ${list.map(c=>{
-      const d=c.distribution||{};
-      const tk=c.ticker||(c.tickers&&c.tickers[0]?.ticker)||c.subject||"—";
-      const dc=dirCls(c.direction);
-      return `<tr>
-        <td>${c.rank}</td>
-        <td><b>${safe(tk)}</b><div style="color:var(--t3);font-size:10px">${safe(c.subject||"")}</div></td>
-        <td><span class="pill pill-${dc==="up"?"up":dc==="down"?"dn":"neut"}">${safe(c.direction||"—")}</span></td>
-        <td>${fmt(c.conviction,0)}</td>
-        <td class="${pctClass(d.median)}">${pct(d.median,1)}</td>
-        <td>${pct(d.p25,0)}→${pct(d.p75,0)}</td>
-        <td>${d.win_rate!=null?(d.win_rate*100).toFixed(0)+"%":"—"}</td>
-        <td>${d.n||"—"}</td>
-        <td>${c.n_engines||"—"}</td>
-        <td class="${c.stop_pct!=null?"":""}">${c.stop_pct!=null?pct(c.stop_pct,1):"—"}</td>
-        <td>${c.target_pct!=null?pct(c.target_pct,1):"—"}</td>
-      </tr>`;
-    }).join("")}
-    </tbody>
-  </table>`;
+function watchRow(c){
+  const st=c.stats||{},sz=c.sizing||{},ex=c.express||{};
+  const dc=c.delta_conviction;
+  return `<tr>
+    <td>${c.rank}</td>
+    <td>${esc(c.subject)}</td>
+    <td><span class="pill ${dirCls(c.direction)==='up'?'pill-up':dirCls(c.direction)==='down'?'pill-dn':'pill-neut'}">${esc((c.direction||'').split(' /')[0])}</span></td>
+    <td><b>${fmt(c.conviction,0)}</b>${dc?` <span class="${dc>0?'mono':''}" style="color:${dc>0?'var(--green)':'var(--red)'};font-size:10px">${dc>0?'+':''}${dc}</span>`:''}</td>
+    <td>${tierBadge(st)}</td>
+    <td class="${sgnCls(st.median)}" style="color:${st.median>0?'var(--green)':st.median<0?'var(--red)':'inherit'}">${fmt(st.median,1,'%')}</td>
+    <td>${st.win_rate!=null?fmt(st.win_rate*100,0,'%'):'—'}</td>
+    <td>${fmt(sz.kelly_pct,2,'%')}</td>
+    <td>${esc(ex.primary||'—')}</td>
+    <td style="color:var(--red)">${fmt(c.stop_pct,1,'%')}</td>
+    <td style="color:var(--green)">${fmt(c.target_pct,1,'%')}</td>
+  </tr>`;
 }
 
-function renderCoverage(cov,feeds){
-  if(!cov) return "";
-  const tot = cov.miss_summary_30d_totals || {};
-  const totRows = Object.keys(tot).length?Object.entries(tot).map(([k,v])=>`
-    <div class="it"><span class="k">${safe(k)}</span><span class="v">${v}</span></div>`).join(""):
-    "<span style='color:var(--t3)'>no miss data yet — system running &lt; 1d</span>";
-  return `<div class="coverage">
-    <h3>📡 30-day Coverage State</h3>
-    <div class="row">${totRows}</div>
-    <div class="row" style="margin-top:10px;color:var(--t3)">
-      Source feeds:
-      ${Object.entries(feeds||{}).map(([k,v])=>`
-        <span style="color:${v.present?'var(--green)':'var(--red)'}">${safe(k)}${v.present?'':' (offline)'}</span>
-      `).join(" · ")}
-    </div>
-  </div>`;
+function coverage(d){
+  const cv=d.coverage||{},t=cv.miss_summary_30d_totals||{};
+  const items=Object.entries(t).map(([k,v])=>`<div class="it"><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('');
+  return `<div class="coverage"><h3>📡 30-day Coverage State</h3>
+    <div class="row">${items||'<span style="color:var(--t3)">no miss data</span>'}</div>
+    ${cv.note?`<div class="note">${esc(cv.note)}</div>`:''}
+    ${prov(d)}</div>`;
+}
+
+function prov(d){
+  const sf=d.source_feeds||{};
+  const chips=Object.entries(sf).map(([k,m])=>{
+    const a=m&&m.as_of?age(m.as_of):null;
+    return `<span class="prov-chip ${m&&m.present?'fresh':'missing'}">${esc(k)}${a?' · '+a:m&&m.present?'':' · MISSING'}</span>`;
+  }).join('');
+  return `<div class="provenance">${chips}</div>`;
 }
 
 function render(d){
-  const app = document.getElementById("app");
-  const top = d.top_calls || [];
-  const wl  = d.watchlist || [];
-  app.innerHTML = `
-    ${renderRegime(d.regime)}
-    <div class="section-head">
-      <h2>Top conviction calls</h2>
-      <span class="badge">${top.length} of 3</span>
-    </div>
-    <div class="calls-grid">
-      ${top.length?top.map(renderCard).join(""):'<div style="color:var(--t3);grid-column:1/-1;text-align:center;padding:40px">No setups above conviction threshold right now.</div>'}
-    </div>
-    ${wl.length?`<div class="section-head">
-      <h2>Watchlist</h2>
-      <span class="badge">${wl.length} setups</span>
-    </div>
-    ${renderWatchlist(wl)}`:""}
-    ${renderCoverage(d.coverage, d.source_feeds)}
+  $('#ts').textContent=new Date(d.generated_at).toLocaleString();
+  const top=(d.top_calls||[]).map(card).join('');
+  const wl=(d.watchlist||[]);
+  $('#app').innerHTML=`
+    ${regimeStrip(d)}
+    ${trackStrip(d)}
+    ${changesBar(d)}
+    <div class="section-head"><h2>Top conviction calls</h2><span class="badge">${(d.top_calls||[]).length} of ${(d.top_calls||[]).length+wl.length}</span></div>
+    <div class="calls-grid">${top}</div>
+    ${wl.length?`<div class="section-head"><h2>Watchlist</h2><span class="badge">${wl.length} setups</span></div>
+    <div class="wl-wrap"><table class="watchlist-table">
+      <thead><tr><th>#</th><th>Subject</th><th>Dir</th><th>Conv</th><th>Evidence</th><th>Median</th><th>Win%</th><th>Size</th><th>Express</th><th>Stop</th><th>Target</th></tr></thead>
+      <tbody>${wl.map(watchRow).join('')}</tbody></table></div>`:''}
+    ${coverage(d)}
     <div class="footer-note">
-      <b>This is the consumer surface, not the brain.</b> The 270+ engines underneath
-      produce signals; the conviction-engine ranks them; magnitude-distributions
-      attaches realised return profiles; position-sizer-v2 sizes Kelly; miss-detector
-      tracks what we didn't catch. This page is the synthesis layer.
-      Generated ${d.generated_at?new Date(d.generated_at).toLocaleString():""}.
-    </div>
-  `;
-  document.getElementById("ts").textContent = new Date().toLocaleTimeString();
+      <b>This is the consumer surface, not the brain.</b> The 270+ engines underneath produce signals; the conviction-engine ranks them; magnitude-distributions attaches realised return profiles where a graded stack exists; where it doesn't yet, the evidence badge says so honestly (SCORECARD EST or PRIOR ONLY) instead of printing dashes. Sizing is quarter-Kelly scaled by the sizer's regime risk-multiplier. The track-record strip grades this page's own past calls with real prints — no memory-holing. Research &amp; analytics, not investment advice. Generated ${esc(new Date(d.generated_at).toLocaleString())}.
+    </div>`;
 }
 
-async function main(){
-  try{
-    const d = await loadData();
-    render(d);
-  }catch(e){
-    console.error(e);
-    document.getElementById("app").innerHTML = `
-      <div class="loading" style="color:var(--red)">
-        <div style="font-size:14px">Could not load alpha compass.</div>
-        <div style="font-size:11px;color:var(--t3);font-family:monospace">${safe(e.message)}</div>
-        <button onclick="location.reload()" style="margin-top:14px;padding:8px 16px;background:transparent;color:var(--blue);border:1px solid var(--brd);border-radius:6px;cursor:pointer;font-family:inherit">Retry</button>
-      </div>`;
-  }
-}
-main();
-setInterval(main, 5*60*1000); // auto-refresh every 5 min
+load().then(d=>{
+  if(!d){$('#app').innerHTML='<div class="loading"><div class="mono" style="color:var(--red)">Feed unavailable — data/alpha-compass.json. The 3h synthesis run will restore it.</div></div>';return;}
+  render(d);
+});
 </script>
-  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 </body>
 </html>
