@@ -1,15 +1,9 @@
-executing-against: 50fe7498c6fb6cb5e09659c2756b2bc66f51beda
-ops 3156 — /userdata hardening E2E
-── 0. Wait for worker deploy ──
-[18:14:18] ✅ hardened worker live after ~20s
-── 1. Anonymous roundtrip + namespacing ──
-[18:14:18] ✅ anonymous device roundtrip intact
-[18:14:18] ✅ uid isolation holds
-── 2. Auth wall ──
-[18:14:19] ✅ invalid Bearer → 401
-[18:14:19] ✅ /billing-portal unauth → 401
-── 3. Billing plumbing ──
-[18:14:19] ✅ checkout session live (plan metadata attached)
-[18:14:19] ✅ webhook rejects unsigned payloads
+executing-against: 32a2a38995713c3f9f06cd02dc0f9d30e42c1622
+ops 3157 — favorites sync + theme + settings on CDN
+[18:23:16] ✅ jh-nav-drawer.js :: JH_USERSYNC_V1
+[18:23:16] ✅ jh-nav-drawer.js :: jhnav-themebtn
+[18:23:16] ✅ jh-theme.css :: data-theme="light"
+[18:23:16] ✅ settings.html :: JH_SETTINGS_V2
+[18:23:16] ✅ settings.html :: billing-portal
 
-→ Report written to aws/ops/reports/latest/3156_userdata_hardening.md
+→ Report written to aws/ops/reports/latest/3157_user_layer.md
