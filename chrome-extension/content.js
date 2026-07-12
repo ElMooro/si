@@ -17,6 +17,7 @@
  */
 
 (function () {
+  const WATCHLISTS = [];  // ops 3158: [{id,name,symbols[]}]
   'use strict';
   if (window.__JH_EXT_V1) return;
   window.__JH_EXT_V1 = true;
@@ -131,6 +132,17 @@
       const d = await tvGet(path, params);
       if (!d) { await sleep(100); continue; }
       const arr = d.data || d.lists || d.watchlists || d.results || (Array.isArray(d) ? d : []);
+      // ops 3158: keep full membership — watchlists ARE the predictive unit
+      try {
+        (arr || []).forEach(l => {
+          const syms = (l.symbols || l.list_symbols || l.items || [])
+            .map(x => typeof x === 'string' ? x : (x && (x.symbol || x.s || x.name)) || '')
+            .filter(Boolean).slice(0, 500);
+          if (l && (l.name || l.id) && syms.length)
+            WATCHLISTS.push({ id: String(l.id || l.name), name: String(l.name || l.id).slice(0, 120),
+                              symbols: syms, color: l.color || null });
+        });
+      } catch (e) {}
       for (const lst of (Array.isArray(arr) ? arr : [])) {
         if (typeof lst !== 'object') continue;
         const items = lst.symbols || lst.items || lst.data || lst.list_symbols || [];
@@ -344,9 +356,9 @@
     if (u) { u.disabled = true; u.style.opacity = '.5'; u.textContent = `Uploading ${all.length} notes…`; }
     setMsg(`Uploading ${all.length} notes to Brain…`, '#F0B429');
     try {
-      const result = await chrome.runtime.sendMessage({ action: 'upload', notes: all });
+      const result = await chrome.runtime.sendMessage({ action: 'upload', notes: all, watchlists: WATCHLISTS });
       if (result?.ok || result?.brain_upserted > 0) {
-        setMsg(`✅ ${result.brain_upserted} notes written to Brain across ${TICKERS.size} tickers!`, '#6fce8a');
+        setMsg(`✅ ${result.brain_upserted} notes → Brain · ${result.watchlists_saved||0} watchlists → tracker (${TICKERS.size} tickers)`, '#6fce8a');
         if (u) { u.disabled = false; u.style.opacity = '1'; u.textContent = 'Upload complete — DONE'; }
       } else {
         setMsg(`❌ Upload failed: ${result?.error || 'check background console'}`, '#E07A6A');
@@ -414,7 +426,7 @@
 
     // Signal completion
     try {
-      chrome.runtime.sendMessage({ action: 'harvest_complete', count: STORE.size, tickers: TICKERS.size });
+      chrome.runtime.sendMessage({ action: 'harvest_complete', count: STORE.size, tickers: TICKERS.size, watchlists: WATCHLISTS.length });
     } catch (e) {}
 
     enableUpload();

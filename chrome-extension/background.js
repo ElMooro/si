@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
 
     case 'upload':
-      getConfig().then(cfg => uploadNotes(msg.notes, cfg))
+      getConfig().then(cfg => uploadNotes(msg.notes, cfg, msg.watchlists))
         .then(result => {
           harvestResults.lastRun = new Date().toISOString();
           sendResponse(result);
@@ -89,13 +89,13 @@ async function getConfig() {
 }
 
 // ── Upload notes to Lambda ────────────────────────────────────────────────────
-async function uploadNotes(notes, cfg) {
+async function uploadNotes(notes, cfg, watchlists) {
   if (!notes?.length) return { ok: false, error: 'no notes' };
   if (!cfg.url || cfg.url === 'INGEST_URL_PLACEHOLDER') {
     return { ok: false, error: 'Ingest URL not configured' };
   }
 
-  let brainOk = 0, brainErr = 0, mirrorAdded = 0;
+  let brainOk = 0, brainErr = 0, mirrorAdded = 0, wlSaved = 0;
   const chunkSize = 200;
 
   for (let i = 0; i < notes.length; i += chunkSize) {
@@ -104,7 +104,7 @@ async function uploadNotes(notes, cfg) {
       const resp = await fetch(cfg.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'User-Agent': 'JH-TV-Extension/1.0' },
-        body: JSON.stringify({ token: cfg.token, notes: chunk }),
+        body: JSON.stringify(i === 0 ? { token: cfg.token, notes: chunk, watchlists: (watchlists||[]) } : { token: cfg.token, notes: chunk }),
       });
       if (!resp.ok) {
         brainErr += chunk.length;
@@ -115,6 +115,7 @@ async function uploadNotes(notes, cfg) {
       brainOk    += data.brain_upserted || 0;
       brainErr   += data.brain_errors   || 0;
       mirrorAdded += data.mirror_added  || 0;
+      wlSaved     = data.watchlists_saved || wlSaved;
     } catch (e) {
       brainErr += chunk.length;
       console.error('[JH] Upload error:', e);
@@ -127,6 +128,7 @@ async function uploadNotes(notes, cfg) {
     brain_upserted: brainOk,
     brain_errors: brainErr,
     mirror_added: mirrorAdded,
+    watchlists_saved: wlSaved,
     total_sent: notes.length,
   };
 }

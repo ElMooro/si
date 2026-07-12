@@ -211,6 +211,7 @@ def lambda_handler(event, context):
     out = {"ok": brain_err == 0, "received": len(raw),
            "normalized": len(notes), "rejected": rejected,
            "brain_upserted": brain_ok, "brain_failed": brain_err,
+           "watchlists_saved": wl_saved,
            "mirror_added": added, "mirror_total": len(m["notes"])}
     print(json.dumps(out))
     return _resp(200 if out["ok"] else 502, out)

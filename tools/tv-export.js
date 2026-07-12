@@ -26,7 +26,8 @@
   }
 
   /* ── store ───────────────────────────────────────────────────────── */
-  var STORE = new Map();   // dedupe key -> note obj
+  var STORE = new Map();
+  var WATCHLISTS = [];  // ops 3158: membership rides the upload   // dedupe key -> note obj
   var TICKERS = new Set(); // all symbols discovered
   var ERRORS = [];
 
@@ -119,6 +120,13 @@
     var lists = await tvFetch("/api/v2/lists/") ||
                 await tvFetch("/lists/") ||
                 await tvFetch("/api/v1/lists/");
+    try {
+      (Array.isArray(lists) ? lists : (lists && (lists.data || lists.results) || [])).forEach(function(l){
+        var syms=((l&&(l.symbols||l.list_symbols||l.items))||[]).map(function(x){return typeof x==="string"?x:(x&&(x.symbol||x.s||x.name))||"";}).filter(Boolean).slice(0,500);
+        if(l&&(l.name||l.id)&&syms.length) WATCHLISTS.push({id:String(l.id||l.name),name:String(l.name||l.id).slice(0,120),symbols:syms});
+      });
+    } catch(e){}
+
     if (lists) {
       mine(lists, null, 0);
       var arr = lists.data || lists.lists || lists.results || (Array.isArray(lists) ? lists : []);
@@ -275,7 +283,7 @@
         var r = await _fetch(CFG.ingest_url, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ token: CFG.token, notes: chunk })
+          body: JSON.stringify(i === 0 ? { token: CFG.token, notes: chunk, watchlists: WATCHLISTS } : { token: CFG.token, notes: chunk })
         });
         var d = await r.json();
         if (!d.ok && !d.brain_upserted) {
