@@ -842,6 +842,13 @@ def handler(event, context):
             single_by_src.setdefault(str(r.get("source") or ""), []).append(r)
     best_idx = _index_best_setups(best)
     # ops 3171: Khalid's own notes as desk context
+    try:
+        import wl_fusion
+        _wlf = wl_fusion.load()
+        wl_context = wl_fusion.context(_wlf)
+        wl_divergences = wl_fusion.divergences(_wlf)[:5]
+    except Exception:
+        wl_context, wl_divergences = None, []
     notes_idx = {k: {"n": v["n_notes"], "stance": v["stance"],
                      "score": v["stance_score"]}
                  for k, v in ((safe_load("data/notes-index.json") or {})
@@ -912,6 +919,10 @@ def handler(event, context):
         return m
 
     out = {
+
+        "khalid_panels": wl_context,
+
+        "khalid_divergences": wl_divergences,
         "schema_version": "2.0",
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),

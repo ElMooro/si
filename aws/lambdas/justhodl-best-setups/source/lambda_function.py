@@ -194,6 +194,20 @@ def lambda_handler(event, context):
     # proprietary input on the platform; a setup that contradicts his own
     # written thesis should say so out loud.
     _notes_idx = (read_json("data/notes-index.json") or {}).get("index") or {}
+    # ops 3178 FUSION: his own watchlist engines, evidence-weighted.
+    # Unproven panels = context only. Proven ones tilt conviction within
+    # [0.90, 1.10]. If the feed is missing, everything below is a no-op.
+    try:
+        import wl_fusion
+        _wlf = wl_fusion.load()
+        _wl_ctx = wl_fusion.context(_wlf, ("CREDIT", "STRESS", "LIQUIDITY"))
+        _wl_mult, _wl_why = wl_fusion.multiplier(_wlf, "CREDIT")
+        _wl_m2, _wl_why2 = wl_fusion.multiplier(_wlf, "STRESS")
+        _wl_mult = round(_wl_mult * _wl_m2, 3)
+        _wl_audit = [x for x in (_wl_why, _wl_why2) if x]
+    except Exception as _e:
+        _wlf, _wl_ctx, _wl_mult, _wl_audit = {}, None, 1.0, []
+        print(f"[best-setups] fusion skipped: {str(_e)[:80]}")
     _sqf = read_json("data/squeeze-fuel.json") or {}
     _sq_idx = {}
     _sq_rows = (_sqf.get("board") or _sqf.get("rows")
@@ -952,7 +966,10 @@ def lambda_handler(event, context):
             "why": why_text,
             "ticker": tk,
             "name": rec["name"],
-            "conviction": round(composite, 1),
+            "conviction": round(composite * _wl_mult, 1),
+            "khalid_panels": _wl_ctx,
+            "khalid_panel_multiplier": _wl_mult,
+            "khalid_panel_audit": _wl_audit or None,
             # ops 3145 fusion fields (additive)
             "earnings_date": _ed,
             "earnings_in_days": _eid,
