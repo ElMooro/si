@@ -1,1 +1,23 @@
-executing-against: 44fbfd4e4323a88d94c0336a36a68f4c212afbbb
+executing-against: 07ec1fc10e2ae3ab4d5dbd2d71c3946940ce0e84
+ops 3137 — zip-injection proof + evidence-vocab forensics
+── A. build_zip bundles aws/shared (fleet fix proof) ──
+[03:34:27] ✅ justhodl-ai-chat zip now contains _sentry_lite.py (20 files, 71344 bytes)
+[03:34:27] ✅ local-copy-wins verified (exactly one shim in compass zip)
+── B. Evidence-vocab forensics (live feeds) ──
+[03:34:28] stack vocab (top 25): macro_frontrun_sniffer_setup×4, frontrun_sniffer_setup×4, yc_regime×2, correlation_break×1, etf_rotation×1, earnings_pead×1, crypto_risk_score×1, crypto_fear_greed×1, plumbing_stress×1, edge_composite×1, khalid_index×1, ml_risk×1, market_phase×1, edge_regime×1, carry_risk×1, squeeze_risk×1, momentum_uso×1, apex_fusion×1, momentum_gld×1, crisis_hy_oas_vs_hyg×1, crisis_broad_dollar_vs_spy×1, crisis_hy_oas_vs_spy×1, crisis_sofr_iorb×1, crisis_broad_dollar_vs_eem×1, divergence_extreme×1
+[03:34:28] scorecard keys: analog_signal, apex_fusion, attention_crowded, attention_distribution, attention_igniting, attention_stealth, carry_risk, corr_break_composite_vs_spy, corr_break_composite_vs_vxx, corr_break_top_pair, correlation_break, cot_extreme, crisis_broad_dollar_vs_eem, crisis_broad_dollar_vs_spy, crisis_dfii10_vs_gld, crisis_dfii10_vs_spy, crisis_hy_oas_vs_hyg, crisis_hy_oas_vs_spy, crisis_ig_bbb_oas, crisis_index_anfci, crisis_index_kcfsi, crisis_index_nfci, crisis_index_stlfsi4, crisis_obfr_iorb, crisis_rate_diff_eur_3m, crisis_rate_diff_jpy_3m, crisis_sloos_tighten, crisis_sofr_iorb, crisis_t10yie_extreme, crypto_dvol
+[03:34:28] engine-map families (10): crisis-monitor, crypto, desk-posture, edge-composite, equity-value, macro-fundamental, market-regime, momentum, positioning, relative-value
+── B2. Per-setup matching replay ──
+[03:34:28] · US macro / housing cycle: names=['housing cycle'] fams=['macro-fundamental'] mapped=2 | best_stack_jaccard=0.0 via=None | scorecard_hits=[]
+[03:34:28] · US equity — positioning: names=['short pressure'] fams=['positioning'] mapped=6 | best_stack_jaccard=0.167 via=['earnings_pead'] | scorecard_hits=['cot_extreme', 'earnings_pead', 'squeeze_risk']
+[03:34:28] · Crypto: names=['crypto confluence', 'crypto narratives'] fams=['crypto', 'crypto-synth'] mapped=9 | best_stack_jaccard=0.111 via=['crypto_risk_score'] | scorecard_hits=['crypto_fear_greed', 'crypto_risk_score', 'onchain_composite_risk']
+[03:34:28] · Broad risk / equity beta: names=['canary grid', 'crisis composite', 'leading markets', 'pm decision'] fams=['crisis-monitor', 'desk-posture', 'market-regime'] mapped=36 | best_stack_jaccard=0.028 via=['plumbing_stress'] | scorecard_hits=['analog_signal', 'carry_risk', 'crisis_broad_dollar_vs_eem', 'crisis_broad_dollar_vs_spy', 'crisis_dfii10_vs_gld', 'crisis_dfii10_vs_spy', 'crisis_hy_oas_vs_hyg', 'crisis_hy_oas_vs_spy', 'crisis_ig_bbb_oas', 'crisis_index_anfci', 'crisis_index_kcfsi', 'crisis_index_nfci', 'crisis_index_stlfsi4', 'crisis_obfr_iorb', 'crisis_rate_diff_eur_3m', 'crisis_rate_diff_jpy_3m', 'crisis_sloos_tighten', 'crisis_sofr_iorb', 'crisis_t10yie_extreme', 'edge_regime', 'eurodollar_stress', 'khalid_index', 'macro_composite_z', 'macro_frontrun_sniffer_setup', 'market_phase', 'plumbing_stress', 'sector_breadth']
+[03:34:28] · US equity — value tilt: names=['best setups', 'fundamentals x-ray', 'mean reversion', 'opportunity engine'] fams=['equity-value', 'setups-synth'] mapped=27 | best_stack_jaccard=0.037 via=['sustained_target_equity'] | scorecard_hits=['momentum_top_pick', 'nobrainer_aiq', 'nobrainer_botz', 'nobrainer_copx', 'nobrainer_lit', 'nobrainer_oih', 'nobrainer_pick', 'nobrainer_remx', 'nobrainer_robo', 'nobrainer_sil', 'nobrainer_slx', 'nobrainer_smh', 'nobrainer_soxx', 'nobrainer_ura', 'nobrainer_xle', 'nobrainer_xop', 'screener_top_pick', 'sustained_target_equity']
+[03:34:28] · Cross-asset relative value: names=['cross-asset rv'] fams=['relative-value'] mapped=9 | best_stack_jaccard=0.111 via=['correlation_break'] | scorecard_hits=['corr_break_composite_vs_spy', 'corr_break_composite_vs_vxx', 'corr_break_top_pair', 'correlation_break', 'divergence_extreme', 'etf_flow_extreme', 'etf_rotation', 'yc_regime']
+[03:34:28] · Supply shortage / scarcity: names=['scarcity radar'] fams=['scarcity-synth'] mapped=0 | best_stack_jaccard=0.0 via=None | scorecard_hits=[]
+── C. RORO + sizer live fields (for 3138 fuse_regime edit) ──
+[03:34:28] risk_regime='MILD_RISK_ON' score=24.9
+[03:34:28] posture type=dict keys=['beta_tilt', 'crossborder_warning', 'hedge', 'size_mult']
+[03:34:28] sizer risk_multiplier=1.0 decisive_call='UNKNOWN'
+
+→ Report written to aws/ops/reports/latest/3137_compass_forensics.md
