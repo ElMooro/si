@@ -1,16 +1,13 @@
-executing-against: e0d2d3172408e345f7381455a46b1ae17fb2e08a
-ops 3161 — ingest at harvest scale
-── 1. Deploy hardened ingest (1024MB / 300s / parallel) ──
-[20:08:00]   zip: 56091 bytes
-── 1. Lambda ──
-[20:08:00]   Lambda exists — updating
-[20:08:06] ✅   ✓ updated justhodl-tv-notes-ingest
-── 2. Watchlists-first request (the new order) ──
-[20:08:08] ✅ watchlists land independently of notes (the fix that saves them when a note chunk dies)
-── 3. 300-note burst — the scale that broke it ──
-[20:08:12] ✅ 300 notes accepted in 4.0s (brain 300, mirror 300)
-── 4. Cleanup e2e artifacts ──
-[20:15:29] probe notes deleted: 300/300
-[20:15:30] ✅ e2e watchlists stripped — clean slate for the real sync
+executing-against: b721c3bce6d8d84c3a0391cbcb87ff43e3a4216d
+ops 3162 — authoritative ingest config
+── 1. Live URL vs published config ──
+── 2. Republish config ──
+[20:37:02] ✅ config republished with the live URL + token
+── 3. Public fetch (the path the extension takes) ──
+[20:37:02] ✅ justhodl-dashboard-live.s3.u… HTTP 200 · url matches live: True
+[20:37:03] ✅ justhodl.ai… HTTP 200 · url matches live: True
+── 4. Watchlists-only probe through the config URL ──
+[20:37:03] ✅ END-TO-END: config URL accepts watchlists — the extension's exact path is now clear
+[20:37:04] probe watchlist stripped
 
-→ Report written to aws/ops/reports/latest/3161_ingest_scale.md
+→ Report written to aws/ops/reports/latest/3162_ingest_config.md
