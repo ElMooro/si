@@ -1,17 +1,15 @@
-executing-against: 94b1c5712d276fdef6f7e22eda795f8e5b82ca76
-ops 3155 — pre-SaaS backup
-── 1. Private backup bucket ──
-[18:09:12] ✅ bucket created
-[18:09:12] ✅ public access blocked + SSE-AES256 enforced
-── 2. DynamoDB on-demand backups ──
-[18:09:15] tables: justhodl-alert-actions, justhodl-api-keys, justhodl-api-rate, justhodl-backtest, justhodl-feedback, justhodl-history, justhodl-llm-cost, justhodl-outcomes, justhodl-portfolio, justhodl-push-subscriptions, justhodl-signal-registry, justhodl-signals, justhodl-subscribers, justhodl-trades
-[18:09:15] ✅ all 14 tables backed up
-── 3. Lambda fleet export (config + env) ──
-[18:09:22] ✅ 647 function configs + env vars secured
-── 4. Versioning on live bucket ──
-[18:09:22] ✅ versioning already Enabled
-── 5. SSM /justhodl inventory (names only) ──
-[18:09:23] all: /justhodl/13f-price-divergence/state, /justhodl/52wk-quality-breakout/state, /justhodl/ai-chat/auth-token, /justhodl/alerts/webhook_urls, /justhodl/anthropic/api-key, /justhodl/anthropic/api_key, /justhodl/api-admin/token, /justhodl/bea-api-key, /justhodl/bls-api-key, /justhodl/brain/uid, /justhodl/breadth-divergence/state, /justhodl/breadth-thrust/state, /justhodl/buyback-yield-ranking/state, /justhodl/calibration-fleet/weights, /justhodl/calibration/accuracy, /justhodl/calibration/alpha, /justhodl/calibration/miss_recurring_tickers, /justhodl/calibration/miss_threshold_proposals, /justhodl/calibration/report, /justhodl/calibration/scorecard, /justhodl/calibration/strategy-weights, /justhodl/calibration/weights, /justhodl/calibration/weights/day_1, /justhodl/calibration/weights/day_10, /justhodl/calibration/weights/day_14, /justhodl/calibration/weights/day_21, /justhodl/calibration/weig
-[18:09:23] ⚠ no supabase/stripe params under /justhodl — service keys live elsewhere (checkout lambda env? — fleet export above now holds every env var)
+executing-against: 50fe7498c6fb6cb5e09659c2756b2bc66f51beda
+ops 3156 — /userdata hardening E2E
+── 0. Wait for worker deploy ──
+[18:14:18] ✅ hardened worker live after ~20s
+── 1. Anonymous roundtrip + namespacing ──
+[18:14:18] ✅ anonymous device roundtrip intact
+[18:14:18] ✅ uid isolation holds
+── 2. Auth wall ──
+[18:14:19] ✅ invalid Bearer → 401
+[18:14:19] ✅ /billing-portal unauth → 401
+── 3. Billing plumbing ──
+[18:14:19] ✅ checkout session live (plan metadata attached)
+[18:14:19] ✅ webhook rejects unsigned payloads
 
-→ Report written to aws/ops/reports/latest/3155_presaas_backup.md
+→ Report written to aws/ops/reports/latest/3156_userdata_hardening.md
