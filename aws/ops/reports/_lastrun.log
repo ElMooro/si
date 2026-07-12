@@ -1,13 +1,11 @@
-executing-against: 82aa485b3d35f8191e44440b23c61475582f12f3
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3135_alpha_compass_v2.py", line 51, in <module>
-    rep = report(3135, "alpha_compass_v2")
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/contextlib.py", line 301, in helper
-    return _GeneratorContextManager(func, args, kwds)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/contextlib.py", line 105, in __init__
-    self.gen = func(*args, **kwds)
-               ^^^^^^^^^^^^^^^^^^^
-TypeError: report() takes 1 positional argument but 2 were given
+executing-against: eb5c9b2e7220f7e7504d918c29476c7bda2a5e85
+ops 3135 — Alpha Compass v2.0 (desk sheet)
+── 1. FMP key sourcing + deploy ──
+[03:05:47] ✅ FMP key live (SPY=754.95)
+[03:05:47]   zip: 9020 bytes
+── 1. Lambda ──
+[03:05:47]   Lambda exists — updating
+[03:05:50] ✗ deploy failed: An error occurred (ValidationException) when calling the UpdateFunctionConfiguration operation: 1 validation error detected: Value 'Alpha Compass v2.0 — desk sheet: regime fusion (composite+RORO+facto
+
+→ Report written to aws/ops/reports/latest/3135_alpha_compass_v2.md
 ❌ OPS-FAIL: aws/ops/pending/ops_3135_alpha_compass_v2.py
