@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thesis Engine · JustHodl.AI</title>
+<link rel="stylesheet" href="/jh-theme.css">
+<style>
+  body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--jh-bg,#0C0B09);color:var(--jh-ink,#e8e2d4)}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--jh-dim,#8a836f);font-size:12.5px;margin-bottom:16px;line-height:1.5}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;padding:7px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--jh-dim,#8a836f);border-bottom:1px solid var(--jh-line,#2B2820)}
+  td{padding:8px;border-bottom:1px solid rgba(139,131,111,.14)}
+  .num{text-align:right;font-family:'IBM Plex Mono',monospace}
+  .fire{background:rgba(240,180,41,.16);color:var(--jh-amber,#F0B429);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
+  .pos{color:var(--jh-green,#6fce8a)}.neg{color:var(--jh-red,#E07A6A)}
+  .strong{font-weight:700}
+  .meta{font-size:11px;color:var(--jh-dim,#8a836f);margin-top:12px;line-height:1.6}
+</style></head><body>
+<div class="wrap">
+  <h1>🧭 Thesis Engine <span style="font-size:12px;color:var(--jh-dim,#8a836f);font-weight:400">— your TradingView watchlists, measured</span></h1>
+  <div class="sub" id="sub">Loading…</div>
+  <div id="board">…</div>
+  <div class="meta" id="method"></div>
+</div>
+<script src="/jh-nav-drawer.js"></script>
+<script>
+(function(){
+  var CDN='https://justhodl-data-proxy.raafouis.workers.dev';
+  fetch(CDN+'/data/thesis-engine.json?t='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var b=document.getElementById('board'), s=document.getElementById('sub');
+    if(!d||d.status!=='LIVE'){ s.textContent='Waiting for the first watchlist sync.'; b.innerHTML=''; return; }
+    var esc=function(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+    var sig=function(t){return Math.abs(t)>=2?'strong':'';};
+    var col=function(v){return v==null?'':(v>=0?'pos':'neg');};
+    s.innerHTML=d.n_theses+' theses scored · SPY base rates: 5d '+d.spy_base_rates_pct.d5+'% · 21d '+d.spy_base_rates_pct.d21+'% · 63d '+d.spy_base_rates_pct.d63+'% · '+(d.signals_logged||0)+' live signals · updated '+esc((d.generated_at||'').slice(0,16).replace('T',' '))+' UTC';
+    var rows=(d.theses||[]).map(function(t){
+      var e=(t.event_study||{}).d21||{};
+      return '<tr>'+
+        '<td>'+esc(t.name)+(t.firing?' <span class="fire">FIRING</span>':'')+'</td>'+
+        '<td class="num">'+t.n_members+'/'+t.n_total+'</td>'+
+        '<td class="num">'+(t.activation_now==null?'—':t.activation_now+'%')+'</td>'+
+        '<td class="num">'+(t.activation_pctile==null?'—':t.activation_pctile+'th')+'</td>'+
+        '<td class="num '+col(e.excess_vs_base_pct)+'">'+(e.excess_vs_base_pct==null?'—':(e.excess_vs_base_pct>0?'+':'')+e.excess_vs_base_pct+'%')+'</td>'+
+        '<td class="num">'+(e.hit_rate_pct==null?'—':e.hit_rate_pct+'%')+'</td>'+
+        '<td class="num '+sig(e.t_stat||0)+'">'+(e.t_stat==null?'—':e.t_stat)+'</td>'+
+        '<td class="num">'+(e.n==null?'—':e.n)+'</td></tr>';
+    }).join('');
+    b.innerHTML='<table><thead><tr><th>Thesis (your watchlist)</th><th class="num">Resolved</th><th class="num">Activation</th><th class="num">Pctile</th><th class="num">SPY 21d excess</th><th class="num">Hit</th><th class="num">t-stat</th><th class="num">n</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    document.getElementById('method').textContent=d.method+' · |t| ≥ 2 marks a statistically meaningful lead/lag. Negative excess = the thesis firing preceded SPY weakness (a working risk-off tell).';
+  }).catch(function(){document.getElementById('sub').textContent='Feed unavailable.';});
+})();
+</script>
+</body></html>
