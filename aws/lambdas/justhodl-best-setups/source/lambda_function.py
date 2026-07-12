@@ -183,6 +183,19 @@ def lambda_handler(event, context):
     insider = read_json("data/insider-clusters.json") or {}
     finra_short = read_json("data/finra-short.json") or {}
     catalysts = read_json("data/catalyst-calendar.json") or {}
+    # ops 3145 fusion (additive): earnings dates + squeeze fuel
+    _ecal = read_json("data/benzinga-earnings-calendar.json") or {}
+    _edates = {}
+    for _r in (_ecal.get("upcoming") or _ecal.get("calendar") or
+               (_ecal if isinstance(_ecal, list) else [])):
+        if isinstance(_r, dict) and _r.get("ticker") and _r.get("date"):
+            _edates.setdefault(_r["ticker"].upper(), _r["date"])
+    _sqf = read_json("data/squeeze-fuel.json") or {}
+    _sq_idx = {}
+    for _r in (_sqf.get("board") or []):
+        _t = (_r.get("ticker") or "").upper()
+        if _t:
+            _sq_idx[_t] = {"score": _r.get("score"), "state": _r.get("state")}
     overlap = read_json("data/deep-value-overlap.json") or {}
     political = read_json("data/political-intel.json") or {}
     executive = read_json("data/executive-intel.json") or {}
@@ -918,11 +931,29 @@ def lambda_handler(event, context):
         else:
             why_text = None
 
+        _ed = _edates.get(tk)
+        _eid = None
+        if _ed:
+            try:
+                from datetime import date as _date
+                _eid = (_date.fromisoformat(str(_ed)[:10]) -
+                        datetime.now(timezone.utc).date()).days
+            except Exception:
+                _eid = None
         setups.append({
             "why": why_text,
             "ticker": tk,
             "name": rec["name"],
             "conviction": round(composite, 1),
+            # ops 3145 fusion fields (additive)
+            "earnings_date": _ed,
+            "earnings_in_days": _eid,
+            "earnings_flag": bool(_eid is not None and 0 <= _eid <= 7),
+            "squeeze_fuel": _sq_idx.get(tk),
+            "industry_flow_quadrant": ((_ind_row or {}).get("fund_flows")
+                                        or {}).get("quadrant"),
+            "industry_flow_z": ((_ind_row or {}).get("fund_flows")
+                                 or {}).get("flow_zscore_90d"),
             "risk_regime_mult": _rr_mult,
             "industry_mult": _ind_mult,
             "industry_etf": (_ind_row or {}).get("etf"),

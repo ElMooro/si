@@ -1568,7 +1568,12 @@ def lambda_handler(event=None, context=None):
             if v:
                 r["fund_flows"] = {
                     "flow_21d_usd": v.get("flow_21d_usd"),
-                    "flow_label": v.get("label")}
+                    "flow_label": v.get("label"),
+                    # ops 3145 fusion: flow-price divergence layer (additive)
+                    "quadrant": v.get("quadrant"),
+                    "flow_zscore_90d": v.get("flow_zscore_90d"),
+                    "ret_21d_pct": v.get("ret_21d_pct"),
+                    "divergence_score": v.get("divergence_score")}
                 flows_hit += 1
     except Exception as e:
         warns.append("flows join err: %s" % str(e)[:80])

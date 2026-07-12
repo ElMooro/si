@@ -95,6 +95,7 @@ def build_context_bundle():
     sentiment = load_sidecar(SENTIMENT_KEY, {})
     debate = load_sidecar(DEBATE_KEY, {})
     anomalies = load_sidecar(ANOMALIES_KEY, {})
+    compass = load_sidecar("data/alpha-compass.json", {})  # ops 3145 fusion
 
     # Top 10 alpha-ranked stocks
     top_alpha = [s for s in (alpha.get("stocks") or [])
@@ -199,6 +200,20 @@ def build_context_bundle():
         "macro_stress_interp": macro_interp,
         "tier_distribution": alpha.get("tier_distribution"),
         "top_alpha": top_alpha_brief,
+        "desk_sheet": {  # ops 3145 fusion: Alpha Compass synthesis
+            "regime": ((compass.get("regime") or {}).get("label")),
+            "top_calls": [
+                {"subject": c.get("subject"),
+                 "direction": c.get("direction"),
+                 "conviction": c.get("conviction"),
+                 "primary": ((c.get("express") or {}).get("primary")),
+                 "tier": ((c.get("stats") or {}).get("source"))}
+                for c in (compass.get("top_calls") or [])[:3]],
+            "track_30d": ((compass.get("track_record") or {})
+                          .get("trail_30d")),
+            "track_90d": ((compass.get("track_record") or {})
+                          .get("trail_90d")),
+        },
         "confluence": confluence_brief,
         "regime_picks": regime_brief,
         "diffs": diff_brief,
@@ -271,6 +286,10 @@ REGIME LOGIC: {context.get('regime_logic','')}
 
 ═══ TOP 10 ALPHA-RANKED STOCKS ═══
 {json.dumps(context['top_alpha'], indent=2)[:3000]}
+
+DESK SHEET (Alpha Compass — the platform's own synthesis; regime {context['desk_sheet'].get('regime')}, self-graded 30d hit-rate {(context['desk_sheet'].get('track_30d') or {}).get('hit_rate')}):
+{json.dumps(context['desk_sheet'].get('top_calls'), indent=2)[:1200]}
+Weave the desk-sheet top calls and the track record into the brief where relevant.
 
 ═══ TIER S/A CONFLUENCE (multi-factor alignment) ═══
 {json.dumps(context['confluence'], indent=2)[:2000]}

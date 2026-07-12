@@ -1158,6 +1158,32 @@ def lambda_handler(event, context):
     # ── Structural-chokepoint overlay: flag ranked names the chokepoint engine marks as
     #    structurally indispensable (curated / LLM-confirmed / supply-chain hub). Context for
     #    durability, not a score change — a top rank on a chokepoint is a higher-quality rank.
+    # ── ops 3145 fusion overlays (additive context, no score change) ──
+    _kill = fetch_json("data/kill-theses.json") or {}
+    _kill_idx = {}
+    for _t in (_kill.get("theses") or []):
+        _tk = (_t.get("ticker") or "").upper()
+        if not _tk:
+            continue
+        _c = _t.get("kill_conditions") or []
+        _first = (_c[0].get("risk") or _c[0].get("condition") or ""
+                  ) if _c and isinstance(_c[0], dict) else (
+                  str(_c[0]) if _c else "")
+        _kill_idx[_tk] = (_first or _t.get("risk") or "")[:160]
+    _sqf = fetch_json("data/squeeze-fuel.json") or {}
+    _sqf_idx = {(r.get("ticker") or "").upper():
+                {"score": r.get("score"), "state": r.get("state")}
+                for r in (_sqf.get("board") or []) if r.get("ticker")}
+    n_kill = n_sqf = 0
+    for t in top_tickers:
+        if t["ticker"] in _kill_idx:
+            t["kill_risk"] = _kill_idx[t["ticker"]]
+            n_kill += 1
+        if t["ticker"] in _sqf_idx:
+            t["squeeze_fuel"] = _sqf_idx[t["ticker"]]
+            n_sqf += 1
+    print(f"[ranker] fusion overlays: kill_risk={n_kill} squeeze_fuel={n_sqf}")
+
     _ck = fetch_json("data/chokepoint.json") or {}
     _structural = _ck.get("structural_names") or {}
     _hiconv = {r.get("ticker") for r in (_ck.get("highest_conviction_book") or [])}

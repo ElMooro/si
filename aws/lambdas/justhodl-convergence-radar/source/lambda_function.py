@@ -1168,6 +1168,49 @@ def lambda_handler(event, context):
         "top_pump_candidates":    [r["ticker"] for r in pump_candidates[:10]],
     }
 
+    # ── ops 3145 fusion: early-signals block (additive; no scoring impact) ──
+    def _es_load(key):
+        try:
+            o = s3.get_object(Bucket=S3_BUCKET, Key=key)
+            return json.loads(o["Body"].read())
+        except Exception:
+            return {}
+    _tal = _es_load("data/talent-migration.json")
+    _str = _es_load("data/structural-pre-signals.json")
+    _uni = _es_load("data/universe-discovery.json")
+    def _top(rows, keys, n=6):
+        out = []
+        for r in rows or []:
+            if not isinstance(r, dict) or not r.get("ticker"):
+                continue
+            out.append({k: r.get(k) for k in keys if r.get(k) is not None})
+            if len(out) >= n:
+                break
+        return out
+    early_signals = {
+        "talent_moves": _top(_tal.get("moves") or _tal.get("rows") or [],
+                             ("ticker", "company", "form", "direction",
+                              "role", "signal", "date")),
+        "restructuring": _top(_str.get("restructuring") or [],
+                              ("ticker", "company", "period_ending",
+                               "items", "date")),
+        "buildout": _top(_str.get("buildout") or _str.get("buildout_raw")
+                         or [], ("ticker", "company", "signal", "date")),
+        "universe_new": _top((_uni.get("threshold_crossers") or [])
+                             + (_uni.get("ipos") or []),
+                             ("ticker", "company", "source", "date",
+                              "market_cap")),
+        "counts": {
+            "talent": len(_tal.get("moves") or _tal.get("rows") or []),
+            "restructuring": len(_str.get("restructuring") or []),
+            "buildout": len(_str.get("buildout") or
+                            _str.get("buildout_raw") or []),
+            "universe": len(_uni.get("threshold_crossers") or []),
+        },
+        "note": ("fused from talent-migration + structural-pre-signals + "
+                 "universe-discovery (previously unconsumed engines)"),
+    }
+
     output = {
         "schema_version":  "2.0",  # bumped — directional + pump-likelihood added
         "generated_at":    datetime.now(timezone.utc).isoformat(),
@@ -1177,6 +1220,7 @@ def lambda_handler(event, context):
         "tickers":         records[:200],          # full leaderboard (capped)
         "engine_ages_h":   {k: round(v, 1) if v is not None else None for k, v in engine_ages.items()},
         "alert_info":      alert_info,
+        "early_signals":   early_signals,
     }
 
     body = json.dumps(output, indent=2, default=str)
