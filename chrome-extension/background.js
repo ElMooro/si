@@ -11,9 +11,10 @@
 'use strict';
 
 // ── Ingest config (baked in by ops 2963) ─────────────────────────────────────
-const INGEST_URL = 'INGEST_URL_PLACEHOLDER';
+const INGEST_URL = 'https://w4osroryszvlifgk4boofkh7cm0selzf.lambda-url.us-east-1.on.aws/';  // ops 3162: live function URL (was PLACEHOLDER; manifest also permitted a STALE host → TypeError: Failed to fetch)
 const INGEST_TOKEN = 'INGEST_TOKEN_PLACEHOLDER';
-const CONFIG_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/tv-ingest-config.json';
+const CONFIG_URLS = ['https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/tv-ingest-config.json',
+                     'https://justhodl.ai/data/tv-ingest-config.json'];
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let harvestResults = { count: 0, tickers: 0, lastRun: null };
@@ -21,7 +22,11 @@ let harvestResults = { count: 0, tickers: 0, lastRun: null };
 // ── Install: fetch live config in case baked values are stale ────────────────
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const r = await fetch(CONFIG_URL + '?t=' + Date.now());
+    let r = null;
+    for (const u of CONFIG_URLS) {
+      try { const t = await fetch(u + '?t=' + Date.now()); if (t.ok) { r = t; break; } } catch (e) {}
+    }
+    if (!r) throw new Error('config fetch failed');
     if (r.ok) {
       const cfg = await r.json();
       if (cfg.ingest_url && cfg.token) {
@@ -82,10 +87,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // ── Config helper ─────────────────────────────────────────────────────────────
 async function getConfig() {
   const stored = await chrome.storage.local.get(['ingest_url', 'token']);
-  return {
-    url: stored.ingest_url || INGEST_URL,
-    token: stored.token || INGEST_TOKEN,
-  };
+  let url = stored.ingest_url || INGEST_URL;
+  // ops 3162: a stale storage entry (old function URL) produced
+  // "TypeError: Failed to fetch". Anything that isn't a well-formed
+  // lambda-url falls back to the baked live URL.
+  if (!/^https:\/\/[a-z0-9]+\.lambda-url\.[a-z0-9-]+\.on\.aws\/?$/.test(url) ||
+      url.includes('PLACEHOLDER')) {
+    url = INGEST_URL;
+  }
+  return { url, token: stored.token || INGEST_TOKEN, fallback: INGEST_URL };
 }
 
 // ── Upload notes to Lambda ────────────────────────────────────────────────────
@@ -93,8 +103,8 @@ async function uploadNotes(notes, cfg, watchlists) {
   if (!cfg?.url || cfg.url.includes('PLACEHOLDER')) {
     return { ok: false, error: 'Ingest URL not configured' };
   }
-  const post = async (body) => {
-    const r = await fetch(cfg.url, {
+  const hit = async (url, body) => {
+    const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -103,6 +113,19 @@ async function uploadNotes(notes, cfg, watchlists) {
     let data = {};
     try { data = JSON.parse(txt); } catch (e) {}
     return { status: r.status, ok: r.ok, data, txt };
+  };
+  const post = async (body) => {
+    try {
+      return await hit(cfg.url, body);
+    } catch (e) {
+      // network-level failure (stale/blocked host) → one retry on the
+      // baked live URL, then surface the real error
+      if (cfg.fallback && cfg.fallback !== cfg.url) {
+        console.warn('[JH] primary ingest unreachable, retrying baked URL');
+        return await hit(cfg.fallback, body);
+      }
+      throw e;
+    }
   };
 
   let wlSaved = 0, firstErr = null;
