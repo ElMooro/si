@@ -731,6 +731,7 @@ function renderDivergence(b){
     ${col('▲ Stealth Accumulation — inflows into weakness', b.stealth_accumulation, true)}
     ${col('▼ Distribution Rally — outflows into strength', b.distribution_rally, false)}
   </div>
+  ${b.leveraged_extremes?.length?`<div style="margin-top:10px;font-size:11px;color:var(--text-muted)"><b style="color:var(--text)">Leveraged extremes (contrarian tells, excluded above):</b> ${b.leveraged_extremes.map(m=>`${esc(m.ticker)} ${m.quadrant==='STEALTH_ACCUMULATION'?'▲':'▼'} ${m.flow_zscore_90d?.toFixed?.(1)}σ/${m.ret_21d_pct}%`).join(' · ')}</div>`:''}
   <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">${esc(b.method||'')} · ${b.n_scored} ETFs scored · trend-confirmed ${b.trend_confirmed} · capitulation ${b.capitulation} · signals feed the scorecard (etf_stealth_accum / etf_distribution_rally)</div>`;
   $("divergence-section").style.display = '';
 }

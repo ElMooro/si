@@ -689,6 +689,11 @@ def compute_per_etf_metrics(snapshot: dict, history: list) -> dict:
         "aum_usd": snapshot.get("aum_usd"),
         "flow_zscore_90d": flow_zscore_90d,
         "persistence_days": persistence_days,
+        "nav": snapshot.get("nav"),
+        "leveraged": bool(__import__("re").search(
+            r"(^|_)([123]x|bear|bull|ultra|inverse)(_|$)",
+            str(ETF_UNIVERSE[snapshot["ticker"]].get("subcategory") or ""),
+            __import__("re").I)),
         "ret_5d_pct": ret_5d_pct,
         "ret_21d_pct": ret_21d_pct,
         "quadrant": quadrant,
@@ -758,12 +763,17 @@ def build_divergence_board(metrics: list) -> dict:
     ok = [m for m in metrics if not m.get("error")
           and m.get("divergence_score") is not None
           and m.get("category") != "broad"]
-    stealth = sorted((m for m in ok
+    clean = [m for m in ok if not m.get("leveraged")]
+    lev = [m for m in ok if m.get("leveraged")
+           and m.get("quadrant") in ("STEALTH_ACCUMULATION",
+                                      "DISTRIBUTION_RALLY")]
+    stealth = sorted((m for m in clean
                       if m.get("quadrant") == "STEALTH_ACCUMULATION"),
                      key=lambda m: -(m.get("divergence_score") or 0))
-    distro = sorted((m for m in ok
+    distro = sorted((m for m in clean
                      if m.get("quadrant") == "DISTRIBUTION_RALLY"),
                     key=lambda m: (m.get("divergence_score") or 0))
+    lev.sort(key=lambda m: -abs(m.get("divergence_score") or 0))
     return {
         "method": ("z(flow,90d) vs 21d nav return; stealth = z>=+1 & "
                    "ret<=-2%; distribution = z<=-1 & ret>=+2%; score = "
@@ -775,6 +785,11 @@ def build_divergence_board(metrics: list) -> dict:
                                if m.get("quadrant") == "TREND_CONFIRMED"),
         "capitulation": sum(1 for m in ok
                             if m.get("quadrant") == "CAPITULATION"),
+        "leveraged_extremes": [row(m) | {"quadrant": m.get("quadrant")}
+                                for m in lev[:8]],
+        "note": ("leveraged/inverse products are listed separately: their "
+                 "flows are structurally contrarian (dip-buying in 2x/3x) "
+                 "and would pollute the clean industry read"),
     }
 
 
@@ -788,6 +803,7 @@ def emit_divergence_signals(metrics: list, now) -> int:
         tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
         cand = [m for m in metrics if not m.get("error")
                 and m.get("category") != "broad"
+                and not m.get("leveraged")
                 and m.get("quadrant") in ("STEALTH_ACCUMULATION",
                                            "DISTRIBUTION_RALLY")
                 and abs(m.get("flow_zscore_90d") or 0) >= 1.5
