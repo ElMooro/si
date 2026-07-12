@@ -1,0 +1,7 @@
+{
+  "function_name": "justhodl-wl-engines",
+  "memory": 3008,
+  "timeout": 900,
+  "description": "WATCHLIST ENGINE FRAMEWORK: each of Khalid's 207 TradingView watchlists is a first-class engine (own id, feed, signal_type, scorecard row, fusion hooks) executing on one multi-tenant runtime with a shared series cache. Writes data/engines/wl-*.json + data/wl-engines.json.",
+  "schedule": {"rule_name": "wl-engines-daily", "cron": "cron(30 22 ? * TUE-SAT *)"}
+}
