@@ -232,6 +232,8 @@ def lambda_handler(event, context):
             else:
                 need[s] = m
     need["__SPY__"] = {"source": "MARKET", "id": "SPY"}
+    need["__FF__"] = {"source": "FRED", "id": "FEDFUNDS"}     # 1954+
+    need["__BS__"] = {"source": "FRED", "id": "WALCL"}        # 2002+
     print(f"[thesis2] {len(theses)} theses · {len(need)} series to fetch")
 
     # 2. fetch (state cache; weekly to keep memory sane)
@@ -272,6 +274,37 @@ def lambda_handler(event, context):
 
     aligned = {k: ffill(w, grid) for k, w in cache.items()}
     zc = {k: zscores(col) for k, col in aligned.items()}
+
+    # ── POLICY REGIME (ops 3170) ────────────────────────────────────
+    # 3169 found Khalid's stress panels worked pre-2010 (-3.3% SPY 13w)
+    # and INVERTED after (+1.67%) — the QE reaction function. So the
+    # honest test is not "does the thesis work" but "does it work WHEN
+    # THE FED IS NOT EASING". Regime from FRED, available since 1990:
+    #   EASING     Fed funds down >0.25pp over 26w, or balance sheet
+    #              expanding >2% over 13w (QE)
+    #   TIGHTENING Fed funds up >0.25pp over 26w, or B/S shrinking >1%
+    #   NEUTRAL    everything else
+    ff = ffill(cache.get("__FF__") or {}, grid)
+    bs = ffill(cache.get("__BS__") or {}, grid)
+    regime = []
+    for i in range(len(grid)):
+        r = "NEUTRAL"
+        if i >= 26 and ff[i] is not None and ff[i - 26] is not None:
+            d = ff[i] - ff[i - 26]
+            if d <= -0.25:
+                r = "EASING"
+            elif d >= 0.25:
+                r = "TIGHTENING"
+        if i >= 13 and bs[i] and bs[i - 13]:
+            g = bs[i] / bs[i - 13] - 1
+            if g >= 0.02:
+                r = "EASING"                    # QE overrides
+            elif g <= -0.01 and r == "NEUTRAL":
+                r = "TIGHTENING"                # QT
+        regime.append(r)
+    reg_counts = {k: regime.count(k)
+                  for k in ("EASING", "NEUTRAL", "TIGHTENING")}
+    print(f"[thesis2] regime weeks: {reg_counts}")
 
     base = {h: [r for r in (fwd(spy, i, h) for i in range(len(grid)))
                 if r is not None] for h in HORIZONS}
@@ -392,6 +425,37 @@ def lambda_handler(event, context):
                 "excess_vs_base_pct": round(mu - base_mu[h], 2),
                 "t_stat": tstat(samp, base_mu[h], horizon=h)}
 
+    def study_by_regime(sig, h=13):
+        """the decisive test: the same firing signal, split by what the
+        Fed was doing. An edge that only exists under EASING is the QE
+        reaction function, not a market tell."""
+        v = [x for x in sig if x is not None]
+        if len(v) < 200:
+            return {}
+        thr = sorted(v)[int(0.8 * len(v))]
+        out = {}
+        for reg in ("EASING", "NEUTRAL", "TIGHTENING"):
+            idx = [i for i in range(len(grid) - h)
+                   if sig[i] is not None and sig[i] >= thr
+                   and regime[i] == reg]
+            samp = [fwd(spy, i, h) for i in idx]
+            samp = [x for x in samp if x is not None]
+            # regime-specific base rate — the honest comparison
+            b_idx = [i for i in range(len(grid) - h) if regime[i] == reg]
+            b = [fwd(spy, i, h) for i in b_idx]
+            b = [x for x in b if x is not None]
+            b_mu = sum(b) / len(b) if b else 0.0
+            if len(samp) >= 15:
+                mu = sum(samp) / len(samp)
+                out[reg] = {
+                    "n": len(samp), "n_effective": round(len(samp) / h, 1),
+                    "spy_fwd_mean_pct": round(mu, 2),
+                    "regime_base_pct": round(b_mu, 2),
+                    "excess_vs_regime_base_pct": round(mu - b_mu, 2),
+                    "t_stat": tstat(samp, b_mu, horizon=h),
+                }
+        return out
+
     families = []
     for fam, _ in FAMILIES:
         mem = [r for r in rows if r.get("family") == fam]
@@ -427,6 +491,7 @@ def lambda_handler(event, context):
             "half1": half_study(comp, 1), "half2": half_study(comp, 2),
             "sign_test": {"n_theses": n, "n_negative": k,
                           "p_value": round(p_sign, 4)},
+            "by_regime": study_by_regime(comp),
             "peak_abs_t": abs((st.get("w13") or {}).get("t_stat", 0)),
         })
     fpv = [(f["event_study"].get("w13") or {}).get("p_value", 1.0)
@@ -495,9 +560,20 @@ def lambda_handler(event, context):
     # composite signals — the aggregated, FDR-and-stability-screened ones
     for f in families:
         st = f["event_study"].get("w13") or {}
-        if not (f["firing"] and f["fdr_pass"] and f["stable"]
-                and abs(st.get("t_stat", 0)) >= 2):
+        # unconditional edge (FDR + stable across halves) OR a
+        # REGIME-GATED edge: significant in today's regime specifically
+        reg_now = regime[-1] if regime else "NEUTRAL"
+        rg = (f.get("by_regime") or {}).get(reg_now) or {}
+        gated_ok = (abs(rg.get("t_stat", 0)) >= 2
+                    and rg.get("n_effective", 0) >= 6)
+        uncond_ok = (f["fdr_pass"] and f["stable"]
+                     and abs(st.get("t_stat", 0)) >= 2)
+        if not (f["firing"] and (uncond_ok or gated_ok)):
             continue
+        if gated_ok and not uncond_ok:
+            st = dict(st, t_stat=rg["t_stat"],
+                      excess_vs_base_pct=rg["excess_vs_regime_base_pct"],
+                      regime_gated=reg_now)
         try:
             from decimal import Decimal
             tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
@@ -534,8 +610,10 @@ def lambda_handler(event, context):
         except Exception as e:
             print(f"[thesis2] family emit failed: {str(e)[:120]}")
 
-    doc = {"generated_at": now.isoformat(), "version": "2.1", "status": "LIVE",
+    doc = {"generated_at": now.isoformat(), "version": "2.2", "status": "LIVE",
            "families": families,
+           "regime_weeks": reg_counts,
+           "regime_now": regime[-1] if regime else None,
            "history_start": START, "grid": "weekly",
            "n_weeks": len(grid), "n_theses": len(rows),
            "n_fdr_survivors": sum(1 for r in rows if r["fdr_pass"]),
