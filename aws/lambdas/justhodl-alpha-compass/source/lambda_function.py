@@ -41,6 +41,7 @@ import json
 import os
 import statistics
 import time
+import urllib.error
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
@@ -200,23 +201,76 @@ def px_on_or_before(series: dict, iso_date: str):
 
 TG_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+TG_CHAT_KEY = "data/_telegram-chat.json"   # self-discovered, fleet-reusable
+
+
+def _tg(method, payload):
+    try:
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{TG_TOKEN}/{method}",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return True, json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        return False, e.read().decode("utf-8", "replace")[:200]
+    except Exception as e:
+        return False, str(e)[:200]
+
+
+def _discover_chat():
+    """After the user presses /start, getUpdates reveals the chat id."""
+    ok, d = _tg("getUpdates", {"limit": 10})
+    if not ok or not isinstance(d, dict):
+        return None
+    for u in reversed(d.get("result") or []):
+        chat = ((u.get("message") or u.get("my_chat_member") or {})
+                .get("chat") or {})
+        if chat.get("id"):
+            return str(chat["id"])
+    return None
 
 
 def send_telegram(msg: str) -> bool:
-    if not TG_TOKEN or not TG_CHAT:
+    """Deliver, self-healing the chat id: env → S3-discovered → live
+    getUpdates discovery on 403 ('bot can't initiate conversation',
+    ops 3141). A discovered chat is persisted for every future run."""
+    if not TG_TOKEN:
         return False
-    try:
-        body = json.dumps({"chat_id": TG_CHAT, "text": msg,
-                           "parse_mode": "HTML",
-                           "disable_web_page_preview": True}).encode()
-        req = urllib.request.Request(
-            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
-            data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            return r.status == 200
-    except Exception as e:
-        print(f"[compass] telegram failed: {e}")
-        return False
+    chats = []
+    if TG_CHAT:
+        chats.append(("env", TG_CHAT))
+    saved = safe_load(TG_CHAT_KEY).get("chat_id")
+    if saved and saved != TG_CHAT:
+        chats.insert(0, ("s3", saved))
+    payload = {"text": msg, "parse_mode": "HTML",
+               "disable_web_page_preview": True}
+    last_err = None
+    for src, cid in chats:
+        ok, d = _tg("sendMessage", {**payload, "chat_id": cid})
+        if ok:
+            return True
+        last_err = d
+    disc = _discover_chat()
+    if disc:
+        ok, d = _tg("sendMessage", {**payload, "chat_id": disc})
+        if ok:
+            try:
+                s3.put_object(Bucket=BUCKET, Key=TG_CHAT_KEY,
+                              Body=json.dumps({
+                                  "chat_id": disc,
+                                  "discovered_at": datetime.now(
+                                      timezone.utc).isoformat(),
+                                  "via": "compass getUpdates self-heal",
+                              }).encode(),
+                              ContentType="application/json")
+            except Exception as e:
+                print(f"[compass] chat persist failed: {e}")
+            print(f"[compass] telegram self-healed to chat {disc}")
+            return True
+        last_err = d
+    print(f"[compass] telegram failed: {last_err}")
+    return False
 
 
 # ───────────────────────────── regime fusion ─────────────────────────────
