@@ -58,6 +58,10 @@ HARD_CORE = ["unemployment_rate", "nonfarm_payrolls", "lfpr", "epop",
              "ahe_private", "awh_private"]
 
 
+def row(rep, check, ok, value=""):
+    rep.kv(check=check, ok=bool(ok), value=value)
+
+
 def get(url, timeout=60):
     req = urllib.request.Request(url, headers=UA)
     return urllib.request.urlopen(req, timeout=timeout).read().decode(
@@ -116,7 +120,7 @@ def main():
         rep.section("2. Key probe + env/description/runtime sync")
         runner_key = os.environ.get("BLS_API_KEY", "")
         key_ok, key_msg = probe_bls_key(runner_key)
-        rep.row(check="runner BLS key valid on v2", ok=key_ok, value=key_msg)
+        row(rep, check="runner BLS key valid on v2", ok=key_ok, value=key_msg)
         existing_env = (cfg.get("Environment") or {}).get("Variables") or {}
         merged = dict(existing_env)
         if key_ok:
@@ -198,12 +202,12 @@ def main():
             ("LFPR sane", lfpr is not None and 55 < lfpr < 70, lfpr),
         ]
         for label, ok, val in checks:
-            rep.row(check=label, ok=ok, value=val)
+            row(rep, check=label, ok=ok, value=val)
             if not ok:
                 fails.append("%s (got %s)" % (label, val))
         hist = (nat.get("unemployment_rate") or {}).get("history") or []
         need = 250 if doc.get("key_valid") else 90
-        rep.row(check="UNRATE history depth", ok=len(hist) >= need,
+        row(rep, check="UNRATE history depth", ok=len(hist) >= need,
                 value=len(hist))
         if len(hist) < need:
             fails.append("UNRATE history %d < %d" % (len(hist), need))
@@ -214,7 +218,7 @@ def main():
                                          "CRISIS")
                  and cr.get("sahm") is not None
                  and len(cr.get("components") or []) == 8)
-        rep.row(check="crisis engine", ok=ok_cr, value="%s/%s sahm=%s" % (
+        row(rep, check="crisis engine", ok=ok_cr, value="%s/%s sahm=%s" % (
             cr.get("score"), cr.get("level"), cr.get("sahm")))
         if not ok_cr:
             fails.append("crisis engine malformed")
@@ -231,7 +235,7 @@ def main():
             leg = s3_json(LEGACY_KEY)
             lg = datetime.fromisoformat(leg["generated_at"])
             ok_leg = lg >= t0 and (leg.get("_series_live") or 0) >= 12
-            rep.row(check="legacy doc fresh", ok=ok_leg,
+            row(rep, check="legacy doc fresh", ok=ok_leg,
                     value="live=%s" % leg.get("_series_live"))
             if not ok_leg:
                 fails.append("legacy bls-labor.json stale/thin")
@@ -242,7 +246,7 @@ def main():
         try:
             pub = json.loads(get(PUBLIC_FEED + "?cb=%d" % time.time()))
             ok_pub = datetime.fromisoformat(pub["generated_at"]) >= t0
-            rep.row(check="public S3 feed URL fresh", ok=ok_pub,
+            row(rep, check="public S3 feed URL fresh", ok=ok_pub,
                     value=pub.get("generated_at"))
             if not ok_pub:
                 fails.append("public feed URL serves stale doc")
@@ -259,7 +263,7 @@ def main():
             except Exception:
                 pass
             time.sleep(20)
-        rep.row(check="bls.html serves rebuilt page", ok=page_ok, value="")
+        row(rep, check="bls.html serves rebuilt page", ok=page_ok, value="")
         if not page_ok:
             warns.append("page cutover not visible yet (CDN max-age=600 "
                          "self-heals; repo + Pages deploy already verified)")
