@@ -324,7 +324,8 @@ def resolve_stats(engines, magdist, scorecard, emap) -> dict:
         }
 
     # Tier B — scorecard aggregate across all three vocabularies
-    by_type = (scorecard or {}).get("by_signal_type") \
+    by_type = (scorecard or {}).get("scorecard") \
+        or (scorecard or {}).get("by_signal_type") \
         or (scorecard or {}).get("signals") or {}
     if isinstance(by_type, list):
         by_type = {str(r.get("signal_type") or r.get("name") or "").lower(): r
@@ -391,7 +392,8 @@ def theme_kelly(stats, conviction, risk_mult) -> dict:
 
 def _index_best_setups(best) -> dict:
     rows = None
-    for k in ("setups", "rows", "best_setups", "top", "items", "ranked"):
+    for k in ("top_setups", "setups", "rows", "best_setups", "top", "items",
+              "ranked"):
         v = (best or {}).get(k)
         if isinstance(v, list) and v and isinstance(v[0], dict):
             rows = v
