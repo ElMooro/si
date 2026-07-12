@@ -226,13 +226,40 @@ def fwd_ret(spy, i, h):
     return (spy[i + h] / spy[i] - 1) * 100
 
 
-def tstat(sample, base):
+def tstat(sample, base, horizon=1):
+    """Overlap-corrected t. Sampling forward h-day returns on EVERY day
+    makes neighbouring observations share h-1 days: the effective sample
+    is ~n/h, and a naive t is inflated by ~sqrt(h) (ops 3166 — the first
+    run printed t=8.59 where the honest figure was ~1.9)."""
     n = len(sample)
     if n < 8:
         return 0.0
     mu = sum(sample) / n
     sd = (sum((x - mu) ** 2 for x in sample) / (n - 1)) ** 0.5
-    return round((mu - base) / (sd / math.sqrt(n)), 2) if sd > 1e-9 else 0.0
+    if sd <= 1e-9:
+        return 0.0
+    n_eff = max(4.0, n / max(1, horizon))
+    return round((mu - base) / (sd / math.sqrt(n_eff)), 2)
+
+
+def norm_p(t):
+    """two-sided p from a normal approximation (no scipy in the runtime)."""
+    z = abs(t)
+    p = math.erfc(z / math.sqrt(2))
+    return min(1.0, max(1e-9, p))
+
+
+def bh_fdr(pvals, q=0.10):
+    """Benjamini-Hochberg: which of the tested theses survive multiple
+    testing at FDR q. 56 theses tested => naive p<0.05 guarantees ~3
+    false positives."""
+    idx = sorted(range(len(pvals)), key=lambda i: pvals[i])
+    m = len(pvals)
+    keep = set()
+    for rank, i in enumerate(idx, 1):
+        if pvals[i] <= q * rank / m:
+            keep = set(idx[:rank])
+    return keep
 
 
 # ── main ─────────────────────────────────────────────────────────────
@@ -325,6 +352,8 @@ def lambda_handler(event, context):
     base = {h: [r for r in (fwd_ret(spy, i, h) for i in range(len(dates)))
                 if r is not None] for h in (5, 21, 63)}
     base_mu = {h: (sum(v) / len(v) if v else 0.0) for h, v in base.items()}
+    base_hit = {h: (100 * sum(1 for x in v if x > 0) / len(v) if v else 0.0)
+                for h, v in base.items()}
 
     rows = []
     for th in theses:
@@ -361,13 +390,18 @@ def lambda_handler(event, context):
             sample = [s for s in sample if s is not None]
             if len(sample) >= 12:
                 mu = sum(sample) / len(sample)
+                t_adj = tstat(sample, base_mu[hz], horizon=hz)
+                hit = 100 * sum(1 for s in sample if s > 0) / len(sample)
                 study[f"d{hz}"] = {
                     "n": len(sample),
+                    "n_effective": round(len(sample) / hz, 1),
                     "spy_fwd_mean_pct": round(mu, 2),
                     "excess_vs_base_pct": round(mu - base_mu[hz], 2),
-                    "hit_rate_pct": round(100 * sum(1 for s in sample
-                                                    if s > 0) / len(sample), 1),
-                    "t_stat": tstat(sample, base_mu[hz]),
+                    "hit_rate_pct": round(hit, 1),
+                    "base_hit_rate_pct": round(base_hit[hz], 1),
+                    "hit_edge_pp": round(hit - base_hit[hz], 1),
+                    "t_stat": t_adj,
+                    "p_value": round(norm_p(t_adj), 4),
                 }
         best = max((v.get("t_stat", 0) for v in study.values()),
                    key=abs, default=0)
@@ -382,7 +416,13 @@ def lambda_handler(event, context):
             "peak_abs_t": abs(best),
         })
 
-    rows.sort(key=lambda r: -(r["peak_abs_t"] or 0))
+    # multiple-testing control across every thesis tested today
+    pv = [((r.get("event_study") or {}).get("d21") or {}).get("p_value", 1.0)
+          for r in rows]
+    survivors = bh_fdr(pv, q=0.10) if pv else set()
+    for i, r in enumerate(rows):
+        r["fdr_pass"] = i in survivors
+    rows.sort(key=lambda r: (not r.get("fdr_pass"), -(r["peak_abs_t"] or 0)))
 
     # 6. emit live signals for firing theses with a proven historical edge
     logged = 0
@@ -392,8 +432,9 @@ def lambda_handler(event, context):
             tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
             for r in rows[:15]:
                 st = (r["event_study"] or {}).get("d21") or {}
-                if not r["firing"] or abs(st.get("t_stat", 0)) < 2 \
-                        or st.get("n", 0) < 20:
+                if (not r["firing"] or not r.get("fdr_pass")
+                        or abs(st.get("t_stat", 0)) < 2
+                        or st.get("n_effective", 0) < 6):
                     continue
                 direction = "DOWN" if st["excess_vs_base_pct"] < 0 else "UP"
                 slug = re.sub(r"[^a-z0-9]+", "_",
@@ -436,7 +477,13 @@ def lambda_handler(event, context):
            "method": ("each watchlist = a thesis; members z-scored vs 252-obs "
                       "history; activation = % of members at |z|>=1.5; days in "
                       "the top activation quintile are event-studied against "
-                      "forward SPY returns (excess vs base rate, t-stat)"),
+                      "forward SPY returns. t-stats are OVERLAP-CORRECTED "
+                      "(effective n = n/horizon, since daily sampling of h-day "
+                      "forward returns shares h-1 days between neighbours) and "
+                      "screened by Benjamini-Hochberg FDR at q=0.10 across all "
+                      "theses tested. hit_edge_pp is the hit rate ABOVE SPY's "
+                      "own base rate — the only honest way to read it."),
+           "n_fdr_survivors": sum(1 for r in rows if r.get("fdr_pass")),
            "theses": rows, "elapsed_s": round(time.time() - t0, 1)}
     s3_put(OUT_KEY, doc)
     print(json.dumps({"ok": True, "n_theses": len(rows),
