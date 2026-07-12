@@ -315,7 +315,7 @@ fetchJSON("data/industry-rotation.json").then(function(d){
     apply();
   }
   document.getElementById("ranknote").textContent=d.rank_note||"";
-  window.__rrg=d.rrg||{};if(!window.__sf){window.__sf={};gj("data/share-flows.json").then(function(x){if(x&&x.tickers)window.__sf=x.tickers;});}var __secfail=[];function __safe(fn,nm){try{fn(d);}catch(ex){__secfail.push(nm+": "+(ex&&ex.message||ex));try{console.error("[IR section] "+nm,ex);}catch(e9){}}}
+  window.__rrg=d.rrg||{};if(!window.__sf){window.__sf={};fetchJSON("data/share-flows.json").then(function(x){if(x&&x.tickers)window.__sf=x.tickers;});}var __secfail=[];function __safe(fn,nm){try{fn(d);}catch(ex){__secfail.push(nm+": "+(ex&&ex.message||ex));try{console.error("[IR section] "+nm,ex);}catch(e9){}}}
 __safe(renderRRGCards,"RRG cards");__safe(renderRRGBarcode,"RRG barcode");__safe(renderRRG,"RRG map");__safe(renderTrans,"RRG transitions");__safe(renderMAev,"MA-cross events");__safe(renderCycle,"cycle");__safe(renderAppetite,"appetite");__safe(renderPairs,"pair spreads");__safe(renderCrossBoard,"cross board");
 
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
