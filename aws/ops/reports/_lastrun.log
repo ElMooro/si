@@ -1,17 +1,13 @@
-executing-against: aae6f0076aea9c3d13eee5a999bf132bc4e8c3b2
-── 1. Gate on CODE truth (LastModified), settle updates ──
-[02:39:21] code landed via deploy-lambdas -- gate PASS
-── 2. Key probe + env/description/runtime sync ──
-[02:39:22] function env BLS_API_KEY == runner secret
-[02:39:22] config updated (runtime -> python3.12, desc, env)
-── 3. Invoke async + poll S3 for fresh employment doc ──
-[02:39:37] fresh doc: generated_at=2026-07-12T02:39:26.275897+00:00 api=v2 key_valid=True
-── 4. Content assertions + headline numbers ──
-── 5. Legacy regression: bls-labor.json still publishing ──
-── 6. Public feed URL + live page cutover ──
-── 7. Retire the failed 3133 gate script ──
-[02:39:38] moved ops_3133_bls_employment_desk.py -> ran/ (unpassable desc-gate superseded by this op)
-── verdict ──
-[02:39:38] PASS
-
-→ Report written to aws/ops/reports/latest/3134_bls_desk_land.md
+executing-against: 82aa485b3d35f8191e44440b23c61475582f12f3
+Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/pending/ops_3135_alpha_compass_v2.py", line 51, in <module>
+    rep = report(3135, "alpha_compass_v2")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/contextlib.py", line 301, in helper
+    return _GeneratorContextManager(func, args, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/contextlib.py", line 105, in __init__
+    self.gen = func(*args, **kwds)
+               ^^^^^^^^^^^^^^^^^^^
+TypeError: report() takes 1 positional argument but 2 were given
+❌ OPS-FAIL: aws/ops/pending/ops_3135_alpha_compass_v2.py
