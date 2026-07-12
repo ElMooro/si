@@ -1,10 +1,20 @@
-executing-against: 2cc88310a2e4ce1d94073e45452173b924594b91
-ops 3150 — cold-start premortem, final gate
-── 1. Container recycle (env nonce) ──
-[06:00:55] ✅ env nonce applied — next invoke is a cold container
-── 2. Invoke + gate ──
-[06:01:56] error sample: {"symbol": "NVDA", "error": "empty", "raw": null}
-[06:01:56] ✗ still 0 rich after cold start — error sample above names the next layer
+executing-against: 0c4e22ae2e45127894b70322e2c1418cf1b813d6
+ops 3151 — LLM provider forensics
+── 1. CW verbatim from the 3150 run ──
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[06:03:43] CW: [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+── 2. Provider probes (runner-side, verbatim) ──
+[06:03:46] GLM probe: HTTP 200 · {"choices":[{"finish_reason":"length","index":0,"message":{"content":"","reasoning_content":"1.  **Analyze the Request:** The user is asking me to reply with the exact string","rol
+[06:03:46] ANTHROPIC_API_KEY: runner secret empty
+[06:03:46] ANTHROPIC_API_KEY_NEW: HTTP 400 · {"type":"error","error":{"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to u
+── 3. Conditional fix + gate ──
+[06:03:50] cold invoke fired
+[06:04:51] error sample: {"symbol": "NVDA", "error": "empty", "raw": null}
+[06:04:51] ✗ 0 rich with a proven-live provider — residual is engine-side; sample above
 
-→ Report written to aws/ops/reports/latest/3150_premortem_coldstart.md
-❌ OPS-FAIL: aws/ops/pending/ops_3150_premortem_coldstart.py
+→ Report written to aws/ops/reports/latest/3151_provider_forensics.md
+❌ OPS-FAIL: aws/ops/pending/ops_3151_provider_forensics.py
