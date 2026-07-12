@@ -1,0 +1,51 @@
+# ops 3176 — 207 watchlists → 207 engines
+
+**Status:** success  
+**Duration:** 127.2s  
+**Finished:** 2026-07-12T23:24:50+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| active | dormant | elapsed_s | engines | fdr_survivors | firing | n_fails | n_warns | series_cached | signals_logged | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 53 | 79 | 100.2 | 132 | 0 | 4 |  |  | 249 | 0 |  |
+|  |  |  |  |  |  | 0 | 1 |  |  | PASS |
+
+## Log
+## 1. Deploy the runtime
+
+- `23:22:43`   zip: 64304 bytes
+## 1. Lambda
+
+- `23:22:43`   Lambda missing — creating
+- `23:22:48` ✅   ✓ created justhodl-wl-engines
+- `23:22:48` ✅   ✓ Function URL: https://umxlvt2nnisnezhso7egna3veq0rhjnh.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `23:22:49` ✅   ✓ created rule wl-engines-daily
+- `23:22:49` ✅   ✓ target → justhodl-wl-engines
+- `23:22:49` ✅   ✓ added invoke permission
+## 2. First run — every watchlist becomes an engine
+
+## 3. The fleet he now owns
+
+- `23:24:50` ── by theme: OTHER=48, LIQUIDITY=20, CREDIT=18, GROWTH=10, STRESS=9, RATES=9, BREADTH=8, INFLATION=5, DOLLAR=4, CRYPTO=1
+- `23:24:50` ── FIRING NOW (4) — with the exact indicators lit:
+- `23:24:50`   Global Commodities prices          [INFLATION] act  83.3% ( 94.1p) t=  0.51 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:PALLF
+- `23:24:50`   Business Cycle                     [GROWTH   ] act  54.2% ( 85.7p) t=  0.41 lit: FRED:PRAWMINDEXM, FRED:MNFCTRIRSA, FRED:TRUC
+- `23:24:50`   Freight                            [OTHER    ] act  33.3% ( 84.5p) t=   0.6 lit: FRED:TRUCKD11, FRED:RAILFRTCARLOADSD11
+- `23:24:50`   Commodities : are often rented but [INFLATION] act  70.0% ( 82.2p) t= -0.24 lit: FRED:PRAWMINDEXM, FRED:IR, FRED:IQ, FRED:PAL
+## 4. Per-engine feeds exist (spot-check)
+
+- `23:24:50` ✅ wl-global-commodities-prices: 6/29 members · 5 lit · signal_type wl_global-commodities-prices · fusion → justhodl-macro-nowcast, justhodl-cycle-clock
+- `23:24:50` ✅ wl-business-cycle: 24/32 members · 12 lit · signal_type wl_business-cycle · fusion → justhodl-cycle-clock, justhodl-macro-nowcast
+- `23:24:50` ✅ wl-freight: 6/26 members · 2 lit · signal_type wl_freight · fusion → 
+- `23:24:50` ✅ wl-commodities-are-often-rented-but-r: 10/45 members · 7 lit · signal_type wl_commodities-are-often-rented-but-r · fusion → justhodl-macro-nowcast, justhodl-cycle-clock
+- `23:24:50` ✅ wl-82604570: 6/500 members · 1 lit · signal_type wl_82604570 · fusion → 
+- `23:24:50` ⚠ only 53 ACTIVE — the rest need more of their indicators mapped to free sources
