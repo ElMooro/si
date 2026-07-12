@@ -644,6 +644,34 @@ def compute_per_etf_metrics(snapshot: dict, history: list) -> dict:
         elif flow_zscore_90d <= -1.0:
             label = "OUTFLOW"
 
+    # ── Flow–Price divergence layer (ops 3143) ──────────────────────
+    # nav history rides along in the same fund-flows rows → 21d/5d price
+    # return costs ZERO extra API calls. Divergence quadrants are the
+    # institutional construct raw flows miss: inflows into weakness =
+    # stealth accumulation; outflows into strength = distribution rally.
+    ret_5d_pct = ret_21d_pct = None
+    if history:
+        navs = sorted(((x.get("processed_date") or "", x.get("nav"))
+                       for x in history if x.get("nav")), reverse=True)
+        nav_now = snapshot.get("nav") or (navs[0][1] if navs else None)
+        if nav_now:
+            if len(navs) >= 6 and navs[5][1]:
+                ret_5d_pct = round((nav_now / navs[5][1] - 1) * 100, 2)
+            if len(navs) >= 22 and navs[21][1]:
+                ret_21d_pct = round((nav_now / navs[21][1] - 1) * 100, 2)
+    quadrant, divergence_score = "NEUTRAL", None
+    if flow_zscore_90d is not None and ret_21d_pct is not None:
+        z, r = flow_zscore_90d, ret_21d_pct
+        divergence_score = round(z * -math.tanh(r / 8.0), 2)
+        if z >= 1.0 and r <= -2.0:
+            quadrant = "STEALTH_ACCUMULATION"
+        elif z <= -1.0 and r >= 2.0:
+            quadrant = "DISTRIBUTION_RALLY"
+        elif z >= 1.0 and r >= 2.0:
+            quadrant = "TREND_CONFIRMED"
+        elif z <= -1.0 and r <= -2.0:
+            quadrant = "CAPITULATION"
+
     return {
         "ticker": snapshot["ticker"],
         "processed_date": snapshot.get("processed_date"),
@@ -661,6 +689,10 @@ def compute_per_etf_metrics(snapshot: dict, history: list) -> dict:
         "aum_usd": snapshot.get("aum_usd"),
         "flow_zscore_90d": flow_zscore_90d,
         "persistence_days": persistence_days,
+        "ret_5d_pct": ret_5d_pct,
+        "ret_21d_pct": ret_21d_pct,
+        "quadrant": quadrant,
+        "divergence_score": divergence_score,
         "signal_label": label,
         "n_history_points": len(history),
     }
@@ -709,6 +741,93 @@ def aggregate_by_category(metrics: list) -> dict:
 # ═════════════════════════════════════════════════════════════════════
 # COMPOSITE SIGNALS — the institutional alpha
 # ═════════════════════════════════════════════════════════════════════
+
+
+# ═════════════════════════════════════════════════════════════════════
+# Flow–Price Divergence board + graded-signal emission (ops 3143)
+# ═════════════════════════════════════════════════════════════════════
+def build_divergence_board(metrics: list) -> dict:
+    """Ranked stealth-accumulation vs distribution-rally boards."""
+    def row(m):
+        return {"ticker": m["ticker"], "category": m["category"],
+                "subcategory": m["subcategory"],
+                "flow_zscore_90d": m.get("flow_zscore_90d"),
+                "ret_21d_pct": m.get("ret_21d_pct"),
+                "pct_aum_21d": m.get("pct_aum_21d"),
+                "divergence_score": m.get("divergence_score")}
+    ok = [m for m in metrics if not m.get("error")
+          and m.get("divergence_score") is not None
+          and m.get("category") != "broad"]
+    stealth = sorted((m for m in ok
+                      if m.get("quadrant") == "STEALTH_ACCUMULATION"),
+                     key=lambda m: -(m.get("divergence_score") or 0))
+    distro = sorted((m for m in ok
+                     if m.get("quadrant") == "DISTRIBUTION_RALLY"),
+                    key=lambda m: (m.get("divergence_score") or 0))
+    return {
+        "method": ("z(flow,90d) vs 21d nav return; stealth = z>=+1 & "
+                   "ret<=-2%; distribution = z<=-1 & ret>=+2%; score = "
+                   "z * -tanh(ret/8)"),
+        "n_scored": len(ok),
+        "stealth_accumulation": [row(m) for m in stealth[:10]],
+        "distribution_rally": [row(m) for m in distro[:10]],
+        "trend_confirmed": sum(1 for m in ok
+                               if m.get("quadrant") == "TREND_CONFIRMED"),
+        "capitulation": sum(1 for m in ok
+                            if m.get("quadrant") == "CAPITULATION"),
+    }
+
+
+def emit_divergence_signals(metrics: list, now) -> int:
+    """Log the strongest divergences into the justhodl-signals table so
+    outcome-checker grades them → scorecard/magdist learn whether stealth
+    accumulation actually LEADS (|z| >= 1.5 emission bar)."""
+    from decimal import Decimal
+    logged = 0
+    try:
+        tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+        cand = [m for m in metrics if not m.get("error")
+                and m.get("category") != "broad"
+                and m.get("quadrant") in ("STEALTH_ACCUMULATION",
+                                           "DISTRIBUTION_RALLY")
+                and abs(m.get("flow_zscore_90d") or 0) >= 1.5
+                and m.get("nav")]
+        cand.sort(key=lambda m: -abs(m.get("divergence_score") or 0))
+        for m in cand[:12]:
+            up = m["quadrant"] == "STEALTH_ACCUMULATION"
+            stype = "etf_stealth_accum" if up else "etf_distribution_rally"
+            direction = "UP" if up else "DOWN"
+            tbl.put_item(Item={
+                "signal_id": f"etfdiv-{direction}#{m['ticker']}#"
+                             f"{now.date().isoformat()}",
+                "signal_type": stype,
+                "predicted_direction": direction,
+                "signal_value": str(m.get("divergence_score")),
+                "confidence": Decimal("0.55"),
+                "measure_against": "ticker_vs_benchmark",
+                "baseline_price": str(m["nav"]),
+                "benchmark": "SPY",
+                "check_windows": ["day_5", "day_21", "day_63"],
+                "outcomes": {}, "accuracy_scores": {},
+                "status": "pending",
+                "logged_at": now.isoformat(),
+                "logged_epoch": int(now.timestamp()),
+                "horizon_days_primary": 21, "schema_version": "2",
+                "ttl": int(now.timestamp()) + 120 * 86400,
+                "metadata": {"engine": "etf-fund-flows",
+                             "quadrant": m["quadrant"],
+                             "subcategory": m.get("subcategory")},
+                "rationale": (f"{m['quadrant']} {m['ticker']}: flow z "
+                              f"{m.get('flow_zscore_90d')} vs 21d ret "
+                              f"{m.get('ret_21d_pct')}% "
+                              f"({m.get('pct_aum_21d')}% AUM/21d)"),
+            })
+            logged += 1
+    except Exception as e:
+        print(f"[etf-flows] signal emit failed: {str(e)[:120]}")
+    return logged
+
+
 def compute_composite_signals(metrics: list, cat_aggs: dict) -> dict:
     """6 institutional composite signals derived from per-ETF flows.
 
@@ -955,6 +1074,15 @@ def lambda_handler(event, context):
     print("[etf-flows] phase 5: building per-ticker context...")
     per_ticker = build_per_ticker_context(metrics, composite)
 
+    # 5b. Flow-Price divergence board + graded-signal emission (ops 3143)
+    print("[etf-flows] phase 4b: divergence board + signal emission...")
+    divergence = build_divergence_board(metrics)
+    _emit_now = datetime.now(timezone.utc)
+    signals_logged = emit_divergence_signals(metrics, _emit_now)
+    print(f"[etf-flows] divergence: {len(divergence['stealth_accumulation'])}"
+          f" stealth / {len(divergence['distribution_rally'])} distro / "
+          f"{signals_logged} signals logged")
+
     elapsed = round(time.time() - t0, 1)
 
     # 7. Write outputs to S3
@@ -973,10 +1101,15 @@ def lambda_handler(event, context):
     _write_json(f"{OUTPUT_PREFIX}daily.json", {**meta, "metrics": metrics})
 
     # 7b. Composite signals
-    _write_json(f"{OUTPUT_PREFIX}composite.json", {**meta, "composite": composite})
+    _write_json(f"{OUTPUT_PREFIX}composite.json",
+                {**meta, "composite": composite,
+                 "divergence_board": divergence,
+                 "divergence_signals_logged": signals_logged})
 
     # 7c. Rotation matrix (category aggregates)
-    _write_json(f"{OUTPUT_PREFIX}rotation.json", {**meta, "by_category": category_aggs})
+    _write_json(f"{OUTPUT_PREFIX}rotation.json",
+                {**meta, "by_category": category_aggs,
+                 "divergence_board": divergence})
 
     # 7d. Per-ticker context for prompt injection
     _write_json(f"{OUTPUT_PREFIX}per-ticker-context.json", {**meta, "context": per_ticker})

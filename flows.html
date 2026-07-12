@@ -212,6 +212,12 @@ table.flow-table tr:hover td{ background:var(--bg-elev) }
   <!-- Composite Gauges (existing) -->
   <div class="composite-grid" id="composite-grid"></div>
 
+  <!-- Flow-Price Divergence board (ops 3143) -->
+  <div class="section" id="divergence-section" style="display:none">
+    <h2>🕵️ Flow–Price Divergence <span style="font-size:11px;color:var(--text-muted);font-weight:400">creations vs 21d NAV return · the quadrants raw flows miss</span></h2>
+    <div class="body" id="divergence-body"></div>
+  </div>
+
   <!-- Phase 2: Multi-Asset Macro Regime panel -->
   <div class="section" id="macro-regime-section" style="display:none">
     <h3>🌐 Multi-Asset Macro Regime <span class="sub">7 sub-regimes from VIX/curve/dollar/carry/commodity/EM/credit ETF proxies</span></h3>
@@ -603,6 +609,8 @@ async function load() {
 
   $("meta-bar").innerHTML = `Generated ${esc(daily.generated_at?.slice(0,16).replace('T',' '))} UTC · ${daily.n_ok}/${daily.universe_size} ETFs · elapsed ${daily.elapsed_s}s · schema v${daily.schema_version || '1.0'}`;
 
+  renderDivergence(composite.divergence_board);
+
   // 6 Composite gauges
   const composites = ['defensive_rotation','smart_vs_dumb','risk_on_off','domestic_vs_intl','growth_vs_value','credit_stress'];
   const cNames = {
@@ -698,6 +706,34 @@ load();
 </script>
 
   <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-nav-drawer.js" defer>
+function renderDivergence(b){
+  if(!b || (!b.stealth_accumulation?.length && !b.distribution_rally?.length)) return;
+  const col = (title, rows, pos) => {
+    if(!rows?.length) return `<div style="flex:1;min-width:280px"><div style="font-size:11px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">${title}</div><div style="color:var(--text-muted);font-size:12px">none in quadrant today</div></div>`;
+    const tr = rows.map(m => `<tr>
+      <td style="padding:5px 8px;font-weight:700">${esc(m.ticker)}</td>
+      <td style="padding:5px 8px;color:var(--text-muted)">${esc(m.subcategory||m.category||'')}</td>
+      <td style="padding:5px 8px;text-align:right;color:${(m.flow_zscore_90d||0)>=0?'var(--pos)':'var(--neg)'}">${m.flow_zscore_90d?.toFixed?.(1) ?? '—'}σ</td>
+      <td style="padding:5px 8px;text-align:right;color:${(m.ret_21d_pct||0)>=0?'var(--pos)':'var(--neg)'}">${m.ret_21d_pct ?? '—'}%</td>
+      <td style="padding:5px 8px;text-align:right">${m.pct_aum_21d ?? '—'}%</td>
+    </tr>`).join('');
+    return `<div style="flex:1;min-width:280px">
+      <div style="font-size:11px;letter-spacing:1px;color:${pos?'var(--pos)':'var(--neg)'};text-transform:uppercase;margin-bottom:6px">${title}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="color:var(--text-muted);font-size:10px;text-transform:uppercase">
+          <th style="text-align:left;padding:4px 8px">ETF</th><th style="text-align:left;padding:4px 8px">Group</th>
+          <th style="text-align:right;padding:4px 8px">Flow z</th><th style="text-align:right;padding:4px 8px">21d Ret</th>
+          <th style="text-align:right;padding:4px 8px">21d %AUM</th></tr></thead>
+        <tbody>${tr}</tbody></table></div>`;
+  };
+  $("divergence-body").innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap">
+    ${col('▲ Stealth Accumulation — inflows into weakness', b.stealth_accumulation, true)}
+    ${col('▼ Distribution Rally — outflows into strength', b.distribution_rally, false)}
+  </div>
+  <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">${esc(b.method||'')} · ${b.n_scored} ETFs scored · trend-confirmed ${b.trend_confirmed} · capitulation ${b.capitulation} · signals feed the scorecard (etf_stealth_accum / etf_distribution_rally)</div>`;
+  $("divergence-section").style.display = '';
+}
+</script>
 </body>
 </html>
