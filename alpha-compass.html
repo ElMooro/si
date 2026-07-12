@@ -300,7 +300,7 @@ function card(c){
     <div class="cc-thesis">${esc(c.thesis||'')}</div>
     <div style="display:flex;justify-content:space-between;align-items:center">
       ${tierBadge(st)}
-      <span class="mono" style="font-size:9.5px;color:var(--t3)">${st.horizon_days?st.horizon_days+'d horizon':''}${st.match_score?' · match '+st.match_score:''}</span>
+      <span class="mono" style="font-size:9.5px;color:var(--t3)">${st.horizon_days?st.horizon_days+'d horizon':''}${st.matched_signals?' · via '+esc(st.matched_signals.slice(0,2).join('+')):''}${st.n?' · n='+st.n:''}</span>
     </div>
     ${distBar(st)}
     <div class="cc-grid">

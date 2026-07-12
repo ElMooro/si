@@ -195,11 +195,11 @@ def fmp_quotes(tickers) -> dict:
 
 _COLORS = {
     "RISK-ON": "#00e68a", "RISK_ON": "#00e68a", "EXPANSION": "#00e68a",
-    "MILDLY RISK-ON": "#7ae0b0", "GOLDILOCKS": "#00e68a",
+    "MILDLY RISK-ON": "#7ae0b0", "MILD_RISK_ON": "#7ae0b0", "GOLDILOCKS": "#00e68a",
     "NEUTRAL": "#4dabf7", "NORMAL": "#4dabf7", "STABLE": "#4dabf7",
     "NEUTRAL / MIXED": "#4dabf7", "MIXED": "#4dabf7",
     "TRANSITION": "#ffd43b", "CAUTION": "#ffd43b", "WATCH": "#ffd43b",
-    "MILDLY RISK-OFF": "#ffa94d",
+    "MILDLY RISK-OFF": "#ffa94d", "MILD_RISK_OFF": "#ffa94d",
     "RISK-OFF": "#ff4757", "RISK_OFF": "#ff4757", "CRISIS": "#ff4757",
     "CONTRACTION": "#ff922b", "STRESS": "#ff922b",
 }
@@ -233,9 +233,10 @@ def fuse_regime(rcomp, roro, factor, dollar, sizer, conviction) -> dict:
                         "value": comp_lbl, "score": comp_score,
                         "color": _color(comp_lbl)})
 
-    roro_lbl = _lbl(first_of(roro, "posture", "regime", "state"))
-    roro_score = fnum(first_of(roro, "score", "composite_score", "roro_score",
-                               "posture.score"))
+    roro_lbl = _lbl(first_of(roro, "risk_regime", "posture", "regime",
+                             "state"))
+    roro_score = fnum(first_of(roro, "risk_regime_score", "score",
+                               "composite_score", "roro_score"))
     if roro_lbl:
         sources.append({"k": "roro", "label": "RORO", "value": roro_lbl,
                         "score": roro_score, "color": _color(roro_lbl)})
@@ -267,7 +268,7 @@ def fuse_regime(rcomp, roro, factor, dollar, sizer, conviction) -> dict:
 
     headline = comp_lbl or roro_lbl or book or "Unknown"
     playbook_bits = []
-    if decisive:
+    if decisive and str(decisive).upper() not in ("", "UNKNOWN"):
         playbook_bits.append(f"Sizer: {decisive}")
     playbook_bits.append(f"risk multiplier ×{risk_mult:g}")
     if rt.get("verdict"):
@@ -313,19 +314,21 @@ def _mapped_signal_types(fams, emap) -> set:
 
 
 def _best_stack(stacks, candidate, horizon_hint=30):
-    best, best_score = None, 0.0
+    """Best realised-distribution stack whose signals are ALL in the
+    candidate vocabulary (subset coverage). Jaccard was wrong here: stacks
+    are mostly single-signal, so union-penalty buried every true match
+    (ops 3137 forensics). Rank: preferred horizon, then sample size."""
+    eligible = []
     for s in stacks:
         members = {str(x).strip().lower() for x in (s.get("signals") or []) if x}
-        if not members:
-            continue
-        inter = candidate & members
-        if not inter:
-            continue
-        j = len(inter) / len(candidate | members)
-        score = j * (1.0 if s.get("horizon_days") == horizon_hint else 0.6)
-        if score > best_score:
-            best, best_score = s, score
-    return best, best_score
+        if members and members <= candidate:
+            eligible.append((s.get("horizon_days") == horizon_hint,
+                             s.get("n") or 0, s, sorted(members)))
+    if not eligible:
+        return None, 0.0, None
+    eligible.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    _, _, best, matched = eligible[0]
+    return best, len(eligible), matched
 
 
 def resolve_stats(engines, magdist, scorecard, emap) -> dict:
@@ -334,19 +337,15 @@ def resolve_stats(engines, magdist, scorecard, emap) -> dict:
     mapped = _mapped_signal_types(fams, emap)
     stacks = (magdist or {}).get("stacks") or []
 
-    # Tier A — realised distribution
-    best, best_score, via = None, 0.0, None
-    for cand, tag in ((mapped, "family_map"), (names, "engine_names"),
-                      (fams, "family_names")):
-        if not cand:
-            continue
-        b, sc = _best_stack(stacks, cand)
-        if sc > best_score:
-            best, best_score, via = b, sc, tag
-    if best and best_score >= 0.12:
+    # Tier A — realised distribution (union of all three vocabularies;
+    # a stack matches when every one of its signals is a candidate)
+    candidate = names | fams | mapped
+    best, n_eligible, matched = (_best_stack(stacks, candidate)
+                                 if candidate else (None, 0, None))
+    if best:
         return {
-            "source": "magdist", "match_via": via,
-            "match_score": round(best_score, 3),
+            "source": "magdist", "matched_signals": matched,
+            "eligible_stacks": n_eligible,
             "n": best.get("n"), "median": fnum(best.get("median")),
             "p25": fnum(best.get("p25")), "p75": fnum(best.get("p75")),
             "win_rate": fnum(best.get("win_rate")),
