@@ -1,18 +1,15 @@
-executing-against: 31d4f9d0e0fc308217f22b045db326e62970dce7
-ops 3161 — ingest at harvest scale
-── 1. Deploy hardened ingest (1024MB / 300s / parallel) ──
-[20:05:29]   zip: 56091 bytes
-── 1. Lambda ──
-[20:05:29]   Lambda exists — updating
-[20:05:34] ✅   ✓ updated justhodl-tv-notes-ingest
-── 2. Watchlists-first request (the new order) ──
-[20:05:37] ✅ watchlists land independently of notes (the fix that saves them when a note chunk dies)
-── 3. 300-note burst — the scale that broke it ──
-[20:05:41] ✅ 300 notes accepted in 4.3s (brain 300, mirror 300)
-── 4. Cleanup e2e artifacts ──
+# ops 3161 — ingest at harvest scale
 
-→ Report written to aws/ops/reports/latest/3161_ingest_scale.md
+**Status:** failure  
+**Duration:** 74.1s  
+**Finished:** 2026-07-12T20:06:42+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3161_ingest_scale.py", line 139, in <module>
     post(furl, {"token": token, "delete_ids": ids}, timeout=60)
   File "/home/runner/work/si/si/aws/ops/pending/ops_3161_ingest_scale.py", line 57, in post
@@ -54,4 +51,31 @@ Traceback (most recent call last):
     return self._sslobj.read(len, buffer)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TimeoutError: The read operation timed out
-❌ OPS-FAIL: aws/ops/pending/ops_3161_ingest_scale.py
+
+```
+
+## Data
+
+| brain_error | brain_failed | brain_upserted | burst_secs | burst_status | memory | mirror_added | projected_1983_notes_secs | timeout | wl_only_status | wl_saved | wl_secs |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  | 1024 |  |  | 300 |  |  |  |
+|  |  |  |  |  |  |  |  |  | 200 | 2 | 1.4 |
+| None | 0 | 300 | 4.3 | 200 |  | 300 |  |  |  |  |  |
+|  |  |  |  |  |  |  | 28.4 |  |  |  |  |
+
+## Log
+## 1. Deploy hardened ingest (1024MB / 300s / parallel)
+
+- `20:05:29`   zip: 56091 bytes
+## 1. Lambda
+
+- `20:05:29`   Lambda exists — updating
+- `20:05:34` ✅   ✓ updated justhodl-tv-notes-ingest
+## 2. Watchlists-first request (the new order)
+
+- `20:05:37` ✅ watchlists land independently of notes (the fix that saves them when a note chunk dies)
+## 3. 300-note burst — the scale that broke it
+
+- `20:05:41` ✅ 300 notes accepted in 4.3s (brain 300, mirror 300)
+## 4. Cleanup e2e artifacts
+
