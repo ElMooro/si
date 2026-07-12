@@ -43,7 +43,7 @@ with report("3153_first_exception") as rep:
     rep.section("0. Redeploy premortem w/ patched router (GLM timeout 130s)")
     from pathlib import Path
     from _lambda_deploy_helpers import deploy_lambda
-    AWS_DIR = Path(__file__).resolve().parents[1]
+    AWS_DIR = Path(__file__).resolve().parents[2]
     live = LAM.get_function_configuration(FunctionName=FN)
     cfgf = json.loads((AWS_DIR / "lambdas" / FN / "config.json").read_text())
     deploy_lambda(report=rep, function_name=FN,
