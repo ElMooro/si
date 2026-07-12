@@ -1,12 +1,11 @@
-executing-against: 99e1eda3fcf056cc89613b9788e88d19a8015ba2
-ops 3140 — Telegram token probe + wire
-── 1. Probe candidates (runner-side getMe) ──
-[03:46:40] donor-config: LIVE @Justhodl_bot
-[03:46:40] runner-secret: dead (empty)
-── 2. Merge live token into function env ──
-[03:46:44] ✅ env updated with donor-config token (keys: ['FMP_API_KEY', 'TELEGRAM_CHAT_ID', 'TELEGRAM_TOKEN'])
-── 3. Armed test via lambda ──
-[03:46:45] ✗ lambda send still failing with a proven-live token — inspect send path next op
+executing-against: 36d1ddc2100fa2354d2463ea218e0ec307722d4c
+ops 3141 — Telegram send-path forensics
+── 1. Runner-side replay (identical payload) ──
+[03:48:43] runner replay HTTP 403: {"ok":false,"error_code":403,"description":"Forbidden: bot can't initiate conversation with a user"}
+── 2. Lambda test invoke + CloudWatch tail ──
+[03:48:44] invoke payload: {"statusCode": 200, "body": "{\"telegram\": false}"}
+[03:48:51] CW: no 'telegram' lines in window
+── 3. Verdict ──
+[03:48:51] payload itself rejected — CW irrelevant; fix per the HTTP body above
 
-→ Report written to aws/ops/reports/latest/3140_telegram_wire.md
-❌ OPS-FAIL: aws/ops/pending/ops_3140_telegram_wire.py
+→ Report written to aws/ops/reports/latest/3141_telegram_forensics.md
