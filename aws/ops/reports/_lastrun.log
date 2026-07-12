@@ -1,7 +1,5 @@
-executing-against: b6a5c6fd81c63142673c60b55da49e242d6ebe05
-── 1. Regenerate AAPL on new bundle (S3 doc gate) ──
-── 2. Page live (this-push) ──
-── verdict ──
-[01:39:02] PASS
+executing-against: 62d8c606576e844a8d19e22adf889dbb9582dfc4
+── 1. Gate: deploy-lambdas landed the new bundle ──
 
-→ Report written to aws/ops/reports/latest/3132_hero_fix.md
+→ Report written to aws/ops/reports/latest/3133_bls_employment_desk.md
+❌ OPS-FAIL: aws/ops/pending/ops_3133_bls_employment_desk.py
