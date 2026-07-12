@@ -1,24 +1,45 @@
-executing-against: bf1c739572b0bc217242a1961a1ba879e08918f9
-ops 3173 — regime truncation fix + compass traceback
-── 1. Compass — the verbatim failure ──
-[22:56:49] errorType: NameError
-[22:56:49] errorMessage: name 'fetch_json' is not defined
-[22:56:49]   File "/var/task/_sentry_lite.py", line 68, in wrapped
-    return handler(event, context)
-[22:56:49]   File "/var/task/lambda_function.py", line 847, in handler
-    for k, v in ((fetch_json("data/notes-index.json") or {})
-── 2. Thesis engine — regime series fetched FIRST ──
-[22:56:50]   zip: 66447 bytes
+executing-against: 4a5ff257113aa84ae08aa4428f287a4055864643
+ops 3174 — the FRED key that actually works
+── 1. Candidate keys (SSM + daily FRED consumers) ──
+[23:01:14]   justhodl-dollar-radar:FRED_KEY         2f0574… → 30 obs
+[23:01:14]   bond-indices-agent:FRED_API_KEY        2f0574… → 30 obs
+[23:01:14]   hardcoded_fallback                     2f0574… → 30 obs
+[23:01:14] ✅ working key found in justhodl-dollar-radar:FRED_KEY
+── 2. Write it everywhere it belongs ──
+[23:01:14] ✅ SSM /justhodl/fred-api-key set (single source of truth)
+[23:01:18] ✅ justhodl-thesis-engine: live FRED key applied
+[23:01:22] ✅ justhodl-notes-intel: live FRED key applied
+── 3. Compass (safe_load, not fetch_json) ──
+[23:01:22]   zip: 69459 bytes
 ── 1. Lambda ──
-[22:56:50]   Lambda exists — updating
-[22:56:53] ✅   ✓ updated justhodl-thesis-engine
+[23:01:22]   Lambda exists — updating
+[23:01:25] ✅   ✓ updated justhodl-alpha-compass
 ── 2. EB rule + permissions ──
-[22:56:53]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[22:56:53] ✅   ✓ target → justhodl-thesis-engine
-[22:56:53] ✅   ✓ added invoke permission
-[22:58:54]   debug: {"ff_obs": 0, "bs_obs": 0, "ff_non_null": 0, "ff_first": null, "ff_last": null}
-[22:58:54] ✗ compass: NameError: name 'fetch_json' is not defined
-[22:58:54] ✗ regime STILL degenerate: {'EASING': 0, 'NEUTRAL': 1746, 'TIGHTENING': 0} debug={'ff_obs': 0, 'bs_obs': 0, 'ff_non_null': 0, 'ff_first': None, 'ff_last': None}
+[23:01:25]   rule already correct: alpha-compass-3h (cron(50 */3 * * ? *))
+[23:01:25] ✅   ✓ target → justhodl-alpha-compass
+[23:01:25] ✅   ✓ added invoke permission
+── 3. Smoke test ──
+[23:01:25]   invoking justhodl-alpha-compass…
+[23:01:28] ✅   ✓ smoke test passed
+[23:01:28]     ok                       True
+[23:01:28]     cards                    6
+[23:01:28]     regime                   Normal
+── 4. Regime series — the real answer at last ──
+[23:03:08]   debug: {"ff_obs": 438, "bs_obs": 1230, "ff_non_null": 1745, "ff_first": 3.03, "ff_last": 3.63}
+[23:03:08] ✅ REGIME LIVE: 710 easing / 445 neutral / 591 tightening weeks since 1990
+[23:03:08] ── HIS PANELS, INSIDE EACH POLICY REGIME:
+[23:03:08]   CREDIT     EASING     excess  -1.23% t= -0.31 n_eff=10.2
+[23:03:08]   CREDIT     NEUTRAL    excess   0.21% t=  0.12 n_eff=2.9
+[23:03:08]   CREDIT     TIGHTENING excess  -2.06% t= -0.78 n_eff=4.8
+[23:03:08]   STRESS     EASING     excess  -0.51% t= -0.16 n_eff=14.4
+[23:03:08]   STRESS     NEUTRAL    excess  -0.68% t= -0.25 n_eff=7.5
+[23:03:08]   STRESS     TIGHTENING excess  -1.72% t= -0.57 n_eff=4.2
+[23:03:08]   GROWTH     EASING     excess   0.50% t=  0.17 n_eff=16.1
+[23:03:08]   GROWTH     NEUTRAL    excess  -1.34% t= -0.73 n_eff=6.8
+[23:03:08]   GROWTH     TIGHTENING excess  -0.16% t= -0.09 n_eff=2.2
+[23:03:08]   LIQUIDITY  EASING     excess   0.21% t=  0.06 n_eff=12.2
+[23:03:08]   LIQUIDITY  NEUTRAL    excess   1.00% t=  0.45 n_eff=3.4
+[23:03:08]   LIQUIDITY  TIGHTENING excess   1.34% t=  0.84 n_eff=2.4
+[23:03:08] ⚠ no regime-gated edge — with real regimes, the verdict holds: context, not timing
 
-→ Report written to aws/ops/reports/latest/3173_regime_compass.md
-❌ OPS-FAIL: aws/ops/pending/ops_3173_regime_compass.py
+→ Report written to aws/ops/reports/latest/3174_fred_key.md
