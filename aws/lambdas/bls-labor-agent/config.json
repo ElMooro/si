@@ -2,13 +2,13 @@
   "name": "bls-labor-agent",
   "runtime": "python3.9",
   "handler": "lambda_bls_agent.lambda_handler",
-  "memory_mb": 256,
-  "timeout_s": 60,
+  "memory_mb": 512,
+  "timeout_s": 180,
   "code_size_bytes": 2158,
   "package_type": "Zip",
   "last_modified": "2025-09-19T18:57:25.587+0000",
   "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "",
+  "description": "BLS desk: legacy CPI/labor (data/bls-labor.json) + comprehensive employment crisis dataset, 110 series (data/bls-employment.json). Daily 14:00 UTC.",
   "env_keys": [
     "BLS_API_KEY"
   ],

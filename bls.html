@@ -1,1194 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLS Employment Crisis Detection Platform - Comprehensive</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .category-section {
-            margin-bottom: 40px;
-        }
-        
-        .category-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #3b82f6;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: rgba(59, 130, 246, 0.1);
-            border-left: 4px solid #3b82f6;
-            border-radius: 4px;
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .metric-card {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
-            border-color: rgba(59, 130, 246, 0.6);
-        }
-        
-        .metric-card.selected {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.15);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-        }
-        
-        .metric-title {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            font-weight: 600;
-            margin-bottom: 8px;
-            cursor: text;
-        }
-        
-        .metric-title.editable:hover {
-            color: #cbd5e1;
-            text-decoration: underline;
-        }
-        
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 10px;
-        }
-        
-        .change-indicators {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        
-        .change-item {
-            background: rgba(15, 23, 42, 0.6);
-            padding: 6px;
-            border-radius: 4px;
-        }
-        
-        .change-label {
-            font-size: 0.7rem;
-            color: #64748b;
-            margin-bottom: 2px;
-        }
-        
-        .change-value {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-        
-        .positive {
-            color: #10b981;
-        }
-        
-        .negative {
-            color: #ef4444;
-        }
-        
-        .neutral {
-            color: #94a3b8;
-        }
-        
-        .crisis-indicator {
-            background: rgba(15, 23, 42, 0.6);
-            padding: 6px;
-            border-radius: 4px;
-            margin-top: 8px;
-        }
-        
-        .crisis-value {
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .crisis-level {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            margin-left: 6px;
-        }
-        
-        .crisis-safe {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-        }
-        
-        .crisis-warning {
-            background: rgba(251, 191, 36, 0.2);
-            color: #fbbf24;
-        }
-        
-        .crisis-danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-        
-        .chart-container {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            height: 500px;
-        }
-        
-        .data-table-container {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            overflow-x: auto;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        
-        .data-table th {
-            background: rgba(15, 23, 42, 0.8);
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-            color: #cbd5e1;
-            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
-            font-size: 0.85rem;
-            position: sticky;
-            top: 0;
-        }
-        
-        .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        
-        .data-table tr:hover {
-            background: rgba(59, 130, 246, 0.05);
-        }
-        
-        .table-metric-name {
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2rem;
-            color: #64748b;
-        }
-        
-        .error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 15px;
-        }
-        
-        .filter-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-btn {
-            padding: 6px 12px;
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
-        }
-        
-        .filter-btn:hover {
-            background: rgba(59, 130, 246, 0.3);
-        }
-        
-        .filter-btn.active {
-            background: #3b82f6;
-            color: white;
-        }
-    
-
-/* ─── MOBILE RESPONSIVE — auto-injected 2026-05-06 ─── */
-@media (max-width: 900px){
-  .kpis{grid-template-columns: repeat(2, 1fr) !important; gap: 12px}
-  .grid{grid-template-columns: repeat(6, 1fr)}
-  .col-4,.col-5{grid-column: span 6 !important}
-  .col-6,.col-7,.col-8{grid-column: span 12 !important}
-  .strip{grid-template-columns: repeat(2, 1fr)}
-  .tools{grid-template-columns: repeat(2, 1fr)}
-  .card-grid{grid-template-columns: repeat(2, 1fr)}
-  .tabs{overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch}
-  .nav-tabs{overflow-x: auto; -webkit-overflow-scrolling: touch}
-  h1{font-size: 22px !important; line-height: 1.25}
-  .lede,.hero p{font-size: 13px !important}
-  main{padding: 14px !important}
-  header.hero{padding: 14px 18px !important}
-  table{font-size: 11.5px}
-  .meta{flex-wrap: wrap; gap: 8px}
-}
-@media (max-width: 600px){
-  .kpis{grid-template-columns: 1fr !important}
-  .col-4,.col-5,.col-6{grid-column: span 12 !important}
-  .strip{grid-template-columns: 1fr}
-  .tools{grid-template-columns: 1fr}
-  .card-grid{grid-template-columns: 1fr}
-  h1{font-size: 19px !important}
-  table{font-size: 11px}
-  th,td{padding: 6px 8px !important}
-  .kpi h3{font-size: 10px !important}
-  .kpi .v{font-size: 22px !important}
-}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLS Employment Crisis Detection Platform - Comprehensive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root{--bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+--mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+--txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;
+--green:#26ffaf;--red:#ff5577;--orange:#ff7a18;--yellow:#ffd266;--cyan:#00d4ff}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 16px 90px}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:.3px}
+.sub{color:var(--mute);font-size:13px;margin-bottom:14px}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-bottom:16px}
+.meta b{color:var(--mute)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:8px 14px;font-size:12.5px;cursor:pointer;font-family:var(--mono)}
+.btn:hover{border-color:var(--dim)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.tab{background:transparent;border:1px solid var(--line);border-radius:20px;color:var(--mute);padding:6px 13px;font-size:12px;cursor:pointer}
+.tab.on{border-color:var(--cyan);color:var(--cyan)}
+.banner{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.banner .row{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+.score{font-family:var(--mono);font-size:34px;font-weight:700}
+.lvl{font-family:var(--mono);font-size:13px;padding:4px 12px;border-radius:6px;border:1px solid}
+.lvl.STABLE{color:var(--green);border-color:var(--green)}
+.lvl.WATCH{color:var(--yellow);border-color:var(--yellow)}
+.lvl.WARNING{color:var(--orange);border-color:var(--orange)}
+.lvl.CRISIS{color:var(--red);border-color:var(--red)}
+.bar{flex:1;min-width:180px;height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red))}
+.comp{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--mute);cursor:pointer}
+.chip b{color:var(--txt)}
+.chip.OK{border-left:3px solid var(--green)}
+.chip.WATCH{border-left:3px solid var(--yellow)}
+.chip.ALERT{border-left:3px solid var(--red)}
+.sec{font-size:15px;font-weight:600;margin:26px 0 10px;letter-spacing:.3px}
+.sec .src{color:var(--dim);font-weight:400;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;position:relative}
+.card:hover{border-color:var(--dim)}
+.card.sel{border-color:var(--cyan)}
+.card .lbl{font-size:11.5px;color:var(--mute);min-height:30px}
+.card .big{font-family:var(--mono);font-size:19px;font-weight:600;margin:3px 0}
+.card .chg{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.dot{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%}
+.dot.OK{background:var(--green)}.dot.WATCH{background:var(--yellow)}.dot.ALERT{background:var(--red)}.dot.NA{background:var(--line)}
+.pos{color:var(--green)}.neg{color:var(--red)}.mute{color:var(--dim)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin:18px 0;display:none}
+.chartbox.show{display:block}
+.chartbox .head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--mute)}
+.selchip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:5px;border:1px solid var(--line)}
+canvas{max-height:360px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;white-space:nowrap}
+td.lbl2{font-family:'Inter',sans-serif;color:var(--txt)}
+tr:hover td{background:var(--panel2);cursor:pointer}
+.st{font-size:10.5px;padding:2px 8px;border-radius:4px;font-family:var(--mono)}
+.st.OK{color:var(--green);background:rgba(38,255,175,.08)}
+.st.WATCH{color:var(--yellow);background:rgba(255,210,102,.08)}
+.st.ALERT{color:var(--red);background:rgba(255,85,119,.1)}
+.st.NA{color:var(--dim)}
+.err{color:var(--red);font-family:var(--mono);font-size:13px;padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 10px;overflow-x:auto}
+.note{color:var(--dim);font-size:11.5px;margin-top:6px}
+.foot{color:var(--dim);font-family:var(--mono);font-size:11px;margin-top:34px}
+@media(max-width:640px){.grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}.score{font-size:26px}}
 </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 BLS Employment Crisis Detection Platform - Real Federal Data</h1>
-        
-        <div class="controls">
-            <button class="btn" onclick="fetchAllData()">📊 Fetch Latest BLS Data</button>
-            <button class="btn" onclick="runCrisisDetection()">⚠️ Run Crisis Detection</button>
-            <button class="btn" onclick="exportReport()">📄 Export Report</button>
-            <button class="btn" onclick="clearSelection()">🔄 Clear Selection</button>
-        </div>
-        
-        <div class="filter-controls">
-            <button class="filter-btn active" onclick="filterCategory('all')">All Metrics</button>
-            <button class="filter-btn" onclick="filterCategory('core')">Core Employment</button>
-            <button class="filter-btn" onclick="filterCategory('demographic')">Demographics</button>
-            <button class="filter-btn" onclick="filterCategory('jolts')">JOLTS</button>
-            <button class="filter-btn" onclick="filterCategory('industry')">Industry</button>
-            <button class="filter-btn" onclick="filterCategory('alternative')">Alternative Measures</button>
-            <button class="filter-btn" onclick="filterCategory('states')">State Data</button>
-        </div>
-        
-        <!-- Core Employment Metrics -->
-        <div class="category-section" data-category="core">
-            <div class="category-title">📈 Core Employment Indicators</div>
-            <div class="metrics-grid" id="coreMetrics"></div>
-        </div>
-        
-        <!-- Alternative Unemployment Measures -->
-        <div class="category-section" data-category="alternative">
-            <div class="category-title">📊 Alternative Unemployment Measures (U-1 to U-6)</div>
-            <div class="metrics-grid" id="altMetrics"></div>
-        </div>
-        
-        <!-- Demographic Unemployment -->
-        <div class="category-section" data-category="demographic">
-            <div class="category-title">👥 Demographic Unemployment Rates</div>
-            <div class="metrics-grid" id="demographicMetrics"></div>
-        </div>
-        
-        <!-- State Unemployment -->
-        <div class="category-section" data-category="states">
-            <div class="category-title">🗺️ State Unemployment Rates</div>
-            <div class="metrics-grid" id="stateMetrics"></div>
-        </div>
-        
-        <!-- JOLTS Data -->
-        <div class="category-section" data-category="jolts">
-            <div class="category-title">💼 JOLTS - Job Openings and Labor Turnover</div>
-            <div class="metrics-grid" id="joltsMetrics"></div>
-        </div>
-        
-        <!-- Industry Specific -->
-        <div class="category-section" data-category="industry">
-            <div class="category-title">🏭 Industry-Specific Employment</div>
-            <div class="metrics-grid" id="industryMetrics"></div>
-        </div>
-        
-        <!-- Hours and Earnings -->
-        <div class="category-section" data-category="industry">
-            <div class="category-title">⏰ Hours and Earnings</div>
-            <div class="metrics-grid" id="hoursMetrics"></div>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="mainChart"></canvas>
-        </div>
-        
-        <div class="data-table-container">
-            <h2 class="section-title">📊 Comprehensive Data Summary - All Indicators</h2>
-            <table class="data-table" id="dataTable">
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Indicator</th>
-                        <th>Current Value</th>
-                        <th>MoM %</th>
-                        <th>YoY %</th>
-                        <th>Crisis Level</th>
-                        <th>Distance</th>
-                        <th>Status</th>
-                        <th>Updated</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-        
-        <div id="loading" class="loading" style="display: none;">
-            Loading real-time BLS employment data...</div>
-        
-        <div id="error" class="error" style="display: none;"></div>
-    </div>
+<div class="wrap">
+  <h1>📊 BLS Employment Crisis Detection Platform</h1>
+  <div class="sub">Comprehensive U.S. labor-market surveillance — CPS · CES · JOLTS · LAUS · Alternative measures U-1…U-6 · 51-state grid · 100% real federal data</div>
+  <div class="meta" id="meta">loading feed…</div>
 
-    <script>
-        // BLS API Configuration - Your actual API endpoint
-        const BLS_API_URL = 'https://tajry2f7v3.execute-api.us-east-1.amazonaws.com/prod/data';
-        
-        // Store all data
-        let allData = {};
-        let apiResponseData = {};
-        let chart = null;
-        let selectedMetrics = [];
-        let activeCategory = 'all';
-        let customNames = {};
-        
-        // Updated Series mapping based on your API documentation
-        const SERIES_MAPPING = {
-            // Core Employment
-            'LNS14000000': { name: 'Unemployment Rate (U-3)', category: 'core', unit: '%', threshold: 5.0, inverseGood: true },
-            'CES0000000001': { name: 'Total Nonfarm Employment', category: 'core', unit: 'thousands', threshold: -200, inverseGood: false },
-            'LNS11300000': { name: 'Labor Force Participation Rate', category: 'core', unit: '%', threshold: 62.5, inverseGood: false },
-            'LNS12300000': { name: 'Employment-Population Ratio', category: 'core', unit: '%', threshold: 58.0, inverseGood: false },
-            'LNS11000000': { name: 'Civilian Labor Force', category: 'core', unit: 'thousands', threshold: 160000, inverseGood: false },
-            'LNS15000000': { name: 'Not in Labor Force', category: 'core', unit: 'thousands', threshold: 100000, inverseGood: true },
-            
-            // Demographics
-            'LNS14000001': { name: 'Men Unemployment', category: 'demographic', unit: '%', threshold: 5.0, inverseGood: true },
-            'LNS14000002': { name: 'Women Unemployment', category: 'demographic', unit: '%', threshold: 5.0, inverseGood: true },
-            'LNS14000003': { name: 'White Unemployment', category: 'demographic', unit: '%', threshold: 4.5, inverseGood: true },
-            'LNS14000006': { name: 'Black/African American Unemployment', category: 'demographic', unit: '%', threshold: 9.0, inverseGood: true },
-            'LNS14000009': { name: 'Hispanic/Latino Unemployment', category: 'demographic', unit: '%', threshold: 6.5, inverseGood: true },
-            'LNS14000012': { name: 'Youth (16-19) Unemployment', category: 'demographic', unit: '%', threshold: 15.0, inverseGood: true },
-            'LNS14000060': { name: 'Prime Age (25-54) Unemployment', category: 'demographic', unit: '%', threshold: 4.0, inverseGood: true },
-            
-            // State unemployment - Florida
-            'LASST120000000000003': { name: 'Florida Unemployment Rate', category: 'states', unit: '%', threshold: 5.0, inverseGood: true },
-            'LASST060000000000003': { name: 'California Unemployment Rate', category: 'states', unit: '%', threshold: 5.5, inverseGood: true },
-            'LASST480000000000003': { name: 'Texas Unemployment Rate', category: 'states', unit: '%', threshold: 5.0, inverseGood: true },
-            'LASST360000000000003': { name: 'New York Unemployment Rate', category: 'states', unit: '%', threshold: 5.0, inverseGood: true },
-            
-            // JOLTS
-            'JTS00000000JOL': { name: 'Job Openings (Total)', category: 'jolts', unit: 'thousands', threshold: 7000, inverseGood: false },
-            'JTS00000000HIL': { name: 'Hires (Total)', category: 'jolts', unit: 'thousands', threshold: 5000, inverseGood: false },
-            'JTS00000000QUL': { name: 'Quits (Total)', category: 'jolts', unit: 'thousands', threshold: 3000, inverseGood: false },
-            'JTS00000000LDL': { name: 'Layoffs and Discharges', category: 'jolts', unit: 'thousands', threshold: 2000, inverseGood: true },
-            'JTS00000000TSL': { name: 'Total Separations', category: 'jolts', unit: 'thousands', threshold: 5000, inverseGood: true },
-            
-            // Industry
-            'CES3000000001': { name: 'Manufacturing Employment', category: 'industry', unit: 'thousands', threshold: 12000, inverseGood: false },
-            'CES2000000001': { name: 'Construction Employment', category: 'industry', unit: 'thousands', threshold: 7000, inverseGood: false },
-            'CES4200000001': { name: 'Retail Trade Employment', category: 'industry', unit: 'thousands', threshold: 15000, inverseGood: false },
-            'CES7000000001': { name: 'Leisure and Hospitality Employment', category: 'industry', unit: 'thousands', threshold: 14000, inverseGood: false },
-            'CES9000000001': { name: 'Government Employment', category: 'industry', unit: 'thousands', threshold: 22000, inverseGood: false },
-            
-            // Hours and Earnings
-            'CES0500000002': { name: 'Average Weekly Hours', category: 'industry', unit: 'hours', threshold: 33.0, inverseGood: false },
-            'CES0500000003': { name: 'Average Hourly Earnings', category: 'industry', unit: '$', threshold: 25.0, inverseGood: false },
-            
-            // Alternative measures
-            'LNS13327709': { name: 'U-6 (+ Part-time for economic)', category: 'alternative', unit: '%', threshold: 8.0, inverseGood: true },
-            'LNS13025670': { name: 'U-1 (Persons unemployed 15 weeks+)', category: 'alternative', unit: '%', threshold: 2.0, inverseGood: true },
-            'LNS13008636': { name: 'U-2 (Job losers)', category: 'alternative', unit: '%', threshold: 2.5, inverseGood: true },
-            'LNS13025671': { name: 'U-4 (+ Discouraged workers)', category: 'alternative', unit: '%', threshold: 4.5, inverseGood: true },
-            'LNS13327708': { name: 'U-5 (+ Marginally attached)', category: 'alternative', unit: '%', threshold: 5.5, inverseGood: true }
-        };
-        
-        // Initialize chart
-        function initChart() {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: []
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#e2e8f0',
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleColor: '#e2e8f0',
-                            bodyColor: '#cbd5e1',
-                            borderColor: 'rgba(59, 130, 246, 0.3)',
-                            borderWidth: 1
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Format value with proper decimals
-        function formatValue(value, unit) {
-            if (value === null || value === undefined) return 'N/A';
-            
-            // For percentages, always show 1 decimal place
-            if (unit === '%' || unit === 'Percent') {
-                return parseFloat(value).toFixed(1);
-            } else if (unit === '$') {
-                return parseFloat(value).toFixed(2);
-            } else if (unit === 'hours') {
-                return parseFloat(value).toFixed(1);
-            } else {
-                // For thousands, show as integer
-                return Math.round(value).toLocaleString();
-            }
-        }
-        
-        // Process BLS API data format - Updated to handle your API structure
-        function processBLSData(apiData) {
-            const processedData = {};
-            
-            // Process chart_data if available
-            if (apiData.chart_data) {
-                Object.entries(apiData.chart_data).forEach(([seriesId, seriesData]) => {
-                    if (seriesData) {
-                        // Handle data array or values array
-                        let dataPoints = [];
-                        if (seriesData.data && Array.isArray(seriesData.data)) {
-                            dataPoints = seriesData.data;
-                        } else if (seriesData.values && seriesData.labels) {
-                            // Convert parallel arrays to data points
-                            dataPoints = seriesData.labels.map((label, idx) => ({
-                                date: label,
-                                value: seriesData.values[idx],
-                                year: new Date(label).getFullYear(),
-                                month: new Date(label).getMonth() + 1
-                            }));
-                        }
-                        
-                        processedData[seriesId] = {
-                            title: customNames[seriesId] || seriesData.title || SERIES_MAPPING[seriesId]?.name || seriesId,
-                            category: seriesData.category || SERIES_MAPPING[seriesId]?.category || 'other',
-                            units: seriesData.units || SERIES_MAPPING[seriesId]?.unit || 'value',
-                            data: dataPoints,
-                            latest: seriesData.latest || (dataPoints.length > 0 ? dataPoints[dataPoints.length - 1] : null),
-                            current: seriesData.latest?.value || seriesData.current || (dataPoints.length > 0 ? dataPoints[dataPoints.length - 1].value : null)
-                        };
-                    }
-                });
-            }
-            
-            // Also process current_metrics for latest values
-            if (apiData.current_metrics) {
-                Object.entries(apiData.current_metrics).forEach(([seriesId, metricData]) => {
-                    if (!processedData[seriesId]) {
-                        processedData[seriesId] = {
-                            title: customNames[seriesId] || metricData.title || SERIES_MAPPING[seriesId]?.name || seriesId,
-                            category: metricData.category || SERIES_MAPPING[seriesId]?.category || 'other',
-                            units: metricData.units || SERIES_MAPPING[seriesId]?.unit || 'value',
-                            data: [{
-                                date: metricData.last_updated || new Date().toISOString().split('T')[0],
-                                value: metricData.current || 0,
-                                year: new Date().getFullYear(),
-                                month: new Date().getMonth() + 1
-                            }],
-                            latest: {
-                                date: metricData.last_updated || new Date().toISOString().split('T')[0],
-                                value: metricData.current || 0
-                            },
-                            current: metricData.current
-                        };
-                    } else {
-                        // Update current value if available
-                        processedData[seriesId].current = metricData.current || processedData[seriesId].current;
-                    }
-                });
-            }
-            
-            return processedData;
-        }
-        
-        // Calculate changes - Fixed to properly calculate MoM and YoY
-        function calculateChanges(data, currentValue) {
-            if (!data || data.length === 0) {
-                return { 
-                    current: currentValue || 0, 
-                    monthChange: 0, 
-                    yearChange: 0, 
-                    latestDate: 'N/A' 
-                };
-            }
-            
-            // Sort data by date
-            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            // Get the latest value
-            const latest = currentValue !== undefined ? currentValue : sortedData[sortedData.length - 1].value;
-            const latestDate = new Date(sortedData[sortedData.length - 1].date);
-            
-            // Find month-ago value
-            let monthAgo = null;
-            let monthAgoDate = new Date(latestDate);
-            monthAgoDate.setMonth(monthAgoDate.getMonth() - 1);
-            
-            // Look for the closest value to one month ago
-            for (let i = sortedData.length - 2; i >= 0; i--) {
-                const pointDate = new Date(sortedData[i].date);
-                if (pointDate <= monthAgoDate) {
-                    monthAgo = sortedData[i].value;
-                    break;
-                }
-            }
-            
-            // Find year-ago value
-            let yearAgo = null;
-            let yearAgoDate = new Date(latestDate);
-            yearAgoDate.setFullYear(yearAgoDate.getFullYear() - 1);
-            
-            // Look for the closest value to one year ago
-            for (let i = sortedData.length - 2; i >= 0; i--) {
-                const pointDate = new Date(sortedData[i].date);
-                if (pointDate <= yearAgoDate) {
-                    yearAgo = sortedData[i].value;
-                    break;
-                }
-            }
-            
-            // Calculate percentage changes
-            let monthChange = 0;
-            if (monthAgo !== null && monthAgo !== 0) {
-                monthChange = ((latest - monthAgo) / Math.abs(monthAgo)) * 100;
-            }
-            
-            let yearChange = 0;
-            if (yearAgo !== null && yearAgo !== 0) {
-                yearChange = ((latest - yearAgo) / Math.abs(yearAgo)) * 100;
-            }
-            
-            return {
-                current: latest,
-                monthChange: parseFloat(monthChange.toFixed(2)),
-                yearChange: parseFloat(yearChange.toFixed(2)),
-                latestDate: latestDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            };
-        }
-        
-        // Calculate crisis level
-        function calculateCrisisLevel(value, seriesId) {
-            const config = SERIES_MAPPING[seriesId];
-            if (!config) return { distance: 0, status: 'unknown' };
-            
-            const threshold = config.threshold;
-            let distanceFromCrisis;
-            
-            if (config.inverseGood) {
-                distanceFromCrisis = ((threshold - value) / Math.abs(threshold) * 100);
-            } else {
-                distanceFromCrisis = ((value - threshold) / Math.abs(threshold) * 100);
-            }
-            
-            return {
-                distance: parseFloat(distanceFromCrisis.toFixed(1)),
-                status: Math.abs(distanceFromCrisis) < 10 ? 'warning' : (distanceFromCrisis > 0 ? 'safe' : 'danger')
-            };
-        }
-        
-        // Enable name editing
-        function makeNameEditable(seriesId) {
-            event.stopPropagation();
-            const titleElement = event.target;
-            const currentName = titleElement.textContent;
-            
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = currentName;
-            input.style.background = 'rgba(15, 23, 42, 0.9)';
-            input.style.color = '#e2e8f0';
-            input.style.border = '1px solid #3b82f6';
-            input.style.padding = '2px 4px';
-            input.style.borderRadius = '3px';
-            input.style.fontSize = '0.85rem';
-            input.style.width = '100%';
-            
-            input.onblur = function() {
-                customNames[seriesId] = input.value;
-                titleElement.textContent = input.value;
-                updateDataTable();
-            };
-            
-            input.onkeypress = function(e) {
-                if (e.key === 'Enter') {
-                    input.blur();
-                }
-            };
-            
-            titleElement.innerHTML = '';
-            titleElement.appendChild(input);
-            input.focus();
-            input.select();
-        }
-        
-        // Create metric card with editable names
-        function createMetricCard(seriesId, seriesData, changes, crisis) {
-            const config = SERIES_MAPPING[seriesId] || {};
-            const title = customNames[seriesId] || seriesData.title || config.name || seriesId;
-            const unit = seriesData.units || config.unit || '';
-            
-            // Format the current value with proper decimals
-            const formattedValue = formatValue(changes.current, unit);
-            
-            return `
-                <div class="metric-card" onclick="toggleMetric('${seriesId}')" data-metric="${seriesId}">
-                    <div class="metric-title editable" onclick="makeNameEditable('${seriesId}')">${title}</div>
-                    <div class="metric-value">${formattedValue}${unit === '%' || unit === 'Percent' ? '%' : unit === '$' ? '' : ''}</div>
-                    
-                    <div class="change-indicators">
-                        <div class="change-item">
-                            <div class="change-label">MoM</div>
-                            <div class="change-value ${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                                ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
-                            </div>
-                        </div>
-                        <div class="change-item">
-                            <div class="change-label">YoY</div>
-                            <div class="change-value ${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                                ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="crisis-indicator">
-                        <div class="crisis-value ${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
-                            ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
-                            <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Toggle metric selection
-        function toggleMetric(metricKey) {
-            const card = document.querySelector(`[data-metric="${metricKey}"]`);
-            if (!card) return;
-            
-            if (selectedMetrics.includes(metricKey)) {
-                selectedMetrics = selectedMetrics.filter(m => m !== metricKey);
-                card.classList.remove('selected');
-            } else {
-                selectedMetrics.push(metricKey);
-                card.classList.add('selected');
-            }
-            
-            updateChart();
-        }
-        
-        // Update chart with selected metrics - Fixed to work properly
-        function updateChart() {
-            if (!chart || selectedMetrics.length === 0) {
-                if (chart) {
-                    chart.data.labels = [];
-                    chart.data.datasets = [];
-                    chart.update();
-                }
-                return;
-            }
-            
-            const datasets = [];
-            const colors = [
-                'rgb(59, 130, 246)',
-                'rgb(139, 92, 246)',
-                'rgb(16, 185, 129)',
-                'rgb(251, 191, 36)',
-                'rgb(239, 68, 68)',
-                'rgb(236, 72, 153)',
-                'rgb(34, 197, 94)',
-                'rgb(168, 85, 247)'
-            ];
-            
-            // Collect all unique dates
-            let allDates = new Set();
-            
-            selectedMetrics.forEach((seriesId, index) => {
-                const seriesData = allData[seriesId];
-                if (!seriesData || !seriesData.data || seriesData.data.length === 0) return;
-                
-                // Sort data by date
-                const sortedData = [...seriesData.data].sort((a, b) => new Date(a.date) - new Date(b.date));
-                
-                // Add dates to set
-                sortedData.forEach(point => allDates.add(point.date));
-                
-                // Create chart data
-                const chartData = sortedData.map(point => ({
-                    x: point.date,
-                    y: point.value
-                }));
-                
-                const seriesTitle = customNames[seriesId] || seriesData.title || seriesId;
-                
-                datasets.push({
-                    label: seriesTitle,
-                    data: chartData,
-                    borderColor: colors[index % colors.length],
-                    backgroundColor: colors[index % colors.length] + '20',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    fill: false
-                });
-            });
-            
-            // Convert dates to sorted array
-            const sortedDates = Array.from(allDates).sort((a, b) => new Date(a) - new Date(b));
-            
-            // Update chart
-            chart.data.labels = sortedDates;
-            chart.data.datasets = datasets;
-            chart.update();
-        }
-        
-        // Update data table
-        function updateDataTable() {
-            const tableBody = document.getElementById('tableBody');
-            if (!tableBody) return;
-            
-            tableBody.innerHTML = '';
-            
-            Object.entries(allData).forEach(([seriesId, seriesData]) => {
-                if (!seriesData) return;
-                
-                const config = SERIES_MAPPING[seriesId] || {};
-                const changes = calculateChanges(seriesData.data, seriesData.current);
-                const crisis = calculateCrisisLevel(changes.current, seriesId);
-                
-                const formattedValue = formatValue(changes.current, seriesData.units || config.unit);
-                const thresholdValue = formatValue(config.threshold, seriesData.units || config.unit);
-                
-                const displayName = customNames[seriesId] || seriesData.title || config.name || seriesId;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="color: #3b82f6; font-weight: 600;">${seriesData.category || config.category || 'Other'}</td>
-                    <td class="table-metric-name">${displayName}</td>
-                    <td>${formattedValue}${(seriesData.units === '%' || seriesData.units === 'Percent') ? '%' : ''}</td>
-                    <td class="${changes.monthChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.monthChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                        ${changes.monthChange > 0 ? '+' : ''}${changes.monthChange}%
-                    </td>
-                    <td class="${changes.yearChange > 0 ? (config.inverseGood ? 'negative' : 'positive') : changes.yearChange < 0 ? (config.inverseGood ? 'positive' : 'negative') : 'neutral'}">
-                        ${changes.yearChange > 0 ? '+' : ''}${changes.yearChange}%
-                    </td>
-                    <td>${thresholdValue}${(seriesData.units === '%' || seriesData.units === 'Percent') ? '%' : ''}</td>
-                    <td class="${crisis.status === 'safe' ? 'positive' : crisis.status === 'warning' ? 'neutral' : 'negative'}">
-                        ${crisis.distance > 0 ? '+' : ''}${crisis.distance}%
-                    </td>
-                    <td>
-                        <span class="crisis-level crisis-${crisis.status}">${crisis.status.toUpperCase()}</span>
-                    </td>
-                    <td class="neutral">${changes.latestDate}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-        
-        // Fetch all data from BLS API - Updated to request specific modes
-        async function fetchAllData() {
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            
-            // Clear existing cards
-            document.getElementById('coreMetrics').innerHTML = '';
-            document.getElementById('altMetrics').innerHTML = '';
-            document.getElementById('demographicMetrics').innerHTML = '';
-            document.getElementById('joltsMetrics').innerHTML = '';
-            document.getElementById('industryMetrics').innerHTML = '';
-            document.getElementById('hoursMetrics').innerHTML = '';
-            document.getElementById('stateMetrics').innerHTML = '';
-            
-            try {
-                console.log('Fetching data from BLS API...');
-                
-                // Fetch all data including JOLTS and states
-                const response = await fetch(BLS_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        mode: 'all',  // Request all indicators
-                        startYear: 2020,
-                        endYear: new Date().getFullYear()
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const apiData = await response.json();
-                console.log('API Response:', apiData);
-                
-                // Store the raw API response
-                apiResponseData = apiData;
-                
-                // Process the data
-                allData = processBLSData(apiData);
-                console.log('Processed data:', allData);
-                
-                // If JOLTS data is missing, fetch it separately
-                if (!allData['JTS00000000JOL']) {
-                    console.log('Fetching JOLTS data separately...');
-                    const joltsResponse = await fetch(BLS_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            mode: 'jolts',
-                            startYear: 2020,
-                            endYear: new Date().getFullYear()
-                        })
-                    });
-                    
-                    if (joltsResponse.ok) {
-                        const joltsData = await joltsResponse.json();
-                        const processedJolts = processBLSData(joltsData);
-                        allData = { ...allData, ...processedJolts };
-                    }
-                }
-                
-                // If state data is missing, fetch it separately
-                if (!allData['LASST120000000000003']) {
-                    console.log('Fetching state data separately...');
-                    const statesResponse = await fetch(BLS_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            mode: 'states',
-                            startYear: 2020,
-                            endYear: new Date().getFullYear()
-                        })
-                    });
-                    
-                    if (statesResponse.ok) {
-                        const statesData = await statesResponse.json();
-                        const processedStates = processBLSData(statesData);
-                        allData = { ...allData, ...processedStates };
-                    }
-                }
-                
-                // Create metric cards for each series
-                Object.entries(allData).forEach(([seriesId, seriesData]) => {
-                    const config = SERIES_MAPPING[seriesId] || {};
-                    const changes = calculateChanges(seriesData.data, seriesData.current);
-                    const crisis = calculateCrisisLevel(changes.current, seriesId);
-                    
-                    const card = createMetricCard(seriesId, seriesData, changes, crisis);
-                    
-                    // Determine which container to add the card to
-                    let containerId = 'coreMetrics';
-                    const category = config.category || seriesData.category || 'core';
-                    
-                    switch(category.toLowerCase()) {
-                        case 'demographic':
-                        case 'demographics':
-                            containerId = 'demographicMetrics';
-                            break;
-                        case 'jolts':
-                            containerId = 'joltsMetrics';
-                            break;
-                        case 'industry':
-                        case 'sectors':
-                        case 'payroll':
-                            containerId = 'industryMetrics';
-                            break;
-                        case 'alternative':
-                            containerId = 'altMetrics';
-                            break;
-                        case 'hours':
-                            containerId = 'hoursMetrics';
-                            break;
-                        case 'states':
-                        case 'state':
-                            containerId = 'stateMetrics';
-                            break;
-                        default:
-                            containerId = 'coreMetrics';
-                    }
-                    
-                    const container = document.getElementById(containerId);
-                    if (container) {
-                        container.innerHTML += card;
-                    }
-                });
-                
-                // Update the data table
-                updateDataTable();
-                
-                // Auto-select unemployment rate if available
-                if (allData['LNS14000000']) {
-                    toggleMetric('LNS14000000');
-                }
-                
-                if (Object.keys(allData).length === 0) {
-                    error.style.display = 'block';
-                    error.textContent = 'No data received from BLS API. Please check the API configuration.';
-                } else {
-                    console.log(`✅ Successfully loaded ${Object.keys(allData).length} indicators from BLS API`);
-                }
-                
-            } catch (err) {
-                console.error('Error fetching BLS data:', err);
-                error.style.display = 'block';
-                error.textContent = `Error: ${err.message}. Please check the console for details.`;
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-        
-        // Run crisis detection
-        function runCrisisDetection() {
-            if (apiResponseData.crisis_analysis) {
-                const crisis = apiResponseData.crisis_analysis;
-                let message = '⚠️ BLS Crisis Detection Analysis:\n\n';
-                
-                message += `📊 Current Unemployment Rate: ${crisis.current_unemployment_rate || 'N/A'}%\n`;
-                message += `📈 Crisis Level: ${crisis.crisis_level || 'Unknown'}\n`;
-                message += `📉 Trend: ${crisis.trend || 'Unknown'}\n\n`;
-                
-                if (crisis.risk_factors && crisis.risk_factors.length > 0) {
-                    message += 'Risk Factors:\n';
-                    crisis.risk_factors.forEach(factor => {
-                        message += `  • ${factor}\n`;
-                    });
-                    message += '\n';
-                }
-                
-                message += 'Historical Comparison:\n';
-                message += `  • 2008 Financial Crisis Peak: ${crisis.historical_comparison?.['2008_financial_crisis_peak'] || 'N/A'}\n`;
-                message += `  • 2020 COVID Peak: ${crisis.historical_comparison?.['2020_covid_peak'] || 'N/A'}\n`;
-                message += `  • Current Assessment: ${crisis.historical_comparison?.current_assessment || 'N/A'}\n\n`;
-                
-                message += `Labor Market Health: ${crisis.labor_market_health?.overall_rating || 'N/A'}\n`;
-                
-                alert(message);
-            } else {
-                alert('Crisis analysis data not available. Please fetch data first.');
-            }
-        }
-        
-        // Export report
-        function exportReport() {
-            let report = 'BLS Employment Crisis Detection Report\n';
-            report += `Generated: ${new Date().toLocaleString()}\n`;
-            report += `Data Source: U.S. Bureau of Labor Statistics API\n`;
-            report += '='.repeat(60) + '\n\n';
-            
-            if (apiResponseData.crisis_analysis) {
-                report += 'CRISIS ANALYSIS\n';
-                report += '-'.repeat(40) + '\n';
-                const crisis = apiResponseData.crisis_analysis;
-                report += `Current Unemployment Rate: ${crisis.current_unemployment_rate || 'N/A'}%\n`;
-                report += `Crisis Level: ${crisis.crisis_level || 'Unknown'}\n`;
-                report += `Trend: ${crisis.trend || 'Unknown'}\n\n`;
-            }
-            
-            report += 'EMPLOYMENT INDICATORS\n';
-            report += '-'.repeat(40) + '\n';
-            
-            Object.entries(allData).forEach(([seriesId, seriesData]) => {
-                if (!seriesData) return;
-                
-                const changes = calculateChanges(seriesData.data, seriesData.current);
-                const crisis = calculateCrisisLevel(changes.current, seriesId);
-                const config = SERIES_MAPPING[seriesId] || {};
-                
-                const displayName = customNames[seriesId] || seriesData.title || config.name || seriesId;
-                const formattedValue = formatValue(changes.current, seriesData.units || config.unit);
-                
-                report += `\n${displayName}\n`;
-                report += `  Current: ${formattedValue}${seriesData.units || ''}\n`;
-                report += `  MoM Change: ${changes.monthChange}%\n`;
-                report += `  YoY Change: ${changes.yearChange}%\n`;
-                report += `  Crisis Status: ${crisis.status.toUpperCase()}\n`;
-                report += `  Updated: ${changes.latestDate}\n`;
-            });
-            
-            report += '\n\nData Source: BLS API - Real Federal Data\n';
-            report += 'API Endpoint: ' + BLS_API_URL + '\n';
-            
-            const blob = new Blob([report], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bls-employment-report-${new Date().toISOString().split('T')[0]}.txt`;
-            a.click();
-        }
-        
-        // Clear selection
-        function clearSelection() {
-            selectedMetrics = [];
-            document.querySelectorAll('.metric-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            if (chart) {
-                chart.data.datasets = [];
-                chart.data.labels = [];
-                chart.update();
-            }
-        }
-        
-        // Filter by category
-        function filterCategory(category) {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            document.querySelectorAll('.category-section').forEach(section => {
-                if (category === 'all') {
-                    section.style.display = 'block';
-                } else {
-                    section.style.display = section.dataset.category === category ? 'block' : 'none';
-                }
-            });
-            
-            activeCategory = category;
-        }
-        
-        // Initialize on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            initChart();
-            // Auto-fetch data on load
-            fetchAllData();
-        });
-    </script>
-  <script src="/jh-page-ai.js" defer></script>
+  <div class="toolbar">
+    <button class="btn" onclick="loadData(true)">📊 Fetch Latest BLS Data</button>
+    <button class="btn" onclick="scrollToEngine()">⚠️ Run Crisis Detection</button>
+    <button class="btn" onclick="exportReport()">📄 Export Report</button>
+    <button class="btn" onclick="exportCSV()">🧾 Export CSV</button>
+    <button class="btn" onclick="clearSel()">🔄 Clear Selection</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="banner" id="crisisBanner"><div class="mute" style="font-family:var(--mono);font-size:12px">crisis engine loading…</div></div>
+
+  <div class="chartbox" id="chartbox">
+    <div class="head"><b>Historical chart</b> · click cards / table rows to plot (up to 4 series) · shaded bands = NBER recessions <span id="selchips"></span></div>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div id="sections"></div>
+
+  <div class="sec" id="statesSec">🗺️ State Unemployment Rates <span class="src">· LAUS, seasonally adjusted</span></div>
+  <div class="tblwrap"><table id="stTable"><thead><tr>
+    <th data-k="label">State</th><th data-k="value">Rate</th><th data-k="mom_pct">MoM %</th><th data-k="yoy_pct">YoY %</th><th data-k="vs_national">vs National</th><th data-k="status">Status</th><th>Period</th>
+  </tr></thead><tbody id="stBody"><tr><td colspan="7" class="mute">loading…</td></tr></tbody></table></div>
+  <div class="note">Click any state to add it to the chart. Click headers to sort.</div>
+
+  <div class="sec">📊 Comprehensive Data Summary — All Indicators</div>
+  <div class="tblwrap"><table id="sumTable"><thead><tr>
+    <th>Category</th><th>Indicator</th><th>Current</th><th>MoM %</th><th>YoY %</th><th>Crisis Level</th><th>Distance</th><th>Status</th><th>Updated</th>
+  </tr></thead><tbody id="sumBody"><tr><td colspan="9" class="mute">loading…</td></tr></tbody></table></div>
+  <div class="note">Distance = room remaining before the crisis threshold (in the indicator's own units; negative = threshold breached). Thresholds are direction-aware.</div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ============ data plumbing (site-standard S3 fallback chain) ============ */
+const FEED='data/bls-employment.json';
+async function gj(path){
+  const urls=[path,'https://justhodl.ai/'+path,'https://justhodl-dashboard-live.s3.amazonaws.com/'+path];
+  for(let i=0;i<urls.length;i++){try{const r=await fetch(urls[i]+'?cb='+Date.now());if(r.ok)return await r.json();}catch(e){}}
+  return null;
+}
+
+let D=null, SEL=[], CH=null, sortK='value', sortAsc=false, activeTab='all';
+const PAL=['#00d4ff','#ff7a18','#26ffaf','#ff5577'];
+const RECESSIONS=[['2001-03','2001-11'],['2007-12','2009-06'],['2020-02','2020-04']];
+const CATS=[['all','All Metrics'],['core','📈 Core Employment'],['alt','📊 Alternative Measures (U-1…U-6)'],['demo','👥 Demographics'],['jolts','💼 JOLTS'],['industry','🏭 Industry'],['hours','⏰ Hours & Earnings'],['state','🗺️ State Data']];
+const SECDEFS=[
+ ['core','📈 Core Employment Indicators','CPS household + CES establishment surveys'],
+ ['alt','📊 Alternative Unemployment Measures (U-1 to U-6)','Table A-15, seasonally adjusted'],
+ ['demo','👥 Demographic Unemployment Rates','CPS, seasonally adjusted'],
+ ['jolts','💼 JOLTS — Job Openings and Labor Turnover','total nonfarm, seasonally adjusted'],
+ ['industry','🏭 Industry-Specific Employment','CES all-employees, thousands; status keyed on YoY %'],
+ ['hours','⏰ Hours and Earnings','CES, seasonally adjusted']];
+
+/* ============ formatters ============ */
+function fv(s){if(!s||s.value==null)return '—';
+  const v=s.value;
+  if(s.unit==='pct')return v.toFixed(s.dec!=null?s.dec:1)+'%';
+  if(s.unit==='k')return Number(v).toLocaleString()+'k';
+  if(s.unit==='usd')return '$'+v.toFixed(2);
+  if(s.unit==='hrs')return v.toFixed(1)+' hrs';
+  if(s.unit==='wks')return v.toFixed(1)+' wks';
+  return String(v);}
+function fchg(v,suffix){if(v==null)return '<span class="mute">—</span>';
+  const c=v>0?'pos':v<0?'neg':'mute';
+  return '<span class="'+c+'">'+(v>0?'+':'')+(typeof v==='number'?v.toFixed(2):v)+(suffix||'%')+'</span>';}
+function fnum(v,d){return v==null?'—':(v>0?'+':'')+Number(v).toFixed(d==null?2:d);}
+function crisisStr(s){if(s.crisis==null)return '—';
+  const arrow=s.dir==='below'?'≤ ':'≥ ';
+  let u=s.unit==='pct'?'%':s.unit==='k'?'k':'';
+  if(s.on==='yoy_pct')u='% YoY';if(s.on==='mom_chg')u='k/mo';
+  return arrow+s.crisis+u;}
+function stBadge(st){return st?'<span class="st '+st+'">'+(st==='OK'?'✓ OK':st==='WATCH'?'◐ WATCH':'⚠ ALERT')+'</span>':'<span class="st NA">—</span>';}
+
+/* ============ render: header/meta ============ */
+function renderMeta(){
+  const gen=new Date(D.generated_at);
+  document.getElementById('meta').innerHTML=
+    '<b>Source:</b> '+D.source+' &nbsp;·&nbsp; <b>Data as of:</b> '+gen.toUTCString()+
+    ' &nbsp;·&nbsp; <b>API:</b> BLS '+(D.api_version||'?')+(D.key_valid?' (registered key)':' (public fallback)')+
+    ' &nbsp;·&nbsp; '+D.refresh+(D.history_start?' &nbsp;·&nbsp; <b>History from:</b> '+D.history_start:'');
+  const n=D._series_live||{};
+  document.getElementById('foot').textContent='Feed: '+FEED+' · live series: '+(n.national||0)+' national + '+(n.states||0)+' states · engine: bls-labor-agent (AWS Lambda, us-east-1) · Research & analytics, not investment advice.';
+}
+
+/* ============ render: crisis engine ============ */
+function renderCrisis(){
+  const c=D.crisis||{};
+  const el=document.getElementById('crisisBanner');
+  if(c.score==null){el.innerHTML='<div class="err">crisis engine unavailable</div>';return;}
+  let chips='';
+  (c.components||[]).forEach(k=>{
+    chips+='<span class="chip '+(k.status||'')+'" title="warn '+k.warn+' / crisis '+k.crisis+' ('+k.dir+') · weight '+Math.round(k.weight*100)+'%">'+
+      k.label+' <b>'+(k.value==null?'—':k.value+(k.unit==='%'||k.unit==='pp'?k.unit:' '+k.unit))+'</b></span>';
+  });
+  el.innerHTML='<div class="row">'+
+    '<div><div class="mute" style="font-size:11px;font-family:var(--mono)">COMPOSITE CRISIS SCORE</div>'+
+    '<span class="score">'+c.score+'<span class="mute" style="font-size:16px">/100</span></span></div>'+
+    '<span class="lvl '+c.level+'">'+c.level+'</span>'+
+    '<div class="bar"><i style="width:'+Math.min(100,c.score)+'%"></i></div>'+
+    '<div style="font-family:var(--mono);font-size:12px;color:var(--mute)">Sahm rule: <b style="color:var(--txt)">'+fnum(c.sahm)+'pp</b> (trigger ≥ +0.50)<br>U6−U3 spread: <b style="color:var(--txt)">'+fnum(c.u6_u3_spread,1)+'pp</b></div>'+
+    '</div><div class="comp">'+chips+'</div>'+
+    '<div class="note">'+c.methodology+'</div>';
+}
+
+/* ============ render: tabs + card sections ============ */
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=CATS.map(([k,l])=>
+    '<button class="tab'+(activeTab===k?' on':'')+'" onclick="setTab(\''+k+'\')">'+l+'</button>').join('');
+}
+function setTab(k){activeTab=k;renderTabs();renderSections();
+  document.getElementById('statesSec').style.display=(k==='all'||k==='state')?'':'none';
+  document.getElementById('stTable').parentElement.style.display=(k==='all'||k==='state')?'':'none';}
+function card(key,s){
+  const chg = s.cat==='industry'||s.on==='yoy_pct'
+    ? 'YoY '+ (s.yoy_pct==null?'—':fchg(s.yoy_pct))+' · MoM '+(s.mom_chg==null?'—':fchg(s.mom_chg,'k'))
+    : 'MoM '+(s.mom_pct==null?'—':fchg(s.mom_pct))+' · YoY '+(s.yoy_pct==null?'—':fchg(s.yoy_pct));
+  return '<div class="card'+(SEL.includes(key)?' sel':'')+'" onclick="toggleSel(\''+key+'\')">'+
+    '<span class="dot '+(s.status||'NA')+'"></span>'+
+    '<div class="lbl">'+s.label+'</div><div class="big">'+fv(s)+'</div>'+
+    '<div class="chg">'+chg+'</div></div>';
+}
+function renderSections(){
+  const N=D.national||{};let h='';
+  SECDEFS.forEach(([cat,title,src])=>{
+    if(activeTab!=='all'&&activeTab!==cat)return;
+    const items=Object.entries(N).filter(([k,s])=>s.cat===cat&&!s.error);
+    if(!items.length)return;
+    h+='<div class="sec">'+title+' <span class="src">· '+src+'</span></div><div class="grid">'+
+       items.map(([k,s])=>card(k,s)).join('')+'</div>';
+  });
+  document.getElementById('sections').innerHTML=h||'<div class="err">No live series in this category.</div>';
+}
+
+/* ============ render: states table ============ */
+function renderStates(){
+  const S=Object.values(D.states||{}).filter(s=>!s.error);
+  S.sort((a,b)=>{let x=a[sortK],y=b[sortK];
+    if(sortK==='label'||sortK==='status'){x=String(x||'');y=String(y||'');return sortAsc?x.localeCompare(y):y.localeCompare(x);}
+    x=(x==null?-1e9:x);y=(y==null?-1e9:y);return sortAsc?x-y:y-x;});
+  document.getElementById('stBody').innerHTML=S.map(s=>
+    '<tr onclick="toggleSel(\'ST:'+s.abbr+'\')"><td class="lbl2">'+s.label+' <span class="mute">'+s.abbr+'</span></td>'+
+    '<td><b>'+(s.value==null?'—':s.value.toFixed(1)+'%')+'</b></td>'+
+    '<td>'+fchg(s.mom_pct)+'</td><td>'+fchg(s.yoy_pct)+'</td>'+
+    '<td>'+(s.vs_national==null?'—':fchg(s.vs_national,'pp'))+'</td>'+
+    '<td>'+stBadge(s.status)+'</td><td class="mute">'+(s.period||'—')+'</td></tr>').join('')||'<tr><td colspan="7" class="err">state feed unavailable</td></tr>';
+}
+document.getElementById('stTable').addEventListener('click',e=>{
+  const th=e.target.closest('th');if(!th||!th.dataset.k)return;
+  if(sortK===th.dataset.k)sortAsc=!sortAsc;else{sortK=th.dataset.k;sortAsc=(sortK==='label');}
+  renderStates();});
+
+/* ============ render: master summary ============ */
+const CATLBL={core:'Core',alt:'Alt Measures',demo:'Demographics',jolts:'JOLTS',industry:'Industry',hours:'Hours/Earnings'};
+function renderSummary(){
+  const N=D.national||{};const gen=(D.generated_at||'').slice(0,10);
+  const rows=Object.entries(N).filter(([k,s])=>!s.error).map(([k,s])=>
+    '<tr onclick="toggleSel(\''+k+'\')"><td class="mute">'+(CATLBL[s.cat]||s.cat)+'</td>'+
+    '<td class="lbl2">'+s.label+'</td><td><b>'+fv(s)+'</b> <span class="mute">'+(s.period_name||'')+'</span></td>'+
+    '<td>'+fchg(s.mom_pct)+'</td><td>'+fchg(s.yoy_pct)+'</td>'+
+    '<td class="mute">'+crisisStr(s)+'</td>'+
+    '<td>'+(s.distance==null?'—':fnum(s.distance))+'</td>'+
+    '<td>'+stBadge(s.status)+'</td><td class="mute">'+gen+'</td></tr>');
+  document.getElementById('sumBody').innerHTML=rows.join('')||'<tr><td colspan="9" class="err">No data received from BLS feed.</td></tr>';
+}
+
+/* ============ chart ============ */
+const recPlugin={id:'rec',beforeDraw(ch){
+  const xs=ch.scales.x,ys=ch.scales.y;if(!xs||!ys)return;
+  const L=ch.data.labels||[];if(!L.length)return;
+  const ctx=ch.ctx;ctx.save();ctx.fillStyle='rgba(230,234,242,0.055)';
+  RECESSIONS.forEach(([a,b])=>{
+    let i=L.findIndex(x=>x>=a),j=L.findIndex(x=>x>b);
+    if(i<0)return; if(j<0)j=L.length-1;
+    const x1=xs.getPixelForValue(Math.max(0,i)),x2=xs.getPixelForValue(Math.max(0,j));
+    ctx.fillRect(x1,ys.top,Math.max(2,x2-x1),ys.bottom-ys.top);});
+  ctx.restore();}};
+function seriesFor(key){
+  if(key.startsWith('ST:')){const s=(D.states||{})[key.slice(3)];return s&&!s.error?s:null;}
+  const s=(D.national||{})[key];return s&&!s.error?s:null;}
+function toggleSel(key){
+  const i=SEL.indexOf(key);
+  if(i>=0)SEL.splice(i,1);else{if(SEL.length>=4)SEL.shift();SEL.push(key);}
+  drawChart();renderSections();}
+function clearSel(){SEL=[];drawChart();renderSections();}
+function drawChart(){
+  const box=document.getElementById('chartbox');
+  const sers=SEL.map(seriesFor).filter(Boolean);
+  if(!sers.length){box.classList.remove('show');if(CH){CH.destroy();CH=null;}return;}
+  box.classList.add('show');
+  const set=new Set();sers.forEach(s=>(s.history||[]).forEach(p=>set.add(p[0])));
+  const labels=Array.from(set).sort();
+  const ds=sers.map((s,i)=>{const m={};(s.history||[]).forEach(p=>m[p[0]]=p[1]);
+    return {label:s.label+(s.abbr?' ('+s.abbr+')':''),data:labels.map(l=>m[l]!=null?m[l]:null),
+      borderColor:PAL[i%4],backgroundColor:PAL[i%4],borderWidth:1.6,pointRadius:0,spanGaps:true,tension:.15,
+      yAxisID:(s.unit==='k'||s.unit==='usd')&&sers.some(x=>x.unit==='pct')?'y1':'y'};});
+  document.getElementById('selchips').innerHTML=sers.map((s,i)=>'<span class="selchip" style="color:'+PAL[i%4]+';border-color:'+PAL[i%4]+'">'+s.label+'</span>').join(' ');
+  const useY1=ds.some(d=>d.yAxisID==='y1');
+  if(CH)CH.destroy();
+  CH=new Chart(document.getElementById('chart'),{type:'line',
+    data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#a8b3c7',boxWidth:14,font:{size:11}}},
+        tooltip:{backgroundColor:'#11161f',borderColor:'#1c2433',borderWidth:1}},
+      scales:{x:{ticks:{color:'#6f7b91',maxTicksLimit:14,font:{size:10}},grid:{color:'rgba(28,36,51,.6)'}},
+        y:{ticks:{color:'#6f7b91',font:{size:10}},grid:{color:'rgba(28,36,51,.6)'}},
+        y1:{display:useY1,position:'right',ticks:{color:'#6f7b91',font:{size:10}},grid:{drawOnChartArea:false}}}},
+    plugins:[recPlugin]});
+}
+function scrollToEngine(){document.getElementById('crisisBanner').scrollIntoView({behavior:'smooth'});
+  if(!SEL.includes('unemployment_rate'))toggleSel('unemployment_rate');}
+
+/* ============ export ============ */
+function dl(name,text,mime){const b=new Blob([text],{type:mime});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+function exportReport(){
+  if(!D)return;const c=D.crisis||{};let t='BLS EMPLOYMENT CRISIS DETECTION REPORT\n';
+  t+='Generated: '+new Date().toUTCString()+'\nData as of: '+D.generated_at+'\nSource: '+D.source+'\n';
+  t+='\n=== CRISIS ENGINE ===\nComposite score: '+c.score+'/100 ('+c.level+')\nSahm rule: '+fnum(c.sahm)+'pp (trigger >= +0.50)\nU6-U3 spread: '+fnum(c.u6_u3_spread,1)+'pp\n';
+  (c.components||[]).forEach(k=>{t+='  ['+(k.status||'--')+'] '+k.label+': '+(k.value==null?'--':k.value)+' '+k.unit+' (warn '+k.warn+' / crisis '+k.crisis+')\n';});
+  t+='\n=== ALL INDICATORS ===\n';
+  Object.values(D.national||{}).forEach(s=>{if(s.error)return;
+    t+=(s.status||'--').padEnd(6)+' '+s.label+': '+fv(s).replace(/<[^>]*>/g,'')+' | MoM '+fnum(s.mom_pct)+'% | YoY '+fnum(s.yoy_pct)+'% | dist '+fnum(s.distance)+'\n';});
+  t+='\n=== STATES ===\n';
+  Object.values(D.states||{}).forEach(s=>{if(s.error)return;
+    t+=(s.abbr||'').padEnd(3)+' '+String(s.value)+'% | vs natl '+fnum(s.vs_national,1)+'pp | '+(s.status||'--')+'\n';});
+  dl('bls-crisis-report.txt',t,'text/plain');}
+function exportCSV(){
+  if(!D)return;let t='category,indicator,value,period,mom_pct,yoy_pct,crisis_threshold,distance,status\n';
+  Object.values(D.national||{}).forEach(s=>{if(s.error)return;
+    t+=[s.cat,'"'+s.label+'"',s.value,s.period,s.mom_pct,s.yoy_pct,s.crisis,s.distance,s.status].join(',')+'\n';});
+  Object.values(D.states||{}).forEach(s=>{if(s.error)return;
+    t+=['state','"'+s.label+'"',s.value,s.period,s.mom_pct,s.yoy_pct,s.crisis,s.distance,s.status].join(',')+'\n';});
+  dl('bls-employment-data.csv',t,'text/csv');}
+
+/* ============ boot ============ */
+async function loadData(manual){
+  if(manual)document.getElementById('meta').textContent='refreshing…';
+  D=await gj(FEED);
+  if(!D){document.getElementById('meta').innerHTML='<span class="neg">Feed unavailable — the daily BLS engine publishes at 14:00 UTC; retrying automatically.</span>';
+    document.getElementById('sumBody').innerHTML='<tr><td colspan="9" class="err">No data received from BLS feed. The engine self-heals on its next daily run.</td></tr>';return;}
+  renderMeta();renderCrisis();renderTabs();renderSections();renderStates();renderSummary();drawChart();
+}
+loadData(false);
+setInterval(()=>loadData(false),900000);
+</script>
+<script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 </body>
 </html>
