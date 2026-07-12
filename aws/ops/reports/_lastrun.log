@@ -1,29 +1,46 @@
-executing-against: 6fb216f3e0a9a9813354f25bafd4e045da5bb3de
-ops 3176 — 207 watchlists → 207 engines
-── 1. Deploy the runtime ──
-[23:22:43]   zip: 64304 bytes
+executing-against: a8159069fb999eb66f1949457e884487b6b89f60
+ops 3177 — ECONOMICS mapped → dormant engines wake
+── 1. World Bank probes (does the data actually come back?) ──
+[23:30:53]   Brazil debt/GDP            2010 → 2024  (15 obs)
+[23:30:54]   Zimbabwe deposit rate      1990 → 2025  (30 obs)
+[23:30:54]   Cambodia trade balance     1993 → 2025  (33 obs)
+[23:30:55]   China FX reserves          1990 → 2025  (36 obs)
+[23:30:55]   Japan GDP growth           1990 → 2025  (36 obs)
+[23:30:56]   India CPI                  1990 → 2025  (36 obs)
+── 2. Re-map the universe ──
+[23:36:05]   UNMAPPED      2624  (40.3%)
+[23:36:05]   MARKET        1739  (26.7%)
+[23:36:05]   WORLDBANK      988  (15.2%)
+[23:36:05]   FRED           782  (12.0%)
+[23:36:05]   FORMULA        337  (5.2%)
+[23:36:05]   COINGECKO       37  (0.6%)
+[23:36:05] ✅ symbol-map rewritten: 44.5% → 59.7% (+988 symbols)
+── 3. Re-run the engine fleet on the wider map ──
+[23:36:05]   zip: 65701 bytes
 ── 1. Lambda ──
-[23:22:43]   Lambda missing — creating
-[23:22:48] ✅   ✓ created justhodl-wl-engines
-[23:22:48] ✅   ✓ Function URL: https://umxlvt2nnisnezhso7egna3veq0rhjnh.lambda-url.us-east-1.on.aws/
+[23:36:05]   Lambda exists — updating
+[23:36:08] ✅   ✓ updated justhodl-wl-engines
 ── 2. EB rule + permissions ──
-[23:22:49] ✅   ✓ created rule wl-engines-daily
-[23:22:49] ✅   ✓ target → justhodl-wl-engines
-[23:22:49] ✅   ✓ added invoke permission
-── 2. First run — every watchlist becomes an engine ──
-── 3. The fleet he now owns ──
-[23:24:50] ── by theme: OTHER=48, LIQUIDITY=20, CREDIT=18, GROWTH=10, STRESS=9, RATES=9, BREADTH=8, INFLATION=5, DOLLAR=4, CRYPTO=1
-[23:24:50] ── FIRING NOW (4) — with the exact indicators lit:
-[23:24:50]   Global Commodities prices          [INFLATION] act  83.3% ( 94.1p) t=  0.51 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:PALLF
-[23:24:50]   Business Cycle                     [GROWTH   ] act  54.2% ( 85.7p) t=  0.41 lit: FRED:PRAWMINDEXM, FRED:MNFCTRIRSA, FRED:TRUC
-[23:24:50]   Freight                            [OTHER    ] act  33.3% ( 84.5p) t=   0.6 lit: FRED:TRUCKD11, FRED:RAILFRTCARLOADSD11
-[23:24:50]   Commodities : are often rented but [INFLATION] act  70.0% ( 82.2p) t= -0.24 lit: FRED:PRAWMINDEXM, FRED:IR, FRED:IQ, FRED:PAL
-── 4. Per-engine feeds exist (spot-check) ──
-[23:24:50] ✅ wl-global-commodities-prices: 6/29 members · 5 lit · signal_type wl_global-commodities-prices · fusion → justhodl-macro-nowcast, justhodl-cycle-clock
-[23:24:50] ✅ wl-business-cycle: 24/32 members · 12 lit · signal_type wl_business-cycle · fusion → justhodl-cycle-clock, justhodl-macro-nowcast
-[23:24:50] ✅ wl-freight: 6/26 members · 2 lit · signal_type wl_freight · fusion → 
-[23:24:50] ✅ wl-commodities-are-often-rented-but-r: 10/45 members · 7 lit · signal_type wl_commodities-are-often-rented-but-r · fusion → justhodl-macro-nowcast, justhodl-cycle-clock
-[23:24:50] ✅ wl-82604570: 6/500 members · 1 lit · signal_type wl_82604570 · fusion → 
-[23:24:50] ⚠ only 53 ACTIVE — the rest need more of their indicators mapped to free sources
+[23:36:09]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[23:36:09] ✅   ✓ target → justhodl-wl-engines
+[23:36:09] ✅   ✓ added invoke permission
+[23:40:52] ── themes: OTHER=62, LIQUIDITY=23, CREDIT=23, BREADTH=15, GROWTH=12, STRESS=11, RATES=10, DOLLAR=5, INFLATION=4, CRYPTO=2
+[23:40:52] ✅ ACTIVE engines 53 → 96 (+43 woken by the ECONOMICS map)
+[23:40:52] ── FIRING (20):
+[23:40:52]   Foreign Exchange Reserves        [LIQUIDITY] act  69.2% (100.0p) t= -0.82 lit: ECONOMICS:PTFER, ECONOMICS:DEFER, ECONOM
+[23:40:52]   82604570                         [OTHER    ] act  75.0% ( 96.1p) t=  0.44 lit: AMEX:IXN, FRED:W006RC1Q027SBEA, NASDAQ:D
+[23:40:52]   Frontier Market ETFS             [OTHER    ] act  85.7% ( 93.5p) t=  0.75 lit: NASDAQ:MSSCX, NASDAQ:MSSVX, NASDAQ:MSSYX
+[23:40:52]   Different Types of Stock indexes [BREADTH  ] act  92.9% ( 93.4p) t=  0.26 lit: NASDAQ:PTH, NASDAQ:PIE, NASDAQ:FYT, AMEX
+[23:40:52]   Commodities : are often rented b [INFLATION] act  78.9% ( 91.3p) t= -0.65 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:P
+[23:40:52]   82577015                         [OTHER    ] act  50.0% ( 89.9p) t=  0.21 lit: NASDAQ:COOP, FRED:WFRBLB50107, NASDAQ:MA
+[23:40:52]   EuroDollar Predict future moves: [LIQUIDITY] act  47.4% ( 89.8p) t= -0.36 lit: NASDAQ:PIE, TVC:NI225, FX_IDC:USDINR, FX
+[23:40:52]   Energy and oil stocks            [BREADTH  ] act  77.3% ( 89.6p) t=  0.42 lit: NYSE:MPC, NYSE:INSW, NYSE:VLO, NYSE:PSX,
+[23:40:52]   EuroDollar banks                 [DOLLAR   ] act  77.8% ( 88.5p) t= -0.33 lit: NYSE:UBS, NYSE:MS, NYSE:HSBC, NYSE:C, NY
+[23:40:52]   Emerging Markets Liquidity: $ Fl [LIQUIDITY] act  81.8% ( 87.6p) t=  1.54 lit: AMEX:EEMO, AMEX:ECON, AMEX:EEMV, AMEX:XS
+[23:40:52]   fed powell holding               [RATES    ] act  70.0% ( 87.2p) t=   1.3 lit: AMEX:GSSC, AMEX:EEM, AMEX:SCHD, NYSE:IGD
+[23:40:52]   Global Commodities prices        [INFLATION] act  71.4% ( 86.9p) t= -2.28 lit: FRED:PRAWMINDEXM, FRED:PALUMUSDM, FRED:P
+[23:40:52]   Ai stocks                        [BREADTH  ] act  76.9% ( 85.5p) t= -0.29 lit: NASDAQ:AMAT, NASDAQ:ALAB, NASDAQ:MRVL, N
+[23:40:52]   Countries Balance of Trade       [OTHER    ] act  51.7% ( 84.8p) t=  1.45 lit: ECONOMICS:CRBOT, ECONOMICS:GNBOT, ECONOM
+[23:40:52]   Global ETFs                      [OTHER    ] act  71.0% ( 83.9p) t=  0.41 lit: AMEX:DEEP, NASDAQ:PIE, AMEX:PEXL, NASDAQ
 
-→ Report written to aws/ops/reports/latest/3176_wl_engines.md
+→ Report written to aws/ops/reports/latest/3177_econ_map.md
