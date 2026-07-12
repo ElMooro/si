@@ -3016,7 +3016,6 @@ def lambda_handler(event, context):
     # the equity-research/* prefix is granted via bucket policy
     # (PublicReadEquityResearch statement, see ops 1151), not per-object ACL.
     try:
-        body_bytes = json.dumps(document, default=str).encode("utf-8")
         # /stable/quote lacks v3 avgVolume -- derive 50d avg from the doc's own
         # technicals volume series (real data, zero extra API). ops 3132.
         try:
@@ -3027,6 +3026,8 @@ def lambda_handler(event, context):
                     document["quote"]["avg_volume"] = round(sum(_vv) / len(_vv))
         except Exception:
             pass
+
+        body_bytes = json.dumps(document, default=str).encode("utf-8")
 
         s3.put_object(
             Bucket=S3_BUCKET, Key=cache_key,
