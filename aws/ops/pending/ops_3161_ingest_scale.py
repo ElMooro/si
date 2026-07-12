@@ -132,12 +132,26 @@ with report("3161_ingest_scale") as rep:
                      "chunks at 40 so each request stays small; fine")
 
     rep.section("4. Cleanup e2e artifacts")
-    m = s3_json("data/tradingview-notes.json")
-    ids = [n["id"] for n in (m.get("notes") or [])
-           if f"ops3161 scale probe {stamp}" in str(n.get("text"))][:50]
-    if ids:
-        post(furl, {"token": token, "delete_ids": ids}, timeout=60)
-        rep.log(f"deleted {len(ids)} probe notes (first batch)")
+    # best-effort: cleanup must never fail a passing pipeline (50 serial
+    # brain deletes were blowing the client read timeout)
+    try:
+        m = s3_json("data/tradingview-notes.json")
+        ids = [n["id"] for n in (m.get("notes") or [])
+               if f"ops3161 scale probe {stamp}" in str(n.get("text"))]
+        done = 0
+        for i in range(0, min(len(ids), 300), 10):
+            try:
+                post(furl, {"token": token,
+                            "delete_ids": ids[i:i + 10]}, timeout=110)
+                done += len(ids[i:i + 10])
+            except Exception:
+                break
+        rep.log(f"probe notes deleted: {done}/{len(ids)}")
+        if done < len(ids):
+            warns.append(f"{len(ids) - done} probe notes left in mirror "
+                         "(harmless; brain dedupes by id)")
+    except Exception as e:
+        warns.append(f"note cleanup skipped: {str(e)[:80]}")
     w = s3_json("data/tv-watchlists.json")
     w["lists"] = [l for l in (w.get("lists") or [])
                   if not str(l.get("id", "")).startswith("e2e-")]
