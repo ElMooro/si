@@ -315,7 +315,9 @@ fetchJSON("data/industry-rotation.json").then(function(d){
     apply();
   }
   document.getElementById("ranknote").textContent=d.rank_note||"";
-  window.__rrg=d.rrg||{};if(!window.__sf){window.__sf={};gj("data/share-flows.json").then(function(x){if(x&&x.tickers)window.__sf=x.tickers;});}renderRRGCards(d);renderRRGBarcode(d);renderRRG(d);renderTrans(d);renderMAev(d);renderCycle(d);renderAppetite(d);renderPairs(d);renderCrossBoard(d);
+  window.__rrg=d.rrg||{};if(!window.__sf){window.__sf={};gj("data/share-flows.json").then(function(x){if(x&&x.tickers)window.__sf=x.tickers;});}var __secfail=[];function __safe(fn,nm){try{fn(d);}catch(ex){__secfail.push(nm+": "+(ex&&ex.message||ex));try{console.error("[IR section] "+nm,ex);}catch(e9){}}}
+__safe(renderRRGCards,"RRG cards");__safe(renderRRGBarcode,"RRG barcode");__safe(renderRRG,"RRG map");__safe(renderTrans,"RRG transitions");__safe(renderMAev,"MA-cross events");__safe(renderCycle,"cycle");__safe(renderAppetite,"appetite");__safe(renderPairs,"pair spreads");__safe(renderCrossBoard,"cross board");
+
   document.getElementById("leaders").innerHTML=(d.leaders||[]).map(function(l){
     var h=(l.holdings_top||[]).map(function(x){
       var PC={ACCUMULATION:"var(--cyan)",MARKUP:"var(--green)",DISTRIBUTION:"var(--amber)",MARKDOWN:"var(--red)"};
@@ -344,7 +346,8 @@ fetchJSON("data/industry-rotation.json").then(function(d){
       "</div>";
   }).join("")||'<div class="card" style="color:var(--fg-3)">No leaders scored yet.</div>';
   document.getElementById("meth").innerHTML="<b>Method.</b> "+esc((d.method||{}).leadership_score)+". Absorption: "+esc((d.method||{}).absorption)+". Rationale: past winning industries tend to keep leading, and a large share of single-stock momentum is explained by industry membership (Moskowitz &amp; Grinblatt 1999; AQR industry-momentum research) — so the ladder filters the army before the soldiers. Relative strength while SPY is below its short moving averages indicates rotation and supply absorption rather than beta. All data real: Polygon daily bars, risk-regime engine, resilience engine, FMP holdings where available.";
-}).catch(function(e){document.getElementById("err").textContent="feed unavailable — engine may not have run yet";});
+  if(__secfail.length){var er=document.getElementById("err");if(er)er.textContent="section degraded (rest of desk unaffected): "+__secfail.join(" | ");}
+}).catch(function(e){var er=document.getElementById("err");if(er)er.textContent="desk render error: "+((e&&e.message)||e)+" — every isolated section above still rendered";try{console.error("[IR main]",e);}catch(e9){}});
 })();
 </script>
 <script src="/jh-wire.js" defer data-feeds="data/industry-rotation.json|justhodl-industry-rotation|INDUSTRY ROTATION;data/finviz-groups.json|justhodl-finviz-groups|FINVIZ GROUP AGGREGATES"></script>
