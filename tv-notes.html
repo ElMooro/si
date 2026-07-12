@@ -87,4 +87,31 @@ fetch(S3+"/data/tradingview-notes.json?t="+Date.now()).then(r=>r.ok?r.json():nul
   if(d&&d.updated)document.getElementById("upd").textContent="Last sync: "+new Date(d.updated).toLocaleString();
 }).catch(()=>{ document.getElementById("cnt").textContent="0"; });
 </script>
+
+<!-- JH_WL_TRACKER_V1 -->
+<div style="max-width:980px;margin:26px auto 0;padding:0 16px">
+  <h2 style="font-size:16px;margin:0 0 4px">📋 Watchlist Tracker <span style="font-size:11px;color:var(--dim);font-weight:400">each list = equal-weight basket vs SPY · Mondays feed the scorecard</span></h2>
+  <div id="wl-board" style="font-size:12.5px;color:var(--dim)">Loading…</div>
+</div>
+<script>
+(function(){
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/tv-watchlist-tracker.json?t='+Date.now())
+    .then(r=>r.json()).then(function(d){
+      var el=document.getElementById('wl-board'); if(!el) return;
+      if(!d || d.status==='WAITING_FIRST_SYNC'){ el.innerHTML='<em>Waiting for your first extension Sync — this board lights up automatically after it lands.</em>'; return; }
+      var esc=function(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+      var c=function(v){return v==null?'var(--dim)':(v>=0?'#6fce8a':'#E07A6A');};
+      var rows=(d.lists||[]).map(function(l){
+        return '<tr>'+
+          '<td style="padding:6px 8px;font-weight:600">'+esc(l.name)+'</td>'+
+          '<td style="padding:6px 8px;color:var(--dim)">'+ (l.n_priced||0)+'/'+(l.n_symbols||0)+'</td>'+
+          ['5','21','63'].map(function(dd){var v=l['excess_'+dd+'d'];return '<td style="padding:6px 8px;text-align:right;color:'+c(v)+'">'+(v==null?'—':(v>0?'+':'')+v+'%')+'</td>';}).join('')+
+          '<td style="padding:6px 8px;color:var(--dim);font-size:11px">'+((l.top||[]).map(function(t){return esc(t.t);}).join(' ')||'—')+'</td></tr>';
+      }).join('');
+      el.innerHTML='<table style="width:100%;border-collapse:collapse"><thead><tr style="color:var(--dim);font-size:10px;text-transform:uppercase"><th style="text-align:left;padding:5px 8px">Watchlist</th><th style="text-align:left;padding:5px 8px">Priced</th><th style="text-align:right;padding:5px 8px">5d vs SPY</th><th style="text-align:right;padding:5px 8px">21d vs SPY</th><th style="text-align:right;padding:5px 8px">63d vs SPY</th><th style="text-align:left;padding:5px 8px">Leaders</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+        '<div style="margin-top:6px;font-size:10px;color:var(--dim)">'+esc(d.how_to_read||'')+' · SPY 21d '+((d.spy&&d.spy['21']!=null)?d.spy['21']+'%':'—')+' · updated '+esc((d.generated_at||'').slice(0,16).replace('T',' '))+' UTC</div>';
+    }).catch(function(){var el=document.getElementById('wl-board'); if(el) el.textContent='Tracker feed unavailable.';});
+})();
+</script>
+
 </body></html>

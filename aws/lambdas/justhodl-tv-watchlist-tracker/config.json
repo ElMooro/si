@@ -1,0 +1,7 @@
+{
+  "function_name": "justhodl-tv-watchlist-tracker",
+  "memory": 512,
+  "timeout": 240,
+  "description": "Khalid's TradingView watchlists as labeled predictive baskets: equal-weight forward returns vs SPY (5/21/63d), per-list signal emission (tvwl_<slug>) into the grading pipeline so the scorecard learns WHICH watchlist predicts.",
+  "schedule": {"rule_name": "tv-watchlist-tracker-daily", "cron": "cron(15 21 ? * TUE-SAT *)"}
+}
