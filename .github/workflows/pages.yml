@@ -51,7 +51,7 @@ jobs:
           cp -f *.html *.js *.css _site/ 2>/dev/null || true
           cp -f nav-manifest.json _site/ 2>/dev/null || true
           for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
-          for d in assets js css img fonts; do [ -d "$d" ] && cp -r "$d" _site/; done
+          for d in assets js css img fonts tools; do [ -d "$d" ] && cp -r "$d" _site/; done
           echo "site files: $(find _site -type f | wc -l), bytes: $(du -sb _site | cut -f1)"
       - name: Bake last-known values into homepage (zero em-dash first paint)
         run: python3 scripts/bake_homepage.py _site/index.html || true
