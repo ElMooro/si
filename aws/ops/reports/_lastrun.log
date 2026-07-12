@@ -1,25 +1,17 @@
-executing-against: 41016087c27279e2151539a8e227ce3fd36a902d
-ops 3153 — first GLM exception, verbatim
-── 0. Redeploy premortem w/ patched router (GLM timeout 130s) ──
-[06:19:30]   zip: 57642 bytes
-── 1. Lambda ──
-[06:19:30]   Lambda exists — updating
-[06:19:35] ✅   ✓ updated justhodl-premortem-engine
-── 2. EB rule + permissions ──
-[06:19:36]   rule already correct: premortem-engine-daily (cron(0 14 ? * MON-FRI *))
-[06:19:36] ✅   ✓ target → justhodl-premortem-engine
-[06:19:36] ✅   ✓ added invoke permission
-[06:19:45] cold invoke fired
-── CW of THIS run ──
-[06:28:36] CW: [INFO]	2026-07-12T06:19:45.884Z	b109ddab-e236-47f8-b3c1-7969e7e9adae	premortem-engine starting v1
-[06:28:36] CW: [ERROR]	2026-07-12T06:28:05.389Z	b109ddab-e236-47f8-b3c1-7969e7e9adae	telegram_fail: HTTP Error 401: Unauthorized
-── Class-specific fix ──
-[06:28:36] ✅ KILL PIPELINE LIVE: 9 rich theses (GLM lane)
-[06:28:36]   · AAPL: {'id': 1, 'description': 'iPhone and Mac demand stalls globally, causing the quarter-over-quarter revenue growth to decelerate and turn nega
-[06:28:36]   · NEM: {'id': 1, 'description': 'Gold spot price collapses below $1,650/oz, severely compressing operating margins and invalidating the asymmetric 
-[06:28:36]   · QCOM: {'id': 1, 'description': "Apple successfully integrates its in-house modem, resulting in a structural, permanent decline in QCOM's largest s
-[06:28:36]   · V: {'id': 1, 'description': "US Congress passes or advances legislation capping credit card interchange fees, directly attacking Visa's highest
-[06:28:37] FinOps policy restored (on_demand). Owner switch to re-enable background LLM fleet-wide: /justhodl/llm/mode = normal
-[06:28:37] ⚠ first GLM-failed line not captured — see raw lines
+executing-against: 94b1c5712d276fdef6f7e22eda795f8e5b82ca76
+ops 3155 — pre-SaaS backup
+── 1. Private backup bucket ──
+[18:09:12] ✅ bucket created
+[18:09:12] ✅ public access blocked + SSE-AES256 enforced
+── 2. DynamoDB on-demand backups ──
+[18:09:15] tables: justhodl-alert-actions, justhodl-api-keys, justhodl-api-rate, justhodl-backtest, justhodl-feedback, justhodl-history, justhodl-llm-cost, justhodl-outcomes, justhodl-portfolio, justhodl-push-subscriptions, justhodl-signal-registry, justhodl-signals, justhodl-subscribers, justhodl-trades
+[18:09:15] ✅ all 14 tables backed up
+── 3. Lambda fleet export (config + env) ──
+[18:09:22] ✅ 647 function configs + env vars secured
+── 4. Versioning on live bucket ──
+[18:09:22] ✅ versioning already Enabled
+── 5. SSM /justhodl inventory (names only) ──
+[18:09:23] all: /justhodl/13f-price-divergence/state, /justhodl/52wk-quality-breakout/state, /justhodl/ai-chat/auth-token, /justhodl/alerts/webhook_urls, /justhodl/anthropic/api-key, /justhodl/anthropic/api_key, /justhodl/api-admin/token, /justhodl/bea-api-key, /justhodl/bls-api-key, /justhodl/brain/uid, /justhodl/breadth-divergence/state, /justhodl/breadth-thrust/state, /justhodl/buyback-yield-ranking/state, /justhodl/calibration-fleet/weights, /justhodl/calibration/accuracy, /justhodl/calibration/alpha, /justhodl/calibration/miss_recurring_tickers, /justhodl/calibration/miss_threshold_proposals, /justhodl/calibration/report, /justhodl/calibration/scorecard, /justhodl/calibration/strategy-weights, /justhodl/calibration/weights, /justhodl/calibration/weights/day_1, /justhodl/calibration/weights/day_10, /justhodl/calibration/weights/day_14, /justhodl/calibration/weights/day_21, /justhodl/calibration/weig
+[18:09:23] ⚠ no supabase/stripe params under /justhodl — service keys live elsewhere (checkout lambda env? — fleet export above now holds every env var)
 
-→ Report written to aws/ops/reports/latest/3153_first_exception.md
+→ Report written to aws/ops/reports/latest/3155_presaas_backup.md
