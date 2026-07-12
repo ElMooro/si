@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "JustHodl \u2014 TradingView Notes",
   "short_name": "JH TV Notes",
-  "version": "1.1.0",
-  "description": "Sync your TradingView notes AND watchlists into JustHodl \u2014 notes feed the Brain, watchlists feed the predictive tracker.",
+  "version": "1.2.0",
+  "description": "Sync your TradingView notes AND watchlists into JustHodl \u2014 taps TradingView's own network traffic (no endpoint guessing).",
   "permissions": [
     "storage",
     "scripting",
@@ -11,15 +11,24 @@
     "alarms"
   ],
   "host_permissions": [
-    "https://www.tradingview.com/*",
-    "https://pine-facade.tradingview.com/*",
-    "https://note-manager.tradingview.com/*",
+    "https://*.tradingview.com/*",
     "https://nzoe4a43sjqxv3wovbac6dpvs40kxzgy.lambda-url.us-east-1.on.aws/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
+    {
+      "matches": [
+        "https://www.tradingview.com/*"
+      ],
+      "js": [
+        "inject.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
     {
       "matches": [
         "https://www.tradingview.com/*"

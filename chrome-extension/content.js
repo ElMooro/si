@@ -1,465 +1,224 @@
-/**
- * JustHodl TV Notes — Content Script
+/* JustHodl TV harvester v1.2 (ops 3160) — content script, ISOLATED world.
  *
- * Runs on every tradingview.com page. Key advantages over bookmarklet:
- *  - NOT restricted by TradingView's Content Security Policy
- *  - Full same-origin fetch access (session cookies included automatically)
- *  - Persistent across navigation (re-runs via auto-start)
- *  - DOM + localStorage + API access simultaneously
+ * v1.1 returned "0 notes from 0 tickers" because it GUESSED endpoints
+ * (/api/v2/lists/, /api/v1/text_notes/ — both dead). v1.2 does not guess:
+ * inject.js taps the page's real fetch/XHR, and we mine whatever
+ * TradingView itself returns. We also replay the endpoints seen in the
+ * live network trace: symbols_list/custom/ (watchlists) and notes getall/.
  *
- * Harvest phases:
- *  1. Bulk API probe (8 endpoint patterns — fastest path)
- *  2. Watchlist enumeration → per-symbol notes pull
- *  3. Chart layout text annotations
- *  4. localStorage scan (notes stored client-side)
- *  5. DOM scraping (catches notes visible in the Notes panel)
- *  6. Passive fetch/XHR intercept (catches anything TV loads dynamically)
+ * The panel is self-diagnosing: every captured endpoint is listed with its
+ * note/list yield, so a miss is debuggable instead of silent.
  */
-
 (function () {
-  const WATCHLISTS = [];  // ops 3158: [{id,name,symbols[]}]
-  'use strict';
-  if (window.__JH_EXT_V1) return;
-  window.__JH_EXT_V1 = true;
+  if (window.__JH_HARVEST_V12) return;
+  window.__JH_HARVEST_V12 = 1;
 
-  // ── Note store ────────────────────────────────────────────────────────────
-  const STORE   = new Map();   // id → note object
-  const TICKERS = new Set();   // symbols seen
-  let   isHarvesting = false;
-  let   overlay      = null;
-  let   progressPct  = 0;
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  var STORE = new Map();   // note id -> note
+  var TICKERS = new Set();
+  var LISTS = new Map();   // list id -> {id,name,symbols[]}
+  var SEEN = new Map();    // endpoint -> {notes,lists} | {err}
 
   function hashId(sym, ts, text) {
-    let h = 0;
-    const s = `${sym}|${ts}|${String(text).slice(0, 160)}`;
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return `tv-${h.toString(36)}`;
+    var s = sym + "|" + ts + "|" + String(text).slice(0, 160), h = 0;
+    for (var i = 0; i < s.length; i++) h = ((h * 31) + s.charCodeAt(i)) >>> 0;
+    return "tv3-" + h.toString(36);
   }
 
-  function keep(sym, text, title, ts) {
-    text = String(text || '').trim();
-    if (text.length < 2) return false;
-    sym = String(sym || 'UNTAGGED').toUpperCase().replace(/[^A-Z0-9:._-]/g, '').slice(0, 30) || 'UNTAGGED';
-    if (typeof ts === 'string') { try { ts = new Date(ts).getTime(); } catch (e) { ts = 0; } }
-    if (!ts || isNaN(ts)) ts = Date.now();
-    const id = hashId(sym, ts, text);
-    if (!STORE.has(id)) {
-      STORE.set(id, { symbol: sym, text: `[TV:${sym}] ${text}`.slice(0, 7500),
-                      title: String(title || '').slice(0, 200), created: ts });
-      TICKERS.add(sym);
-      updateUI();
-      return true;
+  function keepNote(sym, text, title, ts) {
+    text = String(text == null ? "" : text).trim();
+    if (text.length < 2 || text.length > 20000) return false;
+    sym = String(sym || "UNTAGGED").toUpperCase();
+    var t = ts || Date.now();
+    if (typeof t === "string") { var p = Date.parse(t); t = isNaN(p) ? Date.now() : p; }
+    if (t < 1e12) t = t * 1000;
+    var id = hashId(sym, t, text);
+    if (STORE.has(id)) return false;
+    STORE.set(id, { symbol: sym, text: text.slice(0, 8000),
+                    title: String(title || "").slice(0, 200),
+                    created: t, updated: t });
+    if (sym !== "UNTAGGED") TICKERS.add(sym);
+    return true;
+  }
+
+  var SYM_RE = /^[A-Z0-9_]{1,12}:[A-Z0-9._!$-]{1,20}$|^[A-Z]{1,5}$/;
+  var TEXT_KEYS = ["text", "content", "note", "body", "description", "comment"];
+  var SYM_KEYS = ["symbol", "symbol_name", "short_name", "ticker", "full_name", "name"];
+
+  function symOf(o, hint) {
+    for (var i = 0; i < SYM_KEYS.length; i++) {
+      var v = o[SYM_KEYS[i]];
+      if (typeof v === "string" && SYM_RE.test(v.toUpperCase())) return v.toUpperCase();
     }
-    return false;
+    return hint || null;
   }
 
   function mine(obj, hint, depth) {
-    if (!obj || depth > 8) return;
-    if (Array.isArray(obj)) { obj.forEach(x => mine(x, hint, depth + 1)); return; }
-    if (typeof obj !== 'object') return;
-    const sym  = obj.symbol || obj.ticker || obj.s || obj.symbol_full || hint;
-    const text = obj.text   || obj.note   || obj.content || obj.body || obj.description;
-    const hasId = obj.id != null || obj.created != null || obj.created_at != null || obj.updated_at != null;
-    if (text && typeof text === 'string' && text.length > 1 && hasId) {
-      const ts = obj.created_at || obj.created || obj.updated_at || obj.updated;
-      keep(sym, text, obj.title || obj.name || obj.subject, ts);
+    if (!obj || typeof obj !== "object" || (depth || 0) > 9) return 0;
+    var n = 0, i;
+    if (Array.isArray(obj)) {
+      for (i = 0; i < obj.length && i < 5000; i++) n += mine(obj[i], hint, (depth || 0) + 1);
+      return n;
     }
-    for (const k of Object.keys(obj)) {
-      if (obj[k] && typeof obj[k] === 'object') mine(obj[k], sym || hint, depth + 1);
+    for (i = 0; i < TEXT_KEYS.length; i++) {
+      var t = obj[TEXT_KEYS[i]];
+      if (typeof t === "string" && t.trim().length >= 2) {
+        var ts = obj.created_at || obj.created || obj.modified_at ||
+                 obj.updated_at || obj.timestamp || obj.date || null;
+        if (keepNote(symOf(obj, hint), t, obj.title || obj.name, ts)) n++;
+      }
     }
+    for (var key in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+      var v = obj[key];
+      if (v && typeof v === "object") {
+        var h = SYM_RE.test(String(key).toUpperCase()) ? String(key).toUpperCase() : hint;
+        n += mine(v, h, (depth || 0) + 1);
+      }
+    }
+    return n;
   }
 
-  // ── TV same-origin API fetch (cookies auto-included) ─────────────────────
-  async function tvGet(path, params) {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    try {
-      const r = await fetch(`https://www.tradingview.com${path}${qs}`, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json, text/plain, */*',
-                   'X-Requested-With': 'XMLHttpRequest',
-                   'Referer': 'https://www.tradingview.com/' },
+  function symList(x) {
+    var out = [];
+    (x || []).forEach(function (s) {
+      var v = typeof s === "string" ? s
+        : (s && (s.symbol || s.s || s.full_name || s.name)) || "";
+      v = String(v).trim().toUpperCase();
+      if (v && v.length <= 40) out.push(v);
+    });
+    return out.slice(0, 500);
+  }
+
+  function harvestLists(data) {
+    var arr = Array.isArray(data) ? data
+      : (data && (data.data || data.results || data.lists || data.watchlists)) || null;
+    if (!Array.isArray(arr)) {
+      if (data && (data.symbols || data.list_symbols) && (data.name || data.id)) arr = [data];
+      else return 0;
+    }
+    var added = 0;
+    arr.forEach(function (l) {
+      if (!l || typeof l !== "object") return;
+      var syms = symList(l.symbols || l.list_symbols || l.items);
+      var name = String(l.name || l.title || l.id || "").trim();
+      if (!name || !syms.length) return;
+      var id = String(l.id || name);
+      LISTS.set(id, { id: id, name: name.slice(0, 120), symbols: syms,
+                      color: l.color || null });
+      syms.forEach(function (s) {
+        var bare = s.indexOf(":") >= 0 ? s.split(":")[1] : s;
+        if (bare) TICKERS.add(bare);
       });
-      if (!r.ok) return null;
-      return await r.json();
-    } catch (e) { return null; }
+      added++;
+    });
+    return added;
   }
 
-  // ── Phase 1: bulk notes (no symbol filter) ────────────────────────────────
-  const BULK_ENDPOINTS = [
-    ['/note-manager/api/notes/',     { limit: 9999 }],
-    ['/note-manager/api/notes/',     { page_size: 9999, offset: 0 }],
-    ['/api/v1/text_notes/',          { limit: 9999 }],
-    ['/api/v1/text-notes/',          { limit: 9999 }],
-    ['/textnotes/list/',             {}],
-    ['/api/v2/notes/',               { limit: 9999 }],
-    ['/api/v2/chart-notes/',         { limit: 9999 }],
-    ['/note-manager/api/',           {}],
-    ['/note-manager/api/notes/list/',{}],
-    ['/pine-notes/list/',            { limit: 9999 }],
-  ];
-
-  async function phaseBulk() {
-    setStatus('Probing TradingView notes API…', 5);
-    for (const [path, params] of BULK_ENDPOINTS) {
-      const d = await tvGet(path, params);
-      if (d) {
-        mine(d, null, 0);
-        if (STORE.size > 0) {
-          setStatus(`Bulk endpoint hit — ${STORE.size} notes`, 20);
-          return true;
-        }
-      }
-      await sleep(80);
-    }
-    return false;
-  }
-
-  // ── Phase 2: watchlist enumeration ────────────────────────────────────────
-  async function getWatchlistSymbols() {
-    setStatus('Loading your watchlists…', 22);
-    const syms = new Set();
-    const endpoints = [
-      ['/api/v2/lists/',      { limit: 200, include_list_symbols: 1 }],
-      ['/api/v2/lists/',      { limit: 200 }],
-      ['/lists/',             {}],
-      ['/api/v1/lists/',      {}],
-      ['/api/v2/watchlists/', {}],
-    ];
-    for (const [path, params] of endpoints) {
-      const d = await tvGet(path, params);
-      if (!d) { await sleep(100); continue; }
-      const arr = d.data || d.lists || d.watchlists || d.results || (Array.isArray(d) ? d : []);
-      // ops 3158: keep full membership — watchlists ARE the predictive unit
-      try {
-        (arr || []).forEach(l => {
-          const syms = (l.symbols || l.list_symbols || l.items || [])
-            .map(x => typeof x === 'string' ? x : (x && (x.symbol || x.s || x.name)) || '')
-            .filter(Boolean).slice(0, 500);
-          if (l && (l.name || l.id) && syms.length)
-            WATCHLISTS.push({ id: String(l.id || l.name), name: String(l.name || l.id).slice(0, 120),
-                              symbols: syms, color: l.color || null });
-        });
-      } catch (e) {}
-      for (const lst of (Array.isArray(arr) ? arr : [])) {
-        if (typeof lst !== 'object') continue;
-        const items = lst.symbols || lst.items || lst.data || lst.list_symbols || [];
-        for (const it of (Array.isArray(items) ? items : [])) {
-          const s = typeof it === 'string' ? it : (it.symbol || it.s || it.ticker || '');
-          if (s && s.length < 30) syms.add(s.toUpperCase());
-        }
-        // some lists embed symbol count, fetch symbols separately
-        if (lst.id && !items.length) {
-          const ld = await tvGet(`/api/v2/lists/${lst.id}/`, {});
-          if (ld) {
-            const si = ld.symbols || ld.data || [];
-            for (const it of (Array.isArray(si) ? si : [])) {
-              const s = typeof it === 'string' ? it : (it.symbol || it.s || '');
-              if (s) syms.add(s.toUpperCase());
-            }
-          }
-          await sleep(80);
-        }
-      }
-      if (syms.size > 0) break;
-      await sleep(100);
-    }
-    setStatus(`Watchlists: ${syms.size} unique symbols`, 28);
-    return [...syms];
-  }
-
-  // ── Phase 3: per-symbol notes pull ────────────────────────────────────────
-  const SYM_ENDPOINTS = (s) => [
-    ['/note-manager/api/notes/',  { symbol: s, limit: 500 }],
-    ['/note-manager/api/notes/',  { symbol_id: s, page_size: 500 }],
-    ['/api/v1/text_notes/',       { symbol: s, limit: 500 }],
-    ['/api/v1/text-notes/',       { symbol: s, limit: 500 }],
-    ['/textnotes/list/',          { symbol: s }],
-    [`/api/v2/symbols/${encodeURIComponent(s)}/notes/`, null],
-    ['/api/v1/symbols/notes/',    { symbol: s }],
-  ];
-
-  async function pullForSymbol(sym) {
-    for (const [path, params] of SYM_ENDPOINTS(sym)) {
-      const d = await tvGet(path, params);
-      if (d) { mine(d, sym, 0); return; }
-      await sleep(40);
-    }
-  }
-
-  // ── Phase 4: chart layouts (text drawings as notes) ───────────────────────
-  async function phaseChartLayouts() {
-    setStatus('Scanning chart layouts…');
-    const d = await tvGet('/api/v2/chart-layouts/', { sort: 'recent', limit: 100 });
-    if (!d) return;
-    const arr = d.data || d.layouts || (Array.isArray(d) ? d : []);
-    let scanned = 0;
-    for (const layout of (Array.isArray(arr) ? arr.slice(0, 50) : [])) {
-      const id  = layout.id  || layout.chart_id;
-      const sym = layout.symbol || layout.name;
-      if (id) {
-        const content = await tvGet(`/api/v2/chart-layouts/${id}/content/`) ||
-                        await tvGet(`/api/v2/chart-layouts/${id}/`);
-        if (content) mine(content, sym, 0);
-        scanned++;
-        await sleep(120);
-      }
-    }
-    if (scanned) setStatus(`Chart layouts: ${scanned} scanned`);
-  }
-
-  // ── Phase 5: localStorage ──────────────────────────────────────────────────
-  function phaseLocalStorage() {
+  function short(u) {
     try {
-      for (const k of Object.keys(localStorage)) {
-        if (k.length > 80) continue;
-        if (!/note|annot|text|memo/i.test(k)) continue;
-        try { mine(JSON.parse(localStorage.getItem(k)), null, 0); } catch (e) {}
-      }
-    } catch (e) {}
+      var x = new URL(u, location.origin);
+      return (x.hostname.replace("www.tradingview.com", "tv") + x.pathname).slice(0, 58);
+    } catch (e) { return String(u).slice(0, 58); }
   }
 
-  // ── Phase 6: DOM scrape (catches notes visible in the UI right now) ────────
-  function phaseDom() {
-    const selectors = [
-      '[class*="note-text"]', '[class*="noteText"]', '[class*="NoteText"]',
-      '[class*="note-content"]', '[class*="NoteContent"]',
-      '[class*="notes-list"] [class*="text"]',
-      '[class*="NotesWidget"] p', '[class*="notes-widget"] p',
-      '[class*="note-item"]', '[class*="noteItem"]',
-      '[data-note-text]',  '[class*="symbol-note"]',
-      '[class*="textNote"]', '[class*="text-note"]',
-    ].join(', ');
-    try {
-      document.querySelectorAll(selectors).forEach(el => {
-        const text = el.textContent?.trim() || '';
-        if (text.length < 3 || text.length > 20000) return;
-        const container = el.closest('[data-symbol], [data-ticker], [class*="symbol-header"]');
-        const sym = container?.dataset?.symbol || container?.dataset?.ticker
-          || el.closest('[data-symbol]')?.dataset?.symbol
-          || pageSymbol() || 'UNTAGGED';
-        keep(sym, text, '', Date.now() - Math.random() * 1000);
-      });
-    } catch (e) {}
-  }
-
-  function pageSymbol() {
-    const m = location.pathname.match(/\/symbols?\/([A-Z0-9:._-]{2,25})/i)
-           || location.search.match(/[?&]symbol=([A-Z0-9:._%-]{2,25})/i);
-    return m ? decodeURIComponent(m[1]).toUpperCase() : null;
-  }
-
-  // ── Passive fetch intercept ────────────────────────────────────────────────
-  // Catches note-related API responses that TV makes on its own
-  const _fetch = window.fetch.bind(window);
-  window.fetch = function (input, init) {
-    const url = typeof input === 'string' ? input : (input?.url || '');
-    const p   = _fetch(input, init);
-    if (/note|annot/i.test(url) && !/notif|notice|annotate/i.test(url)) {
-      p.then(r => {
-        try { r.clone().json().then(j => mine(j, null, 0)).catch(() => {}); } catch (e) {}
-      }).catch(() => {});
+  window.addEventListener("message", function (e) {
+    var d = e && e.data;
+    if (!d || !d.__jh) return;
+    if (d.__jh === "tap-ready") { paint(); return; }
+    if (d.__jh === "tap-err") {
+      SEEN.set(short(d.url), { err: (d.data && (d.data.__err || ("HTTP " + d.data.__http))) || "err" });
+      paint(); return;
     }
-    return p;
-  };
-  // XHR intercept
-  const _xhrOpen = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function (method, url) {
-    if (/note|annot/i.test(String(url)) && !/notif|notice/i.test(String(url))) {
-      this.addEventListener('load', function () {
-        try { mine(JSON.parse(this.responseText), null, 0); } catch (e) {}
-      });
-    }
-    return _xhrOpen.apply(this, arguments);
-  };
-
-  // ── DOM observer (continuously scrape as notes load) ─────────────────────
-  const mutObs = new MutationObserver(() => {
-    if (overlay && overlay.style.display !== 'none') phaseDom();
-  });
-  mutObs.observe(document.body, { childList: true, subtree: true });
-
-  // ── Overlay UI ────────────────────────────────────────────────────────────
-  function buildOverlay() {
-    if (document.getElementById('__jh_ext')) return;
-    const d = document.createElement('div');
-    d.id = '__jh_ext';
-    d.style.cssText = `
-      position:fixed;z-index:2147483647;bottom:16px;right:16px;
-      background:#0C0B09;color:#e8e2d4;
-      border:2px solid #F0B429;border-radius:10px;
-      padding:14px 16px;
-      font:12px/1.55 "IBM Plex Mono",ui-monospace,monospace;
-      width:330px;
-      box-shadow:0 8px 40px rgba(0,0,0,.9);
-    `.replace(/\n\s+/g, '');
-    d.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <b style="color:#F0B429;font-size:13px">⚡ JustHodl · TV Notes</b>
-        <button id="__jh_close" style="background:none;border:none;color:#8a836f;cursor:pointer;font-size:18px;line-height:1;padding:0">×</button>
-      </div>
-      <div id="__jh_cnt" style="color:#F0B429;font-weight:bold;font-size:15px;margin-bottom:4px">Starting harvest…</div>
-      <div id="__jh_st"  style="color:#8a836f;font-size:10px;margin-bottom:8px;min-height:14px"></div>
-      <div style="background:#1a1a0f;border-radius:3px;height:5px;margin-bottom:10px;overflow:hidden">
-        <div id="__jh_pb" style="background:linear-gradient(90deg,#b8892e,#F0B429);height:5px;border-radius:3px;width:0%;transition:width .4s ease"></div>
-      </div>
-      <button id="__jh_up" style="background:#F0B429;color:#0C0B09;border:none;border-radius:5px;padding:9px;font-weight:bold;cursor:pointer;width:100%;font-size:12px;font-family:inherit;margin-bottom:6px;opacity:.5" disabled>
-        Harvesting…
-      </button>
-      <div id="__jh_msg" style="font-size:11px;min-height:16px;color:#6fce8a;line-height:1.4"></div>
-    `.trim();
-    document.body.appendChild(d);
-    overlay = d;
-    document.getElementById('__jh_close').addEventListener('click', () => { d.style.display = 'none'; });
-    document.getElementById('__jh_up').addEventListener('click', doUpload);
-  }
-
-  function updateUI() {
-    const c = document.getElementById('__jh_cnt');
-    const u = document.getElementById('__jh_up');
-    if (c) c.textContent = `${STORE.size} notes · ${TICKERS.size} tickers`;
-    if (u && !u.disabled) u.textContent = `UPLOAD ${STORE.size} NOTES TO BRAIN`;
-    // notify background for badge update
-    try { chrome.runtime.sendMessage({ action: 'harvest_update', count: STORE.size, tickers: TICKERS.size }); }
-    catch (e) {}
-  }
-
-  function setStatus(msg, pct) {
-    const s  = document.getElementById('__jh_st');
-    const pb = document.getElementById('__jh_pb');
-    if (s) s.textContent = msg;
-    if (pb && pct != null) { progressPct = pct; pb.style.width = `${pct}%`; }
-    else if (pb) pb.style.width = `${Math.min(progressPct + 2, 95)}%`;
-  }
-
-  function setMsg(msg, color) {
-    const m = document.getElementById('__jh_msg');
-    if (m) { m.textContent = msg; m.style.color = color || '#6fce8a'; }
-  }
-
-  function enableUpload() {
-    const u = document.getElementById('__jh_up');
-    if (u) {
-      u.disabled = false;
-      u.style.opacity = '1';
-      u.textContent = `UPLOAD ${STORE.size} NOTES TO BRAIN`;
-    }
-  }
-
-  // ── Upload via background ─────────────────────────────────────────────────
-  async function doUpload() {
-    const all = [...STORE.values()];
-    if (!all.length) { setMsg('No notes captured yet — wait for harvest to complete', '#F0B429'); return; }
-    const u = document.getElementById('__jh_up');
-    if (u) { u.disabled = true; u.style.opacity = '.5'; u.textContent = `Uploading ${all.length} notes…`; }
-    setMsg(`Uploading ${all.length} notes to Brain…`, '#F0B429');
-    try {
-      const result = await chrome.runtime.sendMessage({ action: 'upload', notes: all, watchlists: WATCHLISTS });
-      if (result?.ok || result?.brain_upserted > 0) {
-        setMsg(`✅ ${result.brain_upserted} notes → Brain · ${result.watchlists_saved||0} watchlists → tracker (${TICKERS.size} tickers)`, '#6fce8a');
-        if (u) { u.disabled = false; u.style.opacity = '1'; u.textContent = 'Upload complete — DONE'; }
-      } else {
-        setMsg(`❌ Upload failed: ${result?.error || 'check background console'}`, '#E07A6A');
-        if (u) { u.disabled = false; u.style.opacity = '1'; }
-        updateUI();
-      }
-    } catch (e) {
-      setMsg(`❌ Error: ${e.message}`, '#E07A6A');
-      if (u) { u.disabled = false; u.style.opacity = '1'; }
-    }
-  }
-
-  // ── Main harvest orchestration ─────────────────────────────────────────────
-  async function harvest() {
-    if (isHarvesting) return;
-    isHarvesting = true;
-    buildOverlay();
-    STORE.clear();
-    TICKERS.clear();
-    progressPct = 0;
-    setStatus('Starting…', 2);
-
-    // Phase 1 — bulk API
-    const bulkHit = await phaseBulk();
-    const afterBulk = STORE.size;
-
-    // Phase 2 — watchlists
-    const symbols = await getWatchlistSymbols();
-
-    // Phase 3 — per-symbol (especially for tickers bulk missed)
-    const covered = new Set([...STORE.values()].map(n => n.symbol));
-    const uncovered = symbols.filter(s => !covered.has(s));
-
-    if (uncovered.length > 0) {
-      setStatus(`Per-ticker sweep: 0 / ${uncovered.length}…`, 30);
-      for (let i = 0; i < uncovered.length; i++) {
-        await pullForSymbol(uncovered[i]);
-        const pct = 30 + Math.round((i + 1) / uncovered.length * 45);
-        if ((i + 1) % 5 === 0 || i === uncovered.length - 1) {
-          setStatus(`Per-ticker: ${i + 1}/${uncovered.length} · ${STORE.size} notes`, pct);
-        }
-        await sleep(90); // gentle throttle
-      }
-    }
-
-    // Also sweep ALL symbols (even ones bulk already got — per-symbol may have more)
-    if (symbols.length > 0 && bulkHit && STORE.size > 0) {
-      setStatus('Cross-sweeping all watchlist symbols…', 78);
-      for (let i = 0; i < Math.min(symbols.length, 300); i++) {
-        await pullForSymbol(symbols[i]);
-        await sleep(80);
-      }
-    }
-
-    setStatus('Scanning chart layouts…', 82);
-    await phaseChartLayouts();
-
-    setStatus('Scanning localStorage…', 90);
-    phaseLocalStorage();
-
-    setStatus('Scraping Notes panel…', 93);
-    phaseDom();
-
-    setStatus(`Complete — ${STORE.size} notes from ${TICKERS.size} tickers`, 100);
-
-    // Signal completion
-    try {
-      chrome.runtime.sendMessage({ action: 'harvest_complete', count: STORE.size, tickers: TICKERS.size, watchlists: WATCHLISTS.length });
-    } catch (e) {}
-
-    enableUpload();
-    isHarvesting = false;
-
-    if (STORE.size === 0) {
-      setMsg(
-        'No notes found via API. Scroll through your Notes panel (All Notes) — ' +
-        'every note that loads gets captured automatically.',
-        '#F0B429'
-      );
-    }
-  }
-
-  // ── Message listener (from popup) ─────────────────────────────────────────
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.action === 'start_harvest') {
-      harvest().then(() => sendResponse({ ok: true, count: STORE.size })).catch(e => sendResponse({ ok: false, error: e.message }));
-      return true;
-    }
-    if (msg.action === 'get_status') {
-      sendResponse({ count: STORE.size, tickers: TICKERS.size, harvesting: isHarvesting });
-      return true;
-    }
-    if (msg.action === 'show_overlay') {
-      if (overlay) { overlay.style.display = 'block'; }
-      else { buildOverlay(); }
-      sendResponse({ ok: true });
-    }
+    if (d.__jh !== "tap" || !d.data) return;
+    var nL = harvestLists(d.data);
+    var nN = mine(d.data, null, 0);
+    var k = short(d.url);
+    var prev = SEEN.get(k) || { notes: 0, lists: 0 };
+    SEEN.set(k, { notes: (prev.notes || 0) + nN, lists: (prev.lists || 0) + nL });
+    paint();
   });
 
-  // ── Auto-start ────────────────────────────────────────────────────────────
-  // Wait for page to settle, then begin
-  setTimeout(harvest, 2000);
+  function replay(url) { window.postMessage({ __jh: "replay", url: url }, "*"); }
 
+  var statusEl, listEl, btn;
+  function paint() {
+    if (!statusEl) return;
+    statusEl.innerHTML = '<b style="color:#F0B429">' + STORE.size + '</b> notes · <b style="color:#F0B429">'
+      + LISTS.size + '</b> watchlists · ' + TICKERS.size + ' tickers';
+    var rows = [];
+    SEEN.forEach(function (v, k) {
+      rows.push('<div style="font-size:10px;color:#8a836f;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+        + k + ' → ' + (v.err ? '<span style="color:#E07A6A">' + v.err + '</span>'
+                             : (v.notes || 0) + 'n/' + (v.lists || 0) + 'l') + '</div>');
+    });
+    listEl.innerHTML = rows.slice(-10).join("") ||
+      '<div style="font-size:10px;color:#8a836f">no TradingView traffic captured yet…</div>';
+    if (btn) btn.disabled = (STORE.size + LISTS.size) === 0;
+  }
+
+  function msg(t, c) {
+    var m = document.getElementById("jh-msg");
+    if (m) { m.textContent = t; m.style.color = c || "#8a836f"; }
+  }
+
+  function upload() {
+    var notes = Array.from(STORE.values());
+    var lists = Array.from(LISTS.values());
+    if (!notes.length && !lists.length) { msg("Nothing captured yet.", "#E07A6A"); return; }
+    btn.disabled = true;
+    msg("Uploading " + notes.length + " notes · " + lists.length + " watchlists…", "#F0B429");
+    chrome.runtime.sendMessage({ action: "upload", notes: notes, watchlists: lists },
+      function (res) {
+        if (res && (res.ok || res.brain_upserted > 0 || res.watchlists_saved > 0)) {
+          msg("\u2705 " + (res.brain_upserted || 0) + " notes \u2192 Brain \u00b7 " +
+              (res.watchlists_saved || 0) + " watchlists \u2192 tracker", "#6fce8a");
+          btn.textContent = "SYNC COMPLETE";
+        } else {
+          msg("\u274c " + ((res && res.error) || "upload failed"), "#E07A6A");
+          btn.disabled = false;
+        }
+      });
+  }
+
+  function mount() {
+    if (document.getElementById("jh-tv-panel")) return;
+    var panel = document.createElement("div");
+    panel.id = "jh-tv-panel";
+    panel.style.cssText = "position:fixed;right:16px;bottom:16px;z-index:2147483647;width:340px;" +
+      "background:#12110C;border:1px solid #2B2820;border-radius:10px;padding:12px;" +
+      "font-family:Inter,system-ui,sans-serif;color:#e8e2d4;box-shadow:0 8px 30px rgba(0,0,0,.5)";
+    panel.innerHTML =
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
+        '<span style="width:7px;height:7px;background:#F0B429;border-radius:50%"></span>' +
+        '<b style="font-size:12px">JustHodl \u00b7 TV Harvest v1.2</b>' +
+        '<span id="jh-x" style="margin-left:auto;cursor:pointer;color:#8a836f">\u2715</span></div>' +
+      '<div id="jh-status" style="font-size:12px;margin-bottom:8px">listening\u2026</div>' +
+      '<div id="jh-seen" style="max-height:110px;overflow:auto;margin-bottom:10px;border-top:1px solid #2B2820;padding-top:6px"></div>' +
+      '<div style="font-size:11px;color:#8a836f;margin-bottom:8px">Open your <b>Watchlist</b> panel and click through your lists, then open <b>Notes \u2192 All notes</b> and scroll. Everything TradingView loads gets captured live.</div>' +
+      '<button id="jh-up" style="width:100%;background:#F0B429;border:0;border-radius:8px;padding:9px;' +
+        'font-weight:700;font-size:12px;cursor:pointer;color:#12110C">SYNC TO JUSTHODL</button>' +
+      '<div id="jh-msg" style="font-size:11px;margin-top:7px;color:#8a836f"></div>';
+    document.body.appendChild(panel);
+    statusEl = document.getElementById("jh-status");
+    listEl = document.getElementById("jh-seen");
+    btn = document.getElementById("jh-up");
+    document.getElementById("jh-x").onclick = function () { panel.remove(); };
+    btn.onclick = upload;
+    paint();
+  }
+
+  function boot() {
+    mount();
+    var O = location.origin;
+    [O + "/api/v1/symbols_list/custom/?source=web",
+     O + "/api/v1/symbols_list/colored/?source=web",
+     O + "/api/v1/symbols_list/active/?source=web",
+     "https://note-manager.tradingview.com/notes/getall/",
+     "https://note-manager.tradingview.com/notes/getall/?source=web"]
+      .forEach(function (u, i) { setTimeout(function () { replay(u); }, 500 + i * 350); });
+    setTimeout(function () { replay(O + "/api/v1/symbols_list/custom/?source=web"); }, 4500);
+  }
+
+  if (document.body) boot();
+  else document.addEventListener("DOMContentLoaded", boot);
 })();
