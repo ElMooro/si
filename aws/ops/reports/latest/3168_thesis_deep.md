@@ -1,28 +1,60 @@
 # ops 3168 — Thesis Engine v2 (1990-2026)
 
-**Status:** failure  
-**Duration:** 0.0s  
-**Finished:** 2026-07-12T22:04:25+00:00  
+**Status:** success  
+**Duration:** 85.3s  
+**Finished:** 2026-07-12T22:07:38+00:00  
 
 ## Error
 
 ```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3168_thesis_deep.py", line 49, in <module>
-    cfg = json.loads((AWS_DIR / "lambdas" / FN / "config.json").read_text())
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1027, in read_text
-    with self.open(mode='r', encoding=encoding, errors=errors) as f:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/pathlib.py", line 1013, in open
-    return io.open(self, mode, buffering, encoding, errors, newline)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/ops/lambdas/justhodl-thesis-engine/config.json'
-
+SystemExit: 0
 ```
+
+## Data
+
+| elapsed_s | fdr_survivors | firing_now | history_start | n_fails | n_warns | pass1_series | pass1_status | pass1_theses | pass1_weeks | series_cached | signals_logged | theses | verdict | weeks |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  | 114 | LIVE | 23 | 1746 |  |  |  |  |  |
+| 66.3 | 0 | 0 | 1990-01-01 |  |  |  |  |  |  | 114 | 0 | 23 |  | 1746 |
+|  |  |  |  | 0 | 1 |  |  |  |  |  |  |  | PASS |  |
 
 ## Log
 ## 1. Deploy v2
 
+- `22:06:13`   zip: 62933 bytes
+## 1. Lambda
+
+- `22:06:14`   Lambda exists — updating
+- `22:06:17` ✅   ✓ updated justhodl-thesis-engine
+## 2. EB rule + permissions
+
+- `22:06:17`   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+- `22:06:17` ✅   ✓ target → justhodl-thesis-engine
+- `22:06:17` ✅   ✓ added invoke permission
+## 2. Deep run (first pass backfills 1990→today)
+
+- `22:06:17` invoke 1 fired
+## 3. Results — 36 years of evidence
+
+- `22:07:38` ── SPY base rates since 1990: 4w 0.89% · 13w 2.87% · 26w 5.8%
+- `22:07:38` ── ranked by overlap-corrected t on 13w forward SPY:
+- `22:07:38`   Red list                             hist  1993-34 act   7.7% | excess    2.0% hit-edge   8.5pp t=  1.44 n_eff= 34.2
+- `22:07:38`   Economy                              hist  1993-34 act  33.3% | excess  -2.62% hit-edge -16.5pp t= -1.27 n_eff= 27.3
+- `22:07:38`   71699273                             hist  1993-42 act  30.0% | excess  -1.96% hit-edge -11.2pp t= -1.09 n_eff= 29.8
+- `22:07:38`   Feds Monetary Policy: Fed tighten mo hist  2003-28 act   0.0% | excess   1.89% hit-edge  11.0pp t=  0.99 n_eff= 18.7
+- `22:07:38`   Draining Liquidity                   hist  2014-16 act   0.0% | excess   1.63% hit-edge   8.5pp t=  0.91 n_eff= 12.5
+- `22:07:38`   Financial Crisis Signs               hist  1994-29 act   8.3% | excess  -1.22% hit-edge  -9.9pp t= -0.72 n_eff= 33.5
+- `22:07:38`   Commercial Banks                     hist  1997-30 act  25.0% | excess  -0.87% hit-edge  -5.5pp t= -0.71 n_eff= 45.6
+- `22:07:38`   Danger                               hist  2003-35 act  22.2% | excess  -1.64% hit-edge  -8.6pp t= -0.71 n_eff= 20.5
+- `22:07:38`   Fed Interest Rates                   hist  1998-30 act  11.1% | excess  -1.37% hit-edge -11.4pp t= -0.71 n_eff= 23.8
+- `22:07:38`   fed plumbing                         hist  1994-29 act   5.3% | excess  -1.31% hit-edge  -8.6pp t= -0.65 n_eff= 26.5
+- `22:07:38`   Financial Stress                     hist  1993-34 act  10.5% | excess  -1.24% hit-edge  -9.3pp t= -0.63 n_eff= 28.1
+- `22:07:38`   Financial Crisis                     hist  1993-34 act  11.1% | excess  -1.02% hit-edge  -6.5pp t= -0.55 n_eff= 27.2
+- `22:07:38`   Bitcoin : Nikkei TOP and Bottom in U hist  1993-34 act   3.7% | excess   0.91% hit-edge   3.9pp t=   0.5 n_eff= 29.4
+- `22:07:38`   Bitcoin - Global Liquidity: GOLD ALW hist  1993-34 act  12.9% | excess    0.8% hit-edge   3.3pp t=  0.44 n_eff= 30.2
+- `22:07:38`   Fed Balance sheet                    hist  2003-28 act   0.0% | excess   0.73% hit-edge   4.5pp t=  0.36 n_eff= 20.1
+- `22:07:38`   EuroDollar: DXY pumping means tighte hist  2003-28 act   7.1% | excess   0.45% hit-edge   1.9pp t=  0.26 n_eff= 24.2
+## 4. Page
+
+- `22:07:38` ✅ theses.html live
+- `22:07:38` ⚠ still zero FDR survivors even on 36y — the honest read: these panels describe regimes, they do not time SPY. Keep them as context, not as timing signals.
