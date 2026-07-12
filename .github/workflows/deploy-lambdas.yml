@@ -347,6 +347,7 @@ jobs:
                   --function-name "$fn" \
                   --timeout "$fn_timeout" \
                   --memory-size "$fn_memory" \
+                  --description "$fn_desc" \
                   --region "${{ secrets.AWS_REGION }}" \
                   $env_arg \
                   --output text > /dev/null
