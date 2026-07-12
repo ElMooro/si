@@ -30,7 +30,7 @@ from _lambda_deploy_helpers import deploy_lambda
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 FN = "justhodl-thesis-engine"
-AWS_DIR = Path(__file__).resolve().parents[1]
+AWS_DIR = Path(__file__).resolve().parents[2]
 
 S3 = boto3.client("s3", region_name=REGION)
 LAM = boto3.client("lambda", region_name=REGION)
