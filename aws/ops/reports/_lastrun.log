@@ -1,22 +1,19 @@
-executing-against: bbb6cfa7d9248dc84929ed9c235a40b775fe8d01
-ops 3152 — policy vs revert vs GLM trap
-── 1. Governance NOW ──
-── 2. CW tail of the LAST invoke (unfiltered) ──
-[06:07:18] CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
-[06:07:18] CW: [WARNING]	2026-07-12T05:59:17.249Z	7d5888a8-e483-4ca4-a386-72a25bfa8b34	claude_fail symbol=V err=empty
-[06:07:18] CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
-[06:07:18] CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
-[06:07:18] CW: [WARNING]	2026-07-12T05:59:17.255Z	7d5888a8-e483-4ca4-a386-72a25bfa8b34	claude_fail symbol=ADBE err=empty
-[06:07:18] CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
-[06:07:18] CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
-[06:07:18] CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
-[06:07:18] CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
-[06:07:18] CW: [WARNING]	2026-07-12T05:59:18.775Z	7d5888a8-e483-4ca4-a386-72a25bfa8b34	claude_fail symbol=MSFT err=empty
-── 3. Cold invoke, patient poll ──
-[06:08:28] error sample: {"symbol": "NVDA", "error": "empty", "raw": null}
-── 4. Restore FinOps policy ──
-[06:08:28] mode restored to on_demand (ops-2891 policy). Re-enabling background LLM fleet-wide is Khalid's switch: aws ssm put-parameter --name /justhodl/llm/mode --value normal --overwrite  (premortem ≈15 GLM calls/weekday ≈ $0.05/day at current pricing; daily budget cap $8 stays)
-[06:08:28] ✗ 0 rich · wall 1s — CW above names the layer
+executing-against: 4b4d5e7c40ec1fcdf4733d087edd9f1bf480cf05
+ops 3153 — first GLM exception, verbatim
+[06:10:43] cold invoke fired
+── CW of THIS run ──
+[06:12:10] CW: [INFO]	2026-07-12T06:10:44.463Z	d2b5f768-0a0f-47ed-9a97-76d9860ea4b5	premortem-engine starting v1
+[06:12:10] CW: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
+[06:12:10] CW: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
+[06:12:10] CW: [llm_router] ALL providers down (<HTTPError 400: 'Bad Request'>) -> empty; engine uses deterministic fallback
+[06:12:10] CW: [llm_router] ALL providers down (<HTTPError 400: 'Bad Request'>) -> empty; engine uses deterministic fallback
+[06:12:10] CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
+[06:12:10] CW: [llm_router] ALL providers down (TimeoutError('claude circuit open')) -> empty; engine uses deterministic fallback
+[06:12:10] CW: [llm_router] GLM failed (TimeoutError('glm circuit open')); falling back to Haiku (cost-safe — NOT Sonnet)
+[06:12:10] ✅ ROOT: [llm_router] GLM failed (TimeoutError('The read operation timed out')); falling back to Haiku (cost-safe — NOT Sonnet)
+── Class-specific fix ──
+[06:12:10] FinOps policy restored (on_demand). Owner switch to re-enable background LLM fleet-wide: /justhodl/llm/mode = normal
+[06:12:10] ✗ root exception above requires the next fix class
 
-→ Report written to aws/ops/reports/latest/3152_glm_lane.md
-❌ OPS-FAIL: aws/ops/pending/ops_3152_glm_lane.py
+→ Report written to aws/ops/reports/latest/3153_first_exception.md
+❌ OPS-FAIL: aws/ops/pending/ops_3153_first_exception.py
