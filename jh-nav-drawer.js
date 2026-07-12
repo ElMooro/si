@@ -8,6 +8,12 @@
   "use strict";
   if (window.__jhNavDrawer) return; window.__jhNavDrawer = true;
 
+  /* JH_USERSYNC_V1 — theme + per-user sync (ops 3157) */
+  try {
+    var __th = localStorage.getItem("jh_theme");
+    if (__th === "light" || __th === "dark") document.documentElement.setAttribute("data-theme", __th);
+  } catch (e) {}
+
   /* Amber Terminal theme + sitewide chrome (phase 2). /screener PROTECTED-excluded. */
   try {
     var _themed = location.pathname.indexOf("/screener") !== 0;
@@ -93,7 +99,67 @@
   var lastM = null;
   function getFavs(){ try { return JSON.parse(localStorage.getItem("jh_favs") || "[]"); } catch(e){ return []; } }
   function setFavs(a){ try { localStorage.setItem("jh_favs", JSON.stringify(a.slice(0, 80))); } catch(e){} }
-  function toggleFav(h){ var f = getFavs(); var i = f.indexOf(h); if (i >= 0) f.splice(i, 1); else f.unshift(h); setFavs(f); }
+  function toggleFav(h){ var f = getFavs(); var i = f.indexOf(h); if (i >= 0) f.splice(i, 1); else f.unshift(h); setFavs(f); queueSync(); }
+
+
+  // ── theme + per-user sync (ops 3157) ────────────────────────────────
+  function getTheme(){ try { return localStorage.getItem("jh_theme") || "dark"; } catch(e){ return "dark"; } }
+  function setTheme(t, fromServer){
+    if (t !== "light" && t !== "dark") return;
+    try { localStorage.setItem("jh_theme", t); localStorage.setItem("jh_theme_ts", String(Date.now())); } catch(e){}
+    try { document.documentElement.setAttribute("data-theme", t); } catch(e){}
+    var b = document.getElementById("jhnav-themebtn");
+    if (b) b.textContent = (t === "light" ? "\u263E Dark mode" : "\u2600 Light mode");
+    if (!fromServer) queueSync();
+  }
+  window.__jhTheme = { get: getTheme, set: setTheme };
+
+  function sbToken(){
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (/^sb-.*-auth-token$/.test(k)) {
+          var v = JSON.parse(localStorage.getItem(k) || "null");
+          if (!v) return null;
+          return v.access_token || (v.currentSession && v.currentSession.access_token) || null;
+        }
+      }
+    } catch(e){}
+    return null;
+  }
+  var SYNC_URL = "https://justhodl-data-proxy.raafouis.workers.dev/userdata/self";
+  var syncTimer = null;
+  function queueSync(){ if (!sbToken()) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushSync, 1500); }
+  function pushSync(){
+    var t = sbToken(); if (!t) return;
+    var blob = { v: 1, favs: getFavs(), theme: getTheme(), updated_at: Date.now() };
+    try {
+      fetch(SYNC_URL, { method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t },
+        body: JSON.stringify(blob) }).catch(function(){});
+    } catch(e){}
+  }
+  function pullSync(){
+    var t = sbToken(); if (!t) return;
+    try {
+      fetch(SYNC_URL, { headers: { "Authorization": "Bearer " + t } })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(b){
+          if (!b) return;
+          if (b.empty) return pushSync();
+          try {
+            var local = getFavs();
+            var remote = (b.favs || []).filter(function(x){ return typeof x === "string"; });
+            var merged = remote.concat(local.filter(function(x){ return remote.indexOf(x) < 0; }));
+            setFavs(merged);
+            var localTs = 0; try { localTs = +(localStorage.getItem("jh_theme_ts") || 0); } catch(e){}
+            if (b.theme && (b.updated_at || 0) > localTs) setTheme(b.theme, true);
+            if (lastM) render(lastM);
+            if (merged.length !== remote.length) pushSync();
+          } catch(e){}
+        }).catch(function(){});
+    } catch(e){}
+  }
 
   function render(m) {
     lastM = m;
@@ -189,11 +255,23 @@
     drawer.innerHTML =
       '<div class="jhnav-head"><span class="jhnav-dot"></span><span class="jhnav-brand">JustHodl<b>.AI</b></span><span class="jhnav-count" id="jhnav-count"></span></div>'
       + '<input class="jhnav-search" id="jhnav-search" placeholder="Search pages\u2026" autocomplete="off">'
-      + '<div id="jhnav-groups"></div>';
+      + '<div id="jhnav-groups"></div>'
+      + '<div style="margin-top:12px;border-top:1px solid #1d2636;padding-top:10px">'
+      +   '<button id="jhnav-themebtn" style="width:100%;background:#161d2a;border:1px solid #1d2636;border-radius:8px;padding:9px 11px;color:#a8b3c7;font-size:12px;cursor:pointer;font-family:inherit">theme</button>'
+      + '</div>';
 
     document.body.appendChild(backdrop);
     document.body.appendChild(handle);
     document.body.appendChild(drawer);
+
+    try {
+      var tb = document.getElementById("jhnav-themebtn");
+      if (tb) {
+        tb.textContent = (getTheme() === "light" ? "\u263E Dark mode" : "\u2600 Light mode");
+        tb.addEventListener("click", function(){ setTheme(getTheme() === "light" ? "dark" : "light"); });
+      }
+      pullSync();
+    } catch(e){}
 
     handle.addEventListener("click", toggle);
     backdrop.addEventListener("click", close);

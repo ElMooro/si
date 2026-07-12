@@ -168,3 +168,21 @@ button{font-family:var(--jh-mono)}
   .jhc-tape .jhc-chip[data-sym="SPX"],
   .jhc-tape .jhc-chip[data-sym="BTC"]{display:inline-flex}
 }
+
+/* ── Light theme (ops 3157) — flipped via <html data-theme="light">,
+   toggled from the nav drawer / settings, synced per user. Same
+   zero-specificity strategy: token overrides only. */
+:root[data-theme="light"] {
+  --jh-bg: #f7f4ec;
+  --jh-panel: #ffffff;
+  --jh-panel-2: #efeadc;
+  --jh-ink: #221e14;
+  --jh-dim: #6f6857;
+  --jh-amber: #9a6b00;
+  --jh-amber-dim: #7d5f1c;
+  --jh-green: #1f7a3f;
+  --jh-red: #b23a2b;
+  --jh-line: #d9d2bf;
+  color-scheme: light;
+}
+:root[data-theme="light"] body { background: var(--jh-bg); color: var(--jh-ink); }

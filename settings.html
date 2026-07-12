@@ -59,7 +59,14 @@ function render(){
     </div>
     <div class="card"><h2>💎 Plan</h2>
       <div class="row"><span class="k">Current plan</span><span class="badge ${tier}">${tier.toUpperCase()}</span></div>
-      <div class="row"><span class="k">Manage</span><span><a href="/pricing.html" class="btn ghost" style="padding:7px 14px;font-size:12px">${tier==='free'?'Upgrade':'Change plan'}</a></span></div>
+      <div class="row"><span class="k">Manage</span><span>
+        <a href="/pricing.html" class="btn ghost" style="padding:7px 14px;font-size:12px">${tier==='free'?'Upgrade':'Change plan'}</a>
+        ${tier!=='free'?'<button id="billing-btn" class="btn ghost" style="padding:7px 14px;font-size:12px;margin-left:8px;cursor:pointer">Manage billing</button>':''}
+      </span></div>
+      <div class="row"><span class="k">Appearance</span><span>
+        <button class="btn ghost jh-themeopt" data-t="dark" style="padding:7px 14px;font-size:12px;cursor:pointer">🌙 Dark</button>
+        <button class="btn ghost jh-themeopt" data-t="light" style="padding:7px 14px;font-size:12px;margin-left:8px;cursor:pointer">☀️ Light</button>
+      </span></div><!-- JH_SETTINGS_V2 -->
       <div class="muted">${tier==='free'?'On the Free plan. Upgrade to Pro for full access.':'Thanks for supporting JustHodl.'}</div>
     </div>
     <div class="card"><h2>🔭 Watchlists</h2>
@@ -84,5 +91,29 @@ else boot();   // DOM already parsed (scripts ran late/cached) → run now
 </script>
 <script src="/cmdk.js"></script>
   <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-nav-drawer.js" defer>
+<script>
+/* JH_SETTINGS_V2 wiring */
+(function(){
+  function sbTok(){ try{ for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
+    if(/^sb-.*-auth-token$/.test(k)){var v=JSON.parse(localStorage.getItem(k)||"null");
+      return v && (v.access_token || (v.currentSession&&v.currentSession.access_token)) || null;}}}catch(e){} return null; }
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    if (t && t.classList && t.classList.contains("jh-themeopt")) {
+      var th = t.getAttribute("data-t");
+      if (window.__jhTheme) window.__jhTheme.set(th);
+      else { try { localStorage.setItem("jh_theme", th); localStorage.setItem("jh_theme_ts", String(Date.now())); document.documentElement.setAttribute("data-theme", th); } catch(_){} }
+    }
+    if (t && t.id === "billing-btn") {
+      t.disabled = true; t.textContent = "Opening…";
+      fetch("https://justhodl-data-proxy.raafouis.workers.dev/billing-portal", {
+        method: "POST", headers: { "Authorization": "Bearer " + (sbTok()||"") } })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if (d && d.url) location.href = d.url; else { t.textContent = "Unavailable"; } })
+      .catch(function(){ t.textContent = "Unavailable"; });
+    }
+  });
+})();
+</script>
 </body></html>
