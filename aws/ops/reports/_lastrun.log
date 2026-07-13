@@ -1,19 +1,6 @@
-executing-against: 96dcecc431ab0ba54ead40e24d4c2c86ebaaf7ae
-ops 3204 — COT universe widened from his tiles + rail chip verified
-── 1. Build cot/universe-ext.json from probe-proven codes ──
-[04:23:04]   + 045601  045601_F_LMP_L (COT3)
-[04:23:04]   + 132741  132741_F_CP_L (COT)
-[04:23:04]   + 133741  133741_F_OI (COT)
-[04:23:04]   + 133742  133742_F_DP_S (COT3)
-[04:23:04]   + 134741  134741_F_DP_S (COT3)
-── 2. Deploy scanner + verify the widened snapshot ──
-[04:23:04]   zip: 76248 bytes
-── 1. Lambda ──
-[04:23:05]   Lambda exists — updating
-[04:23:11] ✅   ✓ updated justhodl-cot-extremes-scanner
-[04:23:11] ✅   ✓ Function URL: https://cogsbytz42d7rv7fints6cxtui0xmnig.lambda-url.us-east-1.on.aws/
-[04:23:31] ✅ scanner running the widened universe (7 watchlist contracts in the snapshot)
-── 3. HIS RESEARCH chip on the live rail ──
-[04:26:52] ⚠ chip still absent from flows.html — the */15 cron re-bake will carry it; check bake logs if not by next hour
+executing-against: f4bf9b840b20d74aa9b6cb0e63e48eb30f860d76
+ops 3205 — HIS RESEARCH chip live, definitively
+[04:34:37] ✗ chip still absent after fixed-UA bake — read the pages.yml bake log line '[rail] research chip …'
 
-→ Report written to aws/ops/reports/latest/3204_cot_widen.md
+→ Report written to aws/ops/reports/latest/3205_chip_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3205_chip_verify.py
