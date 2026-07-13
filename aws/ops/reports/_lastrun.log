@@ -1,16 +1,28 @@
-executing-against: 7b5315b2588e52d8bbe0282eb76be53c8cffef5a
-ops 3225 — FRED-class miss, named
-[06:14:12]   env keys: FRED_API_KEY, FRED_KEY, POLYGON_KEY, S3_BUCKET, WL_TRACE
-[06:14:12]   [trace] stamp=2026-07-13T06:04:47 fresh_cut=2026-07-07T06:10:29 todo=1324
-[06:14:12]   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:14:12]   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:14:12]   [trace] ECONOMICS:GBDIR: need=True cache_pre=False todo=True
-[06:14:12]   [trace] ECONOMICS:EUDIR: need=True cache_pre=False todo=True
-[06:14:12]   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=False todo=True
-[06:14:12]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
-[06:14:12]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
-[06:14:12]   [trace] ECONOMICS:GBDIR: weekly=0 zc=False
-[06:14:12]   [trace] ECONOMICS:EUDIR: weekly=0 zc=False
-[06:14:12]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=0 zc=False
+executing-against: d08b3b17786211324aff0e85f0af2ccb95865417
+ops 3226 — FRED-first ordering; converge and count
+[06:17:05]   zip: 79987 bytes
+── 1. Lambda ──
+[06:17:05]   Lambda exists — updating
+[06:17:10] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[06:17:11]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[06:17:11] ✅   ✓ target → justhodl-wl-engines
+[06:17:11] ✅   ✓ added invoke permission
+── Evidence: cache trajectory + trace ──
+[06:19:47]   [wl] cache=2364 new=50 114s
+[06:19:47]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=0 zc=False
+[06:19:47]   [trace] ECONOMICS:GBDIR: weekly=0 zc=False
+[06:19:47]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
+[06:19:47]   [trace] ECONOMICS:EUDIR: weekly=1437 zc=True
+[06:19:47]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
+[06:19:47]   [wl] cache=2314 new=1 102s
+[06:19:47]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
+[06:19:47]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
+[06:19:47]   [trace] ECONOMICS:GBDIR: weekly=0 zc=False
+[06:19:47]   [trace] ECONOMICS:EUDIR: weekly=0 zc=False
+[06:19:47]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=0 zc=False
+── Wakes ──
+[06:19:47]   ⏰ WOKE: Forex
+[06:19:47] ✅ 1 panels WOKEN
 
-→ Report written to aws/ops/reports/latest/3225_fred_evidence.md
+→ Report written to aws/ops/reports/latest/3226_converge.md
