@@ -1,45 +1,23 @@
-executing-against: 0b316048f173748e6a98683565118201f95a4b85
-ops 3227 — legal pace + tombstones; two runs to steady state
-[06:23:48]   zip: 80270 bytes
-── 1. Lambda ──
-[06:23:48]   Lambda exists — updating
-[06:23:51] ✅   ✓ updated justhodl-wl-engines
-── 2. EB rule + permissions ──
-[06:23:51]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[06:23:51] ✅   ✓ target → justhodl-wl-engines
-[06:23:52] ✅   ✓ added invoke permission
-── Run 1 — pays the tombstoning cost ──
-── Run 2 — steady state ──
-── Evidence ──
-[06:28:48]   [trace] stamp=2026-07-13T06:23:55 fresh_cut=2026-07-07T06:27:58 todo=0
-[06:28:48]   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] ECONOMICS:EUDIR: need=True cache_pre=True todo=False
-[06:28:48]   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] ECONOMICS:GBDIR: need=True cache_pre=True todo=False
-[06:28:48]   [wl] cache=2465 new=0 2s
-[06:28:48]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] ECONOMICS:EUDIR: weekly=1437 zc=True
-[06:28:48]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] ECONOMICS:GBDIR: weekly=433 zc=True
-[06:28:48]   [trace] stamp=2026-07-13T06:21:24 fresh_cut=2026-07-07T06:23:55 todo=1264
-[06:28:48]   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] ECONOMICS:EUDIR: need=True cache_pre=True todo=False
-[06:28:48]   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:28:48]   [trace] ECONOMICS:GBDIR: need=True cache_pre=True todo=False
-[06:28:48]   [wl] cache=2465 new=92 231s
-[06:28:48]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] ECONOMICS:EUDIR: weekly=1437 zc=True
-[06:28:48]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
-[06:28:48]   [trace] ECONOMICS:GBDIR: weekly=433 zc=True
-── Wakes ──
-[06:28:48]   ⏰ WOKE: Durable Goods
-[06:28:48]   ⏰ WOKE: DXY: DIFFERENT TYPE OF DXY: IN CURRENCY MARKETS THE UPSIDE AND DOWNSIDE ARE SYMMETRICAL.
-[06:28:48]   → Europe Liquidity :BTPBUND  measure f ACTIVE resolved=6
-[06:28:48]   → Global Deposit Rates Which drains li DORMANT resolved=6
-[06:28:48] ✅ 2 panels WOKEN
+executing-against: ce22418c40363c7aade30b61781c12334279972b
+ops 3228 — names from the dictionary, truth from the tombstones
+── 1. The three roots, in TV's own words ──
+[06:47:26]   ICEEUR:EON2!     → EON2! (ICEEUR)
+[06:47:26]   ICEEUR:USW1!     → USW1! (ICEEUR)
+[06:47:26]   CBOT:YIT1!       → YIT1! (CBOT)
+── 2. €STR candidate ladder (post-storm) ──
+[06:47:26]   ECBESTRVOLWGTTRMDMNRT                                1734 pts
+[06:47:26] ✅ ICEEUR:EON2! → ECBESTRVOLWGTTRMDMNRT
+── 3. Near-wake worklist (tombstone-honest) ──
+[06:47:26]   DORMANT  51 × needs >=6 members on a free source — map more of its indicators 
+[06:47:26]   DORMANT  28 × mapped members lack fetchable history
+[06:47:26]   DORMANT   4 × only 0 weeks of joint activation history
+[06:47:26]   DORMANT   1 × only 20 weeks of joint activation history
+[06:47:26]   needs 1: 3 year Global bond yield - 3 yr bo → TVC:HK03Y | TVC:TW02Y | TVC:NZ02Y
+[06:47:26]   needs 1: Euro Predict Future Moves : Curren → ECONOMICS:DEIFOE | ECONOMICS:DEZCC | ECONOMICS:EUMPMI
+[06:47:26]   needs 1: Europe Growth                      → ECONOMICS:EUGDPGA | ECONOMICS:DEGDPYY | ECONOMICS:EUMPMI
+[06:47:26]   needs 1: France                             → ECONOMICS:FRLG | ECONOMICS:FRGDPYY | ECONOMICS:FRIPYY
+── 4. Fusion re-kick (cron skips Mondays) ──
+[06:47:32] ✅ fusion fresh on 121-active index — top theme BREADTH 82.1p
+── 5. Fleet run (a curation landed) ──
 
-→ Report written to aws/ops/reports/latest/3227_legal_pace.md
+→ Report written to aws/ops/reports/latest/3228_truth_pass.md
