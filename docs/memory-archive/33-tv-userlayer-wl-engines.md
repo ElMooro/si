@@ -187,3 +187,27 @@ next ops DUMP THE EVIDENCE (the actual live payload) into the report.
 - **Verifier traps named (self-inflicted, documented)**: DDB Scan Limit
   caps items EXAMINED not matched (paginate or exact-key); the runner
   keys weeks on the last GRID FRIDAY, not the run date's ISO week.
+
+## Wake-the-panels appendix (ops 3214–3216)
+
+Broad machinery measured EXHAUSTED (3214: CBOEEU 10-suffix ladder 0/40,
+targeted econ search 0, DFM/ADX 0/10 sample → 27 retired
+no_free_daily_source_gulf_venue). What remained was surgical:
+
+- 3215 NAMED the one-symbol blockers verbatim: ECONOMICS:USRR (×3
+  engines), TVC:BTPBUND (×2), CBOT:YIT1!, ICEEUR:I2!/EON2!/USW1!,
+  ECONOMICS:CHMPMI (licensed). Micro e-minis proven REAL Yahoo
+  continuous: MES/MNQ/M2K/MYM=F (+MGC/SIL/MCL roots in FUT).
+- 3215 dry-member triage exposed the FRED-OECD-mirror poison class:
+  Chile templates emit FRED ids that DON'T EXIST (0 pts) while counting
+  as "resolved". Annual WB series (~29 pts) are NOT dry — the runner
+  needs only 12 obs.
+- 3216 closed the two big ones: ECONOMICS:USRR → FRED RRPONTSYD (3,280
+  pts) and TVC:BTPBUND → DERIVED IT10Y−DE10Y via the new two-base
+  'minus' transform (SRC~ID~minus~SRC2~ID2). 8 named zero-point entries
+  dry-ledgered. **2 panels WOKEN: Euro Dollar Shortage & Liquidity
+  squeeze; Feds Rates. Active 115 → 117.**
+
+Open by name: Developed Markets (micros curated — verify next nightly),
+Europe Liquidity :BTPBUND (curated — next nightly), Global Deposit Rates,
+and the unknown roots CBOT:YIT1! / ICEEUR:I2!/EON2!/USW1!.
