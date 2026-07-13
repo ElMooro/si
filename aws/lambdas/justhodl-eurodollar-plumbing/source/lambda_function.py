@@ -515,6 +515,7 @@ def lambda_handler(event, context):
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "wl_research": __import__("wl_fusion").block(('RATES',)),
         "plumbing_health": health, "verdict": verdict,
         # --- compatibility adapter: mirror the legacy data/eurodollar-stress.json schema in
         #     STRESS polarity (composite_score = 100 - health) so migrated crisis/risk consumers

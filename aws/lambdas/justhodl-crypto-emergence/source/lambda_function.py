@@ -251,6 +251,7 @@ def lambda_handler(event=None, context=None):
     payload = {
         "engine": "justhodl-crypto-emergence", "version": "1.0.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('CRYPTO',)),
         "thesis": "Early-innings bull detection for crypto — RS-vs-BTC, the 200-day reclaim, coin-universe breadth, "
                   "and cycle/funding context, with concrete trigger & invalidation levels.",
         "complex_stage": complex_stage, "complex_read": complex_read,

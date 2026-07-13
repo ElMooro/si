@@ -85,3 +85,26 @@ def multiplier(doc, name, bullish_is_up=True):
 def divergences(doc):
     """Where HIS research disagrees with the platform's own engines."""
     return doc.get("divergences") or []
+
+
+def block(themes=None):
+    """ops 3201: the ONE-LINE fusion surface. Any engine can add
+        "wl_research": __import__("wl_fusion").block(("STRESS",)),
+    to its output payload. Additive-only contract enforced here: loads the
+    fusion doc itself, filters to the engine's themes, NEVER raises, and
+    returns None when there is nothing proven or active to say — so a
+    missing/stale fusion feed leaves every consumer byte-identical."""
+    try:
+        doc = load()
+        if not doc:
+            return None
+        ctx = context(doc, themes=set(themes) if themes else None)
+        div = [d for d in divergences(doc)
+               if not themes or d.get("theme") in themes][:4]
+        if not ctx and not div:
+            return None
+        return {"context": ctx, "divergences": div,
+                "contract": "additive-only; evidence-weighted; "
+                            "aws/shared/wl_fusion.py"}
+    except Exception:
+        return None

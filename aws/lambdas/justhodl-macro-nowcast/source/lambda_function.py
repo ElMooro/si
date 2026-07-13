@@ -406,6 +406,7 @@ def lambda_handler(event=None, context=None):
     output = {
         "v": "2.2",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "wl_research": __import__("wl_fusion").block(('GROWTH', 'INFLATION')),
         "duration_s": round(time.time() - started, 2),
         "raw_score": round(weighted_sum, 4),
         "normalized_score": round(normalized_score, 4),

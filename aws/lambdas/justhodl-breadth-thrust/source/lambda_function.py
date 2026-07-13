@@ -697,6 +697,8 @@ def lambda_handler(event, context):
         "schedule": "daily 22:00 UTC (after US close)",
     }
 
+    body["wl_research"] = __import__("wl_fusion").block(('BREADTH',))
+
     s3.put_object(Bucket=S3_BUCKET, Key=REPORT_KEY,
                   Body=json.dumps(body, default=str).encode(),
                   ContentType="application/json",

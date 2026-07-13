@@ -1189,6 +1189,7 @@ def lambda_handler(event, context):
         "schema_version": SCHEMA,
         "engine": "justhodl-dollar-radar",
         "generated_at": now.isoformat(),
+        "wl_research": __import__("wl_fusion").block(('LIQUIDITY', 'DOLLAR')),
         "build_seconds": round(time.time() - t0, 1),
         "dollar_pressure": pressure,
         "regime": regime,

@@ -398,6 +398,7 @@ def lambda_handler(event, context):
     # ─── Build payload ───
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('CREDIT',)),
         "generated_at_unix": int(time.time()),
         "version": VERSION,
         "elapsed_seconds": round(time.time() - started, 2),

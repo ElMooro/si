@@ -1029,6 +1029,7 @@ def _do_handler(event=None, context=None):
     output = {
         "schema_version": "1.1",
         "generated_at": _now_iso(),
+        "wl_research": __import__("wl_fusion").block(('LIQUIDITY', 'CREDIT')),
         "elapsed_sec": round(time.time() - started, 2),
         "regime": regime,
         "composite": comp,

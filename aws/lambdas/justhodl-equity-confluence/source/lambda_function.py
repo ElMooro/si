@@ -204,6 +204,7 @@ def lambda_handler(event, context):
     out = {
         "engine": "equity-confluence", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('BREADTH',)),
         "duration_s": round(time.time() - t0, 1),
         "mode": mode,
         "thesis": ("Names lit up by multiple INDEPENDENT edges at once — resilience, accumulation, revisions, "

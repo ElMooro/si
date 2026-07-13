@@ -343,6 +343,7 @@ def lambda_handler(event, context):
         "schema_version": "1.0",
         "method": "crisis_composite_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('STRESS',)),
         "elapsed_s": round(time.time() - t0, 1),
         "master_crisis_score": round(master, 1),
         "defcon_level": level,

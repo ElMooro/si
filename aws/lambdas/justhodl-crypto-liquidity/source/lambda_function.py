@@ -302,6 +302,7 @@ def lambda_handler(event, context):
     out = {
         "engine": "crypto-liquidity", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('CRYPTO',)),
         "duration_s": round(time.time() - t0, 1),
         "liquidity_score": liquidity_score, "regime": regime_label, "regime_read": regime_read,
         "directional_read": directional, "forecast_supported": forecast_supported,

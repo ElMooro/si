@@ -572,6 +572,7 @@ def lambda_handler(event, context):
     out = {
         "engine": "risk-regime", "version": "1.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('STRESS',)),
         "risk_regime_score": score, "risk_regime": regime,
         "scale": "-100 = risk-off / flight-to-quality .. +100 = risk-on",
         "posture": posture,

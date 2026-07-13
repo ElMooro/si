@@ -272,6 +272,7 @@ def lambda_handler(event, context):
         "schema_version": "1.0",
         "method": "global_liquidity_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('LIQUIDITY',)),
         "elapsed_s": round(time.time() - t0, 1),
         "fred_failed": failed,
         "global_liquidity_index": {

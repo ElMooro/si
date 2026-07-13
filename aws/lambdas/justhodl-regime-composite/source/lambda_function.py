@@ -651,6 +651,7 @@ def lambda_handler(event, context):
         "schema_version": "1.0",
         "version": VERSION,
         "generated_at": now.isoformat(),
+        "wl_research": __import__("wl_fusion").block(('STRESS', 'DOLLAR')),
         "duration_s": round(time.time() - t0, 2),
         "meta_regime": meta_regime,
         "meta_narrative": meta_narrative,

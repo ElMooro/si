@@ -1411,6 +1411,7 @@ def lambda_handler(event, context):
     out = {
         "engine": "cycle-clock", "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "wl_research": __import__("wl_fusion").block(('GROWTH', 'INFLATION')),
         "duration_s": round(time.time() - t0, 1),
         "verdict": verdict,
         "synthesis": synthesis,

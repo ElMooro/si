@@ -1269,6 +1269,7 @@ def lambda_handler(event, context):
         "duration_s": round(time.time() - started, 2),
     }
 
+    payload["wl_research"] = __import__("wl_fusion").block(("CREDIT",))
     body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,

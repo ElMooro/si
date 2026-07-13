@@ -331,6 +331,7 @@ def lambda_handler(event, context):
         except Exception:
             pass
 
+        out["wl_research"] = __import__("wl_fusion").block(("BREADTH",))
         s3.put_object(
             Bucket=S3_BUCKET, Key=S3_KEY,
             Body=json.dumps(out, indent=2).encode("utf-8"),
