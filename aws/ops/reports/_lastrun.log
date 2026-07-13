@@ -1,19 +1,9 @@
-executing-against: ac5eac035909fe6a3720ae029296d41d178ccefe
-ops 3265 — ranker khalid_note: diagnose → redeploy → prove
-── 1. Current feed + last-run logs ──
-[14:52:39]   [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
-[14:52:39]   [master-ranker] DONE in 5.11s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
-── 2. Redeploy repo→live (env-preserving, timeout≥900) ──
-[14:52:39]   zip: 90020 bytes
-── 1. Lambda ──
-[14:52:39]   Lambda exists — updating
-[14:52:44] ✅   ✓ updated justhodl-master-ranker
-── 3. Invoke + long poll ──
-[15:05:00]   post: [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
-[15:05:00]   post: [master-ranker] DONE in 5.21s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
-[15:05:00]   post: [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
-[15:05:00]   post: [master-ranker] DONE in 5.11s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
-[15:05:00] ✗ feed not fresh after redeploy+invoke (12 min) — logs above
+executing-against: a47cede8a9feed81eab94e5940f81ad4ebe42d0d
+ops 3266 — khalid_note on the true key data/master-ranker.json
+[15:06:53]   LRCX   stance=BULLISH n=2 last=2025-02-10
+[15:06:53]   PLD    stance=MIXED n=2 last=2024-05-07
+[15:06:53]   BG     stance=BEARISH n=2 last=2024-05-07
+[15:06:53]   SPG    stance=MIXED n=2 last=2023-04-13
+[15:06:53] ✅ PROVEN on the true key: 4 ranked tickers carry his stance in the live feed — the join was working all along; the misses were a key typo in the verifier
 
-→ Report written to aws/ops/reports/latest/3265_ranker_field.md
-❌ OPS-FAIL: aws/ops/pending/ops_3265_ranker_field.py
+→ Report written to aws/ops/reports/latest/3266_ranker_true_key.md
