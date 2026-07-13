@@ -35,13 +35,13 @@ def s3_json(key, default=None, gz=False):
 with report("3271_contract_close") as rep:
     fails = []
     src = SRC.read_text()
-    zwin = int((re.search(r"Z_WINDOW\s*=\s*(\d+)", src)
-                or re.search(r"window\s*=\s*(\d+)", src)).group(1))
+    # adaptive window: rolling_z(win=min(Z_WIN, max(12, len))) —
+    # z-points ≈ raw − 12, so nascent = raw < MIN_COMPOSITE_WEEKS + 12
     mcw = int(re.search(r"MIN_COMPOSITE_WEEKS\s*=\s*(\d+)", src)
               .group(1))
-    thr = zwin + mcw
-    rep.kv(z_window=zwin, min_composite_weeks=mcw,
-           nascent_threshold=thr)
+    thr = mcw + 12
+    rep.kv(z_floor=12, min_composite_weeks=mcw,
+           nascent_threshold_raw_weeks=thr)
 
     idx = s3_json("data/wl-engines.json") or {}
     eng = idx.get("engines") or []
