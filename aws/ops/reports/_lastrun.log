@@ -1,10 +1,19 @@
-executing-against: e234b7dc9e2b4d961d742d0f25966986aea78736
-ops 3250 — theme-rotation None-guard, deploy + prove
-[12:38:01]   zip: 81710 bytes
+executing-against: 6e17dc7d623fa88514c35d51edbc47e1b639e7bc
+ops 3251 — daily brief × panel research + graceful fallback
+[12:46:38]   zip: 79633 bytes
 ── 1. Lambda ──
-[12:38:01]   Lambda exists — updating
-[12:38:09] ✅   ✓ updated justhodl-theme-rotation-engine
-[12:38:09] ✅   ✓ Function URL: https://r5geg5arflu46pkk64c4q2okha0lqyop.lambda-url.us-east-1.on.aws/
-[12:39:27] ✅ clean run post-fix — the recurring AttributeError is gone
+[12:46:38]   Lambda exists — updating
+[12:46:43] ✅   ✓ updated justhodl-alpha-daily-brief
+── 2. EB rule + permissions ──
+[12:46:43]   rule already correct: justhodl-alpha-daily-brief (cron(30 11 * * ? *))
+[12:46:44] ✅   ✓ target → justhodl-alpha-daily-brief
+[12:46:44] ✅   ✓ added invoke permission
+[12:47:10]   ## HIS RESEARCH (panel layer)
+[12:47:10]   - BREADTH: pressure 80.9p
+[12:47:10]   - LIQUIDITY: pressure 70.8p
+[12:47:10]   - INFLATION: pressure 62.4p
+[12:47:10]   - FIRING: Foreign Exchange Reserves [LIQUIDITY]; Different Types of Stock indexes [BREADTH]; EuroDollar Predic
+[12:47:10]   - Divergence: {'theme': 'LIQUIDITY', 'khalid': {'verdict': 'ELEVATED', 'pressure_pctile': 70.8, 'firing': 8, '
+[12:47:10] ✅ brief persisted WITH panel research — composer: claude-haiku-4-5-20251001
 
-→ Report written to aws/ops/reports/latest/3250_theme_rotation_fix.md
+→ Report written to aws/ops/reports/latest/3251_brief_research.md
