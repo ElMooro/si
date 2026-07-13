@@ -106,7 +106,28 @@ Khalid: "build every single one of those one by one." All PASS.
   **DRY LEDGER** — map meta `dry` {sym: id}: rebuilds must (a) merge
   curated FIRST, (b) skip (sym,id) pairs in dry, (c) never remap retired.
   22 unproven rung-0 reintroductions pruned permanently.
-- **3198**: fleet verification on the final map.
+- **3198**: fleet verification on the final map → **FAIL, real signal**:
+  index frozen at 02:46 — every kick since 3191 had died silently.
+- **3199 forensics**: CloudWatch tail INTO the report — runner crashed in
+  2.8s, `week_key` ValueError line 278-adjacent: `y, m, d` unpack.
+  (Speed patches shipped alongside: DBnomics 12s / CoinMetrics 15s +
+  3-page cap / COT 15s, USI rstrip single-char fix.)
+- **3200 THE ONE-KEY KILL**: DBnomics periods ('1990-01', '1990-Q1')
+  entered the weekly cache path with 3191's first DBNOMICS map entries;
+  one malformed key killed all engines on every kick. Fix at BOTH layers:
+  `_dbn_iso` normalizes every DBnomics period at the source (annual→12-31
+  = World Bank convention, Q→quarter-end, M→-28, both fetchers unified);
+  runner `week_key` now defensive (bad key → None, skipped). **PROVEN
+  ALIVE: index 03:53 UTC, 115 ACTIVE / 47 DORMANT / 162 engines, 2,281
+  series cached** (both above pre-arc). Small open audit: crash-time spec
+  print said 207 engines vs 162 in the index — reconcile next session;
+  FIRING field name in the index also unconfirmed (grading lands at the
+  nightly outcome pass regardless).
+
+**Lesson class (add to ship-gotchas mentally)**: a NEW data source must
+never emit period keys the downstream weekly-grid path hasn't seen —
+normalize at the source layer, and NEVER trust one symbol not to kill a
+multi-tenant runtime: every shared loop needs a per-item guard.
 
 **Final ledger**: coverage 74.1 → **76.6 raw / 82.8 addressable** (4,983
 mapped / 6,507; retired 468, licensed 16, curated 32, dry 22). Residue
