@@ -45,6 +45,7 @@ import series_source as SS  # bundled from aws/shared
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 LISTS_KEY = "data/tv-watchlists.json"
 MAP_KEY = "data/symbol-map.json"
+DICT_KEY = "data/symbol-dictionary.json"
 STATE_KEY = "data/thesis-state-v2.json.gz"      # shared cache with thesis-engine
 INDEX_KEY = "data/wl-engines.json"
 ENGINE_PREFIX = "data/engines/"
@@ -225,6 +226,10 @@ def lambda_handler(event, context):
     lists = [l for l in (src.get("lists") or [])
              if not str(l.get("id", "")).startswith("e2e-")]
     smap = (s3_get(MAP_KEY) or {}).get("map") or {}
+    # ops 3183: names make the panels legible to humans AND to engines —
+    # "Global price of Agr. Raw Material Index" is reasoning material;
+    # "FRED:PRAWMINDEXM" is not.
+    sdict = (s3_get(DICT_KEY) or {}).get("dictionary") or {}
     if not lists or not smap:
         return {"ok": False, "error": "waiting for watchlists / symbol map"}
 
@@ -379,10 +384,18 @@ def lambda_handler(event, context):
             "activation_pctile": pct,
             "fire_threshold_p80": round(p80, 1),
             "firing": bool(cur is not None and cur >= p80),
-            "lit_indicators": [{"symbol": s, "z": z} for s, z in lit],
-            "all_members": [{"symbol": s,
-                             "z": (round(z[-1], 2) if z[-1] == z[-1] else None)}
-                            for s, z in zs],
+            "lit_indicators": [
+                {"symbol": s, "z": z,
+                 "name": (sdict.get(s) or {}).get("name"),
+                 "source_id": (sdict.get(s) or {}).get("source_id"),
+                 "units": (sdict.get(s) or {}).get("units")}
+                for s, z in lit],
+            "all_members": [
+                {"symbol": s,
+                 "z": (round(z[-1], 2) if z[-1] == z[-1] else None),
+                 "name": (sdict.get(s) or {}).get("name"),
+                 "source_id": (sdict.get(s) or {}).get("source_id")}
+                for s, z in zs],
             "event_study": study,
             "fusion_targets": FUSION_TARGETS.get(sp["theme"], []),
             "signal_type": f"wl_{sp['engine_id'][3:]}"[:48],
@@ -394,7 +407,9 @@ def lambda_handler(event, context):
                       "activation_pctile", "firing", "history_from",
                       "signal_type", "fusion_targets")}
                     | {"w13": w13,
-                       "lit": [x["symbol"] for x in doc["lit_indicators"][:5]]})
+                       "lit": [x["symbol"] for x in doc["lit_indicators"][:5]],
+                       "lit_named": [(x.get("name") or x["symbol"])
+                                     for x in doc["lit_indicators"][:5]]})
 
     # FDR across every engine tested today
     live = [r for r in rows if r.get("state") == "ACTIVE" and r.get("w13")]
