@@ -1,8 +1,28 @@
-executing-against: 58644281acaeb4b3be9f2c0f944e215e8d97733f
-ops 3247 — fusion cards verified against source literals
-[12:26:35] ✅ risk-regime.html: fusion card in served HTML
-[12:26:35] ✅ eurodollar.html: fusion card in served HTML
-[12:26:35] ✅ chart-macro.html: fusion card in served HTML
-[12:26:36] ✅ defcon.html: fusion card in served HTML
+executing-against: 2304ce05d279b7927522f515df158f9db6067f7d
+ops 3248 — fleet certification after the marathon
+── 1. Errors metric, every function, 12h ──
+[12:33:18]   ⚠ TONIGHT justhodl-wl-engines: 27 err — 
+[12:33:18]     justhodl-consumer-pulse: 1 err — 
+[12:33:19]     justhodl-cb-injection: 1 err — 
+[12:33:19]     justhodl-theme-rotation-engine: 1 err — [ERROR] AttributeError: 'NoneType' object has no attribute 'get'
+[12:33:20]     justhodl-khalid-metrics: 1 err — 
+[12:33:20]     justhodl-boj-detail: 1 err — 
+[12:33:21]     justhodl-ka-metrics: 1 err — 
+[12:33:22]     justhodl-yen-carry: 1 err — 
+[12:33:22]     justhodl-snb-detail: 1 err — 
+── 2. Tonight's deploys — explicit clean check ──
+[12:33:22]   dirty: justhodl-wl-engines
+── 3. Feed freshness ──
+[12:33:23]   ✓ data/wl-engines.json               age=4.2h (cap 26h)
+[12:33:23]   ✓ data/wl-fusion.json                age=4.2h (cap 26h)
+[12:33:23]   ✓ data/thesis-engine.json            age=5.2h (cap 26h)
+[12:33:23]   ✓ data/credit-stress.json            age=0.5h (cap 26h)
+[12:33:23]   ✓ data/eurodollar-plumbing.json      age=0.5h (cap 26h)
+[12:33:23]   ✓ data/macro-nowcast.json            age=0.3h (cap 26h)
+[12:33:24]   ✓ data/crisis-composite.json         age=0.3h (cap 26h)
+[12:33:24]   ✓ data/market-internals.json         age=11.7h (cap 30h)
+[12:33:24]   ✓ data/symbol-map.json               age=4.2h (cap 30h)
+[12:33:24] ✗ justhodl-wl-engines: 27 errors post-deploy
 
-→ Report written to aws/ops/reports/latest/3247_surface_verified.md
+→ Report written to aws/ops/reports/latest/3248_fleet_health.md
+❌ OPS-FAIL: aws/ops/pending/ops_3248_fleet_health.py
