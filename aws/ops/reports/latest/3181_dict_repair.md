@@ -1,0 +1,56 @@
+# ops 3181 — full name for every symbol
+
+**Status:** failure  
+**Duration:** 26.9s  
+**Finished:** 2026-07-13T00:12:49+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| n_fails | n_warns | named | named_pct | pass1_filled | pass1_named | pass1_pct | provisional | src_formula | src_fred | src_market | src_worldbank | symbols | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  | 0 | 6507 | 100.0 |  |  |  |  |  |  |  |
+|  |  | 6507 | 100.0 |  |  |  | 0 | 337 | 782 | 1739 | 988 | 6507 |  |
+| 1 | 0 |  |  |  |  |  |  |  |  |  |  |  | FAIL |
+
+## Log
+## 1. Deploy
+
+- `00:12:22`   zip: 65375 bytes
+## 1. Lambda
+
+- `00:12:22`   Lambda exists — updating
+- `00:12:26` ✅   ✓ updated justhodl-symbol-dictionary
+## 2. EB rule + permissions
+
+- `00:12:27`   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+- `00:12:27` ✅   ✓ target → justhodl-symbol-dictionary
+- `00:12:27` ✅   ✓ added invoke permission
+## 2. Build the dictionary (runs in passes; cached)
+
+## 3. Coverage
+
+- `00:12:48` ✅ 6507 of 6507 carry an authoritative name (100.0%)
+## 4. Spot-check the names he will actually read
+
+- `00:12:48`   FRED:DGS10             → DGS10 (FRED)                                             [FRED: DGS10] 
+- `00:12:48`   FRED:PRAWMINDEXM       → PRAWMINDEXM (FRED)                                       [FRED: PRAWMINDEXM] 
+- `00:12:48`   FRED:WALCL             → WALCL (FRED)                                             [FRED: WALCL] 
+- `00:12:48`   FRED:RRPONTSYD         → RRPONTSYD (FRED)                                         [FRED: RRPONTSYD] 
+- `00:12:48`   TVC:DXY                → US Dollar Index (DXY)                                    [MARKET: DX-Y.NYB] D
+- `00:12:48`   NASDAQ:NVDA            → Nvidia Corp                                              [MARKET: NVDA] USD · D
+- `00:12:48`   AMEX:KRE               → State Street SPDR S&P Regional Banking ETF               [MARKET: KRE] USD · D
+- `00:12:48`   ECONOMICS:ZWDIR        → Zimbabwe — Deposit interest rate (%)                     [WORLDBANK: ZW|FR.INR.DPST] varies · A
+- `00:12:48`   ECONOMICS:KHBOT        → Cambodia — External balance on goods and services (curre [WORLDBANK: KH|NE.RSB.GNFS.CD] varies · A
+- `00:12:48`   ECONOMICS:CNFER        → China — Total reserves (includes gold, current US$)      [WORLDBANK: CN|FI.RES.TOTL.CD] varies · A
+- `00:12:48`   TVC:US10Y              → US10Y (TVC)                                              [FRED: DGS10] 
+- `00:12:48`   NYMEX:CL1!             → CL1! (NYMEX)                                             [None: None] 
+## 5. Page
+
+- `00:12:49` ✅ watchlists.html reads the dictionary — every member now shows its full name and exact source ticker
+- `00:12:49` ✗ FRED titles still broken — DGS10 reads 'DGS10 (FRED)' (expected the official series title)
