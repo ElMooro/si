@@ -595,7 +595,7 @@ function renderMostBought(list){
       <div class="bs-row fade-in" onclick="openTicker('${escape(s.ticker || s.cusip || '')}')">
         <span class="bs-rank">#${i+1}</span>
         <div class="bs-stock">
-          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}${scoreBadge}</span>
+          <span class="bs-ticker">${escape((s.ticker&&s.ticker!=='?')?s.ticker:firstWords(s.name))}${scoreBadge}</span>
           <span class="bs-name">${escape(s.name || '')}</span>
           ${extraLine}
         </div>
@@ -634,7 +634,7 @@ function renderMostSold(list){
       <div class="bs-row fade-in" onclick="openTicker('${escape(s.ticker || s.cusip || '')}')">
         <span class="bs-rank">#${i+1}</span>
         <div class="bs-stock">
-          <span class="bs-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}${scoreBadge}</span>
+          <span class="bs-ticker">${escape((s.ticker&&s.ticker!=='?')?s.ticker:firstWords(s.name))}${scoreBadge}</span>
           <span class="bs-name">${escape(s.name || '')}</span>
           ${extraLine}
         </div>
@@ -651,6 +651,9 @@ function renderMostSold(list){
 // ──────────────────────────────────────────────────────────────
 // Action Spotlight: highest-conviction signals
 // ──────────────────────────────────────────────────────────────
+function firstWords(n){return String(n||'').split(' ').slice(0,2).join(' ');}
+function fmtCap(v){return v>=1e9?(v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(0)+'M':'—';}
+function capBadge(t){const a=(RAW&&RAW.aggregate_by_ticker||{})[t]||{};return a.cap_tier?`<span style="margin-left:8px;font:9px monospace;border:1px solid var(--border,#243044);border-radius:4px;padding:1px 5px;opacity:.8">${a.cap_tier}${a.market_cap?' '+fmtCap(a.market_cap):''}</span>`:'';}
 function renderSpotlight(data){
   const el = document.getElementById('spotlight');
   if(!el) return;
@@ -670,7 +673,7 @@ function renderSpotlight(data){
     cards.push(`
       <div class="spot buy" onclick="openTicker('${escape(topBuy.ticker || topBuy.cusip)}')" style="cursor:pointer">
         <span class="spot-kind">Strongest consensus buy</span>
-        <div class="spot-tkr">${escape(topBuy.ticker || '?')}<span class="score pos">+${score}</span></div>
+        <div class="spot-tkr">${escape((topBuy.ticker&&topBuy.ticker!=='?')?topBuy.ticker:firstWords(topBuy.name))}<span class="score pos">+${score}</span>${capBadge(topBuy.ticker)}</div>
         <div class="spot-name">${escape(topBuy.name || '')}</div>
         <div class="spot-blurb">${topBuy.n_funds_holding} funds hold · ${topBuy.n_funds_adding} adding · ${topBuy.n_funds_new_position} NEW · ${topBuy.n_funds_trimming} trimming · ${topBuy.n_funds_exiting} exiting</div>
         <div class="spot-stats"><span><strong>${fmtMoney(topBuy.total_value)}</strong> total held</span></div>
@@ -685,7 +688,7 @@ function renderSpotlight(data){
     cards.push(`
       <div class="spot sell" onclick="openTicker('${escape(massExit.ticker || massExit.cusip)}')" style="cursor:pointer">
         <span class="spot-kind">Famous-fund mass exit</span>
-        <div class="spot-tkr">${escape(massExit.ticker || '?')}<span class="score neg">${massExit.net_action_score}</span></div>
+        <div class="spot-tkr">${escape((massExit.ticker&&massExit.ticker!=='?')?massExit.ticker:firstWords(massExit.name))}<span class="score neg">${massExit.net_action_score}</span>${capBadge(massExit.ticker)}</div>
         <div class="spot-name">${escape(massExit.name || '')}</div>
         <div class="spot-blurb">${massExit.n_funds_exiting} funds <strong style="color:var(--red)">EXITED</strong>: ${exiters.join(', ')}</div>
         <div class="spot-stats"><span><strong>${fmtMoney(massExit.total_value)}</strong> remaining held</span><span><strong>${massExit.n_funds_trimming}</strong> also trimming</span></div>
@@ -695,7 +698,7 @@ function renderSpotlight(data){
     cards.push(`
       <div class="spot sell" onclick="openTicker('${escape(topSell.ticker || topSell.cusip)}')" style="cursor:pointer">
         <span class="spot-kind">Strongest consensus sell</span>
-        <div class="spot-tkr">${escape(topSell.ticker || '?')}<span class="score neg">${topSell.net_action_score}</span></div>
+        <div class="spot-tkr">${escape((topSell.ticker&&topSell.ticker!=='?')?topSell.ticker:firstWords(topSell.name))}<span class="score neg">${topSell.net_action_score}</span></div>
         <div class="spot-name">${escape(topSell.name || '')}</div>
         <div class="spot-blurb">${topSell.n_funds_holding} funds hold · ${topSell.n_funds_trimming} trimming · ${topSell.n_funds_exiting} exiting</div>
         <div class="spot-stats"><span><strong>${fmtMoney(topSell.total_value)}</strong> total held</span></div>
@@ -831,7 +834,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal();
 // ──────────────────────────────────────────────────────────────
 // Consensus holdings bar chart
 // ──────────────────────────────────────────────────────────────
-function renderConsensus(list){
+function renderConsensus(list, agg){agg=agg||{};
   const el = document.getElementById('consensus-list');
   if(!list || !list.length){
     el.innerHTML = '<div class="bs-empty">No data</div>';
@@ -843,9 +846,10 @@ function renderConsensus(list){
     const pct = (s.n_funds_holding / maxFunds) * 100;
     return `
       <div class="consensus-row fade-in">
-        <span class="consensus-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}</span>
+        <span class="consensus-ticker">${escape((s.ticker&&s.ticker!=='?')?s.ticker:firstWords(s.name))}</span>
         <span class="consensus-name">${escape(s.name || '')}</span>
         <div class="consensus-bar-wrap"><div class="consensus-bar" style="width:${pct}%"></div></div>
+        <span style="font:10px monospace;color:var(--t3,#8aa)">${fmtMoney((agg[s.ticker]||{}).total_value||s.total_value||0)}</span>
         <span class="consensus-count">${s.n_funds_holding}<small style="color:var(--t4);font-size:9px"> funds</small></span>
       </div>
     `;
@@ -865,10 +869,10 @@ function renderRarePicks(list){
     const fund = (s.fund_actions || [])[0] || {};
     return `
       <div class="rare-card fade-in">
-        <div class="rare-ticker">${escape(s.ticker || s.cusip?.slice(0,6) || '?')}</div>
+        <div class="rare-ticker">${escape((s.ticker&&s.ticker!=='?')?s.ticker:firstWords(s.name))}</div>
         <div class="rare-name">${escape(s.name || '')}</div>
         <span class="rare-fund">${escape(fund.fund_name || '')}</span>
-        <div class="rare-value">${fmtMoney(s.total_value)}</div>
+        <div class="rare-value">${fmtMoney(s.total_value)}</div>${s.cap_tier?`<div style="font:9px monospace;opacity:.6">${s.cap_tier}${s.market_cap?' · '+fmtCap(s.market_cap):''}</div>`:''}
       </div>
     `;
   }).join('');
@@ -877,6 +881,16 @@ function renderRarePicks(list){
 // ──────────────────────────────────────────────────────────────
 // Per-fund detail cards
 // ──────────────────────────────────────────────────────────────
+
+function renderCapTiers(data){
+  const el=document.getElementById('jh13f-captiers'); if(!el) return;
+  const agg=data.aggregate_by_ticker||{};
+  const tiers={MICRO:[],SMALL:[],MID:[]};
+  Object.keys(agg).forEach(t=>{const a=agg[t];if(a&&tiers[a.cap_tier])tiers[a.cap_tier].push({t,...a});});
+  const card=(label,rows)=>`<div style="border:1px solid var(--border,#243044);border-radius:10px;padding:12px 14px;background:var(--card,#0d1320)"><div style="font:600 11px monospace;letter-spacing:.1em;color:var(--accent,#e8b45a);margin-bottom:8px">${label}</div>${rows||'<div style="opacity:.5;font:11px monospace">none in filings</div>'}</div>`;
+  const rowsFor=arr=>arr.sort((a,b)=>((b.n_funds_new_position||0)+(b.n_funds_adding||0))-((a.n_funds_new_position||0)+(a.n_funds_adding||0))||(b.total_value||0)-(a.total_value||0)).slice(0,8).map(a=>`<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">${escape(a.t)}</b> <span style="opacity:.6;font:10px monospace">${escape(firstWords(a.name))}</span><div style="font:10px monospace;opacity:.85">${a.n_funds_holding} hold · ${(a.n_funds_new_position||0)} NEW · ${(a.n_funds_adding||0)} adding · ${fmtMoney(a.total_value)} held · cap ${fmtCap(a.market_cap)}</div></div>`).join('');
+  el.innerHTML=card('MICRO-CAP (<$300M)',rowsFor(tiers.MICRO))+card('SMALL-CAP ($300M–$2B)',rowsFor(tiers.SMALL))+card('MID-CAP ($2B–$10B)',rowsFor(tiers.MID));
+}
 function renderFunds(byFund){
   const el = document.getElementById('funds-grid');
   if(!byFund || !Object.keys(byFund).length){
@@ -944,7 +958,8 @@ async function load(){
   renderFamousFunds(data.by_fund);
   renderMostBought(data.most_bought);
   renderMostSold(data.most_sold);
-  renderConsensus(data.consensus_holds);
+  renderConsensus(data.consensus_holds, data.aggregate_by_ticker);
+  renderCapTiers(data);
   renderRarePicks(data.rare_picks);
   renderFunds(data.by_fund);
   document.getElementById('updated-at').textContent = new Date(data.generated_at).toLocaleString();
@@ -957,6 +972,11 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 
+<section style="max-width:1200px;margin:26px auto 10px;padding:0 18px">
+  <h2 class="section-title">Small & Mid-Cap Footprint — where elite funds go off-index</h2>
+  <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">Every micro/small/mid-cap name in the filings, ranked by accumulation (NEW + adds). Market caps enriched live. (ops 3278)</div>
+  <div id="jh13f-captiers" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>
+</section>
 <section style="max-width:1200px;margin:26px auto 10px;padding:0 18px">
   <h2 class="section-title">Cluster Moves — same name, multiple elite funds</h2>
   <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">13F filings lag quarter-end by up to 45 days — positioning shown is as-of the filing period. (ops 3277, additive)</div>

@@ -80,6 +80,7 @@ import json
 import os
 import re
 import time
+import urllib.parse
 import urllib.request
 import urllib.error
 import xml.etree.ElementTree as ET
@@ -544,6 +545,31 @@ def cusip_to_ticker_via_fmp(cusip: str, name: str):
                 return t.upper(), data[0].get("company") or name
     except Exception:
         pass
+    # ops 3278: name-search fallback ladder — many small caps miss the
+    # cusip endpoint (ARGAN class). Validate by first significant word.
+    try:
+        words = [w for w in re.sub(r"[^A-Za-z ]", " ", name or "")
+                 .split() if len(w) >= 4][:3]
+        if words:
+            q = urllib.parse.quote(" ".join(words[:2]))
+            for ep in ("search-name", "search-symbol"):
+                try:
+                    u2 = (f"https://financialmodelingprep.com/stable/"
+                          f"{ep}?query={q}&limit=3&apikey={FMP_KEY}")
+                    rq = urllib.request.Request(
+                        u2, headers={"User-Agent": USER_AGENT})
+                    with urllib.request.urlopen(rq, timeout=8) as r2:
+                        cand = json.loads(r2.read())
+                    for c in (cand or []):
+                        nm2 = str(c.get("name") or c.get("company")
+                                  or "").upper()
+                        if words[0].upper() in nm2 and                                 (c.get("symbol") or "").isalpha():
+                            return (c["symbol"].upper(),
+                                    c.get("name") or name)
+                except Exception:
+                    continue
+    except Exception:
+        pass
     return None, name
 
 
@@ -867,6 +893,41 @@ def lambda_handler(event, context):
     # Step 4: aggregate by ticker
     by_ticker = aggregate_by_ticker(successful)
 
+    # ops 3278: market-cap + tier enrichment for every resolved ticker
+    def _mcap(tk):
+        for ep, fld in (("market-capitalization", "marketCap"),
+                        ("profile", "marketCap")):
+            try:
+                u = (f"https://financialmodelingprep.com/stable/{ep}"
+                     f"?symbol={tk}&apikey={FMP_KEY}")
+                rq = urllib.request.Request(
+                    u, headers={"User-Agent": USER_AGENT})
+                with urllib.request.urlopen(rq, timeout=8) as r:
+                    d = json.loads(r.read())
+                v = (d[0] if isinstance(d, list) and d else d or {})                    .get(fld) or (d[0].get("mktCap")
+                                  if isinstance(d, list) and d else 0)
+                if v:
+                    return float(v)
+            except Exception:
+                continue
+        return None
+
+    enriched = 0
+    if FMP_KEY:
+        seen_t = [t for t in by_ticker
+                  if t and t.isalpha() and len(t) <= 6][:600]
+        for tk in seen_t:
+            mc = _mcap(tk)
+            time.sleep(0.12)
+            if mc is None:
+                continue
+            tier = ("MICRO" if mc < 3e8 else "SMALL" if mc < 2e9
+                    else "MID" if mc < 1e10 else "LARGE")
+            by_ticker[tk]["market_cap"] = mc
+            by_ticker[tk]["cap_tier"] = tier
+            enriched += 1
+    print(f"[13f] mcap enriched: {enriched}")
+
     # Step 5: rankings
     most_bought = sorted(
         by_ticker.values(),
@@ -898,6 +959,7 @@ def lambda_handler(event, context):
         "fund_errors": [{"fund_key": f.get("fund_key"), "error": f.get("error")} for f in failed],
         "by_fund": {f["fund_key"]: f for f in successful},
         "aggregate_by_ticker": by_ticker,
+        "mcap_enriched": enriched,
         "most_bought": most_bought,
         "most_sold": most_sold,
         "consensus_holds": consensus_holds,
