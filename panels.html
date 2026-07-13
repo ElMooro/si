@@ -116,7 +116,8 @@ function renderDivs(f){
     <span class="pill">${esc(d.theme||'')}</span> ${esc(d.text||d.note||d.msg||JSON.stringify(d).slice(0,160))}
   </div>`).join(''):'<div class="small">no divergences right now — his panels and the fleet agree</div>';
 }
-function fnum(e,k){const w=e.w13||{};return k==='t13'?w.t_stat:k==='x13'?w.excess_vs_base_pct:k==='members'?(e.members_resolved||[]).length:e[k];}
+const mrc=e=>Array.isArray(e.members_resolved)?e.members_resolved.length:(e.members_resolved??null);/* ops 3252: field is an int */
+function fnum(e,k){const w=e.w13||{};return k==='t13'?w.t_stat:k==='x13'?w.excess_vs_base_pct:k==='members'?mrc(e):e[k];}
 function renderTable(){
   let rows=ENG.filter(e=>(theme==='ALL'||e.theme===theme)&&(!fireOnly||e.firing));
   rows.sort((a,b)=>{const x=fnum(a,sortK),y=fnum(b,sortK);
@@ -127,7 +128,7 @@ function renderTable(){
     <td class="small">${esc(e.state||'')}</td>
     <td><span class="dot ${e.firing?'f':''}"></span></td>
     <td>${num(e.activation_pctile)}</td><td>${num(e.coverage,2)}</td>
-    <td class="small">${(e.members_resolved||[]).length}/${e.members_total??'—'}</td>
+    <td class="small">${mrc(e)??'—'}/${e.members_total??'—'}</td>
     <td>${num(w.t_stat,2)}</td><td>${num(w.excess_vs_base_pct,2)}</td></tr>`;
   }).join('')||'<tr><td colspan="9" class="small">no engines match this filter</td></tr>';
 }
@@ -163,7 +164,7 @@ document.getElementById('tbody').addEventListener('click',async ev=>{
     const w4=d.event_study?.w4||{},w13=d.event_study?.w13||{};
     const zcell=z=>z==null?'—':`<span class="${z>=0?'zpos':'zneg'}">${Number(z).toFixed(2)}</span>`;
     db.innerHTML=`<h3>${esc(d.name||tr.dataset.eid)}</h3>
-      <div class="kvrow"><span>theme <b>${esc(d.theme||'—')}</b></span><span>state <b>${esc(d.state||'—')}</b></span><span>activation <b>${num(d.activation_now)}</b> (${num(d.activation_pctile)}p)</span><span>fires ≥ <b>${num(d.fire_threshold_p80)}</b></span><span>${d.firing?'<b class="zpos">● FIRING</b>':'○ quiet'}</span></div>
+      <div class="kvrow"><span>theme <b>${esc(d.theme||'—')}</b></span><span>state <b>${esc(d.state||'—')}</b></span>${d.reason?`<span style="color:var(--neg,#e05252)">${esc(d.reason)}</span>`:''}<span>activation <b>${num(d.activation_now)}</b> (${num(d.activation_pctile)}p)</span><span>fires ≥ <b>${num(d.fire_threshold_p80)}</b></span><span>${d.firing?'<b class="zpos">● FIRING</b>':'○ quiet'}</span></div>
       <div class="kvrow"><span>members <b>${d.members_resolved??'—'}/${d.members_total??'—'}</b></span><span>history <b>${d.n_weeks??'—'}w</b> from ${esc(String(d.history_from||'—'))}</span></div>
       <h3 style="font-size:12px;color:var(--text)">EVENT STUDY (activation ≥ p80)</h3>
       <table class="mini"><tr><th></th><th>n</th><th>excess vs base %</th><th>hit edge pp</th><th>t</th><th>p</th></tr>
@@ -174,7 +175,7 @@ document.getElementById('tbody').addEventListener('click',async ev=>{
       <table class="mini"><tr><th>z</th><th>indicator</th><th>source</th></tr>
       ${(d.all_members||[]).map(m=>`<tr><td>${zcell(m.z)}</td><td>${esc(m.name||m.symbol)}</td><td class="small">${esc(m.source_id||'')}</td></tr>`).join('')}</table>
       <div class="small" style="margin-top:10px">feed: /data/engines/${esc(tr.dataset.eid)}.json · fusion targets: ${esc((d.fusion_targets||[]).join(', ')||'—')}</div>`;
-  }catch(e){db.innerHTML='<span class="err">'+esc(e.message)+'</span>';}
+  }catch(e){/* ops 3252: dormant fallback — render index data, never a raw error */const r=ENG.find(x=>x.engine_id===tr.dataset.eid);db.innerHTML=r?`<h3>${esc(r.name||r.engine_id)}</h3><div class="kvrow"><span>theme <b>${esc(r.theme||'—')}</b></span><span>state <b>${esc(r.state||'—')}</b></span><span>members <b>${mrc(r)??'—'}/${r.members_total??'—'}</b></span></div>${r.reason?`<div class="small" style="color:var(--neg,#e05252)">${esc(r.reason)}</div>`:''}<div class="small" style="margin-top:8px;opacity:.7">no detail feed for this engine — index data shown</div>`:'<span class="err">'+esc(e.message)+'</span>';}
 });
 </script>
 <script src="/jh-nav-drawer.js" defer></script>

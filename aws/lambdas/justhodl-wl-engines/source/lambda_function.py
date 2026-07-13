@@ -474,6 +474,18 @@ def lambda_handler(event, context):
                        "lit_named": [(x.get("name") or x["symbol"])
                                      for x in doc["lit_indicators"][:5]]})
 
+    # ops 3252: dormant engines get a minimal detail feed too — the
+    # panels drawer 403'd on every dormant row (S3 answers missing keys
+    # with 403, not 404). Thin doc, same keys the drawer reads; ACTIVE
+    # docs untouched.
+    for r in rows:
+        if r.get("state") != "ACTIVE":
+            s3_put(f"{ENGINE_PREFIX}{r['engine_id']}.json",
+                   {**r, "generated_at": now.isoformat(),
+                    "detail_level": "dormant-min",
+                    "event_study": {}, "lit_indicators": [],
+                    "all_members": [], "fusion_targets": []})
+
     # FDR across every engine tested today
     live = [r for r in rows if r.get("state") == "ACTIVE" and r.get("w13")]
     surv = bh_fdr([r["w13"].get("p_value", 1.0) for r in live], q=0.10) \
