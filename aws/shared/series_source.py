@@ -93,6 +93,10 @@ FRED_TEMPLATES = {
 
 # US-specific and market codes that map cleanly
 DIRECT = {
+    # ops 3216: one-symbol blockers, named by 3215's worklist
+    "ECONOMICS:USRR": ("FRED", "RRPONTSYD"),      # ON reverse repo — 3 engines
+    "TVC:BTPBUND": ("DERIVED",
+                    "FRED~IRLTLT01ITM156N~minus~FRED~IRLTLT01DEM156N"),
     "ECONOMICS:USCBBS": ("FRED", "WALCL"),
     "ECONOMICS:USBBS": ("FRED", "WALCL"),
     "ECONOMICS:EUCBBS": ("FRED", "ECBASSETSW"),
@@ -819,6 +823,11 @@ def _derived(sid, start):
     """sid = 'SRC~ID~transform' (ops 3193). Deterministic transforms over a
     base series fetched through the normal ladder. Real data in, math out —
     never a synthetic substitute for a missing primary."""
+    parts = sid.split("~")
+    if len(parts) == 5 and parts[2] == "minus":   # ops 3216: A − B spread
+        a = fetch(parts[0], parts[1], start)
+        b = fetch(parts[3], parts[4], start)
+        return {k: a[k] - b[k] for k in a if k in b}
     try:
         base_src, base_id, tr = sid.split("~", 2)
     except ValueError:
