@@ -271,12 +271,23 @@ def lambda_handler(event, context):
     todo = [k for k in need
             if k != "__SPY__"
             and (k not in cache or state.get("stamp", "") < fresh_cut)]
+    TRACE = set(filter(None, os.environ.get("WL_TRACE", "").split(",")))
+    if TRACE:
+        print(f"[trace] stamp={state.get('stamp','')[:19]} "
+              f"fresh_cut={fresh_cut[:19]} todo={len(todo)}")
+        for tk in TRACE:
+            print(f"[trace] {tk}: need={tk in need} "
+                  f"cache_pre={tk in cache} todo={tk in todo}")
     fetched = 0
     if todo:
         def pull(k):
             m = need[k]
-            s = SS.fetch(m["source"], m["id"], START)
-            return k, (to_weekly(s) if s else {})
+            try:                              # ops 3221: per-item guard —
+                s = SS.fetch(m["source"], m["id"], START)
+                return k, (to_weekly(s) if s else {})
+            except Exception as _pe:          # one bad symbol never kills
+                print(f"[wl] pull FAIL {k}: {str(_pe)[:80]}")
+                return k, {}
         with ThreadPoolExecutor(max_workers=10) as ex:
             for k, w in ex.map(pull, todo):
                 if w:
@@ -312,6 +323,10 @@ def lambda_handler(event, context):
         zs = rolling_z(vals, win=min(Z_WIN, max(12, len(vals))))
         zmap = {obs[i]: zs[i] for i in range(len(obs))}
         zc[k] = align(zmap, grid)          # forward-fill the Z, not the level
+    if TRACE:
+        for tk in TRACE:
+            w = cache.get(tk) or {}
+            print(f"[trace] {tk}: weekly={len(w)} zc={tk in zc}")
     print(f"[wl] z-scored {len(zc)} symbols (native-frequency) in "
           f"{round(time.time()-t0)}s")
 
