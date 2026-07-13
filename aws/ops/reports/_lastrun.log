@@ -1,23 +1,5 @@
-executing-against: ce22418c40363c7aade30b61781c12334279972b
-ops 3228 — names from the dictionary, truth from the tombstones
-── 1. The three roots, in TV's own words ──
-[06:47:26]   ICEEUR:EON2!     → EON2! (ICEEUR)
-[06:47:26]   ICEEUR:USW1!     → USW1! (ICEEUR)
-[06:47:26]   CBOT:YIT1!       → YIT1! (CBOT)
-── 2. €STR candidate ladder (post-storm) ──
-[06:47:26]   ECBESTRVOLWGTTRMDMNRT                                1734 pts
-[06:47:26] ✅ ICEEUR:EON2! → ECBESTRVOLWGTTRMDMNRT
-── 3. Near-wake worklist (tombstone-honest) ──
-[06:47:26]   DORMANT  51 × needs >=6 members on a free source — map more of its indicators 
-[06:47:26]   DORMANT  28 × mapped members lack fetchable history
-[06:47:26]   DORMANT   4 × only 0 weeks of joint activation history
-[06:47:26]   DORMANT   1 × only 20 weeks of joint activation history
-[06:47:26]   needs 1: 3 year Global bond yield - 3 yr bo → TVC:HK03Y | TVC:TW02Y | TVC:NZ02Y
-[06:47:26]   needs 1: Euro Predict Future Moves : Curren → ECONOMICS:DEIFOE | ECONOMICS:DEZCC | ECONOMICS:EUMPMI
-[06:47:26]   needs 1: Europe Growth                      → ECONOMICS:EUGDPGA | ECONOMICS:DEGDPYY | ECONOMICS:EUMPMI
-[06:47:26]   needs 1: France                             → ECONOMICS:FRLG | ECONOMICS:FRGDPYY | ECONOMICS:FRIPYY
-── 4. Fusion re-kick (cron skips Mondays) ──
-[06:47:32] ✅ fusion fresh on 121-active index — top theme BREADTH 82.1p
-── 5. Fleet run (a curation landed) ──
+executing-against: d2c2f5d5d1b5187b5649bbcd0f55a9eae0dfd97c
+ops 3229 — EON in the live map, confirmed or repaired
+[06:50:10] ✅ ICEEUR:EON2! already in map → ECBESTRVOLWGTTRMDMNRT (3228's write DID land; truncation was cosmetic)
 
-→ Report written to aws/ops/reports/latest/3228_truth_pass.md
+→ Report written to aws/ops/reports/latest/3229_eon_confirm.md
