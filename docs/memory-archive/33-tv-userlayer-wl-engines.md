@@ -503,3 +503,26 @@ so no CF 403-caching residue possible.
   "unengined" flags were a str-vs-int list-id cosmetic (all six are
   ACTIVE on the page). tv-notes feed absent — extension harvest is
   PENDING-KHALID.
+
+## TV notes — corrected record (ops 3256–3257)
+
+- **CORRECTION**: the mirror was NEVER 10 notes. 3256's kv table was
+  misread (age_hours column taken as note count — the short-report trap
+  again; doctrine sharpened: align kv VALUES to their HEADER column,
+  never read by position). Ground truth: data/tradingview-notes.json =
+  **3,322 notes**, healthy; morning crawler merged it intact;
+  notes-intel REBUILT fresh on all 3,322 (536 tickers).
+- Never-shrink guard shipped anyway (crawler refuses any write that
+  halves a healthy mirror after a fresh re-read) — the failure mode is
+  now impossible regardless.
+- **CADENCE (the real answer)**: watchlists — one extension push
+  id-merges them, done (Khalid's yesterday run worked exactly as
+  designed, 6,507 syms). NOTES autonomy — daily 06:00 crawler on the TV
+  session cookie: TODAY authenticated as username=None, pulled 0 ⇒
+  cookie DEAD. New notes on TV are NOT flowing until either (a) SSM
+  /justhodl/tradingview/sessionid (+ sessionid_sign) refreshed from
+  browser cookies → daily autonomy resumes, or (b) extension re-run
+  (pushes notes too). PENDING-KHALID = cookie refresh, not extension.
+- Ingest confirmed safe: id-merge for both notes and watchlists;
+  watchlists-only pushes valid by design. brain=9,200 notes total
+  (tv-provenance lives behind the API store, not data/brain.json).
