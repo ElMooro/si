@@ -1,17 +1,14 @@
-executing-against: 478e01ea44f0dffb978855586dc86549c3c39c4b
-ops 3232 — growth pair closed from live families
-── 1. Probe-gated replacements ──
-[07:01:53]   ECONOMICS:EUGDPYY    FRED~CLVMNACSCAB1GQEA19~pct4                         121
-[series_source] DBNOMICS:Eurostat/sts_inpr_m/M.PROD.B-D.SCA.I21.EA19 failed: HTTP Error 404: NOT FOUND
-[07:01:54]   ECONOMICS:EUIPYY     Eurostat/sts_inpr_m/M.PROD.B-D.SCA.I21.EA19          0
-[series_source] DBNOMICS:Eurostat/ei_bssi_m_r2/M.BS-ICI.SA.EA19 failed: HTTP Error 404: NOT FOUND
-[07:01:55]   ECONOMICS:EUBCOI     Eurostat/ei_bssi_m_r2/M.BS-ICI.SA.EA19               0
-[07:01:55]   ECONOMICS:FRUR       Eurostat/une_rt_m/M.SA.TOTAL.PC_ACT.T.FR             431
-[07:01:57]   ECONOMICS:FRBR       ECB/MIR/M.FR.B.A2A.A.R.A.2240.EUR.N                  317
-[series_source] DBNOMICS:Eurostat/sts_inpr_m/M.PROD.B-D.SCA.I21.FR failed: HTTP Error 404: NOT FOUND
-[07:01:57]   ECONOMICS:FRIPYY     Eurostat/sts_inpr_m/M.PROD.B-D.SCA.I21.FR            0
-── 2. Write + fleet — wakes by name ──
-[07:02:28]   → Europe Growth    DORMANT (needs >=6 members on a free source — map more of i)
-[07:02:28]   → France           DORMANT (needs >=6 members on a free source — map more of i)
+executing-against: 88321b476e8c75b80e928592b66c0e4158eb1cf2
+ops 3233 — growth pair, final closes
+── 1. Probes ──
+[07:04:34]   EURONEXT:PX1         ^FCHI                                            9234
+[07:04:34]   ECONOMICS:EUGDPGA    FRED~CLVMNACSCAB1GQEA19~pct1                     124
+[series_source] DBNOMICS:ECB/BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A failed: The read operation timed out
+[07:04:46]   ECONOMICS:EUMPRYY    ECB/BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A           0
+── 2. Write + fleet ──
+[07:05:17]   ⏰ WOKE: France
+[07:05:17]   → Europe Growth  DORMANT (mapped members lack fetchable history (only 5 )
+[07:05:17]   → France         ACTIVE (ACTIVE)
+[07:05:17] ✅ 1 panels WOKEN
 
-→ Report written to aws/ops/reports/latest/3232_growth_close.md
+→ Report written to aws/ops/reports/latest/3233_growth_final.md
