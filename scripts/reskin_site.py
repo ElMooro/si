@@ -20,6 +20,13 @@ service-worker.js, jh-theme.css (token source), any path containing
 'screener' (PROTECTED). Sources untouched; artifact-only; never fails deploys.
 """
 import colorsys
+import hashlib as _hl
+_NAV_V = "0"
+try:
+    _NAV_V = _hl.md5(open("jh-nav-drawer.js","rb").read()).hexdigest()[:8]
+except Exception:
+    pass
+
 import re
 import sys
 from pathlib import Path
@@ -161,7 +168,7 @@ def main(root):
                 # chart-theme/footer rather than relying on a one-time historical edit forever.
                 for tag in ("</body>", "</BODY>"):
                     if tag in s2:
-                        s2 = s2.replace(tag, '<script src="/jh-nav-drawer.js" defer></script>' + tag, 1)
+                        s2 = s2.replace(tag, '<script src="/jh-nav-drawer.js?v=' + _NAV_V + '" defer></script>' + tag, 1)
                         break
             if s2 != s:
                 p.write_text(s2, encoding="utf-8")

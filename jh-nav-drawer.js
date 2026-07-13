@@ -280,7 +280,7 @@
       if (e.key === "Escape") close();
     });
 
-    fetch("/nav-manifest.json").then(function (r) { return r.ok ? r.json() : null; })
+    fetch("/nav-manifest.json?v="+Math.floor(Date.now()/36e5)) /* ops 3272: hourly bust — stale CDN hid new pages+stars */.then(function (r) { return r.ok ? r.json() : null; })
       .then(function (m) { if (m) render(m); })
       .catch(function () {});
   }
