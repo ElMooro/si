@@ -1,16 +1,15 @@
-executing-against: 02dc6907bb36938084f5587d1ae7673189102d40
-ops 3259 — top-up + stance fusion verified + research docs carry his notes
-── 1. Top-up to full parity ──
-── 2. Stance fusion — live in the three rankers ──
-── 3. equity-research ← khalid_notes ──
-[14:01:06]   zip: 121990 bytes
-── 1. Lambda ──
-[14:01:06]   Lambda exists — updating
-[14:01:11] ✅   ✓ updated justhodl-equity-research
-[14:02:38] ✅ NVDA research doc carries khalid_notes: stance=BEARISH n=2 latest='[TV:NASDAQ:NVDA] IS NVIDIA EXPENSIVE?  Nvidia pe is 26.6. no'
-[14:02:38] ⚠ brain-TV 2920 still short of mirror
-[14:02:38] ⚠ data/master-rank.json: no notes field visible in rows
-[14:02:38] ⚠ data/best-setups.json: no notes field visible in rows
-[14:02:38] ⚠ data/alpha-compass.json: no notes field visible in rows
+executing-against: bcaa1f1615a76dfea44d76f175b9535cf874967f
+ops 3260 — id-parity + ranker fusion proven
+── 1. Parity by ID ──
+[14:04:39]     PUT err: HTTP Error 400: Bad Request
+[14:04:39]     PUT err: HTTP Error 400: Bad Request
+[14:04:39]     PUT err: HTTP Error 400: Bad Request
+── 2. khalid_note riding the rankers — proven ──
+[14:04:41] ✅ data/best-setups.json: 74 rows carry khalid_note (14 non-null) — e.g. NVDA stance=BEARISH
+[14:04:41] ✅ data/alpha-compass.json: 3 rows carry khalid_note (0 non-null) — e.g. NEM stance=None
+[14:04:41] ⚠ data/master-rank.json: khalid_note not found anywhere in feed
+[14:04:41] ⚠ some ranker feeds pre-date the join — next scheduled run refreshes them
+[14:04:41] ✗ 403 mirror notes still absent from brain
 
-→ Report written to aws/ops/reports/latest/3259_notes_everywhere.md
+→ Report written to aws/ops/reports/latest/3260_parity_proof.md
+❌ OPS-FAIL: aws/ops/pending/ops_3260_parity_proof.py
