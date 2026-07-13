@@ -206,6 +206,24 @@ TVC_YIELD = re.compile(r"^([A-Z]{2})(\d{2})(M?)Y$")
 # OECD MEI mirrors on FRED only exist for OECD members. ops 3185 caught
 # me routing Zimbabwe to BSCICP03ZWEM665S — a series that does not exist.
 # Non-members go to the World Bank, which actually covers them.
+# ops 3186: foreign listings are mostly FREE on Yahoo via exchange suffixes.
+# Probe before paying: LSE:VOD -> VOD.L, SWB:BMW -> BMW.DE, SSE:600519 ->
+# 600519.SS. Only what genuinely misses is worth a vendor line item.
+YAHOO_SUFFIX = {
+    "LSE": ".L", "LSIN": ".L", "AIM": ".L",
+    "SWB": ".DE", "XETR": ".DE", "FWB": ".DE", "TRADEGATE": ".DE",
+    "GETTEX": ".DE", "BER": ".BE", "MUN": ".MU", "DUS": ".DU",
+    "EURONEXT": ".AS", "AMS": ".AS", "EPA": ".PA", "EBR": ".BR",
+    "ELI": ".LS", "MIL": ".MI", "BIT": ".MI", "BME": ".MC",
+    "OMXSTO": ".ST", "OMXHEX": ".HE", "OMXCOP": ".CO", "OSL": ".OL",
+    "SIX": ".SW", "SWX": ".SW", "VIE": ".VI", "WSE": ".WA",
+    "SSE": ".SS", "SZSE": ".SZ", "HKEX": ".HK", "TSE": ".T",
+    "TSX": ".TO", "TSXV": ".V", "ASX": ".AX", "NZX": ".NZ",
+    "NSE": ".NS", "BSE": ".BO", "KRX": ".KS", "TWSE": ".TW",
+    "SGX": ".SI", "IDX": ".JK", "BMV": ".MX", "BVMF": ".SA",
+    "JSE": ".JO", "TASE": ".TA",
+}
+
 OECD_MEMBERS = {
     "US", "GB", "DE", "FR", "IT", "ES", "JP", "CA", "AU", "NZ", "KR",
     "MX", "CL", "CO", "CR", "TR", "IL", "CH", "SE", "NO", "DK", "FI",
@@ -242,6 +260,9 @@ def map_symbol(sym, fred_search=None):
     ex, t = s.split(":", 1)
     if ex == "FRED":
         return "FRED", t, 1.0, "native"
+    suf = YAHOO_SUFFIX.get(ex)
+    if suf:
+        return "MARKET", f"{t}{suf}", 0.75, f"{ex} → Yahoo {suf}"
     if ex in FUT_EX:
         root = re.sub(r"\d*!$", "", t)
         y = FUT.get(root)
@@ -403,6 +424,25 @@ def _internals(metric, start):
     return {d: float(v) for d, v in ser.items() if d >= start}
 
 
+EODHD_KEY = os.environ.get("EODHD_API_KEY", "")
+
+
+def _eodhd(sid, start):
+    """EODHD EOD: 60+ exchanges. Only used for what free sources genuinely
+    miss — the token is a fallback, not the default path."""
+    if not EODHD_KEY:
+        return {}
+    u = (f"https://eodhd.com/api/eod/{urllib.parse.quote(sid)}"
+         f"?from={start}&period=d&fmt=json&api_token={EODHD_KEY}")
+    d = _http(u, timeout=30)
+    out = {}
+    for r in (d if isinstance(d, list) else []):
+        c = r.get("adjusted_close", r.get("close"))
+        if r.get("date") and c is not None:
+            out[r["date"]] = float(c)
+    return out
+
+
 def fetch(source, sid, start="1990-01-01"):
     """→ {ISO date: float}. Never raises.
 
@@ -419,7 +459,15 @@ def fetch(source, sid, start="1990-01-01"):
                         return ser
                 except Exception:
                     continue
-            return _polygon(sid, start)
+            p = _polygon(sid, start)
+            if p:
+                return p
+            if EODHD_KEY:                    # paid fallback, only if funded
+                try:
+                    return _eodhd(sid.replace("=F", ".COMM"), start)
+                except Exception:
+                    return {}
+            return {}
         if source == "YAHOO":
             return _yahoo(sid, start)
         if source == "FRED":
@@ -447,6 +495,8 @@ def fetch(source, sid, start="1990-01-01"):
             return out
         if source == "STOOQ":
             return _stooq(sid, start)
+        if source == "EODHD":
+            return _eodhd(sid, start)
         if source == "INTERNALS":
             return _internals(sid, start)
         if source == "WORLDBANK":
