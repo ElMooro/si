@@ -1,0 +1,26 @@
+# ops 3225 — FRED-class miss, named
+
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-07-13T06:14:12+00:00  
+
+## Data
+
+| lines | n_fails | verdict |
+|---|---|---|
+| 11 |  |  |
+|  | 0 | PASS |
+
+## Log
+- `06:14:12`   env keys: FRED_API_KEY, FRED_KEY, POLYGON_KEY, S3_BUCKET, WL_TRACE
+- `06:14:12`   [trace] stamp=2026-07-13T06:04:47 fresh_cut=2026-07-07T06:10:29 todo=1324
+- `06:14:12`   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:14:12`   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:14:12`   [trace] ECONOMICS:GBDIR: need=True cache_pre=False todo=True
+- `06:14:12`   [trace] ECONOMICS:EUDIR: need=True cache_pre=False todo=True
+- `06:14:12`   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=False todo=True
+- `06:14:12`   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:14:12`   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:14:12`   [trace] ECONOMICS:GBDIR: weekly=0 zc=False
+- `06:14:12`   [trace] ECONOMICS:EUDIR: weekly=0 zc=False
+- `06:14:12`   [trace] TVC:ES10Y-TVC:IT10Y: weekly=0 zc=False
