@@ -1,0 +1,62 @@
+# ops 3191 — ECONOMICS long tail via DBnomics name-search (probe-gated)
+
+**Status:** success  
+**Duration:** 61.6s  
+**Finished:** 2026-07-13T02:49:13+00:00  
+
+## Data
+
+| budget_skipped | coverage_before | coverage_now | curated_total | dry | economics_unmapped | n_fails | n_warns | searched | survivors | verdict | with_human_name |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  | 383 |  |  |  |  |  | 366 |
+| 0 |  |  |  | 355 |  |  |  | 383 | 11 |  |  |
+|  | 75.6 | 75.8 | 11 |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  | 0 | 0 |  |  | PASS |  |
+
+## Log
+## 1. Inputs
+
+## 2. Search → probe (budgeted)
+
+- `02:48:58`   INTR       hit 7
+- `02:48:58`   CLI        hit 2
+- `02:48:58`   BLR        hit 1
+- `02:48:58`   BP         hit 1
+- `02:48:58`     ✓ ECONOMICS:BRCLI → OECD/DSD_KEI@DF_KEI/AUS.M.LI.IX._T.AA._Z  (437 pts)
+- `02:48:58`     ✓ ECONOMICS:CNCLI → OECD/DSD_KEI@DF_KEI/AUS.M.LI.IX._T.AA._Z  (437 pts)
+- `02:48:58`     ✓ ECONOMICS:FIBP → Eurostat/STS_COBP_M/M.BPRM_DW.CPA_F41001.NSA.I15.FI  (341 pts)
+- `02:48:58`     ✓ ECONOMICS:FIBLR → ECB/MIR/M.FI.B.A20.A.R.A.2240.EUR.O  (281 pts)
+- `02:48:58`     ✓ ECONOMICS:MAINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.MA.1.1.C.A.A.EU1.A.A.A.A.A.I  (115 pts)
+- `02:48:58`     ✓ ECONOMICS:TNINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.TN.1.1.C.A.A.EU1.A.A.A.A.A.I  (103 pts)
+## 3. Write map + redeploy + kick fleet
+
+- `02:48:59`   zip: 74490 bytes
+## 1. Lambda
+
+- `02:48:59`   Lambda exists — updating
+- `02:49:03` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `02:49:03`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `02:49:03` ✅   ✓ target → justhodl-wl-engines
+- `02:49:03` ✅   ✓ added invoke permission
+- `02:49:04`   zip: 76109 bytes
+## 1. Lambda
+
+- `02:49:04`   Lambda exists — updating
+- `02:49:07` ✅   ✓ updated justhodl-thesis-engine
+## 2. EB rule + permissions
+
+- `02:49:07`   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+- `02:49:07` ✅   ✓ target → justhodl-thesis-engine
+- `02:49:07` ✅   ✓ added invoke permission
+- `02:49:07`   zip: 72150 bytes
+## 1. Lambda
+
+- `02:49:07`   Lambda exists — updating
+- `02:49:12` ✅   ✓ updated justhodl-symbol-dictionary
+## 2. EB rule + permissions
+
+- `02:49:12`   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+- `02:49:12` ✅   ✓ target → justhodl-symbol-dictionary
+- `02:49:13` ✅   ✓ added invoke permission
