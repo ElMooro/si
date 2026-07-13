@@ -956,5 +956,66 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
   <script src="/jh-enhance.js" data-feed="data/13f-positions.json" data-bars="consensus_holds:ticker:net_action_score" data-title="13F consensus — net-action score" data-sub="fund adds minus trims" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<section style="max-width:1200px;margin:26px auto 10px;padding:0 18px">
+  <h2 class="section-title">Cluster Moves — same name, multiple elite funds</h2>
+  <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">13F filings lag quarter-end by up to 45 days — positioning shown is as-of the filing period. (ops 3277, additive)</div>
+  <div id="jh13f-cluster" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>
+</section>
+<section style="max-width:1200px;margin:10px auto 30px;padding:0 18px">
+  <h2 class="section-title">Smart Money ∩ Your Engines</h2>
+  <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">Elite NEW/ADD names joined with your own research — khalid_note stance + Master-Ranker presence.</div>
+  <div id="jh13f-join"></div>
+</section>
+<script>
+/* ops 3277: additive 13F intelligence — cluster moves + your-engine join */
+(function(){
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function gj(u){return fetch(u+(u.indexOf('?')<0?'?':'&')+'v='+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error(u+' '+r.status);return r.json();});}
+  function card(title,rows){return '<div style="border:1px solid var(--border,#243044);border-radius:10px;padding:12px 14px;background:var(--card,#0d1320)"><div style="font:600 11px monospace;letter-spacing:.1em;color:var(--accent,#e8b45a);margin-bottom:8px">'+esc(title)+'</div>'+(rows||'<div style="opacity:.5;font:11px monospace">none this quarter</div>')+'</div>';}
+  Promise.all([
+    gj('/data/13f-positions.json'),
+    gj('/data/notes-index.json').catch(function(){return{};}),
+    gj('/data/master-ranker.json').catch(function(){return{};})
+  ]).then(function(a){
+    var pos=a[0]||{},ni=(a[1]||{}).index||{},mr=a[2]||{};
+    var ranks={};(mr.top_tickers||[]).forEach(function(t,i){if(t&&t.ticker)ranks[t.ticker]=i+1;});
+    var acts={};
+    Object.keys(pos.by_fund||{}).forEach(function(fk){
+      var f=pos.by_fund[fk]||{},cs=f.changes_summary||{};
+      ['new','exit','adds'].forEach(function(kind){
+        (cs[kind]||[]).forEach(function(x){
+          var tk=(x.ticker||'').toUpperCase();if(!tk)return;
+          acts[tk]=acts[tk]||{NEW:[],EXIT:[],ADD:[],val:0,name:x.name||tk};
+          var K=kind==='new'?'NEW':kind==='exit'?'EXIT':'ADD';
+          acts[tk][K].push(f.name||fk);
+          acts[tk].val+=(+x.value_usd||0);
+        });
+      });
+    });
+    function fm(v){return v>=1e9?( v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(0)+'M':String(Math.round(v));}
+    function chips(arr){return arr.slice(0,5).map(function(n){return '<span style="display:inline-block;border:1px solid var(--border,#243044);border-radius:5px;padding:1px 6px;margin:1px 3px 1px 0;font:10px monospace;opacity:.85">'+esc(String(n).slice(0,20))+'</span>';}).join('');}
+    function rowsFor(kind,minN){
+      var rs=Object.keys(acts).filter(function(t){return acts[t][kind].length>=minN;})
+        .sort(function(a,b){return acts[b][kind].length-acts[a][kind].length||acts[b].val-acts[a].val;}).slice(0,8);
+      return rs.map(function(t){var A=acts[t];
+        return '<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">'+esc(t)+'</b> <span style="opacity:.6;font:10px monospace">'+esc(String(A.name).slice(0,30))+'</span> · <span style="font:10px monospace;color:var(--accent,#e8b45a)">'+A[kind].length+' funds · $'+fm(A.val)+'</span><div>'+chips(A[kind])+'</div></div>';}).join('');
+    }
+    var host=document.getElementById('jh13f-cluster');
+    host.innerHTML=card('CLUSTER NEW BUYS (≥2 funds initiated)',rowsFor('NEW',2))
+      +card('CLUSTER EXITS (≥2 funds closed out)',rowsFor('EXIT',2))
+      +card('BROAD ADDS (≥3 funds added)',rowsFor('ADD',3));
+    var jr=Object.keys(acts).filter(function(t){return (acts[t].NEW.length+acts[t].ADD.length)>0&&(ni[t]||ranks[t]);})
+      .sort(function(a,b){return (ranks[a]||99)-(ranks[b]||99);}).slice(0,12);
+    var jh=document.getElementById('jh13f-join');
+    jh.innerHTML=jr.length?('<table style="width:100%;border-collapse:collapse;font:11px monospace"><tr style="text-align:left;opacity:.6"><th style="padding:4px 8px">Ticker</th><th>Elite action</th><th>Your stance</th><th>Ranker</th></tr>'+jr.map(function(t){var A=acts[t],k=ni[t]||{};
+      var st=k.stance||'—';var col=st==='BULLISH'?'#26ffaf':st==='BEARISH'?'#ff5577':'inherit';
+      return '<tr style="border-top:1px solid var(--border,#1c2433)"><td style="padding:5px 8px"><b>'+esc(t)+'</b></td><td>'+(A.NEW.length?'NEW×'+A.NEW.length+' ':'')+(A.ADD.length?'ADD×'+A.ADD.length:'')+'</td><td style="color:'+col+'">'+esc(st)+(k.n_notes?' <span style="opacity:.5">('+k.n_notes+' notes)</span>':'')+'</td><td>'+(ranks[t]?('#'+ranks[t]):'—')+'</td></tr>';}).join('')+'</table>'):'<div style="opacity:.5;font:11px monospace">no overlap between elite adds and your indexed tickers this quarter</div>';
+  }).catch(function(e){
+    var h=document.getElementById('jh13f-cluster');
+    if(h)h.innerHTML='<div style="color:#ff5577;font:11px monospace">13F additive sections failed: '+esc(e.message)+'</div>';
+  });
+})();
+</script>
 </body>
 </html>

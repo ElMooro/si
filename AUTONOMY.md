@@ -193,3 +193,9 @@ engine layer. This is a standing product contract, not a preference:
   engines.
 - **New notes and watchlists auto-materialize on the next fleet run**
   — no manual steps, ever.
+
+## "IMPROVE A PAGE" DOCTRINE (Khalid directive, 2026-07-13 — permanent)
+
+"Improve" = ADDITIVE ONLY: add sections/features around what exists;
+never touch, replace, restructure, or remove existing content.
+"Rebuild" happens only when Khalid explicitly says rebuild.
