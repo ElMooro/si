@@ -2594,6 +2594,34 @@ def load_macro_regime_snapshot() -> dict:
         return {}
 
 
+_NOTES_IDX = {"v": None}
+
+
+def khalid_notes_block(ticker):
+    """ops 3259: Khalid's own tested notes attached to the research doc.
+    Reads data/notes-index.json once per container. Never raises."""
+    try:
+        if _NOTES_IDX["v"] is None:
+            _NOTES_IDX["v"] = (json.loads(
+                s3.get_object(Bucket=S3_BUCKET,
+                              Key="data/notes-index.json")
+                ["Body"].read()) or {}).get("index") or {}
+        e = _NOTES_IDX["v"].get(str(ticker).upper()) or {}
+        if not e:
+            return {}
+        return {"n_notes": e.get("n_notes"),
+                "stance": e.get("stance"),
+                "stance_score": e.get("stance_score"),
+                "latest_note": str(e.get("latest") or
+                                   e.get("latest_note") or "")[:400],
+                "latest_at": e.get("latest_at") or e.get("latest_ts"),
+                "levels": (e.get("levels") or [])[:4],
+                "note": "from Khalid's TradingView notes "
+                        "(notes-index, ops 3259)"}
+    except Exception:
+        return {}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -3011,6 +3039,7 @@ def lambda_handler(event, context):
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
         "ticker":         ticker,
+        "khalid_notes":   khalid_notes_block(ticker),  # ops 3259
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "from_cache":     False,
         "regime_at_generation": load_macro_regime_snapshot(),  # Phase 2 attribution stamp
