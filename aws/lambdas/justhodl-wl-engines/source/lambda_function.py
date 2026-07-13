@@ -264,13 +264,20 @@ def lambda_handler(event, context):
     # ── 2. shared series cache (the whole point of one runtime) ──────
     state = s3_get(STATE_KEY, {}, gz=True) or {}
     cache = state.get("weekly") or {}
+    ids = state.get("ids") or {}          # ops 3224: what each sym was
+                                          # fetched AS — remap ⇒ refetch
     fresh_cut = (now - timedelta(days=6)).isoformat()
     ser = SS.fetch("MARKET", "SPY", START)
     if ser:
         cache["__SPY__"] = to_weekly(ser)
+    def _mid(k):
+        m = need.get(k) or {}
+        return f"{m.get('source')}|{m.get('id')}"
     todo = [k for k in need
             if k != "__SPY__"
-            and (k not in cache or state.get("stamp", "") < fresh_cut)]
+            and (k not in cache
+                 or (k in ids and ids[k] != _mid(k))
+                 or state.get("stamp", "") < fresh_cut)]
     TRACE = set(filter(None, os.environ.get("WL_TRACE", "").split(",")))
     if TRACE:
         print(f"[trace] stamp={state.get('stamp','')[:19]} "
@@ -292,10 +299,12 @@ def lambda_handler(event, context):
             for k, w in ex.map(pull, todo):
                 if w:
                     cache[k] = w
+                    ids[k] = _mid(k)
                     fetched += 1
                 if time.time() - t0 > FETCH_BUDGET_S:
                     break
-        state = {"stamp": now.isoformat(), "weekly": cache}
+        state = {"stamp": now.isoformat(), "weekly": cache,
+                 "ids": ids}
         s3_put(STATE_KEY, state, gz=True)
     print(f"[wl] cache={len(cache)} new={fetched} {round(time.time()-t0)}s")
 

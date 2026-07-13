@@ -22,6 +22,30 @@ title + confidence so every mapping stays auditable.
 import csv
 import io
 import json
+import threading as _thr
+import time as _time
+
+# ops 3224: per-source politeness gates — unthrottled 10-worker bursts
+# blow CoinGecko (429→401 lockout) and can trip FRED, so failing symbols
+# re-fail EVERY run and their panels never wake.
+_GATE_LOCK = _thr.Lock()
+_GATE_LAST = {}
+_GATE_MIN = {"COINGECKO": 1.35, "COINMETRICS": 0.7, "FRED": 0.12}
+
+
+def _polite(source):
+    m = _GATE_MIN.get(source)
+    if not m:
+        return
+    while True:
+        with _GATE_LOCK:
+            last = _GATE_LAST.get(source, 0.0)
+            now = _time.time()
+            if now - last >= m:
+                _GATE_LAST[source] = now
+                return
+            wait = m - (now - last)
+        _time.sleep(min(wait, m))
 import os
 import re
 import urllib.parse
@@ -249,7 +273,7 @@ CM_ASSETS = {"BTC": "btc", "ETH": "eth", "LTC": "ltc", "XRP": "xrp",
              "DOT": "dot", "SOL": "sol", "LINK": "link", "XMR": "xmr",
              "ZEC": "zec", "ETC": "etc", "BSV": "bsv", "DASH": "dash",
              "ALGO": "algo", "XTZ": "xtz", "EOS": "eos", "TRX": "trx",
-             "AVAX": "avax", "MATIC": "matic", "UNI": "uni", "AAVE": "aave"}
+             "AVAX": "avax", "MATIC": "pol", "UNI": "uni", "AAVE": "aave"}
 CM_METRICS = {  # substring of the TV tile name → community metric id
     "ACTIVEADDRESS": "AdrActCnt", "ADDRESSESACTIVE": "AdrActCnt",
     "TRANSACTIONCOUNT": "TxCnt", "TXCOUNT": "TxCnt", "TRANSACTION": "TxCnt",
@@ -888,6 +912,7 @@ def _derived(sid, start):
 
 
 def fetch(source, sid, start="1990-01-01"):
+    _polite(source)
     """→ {ISO date: float}. Never raises.
 
     MARKET is a CHAIN: Yahoo (deep, free) → Stooq (deep, but blocks some
