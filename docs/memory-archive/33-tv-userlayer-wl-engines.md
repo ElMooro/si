@@ -482,3 +482,24 @@ none did. Public CDN proof 8/8 including both Khalid-reported ids
 (HQM + bond-global-high-yield), each serving 200 with its named
 dormancy reason. Page verified: gj() already cache-busts every click,
 so no CF 403-caching residue possible.
+
+## PREDICTION LAYER (ops 3254–3255)
+
+- Panel theses tested AS predictions inside the wl runtime: predict-
+  intent parsed from names (predict|future|reversal|warning|lead|
+  barometer|gauge|signal), targets resolved (liquidity→LIQUIDITY-theme
+  composite excl. self; dxy/dollar→TVC:DXY level; 10 year/yield→Global-
+  10y composite; default SPY). Predictor = directional composite (mean
+  member z, captured as dz alongside act in the scoring loop; comps{}
+  ACTIVE-only). Stats: 13w lead corr + extreme (|z|≥1.2) hit rate vs
+  base + CURRENT CALL with odds. Feed data/wl-predictions.json;
+  PREDICTIONS board atop panels.html. n≥60 pairs gate.
+- Live v1: **12 theses**. Finds: Bonds-Sovereign→SPY ext 78.1% (n=155)
+  vs base 75.2, call SPY UP; Buybacks→LIQUIDITY corr −0.384 (n=331),
+  z=1.9 → LIQUIDITY DOWN 13w; Breadth-leads ext 32.7% vs 78.3 base
+  (contrarian exposure, honestly surfaced). HQM excluded until it
+  wakes (2 members) — predictions require real composite history.
+- Yesterday's-additions audit: every harvest list has an engine; the 6
+  "unengined" flags were a str-vs-int list-id cosmetic (all six are
+  ACTIVE on the page). tv-notes feed absent — extension harvest is
+  PENDING-KHALID.
