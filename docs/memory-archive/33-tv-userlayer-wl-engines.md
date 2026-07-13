@@ -695,3 +695,18 @@ so no CF 403-caching residue possible.
   cached fleet gz, 6h refresh) — proof TVC:DXY n=1906. Cache keys are
   ISO-WEEKS ('2026-28') → wk2d() converts to Monday dates for
   LightweightCharts. Esc closes overlay.
+
+## Runtime truth pass (ops 3274–3275)
+
+- 3274 diagnostic: SERVED drawer JS parses ✓, served ops-3273 block
+  parses ✓ (reskin did NOT mangle), tv-watchlists (207 lists) +
+  symbol-map (4,823) return 200 from BOTH worker and origin,
+  cf=DYNAMIC (CF not caching HTML; browser cc max-age=600 only),
+  served tag versioned. Server-side fully healthy → remaining
+  variables are client-side.
+- 3275 hardening: watchlist block fetches SAME-ORIGIN /data/* (hourly
+  buster), renders its own errors into the section (never silently
+  empty), list UI decoupled from LightweightCharts (overlay checks it
+  lazily), status line '· N lists loaded'. Drawer FAVORITES states
+  per-browser truth when jh_favs is empty (stars are per-browser;
+  sign-in on the holding browser syncs them).
