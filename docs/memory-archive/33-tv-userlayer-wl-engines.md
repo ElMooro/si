@@ -738,3 +738,28 @@ so no CF 403-caching residue possible.
   GOOG NEW by Berkshire+Bridgewater, V by Coatue+Lone Pine; as_of
   2026-03-31, 17 funds) + Smart Money ∩ Your Engines (khalid_note
   stance × master-ranker join).
+
+## 13F visual directives closed (ops 3278–3278c)
+
+- **Name-first everywhere**: 4 renderer cells (spotlight ×3 patterns,
+  consensus, rare, most-bought/sold shared cell) show company names,
+  never '?' or cusip codes; helpers firstWords/fmtCap/capBadge.
+- **Resolver truth chain**: cusip_to_ticker_via_fmp was defined but
+  NEVER CALLED → wired via resolve_missing_tickers() with persistent
+  data/13f-cusip-map.json. FMP name-search alone mis-mapped
+  (ARGAN INC→ARLLF Argan S.A.; HTIA-class) → **SEC-FIRST:
+  sec.gov/files/company_tickers.json daily-cached in the map doc,
+  _norm_name token matching (strip INC/CORP/…); FMP strict tier-2
+  (≥2-token overlap, alpha ≤5); poisoned entries self-heal (src
+  upgrades).** PROOF: **ARGAN INC → AGX tier=MID cap=$8.4B**.
+  Residual ARLLF aggregate row = verify next run (real Argan S.A.
+  holding vs stale poison).
+- **Spotlight**: cap-tier badges beside net-action scores. **Most-held**
+  gains total-$-held via aggregate join. **Rare picks** show tiers.
+- **NEW Small & Mid-Cap Footprint section**: micro/small/mid boards
+  ranked by accumulation (NEW+adds), with honesty filters (ETF/trust
+  regex + total_value>3×mcap ownership-implausible → filtered, count
+  shown). Engine enriches market_cap+cap_tier live (FMP stable
+  /market-capitalization→profile fallback, 0.12s gate, ≤600 tickers).
+- Data-quality follow-up queued: total_value unit audit (GOSS $5.3B
+  class), ARLLF residual.
