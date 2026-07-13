@@ -56,7 +56,7 @@ Z_FIRE = 1.5
 MIN_MEMBERS = 6
 MAX_MEMBERS = 120
 HORIZONS = (4, 13, 26)
-FETCH_BUDGET_S = 560
+FETCH_BUDGET_S = 600
 
 S3 = boto3.client("s3", region_name="us-east-1")
 
@@ -278,6 +278,11 @@ def lambda_handler(event, context):
             and (k not in cache
                  or (k in ids and ids[k] != _mid(k))
                  or state.get("stamp", "") < fresh_cut)]
+    # ops 3226: gated sources drain slowly — fetch cheap/critical first so
+    # a budget break never starves FRED-class members again.
+    _prio = {"FRED": 0, "MARKET": 1, "DERIVED": 2, "WORLDBANK": 3}
+    todo.sort(key=lambda k: _prio.get((need.get(k) or {})
+                                      .get("source"), 5))
     TRACE = set(filter(None, os.environ.get("WL_TRACE", "").split(",")))
     if TRACE:
         print(f"[trace] stamp={state.get('stamp','')[:19]} "
