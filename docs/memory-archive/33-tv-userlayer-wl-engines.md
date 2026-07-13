@@ -647,3 +647,27 @@ so no CF 403-caching residue possible.
   fer-money-supply 2/16; **fer-external-debt 0/11 stays dormant —
   no free per-country external-debt series exists** (said plainly;
   residual dormant now 12).
+
+## Sidebar + favorites + ENGINE CONTRACT (ops 3269–3271)
+
+- **Sidebar root cause**: nav-manifest.json was hand-maintained and
+  froze 2026-07-05 at 362 pages while the site grew to **377** —
+  panels.html and 14 others invisible. FIX: scripts/gen_nav_manifest.py
+  regenerates from actual repo pages on EVERY deploy (pages.yml step);
+  known hrefs keep categories, new pages keyword-classify, redirect
+  stubs skipped. Drawer fetches /nav-manifest.json at runtime → live
+  instantly.
+- **Favorites were NEVER deleted**: jh_favs intact; pullSync is a true
+  union-merge (remote ∪ local, pushes back extras). Stars on
+  post-Jul-05 pages were display-FILTERED by titleByHref. FIX: drawer
+  renders every starred href with a fallback title — a star can never
+  silently vanish (ops 3269 literal in jh-nav-drawer.js).
+- **ENGINE CONTRACT permanent in AUTONOMY.md**: any panel size
+  activates (1 indicator enough); only genuine data absence may leave
+  dormancy, named; every note feeds ≥1 consumer; new notes/lists
+  auto-materialize. **Enforcement (3270): MIN_COMPOSITE_WEEKS 60→13.**
+  **Audit at z-resolution (3271): ZERO violations** — adaptive window
+  win=min(156,max(12,len)) ⇒ nascent = raw < mcw+12 = 25wk; the one
+  candidate (Country Import Prices, 20 raw wk) is z-nascent and
+  self-wakes as history accrues. Notes census: 3,322 notes → 536
+  tickers indexed → 4 consumers + 563 playbook rules + themes + brain.
