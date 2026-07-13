@@ -886,10 +886,10 @@ function renderCapTiers(data){
   const el=document.getElementById('jh13f-captiers'); if(!el) return;
   const agg=data.aggregate_by_ticker||{};
   const tiers={MICRO:[],SMALL:[],MID:[]};
-  Object.keys(agg).forEach(t=>{const a=agg[t];if(a&&tiers[a.cap_tier])tiers[a.cap_tier].push({t,...a});});
+  let filtered=0;const junk=/ISHARES|TRUST|ETF\b|FUND\b|SPDR|VANGUARD|INDEX/i;Object.keys(agg).forEach(t=>{const a=agg[t];if(!a||!tiers[a.cap_tier])return;if(junk.test(a.name||'')||(a.market_cap&&a.total_value>3*a.market_cap)){filtered++;return;}tiers[a.cap_tier].push({t,...a});});
   const card=(label,rows)=>`<div style="border:1px solid var(--border,#243044);border-radius:10px;padding:12px 14px;background:var(--card,#0d1320)"><div style="font:600 11px monospace;letter-spacing:.1em;color:var(--accent,#e8b45a);margin-bottom:8px">${label}</div>${rows||'<div style="opacity:.5;font:11px monospace">none in filings</div>'}</div>`;
   const rowsFor=arr=>arr.sort((a,b)=>((b.n_funds_new_position||0)+(b.n_funds_adding||0))-((a.n_funds_new_position||0)+(a.n_funds_adding||0))||(b.total_value||0)-(a.total_value||0)).slice(0,8).map(a=>`<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">${escape(a.t)}</b> <span style="opacity:.6;font:10px monospace">${escape(firstWords(a.name))}</span><div style="font:10px monospace;opacity:.85">${a.n_funds_holding} hold · ${(a.n_funds_new_position||0)} NEW · ${(a.n_funds_adding||0)} adding · ${fmtMoney(a.total_value)} held · cap ${fmtCap(a.market_cap)}</div></div>`).join('');
-  el.innerHTML=card('MICRO-CAP (<$300M)',rowsFor(tiers.MICRO))+card('SMALL-CAP ($300M–$2B)',rowsFor(tiers.SMALL))+card('MID-CAP ($2B–$10B)',rowsFor(tiers.MID));
+  el.innerHTML=card('MICRO-CAP (<$300M)',rowsFor(tiers.MICRO))+card('SMALL-CAP ($300M–$2B)',rowsFor(tiers.SMALL))+card('MID-CAP ($2B–$10B)',rowsFor(tiers.MID))+(filtered?`<div style="grid-column:1/-1;font:10px monospace;opacity:.5">${filtered} ETF/trust or ownership-implausible entries filtered for honesty</div>`:'');
 }
 function renderFunds(byFund){
   const el = document.getElementById('funds-grid');

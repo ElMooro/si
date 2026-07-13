@@ -714,6 +714,52 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
     }
 
 
+CUSIP_MAP_KEY = "data/13f-cusip-map.json"
+
+
+def resolve_missing_tickers(fund_results, budget=150):
+    """ops 3278b: cusip_to_ticker_via_fmp existed but was NEVER wired.
+    Resolve every position lacking a real ticker via the FMP ladder,
+    persisted in data/13f-cusip-map.json (weekly retry for misses)."""
+    import time as _t
+    m = get_s3_json(CUSIP_MAP_KEY) or {}
+    now = _t.time()
+    fresh = 0
+    for fd in fund_results:
+        if fd.get("error"):
+            continue
+        for pos in fd.get("positions", []):
+            tk = (pos.get("ticker") or "").upper()
+            if tk and tk.isalpha():
+                continue
+            cu = pos.get("cusip") or ""
+            e = m.get(cu) or {}
+            if e.get("ticker"):
+                pos["ticker"] = e["ticker"]
+                if e.get("name"):
+                    pos["name"] = pos.get("name") or e["name"]
+                continue
+            if now - float(e.get("tried_at") or 0) < 6 * 86400:
+                continue
+            if fresh >= budget:
+                continue
+            fresh += 1
+            t2, n2 = cusip_to_ticker_via_fmp(cu, pos.get("name") or "")
+            _t.sleep(0.15)
+            m[cu] = {"ticker": t2, "name": n2, "tried_at": now}
+            if t2:
+                pos["ticker"] = t2
+    try:
+        put_s3_json(CUSIP_MAP_KEY, m)
+    except Exception:
+        s3.put_object(Bucket=S3_BUCKET, Key=CUSIP_MAP_KEY,
+                      Body=json.dumps(m),
+                      ContentType="application/json")
+    print(f"[13f] resolver: {fresh} fresh lookups, "
+          f"{sum(1 for v in m.values() if v.get('ticker'))} mapped")
+    return fund_results
+
+
 def aggregate_by_ticker(fund_results):
     """Aggregate positions across all funds, by ticker."""
     by_ticker = {}
@@ -891,6 +937,7 @@ def lambda_handler(event, context):
                 p["ticker"], p["resolved_name"] = resolved_map[p["cusip"]]
 
     # Step 4: aggregate by ticker
+    successful = resolve_missing_tickers(successful)  # ops 3278b
     by_ticker = aggregate_by_ticker(successful)
 
     # ops 3278: market-cap + tier enrichment for every resolved ticker
