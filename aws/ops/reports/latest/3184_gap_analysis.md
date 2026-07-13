@@ -1,0 +1,82 @@
+# ops 3184 — what data is missing, and what it would buy
+
+**Status:** success  
+**Duration:** 0.7s  
+**Finished:** 2026-07-13T00:40:27+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| activates_economics_cbbs | activates_economics_fo | activates_economics_no | activates_ftse | activates_iceeur | activates_index | activates_tvc | activates_usi | coverage_pct | mapped | n_fails | n_warns | symbols | unmapped | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  | 59.9 | 3899 |  |  | 6507 | 2608 |  |
+| 2 | 2 | 2 | 2 | 2 | 4 | 4 | 2 |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  | 0 | 0 |  |  | PASS |
+
+## Log
+## 1. The gap, bucketed
+
+- `00:40:26`   FTSE                         448 symbols
+- `00:40:26`   TVC                          198 symbols
+- `00:40:26`   INDEX                        155 symbols
+- `00:40:26`   INTOTHEBLOCK                 147 symbols
+- `00:40:26`   USI                          108 symbols
+- `00:40:26`   ECONOMICS:CBBS                86 symbols
+- `00:40:26`   GLASSNODE                     59 symbols
+- `00:40:26`   COT3                          52 symbols
+- `00:40:26`   SSE                           52 symbols
+- `00:40:26`   SWB                           46 symbols
+- `00:40:26`   LSE                           43 symbols
+- `00:40:26`   CBOEEU                        40 symbols
+- `00:40:26`   EUREX                         38 symbols
+- `00:40:26`   EURONEXT                      37 symbols
+- `00:40:26`   ECONOMICS:BCOI                30 symbols
+- `00:40:26`   ECONOMICS:INBR                30 symbols
+- `00:40:26`   ICEEUR                        30 symbols
+- `00:40:26`   TRADEGATE                     29 symbols
+- `00:40:26`   ECONOMICS:NO                  27 symbols
+- `00:40:26`   ECONOMICS:GDPQQ               27 symbols
+- `00:40:26`   CME                           25 symbols
+- `00:40:26`   ECONOMICS:BR                  25 symbols
+## 2. ENGINE IMPACT — what each bucket would ACTIVATE
+
+- `00:40:26`   bucket                     symbols  ENGINES IT ACTIVATES  helps
+- `00:40:26`   TVC                          198      4 engines        3
+- `00:40:26`   INDEX                        155      4 engines        3
+- `00:40:26`   ECONOMICS:CBBS                86      2 engines        0
+- `00:40:26`   USI                          108      2 engines        4
+- `00:40:26`   ECONOMICS:FO                   9      2 engines        0
+- `00:40:26`   ECONOMICS:NO                  27      2 engines        1
+- `00:40:26`   FTSE                         448      2 engines        3
+- `00:40:26`   ICEEUR                        30      2 engines        1
+- `00:40:26`   CBOEEU                        40      2 engines        0
+- `00:40:26`   BER                           14      1 engines        0
+- `00:40:26`   ECONOMICS:BR                  25      1 engines        1
+- `00:40:26`   LSE                           43      1 engines        0
+- `00:40:26`   NSENG                          2      1 engines        0
+- `00:40:26`   HNX                            1      1 engines        0
+- `00:40:26`   ECONOMICS:CU                  14      1 engines        0
+- `00:40:26`   ECONOMICS:IC                  14      1 engines        0
+- `00:40:26`   ECONOMICS:CPR                  7      1 engines        0
+- `00:40:26`   ECONOMICS:MTO                  1      1 engines        1
+## 3. Named examples per gap (so he can judge worth)
+
+- `00:40:27`   TVC                      → AEX (TVC), AT02Y (TVC), AT10Y (TVC), AU02Y (TVC)
+- `00:40:27`   INDEX                    → ADRC (INDEX), ADRD (INDEX), ADRE (INDEX), ADRN (INDEX)
+- `00:40:27`   ECONOMICS:CBBS           → United Arab Emirates — Central Ban, Albania — Central Bank Balance She, Angola — Central Bank Balance Shee, Argentina — Central Bank Balance S
+- `00:40:27`   USI                      → ACTV.NY (USI), ACTV.US (USI), ADV (USI), ADVDEC.US (USI)
+- `00:40:27`   ECONOMICS:FO             → Switzerland — FO (TradingView econ, Germany — FO (TradingView economic, Spain — FO (TradingView economics , Finland — FO (TradingView economic
+- `00:40:27`   ECONOMICS:NO             → Austria — New Orders, Australia — New Orders, Belgium — New Orders, China — New Orders
+- `00:40:27`   FTSE                     → 3XUK (FTSE), 4EU5 (FTSE), 4GEU (FTSE), 4GGL (FTSE)
+- `00:40:27`   ICEEUR                   → EMM2! (ICEEUR), EON2! (ICEEUR), EWE2! (ICEEUR), EWM2! (ICEEUR)
+## 4. What is already free (do not pay for these)
+
+- `00:40:27`   COT3            52 symbols — CFTC publishes Commitments of Traders FREE — the platform ALREADY has justhodl-cftc-cot (29 contracts)
+- `00:40:27`   ECONOMICS      644 symbols — World Bank / IMF / OECD / Eurostat / DBnomics are FREE — more mapping, not more money
+- `00:40:27`   USI            108 symbols — US index internals — mostly derivable from free breadth data
+- `00:40:27`   INDEX          155 symbols — most map to Yahoo/Stooq free tickers
