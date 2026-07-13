@@ -170,3 +170,20 @@ targets and invisible on all 366 pages. Shipped:
 
 Doctrine: when a verifier fails twice, stop fixing the guess — make the
 next ops DUMP THE EVIDENCE (the actual live payload) into the report.
+
+## Grading + reconcile appendix (ops 3208–3213)
+
+- **Grading WIRED (3176's unbuilt intent)**: FIRING panels log guarded,
+  week-deduped (conditional put on wl#<engine_id>#<grid-Friday-week>)
+  directional signals vs SPY (direction = panel's own 13w tilt) into
+  justhodl-signals; outcome-checker sweeps clean; 7/28/91d windows.
+  **24/24 verified by exact key.** Fusion's PROVEN gate will mature on
+  real out-of-sample hits.
+- **207-vs-162 SOLVED**: two demotion paths dropped engines silently;
+  DORMANT rows now carry NAMED reasons — worklist: 47 need ≥6 mapped
+  members, 39 mapped-but-unfetchable history, 5 short joint history.
+- **Crash class closed**: shape guards on every multi-part sid split
+  (malformed → {} + named print). Zero [ERROR] on guarded runs.
+- **Verifier traps named (self-inflicted, documented)**: DDB Scan Limit
+  caps items EXAMINED not matched (paginate or exact-key); the runner
+  keys weeks on the last GRID FRIDAY, not the run date's ISO week.
