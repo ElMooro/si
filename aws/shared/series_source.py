@@ -469,7 +469,7 @@ def map_symbol(sym, fred_search=None):
             return ("DERIVED", f"INTERNALS~ADVDEC_LINE~{tr}", 0.75,
                     f"{tr} computed over the A/D line (ops 3194)")
         # exchange-scoped variants (TRINQ, ADVN.NQ...) → all-market computed
-        base = code.rstrip("QNA")
+        base = code[:-1] if len(code) > 3 and code[-1] in "QNA" else code
         m2 = {"ADV": "ADVANCERS", "DECL": "DECLINERS", "DEC": "DECLINERS",
               "UNCH": "UNCHANGED", "ADVDEC": "ADVDEC_LINE", "UVOL":
               "UP_VOLUME", "DVOL": "DOWN_VOLUME", "TRIN": "TRIN",
@@ -755,8 +755,8 @@ def _coinmetrics(sid, start):
     url = ("https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
            f"?assets={asset}&metrics={met}&frequency=1d&page_size=10000"
            f"&start_time={start}")
-    for _ in range(6):                     # paged
-        d = _http(url, timeout=30)
+    for _ in range(3):                     # paged (ops 3199: cap)
+        d = _http(url, timeout=15)
         for r in d.get("data") or []:
             v = r.get(met)
             if v not in (None, ""):
@@ -790,7 +790,7 @@ def _cot(sid, start):
     cols = ",".join(c for c in ("report_date_as_yyyy_mm_dd", lcol, scol) if c)
     d = _http(f"https://publicreporting.cftc.gov/resource/{ds}.json"
               f"?cftc_contract_market_code={code}&%24select={cols}"
-              "&%24order=report_date_as_yyyy_mm_dd&%24limit=5000", timeout=30)
+              "&%24order=report_date_as_yyyy_mm_dd&%24limit=5000", timeout=15)
     out = {}
     for r in d if isinstance(d, list) else []:
         dt = str(r.get("report_date_as_yyyy_mm_dd", ""))[:10]
@@ -931,7 +931,7 @@ def fetch(source, sid, start="1990-01-01"):
             return _dbnomics(sid, start)
         if source == "DBNOMICS":
             d = _http(f"https://api.db.nomics.world/v22/series/{sid}"
-                      "?observations=1")
+                      "?observations=1", timeout=12)
             docs = (d.get("series") or {}).get("docs") or []
             if not docs:
                 return {}
