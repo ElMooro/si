@@ -190,7 +190,10 @@ FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
        "RTY": "RTY=F", "KE": "KE=F", "ZO": "ZO=F", "ZR": "ZR=F",
        "6E": "6E=F", "6J": "6J=F", "6B": "6B=F", "6A": "6A=F",
        "6C": "6C=F", "6S": "6S=F", "6N": "6N=F", "DX": "DX=F",
-       "TN": "TN=F", "UB": "UB=F", "6M": "6M=F"}
+       "TN": "TN=F", "UB": "UB=F", "6M": "6M=F",
+       # ops 3215: micro e-minis are REAL Yahoo continuous symbols
+       "MES": "MES=F", "MNQ": "MNQ=F", "M2K": "M2K=F", "MYM": "MYM=F",
+       "MGC": "MGC=F", "SIL": "SIL=F", "MCL": "MCL=F"}
 FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT",
           "CME_MINI", "CBOT_MINI"}
 
