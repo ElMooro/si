@@ -1,15 +1,30 @@
-executing-against: 013709316f0cff2cbdca1845ba313f03932a3d2c
-ops 3253 — all engines on panels.html: audit + repair + public proof
-── 1. Every detail feed: exists + parses ──
-── 2. Public CDN proof (reported + samples) ──
-[13:06:28] ✅ 200 wl-10-yr-high-quality-market-hqm-pred [REPORTED] reason='needs >=6 members on a free source — map mor'
-[13:06:28] ✅ 200 wl-bond-global-high-yield-ex-usa-glob [REPORTED] reason='needs >=6 members on a free source — map mor'
-[13:06:28] ✅ 200 wl-buying-pressure-indicators [DORMANT] reason='mapped members lack fetchable history (only '
-[13:06:29] ✅ 200 wl-federal-reserve-liquidity [DORMANT] reason='needs >=6 members on a free source — map mor'
-[13:06:29] ✅ 200 wl-corporate-profits [DORMANT] reason='only 0 weeks of joint activation history (<1'
-[13:06:30] ✅ 200 wl-coincident-index [DORMANT] reason='needs >=6 members on a free source — map mor'
-[13:06:30] ✅ 200 wl-global-food-inflation [ACTIVE]
-[13:06:30] ✅ 200 wl-consumer-spending [ACTIVE]
-[13:06:30] ✅ ALL 207 engines on panels.html have working detail feeds
+executing-against: c87155dd62b01931ce637671f4913c556ba02cb4
+ops 3254 — prediction layer live + additions audit
+[13:18:25]   zip: 83534 bytes
+── 1. Lambda ──
+[13:18:26]   Lambda exists — updating
+[13:18:29] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[13:18:29]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[13:18:29] ✅   ✓ target → justhodl-wl-engines
+[13:18:29] ✅   ✓ added invoke permission
+── 1. Fleet run ──
+── 2. Predictions feed ──
+[13:18:54]   Buybacks: great barometer of global liquidity. they  → LIQUIDITY_THEME  corr -0.384 ext 53.5% (n=331) base 53.9% z=1.9 · LIQUIDITY_THEME DOWN within 13w
+[13:18:54]   Breadth: leads the Market                            → SPY              corr -0.440 ext 32.7% (n=52) base 78.3% z=0.32 · NEUTRAL
+[13:18:54]   Bonds - Sovereign : Bonds dumping especially soverei → SPY              corr +0.138 ext 78.1% (n=155) base 75.2% z=1.17 · SPY UP within 13w
+[13:18:54]   Bonds - Corp: AGG IS THE BEST TOOL TO GAUGE STOCK MA → SPY              corr +0.041 ext 77.5% (n=547) base 76.4% z=1.24 · SPY UP within 13w
+[13:18:54]   Fed Expected yield policy and future interest rates  → YIELDS10Y        corr -0.108 ext 48.1% (n=54) base 54.2% z=0.6 · NEUTRAL
+[13:18:54]   Futures                                              → SPY              corr -0.071 ext 37.8% (n=111) base 69.0% z=0.62 · NEUTRAL
+[13:18:54] ✅ 12 panel theses tested as predictions
+── 3. Yesterday's TV additions ──
+[13:18:54]   NEW/unengined: 3X ETF
+[13:18:54]   NEW/unengined: 68114374
+[13:18:54]   NEW/unengined: 71699273
+[13:18:54]   NEW/unengined: 82577015
+[13:18:54]   NEW/unengined: 82604570
+[13:18:54]   NEW/unengined: 87717856
+── 4. PREDICTIONS board live ──
+[13:23:55] ⚠ board literal not live in window
 
-→ Report written to aws/ops/reports/latest/3253_all_engines_audit.md
+→ Report written to aws/ops/reports/latest/3254_prediction_layer.md
