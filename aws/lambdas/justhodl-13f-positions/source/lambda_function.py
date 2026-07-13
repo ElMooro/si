@@ -717,12 +717,53 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
 CUSIP_MAP_KEY = "data/13f-cusip-map.json"
 
 
+_STOP = {"INC", "CORP", "CO", "COM", "LTD", "PLC", "SA", "NEW",
+         "CL", "CLASS", "A", "B", "THE", "HOLDINGS", "HLDGS",
+         "GROUP", "GRP", "COMPANY", "CORPORATION", "TRUST"}
+
+
+def _norm_name(n):
+    import re as _r
+    toks = [t for t in _r.sub(r"[^A-Z0-9 ]", " ",
+                              str(n or "").upper()).split()
+            if t not in _STOP]
+    return " ".join(toks)
+
+
+def _sec_titles(m):
+    """ops 3278c: SEC company_tickers.json = authoritative US
+    name→ticker (kills FMP name-collisions like ARGAN INC→ARLLF).
+    Cached daily inside the cusip-map doc."""
+    import time as _t
+    sec = m.get("_sec") or {}
+    if _t.time() - float(sec.get("at") or 0) < 86400             and sec.get("byname"):
+        return sec["byname"]
+    try:
+        req = urllib.request.Request(
+            "https://www.sec.gov/files/company_tickers.json",
+            headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.loads(r.read())
+        byname = {}
+        for v in (data or {}).values():
+            t = str(v.get("ticker") or "").upper()
+            nm = _norm_name(v.get("title"))
+            if t and nm and nm not in byname:
+                byname[nm] = t
+        m["_sec"] = {"at": _t.time(), "byname": byname}
+        print(f"[13f] SEC titles loaded: {len(byname)}")
+        return byname
+    except Exception as e:
+        print(f"[13f] SEC titles fetch failed: {e}")
+        return sec.get("byname") or {}
+
+
 def resolve_missing_tickers(fund_results, budget=150):
-    """ops 3278b: cusip_to_ticker_via_fmp existed but was NEVER wired.
-    Resolve every position lacking a real ticker via the FMP ladder,
-    persisted in data/13f-cusip-map.json (weekly retry for misses)."""
+    """ops 3278b/c: SEC-first authoritative resolution, FMP strict
+    tier-2, persisted map with self-healing src upgrades."""
     import time as _t
     m = get_s3_json(CUSIP_MAP_KEY) or {}
+    sec = _sec_titles(m)
     now = _t.time()
     fresh = 0
     for fd in fund_results:
@@ -734,21 +775,40 @@ def resolve_missing_tickers(fund_results, budget=150):
                 continue
             cu = pos.get("cusip") or ""
             e = m.get(cu) or {}
-            if e.get("ticker"):
-                pos["ticker"] = e["ticker"]
-                if e.get("name"):
-                    pos["name"] = pos.get("name") or e["name"]
+            nm = pos.get("name") or e.get("name") or ""
+            nn = _norm_name(nm)
+            sec_t = sec.get(nn)
+            if not sec_t and nn:
+                pref = [t for k2, t in sec.items()
+                        if k2.startswith(nn + " ")]
+                if len(set(pref)) == 1:
+                    sec_t = pref[0]
+            if sec_t:
+                if e.get("ticker") != sec_t:
+                    m[cu] = {"ticker": sec_t, "name": nm,
+                             "src": "sec", "tried_at": now}
+                pos["ticker"] = sec_t
                 continue
-            if now - float(e.get("tried_at") or 0) < 6 * 86400:
+            if e.get("ticker") and e.get("src") != "fmp-loose":
+                pos["ticker"] = e["ticker"]
+                continue
+            if now - float(e.get("tried_at") or 0) < 6 * 86400                     and e.get("src") == "fmp-strict-miss":
                 continue
             if fresh >= budget:
                 continue
             fresh += 1
-            t2, n2 = cusip_to_ticker_via_fmp(cu, pos.get("name") or "")
+            t2, n2 = cusip_to_ticker_via_fmp(cu, nm)
             _t.sleep(0.15)
-            m[cu] = {"ticker": t2, "name": n2, "tried_at": now}
-            if t2:
+            ok2 = bool(t2) and len(
+                set(_norm_name(n2).split())
+                & set(nn.split())) >= min(2, max(1, len(nn.split())))
+            if ok2 and t2.isalpha() and len(t2) <= 5:
+                m[cu] = {"ticker": t2, "name": n2, "src": "fmp",
+                         "tried_at": now}
                 pos["ticker"] = t2
+            else:
+                m[cu] = {"ticker": None, "name": nm,
+                         "src": "fmp-strict-miss", "tried_at": now}
     try:
         put_s3_json(CUSIP_MAP_KEY, m)
     except Exception:
