@@ -442,3 +442,17 @@ engines: one payload line, `"field": __import__("wl_series").block({...})`.
   proven post-deploy.
 - 7 other single-error functions: no recent traces — transients.
 - All 9 tonight-touched feeds fresh. **FLEET CERTIFIED.**
+
+## Daily brief × panel research (ops 3251)
+
+- justhodl-alpha-daily-brief now bundles **his_research** (top themes
+  by pressure, firing panels by name, top divergence, n_active) into
+  the LLM context AND persists it structurally in
+  data/alpha-brief.json. Live-verified: BREADTH 80.9p / LIQUIDITY
+  70.8p / INFLATION 62.4p, 6 firing named, divergence surfaced.
+- **Graceful degradation added**: on LLM failure the brief ships a
+  deterministic data-driven digest (regime + stress + HIS RESEARCH +
+  top alpha) instead of returning 500 with no brief at all.
+- **Intel**: composer ran as claude-haiku-4-5 — the Lambda env
+  Anthropic key WORKS; the dead-credits item applies to the CI runner
+  secrets only. Brief LLM path is alive today.
