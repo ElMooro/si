@@ -211,3 +211,28 @@ no_free_daily_source_gulf_venue). What remained was surgical:
 Open by name: Developed Markets (micros curated — verify next nightly),
 Europe Liquidity :BTPBUND (curated — next nightly), Global Deposit Rates,
 and the unknown roots CBOT:YIT1! / ICEEUR:I2!/EON2!/USW1!.
+
+## Continue-arc appendix (ops 3217–3220)
+
+- **Mirror sweep fleet-wide (3217)**: 140 phantom FRED-OECD mirrors
+  probed 0-pt and dry-ledgered (non-curated MEI families only —
+  curated/probe-proven exempt). "Resolved" now means fetchable
+  everywhere; dormant histogram honest: 49 need-mapping / 35
+  lack-history.
+- **ICEEUR:I2! curated** (3M Euribor via DBnomics ECB/FM, 100−rate ZQ
+  convention, 390 pts). EON2! all candidates dry — open.
+- **3218 member-by-member triage** named everything: Europe Liquidity's
+  dry members were TV EXPRESSION tiles (DE10Y-IT10Y etc.) on a failing
+  FORMULA path; Global Deposit Rates blocked on EUDIR/GBDIR; Developed
+  Markets blocked on CME_MINI:DVE2! (retired — no free source; sleeps
+  honestly at 5/6).
+- **3219 curations, all probe-verified**: 3 sovereign spreads via minus
+  (DE/FR/ES−IT, 422 pts each), EUDIR→FRED ECBDFR (deposit facility,
+  10,053 pts!), GBDIR→IR3TIB01GBM156N (433).
+- **⚠ OPEN ANOMALY (3220)**: runner's fresh run still counts the 5 new
+  members dry (3/7 and 4/6 z-scorable unchanged) though all fetch clean
+  ops-side and BTPBUND proves minus works in-runner. Prime suspect:
+  warm-container map staleness (invoked seconds after the map write).
+  DECISIVE CHECK: tonight's 22:30 UTC cold scheduled run — if Europe
+  Liquidity + Global Deposit Rates wake, closed; if not, instrument the
+  runner's map read next session.
