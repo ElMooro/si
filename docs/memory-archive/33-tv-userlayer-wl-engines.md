@@ -428,3 +428,17 @@ engines: one payload line, `"field": __import__("wl_series").block({...})`.
   pattern (cf-cache-status/age/last-modified + has_marker vs
   has_snippet-comment) decides stale-vs-stripped-vs-wrong-check in one
   fetch.
+
+## Fleet certification (ops 3248–3250)
+
+- 653 justhodl-* functions swept (batched Errors metric, 12h).
+- wl-engines' 27 errors: hourly distribution proved them clustered
+  02:00–03:00Z (pre-fix marathon era) — ZERO since, through every
+  deploy and run. Certified historical.
+- **theme-rotation-engine live crash FIXED**: `.get("breadth", {})`
+  only defaults when the key is ABSENT — a key holding None crashes the
+  chain. **Doctrine: `.get(k, {})` does not guard k:None — use
+  `(x.get(k) or {})`.** Or-guards at both breadth chains; clean run
+  proven post-deploy.
+- 7 other single-error functions: no recent traces — transients.
+- All 9 tonight-touched feeds fresh. **FLEET CERTIFIED.**
