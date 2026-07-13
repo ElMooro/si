@@ -1,6 +1,11 @@
-executing-against: f4bf9b840b20d74aa9b6cb0e63e48eb30f860d76
-ops 3205 — HIS RESEARCH chip live, definitively
-[04:34:37] ✗ chip still absent after fixed-UA bake — read the pages.yml bake log line '[rail] research chip …'
+executing-against: a2a3310178d8989989c6c1d0b14a12f5e7e094b0
+ops 3206 — rail chip with evidence
+── 1. Can a runner reach the fusion feed both ways? ──
+[04:36:05]   ✓ justhodl.ai: 10 themes
+[04:36:05]   ✓ s3.amazonaws.com: 10 themes
+── 2. Live payload evidence (waits out the pages deploy) ──
+[04:42:37]   payload: (no __jhRail in page)
+[04:42:37] ✗ live payload lacks research — the payload dump above names the failure mode
 
-→ Report written to aws/ops/reports/latest/3205_chip_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3205_chip_verify.py
+→ Report written to aws/ops/reports/latest/3206_chip_evidence.md
+❌ OPS-FAIL: aws/ops/pending/ops_3206_chip_evidence.py
