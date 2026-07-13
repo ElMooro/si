@@ -431,6 +431,60 @@ def map_symbol(sym, fred_search=None):
     return None, None, 0, f"exchange_unsupported:{ex}"
 
 
+DBN_PROVIDERS = {"IMF", "OECD", "BIS", "ECB", "Eurostat", "WB",
+                 "BOE", "ISTAT", "INSEE"}
+
+
+def dbn_search_factory(cache):
+    """DBnomics twin of fred_search_factory (ops 3190). Free-text search
+    over trusted statistical providers → up to 3 candidate series ids
+    'PROVIDER/DATASET/SERIES'. Memoised; every candidate is probe-gated by
+    the caller before it may enter the map. Defensive against both API
+    response shapes; never raises."""
+    def search(term, country=""):
+        key = f"dbn::{term}"
+        if key in cache:
+            return cache[key] or []
+        out = []
+        try:
+            q = urllib.parse.quote(term[:120])
+            d = _http("https://api.db.nomics.world/v22/search"
+                      f"?q={q}&limit=12", timeout=25)
+            docs = ((d.get("results") or {}).get("docs")
+                    if isinstance(d.get("results"), dict)
+                    else d.get("results")) or d.get("docs") or []
+            seen = set()
+            for ds in docs:
+                prov = ds.get("provider_code") or ""
+                code = ds.get("code") or ds.get("dataset_code") or ""
+                if prov not in DBN_PROVIDERS or not code \
+                        or (prov, code) in seen:
+                    continue
+                seen.add((prov, code))
+                try:
+                    cq = urllib.parse.quote((country or term)[:60])
+                    sd = _http(f"https://api.db.nomics.world/v22/series/"
+                               f"{prov}/{code}?limit=6&observations=0"
+                               f"&q={cq}", timeout=25)
+                    sdocs = ((sd.get("series") or {}).get("docs")
+                             or sd.get("docs") or [])
+                    for s in sdocs:
+                        sc = s.get("series_code")
+                        if sc:
+                            out.append(f"{prov}/{code}/{sc}")
+                        if len(out) >= 3:
+                            break
+                except Exception:
+                    continue
+                if len(out) >= 3:
+                    break
+        except Exception:
+            pass
+        cache[key] = out
+        return out
+    return search
+
+
 def fred_search_factory(cache):
     """FRED /series/search → best long-history match, memoised."""
     def search(term):
