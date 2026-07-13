@@ -1,0 +1,58 @@
+# ops 3230 — pct4 ships; growth engines close
+
+**Status:** success  
+**Duration:** 58.2s  
+**Finished:** 2026-07-13T06:57:58+00:00  
+
+## Data
+
+| active_before | active_now | coverage_now | curations | n_fails | n_warns | verdict | woken |
+|---|---|---|---|---|---|---|---|
+|  |  |  | 2 |  |  |  |  |
+|  |  | 74.1 |  |  |  |  |  |
+| 121 | 121 |  |  |  |  |  | 0 |
+|  |  |  |  | 0 | 1 | PASS |  |
+
+## Log
+## 1. Probe-gated curations
+
+- `06:57:01`   ECONOMICS:DEGDPYY      FRED~CLVMNACSCAB1GQDE~pct4                   137 pts
+- `06:57:01` ✅ ECONOMICS:DEGDPYY curated
+- `06:57:01`   ECONOMICS:FRGDPYY      FRED~CLVMNACSCAB1GQFR~pct4                   141 pts
+- `06:57:01` ✅ ECONOMICS:FRGDPYY curated
+- `06:57:06`   ECONOMICS:DEIFOE       OECD/DSD_KEI@DF_KEI/DEU.M.BC.IX._T.AA._Z     0 pts
+## 2. Write map + deploy consumers (shared changed)
+
+- `06:57:06`   zip: 80343 bytes
+## 1. Lambda
+
+- `06:57:06`   Lambda exists — updating
+- `06:57:11` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `06:57:12`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `06:57:12` ✅   ✓ target → justhodl-wl-engines
+- `06:57:12` ✅   ✓ added invoke permission
+- `06:57:14`   zip: 80150 bytes
+## 1. Lambda
+
+- `06:57:14`   Lambda exists — updating
+- `06:57:17` ✅   ✓ updated justhodl-thesis-engine
+## 2. EB rule + permissions
+
+- `06:57:17`   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+- `06:57:17` ✅   ✓ target → justhodl-thesis-engine
+- `06:57:17` ✅   ✓ added invoke permission
+- `06:57:20`   zip: 76191 bytes
+## 1. Lambda
+
+- `06:57:20`   Lambda exists — updating
+- `06:57:25` ✅   ✓ updated justhodl-symbol-dictionary
+## 2. EB rule + permissions
+
+- `06:57:25`   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+- `06:57:25` ✅   ✓ target → justhodl-symbol-dictionary
+- `06:57:25` ✅   ✓ added invoke permission
+## 3. Fleet run — wakes by name
+
+- `06:57:58` ⚠ no wakes — read the target engines' fresh reasons next
