@@ -412,3 +412,19 @@ inputs).
 
 All four verified live in one deploy+invoke pass. Pattern for future
 engines: one payload line, `"field": __import__("wl_series").block({...})`.
+
+## Fusion surfaced (ops 3245–3247) — data→screen closed
+
+- The four series-fusion blocks render as cards on their native desks:
+  europe_sovereign → risk-regime.html; euro_policy_corridor →
+  eurodollar.html; global_confidence (composite badge) →
+  chart-macro.html; btp_bund_canary → defcon.html. Pattern: identical
+  self-contained IIFE (config-only diff), independent fetch with
+  S3-direct fallback, prepends into <main> — zero coupling to existing
+  render code. All node-checked; all verified in served HTML.
+- **Verification doctrine (3245's miss)**: never grep served SOURCE for
+  a RUNTIME-composed string ('jh-fusion-'+C.field can't appear in
+  HTML). Check source LITERALS (the config string). The 3246 diagnostic
+  pattern (cf-cache-status/age/last-modified + has_marker vs
+  has_snippet-comment) decides stale-vs-stripped-vs-wrong-check in one
+  fetch.
