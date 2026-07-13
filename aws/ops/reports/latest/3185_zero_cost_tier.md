@@ -1,0 +1,71 @@
+# ops 3185 — the $0 tier
+
+**Status:** success  
+**Duration:** 662.5s  
+**Finished:** 2026-07-13T01:02:08+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Data
+
+| active | coverage_before | coverage_now | days_covered | dormant | engines | firing | metrics | n_fails | n_warns | pass1_added | pass1_days | series_cached | src_coingecko | src_formula | src_fred | src_internals | src_market | src_worldbank | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  |  |  |  |  |  |  |  | 1253 | 1500 |  |  |  |  |  |  |  |  |
+|  |  |  | 1500 |  |  |  | 11 |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | 59.9 | 68.2 |  |  |  |  |  |  |  |  |  |  | 37 | 337 | 833 | 13 | 1917 | 1298 |  |
+| 107 |  |  |  | 55 | 162 | 22 |  |  |  |  |  | 2019 |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  | 0 | 0 |  |  |  |  |  |  |  |  |  | PASS |
+
+## Log
+## 1. Market internals engine (replaces the USI vendor feed)
+
+- `00:51:05`   zip: 65479 bytes
+## 1. Lambda
+
+- `00:51:06`   Lambda exists — updating
+- `00:51:09` ✅   ✓ updated justhodl-market-internals
+- `00:51:09` ✅   ✓ Function URL: https://whkcldf7cq4775bwlrspoq5keq0wkgqp.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `00:51:10` ✅   ✓ created rule market-internals-daily
+- `00:51:10` ✅   ✓ target → justhodl-market-internals
+- `00:51:10` ✅   ✓ added invoke permission
+- `00:55:53`   ADVANCERS          2026-07-10  →  3188
+- `00:55:53`   DECLINERS          2026-07-10  →  2794
+- `00:55:53`   ADVDEC_LINE        2026-07-10  →  50265.0
+- `00:55:53`   TRIN               2026-07-10  →  0.926
+- `00:55:53`   NEW_HIGHS          2026-07-10  →  164
+- `00:55:53`   NEW_LOWS           2026-07-10  →  86
+- `00:55:53`   PCT_ABOVE_50DMA    2026-07-10  →  55.08
+- `00:55:53`   PCT_ABOVE_200DMA   2026-07-10  →  51.59
+- `00:55:53` ✅ breadth complex COMPUTED over 1500 days — the vendor feed he was quoted for costs him nothing
+## 2. Re-map the universe (countries + TVC + USI)
+
+- `01:00:06` ✅ coverage 59.9% → 68.2% (+536 symbols, $0 spent)
+## 3. Re-run the fleet — how many engines woke up?
+
+- `01:02:08` ✅ ACTIVE engines 96 → 107 (+11 woken for $0)
+- `01:02:08` ── FIRING (22):
+- `01:02:08`   Foreign Exchange Reserves      [LIQUIDITY] 100.0p → Portugal — Total reserves (inc; Germany — Total reserves (incl
+- `01:02:08`   Frontier Market ETFS           [OTHER    ]  93.5p → NASDAQ:MSSCX; NASDAQ:MSSVX
+- `01:02:08`   Different Types of Stock index [BREADTH  ]  93.4p → Invesco Exchange-Traded Fund T; Invesco Exchange-Traded Fund T
+- `01:02:08`   82577015                       [OTHER    ]  89.9p → NASDAQ:COOP; Net Worth Held by the Bottom 5
+- `01:02:08`   Commodities : are often rented [INFLATION]  89.9p → Global price of Agr. Raw Mater; Global price of Aluminum
+- `01:02:08`   EuroDollar Predict future move [LIQUIDITY]  89.8p → Invesco Exchange-Traded Fund T; Nikkei 225 Index
+- `01:02:08`   82604570                       [OTHER    ]  89.7p → iShares Global Tech ETF; Federal government current tax
+- `01:02:08`   Energy and oil stocks          [BREADTH  ]  89.6p → MARATHON PETROLEUM CORPORATION; International Seaways, Inc. Co
+- `01:02:08`   EuroDollar banks               [DOLLAR   ]  88.5p → UBS Group AG; Morgan Stanley
+- `01:02:08`   Finland : a major producer of  [OTHER    ]  88.3p → Finland — Total reserves (incl; iShares MSCI Finland ETF
+- `01:02:08`   Emerging Markets Liquidity: $  [LIQUIDITY]  87.6p → Invesco S&P Emerging Markets M; Columbia Research Enhanced Eme
+- `01:02:08`   fed powell holding             [RATES    ]  87.2p → GS ActiveBeta U.S. Small Cap E; iShares MSCI Emerging Markets 
+## 4. What this would have cost
+
+- `01:02:08`   USI internals feed  → COMPUTED from Polygon (already owned)
+- `01:02:08`   ECONOMICS (190 countries) → World Bank + OECD, free
+- `01:02:08`   TVC yields + indices     → FRED/OECD + Yahoo, free
+- `01:02:08`   Vendor quote avoided: on-chain Glassnode API ~$799-999/mo
+- `01:02:08`   REMAINING paid gap: ~700 foreign-listed equities → EODHD €19.99/mo (the only purchase worth making)
