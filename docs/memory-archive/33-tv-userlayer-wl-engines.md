@@ -526,3 +526,22 @@ so no CF 403-caching residue possible.
 - Ingest confirmed safe: id-merge for both notes and watchlists;
   watchlists-only pushes valid by design. brain=9,200 notes total
   (tv-provenance lives behind the API store, not data/brain.json).
+
+## Brain permanence PROVEN (ops 3258)
+
+- **Canonical brain (Cloudflare KV, uid brain-930ffa48…): 12,122 total
+  notes, 2,920 TV-provenance** — queried live through the same worker
+  door the upserts write through. SSM /justhodl/brain/uid already
+  matched canonical; no uid split, no repair needed.
+- Khalid's design intent CONFIRMED: notes + watchlists are copied into
+  the brain and kept permanently — TV cookies irrelevant to what's
+  already stored. data/brain.json (9,200) is brain-sync's OLDER S3
+  distillation copy — KV is the authority; the earlier "0 tv notes"
+  alarm was a stale-mirror artifact.
+- S3 bucket versioning: **Enabled** — mirror + watchlists carry full
+  write history too.
+- Cookie refresh (SSM /justhodl/tradingview/sessionid) matters ONLY for
+  autonomously capturing NEW notes going forward; extension re-run is
+  the manual alternative. Nothing already captured is at risk.
+- Optional completionist gap: mirror 3,322 vs brain-tv 2,920 (~400
+  id-scheme/short-text differences) — top-up available if wanted.
