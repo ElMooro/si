@@ -174,3 +174,22 @@ still execute the OLD package until `LastUpdateStatus == "Successful"`.
 Any verify script that waits on code freshness MUST check
 `LastUpdateStatus`/`State` too (plus a short settle sleep), or it can
 invoke pre-fix code at age 0.0 — observed live ops 3019.
+
+## ENGINE CONTRACT (Khalid directive, 2026-07-13 — permanent)
+
+Every TradingView note and watchlist panel MUST materialize in the
+engine layer. This is a standing product contract, not a preference:
+
+- **Panels: any size activates — 1 indicator is enough.** Coverage
+  1.00 with a single member is a valid, active engine (composite
+  mode). Only genuine data absence (zero fetchable members anywhere)
+  may leave a panel dormant, and always with a named reason. No design
+  gate — member count, coverage, breadth-history length — may ever
+  block activation again.
+- **Notes: every note feeds ≥1 consumer** (ticker stance → rankers /
+  best-setups / equity-research; rules → playbook engine; macro →
+  themes/fusion; everything → brain). Notes referencing fetchable
+  symbols not covered by any panel are candidates for note-born
+  engines.
+- **New notes and watchlists auto-materialize on the next fleet run**
+  — no manual steps, ever.
