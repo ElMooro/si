@@ -412,8 +412,20 @@ def lambda_handler(event, context):
     for n in all_notes:
         ex_map[n["id"]] = n
     merged = list(ex_map.values())[-MAX_NOTES:]
-    doc = mirror_write(merged)
-    print("[crawler] mirror written: %d notes" % len(merged))
+    # ops 3257: NEVER-SHRINK guard — a transient existing-read failure
+    # plus a partial TV response once clobbered a 3.3k mirror down to
+    # 10 notes. Re-read fresh at write time; refuse any write that
+    # halves a healthy mirror.
+    try:
+        ex_now = len((mirror_read() or {}).get("notes") or [])
+    except Exception:
+        ex_now = 0
+    if ex_now >= 50 and len(merged) < max(50, ex_now // 2):
+        print("[crawler] SHRINK-BLOCKED: merged=%d < existing=%d — "
+              "mirror kept (ops 3257)" % (len(merged), ex_now))
+    else:
+        mirror_write(merged)
+        print("[crawler] mirror written: %d notes" % len(merged))
 
     # ── Phase 7: upsert to brain ─────────────────────────────────────────
     brain_ok = brain_err = 0
