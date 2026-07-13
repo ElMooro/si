@@ -1,11 +1,8 @@
-executing-against: 0ec99439c83ee901f1c1bc31e63cf828ce4996dd
-ops 3202 — credit-stress: schedule-safe deploy + fusion proof
-[04:08:48]   string schedule (cron(0 20 ? * MON-FRI *)) — existing EB rule left untouched, code-only deploy
-[04:08:49]   zip: 75053 bytes
-── 1. Lambda ──
-[04:08:49]   Lambda exists — updating
-[04:08:54] ✅   ✓ updated justhodl-credit-stress
-[04:08:55] ✅   ✓ Function URL: https://vlpbramkjn5ymqgkwq2efiav2a0mlmlo.lambda-url.us-east-1.on.aws/
-[04:09:01] ✅ all SIXTEEN target engines now fused — wave 1 complete
+executing-against: eb4ba892778afab8a954d157211704297c5caedc
+ops 3203 — panels desk + site-wide research chip, verified live
+── 1. Fusion feed sanity ──
+── 2. Poll the live site (pages deploy in flight) ──
+[04:16:00] ✅ panels.html LIVE (11813 bytes) after ~150s
+[04:20:01] ⚠ rail research payload not seen on flows.html yet — re-bake lands on the next pages deploy; verify then
 
-→ Report written to aws/ops/reports/latest/3202_credit_stress_fused.md
+→ Report written to aws/ops/reports/latest/3203_pages_wave.md
