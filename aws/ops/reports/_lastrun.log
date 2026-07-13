@@ -1,10 +1,13 @@
-executing-against: c451b6e63ab2ce9d32fcce2486078c20d0c5d415
-ops 3234 — browse DBnomics' own structures, then probe
-── 1. EUBCOI — ei_bssi_m_r2 dims browsed ──
-── 2. EUMPRYY — ECB M3 growth via search ──
-── 3. DEIFOE — Ifo expectations via search ──
-── 4. DEZCC — ZEW current conditions via search ──
-[07:09:55] ⚠ ei_bssi browse: 'list' object has no attribute 'get'
-[07:09:55] ⚠ nothing landed — all four stay open with the browse evidence above
+executing-against: 60441a884b52730232017bb997f068aaca9c92d7
+ops 3235 — shape-agnostic browse-then-probe
+── 0. Endpoint skeletons (for the record) ──
+[07:11:59]   datasets/Eurostat/ei_bssi_m_r2: {"_meta": {"args": "dict", "version": "str"}, "datasets": {"docs": "list", "limit": "int", "num_found": "int", "offset": "int"}}
+[07:12:01]   search?q=ifo&limit=2: {"_meta": {"args": "dict", "version": "str"}, "results": {"docs": "list", "limit": "int", "num_found": "int", "offset": "int"}}
+── 1-4. Search-probe the four blockers ──
+[07:12:07]   [ECONOMICS:EUBCOI] 0 candidates
+[07:12:09]   [ECONOMICS:EUMPRYY] 0 candidates
+[07:12:26]   [ECONOMICS:DEIFOE] 0 candidates
+[07:12:29]   [ECONOMICS:DEZCC] 0 candidates
+[07:12:29] ⚠ nothing landed — skeletons above show what the API actually returns
 
-→ Report written to aws/ops/reports/latest/3234_browse_probe.md
+→ Report written to aws/ops/reports/latest/3235_shape_agnostic.md
