@@ -299,3 +299,21 @@ weekly history can never hit 100 — honest, named, closed.
   browses the DBnomics dataset dims instead of guessing.
 - Dry-tried (don't retry blind): Eurostat sts_inpr_m M.PROD.B-D.SCA.I21
   dims; OECD KEI BC measure.
+
+## Browse-probe close (ops 3234–3236) — Europe Growth AWAKE
+
+- 3234/3235 taught the API's real shapes (v22 /search returns DATASET
+  docs; series live under /series/{prov}/{code}?q=). The lesson was
+  already encoded: **dbn_search_factory IS the proven pattern** — reuse
+  it, don't reinvent.
+- 3236 via the factory: **ECONOMICS:EUBCOI →
+  Eurostat/EI_BSIN_M_R2/M.BS-ICI.NSA.BAL.EA20 (423 pts)** — dataset name
+  EI_BSIN (not ei_bssi), unguessable. **⏰ Europe Growth WOKE → ACTIVE
+  123.**
+- EUMPRYY M3 candidates annual/short (≤11 pts) — open, no longer needed
+  for the wake. DEIFOE/DEZCC: zero candidates even via the proven
+  searcher — Ifo/ZEW are not on DBnomics' free surface; Euro Predict is
+  licensed-class-blocked, honestly.
+- **NIGHT TOTAL: ACTIVE 115 → 123 (+8)**: Euro Dollar Shortage, Feds
+  Rates, Forex, Durable Goods, DXY-symmetric, Europe Liquidity, France,
+  Europe Growth.
