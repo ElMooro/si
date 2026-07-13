@@ -136,3 +136,37 @@ tail — machinery in place for organic growth), ITB 130 + GLASSNODE 55
 (proprietary), TVC 83, USI 77 (tape/scoped), CBOEEU 40 (no primaries),
 EUREX 34 / ICEEUR 28 (exotic roots), DFM 14 / ADX 13 (Gulf venues, no free
 daily source).
+
+## Fusion arc appendix (ops 3201–3207, same night — "fuse the new data everywhere")
+
+Audit found wl-fusion (evidence-weighted, additive-only, multipliers
+[0.90,1.10], divergence board, 22:50 TUE-SAT) built but consumed by only 2
+targets and invisible on all 366 pages. Shipped:
+
+- **3201/3202 — 18 engine consumers**: wl_fusion.block() = one-line
+  never-raising fusion surface; SIXTEEN engines attach theme-filtered
+  "wl_research" (regime/crisis/risk-regime, global-liquidity,
+  dollar-radar, master-ranker, credit-stress, liquidity-credit,
+  cycle-clock, macro-nowcast, equity-confluence, breadth-thrust/
+  -divergence, crypto-liquidity/-emergence, eurodollar-plumbing) +
+  alpha-compass/best-setups already wired. Proven in 5 live feeds.
+  Gotcha: some config.json carry STRING schedules — type-safe parse,
+  never churn a live EB rule on a format guess.
+- **3203 — /panels.html**: the research desk (theme pressure board,
+  divergence board, 162-engine table, live feeds only). LIVE in 150s.
+- **3204 — COT widened**: extremes-scanner merges cot/universe-ext.json
+  (generated from the map's probe-proven CFTC codes + dictionary names,
+  additive, hardcoded wins collisions) → 7 watchlist contracts in the
+  first widened snapshot.
+- **3205-3207 — the chip, evidence-first**: HIS RESEARCH rail chip
+  site-wide. Three failure modes eliminated in order: CF-filtered custom
+  UA (→ Mozilla + cache-buster, the proven fetch_age shape), fetch-path
+  doubt (→ S3-direct fallback, both proven reachable), and the REAL one —
+  flows-class pages fetch via ${CDN} templates and never matched the
+  rail's data-ref regex (→ widened; flagship pages are no longer
+  silently rail-less). Chip proven live on BOTH classes; first live
+  divergence: "LIQUIDITY panels ELEVATED while global-liquidity reads
+  NEUTRAL".
+
+Doctrine: when a verifier fails twice, stop fixing the guess — make the
+next ops DUMP THE EVIDENCE (the actual live payload) into the report.
