@@ -1,10 +1,16 @@
-executing-against: 19966edef4f4ebed0ce9a64fdef4667185397f1b
-ops 3258 — brain permanence: evidence, repair, proof
-── 1. Evidence — both uids ──
-[13:45:55]   canonical brain: notes=12122 tv=2920
-── 2. Repair — canonical brain gets the full corpus ──
-[13:45:56]   no repair needed — canonical already carries the corpus
-── 3. Proof — canonical brain + data/brain.json ──
-[13:46:05] ✅ PERMANENCE PROVEN: 2920 TV notes live in the canonical brain — no daily extension needed; the brain keeps them regardless of TV cookies
+executing-against: 02dc6907bb36938084f5587d1ae7673189102d40
+ops 3259 — top-up + stance fusion verified + research docs carry his notes
+── 1. Top-up to full parity ──
+── 2. Stance fusion — live in the three rankers ──
+── 3. equity-research ← khalid_notes ──
+[14:01:06]   zip: 121990 bytes
+── 1. Lambda ──
+[14:01:06]   Lambda exists — updating
+[14:01:11] ✅   ✓ updated justhodl-equity-research
+[14:02:38] ✅ NVDA research doc carries khalid_notes: stance=BEARISH n=2 latest='[TV:NASDAQ:NVDA] IS NVIDIA EXPENSIVE?  Nvidia pe is 26.6. no'
+[14:02:38] ⚠ brain-TV 2920 still short of mirror
+[14:02:38] ⚠ data/master-rank.json: no notes field visible in rows
+[14:02:38] ⚠ data/best-setups.json: no notes field visible in rows
+[14:02:38] ⚠ data/alpha-compass.json: no notes field visible in rows
 
-→ Report written to aws/ops/reports/latest/3258_brain_permanence.md
+→ Report written to aws/ops/reports/latest/3259_notes_everywhere.md
