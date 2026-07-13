@@ -269,6 +269,13 @@ EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
 # templates: map_symbol emits rung 0; the mapping ops probes it with a real
 # fetch and climbs the ladder on a dry hit. Nothing counts unprobed.
 ECON_DBN = {
+    # learned from ops 3191 probe-proven hits — exact dataset shapes:
+    "CLI":   ["OECD/DSD_KEI@DF_KEI/{i3}.M.LI.IX._T.AA._Z"],
+    "BLR":   ["ECB/MIR/M.{i2}.B.A20.A.R.A.2240.EUR.O"],
+    "INTR":  ["ECB/MIR/M.{i2}.B.A20.A.R.A.2240.EUR.O",
+              "IMF/IFS/M.{i2}.FILR_PA",
+              "IMF/IFS/M.{i2}.FIMM_PA"],
+    "BP":    ["Eurostat/STS_COBP_M/M.BPRM_DW.CPA_F41001.NSA.I15.{i2}"],
     "CBBS":  ["IMF/IFS/M.{i2}.FASAF_XDC",      # central bank assets
               "IMF/IFS/Q.{i2}.FASAF_XDC",
               "IMF/IFS/A.{i2}.FASAF_XDC"],
@@ -433,16 +440,20 @@ def map_symbol(sym, fred_search=None):
 
 DBN_PROVIDERS = {"IMF", "OECD", "BIS", "ECB", "Eurostat", "WB",
                  "BOE", "ISTAT", "INSEE"}
+# vendor-licensed econ families — no free primary exists (S&P Global PMI,
+# Conference Board LEI). Tagged for honest retirement, never faked.
+ECON_LICENSED = {"MPMI", "SPMI", "CPMI", "LEI"}
 
 
 def dbn_search_factory(cache):
-    """DBnomics twin of fred_search_factory (ops 3190). Free-text search
-    over trusted statistical providers → up to 3 candidate series ids
-    'PROVIDER/DATASET/SERIES'. Memoised; every candidate is probe-gated by
-    the caller before it may enter the map. Defensive against both API
-    response shapes; never raises."""
-    def search(term, country=""):
-        key = f"dbn::{term}"
+    """DBnomics twin of fred_search_factory (ops 3190, hardened 3192).
+    ops 3191 shipped a BRCLI→Australia mis-resolution — same hazard class
+    as 3188's BER→KLSE. Hardening: a candidate is REJECTED unless the
+    symbol's own country token (ISO2 or ISO3) appears as a dimension token
+    in the series code. Free-text ranking never overrides country again."""
+    def search(term, country="", iso=()):
+        toks = {t for t in iso if t}
+        key = f"dbn2::{'|'.join(sorted(toks))}::{term}"
         if key in cache:
             return cache[key] or []
         out = []
@@ -470,8 +481,13 @@ def dbn_search_factory(cache):
                              or sd.get("docs") or [])
                     for s in sdocs:
                         sc = s.get("series_code")
-                        if sc:
-                            out.append(f"{prov}/{code}/{sc}")
+                        if not sc:
+                            continue
+                        if toks and not (toks & set(
+                                str(sc).upper().replace("-", ".")
+                                .split("."))):
+                            continue        # wrong country — hard reject
+                        out.append(f"{prov}/{code}/{sc}")
                         if len(out) >= 3:
                             break
                 except Exception:
