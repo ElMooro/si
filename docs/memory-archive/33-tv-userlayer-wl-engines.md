@@ -285,3 +285,17 @@ weekly history can never hit 100 — honest, named, closed.
   "Euro Predict" (ECONOMICS:DEIFOE Ifo expectations / DEZCC ZEW),
   "Europe Growth" (EUGDPGA / DEGDPYY — needs a pct4 YoY transform over
   Eurostat/FRED GDP levels), "France" (FRLG / FRGDPYY / FRIPYY).
+
+## Growth-pair close (ops 3230–3233)
+
+- pct4 transform shipped (YoY over quarterly levels). Live-family wins:
+  DEGDPYY/FRGDPYY/EUGDPYY via FRED CLVMNACSCAB1GQ{DE,FR,EA19}~pct4;
+  EUGDPGA via ~pct1 (noted non-annualized); FRUR → Eurostat une_rt_m
+  (431); FRBR → ECB/MIR/M.FR.B.A2A.A.R.A.2240.EUR.N (317); PX1 → ^FCHI
+  (PX1 IS the CAC40's Euronext ticker — truthful, not padding).
+- **France WOKE → ACTIVE 122.** Europe Growth 5/6 wet: last member =
+  EUBCOI (Eurostat ei_bssi_m_r2 dims tried M.BS-ICI.SA.EA19 → dry) or
+  EUMPRYY (ECB/BSI M.U2.Y.V.M30.X.I.U2.2300.Z01.A → dry) — next session
+  browses the DBnomics dataset dims instead of guessing.
+- Dry-tried (don't retry blind): Eurostat sts_inpr_m M.PROD.B-D.SCA.I21
+  dims; OECD KEI BC measure.
