@@ -187,8 +187,35 @@ FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
        # ops 3189: remaining CME/CBOT roots Yahoo genuinely carries
        "ZF": "ZF=F", "ZT": "ZT=F", "ZM": "ZM=F", "ZL": "ZL=F",
        "HE": "HE=F", "GF": "GF=F", "PA": "PA=F", "YM": "YM=F",
-       "RTY": "RTY=F", "KE": "KE=F", "ZO": "ZO=F", "ZR": "ZR=F"}
-FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT"}
+       "RTY": "RTY=F", "KE": "KE=F", "ZO": "ZO=F", "ZR": "ZR=F",
+       "6E": "6E=F", "6J": "6J=F", "6B": "6B=F", "6A": "6A=F",
+       "6C": "6C=F", "6S": "6S=F", "6N": "6N=F", "DX": "DX=F"}
+FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT",
+          "CME_MINI", "CBOT_MINI"}
+
+# ── European futures → cash proxies (ops 3196) ──────────────────────
+# EUREX/ICE-Europe continuous contracts have no free daily feed. The cash
+# instrument (or the yield the bond future prices) is the free primary the
+# z-engines can honestly consume — every mapping carries a PROXY note, and
+# bond futures use the NEGATED yield so the sign of exposure is preserved.
+EU_FUT_PROXY = {
+    "FESX": ("MARKET", "^STOXX50E", "EuroStoxx50 future → cash index"),
+    "FDAX": ("MARKET", "^GDAXI", "DAX future → cash index"),
+    "FSMI": ("MARKET", "^SSMI", "SMI future → cash index"),
+    "FTMIB": ("MARKET", "FTSEMIB.MI", "MIB future → cash index"),
+    "FGBL": ("DERIVED", "FRED~IRLTLT01DEM156N~negate",
+             "Bund future ≈ −DE 10Y yield"),
+    "FBTP": ("DERIVED", "FRED~IRLTLT01ITM156N~negate",
+             "BTP future ≈ −IT 10Y yield"),
+    "FOAT": ("DERIVED", "FRED~IRLTLT01FRM156N~negate",
+             "OAT future ≈ −FR 10Y yield"),
+    "EMM": ("MARKET", "EEM", "ICE MSCI EM future → EEM (proxy)"),
+    "MME": ("MARKET", "EEM", "ICE MSCI EM future → EEM (proxy)"),
+    "MFS": ("MARKET", "EFA", "ICE MSCI EAFE future → EFA (proxy)"),
+    "Z": ("MARKET", "^FTSE", "ICE FTSE100 future → cash index"),
+    "B": ("MARKET", "BZ=F", "ICE Brent → Yahoo continuous"),
+    "G": ("MARKET", "BZ=F", "ICE gasoil → Brent complex (proxy)"),
+}
 
 # ── free on-chain + CFTC (ops 3189) ─────────────────────────────────
 # GLASSNODE / INTOTHEBLOCK watchlist tiles are vendor views of metrics the
@@ -386,6 +413,9 @@ def map_symbol(sym, fred_search=None):
                             f"{i2} short rate (3M interbank proxy)")
                 return ("FRED", f"IRLTLT01{i3}M156N", 0.85,
                         f"{i2} long-term govt bond yield")
+            if i3:                            # non-OECD → IMF IFS (ops 3195)
+                return ("DBNOMICS", f"IMF/IFS/M.{i2}.FIGB_PA", 0.6,
+                        f"{i2} govt bond yield via IMF IFS (probe-gated)")
         if fred_search:
             hit = fred_search(t)
             if hit:
@@ -431,6 +461,13 @@ def map_symbol(sym, fred_search=None):
         if code.startswith(("TICK", "TIKI", "PREM")):
             return None, None, 0, "usi_intraday_only"
         return None, None, 0, "usi_unmapped"
+    if ex in ("EUREX", "ICEEUR", "ICEEU", "ICE"):
+        root = re.sub(r"\d*!?$", "", t)
+        hit = EU_FUT_PROXY.get(root)
+        if hit:
+            psrc, psid, why = hit
+            return psrc, psid, 0.6, f"{why} (ops 3196)"
+        return None, None, 0, "eu_futures_unmapped"
     if ex in ("GLASSNODE", "INTOTHEBLOCK", "COINMETRICS"):
         a, _, m = t.partition("_")
         asset = CM_ASSETS.get(a[:6]) or CM_ASSETS.get(a[:4]) \
