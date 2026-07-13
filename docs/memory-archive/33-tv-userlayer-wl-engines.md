@@ -456,3 +456,19 @@ engines: one payload line, `"field": __import__("wl_series").block({...})`.
 - **Intel**: composer ran as claude-haiku-4-5 — the Lambda env
   Anthropic key WORKS; the dead-credits item applies to the CI runner
   secrets only. Brief LLM path is alive today.
+
+## Drawer 403s fixed (ops 3252)
+
+- ROOT CAUSE: detail feeds were written only for scored panels — every
+  DORMANT engine 403'd in the drill drawer (S3 answers missing keys
+  with 403, not 404). Runner now writes a thin detail doc
+  (detail_level=dormant-min, same keys the drawer reads, NAMED reason)
+  for every non-ACTIVE row; ACTIVE docs proven untouched
+  (foreign-exchange-reserves still rich: w13 n=67, 118 members).
+- MEMBERS column did (int||[]).length → 'undefined' — int-safe mrc()
+  in renderer + sorter.
+- Drawer catch now renders the row's index data (state, reason,
+  members) instead of a raw error — no residual gap can surface as a
+  bare 403 again.
+- Khalid's reported key wl-10-yr-high-quality-market-hqm-pred verified
+  EXISTS with its reason post-fix; page live with both fixes in 120s.
