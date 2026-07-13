@@ -183,8 +183,38 @@ TV_WB = {"EU": "EMU", "SZ": "CH", "UK": "GB", "SY": "SY", "SP": "ES",
 FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
        "ZC": "ZC=F", "ZS": "ZS=F", "ZW": "ZW=F", "ZB": "ZB=F", "ZN": "ZN=F",
        "ES": "ES=F", "NQ": "NQ=F", "RB": "RB=F", "HO": "HO=F", "KC": "KC=F",
-       "CT": "CT=F", "SB": "SB=F", "CC": "CC=F", "LE": "LE=F", "PL": "PL=F"}
+       "CT": "CT=F", "SB": "SB=F", "CC": "CC=F", "LE": "LE=F", "PL": "PL=F",
+       # ops 3189: remaining CME/CBOT roots Yahoo genuinely carries
+       "ZF": "ZF=F", "ZT": "ZT=F", "ZM": "ZM=F", "ZL": "ZL=F",
+       "HE": "HE=F", "GF": "GF=F", "PA": "PA=F", "YM": "YM=F",
+       "RTY": "RTY=F", "KE": "KE=F", "ZO": "ZO=F", "ZR": "ZR=F"}
 FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT"}
+
+# ── free on-chain + CFTC (ops 3189) ─────────────────────────────────
+# GLASSNODE / INTOTHEBLOCK watchlist tiles are vendor views of metrics the
+# Coin Metrics COMMUNITY API serves free (no key, daily, 2010+). COT3 tiles
+# embed the CFTC contract-market code — publicreporting.cftc.gov serves the
+# full weekly history free. Both are probe-gated by the mapping ops before
+# an entry is allowed to count toward coverage.
+CM_ASSETS = {"BTC": "btc", "ETH": "eth", "LTC": "ltc", "XRP": "xrp",
+             "ADA": "ada", "DOGE": "doge", "BCH": "bch", "XLM": "xlm",
+             "DOT": "dot", "SOL": "sol", "LINK": "link", "XMR": "xmr",
+             "ZEC": "zec", "ETC": "etc", "BSV": "bsv", "DASH": "dash",
+             "ALGO": "algo", "XTZ": "xtz", "EOS": "eos", "TRX": "trx",
+             "AVAX": "avax", "MATIC": "matic", "UNI": "uni", "AAVE": "aave"}
+CM_METRICS = {  # substring of the TV tile name → community metric id
+    "ACTIVEADDRESS": "AdrActCnt", "ADDRESSESACTIVE": "AdrActCnt",
+    "TRANSACTIONCOUNT": "TxCnt", "TXCOUNT": "TxCnt", "TRANSACTION": "TxCnt",
+    "TRANSFERVOLUME": "TxTfrValAdjUSD", "TXVOLUME": "TxTfrValAdjUSD",
+    "TOTALFEES": "FeeTotUSD", "AVERAGEFEE": "FeeMeanUSD",
+    "MEANFEE": "FeeMeanUSD", "FEE": "FeeTotUSD",
+    "REALIZEDCAP": "CapRealUSD", "MARKETCAP": "CapMrktCurUSD",
+    "MVRV": "CapMVRVCur", "NVT": "NVTAdj", "VELOCITY": "VelCur1yr",
+    "HASHRATE": "HashRate", "DIFFICULTY": "DiffMean",
+    "MINERREVENUE": "RevUSD", "REVENUE": "RevUSD", "ISSUANCE": "IssTotUSD",
+    "BLOCKCOUNT": "BlkCnt", "SUPPLY": "SplyCur", "CIRCULATING": "SplyCur",
+    "PRICE": "PriceUSD"}
+CM_METRIC_KEYS = sorted(CM_METRICS, key=len, reverse=True)
 
 # TVC world indices → Yahoo (free, deep history)
 TVC_INDEX = {
@@ -333,6 +363,36 @@ def map_symbol(sym, fred_search=None):
         if m:
             return "INTERNALS", m, 0.8, "computed from Polygon grouped daily"
         return None, None, 0, "usi_unmapped"
+    if ex in ("GLASSNODE", "INTOTHEBLOCK", "COINMETRICS"):
+        a, _, m = t.partition("_")
+        asset = CM_ASSETS.get(a[:6]) or CM_ASSETS.get(a[:4]) \
+            or CM_ASSETS.get(a[:3])
+        mk = m.replace("_", "").replace("-", "")
+        met = next((CM_METRICS[k] for k in CM_METRIC_KEYS if k in mk), None)
+        if asset and met:
+            return ("COINMETRICS", f"{asset}|{met}", 0.8,
+                    f"on-chain via Coin Metrics community ({met})")
+        return None, None, 0, "onchain_unmapped"
+    if ex in ("COT3", "COT", "CFTC"):
+        c = re.match(r"^(\d{5,6})", t)
+        if c:
+            toks = set(t.split("_"))
+            ds = "jun7-fc8e" if "FO" in toks else "6dca-aqww"
+            if "COMMERCIAL" in t and "NONCOMM" not in t:
+                fld = "comm_net"
+            elif "NONREPT" in t or "SMALL" in t:
+                fld = "nonrept_net"
+            elif "OI" in toks or "OPENINTEREST" in t:
+                fld = "open_interest"
+            else:
+                fld = "noncomm_net"
+            if fld.endswith("_net") and "L" in toks:
+                fld = fld.replace("_net", "_long")
+            elif fld.endswith("_net") and "S" in toks:
+                fld = fld.replace("_net", "_short")
+            return ("COT", f"{ds}|{c.group(1)}|{fld}", 0.85,
+                    "CFTC public reporting (free weekly)")
+        return None, None, 0, "cot_unmapped"
     if ex in ("CRYPTOCAP", "BINANCE", "COINBASE", "BITSTAMP", "BITFINEX"):
         return "COINGECKO", t.replace("USDT", "").replace("USD", "").lower(), \
             0.6, "crypto"
@@ -495,6 +555,64 @@ def _eodhd(sid, start):
     return out
 
 
+def _coinmetrics(sid, start):
+    """sid = 'asset|Metric' → Coin Metrics community v4 (no key, daily)."""
+    asset, _, met = sid.partition("|")
+    out = {}
+    url = ("https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
+           f"?assets={asset}&metrics={met}&frequency=1d&page_size=10000"
+           f"&start_time={start}")
+    for _ in range(6):                     # paged
+        d = _http(url, timeout=30)
+        for r in d.get("data") or []:
+            v = r.get(met)
+            if v not in (None, ""):
+                try:
+                    out[str(r.get("time", ""))[:10]] = float(v)
+                except Exception:
+                    pass
+        url = d.get("next_page_url")
+        if not url:
+            break
+    return out
+
+
+_COT_F = {"noncomm_net": ("noncomm_positions_long_all",
+                          "noncomm_positions_short_all"),
+          "comm_net": ("comm_positions_long_all",
+                       "comm_positions_short_all"),
+          "nonrept_net": ("nonrept_positions_long_all",
+                          "nonrept_positions_short_all"),
+          "noncomm_long": ("noncomm_positions_long_all", None),
+          "noncomm_short": ("noncomm_positions_short_all", None),
+          "comm_long": ("comm_positions_long_all", None),
+          "comm_short": ("comm_positions_short_all", None),
+          "open_interest": ("open_interest_all", None)}
+
+
+def _cot(sid, start):
+    """sid = 'dataset|cftc_code|field' → CFTC Socrata (free, weekly)."""
+    ds, code, fld = sid.split("|")
+    lcol, scol = _COT_F.get(fld, _COT_F["noncomm_net"])
+    cols = ",".join(c for c in ("report_date_as_yyyy_mm_dd", lcol, scol) if c)
+    d = _http(f"https://publicreporting.cftc.gov/resource/{ds}.json"
+              f"?cftc_contract_market_code={code}&%24select={cols}"
+              "&%24order=report_date_as_yyyy_mm_dd&%24limit=5000", timeout=30)
+    out = {}
+    for r in d if isinstance(d, list) else []:
+        dt = str(r.get("report_date_as_yyyy_mm_dd", ""))[:10]
+        if not dt or dt < start:
+            continue
+        try:
+            v = float(r.get(lcol) or 0)
+            if scol:
+                v -= float(r.get(scol) or 0)
+            out[dt] = v
+        except Exception:
+            pass
+    return out
+
+
 def fetch(source, sid, start="1990-01-01"):
     """→ {ISO date: float}. Never raises.
 
@@ -565,6 +683,10 @@ def fetch(source, sid, start="1990-01-01"):
             val = docs[0].get("value") or []
             return {p: float(v) for p, v in zip(per, val)
                     if isinstance(v, (int, float)) and p >= start[:len(p)]}
+        if source == "COINMETRICS":
+            return _coinmetrics(sid, start)
+        if source == "COT":
+            return _cot(sid, start)
         if source == "COINGECKO":
             if sid in ("total", "btc_dominance"):
                 return {}
