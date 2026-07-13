@@ -584,3 +584,26 @@ so no CF 403-caching residue possible.
 - Next-ups noted (not built): surface playbook-rules on a page
   (why.html or panels), EB schedule via Scheduler, master-ranker
   khalid_note visible after its next cron.
+
+## Playbook surfaced + scheduled; ranker proof on the TRUE key (ops 3264–3266)
+
+- **PLAYBOOK strip live on panels.html** (3264): flagship yield-curve
+  countdown card (inversion onset 2024-09-05 · 22.2/30 months ·
+  marker 2027-03-05, progress bar) + top rules with family tags;
+  loadPlayb() beside loadPred(), reads data/playbook-rules.json.
+- **Weekly schedule created** (EventBridge Scheduler — classic rule
+  cap saturated): justhodl-playbook-weekly, cron(0 7 ? * MON *) UTC,
+  role justhodl-scheduler-role, an hour after the notes crawler.
+- **master-ranker khalid_note PROVEN** (3266): the page fetches
+  **data/master-ranker.json** — 3260/3264/3265 checked
+  data/master-rank.json (verifier key typo). The join ran and attached
+  the entire time (log: khalid_notes=4, DONE in ~5s). Live proof on
+  the true key: LRCX BULLISH / PLD MIXED / BG BEARISH / SPG MIXED
+  among top_tickers. **Doctrine: verify against the key the PAGE
+  fetches, never an assumed name.** Note: join sets the field only
+  when a note exists (if _kn:) — rows_with_field == non_null by
+  design. 3265 (failed status, benign effects: env-preserving
+  redeploy + invoke) moved to ran/, closed by 3266.
+- Notes directive now closed with proof across every consumer:
+  best-setups ✓ alpha-compass ✓ master-ranker ✓ equity-research ✓
+  + brain semantic parity ✓ + playbook engine surfaced + scheduled ✓.
