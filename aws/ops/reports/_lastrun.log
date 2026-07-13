@@ -1,52 +1,33 @@
-executing-against: 54091431038bf3da472b1790e15528977f03a592
-ops 3223 — traced run, env confirmed first
-[06:06:55]   [trace] stamp=2026-07-13T05:58:55 fresh_cut=2026-07-07T06:04:47 todo=1346
-[06:06:55]   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=False todo=True
-[06:06:55]   [trace] ECONOMICS:GBDIR: need=True cache_pre=True todo=False
-[06:06:55]   [trace] ECONOMICS:EUDIR: need=True cache_pre=False todo=True
-[06:06:55]   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:06:55]   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
-[06:06:55]   [series_source] COINMETRICS:eth|FeeTotUSD failed: HTTP Error 403: Forbidden
-[06:06:55]   [series_source] COINGECKO:total2 failed: HTTP Error 404: Not Found
-[06:06:55]   [series_source] COINMETRICS:btc|FeeTotUSD failed: HTTP Error 403: Forbidden
-[06:06:55]   [series_source] COINGECKO:c failed: HTTP Error 401: Unauthorized
-[06:06:55]   [series_source] COINGECKO:btcshorts failed: HTTP Error 404: Not Found
-[06:06:55]   [series_source] COINGECKO:eth.d failed: HTTP Error 404: Not Found
-[06:06:55]   [series_source] COINGECKO:doge.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:others.d failed: HTTP Error 404: Not Found
-[06:06:55]   [series_source] COINGECKO:total3es failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:total3 failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totales failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:total2es failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totale50 failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totale100 failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:total3esbtc failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totale100.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totaldefi.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totale50.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totales.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:totaldefi failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:others failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:bitcoin failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:c.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:btc failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINMETRICS:matic|SplyCur failed: HTTP Error 400: Bad Request
-[06:06:55]   [series_source] COINGECKO:matic failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:crv failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:bitcoin failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINMETRICS:matic|AdrActCnt failed: HTTP Error 400: Bad Request
-[06:06:55]   [series_source] COINGECKO:shib.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:crv.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:stable.c.d failed: HTTP Error 429: Too Many Requests
-[06:06:55]   [series_source] COINGECKO:bitcoin failed: HTTP Error 401: Unauthorized
-[06:06:55]   [series_source] COINGECKO:ethereum failed: HTTP Error 401: Unauthorized
-[06:06:55]   [trace] TVC:ES10Y-TVC:IT10Y: weekly=0 zc=False
-[06:06:55]   [trace] ECONOMICS:GBDIR: weekly=9 zc=False
-[06:06:55]   [trace] ECONOMICS:EUDIR: weekly=0 zc=False
-[06:06:55]   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
-[06:06:55]   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
-[06:06:55]   Europe Liquidity :BTPBUND  measure fin DORMANT resolved=5
-[06:06:55]   Global Deposit Rates Which drains liqu DORMANT resolved=4
+executing-against: 5c45105ad040bae0d40828a4c04476716f003080
+ops 3224 — ids-ledger cache, polite fetchers, honest aggregates
+── 1. Evict poisoned cache entries + retire fake aggregates ──
+── 2. Deploy (config-propagation AWAITED) ──
+[06:10:07]   zip: 79842 bytes
+── 1. Lambda ──
+[06:10:07]   Lambda exists — updating
+[06:10:10] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[06:10:11]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[06:10:11] ✅   ✓ target → justhodl-wl-engines
+[06:10:11] ✅   ✓ added invoke permission
+[06:10:12]   zip: 80006 bytes
+── 1. Lambda ──
+[06:10:12]   Lambda exists — updating
+[06:10:15] ✅   ✓ updated justhodl-thesis-engine
+── 2. EB rule + permissions ──
+[06:10:16]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[06:10:16] ✅   ✓ target → justhodl-thesis-engine
+[06:10:16] ✅   ✓ added invoke permission
+[06:10:18]   zip: 76047 bytes
+── 1. Lambda ──
+[06:10:18]   Lambda exists — updating
+[06:10:24] ✅   ✓ updated justhodl-symbol-dictionary
+── 2. EB rule + permissions ──
+[06:10:25]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[06:10:25] ✅   ✓ target → justhodl-symbol-dictionary
+[06:10:25] ✅   ✓ added invoke permission
+── 3. Fleet run — wakes by name ──
+[06:12:23]   → Europe Liquidity :BTPBUND  measure f DORMANT resolved=5
+[06:12:23]   → Global Deposit Rates Which drains li DORMANT resolved=4
 
-→ Report written to aws/ops/reports/latest/3223_trace_now.md
+→ Report written to aws/ops/reports/latest/3224_cache_truth.md
