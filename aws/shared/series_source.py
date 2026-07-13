@@ -215,6 +215,16 @@ CM_METRICS = {  # substring of the TV tile name → community metric id
     "BLOCKCOUNT": "BlkCnt", "SUPPLY": "SplyCur", "CIRCULATING": "SplyCur",
     "PRICE": "PriceUSD"}
 CM_METRIC_KEYS = sorted(CM_METRICS, key=len, reverse=True)
+# vendor tiles that are TRANSFORMS of free primaries (ops 3193) — computed,
+# not bought: token → (base community metric, transform in _derived)
+CM_DERIVED = {
+    "ATHDRAWDOWN": ("PriceUSD", "drawdown_ath"),
+    "DRAWDOWNFROMATH": ("PriceUSD", "drawdown_ath"),
+    "PRICEDRAWDOWN": ("PriceUSD", "drawdown_ath"),
+    "NUPL": ("CapMVRVCur", "nupl_mvrv"),
+    "PRICEATH": ("PriceUSD", "running_max"),
+}
+CM_DERIVED_KEYS = sorted(CM_DERIVED, key=len, reverse=True)
 
 # TVC world indices → Yahoo (free, deep history)
 TVC_INDEX = {
@@ -411,6 +421,11 @@ def map_symbol(sym, fred_search=None):
         if asset and met:
             return ("COINMETRICS", f"{asset}|{met}", 0.8,
                     f"on-chain via Coin Metrics community ({met})")
+        dv = next((CM_DERIVED[k] for k in CM_DERIVED_KEYS if k in mk), None)
+        if asset and dv:
+            base, tr = dv
+            return ("DERIVED", f"COINMETRICS~{asset}|{base}~{tr}", 0.75,
+                    f"computed {tr} over {base} (ops 3193)")
         return None, None, 0, "onchain_unmapped"
     if ex in ("COT3", "COT", "CFTC"):
         c = re.match(r"^(\d{5,6})", t)
@@ -715,6 +730,42 @@ def _cot(sid, start):
     return out
 
 
+def _derived(sid, start):
+    """sid = 'SRC~ID~transform' (ops 3193). Deterministic transforms over a
+    base series fetched through the normal ladder. Real data in, math out —
+    never a synthetic substitute for a missing primary."""
+    try:
+        base_src, base_id, tr = sid.split("~", 2)
+    except ValueError:
+        return {}
+    base = fetch(base_src, base_id, start)
+    if not base:
+        return {}
+    ks = sorted(base)
+    out, mx, prev = {}, None, None
+    for k in ks:
+        v = base[k]
+        if tr == "negate":
+            out[k] = -v
+        elif tr == "pct1":
+            if prev not in (None, 0):
+                out[k] = 100.0 * (v / prev - 1.0)
+            prev = v
+        elif tr == "drawdown_ath":
+            mx = v if mx is None or v > mx else mx
+            if mx:
+                out[k] = 100.0 * (v / mx - 1.0)
+        elif tr == "running_max":
+            mx = v if mx is None or v > mx else mx
+            out[k] = mx
+        elif tr == "nupl_mvrv":
+            if v:
+                out[k] = 100.0 * (v - 1.0) / v
+        else:
+            return {}
+    return out
+
+
 def fetch(source, sid, start="1990-01-01"):
     """→ {ISO date: float}. Never raises.
 
@@ -785,6 +836,8 @@ def fetch(source, sid, start="1990-01-01"):
             val = docs[0].get("value") or []
             return {p: float(v) for p, v in zip(per, val)
                     if isinstance(v, (int, float)) and p >= start[:len(p)]}
+        if source == "DERIVED":
+            return _derived(sid, start)
         if source == "COINMETRICS":
             return _coinmetrics(sid, start)
         if source == "COT":
