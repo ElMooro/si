@@ -1,15 +1,7 @@
-executing-against: bcaa1f1615a76dfea44d76f175b9535cf874967f
-ops 3260 — id-parity + ranker fusion proven
-── 1. Parity by ID ──
-[14:04:39]     PUT err: HTTP Error 400: Bad Request
-[14:04:39]     PUT err: HTTP Error 400: Bad Request
-[14:04:39]     PUT err: HTTP Error 400: Bad Request
-── 2. khalid_note riding the rankers — proven ──
-[14:04:41] ✅ data/best-setups.json: 74 rows carry khalid_note (14 non-null) — e.g. NVDA stance=BEARISH
-[14:04:41] ✅ data/alpha-compass.json: 3 rows carry khalid_note (0 non-null) — e.g. NEM stance=None
-[14:04:41] ⚠ data/master-rank.json: khalid_note not found anywhere in feed
-[14:04:41] ⚠ some ranker feeds pre-date the join — next scheduled run refreshes them
-[14:04:41] ✗ 403 mirror notes still absent from brain
+executing-against: 5ce7340128ee1e9085b916f81a7e9249bb0ae56b
+ops 3261 — parity with the {note:{…}} wrapper
+[14:08:11]     err: HTTP Error 400: Bad Request
+[14:08:18] ✗ 373 still absent
 
-→ Report written to aws/ops/reports/latest/3260_parity_proof.md
-❌ OPS-FAIL: aws/ops/pending/ops_3260_parity_proof.py
+→ Report written to aws/ops/reports/latest/3261_parity_wrapped.md
+❌ OPS-FAIL: aws/ops/pending/ops_3261_parity_wrapped.py
