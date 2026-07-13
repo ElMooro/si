@@ -1,13 +1,6 @@
-executing-against: 11619c10f90f43d92917d94a2ad92d64b85dfc4b
-ops 3211 — ledger counted right, crash named or gone
-── 1. Paginated ledger count ──
-[05:05:26]   wl#wl-frontier-market-etfs#2026-28  UP
-[05:05:26]   wl#wl-global-commodities-prices#2026-28  UP
-[05:05:26]   wl#wl-foreign-exchange-reserves#2026-28  UP
-[05:05:26]   wl#wl-fed-powell-holding#2026-28  UP
-── 2. Guarded run: crash gone or NAMED ──
-[05:06:49] ✅ index fresh (2026-07-13T05:05:27) — 24 firing
-[05:06:50] ✗ only 13 wl_ signals after full pagination
+executing-against: fcbf7ae625e145cd618b3cbe46b950a4d1b59b0a
+ops 3212 — ledger presence by exact key
+[05:08:18] ✗ only 0/24 present by exact key
 
-→ Report written to aws/ops/reports/latest/3211_settle.md
-❌ OPS-FAIL: aws/ops/pending/ops_3211_settle.py
+→ Report written to aws/ops/reports/latest/3212_ledger_exact.md
+❌ OPS-FAIL: aws/ops/pending/ops_3212_ledger_exact.py
