@@ -85,6 +85,17 @@ jobs:
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
+      - name: Version drawer tag on index (reskin skips index)  # ops 3272c
+        run: |
+          python3 - <<'V'
+          import hashlib, pathlib
+          v = hashlib.md5(open('jh-nav-drawer.js', 'rb').read()).hexdigest()[:8]
+          p = pathlib.Path('_site/index.html')
+          s = p.read_text()
+          p.write_text(s.replace('src="/jh-nav-drawer.js"',
+                                 'src="/jh-nav-drawer.js?v=' + v + '"'))
+          print('index drawer v', v)
+          V
       - name: Bake SEO layer (canonical/OG/description + sitemap)
         run: python3 scripts/bake_seo.py _site || true
       - uses: actions/upload-pages-artifact@v3
