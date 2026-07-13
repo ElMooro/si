@@ -671,3 +671,27 @@ so no CF 403-caching residue possible.
   candidate (Country Import Prices, 20 raw wk) is z-nascent and
   self-wakes as history accrues. Notes census: 3,322 notes → 536
   tickers indexed → 4 consumers + 563 playbook rules + themes + brain.
+
+## Favorites cache chain closed + TV WATCHLISTS on the charts page (ops 3272–3273)
+
+- **Why Khalid still saw no stars after 3269**: three stacked caches —
+  (1) drawer JS had no version param (browser held old code);
+  (2) manifest fetch had no buster (CDN held July-5 list);
+  (3) index.html is SKIPPED by reskin ('native') so its hardcoded tag
+  never versioned. FIXES: reskin injects content-hashed
+  `?v=<md5-8>` src + normalizes pre-existing hardcoded tags across
+  all pages; drawer fetches manifest with hourly buster; dedicated
+  pages.yml step versions the index tag. Homepage verified serving
+  versioned tag. One reload on his side = fresh world.
+- **TV WATCHLISTS live on the charts page** (charts.html → chart-pro):
+  new section atop the EXISTING left drawer (edge-tab summon =
+  his TV-like disappear/reappear, jh_wl_open): list <select> (all
+  harvest lists), symbol rail, ↑/↓ arrow browsing, position remembered
+  (jh_wl_pos). Router: equity `EXCH:TICK` → ChartController.loadTicker
+  (+State.symbolResolution); FRED-mapped plain ids → loadTicker;
+  derived/transform/ECONOMICS tiles → overlay pane (own
+  LightweightCharts line) fed by **justhodl-wl-series-api**
+  (Function URL nu4umjskc25osscrbmqh3o2gte0utlkx…, CORS *, container-
+  cached fleet gz, 6h refresh) — proof TVC:DXY n=1906. Cache keys are
+  ISO-WEEKS ('2026-28') → wk2d() converts to Monday dates for
+  LightweightCharts. Esc closes overlay.
