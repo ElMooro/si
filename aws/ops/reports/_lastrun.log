@@ -1,8 +1,25 @@
-executing-against: 87edd4d286b88c6054d21932c58d6153fef79ede
-ops 3207 — HIS RESEARCH chip proven on both page classes
-── 1. Known-qualifying page (live now) ──
-[04:44:26] ✅ accumulation.html: research live — …"research":{"theme":"BREADTH","pressure":82.1,"verdict":"EXTREME","firing":5,"of":7,"div":"His LIQUIDITY panels are ELEVATED (64.7th pctile, 6/15 firing) while global-liquidity reads 'NEUTRAL'. Worth 
-── 2. flows-class after the widened regex (this deploy) ──
-[04:46:41] ✅ flows.html: rail + research live (CDN-class fixed)
+executing-against: ca5ba5361d575fa7eb62b26bf4f7f440820dedf4
+ops 3208 — panels enter the trust ledger; nothing is silently dropped
+── 1. Deploy patched runner + full run ──
+[04:55:36]   zip: 78819 bytes
+── 1. Lambda ──
+[04:55:36]   Lambda exists — updating
+[04:55:45] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[04:55:45]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[04:55:45] ✅   ✓ target → justhodl-wl-engines
+[04:55:45] ✅   ✓ added invoke permission
+── 2. Reconcile 207-vs-162 ──
+[04:57:08]   DORMANT  47 × needs >=6 members on a free source — map more of its indicators to act
+[04:57:08]   DORMANT  39 × mapped members lack fetchable history
+[04:57:08]   DORMANT   3 × only 0 weeks of joint activation history
+[04:57:08]   DORMANT   1 × only 20 weeks of joint activation history
+[04:57:08]   DORMANT   1 × only 28 weeks of joint activation history
+[04:57:08] ✅ every list accounted for — 207/207, zero silent drops
+── 3. wl_ signals in DynamoDB ──
+── 4. Outcome-checker ingest ──
+[04:58:17] ⚠ checker invoke: An error occurred (TooManyRequestsException) when calling the Invoke operation (
+[04:58:17] ✗ firing panels exist but zero wl_ signals landed
 
-→ Report written to aws/ops/reports/latest/3207_chip_final.md
+→ Report written to aws/ops/reports/latest/3208_grading_reconcile.md
+❌ OPS-FAIL: aws/ops/pending/ops_3208_grading_reconcile.py
