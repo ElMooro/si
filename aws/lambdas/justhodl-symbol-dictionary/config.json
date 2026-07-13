@@ -1,0 +1,7 @@
+{
+  "function_name": "justhodl-symbol-dictionary",
+  "memory": 2048,
+  "timeout": 900,
+  "description": "Authoritative full name for every symbol in Khalid's 207 watchlists: FRED series metadata (title/units/frequency/history), Polygon reference for equities and ETFs, World Bank indicator + country catalog, and a decoder for TradingView's ECONOMICS codes. Writes data/symbol-dictionary.json — the layer that lets engines reason about WHAT an indicator is.",
+  "schedule": {"rule_name": "symbol-dictionary-weekly", "cron": "cron(0 5 ? * SUN *)"}
+}

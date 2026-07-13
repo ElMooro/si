@@ -17,7 +17,7 @@
   .main{flex:1;overflow-y:auto;padding:20px 24px 60px}
   .main h2{font-size:17px;margin:0 0 6px}
   .meta{font-size:11.5px;color:var(--jh-dim,#8a836f);margin-bottom:14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px}
   .sym{padding:7px 9px;border:1px solid var(--jh-line,#2B2820);border-radius:6px;font-size:11.5px;font-family:'IBM Plex Mono',monospace;display:flex;gap:6px;align-items:center}
   .badge{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700}
   .b-FRED{background:rgba(111,206,138,.16);color:#6fce8a}
@@ -43,14 +43,16 @@
 <script>
 (function(){
   var CDN='https://justhodl-data-proxy.raafouis.workers.dev';
-  var LISTS=[], MAP={}, cur=null;
+  var LISTS=[], MAP={}, DICT={}, cur=null;
   var esc=function(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
   Promise.all([
     fetch(CDN+'/data/tv-watchlists.json?t='+Date.now()).then(function(r){return r.json();}),
-    fetch(CDN+'/data/symbol-map.json?t='+Date.now()).then(function(r){return r.ok?r.json():{map:{}};}).catch(function(){return {map:{}};})
+    fetch(CDN+'/data/symbol-map.json?t='+Date.now()).then(function(r){return r.ok?r.json():{map:{}};}).catch(function(){return {map:{}};}),
+    fetch(CDN+'/data/symbol-dictionary.json?t='+Date.now()).then(function(r){return r.ok?r.json():{dictionary:{}};}).catch(function(){return {dictionary:{}};})
   ]).then(function(res){
     LISTS=(res[0].lists||[]).filter(function(l){return !String(l.id||'').startsWith('e2e-');});
     MAP=(res[1]&&res[1].map)||{};
+    DICT=(res[2]&&res[2].dictionary)||{};
     LISTS.sort(function(a,b){return (b.symbols||[]).length-(a.symbols||[]).length;});
     var tot=LISTS.reduce(function(s,l){return s+(l.symbols||[]).length;},0);
     document.getElementById('side-sub').textContent=LISTS.length+' lists · '+tot.toLocaleString()+' symbols';
@@ -73,10 +75,22 @@
     document.getElementById('title').textContent=l.name;
     var syms=l.symbols||[];
     var resolved=syms.filter(function(s){var m=MAP[s.toUpperCase()];return m&&m.source;}).length;
-    document.getElementById('meta').innerHTML=syms.length+' indicators · <b style="color:var(--jh-green,#6fce8a)">'+resolved+'</b> mapped to a free source ('+Math.round(100*resolved/Math.max(1,syms.length))+'%)';
+    var named=syms.filter(function(x){return (DICT[x.toUpperCase()]||{}).name;}).length;
+    document.getElementById('meta').innerHTML=syms.length+' indicators · <b style="color:var(--jh-green,#6fce8a)">'+resolved+'</b> priced from a free source ('+Math.round(100*resolved/Math.max(1,syms.length))+'%) · <b>'+named+'</b> with full names';
     document.getElementById('syms').innerHTML=syms.map(function(s){
-      var m=MAP[s.toUpperCase()]||{}; var src=m.source||'NONE';
-      return '<div class="sym"><span>'+esc(s)+'</span><span class="badge b-'+src+'" title="'+esc(m.id||m.note||'no free source mapped yet')+'">'+src+'</span></div>';
+      var K=s.toUpperCase(); var m=MAP[K]||{}; var d=DICT[K]||{};
+      var src=m.source||d.source||'NONE';
+      var srcTicker=(m.id||d.source_id||'');
+      var pretty=(src==='FRED'?'FRED: '+srcTicker:(src==='WORLDBANK'?'World Bank: '+String(srcTicker).replace('|',' · '):(srcTicker?src+': '+srcTicker:'')));
+      var meta=[d.units,d.frequency&&('freq '+d.frequency),d.history].filter(Boolean).join(' · ');
+      return '<div class="sym" style="display:block">'+
+        '<div style="display:flex;gap:6px;align-items:center">'+
+          '<span style="font-weight:600">'+esc(d.name||s)+'</span>'+
+          '<span class="badge b-'+src+'" style="margin-left:auto">'+src+'</span>'+
+        '</div>'+
+        '<div style="font-size:10px;color:var(--jh-dim,#8a836f);margin-top:3px">'+esc(s)+(pretty?'  →  <b style="color:var(--jh-amber,#F0B429)">'+esc(pretty)+'</b>':'')+'</div>'+
+        (meta?'<div style="font-size:9.5px;color:var(--jh-dim,#8a836f);margin-top:2px">'+esc(meta)+'</div>':'')+
+      '</div>';
     }).join('');
   }
   document.getElementById('q').oninput=function(){render(this.value);};
