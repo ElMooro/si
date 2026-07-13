@@ -1,10 +1,7 @@
 {
+  "function_name": "justhodl-market-internals",
+  "memory": 3008,
   "timeout": 900,
-  "schedule": {
-    "rule_name": "market-internals-hourly",
-    "cron": "cron(15 21 ? * MON-FRI *)",
-    "description": "Market Internals breadth dashboard refresh"
-  },
-  "description": "Market Internals \u2014 A/D line + McClellan + % above MAs + 52w H/L",
-  "memory": 1024
+  "description": "US market internals COMPUTED from the Polygon grouped-daily feed Khalid already pays for: advancers/decliners, adv-dec line, up/down volume, TRIN, new 52w highs/lows, % above 50/200 DMA. Replaces the USI vendor feed at zero incremental cost. Writes data/market-internals.json.",
+  "schedule": {"rule_name": "market-internals-daily", "cron": "cron(40 22 ? * TUE-SAT *)"}
 }

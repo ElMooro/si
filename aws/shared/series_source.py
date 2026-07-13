@@ -42,6 +42,28 @@ ISO2_ISO3 = {
     "VN": "VNM", "AR": "ARG", "CL": "CHL", "CO": "COL", "PE": "PER",
     "SA": "SAU", "IL": "ISR", "HK": "HKG", "SG": "SGP", "TW": "TWN",
     "CZ": "CZE", "HU": "HUN", "RO": "ROU", "SZ": "CHE", "SY": "SYR",
+    # ops 3185: the ECONOMICS gap was COUNTRIES, not indicators — his lists
+    # span 190+ countries and the map only held ~50.
+    "AE": "ARE", "AL": "ALB", "AO": "AGO", "BD": "BGD", "BG": "BGR",
+    "BH": "BHR", "BJ": "BEN", "BO": "BOL", "BW": "BWA", "BY": "BLR",
+    "CD": "COD", "CI": "CIV", "CM": "CMR", "CR": "CRI", "CY": "CYP",
+    "DO": "DOM", "DZ": "DZA", "EC": "ECU", "EE": "EST", "EG": "EGY",
+    "ET": "ETH", "GA": "GAB", "GE": "GEO", "GH": "GHA", "GQ": "GNQ",
+    "GT": "GTM", "HN": "HND", "HR": "HRV", "IQ": "IRQ", "IR": "IRN",
+    "IS": "ISL", "JM": "JAM", "JO": "JOR", "KE": "KEN", "KH": "KHM",
+    "KM": "COM", "KW": "KWT", "KZ": "KAZ", "LB": "LBN", "LK": "LKA",
+    "LR": "LBR", "LT": "LTU", "LU": "LUX", "LV": "LVA", "LY": "LBY",
+    "MA": "MAR", "MD": "MDA", "ME": "MNE", "MK": "MKD", "MM": "MMR",
+    "MN": "MNG", "MT": "MLT", "MU": "MUS", "MZ": "MOZ", "NA": "NAM",
+    "NG": "NGA", "NP": "NPL", "OM": "OMN", "PA": "PAN", "PK": "PAK",
+    "PY": "PRY", "QA": "QAT", "RS": "SRB", "RW": "RWA", "SD": "SDN",
+    "SI": "SVN", "SK": "SVK", "SN": "SEN", "SS": "SSD", "TN": "TUN",
+    "TZ": "TZA", "UA": "UKR", "UG": "UGA", "UY": "URY", "UZ": "UZB",
+    "VE": "VEN", "YE": "YEM", "ZM": "ZMB", "ZW": "ZWE", "AZ": "AZE",
+    "AM": "ARM", "BA": "BIH", "BN": "BRN", "BF": "BFA", "BI": "BDI",
+    "MW": "MWI", "ML": "MLI", "NE": "NER", "TD": "TCD", "TG": "TGO",
+    "SL": "SLE", "SO": "SOM", "MG": "MDG", "LA": "LAO", "PG": "PNG",
+    "FJ": "FJI", "TT": "TTO", "SV": "SLV", "NI": "NIC", "CU": "CUB",
 }
 
 # indicator suffix → FRED series template (OECD Main Economic Indicators
@@ -136,6 +158,21 @@ ECON_WB = {
     "IPRI": "TM.VAL.MRCH.XD.WD",      # import price index
     "EPRI": "TX.VAL.MRCH.XD.WD",      # export price index
     "MIN": "NY.GDP.MINR.RT.ZS",
+    # ops 3185: the remaining high-count codes in his universe
+    "GDPQQ": "NY.GDP.MKTP.KD.ZG",     # GDP QoQ → annual growth proxy
+    "BR": "FR.INR.LEND",              # bank rate
+    "CPR": "FR.INR.RINR",             # corporate/real rate proxy
+    "IC": "IC.BUS.EASE.XQ",           # business environment
+    "CU": "NV.IND.MANF.ZS",           # capacity/industry share proxy
+    "FO": "BX.KLT.DINV.CD.WD",        # foreign investment inflow
+    "MTO": "TM.VAL.MRCH.CD.WT",       # merchandise imports
+    "PSC": "FS.AST.PRVT.GD.ZS",       # private sector credit / GDP
+    "CCR": "FS.AST.DOMS.GD.ZS",       # domestic credit / GDP
+    "GS2": "NY.GNS.ICTR.ZS",
+    "INBR": "FR.INR.LEND",            # interbank → lending rate proxy (WB)
+    "BCOI": "IC.BUS.EASE.XQ",         # business climate (non-OECD fallback)
+    "CBBS": "FM.LBL.BMNY.CN",         # broad money as a CB-balance proxy
+    "NO": "NV.IND.MANF.KD.ZG",        # new orders → manufacturing growth
 }
 
 # TradingView ISO2 quirks → World Bank ISO2
@@ -148,6 +185,33 @@ FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
        "ES": "ES=F", "NQ": "NQ=F", "RB": "RB=F", "HO": "HO=F", "KC": "KC=F",
        "CT": "CT=F", "SB": "SB=F", "CC": "CC=F", "LE": "LE=F", "PL": "PL=F"}
 FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT"}
+
+# TVC world indices → Yahoo (free, deep history)
+TVC_INDEX = {
+    "AEX": "^AEX", "CAC": "^FCHI", "CAC40": "^FCHI", "IBEX": "^IBEX",
+    "IBEX35": "^IBEX", "SMI": "^SSMI", "SX5E": "^STOXX50E",
+    "STOXX50E": "^STOXX50E", "SX7E": "^SX7E", "ASX": "^AXJO",
+    "XJO": "^AXJO", "TSX": "^GSPTSE", "SPTSX": "^GSPTSE",
+    "IBOV": "^BVSP", "BVSP": "^BVSP", "KOSPI": "^KS11", "KS11": "^KS11",
+    "SENSEX": "^BSESN", "NIFTY": "^NSEI", "TAIEX": "^TWII",
+    "STI": "^STI", "PSI": "^PSI20", "OMXS30": "^OMX",
+    "MIB": "FTSEMIB.MI", "FTSEMIB": "FTSEMIB.MI", "IMOEX": "IMOEX.ME",
+    "RUT": "^RUT", "RUI": "^RUI", "SPX": "^GSPC", "NDX": "^NDX",
+    "DJI": "^DJI", "NI225": "^N225", "DAX": "^GDAXI", "UKX": "^FTSE",
+    "HSI": "^HSI", "VIX": "^VIX", "TNX": "^TNX",
+}
+# TVC bond-yield codes: {ISO2}{TENOR}Y → OECD mirrors on FRED (1990+)
+TVC_YIELD = re.compile(r"^([A-Z]{2})(\d{2})(M?)Y$")
+
+# OECD MEI mirrors on FRED only exist for OECD members. ops 3185 caught
+# me routing Zimbabwe to BSCICP03ZWEM665S — a series that does not exist.
+# Non-members go to the World Bank, which actually covers them.
+OECD_MEMBERS = {
+    "US", "GB", "DE", "FR", "IT", "ES", "JP", "CA", "AU", "NZ", "KR",
+    "MX", "CL", "CO", "CR", "TR", "IL", "CH", "SE", "NO", "DK", "FI",
+    "IS", "IE", "NL", "BE", "AT", "PT", "GR", "LU", "PL", "CZ", "HU",
+    "SK", "SI", "EE", "LV", "LT", "EU",
+}
 
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
 FX_EX = {"FX", "OANDA", "FOREXCOM", "FX_IDC", "SAXO"}
@@ -193,7 +257,7 @@ def map_symbol(sym, fred_search=None):
             i2, ind = m.groups()
             i3 = ISO2_ISO3.get(i2)
             tpl = FRED_TEMPLATES.get(ind)
-            if i3 and tpl:                       # OECD monthly (best history)
+            if i3 and tpl and i2 in OECD_MEMBERS:   # OECD monthly (best freq)
                 return "FRED", tpl.format(i3=i3), 0.85, f"OECD template {ind}"
             wb = ECON_WB.get(ind)
             if wb:                               # World Bank annual, 1960+
@@ -206,11 +270,48 @@ def map_symbol(sym, fred_search=None):
                 return "FRED", hit[0], 0.5, f"fred-search: {hit[1][:60]}"
         return None, None, 0, "econ_unmapped"
     if ex == "TVC":
+        # world index?
+        y = TVC_INDEX.get(t)
+        if y:
+            return "MARKET", y, 0.9, "TVC world index"
+        # global bond yield? 10Y → OECD long rate; short tenors → 3M interbank
+        m = TVC_YIELD.match(t)
+        if m:
+            i2, tenor, mo = m.groups()
+            i3 = ISO2_ISO3.get(i2)
+            if i3 and i2 in OECD_MEMBERS:
+                if mo or int(tenor) <= 2:
+                    return ("FRED", f"IR3TIB01{i3}M156N", 0.7,
+                            f"{i2} short rate (3M interbank proxy)")
+                return ("FRED", f"IRLTLT01{i3}M156N", 0.85,
+                        f"{i2} long-term govt bond yield")
         if fred_search:
             hit = fred_search(t)
             if hit:
                 return "FRED", hit[0], 0.5, f"fred-search: {hit[1][:60]}"
         return None, None, 0, "tvc_unmapped"
+    if ex == "INDEX":
+        y = TVC_INDEX.get(t)
+        if y:
+            return "MARKET", y, 0.85, "index → Yahoo"
+        return "MARKET", f"^{t}", 0.5, "index (best-effort Yahoo)"
+    if ex == "USI":
+        # US market internals — we COMPUTE these from the Polygon grouped
+        # feed Khalid already pays for (ops 3185). No vendor needed.
+        code = re.sub(r"\.(US|NY|NQ)$", "", t)
+        m = {"ADV": "ADVANCERS", "ADVN": "ADVANCERS", "ADVQ": "ADVANCERS",
+             "DECL": "DECLINERS", "DECN": "DECLINERS", "DECQ": "DECLINERS",
+             "UNCH": "UNCHANGED", "ADVDEC": "ADVDEC_LINE",
+             "UVOL": "UP_VOLUME", "DVOL": "DOWN_VOLUME",
+             "TRIN": "TRIN", "TICK": "TICK",
+             "HIGH": "NEW_HIGHS", "LOW": "NEW_LOWS",
+             "NEWHI": "NEW_HIGHS", "NEWLO": "NEW_LOWS",
+             "PCTABOVE50MA": "PCT_ABOVE_50DMA",
+             "PCTABOVE200MA": "PCT_ABOVE_200DMA",
+             "ACTV": "ADVANCERS", "BASPRD": "ADVDEC_LINE"}.get(code)
+        if m:
+            return "INTERNALS", m, 0.8, "computed from Polygon grouped daily"
+        return None, None, 0, "usi_unmapped"
     if ex in ("CRYPTOCAP", "BINANCE", "COINBASE", "BITSTAMP", "BITFINEX"):
         return "COINGECKO", t.replace("USDT", "").replace("USD", "").lower(), \
             0.6, "crypto"
@@ -279,6 +380,29 @@ def _stooq(sid, start):
     return out
 
 
+_INTERNALS_CACHE = {}
+
+
+def _internals(metric, start):
+    """US market internals we compute ourselves from the Polygon grouped
+    feed — the vendor charge for these ($$$/mo) buys nothing we cannot
+    calculate from data Khalid already owns."""
+    global _INTERNALS_CACHE
+    if not _INTERNALS_CACHE:
+        try:
+            import boto3
+            b = boto3.client("s3", region_name="us-east-1").get_object(
+                Bucket=os.environ.get("S3_BUCKET",
+                                      "justhodl-dashboard-live"),
+                Key="data/market-internals.json")["Body"].read()
+            _INTERNALS_CACHE = json.loads(b).get("series") or {}
+        except Exception as e:
+            print(f"[series_source] internals unavailable: {str(e)[:70]}")
+            _INTERNALS_CACHE = {"__none__": {}}
+    ser = _INTERNALS_CACHE.get(metric) or {}
+    return {d: float(v) for d, v in ser.items() if d >= start}
+
+
 def fetch(source, sid, start="1990-01-01"):
     """→ {ISO date: float}. Never raises.
 
@@ -323,6 +447,8 @@ def fetch(source, sid, start="1990-01-01"):
             return out
         if source == "STOOQ":
             return _stooq(sid, start)
+        if source == "INTERNALS":
+            return _internals(sid, start)
         if source == "WORLDBANK":
             return _worldbank(sid, start)
         if source == "DBNOMICS_V2":
