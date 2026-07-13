@@ -1,12 +1,6 @@
-executing-against: 28fe956d651ac2b39143efdd8c8fab1c43f9d331
-ops 3219 — expression tiles curated via minus, deposit rates laddered, DVE retired
-── 1. Probe-gated curations ──
-[05:49:15] ✅ TVC:DE10Y-TVC:IT10Y → FRED~IRLTLT01DEM156N~minus~FRED~IRLTLT01ITM156N  (422)
-[05:49:16] ✅ TVC:FR10Y-TVC:IT10Y → FRED~IRLTLT01FRM156N~minus~FRED~IRLTLT01ITM156N  (422)
-[05:49:16] ✅ TVC:ES10Y-TVC:IT10Y → FRED~IRLTLT01ESM156N~minus~FRED~IRLTLT01ITM156N  (422)
-[05:49:17] ✅ ECONOMICS:EUDIR → ECBDFR  (10053)
-[05:49:17] ✅ ECONOMICS:GBDIR → IR3TIB01GBM156N  (433)
-── 2. Fleet re-run — wakes by name ──
-[05:50:31] ⚠ no wakes — read the two engines' fresh reasons
+executing-against: 1fc901915f3d4c84aa4c2926ee998e8e109a461a
+ops 3220 — closing evidence
+[05:51:56] Europe Liquidity :BTPBUND  measure financial state=DORMANT resolved=3/9 reason=mapped members lack fetchable history (only 3 z-scorable of 7 mapped)
+[05:51:56] Global Deposit Rates Which drains liquidity  state=DORMANT resolved=4/6 reason=mapped members lack fetchable history (only 4 z-scorable of 6 mapped)
 
-→ Report written to aws/ops/reports/latest/3219_last_wakes.md
+→ Report written to aws/ops/reports/latest/3220_final_reasons.md
