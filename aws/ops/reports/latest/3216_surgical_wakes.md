@@ -1,0 +1,65 @@
+# ops 3216 — named blockers closed, named dries ledgered, wakes counted
+
+**Status:** success  
+**Duration:** 96.1s  
+**Finished:** 2026-07-13T05:35:01+00:00  
+
+## Data
+
+| active_before | active_now | coverage_now | dry_ledgered | n_fails | n_warns | verdict | woken |
+|---|---|---|---|---|---|---|---|
+|  |  |  | 8 |  |  |  |  |
+|  |  | 76.5 |  |  |  |  |  |
+| 115 | 117 |  |  |  |  |  | 2 |
+|  |  |  |  | 0 | 0 | PASS |  |
+
+## Log
+## 1. Probe + curate the two blockers
+
+- `05:33:25` ✅ ECONOMICS:USRR → RRPONTSYD  (3280 pts)
+- `05:33:25` ✅ TVC:BTPBUND → FRED~IRLTLT01ITM156N~minus~FRED~IRLTLT01DEM156N  (422 pts)
+## 2. Dry-ledger the named zero-point entries
+
+- `05:33:25`   ✗ NASDAQ:SHAZ → dry ledger (SHAZ)
+- `05:33:25`   ✗ ECONOMICS:CLGDPYY → dry ledger (NAEXKP01CHLQ657S)
+- `05:33:25`   ✗ ECONOMICS:CLINTR → dry ledger (IR3TIB01CHLM156N)
+- `05:33:25`   ✗ ECONOMICS:CLBOT → dry ledger (XTNTVA01CHLM667S)
+- `05:33:25`   ✗ ECONOMICS:CLUR → dry ledger (LRHUTTTTCHLM156S)
+- `05:33:25`   ✗ ECONOMICS:CLSP → dry ledger (SPASTT01CHLM657N)
+- `05:33:25`   ✗ FX_IDC:CLPHKD → dry ledger (CLPHKD=X)
+- `05:33:25`   ✗ FX_IDC:CLPSGD → dry ledger (CLPSGD=X)
+## 3. Write + fleet — wakes by name
+
+- `05:33:26`   zip: 79156 bytes
+## 1. Lambda
+
+- `05:33:26`   Lambda exists — updating
+- `05:33:29` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `05:33:29`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `05:33:29` ✅   ✓ target → justhodl-wl-engines
+- `05:33:29` ✅   ✓ added invoke permission
+- `05:33:29`   zip: 79682 bytes
+## 1. Lambda
+
+- `05:33:30`   Lambda exists — updating
+- `05:33:35` ✅   ✓ updated justhodl-thesis-engine
+## 2. EB rule + permissions
+
+- `05:33:35`   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+- `05:33:35` ✅   ✓ target → justhodl-thesis-engine
+- `05:33:35` ✅   ✓ added invoke permission
+- `05:33:35`   zip: 75723 bytes
+## 1. Lambda
+
+- `05:33:35`   Lambda exists — updating
+- `05:33:39` ✅   ✓ updated justhodl-symbol-dictionary
+## 2. EB rule + permissions
+
+- `05:33:39`   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+- `05:33:40` ✅   ✓ target → justhodl-symbol-dictionary
+- `05:33:40` ✅   ✓ added invoke permission
+- `05:35:01`   ⏰ WOKE: Euro Dollar Shortage & Liquidity squeeze
+- `05:35:01`   ⏰ WOKE: Feds Rates
+- `05:35:01` ✅ 2 panels WOKEN by the surgical closes
