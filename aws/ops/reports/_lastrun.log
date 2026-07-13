@@ -1,29 +1,40 @@
-executing-against: b688db12edc0efdbd0d07922910a4d0aa75a9b3b
-ops 3237 — dry census, thesis health, drill drawer
-── 1. The fleet's own dry census ──
-[07:23:24]    772 × MARKET|…
-[07:23:24]    199 × FRED|…
-[07:23:24]    183 × WORLDBANK|…
-[07:23:24]      9 × COINGECKO|…
-[07:23:24]      4 × COINMETRICS|…
-── 1b. Per-engine dry menu (the 'lack history' class) ──
-[07:23:24]   Above and Below Moving Averages    dry: INDEX:MOTH | INDEX:NCTH | INDEX:R3TH | INDEX:HLUS
-[07:23:24]   Advertising companies indicators   dry: BER:P3WC
-[07:23:24]   Balance sheet                      dry: ECONOMICS:ITCBBS | ECONOMICS:ESCBBS | ECONOMICS:DECBBS | ECONOMICS:FRCBBS
-[07:23:24]   Basic Materials                    dry: NASDAQ:NQEM55 | NASDAQ:NQDM55 | NASDAQ:CRSPMT1 | NASDAQ:NQEU55
-[07:23:24]   Breadth: leads the Market          dry: INDEX:S5TH | INDEX:S5FI | INDEX:S5TW | INDEX:MMFI
-[07:23:24]   Business Confidence Index: used to dry: ECONOMICS:CHBCOI | ECONOMICS:JPBCOI | ECONOMICS:ITBCOI | ECONOMICS:NLBCOI
-[07:23:24]   Buying pressure Indicators         dry: INDEX:NDOF | CBOE:VBEEM
-[07:23:24]   Change in private inventories      dry: ECONOMICS:EUIC | ECONOMICS:ITIC | ECONOMICS:MAIC | ECONOMICS:TNIC
-[07:23:24]   Confidence Index                   dry: ECONOMICS:JPCCI | ECONOMICS:CNBCOI | ECONOMICS:JPBCOI | ECONOMICS:USCCI
-[07:23:24]   Consumer                           dry: ECONOMICS:CNCCR | ECONOMICS:USCCI | ECONOMICS:JPCCI | ECONOMICS:EUCCI
-[07:23:24]   CONSUMER CONFIDENCE                dry: ECONOMICS:SECCI | ECONOMICS:JPCCI | ECONOMICS:FRCCI | ECONOMICS:ESCCI
-[07:23:24]   Corporate Profits                  dry: ECONOMICS:DECPR | FRED:A053RC1Q027SBEA
-[07:23:24]   DUMP Metrics                       dry: FX:2USNOTE
-[07:23:24]   Euro Predict Future Moves : Curren dry: CBOE:EVZ
-── 2. Thesis-engine exercised ──
-[07:27:28] ✅ second consumer healthy on all patched shared modules
-── 3. Drill drawer live on panels.html ──
-[07:27:43] ✅ drawer live after ~15s (15130 bytes)
+executing-against: 85816f56f7eab903d3d0508a13449159c0ba6d56
+ops 3238 — the confidence families through the proven searcher
+── 1. Batch search → probe (budgeted) ──
+[07:29:50]   ✗ ECONOMICS:AUBCOI       0 cands, none wet
+[07:29:59]   ✗ ECONOMICS:AUCCI        3 cands, none wet
+[07:30:19]   ✗ ECONOMICS:BRBCOI       3 cands, none wet
+[07:30:24]   ✗ ECONOMICS:CABCOI       3 cands, none wet
+[07:30:44]   ✓ ECONOMICS:CHBCOI       OECD/MEI/CHE.B6BLPI01.CXCU.Q  (135)
+[07:30:49]   ✗ ECONOMICS:CHCCI        3 cands, none wet
+[07:31:03]   ✓ ECONOMICS:CNBCOI       OECD/MEI/CHN.B6BLPI01.CXCU.Q  (103)
+[07:31:14]   ✗ ECONOMICS:DEBCOI       3 cands, none wet
+[07:31:17]   ✗ ECONOMICS:DECCI        3 cands, none wet
+[07:31:45]   ✗ ECONOMICS:ESBCOI       3 cands, none wet
+[07:31:49]   ✗ ECONOMICS:ESCCI        3 cands, none wet
+[07:32:02]   ✗ ECONOMICS:FRBCOI       3 cands, none wet
+[07:32:06]   ✗ ECONOMICS:FRCCI        3 cands, none wet
+[series_source] DBNOMICS:OECD/MEI/GBR.B6BLPI01.CXCU.A failed: The read operation timed out
+[07:32:26]   ✓ ECONOMICS:GBBCOI       OECD/MEI/GBR.B6BLPI01.CXCU.Q  (135)
+[07:32:38]   ✗ ECONOMICS:GBCCI        3 cands, none wet
+[07:32:44]   ✓ ECONOMICS:INBCOI       OECD/MEI/IND.B6BLPI01.CXCU.Q  (135)
+[07:32:49]   ✓ ECONOMICS:ITBCOI       ISTAT/117_266/M.IT.CLIMACOM.N.45_47_X46.1  (146)
+[07:33:14]   ✗ ECONOMICS:ITCCI        0 cands, none wet
+[07:33:21]   ✗ ECONOMICS:JPBCOI       3 cands, none wet
+[07:33:24]   ✗ ECONOMICS:JPCCI        3 cands, none wet
+[07:33:30]   ✗ ECONOMICS:KRBCOI       3 cands, none wet
+[07:33:33]   ✗ ECONOMICS:KRCCI        3 cands, none wet
+[07:33:40]   ✓ ECONOMICS:MXBCOI       OECD/MEI/MEX.B6BLPI01.CXCU.Q  (71)
+[07:33:59]   ✓ ECONOMICS:NLBCOI       OECD/MEI/NLD.B6BLPI01.CXCU.Q  (82)
+[07:34:03]   ✗ ECONOMICS:NLCCI        3 cands, none wet
+[07:34:08]   ✗ ECONOMICS:SEBCOI       3 cands, none wet
+[07:34:11]   ✗ ECONOMICS:SECCI        3 cands, none wet
+── 2. Write + fleet — wakes by name ──
+[07:36:53]   ⏰ WOKE: Business Confidence Index: used to assess European countries economy’s health.
+[07:36:53]   ⏰ WOKE: Corporate profits
+[07:36:53]   ⏰ WOKE: Current Account
+[07:36:53]   ⏰ WOKE: Fed Expected yield policy and future interest rates
+[07:36:53]   ⏰ WOKE: Forward Rates
+[07:36:53] ✅ 5 panels WOKEN
 
-→ Report written to aws/ops/reports/latest/3237_census_health.md
+→ Report written to aws/ops/reports/latest/3238_confidence_family.md
