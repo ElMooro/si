@@ -1,0 +1,46 @@
+# ops 3237 — dry census, thesis health, drill drawer
+
+**Status:** success  
+**Duration:** 259.8s  
+**Finished:** 2026-07-13T07:27:43+00:00  
+
+## Data
+
+| engines_menued | keys | misses_total | n_fails | n_warns | thesis_errors | thesis_generated | verdict |
+|---|---|---|---|---|---|---|---|
+|  |  | 1167 |  |  |  |  |  |
+| 14 |  |  |  |  |  |  |  |
+|  | 19 |  |  |  |  | 2026-07-13T07:23:25 |  |
+|  |  |  |  |  | 0 |  |  |
+|  |  |  | 0 | 0 |  |  | PASS |
+
+## Log
+## 1. The fleet's own dry census
+
+- `07:23:24`    772 × MARKET|…
+- `07:23:24`    199 × FRED|…
+- `07:23:24`    183 × WORLDBANK|…
+- `07:23:24`      9 × COINGECKO|…
+- `07:23:24`      4 × COINMETRICS|…
+## 1b. Per-engine dry menu (the 'lack history' class)
+
+- `07:23:24`   Above and Below Moving Averages    dry: INDEX:MOTH | INDEX:NCTH | INDEX:R3TH | INDEX:HLUS
+- `07:23:24`   Advertising companies indicators   dry: BER:P3WC
+- `07:23:24`   Balance sheet                      dry: ECONOMICS:ITCBBS | ECONOMICS:ESCBBS | ECONOMICS:DECBBS | ECONOMICS:FRCBBS
+- `07:23:24`   Basic Materials                    dry: NASDAQ:NQEM55 | NASDAQ:NQDM55 | NASDAQ:CRSPMT1 | NASDAQ:NQEU55
+- `07:23:24`   Breadth: leads the Market          dry: INDEX:S5TH | INDEX:S5FI | INDEX:S5TW | INDEX:MMFI
+- `07:23:24`   Business Confidence Index: used to dry: ECONOMICS:CHBCOI | ECONOMICS:JPBCOI | ECONOMICS:ITBCOI | ECONOMICS:NLBCOI
+- `07:23:24`   Buying pressure Indicators         dry: INDEX:NDOF | CBOE:VBEEM
+- `07:23:24`   Change in private inventories      dry: ECONOMICS:EUIC | ECONOMICS:ITIC | ECONOMICS:MAIC | ECONOMICS:TNIC
+- `07:23:24`   Confidence Index                   dry: ECONOMICS:JPCCI | ECONOMICS:CNBCOI | ECONOMICS:JPBCOI | ECONOMICS:USCCI
+- `07:23:24`   Consumer                           dry: ECONOMICS:CNCCR | ECONOMICS:USCCI | ECONOMICS:JPCCI | ECONOMICS:EUCCI
+- `07:23:24`   CONSUMER CONFIDENCE                dry: ECONOMICS:SECCI | ECONOMICS:JPCCI | ECONOMICS:FRCCI | ECONOMICS:ESCCI
+- `07:23:24`   Corporate Profits                  dry: ECONOMICS:DECPR | FRED:A053RC1Q027SBEA
+- `07:23:24`   DUMP Metrics                       dry: FX:2USNOTE
+- `07:23:24`   Euro Predict Future Moves : Curren dry: CBOE:EVZ
+## 2. Thesis-engine exercised
+
+- `07:27:28` ✅ second consumer healthy on all patched shared modules
+## 3. Drill drawer live on panels.html
+
+- `07:27:43` ✅ drawer live after ~15s (15130 bytes)
