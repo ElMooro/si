@@ -95,6 +95,10 @@ def main(build_dir=".", live=True):
         if "__jhRail" in s or len(s) < 2000:
             continue
         direct = set(re.findall(r'["\'/](data/[a-z0-9_\-./]+?\.json)', s))
+        # ops 3207: proxy/CDN-templated pages (flows-class) fetch
+        # `${CDN}/etf-flows/x.json` — capture those keys too so flagship
+        # pages are not silently rail-less.
+        direct |= set(re.findall(r'\$\{CDN\}/([a-z0-9_\-./]+?\.json)', s))
         cot = set(re.findall(r'(cot/[a-z0-9_\-./]+?\.json)', s))
         helper = set("data/" + k for k in re.findall(r"F\('([a-z0-9_\-]+\.json)'\)", s))
         refs = sorted(direct | cot | helper)
