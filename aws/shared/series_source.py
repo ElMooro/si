@@ -223,6 +223,7 @@ CM_DERIVED = {
     "PRICEDRAWDOWN": ("PriceUSD", "drawdown_ath"),
     "NUPL": ("CapMVRVCur", "nupl_mvrv"),
     "PRICEATH": ("PriceUSD", "running_max"),
+    "VOLATILITY": ("PriceUSD", "vol60"),
 }
 CM_DERIVED_KEYS = sorted(CM_DERIVED, key=len, reverse=True)
 
@@ -411,6 +412,24 @@ def map_symbol(sym, fred_search=None):
              "ACTV": "ADVANCERS", "BASPRD": "ADVDEC_LINE"}.get(code)
         if m:
             return "INTERNALS", m, 0.8, "computed from Polygon grouped daily"
+        # McClellan family = pure transform over the computed A/D line
+        if "MCCL" in code or "MCO" == code or "SUMMATION" in code \
+                or "MCSUM" in code:
+            tr = "mcclellan_sum" if ("SUM" in code) else "mcclellan_osc"
+            return ("DERIVED", f"INTERNALS~ADVDEC_LINE~{tr}", 0.75,
+                    f"{tr} computed over the A/D line (ops 3194)")
+        # exchange-scoped variants (TRINQ, ADVN.NQ...) → all-market computed
+        base = code.rstrip("QNA")
+        m2 = {"ADV": "ADVANCERS", "DECL": "DECLINERS", "DEC": "DECLINERS",
+              "UNCH": "UNCHANGED", "ADVDEC": "ADVDEC_LINE", "UVOL":
+              "UP_VOLUME", "DVOL": "DOWN_VOLUME", "TRIN": "TRIN",
+              "HIGH": "NEW_HIGHS", "LOW": "NEW_LOWS"}.get(base)
+        if m2:
+            return ("INTERNALS", m2, 0.6,
+                    "exchange-scoped tile → all-market computed (proxy, "
+                    "ops 3194)")
+        if code.startswith(("TICK", "TIKI", "PREM")):
+            return None, None, 0, "usi_intraday_only"
         return None, None, 0, "usi_unmapped"
     if ex in ("GLASSNODE", "INTOTHEBLOCK", "COINMETRICS"):
         a, _, m = t.partition("_")
@@ -761,8 +780,33 @@ def _derived(sid, start):
         elif tr == "nupl_mvrv":
             if v:
                 out[k] = 100.0 * (v - 1.0) / v
+        elif tr in ("vol60", "mcclellan_osc", "mcclellan_sum"):
+            break                          # handled vectorised below
         else:
             return {}
+    if tr == "vol60":
+        import math as _m
+        lr = []
+        for i in range(1, len(ks)):
+            a, b = base[ks[i - 1]], base[ks[i]]
+            lr.append(_m.log(b / a) if a > 0 and b > 0 else 0.0)
+            if i >= 60:
+                w = lr[-60:]
+                mu = sum(w) / 60
+                sd = (sum((x - mu) ** 2 for x in w) / 59) ** 0.5
+                out[ks[i]] = round(sd * (252 ** 0.5) * 100, 3)
+    elif tr in ("mcclellan_osc", "mcclellan_sum"):
+        net = [base[ks[i]] - base[ks[i - 1]] for i in range(1, len(ks))]
+        e19 = e39 = net[0] if net else 0.0
+        summ = 0.0
+        for i, x in enumerate(net):
+            e19 += (x - e19) * (2 / 20)
+            e39 += (x - e39) * (2 / 40)
+            osc = e19 - e39
+            summ += osc
+            if i >= 39:
+                out[ks[i + 1]] = round(
+                    osc if tr == "mcclellan_osc" else summ, 2)
     return out
 
 
