@@ -335,7 +335,15 @@ def lambda_handler(event, context):
             continue
         zs = [(s, zc[s]) for s in sp["members_resolved"] if s in zc]
         if len(zs) < MIN_MEMBERS:
-            sp["state"] = "DORMANT"
+            sp["state"] = "DORMANT"          # ops 3208: never drop silently
+            rows.append({**{k: sp[k] for k in
+                            ("engine_id", "name", "theme", "tv_id",
+                             "coverage", "state")},
+                         "members_resolved": len(zs),
+                         "members_total": sp["members_total"],
+                         "reason": "mapped members lack fetchable history "
+                                   f"(only {len(zs)} z-scorable of "
+                                   f"{len(sp['members_resolved'])} mapped)"})
             continue
         act = array("f", [float("nan")]) * 0
         for i in range(len(grid)):
@@ -345,7 +353,14 @@ def lambda_handler(event, context):
                        else float("nan"))
         valid = [a for a in act if a == a]
         if len(valid) < 100:
-            sp["state"] = "DORMANT"
+            sp["state"] = "DORMANT"          # ops 3208: never drop silently
+            rows.append({**{k: sp[k] for k in
+                            ("engine_id", "name", "theme", "tv_id",
+                             "coverage", "state")},
+                         "members_resolved": len(zs),
+                         "members_total": sp["members_total"],
+                         "reason": f"only {len(valid)} weeks of joint "
+                                   "activation history (<100)"})
             continue
         srt = sorted(valid)
         p80 = srt[int(0.8 * len(srt))]
@@ -485,6 +500,71 @@ def lambda_handler(event, context):
                                                  or 0))),
         "elapsed_s": round(time.time() - t0, 1),
     }
+    # ── ops 3208: FIRING panels enter the platform's trust ledger ────
+    # One DDB signal per engine-week while firing (conditional put = no
+    # dups on re-runs). Direction = the panel's own historical 13w tilt;
+    # graded by justhodl-outcome-checker like every other engine, so the
+    # scorecard grows one row per watchlist and the fusion PROVEN gate
+    # eventually feeds off real out-of-sample hits. Per-item guarded —
+    # a bad row can never take the fleet down (3200 doctrine).
+    try:
+        import boto3 as _b3
+        from decimal import Decimal as _D
+        from botocore.exceptions import ClientError as _CE
+        _tbl = _b3.resource("dynamodb", region_name="us-east-1").Table(
+            os.environ.get("SIGNALS_TABLE", "justhodl-signals"))
+        _spy_last = None
+        for _k in sorted(ser)[::-1]:
+            _spy_last = ser[_k]
+            break
+        _wk = grid[-1] if grid else now.date().isoformat()
+        _emitted = 0
+        for _r in rows:
+            if not _r.get("firing") or not _spy_last:
+                continue
+            try:
+                _w13 = (_r.get("event_study") or {}).get("w13") or {}
+                _tilt = _w13.get("excess_vs_base_pct")
+                _dir = "UP" if (_tilt is None or _tilt >= 0) else "DOWN"
+                _ep = int(now.timestamp())
+                _cts = {f"day_{d}": datetime.fromtimestamp(
+                            _ep + d * 86400, tz=timezone.utc).isoformat()
+                        for d in (7, 28, 91)}
+                _tbl.put_item(
+                    Item={"signal_id": f"wl#{_r['engine_id']}#{_wk}",
+                          "signal_type": _r.get("signal_type")
+                          or f"wl_{_r['engine_id'][3:]}"[:48],
+                          "ticker": "SPY", "benchmark": "SPY",
+                          "predicted_direction": _dir,
+                          "signal_value": str(_r.get("activation_pctile")),
+                          "confidence": _D("0.5"),
+                          "baseline_price": str(round(_spy_last, 4)),
+                          "check_timestamps": _cts,
+                          "outcomes": {}, "accuracy_scores": {},
+                          "status": "pending",
+                          "logged_at": now.isoformat(),
+                          "logged_epoch": _ep,
+                          "horizon_days_primary": 28,
+                          "schema_version": "2",
+                          "ttl": _ep + 150 * 86400,
+                          "metadata": {"engine": "wl-engines",
+                                       "theme": _r.get("theme"),
+                                       "pctile": str(
+                                           _r.get("activation_pctile"))},
+                          "rationale": (f"{_r.get('name')} firing at "
+                                        f"{_r.get('activation_pctile')}p "
+                                        f"(hist 13w tilt {_tilt})")[:200]},
+                    ConditionExpression="attribute_not_exists(signal_id)")
+                _emitted += 1
+            except _CE:
+                pass                       # duplicate week — already logged
+            except Exception as _se:
+                print(f"[wl] signal skip {_r.get('engine_id')}: "
+                      f"{str(_se)[:60]}")
+        print(f"[wl] trust-ledger signals emitted: {_emitted}")
+    except Exception as _e:
+        print(f"[wl] signal emission unavailable: {str(_e)[:70]}")
+
     s3_put(INDEX_KEY, index)
     print(json.dumps({"ok": True, "engines": len(rows),
                       "active": index["n_active"], "firing": index["n_firing"],
