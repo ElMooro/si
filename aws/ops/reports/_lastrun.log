@@ -1,89 +1,52 @@
-executing-against: fac9ba9178e7f953bcf3d4a088864c2c67c4dcd8
-ops 3192 — purge cross-country poison, learn templates, retire licensed
-── 1. Audit + purge 3191 search entries ──
-[02:52:12]   ✗ PURGED ECONOMICS:AEINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.AE.1.1.C.A.A.EU1.A.A.A.A.A.C (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:BRCLI → OECD/DSD_KEI@DF_KEI/AUS.M.LI.IX._T.AA._Z (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:BHINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.BH.1.1.C.A.A.EU1.A.A.A.A.A.G (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:CNCLI → OECD/DSD_KEI@DF_KEI/AUS.M.LI.IX._T.AA._Z (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:MAINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.MA.1.1.C.A.A.EU1.A.A.A.A.A.I (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:QAINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.QA.1.1.C.A.A.EU1.A.A.A.A.A.C (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:MUINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.MU.1.1.C.A.A.EU1.A.A.A.A.A.I (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:PAINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.PA.1.1.C.A.A.EU1.A.A.A.A.A.I (country/concept mismatch)
-[02:52:12]   ✗ PURGED ECONOMICS:TNINTR → BIS/WS_DEBT_SEC2_PUB/Q.3P.TN.1.1.C.A.A.EU1.A.A.A.A.A.I (country/concept mismatch)
-── 2. Learned-template probe (CLI/BLR/INTR/BP, all countries) ──
-[series_source] DBNOMICS:ECB/MIR/M.BR.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.BH.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.CN.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.AE.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.AE.FILR_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.CN.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.DZ.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.EG.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.AE.FIMM_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.HK.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.EU.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.IN.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.JP.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.MA.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.MU.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.MY.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.PA.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.MA.FILR_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.PE.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.QA.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.RO.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.SA.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.SG.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.TH.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.SA.FILR_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.TN.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.TW.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.TN.FILR_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.TW.FILR_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.US.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:IMF/IFS/M.TW.FIMM_PA failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:ECB/MIR/M.VN.B.A20.A.R.A.2240.EUR.O failed: HTTP Error 404: NOT FOUND
-[series_source] DBNOMICS:Eurostat/STS_COBP_M/M.BPRM_DW.CPA_F41001.NSA.I15.US failed: HTTP Error 404: NOT FOUND
-[02:52:21]   CLI    probed   2  hit   0
-[02:52:21]   BLR    probed   4  hit   0
-[02:52:21]   INTR   probed  21  hit  19
-[02:52:21]   BP     probed   1  hit   0
-[02:52:21]     ✓ ECONOMICS:CNINTR → IMF/IFS/M.CN.FILR_PA  (426 pts)
-[02:52:21]     ✓ ECONOMICS:MYINTR → IMF/IFS/M.MY.FILR_PA  (425 pts)
-[02:52:21]     ✓ ECONOMICS:MUINTR → IMF/IFS/M.MU.FILR_PA  (422 pts)
-[02:52:21]     ✓ ECONOMICS:EGINTR → IMF/IFS/M.EG.FILR_PA  (421 pts)
-[02:52:21]     ✓ ECONOMICS:HKINTR → IMF/IFS/M.HK.FILR_PA  (416 pts)
-── 3. Licensed retirement (MPMI/LEI class) ──
-[02:52:21]   retired: ECONOMICS:CHMPMI (S&P Global / Conference Board — no free primary)
-[02:52:21]   retired: ECONOMICS:CLLEI (S&P Global / Conference Board — no free primary)
-[02:52:21]   retired: ECONOMICS:CNLEI (S&P Global / Conference Board — no free primary)
-[02:52:21]   retired: ECONOMICS:CNMPMI (S&P Global / Conference Board — no free primary)
-[02:52:21]   retired: ECONOMICS:CNSPMI (S&P Global / Conference Board — no free primary)
-[02:52:21]   retired: ECONOMICS:DEMPMI (S&P Global / Conference Board — no free primary)
-── 4. Write + hard assertion ──
-[02:52:21]   zip: 74913 bytes
+executing-against: 5696998211d0095371b924ed1f9c4a15788a9c2f
+ops 3193 — DERIVED on-chain composites (computed from free primaries)
+── 1. Token census of the unmapped on-chain tiles ──
+[02:55:38]   RETAILPERCENTAGE               8
+[02:55:38]   RETAIL                         7
+[02:55:38]   WHALES                         7
+[02:55:38]   WHALESPERCENTAGE               7
+[02:55:38]   UNISWAPLIQUIDITY               6
+[02:55:38]   INVESTORS                      6
+[02:55:38]   WHALESASSETS                   6
+[02:55:38]   INVESTORSASSETS                5
+[02:55:38]   INVESTORSPERCENTAGE            5
+[02:55:38]   RETAILASSETS                   5
+[02:55:38]   BEARSVOLUME                    5
+[02:55:38]   NEWADDRESSES                   4
+[02:55:38]   RECEIVINGADDRESSES             4
+[02:55:38]   UNISWAPLIQUIDITYUSD            4
+[02:55:38]   VOLATILITY60                   4
+[02:55:38]   AVGBALANCE                     4
+[02:55:38]   BULLSVOLUME                    4
+[02:55:38]   TRADERS                        4
+[02:55:38]   TXVOLUMEUSD                    4
+[02:55:38]   ATHDRAWDOWN                    3
+── 2. Re-map + probe the DERIVED entries ──
+[02:55:39]     ✓ GLASSNODE:BTC_ATHDRAWDOWN → COINMETRICS~btc|PriceUSD~drawdown_ath  (5839 pts)
+── 3. Write + redeploy + kick ──
+[02:55:40]   zip: 75486 bytes
 ── 1. Lambda ──
-[02:52:21]   Lambda exists — updating
-[02:52:26] ✅   ✓ updated justhodl-wl-engines
+[02:55:40]   Lambda exists — updating
+[02:55:46] ✅   ✓ updated justhodl-wl-engines
 ── 2. EB rule + permissions ──
-[02:52:27]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[02:52:27] ✅   ✓ target → justhodl-wl-engines
-[02:52:27] ✅   ✓ added invoke permission
-[02:52:27]   zip: 76532 bytes
+[02:55:47]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[02:55:47] ✅   ✓ target → justhodl-wl-engines
+[02:55:47] ✅   ✓ added invoke permission
+[02:55:47]   zip: 77105 bytes
 ── 1. Lambda ──
-[02:52:27]   Lambda exists — updating
-[02:52:30] ✅   ✓ updated justhodl-thesis-engine
+[02:55:47]   Lambda exists — updating
+[02:55:51] ✅   ✓ updated justhodl-thesis-engine
 ── 2. EB rule + permissions ──
-[02:52:30]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[02:52:30] ✅   ✓ target → justhodl-thesis-engine
-[02:52:30] ✅   ✓ added invoke permission
-[02:52:30]   zip: 72573 bytes
+[02:55:51]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[02:55:51] ✅   ✓ target → justhodl-thesis-engine
+[02:55:51] ✅   ✓ added invoke permission
+[02:55:52]   zip: 73146 bytes
 ── 1. Lambda ──
-[02:52:31]   Lambda exists — updating
-[02:52:36] ✅   ✓ updated justhodl-symbol-dictionary
+[02:55:52]   Lambda exists — updating
+[02:55:55] ✅   ✓ updated justhodl-symbol-dictionary
 ── 2. EB rule + permissions ──
-[02:52:36]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
-[02:52:36] ✅   ✓ target → justhodl-symbol-dictionary
-[02:52:36] ✅   ✓ added invoke permission
+[02:55:56]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[02:55:56] ✅   ✓ target → justhodl-symbol-dictionary
+[02:55:56] ✅   ✓ added invoke permission
 
-→ Report written to aws/ops/reports/latest/3192_econ_harden.md
+→ Report written to aws/ops/reports/latest/3193_onchain_derived.md
