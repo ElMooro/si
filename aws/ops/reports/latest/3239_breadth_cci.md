@@ -1,0 +1,65 @@
+# ops 3239 — breadth tiles from our own internals + CCI drill
+
+**Status:** success  
+**Duration:** 63.3s  
+**Finished:** 2026-07-13T07:43:32+00:00  
+
+## Data
+
+| active_before | active_now | coverage_now | curations | n_fails | n_warns | verdict | woken |
+|---|---|---|---|---|---|---|---|
+|  |  |  | 19 |  |  |  |  |
+|  |  | 74.1 |  |  |  |  |  |
+| 128 | 131 |  |  |  |  |  | 3 |
+|  |  |  |  | 0 | 0 | PASS |  |
+
+## Log
+## A1. What the internals feed actually serves
+
+- `07:42:30`   ADVANCERS              1253 pts
+- `07:42:30`   ADVDEC_LINE            1253 pts
+- `07:42:30`   DECLINERS              1253 pts
+- `07:42:30`   DOWN_VOLUME            1253 pts
+- `07:42:30`   NEW_HIGHS              1253 pts
+- `07:42:30`   NEW_LOWS               1253 pts
+- `07:42:30`   PCT_ABOVE_200DMA       1194 pts
+- `07:42:30`   PCT_ABOVE_50DMA        1194 pts
+- `07:42:30`   TRIN                   1253 pts
+- `07:42:30`   UNCHANGED              1253 pts
+- `07:42:30`   UP_VOLUME              1253 pts
+## A2. INDEX tiles — names + honest curations
+
+- `07:42:30`   INDEX:MMFI     dict='MMFI (INDEX)'
+- `07:42:31` ✅ INDEX:MMFI → PCT_ABOVE_50DMA  (1194)
+- `07:42:31`   INDEX:S5FI     dict='S5FI (INDEX)'
+- `07:42:31` ✅ INDEX:S5FI → PCT_ABOVE_50DMA  (1194)
+- `07:42:31`   INDEX:S5TH     dict='S5TH (INDEX)'
+- `07:42:31` ✅ INDEX:S5TH → PCT_ABOVE_200DMA  (1194)
+- `07:42:31`   INDEX:R3TH     dict='R3TH (INDEX)'
+- `07:42:31` ✅ INDEX:R3TH → PCT_ABOVE_200DMA  (1194)
+- `07:42:31`   INDEX:NCTH     dict='NCTH (INDEX)'
+- `07:42:31` ✅ INDEX:NCTH → PCT_ABOVE_200DMA  (1194)
+- `07:42:31`   INDEX:MMTH     dict='MMTH (INDEX)'
+- `07:42:31` ✅ INDEX:MMTH → PCT_ABOVE_200DMA  (1194)
+- `07:42:31`   INDEX:HLUS     dict='HLUS (INDEX)'
+- `07:42:31` ✅ INDEX:HLUS → INTERNALS~NEW_HIGHS~minus~INTERNALS~NEW_LOWS  (1253)
+## B. Consumer-confidence drill on OECD/MEI
+
+- `07:42:35` ✅ ECONOMICS:JPCCI → OECD/MEI/JPN.CSCICP02.STSA.M  (409)
+- `07:42:38` ✅ ECONOMICS:FRCCI → OECD/MEI/FRA.CSCICP02.STSA.M  (409)
+- `07:42:40` ✅ ECONOMICS:ESCCI → OECD/MEI/ESP.CSCICP02.STSA.M  (408)
+- `07:42:46` ✅ ECONOMICS:SECCI → OECD/MEI/SWE.CSCICP02.STSA.M  (339)
+- `07:42:49` ✅ ECONOMICS:DECCI → OECD/MEI/DEU.CSCICP02.STSA.M  (404)
+- `07:42:51` ✅ ECONOMICS:GBCCI → OECD/MEI/GBR.CSCICP02.STSA.M  (407)
+- `07:42:54` ✅ ECONOMICS:KRCCI → OECD/MEI/KOR.CSCICP02.STSA.M  (301)
+- `07:42:58` ✅ ECONOMICS:NLCCI → OECD/MEI/NLD.CSCICP02.STSA.M  (408)
+- `07:43:01` ✅ ECONOMICS:ITCCI → OECD/MEI/ITA.CSCICP02.STSA.M  (408)
+- `07:43:04` ✅ ECONOMICS:CHCCI → OECD/MEI/CHE.CSCICP02.STSA.Q  (136)
+- `07:43:07` ✅ ECONOMICS:AUCCI → OECD/MEI/AUS.CSCICP02.STSA.M  (394)
+- `07:43:09` ✅ ECONOMICS:CNCCI → OECD/MEI/CHN.CSCICP02.STSA.M  (408)
+## Fleet — wakes by name
+
+- `07:43:32`   ⏰ WOKE: Above and Below Moving Averages
+- `07:43:32`   ⏰ WOKE: Breadth: leads the Market
+- `07:43:32`   ⏰ WOKE: CONSUMER CONFIDENCE
+- `07:43:32` ✅ 3 panels WOKEN

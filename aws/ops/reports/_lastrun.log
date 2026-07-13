@@ -1,40 +1,49 @@
-executing-against: 85816f56f7eab903d3d0508a13449159c0ba6d56
-ops 3238 — the confidence families through the proven searcher
-── 1. Batch search → probe (budgeted) ──
-[07:29:50]   ✗ ECONOMICS:AUBCOI       0 cands, none wet
-[07:29:59]   ✗ ECONOMICS:AUCCI        3 cands, none wet
-[07:30:19]   ✗ ECONOMICS:BRBCOI       3 cands, none wet
-[07:30:24]   ✗ ECONOMICS:CABCOI       3 cands, none wet
-[07:30:44]   ✓ ECONOMICS:CHBCOI       OECD/MEI/CHE.B6BLPI01.CXCU.Q  (135)
-[07:30:49]   ✗ ECONOMICS:CHCCI        3 cands, none wet
-[07:31:03]   ✓ ECONOMICS:CNBCOI       OECD/MEI/CHN.B6BLPI01.CXCU.Q  (103)
-[07:31:14]   ✗ ECONOMICS:DEBCOI       3 cands, none wet
-[07:31:17]   ✗ ECONOMICS:DECCI        3 cands, none wet
-[07:31:45]   ✗ ECONOMICS:ESBCOI       3 cands, none wet
-[07:31:49]   ✗ ECONOMICS:ESCCI        3 cands, none wet
-[07:32:02]   ✗ ECONOMICS:FRBCOI       3 cands, none wet
-[07:32:06]   ✗ ECONOMICS:FRCCI        3 cands, none wet
-[series_source] DBNOMICS:OECD/MEI/GBR.B6BLPI01.CXCU.A failed: The read operation timed out
-[07:32:26]   ✓ ECONOMICS:GBBCOI       OECD/MEI/GBR.B6BLPI01.CXCU.Q  (135)
-[07:32:38]   ✗ ECONOMICS:GBCCI        3 cands, none wet
-[07:32:44]   ✓ ECONOMICS:INBCOI       OECD/MEI/IND.B6BLPI01.CXCU.Q  (135)
-[07:32:49]   ✓ ECONOMICS:ITBCOI       ISTAT/117_266/M.IT.CLIMACOM.N.45_47_X46.1  (146)
-[07:33:14]   ✗ ECONOMICS:ITCCI        0 cands, none wet
-[07:33:21]   ✗ ECONOMICS:JPBCOI       3 cands, none wet
-[07:33:24]   ✗ ECONOMICS:JPCCI        3 cands, none wet
-[07:33:30]   ✗ ECONOMICS:KRBCOI       3 cands, none wet
-[07:33:33]   ✗ ECONOMICS:KRCCI        3 cands, none wet
-[07:33:40]   ✓ ECONOMICS:MXBCOI       OECD/MEI/MEX.B6BLPI01.CXCU.Q  (71)
-[07:33:59]   ✓ ECONOMICS:NLBCOI       OECD/MEI/NLD.B6BLPI01.CXCU.Q  (82)
-[07:34:03]   ✗ ECONOMICS:NLCCI        3 cands, none wet
-[07:34:08]   ✗ ECONOMICS:SEBCOI       3 cands, none wet
-[07:34:11]   ✗ ECONOMICS:SECCI        3 cands, none wet
-── 2. Write + fleet — wakes by name ──
-[07:36:53]   ⏰ WOKE: Business Confidence Index: used to assess European countries economy’s health.
-[07:36:53]   ⏰ WOKE: Corporate profits
-[07:36:53]   ⏰ WOKE: Current Account
-[07:36:53]   ⏰ WOKE: Fed Expected yield policy and future interest rates
-[07:36:53]   ⏰ WOKE: Forward Rates
-[07:36:53] ✅ 5 panels WOKEN
+executing-against: 69e339e022a571e8fbda231467b42fea12567777
+ops 3239 — breadth tiles from our own internals + CCI drill
+── A1. What the internals feed actually serves ──
+[07:42:30]   ADVANCERS              1253 pts
+[07:42:30]   ADVDEC_LINE            1253 pts
+[07:42:30]   DECLINERS              1253 pts
+[07:42:30]   DOWN_VOLUME            1253 pts
+[07:42:30]   NEW_HIGHS              1253 pts
+[07:42:30]   NEW_LOWS               1253 pts
+[07:42:30]   PCT_ABOVE_200DMA       1194 pts
+[07:42:30]   PCT_ABOVE_50DMA        1194 pts
+[07:42:30]   TRIN                   1253 pts
+[07:42:30]   UNCHANGED              1253 pts
+[07:42:30]   UP_VOLUME              1253 pts
+── A2. INDEX tiles — names + honest curations ──
+[07:42:30]   INDEX:MMFI     dict='MMFI (INDEX)'
+[07:42:31] ✅ INDEX:MMFI → PCT_ABOVE_50DMA  (1194)
+[07:42:31]   INDEX:S5FI     dict='S5FI (INDEX)'
+[07:42:31] ✅ INDEX:S5FI → PCT_ABOVE_50DMA  (1194)
+[07:42:31]   INDEX:S5TH     dict='S5TH (INDEX)'
+[07:42:31] ✅ INDEX:S5TH → PCT_ABOVE_200DMA  (1194)
+[07:42:31]   INDEX:R3TH     dict='R3TH (INDEX)'
+[07:42:31] ✅ INDEX:R3TH → PCT_ABOVE_200DMA  (1194)
+[07:42:31]   INDEX:NCTH     dict='NCTH (INDEX)'
+[07:42:31] ✅ INDEX:NCTH → PCT_ABOVE_200DMA  (1194)
+[07:42:31]   INDEX:MMTH     dict='MMTH (INDEX)'
+[07:42:31] ✅ INDEX:MMTH → PCT_ABOVE_200DMA  (1194)
+[07:42:31]   INDEX:HLUS     dict='HLUS (INDEX)'
+[07:42:31] ✅ INDEX:HLUS → INTERNALS~NEW_HIGHS~minus~INTERNALS~NEW_LOWS  (1253)
+── B. Consumer-confidence drill on OECD/MEI ──
+[07:42:35] ✅ ECONOMICS:JPCCI → OECD/MEI/JPN.CSCICP02.STSA.M  (409)
+[07:42:38] ✅ ECONOMICS:FRCCI → OECD/MEI/FRA.CSCICP02.STSA.M  (409)
+[07:42:40] ✅ ECONOMICS:ESCCI → OECD/MEI/ESP.CSCICP02.STSA.M  (408)
+[07:42:46] ✅ ECONOMICS:SECCI → OECD/MEI/SWE.CSCICP02.STSA.M  (339)
+[07:42:49] ✅ ECONOMICS:DECCI → OECD/MEI/DEU.CSCICP02.STSA.M  (404)
+[07:42:51] ✅ ECONOMICS:GBCCI → OECD/MEI/GBR.CSCICP02.STSA.M  (407)
+[07:42:54] ✅ ECONOMICS:KRCCI → OECD/MEI/KOR.CSCICP02.STSA.M  (301)
+[07:42:58] ✅ ECONOMICS:NLCCI → OECD/MEI/NLD.CSCICP02.STSA.M  (408)
+[07:43:01] ✅ ECONOMICS:ITCCI → OECD/MEI/ITA.CSCICP02.STSA.M  (408)
+[07:43:04] ✅ ECONOMICS:CHCCI → OECD/MEI/CHE.CSCICP02.STSA.Q  (136)
+[07:43:07] ✅ ECONOMICS:AUCCI → OECD/MEI/AUS.CSCICP02.STSA.M  (394)
+[07:43:09] ✅ ECONOMICS:CNCCI → OECD/MEI/CHN.CSCICP02.STSA.M  (408)
+── Fleet — wakes by name ──
+[07:43:32]   ⏰ WOKE: Above and Below Moving Averages
+[07:43:32]   ⏰ WOKE: Breadth: leads the Market
+[07:43:32]   ⏰ WOKE: CONSUMER CONFIDENCE
+[07:43:32] ✅ 3 panels WOKEN
 
-→ Report written to aws/ops/reports/latest/3238_confidence_family.md
+→ Report written to aws/ops/reports/latest/3239_breadth_cci.md
