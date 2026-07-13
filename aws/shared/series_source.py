@@ -262,6 +262,34 @@ OECD_MEMBERS = {
 }
 
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
+
+# ── ECONOMICS residual ladders (ops 3190) ───────────────────────────
+# TV econ families FRED/OECD/World-Bank do NOT cover map to IMF IFS (and
+# OECD MEI) on DBnomics. Each family is a LADDER of candidate series-id
+# templates: map_symbol emits rung 0; the mapping ops probes it with a real
+# fetch and climbs the ladder on a dry hit. Nothing counts unprobed.
+ECON_DBN = {
+    "CBBS":  ["IMF/IFS/M.{i2}.FASAF_XDC",      # central bank assets
+              "IMF/IFS/Q.{i2}.FASAF_XDC",
+              "IMF/IFS/A.{i2}.FASAF_XDC"],
+    "INBR":  ["IMF/IFS/M.{i2}.FIMM_PA",        # money-market / interbank
+              "IMF/IFS/Q.{i2}.FIMM_PA"],
+    "BR":    ["IMF/IFS/M.{i2}.FPOLM_PA",       # policy rate
+              "IMF/IFS/M.{i2}.FIDR_PA"],
+    "GDPQQ": ["IMF/IFS/Q.{i2}.NGDP_R_SA_XDC",  # real GDP level, SA
+              "IMF/IFS/Q.{i2}.NGDP_SA_XDC"],
+    "BCOI":  ["OECD/MEI/{i3}.BSCICP03.IXNSA.M",
+              "OECD/MEI/{i3}.BSCICP02.IXNSA.M"],
+    "NO":    ["OECD/MEI/{i3}.PRMNTO01.IXOBSA.M"],
+    "FO":    ["OECD/MEI/{i3}.PRMNTO01.IXOBSA.M"],
+    "IC":    ["IMF/IFS/M.{i2}.AIP_IX",          # industrial production
+              "OECD/MEI/{i3}.PRINTO01.IXOBSA.M"],
+    "CU":    ["OECD/MEI/{i3}.BSCURT02.STSA.Q"],
+    "CPR":   ["IMF/IFS/M.{i2}.PCPI_IX",         # CPI level
+              "IMF/IFS/Q.{i2}.PCPI_IX"],
+    "MTO":   ["IMF/IFS/M.{i2}.TXG_FOB_USD",     # exports (trade)
+              "IMF/IFS/M.{i2}.TMG_CIF_USD"],
+}
 FX_EX = {"FX", "OANDA", "FOREXCOM", "FX_IDC", "SAXO"}
 OPS_RE = re.compile(r"[+\-*/()]")
 NUM_RE = re.compile(r"^[\d.]+$")
@@ -315,6 +343,10 @@ def map_symbol(sym, fred_search=None):
                 iso2 = TV_WB.get(i2, i2)
                 return ("WORLDBANK", f"{iso2}|{wb}", 0.8,
                         f"world-bank {ind}")
+            if ind in ECON_DBN:                  # IMF/OECD ladder (ops 3190)
+                sid = ECON_DBN[ind][0].format(i2=i2, i3=i3 or i2)
+                return ("DBNOMICS", sid, 0.6,
+                        f"econ ladder {ind} rung0 (probe-gated)")
         if fred_search:
             hit = fred_search(t)
             if hit:
