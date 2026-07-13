@@ -1,13 +1,5 @@
-executing-against: 9f7d89dc0202e8fe59286905c90512388692e42b
-── 1. Served drawer JS parses? ──
-── 2. Served chart-pro block parses? ──
-── 3. Data sources — worker vs same-origin ──
-[19:43:47]   worker tv-watchlists.json     200    229390B items=207
-[19:43:47]   worker symbol-map.json        200    591449B items=4823
-[19:43:47]   origin tv-watchlists.json     200    229390B items=207
-[19:43:48]   origin symbol-map.json        200    591449B items=4823
-── 4. What a plain (unbusted) user request gets ──
-[19:43:48]   home             cf=DYNAMIC age=0 cc=max-age=600 tag=jh-nav-drawer.js?v=94b10af2
-[19:43:48]   chart-pro.html   cf=DYNAMIC age=1 cc=max-age=600 tag=jh-nav-drawer.js?v=94b10af2
+executing-against: 2a4c4057f133591cd2f26deac086da930454d525
+[19:49:06] ✅ chart-pro hardened block live (~150s)
+[19:49:06] ✅ drawer empty-favs truth live
 
-→ Report written to aws/ops/reports/latest/3274_runtime_diag.md
+→ Report written to aws/ops/reports/latest/3275_visible_truth.md
