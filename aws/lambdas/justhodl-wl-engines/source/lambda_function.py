@@ -132,7 +132,10 @@ def theme_of(name):
 
 
 def week_key(iso):
-    y, m, d = (int(x) for x in iso[:10].split("-"))
+    try:
+        y, m, d = (int(x) for x in iso[:10].split("-"))
+    except ValueError:          # ops 3200: never let one bad key kill 207
+        return None             # engines again
     iy, iw, _ = date(y, m, d).isocalendar()
     return f"{iy}-{iw:02d}"
 

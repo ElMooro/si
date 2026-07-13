@@ -937,8 +937,14 @@ def fetch(source, sid, start="1990-01-01"):
                 return {}
             per = docs[0].get("period") or []
             val = docs[0].get("value") or []
-            return {p: float(v) for p, v in zip(per, val)
-                    if isinstance(v, (int, float)) and p >= start[:len(p)]}
+            out = {}
+            for p, v in zip(per, val):
+                if not isinstance(v, (int, float)):
+                    continue
+                d = _dbn_iso(p)
+                if d and d >= start:
+                    out[d] = float(v)
+            return out
         if source == "DERIVED":
             return _derived(sid, start)
         if source == "COINMETRICS":
@@ -956,6 +962,25 @@ def fetch(source, sid, start="1990-01-01"):
     except Exception as e:
         print(f"[series_source] {source}:{sid} failed: {str(e)[:90]}")
     return {}
+
+
+def _dbn_iso(p):
+    """DBnomics period → ISO date (ops 3200). '1990'→12-31, '1990-Q1'→
+    quarter end, '1990-01'→month(-28); full ISO passes through. The runner
+    week_key unpacks Y-M-D — a bare '1990-01' killed the whole fleet."""
+    p = str(p)
+    if len(p) == 10:
+        return p
+    if len(p) == 4 and p.isdigit():
+        return f"{p}-12-31"
+    if len(p) == 7 and p[4] == "-":
+        q = p[5:]
+        if q.startswith("Q") and q[1:] in ("1", "2", "3", "4"):
+            return p[:4] + {"1": "-03-31", "2": "-06-30",
+                            "3": "-09-30", "4": "-12-31"}[q[1:]]
+        if q.isdigit():
+            return f"{p}-28"
+    return None
 
 
 def _worldbank(spec, start):
@@ -984,12 +1009,8 @@ def _dbnomics(sid, start):
     for p_, v in zip(per, val):
         if not isinstance(v, (int, float)):
             continue
-        iso = str(p_)
-        if len(iso) == 4:
-            iso = f"{iso}-12-31"
-        elif len(iso) == 7:
-            iso = f"{iso}-28"
-        if iso >= start:
+        iso = _dbn_iso(p_)
+        if iso and iso >= start:
             out[iso] = float(v)
     return out
 
