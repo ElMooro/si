@@ -108,9 +108,11 @@ def main(build_dir=".", live=True):
     research = None
     try:
         import urllib.request
-        req = urllib.request.Request(BUCKET + "/data/wl-fusion.json",
-                                     headers={"User-Agent": "jh-bake/1.0"})
+        req = urllib.request.Request(
+            f"{BUCKET}/data/wl-fusion.json?t={int(time.time())}",
+            headers={"User-Agent": "Mozilla/5.0 jh"})
         fus = json.loads(urllib.request.urlopen(req, timeout=12).read())
+        print(f"[rail] research chip source ok: {len(fus.get('themes') or {})} themes")
         th = fus.get("themes") or {}
         if th:
             top = max(th.items(),
@@ -126,7 +128,8 @@ def main(build_dir=".", live=True):
                        if isinstance(div, dict) else "",
                 "href": "/panels.html",
             }
-    except Exception:
+    except Exception as _e:
+        print(f"[rail] research chip skipped: {str(_e)[:80]}")
         research = None
 
     ages = {}
