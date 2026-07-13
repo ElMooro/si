@@ -52,6 +52,14 @@ tr:hover td{background:var(--bg-elev)}
 .err{color:var(--neg);font-family:var(--font-mono);font-size:12px;padding:10px}
 a{color:var(--cyan)}
 @media(max-width:760px){.nav-links{display:none}}
+.drawer{position:fixed;top:0;right:-560px;width:min(560px,94vw);height:100vh;background:var(--bg-card);border-left:1px solid var(--border-strong);z-index:80;transition:right .22s ease;overflow-y:auto;padding:18px 20px}
+.drawer.open{right:0}
+.drawer h3{margin:0 0 4px;color:var(--accent);font-size:15px}
+.dx{position:absolute;top:12px;right:14px;cursor:pointer;color:var(--text-muted);font-size:18px}
+.kvrow{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin:8px 0}
+.kvrow b{color:var(--text)}
+.mini td,.mini th{padding:4px 6px;font-size:11px}
+.zpos{color:var(--pos)}.zneg{color:var(--neg)}
 </style>
 </head>
 <body>
@@ -115,7 +123,7 @@ function renderTable(){
     if(typeof x==='string'||typeof y==='string')return sortD*String(x??'').localeCompare(String(y??''));
     return sortD*(((y??-1e9))-((x??-1e9)))*-1;});
   $('tbody').innerHTML=rows.map(e=>{const w=e.w13||{};
-    return `<tr><td>${esc(e.name||e.engine_id)}</td><td><span class="pill">${esc(e.theme||'')}</span></td>
+    return `<tr data-eid="${esc(e.engine_id)}" style="cursor:pointer"><td>${esc(e.name||e.engine_id)}</td><td><span class="pill">${esc(e.theme||'')}</span></td>
     <td class="small">${esc(e.state||'')}</td>
     <td><span class="dot ${e.firing?'f':''}"></span></td>
     <td>${num(e.activation_pctile)}</td><td>${num(e.coverage,2)}</td>
@@ -144,6 +152,30 @@ document.querySelector('thead').addEventListener('click',ev=>{const th=ev.target
     $('foot').textContent='Contract: consumers read this through aws/shared/wl_fusion.py — additive-only; unproven panels contribute context, never score; proven-panel multipliers bounded to [0.90, 1.10]. Symbol coverage 82.8% addressable at $0/month (retired: FTSE licensed, tape-only internals, delisted contracts).';
   }catch(e){$('meta').innerHTML='<span class="err">'+esc(e.message)+'</span>';}
 })();
+
+const dw=document.createElement('div');dw.className='drawer';dw.innerHTML='<span class="dx" onclick="this.parentNode.classList.remove(\'open\')">✕</span><div id="dbody" class="small">…</div>';document.body.appendChild(dw);
+document.getElementById('tbody').addEventListener('click',async ev=>{
+  const tr=ev.target.closest('tr[data-eid]');if(!tr)return;
+  dw.classList.add('open');const db=document.getElementById('dbody');
+  db.innerHTML='loading '+esc(tr.dataset.eid)+'…';
+  try{
+    const d=await gj('/data/engines/'+tr.dataset.eid+'.json');
+    const w4=d.event_study?.w4||{},w13=d.event_study?.w13||{};
+    const zcell=z=>z==null?'—':`<span class="${z>=0?'zpos':'zneg'}">${Number(z).toFixed(2)}</span>`;
+    db.innerHTML=`<h3>${esc(d.name||tr.dataset.eid)}</h3>
+      <div class="kvrow"><span>theme <b>${esc(d.theme||'—')}</b></span><span>state <b>${esc(d.state||'—')}</b></span><span>activation <b>${num(d.activation_now)}</b> (${num(d.activation_pctile)}p)</span><span>fires ≥ <b>${num(d.fire_threshold_p80)}</b></span><span>${d.firing?'<b class="zpos">● FIRING</b>':'○ quiet'}</span></div>
+      <div class="kvrow"><span>members <b>${d.members_resolved??'—'}/${d.members_total??'—'}</b></span><span>history <b>${d.n_weeks??'—'}w</b> from ${esc(String(d.history_from||'—'))}</span></div>
+      <h3 style="font-size:12px;color:var(--text)">EVENT STUDY (activation ≥ p80)</h3>
+      <table class="mini"><tr><th></th><th>n</th><th>excess vs base %</th><th>hit edge pp</th><th>t</th><th>p</th></tr>
+      ${[['4w',w4],['13w',w13]].map(([l,x])=>`<tr><td>${l}</td><td>${x.n??'—'}</td><td>${num(x.excess_vs_base_pct,2)}</td><td>${num(x.hit_edge_pp,1)}</td><td>${num(x.t_stat,2)}</td><td>${num(x.p_value,3)}</td></tr>`).join('')}</table>
+      <h3 style="font-size:12px;color:var(--text);margin-top:12px">LIT INDICATORS</h3>
+      ${(d.lit_indicators||[]).map(m=>`<div class="kvrow"><span>${zcell(m.z)}</span><b>${esc(m.name||m.symbol)}</b><span class="pill">${esc(m.symbol)}</span></div>`).join('')||'<div class="small">none lit</div>'}
+      <h3 style="font-size:12px;color:var(--text);margin-top:12px">ALL MEMBERS</h3>
+      <table class="mini"><tr><th>z</th><th>indicator</th><th>source</th></tr>
+      ${(d.all_members||[]).map(m=>`<tr><td>${zcell(m.z)}</td><td>${esc(m.name||m.symbol)}</td><td class="small">${esc(m.source_id||'')}</td></tr>`).join('')}</table>
+      <div class="small" style="margin-top:10px">feed: /data/engines/${esc(tr.dataset.eid)}.json · fusion targets: ${esc((d.fusion_targets||[]).join(', ')||'—')}</div>`;
+  }catch(e){db.innerHTML='<span class="err">'+esc(e.message)+'</span>';}
+});
 </script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-right-rail.js" defer></script>
