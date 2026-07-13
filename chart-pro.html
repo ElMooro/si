@@ -6948,7 +6948,7 @@ class JHF {
 <script>
 /* ops 3273: TV WATCHLISTS — Khalid's lists in the left drawer, browse like TradingView */
 (function(){
-  var API='https://WLSERIES_URL_PLACEHOLDER';
+  var API='https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws';
   var PROXY='https://justhodl-data-proxy.raafouis.workers.dev';
   var lists=[], smap={}, cur={li:0,si:0}, ov=null, ovChart=null;
   function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -6980,7 +6980,7 @@ class JHF {
       if(!j.points||!j.points.length){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">no cached series for '+esc(sym)+'</div>';return;}
       c.innerHTML='';
       ovChart=LightweightCharts.createChart(c,{autoSize:true,layout:{background:{color:'transparent'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},timeScale:{borderColor:'#1c2433'},rightPriceScale:{borderColor:'#1c2433'}});
-      ovChart.addLineSeries({color:'#26ffaf',lineWidth:2}).setData(j.points.map(function(p){return{time:p[0],value:+p[1]};}));
+      function wk2d(w){var q=String(w).split('-'),y=+q[0],n=+q[1];if(!n||String(w).length>7)return String(w).slice(0,10);var d=new Date(Date.UTC(y,0,4));var dow=(d.getUTCDay()||7);d.setUTCDate(d.getUTCDate()-dow+1+(n-1)*7);return d.toISOString().slice(0,10);}ovChart.addLineSeries({color:'#26ffaf',lineWidth:2}).setData(j.points.map(function(p){return{time:wk2d(p[0]),value:+p[1]};}));
       ovChart.timeScale().fitContent();
     }).catch(function(){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">series api unreachable</div>';});
   }
