@@ -1,0 +1,72 @@
+# ops 3190 — ECONOMICS residuals on IMF/OECD via DBnomics ($0, probe-gated ladders)
+
+**Status:** success  
+**Duration:** 168.6s  
+**Finished:** 2026-07-13T02:46:01+00:00  
+
+## Data
+
+| coverage_before | coverage_now | curated_total | economics_unmapped | families | ladder_covered | mapped_now | n_fails | n_warns | new_ladder_entries | probed | pruned | survivors | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  |  |  | 383 | 174 | 0 |  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |  | 0 |  |  |  |  |
+|  |  |  |  |  |  |  |  |  |  | 0 | 0 | 0 |  |
+| 75.3 | 75.6 | 0 |  |  |  | 4920 |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  | 0 | 0 |  |  |  |  | PASS |
+
+## Log
+## 1. Family census (post-3189)
+
+- `02:43:13`   CA           24  -
+- `02:43:13`   INTR         21  -
+- `02:43:13`   IPYY         14  -
+- `02:43:13`   MPRYY        10  -
+- `02:43:13`   FYGDPG       10  -
+- `02:43:13`   TVS           9  -
+- `02:43:13`   RSYY          9  -
+- `02:43:13`   GFCF          8  -
+- `02:43:13`   MPMI          8  -
+- `02:43:13`   TOT           7  -
+- `02:43:13`   ESI           6  -
+- `02:43:13`   IPMM          6  -
+- `02:43:13`   LEI           6  -
+- `02:43:13`   LPS           6  -
+- `02:43:13`   LG            6  -
+- `02:43:13`   CF            5  -
+## 2. Re-map with econ ladders live
+
+## 3. Probe + ladder climb (real fetches)
+
+## 4. Redeploy shared bundle
+
+- `02:45:45`   zip: 73921 bytes
+## 1. Lambda
+
+- `02:45:45`   Lambda exists — updating
+- `02:45:51` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `02:45:51`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `02:45:51` ✅   ✓ target → justhodl-wl-engines
+- `02:45:51` ✅   ✓ added invoke permission
+- `02:45:52`   zip: 75540 bytes
+## 1. Lambda
+
+- `02:45:52`   Lambda exists — updating
+- `02:45:57` ✅   ✓ updated justhodl-thesis-engine
+## 2. EB rule + permissions
+
+- `02:45:57`   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+- `02:45:57` ✅   ✓ target → justhodl-thesis-engine
+- `02:45:57` ✅   ✓ added invoke permission
+- `02:45:58`   zip: 71581 bytes
+## 1. Lambda
+
+- `02:45:58`   Lambda exists — updating
+- `02:46:01` ✅   ✓ updated justhodl-symbol-dictionary
+## 2. EB rule + permissions
+
+- `02:46:01`   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+- `02:46:01` ✅   ✓ target → justhodl-symbol-dictionary
+- `02:46:01` ✅   ✓ added invoke permission
+- `02:46:01`   fleet kicked (Event) — full verification lands in ops 3195 after all six residue waves
