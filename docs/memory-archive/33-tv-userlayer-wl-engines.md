@@ -710,3 +710,15 @@ so no CF 403-caching residue possible.
   lazily), status line '· N lists loaded'. Drawer FAVORITES states
   per-browser truth when jh_favs is empty (stars are per-browser;
   sign-in on the holding browser syncs them).
+
+## Client-truth telemetry armed (ops 3276)
+
+- Diag beacon live: chart-pro's MY-TV-WATCHLISTS footer renders
+  `diag: lists=N · sw=… · drawer=vHASH · favs=N · lwc=…` AND fires the
+  same payload to the wl-series-api (?diag=1 → CloudWatch [diag]).
+  Drawer fires a one-shot per-session beacon (page, favs, sw) from
+  EVERY page + forces serviceWorker registration.update() each view.
+  SW bumped v1.2.0-3276 (full cache turnover on adoption).
+- 4-min listen captured no beacons (Khalid not browsing) — the next
+  page load he makes lands his browser's reality in CloudWatch;
+  read with logs filter '[diag]' on /aws/lambda/justhodl-wl-series-api.
