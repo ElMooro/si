@@ -82,7 +82,8 @@ a{color:var(--cyan)}
 
   <h2>ENGINES</h2>
   <div class="filters" id="filters"></div>
-  <div style="overflow-x:auto"><table>
+  <div style="overflow-x:auto"><div id="pred"></div>
+<table>
     <thead><tr>
       <th data-k="name">ENGINE</th><th data-k="theme">THEME</th><th data-k="state">STATE</th>
       <th data-k="firing">FIRING</th><th data-k="activation_pctile">ACTIVATION</th>
@@ -99,6 +100,18 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const num=(v,d=1)=>(v==null||isNaN(v))?'—':Number(v).toFixed(d);
 let ENG=[],theme='ALL',fireOnly=false,sortK='firing',sortD=-1;
 
+
+async function loadPred(){/* ops 3254: PREDICTIONS — panel theses tested */
+ try{const P=await gj('/data/wl-predictions.json');const el=document.getElementById('pred');
+  if(!el||!(P.predictions||[]).length)return;
+  el.innerHTML='<div style="font-size:11px;letter-spacing:.12em;color:var(--accent,#e8b45a);margin:2px 0 8px">PREDICTIONS \u2014 panel theses tested against real targets (13w lead)</div>'
+  +P.predictions.slice(0,8).map(function(p){
+   var callC=p.current_call==='NEUTRAL'?'var(--text-muted,#888)':'var(--accent,#e8b45a)';
+   return '<div style="border:1px solid var(--border-strong,#333);border-radius:8px;padding:8px 12px;margin:4px 0;font-family:var(--font-mono,monospace);font-size:11px"><b>'+esc(p.name)+'</b> \u2192 '+esc(p.target)
+   +' \u00b7 corr@13w '+p.lead_corr+' \u00b7 extremes '+(p.extreme_hit_pct==null?'\u2014':p.extreme_hit_pct+'%')+' (n='+p.extreme_n+') vs base '+p.base_up_pct+'%'
+   +' \u00b7 z '+(p.predictor_z_now==null?'\u2014':p.predictor_z_now)
+   +' \u00b7 <span style="color:'+callC+'">'+esc(p.current_call)+'</span></div>';}).join('');
+ }catch(e){}}
 async function gj(u){const r=await fetch(u+'?t='+Date.now());if(!r.ok)throw new Error(u+' '+r.status);return r.json();}
 
 function renderThemes(f){
@@ -138,7 +151,7 @@ function renderFilters(){
     +`<button class="fbtn ${fireOnly?'on':''}" data-fire="1">FIRING ONLY</button>`;
   $('filters').onclick=ev=>{const b=ev.target.closest('.fbtn');if(!b)return;
     if(b.dataset.fire){fireOnly=!fireOnly;}else{theme=b.dataset.t;}
-    renderFilters();renderTable();};
+    renderFilters();renderTable();loadPred();};
 }
 document.querySelector('thead').addEventListener('click',ev=>{const th=ev.target.closest('th');if(!th)return;
   const k=th.dataset.k;if(sortK===k)sortD*=-1;else{sortK=k;sortD=-1;}renderTable();});

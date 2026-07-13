@@ -368,6 +368,7 @@ def lambda_handler(event, context):
 
     # ── 4. run every engine ─────────────────────────────────────────
     rows, pvals = [], []
+    comps = {}                 # ops 3254: directional composites (ACTIVE)
     for sp in specs:
         if sp["state"] != "ACTIVE":
             rows.append({**{k: sp[k] for k in
@@ -391,11 +392,13 @@ def lambda_handler(event, context):
                                    f"{len(sp['members_resolved'])} mapped)"})
             continue
         act = array("f", [float("nan")]) * 0
+        dz = array("f", [float("nan")]) * 0   # ops 3254
         for i in range(len(grid)):
             live = [z[i] for _, z in zs if z[i] == z[i]]
+            ok_n = len(live) >= MIN_MEMBERS
             act.append(100.0 * sum(1 for v in live if abs(v) >= Z_FIRE)
-                       / len(live) if len(live) >= MIN_MEMBERS
-                       else float("nan"))
+                       / len(live) if ok_n else float("nan"))
+            dz.append(sum(live) / len(live) if ok_n else float("nan"))
         valid = [a for a in act if a == a]
         if len(valid) < 100:
             sp["state"] = "DORMANT"          # ops 3208: never drop silently
@@ -407,6 +410,7 @@ def lambda_handler(event, context):
                          "reason": f"only {len(valid)} weeks of joint "
                                    "activation history (<100)"})
             continue
+        comps[sp["engine_id"]] = dz    # ops 3254
         srt = sorted(valid)
         p80 = srt[int(0.8 * len(srt))]
         cur = act[-1] if act[-1] == act[-1] else None
@@ -623,6 +627,120 @@ def lambda_handler(event, context):
         print(f"[wl] signal emission unavailable: {str(_e)[:70]}")
 
     s3_put(INDEX_KEY, index)
+
+    # ── ops 3254: PREDICTION LAYER ──────────────────────────────────
+    # Panels whose names encode a forecast ("PREDICT FUTURE LIQUIDITY
+    # TREND REVERSAL", "warning signal", "barometer" …) are tested AS
+    # predictions: directional composite (mean member z) vs a real
+    # target's forward 13w move — lead correlation + extreme-event hit
+    # rate on full history — plus a CURRENT CALL with historical odds.
+    try:
+        import math as _m
+        import re as _re
+        H = 13
+
+        def theme_comp(th, excl=None):
+            arrs = [c for eid2, c in comps.items() if eid2 != excl
+                    and next((x["theme"] for x in specs
+                              if x["engine_id"] == eid2), "") == th]
+            if len(arrs) < 3:
+                return None
+            out = array("f", [float("nan")]) * 0
+            for i in range(len(grid)):
+                v = [a[i] for a in arrs if a[i] == a[i]]
+                out.append(sum(v) / len(v) if len(v) >= 3
+                           else float("nan"))
+            return out
+
+        dxy_w = cache.get("TVC:DXY") or {}
+        dxy = align(dxy_w, grid) if dxy_w else None
+        y10_eid = next((x["engine_id"] for x in specs
+                        if "global 10 year" in x["name"].lower()), "")
+        y10 = comps.get(y10_eid)
+
+        def fwd_series(tgt, kind):
+            out = []
+            for i in range(len(grid) - H):
+                a, b = tgt[i], tgt[i + H]
+                if a != a or b != b:
+                    out.append(None)
+                elif kind == "level":
+                    out.append(100.0 * (b / a - 1.0) if a else None)
+                else:
+                    out.append(b - a)
+            return out
+
+        RULES = [(r"liquidity|liqu", "LIQUIDITY_THEME"),
+                 (r"\bdxy\b|dollar", "DXY"),
+                 (r"10 year|yield", "YIELDS10Y"),
+                 (r"market|stock|equit|crypto|bitcoin", "SPY")]
+        INTENT = _re.compile(
+            r"predict|future|reversal|warning|lead|barometer|gauge|"
+            r"signal", _re.I)
+        preds = []
+        for sp2 in specs:
+            eid2 = sp2["engine_id"]
+            nm2 = sp2["name"]
+            if eid2 not in comps or not INTENT.search(nm2):
+                continue
+            tkey = next((t for rx, t in RULES
+                         if _re.search(rx, nm2, _re.I)), "SPY")
+            if tkey == "LIQUIDITY_THEME":
+                tgt, kind = theme_comp("LIQUIDITY", excl=eid2), "z"
+            elif tkey == "DXY":
+                tgt, kind = dxy, "level"
+            elif tkey == "YIELDS10Y":
+                tgt, kind = y10, "z"
+            else:
+                tgt, kind = spy, "level"
+            if tgt is None or (tkey == "YIELDS10Y" and eid2 == y10_eid):
+                continue
+            pz = comps[eid2]
+            fw = fwd_series(tgt, kind)
+            pairs = [(pz[i], fw[i]) for i in range(len(fw))
+                     if pz[i] == pz[i] and fw[i] is not None]
+            if len(pairs) < 60:
+                continue
+            xs = [a for a, _ in pairs]
+            ys = [b for _, b in pairs]
+            mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
+            sx = _m.sqrt(sum((a - mx) ** 2 for a in xs))
+            sy = _m.sqrt(sum((b - my) ** 2 for b in ys))
+            corr = (sum((a - mx) * (b - my) for a, b in pairs)
+                    / (sx * sy)) if sx > 0 and sy > 0 else 0.0
+            sgn = 1 if corr >= 0 else -1
+            ext = [(a, b) for a, b in pairs if abs(a) >= 1.2]
+            hits = sum(1 for a, b in ext if (b > 0) == (sgn * a > 0))
+            hr = round(100 * hits / len(ext), 1) if ext else None
+            br = round(100 * sum(1 for _, b in pairs if b > 0)
+                       / len(pairs), 1)
+            zn = pz[-1] if pz[-1] == pz[-1] else None
+            call = "NEUTRAL"
+            if zn is not None and abs(zn) >= 1.0 and ext:
+                d = "UP" if sgn * zn > 0 else "DOWN"
+                call = f"{tkey} {d} within {H}w"
+            preds.append({
+                "engine_id": eid2, "name": nm2[:90],
+                "theme": sp2["theme"], "target": tkey,
+                "lead_weeks": H, "n": len(pairs),
+                "lead_corr": round(corr, 3),
+                "extreme_n": len(ext), "extreme_hit_pct": hr,
+                "base_up_pct": br,
+                "predictor_z_now": (round(zn, 2)
+                                    if zn is not None else None),
+                "current_call": call})
+        preds.sort(key=lambda r2: -(abs(r2["lead_corr"])
+                                    * (r2["extreme_n"] or 0) ** 0.5))
+        s3_put("data/wl-predictions.json",
+               {"generated_at": now.isoformat(),
+                "horizon_weeks": H, "n_theses": len(preds),
+                "note": "panel theses tested AS predictions — lead "
+                        "corr + extreme hit rate on full history; "
+                        "calls carry historical odds (ops 3254)",
+                "predictions": preds})
+        print(f"[pred] {len(preds)} theses tested")
+    except Exception as _pe:
+        print(f"[pred] skipped: {_pe}")
     print(json.dumps({"ok": True, "engines": len(rows),
                       "active": index["n_active"], "firing": index["n_firing"],
                       "signals": logged, "elapsed": index["elapsed_s"]}))
