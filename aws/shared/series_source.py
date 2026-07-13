@@ -30,7 +30,10 @@ import time as _time
 # re-fail EVERY run and their panels never wake.
 _GATE_LOCK = _thr.Lock()
 _GATE_LAST = {}
-_GATE_MIN = {"COINGECKO": 1.35, "COINMETRICS": 0.7, "FRED": 0.12}
+_GATE_MIN = {"COINGECKO": 1.35, "COINMETRICS": 0.7,
+             "FRED": 0.55}   # ops 3227: FRED caps at 120/min —
+                              # 0.12s was a self-DDoS (mass 429s
+                              # returning as silent empties)
 
 
 def _polite(source):

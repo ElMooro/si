@@ -266,6 +266,11 @@ def lambda_handler(event, context):
     cache = state.get("weekly") or {}
     ids = state.get("ids") or {}          # ops 3224: what each sym was
                                           # fetched AS — remap ⇒ refetch
+    misses = state.get("misses") or {}    # ops 3227: empty fetches leave a
+                                          # 3-day tombstone (keyed to the
+                                          # mapping) — 1,300 dry ids were
+                                          # being retried EVERY run,
+                                          # 429-walling FRED for everyone
     fresh_cut = (now - timedelta(days=6)).isoformat()
     ser = SS.fetch("MARKET", "SPY", START)
     if ser:
@@ -273,8 +278,15 @@ def lambda_handler(event, context):
     def _mid(k):
         m = need.get(k) or {}
         return f"{m.get('source')}|{m.get('id')}"
+    miss_cut = (now - timedelta(days=3)).isoformat()
+
+    def _tombstoned(k):
+        m = misses.get(k) or {}
+        return (m.get("id") == _mid(k) and
+                str(m.get("at", "")) > miss_cut)
     todo = [k for k in need
             if k != "__SPY__"
+            and not _tombstoned(k)
             and (k not in cache
                  or (k in ids and ids[k] != _mid(k))
                  or state.get("stamp", "") < fresh_cut)]
@@ -305,11 +317,15 @@ def lambda_handler(event, context):
                 if w:
                     cache[k] = w
                     ids[k] = _mid(k)
+                    misses.pop(k, None)
                     fetched += 1
+                else:
+                    misses[k] = {"id": _mid(k),
+                                 "at": now.isoformat()}
                 if time.time() - t0 > FETCH_BUDGET_S:
                     break
         state = {"stamp": now.isoformat(), "weekly": cache,
-                 "ids": ids}
+                 "ids": ids, "misses": misses}
         s3_put(STATE_KEY, state, gz=True)
     print(f"[wl] cache={len(cache)} new={fetched} {round(time.time()-t0)}s")
 
