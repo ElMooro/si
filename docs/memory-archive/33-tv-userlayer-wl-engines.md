@@ -607,3 +607,27 @@ so no CF 403-caching residue possible.
 - Notes directive now closed with proof across every consumer:
   best-setups ✓ alpha-compass ✓ master-ranker ✓ equity-research ✓
   + brain semantic parity ✓ + playbook engine surfaced + scheduled ✓.
+
+## COMPOSITE MODE — size-gated panels woken (ops 3267)
+
+- Small/sparse panels (<6 members, <6 z-scorable, or <100 joint
+  breadth weeks) now run honestly on **mean-member z**: extremeness
+  percentile vs own history, firing at |z|≥1.5, extreme-event study
+  (|z|≥1.2, n≥20/horizon), FDR pool, grading-compatible row shape,
+  prediction-layer auto-join via comps{}. MIN_COMPOSITE_WEEKS=60.
+  Breadth engines untouched by construction (composite fires only
+  where breadth gates fail) — proven: foreign-exchange-reserves no
+  mode field, w13 n=68.
+- **CENSUS: ACTIVE 131 → 194 (+63 composite)**; residual dormant just
+  **13** (7× zero z-scorable on a free source, 5× lack fetchable
+  history, 1× zero joint weeks) — the truly dead named-classes.
+- **HQM AWAKE** (Khalid's original example): mode=composite, z=1.32,
+  pct=91.2, n_weeks=1,746, 2/2 members — and its thesis auto-joined
+  predictions: → LIQUIDITY_THEME, call **LIQUIDITY DOWN within 13w**.
+  Prediction theses 12 → **23**.
+- Woke-and-FIRING now: Federal Reserve Liquidity z=3.65, Global
+  Commodities Growth z=2.68, European Bonds z=1.66, Economic Index
+  z=1.51. Drawer shows mode tag (live-verified).
+- Follow-up arc queued (not built): ratio/div transform for the
+  computed-ratio families (FX-reserves/GDP etc.) — would need a
+  per-country mapping campaign.
