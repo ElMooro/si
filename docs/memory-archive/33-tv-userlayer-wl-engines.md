@@ -631,3 +631,19 @@ so no CF 403-caching residue possible.
 - Follow-up arc queued (not built): ratio/div transform for the
   computed-ratio families (FX-reserves/GDP etc.) — would need a
   per-country mapping campaign.
+
+## Ratio families woken — div transform (ops 3268)
+
+- series_source gains 5-part **div**: `FRED~A~div~FRED~B` (mirrors
+  minus, zero-guarded: skips keys where b==0). Shared-file change ⇒
+  all three SHARED_CONSUMERS redeployed.
+- FRED browse (never guess), 0.55s politeness: FER=TRESEG{cc}M052N;
+  GDP ladder CLVMNACSCAB1GQ{cc}→NGDPRSAXDC{cc}Q; M3=MABMM301{cc}M189S;
+  probes gated on last-obs ≥2023 AND ≥120 obs. TV ratio tiles parse as
+  `ECONOMICS:{CC}XXX/ECONOMICS:{CC}YYY` (cc_rx on first ECONOMICS:).
+  Map donor shape copied from a live minus entry (source=DERIVED).
+- **RESULT: +12 div map entries; 3/4 ratio engines AWAKE (composite);
+  ACTIVE 194→197.** fx-reserves-gdp 6/16 resolved, gdp-m3 4/18,
+  fer-money-supply 2/16; **fer-external-debt 0/11 stays dormant —
+  no free per-country external-debt series exists** (said plainly;
+  residual dormant now 12).
