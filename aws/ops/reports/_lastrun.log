@@ -1,28 +1,26 @@
-executing-against: 2304ce05d279b7927522f515df158f9db6067f7d
-ops 3248 — fleet certification after the marathon
-── 1. Errors metric, every function, 12h ──
-[12:33:18]   ⚠ TONIGHT justhodl-wl-engines: 27 err — 
-[12:33:18]     justhodl-consumer-pulse: 1 err — 
-[12:33:19]     justhodl-cb-injection: 1 err — 
-[12:33:19]     justhodl-theme-rotation-engine: 1 err — [ERROR] AttributeError: 'NoneType' object has no attribute 'get'
-[12:33:20]     justhodl-khalid-metrics: 1 err — 
-[12:33:20]     justhodl-boj-detail: 1 err — 
-[12:33:21]     justhodl-ka-metrics: 1 err — 
-[12:33:22]     justhodl-yen-carry: 1 err — 
-[12:33:22]     justhodl-snb-detail: 1 err — 
-── 2. Tonight's deploys — explicit clean check ──
-[12:33:22]   dirty: justhodl-wl-engines
-── 3. Feed freshness ──
-[12:33:23]   ✓ data/wl-engines.json               age=4.2h (cap 26h)
-[12:33:23]   ✓ data/wl-fusion.json                age=4.2h (cap 26h)
-[12:33:23]   ✓ data/thesis-engine.json            age=5.2h (cap 26h)
-[12:33:23]   ✓ data/credit-stress.json            age=0.5h (cap 26h)
-[12:33:23]   ✓ data/eurodollar-plumbing.json      age=0.5h (cap 26h)
-[12:33:23]   ✓ data/macro-nowcast.json            age=0.3h (cap 26h)
-[12:33:24]   ✓ data/crisis-composite.json         age=0.3h (cap 26h)
-[12:33:24]   ✓ data/market-internals.json         age=11.7h (cap 30h)
-[12:33:24]   ✓ data/symbol-map.json               age=4.2h (cap 30h)
-[12:33:24] ✗ justhodl-wl-engines: 27 errors post-deploy
+executing-against: da71a6ecc231143c46ecc7de6616a02e5d592546
+ops 3249 — error forensics
+── 1. wl-engines hourly error distribution (13h) ──
+[12:35:22]   23:00Z  
+[12:35:22]   00:00Z  
+[12:35:22]   01:00Z  
+[12:35:22]   02:00Z  ████████████████████████24
+[12:35:22]   03:00Z  ███3
+[12:35:22]   04:00Z  
+[12:35:22]   05:00Z  
+[12:35:22]   06:00Z  
+[12:35:22]   07:00Z  
+[12:35:24] ✅ wl-engines errors STOPPED — marathon-era, certified historical (fresh feed + clean recent streams)
+── 2. Singles triage ──
+[12:35:24]   justhodl-consumer-pulse              last_err=—  …no recent error trace
+[12:35:25]   justhodl-cb-injection                last_err=—  …no recent error trace
+[12:35:25]   justhodl-theme-rotation-engine       last_err=11:00:19  ⚠ REAL
+[12:35:25]       [ERROR] AttributeError: 'NoneType' object has no attribute 'get'
+[12:35:25]   justhodl-khalid-metrics              last_err=—  …no recent error trace
+[12:35:26]   justhodl-boj-detail                  last_err=—  …no recent error trace
+[12:35:26]   justhodl-ka-metrics                  last_err=—  …no recent error trace
+[12:35:26]   justhodl-yen-carry                   last_err=—  …no recent error trace
+[12:35:27]   justhodl-snb-detail                  last_err=—  …no recent error trace
+[12:35:27] ⚠ 1 single-error functions carry real tracebacks — fix queue
 
-→ Report written to aws/ops/reports/latest/3248_fleet_health.md
-❌ OPS-FAIL: aws/ops/pending/ops_3248_fleet_health.py
+→ Report written to aws/ops/reports/latest/3249_error_forensics.md
