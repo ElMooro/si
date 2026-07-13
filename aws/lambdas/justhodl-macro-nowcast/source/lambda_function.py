@@ -406,6 +406,23 @@ def lambda_handler(event=None, context=None):
     output = {
         "v": "2.2",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "global_confidence": __import__("wl_series").block({
+        "cci_jp": ("ECONOMICS:JPCCI", "Japan consumer conf"),
+        "cci_de": ("ECONOMICS:DECCI", "Germany consumer conf"),
+        "cci_fr": ("ECONOMICS:FRCCI", "France consumer conf"),
+        "cci_gb": ("ECONOMICS:GBCCI", "UK consumer conf"),
+        "cci_kr": ("ECONOMICS:KRCCI", "Korea consumer conf"),
+        "cci_cn": ("ECONOMICS:CNCCI", "China consumer conf"),
+        "cci_it": ("ECONOMICS:ITCCI", "Italy consumer conf"),
+        "cci_es": ("ECONOMICS:ESCCI", "Spain consumer conf"),
+        "bcoi_gb": ("ECONOMICS:GBBCOI", "UK business conf"),
+        "bcoi_cn": ("ECONOMICS:CNBCOI", "China business conf"),
+        "bcoi_eu": ("ECONOMICS:EUBCOI", "EA industry conf"),
+        "bcoi_it": ("ECONOMICS:ITBCOI", "Italy business conf"),
+        "gdp_de": ("ECONOMICS:DEGDPYY", "Germany GDP YoY"),
+        "gdp_fr": ("ECONOMICS:FRGDPYY", "France GDP YoY"),
+        "gdp_ea": ("ECONOMICS:EUGDPYY", "EA19 GDP YoY"),
+    }, True),  # ops 3244: series-level fusion
         "wl_research": __import__("wl_fusion").block(('GROWTH', 'INFLATION')),
         "duration_s": round(time.time() - started, 2),
         "raw_score": round(weighted_sum, 4),

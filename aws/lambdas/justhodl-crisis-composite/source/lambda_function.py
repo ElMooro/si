@@ -343,6 +343,10 @@ def lambda_handler(event, context):
         "schema_version": "1.0",
         "method": "crisis_composite_v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "btp_bund_canary": __import__("wl_series").block({
+        "btp_bund": ("TVC:BTPBUND", "BTP–Bund 10y spread"),
+        "es_it": ("TVC:ES10Y-TVC:IT10Y", "Bono–BTP 10y spread"),
+    }, False),  # ops 3244: series-level fusion
         "wl_research": __import__("wl_fusion").block(('STRESS',)),
         "elapsed_s": round(time.time() - t0, 1),
         "master_crisis_score": round(master, 1),

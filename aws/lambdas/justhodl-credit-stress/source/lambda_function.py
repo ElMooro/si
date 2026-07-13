@@ -398,6 +398,12 @@ def lambda_handler(event, context):
     # ─── Build payload ───
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "europe_sovereign": __import__("wl_series").block({
+        "btp_bund": ("TVC:BTPBUND", "BTP–Bund 10y spread"),
+        "fr_it": ("TVC:FR10Y-TVC:IT10Y", "OAT–BTP 10y spread"),
+        "es_it": ("TVC:ES10Y-TVC:IT10Y", "Bono–BTP 10y spread"),
+        "estr": ("ICEEUR:EON2!", "€STR overnight"),
+    }, False),  # ops 3244: series-level fusion
         "wl_research": __import__("wl_fusion").block(('CREDIT',)),
         "generated_at_unix": int(time.time()),
         "version": VERSION,

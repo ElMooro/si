@@ -515,6 +515,12 @@ def lambda_handler(event, context):
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "euro_policy_corridor": __import__("wl_series").block({
+        "estr": ("ICEEUR:EON2!", "€STR overnight"),
+        "ecb_depo": ("ECONOMICS:EUDIR", "ECB deposit facility rate"),
+        "euribor3m_impl": ("ICEEUR:I2!", "3m Euribor (100−rate)"),
+        "gb_interbank": ("ECONOMICS:GBDIR", "GB 3m interbank"),
+    }, False),  # ops 3244: series-level fusion
         "wl_research": __import__("wl_fusion").block(('RATES',)),
         "plumbing_health": health, "verdict": verdict,
         # --- compatibility adapter: mirror the legacy data/eurodollar-stress.json schema in
