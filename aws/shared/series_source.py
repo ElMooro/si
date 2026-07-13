@@ -426,6 +426,58 @@ def _internals(metric, start):
 
 EODHD_KEY = os.environ.get("EODHD_API_KEY", "")
 
+# TradingView exchange → EODHD exchange code
+TV_EODHD = {
+    "LSE": "LSE", "AIM": "LSE",
+    "XETR": "XETRA", "SWB": "F", "FWB": "F", "TRADEGATE": "F",
+    "GETTEX": "F", "BER": "BE", "MUN": "MU", "DUS": "DU", "STU": "STU",
+    "EURONEXT": "AS", "AMS": "AS", "EPA": "PA", "EBR": "BR", "ELI": "LS",
+    "MIL": "MI", "BIT": "MI", "BME": "MC", "SIX": "SW", "SWX": "SW",
+    "VIE": "VI", "WSE": "WAR",
+    "SSE": "SHG", "SZSE": "SHE", "HKEX": "HK", "TSE": "TSE",
+    "TSX": "TO", "TSXV": "V", "ASX": "AU", "NZX": "NZ",
+    "NSE": "NSE", "BSE": "BSE", "KRX": "KO", "TWSE": "TW", "SGX": "SG",
+    "IDX": "JK", "BMV": "MX", "BVMF": "SA", "JSE": "JSE", "TASE": "TA",
+    "OMXSTO": "ST", "OMXHEX": "HE", "OMXCOP": "CO", "OSL": "OL",
+    "FTSE": "INDX", "INDEX": "INDX", "USI": "INDX",
+    "CBOEEU": "INDX", "ICEEUR": "COMM", "EUREX": "COMM",
+    "NYMEX": "COMM", "COMEX": "COMM", "CBOT": "COMM", "ICEUS": "COMM",
+}
+_eod_search_cache = {}
+
+
+def eodhd_resolve(sym):
+    """TV symbol → EODHD ticker. Direct exchange-code first; EODHD's own
+    search endpoint resolves the ambiguous ones (Euronext spans AS/PA/BR/LS)."""
+    if ":" not in sym:
+        return f"{sym}.US"
+    ex, t = sym.split(":", 1)
+    code = TV_EODHD.get(ex)
+    if code:
+        return f"{t}.{code}"
+    return None
+
+
+def eodhd_search(term):
+    """authoritative lookup when the suffix guess is wrong."""
+    if not EODHD_KEY:
+        return None
+    if term in _eod_search_cache:
+        return _eod_search_cache[term]
+    try:
+        d = _http(f"https://eodhd.com/api/search/{urllib.parse.quote(term)}"
+                  f"?api_token={EODHD_KEY}&fmt=json&limit=5")
+        hit = None
+        for r in (d if isinstance(d, list) else []):
+            if r.get("Code") and r.get("Exchange"):
+                hit = f"{r['Code']}.{r['Exchange']}"
+                break
+        _eod_search_cache[term] = hit
+        return hit
+    except Exception:
+        _eod_search_cache[term] = None
+        return None
+
 
 def _eodhd(sid, start):
     """EODHD EOD: 60+ exchanges. Only used for what free sources genuinely
