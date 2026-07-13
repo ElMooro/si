@@ -722,3 +722,19 @@ so no CF 403-caching residue possible.
 - 4-min listen captured no beacons (Khalid not browsing) — the next
   page load he makes lands his browser's reality in CloudWatch;
   read with logs filter '[diag]' on /aws/lambda/justhodl-wl-series-api.
+
+## Beacons decode the mystery + 13F additive (ops 3277)
+
+- **Khalid's Edge beacons (23:04 UTC)**: chartpro `lists=207, err="",
+  drawer=f68c5019 (current), lwc=true, sw=service-worker.js, v=3276`
+  → **the watchlists section WORKS in his browser** post-SW-turnover.
+  `favs=2` in this Edge profile → the big starred set lives in a
+  DIFFERENT browser/profile (per-browser storage); union-sync carries
+  it once he signs in on the holding profile. Case closed with client
+  ground truth.
+- **13F additive** (improve-doctrine now permanent in memory #26 +
+  AUTONOMY.md): two sections appended, existing untouched-verified —
+  Cluster Moves (≥2-fund NEW/EXIT, ≥3-fund ADD, fund chips; live:
+  GOOG NEW by Berkshire+Bridgewater, V by Coatue+Lone Pine; as_of
+  2026-03-31, 17 funds) + Smart Money ∩ Your Engines (khalid_note
+  stance × master-ranker join).
