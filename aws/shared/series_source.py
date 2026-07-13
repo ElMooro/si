@@ -863,7 +863,7 @@ def _derived(sid, start):
     if not base:
         return {}
     ks = sorted(base)
-    out, mx, prev = {}, None, None
+    out, mx, prev, lag4 = {}, None, None, []
     for k in ks:
         v = base[k]
         if tr == "negate":
@@ -874,6 +874,12 @@ def _derived(sid, start):
             if prev not in (None, 0):
                 out[k] = 100.0 * (v / prev - 1.0)
             prev = v
+        elif tr == "pct4":                 # ops 3230: YoY on quarterlies
+            lag4.append(v)
+            if len(lag4) > 4:
+                base4 = lag4.pop(0)
+                if base4 not in (None, 0):
+                    out[k] = 100.0 * (v / base4 - 1.0)
         elif tr == "drawdown_ath":
             mx = v if mx is None or v > mx else mx
             if mx:
