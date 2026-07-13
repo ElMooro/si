@@ -1,6 +1,7 @@
-executing-against: fcbf7ae625e145cd618b3cbe46b950a4d1b59b0a
-ops 3212 — ledger presence by exact key
-[05:08:18] ✗ only 0/24 present by exact key
+executing-against: 1dd8a866160ab564807f6f42054f1da0d99b20d3
+ops 3213 — exact keys, correct week
+[05:10:15]   week 2026-28: 24/24
+[05:10:15]   week 2026-29: 0/24
+[05:10:15] ✅ 24/24 firing panels in the trust ledger (week 2026-28) — grading wired END-TO-END; the scorecard grows one row per watchlist as 7/28/91d windows score
 
-→ Report written to aws/ops/reports/latest/3212_ledger_exact.md
-❌ OPS-FAIL: aws/ops/pending/ops_3212_ledger_exact.py
+→ Report written to aws/ops/reports/latest/3213_ledger_week.md
