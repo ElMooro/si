@@ -63,3 +63,55 @@ Probe before paying (3186) · a cancelled vendor key left wired = silent
 empty fetches + mis-resolution hazard (3188 BER→KLSE) · measure verdicts,
 never assume · engine-activation math decides which gap is worth closing
 (3184) · vendor tiles are often VIEWS of free primary data — map, don't buy.
+
+## Residue program appendix (ops 3190–3198, same night)
+
+Khalid: "build every single one of those one by one." All PASS.
+
+- **3190 econ ladders**: ECON_DBN candidate-ladder dict (IMF IFS/OECD MEI
+  templates) + curated carry-forward convention (`curated` section MERGES
+  FIRST on every rebuild). Measured: the real residue = 174 micro-families
+  the guesses missed (ladder_covered 0) — evidence over assumption.
+- **3191 name-search**: dbn_search_factory (DBnomics twin of fred_search,
+  trusted providers only, memoised) driven by symbol-dictionary human
+  names. 11 survivors — but shipped CROSS-COUNTRY POISON (BRCLI/CNCLI →
+  Australia; MA/TN INTR → BIS debt-sec).
+- **3192 hardening**: 9 poison entries PURGED by name; country token now a
+  HARD reject in dbn search; verified hits became templates (CLI → OECD
+  DSD_KEI@DF_KEI/{i3}.M.LI.IX._T.AA._Z; rates → ECB MIR + IMF IFS
+  FILR_PA/FIMM_PA; permits → Eurostat STS_COBP_M) — INTR hit 19/21
+  countries, 400+ monthly pts each. MPMI/SPMI/CPMI/LEI tagged
+  licensed_econ (S&P Global / Conference Board — no free primary).
+- **3193 DERIVED source**: 'SRC~ID~transform' — drawdown_ath, running_max,
+  nupl_mvrv, negate, pct1 (+vol60, mcclellan_osc/sum, hundred_minus added
+  3194/3197). BTC ATH-drawdown computed 5,839 pts. ITB census verdict: the
+  remaining ~185 on-chain tiles are proprietary holder-clustering
+  (WHALES/RETAIL/INVESTORS ×count/%/assets) — unbuildable free.
+- **3194 USI**: McClellan osc+summation as DERIVED over the computed A/D
+  line; exchange-scoped tiles → all-market computed with explicit PROXY
+  note; TICK/TIKI/PREM tagged intraday. Census verdict: the residual 95
+  are tape/block microstructure (BLKS/BATD/ATHI/ATLO...) — daily engines
+  cannot compute them honestly.
+- **3195 TVC yields**: non-OECD sovereigns → IMF/IFS/M.{i2}.FIGB_PA
+  (country baked into template = poison-impossible). +8 curves (ZA, SG,
+  RU...).
+- **3196 EU futures + venues**: EU_FUT_PROXY — index futures → cash index,
+  bond futures → NEGATED 10Y yield via DERIVED (sign-safe), ICE MSCI →
+  EEM/EFA; +6E..DX currency roots; venue-dedupe machinery (found 0 with US
+  primaries — CBOEEU residue has none).
+- **3197 close**: FTSE retirement EARNED (12-sample probe, 0 hits → all
+  448 retired licensed_ftse_russell); USI tape family + delisted GE
+  (eurodollar, dead 2023) retired; CME_RATE roots live (SR3/SR → FRED
+  SOFR, ZQ → 100−DFF via hundred_minus, BTC/MBT/ETH → spot proxy);
+  **DRY LEDGER** — map meta `dry` {sym: id}: rebuilds must (a) merge
+  curated FIRST, (b) skip (sym,id) pairs in dry, (c) never remap retired.
+  22 unproven rung-0 reintroductions pruned permanently.
+- **3198**: fleet verification on the final map.
+
+**Final ledger**: coverage 74.1 → **76.6 raw / 82.8 addressable** (4,983
+mapped / 6,507; retired 468, licensed 16, curated 32, dry 22). Residue
+after the program, honestly categorized: ECONOMICS 360 (micro-family long
+tail — machinery in place for organic growth), ITB 130 + GLASSNODE 55
+(proprietary), TVC 83, USI 77 (tape/scoped), CBOEEU 40 (no primaries),
+EUREX 34 / ICEEUR 28 (exotic roots), DFM 14 / ADX 13 (Gulf venues, no free
+daily source).
