@@ -162,6 +162,8 @@ def main(root):
                     if tag in s2:
                         s2 = s2.replace(tag, '<script src="/jh-footer.js" defer></script>' + tag, 1)
                         break
+            if p.suffix.lower() == ".html" and 'src="/jh-nav-drawer.js"' in s2:
+                s2 = s2.replace('src="/jh-nav-drawer.js"', 'src="/jh-nav-drawer.js?v=' + _NAV_V + '"')  # ops 3272: normalize hardcoded tags
             if p.suffix.lower() == ".html" and "/jh-nav-drawer.js" not in s2:
                 # any BRAND-NEW page (built after the original one-time chrome sweep) needs this
                 # too, or it silently ships with no topbar/sidebar — make it self-healing like
