@@ -978,6 +978,39 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
   <div id="jh13f-captiers" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>
 </section>
 <section style="max-width:1200px;margin:26px auto 10px;padding:0 18px">
+  <h2 class="section-title">Whale Entry vs Price — still actionable?</h2>
+  <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">Filed positions scored against price since the report date, with 90-day disclosure decay. High score = the trade hasn't run away yet. (ops 3279)</div>
+  <div id="jh13f-div" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>
+</section>
+<section style="max-width:1200px;margin:10px auto 10px;padding:0 18px">
+  <h2 class="section-title">Whales' Options — hedges &amp; leverage from the same filings</h2>
+  <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">13F-HR discloses listed options via the putCall column — the most under-read field in the filing.</div>
+  <div id="jh13f-opt" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>
+</section>
+<script>
+/* ops 3279: divergence + options boards (additive) */
+(function(){
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function gj(u){return fetch(u+'?v='+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error(u+' '+r.status);return r.json();});}
+  function card(t,rows){return '<div style="border:1px solid var(--border,#243044);border-radius:10px;padding:12px 14px;background:var(--card,#0d1320)"><div style="font:600 11px monospace;letter-spacing:.1em;color:var(--accent,#e8b45a);margin-bottom:8px">'+esc(t)+'</div>'+(rows||'<div style="opacity:.5;font:11px monospace">none disclosed</div>')+'</div>';}
+  gj('/data/13f-price-divergence.json').then(function(d){
+    var host=document.getElementById('jh13f-div');if(!host)return;
+    function rows(arr){return (arr||[]).slice(0,8).map(function(x){
+      var tk=x.ticker||x.symbol||'';var nm=x.name||x.company||'';
+      return '<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">'+esc(tk)+'</b> <span style="opacity:.6;font:10px monospace">'+esc(String(nm).split(' ').slice(0,2).join(' '))+'</span><div style="font:10px monospace;opacity:.85">score '+(x.composite_score!=null?x.composite_score:'—')+' · decay '+(x.decay_factor!=null?x.decay_factor:'—')+(x.price_change_pct!=null?' · px since filing '+(x.price_change_pct>0?'+':'')+x.price_change_pct+'%':'')+'</div></div>';}).join('');}
+    host.innerHTML=card('STILL ACTIONABLE — bullish, hasn\'t run',rows(d.bullish))+card('BEARISH DIVERGENCE — whales out, price hasn\'t caught on',rows(d.bearish));
+  }).catch(function(e){var h2=document.getElementById('jh13f-div');if(h2)h2.innerHTML='<div style="color:#ff5577;font:11px monospace">divergence feed: '+esc(e.message)+'</div>';});
+  gj('/data/13f-positions.json').then(function(d){
+    var host=document.getElementById('jh13f-opt');if(!host)return;
+    var agg=d.aggregate_by_ticker||{};
+    function chips(a){return (a||[]).slice(0,5).map(function(n){return '<span style="display:inline-block;border:1px solid var(--border,#243044);border-radius:5px;padding:1px 6px;margin:1px 3px 1px 0;font:10px monospace;opacity:.85">'+esc(String(n).slice(0,20))+'</span>';}).join('');}
+    function rows(field){return Object.keys(agg).filter(function(t){return (agg[t][field]||[]).length;}).sort(function(a,b){return agg[b][field].length-agg[a][field].length;}).slice(0,8).map(function(t){var a=agg[t];
+      return '<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">'+esc((t&&/^[A-Z]+$/.test(t))?t:String(a.name||'').split(' ').slice(0,2).join(' '))+'</b> <span style="opacity:.6;font:10px monospace">'+esc(String(a.name||'').split(' ').slice(0,3).join(' '))+'</span><div>'+chips(a[field])+'</div></div>';}).join('');}
+    host.innerHTML=card('PUT POSITIONS — who is hedging what',rows('put_funds'))+card('CALL POSITIONS — leveraged upside bets',rows('call_funds'));
+  }).catch(function(e){var h2=document.getElementById('jh13f-opt');if(h2)h2.innerHTML='<div style="color:#ff5577;font:11px monospace">positions feed: '+esc(e.message)+'</div>';});
+})();
+</script>
+<section style="max-width:1200px;margin:26px auto 10px;padding:0 18px">
   <h2 class="section-title">Cluster Moves — same name, multiple elite funds</h2>
   <div style="font-size:11px;opacity:.65;margin:-4px 0 10px">13F filings lag quarter-end by up to 45 days — positioning shown is as-of the filing period. (ops 3277, additive)</div>
   <div id="jh13f-cluster" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px"></div>

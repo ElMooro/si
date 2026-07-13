@@ -456,6 +456,7 @@ def parse_infotable(xml_text: str):
             if shrs_node is not None:
                 shares = (shrs_node.findtext("sshPrnamt") or "0").strip()
                 stype = (shrs_node.findtext("sshPrnamtType") or "SH").strip()
+            put_call = (it.findtext("putCall") or "").strip().upper() or None  # ops 3279
 
             # SEC 13F-HR <value>: documented as "in thousands of dollars" but
             # many filers report whole dollars. Auto-detect by sanity-checking
@@ -488,6 +489,7 @@ def parse_infotable(xml_text: str):
                 "value_usd": value_usd,
                 "shares": shares_int,
                 "share_type": stype,
+                "put_call": put_call,
             })
         except (ValueError, TypeError, AttributeError):
             continue
@@ -580,7 +582,7 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
         return {"fund_key": fund_key, "error": "no_accession"}
 
     # Cache check — version-tagged so unit fixes invalidate old cache
-    PARSER_VERSION = "v2"   # bump when parser logic changes (units, fields, etc.)
+    PARSER_VERSION = "v3"   # ops 3279: putCall capture   # bump when parser logic changes (units, fields, etc.)
     cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}_{PARSER_VERSION}.json"
     cached = get_s3_json(cache_key)
     if cached and cached.get("positions") and cached.get("parser_version") == PARSER_VERSION:
@@ -841,10 +843,19 @@ def aggregate_by_ticker(fund_results):
                     "n_funds_new_position": 0,
                     "n_funds_exiting": 0,
                     "fund_actions": [],   # which funds did what
+                    "put_funds": [],
+                    "call_funds": [],
                 }
             agg = by_ticker[tkr]
             agg["n_funds_holding"] += 1
             agg["total_value"] += p.get("value_usd", 0)
+            pc = p.get("put_call")
+            if pc == "PUT":
+                agg["put_funds"].append(fund_data.get("fund_name")
+                                        or fund_key)
+            elif pc == "CALL":
+                agg["call_funds"].append(fund_data.get("fund_name")
+                                         or fund_key)
             change = p.get("change", "HOLD")
             if change == "ADD":
                 agg["n_funds_adding"] += 1
