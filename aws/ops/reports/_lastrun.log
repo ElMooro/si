@@ -1,38 +1,20 @@
-executing-against: 559dc39afff3209fb734eddc3cd1e399ebb0f252
-ops 3230 — pct4 ships; growth engines close
-── 1. Probe-gated curations ──
-[06:57:01]   ECONOMICS:DEGDPYY      FRED~CLVMNACSCAB1GQDE~pct4                   137 pts
-[06:57:01] ✅ ECONOMICS:DEGDPYY curated
-[06:57:01]   ECONOMICS:FRGDPYY      FRED~CLVMNACSCAB1GQFR~pct4                   141 pts
-[06:57:01] ✅ ECONOMICS:FRGDPYY curated
-[series_source] DBNOMICS:OECD/DSD_KEI@DF_KEI/DEU.M.BC.IX._T.AA._Z failed: HTTP Error 404: NOT FOUND
-[06:57:06]   ECONOMICS:DEIFOE       OECD/DSD_KEI@DF_KEI/DEU.M.BC.IX._T.AA._Z     0 pts
-── 2. Write map + deploy consumers (shared changed) ──
-[06:57:06]   zip: 80343 bytes
-── 1. Lambda ──
-[06:57:06]   Lambda exists — updating
-[06:57:11] ✅   ✓ updated justhodl-wl-engines
-── 2. EB rule + permissions ──
-[06:57:12]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[06:57:12] ✅   ✓ target → justhodl-wl-engines
-[06:57:12] ✅   ✓ added invoke permission
-[06:57:14]   zip: 80150 bytes
-── 1. Lambda ──
-[06:57:14]   Lambda exists — updating
-[06:57:17] ✅   ✓ updated justhodl-thesis-engine
-── 2. EB rule + permissions ──
-[06:57:17]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[06:57:17] ✅   ✓ target → justhodl-thesis-engine
-[06:57:17] ✅   ✓ added invoke permission
-[06:57:20]   zip: 76191 bytes
-── 1. Lambda ──
-[06:57:20]   Lambda exists — updating
-[06:57:25] ✅   ✓ updated justhodl-symbol-dictionary
-── 2. EB rule + permissions ──
-[06:57:25]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
-[06:57:25] ✅   ✓ target → justhodl-symbol-dictionary
-[06:57:25] ✅   ✓ added invoke permission
-── 3. Fleet run — wakes by name ──
-[06:57:58] ⚠ no wakes — read the target engines' fresh reasons next
+executing-against: 1af688cf905eb7b8de49cba508eca3ddf96a2963
+ops 3231 — the growth pair, member-by-member
+── Europe Growth — DORMANT (mapped members lack fetchable history (only 3 z-scorable of ) ──
+[06:59:28]   UNMAPPED: ECONOMICS:EUGDPGA | ECONOMICS:EUMPMI | ECONOMICS:EUIPYY | ECONOMICS:EUIPMM | ECONOMICS:EUMPRYY
+[06:59:29]   ✗ DRY SWB:TES5                   MARKET:TES5.DE                                    0
+[06:59:29]   ✗ DRY ECONOMICS:EUGDPYY          FRED:NAEXKP01EA19Q657S                          0
+[06:59:29]   ✓ ECONOMICS:EUGDPQQ          WORLDBANK:EMU|NY.GDP.MKTP.KD.ZG                      36
+[06:59:29]   ✓ ECONOMICS:DEGDPQQ          WORLDBANK:DE|NY.GDP.MKTP.KD.ZG                       36
+[06:59:29]   ✓ ECONOMICS:DEGDPYY          DERIVED:FRED~CLVMNACSCAB1GQDE~pct4                 137
+[06:59:29]   ✗ DRY ECONOMICS:EUBCOI           FRED:BSCICP03EA19M665S                          0
+── France — DORMANT (mapped members lack fetchable history (only 3 z-scorable of ) ──
+[06:59:29]   UNMAPPED: ECONOMICS:FRLG | ECONOMICS:FRIPYY
+[06:59:31]   ✓ ECONOMICS:FRCLI            FRED:FRALOLITOAASTSAM                           437
+[06:59:31]   ✓ ECONOMICS:FRGDPYY          DERIVED:FRED~CLVMNACSCAB1GQFR~pct4                 141
+[06:59:31]   ✗ DRY ECONOMICS:FRUR             FRED:LRHUTTTTFRAM156S                           0
+[06:59:31]   ✗ DRY ECONOMICS:FRBR             WORLDBANK:FR|FR.INR.LEND                             0
+[06:59:31]   ✓ TVC:CAC40                  MARKET:^FCHI                                      9234
+[06:59:31]   ✗ DRY EURONEXT:PX1               MARKET:PX1.AS                                     0
 
-→ Report written to aws/ops/reports/latest/3230_growth_wakes.md
+→ Report written to aws/ops/reports/latest/3231_growth_triage.md

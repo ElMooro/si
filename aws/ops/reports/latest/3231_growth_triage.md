@@ -1,0 +1,31 @@
+# ops 3231 — the growth pair, member-by-member
+
+**Status:** success  
+**Duration:** 3.7s  
+**Finished:** 2026-07-13T06:59:31+00:00  
+
+## Data
+
+| verdict |
+|---|
+| PASS |
+
+## Log
+## Europe Growth — DORMANT (mapped members lack fetchable history (only 3 z-scorable of )
+
+- `06:59:28`   UNMAPPED: ECONOMICS:EUGDPGA | ECONOMICS:EUMPMI | ECONOMICS:EUIPYY | ECONOMICS:EUIPMM | ECONOMICS:EUMPRYY
+- `06:59:29`   ✗ DRY SWB:TES5                   MARKET:TES5.DE                                    0
+- `06:59:29`   ✗ DRY ECONOMICS:EUGDPYY          FRED:NAEXKP01EA19Q657S                          0
+- `06:59:29`   ✓ ECONOMICS:EUGDPQQ          WORLDBANK:EMU|NY.GDP.MKTP.KD.ZG                      36
+- `06:59:29`   ✓ ECONOMICS:DEGDPQQ          WORLDBANK:DE|NY.GDP.MKTP.KD.ZG                       36
+- `06:59:29`   ✓ ECONOMICS:DEGDPYY          DERIVED:FRED~CLVMNACSCAB1GQDE~pct4                 137
+- `06:59:29`   ✗ DRY ECONOMICS:EUBCOI           FRED:BSCICP03EA19M665S                          0
+## France — DORMANT (mapped members lack fetchable history (only 3 z-scorable of )
+
+- `06:59:29`   UNMAPPED: ECONOMICS:FRLG | ECONOMICS:FRIPYY
+- `06:59:31`   ✓ ECONOMICS:FRCLI            FRED:FRALOLITOAASTSAM                           437
+- `06:59:31`   ✓ ECONOMICS:FRGDPYY          DERIVED:FRED~CLVMNACSCAB1GQFR~pct4                 141
+- `06:59:31`   ✗ DRY ECONOMICS:FRUR             FRED:LRHUTTTTFRAM156S                           0
+- `06:59:31`   ✗ DRY ECONOMICS:FRBR             WORLDBANK:FR|FR.INR.LEND                             0
+- `06:59:31`   ✓ TVC:CAC40                  MARKET:^FCHI                                      9234
+- `06:59:31`   ✗ DRY EURONEXT:PX1               MARKET:PX1.AS                                     0
