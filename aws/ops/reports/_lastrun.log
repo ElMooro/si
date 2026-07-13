@@ -1,23 +1,10 @@
-executing-against: c7b9443599798a3f7dad8599c48f51d9b9d91534
-ops 3257 — notes restored: guard → brain-restore → live crawl → intel rebuild
-── 1. Guarded crawler deployed first ──
-[13:36:59]   zip: 78466 bytes
-── 1. Lambda ──
-[13:37:00]   Lambda exists — updating
-[13:37:05] ✅   ✓ updated justhodl-tv-notes-crawler
-[13:37:05] ✅   ✓ Function URL: https://nkw3cbwfhkfbd7febm4eze6cua0wzgya.lambda-url.us-east-1.on.aws/
-── 2. Restore from the brain ──
-── 3. Live crawl (cookie state = cadence) ──
-[13:38:48]   [crawler] starting at 2026-07-13T06:00:18.979193+00:00
-[13:38:48]   [crawler] session_len=32 sign_len=47 device_t_len=52
-[13:38:48]   [crawler] username: None
-[13:38:48]   [crawler] after bulk pull: 0 notes
-[13:38:48]   [crawler] per-symbol sweep: 0 symbols
-[13:38:48]   [crawler] after layout scan: 0 notes total
-[13:38:48]   [crawler] mirror written: 3322 notes
-[13:38:48]   [crawler] done in 26.1s
-── 4. notes-intel rebuild ──
-[13:38:56] ✅ notes-index rebuilt: 536 tickers, n_notes=3322
-[13:38:56] ⚠ brain carries no tv-provenance notes at data/brain.json — restore skipped
+executing-against: 19966edef4f4ebed0ce9a64fdef4667185397f1b
+ops 3258 — brain permanence: evidence, repair, proof
+── 1. Evidence — both uids ──
+[13:45:55]   canonical brain: notes=12122 tv=2920
+── 2. Repair — canonical brain gets the full corpus ──
+[13:45:56]   no repair needed — canonical already carries the corpus
+── 3. Proof — canonical brain + data/brain.json ──
+[13:46:05] ✅ PERMANENCE PROVEN: 2920 TV notes live in the canonical brain — no daily extension needed; the brain keeps them regardless of TV cookies
 
-→ Report written to aws/ops/reports/latest/3257_notes_restore.md
+→ Report written to aws/ops/reports/latest/3258_brain_permanence.md
