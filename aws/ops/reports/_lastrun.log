@@ -1,21 +1,27 @@
-executing-against: 3dc3847ae5a80148dfe9bee654cb404e4260ac89
-ops 3217 — non-wakers explained, mirror poison swept, ICE rates proxied
-── 1. Why the three still sleep (named reasons) ──
-[05:43:29]   Developed Markets                        state=DORMANT resolved=5 reason=needs >=6 members on a free source — map more of its indicators to act
-[05:43:29]   Europe Liquidity :BTPBUND  measure finan state=DORMANT resolved=2 reason=mapped members lack fetchable history (only 2 z-scorable of 6 mapped)
-[05:43:29]   Global Deposit Rates Which drains liquid state=DORMANT resolved=4 reason=mapped members lack fetchable history (only 4 z-scorable of 6 mapped)
-── 2. FRED-OECD-mirror sweep (non-curated only) ──
-[05:43:32] ✅ 140 phantom mirrors out of the map — 'resolved' now means fetchable, fleet-wide
-── 3. ICEEUR I/EON — candidate-laddered, probe-gated ──
-[05:43:32]   ✗ ICEEUR:EON2!: all candidates dry — stays open
-[05:43:34] ✅ ICEEUR:I2! → DBNOMICS~ECB/FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA~hundred_  (390 pts)
-── 4. Fleet re-run ──
-[05:45:05]   DORMANT  49 × needs >=6 members on a free source — map more of its indicators 
-[05:45:05]   DORMANT  35 × mapped members lack fetchable history
-[05:45:05]   DORMANT   3 × only 0 weeks of joint activation history
-[05:45:05]   DORMANT   1 × only 20 weeks of joint activation history
-[05:45:05]   → Developed Markets                    now DORMANT (needs >=6 members on a free source — map more of i)
-[05:45:05]   → Europe Liquidity :BTPBUND  measure f now DORMANT (mapped members lack fetchable history (only 3 z-sc)
-[05:45:05]   → Global Deposit Rates Which drains li now DORMANT (mapped members lack fetchable history (only 4 z-sc)
+executing-against: 2315959009d4dac9e5e0ada6bd79e37b1287de76
+ops 3218 — the last three, member-by-member
+── Developed Markets ──
+[05:46:28]   UNMAPPED: CME_MINI:DVE2!
+[05:46:28]   ✓ NASDAQ:PIZ                   MARKET:PIZ                                      4656
+[05:46:28]   ✓ AMEX:IDEV                    MARKET:IDEV                                     2335
+[05:46:28]   ✓ AMEX:VEA                     MARKET:VEA                                      4769
+[05:46:28]   ✓ AMEX:EFA                     MARKET:EFA                                      6253
+[05:46:28]   ✓ XETR:VGEJ                    MARKET:VGEJ.DE                                  2207
+── Europe Liquidity :BTPBUND  measure financial soundne ──
+[05:46:28]   UNMAPPED: ICEEUR:EON2!
+[05:46:28]   ✗ DRY FRED:ECBASSETSW*FX:EURUSD    FORMULA:FRED:ECBASSETSW*FX:EURUSD                0
+[05:46:29]   ✓ FRED:ECBASSETSW              FRED:ECBASSETSW                               1436
+[05:46:29]   ✓ TVC:BTPBUND                  DERIVED:FRED~IRLTLT01ITM156N~minus~FRED~IRLTLT01 422
+[05:46:29]   ✗ DRY TVC:ES10Y-TVC:IT10Y          FORMULA:TVC:ES10Y-TVC:IT10Y                      0
+[05:46:29]   ✗ DRY TVC:DE10Y-TVC:IT10Y          FORMULA:TVC:DE10Y-TVC:IT10Y                      0
+[05:46:29]   ✗ DRY TVC:FR10Y-TVC:IT10Y          FORMULA:TVC:FR10Y-TVC:IT10Y                      0
+[05:46:31]   ✓ ICEEUR:I2!                   DERIVED:DBNOMICS~ECB/FM/M.U2.EUR.RT.MM.EURIBOR3M 390
+── Global Deposit Rates Which drains liquidity ──
+[05:46:31]   ✓ ECONOMICS:USRR               FRED:RRPONTSYD                                3280
+[05:46:31]   ✗ DRY ECONOMICS:EUDIR              WORLDBANK:EMU|FR.INR.DPST                          0
+[05:46:31]   ✗ DRY ECONOMICS:GBDIR              WORLDBANK:GB|FR.INR.DPST                           9
+[05:46:32]   ✓ FRED:IR3TCD01USM156N         FRED:IR3TCD01USM156N                          407
+[05:46:32]   ✓ ECONOMICS:JPDIR              WORLDBANK:JP|FR.INR.DPST                           28
+[05:46:32]   ✓ ECONOMICS:CNDIR              WORLDBANK:CN|FR.INR.DPST                           35
 
-→ Report written to aws/ops/reports/latest/3217_mirror_sweep.md
+→ Report written to aws/ops/reports/latest/3218_final_triage.md
