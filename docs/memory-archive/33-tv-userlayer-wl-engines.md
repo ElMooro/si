@@ -317,3 +317,21 @@ weekly history can never hit 100 — honest, named, closed.
 - **NIGHT TOTAL: ACTIVE 115 → 123 (+8)**: Euro Dollar Shortage, Feds
   Rates, Forex, Durable Goods, DXY-symmetric, Europe Liquidity, France,
   Europe Growth.
+
+## Census + confidence-family close (ops 3237–3238)
+
+- **Dry census (from the fleet's own misses ledger)**: 1,167 total —
+  772 MARKET (delisted/odd tickers), 199 FRED (more dead mirrors),
+  183 WORLDBANK, 13 crypto. Per-engine fix menu produced in one pass.
+- **Thesis-engine proven healthy** on all patched shared modules
+  (fresh feed, zero [ERROR]).
+- **panels.html drill drawer LIVE** (row-click → per-engine event study,
+  lit indicators, members with z; live-verified in 15s).
+- **Confidence-family batch (proven searcher)**: 7+ landed —
+  **TEMPLATE: OECD/MEI/{ISO3}.B6BLPI01.CXCU.Q** (quarterly business
+  confidence, ALIVE on DBnomics) for CHE/CHN/GBR/IND/MEX/NLD; Italy via
+  ISTAT/117_266. CCI candidates mostly dry (wrong-series matches) —
+  open. **⏰ FIVE WOKE**: Business Confidence Index, Corporate Profits,
+  Current Account, Fed Expected Yield Policy, Forward Rates — shared
+  tiles fed engines beyond the targeted lists.
+- **NIGHT GRAND TOTAL: ACTIVE 115 → 128 (+13 panels).**
