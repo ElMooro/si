@@ -1,11 +1,11 @@
-executing-against: d067ebae53a81c74f9f925beccb5479319292f8a
-[23:33:09]   zip: 87916 bytes
+executing-against: 8a53a191adc700d801ff25b3959e84227ca7c648
+[23:49:17]   zip: 88040 bytes
 ── 1. Lambda ──
-[23:33:09]   Lambda exists — updating
-[23:33:16] ✅   ✓ updated justhodl-13f-positions
-[23:36:24]   ARGAN entry: key=AGX tier=MID cap=8407903196.0
-[23:36:24]   ARGAN entry: key=ARLLF tier=None cap=None
-[23:36:24] ✅ ARGAN INC → AGX (SEC-authoritative)
-[23:36:24] ⚠ residual: ['ARLLF']
+[23:49:17]   Lambda exists — updating
+[23:49:23] ✅   ✓ updated justhodl-13f-positions
+── 1. v3 re-parse — options captured ──
+── 2. Divergence feed + page boards ──
+[23:52:43] ✅ boards live, anchors intact (~15s)
+[23:52:43] ⚠ zero option rows — verify putCall node naming in live filings
 
-→ Report written to aws/ops/reports/latest/3278c_sec_first.md
+→ Report written to aws/ops/reports/latest/3279_options_divergence.md
