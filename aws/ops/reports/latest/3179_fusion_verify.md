@@ -1,29 +1,46 @@
 # ops 3179 — fused fleet verification
 
-**Status:** failure  
-**Duration:** 10.8s  
-**Finished:** 2026-07-13T00:00:43+00:00  
+**Status:** success  
+**Duration:** 1.0s  
+**Finished:** 2026-07-13T00:02:29+00:00  
 
 ## Error
 
 ```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3179_fusion_verify.py", line 67, in <module>
-    for t in themes[:9]:
-             ~~~~~~^^^^
-KeyError: slice(None, 9, None)
-
+SystemExit: 0
 ```
 
 ## Data
 
-| engines | firing | proven | themes |
-|---|---|---|---|
-| None | 20 | 0 | 10 |
+| compass_has_divergences | compass_has_panels | engines | firing | n_fails | n_warns | proven | setups | setups_with_tilt | themes | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+|  |  | None | 20 |  |  | 0 |  |  | 10 |  |
+| True | True |  |  |  |  |  | 0 | 0 |  |  |
+|  |  |  |  | 0 | 1 |  |  |  |  | PASS |
 
 ## Log
 ## 1. Fusion bus
 
-- `00:00:43` ── THEME PRESSURE (his 96 engines, pooled):
+- `00:02:29` ── THEME PRESSURE (his 96 engines, pooled):
+- `00:02:29`   BREADTH    firing     5 pctile   81.8 mode ADVISORY  mult 1.0
+- `00:02:29`   INFLATION  firing     2 pctile   67.2 mode ADVISORY  mult 1.0
+- `00:02:29`   LIQUIDITY  firing     4 pctile   62.1 mode ADVISORY  mult 1.0
+- `00:02:29`   OTHER      firing     7 pctile   54.6 mode ADVISORY  mult 1.0
+- `00:02:29`   DOLLAR     firing     1 pctile   54.0 mode ADVISORY  mult 1.0
+- `00:02:29`   CRYPTO     firing     0 pctile   52.0 mode ADVISORY  mult 1.0
+- `00:02:29`   STRESS     firing     0 pctile   51.6 mode ADVISORY  mult 1.0
+- `00:02:29`   GROWTH     firing     0 pctile   44.0 mode ADVISORY  mult 1.0
+- `00:02:29`   CREDIT     firing     0 pctile   30.9 mode ADVISORY  mult 1.0
+## 2. THE DIVERGENCE BOARD — where he disagrees with the fleet
+
+- `00:02:29` ✅ 3 divergence(s) — the questions worth asking today
+- `00:02:29`   ⚔ {"theme": "LIQUIDITY", "khalid": {"verdict": "ELEVATED", "pressure_pctile": 62.1, "firing": 4, "of": 12, "top": ["Foreign Exchange Reserves", "EuroDollar Predict future moves: DXY pumping means tightening and liquidity d
+- `00:02:29`   ⚔ {"theme": "INFLATION", "khalid": {"verdict": "ELEVATED", "pressure_pctile": 67.2, "firing": 2, "of": 3, "top": ["Commodities : are often rented but rarely bought for the long-run.", "Global Commodities prices"]}, "platfo
+- `00:02:29`   ⚔ {"theme": "BREADTH", "khalid": {"verdict": "EXTREME", "pressure_pctile": 81.8, "firing": 5, "of": 7, "top": ["Different Types of Stock indexes", "Energy and oil stocks"]}, "platform": {"engine": "breadth-thrust", "state"
+## 3. Consumers actually carry it
+
+- `00:02:29` ✅ alpha-compass desk carries his panels
+## 4. The safety contract
+
+- `00:02:29` ✅ every multiplier is EXACTLY 1.0 — zero proven panels, so his research is attached as context everywhere but cannot move a single score. The gate is doing its job.
+- `00:02:29` ⚠ best-setups has not re-run since the fusion deploy
