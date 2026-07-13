@@ -1,58 +1,9 @@
-executing-against: 9ce0d052e859662b9d1e14a8a277759c0298c767
-ops 3244 — series-level fusion into four engines
-── 1. Deploys (targets + shared consumers) ──
-[11:59:28]   zip: 77447 bytes
-── 1. Lambda ──
-[11:59:28]   Lambda exists — updating
-[11:59:34] ✅   ✓ updated justhodl-credit-stress
-[11:59:37]   zip: 84217 bytes
-── 1. Lambda ──
-[11:59:37]   Lambda exists — updating
-[11:59:42] ✅   ✓ updated justhodl-eurodollar-plumbing
-── 2. EB rule + permissions ──
-[11:59:42]   rule already correct: eurodollar-plumbing-daily (cron(0 12 * * ? *))
-[11:59:42] ✅   ✓ target → justhodl-eurodollar-plumbing
-[11:59:42] ✅   ✓ added invoke permission
-[11:59:45]   zip: 78107 bytes
-── 1. Lambda ──
-[11:59:45]   Lambda exists — updating
-[11:59:50] ✅   ✓ updated justhodl-macro-nowcast
-[11:59:52]   zip: 78751 bytes
-── 1. Lambda ──
-[11:59:52]   Lambda exists — updating
-[11:59:55] ✅   ✓ updated justhodl-crisis-composite
-── 2. EB rule + permissions ──
-[11:59:55]   rule already correct: crisis-composite-hourly (cron(15 * * * ? *))
-[11:59:55] ✅   ✓ target → justhodl-crisis-composite
-[11:59:56] ✅   ✓ added invoke permission
-[11:59:58]   zip: 81774 bytes
-── 1. Lambda ──
-[11:59:58]   Lambda exists — updating
-[12:00:03] ✅   ✓ updated justhodl-wl-engines
-── 2. EB rule + permissions ──
-[12:00:03]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[12:00:03] ✅   ✓ target → justhodl-wl-engines
-[12:00:04] ✅   ✓ added invoke permission
-[12:00:06]   zip: 81581 bytes
-── 1. Lambda ──
-[12:00:06]   Lambda exists — updating
-[12:00:09] ✅   ✓ updated justhodl-thesis-engine
-── 2. EB rule + permissions ──
-[12:00:09]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[12:00:09] ✅   ✓ target → justhodl-thesis-engine
-[12:00:10] ✅   ✓ added invoke permission
-[12:00:12]   zip: 77622 bytes
-── 1. Lambda ──
-[12:00:12]   Lambda exists — updating
-[12:00:17] ✅   ✓ updated justhodl-symbol-dictionary
-── 2. EB rule + permissions ──
-[12:00:17]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
-[12:00:17] ✅   ✓ target → justhodl-symbol-dictionary
-[12:00:18] ✅   ✓ added invoke permission
-── 2. Invoke + verify each new block LIVE ──
-[12:01:09] ✅ justhodl-credit-stress.europe_sovereign: 4 series LIVE — BTP–Bund 10y spread=0.817 z=-1.38; OAT–BTP 10y spread=-0.1431 z=1.28; Bono–BTP 10y spread=-0.3689 z=0.99
-[12:02:06] ✅ justhodl-eurodollar-plumbing.euro_policy_corridor: 4 series LIVE — €STR overnight=2.182 z=3.43; ECB deposit facility rate=2.25 z=3.43; 3m Euribor (100−rate)=97.661 z=0.1
-[12:02:14] ✅ justhodl-macro-nowcast.global_confidence: 15 series LIVE — Japan consumer conf=38.0 z=1.06; Germany consumer conf=-17.3 z=-0.71; France consumer conf=-11.5 z=0.34 composite_z=-0.06 (n=15)
-[12:02:22] ✅ justhodl-crisis-composite.btp_bund_canary: 2 series LIVE — BTP–Bund 10y spread=0.817 z=-1.38; Bono–BTP 10y spread=-0.3689 z=0.99
+executing-against: 693926c744313b04a74025b79e1a1fe781056c6e
+ops 3245 — fusion cards live on the four desk pages
+[12:22:50] ✗ risk-regime.html: marker not live in window
+[12:22:50] ✗ eurodollar.html: marker not live in window
+[12:22:50] ✗ chart-macro.html: marker not live in window
+[12:22:50] ✗ defcon.html: marker not live in window
 
-→ Report written to aws/ops/reports/latest/3244_series_fusion.md
+→ Report written to aws/ops/reports/latest/3245_fusion_surfaced.md
+❌ OPS-FAIL: aws/ops/pending/ops_3245_fusion_surfaced.py
