@@ -371,3 +371,19 @@ weekly history can never hit 100 — honest, named, closed.
   are empty — a short report may be zero-hits, not truncation. Read the
   raw file before assuming.
 - ACTIVE holds at 131.
+
+## INDEX-internals + fusion sync (ops 3243)
+
+- INDEX:ADVN → ADVANCERS, INDEX:DECN → DECLINERS (1,253 pts each, our
+  own computed internals). Remaining INDEX residue = the ADR*/AVR*
+  average-price family — no internal equivalent, honestly unmatched.
+- wl-fusion re-kicked onto the 131-active index (Monday cron gap):
+  BREADTH top theme 80.9p; the 18 consumers, panels boards and the
+  site-wide rail chip now carry the full night's truth.
+- Active holds 131; woken 0 (both tiles feed already-active engines).
+- **The wake-mining program is at its floor across all families** —
+  every remaining dormant engine carries a named, verified blocking
+  class (licensed / no-free-source / structural / unknown-root). Next
+  maturation is automatic: first day_7 grading of the 24 wl signals
+  lands ~July 20 → fusion PROVEN gate + master-ranker multipliers
+  activate on real hits.
