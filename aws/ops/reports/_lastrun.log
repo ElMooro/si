@@ -1,11 +1,16 @@
-executing-against: c192405b9fe1564e874943c79fc9f5ced754ef46
-── 1. Khalid's diag beacons (last 24h) ──
-[23:04:58]   [diag] {"diag": "1", "favs": "2", "page": "/chart-pro.html", "sw": "yes", "v": "3276"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
-[23:04:58]   [diag] {"diag": "1", "drawer": "f68c5019", "err": "", "favs": "2", "lists": "207", "lwc": "true", "page": "chartpro", "sw": "service-worker.js"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) C
-[23:04:58]   [diag] {"diag": "1", "favs": "2", "page": "/apac.html", "sw": "yes", "v": "3276"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
-── 2. 13F additive sections ──
-[23:07:29] ✅ live: new sections present, existing sections untouched (~165s)
-[23:07:29]   CLUSTER NEW GOOG: 2 funds — BERKSHIRE, BRIDGEWATER
-[23:07:29]   CLUSTER NEW V: 2 funds — COATUE, LONE_PINE
+executing-against: ae6ac0a6fbea48711e7fa3e034bc6a91fea41fbc
+[23:19:55]   zip: 86758 bytes
+── 1. Lambda ──
+[23:19:56]   Lambda exists — updating
+[23:20:05] ✅   ✓ updated justhodl-13f-positions
+[23:20:05] ✅   ✓ Function URL: https://ylvgvmb7ye3oupxjys42vpttzi0braxx.lambda-url.us-east-1.on.aws/
+── 1. Fresh feed with enrichment ──
+[23:20:52] ✅ ARGAN resolved: ticker=04010E109 tier=None cap=None
+[23:20:52]   MICRO IBIA   iShares Trust                NEW=0 add=4 held=$11913M
+[23:20:52]   MICRO GOSS   Gossamer Bio, Inc.           NEW=0 add=3 held=$5297M
+[23:20:52]   MID   IBB    iShares Biotech ETF          NEW=0 add=3 held=$22941M
+── 2. Page live, existing intact ──
+[23:26:24] ✗ page literals not fully live
 
-→ Report written to aws/ops/reports/latest/3277_13f_additive.md
+→ Report written to aws/ops/reports/latest/3278_13f_visuals.md
+❌ OPS-FAIL: aws/ops/pending/ops_3278_13f_visuals.py
