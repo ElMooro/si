@@ -179,6 +179,7 @@
     }
     var html = "";
     var favPages = favs.map(function (h) { return { href: h, title: titleByHref[h] || (h.replace(/^\//,"").replace(/\.html$/,"").replace(/-/g," ")) }; }); /* ops 3269: a star never vanishes even if the manifest misses the page */
+    if(!favs.length){favPages=[{href:'#',title:'No stars in THIS browser yet — favorites are per-browser; sign in on the browser that has them to sync (ops 3275)'}];}
     if (favPages.length) {
       html += '<div class="jhnav-group jhnav-gopen jhnav-favgroup">'
         + '<div class="jhnav-ghead"><span>\u2b50 Favorites <span class="jhnav-n">' + favPages.length + '</span></span><span class="jhnav-chev">\u25b8</span></div>'

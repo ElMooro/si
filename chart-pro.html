@@ -6978,6 +6978,7 @@ class JHF {
     var c=ov.querySelector('#jhwl-ov-c');c.innerHTML='<div style="padding:20px;color:#a8b3c7;font:12px monospace">loading '+esc(sym)+'…</div>';
     fetch(API+'?sym='+encodeURIComponent(sym)).then(function(r){return r.json();}).then(function(j){
       if(!j.points||!j.points.length){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">no cached series for '+esc(sym)+'</div>';return;}
+      if(!window.LightweightCharts){c.innerHTML='<div style="padding:20px;color:#ff5577;font:12px monospace">chart library not loaded</div>';return;}
       c.innerHTML='';
       ovChart=LightweightCharts.createChart(c,{autoSize:true,layout:{background:{color:'transparent'},textColor:'#a8b3c7',fontFamily:"'IBM Plex Mono',monospace"},grid:{vertLines:{color:'#1c2433'},horzLines:{color:'#1c2433'}},timeScale:{borderColor:'#1c2433'},rightPriceScale:{borderColor:'#1c2433'}});
       function wk2d(w){var q=String(w).split('-'),y=+q[0],n=+q[1];if(!n||String(w).length>7)return String(w).slice(0,10);var d=new Date(Date.UTC(y,0,4));var dow=(d.getUTCDay()||7);d.setUTCDate(d.getUTCDate()-dow+1+(n-1)*7);return d.toISOString().slice(0,10);}ovChart.addLineSeries({color:'#26ffaf',lineWidth:2}).setData(j.points.map(function(p){return{time:wk2d(p[0]),value:+p[1]};}));
@@ -7000,13 +7001,16 @@ class JHF {
   }
   function boot(){
     var host=document.getElementById('left-sidebar');
-    if(!host||!window.LightweightCharts)return setTimeout(boot,600);
+    if(!host)return setTimeout(boot,600); /* ops 3275: list UI independent of chart lib */
     var box=el('<div id="jhwl" style="border-bottom:1px solid #1c2433;padding:10px 8px 12px"><div style="display:flex;align-items:center;gap:8px;font:600 10px \'IBM Plex Mono\',monospace;letter-spacing:.12em;color:#26ffaf;margin:0 4px 8px">MY TV WATCHLISTS<span id="jhwl-n" style="color:#a8b3c7;font-weight:400"></span></div><select id="jhwl-sel" style="width:100%;background:#0f1420;color:#e6edf3;border:1px solid #1c2433;border-radius:6px;padding:6px;font:11px \'IBM Plex Mono\',monospace;margin-bottom:8px"></select><div id="jhwl-ul" style="max-height:38vh;overflow:auto"></div></div>');
     host.prepend(box);
     var style=document.createElement('style');style.textContent='#jhwl .jhwl-s:hover{color:#e6edf3}#jhwl .jhwl-s.on{color:#26ffaf;border-left-color:#26ffaf;background:#12331f33}';document.head.appendChild(style);
+    var st=document.getElementById('jhwl-n');
+    function bail(msg){if(st){st.textContent='';}var ul=document.getElementById('jhwl-ul');if(ul)ul.innerHTML='<div style="padding:8px 10px;color:#ff5577;font:11px monospace">watchlists failed: '+esc(msg)+'</div>';}
+    /* ops 3275: SAME-ORIGIN + visible failures — never silently empty */
     Promise.all([
-      fetch(PROXY+'/data/tv-watchlists.json').then(function(r){return r.json();}),
-      fetch(PROXY+'/data/symbol-map.json').then(function(r){return r.json();}).catch(function(){return{};})
+      fetch('/data/tv-watchlists.json?v='+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error('tv-watchlists '+r.status);return r.json();}),
+      fetch('/data/symbol-map.json?v='+Math.floor(Date.now()/36e5)).then(function(r){return r.ok?r.json():{};}).catch(function(){return{};})
     ]).then(function(a){
       lists=(a[0].lists||[]).filter(function(l){return(l.symbols||[]).length;}).sort(function(x,y){return String(x.name).localeCompare(String(y.name));});
       smap=(a[1]||{}).map||{};
@@ -7015,6 +7019,7 @@ class JHF {
       try{var p=JSON.parse(localStorage.getItem('jh_wl_pos')||'{}');if(lists[p.li])cur=p;}catch(e){}
       sel.value=cur.li;sel.onchange=function(){cur={li:+sel.value,si:0};renderSyms();};
       renderSyms();
+      if(st)st.textContent=' · '+lists.length+' lists loaded';
       document.addEventListener('keydown',function(e){
         if(e.key==='Escape'&&ov){ov.style.display='none';return;}
         if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
@@ -7026,7 +7031,7 @@ class JHF {
         var L=lists[cur.li]||{},n=(L.symbols||[]).length;if(!n)return;
         load(cur.li,(cur.si+(e.key==='ArrowDown'?1:n-1))%n);
       });
-    }).catch(function(e){console.warn('jhwl',e);});
+    }).catch(function(e){console.warn('jhwl',e);bail(e&&e.message||'fetch error');});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
