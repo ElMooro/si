@@ -142,6 +142,13 @@ ECON_WB = {
 TV_WB = {"EU": "EMU", "SZ": "CH", "UK": "GB", "SY": "SY", "SP": "ES",
          "GE": "DE", "SW": "SE", "SF": "ZA", "KS": "KR", "CI": "CL"}
 
+# continuous futures contracts (TradingView's "1!" convention)
+FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
+       "ZC": "ZC=F", "ZS": "ZS=F", "ZW": "ZW=F", "ZB": "ZB=F", "ZN": "ZN=F",
+       "ES": "ES=F", "NQ": "NQ=F", "RB": "RB=F", "HO": "HO=F", "KC": "KC=F",
+       "CT": "CT=F", "SB": "SB=F", "CC": "CC=F", "LE": "LE=F", "PL": "PL=F"}
+FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT"}
+
 EQ_EX = {"NASDAQ", "NYSE", "AMEX", "ARCA", "BATS", "CBOE", "OTC"}
 FX_EX = {"FX", "OANDA", "FOREXCOM", "FX_IDC", "SAXO"}
 OPS_RE = re.compile(r"[+\-*/()]")
@@ -171,6 +178,11 @@ def map_symbol(sym, fred_search=None):
     ex, t = s.split(":", 1)
     if ex == "FRED":
         return "FRED", t, 1.0, "native"
+    if ex in FUT_EX:
+        root = re.sub(r"\d*!$", "", t)
+        y = FUT.get(root)
+        if y:
+            return "MARKET", y, 0.75, f"continuous future {root}"
     if ex in EQ_EX:
         return "MARKET", t, 0.9, "US listing"
     if ex in FX_EX:

@@ -109,14 +109,25 @@ def http(url, timeout=20):
 
 
 # ── source-specific lookups ──────────────────────────────────────────
-def fred_meta(sid):
+def fred_meta(sid, tries=3):
+    """FRED caps at ~120 req/min. ops 3180 ran 10 workers at it, every call
+    429'd, and the fallback wrote junk names ('DGS10 (FRED)'). Throttled +
+    retried, and a failure now returns None so the symbol is RETRIED next
+    pass instead of being cemented with a bad name."""
+    for i in range(tries):
+        try:
+            d = http("https://api.stlouisfed.org/fred/series"
+                     f"?series_id={urllib.parse.quote(sid)}&api_key={FRED}"
+                     "&file_type=json")
+            s = (d.get("seriess") or [None])[0]
+            if not s:
+                return None
+            break
+        except Exception:
+            time.sleep(0.8 * (i + 1))
+    else:
+        return None
     try:
-        d = http("https://api.stlouisfed.org/fred/series"
-                 f"?series_id={urllib.parse.quote(sid)}&api_key={FRED}"
-                 "&file_type=json")
-        s = (d.get("seriess") or [None])[0]
-        if not s:
-            return None
         return {
             "name": s.get("title"),
             "units": s.get("units_short") or s.get("units"),
@@ -204,7 +215,9 @@ def lambda_handler(event, context):
     print(f"[dict] catalog: {len(COUNTRY)} countries, {len(WB_IND)} "
           f"WB indicators, {round(time.time()-t0)}s")
 
-    todo = [s for s in universe if s not in dic or not dic[s].get("name")]
+    todo = [s for s in universe
+            if s not in dic or not dic[s].get("name")
+            or dic[s].get("provisional")]
     print(f"[dict] {len(universe)} symbols, {len(todo)} need a name")
 
     def resolve(sym):
@@ -245,6 +258,13 @@ def lambda_handler(event, context):
         if src == "COINGECKO":
             return sym, {**base, "name": f"{str(sid).upper()} (crypto)",
                          "category": "crypto", "frequency": "D"}
+        # a MAPPED symbol whose authoritative lookup failed is PROVISIONAL:
+        # give him something readable now, retry it on the next pass
+        if src in ("FRED", "MARKET"):
+            ex, t = (sym.split(":", 1) if ":" in sym else ("", sym))
+            return sym, {**base, "name": f"{t or sym} ({src}: {sid})",
+                         "category": "macro" if src == "FRED" else "equity",
+                         "provisional": True}
         # 7. UNMAPPED — still give him a human name
         if sym.startswith("ECONOMICS:"):
             n = decode_econ(sym.split(":", 1)[1])
@@ -257,21 +277,36 @@ def lambda_handler(event, context):
                          "category": "unmapped"}
         return sym, {**base, "name": sym, "category": "unmapped"}
 
+    fred_todo = [s for s in todo if (smap.get(s) or {}).get("source") == "FRED"]
+    rest = [s for s in todo if s not in set(fred_todo)]
     filled = 0
+    # FRED: 3 workers, well inside its 120/min ceiling
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        for sym, meta in ex.map(resolve, fred_todo):
+            if meta and meta.get("name"):
+                dic[sym] = meta
+                filled += 1
+            if time.time() - t0 > BUDGET_S:
+                break
+    print(f"[dict] FRED pass done ({filled}) at {round(time.time()-t0)}s")
     with ThreadPoolExecutor(max_workers=10) as ex:
-        for sym, meta in ex.map(resolve, todo):
+        for sym, meta in ex.map(resolve, rest):
             if meta and meta.get("name"):
                 dic[sym] = meta
                 filled += 1
             if time.time() - t0 > BUDGET_S:
                 break
 
-    named = sum(1 for s in universe if dic.get(s, {}).get("name"))
+    named = sum(1 for s in universe if dic.get(s, {}).get("name")
+                and not dic.get(s, {}).get("provisional"))
+    provisional = sum(1 for s in universe
+                      if dic.get(s, {}).get("provisional"))
     priced = sum(1 for s in universe
                  if dic.get(s, {}).get("source") not in (None, ""))
     doc = {
         "generated_at": now.isoformat(), "version": "1.0",
         "n_symbols": len(universe), "n_named": named,
+        "n_provisional": provisional,
         "n_priced": priced, "named_pct": round(100 * named / len(universe), 1),
         "filled_this_run": filled,
         "sources": {"fred": sum(1 for s in universe
