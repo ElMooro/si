@@ -1,9 +1,5 @@
-executing-against: b0182cf6c126d858e1b812e0847d7c7ec31d4325
+executing-against: 869e207de567a6834cb8f492c1233039f5320ef8
+[18:38:23]   NASCENT  20 raw wk (< 25) — Country Import Prices · auto-wakes as history accrues
+[18:38:23] ✅ CONTRACT HOLDS at z-resolution: every dormant panel is zero-data or z-nascent — dormancy is pure data absence; no design gate exists anywhere
 
 → Report written to aws/ops/reports/latest/3271_contract_close.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3271_contract_close.py", line 39, in <module>
-    or re.search(r"window\s*=\s*(\d+)", src)).group(1))
-                                              ^^^^^
-AttributeError: 'NoneType' object has no attribute 'group'
-❌ OPS-FAIL: aws/ops/pending/ops_3271_contract_close.py

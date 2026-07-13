@@ -1,20 +1,16 @@
+- `18:38:23`   NASCENT  20 raw wk (< 25) — Country Import Prices · auto-wakes as history accrues
+- `18:38:23` ✅ CONTRACT HOLDS at z-resolution: every dormant panel is zero-data or z-nascent — dormancy is pure data absence; no design gate exists anywhere
+**Status:** success  
+**Duration:** 2.4s  
+**Finished:** 2026-07-13T18:38:23+00:00  
 
-**Status:** failure  
-**Duration:** 0.0s  
-**Finished:** 2026-07-13T18:36:23+00:00  
+## Data
 
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3271_contract_close.py", line 39, in <module>
-    or re.search(r"window\s*=\s*(\d+)", src)).group(1))
-                                              ^^^^^
-AttributeError: 'NoneType' object has no attribute 'group'
-
-```
+| active | dormant | min_composite_weeks | n_fails | nascent_threshold_raw_weeks | verdict | violations | z_floor | z_nascent | zero_data |
+|---|---|---|---|---|---|---|---|---|---|
+|  |  | 13 |  | 25 |  |  | 12 |  |  |
+| 197 | 10 |  |  |  |  | 0 |  | 1 | 9 |
+|  |  |  | 0 |  | PASS |  |  |  |  |
 
 ## Log
 
