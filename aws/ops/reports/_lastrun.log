@@ -1,19 +1,15 @@
-executing-against: d419ac03c8706a0ad54891c17e5dcde1c3cc473a
-ops 3252 — drawer 403s: dormant details written, page hardened
-[12:56:17]   zip: 81951 bytes
-── 1. Lambda ──
-[12:56:17]   Lambda exists — updating
-[12:56:23] ✅   ✓ updated justhodl-wl-engines
-── 2. EB rule + permissions ──
-[12:56:23]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[12:56:24] ✅   ✓ target → justhodl-wl-engines
-[12:56:24] ✅   ✓ added invoke permission
-── 1. Fleet run ──
-── 2. Proof — dormant detail exists, active untouched ──
-[12:56:45] ✅ dormant: wl-10-yr-high-quality-market-hqm-pred detail EXISTS — reason='needs >=6 members on a free source — map more of its indicat'
-[12:56:45] ✅ hqm(reported): wl-10-yr-high-quality-market-hqm-pred detail EXISTS — reason='needs >=6 members on a free source — map more of its indicat'
-[12:56:45] ✅ active untouched: wl-foreign-exchange-reserves still rich (w13 n=67, 118 members)
-── 3. Page live with the fixes ──
-[12:58:31] ✅ panels.html live with both fixes (~120s)
+executing-against: 013709316f0cff2cbdca1845ba313f03932a3d2c
+ops 3253 — all engines on panels.html: audit + repair + public proof
+── 1. Every detail feed: exists + parses ──
+── 2. Public CDN proof (reported + samples) ──
+[13:06:28] ✅ 200 wl-10-yr-high-quality-market-hqm-pred [REPORTED] reason='needs >=6 members on a free source — map mor'
+[13:06:28] ✅ 200 wl-bond-global-high-yield-ex-usa-glob [REPORTED] reason='needs >=6 members on a free source — map mor'
+[13:06:28] ✅ 200 wl-buying-pressure-indicators [DORMANT] reason='mapped members lack fetchable history (only '
+[13:06:29] ✅ 200 wl-federal-reserve-liquidity [DORMANT] reason='needs >=6 members on a free source — map mor'
+[13:06:29] ✅ 200 wl-corporate-profits [DORMANT] reason='only 0 weeks of joint activation history (<1'
+[13:06:30] ✅ 200 wl-coincident-index [DORMANT] reason='needs >=6 members on a free source — map mor'
+[13:06:30] ✅ 200 wl-global-food-inflation [ACTIVE]
+[13:06:30] ✅ 200 wl-consumer-spending [ACTIVE]
+[13:06:30] ✅ ALL 207 engines on panels.html have working detail feeds
 
-→ Report written to aws/ops/reports/latest/3252_drawer_403_fix.md
+→ Report written to aws/ops/reports/latest/3253_all_engines_audit.md
