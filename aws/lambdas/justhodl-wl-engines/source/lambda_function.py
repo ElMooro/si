@@ -54,6 +54,9 @@ START = "1990-01-01"
 Z_WIN = 156
 Z_FIRE = 1.5
 MIN_MEMBERS = 6
+MIN_COMPOSITE_WEEKS = 60     # ops 3267
+COMPOSITE_FIRE_Z = 1.5
+COMPOSITE_EXTREME_Z = 1.2
 MAX_MEMBERS = 120
 HORIZONS = (4, 13, 26)
 FETCH_BUDGET_S = 600
@@ -369,8 +372,106 @@ def lambda_handler(event, context):
     # ── 4. run every engine ─────────────────────────────────────────
     rows, pvals = [], []
     comps = {}                 # ops 3254: directional composites (ACTIVE)
+
+    def _composite(sp, zs):
+        """ops 3267: SMALL/SPARSE-PANEL COMPOSITE MODE. Panels that can
+        never pass the >=6-member breadth gate (or lack joint breadth
+        history) run honestly on mean-member z: extremeness percentile
+        vs own history, firing at |z|>=1.5, real extreme-event study.
+        Breadth engines untouched. Returns True if the panel wakes."""
+        if not zs:
+            return False
+        dz = array("f", [float("nan")]) * 0
+        for i in range(len(grid)):
+            live = [z[i] for _, z in zs if z[i] == z[i]]
+            dz.append(sum(live) / len(live) if live else float("nan"))
+        valid = [v for v in dz if v == v]
+        if len(valid) < MIN_COMPOSITE_WEEKS:
+            return False
+        cur = dz[-1] if dz[-1] == dz[-1] else None
+        pct = (round(100 * sum(1 for v in valid if v <= cur)
+                     / len(valid), 1) if cur is not None else None)
+        firing = bool(cur is not None
+                      and abs(cur) >= COMPOSITE_FIRE_Z)
+        study = {}
+        for h in HORIZONS:
+            samp = [fwd(spy, i, h) for i in range(len(grid) - h)
+                    if dz[i] == dz[i]
+                    and abs(dz[i]) >= COMPOSITE_EXTREME_Z]
+            samp = [x for x in samp if x is not None]
+            if len(samp) >= 20:
+                mu = sum(samp) / len(samp)
+                hit = 100 * sum(1 for x in samp if x > 0) / len(samp)
+                t = tstat(samp, base_mu[h], horizon=h)
+                study[f"w{h}"] = {
+                    "n": len(samp),
+                    "n_effective": round(len(samp) / h, 1),
+                    "excess_vs_base_pct": round(mu - base_mu[h], 2),
+                    "hit_edge_pp": round(hit - base_hit[h], 1),
+                    "t_stat": t, "p_value": round(norm_p(t), 4)}
+        w13 = study.get("w13") or {}
+        pvals.append(w13.get("p_value", 1.0))
+        lit = sorted(((sm, round(z[-1], 2)) for sm, z in zs
+                      if z[-1] == z[-1] and abs(z[-1]) >= Z_FIRE),
+                     key=lambda x: -abs(x[1]))[:12]
+        hf = next((grid[i] for i in range(len(grid))
+                   if dz[i] == dz[i]), grid[0])
+        doc = {
+            "engine_id": sp["engine_id"], "name": sp["name"],
+            "theme": sp["theme"], "tv_id": sp["tv_id"],
+            "generated_at": now.isoformat(), "state": "ACTIVE",
+            "mode": "composite",
+            "history_from": hf, "n_weeks": len(valid),
+            "members_total": sp["members_total"],
+            "members_resolved": len(zs),
+            "members_mapped": len(sp["members_resolved"]),
+            "coverage": sp["coverage"],
+            "activation_now": (round(cur, 2)
+                               if cur is not None else None),
+            "activation_pctile": pct,
+            "fire_threshold_abs_z": COMPOSITE_FIRE_Z,
+            "firing": firing,
+            "lit_indicators": [
+                {"symbol": sm, "z": z,
+                 "name": (sdict.get(sm) or {}).get("name"),
+                 "source_id": (sdict.get(sm) or {}).get("source_id"),
+                 "units": (sdict.get(sm) or {}).get("units")}
+                for sm, z in lit],
+            "all_members": [
+                {"symbol": sm,
+                 "z": (round(z[-1], 2) if z[-1] == z[-1] else None),
+                 "name": (sdict.get(sm) or {}).get("name"),
+                 "source_id": (sdict.get(sm) or {}).get("source_id")}
+                for sm, z in zs],
+            "event_study": study,
+            "fusion_targets": FUSION_TARGETS.get(sp["theme"], []),
+            "signal_type": f"wl_{sp['engine_id'][3:]}"[:48],
+            "note": "composite mode: mean member z vs own history — "
+                    "panel too small/sparse for breadth stats "
+                    "(ops 3267)",
+        }
+        s3_put(f"{ENGINE_PREFIX}{sp['engine_id']}.json", doc)
+        comps[sp["engine_id"]] = dz
+        rows.append({k: doc[k] for k in
+                     ("engine_id", "name", "theme", "state",
+                      "coverage", "members_resolved", "members_total",
+                      "activation_now", "activation_pctile", "firing",
+                      "history_from", "signal_type", "fusion_targets",
+                      "mode")}
+                    | {"w13": w13,
+                       "lit": [x["symbol"]
+                               for x in doc["lit_indicators"][:5]],
+                       "lit_named": [(x.get("name") or x["symbol"])
+                                     for x in
+                                     doc["lit_indicators"][:5]]})
+        return True
+
     for sp in specs:
         if sp["state"] != "ACTIVE":
+            _zs = [(sm, zc[sm]) for sm in sp["members_resolved"]
+                   if sm in zc]
+            if _composite(sp, _zs):
+                continue
             rows.append({**{k: sp[k] for k in
                             ("engine_id", "name", "theme", "tv_id",
                              "coverage", "state")},
@@ -381,6 +482,8 @@ def lambda_handler(event, context):
             continue
         zs = [(s, zc[s]) for s in sp["members_resolved"] if s in zc]
         if len(zs) < MIN_MEMBERS:
+            if _composite(sp, zs):
+                continue
             sp["state"] = "DORMANT"          # ops 3208: never drop silently
             rows.append({**{k: sp[k] for k in
                             ("engine_id", "name", "theme", "tv_id",
@@ -401,6 +504,8 @@ def lambda_handler(event, context):
             dz.append(sum(live) / len(live) if ok_n else float("nan"))
         valid = [a for a in act if a == a]
         if len(valid) < 100:
+            if _composite(sp, zs):
+                continue
             sp["state"] = "DORMANT"          # ops 3208: never drop silently
             rows.append({**{k: sp[k] for k in
                             ("engine_id", "name", "theme", "tv_id",

@@ -193,7 +193,7 @@ document.getElementById('tbody').addEventListener('click',async ev=>{
     const w4=d.event_study?.w4||{},w13=d.event_study?.w13||{};
     const zcell=z=>z==null?'—':`<span class="${z>=0?'zpos':'zneg'}">${Number(z).toFixed(2)}</span>`;
     db.innerHTML=`<h3>${esc(d.name||tr.dataset.eid)}</h3>
-      <div class="kvrow"><span>theme <b>${esc(d.theme||'—')}</b></span><span>state <b>${esc(d.state||'—')}</b></span>${d.reason?`<span style="color:var(--neg,#e05252)">${esc(d.reason)}</span>`:''}<span>activation <b>${num(d.activation_now)}</b> (${num(d.activation_pctile)}p)</span><span>fires ≥ <b>${num(d.fire_threshold_p80)}</b></span><span>${d.firing?'<b class="zpos">● FIRING</b>':'○ quiet'}</span></div>
+      <div class="kvrow"><span>theme <b>${esc(d.theme||'—')}</b></span><span>state <b>${esc(d.state||'—')}</b></span>${d.mode?`<span>mode <b>${esc(d.mode)}</b></span>`:''}${d.reason?`<span style="color:var(--neg,#e05252)">${esc(d.reason)}</span>`:''}<span>activation <b>${num(d.activation_now)}</b> (${num(d.activation_pctile)}p)</span><span>fires ≥ <b>${num(d.fire_threshold_p80)}</b></span><span>${d.firing?'<b class="zpos">● FIRING</b>':'○ quiet'}</span></div>
       <div class="kvrow"><span>members <b>${d.members_resolved??'—'}/${d.members_total??'—'}</b></span><span>history <b>${d.n_weeks??'—'}w</b> from ${esc(String(d.history_from||'—'))}</span></div>
       <h3 style="font-size:12px;color:var(--text)">EVENT STUDY (activation ≥ p80)</h3>
       <table class="mini"><tr><th></th><th>n</th><th>excess vs base %</th><th>hit edge pp</th><th>t</th><th>p</th></tr>
