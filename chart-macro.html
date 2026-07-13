@@ -3970,5 +3970,34 @@ init();
 </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<script>/* ops 3245: series-fusion card — independent fetch, additive */
+(function(){
+ var C={feed:"data/macro-nowcast.json",field:"global_confidence",title:"GLOBAL CONFIDENCE \u2014 SERIES FUSION"};
+ function esc(s){return String(s==null?'\u2014':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+ function grab(u){return fetch(u+'?t='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json();});}
+ grab('/'+C.feed).catch(function(){return grab('https://s3.amazonaws.com/justhodl-dashboard-live/'+C.feed);})
+ .then(function(d){
+  var b=d&&d[C.field];if(!b||!b.series)return;
+  var ks=Object.keys(b.series);
+  var rows=ks.map(function(k){var s=b.series[k];
+   var zc=(s.z_1y>=1)?'var(--neg,#e05252)':((s.z_1y<=-1)?'var(--pos,#3fa46a)':'var(--text-muted,#8a8f98)');
+   var ch=(s.chg_13w_pct==null)?'':' <span style="opacity:.55">13w '+esc(s.chg_13w_pct)+'%</span>';
+   return '<div style="display:flex;gap:12px;align-items:baseline;font-family:var(--font-mono,monospace);font-size:11px;padding:2.5px 0">'
+    +'<span style="color:'+zc+';min-width:56px">z '+esc(s.z_1y)+'</span>'
+    +'<b style="min-width:86px;color:var(--text,#ddd)">'+esc(s.last)+'</b>'
+    +'<span style="color:var(--text-dim,#aaa)">'+esc(s.label)+ch+'</span></div>';}).join('');
+  var comp=(b.composite_z!=null)?'<div style="font-family:var(--font-mono,monospace);font-size:12px;margin:4px 0 8px;color:var(--accent,#e8b45a)">COMPOSITE z '+esc(b.composite_z)+' <span style="opacity:.6">(n='+esc(b.composite_n)+')</span></div>':'';
+  var card=document.createElement('div');
+  card.id='jh-fusion-'+C.field;
+  card.style.cssText='border:1px solid var(--border-strong,#333);border-radius:10px;background:var(--bg-card,#141414);padding:14px 16px;margin:14px 0';
+  card.innerHTML='<div style="font-size:11px;letter-spacing:.12em;color:var(--accent,#e8b45a);margin-bottom:6px">'+esc(C.title)+'</div>'
+   +comp+rows
+   +'<div style="font-size:10px;color:var(--text-muted,#777);margin-top:8px">direct model inputs \u00b7 series fusion \u00b7 asof '+esc(String(b.asof||'').slice(0,10))+'</div>';
+  var host=document.querySelector('main')||document.body;
+  host.insertBefore(card,host.firstChild);
+ }).catch(function(){});
+})();
+</script>
 </body>
 </html>
