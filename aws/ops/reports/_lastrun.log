@@ -1,13 +1,11 @@
-executing-against: 5c58953573f8fb1237ce6e85ceca4b021909850c
-[22:42:33]   zip: 73743 bytes
-── 1. Lambda ──
-[22:42:33]   Lambda exists — updating
-[22:42:38] ✅   ✓ updated justhodl-wl-series-api
-── 1. Served literals ──
-[22:44:58] ✅ sw bumped live (~150s)
-[22:44:58] ✅ drawer nudge+beacon live (~15s)
-[22:44:58] ✅ page diag footer live (~15s)
-── 2. Listening for [diag] beacons (~4 min) ──
-[22:49:02]   no beacons yet — they land in CloudWatch the moment any page is loaded; next ops reads them
+executing-against: c192405b9fe1564e874943c79fc9f5ced754ef46
+── 1. Khalid's diag beacons (last 24h) ──
+[23:04:58]   [diag] {"diag": "1", "favs": "2", "page": "/chart-pro.html", "sw": "yes", "v": "3276"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+[23:04:58]   [diag] {"diag": "1", "drawer": "f68c5019", "err": "", "favs": "2", "lists": "207", "lwc": "true", "page": "chartpro", "sw": "service-worker.js"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) C
+[23:04:58]   [diag] {"diag": "1", "favs": "2", "page": "/apac.html", "sw": "yes", "v": "3276"} ua=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0
+── 2. 13F additive sections ──
+[23:07:29] ✅ live: new sections present, existing sections untouched (~165s)
+[23:07:29]   CLUSTER NEW GOOG: 2 funds — BERKSHIRE, BRIDGEWATER
+[23:07:29]   CLUSTER NEW V: 2 funds — COATUE, LONE_PINE
 
-→ Report written to aws/ops/reports/latest/3276_client_truth.md
+→ Report written to aws/ops/reports/latest/3277_13f_additive.md
