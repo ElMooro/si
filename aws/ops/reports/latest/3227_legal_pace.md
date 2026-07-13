@@ -1,0 +1,61 @@
+# ops 3227 — legal pace + tombstones; two runs to steady state
+
+**Status:** success  
+**Duration:** 300.0s  
+**Finished:** 2026-07-13T06:28:48+00:00  
+
+## Data
+
+| active_before | active_now | n_fails | n_warns | series_cached | verdict | woken |
+|---|---|---|---|---|---|---|
+| 119 | 121 |  |  | 2465 |  | 2 |
+|  |  | 0 | 0 |  | PASS |  |
+
+## Log
+- `06:23:48`   zip: 80270 bytes
+## 1. Lambda
+
+- `06:23:48`   Lambda exists — updating
+- `06:23:51` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `06:23:51`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `06:23:51` ✅   ✓ target → justhodl-wl-engines
+- `06:23:52` ✅   ✓ added invoke permission
+## Run 1 — pays the tombstoning cost
+
+## Run 2 — steady state
+
+## Evidence
+
+- `06:28:48`   [trace] stamp=2026-07-13T06:23:55 fresh_cut=2026-07-07T06:27:58 todo=0
+- `06:28:48`   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] ECONOMICS:EUDIR: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] ECONOMICS:GBDIR: need=True cache_pre=True todo=False
+- `06:28:48`   [wl] cache=2465 new=0 2s
+- `06:28:48`   [trace] TVC:ES10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] ECONOMICS:EUDIR: weekly=1437 zc=True
+- `06:28:48`   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] ECONOMICS:GBDIR: weekly=433 zc=True
+- `06:28:48`   [trace] stamp=2026-07-13T06:21:24 fresh_cut=2026-07-07T06:23:55 todo=1264
+- `06:28:48`   [trace] TVC:ES10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] ECONOMICS:EUDIR: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] TVC:DE10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] TVC:FR10Y-TVC:IT10Y: need=True cache_pre=True todo=False
+- `06:28:48`   [trace] ECONOMICS:GBDIR: need=True cache_pre=True todo=False
+- `06:28:48`   [wl] cache=2465 new=92 231s
+- `06:28:48`   [trace] TVC:ES10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] ECONOMICS:EUDIR: weekly=1437 zc=True
+- `06:28:48`   [trace] TVC:DE10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] TVC:FR10Y-TVC:IT10Y: weekly=422 zc=True
+- `06:28:48`   [trace] ECONOMICS:GBDIR: weekly=433 zc=True
+## Wakes
+
+- `06:28:48`   ⏰ WOKE: Durable Goods
+- `06:28:48`   ⏰ WOKE: DXY: DIFFERENT TYPE OF DXY: IN CURRENCY MARKETS THE UPSIDE AND DOWNSIDE ARE SYMMETRICAL.
+- `06:28:48`   → Europe Liquidity :BTPBUND  measure f ACTIVE resolved=6
+- `06:28:48`   → Global Deposit Rates Which drains li DORMANT resolved=6
+- `06:28:48` ✅ 2 panels WOKEN
