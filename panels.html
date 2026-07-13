@@ -82,7 +82,7 @@ a{color:var(--cyan)}
 
   <h2>ENGINES</h2>
   <div class="filters" id="filters"></div>
-  <div style="overflow-x:auto"><div id="pred"></div>
+  <div style="overflow-x:auto"><div id="pred"></div><div id="playbook"></div>
 <table>
     <thead><tr>
       <th data-k="name">ENGINE</th><th data-k="theme">THEME</th><th data-k="state">STATE</th>
@@ -101,6 +101,22 @@ const num=(v,d=1)=>(v==null||isNaN(v))?'—':Number(v).toFixed(d);
 let ENG=[],theme='ALL',fireOnly=false,sortK='firing',sortD=-1;
 
 
+async function loadPlayb(){/* ops 3264: PLAYBOOK — his tested rules, extracted + evaluated */
+ try{const P=await gj('/data/playbook-rules.json');const el=document.getElementById('playbook');
+  if(!el||!(P.rules||[]).length)return;
+  const fy=(P.flagship||{}).yield_curve||{};
+  let head='<div style="font-size:11px;letter-spacing:.12em;color:var(--accent,#e8b45a);margin:14px 0 8px">PLAYBOOK \u2014 '+(P.n_rules||0)+' tested rules extracted from his notes</div>';
+  let flag='';
+  if(fy.months_elapsed!=null){
+   const pct=Math.min(100,Math.round(100*fy.months_elapsed/(fy.khalid_lag_months||30)));
+   flag='<div style="border:1px solid var(--accent,#e8b45a);border-radius:8px;padding:10px 12px;margin:4px 0;font-family:var(--font-mono,monospace);font-size:11px"><b>FLAGSHIP \u00b7 yield-curve timing rule</b> \u2014 '+esc(fy.series||'T10Y2Y')
+   +'<div style="margin-top:4px">inversion onset <b>'+esc(fy.most_recent_inversion_onset||'\u2014')+'</b> \u00b7 elapsed <b>'+fy.months_elapsed+'</b> of his <b>'+(fy.khalid_lag_months||30)+'</b> months \u00b7 marker <b>'+esc(fy.lag_marker_date||'\u2014')+'</b></div>'
+   +'<div style="margin-top:6px;height:6px;border:1px solid var(--border-strong,#333);border-radius:4px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:var(--accent,#e8b45a)"></div></div></div>';
+  }
+  const rows=(P.rules||[]).slice(0,6).map(function(r){
+   return '<div style="border:1px solid var(--border-strong,#333);border-radius:8px;padding:7px 12px;margin:4px 0;font-family:var(--font-mono,monospace);font-size:11px"><span style="color:var(--accent,#e8b45a)">['+esc(r.family)+']</span> <b>'+esc((r.symbol||'').slice(0,18))+'</b> \u00b7 '+esc((r.text||'').slice(0,150))+'</div>';}).join('');
+  el.innerHTML=head+flag+rows;
+ }catch(e){}}
 async function loadPred(){/* ops 3254: PREDICTIONS — panel theses tested */
  try{const P=await gj('/data/wl-predictions.json');const el=document.getElementById('pred');
   if(!el||!(P.predictions||[]).length)return;
@@ -151,7 +167,7 @@ function renderFilters(){
     +`<button class="fbtn ${fireOnly?'on':''}" data-fire="1">FIRING ONLY</button>`;
   $('filters').onclick=ev=>{const b=ev.target.closest('.fbtn');if(!b)return;
     if(b.dataset.fire){fireOnly=!fireOnly;}else{theme=b.dataset.t;}
-    renderFilters();renderTable();loadPred();};
+    renderFilters();renderTable();loadPred();loadPlayb();};
 }
 document.querySelector('thead').addEventListener('click',ev=>{const th=ev.target.closest('th');if(!th)return;
   const k=th.dataset.k;if(sortK===k)sortD*=-1;else{sortK=k;sortD=-1;}renderTable();});
