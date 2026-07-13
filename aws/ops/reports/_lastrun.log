@@ -1,23 +1,98 @@
-executing-against: 44db9edb7474206bd19dd306d7639e645e7d5a9e
-ops 3188 — EODHD out, free coverage in
-── 1. Purge the key everywhere ──
-[01:39:27] ✅ SSM /justhodl/eodhd-api-key deleted
-[01:39:31] ✅ justhodl-wl-engines: EODHD key removed
-[01:39:35] ✅ justhodl-thesis-engine: EODHD key removed
-[01:39:39] ✅ justhodl-symbol-dictionary: EODHD key removed
-[01:39:39] ✅ no engine can call EODHD — the fallback is inert without a key
-── 2. Re-map on the FREE path (keeps the probe's wins) ──
-[01:43:20] ✅ ZERO EODHD dependencies · coverage 74.1% on free sources alone (4822 symbols)
-── 3. Re-run the fleet ──
-[01:45:24] ✅ 111 ACTIVE engines running on FREE data only — nothing regressed by cancelling
-── 4. The standing bill ──
-[01:45:24]   Monthly data cost:            $0
-[01:45:24]   Sources: FRED · World Bank · OECD · Yahoo · Stooq · CFTC ·
-[01:45:24]            Polygon (already owned) · computed internals
-[01:45:24]   Only remaining unbuyable gap: FTSE Russell licensed indices
-[01:45:24]            (448 symbols — no vendor at any tier we tested)
-[01:45:24]   PENDING-KHALID: Anthropic credits (~$20-50) would resurrect
-[01:45:24]            premortem, strategist, RAG desk, tribunal, 516
-[01:45:24]            un-distilled note views — all BUILT and dark
+executing-against: 9d94b2193bdeeced09ab9eabf92c9cccf25f2df0
+ops 3189 — free long-tail: on-chain + COT covered internally at $0
+── 1. Residual gap census (post-3188) ──
+[02:27:56]   FTSE                 448 symbols
+[02:27:56]   ECONOMICS            383 symbols
+[02:27:56]   INTOTHEBLOCK         147 symbols
+[02:27:56]   USI                   95 symbols
+[02:27:56]   TVC                   91 symbols
+[02:27:56]   GLASSNODE             59 symbols
+[02:27:56]   COT3                  52 symbols
+[02:27:56]   CBOEEU                40 symbols
+[02:27:56]   EUREX                 38 symbols
+[02:27:56]   ICEEUR                30 symbols
+[02:27:56]   CME                   25 symbols
+[02:27:56]   COT                   24 symbols
+[02:27:56]   CME_MINI              16 symbols
+[02:27:56]   DFM                   14 symbols
+[02:27:56]   ADX                   13 symbols
+[02:27:56]   DJCFD                 12 symbols
+[02:27:56]   MULTPL                12 symbols
+[02:27:56]   CBOT                   8 symbols
+[02:27:56]   GLASSNODE      e.g. GLASSNODE:BTC_ATHDRAWDOWN; GLASSNODE:BTC_NEWADDRESSES; GLASSNODE:BTC_RECEIVINGADDRESSES; GLASSNODE:BTC_SENDINGADDRESSES
+[02:27:56]   INTOTHEBLOCK   e.g. INTOTHEBLOCK:BTCL_BEARSCOUNT; INTOTHEBLOCK:BTCL_BULLSCOUNT; INTOTHEBLOCK:BTC_BEARSCOUNT; INTOTHEBLOCK:BTC_BULLSCOUNT
+[02:27:56]   COT3           e.g. COT3:045601_F_LMP_L; COT3:098662_F_DP_L; COT3:098662_F_DP_S; COT3:099741_FO_AMP_L
+── 2. Re-map (new: COINMETRICS, COT, extended FUT roots) ──
+── 3. Probe (real fetches — dry entries are pruned) ──
+[series_source] COINMETRICS:btc|FeeTotUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:eth|FeeTotUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:matic|SplyCur failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:matic|AdrActCnt failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:btc|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:eth|TxTfrValAdjUSD failed: HTTP Error 403: Forbidden
+[series_source] COINMETRICS:matic|TxTfrValAdjUSD failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:matic|TxCnt failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:matic|TxTfrValAdjUSD failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:matic|TxTfrValAdjUSD failed: HTTP Error 400: Bad Request
+[series_source] COINMETRICS:matic|TxTfrValAdjUSD failed: HTTP Error 400: Bad Request
+[series_source] COT:6dca-aqww|098662|noncomm_long failed: The read operation timed out
+[series_source] COT:6dca-aqww|134741|noncomm_short failed: <urlopen error _ssl.c:993: The handshake operation timed out>
+[series_source] COT:6dca-aqww|134741|noncomm_net failed: The read operation timed out
+[series_source] COT:6dca-aqww|146021|noncomm_long failed: The read operation timed out
+[series_source] COT:6dca-aqww|098662|noncomm_long failed: The read operation timed out
+[02:32:01]   GLASSNODE      probed   3  hit   0  dry   3
+[02:32:01]   INTOTHEBLOCK   probed  15  hit   2  dry  13
+[02:32:01]   COT3           probed  52  hit  48  dry   4
+[02:32:01]     ✓ INTOTHEBLOCK:BTC_INFLOWTXCOUNT → btc|TxCnt  (6400 pts)
+[02:32:01]     ✓ INTOTHEBLOCK:BTC_HASHRATE → btc|HashRate  (6394 pts)
+[02:32:01]     ✓ COT3:045601_F_LMP_L → 6dca-aqww|045601|noncomm_long  (1829 pts)
+[02:32:01]     ✓ COT:088691_F_OI → 6dca-aqww|088691|open_interest  (1828 pts)
+[02:32:01]     ✓ COT:067651_F_CP_L → 6dca-aqww|067651|noncomm_long  (1827 pts)
+── 4. Redeploy shared bundle (series_source.py changed) ──
+[02:32:01]   zip: 73361 bytes
+── 1. Lambda ──
+[02:32:01]   Lambda exists — updating
+[02:32:07] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[02:32:07]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[02:32:07] ✅   ✓ target → justhodl-wl-engines
+[02:32:07] ✅   ✓ added invoke permission
+[02:32:08]   zip: 74980 bytes
+── 1. Lambda ──
+[02:32:08]   Lambda exists — updating
+[02:32:13] ✅   ✓ updated justhodl-thesis-engine
+── 2. EB rule + permissions ──
+[02:32:13]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[02:32:13] ✅   ✓ target → justhodl-thesis-engine
+[02:32:13] ✅   ✓ added invoke permission
+[02:32:13]   zip: 71021 bytes
+── 1. Lambda ──
+[02:32:14]   Lambda exists — updating
+[02:32:19] ✅   ✓ updated justhodl-symbol-dictionary
+── 2. EB rule + permissions ──
+[02:32:19]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[02:32:19] ✅   ✓ target → justhodl-symbol-dictionary
+[02:32:19] ✅   ✓ added invoke permission
+── 5. Re-run wl-engines ──
+[02:33:51] ✅ fleet re-ran on the widened map — 161 active engines
+── 6. Residue after this ops ──
+[02:33:51]   FTSE                 448
+[02:33:51]   ECONOMICS            383
+[02:33:51]   INTOTHEBLOCK         145
+[02:33:51]   USI                   95
+[02:33:51]   TVC                   91
+[02:33:51]   GLASSNODE             59
+[02:33:51]   CBOEEU                40
+[02:33:51]   EUREX                 38
+[02:33:51]   ICEEUR                30
+[02:33:51]   CME                   24
+[02:33:51]   next free plays: ECONOMICS residuals via curated IMF/BIS DBnomics templates; EUREX/ICEEUR → cash-proxy flags;
+[02:33:51]   FTSE 4xxx family is LICENSED — no vendor at any tested tier (3187/3188); candidates for honest retirement.
+[02:33:51] ⚠ GLASSNODE: 0 probe hits — tile grammar needs a curated pass (see census examples above)
 
-→ Report written to aws/ops/reports/latest/3188_eodhd_rollback.md
+→ Report written to aws/ops/reports/latest/3189_free_longtail.md
