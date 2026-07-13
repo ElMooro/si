@@ -1,52 +1,117 @@
-executing-against: 15e6758b58ff02828e30b25e75e57d5d321dbc9f
-ops 3194 — USI residue: McClellan computed, exchange variants proxied, intraday tagged
-── 1. USI token census ──
-[02:59:32]   ADVDECV.US             1
-[02:59:32]   ATHI.DJ                1
-[02:59:32]   ATHI.US                1
-[02:59:32]   ATLO.DJ                1
-[02:59:32]   ATLO.US                1
-[02:59:32]   BASR.US                1
-[02:59:32]   BATD.NQ                1
-[02:59:32]   BATD.US                1
-[02:59:32]   BAVD.DJ                1
-[02:59:32]   BAVD.NY                1
-[02:59:32]   BAVD.US                1
-[02:59:32]   BLKS.ASK.DJ            1
-[02:59:32]   BLKS.ASK.US            1
-[02:59:32]   BLKS.BID.DJ            1
-[02:59:32]   BLKS.BID.US            1
-[02:59:32]   BLKS.DNTK.US           1
-[02:59:32]   BLKTDS.NY              1
-[02:59:32]   BLKTDS.US              1
-── 2. Re-map + probe new INTERNALS/DERIVED/intraday split ──
-[series_source] COINMETRICS:matic|PriceUSD failed: HTTP Error 400: Bad Request
-[series_source] COINMETRICS:matic|PriceUSD failed: HTTP Error 400: Bad Request
+executing-against: 4f9d7642502259bb38d0fd866280bfd3b97c8c64
+ops 3195 — TVC residue: non-OECD yields via IMF IFS
+── 1. TVC census ──
+[03:05:37]   AXY              1
+[03:05:37]   BR10Y            1
+[03:05:37]   BTPBUND          1
+[03:05:37]   CN01Y            1
+[03:05:37]   CN02Y            1
+[03:05:37]   CN05Y            1
+[03:05:37]   CN10             1
+[03:05:37]   CN10Y            1
+[03:05:37]   CN30Y            1
+[03:05:37]   DE01             1
+[03:05:37]   DE10             1
+[03:05:37]   DE20             1
+[03:05:37]   DE30             1
+[03:05:37]   DEU40            1
+[03:05:37]   ES10             1
+[03:05:37]   EU01             1
+── 2. Re-map + probe the IFS yield entries ──
+[series_source] DBNOMICS:IMF/IFS/M.CN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.BR.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.CN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.HK.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.HK.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.CN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.ID.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.ID.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.CN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.HK.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.PE.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.CN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.TW.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.VN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[series_source] DBNOMICS:IMF/IFS/M.VN.FIGB_PA failed: HTTP Error 404: NOT FOUND
+[03:05:41]     ✓ TVC:ZA10Y → IMF/IFS/M.ZA.FIGB_PA  (423 pts)
+[03:05:41]     ✓ TVC:SG02Y → IMF/IFS/M.SG.FIGB_PA  (277 pts)
+[03:05:41]     ✓ TVC:SG10Y → IMF/IFS/M.SG.FIGB_PA  (277 pts)
+[03:05:41]     ✓ TVC:RU10Y → IMF/IFS/M.RU.FIGB_PA  (157 pts)
+[03:05:41]     ✓ TVC:IN02Y → IMF/IFS/M.IN.FIGB_PA  (149 pts)
+[03:05:41]     ✓ TVC:IN10Y → IMF/IFS/M.IN.FIGB_PA  (149 pts)
 ── 3. Write + redeploy + kick ──
-[02:59:32]   zip: 76172 bytes
+[03:05:41]   zip: 76775 bytes
 ── 1. Lambda ──
-[02:59:33]   Lambda exists — updating
-[02:59:35] ✅   ✓ updated justhodl-wl-engines
+[03:05:41]   Lambda exists — updating
+[03:05:44] ✅   ✓ updated justhodl-wl-engines
 ── 2. EB rule + permissions ──
-[02:59:36]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[02:59:36] ✅   ✓ target → justhodl-wl-engines
-[02:59:36] ✅   ✓ added invoke permission
-[02:59:36]   zip: 77791 bytes
+[03:05:45]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[03:05:45] ✅   ✓ target → justhodl-wl-engines
+[03:05:45] ✅   ✓ added invoke permission
+[03:05:45]   zip: 78394 bytes
 ── 1. Lambda ──
-[02:59:36]   Lambda exists — updating
-[02:59:41] ✅   ✓ updated justhodl-thesis-engine
+[03:05:45]   Lambda exists — updating
+[03:05:50] ✅   ✓ updated justhodl-thesis-engine
 ── 2. EB rule + permissions ──
-[02:59:42]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[02:59:42] ✅   ✓ target → justhodl-thesis-engine
-[02:59:42] ✅   ✓ added invoke permission
-[02:59:42]   zip: 73832 bytes
+[03:05:50]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[03:05:50] ✅   ✓ target → justhodl-thesis-engine
+[03:05:50] ✅   ✓ added invoke permission
+[03:05:51]   zip: 74435 bytes
 ── 1. Lambda ──
-[02:59:42]   Lambda exists — updating
-[02:59:45] ✅   ✓ updated justhodl-symbol-dictionary
+[03:05:51]   Lambda exists — updating
+[03:05:54] ✅   ✓ updated justhodl-symbol-dictionary
 ── 2. EB rule + permissions ──
-[02:59:45]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
-[02:59:45] ✅   ✓ target → justhodl-symbol-dictionary
-[02:59:45] ✅   ✓ added invoke permission
-[02:59:45] ⚠ all new USI entries probed dry — internals feed history may be shorter than MIN_POINTS
+[03:05:54]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[03:05:54] ✅   ✓ target → justhodl-symbol-dictionary
+[03:05:54] ✅   ✓ added invoke permission
 
-→ Report written to aws/ops/reports/latest/3194_usi_breadth.md
+→ Report written to aws/ops/reports/latest/3195_tvc_yields.md
+ops 3196 — EU futures proxied, venues deduped, CME roots closed
+── 1. Root census (EUREX/ICEEUR/CME residue) ──
+[03:05:54]   UB           2
+[03:05:54]   GE           2
+[03:05:54]   SR           2
+[03:05:54]   FMAG         2
+[03:05:54]   FMXU         2
+[03:05:54]   FMXX         2
+[03:05:54]   FVS          2
+[03:05:54]   I            2
+[03:05:54]   ME           2
+[03:05:54]   SF           2
+[03:05:54]   UEW          2
+[03:05:54]   AW           1
+[03:05:54]   TN           1
+[03:05:54]   YIT          1
+[03:05:54]   ZQ           1
+[03:05:54]   6M           1
+[03:05:54]   BSB          1
+[03:05:54]   BTC          1
+── 2. Re-map (proxies + new roots) + probe ──
+── 3. Venue dedupe → primaries ──
+── 4. Write + redeploy + kick ──
+[03:05:55]   zip: 76775 bytes
+── 1. Lambda ──
+[03:05:55]   Lambda exists — updating
+[03:05:58] ✅   ✓ updated justhodl-wl-engines
+── 2. EB rule + permissions ──
+[03:05:58]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[03:05:58] ✅   ✓ target → justhodl-wl-engines
+[03:05:58] ✅   ✓ added invoke permission
+[03:05:58]   zip: 78394 bytes
+── 1. Lambda ──
+[03:05:59]   Lambda exists — updating
+[03:06:04] ✅   ✓ updated justhodl-thesis-engine
+── 2. EB rule + permissions ──
+[03:06:04]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[03:06:04] ✅   ✓ target → justhodl-thesis-engine
+[03:06:04] ✅   ✓ added invoke permission
+[03:06:04]   zip: 74435 bytes
+── 1. Lambda ──
+[03:06:04]   Lambda exists — updating
+[03:06:09] ✅   ✓ updated justhodl-symbol-dictionary
+── 2. EB rule + permissions ──
+[03:06:09]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[03:06:09] ✅   ✓ target → justhodl-symbol-dictionary
+[03:06:10] ✅   ✓ added invoke permission
+
+→ Report written to aws/ops/reports/latest/3196_futures_venues.md
