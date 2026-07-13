@@ -553,7 +553,7 @@ def lambda_handler(event=None, context=None):
     # 4. Convergent breadth — top theme with breadth > 65%
     convergent = []
     for t in momentum_ranked[:25]:
-        b = breadth_results.get(t["ticker"], {}).get("breadth")
+        b = (breadth_results.get(t["ticker"]) or {}).get("breadth")  # ops 3250: None-safe
         if b and b.get("breadth_outperform_pct", 0) >= 60 and t["rs_20d"] > 0 and t["rs_5d"] > 0:
             convergent.append({
                 "ticker": t["ticker"],
@@ -612,7 +612,7 @@ def lambda_handler(event=None, context=None):
                     "rs_acceleration": t["rs_acceleration"],
                     "vol_ratio": t["vol_ratio_20v60"],
                     "rank_delta": t.get("rs_rank_delta", 0),
-                    "breadth_pct": breadth_results.get(t["ticker"], {}).get("breadth", {}).get("breadth_outperform_pct"),
+                    "breadth_pct": ((breadth_results.get(t["ticker"]) or {}).get("breadth") or {}).get("breadth_outperform_pct"),  # ops 3250: .get(k,{}) does not guard k:None
                 }
                 for t in momentum_ranked[:10]
             ],
