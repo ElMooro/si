@@ -545,3 +545,42 @@ so no CF 403-caching residue possible.
   the manual alternative. Nothing already captured is at risk.
 - Optional completionist gap: mirror 3,322 vs brain-tv 2,920 (~400
   id-scheme/short-text differences) — top-up available if wanted.
+
+## Notes → engines, semantic parity, PLAYBOOK (ops 3259–3263)
+
+- **NOTES EVERYWHERE (3259–3260)**: the ops-3171 khalid_note stance
+  fusion verified LIVE — best-setups: 74 rows carry khalid_note (14
+  non-null; NVDA stance=BEARISH riding the setups); alpha-compass
+  carries the field; master-ranker coded (lines ~1186–88, feed
+  refreshes on its cron). NEW consumer: equity-research docs attach
+  **khalid_notes** (stance / latest_note / levels via
+  khalid_notes_block ← data/notes-index.json, container-cached, never
+  raises) — proven live in equity-research/NVDA.json: stance=BEARISH
+  n=2 "IS NVIDIA EXPENSIVE? Nvidia pe is 26.6…".
+- **SEMANTIC PARITY (3261–3262)**: worker PUT contract is
+  **{note:{…}}** wrapper ({delete:"id"} deletes; {notes:[…]} is
+  bulk-REPLACE — never use). uid ≥20 chars = authed (no PIN). Write-
+  time junk guard (_isJunk: <25 chars, transcript patterns, code/URLs,
+  low letter-ratio) returns **200 ok:"rejected-junk"**, not 4xx.
+  Normalized-text DEDUP admin ops exist (token-gated). The ~400 id-gap
+  decomposed: 3 text-duplicates + 250 guard-rejected fragments (the
+  brain's OWN protections, Khalid's design) + genuinely-absent
+  (~120, e.g. CL1!/SVXY/UVXY options-timing notes) pushed with the
+  wrapper. **RESULT: 3,069/3,069 substantive unique notes in the
+  canonical brain.**
+- **PLAYBOOK ENGINE (3263, PASS)**: new lambda
+  justhodl-playbook-engine (Function URL
+  https://ygn3rwfckm3ya6g6l52637bq2i0fiyvq.lambda-url.us-east-1.on.aws/,
+  donor env justhodl-notes-intel, NO EB schedule v1 — rule cap
+  saturated; invoke on demand). Deterministic extraction of his tested
+  rules from the mirror → **data/playbook-rules.json**: families
+  TIMING / INVARIANT / TURN / CONDITIONAL. **563 rules from 3,322
+  notes.** Samples live: yield-curve 30-month rule, MOVE, US10Y,
+  FEDFUNDS ("WHEN INTEREST RATES ARE BEING CUT…"), DRTSCILM,
+  inverted-dollar. **Flagship evaluated on live FRED T10Y2Y:
+  most_recent_inversion_onset=2024-09-05, months_elapsed=22.2,
+  khalid_lag_months=30, lag_marker_date=2027-03-05** — facts stated
+  plainly, no forecast dressing.
+- Next-ups noted (not built): surface playbook-rules on a page
+  (why.html or panels), EB schedule via Scheduler, master-ranker
+  khalid_note visible after its next cron.
