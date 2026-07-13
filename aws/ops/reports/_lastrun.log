@@ -1,88 +1,35 @@
-executing-against: 2f3af1c7a4190f3d0037465f182d35064beb1be0
-ops 3199 — diagnose the dead runner, patch, prove
-── 1. Evidence: config + CloudWatch tail ──
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: cdb3a88d-1538-46f2-ab44-991d408ca03c	Duration: 2805.59 ms	Billed Duration: 3324 ms	Memory Size: 3008 MB	Max Memory Used: 233 MB	Init
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: cdb3a88d-1538-46f2-ab44-991d408ca03c	Duration: 2663.45 ms	Billed Duration: 2664 ms	Memory Size: 3008 MB	Max Memory Used: 260 MB	
-XRA
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: cdb3a88d-1538-46f2-ab44-991d408ca03c	Duration: 2630.99 ms	Billed Duration: 2631 ms	Memory Size: 3008 MB	Max Memory Used: 260 MB	
-XRA
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: 92d154f0-556f-4c84-9b5d-35354ced1e5e	Duration: 2899.60 ms	Billed Duration: 3455 ms	Memory Size: 3008 MB	Max Memory Used: 233 MB	Init
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: 92d154f0-556f-4c84-9b5d-35354ced1e5e	Duration: 2987.30 ms	Billed Duration: 2988 ms	Memory Size: 3008 MB	Max Memory Used: 260 MB	
-XRA
-[03:37:32]   [wl] 207 engines (160 ACTIVE) · 3759 unique series
-[03:37:32]   [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:37:32]   REPORT RequestId: 92d154f0-556f-4c84-9b5d-35354ced1e5e	Duration: 2809.42 ms	Billed Duration: 3333 ms	Memory Size: 3008 MB	Max Memory Used: 234 MB	Init
-── 2. Redeploy patched shared bundle ──
-[03:37:32]   zip: 77142 bytes
+executing-against: 0ae1deb019d5f947b4116f5ac4019b6f0b355093
+ops 3200 — period-normalizer deployed, fleet proven alive
+── 1. Deploy the two-layer fix ──
+[03:52:48]   zip: 77439 bytes
 ── 1. Lambda ──
-[03:37:33]   Lambda exists — updating
-[03:37:36] ✅   ✓ updated justhodl-wl-engines
+[03:52:49]   Lambda exists — updating
+[03:52:52] ✅   ✓ updated justhodl-wl-engines
 ── 2. EB rule + permissions ──
-[03:37:36]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[03:37:36] ✅   ✓ target → justhodl-wl-engines
-[03:37:36] ✅   ✓ added invoke permission
-[03:37:36]   zip: 78761 bytes
+[03:52:52]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+[03:52:52] ✅   ✓ target → justhodl-wl-engines
+[03:52:52] ✅   ✓ added invoke permission
+[03:52:52]   zip: 79005 bytes
 ── 1. Lambda ──
-[03:37:36]   Lambda exists — updating
-[03:37:41] ✅   ✓ updated justhodl-thesis-engine
+[03:52:52]   Lambda exists — updating
+[03:52:55] ✅   ✓ updated justhodl-thesis-engine
 ── 2. EB rule + permissions ──
-[03:37:42]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
-[03:37:42] ✅   ✓ target → justhodl-thesis-engine
-[03:37:42] ✅   ✓ added invoke permission
-[03:37:42]   zip: 74802 bytes
+[03:52:56]   rule already correct: thesis-engine-daily (cron(45 22 ? * TUE-SAT *))
+[03:52:56] ✅   ✓ target → justhodl-thesis-engine
+[03:52:56] ✅   ✓ added invoke permission
+[03:52:56]   zip: 75046 bytes
 ── 1. Lambda ──
-[03:37:42]   Lambda exists — updating
-[03:37:45] ✅   ✓ updated justhodl-symbol-dictionary
+[03:52:56]   Lambda exists — updating
+[03:53:02] ✅   ✓ updated justhodl-symbol-dictionary
 ── 2. EB rule + permissions ──
-[03:37:45]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
-[03:37:45] ✅   ✓ target → justhodl-symbol-dictionary
-[03:37:45] ✅   ✓ added invoke permission
-── 3. Re-run + fresh-index gate ──
-[03:49:33]   tail: INIT_START Runtime Version: python:3.12.mainlinev2.v14	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:40182b778d40c8bdb13a6ef86990df74f5066cdb
-[03:49:33]   tail: START RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e Version: $LATEST
+[03:53:03]   rule already correct: symbol-dictionary-weekly (cron(0 5 ? * SUN *))
+[03:53:03] ✅   ✓ target → justhodl-symbol-dictionary
+[03:53:03] ✅   ✓ added invoke permission
+── 2. Kick + fresh-index gate ──
+[03:54:24]   active e.g. Foreign Exchange Reserves
+[03:54:24]   active e.g. Finland : a major producer of pulp & paper (11% of global exports)
+[03:54:24]   active e.g. Frontier Market ETFS
+[03:54:24]   active e.g. Different Types of Stock indexes
+[03:54:24] ✅ FLEET ALIVE — 115 ACTIVE on the final widened map; one bad key can never kill it again
 
-[03:49:33]   tail: [wl] 207 engines (160 ACTIVE) · 3759 unique series
-
-[03:49:33]   tail: [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:49:33]   tail: END RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e
-
-[03:49:33]   tail: REPORT RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e	Duration: 2869.45 ms	Billed Duration: 3410 ms	Memory Size: 3008 MB	Max Memory Used: 233 MB	Init
-[03:49:33]   tail: START RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e Version: $LATEST
-
-[03:49:33]   tail: [wl] 207 engines (160 ACTIVE) · 3759 unique series
-
-[03:49:33]   tail: [ERROR] ValueError: not enough values to unpack (expected 3, got 2)
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 278
-[03:49:33]   tail: END RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e
-
-[03:49:33]   tail: REPORT RequestId: ab77e94d-2071-41f0-840e-87e7db847c2e	Duration: 2723.45 ms	Billed Duration: 2724 ms	Memory Size: 3008 MB	Max Memory Used: 260 MB	
-XRA
-[03:49:33] ✗ index STILL stale after patched re-run (generated_at=2026-07-13T02:46:02.447903+00:00)
-
-→ Report written to aws/ops/reports/latest/3199_runner_revive.md
-❌ OPS-FAIL: aws/ops/pending/ops_3199_runner_revive.py
+→ Report written to aws/ops/reports/latest/3200_runner_alive.md
