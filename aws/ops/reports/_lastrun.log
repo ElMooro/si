@@ -1,5 +1,13 @@
-executing-against: 2a4c4057f133591cd2f26deac086da930454d525
-[19:49:06] ✅ chart-pro hardened block live (~150s)
-[19:49:06] ✅ drawer empty-favs truth live
+executing-against: 5c58953573f8fb1237ce6e85ceca4b021909850c
+[22:42:33]   zip: 73743 bytes
+── 1. Lambda ──
+[22:42:33]   Lambda exists — updating
+[22:42:38] ✅   ✓ updated justhodl-wl-series-api
+── 1. Served literals ──
+[22:44:58] ✅ sw bumped live (~150s)
+[22:44:58] ✅ drawer nudge+beacon live (~15s)
+[22:44:58] ✅ page diag footer live (~15s)
+── 2. Listening for [diag] beacons (~4 min) ──
+[22:49:02]   no beacons yet — they land in CloudWatch the moment any page is loaded; next ops reads them
 
-→ Report written to aws/ops/reports/latest/3275_visible_truth.md
+→ Report written to aws/ops/reports/latest/3276_client_truth.md
