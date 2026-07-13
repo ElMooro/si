@@ -87,6 +87,62 @@ def trim(s, n=80):
     return s[:n] + "…" if len(s) > n else s
 
 
+def build_his_research():
+    """ops 3251: panel research (deterministic, from the fleet's own
+    feeds) — top themes by pressure, firing panels by name, sharpest
+    divergence. Never raises."""
+    try:
+        fus = load_sidecar("data/wl-fusion.json", {}) or {}
+        idx = load_sidecar("data/wl-engines.json", {}) or {}
+        themes = fus.get("themes") or {}
+        tops = sorted(themes.items(),
+                      key=lambda kv: -(kv[1].get("pressure_pctile") or 0)
+                      )[:3]
+        eng = idx.get("engines") or []
+        firing = [e for e in eng if e.get("firing")][:6]
+        divs = fus.get("divergences") or []
+        top_div = divs[0] if divs else None
+        md = ["## HIS RESEARCH (panel layer)"]
+        for name, t in tops:
+            p90 = t.get("pressure_pctile")
+            flag = " **EXTREME**" if (p90 or 0) >= 90 else ""
+            md.append(f"- {name}: pressure {p90}p{flag}")
+        if firing:
+            md.append("- FIRING: " + "; ".join(
+                f"{trim(e.get('name'), 34)} [{e.get('theme')}]"
+                for e in firing))
+        if top_div:
+            md.append(f"- Divergence: {trim(str(top_div), 110)}")
+        return {"top_themes": [{"theme": n,
+                                "pressure_pctile":
+                                    t.get("pressure_pctile")}
+                               for n, t in tops],
+                "firing": [{"name": e.get("name"),
+                            "theme": e.get("theme")} for e in firing],
+                "n_active": sum(1 for e in eng
+                                if str(e.get("state")) == "ACTIVE"),
+                "top_divergence": top_div,
+                "markdown": "\n".join(md)}
+    except Exception:
+        return {}
+
+
+def deterministic_fallback(bundle):
+    """ops 3251: when the LLM is unavailable, ship a data-driven brief
+    instead of dying."""
+    md = ["# Alpha Daily Brief (deterministic fallback)",
+          f"- Regime: {bundle.get('regime')}",
+          f"- Macro stress: {bundle.get('macro_stress_score')}", ""]
+    hr = bundle.get("his_research") or {}
+    if hr.get("markdown"):
+        md += [hr["markdown"], ""]
+    md.append("## Top alpha")
+    for st in (bundle.get("top_alpha") or [])[:5]:
+        md.append(f"- #{st.get('rank')} {st.get('sym')} "
+                  f"alpha={st.get('alpha')} [{st.get('tier')}]")
+    return "\n".join(md)
+
+
 def build_context_bundle():
     """Gather all the data Claude needs to write the brief."""
     alpha = load_sidecar(ALPHA_KEY, {})
@@ -219,6 +275,7 @@ def build_context_bundle():
         "diffs": diff_brief,
         "news": news_brief,
         "debate_by_sym": debate_by_sym,
+        "his_research": build_his_research(),  # ops 3251
     }
 
 
@@ -386,8 +443,9 @@ def lambda_handler(event, context):
         brief_md = synthesize_brief(bundle)
         print(f"  claude returned {len(brief_md)} chars")
     except Exception as e:
-        print(f"  claude failed: {e}")
-        return {"statusCode": 500, "body": json.dumps({"err": f"claude: {str(e)[:200]}"})}
+        print(f"  claude failed: {e} — deterministic fallback (ops 3251)")
+        brief_md = deterministic_fallback(bundle)
+        globals()["CLAUDE_MODEL"] = "deterministic-fallback"
 
     # 3. Persist
     payload = {
@@ -396,6 +454,7 @@ def lambda_handler(event, context):
         "regime": bundle.get("regime"),
         "macro_stress_score": bundle.get("macro_stress_score"),
         "brief_markdown": brief_md,
+        "his_research": bundle.get("his_research"),  # ops 3251
         "context_summary": {
             "n_top_alpha": len(bundle.get("top_alpha", [])),
             "n_confluence": len(bundle.get("confluence", [])),
