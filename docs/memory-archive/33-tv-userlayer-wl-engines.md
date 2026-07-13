@@ -350,3 +350,24 @@ weekly history can never hit 100 — honest, named, closed.
 - **⏰ THREE WOKE**: Above and Below Moving Averages; Breadth: leads the
   Market; CONSUMER CONFIDENCE. **NIGHT GRAND TOTAL: ACTIVE 115 → 131
   (+16 panels).**
+
+## MARKET-rescue close (ops 3240–3242)
+
+- Sub-census of the 772 MARKET misses by exchange: 370 NASDAQ,
+  136 INDEX, 43 SSE, 33 CBOE, 27 EURONEXT, 18 TRADEGATE, 14 SWB, 13 FX,
+  13 BER, 10 SIX/HKEX, 9 FWB.
+- **Landed (3240, fleet-confirmed via index timestamp)**: BER:DX2Z →
+  DX2Z.DE (4,684) + the NASDAQ ^CRSP index family ×8 (CRSPLCG1/LCGT/
+  LCV1/LCVT/MC1/MIG1/MIGT/MT1, 3,477–6,292 pts). Zero wakes — CRSP
+  tiles sit in engines still short elsewhere; honest.
+- **Exhausted (3242, corrected selector)**: ^NQ* ×80 dry (Yahoo carries
+  ^CRSP* but NOT the NQ* Nasdaq index family) and SSE .SS ×30 dry
+  (SSE 000xxx are index codes, not free A-shares). DO NOT retry these
+  ladders.
+- **Selector doctrine (3241 bug)**: misses are BY DEFINITION
+  mapped-but-dry — `s not in mapped` filters every candidate to zero;
+  the correct skip is already-rescued (current id == candidate).
+- Truncated-report class: kv VALUES rows exist even when Log sections
+  are empty — a short report may be zero-hits, not truncation. Read the
+  raw file before assuming.
+- ACTIVE holds at 131.
