@@ -189,7 +189,8 @@ FUT = {"CL": "CL=F", "NG": "NG=F", "GC": "GC=F", "SI": "SI=F", "HG": "HG=F",
        "HE": "HE=F", "GF": "GF=F", "PA": "PA=F", "YM": "YM=F",
        "RTY": "RTY=F", "KE": "KE=F", "ZO": "ZO=F", "ZR": "ZR=F",
        "6E": "6E=F", "6J": "6J=F", "6B": "6B=F", "6A": "6A=F",
-       "6C": "6C=F", "6S": "6S=F", "6N": "6N=F", "DX": "DX=F"}
+       "6C": "6C=F", "6S": "6S=F", "6N": "6N=F", "DX": "DX=F",
+       "TN": "TN=F", "UB": "UB=F", "6M": "6M=F"}
 FUT_EX = {"NYMEX", "COMEX", "CBOT", "CME", "ICEUS", "MATBAROFEX", "NYBOT",
           "CME_MINI", "CBOT_MINI"}
 
@@ -216,6 +217,19 @@ EU_FUT_PROXY = {
     "B": ("MARKET", "BZ=F", "ICE Brent → Yahoo continuous"),
     "G": ("MARKET", "BZ=F", "ICE gasoil → Brent complex (proxy)"),
 }
+# CME roots whose honest free primary is a RATE or spot, not a price feed
+# (ops 3197). ZQ prices 100−FF, so the transform preserves the shape; GE
+# (eurodollar) was DELISTED 2023 — retired, never faked.
+CME_RATE = {
+    "SR3": ("FRED", "SOFR", "SOFR futures → SOFR rate (proxy)"),
+    "SR": ("FRED", "SOFR", "SOFR futures → SOFR rate (proxy)"),
+    "ZQ": ("DERIVED", "FRED~DFF~hundred_minus",
+           "fed funds future = 100 − FF rate"),
+    "BTC": ("COINGECKO", "bitcoin", "CME BTC future → spot (proxy)"),
+    "MBT": ("COINGECKO", "bitcoin", "CME micro BTC → spot (proxy)"),
+    "ETH": ("COINGECKO", "ethereum", "CME ETH future → spot (proxy)"),
+}
+CME_RETIRED_ROOTS = {"GE"}          # eurodollar — contract delisted 2023
 
 # ── free on-chain + CFTC (ops 3189) ─────────────────────────────────
 # GLASSNODE / INTOTHEBLOCK watchlist tiles are vendor views of metrics the
@@ -368,6 +382,12 @@ def map_symbol(sym, fred_search=None):
         return "MARKET", f"{t}{suf}", 0.75, f"{ex} → Yahoo {suf}"
     if ex in FUT_EX:
         root = re.sub(r"\d*!$", "", t)
+        if root in CME_RETIRED_ROOTS:
+            return None, None, 0, "fut_retired_delisted"
+        cr = CME_RATE.get(root)
+        if cr:
+            csrc, csid, why = cr
+            return csrc, csid, 0.65, f"{why} (ops 3197)"
         y = FUT.get(root)
         if y:
             return "MARKET", y, 0.75, f"continuous future {root}"
@@ -803,6 +823,8 @@ def _derived(sid, start):
         v = base[k]
         if tr == "negate":
             out[k] = -v
+        elif tr == "hundred_minus":
+            out[k] = 100.0 - v
         elif tr == "pct1":
             if prev not in (None, 0):
                 out[k] = 100.0 * (v / prev - 1.0)
