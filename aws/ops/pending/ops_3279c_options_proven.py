@@ -1,4 +1,4 @@
-"""ops 3279b — options actually captured. The cusip-collapse merged
+"""ops 3279c — options actually captured. The cusip-collapse merged
 PUT/CALL rows into equity rows and dropped put_call. Now: collapse
 key (cusip, put_call), option rows tallied to put/call fund lists but
 EXCLUDED from equity $ aggregates and change comparison. v4 re-parse.
@@ -32,7 +32,7 @@ def s3_json(key, default=None):
         return default
 
 
-with report("3279b_options_proven") as rep:
+with report("3279c_options_proven") as rep:
     fails, warns = [], []
     live_cfg = LAM.get_function_configuration(FunctionName=FN)
     env = (live_cfg.get("Environment") or {}).get("Variables") or {}

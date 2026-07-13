@@ -499,9 +499,10 @@ def parse_infotable(xml_text: str):
     by_cusip = defaultdict(lambda: {
         "name": "", "title": "", "cusip": "",
         "value_usd": 0, "shares": 0, "share_type": "SH",
+        "put_call": None,
     })
     for p in positions:
-        key = p["cusip"]
+        key = (p["cusip"], p.get("put_call") or "")  # ops 3279c
         agg = by_cusip[key]
         agg["name"] = p["name"]
         agg["title"] = p["title"]
@@ -509,6 +510,7 @@ def parse_infotable(xml_text: str):
         agg["value_usd"] += p["value_usd"]
         agg["shares"] += p["shares"]
         agg["share_type"] = p["share_type"]
+        agg["put_call"] = p.get("put_call")
 
     return list(by_cusip.values())
 
@@ -582,7 +584,7 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
         return {"fund_key": fund_key, "error": "no_accession"}
 
     # Cache check — version-tagged so unit fixes invalidate old cache
-    PARSER_VERSION = "v3"   # ops 3279: putCall capture   # bump when parser logic changes (units, fields, etc.)
+    PARSER_VERSION = "v4"   # ops 3279c: option-row separation   # bump when parser logic changes (units, fields, etc.)
     cache_key = f"{S3_CACHE_PREFIX}{fund_key}/{accession.replace('-', '')}_{PARSER_VERSION}.json"
     cached = get_s3_json(cache_key)
     if cached and cached.get("positions") and cached.get("parser_version") == PARSER_VERSION:
@@ -617,7 +619,9 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
             print(f"  cache write fail {fund_key}: {e}")
 
     # Compute portfolio totals
-    total_value = sum(p.get("value_usd", 0) for p in positions)
+    equity_rows = [p for p in positions
+                   if not p.get("put_call")]   # ops 3279c
+    total_value = sum(p.get("value_usd", 0) for p in equity_rows)
 
     # Sort by value desc and assign pct_of_portfolio
     positions.sort(key=lambda p: -p.get("value_usd", 0))
@@ -847,15 +851,14 @@ def aggregate_by_ticker(fund_results):
                     "call_funds": [],
                 }
             agg = by_ticker[tkr]
+            pc = p.get("put_call")
+            if pc in ("PUT", "CALL"):       # ops 3279c: clean books
+                agg["put_funds" if pc == "PUT"
+                    else "call_funds"].append(
+                    fund_data.get("fund_name") or fund_key)
+                continue
             agg["n_funds_holding"] += 1
             agg["total_value"] += p.get("value_usd", 0)
-            pc = p.get("put_call")
-            if pc == "PUT":
-                agg["put_funds"].append(fund_data.get("fund_name")
-                                        or fund_key)
-            elif pc == "CALL":
-                agg["call_funds"].append(fund_data.get("fund_name")
-                                         or fund_key)
             change = p.get("change", "HOLD")
             if change == "ADD":
                 agg["n_funds_adding"] += 1
