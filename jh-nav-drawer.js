@@ -178,7 +178,7 @@
         + '<span class="jhnav-star' + (on ? " on" : "") + '" data-fav="' + esc(p.href) + '" title="' + (on ? "Unfavorite" : "Favorite") + '">' + (on ? "\u2605" : "\u2606") + '</span></a>';
     }
     var html = "";
-    var favPages = favs.filter(function (h) { return titleByHref[h]; }).map(function (h) { return { href: h, title: titleByHref[h] }; });
+    var favPages = favs.map(function (h) { return { href: h, title: titleByHref[h] || (h.replace(/^\//,"").replace(/\.html$/,"").replace(/-/g," ")) }; }); /* ops 3269: a star never vanishes even if the manifest misses the page */
     if (favPages.length) {
       html += '<div class="jhnav-group jhnav-gopen jhnav-favgroup">'
         + '<div class="jhnav-ghead"><span>\u2b50 Favorites <span class="jhnav-n">' + favPages.length + '</span></span><span class="jhnav-chev">\u25b8</span></div>'

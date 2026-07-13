@@ -49,6 +49,7 @@ jobs:
           mkdir -p _site
           shopt -s nullglob
           cp -f *.html *.js *.css _site/ 2>/dev/null || true
+          python3 scripts/gen_nav_manifest.py  # ops 3269: never stale
           cp -f nav-manifest.json _site/ 2>/dev/null || true
           for f in _redirects CNAME .nojekyll favicon.ico; do [ -f "$f" ] && cp -f "$f" _site/; done
           for d in assets js css img fonts tools; do [ -d "$d" ] && cp -r "$d" _site/; done
