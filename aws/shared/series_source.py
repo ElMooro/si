@@ -855,6 +855,11 @@ def _derived(sid, start):
         a = fetch(parts[0], parts[1], start)
         b = fetch(parts[3], parts[4], start)
         return {k: a[k] - b[k] for k in a if k in b}
+    if len(parts) == 5 and parts[2] == "div":     # ops 3268: A / B ratio
+        a = fetch(parts[0], parts[1], start)
+        b = fetch(parts[3], parts[4], start)
+        return {k: a[k] / b[k] for k in a
+                if k in b and b[k] not in (0, 0.0)}
     try:
         base_src, base_id, tr = sid.split("~", 2)
     except ValueError:
