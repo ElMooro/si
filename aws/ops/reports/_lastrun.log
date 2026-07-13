@@ -1,108 +1,23 @@
-executing-against: 2f4f5df923b5b7caf767ca20b98b2cb40975c7c9
-ops 3187 — does the EODHD token earn its keep?
-── 1. Store the key + prove it works ──
-[01:24:58] ✅ SSM /justhodl/eodhd-api-key set (single source of truth)
-[01:24:59] ✅ token LIVE — AAPL.US 2896 obs (2015-01-02 → 2026-07-10)
-── 2. THE BUCKETS THAT FAILED FOR FREE — does EODHD have them? ──
-[series_source] EODHD:3XUK.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:4EU5.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:4GEU.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:4GGL.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:4GL1.INDX failed: HTTP Error 404: Not Found
-[01:25:03]   FTSE         448 symbols · EODHD hit   0%  
-[series_source] EODHD:AEX.AS failed: HTTP Error 404: Not Found
-[series_source] EODHD:AEXEW.AS failed: HTTP Error 404: Not Found
-[series_source] EODHD:AGEB.AS failed: HTTP Error 404: Not Found
-[series_source] EODHD:AIR.AS failed: HTTP Error 404: Not Found
-[series_source] EODHD:ALASI.AS failed: HTTP Error 404: Not Found
-[01:25:10]   EURONEXT      37 symbols · EODHD hit  60%  EURONEXT:AEX→AEX.LSE (2910 obs, 2015–2026); EURONEXT:AGEB→AGEB
-[series_source] EODHD:01D9.BE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0252.BE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0255.BE failed: HTTP Error 404: Not Found
-[series_source] EODHD:025L.BE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0BYQ.BE failed: HTTP Error 404: Not Found
-[01:25:15]   BER           14 symbols · EODHD hit  40%  BER:0252→0252.KLSE (989 obs, 2022–2026); BER:0255→0255.KLSE (9
-[series_source] EODHD:000013.SHG failed: HTTP Error 404: Not Found
-[series_source] EODHD:000028.SHG failed: HTTP Error 404: Not Found
-[series_source] EODHD:000051.SHG failed: HTTP Error 404: Not Found
-[01:25:20]   SSE           52 symbols · EODHD hit  60%  SSE:000001→000001.SHG (2796 obs, 2015–2026); SSE:000028→000028
-[series_source] EODHD:ABD3.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:ABD4.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:ABD6.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:AW4E.F failed: HTTP Error 404: Not Found
-[01:25:24]   SWB           46 symbols · EODHD hit  20%  SWB:B500→B500.F (2844 obs, 2015–2026)
-[series_source] EODHD:DAX.XETRA failed: HTTP Error 404: Not Found
-[series_source] EODHD:DTB3-TVC:US03MY.XETRA failed: HTTP Error 404: Not Found
-[01:25:29]   XETR          15 symbols · EODHD hit  80%  XETR:4RT6→4RT6.XETRA (2923 obs, 2015–2026); XETR:BBCK→BBCK.XET
-[series_source] EODHD:DI4A.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:F7RE.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:F7RT.F failed: HTTP Error 404: Not Found
-[01:25:34]   FWB           14 symbols · EODHD hit  40%  FWB:B500→B500.F (2844 obs, 2015–2026); FWB:DX2Z→DX2Z.F (2920 o
-[series_source] EODHD:0V1I.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:0V1J.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:BE3B.F failed: HTTP Error 404: Not Found
-[01:25:38]   TRADEGATE     29 symbols · EODHD hit  40%  TRADEGATE:36B7→36B7.F (1830 obs, 2019–2026); TRADEGATE:BBCK→BB
-[series_source] EODHD:0I7N.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:AW45.F failed: HTTP Error 404: Not Found
-[series_source] EODHD:G4ND.F failed: HTTP Error 404: Not Found
-[01:25:42]   GETTEX        10 symbols · EODHD hit  40%  GETTEX:BNP→BNP.F (2919 obs, 2015–2026); GETTEX:DX2Z→DX2Z.F (29
-[series_source] EODHD:BAT20N.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:BBE20N.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:BCH20N.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:BCHM30N.INDX failed: HTTP Error 404: Not Found
-[series_source] EODHD:BDE40N.INDX failed: HTTP Error 404: Not Found
-[01:25:46]   CBOEEU        40 symbols · EODHD hit   0%  
-[series_source] EODHD:FBON1!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:FBTS1!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:FDAX1!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:FDXM1!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:FEHY1!.COMM failed: HTTP Error 422: Unprocessable Content
-[01:25:50]   EUREX         39 symbols · EODHD hit   0%  
-[series_source] EODHD:EMM2!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:EON2!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:EWE2!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:EWM2!.COMM failed: HTTP Error 422: Unprocessable Content
-[series_source] EODHD:EWS2!.COMM failed: HTTP Error 422: Unprocessable Content
-[01:25:54]   ICEEUR        34 symbols · EODHD hit   0%  
-[series_source] EODHD:BUYB.USD.SW failed: HTTP Error 404: Not Found
-[series_source] EODHD:C8300P.SW failed: HTTP Error 404: Not Found
-[series_source] EODHD:LYCNB.EUR.SW failed: HTTP Error 404: Not Found
-[01:25:58]   SIX           15 symbols · EODHD hit  40%  SIX:C1000P→C1000P.SW (168 obs, 2024–2024); SIX:GCVB→GCVB.SW (1
-[series_source] EODHD:388.HK failed: HTTP Error 404: Not Found
-[01:26:03]   HKEX          15 symbols · EODHD hit 100%  HKEX:2039→2039.HK (2832 obs, 2015–2026); HKEX:2819→2819.HK (22
-[series_source] EODHD:AHYE.MI failed: HTTP Error 404: Not Found
-[series_source] EODHD:B500.MI failed: HTTP Error 404: Not Found
-[series_source] EODHD:BUYB.MI failed: HTTP Error 404: Not Found
-[series_source] EODHD:COMAEE.MI failed: HTTP Error 404: Not Found
-[series_source] EODHD:CORP.MI failed: HTTP Error 404: Not Found
-[01:26:10]   MIL           14 symbols · EODHD hit  80%  MIL:AHYE→AHYE.PA (2779 obs, 2015–2026); MIL:B500→B500.XETRA (2
-[series_source] EODHD:0E3R.LSE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0LMD.LSE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0LMP.LSE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0LMQ.LSE failed: HTTP Error 404: Not Found
-[series_source] EODHD:0LN3.LSE failed: HTTP Error 404: Not Found
-[01:26:14]   LSE           43 symbols · EODHD hit   0%  
-── 3. What it actually buys ──
-[01:26:14]   ✅ SSE           52 symbols (60%)
-[01:26:14]   ✅ EURONEXT      37 symbols (60%)
-[01:26:14]   ✅ XETR          15 symbols (80%)
-[01:26:14]   ✅ HKEX          15 symbols (100%)
-[01:26:14]   ✅ MIL           14 symbols (80%)
-[01:26:14]   ❌ FTSE         448 symbols (0%) — EODHD does NOT carry these either
-[01:26:14]   ❌ SWB           46 symbols (20%) — EODHD does NOT carry these either
-[01:26:14]   ❌ LSE           43 symbols (0%) — EODHD does NOT carry these either
-[01:26:14]   ❌ CBOEEU        40 symbols (0%) — EODHD does NOT carry these either
-[01:26:14]   ❌ EUREX         39 symbols (0%) — EODHD does NOT carry these either
-[01:26:14]   ❌ ICEEUR        34 symbols (0%) — EODHD does NOT carry these either
-[01:26:14]   ❌ TRADEGATE     29 symbols (40%) — EODHD does NOT carry these either
-[01:26:14]   ❌ SIX           15 symbols (40%) — EODHD does NOT carry these either
-[01:26:14]   ❌ BER           14 symbols (40%) — EODHD does NOT carry these either
-[01:26:14]   ❌ FWB           14 symbols (40%) — EODHD does NOT carry these either
-[01:26:14]   ❌ GETTEX        10 symbols (40%) — EODHD does NOT carry these either
-[01:26:14] ⚠ FTSE (448 symbols) NOT covered even with the token — it is FTSE Russell licensed index product, exactly as suspected. His largest bucket stays dark.
-── 4. Wire it into the fleet ──
-[01:26:18] ✅ justhodl-wl-engines: EODHD key armed
-[01:26:21] ✅ justhodl-thesis-engine: EODHD key armed
-[01:26:25] ✅ justhodl-symbol-dictionary: EODHD key armed
+executing-against: 44db9edb7474206bd19dd306d7639e645e7d5a9e
+ops 3188 — EODHD out, free coverage in
+── 1. Purge the key everywhere ──
+[01:39:27] ✅ SSM /justhodl/eodhd-api-key deleted
+[01:39:31] ✅ justhodl-wl-engines: EODHD key removed
+[01:39:35] ✅ justhodl-thesis-engine: EODHD key removed
+[01:39:39] ✅ justhodl-symbol-dictionary: EODHD key removed
+[01:39:39] ✅ no engine can call EODHD — the fallback is inert without a key
+── 2. Re-map on the FREE path (keeps the probe's wins) ──
+[01:43:20] ✅ ZERO EODHD dependencies · coverage 74.1% on free sources alone (4822 symbols)
+── 3. Re-run the fleet ──
+[01:45:24] ✅ 111 ACTIVE engines running on FREE data only — nothing regressed by cancelling
+── 4. The standing bill ──
+[01:45:24]   Monthly data cost:            $0
+[01:45:24]   Sources: FRED · World Bank · OECD · Yahoo · Stooq · CFTC ·
+[01:45:24]            Polygon (already owned) · computed internals
+[01:45:24]   Only remaining unbuyable gap: FTSE Russell licensed indices
+[01:45:24]            (448 symbols — no vendor at any tier we tested)
+[01:45:24]   PENDING-KHALID: Anthropic credits (~$20-50) would resurrect
+[01:45:24]            premortem, strategist, RAG desk, tribunal, 516
+[01:45:24]            un-distilled note views — all BUILT and dark
 
-→ Report written to aws/ops/reports/latest/3187_eodhd.md
+→ Report written to aws/ops/reports/latest/3188_eodhd_rollback.md
