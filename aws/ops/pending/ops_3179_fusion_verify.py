@@ -58,7 +58,11 @@ with report("3179_fusion_verify") as rep:
     if not doc:
         fails.append("data/wl-fusion.json missing")
     else:
-        themes = doc.get("themes") or []
+        _th = doc.get("themes") or []
+        themes = ([dict(v, theme=k) for k, v in _th.items()]
+                  if isinstance(_th, dict) else _th)
+        themes.sort(key=lambda t: -(t.get("pressure_pctile")
+                                    or t.get("composite_pctile") or 0))
         rep.kv(engines=doc.get("n_engines") or doc.get("active_engines"),
                firing=doc.get("n_firing") or doc.get("firing"),
                themes=len(themes),
@@ -106,7 +110,10 @@ with report("3179_fusion_verify") as rep:
         warns.append("best-setups has not re-run since the fusion deploy")
 
     rep.section("4. The safety contract")
-    mults = [t.get("score_multiplier") or 1.0 for t in ((doc or {}).get("themes") or [])]
+    _t2 = (doc or {}).get("themes") or []
+    _rows = (list(_t2.values()) if isinstance(_t2, dict) else _t2)
+    mults = [(r.get("score_multiplier") or r.get("multiplier") or 1.0)
+             for r in _rows]
     if all(abs(m - 1.0) < 1e-9 for m in mults):
         rep.ok("every multiplier is EXACTLY 1.0 — zero proven panels, so his "
                "research is attached as context everywhere but cannot move a "
