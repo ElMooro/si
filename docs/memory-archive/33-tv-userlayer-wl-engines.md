@@ -472,3 +472,13 @@ engines: one payload line, `"field": __import__("wl_series").block({...})`.
   bare 403 again.
 - Khalid's reported key wl-10-yr-high-quality-market-hqm-pred verified
   EXISTS with its reason post-fix; page live with both fixes in 120s.
+
+## All-engines audit (ops 3253)
+
+Every one of the 207 engines on panels.html audited: detail feed exists
+and parses with the drawer's keys. Stragglers repaired inline (thin
+dormant-min docs); a missing ACTIVE doc would have FAILED loudly —
+none did. Public CDN proof 8/8 including both Khalid-reported ids
+(HQM + bond-global-high-yield), each serving 200 with its named
+dormancy reason. Page verified: gj() already cache-busts every click,
+so no CF 403-caching residue possible.
