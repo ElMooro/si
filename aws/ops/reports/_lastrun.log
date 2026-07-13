@@ -1,13 +1,18 @@
-executing-against: 60441a884b52730232017bb997f068aaca9c92d7
-ops 3235 — shape-agnostic browse-then-probe
-── 0. Endpoint skeletons (for the record) ──
-[07:11:59]   datasets/Eurostat/ei_bssi_m_r2: {"_meta": {"args": "dict", "version": "str"}, "datasets": {"docs": "list", "limit": "int", "num_found": "int", "offset": "int"}}
-[07:12:01]   search?q=ifo&limit=2: {"_meta": {"args": "dict", "version": "str"}, "results": {"docs": "list", "limit": "int", "num_found": "int", "offset": "int"}}
-── 1-4. Search-probe the four blockers ──
-[07:12:07]   [ECONOMICS:EUBCOI] 0 candidates
-[07:12:09]   [ECONOMICS:EUMPRYY] 0 candidates
-[07:12:26]   [ECONOMICS:DEIFOE] 0 candidates
-[07:12:29]   [ECONOMICS:DEZCC] 0 candidates
-[07:12:29] ⚠ nothing landed — skeletons above show what the API actually returns
+executing-against: 4e03d5fc281273c59c60adf38bfe65c8b7fb1713
+ops 3236 — the proven searcher, four blockers
+── 1. Search → probe ──
+[07:14:50]   [ECONOMICS:EUBCOI] 3 candidates
+[07:14:51]     Eurostat/EI_BSIN_M_R2/M.BS-ICI.NSA.BAL.EA20                    423
+[07:14:51] ✅ ECONOMICS:EUBCOI → Eurostat/EI_BSIN_M_R2/M.BS-ICI.NSA.BAL.EA20
+[07:14:53]   [ECONOMICS:EUMPRYY] 3 candidates
+[07:14:57]     ECB/BSI/A.U2.N.L.LE0.A.1.Z5.0000.Z01.E                         11
+[07:14:58]     ECB/BSI/A.U2.N.P.LE0.A.1.Z5.0000.Z01.E                         11
+[series_source] DBNOMICS:ECB/BSI/M.4F.N.N.A20.A.1.U2.0000.Z01.E failed: The read operation timed out
+[07:15:10]     ECB/BSI/M.4F.N.N.A20.A.1.U2.0000.Z01.E                         0
+[07:15:21]   [ECONOMICS:DEIFOE] 0 candidates
+[07:15:24]   [ECONOMICS:DEZCC] 0 candidates
+── 2. Write + fleet — wakes ──
+[07:15:46]   ⏰ WOKE: Europe Growth
+[07:15:46] ✅ 1 panels WOKEN
 
-→ Report written to aws/ops/reports/latest/3235_shape_agnostic.md
+→ Report written to aws/ops/reports/latest/3236_proven_search.md

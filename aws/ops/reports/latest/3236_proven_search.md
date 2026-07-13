@@ -1,0 +1,30 @@
+# ops 3236 — the proven searcher, four blockers
+
+**Status:** success  
+**Duration:** 67.0s  
+**Finished:** 2026-07-13T07:15:46+00:00  
+
+## Data
+
+| active_before | active_now | curations | n_fails | n_warns | verdict | woken |
+|---|---|---|---|---|---|---|
+|  |  | 1 |  |  |  |  |
+| 122 | 123 |  |  |  |  | 1 |
+|  |  |  | 0 | 0 | PASS |  |
+
+## Log
+## 1. Search → probe
+
+- `07:14:50`   [ECONOMICS:EUBCOI] 3 candidates
+- `07:14:51`     Eurostat/EI_BSIN_M_R2/M.BS-ICI.NSA.BAL.EA20                    423
+- `07:14:51` ✅ ECONOMICS:EUBCOI → Eurostat/EI_BSIN_M_R2/M.BS-ICI.NSA.BAL.EA20
+- `07:14:53`   [ECONOMICS:EUMPRYY] 3 candidates
+- `07:14:57`     ECB/BSI/A.U2.N.L.LE0.A.1.Z5.0000.Z01.E                         11
+- `07:14:58`     ECB/BSI/A.U2.N.P.LE0.A.1.Z5.0000.Z01.E                         11
+- `07:15:10`     ECB/BSI/M.4F.N.N.A20.A.1.U2.0000.Z01.E                         0
+- `07:15:21`   [ECONOMICS:DEIFOE] 0 candidates
+- `07:15:24`   [ECONOMICS:DEZCC] 0 candidates
+## 2. Write + fleet — wakes
+
+- `07:15:46`   ⏰ WOKE: Europe Growth
+- `07:15:46` ✅ 1 panels WOKEN
