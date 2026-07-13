@@ -1,14 +1,10 @@
-executing-against: 88321b476e8c75b80e928592b66c0e4158eb1cf2
-ops 3233 — growth pair, final closes
-── 1. Probes ──
-[07:04:34]   EURONEXT:PX1         ^FCHI                                            9234
-[07:04:34]   ECONOMICS:EUGDPGA    FRED~CLVMNACSCAB1GQEA19~pct1                     124
-[series_source] DBNOMICS:ECB/BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A failed: The read operation timed out
-[07:04:46]   ECONOMICS:EUMPRYY    ECB/BSI/M.U2.Y.V.M30.X.I.U2.2300.Z01.A           0
-── 2. Write + fleet ──
-[07:05:17]   ⏰ WOKE: France
-[07:05:17]   → Europe Growth  DORMANT (mapped members lack fetchable history (only 5 )
-[07:05:17]   → France         ACTIVE (ACTIVE)
-[07:05:17] ✅ 1 panels WOKEN
+executing-against: c451b6e63ab2ce9d32fcce2486078c20d0c5d415
+ops 3234 — browse DBnomics' own structures, then probe
+── 1. EUBCOI — ei_bssi_m_r2 dims browsed ──
+── 2. EUMPRYY — ECB M3 growth via search ──
+── 3. DEIFOE — Ifo expectations via search ──
+── 4. DEZCC — ZEW current conditions via search ──
+[07:09:55] ⚠ ei_bssi browse: 'list' object has no attribute 'get'
+[07:09:55] ⚠ nothing landed — all four stay open with the browse evidence above
 
-→ Report written to aws/ops/reports/latest/3233_growth_final.md
+→ Report written to aws/ops/reports/latest/3234_browse_probe.md
