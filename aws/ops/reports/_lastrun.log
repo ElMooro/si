@@ -1,13 +1,23 @@
-executing-against: 38f4442e6c3a87a09e2bbfdd5fa49c7377636f7f
-ops 3256 — tradingview-notes.json: read, sample, cadence answered
-── 1. The mirror ──
-[13:33:55]   [UNTAGGED] 1660155066 [TV:UNTAGGED] ECONOMY CRASH LAGS YIELD CURVE INVERSION BY 30 MONTHS. AND DURING THAT 30 MO
-[13:33:55]   [UNTAGGED] 1660155169 [TV:UNTAGGED] To measure the risk appetite of the market 10y -5y (a longer dated spread)
-[13:33:55]   [UNTAGGED] 1660155225 [TV:UNTAGGED] To gauge future policy expectations , future interest rates
-[13:33:55]   [UNTAGGED] 1660155415 [TV:UNTAGGED] When this yield inverts meaning the long term bonds are outperforming short 
-── 2. Cadence — is re-running needed? ──
-[13:33:56]   crawler last relevant log: [crawler] mirror written: 3322 notes
-── 3. Verdict for Khalid ──
-[13:33:56] ⚠ mirror populated but older than 48h
+executing-against: c7b9443599798a3f7dad8599c48f51d9b9d91534
+ops 3257 — notes restored: guard → brain-restore → live crawl → intel rebuild
+── 1. Guarded crawler deployed first ──
+[13:36:59]   zip: 78466 bytes
+── 1. Lambda ──
+[13:37:00]   Lambda exists — updating
+[13:37:05] ✅   ✓ updated justhodl-tv-notes-crawler
+[13:37:05] ✅   ✓ Function URL: https://nkw3cbwfhkfbd7febm4eze6cua0wzgya.lambda-url.us-east-1.on.aws/
+── 2. Restore from the brain ──
+── 3. Live crawl (cookie state = cadence) ──
+[13:38:48]   [crawler] starting at 2026-07-13T06:00:18.979193+00:00
+[13:38:48]   [crawler] session_len=32 sign_len=47 device_t_len=52
+[13:38:48]   [crawler] username: None
+[13:38:48]   [crawler] after bulk pull: 0 notes
+[13:38:48]   [crawler] per-symbol sweep: 0 symbols
+[13:38:48]   [crawler] after layout scan: 0 notes total
+[13:38:48]   [crawler] mirror written: 3322 notes
+[13:38:48]   [crawler] done in 26.1s
+── 4. notes-intel rebuild ──
+[13:38:56] ✅ notes-index rebuilt: 536 tickers, n_notes=3322
+[13:38:56] ⚠ brain carries no tv-provenance notes at data/brain.json — restore skipped
 
-→ Report written to aws/ops/reports/latest/3256_notes_truth.md
+→ Report written to aws/ops/reports/latest/3257_notes_restore.md
