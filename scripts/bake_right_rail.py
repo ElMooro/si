@@ -108,11 +108,23 @@ def main(build_dir=".", live=True):
     research = None
     try:
         import urllib.request
-        req = urllib.request.Request(
-            f"{BUCKET}/data/wl-fusion.json?t={int(time.time())}",
-            headers={"User-Agent": "Mozilla/5.0 jh"})
-        fus = json.loads(urllib.request.urlopen(req, timeout=12).read())
-        print(f"[rail] research chip source ok: {len(fus.get('themes') or {})} themes")
+        fus = None
+        for _u in (f"{BUCKET}/data/wl-fusion.json?t={int(time.time())}",
+                   "https://s3.amazonaws.com/justhodl-dashboard-live"
+                   "/data/wl-fusion.json"):
+            try:
+                req = urllib.request.Request(
+                    _u, headers={"User-Agent": "Mozilla/5.0 jh"})
+                fus = json.loads(
+                    urllib.request.urlopen(req, timeout=12).read())
+                print(f"[rail] research source ok via {_u.split('/')[2]}: "
+                      f"{len(fus.get('themes') or {})} themes")
+                break
+            except Exception as _fe:
+                print(f"[rail] research fetch {_u.split('/')[2]} failed: "
+                      f"{str(_fe)[:70]}")
+        if fus is None:
+            raise RuntimeError("both research sources failed")
         th = fus.get("themes") or {}
         if th:
             top = max(th.items(),
