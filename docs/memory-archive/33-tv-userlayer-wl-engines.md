@@ -387,3 +387,28 @@ weekly history can never hit 100 — honest, named, closed.
   maturation is automatic: first day_7 grading of the 24 wl signals
   lands ~July 20 → fusion PROVEN gate + master-ranker multipliers
   activate on real hits.
+
+## SERIES-LEVEL fusion (ops 3244) — new data as direct model inputs
+
+Theme-level fusion (wl_fusion, 18 consumers) was already live; this arc
+wired the new RAW SERIES into the engines whose models natively need
+them. Audit-first: cycle-clock/regime skipped (already carry confidence
+inputs).
+
+- **Bridge: aws/shared/wl_series.py** — block({field:(TILE_SYM,label)},
+  composite=False) reads the fleet's own weekly cache
+  (thesis-state-v2.json.gz), returns last/z_1y/chg_13w_pct/n_weeks per
+  series (+composite_z). Zero new fetch load, memoized, NEVER raises,
+  additive-only.
+- credit-stress ← **europe_sovereign** (BTP–Bund, OAT–BTP, Bono–BTP,
+  €STR). Live: BTP–Bund 0.817 z=−1.38; OAT–BTP z=+1.28 (French
+  relative stress rising — real signal).
+- eurodollar-plumbing ← **euro_policy_corridor** (€STR, ECB depo,
+  Euribor-implied, GB 3m). Live: €STR 2.182 / depo 2.25, both z=3.43 —
+  corridor coherent.
+- macro-nowcast ← **global_confidence** (12-country CCI + business conf
+  + DE/FR/EA GDP YoY; 15 series live, composite_z −0.06).
+- crisis-composite ← **btp_bund_canary** (quiet at z=−1.38).
+
+All four verified live in one deploy+invoke pass. Pattern for future
+engines: one payload line, `"field": __import__("wl_series").block({...})`.
