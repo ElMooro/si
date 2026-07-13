@@ -1,11 +1,19 @@
-executing-against: 83556b4e8118590484480075675488170fd4479b
-ops 3264 — playbook surfaced + weekly schedule + ranker khalid_note confirm
-── 1. Weekly schedule (EventBridge Scheduler) ──
-[14:42:59] ✅ created justhodl-playbook-weekly: cron(0 7 ? * MON *) UTC
-── 2. master-ranker khalid_note — live confirm ──
-[14:42:59]   feed pre-dates the join — invoking ranker
-── 3. PLAYBOOK strip live on panels.html ──
-[14:50:38] ✅ strip live (~15s)
-[14:50:38] ⚠ khalid_note not in master-rank after refresh window — inspect ranker run next session
+executing-against: ac5eac035909fe6a3720ae029296d41d178ccefe
+ops 3265 — ranker khalid_note: diagnose → redeploy → prove
+── 1. Current feed + last-run logs ──
+[14:52:39]   [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
+[14:52:39]   [master-ranker] DONE in 5.11s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
+── 2. Redeploy repo→live (env-preserving, timeout≥900) ──
+[14:52:39]   zip: 90020 bytes
+── 1. Lambda ──
+[14:52:39]   Lambda exists — updating
+[14:52:44] ✅   ✓ updated justhodl-master-ranker
+── 3. Invoke + long poll ──
+[15:05:00]   post: [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
+[15:05:00]   post: [master-ranker] DONE in 5.21s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
+[15:05:00]   post: [ranker] fusion overlays: kill_risk=0 squeeze_fuel=0 khalid_notes=4
+[15:05:00]   post: [master-ranker] DONE in 5.11s · 25 tickers · 9 macro · 95 tier-3+, 44 tier-5+
+[15:05:00] ✗ feed not fresh after redeploy+invoke (12 min) — logs above
 
-→ Report written to aws/ops/reports/latest/3264_playbook_surfaced.md
+→ Report written to aws/ops/reports/latest/3265_ranker_field.md
+❌ OPS-FAIL: aws/ops/pending/ops_3265_ranker_field.py
