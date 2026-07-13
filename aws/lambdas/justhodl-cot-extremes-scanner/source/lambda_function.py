@@ -65,6 +65,38 @@ COT_CONTRACTS = {
 
 FINANCIAL_CATS = {"equity_index", "treasury", "currency", "volatility"}
 
+
+def _load_universe_ext():
+    """ops 3204: contracts Khalid actually watches (his COT3 tiles, codes
+    probe-proven against publicreporting.cftc.gov by the symbol map) extend
+    the scanner via cot/universe-ext.json. Additive + defensive: missing
+    file or a bad row changes nothing; hardcoded contracts always win a
+    code collision."""
+    try:
+        raw = s3.get_object(Bucket=BUCKET,
+                            Key="cot/universe-ext.json")["Body"].read()
+        ext = json.loads(raw)
+        have = {v["cftc_code"] for v in COT_CONTRACTS.values()}
+        added = 0
+        for root, spec in (ext.get("contracts") or {}).items():
+            code = str(spec.get("cftc_code") or "")
+            if not code or code in have or root in COT_CONTRACTS:
+                continue
+            COT_CONTRACTS[root] = {
+                "name": str(spec.get("name") or root)[:60],
+                "cftc_code": code,
+                "category": str(spec.get("category") or "watchlist"),
+            }
+            added += 1
+        if added:
+            print(f"[cot-ext] +{added} watchlist contracts "
+                  f"(universe now {len(COT_CONTRACTS)})")
+    except Exception as e:
+        print(f"[cot-ext] none loaded: {str(e)[:60]}")
+
+
+_load_universe_ext()
+
 # Percentile thresholds
 EXTREME_HIGH_PCT = 95.0   # above this = bullish positioning extreme (often = sell signal)
 EXTREME_LOW_PCT = 5.0     # below this = bearish positioning extreme (often = buy signal)
