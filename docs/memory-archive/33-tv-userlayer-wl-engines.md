@@ -269,3 +269,19 @@ Durable Goods, DXY-symmetric, Europe Liquidity:BTPBUND). Cache 2,281 →
 2,465 real series. Global Deposit Rates reached 6 members but sleeps
 STRUCTURALLY: its JP/CN deposit rates are annual (~30 obs) so joint
 weekly history can never hit 100 — honest, named, closed.
+
+## Truth-pass close (ops 3228–3229)
+
+- ICEEUR:EON2! → FRED ECBESTRVOLWGTTRMDMNRT (€STR, 1,734 pts) — the 3217
+  "all candidates dry" verdict WAS a 429-era artifact; post-storm the
+  same id fetches clean. Confirmed in the live map (3229; 3228's report
+  truncated at §5 header — cosmetic, the write landed).
+- USW1! / YIT1! carry no richer names in the TV dictionary — stay open,
+  honestly unknown.
+- Fusion manually re-kicked onto the 121-active index (cron skips
+  Mondays); BREADTH still top at 82.1p.
+- NEXT-SESSION worklist, one symbol each: "3 year Global bond yield"
+  (TVC:HK03Y/TW02Y/NZ02Y — short-tenor sovereigns, IFS lacks them),
+  "Euro Predict" (ECONOMICS:DEIFOE Ifo expectations / DEZCC ZEW),
+  "Europe Growth" (EUGDPGA / DEGDPYY — needs a pct4 YoY transform over
+  Eurostat/FRED GDP levels), "France" (FRLG / FRGDPYY / FRIPYY).
