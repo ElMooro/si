@@ -23,7 +23,7 @@ TAXONOMY = {
     "cot-extremes","carry","carry-surface","correlation","analogs","valuations","ath","volatility","vrp",
     "crypto","crypto-opportunities","stablecoin-flow","dex","sentiment","narrative","gdelt","benzinga",
     "apac","onchain","options"],
-  "ALPHA & SIGNALS": ["alpha","signals","signal-board","conviction","debate","kill-theses","calls","edge",
+  "ALPHA & SIGNALS": ["panels","alpha","signals","signal-board","conviction","debate","kill-theses","calls","edge",
     "edge-discovery","screener","chart-patterns","forensic","insider-buys","buyback-scanner",
     "activist-13d","russell-recon","index-recon","breadth-thrust","vix-capitulation","vol-target-unwind",
     "opex-calendar","rv-iv-scanner","pre-pump-radar","retail","sector-emergence","crypto-emergence",
@@ -103,6 +103,32 @@ def main(build_dir=".", live=True):
         plan[path] = {"fname": fname, "text": s, "refs": refs[:6]}
         all_keys.update(refs[:6])
 
+    # ops 3203: one site-wide research chip — top theme pressure + first
+    # divergence from data/wl-fusion.json. Real data or nothing.
+    research = None
+    try:
+        import urllib.request
+        req = urllib.request.Request(BUCKET + "/data/wl-fusion.json",
+                                     headers={"User-Agent": "jh-bake/1.0"})
+        fus = json.loads(urllib.request.urlopen(req, timeout=12).read())
+        th = fus.get("themes") or {}
+        if th:
+            top = max(th.items(),
+                      key=lambda kv: kv[1].get("pressure_pctile") or 0)
+            div = (fus.get("divergences") or [None])[0]
+            research = {
+                "theme": top[0],
+                "pressure": top[1].get("pressure_pctile"),
+                "verdict": top[1].get("verdict"),
+                "firing": top[1].get("n_firing"),
+                "of": top[1].get("n_active"),
+                "div": (div.get("text") or div.get("note") or "")[:110]
+                       if isinstance(div, dict) else "",
+                "href": "/panels.html",
+            }
+    except Exception:
+        research = None
+
     ages = {}
     with ThreadPoolExecutor(max_workers=16) as ex:
         for k, a in zip(all_keys, ex.map(lambda k: fetch_age(k, live), all_keys)):
@@ -133,6 +159,8 @@ def main(build_dir=".", live=True):
         if GENERIC_META in interpret.lower():
             interpret = ""
         data = {"title": title, "feeds": feeds, "related": related, "feedsInto": fi, "interpret": interpret}
+        if research:
+            data["research"] = research
         inject = ("<script>window.__jhRail=" + json.dumps(data, separators=(",", ":")) + ";</script>"
                   '<script src="/jh-right-rail.js" defer></script>')
         s2 = s.replace("</body>", inject + "</body>", 1) if "</body>" in s else s + inject

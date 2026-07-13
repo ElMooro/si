@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Research Panels · JustHodl.AI</title>
+<meta name="description" content="Khalid's 162 watchlist engines as first-class signals: theme pressure board, evidence-weighted fusion, and the divergence board where his research disagrees with the platform's own engines.">
+<style>
+:root {
+  --bg-base:#0a0a0a; --bg-card:#141414; --bg-elev:#1a1a1a; --bg-sunken:#050505;
+  --border:rgba(255,255,255,.08); --border-light:rgba(255,255,255,.05); --border-strong:rgba(255,255,255,.15);
+  --text:#eef2f7; --text-dim:#aab4c0; --text-muted:#6b7785;
+  --accent:#facc15; --cyan:#22d3ee; --magenta:#d946ef;
+  --pos:#26ffaf; --pos-bg:rgba(38,255,175,.08); --neg:#ef4444; --neg-bg:rgba(239,68,68,.08); --warn:#f59e0b;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace; --font-sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg-base);color:var(--text);font-family:var(--font-sans);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-bottom:1px solid var(--border);background:rgba(10,10,10,.95);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50}
+.logo{font-family:var(--font-mono);font-weight:700;font-size:14px;color:var(--accent)}
+.logo a{color:inherit;text-decoration:none}
+.nav-links{display:flex;gap:18px}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:12px;letter-spacing:.04em}
+.nav-links a:hover{color:var(--accent)}
+.page{max-width:1500px;margin:0 auto;padding:18px 22px}
+h1{margin:0 0 6px;font-size:20px;color:var(--accent)}
+h2{margin:22px 0 10px;font-size:14px;color:var(--text);letter-spacing:.03em}
+.subtitle{color:var(--text-dim);font-size:12.5px;margin-bottom:14px;max-width:960px}
+.meta-bar{font-family:var(--font-mono);font-size:10.5px;color:var(--text-muted);padding:6px 12px;background:var(--bg-elev);border-radius:6px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.card .t{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:.06em}
+.card .v{font-size:20px;font-weight:700;margin:4px 0 2px}
+.bar{height:6px;background:var(--bg-sunken);border-radius:4px;overflow:hidden;margin:6px 0}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.verdict{font-family:var(--font-mono);font-size:10px;padding:1px 7px;border-radius:4px;border:1px solid var(--border-strong)}
+.EXTREME{color:var(--neg);border-color:var(--neg);background:var(--neg-bg)}
+.ELEVATED{color:var(--warn);border-color:var(--warn)}
+.QUIET{color:var(--text-muted)}
+.small{font-size:11px;color:var(--text-muted)}
+.div-row{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--magenta);border-radius:6px;padding:10px 12px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:left;padding:7px 8px;border-bottom:1px solid var(--border-strong);letter-spacing:.06em;cursor:pointer;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--border-light);vertical-align:top}
+tr:hover td{background:var(--bg-elev)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted)}
+.dot.f{background:var(--pos);box-shadow:0 0 6px var(--pos)}
+.pill{font-family:var(--font-mono);font-size:9.5px;padding:1px 6px;border-radius:4px;background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
+.fbtn{font-family:var(--font-mono);font-size:10.5px;padding:3px 10px;border-radius:6px;background:var(--bg-elev);border:1px solid var(--border);color:var(--text-dim);cursor:pointer}
+.fbtn.on{color:var(--accent);border-color:var(--accent)}
+.err{color:var(--neg);font-family:var(--font-mono);font-size:12px;padding:10px}
+a{color:var(--cyan)}
+@media(max-width:760px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><a href="/">JustHodl.AI</a> <span style="color:var(--text-muted);font-weight:400">/ research panels</span></div>
+  <div class="nav-links">
+    <a href="/">Home</a><a href="/alpha-compass.html">Alpha Compass</a><a href="/best-setups.html">Best Setups</a><a href="/flows.html">Flows</a><a href="/master-rank.html">Master Rank</a>
+  </div>
+</div>
+<div class="page">
+  <h1>Research Panels — the watchlist engines</h1>
+  <div class="subtitle">Every TradingView watchlist runs as a first-class engine: z-scored members, FIRING/QUIET state, outcome-graded edge. The fusion layer aggregates them into theme pressures and feeds 18 platform engines under an additive-only, evidence-weighted contract (multipliers bounded ±10%, unproven panels are context, never score).</div>
+  <div class="meta-bar" id="meta">loading data/wl-fusion.json + data/wl-engines.json …</div>
+
+  <h2>THEME PRESSURE</h2>
+  <div class="grid" id="themes"></div>
+
+  <h2>DIVERGENCE BOARD <span class="small">— where his research disagrees with the fleet</span></h2>
+  <div id="divs"></div>
+
+  <h2>ENGINES</h2>
+  <div class="filters" id="filters"></div>
+  <div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th data-k="name">ENGINE</th><th data-k="theme">THEME</th><th data-k="state">STATE</th>
+      <th data-k="firing">FIRING</th><th data-k="activation_pctile">ACTIVATION</th>
+      <th data-k="coverage">COVERAGE</th><th data-k="members">MEMBERS</th><th data-k="t13">13W t</th><th data-k="x13">13W EXCESS%</th>
+    </tr></thead>
+    <tbody id="tbody"><tr><td colspan="9" class="small">loading…</td></tr></tbody>
+  </table></div>
+  <div class="small" style="margin-top:10px" id="foot"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=(v,d=1)=>(v==null||isNaN(v))?'—':Number(v).toFixed(d);
+let ENG=[],theme='ALL',fireOnly=false,sortK='firing',sortD=-1;
+
+async function gj(u){const r=await fetch(u+'?t='+Date.now());if(!r.ok)throw new Error(u+' '+r.status);return r.json();}
+
+function renderThemes(f){
+  const th=f.themes||{};const keys=Object.keys(th).sort((a,b)=>(th[b].pressure_pctile||0)-(th[a].pressure_pctile||0));
+  $('themes').innerHTML=keys.map(k=>{const t=th[k]||{};const p=t.pressure_pctile;
+    return `<div class="card"><div class="t">${esc(k)}</div>
+      <div class="v">${num(p)}<span class="small">p</span> <span class="verdict ${esc(t.verdict||'QUIET')}">${esc(t.verdict||'—')}</span></div>
+      <div class="bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%"></i></div>
+      <div class="small">firing ${t.n_firing??0}/${t.n_active??0} · proven ${t.n_proven??0}${t.proven_tilt!=null?` · tilt ${num(t.proven_tilt,2)}`:''}</div></div>`;
+  }).join('')||'<div class="small">no active themes yet</div>';
+}
+function renderDivs(f){
+  const ds=f.divergences||[];
+  $('divs').innerHTML=ds.length?ds.map(d=>`<div class="div-row">
+    <span class="pill">${esc(d.theme||'')}</span> ${esc(d.text||d.note||d.msg||JSON.stringify(d).slice(0,160))}
+  </div>`).join(''):'<div class="small">no divergences right now — his panels and the fleet agree</div>';
+}
+function fnum(e,k){const w=e.w13||{};return k==='t13'?w.t_stat:k==='x13'?w.excess_vs_base_pct:k==='members'?(e.members_resolved||[]).length:e[k];}
+function renderTable(){
+  let rows=ENG.filter(e=>(theme==='ALL'||e.theme===theme)&&(!fireOnly||e.firing));
+  rows.sort((a,b)=>{const x=fnum(a,sortK),y=fnum(b,sortK);
+    if(typeof x==='string'||typeof y==='string')return sortD*String(x??'').localeCompare(String(y??''));
+    return sortD*(((y??-1e9))-((x??-1e9)))*-1;});
+  $('tbody').innerHTML=rows.map(e=>{const w=e.w13||{};
+    return `<tr><td>${esc(e.name||e.engine_id)}</td><td><span class="pill">${esc(e.theme||'')}</span></td>
+    <td class="small">${esc(e.state||'')}</td>
+    <td><span class="dot ${e.firing?'f':''}"></span></td>
+    <td>${num(e.activation_pctile)}</td><td>${num(e.coverage,2)}</td>
+    <td class="small">${(e.members_resolved||[]).length}/${e.members_total??'—'}</td>
+    <td>${num(w.t_stat,2)}</td><td>${num(w.excess_vs_base_pct,2)}</td></tr>`;
+  }).join('')||'<tr><td colspan="9" class="small">no engines match this filter</td></tr>';
+}
+function renderFilters(){
+  const ts=['ALL',...new Set(ENG.map(e=>e.theme||'OTHER'))];
+  $('filters').innerHTML=ts.map(t=>`<button class="fbtn ${t===theme?'on':''}" data-t="${esc(t)}">${esc(t)}</button>`).join('')
+    +`<button class="fbtn ${fireOnly?'on':''}" data-fire="1">FIRING ONLY</button>`;
+  $('filters').onclick=ev=>{const b=ev.target.closest('.fbtn');if(!b)return;
+    if(b.dataset.fire){fireOnly=!fireOnly;}else{theme=b.dataset.t;}
+    renderFilters();renderTable();};
+}
+document.querySelector('thead').addEventListener('click',ev=>{const th=ev.target.closest('th');if(!th)return;
+  const k=th.dataset.k;if(sortK===k)sortD*=-1;else{sortK=k;sortD=-1;}renderTable();});
+
+(async()=>{
+  try{
+    const [f,idx]=await Promise.all([gj('/data/wl-fusion.json').catch(()=>({})),gj('/data/wl-engines.json')]);
+    ENG=(idx.engines||[]);
+    const act=ENG.filter(e=>e.state==='ACTIVE').length,fir=ENG.filter(e=>e.firing).length;
+    $('meta').textContent=`fusion ${String(f.generated_at||'—').slice(0,19)} · index ${String(idx.generated_at||'—').slice(0,19)} · engines ${ENG.length} · ACTIVE ${act} · FIRING ${fir} · series cached ${idx.series_cached??'—'}`;
+    renderThemes(f);renderDivs(f);renderFilters();renderTable();
+    $('foot').textContent='Contract: consumers read this through aws/shared/wl_fusion.py — additive-only; unproven panels contribute context, never score; proven-panel multipliers bounded to [0.90, 1.10]. Symbol coverage 82.8% addressable at $0/month (retired: FTSE licensed, tape-only internals, delisted contracts).';
+  }catch(e){$('meta').innerHTML='<span class="err">'+esc(e.message)+'</span>';}
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-right-rail.js" defer></script>
+</body>
+</html>

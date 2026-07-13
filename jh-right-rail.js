@@ -12,7 +12,8 @@
   var hasRel = D.related && D.related.length;
   var hasFeeds = D.feedsInto && D.feedsInto.length;
   var hasInterp = D.interpret && D.interpret.trim();
-  if (!hasProv && !hasRel && !hasFeeds && !hasInterp) return;
+  var hasRes = D.research && D.research.theme;
+  if (!hasProv && !hasRel && !hasFeeds && !hasInterp && !hasRes) return;
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -31,6 +32,15 @@
   }
 
   var sections = "";
+  if (hasRes) {
+    var R = D.research;
+    sections += '<div class="jhr-sec"><div class="jhr-h">HIS RESEARCH</div>' +
+      '<p class="jhr-p"><a href="' + esc(R.href || "/panels.html") + '">' +
+      esc(R.theme) + " " + esc(R.pressure != null ? R.pressure + "p" : "") +
+      " " + esc(R.verdict || "") + "</a> · firing " +
+      esc(R.firing != null ? R.firing : "?") + "/" + esc(R.of != null ? R.of : "?") +
+      (R.div ? "<br>≠ " + esc(R.div) : "") + "</p></div>";
+  }
   if (hasInterp) {
     sections += '<div class="jhr-sec"><div class="jhr-h">' + esc(D.title || "ABOUT") +
       '</div><p class="jhr-p">' + esc(D.interpret) + "</p></div>";
