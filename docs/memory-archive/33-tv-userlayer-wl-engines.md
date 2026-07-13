@@ -236,3 +236,36 @@ and the unknown roots CBOT:YIT1! / ICEEUR:I2!/EON2!/USW1!.
   DECISIVE CHECK: tonight's 22:30 UTC cold scheduled run — if Europe
   Liquidity + Global Deposit Rates wake, closed; if not, instrument the
   runner's map read next session.
+
+## Cache-truth arc appendix (ops 3221–3227) — the anomaly fully closed
+
+The "runner counts probe-verified curations dry" anomaly decomposed into
+FOUR stacked mechanisms, each named by instrumentation (WL_TRACE env:
+need→cache_pre→todo→weekly→zc per symbol):
+
+1. **Deploy env race**: deploy_lambda awaits the CODE update but not the
+   CONFIG update — an invoke fired seconds after deploy runs new code
+   with the OLD env. (Await function_updated_v2 after deploys that
+   change env.)
+2. **Symbol-keyed cache staleness**: remapped symbols kept serving their
+   old series (GBDIR's 9-pt WorldBank ghost). Fix: ids-ledger — every
+   cached symbol records what it was fetched AS; a remap invalidates
+   exactly that entry.
+3. **Fetch storms**: 10 unthrottled workers 429-stormed CoinGecko every
+   run (~30 crypto symbols perpetually failing) and my first FRED gate
+   (0.12s ≈ 500/min) was a self-DDoS against FRED's 120/min cap —
+   mass 429s returning as SILENT EMPTIES (the run that fetched 1/1324).
+   Fix: per-source politeness gates in series_source (CG 1.35s,
+   FRED 0.55s) + FRED/MARKET-first todo ordering.
+4. **Perpetual-retry loop**: empties were never remembered, so ~1,300
+   dry ids re-fetched EVERY run. Fix: 3-day mapping-keyed misses
+   tombstones. Steady state proven: todo=0, fetch phase 2s.
+
+Also: fake CRYPTOCAP aggregate ids (total2, btc.d, …) retired —
+no free historical source. matic→pol alias.
+
+**Result: ACTIVE 115 → 121** (Euro Dollar Shortage, Feds Rates, Forex,
+Durable Goods, DXY-symmetric, Europe Liquidity:BTPBUND). Cache 2,281 →
+2,465 real series. Global Deposit Rates reached 6 members but sleeps
+STRUCTURALLY: its JP/CN deposit rates are annual (~30 obs) so joint
+weekly history can never hit 100 — honest, named, closed.
