@@ -751,6 +751,8 @@ def _eodhd(sid, start):
 def _coinmetrics(sid, start):
     """sid = 'asset|Metric' → Coin Metrics community v4 (no key, daily)."""
     asset, _, met = sid.partition("|")
+    if not asset or not met:               # ops 3210 shape guard
+        return {}
     out = {}
     url = ("https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
            f"?assets={asset}&metrics={met}&frequency=1d&page_size=10000"
@@ -785,7 +787,11 @@ _COT_F = {"noncomm_net": ("noncomm_positions_long_all",
 
 def _cot(sid, start):
     """sid = 'dataset|cftc_code|field' → CFTC Socrata (free, weekly)."""
-    ds, code, fld = sid.split("|")
+    parts = str(sid).split("|")
+    if len(parts) != 3:                    # ops 3210: never raise on shape
+        print(f"[series_source] COT bad sid {sid!r}")
+        return {}
+    ds, code, fld = parts
     lcol, scol = _COT_F.get(fld, _COT_F["noncomm_net"])
     cols = ",".join(c for c in ("report_date_as_yyyy_mm_dd", lcol, scol) if c)
     d = _http(f"https://publicreporting.cftc.gov/resource/{ds}.json"
