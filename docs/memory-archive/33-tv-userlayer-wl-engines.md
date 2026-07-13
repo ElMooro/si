@@ -335,3 +335,18 @@ weekly history can never hit 100 — honest, named, closed.
   Current Account, Fed Expected Yield Policy, Forward Rates — shared
   tiles fed engines beyond the targeted lists.
 - **NIGHT GRAND TOTAL: ACTIVE 115 → 128 (+13 panels).**
+
+## Breadth + CCI close (ops 3239)
+
+- **INDEX breadth tiles → OUR OWN internals** (Polygon-computed, keys
+  listed before mapping): MMFI→PCT_ABOVE_50DMA exact; MMTH + the
+  index-scoped %>200d family (S5TH/R3TH/NCTH, S5FI→50d) universe-proxied
+  per the 3194 precedent with explicit notes; HLUS = cross-source
+  DERIVED INTERNALS~NEW_HIGHS~minus~INTERNALS~NEW_LOWS. All ≥1,194 pts.
+- **CCI TEMPLATE FOUND: OECD/MEI/{ISO3}.CSCICP02.STSA.M** (~400 pts;
+  CHE is .Q) — landed for JPN/FRA/ESP/SWE/DEU/GBR/KOR/NLD/ITA/CHE/AUS/
+  CHN in one drill pass (direct /series/OECD/MEI?q=, ISO3-in-code
+  reject).
+- **⏰ THREE WOKE**: Above and Below Moving Averages; Breadth: leads the
+  Market; CONSUMER CONFIDENCE. **NIGHT GRAND TOTAL: ACTIVE 115 → 131
+  (+16 panels).**
