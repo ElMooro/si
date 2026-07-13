@@ -1,0 +1,21 @@
+# ops 3246 — served-HTML evidence for defcon.html
+
+**Status:** success  
+**Duration:** 0.3s  
+**Finished:** 2026-07-13T12:24:30+00:00  
+
+## Data
+
+| bytes | has_marker | has_ops3245 | verdict |
+|---|---|---|---|
+| 25318 | False | True |  |
+|  |  |  | PASS |
+
+## Log
+- `12:24:30`   cf-cache-status: DYNAMIC
+- `12:24:30`   age: 0
+- `12:24:30`   last-modified: Mon, 13 Jul 2026 12:20:44 GMT
+- `12:24:30`   etag: None
+- `12:24:30`   x-github-request-id: 813A:3BB0C7:1779E1F:1867CBD:6A54D8FE
+- `12:24:30`   cf-ray: a1a843d858993c79-SJC
+- `12:24:30`   tail: …sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"840cb39dc9b9483d9319f41cf1395400","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script> </body> </html> 
