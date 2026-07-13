@@ -2,7 +2,7 @@
 // Network-first for HTML so no client can wedge on a stale shell; old caches
 // are purged and control is claimed immediately. /data/* is NEVER cached —
 // live feeds must always be live.
-const VERSION = "v1.1.0";
+const VERSION = "v1.2.0-3276";
 const CACHE_NAME = `justhodl-${VERSION}`;
 
 self.addEventListener("install", (e) => { self.skipWaiting(); });

@@ -36,6 +36,13 @@ def weekly():
 
 def lambda_handler(event, context):
     qs = (event.get("queryStringParameters") or {})
+    if qs.get("diag"):                      # ops 3276: client telemetry
+        ua = ((event.get("headers") or {}).get("user-agent")
+              or "")[:160]
+        print(f"[diag] {json.dumps(qs, sort_keys=True)[:600]} "
+              f"ua={ua}")
+        return {"statusCode": 200, "headers": HDRS,
+                "body": json.dumps({"ok": True})}
     sym = (qs.get("sym") or "").strip()
     if not sym:
         return {"statusCode": 400, "headers": HDRS,

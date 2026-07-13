@@ -281,6 +281,8 @@
       if (e.key === "Escape") close();
     });
 
+    try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update();});});}catch(e){}
+    try{if(!sessionStorage.getItem('jh_diag_3276')){sessionStorage.setItem('jh_diag_3276','1');var fv=0;try{fv=(JSON.parse(localStorage.getItem('jh_favs')||'[]')||[]).length;}catch(e){}var sw='none';try{sw=(navigator.serviceWorker&&navigator.serviceWorker.controller)?'yes':'none';}catch(e){}fetch('https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page='+encodeURIComponent(location.pathname)+'&favs='+fv+'&sw='+sw+'&v=3276',{keepalive:true}).catch(function(){});}}catch(e){}
     fetch("/nav-manifest.json?v="+Math.floor(Date.now()/36e5)) /* ops 3272: hourly bust — stale CDN hid new pages+stars */.then(function (r) { return r.ok ? r.json() : null; })
       .then(function (m) { if (m) render(m); })
       .catch(function () {});

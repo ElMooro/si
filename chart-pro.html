@@ -7007,6 +7007,17 @@ class JHF {
     var style=document.createElement('style');style.textContent='#jhwl .jhwl-s:hover{color:#e6edf3}#jhwl .jhwl-s.on{color:#26ffaf;border-left-color:#26ffaf;background:#12331f33}';document.head.appendChild(style);
     var st=document.getElementById('jhwl-n');
     function bail(msg){if(st){st.textContent='';}var ul=document.getElementById('jhwl-ul');if(ul)ul.innerHTML='<div style="padding:8px 10px;color:#ff5577;font:11px monospace">watchlists failed: '+esc(msg)+'</div>';}
+    function jhwlDiag(nLists,err){/* ops 3276: client ground truth — in-UI + beacon */
+      try{
+        var sw='none';try{sw=(navigator.serviceWorker&&navigator.serviceWorker.controller)?navigator.serviceWorker.controller.scriptURL.split('/').pop():'none';}catch(e){}
+        var dv='?';try{var t=document.querySelector('script[src*="jh-nav-drawer"]');dv=t?(t.src.split('v=')[1]||'plain'):'no-tag';}catch(e){}
+        var fv=0;try{fv=(JSON.parse(localStorage.getItem('jh_favs')||'[]')||[]).length;}catch(e){}
+        var line='diag: lists='+nLists+(err?' err='+err:'')+' · sw='+sw+' · drawer=v'+dv+' · favs='+fv+' · lwc='+(!!window.LightweightCharts);
+        var host=document.getElementById('jhwl');
+        if(host){var d=document.createElement('div');d.style.cssText='padding:6px 4px 0;font:9px monospace;color:#5a6a80;word-break:break-all';d.textContent=line;host.appendChild(d);}
+        fetch(API+'/?diag=1&page=chartpro&lists='+nLists+'&err='+encodeURIComponent(String(err||'').slice(0,80))+'&sw='+encodeURIComponent(sw)+'&drawer='+encodeURIComponent(dv)+'&favs='+fv+'&lwc='+(!!window.LightweightCharts),{keepalive:true}).catch(function(){});
+      }catch(e){}
+    }
     /* ops 3275: SAME-ORIGIN + visible failures — never silently empty */
     Promise.all([
       fetch('/data/tv-watchlists.json?v='+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error('tv-watchlists '+r.status);return r.json();}),
@@ -7020,6 +7031,7 @@ class JHF {
       sel.value=cur.li;sel.onchange=function(){cur={li:+sel.value,si:0};renderSyms();};
       renderSyms();
       if(st)st.textContent=' · '+lists.length+' lists loaded';
+      jhwlDiag(lists.length,'');
       document.addEventListener('keydown',function(e){
         if(e.key==='Escape'&&ov){ov.style.display='none';return;}
         if(e.key!=='ArrowDown'&&e.key!=='ArrowUp')return;
@@ -7031,7 +7043,7 @@ class JHF {
         var L=lists[cur.li]||{},n=(L.symbols||[]).length;if(!n)return;
         load(cur.li,(cur.si+(e.key==='ArrowDown'?1:n-1))%n);
       });
-    }).catch(function(e){console.warn('jhwl',e);bail(e&&e.message||'fetch error');});
+    }).catch(function(e){console.warn('jhwl',e);bail(e&&e.message||'fetch error');jhwlDiag(0,(e&&e.message)||'fetch');});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
