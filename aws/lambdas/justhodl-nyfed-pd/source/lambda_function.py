@@ -86,33 +86,46 @@ CORP_BUCKET = [
 
 def _pos_layer(spec_doc):
     pos = (spec_doc or {}).get("pos")
-    if not pos or not pos.get("corp"):
+    if not pos or not pos.get("corp") or "fin" not in pos:
         cat = _get(BASE + "/list/timeseries.json", 35).get("pd", {}).get("timeseries", [])
-        ledger, corp = {}, []
+        ledger, corp, fin, txn = {}, [], {"in": [], "out": []}, {}
+        TXN_RX = re.compile(r"^PDTR([A-Z]+)-TOT$|^PDTR(GS)-")
         for r in cat:
             kid = str(r.get("keyid") or "")
             desc = str(r.get("description") or "").upper()
             m = POS_RX.match(kid)
-            if not m:
+            if m:
+                cls = m.group(1)
+                if kid.endswith("-TOT") and cls != "CS":
+                    ledger.setdefault(cls, []).append(kid)
+                if cls == "CS" or "CORPORATE" in desc:
+                    b = None
+                    for rx, name in CORP_BUCKET:
+                        if rx.search(desc):
+                            b = name
+                            break
+                    corp.append({"keyid": kid, "bucket": b,
+                                 "tot": kid.endswith("-TOT"),
+                                 "desc": desc[:90]})
                 continue
-            cls = m.group(1)
-            if kid.endswith("-TOT") and cls != "CS":
-                ledger.setdefault(cls, []).append(kid)
-            if cls == "CS" or "CORPORATE" in desc:
-                b = None
-                for rx, name in CORP_BUCKET:
-                    if rx.search(desc):
-                        b = name
-                        break
-                corp.append({"keyid": kid, "bucket": b,
-                             "tot": kid.endswith("-TOT"), "desc": desc[:90]})
-        pos = {"ledger": ledger, "corp": corp}
+            # ops 3302: dealer FINANCING (repo book: securities in vs out)
+            if "SECURITIES IN" in desc and kid.endswith("-TOT"):
+                fin["in"].append(kid)
+            elif "SECURITIES OUT" in desc and kid.endswith("-TOT"):
+                fin["out"].append(kid)
+            # ops 3302: TRANSACTION volumes per class (weekly turnover)
+            mt = TXN_RX.match(kid)
+            if mt and ("TRANSACTION" in desc or kid.startswith("PDTR")):
+                txn.setdefault(mt.group(1) or "GS", []).append(kid)
+        pos = {"ledger": ledger, "corp": corp, "fin": fin, "txn": txn}
         spec_doc["pos"] = pos
         s3.put_object(Bucket=BUCKET, Key=SPEC_KEY,
                       Body=json.dumps(spec_doc).encode(),
                       ContentType="application/json")
-        print("[pd] pos discovery: %d corp series (%d bucketed), %d ledger classes"
-              % (len(corp), sum(1 for c in corp if c["bucket"]), len(ledger)))
+        print("[pd] pos discovery: %d corp (%d bucketed), %d ledger, "
+              "fin in/out %d/%d, txn classes %d"
+              % (len(corp), sum(1 for c in corp if c["bucket"]),
+                 len(ledger), len(fin["in"]), len(fin["out"]), len(txn)))
     return pos
 
 def _fetch_series(kid):
@@ -204,7 +217,7 @@ def lambda_handler(event=None, context=None):
                     ("TREASURY_BILLS", "TREASURY_COUPONS", "TIPS", "TREASURY_FRN")), 1)
 
     # ── ops 3301: corporate dealer positioning + full-ledger POS layer ──
-    corporate, ledger_out = None, {}
+    corporate, ledger_out, financing, transactions = None, {}, None, {}
     try:
         pos = _pos_layer(spec if isinstance(spec, dict) else {})
         bser = {}
@@ -339,12 +352,74 @@ def lambda_handler(event=None, context=None):
                                           if len(vv) >= 2 else None),
                                 "z_52w": zz}
             hist["POS_" + name] = {d: round(s[d] / 1e3, 1) for d in dd[-400:]}
+
+        # ── ops 3302: FINANCING (securities in = reverse-repo lending,
+        # securities out = repo borrowing) + TRANSACTION volumes ──
+        financing = None
+        try:
+            def _sum_family(kids, cap=10):
+                agg = {}
+                for kid in sorted(kids)[:cap]:
+                    s = _fetch_series(kid); time.sleep(0.12)
+                    for d, v in s.items():
+                        agg[d] = agg.get(d, 0.0) + v
+                return agg
+            fi = _sum_family((pos.get("fin") or {}).get("in") or [])
+            fo = _sum_family((pos.get("fin") or {}).get("out") or [])
+            if fi and fo:
+                dd2 = sorted(set(fi) & set(fo))
+                if dd2:
+                    ld = dd2[-1]
+                    financing = {
+                        "as_of": ld,
+                        "securities_in_b": round(fi[ld] / 1e3, 1),
+                        "securities_out_b": round(fo[ld] / 1e3, 1),
+                        "net_lend_b": round((fi[ld] - fo[ld]) / 1e3, 1),
+                        "in_wow_b": (round((fi[ld] - fi[dd2[-2]]) / 1e3, 1)
+                                     if len(dd2) >= 2 else None),
+                        "out_wow_b": (round((fo[ld] - fo[dd2[-2]]) / 1e3, 1)
+                                      if len(dd2) >= 2 else None),
+                        "read": "Dealer repo book: $%.0fB securities IN "
+                                "(cash lent) vs $%.0fB OUT (cash borrowed) "
+                                "— the financing engine behind every "
+                                "position on this page."
+                                % (fi[ld] / 1e3, fo[ld] / 1e3)}
+                    hist["FIN_SEC_IN"] = {d: round(fi[d] / 1e3, 1)
+                                          for d in sorted(fi)[-400:]}
+                    hist["FIN_SEC_OUT"] = {d: round(fo[d] / 1e3, 1)
+                                           for d in sorted(fo)[-400:]}
+        except Exception as e:
+            print("[pd] financing skip %s" % str(e)[:80])
+        transactions = {}
+        try:
+            TXN_NAME = {"CS": "CORPORATE", "MBS": "AGENCY_MBS", "AB": "ABS",
+                        "ABS": "ABS", "FGSXM": "AGENCY_DEBT", "GS": "TREASURY",
+                        "SMGO": "MUNIS"}
+            for cls, kids in sorted((pos.get("txn") or {}).items()):
+                s = _fetch_series(sorted(kids)[-1]); time.sleep(0.12)
+                if not s:
+                    continue
+                dd3 = sorted(s)
+                name = TXN_NAME.get(cls, cls)
+                avg4 = (sum(s[d] for d in dd3[-4:]) / min(4, len(dd3))) / 1e3
+                transactions[name] = {
+                    "weekly_b": round(s[dd3[-1]] / 1e3, 1),
+                    "avg_4w_b": round(avg4, 1), "as_of": dd3[-1]}
+            if corporate and transactions.get("CORPORATE"):
+                tv = transactions["CORPORATE"]["avg_4w_b"]
+                inv = abs(corporate.get("net_bonds_b") or 0)
+                if tv and inv is not None:
+                    corporate["turnover_velocity"] = round(tv / max(inv, 0.5), 1)
+                    corporate["weekly_volume_b"] = transactions["CORPORATE"]["weekly_b"]
+        except Exception as e:
+            print("[pd] transactions skip %s" % str(e)[:80])
+
     except Exception as e:
         print("[pd] pos layer error: %s" % str(e)[:200])
 
     s3.put_object(Bucket=BUCKET, Key=HIST_KEY, Body=json.dumps(hist).encode(),
                   ContentType="application/json")
-    doc = {"engine": "justhodl-nyfed-pd", "version": "2.0.0",
+    doc = {"engine": "justhodl-nyfed-pd", "version": "3.0.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "as_of": as_of,
            "net_treasury_total_b": tsy,                  # flat alias for footprint _find
@@ -352,6 +427,8 @@ def lambda_handler(event=None, context=None):
            "by_tenor_usd_b": tenor_latest,
            "corporate": corporate,                        # ops 3301
            "positions_ledger": ledger_out,                # ops 3301
+           "financing": financing,                        # ops 3302
+           "transactions": transactions,                  # ops 3302
            "corp_history_key": "data/history/nyfed-pd-corp.json",
            "series_used": series_used,
            "source": "NY Fed Primary Dealer Statistics (markets.newyorkfed.org/api/pd): net "
@@ -367,4 +444,5 @@ def lambda_handler(event=None, context=None):
             "net_treasury_total_b": tsy, "net_b": net_b,
             "corp_net_bonds_b": (corporate or {}).get("net_bonds_b"),
             "corp_regime": (corporate or {}).get("regime"),
-            "ledger_classes": len(ledger_out)}
+            "ledger_classes": len(ledger_out),
+            "financing_ok": bool(financing), "txn_classes": len(transactions)}

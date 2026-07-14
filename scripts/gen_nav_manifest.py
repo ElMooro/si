@@ -21,7 +21,7 @@ RULES = [
      r"book|pnl|journal|wealth|tax|paper|merger|deal"),
     ("Risk & Crisis", r"risk|crisis|stress|defcon|hedge|tail|"
      r"monitor|early-warning|systemic|drawdown"),
-    ("Macro & Liquidity", r"macro|liquidity|fed|ecb|boj|snb|dollar|"
+    ("Macro & Liquidity", r"macro|liquidity|dealer|fed|ecb|boj|snb|dollar|"
      r"yield|bond|rates|cycle|nowcast|gdp|inflation|employment|bls|"
      r"eia|treasury|auction|plumbing|eurodollar|repo"),
     ("Research & Tools", r"research|why|panels|ask|brain|notes|"
@@ -44,6 +44,11 @@ def title_of(p):
     t = re.sub(r"\s+", " ", m.group(1)).strip()
     t = re.sub(r"\s*[|·—-]\s*JustHodl.*$", "", t, flags=re.I).strip()
     return t or None
+
+
+FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
+    "/primary-dealers.html": "Macro & Liquidity",
+}
 
 
 def classify(href, title):
@@ -72,7 +77,7 @@ def main():
         t = title_of(p)
         if not t or t.lower() in ("redirecting", "redirect"):
             continue
-        cat = known.get(href) or classify(href, t)
+        cat = FORCE.get(href) or known.get(href) or classify(href, t)
         cats.setdefault(cat, []).append({"href": href, "title": t})
         n += 1
     out = {"generated_at": date.today().isoformat(), "n_pages": n,

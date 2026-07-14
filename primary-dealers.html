@@ -77,6 +77,19 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
   <h2>Treasury curve book · dealer tenor positioning</h2>
   <div class="card" id="curve">Loading…</div>
 
+  <h2>Settlement fails · to deliver / to receive</h2>
+  <div class="card" id="fails">Loading…</div>
+
+  <h2>Dealer financing · the repo book</h2>
+  <div class="card" id="financing">Loading…</div>
+
+  <h2>Transaction volumes · weekly turnover by class</h2>
+  <div class="card" id="txn">Loading…</div>
+
+  <h2>Funding market context · OFR short-term funding monitor</h2>
+  <div class="grid g3" id="ofr"></div>
+  <div class="note" id="ofrnote" style="margin-top:8px"></div>
+
   <h2>How to read this desk</h2>
   <div class="card note">
     <b style="color:var(--fg)">Why it matters:</b> dealer inventory is the market's shock absorber — the balance sheet that buys when clients need to sell. A net-short book means that buffer is gone, and it explains why credit tends to crack before equities: there is nobody warehousing the first wave of selling.<br><br>
@@ -99,10 +112,12 @@ function f1(x,p){return x==null||isNaN(x)?"—":((x>0&&p?"+":"")+Number(x).toFix
 function ago(iso){if(!iso)return"";var h=(Date.now()-new Date(iso))/36e5;return h<48?("· updated "+h.toFixed(0)+"h ago"):("· "+iso.slice(0,10));}
 function el(i){return document.getElementById(i);}
 
-Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd-corp.json"),g("data/credit-stress.json")]).then(function(rs){
+Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd-corp.json"),g("data/credit-stress.json"),g("data/settlement-fails.json"),g("data/ofr-stfm.json")]).then(function(rs){
  var d=rs[0].status==="fulfilled"?rs[0].value:null;
  var H=rs[1].status==="fulfilled"?rs[1].value:null;
  var cs=rs[2].status==="fulfilled"?rs[2].value:null;
+ var SF=rs[3].status==="fulfilled"?rs[3].value:null;
+ var OF=rs[4].status==="fulfilled"?rs[4].value:null;
  if(!d){el("hero").innerHTML='<div class="err">Feed unavailable — data/nyfed-primary-dealer.json</div>';return;}
  el("fresh").textContent=ago(d.generated_at);
  var c=d.corporate||{};
@@ -190,6 +205,64 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
   var sr=cs&&cs.composite_regime?('<div class="note" style="margin-top:10px">Credit-spreads regime: <b>'+esc(cs.composite_regime)+'</b>'+(neg?' — net short into '+esc(String(cs.composite_regime).toLowerCase())+' spreads is the squeeze setup: little carry earned, forced covering risk if credit rallies.':'')+'</div>'):"";
   el("curve").innerHTML=ch+sr;
  }else{el("curve").innerHTML='<span class="err">Curve ladder unavailable.</span>';}
+ /* ── ops 3302: FAILS (join data/settlement-fails.json) ── */
+ (function(){
+  if(!SF||!SF.classes){el("fails").innerHTML='<span class="err">Fails feed unavailable — data/settlement-fails.json</span>';return;}
+  var reg=SF.regime||"—";var tone=reg==="CRISIS"?"red":(reg==="STRESS"?"red":(reg==="ELEVATED"?"amb":"grn"));
+  var hh='<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:10px"><span class="pill '+tone+(reg==="CRISIS"||reg==="STRESS"?" flash":"")+'">'+esc(reg)+'</span><span class="note">Fails = trades that don\'t settle because the security can\'t be sourced. Spikes = collateral scarcity — plumbing jamming before prices show it.</span></div>';
+  var cls=SF.classes||[];
+  cls.forEach(function(cx){
+   var st=cx.stats||{};var lv=st.latest;if(lv==null)return;
+   var mxv=Math.max.apply(null,cls.map(function(y){return (y.stats||{}).latest||0;}))||1;
+   var pc=Math.min(100,lv/mxv*100);
+   hh+='<div class="row"><div class="n">'+esc(cx.label||cx.key)+'</div><div class="bar"><i style="width:'+pc+'%;background:'+(st.spike?'#ff5c5c':(st.pctile>=70?'#ffb13d':'#00d4ff'))+'"></i></div><div class="v">'+f1(lv,0)+'B</div></div>';
+   hh+='<div class="note" style="margin:-2px 0 6px">FtD '+f1(cx.ftd_latest,0)+'B · FtR '+f1(cx.ftr_latest,0)+'B · '+(st.pctile==null?"—":st.pctile.toFixed(0)+'th pctile')+' · z '+(st.z==null?"—":st.z)+(st.spike?' · <b class="dn">SPIKE</b>':'')+'</div>';
+  });
+  if((SF.drivers||[]).length)hh+='<div class="note" style="margin-top:8px">'+esc(SF.drivers[0])+'</div>';
+  el("fails").innerHTML=hh;
+ })();
+
+ /* ── ops 3302: FINANCING (securities in/out from nyfed-pd v3) ── */
+ (function(){
+  var fn=d&&d.financing;
+  if(!fn){el("financing").innerHTML='<span class="err">Financing block pending next engine run.</span>';return;}
+  var tot=Math.abs(fn.securities_in_b||0)+Math.abs(fn.securities_out_b||0)||1;
+  var pi=Math.abs(fn.securities_in_b||0)/tot*100;
+  el("financing").innerHTML=
+   '<div class="row"><div class="n">SECURITIES IN<br><span style="color:var(--fg3)">cash lent (rev-repo)</span></div><div class="bar"><i style="width:'+pi+'%;background:#3ddc84"></i><i style="width:'+(100-pi)+'%;background:#ff5c5c"></i></div><div class="v up">'+f1(fn.securities_in_b,0)+'B</div></div>'+
+   '<div class="row"><div class="n">SECURITIES OUT<br><span style="color:var(--fg3)">cash borrowed (repo)</span></div><div></div><div class="v dn">'+f1(fn.securities_out_b,0)+'B</div></div>'+
+   '<div class="row"><div class="n">NET LEND</div><div></div><div class="v '+((fn.net_lend_b||0)>=0?"up":"dn")+'">'+f1(fn.net_lend_b,0)+'B</div></div>'+
+   '<div class="note" style="margin-top:8px">'+esc(fn.read||"")+' WoW: in '+f1(fn.in_wow_b,0)+'B / out '+f1(fn.out_wow_b,0)+'B · as of '+esc(fn.as_of||"")+'</div>';
+ })();
+
+ /* ── ops 3302: TRANSACTION VOLUMES ── */
+ (function(){
+  var tx=(d&&d.transactions)||{};var ks=Object.keys(tx);
+  if(!ks.length){el("txn").innerHTML='<span class="err">Transactions block pending next engine run.</span>';return;}
+  ks.sort(function(a,b){return (tx[b].avg_4w_b||0)-(tx[a].avg_4w_b||0);});
+  var mxv=tx[ks[0]].avg_4w_b||1,hh="";
+  ks.forEach(function(k){var r=tx[k];var pc=Math.min(100,(r.avg_4w_b||0)/mxv*100);
+   hh+='<div class="row"><div class="n">'+esc(k.replace(/_/g," "))+'</div><div class="bar"><i style="width:'+pc+'%;background:#00d4ff"></i></div><div class="v">'+f1(r.avg_4w_b,0)+'B/wk</div></div>';});
+  var c2=(d&&d.corporate)||{};
+  if(c2.turnover_velocity!=null)hh+='<div class="note" style="margin-top:8px">Corporate turnover velocity: dealers trade <b>'+c2.turnover_velocity+'×</b> their net inventory <i>per week</i> ('+f1(c2.weekly_volume_b,0)+'B volume vs '+f1(Math.abs(c2.net_bonds_b),1)+'B net book) — the e-trading/no-warehouse model in one number.</div>';
+  el("txn").innerHTML=hh;
+ })();
+
+ /* ── ops 3302: OFR funding context ── */
+ (function(){
+  if(!OF){el("ofrnote").innerHTML='<span class="err">OFR feed pending first engine run — data/ofr-stfm.json</span>';return;}
+  var vv=((OF.repo||{}).venues)||{};var hh="";
+  ["TRI","DVP","GCF"].forEach(function(v){var r=vv[v];if(!r)return;
+   var vol=r.vol_mn;var disp=vol==null?"—":(vol>=1e6?(vol/1e6).toFixed(2)+"T":(vol/1e3).toFixed(0)+"B");
+   hh+='<div class="tile"><div class="l">'+v+' REPO VOLUME</div><div class="v">'+disp+'</div><div class="s">rate '+(r.rate_pct==null?"—":r.rate_pct.toFixed(2)+"%")+(r.rate_p75_pct!=null?(' · p75 '+r.rate_p75_pct.toFixed(2)+'%'):'')+' · z '+(r.vol_z_1y==null?"—":r.vol_z_1y)+'</div></div>';});
+  var pk=((OF.mmf||{}).picks)||{};
+  if(pk.total_net_assets)hh+='<div class="tile"><div class="l">MMF NET ASSETS</div><div class="v">'+((pk.total_net_assets.latest>=1e6)?(pk.total_net_assets.latest/1e6).toFixed(2)+"T":f1(pk.total_net_assets.latest,0))+'</div><div class="s">z '+(pk.total_net_assets.z_1y==null?"—":pk.total_net_assets.z_1y)+' · '+esc(pk.total_net_assets.as_of||"")+'</div></div>';
+  if(pk.repo_holdings)hh+='<div class="tile"><div class="l">MMF → REPO</div><div class="v">'+f1(pk.repo_holdings.latest,0)+'</div><div class="s">cash pool funding dealers</div></div>';
+  var fx=OF.nypd_fails_cross||{};
+  if(fx.ftd_tot)hh+='<div class="tile"><div class="l">OFR CROSS-CHECK · FtD TOT</div><div class="v">'+f1(fx.ftd_tot.latest,0)+'</div><div class="s">vs our direct NY Fed pull ✓</div></div>';
+  el("ofr").innerHTML=hh||'<div class="err">OFR blocks empty.</div>';
+  el("ofrnote").textContent="OFR Short-Term Funding Monitor · repo daily / MMF monthly · "+(((OF.catalog||{}).repo||[]).length)+" repo + "+(((OF.catalog||{}).mmf||[]).length)+" MMF series cataloged for the fleet · updated "+String(OF.generated_at||"").slice(0,16).replace("T"," ")+"Z";
+ })();
 }).catch(function(e){el("hero").innerHTML='<div class="err">Load failed: '+esc(e.message)+'</div>';});
 })();
 </script>
