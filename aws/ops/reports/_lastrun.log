@@ -1,27 +1,15 @@
-executing-against: ee6949c605743a76a40f81f6da1721c20a90a495
-[02:19:57]   zip: 91735 bytes
+executing-against: 1456a0f3ca54b11ce4a1753006ac9cbe5b833012
+[02:34:35]   zip: 92007 bytes
 ── 1. Lambda ──
-[02:19:57]   Lambda exists — updating
-[02:20:03] ✅   ✓ updated justhodl-13f-positions
-[02:21:47]   components: {"cap_flow": 1.0, "sector_flow": -1.0, "options_skew": 0.08, "breadth": 0.134}
-[02:21:47]   buyers: Two Sigma $+13.7B, AQR Capital $+3.5B, Point72 (Cohen) $+3.4B
-[02:21:47]   sellers: Citadel Advisors $-97.5B, Berkshire Hathaway $-11.6B, Coatue $-10.1B
-[02:21:47]   Two Sigma                  $+13.70B  NEUTRAL (+3)
-[02:21:47]   AQR Capital                $ +3.52B  NEUTRAL (-5)
-[02:21:47]   Point72 (Cohen)            $ +3.38B  NEUTRAL (+2)
-[02:21:47]   Duration Capital           $ +0.29B  NEUTRAL (+1)
-[02:21:47]   Greenlight (Einhorn)       $ +0.27B  NEUTRAL (+4)
-[02:21:47]   Soros Fund                 $ -0.08B  NEUTRAL (-10)
-[02:21:47]   Lone Pine                  $ -0.16B  NEUTRAL (+0)
-[02:21:47]   Scion (Burry)              $ -0.50B  NEUTRAL (-10)
-[02:21:47]   Baupost (Klarman)          $ -1.07B  NEUTRAL (+2)
-[02:21:47]   Pershing Square (Ackman)   $ -1.81B  NEUTRAL (-5)
-[02:21:47]   Bridgewater Associates     $ -2.62B  NEUTRAL (+3)
-[02:21:47]   Renaissance Technologies   $ -2.68B  NEUTRAL (+0)
-[02:21:47]   Tiger Global               $ -6.66B  NEUTRAL (-8)
-[02:21:47]   Millennium Mgmt            $ -9.12B  NEUTRAL (+4)
-[02:21:47]   Coatue                     $-10.07B  NEUTRAL (+8)
-[02:21:47]   Berkshire Hathaway         $-11.58B  NEUTRAL (-5)
-[02:21:47]   Citadel Advisors           $-97.49B  NEUTRAL (+5)
+[02:34:35]   Lambda exists — updating
+[02:34:40] ✅   ✓ updated justhodl-13f-positions
+[02:36:17]   ALL comps: {"cap_flow": 0.213, "sector_flow": -0.216, "options_skew": 0.08, "breadth": 0.134}
+[02:36:17]   DIR comps: {"cap_flow": 0.059, "sector_flow": -0.08, "options_skew": 0.08, "breadth": 0.143}
+[02:36:17]   Two Sigma                $+13.70B NEUTRAL (+2)
+[02:36:17]   AQR Capital              $ +3.52B NEUTRAL (+4)
+[02:36:17]   Point72 (Cohen)          $ +3.38B NEUTRAL (+3)
+[02:36:17]   Duration Capital         $ +0.29B NEUTRAL (-6)
+[02:36:17]   Greenlight (Einhorn)     $ +0.27B NEUTRAL (+4)
+[02:36:47] ✅ banner directional lines live (~45s)
 
-→ Report written to aws/ops/reports/latest/3284_numbers.md
+→ Report written to aws/ops/reports/latest/3285_flow_v2.md
