@@ -149,6 +149,13 @@ def lambda_handler(event=None, context=None):
                    "high_52w"))
         av = num(g(r, "Average Volume", "Avg Volume", "avgvol",
                    "average_volume"))
+        vt = num(g(r, "Volume", "volume"))
+        # FinViz export sometimes ships Average Volume denominated in
+        # thousands; today's Volume is raw shares. Use the max of both
+        # interpretations so no liquid name is dropped by a unit quirk.
+        av_cands = [x for x in (av, (av or 0) * 1e3 if av and av < 5e4
+                                else None, vt) if x]
+        av = max(av_cands) if av_cands else None
         if not tkr or not px or lo is None or hi is None or px < 0.10:
             continue
         funnel["parsed"] += 1
@@ -164,6 +171,10 @@ def lambda_handler(event=None, context=None):
         if dvol < 3e5:
             continue
         funnel["tradeable"] += 1
+        if funnel["tradeable"] <= 3:
+            warns.append("liq_sample %s av_raw=%r vol_raw=%r px=%s"
+                         % (tkr, g(r, "Average Volume", "Avg Volume"),
+                            g(r, "Volume", "volume"), px))
         if off_low < 75 or below_high > -50:
             continue
         funnel["comeback"] += 1
