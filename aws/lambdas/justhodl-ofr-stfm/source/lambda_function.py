@@ -128,7 +128,7 @@ def _stat(rows, look=252):
 
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.2.0",
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.2.1",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
@@ -141,14 +141,13 @@ def lambda_handler(event=None, context=None):
     try:
         repo = _dataset("repo")
         venues = {}
-        cur = {}
+        cur = {mn: _stat(rows) for mn, rows in repo.items()}
         for mn, rows in repo.items():
             m = re.match(r"^REPO-(DVP|GCF|TRI)_([A-Z0-9]+)_?([A-Z]*)-", mn)
             if not m:
                 continue
             ven, meas = m.group(1), m.group(2)
-            st = _stat(rows)
-            cur[mn] = st
+            st = cur[mn]
             slot = venues.setdefault(ven, {})
             if meas == "TV" and ("vol" not in slot
                                  or mn.endswith("_TOT-P")
