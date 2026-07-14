@@ -324,6 +324,23 @@ def send_telegram(text):
 # HANDLER
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _dealer_positioning():
+    """ops 3301: dealer corporate-bond inventory join (FR2004 via
+    justhodl-nyfed-pd). Net short = the market's shock absorber is gone —
+    the mechanism behind 'credit cracks before stocks'."""
+    try:
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET,
+            Key="data/nyfed-primary-dealer.json")["Body"].read())
+        c = d.get("corporate") or {}
+        if not c:
+            return None
+        return {k: c.get(k) for k in ("net_bonds_b", "regime",
+                "net_5yplus_b", "net_under5y_b", "as_of", "z_52w",
+                "squeeze_setup", "read")}
+    except Exception:
+        return None
+
+
 def lambda_handler(event, context):
     started = time.time()
     print(f"=== credit-stress v{VERSION} · {datetime.now(timezone.utc).isoformat()} ===")
@@ -406,6 +423,7 @@ def lambda_handler(event, context):
     }, False),  # ops 3244: series-level fusion
         "wl_research": __import__("wl_fusion").block(('CREDIT',)),
         "generated_at_unix": int(time.time()),
+        "dealer_positioning": _dealer_positioning(),  # ops 3301
         "version": VERSION,
         "elapsed_seconds": round(time.time() - started, 2),
         "data_date": (metrics.get("BAMLH0A0HYM2") or {}).get("date"),

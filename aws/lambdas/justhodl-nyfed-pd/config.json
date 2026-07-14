@@ -4,12 +4,12 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 512,
-  "timeout": 240,
+  "timeout": 420,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "NY Fed Primary Dealer weekly net outright positions by security class (catalog-discovered) \u2014 the institutional treasuries/credit read + CFTC cross-check.",
+  "description": "NY Fed Primary Dealer weekly net positions: Treasury tenor ladder + PDPOS outright family \u2014 corporate bonds by maturity (the Bloomberg/Crisil dealer-short dataset) + full dealer ledger.",
   "schedule": {
     "name": "justhodl-nyfed-pd-weekly",
     "expression": "cron(30 21 ? * THU,FRI *)",

@@ -116,6 +116,15 @@ Promise.allSettled([
  }
  el("dash").innerHTML=h||'<div class="err">No credit feeds available yet.</div>';
 
+ /* ops 3301 — DEALER POSITIONING (FR2004): appended independently so it can never break the base render */
+ g("data/nyfed-primary-dealer.json").then(function(pd){
+  var c=(pd&&pd.corporate)||{}; if(c.net_bonds_b==null)return;
+  var neg=c.net_bonds_b<0;
+  var card='<div class="mi"'+(neg?' style="border:1px solid #ff2d2d;animation:cdFlash 1.2s ease-in-out infinite"':'')+'><div class="l">DEALER CORP INVENTORY (FR2004)</div><div class="v '+(neg?"dn":"up")+'">'+(c.net_bonds_b>0?"+":"")+c.net_bonds_b+'B</div><div class="s">'+esc(String(c.regime||"").replace(/_/g," "))+' · 5y+ '+(c.net_5yplus_b==null?"—":c.net_5yplus_b)+'B · <a href="/primary-dealers.html" style="color:var(--accent,#00d4ff)">desk →</a></div></div>';
+  if(!document.getElementById("cdFlashCss")){var st=document.createElement("style");st.id="cdFlashCss";st.textContent="@keyframes cdFlash{0%,100%{background:#38090f}50%{background:#7c1120}}";document.head.appendChild(st);}
+  el("dash").insertAdjacentHTML("beforeend",card);
+ }).catch(function(){});
+
  var rh="";
  ["HYG","LQD","EMB","MUB"].forEach(function(t){
   var a=amap[t]; if(!a)return;

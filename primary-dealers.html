@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Primary Dealers · Positioning Desk · JustHodl.AI</title>
+<meta name="description" content="NY Fed FR2004 primary dealer net positions — corporate bond dealer short, maturity decomposition, full dealer balance-sheet ledger, Treasury curve positioning. Weekly, real Fed data.">
+<style>
+:root{--bg:#07090f;--raised:#0e1320;--sunken:#04050a;--elev:#131a2a;
+--border:rgba(120,145,180,.12);--border-s:rgba(120,145,180,.40);
+--fg:#e8eef8;--fg2:#9fb0c8;--fg3:#5c6b82;--accent:#00d4ff;
+--green:#3ddc84;--red:#ff5c5c;--amber:#ffb13d;
+--mono:'SF Mono',Consolas,Menlo,monospace;--sans:-apple-system,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:22px;letter-spacing:.5px}
+h2{font-size:12px;letter-spacing:2px;color:var(--fg3);font-family:var(--mono);margin:34px 0 12px;text-transform:uppercase}
+.sub{color:var(--fg2);font-size:13px;margin-top:4px}
+.card{background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px}
+.grid{display:grid;gap:10px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.tile{background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.tile .l{font-size:10px;letter-spacing:1.2px;color:var(--fg3);font-family:var(--mono)}
+.tile .v{font-size:19px;font-weight:800;margin-top:4px;font-family:var(--mono)}
+.tile .s{font-size:11px;color:var(--fg2);margin-top:2px;font-family:var(--mono)}
+.up{color:var(--green)}.dn{color:var(--red)}.am{color:var(--amber)}
+.pill{display:inline-block;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 14px;border-radius:16px;border:1px solid var(--border-s)}
+.pill.red{background:rgba(255,45,45,.14);color:#ff5c5c;border-color:#ff2d2d}
+.pill.grn{background:rgba(61,220,132,.12);color:var(--green);border-color:rgba(61,220,132,.5)}
+.pill.amb{background:rgba(255,177,61,.12);color:var(--amber);border-color:rgba(255,177,61,.5)}
+@keyframes pdFlash{0%,100%{background:#38090f;box-shadow:0 0 0 0 rgba(255,45,45,.7)}50%{background:#7c1120;box-shadow:0 0 16px 4px rgba(255,45,45,.5)}}
+.flash{animation:pdFlash 1.15s ease-in-out infinite;border-color:#ff2d2d!important}
+.bar{height:16px;border-radius:4px;background:var(--sunken);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.row{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.row .n{font-family:var(--mono);font-size:12px;color:var(--fg2)}
+.row .v{font-family:var(--mono);font-size:13px;font-weight:700;text-align:right}
+.note{font-size:12.5px;color:var(--fg2)}
+.err{color:var(--red);font-family:var(--mono);font-size:12px}
+svg text{font-family:var(--mono)}
+footer{margin-top:48px;padding:22px 0;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--fg3);text-align:center}
+footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
+@media(max-width:700px){.row{grid-template-columns:110px 1fr 84px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏦 Primary Dealers · Positioning Desk</h1>
+  <div class="sub">NY Fed FR2004 weekly reports — the 24 banks' own regulatory filings. Net outright positions: corporate credit inventory, full asset-class ledger, Treasury curve book. <span id="fresh" style="font-family:var(--mono)"></span></div>
+
+  <div class="card" id="hero" style="margin-top:16px">
+    <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+      <span class="pill" id="regime">LOADING…</span>
+      <div style="flex:1;min-width:240px">
+        <div style="font-family:var(--mono);font-size:26px;font-weight:800" id="headline">—</div>
+        <div class="note" id="headsub"></div>
+      </div>
+    </div>
+    <div class="note" id="read" style="margin-top:10px"></div>
+  </div>
+
+  <h2>The Record Check · Fed data vs the July-2026 headline</h2>
+  <div class="grid g3" id="check"></div>
+  <div class="note" style="margin-top:8px">Bloomberg / Crisil Coalition Greenwich (Jul 11 2026) reported dealers ~$4B net short YTD-average, −$13.7B in 5yr+ maturities vs +$9.66B shorter-dated, vs a $16B avg inventory peak in 2017 — cash bonds only, hedges excluded. Tiles show what the Fed's own weekly file says right now.</div>
+
+  <h2>Corporate bond inventory · full available history</h2>
+  <div class="card"><div id="chart">Loading history…</div>
+    <div class="note" id="chartnote" style="margin-top:8px"></div></div>
+
+  <h2>Maturity decomposition · where the short lives</h2>
+  <div class="card" id="buckets">Loading…</div>
+
+  <h2>Dealer balance-sheet ledger · all asset classes</h2>
+  <div class="grid g3" id="ledger"></div>
+
+  <h2>Treasury curve book · dealer tenor positioning</h2>
+  <div class="card" id="curve">Loading…</div>
+
+  <h2>How to read this desk</h2>
+  <div class="card note">
+    <b style="color:var(--fg)">Why it matters:</b> dealer inventory is the market's shock absorber — the balance sheet that buys when clients need to sell. A net-short book means that buffer is gone, and it explains why credit tends to crack before equities: there is nobody warehousing the first wave of selling.<br><br>
+    <b style="color:var(--fg)">Three competing explanations</b> (all can be true at once): <b>1)</b> risk aversion — spreads near multi-decade tights pay dealers almost nothing to hold duration-heavy credit; <b>2)</b> demand too hot — the AI-capex issuance wave is absorbed instantly, inventory never builds; <b>3)</b> structure — post-GFC capital rules plus electronic &amp; portfolio trading (≈49% of IG volume) replaced the warehouse model. The level alone is not a crash signal.<br><br>
+    <b style="color:var(--fg)">What we actually grade:</b> the <b>maturity twist</b> (long-end short vs short-end long = deliberate rate caution, not coincidence), the <b>rate of de-inventorying</b> (13-week impulse, 52-week z), and the <b>squeeze setup</b> — net short into tight spreads means covering into a market where pensions/insurers rarely sell, which can amplify any rally violently. Cash bonds only; CDS/ETF hedges are invisible here.
+  </div>
+
+  <footer>
+    JustHodl.AI · NY Fed Primary Dealer Statistics (FR2004) · engine justhodl-nyfed-pd · weekly Thu ~16:15 ET
+    <div style="margin-top:6px"><a href="/credit-desk.html">credit desk</a><a href="/bond-desk.html">bond desk</a><a href="/yield-curve.html">yield curve</a><a href="/dealer-survey.html">dealer survey</a></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return{"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
+function g(u){return fetch(u+"?t="+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});}
+function f1(x,p){return x==null||isNaN(x)?"—":((x>0&&p?"+":"")+Number(x).toFixed(1));}
+function ago(iso){if(!iso)return"";var h=(Date.now()-new Date(iso))/36e5;return h<48?("· updated "+h.toFixed(0)+"h ago"):("· "+iso.slice(0,10));}
+function el(i){return document.getElementById(i);}
+
+Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd-corp.json"),g("data/credit-stress.json")]).then(function(rs){
+ var d=rs[0].status==="fulfilled"?rs[0].value:null;
+ var H=rs[1].status==="fulfilled"?rs[1].value:null;
+ var cs=rs[2].status==="fulfilled"?rs[2].value:null;
+ if(!d){el("hero").innerHTML='<div class="err">Feed unavailable — data/nyfed-primary-dealer.json</div>';return;}
+ el("fresh").textContent=ago(d.generated_at);
+ var c=d.corporate||{};
+
+ /* hero */
+ var neg=(c.net_bonds_b!=null&&c.net_bonds_b<0);
+ var reg=c.regime||"UNKNOWN";
+ var rp=el("regime");
+ rp.textContent=reg.replace(/_/g," ");
+ rp.className="pill "+(neg?"red":(reg==="RE_INVENTORYING"?"grn":(reg==="DE_INVENTORYING"?"amb":"grn")));
+ if(reg==="UNPRECEDENTED_NET_SHORT"||neg)rp.classList.add("flash");
+ el("headline").innerHTML=(c.net_bonds_b==null?"—":('<span class="'+(neg?"dn":"up")+'">'+f1(c.net_bonds_b,1)+'B</span> net corporate bonds'));
+ el("headsub").textContent="as of "+(c.as_of||"—")+" · WoW "+f1(c.wow_b,1)+"B · 13w "+f1(c.d13w_b,1)+"B · z(52w) "+(c.z_52w==null?"—":c.z_52w)+" · "+(c.pctile_history==null?"—":c.pctile_history+"th pctile since "+String(c.history_start||"").slice(0,4));
+ el("read").textContent=c.read||"";
+
+ /* record check tiles */
+ var ck="";
+ function tile(l,v,s,cls){ck+='<div class="tile"><div class="l">'+l+'</div><div class="v '+(cls||"")+'">'+v+'</div><div class="s">'+s+'</div></div>';}
+ tile("NET · LATEST WEEK",f1(c.net_bonds_b,1)+"B",neg?"dealers are net SHORT":"dealers net long",neg?"dn":"up");
+ tile("YTD AVERAGE",f1(c.ytd_avg_b,1)+"B","headline compares to ≈ −4B",(c.ytd_avg_b||0)<0?"dn":"up");
+ tile("5YR+ BOOK",f1(c.net_5yplus_b,1)+"B","headline ≈ −13.7B · long end",(c.net_5yplus_b||0)<0?"dn":"up");
+ tile("UNDER-5YR BOOK",f1(c.net_under5y_b,1)+"B","headline ≈ +9.66B · short end",(c.net_under5y_b||0)>0?"up":"dn");
+ tile("ALL-TIME LOW",f1(c.all_time_min_b,1)+"B",String(c.all_time_min_date||""),"dn");
+ tile("PRIOR NET-SHORT WEEK",c.prior_negative_date?String(c.prior_negative_date):"NONE in history",c.prior_negative_date?"has happened before":"first in available Fed history","am");
+ el("check").innerHTML=ck;
+
+ /* history chart */
+ var T=(H&&H.totals)||{};var ds=Object.keys(T).sort();
+ if(ds.length>10){
+  var W=1080,Ht=300,L=56,R=14,Tp=16,B=30;
+  var vs=ds.map(function(k){return T[k];});
+  var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);var pad=(mx-mn)*.08;mn-=pad;mx+=pad;
+  function X(i){return L+(i/(ds.length-1))*(W-L-R);}
+  function Y(v){return Tp+(1-(v-mn)/(mx-mn))*(Ht-Tp-B);}
+  var grid="",yl="";
+  for(var gI=0;gI<=4;gI++){var vv=mn+(mx-mn)*gI/4,yy=Y(vv);
+   grid+='<line x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'" stroke="#1c2433"/>';
+   yl+='<text x="'+(L-8)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="#5c6b82">'+vv.toFixed(0)+'B</text>';}
+  var xl="";var step=Math.max(1,Math.floor(ds.length/9));
+  for(var xi=0;xi<ds.length;xi+=step){xl+='<text x="'+X(xi).toFixed(1)+'" y="'+(Ht-8)+'" text-anchor="middle" font-size="10" fill="#5c6b82">'+ds[xi].slice(0,4)+'</text>';}
+  var zline=(0>=mn&&0<=mx)?'<line x1="'+L+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-R)+'" y2="'+Y(0).toFixed(1)+'" stroke="#ff5c5c" stroke-dasharray="5,4" stroke-width="1.4"/><text x="'+(W-R)+'" y="'+(Y(0)-5).toFixed(1)+'" text-anchor="end" font-size="10" fill="#ff5c5c">ZERO — below = NET SHORT</text>':"";
+  var pts=vs.map(function(v,i){return X(i).toFixed(1)+","+Y(v).toFixed(1);}).join(" ");
+  var lastUp=vs[vs.length-1]>=0;
+  el("chart").innerHTML='<svg viewBox="0 0 '+W+' '+Ht+'" style="width:100%;display:block" role="img" aria-label="Dealer net corporate bond positions">'+grid+yl+xl+zline+
+   '<polyline points="'+pts+'" fill="none" stroke="'+(lastUp?'#3ddc84':'#ff5c5c')+'" stroke-width="2"/>'+
+   '<circle cx="'+X(ds.length-1).toFixed(1)+'" cy="'+Y(vs[vs.length-1]).toFixed(1)+'" r="4" fill="'+(lastUp?'#3ddc84':'#ff5c5c')+'"/>'+
+   '<text x="'+L+'" y="'+(Tp-3)+'" font-size="10.5" fill="#5c6b82">NET CORPORATE BOND POSITIONS ($B) · weekly · stitched FR2004</text></svg>';
+  el("chartnote").textContent="History "+ds[0]+" → "+ds[ds.length-1]+" ("+ds.length+" weeks). 2017 context: dealers averaged ≈ +$16B. Data before 2013 uses the aggregate corporate series where bucket splits don't exist.";
+ }else{el("chart").innerHTML='<span class="err">Corporate history not published yet — first engine run pending.</span>';}
+
+ /* buckets */
+ var bl={cp:"COMMERCIAL PAPER",u13m:"BONDS ≤ 13 MONTHS",m13m_5y:"BONDS 13M – 5Y",y5_10:"BONDS 5Y – 10Y",y10p:"BONDS > 10Y"};
+ var bk=c.buckets_latest_b||{};var keys=["cp","u13m","m13m_5y","y5_10","y10p"].filter(function(k){return bk[k]!=null;});
+ if(keys.length){
+  var mxv=Math.max.apply(null,keys.map(function(k){return Math.abs(bk[k]);}))||1;
+  var hh="";
+  keys.forEach(function(k){var v=bk[k];var pc=Math.min(100,Math.abs(v)/mxv*100);
+   hh+='<div class="row"><div class="n">'+bl[k]+'</div><div class="bar">'+
+    (v<0?('<i style="width:'+pc+'%;background:#ff5c5c;margin-left:auto"></i>'):('<i style="width:'+pc+'%;background:#3ddc84"></i>'))+
+    '</div><div class="v '+(v<0?"dn":"up")+'">'+f1(v,1)+'B</div></div>';});
+  hh+='<div class="note" style="margin-top:10px">Long-end short + short-end long = a deliberate duration twist: dealers avoiding the paper most sensitive to yields, exactly where a forced cover hurts most.</div>';
+  el("buckets").innerHTML=hh;
+ }else{el("buckets").innerHTML='<span class="err">Bucket decomposition pending first engine run.</span>';}
+
+ /* ledger */
+ var lg=d.positions_ledger||{};var lh="";
+ var order=["TREASURY_EXTIPS","AGENCY_MBS","CORPORATE","AGENCY_DEBT","ABS","MUNIS"];
+ order.forEach(function(k){
+  var r=(k==="CORPORATE")?{latest_b:c.net_bonds_b,wow_b:c.wow_b,z_52w:c.z_52w,as_of:c.as_of}:lg[k];
+  if(!r||r.latest_b==null)return;
+  lh+='<div class="tile'+((k==="CORPORATE"&&neg)?" flash":"")+'"><div class="l">'+k.replace(/_/g," ")+'</div><div class="v '+(r.latest_b<0?"dn":"up")+'">'+f1(r.latest_b,1)+'B</div><div class="s">WoW '+f1(r.wow_b,1)+' · z '+(r.z_52w==null?"—":r.z_52w)+'</div></div>';});
+ Object.keys(lg).forEach(function(k){if(order.indexOf(k)>=0)return;var r=lg[k];
+  lh+='<div class="tile"><div class="l">'+esc(k)+'</div><div class="v '+(r.latest_b<0?"dn":"up")+'">'+f1(r.latest_b,1)+'B</div><div class="s">WoW '+f1(r.wow_b,1)+' · z '+(r.z_52w==null?"—":r.z_52w)+'</div></div>';});
+ el("ledger").innerHTML=lh||'<div class="err">Ledger pending first engine run.</div>';
+
+ /* treasury curve ladder (existing feed) */
+ var cv=(d.by_tenor_usd_b||{}).TREASURY_COUPONS||{};
+ var tk=Object.keys(cv).map(Number).sort(function(a,b){return a-b;});
+ if(tk.length){
+  var mx2=Math.max.apply(null,tk.map(function(t){return Math.abs(cv[t]);}))||1,ch="";
+  tk.forEach(function(t){var v=cv[t],pc=Math.min(100,Math.abs(v)/mx2*100);
+   ch+='<div class="row"><div class="n">'+t+'Y COUPONS</div><div class="bar">'+
+    (v<0?('<i style="width:'+pc+'%;background:#ff5c5c;margin-left:auto"></i>'):('<i style="width:'+pc+'%;background:#00d4ff"></i>'))+
+    '</div><div class="v '+(v<0?"dn":"")+'">'+f1(v,1)+'B</div></div>';});
+  var sr=cs&&cs.composite_regime?('<div class="note" style="margin-top:10px">Credit-spreads regime: <b>'+esc(cs.composite_regime)+'</b>'+(neg?' — net short into '+esc(String(cs.composite_regime).toLowerCase())+' spreads is the squeeze setup: little carry earned, forced covering risk if credit rallies.':'')+'</div>'):"";
+  el("curve").innerHTML=ch+sr;
+ }else{el("curve").innerHTML='<span class="err">Curve ladder unavailable.</span>';}
+}).catch(function(e){el("hero").innerHTML='<div class="err">Load failed: '+esc(e.message)+'</div>';});
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+</body>
+</html>
