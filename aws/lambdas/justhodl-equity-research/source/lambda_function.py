@@ -1034,6 +1034,11 @@ def build_dilution(ticker, raw, income_annual, income_quarterly,
                         "such stocks dump nonstop.",
         "UNKNOWN": "Insufficient share-count history to grade."}
     return {"verdict": verdict,
+        "risk_flag": bool(verdict in ("HEAVY_DILUTION", "DEATH_SPIRAL")
+                          or (c1 is not None and c1 >= 15)),
+        "ten_year_multiple": (round(ann[-11:][-1][1] / ann[-11:][0][1], 2)
+                              if len(ann) >= 2 and ann[-11:][0][1]
+                              else None),
             "sh_1y_cagr_pct": c1, "sh_3y_cagr_pct": c3,
             "sh_5y_cagr_pct": c5,
             "latest_shares": (ann[-1][1] if ann else

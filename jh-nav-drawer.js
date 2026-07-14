@@ -161,6 +161,49 @@
     } catch(e){}
   }
 
+  // ── account + favorites-sync surface (ops 3292): favorites are
+  //    ACCOUNT-BACKED via /userdata; this makes sign-in reachable from
+  //    every page so sync actually happens. Reuses auth.js (no rebuild).
+  function jwtEmail(t){
+    try { var p = JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+          return p.email || null; } catch(e){ return null; }
+  }
+  var authLoading = false;
+  function ensureAuth(cb){
+    if (window.JustHodlAuth) { try { window.JustHodlAuth.init(); } catch(e){} cb && cb(); return; }
+    if (authLoading) { var w=setInterval(function(){ if(window.JustHodlAuth){clearInterval(w); cb&&cb();} },200); return; }
+    authLoading = true;
+    function load(src, next){ var sc=document.createElement("script"); sc.src=src; sc.onload=next;
+      sc.onerror=function(){ authLoading=false; }; document.head.appendChild(sc); }
+    load("/auth-config.js", function(){
+      load("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", function(){
+        load("/auth.js", function(){
+          try { window.JustHodlAuth.init(); } catch(e){}
+          try { window.JustHodlAuth.onChange(function(){ renderAccount(); pullSync(); }); } catch(e){}
+          cb && cb();
+        });
+      });
+    });
+  }
+  function renderAccount(){
+    var el = document.getElementById("jhnav-account"); if (!el) return;
+    var t = sbToken();
+    if (t) {
+      var em = jwtEmail(t) || "signed in";
+      el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#8fa0b8;padding:2px 2px">'
+        + '<span style="width:7px;height:7px;border-radius:50%;background:#3ddc84;flex:none"></span>'
+        + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" title="favorites + theme sync to your account">' + em + '</span>'
+        + '<a href="#" id="jhnav-signout" style="color:#5d6b82;text-decoration:none;flex:none">sign out</a></div>';
+      var so = document.getElementById("jhnav-signout");
+      if (so) so.addEventListener("click", function(e){ e.preventDefault();
+        ensureAuth(function(){ window.JustHodlAuth.signOut().then(function(){ renderAccount(); }); }); });
+    } else {
+      el.innerHTML = '<button id="jhnav-signin" style="width:100%;background:#0d2233;border:1px solid #17435f;border-radius:8px;padding:9px 11px;color:#4fc3f7;font-size:12px;cursor:pointer;font-family:inherit">\u2605 Sign in \u2014 sync favorites across devices</button>';
+      var si = document.getElementById("jhnav-signin");
+      if (si) si.addEventListener("click", function(){ ensureAuth(function(){ window.JustHodlAuth.openSignIn(); }); });
+    }
+  }
+
   function render(m) {
     lastM = m;
     var here = (location.pathname || "/").replace(/\/$/, "") || "/";
@@ -259,6 +302,7 @@
       + '<div id="jhnav-groups"></div>'
       + '<div style="margin-top:12px;border-top:1px solid #1d2636;padding-top:10px">'
       +   '<button id="jhnav-themebtn" style="width:100%;background:#161d2a;border:1px solid #1d2636;border-radius:8px;padding:9px 11px;color:#a8b3c7;font-size:12px;cursor:pointer;font-family:inherit">theme</button>'
+      +   '<div id="jhnav-account" style="margin-top:8px"></div>'
       + '</div>';
 
     document.body.appendChild(backdrop);
@@ -271,6 +315,8 @@
         tb.textContent = (getTheme() === "light" ? "\u263E Dark mode" : "\u2600 Light mode");
         tb.addEventListener("click", function(){ setTheme(getTheme() === "light" ? "dark" : "light"); });
       }
+      renderAccount();
+      if (sbToken()) { ensureAuth(function(){ setTimeout(function(){ renderAccount(); pullSync(); }, 400); }); }
       pullSync();
     } catch(e){}
 
