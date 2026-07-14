@@ -1,15 +1,7 @@
-executing-against: 98be57537bb142c744a65e0fcc40525838294074
-── 1. Deploy ──
-[18:50:22]   zip: 78576 bytes
-── 1. Lambda ──
-[18:50:22]   Lambda exists — updating
-[18:50:26] ✅   ✓ updated justhodl-alert-sentinel
-[18:50:26]   zip: 97424 bytes
-── 1. Lambda ──
-[18:50:27]   Lambda exists — updating
-[18:50:30] ✅   ✓ updated justhodl-morning-intelligence
-── 2. Sentinel runtime verify ──
-── 3. Morning-intelligence deployed-code markers ──
-[18:50:40] OPS 3308 PASS — dealer/funding stack now surfaces in the 8AM brief and fires Telegram flips (regime, squeeze, fails-spike, strain, FSI-cross).
+executing-against: 344a32f2fa36f9df24552111e3a389baf47af0bf
+── A. Plain-URL diagnosis (what Khalid sees) ──
+── B. Cloudflare purge ──
+── C. Re-verify plain URLs ──
+[19:21:34] OPS 3309 PASS — bare URLs now serve the latest HTML; pages.yml self-purges CF on every deploy going forward.
 
-→ Report written to aws/ops/reports/latest/3308_comms_wiring.md
+→ Report written to aws/ops/reports/latest/3309_cdn_purge.md
