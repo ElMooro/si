@@ -8,6 +8,40 @@
   "use strict";
   if (window.__jhNavDrawer) return; window.__jhNavDrawer = true;
 
+  /* JH_FRESH_GUARD (ops 3310) — stale-client self-heal.
+     Some clients kept serving old HTML through an outdated service
+     worker + browser HTTP cache. One-time per generation: unregister
+     every SW, delete every Cache Storage entry, then reload once.
+     Loop-guarded via sessionStorage; no-ops forever after. */
+  try {
+    var GEN = "3310";
+    if (localStorage.getItem("jh_sw_gen") !== GEN &&
+        sessionStorage.getItem("jh_fresh_try") !== GEN) {
+      sessionStorage.setItem("jh_fresh_try", GEN);
+      var done = function () {
+        try { localStorage.setItem("jh_sw_gen", GEN); } catch (e) {}
+        try { location.reload(); } catch (e) {}
+      };
+      var jobs = [];
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        jobs.push(navigator.serviceWorker.getRegistrations()
+          .then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })
+          .catch(function () {}));
+      }
+      if (window.caches && caches.keys) {
+        jobs.push(caches.keys()
+          .then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })
+          .catch(function () {}));
+      }
+      if (jobs.length) { Promise.all(jobs).then(done, done); }
+      else { try { localStorage.setItem("jh_sw_gen", GEN); } catch (e) {} }
+    } else if (localStorage.getItem("jh_sw_gen") !== GEN) {
+      /* second pass after the reload: mark generation complete (new SW
+         re-registers itself naturally from the page). */
+      try { localStorage.setItem("jh_sw_gen", GEN); } catch (e) {}
+    }
+  } catch (e) {}
+
   /* JH_USERSYNC_V1 — theme + per-user sync (ops 3157) */
   try {
     var __th = localStorage.getItem("jh_theme");
