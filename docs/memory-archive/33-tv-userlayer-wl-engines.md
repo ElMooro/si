@@ -763,3 +763,27 @@ so no CF 403-caching residue possible.
   /market-capitalization→profile fallback, 0.12s gate, ≤600 tickers).
 - Data-quality follow-up queued: total_value unit audit (GOSS $5.3B
   class), ARLLF residual.
+
+## Outside-the-box 13F: options + divergence (ops 3279–3279c)
+
+- **Divergence surfaced (LIVE, verified 3279)**: the existing
+  justhodl-13f-price-divergence engine (decay-scored, 90d) finally
+  feeds the page — "Whale Entry vs Price: still actionable?" boards
+  (bullish hasn't-run / bearish divergence) from
+  data/13f-price-divergence.json.
+- **putCall pipeline**: parser v3 captured the column but the
+  cusip-collapse DROPPED it and merged option rows into equity rows
+  (zero-rows mystery). 3279c: collapse key = (cusip, putCall), option
+  rows tallied to put_funds/call_funds, EXCLUDED from equity $
+  aggregates + pct_of_portfolio (clean books), PARSER v4 full
+  re-parse. "Whales' Options — hedges & leverage" boards live on
+  page. **3279c proof run IN FLIGHT (long EDGAR pass) — read
+  aws/ops/reports/latest/3279c_options_proven.md next session;
+  expect Citadel-class PUT rows.** Refinement queued: filter option
+  rows out of changes_summary (cluster boards) too.
+- **Institutional roadmap delivered to Khalid (A–F)**: A Clone-Alpha
+  manager skill scores (back-quarter backfill + fwd returns of
+  disclosed changes → skill-weighted boards) = flagship; C conviction
+  boards (top-10 entries, % of company owned via sharesOutstanding);
+  D crowding/days-to-exit (ADV enrich); E sector rotation flows;
+  F 13F × panels/GEX composite.
