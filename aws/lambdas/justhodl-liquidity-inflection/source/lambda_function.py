@@ -919,6 +919,34 @@ def treasury_auction_signal(ac, net_dates_last=None, tga_pace_bn_wk=None):
             "source": "auction-crisis-detector (api.fiscaldata.treasury.gov, live)"}
 
 
+def _onshore_funding():
+    """ops 3304: OFR STFM context (non-scoring — fingerprint history untouched)."""
+    try:
+        ofr = s3_json("data/ofr-stfm.json") or {}
+        ven = ((ofr.get("repo") or {}).get("venues")) or {}
+        g, t3, dv = (ven.get("GCF") or {}), (ven.get("TRI") or {}), (ven.get("DVP") or {})
+        out = {}
+        if g.get("rate_pct") is not None and t3.get("rate_pct") is not None:
+            sp = round((g["rate_pct"] - t3["rate_pct"]) * 100, 1)
+            out["gcf_minus_tri_bp"] = sp
+            out["tone"] = "STRAIN" if sp >= 8 else ("WATCH" if sp >= 3 else "OK")
+        for k, v in (("dvp_t", dv), ("tri_t", t3)):
+            if v.get("vol_mn"):
+                out[k] = round(v["vol_mn"] / 1e12, 2)
+        if g.get("vol_mn"):
+            out["gcf_b"] = round(g["vol_mn"] / 1e9, 0)
+        rp = (((ofr.get("mmf") or {}).get("picks")) or {}).get("repo_holdings") or {}
+        if rp.get("latest"):
+            out["mmf_repo_b"] = round(rp["latest"] / 1e9, 0)
+        if out:
+            out["note"] = ("Onshore repo plumbing (OFR): interdealer premium %sbp — %s"
+                           % (out.get("gcf_minus_tri_bp", "?"), out.get("tone", "n/a")))
+            return out
+    except Exception as e:
+        print("[liq] onshore skip %s" % str(e)[:60])
+    return None
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     avail = {}
@@ -1567,6 +1595,7 @@ def lambda_handler(event=None, context=None):
                    "impulse_tail_180d": [[d, z] for d, z in zip(usd_dates[-180:], usd_z[-180:])]},
            "us_money": us_money,
            "composite": composite, "trajectory": trajectory, "projection": projection,
+           "onshore_funding": _onshore_funding(),
            "treasury_auctions": treasury_auctions, "stablecoin_full": stablecoin_full,
            "cycle_clock": clock, "composite_clock": composite_clock,
            "composite_projection": composite_projection,

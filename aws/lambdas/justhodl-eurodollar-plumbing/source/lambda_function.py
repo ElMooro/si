@@ -226,6 +226,26 @@ def build_layers():
         ed, ev = latest(effr)
         core.append(metric("effr_iorb", "EFFR − IORB", round((ev - iv) * 100, 1), "bp",
                             flag(abs((ev - iv) * 100), 3, 8), "Fed funds vs floor — corridor position", asof=ed))
+    # ops 3304: OFR STFM onshore-funding joins (market-wide repo + MMF pool)
+    try:
+        ofr = gj("data/ofr-stfm.json") or {}
+        ven = ((ofr.get("repo") or {}).get("venues")) or {}
+        gv, tv3, dvv = (ven.get("GCF") or {}), (ven.get("TRI") or {}), (ven.get("DVP") or {})
+        if gv.get("rate_pct") is not None and tv3.get("rate_pct") is not None:
+            sp = round((gv["rate_pct"] - tv3["rate_pct"]) * 100, 1)
+            core.append(metric("gcf_tri", "GCF − Triparty repo (interdealer premium)", sp, "bp",
+                                flag(sp, 3, 8),
+                                "Interdealer GC trading above triparty = dealer balance-sheet scarcity; collateral velocity jamming (OFR STFM)"))
+        vols = [x.get("vol_mn") for x in (dvv, tv3, gv) if x.get("vol_mn")]
+        if vols:
+            core.append(metric("ofr_repo_depth", "US repo volume (DVP+TRI+GCF)", round(sum(vols) / 1e12, 2), "$tn", "info",
+                                "Onshore funding-market depth from OFR — the water level under dealer balance sheets"))
+        rp = (((ofr.get("mmf") or {}).get("picks")) or {}).get("repo_holdings") or {}
+        if rp.get("latest"):
+            core.append(metric("mmf_repo_pool", "MMF cash lent into repo", round(rp["latest"] / 1e9, 0), "$bn", "info",
+                                "Money-fund cash on the other side of dealer repo books (OFR)"))
+    except Exception as _e:
+        print("[edp] ofr join skip %s" % str(_e)[:60])
     layers["us_core"] = {"title": "US money-market core", "metrics": core}
 
     # ---- Layer 2: bank / short-term funding ----

@@ -128,7 +128,7 @@ def _stat(rows, look=252):
 
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.0.0",
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.1.0",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
@@ -182,23 +182,35 @@ def lambda_handler(event=None, context=None):
     try:
         mmf = _dataset("mmf")
         cur = {}
-        picks = {}
-        WANT = [("total_net_assets", re.compile(r"TNA|_NA[_-]|NET.?ASSET",
-                                                re.I)),
-                ("repo_holdings", re.compile(r"_RP|REPO", re.I)),
-                ("treasury_holdings", re.compile(r"_TS|_UST|TREAS", re.I)),
-                ("agency_holdings", re.compile(r"_A[_-]|AGENC", re.I)),
-                ("cp_holdings", re.compile(r"_CP", re.I)),
-                ("cd_holdings", re.compile(r"_CD", re.I))]
         for mn, rows in mmf.items():
             cur[mn] = _stat(rows, look=36)
-            for name, rx in WANT:
-                if name not in picks and rx.search(mn):
-                    picks[name] = {"mnemonic": mn, **cur[mn]}
-                    hist.setdefault(mn, {})
-                    for d2, v2 in rows[-260:]:
-                        hist[mn][d2] = round(v2, 1)
-        doc["mmf"] = {"picks": picks, "n_series": len(mmf),
+        # v1.1: self-curating — group by the asset token in the mnemonic
+        # grammar MMF-MMF_{ASSET}[_{DETAIL}...]-M and pick the broadest
+        # series per family (prefers *TOT*, else shortest mnemonic).
+        fam = {}
+        for mn in mmf:
+            m = re.match(r"^MMF-MMF_([A-Z0-9]+)", mn)
+            fam.setdefault(m.group(1) if m else "OTHER", []).append(mn)
+        LABELS = {"RP": "repo_holdings", "TS": "treasury_holdings",
+                  "TB": "treasury_holdings", "A": "agency_holdings",
+                  "AG": "agency_holdings", "CP": "cp_holdings",
+                  "ABCP": "abcp_holdings", "CD": "cd_holdings",
+                  "TD": "time_deposits", "TNA": "total_net_assets",
+                  "NA": "total_net_assets", "TOT": "total_net_assets",
+                  "VRDN": "vrdn_holdings", "FRN": "frn_holdings",
+                  "US": "us_govt_holdings", "OTHR": "other_holdings"}
+        families, picks = {}, {}
+        for f, lst in sorted(fam.items()):
+            tot = [x for x in lst if "TOT" in x.upper()]
+            mn = min(tot or lst, key=len)
+            families[f] = {"pick": mn, "n_members": len(lst),
+                           "members": sorted(lst)[:12], **cur[mn]}
+            picks[LABELS.get(f, f.lower())] = {"mnemonic": mn, **cur[mn]}
+            hist.setdefault(mn, {})
+            for d2, v2 in mmf[mn][-260:]:
+                hist[mn][d2] = round(v2, 1)
+        doc["mmf"] = {"picks": picks, "families": families,
+                      "n_series": len(mmf),
                       "series": {k: cur[k] for k in sorted(cur)[:60]},
                       "read": "Money-market funds are the cash pool on the "
                               "other side of dealer repo — their asset mix "
