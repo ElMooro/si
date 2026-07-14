@@ -1,15 +1,53 @@
-executing-against: 1456a0f3ca54b11ce4a1753006ac9cbe5b833012
-[02:34:35]   zip: 92007 bytes
+executing-against: f1bf719cdb3de559716b27232ad531eaebed9549
+[03:10:13]   zip: 77484 bytes
 ── 1. Lambda ──
-[02:34:35]   Lambda exists — updating
-[02:34:40] ✅   ✓ updated justhodl-13f-positions
-[02:36:17]   ALL comps: {"cap_flow": 0.213, "sector_flow": -0.216, "options_skew": 0.08, "breadth": 0.134}
-[02:36:17]   DIR comps: {"cap_flow": 0.059, "sector_flow": -0.08, "options_skew": 0.08, "breadth": 0.143}
-[02:36:17]   Two Sigma                $+13.70B NEUTRAL (+2)
-[02:36:17]   AQR Capital              $ +3.52B NEUTRAL (+4)
-[02:36:17]   Point72 (Cohen)          $ +3.38B NEUTRAL (+3)
-[02:36:17]   Duration Capital         $ +0.29B NEUTRAL (-6)
-[02:36:17]   Greenlight (Einhorn)     $ +0.27B NEUTRAL (+4)
-[02:36:47] ✅ banner directional lines live (~45s)
+[03:10:14]   Lambda missing — creating
+[03:10:19] ✅   ✓ created justhodl-us10y-sentinel
+[03:10:19] ✅   ✓ Function URL: https://gplvjzbh5asyqbycvwnauhmvaq0lhcls.lambda-url.us-east-1.on.aws/
+── 2. EventBridge Scheduler (classic cap saturated) ──
+[03:10:19]   created cron(20 0,6,12,16,20 * * ? *) UTC
+── 3. First run + truth bands ──
+── 4. yield-curve.html sentinel strip live ──
+[03:12:56]   strip markers live
 
-→ Report written to aws/ops/reports/latest/3285_flow_v2.md
+→ Report written to aws/ops/reports/latest/3286_us10y_sentinel.md
+FAILS: level outside truth band: 0.461
+❌ OPS-FAIL: aws/ops/pending/ops_3286_us10y_sentinel.py
+[03:12:57]   zip: 83544 bytes
+── 1. Lambda ──
+[03:12:57]   Lambda exists — updating
+[03:13:00] ✅   ✓ updated justhodl-master-allocator
+[03:13:00] ✅   ✓ Function URL: https://zotmsligtg4gvgjhspshr3icve0andnr.lambda-url.us-east-1.on.aws/
+── 2. Run + best_asset truth bands ──
+── 3. master-allocator.html hero live ──
+[03:13:13]   hero markers live
+[03:13:13] OPS 3287 PASS — the system now names its best asset, and cash is allowed to win.
+
+→ Report written to aws/ops/reports/latest/3287_best_asset.md
+[03:13:14]   zip: 76596 bytes
+── 1. Lambda ──
+[03:13:14]   Lambda missing — creating
+[03:13:19] ✅   ✓ created justhodl-comeback-screener
+[03:13:19] ✅   ✓ Function URL: https://c27tihax3hft3jc67ydbxzpwdm0usmwh.lambda-url.us-east-1.on.aws/
+── 2. Scheduler daily 20:45 UTC ──
+[03:13:19]   created cron(45 20 * * ? *) UTC
+── 3. First run + truth bands ──
+── 4. Pages live: comeback.html + opportunities join ──
+[03:13:34]   both pages live
+
+→ Report written to aws/ops/reports/latest/3288_comeback_screener.md
+FAILS: candidates thin: 0
+❌ OPS-FAIL: aws/ops/pending/ops_3288_comeback_screener.py
+[03:13:34]   zip: 123338 bytes
+── 1. Lambda ──
+[03:13:35]   Lambda exists — updating
+[03:13:38] ✅   ✓ updated justhodl-equity-research
+── 2. AAPL truth bands (dilution module) ──
+  invoke AAPL: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions
+── 3. Known-diluter sanity (BMNR) ──
+  invoke BMNR: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions
+── 4. why.html Pillar 6 live ──
+[03:24:07]   Pillar 6 markers live
+[03:24:07] OPS 3289 PASS — share count is now a main pillar on why.html for ANY symbol.
+
+→ Report written to aws/ops/reports/latest/3289_dilution_pillar.md
