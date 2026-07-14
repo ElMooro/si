@@ -128,7 +128,7 @@ def _stat(rows, look=252):
 
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.1.0",
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.2.0",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
@@ -166,7 +166,7 @@ def lambda_handler(event=None, context=None):
                 slot["rate_p75_pct"] = st["latest"]
         doc["repo"] = {"venues": venues,
                        "n_series": len(repo),
-                       "series": {k: cur[k] for k in sorted(cur)[:60]},
+                       "series": {k: cur[k] for k in sorted(cur)},
                        "read": "Market-wide repo: DVP (bilateral cleared), "
                                "GCF (interdealer general collateral), "
                                "Triparty — the funding water level under "
@@ -211,7 +211,7 @@ def lambda_handler(event=None, context=None):
                 hist[mn][d2] = round(v2, 1)
         doc["mmf"] = {"picks": picks, "families": families,
                       "n_series": len(mmf),
-                      "series": {k: cur[k] for k in sorted(cur)[:60]},
+                      "series": {k: cur[k] for k in sorted(cur)},
                       "read": "Money-market funds are the cash pool on the "
                               "other side of dealer repo — their asset mix "
                               "shows where short-term cash is hiding."}

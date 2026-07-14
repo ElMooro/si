@@ -509,6 +509,7 @@
             <button class="tab-btn" data-tab="crisis">🚨 Crisis Indicators</button>
             <button class="tab-btn" data-tab="ml-predictions">🤖 ML Predictions</button>
             <button class="tab-btn" data-tab="trading-signals">📡 Trading Signals</button>
+            <button class="tab-btn" data-tab="stfm">🚰 Short-Term Funding</button>
         </div>
         
         <!-- Overview Tab -->
@@ -1680,6 +1681,63 @@
         document.addEventListener('DOMContentLoaded', initializePlatform);
     </script>
   <script src="/jh-page-ai.js" defer></script>
+<div class="tab-content" id="stfm" style="padding:4px 0">
+  <div class="chart-container"><div class="chart-header"><h2 class="chart-title">🚰 OFR Short-Term Funding Monitor · repo venues, money funds, dealer fails</h2></div>
+    <div class="metrics-grid" id="stfmVenues"></div>
+    <div id="stfmNote" style="opacity:.75;font-size:.85em;margin:6px 2px 14px"></div>
+    <div class="chart-header"><h2 class="chart-title">💵 Money-market fund holdings · by asset family</h2></div>
+    <div class="metrics-grid" id="stfmMMF"></div>
+    <div class="chart-header"><h2 class="chart-title">🧯 Settlement fails · dealer fails-to-deliver / receive</h2></div>
+    <div id="stfmFails" style="margin:6px 2px 14px"></div>
+    <div class="chart-header"><h2 class="chart-title">🗂 Full STFM series browser</h2></div>
+    <div style="opacity:.7;font-size:.83em;margin:2px 2px 8px">Every mnemonic the extractor publishes — the raw menu future engines wire from. Sorted by |z|.</div>
+    <div id="stfmBrowser" style="max-height:520px;overflow:auto"></div>
+    <div style="margin:12px 2px"><a href="/primary-dealers.html" style="color:#00d4ff">→ Full Primary Dealers positioning desk</a></div>
+  </div>
+</div>
+<script>
+(function(){
+ function usd(x){if(x==null||isNaN(x))return "—";var a=Math.abs(x);return a>=1e11?(x/1e12).toFixed(2)+"T":a>=1e8?(x/1e9).toFixed(1)+"B":a>=1e5?(x/1e6).toFixed(0)+"M":(+x).toFixed(2);}
+ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+ function tile(l,v,s){return '<div class="metric-card"><div class="metric-label">'+esc(l)+'</div><div class="metric-value">'+v+'</div><div class="metric-change">'+esc(s||"")+'</div></div>';}
+ Promise.allSettled([fetch("data/ofr-stfm.json").then(function(r){return r.json();}),fetch("data/settlement-fails.json").then(function(r){return r.json();})]).then(function(rs){
+  var OF=rs[0].status==="fulfilled"?rs[0].value:null;
+  var SF=rs[1].status==="fulfilled"?rs[1].value:null;
+  var V=document.getElementById("stfmVenues");
+  if(OF){
+   var ven=((OF.repo||{}).venues)||{},hh="";
+   [["DVP","Bilateral cleared (FICC DVP)"],["TRI","Triparty (BNY)"],["GCF","Interdealer GCF"]].forEach(function(p){
+    var r=ven[p[0]];if(!r)return;
+    hh+=tile(p[0]+" REPO · "+p[1],usd(r.vol_mn),"rate "+(r.rate_pct==null?"—":r.rate_pct.toFixed(2)+"%")+" · vol z(1y) "+(r.vol_z_1y==null?"—":r.vol_z_1y));});
+   var g=ven.GCF||{},t3=ven.TRI||{};
+   if(g.rate_pct!=null&&t3.rate_pct!=null){var sp=((g.rate_pct-t3.rate_pct)*100);
+    hh+=tile("GCF − TRIPARTY · interdealer premium",sp.toFixed(1)+"bp",sp>=8?"STRAIN — dealer balance-sheet scarcity":sp>=3?"WATCH — dealers paying up for balance sheet":"OK");}
+   V.innerHTML=hh||"OFR repo venues unavailable.";
+   var fam=((OF.mmf||{}).families)||{},F=document.getElementById("stfmMMF"),m="";
+   var NAMES={AG:"Agency",RP:"Repo (cash → dealers)",T:"Treasury",TNA:"Total net assets",BRA:"Bank repo agmts",OA:"Other assets"};
+   Object.keys(fam).sort(function(a,b){return (fam[b].latest||0)-(fam[a].latest||0);}).forEach(function(k){var f=fam[k];
+    m+=tile((NAMES[k]||k)+" · "+f.n_members+" series",usd(f.latest),(f.pick||"")+" · z "+(f.z_1y==null?"—":f.z_1y)+" · "+(f.as_of||""));});
+   F.innerHTML=m||"MMF families unavailable.";
+   document.getElementById("stfmNote").textContent="Feed data/ofr-stfm.json · engine justhodl-ofr-stfm · repo daily / MMF monthly / fails weekly · "+(((OF.catalog||{}).repo||[]).length)+" repo + "+(((OF.catalog||{}).mmf||[]).length)+" MMF series cataloged · updated "+String(OF.generated_at||"").slice(0,16).replace("T"," ")+"Z";
+   var rows=[];["repo","mmf"].forEach(function(ds){var se=((OF[ds]||{}).series)||{};Object.keys(se).forEach(function(mn){var st=se[mn];rows.push({ds:ds.toUpperCase(),mn:mn,latest:st.latest,d20:st.d20,z:st.z_1y,as_of:st.as_of});});});
+   var fx=OF.nypd_fails_cross||{};["ftd_tot","ftr_tot"].forEach(function(k){var s2=fx[k];if(s2)rows.push({ds:"NYPD",mn:s2.mnemonic,latest:s2.latest,d20:s2.d20,z:s2.z_1y,as_of:s2.as_of});});
+   rows.sort(function(a,b){return Math.abs(b.z||0)-Math.abs(a.z||0);});
+   var tb='<table style="width:100%;border-collapse:collapse;font-size:.82em"><tr style="text-align:left;opacity:.7"><th style="padding:4px 6px">SET</th><th>MNEMONIC</th><th style="text-align:right">LATEST</th><th style="text-align:right">Δ20</th><th style="text-align:right">z 1y</th><th>AS OF</th></tr>';
+   rows.forEach(function(r){var zc=(r.z!=null&&Math.abs(r.z)>=2)?"color:#ff5c5c;font-weight:600":(r.z!=null&&Math.abs(r.z)>=1.2)?"color:#ffb13d":"";
+    tb+='<tr style="border-top:1px solid rgba(255,255,255,.06)"><td style="padding:3px 6px;opacity:.7">'+r.ds+'</td><td style="font-family:monospace">'+esc(r.mn)+'</td><td style="text-align:right">'+usd(r.latest)+'</td><td style="text-align:right">'+(r.d20==null?"—":usd(r.d20))+'</td><td style="text-align:right;'+zc+'">'+(r.z==null?"—":r.z)+'</td><td style="opacity:.7">'+esc(r.as_of||"")+'</td></tr>';});
+   document.getElementById("stfmBrowser").innerHTML=tb+"</table>";
+  } else { V.innerHTML="data/ofr-stfm.json unavailable."; }
+  var FL=document.getElementById("stfmFails");
+  if(SF&&SF.classes){
+   var sg=SF.signal||SF,fh='<div style="margin:2px 0 8px"><b style="color:'+((sg.regime==="CRISIS"||sg.regime==="STRESS")?"#ff5c5c":sg.regime==="ELEVATED"?"#ffb13d":"#3ddc84")+'">'+esc(sg.regime||"—")+'</b> · score '+esc(sg.score!=null?sg.score:"—")+' — fails = trades that can\'t settle because the security can\'t be sourced; spikes = collateral scarcity.</div>';
+   fh+='<table style="width:100%;border-collapse:collapse;font-size:.85em"><tr style="text-align:left;opacity:.7"><th style="padding:4px 6px">CLASS</th><th style="text-align:right">FtD</th><th style="text-align:right">FtR</th><th style="text-align:right">COMBINED</th><th style="text-align:right">PCTILE</th><th style="text-align:right">z</th></tr>';
+   SF.classes.forEach(function(c){var st=c.stats||{};
+    fh+='<tr style="border-top:1px solid rgba(255,255,255,.06)'+(st.spike?";background:rgba(255,92,92,.08)":"")+'"><td style="padding:3px 6px">'+esc(c.label||c.key)+(st.spike?' <b style="color:#ff5c5c">SPIKE</b>':'')+'</td><td style="text-align:right">'+(c.ftd_latest==null?"—":c.ftd_latest.toFixed(1)+"B")+'</td><td style="text-align:right">'+(c.ftr_latest==null?"—":c.ftr_latest.toFixed(1)+"B")+'</td><td style="text-align:right">'+(st.latest==null?"—":st.latest.toFixed(1)+"B")+'</td><td style="text-align:right">'+(st.pctile==null?"—":st.pctile.toFixed(0))+'</td><td style="text-align:right">'+(st.z==null?"—":st.z)+'</td></tr>';});
+   FL.innerHTML=fh+"</table>";
+  } else { FL.innerHTML="data/settlement-fails.json unavailable."; }
+ });
+})();
+</script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-wire.js" defer data-feeds="data/ofr-fsi.json|justhodl-gap-metrics|OFR FINANCIAL STRESS INDEX"></script>
 </body>
