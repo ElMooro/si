@@ -1,19 +1,21 @@
-executing-against: b4aa970ce5a657e0eeacc6f024042896703a7c33
-── 1. Deploy nyfed-pd v2 (+TELEGRAM tripwire env) ──
-[16:17:49] telegram env copied from dollar-radar
-[16:17:49]   zip: 79022 bytes
+executing-against: e6735039894075790377897fa2c0b15d18b09ca3
+── 1. nyfed-pd v3 (financing + transactions) ──
+[16:35:58]   zip: 80043 bytes
 ── 1. Lambda ──
-[16:17:50]   Lambda exists — updating
-[16:17:55] ✅   ✓ updated justhodl-nyfed-pd
-[16:17:55] ✅   ✓ Function URL: https://wr7n27ssgahakrkbjbcxmnxwce0prtjk.lambda-url.us-east-1.on.aws/
-── 2. Poll fresh output + corporate integrity ──
-── 3. THE HEADLINE CHECK — Fed file vs Bloomberg/Crisil claim ──
-── 4. Credit engine join ──
-[16:19:10]   zip: 77769 bytes
+[16:35:59]   Lambda exists — updating
+[16:36:02] ✅   ✓ updated justhodl-nyfed-pd
+[16:36:03] spec pos family cleared -> rediscovery will run
+── 2. NEW justhodl-ofr-stfm + Scheduler ──
+[16:36:03]   zip: 75687 bytes
 ── 1. Lambda ──
-[16:19:11]   Lambda exists — updating
-[16:19:14] ✅   ✓ updated justhodl-credit-stress
-── 5. Page markers ──
-[16:20:26] OPS 3301 PASS — dealers have their own desk: net corp -3.87B (NET_SHORT), 5y+ -13.68B / <5y 9.81B, wired into credit-stress + Telegram tripwire armed.
+[16:36:03]   Lambda missing — creating
+[16:36:08] ✅   ✓ created justhodl-ofr-stfm
+[16:36:09] ✅   ✓ Function URL: https://rpiqab4imzgcizdoxyxztngvua0cdrgo.lambda-url.us-east-1.on.aws/
+[16:36:09] scheduler created
+── 3. Verify OFR feed ──
+── 4. Verify nyfed-pd v3 blocks + fails reconciliation ──
+── 5. Sidebar + page markers (live) ──
 
-→ Report written to aws/ops/reports/latest/3301_primary_dealers.md
+→ Report written to aws/ops/reports/latest/3302_dealer_expansion_ofr.md
+FAILS: ofr-stfm output never freshened; fewer than 2 repo venues resolved: []; financing block missing
+❌ OPS-FAIL: aws/ops/pending/ops_3302_dealer_expansion_ofr.py
