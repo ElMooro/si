@@ -805,3 +805,19 @@ so no CF 403-caching residue possible.
   budget): read aws/ops/reports/latest/3280_flow_risk.md next
   session — expect net$, score/verdict, components, first PUT rows
   (3279c aftermath check in section 0).
+
+## Per-fund flow + risk (ops 3281, run in flight) + Conviction answer
+
+- Engine: each fund dict gains **flow** {buy_usd, sell_usd, net_usd}
+  and **risk** {score, verdict, components} — same 4-axis composite
+  computed per manager (its own tier/sector deltas via by_ticker
+  join, its own put/call rows, its own breadth). Page: fundFlowChips
+  on BOTH Famous-Fund cards and the funds-grid; rotation-card '?'
+  killed (4th spotlight pattern); **"62 Conviction" = the AI brief's
+  confidence 0–100 (conviction_score from data/ai-commentary/13f.json),
+  NOT a position count** — page now self-explains (ⓘ AI confidence).
+- Run 29297954472 in flight (~long enrichment). **QUEUED ops 3282:
+  persist mcap/sector enrichment in the cusip-map doc (only new
+  tickers hit FMP) → engine runs drop ~10min → ~1min.** Read
+  aws/ops/reports/latest/3281_perfund.md next session for: 3280
+  global net$/risk readback (section 0) + per-fund table.
