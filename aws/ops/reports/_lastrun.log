@@ -1,11 +1,25 @@
-executing-against: 99260359b016636d84c1a46b3061b873d9e4940c
-── 0. 3279 timeout evidence ──
-[00:32:00]   zip: 89956 bytes
+executing-against: f85690d439b8206b633addf40d81db700f4463cb
+[00:44:18]   zip: 90045 bytes
 ── 1. Lambda ──
-[00:32:00]   Lambda exists — updating
-[00:32:06] ✅   ✓ updated justhodl-13f-positions
-── 1. Invoke to convergence ──
-[00:42:34] ✗ round 1: feed not fresh
+[00:44:18]   Lambda exists — updating
+[00:44:23] ✅   ✓ updated justhodl-13f-positions
+── Function's own phase evidence ──
+[00:56:09]   [13f] resolver: 150 fresh lookups, 4720 mapped
+[00:56:09]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1192, in lambda_handler
+    by_
+[00:56:09]   [13f] resolver: 150 fresh lookups, 4754 mapped
+[00:56:09]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1192, in lambda_handler
+    by_
+[00:56:09]   [13f] resolver: 150 fresh lookups, 4792 mapped
+[00:56:09]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1192, in lambda_handler
+    by_
+[00:56:09] ✗ feed not fresh — see phase evidence above
 
-→ Report written to aws/ops/reports/latest/3280_perf_converge.md
-❌ OPS-FAIL: aws/ops/pending/ops_3280_perf_converge.py
+→ Report written to aws/ops/reports/latest/3280b_perf_evidence.md
+❌ OPS-FAIL: aws/ops/pending/ops_3280b_perf_evidence.py
