@@ -1515,14 +1515,32 @@ def lambda_handler(event, context):
     ETF_RX = _re.compile(r"\b(ETF|TRUST|FUND|ISHARES|SPDR|VANGUARD|"
                          r"INVESCO|PROSHARES|DIREXION)\b", _re.I)
 
+    NM_RULES = (  # ops 3296: name-based fallback (order matters)
+        (_re.compile(r"TREASUR.*BILL|T[- ]?BILL|MONEY MARKET|"
+                     r"ULTRA ?SHORT", _re.I), "CASH_TBILLS"),
+        (_re.compile(r"\bBOND\b|TREASUR|FLOATING RATE|"
+                     r"CORPORATE DEBT|MUNI", _re.I), "BONDS"),
+        (_re.compile(r"\bGOLD\b|\bSILVER\b|PRECIOUS MET", _re.I),
+         "GOLD_PM"),
+        (_re.compile(r"BITCOIN|ETHEREUM|\bCRYPTO", _re.I), "CRYPTO"),
+        (_re.compile(r"\bREIT\b|REAL ESTATE", _re.I),
+         "REAL_ESTATE_REITS"),
+    )
+
     def _classify(a):
         tk = (a.get("ticker") or "").upper()
         for cls, ss in AC_SETS.items():
             if tk in ss:
                 return cls
-        if a.get("sector") == "Real Estate":
+        nm = a.get("name") or ""
+        if ETF_RX.search(nm):
+            for rx, cls in NM_RULES:
+                if rx.search(nm):
+                    return cls
+        if a.get("sector") == "Real Estate" or _re.search(
+                r"\bREIT\b", nm, _re.I):
             return "REAL_ESTATE_REITS"
-        if tk and ETF_RX.search(a.get("name") or ""):
+        if tk and ETF_RX.search(nm):
             return "OTHER_ETF"
         return "US_EQUITY" if tk else "UNRESOLVED"
 
@@ -1539,15 +1557,27 @@ def lambda_handler(event, context):
         c["n_names"] += 1
         c["top"].append((a.get("ticker") or "?",
                          a.get("total_value") or 0,
-                         a.get("net_flow_usd") or 0))
+                         a.get("net_flow_usd") or 0,
+                         (a.get("name") or "")[:48]))
     for cls, c in asset_classes.items():
         c["top"] = [{"ticker": t, "total_usd": round(v),
-                     "net_flow_usd": round(n)}
-                    for t, v, n in sorted(c["top"],
-                                          key=lambda x: -x[1])[:5]]
+                     "net_flow_usd": round(n), "name": nm}
+                    for t, v, n, nm in sorted(c["top"],
+                                              key=lambda x: -x[1])[:5]]
         for k in ("total_usd", "bought_usd", "sold_usd",
                   "net_flow_usd"):
             c[k] = round(c[k])
+    _safe = ("CASH_TBILLS", "BONDS", "GOLD_PM")
+    _tot_all = sum((asset_classes[k].get("total_usd") or 0)
+                   for k in asset_classes) or 1
+    safety_rotation = {
+        "safe_usd": sum((asset_classes.get(k) or {}).get(
+            "total_usd") or 0 for k in _safe),
+        "safe_net_flow_usd": sum((asset_classes.get(k) or {}).get(
+            "net_flow_usd") or 0 for k in _safe),
+        "classes": list(_safe)}
+    safety_rotation["safe_pct_of_book"] = round(
+        100 * safety_rotation["safe_usd"] / _tot_all, 2)
     asset_classes["_note"] = (
         "13F scope: US-listed long book only. CASH = T-bill ETFs; "
         "real estate = REITs + RE ETFs; true cash/private assets are "
@@ -1583,6 +1613,7 @@ def lambda_handler(event, context):
         "top_owned": top_owned,
         "conviction_top": conviction_top,
         "asset_classes": asset_classes,
+        "safety_rotation": safety_rotation,
         "mcap_enriched": enriched,
         "flow_summary": flow_summary,
         "risk_appetite": risk_appetite,
