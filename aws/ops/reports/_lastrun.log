@@ -1,11 +1,13 @@
-executing-against: 43e449a65103198de3deac170607570eaa0da7e9
-[05:29:29]   zip: 94389 bytes
+executing-against: 1e5c76d23fe7b8c02d710715a6b2f253b6b301ae
+── 1. DIAGNOSIS — what the $203B 'unresolved' really is ──
+── 2. Deploy fix + rerun ──
+[05:43:39]   zip: 94749 bytes
 ── 1. Lambda ──
-[05:29:29]   Lambda exists — updating
-[05:29:32] ✅   ✓ updated justhodl-13f-positions
-── 2. Run + safety/name truth bands ──
-── 3. Page live: names + safety + brief book ──
-[05:31:44]   names CSS + safety block + brief book live
-[05:31:44] OPS 3296 PASS — every ticker has its name, the safety rotation is visible, and the brief shows its book.
+[05:43:39]   Lambda exists — updating
+[05:43:45] ✅   ✓ updated justhodl-13f-positions
+── 3. Page name-first rendering live ──
+[05:46:02]   name-first rendering live
 
-→ Report written to aws/ops/reports/latest/3296_names_safety_brief.md
+→ Report written to aws/ops/reports/latest/3297_unresolved_named.md
+FAILS: UNRESOLVED barely moved: 203.7B -> 200.2B
+❌ OPS-FAIL: aws/ops/pending/ops_3297_unresolved_named.py
