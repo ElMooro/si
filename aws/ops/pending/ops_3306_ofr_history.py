@@ -1,4 +1,4 @@
-"""ops 3306 — OFR HISTORY LAYER (Khalid: every series charted vs history,
+"""ops 3306 (rerun c) — OFR HISTORY LAYER (Khalid: every series charted vs history,
 from 1990 where the source reaches).
 [1] ofr-stfm v1.3: OFR Financial Stress Index CSV — FULL history since
     2000 + 5 components (credit/equity/funding/safe/vol) into doc.fsi;
@@ -116,6 +116,39 @@ with report("3306_ofr_history") as rep:
                      % fd_start)
     if len(fsi_all) < 400:
         fails.append("FSI chart pts %d < 400" % len(fsi_all))
+
+    rep.section("3b. Runner-side probe: fails depth ground truth")
+    for u in ("https://data.financialresearch.gov/v1/series/full"
+              "?mnemonic=NYPD-PD_AFtD_TOT-A&start_date=1990-01-01",
+              "https://data.financialresearch.gov/v1/series/full"
+              "?mnemonic=NYPD-PD_AFtD_TOT-A"):
+        try:
+            import gzip as _gz
+            req = urllib.request.Request(u, headers={
+                "User-Agent": "justhodl-ops-3306"})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                rw = r.read()
+            if rw[:2] == b"\x1f\x8b":
+                rw = _gz.decompress(rw)
+            jd = json.loads(rw)
+
+            def walk(n):
+                if isinstance(n, list):
+                    return n
+                if isinstance(n, dict):
+                    if "aggregation" in n:
+                        return n["aggregation"]
+                    for v in n.values():
+                        g = walk(v)
+                        if g:
+                            return g
+                return None
+            agg = walk(jd) or []
+            rep.log("probe %s -> %d pts, first=%s"
+                    % (u.split("?")[-1][:60], len(agg),
+                       agg[0][0] if agg else None))
+        except Exception as e:
+            rep.log("probe failed: %s" % str(e)[:120])
 
     rep.section("4. Live page markers")
     time.sleep(50)

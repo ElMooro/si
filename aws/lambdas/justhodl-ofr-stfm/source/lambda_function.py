@@ -79,16 +79,28 @@ def _agg_of(node):
 
 
 def _series_full(mnemonic):
-    doc = _get("%s/series/full?mnemonic=%s" % (BASE, mnemonic), 45)
-    rows = []
-    for it in (_agg_of(doc) or []):
+    best = []
+    for url in ("%s/series/full?mnemonic=%s&start_date=1990-01-01"
+                % (BASE, mnemonic),
+                "%s/series/full?mnemonic=%s" % (BASE, mnemonic)):
         try:
-            if it[1] is not None:
-                rows.append((str(it[0]), float(it[1])))
+            doc = _get(url, 45)
         except Exception:
             continue
-    rows.sort()
-    return rows
+        rows = []
+        for it in (_agg_of(doc) or []):
+            try:
+                if it[1] is not None:
+                    rows.append((str(it[0]), float(it[1])))
+            except Exception:
+                continue
+        rows.sort()
+        if len(rows) > len(best):
+            best = rows
+        if best and best[0][0] < "2000-01-01":
+            break
+        time.sleep(0.3)
+    return best
 
 
 def _dataset(name):
@@ -208,7 +220,7 @@ def _fsi(charts):
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
     charts = {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.3.0",
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.3.1",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
