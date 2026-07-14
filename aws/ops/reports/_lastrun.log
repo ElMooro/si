@@ -1,11 +1,14 @@
-executing-against: 36d038f267b62455d07b8e4a248cccc171aa4101
+executing-against: 5b106d6327eb61da60db3f82bee305d8d591da76
 ── 1. Deploy + run ofr-stfm v1.3 ──
-[18:14:07]   zip: 77523 bytes
+[18:18:58]   zip: 77609 bytes
 ── 1. Lambda ──
-[18:14:07]   Lambda exists — updating
-[18:14:10] ✅   ✓ updated justhodl-ofr-stfm
+[18:18:58]   Lambda exists — updating
+[18:19:03] ✅   ✓ updated justhodl-ofr-stfm
 ── 2. Verify FSI block ──
 ── 3. Verify charts shard ──
+── 3b. Runner-side probe: fails depth ground truth ──
+[18:19:25] probe mnemonic=NYPD-PD_AFtD_TOT-A&start_date=1990-01-01 -> 600 pts, first=2015-01-07
+[18:19:25] probe mnemonic=NYPD-PD_AFtD_TOT-A -> 600 pts, first=2015-01-07
 ── 4. Live page markers ──
 
 → Report written to aws/ops/reports/latest/3306_ofr_history.md
