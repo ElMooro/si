@@ -256,7 +256,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
   if(!OF){el("ofrnote").innerHTML='<span class="err">OFR feed pending first engine run — data/ofr-stfm.json</span>';return;}
   var vv=((OF.repo||{}).venues)||{};var hh="";
   ["TRI","DVP","GCF"].forEach(function(v){var r=vv[v];if(!r)return;
-   var vol=r.vol_mn;var disp=vol==null?"—":(vol>=1e6?(vol/1e6).toFixed(2)+"T":(vol/1e3).toFixed(0)+"B");
+   var vol=r.vol_mn;var disp=vol==null?"—":(vol>=1e11?(vol/1e12).toFixed(2)+"T":vol>=1e8?(vol/1e9).toFixed(0)+"B":vol>=1e6?(vol/1e6).toFixed(2)+"T":(vol/1e3).toFixed(0)+"B");
    hh+='<div class="tile"><div class="l">'+v+' REPO VOLUME</div><div class="v">'+disp+'</div><div class="s">rate '+(r.rate_pct==null?"—":r.rate_pct.toFixed(2)+"%")+(r.rate_p75_pct!=null?(' · p75 '+r.rate_p75_pct.toFixed(2)+'%'):'')+' · z '+(r.vol_z_1y==null?"—":r.vol_z_1y)+'</div></div>';});
   var pk=((OF.mmf||{}).picks)||{};
   if(pk.total_net_assets)hh+='<div class="tile"><div class="l">MMF NET ASSETS</div><div class="v">'+((pk.total_net_assets.latest>=1e6)?(pk.total_net_assets.latest/1e6).toFixed(2)+"T":f1(pk.total_net_assets.latest,0))+'</div><div class="s">z '+(pk.total_net_assets.z_1y==null?"—":pk.total_net_assets.z_1y)+' · '+esc(pk.total_net_assets.as_of||"")+'</div></div>';
