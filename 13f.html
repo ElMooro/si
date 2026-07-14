@@ -317,6 +317,10 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
       +'<div>'+chip('cap-flow',c.cap_flow)+chip('sectors',c.sector_flow)+chip('opt-skew',c.options_skew)+chip('breadth',c.breadth)+'</div>'
       +'<div style="font:10px monospace;opacity:.6;margin-top:5px">small/mid net '+fB(ra.net_smallmid_usd)+' · large net '+fB(ra.net_large_usd)+' · cyclicals '+fB(ra.net_cyclical_usd)+' vs defensives '+fB(ra.net_defensive_usd)+' · puts '+ra.n_put_rows+' / calls '+ra.n_call_rows+'</div></div>';
     host.innerHTML=left+right;
+    try{var meta=document.getElementById('ai-brief-meta');
+      if(meta&&/Conviction/.test(meta.textContent)&&!meta.dataset.jhcv){meta.dataset.jhcv='1';
+        meta.title='Conviction = the AI brief\'s confidence in its own 13F read, 0\u2013100. Not a position count.';
+        var i=document.createElement('span');i.style.cssText='margin-left:6px;font:9px monospace;opacity:.55';i.textContent='\u24D8 AI confidence 0\u2013100';meta.appendChild(i);}}catch(e){}
   }).catch(function(e){var h2=document.getElementById('jh13f-flow');if(h2)h2.innerHTML='<div style="color:#ff5577;font:11px monospace">flow banner: '+esc(e.message)+'</div>';});
 })();
 </script>
@@ -747,7 +751,7 @@ function renderSpotlight(data){
     cards.push(`
       <div class="spot rotation" onclick="openTicker('${escape(rotation.ticker || rotation.cusip)}')" style="cursor:pointer">
         <span class="spot-kind">Aggressive rotation in</span>
-        <div class="spot-tkr">${escape(rotation.ticker || '?')}<span class="score pos">+${rotation.net_action_score}</span></div>
+        <div class="spot-tkr">${escape((rotation.ticker&&rotation.ticker!=='?')?rotation.ticker:firstWords(rotation.name))}<span class="score pos">+${rotation.net_action_score}</span>${capBadge(rotation.ticker)}</div>
         <div class="spot-name">${escape(rotation.name || '')}</div>
         <div class="spot-blurb">Outsized position increases: ${hugeStr}</div>
         <div class="spot-stats"><span><strong>${rotation.n_funds_adding}</strong> adding</span><span><strong>${rotation.n_funds_new_position}</strong> NEW</span></div>
@@ -770,6 +774,15 @@ const FAMOUS_FUNDS = [
   {key:'LONE_PINE',   name:'Lone Pine Capital',   who:'Stephen Mandel'},
 ];
 
+function fundFlowChips(f){
+  const fl=f&&f.flow, rk=f&&f.risk;
+  if(!fl&&!rk) return '';
+  function fb(v){var a=Math.abs(v||0);return (v<0?'-$':'+$')+(a>=1e9?(a/1e9).toFixed(1)+'B':(a/1e6).toFixed(0)+'M');}
+  let out='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 2px;font:10px monospace">';
+  if(fl){const pos=(fl.net_usd||0)>=0;out+='<span style="border:1px solid var(--border,#243044);border-radius:5px;padding:2px 7px;color:'+(pos?'#26ffaf':'#ff5577')+'">NET '+fb(fl.net_usd)+'</span><span style="opacity:.6">buy '+fb(fl.buy_usd).slice(1)+' / sell '+fb(fl.sell_usd).slice(1)+'</span>';}
+  if(rk){const vc=rk.verdict==='RISK-ON'?'#26ffaf':rk.verdict==='RISK-OFF'?'#ff5577':'#e8b45a';out+='<span style="border:1px solid var(--border,#243044);border-radius:5px;padding:2px 7px;color:'+vc+'">'+rk.verdict+' '+(rk.score>0?'+':'')+rk.score+'</span>';}
+  return out+'</div>';
+}
 function renderFamousFunds(byFund){
   const el = document.getElementById('famous-funds');
   if(!el) return;
@@ -792,7 +805,7 @@ function renderFamousFunds(byFund){
     return `
       <div class="famous-card fade-in">
         <div class="ff-name">${escape(ff.name)}</div>
-        <div class="ff-meta">${escape(ff.who)} · ${escape(f.period_of_report || '?')} · ${f.n_positions || 0} positions · ${fmtMoney(f.total_value_usd)} AUM</div>
+        <div class="ff-meta">${escape(ff.who)} · ${escape(f.period_of_report || '?')} · ${f.n_positions || 0} positions · ${fmtMoney(f.total_value_usd)} AUM</div>${fundFlowChips(f)}
         <div class="ff-sec"><span class="ff-sec-label new">NEW</span><div class="ff-tickers">${renderTickers(newPos, 'new')}</div></div>
         <div class="ff-sec"><span class="ff-sec-label exit">EXIT</span><div class="ff-tickers">${renderTickers(exits, 'exit')}</div></div>
       </div>
@@ -972,6 +985,7 @@ function renderFunds(byFund){
           <span><strong class="exit">${cs.n_exits || 0}</strong>exited</span>
           <span><strong>${fmtMoney(f.total_value_usd)}</strong>AUM</span>
         </div>
+        ${fundFlowChips(f)}
         <div class="fund-positions">
           ${positions || '<div class="bs-empty">No positions</div>'}
         </div>

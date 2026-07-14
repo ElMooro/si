@@ -1286,6 +1286,66 @@ def lambda_handler(event, context):
         n_new += cs.get("n_new") or 0
         n_trims += cs.get("n_trims") or 0
         n_exits += cs.get("n_exits") or 0
+        # ops 3281: per-fund tier/sector nets + own risk composite
+        f_smid = f_large = f_cyc = f_def = 0.0
+        for lst, sign in ((cs.get("new") or [], 1),
+                          (cs.get("adds") or [], 1),
+                          (cs.get("exits") or [], -1),
+                          (cs.get("trims") or [], -1)):
+            for x in lst:
+                if sign > 0:
+                    dv = ((x.get("value_usd") or 0)
+                          - (x.get("prior_value") or 0)
+                          if x.get("prior_value")
+                          else (x.get("value_usd") or 0))
+                    dv = max(0, dv)
+                else:
+                    dv = -max(0, (x.get("prior_value") or 0)
+                              - (x.get("value_usd") or 0)) \
+                        if x.get("value_usd") else \
+                        -(x.get("prior_value") or 0)
+                a2 = by_ticker.get(x.get("ticker")) or {}
+                t2 = a2.get("cap_tier")
+                if t2 in ("MICRO", "SMALL", "MID"):
+                    f_smid += dv
+                elif t2 == "LARGE":
+                    f_large += dv
+                s2_ = a2.get("sector")
+                if s2_ in CYC:
+                    f_cyc += dv
+                elif s2_ in DEF:
+                    f_def += dv
+        f_put = sum(1 for x in fd.get("positions") or []
+                    if x.get("put_call") == "PUT")
+        f_call = sum(1 for x in fd.get("positions") or []
+                     if x.get("put_call") == "CALL")
+        fc = {
+            "cap_flow": round((f_smid - f_large)
+                              / (abs(f_smid) + abs(f_large) + 1), 3),
+            "sector_flow": round((f_cyc - f_def)
+                                 / (abs(f_cyc) + abs(f_def) + 1), 3),
+            "options_skew": round((f_call - f_put)
+                                  / (f_call + f_put + 1), 3),
+            "breadth": round(((cs.get("n_adds") or 0)
+                              + (cs.get("n_new") or 0)
+                              - (cs.get("n_trims") or 0)
+                              - (cs.get("n_exits") or 0))
+                             / max(1, (cs.get("n_adds") or 0)
+                                   + (cs.get("n_new") or 0)
+                                   + (cs.get("n_trims") or 0)
+                                   + (cs.get("n_exits") or 0)), 3),
+        }
+        f_score = round(100 * (0.30 * fc["cap_flow"]
+                               + 0.30 * fc["sector_flow"]
+                               + 0.25 * fc["options_skew"]
+                               + 0.15 * fc["breadth"]), 1)
+        fd["flow"] = {"buy_usd": round(b), "sell_usd": round(s_),
+                      "net_usd": round(b - s_)}
+        fd["risk"] = {"score": f_score,
+                      "verdict": ("RISK-ON" if f_score >= 20 else
+                                  "RISK-OFF" if f_score <= -20
+                                  else "NEUTRAL"),
+                      "components": fc}
         buys += b
         sells += s_
         fund_net[fd.get("fund_name") or fd.get("fund_key")] = b - s_
