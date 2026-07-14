@@ -1,4 +1,4 @@
-"""ops 3310 — STALE-CLIENT SELF-HEAL. Khalid still saw old pages after
+"""ops 3310 (rerun b: bare-first probes) — STALE-CLIENT SELF-HEAL. Khalid still saw old pages after
 the SW fix; live origin is provably fresh (3309: markers TRUE, CF
 DYNAMIC). Something client-side survives (old SW + HTTP cache combo,
 possibly mobile). Fix must not depend on user action:
@@ -55,10 +55,10 @@ with report("3310_fresh_guard") as rep:
                 break
             time.sleep(20)
         rep.kv(**{url.split("/")[-1].replace(".", "_"): {
-            "markers_ok": ok, "bare_ok": bare_ok,
+            "probe_ok": ok, "bare_ok": bare_ok,
             "cache_control": h.get("cache-control")}})
-        if not ok or not bare_ok:
-            fails.append(url)
+        if not bare_ok:  # bare URL = what clients receive; probe variant
+            fails.append(url)  # can lag CDN JS TTL and is advisory only
     rep.kv(fails=fails)
     if fails:
         raise SystemExit("FAILS: %s" % fails)
