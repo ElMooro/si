@@ -845,3 +845,17 @@ so no CF 403-caching residue possible.
   ex-Citadel/Millennium toggle on the NET headline (hedge-book noise
   vs directional conviction); enrichment budget already cached
   (parallel session's anchors design, sector now cached alongside).
+
+## Flow/risk v2 — saturation killed, directional truth (ops 3285)
+
+- **Gross-flow normalization** replaces (x−y)/(|x|+|y|) (which pinned
+  ±1 whenever nets had opposite signs). ALL comps now cap_flow +0.213
+  / sector_flow −0.216. Dual-scope one-pass: **ALL net −$122.7B vs
+  DIRECTIONAL (ex Citadel/Millennium hedge-books) net −$16.1B — ~$106B
+  of the headline was hedge-book churn, not conviction.** Both
+  NEUTRAL (+3.9 / +3.5). Banner shows directional lines (live).
+- Per-fund on fund-gross: scores spread −9.7..+7.9, verdicts all
+  NEUTRAL at ±15 (honest: 13F deltas rarely scream per-fund regime);
+  chips display raw scores so differentiation is visible. Tighten
+  thresholds only on Khalid's word. HEDGE_BOOKS=("CITADEL",
+  "MILLENNIUM") constant; fd.flow.hedge_book flag rides per fund.
