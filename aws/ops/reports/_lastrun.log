@@ -1,60 +1,27 @@
-executing-against: 42548903d19582f8d132c2f4723e209787d95ea8
-── engine's own words (last 40 min) ──
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [ERROR] KeyError: 'put_funds'
-Traceback (most recent call last):
-  File "/var/task/lambda_function.py", line 1195, in lambda_handler
-    by_ticker = aggregate_b
-[02:18:35]   [13f] resolver: 150 fresh lookups, 5331 mapped
-[02:18:35]   [13f] resolver: 28 fresh lookups, 5344 mapped
-[02:18:35]   [13f] resolver: 0 fresh lookups, 5344 mapped
-[02:18:35]   [13f] resolver: 0 fresh lookups, 5344 mapped
-[02:18:35]   [13f] resolver: 0 fresh lookups, 5344 mapped
-[02:18:35]   [13f] resolver: 0 fresh lookups, 5344 mapped
-[02:18:35] ✗ feed not fresh — engine words above
+executing-against: ee6949c605743a76a40f81f6da1721c20a90a495
+[02:19:57]   zip: 91735 bytes
+── 1. Lambda ──
+[02:19:57]   Lambda exists — updating
+[02:20:03] ✅   ✓ updated justhodl-13f-positions
+[02:21:47]   components: {"cap_flow": 1.0, "sector_flow": -1.0, "options_skew": 0.08, "breadth": 0.134}
+[02:21:47]   buyers: Two Sigma $+13.7B, AQR Capital $+3.5B, Point72 (Cohen) $+3.4B
+[02:21:47]   sellers: Citadel Advisors $-97.5B, Berkshire Hathaway $-11.6B, Coatue $-10.1B
+[02:21:47]   Two Sigma                  $+13.70B  NEUTRAL (+3)
+[02:21:47]   AQR Capital                $ +3.52B  NEUTRAL (-5)
+[02:21:47]   Point72 (Cohen)            $ +3.38B  NEUTRAL (+2)
+[02:21:47]   Duration Capital           $ +0.29B  NEUTRAL (+1)
+[02:21:47]   Greenlight (Einhorn)       $ +0.27B  NEUTRAL (+4)
+[02:21:47]   Soros Fund                 $ -0.08B  NEUTRAL (-10)
+[02:21:47]   Lone Pine                  $ -0.16B  NEUTRAL (+0)
+[02:21:47]   Scion (Burry)              $ -0.50B  NEUTRAL (-10)
+[02:21:47]   Baupost (Klarman)          $ -1.07B  NEUTRAL (+2)
+[02:21:47]   Pershing Square (Ackman)   $ -1.81B  NEUTRAL (-5)
+[02:21:47]   Bridgewater Associates     $ -2.62B  NEUTRAL (+3)
+[02:21:47]   Renaissance Technologies   $ -2.68B  NEUTRAL (+0)
+[02:21:47]   Tiger Global               $ -6.66B  NEUTRAL (-8)
+[02:21:47]   Millennium Mgmt            $ -9.12B  NEUTRAL (+4)
+[02:21:47]   Coatue                     $-10.07B  NEUTRAL (+8)
+[02:21:47]   Berkshire Hathaway         $-11.58B  NEUTRAL (-5)
+[02:21:47]   Citadel Advisors           $-97.49B  NEUTRAL (+5)
 
-→ Report written to aws/ops/reports/latest/3283_direct_numbers.md
-❌ OPS-FAIL: aws/ops/pending/ops_3283_direct_numbers.py
+→ Report written to aws/ops/reports/latest/3284_numbers.md
