@@ -1,21 +1,20 @@
-executing-against: 9ad6c98fd282f38fee5a0369b0b63e4f57a7acc1
-── 1. Deploy + run ofr-stfm v1.3 ──
-[18:22:39]   zip: 77609 bytes
+executing-against: 2697363e1901eee0f7a165faa5eb451ab988013f
+── 1. Deploy the three emitters ──
+[18:36:02]   zip: 81364 bytes
 ── 1. Lambda ──
-[18:22:39]   Lambda exists — updating
-[18:22:44] ✅   ✓ updated justhodl-ofr-stfm
-── 2. Verify FSI block ──
-── 3. Verify charts shard ──
-── 3a2. settlement-fails deep history (primary source) ──
-[18:23:05]   zip: 75653 bytes
+[18:36:03]   Lambda exists — updating
+[18:36:08] ✅   ✓ updated justhodl-nyfed-pd
+[18:36:08]   zip: 76630 bytes
 ── 1. Lambda ──
-[18:23:05]   Lambda exists — updating
-[18:23:08] ✅   ✓ updated justhodl-settlement-fails
-[18:23:08] ✅   ✓ Function URL: https://snnbusv66bzwt2aacjdcnpd57u0upihr.lambda-url.us-east-1.on.aws/
-── 3b. Runner-side probe: fails depth ground truth ──
-[18:23:17] probe mnemonic=NYPD-PD_AFtD_TOT-A&start_date=1990-01-01 -> 600 pts, first=2015-01-07
-[18:23:17] probe mnemonic=NYPD-PD_AFtD_TOT-A -> 600 pts, first=2015-01-07
-── 4. Live page markers ──
-[18:24:07] OPS 3306 PASS — FSI charted since 2000-01-03, fails since 2015-01-07, 210 series clickable-to-chart.
+[18:36:08]   Lambda exists — updating
+[18:36:11] ✅   ✓ updated justhodl-settlement-fails
+[18:36:12]   zip: 78699 bytes
+── 1. Lambda ──
+[18:36:12]   Lambda exists — updating
+[18:36:15] ✅   ✓ updated justhodl-ofr-stfm
+── 2. Wait for fresh docs ──
+── 3. Verify emissions in justhodl-signals ──
+── 4. Polish checks ──
+[18:36:47] OPS 3307 PASS — dealer/OFR stack wired into closed-loop grading: duration-twist + fails-spike LIVE in justhodl-signals; strain + FSI-cross armed.
 
-→ Report written to aws/ops/reports/latest/3306_ofr_history.md
+→ Report written to aws/ops/reports/latest/3307_signal_wiring.md
