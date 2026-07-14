@@ -2,7 +2,7 @@
 // Network-first for HTML so no client can wedge on a stale shell; old caches
 // are purged and control is claimed immediately. /data/* is NEVER cached —
 // live feeds must always be live.
-const VERSION = "v1.2.0-3276";
+const VERSION = "v1.3.0-3309";
 const CACHE_NAME = `justhodl-${VERSION}`;
 
 self.addEventListener("install", (e) => { self.skipWaiting(); });
@@ -27,7 +27,9 @@ self.addEventListener("fetch", (e) => {
     // network-first: fresh page whenever the network is up; cache only as offline fallback
     e.respondWith((async () => {
       try {
-        const res = await fetch(e.request);
+        // ops 3309: bypass the browser HTTP cache (GH Pages max-age=600)
+        // — revalidate via ETag so edits appear on the very next reload.
+        const res = await fetch(e.request, { cache: "no-cache" });
         const c = await caches.open(CACHE_NAME);
         c.put(e.request, res.clone());
         return res;
