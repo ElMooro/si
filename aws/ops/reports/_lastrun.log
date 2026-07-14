@@ -1,12 +1,11 @@
-executing-against: fdb3b5f699cdbca2409ef43dc8c97e4aaacd5dda
+executing-against: 5cac31030d8ceb27b9d1adb9699b0850a873b3c3
 ── 1. ofr-stfm v1.2 (full series) ──
-[17:50:31]   zip: 76375 bytes
+[17:59:29]   zip: 76385 bytes
 ── 1. Lambda ──
-[17:50:31]   Lambda exists — updating
-[17:50:34] ✅   ✓ updated justhodl-ofr-stfm
+[17:59:29]   Lambda exists — updating
+[17:59:34] ✅   ✓ updated justhodl-ofr-stfm
 ── 2. Fails signal schema sanity ──
 ── 3. Live page markers ──
+[18:00:56] OPS 3305 PASS — OFR page carries the Short-Term Funding tab (venues, MMF families, fails table, 202-series browser); dealer-desk display fixed.
 
 → Report written to aws/ops/reports/latest/3305_ofr_page.md
-FAILS: repo series published 60 < 100
-❌ OPS-FAIL: aws/ops/pending/ops_3305_ofr_page.py
