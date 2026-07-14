@@ -1,12 +1,11 @@
-executing-against: 4a3e0a8ffb4605b99afc2305f9183791f36279ef
-[00:17:48]   zip: 89660 bytes
+executing-against: 99260359b016636d84c1a46b3061b873d9e4940c
+── 0. 3279 timeout evidence ──
+[00:32:00]   zip: 89956 bytes
 ── 1. Lambda ──
-[00:17:48]   Lambda exists — updating
-[00:17:51] ✅   ✓ updated justhodl-13f-positions
-── 1. Fresh feed with performance ──
-── 2. Page live, anchors intact ──
-[00:30:02] ✅ live (~15s)
-[00:30:02] ✗ feed not fresh in window
+[00:32:00]   Lambda exists — updating
+[00:32:06] ✅   ✓ updated justhodl-13f-positions
+── 1. Invoke to convergence ──
+[00:42:34] ✗ round 1: feed not fresh
 
-→ Report written to aws/ops/reports/latest/3279_manager_perf.md
-❌ OPS-FAIL: aws/ops/pending/ops_3279_manager_perf.py
+→ Report written to aws/ops/reports/latest/3280_perf_converge.md
+❌ OPS-FAIL: aws/ops/pending/ops_3280_perf_converge.py
