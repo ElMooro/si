@@ -126,9 +126,89 @@ def _stat(rows, look=252):
             "z_1y": z}
 
 
+def _chart_pack(rows, deep=False, recent=300):
+    """rows [(date,val)] -> {'d': recent native obs, 'w': monthly-first deep tail}."""
+    out = {"d": {d: round(v, 4) for d, v in rows[-recent:]}}
+    if deep and len(rows) > recent:
+        wk, seen = {}, set()
+        for d, v in rows:
+            k = d[:7]
+            if k not in seen:
+                wk[d] = round(v, 4)
+                seen.add(k)
+        out["w"] = wk
+    return out
+
+
+def _fsi(charts):
+    """OFR Financial Stress Index full history + components (CSV, 2000->)."""
+    raw = None
+    for ua in (UA, {"User-Agent": "Mozilla/5.0 JustHodl/1.0"}):
+        try:
+            req = urllib.request.Request(
+                "https://www.financialresearch.gov/financial-stress-index/"
+                "data/fsi.csv", headers=ua)
+            with urllib.request.urlopen(req, timeout=45) as r:
+                raw = r.read()
+            break
+        except Exception:
+            time.sleep(0.6)
+    if not raw:
+        return None
+    if raw[:2] == b"\x1f\x8b":
+        raw = gzip.decompress(raw)
+    lines = [ln for ln in raw.decode("utf-8", "replace").splitlines()
+             if ln.strip()]
+    hdr = [h.strip().strip('"') for h in lines[0].split(",")]
+
+    def col(*names):
+        for i, h in enumerate(hdr):
+            hu = h.upper()
+            if any(n in hu for n in names):
+                return i
+        return None
+    ci = {"fsi": col("OFR FSI", "FSI"), "credit": col("CREDIT"),
+          "equity_valuation": col("EQUITY"), "funding": col("FUNDING"),
+          "safe_assets": col("SAFE"), "volatility": col("VOLATIL")}
+    series = {k: [] for k in ci if ci[k] is not None}
+    for ln in lines[1:]:
+        parts = [pp.strip().strip('"') for pp in ln.split(",")]
+        d = parts[0][:10]
+        for k, i in ci.items():
+            if i is None or i >= len(parts):
+                continue
+            try:
+                series[k].append((d, float(parts[i])))
+            except Exception:
+                continue
+    fs = series.get("fsi") or []
+    if len(fs) < 500:
+        return None
+    for k, rows in series.items():
+        charts["FSI" if k == "fsi" else "FSI_" + k.upper()] = \
+            _chart_pack(rows, deep=True)
+    v = [x[1] for x in fs]
+    comp = {k: round(series[k][-1][1], 3)
+            for k in ("credit", "equity_valuation", "funding",
+                      "safe_assets", "volatility") if series.get(k)}
+    return {"latest": round(v[-1], 3), "as_of": fs[-1][0],
+            "d1": round(v[-1] - v[-2], 3), "start": fs[0][0],
+            "n_obs": len(fs),
+            "pctile_full": round(sum(1 for x in v if x <= v[-1])
+                                 / len(v) * 100, 1),
+            "z_1y": (round((v[-1] - statistics.mean(v[-252:]))
+                           / statistics.stdev(v[-252:]), 2)
+                     if len(v) >= 252 and statistics.stdev(v[-252:]) > 0
+                     else None),
+            "components": comp,
+            "read": "OFR composite of 33 stress variables since 2000; "
+                    "0 = normal, positive = stressed."}
+
+
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.2.1",
+    charts = {}
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.3.0",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
@@ -144,6 +224,7 @@ def lambda_handler(event=None, context=None):
         cur = {mn: _stat(rows) for mn, rows in repo.items()}
         for mn, rows in repo.items():
             m = re.match(r"^REPO-(DVP|GCF|TRI)_([A-Z0-9]+)_?([A-Z]*)-", mn)
+            charts[mn] = _chart_pack(rows, deep=bool(m and m.group(2) in ("TV", "AR")))
             if not m:
                 continue
             ven, meas = m.group(1), m.group(2)
@@ -183,6 +264,7 @@ def lambda_handler(event=None, context=None):
         cur = {}
         for mn, rows in mmf.items():
             cur[mn] = _stat(rows, look=36)
+            charts[mn] = _chart_pack(rows, deep=False, recent=200)
         # v1.1: self-curating — group by the asset token in the mnemonic
         # grammar MMF-MMF_{ASSET}[_{DETAIL}...]-M and pick the broadest
         # series per family (prefers *TOT*, else shortest mnemonic).
@@ -208,6 +290,7 @@ def lambda_handler(event=None, context=None):
             hist.setdefault(mn, {})
             for d2, v2 in mmf[mn][-260:]:
                 hist[mn][d2] = round(v2, 1)
+            charts[mn] = _chart_pack(mmf[mn], deep=True, recent=200)
         doc["mmf"] = {"picks": picks, "families": families,
                       "n_series": len(mmf),
                       "series": {k: cur[k] for k in sorted(cur)},
@@ -228,7 +311,9 @@ def lambda_handler(event=None, context=None):
         try:
             rows = _series_full(mn)
             if rows:
-                fails_x[slot] = {"mnemonic": mn, **_stat(rows, look=104)}
+                fails_x[slot] = {"mnemonic": mn, **_stat(rows, look=104),
+                                 "start": rows[0][0]}
+                charts[mn] = _chart_pack(rows, deep=True, recent=520)
                 hist.setdefault(mn, {})
                 for d2, v2 in rows[-300:]:
                     hist[mn][d2] = round(v2, 1)
@@ -238,6 +323,25 @@ def lambda_handler(event=None, context=None):
                 "%s: %s" % (mn, str(e)[:120]))
         time.sleep(0.4)
     doc["nypd_fails_cross"] = fails_x or None
+
+    try:
+        doc["fsi"] = _fsi(charts)
+    except Exception as e:
+        print("[ofr] fsi failed: %s" % str(e)[:140])
+        doc["fsi"] = None
+
+    try:
+        s3.put_object(Bucket=BUCKET, Key="data/history/ofr-stfm-charts.json",
+                      Body=json.dumps({"generated_at": doc["generated_at"],
+                                       "n_series": len(charts),
+                                       "series": charts},
+                                      separators=(",", ":")).encode(),
+                      ContentType="application/json",
+                      CacheControl="public, max-age=3600")
+        doc["charts_shard"] = {"key": "data/history/ofr-stfm-charts.json",
+                               "n_series": len(charts)}
+    except Exception as e:
+        print("[ofr] charts shard failed: %s" % str(e)[:140])
 
     ok_blocks = sum(1 for k in ("repo", "mmf") if isinstance(doc.get(k), dict)
                     and not doc[k].get("error"))
