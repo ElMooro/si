@@ -1033,8 +1033,9 @@ def aggregate_by_ticker(fund_results):
             agg = by_ticker[tkr]
             pc = p.get("put_call")
             if pc in ("PUT", "CALL"):       # ops 3279c: clean books
-                agg["put_funds" if pc == "PUT"
-                    else "call_funds"].append(
+                agg.setdefault(
+                    "put_funds" if pc == "PUT" else "call_funds",
+                    []).append(
                     fund_data.get("fund_name") or fund_key)
                 continue
             agg["n_funds_holding"] += 1
