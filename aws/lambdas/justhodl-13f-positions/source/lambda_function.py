@@ -815,14 +815,20 @@ def compute_performance(fund_results, by_ticker):
         weights[fd["fund_key"]] = w
 
     bench = ["SPY", "IEF", "BTCUSD"]
-    uni = sorted({t for w in weights.values() for t in w} | set(bench))
+    wsum = {}
+    for w in weights.values():
+        for t, x in w.items():
+            wsum[t] = wsum.get(t, 0) + x
+    uni = bench + sorted((t for t in wsum if t not in bench),
+                         key=lambda t: -wsum[t])
     fetched = 0
-    for tk in uni:
+    ANCHOR_BUDGET = 220          # ops 3280: 900s ceiling — converge
+    for tk in uni:               # across runs, heaviest first
         e = anch.get(tk) or {}
         if all(d in e for d in need):
             continue
-        if fetched >= 650:
-            break
+        if fetched >= ANCHOR_BUDGET and tk not in bench:
+            continue
         fetched += 1
         cl = _hist_closes(tk, f"{today.year - 1}-12-15")
         time.sleep(0.1)
@@ -872,7 +878,11 @@ def compute_performance(fund_results, by_ticker):
                            for b in bench},
             "by_fund": {fk: fund_perf(w)
                         for fk, w in weights.items()},
-            "anchors_fetched": fetched}
+            "anchors_fetched": fetched,
+            "anchors_pending": sum(
+                1 for t in uni
+                if not all(d in (anch.get(t) or {})
+                           for d in need))}
     print(f"[13f] perf: {fetched} anchor fetches, "
           f"{len(live)} live quotes")
     return perf
@@ -1190,12 +1200,24 @@ def lambda_handler(event, context):
         return None
 
     enriched = 0
+    _mc_cache = get_s3_json(ANCHORS_KEY) or {}
     if FMP_KEY:
+        import time as _t2
         seen_t = [t for t in by_ticker
                   if t and t.isalpha() and len(t) <= 6][:600]
+        mc_budget = 200          # ops 3280: cached 7d, refresh slice
         for tk in seen_t:
-            mc = _mcap(tk)
-            time.sleep(0.12)
+            ce = (_mc_cache.get(tk) or {}).get("_mc") or {}
+            if ce.get("v") and _t2.time() - float(ce.get("at") or 0)                     < 7 * 86400:
+                mc = float(ce["v"])
+            else:
+                if mc_budget <= 0:
+                    continue
+                mc_budget -= 1
+                mc = _mcap(tk)
+                time.sleep(0.12)
+                if mc is not None:
+                    _mc_cache.setdefault(tk, {})["_mc"] =                         {"v": mc, "at": _t2.time()}
             if mc is None:
                 continue
             tier = ("MICRO" if mc < 3e8 else "SMALL" if mc < 2e9
@@ -1203,6 +1225,12 @@ def lambda_handler(event, context):
             by_ticker[tk]["market_cap"] = mc
             by_ticker[tk]["cap_tier"] = tier
             enriched += 1
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=ANCHORS_KEY,
+                      Body=json.dumps(_mc_cache),
+                      ContentType="application/json")
+    except Exception:
+        pass
     print(f"[13f] mcap enriched: {enriched}")
 
     # Step 5: rankings
