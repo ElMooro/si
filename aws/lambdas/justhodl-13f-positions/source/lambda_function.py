@@ -1296,12 +1296,17 @@ def lambda_handler(event, context):
                         if x.get("value_usd") else \
                         -(x.get("prior_value") or 0)
                     s_ += -dv
-                a2 = by_ticker.get(x.get("ticker")) or {}
-                if a2:                                   # ops 3295
+                _k95 = (x.get("ticker")
+                        or (x.get("cusip") or "?")[:9])   # ops 3295b:
+                a95 = by_ticker.get(_k95)  # cusip-keyed rows count too
+                if a95 is not None:
                     if sign > 0:
-                        a2["bought_usd"] = a2.get("bought_usd", 0) + dv
+                        a95["bought_usd"] = \
+                            a95.get("bought_usd", 0) + dv
                     else:
-                        a2["sold_usd"] = a2.get("sold_usd", 0) + (-dv)
+                        a95["sold_usd"] = \
+                            a95.get("sold_usd", 0) + (-dv)
+                a2 = by_ticker.get(x.get("ticker")) or {}
                 t2 = a2.get("cap_tier")
                 if t2 in ("MICRO", "SMALL", "MID"):
                     f_smid += dv

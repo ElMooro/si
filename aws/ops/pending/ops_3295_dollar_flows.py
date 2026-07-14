@@ -94,10 +94,10 @@ with report("3295_dollar_flows") as rep:
                headline_sold=fs.get("total_sell_usd"))
         hb, hs = fs.get("total_buy_usd") or 1, \
             fs.get("total_sell_usd") or 1
-        if abs(tot_b - hb) / hb > 0.12:
+        if abs(tot_b - hb) / hb > 0.05:
             fails.append("bought reconciliation off %.1f%%"
                          % (100 * abs(tot_b - hb) / hb))
-        if abs(tot_s - hs) / hs > 0.12:
+        if abs(tot_s - hs) / hs > 0.05:
             fails.append("sold reconciliation off %.1f%%"
                          % (100 * abs(tot_s - hs) / hs))
         if len(mb) < 15 or len(ms) < 15:
