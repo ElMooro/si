@@ -994,7 +994,37 @@ def build_dilution(ticker, raw, income_annual, income_quarterly,
     bb_yield = (round(100.0 * net_bb / mcap, 2)
                 if net_bb is not None and mcap else None)
 
-    key = c1 if c1 is not None else c3
+    # ops 3300 — BMNR-class bug: grading only FY *weighted-average* shares
+    # lags an in-progress explosion that the quarterly series (which the
+    # page charts) and the live float already show — badge said STABLE
+    # while the chart went vertical. Grade on the WORST of several looks.
+    q_shares = q.get("sharesOutstanding")
+    sigs = {}
+    if c1 is not None:
+        sigs["fy_1y"] = c1
+    if len(qtr) >= 5 and qtr[-5][1]:
+        sigs["qtr_yoy"] = round((qtr[-1][1] / qtr[-5][1] - 1) * 100, 1)
+    if len(qtr) >= 3 and qtr[-3][1]:
+        try:
+            sigs["qtr_6m_ann"] = round(
+                ((qtr[-1][1] / qtr[-3][1]) ** 2 - 1) * 100, 1)
+        except Exception:
+            pass
+    if q_shares and ann and ann[-1][1]:
+        lvf = round((q_shares / ann[-1][1] - 1) * 100, 1)
+        # include only when statements corroborate the direction (filters
+        # split-restatement + share-class artifacts) or no qtr data exists
+        if (not qtr) or any(sigs.get(k, 0) > 10
+                            for k in ("qtr_yoy", "qtr_6m_ann")):
+            sigs["live_vs_fy"] = lvf
+    if sigs:
+        key = max(sigs.values())
+        key_source = max(sigs, key=sigs.get)
+        if key <= 2 and all(v <= 2 for v in sigs.values()):
+            key = min(sigs.values())
+            key_source = min(sigs, key=sigs.get)
+    else:
+        key, key_source = None, None
     if key is None:
         verdict = "UNKNOWN"
     elif key <= -2:
@@ -1035,7 +1065,11 @@ def build_dilution(ticker, raw, income_annual, income_quarterly,
         "UNKNOWN": "Insufficient share-count history to grade."}
     return {"verdict": verdict,
         "risk_flag": bool(verdict in ("HEAVY_DILUTION", "DEATH_SPIRAL")
-                          or (c1 is not None and c1 >= 15)),
+                          or (c1 is not None and c1 >= 15)
+                          or (key is not None and key >= 15)),
+        "dilution_key_pct": key, "dilution_key_source": key_source,
+        "sh_qtr_yoy_pct": sigs.get("qtr_yoy"),
+        "live_float_vs_fy_pct": sigs.get("live_vs_fy"),
         "ten_year_multiple": (round(ann[-11:][-1][1] / ann[-11:][0][1], 2)
                               if len(ann) >= 2 and ann[-11:][0][1]
                               else None),
