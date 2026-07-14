@@ -82,6 +82,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
       <a href="/directory.html">directory</a>
     </nav>
   </header>
+  <div id="jhk-best"></div>
   <div id="root"><div class="fail">loading allocator output&hellip;</div></div>
 </div>
 <script>
@@ -235,5 +236,27 @@ window.addEventListener("resize",()=>{if(chart)chart.resize();});
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<script>
+/* ops 3287 — BEST ASSET NOW hero (additive) */
+(function(){
+ fetch(URL_BASE+"data/master-allocation.json?cb2="+Date.now()).then(r=>r.json()).then(d=>{
+  const b=d.best_asset, el=document.getElementById('jhk-best'); if(!el) return;
+  if(!b||b.error||!b.winner){el.innerHTML='';return;}
+  const ov=(b.risk_override||{}).active;
+  const win=b.winner, cash=win.asset==='CASH';
+  const col= ov?'#ff9f43':(cash?'#ffd166':'#00d4ff');
+  let chips=(b.top3||[]).map((r,i)=>'<span style="font-family:monospace;font-size:12px;padding:4px 10px;border-radius:16px;border:1px solid #2a3348;background:#121927;color:#cdd9ee;margin-right:8px">'+(i+1)+'. '+r.asset+' <span style="color:#7f92b0">'+ (r.score==null?'':r.score.toFixed(1)) +'</span></span>').join('');
+  el.innerHTML='<div style="max-width:1180px;margin:14px auto 6px;padding:0 20px"><div style="background:linear-gradient(135deg,#0e1522,#101a2c);border:1px solid '+col+'55;border-left:5px solid '+col+';border-radius:12px;padding:16px 18px">'
+   +'<div style="font-family:monospace;font-size:11px;letter-spacing:2px;color:'+col+'">BEST ASSET NOW'+(ov?' · RISK OVERRIDE ACTIVE':'')+'</div>'
+   +'<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-top:6px"><span style="font-size:30px;font-weight:800;color:#eaf1ff">'+win.asset+'</span><span style="color:#9fb0c9;font-size:14px">'+win.label+'</span><span style="font-family:monospace;color:'+col+'">score '+(win.score==null?'—':win.score.toFixed(1))+'</span><span style="font-family:monospace;font-size:11.5px;color:#7f92b0">cash hurdle '+(b.cash_hurdle_score==null?'—':b.cash_hurdle_score.toFixed(1))+'</span></div>'
+   +'<div style="font-size:12.5px;color:#c7d3e8;margin-top:8px">'+win.why+'</div>'
+   +(ov?'<div style="font-size:12px;color:#ffbe7a;margin-top:6px">Override: '+ (b.risk_override.reasons||[]).join(' · ') +'</div>':'')
+   +'<div style="margin-top:10px">'+chips+'</div>'
+   +'<div style="font-size:11px;color:#66788f;margin-top:10px">'+(b.methodology||'')+'</div>'
+   +'</div></div>';
+ }).catch(()=>{});
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comeback Desk — JustHodl.AI</title>
+<meta name="description" content="Crashed-then-recovering stocks, dilution-guarded. Early turns, confirmed trend reclaims, moonshots off the lows, and the dilution traps to avoid.">
+<style>
+:root{--bg:#0a0e14;--panel:#101724;--line:#1c2433;--fg:#eaf1ff;--fg2:#9fb0c9;--fg3:#66788f;--acc:#00d4ff;--grn:#3ddc84;--yel:#ffd166;--org:#ff9f43;--red:#ff5c5c;--mono:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+h1{font-size:22px;margin:6px 0 4px}
+.sub{color:var(--fg2);font-size:13px;margin:0 0 18px}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--acc);margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+#stats{font-family:var(--mono);font-size:12px;color:var(--fg3);margin:6px 0 2px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--fg3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid #141b29;vertical-align:top}
+tr:hover td{background:#0e1522}
+.t{font-family:var(--mono);font-weight:700;color:var(--fg)}
+.co{color:var(--fg3);font-size:11px}
+.grn{color:var(--grn)}.yel{color:var(--yel)}.org{color:var(--org)}.red{color:var(--red)}
+.mono{font-family:var(--mono)}
+.score{font-family:var(--mono);font-weight:700}
+.read{color:var(--fg2);font-size:11.5px;max-width:460px}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid var(--line)}
+.meth{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:var(--fg2);font-size:12.5px}
+.loading{color:var(--fg3);font-family:var(--mono);font-size:12px;padding:14px 0}
+a{color:var(--acc)}
+@media(max-width:700px){.read{max-width:none}.hidem{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔥 Comeback Desk</h1>
+  <p class="sub">Crashed, now recovering, with room left — the American-Eagle penny-to-70¢ class. Every name is dilution-guarded: a rally paid for with exploding share count (the BMNR pattern) gets quarantined, not recommended.</p>
+  <div id="stats" class="loading">loading screener…</div>
+
+  <h2>Confirmed Comebacks — trend reclaimed (&gt;SMA200)</h2>
+  <div id="b-confirmed"><div class="loading">…</div></div>
+
+  <h2>Early Turns — off the floor, trend not yet reclaimed</h2>
+  <div id="b-early"><div class="loading">…</div></div>
+
+  <h2>Moonshots — ≥+300% off the low, still deep below the high</h2>
+  <div id="b-moon"><div class="loading">…</div></div>
+
+  <h2 class="red" style="color:var(--red);border-color:#3a1c22">⚠ Dilution Traps — price recovering, ownership evaporating</h2>
+  <div id="b-traps"><div class="loading">…</div></div>
+
+  <h2>Methodology</h2>
+  <div class="meth" id="meth">…</div>
+</div>
+
+<script>
+const URL_='https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/comeback-screener.json';
+function fp(x,pl){return x==null?'—':((pl&&x>0?'+':'')+Math.round(x)+'%')}
+function mc(x){return x==null?'—':(x>=1e9?'$'+(x/1e9).toFixed(1)+'B':x>=1e6?'$'+(x/1e6).toFixed(0)+'M':'$'+Math.round(x).toLocaleString())}
+function tbl(rows,trap){
+ if(!rows||!rows.length)return '<div class="loading">no names in this tier today</div>';
+ let h='<table><tr><th>Ticker</th><th class="hidem">Sector</th><th>Price</th><th>Off low</th><th>Below high</th><th class="hidem">Mkt cap</th><th>Shares Δ/yr</th><th>Score</th><th class="hidem">Read</th></tr>';
+ for(const c of rows){
+  const shc=c.sh_1y_cagr_pct;
+  const shCls=shc==null?'':(shc<=2?'grn':shc<=10?'yel':shc<=40?'org':'red');
+  h+='<tr><td><span class="t">'+c.ticker+'</span><div class="co">'+(c.company||'')+'</div></td>'
+   +'<td class="hidem co">'+(c.sector||'')+'</td>'
+   +'<td class="mono">$'+c.price+'</td>'
+   +'<td class="mono grn">'+fp(c.off_low_pct,true)+'</td>'
+   +'<td class="mono org">'+fp(c.below_high_pct)+'</td>'
+   +'<td class="mono hidem">'+mc(c.market_cap)+'</td>'
+   +'<td class="mono '+shCls+'">'+(shc==null?'—':fp(shc,true))+'</td>'
+   +'<td class="score '+(trap?'red':'')+'">'+c.comeback_score+'</td>'
+   +'<td class="read hidem">'+ (c.read||'') +'</td></tr>';
+ }
+ return h+'</table>';
+}
+(async function(){
+ let d=null;try{const r=await fetch(URL_+'?cb='+Date.now());if(r.ok)d=await r.json();}catch(e){}
+ if(!d){document.getElementById('stats').textContent='screener output not live yet — first run pending';return;}
+ const b=d.boards||{};
+ document.getElementById('stats').textContent='universe '+ (d.universe_n||0).toLocaleString() +' names · '+(d.candidates_n||0)+' comeback candidates · as of '+(d.as_of||'').slice(0,16).replace('T',' ')+' UTC';
+ document.getElementById('b-confirmed').innerHTML=tbl(b.confirmed);
+ document.getElementById('b-early').innerHTML=tbl(b.early_turn);
+ document.getElementById('b-moon').innerHTML=tbl(b.moonshots);
+ document.getElementById('b-traps').innerHTML=tbl(b.dilution_traps,true);
+ document.getElementById('meth').textContent=d.methodology||'';
+})();
+</script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
+<script src="/jh-footer.js" defer></script>
+</body>
+</html>

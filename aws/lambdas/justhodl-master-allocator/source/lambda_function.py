@@ -549,6 +549,133 @@ def compass_bridge(tilts, contributions):
 
 
 
+
+
+# ═══ BEST ASSET NOW (ops 3287) — Khalid: "somewhere in my system it
+# should show the best asset to invest in, and sometimes it can just be
+# the dollar or a money-market fund and that should be fine." Dual
+# momentum (Antonacci) with an EXPLICIT T-bill hurdle: every risk asset
+# must beat cash over 12-1m or CASH outranks it, plus a risk-regime
+# override (crisis composite / GSI / us10y-sentinel RED+) that
+# restricts the podium to CASH / USD / GOLD / short-duration. Failure-
+# isolated like compass_bridge. Real prices only (Yahoo v8 daily). ═══
+_BA_UNIV = [("SPY", "US Stocks"), ("QQQ", "US Tech"),
+            ("IWM", "US Small Cap"), ("EFA", "Intl Developed"),
+            ("EEM", "Emerging Mkts"), ("TLT", "Long Treasuries"),
+            ("IEF", "7-10y Treasuries"), ("GLD", "Gold"),
+            ("SLV", "Silver"), ("DBC", "Commodities"),
+            ("UUP", "US Dollar"), ("BTC-USD", "Bitcoin")]
+_BA_DEFENSIVE = {"CASH", "UUP", "GLD", "IEF"}
+
+
+def _ba_closes(sym):
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+           + urllib.parse.quote(sym) + "?range=13mo&interval=1d")
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "Mozilla/5.0 (jh-allocator)"})
+    j = json.loads(urllib.request.urlopen(req, timeout=20).read())
+    cl = j["chart"]["result"][0]["indicators"]["quote"][0]["close"]
+    return [c for c in cl if c is not None]
+
+
+def _ba_mom(px):
+    if len(px) < 220:
+        return None
+    r12_1 = px[-21] / px[-min(len(px), 252)] - 1
+    r6 = px[-1] / px[-126] - 1
+    r3 = px[-1] / px[-63] - 1
+    return {"r12_1": r12_1, "r6": r6, "r3": r3,
+            "score": round(100 * (.5 * r12_1 + .3 * r6 + .2 * r3), 2)}
+
+
+def _ba_s3json(key):
+    try:
+        return json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {}
+
+
+def _best_asset_now():
+    rows = []
+    for sym, label in _BA_UNIV:
+        try:
+            m = _ba_mom(_ba_closes(sym))
+            if m:
+                rows.append(dict(asset=sym, label=label, **m))
+        except Exception as e:
+            print("best_asset %s: %s" % (sym, e))
+        time.sleep(0.12)
+    hurdle = None
+    try:
+        hurdle = _ba_mom(_ba_closes("BIL"))
+    except Exception:
+        pass
+    hscore = hurdle["score"] if hurdle else 4.0
+    rows.append({"asset": "CASH",
+                 "label": "Cash / T-Bills (BIL·money market)",
+                 "r12_1": (hurdle or {}).get("r12_1"),
+                 "r6": (hurdle or {}).get("r6"),
+                 "r3": (hurdle or {}).get("r3"), "score": hscore})
+    for r in rows:
+        r["beats_cash"] = bool(r["asset"] == "CASH"
+                               or r["score"] > hscore)
+
+    reasons = []
+    sent = _ba_s3json("data/us10y-sentinel.json")
+    if sent.get("tier") in ("RED", "CRITICAL"):
+        reasons.append("us10y-sentinel %s (%s)" % (
+            sent.get("tier"),
+            str(sent.get("tier_reason", ""))[:90]))
+    cc = _ba_s3json("data/crisis-composite.json")
+    for k in ("composite", "score", "level"):
+        v = cc.get(k)
+        if isinstance(v, (int, float)) and v >= 70:
+            reasons.append("crisis-composite %s=%.0f" % (k, v))
+            break
+    gsi = _ba_s3json("data/global-stress.json")
+    for k in ("gsi", "score", "composite"):
+        v = gsi.get(k)
+        if isinstance(v, (int, float)) and v >= 70:
+            reasons.append("global-stress %s=%.0f" % (k, v))
+            break
+    override = bool(reasons)
+
+    pool = [r for r in rows if r["beats_cash"]]
+    if override:
+        pool = [r for r in rows if r["asset"] in _BA_DEFENSIVE]
+    if not pool:
+        pool = [r for r in rows if r["asset"] == "CASH"]
+    pool.sort(key=lambda r: -(r["score"] if r["score"] is not None
+                              else -999))
+    ranked = sorted(rows, key=lambda r: -(r["score"] or -999))
+    win = pool[0]
+    why = ("Highest blended momentum (50/30/20 of 12-1m/6m/3m) among "
+           "assets clearing the T-bill hurdle."
+           if not override else
+           "Risk override active (%s) — podium restricted to cash/"
+           "USD/gold/short-duration; capital preservation IS the "
+           "trade." % "; ".join(reasons))
+    if win["asset"] == "CASH" and not override:
+        why = ("No risk asset beats the T-bill hurdle over 12-1m — "
+               "dual momentum says sit in cash and get paid to wait.")
+    return {"winner": {"asset": win["asset"], "label": win["label"],
+                       "score": win["score"], "why": why},
+            "top3": [{"asset": r["asset"], "label": r["label"],
+                      "score": r["score"]} for r in pool[:3]],
+            "ranked": ranked,
+            "cash_hurdle_score": hscore,
+            "risk_override": {"active": override, "reasons": reasons},
+            "methodology": (
+                "Dual momentum with explicit cash hurdle: blended "
+                "12-1m/6m/3m total-return momentum per asset class; a "
+                "risk asset is only eligible if it beats the same "
+                "blend on T-bills (BIL). Crisis-composite / GSI ≥70 "
+                "or us10y-sentinel RED+ overrides the podium to "
+                "defensive assets. Cash and the dollar are first-"
+                "class answers, not fallbacks.")}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
 
@@ -664,6 +791,14 @@ def lambda_handler(event, context):
             int(MAX_ACTIVE_BPS)),
         "duration_s": round(time.time() - t0, 1),
     }
+
+    # BEST ASSET NOW (ops 3287) — failure-isolated
+    try:
+        report["best_asset"] = _best_asset_now()
+        print("best_asset winner: %s" %
+              report["best_asset"]["winner"]["asset"])
+    except Exception as _e:
+        report["best_asset"] = {"error": str(_e)[:140]}
 
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(report,

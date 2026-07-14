@@ -944,6 +944,109 @@ def build_industry_compass(raw, income_annual, cashflow_annual):
                      "asset-compass engine. No LLM used in this module.")}
 
 
+
+
+def build_dilution(ticker, raw, income_annual, income_quarterly,
+                   cashflow_annual):
+    """Pillar 6 — Share Count & Dilution (ops 3289). Khalid: total
+    outstanding shares must be a MAIN pillar; BMNR dumped nonstop in
+    2025 because its share count went ballistic. Computed for ANY
+    symbol from the already-fetched statements (no extra API cost),
+    enriched with the share-flows fleet map when the name is covered.
+    """
+    def _shs(r):
+        return (r.get("weightedAverageShsOutDil")
+                or r.get("weightedAverageShsOut"))
+
+    ann = sorted([(r.get("date"), _shs(r))
+                  for r in (income_annual or []) if _shs(r)])[-12:]
+    qtr = sorted([(r.get("date"), _shs(r))
+                  for r in (income_quarterly or []) if _shs(r)])[-8:]
+
+    def _cagr(series, yrs):
+        if len(series) <= yrs:
+            return None
+        a, b = series[-1 - yrs][1], series[-1][1]
+        if not a or not b or a <= 0:
+            return None
+        try:
+            return round(((b / a) ** (1.0 / yrs) - 1) * 100, 1)
+        except Exception:
+            return None
+
+    c1 = _cagr(ann, 1)
+    if c1 is None and len(qtr) >= 5 and qtr[-5][1]:
+        c1 = round((qtr[-1][1] / qtr[-5][1] - 1) * 100, 1)
+    c3, c5 = _cagr(ann, 3), _cagr(ann, 5)
+
+    cf0 = (cashflow_annual or [{}])[0] or {}
+    sbc = cf0.get("stockBasedCompensation")
+    rep = cf0.get("commonStockRepurchased") or 0
+    iss = cf0.get("commonStockIssued") or 0
+    net_bb = round(-(rep) - iss) if (rep or iss) else None
+    inc0 = (income_annual or [{}])[0] or {}
+    rev = inc0.get("revenue")
+    sbc_pct_rev = round(100.0 * sbc / rev, 1) if sbc and rev else None
+    q = raw.get("quote") or {}
+    if isinstance(q, list):
+        q = q[0] if q else {}
+    mcap = q.get("marketCap")
+    bb_yield = (round(100.0 * net_bb / mcap, 2)
+                if net_bb is not None and mcap else None)
+
+    key = c1 if c1 is not None else c3
+    if key is None:
+        verdict = "UNKNOWN"
+    elif key <= -2:
+        verdict = "SHRINKING"
+    elif key <= 2:
+        verdict = "STABLE"
+    elif key <= 10:
+        verdict = "DILUTING"
+    elif key <= 40:
+        verdict = "HEAVY_DILUTION"
+    else:
+        verdict = "DEATH_SPIRAL"
+
+    flags = None
+    try:
+        sfd = json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/share-flows.json")["Body"].read())
+        row = (sfd.get("tickers") or {}).get(ticker) or {}
+        flags = row.get("flags") or row.get("forensic_flags")
+    except Exception:
+        pass
+
+    reads = {
+        "SHRINKING": "Share count is FALLING — every share you own "
+                     "buys a growing slice. Buyback tailwind.",
+        "STABLE": "Share count roughly flat — dilution is not a "
+                  "factor in this name.",
+        "DILUTING": "Mild but steady dilution — earnings must outgrow "
+                    "the share count for holders to win.",
+        "HEAVY_DILUTION": "Heavy issuance — per-share value is being "
+                          "carved up fast. Treat rallies with "
+                          "suspicion until issuance stops.",
+        "DEATH_SPIRAL": "Share count is going BALLISTIC (BMNR "
+                        "pattern) — issuance this extreme routinely "
+                        "overwhelms any operating story. This is why "
+                        "such stocks dump nonstop.",
+        "UNKNOWN": "Insufficient share-count history to grade."}
+    return {"verdict": verdict,
+            "sh_1y_cagr_pct": c1, "sh_3y_cagr_pct": c3,
+            "sh_5y_cagr_pct": c5,
+            "latest_shares": (ann[-1][1] if ann else
+                              (qtr[-1][1] if qtr else None)),
+            "sbc_ttm": sbc, "sbc_pct_rev": sbc_pct_rev,
+            "net_buyback_ttm_usd": net_bb,
+            "net_buyback_yield_pct": bb_yield,
+            "annual_series": [{"d": d, "sh": v} for d, v in ann],
+            "quarterly_series": [{"d": d, "sh": v} for d, v in qtr],
+            "share_flows_flags": flags,
+            "read": reads[verdict]}
+
+
 def build_v2_institutional(ticker, raw, income_annual, income_quarterly, balance_annual, cashflow_annual):
     out = {}
     for name, fn in (("technicals", lambda: build_technicals(raw)),
@@ -952,7 +1055,8 @@ def build_v2_institutional(ticker, raw, income_annual, income_quarterly, balance
                      ("growth_vs_mcap", lambda: build_growth_vs_mcap(raw, income_annual, cashflow_annual)),
                      ("quant_risk", lambda: build_quant_risk(raw, income_annual, cashflow_annual)),
                      ("industry_compass", lambda: build_industry_compass(raw, income_annual, cashflow_annual)),
-                     ("backlog", lambda: read_backlog_join(ticker))):
+                     ("backlog", lambda: read_backlog_join(ticker)),
+                     ("dilution", lambda: build_dilution(ticker, raw, income_annual, income_quarterly, cashflow_annual))):
         try:
             out[name] = fn()
         except Exception as e:
@@ -3031,13 +3135,14 @@ def lambda_handler(event, context):
 
     # ── Assemble final document
     document = {
-        "schema_version": "2.2",  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
+        "schema_version": "2.3",  # v2.3: + dilution Pillar 6 (ops 3289);  # v2.2: + earnings_vol_edge (#6 realized-vs-implied + PEAD); v2.1: + industry_compass (Finviz industry join, stock GK ER, laggard-catchup, rate sensitivity)
         "technicals":         v2.get("technicals"),
         "liquidity_solvency": v2.get("liquidity"),
         "growth_vs_mcap":     v2.get("growth_vs_mcap"),
         "quant_risk":         v2.get("quant_risk"),
         "industry_compass":   v2.get("industry_compass"),
         "backlog":            v2.get("backlog"),
+        "dilution":           v2.get("dilution"),  # ops 3289 Pillar 6
         "ticker":         ticker,
         "khalid_notes":   khalid_notes_block(ticker),  # ops 3259
         "generated_at":   datetime.now(timezone.utc).isoformat(),

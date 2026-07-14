@@ -71,6 +71,9 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 
   <div id="hero"><div class="loading">LOADING CURVE…</div></div>
 
+  <h2>US 10-Year — 5% Red-Flag Sentinel</h2>
+  <div id="us10y-sentinel"><div class="loading">ARMING SENTINEL…</div></div>
+
   <div id="ai-decisive-call" style="margin:18px 0"></div>
   <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","yield-curve-decisive-call");</script>
 
@@ -404,5 +407,33 @@ function synthesize(d,ref){
 </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+
+<script>
+/* ops 3286 — US10Y 5% red-flag sentinel strip (additive) */
+(async function(){
+ const el=document.getElementById('us10y-sentinel'); if(!el) return;
+ let d=null; try{const r=await fetch('https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/us10y-sentinel.json?cb='+Date.now()); if(r.ok) d=await r.json();}catch(e){}
+ if(!d||d.level==null){el.innerHTML='<div class="loading">sentinel arming — first run pending</div>';return;}
+ const C={BENIGN:'#3ddc84',WATCH:'#9acd32',ELEVATED:'#ffd166',HIGH:'#ff9f43',RED:'#ff5c5c',CRITICAL:'#ff2d2d'};
+ const col=C[d.tier]||'#8899aa';
+ const v=d.velocity||{}; const ep=d.episode_study||{};
+ const e475=ep['cross_4.75']||{}, e500=ep['cross_5.00']||{};
+ const h=(d.history_260d||[]); let spark='';
+ if(h.length>10){const vs=h.map(x=>x.v),mn=Math.min(...vs),mx=Math.max(...vs),W=560,H=54;
+  const pts=vs.map((x,i)=>((i/(vs.length-1))*W).toFixed(1)+','+((H-4)-((x-mn)/(mx-mn||1))*(H-8)).toFixed(1)).join(' ');
+  const y5=(mx>=5&&mn<=5)?((H-4)-((5-mn)/(mx-mn||1))*(H-8)):null;
+  spark='<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="display:block;margin-top:8px">'
+   +(y5!=null?'<line x1="0" y1="'+y5.toFixed(1)+'" x2="'+W+'" y2="'+y5.toFixed(1)+'" stroke="#ff2d2d" stroke-dasharray="4 4" stroke-width="1"/>':'')
+   +'<polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.6"/></svg>';}
+ el.innerHTML='<div style="background:rgba(255,255,255,.02);border:1px solid '+col+'55;border-left:4px solid '+col+';border-radius:10px;padding:14px 16px">'
+  +'<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:baseline">'
+  +'<span style="font-family:monospace;font-size:30px;font-weight:700;color:'+col+'">'+d.level.toFixed(2)+'%</span>'
+  +'<span style="font-family:monospace;font-size:12px;letter-spacing:1.5px;padding:3px 10px;border-radius:20px;background:'+col+'22;color:'+col+';border:1px solid '+col+'66">'+d.tier+'</span>'
+  +'<span style="font-family:monospace;font-size:12px;color:#9fb0c9">'+Math.round(d.distance_to_5pct_bps)+'bps from the 5% line · Δ60d '+(v.d60_bps>0?'+':'')+(v.d60_bps==null?'—':Math.round(v.d60_bps))+'bps · real 10y '+(d.real_10y==null?'—':d.real_10y+'%')+' · pct-rank since 1990: '+Math.round(d.pct_rank_since_1990)+'</span></div>'
+  +'<div style="font-size:12.5px;color:#c7d3e8;margin-top:8px">'+(d.tier_reason||'')+(d.yields_driving_stocks?' <b style="color:#ff9f43">— 60d correlation confirms yields are driving stocks.</b>':'')+'</div>'
+  +'<div style="font-family:monospace;font-size:11.5px;color:#8fa2bd;margin-top:8px">History (first upward crosses since 1962): <b>4.75%</b> — '+(e475.n||0)+' episodes, median SPX 3m '+(e475.median_spx_3m==null?'n/a':e475.median_spx_3m+'%')+', negative-3m hit rate '+(e475.neg_3m_hit_rate_pct==null?'n/a':e475.neg_3m_hit_rate_pct+'%')+' · <b>5.00%</b> — '+(e500.n||0)+' episodes, median SPX 3m '+(e500.median_spx_3m==null?'n/a':e500.median_spx_3m+'%')+'</div>'
+  +spark+'</div>';
+})();
+</script>
 </body>
 </html>
