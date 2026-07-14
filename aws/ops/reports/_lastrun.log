@@ -1,14 +1,8 @@
-executing-against: 3fd155a3a5f0111e299e2171481dbc81d2c864ce
-[03:32:50]   zip: 77637 bytes
+executing-against: 185d40bdc4be9c28fd94810871ddb43f1fe0d47a
+[03:39:00]   zip: 77229 bytes
 ── 1. Lambda ──
-[03:32:50]   Lambda exists — updating
-[03:32:56] ✅   ✓ updated justhodl-us10y-sentinel
-[03:32:56]   zip: 77008 bytes
-── 1. Lambda ──
-[03:32:56]   Lambda exists — updating
-[03:33:01] ✅   ✓ updated justhodl-comeback-screener
-── 2. Sentinel re-run + truth bands ──
-── 3. Comeback re-run + truth bands ──
-[03:33:26] OPS 3290 PASS — sentinel reads the true 10Y; comeback funnel flowing.
+[03:39:01]   Lambda exists — updating
+[03:39:04] ✅   ✓ updated justhodl-comeback-screener
+[03:39:33] OPS 3291 PASS — full liquid market now flows the funnel.
 
-→ Report written to aws/ops/reports/latest/3290_fixforward.md
+→ Report written to aws/ops/reports/latest/3291_liquidity_funnel.md
