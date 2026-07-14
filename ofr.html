@@ -1726,9 +1726,13 @@
     var cp=fsi.components||{};[["credit","Credit"],["equity_valuation","Equity valuation"],["funding","Funding"],["safe_assets","Safe assets"],["volatility","Volatility"]].forEach(function(kk){if(cp[kk[0]]!=null)ft+=tile(kk[1]+" component",cp[kk[0]].toFixed(3),cp[kk[0]]>0?"contributing stress":"below normal");});
     document.getElementById("stfmFsiTiles").innerHTML=ft;}
    drawLine("stfmFsiChart",packRows(S.FSI),{zero:true,color:"#00d4ff",label:"OFR FSI"});
-   var fd=packRows(S["NYPD-PD_AFtD_TOT-A"]).map(function(r){return [r[0],r[1]/1e9];}),fr=packRows(S["NYPD-PD_AFtR_TOT-A"]).map(function(r){return [r[0],r[1]/1e9];});
-   if(fd.length){drawLine("stfmFailsChart",fd,{color:"#ff5c5c",label:"FtD $B",series:[{rows:fd,color:"#ff5c5c"},{rows:fr,color:"#ffb13d"}]});
-    document.getElementById("stfmFailsNote").textContent="Fails to deliver (red) vs fails to receive (amber), all classes, $B · weekly since "+(fd[0]?fd[0][0]:"1990")+" — the 2008 print dwarfs everything since.";}
+   var ust=SF&&SF.classes?SF.classes.filter(function(c){return c.key==="ust_ex_tips";})[0]:null;
+   var deep=(ust&&ust.deep)?ust.deep:null;
+   var fd=packRows(S["NYPD-PD_AFtD_TOT-A"]).map(function(r){return [r[0],r[1]/1e9];});
+   if(deep&&deep.length){drawLine("stfmFailsChart",deep,{color:"#ff5c5c",label:"UST fails $B",series:[{rows:deep,color:"#ff5c5c"}].concat(fd.length?[{rows:fd,color:"#ffb13d"}]:[])});
+    document.getElementById("stfmFailsNote").textContent="Treasury (ex-TIPS) combined fails $B, monthly-sampled full NY Fed history since "+deep[0][0]+" (red) · OFR all-class total since 2015 (amber). Data floor = where the Fed series begins.";}
+   else if(fd.length){drawLine("stfmFailsChart",fd,{color:"#ff5c5c",label:"FtD $B"});
+    document.getElementById("stfmFailsNote").textContent="All-class fails $B · OFR mirror since "+fd[0][0]+".";}
    function volRows(v){var k=Object.keys(S).filter(function(m){return m.indexOf("REPO-"+v+"_TV")===0;})[0];return k?packRows(S[k]).map(function(r){return [r[0],r[1]/1e12];}):[];}
    var dv=volRows("DVP"),tr=volRows("TRI"),gc=volRows("GCF");
    if(dv.length)drawLine("stfmVenChart",dv,{color:"#00d4ff",label:"repo $T",series:[{rows:dv,color:"#00d4ff"},{rows:tr,color:"#3ddc84"},{rows:gc,color:"#ffb13d"}]});

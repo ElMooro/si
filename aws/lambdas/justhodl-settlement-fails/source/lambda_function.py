@@ -109,8 +109,15 @@ def lambda_handler(event=None, context=None):
             ftd_all.append(ftd)
         if ftr:
             ftr_all.append(ftr)
+        deep, seen = [], set()
+        for d, v in comb or ftd:
+            mk = d[:7]
+            if mk not in seen:
+                deep.append([d, v])
+                seen.add(mk)
         classes.append({
             "key": key, "label": label,
+            "deep": deep, "deep_start": (deep[0][0] if deep else None),
             "ftd": ftd[-720:], "ftr": ftr[-720:], "combined": comb[-720:],
             "ftd_latest": (ftd[-1][1] if ftd else None),
             "ftr_latest": (ftr[-1][1] if ftr else None),

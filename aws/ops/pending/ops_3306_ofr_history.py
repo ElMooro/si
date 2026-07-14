@@ -1,4 +1,4 @@
-"""ops 3306 (rerun c) — OFR HISTORY LAYER (Khalid: every series charted vs history,
+"""ops 3306 (rerun d) — OFR HISTORY LAYER (Khalid: every series charted vs history,
 from 1990 where the source reaches).
 [1] ofr-stfm v1.3: OFR Financial Stress Index CSV — FULL history since
     2000 + 5 components (credit/equity/funding/safe/vol) into doc.fsi;
@@ -111,11 +111,55 @@ with report("3306_ofr_history") as rep:
                                         if k.startswith("FSI_")))
     if (ch.get("n_series") or 0) < 150:
         fails.append("charts shard series %s < 150" % ch.get("n_series"))
-    if not fd_start or fd_start > "1996-01-01":
-        fails.append("fails history start %s (expected early 1990s)"
+    if not fd_start or fd_start > "2015-06-01":
+        fails.append("OFR TOT fails chart start %s (source floor 2015-01)"
                      % fd_start)
     if len(fsi_all) < 400:
         fails.append("FSI chart pts %d < 400" % len(fsi_all))
+
+    rep.section("3a2. settlement-fails deep history (primary source)")
+    cfg2 = LAM.get_function_configuration(
+        FunctionName="justhodl-settlement-fails")
+    env2 = (cfg2.get("Environment") or {}).get("Variables") or {}
+    deploy_lambda(report=rep, function_name="justhodl-settlement-fails",
+                  source_dir=AWS_DIR / "lambdas"
+                  / "justhodl-settlement-fails" / "source",
+                  env_vars=env2, eb_rule_name=None, eb_schedule=None,
+                  timeout=int(cfg2.get("Timeout") or 300),
+                  memory=int(cfg2.get("MemorySize") or 512),
+                  description=str(cfg2.get("Description") or "")[:250],
+                  smoke=False)
+    m3 = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    LAM.invoke(FunctionName="justhodl-settlement-fails",
+               InvocationType="Event", Payload=b"{}")
+    sf = None
+    for _ in range(30):
+        time.sleep(8)
+        sf = s3_json("data/settlement-fails.json")
+        if sf and sf.get("generated_at", "") >= m3:
+            break
+    ust = next((c for c in ((sf or {}).get("classes") or [])
+                if c.get("key") == "ust_ex_tips"), {})
+    rep.kv(sf_deep_start=ust.get("deep_start"),
+           sf_deep_pts=len(ust.get("deep") or []))
+    try:
+        req = urllib.request.Request(
+            "https://markets.newyorkfed.org/api/pd/get/PDFTD-USTET.json",
+            headers={"User-Agent": "JustHodl raafouis@gmail.com"})
+        with urllib.request.urlopen(req, timeout=40) as r:
+            jj = json.loads(r.read())
+        ts = jj.get("pd", {}).get("timeseries", [])
+        rep.kv(nyfed_ustet_first=(ts[0].get("asofdate") if ts else None),
+               nyfed_ustet_n=len(ts))
+        nyfed_floor = ts[0].get("asofdate") if ts else None
+    except Exception as e:
+        rep.log("nyfed probe failed: %s" % str(e)[:120])
+        nyfed_floor = None
+    if not ust.get("deep"):
+        fails.append("settlement-fails deep series missing")
+    elif nyfed_floor and ust.get("deep_start", "9999") > nyfed_floor[:10]:
+        fails.append("deep_start %s later than source floor %s"
+                     % (ust.get("deep_start"), nyfed_floor))
 
     rep.section("3b. Runner-side probe: fails depth ground truth")
     for u in ("https://data.financialresearch.gov/v1/series/full"
