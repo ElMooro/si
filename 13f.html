@@ -1128,5 +1128,54 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
   });
 })();
 </script>
+
+<!-- ops 3294: CLONE-ALPHA — skilled money vs famous money (additive) -->
+<script>
+(function(){
+  var host=document.createElement('div');
+  host.id='jh-clone-alpha';
+  host.style.cssText='max-width:1180px;margin:26px auto 10px;padding:0 20px';
+  var mount=document.querySelector('footer')||document.body;
+  mount.parentNode?mount.parentNode.insertBefore(host,mount):document.body.appendChild(host);
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  fetch('/data/13f-clone-alpha.json?v='+Math.floor(Date.now()/36e5))
+   .then(function(r){return r.ok?r.json():null;})
+   .then(function(d){
+    if(!d){host.innerHTML='';return;}
+    var M=d.managers||{};
+    var rows=Object.keys(M).map(function(k){var m=M[k];m._k=k;return m;});
+    var scored=rows.filter(function(m){return m.skill_score!=null;})
+                   .sort(function(a,b){return b.skill_score-a.skill_score;});
+    var pending=rows.filter(function(m){return m.skill_score==null;});
+    var lc={'WORTH CLONING':'#3ddc84','SELECTIVE EDGE':'#ffd166','MARKET-LIKE':'#8fa0b8','FAMOUS \u2260 SKILLED':'#ff5c5c'};
+    var h='<div style="border:1px solid #26406a;border-radius:12px;background:linear-gradient(180deg,#0d1524,#0a0f1a);padding:16px 18px">'
+     +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:baseline">'
+     +'<span style="font:800 15px/1 monospace;letter-spacing:.08em;color:#e8f0ff">\ud83c\udfc6 CLONE-ALPHA \u2014 WHO\u2019S ACTUALLY WORTH FOLLOWING</span>'
+     +'<span style="font:600 10.5px monospace;color:#5d6b82">the return YOU could have earned copying each 13F after it filed \u00b7 vs SPY \u00b7 closed windows only</span>'
+     +(d.status==='CONVERGING'?'<span style="font:700 10px monospace;color:#ffd166;border:1px solid #ffd16655;border-radius:10px;padding:2px 8px">BACKFILLING \u2014 '+esc(d.pct_complete)+'% \u00b7 scores firm up as history lands</span>':'')
+     +'</div>';
+    if(!scored.length){
+      h+='<div style="font:600 11.5px monospace;color:#8fa0b8;margin-top:10px">Historical filings are being ingested \u2014 first skill scores appear automatically ('+esc(d.pct_complete)+'% done).</div>';
+    } else {
+      h+='<div style="margin-top:12px;display:grid;gap:7px">';
+      scored.forEach(function(m,i){
+        var col=lc[m.label]||'#8fa0b8';
+        h+='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0e1522;border:1px solid #1a2536;border-left:3px solid '+col+';border-radius:9px;padding:8px 12px">'
+         +'<span style="font:800 12px monospace;color:#5d6b82;width:22px">'+(i+1)+'</span>'
+         +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:150px">'+esc(m.name)+(m.hedge_book?' <span style="font:600 9px monospace;color:#8fa0b8">[hedge-book]</span>':'')+'</span>'
+         +'<span style="flex:1;min-width:120px;height:8px;background:#131c2c;border-radius:5px;overflow:hidden"><span style="display:block;height:100%;width:'+m.skill_score+'%;background:'+col+'"></span></span>'
+         +'<span style="font:800 13px monospace;color:'+col+';width:34px;text-align:right">'+m.skill_score+'</span>'
+         +'<span style="font:700 10px monospace;color:'+col+';border:1px solid '+col+'55;border-radius:10px;padding:2px 8px">'+esc(m.label)+'</span>'
+         +'<span style="font:600 11px monospace;color:#8fa0b8">\u03b1 '+(m.ann_alpha_pct>0?'+':'')+esc(m.ann_alpha_pct)+'%/yr \u00b7 hit '+Math.round(m.hit_rate*100)+'% \u00b7 IR '+esc(m.ir)+' \u00b7 '+esc(m.n_windows)+'q</span>'
+         +'</div>';
+      });
+      h+='</div>';
+      if(pending.length)h+='<div style="font:600 10px monospace;color:#5d6b82;margin-top:8px">Awaiting enough closed windows: '+pending.map(function(m){return esc(m.name);}).join(' \u00b7 ')+'</div>';
+    }
+    h+='<div style="font:500 10px monospace;color:#5d6b82;margin-top:10px;line-height:1.6">'+esc(d.method||'')+'</div></div>';
+    host.innerHTML=h;
+   }).catch(function(){});
+})();
+</script>
 </body>
 </html>
