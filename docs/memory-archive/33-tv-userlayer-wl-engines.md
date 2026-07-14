@@ -787,3 +787,21 @@ so no CF 403-caching residue possible.
   boards (top-10 entries, % of company owned via sharesOutstanding);
   D crowding/days-to-exit (ADV enrich); E sector rotation flows;
   F 13F × panels/GEX composite.
+
+## NET FLOW + RISK APPETITE (ops 3280, run in flight)
+
+- **Engine**: flow_summary (total buys = Σnew + Σadd-deltas; sells =
+  Σexit-priors + Σtrim-deltas; net, funds net-buying/selling, top
+  buyer/seller funds) + **risk_appetite composite** (cap-tier flow
+  30% + cyclical-vs-defensive sector flow 30% + put/call skew 25% +
+  add/exit breadth 15% → score −100..+100, verdict ±20). Enrichment
+  now profile-FIRST so sector rides along with mcap; option rows
+  guarded out of change lists (change="OPTION").
+- **Page**: banner ATOP (before KPI strip, additive): NET BUYING/
+  SELLING headline $ + buys/sells + fund counts + top buyers/sellers;
+  RISK dial with gradient pointer + 4 component chips + smid/large/
+  cyc/def nets + put/call rows.
+- **Run 29297065291 in flight** (v4 resumption + enrich, ~20min
+  budget): read aws/ops/reports/latest/3280_flow_risk.md next
+  session — expect net$, score/verdict, components, first PUT rows
+  (3279c aftermath check in section 0).
