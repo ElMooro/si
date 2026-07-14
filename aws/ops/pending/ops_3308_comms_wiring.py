@@ -1,4 +1,4 @@
-"""ops 3308 — SURFACE THE STACK: dealer/funding into the daily comms.
+"""ops 3308 (rerun b: state under snap) — SURFACE THE STACK: dealer/funding into the daily comms.
 [1] morning-intelligence: +3 feeds (primary_dealers / ofr_stfm /
     settlement_fails) + 10 compact ctx keys (dealer regime/squeeze/
     turnover, fails regime+spikes, GCF-TRI bp, FSI + 26y pctile) so the
@@ -72,7 +72,7 @@ with report("3308_comms_wiring") as rep:
         if doc and str(doc.get("generated_at") or doc.get("as_of")
                        or "") >= mark:
             break
-    st = s3_json("data/_alerts/last.json") or {}
+    st = (s3_json("data/_alerts/last.json") or {}).get("snap") or {}
     rep.kv(sentinel_fresh=bool(doc),
            state_dealer_regime=st.get("dealer_regime"),
            state_dealer_squeeze=st.get("dealer_squeeze"),
