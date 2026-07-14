@@ -95,6 +95,58 @@ def stats(pts):
             "spike": bool(z >= 2 or pctile >= 95)}
 
 
+
+
+# ── ops 3307: closed-loop signal emission (graded by outcome-checker) ──
+def _yprice(t):
+    try:
+        req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v8/finance/chart/%s"
+            "?range=1d&interval=1d" % t,
+            headers={"User-Agent": "Mozilla/5.0 JustHodl"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            j = json.loads(r.read())
+        return float(j["chart"]["result"][0]["meta"]["regularMarketPrice"])
+    except Exception:
+        return None
+
+
+def _emit_signal(sid, stype, direction, ticker, benchmark, value,
+                 windows, horizon, conf="0.55"):
+    try:
+        import boto3 as _b3
+        from decimal import Decimal as _D
+        from datetime import datetime as _dt, timezone as _tz
+        px = _yprice(ticker)
+        if px is None:
+            print("[sig] no price for %s, skip %s" % (ticker, sid))
+            return False
+        now = _dt.now(_tz.utc)
+        _b3.resource("dynamodb", "us-east-1").Table(
+            "justhodl-signals").put_item(
+            Item={"signal_id": sid, "signal_type": stype,
+                  "predicted_direction": direction,
+                  "signal_value": str(value),
+                  "confidence": _D(conf),
+                  "measure_against": "ticker_vs_benchmark",
+                  "baseline_price": str(px), "benchmark": benchmark,
+                  "check_windows": windows, "outcomes": {},
+                  "accuracy_scores": {}, "status": "pending",
+                  "logged_at": now.isoformat(),
+                  "logged_epoch": int(now.timestamp()),
+                  "horizon_days_primary": horizon,
+                  "schema_version": "2"},
+            ConditionExpression="attribute_not_exists(signal_id)")
+        print("[sig] emitted %s" % sid)
+        return True
+    except Exception as e:
+        if "ConditionalCheckFailed" in str(e):
+            print("[sig] dedupe %s" % sid)
+        else:
+            print("[sig] emit failed %s: %s" % (sid, str(e)[:100]))
+        return False
+
+
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc).isoformat()
 
@@ -123,6 +175,26 @@ def lambda_handler(event=None, context=None):
             "ftr_latest": (ftr[-1][1] if ftr else None),
             "stats": stats(comb if comb else ftd),
         })
+
+    # ops 3307: class spike -> graded signals (corporate & UST theses only)
+    try:
+        for c in classes:
+            st = c.get("stats") or {}
+            if not st.get("spike"):
+                continue
+            aso = st.get("as_of", "")
+            if c["key"] == "corporate":
+                _emit_signal("fails-spike-corporate#LQD#%s" % aso,
+                             "settlement_fails_spike", "DOWN", "LQD",
+                             "SPY", st.get("latest"),
+                             ["day_5", "day_21", "day_63"], 21)
+            elif c["key"] == "ust_ex_tips":
+                _emit_signal("fails-spike-ust#SPY#%s" % aso,
+                             "settlement_fails_spike", "DOWN", "SPY",
+                             "BIL", st.get("latest"),
+                             ["day_5", "day_21", "day_63"], 21)
+    except Exception as e:
+        print("[fails] signal skip %s" % str(e)[:80])
 
     total_ftd = sum_series(ftd_all)
     total_ftr = sum_series(ftr_all)

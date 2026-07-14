@@ -217,10 +217,62 @@ def _fsi(charts):
                     "0 = normal, positive = stressed."}
 
 
+
+
+# ── ops 3307: closed-loop signal emission (graded by outcome-checker) ──
+def _yprice(t):
+    try:
+        req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v8/finance/chart/%s"
+            "?range=1d&interval=1d" % t,
+            headers={"User-Agent": "Mozilla/5.0 JustHodl"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            j = json.loads(r.read())
+        return float(j["chart"]["result"][0]["meta"]["regularMarketPrice"])
+    except Exception:
+        return None
+
+
+def _emit_signal(sid, stype, direction, ticker, benchmark, value,
+                 windows, horizon, conf="0.55"):
+    try:
+        import boto3 as _b3
+        from decimal import Decimal as _D
+        from datetime import datetime as _dt, timezone as _tz
+        px = _yprice(ticker)
+        if px is None:
+            print("[sig] no price for %s, skip %s" % (ticker, sid))
+            return False
+        now = _dt.now(_tz.utc)
+        _b3.resource("dynamodb", "us-east-1").Table(
+            "justhodl-signals").put_item(
+            Item={"signal_id": sid, "signal_type": stype,
+                  "predicted_direction": direction,
+                  "signal_value": str(value),
+                  "confidence": _D(conf),
+                  "measure_against": "ticker_vs_benchmark",
+                  "baseline_price": str(px), "benchmark": benchmark,
+                  "check_windows": windows, "outcomes": {},
+                  "accuracy_scores": {}, "status": "pending",
+                  "logged_at": now.isoformat(),
+                  "logged_epoch": int(now.timestamp()),
+                  "horizon_days_primary": horizon,
+                  "schema_version": "2"},
+            ConditionExpression="attribute_not_exists(signal_id)")
+        print("[sig] emitted %s" % sid)
+        return True
+    except Exception as e:
+        if "ConditionalCheckFailed" in str(e):
+            print("[sig] dedupe %s" % sid)
+        else:
+            print("[sig] emit failed %s: %s" % (sid, str(e)[:100]))
+        return False
+
+
 def lambda_handler(event=None, context=None):
     hist = _j(HIST, {}) or {}
     charts = {}
-    doc = {"engine": "justhodl-ofr-stfm", "version": "1.3.1",
+    doc = {"engine": "justhodl-ofr-stfm", "version": "1.4.0",
            "generated_at": datetime.now(timezone.utc)
            .isoformat(timespec="seconds"),
            "source": "OFR Short-Term Funding Monitor v1 API "
@@ -288,7 +340,8 @@ def lambda_handler(event=None, context=None):
                   "TB": "treasury_holdings", "A": "agency_holdings",
                   "AG": "agency_holdings", "CP": "cp_holdings",
                   "ABCP": "abcp_holdings", "CD": "cd_holdings",
-                  "TD": "time_deposits", "TNA": "total_net_assets",
+                  "TD": "time_deposits", "TNA": "total_net_assets", "T": "treasury_holdings",
+                  "BRA": "bank_repo_agreements", "OA": "other_assets",
                   "NA": "total_net_assets", "TOT": "total_net_assets",
                   "VRDN": "vrdn_holdings", "FRN": "frn_holdings",
                   "US": "us_govt_holdings", "OTHR": "other_holdings"}
@@ -354,6 +407,30 @@ def lambda_handler(event=None, context=None):
                                "n_series": len(charts)}
     except Exception as e:
         print("[ofr] charts shard failed: %s" % str(e)[:140])
+
+    # ops 3307: funding-strain + FSI regime-cross -> graded signals
+    try:
+        ven = ((doc.get("repo") or {}).get("venues")) or {}
+        g, t3 = (ven.get("GCF") or {}), (ven.get("TRI") or {})
+        if g.get("rate_pct") is not None and t3.get("rate_pct") is not None:
+            sp = round((g["rate_pct"] - t3["rate_pct"]) * 100, 1)
+            aso = ((doc.get("repo") or {}).get("series") or {}).get(
+                g.get("rate_mnemonic", ""), {}).get("as_of",
+                doc["generated_at"][:10])
+            if sp >= 8:
+                _emit_signal("funding-strain#SPY#%s" % aso,
+                             "gcf_tri_strain", "DOWN", "SPY", "BIL", sp,
+                             ["day_5", "day_21", "day_63"], 21)
+        fsi = doc.get("fsi") or {}
+        if fsi.get("latest") is not None and fsi.get("d1") is not None:
+            prev = fsi["latest"] - fsi["d1"]
+            if prev < 0 <= fsi["latest"]:
+                _emit_signal("fsi-cross-up#SPY#%s" % fsi.get("as_of", ""),
+                             "ofr_fsi_zero_cross", "DOWN", "SPY", "BIL",
+                             fsi["latest"],
+                             ["day_21", "day_63", "day_126"], 63)
+    except Exception as e:
+        print("[ofr] signal skip %s" % str(e)[:80])
 
     ok_blocks = sum(1 for k in ("repo", "mmf") if isinstance(doc.get(k), dict)
                     and not doc[k].get("error"))

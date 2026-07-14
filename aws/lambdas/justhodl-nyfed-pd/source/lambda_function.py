@@ -167,6 +167,58 @@ def _read(tsy, wow_b, tenor_latest):
         "" if wow is None else ", coupons WoW %+.1fB" % wow, curve)
 
 
+
+
+# ── ops 3307: closed-loop signal emission (graded by outcome-checker) ──
+def _yprice(t):
+    try:
+        req = urllib.request.Request(
+            "https://query1.finance.yahoo.com/v8/finance/chart/%s"
+            "?range=1d&interval=1d" % t,
+            headers={"User-Agent": "Mozilla/5.0 JustHodl"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            j = json.loads(r.read())
+        return float(j["chart"]["result"][0]["meta"]["regularMarketPrice"])
+    except Exception:
+        return None
+
+
+def _emit_signal(sid, stype, direction, ticker, benchmark, value,
+                 windows, horizon, conf="0.55"):
+    try:
+        import boto3 as _b3
+        from decimal import Decimal as _D
+        from datetime import datetime as _dt, timezone as _tz
+        px = _yprice(ticker)
+        if px is None:
+            print("[sig] no price for %s, skip %s" % (ticker, sid))
+            return False
+        now = _dt.now(_tz.utc)
+        _b3.resource("dynamodb", "us-east-1").Table(
+            "justhodl-signals").put_item(
+            Item={"signal_id": sid, "signal_type": stype,
+                  "predicted_direction": direction,
+                  "signal_value": str(value),
+                  "confidence": _D(conf),
+                  "measure_against": "ticker_vs_benchmark",
+                  "baseline_price": str(px), "benchmark": benchmark,
+                  "check_windows": windows, "outcomes": {},
+                  "accuracy_scores": {}, "status": "pending",
+                  "logged_at": now.isoformat(),
+                  "logged_epoch": int(now.timestamp()),
+                  "horizon_days_primary": horizon,
+                  "schema_version": "2"},
+            ConditionExpression="attribute_not_exists(signal_id)")
+        print("[sig] emitted %s" % sid)
+        return True
+    except Exception as e:
+        if "ConditionalCheckFailed" in str(e):
+            print("[sig] dedupe %s" % sid)
+        else:
+            print("[sig] emit failed %s: %s" % (sid, str(e)[:100]))
+        return False
+
+
 def lambda_handler(event=None, context=None):
     spec = _j(SPEC_KEY) or {}
     if not spec.get("classes") or (event or {}).get("rediscover"):
@@ -404,9 +456,13 @@ def lambda_handler(event=None, context=None):
                                                   / 1e3, 1)
                                             if fo_cd else None),
                         "in_wow_b": (round((fi[ld] - fi[dd2[-2]]) / 1e3, 1)
-                                     if len(dd2) >= 2 else None),
+                                     if len(dd2) >= 2 and
+                                     abs(fi[ld] - fi[dd2[-2]])
+                                     < 0.6 * abs(fi[ld]) else None),
                         "out_wow_b": (round((fo[ld] - fo[dd2[-2]]) / 1e3, 1)
-                                      if len(dd2) >= 2 else None),
+                                      if len(dd2) >= 2 and
+                                      abs(fo[ld] - fo[dd2[-2]])
+                                      < 0.6 * abs(fo[ld]) else None),
                         "read": "Dealer financing book: $%.2fT reverse "
                                 "repo IN (cash lent against collateral) "
                                 "vs $%.2fT repo OUT (cash borrowed) — "
@@ -443,12 +499,30 @@ def lambda_handler(event=None, context=None):
         except Exception as e:
             print("[pd] transactions skip %s" % str(e)[:80])
 
+        # ops 3307: dealer duration-twist -> graded signal
+        try:
+            if corporate and corporate.get("net_5yplus_b") is not None:
+                y5 = corporate["net_5yplus_b"]
+                aso = corporate.get("as_of", "")
+                if y5 <= -10:
+                    _emit_signal("dealer-duration-short#TLT#%s" % aso,
+                                 "dealer_duration_twist", "DOWN", "TLT",
+                                 "BIL", y5, ["day_21", "day_63",
+                                             "day_126"], 63)
+                elif y5 >= 10:
+                    _emit_signal("dealer-duration-long#TLT#%s" % aso,
+                                 "dealer_duration_twist", "UP", "TLT",
+                                 "BIL", y5, ["day_21", "day_63",
+                                             "day_126"], 63)
+        except Exception as e:
+            print("[pd] signal skip %s" % str(e)[:80])
+
     except Exception as e:
         print("[pd] pos layer error: %s" % str(e)[:200])
 
     s3.put_object(Bucket=BUCKET, Key=HIST_KEY, Body=json.dumps(hist).encode(),
                   ContentType="application/json")
-    doc = {"engine": "justhodl-nyfed-pd", "version": "3.0.0",
+    doc = {"engine": "justhodl-nyfed-pd", "version": "3.1.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "as_of": as_of,
            "net_treasury_total_b": tsy,                  # flat alias for footprint _find
