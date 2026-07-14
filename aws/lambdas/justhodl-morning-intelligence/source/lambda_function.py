@@ -176,6 +176,10 @@ def load_all():
         "correlation_breaks":"data/correlation-breaks.json",
         "crisis_plumbing":"data/crisis-plumbing.json",
         "eurodollar":"data/eurodollar-plumbing.json",
+        # ─── Primary dealers + OFR funding stack (ops 3308) ─────────
+        "primary_dealers":"data/nyfed-primary-dealer.json",
+        "ofr_stfm":"data/ofr-stfm.json",
+        "settlement_fails":"data/settlement-fails.json",
         "risk_recommendations":"risk/recommendations.json",
         # ─── Earnings tracker (#3) ────────────────────────────────
         "earnings":"data/earnings-tracker.json",
@@ -264,6 +268,10 @@ def extract_metrics(data,weights):
     stress=repo.get("stress",{})
     fg=crypto.get("fear_greed",{})
     rs=crypto.get("risk_score",{})
+    _pc=(data.get("primary_dealers") or {}).get("corporate") or {}
+    _of=data.get("ofr_stfm") or {}
+    _sf=data.get("settlement_fails") or {}
+    _ven=((_of.get("repo") or {}).get("venues")) or {}
     corr=edge.get("correlation",{}).get("changes",{})
     coins=crypto.get("top_coins",{}).get("coins",[])
     btc=next((c for c in coins if c.get("symbol")=="BTC"),{})
@@ -334,6 +342,17 @@ def extract_metrics(data,weights):
         "fg":fg.get("current","N/A"),
         "fg_label":fg.get("label","N/A"),
         "crypto_risk":rs.get("score","N/A"),
+        # ─── dealer / funding stack (ops 3308) ───
+        "dealer_corp_net_b":_pc.get("net_bonds_b"),
+        "dealer_regime":_pc.get("regime"),
+        "dealer_squeeze":_pc.get("squeeze_setup"),
+        "dealer_5yplus_b":_pc.get("net_5yplus_b"),
+        "dealer_turnover_x":_pc.get("turnover_velocity"),
+        "fails_regime":((_sf.get("signal") or {}).get("regime")),
+        "fails_spike_classes":[x.get("key") for x in (_sf.get("classes") or []) if (x.get("stats") or {}).get("spike")][:3],
+        "gcf_tri_bp":(round((_ven.get("GCF",{}).get("rate_pct")-_ven.get("TRI",{}).get("rate_pct"))*100,1) if _ven.get("GCF",{}).get("rate_pct") is not None and _ven.get("TRI",{}).get("rate_pct") is not None else None),
+        "ofr_fsi":((_of.get("fsi") or {}).get("latest")),
+        "ofr_fsi_pctile26y":((_of.get("fsi") or {}).get("pctile_full")),
         # ─── Loop 1: calibration-weighted multi-signal composite ───
         # Blends khalid_index + plumbing_stress + ml_risk + carry_risk
         # weighted by historical accuracy. is_calibrated is True only

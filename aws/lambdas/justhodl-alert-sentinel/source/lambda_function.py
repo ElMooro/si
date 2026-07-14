@@ -161,6 +161,31 @@ def snapshot():
     if ma:
         s["ma_reclaim_200"] = tickers_from(ma, ("reclaim", "cross_up", "above"))[:40]
         s["ma_break_200"] = tickers_from(ma, ("break", "cross_down", "below"))[:40]
+    # ─── dealer / funding stack (ops 3308) ───
+    pd_ = gj("data/nyfed-primary-dealer.json")
+    c = (pd_.get("corporate") or {}) if pd_ else {}
+    s["dealer_regime"] = c.get("regime")
+    s["dealer_squeeze"] = bool(c.get("squeeze_setup"))
+    s["dealer_net_b"] = c.get("net_bonds_b")
+    sf_ = gj("data/settlement-fails.json")
+    s["fails_spikes"] = (sorted(x.get("key") for x in (sf_.get("classes") or [])
+                                 if (x.get("stats") or {}).get("spike"))
+                          if sf_ else [])
+    s["_fails_det"] = ({x.get("key"): "%s $%.0fbn z %+.1f"
+                        % (x.get("label", x.get("key")),
+                           (x.get("stats") or {}).get("latest") or 0,
+                           (x.get("stats") or {}).get("z") or 0)
+                        for x in (sf_.get("classes") or [])
+                        if (x.get("stats") or {}).get("spike")}
+                       if sf_ else {})
+    of_ = gj("data/ofr-stfm.json")
+    ven = ((of_.get("repo") or {}).get("venues") or {}) if of_ else {}
+    g, t3 = ven.get("GCF") or {}, ven.get("TRI") or {}
+    s["gcf_tri_bp"] = (round((g["rate_pct"] - t3["rate_pct"]) * 100, 1)
+                       if g.get("rate_pct") is not None
+                       and t3.get("rate_pct") is not None else None)
+    fsi_v = ((of_.get("fsi") or {}).get("latest")) if of_ else None
+    s["fsi_pos"] = (fsi_v >= 0) if fsi_v is not None else None
     return s
 
 
@@ -227,6 +252,20 @@ def diff(old, new):
     # sizing top change
     if new.get("sizing_top") and new.get("sizing_top") != old.get("sizing_top"):
         msgs.append(f"📐 Sizing top rec → {new.get('sizing_top')} (gross {new.get('sizing_gross')})")
+    # ─── dealer / funding stack flips (ops 3308) ───
+    if (new.get("dealer_regime") and old.get("dealer_regime")
+            and new["dealer_regime"] != old["dealer_regime"]):
+        msgs.append(f"🏦 Dealer corp inventory → {new['dealer_regime']} "
+                     f"(net {new.get('dealer_net_b')}B, was {old['dealer_regime']})")
+    if new.get("dealer_squeeze") and old.get("dealer_squeeze") is False:
+        msgs.append("🧨 Dealer SQUEEZE SETUP armed — net short corporates into tight spreads")
+    for k in sorted(set(new.get("fails_spikes") or []) - set(old.get("fails_spikes") or [])):
+        msgs.append(f"🧯 Settlement-fails SPIKE — {(new.get('_fails_det') or {}).get(k, k)}")
+    gt_o, gt_n = old.get("gcf_tri_bp"), new.get("gcf_tri_bp")
+    if gt_n is not None and gt_n >= 8 and (gt_o is None or gt_o < 8):
+        msgs.append(f"🚱 Funding STRAIN — GCF−Triparty {gt_n}bp (dealer balance-sheet scarcity)")
+    if new.get("fsi_pos") and old.get("fsi_pos") is False:
+        msgs.append("🌡 OFR FSI crossed ABOVE zero — market-wide stress regime")
     return msgs
 
 
