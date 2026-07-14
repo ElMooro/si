@@ -24,9 +24,7 @@ LAM = boto3.client("lambda", region_name=REGION,
 
 
 def cache_doc(tkr):
-    for key in ("research-cache/%s.json" % tkr,
-                "data/research-cache/%s.json" % tkr,
-                "research/%s.json" % tkr):
+    for key in ("equity-research/%s.json" % tkr,):
         try:
             return json.loads(S3.get_object(Bucket=BUCKET, Key=key)
                               ["Body"].read()), key
