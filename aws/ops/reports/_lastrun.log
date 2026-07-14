@@ -1,11 +1,11 @@
-executing-against: eb94c6f51915be9d0cf778905f04de430d35c4d7
-[15:19:42]   zip: 96606 bytes
+executing-against: 28065f91611cf620367ea613fc48390fdef63d0a
+[15:46:36]   zip: 123884 bytes
 ── 1. Lambda ──
-[15:19:42]   Lambda exists — updating
-[15:19:47] ✅   ✓ updated justhodl-13f-positions
-── 2. Poll the new per-ticker $ ledger ──
-── 3. Mirror identity vs main doc boards ──
-── 4. Page deploy markers ──
-[15:23:20] OPS 3299 PASS — why.html now answers WHO is buying vs selling in dollars, and dilution flashes red at the top.
+[15:46:36]   Lambda exists — updating
+[15:46:42] ✅   ✓ updated justhodl-equity-research
+── 2. Force-refresh BMNR + AAPL through the fixed grader ──
+── 3. Page guard markers ──
 
-→ Report written to aws/ops/reports/latest/3299_why_dollar_flows.md
+→ Report written to aws/ops/reports/latest/3300_dilution_verdict_fix.md
+FAILS: BMNR cache never freshened; AAPL cache never freshened; BMNR verdict None — expected HEAVY/DEATH; BMNR risk_flag not set; AAPL regression: verdict None
+❌ OPS-FAIL: aws/ops/pending/ops_3300_dilution_verdict_fix.py
