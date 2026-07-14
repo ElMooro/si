@@ -952,6 +952,7 @@ def resolve_missing_tickers(fund_results, budget=150):
     sec = _sec_titles(m)
     now = _t.time()
     fresh = 0
+    _pend = []          # ops 3297: resolve BIGGEST dollars first
     for fd in fund_results:
         if fd.get("error"):
             continue
@@ -959,6 +960,10 @@ def resolve_missing_tickers(fund_results, budget=150):
             tk = (pos.get("ticker") or "").upper()
             if tk and tk.isalpha():
                 continue
+            _pend.append(pos)
+    _pend.sort(key=lambda x: -(x.get("value_usd") or 0))
+    if True:
+        for pos in _pend:
             cu = pos.get("cusip") or ""
             e = m.get(cu) or {}
             nm = pos.get("name") or e.get("name") or ""
@@ -1039,6 +1044,13 @@ def aggregate_by_ticker(fund_results):
                     []).append(
                     fund_data.get("fund_name") or fund_key)
                 continue
+            if not agg.get("name"):               # ops 3297
+                agg["name"] = (p.get("resolved_name")
+                               or p.get("name") or "")
+            if not agg.get("title"):
+                agg["title"] = p.get("title") or ""
+            if not agg.get("share_type"):
+                agg["share_type"] = p.get("share_type") or ""
             agg["n_funds_holding"] += 1
             agg["total_value"] += p.get("value_usd", 0)
             change = p.get("change", "HOLD")
@@ -1439,6 +1451,8 @@ def lambda_handler(event, context):
         key=lambda x: -x["sold_usd"])[:25]
 
     def _slim(a):
+        if not (a.get("name") or "").strip():        # ops 3297
+            a["name"] = "CUSIP " + (a.get("cusip") or "")[:9]
         return {k: a.get(k) for k in (
             "ticker", "name", "cap_tier", "market_cap", "sector",
             "bought_usd", "sold_usd", "net_flow_usd", "total_value",
@@ -1527,16 +1541,24 @@ def lambda_handler(event, context):
          "REAL_ESTATE_REITS"),
     )
 
+    DEBT_RX = _re.compile(
+        r"\bNOTE\b|DEBENTURE|\bBOND\b|% ?DUE|CONV\b|CVT\b",
+        _re.I)
+
     def _classify(a):
         tk = (a.get("ticker") or "").upper()
         for cls, ss in AC_SETS.items():
             if tk in ss:
                 return cls
         nm = a.get("name") or ""
-        if ETF_RX.search(nm):
-            for rx, cls in NM_RULES:
-                if rx.search(nm):
-                    return cls
+        ti = a.get("title") or ""
+        # ops 3297: principal-amount rows and note/debenture titles
+        # are DEBT, not unresolved equities — name them as such.
+        if (a.get("share_type") == "PRN" or DEBT_RX.search(ti)):
+            return "DEBT_NOTES"
+        for rx, cls in NM_RULES:            # ungated (3297): a bond
+            if rx.search(nm):               # fund without 'ETF' in
+                return cls                  # its name still classes
         if a.get("sector") == "Real Estate" or _re.search(
                 r"\bREIT\b", nm, _re.I):
             return "REAL_ESTATE_REITS"
@@ -1555,10 +1577,11 @@ def lambda_handler(event, context):
         c["sold_usd"] += a.get("sold_usd") or 0
         c["net_flow_usd"] += a.get("net_flow_usd") or 0
         c["n_names"] += 1
+        _dn = (a.get("name") or "").strip() \
+            or ("CUSIP " + (a.get("cusip") or "")[:9])
         c["top"].append((a.get("ticker") or "?",
                          a.get("total_value") or 0,
-                         a.get("net_flow_usd") or 0,
-                         (a.get("name") or "")[:48]))
+                         a.get("net_flow_usd") or 0, _dn[:48]))
     for cls, c in asset_classes.items():
         c["top"] = [{"ticker": t, "total_usd": round(v),
                      "net_flow_usd": round(n), "name": nm}

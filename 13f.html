@@ -1205,9 +1205,10 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
     var h='<div style="display:grid;gap:6px">';
     (rows||[]).slice(0,20).forEach(function(a,i){
       var net=a.net_flow_usd||0,nc=net>0?'#3ddc84':net<0?'#ff5c5c':'#8fa0b8';
+      var tick=(a.ticker&&a.ticker!=='?')?a.ticker:String(a.name||'').split(' ').slice(0,2).join(' ')||'?';
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0e1522;border:1px solid #1a2536;border-radius:9px;padding:7px 11px">'
        +'<span style="font:800 11px monospace;color:#5d6b82;width:20px">'+(i+1)+'</span>'
-       +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:64px">'+esc(a.ticker||'?')+'</span>'
+       +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:64px">'+esc(tick)+'</span>'
        +chip(a.cap_tier)
        +'<span style="font:600 10.5px monospace;color:#5d6b82;flex:1;min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.name||'')+'</span>'
        +'<span style="font:700 11.5px monospace;color:#3ddc84">bought '+usd(a.bought_usd)+'</span>'
@@ -1255,7 +1256,7 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
     var AC=d.asset_classes||{},keys=Object.keys(AC).filter(function(k){return k!=='_note';});
     var tot=0;keys.forEach(function(k){tot+=AC[k].total_usd||0;});
     keys.sort(function(a,b){return (AC[b].total_usd||0)-(AC[a].total_usd||0);});
-    var LBL={US_EQUITY:'US Stocks',BROAD_EQUITY_ETF:'Equity ETFs',OTHER_ETF:'Other ETFs',BONDS:'Bonds',CASH_TBILLS:'Cash (T-bill ETFs)',GOLD_PM:'Gold & Precious',CRYPTO:'Crypto',REAL_ESTATE_REITS:'Real Estate (REITs)',REAL_ESTATE_ETF:'Real Estate ETFs',COMMODITIES:'Commodities',UNRESOLVED:'Unresolved'};
+    var LBL={US_EQUITY:'US Stocks',BROAD_EQUITY_ETF:'Equity ETFs',OTHER_ETF:'Other ETFs',BONDS:'Bonds',CASH_TBILLS:'Cash (T-bill ETFs)',GOLD_PM:'Gold & Precious',CRYPTO:'Crypto',REAL_ESTATE_REITS:'Real Estate (REITs)',REAL_ESTATE_ETF:'Real Estate ETFs',COMMODITIES:'Commodities',DEBT_NOTES:'Convertible & Corp Notes (PRN)',UNRESOLVED:'Unresolved (ticker pending \u2014 named below)'};
     h+=h2('WHERE THE WHALE MONEY SITS','asset-class allocation of the whole complex \u00b7 with this quarter\u2019s net $ flow');
     h+='<div style="display:grid;gap:7px">';
     keys.forEach(function(k){var c=AC[k],pc=tot?100*(c.total_usd||0)/tot:0,net=c.net_flow_usd||0,nc=net>0?'#3ddc84':net<0?'#ff5c5c':'#8fa0b8';
@@ -1266,7 +1267,7 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
        +'<span style="font:800 12px monospace;color:#e8f0ff;width:70px;text-align:right">'+usd(c.total_usd)+'</span>'
        +'<span style="font:700 10.5px monospace;color:#5d6b82;width:48px;text-align:right">'+pc.toFixed(1)+'%</span>'
        +'<span style="font:800 11px monospace;color:'+nc+'">'+(net>0?'\u25b2 +':net<0?'\u25bc ':'')+usd(net)+' flow</span></div>'
-       +'<div style="font:600 9.5px monospace;color:#5d6b82;margin-top:4px">'+(c.top||[]).map(function(t){return esc(t.ticker)+' '+usd(t.total_usd);}).join(' \u00b7 ')+'</div>'
+       +'<div style="font:600 9.5px monospace;color:#5d6b82;margin-top:4px">'+(c.top||[]).map(function(t){var lb=(t.ticker&&t.ticker!=='?')?('<b style="color:#e8f0ff">'+esc(t.ticker)+'</b> '+esc(t.name||'')):('<b style="color:#e8f0ff">'+esc(t.name||'?')+'</b>');return lb+' '+usd(t.total_usd);}).join(' \u00b7 ')+'</div>'
        +'</div>';
     });
     h+='</div><div style="font:500 10px monospace;color:#5d6b82;margin-top:10px;line-height:1.6">'+esc(AC._note||'')+'</div></div>';
