@@ -1,7 +1,5 @@
-executing-against: 344a32f2fa36f9df24552111e3a389baf47af0bf
-── A. Plain-URL diagnosis (what Khalid sees) ──
-── B. Cloudflare purge ──
-── C. Re-verify plain URLs ──
-[19:21:34] OPS 3309 PASS — bare URLs now serve the latest HTML; pages.yml self-purges CF on every deploy going forward.
+executing-against: 3a717242f27fb801cabd55ec054a2b58eb74b92d
 
-→ Report written to aws/ops/reports/latest/3309_cdn_purge.md
+→ Report written to aws/ops/reports/latest/3310_fresh_guard.md
+FAILS: ['https://justhodl.ai/jh-nav-drawer.js']
+❌ OPS-FAIL: aws/ops/pending/ops_3310_fresh_guard.py
