@@ -1221,9 +1221,11 @@ def lambda_handler(event, context):
                   if t and t.isalpha() and len(t) <= 6][:600]
         mc_budget = 80          # ops 3280: cached 7d, refresh slice
         for tk in seen_t:
+            sec = None               # ops 3282b: NameError killer — sec leaked
             ce = (_mc_cache.get(tk) or {}).get("_mc") or {}
             if ce.get("v") and _t2.time() - float(ce.get("at") or 0)                     < 7 * 86400:
                 mc = float(ce["v"])
+                sec = ce.get("sector")
             else:
                 if mc_budget <= 0:
                     continue
@@ -1231,7 +1233,7 @@ def lambda_handler(event, context):
                 mc, sec = _enrich(tk)
                 time.sleep(0.12)
                 if mc is not None:
-                    _mc_cache.setdefault(tk, {})["_mc"] =                         {"v": mc, "at": _t2.time()}
+                    _mc_cache.setdefault(tk, {})["_mc"] =                         {"v": mc, "at": _t2.time(), "sector": sec}
             if mc is None:
                 continue
             if sec:
