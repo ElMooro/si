@@ -1026,7 +1026,7 @@ async function load(){
 load();
 setInterval(load, 30 * 60 * 1000);  // every 30 min
 </script>
-  <script src="/jh-enhance.js" data-feed="data/13f-positions.json" data-bars="consensus_holds:ticker:net_action_score" data-title="13F consensus — net-action score" data-sub="fund adds minus trims" ></script>
+  <script src="/jh-enhance.js" data-feed="data/13f-positions.json" data-bars="consensus_holds:ticker:net_flow_usd_m" data-title="13F net dollar flow — $M per stock" data-sub="dollars bought minus dollars sold" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 
@@ -1129,6 +1129,92 @@ setInterval(load, 30 * 60 * 1000);  // every 30 min
 })();
 </script>
 
+<!-- ops 3295: DOLLAR FLOWS + CONVICTION + ASSET RADAR (additive) -->
+<script>
+(function(){
+  var host=document.createElement('div');
+  host.id='jh-dollar-flows';
+  host.style.cssText='max-width:1180px;margin:26px auto 10px;padding:0 20px';
+  var mount=document.getElementById('jh-clone-alpha')||document.querySelector('footer')||document.body;
+  mount.parentNode?mount.parentNode.insertBefore(host,mount):document.body.appendChild(host);
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function usd(v){var a=Math.abs(v||0),s=v<0?'-':'';return s+(a>=1e9?'$'+(a/1e9).toFixed(2)+'B':a>=1e6?'$'+(a/1e6).toFixed(1)+'M':'$'+Math.round(a/1e3)+'k');}
+  var TIER={MICRO:'#c084fc',SMALL:'#4fc3f7',MID:'#ffd166',LARGE:'#3ddc84'};
+  function chip(t){return t?'<span style="font:700 9px monospace;color:'+(TIER[t]||'#8fa0b8')+';border:1px solid '+(TIER[t]||'#8fa0b8')+'55;border-radius:9px;padding:1px 6px">'+t+'</span>':'';}
+  function h2(t,sub){return '<div style="font:800 13px monospace;letter-spacing:.08em;color:#e8f0ff;margin:18px 0 8px">'+t+' <span style="font:600 10px monospace;color:#5d6b82">'+sub+'</span></div>';}
+  function flowRows(rows,mode){
+    var h='<div style="display:grid;gap:6px">';
+    (rows||[]).slice(0,20).forEach(function(a,i){
+      var net=a.net_flow_usd||0,nc=net>0?'#3ddc84':net<0?'#ff5c5c':'#8fa0b8';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0e1522;border:1px solid #1a2536;border-radius:9px;padding:7px 11px">'
+       +'<span style="font:800 11px monospace;color:#5d6b82;width:20px">'+(i+1)+'</span>'
+       +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:64px">'+esc(a.ticker||'?')+'</span>'
+       +chip(a.cap_tier)
+       +'<span style="font:600 10.5px monospace;color:#5d6b82;flex:1;min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.name||'')+'</span>'
+       +'<span style="font:700 11.5px monospace;color:#3ddc84">bought '+usd(a.bought_usd)+'</span>'
+       +'<span style="font:700 11.5px monospace;color:#ff5c5c">sold '+usd(a.sold_usd)+'</span>'
+       +'<span style="font:800 12px monospace;color:'+nc+'">net '+(net>0?'+':'')+usd(net)+'</span>'
+       +'<span style="font:600 9.5px monospace;color:#5d6b82">'+((a.n_funds_adding||0)+(a.n_funds_new_position||0))+'▲ '+((a.n_funds_trimming||0)+(a.n_funds_exiting||0))+'▼</span>'
+       +'</div>';
+    });
+    return h+'</div>';
+  }
+  fetch('/data/13f-positions.json?v='+Math.floor(Date.now()/36e5))
+   .then(function(r){return r.ok?r.json():null;})
+   .then(function(d){
+    if(!d||!d.dollar_flows){host.innerHTML='';return;}
+    var df=d.dollar_flows,h='<div style="border:1px solid #26406a;border-radius:12px;background:linear-gradient(180deg,#0d1524,#0a0f1a);padding:16px 18px">'
+     +'<div style="font:800 15px monospace;letter-spacing:.08em;color:#e8f0ff">\ud83d\udcb5 INSTITUTIONAL DOLLAR FLOWS <span style="font:600 10.5px monospace;color:#5d6b82">every board below is ranked in DOLLARS \u2014 bought, sold, net \u00b7 same basis as the headline</span></div>';
+    h+=h2('MOST BOUGHT ($)','top 20 by dollars added this quarter')+flowRows(df.most_bought_usd);
+    h+=h2('MOST SOLD ($)','top 20 by dollars removed')+flowRows(df.most_sold_usd);
+    h+=h2('TOP 20 OWNED','largest institutional books, total $ held');
+    h+='<div style="display:grid;gap:6px">';
+    (d.top_owned||[]).forEach(function(a,i){
+      var net=a.net_flow_usd||0,acc=net>0;
+      h+='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0e1522;border:1px solid #1a2536;border-radius:9px;padding:7px 11px">'
+       +'<span style="font:800 11px monospace;color:#5d6b82;width:20px">'+(i+1)+'</span>'
+       +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:64px">'+esc(a.ticker||'?')+'</span>'+chip(a.cap_tier)
+       +'<span style="font:600 10.5px monospace;color:#5d6b82;flex:1;min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.name||'')+'</span>'
+       +'<span style="font:800 12px monospace;color:#e8f0ff">'+usd(a.total_value)+' held</span>'
+       +'<span style="font:700 10px monospace;color:'+(acc?'#3ddc84':'#ff5c5c')+';border:1px solid '+(acc?'#3ddc84':'#ff5c5c')+'55;border-radius:10px;padding:1px 7px">'+(acc?'ACCUMULATING +':'DISTRIBUTING ')+usd(net)+'</span>'
+       +'<span style="font:600 9.5px monospace;color:#5d6b82">'+(a.n_funds_holding||0)+' funds</span></div>';
+    });
+    h+='</div>';
+    h+=h2('ACCUMULATION LIST','net $ inflow AND \u22652 funds adding/new \u2014 breadth-confirmed buying')+flowRows(df.accumulating);
+    h+=h2('HIGHEST CONVICTION','% of a manager\u2019s whole book \u00b7 weighted by clone-alpha SKILL, not fame');
+    h+='<div style="display:grid;gap:6px">';
+    (d.conviction_top||[]).forEach(function(a,i){
+      h+='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0e1522;border:1px solid #1a2536;border-radius:9px;padding:7px 11px">'
+       +'<span style="font:800 11px monospace;color:#5d6b82;width:20px">'+(i+1)+'</span>'
+       +'<span style="font:800 13px monospace;color:#e8f0ff;min-width:64px">'+esc(a.ticker)+'</span>'+chip(a.cap_tier)
+       +'<span style="font:600 10.5px monospace;color:#5d6b82;flex:1;min-width:120px">'+esc(a.name||'')+'</span>'
+       +'<span style="font:800 12px monospace;color:#ffd166">conviction '+esc(a.conviction_score)+'</span>'
+       +'<span style="font:600 10.5px monospace;color:#8fa0b8">'+esc(a.max_weight_fund||'')+' has <b style="color:#e8f0ff">'+esc(a.max_weight_pct)+'%</b> of book</span>'
+       +'<span style="font:600 9.5px monospace;color:#5d6b82">'+(a.n_funds_holding||0)+' funds</span></div>';
+    });
+    h+='</div>';
+    var AC=d.asset_classes||{},keys=Object.keys(AC).filter(function(k){return k!=='_note';});
+    var tot=0;keys.forEach(function(k){tot+=AC[k].total_usd||0;});
+    keys.sort(function(a,b){return (AC[b].total_usd||0)-(AC[a].total_usd||0);});
+    var LBL={US_EQUITY:'US Stocks',BROAD_EQUITY_ETF:'Equity ETFs',OTHER_ETF:'Other ETFs',BONDS:'Bonds',CASH_TBILLS:'Cash (T-bill ETFs)',GOLD_PM:'Gold & Precious',CRYPTO:'Crypto',REAL_ESTATE_REITS:'Real Estate (REITs)',REAL_ESTATE_ETF:'Real Estate ETFs',COMMODITIES:'Commodities',UNRESOLVED:'Unresolved'};
+    h+=h2('WHERE THE WHALE MONEY SITS','asset-class allocation of the whole complex \u00b7 with this quarter\u2019s net $ flow');
+    h+='<div style="display:grid;gap:7px">';
+    keys.forEach(function(k){var c=AC[k],pc=tot?100*(c.total_usd||0)/tot:0,net=c.net_flow_usd||0,nc=net>0?'#3ddc84':net<0?'#ff5c5c':'#8fa0b8';
+      h+='<div style="background:#0e1522;border:1px solid #1a2536;border-radius:9px;padding:8px 12px">'
+       +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">'
+       +'<span style="font:800 12px monospace;color:#e8f0ff;min-width:170px">'+esc(LBL[k]||k)+'</span>'
+       +'<span style="flex:1;min-width:100px;height:8px;background:#131c2c;border-radius:5px;overflow:hidden"><span style="display:block;height:100%;width:'+Math.max(1,pc).toFixed(1)+'%;background:#4fc3f7"></span></span>'
+       +'<span style="font:800 12px monospace;color:#e8f0ff;width:70px;text-align:right">'+usd(c.total_usd)+'</span>'
+       +'<span style="font:700 10.5px monospace;color:#5d6b82;width:48px;text-align:right">'+pc.toFixed(1)+'%</span>'
+       +'<span style="font:800 11px monospace;color:'+nc+'">'+(net>0?'\u25b2 +':net<0?'\u25bc ':'')+usd(net)+' flow</span></div>'
+       +'<div style="font:600 9.5px monospace;color:#5d6b82;margin-top:4px">'+(c.top||[]).map(function(t){return esc(t.ticker)+' '+usd(t.total_usd);}).join(' \u00b7 ')+'</div>'
+       +'</div>';
+    });
+    h+='</div><div style="font:500 10px monospace;color:#5d6b82;margin-top:10px;line-height:1.6">'+esc(AC._note||'')+'</div></div>';
+    host.innerHTML=h;
+   }).catch(function(){});
+})();
+</script>
 <!-- ops 3294: CLONE-ALPHA — skilled money vs famous money (additive) -->
 <script>
 (function(){

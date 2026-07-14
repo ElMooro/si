@@ -1029,6 +1029,7 @@ def aggregate_by_ticker(fund_results):
                     "fund_actions": [],   # which funds did what
                     "put_funds": [],
                     "call_funds": [],
+                    "bought_usd": 0, "sold_usd": 0,   # ops 3295
                 }
             agg = by_ticker[tkr]
             pc = p.get("put_call")
@@ -1069,6 +1070,7 @@ def aggregate_by_ticker(fund_results):
                     "n_funds_adding": 0, "n_funds_trimming": 0,
                     "n_funds_new_position": 0, "n_funds_exiting": 0,
                     "fund_actions": [],
+                    "bought_usd": 0, "sold_usd": 0,   # ops 3295
                 }
             by_ticker[tkr]["n_funds_exiting"] += 1
             by_ticker[tkr]["fund_actions"].append({
@@ -1295,6 +1297,11 @@ def lambda_handler(event, context):
                         -(x.get("prior_value") or 0)
                     s_ += -dv
                 a2 = by_ticker.get(x.get("ticker")) or {}
+                if a2:                                   # ops 3295
+                    if sign > 0:
+                        a2["bought_usd"] = a2.get("bought_usd", 0) + dv
+                    else:
+                        a2["sold_usd"] = a2.get("sold_usd", 0) + (-dv)
                 t2 = a2.get("cap_tier")
                 if t2 in ("MICRO", "SMALL", "MID"):
                     f_smid += dv
@@ -1412,15 +1419,135 @@ def lambda_handler(event, context):
           f"{risk_appetite_directional['verdict']}")
     print("[13f] phase mcap done")
 
-    # Step 5: rankings
+    # Step 5: rankings — ops 3295 (Khalid): bought/sold ranked by
+    # DOLLAR VALUE, not fund counts; counts stay as context fields.
+    for agg in by_ticker.values():
+        agg["bought_usd"] = round(agg.get("bought_usd") or 0)
+        agg["sold_usd"] = round(agg.get("sold_usd") or 0)
+        agg["net_flow_usd"] = agg["bought_usd"] - agg["sold_usd"]
+        agg["net_flow_usd_m"] = round(agg["net_flow_usd"] / 1e6, 1)
     most_bought = sorted(
         by_ticker.values(),
-        key=lambda x: -((x["n_funds_adding"] + x["n_funds_new_position"]) * 100 + x["total_value"] / 1e9),
-    )[:25]
+        key=lambda x: -x["bought_usd"])[:25]
     most_sold = sorted(
         by_ticker.values(),
-        key=lambda x: -((x["n_funds_trimming"] + x["n_funds_exiting"]) * 100),
-    )[:25]
+        key=lambda x: -x["sold_usd"])[:25]
+
+    def _slim(a):
+        return {k: a.get(k) for k in (
+            "ticker", "name", "cap_tier", "market_cap", "sector",
+            "bought_usd", "sold_usd", "net_flow_usd", "total_value",
+            "n_funds_holding", "n_funds_adding",
+            "n_funds_new_position", "n_funds_trimming",
+            "n_funds_exiting")}
+
+    top_owned = [_slim(a) for a in sorted(
+        by_ticker.values(), key=lambda x: -x["total_value"])[:20]]
+    accumulating = [_slim(a) for a in sorted(
+        (a for a in by_ticker.values()
+         if a["net_flow_usd"] > 0
+         and (a["n_funds_adding"] + a["n_funds_new_position"]) >= 2),
+        key=lambda x: -x["net_flow_usd"])[:15]]
+
+    # conviction: % of book, skill-weighted via clone-alpha
+    skill = {}
+    try:
+        ca = get_s3_json("data/13f-clone-alpha.json") or {}
+        skill = {k: (m.get("skill_score") or 40)
+                 for k, m in (ca.get("managers") or {}).items()}
+    except Exception:
+        pass
+    conviction_top = []
+    for a in by_ticker.values():
+        if not a.get("ticker") or a["n_funds_holding"] < 1:
+            continue
+        conv = mx_w = 0.0
+        mx_fund = None
+        for fa in a.get("fund_actions") or []:
+            w = fa.get("pct_of_portfolio") or 0
+            if fa.get("change") == "EXIT" or w <= 0:
+                continue
+            conv += w * (skill.get(fa.get("fund"), 40) / 100.0)
+            if w > mx_w:
+                mx_w, mx_fund = w, fa.get("fund_name")
+        if mx_w >= 2.0:
+            r = _slim(a)
+            r.update({"conviction_score": round(conv, 2),
+                      "max_weight_pct": round(mx_w, 2),
+                      "max_weight_fund": mx_fund})
+            conviction_top.append(r)
+    conviction_top.sort(key=lambda x: -x["conviction_score"])
+    conviction_top = conviction_top[:15]
+
+    # asset-class radar — 13F reality: US-listed longs only; cash is
+    # proxied by T-bill ETFs, real estate by REITs/RE ETFs.
+    AC_SETS = {
+        "CASH_TBILLS": {"BIL", "SHV", "SGOV", "TBIL", "GBIL", "TFLO",
+                        "USFR", "ICSH", "BOXX"},
+        "BONDS": {"TLT", "IEF", "SHY", "IEI", "AGG", "BND", "LQD",
+                  "HYG", "JNK", "TIP", "VTIP", "GOVT", "MUB", "EMB",
+                  "VCIT", "VCSH", "MBB", "TMF"},
+        "GOLD_PM": {"GLD", "IAU", "GLDM", "SGOL", "PHYS", "SLV",
+                    "PSLV", "SIVR", "GDX", "GDXJ", "NEM", "GOLD",
+                    "AEM", "WPM", "FNV", "KGC", "AU", "RGLD"},
+        "CRYPTO": {"IBIT", "FBTC", "GBTC", "ARKB", "BITB", "HODL",
+                   "BTCO", "EZBC", "BRRR", "ETHA", "ETHE", "ETHW",
+                   "FETH", "COIN", "MSTR", "MARA", "RIOT", "CLSK",
+                   "HUT", "BITF"},
+        "COMMODITIES": {"DBC", "PDBC", "USO", "UNG", "DBA", "GSG",
+                        "CPER", "UGA"},
+        "REAL_ESTATE_ETF": {"VNQ", "IYR", "XLRE", "SCHH", "RWR",
+                            "REZ", "REET"},
+        "BROAD_EQUITY_ETF": {"SPY", "IVV", "VOO", "QQQ", "IWM",
+                             "DIA", "VTI", "EFA", "EEM", "VEA",
+                             "VWO", "ACWI", "IJH", "IJR", "MDY",
+                             "RSP", "XLK", "XLF", "XLE", "XLV",
+                             "XLY", "XLP", "XLI", "XLB", "XLU",
+                             "SMH", "SOXX", "IBB", "XBI", "KRE",
+                             "ARKK", "IVE", "IVW", "IWF", "IWD"},
+    }
+    import re as _re
+    ETF_RX = _re.compile(r"\b(ETF|TRUST|FUND|ISHARES|SPDR|VANGUARD|"
+                         r"INVESCO|PROSHARES|DIREXION)\b", _re.I)
+
+    def _classify(a):
+        tk = (a.get("ticker") or "").upper()
+        for cls, ss in AC_SETS.items():
+            if tk in ss:
+                return cls
+        if a.get("sector") == "Real Estate":
+            return "REAL_ESTATE_REITS"
+        if tk and ETF_RX.search(a.get("name") or ""):
+            return "OTHER_ETF"
+        return "US_EQUITY" if tk else "UNRESOLVED"
+
+    asset_classes = {}
+    for a in by_ticker.values():
+        cls = _classify(a)
+        c = asset_classes.setdefault(cls, {
+            "total_usd": 0, "bought_usd": 0, "sold_usd": 0,
+            "net_flow_usd": 0, "n_names": 0, "top": []})
+        c["total_usd"] += a.get("total_value") or 0
+        c["bought_usd"] += a.get("bought_usd") or 0
+        c["sold_usd"] += a.get("sold_usd") or 0
+        c["net_flow_usd"] += a.get("net_flow_usd") or 0
+        c["n_names"] += 1
+        c["top"].append((a.get("ticker") or "?",
+                         a.get("total_value") or 0,
+                         a.get("net_flow_usd") or 0))
+    for cls, c in asset_classes.items():
+        c["top"] = [{"ticker": t, "total_usd": round(v),
+                     "net_flow_usd": round(n)}
+                    for t, v, n in sorted(c["top"],
+                                          key=lambda x: -x[1])[:5]]
+        for k in ("total_usd", "bought_usd", "sold_usd",
+                  "net_flow_usd"):
+            c[k] = round(c[k])
+    asset_classes["_note"] = (
+        "13F scope: US-listed long book only. CASH = T-bill ETFs; "
+        "real estate = REITs + RE ETFs; true cash/private assets are "
+        "not reportable. Flows use the same value-delta basis as the "
+        "NET FLOW headline.")
     consensus_holds = sorted(
         by_ticker.values(),
         key=lambda x: (-x["n_funds_holding"], -x["total_value"]),
@@ -1443,6 +1570,14 @@ def lambda_handler(event, context):
         "fund_errors": [{"fund_key": f.get("fund_key"), "error": f.get("error")} for f in failed],
         "by_fund": {f["fund_key"]: f for f in successful},
         "aggregate_by_ticker": by_ticker,
+        "dollar_flows": {"most_bought_usd": [_slim(a) for a in
+                                             most_bought],
+                         "most_sold_usd": [_slim(a) for a in
+                                           most_sold],
+                         "accumulating": accumulating},
+        "top_owned": top_owned,
+        "conviction_top": conviction_top,
+        "asset_classes": asset_classes,
         "mcap_enriched": enriched,
         "flow_summary": flow_summary,
         "risk_appetite": risk_appetite,
