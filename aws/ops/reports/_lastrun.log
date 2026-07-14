@@ -1,11 +1,10 @@
-executing-against: 28065f91611cf620367ea613fc48390fdef63d0a
-[15:46:36]   zip: 123884 bytes
+executing-against: 66255646b0df7fb6e67661ff6256fa27fb469e70
+[15:56:18]   zip: 123884 bytes
 ── 1. Lambda ──
-[15:46:36]   Lambda exists — updating
-[15:46:42] ✅   ✓ updated justhodl-equity-research
+[15:56:19]   Lambda exists — updating
+[15:56:22] ✅   ✓ updated justhodl-equity-research
 ── 2. Force-refresh BMNR + AAPL through the fixed grader ──
 ── 3. Page guard markers ──
+[15:59:04] OPS 3300 PASS — BMNR now flagged DEATH_SPIRAL (key 374.7% via qtr_6m_ann); badge can never contradict the chart again.
 
 → Report written to aws/ops/reports/latest/3300_dilution_verdict_fix.md
-FAILS: BMNR cache never freshened; AAPL cache never freshened; BMNR verdict None — expected HEAVY/DEATH; BMNR risk_flag not set; AAPL regression: verdict None
-❌ OPS-FAIL: aws/ops/pending/ops_3300_dilution_verdict_fix.py
