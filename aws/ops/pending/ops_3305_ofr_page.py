@@ -1,4 +1,4 @@
-"""ops 3305 — OFR page enrichment + display fixes.
+"""ops 3305 — OFR page enrichment + display fixes. (rerun b: all-series stats)
 [1] ofr-stfm v1.2: publish stats for ALL 160 repo + 42 MMF series
     (browser-grade; caps dropped).
 [2] ofr.html: new additive Short-Term Funding tab — venue tiles with
