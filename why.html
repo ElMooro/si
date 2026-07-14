@@ -567,6 +567,8 @@ function renderReport(d){
   }
   let html = "";
   html += renderHero(d);
+  html += (window.renderJHVitals ? window.renderJHVitals(d) : "");            // ops 3299 — P/E·PEG·P/S·shares·DILUTION at the top
+  html += '<section class="block" id="jhDollarFlows" style="display:none"></section>'; // ops 3299 — $ buying vs $ selling
   html += renderPriceChart(d);          // price history + PT / fair-value bands
   html += renderTechnicals(d);          // v2: full TA — MAs, Bollinger, RSI, MACD, volume
   html += renderMomentum(d);            // v2.1: explicit momentum reads + 50/200 golden-death cross
@@ -616,6 +618,7 @@ function renderReport(d){
   if(d.ticker){
     fetchInsiderData(d.ticker);
     fetchSectorFlow(d);
+    try{ window.fillJHVitals && window.fillJHVitals(d); window.fillJHDollarFlows && window.fillJHDollarFlows(d); }catch(e){} // ops 3299
     fetchCritique(d.ticker, d);
     fetchInvestorLenses(d.ticker);
     fetchTechSignals(d.ticker);
@@ -3417,6 +3420,126 @@ window.renderIndustryCompass=function(d){
     if(t&&t!==TK&&(DOCS.fo||DOCS.sf||DOCS.bb)){TK=t;try{render(t);}catch(e){}}
     if(TRIES++<600)setTimeout(tick,2000);
   }
+})();
+</script>
+<script>
+/* ── ops 3299 · Vitals strip (P/E · PEG · P/S · shares out · flashing DILUTION) +
+   Dollar Flows (institutions / whales / retail $ buying vs selling). ADDITIVE —
+   self-contained module: own CSS, own cached fetches, never touches existing renders. ── */
+(function(){
+var _C={};
+function gj9(u){ if(!_C[u]){ _C[u]=fetch(u+(u.indexOf('?')<0?'?':'&')+'v='+Math.floor(Date.now()/3600000)).then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}); } return _C[u]; }
+function E9(x){ x=String(x==null?'':x); return window.esc?esc(x):x.replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
+function fm$(x){ if(x==null||isNaN(x))return '—'; var s=x<0?'−':'',a=Math.abs(x);
+  if(a>=1e12)return s+'$'+(a/1e12).toFixed(2)+'T'; if(a>=1e9)return s+'$'+(a/1e9).toFixed(2)+'B';
+  if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M'; if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K'; return s+'$'+Math.round(a); }
+function fmSh(x){ if(x==null||isNaN(x))return '—'; var a=Math.abs(x);
+  if(a>=1e9)return (a/1e9).toFixed(2)+'B'; if(a>=1e6)return (a/1e6).toFixed(1)+'M'; return Math.round(a).toLocaleString(); }
+function n9(x,d){ return (x==null||isNaN(x))?'—':Number(x).toFixed(d==null?1:d); }
+(function(){ var s=document.createElement('style'); s.id='jh3299css'; s.textContent=
+'.jhv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(102px,1fr));gap:8px}'+
+'.jhv-tile{background:var(--bg-elev,#10151f);border:1px solid var(--border,#232c3f);border-radius:8px;padding:8px 6px;text-align:center;min-width:0}'+
+'.jhv-l{font-size:9.5px;letter-spacing:1px;color:var(--text-dim,#8899aa);font-family:var(--font-mono,monospace);white-space:nowrap}'+
+'.jhv-v{font-size:15px;font-weight:800;margin-top:3px;color:var(--text,#e8eef8)}'+
+'.jhv-s{font-size:10px;color:var(--text-dim,#8899aa);margin-top:3px}'+
+'@keyframes jhFlash{0%,100%{background:#38090f;box-shadow:0 0 0 0 rgba(255,45,45,.75)}50%{background:#7c1120;box-shadow:0 0 16px 4px rgba(255,45,45,.55)}}'+
+'.jh-flashred{animation:jhFlash 1.1s ease-in-out infinite;border-color:#ff2d2d!important}'+
+'.jh-flashred .jhv-v,.jh-flashred .jhv-l{color:#ff9c9c!important}'+
+'.jhf-row{display:grid;grid-template-columns:172px 1fr 1fr 1.15fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border,#232c3f);border-radius:8px;margin-top:8px;background:var(--bg-elev,#10151f)}'+
+'.jhf-who{font-family:var(--font-mono,monospace);font-size:11px;letter-spacing:1px;font-weight:700;color:var(--text,#e8eef8)}'+
+'.jhf-sub{font-size:10px;color:var(--text-dim,#8899aa);margin-top:3px;letter-spacing:.2px}'+
+'.jhf-b{color:#3ddc84;font-weight:800}.jhf-s{color:#ff5c5c;font-weight:800}'+
+'.jhf-lbl{font-size:9px;letter-spacing:1px;color:var(--text-dim,#8899aa);font-family:var(--font-mono,monospace)}'+
+'.jhf-bar{height:6px;border-radius:4px;background:#1b2230;overflow:hidden;margin-top:6px;display:flex}'+
+'.jhf-bar span{display:block;height:100%}'+
+'.jhf-verdict{font-family:var(--font-mono,monospace);font-size:11px;letter-spacing:.6px;padding:8px 10px;border:1px dashed var(--border,#232c3f);border-radius:8px;color:var(--text,#dfe7f3);margin-top:6px}'+
+'@media(max-width:760px){.jhf-row{grid-template-columns:1fr 1fr}}';
+document.head.appendChild(s); })();
+
+window.renderJHVitals=function(d){ try{
+  return '<section class="block" id="jhVitalsTop"><div class="sub"><span class="ico">▦</span> Vitals — valuation &amp; share count at a glance</div>'+
+         '<div id="jhvBody" style="color:var(--text-dim);font-family:var(--font-mono,monospace);font-size:11px">loading vitals…</div></section>';
+}catch(e){ return ''; } };
+
+window.fillJHVitals=async function(d){ try{
+  var el=document.getElementById('jhvBody'); if(!el)return;
+  var t=String((d&&d.ticker)||'').toUpperCase();
+  var sfd=await gj9('data/share-flows.json');
+  var sf=(((sfd||{}).tickers)||{})[t]||{};
+  var v=(d&&d.valuation)||{}, q=(d&&(d.quant_risk||d.quant))||{}, dl=(d&&d.dilution)||{};
+  var price=(sf.price!=null?sf.price:(d&&(d.price!=null?d.price:((d.quote||{}).price))));
+  var so=sf.shares_outstanding, cag=sf.sh_3y_cagr_pct;
+  var d1=(q.dilution_1y_pct!=null?q.dilution_1y_pct:q.dilution_1y);
+  var rising=((cag!=null&&cag>1.5)||(d1!=null&&d1>1.5)||!!dl.risk_flag||/HEAVY_DILUTION|DEATH_SPIRAL/.test(String(dl.verdict||'')));
+  var shrink=!rising&&((cag!=null&&cag<-0.5)||/SHRINK/.test(String(dl.verdict||'')));
+  function tile(l,val,sub,cls){ return '<div class="jhv-tile'+(cls?' '+cls:'')+'"><div class="jhv-l">'+l+'</div><div class="jhv-v">'+val+'</div>'+(sub?'<div class="jhv-s">'+sub+'</div>':'')+'</div>'; }
+  var pe=(sf.pe_ttm!=null?sf.pe_ttm:v.pe_ttm), peg=(sf.peg!=null?sf.peg:v.peg_ratio), ps=(sf.ps_ttm!=null?sf.ps_ttm:v.ps_ttm);
+  var soSub=(cag!=null?('Δ3y '+(cag>0?'+':'')+n9(cag)+'%/yr'):'')+((d1!=null)?((cag!=null?' · ':'')+'1y '+(d1>0?'+':'')+n9(d1)+'%'):'');
+  el.innerHTML='<div class="jhv-grid">'
+    +tile('PRICE',price!=null?'$'+n9(price,2):'—','')
+    +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:v.market_cap),'')
+    +tile('P/E TTM',n9(pe),'')
+    +tile('PEG',n9(peg,2),'')
+    +tile('P/S',n9(ps),'')
+    +tile('P/B',n9(v.pb,2),'')
+    +tile('EV/EBITDA',n9(v.ev_ebitda),'')
+    +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':'—','')
+    +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':'—','net buyback + div')
+    +tile('SHARES OUT',fmSh(so),soSub,(rising?'jh-flashred':''))
+    +tile('DILUTION',rising?'⚠ DILUTING':(shrink?'SHRINKING ✓':'STABLE'),rising?'share count rising':(shrink?'buybacks retiring shares':''),rising?'jh-flashred':'')
+  +'</div>'
+  +(rising?'<div class="jhv-s" style="color:#ff9c9c;margin-top:7px">⚠ Shares outstanding keep rising — every existing share is being diluted. Full 10-year record in Pillar 6 below.</div>':'');
+}catch(e){} };
+
+window.fillJHDollarFlows=async function(d){ try{
+  var sec=document.getElementById('jhDollarFlows'); if(!sec)return;
+  var t=String((d&&d.ticker)||'').toUpperCase();
+  var r=await Promise.all([gj9('data/13f-flows-by-ticker.json'),gj9('data/dark-pool.json'),gj9('data/share-flows.json')]);
+  var tf=r[0]||{}, dp=r[1]||{}, sfd=r[2]||{};
+  var f=(((tf.t)||{})[t])||null;
+  var brd=dp.board||dp.rows||[], dpr=null;
+  for(var i=0;i<brd.length;i++){ if(String(brd[i].ticker||'').toUpperCase()===t){ dpr=brd[i]; break; } }
+  var sf=(((sfd||{}).tickers)||{})[t]||{};
+  var price=(sf.price!=null?sf.price:(d&&d.price));
+  if(!f&&!dpr){ sec.style.display='none'; return; }
+  function cell(l,val,cls){ return '<div><div class="jhf-lbl">'+l+'</div><div class="'+(cls||'')+'" style="font-size:15px;margin-top:2px">'+val+'</div></div>'; }
+  function bar(b,s){ var g=(b||0)+(s||0); if(!g)return ''; var pb=Math.round(100*(b||0)/g);
+    return '<div class="jhf-bar"><span style="width:'+pb+'%;background:#3ddc84"></span><span style="width:'+(100-pb)+'%;background:#ff5c5c"></span></div>'; }
+  function fl(b,s,who,sub,names){ var n=(b||0)-(s||0);
+    return '<div class="jhf-row"><div><div class="jhf-who">'+who+'</div><div class="jhf-sub">'+sub+'</div></div>'
+      +cell('$ BUYING',fm$(b),'jhf-b')+cell('$ SELLING',fm$(s),'jhf-s')
+      +'<div>'+cell('NET (BUY − SELL)',fm$(n),(n>=0?'jhf-b':'jhf-s'))+bar(b,s)+(names?'<div class="jhf-sub">'+names+'</div>':'')+'</div></div>'; }
+  var rows='', parts=[];
+  if(f){
+    var nm='';
+    if((f.fb||[]).length) nm+='top buyers: '+E9(f.fb.join(', '));
+    if((f.fs||[]).length) nm+=(nm?' · ':'')+'top sellers: '+E9(f.fs.join(', '));
+    rows+=fl(f.b,f.s,'INSTITUTIONS','13F complex · '+(f.nf||0)+' funds hold · quarterly SEC filings',nm);
+    parts.push('INSTITUTIONS '+((f.n||0)>=0?'NET BUYING ':'NET SELLING ')+fm$(Math.abs(f.n||0)));
+    var wnames=((tf.whale_funds||[]).map(function(w){return w.name||w.fund||w;}).slice(0,4).join(', '));
+    if((f.wb||0)||(f.ws||0)){
+      rows+=fl(f.wb,f.ws,'WHALES','proven-alpha funds (clone-alpha skill): '+E9(wnames),'');
+      parts.push('WHALES '+((f.wn||0)>=0?'NET BUYING ':'NET SELLING ')+fm$(Math.abs(f.wn||0)));
+    } else {
+      rows+='<div class="jhf-row"><div><div class="jhf-who">WHALES</div><div class="jhf-sub">proven-alpha funds: '+E9(wnames)+'</div></div><div class="jhf-sub" style="grid-column:span 3">no whale prints in this name this quarter</div></div>';
+    }
+  }
+  if(dpr){
+    var est=(price!=null&&dpr.offex_shares_wk!=null)?dpr.offex_shares_wk*price:null;
+    var st=String(dpr.state||'NEUTRAL');
+    var stc=(st==='ACCUMULATION'?'jhf-b':(st==='DISTRIBUTION'?'jhf-s':''));
+    rows+='<div class="jhf-row"><div><div class="jhf-who">RETAIL / INTERNALIZER</div><div class="jhf-sub">FINRA off-exchange tape · weekly · $ printed = off-exch shares × price (est)</div></div>'
+      +cell('$ PRINTED OFF-EXCH',fm$(est),'')
+      +cell('DIRECTION','<span class="'+stc+'">'+E9(st)+'</span>','')
+      +'<div>'+cell('DARK-POOL SHARE',n9(dpr.dark_pool_pct)+'% <span class="jhf-lbl">/ off-ex '+n9(dpr.offex_pct)+'%</span>','')+'</div></div>';
+    parts.push('RETAIL TAPE '+st);
+  }
+  sec.innerHTML='<div class="sub"><span class="ico">$</span> Dollar Flows — who is buying vs selling '+E9(t)+'</div>'
+    +(parts.length?'<div class="jhf-verdict">'+parts.join(' &nbsp;·&nbsp; ')+'</div>':'')
+    +rows
+    +'<div class="jhf-sub" style="margin-top:8px">Institutions = real quarterly 13F deltas across the tracked mega-fund complex (SEC filings). Whales = the subset with proven clone-alpha skill. Retail = FINRA off-exchange / internalizer weekly tape — the venue where retail order flow executes (direction + estimated $ printed). All feeds auto-update: 13F daily 21:10 UTC, dark-pool weekly.</div>';
+  sec.style.display='';
+}catch(e){ try{ var s2=document.getElementById('jhDollarFlows'); if(s2) s2.style.display='none'; }catch(_e){} } };
 })();
 </script>
 </body>

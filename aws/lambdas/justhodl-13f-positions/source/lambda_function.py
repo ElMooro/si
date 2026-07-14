@@ -1353,6 +1353,21 @@ def lambda_handler(event, context):
                 "cyc": 0.0, "dfl": 0.0, "n_adds": 0, "n_new": 0,
                 "n_trims": 0, "n_exits": 0, "fund_net": {}}
 
+    # ── ops 3299: whale bucket (clone-alpha proven skill) + per-ticker
+    # contributor ledger → feeds data/13f-flows-by-ticker.json for why.html ──
+    _skill99 = {}
+    try:
+        _ca99 = get_s3_json("data/13f-clone-alpha.json") or {}
+        _skill99 = {k: (m.get("skill_score") or 0)
+                    for k, m in (_ca99.get("managers") or {}).items()}
+    except Exception:
+        pass
+    WHALES99 = {k for k, sc in _skill99.items() if sc >= 55}
+    if len(WHALES99) < 3:
+        WHALES99 = {k for k, sc in sorted(
+            _skill99.items(), key=lambda x: -x[1])[:3] if sc > 0}
+    contrib99 = {}
+
     SC = {"all": blank(), "dir": blank()}
     for fd in successful:
         cs = fd.get("changes_summary") or {}
@@ -1384,6 +1399,18 @@ def lambda_handler(event, context):
                     else:
                         a95["sold_usd"] = \
                             a95.get("sold_usd", 0) + (-dv)
+                    if fd.get("fund_key") in WHALES99:   # ops 3299
+                        if sign > 0:
+                            a95["whale_bought_usd"] = \
+                                a95.get("whale_bought_usd", 0) + dv
+                        else:
+                            a95["whale_sold_usd"] = \
+                                a95.get("whale_sold_usd", 0) + (-dv)
+                if dv:                                    # ops 3299
+                    contrib99.setdefault(_k95, []).append(
+                        (FUND_DISPLAY_NAMES.get(fd.get("fund_key"),
+                                                fd.get("fund_key")),
+                         dv))
                 a2 = by_ticker.get(x.get("ticker")) or {}
                 t2 = a2.get("cap_tier")
                 if t2 in ("MICRO", "SMALL", "MID"):
@@ -1509,6 +1536,51 @@ def lambda_handler(event, context):
         agg["sold_usd"] = round(agg.get("sold_usd") or 0)
         agg["net_flow_usd"] = agg["bought_usd"] - agg["sold_usd"]
         agg["net_flow_usd_m"] = round(agg["net_flow_usd"] / 1e6, 1)
+
+    # ── ops 3299: FULL per-ticker $ ledger for why.html — institutions
+    # trio (b/s/n), whale-subset trio (wb/ws/wn), top named buyers/sellers.
+    # Never allowed to kill the main pipeline. ──
+    try:
+        tmap99 = {}
+        for a in by_ticker.values():
+            tk = a.get("ticker")
+            if not tk:
+                continue
+            b9 = round(a.get("bought_usd") or 0)
+            s9 = round(a.get("sold_usd") or 0)
+            if not (b9 or s9 or (a.get("total_value") or 0) > 0):
+                continue
+            cl = sorted(contrib99.get(tk)
+                        or contrib99.get((a.get("cusip") or "?")[:9])
+                        or [], key=lambda c: -abs(c[1]))
+            tmap99[tk] = {
+                "b": b9, "s": s9, "n": b9 - s9,
+                "wb": round(a.get("whale_bought_usd") or 0),
+                "ws": round(a.get("whale_sold_usd") or 0),
+                "wn": round((a.get("whale_bought_usd") or 0)
+                            - (a.get("whale_sold_usd") or 0)),
+                "nf": a.get("n_funds_holding") or 0,
+                "na": a.get("net_action_score") or 0,
+                "tv": round(a.get("total_value") or 0),
+                "fb": [c[0] for c in cl if c[1] > 0][:3],
+                "fs": [c[0] for c in cl if c[1] < 0][:3],
+            }
+        put_s3_json("data/13f-flows-by-ticker.json", {
+            "as_of": datetime.now(timezone.utc).isoformat(),
+            "whale_rule": ("clone-alpha skill_score>=55, else top-3 "
+                           "positive-skill funds"),
+            "whale_funds": sorted(
+                [{"fund": k, "name": FUND_DISPLAY_NAMES.get(k, k),
+                  "skill": _skill99.get(k)} for k in WHALES99],
+                key=lambda w: -(w["skill"] or 0)),
+            "n_tickers": len(tmap99),
+            "t": tmap99,
+        })
+        print("[13f] ops3299 flows-by-ticker: %d tickers, whales=%s"
+              % (len(tmap99), sorted(WHALES99)))
+    except Exception as e:
+        print("[13f] ops3299 flows-by-ticker FAILED: %r" % e)
+
     most_bought = sorted(
         by_ticker.values(),
         key=lambda x: -x["bought_usd"])[:25]
