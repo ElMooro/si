@@ -721,6 +721,162 @@ def parse_one_fund(fund_key: str, cik: str, latest_filing: dict, prior_filing: d
 
 
 CUSIP_MAP_KEY = "data/13f-cusip-map.json"
+ANCHORS_KEY = "data/13f-price-anchors.json"
+
+
+def _fmp_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.loads(r.read())
+
+
+def _hist_closes(sym, frm):
+    """Daily closes {date: close} via stable ladder."""
+    for u in (
+        f"https://financialmodelingprep.com/stable/historical-price-"
+        f"eod/light?symbol={sym}&from={frm}&apikey={FMP_KEY}",
+        f"https://financialmodelingprep.com/stable/historical-price-"
+        f"eod/full?symbol={sym}&from={frm}&apikey={FMP_KEY}",
+    ):
+        try:
+            d = _fmp_json(u)
+            rows = d if isinstance(d, list) else                 (d or {}).get("historical") or []
+            out = {r["date"]: float(r.get("close") or r.get("price"))
+                   for r in rows if r.get("date")
+                   and (r.get("close") or r.get("price"))}
+            if out:
+                return out
+        except Exception:
+            continue
+    return {}
+
+
+def _close_le(closes, date_str):
+    ks = [k for k in closes if k <= date_str]
+    return closes[max(ks)] if ks else None
+
+
+def _batch_quotes(symbols):
+    out = {}
+    for i in range(0, len(symbols), 100):
+        chunk = ",".join(symbols[i:i + 100])
+        for u in (
+            f"https://financialmodelingprep.com/stable/batch-quote"
+            f"?symbols={chunk}&apikey={FMP_KEY}",
+            f"https://financialmodelingprep.com/stable/quote"
+            f"?symbol={chunk}&apikey={FMP_KEY}",
+        ):
+            try:
+                d = _fmp_json(u)
+                if isinstance(d, list) and d:
+                    for r in d:
+                        sy = str(r.get("symbol") or "").upper()
+                        px = r.get("price") or r.get("previousClose")
+                        if sy and px:
+                            out[sy] = float(px)
+                    break
+            except Exception:
+                continue
+        time.sleep(0.12)
+    return out
+
+
+def compute_performance(fund_results, by_ticker):
+    """ops 3279: 13F clone returns — value-weighted MTD/QTD/YTD per
+    manager vs SPY / IEF (US-10Y proxy) / BTCUSD. Anchors cached per
+    period; current prices batched. Honest: static-since-filing clone,
+    longs only, coverage shown."""
+    from datetime import date as _d
+    today = _d.today()
+    y0 = f"{today.year - 1}-12-31"
+    qm = (today.month - 1) // 3 * 3
+    q0 = (f"{today.year}-{qm:02d}-30" if qm in (6, 9)
+          else f"{today.year}-{qm:02d}-31" if qm in (3, 12)
+          else y0) if qm else y0
+    pm = today.month - 1
+    m0 = (f"{today.year}-{pm:02d}-30" if pm in (4, 6, 9, 11)
+          else f"{today.year}-{pm:02d}-28" if pm == 2
+          else f"{today.year}-{pm:02d}-31") if pm else y0
+    need = sorted({y0, q0, m0})
+    anch = get_s3_json(ANCHORS_KEY) or {}
+
+    weights = {}
+    for fd in fund_results:
+        if fd.get("error"):
+            continue
+        tot = fd.get("total_value_usd") or 0
+        if not tot:
+            continue
+        w = {}
+        for pos in fd.get("positions", []):
+            tk = (pos.get("ticker") or "").upper()
+            if tk and tk.isalpha() and len(tk) <= 6:
+                w[tk] = w.get(tk, 0) + (pos.get("value_usd") or 0) / tot
+        weights[fd["fund_key"]] = w
+
+    bench = ["SPY", "IEF", "BTCUSD"]
+    uni = sorted({t for w in weights.values() for t in w} | set(bench))
+    fetched = 0
+    for tk in uni:
+        e = anch.get(tk) or {}
+        if all(d in e for d in need):
+            continue
+        if fetched >= 650:
+            break
+        fetched += 1
+        cl = _hist_closes(tk, f"{today.year - 1}-12-15")
+        time.sleep(0.1)
+        for d in need:
+            v = _close_le(cl, d)
+            if v:
+                e[d] = v
+        anch[tk] = e
+    live = _batch_quotes(uni)
+    for tk, px in live.items():
+        anch.setdefault(tk, {})["last"] = px
+    try:
+        s3.put_object(Bucket=S3_BUCKET, Key=ANCHORS_KEY,
+                      Body=json.dumps(anch),
+                      ContentType="application/json")
+    except Exception:
+        pass
+
+    def ret(tk, d0):
+        e = anch.get(tk) or {}
+        a, b = e.get(d0), e.get("last")
+        return (b / a - 1) * 100 if a and b else None
+
+    def fund_perf(w):
+        out = {}
+        for lbl, d0 in (("mtd", m0), ("qtd", q0), ("ytd", y0)):
+            num = den = 0.0
+            for tk, wt in w.items():
+                r = ret(tk, d0)
+                if r is not None:
+                    num += wt * r
+                    den += wt
+            out[lbl] = round(num / den, 2) if den >= 0.5 else None
+            if lbl == "ytd":
+                out["coverage_pct"] = round(100 * den, 1)
+        return out
+
+    perf = {"anchors": {"m0": m0, "q0": q0, "y0": y0},
+            "note": ("13F clone: value-weighted disclosed longs, "
+                     "static since filing; not fund NAV"),
+            "benchmarks": {b: {"mtd": ret(b, m0) and
+                               round(ret(b, m0), 2),
+                               "qtd": ret(b, q0) and
+                               round(ret(b, q0), 2),
+                               "ytd": ret(b, y0) and
+                               round(ret(b, y0), 2)}
+                           for b in bench},
+            "by_fund": {fk: fund_perf(w)
+                        for fk, w in weights.items()},
+            "anchors_fetched": fetched}
+    print(f"[13f] perf: {fetched} anchor fetches, "
+          f"{len(live)} live quotes")
+    return perf
+
 
 
 _STOP = {"INC", "CORP", "CO", "COM", "LTD", "PLC", "SA", "NEW",
@@ -1081,6 +1237,7 @@ def lambda_handler(event, context):
         "by_fund": {f["fund_key"]: f for f in successful},
         "aggregate_by_ticker": by_ticker,
         "mcap_enriched": enriched,
+        "performance": compute_performance(successful, by_ticker),
         "most_bought": most_bought,
         "most_sold": most_sold,
         "consensus_holds": consensus_holds,

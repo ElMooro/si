@@ -891,6 +891,14 @@ function renderCapTiers(data){
   const rowsFor=arr=>arr.sort((a,b)=>((b.n_funds_new_position||0)+(b.n_funds_adding||0))-((a.n_funds_new_position||0)+(a.n_funds_adding||0))||(b.total_value||0)-(a.total_value||0)).slice(0,8).map(a=>`<div style="padding:6px 0;border-top:1px solid var(--border,#1c2433)"><b style="font:12px monospace">${escape(a.t)}</b> <span style="opacity:.6;font:10px monospace">${escape(firstWords(a.name))}</span><div style="font:10px monospace;opacity:.85">${a.n_funds_holding} hold · ${(a.n_funds_new_position||0)} NEW · ${(a.n_funds_adding||0)} adding · ${fmtMoney(a.total_value)} held · cap ${fmtCap(a.market_cap)}</div></div>`).join('');
   el.innerHTML=card('MICRO-CAP (<$300M)',rowsFor(tiers.MICRO))+card('SMALL-CAP ($300M–$2B)',rowsFor(tiers.SMALL))+card('MID-CAP ($2B–$10B)',rowsFor(tiers.MID))+(filtered?`<div style="grid-column:1/-1;font:10px monospace;opacity:.5">${filtered} ETF/trust or ownership-implausible entries filtered for honesty</div>`:'');
 }
+function perfCell(v,b){if(v==null)return '<span style="opacity:.4">—</span>';const c=v>=0?'var(--green,#26ffaf)':'var(--red,#ff5577)';const d=(b!=null)?` <small style="opacity:.55">(${(v-b)>=0?'+':''}${(v-b).toFixed(1)} vs SPY)</small>`:'';return `<span style="color:${c}">${v>=0?'+':''}${v.toFixed(1)}%</span>${d}`;}
+function renderPerfBar(perf){
+  const host=document.getElementById('funds-grid'); if(!host||!perf||document.getElementById('jh13f-bench'))return;
+  const B=perf.benchmarks||{};const row=(k,l)=>`<div style="display:flex;gap:14px;align-items:baseline"><b style="font:11px monospace;min-width:110px">${l}</b><span style="font:11px monospace">MTD ${perfCell((B[k]||{}).mtd)}</span><span style="font:11px monospace">QTD ${perfCell((B[k]||{}).qtd)}</span><span style="font:11px monospace">YTD ${perfCell((B[k]||{}).ytd)}</span></div>`;
+  const bar=document.createElement('div');bar.id='jh13f-bench';bar.style.cssText='grid-column:1/-1;border:1px solid var(--border,#243044);border-radius:10px;padding:10px 14px;background:var(--card,#0d1320);display:flex;flex-direction:column;gap:6px';
+  bar.innerHTML=`<div style="font:600 10px monospace;letter-spacing:.12em;color:var(--accent,#e8b45a)">BENCHMARKS — clone returns measured since ${escape((perf.anchors||{}).m0||'')} / ${escape((perf.anchors||{}).q0||'')} / ${escape((perf.anchors||{}).y0||'')} (ops 3279)</div>${row('SPY','S&P 500 (SPY)')}${row('IEF','US 10Y (IEF proxy)')}${row('BTCUSD','Bitcoin')}<div style="font:9px monospace;opacity:.5">${escape(perf.note||'')}</div>`;
+  host.prepend(bar);
+}
 function renderFunds(byFund){
   const el = document.getElementById('funds-grid');
   if(!byFund || !Object.keys(byFund).length){
@@ -916,8 +924,11 @@ function renderFunds(byFund){
         <span class="fund-pos-badge ${p.change || 'HOLD'}">${escape(p.change || 'HOLD')}</span>
       </div>
     `).join('');
+    const pf=((RAW||{}).performance||{}).by_fund?.[f.fund_key]||{};
+    const spx=(((RAW||{}).performance||{}).benchmarks||{}).SPY||{};
+    const perfLine=(pf.ytd!=null||pf.mtd!=null)?`<div style="display:flex;gap:12px;font:10px monospace;padding:4px 0 6px;border-bottom:1px solid var(--border,#1c2433)"><span>MTD ${perfCell(pf.mtd,spx.mtd)}</span><span>QTD ${perfCell(pf.qtd,spx.qtd)}</span><span>YTD ${perfCell(pf.ytd,spx.ytd)}</span><span style="opacity:.45">cov ${pf.coverage_pct||0}%</span></div>`:'';
     return `
-      <div class="fund-card fade-in">
+      <div class="fund-card fade-in">${perfLine}
         <div class="fund-head">
           <span class="fund-name">${escape(f.fund_name || f.fund_key || '?')}</span>
           <span class="fund-period">${escape(f.period_of_report || '?')} · ${f.n_positions || 0} positions</span>
@@ -962,6 +973,7 @@ async function load(){
   renderCapTiers(data);
   renderRarePicks(data.rare_picks);
   renderFunds(data.by_fund);
+  renderPerfBar(data.performance);
   document.getElementById('updated-at').textContent = new Date(data.generated_at).toLocaleString();
 }
 
