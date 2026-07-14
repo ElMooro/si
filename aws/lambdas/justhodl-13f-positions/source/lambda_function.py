@@ -726,7 +726,7 @@ ANCHORS_KEY = "data/13f-price-anchors.json"
 
 def _fmp_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=15) as r:
+    with urllib.request.urlopen(req, timeout=6) as r:
         return json.loads(r.read())
 
 
@@ -781,6 +781,12 @@ def _batch_quotes(symbols):
     return out
 
 
+def _ph(label, t0):
+    import time as _t
+    print(f"[13f] phase {label}: {int(_t.time() - t0)}s")
+    return _t.time()
+
+
 def compute_performance(fund_results, by_ticker):
     """ops 3279: 13F clone returns — value-weighted MTD/QTD/YTD per
     manager vs SPY / IEF (US-10Y proxy) / BTCUSD. Anchors cached per
@@ -798,7 +804,10 @@ def compute_performance(fund_results, by_ticker):
           else f"{today.year}-{pm:02d}-28" if pm == 2
           else f"{today.year}-{pm:02d}-31") if pm else y0
     need = sorted({y0, q0, m0})
+    import time as _tt
+    _t0 = _tt.time()
     anch = get_s3_json(ANCHORS_KEY) or {}
+    _t0 = _ph("anchors-load", _t0)
 
     weights = {}
     for fd in fund_results:
@@ -822,7 +831,7 @@ def compute_performance(fund_results, by_ticker):
     uni = bench + sorted((t for t in wsum if t not in bench),
                          key=lambda t: -wsum[t])
     fetched = 0
-    ANCHOR_BUDGET = 220          # ops 3280: 900s ceiling — converge
+    ANCHOR_BUDGET = 120          # ops 3280: 900s ceiling — converge
     for tk in uni:               # across runs, heaviest first
         e = anch.get(tk) or {}
         if all(d in e for d in need):
@@ -837,7 +846,9 @@ def compute_performance(fund_results, by_ticker):
             if v:
                 e[d] = v
         anch[tk] = e
+    _t0 = _ph("anchors-fetch", _t0)
     live = _batch_quotes(uni)
+    _t0 = _ph("quotes", _t0)
     for tk, px in live.items():
         anch.setdefault(tk, {})["last"] = px
     try:
@@ -1205,7 +1216,7 @@ def lambda_handler(event, context):
         import time as _t2
         seen_t = [t for t in by_ticker
                   if t and t.isalpha() and len(t) <= 6][:600]
-        mc_budget = 200          # ops 3280: cached 7d, refresh slice
+        mc_budget = 80          # ops 3280: cached 7d, refresh slice
         for tk in seen_t:
             ce = (_mc_cache.get(tk) or {}).get("_mc") or {}
             if ce.get("v") and _t2.time() - float(ce.get("at") or 0)                     < 7 * 86400:
@@ -1232,6 +1243,7 @@ def lambda_handler(event, context):
     except Exception:
         pass
     print(f"[13f] mcap enriched: {enriched}")
+    print("[13f] phase mcap done")
 
     # Step 5: rankings
     most_bought = sorted(
