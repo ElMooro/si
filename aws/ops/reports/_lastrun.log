@@ -1,13 +1,5 @@
-executing-against: e517202e3de5ae63749f5e6cee6aa9e70bb791fe
-[04:10:15]   zip: 123419 bytes
-── 1. Lambda ──
-[04:10:15]   Lambda exists — updating
-[04:10:18] ✅   ✓ updated justhodl-equity-research
-── 2. AAPL — clean-name truth bands ──
-── 3. Serial diluter — risk MUST flag ──
-[04:11:43]   MARA correctly FLAGGED
-── 4. Live pages: why.html v2 + drawer account ──
+executing-against: 989290b84fed02407a3392060d2fd64b987ee3f4
 
-→ Report written to aws/ops/reports/latest/3292_dilution_v2_favsync.md
-FAILS: AAPL risk_flag should be False: None; AAPL 10y multiple off (buyback machine): None
-❌ OPS-FAIL: aws/ops/pending/ops_3292_dilution_v2_favsync.py
+→ Report written to aws/ops/reports/latest/3293_aapl_fresh_bands.md
+FAILS: AAPL risk_flag: None; AAPL 10y multiple: None; annual series thin
+❌ OPS-FAIL: aws/ops/pending/ops_3293_aapl_fresh_bands.py
