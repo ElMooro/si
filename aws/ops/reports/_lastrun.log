@@ -1,19 +1,8 @@
-executing-against: 4fa9d4d7693bd5f534ccda021c73e1ae9bc289e1
-── 1. nyfed-pd v3 (financing + transactions) ──
-[16:51:00]   zip: 80378 bytes
+executing-against: 041f8cd9a3a764e967224bf6b5554b79145ed28e
+[16:54:11]   zip: 76108 bytes
 ── 1. Lambda ──
-[16:51:01]   Lambda exists — updating
-[16:51:06] ✅   ✓ updated justhodl-nyfed-pd
-[16:51:07] spec pos family cleared -> rediscovery will run
-── 2. NEW justhodl-ofr-stfm + Scheduler ──
-[16:51:07]   zip: 76041 bytes
-── 1. Lambda ──
-[16:51:07]   Lambda exists — updating
-[16:51:12] ✅   ✓ updated justhodl-ofr-stfm
-[16:51:13] scheduler updated
-── 3. Verify OFR feed ──
-── 4. Verify nyfed-pd v3 blocks + fails reconciliation ──
-── 5. Sidebar + page markers (live) ──
-[16:51:46] OPS 3302 PASS — dealer desk covers positions + fails + financing + turnover, OFR STFM live for the fleet, sidebar fixed into Macro & Liquidity.
+[16:54:11]   Lambda exists — updating
+[16:54:14] ✅   ✓ updated justhodl-ofr-stfm
+[16:54:35] OPS 3303 PASS — OFR STFM fully live: repo venues ['DVP', 'GCF', 'TRI'], 160 repo + 42 MMF series cataloged for the fleet.
 
-→ Report written to aws/ops/reports/latest/3302_dealer_expansion_ofr.md
+→ Report written to aws/ops/reports/latest/3303_ofr_gzip.md
