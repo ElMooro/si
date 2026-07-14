@@ -262,7 +262,7 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
   if(pk.total_net_assets)hh+='<div class="tile"><div class="l">MMF NET ASSETS</div><div class="v">'+((pk.total_net_assets.latest>=1e6)?(pk.total_net_assets.latest/1e6).toFixed(2)+"T":f1(pk.total_net_assets.latest,0))+'</div><div class="s">z '+(pk.total_net_assets.z_1y==null?"—":pk.total_net_assets.z_1y)+' · '+esc(pk.total_net_assets.as_of||"")+'</div></div>';
   if(pk.repo_holdings)hh+='<div class="tile"><div class="l">MMF → REPO</div><div class="v">'+f1(pk.repo_holdings.latest,0)+'</div><div class="s">cash pool funding dealers</div></div>';
   var fx=OF.nypd_fails_cross||{};
-  if(fx.ftd_tot)hh+='<div class="tile"><div class="l">OFR CROSS-CHECK · FtD TOT</div><div class="v">'+f1(fx.ftd_tot.latest,0)+'</div><div class="s">vs our direct NY Fed pull ✓</div></div>';
+  if(fx.ftd_tot)hh+='<div class="tile"><div class="l">OFR CROSS-CHECK · FtD TOT</div><div class="v">'+f1(fx.ftd_tot.latest/1e9,0)+'B</div><div class="s">all classes, $ · vs our direct NY Fed pull ✓</div></div>';
   el("ofr").innerHTML=hh||'<div class="err">OFR blocks empty.</div>';
   el("ofrnote").textContent="OFR Short-Term Funding Monitor · repo daily / MMF monthly · "+(((OF.catalog||{}).repo||[]).length)+" repo + "+(((OF.catalog||{}).mmf||[]).length)+" MMF series cataloged for the fleet · updated "+String(OF.generated_at||"").slice(0,16).replace("T"," ")+"Z";
  })();

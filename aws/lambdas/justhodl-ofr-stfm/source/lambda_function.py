@@ -19,6 +19,7 @@ DATASETS
 CONSUMERS  primary-dealers.html (funding context strip), eurodollar/
            plumbing + liquidity engines (wiring queued), repo desk.
 """
+import gzip
 import json
 import os
 import re
@@ -45,7 +46,10 @@ def _get(url, timeout=60):
         try:
             req = urllib.request.Request(url, headers=ua)
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read())
+                raw = r.read()
+            if raw[:2] == b"\x1f\x8b":  # OFR gzips dataset responses
+                raw = gzip.decompress(raw)
+            return json.loads(raw)
         except Exception as e:
             last = e
             time.sleep(0.6)
