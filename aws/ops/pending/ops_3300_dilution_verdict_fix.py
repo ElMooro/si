@@ -69,15 +69,15 @@ with report("3300_dilution_verdict_fix") as rep:
     got = {}
     for tk in ("BMNR", "AAPL"):
         try:
-            LAM.invoke(FunctionName=FN, InvocationType="RequestResponse",
-                       Payload=json.dumps({"ticker": tk,
+            LAM.invoke(FunctionName=FN, InvocationType="Event",
+                       Payload=json.dumps({"_internal": "1", "ticker": tk,
                                            "force_refresh": True}).encode())
         except Exception as e:
             warns.append("invoke %s: %s (falling back to cache poll)"
                          % (tk, str(e)[:120]))
         key = "equity-research/%s.json" % tk
         doc = None
-        for _ in range(20):
+        for _ in range(25):
             try:
                 h = S3.head_object(Bucket=BUCKET, Key=key)
                 if h["LastModified"].replace(tzinfo=timezone.utc) >= mark:
