@@ -821,3 +821,27 @@ so no CF 403-caching residue possible.
   tickers hit FMP) → engine runs drop ~10min → ~1min.** Read
   aws/ops/reports/latest/3281_perfund.md next session for: 3280
   global net$/risk readback (section 0) + per-fund table.
+
+## THE NUMBERS LAND + crash-chain doctrines (ops 3282–3284)
+
+- **2026-Q1 filings, 17 funds: NET −$122.7B (SELLING)** — buys $121.4B
+  vs sells $244.1B; 5 funds net-buying vs 12 net-selling. Risk
+  composite +4.0 NEUTRAL; components cap_flow +1.0 / sector_flow −1.0
+  (SATURATED — (x−y)/(|x|+|y|) pins when one side dominates),
+  opt_skew +0.08 (5,163 PUT rows / 6,057 CALL — options data ALIVE),
+  breadth +0.13. Per-fund: Two Sigma +$13.7B top buyer; Citadel
+  −$97.5B (options-heavy hedge book — swamps the headline), Berkshire
+  −$11.6B, Coatue −$10.1B; all 17 funds carry flow+risk.
+- **Crash-chain root causes**: (1) parallel session's enrichment
+  cache leaked `sec` → NameError on first cache-hit; (2) dup-race
+  deployers shipped a STALE zip missing my aggregate init →
+  KeyError put_funds killed every invoke (Event retries ×3 = log
+  spam). **Doctrines: option tally uses setdefault (init-independent
+  forever); always [skip-deploy] on ops-driven engine pushes; pin
+  runs by head_sha when polling; a feed that won't freshen = read
+  the engine's own CloudWatch words FIRST.**
+- **Refinements queued (3285+)**: flow-normalize risk components by
+  gross flow (kill ±1 saturation) + widen per-fund differentiation;
+  ex-Citadel/Millennium toggle on the NET headline (hedge-book noise
+  vs directional conviction); enrichment budget already cached
+  (parallel session's anchors design, sector now cached alongside).
