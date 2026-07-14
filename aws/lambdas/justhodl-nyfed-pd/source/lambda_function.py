@@ -108,11 +108,18 @@ def _pos_layer(spec_doc):
                                  "tot": kid.endswith("-TOT"),
                                  "desc": desc[:90]})
                 continue
-            # ops 3302: dealer FINANCING (repo book: securities in vs out)
-            if "SECURITIES IN" in desc and kid.endswith("-TOT"):
+            # ops 3302c: dealer FINANCING — true grammar from catalog recon:
+            #   PDSIRRA-*TOT  reverse repo (securities IN, cash LENT)
+            #   PDSORA-*TOT   repo         (securities OUT, cash BORROWED)
+            #   PDSIOSB/PDSOOS-*TOT  securities borrowed / lent
+            if kid.startswith("PDSIRRA-") and kid.endswith("TOT"):
                 fin["in"].append(kid)
-            elif "SECURITIES OUT" in desc and kid.endswith("-TOT"):
+            elif kid.startswith("PDSORA-") and kid.endswith("TOT"):
                 fin["out"].append(kid)
+            elif kid.startswith("PDSIOSB-") and kid.endswith("TOT"):
+                fin.setdefault("sec_borrowed", []).append(kid)
+            elif kid.startswith("PDSOOS-") and kid.endswith("TOT"):
+                fin.setdefault("sec_lent", []).append(kid)
             # ops 3302: TRANSACTION volumes per class (weekly turnover)
             mt = TXN_RX.match(kid)
             if mt and ("TRANSACTION" in desc or kid.startswith("PDTR")):
@@ -357,33 +364,54 @@ def lambda_handler(event=None, context=None):
         # securities out = repo borrowing) + TRANSACTION volumes ──
         financing = None
         try:
-            def _sum_family(kids, cap=10):
-                agg = {}
+            def _sum_family(kids, cap=12, grab=None):
+                agg, grabbed = {}, {}
                 for kid in sorted(kids)[:cap]:
                     s = _fetch_series(kid); time.sleep(0.12)
                     for d, v in s.items():
                         agg[d] = agg.get(d, 0.0) + v
-                return agg
-            fi = _sum_family((pos.get("fin") or {}).get("in") or [])
-            fo = _sum_family((pos.get("fin") or {}).get("out") or [])
+                    if grab and grab in kid and s:
+                        grabbed = s
+                return agg, grabbed
+            fi, fi_cd = _sum_family((pos.get("fin") or {}).get("in") or [],
+                                    grab="CDTOT")
+            fo, fo_cd = _sum_family((pos.get("fin") or {}).get("out") or [],
+                                    grab="CDTOT")
+            sl, _ = _sum_family((pos.get("fin") or {}).get("sec_lent")
+                                or [], cap=10)
+            sb, _ = _sum_family((pos.get("fin") or {}).get("sec_borrowed")
+                                or [], cap=10)
             if fi and fo:
                 dd2 = sorted(set(fi) & set(fo))
                 if dd2:
                     ld = dd2[-1]
                     financing = {
                         "as_of": ld,
+                        "reverse_repo_in_b": round(fi[ld] / 1e3, 1),
+                        "repo_out_b": round(fo[ld] / 1e3, 1),
                         "securities_in_b": round(fi[ld] / 1e3, 1),
                         "securities_out_b": round(fo[ld] / 1e3, 1),
                         "net_lend_b": round((fi[ld] - fo[ld]) / 1e3, 1),
+                        "sec_lent_b": (round(sl[max(sl)] / 1e3, 1)
+                                       if sl else None),
+                        "sec_borrowed_b": (round(sb[max(sb)] / 1e3, 1)
+                                           if sb else None),
+                        "corp_rev_repo_in_b": (round(fi_cd[max(fi_cd)]
+                                                     / 1e3, 1)
+                                               if fi_cd else None),
+                        "corp_repo_out_b": (round(fo_cd[max(fo_cd)]
+                                                  / 1e3, 1)
+                                            if fo_cd else None),
                         "in_wow_b": (round((fi[ld] - fi[dd2[-2]]) / 1e3, 1)
                                      if len(dd2) >= 2 else None),
                         "out_wow_b": (round((fo[ld] - fo[dd2[-2]]) / 1e3, 1)
                                       if len(dd2) >= 2 else None),
-                        "read": "Dealer repo book: $%.0fB securities IN "
-                                "(cash lent) vs $%.0fB OUT (cash borrowed) "
-                                "— the financing engine behind every "
+                        "read": "Dealer financing book: $%.2fT reverse "
+                                "repo IN (cash lent against collateral) "
+                                "vs $%.2fT repo OUT (cash borrowed) — "
+                                "the leverage engine behind every "
                                 "position on this page."
-                                % (fi[ld] / 1e3, fo[ld] / 1e3)}
+                                % (fi[ld] / 1e6, fo[ld] / 1e6)}
                     hist["FIN_SEC_IN"] = {d: round(fi[d] / 1e3, 1)
                                           for d in sorted(fi)[-400:]}
                     hist["FIN_SEC_OUT"] = {d: round(fo[d] / 1e3, 1)

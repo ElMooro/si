@@ -108,6 +108,7 @@ footer a{color:var(--fg2);margin:0 10px;text-decoration:none}
 "use strict";
 function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return{"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
 function g(u){return fetch(u+"?t="+Math.floor(Date.now()/36e5)).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});}
+function tT(x){return x==null||isNaN(x)?"—":(Math.abs(x)>=1000?((x/1000).toFixed(2)+"T"):(x.toFixed(0)+"B"));}
 function f1(x,p){return x==null||isNaN(x)?"—":((x>0&&p?"+":"")+Number(x).toFixed(1));}
 function ago(iso){if(!iso)return"";var h=(Date.now()-new Date(iso))/36e5;return h<48?("· updated "+h.toFixed(0)+"h ago"):("· "+iso.slice(0,10));}
 function el(i){return document.getElementById(i);}
@@ -229,9 +230,11 @@ Promise.allSettled([g("data/nyfed-primary-dealer.json"),g("data/history/nyfed-pd
   var tot=Math.abs(fn.securities_in_b||0)+Math.abs(fn.securities_out_b||0)||1;
   var pi=Math.abs(fn.securities_in_b||0)/tot*100;
   el("financing").innerHTML=
-   '<div class="row"><div class="n">SECURITIES IN<br><span style="color:var(--fg3)">cash lent (rev-repo)</span></div><div class="bar"><i style="width:'+pi+'%;background:#3ddc84"></i><i style="width:'+(100-pi)+'%;background:#ff5c5c"></i></div><div class="v up">'+f1(fn.securities_in_b,0)+'B</div></div>'+
-   '<div class="row"><div class="n">SECURITIES OUT<br><span style="color:var(--fg3)">cash borrowed (repo)</span></div><div></div><div class="v dn">'+f1(fn.securities_out_b,0)+'B</div></div>'+
-   '<div class="row"><div class="n">NET LEND</div><div></div><div class="v '+((fn.net_lend_b||0)>=0?"up":"dn")+'">'+f1(fn.net_lend_b,0)+'B</div></div>'+
+   '<div class="row"><div class="n">REVERSE REPO · IN<br><span style="color:var(--fg3)">cash lent, collateral in</span></div><div class="bar"><i style="width:'+pi+'%;background:#3ddc84"></i><i style="width:'+(100-pi)+'%;background:#ff5c5c"></i></div><div class="v up">'+tT(fn.securities_in_b)+'</div></div>'+
+   '<div class="row"><div class="n">REPO · OUT<br><span style="color:var(--fg3)">cash borrowed, collateral out</span></div><div></div><div class="v dn">'+tT(fn.securities_out_b)+'</div></div>'+
+   '<div class="row"><div class="n">NET LEND</div><div></div><div class="v '+((fn.net_lend_b||0)>=0?"up":"dn")+'">'+tT(fn.net_lend_b)+'</div></div>'+
+   ((fn.sec_lent_b!=null||fn.sec_borrowed_b!=null)?('<div class="row"><div class="n">SEC LENDING</div><div></div><div class="v">lent '+tT(fn.sec_lent_b)+' / borrowed '+tT(fn.sec_borrowed_b)+'</div></div>'):'')+
+   ((fn.corp_repo_out_b!=null)?('<div class="note" style="margin-top:6px"><b>Corporate-debt financing:</b> dealers repo OUT '+f1(fn.corp_repo_out_b,0)+'B of corporate collateral vs '+f1(fn.corp_rev_repo_in_b,0)+'B reverse IN — how the (net-short) credit book is actually funded.</div>'):'')+
    '<div class="note" style="margin-top:8px">'+esc(fn.read||"")+' WoW: in '+f1(fn.in_wow_b,0)+'B / out '+f1(fn.out_wow_b,0)+'B · as of '+esc(fn.as_of||"")+'</div>';
  })();
 

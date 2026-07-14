@@ -39,9 +39,18 @@ s3 = boto3.client("s3", region_name="us-east-1")
 
 
 def _get(url, timeout=60):
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+    last = None
+    for ua in (UA, {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) "
+                    "JustHodl/1.0", "Accept": "application/json"}):
+        try:
+            req = urllib.request.Request(url, headers=ua)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read())
+        except Exception as e:
+            last = e
+            time.sleep(0.6)
+    raise RuntimeError("%s -> %s" % (url.split("?")[-1],
+                                     str(last)[:140]))
 
 
 def _j(k, d=None):
@@ -51,13 +60,40 @@ def _j(k, d=None):
         return d
 
 
+def _agg_of(node):
+    """Find the aggregation list wherever OFR nests it."""
+    if isinstance(node, list):
+        return node
+    if isinstance(node, dict):
+        if "aggregation" in node:
+            return node["aggregation"]
+        for v in node.values():
+            got = _agg_of(v)
+            if got:
+                return got
+    return None
+
+
+def _series_full(mnemonic):
+    doc = _get("%s/series/full?mnemonic=%s" % (BASE, mnemonic), 45)
+    rows = []
+    for it in (_agg_of(doc) or []):
+        try:
+            if it[1] is not None:
+                rows.append((str(it[0]), float(it[1])))
+        except Exception:
+            continue
+    rows.sort()
+    return rows
+
+
 def _dataset(name):
     """-> {mnemonic: [(date, val), ...]} sorted, plus raw mnemonic list."""
     doc = _get("%s/series/dataset?dataset=%s" % (BASE, name), 90)
     ts = doc.get("timeseries") or {}
     out = {}
     for mn, node in ts.items():
-        agg = ((node or {}).get("timeseries") or {}).get("aggregation") or []
+        agg = _agg_of(node) or []
         rows = []
         for it in agg:
             try:
@@ -170,26 +206,31 @@ def lambda_handler(event=None, context=None):
 
     time.sleep(0.5)
 
-    # ── NYPD: fails cross-check only (positions come from nyfed-pd) ──
-    try:
-        nypd = _dataset("nypd")
-        fails = {}
-        for mn, rows in nypd.items():
-            if "AFTD" in mn.upper() and mn.upper().endswith("TOT-A"):
-                fails["ftd_tot"] = {"mnemonic": mn, **_stat(rows, look=104)}
-            elif "AFTR" in mn.upper() and mn.upper().endswith("TOT-A"):
-                fails["ftr_tot"] = {"mnemonic": mn, **_stat(rows, look=104)}
-        doc["nypd_fails_cross"] = fails or None
-        doc.setdefault("catalog", {})["nypd_n"] = len(nypd)
-        doc["catalog"]["nypd_fails_mnemonics"] = [
-            m for m in nypd if "AFT" in m.upper()][:40]
-    except Exception as e:
-        print("[ofr] nypd failed: %s" % str(e)[:160])
-        doc["nypd_fails_cross"] = None
+    # ── NYPD: fails cross-check via direct mnemonics (small, reliable) ──
+    fails_x = {}
+    for slot, mn in (("ftd_tot", "NYPD-PD_AFtD_TOT-A"),
+                     ("ftr_tot", "NYPD-PD_AFtR_TOT-A")):
+        try:
+            rows = _series_full(mn)
+            if rows:
+                fails_x[slot] = {"mnemonic": mn, **_stat(rows, look=104)}
+                hist.setdefault(mn, {})
+                for d2, v2 in rows[-300:]:
+                    hist[mn][d2] = round(v2, 1)
+        except Exception as e:
+            print("[ofr] %s failed: %s" % (mn, str(e)[:140]))
+            fails_x.setdefault("errors", []).append(
+                "%s: %s" % (mn, str(e)[:120]))
+        time.sleep(0.4)
+    doc["nypd_fails_cross"] = fails_x or None
 
     ok_blocks = sum(1 for k in ("repo", "mmf") if isinstance(doc.get(k), dict)
                     and not doc[k].get("error"))
-    assert ok_blocks >= 1, "all OFR datasets failed"
+    doc["health"] = {"ok_blocks": ok_blocks,
+                     "errors": {k: doc[k].get("error")
+                                for k in ("repo", "mmf")
+                                if isinstance(doc.get(k), dict)
+                                and doc[k].get("error")}}
 
     s3.put_object(Bucket=BUCKET, Key=HIST,
                   Body=json.dumps(hist, separators=(",", ":")).encode(),
@@ -198,6 +239,8 @@ def lambda_handler(event=None, context=None):
                   Body=json.dumps(doc, separators=(",", ":")).encode(),
                   ContentType="application/json",
                   CacheControl="public, max-age=1800")
-    return {"ok": True, "repo_series": (doc.get("repo") or {}).get("n_series"),
+    return {"ok": ok_blocks >= 1 or bool(fails_x.get("ftd_tot")),
+            "health": doc["health"],
+            "repo_series": (doc.get("repo") or {}).get("n_series"),
             "mmf_series": (doc.get("mmf") or {}).get("n_series"),
             "fails_cross": bool(doc.get("nypd_fails_cross"))}

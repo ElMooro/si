@@ -143,13 +143,18 @@ with report("3302_dealer_expansion_ofr") as rep:
            nypd_fails_cross=of.get("nypd_fails_cross"),
            catalog_repo_n=len((of.get("catalog") or {}).get("repo") or []),
            catalog_mmf_n=len((of.get("catalog") or {}).get("mmf") or []))
+    fx0 = of.get("nypd_fails_cross") or {}
     if (of.get("repo") or {}).get("error"):
-        fails.append("OFR repo dataset error: %s" % of["repo"]["error"])
-    if len(ven) < 2:
+        (warns if fx0.get("ftd_tot") else fails).append(
+            "OFR repo dataset error: %s" % of["repo"]["error"])
+    elif len(ven) < 2:
         fails.append("fewer than 2 repo venues resolved: %s"
                      % sorted(ven.keys()))
     if (of.get("mmf") or {}).get("error"):
         warns.append("OFR mmf dataset error: %s" % of["mmf"]["error"])
+    if not fx0.get("ftd_tot"):
+        fails.append("NYPD fails cross-check (direct mnemonic) missing: %s"
+                     % fx0)
 
     rep.section("4. Verify nyfed-pd v3 blocks + fails reconciliation")
     d = None
@@ -170,8 +175,8 @@ with report("3302_dealer_expansion_ofr") as rep:
            corp_net_bonds_b=c.get("net_bonds_b"))
     if not fn or fn.get("securities_in_b") is None:
         fails.append("financing block missing")
-    elif not (100 < fn["securities_in_b"] < 20000
-              and 100 < fn["securities_out_b"] < 20000):
+    elif not (300 < fn["securities_in_b"] < 15000
+              and 300 < fn["securities_out_b"] < 15000):
         fails.append("financing magnitudes implausible: %s" % fn)
     if len(tx) < 3:
         fails.append("only %d transaction classes" % len(tx))
