@@ -86,7 +86,8 @@ CORP_BUCKET = [
 
 def _pos_layer(spec_doc):
     pos = (spec_doc or {}).get("pos")
-    if not pos or not pos.get("corp") or "fin" not in pos:
+    if (not pos or not pos.get("corp") or "fin" not in pos
+            or not ((pos.get("fin") or {}).get("in"))):
         cat = _get(BASE + "/list/timeseries.json", 35).get("pd", {}).get("timeseries", [])
         ledger, corp, fin, txn = {}, [], {"in": [], "out": []}, {}
         TXN_RX = re.compile(r"^PDTR([A-Z]+)-TOT$|^PDTR(GS)-")

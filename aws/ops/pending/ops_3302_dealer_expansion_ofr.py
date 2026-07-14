@@ -72,8 +72,8 @@ with report("3302_dealer_expansion_ofr") as rep:
     mark = datetime.now(timezone.utc).isoformat(timespec="seconds")
     # force POS re-discovery so the new fin/txn families enter the spec
     spec = s3_json("data/config/nyfed-pd-spec.json") or {}
-    if isinstance(spec.get("pos"), dict) and "fin" not in spec["pos"]:
-        spec["pos"].pop("corp", None)  # triggers rediscovery branch
+    if isinstance(spec.get("pos"), dict):
+        spec.pop("pos", None)  # 3302c: full rediscovery with fixed grammar
         S3.put_object(Bucket=BUCKET, Key="data/config/nyfed-pd-spec.json",
                       Body=json.dumps(spec).encode(),
                       ContentType="application/json")
