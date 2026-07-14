@@ -1,11 +1,11 @@
-executing-against: 77bb532ee98b4b499c9304020de614757783cb62
-[05:14:32]   zip: 93986 bytes
+executing-against: 43e449a65103198de3deac170607570eaa0da7e9
+[05:29:29]   zip: 94389 bytes
 ── 1. Lambda ──
-[05:14:32]   Lambda exists — updating
-[05:14:38] ✅   ✓ updated justhodl-13f-positions
-── 2. Full run + reconciliation truth bands ──
-── 3. 13f.html boards live ──
-[05:16:11]   boards + repointed consensus bar live
-[05:16:11] OPS 3295 PASS — every buy/sell board now speaks in dollars and reconciles to the headline.
+[05:29:29]   Lambda exists — updating
+[05:29:32] ✅   ✓ updated justhodl-13f-positions
+── 2. Run + safety/name truth bands ──
+── 3. Page live: names + safety + brief book ──
+[05:31:44]   names CSS + safety block + brief book live
+[05:31:44] OPS 3296 PASS — every ticker has its name, the safety rotation is visible, and the brief shows its book.
 
-→ Report written to aws/ops/reports/latest/3295_dollar_flows.md
+→ Report written to aws/ops/reports/latest/3296_names_safety_brief.md
