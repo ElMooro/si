@@ -189,7 +189,7 @@ def lambda_handler(event=None, context=None):
         # series per family (prefers *TOT*, else shortest mnemonic).
         fam = {}
         for mn in mmf:
-            m = re.match(r"^MMF-MMF_([A-Z0-9]+)", mn)
+            m = re.match(r"^MMF-(?:MY_)?MMF_([A-Z0-9]+)", mn)
             fam.setdefault(m.group(1) if m else "OTHER", []).append(mn)
         LABELS = {"RP": "repo_holdings", "TS": "treasury_holdings",
                   "TB": "treasury_holdings", "A": "agency_holdings",

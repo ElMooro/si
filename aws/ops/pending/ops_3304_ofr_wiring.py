@@ -101,11 +101,11 @@ with report("3304_ofr_wiring") as rep:
         ed = s3_json("data/eurodollar-plumbing.json") or {}
     core = (((ed.get("layers") or {}).get("us_core") or {})
             .get("metrics")) or []
-    keys = [m.get("key") for m in core]
-    gcf = next((m for m in core if m.get("key") == "gcf_tri"), None)
-    depth = next((m for m in core if m.get("key") == "ofr_repo_depth"),
+    keys = [m.get("id") for m in core]
+    gcf = next((m for m in core if m.get("id") == "gcf_tri"), None)
+    depth = next((m for m in core if m.get("id") == "ofr_repo_depth"),
                  None)
-    pool = next((m for m in core if m.get("key") == "mmf_repo_pool"), None)
+    pool = next((m for m in core if m.get("id") == "mmf_repo_pool"), None)
     rep.kv(us_core_keys=keys,
            gcf_tri=gcf, ofr_repo_depth=depth, mmf_repo_pool=pool,
            composite_health=(ed.get("composite") or {}).get("health")
