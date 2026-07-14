@@ -1,18 +1,4 @@
-executing-against: 3b73167f47a33cd1a0e8f35949620dca81207ad7
-── 1. Deploy ──
-[18:45:15]   zip: 78576 bytes
-── 1. Lambda ──
-[18:45:15]   Lambda exists — updating
-[18:45:20] ✅   ✓ updated justhodl-alert-sentinel
-[18:45:20] ✅   ✓ Function URL: https://2b6a4i3elrm4a4u4jr7pweeuye0snlil.lambda-url.us-east-1.on.aws/
-[18:45:20]   zip: 97424 bytes
-── 1. Lambda ──
-[18:45:20]   Lambda exists — updating
-[18:45:25] ✅   ✓ updated justhodl-morning-intelligence
-[18:45:26] ✅   ✓ Function URL: https://kzq7a2462fpa2pzyxcm2ztpdnu0hvkwn.lambda-url.us-east-1.on.aws/
-── 2. Sentinel runtime verify ──
-── 3. Morning-intelligence deployed-code markers ──
+executing-against: b1ef2b7fc3c79df4c52ab871b96f8a89147c7068
+[18:48:02] PAYLOAD: {"statusCode": 200, "body": "{\"sent\": false, \"changes\": 0}"}
 
-→ Report written to aws/ops/reports/latest/3308_comms_wiring.md
-FAILS: sentinel state missing dealer_regime; sentinel state missing gcf_tri_bp; sentinel state missing fails_spikes
-❌ OPS-FAIL: aws/ops/pending/ops_3308_comms_wiring.py
+→ Report written to aws/ops/reports/latest/3308b_sentinel_diag.md
