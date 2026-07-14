@@ -909,11 +909,27 @@ _STOP = {"INC", "CORP", "CO", "COM", "LTD", "PLC", "SA", "NEW",
 
 
 def _norm_name(n):
-    import re as _r
-    toks = [t for t in _r.sub(r"[^A-Z0-9 ]", " ",
-                              str(n or "").upper()).split()
-            if t not in _STOP]
-    return " ".join(toks)
+    """ops 3297b: expand SEC 13F abbreviations so OCCIDENTAL PETE
+    matches Occidental Petroleum, etc., then strip suffix noise."""
+    ABBR = {"PETE": "PETROLEUM", "HLDGS": "HOLDINGS", "HLDG":
+            "HOLDING", "INTL": "INTERNATIONAL", "SVCS": "SERVICES",
+            "SVC": "SERVICE", "MTRS": "MOTORS", "FINL": "FINANCIAL",
+            "PWR": "POWER", "RES": "RESOURCES", "GRP": "GROUP",
+            "LABS": "LABORATORIES", "PLATFMS": "PLATFORMS",
+            "COMMUNS": "COMMUNICATIONS", "TECHNOL": "TECHNOLOGIES",
+            "SEMICONDUCT": "SEMICONDUCTOR", "MFG": "MANUFACTURING",
+            "PRODS": "PRODUCTS", "SYS": "SYSTEMS", "ENTMT":
+            "ENTERTAINMENT", "BANCORP": "BANCORP", "CTRS": "CENTERS",
+            "PPTYS": "PROPERTIES", "AMERN": "AMERICAN", "GENL":
+            "GENERAL", "NATL": "NATIONAL", "STD": "STANDARD"}
+    toks = re.sub(r"[^A-Z0-9 ]", " ", (n or "").upper()).split()
+    toks = [ABBR.get(t, t) for t in toks]
+    DROP = {"INC", "CORP", "CO", "LTD", "PLC", "SA", "NV", "AG",
+            "DEL", "NEW", "THE", "CL", "A", "B", "C", "COM",
+            "SHS", "ADR", "ADS", "SPONSORED", "COMPANY",
+            "CORPORATION", "INCORPORATED", "LIMITED"}
+    out = [t for t in toks if t not in DROP]
+    return " ".join(out[:4])
 
 
 def _sec_titles(m):
@@ -958,10 +974,60 @@ def resolve_missing_tickers(fund_results, budget=150):
             continue
         for pos in fd.get("positions", []):
             tk = (pos.get("ticker") or "").upper()
-            if tk and tk.isalpha():
+            if tk and all(c.isalpha() or c in ".-" for c in tk):
                 continue
             _pend.append(pos)
     _pend.sort(key=lambda x: -(x.get("value_usd") or 0))
+
+    # ── ops 3297b: OpenFIGI tier — authoritative CUSIP→ticker ──
+    figi_cus, seen_cu = [], set()
+    for pos in _pend:
+        cu = pos.get("cusip") or ""
+        e0 = m.get(cu) or {}
+        if (len(cu) == 9 and cu not in seen_cu
+                and e0.get("src") != "figi-miss"
+                and not e0.get("ticker")):
+            seen_cu.add(cu)
+            figi_cus.append(cu)
+        if len(figi_cus) >= 400:
+            break
+    figi_hits = 0
+    for i0 in range(0, len(figi_cus), 10):
+        chunk = figi_cus[i0:i0 + 10]
+        try:
+            req = urllib.request.Request(
+                "https://api.openfigi.com/v3/mapping",
+                data=json.dumps([{"idType": "ID_CUSIP",
+                                  "idValue": c, "exchCode": "US"}
+                                 for c in chunk]).encode(),
+                headers={"Content-Type": "application/json",
+                         "User-Agent": USER_AGENT})
+            rows = json.loads(urllib.request.urlopen(
+                req, timeout=20).read().decode())
+            for cu, r0 in zip(chunk, rows):
+                dd = (r0 or {}).get("data") or []
+                tk0 = (dd[0].get("ticker") if dd else "") or ""
+                tk0 = tk0.replace("/", ".").upper()
+                if tk0 and len(tk0) <= 6 and all(
+                        c.isalnum() or c in ".-" for c in tk0):
+                    m[cu] = {"ticker": tk0,
+                             "name": (dd[0].get("name") or "")[:60],
+                             "src": "figi", "tried_at": now}
+                    figi_hits += 1
+                else:
+                    m[cu] = {"ticker": None,
+                             "name": (m.get(cu) or {}).get("name"),
+                             "src": "figi-miss", "tried_at": now}
+        except Exception as e:
+            print("  figi chunk: %s" % str(e)[:60])
+            break
+        _t.sleep(2.6)          # keyless limit ~25 req/min
+    print("  [resolver] openfigi: %d/%d resolved"
+          % (figi_hits, len(figi_cus)))
+    for pos in _pend:          # apply fresh figi hits
+        e1 = m.get(pos.get("cusip") or "") or {}
+        if e1.get("src") == "figi" and e1.get("ticker"):
+            pos["ticker"] = e1["ticker"]
     if True:
         for pos in _pend:
             cu = pos.get("cusip") or ""
