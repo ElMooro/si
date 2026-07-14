@@ -1,13 +1,8 @@
-executing-against: 1e5c76d23fe7b8c02d710715a6b2f253b6b301ae
-── 1. DIAGNOSIS — what the $203B 'unresolved' really is ──
-── 2. Deploy fix + rerun ──
-[05:43:39]   zip: 94749 bytes
+executing-against: ae63ed56dc62abc883ce17baabe350330fceb34b
+[05:50:22]   zip: 95802 bytes
 ── 1. Lambda ──
-[05:43:39]   Lambda exists — updating
-[05:43:45] ✅   ✓ updated justhodl-13f-positions
-── 3. Page name-first rendering live ──
-[05:46:02]   name-first rendering live
+[05:50:22]   Lambda exists — updating
+[05:50:26] ✅   ✓ updated justhodl-13f-positions
+[05:53:58] OPS 3298 PASS — the whale megacaps have their tickers back.
 
-→ Report written to aws/ops/reports/latest/3297_unresolved_named.md
-FAILS: UNRESOLVED barely moved: 203.7B -> 200.2B
-❌ OPS-FAIL: aws/ops/pending/ops_3297_unresolved_named.py
+→ Report written to aws/ops/reports/latest/3298_figi_resolve.md
