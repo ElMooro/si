@@ -1,13 +1,14 @@
-executing-against: 867391bc1d6ce177182365c398e0d9a25d399dfe
-── 0. 3279c aftermath — is v4 already on S3? ──
-[00:56:31]   zip: 91203 bytes
+executing-against: fa98a838ffc52da21b0cd45e88493843fd7ef350
+── 0. 3280 readback — the quarter's numbers ──
+[01:16:04]   zip: 91687 bytes
 ── 1. Lambda ──
-[00:56:32]   Lambda exists — updating
-[00:56:35] ✅   ✓ updated justhodl-13f-positions
-── 1. Flow + risk computed ──
-── 2. Banner live ──
-[01:15:32] ✅ banner atop, anchors intact (~15s)
-[01:15:32] ✗ feed not fresh in window
+[01:16:04]   Lambda exists — updating
+[01:16:07] ✅   ✓ updated justhodl-13f-positions
+── 1. Per-fund flow + risk ──
+── 2. Page chips + fixes live ──
+[01:33:15] ✅ chips + rotation fix + conviction explainer live (~15s)
+[01:33:15] ⚠ 3280 fields not on feed yet — this run produces them
+[01:33:15] ✗ feed not fresh in window
 
-→ Report written to aws/ops/reports/latest/3280_flow_risk.md
-❌ OPS-FAIL: aws/ops/pending/ops_3280_flow_risk.py
+→ Report written to aws/ops/reports/latest/3281_perfund.md
+❌ OPS-FAIL: aws/ops/pending/ops_3281_perfund.py
