@@ -1,10 +1,19 @@
-executing-against: 66255646b0df7fb6e67661ff6256fa27fb469e70
-[15:56:18]   zip: 123884 bytes
+executing-against: b4aa970ce5a657e0eeacc6f024042896703a7c33
+── 1. Deploy nyfed-pd v2 (+TELEGRAM tripwire env) ──
+[16:17:49] telegram env copied from dollar-radar
+[16:17:49]   zip: 79022 bytes
 ── 1. Lambda ──
-[15:56:19]   Lambda exists — updating
-[15:56:22] ✅   ✓ updated justhodl-equity-research
-── 2. Force-refresh BMNR + AAPL through the fixed grader ──
-── 3. Page guard markers ──
-[15:59:04] OPS 3300 PASS — BMNR now flagged DEATH_SPIRAL (key 374.7% via qtr_6m_ann); badge can never contradict the chart again.
+[16:17:50]   Lambda exists — updating
+[16:17:55] ✅   ✓ updated justhodl-nyfed-pd
+[16:17:55] ✅   ✓ Function URL: https://wr7n27ssgahakrkbjbcxmnxwce0prtjk.lambda-url.us-east-1.on.aws/
+── 2. Poll fresh output + corporate integrity ──
+── 3. THE HEADLINE CHECK — Fed file vs Bloomberg/Crisil claim ──
+── 4. Credit engine join ──
+[16:19:10]   zip: 77769 bytes
+── 1. Lambda ──
+[16:19:11]   Lambda exists — updating
+[16:19:14] ✅   ✓ updated justhodl-credit-stress
+── 5. Page markers ──
+[16:20:26] OPS 3301 PASS — dealers have their own desk: net corp -3.87B (NET_SHORT), 5y+ -13.68B / <5y 9.81B, wired into credit-stress + Telegram tripwire armed.
 
-→ Report written to aws/ops/reports/latest/3300_dilution_verdict_fix.md
+→ Report written to aws/ops/reports/latest/3301_primary_dealers.md
