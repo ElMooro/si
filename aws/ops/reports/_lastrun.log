@@ -1,9 +1,12 @@
-executing-against: 2ff794a2416804aea04e625283bdaf49815c8d98
-[23:59:14]   zip: 88106 bytes
+executing-against: 4a3e0a8ffb4605b99afc2305f9183791f36279ef
+[00:17:48]   zip: 89660 bytes
 ── 1. Lambda ──
-[23:59:14]   Lambda exists — updating
-[23:59:19] ✅   ✓ updated justhodl-13f-positions
-[00:14:30] ✗ feed not fresh
+[00:17:48]   Lambda exists — updating
+[00:17:51] ✅   ✓ updated justhodl-13f-positions
+── 1. Fresh feed with performance ──
+── 2. Page live, anchors intact ──
+[00:30:02] ✅ live (~15s)
+[00:30:02] ✗ feed not fresh in window
 
-→ Report written to aws/ops/reports/latest/3279c_options_proven.md
-❌ OPS-FAIL: aws/ops/pending/ops_3279c_options_proven.py
+→ Report written to aws/ops/reports/latest/3279_manager_perf.md
+❌ OPS-FAIL: aws/ops/pending/ops_3279_manager_perf.py
