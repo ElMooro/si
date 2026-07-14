@@ -305,7 +305,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
       +'<div style="font:600 10px monospace;letter-spacing:.14em;opacity:.6">NET FLOW THIS QUARTER — ALL FUNDS</div>'
       +'<div style="font:700 26px monospace;color:'+col+';margin:4px 0">'+(pos?'+':'')+fB(net)+' '+(pos?'NET BUYING':'NET SELLING')+'</div>'
       +'<div style="font:11px monospace;opacity:.8">buys '+fB(f.total_buy_usd)+' · sells '+fB(f.total_sell_usd)+' · '+f.n_funds_net_buying+' funds net-buying vs '+f.n_funds_net_selling+' net-selling</div>'
-      +'<div style="font:10px monospace;opacity:.6;margin-top:4px">top buyers: '+(f.top_net_buyers||[]).map(function(x){return esc(x[0]);}).join(', ')+' · top sellers: '+(f.top_net_sellers||[]).map(function(x){return esc(x[0]);}).join(', ')+'</div></div>';
+      +((d.flow_summary_directional)?('<div style="font:10px monospace;color:#8fb5ff;margin-top:5px">Directional (ex '+(d.flow_summary_directional.excludes||[]).join('/')+'): '+((d.flow_summary_directional.net_usd>=0?'+':'')+fB(d.flow_summary_directional.net_usd))+' · '+d.flow_summary_directional.n_funds_net_buying+' buying vs '+d.flow_summary_directional.n_funds_net_selling+'</div>'):'')+'<div style="font:10px monospace;opacity:.6;margin-top:4px">top buyers: '+(f.top_net_buyers||[]).map(function(x){return esc(x[0]);}).join(', ')+' · top sellers: '+(f.top_net_sellers||[]).map(function(x){return esc(x[0]);}).join(', ')+'</div></div>';
     var sc=ra.score,vcol=ra.verdict==='RISK-ON'?'#26ffaf':ra.verdict==='RISK-OFF'?'#ff5577':'#e8b45a';
     var pct=Math.max(0,Math.min(100,(sc+100)/2));
     var c=ra.components||{};
@@ -315,7 +315,7 @@ body{background-image:radial-gradient(ellipse at 90% -5%,rgba(0,212,255,.05),tra
       +'<div style="font:700 26px monospace;color:'+vcol+';margin:4px 0">'+esc(ra.verdict)+' <span style="font-size:15px;opacity:.8">'+(sc>0?'+':'')+sc+'</span></div>'
       +'<div style="height:7px;border-radius:4px;background:linear-gradient(90deg,#ff5577,#e8b45a,#26ffaf);position:relative;margin:6px 0 8px"><div style="position:absolute;left:'+pct+'%;top:-3px;width:3px;height:13px;background:#fff;border-radius:2px"></div></div>'
       +'<div>'+chip('cap-flow',c.cap_flow)+chip('sectors',c.sector_flow)+chip('opt-skew',c.options_skew)+chip('breadth',c.breadth)+'</div>'
-      +'<div style="font:10px monospace;opacity:.6;margin-top:5px">small/mid net '+fB(ra.net_smallmid_usd)+' · large net '+fB(ra.net_large_usd)+' · cyclicals '+fB(ra.net_cyclical_usd)+' vs defensives '+fB(ra.net_defensive_usd)+' · puts '+ra.n_put_rows+' / calls '+ra.n_call_rows+'</div></div>';
+      +((d.risk_appetite_directional)?('<div style="font:10px monospace;color:#8fb5ff;margin-top:5px">Directional verdict: '+esc(d.risk_appetite_directional.verdict)+' ('+(d.risk_appetite_directional.score>0?'+':'')+d.risk_appetite_directional.score+')</div>'):'')+'<div style="font:10px monospace;opacity:.6;margin-top:5px">small/mid net '+fB(ra.net_smallmid_usd)+' · large net '+fB(ra.net_large_usd)+' · cyclicals '+fB(ra.net_cyclical_usd)+' vs defensives '+fB(ra.net_defensive_usd)+' · puts '+ra.n_put_rows+' / calls '+ra.n_call_rows+'</div></div>';
     host.innerHTML=left+right;
     try{var meta=document.getElementById('ai-brief-meta');
       if(meta&&/Conviction/.test(meta.textContent)&&!meta.dataset.jhcv){meta.dataset.jhcv='1';

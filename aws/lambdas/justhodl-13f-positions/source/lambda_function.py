@@ -1252,61 +1252,48 @@ def lambda_handler(event, context):
         pass
     print(f"[13f] mcap enriched: {enriched}")
 
-    # ops 3280: NET FLOW + RISK APPETITE from the filings themselves
+    # ops 3285: FLOW + RISK v2 — gross-normalized (kills the ±1
+    # saturation: opposite-sign nets always pinned the old
+    # (x−y)/(|x|+|y|)), dual-scope in one pass (ALL vs DIRECTIONAL
+    # ex hedge-books), per-fund normalized by its own gross.
     CYC = {"Technology", "Consumer Cyclical", "Communication Services",
            "Industrials", "Financial Services", "Energy",
            "Basic Materials"}
     DEF = {"Consumer Defensive", "Utilities", "Healthcare",
            "Real Estate"}
-    buys = sells = 0.0
-    fund_net = {}
-    tick_net = {}
-    n_adds = n_new = n_trims = n_exits = 0
+    HEDGE_BOOKS = ("CITADEL", "MILLENNIUM")
+
+    def is_hb(fd):
+        key = (str(fd.get("fund_key") or "")
+               + str(fd.get("fund_name") or "")).upper()
+        return any(h in key for h in HEDGE_BOOKS)
+
+    def blank():
+        return {"buys": 0.0, "sells": 0.0, "smid": 0.0, "large": 0.0,
+                "cyc": 0.0, "dfl": 0.0, "n_adds": 0, "n_new": 0,
+                "n_trims": 0, "n_exits": 0, "fund_net": {}}
+
+    SC = {"all": blank(), "dir": blank()}
     for fd in successful:
         cs = fd.get("changes_summary") or {}
-        b = s_ = 0.0
-        for x in cs.get("new") or []:
-            b += x.get("value_usd") or 0
-            tick_net[x.get("ticker")] = tick_net.get(
-                x.get("ticker"), 0) + (x.get("value_usd") or 0)
-        for x in cs.get("adds") or []:
-            d_ = max(0, (x.get("value_usd") or 0)
-                     - (x.get("prior_value") or 0))
-            b += d_
-            tick_net[x.get("ticker")] = tick_net.get(
-                x.get("ticker"), 0) + d_
-        for x in cs.get("exits") or []:
-            s_ += x.get("prior_value") or 0
-            tick_net[x.get("ticker")] = tick_net.get(
-                x.get("ticker"), 0) - (x.get("prior_value") or 0)
-        for x in cs.get("trims") or []:
-            d_ = max(0, (x.get("prior_value") or 0)
-                     - (x.get("value_usd") or 0))
-            s_ += d_
-            tick_net[x.get("ticker")] = tick_net.get(
-                x.get("ticker"), 0) - d_
-        n_adds += cs.get("n_adds") or 0
-        n_new += cs.get("n_new") or 0
-        n_trims += cs.get("n_trims") or 0
-        n_exits += cs.get("n_exits") or 0
-        # ops 3281: per-fund tier/sector nets + own risk composite
-        f_smid = f_large = f_cyc = f_def = 0.0
+        b = s_ = f_smid = f_large = f_cyc = f_def = 0.0
         for lst, sign in ((cs.get("new") or [], 1),
                           (cs.get("adds") or [], 1),
                           (cs.get("exits") or [], -1),
                           (cs.get("trims") or [], -1)):
             for x in lst:
                 if sign > 0:
-                    dv = ((x.get("value_usd") or 0)
-                          - (x.get("prior_value") or 0)
-                          if x.get("prior_value")
-                          else (x.get("value_usd") or 0))
-                    dv = max(0, dv)
+                    dv = max(0, (x.get("value_usd") or 0)
+                             - (x.get("prior_value") or 0)) \
+                        if x.get("prior_value") else \
+                        (x.get("value_usd") or 0)
+                    b += dv
                 else:
                     dv = -max(0, (x.get("prior_value") or 0)
                               - (x.get("value_usd") or 0)) \
                         if x.get("value_usd") else \
                         -(x.get("prior_value") or 0)
+                    s_ += -dv
                 a2 = by_ticker.get(x.get("ticker")) or {}
                 t2 = a2.get("cap_tier")
                 if t2 in ("MICRO", "SMALL", "MID"):
@@ -1322,11 +1309,13 @@ def lambda_handler(event, context):
                     if x.get("put_call") == "PUT")
         f_call = sum(1 for x in fd.get("positions") or []
                      if x.get("put_call") == "CALL")
+        f_gross = b + s_
+        fnm = fd.get("fund_name") or fd.get("fund_key")
         fc = {
             "cap_flow": round((f_smid - f_large)
-                              / (abs(f_smid) + abs(f_large) + 1), 3),
+                              / max(f_gross, 1e6), 3),
             "sector_flow": round((f_cyc - f_def)
-                                 / (abs(f_cyc) + abs(f_def) + 1), 3),
+                                 / max(f_gross, 1e6), 3),
             "options_skew": round((f_call - f_put)
                                   / (f_call + f_put + 1), 3),
             "breadth": round(((cs.get("n_adds") or 0)
@@ -1343,70 +1332,84 @@ def lambda_handler(event, context):
                                + 0.25 * fc["options_skew"]
                                + 0.15 * fc["breadth"]), 1)
         fd["flow"] = {"buy_usd": round(b), "sell_usd": round(s_),
-                      "net_usd": round(b - s_)}
+                      "net_usd": round(b - s_),
+                      "hedge_book": is_hb(fd)}
         fd["risk"] = {"score": f_score,
-                      "verdict": ("RISK-ON" if f_score >= 20 else
-                                  "RISK-OFF" if f_score <= -20
+                      "verdict": ("RISK-ON" if f_score >= 15 else
+                                  "RISK-OFF" if f_score <= -15
                                   else "NEUTRAL"),
                       "components": fc}
-        buys += b
-        sells += s_
-        fund_net[fd.get("fund_name") or fd.get("fund_key")] = b - s_
-    smid = large = cyc = dfl = 0.0
-    for tk, nv in tick_net.items():
-        a = by_ticker.get(tk) or {}
-        t_ = a.get("cap_tier")
-        if t_ in ("MICRO", "SMALL", "MID"):
-            smid += nv
-        elif t_ == "LARGE":
-            large += nv
-        sec = a.get("sector")
-        if sec in CYC:
-            cyc += nv
-        elif sec in DEF:
-            dfl += nv
+        scopes = ("all",) if is_hb(fd) else ("all", "dir")
+        for sc_ in scopes:
+            S_ = SC[sc_]
+            S_["buys"] += b
+            S_["sells"] += s_
+            S_["smid"] += f_smid
+            S_["large"] += f_large
+            S_["cyc"] += f_cyc
+            S_["dfl"] += f_def
+            S_["n_adds"] += cs.get("n_adds") or 0
+            S_["n_new"] += cs.get("n_new") or 0
+            S_["n_trims"] += cs.get("n_trims") or 0
+            S_["n_exits"] += cs.get("n_exits") or 0
+            S_["fund_net"][fnm] = b - s_
+
     n_put = sum(len(a.get("put_funds") or [])
                 for a in by_ticker.values())
     n_call = sum(len(a.get("call_funds") or [])
                  for a in by_ticker.values())
-    comp = {
-        "cap_flow": round((smid - large)
-                          / (abs(smid) + abs(large) + 1), 3),
-        "sector_flow": round((cyc - dfl)
-                             / (abs(cyc) + abs(dfl) + 1), 3),
-        "options_skew": round((n_call - n_put)
-                              / (n_call + n_put + 1), 3),
-        "breadth": round((n_adds + n_new - n_trims - n_exits)
-                         / max(1, n_adds + n_new + n_trims
-                               + n_exits), 3),
-    }
-    score = round(100 * (0.30 * comp["cap_flow"]
-                         + 0.30 * comp["sector_flow"]
-                         + 0.25 * comp["options_skew"]
-                         + 0.15 * comp["breadth"]), 1)
-    verdict = ("RISK-ON" if score >= 20 else
-               "RISK-OFF" if score <= -20 else "NEUTRAL")
-    srt = sorted(fund_net.items(), key=lambda kv: kv[1])
-    flow_summary = {
-        "total_buy_usd": round(buys),
-        "total_sell_usd": round(sells),
-        "net_usd": round(buys - sells),
-        "n_funds_net_buying": sum(1 for v in fund_net.values()
-                                  if v > 0),
-        "n_funds_net_selling": sum(1 for v in fund_net.values()
-                                   if v < 0),
-        "top_net_buyers": [[k, round(v)] for k, v in srt[::-1][:3]],
-        "top_net_sellers": [[k, round(v)] for k, v in srt[:3]],
-    }
-    risk_appetite = {"score": score, "verdict": verdict,
-                     "components": comp,
-                     "net_smallmid_usd": round(smid),
-                     "net_large_usd": round(large),
-                     "net_cyclical_usd": round(cyc),
-                     "net_defensive_usd": round(dfl),
-                     "n_put_rows": n_put, "n_call_rows": n_call}
-    print(f"[13f] flow net=${flow_summary['net_usd']/1e9:.1f}B "
-          f"risk={score} {verdict}")
+
+    def emit(S_):
+        gross = max(S_["buys"] + S_["sells"], 1e6)
+        comp = {
+            "cap_flow": round((S_["smid"] - S_["large"]) / gross, 3),
+            "sector_flow": round((S_["cyc"] - S_["dfl"]) / gross, 3),
+            "options_skew": round((n_call - n_put)
+                                  / (n_call + n_put + 1), 3),
+            "breadth": round((S_["n_adds"] + S_["n_new"]
+                              - S_["n_trims"] - S_["n_exits"])
+                             / max(1, S_["n_adds"] + S_["n_new"]
+                                   + S_["n_trims"]
+                                   + S_["n_exits"]), 3),
+        }
+        score = round(100 * (0.30 * comp["cap_flow"]
+                             + 0.30 * comp["sector_flow"]
+                             + 0.25 * comp["options_skew"]
+                             + 0.15 * comp["breadth"]), 1)
+        verdict = ("RISK-ON" if score >= 15 else
+                   "RISK-OFF" if score <= -15 else "NEUTRAL")
+        srt = sorted(S_["fund_net"].items(), key=lambda kv: kv[1])
+        flow = {
+            "total_buy_usd": round(S_["buys"]),
+            "total_sell_usd": round(S_["sells"]),
+            "net_usd": round(S_["buys"] - S_["sells"]),
+            "n_funds_net_buying": sum(1 for v in
+                                      S_["fund_net"].values()
+                                      if v > 0),
+            "n_funds_net_selling": sum(1 for v in
+                                       S_["fund_net"].values()
+                                       if v < 0),
+            "top_net_buyers": [[k, round(v)]
+                               for k, v in srt[::-1][:3]],
+            "top_net_sellers": [[k, round(v)] for k, v in srt[:3]],
+        }
+        risk = {"score": score, "verdict": verdict,
+                "components": comp,
+                "net_smallmid_usd": round(S_["smid"]),
+                "net_large_usd": round(S_["large"]),
+                "net_cyclical_usd": round(S_["cyc"]),
+                "net_defensive_usd": round(S_["dfl"]),
+                "n_put_rows": n_put, "n_call_rows": n_call}
+        return flow, risk
+
+    flow_summary, risk_appetite = emit(SC["all"])
+    flow_summary_directional, risk_appetite_directional = \
+        emit(SC["dir"])
+    flow_summary_directional["excludes"] = list(HEDGE_BOOKS)
+    print(f"[13f] flow ALL net=${flow_summary['net_usd']/1e9:.1f}B "
+          f"{risk_appetite['verdict']} | DIR net="
+          f"${flow_summary_directional['net_usd']/1e9:.1f}B "
+          f"{risk_appetite_directional['verdict']}")
     print("[13f] phase mcap done")
 
     # Step 5: rankings
@@ -1443,6 +1446,8 @@ def lambda_handler(event, context):
         "mcap_enriched": enriched,
         "flow_summary": flow_summary,
         "risk_appetite": risk_appetite,
+        "flow_summary_directional": flow_summary_directional,
+        "risk_appetite_directional": risk_appetite_directional,
         "performance": compute_performance(successful, by_ticker),
         "most_bought": most_bought,
         "most_sold": most_sold,
