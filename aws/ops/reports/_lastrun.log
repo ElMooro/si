@@ -1,8 +1,13 @@
-executing-against: 185d40bdc4be9c28fd94810871ddb43f1fe0d47a
-[03:39:00]   zip: 77229 bytes
+executing-against: e517202e3de5ae63749f5e6cee6aa9e70bb791fe
+[04:10:15]   zip: 123419 bytes
 ── 1. Lambda ──
-[03:39:01]   Lambda exists — updating
-[03:39:04] ✅   ✓ updated justhodl-comeback-screener
-[03:39:33] OPS 3291 PASS — full liquid market now flows the funnel.
+[04:10:15]   Lambda exists — updating
+[04:10:18] ✅   ✓ updated justhodl-equity-research
+── 2. AAPL — clean-name truth bands ──
+── 3. Serial diluter — risk MUST flag ──
+[04:11:43]   MARA correctly FLAGGED
+── 4. Live pages: why.html v2 + drawer account ──
 
-→ Report written to aws/ops/reports/latest/3291_liquidity_funnel.md
+→ Report written to aws/ops/reports/latest/3292_dilution_v2_favsync.md
+FAILS: AAPL risk_flag should be False: None; AAPL 10y multiple off (buyback machine): None
+❌ OPS-FAIL: aws/ops/pending/ops_3292_dilution_v2_favsync.py
