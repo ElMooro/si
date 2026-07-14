@@ -121,6 +121,25 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         warns.append("share-flows join unavailable: %s" % str(e)[:60])
 
+    # FinViz export "52-Week Low/High" are usually PERCENT distances
+    # ("120.45%", "-55.30%"), not prices. Detect semantics on a sample:
+    # in price-mode, lo <= px <= hi holds nearly always.
+    probe_ok = probe_n = 0
+    for r in rows[:400]:
+        px_ = num(g(r, "Price", "price"))
+        lo_ = num(g(r, "52-Week Low", "52W Low", "52w low", "low_52w"))
+        hi_ = num(g(r, "52-Week High", "52W High", "52w high",
+                    "high_52w"))
+        if px_ and lo_ is not None and hi_ is not None:
+            probe_n += 1
+            if 0 < lo_ <= px_ * 1.02 and hi_ >= px_ * 0.98:
+                probe_ok += 1
+    price_mode = probe_n >= 50 and probe_ok / probe_n > 0.85
+    warns.append("52w_semantics=%s (probe %d/%d)"
+                 % ("price" if price_mode else "percent",
+                    probe_ok, probe_n))
+
+    funnel = {"parsed": 0, "tradeable": 0, "comeback": 0, "confirm": 0}
     cands = []
     for r in rows:
         tkr = g(r, "Ticker", "ticker")
@@ -130,19 +149,29 @@ def lambda_handler(event=None, context=None):
                    "high_52w"))
         av = num(g(r, "Average Volume", "Avg Volume", "avgvol",
                    "average_volume"))
-        if not tkr or not px or not lo or not hi or px < 0.10:
+        if not tkr or not px or lo is None or hi is None or px < 0.10:
             continue
-        if lo <= 0 or hi <= 0:
-            continue
-        off_low = (px / lo - 1) * 100
-        below_high = (px / hi - 1) * 100
+        funnel["parsed"] += 1
+        if price_mode:
+            if lo <= 0 or hi <= 0:
+                continue
+            off_low = (px / lo - 1) * 100
+            below_high = (px / hi - 1) * 100
+        else:
+            off_low = lo          # "% above 52w low" straight from export
+            below_high = hi       # "% below 52w high" (negative)
         dvol = (av or 0) * px
-        if off_low < 75 or below_high > -50 or dvol < 3e5:
+        if dvol < 3e5:
             continue
+        funnel["tradeable"] += 1
+        if off_low < 75 or below_high > -50:
+            continue
+        funnel["comeback"] += 1
         pq = num(g(r, "Performance (Quarter)", "Perf Quart",
                    "perf_quarter", "performance quarter"))
         if pq is not None and pq <= 0:
             continue
+        funnel["confirm"] += 1
         s200 = num(g(r, "200-Day Simple Moving Average", "SMA200",
                      "sma200", "200-day simple moving average"))
         s50 = num(g(r, "50-Day Simple Moving Average", "SMA50",
@@ -166,7 +195,9 @@ def lambda_handler(event=None, context=None):
         })
 
     cands.sort(key=lambda x: -x["off_low_pct"])
-    print("universe=%d raw_candidates=%d" % (len(rows), len(cands)))
+    print("universe=%d raw_candidates=%d funnel=%s"
+          % (len(rows), len(cands), funnel))
+    warns.append("funnel=%s" % funnel)
 
     # dilution guard: share-flows join first, FMP for uncovered finalists
     fmp_used = 0

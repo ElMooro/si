@@ -210,12 +210,18 @@ def lambda_handler(event=None, context=None):
 
     # live intraday leg: ^TNX quote / 10 (CBOE 10y yield index)
     tnx = yahoo_daily("^TNX", "5d")
+    fred_lvl = round(dgs10[-1][1], 3)
     live_lvl, live_src = None, "fred"
     if tnx:
-        live_lvl = round(tnx[-1][1] / 10.0, 3)
-        live_src = "yahoo_tnx_live"
-    fred_lvl = round(dgs10[-1][1], 3)
-    level = live_lvl if live_lvl and 0.2 < live_lvl < 20 else fred_lvl
+        raw = tnx[-1][1]
+        # Yahoo v8 close for ^TNX is usually already in percent (4.61);
+        # some feeds ship the CBOE x10 convention (46.1). Pick the
+        # candidate nearest FRED's last print — self-correcting.
+        cand = min((raw, raw / 10.0), key=lambda c: abs(c - fred_lvl))
+        if 1.0 < cand < 20 and abs(cand - fred_lvl) < 1.5:
+            live_lvl = round(cand, 3)
+            live_src = "yahoo_tnx_live"
+    level = live_lvl if live_lvl else fred_lvl
 
     ys = [v for _, v in dgs10]
     since90 = [v for d, v in dgs10 if d >= "1990-01-01"]
