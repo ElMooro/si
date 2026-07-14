@@ -1,9 +1,30 @@
-executing-against: ce29a382713c7c031d0a2793e42cd541869cab47
-[01:35:39]   zip: 91687 bytes
+executing-against: 81617d3bcc61e85eccd69ebef75ba59e7725c3cd
+── 0. Why the last two invokes wrote nothing ──
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4197 mapped
+[01:51:41]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1015, in lambda_handler
+    by_ticker = a
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4242 mapped
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4291 mapped
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4341 mapped
+[01:51:41]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1171, in lambda_handler
+    by_ticker = a
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4384 mapped
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4442 mapped
+[01:51:41]   [13f] resolver: 150 fresh lookups, 4506 mapped
+[01:51:41]   [ERROR] KeyError: 'put_funds'
+Traceback (most recent call last):
+  File "/var/task/lambda_function.py", line 1181, in lambda_handler
+    by_ticker = a
+[01:51:41]   zip: 91731 bytes
 ── 1. Lambda ──
-[01:35:39]   Lambda exists — updating
-[01:35:45] ✅   ✓ updated justhodl-13f-positions
-[01:51:23] ✗ feed STILL not fresh — read logs again
+[01:51:41]   Lambda exists — updating
+[01:51:46] ✅   ✓ updated justhodl-13f-positions
+── 1. THE QUARTER'S NUMBERS ──
+[02:07:23] ✗ feed STILL not fresh — read logs above
 
-→ Report written to aws/ops/reports/latest/3282b_engine_fixed.md
-❌ OPS-FAIL: aws/ops/pending/ops_3282b_engine_fixed.py
+→ Report written to aws/ops/reports/latest/3282b_numbers.md
+❌ OPS-FAIL: aws/ops/pending/ops_3282b_numbers.py
