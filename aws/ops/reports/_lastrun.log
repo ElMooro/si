@@ -1,22 +1,20 @@
-executing-against: e9c75ab052653c4ab0486b6a818fde0afb563fb0
+executing-against: af82f2fc6ba1a4216ea11368e176204c9ee3d4a5
 ── 1. Deploy the three engines ──
-[17:35:52]   zip: 76369 bytes
+[17:38:47]   zip: 76378 bytes
 ── 1. Lambda ──
-[17:35:53]   Lambda exists — updating
-[17:35:58] ✅   ✓ updated justhodl-ofr-stfm
-[17:35:58]   zip: 84769 bytes
+[17:38:48]   Lambda exists — updating
+[17:38:53] ✅   ✓ updated justhodl-ofr-stfm
+[17:38:54]   zip: 84769 bytes
 ── 1. Lambda ──
-[17:35:58]   Lambda exists — updating
-[17:36:01] ✅   ✓ updated justhodl-eurodollar-plumbing
-[17:36:02]   zip: 99988 bytes
+[17:38:54]   Lambda exists — updating
+[17:38:59] ✅   ✓ updated justhodl-eurodollar-plumbing
+[17:39:00]   zip: 99988 bytes
 ── 1. Lambda ──
-[17:36:02]   Lambda exists — updating
-[17:36:07] ✅   ✓ updated justhodl-liquidity-inflection
-[17:36:07] ✅   ✓ Function URL: https://nugw7kvtktbz7qrs2twpckato40idtvs.lambda-url.us-east-1.on.aws/
+[17:39:00]   Lambda exists — updating
+[17:39:06] ✅   ✓ updated justhodl-liquidity-inflection
 ── 2. OFR v1.1 — MMF families ──
 ── 3. Plumbing us_core joins ──
 ── 4. Liquidity-inflection context block ──
+[17:40:17] OPS 3304 PASS — OFR wired into the funding stack: plumbing scores the interdealer premium, liquidity carries onshore context, MMF curation is grammar-driven (6 families).
 
 → Report written to aws/ops/reports/latest/3304_ofr_wiring.md
-FAILS: gcf_tri metric missing from us_core; ofr_repo_depth metric missing
-❌ OPS-FAIL: aws/ops/pending/ops_3304_ofr_wiring.py
