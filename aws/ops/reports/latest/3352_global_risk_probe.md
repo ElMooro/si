@@ -1,0 +1,35 @@
+- `18:08:03`   ? data/euro-fragmentation.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'fragmentation', 'bund_benchmark_10y_pct', 'countries', 'core_vs_periphery', 'france_focus', 'ecb_backstop']
+- `18:08:03`       → candidate: fragmentation.score_0_100 = 47.6
+**Status:** success  
+**Duration:** 0.5s  
+**Finished:** 2026-07-15T18:08:03+00:00  
+
+## Log
+- `18:08:03`       → candidate: fragmentation.widest_spread_bp = 77.2
+- `18:08:03`       → candidate: fragmentation.fastest_widening_1m_bp = 7.7
+- `18:08:03`       → candidate: core_vs_periphery.core_avg_spread_bp = 40.2
+- `18:08:03`       → candidate: core_vs_periphery.periphery_avg_spread_bp = 49.6
+- `18:08:03`       → candidate: france_focus.oat_bund_spread_bp = 69.5
+- `18:08:03`       → candidate: france_focus.spread_change_1m_bp = 2.1
+- `18:08:03`       → candidate: france_focus.spread_change_3m_bp = 8.7
+- `18:08:03`       → candidate: cross_reference.systemic_stress_composite = 40.2
+- `18:08:03`   ✓ data/carry-surface.json :: unwind_overlay.cohort_fragility = 59.0
+- `18:08:03`   ✗ data/sovereign-stress.json: NoSuchKey
+- `18:08:03`   ? data/global-tide.json: top=['engine', 'version', 'generated_at', 'fed', 'ecb', 'boj', 'china', 'gli', 'hy_oas_pct', 'hy_oas_3m_chg_bp', 'nfci', 'risk']
+- `18:08:03`       → candidate: ecb.injection_score = -2
+- `18:08:03`       → candidate: boj.injection_score = -2
+- `18:08:03`       → candidate: gli.impulse_score = -32.0
+- `18:08:03`       → candidate: hy_oas_3m_chg_bp = -15.0
+- `18:08:03`   ? data/capital-inflows.json: top=['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime', 'regime_interpretation', 'flags']
+- `18:08:03`   ✓ data/crisis-composite.json :: master_crisis_score = 29.8
+- `18:08:03`   ? data/canary-grid.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'early_warning_level', 'band', 'headline', 'sub_grids', 'freshness', 'signals', 'top_deteriorating', 'n_available']
+- `18:08:03`   ? data/euro-fragmentation.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'fragmentation', 'bund_benchmark_10y_pct', 'countries', 'core_vs_periphery', 'france_focus', 'ecb_backstop']
+- `18:08:03`       → candidate: fragmentation.score_0_100 = 47.6
+- `18:08:03`       → candidate: fragmentation.widest_spread_bp = 77.2
+- `18:08:03`       → candidate: fragmentation.fastest_widening_1m_bp = 7.7
+- `18:08:03`       → candidate: core_vs_periphery.core_avg_spread_bp = 40.2
+- `18:08:03`       → candidate: core_vs_periphery.periphery_avg_spread_bp = 49.6
+- `18:08:03`       → candidate: france_focus.oat_bund_spread_bp = 69.5
+- `18:08:03`       → candidate: france_focus.spread_change_1m_bp = 2.1
+- `18:08:03`       → candidate: france_focus.spread_change_3m_bp = 8.7
+- `18:08:03`       → candidate: cross_reference.systemic_stress_composite = 40.2
