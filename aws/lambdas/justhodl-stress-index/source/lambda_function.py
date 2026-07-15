@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -54,18 +54,23 @@ def load_calibrated_spine_weights():
         pass
     return {sid: wt for sid, _, _, wt, _ in SPINE}, "prior"
 
-# ── SPINE: FRED components with real ~1990 inception. Each tuple:
-#    (series_id, label, polarity, weight, inception)
-#    polarity +1 = higher value means MORE stress; -1 = higher value means LESS stress
-#    (e.g. yield-curve: a deeply negative 10Y-2Y = inversion = stress, so we negate).
+# ── SPINE: FRED components with real inception. Each tuple:
+#    (series_id, label, polarity, weight, inception, mode)
+#    polarity +1 = higher (transformed) value means MORE stress; -1 = inverse.
+#    mode "level" = z-score the level (mean-reverting series: VIX, spreads, curve).
+#    mode "chg"   = z-score the 3-month CHANGE (trending series: reserves, Fed BS —
+#                   the stress is in the DRAINING, not the secular level). Falling
+#                   reserves/BS = liquidity withdrawal = stress, so polarity -1 on the change.
 SPINE = [
-    ("VIXCLS",       "Equity volatility (VIX)",        +1, 0.22, "1990-01-02"),
-    ("NFCI",         "Chicago Fed NFCI",               +1, 0.20, "1971-01-08"),
-    ("KCFSI",        "KC Fed Financial Stress",        +1, 0.14, "1990-02-01"),
-    ("STLFSI4",      "St. Louis Fed Financial Stress", +1, 0.14, "1993-12-31"),
-    ("BAMLH0A0HYM2", "High-yield credit OAS",          +1, 0.16, "1996-12-31"),
-    ("T10Y2Y",       "Yield-curve (10Y-2Y)",           -1, 0.08, "1976-06-01"),
-    ("BAMLC0A0CM",   "Investment-grade OAS",           +1, 0.06, "1996-12-31"),
+    ("VIXCLS",       "Equity volatility (VIX)",        +1, 0.20, "1990-01-02", "level"),
+    ("NFCI",         "Chicago Fed NFCI",               +1, 0.18, "1971-01-08", "level"),
+    ("KCFSI",        "KC Fed Financial Stress",        +1, 0.13, "1990-02-01", "level"),
+    ("STLFSI4",      "St. Louis Fed Financial Stress", +1, 0.12, "1993-12-31", "level"),
+    ("BAMLH0A0HYM2", "High-yield credit OAS",          +1, 0.14, "1996-12-31", "level"),
+    ("T10Y2Y",       "Yield-curve (10Y-2Y)",           -1, 0.07, "1976-06-01", "level"),
+    ("BAMLC0A0CM",   "Investment-grade OAS",           +1, 0.06, "1996-12-31", "level"),
+    ("WRESBAL",      "Bank Reserves (draining)",       -1, 0.06, "1959-01-01", "chg"),
+    ("WALCL",        "Fed Balance Sheet (QT)",         -1, 0.04, "2002-12-18", "chg"),
 ]
 
 # ── OVERLAY: live JustHodl feeds (contemporary enrichment). Each tuple:
@@ -172,44 +177,53 @@ def z_to_stress(z):
 
 def build_spine_series():
     """For each spine component, pull full FRED history, forward-fill to a common daily
-    grid, z-score each on its OWN full history, map to 0-100, and blend into a daily JSI
-    spine series. Returns (dates, jsi_series, per_component_latest, component_meta)."""
+    grid, transform (level or 3-month change), z-score on its OWN full history, map to
+    0-100, and blend into a daily JSI spine series.
+    Returns (dates, jsi_series, per_component_latest, component_meta, weight_mode)."""
     cal_weights, weight_mode = load_calibrated_spine_weights()
     comps = {}
-    for series_id, label, pol, wt, inception in SPINE:
+    for series_id, label, pol, wt, inception, mode in SPINE:
         obs = fred_full(series_id)
         if len(obs) < 50:
             continue
         comps[series_id] = {"label": label, "pol": pol,
                             "wt": cal_weights.get(series_id, wt),
-                            "inception": inception, "obs": obs}
+                            "inception": inception, "mode": mode, "obs": obs}
 
     if not comps:
-        return [], [], {}, []
+        return [], [], {}, [], weight_mode
 
-    # Union of all dates, sorted.
     all_dates = sorted({d for c in comps.values() for d, _ in c["obs"]})
+    CHG_LAG = 63  # ~3 trading months for the "chg" transform
 
-    # Forward-fill each component onto the common grid, then z-score on own history.
+    # Forward-fill onto the common grid, apply transform, then z-score on own history.
     for c in comps.values():
         m = dict(c["obs"])
         filled, last = [], None
         for d in all_dates:
             if d in m:
                 last = m[d]
-            filled.append(last)  # None until first obs (component not yet born)
-        c["filled"] = filled
-        present = [v for v in filled if v is not None]
+            filled.append(last)
+        # transform: level (as-is) or chg (value now minus value CHG_LAG steps ago)
+        if c["mode"] == "chg":
+            xform = []
+            for i, v in enumerate(filled):
+                if v is None or i < CHG_LAG or filled[i - CHG_LAG] is None:
+                    xform.append(None)
+                else:
+                    xform.append(v - filled[i - CHG_LAG])
+            c["xform"] = xform
+        else:
+            c["xform"] = filled
+        present = [v for v in c["xform"] if v is not None]
         c["mu"] = _mean(present)
         c["sd"] = _std(present) or 1.0
 
-    # Blend: at each date, weighted mean of available components' stress sub-scores,
-    # renormalizing weights over whichever components exist yet.
     jsi_series = []
     for i, d in enumerate(all_dates):
         num, wsum = 0.0, 0.0
         for c in comps.values():
-            v = c["filled"][i]
+            v = c["xform"][i]
             if v is None:
                 continue
             z = (v - c["mu"]) / c["sd"] * c["pol"]
@@ -222,16 +236,17 @@ def build_spine_series():
     # Latest component readings for the breakdown.
     latest = {}
     for sid, c in comps.items():
-        present = [(d, v) for d, v in zip(all_dates, c["filled"]) if v is not None]
+        present = [(d, v) for d, v in zip(all_dates, c["xform"]) if v is not None]
         if present:
             ld, lv = present[-1]
             z = (lv - c["mu"]) / c["sd"] * c["pol"]
             latest[sid] = {"label": c["label"], "raw": round(lv, 3),
                            "stress": z_to_stress(z), "z": round(z, 2),
-                           "as_of": ld, "weight": c["wt"], "inception": c["inception"]}
+                           "as_of": ld, "weight": c["wt"], "inception": c["inception"],
+                           "mode": c["mode"]}
 
     meta = [{"series": sid, "label": c["label"], "weight": round(c["wt"], 4),
-             "inception": c["inception"]} for sid, c in comps.items()]
+             "inception": c["inception"], "mode": c["mode"]} for sid, c in comps.items()]
     dates = [d for d, _ in jsi_series]
     vals = [v for _, v in jsi_series]
     return dates, vals, latest, meta, weight_mode

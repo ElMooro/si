@@ -54,16 +54,19 @@ ECB_API = "https://data-api.ecb.europa.eu/service/data"
 EUROSTAT = ("https://ec.europa.eu/eurostat/api/dissemination/statistics"
             "/1.0/data")
 
-# ── ECB CISS — headline (new CISS, the maintained series) ──
+# ── ECB CISS — headline. SS_CI.IDX is the maintained/working series (SS_CIN.IDX
+#    returns empty as of 2026-07). ──
 CISS_HEADLINE = {
+    "euro_area": "D.U2.Z0Z.4F.EC.SS_CI.IDX",
+    "united_states": "D.US.Z0Z.4F.EC.SS_CI.IDX",
+    "china": "D.CN.Z0Z.4F.EC.SS_CI.IDX",
+    "united_kingdom": "D.GB.Z0Z.4F.EC.SS_CI.IDX",
+}
+CISS_HEADLINE_FALLBACK = {            # new CISS variant, if the maintained one is thin
     "euro_area": "D.U2.Z0Z.4F.EC.SS_CIN.IDX",
     "united_states": "D.US.Z0Z.4F.EC.SS_CIN.IDX",
     "china": "D.CN.Z0Z.4F.EC.SS_CIN.IDX",
     "united_kingdom": "D.GB.Z0Z.4F.EC.SS_CIN.IDX",
-}
-CISS_HEADLINE_FALLBACK = {            # original CISS, if the new one is thin
-    "euro_area": "D.U2.Z0Z.4F.EC.SS_CI.IDX",
-    "united_states": "D.US.Z0Z.4F.EC.SS_CI.IDX",
 }
 # ── ECB SovCISS — sovereign systemic stress (monthly) ──
 SOVCISS = {
@@ -85,11 +88,14 @@ EU_COUNTRIES = {                       # display key -> Eurostat geo code
 # ───────────────────────── fetchers ─────────────────────────
 def _get(url, timeout=30):
     last = None
+    # ECB CSV endpoints break when we force Accept: application/json — only send
+    # a JSON Accept for endpoints we actually want JSON from (FRED).
+    accept = "text/csv, */*" if ("csvdata" in url or "/CISS/" in url) else "application/json"
     for attempt in range(3):
         try:
             req = urllib.request.Request(
                 url, headers={"User-Agent": "justhodl-sovereign-stress/1.0",
-                              "Accept": "application/json"})
+                              "Accept": accept})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return r.read()
         except Exception as e:

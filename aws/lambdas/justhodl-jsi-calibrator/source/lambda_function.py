@@ -53,13 +53,15 @@ MIN_N_FULL = 60
 
 # same spine as the JSI engine (series_id, label, polarity)
 SPINE = [
-    ("VIXCLS", "Equity volatility (VIX)", +1),
-    ("NFCI", "Chicago Fed NFCI", +1),
-    ("KCFSI", "KC Fed Financial Stress", +1),
-    ("STLFSI4", "St. Louis Fed Financial Stress", +1),
-    ("BAMLH0A0HYM2", "High-yield credit OAS", +1),
-    ("T10Y2Y", "Yield-curve (10Y-2Y)", -1),
-    ("BAMLC0A0CM", "Investment-grade OAS", +1),
+    ("VIXCLS", "Equity volatility (VIX)", +1, "level"),
+    ("NFCI", "Chicago Fed NFCI", +1, "level"),
+    ("KCFSI", "KC Fed Financial Stress", +1, "level"),
+    ("STLFSI4", "St. Louis Fed Financial Stress", +1, "level"),
+    ("BAMLH0A0HYM2", "High-yield credit OAS", +1, "level"),
+    ("T10Y2Y", "Yield-curve (10Y-2Y)", -1, "level"),
+    ("BAMLC0A0CM", "Investment-grade OAS", +1, "level"),
+    ("WRESBAL", "Bank Reserves (draining)", -1, "chg"),
+    ("WALCL", "Fed Balance Sheet (QT)", -1, "chg"),
 ]
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -212,16 +214,25 @@ def calibrate_spine():
         fwd_dd[d] = max(0.0, (spy_vals[i] - mn) / spy_vals[i] * 100.0)
 
     ic_by_key, n_by_key = {}, {}
-    for series_id, label, pol in SPINE:
+    for series_id, label, pol, mode in SPINE:
         obs = fred_full(series_id)
         if len(obs) < 100:
             ic_by_key[series_id] = None
             n_by_key[series_id] = 0
             continue
-        vals = [v for _, v in obs]
+        # transform: "chg" = 63-obs change (trending series like reserves/Fed BS);
+        # "level" = raw. z-scored on own history either way.
+        if mode == "chg":
+            raw = [v for _, v in obs]
+            tdates = [d for d, _ in obs]
+            transformed = [(tdates[i], raw[i] - raw[i - 63])
+                           for i in range(63, len(raw))]
+        else:
+            transformed = obs
+        vals = [v for _, v in transformed]
         mu, sd = _mean(vals), _std(vals) or 1.0
         xs, ys = [], []
-        for d, v in obs:
+        for d, v in transformed:
             if d in fwd_dd:
                 z = (v - mu) / sd * pol
                 xs.append(z_to_stress(z))
@@ -231,11 +242,11 @@ def calibrate_spine():
         ic_by_key[series_id] = round(ic, 4) if ic is not None else None
 
     n = max(n_by_key.values()) if n_by_key else 0
-    priors = {sid: 1.0 / len(SPINE) for sid, _, _ in SPINE}  # equal-weight priors
+    priors = {sid: 1.0 / len(SPINE) for sid, _, _, _ in SPINE}  # equal-weight priors
     final, empirical, mode, alpha = derive_empirical_weights(ic_by_key, priors, n)
     return {"ic": ic_by_key, "n_by_key": n_by_key, "weights": final,
             "empirical": empirical, "mode": mode, "alpha": round(alpha, 3),
-            "labels": {sid: lbl for sid, lbl, _ in SPINE}, "sample_size": n}
+            "labels": {sid: lbl for sid, lbl, _, _ in SPINE}, "sample_size": n}
 
 
 def calibrate_overlay():
