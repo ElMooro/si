@@ -1,36 +1,21 @@
-executing-against: 6d3386a8478aa86fce8f3ce37cfbd0fd46dc461f
-── Deploy carry-surface v1.3.0 ──
-[16:03:22]   zip: 90045 bytes
-── 1. Lambda ──
-[16:03:22]   Lambda exists — updating
-[16:03:25] ✅   ✓ updated justhodl-carry-surface
-── 2. EB rule + permissions ──
-[16:03:26]   rule already correct: carry-surface-4h (rate(4 hours))
-[16:03:26] ✅   ✓ target → justhodl-carry-surface
-[16:03:26] ✅   ✓ added invoke permission
-── 3. Smoke test ──
-[16:03:26]   invoking justhodl-carry-surface…
-[16:03:51] ✅   ✓ smoke test passed
-[16:03:51]     ok                       True
-[16:03:51]     n_assets                 166
-[16:03:51]     top1                     TURUSD
-[16:03:51]     top1_carry_pct           13.03
-[16:03:51]     bottom1                  VXX
-[16:03:51]     bottom1_carry_pct        -65.0
-[16:03:51]     telegram_sent            False
-[16:03:51]     elapsed_s                24.15
-[16:03:51] smoke: {"ok": true, "n_assets": 166, "top1": "TURUSD", "top1_carry_pct": 13.03, "bottom1": "VXX", "bottom1_carry_pct": -65.0, "telegram_sent": false, "elapsed_s": 24.15}
-── Verify: invoke + inspect ──
-[16:04:18] invoke status=200 err=None
-[16:04:21] version=1.3.0 n_assets=166 by_class={'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14, 'crypto': 10}
-[16:04:21] UNWIND: cohort_fragility=44.1 verdict=LOW — carry cohort is not currently stretched
-[16:04:21]   regime=None roro=None vix=None mult=1.0
-[16:04:21]   n_fragile=0 n_crowded=4
-[16:04:21]   top fragile: []
-[16:04:21] ✅ UNWIND OVERLAY LIVE — cohort=44.1, 0 fragile / 4 crowded.
-[16:04:21] ✅ risk-regime joined: None (RORO None, VIX None).
-[16:04:21] ✅ UNIVERSE EXPANDED — 166 assets ({'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14, 'crypto': 10}).
-[16:04:21] ✅ no regressions — crypto=10, max commodity |carry|=65.0.
-[16:04:21] ✅ version 1.3.0 live
+executing-against: 4ce7ae18f29527fde3cb6c2d8fe41c4eb0240a29
+[16:06:03] ✅ data/risk-regime.json — 4407B, 3.3h old
+[16:06:03]   top keys: ['engine', 'version', 'generated_at', 'wl_research', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components']
+[16:06:03]   generated_at = "2026-07-15T12:45:37.848101+00:00"
+[16:06:03]   posture = {"beta_tilt": "neutral_to_long", "size_mult": 1.05, "hedge": "normal"}
+[16:06:03] ✅ data/eurodollar-stress.json — 2997B, 18.8h old
+[16:06:03]   top keys: ['as_of', 'v', 'composite_score', 'severity', 'regime', 'n_signals_used', 'n_signals_total', 'n_failures', 'signals', 'hot_signals', 'cold_signals', 'failures', 'thresholds', 'duration_s']
+[16:06:03]   regime = "CALM"
+[16:06:03] ✅ data/eurodollar-plumbing.json — 18194B, 4.1h old
+[16:06:03]   top keys: ['engine', 'version', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note', 'red_flags', 'yellow_flags', 'massive_fx']
+[16:06:03]   score = 13.1
+[16:06:03]   generated_at = "2026-07-15T12:01:22Z"
+[16:06:03]   stress_score = 13.1
+[16:06:03] ✅ data/firm-risk-board.json — 6545B, 12.1h old
+[16:06:03]   top keys: ['schema_version', 'engine', 'method', 'generated_at', 'build_seconds', 'firm_posture', 'firm_severity', 'headline', 'cro_brief', 'n_alert', 'n_watch', 'binding_constraint', 'dimensions', 'limit_utilization', 'tightest_limit', 'top_firm_risks']
+[16:06:03]   generated_at = "2026-07-15T04:00:35.329404+00:00"
+[16:06:03] ✅ data/polygon-fx-regime.json — 4146B, 2.9h old
+[16:06:03]   top keys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro', 'regime_signals', 'regime_metrics', 'pair_data', 'source']
+[16:06:03]   generated_at = "2026-07-15T13:10:03.690183+00:00"
 
-→ Report written to aws/ops/reports/latest/3343_carry_unwind_overlay_universe.md
+→ Report written to aws/ops/reports/latest/3344_probe_risk_regime_feed.md

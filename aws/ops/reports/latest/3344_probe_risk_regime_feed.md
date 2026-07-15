@@ -1,0 +1,23 @@
+- `16:06:03` ✅ data/risk-regime.json — 4407B, 3.3h old
+- `16:06:03`   top keys: ['engine', 'version', 'generated_at', 'wl_research', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components']
+**Status:** success  
+**Duration:** 0.9s  
+**Finished:** 2026-07-15T16:06:03+00:00  
+
+## Log
+- `16:06:03`   generated_at = "2026-07-15T12:45:37.848101+00:00"
+- `16:06:03`   posture = {"beta_tilt": "neutral_to_long", "size_mult": 1.05, "hedge": "normal"}
+- `16:06:03` ✅ data/eurodollar-stress.json — 2997B, 18.8h old
+- `16:06:03`   top keys: ['as_of', 'v', 'composite_score', 'severity', 'regime', 'n_signals_used', 'n_signals_total', 'n_failures', 'signals', 'hot_signals', 'cold_signals', 'failures', 'thresholds', 'duration_s']
+- `16:06:03`   regime = "CALM"
+- `16:06:03` ✅ data/eurodollar-plumbing.json — 18194B, 4.1h old
+- `16:06:03`   top keys: ['engine', 'version', 'generated_at', 'euro_policy_corridor', 'wl_research', 'plumbing_health', 'verdict', 'composite_score', 'score', 'stress_score', 'severity', 'stress_regime', 'compat_note', 'red_flags', 'yellow_flags', 'massive_fx']
+- `16:06:03`   score = 13.1
+- `16:06:03`   generated_at = "2026-07-15T12:01:22Z"
+- `16:06:03`   stress_score = 13.1
+- `16:06:03` ✅ data/firm-risk-board.json — 6545B, 12.1h old
+- `16:06:03`   top keys: ['schema_version', 'engine', 'method', 'generated_at', 'build_seconds', 'firm_posture', 'firm_severity', 'headline', 'cro_brief', 'n_alert', 'n_watch', 'binding_constraint', 'dimensions', 'limit_utilization', 'tightest_limit', 'top_firm_risks']
+- `16:06:03`   generated_at = "2026-07-15T04:00:35.329404+00:00"
+- `16:06:03` ✅ data/polygon-fx-regime.json — 4146B, 2.9h old
+- `16:06:03`   top keys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_pairs', 'fx_roro', 'regime_signals', 'regime_metrics', 'pair_data', 'source']
+- `16:06:03`   generated_at = "2026-07-15T13:10:03.690183+00:00"
