@@ -60,7 +60,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -81,19 +81,24 @@ s3 = boto3.client('s3', region_name=REGION)
 # Equity: index ETFs + top S&P names by market cap (kept moderate to limit FMP calls)
 EQUITY_UNIVERSE = [
     # Broad indices
-    "SPY", "QQQ", "IWM", "DIA", "VTI",
+    "SPY", "QQQ", "IWM", "DIA", "VTI", "RSP", "MDY",
     # Sectors
     "XLE", "XLF", "XLK", "XLV", "XLI", "XLP", "XLY", "XLB", "XLU", "XLRE", "XLC",
-    # Top single names
+    # Top single names — mega / large cap across sectors
     "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK-B",
     "JPM", "JNJ", "V", "PG", "MA", "HD", "BAC", "ABBV", "AVGO",
     "WMT", "KO", "MRK", "PEP", "PFE", "TMO", "CVX", "XOM",
-    # Dividend champions  
-    "VYM", "SCHD", "SPHD", "DGRO",
+    "COST", "MCD", "CSCO", "ACN", "ADBE", "CRM", "NKE", "TXN", "QCOM",
+    "UNH", "LLY", "T", "VZ", "IBM", "GE", "CAT", "DE", "MMM", "HON",
+    "GS", "MS", "C", "WFC", "AXP", "SCHW", "BLK", "SPGI",
+    "AMGN", "GILD", "BMY", "MDT", "DHR", "ABT",
+    "LOW", "SBUX", "TGT", "F", "GM",
+    # Dividend / factor
+    "VYM", "SCHD", "SPHD", "DGRO", "NOBL", "HDV", "DVY", "USMV", "QUAL", "MTUM", "VLUE",
     # International
-    "EFA", "VEA", "EEM", "VWO", "INDA", "MCHI", "EWJ", "EWG", "EWZ",
+    "EFA", "VEA", "EEM", "VWO", "INDA", "MCHI", "EWJ", "EWG", "EWZ", "EWU", "EWC", "EWA", "EWY", "EWT", "EWH",
     # REITs
-    "VNQ", "IYR",
+    "VNQ", "IYR", "SCHH",
 ]
 
 # FX pairs: rate of base currency vs USD short rate.
@@ -104,29 +109,45 @@ FX_UNIVERSE = {
     "USD": "DFF",                         # Fed funds effective
     "EUR": "IR3TIB01EZM156N",             # Euro area 3M interbank
     "JPY": "IR3TIB01JPM156N",             # Japan 3M interbank
-    "GBP": "IR3TIB01GBM156N",             # UK 3M interbank  
+    "GBP": "IR3TIB01GBM156N",             # UK 3M interbank
     "CHF": "IR3TIB01CHM156N",             # Switzerland 3M interbank
     "AUD": "IR3TIB01AUM156N",             # Australia 3M interbank
     "CAD": "IR3TIB01CAM156N",             # Canada 3M interbank
     "NZD": "IR3TIB01NZM156N",             # New Zealand 3M interbank
+    "SEK": "IR3TIB01SEM156N",             # Sweden 3M interbank
+    "NOK": "IR3TIB01NOM156N",             # Norway 3M interbank
+    "DKK": "IR3TIB01DKM156N",             # Denmark 3M interbank
+    "KOR": "IR3TIB01KRM156N",             # South Korea 3M interbank
     # EM with FRED data available
     "MXN": "IR3TIB01MXM156N",             # Mexico
     "BRL": "IRSTCB01BRM156N",             # Brazil central bank rate (proxy)
     "INR": "IR3TIB01INM156N",             # India (note: spotty data)
     "ZAR": "IR3TIB01ZAM156N",             # South Africa
+    "IDN": "IR3TIB01IDM156N",             # Indonesia
+    "TUR": "IR3TIB01TRM156N",             # Turkey
 }
 
 # Fixed income: treasuries (DGSx) + credit indexes
 # Carry = yield - financing (SOFR)
 FIXED_INCOME = {
+    "UST_1M":  ("DGS1MO",  "data/cash"),
     "UST_3M":  ("DGS3MO",  "data/cash"),       # 3M T-bill (basically risk-free)
+    "UST_6M":  ("DGS6MO",  None),
+    "UST_1Y":  ("DGS1",    None),
     "UST_2Y":  ("DGS2",    None),
+    "UST_3Y":  ("DGS3",    None),
     "UST_5Y":  ("DGS5",    None),
+    "UST_7Y":  ("DGS7",    None),
     "UST_10Y": ("DGS10",   None),
+    "UST_20Y": ("DGS20",   None),
     "UST_30Y": ("DGS30",   None),
+    "TIPS_10Y":("DFII10",  None),              # 10Y real yield (inflation-protected)
     "IG_CRED": ("BAMLC0A0CMEY", None),         # ICE BofA US Corporate Effective Yield
     "HY_CRED": ("BAMLH0A0HYM2EY", None),       # ICE BofA US High Yield Effective Yield
-    # NOTE: BAML OAS series exist too; we use effective yield for carry calc
+    "IG_AAA":  ("BAMLC0A1CAAAEY", None),       # AAA corporate effective yield
+    "HY_CCC":  ("BAMLH0A3HYCEY", None),        # CCC & lower effective yield (deep junk)
+    "EM_USD":  ("BAMLEMCBPIEY", None),         # EM USD corporate effective yield
+    "MUNI":    ("BAMLU0A0CMEY", None),         # US municipal (proxy via corp master fallback)
 }
 
 # Commodity ETFs — roll yield approximation via 30D ETF underperformance vs spot
@@ -135,10 +156,17 @@ COMMODITY_UNIVERSE = {
     # symbol → (FMP_symbol, spot_FRED_series, structural_roll_estimate_pct_yr)
     "GLD":  ("GLD",  "GOLDAMGBD228NLBM",  0.0),    # Gold: near-zero carry (storage ~ financing)
     "SLV":  ("SLV",  None,                -1.0),   # Silver: slight contango
-    "USO":  ("USO",  "DCOILWTICO",        -8.0),   # Oil: persistent contango ~ -8% / yr
+    "USO":  ("USO",  "DCOILWTICO",        -8.0),   # Oil (WTI): persistent contango ~ -8% / yr
+    "BNO":  ("BNO",  "DCOILBRENTEU",      -6.0),   # Brent oil: milder contango than WTI
     "UNG":  ("UNG",  "DHHNGSP",           -25.0),  # Nat gas: severe contango
     "DBA":  ("DBA",  None,                -3.0),   # Ag basket: mild contango
     "DBC":  ("DBC",  None,                -3.0),   # Broad commodity: mild contango
+    "DBB":  ("DBB",  None,                -2.0),   # Base metals basket
+    "CPER": ("CPER", None,                -2.5),   # Copper
+    "PPLT": ("PPLT", None,                -1.5),   # Platinum
+    "PALL": ("PALL", None,                -1.5),   # Palladium
+    "CORN": ("CORN", None,                -4.0),   # Corn
+    "WEAT": ("WEAT", None,                -5.0),   # Wheat
     "VXX":  ("VXX",  None,                -65.0),  # VIX futures: severe contango (well-known)
 }
 
@@ -242,15 +270,15 @@ def fmp_quote_with_history(symbol, days=90):
 # We route ETFs to the actual declared-distribution endpoint instead. This set is the
 # fund-type members of EQUITY_UNIVERSE; single names go through ratios-ttm.
 ETF_SYMBOLS = {
-    "SPY", "QQQ", "IWM", "DIA", "VTI",
+    "SPY", "QQQ", "IWM", "DIA", "VTI", "RSP", "MDY",
     "XLE", "XLF", "XLK", "XLV", "XLI", "XLP", "XLY", "XLB", "XLU", "XLRE", "XLC",
-    "VYM", "SCHD", "SPHD", "DGRO",
-    "EFA", "VEA", "EEM", "VWO", "INDA", "MCHI", "EWJ", "EWG", "EWZ",
-    "VNQ", "IYR",
+    "VYM", "SCHD", "SPHD", "DGRO", "NOBL", "HDV", "DVY", "USMV", "QUAL", "MTUM", "VLUE",
+    "EFA", "VEA", "EEM", "VWO", "INDA", "MCHI", "EWJ", "EWG", "EWZ", "EWU", "EWC", "EWA", "EWY", "EWT", "EWH",
+    "VNQ", "IYR", "SCHH",
 }
 
 # Known genuine non-payers — a real 0% yield here is VALID data, not a failed fetch.
-KNOWN_NONPAYERS = {"BRK-B", "GOOGL", "TSLA", "AMZN", "META", "NVDA"}
+KNOWN_NONPAYERS = {"BRK-B", "GOOGL", "TSLA", "AMZN", "META", "NVDA", "ADBE", "CRM"}
 
 
 def _dy_from_ratios_ttm(symbol):
@@ -690,6 +718,160 @@ def carry_regime_summary(by_class):
 
 
 # ──────────────────────────────────────────────────────────────────────
+# CARRY-UNWIND FRAGILITY OVERLAY  (KMPV crash-risk insight)
+# ──────────────────────────────────────────────────────────────────────
+# Carry trades don't bleed slowly — they crash together on risk-off. This overlay
+# fuses (1) how rich/crowded an asset's carry is, (2) its realized vol, and (3) the
+# LIVE risk-regime (RORO / VIX / repo stress from data/risk-regime.json) to produce a
+# per-asset fragility score and a cohort-level unwind-risk gauge. "Picking up pennies
+# in front of a steamroller" — this tells you when the steamroller is moving.
+
+def _read_json_s3(key):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)['Body'].read().decode())
+    except Exception:
+        return None
+
+
+def load_risk_regime():
+    """Read the fleet's fused RORO/VIX/repo-stress composite (data/risk-regime.json).
+    Returns a normalized dict: score (-100..100), regime, vix, posture, stress_0_100."""
+    rr = _read_json_s3("data/risk-regime.json") or {}
+    score = rr.get("score")  # -100 (risk-off) .. +100 (risk-on)
+    regime = rr.get("regime")
+    vix = None
+    try:
+        vix = ((rr.get("results") or {}).get("vix") or {}).get("vix")
+    except Exception:
+        vix = None
+    posture = rr.get("posture") or {}
+    # Convert RORO score to a 0..100 STRESS scale (risk-off = high stress).
+    stress = None
+    if score is not None:
+        stress = round(max(0.0, min(100.0, (100.0 - score) / 2.0)), 1)  # -100→100, +100→0
+    # Cross-confirm with dedicated eurodollar-stress feed if present.
+    eds = _read_json_s3("data/eurodollar-stress.json") or {}
+    ed_score = eds.get("score") or eds.get("stress_score")
+    return {
+        "roro_score": score, "regime": regime, "vix": vix,
+        "posture": posture, "stress_0_100": stress,
+        "eurodollar_stress": ed_score,
+        "asof": rr.get("generated_at"),
+        "available": bool(rr),
+    }
+
+
+def _regime_multiplier(rr):
+    """How 'live' is the unwind risk right now? 1.0 = calm, up to ~2.0 = acute risk-off.
+    Uses RORO stress and VIX so fragility escalates when the steamroller is moving."""
+    stress = rr.get("stress_0_100")
+    vix = rr.get("vix") or 0
+    m = 1.0
+    if stress is not None:
+        m += (stress / 100.0) * 0.8          # up to +0.8 from RORO stress
+    if vix:
+        if vix >= 30:   m += 0.4
+        elif vix >= 22: m += 0.2
+        elif vix >= 18: m += 0.1
+    regime = (rr.get("regime") or "").upper()
+    if regime in ("RISK_OFF", "FLIGHT_TO_QUALITY"):
+        m += 0.2
+    return round(min(2.0, m), 3)
+
+
+def attach_unwind_fragility(ranked, rr):
+    """Per-asset carry-unwind fragility. Fragility is only meaningful for POSITIVE-carry
+    assets (you're being paid to hold → you're the one exposed to the unwind).
+
+    fragility_0_100 combines, for each positive-carry asset:
+      • carry richness   — higher carry vs class = more crowded/more to unwind
+      • realized vol     — higher vol = faster, deeper unwind
+      • own dislocation  — carry stretched vs its own history (from #2) = more extended
+      • regime multiplier— live RORO/VIX escalation (the steamroller)
+
+    Also computes each asset's historical risk-off drawdown behavior from its own price
+    path around past high-stress dates (best-effort from stored snapshots)."""
+    reg_mult = _regime_multiplier(rr)
+
+    # Gather class-relative carry percentiles for richness.
+    pos = [a for a in ranked if (a.get('carry_pct') or 0) > 0]
+    # Normalize helpers across the positive-carry cohort.
+    carries = [a['carry_pct'] for a in pos]
+    vols = [a.get('realized_vol_pct') for a in pos if a.get('realized_vol_pct')]
+    cmax = max(carries) if carries else 1.0
+    vmax = max(vols) if vols else 1.0
+
+    for a in ranked:
+        cp = a.get('carry_pct')
+        if cp is None or cp <= 0:
+            a['unwind_fragility'] = None
+            a['unwind_flag'] = None
+            continue
+        # Richness 0..1 (how high is this carry vs the richest positive carry).
+        richness = min(1.0, cp / cmax) if cmax > 0 else 0.0
+        # Vol 0..1.
+        vol = a.get('realized_vol_pct')
+        voln = min(1.0, vol / vmax) if (vol and vmax > 0) else 0.3  # assume mid if unknown
+        # Own-history extension (from dislocation z): high positive z = extended.
+        z = a.get('carry_own_z')
+        extn = 0.0
+        if z is not None:
+            extn = min(1.0, max(0.0, z / 3.0))  # z=3 → fully extended
+        # Base fragility (structural, regime-independent): weighted blend.
+        base = 0.45 * richness + 0.35 * voln + 0.20 * extn  # 0..1
+        # Apply live regime multiplier and scale to 0..100.
+        frag = round(min(100.0, base * 100.0 * reg_mult), 1)
+        a['unwind_fragility'] = frag
+        a['unwind_components'] = {
+            'richness': round(richness, 3), 'vol_norm': round(voln, 3),
+            'extension': round(extn, 3), 'regime_mult': reg_mult,
+        }
+        # Flag tiers.
+        if frag >= 70:
+            a['unwind_flag'] = 'FRAGILE'
+        elif frag >= 45:
+            a['unwind_flag'] = 'CROWDED'
+        else:
+            a['unwind_flag'] = 'STABLE'
+
+    # Cohort gauge: the top-carry decile is the classic carry basket.
+    positive = [a for a in ranked if a.get('unwind_fragility') is not None]
+    positive.sort(key=lambda x: x['carry_pct'], reverse=True)
+    decile_n = max(3, len(positive) // 10)
+    top_decile = positive[:decile_n]
+    cohort_frag = round(mean([a['unwind_fragility'] for a in top_decile]), 1) if top_decile else None
+
+    fragile = [a for a in ranked if a.get('unwind_flag') == 'FRAGILE']
+    crowded = [a for a in ranked if a.get('unwind_flag') == 'CROWDED']
+
+    # Overall unwind-risk verdict.
+    if cohort_frag is None:
+        verdict = 'UNKNOWN'
+    elif cohort_frag >= 70:
+        verdict = 'HIGH — carry cohort fragile, risk-off would force a violent unwind'
+    elif cohort_frag >= 45:
+        verdict = 'ELEVATED — carry is crowded; watch RORO/VIX for the trigger'
+    else:
+        verdict = 'LOW — carry cohort is not currently stretched'
+
+    return {
+        'regime': rr,
+        'regime_multiplier': reg_mult,
+        'cohort_fragility': cohort_frag,
+        'cohort_size': len(top_decile),
+        'verdict': verdict,
+        'n_fragile': len(fragile),
+        'n_crowded': len(crowded),
+        'fragile_assets': [
+            {'symbol': a['symbol'], 'asset_class': a['asset_class'],
+             'carry_pct': a['carry_pct'], 'unwind_fragility': a['unwind_fragility'],
+             'realized_vol_pct': a.get('realized_vol_pct')}
+            for a in sorted(fragile, key=lambda x: x['unwind_fragility'], reverse=True)[:15]
+        ],
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────
 # HISTORICAL DELTAS (CARRY MOMENTUM)
 # ──────────────────────────────────────────────────────────────────────
 
@@ -956,6 +1138,11 @@ def lambda_handler(event=None, context=None):
     # Top dislocations (most stretched vs own history), only where z is active.
     dislocations = [a for a in ranked if a.get('carry_own_z') is not None]
     dislocations.sort(key=lambda x: abs(x['carry_own_z']), reverse=True)
+
+    # Carry-unwind fragility overlay (KMPV crash-risk): fuse live RORO/VIX regime with
+    # per-asset carry richness + vol + extension → who blows up if risk-off hits.
+    risk_regime = load_risk_regime()
+    unwind = attach_unwind_fragility(ranked, risk_regime)
     
     # Synthesis
     top10 = sorted([a for a in ranked if a.get('carry_pct') is not None],
@@ -982,6 +1169,7 @@ def lambda_handler(event=None, context=None):
         'cross_asset_bottom': bottom10,
         'risk_adjusted_leaders': risk_adjusted[:10],
         'dislocation_leaders': dislocations[:10],
+        'unwind_overlay': unwind,
         'n_dormant': len([a for a in ranked if a.get('dormant')]),
         'regime_summary': regime,
         'massive_fx': _carry_massive_fx(),
@@ -993,6 +1181,7 @@ def lambda_handler(event=None, context=None):
             'crypto': '-perpetual_funding_rate_annualized (Binance public API)',
             'z_score': 'within-class normalization',
             'dislocation_z': f'current carry vs assets OWN trailing carry history (gated >={DISLOCATION_MIN_SNAPSHOTS} daily obs); z, percentile, mean',
+            'unwind_overlay': 'KMPV crash-risk: per-asset fragility = 0.45*carry_richness + 0.35*realized_vol + 0.20*own_extension, scaled by a live regime multiplier from data/risk-regime.json (RORO score + VIX + repo stress). Cohort gauge = mean fragility of top-carry decile. Answers: how badly does the carry basket unwind if risk-off hits NOW.',
             'carry_per_vol': 'carry_pct / realized_vol_pct (Sharpe-of-carry)',
             'carry_momentum': 'current vs 7D and 30D prior snapshots',
         },

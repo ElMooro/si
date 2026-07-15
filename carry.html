@@ -134,6 +134,45 @@
   </div>
 </section>
 
+<!-- CARRY-UNWIND FRAGILITY OVERLAY (KMPV crash-risk) -->
+<section class="max-w-[1500px] mx-auto px-4 pb-6" id="unwind-section" style="display:none">
+  <div class="card p-5" id="unwind-card">
+    <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+      <div>
+        <h2 class="text-base font-semibold flex items-center gap-2">
+          <span class="badge badge-red">UNWIND RISK</span>
+          Carry-Unwind Fragility — Who Blows Up If Risk-Off Hits
+        </h2>
+        <p class="text-xs text-[var(--text-muted)] mt-1">
+          Carry doesn't bleed slowly — it crashes together on risk-off ("pennies in front of a
+          steamroller"). This fuses live risk-regime (RORO · VIX · repo stress) with each asset's
+          carry richness, volatility and extension to score how fragile the carry basket is <em>right now</em>.
+        </p>
+      </div>
+      <div class="text-right">
+        <div class="text-2xl font-bold mono" id="unwind-cohort">—</div>
+        <div class="text-xs text-[var(--text-muted)]">cohort fragility (top-carry decile)</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="unwind-kpis"></div>
+    <div id="unwind-verdict" class="text-sm mb-3 p-3 rounded-lg" style="background:var(--bg-subtle,rgba(120,120,120,0.06))"></div>
+    <div class="overflow-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Symbol</th><th>Class</th>
+            <th class="text-right">Carry %</th>
+            <th class="text-right">Vol %</th>
+            <th class="text-right">Fragility</th>
+            <th>Flag</th>
+          </tr>
+        </thead>
+        <tbody id="unwind-table"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <!-- MAIN TABLES -->
 <section class="max-w-[1500px] mx-auto px-4 pb-6">
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -408,12 +447,80 @@ function renderTables(d) {
 
   // Dislocation board (carry vs own history) — additive
   renderDislocation(d);
+
+  // Carry-unwind fragility overlay (KMPV crash-risk)
+  renderUnwind(d);
 }
 
 function renderAll(filter) {
   let rows = ALL;
   if (filter !== 'all') rows = rows.filter(r => r.asset_class === filter);
   document.getElementById('all-tbody').innerHTML = rows.map(rowHtmlExtended).join('');
+}
+
+function renderUnwind(d) {
+  const sec = document.getElementById('unwind-section');
+  const u = d.unwind_overlay;
+  if (!u || u.cohort_fragility === null || u.cohort_fragility === undefined) {
+    sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = '';
+  const rr = u.regime || {};
+
+  // Cohort headline + color
+  const cf = u.cohort_fragility;
+  const cohortEl = document.getElementById('unwind-cohort');
+  cohortEl.textContent = cf.toFixed(0);
+  cohortEl.style.color = cf >= 70 ? 'var(--red)' : (cf >= 45 ? 'var(--amber,#d97706)' : 'var(--green)');
+
+  // KPIs
+  const fmtScore = v => (v === null || v === undefined) ? '—' : (typeof v === 'number' ? v.toFixed(0) : v);
+  const kpi = (label, val, sub) => `
+    <div class="p-3 rounded-lg" style="background:var(--bg-subtle,rgba(120,120,120,0.06))">
+      <div class="text-xs text-[var(--text-muted)]">${label}</div>
+      <div class="text-lg font-bold mono">${val}</div>
+      <div class="text-[10px] text-[var(--text-muted)]">${sub || ''}</div>
+    </div>`;
+  const regimeName = rr.regime || 'n/a';
+  const regimeColor = /RISK_OFF|FLIGHT/.test(regimeName) ? 'var(--red)'
+                    : /RISK_ON/.test(regimeName) ? 'var(--green)' : 'var(--text-primary)';
+  document.getElementById('unwind-kpis').innerHTML =
+    `<div class="p-3 rounded-lg" style="background:var(--bg-subtle,rgba(120,120,120,0.06))">
+       <div class="text-xs text-[var(--text-muted)]">Live Regime</div>
+       <div class="text-lg font-bold mono" style="color:${regimeColor}">${regimeName}</div>
+       <div class="text-[10px] text-[var(--text-muted)]">RORO ${fmtScore(rr.roro_score)}</div>
+     </div>` +
+    kpi('VIX', rr.vix != null ? Number(rr.vix).toFixed(1) : '—', 'volatility') +
+    kpi('Regime Multiplier', (u.regime_multiplier ?? '—') + '×', '1.0 calm → 2.0 acute') +
+    kpi('Fragile / Crowded', `${u.n_fragile ?? 0} / ${u.n_crowded ?? 0}`, 'assets flagged');
+
+  // Verdict banner
+  const vEl = document.getElementById('unwind-verdict');
+  const verdict = u.verdict || '';
+  const vColor = /HIGH/.test(verdict) ? 'var(--red)' : (/ELEVATED/.test(verdict) ? 'var(--amber,#d97706)' : 'var(--green)');
+  vEl.innerHTML = `<strong style="color:${vColor}">${verdict.split('—')[0].trim()}</strong>${verdict.includes('—') ? ' — ' + verdict.split('—').slice(1).join('—').trim() : ''}`;
+
+  // Fragile assets table
+  const flagBadge = f => f >= 70 ? '<span class="badge badge-red">FRAGILE</span>'
+                       : f >= 45 ? '<span class="badge badge-amber">CROWDED</span>'
+                       : '<span class="badge badge-green">STABLE</span>';
+  const rows = (u.fragile_assets || []);
+  if (!rows.length) {
+    document.getElementById('unwind-table').innerHTML =
+      `<tr><td colspan="7" class="text-[var(--text-muted)] text-xs py-3">No assets currently flagged fragile — carry cohort is not stretched in this regime.</td></tr>`;
+  } else {
+    document.getElementById('unwind-table').innerHTML = rows.map((a, i) => `
+      <tr>
+        <td class="text-[var(--text-muted)]">${i + 1}</td>
+        <td class="font-semibold">${a.symbol}</td>
+        <td>${classBadge(a.asset_class)}</td>
+        <td class="text-right mono">${fmtPct(a.carry_pct)}</td>
+        <td class="text-right mono text-[var(--text-muted)]">${a.realized_vol_pct != null ? fmt(a.realized_vol_pct, 1) + '%' : '—'}</td>
+        <td class="text-right mono font-semibold">${a.unwind_fragility != null ? a.unwind_fragility.toFixed(0) : '—'}</td>
+        <td>${flagBadge(a.unwind_fragility || 0)}</td>
+      </tr>`).join('');
+  }
 }
 
 function renderDislocation(d) {
