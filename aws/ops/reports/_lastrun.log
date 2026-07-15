@@ -1,9 +1,4 @@
-executing-against: 213f8df1c02cb9a92900f6259eccf8d479e9946f
-── ENSURE FMP_KEY ──
-[02:49:59] ✅ FMP_KEY set, dead BENZINGA_API_KEY removed
-── INVOKE (await v2.0) ──
-── VERIFY SECTIONS ──
-── VERDICT ──
-[02:50:00] ✅ benzinga.html LIVE on FMP — ratings + earnings + econ + news + dividends populate. Dead Benzinga key retired.
+executing-against: 09bc663a45db780acfc8f030c99df42d8edded5f
+[02:51:54] ✅ Function URL live + populated — benzinga.html renders end-to-end
 
-→ Report written to aws/ops/reports/latest/3331_benzinga_agent_verify.md
+→ Report written to aws/ops/reports/latest/3332_benzinga_live_check.md
