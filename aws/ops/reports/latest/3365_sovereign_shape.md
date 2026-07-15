@@ -1,0 +1,55 @@
+## top-level keys
+
+**Status:** success  
+**Duration:** 0.1s  
+**Finished:** 2026-07-15T21:07:33+00:00  
+
+## Log
+- `21:07:33` ['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'europe_stress', 'systemic_stress_ciss', 'sovereign_stress_sovciss', 'most_stressed_sovereign', 'equity_market_stress', 'sovereign_spreads', 'bond_market_read', 'unemployment', 'industrial_production', 'country_stress_scores', 'cross_reference', 'sources', 'errors']
+- `21:07:33` 
+== europe_stress == keys: ['score_0_100', 'regime', 'worst_country', 'read']
+- `21:07:33`    score_0_100: 30.7
+- `21:07:33`    regime: "NORMAL"
+- `21:07:33`    worst_country: "portugal"
+- `21:07:33` 
+== systemic_stress_ciss == keys: ['euro_area', 'united_states', 'china', 'united_kingdom']
+- `21:07:33`    euro_area: {"level": 0.0941, "as_of": "2025-05-02", "change_1m": -0.051, "change_3m": 0.052, "percentile_3y": 38.6, "status": "NORMAL"}
+- `21:07:33`    united_states: {"level": 0.0845, "as_of": "2025-05-02", "change_1m": -0.054, "change_3m": 0.038, "percentile_3y": 43.4, "status": "NORMAL"}
+- `21:07:33`    china: {"level": 0.0382, "as_of": "2026-07-10", "change_1m": 0.02, "change_3m": 0.034, "percentile_3y": 64.7, "status": "ELEVATED"}
+- `21:07:33` 
+== sovereign_stress_sovciss == keys: ['euro_area', 'germany', 'france', 'italy', 'spain', 'portugal', 'greece']
+- `21:07:33`    euro_area: {"level": 0.0799, "as_of": "2025-04", "change_3m": 0.01, "change_12m": -0.02, "percentile_5y": 35.8, "status": "NORMAL"}
+- `21:07:33`    germany: {"level": 0.0479, "as_of": "2025-04", "change_3m": 0.022, "change_12m": -0.015, "percentile_5y": 44.2, "status": "NORMAL"}
+- `21:07:33`    france: {"level": 0.1013, "as_of": "2025-04", "change_3m": -0.016, "change_12m": 0.061, "percentile_5y": 67.5, "status": "ELEVATED"}
+- `21:07:33` 
+== most_stressed_sovereign == "france"
+- `21:07:33` 
+== equity_market_stress == keys: ['vix', 'sp500']
+- `21:07:33`    vix: {"level": 16.5, "change_1m": 0.3, "status": "NORMAL"}
+- `21:07:33`    sp500: {"level": 7543.6, "drawdown_from_1y_high_pct": -0.87, "status": "CALM"}
+- `21:07:33` 
+== sovereign_spreads == keys: []
+- `21:07:33` 
+== bond_market_read == "Sovereign-bond stress is read from the SovCISS and the cds-proxy spread panel; the most-stressed euro sovereign is france (SovCISS 67.5th percentile)."
+- `21:07:33` 
+== unemployment == keys: ['germany', 'france', 'italy', 'spain', 'netherlands', 'greece', 'eu_27']
+- `21:07:33`    germany: {"rate_pct": 3.8, "as_of": "2026-05", "change_12m_pp": 0.1}
+- `21:07:33`    france: {"rate_pct": 8.2, "as_of": "2026-05", "change_12m_pp": 0.6}
+- `21:07:33`    italy: {"rate_pct": 5.0, "as_of": "2026-05", "change_12m_pp": -1.5}
+- `21:07:33` 
+== industrial_production == keys: ['germany', 'france', 'italy', 'spain', 'netherlands', 'euro_area']
+- `21:07:33`    germany: {"index_2021_100": 91.8, "as_of": "2026-05", "yoy_pct": -0.65}
+- `21:07:33`    france: {"index_2021_100": 103.7, "as_of": "2026-05", "yoy_pct": 3.18}
+- `21:07:33`    italy: {"index_2021_100": 94.5, "as_of": "2026-05", "yoy_pct": 1.07}
+- `21:07:33` 
+== country_stress_scores == keys: ['germany', 'france', 'italy', 'spain', 'netherlands', 'greece', 'portugal']
+- `21:07:33`    germany: 21.6
+- `21:07:33`    france: 32.0
+- `21:07:33`    italy: 2.4
+- `21:07:33` 
+== cross_reference == keys: ['crisis_composite', 'eurodollar_stress', 'cds_proxy_credit_risk', 'cds_proxy_regime']
+- `21:07:33`    crisis_composite: null
+- `21:07:33`    eurodollar_stress: 13.1
+- `21:07:33`    cds_proxy_credit_risk: 0
+- `21:07:33` 
+== headline == "Europe systemic stress: NORMAL (31/100). Euro-area CISS normal (38.6th pct); most-stressed sovereign france; German industrial output -0.7% YoY."
