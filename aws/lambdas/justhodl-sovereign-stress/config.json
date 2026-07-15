@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-sovereign-stress",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Sovereign systemic-stress — European sovereign spreads, CISS/SovCISS, equity+bond+unemployment stress per country → europe_stress.score_0_100. Publishes data/sovereign-stress.json daily.",
+  "env": {
+    "FRED_API_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "sovereign-stress-daily",
+    "cron": "cron(0 12 ? * * *)",
+    "description": "Sovereign stress daily 12:00 UTC"
+  }
+}
