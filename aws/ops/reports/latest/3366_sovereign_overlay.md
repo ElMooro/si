@@ -1,0 +1,21 @@
+## Deploy JSI v1.6.0 (sovereign 19th feed)
+
+**Status:** success  
+**Duration:** 19.6s  
+**Finished:** 2026-07-15T21:11:35+00:00  
+
+## Log
+- `21:11:15`   zip: 83096 bytes
+## 1. Lambda
+
+- `21:11:16`   Lambda exists — updating
+- `21:11:21` ✅   ✓ updated justhodl-stress-index
+## 2. EB rule + permissions
+
+- `21:11:22`   rule already correct: jsi-6h (rate(6 hours))
+- `21:11:22` ✅   ✓ target → justhodl-stress-index
+- `21:11:22` ✅   ✓ added invoke permission
+- `21:11:35` JSI v1.6.0 overlay feeds=19 live=19
+- `21:11:35`   European Sovereign Stress: 30.7 (raw 30.7)
+- `21:11:35` ✅ SOVEREIGN wired as 19th feed — stress 30.7, in Global Risk group.
+- `21:11:35` ✅ overlay now 19 feeds.
