@@ -1,8 +1,8 @@
-executing-against: 21ac8b2874e3c5c955e49fce47fffca5c7f68fd6
-── SSM ──
-[01:18:04] ✅ SSM param exists
-── CONSUMER ENV SCAN ──
-── BENZINGA LIVE TEST ──
-[01:18:05] ✗ key present but NOT entitled (HTTP 403) — Massive Benzinga add-on lapsed; needs renewal/new key
+executing-against: 29cfa4012285c359eb7d079be801231644d9d120
+── BENZINGA ENDPOINT MATRIX ──
+── IDENTITY / BASE ENTITLEMENT ──
+── VERDICT ──
+[01:24:23] ✗ Base polygon/massive endpoints authorize (200) but EVERY Benzinga path returns 403 -> this key lacks the Benzinga scope. The paid Benzinga entitlement is under a DIFFERENT key/account than /justhodl/massive-api-key. Need the key tied to the Benzinga-entitled Massive account.
 
-→ Report written to aws/ops/reports/latest/3312_massive_probe.md
+→ Report written to aws/ops/reports/latest/3313_benzinga_auth_matrix.md
+❌ OPS-FAIL: aws/ops/pending/ops_3313_benzinga_auth_matrix.py
