@@ -1,0 +1,40 @@
+## Deploy JSI engine
+
+**Status:** success  
+**Duration:** 11.5s  
+**Finished:** 2026-07-15T17:34:27+00:00  
+
+## Log
+- `17:34:15`   zip: 80833 bytes
+## 1. Lambda
+
+- `17:34:15`   Lambda exists — updating
+- `17:34:19` ✅   ✓ updated justhodl-stress-index
+- `17:34:19` ✅   ✓ Function URL: https://5eetgbb7wkmmb4urwouivbqpmi0dnaqb.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `17:34:19`   rule already correct: jsi-6h (rate(6 hours))
+- `17:34:20` ✅   ✓ target → justhodl-stress-index
+- `17:34:20` ✅   ✓ added invoke permission
+## Verify: async invoke + poll S3
+
+- `17:34:20` async invoke fired; polling (FRED pulls can take ~30-60s)…
+- `17:34:27` fresh write after ~6s
+- `17:34:27` JSI now=32.17 spine=36.19 overlay=22.8 regime=NORMAL
+- `17:34:27` percentile_since_1990=22.8
+- `17:34:27` history: 1990-01-02 → 2026-07-14 (n=9459)
+- `17:34:27` extremes: max={'value': 93.22, 'date': '2008-12-23'} min={'value': 23.9, 'date': '1993-12-24'}
+- `17:34:27` overlay live: 12/12
+- `17:34:27` spine components: ['VIXCLS', 'NFCI', 'KCFSI', 'STLFSI4', 'BAMLH0A0HYM2', 'T10Y2Y', 'BAMLC0A0CM']
+- `17:34:27`   VIXCLS: Equity volatility (VIX) raw=16.5 stress=39.67 z=-0.38 since=1990-01-02
+- `17:34:27`   NFCI: Chicago Fed NFCI raw=-0.538 stress=42.38 z=-0.28 since=1971-01-08
+- `17:34:27`   KCFSI: KC Fed Financial Stress raw=-0.763 stress=30.17 z=-0.76 since=1990-02-01
+- `17:34:27`   STLFSI4: St. Louis Fed Financial Stress raw=-0.882 stress=27.52 z=-0.88 since=1993-12-31
+- `17:34:27`   BAMLH0A0HYM2: High-yield credit OAS raw=2.72 stress=23.95 z=-1.05 since=1996-12-31
+- `17:34:27`   T10Y2Y: Yield-curve (10Y-2Y) raw=0.4 stress=67.32 z=0.66 since=1976-06-01
+- `17:34:27`   BAMLC0A0CM: Investment-grade OAS raw=0.79 stress=28.23 z=-0.85 since=1996-12-31
+- `17:34:27` ✅ 1990 SPINE CONFIRMED — history starts 1990-01-02 (n=9459).
+- `17:34:27` ✅ deep daily series — 9459 points.
+- `17:34:27` ✅ percentile-in-history live: current JSI at 22.8th pctile since 1990.
+- `17:34:27` ✅ overlay wired — 12 live feeds.
+- `17:34:27` ✅ sanity: all-time-max stress at 2008-12-23 (matches a known crisis).
