@@ -60,7 +60,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -142,11 +142,11 @@ COMMODITY_UNIVERSE = {
     "VXX":  ("VXX",  None,                -65.0),  # VIX futures: severe contango (well-known)
 }
 
-# Crypto: perpetual funding rates from Binance public API (no auth)
-# Positive funding rate = longs pay shorts (positive carry for shorts; expected
-# negative carry for longs holding the underlying via perp)
-CRYPTO_UNIVERSE = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "AVAXUSDT", "BNBUSDT",
-                   "XRPUSDT", "DOGEUSDT", "ADAUSDT", "MATICUSDT", "LINKUSDT"]
+# Crypto: perpetual funding rates from OKX public API (Binance blocked from Lambda IPs).
+# Bare coin symbols; OKX instId is built as {COIN}-USDT-SWAP.
+# Positive funding = longs pay shorts → negative carry for longs holding via perp.
+CRYPTO_UNIVERSE = ["BTC", "ETH", "SOL", "AVAX", "BNB",
+                   "XRP", "DOGE", "ADA", "LINK", "LTC"]
 
 # ──────────────────────────────────────────────────────────────────────
 # HTTP HELPERS
@@ -335,27 +335,55 @@ def fmp_buyback_yield(symbol):
     return 0.0
 
 
-def binance_funding_rate(symbol):
-    """Get latest perpetual funding rate from Binance public API.
-    Returns dict with current rate (decimal, 8h) and annualized estimate."""
+OKX_BASE = "https://www.okx.com"
+
+
+def okx_funding_rate(coin):
+    """Get perpetual funding rate from OKX public API — reachable from AWS Lambda where
+    Binance (fapi.binance.com) is geo-blocked. `coin` is the bare symbol e.g. 'BTC'.
+    OKX funding settles every 8h. Returns the same shape the caller expects.
+    Also pulls funding-rate-history for a 30-period average (dislocation input)."""
+    swap = f"{coin}-USDT-SWAP"
     try:
-        url = f"https://fapi.binance.com/fapi/v1/fundingRate?symbol={symbol}&limit=30"
-        data = http_get_json(url)
-        if isinstance(data, list) and data:
-            # Last 30 funding settlements (8h apart, so ~10 days of history)
-            rates = [float(x['fundingRate']) for x in data]
-            current_8h = rates[-1]  # most recent
-            avg_8h_30 = sum(rates) / len(rates)
-            # Annualize: 3 per day × 365
-            return {
-                'current_8h': current_8h,
-                'current_annualized_pct': current_8h * 3 * 365 * 100,
-                'avg_30period_annualized_pct': avg_8h_30 * 3 * 365 * 100,
-                'n_settlements': len(rates),
-            }
+        req = urllib.request.Request(
+            f"{OKX_BASE}/api/v5/public/funding-rate?instId={swap}",
+            headers={"User-Agent": "Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36",
+                     "Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            d = json.loads(r.read().decode("utf-8"))
+        if d.get("code") != "0" or not d.get("data"):
+            return {"error": f"okx_no_data:{d.get('code')}"}
+        current_8h = float(d["data"][0].get("fundingRate") or 0)
+
+        # 30-period history for the trailing average (best-effort).
+        avg_8h_30 = current_8h
+        n = 1
+        try:
+            reqh = urllib.request.Request(
+                f"{OKX_BASE}/api/v5/public/funding-rate-history?instId={swap}&limit=30",
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36",
+                         "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(reqh, timeout=15) as rh:
+                dh = json.loads(rh.read().decode("utf-8"))
+            if dh.get("code") == "0" and dh.get("data"):
+                rates = [float(x.get("realizedRate") or x.get("fundingRate") or 0) for x in dh["data"]]
+                if rates:
+                    avg_8h_30 = sum(rates) / len(rates)
+                    n = len(rates)
+        except Exception:
+            pass
+
+        # Annualize: 3 settlements/day × 365.
+        return {
+            "current_8h": current_8h,
+            "current_annualized_pct": current_8h * 3 * 365 * 100,
+            "avg_30period_annualized_pct": avg_8h_30 * 3 * 365 * 100,
+            "n_settlements": n,
+        }
     except Exception as e:
-        return {'error': str(e)[:120]}
-    return {'error': 'no_data'}
+        return {"error": str(e)[:120]}
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -539,30 +567,37 @@ def compute_commodity_carry():
             closes = hist.get('closes', []) if hist else []
             vol = realized_vol_annualized(closes) if len(closes) > 20 else None
             
-            # Use the structural estimate as carry baseline
-            # (in production, you'd compute actual roll from forward curve; ETF tracking
-            # error vs spot over 30D is the second-best proxy)
+            # Roll-yield estimate. The ETF-vs-spot basis over a trailing window is a proxy,
+            # but annualizing a single month by ×12 amplifies noise into ±80% garbage.
+            # Instead: structural estimate is the anchor; the OBSERVED basis is a gentle,
+            # bounded adjustment computed over a longer window, and the final carry is
+            # winsorized so one volatile month can't dominate the whole surface.
             carry_pct = structural_pct
-            
-            # If we have spot price from FRED, compute the ETF tracking error
             spot_etf_basis_pct = None
             if spot_fred and len(closes) >= 30:
                 try:
-                    spot_series = fred_series(spot_fred, limit=60)
-                    if len(spot_series) >= 30:
-                        # ETF return last 30D
-                        etf_ret_30d = (closes[0] / closes[29] - 1) * 100 if closes[29] > 0 else 0
-                        # Spot return last 30D
+                    spot_series = fred_series(spot_fred, limit=90)
+                    # Use up to 60 trading days for a steadier basis (was 30).
+                    win = min(60, len(closes) - 1, len(spot_series) - 1)
+                    if win >= 20:
+                        etf_ret = (closes[0] / closes[win] - 1) * 100 if closes[win] > 0 else 0
                         spot_now = spot_series[0][1]
-                        spot_30d_ago = spot_series[min(29, len(spot_series)-1)][1] if len(spot_series) > 1 else None
-                        if spot_30d_ago and spot_30d_ago > 0:
-                            spot_ret_30d = (spot_now / spot_30d_ago - 1) * 100
-                            spot_etf_basis_pct = round((etf_ret_30d - spot_ret_30d) * 12, 2)  # annualize
-                            # Override carry estimate with observed tracking error (annualized)
-                            # blended: 60% structural, 40% observed
-                            carry_pct = round(structural_pct * 0.6 + spot_etf_basis_pct * 0.4, 2)
+                        spot_ago = spot_series[win][1] if len(spot_series) > win else None
+                        if spot_ago and spot_ago > 0:
+                            spot_ret = (spot_now / spot_ago - 1) * 100
+                            # Annualize by the ACTUAL window length (trading days → year),
+                            # not a flat ×12. ~252 trading days/yr.
+                            ann = 252.0 / win
+                            raw_basis = (etf_ret - spot_ret) * ann
+                            # Winsorize the observed basis to a sane band before blending.
+                            spot_etf_basis_pct = round(max(-40.0, min(40.0, raw_basis)), 2)
+                            # Anchor on structural (75%), nudge with observed (25%).
+                            carry_pct = round(structural_pct * 0.75 + spot_etf_basis_pct * 0.25, 2)
                 except Exception:
                     pass
+            # Final safety winsor: no commodity carry beyond ±70% on the surface
+            # (VXX's structural -65 is the legitimate floor; nothing should exceed it via noise).
+            carry_pct = round(max(-70.0, min(70.0, carry_pct)), 2)
             
             results.append({
                 'symbol': etf_sym,
@@ -590,7 +625,7 @@ def compute_crypto_carry():
     
     def process_one(symbol):
         try:
-            funding = binance_funding_rate(symbol)
+            funding = okx_funding_rate(symbol)
             if 'error' in funding:
                 return {'symbol': symbol, 'asset_class': 'crypto', 'error': funding['error']}
             # For a long position in the underlying via perp:
@@ -598,7 +633,7 @@ def compute_crypto_carry():
             # We define carry_pct as the cost to LONG (so we flip the sign)
             long_carry_pct = -funding.get('current_annualized_pct', 0)
             return {
-                'symbol': symbol,
+                'symbol': f"{symbol}-PERP",
                 'asset_class': 'crypto',
                 'funding_rate_8h': round(funding.get('current_8h', 0), 6),
                 'funding_annualized_pct': round(funding.get('current_annualized_pct', 0), 2),
