@@ -52,8 +52,10 @@ CFG = json.loads(Path(f"aws/lambdas/{FN}/config.json").read_text())
 ENV = CFG["env"]
 BUCKET = ENV["S3_BUCKET"]
 OUT_KEY = ENV["OUT_KEY"]
+# AWS Lambda 'description' max length is 256 chars — config.json has a longer one.
+DESCRIPTION = (CFG.get("description") or "")[:256]
 
-with report("3341_carry_surface_equity_fix_dislocation_z") as r:
+with report("3341b_carry_surface_fix_rerun") as r:
     r.section("Deploy carry-surface v1.1.0")
     smoke = deploy_lambda(
         report=r,
@@ -64,7 +66,7 @@ with report("3341_carry_surface_equity_fix_dislocation_z") as r:
         eb_schedule=CFG["schedule"]["cron"],
         timeout=CFG["timeout"],
         memory=CFG["memory"],
-        description=CFG["description"],
+        description=DESCRIPTION,
         create_function_url=True,
         smoke=True,
     )
