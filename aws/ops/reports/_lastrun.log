@@ -1,8 +1,11 @@
-executing-against: f17eb4a79e4e8568048745e7fe89e9e1871337af
-── TOP-LEVEL PREFIXES ──
-── BENZINGA / ANALYST HUNT ──
-── SAMPLE OBJECTS ──
+executing-against: f3f6e79aa35c862630e000e66bde6b06977a400d
+── KEY ──
+── GRADES-NEWS (upgrade/downgrade feed) ──
+── PRICE-TARGET-NEWS (PT revisions) ──
+── GRADES-CONSENSUS (roll-up sanity, AAPL) ──
+── PRICE-TARGET-CONSENSUS (sanity, AAPL) ──
 ── VERDICT ──
-[01:45:43] ⚠ Flat-files access WORKS but no benzinga/analyst prefix found — Benzinga likely not entitled on flat files either. Available products listed above; decide REST re-entitlement (Massive support) vs FMP re-source.
+[01:49:02] ✗ Core FMP analyst feeds not returning data — inspect rows.
 
-→ Report written to aws/ops/reports/latest/3316_massive_flatfiles_probe.md
+→ Report written to aws/ops/reports/latest/3317_fmp_analyst_endpoints.md
+❌ OPS-FAIL: aws/ops/pending/ops_3317_fmp_analyst_endpoints.py
