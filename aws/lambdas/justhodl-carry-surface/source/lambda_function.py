@@ -60,7 +60,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -735,13 +735,14 @@ def _read_json_s3(key):
 
 def load_risk_regime():
     """Read the fleet's fused RORO/VIX/repo-stress composite (data/risk-regime.json).
-    Returns a normalized dict: score (-100..100), regime, vix, posture, stress_0_100."""
+    Real schema: risk_regime_score (-100..100), risk_regime (label), components.vix.vix,
+    systemic_stress, posture. Returns a normalized dict."""
     rr = _read_json_s3("data/risk-regime.json") or {}
-    score = rr.get("score")  # -100 (risk-off) .. +100 (risk-on)
-    regime = rr.get("regime")
+    score = rr.get("risk_regime_score")            # -100 (risk-off) .. +100 (risk-on)
+    regime = rr.get("risk_regime")
     vix = None
     try:
-        vix = ((rr.get("results") or {}).get("vix") or {}).get("vix")
+        vix = ((rr.get("components") or {}).get("vix") or {}).get("vix")
     except Exception:
         vix = None
     posture = rr.get("posture") or {}
@@ -749,15 +750,21 @@ def load_risk_regime():
     stress = None
     if score is not None:
         stress = round(max(0.0, min(100.0, (100.0 - score) / 2.0)), 1)  # -100→100, +100→0
-    # Cross-confirm with dedicated eurodollar-stress feed if present.
+    # Cross-confirm with dedicated eurodollar-stress feed (schema: composite_score + regime).
     eds = _read_json_s3("data/eurodollar-stress.json") or {}
-    ed_score = eds.get("score") or eds.get("stress_score")
+    ed_score = eds.get("composite_score")
+    ed_regime = eds.get("regime")
+    # Plumbing stress as a second cross-confirm (stress_score field).
+    edp = _read_json_s3("data/eurodollar-plumbing.json") or {}
+    plumb_stress = edp.get("stress_score")
     return {
         "roro_score": score, "regime": regime, "vix": vix,
         "posture": posture, "stress_0_100": stress,
-        "eurodollar_stress": ed_score,
+        "eurodollar_stress": ed_score, "eurodollar_regime": ed_regime,
+        "plumbing_stress": plumb_stress,
+        "systemic_stress": rr.get("systemic_stress"),
         "asof": rr.get("generated_at"),
-        "available": bool(rr),
+        "available": bool(rr and score is not None),
     }
 
 
