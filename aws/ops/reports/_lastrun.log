@@ -1,23 +1,21 @@
-executing-against: 79ad5c903301b7a37140488d164f9047d2c25f7f
-── Deploy carry-surface v1.3.1 (no blocking smoke) ──
-[16:21:09]   zip: 90171 bytes
+executing-against: 23d4201bca298642c1c5e5522d2bad3712e84b4f
+── Deploy carry-surface v1.4.0 (crypto removed) ──
+[16:49:54]   zip: 89044 bytes
 ── 1. Lambda ──
-[16:21:09]   Lambda exists — updating
-[16:21:15] ✅   ✓ updated justhodl-carry-surface
+[16:49:54]   Lambda exists — updating
+[16:50:01] ✅   ✓ updated justhodl-carry-surface
 ── 2. EB rule + permissions ──
-[16:21:15]   rule already correct: carry-surface-4h (rate(4 hours))
-[16:21:16] ✅   ✓ target → justhodl-carry-surface
-[16:21:16] ✅   ✓ added invoke permission
+[16:50:01]   rule already correct: carry-surface-4h (rate(4 hours))
+[16:50:02] ✅   ✓ target → justhodl-carry-surface
+[16:50:02] ✅   ✓ added invoke permission
 ── Verify: async invoke + poll S3 ──
-[16:21:17] async invoke fired; polling S3 for fresh write…
-[16:21:58] fresh write detected after ~40s
-[16:21:58] version=1.3.1 n_assets=166
-[16:21:58] regime available=True label=MILD_RISK_ON roro=15.7 vix=17.16 stress=42.1
-[16:21:58] eurodollar: stress=34.39 regime=CALM plumbing=13.1
-[16:21:58] regime_multiplier=1.337 cohort_fragility=59.0
-[16:21:58] verdict=ELEVATED — carry is crowded; watch RORO/VIX for the trigger
-[16:21:58] n_fragile=2 n_crowded=5
-[16:21:58] ✅ REGIME JOINED — MILD_RISK_ON (RORO 15.7, mult 1.337×). Overlay is regime-aware.
-[16:21:58] ✅ version 1.3.1 live
+[16:50:02] async invoke fired; polling S3…
+[16:50:33] fresh write after ~30s
+[16:50:33] version=1.4.0 n_assets=156 classes={'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14}
+[16:50:33] unwind: cohort=59.0 regime=MILD_RISK_ON roro=15.7
+[16:50:33] ✅ CRYPTO REMOVED — 4 classes only: {'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14}.
+[16:50:33] ✅ universe intact — 156 assets across 4 classes.
+[16:50:33] ✅ unwind overlay still regime-joined (MILD_RISK_ON).
+[16:50:33] ✅ version 1.4.0 live
 
-→ Report written to aws/ops/reports/latest/3345c_unwind_regime_join_rerun.md
+→ Report written to aws/ops/reports/latest/3346_carry_remove_crypto.md
