@@ -218,14 +218,17 @@ def analyze(ticker, insider_sells_set, sector_rs_cache):
         sector = None
         if isinstance(prof, list) and prof:
             sector = prof[0].get("sector")
-        # 3. Earnings surprise (recent)
-        earnings = fmp_get("earnings-surprises", {"symbol": ticker, "limit": 1})
+        # 3. Earnings surprise (recent) — FMP earnings-surprises -> earnings
+        earnings = fmp_get("earnings", {"symbol": ticker, "limit": 8})
         eps_surprise_pct = None
         if isinstance(earnings, list) and earnings:
-            actual = earnings[0].get("actualEarningResult") or earnings[0].get("epsActual")
-            est = earnings[0].get("estimatedEarning") or earnings[0].get("epsEstimated")
-            if actual and est and est != 0:
-                eps_surprise_pct = round(((actual - est) / abs(est)) * 100, 1)
+            reported = [e for e in earnings if e.get("epsActual") is not None
+                        and e.get("epsEstimated") is not None]
+            if reported:
+                actual = reported[0].get("epsActual")
+                est = reported[0].get("epsEstimated")
+                if actual and est and est != 0:
+                    eps_surprise_pct = round(((actual - est) / abs(est)) * 100, 1)
         has_positive_surprise = (eps_surprise_pct is not None and eps_surprise_pct >= 10)
         # 4. Insider check
         no_insider_sell = ticker not in insider_sells_set

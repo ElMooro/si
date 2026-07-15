@@ -166,7 +166,7 @@ def fetch_recent_changes():
     """Pull recent rating actions across the market.
     FMP /stable/grades and /stable/upgrades-downgrades-consensus."""
     # Approach 1: pull the upgrades-downgrades feed (limit 1000)
-    feed = fmp_get("grades-news", {"limit": 1000}) or []
+    feed = fmp_get("grades-latest-news", {"limit": 1000}) or []
     if not feed or not isinstance(feed, list):
         # Fallback: use grades-latest-news
         feed = fmp_get("grades-latest-news", {"limit": 1000}) or []

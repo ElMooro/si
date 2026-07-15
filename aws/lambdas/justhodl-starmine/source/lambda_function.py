@@ -288,7 +288,7 @@ def fmp_grades(symbol):
 
 
 def fmp_earnings_surprises(symbol):
-    url = (f"{FMP_BASE}/earnings-surprises?symbol={symbol}"
+    url = (f"{FMP_BASE}/earnings?symbol={symbol}"
            f"&limit=12&apikey={FMP_KEY}")
     d = http_json(url)
     return d if isinstance(d, list) else []

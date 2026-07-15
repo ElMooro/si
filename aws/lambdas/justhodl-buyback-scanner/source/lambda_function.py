@@ -327,7 +327,7 @@ def get_quote_and_profile(ticker):
 def get_recent_insider_buys(ticker):
     """Pull last 90d insider activity for cross-confirmation."""
     try:
-        rows = fmp_json("/stable/insider-trading", params={"symbol": ticker, "limit": 50})
+        rows = fmp_json("/stable/insider-trading/search", params={"symbol": ticker, "limit": 50})
         if not isinstance(rows, list):
             return {"net_buys_usd": 0, "n_buyers": 0}
         cutoff = (dt.date.today() - dt.timedelta(days=30)).isoformat()

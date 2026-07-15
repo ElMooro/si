@@ -92,7 +92,7 @@ def fetch_insider_sells(from_date, page_limit=8):
     """Pull last-14d insider transactions from FMP, filter to SELLS."""
     all_rows = []
     for page in range(page_limit):
-        url = (f"https://financialmodelingprep.com/stable/insider-trading"
+        url = (f"https://financialmodelingprep.com/stable/insider-trading/latest"
                f"?transactionType=S-Sale&page={page}&apikey={FMP_KEY}")
         try:
             data = json.loads(http_get(url))

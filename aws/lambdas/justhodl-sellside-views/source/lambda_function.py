@@ -126,7 +126,7 @@ def lambda_handler(event, context):
     targets = dict(BASELINE_TARGETS_2026_EOY)
 
     # Pull recent grades-news; filter for "SPX", "S&P 500", "year-end target"
-    news = fmp_get("grades-news", {"limit": 200}) or []
+    news = fmp_get("grades-latest-news", {"limit": 200}) or []
     recent_revisions = []
     if isinstance(news, list):
         cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).date()
