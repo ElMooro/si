@@ -107,6 +107,14 @@
 </section>
 
 <section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="card p-5">
+    <div class="eyebrow mb-1">Asia-Pacific sovereigns</div>
+    <p class="text-xs text-[var(--text-muted)] mb-3">South Korea via its 10-year government bond yield (a genuine sovereign-stress proxy). Singapore, Hong Kong &amp; Taiwan have no public sovereign-yield feed on our sources — listed honestly rather than proxied by equities.</p>
+    <div id="asia-list"></div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="card p-5">
       <div class="eyebrow mb-1">CISS · systemic stress by region</div>
@@ -175,6 +183,27 @@ function render(d) {
       <div class="bar-track"><div class="bar-fill" style="width:${score}%;background:${stressColor(score)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(score)};min-width:34px;text-align:right">${fmt(score,0)}</div>
     </div>`).join('') || '<div class="text-xs text-[var(--text-muted)]">no country scores</div>';
+
+  // Asia-Pacific sovereigns
+  const asia = d.asia_sovereigns || {};
+  const asiaRows = Object.entries(asia);
+  document.getElementById('asia-list').innerHTML = asiaRows.map(([name,c])=>{
+    if (c.data_unavailable) {
+      return `<div class="row" style="grid-template-columns:1.3fr 3fr auto">
+        <div class="text-sm font-medium">${cap(name)}</div>
+        <div class="text-xs text-[var(--text-muted)]">${c.note ? 'no sovereign-yield feed — equity proxy only' : 'data unavailable'}</div>
+        <div><span class="badge" style="border:1px solid var(--text-muted);color:var(--text-muted)">N/A</span></div>
+      </div>`;
+    }
+    const s = c.stress_0_100||0;
+    return `<div class="row">
+      <div><div class="text-sm font-medium">${cap(name)}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">10Y ${fmt(c.sovereign_10y_yield_pct,2)}% · Δ3m ${c.yield_change_3m_pp>=0?'+':''}${fmt(c.yield_change_3m_pp,2)}pp · ${c.as_of||''}</div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${s}%;background:${stressColor(s)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(s)};min-width:34px;text-align:right">${fmt(s,0)}</div>
+      <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
+    </div>`;
+  }).join('') || '<div class="text-xs text-[var(--text-muted)]">no Asia data</div>';
 
   // CISS by region
   const ciss = d.systemic_stress_ciss || {};

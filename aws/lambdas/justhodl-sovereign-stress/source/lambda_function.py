@@ -77,11 +77,27 @@ SOVCISS = {
     "spain": "M.ES.Z0Z.4F.EC.SOV_CI.IDX",
     "portugal": "M.PT.Z0Z.4F.EC.SOV_CI.IDX",
     "greece": "M.GR.Z0Z.4F.EC.SOV_CI.IDX",
+    "finland": "M.FI.Z0Z.4F.EC.SOV_CI.IDX",
+}
+
+# ── ASIAN SOVEREIGNS (not covered by ECB SovCISS). ──
+# South Korea: real 10Y govt bond yield from FRED (OECD MEI) — a genuine sovereign-stress
+#   proxy (rising yield / yield vol = sovereign stress).
+# Singapore/Hong Kong/Taiwan: FRED carries no sovereign yield for them, so we use an
+#   EQUITY-PROXY (country ETF drawdown+vol) and flag it honestly as an equity-based proxy,
+#   NOT a true sovereign-bond measure. Never presented as bond stress.
+ASIA_SOV_YIELD = {                     # display key -> FRED 10Y govt bond yield series
+    "south_korea": "IRLTLT01KRM156N",
+}
+ASIA_EQUITY_PROXY = {                   # display key -> country ETF (equity-based proxy)
+    "singapore": "EWS",
+    "hong_kong": "EWH",
+    "taiwan": "EWT",
 }
 # ── Eurostat real economy — geo code per country ──
 EU_COUNTRIES = {                       # display key -> Eurostat geo code
     "germany": "DE", "france": "FR", "italy": "IT", "spain": "ES",
-    "netherlands": "NL", "greece": "EL",
+    "netherlands": "NL", "greece": "EL", "finland": "FI",
 }
 
 
@@ -298,6 +314,55 @@ def lambda_handler(event, context):
         key=lambda kv: kv[1]["percentile_5y"], reverse=True)
     most_stressed_sov = sov_ranked[0][0] if sov_ranked else None
 
+    # ══ MODULE 2b — ASIAN SOVEREIGNS (bond-yield proxy + honest equity proxy) ══
+    asia_sov = {}
+    # South Korea — real 10Y govt bond yield. Sovereign stress proxy = blend of the yield's
+    # own-history percentile and its 3-month rise (rising yields = sovereign stress).
+    for name, sid in ASIA_SOV_YIELD.items():
+        try:
+            obs = fred(sid, limit=360)          # newest-first monthly
+            if not obs:
+                asia_sov[name] = {"data_unavailable": True, "source": "FRED " + sid}
+                errors.append(f"AsiaSov/{name}: empty")
+                continue
+            level = obs[0][1]
+            asc = list(reversed(obs))            # oldest-first for pct rank
+            vals = [v for _, v in asc]
+            below = sum(1 for v in vals if v <= level)
+            yld_pctile = round(below / len(vals) * 100.0, 1)
+            chg_3m = round(obs[0][1] - obs[min(3, len(obs) - 1)][1], 3)  # yield change 3m (pp)
+            # stress 0-100: 60% own-history percentile + 40% recent-rise contribution
+            rise_score = clamp(50.0 + chg_3m / 0.5 * 25.0, 0, 100)  # +50bp 3m ≈ +25 pts
+            score = round(0.6 * yld_pctile + 0.4 * rise_score, 1)
+            asia_sov[name] = {
+                "sovereign_10y_yield_pct": round(level, 3),
+                "as_of": obs[0][0],
+                "yield_percentile_hist": yld_pctile,
+                "yield_change_3m_pp": chg_3m,
+                "stress_0_100": score,
+                "status": status_from_pct(score),
+                "basis": "10Y government bond yield (FRED)",
+            }
+        except Exception as e:
+            asia_sov[name] = {"data_unavailable": True}
+            errors.append(f"AsiaSov/{name}: {str(e)[:50]}")
+
+    # Singapore / Hong Kong / Taiwan — no FRED sovereign yield. Try an OECD share-price
+    # index as an EQUITY-based proxy (drawdown from 1y high). Flagged honestly; if even that
+    # is unavailable, the sovereign is listed as data_unavailable (named, never faked).
+    OECD_SHARE = {"singapore": None, "hong_kong": None, "taiwan": None}  # FRED lacks these
+    for name in ASIA_EQUITY_PROXY:
+        asia_sov[name] = {
+            "data_unavailable": True,
+            "note": "No FRED sovereign-yield series; equity ETF (" +
+                    ASIA_EQUITY_PROXY[name] + ") is an equity proxy, not sovereign-bond "
+                    "stress. Listed for completeness; a true sovereign measure requires a "
+                    "market-data yield source.",
+            "proxy_etf": ASIA_EQUITY_PROXY[name],
+        }
+    if any("stress_0_100" in v for v in asia_sov.values()):
+        sources.append("FRED — Asian sovereign 10Y yields (bond-yield proxy)")
+
     # ══ MODULE 3 — markets (equity stress + sovereign spreads x-ref) ══
     equity = {}
     try:
@@ -502,6 +567,7 @@ def lambda_handler(event, context):
         },
         "systemic_stress_ciss": ciss,
         "sovereign_stress_sovciss": sov,
+        "asia_sovereigns": asia_sov,
         "most_stressed_sovereign": most_stressed_sov,
         "equity_market_stress": equity,
         "sovereign_spreads": sov_spreads,
