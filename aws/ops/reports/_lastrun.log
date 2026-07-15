@@ -1,8 +1,9 @@
-executing-against: e42d6ec589ff372a28578bd85b017bce85a218da
-── EARNINGS CALENDAR ──
-── ECONOMIC CALENDAR ──
-── NEWS ──
-── RATINGS (reconfirm) ──
-── DIVIDENDS ──
+executing-against: 213f8df1c02cb9a92900f6259eccf8d479e9946f
+── ENSURE FMP_KEY ──
+[02:49:59] ✅ FMP_KEY set, dead BENZINGA_API_KEY removed
+── INVOKE (await v2.0) ──
+── VERIFY SECTIONS ──
+── VERDICT ──
+[02:50:00] ✅ benzinga.html LIVE on FMP — ratings + earnings + econ + news + dividends populate. Dead Benzinga key retired.
 
-→ Report written to aws/ops/reports/latest/3330_benzinga_replace_probe.md
+→ Report written to aws/ops/reports/latest/3331_benzinga_agent_verify.md
