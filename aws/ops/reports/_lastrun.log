@@ -1,7 +1,8 @@
-executing-against: 1b71a01199c45ce6417bdf8726d8bf902998c749
-── TEST ALL THREE KEYS vs BENZINGA ──
+executing-against: f17eb4a79e4e8568048745e7fe89e9e1871337af
+── TOP-LEVEL PREFIXES ──
+── BENZINGA / ANALYST HUNT ──
+── SAMPLE OBJECTS ──
 ── VERDICT ──
-[01:35:27] ✗ None of the 3 Massive keys are Benzinga-entitled (all 403/empty). The Benzinga add-on is not attached to any key on this Massive account — needs enabling in the Massive dashboard (per-key entitlement toggle), or the add-on lives on a different Massive account.
+[01:45:43] ⚠ Flat-files access WORKS but no benzinga/analyst prefix found — Benzinga likely not entitled on flat files either. Available products listed above; decide REST re-entitlement (Massive support) vs FMP re-source.
 
-→ Report written to aws/ops/reports/latest/3315_massive_key_rotate.md
-❌ OPS-FAIL: aws/ops/pending/ops_3315_massive_key_rotate.py
+→ Report written to aws/ops/reports/latest/3316_massive_flatfiles_probe.md
