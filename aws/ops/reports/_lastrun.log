@@ -1,9 +1,4 @@
-executing-against: c9f87884036b4fb342ade55524d6be77ca2db6c0
-── ENSURE FMP_KEY ──
-[01:54:48] ✅ FMP_KEY set on engine env
-── FORCE RUN (await v2.0) ──
-── VERIFY FEED ──
-── VERDICT ──
-[01:54:52] ✅ analyst-actions v2.0 LIVE on FMP data — page renders real analyst rating transitions + PT moves. Benzinga dependency retired.
+executing-against: fb2384e9298c900dcb284151ddc4ff5fdd4d02f4
+[01:59:58] ✅ audit complete — see rows for which paths 400
 
-→ Report written to aws/ops/reports/latest/3319_analyst_actions_fmp_verify.md
+→ Report written to aws/ops/reports/latest/3320_consensus_endpoint_audit.md
