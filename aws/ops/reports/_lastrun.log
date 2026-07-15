@@ -1,16 +1,18 @@
-executing-against: b5330471ad11171e1ecc618cb86ad0144c4f7c71
-── Deploy JSI v1.6.0 (sovereign 19th feed) ──
-[21:11:15]   zip: 83096 bytes
-── 1. Lambda ──
-[21:11:16]   Lambda exists — updating
-[21:11:21] ✅   ✓ updated justhodl-stress-index
-── 2. EB rule + permissions ──
-[21:11:22]   rule already correct: jsi-6h (rate(6 hours))
-[21:11:22] ✅   ✓ target → justhodl-stress-index
-[21:11:22] ✅   ✓ added invoke permission
-[21:11:35] JSI v1.6.0 overlay feeds=19 live=19
-[21:11:35]   European Sovereign Stress: 30.7 (raw 30.7)
-[21:11:35] ✅ SOVEREIGN wired as 19th feed — stress 30.7, in Global Risk group.
-[21:11:35] ✅ overlay now 19 feeds.
+executing-against: 41dfc207a0cb1429983bc7fe759bc2ed10e63513
+── Finland — ECB SovCISS ──
+[21:17:54]   M.FI SOV_CI: OK 3 rows
+── Asian sovereigns — FRED 10Y govt bond yield candidates ──
+[21:17:55]   South Korea IRLTLT01KRM156N: OK latest=4.075 @ 2026-05-01
+[21:17:55]   South Korea INTGSBKRM193N: OK latest=3.808 @ 2026-04-01
+[21:17:55]   Singapore IRLTLT01SGM156N: HTTPError HTTP Error 400: Bad Request
+[21:17:56]   Singapore INTGSBSGM193N: HTTPError HTTP Error 400: Bad Request
+[21:17:56]   Singapore MYAGM2SGM189N: HTTPError HTTP Error 400: Bad Request
+[21:17:56]   Hong Kong (try) IRLTLT01HKM156N: HTTPError HTTP Error 400: Bad Request
+[21:17:56]   Taiwan (try) IRLTLT01TWM156N: HTTPError HTTP Error 400: Bad Request
+[21:17:57]   Taiwan INTGSBTWM193N: HTTPError HTTP Error 400: Bad Request
+── also probe: 3-month rates + CDS-ish proxies as fallbacks ──
+[21:17:57]   Singapore 3M INTGSTSGM193N: HTTPError HTTP Error 400: Bad Request
+[21:17:57]   Korea 3M IR3TIB01KRM156N: OK latest=2.82 @ 2026-05-01
+[21:17:57]   Korea share prices SPASTT01KRM661N: OK latest=379.009 @ 2026-05-01
 
-→ Report written to aws/ops/reports/latest/3366_sovereign_overlay.md
+→ Report written to aws/ops/reports/latest/3367_new_sovereign_probe.md
