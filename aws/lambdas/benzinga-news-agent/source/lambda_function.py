@@ -25,11 +25,13 @@ from datetime import datetime, timedelta, timezone
 FMP_KEY = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY", "")
 BASE = "https://financialmodelingprep.com/stable"
 
+# NOTE: CORS is owned SOLELY by the Lambda Function URL's native CORS config
+# (AllowOrigins ['*']). The handler must NOT also emit Access-Control-Allow-*
+# headers, or the two stack into an invalid doubled header
+# ("*, https://justhodl.ai") that browsers reject. So we return ONLY
+# Content-Type here.
 CORS = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 }
 
 
