@@ -1,14 +1,10 @@
-executing-against: 1fc9392a52ea27d4f9787d35b1c33504921b82d2
-── async data-base-hint / endpoint hints ──
-── candidate data URLs in page ──
-[21:39:54]   //fonts.googleapis.com
-── script srcs + async config ──
-[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/toc.js
-[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/myLayout.js?ver=2.2.11
-[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/sorttable.js?ver=1.0
-── probe known WGB async endpoint patterns ──
-[21:39:54]   /async/country/singapore/: __ERR__ HTTP Error 404: Not Found
-[21:39:55]   /data/country/singapore/: __ERR__ HTTP Error 404: Not Found
-[21:39:55]   /bond-async/singapore/: __ERR__ HTTP Error 404: Not Found
+executing-against: bb94d2c9a2c5717f61d030503d10c1b72dfe7723
+[21:41:17] polygon key found: no
+[21:41:17] no polygon key in probed engines — checking wider
+── Polygon reference — search Asian govt bond / index tickers ──
+── VERDICT — synthesize all findings ──
+[21:41:17] FRED: SG/HK/TW absent. DBnomics/IMF: SG stale-2021, HK absent, TW gold-only.
+[21:41:17] WGB: pages exist but yield/CDS load via JS async (not in static HTML).
+[21:41:17] FMP: no Asian sovereign symbols. This probe: polygon indices result above.
 
-→ Report written to aws/ops/reports/latest/3376_wgb_async.md
+→ Report written to aws/ops/reports/latest/3377_polygon_asia.md
