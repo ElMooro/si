@@ -1,15 +1,19 @@
-"""justhodl-analyst-actions — Benzinga analyst & guidance signal board.
+"""justhodl-analyst-actions — analyst rating & price-target signal board.
 
-Consumes three entitled Benzinga feeds (via Massive):
-  - ratings           : upgrades/downgrades + price-target raises/cuts
-  - guidance          : company forward-guidance raises/cuts (EPS & revenue)
-  - analyst-insights  : numeric price targets + analyst commentary
+Sourced from FMP /stable (entitled key), replacing the retired Benzinga-
+via-Massive feeds (Massive stopped serving Benzinga to this account —
+403 NOT_AUTHORIZED on all keys, ops 3311-3316):
+  - grades-latest-news       : upgrades/downgrades (rating transitions)
+  - price-target-latest-news : price-target raises/cuts
 
-Builds per-action lists + a per-ticker net analyst score (importance-weighted).
-Guidance changes and PT revisions are among the most robust public-data equity
-signals. Bullish corroborated names are logged to the signal-harvester under
-eng:analyst-actions (MEASURE-BEFORE-TRUST — graded vs SPY before any decision
-engine consumes them).
+Builds per-action lists + a per-ticker net analyst score (importance-
+weighted). Rating transitions and PT revisions are among the most robust
+public-data equity signals. Bullish corroborated names are logged to the
+signal-harvester under eng:analyst-actions (MEASURE-BEFORE-TRUST — graded
+vs SPY before any decision engine consumes them).
+
+Guidance raise/cut is not exposed on FMP /stable, so guidance lists render
+empty (schema-tolerated); PT deltas are carried on the ratings records.
 """
 import json
 import time
@@ -18,7 +22,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-from benzinga import fetch_ratings, fetch_guidance, fetch_analyst_insights
+from fmp_analyst import fetch_ratings, fetch_guidance, fetch_analyst_insights
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -132,7 +136,7 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "engine": "justhodl-analyst-actions",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": "Analyst rating transitions, price-target revisions, and company "
                   "guidance changes — three of the most robust public-data equity "
@@ -152,7 +156,7 @@ def lambda_handler(event=None, context=None):
         "most_bullish": most_bullish,
         "most_bearish": most_bearish,
         "top_picks": top_picks,
-        "data_source": "Benzinga ratings + guidance + analyst-insights (via Massive)",
+        "data_source": "FMP grades-latest-news + price-target-latest-news (/stable)",
         "caveats": [
             "Rating direction uses a rank map; firm-specific scales may vary.",
             "Guidance raise/cut compares current vs previous guidance midpoints.",
