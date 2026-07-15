@@ -135,8 +135,8 @@
     </div>
     <!-- OVERLAY -->
     <div class="card p-5">
-      <div class="eyebrow mb-1">Live Overlay · JustHodl stress engines</div>
-      <p class="text-xs text-[var(--text-muted)] mb-3">Contemporary enrichment — sharpens the present reading, never rewrites history.</p>
+      <div class="eyebrow mb-1">Live Overlay · 18 stress engines, grouped</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Contemporary enrichment — global-risk, funding plumbing, and market/crisis signals from across the fleet. Never reaches into history.</p>
       <div id="overlay-list"></div>
     </div>
   </div>
@@ -250,27 +250,44 @@ function renderChart(d) {
 }
 
 function renderComponents(d) {
-  // Spine
+  // Spine — split into Market Stress vs Liquidity Plumbing (chg-mode components)
   const spine = d.spine_components || {};
-  const order = Object.entries(spine).sort((a,b)=>(b[1].stress||0)-(a[1].stress||0));
-  document.getElementById('spine-list').innerHTML = order.map(([id,c])=>`
+  const plumbingIds = new Set(['WRESBAL','WALCL']);
+  const spineRow = (id,c)=>`
     <div class="comp-row">
       <div>
         <div class="text-sm font-medium">${c.label}</div>
-        <div class="text-[10px] text-[var(--text-muted)] mono">since ${(c.inception||'').slice(0,4)} · z ${c.z>=0?'+':''}${fmt(c.z,2)}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">since ${(c.inception||'').slice(0,4)} · z ${c.z>=0?'+':''}${fmt(c.z,2)}${c.mode==='chg'?' · Δ3m':''}</div>
       </div>
       <div class="comp-bar-track"><div class="comp-bar-fill" style="width:${c.stress}%;background:${stressColor(c.stress)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(c.stress)};min-width:34px;text-align:right">${fmt(c.stress,0)}</div>
-    </div>`).join('');
+    </div>`;
+  const spineMkt = Object.entries(spine).filter(([id])=>!plumbingIds.has(id)).sort((a,b)=>(b[1].stress||0)-(a[1].stress||0));
+  const spinePlumb = Object.entries(spine).filter(([id])=>plumbingIds.has(id)).sort((a,b)=>(b[1].stress||0)-(a[1].stress||0));
+  document.getElementById('spine-list').innerHTML =
+    spineMkt.map(([id,c])=>spineRow(id,c)).join('') +
+    (spinePlumb.length ? `<div class="eyebrow mt-3 mb-1" style="color:var(--blue)">Liquidity Plumbing · flow of the change, not the level</div>` + spinePlumb.map(([id,c])=>spineRow(id,c)).join('') : '');
 
-  // Overlay
-  const ov = (d.overlay_components||[]).filter(c=>c.stress!=null).sort((a,b)=>b.stress-a.stress);
-  document.getElementById('overlay-list').innerHTML = ov.map(c=>`
+  // Overlay — grouped into Global Risk / Funding Plumbing / Market & Crisis
+  const ov = (d.overlay_components||[]).filter(c=>c.stress!=null);
+  const GLOBAL = ['Euro Fragmentation (BTP-Bund)','Carry-Unwind Fragility','FX Risk-Off','Global Risk Tide','Risk Regime (RORO)'];
+  const PLUMB  = ['SOFR Spike (funding)','RRP Drain (liquidity)','Eurodollar Stress','Funding Plumbing','HYG/LQD Credit Risk'];
+  const groupOf = c => GLOBAL.includes(c.label) ? 'global' : PLUMB.includes(c.label) ? 'plumb' : 'market';
+  const ovRow = c=>`
     <div class="comp-row">
       <div class="text-sm font-medium">${c.label}</div>
       <div class="comp-bar-track"><div class="comp-bar-fill" style="width:${c.stress}%;background:${stressColor(c.stress)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(c.stress)};min-width:34px;text-align:right">${fmt(c.stress,0)}</div>
-    </div>`).join('') || '<div class="text-xs text-[var(--text-muted)]">overlay feeds loading…</div>';
+    </div>`;
+  const section = (title,color,items)=> items.length ? `<div class="eyebrow mb-1 mt-3 first:mt-0" style="color:${color}">${title}</div>` + items.sort((a,b)=>b.stress-a.stress).map(ovRow).join('') : '';
+  const g = ov.filter(c=>groupOf(c)==='global');
+  const p = ov.filter(c=>groupOf(c)==='plumb');
+  const m = ov.filter(c=>groupOf(c)==='market');
+  document.getElementById('overlay-list').innerHTML =
+    (section('🌍 Global Risk','var(--purple)',g) +
+     section('🚰 Funding Plumbing','var(--blue)',p) +
+     section('📉 Market & Crisis','var(--amber)',m)) ||
+    '<div class="text-xs text-[var(--text-muted)]">overlay feeds loading…</div>';
 }
 
 fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/jsi.json?ts=' + Date.now())
