@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 import boto3
+from botocore.config import Config
 
 from ops_report import report
 from _lambda_deploy_helpers import deploy_lambda
@@ -25,25 +26,53 @@ BUCKET = ENV["S3_BUCKET"]
 OUT_KEY = ENV["OUT_KEY"]
 DESCRIPTION = (CFG.get("description") or "")[:256]
 
-with report("3345b_unwind_regime_join_rerun") as r:
-    r.section("Deploy carry-surface v1.3.1")
+# Long read-timeout client — the smoke invoke on a 170-asset run exceeds botocore's
+# default 60s read timeout and triggers a retry storm (3345/3345b hung ~320s). We deploy
+# WITHOUT the helper's smoke invoke, then do ONE Event(async) invoke and poll S3 for the
+# fresh object instead of blocking on a RequestResponse read.
+LONG = Config(read_timeout=600, connect_timeout=15, retries={"max_attempts": 0})
+
+with report("3345c_unwind_regime_join_rerun") as r:
+    r.section("Deploy carry-surface v1.3.1 (no blocking smoke)")
     deploy_lambda(
         report=r, function_name=FN, source_dir=SRC, env_vars=ENV,
         eb_rule_name=CFG["schedule"]["rule_name"], eb_schedule=CFG["schedule"]["cron"],
         timeout=CFG["timeout"], memory=CFG["memory"], description=DESCRIPTION,
-        create_function_url=True, smoke=True,
+        create_function_url=True, smoke=False,
     )
 
-    r.section("Verify: regime join now populated")
-    lam = boto3.client("lambda", region_name=CFG["region"])
-    lam.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=b"{}")
-    time.sleep(3)
-    s3 = boto3.client("s3", region_name=CFG["region"])
-    payload = json.loads(s3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read().decode())
+    r.section("Verify: async invoke + poll S3")
+    lam = boto3.client("lambda", region_name=CFG["region"], config=LONG)
+    s3 = boto3.client("s3", region_name=CFG["region"], config=LONG)
+
+    # Record current object version so we can detect the fresh write.
+    try:
+        prev = json.loads(s3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read().decode())
+        prev_gen = prev.get("generated_at")
+    except Exception:
+        prev_gen = None
+
+    lam.invoke(FunctionName=FN, InvocationType="Event", Payload=b"{}")  # async, returns 202
+    r.log("async invoke fired; polling S3 for fresh write…")
+
+    payload = None
+    for attempt in range(24):  # up to ~2 min
+        time.sleep(5)
+        try:
+            obj = json.loads(s3.get_object(Bucket=BUCKET, Key=OUT_KEY)["Body"].read().decode())
+        except Exception:
+            continue
+        if obj.get("generated_at") and obj.get("generated_at") != prev_gen:
+            payload = obj
+            r.log(f"fresh write detected after ~{(attempt+1)*5}s")
+            break
+    if payload is None:
+        r.fail("no fresh carry-surface.json within 2 min of async invoke")
+        raise SystemExit(0)
 
     u = payload.get("unwind_overlay") or {}
     rr = u.get("regime") or {}
-    r.log(f"version={payload.get('version')}")
+    r.log(f"version={payload.get('version')} n_assets={payload.get('n_assets')}")
     r.log(f"regime available={rr.get('available')} label={rr.get('regime')} "
           f"roro={rr.get('roro_score')} vix={rr.get('vix')} stress={rr.get('stress_0_100')}")
     r.log(f"eurodollar: stress={rr.get('eurodollar_stress')} regime={rr.get('eurodollar_regime')} "
@@ -52,10 +81,9 @@ with report("3345b_unwind_regime_join_rerun") as r:
     r.log(f"verdict={u.get('verdict')}")
     r.log(f"n_fragile={u.get('n_fragile')} n_crowded={u.get('n_crowded')}")
 
-    # STRICT: a null join must fail.
     if rr.get("available") and rr.get("roro_score") is not None and rr.get("regime"):
         r.ok(f"REGIME JOINED — {rr.get('regime')} (RORO {rr.get('roro_score')}, "
-             f"mult {u.get('regime_multiplier')}×). Overlay now regime-aware.")
+             f"mult {u.get('regime_multiplier')}×). Overlay is regime-aware.")
     else:
         r.fail(f"regime STILL null: available={rr.get('available')} "
                f"roro={rr.get('roro_score')} label={rr.get('regime')}")
