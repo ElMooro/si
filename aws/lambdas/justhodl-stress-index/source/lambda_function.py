@@ -19,6 +19,7 @@ OUTPUTS:
                             regime, crisis markers, and the full 1990→today daily series.
   data/jsi-history.json   — compact {date, jsi} daily series (for lightweight chart loads).
 """
+import math
 import json
 import os
 import time
@@ -28,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -84,6 +85,8 @@ OVERLAY = [
     ("data/tail-hedge.json",         "severity",               "Tail Hedge Severity",   "id"),
     ("data/euro-fragmentation.json", "fragmentation.score_0_100", "Euro Fragmentation (BTP-Bund)", "id"),
     ("data/carry-surface.json",      "unwind_overlay.cohort_fragility", "Carry-Unwind Fragility", "id"),
+    ("data/global-tide.json",        "risk.global_risk_0_100", "Global Risk Tide",      "id"),
+    ("data/risk-ratios.json",        "hyg_lqd.latest",         "HYG/LQD Credit Risk",   "ratio_inv"),
 ]
 
 # Historical crisis windows for chart annotation.
@@ -254,6 +257,24 @@ def build_overlay():
         elif tf == "roro":
             # RORO score -100(risk-off/stress)..+100(risk-on) → invert to 0-100 stress
             s = max(0.0, min(100.0, (100.0 - float(raw)) / 2.0))
+        elif tf == "ratio_inv":
+            # A credit-risk ratio (e.g. HYG/LQD): FALLING = risk-off = stress. Z-score on
+            # the feed's own history, INVERT the sign, logistic-map to 0-100.
+            hist_path = field.rsplit(".", 1)[0] + ".history" if "." in field else "history"
+            hist = _dig(o, hist_path) or _dig(o, "history")
+            vals = []
+            if isinstance(hist, list):
+                for pt in hist:
+                    if isinstance(pt, (list, tuple)) and len(pt) >= 2 and isinstance(pt[1], (int, float)):
+                        vals.append(float(pt[1]))
+                    elif isinstance(pt, (int, float)):
+                        vals.append(float(pt))
+            if len(vals) >= 20:
+                mu, sd = _mean(vals), _std(vals) or 1e-9
+                z = (float(raw) - mu) / sd * (-1.0)   # invert: low ratio → +z → stress
+                s = max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-1.1 * z))))
+            else:
+                s = 50.0  # insufficient history → neutral
         else:
             s = max(0.0, min(100.0, float(raw)))
         out.append({"key": key, "label": label, "stress": round(s, 1),
