@@ -1,17 +1,12 @@
-executing-against: 8a04f4052112da43bb24469d00d0f9b1bdc28028
-── Deploy carry-surface v1.3.1 ──
-[16:14:22]   zip: 90171 bytes
-── 1. Lambda ──
-[16:14:22]   Lambda exists — updating
-[16:14:27] ✅   ✓ updated justhodl-carry-surface
-── 2. EB rule + permissions ──
-[16:14:28]   rule already correct: carry-surface-4h (rate(4 hours))
-[16:14:28] ✅   ✓ target → justhodl-carry-surface
-[16:14:28] ✅   ✓ added invoke permission
-── 3. Smoke test ──
-[16:14:28]   invoking justhodl-carry-surface…
+## Deploy carry-surface v1.3.1
 
-→ Report written to aws/ops/reports/latest/3345b_unwind_regime_join_rerun.md
+**Status:** failure  
+**Duration:** 319.5s  
+**Finished:** 2026-07-15T16:19:41+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
     response = conn.getresponse()
@@ -64,6 +59,8 @@ urllib3.exceptions.ReadTimeoutError: AWSHTTPSConnectionPool(host='lambda.us-east
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/3345b_unwind_regime_join_rerun.py", line 30, in <module>
     deploy_lambda(
   File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 277, in deploy_lambda
@@ -128,4 +125,20 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
     raise ReadTimeoutError(endpoint_url=request.url, error=e)
 botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-carry-surface/invocations"
-❌ OPS-FAIL: aws/ops/pending/3345b_unwind_regime_join_rerun.py
+
+```
+
+## Log
+- `16:14:22`   zip: 90171 bytes
+## 1. Lambda
+
+- `16:14:22`   Lambda exists — updating
+- `16:14:27` ✅   ✓ updated justhodl-carry-surface
+## 2. EB rule + permissions
+
+- `16:14:28`   rule already correct: carry-surface-4h (rate(4 hours))
+- `16:14:28` ✅   ✓ target → justhodl-carry-surface
+- `16:14:28` ✅   ✓ added invoke permission
+## 3. Smoke test
+
+- `16:14:28`   invoking justhodl-carry-surface…
