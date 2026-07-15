@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -82,6 +82,8 @@ OVERLAY = [
     ("data/polygon-fx-regime.json",  "fx_roro.fx_roro_score",  "FX Risk-Off",           "roro"),
     ("data/vvix-vov-regime.json",    "signal_strength",        "Vol-of-Vol",            "x100"),
     ("data/tail-hedge.json",         "severity",               "Tail Hedge Severity",   "id"),
+    ("data/euro-fragmentation.json", "fragmentation.score_0_100", "Euro Fragmentation (BTP-Bund)", "id"),
+    ("data/carry-surface.json",      "unwind_overlay.cohort_fragility", "Carry-Unwind Fragility", "id"),
 ]
 
 # Historical crisis windows for chart annotation.
