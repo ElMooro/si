@@ -1,0 +1,45 @@
+## Deploy JSI v1.3.0 (brain-directed risk feeds)
+
+**Status:** success  
+**Duration:** 11.4s  
+**Finished:** 2026-07-15T19:03:52+00:00  
+
+## Log
+- `19:03:41`   zip: 82070 bytes
+## 1. Lambda
+
+- `19:03:41`   Lambda exists — updating
+- `19:03:45` ✅   ✓ updated justhodl-stress-index
+## 2. EB rule + permissions
+
+- `19:03:46`   rule already correct: jsi-6h (rate(6 hours))
+- `19:03:46` ✅   ✓ target → justhodl-stress-index
+- `19:03:46` ✅   ✓ added invoke permission
+## Verify brain-directed feeds
+
+- `19:03:52` JSI v1.3.0 jsi=34.01 overlay=25.5 regime=NORMAL
+- `19:03:52` overlay: 16 feeds, 16 live
+- `19:03:52`   Global Risk Tide: 21.0 (raw 21.0)
+- `19:03:52`   HYG/LQD Credit Risk: 12.7 (raw 0.743)
+- `19:03:52` ✅ overlay widened to 16 feeds (brain-directed risk signals added).
+- `19:03:52` ✅ GLOBAL RISK TIDE live — 21.0 (composite global-risk gauge from operator's #1 concept: liquidity).
+- `19:03:52` ✅ HYG/LQD CREDIT RISK live — 12.7 (raw 0.743); polarity correct (low stress at range-top).
+- `19:03:52` ✅ index coherent — spine 37.66, 29.0th pctile since 1990.
+## Full overlay (16 feeds)
+
+- `19:03:52`   Carry-Unwind Fragility: 59.0
+- `19:03:52`   Euro Fragmentation (BTP-Bund): 47.6
+- `19:03:52`   Tail Risk: 47.3
+- `19:03:52`   FX Risk-Off: 43.5
+- `19:03:52`   Risk Regime (RORO): 42.1
+- `19:03:52`   Global Stress Index: 34.0
+- `19:03:52`   Crisis Composite: 29.5
+- `19:03:52`   Eurodollar Stress: 29.2
+- `19:03:52`   Bank Stress: 26.1
+- `19:03:52`   Global Risk Tide: 21.0
+- `19:03:52`   Funding Plumbing: 13.1
+- `19:03:52`   HYG/LQD Credit Risk: 12.7
+- `19:03:52`   ECB CISS: 1.7
+- `19:03:52`   Crisis Canaries: 1.6
+- `19:03:52`   Vol-of-Vol: 0.0
+- `19:03:52`   Tail Hedge Severity: 0.0
