@@ -1,0 +1,39 @@
+## Deploy JSI v1.2.0 (global-risk overlay)
+
+**Status:** success  
+**Duration:** 11.6s  
+**Finished:** 2026-07-15T18:50:58+00:00  
+
+## Log
+- `18:50:47`   zip: 81693 bytes
+## 1. Lambda
+
+- `18:50:47`   Lambda exists — updating
+- `18:50:51` ✅   ✓ updated justhodl-stress-index
+## 2. EB rule + permissions
+
+- `18:50:51`   rule already correct: jsi-6h (rate(6 hours))
+- `18:50:51` ✅   ✓ target → justhodl-stress-index
+- `18:50:51` ✅   ✓ added invoke permission
+## Verify global-risk feeds in overlay
+
+- `18:50:58` JSI v1.2.0 jsi=34.4 spine=37.66 overlay=26.8 regime=NORMAL
+- `18:50:58` overlay feeds: 14 total, 14 live
+- `18:50:58`   Global Stress Index: 34.0
+- `18:50:58`   Tail Risk: 47.3
+- `18:50:58`   Bank Stress: 26.1
+- `18:50:58`   Crisis Composite: 29.5
+- `18:50:58`   Eurodollar Stress: 29.2
+- `18:50:58`   Funding Plumbing: 13.1
+- `18:50:58`   ECB CISS: 1.7
+- `18:50:58`   Crisis Canaries: 1.6
+- `18:50:58`   Risk Regime (RORO): 42.1
+- `18:50:58`   FX Risk-Off: 43.5
+- `18:50:58`   Vol-of-Vol: 0.0
+- `18:50:58`   Tail Hedge Severity: 0.0
+- `18:50:58`   Euro Fragmentation (BTP-Bund): 47.6
+- `18:50:58`   Carry-Unwind Fragility: 59.0
+- `18:50:58` ✅ overlay widened to 14 feeds.
+- `18:50:58` ✅ EURO FRAGMENTATION (BTP-Bund) live in JSI — stress 47.6 (raw 47.6).
+- `18:50:58` ✅ CARRY-UNWIND FRAGILITY live in JSI — stress 59.0 (raw 59.0).
+- `18:50:58` ✅ index coherent — spine 37.66, 29.0th pctile since 1990.

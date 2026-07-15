@@ -1,33 +1,33 @@
-executing-against: 0042bcbf969f03734ddd85fb88e4aff6bf3750b3
-[18:08:03]   ? data/euro-fragmentation.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'fragmentation', 'bund_benchmark_10y_pct', 'countries', 'core_vs_periphery', 'france_focus', 'ecb_backstop']
-[18:08:03]       → candidate: fragmentation.score_0_100 = 47.6
-[18:08:03]       → candidate: fragmentation.widest_spread_bp = 77.2
-[18:08:03]       → candidate: fragmentation.fastest_widening_1m_bp = 7.7
-[18:08:03]       → candidate: core_vs_periphery.core_avg_spread_bp = 40.2
-[18:08:03]       → candidate: core_vs_periphery.periphery_avg_spread_bp = 49.6
-[18:08:03]       → candidate: france_focus.oat_bund_spread_bp = 69.5
-[18:08:03]       → candidate: france_focus.spread_change_1m_bp = 2.1
-[18:08:03]       → candidate: france_focus.spread_change_3m_bp = 8.7
-[18:08:03]       → candidate: cross_reference.systemic_stress_composite = 40.2
-[18:08:03]   ✓ data/carry-surface.json :: unwind_overlay.cohort_fragility = 59.0
-[18:08:03]   ✗ data/sovereign-stress.json: NoSuchKey
-[18:08:03]   ? data/global-tide.json: top=['engine', 'version', 'generated_at', 'fed', 'ecb', 'boj', 'china', 'gli', 'hy_oas_pct', 'hy_oas_3m_chg_bp', 'nfci', 'risk']
-[18:08:03]       → candidate: ecb.injection_score = -2
-[18:08:03]       → candidate: boj.injection_score = -2
-[18:08:03]       → candidate: gli.impulse_score = -32.0
-[18:08:03]       → candidate: hy_oas_3m_chg_bp = -15.0
-[18:08:03]   ? data/capital-inflows.json: top=['engine', 'version', 'ok', 'generated_at', 'duration_s', 'data_asof', 'thesis', 'headline', 'by_asset_class', 'regime', 'regime_interpretation', 'flags']
-[18:08:03]   ✓ data/crisis-composite.json :: master_crisis_score = 29.8
-[18:08:03]   ? data/canary-grid.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'early_warning_level', 'band', 'headline', 'sub_grids', 'freshness', 'signals', 'top_deteriorating', 'n_available']
-[18:08:03]   ? data/euro-fragmentation.json: top=['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'fragmentation', 'bund_benchmark_10y_pct', 'countries', 'core_vs_periphery', 'france_focus', 'ecb_backstop']
-[18:08:03]       → candidate: fragmentation.score_0_100 = 47.6
-[18:08:03]       → candidate: fragmentation.widest_spread_bp = 77.2
-[18:08:03]       → candidate: fragmentation.fastest_widening_1m_bp = 7.7
-[18:08:03]       → candidate: core_vs_periphery.core_avg_spread_bp = 40.2
-[18:08:03]       → candidate: core_vs_periphery.periphery_avg_spread_bp = 49.6
-[18:08:03]       → candidate: france_focus.oat_bund_spread_bp = 69.5
-[18:08:03]       → candidate: france_focus.spread_change_1m_bp = 2.1
-[18:08:03]       → candidate: france_focus.spread_change_3m_bp = 8.7
-[18:08:03]       → candidate: cross_reference.systemic_stress_composite = 40.2
+executing-against: 486c2ac2552b5ce6b8ab9c74e01ec6eedeb51dcd
+── Deploy JSI v1.2.0 (global-risk overlay) ──
+[18:50:47]   zip: 81693 bytes
+── 1. Lambda ──
+[18:50:47]   Lambda exists — updating
+[18:50:51] ✅   ✓ updated justhodl-stress-index
+── 2. EB rule + permissions ──
+[18:50:51]   rule already correct: jsi-6h (rate(6 hours))
+[18:50:51] ✅   ✓ target → justhodl-stress-index
+[18:50:51] ✅   ✓ added invoke permission
+── Verify global-risk feeds in overlay ──
+[18:50:58] JSI v1.2.0 jsi=34.4 spine=37.66 overlay=26.8 regime=NORMAL
+[18:50:58] overlay feeds: 14 total, 14 live
+[18:50:58]   Global Stress Index: 34.0
+[18:50:58]   Tail Risk: 47.3
+[18:50:58]   Bank Stress: 26.1
+[18:50:58]   Crisis Composite: 29.5
+[18:50:58]   Eurodollar Stress: 29.2
+[18:50:58]   Funding Plumbing: 13.1
+[18:50:58]   ECB CISS: 1.7
+[18:50:58]   Crisis Canaries: 1.6
+[18:50:58]   Risk Regime (RORO): 42.1
+[18:50:58]   FX Risk-Off: 43.5
+[18:50:58]   Vol-of-Vol: 0.0
+[18:50:58]   Tail Hedge Severity: 0.0
+[18:50:58]   Euro Fragmentation (BTP-Bund): 47.6
+[18:50:58]   Carry-Unwind Fragility: 59.0
+[18:50:58] ✅ overlay widened to 14 feeds.
+[18:50:58] ✅ EURO FRAGMENTATION (BTP-Bund) live in JSI — stress 47.6 (raw 47.6).
+[18:50:58] ✅ CARRY-UNWIND FRAGILITY live in JSI — stress 59.0 (raw 59.0).
+[18:50:58] ✅ index coherent — spine 37.66, 29.0th pctile since 1990.
 
-→ Report written to aws/ops/reports/latest/3352_global_risk_probe.md
+→ Report written to aws/ops/reports/latest/3353_jsi_global_risk_overlay.md
