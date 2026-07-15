@@ -242,24 +242,31 @@ def lambda_handler(event, context):
     # ══ MODULE 1 — CISS systemic stress ══
     ciss = {}
     for name, key in CISS_HEADLINE.items():
+        obs = None
+        # primary series (SS_CI works for EA/US); fall through to fallback (SS_CIN, which
+        # is where china/UK live) on EITHER an empty result OR a 404/exception.
         try:
             obs = ecb_ciss(key)
-            if not obs and name in CISS_HEADLINE_FALLBACK:
+        except Exception:
+            obs = None
+        if not obs and name in CISS_HEADLINE_FALLBACK:
+            try:
                 obs = ecb_ciss(CISS_HEADLINE_FALLBACK[name])
-            if not obs:
-                errors.append(f"CISS/{name}: empty")
+            except Exception as e:
+                errors.append(f"CISS/{name}: fallback {str(e)[:40]}")
                 continue
-            p = pct_rank(obs)
-            ciss[name] = {
-                "level": round(obs[0][1], 4),
-                "as_of": obs[0][0],
-                "change_1m": level_change(obs, 30),
-                "change_3m": level_change(obs, 91),
-                "percentile_3y": p,
-                "status": status_from_pct(p),
-            }
-        except Exception as e:
-            errors.append(f"CISS/{name}: {str(e)[:60]}")
+        if not obs:
+            errors.append(f"CISS/{name}: empty")
+            continue
+        p = pct_rank(obs)
+        ciss[name] = {
+            "level": round(obs[0][1], 4),
+            "as_of": obs[0][0],
+            "change_1m": level_change(obs, 30),
+            "change_3m": level_change(obs, 91),
+            "percentile_3y": p,
+            "status": status_from_pct(p),
+        }
     if ciss:
         sources.append("ECB Data Portal — CISS systemic stress")
 
