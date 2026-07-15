@@ -1,11 +1,8 @@
-executing-against: f3f6e79aa35c862630e000e66bde6b06977a400d
-── KEY ──
-── GRADES-NEWS (upgrade/downgrade feed) ──
-── PRICE-TARGET-NEWS (PT revisions) ──
-── GRADES-CONSENSUS (roll-up sanity, AAPL) ──
-── PRICE-TARGET-CONSENSUS (sanity, AAPL) ──
+executing-against: 0c600e99ccd49b714013f3472fe4b2532ae83bc2
+── GRADES-NEWS (limit only) ──
+── PT-NEWS VARIANTS ──
 ── VERDICT ──
-[01:49:02] ✗ Core FMP analyst feeds not returning data — inspect rows.
+[01:50:33] ✗ grades-news still empty
 
-→ Report written to aws/ops/reports/latest/3317_fmp_analyst_endpoints.md
-❌ OPS-FAIL: aws/ops/pending/ops_3317_fmp_analyst_endpoints.py
+→ Report written to aws/ops/reports/latest/3318_fmp_feeds_confirm.md
+❌ OPS-FAIL: aws/ops/pending/ops_3318_fmp_feeds_confirm.py
