@@ -1,0 +1,18 @@
+## global-tide risk score
+
+**Status:** success  
+**Duration:** 0.6s  
+**Finished:** 2026-07-15T19:01:22+00:00  
+
+## Log
+- `19:01:22`   risk.global_risk_0_100 = 21.0  tier=CALM
+- `19:01:22`   components: ['VIX 15.13', 'vol regime NORMAL_CONTANGO', 'HY OAS 2.69%', 'NFCI -0.52', '¥-carry 62.2/100', 'ESI 21']
+## risk-ratios HYG/LQD
+
+- `19:01:22`   top keys: ['schema_version', 'engine', 'generated_at', 'how_to_read', 'hyg_lqd', 'angl_hyg', 'hyg', 'acwi', 'rxi', 'eem_rvol', 'bdry', 'bkln_hyg', 'copper_gold', 'smh_acwi', 'move_vix', 'oil_term', 'build_seconds', 'n_live']
+- `19:01:22`   hyg_lqd = {"available": true, "latest": 0.74321, "asof": "2026-07-14", "unit": "ratio", "history": [["2024-10-14", 0.71837], ["2024-10-15", 0.71471], ["2024-10-16", 0.71372], ["2024-10-17", 0.71798], ["2024-10-18", 0.72054], ["2024-10-21", 0.72505], ["2024-10-22", 0.72411], ["2024-10-23", 0.72437], ["2024-10-24", 0.72429], ["2024-10-25", 0.72528], ["2024-10-28", 0.72771], ["2024-10-29", 0.72702], ["2024-10-
+- `19:01:22`     hyg_lqd.available = True
+- `19:01:22`     hyg_lqd.latest = 0.74321
+- `19:01:22`   angl_hyg: {'available': True, 'latest': 0.36433}
+- `19:01:22`   hyg: {'available': True, 'latest': 79.68}
+- `19:01:22`   acwi: {'available': True, 'latest': 156.94}
