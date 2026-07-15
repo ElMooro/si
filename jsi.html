@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="JustHodl Stress Index — unified financial-stress gauge with 36 years of history back to 1990">
+<title>Stress Index · JustHodl.AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+  :root {
+    --bg-primary: #080b14; --bg-secondary: #0d1120; --bg-tertiary: #141a2b;
+    --bg-card: #131a2e; --bg-elevated: #182140; --bg-subtle: rgba(120,140,190,0.05);
+    --border: #232c4a; --border-soft: #1a2138;
+    --text-primary: #eef2fb; --text-secondary: #96a0bd; --text-muted: #5c668a;
+    --green: #1ae08a; --red: #f8556a; --amber: #fbbf24; --blue: #56a0ff; --purple: #b571f8;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
+  }
+  * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+  body { background: radial-gradient(1200px 600px at 50% -100px, #101830 0%, var(--bg-primary) 60%); color: var(--text-primary); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .card { background: linear-gradient(180deg, var(--bg-card) 0%, #101627 100%); border: 1px solid var(--border-soft); border-radius: 1rem; box-shadow: var(--shadow); }
+  .badge { padding: 0.15rem 0.55rem; border-radius: 0.5rem; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
+  .badge-green { background: #0a3524; color: var(--green); border: 1px solid #17663f; }
+  .badge-red { background: #38121a; color: var(--red); border: 1px solid #6e2028; }
+  .badge-amber { background: #3a2c0e; color: var(--amber); border: 1px solid #6a5217; }
+  .badge-blue { background: #0f2547; color: var(--blue); border: 1px solid #234674; }
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+  .grad-text { background: linear-gradient(120deg, #f8556a 0%, #fbbf24 50%, #1ae08a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .kpi-tile { background: linear-gradient(180deg, var(--bg-elevated) 0%, #121a33 100%); border: 1px solid var(--border-soft); border-radius: 0.85rem; padding: 1rem 1.1rem; }
+  .nav-link { color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; }
+  .nav-link:hover { color: var(--text-primary); }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(26,224,138,0.6); } 70% { box-shadow: 0 0 0 9px rgba(26,224,138,0); } }
+  .comp-row { display: grid; grid-template-columns: 1.4fr 3fr auto; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-soft); }
+  .comp-bar-track { height: 8px; border-radius: 4px; background: var(--bg-subtle); overflow: hidden; }
+  .comp-bar-fill { height: 100%; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="border-b border-[var(--border-soft)] bg-[var(--bg-secondary)]/80 backdrop-blur sticky top-0 z-50">
+  <div class="max-w-[1500px] mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2">
+        <span class="grad-text font-bold text-lg">JUSTHODL</span>
+        <span class="text-xs text-[var(--text-muted)] mono uppercase">Terminal</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-4">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/global-stress.html" class="nav-link">Global Stress</a>
+        <a href="/gsi-calibration.html" class="nav-link">Calibration</a>
+        <a href="/risk-desk.html" class="nav-link">Risk Desk</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3 text-xs">
+      <span class="pulse-dot"></span>
+      <span class="text-[var(--text-secondary)] mono" id="updated">loading…</span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="max-w-[1500px] mx-auto px-4 pt-8 pb-4">
+  <div class="mb-5">
+    <div class="eyebrow mb-3">JustHodl Stress Index · 1990 → today</div>
+    <h1 class="text-3xl md:text-[2.6rem] leading-[1.1] font-bold mb-3 max-w-4xl">
+      How much financial <span class="grad-text">stress</span> is in the system —<br class="hidden md:block">
+      and where does that sit in 36 years of history?
+    </h1>
+    <p class="text-[var(--text-secondary)] text-sm md:text-[0.95rem] max-w-3xl leading-relaxed">
+      One unified index. A spine of Federal Reserve stress components — VIX, the Chicago and Kansas City Fed
+      financial-stress indices, credit spreads, the yield curve — each z-scored on its own history since 1990 and
+      blended, plus a live overlay of <span id="n-overlay" class="text-[var(--text-primary)] mono">12</span> JustHodl
+      stress engines. The same computation runs across every era, so today is directly comparable to 2008, 2020, and every crisis between.
+    </p>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Stress Now</div>
+      <div class="text-3xl font-bold mono" id="kpi-jsi">—</div>
+      <div class="text-xs mt-1" id="kpi-regime">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Percentile Since 1990</div>
+      <div class="text-3xl font-bold mono text-[var(--blue)]" id="kpi-pctile">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1" id="kpi-pctile-read">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Worst on Record</div>
+      <div class="text-3xl font-bold mono text-[var(--red)]" id="kpi-max">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1 mono" id="kpi-max-date">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Live vs Historical</div>
+      <div class="text-3xl font-bold mono" id="kpi-overlay">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1">overlay · spine <span id="kpi-spine" class="mono">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNATURE: 36-YEAR HISTORICAL CHART -->
+<section class="max-w-[1500px] mx-auto px-4 pb-6">
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div>
+        <div class="eyebrow">The Long View · daily stress since 1990</div>
+        <p class="text-xs text-[var(--text-muted)] mt-1">Every financial crisis of the last 36 years, on one continuous axis. The dashed line is today.</p>
+      </div>
+      <div class="flex gap-2 text-[0.66rem]" id="chart-legend">
+        <span class="flex items-center gap-1"><span style="width:14px;height:3px;background:var(--red);display:inline-block"></span>crisis (≥75)</span>
+        <span class="flex items-center gap-1"><span style="width:14px;height:3px;background:var(--amber);display:inline-block"></span>elevated (45-75)</span>
+        <span class="flex items-center gap-1"><span style="width:14px;height:3px;background:var(--green);display:inline-block"></span>calm (&lt;45)</span>
+      </div>
+    </div>
+    <div id="chart-wrap" style="width:100%;overflow:hidden">
+      <svg id="chart" viewBox="0 0 1400 420" style="width:100%;height:auto;display:block"></svg>
+    </div>
+    <div id="chart-tip" class="text-xs mono text-[var(--text-secondary)] mt-2 h-4"></div>
+  </div>
+</section>
+
+<!-- COMPONENT BREAKDOWN -->
+<section class="max-w-[1500px] mx-auto px-4 pb-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- SPINE -->
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Historical Spine · Federal Reserve components</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Each z-scored on its own history since 1990. These define the continuous index.</p>
+      <div id="spine-list"></div>
+    </div>
+    <!-- OVERLAY -->
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Live Overlay · JustHodl stress engines</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Contemporary enrichment — sharpens the present reading, never rewrites history.</p>
+      <div id="overlay-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="max-w-[1500px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
+  <div class="border-t border-[var(--border-soft)] pt-6">
+    <div class="mb-2"><strong>Methodology.</strong> Spine components (VIX · Chicago-Fed NFCI · KC-Fed KCFSI · St-Louis FSI · high-yield & IG credit OAS · 10Y-2Y yield curve) are each z-scored on their full history since 1990, logistic-mapped to a 0-100 stress sub-score, and weighted-blended. The identical computation runs across every era, so the percentile-since-1990 is a true continuous statement rather than a spliced series. The live overlay of JustHodl stress engines is contemporary enrichment only and never reaches into history. Present score = 0.70·spine + 0.30·overlay; historical percentile is always measured against the pure-spine series.</div>
+    <div class="mt-3 mono">Data: <a href="data/jsi.json" class="text-[var(--blue)] hover:underline">jsi.json</a> · <a href="data/jsi-history.json" class="text-[var(--blue)] hover:underline">jsi-history.json</a> · Refresh: every 6h via <code>justhodl-stress-index</code> · Sources: FRED (spine, since 1990) + JustHodl stress fleet (overlay).</div>
+  </div>
+</footer>
+
+<script>
+const fmt = (n, d=1) => (n===null||n===undefined) ? '—' : (typeof n==='number' ? n.toFixed(d) : String(n));
+const regimeColor = r => ({CRISIS:'var(--red)',STRESS:'var(--red)',ELEVATED:'var(--amber)',NORMAL:'var(--green)',CALM:'var(--green)'}[r]||'var(--text-primary)');
+const stressColor = v => v>=75?'var(--red)':v>=45?'var(--amber)':'var(--green)';
+
+function render(d) {
+  if (!d || !d.ok) { document.getElementById('updated').textContent = 'load error'; return; }
+  document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
+  document.getElementById('n-overlay').textContent = d.n_overlay_live ?? 12;
+
+  // KPIs
+  const jsiEl = document.getElementById('kpi-jsi');
+  jsiEl.textContent = fmt(d.jsi); jsiEl.style.color = regimeColor(d.regime);
+  const regEl = document.getElementById('kpi-regime');
+  regEl.innerHTML = `<span class="badge" style="background:transparent;border:1px solid ${regimeColor(d.regime)};color:${regimeColor(d.regime)}">${d.regime}</span>`;
+  const p = d.percentile_since_1990;
+  document.getElementById('kpi-pctile').textContent = p!=null ? p.toFixed(0)+'th' : '—';
+  document.getElementById('kpi-pctile-read').textContent = p!=null
+    ? (p<25?'calmer than most of history':p<60?'middle of the range':p<85?'elevated vs history':'among the most stressed ever')
+    : '—';
+  const ext = d.historical_extremes||{};
+  document.getElementById('kpi-max').textContent = fmt((ext.max||{}).value);
+  document.getElementById('kpi-max-date').textContent = (ext.max||{}).date || '—';
+  document.getElementById('kpi-overlay').textContent = fmt(d.overlay_score);
+  document.getElementById('kpi-overlay').style.color = stressColor(d.overlay_score||0);
+  document.getElementById('kpi-spine').textContent = fmt(d.jsi_spine);
+
+  renderChart(d);
+  renderComponents(d);
+}
+
+function renderChart(d) {
+  const svg = document.getElementById('chart');
+  const W=1400, H=420, padL=44, padR=16, padT=16, padB=42;
+  const series = d.series_weekly || [];
+  if (!series.length) return;
+  const xs = series.map(p=>p.d), ys = series.map(p=>p.v);
+  const n = series.length;
+  const yMax = 100, yMin = Math.max(0, Math.floor(Math.min(...ys)/10)*10 - 5);
+  const px = i => padL + (i/(n-1))*(W-padL-padR);
+  const py = v => padT + (1-(v-yMin)/(yMax-yMin))*(H-padT-padB);
+
+  // gradient area path
+  let area = `M ${px(0)} ${py(ys[0])}`;
+  for (let i=1;i<n;i++) area += ` L ${px(i)} ${py(ys[i])}`;
+  const line = area;
+  area += ` L ${px(n-1)} ${H-padB} L ${px(0)} ${H-padB} Z`;
+
+  // year gridlines
+  let grid='', lastYr=null;
+  for (let i=0;i<n;i++){ const yr=xs[i].slice(0,4); if(yr!==lastYr && (+yr)%5===0){ lastYr=yr;
+    grid += `<line x1="${px(i)}" y1="${padT}" x2="${px(i)}" y2="${H-padB}" stroke="var(--border-soft)" stroke-width="1"/>`;
+    grid += `<text x="${px(i)}" y="${H-padB+16}" fill="var(--text-muted)" font-size="11" text-anchor="middle" font-family="JetBrains Mono">${yr}</text>`;
+  }}
+  // y gridlines (regime bands)
+  [25,45,60,75].forEach(v=>{ grid += `<line x1="${padL}" y1="${py(v)}" x2="${W-padR}" y2="${py(v)}" stroke="var(--border-soft)" stroke-dasharray="2 4" stroke-width="1"/>`;
+    grid += `<text x="${padL-6}" y="${py(v)+3}" fill="var(--text-muted)" font-size="10" text-anchor="end" font-family="JetBrains Mono">${v}</text>`; });
+
+  // crisis markers
+  let marks='';
+  (d.crisis_markers||[]).forEach(m=>{ // find nearest index by year-month
+    let idx = xs.findIndex(x=>x.slice(0,7)>=m.date);
+    if (idx<0) idx = n-1;
+    marks += `<line x1="${px(idx)}" y1="${padT}" x2="${px(idx)}" y2="${H-padB}" stroke="var(--red)" stroke-width="1" opacity="0.18"/>`;
+  });
+
+  // "you are here" line
+  const nowX = px(n-1);
+  const nowLine = `<line x1="${nowX}" y1="${padT}" x2="${nowX}" y2="${H-padB}" stroke="var(--text-primary)" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7"/>
+    <circle cx="${nowX}" cy="${py(ys[n-1])}" r="4" fill="var(--blue)"/>`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="jsiArea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--red)" stop-opacity="0.28"/>
+        <stop offset="45%" stop-color="var(--amber)" stop-opacity="0.14"/>
+        <stop offset="100%" stop-color="var(--green)" stop-opacity="0.04"/>
+      </linearGradient>
+      <linearGradient id="jsiLine" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="var(--blue)"/><stop offset="100%" stop-color="var(--purple)"/>
+      </linearGradient>
+    </defs>
+    ${grid}${marks}
+    <path d="${area}" fill="url(#jsiArea)"/>
+    <path d="${line}" fill="none" stroke="url(#jsiLine)" stroke-width="1.5"/>
+    ${nowLine}`;
+
+  // hover tip
+  const tip = document.getElementById('chart-tip');
+  svg.onmousemove = e => {
+    const r = svg.getBoundingClientRect();
+    const xrel = (e.clientX - r.left)/r.width*W;
+    let i = Math.round((xrel-padL)/(W-padL-padR)*(n-1));
+    i = Math.max(0, Math.min(n-1, i));
+    tip.textContent = `${xs[i]} · JSI ${ys[i].toFixed(1)}`;
+  };
+  svg.onmouseleave = () => { tip.textContent=''; };
+}
+
+function renderComponents(d) {
+  // Spine
+  const spine = d.spine_components || {};
+  const order = Object.entries(spine).sort((a,b)=>(b[1].stress||0)-(a[1].stress||0));
+  document.getElementById('spine-list').innerHTML = order.map(([id,c])=>`
+    <div class="comp-row">
+      <div>
+        <div class="text-sm font-medium">${c.label}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">since ${(c.inception||'').slice(0,4)} · z ${c.z>=0?'+':''}${fmt(c.z,2)}</div>
+      </div>
+      <div class="comp-bar-track"><div class="comp-bar-fill" style="width:${c.stress}%;background:${stressColor(c.stress)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(c.stress)};min-width:34px;text-align:right">${fmt(c.stress,0)}</div>
+    </div>`).join('');
+
+  // Overlay
+  const ov = (d.overlay_components||[]).filter(c=>c.stress!=null).sort((a,b)=>b.stress-a.stress);
+  document.getElementById('overlay-list').innerHTML = ov.map(c=>`
+    <div class="comp-row">
+      <div class="text-sm font-medium">${c.label}</div>
+      <div class="comp-bar-track"><div class="comp-bar-fill" style="width:${c.stress}%;background:${stressColor(c.stress)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(c.stress)};min-width:34px;text-align:right">${fmt(c.stress,0)}</div>
+    </div>`).join('') || '<div class="text-xs text-[var(--text-muted)]">overlay feeds loading…</div>';
+}
+
+fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/jsi.json?ts=' + Date.now())
+  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(render)
+  .catch(e => { document.getElementById('updated').textContent = 'load error: ' + e.message; });
+</script>
+<script src="/jh-nav-drawer.js?v=3335" defer></script>
+</body>
+</html>
