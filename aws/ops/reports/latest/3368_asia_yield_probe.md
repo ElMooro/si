@@ -1,0 +1,18 @@
+## FMP treasury / quote probes for SG/HK/TW
+
+**Status:** success  
+**Duration:** 1.1s  
+**Finished:** 2026-07-15T21:19:19+00:00  
+
+## Log
+- `21:19:18`   Singapore MSCI ETF EWS: price=32.09 chg%=1.45432
+- `21:19:18`   Hong Kong ETF EWH: price=22.08 chg%=1.89202
+- `21:19:19`   Taiwan ETF EWT: price=102.49 chg%=0.59874
+- `21:19:19`   S.Korea ETF EWY: price=171.64 chg%=-3.01729
+## Verdict
+
+- `21:19:19` FRED confirmed: South Korea 10Y yield (IRLTLT01KRM156N).
+- `21:19:19` Finland: ECB SovCISS confirmed.
+- `21:19:19` SG/HK/TW: no FRED sovereign yield; ETF price proxies only measure EQUITY not SOVEREIGN stress.
+- `21:19:19` HONEST PLAN: add Finland (SovCISS) + Spain (already) + S.Korea (bond-yield proxy).
+- `21:19:19` SG/HK/TW: add as bond-yield proxy ONLY if a real yield source exists; else mark data_unavailable (named), never fake.

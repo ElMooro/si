@@ -1,18 +1,14 @@
-executing-against: 41dfc207a0cb1429983bc7fe759bc2ed10e63513
-── Finland — ECB SovCISS ──
-[21:17:54]   M.FI SOV_CI: OK 3 rows
-── Asian sovereigns — FRED 10Y govt bond yield candidates ──
-[21:17:55]   South Korea IRLTLT01KRM156N: OK latest=4.075 @ 2026-05-01
-[21:17:55]   South Korea INTGSBKRM193N: OK latest=3.808 @ 2026-04-01
-[21:17:55]   Singapore IRLTLT01SGM156N: HTTPError HTTP Error 400: Bad Request
-[21:17:56]   Singapore INTGSBSGM193N: HTTPError HTTP Error 400: Bad Request
-[21:17:56]   Singapore MYAGM2SGM189N: HTTPError HTTP Error 400: Bad Request
-[21:17:56]   Hong Kong (try) IRLTLT01HKM156N: HTTPError HTTP Error 400: Bad Request
-[21:17:56]   Taiwan (try) IRLTLT01TWM156N: HTTPError HTTP Error 400: Bad Request
-[21:17:57]   Taiwan INTGSBTWM193N: HTTPError HTTP Error 400: Bad Request
-── also probe: 3-month rates + CDS-ish proxies as fallbacks ──
-[21:17:57]   Singapore 3M INTGSTSGM193N: HTTPError HTTP Error 400: Bad Request
-[21:17:57]   Korea 3M IR3TIB01KRM156N: OK latest=2.82 @ 2026-05-01
-[21:17:57]   Korea share prices SPASTT01KRM661N: OK latest=379.009 @ 2026-05-01
+executing-against: ee10845a1b056482beff78c34d762f0be03bda66
+── FMP treasury / quote probes for SG/HK/TW ──
+[21:19:18]   Singapore MSCI ETF EWS: price=32.09 chg%=1.45432
+[21:19:18]   Hong Kong ETF EWH: price=22.08 chg%=1.89202
+[21:19:19]   Taiwan ETF EWT: price=102.49 chg%=0.59874
+[21:19:19]   S.Korea ETF EWY: price=171.64 chg%=-3.01729
+── Verdict ──
+[21:19:19] FRED confirmed: South Korea 10Y yield (IRLTLT01KRM156N).
+[21:19:19] Finland: ECB SovCISS confirmed.
+[21:19:19] SG/HK/TW: no FRED sovereign yield; ETF price proxies only measure EQUITY not SOVEREIGN stress.
+[21:19:19] HONEST PLAN: add Finland (SovCISS) + Spain (already) + S.Korea (bond-yield proxy).
+[21:19:19] SG/HK/TW: add as bond-yield proxy ONLY if a real yield source exists; else mark data_unavailable (named), never fake.
 
-→ Report written to aws/ops/reports/latest/3367_new_sovereign_probe.md
+→ Report written to aws/ops/reports/latest/3368_asia_yield_probe.md
