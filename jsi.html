@@ -270,7 +270,7 @@ function renderComponents(d) {
 
   // Overlay — grouped into Global Risk / Funding Plumbing / Market & Crisis
   const ov = (d.overlay_components||[]).filter(c=>c.stress!=null);
-  const GLOBAL = ['Euro Fragmentation (BTP-Bund)','Carry-Unwind Fragility','FX Risk-Off','Global Risk Tide','Risk Regime (RORO)'];
+  const GLOBAL = ['Euro Fragmentation (BTP-Bund)','European Sovereign Stress','Carry-Unwind Fragility','FX Risk-Off','Global Risk Tide','Risk Regime (RORO)'];
   const PLUMB  = ['SOFR Spike (funding)','RRP Drain (liquidity)','Eurodollar Stress','Funding Plumbing','HYG/LQD Credit Risk'];
   const groupOf = c => GLOBAL.includes(c.label) ? 'global' : PLUMB.includes(c.label) ? 'plumb' : 'market';
   const ovRow = c=>`

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="European sovereign systemic stress — CISS, SovCISS, peripheral spreads, and per-country stress across the euro area">
+<title>Sovereign Stress · JustHodl.AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+  :root {
+    --bg-primary: #080b14; --bg-secondary: #0d1120; --bg-card: #131a2e; --bg-elevated: #182140;
+    --bg-subtle: rgba(120,140,190,0.05); --border-soft: #1a2138;
+    --text-primary: #eef2fb; --text-secondary: #96a0bd; --text-muted: #5c668a;
+    --green: #1ae08a; --red: #f8556a; --amber: #fbbf24; --blue: #56a0ff; --purple: #b571f8;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
+  }
+  * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+  body { background: radial-gradient(1200px 600px at 50% -100px, #101830 0%, var(--bg-primary) 60%); color: var(--text-primary); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .card { background: linear-gradient(180deg, var(--bg-card) 0%, #101627 100%); border: 1px solid var(--border-soft); border-radius: 1rem; box-shadow: var(--shadow); }
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+  .grad-text { background: linear-gradient(120deg, #56a0ff 0%, #b571f8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .kpi-tile { background: linear-gradient(180deg, var(--bg-elevated) 0%, #121a33 100%); border: 1px solid var(--border-soft); border-radius: 0.85rem; padding: 1rem 1.1rem; }
+  .nav-link { color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; }
+  .nav-link:hover { color: var(--text-primary); }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(26,224,138,0.6); } 70% { box-shadow: 0 0 0 9px rgba(26,224,138,0); } }
+  .row { display: grid; grid-template-columns: 1.3fr 2.4fr auto auto; gap: 0.6rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-soft); }
+  .bar-track { height: 8px; border-radius: 4px; background: var(--bg-subtle); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .badge { padding: 0.12rem 0.5rem; border-radius: 0.45rem; font-size: 0.64rem; font-weight: 600; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+</style>
+</head>
+<body>
+
+<header class="border-b border-[var(--border-soft)] bg-[var(--bg-secondary)]/80 backdrop-blur sticky top-0 z-50">
+  <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2">
+        <span class="grad-text font-bold text-lg">JUSTHODL</span>
+        <span class="text-xs text-[var(--text-muted)] mono uppercase">Terminal</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-4">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/jsi.html" class="nav-link">Stress Index</a>
+        <a href="/euro-fragmentation.html" class="nav-link">Euro Fragmentation</a>
+        <a href="/risk-desk.html" class="nav-link">Risk Desk</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3 text-xs">
+      <span class="pulse-dot"></span>
+      <span class="text-[var(--text-secondary)] mono" id="updated">loading…</span>
+    </div>
+  </div>
+</header>
+
+<section class="max-w-[1400px] mx-auto px-4 pt-8 pb-4">
+  <div class="mb-5">
+    <div class="eyebrow mb-3">European Sovereign Systemic Stress</div>
+    <h1 class="text-3xl md:text-[2.4rem] leading-[1.1] font-bold mb-3 max-w-4xl">
+      How much <span class="grad-text">sovereign stress</span> is in the euro area — and where is it concentrated?
+    </h1>
+    <p class="text-[var(--text-secondary)] text-sm md:text-[0.95rem] max-w-3xl leading-relaxed" id="headline">
+      The ECB CISS and SovCISS systemic-stress indices, peripheral bond stress, and per-country stress scores across the euro area — the sovereign layer that feeds the JustHodl Stress Index.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Europe Stress</div>
+      <div class="text-3xl font-bold mono" id="kpi-score">—</div>
+      <div class="text-xs mt-1" id="kpi-regime">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Most-Stressed Sovereign</div>
+      <div class="text-2xl font-bold mono text-[var(--amber)]" id="kpi-worst">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1">by SovCISS percentile</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Euro-Area CISS</div>
+      <div class="text-2xl font-bold mono" id="kpi-ciss">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1" id="kpi-ciss-pct">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Feeds JSI Overlay</div>
+      <div class="text-lg font-bold mt-1"><a href="/jsi.html" class="text-[var(--blue)] hover:underline">Stress Index →</a></div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1">Global Risk group</div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="eyebrow mb-1">SovCISS · sovereign systemic stress by country</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">ECB SovCISS — stress in each sovereign's bond market vs its own 5-year history.</p>
+      <div id="sovciss-list"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Composite country stress scores</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">0-100 blend of sovereign, unemployment, and industrial-output stress per country.</p>
+      <div id="country-list"></div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="eyebrow mb-1">CISS · systemic stress by region</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">ECB CISS composite for the major economies vs own 3-year history.</p>
+      <div id="ciss-list"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Real economy · the soft underbelly</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Unemployment and industrial production — the slower-moving stress channel.</p>
+      <div id="econ-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="max-w-[1400px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
+  <div class="border-t border-[var(--border-soft)] pt-6">
+    <div class="mb-2"><strong>Methodology.</strong> European sovereign systemic stress from the ECB CISS (Composite Indicator of Systemic Stress) and SovCISS (sovereign systemic stress), each read against its own history. Per-country composite scores blend sovereign, labour-market, and industrial-output stress. This is the sovereign-risk layer that feeds the JustHodl Stress Index overlay.</div>
+    <div class="mt-3 mono">Data: <a href="data/sovereign-stress.json" class="text-[var(--blue)] hover:underline">sovereign-stress.json</a> · Sources: ECB Data Portal (CISS, SovCISS) · Eurostat (unemployment, industrial production) · FRED (VIX, S&P). Refresh: daily via <code>justhodl-sovereign-stress</code>.</div>
+  </div>
+</footer>
+
+<script>
+const fmt = (n,d=1) => (n===null||n===undefined||isNaN(n)) ? '—' : Number(n).toFixed(d);
+const cap = s => (s||'').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const stressColor = v => v>=60?'var(--red)':v>=40?'var(--amber)':'var(--green)';
+const statusColor = s => ({CRISIS:'var(--red)',STRESS:'var(--red)',ELEVATED:'var(--amber)',HIGH:'var(--amber)',NORMAL:'var(--green)',CALM:'var(--green)',LOW:'var(--green)'}[s]||'var(--text-secondary)');
+const pctToStress = p => (p===null||p===undefined)?null:p; // percentile already 0-100
+
+function render(d) {
+  if (!d || !d.ok) { document.getElementById('updated').textContent='load error'; }
+  document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
+  if (d.headline) document.getElementById('headline').textContent = d.headline;
+
+  const es = d.europe_stress || {};
+  const scoreEl = document.getElementById('kpi-score');
+  scoreEl.textContent = fmt(es.score_0_100,0); scoreEl.style.color = statusColor(es.regime);
+  document.getElementById('kpi-regime').innerHTML = `<span class="badge" style="border:1px solid ${statusColor(es.regime)};color:${statusColor(es.regime)}">${es.regime||'—'}</span>`;
+  document.getElementById('kpi-worst').textContent = cap(d.most_stressed_sovereign || es.worst_country || '—');
+
+  const eaCiss = (d.systemic_stress_ciss||{}).euro_area || {};
+  document.getElementById('kpi-ciss').textContent = fmt(eaCiss.level,3);
+  document.getElementById('kpi-ciss-pct').textContent = eaCiss.percentile_3y!=null ? `${fmt(eaCiss.percentile_3y,0)}th pct · ${eaCiss.status||''}` : '—';
+
+  // SovCISS by country (sorted by percentile desc)
+  const sov = d.sovereign_stress_sovciss || {};
+  const sovRows = Object.entries(sov)
+    .filter(([k])=>k!=='euro_area')
+    .sort((a,b)=>(b[1].percentile_5y||0)-(a[1].percentile_5y||0));
+  document.getElementById('sovciss-list').innerHTML = sovRows.map(([name,c])=>{
+    const p = c.percentile_5y||0;
+    return `<div class="row">
+      <div><div class="text-sm font-medium">${cap(name)}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">SovCISS ${fmt(c.level,3)} · ${c.as_of||''}</div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${stressColor(p)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(p)};min-width:42px;text-align:right">${fmt(p,0)}p</div>
+      <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
+    </div>`;
+  }).join('') || '<div class="text-xs text-[var(--text-muted)]">no SovCISS data</div>';
+
+  // Composite country stress scores
+  const cs = d.country_stress_scores || {};
+  const csRows = Object.entries(cs).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('country-list').innerHTML = csRows.map(([name,score])=>`
+    <div class="row" style="grid-template-columns:1.3fr 3fr auto">
+      <div class="text-sm font-medium">${cap(name)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${score}%;background:${stressColor(score)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(score)};min-width:34px;text-align:right">${fmt(score,0)}</div>
+    </div>`).join('') || '<div class="text-xs text-[var(--text-muted)]">no country scores</div>';
+
+  // CISS by region
+  const ciss = d.systemic_stress_ciss || {};
+  const cissRows = Object.entries(ciss).sort((a,b)=>(b[1].percentile_3y||0)-(a[1].percentile_3y||0));
+  document.getElementById('ciss-list').innerHTML = cissRows.map(([name,c])=>{
+    const p = c.percentile_3y||0;
+    return `<div class="row">
+      <div><div class="text-sm font-medium">${cap(name)}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">CISS ${fmt(c.level,3)} · Δ1m ${c.change_1m>=0?'+':''}${fmt(c.change_1m,3)}</div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${stressColor(p)}"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(p)};min-width:42px;text-align:right">${fmt(p,0)}p</div>
+      <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
+    </div>`;
+  }).join('') || '<div class="text-xs text-[var(--text-muted)]">no CISS data</div>';
+
+  // Real economy: unemployment + industrial production merged per country
+  const un = d.unemployment || {}, ip = d.industrial_production || {};
+  const countries = [...new Set([...Object.keys(un), ...Object.keys(ip)])].filter(c=>c!=='eu_27'&&c!=='euro_area');
+  document.getElementById('econ-list').innerHTML = countries.map(c=>{
+    const u = un[c]||{}, i = ip[c]||{};
+    const uColor = (u.rate_pct||0)>=8?'var(--red)':(u.rate_pct||0)>=6?'var(--amber)':'var(--green)';
+    const iColor = (i.yoy_pct||0)<0?'var(--red)':(i.yoy_pct||0)<1?'var(--amber)':'var(--green)';
+    return `<div class="row" style="grid-template-columns:1.3fr 1fr 1fr">
+      <div class="text-sm font-medium">${cap(c)}</div>
+      <div class="mono text-xs">unemp <span style="color:${uColor}">${fmt(u.rate_pct,1)}%</span> <span class="text-[var(--text-muted)]">${u.change_12m_pp>=0?'+':''}${fmt(u.change_12m_pp,1)}pp</span></div>
+      <div class="mono text-xs">ind.prod <span style="color:${iColor}">${i.yoy_pct>=0?'+':''}${fmt(i.yoy_pct,1)}%</span> <span class="text-[var(--text-muted)]">YoY</span></div>
+    </div>`;
+  }).join('') || '<div class="text-xs text-[var(--text-muted)]">no real-economy data</div>';
+}
+
+fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress.json?ts=' + Date.now())
+  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(render)
+  .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
+</script>
+<script src="/jh-nav-drawer.js?v=3335" defer></script>
+</body>
+</html>
