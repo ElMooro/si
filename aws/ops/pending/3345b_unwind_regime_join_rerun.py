@@ -25,7 +25,7 @@ BUCKET = ENV["S3_BUCKET"]
 OUT_KEY = ENV["OUT_KEY"]
 DESCRIPTION = (CFG.get("description") or "")[:256]
 
-with report("3345_unwind_regime_join_fix") as r:
+with report("3345b_unwind_regime_join_rerun") as r:
     r.section("Deploy carry-surface v1.3.1")
     deploy_lambda(
         report=r, function_name=FN, source_dir=SRC, env_vars=ENV,
