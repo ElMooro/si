@@ -1,24 +1,11 @@
-executing-against: 4a9c058d5492a9543fb3e677a566045c9dea56f7
-── Deploy sovereign-stress (Finland + Asia additive) ──
-[21:22:35]   zip: 82972 bytes
-── 1. Lambda ──
-[21:22:35]   Lambda exists — updating
-[21:22:43] ✅   ✓ updated justhodl-sovereign-stress
-── 2. EB rule + permissions ──
-[21:22:43]   rule already correct: sovereign-stress-daily (cron(0 12 ? * * *))
-[21:22:43] ✅   ✓ target → justhodl-sovereign-stress
-[21:22:43] ✅   ✓ added invoke permission
-[21:23:10]   return: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 30.7, \"errors\": 0}"}
-── Verify additions (existing 7 kept?) ──
-[21:23:14]   SovCISS countries: ['euro_area', 'germany', 'france', 'italy', 'spain', 'portugal', 'greece', 'finland']
-[21:23:14]   Asia sovereigns: ['south_korea', 'singapore', 'hong_kong', 'taiwan']
-[21:23:14] ✅ all 7 original euro-area sovereigns KEPT.
-[21:23:14] ✅ FINLAND added — SovCISS 0.2269 pctile 77.5 ELEVATED
-[21:23:14] ✅ SOUTH KOREA added — 10Y 4.075% stress 64.1 (ELEVATED) via 10Y government bond yield (FRED)
-[21:23:14]   singapore: data_unavailable (honest, no yield feed)
-[21:23:14]   hong_kong: data_unavailable (honest, no yield feed)
-[21:23:14]   taiwan: data_unavailable (honest, no yield feed)
-[21:23:14]   errors: 0 — []
-[21:23:14]   europe score: 30.7
+executing-against: d3ae64b6707663f6126dbb06c1072d1b83e95a79
+── DBnomics search — 10Y govt bond yield ──
+[21:28:33]   'Singapore government bond yield 10 year': 0 hits
+[21:28:34]   'Hong Kong government bond yield': 0 hits
+[21:28:35]   'Taiwan government bond yield': 0 hits
+── DBnomics direct — BIS + IMF candidate series ──
+[21:28:35]   BIS Singapore policy/long: HTTPError HTTP Error 404: NOT FOUND
+[21:28:36]   IMF IFS Singapore govt bond: num_found=3 latest=('2021', 1.43142857142857)
+[21:28:38]   IMF IFS Hong Kong govt bond: num_found=0 latest=None
 
-→ Report written to aws/ops/reports/latest/3369_add_sovereigns.md
+→ Report written to aws/ops/reports/latest/3370_dbnomics_asia_yields.md
