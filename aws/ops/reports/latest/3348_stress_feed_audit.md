@@ -1,0 +1,33 @@
+## Stress-feed inventory for unified index
+
+**Status:** success  
+**Duration:** 1.8s  
+**Finished:** 2026-07-15T17:16:15+00:00  
+
+## Log
+- `17:16:13`   ✓ data/global-stress.json: global_stress_index=34 | hist=—(0) | 3.7h | gen=2026-07-15T13:35:08
+- `17:16:13`   ? data/ciss-stress.json: no numeric score found | top keys: ['engine', 'version', 'generated_at', 'elapsed_s', 'n_series', 'categories', 'ea_composite', 'ea_composite_date']
+- `17:16:14`   ? data/ciss-ai.json: no numeric score found | top keys: ['engine', 'version', 'generated_at', 'model', 'based_on', 'ea_composite', 'ea_regime', 'interpretation']
+- `17:16:14`   ? data/systemic-stress.json: no numeric score found | top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'ok', 'headline', 'composite', 'systemic_stress']
+- `17:16:14`   ✓ data/tail-risk.json: system_tail_gauge=47.3 | hist=—(0) | 4.3h | gen=2026-07-15T13:00:18
+- `17:16:14`   ? data/vvix-vov-regime.json: no numeric score found | top keys: ['engine', 'version', 'as_of', 'state', 'signal_strength', 'current_metrics', 'regime_explanation', 'trade_tickets']
+- `17:16:14`   ? data/bank-stress.json: no numeric score found | top keys: ['schema_version', 'method', 'generated_at', 'elapsed_s', 'fred_failed', 'series_resolved', 'bank_stress_score', 'regime']
+- `17:16:14`   ✗ data/sovereign-stress.json — ClientError
+- `17:16:14`   ? data/sovereign-fiscal.json: no numeric score found | top keys: ['engine', 'version', 'generated_at', 'reads', 'tic', 'fiscal', 'debt_service']
+- `17:16:14`   ? data/credit-stress.json: no numeric score found | top keys: ['generated_at', 'europe_sovereign', 'wl_research', 'generated_at_unix', 'dealer_positioning', 'version', 'elapsed_seconds', 'data_date']
+- `17:16:14`   ✓ data/risk-regime.json: risk_regime_score=15.7 | hist=—(0) | 4.5h | gen=2026-07-15T12:45:37
+- `17:16:14`   ✓ data/polygon-fx-regime.json: fx_roro.fx_roro_score=13.1 | hist=—(0) | 4.1h | gen=2026-07-15T13:10:03
+- `17:16:14`   ✓ data/eurodollar-stress.json: composite_score=34.39 | hist=—(0) | 20.0h | gen=2026-07-14T21:16:25
+- `17:16:14`   ✓ data/eurodollar-plumbing.json: stress_score=13.1 | hist=—(0) | 5.2h | gen=2026-07-15T12:01:22
+- `17:16:14`   ? data/crisis-canaries.json: no numeric score found | top keys: ['engine', 'version', 'generated_at', 'duration_s', 'availability', 'canaries', 'composite_score', 'level']
+- `17:16:14`   ? data/crisis-composite.json: no numeric score found | top keys: ['schema_version', 'method', 'generated_at', 'btp_bund_canary', 'wl_research', 'elapsed_s', 'master_crisis_score', 'defcon_level']
+- `17:16:14`   ? data/liquidity-inflection.json: no numeric score found | top keys: ['engine', 'version', 'generated_at', 'duration_s', 'availability', 'usd', 'us_money', 'composite']
+- `17:16:14`   ? data/factor-risk.json: no numeric score found | top keys: ['schema', 'generated_at', 'firm_book_asof', 'headline', 'firm', 'factor_exposures', 'risk_contributors', 'scenarios']
+- `17:16:15`   ? data/tail-hedge.json: no numeric score found | top keys: ['schema_version', 'engine', 'method', 'generated_at', 'build_seconds', 'hedge_posture', 'severity', 'status']
+- `17:16:15`   ? data/vol-radar.json: no numeric score found | top keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'posture', 'posture_color', 'headline', 'radar_note']
+- `17:16:15`   ? data/bond-vol-history.json: no numeric score found | top keys: ['points']
+- `17:16:15`   ✓ data/firm-risk-board.json: firm_severity=0 | hist=—(0) | 13.3h | gen=2026-07-15T04:00:35
+- `17:16:15`   ? data/risk-radar.json: no numeric score found | top keys: ['schema_version', 'engine', 'generated_at', 'build_seconds', 'headline', 'macro_stress', 'universe_screened', 'n_carried']
+- `17:16:15`   ? data/risk-ratios.json: no numeric score found | top keys: ['schema_version', 'engine', 'generated_at', 'how_to_read', 'hyg_lqd', 'angl_hyg', 'hyg', 'acwi']
+- `17:16:15` ✅ 7/24 feeds have an extractable headline score
+- `17:16:15` USABLE: ['data/global-stress.json', 'data/tail-risk.json', 'data/risk-regime.json', 'data/polygon-fx-regime.json', 'data/eurodollar-stress.json', 'data/eurodollar-plumbing.json', 'data/firm-risk-board.json']
