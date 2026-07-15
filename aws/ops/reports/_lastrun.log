@@ -1,19 +1,15 @@
-executing-against: 06f761e9e769d49a630c94468f34649dbf3f6c0c
-── IMF IFS monthly govt bond yield — SG/HK/TW/KR ──
-[21:30:22]   Singapore: ('M.SG.FIGB_PA', ('2021-07', 1.3), 277)
-[21:30:23]   Hong Kong: (None, None, 0)
-[21:30:24]   Taiwan: (None, None, 0)
-[21:30:25]   Korea: ('M.KR.FIGB_PA', ('2025-05', 2.618), 625)
-── What bond/yield indicators does IMF IFS have for Singapore? ──
-[21:30:31]   Singapore series total=724, yield-ish=6
-[21:30:31]      A.SG.FIGB_PA — Annual – Singapore – Financial, Interest Rates, Government Securities,
-[21:30:31]      A.SG.FITB_PA — Annual – Singapore – Financial, Interest Rates, Government Securities,
-[21:30:31]      M.SG.FIGB_PA — Monthly – Singapore – Financial, Interest Rates, Government Securities
-[21:30:31]      M.SG.FITB_PA — Monthly – Singapore – Financial, Interest Rates, Government Securities
-[21:30:31]      Q.SG.FIGB_PA — Quarterly – Singapore – Financial, Interest Rates, Government Securiti
-[21:30:31]      Q.SG.FITB_PA — Quarterly – Singapore – Financial, Interest Rates, Government Securiti
-── Alternative providers for TW/HK ──
-[21:30:32]   BIS/WS_LONG_CPI: exists
-[21:30:32]   Eurostat/irt_lt_mcby_m: exists
+executing-against: 4940ef35062451d9868c764d590c0a52f4d2fc8b
+── FMP symbol search — Asian govt bond yields ──
+[21:31:38]   'Singapore 10Y': []
+[21:31:38]   'Hong Kong bond': []
+[21:31:38]   'Taiwan bond yield': []
+── Government-bond ETF proxies (hold LOCAL sovereign debt) ──
+[21:31:39]   Singapore Govt Bond ETF (A35.SI) [A35.SI]: []
+[21:31:39]   iShares Asia local govt bond (N6M.SI) [N6M.SI]: []
+[21:31:39]   abrdn Asia bond [ABF]: []
+── World Bank / other for Taiwan ──
+[21:31:45]   WB/WDI area=TWN: num_found=0
+[21:31:46]   IMF/IFS area=TP: num_found=0
+[21:31:47]   IMF/IFS area=TW: num_found=124
 
-→ Report written to aws/ops/reports/latest/3371_dbnomics_precise.md
+→ Report written to aws/ops/reports/latest/3372_asia_last_resort.md
