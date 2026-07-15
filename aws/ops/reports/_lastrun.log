@@ -1,32 +1,36 @@
-executing-against: 6451e08647762cf80537716bf5c39cabc6890b42
-── Deploy carry-surface v1.2.0 ──
-[15:54:31]   zip: 87034 bytes
+executing-against: 6d3386a8478aa86fce8f3ce37cfbd0fd46dc461f
+── Deploy carry-surface v1.3.0 ──
+[16:03:22]   zip: 90045 bytes
 ── 1. Lambda ──
-[15:54:31]   Lambda exists — updating
-[15:54:39] ✅   ✓ updated justhodl-carry-surface
+[16:03:22]   Lambda exists — updating
+[16:03:25] ✅   ✓ updated justhodl-carry-surface
 ── 2. EB rule + permissions ──
-[15:54:39]   rule already correct: carry-surface-4h (rate(4 hours))
-[15:54:39] ✅   ✓ target → justhodl-carry-surface
-[15:54:39] ✅   ✓ added invoke permission
+[16:03:26]   rule already correct: carry-surface-4h (rate(4 hours))
+[16:03:26] ✅   ✓ target → justhodl-carry-surface
+[16:03:26] ✅   ✓ added invoke permission
 ── 3. Smoke test ──
-[15:54:39]   invoking justhodl-carry-surface…
-[15:54:55] ✅   ✓ smoke test passed
-[15:54:55]     ok                       True
-[15:54:55]     n_assets                 89
-[15:54:55]     top1                     BRLUSD
-[15:54:55]     top1_carry_pct           8.34
-[15:54:55]     bottom1                  VXX
-[15:54:55]     bottom1_carry_pct        -65.0
-[15:54:55]     telegram_sent            False
-[15:54:55]     elapsed_s                14.26
-[15:54:55] smoke: {"ok": true, "n_assets": 89, "top1": "BRLUSD", "top1_carry_pct": 8.34, "bottom1": "VXX", "bottom1_carry_pct": -65.0, "telegram_sent": false, "elapsed_s": 14.26}
+[16:03:26]   invoking justhodl-carry-surface…
+[16:03:51] ✅   ✓ smoke test passed
+[16:03:51]     ok                       True
+[16:03:51]     n_assets                 166
+[16:03:51]     top1                     TURUSD
+[16:03:51]     top1_carry_pct           13.03
+[16:03:51]     bottom1                  VXX
+[16:03:51]     bottom1_carry_pct        -65.0
+[16:03:51]     telegram_sent            False
+[16:03:51]     elapsed_s                24.15
+[16:03:51] smoke: {"ok": true, "n_assets": 166, "top1": "TURUSD", "top1_carry_pct": 13.03, "bottom1": "VXX", "bottom1_carry_pct": -65.0, "telegram_sent": false, "elapsed_s": 24.15}
 ── Verify: invoke + inspect ──
-[15:55:12] invoke status=200 err=None
-[15:55:15] version=1.2.0 n_assets=89
-[15:55:15] crypto live: 10 -> [('SOL-PERP', 0.1), ('ADA-PERP', -0.6), ('XRP-PERP', -2.9), ('ETH-PERP', -3.1), ('BTC-PERP', -3.4)]
-[15:55:15] commodity: [('USO', 4.0), ('GLD', 0.0), ('SLV', -1.0), ('DBA', -3.0), ('DBC', -3.0), ('UNG', -28.75), ('VXX', -65.0)]
-[15:55:15] ✅ CRYPTO REVIVED — 10 perps live via OKX (was 0).
-[15:55:15] ✅ COMMODITY WINSORIZED — no |carry| > 70 (max=65.0).
-[15:55:15] ✅ version 1.2.0 live
+[16:04:18] invoke status=200 err=None
+[16:04:21] version=1.3.0 n_assets=166 by_class={'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14, 'crypto': 10}
+[16:04:21] UNWIND: cohort_fragility=44.1 verdict=LOW — carry cohort is not currently stretched
+[16:04:21]   regime=None roro=None vix=None mult=1.0
+[16:04:21]   n_fragile=0 n_crowded=4
+[16:04:21]   top fragile: []
+[16:04:21] ✅ UNWIND OVERLAY LIVE — cohort=44.1, 0 fragile / 4 crowded.
+[16:04:21] ✅ risk-regime joined: None (RORO None, VIX None).
+[16:04:21] ✅ UNIVERSE EXPANDED — 166 assets ({'fx': 16, 'fixed_income': 17, 'equity': 109, 'commodity': 14, 'crypto': 10}).
+[16:04:21] ✅ no regressions — crypto=10, max commodity |carry|=65.0.
+[16:04:21] ✅ version 1.3.0 live
 
-→ Report written to aws/ops/reports/latest/3342_carry_surface_crypto_commodity.md
+→ Report written to aws/ops/reports/latest/3343_carry_unwind_overlay_universe.md
