@@ -1,11 +1,18 @@
-executing-against: 714a1d7b24e8d1434e883a884a323d1838f24f5a
-[20:50:56]   china D.CN: HTTPError: HTTP Error 404: Not Found
-[20:50:56]   UK D.GB: HTTPError: HTTP Error 404: Not Found
-[20:50:57]   china alt CIN: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CO
-[20:50:59]   UK alt CIN: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CO
-[20:51:00]   china GDPW: HTTPError: HTTP Error 404: Not Found
-── available CISS country keys ──
-[20:51:01]   all SS_CI series: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM
-CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX,D,U2,Z0Z
+executing-against: 563726148dec554708b82b4582dd7658f820e4ba
+── Deploy sovereign-stress CISS fallback fix ──
+[20:53:01]   zip: 81846 bytes
+── 1. Lambda ──
+[20:53:02]   Lambda exists — updating
+[20:53:09] ✅   ✓ updated justhodl-sovereign-stress
+── 2. EB rule + permissions ──
+[20:53:09]   rule already correct: sovereign-stress-daily (cron(0 12 ? * * *))
+[20:53:09] ✅   ✓ target → justhodl-sovereign-stress
+[20:53:09] ✅   ✓ added invoke permission
+[20:53:38]   return: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 30.7, \"errors\": 0}"}
+[20:53:41]   errors: 0 → []
+[20:53:41]   CISS regions: ['euro_area', 'united_states', 'china', 'united_kingdom']
+[20:53:41]   europe score=30.7 regime=NORMAL
+[20:53:41] ✅ SOVEREIGN-STRESS CLEAN — 0 errors, all 4 CISS regions populate.
+[20:53:41] ✅ all 4 CISS regions (EA/US/CN/UK) now live.
 
-→ Report written to aws/ops/reports/latest/3363_ciss_country_probe.md
+→ Report written to aws/ops/reports/latest/3364_sovereign_zero_errors.md
