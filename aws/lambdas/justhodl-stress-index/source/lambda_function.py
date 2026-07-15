@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -38,6 +38,20 @@ FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 HISTORY_START = "1990-01-01"
 
 s3 = boto3.client("s3", region_name="us-east-1")
+ssm = boto3.client("ssm", region_name="us-east-1")
+
+
+def load_calibrated_spine_weights():
+    """Read empirically-calibrated spine weights from SSM (written by the JSI calibrator).
+    Falls back to the hardcoded SPINE weights if not yet calibrated."""
+    try:
+        p = ssm.get_parameter(Name="/justhodl/jsi/spine-weights")
+        w = (json.loads(p["Parameter"]["Value"]) or {}).get("weights") or {}
+        if w and all(sid in w for sid, *_ in SPINE):
+            return {sid: float(w[sid]) for sid, *_ in SPINE}, "calibrated"
+    except Exception:
+        pass
+    return {sid: wt for sid, _, _, wt, _ in SPINE}, "prior"
 
 # ── SPINE: FRED components with real ~1990 inception. Each tuple:
 #    (series_id, label, polarity, weight, inception)
@@ -155,12 +169,14 @@ def build_spine_series():
     """For each spine component, pull full FRED history, forward-fill to a common daily
     grid, z-score each on its OWN full history, map to 0-100, and blend into a daily JSI
     spine series. Returns (dates, jsi_series, per_component_latest, component_meta)."""
+    cal_weights, weight_mode = load_calibrated_spine_weights()
     comps = {}
     for series_id, label, pol, wt, inception in SPINE:
         obs = fred_full(series_id)
         if len(obs) < 50:
             continue
-        comps[series_id] = {"label": label, "pol": pol, "wt": wt,
+        comps[series_id] = {"label": label, "pol": pol,
+                            "wt": cal_weights.get(series_id, wt),
                             "inception": inception, "obs": obs}
 
     if not comps:
@@ -209,11 +225,11 @@ def build_spine_series():
                            "stress": z_to_stress(z), "z": round(z, 2),
                            "as_of": ld, "weight": c["wt"], "inception": c["inception"]}
 
-    meta = [{"series": sid, "label": c["label"], "weight": c["wt"],
+    meta = [{"series": sid, "label": c["label"], "weight": round(c["wt"], 4),
              "inception": c["inception"]} for sid, c in comps.items()]
     dates = [d for d, _ in jsi_series]
     vals = [v for _, v in jsi_series]
-    return dates, vals, latest, meta
+    return dates, vals, latest, meta, weight_mode
 
 
 def build_overlay():
@@ -260,11 +276,45 @@ def regime_from(score):
     return "CALM"
 
 
+OVERLAY_HIST_KEY = "data/jsi-overlay-history.json"
+
+
+def _spy_close_today():
+    """Latest SPY close from FRED SP500 series (daily, free)."""
+    obs = fred_full("SP500")
+    if obs:
+        return obs[-1][1]
+    return None
+
+
+def _write_overlay_snapshot(overlay_components, jsi_now, jsi_spine):
+    """Append today's overlay feed scores + SPY close to jsi-overlay-history.json.
+    One row per date (idempotent within a day). Capped at ~500 rows (~2y at daily)."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    spy = _spy_close_today()
+    feeds = {c["label"]: c["stress"] for c in overlay_components
+             if c.get("stress") is not None}
+    row = {"date": today, "spy_close": spy, "jsi": jsi_now,
+           "jsi_spine": jsi_spine, "feeds": feeds}
+    try:
+        prior = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OVERLAY_HIST_KEY)["Body"].read())
+        rows = prior.get("snapshots") or []
+    except Exception:
+        rows = []
+    rows = [r for r in rows if r.get("date") != today]  # replace today's
+    rows.append(row)
+    rows = sorted(rows, key=lambda r: r.get("date") or "")[-500:]
+    s3.put_object(Bucket=S3_BUCKET, Key=OVERLAY_HIST_KEY,
+                  Body=json.dumps({"updated": datetime.now(timezone.utc).isoformat(),
+                                   "snapshots": rows}, default=str).encode(),
+                  ContentType="application/json")
+
+
 def lambda_handler(event=None, context=None):
     t0 = time.time()
 
     # 1) Historical spine (1990 → today), identical method across all eras.
-    dates, vals, spine_latest, spine_meta = build_spine_series()
+    dates, vals, spine_latest, spine_meta, weight_mode = build_spine_series()
     if not vals:
         payload = {"version": VERSION, "ok": False,
                    "error": "spine build failed — FRED unavailable",
@@ -312,6 +362,7 @@ def lambda_handler(event=None, context=None):
         },
         "spine_components": spine_latest,
         "spine_meta": spine_meta,
+        "spine_weight_mode": weight_mode,
         "overlay_components": overlay_components,
         "n_overlay_live": n_overlay,
         "crisis_markers": [{"date": d, "label": l} for d, l in CRISIS_MARKERS],
@@ -333,6 +384,14 @@ def lambda_handler(event=None, context=None):
                                    "series": [{"d": d, "v": v} for d, v in zip(dates, vals)]},
                                   default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=3600, public")
+
+    # Append today's overlay snapshot for the forward-IC calibrator. Records the daily
+    # per-feed overlay stress scores + the current SPY close, so the calibrator can pair
+    # each day's feed readings with forward SPY drawdown once the window matures.
+    try:
+        _write_overlay_snapshot(overlay_components, jsi_now, jsi_spine)
+    except Exception as e:
+        print(f"[jsi] overlay snapshot write failed: {e}")
 
     return {"statusCode": 200, "body": json.dumps({
         "ok": True, "jsi": jsi_now, "spine": jsi_spine, "overlay": overlay_score,
