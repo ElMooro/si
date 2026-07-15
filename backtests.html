@@ -87,5 +87,5 @@ function spark(c){if(!c||c.length<2)return'';const w=110,h=26,mn=Math.min(...c),
   document.getElementById('mg').innerHTML=(M.gates||[]).slice(0,60).map(g=>`<tr><td>${esc(g.type)}</td><td><b>${esc(g.ticker)}</b></td><td>${g.conf}</td><td>${g.meta_p}</td><td><span class="pill ${g.verdict==='TAKE'?'pP':'pF'}">${g.verdict}</span></td></tr>`).join('');
 })();
 </script>  <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-nav-drawer.js?v=3335" defer></script>
 </body></html>

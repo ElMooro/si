@@ -40,7 +40,7 @@ th{color:var(--fg3);font-weight:600;font-size:9.5px;letter-spacing:.5px}
 <h1>🌏 APAC → US Flow Radar</h1>
 <div class="sub" id="meta">Loading cross-market flows…</div>
 <div id="app" class="load">Loading…</div>
-<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-nav-drawer.js?v=3335" defer></script>
 <script>
 const fin=v=>Number.isFinite(v);
 const sh=v=>!fin(v)?"—":(v>0?"+":"")+(Math.abs(v)>=1e6?(v/1e6).toFixed(1)+"M":Math.abs(v)>=1e3?(v/1e3).toFixed(0)+"k":v.toFixed(0));
