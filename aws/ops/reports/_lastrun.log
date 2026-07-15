@@ -1,13 +1,14 @@
-executing-against: dc8266cbfb45ebcada828eec1001cc354d41b02d
-── Country pages exist? (10Y yield + CDS) ──
-[21:37:14]   singapore: page_len=47046 | 10Y≈? | CDS≈126 | rating=?
-[21:37:15]   hong-kong: page_len=47118 | 10Y≈? | CDS≈126 | rating=?
-[21:37:16]   taiwan: page_len=47126 | 10Y≈? | CDS≈126 | rating=?
-[21:37:16]   south-korea: page_len=46942 | 10Y≈? | CDS≈126 | rating=?
-── Sovereign-CDS index page — does it list the Asian ones? ──
-[21:37:17]   Singapore in CDS index: not found
-[21:37:17]   Hong Kong in CDS index: not found
-[21:37:17]   Taiwan in CDS index: not found
-[21:37:17]   South Korea in CDS index: not found
+executing-against: 99e46e81a6f492ec0697cdc9df49ade104562714
+── Singapore page — locate yield + CDS in HTML ──
+[21:38:41] -- percentage values with context --
+[21:38:41] -- lines mentioning 'CDS' --
+[21:38:41]    esult|lastCdsDefaultProb'>---- % implied probability of default)</b
+[21:38:41]    esult|lastCds'>---- basis points. Correspondingly, the implied
+[21:38:41]    ult swap (CDS) refers to a financial derivative that allows an investor t
+[21:38:41]    er buys a CDS from another investor who agrees to reimburse the lender in
+[21:38:41] -- lines mentioning '10 year' / '10Y' --
+[21:38:41]    RATING: |lastRatingValueVisible' data-async-toggle data-async-base-hi
+[21:38:41]    RATING: >S&P Rating : <span data-async-variable='jsGlobalResult
+[21:38:41]    RATING: |lastRatingValueVisible' data-async-toggle data-async-base-hi
 
-→ Report written to aws/ops/reports/latest/3374_wgb_asia_cds.md
+→ Report written to aws/ops/reports/latest/3375_wgb_parse.md
