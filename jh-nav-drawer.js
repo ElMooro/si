@@ -8,13 +8,15 @@
   "use strict";
   if (window.__jhNavDrawer) return; window.__jhNavDrawer = true;
 
-  /* JH_FRESH_GUARD (ops 3310) — stale-client self-heal.
+  /* JH_FRESH_GUARD (ops 3335) — stale-client self-heal.
      Some clients kept serving old HTML through an outdated service
      worker + browser HTTP cache. One-time per generation: unregister
      every SW, delete every Cache Storage entry, then reload once.
-     Loop-guarded via sessionStorage; no-ops forever after. */
+     Loop-guarded via sessionStorage; no-ops forever after.
+     GEN bumped 3310->3335: benzinga.html 'Failed to fetch' traced to a
+     stale SW intercepting the agent Function URL; force clients fresh. */
   try {
-    var GEN = "3310";
+    var GEN = "3335";
     if (localStorage.getItem("jh_sw_gen") !== GEN &&
         sessionStorage.getItem("jh_fresh_try") !== GEN) {
       sessionStorage.setItem("jh_fresh_try", GEN);
