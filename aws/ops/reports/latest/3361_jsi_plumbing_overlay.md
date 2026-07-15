@@ -1,0 +1,43 @@
+## Deploy JSI v1.5.0 (RRP drain + SOFR spike)
+
+**Status:** success  
+**Duration:** 21.7s  
+**Finished:** 2026-07-15T20:07:57+00:00  
+
+## Log
+- `20:07:35`   zip: 83065 bytes
+## 1. Lambda
+
+- `20:07:35`   Lambda exists — updating
+- `20:07:44` ✅   ✓ updated justhodl-stress-index
+## 2. EB rule + permissions
+
+- `20:07:44`   rule already correct: jsi-6h (rate(6 hours))
+- `20:07:44` ✅   ✓ target → justhodl-stress-index
+- `20:07:44` ✅   ✓ added invoke permission
+- `20:07:57` JSI v1.5.0 jsi=36.33 overlay=29.6 feeds=18 live=18
+- `20:07:57`   RRP Drain: 50.0 (63d chg -0.2 $bn)
+- `20:07:57`   SOFR Spike: 73.8 (spread -2.0 bps)
+- `20:07:57` ✅ RRP DRAIN live — 50.0 (brain: 'reverse repo very very important').
+- `20:07:57` ✅ SOFR SPIKE live — 73.8 (brain: 'SOFR spikes = flashing red light').
+- `20:07:57` ✅ index coherent — 30.4th pctile since 1990, regime NORMAL.
+## Full overlay
+
+- `20:07:57`   SOFR Spike (funding): 73.8
+- `20:07:57`   Carry-Unwind Fragility: 59.0
+- `20:07:57`   RRP Drain (liquidity): 50.0
+- `20:07:57`   Euro Fragmentation (BTP-Bund): 47.6
+- `20:07:57`   Tail Risk: 47.3
+- `20:07:57`   FX Risk-Off: 43.5
+- `20:07:57`   Risk Regime (RORO): 42.1
+- `20:07:57`   Global Stress Index: 35.0
+- `20:07:57`   Crisis Composite: 29.5
+- `20:07:57`   Eurodollar Stress: 29.2
+- `20:07:57`   Bank Stress: 26.1
+- `20:07:57`   Global Risk Tide: 21.0
+- `20:07:57`   Funding Plumbing: 13.1
+- `20:07:57`   HYG/LQD Credit Risk: 12.7
+- `20:07:57`   ECB CISS: 1.7
+- `20:07:57`   Crisis Canaries: 1.6
+- `20:07:57`   Vol-of-Vol: 0.0
+- `20:07:57`   Tail Hedge Severity: 0.0
