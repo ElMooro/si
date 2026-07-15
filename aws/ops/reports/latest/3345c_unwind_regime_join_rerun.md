@@ -1,0 +1,29 @@
+## Deploy carry-surface v1.3.1 (no blocking smoke)
+
+**Status:** success  
+**Duration:** 48.9s  
+**Finished:** 2026-07-15T16:21:58+00:00  
+
+## Log
+- `16:21:09`   zip: 90171 bytes
+## 1. Lambda
+
+- `16:21:09`   Lambda exists — updating
+- `16:21:15` ✅   ✓ updated justhodl-carry-surface
+## 2. EB rule + permissions
+
+- `16:21:15`   rule already correct: carry-surface-4h (rate(4 hours))
+- `16:21:16` ✅   ✓ target → justhodl-carry-surface
+- `16:21:16` ✅   ✓ added invoke permission
+## Verify: async invoke + poll S3
+
+- `16:21:17` async invoke fired; polling S3 for fresh write…
+- `16:21:58` fresh write detected after ~40s
+- `16:21:58` version=1.3.1 n_assets=166
+- `16:21:58` regime available=True label=MILD_RISK_ON roro=15.7 vix=17.16 stress=42.1
+- `16:21:58` eurodollar: stress=34.39 regime=CALM plumbing=13.1
+- `16:21:58` regime_multiplier=1.337 cohort_fragility=59.0
+- `16:21:58` verdict=ELEVATED — carry is crowded; watch RORO/VIX for the trigger
+- `16:21:58` n_fragile=2 n_crowded=5
+- `16:21:58` ✅ REGIME JOINED — MILD_RISK_ON (RORO 15.7, mult 1.337×). Overlay is regime-aware.
+- `16:21:58` ✅ version 1.3.1 live
