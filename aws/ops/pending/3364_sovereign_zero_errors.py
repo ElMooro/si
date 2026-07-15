@@ -41,7 +41,8 @@ with report("3364_sovereign_zero_errors") as r:
         r.ok(f"improved to {len(errs)} error(s): {errs}")
     else:
         r.fail(f"still {len(errs)} errors: {errs}")
-    if set(ciss.keys()) >= {"euro_area","united_states","china","united_kingdom"}:
+    need = {"euro_area","united_states","china","united_kingdom"}
+    if set(ciss.keys()) >= need:
         r.ok("all 4 CISS regions (EA/US/CN/UK) now live.")
     else:
-        r.log(f"⚠ missing CISS regions: {{'euro_area','united_states','china','united_kingdom'} - set(ciss.keys())}")
+        r.log(f"missing CISS regions: {need - set(ciss.keys())}")
