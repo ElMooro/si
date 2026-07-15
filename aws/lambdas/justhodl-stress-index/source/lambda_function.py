@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -294,9 +294,55 @@ def build_overlay():
             s = max(0.0, min(100.0, float(raw)))
         out.append({"key": key, "label": label, "stress": round(s, 1),
                     "raw": round(float(raw), 3), "status": "live"})
+
+    # ── Brain-directed FRED-computed plumbing signals (RRP drain + SOFR spike) ──
+    for comp in build_plumbing_signals():
+        out.append(comp)
+
     live = [c["stress"] for c in out if c.get("stress") is not None]
     overlay_score = round(_mean(live), 1) if live else None
     return out, overlay_score, len(live)
+
+
+def build_plumbing_signals():
+    """Compute the operator's brain-directed funding-plumbing risk signals directly from
+    FRED, with regime-shift-aware transforms:
+      · RRP Drain    — RRPONTSYD is a POLICY level ($2.5T in 2021-23 was not stress), so we
+                       z-score its 63-day CHANGE. Rising RRP = cash leaving markets into the
+                       Fed = risk-off drain = stress.
+      · SOFR Spike   — SOFR alone is just the policy rate; the STRESS is SOFR trading ABOVE
+                       its floor (IORB). We z-score the SOFR-IORB spread on its own history;
+                       a positive spike (Sept-2019-style) = acute funding stress.
+    Both overlay-only (SOFR series starts 2018)."""
+    out = []
+
+    # RRP drain
+    rrp = fred_full("RRPONTSYD")
+    if len(rrp) > 100:
+        vals = [v for _, v in rrp]
+        chg = [vals[i] - vals[i - 63] for i in range(63, len(vals))]
+        if len(chg) > 30:
+            mu, sd = _mean(chg), _std(chg) or 1e-9
+            z = (chg[-1] - mu) / sd            # rising change → +z → stress
+            s = max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-1.1 * z))))
+            out.append({"key": "fred:RRPONTSYD", "label": "RRP Drain (liquidity)",
+                        "stress": round(s, 1), "raw": round(chg[-1], 1), "status": "live"})
+
+    # SOFR spike (SOFR - IORB spread)
+    sofr = dict(fred_full("SOFR"))
+    iorb = dict(fred_full("IORB"))
+    if sofr and iorb:
+        common = sorted(set(sofr) & set(iorb))
+        spread = [(d, sofr[d] - iorb[d]) for d in common]
+        if len(spread) > 60:
+            sv = [v for _, v in spread]
+            mu, sd = _mean(sv), _std(sv) or 1e-9
+            z = (sv[-1] - mu) / sd             # positive spike → +z → stress
+            s = max(0.0, min(100.0, 100.0 / (1.0 + math.exp(-1.1 * z))))
+            out.append({"key": "fred:SOFR-IORB", "label": "SOFR Spike (funding)",
+                        "stress": round(s, 1), "raw": round(sv[-1] * 100, 1),
+                        "status": "live"})  # raw in bps
+    return out
 
 
 def percentile_of(value, series_vals):
