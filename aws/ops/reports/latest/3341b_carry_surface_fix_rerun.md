@@ -1,0 +1,43 @@
+## Deploy carry-surface v1.1.0
+
+**Status:** success  
+**Duration:** 52.6s  
+**Finished:** 2026-07-15T15:50:26+00:00  
+
+## Log
+- `15:49:34`   zip: 86302 bytes
+## 1. Lambda
+
+- `15:49:34`   Lambda exists — updating
+- `15:49:39` ✅   ✓ updated justhodl-carry-surface
+- `15:49:39` ✅   ✓ Function URL: https://h4sxlwlbe5drjquv25ekn46n6q0ziljq.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `15:49:40`   rule already correct: carry-surface-4h (rate(4 hours))
+- `15:49:40` ✅   ✓ target → justhodl-carry-surface
+- `15:49:40` ✅   ✓ added invoke permission
+## 3. Smoke test
+
+- `15:49:40`   invoking justhodl-carry-surface…
+- `15:50:00` ✅   ✓ smoke test passed
+- `15:50:00`     ok                       True
+- `15:50:00`     n_assets                 79
+- `15:50:00`     top1                     USO
+- `15:50:00`     top1_carry_pct           78.7
+- `15:50:00`     bottom1                  UNG
+- `15:50:00`     bottom1_carry_pct        -79.99
+- `15:50:00`     telegram_sent            False
+- `15:50:00`     elapsed_s                18.52
+- `15:50:00` smoke: {"ok": true, "n_assets": 79, "top1": "USO", "top1_carry_pct": 78.7, "bottom1": "UNG", "bottom1_carry_pct": -79.99, "telegram_sent": false, "elapsed_s": 18.52}
+## Verify: invoke + inspect output
+
+- `15:50:23` invoke status=200 err=None
+- `15:50:23` invoke body: {"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"ok\": true, \"n_assets\": 79, \"top1\": \"USO\", \"top1_carry_pct\": 78.7, \"bottom1\": \"UNG\", \"bottom1_carry_pct\": -79.99, \"telegram_sent\": false, \"elapsed_s\": 20.3}"}
+- `15:50:26` version=1.1.0 financing=3.62%
+- `15:50:26` equity: 55 live, 0 dormant, 3 exactly at -financing
+- `15:50:26` n_dormant(payload)=0
+- `15:50:26` SPY: {"carry_pct": -2.622, "div_yield_pct": 0.999, "dormant": null, "dormant_reason": null}
+- `15:50:26` dislocation_status counts: {'warming (54/60)': 62, 'warming (49/60)': 3, 'warming (52/60)': 5, 'warming (48/60)': 1, 'warming (50/60)': 2, 'warming (53/60)': 3, 'warming (51/60)': 3}
+- `15:50:26` dislocation_leaders (top3): []
+- `15:50:26` ✅ WALL CLEARED — only 3 live equities at exactly -financing (was ~40).
+- `15:50:26` ✅ version 1.1.0 live
