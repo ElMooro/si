@@ -176,19 +176,21 @@ def fetch_one(symbol):
         out["rec_strong_sell"] = rc.get("strongSell", 0)
         out["rec_consensus"] = rc.get("consensus", "")
 
-    # Earnings surprises (last 8 quarters)
-    es = fmp_get("earnings-surprises-bulk", {"symbol": symbol}) \
-            or fmp_get("earnings-surprises", {"symbol": symbol})
+    # Earnings surprises (last 8 quarters). FMP /stable renamed the feed to
+    # 'earnings' with fields epsActual/epsEstimated (was earnings-surprises
+    # with actualEarningResult/estimatedEarning). Future-dated quarters have
+    # null actuals -> skip them.
+    es = fmp_get("earnings", {"symbol": symbol, "limit": 12})
     if isinstance(es, list) and es:
-        last8 = es[:8]
-        beats = sum(1 for e in last8 if e.get("actualEarningResult") is not None
-                     and e.get("estimatedEarning") is not None
-                     and (e["actualEarningResult"] or 0) > (e["estimatedEarning"] or 0))
-        out["beats_8q"] = beats
-        out["beat_pct_8q"] = round(100 * beats / max(1, len(last8)), 1)
-        if last8 and last8[0].get("estimatedEarning"):
-            est = last8[0].get("estimatedEarning")
-            act = last8[0].get("actualEarningResult")
+        reported = [e for e in es if e.get("epsActual") is not None
+                    and e.get("epsEstimated") is not None][:8]
+        beats = sum(1 for e in reported
+                    if (e["epsActual"] or 0) > (e["epsEstimated"] or 0))
+        if reported:
+            out["beats_8q"] = beats
+            out["beat_pct_8q"] = round(100 * beats / len(reported), 1)
+            est = reported[0].get("epsEstimated")
+            act = reported[0].get("epsActual")
             if est and act and est != 0:
                 out["last_surprise_pct"] = round(100 * (act - est) / abs(est), 1)
 
@@ -199,7 +201,9 @@ def fetch_grade_changes_universe(lookback_days=30):
     """Fetch recent grade changes for the universe (FMP /stable/grades-news)."""
     # FMP grades-news returns recent grade changes by date, not by ticker, so
     # one call gets all activity. Take generous page size.
-    news = fmp_get("grades-news", {"limit": 500})
+    # FMP /stable renamed the bulk grade-changes feed grades-news ->
+    # grades-latest-news (same fields); old name now 400s on missing symbol.
+    news = fmp_get("grades-latest-news", {"limit": 500})
     if not isinstance(news, list):
         return {}
     cutoff = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).date()
