@@ -1,8 +1,9 @@
-executing-against: 0c600e99ccd49b714013f3472fe4b2532ae83bc2
-── GRADES-NEWS (limit only) ──
-── PT-NEWS VARIANTS ──
+executing-against: c9f87884036b4fb342ade55524d6be77ca2db6c0
+── ENSURE FMP_KEY ──
+[01:54:48] ✅ FMP_KEY set on engine env
+── FORCE RUN (await v2.0) ──
+── VERIFY FEED ──
 ── VERDICT ──
-[01:50:33] ✗ grades-news still empty
+[01:54:52] ✅ analyst-actions v2.0 LIVE on FMP data — page renders real analyst rating transitions + PT moves. Benzinga dependency retired.
 
-→ Report written to aws/ops/reports/latest/3318_fmp_feeds_confirm.md
-❌ OPS-FAIL: aws/ops/pending/ops_3318_fmp_feeds_confirm.py
+→ Report written to aws/ops/reports/latest/3319_analyst_actions_fmp_verify.md
