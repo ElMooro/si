@@ -1,11 +1,11 @@
-executing-against: 6aeb1e64797a82152da8d7de3a483f8e58deb2e9
-── residual errors ──
-[20:49:40] count: 2
-[20:49:40]   ✗ CISS/china: HTTP Error 404: Not Found
-[20:49:40]   ✗ CISS/united_kingdom: HTTP Error 404: Not Found
-[20:49:40] sources OK: ['ECB Data Portal — CISS systemic stress', 'ECB Data Portal — SovCISS sovereign stress', 'FRED — VIX & S&P 500 (equity-market stress)', 'Eurostat — unemployment & industrial production']
-[20:49:40] CISS populated: ['euro_area', 'united_states']
-[20:49:40] SovCISS populated: ['euro_area', 'germany', 'france', 'italy', 'spain', 'portugal', 'greece']
-[20:49:40] sovereign_spreads: []
+executing-against: 714a1d7b24e8d1434e883a884a323d1838f24f5a
+[20:50:56]   china D.CN: HTTPError: HTTP Error 404: Not Found
+[20:50:56]   UK D.GB: HTTPError: HTTP Error 404: Not Found
+[20:50:57]   china alt CIN: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CO
+[20:50:59]   UK alt CIN: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CO
+[20:51:00]   china GDPW: HTTPError: HTTP Error 404: Not Found
+── available CISS country keys ──
+[20:51:01]   all SS_CI series: HTTP 200: KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM
+CISS.D.U2.Z0Z.4F.EC.SS_CI.IDX,D,U2,Z0Z
 
-→ Report written to aws/ops/reports/latest/3362_sovereign_residual.md
+→ Report written to aws/ops/reports/latest/3363_ciss_country_probe.md
