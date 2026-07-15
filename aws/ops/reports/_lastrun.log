@@ -1,38 +1,48 @@
-executing-against: 02208803d8cbd4703d04f164e3a8787fd7667916
-── Deploy JSI v1.3.0 (brain-directed risk feeds) ──
-[19:03:41]   zip: 82070 bytes
+executing-against: a15de01b219940e4516c95886ba80f5aa167c790
+── A. Deploy + diagnose sovereign-stress ──
+[19:26:59]   zip: 81535 bytes
 ── 1. Lambda ──
-[19:03:41]   Lambda exists — updating
-[19:03:45] ✅   ✓ updated justhodl-stress-index
+[19:26:59]   Lambda missing — creating
+[19:27:04] ✅   ✓ created justhodl-sovereign-stress
 ── 2. EB rule + permissions ──
-[19:03:46]   rule already correct: jsi-6h (rate(6 hours))
-[19:03:46] ✅   ✓ target → justhodl-stress-index
-[19:03:46] ✅   ✓ added invoke permission
-── Verify brain-directed feeds ──
-[19:03:52] JSI v1.3.0 jsi=34.01 overlay=25.5 regime=NORMAL
-[19:03:52] overlay: 16 feeds, 16 live
-[19:03:52]   Global Risk Tide: 21.0 (raw 21.0)
-[19:03:52]   HYG/LQD Credit Risk: 12.7 (raw 0.743)
-[19:03:52] ✅ overlay widened to 16 feeds (brain-directed risk signals added).
-[19:03:52] ✅ GLOBAL RISK TIDE live — 21.0 (composite global-risk gauge from operator's #1 concept: liquidity).
-[19:03:52] ✅ HYG/LQD CREDIT RISK live — 12.7 (raw 0.743); polarity correct (low stress at range-top).
-[19:03:52] ✅ index coherent — spine 37.66, 29.0th pctile since 1990.
-── Full overlay (16 feeds) ──
-[19:03:52]   Carry-Unwind Fragility: 59.0
-[19:03:52]   Euro Fragmentation (BTP-Bund): 47.6
-[19:03:52]   Tail Risk: 47.3
-[19:03:52]   FX Risk-Off: 43.5
-[19:03:52]   Risk Regime (RORO): 42.1
-[19:03:52]   Global Stress Index: 34.0
-[19:03:52]   Crisis Composite: 29.5
-[19:03:52]   Eurodollar Stress: 29.2
-[19:03:52]   Bank Stress: 26.1
-[19:03:52]   Global Risk Tide: 21.0
-[19:03:52]   Funding Plumbing: 13.1
-[19:03:52]   HYG/LQD Credit Risk: 12.7
-[19:03:52]   ECB CISS: 1.7
-[19:03:52]   Crisis Canaries: 1.6
-[19:03:52]   Vol-of-Vol: 0.0
-[19:03:52]   Tail Hedge Severity: 0.0
+[19:27:04] ✅   ✓ created rule sovereign-stress-daily
+[19:27:04] ✅   ✓ target → justhodl-sovereign-stress
+[19:27:04] ✅   ✓ added invoke permission
+[19:27:04] invoking sovereign-stress synchronously to capture result…
+[19:27:36]   return: {"statusCode": 200, "body": "{\"ok\": false, \"regime\": \"CALM\", \"europe_score\": 1.0, \"errors\": 11}"}
+[19:27:39] ✅ sovereign-stress WRITING now — europe score_0_100=1.0 regime=CALM errors=11
+[19:27:39]   most-stressed sovereign: None
+── B. Thesis-category risk notes — tradeable triggers ──
+[19:27:40] thesis risk-notes with tradeable triggers: 1559
+[19:27:40]   • Real macro note number 323: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 322: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 321: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 320: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 319: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 318: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 317: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 316: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 315: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 314: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 313: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 312: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 311: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 310: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 309: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 308: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 307: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 306: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 305: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 304: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 303: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 302: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 301: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 300: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 299: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 298: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 297: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 296: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 295: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
+[19:27:40]   • Real macro note number 294: when the dollar strengthens and liquidity drains, favor quality and cash over leverage.
 
-→ Report written to aws/ops/reports/latest/3356_jsi_brain_risk_feeds.md
+→ Report written to aws/ops/reports/latest/3357_sovereign_and_thesis.md
