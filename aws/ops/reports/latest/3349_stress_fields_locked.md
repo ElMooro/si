@@ -1,0 +1,25 @@
+## Locked headline fields + scales
+
+**Status:** success  
+**Duration:** 1.5s  
+**Finished:** 2026-07-15T17:17:48+00:00  
+
+## Log
+- `17:17:47`   ✓ data/global-stress.json :: global_stress_index = 34.0  [0-100, higher=stress]
+- `17:17:47`   ✓ data/ciss-stress.json :: ea_composite = 0.0173  [0-1 CISS, higher=stress]
+- `17:17:47`   ? data/systemic-stress.json :: composite.value=MISSING(str)  alt=None
+- `17:17:48`   ✓ data/tail-risk.json :: system_tail_gauge = 47.3  [0-100]
+- `17:17:48`   ✓ data/vvix-vov-regime.json :: signal_strength = 0.0  [0-1 or 0-100?]
+- `17:17:48`   ✓ data/bank-stress.json :: bank_stress_score = 26.1  [0-100]
+- `17:17:48`   ✓ data/crisis-canaries.json :: composite_score = 1.6  [0-100 or n firing]
+- `17:17:48`   ✓ data/crisis-composite.json :: master_crisis_score = 29.8  [0-100]
+- `17:17:48`   ? data/liquidity-inflection.json :: composite.score=MISSING(str)  alt=None
+- `17:17:48`   ✓ data/eurodollar-stress.json :: composite_score = 34.39  [0-100]
+- `17:17:48`   ✓ data/eurodollar-plumbing.json :: stress_score = 13.1  [0-100]
+- `17:17:48`   ✓ data/risk-regime.json :: risk_regime_score = 15.7  [-100..100 RORO (invert)]
+- `17:17:48`   ✓ data/polygon-fx-regime.json :: fx_roro.fx_roro_score = 13.1  [-? RORO (invert)]
+- `17:17:48`   ✓ data/tail-hedge.json :: severity = 0.0  [label?]
+- `17:17:48`   ? data/factor-risk.json :: headline=Firm book annualised vol 14.5% (4% systematic). Largest factor bet: MKT +29.4%. Worst stress: 2020 COVID crash -10.8%.(str)  alt=None
+- `17:17:48`   ? data/risk-radar.json :: macro_stress={'ciss_regime': 'CALM', 'ciss_composite': 0.017316, 'ciss_percentile': 24.2, 'read': 'Systemic stress CALM — calm/easy-liquidity tape (shorts face a headwind) for short exposure.'}(dict)  alt=None
+- `17:17:48` ✅ 12 feeds field-locked
+- `17:17:48` LOCKED = {"data/global-stress.json": {"field": "global_stress_index", "value": 34.0, "note": "0-100, higher=stress"}, "data/ciss-stress.json": {"field": "ea_composite", "value": 0.0173, "note": "0-1 CISS, higher=stress"}, "data/tail-risk.json": {"field": "system_tail_gauge", "value": 47.3, "note": "0-100"}, "data/vvix-vov-regime.json": {"field": "signal_strength", "value": 0.0, "note": "0-1 or 0-100?"}, "data/bank-stress.json": {"field": "bank_stress_score", "value": 26.1, "note": "0-100"}, "data/crisis-canaries.json": {"field": "composite_score", "value": 1.6, "note": "0-100 or n firing"}, "data/crisis-composite.json": {"field": "master_crisis_score", "value": 29.8, "note": "0-100"}, "data/eurodollar-stress.json": {"field": "composite_score", "value": 34.39, "note": "0-100"}, "data/eurodollar-plumbing.json": {"field": "stress_score", "value": 13.1, "note": "0-100"}, "data/risk-regime.json": {"field": "risk_regime_score", "value": 15.7, "note": "-100..100 RORO (invert)"}, "data/polygon-fx-regime.json": {"field": "fx_roro.fx_roro_score", "value": 13.1, "note": "-? RORO (invert)"}, "data/tail-hedge.json": {"field": "severity", "value": 0.0, "note": "label?"}}
