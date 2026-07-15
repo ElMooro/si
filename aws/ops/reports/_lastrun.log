@@ -1,14 +1,14 @@
-executing-against: 99e46e81a6f492ec0697cdc9df49ade104562714
-── Singapore page — locate yield + CDS in HTML ──
-[21:38:41] -- percentage values with context --
-[21:38:41] -- lines mentioning 'CDS' --
-[21:38:41]    esult|lastCdsDefaultProb'>---- % implied probability of default)</b
-[21:38:41]    esult|lastCds'>---- basis points. Correspondingly, the implied
-[21:38:41]    ult swap (CDS) refers to a financial derivative that allows an investor t
-[21:38:41]    er buys a CDS from another investor who agrees to reimburse the lender in
-[21:38:41] -- lines mentioning '10 year' / '10Y' --
-[21:38:41]    RATING: |lastRatingValueVisible' data-async-toggle data-async-base-hi
-[21:38:41]    RATING: >S&P Rating : <span data-async-variable='jsGlobalResult
-[21:38:41]    RATING: |lastRatingValueVisible' data-async-toggle data-async-base-hi
+executing-against: 1fc9392a52ea27d4f9787d35b1c33504921b82d2
+── async data-base-hint / endpoint hints ──
+── candidate data URLs in page ──
+[21:39:54]   //fonts.googleapis.com
+── script srcs + async config ──
+[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/toc.js
+[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/myLayout.js?ver=2.2.11
+[21:39:54]   script: https://www.worldgovernmentbonds.com/wp-content/themes/acgpt-child/js/sorttable.js?ver=1.0
+── probe known WGB async endpoint patterns ──
+[21:39:54]   /async/country/singapore/: __ERR__ HTTP Error 404: Not Found
+[21:39:55]   /data/country/singapore/: __ERR__ HTTP Error 404: Not Found
+[21:39:55]   /bond-async/singapore/: __ERR__ HTTP Error 404: Not Found
 
-→ Report written to aws/ops/reports/latest/3375_wgb_parse.md
+→ Report written to aws/ops/reports/latest/3376_wgb_async.md
