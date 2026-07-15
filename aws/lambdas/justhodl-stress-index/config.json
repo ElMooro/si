@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-stress-index",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "JustHodl Stress Index (JSI) — unified stress gauge: FRED 1990 spine (VIX/NFCI/KCFSI/FSI/curve/OAS z-scored on own history) + 12 live stress-feed overlay. Publishes data/jsi.json + data/jsi-history.json with percentile-since-1990 and crisis markers.",
+  "env": {
+    "FRED_KEY": "2f057499936072679d8843d7fce99989"
+  },
+  "schedule": {
+    "rule_name": "jsi-6h",
+    "cron": "rate(6 hours)",
+    "description": "JSI refresh every 6h — FRED spine + live overlay + historical percentile"
+  }
+}

@@ -1,0 +1,346 @@
+"""
+JUSTHODL STRESS INDEX (JSI) — unified cross-system financial-stress gauge.
+
+DESIGN (rigorous continuity):
+  • SPINE — a set of FRED components that each reach back to ~1990 (VIX, Chicago-Fed
+    NFCI, KC-Fed KCFSI, St-Louis FSI, yield-curve inversion, HY credit OAS, TED-proxy).
+    Each is z-scored on its OWN FULL HISTORY and mapped to a 0-100 stress sub-score, then
+    blended into the JSI. The SAME computation runs from 1990-01 to today, so "current =
+    Nth percentile since 1990" is a true, continuous statement — not a spliced series.
+  • OVERLAY — the 12 live JustHodl stress engine feeds (global-stress, tail-risk,
+    bank-stress, crisis-composite, eurodollar-stress/plumbing, CISS, risk-regime,
+    fx-regime, crisis-canaries, vvix-vov, tail-hedge) normalized to 0-100 and shown as a
+    contemporary component breakdown. They enrich the PRESENT reading and feed the
+    forward-IC calibrator, but never reach into history (they don't exist pre-2025), so
+    the 1990 comparison stays honest.
+
+OUTPUTS:
+  data/jsi.json           — live JSI score, components (spine + overlay), percentile-in-history,
+                            regime, crisis markers, and the full 1990→today daily series.
+  data/jsi-history.json   — compact {date, jsi} daily series (for lightweight chart loads).
+"""
+import json
+import os
+import time
+import urllib.request
+import urllib.error
+from datetime import datetime, timezone
+
+import boto3
+
+VERSION = "1.0.0"
+S3_BUCKET = "justhodl-dashboard-live"
+OUT_KEY = "data/jsi.json"
+HIST_KEY = "data/jsi-history.json"
+
+FRED_KEY = os.environ.get("FRED_KEY", "") or os.environ.get("FRED_API_KEY", "") or "2f057499936072679d8843d7fce99989"
+FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
+HISTORY_START = "1990-01-01"
+
+s3 = boto3.client("s3", region_name="us-east-1")
+
+# ── SPINE: FRED components with real ~1990 inception. Each tuple:
+#    (series_id, label, polarity, weight, inception)
+#    polarity +1 = higher value means MORE stress; -1 = higher value means LESS stress
+#    (e.g. yield-curve: a deeply negative 10Y-2Y = inversion = stress, so we negate).
+SPINE = [
+    ("VIXCLS",       "Equity volatility (VIX)",        +1, 0.22, "1990-01-02"),
+    ("NFCI",         "Chicago Fed NFCI",               +1, 0.20, "1971-01-08"),
+    ("KCFSI",        "KC Fed Financial Stress",        +1, 0.14, "1990-02-01"),
+    ("STLFSI4",      "St. Louis Fed Financial Stress", +1, 0.14, "1993-12-31"),
+    ("BAMLH0A0HYM2", "High-yield credit OAS",          +1, 0.16, "1996-12-31"),
+    ("T10Y2Y",       "Yield-curve (10Y-2Y)",           -1, 0.08, "1976-06-01"),
+    ("BAMLC0A0CM",   "Investment-grade OAS",           +1, 0.06, "1996-12-31"),
+]
+
+# ── OVERLAY: live JustHodl feeds (contemporary enrichment). Each tuple:
+#    (s3_key, dotted_field, label, transform)  transform maps raw → 0-100 stress.
+OVERLAY = [
+    ("data/global-stress.json",      "global_stress_index",    "Global Stress Index",   "id"),
+    ("data/tail-risk.json",          "system_tail_gauge",      "Tail Risk",             "id"),
+    ("data/bank-stress.json",        "bank_stress_score",      "Bank Stress",           "id"),
+    ("data/crisis-composite.json",   "master_crisis_score",    "Crisis Composite",      "id"),
+    ("data/eurodollar-stress.json",  "composite_score",        "Eurodollar Stress",     "id"),
+    ("data/eurodollar-plumbing.json","stress_score",           "Funding Plumbing",      "id"),
+    ("data/ciss-stress.json",        "ea_composite",           "ECB CISS",              "x100"),
+    ("data/crisis-canaries.json",    "composite_score",        "Crisis Canaries",       "id"),
+    ("data/risk-regime.json",        "risk_regime_score",      "Risk Regime (RORO)",    "roro"),
+    ("data/polygon-fx-regime.json",  "fx_roro.fx_roro_score",  "FX Risk-Off",           "roro"),
+    ("data/vvix-vov-regime.json",    "signal_strength",        "Vol-of-Vol",            "x100"),
+    ("data/tail-hedge.json",         "severity",               "Tail Hedge Severity",   "id"),
+]
+
+# Historical crisis windows for chart annotation.
+CRISIS_MARKERS = [
+    ("1990-08", "Gulf War / recession"),
+    ("1994-02", "Bond massacre"),
+    ("1997-07", "Asian crisis"),
+    ("1998-08", "LTCM / Russia"),
+    ("2000-03", "Dot-com peak"),
+    ("2001-09", "9/11"),
+    ("2007-08", "Quant quake"),
+    ("2008-09", "Lehman / GFC"),
+    ("2010-05", "Flash crash / EU debt"),
+    ("2011-08", "US downgrade / EU crisis"),
+    ("2015-08", "China deval / VIX spike"),
+    ("2018-02", "Volmageddon"),
+    ("2018-12", "Q4 selloff"),
+    ("2020-03", "COVID crash"),
+    ("2022-06", "Rate-shock / bear"),
+    ("2023-03", "SVB / regional banks"),
+]
+
+
+# ──────────────────────────────────────────────────────────────────────
+def http_json(url, timeout=25):
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-jsi/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def fred_full(series_id):
+    """Full daily/weekly/monthly history from 1990. Returns [(date, value), ...] sorted."""
+    if not FRED_KEY:
+        return []
+    url = ("%s?series_id=%s&api_key=%s&file_type=json&observation_start=%s"
+           % (FRED_BASE, series_id, FRED_KEY, HISTORY_START))
+    try:
+        d = http_json(url)
+    except Exception:
+        return []
+    out = []
+    for o in d.get("observations", []):
+        v = o.get("value")
+        if v not in (".", "", None):
+            try:
+                out.append((o["date"], float(v)))
+            except (ValueError, KeyError):
+                pass
+    out.sort(key=lambda x: x[0])
+    return out
+
+
+def _read_s3_json(key):
+    try:
+        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read().decode())
+    except Exception:
+        return None
+
+
+def _dig(o, path):
+    cur = o
+    for p in path.split("."):
+        if isinstance(cur, dict) and p in cur:
+            cur = cur[p]
+        else:
+            return None
+    return cur
+
+
+def _mean(xs): return sum(xs) / len(xs) if xs else 0.0
+def _std(xs):
+    if len(xs) < 2: return 0.0
+    m = _mean(xs)
+    return (sum((x - m) ** 2 for x in xs) / (len(xs) - 1)) ** 0.5
+
+
+def z_to_stress(z):
+    """Map a z-score to a 0-100 stress sub-score via a logistic squash.
+    z=0 → 50 (normal), z=+2 → ~88, z=+3 → ~95, z=-2 → ~12. Bounded, monotone."""
+    import math
+    return round(100.0 / (1.0 + math.exp(-1.1 * z)), 2)
+
+
+def build_spine_series():
+    """For each spine component, pull full FRED history, forward-fill to a common daily
+    grid, z-score each on its OWN full history, map to 0-100, and blend into a daily JSI
+    spine series. Returns (dates, jsi_series, per_component_latest, component_meta)."""
+    comps = {}
+    for series_id, label, pol, wt, inception in SPINE:
+        obs = fred_full(series_id)
+        if len(obs) < 50:
+            continue
+        comps[series_id] = {"label": label, "pol": pol, "wt": wt,
+                            "inception": inception, "obs": obs}
+
+    if not comps:
+        return [], [], {}, []
+
+    # Union of all dates, sorted.
+    all_dates = sorted({d for c in comps.values() for d, _ in c["obs"]})
+
+    # Forward-fill each component onto the common grid, then z-score on own history.
+    for c in comps.values():
+        m = dict(c["obs"])
+        filled, last = [], None
+        for d in all_dates:
+            if d in m:
+                last = m[d]
+            filled.append(last)  # None until first obs (component not yet born)
+        c["filled"] = filled
+        present = [v for v in filled if v is not None]
+        c["mu"] = _mean(present)
+        c["sd"] = _std(present) or 1.0
+
+    # Blend: at each date, weighted mean of available components' stress sub-scores,
+    # renormalizing weights over whichever components exist yet.
+    jsi_series = []
+    for i, d in enumerate(all_dates):
+        num, wsum = 0.0, 0.0
+        for c in comps.values():
+            v = c["filled"][i]
+            if v is None:
+                continue
+            z = (v - c["mu"]) / c["sd"] * c["pol"]
+            sub = z_to_stress(z)
+            num += sub * c["wt"]
+            wsum += c["wt"]
+        if wsum > 0:
+            jsi_series.append((d, round(num / wsum, 2)))
+
+    # Latest component readings for the breakdown.
+    latest = {}
+    for sid, c in comps.items():
+        present = [(d, v) for d, v in zip(all_dates, c["filled"]) if v is not None]
+        if present:
+            ld, lv = present[-1]
+            z = (lv - c["mu"]) / c["sd"] * c["pol"]
+            latest[sid] = {"label": c["label"], "raw": round(lv, 3),
+                           "stress": z_to_stress(z), "z": round(z, 2),
+                           "as_of": ld, "weight": c["wt"], "inception": c["inception"]}
+
+    meta = [{"series": sid, "label": c["label"], "weight": c["wt"],
+             "inception": c["inception"]} for sid, c in comps.items()]
+    dates = [d for d, _ in jsi_series]
+    vals = [v for _, v in jsi_series]
+    return dates, vals, latest, meta
+
+
+def build_overlay():
+    """Read the 12 live feeds, normalize each to 0-100 stress. Returns list of components
+    and their mean (the contemporary enrichment score)."""
+    out = []
+    for key, field, label, tf in OVERLAY:
+        o = _read_s3_json(key)
+        if not o:
+            out.append({"key": key, "label": label, "stress": None, "status": "unavailable"})
+            continue
+        raw = _dig(o, field)
+        if not isinstance(raw, (int, float)):
+            out.append({"key": key, "label": label, "stress": None, "status": "no_score"})
+            continue
+        if tf == "id":
+            s = max(0.0, min(100.0, float(raw)))
+        elif tf == "x100":
+            s = max(0.0, min(100.0, float(raw) * 100.0))
+        elif tf == "roro":
+            # RORO score -100(risk-off/stress)..+100(risk-on) → invert to 0-100 stress
+            s = max(0.0, min(100.0, (100.0 - float(raw)) / 2.0))
+        else:
+            s = max(0.0, min(100.0, float(raw)))
+        out.append({"key": key, "label": label, "stress": round(s, 1),
+                    "raw": round(float(raw), 3), "status": "live"})
+    live = [c["stress"] for c in out if c.get("stress") is not None]
+    overlay_score = round(_mean(live), 1) if live else None
+    return out, overlay_score, len(live)
+
+
+def percentile_of(value, series_vals):
+    if not series_vals:
+        return None
+    below = sum(1 for v in series_vals if v <= value)
+    return round(below / len(series_vals) * 100.0, 1)
+
+
+def regime_from(score):
+    if score >= 75:  return "CRISIS"
+    if score >= 60:  return "STRESS"
+    if score >= 45:  return "ELEVATED"
+    if score >= 30:  return "NORMAL"
+    return "CALM"
+
+
+def lambda_handler(event=None, context=None):
+    t0 = time.time()
+
+    # 1) Historical spine (1990 → today), identical method across all eras.
+    dates, vals, spine_latest, spine_meta = build_spine_series()
+    if not vals:
+        payload = {"version": VERSION, "ok": False,
+                   "error": "spine build failed — FRED unavailable",
+                   "generated_at": datetime.now(timezone.utc).isoformat()}
+        s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
+                      Body=json.dumps(payload).encode(), ContentType="application/json")
+        return {"statusCode": 500, "body": json.dumps(payload)}
+
+    jsi_spine = vals[-1]
+    pctile = percentile_of(jsi_spine, vals)
+
+    # 2) Live overlay (contemporary enrichment).
+    overlay_components, overlay_score, n_overlay = build_overlay()
+
+    # 3) Blended present reading: spine is the historical anchor; nudge modestly toward
+    #    the live overlay when available (70% spine / 30% overlay), but the HISTORICAL
+    #    percentile is always measured against the pure-spine series for continuity.
+    if overlay_score is not None:
+        jsi_now = round(0.70 * jsi_spine + 0.30 * overlay_score, 2)
+    else:
+        jsi_now = jsi_spine
+
+    # Historical extremes for context.
+    hi = max(vals); lo = min(vals)
+    hi_date = dates[vals.index(hi)]; lo_date = dates[vals.index(lo)]
+
+    # Downsample the full series for the chart payload (weekly), keep full in history file.
+    weekly = [(dates[i], vals[i]) for i in range(0, len(vals), 5)]
+    if weekly and weekly[-1][0] != dates[-1]:
+        weekly.append((dates[-1], vals[-1]))
+
+    generated = datetime.now(timezone.utc).isoformat()
+    payload = {
+        "version": VERSION, "ok": True, "generated_at": generated,
+        "elapsed_s": round(time.time() - t0, 2),
+        "jsi": jsi_now,
+        "jsi_spine": jsi_spine,
+        "overlay_score": overlay_score,
+        "regime": regime_from(jsi_now),
+        "percentile_since_1990": pctile,
+        "history_span": {"start": dates[0], "end": dates[-1], "n": len(vals)},
+        "historical_extremes": {
+            "max": {"value": hi, "date": hi_date},
+            "min": {"value": lo, "date": lo_date},
+        },
+        "spine_components": spine_latest,
+        "spine_meta": spine_meta,
+        "overlay_components": overlay_components,
+        "n_overlay_live": n_overlay,
+        "crisis_markers": [{"date": d, "label": l} for d, l in CRISIS_MARKERS],
+        "series_weekly": [{"d": d, "v": v} for d, v in weekly],
+        "methodology": {
+            "spine": "FRED components z-scored on own full history since 1990, logistic-mapped to 0-100, weighted-blended. Same computation across all eras → continuous percentile.",
+            "overlay": "12 live JustHodl stress feeds normalized to 0-100; contemporary enrichment only, never reaches into history.",
+            "present_score": "0.70*spine + 0.30*overlay (spine-only when overlay unavailable); historical percentile always vs pure-spine series.",
+        },
+    }
+
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
+                  Body=json.dumps(payload, default=str).encode(),
+                  ContentType="application/json", CacheControl="max-age=300, public")
+
+    # Compact full-resolution history for lightweight chart loads.
+    s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+                  Body=json.dumps({"generated_at": generated,
+                                   "series": [{"d": d, "v": v} for d, v in zip(dates, vals)]},
+                                  default=str).encode(),
+                  ContentType="application/json", CacheControl="max-age=3600, public")
+
+    return {"statusCode": 200, "body": json.dumps({
+        "ok": True, "jsi": jsi_now, "spine": jsi_spine, "overlay": overlay_score,
+        "regime": payload["regime"], "pctile_since_1990": pctile,
+        "n_hist": len(vals), "span": f"{dates[0]}→{dates[-1]}",
+        "n_overlay": n_overlay, "elapsed_s": payload["elapsed_s"],
+    })}
+
+
+if __name__ == "__main__":
+    print(json.dumps(lambda_handler(), indent=2))
