@@ -21,7 +21,6 @@ FIXED INC: yield_to_maturity - financing_cost
            (Treasuries: DGS{N} - SOFR; Credit: index yield - default-adj)
 COMMODITY: -roll_yield  (front - next / front), annualized
            (positive carry = backwardation; negative = contango)
-CRYPTO:    perpetual_funding_rate_annualized (Binance public API)
 
 For each asset within a class:
   1. Pull raw carry inputs
@@ -60,7 +59,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.3.1"
+VERSION = "1.4.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -169,12 +168,6 @@ COMMODITY_UNIVERSE = {
     "WEAT": ("WEAT", None,                -5.0),   # Wheat
     "VXX":  ("VXX",  None,                -65.0),  # VIX futures: severe contango (well-known)
 }
-
-# Crypto: perpetual funding rates from OKX public API (Binance blocked from Lambda IPs).
-# Bare coin symbols; OKX instId is built as {COIN}-USDT-SWAP.
-# Positive funding = longs pay shorts → negative carry for longs holding via perp.
-CRYPTO_UNIVERSE = ["BTC", "ETH", "SOL", "AVAX", "BNB",
-                   "XRP", "DOGE", "ADA", "LINK", "LTC"]
 
 # ──────────────────────────────────────────────────────────────────────
 # HTTP HELPERS
@@ -361,57 +354,6 @@ def fmp_buyback_yield(symbol):
     except Exception:
         pass
     return 0.0
-
-
-OKX_BASE = "https://www.okx.com"
-
-
-def okx_funding_rate(coin):
-    """Get perpetual funding rate from OKX public API — reachable from AWS Lambda where
-    Binance (fapi.binance.com) is geo-blocked. `coin` is the bare symbol e.g. 'BTC'.
-    OKX funding settles every 8h. Returns the same shape the caller expects.
-    Also pulls funding-rate-history for a 30-period average (dislocation input)."""
-    swap = f"{coin}-USDT-SWAP"
-    try:
-        req = urllib.request.Request(
-            f"{OKX_BASE}/api/v5/public/funding-rate?instId={swap}",
-            headers={"User-Agent": "Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36",
-                     "Accept": "application/json"},
-        )
-        with urllib.request.urlopen(req, timeout=15) as r:
-            d = json.loads(r.read().decode("utf-8"))
-        if d.get("code") != "0" or not d.get("data"):
-            return {"error": f"okx_no_data:{d.get('code')}"}
-        current_8h = float(d["data"][0].get("fundingRate") or 0)
-
-        # 30-period history for the trailing average (best-effort).
-        avg_8h_30 = current_8h
-        n = 1
-        try:
-            reqh = urllib.request.Request(
-                f"{OKX_BASE}/api/v5/public/funding-rate-history?instId={swap}&limit=30",
-                headers={"User-Agent": "Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36",
-                         "Accept": "application/json"},
-            )
-            with urllib.request.urlopen(reqh, timeout=15) as rh:
-                dh = json.loads(rh.read().decode("utf-8"))
-            if dh.get("code") == "0" and dh.get("data"):
-                rates = [float(x.get("realizedRate") or x.get("fundingRate") or 0) for x in dh["data"]]
-                if rates:
-                    avg_8h_30 = sum(rates) / len(rates)
-                    n = len(rates)
-        except Exception:
-            pass
-
-        # Annualize: 3 settlements/day × 365.
-        return {
-            "current_8h": current_8h,
-            "current_annualized_pct": current_8h * 3 * 365 * 100,
-            "avg_30period_annualized_pct": avg_8h_30 * 3 * 365 * 100,
-            "n_settlements": n,
-        }
-    except Exception as e:
-        return {"error": str(e)[:120]}
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -644,44 +586,6 @@ def compute_commodity_carry():
     zscore_within_class(valid, 'carry_pct')
     zscore_within_class(valid, 'carry_per_vol')
     return valid
-
-
-def compute_crypto_carry():
-    """Crypto carry = perpetual funding rate annualized (Binance public)."""
-    print(f"[crypto] processing {len(CRYPTO_UNIVERSE)} crypto perps...")
-    results = []
-    
-    def process_one(symbol):
-        try:
-            funding = okx_funding_rate(symbol)
-            if 'error' in funding:
-                return {'symbol': symbol, 'asset_class': 'crypto', 'error': funding['error']}
-            # For a long position in the underlying via perp:
-            # If funding rate is positive, longs pay → negative carry to longs
-            # We define carry_pct as the cost to LONG (so we flip the sign)
-            long_carry_pct = -funding.get('current_annualized_pct', 0)
-            return {
-                'symbol': f"{symbol}-PERP",
-                'asset_class': 'crypto',
-                'funding_rate_8h': round(funding.get('current_8h', 0), 6),
-                'funding_annualized_pct': round(funding.get('current_annualized_pct', 0), 2),
-                'carry_pct': round(long_carry_pct, 2),  # negative when funding positive
-                'avg_30period_annualized_pct': round(funding.get('avg_30period_annualized_pct', 0), 2),
-            }
-        except Exception as e:
-            return {'symbol': symbol, 'asset_class': 'crypto', 'error': str(e)[:120]}
-    
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        for r in as_completed([ex.submit(process_one, s) for s in CRYPTO_UNIVERSE]):
-            try:
-                results.append(r.result())
-            except Exception as e:
-                print(f"[crypto] worker error: {e}")
-    
-    valid = [r for r in results if 'carry_pct' in r]
-    zscore_within_class(valid, 'carry_pct')
-    errored = [r for r in results if 'error' in r]
-    return valid + errored
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -1125,9 +1029,6 @@ def lambda_handler(event=None, context=None):
     by_class['commodity'] = compute_commodity_carry()
     print(f"  commodity: {len(by_class['commodity'])} computed")
     
-    by_class['crypto'] = compute_crypto_carry()
-    print(f"  crypto: {len(by_class['crypto'])} computed")
-    
     # Flatten + rank cross-asset
     all_assets = []
     for cls, assets in by_class.items():
@@ -1185,7 +1086,6 @@ def lambda_handler(event=None, context=None):
             'fx': 'long_currency_3M_rate - USD_3M_rate (FRED IR3TIB01 series)',
             'fixed_income': 'yield_to_maturity - financing_cost',
             'commodity': '-roll_yield, blend of structural estimate + observed ETF-spot basis',
-            'crypto': '-perpetual_funding_rate_annualized (Binance public API)',
             'z_score': 'within-class normalization',
             'dislocation_z': f'current carry vs assets OWN trailing carry history (gated >={DISLOCATION_MIN_SNAPSHOTS} daily obs); z, percentile, mean',
             'unwind_overlay': 'KMPV crash-risk: per-asset fragility = 0.45*carry_richness + 0.35*realized_vol + 0.20*own_extension, scaled by a live regime multiplier from data/risk-regime.json (RORO score + VIX + repo stress). Cohort gauge = mean fragility of top-carry decile. Answers: how badly does the carry basket unwind if risk-off hits NOW.',

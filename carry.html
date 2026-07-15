@@ -7,55 +7,74 @@
 <title>Carry Surface · JustHodl.AI</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
   :root {
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #0f1421;
-    --bg-tertiary: #161b2c;
-    --bg-card: #1a2138;
-    --border: #1f2742;
-    --text-primary: #e4e9f4;
-    --text-secondary: #8b94b0;
-    --text-muted: #5a6480;
-    --green: #10d97a;
-    --green-bg: #0a3a25;
-    --red: #ef4444;
-    --red-bg: #3a1010;
-    --amber: #f59e0b;
-    --blue: #3b82f6;
-    --purple: #a855f7;
-    --grid: #2a3358;
+    --bg-primary: #080b14;
+    --bg-secondary: #0d1120;
+    --bg-tertiary: #141a2b;
+    --bg-card: #131a2e;
+    --bg-elevated: #182140;
+    --bg-subtle: rgba(120,140,190,0.05);
+    --border: #232c4a;
+    --border-soft: #1a2138;
+    --text-primary: #eef2fb;
+    --text-secondary: #96a0bd;
+    --text-muted: #5c668a;
+    --green: #1ae08a;
+    --green-bg: #0a3524;
+    --red: #f8556a;
+    --red-bg: #38121a;
+    --amber: #fbbf24;
+    --amber-bg: #3a2c0e;
+    --blue: #56a0ff;
+    --purple: #b571f8;
+    --grid: #263056;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
   }
-  * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-  .mono { font-family: 'JetBrains Mono', monospace; }
-  body { background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.75rem; }
-  .card-hover:hover { border-color: #2f3a60; transform: translateY(-1px); transition: all 0.15s; }
-  .badge { padding: 0.125rem 0.5rem; border-radius: 0.375rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.025em; }
-  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #1e5a3a; }
-  .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #5a1e1e; }
-  .badge-amber { background: #3a2c10; color: var(--amber); border: 1px solid #5a4a1e; }
-  .badge-blue { background: #102540; color: var(--blue); border: 1px solid #1e3a5a; }
-  .badge-purple { background: #2a1040; color: var(--purple); border: 1px solid #4a1e5a; }
+  * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+  body { background: radial-gradient(1200px 600px at 50% -100px, #101830 0%, var(--bg-primary) 60%); color: var(--text-primary); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .card { background: linear-gradient(180deg, var(--bg-card) 0%, #101627 100%); border: 1px solid var(--border-soft); border-radius: 1rem; box-shadow: var(--shadow); }
+  .card-glow { position: relative; }
+  .card-glow::before { content: ''; position: absolute; inset: 0; border-radius: 1rem; padding: 1px; background: linear-gradient(135deg, rgba(86,160,255,0.35), rgba(181,113,248,0.12) 40%, transparent 70%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+  .badge { padding: 0.15rem 0.55rem; border-radius: 0.5rem; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #17663f; }
+  .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #6e2028; }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid #6a5217; }
+  .badge-blue { background: #0f2547; color: var(--blue); border: 1px solid #234674; }
+  .badge-purple { background: #241246; color: var(--purple); border: 1px solid #4a2374; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: var(--bg-tertiary); padding: 0.75rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
-  th:hover { color: var(--text-primary); background: #1f2742; }
-  th.sort-asc::after { content: ' ↑'; color: var(--green); }
-  th.sort-desc::after { content: ' ↓'; color: var(--green); }
-  td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #131829; font-size: 0.85rem; }
-  tr:hover { background: rgba(59, 130, 246, 0.04); }
-  .carry-bar { display: inline-block; height: 4px; background: linear-gradient(90deg, var(--green), #16e094); border-radius: 2px; vertical-align: middle; margin-right: 0.5rem; }
-  .carry-bar-neg { background: linear-gradient(90deg, var(--red), #ff6b6b); }
-  .grad-text { background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,217,122,0.7); } 70% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(16,217,122,0); } }
-  .skeleton { background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-tertiary) 50%, var(--bg-card) 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+  th { background: transparent; padding: 0.6rem 0.75rem; text-align: left; font-size: 0.66rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; position: sticky; top: 0; background: #10162a; z-index: 2; }
+  th:hover { color: var(--text-secondary); }
+  th.sort-asc, th.sort-desc { color: var(--green); }
+  th.sort-asc::after { content: ' ↑'; }
+  th.sort-desc::after { content: ' ↓'; }
+  td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border-soft); font-size: 0.84rem; }
+  tbody tr { transition: background 0.12s; }
+  tbody tr:hover { background: rgba(86,160,255,0.055); }
+  .carry-bar { display: inline-block; height: 5px; background: linear-gradient(90deg, #16b374, var(--green)); border-radius: 3px; vertical-align: middle; margin-right: 0.5rem; box-shadow: 0 0 8px rgba(26,224,138,0.3); }
+  .carry-bar-neg { background: linear-gradient(90deg, #c23648, var(--red)); box-shadow: 0 0 8px rgba(248,85,106,0.3); }
+  .grad-text { background: linear-gradient(120deg, #56a0ff 0%, #b571f8 55%, #f857a6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; box-shadow: 0 0 0 0 rgba(26,224,138,0.7); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(26,224,138,0.6); } 70% { opacity: 0.65; box-shadow: 0 0 0 9px rgba(26,224,138,0); } }
+  .skeleton { background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-elevated) 50%, var(--bg-card) 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; }
   @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-  .class-tab { padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text-secondary); border: 1px solid transparent; }
-  .class-tab:hover { color: var(--text-primary); background: var(--bg-card); }
-  .class-tab.active { color: var(--text-primary); background: var(--bg-card); border-color: var(--border); }
+  .class-tab { padding: 0.45rem 0.95rem; border-radius: 0.6rem; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text-secondary); border: 1px solid transparent; }
+  .class-tab:hover { color: var(--text-primary); background: var(--bg-elevated); }
+  .class-tab.active { color: var(--text-primary); background: var(--bg-elevated); border-color: var(--border); box-shadow: inset 0 0 0 1px rgba(86,160,255,0.15); }
   .nav-link { color: var(--text-secondary); transition: color 0.15s; font-size: 0.85rem; font-weight: 500; }
   .nav-link:hover { color: var(--text-primary); }
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+  /* signature: carry spectrum ribbon */
+  .spectrum { position: relative; height: 92px; border-radius: 0.75rem; background:
+      linear-gradient(90deg, rgba(248,85,106,0.16) 0%, rgba(248,85,106,0.05) 30%, rgba(120,130,160,0.06) 50%, rgba(26,224,138,0.05) 70%, rgba(26,224,138,0.16) 100%);
+      border: 1px solid var(--border-soft); overflow: hidden; }
+  .spectrum-tick { position: absolute; bottom: 26px; width: 2px; height: 22px; border-radius: 1px; transform: translateX(-50%); transition: opacity 0.2s; }
+  .spectrum-fin { position: absolute; top: 0; bottom: 0; width: 1px; background: repeating-linear-gradient(180deg, var(--amber) 0 4px, transparent 4px 8px); opacity: 0.7; }
+  .spectrum-axis { position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; font-size: 0.64rem; color: var(--text-muted); }
+  .kpi-tile { background: linear-gradient(180deg, var(--bg-elevated) 0%, #121a33 100%); border: 1px solid var(--border-soft); border-radius: 0.85rem; padding: 1rem 1.1rem; }
+  .verdict-band { border-radius: 0.75rem; padding: 0.85rem 1rem; font-size: 0.86rem; border: 1px solid var(--border-soft); }
+  @media (prefers-reduced-motion: reduce) { .pulse-dot, .skeleton { animation: none; } }
 </style>
 </head>
 <body>
@@ -83,40 +102,62 @@
 </header>
 
 <!-- HERO -->
-<section class="max-w-[1500px] mx-auto px-4 pt-6 pb-4">
-  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-    <div>
-      <div class="text-xs text-[var(--text-muted)] mono uppercase tracking-wider mb-2">Universal Carry Surface · v1.0</div>
-      <h1 class="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-2">
-        Which asset is the market paying you most to hold?
-      </h1>
-      <p class="text-[var(--text-secondary)] text-sm max-w-3xl">
-        Cross-asset carry surface across <span class="text-[var(--text-primary)]" id="hero-n-assets">…</span> assets in 5 classes.
-        Carry = the return from <em>holding</em> the asset assuming all variables stay constant, net of financing cost
-        (currently <span class="text-[var(--text-primary)] mono" id="hero-financing">…</span>). Ranked cross-asset by carry and risk-adjusted carry (Sharpe-of-carry).
-      </p>
+<section class="max-w-[1500px] mx-auto px-4 pt-8 pb-4">
+  <div class="mb-5">
+    <div class="eyebrow mb-3">Universal Carry Surface</div>
+    <h1 class="text-3xl md:text-[2.6rem] leading-[1.1] font-bold text-[var(--text-primary)] mb-3 max-w-4xl">
+      Which asset is the market paying you<br class="hidden md:block"> most to <span class="grad-text">hold</span>?
+    </h1>
+    <p class="text-[var(--text-secondary)] text-sm md:text-[0.95rem] max-w-3xl leading-relaxed">
+      Carry is the return from simply <em>holding</em> an asset, net of financing. We rank
+      <span class="text-[var(--text-primary)] mono" id="hero-n-assets">…</span> assets across four classes —
+      equities, FX, fixed income, commodities — by carry, risk-adjusted carry, and how stretched each is versus its own history.
+      Financing today: <span class="text-[var(--text-primary)] mono" id="hero-financing">…</span>.
+    </p>
+  </div>
+
+  <!-- SIGNATURE: CARRY SPECTRUM RIBBON -->
+  <div class="card p-4 mb-6 card-glow">
+    <div class="flex items-center justify-between mb-2">
+      <span class="eyebrow">The Spectrum · every asset from costly to hold → paid to hold</span>
+      <span class="text-[0.66rem] text-[var(--text-muted)] mono flex items-center gap-1">
+        <span style="display:inline-block;width:10px;height:1px;background:var(--amber);"></span> financing line
+      </span>
+    </div>
+    <div class="spectrum" id="spectrum">
+      <div class="spectrum-fin" id="spectrum-fin"></div>
+      <div class="spectrum-axis">
+        <span id="spectrum-min">—</span>
+        <span>0%</span>
+        <span id="spectrum-max">—</span>
+      </div>
+    </div>
+    <div class="flex justify-between mt-2 text-[0.7rem]">
+      <span class="text-[var(--red)] mono" id="spectrum-bottom-label">—</span>
+      <span class="text-[var(--text-muted)]">hover a tick for the asset</span>
+      <span class="text-[var(--green)] mono" id="spectrum-top-label">—</span>
     </div>
   </div>
 
-  <!-- HERO METRIC CARDS -->
+  <!-- HERO METRIC TILES -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-    <div class="card p-4">
-      <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">Top Carry</div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Most Paid to Hold</div>
       <div class="text-2xl font-bold mono text-[var(--green)]" id="kpi-top-carry">—</div>
       <div class="text-xs text-[var(--text-secondary)] mt-1 mono" id="kpi-top-symbol">—</div>
     </div>
-    <div class="card p-4">
-      <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">Bottom Carry</div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Costliest to Hold</div>
       <div class="text-2xl font-bold mono text-[var(--red)]" id="kpi-bottom-carry">—</div>
       <div class="text-xs text-[var(--text-secondary)] mt-1 mono" id="kpi-bottom-symbol">—</div>
     </div>
-    <div class="card p-4">
-      <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">Best Risk-Adj. Carry</div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Best Risk-Adjusted</div>
       <div class="text-2xl font-bold mono text-[var(--text-primary)]" id="kpi-ra-leader">—</div>
       <div class="text-xs text-[var(--text-secondary)] mt-1 mono" id="kpi-ra-detail">—</div>
     </div>
-    <div class="card p-4">
-      <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1">Financing Rate</div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Financing Rate</div>
       <div class="text-2xl font-bold mono text-[var(--blue)]" id="kpi-financing">—</div>
       <div class="text-xs text-[var(--text-secondary)] mt-1">SOFR proxy</div>
     </div>
@@ -130,7 +171,7 @@
       <h2 class="text-base font-semibold text-[var(--text-primary)]">Asset Class Regime Summary</h2>
       <span class="text-xs text-[var(--text-muted)]">Median carry & dispersion per asset class</span>
     </div>
-    <div id="regime-grid" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
+    <div id="regime-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
   </div>
 </section>
 
@@ -300,7 +341,6 @@
         <button class="class-tab" data-class="fx">FX</button>
         <button class="class-tab" data-class="fixed_income">Fixed Income</button>
         <button class="class-tab" data-class="commodity">Commodity</button>
-        <button class="class-tab" data-class="crypto">Crypto</button>
       </div>
     </div>
     <div class="overflow-auto max-h-[700px]">
@@ -326,7 +366,7 @@
 <!-- FOOTER -->
 <footer class="max-w-[1500px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
   <div class="border-t border-[var(--border)] pt-6">
-    <div class="mb-2"><strong>Methodology:</strong> Equity carry = forward div yield + buyback yield − financing cost (SOFR proxy). FX carry = long currency rate − short currency rate (3M interbank). Fixed Income = YTM − financing. Commodity = -roll yield (front − next / front), annualized; positive = backwardation. Crypto = perpetual funding rate annualized. Cross-class normalized via z-score within class.</div>
+    <div class="mb-2"><strong>Methodology:</strong> Equity carry = forward div yield + buyback yield − financing cost (SOFR proxy); ETF yields from declared TTM distributions. FX carry = long currency rate − short currency rate (3M interbank). Fixed Income = YTM − financing. Commodity = −roll yield (structural estimate blended with observed ETF-spot basis, winsorized), annualized; positive = backwardation. Cross-class normalized via z-score within class. Dislocation z = carry vs the asset's own trailing history. Unwind fragility = carry richness + realized vol + extension, scaled by a live risk-regime multiplier.</div>
     <div class="mt-3 mono">Data: <a href="data/carry-surface.json" class="text-[var(--blue)] hover:underline">carry-surface.json</a> · Refresh: daily 13:00 UTC via <code>justhodl-carry-surface</code> Lambda · Academic basis: Koijen-Moskowitz-Pedersen-Vrugt (2018)</div>
   </div>
 </footer>
@@ -341,7 +381,7 @@ const fmtPct = (n) => n === null || n === undefined ? '—' : (n>0?'+':'') + fmt
 const classBadge = (cls) => {
   const map = {
     equity: 'badge-blue', fx: 'badge-amber',
-    fixed_income: 'badge-green', commodity: 'badge-purple', crypto: 'badge-red',
+    fixed_income: 'badge-green', commodity: 'badge-purple',
   };
   return `<span class="badge ${map[cls] || 'badge-blue'}">${cls.replace('_',' ')}</span>`;
 };
@@ -362,9 +402,44 @@ const numCell = (val, dec=2, suffix='') => {
 
 let ALL = [];
 
+function renderSpectrum(d) {
+  const el = document.getElementById('spectrum');
+  if (!el) return;
+  const assets = (d.all_assets || []).filter(a => a.carry_pct !== null && a.carry_pct !== undefined);
+  if (!assets.length) return;
+  // Clear prior ticks (keep the financing line + axis).
+  el.querySelectorAll('.spectrum-tick').forEach(n => n.remove());
+  const vals = assets.map(a => a.carry_pct);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max - min) || 1;
+  const pos = v => ((v - min) / range) * 100;
+  const classColor = { equity: 'var(--blue)', fx: 'var(--amber)', fixed_income: 'var(--green)', commodity: 'var(--purple)' };
+  assets.forEach(a => {
+    const t = document.createElement('div');
+    t.className = 'spectrum-tick';
+    t.style.left = pos(a.carry_pct) + '%';
+    t.style.background = classColor[a.asset_class] || 'var(--text-secondary)';
+    t.style.opacity = '0.55';
+    t.title = `${a.symbol} · ${a.asset_class.replace('_',' ')} · ${fmtPct(a.carry_pct)}`;
+    t.addEventListener('mouseenter', () => { t.style.opacity = '1'; t.style.height = '30px'; });
+    t.addEventListener('mouseleave', () => { t.style.opacity = '0.55'; t.style.height = '22px'; });
+    el.appendChild(t);
+  });
+  // Financing line position (0% carry ≈ break-even at financing; the financing marker sits at value 0).
+  const fin = document.getElementById('spectrum-fin');
+  if (fin) fin.style.left = pos(0) + '%';
+  // Axis labels + endpoint asset labels.
+  const top = assets.reduce((m, a) => a.carry_pct > m.carry_pct ? a : m, assets[0]);
+  const bot = assets.reduce((m, a) => a.carry_pct < m.carry_pct ? a : m, assets[0]);
+  document.getElementById('spectrum-min').textContent = fmtPct(min);
+  document.getElementById('spectrum-max').textContent = fmtPct(max);
+  document.getElementById('spectrum-top-label').textContent = `${top.symbol} ${fmtPct(top.carry_pct)}`;
+  document.getElementById('spectrum-bottom-label').textContent = `${bot.symbol} ${fmtPct(bot.carry_pct)}`;
+}
+
 function renderRegime(rs) {
   const grid = document.getElementById('regime-grid');
-  const classes = ['equity','fx','fixed_income','commodity','crypto'];
+  const classes = ['equity','fx','fixed_income','commodity'];
   grid.innerHTML = classes.map(cls => {
     const data = rs[cls] || {};
     const median = data.median_carry_pct;
@@ -433,6 +508,9 @@ function renderTables(d) {
 
   // Regime
   renderRegime(d.regime_summary || {});
+
+  // Signature spectrum ribbon
+  renderSpectrum(d);
 
   // Top / Bottom tables
   document.getElementById('top-table').innerHTML = (d.cross_asset_top || []).slice(0, 15).map(rowHtml).join('');
@@ -618,7 +696,7 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/carry-surface.json?
     console.error(e);
   });
 </script>
-  <script src="/jh-enhance.js" data-feed="data/carry-surface.json" data-bars="all_assets:symbol:carry_pct" data-title="Carry by asset (%)" data-sub="cross-asset carry surface" data-max="24"></script>
+
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js?v=3335" defer></script>
 </body>
