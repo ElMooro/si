@@ -1,0 +1,30 @@
+## Deploy sovereign-stress (Finland + Asia additive)
+
+**Status:** success  
+**Duration:** 39.0s  
+**Finished:** 2026-07-15T21:23:14+00:00  
+
+## Log
+- `21:22:35`   zip: 82972 bytes
+## 1. Lambda
+
+- `21:22:35`   Lambda exists — updating
+- `21:22:43` ✅   ✓ updated justhodl-sovereign-stress
+## 2. EB rule + permissions
+
+- `21:22:43`   rule already correct: sovereign-stress-daily (cron(0 12 ? * * *))
+- `21:22:43` ✅   ✓ target → justhodl-sovereign-stress
+- `21:22:43` ✅   ✓ added invoke permission
+- `21:23:10`   return: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 30.7, \"errors\": 0}"}
+## Verify additions (existing 7 kept?)
+
+- `21:23:14`   SovCISS countries: ['euro_area', 'germany', 'france', 'italy', 'spain', 'portugal', 'greece', 'finland']
+- `21:23:14`   Asia sovereigns: ['south_korea', 'singapore', 'hong_kong', 'taiwan']
+- `21:23:14` ✅ all 7 original euro-area sovereigns KEPT.
+- `21:23:14` ✅ FINLAND added — SovCISS 0.2269 pctile 77.5 ELEVATED
+- `21:23:14` ✅ SOUTH KOREA added — 10Y 4.075% stress 64.1 (ELEVATED) via 10Y government bond yield (FRED)
+- `21:23:14`   singapore: data_unavailable (honest, no yield feed)
+- `21:23:14`   hong_kong: data_unavailable (honest, no yield feed)
+- `21:23:14`   taiwan: data_unavailable (honest, no yield feed)
+- `21:23:14`   errors: 0 — []
+- `21:23:14`   europe score: 30.7

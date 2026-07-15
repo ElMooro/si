@@ -1,14 +1,24 @@
-executing-against: ee10845a1b056482beff78c34d762f0be03bda66
-── FMP treasury / quote probes for SG/HK/TW ──
-[21:19:18]   Singapore MSCI ETF EWS: price=32.09 chg%=1.45432
-[21:19:18]   Hong Kong ETF EWH: price=22.08 chg%=1.89202
-[21:19:19]   Taiwan ETF EWT: price=102.49 chg%=0.59874
-[21:19:19]   S.Korea ETF EWY: price=171.64 chg%=-3.01729
-── Verdict ──
-[21:19:19] FRED confirmed: South Korea 10Y yield (IRLTLT01KRM156N).
-[21:19:19] Finland: ECB SovCISS confirmed.
-[21:19:19] SG/HK/TW: no FRED sovereign yield; ETF price proxies only measure EQUITY not SOVEREIGN stress.
-[21:19:19] HONEST PLAN: add Finland (SovCISS) + Spain (already) + S.Korea (bond-yield proxy).
-[21:19:19] SG/HK/TW: add as bond-yield proxy ONLY if a real yield source exists; else mark data_unavailable (named), never fake.
+executing-against: 4a9c058d5492a9543fb3e677a566045c9dea56f7
+── Deploy sovereign-stress (Finland + Asia additive) ──
+[21:22:35]   zip: 82972 bytes
+── 1. Lambda ──
+[21:22:35]   Lambda exists — updating
+[21:22:43] ✅   ✓ updated justhodl-sovereign-stress
+── 2. EB rule + permissions ──
+[21:22:43]   rule already correct: sovereign-stress-daily (cron(0 12 ? * * *))
+[21:22:43] ✅   ✓ target → justhodl-sovereign-stress
+[21:22:43] ✅   ✓ added invoke permission
+[21:23:10]   return: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 30.7, \"errors\": 0}"}
+── Verify additions (existing 7 kept?) ──
+[21:23:14]   SovCISS countries: ['euro_area', 'germany', 'france', 'italy', 'spain', 'portugal', 'greece', 'finland']
+[21:23:14]   Asia sovereigns: ['south_korea', 'singapore', 'hong_kong', 'taiwan']
+[21:23:14] ✅ all 7 original euro-area sovereigns KEPT.
+[21:23:14] ✅ FINLAND added — SovCISS 0.2269 pctile 77.5 ELEVATED
+[21:23:14] ✅ SOUTH KOREA added — 10Y 4.075% stress 64.1 (ELEVATED) via 10Y government bond yield (FRED)
+[21:23:14]   singapore: data_unavailable (honest, no yield feed)
+[21:23:14]   hong_kong: data_unavailable (honest, no yield feed)
+[21:23:14]   taiwan: data_unavailable (honest, no yield feed)
+[21:23:14]   errors: 0 — []
+[21:23:14]   europe score: 30.7
 
-→ Report written to aws/ops/reports/latest/3368_asia_yield_probe.md
+→ Report written to aws/ops/reports/latest/3369_add_sovereigns.md
