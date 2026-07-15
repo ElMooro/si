@@ -1,0 +1,26 @@
+## sovereign-stress emitted errors
+
+**Status:** success  
+**Duration:** 2.9s  
+**Finished:** 2026-07-15T19:46:08+00:00  
+
+## Log
+- `19:46:05` total errors: 11
+- `19:46:05`   ✗ CISS/euro_area: empty
+- `19:46:05`   ✗ CISS/united_states: empty
+- `19:46:05`   ✗ CISS/china: empty
+- `19:46:05`   ✗ CISS/united_kingdom: empty
+- `19:46:05`   ✗ SovCISS/euro_area: empty
+- `19:46:05`   ✗ SovCISS/germany: empty
+- `19:46:05`   ✗ SovCISS/france: empty
+- `19:46:05`   ✗ SovCISS/italy: empty
+- `19:46:05`   ✗ SovCISS/spain: empty
+- `19:46:05`   ✗ SovCISS/portugal: empty
+- `19:46:05`   ✗ SovCISS/greece: empty
+- `19:46:05` sources that DID work: ['FRED — VIX & S&P 500 (equity-market stress)', 'Eurostat — unemployment & industrial production']
+- `19:46:05` europe_stress: {'score_0_100': 1.0, 'regime': 'CALM', 'worst_country': 'germany', 'read': 'European systemic stress is calm — the CISS and SovCISS are low against their own histories and sovereign spreads are contained. The standing watch item is the real economy, where industrial output remains the soft underbelly.'}
+- `19:46:05` sovereign_spreads keys: []
+## Direct ECB CISS endpoint probe
+
+- `19:46:06` ✅ CISS EA (CI.CISS.EA): HTTP 200 — KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK,OBS_COM,TIME_
+- `19:46:08` ✅ CISS composite alt: HTTP 200 — KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS,OBS_CONF,OBS_PRE_BREAK,OBS_COM,TIME_
