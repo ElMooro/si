@@ -60,7 +60,7 @@ try:
 except Exception:
     pass
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
 OUT_KEY = os.environ.get('OUT_KEY', 'data/carry-surface.json')
@@ -237,19 +237,86 @@ def fmp_quote_with_history(symbol, days=90):
     return {'symbol': symbol, 'error': 'no_data'}
 
 
-def fmp_dividend_yield_ttm(symbol):
-    """Get TTM dividend yield from FMP."""
+# ETFs are not covered by /stable/ratios-ttm (no income statement) — that endpoint
+# returns empty for them, which the old code coerced to 0 and displayed as -financing.
+# We route ETFs to the actual declared-distribution endpoint instead. This set is the
+# fund-type members of EQUITY_UNIVERSE; single names go through ratios-ttm.
+ETF_SYMBOLS = {
+    "SPY", "QQQ", "IWM", "DIA", "VTI",
+    "XLE", "XLF", "XLK", "XLV", "XLI", "XLP", "XLY", "XLB", "XLU", "XLRE", "XLC",
+    "VYM", "SCHD", "SPHD", "DGRO",
+    "EFA", "VEA", "EEM", "VWO", "INDA", "MCHI", "EWJ", "EWG", "EWZ",
+    "VNQ", "IYR",
+}
+
+# Known genuine non-payers — a real 0% yield here is VALID data, not a failed fetch.
+KNOWN_NONPAYERS = {"BRK-B", "GOOGL", "TSLA", "AMZN", "META", "NVDA"}
+
+
+def _dy_from_ratios_ttm(symbol):
+    """Single-name path: TTM dividend yield from FMP /stable/ratios-ttm.
+    Returns dividend yield as a PERCENT (float), or None if not fetchable."""
     try:
         url = f"https://financialmodelingprep.com/stable/ratios-ttm?symbol={symbol}&apikey={FMP_KEY}"
         data = http_get_json(url)
         if isinstance(data, list) and data:
             row = data[0]
-            # Field name varies: dividendYieldTTM, dividendYieldPercentageTTM
-            dy = row.get('dividendYieldTTM') or row.get('dividendYieldPercentageTTM') or 0
-            return float(dy or 0)
+            # dividendYieldTTM on /stable is a DECIMAL fraction (0.0123 = 1.23%).
+            raw = row.get('dividendYieldTTM')
+            if raw is None:
+                raw = row.get('dividendYieldPercentageTTM')  # legacy: already percent
+                if raw is not None:
+                    return float(raw)  # already a percent
+                return None  # genuinely absent — do NOT coerce to 0
+            return float(raw) * 100.0  # decimal → percent, deterministic
     except Exception:
         pass
-    return 0.0
+    return None
+
+
+def _dy_from_dividends(symbol, price):
+    """ETF path: sum trailing-12-month declared distributions from /stable/dividends,
+    divide by current price → true trailing distribution yield (PERCENT).
+    Returns None if not fetchable or price missing."""
+    if not price or price <= 0:
+        return None
+    try:
+        url = f"https://financialmodelingprep.com/stable/dividends?symbol={symbol}&apikey={FMP_KEY}"
+        data = http_get_json(url)
+        if isinstance(data, list) and data:
+            cutoff = (datetime.now(timezone.utc).date() - timedelta(days=365)).isoformat()
+            ttm = 0.0
+            found = False
+            for row in data:
+                d = row.get('date') or row.get('recordDate') or ''
+                amt = row.get('dividend') if row.get('dividend') is not None else row.get('adjDividend')
+                if d and d >= cutoff and amt is not None:
+                    ttm += float(amt)
+                    found = True
+            if not found:
+                return None  # no distributions on record — treat as unknown, not 0
+            return round(ttm / price * 100.0, 4)
+    except Exception:
+        pass
+    return None
+
+
+def fmp_dividend_yield_ttm(symbol, price=None):
+    """ETF-aware dividend yield (PERCENT). None means 'could not determine' — the
+    caller must NOT substitute 0. A real 0 is only returned for known non-payers."""
+    if symbol in ETF_SYMBOLS:
+        dy = _dy_from_dividends(symbol, price)
+        if dy is not None:
+            return dy
+        # ETF distribution endpoint failed — try ratios as a long shot, else None.
+        return _dy_from_ratios_ttm(symbol)
+    # Single name
+    dy = _dy_from_ratios_ttm(symbol)
+    if dy is not None:
+        return dy
+    if symbol in KNOWN_NONPAYERS:
+        return 0.0  # verified non-payer: 0 is real data
+    return None  # unknown — signal failure upstream, don't fake a zero
 
 
 def fmp_buyback_yield(symbol):
@@ -334,34 +401,33 @@ def compute_equity_carry(financing_rate_pct):
     
     def process_one(symbol):
         try:
-            # Pull div yield, buyback yield, history (price + vol)
-            with ThreadPoolExecutor(max_workers=3) as ex:
-                f_dy = ex.submit(fmp_dividend_yield_ttm, symbol)
-                f_by = ex.submit(fmp_buyback_yield, symbol)
-                f_hist = ex.submit(fmp_quote_with_history, symbol, 90)
-                dy = f_dy.result()
-                by = f_by.result()
-                hist = f_hist.result()
-            
-            # FMP returns div yield in different scales depending on endpoint:
-            # ratios-ttm.dividendYieldTTM is typically DECIMAL (0.012 = 1.2%)
-            # If we got a value >1, assume already in percent
-            if dy and dy > 0.5:
-                dy_pct = dy  # likely already percent
-            else:
-                dy_pct = dy * 100  # decimal → percent
-            
-            # Buyback yield - same logic
-            if by and abs(by) > 0.5:
-                by_pct = by
-            else:
-                by_pct = by * 100
-            
+            # Price history first — ETF div-yield needs current price, and we need vol.
+            hist = fmp_quote_with_history(symbol, 90)
             closes = hist.get('closes', []) if hist else []
+            price = closes[0] if closes else None
+
+            # Div yield (ETF-aware, price-aware) + buyback yield, in parallel.
+            with ThreadPoolExecutor(max_workers=2) as ex:
+                f_dy = ex.submit(fmp_dividend_yield_ttm, symbol, price)
+                f_by = ex.submit(fmp_buyback_yield, symbol)
+                dy_pct = f_dy.result()   # PERCENT or None
+                by = f_by.result()
+
+            # If dividend yield is unknown, we cannot honestly compute equity carry.
+            # Leave it dormant with a named reason rather than masking as -financing.
+            if dy_pct is None:
+                return {
+                    'symbol': symbol, 'asset_class': 'equity',
+                    'dormant': True, 'dormant_reason': 'div_yield_unavailable',
+                    'price': price,
+                }
+
+            # Buyback: fmp_buyback_yield already returns PERCENT (or 0.0 fallback).
+            by_pct = float(by) if by is not None else 0.0
+
             vol = realized_vol_annualized(closes) if len(closes) > 20 else None
-            
             carry_pct = round(dy_pct + by_pct - financing_rate_pct, 3)
-            
+
             return {
                 'symbol': symbol,
                 'asset_class': 'equity',
@@ -371,7 +437,7 @@ def compute_equity_carry(financing_rate_pct):
                 'carry_pct': carry_pct,
                 'realized_vol_pct': round(vol, 2) if vol else None,
                 'carry_per_vol': round(carry_pct / vol, 3) if vol and vol > 0 else None,
-                'price': closes[0] if closes else None,
+                'price': price,
             }
         except Exception as e:
             return {'symbol': symbol, 'asset_class': 'equity', 'error': str(e)[:120]}
@@ -383,13 +449,18 @@ def compute_equity_carry(financing_rate_pct):
             except Exception as e:
                 print(f"[equity] worker error: {e}")
     
-    # Filter to successful, z-score
-    valid = [r for r in results if 'carry_pct' in r and r.get('carry_pct') is not None]
+    # Only genuinely-computed rows enter the z-score distribution. Dormant rows
+    # (unknown yield) and errors are excluded so they can't flatten the stats.
+    valid = [r for r in results if r.get('carry_pct') is not None and not r.get('dormant')]
     zscore_within_class(valid, 'carry_pct')
     zscore_within_class(valid, 'carry_per_vol')
-    # Re-attach errored ones at the end
+    dormant = [r for r in results if r.get('dormant')]
     errored = [r for r in results if 'error' in r]
-    return valid + errored
+    n_dormant = len(dormant)
+    if n_dormant:
+        print(f"[equity] {len(valid)} live, {n_dormant} dormant (div_yield_unavailable): "
+              f"{[d['symbol'] for d in dormant]}")
+    return valid + dormant + errored
 
 
 def compute_fx_carry():
@@ -602,6 +673,80 @@ def load_prior_snapshot(days_ago):
     return None
 
 
+DISLOCATION_MIN_SNAPSHOTS = 60  # ~3 trading months of daily history before z activates
+
+
+def _list_history_snapshots(max_days=400):
+    """List available daily snapshot keys under HIST_PREFIX, newest first."""
+    keys = []
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=BUCKET, Prefix=HIST_PREFIX):
+            for obj in page.get('Contents', []):
+                k = obj['Key']
+                if k.endswith('.json'):
+                    keys.append(k)
+    except Exception as e:
+        print(f"[dislocation] list history failed: {e}")
+    keys.sort(reverse=True)
+    return keys[:max_days]
+
+
+def attach_dislocation_zscore(current_assets):
+    """For each asset, z-score its CURRENT carry against its OWN trailing carry history.
+    This is the dislocation signal: 'is this asset paying unusually vs what it usually
+    pays?' — distinct from within-class z. Gated: needs >=DISLOCATION_MIN_SNAPSHOTS days.
+
+    Writes per asset:
+      carry_own_z            float | None
+      carry_own_pctile       0..100 | None   (rank of current within own history)
+      carry_own_mean_pct     float | None
+      carry_own_n            int              (# historical obs used)
+      dislocation_status     'active' | 'warming (n/60)' | 'no_history'
+    """
+    snap_keys = _list_history_snapshots()
+    # Build per-symbol historical carry series from snapshots.
+    series = {}  # symbol -> list[float]
+    for key in snap_keys:
+        try:
+            obj = s3.get_object(Bucket=BUCKET, Key=key)
+            snap = json.loads(obj['Body'].read().decode())
+        except Exception:
+            continue
+        for a in snap.get('all_assets', []):
+            sym = a.get('symbol')
+            cp = a.get('carry_pct')
+            if sym and cp is not None:
+                series.setdefault(sym, []).append(float(cp))
+
+    for a in current_assets:
+        sym = a.get('symbol')
+        cur = a.get('carry_pct')
+        hist = series.get(sym, [])
+        n = len(hist)
+        a['carry_own_n'] = n
+        if cur is None or n == 0:
+            a['carry_own_z'] = None
+            a['carry_own_pctile'] = None
+            a['carry_own_mean_pct'] = None
+            a['dislocation_status'] = 'no_history'
+            continue
+        if n < DISLOCATION_MIN_SNAPSHOTS:
+            a['carry_own_z'] = None
+            a['carry_own_pctile'] = None
+            a['carry_own_mean_pct'] = round(mean(hist), 3)
+            a['dislocation_status'] = f'warming ({n}/{DISLOCATION_MIN_SNAPSHOTS})'
+            continue
+        m = mean(hist)
+        sd = stdev(hist) if len(hist) > 1 else 0.0
+        a['carry_own_mean_pct'] = round(m, 3)
+        a['carry_own_z'] = round((cur - m) / sd, 2) if sd > 0 else None
+        # percentile of current vs history
+        below = sum(1 for h in hist if h <= cur)
+        a['carry_own_pctile'] = round(below / n * 100, 1)
+        a['dislocation_status'] = 'active' if sd > 0 else 'flat_history'
+
+
 def attach_carry_momentum(current_assets):
     """For each asset, find its carry value 7D ago and 30D ago. Compute delta."""
     snap_7d = load_prior_snapshot(7)
@@ -768,6 +913,14 @@ def lambda_handler(event=None, context=None):
     
     # Carry momentum (compare to 7D / 30D snapshots)
     attach_carry_momentum(ranked)
+
+    # Dislocation z-score: current carry vs each asset's OWN history (gated at 60 obs).
+    # This is what turns the leaderboard into a 'who pays UNUSUALLY' signal.
+    attach_dislocation_zscore(ranked)
+
+    # Top dislocations (most stretched vs own history), only where z is active.
+    dislocations = [a for a in ranked if a.get('carry_own_z') is not None]
+    dislocations.sort(key=lambda x: abs(x['carry_own_z']), reverse=True)
     
     # Synthesis
     top10 = sorted([a for a in ranked if a.get('carry_pct') is not None],
@@ -793,15 +946,18 @@ def lambda_handler(event=None, context=None):
         'cross_asset_top': top10,
         'cross_asset_bottom': bottom10,
         'risk_adjusted_leaders': risk_adjusted[:10],
+        'dislocation_leaders': dislocations[:10],
+        'n_dormant': len([a for a in ranked if a.get('dormant')]),
         'regime_summary': regime,
         'massive_fx': _carry_massive_fx(),
         'methodology': {
-            'equity': 'div_yield + buyback_yield - financing_cost (FRED DFF)',
+            'equity': 'div_yield + buyback_yield - financing_cost (FRED DFF). ETF yields from declared TTM distributions; single names from ratios-ttm. Unknown yields left dormant, never masked as -financing.',
             'fx': 'long_currency_3M_rate - USD_3M_rate (FRED IR3TIB01 series)',
             'fixed_income': 'yield_to_maturity - financing_cost',
             'commodity': '-roll_yield, blend of structural estimate + observed ETF-spot basis',
             'crypto': '-perpetual_funding_rate_annualized (Binance public API)',
             'z_score': 'within-class normalization',
+            'dislocation_z': f'current carry vs assets OWN trailing carry history (gated >={DISLOCATION_MIN_SNAPSHOTS} daily obs); z, percentile, mean',
             'carry_per_vol': 'carry_pct / realized_vol_pct (Sharpe-of-carry)',
             'carry_momentum': 'current vs 7D and 30D prior snapshots',
         },

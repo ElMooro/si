@@ -214,6 +214,42 @@
   </div>
 </section>
 
+<!-- DISLOCATION: PAYING UNUSUALLY (carry vs own history) -->
+<section class="max-w-[1500px] mx-auto px-4 pb-8" id="dislocation-section" style="display:none">
+  <div class="card p-5">
+    <div class="flex items-start justify-between mb-1 flex-wrap gap-2">
+      <div>
+        <h2 class="text-base font-semibold flex items-center gap-2">
+          <span class="badge badge-amber">DISLOCATION</span>
+          Paying Unusually — Carry vs Its Own History
+        </h2>
+        <p class="text-xs text-[var(--text-muted)] mt-1">
+          Not "who pays most" but "who pays most <em>unusually</em>." Each asset's current carry
+          z-scored against its <strong>own</strong> trailing history — a high z means the market is
+          paying you far more (or less) to hold it than it typically does. This is the dislocation signal.
+        </p>
+      </div>
+      <div class="text-right text-xs text-[var(--text-muted)] mono" id="dislocation-meta"></div>
+    </div>
+    <div class="overflow-auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Symbol</th><th>Class</th>
+            <th class="text-right">Carry %</th>
+            <th class="text-right">Own Mean %</th>
+            <th class="text-right">Own Z</th>
+            <th class="text-right">Own Pct</th>
+            <th class="text-right">n</th>
+          </tr>
+        </thead>
+        <tbody id="dislocation-table"></tbody>
+      </table>
+    </div>
+    <p class="text-[11px] text-[var(--text-muted)] mt-2 mono" id="dislocation-warming" style="display:none"></p>
+  </div>
+</section>
+
 <!-- ALL ASSETS (FILTERABLE) -->
 <section class="max-w-[1500px] mx-auto px-4 pb-12">
   <div class="card p-5">
@@ -369,12 +405,71 @@ function renderTables(d) {
   // All assets table
   ALL = d.all_assets || [];
   renderAll('all');
+
+  // Dislocation board (carry vs own history) — additive
+  renderDislocation(d);
 }
 
 function renderAll(filter) {
   let rows = ALL;
   if (filter !== 'all') rows = rows.filter(r => r.asset_class === filter);
   document.getElementById('all-tbody').innerHTML = rows.map(rowHtmlExtended).join('');
+}
+
+function renderDislocation(d) {
+  const sec = document.getElementById('dislocation-section');
+  const all = d.all_assets || [];
+  // Prefer the Lambda's precomputed board; fall back to deriving from all_assets.
+  let leaders = (d.dislocation_leaders || []).filter(a => a.carry_own_z !== null && a.carry_own_z !== undefined);
+  if (!leaders.length) {
+    leaders = all.filter(a => a.carry_own_z !== null && a.carry_own_z !== undefined)
+                 .sort((a, b) => Math.abs(b.carry_own_z) - Math.abs(a.carry_own_z));
+  }
+
+  // Count warming vs active so we can be honest about state.
+  const warming = all.filter(a => (a.dislocation_status || '').startsWith('warming')).length;
+  const active = all.filter(a => a.dislocation_status === 'active').length;
+
+  if (!leaders.length) {
+    // Nothing active yet — surface the warming state instead of hiding silently.
+    if (warming > 0) {
+      sec.style.display = '';
+      document.getElementById('dislocation-table').innerHTML =
+        `<tr><td colspan="8" class="text-[var(--text-muted)] text-xs py-3">
+           History still accruing — dislocation z-scores activate once each asset has 60 daily
+           observations. ${warming} asset${warming===1?'':'s'} warming up.
+         </td></tr>`;
+      document.getElementById('dislocation-meta').textContent = `${warming} warming · 0 active`;
+    } else {
+      sec.style.display = 'none';
+    }
+    return;
+  }
+
+  sec.style.display = '';
+  document.getElementById('dislocation-meta').textContent =
+    `${active} active · ${warming} warming · ranked by |z| vs own history`;
+
+  const zCls = z => z >= 1.5 ? 'text-[var(--green)]' : (z <= -1.5 ? 'text-[var(--red)]' : '');
+  document.getElementById('dislocation-table').innerHTML = leaders.slice(0, 15).map((a, i) => `
+    <tr>
+      <td class="text-[var(--text-muted)]">${i + 1}</td>
+      <td class="font-semibold">${a.symbol}</td>
+      <td>${classBadge(a.asset_class)}</td>
+      <td class="text-right mono">${fmtPct(a.carry_pct)}</td>
+      <td class="text-right mono text-[var(--text-muted)]">${a.carry_own_mean_pct != null ? fmtPct(a.carry_own_mean_pct) : '—'}</td>
+      <td class="text-right mono font-semibold ${zCls(a.carry_own_z)}">${a.carry_own_z >= 0 ? '+' : ''}${fmt(a.carry_own_z, 2)}</td>
+      <td class="text-right mono">${a.carry_own_pctile != null ? fmt(a.carry_own_pctile, 0) + 'p' : '—'}</td>
+      <td class="text-right mono text-[var(--text-muted)]">${a.carry_own_n ?? '—'}</td>
+    </tr>`).join('');
+
+  const warmNote = document.getElementById('dislocation-warming');
+  if (warming > 0 && active > 0) {
+    warmNote.style.display = '';
+    warmNote.textContent = `Note: ${warming} asset${warming===1?'':'s'} not yet shown — still below the 60-observation threshold.`;
+  } else {
+    warmNote.style.display = 'none';
+  }
 }
 
 // Class filters
