@@ -1,4 +1,12 @@
-executing-against: c177a0b91b97ebbbf3c381239bfa1a362c768552
-[20:02:50] OPS 3310 PASS — every page now self-heals stale clients (SW purge + cache wipe + one reload); build stamps live.
+executing-against: d305a689f7c1eb8b82bb56600a25ef9aeb2d4e8f
+── PRE-STATE ──
+── FORCE INVOKE ──
+── VERIFY FEED ──
+[01:16:52] ⚠ harvest empty (0 ratings/guidance/insights)
+── SCHEDULE ──
+[01:16:52] ✅ daily schedule asserted: cron(45 13 * * ? *)
+── VERDICT ──
+[01:16:52] ⚠ Benzinga harvest returned 0 across all feeds — check Massive entitlement (page still renders empty)
+[01:16:52] ✅ analyst-actions feed live + fresh; page will render on next load
 
-→ Report written to aws/ops/reports/latest/3310_fresh_guard.md
+→ Report written to aws/ops/reports/latest/3311_analyst_actions_revive.md
