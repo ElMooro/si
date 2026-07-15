@@ -42,7 +42,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "GET, HEAD, PUT, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With",
     "Access-Control-Max-Age":       "86400",
     "Vary":                         "Accept-Encoding",
   };
