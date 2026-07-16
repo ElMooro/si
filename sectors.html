@@ -267,6 +267,18 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
     <p class="sub">Per GICS sector across the full stock universe: % of members above the 200-day and 50-day averages, median 1-month move, joined to that sector's SPDR flow. Flows without breadth are fragile; breadth without flows is fuel.</p>
     <div id="sec-breadth"><div class="empty">Loading…</div></div>
   </div>
+
+  <div class="section">
+    <h2>🔬 Does chasing flows work here? — event study on our own tape</h2>
+    <p class="sub">Every |z|≥2 daily-flow spike across the institutional ETF universe (leveraged/vol excluded), measured forward 5 and 21 trading days as NAV return minus SPY. Quadrants at event time: stealth accumulation, chase, distribution, capitulation. Rolling ~120-day engine window — n is honest, not backfilled.</p>
+    <div id="flow-evidence"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🎰 Leveraged risk appetite — bull vs bear money (5d)</h2>
+    <p class="sub">Net 5-day flows into leveraged-long vs leveraged-short/vol-long products. Pure retail positioning dial: extremes are contrarian fuel.</p>
+    <div id="lev-appetite"><div class="empty">Loading…</div></div>
+  </div>
 </main>
 
 <footer>
@@ -458,10 +470,13 @@ async function loadEtfFlows(){
   if(tgl)tgl.onclick=()=>{const more=[...el.querySelectorAll('.jh-flmore')];const open=more.length&&more[0].style.display!=='none';more.forEach(n=>n.style.display=open?'none':'');tgl.textContent=open?'Show all 25 \u25be':'Show top 12 \u25b4';};
 }
 async function loadFlowIntel(){
-  let d=null,w=null;
+  let d=null,w=null,es=null,co=null;
   try{const r=await fetch(`${BUCKET}/data/finviz-etf-flows.json?t=${Date.now()}`);d=await r.json();}catch(e){}
   try{const r=await fetch(`${BUCKET}/data/13f-flows-by-ticker.json?t=${Date.now()}`);w=await r.json();}catch(e){}
-  if(!d)return;
+  try{const r=await fetch(`${BUCKET}/etf-flows/event-study.json?t=${Date.now()}`);es=await r.json();}catch(e){}
+  try{const r=await fetch(`${BUCKET}/etf-flows/composite.json?t=${Date.now()}`);co=await r.json();}catch(e){}
+  if(!d&&!es&&!co)return;
+  d=d||{};
   const esc=v=>String(v==null?'':v).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
   const fm=v=>v==null?'\u2014':((v>=0?'+':'\u2212')+'$'+(Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(0)+'M'));
   const fp=v=>v==null?'\u2014':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
@@ -573,6 +588,37 @@ async function loadFlowIntel(){
         <span style="width:84px;text-align:right;color:${(f||0)>=0?G:R};font-size:10px">${j?esc(j.t)+' '+fm(f):''}</span>
         <span style="color:${dc};font-size:10px">${dv}</span>
       </div>`;}).join('')+`<div style="font-family:${MONO};font-size:9.5px;color:var(--t3);padding-top:6px">bar = % of sector stocks above 200DMA (white tick = 50DMA) \u00b7 median 1M move \u00b7 SPDR 1M flow</div>`;})();
+
+  /* F — flow event study */
+  (function(){const el=document.getElementById('flow-evidence');if(!el)return;
+    const st=es&&es.event_study;if(!st||st.error||!st.n_events){el.innerHTML='<div class="empty">Event study pending next engine run.</div>';return;}
+    const bp=v=>v==null?'\u2014':((v>=0?'+':'\u2212')+Math.abs(v)+'bps');
+    const tile=(ttl,a,c)=>`<div style="border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;min-width:150px"><div style="font-size:10px;color:var(--t3)">${ttl}</div>${(a&&a.n)?`<div style="font-size:15px;font-weight:700;color:${c}">${bp(a.med_ex21_bps)} <span style="font-size:10px;font-weight:400;color:var(--t3)">med 21d ex</span></div><div style="font-size:10px;color:var(--t3)">n=${a.n} \u00b7 hit21 ${a.hit21}% \u00b7 5d ${bp(a.med_ex5_bps)}</div>`:'<div style="font-size:12px;color:var(--t3)">n=0</div>'}</div>`;
+    const bd=st.by_dir||{},bq=st.by_quadrant||{};
+    const qmeta={stealth_accum:['Stealth accumulation',G],chase:['Chase (inflow+rally)','#3aa0ff'],distribution:['Distribution (outflow+rally)','#f5b942'],capitulation:['Capitulation',R]};
+    const rows=(st.top_events||[]).slice(0,8).map(e=>`<div style="display:flex;gap:10px;align-items:center;padding:3px 0;font-size:10.5px"><a href="why.html?ticker=${esc(e.ticker)}" style="width:52px;font-weight:700;color:var(--t1);text-decoration:none">${esc(e.ticker)}</a><span style="width:78px;color:var(--t3)">${esc(e.date)}</span><span style="width:52px;color:${e.z>=0?G:R}">z ${e.z>=0?'+':''}${e.z}</span><span style="width:120px;color:var(--t3)">${esc((qmeta[e.quadrant]||[e.quadrant])[0])}</span><span style="width:74px;text-align:right;color:${e.ex21_bps>=0?G:R};font-weight:700">${bp(e.ex21_bps)}</span><span style="color:var(--t3);font-size:9.5px">21d ex</span></div>`).join('');
+    el.innerHTML=`<div style="font-family:${MONO}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${tile('Inflow spikes',bd.inflow,G)}${tile('Outflow spikes',bd.outflow,R)}${tile('Smart-money ETFs',st.smart_money,'#3aa0ff')}${tile('Retail-favored',st.retail_favored,'#f5b942')}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">${['stealth_accum','chase','distribution','capitulation'].map(q=>tile(qmeta[q][0],bq[q],qmeta[q][1])).join('')}</div>
+      <div style="margin-top:12px"><div style="font-size:10px;color:var(--t3);padding-bottom:4px">Largest 21d outcomes</div>${rows}</div>
+      <div style="font-size:9.5px;color:var(--t3);margin-top:8px">${st.n_events} events \u00b7 ${esc(st.method||'')}</div></div>`;})();
+
+  /* G — leveraged appetite */
+  (function(){const el=document.getElementById('lev-appetite');if(!el)return;
+    const la=co&&co.composite&&co.composite.leveraged_appetite;if(!la){el.innerHTML='<div class="empty">Leveraged gauge pending next engine run.</div>';return;}
+    const b=la.bull_5d_usd||0,r_=la.bear_5d_usd||0,net=la.net_5d_usd||0;
+    const mag=Math.max(Math.abs(b),Math.abs(r_),1);
+    const col=la.read==='RISK_SEEKING'?G:la.read==='RISK_AVERSE'?R:'#f5b942';
+    const half=(v,c,al)=>`<div style="flex:1;display:flex;justify-content:${al==='r'?'flex-end':'flex-start'}"><div style="width:${Math.min(Math.abs(v)/mag*100,100)}%;height:14px;background:${c};border-radius:3px;opacity:.85"></div></div>`;
+    const chips=(la.pairs||[]).map(p=>{const pn=(p.bull_5d||0)-(p.bear_5d||0);return `<span style="border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:2px 7px;margin:2px;font-size:10px;color:${pn>=0?G:R}" title="${(p.tickers||[]).map(t=>t.t+' '+fm(t.f5d)).join(' \u00b7 ')}">${esc(p.pair)} ${fm(pn)}</span>`;}).join('');
+    el.innerHTML=`<div style="font-family:${MONO}">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:16px;font-weight:800;color:${col}">${esc(la.read)}</span><span style="font-size:12px;color:var(--t3)">net 5d <b style="color:${net>=0?G:R}">${fm(net)}</b></span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:10px 0;max-width:560px">
+        <span style="width:110px;text-align:right;color:${R};font-size:11px">bear ${fm(-Math.abs(r_)).replace('+','')}</span>
+        ${half(r_,R,'r')}<div style="width:2px;height:20px;background:rgba(255,255,255,.25)"></div>${half(b,G,'l')}
+        <span style="width:110px;color:${G};font-size:11px">bull ${fm(b)}</span></div>
+      <div>${chips}</div>
+      <div style="font-size:9.5px;color:var(--t3);margin-top:8px">leveraged-long vs leveraged-short + vol-long \u00b7 5-day net creations \u00b7 Polygon ETF Global</div></div>`;})();
 }
 load();
 loadFinvizRot();

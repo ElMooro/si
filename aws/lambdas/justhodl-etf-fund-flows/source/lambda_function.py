@@ -1059,6 +1059,140 @@ def _write_json(key: str, obj: dict, cache_ttl: int = 600):
 # ═════════════════════════════════════════════════════════════════════
 # Handler
 # ═════════════════════════════════════════════════════════════════════
+def build_event_study(snapshots):
+    """Frazzini–Lamont test on OUR OWN tape (ops 3344): flow-spike events
+    → forward NAV excess vs SPY. Event = daily flow z >= |2| against a
+    rolling 60d baseline, 10-trading-day cooldown (non-overlapping-ish).
+    Forward windows 5d & 21d, benchmark-adjusted with SPY NAV over the
+    SAME dates. Quadrants at event time (trailing 21d NAV return):
+    inflow+falling = stealth_accum, inflow+rising = chase,
+    outflow+rising = distribution, outflow+falling = capitulation.
+    Leveraged/volatility categories excluded (decay makes NAV excess
+    meaningless). History = the engine's rolling ~120d window, so n is
+    honest but modest; date-stamped history/ snapshots deepen v2."""
+    spy = snapshots.get("SPY") or {}
+    spy_nav = {}
+    for r in (spy.get("history") or []):
+        d, n = r.get("processed_date"), r.get("nav")
+        if d and n:
+            spy_nav[str(d)[:10]] = n
+    if len(spy_nav) < 80:
+        return {"event_study": {"error": "SPY NAV history too short", "n_spy": len(spy_nav)}}
+
+    events = []
+    for tk, snap in snapshots.items():
+        if tk == "SPY" or snap.get("error"):
+            continue
+        cat = (ETF_UNIVERSE.get(tk) or {}).get("category")
+        if cat in ("leveraged", "volatility"):
+            continue
+        arr = sorted([{"d": str(r.get("processed_date"))[:10],
+                       "f": r.get("flow"), "nav": r.get("nav")}
+                      for r in (snap.get("history") or [])
+                      if r.get("processed_date") and r.get("nav") is not None],
+                     key=lambda x: x["d"])
+        if len(arr) < 90:
+            continue
+        last_ev = -99
+        for t in range(60, len(arr) - 21):
+            if t - last_ev < 10:
+                continue
+            base = [x["f"] for x in arr[t - 60:t] if x["f"] is not None]
+            ft = arr[t]["f"]
+            if ft is None or len(base) < 40:
+                continue
+            mu = statistics.mean(base)
+            try:
+                sd = statistics.stdev(base)
+            except statistics.StatisticsError:
+                continue
+            if not sd or sd <= 0:
+                continue
+            z = (ft - mu) / sd
+            if abs(z) < 2.0:
+                continue
+            n0, n5, n21, nb21 = arr[t]["nav"], arr[t + 5]["nav"], arr[t + 21]["nav"], arr[t - 21]["nav"]
+            s0, s5, s21 = spy_nav.get(arr[t]["d"]), spy_nav.get(arr[t + 5]["d"]), spy_nav.get(arr[t + 21]["d"])
+            if not all((n0, n5, n21, nb21, s0, s5, s21)):
+                continue
+            fwd5, fwd21 = n5 / n0 - 1, n21 / n0 - 1
+            ex5 = fwd5 - (s5 / s0 - 1)
+            ex21 = fwd21 - (s21 / s0 - 1)
+            trail21 = n0 / nb21 - 1
+            direction = "inflow" if z > 0 else "outflow"
+            quad = ("stealth_accum" if (z > 0 and trail21 < 0) else
+                    "chase" if z > 0 else
+                    "distribution" if trail21 > 0 else "capitulation")
+            events.append({"ticker": tk, "date": arr[t]["d"], "z": round(z, 2),
+                           "dir": direction, "quadrant": quad,
+                           "trail21_pct": round(trail21 * 100, 2),
+                           "ex5_bps": round(ex5 * 1e4), "ex21_bps": round(ex21 * 1e4),
+                           "smart": bool((ETF_UNIVERSE.get(tk) or {}).get("smart_money")),
+                           "category": cat})
+            last_ev = t
+
+    def _agg(rows):
+        if not rows:
+            return {"n": 0}
+        e5 = [r["ex5_bps"] for r in rows]
+        e21 = [r["ex21_bps"] for r in rows]
+        return {"n": len(rows),
+                "hit5": round(100.0 * sum(1 for v in e5 if v > 0) / len(e5), 1),
+                "hit21": round(100.0 * sum(1 for v in e21 if v > 0) / len(e21), 1),
+                "med_ex5_bps": round(statistics.median(e5)),
+                "med_ex21_bps": round(statistics.median(e21))}
+
+    study = {"method": ("z>=|2| on rolling 60d flow baseline, 10d cooldown, "
+                        "forward 5d/21d NAV return minus SPY, leveraged/vol excluded; "
+                        "rolling ~120d engine window — n grows via history/ snapshots"),
+             "n_events": len(events),
+             "overall": _agg(events),
+             "by_dir": {d: _agg([r for r in events if r["dir"] == d])
+                        for d in ("inflow", "outflow")},
+             "by_quadrant": {q: _agg([r for r in events if r["quadrant"] == q])
+                             for q in ("stealth_accum", "chase", "distribution", "capitulation")},
+             "smart_money": _agg([r for r in events if r["smart"]]),
+             "retail_favored": _agg([r for r in events if not r["smart"]]),
+             "top_events": sorted(events, key=lambda r: -abs(r["ex21_bps"]))[:12]}
+    return {"event_study": study}
+
+
+def build_leveraged_appetite(metrics):
+    """Bull vs bear 5d flows inside the leveraged complex — pure retail
+    risk-appetite dial. vol_short counts bull; vol_long counts bear."""
+    def _side(sub):
+        s = sub or ""
+        if "bear" in s or s == "vol_long":
+            return "bear"
+        if "bull" in s or s == "vol_short":
+            return "bull"
+        return None
+    pairs, bull, bear = {}, 0.0, 0.0
+    for m in metrics:
+        tk = m.get("ticker")
+        u = ETF_UNIVERSE.get(tk) or {}
+        if u.get("category") != "leveraged":
+            continue
+        side = _side(u.get("subcategory"))
+        if not side:
+            continue
+        f = m.get("flow_5d_usd") or m.get("fund_flow_5d_usd") or 0.0
+        root = (u.get("subcategory") or "").replace("_bull", "").replace("_bear", "")             .replace("vol_long", "vol").replace("vol_short", "vol")
+        p = pairs.setdefault(root, {"pair": root, "bull_5d": 0.0, "bear_5d": 0.0, "tickers": []})
+        p[side + "_5d"] += f
+        p["tickers"].append({"t": tk, "side": side, "f5d": f})
+        if side == "bull":
+            bull += f
+        else:
+            bear += f
+    net = bull - bear
+    thr = max(1.5e8, 0.10 * (abs(bull) + abs(bear)))
+    read = "RISK_SEEKING" if net > thr else "RISK_AVERSE" if net < -thr else "NEUTRAL"
+    return {"bull_5d_usd": round(bull), "bear_5d_usd": round(bear),
+            "net_5d_usd": round(net), "read": read,
+            "pairs": sorted(pairs.values(), key=lambda p: -(abs(p["bull_5d"]) + abs(p["bear_5d"])))}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[etf-flows] starting at {datetime.now(timezone.utc).isoformat()}")
@@ -1087,6 +1221,12 @@ def lambda_handler(event, context):
     print(f"[etf-flows] regime: {composite.get('regime')}")
 
     # 6. Per-ticker context (for prompt injection)
+    print("[etf-flows] phase 4c: event study + leveraged appetite (ops 3344)...")
+    event_study = build_event_study(snapshots)
+    composite["leveraged_appetite"] = build_leveraged_appetite(metrics)
+    print(f"[etf-flows] event-study n={event_study.get('event_study', {}).get('n_events')} "
+          f"lev-appetite={composite['leveraged_appetite']['read']}")
+
     print("[etf-flows] phase 5: building per-ticker context...")
     per_ticker = build_per_ticker_context(metrics, composite)
 
@@ -1121,6 +1261,9 @@ def lambda_handler(event, context):
                 {**meta, "composite": composite,
                  "divergence_board": divergence,
                  "divergence_signals_logged": signals_logged})
+
+    # 7b2. Flow event-study (ops 3344)
+    _write_json(f"{OUTPUT_PREFIX}event-study.json", {**meta, **event_study})
 
     # 7c. Rotation matrix (category aggregates)
     _write_json(f"{OUTPUT_PREFIX}rotation.json",
