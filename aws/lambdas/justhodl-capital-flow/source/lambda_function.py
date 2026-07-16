@@ -171,8 +171,59 @@ def lambda_handler(event=None, context=None):
     accumulating = sorted([r for r in results if r["flow_score"] > 8], key=lambda r: -r["flow_score"])[:40]
     distributing = sorted([r for r in results if r["flow_score"] < -8], key=lambda r: r["flow_score"])[:25]
 
+    # ── intel layers (ops 3348, additive) ──
+    # score distribution + smart-money sector footprint
+    def _seccounts(rows):
+        agg = defaultdict(lambda: {"n": 0, "sum": 0.0})
+        for r in rows:
+            sec = r.get("sector")
+            if not sec:
+                continue
+            agg[sec]["n"] += 1
+            agg[sec]["sum"] += r.get("flow_score") or 0
+        return sorted([{"sector": k, "n": v["n"], "avg_score": round(v["sum"] / v["n"], 1)}
+                       for k, v in agg.items()], key=lambda x: -x["n"])[:6]
+    scores_all = [r.get("flow_score") or 0 for r in results]
+    summary = {"n_scored": len(results),
+               "n_strong_acc": sum(1 for v in scores_all if v > 25),
+               "n_acc": sum(1 for v in scores_all if 8 < v <= 25),
+               "n_neutral": sum(1 for v in scores_all if -8 <= v <= 8),
+               "n_dis": sum(1 for v in scores_all if -25 <= v < -8),
+               "n_strong_dis": sum(1 for v in scores_all if v < -25),
+               "top_acc_sectors": _seccounts(accumulating),
+               "top_dis_sectors": _seccounts(distributing)}
+
+    # lens conflicts: quarterly 13F footprint vs fresher inst-QoQ disagree in sign
+    lens_conflicts = []
+    for r in results:
+        f = (r.get("detail") or {}).get("13f") or {}
+        ic = (r.get("detail") or {}).get("inst_change") or {}
+        fs_, is_ = f.get("score"), ic.get("score")
+        if fs_ is None or is_ is None:
+            continue
+        if abs(fs_) > 5 and abs(is_) > 5 and (fs_ > 0) != (is_ > 0):
+            lens_conflicts.append({"ticker": r["ticker"], "name": r.get("name"),
+                                   "sector": r.get("sector"), "flow_score": r.get("flow_score"),
+                                   "f13_score": fs_, "inst_score": is_,
+                                   "gap": round(abs(fs_ - is_), 1),
+                                   "read": ("QoQ turning UP vs stale 13F" if is_ > 0
+                                            else "QoQ turning DOWN vs stale 13F")})
+    lens_conflicts.sort(key=lambda x: -x["gap"])
+    lens_conflicts = lens_conflicts[:15]
+
+    # new-money board: pure 13F initiations
+    top_new_positions = sorted(
+        [{"ticker": r["ticker"], "name": r.get("name"), "sector": r.get("sector"),
+          "new": ((r.get("detail") or {}).get("13f") or {}).get("new") or 0,
+          "added": ((r.get("detail") or {}).get("13f") or {}).get("added") or 0,
+          "n_funds": ((r.get("detail") or {}).get("13f") or {}).get("n_funds") or 0,
+          "val_delta_pct": ((r.get("detail") or {}).get("13f") or {}).get("val_delta_pct"),
+          "flow_score": r.get("flow_score")}
+         for r in results if ((r.get("detail") or {}).get("13f") or {}).get("new")],
+        key=lambda x: (-x["new"], -x["added"]))[:15]
+
     output = {
-        "engine": "capital-flow", "version": "1.0",
+        "engine": "capital-flow", "version": "1.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "sources": {"13f": bool(agg), "etf_flows": len(etf_flows), "inst_change": len(inst_scores), "categories": len(cat_rotation)},
@@ -185,6 +236,9 @@ def lambda_handler(event=None, context=None):
         "etf_flows_in": etf_flows[:25],
         "etf_flows_out": [e for e in etf_flows if ((e.get("net_flow_5d_usd") if e.get("true_flow") else e.get("flow_proxy")) or 0) < 0][:15],
         "category_rotation": cat_rotation[:15],
+        "summary": summary,
+        "lens_conflicts": lens_conflicts,
+        "top_new_positions": top_new_positions,
         "by_ticker": {r["ticker"]: r for r in results[:300]},
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(output, default=str).encode(),

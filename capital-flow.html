@@ -60,6 +60,8 @@ a{color:var(--cyan);text-decoration:none}
     <span class="tab active" data-tab="stocks">Stocks</span>
     <span class="tab" data-tab="etfs">ETF Flows</span>
     <span class="tab" data-tab="sectors">Sector Rotation</span>
+    <span class="tab" data-tab="ledger">Ledger (300)</span>
+    <span class="tab" data-tab="intel">Conflicts &amp; New Money</span>
   </div>
 </section>
 <div class="wrap"><div id="content"><div class="loading">Loading capital flows…</div></div></div>
@@ -67,27 +69,50 @@ a{color:var(--cyan);text-decoration:none}
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-let DATA=null, tab='stocks';
+let DATA=null, WH=null, tab='stocks', LQ='';
+const fmU=v=>v==null?'—':((v>=0?'+':'−')+'$'+(Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(1)+'M'));
+const fpc=v=>v==null?'—':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
 async function load(){
   try{const r=await fetch(`${PROXY}/data/capital-flow.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
+  try{const r=await fetch(`${PROXY}/data/13f-flows-by-ticker.json?t=${Date.now()}`);if(r.ok)WH=(await r.json()).t||null;}catch(e){}
   if(!DATA){document.getElementById('content').innerHTML='<div class="loading">Capital-flow data not available yet — refreshes daily 16:30 UTC.</div>';return;}
   render();
 }
 function srow(r,neg){
   const col=neg?'var(--red)':'var(--green)';
   const w=Math.min(100,Math.abs(r.flow_score));
-  return `<div class="row" onclick="window.open('/chart-pro.html','_blank')">
+  const f=(r.detail&&r.detail['13f'])||null, ic=(r.detail&&r.detail.inst_change)||null;
+  const d13=f?`13F: <b style="color:var(--green)">+${f.new||0} new</b> · +${f.added||0} add · <b style="color:var(--red)">−${f.trimmed||0} trim · −${f.exited||0} exit</b> · ${f.n_funds||0} funds${f.val_delta_pct!=null?' · Δ$ '+fpc(f.val_delta_pct):''}`:'';
+  const dic=ic?`Inst QoQ: shares ${fpc(ic.shares_chg!=null&&Math.abs(ic.shares_chg)<3?ic.shares_chg*100:ic.shares_chg)} · investors ${ic.investor_chg!=null?(ic.investor_chg>=0?'+':'')+ic.investor_chg:'—'}${ic.signal?' · '+esc(ic.signal):''}`:'';
+  const wj=WH&&WH[r.ticker];
+  const dwh=wj?`Whales Q: <b style="color:${(wj.wn||0)>=0?'var(--green)':'var(--red)'}">${fmU(wj.wn)}</b>${(wj.fb||[]).length?' · in: '+esc(wj.fb.slice(0,2).join(', ')):''}${(wj.fs||[]).length?' · out: '+esc(wj.fs.slice(0,2).join(', ')):''}`:'';
+  const cfl=(DATA.lens_conflicts||[]).some(c=>c.ticker===r.ticker)?`<span title="quarterly 13F and fresher inst-QoQ disagree in sign" style="color:#f5b942;cursor:help">⚡</span>`:'';
+  return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')">
     <div style="flex:1"><div style="display:flex;align-items:center;gap:10px">
-      <span class="tk">${esc(r.ticker)}</span><span class="nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+      <span class="tk">${esc(r.ticker)}</span>${cfl}<span class="nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
       <span class="sc" style="color:${col}">${r.flow_score>=0?'+':''}${r.flow_score}</span></div>
       <div class="lenses">${esc((r.lenses||[]).join(' · '))}</div>
+      ${d13?`<div class="lenses" style="opacity:.85">${d13}</div>`:''}
+      ${dic?`<div class="lenses" style="opacity:.85">${dic}</div>`:''}
+      ${dwh?`<div class="lenses" style="opacity:.85">${dwh}</div>`:''}
       <div class="bar" style="width:${w}%;background:${col}"></div></div></div>`;
+}
+function sumStrip(){
+  const s=DATA.summary;if(!s)return '';
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--mono);font-size:10.5px">
+    <span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px">${s.n_scored} names scored</span>
+    <span style="border:1px solid rgba(60,220,130,.4);border-radius:6px;padding:4px 10px;color:var(--green)">strong acc ${s.n_strong_acc} · acc ${s.n_acc}</span>
+    <span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px">neutral ${s.n_neutral}</span>
+    <span style="border:1px solid rgba(255,90,110,.4);border-radius:6px;padding:4px 10px;color:var(--red)">dis ${s.n_dis} · strong dis ${s.n_strong_dis}</span>
+    ${(s.top_acc_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">acc leader: ${esc(s.top_acc_sectors[0].sector)} (${s.top_acc_sectors[0].n})</span>`:''}
+    ${(s.top_dis_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">dis leader: ${esc(s.top_dis_sectors[0].sector)} (${s.top_dis_sectors[0].n})</span>`:''}
+  </div>`;
 }
 function render(){
   let h='';
   if(tab==='stocks'){
     const acc=DATA.accumulating||[], dis=DATA.distributing||[];
-    h=`<div class="grid">
+    h=sumStrip()+`<div class="grid">
       <div class="col"><h2>💰 Institutions Accumulating</h2>${acc.length?acc.map(r=>srow(r,false)).join(''):'<div class="loading">None flagged.</div>'}</div>
       <div class="col"><h2>📉 Institutions Distributing</h2>${dis.length?dis.map(r=>srow(r,true)).join(''):'<div class="loading">None flagged.</div>'}</div>
     </div>`;
@@ -100,21 +125,56 @@ function render(){
       return `<div class="row" onclick="window.open('/chart-pro.html','_blank')"><span class="tk">${esc(e.ticker)}</span>
       <span class="nm">${esc(e.name||e.category||'')}${tf?' · 5d net flow':''}</span>
       <span class="sc" style="color:${neg?'var(--red)':'var(--green)'}">${disp}</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:70px;text-align:right">${tf?(e.aum_est_b?'$'+e.aum_est_b+'B':''):esc(e.flow_signal||'')}</span></div>`;
+      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:70px;text-align:right">${tf?(e.aum_est_b?'$'+e.aum_est_b+'B':''):esc(e.flow_signal||'')}</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:120px;text-align:right">${e.dvol_z!=null?'z '+Number(e.dvol_z).toFixed(2)+' · ':''}${e.return_5d_pct!=null?'5d '+fpc(e.return_5d_pct):''}${e.return_20d_pct!=null?' · 20d '+fpc(e.return_20d_pct):''}</span></div>`;
     };
     h=`<div class="grid">
       <div class="col"><h2>🟢 ETF Inflows (capital rotating in)</h2>${ein.length?ein.map(e=>erow(e,false)).join(''):'<div class="loading">Awaiting market-day volume.</div>'}</div>
       <div class="col"><h2>🔴 ETF Outflows</h2>${eout.length?eout.map(e=>erow(e,true)).join(''):'<div class="loading">None.</div>'}</div>
     </div>`;
-  } else {
+  } else if(tab==='sectors'){
     const cats=DATA.category_rotation||[];
     h=`<h2 style="font-family:var(--mono);font-size:15px;margin-bottom:10px">🔄 Sector / Asset-Class Rotation</h2><div class="cat-grid">`+
       (cats.length?cats.map(c=>{const nf=c.net_flow_5d_usd;const z=c.avg_dvol_z;const col=(nf!=null?(nf>0?'var(--green)':'var(--red)'):(z>0.5?'var(--green)':z<-0.5?'var(--red)':'var(--fg-2)'));const disp=nf!=null?(Math.abs(nf)>=1e9?(nf>=0?'+':'')+'$'+(nf/1e9).toFixed(2)+'B':(nf>=0?'+':'')+'$'+(nf/1e6).toFixed(0)+'M'):(z!=null?'z '+z.toFixed(2):'');
-        return `<div class="cat"><div class="cn">${esc((c.category||'').replace(/_/g,' '))}</div><div class="cs" style="color:${col}">${esc(c.signal||'')}</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:3px">${disp}</div></div>`;}).join(''):'<div class="loading">Awaiting market-day data.</div>')+`</div>`;
+        return `<div class="cat"><div class="cn">${esc((c.category||'').replace(/_/g,' '))}</div><div class="cs" style="color:${col}">${esc(c.signal||'')}</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:3px">${disp}${c.n_etfs?' · '+c.n_etfs+' ETFs':''}${c.total_aum_b?' · $'+Math.round(c.total_aum_b)+'B':''}</div></div>`;}).join(''):'<div class="loading">Awaiting market-day data.</div>')+`</div>`;
+    const bt=Object.values(DATA.by_ticker||{});
+    if(bt.length){
+      const ag={};bt.forEach(r=>{const s=r.sector;if(!s)return;const a=ag[s]=ag[s]||{n:0,acc:0,dis:0,sum:0};a.n++;a.sum+=r.flow_score||0;if((r.flow_score||0)>8)a.acc++;else if((r.flow_score||0)<-8)a.dis++;});
+      const rows=Object.entries(ag).map(([s,a])=>({s,...a,net:a.acc-a.dis,avg:a.sum/a.n})).sort((x,y)=>y.net-x.net);
+      const mx=Math.max(...rows.map(r=>Math.abs(r.net)),1);
+      h+=`<h2 style="font-family:var(--mono);font-size:15px;margin:22px 0 10px">🧲 Smart-money footprint by sector (13F + inst QoQ fused)</h2>`+
+        rows.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
+          <span style="width:170px;color:var(--fg)">${esc(r.s)}</span>
+          <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(r.net)/mx*100,100)}%;background:${r.net>=0?'var(--green)':'var(--red)'}"></div></div>
+          <span style="width:120px;color:${r.net>=0?'var(--green)':'var(--red)'}">net ${r.net>=0?'+':''}${r.net} names</span>
+          <span style="width:130px;color:var(--fg-3)">acc ${r.acc} · dis ${r.dis} · n ${r.n}</span>
+          <span style="color:var(--fg-3)">avg score ${r.avg>=0?'+':''}${r.avg.toFixed(1)}</span></div>`).join('');
+    }
+  } else if(tab==='ledger'){
+    const bt=Object.values(DATA.by_ticker||{}).sort((a,b)=>(b.flow_score||0)-(a.flow_score||0));
+    const q=LQ.toUpperCase();
+    const list=q?bt.filter(r=>(r.ticker||'').includes(q)||(r.name||'').toUpperCase().includes(q)):bt;
+    h=sumStrip()+`<input id="cf-q" placeholder="Search 300 scored names — ticker or name…" value="${esc(LQ)}" style="width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--fg);padding:8px 12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
+      <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);display:flex;gap:10px;padding:2px 0 6px"><span style="width:56px">ticker</span><span style="flex:1">name · sector</span><span style="width:56px;text-align:right">score</span><span style="width:150px;text-align:right">13F new/add/trim/exit</span><span style="width:110px;text-align:right">QoQ shares · inv</span></div>`+
+      list.slice(0,120).map(r=>{const f=(r.detail&&r.detail['13f'])||{};const ic=(r.detail&&r.detail.inst_change)||{};
+        return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')" style="display:flex;gap:10px;align-items:center">
+        <span class="tk" style="width:56px">${esc(r.ticker)}</span>
+        <span class="nm" style="flex:1">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+        <span class="sc" style="width:56px;text-align:right;color:${(r.flow_score||0)>=0?'var(--green)':'var(--red)'}">${(r.flow_score||0)>=0?'+':''}${r.flow_score}</span>
+        <span style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);width:150px;text-align:right">${f.new!=null?`${f.new}/${f.added}/${f.trimmed}/${f.exited}`:'—'}</span>
+        <span style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);width:110px;text-align:right">${ic.shares_chg!=null?fpc(Math.abs(ic.shares_chg)<3?ic.shares_chg*100:ic.shares_chg):'—'} · ${ic.investor_chg!=null?(ic.investor_chg>=0?'+':'')+ic.investor_chg:'—'}</span></div>`;}).join('')+
+      (list.length>120?`<div class="loading">${list.length-120} more — refine search.</div>`:'')+(list.length?'':'<div class="loading">No matches.</div>');
+  } else if(tab==='intel'){
+    const cf=DATA.lens_conflicts||[], np=DATA.top_new_positions||[];
+    h=sumStrip()+`<div class="grid">
+      <div class="col"><h2>⚡ Lens Conflicts — footprint turning</h2><div class="lenses" style="margin-bottom:8px">Quarterly 13F and fresher institutional QoQ disagree in sign — the stale filing hasn't caught the turn yet.</div>${cf.length?cf.map(c=>`<div class="row" onclick="window.open('/why.html?ticker=${esc(c.ticker)}','_blank')"><div style="flex:1"><div style="display:flex;gap:10px;align-items:center"><span class="tk">${esc(c.ticker)}</span><span class="nm">${esc(c.name||'')}${c.sector?' · '+esc(c.sector):''}</span><span class="sc" style="color:${(c.inst_score||0)>=0?'var(--green)':'var(--red)'}">gap ${c.gap}</span></div><div class="lenses">13F ${c.f13_score>=0?'+':''}${c.f13_score} vs QoQ ${c.inst_score>=0?'+':''}${c.inst_score} — ${esc(c.read||'')}</div></div></div>`).join(''):'<div class="loading">No sign conflicts today.</div>'}</div>
+      <div class="col"><h2>🆕 New Money — funds initiating</h2><div class="lenses" style="margin-bottom:8px">Ranked purely by 13F NEW positions this quarter.</div>${np.length?np.map(n=>`<div class="row" onclick="window.open('/why.html?ticker=${esc(n.ticker)}','_blank')"><div style="flex:1"><div style="display:flex;gap:10px;align-items:center"><span class="tk">${esc(n.ticker)}</span><span class="nm">${esc(n.name||'')}${n.sector?' · '+esc(n.sector):''}</span><span class="sc" style="color:var(--green)">+${n.new} new</span></div><div class="lenses">+${n.added} added · ${n.n_funds} funds hold${n.val_delta_pct!=null?' · Δ$ '+fpc(n.val_delta_pct):''} · score ${n.flow_score>=0?'+':''}${n.flow_score}</div></div></div>`).join(''):'<div class="loading">Awaiting 13F cycle.</div>'}</div>
+    </div>`;
   }
   h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
   document.getElementById('content').innerHTML=h;
 }
+document.getElementById('content').addEventListener('input',e=>{if(e.target&&e.target.id==='cf-q'){LQ=e.target.value;const p=e.target.selectionStart;render();const el=document.getElementById('cf-q');if(el){el.focus();el.setSelectionRange(p,p);}}});
 document.getElementById('tabs').addEventListener('click',e=>{if(e.target.dataset.tab){tab=e.target.dataset.tab;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));render();}});
 load();
 </script>
