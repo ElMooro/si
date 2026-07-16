@@ -1,0 +1,20 @@
+## 1. admin-ajax action + params for jsGlobalResult
+
+**Status:** success  
+**Duration:** 4.8s  
+**Finished:** 2026-07-16T15:03:34+00:00  
+
+## Log
+## 2. UPSTREAM source hints (where WGB gets ITS data)
+
+- `15:03:31`   provider names: {' investing': 3, 'investing.com': 1, 'tradingeconomics': 1}
+- `15:03:31`   'source:' text: {'of financing.': 1}
+- `15:03:31`   external domains: {'code.highcharts.com': 4, 'www.amazon.com': 3, 'fonts.googleapis.com': 2, 'www.googletagmanager.com': 2, 'www.lazyportfolioetf.com': 2, 'gmpg.org': 1, 'fonts.gstatic.com': 1, 'yoast.com': 1}
+## 3. try the admin-ajax with likely actions
+
+- `15:03:32`   action=get_async_data: __ERR__ HTTP Error 400: Bad Request
+- `15:03:32`   action=async_data: __ERR__ HTTP Error 400: Bad Request
+- `15:03:33`   action=get_country_data: __ERR__ HTTP Error 400: Bad Request
+- `15:03:33`   action=wgb_async: __ERR__ HTTP Error 400: Bad Request
+- `15:03:34`   action=get_bond: __ERR__ HTTP Error 400: Bad Request
+- `15:03:34`   action=country_data: __ERR__ HTTP Error 400: Bad Request
