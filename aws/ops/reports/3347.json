@@ -1,0 +1,183 @@
+{
+ "ok": true,
+ "n_events": 31,
+ "funnel": {
+  "n_snapshots": 300,
+  "excluded_cat": 181,
+  "fail_len": 0,
+  "fail_nav": 0,
+  "corrupt_series": 4,
+  "eligible": 114,
+  "z_fires": 31,
+  "nav_guard_fail": 0,
+  "len_sample": [
+   {
+    "t": "IWM",
+    "rows": 74,
+    "nav_rows": 74
+   },
+   {
+    "t": "QQQ",
+    "rows": 72,
+    "nav_rows": 72
+   },
+   {
+    "t": "VTI",
+    "rows": 65,
+    "nav_rows": 65
+   },
+   {
+    "t": "XLE",
+    "rows": 74,
+    "nav_rows": 74
+   },
+   {
+    "t": "VOO",
+    "rows": 67,
+    "nav_rows": 67
+   }
+  ]
+ },
+ "overall": {
+  "n": 31,
+  "hit5": 38.7,
+  "hit21": 38.7,
+  "med_ex5_bps": -65,
+  "med_ex21_bps": -148
+ },
+ "by_dir": {
+  "inflow": {
+   "n": 10,
+   "hit5": 40.0,
+   "hit21": 30.0,
+   "med_ex5_bps": -131,
+   "med_ex21_bps": -406
+  },
+  "outflow": {
+   "n": 21,
+   "hit5": 38.1,
+   "hit21": 42.9,
+   "med_ex5_bps": -65,
+   "med_ex21_bps": -130
+  }
+ },
+ "by_quadrant": {
+  "stealth_accum": {
+   "n": 4,
+   "hit5": 75.0,
+   "hit21": 50.0,
+   "med_ex5_bps": 298,
+   "med_ex21_bps": -160
+  },
+  "chase": {
+   "n": 6,
+   "hit5": 16.7,
+   "hit21": 16.7,
+   "med_ex5_bps": -394,
+   "med_ex21_bps": -406
+  },
+  "distribution": {
+   "n": 11,
+   "hit5": 27.3,
+   "hit21": 63.6,
+   "med_ex5_bps": -221,
+   "med_ex21_bps": 152
+  },
+  "capitulation": {
+   "n": 10,
+   "hit5": 50.0,
+   "hit21": 20.0,
+   "med_ex5_bps": 34,
+   "med_ex21_bps": -290
+  }
+ },
+ "smart_money": {
+  "n": 17,
+  "hit5": 35.3,
+  "hit21": 29.4,
+  "med_ex5_bps": -65,
+  "med_ex21_bps": -148
+ },
+ "retail_favored": {
+  "n": 14,
+  "hit5": 42.9,
+  "hit21": 50.0,
+  "med_ex5_bps": -66,
+  "med_ex21_bps": -130
+ },
+ "benchmark": "SPY",
+ "top_events": [
+  {
+   "ticker": "ARKG",
+   "date": "2026-06-12",
+   "z": -2.6,
+   "dir": "outflow",
+   "quadrant": "distribution",
+   "trail21_pct": 13.05,
+   "ex5_bps": 847,
+   "ex21_bps": 2139,
+   "smart": false,
+   "category": "thematic"
+  },
+  {
+   "ticker": "TAN",
+   "date": "2026-06-08",
+   "z": -2.8,
+   "dir": "outflow",
+   "quadrant": "distribution",
+   "trail21_pct": 6.57,
+   "ex5_bps": -322,
+   "ex21_bps": -1533,
+   "smart": false,
+   "category": "thematic"
+  },
+  {
+   "ticker": "XME",
+   "date": "2026-06-08",
+   "z": -3.75,
+   "dir": "outflow",
+   "quadrant": "capitulation",
+   "trail21_pct": -1.59,
+   "ex5_bps": -34,
+   "ex21_bps": -1464,
+   "smart": false,
+   "category": "thematic"
+  },
+  {
+   "ticker": "ICLN",
+   "date": "2026-06-03",
+   "z": 3.29,
+   "dir": "inflow",
+   "quadrant": "chase",
+   "trail21_pct": 11.69,
+   "ex5_bps": -1025,
+   "ex21_bps": -1259,
+   "smart": false,
+   "category": "thematic"
+  },
+  {
+   "ticker": "HACK",
+   "date": "2026-06-10",
+   "z": -4.0,
+   "dir": "outflow",
+   "quadrant": "distribution",
+   "trail21_pct": 10.3,
+   "ex5_bps": -97,
+   "ex21_bps": 1259,
+   "smart": false,
+   "category": "thematic"
+  },
+  {
+   "ticker": "LIT",
+   "date": "2026-06-10",
+   "z": -2.25,
+   "dir": "outflow",
+   "quadrant": "capitulation",
+   "trail21_pct": -14.17,
+   "ex5_bps": 610,
+   "ex21_bps": -1224,
+   "smart": false,
+   "category": "thematic"
+  }
+ ]
+}
