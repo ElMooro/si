@@ -1,0 +1,122 @@
+{
+ "bench_rows_prev": {
+  "SPY": {
+   "label": "NEUTRAL",
+   "n_hist": null,
+   "flow_5d": 7838995567.550001
+  },
+  "IVV": {
+   "label": "NEUTRAL",
+   "n_hist": null,
+   "flow_5d": -567250417.5
+  },
+  "VOO": {
+   "label": "NEUTRAL",
+   "n_hist": null,
+   "flow_5d": 3196248535.64
+  },
+  "QQQ": {
+   "label": "NEUTRAL",
+   "n_hist": null,
+   "flow_5d": 1098465611.0
+  }
+ },
+ "top10_abs_flow5d_prev": [
+  {
+   "t": "MUU",
+   "f5d": 113805173095.815,
+   "aum": 5025719122.38,
+   "label": "STRONG_INFLOW"
+  },
+  {
+   "t": "KORU",
+   "f5d": 34488025069.4132,
+   "aum": 1627440483.312,
+   "label": "STRONG_INFLOW"
+  },
+  {
+   "t": "SPY",
+   "f5d": 7838995567.550001,
+   "aum": 794171896638.648,
+   "label": "NEUTRAL"
+  },
+  {
+   "t": "VOO",
+   "f5d": 3196248535.64,
+   "aum": 999314894562.25,
+   "label": "NEUTRAL"
+  },
+  {
+   "t": "EWY",
+   "f5d": 2574932656.9,
+   "aum": 23174237597.3,
+   "label": "STRONG_INFLOW"
+  },
+  {
+   "t": "SOXS",
+   "f5d": -1257081367.34,
+   "aum": 1590631222.6799998,
+   "label": "STRONG_OUTFLOW"
+  },
+  {
+   "t": "QQQ",
+   "f5d": 1098465611.0,
+   "aum": 479337316533.0,
+   "label": "NEUTRAL"
+  },
+  {
+   "t": "DIA",
+   "f5d": 914924403.3000001,
+   "aum": 46411259745.05577,
+   "label": "NEUTRAL"
+  },
+  {
+   "t": "VTI",
+   "f5d": 830047493.46,
+   "aum": 669588551284.7999,
+   "label": "NEUTRAL"
+  },
+  {
+   "t": "VWO",
+   "f5d": 827605291.78,
+   "aum": 122329833044.54,
+   "label": "NEUTRAL"
+  }
+ ],
+ "event_study": {
+  "benchmark": null,
+  "n_events": null,
+  "overall": null,
+  "by_dir": null,
+  "by_quadrant": null,
+  "smart_money": null,
+  "retail_favored": null,
+  "error": "no benchmark with >=80 NAV days",
+  "probe": {
+   "SPY": 74,
+   "IVV": 74,
+   "VOO": 67,
+   "QQQ": 72
+  }
+ },
+ "leveraged_appetite": {
+  "read": "RISK_SEEKING",
+  "bull_5d_usd": 52846295,
+  "bear_5d_usd": -1787911420,
+  "net_5d_usd": 1840757715,
+  "n_suspect_excluded": 2
+ },
+ "suspects": [
+  {
+   "t": "KORU",
+   "f5d": 34488025069,
+   "aum": 1627440483
+  },
+  {
+   "t": "MUU",
+   "f5d": 113805173096,
+   "aum": 5025719122
+  }
+ ],
+ "ok": false
+}
