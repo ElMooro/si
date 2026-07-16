@@ -237,6 +237,36 @@ footer{margin-top:60px;padding:28px 24px;color:var(--t3);font-size:12px;text-ali
     <p class="sub">Actual ETF net flows — real money in/out, not a volume proxy. Sector SPDRs ranked by 1-month net flow.</p>
     <div id="etf-flows"><div class="empty">Loading…</div></div>
   </div>
+
+  <div class="section">
+    <h2>🧭 Flow–price quadrant map (sector SPDRs, 1M)</h2>
+    <p class="sub">Same-window pair: 1-month net flow (% of AUM) vs 1-month price return. Flows chasing rallies is momentum confirmation; the edge quadrants are stealth accumulation (money into falling prices) and distribution rally (money leaving a rising tape).</p>
+    <div id="quad-map"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🥊 Wrapper wars — complex-net truth</h2>
+    <p class="sub">Gross single-ETF flows lie when money switches share classes (VOO→IVV, SPY→SPYM). Net per complex = the true demand signal.</p>
+    <div id="complex-nets"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🌐 Where the money went — by asset class (1M)</h2>
+    <p class="sub">All ranked ETFs aggregated by asset type: gross in vs gross out vs net, with YTD context.</p>
+    <div id="type-flows"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>🐋 Whales vs the crowd (sector SPDRs)</h2>
+    <p class="sub">13F institutional + whale net dollars (latest quarter) against Finviz 1-month crowd flows. Different windows — read direction, not magnitude. Whales selling into crowd inflows is classic distribution.</p>
+    <div id="whale-crowd"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>📶 Sector internals — do flows have breadth behind them?</h2>
+    <p class="sub">Per GICS sector across the full stock universe: % of members above the 200-day and 50-day averages, median 1-month move, joined to that sector's SPDR flow. Flows without breadth are fragile; breadth without flows is fuel.</p>
+    <div id="sec-breadth"><div class="empty">Loading…</div></div>
+  </div>
 </main>
 
 <footer>
@@ -427,10 +457,128 @@ async function loadEtfFlows(){
   const tgl=document.getElementById('jh-fl-tgl');
   if(tgl)tgl.onclick=()=>{const more=[...el.querySelectorAll('.jh-flmore')];const open=more.length&&more[0].style.display!=='none';more.forEach(n=>n.style.display=open?'none':'');tgl.textContent=open?'Show all 25 \u25be':'Show top 12 \u25b4';};
 }
+async function loadFlowIntel(){
+  let d=null,w=null;
+  try{const r=await fetch(`${BUCKET}/data/finviz-etf-flows.json?t=${Date.now()}`);d=await r.json();}catch(e){}
+  try{const r=await fetch(`${BUCKET}/data/13f-flows-by-ticker.json?t=${Date.now()}`);w=await r.json();}catch(e){}
+  if(!d)return;
+  const esc=v=>String(v==null?'':v).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const fm=v=>v==null?'\u2014':((v>=0?'+':'\u2212')+'$'+(Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(0)+'M'));
+  const fp=v=>v==null?'\u2014':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
+  const G='#26d07c',R='#ff5577',MONO='ui-monospace,Menlo,Consolas,monospace';
+
+  /* A — quadrant map */
+  (function(){const el=document.getElementById('quad-map');if(!el)return;
+    const pts=(d.sector_etfs||[]).filter(x=>x.perf_m!=null&&x.flows_1m_pct!=null);
+    if(!pts.length){el.innerHTML='<div class="empty">Awaiting perf join (next engine run).</div>';return;}
+    const W=720,H=340,PX=52,PY=26;
+    const mx=Math.max(...pts.map(p=>Math.abs(p.perf_m)),2)*1.25, my=Math.max(...pts.map(p=>Math.abs(p.flows_1m_pct)),2)*1.25;
+    const X=v=>PX+(v+mx)/(2*mx)*(W-2*PX), Y=v=>H-PY-(v+my)/(2*my)*(H-2*PY);
+    const mA=Math.max(...pts.map(p=>p.aum||0),1);
+    const dots=pts.map(p=>{const r=5+9*Math.sqrt((p.aum||0)/mA),x=X(p.perf_m),y=Y(p.flows_1m_pct),c=(p.flows_1m_pct>=0)?G:R;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity=".28" stroke="${c}" stroke-width="1.4"><title>${esc(p.ticker)} ${esc(p.sector)}\nflow 1M ${fp(p.flows_1m_pct)} AUM (${fm(p.flows_1m)})\nprice 1M ${fp(p.perf_m)}</title></circle>
+      <text x="${(x+r+3).toFixed(1)}" y="${(y+3.5).toFixed(1)}" font-size="10.5" font-family="${MONO}" fill="var(--t1)">${esc(p.ticker)}</text>`;}).join('');
+    el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+      <rect x="${PX}" y="${PY}" width="${(W-2*PX)/2}" height="${(H-2*PY)/2}" fill="${G}" opacity=".05"/>
+      <rect x="${W/2}" y="${PY}" width="${(W-2*PX)/2}" height="${(H-2*PY)/2}" fill="#3aa0ff" opacity=".05"/>
+      <rect x="${PX}" y="${H/2}" width="${(W-2*PX)/2}" height="${(H-2*PY)/2}" fill="${R}" opacity=".06"/>
+      <rect x="${W/2}" y="${H/2}" width="${(W-2*PX)/2}" height="${(H-2*PY)/2}" fill="#f5b942" opacity=".06"/>
+      <line x1="${PX}" y1="${H/2}" x2="${W-PX}" y2="${H/2}" stroke="rgba(255,255,255,.18)"/>
+      <line x1="${W/2}" y1="${PY}" x2="${W/2}" y2="${H-PY}" stroke="rgba(255,255,255,.18)"/>
+      <text x="${PX+6}" y="${PY+14}" font-size="10" font-family="${MONO}" fill="${G}" opacity=".85">STEALTH ACCUMULATION</text>
+      <text x="${W-PX-6}" y="${PY+14}" font-size="10" font-family="${MONO}" fill="#3aa0ff" opacity=".85" text-anchor="end">TREND CONFIRMED</text>
+      <text x="${PX+6}" y="${H-PY-8}" font-size="10" font-family="${MONO}" fill="${R}" opacity=".85">CAPITULATION</text>
+      <text x="${W-PX-6}" y="${H-PY-8}" font-size="10" font-family="${MONO}" fill="#f5b942" opacity=".85" text-anchor="end">DISTRIBUTION RALLY</text>
+      <text x="${W-PX}" y="${H/2-6}" font-size="9.5" font-family="${MONO}" fill="var(--t3)" text-anchor="end">1M price return \u2192</text>
+      <text x="${W/2+6}" y="${PY+26}" font-size="9.5" font-family="${MONO}" fill="var(--t3)">1M flow % AUM \u2191</text>
+      ${dots}</svg>`;})();
+
+  /* B — wrapper wars */
+  (function(){const el=document.getElementById('complex-nets');if(!el)return;
+    const cx=(d.complex_nets||[]);if(!cx.length){el.innerHTML='<div class="empty">Awaiting complex nets (next engine run).</div>';return;}
+    const mg=Math.max(...cx.map(c=>(c.gross_in_1m||0)+Math.abs(c.gross_out_1m||0)),1);
+    el.innerHTML=cx.map(c=>{const gi=c.gross_in_1m||0,go=Math.abs(c.gross_out_1m||0),net=c.net_1m||0,tot=gi+go;
+      const sw=tot>2e9&&Math.abs(net)/tot<0.35;
+      const read=sw?'\u21c4 mostly internal switching':(net>=0?'\u2191 directional demand':'\u2193 directional exit');
+      const chips=(c.members||[]).map(m=>`<span style="border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:0 5px;margin:1px;font-size:9.5px;color:${(m.f1m||0)>=0?G:R}">${esc(m.ticker)} ${fm(m.f1m)}</span>`).join('');
+      return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-family:${MONO}">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:12px">
+          <span style="width:130px;font-weight:700;color:var(--t1)">${esc(c.complex)}</span>
+          <span style="font-weight:700;font-size:13px;color:${net>=0?G:R}">NET ${fm(net)}</span>
+          <span style="color:var(--t3);font-size:10px">${esc(read)}</span>
+          <span style="margin-left:auto;color:var(--t3);font-size:10px">YTD ${fm(c.net_ytd)}</span>
+        </div>
+        <div style="display:flex;height:9px;margin:5px 0 4px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.04);max-width:520px">
+          <div style="width:${(gi/mg*100).toFixed(1)}%;background:${G}"></div>
+          <div style="width:${(go/mg*100).toFixed(1)}%;background:${R}"></div>
+        </div>
+        <div style="font-size:10px;color:var(--t3)">in ${fm(gi)} \u00b7 out ${fm(-go)} \u00b7 ${chips}</div>
+      </div>`;}).join('');})();
+
+  /* C — asset-class rollup */
+  (function(){const el=document.getElementById('type-flows');if(!el)return;
+    const tf=(d.type_flows||[]).slice(0,10);if(!tf.length){el.innerHTML='<div class="empty">Awaiting type rollup (next engine run).</div>';return;}
+    const mg=Math.max(...tf.map(t=>(t.gross_in_1m||0)+Math.abs(t.gross_out_1m||0)),1);
+    el.innerHTML=tf.map(t=>{const gi=t.gross_in_1m||0,go=Math.abs(t.gross_out_1m||0),net=t.net_1m||0;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-family:${MONO};font-size:12px">
+        <span style="width:150px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(t.type)} \u00b7 ${t.n} ETFs">${esc(t.type)}</span>
+        <div style="flex:1;display:flex;height:10px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.04)">
+          <div style="width:${(gi/mg*100).toFixed(1)}%;background:${G}"></div>
+          <div style="width:${(go/mg*100).toFixed(1)}%;background:${R}"></div>
+        </div>
+        <span style="width:86px;text-align:right;font-weight:700;color:${net>=0?G:R}">${fm(net)}</span>
+        <span style="width:80px;text-align:right;color:var(--t3);font-size:10px">YTD ${fm(t.net_ytd)}</span>
+      </div>`;}).join('');})();
+
+  /* D — whales vs crowd */
+  (function(){const el=document.getElementById('whale-crowd');if(!el)return;
+    const t=(w&&w.t)||null,secs=(d.sector_etfs||[]);
+    if(!t||!secs.length){el.innerHTML='<div class="empty">13F join unavailable.</div>';return;}
+    const rows=secs.map(x=>({...x,j:t[x.ticker]})).filter(x=>x.j);
+    if(!rows.length){el.innerHTML='<div class="empty">No sector SPDRs in 13F map.</div>';return;}
+    const mC=Math.max(...rows.map(x=>Math.abs(x.flows_1m||0)),1),mI=Math.max(...rows.map(x=>Math.abs(x.j.n||0)),1),mW=Math.max(...rows.map(x=>Math.abs(x.j.wn||0)),1);
+    const bar=(v,m,wd)=>{const c=(v||0)>=0?G:R;return `<div style="width:${wd}px;height:8px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(v||0)/m*100,100)}%;background:${c}"></div></div>`;};
+    const tag=x=>{const c=x.flows_1m||0,wn=x.j.wn||0;
+      if(c>0&&wn<0)return ['\u26a0 whales sold into crowd buying','#f5b942'];
+      if(c<0&&wn>0)return ['\ud83d\udd75 stealth: whales bought the outflow',G];
+      if(c>0&&wn>0)return ['aligned buying',G];
+      if(c<0&&wn<0)return ['aligned selling',R];
+      return ['\u2014','var(--t3)'];};
+    el.innerHTML=`<div style="display:flex;gap:10px;font-family:${MONO};font-size:9.5px;color:var(--t3);padding:2px 0 6px"><span style="width:52px"></span><span style="width:118px">crowd 1M (Finviz)</span><span style="width:118px">institutions Q (13F)</span><span style="width:118px">whales Q (13F)</span><span>read</span></div>`+
+      rows.map(x=>{const[tg,tc]=tag(x);return `<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:${MONO};font-size:11px">
+        <a href="why.html?ticker=${esc(x.ticker)}" style="width:52px;font-weight:700;color:var(--t1);text-decoration:none" title="${esc(x.sector)}">${esc(x.ticker)}</a>
+        <span style="display:flex;align-items:center;gap:5px;width:118px">${bar(x.flows_1m,mC,64)}<i style="font-style:normal;font-size:9.5px;color:${(x.flows_1m||0)>=0?G:R}">${fm(x.flows_1m)}</i></span>
+        <span style="display:flex;align-items:center;gap:5px;width:118px">${bar(x.j.n,mI,64)}<i style="font-style:normal;font-size:9.5px;color:${(x.j.n||0)>=0?G:R}">${fm(x.j.n)}</i></span>
+        <span style="display:flex;align-items:center;gap:5px;width:118px">${bar(x.j.wn,mW,64)}<i style="font-style:normal;font-size:9.5px;color:${(x.j.wn||0)>=0?G:R}">${fm(x.j.wn)}</i></span>
+        <span style="color:${tc};font-size:10px">${tg}</span>
+      </div>`;}).join('');})();
+
+  /* E — sector internals + flow join */
+  (function(){const el=document.getElementById('sec-breadth');if(!el)return;
+    const sb=(d.sector_breadth||[]);if(!sb.length){el.innerHTML='<div class="empty">Awaiting breadth layer (next engine run).</div>';return;}
+    const fl={};(d.sector_etfs||[]).forEach(x=>fl[x.sector]={f:x.flows_1m,t:x.ticker});
+    el.innerHTML=sb.map(x=>{const j=fl[x.sector],f=j?j.f:null;
+      let dv='',dc='var(--t3)';
+      if(f!=null){if(f>0&&x.pct_above_200dma<45){dv='\u26a0 flows ahead of internals';dc='#f5b942';}
+        else if(f<0&&x.pct_above_200dma>60){dv='\ud83d\udca1 internals solid, flows leaving';dc='#3aa0ff';}
+        else dv=f>=0?'confirmed':'weak both';}
+      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-family:${MONO};font-size:11.5px">
+        <span style="width:158px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.sector)}</span>
+        <div style="flex:1;max-width:240px;height:10px;background:rgba(255,255,255,.05);border-radius:3px;position:relative;overflow:hidden">
+          <div style="height:100%;width:${x.pct_above_200dma}%;background:${x.pct_above_200dma>=50?G:R};opacity:.85"></div>
+          <div style="position:absolute;top:0;left:${x.pct_above_50dma}%;width:2px;height:100%;background:#fff;opacity:.55" title="50DMA"></div>
+        </div>
+        <span style="width:118px;text-align:right;color:var(--t3);font-size:10px">${x.pct_above_200dma}% >200d \u00b7 ${x.pct_above_50dma}% >50d</span>
+        <span style="width:64px;text-align:right;color:${(x.median_perf_m||0)>=0?G:R}">${fp(x.median_perf_m)}</span>
+        <span style="width:84px;text-align:right;color:${(f||0)>=0?G:R};font-size:10px">${j?esc(j.t)+' '+fm(f):''}</span>
+        <span style="color:${dc};font-size:10px">${dv}</span>
+      </div>`;}).join('')+`<div style="font-family:${MONO};font-size:9.5px;color:var(--t3);padding-top:6px">bar = % of sector stocks above 200DMA (white tick = 50DMA) \u00b7 median 1M move \u00b7 SPDR 1M flow</div>`;})();
+}
 load();
 loadFinvizRot();
 loadEtfFlows();
-setInterval(()=>{load();loadFinvizRot();loadEtfFlows();}, 5 * 60 * 1000);
+loadFlowIntel();
+setInterval(()=>{load();loadFinvizRot();loadEtfFlows();loadFlowIntel();}, 5 * 60 * 1000);
 </script>
 
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>

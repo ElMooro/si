@@ -121,16 +121,85 @@ def lambda_handler(event=None, context=None):
                 "flows_3m": r.get("flows_3m"), "flows_ytd": r.get("flows_ytd"),
                 "flows_1y": r.get("flows_1y"),
                 "expense": r.get("expense_ratio"), "n_holdings": r.get("n_holdings"),
-                "ret_1y": r.get("ret_1y"), "etf_type": r.get("etf_type")}
+                "ret_1y": r.get("ret_1y"), "etf_type": r.get("etf_type"),
+                "perf_m": r.get("perf_m"), "perf_ytd": r.get("perf_ytd")}
     _etfs = [(tk, r) for tk, r in uni.items() if r.get("aum") is not None and r.get("flows_1m") is not None]
     sector_flows = [dict(_ef(tk, uni[tk]), sector=SECTOR_ETFS[tk]) for tk in SECTOR_ETFS if tk in uni]
     sector_flows.sort(key=lambda x: (x.get("flows_1m") or 0), reverse=True)
     _ranked = sorted(_etfs, key=lambda kv: (kv[1].get("flows_1m") or 0), reverse=True)
+
+    # ── flow-intel layers (ops 3343): wrapper complexes, asset-class rollup, sector stock-breadth ──
+    COMPLEXES = {
+        "S&P 500": ["IVV", "VOO", "SPY", "SPLG", "SPYM"],
+        "Nasdaq-100": ["QQQ", "QQQM"],
+        "Total US market": ["VTI", "ITOT", "SCHB"],
+        "Small cap": ["IWM", "IJR", "VB", "VIOO"],
+        "Gold": ["GLD", "IAU", "GLDM", "SGOL", "IAUM"],
+        "Bitcoin": ["IBIT", "FBTC", "GBTC", "ARKB", "BITB", "HODL"],
+        "Emerging mkts": ["EEM", "VWO", "IEMG", "SPEM"],
+        "Developed intl": ["EFA", "VEA", "IEFA", "SPDW"],
+        "IG credit": ["LQD", "VCIT", "IGIB", "SPIB"],
+        "High yield": ["HYG", "JNK", "USHY", "SPHY"],
+        "Long Treasury": ["TLT", "VGLT", "SPTL"],
+        "T-bills / cash": ["BIL", "SGOV", "SHV", "USFR", "TFLO"],
+    }
+    complex_nets = []
+    for cname, mem in COMPLEXES.items():
+        rows = [(m, uni[m]) for m in mem if m in uni and uni[m].get("flows_1m") is not None]
+        if not rows:
+            continue
+        gi = sum((r.get("flows_1m") or 0) for _, r in rows if (r.get("flows_1m") or 0) > 0)
+        go = sum((r.get("flows_1m") or 0) for _, r in rows if (r.get("flows_1m") or 0) < 0)
+        complex_nets.append({"complex": cname, "n": len(rows),
+                             "gross_in_1m": gi, "gross_out_1m": go, "net_1m": gi + go,
+                             "net_ytd": sum((r.get("flows_ytd") or 0) for _, r in rows),
+                             "aum": sum((r.get("aum") or 0) for _, r in rows),
+                             "members": [{"ticker": m, "f1m": r.get("flows_1m")}
+                                         for m, r in sorted(rows, key=lambda kv: -(kv[1].get("flows_1m") or 0))]})
+    complex_nets.sort(key=lambda x: -abs(x["net_1m"]))
+
+    _bt = {}
+    for tk, r in _etfs:
+        t = (str(r.get("etf_type") or "").split(" - ")[0].strip()) or "Unclassified"
+        b = _bt.setdefault(t, {"type": t, "n": 0, "net_1m": 0.0, "net_ytd": 0.0,
+                               "gross_in_1m": 0.0, "gross_out_1m": 0.0, "aum": 0.0})
+        f = r.get("flows_1m") or 0.0
+        b["n"] += 1; b["net_1m"] += f; b["net_ytd"] += (r.get("flows_ytd") or 0.0)
+        b["aum"] += (r.get("aum") or 0.0)
+        if f > 0:
+            b["gross_in_1m"] += f
+        else:
+            b["gross_out_1m"] += f
+    type_flows = sorted(_bt.values(), key=lambda x: -abs(x["net_1m"]))
+
+    from statistics import median as _med
+    _sb = {}
+    for r in uni.values():
+        sec = r.get("sector")
+        if not sec or r.get("etf_type") or "exchange traded fund" in str(r.get("industry") or "").lower():
+            continue  # stocks only
+        d = _sb.setdefault(sec, {"n": 0, "a200": 0, "a50": 0, "pm": []})
+        d["n"] += 1
+        if (r.get("sma200_pct") or 0) > 0:
+            d["a200"] += 1
+        if (r.get("sma50_pct") or 0) > 0:
+            d["a50"] += 1
+        if r.get("perf_m") is not None:
+            d["pm"].append(r["perf_m"])
+    sector_breadth = sorted([{"sector": sec, "n": d["n"],
+                              "pct_above_200dma": round(100.0 * d["a200"] / d["n"], 1),
+                              "pct_above_50dma": round(100.0 * d["a50"] / d["n"], 1),
+                              "median_perf_m": round(_med(d["pm"]), 2) if d["pm"] else None}
+                             for sec, d in _sb.items() if d["n"] >= 20],
+                            key=lambda x: -x["pct_above_200dma"])
+
     s3.put_object(Bucket=BUCKET, Key="data/finviz-etf-flows.json",
                   Body=json.dumps({"generated_at": now, "n_etfs": len(_etfs),
                                    "sector_etfs": sector_flows,
                                    "top_inflows": [_ef(tk, r) for tk, r in _ranked[:25]],
-                                   "top_outflows": [_ef(tk, r) for tk, r in _ranked[-25:][::-1]]},
+                                   "top_outflows": [_ef(tk, r) for tk, r in _ranked[-25:][::-1]],
+                                   "complex_nets": complex_nets, "type_flows": type_flows,
+                                   "sector_breadth": sector_breadth},
                                   separators=(",", ":"), default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=900")
     print("[finviz-universe] etf fund flows: %d ETFs, %d sector ETFs" % (len(_etfs), len(sector_flows)))
