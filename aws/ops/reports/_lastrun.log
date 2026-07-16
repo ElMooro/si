@@ -1,13 +1,12 @@
-executing-against: 94e336a954e06aaf15e0ece072d658f25aeaa6db
-[1] deployed zip carries funnel diag
-[2] funnel: {"n_snapshots": 300, "excluded_cat": 181, "fail_len": 0, "fail_nav": 0, "corrupt_series": 4, "eligible": 114, "z_fires": 31, "nav_guard_fail": 0, "len_sample": [{"t": "IWM", "rows": 74, "nav_rows": 74}, {"t": "QQQ", "rows": 72, "nav_rows": 72}, {"t": "VTI", "rows": 65, "nav_rows": 65}, {"t": "XLE", "rows": 74, "nav_rows": 74}, {"t": "VOO", "rows": 67, "nav_rows": 67}]}
-[2] n_events: 31 bench: SPY
-    overall: {"n": 31, "hit5": 38.7, "hit21": 38.7, "med_ex5_bps": -65, "med_ex21_bps": -148}
-    by_dir: {"inflow": {"n": 10, "hit5": 40.0, "hit21": 30.0, "med_ex5_bps": -131, "med_ex21_bps": -406}, "outflow": {"n": 21, "hit5": 38.1, "hit21": 42.9, "med_ex5_bps": -65, "med_ex21_bps": -130}}
-    by_quadrant: {"stealth_accum": {"n": 4, "hit5": 75.0, "hit21": 50.0, "med_ex5_bps": 298, "med_ex21_bps": -160}, "chase": {"n": 6, "hit5": 16.7, "hit21": 16.7, "med_ex5_bps": -394, "med_ex21_bps": -406}, "distribution": {"n": 11, "hit5": 27.3, "hit21": 63.6, "med_ex5_bps": -221, "med_ex21_bps": 152}, "capitulation": {"n": 10, "hit5": 50.0, "hit21": 20.0, "med_ex5_bps": 34, "med_ex21_bps": -290}}
-    smart: {"n": 17, "hit5": 35.3, "hit21": 29.4, "med_ex5_bps": -65, "med_ex21_bps": -148}  retail: {"n": 14, "hit5": 42.9, "hit21": 50.0, "med_ex5_bps": -66, "med_ex21_bps": -130}
-    top3: [{"ticker": "ARKG", "date": "2026-06-12", "z": -2.6, "dir": "outflow", "quadrant": "distribution", "trail21_pct": 13.05, "ex5_bps": 847, "ex21_bps": 2139, "smart": false, "category": "thematic"}, {"ticker": "TAN", "date": "2026-06-08", "z": -2.8, "dir": "outflow", "quadrant": "distribution", "trail21_pct": 6.57, "ex5_bps": -322, "ex21_bps": -1533, "smart": false, "category": "thematic"}, {"ticker": "XME", "date": "2026-06-08", "z": -3.75, "dir": "outflow", "quadrant": "capitulation", "trail21_pct": -1.59, "ex5_bps": -34, "ex21_bps": -1464, "smart": false, "category": "thematic"}]
-[22:03:20] ✅ events=31 eligible=114 z_fires=31 nav_fail=0
-VERDICT: PASS
+executing-against: 5bd8e1a9903e9fa9bff3acbf83459cc78c666044
+[1] deployed zip carries summary/lens_conflicts/top_new_positions
+[2] feed: {"version": "1.1", "summary": {"n_scored": 378, "n_strong_acc": 41, "n_acc": 107, "n_neutral": 16, "n_dis": 125, "n_strong_dis": 89, "top_acc_sectors": [{"sector": "Utilities", "n": 10, "avg_score": 34.5}, {"sector": "Industrials", "n": 7, "avg_score": 32.3}, {"sector": "Technology", "n": 5, "avg_score": 32.6}, {"sector": "Energy", "n": 5, "avg_score": 35.0}, {"sector": "Consumer Defensive", "n": 4, "avg_score": 33.4}, {"sector": "Healthcare", "n": 3, "avg_score": 32.2}], "top_dis_sectors": [{"sector": "Technology", "n": 6, "avg_score": -35.0}, {"sector": "Real Estate", "n": 4, "avg_score": -35.0}, {"sector": "Financial Services", "n": 4, "avg_score": -35.0}, {"sector": "Industrials", "n": 3, "avg_score": -35.0}, {"sector": "Healthcare", "n": 3, "avg_score": -35.0}, {"sector": "Consumer Cyclical", "n": 2, "avg_score": -35.0}]}, "n_conflicts": 0, "n_new_positions": 0, "n_by_ticker": 300}
+    conflicts: []
+    new money: []
+[3] whale join for top-5 acc: {'LYV': True, 'NEE': True, 'ALB': True, 'WEC': True, 'MRVL': True}
+[4] detail coverage: {'acc_rows': 40, 'with_13f': 38, 'with_inst': 40}
+[5] live: {'data-tab="ledger"': True, 'data-tab="intel"': True, 'Smart-money footprint by sector': True, 'lens_conflicts': True, 'top_new_positions': True, 'cf-q': True, 'why.html?ticker=': True}
+[23:03:29] ⚠ v=1.1 scored=378 conflicts=0 new=0 ledger=300 whale_top5=5/5 live_all=True
+VERDICT: PARTIAL
 
-→ Report written to aws/ops/reports/latest/3347_event_funnel.md
+→ Report written to aws/ops/reports/latest/3348_capital_flow_expansion.md
