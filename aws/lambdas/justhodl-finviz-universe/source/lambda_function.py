@@ -119,6 +119,7 @@ def lambda_handler(event=None, context=None):
         return {"ticker": tk, "name": r.get("company"), "aum": r.get("aum"),
                 "flows_1m": r.get("flows_1m"), "flows_1m_pct": r.get("flows_1m_pct"),
                 "flows_3m": r.get("flows_3m"), "flows_ytd": r.get("flows_ytd"),
+                "flows_1y": r.get("flows_1y"),
                 "expense": r.get("expense_ratio"), "n_holdings": r.get("n_holdings"),
                 "ret_1y": r.get("ret_1y"), "etf_type": r.get("etf_type")}
     _etfs = [(tk, r) for tk, r in uni.items() if r.get("aum") is not None and r.get("flows_1m") is not None]

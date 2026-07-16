@@ -381,10 +381,51 @@ async function loadEtfFlows(){
   const cl=v=>v>0?'up':v<0?'down':'flat';
   const secs=d.sector_etfs||[];const mx=Math.max(...secs.map(x=>Math.abs(x.flows_1m||0)),1);
   const rowH=x=>`<div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px"><span style="width:54px;color:var(--t1);font-weight:700">${x.ticker}</span><span style="flex:1;color:var(--t3)">${x.sector}</span><span class="${cl(x.flows_1m)}" style="width:78px;text-align:right">${fb(x.flows_1m)}</span><div style="width:120px;height:8px;background:rgba(255,255,255,.05);border-radius:3px"><div style="height:100%;width:${Math.min(Math.abs(x.flows_1m||0)/mx*100,100)}%;background:${(x.flows_1m||0)>=0?'#26d07c':'#ff5577'};border-radius:3px;margin-left:${(x.flows_1m||0)<0?'auto':'0'}"></div></div></div>`;
-  const mini=(arr,col)=>(arr||[]).slice(0,6).map(x=>`<span style="display:inline-block;font-family:ui-monospace,monospace;font-size:11px;padding:2px 7px;margin:2px;border:1px solid ${col};border-radius:4px">${x.ticker} ${fb(x.flows_1m)}</span>`).join("");
+  const esc=v=>String(v==null?'':v).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const fm=v=>v==null?'\u2014':((v>=0?'+':'\u2212')+'$'+(Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(0)+'M'));
+  const fp=v=>v==null?'\u2014':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
+  const fA=v=>v==null?'\u2014':'$'+(Math.abs(v)>=1e12?(v/1e12).toFixed(2)+'T':Math.abs(v)>=1e9?(v/1e9).toFixed(1)+'B':(v/1e6).toFixed(0)+'M');
+  const inn=(d.top_inflows||[]).slice(0,25), outw=(d.top_outflows||[]).slice(0,25);
+  const mxF=Math.max(...inn.concat(outw).map(x=>Math.abs(x.flows_1m||0)),1);
+  const sumIn=inn.reduce((a,x)=>a+(x.flows_1m||0),0), sumOut=outw.reduce((a,x)=>a+(x.flows_1m||0),0);
+  const flowRow=(x,i,neg)=>{const c=neg?'#ff5577':'#26d07c',v=x.flows_1m||0,w=Math.max(Math.min(Math.abs(v)/mxF*100,100),2);
+    const tip=esc('AUM '+fA(x.aum)+(x.n_holdings!=null?' \u00b7 '+x.n_holdings+' holdings':'')+(x.expense!=null?' \u00b7 expense '+x.expense+'%':''));
+    return `<div class="jh-flr${i>=12?' jh-flmore':''}" style="${i>=12?'display:none;':''}padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,Menlo,Consolas,monospace" title="${tip}">
+      <div style="display:flex;align-items:baseline;gap:8px;font-size:12px">
+        <span style="width:18px;color:var(--t3);font-size:10px">${i+1}</span>
+        <a href="why.html?ticker=${esc(x.ticker)}" style="width:54px;font-weight:700;color:${c};text-decoration:none">${esc(x.ticker)}</a>
+        <span style="flex:1;color:var(--t3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</span>
+        <span style="font-weight:700;color:${c}">${fm(v)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:3px 0 0 26px">
+        <div style="flex:1;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${w}%;background:linear-gradient(90deg,${c}55,${c});border-radius:3px"></div></div>
+        <span style="min-width:74px;text-align:right;font-size:10px;color:${c}">${x.flows_1m_pct!=null?fp(x.flows_1m_pct)+' AUM':''}</span>
+      </div>
+      <div style="display:flex;gap:10px;margin:2px 0 0 26px;font-size:9.5px;color:var(--t3);flex-wrap:wrap">
+        <span>3M ${fm(x.flows_3m)}</span><span>YTD ${fm(x.flows_ytd)}</span>${x.flows_1y!=null?`<span>1Y ${fm(x.flows_1y)}</span>`:''}
+        <span style="margin-left:auto">${x.ret_1y!=null?`ret 1y <b style="color:${x.ret_1y>=0?'#26d07c':'#ff5577'}">${fp(x.ret_1y)}</b>`:''}</span>
+        ${x.etf_type?`<span style="border:1px solid rgba(255,255,255,.12);border-radius:3px;padding:0 4px">${esc(String(x.etf_type).split(' - ').pop())}</span>`:''}
+      </div>
+    </div>`;};
+  const colH=(arr,neg,ttl,tot)=>`<div style="min-width:0"><div class="tbl-head" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="color:${neg?'#ff5577':'#26d07c'}">${ttl}</h3><span style="font-family:ui-monospace,monospace;font-size:11px;color:${neg?'#ff5577':'#26d07c'};white-space:nowrap">\u03a3 ${fm(tot)}</span></div>${arr.map((x,i)=>flowRow(x,i,neg)).join('')}</div>`;
+  const intense=inn.concat(outw).filter(x=>x.flows_1m_pct!=null&&(x.aum||0)>=5e8).sort((a,b)=>Math.abs(b.flows_1m_pct||0)-Math.abs(a.flows_1m_pct||0)).slice(0,8);
+  const mxP=Math.max(...intense.map(x=>Math.abs(x.flows_1m_pct||0)),1);
+  const intRow=x=>{const v=x.flows_1m_pct||0,c=v>=0?'#26d07c':'#ff5577';return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-family:ui-monospace,monospace;font-size:11px"><a href="why.html?ticker=${esc(x.ticker)}" style="width:54px;font-weight:700;color:${c};text-decoration:none">${esc(x.ticker)}</a><span style="flex:1;color:var(--t3);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</span><div style="width:110px;height:7px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(v)/mxP*100,100)}%;background:${c};border-radius:3px"></div></div><span style="width:70px;text-align:right;color:${c};font-weight:700">${fp(v)}</span><span style="width:70px;text-align:right;color:var(--t3)">${fm(x.flows_1m)}</span></div>`;};
   el.innerHTML=`${secs.map(rowH).join("")}
-    <div style="margin-top:14px"><div class="tbl-head"><h3 style="color:#26d07c">Biggest inflows (all ETFs, 1M)</h3></div>${mini(d.top_inflows,'rgba(38,208,124,.5)')}</div>
-    <div style="margin-top:10px"><div class="tbl-head"><h3 style="color:#ff5577">Biggest outflows</h3></div>${mini(d.top_outflows,'rgba(255,85,119,.5)')}</div>`;
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;font-family:ui-monospace,monospace;font-size:11px;align-items:center">
+      <span style="border:1px solid rgba(38,208,124,.35);border-radius:6px;padding:4px 10px">Top-25 inflows <b style="color:#26d07c">${fm(sumIn)}</b></span>
+      <span style="border:1px solid rgba(255,85,119,.35);border-radius:6px;padding:4px 10px">Top-25 outflows <b style="color:#ff5577">${fm(sumOut)}</b></span>
+      <span style="border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:4px 10px">Net <b class="${cl(sumIn+sumOut)}">${fm(sumIn+sumOut)}</b></span>
+      <span style="color:var(--t3)">${d.n_etfs?d.n_etfs.toLocaleString():'\u2014'} ETFs ranked \u00b7 1-month net flows</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:10px">
+      ${colH(inn,false,'Biggest inflows (all ETFs, 1M)',sumIn)}
+      ${colH(outw,true,'Biggest outflows',sumOut)}
+    </div>
+    <button id="jh-fl-tgl" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,.15);color:var(--t3);border-radius:6px;padding:4px 12px;font-family:ui-monospace,monospace;font-size:11px;cursor:pointer">Show all 25 \u25be</button>
+    ${intense.length?`<div style="margin-top:18px"><div class="tbl-head"><h3 style="color:#f5b942">Most intense flows (1M as % of AUM \u00b7 funds \u2265 $500M)</h3><p>Flow violence relative to fund size \u2014 what dollar rankings hide.</p></div>${intense.map(intRow).join('')}</div>`:''}`;
+  const tgl=document.getElementById('jh-fl-tgl');
+  if(tgl)tgl.onclick=()=>{const more=[...el.querySelectorAll('.jh-flmore')];const open=more.length&&more[0].style.display!=='none';more.forEach(n=>n.style.display=open?'none':'');tgl.textContent=open?'Show all 25 \u25be':'Show top 12 \u25b4';};
 }
 load();
 loadFinvizRot();
