@@ -248,19 +248,30 @@ def lambda_handler(event=None, context=None):
                 time.sleep(0.8 * (att + 1))
 
     def _latest_13f_quarter():
+        # Only FULLY-FILED quarters: 13F deadline = 45d after quarter-end, so
+        # require >=60d past q-end (screener doctrine), THEN confirm
+        # completeness empirically: AAPL always has thousands of holders in a
+        # fully-filed quarter (ops 3360: mid-filing Q2-2026 showed only 946 and
+        # a garbage -$2.3T "change").
+        from datetime import date as _date
         now = datetime.now(timezone.utc)
-        y, q = now.year, (now.month - 1) // 3 + 1
-        cands = []
-        for _ in range(5):
-            q -= 1
-            if q == 0:
-                y, q = y - 1, 4
-            cands.append((y, q))
-        for yy, qq in cands:
+        qends = []
+        for yy in (now.year, now.year - 1):
+            for q in (4, 3, 2, 1):
+                m = q * 3
+                qends.append((yy, q, _date(yy, m, 30 if m in (6, 9) else 31)))
+        eligible = [(yy, qq, qd) for yy, qq, qd in qends
+                    if (now.date() - qd).days >= 60]
+        eligible.sort(key=lambda x: -x[2].toordinal())
+        for yy, qq, _qd in eligible[:4]:
             js = _fmp("institutional-ownership/symbol-positions-summary",
                       f"&symbol=AAPL&year={yy}&quarter={qq}")
             if isinstance(js, list) and js:
-                return yy, qq
+                holders = sf(js[0].get("investorsHolding")) or 0
+                if holders > 3000:
+                    return yy, qq
+                print(f"[capital-flow] Q{qq} {yy} incomplete "
+                      f"({int(holders)} AAPL holders) — skipping")
         return None, None
 
     def _g(rec, *names):

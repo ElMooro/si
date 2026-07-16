@@ -69,21 +69,24 @@ with report("3360_capital_flow_dollars") as R:
     yy, qq = None, None
     import datetime as _dt
     now = _dt.datetime.now(_dt.timezone.utc)
-    y, q = now.year, (now.month - 1) // 3 + 1
-    cands = []
-    for _ in range(5):
-        q -= 1
-        if q == 0:
-            y, q = y - 1, 4
-        cands.append((y, q))
-    for cy, cq in cands:
+    qends = []
+    for cy in (now.year, now.year - 1):
+        for cq in (4, 3, 2, 1):
+            m = cq * 3
+            qends.append((cy, cq, _dt.date(cy, m, 30 if m in (6, 9) else 31)))
+    eligible = sorted([(cy, cq, qd) for cy, cq, qd in qends
+                       if (now.date() - qd).days >= 60],
+                      key=lambda x: -x[2].toordinal())
+    for cy, cq, _qd in eligible[:4]:
         try:
             js = json.loads(_http(
                 "https://financialmodelingprep.com/stable/institutional-ownership/"
                 f"symbol-positions-summary?apikey={key}&symbol=AAPL&year={cy}&quarter={cq}"))
-            if isinstance(js, list) and js:
+            if isinstance(js, list) and js and (js[0].get("investorsHolding") or 0) > 3000:
                 probe, yy, qq = js[0], cy, cq
                 break
+            if isinstance(js, list) and js:
+                print(f"  Q{cq} {cy} incomplete ({js[0].get('investorsHolding')} AAPL holders) — skip")
         except Exception as e:
             print(f"  probe Q{cq} {cy}: {e!r}")
     if not probe:
