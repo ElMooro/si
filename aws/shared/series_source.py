@@ -869,6 +869,7 @@ def _derived(sid, start):
         return {}
     ks = sorted(base)
     out, mx, prev, lag4 = {}, None, None, []
+    lag12 = []
     for k in ks:
         v = base[k]
         if tr == "negate":
@@ -885,6 +886,18 @@ def _derived(sid, start):
                 base4 = lag4.pop(0)
                 if base4 not in (None, 0):
                     out[k] = 100.0 * (v / base4 - 1.0)
+        elif tr == "yoy_pct":              # YoY % change on monthly/daily (12-period lookback)
+            lag12.append(v)
+            if len(lag12) > 12:
+                base12 = lag12.pop(0)
+                if base12 not in (None, 0):
+                    out[k] = 100.0 * (v / base12 - 1.0)
+        elif tr == "yoy_chg":              # YoY change in LEVEL (12-period lookback)
+            lag12.append(v)
+            if len(lag12) > 12:
+                base12 = lag12.pop(0)
+                if base12 is not None:
+                    out[k] = v - base12
         elif tr == "drawdown_ath":
             mx = v if mx is None or v > mx else mx
             if mx:
