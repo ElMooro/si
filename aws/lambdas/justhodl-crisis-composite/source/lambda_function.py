@@ -126,6 +126,13 @@ def comp_eurodollar(d):
     return clamp(v)
 
 
+def comp_eurodollar_hub(d):
+    # eurodollar-hub distress: CDS-weighted funding-hub stress (danger-first — spikes when a
+    # single core hub fractures). A rising reading here is a leading crisis tell.
+    v = dig(d, "eurodollar_hub_stress_0_100", "eurodollar_hub_stress")
+    return clamp(v)
+
+
 def comp_plumbing(d):
     v = dig(d, "composite_stress_score", "composite_score", "score")
     return clamp(v)
@@ -221,6 +228,7 @@ def comp_ciss(d):
 # (sidecar key, weight, extractor, human label)
 COMPONENTS = [
     ("data/eurodollar-plumbing.json", 0.20, comp_eurodollar, "USD funding stress (plumbing)"),
+    ("data/global-sovereign.json",  0.15, comp_eurodollar_hub, "Eurodollar-hub sovereign distress (CDS)"),
     ("data/crisis-plumbing.json",   0.20, comp_plumbing,   "Crisis plumbing / XCC basis"),
     ("data/treasury-noise.json",    0.12, comp_treasury,   "Treasury funding stress (bill-SOFR/repo/CP)"),
     ("data/credit-stress.json",     0.15, comp_credit,     "Credit spreads"),

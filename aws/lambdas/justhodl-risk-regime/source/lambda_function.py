@@ -293,6 +293,25 @@ def lambda_handler(event, context):
                               or {}).get("bps"),
             "source": "repo-market engine"}
 
+    # eurodollar-hub sovereign distress -- CDS-weighted funding-hub stress (danger-first;
+    # spikes when a single core hub fractures). High distress = risk-off flight-to-quality.
+    gs = _read("data/global-sovereign.json") or {}
+    hub_stress = gs.get("eurodollar_hub_stress_0_100")
+    if isinstance(hub_stress, (int, float)):
+        # 0-100 distress -> [-1..+1]: ~25 (calm) is mildly risk-on, ~70+ fully risk-off.
+        h_s = max(-1.0, min(1.0, (30.0 - hub_stress) / 40.0))
+        blocks.append(("eurodollar_hub", 0.12, h_s))
+        worst = gs.get("eurodollar_hub_worst") or {}
+        h_tells = []
+        if hub_stress >= 50:
+            h_tells.append(f"RISK-OFF: eurodollar-hub distress elevated ({hub_stress:.0f})")
+        if worst.get("country"):
+            h_tells.append(f"Worst hub: {worst.get('country')} CDS {worst.get('cds_bp')}bp")
+        results["eurodollar_hub"] = {
+            "score": round(h_s, 2), "hub_distress_0_100": hub_stress,
+            "worst_hub": worst.get("country"), "worst_cds_bp": worst.get("cds_bp"),
+            "tells": h_tells, "source": "global-sovereign engine (eurodollar hubs)"}
+
     tw = sum(w for _, w, _ in blocks)
     composite = sum(w * s for _, w, s in blocks) / tw if tw else 0.0
     score = round(_clip(composite) * 100, 1)
