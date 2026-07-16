@@ -1,11 +1,10 @@
-executing-against: 43bd6ee9d2a9a985ac25d116d4ea0348dbf8f131
-[15:06:29]   Singapore: symbol=52 flag=sg endpoint=https://www.worldgovernmentbonds.com/wp-json/count
-[15:06:30]     POST: __ERR__ HTTP Error 403: Forbidden
-[15:06:31]   Hong Kong: symbol=12 flag=cn endpoint=https://www.worldgovernmentbonds.com/wp-json/count
-[15:06:31]     POST: __ERR__ HTTP Error 403: Forbidden
-[15:06:32]   Taiwan: symbol=55 flag=tw endpoint=https://www.worldgovernmentbonds.com/wp-json/count
-[15:06:32]     POST: __ERR__ HTTP Error 403: Forbidden
-[15:06:33]   South Korea: symbol=29 flag=kr endpoint=https://www.worldgovernmentbonds.com/wp-json/count
-[15:06:33]     POST: __ERR__ HTTP Error 403: Forbidden
+executing-against: 7db9920ee225be9fbca3d01dbd54f3736f8ce806
+[15:07:52] gv extracted: True; nonce: none
+── POST with full browser headers ──
+[15:07:53]   status=200
+[15:07:53]   ✅ 10Y=2.225% CDS=25.56 spread=56.9 rating=AAA
+[15:07:53]   resp head: {"success":true,"lastDataValDesc":"16 July 2026","lastTimeValDesc":"16 Jul 2026, 14:15","bond10y":"2.225","bond10ySimulated":false,"bond10ySimulatedDesc":"","mainBondSpeech":"\n  <p>The <b>Singapore 1
+── try GET /historical with symbol ──
+[15:07:53]   /wp-json/country/v1 GET: {"namespace":"country\/v1","routes":{"\/country\/v1":{"namespace":"country\/v1","methods":["GET"],"endpoints":[{"methods":["GET"],"args":{"namespace":
 
-→ Report written to aws/ops/reports/latest/3382_wgb_restapi.md
+→ Report written to aws/ops/reports/latest/3383_wgb_headers.md
