@@ -1,13 +1,11 @@
-executing-against: baff24011df87d8bcef721f65bb5a6329199310f
-── justhodl-news-wire — deployed schedule ──
-[19:47:39]   no EventBridge rule found targeting it (maybe Scheduler, not classic rules)
-── justhodl-news-wire — recent invocation volume (last 24h) ──
-[19:47:39]   log streams active in last 24h: 50 (each stream ≈ a container; many = frequent invokes)
-[19:47:40]   invokes in newest stream sample: 1
-── justhodl-research-critique — deployed schedule ──
-[19:47:44]   no EventBridge rule found targeting it (maybe Scheduler, not classic rules)
-── justhodl-research-critique — recent invocation volume (last 24h) ──
-[19:47:44]   log streams active in last 24h: 32 (each stream ≈ a container; many = frequent invokes)
-[19:47:45]   invokes in newest stream sample: 0
+executing-against: bb165420c5bcd02457f6b28bc1be20921c4e7426
+── justhodl-news-wire ──
+[19:49:17]   scheduler: news-wire-sched | rate(15 minutes) | ENABLED
+[19:49:18]   ⭐ ACTUAL invocations last 24h (CloudWatch): 98
+[19:49:18]   ⚠⚠ this is a '1/day' engine but ran 98× → ~98× the intended LLM cost
+── justhodl-research-critique ──
+[19:49:32]   no Scheduler entry found either
+[19:49:33]   ⭐ ACTUAL invocations last 24h (CloudWatch): 29
+[19:49:33]   ⚠⚠ this is a '1/day' engine but ran 29× → ~29× the intended LLM cost
 
-→ Report written to aws/ops/reports/latest/3409_llm_cost_audit.md
+→ Report written to aws/ops/reports/latest/3410_scheduler_check.md
