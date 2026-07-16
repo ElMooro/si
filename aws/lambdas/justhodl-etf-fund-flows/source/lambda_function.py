@@ -1070,18 +1070,25 @@ def build_event_study(snapshots):
     Leveraged/volatility categories excluded (decay makes NAV excess
     meaningless). History = the engine's rolling ~120d window, so n is
     honest but modest; date-stamped history/ snapshots deepen v2."""
-    spy = snapshots.get("SPY") or {}
-    spy_nav = {}
-    for r in (spy.get("history") or []):
-        d, n = r.get("processed_date"), r.get("nav")
-        if d and n:
-            spy_nav[str(d)[:10]] = n
-    if len(spy_nav) < 80:
-        return {"event_study": {"error": "SPY NAV history too short", "n_spy": len(spy_nav)}}
+    spy_nav, bench = {}, None
+    for cand in ("SPY", "IVV", "VOO", "QQQ"):
+        snap_b = snapshots.get(cand) or {}
+        m = {}
+        for r in (snap_b.get("history") or []):
+            d, n = r.get("processed_date"), r.get("nav")
+            if d and n and n > 0:
+                m[str(d)[:10]] = n
+        if len(m) >= 80:
+            spy_nav, bench = m, cand
+            break
+    if not bench:
+        return {"event_study": {"error": "no benchmark with >=80 NAV days",
+                                "probe": {c: len([r for r in ((snapshots.get(c) or {}).get("history") or [])
+                                                  if r.get("nav")]) for c in ("SPY", "IVV", "VOO", "QQQ")}}}
 
     events = []
     for tk, snap in snapshots.items():
-        if tk == "SPY" or snap.get("error"):
+        if tk == bench or snap.get("error"):
             continue
         cat = (ETF_UNIVERSE.get(tk) or {}).get("category")
         if cat in ("leveraged", "volatility"):
@@ -1089,7 +1096,7 @@ def build_event_study(snapshots):
         arr = sorted([{"d": str(r.get("processed_date"))[:10],
                        "f": r.get("flow"), "nav": r.get("nav")}
                       for r in (snap.get("history") or [])
-                      if r.get("processed_date") and r.get("nav") is not None],
+                      if r.get("processed_date") and r.get("nav")],
                      key=lambda x: x["d"])
         if len(arr) < 90:
             continue
@@ -1142,7 +1149,8 @@ def build_event_study(snapshots):
                 "med_ex5_bps": round(statistics.median(e5)),
                 "med_ex21_bps": round(statistics.median(e21))}
 
-    study = {"method": ("z>=|2| on rolling 60d flow baseline, 10d cooldown, "
+    study = {"benchmark": bench,
+             "method": ("z>=|2| on rolling 60d flow baseline, 10d cooldown, "
                         "forward 5d/21d NAV return minus SPY, leveraged/vol excluded; "
                         "rolling ~120d engine window — n grows via history/ snapshots"),
              "n_events": len(events),
@@ -1167,7 +1175,7 @@ def build_leveraged_appetite(metrics):
         if "bull" in s or s == "vol_short":
             return "bull"
         return None
-    pairs, bull, bear = {}, 0.0, 0.0
+    pairs, bull, bear, suspects = {}, 0.0, 0.0, []
     for m in metrics:
         tk = m.get("ticker")
         u = ETF_UNIVERSE.get(tk) or {}
@@ -1176,7 +1184,15 @@ def build_leveraged_appetite(metrics):
         side = _side(u.get("subcategory"))
         if not side:
             continue
-        f = m.get("flow_5d_usd") or m.get("fund_flow_5d_usd") or 0.0
+        f = m.get("flow_5d_usd")
+        if f is None:
+            f = m.get("fund_flow_5d_usd")
+        if f is None:
+            continue
+        aum = m.get("aum_usd") or 0
+        if abs(f) > max(5e9, 0.5 * aum):  # data-suspect for a leveraged fund
+            suspects.append({"t": tk, "f5d": round(f), "aum": round(aum)})
+            continue
         root = (u.get("subcategory") or "").replace("_bull", "").replace("_bear", "")             .replace("vol_long", "vol").replace("vol_short", "vol")
         p = pairs.setdefault(root, {"pair": root, "bull_5d": 0.0, "bear_5d": 0.0, "tickers": []})
         p[side + "_5d"] += f
@@ -1190,7 +1206,8 @@ def build_leveraged_appetite(metrics):
     read = "RISK_SEEKING" if net > thr else "RISK_AVERSE" if net < -thr else "NEUTRAL"
     return {"bull_5d_usd": round(bull), "bear_5d_usd": round(bear),
             "net_5d_usd": round(net), "read": read,
-            "pairs": sorted(pairs.values(), key=lambda p: -(abs(p["bull_5d"]) + abs(p["bear_5d"])))}
+            "n_suspect_excluded": len(suspects), "suspects": suspects[:8],
+            "pairs": sorted(pairs.values(), key=lambda p: -(abs(p["bull_5d"]) + abs(p["bear_5d"])))[:20]}
 
 
 def lambda_handler(event, context):
