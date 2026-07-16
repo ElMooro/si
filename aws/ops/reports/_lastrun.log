@@ -1,11 +1,13 @@
-executing-against: bb165420c5bcd02457f6b28bc1be20921c4e7426
-── justhodl-news-wire ──
-[19:49:17]   scheduler: news-wire-sched | rate(15 minutes) | ENABLED
-[19:49:18]   ⭐ ACTUAL invocations last 24h (CloudWatch): 98
-[19:49:18]   ⚠⚠ this is a '1/day' engine but ran 98× → ~98× the intended LLM cost
-── justhodl-research-critique ──
-[19:49:32]   no Scheduler entry found either
-[19:49:33]   ⭐ ACTUAL invocations last 24h (CloudWatch): 29
-[19:49:33]   ⚠⚠ this is a '1/day' engine but ran 29× → ~29× the intended LLM cost
+executing-against: 1a29e14aa585c15b18cad4f90c42b86e5867ed67
+── Before ──
+[19:50:42]   news-wire-sched: rate(15 minutes) (ENABLED)
+── Fix → once daily 11:00 UTC ──
+[19:50:42] ✅   news-wire-sched now: cron(0 11 * * ? *) (ENABLED)
+[19:50:42]   → 98 runs/day → 1 run/day. Saves ~97 Haiku calls/day (~$2.33/day, ~$70/mo).
+── research-critique — for your decision (NOT changed) ──
+[19:50:42]   Invoked 1-per-ticker by equity-prewarm after each research succeeds (BY DESIGN).
+[19:50:42]   29 tickers/day × Sonnet 4.6 @ max_tokens 4000 = ~$1.91/day.
+[19:50:42]   Levers: (a) switch critic to Haiku or GLM-5.1 (~5-10x cheaper), (b) critique only
+[19:50:42]   high-conviction tickers, (c) lower max_tokens 4000→1500. Awaiting your pick.
 
-→ Report written to aws/ops/reports/latest/3410_scheduler_check.md
+→ Report written to aws/ops/reports/latest/3411_fix_newswire_sched.md
