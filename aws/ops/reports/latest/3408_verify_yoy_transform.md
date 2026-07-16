@@ -1,0 +1,28 @@
+## Unit-test yoy_pct transform logic (offline, deterministic)
+
+**Status:** success  
+**Duration:** 5.6s  
+**Finished:** 2026-07-16T18:19:17+00:00  
+
+## Log
+- `18:19:11`   input: 2024 all=100, 2025 all=120
+- `18:19:11`   yoy_pct 2025-01..2025-12: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+- `18:19:11` ✅ yoy_pct math correct (+20% YoY)
+## Confirm transform is registered in the deployed shared lib
+
+- `18:19:11`   'yoy_pct' branch present: True
+- `18:19:11`   'yoy_chg' branch present: True
+- `18:19:11`   → bundled into every engine via _lambda_deploy_helpers (aws/shared/*.py copy)
+## Deploy one consumer to bake the updated lib in
+
+- `18:19:11`   zip: 87204 bytes
+## 1. Lambda
+
+- `18:19:11`   Lambda exists — updating
+- `18:19:16` ✅   ✓ updated justhodl-wl-engines
+## 2. EB rule + permissions
+
+- `18:19:17`   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
+- `18:19:17` ✅   ✓ target → justhodl-wl-engines
+- `18:19:17` ✅   ✓ added invoke permission
+- `18:19:17` ✅ wl-engines redeployed with updated series_source (yoy_pct now available fleet-wide via SRC~ID~yoy_pct)
