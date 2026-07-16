@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Global sovereign desk — live 10Y yields, sovereign CDS, spreads and ratings for 45 economies">
+<title>Global Sovereign Desk · JustHodl.AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+  :root {
+    --bg-primary: #080b14; --bg-secondary: #0d1120; --bg-card: #131a2e; --bg-elevated: #182140;
+    --bg-subtle: rgba(120,140,190,0.05); --border-soft: #1a2138;
+    --text-primary: #eef2fb; --text-secondary: #96a0bd; --text-muted: #5c668a;
+    --green: #1ae08a; --red: #f8556a; --amber: #fbbf24; --blue: #56a0ff; --purple: #b571f8;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.25);
+  }
+  * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+  body { background: radial-gradient(1200px 600px at 50% -100px, #101830 0%, var(--bg-primary) 60%); color: var(--text-primary); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .card { background: linear-gradient(180deg, var(--bg-card) 0%, #101627 100%); border: 1px solid var(--border-soft); border-radius: 1rem; box-shadow: var(--shadow); }
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+  .grad-text { background: linear-gradient(120deg, #56a0ff 0%, #1ae08a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .kpi-tile { background: linear-gradient(180deg, var(--bg-elevated) 0%, #121a33 100%); border: 1px solid var(--border-soft); border-radius: 0.85rem; padding: 1rem 1.1rem; }
+  .nav-link { color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; }
+  .nav-link:hover { color: var(--text-primary); }
+  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(26,224,138,0.6); } 70% { box-shadow: 0 0 0 9px rgba(26,224,138,0); } }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); text-align: right; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border-soft); cursor: pointer; user-select: none; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th:hover { color: var(--text-secondary); }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border-soft); text-align: right; font-size: 0.82rem; }
+  tr:hover td { background: var(--bg-subtle); }
+  .badge { padding: 0.1rem 0.45rem; border-radius: 0.4rem; font-size: 0.62rem; font-weight: 600; white-space: nowrap; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 0.25rem 0.6rem; border-radius: 0.5rem; font-size: 0.72rem; border: 1px solid var(--border-soft); cursor: pointer; }
+  .chip.active { background: var(--bg-elevated); border-color: var(--blue); color: var(--text-primary); }
+  @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+</style>
+</head>
+<body>
+
+<header class="border-b border-[var(--border-soft)] bg-[var(--bg-secondary)]/80 backdrop-blur sticky top-0 z-50">
+  <div class="max-w-[1500px] mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2">
+        <span class="grad-text font-bold text-lg">JUSTHODL</span>
+        <span class="text-xs text-[var(--text-muted)] mono uppercase">Terminal</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-4">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/sovereign-stress.html" class="nav-link">Sovereign Stress</a>
+        <a href="/jsi.html" class="nav-link">Stress Index</a>
+        <a href="/risk-desk.html" class="nav-link">Risk Desk</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3 text-xs">
+      <span class="pulse-dot"></span>
+      <span class="text-[var(--text-secondary)] mono" id="updated">loading…</span>
+    </div>
+  </div>
+</header>
+
+<section class="max-w-[1500px] mx-auto px-4 pt-8 pb-4">
+  <div class="mb-5">
+    <div class="eyebrow mb-3">Global Sovereign Desk · live worldwide</div>
+    <h1 class="text-3xl md:text-[2.4rem] leading-[1.1] font-bold mb-3 max-w-4xl">
+      The world's <span class="grad-text">sovereign credit risk</span>, on one desk.
+    </h1>
+    <p class="text-[var(--text-secondary)] text-sm md:text-[0.95rem] max-w-3xl leading-relaxed">
+      Live 10-year government bond yields, sovereign CDS (5-year default-swap spreads), spread-vs-Bund, credit ratings
+      and central-bank policy rates for 45 economies — refreshed twice daily. Ranked by a CDS-weighted stress score,
+      because default-swap pricing is the market's cleanest read on sovereign risk.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Countries</div>
+      <div class="text-3xl font-bold mono" id="kpi-n">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1">live sovereigns</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Global Avg CDS</div>
+      <div class="text-3xl font-bold mono text-[var(--blue)]" id="kpi-cds">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1">5Y basis points</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Highest Risk</div>
+      <div class="text-2xl font-bold mono text-[var(--red)]" id="kpi-high">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1" id="kpi-high-cds">—</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="eyebrow mb-1.5" style="letter-spacing:0.08em">Safest</div>
+      <div class="text-2xl font-bold mono text-[var(--green)]" id="kpi-low">—</div>
+      <div class="text-xs text-[var(--text-secondary)] mt-1" id="kpi-low-cds">—</div>
+    </div>
+  </div>
+</section>
+
+<!-- REGIONS -->
+<section class="max-w-[1500px] mx-auto px-4 pb-5">
+  <div class="card p-5">
+    <div class="eyebrow mb-3">Regional credit risk · average stress by region</div>
+    <div id="region-bars"></div>
+  </div>
+</section>
+
+<!-- FILTERS + TABLE -->
+<section class="max-w-[1500px] mx-auto px-4 pb-10">
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <div class="eyebrow">Sovereign league table · ranked by stress</div>
+      <div class="flex gap-1.5 flex-wrap" id="region-filters"></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="sov-table">
+        <thead><tr>
+          <th data-k="country">Country</th>
+          <th data-k="stress_0_100">Stress</th>
+          <th data-k="cds_bp">CDS (bp)</th>
+          <th data-k="cds_default_prob_pct">Def. Prob</th>
+          <th data-k="yield_10y_pct">10Y Yield</th>
+          <th data-k="spread_vs_bund_bp">vs Bund</th>
+          <th data-k="cb_rate_pct">CB Rate</th>
+          <th data-k="rating">Rating</th>
+        </tr></thead>
+        <tbody id="sov-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer class="max-w-[1500px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
+  <div class="border-t border-[var(--border-soft)] pt-6">
+    <div class="mb-2"><strong>Methodology.</strong> Per-country stress (0-100) is a CDS-weighted blend: 55% sovereign CDS (direct default pricing), 25% spread-vs-Bund, 20% absolute 10-year yield. Regimes: CALM &lt;20, NORMAL 20-35, ELEVATED 35-50, STRESS 50-70, DISTRESS ≥70. Where a country has no traded CDS, the score falls back to spread and yield.</div>
+    <div class="mt-3 mono">Data: <a href="data/global-sovereign.json" class="text-[var(--blue)] hover:underline">global-sovereign.json</a> · Source: World Government Bonds (worldgovernmentbonds.com) · Refresh: twice daily via <code>justhodl-global-sovereign</code>.</div>
+  </div>
+</footer>
+
+<script>
+const fmt = (n,d=1) => (n===null||n===undefined||isNaN(n)) ? '—' : Number(n).toFixed(d);
+const stressColor = v => v==null?'var(--text-muted)':v>=70?'var(--red)':v>=50?'#ff8a4c':v>=35?'var(--amber)':v>=20?'var(--blue)':'var(--green)';
+const regimeColor = r => ({DISTRESS:'var(--red)',STRESS:'#ff8a4c',ELEVATED:'var(--amber)',NORMAL:'var(--blue)',CALM:'var(--green)'}[r]||'var(--text-muted)');
+let DATA=null, activeRegion='All', sortKey='stress_0_100', sortDir=-1;
+
+function render(d) {
+  if (!d || !d.ok) { document.getElementById('updated').textContent='load error'; return; }
+  DATA=d;
+  document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
+  document.getElementById('kpi-n').textContent = d.n_countries;
+  document.getElementById('kpi-cds').textContent = fmt(d.global_avg_cds_bp,0);
+  const hi=d.highest_stress||{}, lo=d.lowest_stress||{};
+  document.getElementById('kpi-high').textContent = hi.country||'—';
+  document.getElementById('kpi-high-cds').textContent = hi.cds_bp!=null?`CDS ${fmt(hi.cds_bp,0)}bp · ${hi.regime}`:hi.regime||'';
+  document.getElementById('kpi-low').textContent = lo.country||'—';
+  document.getElementById('kpi-low-cds').textContent = lo.cds_bp!=null?`CDS ${fmt(lo.cds_bp,0)}bp · ${lo.regime}`:lo.regime||'';
+
+  // regions
+  const regs=d.regions||[];
+  const maxR=Math.max(...regs.map(r=>r.avg_stress||0),1);
+  document.getElementById('region-bars').innerHTML = regs.map(r=>`
+    <div style="display:grid;grid-template-columns:1.3fr 3fr auto auto;gap:.6rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border-soft)">
+      <div class="text-sm font-medium">${r.region}</div>
+      <div style="height:8px;border-radius:4px;background:var(--bg-subtle);overflow:hidden"><div style="height:100%;width:${(r.avg_stress/maxR*100)||0}%;background:${stressColor(r.avg_stress)};border-radius:4px"></div></div>
+      <div class="mono text-sm" style="color:${stressColor(r.avg_stress)};min-width:36px;text-align:right">${fmt(r.avg_stress,0)}</div>
+      <div class="mono text-xs text-[var(--text-muted)]" style="min-width:78px;text-align:right">CDS ${fmt(r.avg_cds_bp,0)}bp</div>
+    </div>`).join('');
+
+  // region filter chips
+  const allRegions=['All',...regs.map(r=>r.region)];
+  document.getElementById('region-filters').innerHTML = allRegions.map(r=>
+    `<span class="chip ${r===activeRegion?'active':''}" onclick="setRegion('${r.replace(/'/g,"\\'")}')">${r}</span>`).join('');
+
+  renderTable();
+}
+
+function setRegion(r){ activeRegion=r; render(DATA); }
+window.setRegion=setRegion;
+
+function renderTable() {
+  let rows=(DATA.countries||[]).slice();
+  if (activeRegion!=='All') rows=rows.filter(r=>r.region===activeRegion);
+  rows.sort((a,b)=>{
+    let x=a[sortKey], y=b[sortKey];
+    if (typeof x==='string'||typeof y==='string'){ x=x||''; y=y||''; return sortDir*String(x).localeCompare(String(y)); }
+    x=x==null?-Infinity:x; y=y==null?-Infinity:y; return sortDir*(x-y);
+  });
+  document.getElementById('sov-body').innerHTML = rows.map(r=>`
+    <tr>
+      <td><span class="font-medium">${r.country}</span> <span class="text-[10px] text-[var(--text-muted)]">${r.region}</span></td>
+      <td><span class="mono font-semibold" style="color:${stressColor(r.stress_0_100)}">${fmt(r.stress_0_100,0)}</span>
+          <span class="badge" style="border:1px solid ${regimeColor(r.regime)};color:${regimeColor(r.regime)};margin-left:4px">${r.regime}</span></td>
+      <td class="mono" style="color:${r.cds_bp>=100?'var(--red)':r.cds_bp>=40?'var(--amber)':'var(--text-secondary)'}">${r.cds_bp!=null?fmt(r.cds_bp,1):'—'}</td>
+      <td class="mono text-[var(--text-muted)]">${r.cds_default_prob_pct!=null?fmt(r.cds_default_prob_pct,2)+'%':'—'}</td>
+      <td class="mono">${fmt(r.yield_10y_pct,2)}%</td>
+      <td class="mono text-[var(--text-secondary)]">${r.spread_vs_bund_bp!=null?(r.spread_vs_bund_bp>=0?'+':'')+fmt(r.spread_vs_bund_bp,0):'—'}</td>
+      <td class="mono text-[var(--text-muted)]">${r.cb_rate_pct!=null?fmt(r.cb_rate_pct,2)+'%':'—'}</td>
+      <td><span class="badge" style="border:1px solid var(--border-soft);color:var(--text-secondary)">${r.rating||'—'}</span></td>
+    </tr>`).join('');
+}
+
+document.querySelectorAll('#sov-table th').forEach(th=>{
+  th.addEventListener('click',()=>{ const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=(k==='country'||k==='rating')?1:-1;} renderTable(); });
+});
+
+fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/global-sovereign.json?ts=' + Date.now())
+  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(render)
+  .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
+</script>
+<script src="/jh-nav-drawer.js?v=3335" defer></script>
+</body>
+</html>

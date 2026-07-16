@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-global-sovereign",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Global Sovereign Desk — live 10Y yield, sovereign CDS, spread-vs-Bund, rating & CB rate for 45 economies from World Government Bonds. Per-country CDS-weighted stress score + regional aggregates. Publishes data/global-sovereign.json.",
+  "env": {},
+  "schedule": {
+    "rule_name": "global-sovereign-12h",
+    "cron": "cron(15 6,18 * * ? *)",
+    "description": "Global sovereign harvest twice daily 06:15 + 18:15 UTC"
+  }
+}
