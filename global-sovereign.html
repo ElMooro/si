@@ -98,6 +98,52 @@
   </div>
 </section>
 
+<!-- SOVEREIGN DISTRESS BAROMETER -->
+<section class="max-w-[1500px] mx-auto px-4 pb-6">
+  <div class="card p-5 md:p-6" style="background:linear-gradient(180deg,#141d33 0%,#0f1526 100%)">
+    <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+      <div>
+        <div class="eyebrow" style="color:var(--purple)">Sovereign Distress · eurodollar funding hubs</div>
+        <p class="text-xs text-[var(--text-muted)] mt-1 max-w-2xl">Where the first cracks in the global financing system appear. Tracks the full eurodollar system — US/UK/EU core &amp; periphery, offshore centers (London/HK/Singapore), major USD borrowers (Japan/Korea/Taiwan/Canada/Australia) and USD-dependent early-crack canaries (Chile/Peru).</p>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Hubs</div>
+        <div class="mono text-lg font-bold" id="bar-n">—</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,340px)_1fr] gap-6 items-center mt-3">
+      <!-- GAUGE -->
+      <div class="flex flex-col items-center">
+        <svg id="distress-gauge" viewBox="0 0 300 190" style="width:100%;max-width:320px"></svg>
+        <div class="text-center -mt-3">
+          <div class="mono font-bold text-4xl" id="bar-score" style="line-height:1">—</div>
+          <div class="badge mt-1" id="bar-regime" style="font-size:0.7rem">—</div>
+        </div>
+      </div>
+
+      <!-- DANGER-FIRST BREAKDOWN + LADDER -->
+      <div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="kpi-tile">
+            <div class="eyebrow mb-1" style="letter-spacing:0.06em">Pack Average</div>
+            <div class="mono text-2xl font-bold" id="bar-avg">—</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">mean hub CDS · the calm baseline</div>
+          </div>
+          <div class="kpi-tile" style="border-color:rgba(248,85,106,0.35)">
+            <div class="eyebrow mb-1" style="letter-spacing:0.06em;color:var(--red)">Worst Hub · the canary</div>
+            <div class="mono text-2xl font-bold text-[var(--red)]" id="bar-worst">—</div>
+            <div class="text-[11px] text-[var(--text-secondary)] mt-0.5" id="bar-worst-sub">the first to crack</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-[var(--text-muted)] mb-2">Composite is danger-first: 60% pack average + 40% worst hub, so a single fracturing hub lights the barometer rather than being averaged away.</div>
+        <div class="eyebrow mb-2" style="letter-spacing:0.06em">Hub ladder · CDS (bp)</div>
+        <div id="bar-ladder" class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- REGIONS -->
 <section class="max-w-[1500px] mx-auto px-4 pb-5">
   <div class="card p-5">
@@ -156,6 +202,8 @@ function render(d) {
   document.getElementById('kpi-low').textContent = lo.country||'—';
   document.getElementById('kpi-low-cds').textContent = lo.cds_bp!=null?`CDS ${fmt(lo.cds_bp,0)}bp · ${lo.regime}`:lo.regime||'';
 
+  renderBarometer(d);
+
   // regions
   const regs=d.regions||[];
   const maxR=Math.max(...regs.map(r=>r.avg_stress||0),1);
@@ -177,6 +225,71 @@ function render(d) {
 
 function setRegion(r){ activeRegion=r; render(DATA); }
 window.setRegion=setRegion;
+
+function distressRegime(v){
+  if (v==null) return {label:'N/A',color:'var(--text-muted)'};
+  if (v>=70) return {label:'DISTRESS',color:'var(--red)'};
+  if (v>=50) return {label:'STRESS',color:'#ff8a4c'};
+  if (v>=35) return {label:'ELEVATED',color:'var(--amber)'};
+  if (v>=20) return {label:'NORMAL',color:'var(--blue)'};
+  return {label:'CALM',color:'var(--green)'};
+}
+
+function renderBarometer(d){
+  const score = d.eurodollar_hub_stress_0_100;
+  const worst = d.eurodollar_hub_worst || {};
+  const reg = distressRegime(score);
+  document.getElementById('bar-n').textContent = (d.eurodollar_hub_detail||[]).length;
+  document.getElementById('bar-score').textContent = fmt(score,0);
+  document.getElementById('bar-score').style.color = reg.color;
+  const rb=document.getElementById('bar-regime');
+  rb.textContent = reg.label; rb.style.color=reg.color; rb.style.border='1px solid '+reg.color;
+  document.getElementById('bar-avg').textContent = fmt(d.eurodollar_hub_avg_cds_bp,1)+'bp';
+  document.getElementById('bar-worst').textContent = worst.country||'—';
+  document.getElementById('bar-worst-sub').textContent = worst.cds_bp!=null?`CDS ${fmt(worst.cds_bp,0)}bp · stress ${fmt(worst.stress,0)}`:'the first to crack';
+
+  // SVG semicircular gauge (0-100), 180° sweep
+  const R=120, cx=150, cy=150, sw=22;
+  const toXY=(pct)=>{ const a=Math.PI*(1-pct/100); return [cx+R*Math.cos(a), cy-R*Math.sin(a)]; };
+  const arc=(p0,p1,color)=>{
+    const [x0,y0]=toXY(p0),[x1,y1]=toXY(p1);
+    const large = (p1-p0)>50?1:0;
+    return `<path d="M ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="butt"/>`;
+  };
+  // zone bands: CALM 0-20, NORMAL 20-35, ELEVATED 35-50, STRESS 50-70, DISTRESS 70-100
+  let svg='';
+  svg+=arc(0,20,'var(--green)');
+  svg+=arc(20,35,'var(--blue)');
+  svg+=arc(35,50,'var(--amber)');
+  svg+=arc(50,70,'#ff8a4c');
+  svg+=arc(70,100,'var(--red)');
+  // needle
+  if (score!=null){
+    const [nx,ny]=toXY(score);
+    svg+=`<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${reg.color}" stroke-width="3.5" stroke-linecap="round"/>`;
+    svg+=`<circle cx="${cx}" cy="${cy}" r="7" fill="${reg.color}"/>`;
+    svg+=`<circle cx="${cx}" cy="${cy}" r="3" fill="var(--bg-primary)"/>`;
+    // worst-hub marker (small tick on the arc showing where the canary sits)
+    if (worst.stress!=null){
+      const [wx,wy]=toXY(worst.stress);
+      svg+=`<circle cx="${wx}" cy="${wy}" r="5" fill="none" stroke="var(--red)" stroke-width="2.5"/>`;
+    }
+  }
+  // zone labels
+  const lbl=(pct,txt)=>{ const [lx,ly]=toXY(pct); return `<text x="${lx}" y="${ly<cy?ly-14:ly+18}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="JetBrains Mono">${txt}</text>`; };
+  svg+=lbl(2,'0')+lbl(50,'50')+lbl(98,'100');
+  document.getElementById('distress-gauge').innerHTML=svg;
+
+  // hub ladder
+  const detail=(d.eurodollar_hub_detail||[]);
+  document.getElementById('bar-ladder').innerHTML = detail.map(h=>{
+    const c=distressRegime(h.stress).color;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:2px 0">
+      <span class="text-[11px]" style="color:var(--text-secondary)">${h.country}</span>
+      <span class="mono text-[11px]" style="color:${c};font-weight:600">${fmt(h.cds_bp,0)}</span>
+    </div>`;
+  }).join('');
+}
 
 function renderTable() {
   let rows=(DATA.countries||[]).slice();
