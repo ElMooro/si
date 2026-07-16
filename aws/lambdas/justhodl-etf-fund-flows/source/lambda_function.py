@@ -1087,11 +1087,15 @@ def build_event_study(snapshots):
                                                   if r.get("nav")]) for c in ("SPY", "IVV", "VOO", "QQQ")}}}
 
     events = []
+    diag = {"n_snapshots": len(snapshots), "excluded_cat": 0, "fail_len": 0,
+            "fail_nav": 0, "corrupt_series": 0, "eligible": 0, "z_fires": 0,
+            "nav_guard_fail": 0, "len_sample": []}
     for tk, snap in snapshots.items():
         if tk == bench or snap.get("error"):
             continue
         cat = (ETF_UNIVERSE.get(tk) or {}).get("category")
         if cat in ("leveraged", "volatility"):
+            diag["excluded_cat"] += 1
             continue
         # flow series has ~120d; NAV is only populated on the recent ~70-75
         # rows (Polygon fills nav late) — so z runs on the FULL flow series
@@ -1101,15 +1105,27 @@ def build_event_study(snapshots):
                       for r in (snap.get("history") or [])
                       if r.get("processed_date")],
                      key=lambda x: x["d"])
-        if len(arr) < 85 or sum(1 for x in arr if x["nav"]) < 45:
+        if len(diag["len_sample"]) < 5:
+            diag["len_sample"].append({"t": tk, "rows": len(arr),
+                                       "nav_rows": sum(1 for x in arr if x["nav"])})
+        if len(arr) < 65:
+            diag["fail_len"] += 1
             continue
+        if sum(1 for x in arr if x["nav"]) < 45:
+            diag["fail_nav"] += 1
+            continue
+        aum_now = snap.get("aum_usd")
+        if aum_now and any(x["f"] is not None and abs(x["f"]) > 0.5 * aum_now for x in arr):
+            diag["corrupt_series"] += 1  # conversion-artifact series (MUU-class)
+            continue
+        diag["eligible"] += 1
         last_ev = -99
-        for t in range(60, len(arr) - 21):
+        for t in range(45, len(arr) - 21):
             if t - last_ev < 10:
                 continue
-            base = [x["f"] for x in arr[t - 60:t] if x["f"] is not None]
+            base = [x["f"] for x in arr[max(0, t - 60):t] if x["f"] is not None]
             ft = arr[t]["f"]
-            if ft is None or len(base) < 40:
+            if ft is None or len(base) < 35:
                 continue
             mu = statistics.mean(base)
             try:
@@ -1122,9 +1138,12 @@ def build_event_study(snapshots):
             if abs(z) < 2.0:
                 continue
             last_ev = t  # cooldown on detection: one event per episode
-            n0, n5, n21, nb21 = arr[t]["nav"], arr[t + 5]["nav"], arr[t + 21]["nav"], arr[t - 21]["nav"]
+            diag["z_fires"] += 1
+            nb21 = arr[t - 21]["nav"] if t >= 21 else None
+            n0, n5, n21 = arr[t]["nav"], arr[t + 5]["nav"], arr[t + 21]["nav"]
             s0, s5, s21 = spy_nav.get(arr[t]["d"]), spy_nav.get(arr[t + 5]["d"]), spy_nav.get(arr[t + 21]["d"])
             if not all((n0, n5, n21, nb21, s0, s5, s21)):
+                diag["nav_guard_fail"] += 1
                 continue
             fwd5, fwd21 = n5 / n0 - 1, n21 / n0 - 1
             ex5 = fwd5 - (s5 / s0 - 1)
@@ -1152,7 +1171,7 @@ def build_event_study(snapshots):
                 "med_ex5_bps": round(statistics.median(e5)),
                 "med_ex21_bps": round(statistics.median(e21))}
 
-    study = {"benchmark": bench,
+    study = {"benchmark": bench, "funnel": diag,
              "method": ("z>=|2| on rolling 60d flow baseline, 10d cooldown, "
                         "forward 5d/21d NAV return minus SPY, leveraged/vol excluded; "
                         "rolling ~120d engine window — n grows via history/ snapshots"),
