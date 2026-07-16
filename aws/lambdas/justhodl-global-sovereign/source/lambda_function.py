@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
 
@@ -220,18 +220,43 @@ def lambda_handler(event=None, context=None):
     with_cds = [r for r in rows if r["cds_bp"] is not None]
     scored = [r for r in rows if r["stress_0_100"] is not None]
 
-    # Core developed-market sovereign CDS — the systemic-risk signal. Normally quiet
-    # (~10-25bp); a joint spike is a flight-from-quality tell that front-runs equity
-    # drawdowns. This is what feeds the JSI (distinct from BTP-Bund yield-spread).
-    CORE_DM = {"United States", "Germany", "France", "Italy", "Spain",
-               "United Kingdom", "Japan", "Netherlands", "Belgium", "Canada"}
-    core_cds_vals = [r["cds_bp"] for r in rows
-                     if r["country"] in CORE_DM and r["cds_bp"] is not None]
-    core_dm_cds_bp = round(sum(core_cds_vals) / len(core_cds_vals), 1) if core_cds_vals else None
-    # map to 0-100 stress: 10bp→~15, 25bp→~40, 40bp→~70, 60bp+→~90 (systemic).
-    core_dm_cds_stress = None
-    if core_dm_cds_bp is not None:
-        core_dm_cds_stress = round(clamp((core_dm_cds_bp - 5.0) / 55.0 * 90.0, 0, 100), 1)
+    # ── EURODOLLAR-HUB FUNDING STRESS — the offshore-USD system's core funding centers.
+    # NOT all sovereign risk: only the jurisdictions where eurodollar (offshore USD) funding
+    # concentrates — major USD borrowers (US/Japan/EU core) + offshore centers (London/HK/SG)
+    # + euro-system incl periphery. Designed to SNIFF DANGER FIRST: stress in this system
+    # shows up as one or two hubs breaking away from the calm pack (France/Italy 2011,
+    # Switzerland 2023), so the composite is MAX-AWARE — it blends the CDS-weighted average
+    # with the single most-stressed hub, so a lone canary lights it up rather than being
+    # diluted by a calm Germany.
+    EURODOLLAR_HUBS = {
+        "United States", "United Kingdom", "Germany", "France", "Italy", "Spain",
+        "Switzerland", "Netherlands", "Belgium", "Ireland", "Finland",
+        "Greece", "Portugal", "Sweden", "Japan", "Hong Kong", "Singapore",
+        "South Korea", "Taiwan", "Canada", "Australia",
+    }
+    hubs = [r for r in rows if r["country"] in EURODOLLAR_HUBS]
+    hub_cds = [(r["country"], r["cds_bp"]) for r in hubs if r["cds_bp"] is not None]
+
+    def cds_to_stress(bp):
+        # 5bp→0, 20bp→~25, 40bp→~57, 60bp→~82, 80bp+→~95. Calm hubs sit <25bp.
+        return round(clamp((bp - 5.0) / 75.0 * 100.0, 0, 100), 1)
+
+    eurodollar_hub_stress = None
+    hub_detail = []
+    worst_hub = None
+    if hub_cds:
+        avg_bp = sum(c for _, c in hub_cds) / len(hub_cds)
+        avg_stress = cds_to_stress(avg_bp)
+        # worst hub (the canary)
+        wname, wbp = max(hub_cds, key=lambda x: x[1])
+        worst_stress = cds_to_stress(wbp)
+        worst_hub = {"country": wname, "cds_bp": round(wbp, 1), "stress": worst_stress}
+        # dispersion: how far the worst is above the pack (danger builds as pack fractures)
+        # DANGER-FIRST composite: 60% pack average + 40% worst hub → a lone spike still moves it
+        eurodollar_hub_stress = round(0.60 * avg_stress + 0.40 * worst_stress, 1)
+        hub_detail = sorted(
+            [{"country": c, "cds_bp": round(b, 1), "stress": cds_to_stress(b)} for c, b in hub_cds],
+            key=lambda x: -x["stress"])
 
     payload = {
         "version": VERSION, "ok": bool(rows),
@@ -242,9 +267,11 @@ def lambda_handler(event=None, context=None):
         "errors": errors,
         "global_avg_stress": round(sum(r["stress_0_100"] for r in scored) / len(scored), 1) if scored else None,
         "global_avg_cds_bp": round(sum(r["cds_bp"] for r in with_cds) / len(with_cds), 1) if with_cds else None,
-        "core_dm_cds_bp": core_dm_cds_bp,
-        "core_dm_cds_stress_0_100": core_dm_cds_stress,
-        "core_dm_cds_n": len(core_cds_vals),
+        "eurodollar_hub_stress_0_100": eurodollar_hub_stress,
+        "eurodollar_hub_avg_cds_bp": round(sum(c for _, c in hub_cds) / len(hub_cds), 1) if hub_cds else None,
+        "eurodollar_hub_worst": worst_hub,
+        "eurodollar_hub_n": len(hub_cds),
+        "eurodollar_hub_detail": hub_detail,
         "highest_stress": scored[0] if scored else None,
         "lowest_stress": scored[-1] if scored else None,
         "highest_cds": max(with_cds, key=lambda r: r["cds_bp"]) if with_cds else None,
