@@ -1,21 +1,5 @@
-executing-against: e05c2d7d6a02a6e030e2ca4610e3157dfbcfa7fb
-── Crisis validation (z-scored) ──
-[17:53:40]   2008 Lehman (2008-10): 55.4 worst Netherlands z=1.13
-[17:53:40]   2011 eurozone (2011-11): 80.0 worst Portugal z=3.71
-[17:53:40]   2012 Draghi (2012-07): 79.7 worst Greece z=4.36
-[17:53:40]   2020 COVID (2020-03): 68.0 worst Switzerland z=2.08
-[17:53:40]   2022 gilt (2022-10): 60.9 worst Netherlands z=1.06
-[17:53:40]   calm 2005 (2005-06): 46.0 worst Switzerland z=0.28
-[17:53:40]   calm 2017 (2017-06): 65.3 worst Switzerland z=1.46
-[17:53:40]   recent (2026-05): 57.6 worst Japan z=1.14
-[17:53:40]   range 35.8-83.7 median 61.9
-[17:53:40]   top peaks (should be real crises):
-[17:53:40]     1990-01-01: 83.7 (Finland z=2.88)
-[17:53:40]     2012-05-01: 81.2 (Greece z=4.57)
-[17:53:40]     2012-06-01: 80.9 (Greece z=4.77)
-[17:53:40]     1990-03-01: 80.0 (Sweden z=2.65)
-[17:53:40]     2011-11-01: 80.0 (Portugal z=3.71)
-[17:53:40]     2012-04-01: 80.0 (Portugal z=3.88)
-[17:53:40] ✅ z-scored long history written — 437 points 1990-01-01→2026-05-01
+executing-against: 30497077c82fc7ade3ef27cb8fbb9b19c63dfff1
+[17:56:25] n=437 sampled=37
+[17:56:25] [{"date": "1990-01-01", "stress": 83.7}, {"date": "1991-01-01", "stress": 70.1}, {"date": "1992-01-01", "stress": 68.6}, {"date": "1993-01-01", "stress": 72.0}, {"date": "1994-01-01", "stress": 51.9}, {"date": "1995-01-01", "stress": 69.4}, {"date": "1996-01-01", "stress": 66.2}, {"date": "1997-01-01", "stress": 47.8}, {"date": "1998-01-01", "stress": 46.2}, {"date": "1999-01-01", "stress": 47.0}, {"date": "2000-01-01", "stress": 44.0}, {"date": "2001-01-01", "stress": 41.6}, {"date": "2002-01-01", "stress": 41.7}, {"date": "2003-01-01", "stress": 35.8}, {"date": "2004-01-01", "stress": 40.7}, {"date": "2005-01-01", "stress": 42.0}, {"date": "2006-01-01", "stress": 45.1}, {"date": "2007-01-01", "stress": 40.3}, {"date": "2008-01-01", "stress": 45.1}, {"date": "2009-01-01", "stress": 68.4}, {"date": "2010-01-01", "stress": 48.7}, {"date": "2011-01-01", "stress": 69.8}, {"date": "2012-01-01", "stress": 79.0}, {"date": "2013-01-01", "stress": 65.6}, {"date": "2014-01-01", "stress": 63.5}, {"date": "2015-01-01", "stress": 63.9}, {"date": "2016-01-01", "stress": 62.7}, {"date": "2017-01-01", "stress": 66.4}, {"date": "2018-01-01", "stress": 62.8}, {"date": "2019-01-01", "stress": 67.3}, {"date": "2020-01-01", "stress": 64.6}, {"date": "2021-01-01", "stress": 65.5}, {"date": "2022-01-01", "stress": 67.1}, {"date": "2023-01-01", "stress": 57.6}, {"date": "2024-01-01", "stress": 59.9}, {"date": "2025-01-01", "stress": 59.6}, {"date": "2026-01-01", "stress": 55.9}]
 
-→ Report written to aws/ops/reports/latest/3403_rebuild_zscore.md
+→ Report written to aws/ops/reports/latest/3404_dump_lh.md
