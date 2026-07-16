@@ -1,5 +1,6 @@
-executing-against: 30497077c82fc7ade3ef27cb8fbb9b19c63dfff1
-[17:56:25] n=437 sampled=37
-[17:56:25] [{"date": "1990-01-01", "stress": 83.7}, {"date": "1991-01-01", "stress": 70.1}, {"date": "1992-01-01", "stress": 68.6}, {"date": "1993-01-01", "stress": 72.0}, {"date": "1994-01-01", "stress": 51.9}, {"date": "1995-01-01", "stress": 69.4}, {"date": "1996-01-01", "stress": 66.2}, {"date": "1997-01-01", "stress": 47.8}, {"date": "1998-01-01", "stress": 46.2}, {"date": "1999-01-01", "stress": 47.0}, {"date": "2000-01-01", "stress": 44.0}, {"date": "2001-01-01", "stress": 41.6}, {"date": "2002-01-01", "stress": 41.7}, {"date": "2003-01-01", "stress": 35.8}, {"date": "2004-01-01", "stress": 40.7}, {"date": "2005-01-01", "stress": 42.0}, {"date": "2006-01-01", "stress": 45.1}, {"date": "2007-01-01", "stress": 40.3}, {"date": "2008-01-01", "stress": 45.1}, {"date": "2009-01-01", "stress": 68.4}, {"date": "2010-01-01", "stress": 48.7}, {"date": "2011-01-01", "stress": 69.8}, {"date": "2012-01-01", "stress": 79.0}, {"date": "2013-01-01", "stress": 65.6}, {"date": "2014-01-01", "stress": 63.5}, {"date": "2015-01-01", "stress": 63.9}, {"date": "2016-01-01", "stress": 62.7}, {"date": "2017-01-01", "stress": 66.4}, {"date": "2018-01-01", "stress": 62.8}, {"date": "2019-01-01", "stress": 67.3}, {"date": "2020-01-01", "stress": 64.6}, {"date": "2021-01-01", "stress": 65.5}, {"date": "2022-01-01", "stress": 67.1}, {"date": "2023-01-01", "stress": 57.6}, {"date": "2024-01-01", "stress": 59.9}, {"date": "2025-01-01", "stress": 59.6}, {"date": "2026-01-01", "stress": 55.9}]
+executing-against: b8180dda475d78c20b3e13fa2e776e61a1b0d6bf
+[17:58:59] ✅ proxy serves long-history — 437 points, 1990-01-01 → 2026-05-01, v2.0.0
+[17:58:59]   basis: Pre-CDS sovereign stress from 10Y yield spreads vs Bund, PER-HUB z-scored on own history (1990→now, 
+[17:59:00]   current reading 47.4 = 30th percentile of 36-year history (range 36-84)
 
-→ Report written to aws/ops/reports/latest/3404_dump_lh.md
+→ Report written to aws/ops/reports/latest/3405_verify_lh_live.md
