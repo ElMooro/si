@@ -1,0 +1,36 @@
+## Fetch FRED yields for all long-history hubs
+
+**Status:** success  
+**Duration:** 5.2s  
+**Finished:** 2026-07-16T17:50:39+00:00  
+
+## Log
+- `17:50:34`   United States: 497 monthly obs
+- `17:50:35`   United Kingdom: 497 monthly obs
+- `17:50:35`   Germany: 497 monthly obs
+- `17:50:35`   France: 497 monthly obs
+- `17:50:36`   Italy: 422 monthly obs
+- `17:50:36`   Spain: 497 monthly obs
+- `17:50:36`   Switzerland: 497 monthly obs
+- `17:50:36`   Netherlands: 496 monthly obs
+- `17:50:37`   Belgium: 497 monthly obs
+- `17:50:37`   Ireland: 496 monthly obs
+- `17:50:37`   Finland: 460 monthly obs
+- `17:50:37`   Portugal: 395 monthly obs
+- `17:50:38`   Sweden: 474 monthly obs
+- `17:50:38`   Japan: 449 monthly obs
+- `17:50:38`   Canada: 497 monthly obs
+- `17:50:38`   Australia: 497 monthly obs
+- `17:50:39`   Greece: 347 monthly obs
+## Construct danger-first spread-stress series 1990→now
+
+- `17:50:39`   built 437 monthly points, 1990-01-01 → 2026-05-01
+- `17:50:39`   highest-stress months (should be crises):
+- `17:50:39`     1990-01-01: 74.1 (worst Spain +679.5bp)
+- `17:50:39`     1990-03-01: 73.3 (worst Spain +621.5bp)
+- `17:50:39`     1990-04-01: 72.6 (worst Spain +602.8bp)
+- `17:50:39`     1990-05-01: 71.8 (worst Spain +591.5bp)
+- `17:50:39`     1990-07-01: 70.7 (worst Spain +590.5bp)
+- `17:50:39`     1990-09-01: 70.7 (worst Spain +603.5bp)
+- `17:50:39`   history stress range: 21.5 – 74.1, median 43.9
+- `17:50:39` ✅ LONG HISTORY written — 437 monthly points back to 1990-01-01.

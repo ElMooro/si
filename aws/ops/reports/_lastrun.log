@@ -1,27 +1,32 @@
-executing-against: d22d0f03917cc18ab9fd7a89cc10b20313ec6bdb
-── FRED 10Y govt bond yield — inception per hub ──
-[17:48:47]   United States (IRLTLT01USM156N): from 1953-04-01
-[17:48:48]   United Kingdom (IRLTLT01GBM156N): from 1960-01-01
-[17:48:48]   Germany (IRLTLT01DEM156N): from 1956-05-01
-[17:48:48]   France (IRLTLT01FRM156N): from 1960-01-01
-[17:48:48]   Italy (IRLTLT01ITM156N): from 1991-03-01
-[17:48:49]   Spain (IRLTLT01ESM156N): from 1980-01-01
-[17:48:49]   Switzerland (IRLTLT01CHM156N): from 1955-01-01
-[17:48:49]   Netherlands (IRLTLT01NLM156N): from 1959-01-01
-[17:48:49]   Belgium (IRLTLT01BEM156N): from 1955-01-01
-[17:48:50]   Ireland (IRLTLT01IEM156N): from 1970-12-01
-[17:48:50]   Finland (IRLTLT01FIM156N): from 1988-01-01
-[17:48:50]   Greece (IRLTLT01GRM156N): from 1997-06-01
-[17:48:51]   Portugal (IRLTLT01PTM156N): from 1993-07-01
-[17:48:51]   Sweden (IRLTLT01SEM156N): from 1986-12-01
-[17:48:51]   Japan (IRLTLT01JPM156N): from 1989-01-01
-[17:48:51]   South Korea (IRLTLT01KRM156N): from 2000-10-01
-[17:48:51]   Canada (IRLTLT01CAM156N): from 1955-01-01
-[17:48:52]   Australia (IRLTLT01AUM156N): from 1969-07-01
-── Composite feasibility ──
-[17:48:52]   earliest hub series: 1953-04-01
-[17:48:52]   hubs with data from ≤1990: 14
-[17:48:52]   hubs with data from ≤2000: 18
-[17:48:52]   NOTE: HK/Taiwan/Singapore/Chile/Peru NOT on FRED IRLTLT01 → long history only for the DM core.
+executing-against: 9361122144738e5e40628658199cd0b16c8d2d3d
+── Fetch FRED yields for all long-history hubs ──
+[17:50:34]   United States: 497 monthly obs
+[17:50:35]   United Kingdom: 497 monthly obs
+[17:50:35]   Germany: 497 monthly obs
+[17:50:35]   France: 497 monthly obs
+[17:50:36]   Italy: 422 monthly obs
+[17:50:36]   Spain: 497 monthly obs
+[17:50:36]   Switzerland: 497 monthly obs
+[17:50:36]   Netherlands: 496 monthly obs
+[17:50:37]   Belgium: 497 monthly obs
+[17:50:37]   Ireland: 496 monthly obs
+[17:50:37]   Finland: 460 monthly obs
+[17:50:37]   Portugal: 395 monthly obs
+[17:50:38]   Sweden: 474 monthly obs
+[17:50:38]   Japan: 449 monthly obs
+[17:50:38]   Canada: 497 monthly obs
+[17:50:38]   Australia: 497 monthly obs
+[17:50:39]   Greece: 347 monthly obs
+── Construct danger-first spread-stress series 1990→now ──
+[17:50:39]   built 437 monthly points, 1990-01-01 → 2026-05-01
+[17:50:39]   highest-stress months (should be crises):
+[17:50:39]     1990-01-01: 74.1 (worst Spain +679.5bp)
+[17:50:39]     1990-03-01: 73.3 (worst Spain +621.5bp)
+[17:50:39]     1990-04-01: 72.6 (worst Spain +602.8bp)
+[17:50:39]     1990-05-01: 71.8 (worst Spain +591.5bp)
+[17:50:39]     1990-07-01: 70.7 (worst Spain +590.5bp)
+[17:50:39]     1990-09-01: 70.7 (worst Spain +603.5bp)
+[17:50:39]   history stress range: 21.5 – 74.1, median 43.9
+[17:50:39] ✅ LONG HISTORY written — 437 monthly points back to 1990-01-01.
 
-→ Report written to aws/ops/reports/latest/3400_hub_history_probe.md
+→ Report written to aws/ops/reports/latest/3401_build_hub_history.md
