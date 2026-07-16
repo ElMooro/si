@@ -1,12 +1,18 @@
-executing-against: 8420693037795485d8202e9dbcbee48ef986a6fb
-── S3 origin object ──
-[16:06:24]   S3: version=1.3.0 eurodollar_hub_stress=47.4 n_detail=21 worst=Chile
-── CF worker proxy (what the page fetches) ──
-[16:06:24] ✅ proxy 200 — eurodollar_hub_stress=47.4 detail=21 — page WILL render barometer
-── Live HTML — is barometer markup served? ──
-[16:06:25]   'distress-gauge': present
-[16:06:25]   'renderBarometer': present
-[16:06:25]   'Sovereign Distress': present
-[16:06:25]   cache-control: max-age=600 · age: 0 · cf-cache: DYNAMIC
+executing-against: 40feb4a17d4cddb2a49aa39dc23843f1f7cec297
+── Deploy global-sovereign v1.4.0 (history snapshotting) ──
+[16:32:41]   zip: 80663 bytes
+── 1. Lambda ──
+[16:32:41]   Lambda exists — updating
+[16:32:46] ✅   ✓ updated justhodl-global-sovereign
+── 2. EB rule + permissions ──
+[16:32:47]   rule already correct: global-sovereign-12h (cron(15 6,18 * * ? *))
+[16:32:47] ✅   ✓ target → justhodl-global-sovereign
+[16:32:47] ✅   ✓ added invoke permission
+[16:32:47] harvesting + seeding history…
+[16:34:02] ✅ barometer live: stress 47.4, worst Chile
+[16:34:02]   history_n: 1 (seeds at 1, grows twice daily)
+[16:34:02]   percentile: None (needs ≥3 points to compute)
+[16:34:02]   chg_7d: None · chg_30d: None (build over time)
+[16:34:02] ✅ history file written — 1 snapshot(s): {'date': '2026-07-16', 'stress': 47.4, 'avg_cds_bp': 22.9, 'worst_country': 'Chile', 'worst_cds_bp': 67.0}
 
-→ Report written to aws/ops/reports/latest/3394_check_proxy.md
+→ Report written to aws/ops/reports/latest/3395_sovereign_history.md
