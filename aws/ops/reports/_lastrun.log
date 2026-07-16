@@ -1,27 +1,9 @@
-executing-against: 47b91e741f1c9cc7390f46e3a2738ec9d8a8a424
-── Fuse into risk-regime (risk-off block) ──
-[17:39:11]   zip: 85774 bytes
-── 1. Lambda ──
-[17:39:11]   Lambda exists — updating
-[17:39:16] ✅   ✓ updated justhodl-risk-regime
-── 2. EB rule + permissions ──
-[17:39:16]   rule already correct: justhodl-risk-regime-daily (cron(45 12 ? * MON-FRI *))
-[17:39:16] ✅   ✓ target → justhodl-risk-regime
-[17:39:17] ✅   ✓ added invoke permission
-[17:39:23]   risk-regime score=None regime=None
-[17:39:23] ✅ eurodollar_hub block LIVE in risk-regime: present in payload
-── Fuse into crisis-composite (DEFCON component) ──
-[17:39:23]   zip: 81743 bytes
-── 1. Lambda ──
-[17:39:23]   Lambda exists — updating
-[17:39:26] ✅   ✓ updated justhodl-crisis-composite
-── 2. EB rule + permissions ──
-[17:39:26]   rule already correct: crisis-composite-hourly (cron(15 * * * ? *))
-[17:39:26] ✅   ✓ target → justhodl-crisis-composite
-[17:39:26] ✅   ✓ added invoke permission
-[17:39:39]   crisis-composite master=None DEFCON=None
-[17:39:39] ✅ eurodollar-hub component LIVE in crisis-composite: Eurodollar-hub sovereign distress (CDS) = None (weight 0.15)
-── tail-risk left clean (by design) ──
-[17:39:39] ✅ tail-risk NOT modified — self-contained options-implied density; CDS would pollute the model.
+executing-against: 568c76f81db7081936a6b672f813ed4f17363a7a
+── risk-regime — eurodollar_hub block value ──
+[17:41:20]   top-level keys: ['engine', 'version', 'generated_at', 'wl_research', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components', 'tells', 'elapsed_s', 'sources', 'methodology']
+[17:41:20]   eurodollar_hub detail: {"score": -0.43, "hub_distress_0_100": 47.4, "worst_hub": "Chile", "worst_cds_bp": 67.0, "tells": ["Worst hub: Chile CDS 67.0bp"], "source": "global-sovereign engine (eurodollar hubs)"}
+── crisis-composite — eurodollar-hub component value ──
+[17:41:20]   top-level keys: ['schema_version', 'method', 'generated_at', 'btp_bund_canary', 'wl_research', 'elapsed_s', 'master_crisis_score', 'defcon_level', 'defcon_name', 'defcon_color', 'playbook', 'trend', 'components_available', 'components', 'primary_drivers', 'massive_cross_asset', 'scale', 'methodology']
+[17:41:20]   HUB component: {"source": "global-sovereign", "label": "Eurodollar-hub sovereign distress (CDS)", "weight": 0.15, "crisis_contribution": 47.4, "age_hours": 1.1, "available": true}
 
-→ Report written to aws/ops/reports/latest/3397_fuse_risk_crisis.md
+→ Report written to aws/ops/reports/latest/3399_verify_fusion.md
