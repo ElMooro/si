@@ -1078,11 +1078,11 @@ def build_event_study(snapshots):
             d, n = r.get("processed_date"), r.get("nav")
             if d and n and n > 0:
                 m[str(d)[:10]] = n
-        if len(m) >= 80:
+        if len(m) >= 55:
             spy_nav, bench = m, cand
             break
     if not bench:
-        return {"event_study": {"error": "no benchmark with >=80 NAV days",
+        return {"event_study": {"error": "no benchmark with >=55 NAV days",
                                 "probe": {c: len([r for r in ((snapshots.get(c) or {}).get("history") or [])
                                                   if r.get("nav")]) for c in ("SPY", "IVV", "VOO", "QQQ")}}}
 
@@ -1093,12 +1093,15 @@ def build_event_study(snapshots):
         cat = (ETF_UNIVERSE.get(tk) or {}).get("category")
         if cat in ("leveraged", "volatility"):
             continue
+        # flow series has ~120d; NAV is only populated on the recent ~70-75
+        # rows (Polygon fills nav late) — so z runs on the FULL flow series
+        # and NAV is guarded per event.
         arr = sorted([{"d": str(r.get("processed_date"))[:10],
-                       "f": r.get("flow"), "nav": r.get("nav")}
+                       "f": r.get("flow"), "nav": (r.get("nav") or None)}
                       for r in (snap.get("history") or [])
-                      if r.get("processed_date") and r.get("nav")],
+                      if r.get("processed_date")],
                      key=lambda x: x["d"])
-        if len(arr) < 90:
+        if len(arr) < 85 or sum(1 for x in arr if x["nav"]) < 45:
             continue
         last_ev = -99
         for t in range(60, len(arr) - 21):
@@ -1118,6 +1121,7 @@ def build_event_study(snapshots):
             z = (ft - mu) / sd
             if abs(z) < 2.0:
                 continue
+            last_ev = t  # cooldown on detection: one event per episode
             n0, n5, n21, nb21 = arr[t]["nav"], arr[t + 5]["nav"], arr[t + 21]["nav"], arr[t - 21]["nav"]
             s0, s5, s21 = spy_nav.get(arr[t]["d"]), spy_nav.get(arr[t + 5]["d"]), spy_nav.get(arr[t + 21]["d"])
             if not all((n0, n5, n21, nb21, s0, s5, s21)):
@@ -1136,7 +1140,6 @@ def build_event_study(snapshots):
                            "ex5_bps": round(ex5 * 1e4), "ex21_bps": round(ex21 * 1e4),
                            "smart": bool((ETF_UNIVERSE.get(tk) or {}).get("smart_money")),
                            "category": cat})
-            last_ev = t
 
     def _agg(rows):
         if not rows:

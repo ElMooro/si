@@ -122,7 +122,9 @@ def lambda_handler(event=None, context=None):
                 "flows_1y": r.get("flows_1y"),
                 "expense": r.get("expense_ratio"), "n_holdings": r.get("n_holdings"),
                 "ret_1y": r.get("ret_1y"), "etf_type": r.get("etf_type"),
-                "perf_m": r.get("perf_m"), "perf_ytd": r.get("perf_ytd")}
+                "perf_m": r.get("perf_m"), "perf_ytd": r.get("perf_ytd"),
+                "suspect": bool((r.get("flows_1m") is not None and r.get("aum")
+                                 and abs(r["flows_1m"]) > 1.5 * r["aum"]))}
     _etfs = [(tk, r) for tk, r in uni.items() if r.get("aum") is not None and r.get("flows_1m") is not None]
     sector_flows = [dict(_ef(tk, uni[tk]), sector=SECTOR_ETFS[tk]) for tk in SECTOR_ETFS if tk in uni]
     sector_flows.sort(key=lambda x: (x.get("flows_1m") or 0), reverse=True)

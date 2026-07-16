@@ -435,7 +435,7 @@ async function loadEtfFlows(){
     return `<div class="jh-flr${i>=12?' jh-flmore':''}" style="${i>=12?'display:none;':''}padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,Menlo,Consolas,monospace" title="${tip}">
       <div style="display:flex;align-items:baseline;gap:8px;font-size:12px">
         <span style="width:18px;color:var(--t3);font-size:10px">${i+1}</span>
-        <a href="why.html?ticker=${esc(x.ticker)}" style="width:54px;font-weight:700;color:${c};text-decoration:none">${esc(x.ticker)}</a>
+        <a href="why.html?ticker=${esc(x.ticker)}" style="width:54px;font-weight:700;color:${c};text-decoration:none">${esc(x.ticker)}</a>${x.suspect?'<span title="1M flow exceeds 150% of AUM \u2014 likely share-class conversion / merger artifact, not organic demand" style="color:#f5b942;cursor:help">\u26a0</span>':''}
         <span style="flex:1;color:var(--t3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</span>
         <span style="font-weight:700;color:${c}">${fm(v)}</span>
       </div>
@@ -450,7 +450,7 @@ async function loadEtfFlows(){
       </div>
     </div>`;};
   const colH=(arr,neg,ttl,tot)=>`<div style="min-width:0"><div class="tbl-head" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="color:${neg?'#ff5577':'#26d07c'}">${ttl}</h3><span style="font-family:ui-monospace,monospace;font-size:11px;color:${neg?'#ff5577':'#26d07c'};white-space:nowrap">\u03a3 ${fm(tot)}</span></div>${arr.map((x,i)=>flowRow(x,i,neg)).join('')}</div>`;
-  const intense=inn.concat(outw).filter(x=>x.flows_1m_pct!=null&&(x.aum||0)>=5e8).sort((a,b)=>Math.abs(b.flows_1m_pct||0)-Math.abs(a.flows_1m_pct||0)).slice(0,8);
+  const intense=inn.concat(outw).filter(x=>!x.suspect&&x.flows_1m_pct!=null&&(x.aum||0)>=5e8).sort((a,b)=>Math.abs(b.flows_1m_pct||0)-Math.abs(a.flows_1m_pct||0)).slice(0,8);
   const mxP=Math.max(...intense.map(x=>Math.abs(x.flows_1m_pct||0)),1);
   const intRow=x=>{const v=x.flows_1m_pct||0,c=v>=0?'#26d07c':'#ff5577';return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-family:ui-monospace,monospace;font-size:11px"><a href="why.html?ticker=${esc(x.ticker)}" style="width:54px;font-weight:700;color:${c};text-decoration:none">${esc(x.ticker)}</a><span style="flex:1;color:var(--t3);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</span><div style="width:110px;height:7px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(v)/mxP*100,100)}%;background:${c};border-radius:3px"></div></div><span style="width:70px;text-align:right;color:${c};font-weight:700">${fp(v)}</span><span style="width:70px;text-align:right;color:var(--t3)">${fm(x.flows_1m)}</span></div>`;};
   el.innerHTML=`${secs.map(rowH).join("")}
@@ -464,6 +464,7 @@ async function loadEtfFlows(){
       ${colH(inn,false,'Biggest inflows (all ETFs, 1M)',sumIn)}
       ${colH(outw,true,'Biggest outflows',sumOut)}
     </div>
+    ${inn.concat(outw).some(x=>x.suspect)?`<div id="jh-suspect-note" style="font-family:ui-monospace,monospace;font-size:9.5px;color:#f5b942;margin-top:6px">\u26a0 = 1M flow &gt; 150% of AUM \u2014 likely share-class conversion/merger artifact, not organic demand</div>`:''}
     <button id="jh-fl-tgl" style="margin-top:10px;background:none;border:1px solid rgba(255,255,255,.15);color:var(--t3);border-radius:6px;padding:4px 12px;font-family:ui-monospace,monospace;font-size:11px;cursor:pointer">Show all 25 \u25be</button>
     ${intense.length?`<div style="margin-top:18px"><div class="tbl-head"><h3 style="color:#f5b942">Most intense flows (1M as % of AUM \u00b7 funds \u2265 $500M)</h3><p>Flow violence relative to fund size \u2014 what dollar rankings hide.</p></div>${intense.map(intRow).join('')}</div>`:''}`;
   const tgl=document.getElementById('jh-fl-tgl');
