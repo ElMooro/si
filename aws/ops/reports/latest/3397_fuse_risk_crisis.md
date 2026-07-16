@@ -1,8 +1,15 @@
-executing-against: 3d413721082c965213b87cd35879eb10e8f666e3
-── Fuse into risk-regime (risk-off block) ──
+## Fuse into risk-regime (risk-off block)
 
-→ Report written to aws/ops/reports/latest/3397_fuse_risk_crisis.md
+**Status:** failure  
+**Duration:** 0.0s  
+**Finished:** 2026-07-16T17:36:52+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/3397_fuse_risk_crisis.py", line 45, in <module>
     rr = deploy_and_run(r, "justhodl-risk-regime", "data/risk-regime.json", None)
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -10,4 +17,8 @@ Traceback (most recent call last):
     eb_rule_name=c["schedule"]["rule_name"], eb_schedule=c["schedule"]["cron"],
                  ~~~~~~~~~~~~~^^^^^^^^^^^^^
 KeyError: 'rule_name'
-❌ OPS-FAIL: aws/ops/pending/3397_fuse_risk_crisis.py
+
+```
+
+## Log
+
