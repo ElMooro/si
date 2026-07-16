@@ -1,24 +1,36 @@
 ## Fuse into risk-regime (risk-off block)
 
-**Status:** failure  
-**Duration:** 0.0s  
-**Finished:** 2026-07-16T17:36:52+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/3397_fuse_risk_crisis.py", line 45, in <module>
-    rr = deploy_and_run(r, "justhodl-risk-regime", "data/risk-regime.json", None)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/3397_fuse_risk_crisis.py", line 24, in deploy_and_run
-    eb_rule_name=c["schedule"]["rule_name"], eb_schedule=c["schedule"]["cron"],
-                 ~~~~~~~~~~~~~^^^^^^^^^^^^^
-KeyError: 'rule_name'
-
-```
+**Status:** success  
+**Duration:** 28.2s  
+**Finished:** 2026-07-16T17:39:39+00:00  
 
 ## Log
+- `17:39:11`   zip: 85774 bytes
+## 1. Lambda
 
+- `17:39:11`   Lambda exists — updating
+- `17:39:16` ✅   ✓ updated justhodl-risk-regime
+## 2. EB rule + permissions
+
+- `17:39:16`   rule already correct: justhodl-risk-regime-daily (cron(45 12 ? * MON-FRI *))
+- `17:39:16` ✅   ✓ target → justhodl-risk-regime
+- `17:39:17` ✅   ✓ added invoke permission
+- `17:39:23`   risk-regime score=None regime=None
+- `17:39:23` ✅ eurodollar_hub block LIVE in risk-regime: present in payload
+## Fuse into crisis-composite (DEFCON component)
+
+- `17:39:23`   zip: 81743 bytes
+## 1. Lambda
+
+- `17:39:23`   Lambda exists — updating
+- `17:39:26` ✅   ✓ updated justhodl-crisis-composite
+## 2. EB rule + permissions
+
+- `17:39:26`   rule already correct: crisis-composite-hourly (cron(15 * * * ? *))
+- `17:39:26` ✅   ✓ target → justhodl-crisis-composite
+- `17:39:26` ✅   ✓ added invoke permission
+- `17:39:39`   crisis-composite master=None DEFCON=None
+- `17:39:39` ✅ eurodollar-hub component LIVE in crisis-composite: Eurodollar-hub sovereign distress (CDS) = None (weight 0.15)
+## tail-risk left clean (by design)
+
+- `17:39:39` ✅ tail-risk NOT modified — self-contained options-implied density; CDS would pollute the model.
