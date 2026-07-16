@@ -1,21 +1,13 @@
-executing-against: 8361e424310bdc4dde619b9100f98c8d1a4545fb
-── Unit-test yoy_pct transform logic (offline, deterministic) ──
-[18:19:11]   input: 2024 all=100, 2025 all=120
-[18:19:11]   yoy_pct 2025-01..2025-12: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
-[18:19:11] ✅ yoy_pct math correct (+20% YoY)
-── Confirm transform is registered in the deployed shared lib ──
-[18:19:11]   'yoy_pct' branch present: True
-[18:19:11]   'yoy_chg' branch present: True
-[18:19:11]   → bundled into every engine via _lambda_deploy_helpers (aws/shared/*.py copy)
-── Deploy one consumer to bake the updated lib in ──
-[18:19:11]   zip: 87204 bytes
-── 1. Lambda ──
-[18:19:11]   Lambda exists — updating
-[18:19:16] ✅   ✓ updated justhodl-wl-engines
-── 2. EB rule + permissions ──
-[18:19:17]   rule already correct: wl-engines-daily (cron(30 22 ? * TUE-SAT *))
-[18:19:17] ✅   ✓ target → justhodl-wl-engines
-[18:19:17] ✅   ✓ added invoke permission
-[18:19:17] ✅ wl-engines redeployed with updated series_source (yoy_pct now available fleet-wide via SRC~ID~yoy_pct)
+executing-against: baff24011df87d8bcef721f65bb5a6329199310f
+── justhodl-news-wire — deployed schedule ──
+[19:47:39]   no EventBridge rule found targeting it (maybe Scheduler, not classic rules)
+── justhodl-news-wire — recent invocation volume (last 24h) ──
+[19:47:39]   log streams active in last 24h: 50 (each stream ≈ a container; many = frequent invokes)
+[19:47:40]   invokes in newest stream sample: 1
+── justhodl-research-critique — deployed schedule ──
+[19:47:44]   no EventBridge rule found targeting it (maybe Scheduler, not classic rules)
+── justhodl-research-critique — recent invocation volume (last 24h) ──
+[19:47:44]   log streams active in last 24h: 32 (each stream ≈ a container; many = frequent invokes)
+[19:47:45]   invokes in newest stream sample: 0
 
-→ Report written to aws/ops/reports/latest/3408_verify_yoy_transform.md
+→ Report written to aws/ops/reports/latest/3409_llm_cost_audit.md
