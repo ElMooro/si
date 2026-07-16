@@ -1,26 +1,52 @@
-executing-against: 3cecf631e2cce65d3c0c4193a21bd05bcad0d478
-── The candidate JSI metrics compared ──
-[15:30:51]   GLOBAL avg CDS (all 45): 49.3bp — dominated by Turkey/Brazil/Poland outliers
-[15:30:51]   CORE-DM avg CDS (10 majors): 23.3bp — normally quiet, spikes = systemic flight
-[15:30:51]   Euro-periphery avg CDS: 22.6bp
-[15:30:51]   CORE-DM avg stress: 24.4
-── Core sovereign CDS breakdown (the signal we'd feed) ──
-[15:30:51]   United States: CDS 37.78bp · 10Y 4.578% · AA+ · stress 25.5
-[15:30:51]   Germany: CDS 7.36bp · 10Y 3.145% · AAA · stress 17.3
-[15:30:51]   France: CDS 31.23bp · 10Y 3.941% · A+ · stress 28.2
-[15:30:51]   Italy: CDS 29.93bp · 10Y 3.963% · BBB+ · stress 27.8
-[15:30:51]   Spain: CDS 16.39bp · 10Y 3.608% · A+ · stress 22.9
-[15:30:51]   United Kingdom: CDS 18.66bp · 10Y 4.98% · AA · stress 24.1
-[15:30:51]   Japan: CDS 26.37bp · 10Y 2.744% · A+ · stress 28.3
-[15:30:51]   Netherlands: CDS 7.88bp · 10Y 3.238% · AAA · stress 18.3
-[15:30:51]   Belgium: CDS 17.59bp · 10Y 3.686% · AA- · stress 24.1
-[15:30:51]   Canada: CDS 39.6bp · 10Y 3.562% · AAA · stress 27.0
-── Distress/stress counts (alternative signals) ──
-[15:30:51]   regime distribution: {'DISTRESS': 1, 'STRESS': 4, 'ELEVATED': 11, 'NORMAL': 22, 'CALM': 7}
-[15:30:51]   DISTRESS: ['Russia']
-[15:30:51]   STRESS: ['Turkey', 'Poland', 'Brazil', 'Saudi Arabia']
-── VERDICT ──
-[15:30:51]   Core-DM CDS = 23.3bp now. Normal range ~10-25bp; >40bp = systemic stress building.
-[15:30:51]   This is the metric to feed: quiet baseline, meaningful spikes, NOT captured by BTP-Bund spread feed.
+executing-against: 9d7ad703e933851d3d2eeaeb1c973b0b5d31bcf2
+── Deploy global-sovereign v1.1.0 (core-DM CDS) ──
+[15:37:11]   zip: 79792 bytes
+── 1. Lambda ──
+[15:37:11]   Lambda exists — updating
+[15:37:17] ✅   ✓ updated justhodl-global-sovereign
+── 2. EB rule + permissions ──
+[15:37:18]   rule already correct: global-sovereign-12h (cron(15 6,18 * * ? *))
+[15:37:18] ✅   ✓ target → justhodl-global-sovereign
+[15:37:18] ✅   ✓ added invoke permission
+[15:37:18] harvesting…
+[15:40:25] ✗ core_dm_cds not computed
 
-→ Report written to aws/ops/reports/latest/3390_core_cds_analysis.md
+→ Report written to aws/ops/reports/latest/3391_core_cds_jsi.md
+── Deploy global-sovereign v1.2.0 (eurodollar-hub stress) ──
+[15:40:26]   zip: 79792 bytes
+── 1. Lambda ──
+[15:40:26]   Lambda exists — updating
+[15:40:29] ✅   ✓ updated justhodl-global-sovereign
+── 2. EB rule + permissions ──
+[15:40:30]   rule already correct: global-sovereign-12h (cron(15 6,18 * * ? *))
+[15:40:30] ✅   ✓ target → justhodl-global-sovereign
+[15:40:30] ✅   ✓ added invoke permission
+[15:40:31] harvesting eurodollar hubs…
+[15:40:37] ✅ EURODOLLAR-HUB STRESS = 31.0 (avg CDS 20.7bp, n=20)
+[15:40:37]   worst hub (the canary): Canada @ 39.6bp → stress 46.1
+[15:40:37]   hub detail (most→least stressed):
+[15:40:37]     Canada: 39.6bp (stress 46.1)
+[15:40:37]     United States: 37.8bp (stress 43.7)
+[15:40:37]     Hong Kong: 36.2bp (stress 41.6)
+[15:40:37]     France: 31.2bp (stress 35.0)
+[15:40:37]     Italy: 29.9bp (stress 33.2)
+[15:40:37]     Greece: 29.7bp (stress 32.9)
+[15:40:37]     Japan: 26.4bp (stress 28.5)
+[15:40:37]     Singapore: 25.6bp (stress 27.4)
+[15:40:37]     South Korea: 22.6bp (stress 23.5)
+[15:40:37]     United Kingdom: 18.7bp (stress 18.2)
+[15:40:37]     Belgium: 17.6bp (stress 16.8)
+[15:40:37]     Spain: 16.4bp (stress 15.2)
+── Deploy JSI v1.8.0 (Eurodollar Hub Stress feed) ──
+[15:40:37]   zip: 83120 bytes
+── 1. Lambda ──
+[15:40:37]   Lambda exists — updating
+[15:40:43] ✅   ✓ updated justhodl-stress-index
+── 2. EB rule + permissions ──
+[15:40:43]   rule already correct: jsi-6h (rate(6 hours))
+[15:40:44] ✅   ✓ target → justhodl-stress-index
+[15:40:44] ✅   ✓ added invoke permission
+[15:40:57] JSI v1.8.0 overlay=20 live=20 jsi=35.82
+[15:40:57] ✅ EURODOLLAR HUB STRESS wired into JSI — 31.0 (danger-first: pack-avg + worst-hub, Global Risk group).
+
+→ Report written to aws/ops/reports/latest/3392_eurodollar_hub.md
