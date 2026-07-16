@@ -1,7 +1,8 @@
-executing-against: c65988ff50ff1382ea6d893bc3c03af68f7bfb81
-[1] deployed zip sorts results by |score|
-[2] {"n_by_ticker": 300, "min_abs_score": 17.9, "max_abs_score": 63.5, "n_scored": 2118}
-[23:12:23] ✅ ledger=300 min|score|=17.9
-VERDICT: PASS
+executing-against: c3cffc673e4b1818c3994cb3cad79d9f700ab43c
+── G1 — FMP positions-summary probe (AAPL) ──
+[G1] quarter Q2 2026 · fields: ['cik', 'closedPositions', 'closedPositionsChange', 'date', 'increasedPositions', 'increasedPositionsChange', 'investorsHolding', 'investorsHoldingChange', 'lastClosedPositions', 'lastIncreasedPositions', 'lastInvestorsHolding', 'lastNewPositions', 'lastNumberOf13Fshares', 'lastOwnershipPercent', 'lastPutCallRatio', 'lastReducedPositions', 'lastTotalCalls', 'lastTotalInvested', 'lastTotalPuts', 'newPositions', 'newPositionsChange', 'numberOf13Fshares', 'numberOf13FsharesChange', 'ownershipPercent', 'ownershipPercentChange', 'putCallRatio', 'putCallRatioChange', 'reducedPositions', 'reducedPositionsChange', 'symbol', 'totalCalls', 'totalCallsChange', 'totalInvested', 'totalInvestedChange', 'totalPuts', 'totalPutsChange']
+[G1] AAPL totalInvested=48247647271 investorsHolding=946 increasedPositions=371 totalInvestedChange=-2318618528924 investorsHoldingChange=-5401
+[23:26:31] ✗ G1 FAILED — units/fields off: totalInvested=48247647271 investors=946 inc=371
 
-→ Report written to aws/ops/reports/latest/3350_ledger_sort.md
+→ Report written to aws/ops/reports/latest/3360_capital_flow_dollars.md
+❌ OPS-FAIL: aws/ops/pending/ops_3360_capital_flow_dollars.py
