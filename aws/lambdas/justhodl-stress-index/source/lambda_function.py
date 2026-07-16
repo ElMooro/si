@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -93,6 +93,7 @@ OVERLAY = [
     ("data/global-tide.json",        "risk.global_risk_0_100", "Global Risk Tide",      "id"),
     ("data/risk-ratios.json",        "hyg_lqd.latest",         "HYG/LQD Credit Risk",   "ratio_inv"),
     ("data/sovereign-stress.json",   "europe_stress.score_0_100", "European Sovereign Stress", "id"),
+    ("data/global-sovereign.json",   "core_dm_cds_stress_0_100", "Core Sovereign CDS", "id"),
 ]
 
 # Historical crisis windows for chart annotation.

@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
 
@@ -219,6 +219,20 @@ def lambda_handler(event=None, context=None):
 
     with_cds = [r for r in rows if r["cds_bp"] is not None]
     scored = [r for r in rows if r["stress_0_100"] is not None]
+
+    # Core developed-market sovereign CDS — the systemic-risk signal. Normally quiet
+    # (~10-25bp); a joint spike is a flight-from-quality tell that front-runs equity
+    # drawdowns. This is what feeds the JSI (distinct from BTP-Bund yield-spread).
+    CORE_DM = {"United States", "Germany", "France", "Italy", "Spain",
+               "United Kingdom", "Japan", "Netherlands", "Belgium", "Canada"}
+    core_cds_vals = [r["cds_bp"] for r in rows
+                     if r["country"] in CORE_DM and r["cds_bp"] is not None]
+    core_dm_cds_bp = round(sum(core_cds_vals) / len(core_cds_vals), 1) if core_cds_vals else None
+    # map to 0-100 stress: 10bp→~15, 25bp→~40, 40bp→~70, 60bp+→~90 (systemic).
+    core_dm_cds_stress = None
+    if core_dm_cds_bp is not None:
+        core_dm_cds_stress = round(clamp((core_dm_cds_bp - 5.0) / 55.0 * 90.0, 0, 100), 1)
+
     payload = {
         "version": VERSION, "ok": bool(rows),
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -228,6 +242,9 @@ def lambda_handler(event=None, context=None):
         "errors": errors,
         "global_avg_stress": round(sum(r["stress_0_100"] for r in scored) / len(scored), 1) if scored else None,
         "global_avg_cds_bp": round(sum(r["cds_bp"] for r in with_cds) / len(with_cds), 1) if with_cds else None,
+        "core_dm_cds_bp": core_dm_cds_bp,
+        "core_dm_cds_stress_0_100": core_dm_cds_stress,
+        "core_dm_cds_n": len(core_cds_vals),
         "highest_stress": scored[0] if scored else None,
         "lowest_stress": scored[-1] if scored else None,
         "highest_cds": max(with_cds, key=lambda r: r["cds_bp"]) if with_cds else None,
