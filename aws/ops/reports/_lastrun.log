@@ -1,15 +1,12 @@
-executing-against: 99f8b78911c6cafc24a890565f89739c4312ed42
-── 1. admin-ajax action + params for jsGlobalResult ──
-── 2. UPSTREAM source hints (where WGB gets ITS data) ──
-[15:03:31]   provider names: {' investing': 3, 'investing.com': 1, 'tradingeconomics': 1}
-[15:03:31]   'source:' text: {'of financing.': 1}
-[15:03:31]   external domains: {'code.highcharts.com': 4, 'www.amazon.com': 3, 'fonts.googleapis.com': 2, 'www.googletagmanager.com': 2, 'www.lazyportfolioetf.com': 2, 'gmpg.org': 1, 'fonts.gstatic.com': 1, 'yoast.com': 1}
-── 3. try the admin-ajax with likely actions ──
-[15:03:32]   action=get_async_data: __ERR__ HTTP Error 400: Bad Request
-[15:03:32]   action=async_data: __ERR__ HTTP Error 400: Bad Request
-[15:03:33]   action=get_country_data: __ERR__ HTTP Error 400: Bad Request
-[15:03:33]   action=wgb_async: __ERR__ HTTP Error 400: Bad Request
-[15:03:34]   action=get_bond: __ERR__ HTTP Error 400: Bad Request
-[15:03:34]   action=country_data: __ERR__ HTTP Error 400: Bad Request
+executing-against: b2da9f1f2a22cfc8bce9378c0c3a7da86810c108
+── A. Is jsGlobalResult / data embedded inline in the page? ──
+[15:05:01]   jsGlobal var decl: ['var jsGlobalVars =']
+[15:05:01]   inline scripts: 27; sizes: [2231, 456, 431, 372, 156]
+[15:05:01]   DATA SCRIPT:  var jsGlobalVars = {"JS_VARIABLE":"jsGlobalVars","FUNCTION":"Country","DOMESTIC":true,"ENDPOINT":"https:\/\/www.worldgovernmentbonds.com\/wp-json\/country\/v1\/historical","DATE_RIF":"2099-12-31","OBJ":null,"COUNTRY1":{"SYMBOL":"52","PAESE":"Singapore","PAESE_UPPERCASE":"SINGAPORE","BANDIERA":"sg",
+[15:05:01]   DATA SCRIPT:  document.addEventListener('DOMContentLoaded', function () { country_main(); }); async function country_main() { const postData = { "GLOBALVAR": jsGlobalVars, }; const endpoint = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"; const globalVarName = "jsGlobalResult"; ac_showLoadingLay
+── B. investing.com upstream — Singapore/HK/Taiwan 10Y ──
+[15:05:01]   investing Singapore: __ERR__ HTTP Error 403: Forbidden
+[15:05:01]   investing Hong Kong: __ERR__ HTTP Error 403: Forbidden
+[15:05:01]   investing Taiwan: __ERR__ HTTP Error 403: Forbidden
 
-→ Report written to aws/ops/reports/latest/3380_wgb_origin.md
+→ Report written to aws/ops/reports/latest/3381_wgb_embedded.md
