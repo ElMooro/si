@@ -1,8 +1,61 @@
-executing-against: c3cffc673e4b1818c3994cb3cad79d9f700ab43c
+executing-against: 1da17ceeda7e4ea568d4decbbff079537a2d14af
 ── G1 — FMP positions-summary probe (AAPL) ──
-[G1] quarter Q2 2026 · fields: ['cik', 'closedPositions', 'closedPositionsChange', 'date', 'increasedPositions', 'increasedPositionsChange', 'investorsHolding', 'investorsHoldingChange', 'lastClosedPositions', 'lastIncreasedPositions', 'lastInvestorsHolding', 'lastNewPositions', 'lastNumberOf13Fshares', 'lastOwnershipPercent', 'lastPutCallRatio', 'lastReducedPositions', 'lastTotalCalls', 'lastTotalInvested', 'lastTotalPuts', 'newPositions', 'newPositionsChange', 'numberOf13Fshares', 'numberOf13FsharesChange', 'ownershipPercent', 'ownershipPercentChange', 'putCallRatio', 'putCallRatioChange', 'reducedPositions', 'reducedPositionsChange', 'symbol', 'totalCalls', 'totalCallsChange', 'totalInvested', 'totalInvestedChange', 'totalPuts', 'totalPutsChange']
-[G1] AAPL totalInvested=48247647271 investorsHolding=946 increasedPositions=371 totalInvestedChange=-2318618528924 investorsHoldingChange=-5401
-[23:26:31] ✗ G1 FAILED — units/fields off: totalInvested=48247647271 investors=946 inc=371
+[G1] quarter Q1 2026 · fields: ['cik', 'closedPositions', 'closedPositionsChange', 'date', 'increasedPositions', 'increasedPositionsChange', 'investorsHolding', 'investorsHoldingChange', 'lastClosedPositions', 'lastIncreasedPositions', 'lastInvestorsHolding', 'lastNewPositions', 'lastNumberOf13Fshares', 'lastOwnershipPercent', 'lastPutCallRatio', 'lastReducedPositions', 'lastTotalCalls', 'lastTotalInvested', 'lastTotalPuts', 'newPositions', 'newPositionsChange', 'numberOf13Fshares', 'numberOf13FsharesChange', 'ownershipPercent', 'ownershipPercentChange', 'putCallRatio', 'putCallRatioChange', 'reducedPositions', 'reducedPositionsChange', 'symbol', 'totalCalls', 'totalCallsChange', 'totalInvested', 'totalInvestedChange', 'totalPuts', 'totalPutsChange']
+[G1] AAPL totalInvested=2366866176195 investorsHolding=6347 increasedPositions=2578 totalInvestedChange=-214451584819 investorsHoldingChange=-18
+[23:38:15] ✅ G1 ✓ dollars confirmed (AAPL $2.37T, 6,347 institutions)
+── Deploy justhodl-capital-flow v2.0 ──
+[23:38:15]   zip: 82594 bytes
+── 1. Lambda ──
+[23:38:15]   Lambda exists — updating
+[23:38:21] ✅   ✓ updated justhodl-capital-flow
+── 2. EB rule + permissions ──
+[23:38:21]   rule already correct: justhodl-capital-flow-daily (cron(30 16 * * ? *))
+[23:38:21] ✅   ✓ target → justhodl-capital-flow
+[23:38:21] ✅   ✓ added invoke permission
+── G2 — deployed-code marker ──
+[23:38:28] ✅ G2 ✓ v2 code deployed & settled
+── G3 — invoke + feed truth-bands ──
+{
+ "sources": {
+  "13f": true,
+  "etf_flows": 45,
+  "inst_change": 503,
+  "categories": 13,
+  "inst_deep": 84,
+  "funds13f_join": 93
+ },
+ "inst_breadth": {
+  "quarter": "Q1 2026",
+  "n_enriched": 84,
+  "usd_chg_acc": 406481429824,
+  "usd_chg_dis": -434366591771,
+  "investors_acc": 63535,
+  "investors_dis": 38773,
+  "increased_sum": 62333,
+  "reduced_sum": 44298,
+  "new_sum": 14283,
+  "closed_sum": 13739,
+  "usd_chg_net": -27885161947
+ },
+ "quarter": "Q1 2026"
+}
+[G3] TOP DOLLAR IN:
+   CAT       43129118793.0 $chg · 3854.0 institutions (208.0) · ↑1659.0/↓1550.0 · famous 237574084
+   COP       41736881578.0 $chg · 2654.0 institutions (216.0) · ↑1342.0/↓892.0 · famous 0
+   COST      38434845432.0 $chg · 4343.0 institutions (125.0) · ↑2097.0/↓1624.0 · famous 320732294
+   LITE      25326363078.0 $chg · 1154.0 institutions (351.0) · ↑704.0/↓331.0 · famous 968811932
+   NEE       22463457540.0 $chg · 3107.0 institutions (64.0) · ↑1567.0/↓1135.0 · famous 133399410
+[G3] TOP DOLLAR OUT:
+   TSLA    -135817037048.0 $chg · 4450.0 institutions (-182.0) · ↑2229.0/↓1462.0
+   V        -75808725629.0 $chg · 4553.0 institutions (-143.0) · ↑2139.0/↓1869.0
+   INTU     -55487661662.0 $chg · 2095.0 institutions (-253.0) · ↑1029.0/↓799.0
+   PLTR     -43309813556.0 $chg · 3201.0 institutions (-53.0) · ↑1699.0/↓1049.0
+   IBM      -33590795149.0 $chg · 3575.0 institutions (-220.0) · ↑1687.0/↓1333.0
+[23:38:34] ✅ G3 ✓ v2 feed live — 84 $-enriched, net inst $ -27885161947, in/out 20/20
+── G4 — history ledger ──
+[23:38:34] ✅ G4 ✓ ledger 1 entries, today tracks 95 flagged names
+── G5 — live page ──
+[23:38:34] ✅ G5 ✓ Dollar Flows tab serving on justhodl.ai
+[23:38:34] ✅ VERDICT: PASS
 
 → Report written to aws/ops/reports/latest/3360_capital_flow_dollars.md
-❌ OPS-FAIL: aws/ops/pending/ops_3360_capital_flow_dollars.py
