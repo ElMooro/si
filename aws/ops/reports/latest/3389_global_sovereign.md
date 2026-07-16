@@ -1,0 +1,41 @@
+## Deploy justhodl-global-sovereign
+
+**Status:** success  
+**Duration:** 78.7s  
+**Finished:** 2026-07-16T15:25:11+00:00  
+
+## Log
+- `15:23:53`   zip: 78854 bytes
+## 1. Lambda
+
+- `15:23:53`   Lambda missing — creating
+- `15:23:57` ✅   ✓ created justhodl-global-sovereign
+- `15:23:58` ✅   ✓ Function URL: https://y2anrllx5oa6zpsaazpfrl7lwm0udack.lambda-url.us-east-1.on.aws/
+## 2. EB rule + permissions
+
+- `15:23:58` ✅   ✓ created rule global-sovereign-12h
+- `15:23:58` ✅   ✓ target → justhodl-global-sovereign
+- `15:23:58` ✅   ✓ added invoke permission
+- `15:23:59` harvesting 45 sovereigns (~20-30s)…
+## Verify global sovereign harvest
+
+- `15:25:11` n_countries=45 errors=0 global_avg_cds=49.3bp
+- `15:25:11` highest stress: Russia (94.9, CDS Nonebp)
+- `15:25:11` lowest stress: Norway (12.6, CDS 12.9bp)
+- `15:25:11` regions:
+- `15:25:11`   Latin America: avg stress 45.7 · avg CDS 113.0bp (n=4)
+- `15:25:11`   Middle East & Africa: avg stress 44.9 · avg CDS 92.3bp (n=3)
+- `15:25:11`   North America: avg stress 30.9 · avg CDS 54.3bp (n=3)
+- `15:25:11`   Europe: avg stress 30.2 · avg CDS 37.4bp (n=21)
+- `15:25:11`   Asia-Pacific: avg stress 30.1 · avg CDS 43.2bp (n=14)
+- `15:25:11` top-8 riskiest:
+- `15:25:11`   Russia: stress 94.9 DISTRESS · 10Y 16.668% · CDS None · NR
+- `15:25:11`   Turkey: stress 65.3 STRESS · 10Y 34.325% · CDS 228.61 · BB-
+- `15:25:11`   Poland: stress 57.1 STRESS · 10Y 5.532% · CDS 151.0 · A-
+- `15:25:11`   Brazil: stress 56.6 STRESS · 10Y 14.488% · CDS 122.91 · BB
+- `15:25:11`   Saudi Arabia: stress 56.5 STRESS · 10Y 7.73% · CDS None · -
+- `15:25:11`   Colombia: stress 49.5 ELEVATED · 10Y 11.74% · CDS 149.16 · BB-
+- `15:25:11`   South Africa: stress 49.5 ELEVATED · 10Y 8.56% · CDS 124.89 · BB
+- `15:25:11`   Czech Republic: stress 48.9 ELEVATED · 10Y 4.839% · CDS None · AA-
+- `15:25:11` ✅ GLOBAL SOVEREIGN DESK LIVE — 45 sovereigns harvested.
+- `15:25:11` ✅ real CDS for 38 sovereigns.
