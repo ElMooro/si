@@ -1,9 +1,27 @@
-executing-against: 568c76f81db7081936a6b672f813ed4f17363a7a
-── risk-regime — eurodollar_hub block value ──
-[17:41:20]   top-level keys: ['engine', 'version', 'generated_at', 'wl_research', 'risk_regime_score', 'risk_regime', 'scale', 'posture', 'participation', 'cross_border', 'systemic_stress', 'liquidity', 'capital_inflows', 'secondary_risk', 'blocks_used', 'components', 'tells', 'elapsed_s', 'sources', 'methodology']
-[17:41:20]   eurodollar_hub detail: {"score": -0.43, "hub_distress_0_100": 47.4, "worst_hub": "Chile", "worst_cds_bp": 67.0, "tells": ["Worst hub: Chile CDS 67.0bp"], "source": "global-sovereign engine (eurodollar hubs)"}
-── crisis-composite — eurodollar-hub component value ──
-[17:41:20]   top-level keys: ['schema_version', 'method', 'generated_at', 'btp_bund_canary', 'wl_research', 'elapsed_s', 'master_crisis_score', 'defcon_level', 'defcon_name', 'defcon_color', 'playbook', 'trend', 'components_available', 'components', 'primary_drivers', 'massive_cross_asset', 'scale', 'methodology']
-[17:41:20]   HUB component: {"source": "global-sovereign", "label": "Eurodollar-hub sovereign distress (CDS)", "weight": 0.15, "crisis_contribution": 47.4, "age_hours": 1.1, "available": true}
+executing-against: d22d0f03917cc18ab9fd7a89cc10b20313ec6bdb
+── FRED 10Y govt bond yield — inception per hub ──
+[17:48:47]   United States (IRLTLT01USM156N): from 1953-04-01
+[17:48:48]   United Kingdom (IRLTLT01GBM156N): from 1960-01-01
+[17:48:48]   Germany (IRLTLT01DEM156N): from 1956-05-01
+[17:48:48]   France (IRLTLT01FRM156N): from 1960-01-01
+[17:48:48]   Italy (IRLTLT01ITM156N): from 1991-03-01
+[17:48:49]   Spain (IRLTLT01ESM156N): from 1980-01-01
+[17:48:49]   Switzerland (IRLTLT01CHM156N): from 1955-01-01
+[17:48:49]   Netherlands (IRLTLT01NLM156N): from 1959-01-01
+[17:48:49]   Belgium (IRLTLT01BEM156N): from 1955-01-01
+[17:48:50]   Ireland (IRLTLT01IEM156N): from 1970-12-01
+[17:48:50]   Finland (IRLTLT01FIM156N): from 1988-01-01
+[17:48:50]   Greece (IRLTLT01GRM156N): from 1997-06-01
+[17:48:51]   Portugal (IRLTLT01PTM156N): from 1993-07-01
+[17:48:51]   Sweden (IRLTLT01SEM156N): from 1986-12-01
+[17:48:51]   Japan (IRLTLT01JPM156N): from 1989-01-01
+[17:48:51]   South Korea (IRLTLT01KRM156N): from 2000-10-01
+[17:48:51]   Canada (IRLTLT01CAM156N): from 1955-01-01
+[17:48:52]   Australia (IRLTLT01AUM156N): from 1969-07-01
+── Composite feasibility ──
+[17:48:52]   earliest hub series: 1953-04-01
+[17:48:52]   hubs with data from ≤1990: 14
+[17:48:52]   hubs with data from ≤2000: 18
+[17:48:52]   NOTE: HK/Taiwan/Singapore/Chile/Peru NOT on FRED IRLTLT01 → long history only for the DM core.
 
-→ Report written to aws/ops/reports/latest/3399_verify_fusion.md
+→ Report written to aws/ops/reports/latest/3400_hub_history_probe.md
