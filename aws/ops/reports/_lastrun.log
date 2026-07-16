@@ -1,35 +1,26 @@
-executing-against: fc852942f33d52706bc98d227f4b248275f0e0e5
-── Deploy justhodl-global-sovereign ──
-[15:23:53]   zip: 78854 bytes
-── 1. Lambda ──
-[15:23:53]   Lambda missing — creating
-[15:23:57] ✅   ✓ created justhodl-global-sovereign
-[15:23:58] ✅   ✓ Function URL: https://y2anrllx5oa6zpsaazpfrl7lwm0udack.lambda-url.us-east-1.on.aws/
-── 2. EB rule + permissions ──
-[15:23:58] ✅   ✓ created rule global-sovereign-12h
-[15:23:58] ✅   ✓ target → justhodl-global-sovereign
-[15:23:58] ✅   ✓ added invoke permission
-[15:23:59] harvesting 45 sovereigns (~20-30s)…
-── Verify global sovereign harvest ──
-[15:25:11] n_countries=45 errors=0 global_avg_cds=49.3bp
-[15:25:11] highest stress: Russia (94.9, CDS Nonebp)
-[15:25:11] lowest stress: Norway (12.6, CDS 12.9bp)
-[15:25:11] regions:
-[15:25:11]   Latin America: avg stress 45.7 · avg CDS 113.0bp (n=4)
-[15:25:11]   Middle East & Africa: avg stress 44.9 · avg CDS 92.3bp (n=3)
-[15:25:11]   North America: avg stress 30.9 · avg CDS 54.3bp (n=3)
-[15:25:11]   Europe: avg stress 30.2 · avg CDS 37.4bp (n=21)
-[15:25:11]   Asia-Pacific: avg stress 30.1 · avg CDS 43.2bp (n=14)
-[15:25:11] top-8 riskiest:
-[15:25:11]   Russia: stress 94.9 DISTRESS · 10Y 16.668% · CDS None · NR
-[15:25:11]   Turkey: stress 65.3 STRESS · 10Y 34.325% · CDS 228.61 · BB-
-[15:25:11]   Poland: stress 57.1 STRESS · 10Y 5.532% · CDS 151.0 · A-
-[15:25:11]   Brazil: stress 56.6 STRESS · 10Y 14.488% · CDS 122.91 · BB
-[15:25:11]   Saudi Arabia: stress 56.5 STRESS · 10Y 7.73% · CDS None · -
-[15:25:11]   Colombia: stress 49.5 ELEVATED · 10Y 11.74% · CDS 149.16 · BB-
-[15:25:11]   South Africa: stress 49.5 ELEVATED · 10Y 8.56% · CDS 124.89 · BB
-[15:25:11]   Czech Republic: stress 48.9 ELEVATED · 10Y 4.839% · CDS None · AA-
-[15:25:11] ✅ GLOBAL SOVEREIGN DESK LIVE — 45 sovereigns harvested.
-[15:25:11] ✅ real CDS for 38 sovereigns.
+executing-against: 3cecf631e2cce65d3c0c4193a21bd05bcad0d478
+── The candidate JSI metrics compared ──
+[15:30:51]   GLOBAL avg CDS (all 45): 49.3bp — dominated by Turkey/Brazil/Poland outliers
+[15:30:51]   CORE-DM avg CDS (10 majors): 23.3bp — normally quiet, spikes = systemic flight
+[15:30:51]   Euro-periphery avg CDS: 22.6bp
+[15:30:51]   CORE-DM avg stress: 24.4
+── Core sovereign CDS breakdown (the signal we'd feed) ──
+[15:30:51]   United States: CDS 37.78bp · 10Y 4.578% · AA+ · stress 25.5
+[15:30:51]   Germany: CDS 7.36bp · 10Y 3.145% · AAA · stress 17.3
+[15:30:51]   France: CDS 31.23bp · 10Y 3.941% · A+ · stress 28.2
+[15:30:51]   Italy: CDS 29.93bp · 10Y 3.963% · BBB+ · stress 27.8
+[15:30:51]   Spain: CDS 16.39bp · 10Y 3.608% · A+ · stress 22.9
+[15:30:51]   United Kingdom: CDS 18.66bp · 10Y 4.98% · AA · stress 24.1
+[15:30:51]   Japan: CDS 26.37bp · 10Y 2.744% · A+ · stress 28.3
+[15:30:51]   Netherlands: CDS 7.88bp · 10Y 3.238% · AAA · stress 18.3
+[15:30:51]   Belgium: CDS 17.59bp · 10Y 3.686% · AA- · stress 24.1
+[15:30:51]   Canada: CDS 39.6bp · 10Y 3.562% · AAA · stress 27.0
+── Distress/stress counts (alternative signals) ──
+[15:30:51]   regime distribution: {'DISTRESS': 1, 'STRESS': 4, 'ELEVATED': 11, 'NORMAL': 22, 'CALM': 7}
+[15:30:51]   DISTRESS: ['Russia']
+[15:30:51]   STRESS: ['Turkey', 'Poland', 'Brazil', 'Saudi Arabia']
+── VERDICT ──
+[15:30:51]   Core-DM CDS = 23.3bp now. Normal range ~10-25bp; >40bp = systemic stress building.
+[15:30:51]   This is the metric to feed: quiet baseline, meaningful spikes, NOT captured by BTP-Bund spread feed.
 
-→ Report written to aws/ops/reports/latest/3389_global_sovereign.md
+→ Report written to aws/ops/reports/latest/3390_core_cds_analysis.md

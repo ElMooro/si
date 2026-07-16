@@ -1,0 +1,32 @@
+## The candidate JSI metrics compared
+
+**Status:** success  
+**Duration:** 0.1s  
+**Finished:** 2026-07-16T15:30:51+00:00  
+
+## Log
+- `15:30:51`   GLOBAL avg CDS (all 45): 49.3bp — dominated by Turkey/Brazil/Poland outliers
+- `15:30:51`   CORE-DM avg CDS (10 majors): 23.3bp — normally quiet, spikes = systemic flight
+- `15:30:51`   Euro-periphery avg CDS: 22.6bp
+- `15:30:51`   CORE-DM avg stress: 24.4
+## Core sovereign CDS breakdown (the signal we'd feed)
+
+- `15:30:51`   United States: CDS 37.78bp · 10Y 4.578% · AA+ · stress 25.5
+- `15:30:51`   Germany: CDS 7.36bp · 10Y 3.145% · AAA · stress 17.3
+- `15:30:51`   France: CDS 31.23bp · 10Y 3.941% · A+ · stress 28.2
+- `15:30:51`   Italy: CDS 29.93bp · 10Y 3.963% · BBB+ · stress 27.8
+- `15:30:51`   Spain: CDS 16.39bp · 10Y 3.608% · A+ · stress 22.9
+- `15:30:51`   United Kingdom: CDS 18.66bp · 10Y 4.98% · AA · stress 24.1
+- `15:30:51`   Japan: CDS 26.37bp · 10Y 2.744% · A+ · stress 28.3
+- `15:30:51`   Netherlands: CDS 7.88bp · 10Y 3.238% · AAA · stress 18.3
+- `15:30:51`   Belgium: CDS 17.59bp · 10Y 3.686% · AA- · stress 24.1
+- `15:30:51`   Canada: CDS 39.6bp · 10Y 3.562% · AAA · stress 27.0
+## Distress/stress counts (alternative signals)
+
+- `15:30:51`   regime distribution: {'DISTRESS': 1, 'STRESS': 4, 'ELEVATED': 11, 'NORMAL': 22, 'CALM': 7}
+- `15:30:51`   DISTRESS: ['Russia']
+- `15:30:51`   STRESS: ['Turkey', 'Poland', 'Brazil', 'Saudi Arabia']
+## VERDICT
+
+- `15:30:51`   Core-DM CDS = 23.3bp now. Normal range ~10-25bp; >40bp = systemic stress building.
+- `15:30:51`   This is the metric to feed: quiet baseline, meaningful spikes, NOT captured by BTP-Bund spread feed.
