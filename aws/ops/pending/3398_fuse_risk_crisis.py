@@ -18,10 +18,14 @@ def cfg(fn): return json.loads(Path(f"aws/lambdas/{fn}/config.json").read_text()
 
 def deploy_and_run(r, fn, out_key, checks):
     c = cfg(fn)
+    sch = c.get("schedule", {})
+    rule = sch.get("rule_name") or sch.get("name")
+    cron = sch.get("cron") or sch.get("expression")
+    env = c.get("env") or c.get("environment") or {}
     deploy_lambda(report=r, function_name=fn,
                   source_dir=Path(f"aws/lambdas/{fn}/source"),
-                  env_vars=c.get("env", {}),
-                  eb_rule_name=c["schedule"]["rule_name"], eb_schedule=c["schedule"]["cron"],
+                  env_vars=env,
+                  eb_rule_name=rule, eb_schedule=cron,
                   timeout=c["timeout"], memory=c["memory"],
                   description=(c.get("description") or "")[:256],
                   create_function_url=c.get("create_function_url", False), smoke=False)
