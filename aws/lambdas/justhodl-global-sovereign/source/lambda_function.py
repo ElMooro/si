@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
 
@@ -233,6 +233,10 @@ def lambda_handler(event=None, context=None):
         "Switzerland", "Netherlands", "Belgium", "Ireland", "Finland",
         "Greece", "Portugal", "Sweden", "Japan", "Hong Kong", "Singapore",
         "South Korea", "Taiwan", "Canada", "Australia",
+        # USD-dependent economies at the periphery of the eurodollar system — they crack
+        # EARLY when dollar funding tightens (commodity + heavy USD-funding exposure), so
+        # they act as leading canaries for global financing stress.
+        "Chile", "Peru",
     }
     hubs = [r for r in rows if r["country"] in EURODOLLAR_HUBS]
     hub_cds = [(r["country"], r["cds_bp"]) for r in hubs if r["cds_bp"] is not None]
