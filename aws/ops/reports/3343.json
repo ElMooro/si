@@ -1,0 +1,73 @@
+{
+ "deployed_marker": true,
+ "feed": {
+  "generated_at": "2026-07-16T21:29:46.495450+00:00",
+  "n_complexes": 12,
+  "n_types": 24,
+  "n_breadth_sectors": 11,
+  "sector_perf_m_nonnull": "11/11",
+  "sp500_complex": {
+   "net_1m": 49740089155.17001,
+   "gross_in_1m": 95114756901.70001,
+   "gross_out_1m": -45374667746.53,
+   "net_ytd": 175905882684.07,
+   "n": 4
+  },
+  "top_type": {
+   "type": "US Equities",
+   "n": 2519,
+   "net_1m": 137697814945.9198,
+   "net_ytd": 475603205249.39996,
+   "gross_in_1m": 216335551296.35004,
+   "gross_out_1m": -78637736350.43002,
+   "aum": 9879948136173.0
+  },
+  "breadth_sample": [
+   {
+    "sector": "Financial",
+    "n": 1448,
+    "pct_above_200dma": 67.4,
+    "pct_above_50dma": 70.6,
+    "median_perf_m": 0.91
+   },
+   {
+    "sector": "Energy",
+    "n": 255,
+    "pct_above_200dma": 63.9,
+    "pct_above_50dma": 34.9,
+    "median_perf_m": -0.08
+   }
+  ]
+ },
+ "whale_join": {
+  "spdrs_in_13f": 11,
+  "sample": {
+   "XLK": {
+    "n": -231229767,
+    "wn": 0
+   },
+   "XLF": {
+    "n": 0,
+    "wn": 0
+   },
+   "XLE": {
+    "n": -796161942,
+    "wn": -796161942
+   },
+   "XLV": {
+    "n": 0,
+    "wn": 0
+   }
+  }
+ },
+ "live_page": {
+  "quad-map": true,
+  "complex-nets": true,
+  "type-flows": true,
+  "whale-crowd": true,
+  "sec-breadth": true,
+  "loadFlowIntel": true,
+  "STEALTH ACCUMULATION": true
+ },
+ "ok": true
+}
