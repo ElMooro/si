@@ -168,7 +168,8 @@ def lambda_handler(event=None, context=None):
         rec["flow_score"] = round(max(-100, min(100, total)), 1)
         rec["lenses"] = lenses
 
-    results = [r for r in by_ticker.values() if r["lenses"]]
+    results = sorted([r for r in by_ticker.values() if r["lenses"]],
+                     key=lambda r: -abs(r.get("flow_score") or 0))
     accumulating = sorted([r for r in results if r["flow_score"] > 8], key=lambda r: -r["flow_score"])[:40]
     distributing = sorted([r for r in results if r["flow_score"] < -8], key=lambda r: r["flow_score"])[:25]
 
