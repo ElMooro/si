@@ -1,0 +1,27 @@
+## Deploy sovereign-stress (WGB real Asian data)
+
+**Status:** success  
+**Duration:** 38.6s  
+**Finished:** 2026-07-16T15:13:35+00:00  
+
+## Log
+- `15:12:57`   zip: 83710 bytes
+## 1. Lambda
+
+- `15:12:57`   Lambda exists — updating
+- `15:13:03` ✅   ✓ updated justhodl-sovereign-stress
+## 2. EB rule + permissions
+
+- `15:13:03`   rule already correct: sovereign-stress-daily (cron(0 12 ? * * *))
+- `15:13:03` ✅   ✓ target → justhodl-sovereign-stress
+- `15:13:04` ✅   ✓ added invoke permission
+- `15:13:32`   return: {"statusCode": 200, "body": "{\"ok\": true, \"regime\": \"NORMAL\", \"europe_score\": 30.7, \"errors\": 0}"}
+## Verify real Asian data
+
+- `15:13:35` ✅ south_korea: stress 31.2 · 10Y 4.293% · CDS 22.6bp · spread 60.9bp · AA · 16 July 2026
+- `15:13:35` ✅ singapore: stress 26.9 · 10Y 2.225% · CDS 25.56bp · spread 56.9bp · AAA · 16 July 2026
+- `15:13:35` ✅ hong_kong: stress 31.2 · 10Y 3.454% · CDS 36.2bp · spread 49.8bp · AA+ · 16 July 2026
+- `15:13:35` ✅ taiwan: stress 31.0 · 10Y 1.69% · CDS Nonebp · spread 8.6bp · AA+ · 16 July 2026
+- `15:13:35` ✅ all euro-area sovereigns KEPT (8 total incl Finland).
+- `15:13:35`   errors: 0 — []
+- `15:13:35`   sources: ['ECB Data Portal — CISS systemic stress', 'ECB Data Portal — SovCISS sovereign stress', 'World Government Bonds — Asian sovereign 10Y yields, CDS & spreads', 'FRED — VIX & S&P 500 (equity-market stress)', 'Eurostat — unemployment & industrial production']
