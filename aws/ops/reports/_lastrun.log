@@ -1,10 +1,11 @@
-executing-against: 7db9920ee225be9fbca3d01dbd54f3736f8ce806
-[15:07:52] gv extracted: True; nonce: none
-── POST with full browser headers ──
-[15:07:53]   status=200
-[15:07:53]   ✅ 10Y=2.225% CDS=25.56 spread=56.9 rating=AAA
-[15:07:53]   resp head: {"success":true,"lastDataValDesc":"16 July 2026","lastTimeValDesc":"16 Jul 2026, 14:15","bond10y":"2.225","bond10ySimulated":false,"bond10ySimulatedDesc":"","mainBondSpeech":"\n  <p>The <b>Singapore 1
-── try GET /historical with symbol ──
-[15:07:53]   /wp-json/country/v1 GET: {"namespace":"country\/v1","routes":{"\/country\/v1":{"namespace":"country\/v1","methods":["GET"],"endpoints":[{"methods":["GET"],"args":{"namespace":
+executing-against: 12b2bd3a163f5c46d779bc7a85e7dd07b576fe8d
+── Live WGB data — all target sovereigns ──
+[15:09:29]   Singapore: 10Y=2.225% CDS=25.56bp spread=56.9bp rating=AAA cb=1.43% asof=16 July 2026
+[15:09:31]   Hong Kong: 10Y=3.454% CDS=36.2bp spread=49.8bp rating=AA+ cb=4.0% asof=16 July 2026
+[15:09:33]   Taiwan: 10Y=1.69% CDS=Nonebp spread=8.6bp rating=AA+ cb=2.0% asof=16 July 2026
+[15:09:34]   South Korea: 10Y=4.293% CDS=22.6bp spread=60.9bp rating=AA cb=2.5% asof=16 July 2026
+[15:09:36]   Germany: 10Y=3.145% CDS=7.36bp spread=38.2bp rating=AAA cb=2.4% asof=16 July 2026
+── Verdict ──
+[15:09:36] If SG/HK/TW all return live 10Y+CDS → wire into sovereign-stress as REAL data, replacing data_unavailable.
 
-→ Report written to aws/ops/reports/latest/3383_wgb_headers.md
+→ Report written to aws/ops/reports/latest/3384_wgb_all3.md
