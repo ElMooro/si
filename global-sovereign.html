@@ -162,6 +162,38 @@
   </div>
 </section>
 
+<!-- HISTORICAL CONTEXT CHART -->
+<section class="max-w-[1500px] mx-auto px-4 pb-6">
+  <div class="card p-5 md:p-6">
+    <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+      <div>
+        <div class="eyebrow" style="color:var(--blue)">Historical context · where distress stands now</div>
+        <p class="text-xs text-[var(--text-muted)] mt-1 max-w-2xl">The eurodollar-hub distress reading plotted against its own accumulated history and the regime bands. Builds richer over time — each twice-daily run adds a point.</p>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Percentile of history</div>
+        <div class="mono text-xl font-bold" id="hc-pctile">—</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2 my-4">
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">Now</div><div class="mono text-lg font-bold" id="hc-now">—</div></div>
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">Min</div><div class="mono text-lg" id="hc-min">—</div></div>
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">Median</div><div class="mono text-lg" id="hc-med">—</div></div>
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">Max</div><div class="mono text-lg" id="hc-max">—</div></div>
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">7d</div><div class="mono text-lg" id="hc-7d">—</div></div>
+      <div class="text-center"><div class="text-[10px] text-[var(--text-muted)] uppercase">30d</div><div class="mono text-lg" id="hc-30d">—</div></div>
+    </div>
+    <svg id="hist-chart" viewBox="0 0 1000 300" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="flex gap-4 flex-wrap mt-2 text-[10px] text-[var(--text-muted)]">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);opacity:0.25;border-radius:2px"></span> Calm</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--blue);opacity:0.25;border-radius:2px"></span> Normal</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--amber);opacity:0.25;border-radius:2px"></span> Elevated</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#ff8a4c;opacity:0.3;border-radius:2px"></span> Stress</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--red);opacity:0.3;border-radius:2px"></span> Distress</span>
+    </div>
+  </div>
+</section>
+
 <!-- REGIONS -->
 <section class="max-w-[1500px] mx-auto px-4 pb-5">
   <div class="card p-5">
@@ -221,6 +253,7 @@ function render(d) {
   document.getElementById('kpi-low-cds').textContent = lo.cds_bp!=null?`CDS ${fmt(lo.cds_bp,0)}bp · ${lo.regime}`:lo.regime||'';
 
   renderBarometer(d);
+  renderHistChart(d);
 
   // regions
   const regs=d.regions||[];
@@ -243,6 +276,74 @@ function render(d) {
 
 function setRegion(r){ activeRegion=r; render(DATA); }
 window.setRegion=setRegion;
+
+function renderHistChart(d){
+  const hist=(d.eurodollar_hub_history||[]).filter(h=>h.stress!=null);
+  const now=d.eurodollar_hub_stress_0_100;
+  const vals=hist.map(h=>h.stress);
+  // stats
+  const sorted=[...vals].sort((a,b)=>a-b);
+  const median = sorted.length?sorted[Math.floor(sorted.length/2)]:null;
+  document.getElementById('hc-now').textContent=fmt(now,0);
+  document.getElementById('hc-now').style.color=distressRegime(now).color;
+  document.getElementById('hc-min').textContent=sorted.length?fmt(sorted[0],0):'—';
+  document.getElementById('hc-med').textContent=median!=null?fmt(median,0):'—';
+  document.getElementById('hc-max').textContent=sorted.length?fmt(sorted[sorted.length-1],0):'—';
+  const c7=d.eurodollar_hub_chg_7d, c30=d.eurodollar_hub_chg_30d;
+  const trendTxt=(v)=>v==null?'—':`${v>0?'+':''}${fmt(v,1)}`;
+  const trendCol=(v)=>v==null?'var(--text-muted)':v>0.3?'var(--red)':v<-0.3?'var(--green)':'var(--text-secondary)';
+  document.getElementById('hc-7d').textContent=trendTxt(c7); document.getElementById('hc-7d').style.color=trendCol(c7);
+  document.getElementById('hc-30d').textContent=trendTxt(c30); document.getElementById('hc-30d').style.color=trendCol(c30);
+  const pct=d.eurodollar_hub_percentile;
+  document.getElementById('hc-pctile').textContent=pct!=null?fmt(pct,0)+'th':'building…';
+  document.getElementById('hc-pctile').style.color=pct==null?'var(--text-muted)':pct>=80?'var(--red)':pct>=50?'var(--amber)':'var(--green)';
+
+  // chart geometry
+  const W=1000,H=300,padL=38,padR=14,padT=12,padB=26;
+  const y0=100, ymin=0, ymax=Math.max(70, Math.ceil((Math.max(...vals,now||0)+8)/10)*10);
+  const X=(i,n)=> padL + (n<=1?0.5:i/(n-1))*(W-padL-padR);
+  const Y=(v)=> padT + (1-(v-ymin)/(ymax-ymin))*(H-padT-padB);
+  // regime bands
+  const bands=[[0,20,'var(--green)',0.13],[20,35,'var(--blue)',0.13],[35,50,'var(--amber)',0.13],[50,70,'#ff8a4c',0.16],[70,ymax,'var(--red)',0.16]];
+  let svg='';
+  bands.forEach(([lo,hi,col,op])=>{
+    const yt=Y(Math.min(hi,ymax)), yb=Y(lo);
+    svg+=`<rect x="${padL}" y="${yt.toFixed(1)}" width="${W-padL-padR}" height="${(yb-yt).toFixed(1)}" fill="${col}" opacity="${op}"/>`;
+  });
+  // y-axis gridlines + labels
+  [0,20,35,50,70].forEach(v=>{ if(v<=ymax){ const y=Y(v);
+    svg+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="var(--border-soft)" stroke-width="0.5"/>`;
+    svg+=`<text x="${padL-6}" y="${(y+3).toFixed(1)}" text-anchor="end" fill="var(--text-muted)" font-size="10" font-family="JetBrains Mono">${v}</text>`;
+  }});
+  // median reference line
+  if(median!=null && vals.length>=3){ const ym=Y(median);
+    svg+=`<line x1="${padL}" y1="${ym.toFixed(1)}" x2="${W-padR}" y2="${ym.toFixed(1)}" stroke="var(--text-secondary)" stroke-width="0.8" stroke-dasharray="4 4"/>`;
+    svg+=`<text x="${W-padR}" y="${(ym-4).toFixed(1)}" text-anchor="end" fill="var(--text-secondary)" font-size="9" font-family="JetBrains Mono">median ${fmt(median,0)}</text>`;
+  }
+  // the series
+  if(vals.length>=2){
+    const pts=vals.map((v,i)=>[X(i,vals.length),Y(v)]);
+    const line=pts.map((p,i)=>`${i?'L':'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+    svg+=`<path d="${line}" fill="none" stroke="var(--text-primary)" stroke-width="1.8" opacity="0.85"/>`;
+    // date labels: first + last
+    svg+=`<text x="${padL}" y="${H-8}" fill="var(--text-muted)" font-size="9" font-family="JetBrains Mono">${hist[0].date}</text>`;
+    svg+=`<text x="${W-padR}" y="${H-8}" text-anchor="end" fill="var(--text-muted)" font-size="9" font-family="JetBrains Mono">${hist[hist.length-1].date}</text>`;
+  }
+  // current-point marker (always shown, even with 1 point)
+  if(now!=null){
+    const cx = vals.length>=2 ? X(vals.length-1,vals.length) : (W+padL-padR)/2;
+    const cy = Y(now); const col=distressRegime(now).color;
+    svg+=`<line x1="${padL}" y1="${cy.toFixed(1)}" x2="${(W-padR)}" y2="${cy.toFixed(1)}" stroke="${col}" stroke-width="0.8" opacity="0.5"/>`;
+    svg+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="${col}"/>`;
+    svg+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="9" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.5"/>`;
+    svg+=`<text x="${(cx-12).toFixed(1)}" y="${(cy-10).toFixed(1)}" text-anchor="end" fill="${col}" font-size="12" font-weight="700" font-family="JetBrains Mono">${fmt(now,0)}</text>`;
+  }
+  // empty-state note
+  if(vals.length<2){
+    svg+=`<text x="${W/2}" y="${H/2+40}" text-anchor="middle" fill="var(--text-muted)" font-size="12" font-family="Inter">Accumulating history — the trend line fills in as twice-daily readings collect. Today's reading is marked above.</text>`;
+  }
+  document.getElementById('hist-chart').innerHTML=svg;
+}
 
 function distressRegime(v){
   if (v==null) return {label:'N/A',color:'var(--text-muted)'};
@@ -369,7 +470,7 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/global-sovereign.js
   .then(render)
   .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
 </script>
-<script src="/jh-nav-drawer.js?v=3395" defer></script>
-<div id="jhBuildStamp" style="position:fixed;bottom:6px;right:8px;font:10px 'JetBrains Mono',monospace;color:var(--text-muted);opacity:0.5;z-index:60">build 3395 · barometer+history</div>
+<script src="/jh-nav-drawer.js?v=3396" defer></script>
+<div id="jhBuildStamp" style="position:fixed;bottom:6px;right:8px;font:10px 'JetBrains Mono',monospace;color:var(--text-muted);opacity:0.5;z-index:60">build 3396 · barometer+histchart</div>
 </body>
 </html>
