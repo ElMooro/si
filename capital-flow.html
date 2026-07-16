@@ -194,7 +194,7 @@ function render(){
           ${((r.top_buyers&&r.top_buyers.length)||(r.top_sellers&&r.top_sellers.length))?`<div class="lenses" style="opacity:.7">${r.top_buyers&&r.top_buyers.length?'in: '+esc(r.top_buyers.join(', ')):''}${r.top_sellers&&r.top_sellers.length?((r.top_buyers&&r.top_buyers.length)?' · ':'')+'out: '+esc(r.top_sellers.join(', ')):''}</div>`:''}
           <div class="bar" style="width:${Math.min(100,Math.abs(r.flow_score||0))}%;background:${col}"></div></div></div>`;
     };
-    h=sumStrip()+`<div class="lenses" style="margin-bottom:10px;font-size:10.5px">ALL-institution view — every 13F filer${ib.quarter?' as of <b>'+esc(ib.quarter)+'</b>':''}: total invested dollars, QoQ dollar change, and how many institutions increased / reduced / initiated / closed. Famous-fund &amp; whale dollars from the in-house 13F ledger. Set = flagged accumulating + distributing + intel names (${ib.n_enriched||0} enriched).</div>
+    h=sumStrip()+`<div class="lenses" style="margin-bottom:10px;font-size:10.5px">ALL-institution view — every 13F filer${ib.quarter?' as of <b>'+esc(ib.quarter)+'</b>':''}: total invested dollars, QoQ dollar change, and how many institutions increased / reduced / initiated / closed. $ change = Δ in value held (flows + price effect); the institution counts are pure positioning. Famous-fund &amp; whale dollars from the in-house 13F ledger. Set = flagged accumulating + distributing + intel names (${ib.n_enriched||0} enriched).</div>
     <div class="cat-grid" style="margin-bottom:18px">
       ${tile('NET INST $ QoQ · FLAGGED SET',fmT(ib.usd_chg_net),(ib.usd_chg_net||0)>=0?'var(--green)':'var(--red)')}
       ${tile('$ INTO ACCUMULATING',fmT(ib.usd_chg_acc),'var(--green)')}
