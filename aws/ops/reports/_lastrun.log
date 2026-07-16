@@ -1,27 +1,12 @@
-executing-against: 9444aa8b16d90106d007926f9b209be38b892c50
-── Deploy global-sovereign v1.3.0 (+Chile +Peru) ──
-[15:50:09]   zip: 79914 bytes
-── 1. Lambda ──
-[15:50:09]   Lambda exists — updating
-[15:50:14] ✅   ✓ updated justhodl-global-sovereign
-── 2. EB rule + permissions ──
-[15:50:15]   rule already correct: global-sovereign-12h (cron(15 6,18 * * ? *))
-[15:50:15] ✅   ✓ target → justhodl-global-sovereign
-[15:50:15] ✅   ✓ added invoke permission
-[15:50:15] harvesting…
-[15:51:30] ✅ EURODOLLAR-HUB STRESS = 47.4 (n=21 w/CDS, avg 22.9bp)
-[15:51:30]   worst hub (canary): Chile @ 67.0bp → stress 82.7
-[15:51:30]   Chile in set: ✓ · Peru in set: (no CDS — tracked, not in composite)
-[15:51:30]   named hubs all harvested: ✓ all present
-[15:51:30]   top-8 hub ladder (most→least stressed):
-[15:51:30]     Chile: 67.0bp (stress 82.7)
-[15:51:30]     Canada: 39.6bp (stress 46.1)
-[15:51:30]     United States: 37.8bp (stress 43.7)
-[15:51:30]     Hong Kong: 36.2bp (stress 41.6)
-[15:51:30]     France: 31.2bp (stress 35.0)
-[15:51:30]     Italy: 29.9bp (stress 33.2)
-[15:51:30]     Greece: 29.7bp (stress 32.9)
-[15:51:30]     Japan: 26.4bp (stress 28.5)
-[15:51:36] ✅ JSI eurodollar feed now 47.4 (reflects Chile/Peru).
+executing-against: 8420693037795485d8202e9dbcbee48ef986a6fb
+── S3 origin object ──
+[16:06:24]   S3: version=1.3.0 eurodollar_hub_stress=47.4 n_detail=21 worst=Chile
+── CF worker proxy (what the page fetches) ──
+[16:06:24] ✅ proxy 200 — eurodollar_hub_stress=47.4 detail=21 — page WILL render barometer
+── Live HTML — is barometer markup served? ──
+[16:06:25]   'distress-gauge': present
+[16:06:25]   'renderBarometer': present
+[16:06:25]   'Sovereign Distress': present
+[16:06:25]   cache-control: max-age=600 · age: 0 · cf-cache: DYNAMIC
 
-→ Report written to aws/ops/reports/latest/3393_add_chile_peru.md
+→ Report written to aws/ops/reports/latest/3394_check_proxy.md
