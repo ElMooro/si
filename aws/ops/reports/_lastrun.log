@@ -1,13 +1,17 @@
-executing-against: 1a29e14aa585c15b18cad4f90c42b86e5867ed67
-── Before ──
-[19:50:42]   news-wire-sched: rate(15 minutes) (ENABLED)
-── Fix → once daily 11:00 UTC ──
-[19:50:42] ✅   news-wire-sched now: cron(0 11 * * ? *) (ENABLED)
-[19:50:42]   → 98 runs/day → 1 run/day. Saves ~97 Haiku calls/day (~$2.33/day, ~$70/mo).
-── research-critique — for your decision (NOT changed) ──
-[19:50:42]   Invoked 1-per-ticker by equity-prewarm after each research succeeds (BY DESIGN).
-[19:50:42]   29 tickers/day × Sonnet 4.6 @ max_tokens 4000 = ~$1.91/day.
-[19:50:42]   Levers: (a) switch critic to Haiku or GLM-5.1 (~5-10x cheaper), (b) critique only
-[19:50:42]   high-conviction tickers, (c) lower max_tokens 4000→1500. Awaiting your pick.
+executing-against: d5d05fd2ec072da46a08be8268d1e22a68e287b3
+[1] deploy landed: True
+[2] invoked justhodl-finviz-universe async; prior gen=2026-07-16T14:00:38.230676+00:00
+    fresh=True gen=2026-07-16T20:05:03.116486+00:00 n_etfs=5512 flows_1y=False
+[3] coverage over 50 rows: ticker=50 name=50 aum=50 flows_1m=50 flows_1m_pct=48 flows_3m=50 flows_ytd=50 flows_1y=0 ret_1y=45 etf_type=50 expense=50 n_holdings=50
+     {'ticker': 'IVV', 'flows_1m': 75491897385.3, 'flows_1m_pct': 9.22, 'flows_1y': None, 'aum': 894424988699.0}
+     {'ticker': 'SPYM', 'flows_1m': 19622859516.4, 'flows_1m_pct': 13.97, 'flows_1y': None, 'aum': 160109878917.0}
+     {'ticker': 'MUU', 'flows_1m': 19522785902.97, 'flows_1m_pct': None, 'flows_1y': None, 'aum': 5038149415.0}
+     {'ticker': 'VOO', 'flows_1m': -40099863719.58, 'flows_1m_pct': -3.86, 'flows_1y': None, 'aum': 998584109315.0}
+     {'ticker': 'SPY', 'flows_1m': -5274804026.95, 'flows_1m_pct': -0.66, 'flows_1y': None, 'aum': 791455055330.0}
+     {'ticker': 'VLUE', 'flows_1m': -4597312696.9, 'flows_1m_pct': -33.22, 'flows_1y': None, 'aum': 9240513727.0}
+    intensity-eligible (pct + aum>=500M): 45
+[4] live page markers: {'jh-fl-tgl': True, 'Most intense flows': True, 'jh-flmore': True}
+[20:07:22] ✅ deploy=True fresh=True flows_1y=False coverage(1m/pct/name)=50/48/50 live={'jh-fl-tgl': True, 'Most intense flows': True, 'jh-flmore': True}
+VERDICT: PASS
 
-→ Report written to aws/ops/reports/latest/3411_fix_newswire_sched.md
+→ Report written to aws/ops/reports/latest/3341_sectors_flow_visuals.md
