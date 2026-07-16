@@ -37,6 +37,7 @@ Real data only — ECB Data Portal + Eurostat + FRED. Not investment advice.
 import csv
 import io
 import json
+import re
 import os
 import time
 import urllib.parse
@@ -80,20 +81,20 @@ SOVCISS = {
     "finland": "M.FI.Z0Z.4F.EC.SOV_CI.IDX",
 }
 
-# ── ASIAN SOVEREIGNS (not covered by ECB SovCISS). ──
-# South Korea: real 10Y govt bond yield from FRED (OECD MEI) — a genuine sovereign-stress
-#   proxy (rising yield / yield vol = sovereign stress).
-# Singapore/Hong Kong/Taiwan: FRED carries no sovereign yield for them, so we use an
-#   EQUITY-PROXY (country ETF drawdown+vol) and flag it honestly as an equity-based proxy,
-#   NOT a true sovereign-bond measure. Never presented as bond stress.
-ASIA_SOV_YIELD = {                     # display key -> FRED 10Y govt bond yield series
-    "south_korea": "IRLTLT01KRM156N",
+# ── ASIAN SOVEREIGNS — real data via World Government Bonds' own REST endpoint
+#    (/wp-json/country/v1/main, reverse-engineered from their site JS). Serves live 10Y
+#    yield, sovereign CDS, spread-vs-Bund, rating and central-bank rate for every country —
+#    the only source that covers Singapore/HK/Taiwan currently (FRED/IMF/Polygon do not).
+#    South Korea also has a FRED yield; we keep WGB for consistency + CDS.
+WGB_SOVEREIGNS = {                      # display key -> WGB country slug
+    "south_korea": "south-korea",
+    "singapore": "singapore",
+    "hong_kong": "hong-kong",
+    "taiwan": "taiwan",
 }
-ASIA_EQUITY_PROXY = {                   # display key -> country ETF (equity-based proxy)
-    "singapore": "EWS",
-    "hong_kong": "EWH",
-    "taiwan": "EWT",
-}
+WGB_ENDPOINT = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"
+WGB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+          "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
 # ── Eurostat real economy — geo code per country ──
 EU_COUNTRIES = {                       # display key -> Eurostat geo code
     "germany": "DE", "france": "FR", "italy": "IT", "spain": "ES",
@@ -250,6 +251,64 @@ def read_existing(key):
 
 
 # ───────────────────────── handler ─────────────────────────
+def wgb_country(slug):
+    """Live sovereign data (10Y yield, CDS, spread-vs-Bund, rating, CB rate) from World
+    Government Bonds' own REST endpoint (/wp-json/country/v1/main), reverse-engineered from
+    the site JS. Requires browser headers (bare requests 403) + the page's jsGlobalVars as
+    the POST body. Returns dict or None."""
+    try:
+        page = _get(f"https://www.worldgovernmentbonds.com/country/{slug}/").decode("utf-8", "ignore")
+    except Exception:
+        return None
+    m = re.search(r"var\s+jsGlobalVars\s*=\s*(\{.*?\});", page, re.S)
+    if not m:
+        return None
+    raw, gv, depth = m.group(1), None, 0
+    for i, ch in enumerate(raw):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    gv = json.loads(raw[:i + 1])
+                except Exception:
+                    return None
+                break
+    if not gv:
+        return None
+    body = json.dumps({"GLOBALVAR": gv}).encode()
+    req = urllib.request.Request(WGB_ENDPOINT, data=body, headers={
+        "User-Agent": WGB_UA, "Content-Type": "application/json",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": f"https://www.worldgovernmentbonds.com/country/{slug}/",
+        "Origin": "https://www.worldgovernmentbonds.com",
+        "X-Requested-With": "XMLHttpRequest"})
+    try:
+        with urllib.request.urlopen(req, timeout=25) as r:
+            d = json.loads(r.read().decode("utf-8", "ignore"))
+    except Exception:
+        return None
+    if not d.get("success"):
+        return None
+
+    def num(k):
+        v = d.get(k)
+        try:
+            return float(v) if v not in (None, "", "----") else None
+        except (ValueError, TypeError):
+            return None
+    return {
+        "bond10y_pct": num("bond10y"),
+        "cds_bp": num("lastCds"),
+        "cds_default_prob_pct": num("lastCdsDefaultProb"),
+        "spread_vs_bund_bp": num("mainSpreadValue"),
+        "rating": d.get("lastRatingValue"),
+        "cb_rate_pct": num("cbRateNumber"),
+        "as_of": d.get("lastDataValDesc"),
+    }
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -314,54 +373,51 @@ def lambda_handler(event, context):
         key=lambda kv: kv[1]["percentile_5y"], reverse=True)
     most_stressed_sov = sov_ranked[0][0] if sov_ranked else None
 
-    # ══ MODULE 2b — ASIAN SOVEREIGNS (bond-yield proxy + honest equity proxy) ══
+    # ══ MODULE 2b — ASIAN SOVEREIGNS (real data via World Government Bonds REST endpoint) ══
+    # Live 10Y yield, sovereign CDS, spread-vs-Bund, rating and CB rate for SG/HK/TW/KR.
+    # Sovereign stress score 0-100 = blend of CDS level (primary — direct default pricing),
+    # spread-vs-Bund, and yield level. CDS is the best single sovereign-stress gauge.
     asia_sov = {}
-    # South Korea — real 10Y govt bond yield. Sovereign stress proxy = blend of the yield's
-    # own-history percentile and its 3-month rise (rising yields = sovereign stress).
-    for name, sid in ASIA_SOV_YIELD.items():
+    for name, slug in WGB_SOVEREIGNS.items():
         try:
-            obs = fred(sid, limit=360)          # newest-first monthly
-            if not obs:
-                asia_sov[name] = {"data_unavailable": True, "source": "FRED " + sid}
-                errors.append(f"AsiaSov/{name}: empty")
+            d = wgb_country(slug)
+            if not d or d.get("bond10y_pct") is None:
+                asia_sov[name] = {"data_unavailable": True, "source": "WGB " + slug}
+                errors.append(f"AsiaSov/{name}: WGB empty")
                 continue
-            level = obs[0][1]
-            asc = list(reversed(obs))            # oldest-first for pct rank
-            vals = [v for _, v in asc]
-            below = sum(1 for v in vals if v <= level)
-            yld_pctile = round(below / len(vals) * 100.0, 1)
-            chg_3m = round(obs[0][1] - obs[min(3, len(obs) - 1)][1], 3)  # yield change 3m (pp)
-            # stress 0-100: 60% own-history percentile + 40% recent-rise contribution
-            rise_score = clamp(50.0 + chg_3m / 0.5 * 25.0, 0, 100)  # +50bp 3m ≈ +25 pts
-            score = round(0.6 * yld_pctile + 0.4 * rise_score, 1)
+            cds = d.get("cds_bp")
+            spread = d.get("spread_vs_bund_bp")
+            y = d.get("bond10y_pct")
+            # component stress mappings (0-100):
+            #  CDS: 0bp→0, ~200bp→~85 (logistic-ish linear cap). Investment-grade sovereigns
+            #       sit <60bp; distress >150bp.
+            cds_stress = clamp((cds / 200.0) * 85.0, 0, 100) if cds is not None else None
+            #  spread vs Bund: 0→~30 (neutral), +150bp→~80. Negative (tighter than Bund)→calm.
+            spr_stress = clamp(30.0 + (spread / 150.0) * 50.0, 0, 100) if spread is not None else None
+            #  yield level: 0%→10, 6%→~75 (higher absolute funding cost = more stress).
+            yld_stress = clamp(10.0 + (y / 6.0) * 65.0, 0, 100) if y is not None else None
+            parts = [(cds_stress, 0.5), (spr_stress, 0.3), (yld_stress, 0.2)]
+            live = [(s, w) for s, w in parts if s is not None]
+            score = round(sum(s * w for s, w in live) / sum(w for _, w in live), 1) if live else None
             asia_sov[name] = {
-                "sovereign_10y_yield_pct": round(level, 3),
-                "as_of": obs[0][0],
-                "yield_percentile_hist": yld_pctile,
-                "yield_change_3m_pp": chg_3m,
+                "sovereign_10y_yield_pct": y,
+                "cds_bp": cds,
+                "cds_default_prob_pct": d.get("cds_default_prob_pct"),
+                "spread_vs_bund_bp": spread,
+                "rating": d.get("rating"),
+                "cb_rate_pct": d.get("cb_rate_pct"),
+                "as_of": d.get("as_of"),
                 "stress_0_100": score,
-                "status": status_from_pct(score),
-                "basis": "10Y government bond yield (FRED)",
+                "status": status_from_pct(score) if score is not None else None,
+                "basis": "10Y yield + sovereign CDS + spread-vs-Bund (World Government Bonds)",
             }
         except Exception as e:
             asia_sov[name] = {"data_unavailable": True}
             errors.append(f"AsiaSov/{name}: {str(e)[:50]}")
 
-    # Singapore / Hong Kong / Taiwan — no FRED sovereign yield. Try an OECD share-price
-    # index as an EQUITY-based proxy (drawdown from 1y high). Flagged honestly; if even that
-    # is unavailable, the sovereign is listed as data_unavailable (named, never faked).
-    OECD_SHARE = {"singapore": None, "hong_kong": None, "taiwan": None}  # FRED lacks these
-    for name in ASIA_EQUITY_PROXY:
-        asia_sov[name] = {
-            "data_unavailable": True,
-            "note": "No FRED sovereign-yield series; equity ETF (" +
-                    ASIA_EQUITY_PROXY[name] + ") is an equity proxy, not sovereign-bond "
-                    "stress. Listed for completeness; a true sovereign measure requires a "
-                    "market-data yield source.",
-            "proxy_etf": ASIA_EQUITY_PROXY[name],
-        }
-    if any("stress_0_100" in v for v in asia_sov.values()):
-        sources.append("FRED — Asian sovereign 10Y yields (bond-yield proxy)")
+    if any(isinstance(v, dict) and v.get("stress_0_100") is not None for v in asia_sov.values()):
+        sources.append("World Government Bonds — Asian sovereign 10Y yields, CDS & spreads")
+
 
     # ══ MODULE 3 — markets (equity stress + sovereign spreads x-ref) ══
     equity = {}

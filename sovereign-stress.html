@@ -109,7 +109,7 @@
 <section class="max-w-[1400px] mx-auto px-4 pb-6">
   <div class="card p-5">
     <div class="eyebrow mb-1">Asia-Pacific sovereigns</div>
-    <p class="text-xs text-[var(--text-muted)] mb-3">South Korea via its 10-year government bond yield (a genuine sovereign-stress proxy). Singapore, Hong Kong &amp; Taiwan have no public sovereign-yield feed on our sources — listed honestly rather than proxied by equities.</p>
+    <p class="text-xs text-[var(--text-muted)] mb-3">Live 10-year yield, sovereign CDS, spread-vs-Bund and credit rating for South Korea, Singapore, Hong Kong &amp; Taiwan — sourced directly from World Government Bonds. CDS (default-risk pricing) is the primary stress input.</p>
     <div id="asia-list"></div>
   </div>
 </section>
@@ -197,8 +197,8 @@ function render(d) {
     }
     const s = c.stress_0_100||0;
     return `<div class="row">
-      <div><div class="text-sm font-medium">${cap(name)}</div>
-        <div class="text-[10px] text-[var(--text-muted)] mono">10Y ${fmt(c.sovereign_10y_yield_pct,2)}% · Δ3m ${c.yield_change_3m_pp>=0?'+':''}${fmt(c.yield_change_3m_pp,2)}pp · ${c.as_of||''}</div></div>
+      <div><div class="text-sm font-medium">${cap(name)} ${c.rating?`<span class="badge" style="border:1px solid var(--blue);color:var(--blue);margin-left:4px">${c.rating}</span>`:''}</div>
+        <div class="text-[10px] text-[var(--text-muted)] mono">10Y ${fmt(c.sovereign_10y_yield_pct,2)}% · CDS ${c.cds_bp!=null?fmt(c.cds_bp,0)+'bp':'—'} · spread ${c.spread_vs_bund_bp!=null?(c.spread_vs_bund_bp>=0?'+':'')+fmt(c.spread_vs_bund_bp,0)+'bp':'—'} · ${c.as_of||''}</div></div>
       <div class="bar-track"><div class="bar-fill" style="width:${s}%;background:${stressColor(s)}"></div></div>
       <div class="mono text-sm" style="color:${stressColor(s)};min-width:34px;text-align:right">${fmt(s,0)}</div>
       <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
