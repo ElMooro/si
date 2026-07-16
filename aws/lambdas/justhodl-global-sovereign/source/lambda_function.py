@@ -20,9 +20,10 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/global-sovereign.json"
+HIST_KEY = "data/global-sovereign-history.json"
 
 WGB_ENDPOINT = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"
 WGB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -283,6 +284,51 @@ def lambda_handler(event=None, context=None):
         "regions": region_agg,
         "source": "World Government Bonds (worldgovernmentbonds.com) — live 10Y yield, sovereign CDS, spread-vs-Bund, rating, central-bank rate.",
     }
+
+    # ── HISTORICAL SNAPSHOTTING — accumulate a daily time-series of the barometer so it
+    # gains trend + percentile context (WGB only gives current values; we build our own
+    # history). Append today's reading (deduped to latest-per-day), keep ~3 years, then
+    # compute where today sits vs its own history.
+    if eurodollar_hub_stress is not None:
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        try:
+            hist = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=HIST_KEY)["Body"].read())
+            if not isinstance(hist, list):
+                hist = []
+        except Exception:
+            hist = []
+        snap = {
+            "date": today,
+            "stress": eurodollar_hub_stress,
+            "avg_cds_bp": payload["eurodollar_hub_avg_cds_bp"],
+            "worst_country": (worst_hub or {}).get("country"),
+            "worst_cds_bp": (worst_hub or {}).get("cds_bp"),
+        }
+        hist = [h for h in hist if h.get("date") != today]  # dedupe → latest per day
+        hist.append(snap)
+        hist.sort(key=lambda h: h["date"])
+        hist = hist[-1100:]  # ~3 years of daily points
+        s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+                      Body=json.dumps(hist, default=str).encode(),
+                      ContentType="application/json", CacheControl="max-age=1800, public")
+
+        # percentile of today's reading within its own history + short-window trend
+        series = [h["stress"] for h in hist if h.get("stress") is not None]
+        if len(series) >= 3:
+            below = sum(1 for v in series if v <= eurodollar_hub_stress)
+            payload["eurodollar_hub_percentile"] = round(below / len(series) * 100.0, 1)
+        payload["eurodollar_hub_history_n"] = len(hist)
+        payload["eurodollar_hub_history"] = hist[-90:]  # last 90 pts for the sparkline
+        # trend vs ~7 days and ~30 days ago (by position, since cadence is ~2/day)
+        def ago(n):
+            idx = len(series) - 1 - n
+            return series[idx] if 0 <= idx < len(series) else None
+        prev7, prev30 = ago(14), ago(60)  # ~7d and ~30d at 2 runs/day
+        if prev7 is not None:
+            payload["eurodollar_hub_chg_7d"] = round(eurodollar_hub_stress - prev7, 1)
+        if prev30 is not None:
+            payload["eurodollar_hub_chg_30d"] = round(eurodollar_hub_stress - prev30, 1)
+
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(payload, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=1800, public")

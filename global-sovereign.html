@@ -137,6 +137,24 @@
           </div>
         </div>
         <div class="text-[11px] text-[var(--text-muted)] mb-2">Composite is danger-first: 60% pack average + 40% worst hub, so a single fracturing hub lights the barometer rather than being averaged away.</div>
+
+        <!-- HISTORY: percentile + trend + sparkline -->
+        <div class="grid grid-cols-[auto_auto_1fr] gap-4 items-center mb-4 p-3 rounded-lg" style="background:var(--bg-subtle);border:1px solid var(--border-soft)">
+          <div>
+            <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Percentile</div>
+            <div class="mono text-lg font-bold" id="bar-pctile">—</div>
+            <div class="text-[10px] text-[var(--text-muted)]">of own history</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">Trend</div>
+            <div class="mono text-sm" id="bar-trend">—</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mb-1" id="bar-spark-label">History</div>
+            <svg id="bar-sparkline" viewBox="0 0 240 44" preserveAspectRatio="none" style="width:100%;height:44px"></svg>
+          </div>
+        </div>
+
         <div class="eyebrow mb-2" style="letter-spacing:0.06em">Hub ladder · CDS (bp)</div>
         <div id="bar-ladder" class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1"></div>
       </div>
@@ -289,6 +307,35 @@ function renderBarometer(d){
       <span class="mono text-[11px]" style="color:${c};font-weight:600">${fmt(h.cds_bp,0)}</span>
     </div>`;
   }).join('');
+
+  // ── HISTORY: percentile, trend, sparkline ──
+  const pct = d.eurodollar_hub_percentile;
+  document.getElementById('bar-pctile').textContent = pct!=null?fmt(pct,0)+'th':'—';
+  document.getElementById('bar-pctile').style.color = pct==null?'var(--text-muted)':pct>=80?'var(--red)':pct>=50?'var(--amber)':'var(--green)';
+  // trend
+  const c7=d.eurodollar_hub_chg_7d, c30=d.eurodollar_hub_chg_30d;
+  const arrow=v=>v==null?'':v>0.3?'▲':v<-0.3?'▼':'▬';
+  const tcol=v=>v==null?'var(--text-muted)':v>0.3?'var(--red)':v<-0.3?'var(--green)':'var(--text-secondary)';
+  document.getElementById('bar-trend').innerHTML = (c7!=null||c30!=null)
+    ? `<span style="color:${tcol(c7)}">${arrow(c7)} 7d ${c7>=0?'+':''}${fmt(c7,1)}</span><br><span style="color:${tcol(c30)};font-size:0.75rem">${arrow(c30)} 30d ${c30>=0?'+':''}${fmt(c30,1)}</span>`
+    : '<span class="text-[var(--text-muted)] text-xs">building…</span>';
+  // sparkline
+  const hist=(d.eurodollar_hub_history||[]).filter(h=>h.stress!=null);
+  const spark=document.getElementById('bar-sparkline');
+  document.getElementById('bar-spark-label').textContent = hist.length>1?`History · ${hist.length} readings`:'History · building…';
+  if (hist.length>1){
+    const vals=hist.map(h=>h.stress), mn=Math.min(...vals), mx=Math.max(...vals), rng=(mx-mn)||1;
+    const W=240,H=44,pad=3;
+    const pts=vals.map((v,i)=>[pad+i/(vals.length-1)*(W-2*pad), H-pad-(v-mn)/rng*(H-2*pad)]);
+    const line=pts.map((p,i)=>`${i?'L':'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+    const area=`${line} L ${pts[pts.length-1][0].toFixed(1)} ${H} L ${pts[0][0].toFixed(1)} ${H} Z`;
+    const last=pts[pts.length-1], col=distressRegime(vals[vals.length-1]).color;
+    spark.innerHTML=`<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="0.35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>`+
+      `<path d="${area}" fill="url(#sg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.6"/>`+
+      `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.6" fill="${col}"/>`;
+  } else {
+    spark.innerHTML=`<text x="120" y="26" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="JetBrains Mono">accumulating history…</text>`;
+  }
 }
 
 function renderTable() {
@@ -322,7 +369,7 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/global-sovereign.js
   .then(render)
   .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
 </script>
-<script src="/jh-nav-drawer.js?v=3394" defer></script>
-<div id="jhBuildStamp" style="position:fixed;bottom:6px;right:8px;font:10px 'JetBrains Mono',monospace;color:var(--text-muted);opacity:0.5;z-index:60">build 3394 · barometer</div>
+<script src="/jh-nav-drawer.js?v=3395" defer></script>
+<div id="jhBuildStamp" style="position:fixed;bottom:6px;right:8px;font:10px 'JetBrains Mono',monospace;color:var(--text-muted);opacity:0.5;z-index:60">build 3395 · barometer+history</div>
 </body>
 </html>
