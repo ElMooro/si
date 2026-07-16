@@ -1,10 +1,11 @@
-executing-against: 29d40d8e5db6a601e0c409187195cf0dc5788a9b
-[1] settled + deployed zip carries complex_nets/perf_m
-[2] refired; prior gen 2026-07-16T20:10:38.409660+00:00
-[2] feed: {"generated_at": "2026-07-16T21:29:46.495450+00:00", "n_complexes": 12, "n_types": 24, "n_breadth_sectors": 11, "sector_perf_m_nonnull": "11/11", "sp500_complex": {"net_1m": 49740089155.17001, "gross_in_1m": 95114756901.70001, "gross_out_1m": -45374667746.53, "net_ytd": 175905882684.07, "n": 4}, "top_type": {"type": "US Equities", "n": 2519, "net_1m": 137697814945.9198, "net_ytd": 475603205249.39996, "gross_in_1m": 216335551296.35004, "gross_out_1m": -78637736350.43002, "aum": 9879948136173.0}, "breadth_sample": [{"sector": "Financial", "n": 1448, "pct_above_200dma": 67.4, "pct_above_50dma": 70.6, "median_perf_m": 0.91}, {"sector": "Energy", "n": 255, "pct_above_200dma": 63.9, "pct_above_50dma": 34.9, "median_perf_m": -0.08}]}
-[3] 13F join: 11/11 SPDRs present; sample {'XLK': {'n': -231229767, 'wn': 0}, 'XLF': {'n': 0, 'wn': 0}, 'XLE': {'n': -796161942, 'wn': -796161942}, 'XLV': {'n': 0, 'wn': 0}}
-[4] live: {'quad-map': True, 'complex-nets': True, 'type-flows': True, 'whale-crowd': True, 'sec-breadth': True, 'loadFlowIntel': True, 'STEALTH ACCUMULATION': True}
-[21:31:56] ✅ cx=12 types=24 breadth=11 perf=11/11 13F=11/11 live_all=True
-VERDICT: PASS
+executing-against: ba7811a04d92af5931631d72ed135a358838b6f3
+[1] deployed zip carries build_event_study + leveraged_appetite
+[2] refired; prior event-study gen: None
+[2] study: {"n_events": null, "overall": null, "by_dir": null, "by_quadrant": null, "smart_money": null, "retail_favored": null}
+    top: []
+[3] lev-appetite: {'read': 'RISK_SEEKING', 'bull_5d_usd': 148346044460, 'bear_5d_usd': -1787911420, 'net_5d_usd': 150133955880, 'n_pairs': 106}
+[4] live: {'flow-evidence': True, 'lev-appetite': True, 'event-study.json': True, 'Largest 21d outcomes': True, 'Leveraged risk appetite': True}
+[21:44:38] ⚠ events=0 lev=RISK_SEEKING pairs=106 live_all=True
+VERDICT: PARTIAL
 
-→ Report written to aws/ops/reports/latest/3343_flow_intel.md
+→ Report written to aws/ops/reports/latest/3344_event_study_lev.md
