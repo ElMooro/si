@@ -1,12 +1,11 @@
-executing-against: b2da9f1f2a22cfc8bce9378c0c3a7da86810c108
-── A. Is jsGlobalResult / data embedded inline in the page? ──
-[15:05:01]   jsGlobal var decl: ['var jsGlobalVars =']
-[15:05:01]   inline scripts: 27; sizes: [2231, 456, 431, 372, 156]
-[15:05:01]   DATA SCRIPT:  var jsGlobalVars = {"JS_VARIABLE":"jsGlobalVars","FUNCTION":"Country","DOMESTIC":true,"ENDPOINT":"https:\/\/www.worldgovernmentbonds.com\/wp-json\/country\/v1\/historical","DATE_RIF":"2099-12-31","OBJ":null,"COUNTRY1":{"SYMBOL":"52","PAESE":"Singapore","PAESE_UPPERCASE":"SINGAPORE","BANDIERA":"sg",
-[15:05:01]   DATA SCRIPT:  document.addEventListener('DOMContentLoaded', function () { country_main(); }); async function country_main() { const postData = { "GLOBALVAR": jsGlobalVars, }; const endpoint = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"; const globalVarName = "jsGlobalResult"; ac_showLoadingLay
-── B. investing.com upstream — Singapore/HK/Taiwan 10Y ──
-[15:05:01]   investing Singapore: __ERR__ HTTP Error 403: Forbidden
-[15:05:01]   investing Hong Kong: __ERR__ HTTP Error 403: Forbidden
-[15:05:01]   investing Taiwan: __ERR__ HTTP Error 403: Forbidden
+executing-against: 43bd6ee9d2a9a985ac25d116d4ea0348dbf8f131
+[15:06:29]   Singapore: symbol=52 flag=sg endpoint=https://www.worldgovernmentbonds.com/wp-json/count
+[15:06:30]     POST: __ERR__ HTTP Error 403: Forbidden
+[15:06:31]   Hong Kong: symbol=12 flag=cn endpoint=https://www.worldgovernmentbonds.com/wp-json/count
+[15:06:31]     POST: __ERR__ HTTP Error 403: Forbidden
+[15:06:32]   Taiwan: symbol=55 flag=tw endpoint=https://www.worldgovernmentbonds.com/wp-json/count
+[15:06:32]     POST: __ERR__ HTTP Error 403: Forbidden
+[15:06:33]   South Korea: symbol=29 flag=kr endpoint=https://www.worldgovernmentbonds.com/wp-json/count
+[15:06:33]     POST: __ERR__ HTTP Error 403: Forbidden
 
-→ Report written to aws/ops/reports/latest/3381_wgb_embedded.md
+→ Report written to aws/ops/reports/latest/3382_wgb_restapi.md
