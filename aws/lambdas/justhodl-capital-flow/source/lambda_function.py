@@ -66,11 +66,12 @@ def lambda_handler(event=None, context=None):
         nf = sf(p.get("n_funds_holding")) or 0
         chg = (p.get("change") or "").upper()  # may be per-position; use changes_summary if present
         cs = p.get("changes_summary") or {}
-        new_f = sf(cs.get("new")) or 0
-        add_f = sf(cs.get("added") or cs.get("add")) or 0
-        trim_f = sf(cs.get("trimmed") or cs.get("trim")) or 0
-        exit_f = sf(cs.get("exited") or cs.get("exit")) or 0
-        val_delta = sf(p.get("value_delta_pct"))
+        # current 13f-positions schema = flat n_funds_* fields; legacy changes_summary kept as fallback
+        new_f = sf(p.get("n_funds_new_position")) or sf(cs.get("new")) or 0
+        add_f = sf(p.get("n_funds_adding")) or sf(cs.get("added") or cs.get("add")) or 0
+        trim_f = sf(p.get("n_funds_trimming")) or sf(cs.get("trimmed") or cs.get("trim")) or 0
+        exit_f = sf(p.get("n_funds_exiting")) or sf(cs.get("exited") or cs.get("exit")) or 0
+        val_delta = sf(p.get("value_delta_pct")) or sf(p.get("value_change_pct"))
         score = 0.0
         score += min(20, new_f * 4)        # new positions = strong
         score += min(15, add_f * 1.5)
