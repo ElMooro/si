@@ -62,6 +62,7 @@ a{color:var(--cyan);text-decoration:none}
     <span class="tab" data-tab="sectors">Sector Rotation</span>
     <span class="tab" data-tab="ledger">Ledger (300)</span>
     <span class="tab" data-tab="intel">Conflicts &amp; New Money</span>
+    <span class="tab" data-tab="dollars">💵 Dollar Flows</span>
   </div>
 </section>
 <div class="wrap"><div id="content"><div class="loading">Loading capital flows…</div></div></div>
@@ -71,6 +72,8 @@ const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 let DATA=null, WH=null, tab='stocks', LQ='';
 const fmU=v=>v==null?'—':((v>=0?'+':'−')+'$'+(Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(1)+'M'));
+const fmT=v=>v==null?'—':((v>=0?'+':'−')+'$'+(Math.abs(v)>=1e12?(Math.abs(v)/1e12).toFixed(2)+'T':Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(2)+'B':(Math.abs(v)/1e6).toFixed(1)+'M'));
+const fhT=v=>v==null?'—':('$'+(Math.abs(v)>=1e12?(Math.abs(v)/1e12).toFixed(2)+'T':Math.abs(v)>=1e9?(Math.abs(v)/1e9).toFixed(1)+'B':(Math.abs(v)/1e6).toFixed(0)+'M'));
 const fpc=v=>v==null?'—':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
 async function load(){
   try{const r=await fetch(`${PROXY}/data/capital-flow.json?t=${Date.now()}`);if(r.ok)DATA=await r.json();}catch(e){}
@@ -87,14 +90,19 @@ function srow(r,neg){
   const wj=WH&&WH[r.ticker];
   const dwh=wj?`Whales Q: <b style="color:${(wj.wn||0)>=0?'var(--green)':'var(--red)'}">${fmU(wj.wn)}</b>${(wj.fb||[]).length?' · in: '+esc(wj.fb.slice(0,2).join(', ')):''}${(wj.fs||[]).length?' · out: '+esc(wj.fs.slice(0,2).join(', ')):''}`:'';
   const cfl=(DATA.lens_conflicts||[]).some(c=>c.ticker===r.ticker)?`<span title="quarterly 13F and fresher inst-QoQ disagree in sign" style="color:#f5b942;cursor:help">⚡</span>`:'';
+  const dd=(r.detail&&r.detail.inst_deep)||null;
+  const did=dd?`🏛 ${dd.investors!=null?Number(dd.investors).toLocaleString()+' institutions':''}${dd.investors_chg!=null?' ('+(dd.investors_chg>=0?'+':'')+dd.investors_chg+' QoQ)':''}${dd.invested_chg_usd!=null?' · <b style="color:'+(dd.invested_chg_usd>=0?'var(--green)':'var(--red)')+'">'+fmT(dd.invested_chg_usd)+'</b>':''}${dd.increased_pos!=null?' · ↑'+Number(dd.increased_pos).toLocaleString()+' inc / ↓'+Number(dd.reduced_pos||0).toLocaleString()+' red':''}`:'';
+  const mm=(r.detail&&r.detail.momentum)||null;
+  const mch=mm&&mm.new_today?`<span title="entered the flagged set today" style="font-family:var(--mono);font-size:8.5px;color:var(--bg);background:var(--amber);border-radius:4px;padding:1px 5px;font-weight:700">NEW</span>`:(mm&&mm.score_delta!=null&&Math.abs(mm.score_delta)>=3?`<span title="flow-score change vs previous run" style="font-family:var(--mono);font-size:9px;color:${mm.score_delta>=0?'var(--green)':'var(--red)'}">Δ${mm.score_delta>=0?'+':''}${mm.score_delta}</span>`:'');
   return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')">
     <div style="flex:1"><div style="display:flex;align-items:center;gap:10px">
-      <span class="tk">${esc(r.ticker)}</span>${cfl}<span class="nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+      <span class="tk">${esc(r.ticker)}</span>${cfl}${mch}<span class="nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
       <span class="sc" style="color:${col}">${r.flow_score>=0?'+':''}${r.flow_score}</span></div>
       <div class="lenses">${esc((r.lenses||[]).join(' · '))}</div>
       ${d13?`<div class="lenses" style="opacity:.85">${d13}</div>`:''}
       ${dic?`<div class="lenses" style="opacity:.85">${dic}</div>`:''}
       ${dwh?`<div class="lenses" style="opacity:.85">${dwh}</div>`:''}
+      ${did?`<div class="lenses" style="opacity:.95;color:var(--fg-2)">${did}</div>`:''}
       <div class="bar" style="width:${w}%;background:${col}"></div></div></div>`;
 }
 function sumStrip(){
@@ -106,6 +114,8 @@ function sumStrip(){
     <span style="border:1px solid rgba(255,90,110,.4);border-radius:6px;padding:4px 10px;color:var(--red)">dis ${s.n_dis} · strong dis ${s.n_strong_dis}</span>
     ${(s.top_acc_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">acc leader: ${esc(s.top_acc_sectors[0].sector)} (${s.top_acc_sectors[0].n})</span>`:''}
     ${(s.top_dis_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">dis leader: ${esc(s.top_dis_sectors[0].sector)} (${s.top_dis_sectors[0].n})</span>`:''}
+    ${DATA.inst_breadth&&DATA.inst_breadth.usd_chg_net!=null?`<span style="border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:${DATA.inst_breadth.usd_chg_net>=0?'var(--green)':'var(--red)'}">inst $ net ${fmT(DATA.inst_breadth.usd_chg_net)}${DATA.inst_breadth.quarter?' ('+esc(DATA.inst_breadth.quarter)+')':''}</span>`:''}
+    ${DATA.inst_breadth&&DATA.inst_breadth.increased_sum!=null?`<span style="border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--fg-2)">institutions ↑${Number(DATA.inst_breadth.increased_sum).toLocaleString()} vs ↓${Number(DATA.inst_breadth.reduced_sum||0).toLocaleString()}</span>`:''}
   </div>`;
 }
 function render(){
@@ -170,8 +180,44 @@ function render(){
       <div class="col"><h2>⚡ Lens Conflicts — footprint turning</h2><div class="lenses" style="margin-bottom:8px">Quarterly 13F and fresher institutional QoQ disagree in sign — the stale filing hasn't caught the turn yet.</div>${cf.length?cf.map(c=>`<div class="row" onclick="window.open('/why.html?ticker=${esc(c.ticker)}','_blank')"><div style="flex:1"><div style="display:flex;gap:10px;align-items:center"><span class="tk">${esc(c.ticker)}</span><span class="nm">${esc(c.name||'')}${c.sector?' · '+esc(c.sector):''}</span><span class="sc" style="color:${(c.inst_score||0)>=0?'var(--green)':'var(--red)'}">gap ${c.gap}</span></div><div class="lenses">13F ${c.f13_score>=0?'+':''}${c.f13_score} vs QoQ ${c.inst_score>=0?'+':''}${c.inst_score} — ${esc(c.read||'')}</div></div></div>`).join(''):'<div class="loading">No sign conflicts today.</div>'}</div>
       <div class="col"><h2>🆕 New Money — funds initiating</h2><div class="lenses" style="margin-bottom:8px">Ranked purely by 13F NEW positions this quarter.</div>${np.length?np.map(n=>`<div class="row" onclick="window.open('/why.html?ticker=${esc(n.ticker)}','_blank')"><div style="flex:1"><div style="display:flex;gap:10px;align-items:center"><span class="tk">${esc(n.ticker)}</span><span class="nm">${esc(n.name||'')}${n.sector?' · '+esc(n.sector):''}</span><span class="sc" style="color:var(--green)">+${n.new} new</span></div><div class="lenses">+${n.added} added · ${n.n_funds} funds hold${n.val_delta_pct!=null?' · Δ$ '+fpc(n.val_delta_pct):''} · score ${n.flow_score>=0?'+':''}${n.flow_score}</div></div></div>`).join(''):'<div class="loading">Awaiting 13F cycle.</div>'}</div>
     </div>`;
+  } else if(tab==='dollars'){
+    const ib=DATA.inst_breadth||{}, din=DATA.dollar_flow_in||[], dout=DATA.dollar_flow_out||[], sdf=DATA.sector_dollar_flows||[];
+    const tile=(label,val,col)=>`<div class="cat"><div class="cn">${label}</div><div class="cs" style="color:${col||'var(--fg-1)'};font-size:15px">${val}</div></div>`;
+    const drow=(r,neg)=>{
+      const col=neg?'var(--red)':'var(--green)';
+      return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')">
+        <div style="flex:1"><div style="display:flex;align-items:center;gap:10px">
+          <span class="tk">${esc(r.ticker)}</span><span class="nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+          <span class="sc" style="color:${col}">${fmT(r.invested_chg_usd)}</span></div>
+          <div class="lenses">🏛 <b>${r.investors!=null?Number(r.investors).toLocaleString():'—'} institutions</b>${r.investors_chg!=null?' ('+(r.investors_chg>=0?'+':'')+r.investors_chg+' QoQ)':''} · ↑${r.increased_pos!=null?Number(r.increased_pos).toLocaleString():'—'} increased / ↓${r.reduced_pos!=null?Number(r.reduced_pos).toLocaleString():'—'} reduced${r.new_pos!=null?' · '+Number(r.new_pos).toLocaleString()+' new':''}${r.closed_pos!=null?' · '+Number(r.closed_pos).toLocaleString()+' closed':''}</div>
+          <div class="lenses" style="opacity:.85">holding ${fhT(r.invested_usd)}${r.ownership_pct!=null?' · '+Number(r.ownership_pct).toFixed(1)+'% of float':''}${r.funds_net_usd!=null?' · famous funds '+fmT(r.funds_net_usd):''}${r.whale_net_usd?' · whales '+fmT(r.whale_net_usd):''} · score ${r.flow_score>=0?'+':''}${r.flow_score}</div>
+          ${((r.top_buyers&&r.top_buyers.length)||(r.top_sellers&&r.top_sellers.length))?`<div class="lenses" style="opacity:.7">${r.top_buyers&&r.top_buyers.length?'in: '+esc(r.top_buyers.join(', ')):''}${r.top_sellers&&r.top_sellers.length?((r.top_buyers&&r.top_buyers.length)?' · ':'')+'out: '+esc(r.top_sellers.join(', ')):''}</div>`:''}
+          <div class="bar" style="width:${Math.min(100,Math.abs(r.flow_score||0))}%;background:${col}"></div></div></div>`;
+    };
+    h=sumStrip()+`<div class="lenses" style="margin-bottom:10px;font-size:10.5px">ALL-institution view — every 13F filer${ib.quarter?' as of <b>'+esc(ib.quarter)+'</b>':''}: total invested dollars, QoQ dollar change, and how many institutions increased / reduced / initiated / closed. Famous-fund &amp; whale dollars from the in-house 13F ledger. Set = flagged accumulating + distributing + intel names (${ib.n_enriched||0} enriched).</div>
+    <div class="cat-grid" style="margin-bottom:18px">
+      ${tile('NET INST $ QoQ · FLAGGED SET',fmT(ib.usd_chg_net),(ib.usd_chg_net||0)>=0?'var(--green)':'var(--red)')}
+      ${tile('$ INTO ACCUMULATING',fmT(ib.usd_chg_acc),'var(--green)')}
+      ${tile('$ OUT OF DISTRIBUTING',fmT(ib.usd_chg_dis),'var(--red)')}
+      ${tile('INSTITUTIONS ↑ INCREASED',ib.increased_sum!=null?Number(ib.increased_sum).toLocaleString():'—','var(--green)')}
+      ${tile('INSTITUTIONS ↓ REDUCED',ib.reduced_sum!=null?Number(ib.reduced_sum).toLocaleString():'—','var(--red)')}
+      ${tile('NEW / CLOSED POSITIONS',(ib.new_sum!=null?Number(ib.new_sum).toLocaleString():'—')+' / '+(ib.closed_sum!=null?Number(ib.closed_sum).toLocaleString():'—'),'var(--amber)')}
+    </div>
+    <div class="grid">
+      <div class="col"><h2>💵 Top Dollar Inflows — institutions adding</h2>${din.length?din.map(r=>drow(r,false)).join(''):'<div class="loading">Awaiting first $-enrichment run (daily 16:30 UTC).</div>'}</div>
+      <div class="col"><h2>💸 Top Dollar Outflows — institutions cutting</h2>${dout.length?dout.map(r=>drow(r,true)).join(''):'<div class="loading">Awaiting first $-enrichment run.</div>'}</div>
+    </div>`;
+    if(sdf.length){
+      const mx=Math.max(...sdf.map(x=>Math.abs(x.usd_chg||0)),1);
+      h+=`<h2 style="font-family:var(--mono);font-size:15px;margin:22px 0 10px">🧭 Sector dollar rotation — institutional $ QoQ across flagged names</h2>`+
+        sdf.map(x=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
+          <span style="width:170px;color:var(--fg-1)">${esc(x.sector)}</span>
+          <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(x.usd_chg||0)/mx*100,100)}%;background:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}"></div></div>
+          <span style="width:110px;color:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}">${fmT(x.usd_chg)}</span>
+          <span style="color:var(--fg-3)">n ${x.n} · Δ investors ${(x.investors_chg||0)>=0?'+':''}${x.investors_chg||0}</span></div>`).join('');
+    }
   }
-  h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
+  h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · $-deep ${DATA.sources&&DATA.sources.inst_deep?DATA.sources.inst_deep+' names ('+esc(DATA.quarter_13f||'')+')':'—'} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
   document.getElementById('content').innerHTML=h;
 }
 document.getElementById('content').addEventListener('input',e=>{if(e.target&&e.target.id==='cf-q'){LQ=e.target.value;const p=e.target.selectionStart;render();const el=document.getElementById('cf-q');if(el){el.focus();el.setSelectionRange(p,p);}}});

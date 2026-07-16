@@ -224,11 +224,215 @@ def lambda_handler(event=None, context=None):
          for r in results if ((r.get("detail") or {}).get("13f") or {}).get("new")],
         key=lambda x: (-x["new"], -x["added"]))[:15]
 
+    # ── v2.0 DOLLAR & INSTITUTION-COUNT LAYER (ops 3360, additive) ──
+    # FMP /stable institutional-ownership/symbol-positions-summary = the
+    # ALL-institutions view per ticker (every 13F filer, not just tracked
+    # funds): total investors holding, how many increased / reduced /
+    # initiated / closed, and total invested DOLLARS with QoQ change.
+    # Enriches only flagged names (~95/day) — real data, tiny API budget.
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    FMP_KEY = (os.environ.get("FMP_API_KEY") or os.environ.get("FMP_KEY")
+               or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    FMP_BASE = "https://financialmodelingprep.com/stable"
+
+    def _fmp(path, params, timeout=20):
+        url = f"{FMP_BASE}/{path}?apikey={FMP_KEY}{params}"
+        for att in range(3):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "JustHodl/2.0"})
+                return json.loads(urllib.request.urlopen(req, timeout=timeout).read())
+            except Exception:
+                if att == 2:
+                    return None
+                time.sleep(0.8 * (att + 1))
+
+    def _latest_13f_quarter():
+        now = datetime.now(timezone.utc)
+        y, q = now.year, (now.month - 1) // 3 + 1
+        cands = []
+        for _ in range(5):
+            q -= 1
+            if q == 0:
+                y, q = y - 1, 4
+            cands.append((y, q))
+        for yy, qq in cands:
+            js = _fmp("institutional-ownership/symbol-positions-summary",
+                      f"&symbol=AAPL&year={yy}&quarter={qq}")
+            if isinstance(js, list) and js:
+                return yy, qq
+        return None, None
+
+    def _g(rec, *names):
+        for n in names:
+            v = sf(rec.get(n))
+            if v is not None:
+                return v
+        return None
+
+    flagged, _seen = [], set()
+    for coll in (accumulating, distributing, lens_conflicts, top_new_positions):
+        for r in coll:
+            tk = r.get("ticker")
+            if tk and tk not in _seen:
+                _seen.add(tk)
+                flagged.append(tk)
+
+    inst_deep = {}
+    q_year = q_q = None
+    try:
+        q_year, q_q = _latest_13f_quarter()
+    except Exception as e:
+        print(f"[capital-flow] quarter probe failed: {e!r}")
+    if q_year:
+        def _pull(tk):
+            js = _fmp("institutional-ownership/symbol-positions-summary",
+                      f"&symbol={tk}&year={q_year}&quarter={q_q}")
+            if not (isinstance(js, list) and js):
+                return tk, None
+            rec = js[0]
+            return tk, {
+                "investors": _g(rec, "investorsHolding"),
+                "investors_chg": _g(rec, "investorsHoldingChange"),
+                "new_pos": _g(rec, "newPositions"),
+                "closed_pos": _g(rec, "closedPositions"),
+                "increased_pos": _g(rec, "increasedPositions"),
+                "reduced_pos": _g(rec, "reducedPositions"),
+                "invested_usd": _g(rec, "totalInvested"),
+                "invested_chg_usd": _g(rec, "totalInvestedChange"),
+                "ownership_pct": _g(rec, "ownershipPercent"),
+                "put_call_ratio": _g(rec, "putCallRatio"),
+                "quarter": f"Q{q_q} {q_year}",
+            }
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            for fut in as_completed([ex.submit(_pull, tk) for tk in flagged]):
+                try:
+                    tk, d = fut.result()
+                    if d:
+                        inst_deep[tk] = d
+                except Exception:
+                    pass
+    for tk, d in inst_deep.items():
+        if tk in by_ticker:
+            by_ticker[tk]["detail"]["inst_deep"] = d
+
+    # famous-funds dollar join — data/13f-flows-by-ticker.json is the in-house
+    # dv ledger over the tracked-fund universe (whale = clone-alpha skill>=55)
+    fj = (read_json("data/13f-flows-by-ticker.json") or {}).get("t") or {}
+    n_f13join = 0
+    for tk in flagged:
+        w = fj.get(tk)
+        if w and tk in by_ticker:
+            by_ticker[tk]["detail"]["funds13f"] = {
+                "bought_usd": w.get("b"), "sold_usd": w.get("s"),
+                "net_usd": w.get("n"), "whale_net_usd": w.get("wn"),
+                "n_funds": w.get("nf"), "held_usd": w.get("tv"),
+                "buying": (w.get("fb") or [])[:3], "selling": (w.get("fs") or [])[:3]}
+            n_f13join += 1
+
+    # dollar boards + all-institution breadth
+    def _dr(tk):
+        r = by_ticker.get(tk) or {}
+        d = (r.get("detail") or {}).get("inst_deep") or {}
+        f = (r.get("detail") or {}).get("funds13f") or {}
+        return {"ticker": tk, "name": r.get("name"), "sector": r.get("sector"),
+                "flow_score": r.get("flow_score"),
+                "invested_usd": d.get("invested_usd"),
+                "invested_chg_usd": d.get("invested_chg_usd"),
+                "investors": d.get("investors"), "investors_chg": d.get("investors_chg"),
+                "increased_pos": d.get("increased_pos"), "reduced_pos": d.get("reduced_pos"),
+                "new_pos": d.get("new_pos"), "closed_pos": d.get("closed_pos"),
+                "ownership_pct": d.get("ownership_pct"),
+                "funds_net_usd": f.get("net_usd"), "whale_net_usd": f.get("whale_net_usd"),
+                "top_buyers": (f.get("buying") or [])[:2],
+                "top_sellers": (f.get("selling") or [])[:2]}
+    with_usd = [_dr(tk) for tk in flagged
+                if (inst_deep.get(tk) or {}).get("invested_chg_usd") is not None]
+    dollar_flow_in = sorted([r for r in with_usd if (r["invested_chg_usd"] or 0) > 0],
+                            key=lambda x: -(x["invested_chg_usd"] or 0))[:20]
+    dollar_flow_out = sorted([r for r in with_usd if (r["invested_chg_usd"] or 0) < 0],
+                             key=lambda x: (x["invested_chg_usd"] or 0))[:20]
+
+    acc_set = {r["ticker"] for r in accumulating}
+    dis_set = {r["ticker"] for r in distributing}
+
+    def _sumf(keys, field):
+        return sum((inst_deep.get(t) or {}).get(field) or 0 for t in keys)
+    inst_breadth = {
+        "quarter": (f"Q{q_q} {q_year}" if q_year else None),
+        "n_enriched": len(inst_deep),
+        "usd_chg_acc": round(_sumf(acc_set & set(inst_deep), "invested_chg_usd")),
+        "usd_chg_dis": round(_sumf(dis_set & set(inst_deep), "invested_chg_usd")),
+        "investors_acc": round(_sumf(acc_set & set(inst_deep), "investors")),
+        "investors_dis": round(_sumf(dis_set & set(inst_deep), "investors")),
+        "increased_sum": round(_sumf(inst_deep, "increased_pos")),
+        "reduced_sum": round(_sumf(inst_deep, "reduced_pos")),
+        "new_sum": round(_sumf(inst_deep, "new_pos")),
+        "closed_sum": round(_sumf(inst_deep, "closed_pos")),
+    }
+    inst_breadth["usd_chg_net"] = round((inst_breadth["usd_chg_acc"] or 0)
+                                        + (inst_breadth["usd_chg_dis"] or 0))
+
+    sec_usd = defaultdict(lambda: {"usd": 0.0, "n": 0, "inv": 0})
+    for tk, d in inst_deep.items():
+        sec = (by_ticker.get(tk) or {}).get("sector")
+        if not sec or d.get("invested_chg_usd") is None:
+            continue
+        sec_usd[sec]["usd"] += d["invested_chg_usd"]
+        sec_usd[sec]["n"] += 1
+        sec_usd[sec]["inv"] += d.get("investors_chg") or 0
+    sector_dollar_flows = sorted(
+        [{"sector": k, "usd_chg": round(v["usd"]), "n": v["n"],
+          "investors_chg": round(v["inv"])} for k, v in sec_usd.items()],
+        key=lambda x: -x["usd_chg"])
+
+    # history ledger → per-name score momentum + NEW-today flags
+    hist = read_json("data/capital-flow-history.json") or {"entries": []}
+    entries = [e for e in (hist.get("entries") or []) if isinstance(e, dict)]
+    today = datetime.now(timezone.utc).date().isoformat()
+    prev = None
+    for e in reversed(entries):
+        if e.get("date") and e["date"] < today:
+            prev = e
+            break
+    prev_scores = (prev or {}).get("flagged_scores") or {}
+    for tk in flagged:
+        r = by_ticker.get(tk)
+        if not r:
+            continue
+        ps = sf(prev_scores.get(tk))
+        r["detail"]["momentum"] = {
+            "prev_score": ps,
+            "score_delta": (round((r.get("flow_score") or 0) - ps, 1)
+                            if ps is not None else None),
+            "new_today": (prev is not None and ps is None)}
+    entries = ([e for e in entries if e.get("date") != today]
+               + [{"date": today, "n_scored": len(results),
+                   "n_strong_acc": summary["n_strong_acc"],
+                   "n_strong_dis": summary["n_strong_dis"],
+                   "usd_chg_net": inst_breadth.get("usd_chg_net"),
+                   "flagged_scores": {tk: (by_ticker.get(tk) or {}).get("flow_score")
+                                      for tk in flagged}}])[-120:]
+    try:
+        s3.put_object(Bucket=BUCKET, Key="data/capital-flow-history.json",
+                      Body=json.dumps({"as_of": datetime.now(timezone.utc).isoformat(),
+                                       "entries": entries}, default=str).encode(),
+                      ContentType="application/json",
+                      CacheControl="public, max-age=3600")
+    except Exception as e:
+        print(f"[capital-flow] history write failed: {e!r}")
+
     output = {
-        "engine": "capital-flow", "version": "1.1",
+        "engine": "capital-flow", "version": "2.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
-        "sources": {"13f": bool(agg), "etf_flows": len(etf_flows), "inst_change": len(inst_scores), "categories": len(cat_rotation)},
+        "sources": {"13f": bool(agg), "etf_flows": len(etf_flows), "inst_change": len(inst_scores), "categories": len(cat_rotation),
+                    "inst_deep": len(inst_deep), "funds13f_join": n_f13join},
+        "quarter_13f": inst_breadth.get("quarter"),
+        "inst_breadth": inst_breadth,
+        "dollar_flow_in": dollar_flow_in,
+        "dollar_flow_out": dollar_flow_out,
+        "sector_dollar_flows": sector_dollar_flows,
         "methodology": ("Fuses 13F position changes (new/add/trim/exit + $ delta + "
                         "#funds), institutional QoQ ownership change (shares %, "
                         "investor count), and ETF net flows into one capital-flow "
@@ -246,7 +450,9 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(output, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[capital-flow] DONE {round(time.time()-t0,1)}s — {len(accumulating)} accumulating, "
-          f"{len(distributing)} distributing, {len(etf_flows)} ETF flows")
+          f"{len(distributing)} distributing, {len(etf_flows)} ETF flows, "
+          f"{len(inst_deep)} $-enriched (Q{q_q} {q_year}), {n_f13join} funds13f joins, "
+          f"net inst $ {inst_breadth.get('usd_chg_net')}")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "accumulating": len(accumulating),
                                                      "distributing": len(distributing),
                                                      "etf_flows": len(etf_flows)})}
