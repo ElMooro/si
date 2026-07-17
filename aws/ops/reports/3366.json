@@ -1,0 +1,61 @@
+{
+  "gates": {
+    "G0_repo_config": {
+      "ok": true,
+      "detail": "https://bdmjenqcyvzouusfcgow.supabase.co enabled=True"
+    },
+    "G1_live_auth_config": {
+      "ok": true,
+      "detail": "http 200, url_match=True"
+    },
+    "G2_supabase_alive": {
+      "ok": true,
+      "detail": "http 200 {\"version\":\"v2.193.0\",\"name\":\"GoTrue\",\"description\":\"GoTrue is a user registrati"
+    },
+    "G3_profiles_table": {
+      "ok": true,
+      "detail": "table exists, RLS filtering anon (correct)"
+    },
+    "G4_signup": {
+      "ok": true,
+      "detail": "signup ok; email confirmations ON \u2014 JWT gates skipped (prod-correct posture)"
+    },
+    "G5a_tokenless_rejected": {
+      "ok": true,
+      "detail": "http 400"
+    },
+    "G5b_garbage_bearer_401": {
+      "ok": false,
+      "detail": "http 400"
+    },
+    "G5c_webhook_signature": {
+      "ok": true,
+      "detail": "http 400 (unsigned must be 400)"
+    },
+    "G5d_portal_unauth_401": {
+      "ok": true,
+      "detail": "http 401"
+    },
+    "G6_checkout_url": {
+      "ok": true,
+      "detail": "http 200 stripe_url=True"
+    }
+  },
+  "findings": [
+    "Email confirm ON: authed gates rest on 3292 proof + G3 shape"
+  ],
+  "khalid_actions": [],
+  "config": {
+    "supabaseUrl": "https://bdmjenqcyvzouusfcgow.supabase.co",
+    "proPriceId": "price_1TfKrrQ0UPXfFGwHVUfVhyaA",
+    "enabled": true
+  },
+  "profiles_state": "EXISTS_RLS_ON",
+  "signup": {
+    "http": 200,
+    "email": "ops-e2e-1784255577@justhodl.ai",
+    "session_issued": false,
+    "confirm_required": true
+  },
+  "verdict": "GAPS: G5b_garbage_bearer_401"
+}
