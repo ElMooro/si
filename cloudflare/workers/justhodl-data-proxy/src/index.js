@@ -667,7 +667,10 @@ export default {
     // Keyed by anonymous device UID generated client-side. Backed by KV.
     if (url.pathname.startsWith("/userdata/")) {
       const uid = url.pathname.slice("/userdata/".length).replace(/[^a-zA-Z0-9_\-]/g, "");
-      if (!uid || uid.length < 8 || uid.length > 64) {
+      // ops 3367: "self" is the signed-in alias (drawer SYNC_URL). It must
+      // reach the Bearer-verify below — the length gate was rejecting it
+      // with 400 BEFORE auth ran, silently no-oping account favorites sync.
+      if (uid !== "self" && (!uid || uid.length < 8 || uid.length > 64)) {
         return new Response(JSON.stringify({ error: "invalid uid" }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
@@ -682,6 +685,12 @@ export default {
       const authed = !!verifiedUid;
       if (!authed && (request.headers.get("Authorization") || "").startsWith("Bearer ")) {
         return new Response(JSON.stringify({ error: "invalid token" }),
+          { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+      }
+      // ops 3367: "self" is meaningless without a verified user — 401, never
+      // an anon:self shared bucket.
+      if (uid === "self" && !authed) {
+        return new Response(JSON.stringify({ error: "auth required" }),
           { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
       const kvKey = authed ? `u:${verifiedUid}` : `anon:${uid}`;
