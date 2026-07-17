@@ -37,6 +37,40 @@ a{color:var(--cyan);text-decoration:none}
 .cat .cn{font-family:var(--mono);font-size:11px;color:var(--fg-2);margin-bottom:4px}
 .cat .cs{font-family:var(--mono);font-size:11px;font-weight:700}
 .loading{text-align:center;padding:60px;color:var(--fg-3);font-family:var(--mono)}
+/* ── UX organization layer (3361) ── */
+.tab{transition:color .15s,border-color .15s,background .15s}
+.tab:hover{color:var(--fg-1);border-color:var(--border-bright)}
+.tab.active:hover{color:var(--bg)}
+.row{transition:border-color .15s,transform .12s,background .15s}
+.row:hover{background:var(--bg-2);transform:translateX(2px)}
+.cat{transition:border-color .15s}.cat:hover{border-color:var(--border-bright)}
+.cat .cn{letter-spacing:.4px;text-transform:uppercase;font-size:9.5px}
+.sect{display:flex;align-items:baseline;gap:10px;margin:26px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sect h2{font-size:15px;font-family:var(--mono);color:var(--fg-0);margin:0}
+.sect .cap{font-family:var(--mono);font-size:10px;color:var(--fg-3)}
+.pulse{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:10px 12px;background:var(--bg-1);border:1px solid var(--border);border-radius:10px;font-family:var(--mono);font-size:10.5px}
+.pulse .pl{font-size:9px;color:var(--fg-3);letter-spacing:.6px;text-transform:uppercase;margin-right:2px}
+.pulse .chip{border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--fg-2);background:var(--bg-2)}
+.pulse .chip.g{border-color:rgba(38,255,175,.35);color:var(--green)}
+.pulse .chip.r{border-color:rgba(255,85,119,.35);color:var(--red)}
+.pulse .sep{width:1px;height:16px;background:var(--border)}
+.fc-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.fc-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.fc-head h3{font-family:var(--mono);font-size:13.5px;color:var(--fg-0);margin:0}
+.fc-head .fc-sub{font-family:var(--mono);font-size:10px;color:var(--fg-3)}
+.fc-head .fc-meta{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--fg-3)}
+.fc-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px}
+@media(max-width:820px){.fc-cols{grid-template-columns:1fr}}
+.fc-row{display:grid;grid-template-columns:22px 52px 1fr 46px;align-items:center;gap:8px;padding:3px 6px;border-radius:6px;cursor:pointer;transition:background .12s}
+.fc-row:hover{background:var(--bg-2)}
+.fc-row .fc-rk{font-family:var(--mono);font-size:9px;color:var(--fg-3);text-align:right}
+.fc-row .fc-tk{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--fg-0)}
+.fc-row .fc-tk small{font-weight:400;font-size:8.5px;color:var(--fg-3);display:block;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px}
+.fc-track{height:13px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.fc-fill{height:100%;border-radius:4px;width:0;transition:width .7s cubic-bezier(.22,.9,.35,1)}
+.fc-fill.g{background:linear-gradient(90deg,rgba(38,255,175,.28),var(--green))}
+.fc-fill.r{background:linear-gradient(90deg,rgba(255,85,119,.28),var(--red))}
+.fc-row .fc-sc{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
 .disclaimer{max-width:900px;margin:24px auto 0;font-size:11px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono)}
 .footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
 </style>
@@ -47,7 +81,7 @@ a{color:var(--cyan);text-decoration:none}
   <nav class="nav">
     <a href="/">Home</a><a href="/chart-pro.html">Chart Pro</a><a href="/opportunities.html">Opportunities</a>
     <a href="/dislocations.html">Laggards</a><a href="/compounders.html">Compounders</a>
-    <a href="/capital-flow.html" class="active">Capital Flow</a><a href="/download.html">Download</a>>Pricing</a>
+    <a href="/capital-flow.html" class="active">Capital Flow</a><a href="/download.html">Download</a><a href="/pricing.html">Pricing</a>
     <a href="/deep-value-overlap.html">Overlap Board</a><a href="/backlog.html">Backlog</a><a href="/my-portfolio.html">My Portfolio</a><a href="/ask.html">Ask</a><a href="/track-public.html">Track Record</a>
   </nav><div id="fresh-slot" style="padding:6px 24px"></div>
   <div data-auth-slot style="margin-left:auto"></div>
@@ -105,24 +139,49 @@ function srow(r,neg){
       ${did?`<div class="lenses" style="opacity:.95;color:var(--fg-2)">${did}</div>`:''}
       <div class="bar" style="width:${w}%;background:${col}"></div></div></div>`;
 }
+function flowChart(){
+  const acc=(DATA.accumulating||[]).slice(0,20), dis=(DATA.distributing||[]).slice(0,20);
+  if(!acc.length&&!dis.length)return '';
+  const mx=Math.max(...acc.map(r=>Math.abs(r.flow_score||0)),...dis.map(r=>Math.abs(r.flow_score||0)),1);
+  const bar=(r,i,neg)=>{
+    const w=Math.max(3,Math.abs(r.flow_score||0)/mx*100).toFixed(1);
+    return `<div class="fc-row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')" title="${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''} — open research">
+      <span class="fc-rk">${i+1}</span>
+      <span class="fc-tk">${esc(r.ticker)}<small>${esc(r.sector||'')}</small></span>
+      <div class="fc-track"><div class="fc-fill ${neg?'r':'g'}" data-w="${w}"></div></div>
+      <span class="fc-sc" style="color:${neg?'var(--red)':'var(--green)'}">${(r.flow_score||0)>=0?'+':''}${r.flow_score}</span></div>`;
+  };
+  return `<div class="fc-card">
+    <div class="fc-head"><h3>Flow-score leaderboard</h3><span class="fc-sub">multi-lens institutional accumulation vs distribution</span><span class="fc-meta">top ${Math.max(acc.length,dis.length)} by magnitude · live data · click any bar → research</span></div>
+    <div class="fc-cols">
+      <div>${acc.map((r,i)=>bar(r,i,false)).join('')||'<div class="loading" style="padding:20px">None flagged.</div>'}</div>
+      <div>${dis.map((r,i)=>bar(r,i,true)).join('')||'<div class="loading" style="padding:20px">None flagged.</div>'}</div>
+    </div></div>`;
+}
+function animBars(){requestAnimationFrame(()=>document.querySelectorAll('.fc-fill[data-w]').forEach(el=>{el.style.width=el.dataset.w+'%';}));}
+function sect(icon,title,cap){return `<div class="sect"><h2>${icon} ${title}</h2>${cap?`<span class="cap">${cap}</span>`:''}</div>`;}
+
 function sumStrip(){
   const s=DATA.summary;if(!s)return '';
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--mono);font-size:10.5px">
-    <span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px">${s.n_scored} names scored</span>
-    <span style="border:1px solid rgba(60,220,130,.4);border-radius:6px;padding:4px 10px;color:var(--green)">strong acc ${s.n_strong_acc} · acc ${s.n_acc}</span>
-    <span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px">neutral ${s.n_neutral}</span>
-    <span style="border:1px solid rgba(255,90,110,.4);border-radius:6px;padding:4px 10px;color:var(--red)">dis ${s.n_dis} · strong dis ${s.n_strong_dis}</span>
-    ${(s.top_acc_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">acc leader: ${esc(s.top_acc_sectors[0].sector)} (${s.top_acc_sectors[0].n})</span>`:''}
-    ${(s.top_dis_sectors||[])[0]?`<span style="border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--fg-2)">dis leader: ${esc(s.top_dis_sectors[0].sector)} (${s.top_dis_sectors[0].n})</span>`:''}
-    ${DATA.inst_breadth&&DATA.inst_breadth.usd_chg_net!=null?`<span style="border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:${DATA.inst_breadth.usd_chg_net>=0?'var(--green)':'var(--red)'}">inst $ net ${fmT(DATA.inst_breadth.usd_chg_net)}${DATA.inst_breadth.quarter?' ('+esc(DATA.inst_breadth.quarter)+')':''}</span>`:''}
-    ${DATA.inst_breadth&&DATA.inst_breadth.increased_sum!=null?`<span style="border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--fg-2)">institutions ↑${Number(DATA.inst_breadth.increased_sum).toLocaleString()} vs ↓${Number(DATA.inst_breadth.reduced_sum||0).toLocaleString()}</span>`:''}
+  return `<div class="pulse">
+    <span class="pl">Coverage</span><span class="chip">${s.n_scored} names scored</span>
+    <span class="sep"></span><span class="pl">Breadth</span>
+    <span class="chip g">strong acc ${s.n_strong_acc} · acc ${s.n_acc}</span>
+    <span class="chip">neutral ${s.n_neutral}</span>
+    <span class="chip r">dis ${s.n_dis} · strong dis ${s.n_strong_dis}</span>
+    ${((s.top_acc_sectors||[])[0]||(s.top_dis_sectors||[])[0])?'<span class="sep"></span><span class="pl">Leaders</span>':''}
+    ${(s.top_acc_sectors||[])[0]?`<span class="chip">acc: ${esc(s.top_acc_sectors[0].sector)} (${s.top_acc_sectors[0].n})</span>`:''}
+    ${(s.top_dis_sectors||[])[0]?`<span class="chip">dis: ${esc(s.top_dis_sectors[0].sector)} (${s.top_dis_sectors[0].n})</span>`:''}
+    ${DATA.inst_breadth&&(DATA.inst_breadth.usd_chg_net!=null||DATA.inst_breadth.increased_sum!=null)?'<span class="sep"></span><span class="pl">Inst $</span>':''}
+    ${DATA.inst_breadth&&DATA.inst_breadth.usd_chg_net!=null?`<span class="chip ${DATA.inst_breadth.usd_chg_net>=0?'g':'r'}">net ${fmT(DATA.inst_breadth.usd_chg_net)}${DATA.inst_breadth.quarter?' ('+esc(DATA.inst_breadth.quarter)+')':''}</span>`:''}
+    ${DATA.inst_breadth&&DATA.inst_breadth.increased_sum!=null?`<span class="chip">↑${Number(DATA.inst_breadth.increased_sum).toLocaleString()} vs ↓${Number(DATA.inst_breadth.reduced_sum||0).toLocaleString()}</span>`:''}
   </div>`;
 }
 function render(){
   let h='';
   if(tab==='stocks'){
     const acc=DATA.accumulating||[], dis=DATA.distributing||[];
-    h=sumStrip()+`<div class="grid">
+    h=sumStrip()+flowChart()+sect('🔬','Deep detail — every lens per name','13F funds · inst QoQ · whales · ALL-institution $ · click → research')+`<div class="grid">
       <div class="col"><h2>💰 Institutions Accumulating</h2>${acc.length?acc.map(r=>srow(r,false)).join(''):'<div class="loading">None flagged.</div>'}</div>
       <div class="col"><h2>📉 Institutions Distributing</h2>${dis.length?dis.map(r=>srow(r,true)).join(''):'<div class="loading">None flagged.</div>'}</div>
     </div>`;
@@ -144,7 +203,7 @@ function render(){
     </div>`;
   } else if(tab==='sectors'){
     const cats=DATA.category_rotation||[];
-    h=`<h2 style="font-family:var(--mono);font-size:15px;margin-bottom:10px">🔄 Sector / Asset-Class Rotation</h2><div class="cat-grid">`+
+    h=sect('🔄','Sector / Asset-Class Rotation','ETF wrapper flows by category')+`<div class="cat-grid">`+
       (cats.length?cats.map(c=>{const nf=c.net_flow_5d_usd;const z=c.avg_dvol_z;const col=(nf!=null?(nf>0?'var(--green)':'var(--red)'):(z>0.5?'var(--green)':z<-0.5?'var(--red)':'var(--fg-2)'));const disp=nf!=null?(Math.abs(nf)>=1e9?(nf>=0?'+':'')+'$'+(nf/1e9).toFixed(2)+'B':(nf>=0?'+':'')+'$'+(nf/1e6).toFixed(0)+'M'):(z!=null?'z '+z.toFixed(2):'');
         return `<div class="cat"><div class="cn">${esc((c.category||'').replace(/_/g,' '))}</div><div class="cs" style="color:${col}">${esc(c.signal||'')}</div><div style="font-family:var(--mono);font-size:9px;color:var(--fg-3);margin-top:3px">${disp}${c.n_etfs?' · '+c.n_etfs+' ETFs':''}${c.total_aum_b?' · $'+Math.round(c.total_aum_b)+'B':''}</div></div>`;}).join(''):'<div class="loading">Awaiting market-day data.</div>')+`</div>`;
     const bt=Object.values(DATA.by_ticker||{});
@@ -152,7 +211,7 @@ function render(){
       const ag={};bt.forEach(r=>{const s=r.sector;if(!s)return;const a=ag[s]=ag[s]||{n:0,acc:0,dis:0,sum:0};a.n++;a.sum+=r.flow_score||0;if((r.flow_score||0)>8)a.acc++;else if((r.flow_score||0)<-8)a.dis++;});
       const rows=Object.entries(ag).map(([s,a])=>({s,...a,net:a.acc-a.dis,avg:a.sum/a.n})).sort((x,y)=>y.net-x.net);
       const mx=Math.max(...rows.map(r=>Math.abs(r.net)),1);
-      h+=`<h2 style="font-family:var(--mono);font-size:15px;margin:22px 0 10px">🧲 Smart-money footprint by sector (13F + inst QoQ fused)</h2>`+
+      h+=sect('🧲','Smart-money footprint by sector','13F + inst QoQ fused · net names acc − dis')+
         rows.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
           <span style="width:170px;color:var(--fg)">${esc(r.s)}</span>
           <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(r.net)/mx*100,100)}%;background:${r.net>=0?'var(--green)':'var(--red)'}"></div></div>
@@ -164,7 +223,7 @@ function render(){
     const bt=Object.values(DATA.by_ticker||{}).sort((a,b)=>(b.flow_score||0)-(a.flow_score||0));
     const q=LQ.toUpperCase();
     const list=q?bt.filter(r=>(r.ticker||'').includes(q)||(r.name||'').toUpperCase().includes(q)):bt;
-    h=sumStrip()+`<input id="cf-q" placeholder="Search 300 scored names — ticker or name…" value="${esc(LQ)}" style="width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;color:var(--fg);padding:8px 12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
+    h=sumStrip()+`<input id="cf-q" placeholder="Search 300 scored names — ticker or name…" value="${esc(LQ)}" style="width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--fg-1);padding:8px 12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
       <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);display:flex;gap:10px;padding:2px 0 6px"><span style="width:56px">ticker</span><span style="flex:1">name · sector</span><span style="width:56px;text-align:right">score</span><span style="width:150px;text-align:right">13F new/add/trim/exit</span><span style="width:110px;text-align:right">QoQ shares · inv</span></div>`+
       list.slice(0,120).map(r=>{const f=(r.detail&&r.detail['13f'])||{};const ic=(r.detail&&r.detail.inst_change)||{};
         return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')" style="display:flex;gap:10px;align-items:center">
@@ -209,7 +268,7 @@ function render(){
     </div>`;
     if(sdf.length){
       const mx=Math.max(...sdf.map(x=>Math.abs(x.usd_chg||0)),1);
-      h+=`<h2 style="font-family:var(--mono);font-size:15px;margin:22px 0 10px">🧭 Sector dollar rotation — institutional $ QoQ across flagged names</h2>`+
+      h+=sect('🧭','Sector dollar rotation','institutional $ QoQ across flagged names')+
         sdf.map(x=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
           <span style="width:170px;color:var(--fg-1)">${esc(x.sector)}</span>
           <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(x.usd_chg||0)/mx*100,100)}%;background:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}"></div></div>
@@ -218,7 +277,7 @@ function render(){
     }
   }
   h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · $-deep ${DATA.sources&&DATA.sources.inst_deep?DATA.sources.inst_deep+' names ('+esc(DATA.quarter_13f||'')+')':'—'} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
-  document.getElementById('content').innerHTML=h;
+  document.getElementById('content').innerHTML=h;animBars();
 }
 document.getElementById('content').addEventListener('input',e=>{if(e.target&&e.target.id==='cf-q'){LQ=e.target.value;const p=e.target.selectionStart;render();const el=document.getElementById('cf-q');if(el){el.focus();el.setSelectionRange(p,p);}}});
 document.getElementById('tabs').addEventListener('click',e=>{if(e.target.dataset.tab){tab=e.target.dataset.tab;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));render();}});
@@ -235,7 +294,6 @@ load();
 <script src="/affiliates.js"></script>
 <script>window.addEventListener("load",function(){if(window.Affiliates)Affiliates.renderFooterBar();});</script>
 <script src="/freshness.js"></script><script>window.addEventListener("load",function(){if(window.Freshness)Freshness.fromUrl("fresh-slot","/data/capital-flow.json",{label:"Data"});});</script>
-  <script src="/jh-enhance.js" data-feed="data/capital-flow.json" data-bars="accumulating:ticker:flow_score" data-title="Top accumulating — flow score" data-sub="multi-lens institutional accumulation" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js?v=3335" defer></script>
 </body>
