@@ -1,7 +1,22 @@
-executing-against: f1ee52c9c1a430cf0fcf1f27597cb13610028ad5
-ops 3406 — self-log line
-LINES:
-FALLBACK 3403 LINES:
-[21:45:36] NO MATCHES
+executing-against: 17c739a194b81378964d3b413ead073b1d6039c8
+ops 3407 — raw tail + ddb count
+RAW TAIL (last 2 streams):
+   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
+   START RequestId: b20faa7e-741c-480c-b8e0-90504f110714 Version: $LATEST
+   [best-setups] self-logged 1 stack signals
+   [best-setups] 534 setups · 3 strong / 13 buy · weights=prior-only · 6.4s
+   END RequestId: b20faa7e-741c-480c-b8e0-90504f110714
+   REPORT RequestId: b20faa7e-741c-480c-b8e0-90504f110714	Duration: 6474.34 ms	Billed Duration: 6992 ms	Memory Size: 512 MB	Max Memory Used: 170 MB	Init Duration: 517.58 ms	
+XRAY TraceId: 1-6a5aa1dd-3240
+   INIT_START Runtime Version: python:3.12.mainlinev2.v18	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:9819e0b13863c84a43e11f5c724871d909046d3cfb807eeb19460c63f974f26f
+   START RequestId: 42c63463-686e-4853-9636-78ff7e4e3181 Version: $LATEST
+   [best-setups] self-logged 15 stack signals
+   [best-setups] 534 setups · 3 strong / 13 buy · weights=prior-only · 6.2s
+   END RequestId: 42c63463-686e-4853-9636-78ff7e4e3181
+   REPORT RequestId: 42c63463-686e-4853-9636-78ff7e4e3181	Duration: 6317.03 ms	Billed Duration: 6821 ms	Memory Size: 512 MB	Max Memory Used: 170 MB	Init Duration: 503.35 ms	
+XRAY TraceId: 1-6a5aa014-2eeb
+DDB best-setup-stack rows total: 16
+[21:48:27] ddb_count=16 tail_last=START RequestId: 42c63463-686e-4853-9636-78ff7e4e3181 Version: $LATEST || [best-setups] self-logged 15 stack signals || [best-setups] 534 setups · 3 strong / 13 buy · weights=prior-only · 6.2s || END RequestId: 42c63463-686e-4853-9636-78ff7e4e3181 || REPORT RequestId: 42c63463-686e-4853-9636-78ff7e4e3181	Duration: 6317.03 ms	Billed Duration: 6821 ms	Memory Size: 512 MB	Max Memory Used: 170 MB	Init Duration: 503.35 ms	
+XRAY TraceId: 1-6a5aa014-2eeb
 
-→ Report written to aws/ops/reports/latest/3406_selflog_diag.md
+→ Report written to aws/ops/reports/latest/3407_selflog_diag2.md
