@@ -1,0 +1,55 @@
+{
+  "gates": {
+    "G1_pages_stamped_expected": {
+      "ok": true,
+      "detail": "{\"/why.html\": \"ok\", \"/index.html\": \"ok\", \"/capital-flow.html\": \"ok\", \"/chart-pro.html\": \"ok\"}"
+    },
+    "G2_bytes_identity": {
+      "ok": true,
+      "detail": "jh-nav-drawer.js:ok jh-page-ai.js:ok auth.js:ok auth-config.js:ok interp-kit.js:ok jh-enhance.js:ok cmdk.js:ok jh-wire.js:ok jh-theme.css:ok"
+    },
+    "G3_auth_plan_self_delivered": {
+      "ok": true,
+      "detail": "http 200 marker=True"
+    },
+    "G4_drawer_dynamic_dep_baked": {
+      "ok": true,
+      "detail": "http 200 baked=True"
+    }
+  },
+  "mode": "topo",
+  "expected": {
+    "/jh-nav-drawer.js": "70248786",
+    "/jh-page-ai.js": "a62c53e1",
+    "/auth.js": "00f49db2",
+    "/auth-config.js": "d35cea03",
+    "/interp-kit.js": "c97a5881",
+    "/jh-enhance.js": "2d1133d3",
+    "/cmdk.js": "05f5380a",
+    "/jh-wire.js": "83773466",
+    "/jh-theme.css": "5d68e84a"
+  },
+  "pages": {
+    "/why.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": true
+    },
+    "/index.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": true
+    },
+    "/capital-flow.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": true
+    },
+    "/chart-pro.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": true
+    }
+  },
+  "verdict": "PASS_ALL"
+}

@@ -1,16 +1,16 @@
-executing-against: faedbc71c02f6fba524d4d0b4a2d845edd0657c6
-ops 3370 — content-addressed shared assets, fleet gates
-expected mode: topo | drawer b6704cdb auth d4f1d72a
-FAIL  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
-[03:18:17] FAIL  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
-FAIL  G2_bytes_identity — jh-nav-drawer.js:70248786 jh-page-ai.js:a62c53e1 auth.js:00f49db2 auth-config.js:ok interp-kit.js:c97a5881 jh-enhance.js:2d1133d3 cmdk.js:05f5380a jh-wire.js:83773466 jh-theme.css:ok
-[03:18:19] FAIL  G2_bytes_identity — jh-nav-drawer.js:70248786 jh-page-ai.js:a62c53e1 auth.js:00f49db2 auth-config.js:ok interp-kit.js:c97a5881 jh-enhance.js:2d1133d3 cmdk.js:05f5380a jh-wire.js:83773466 jh-theme.css:ok
+executing-against: ed53f3c2d7eccba3e7a6c0728ab77437cc58cfe6
+ops 3371 — reskin-aware asset re-gate
+expected mode: topo | drawer 70248786 auth 00f49db2
+PASS  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
+[03:20:55] PASS  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
+PASS  G2_bytes_identity — jh-nav-drawer.js:ok jh-page-ai.js:ok auth.js:ok auth-config.js:ok interp-kit.js:ok jh-enhance.js:ok cmdk.js:ok jh-wire.js:ok jh-theme.css:ok
+[03:20:55] PASS  G2_bytes_identity — jh-nav-drawer.js:ok jh-page-ai.js:ok auth.js:ok auth-config.js:ok interp-kit.js:ok jh-enhance.js:ok cmdk.js:ok jh-wire.js:ok jh-theme.css:ok
 PASS  G3_auth_plan_self_delivered — http 200 marker=True
-[03:18:19] PASS  G3_auth_plan_self_delivered — http 200 marker=True
-FAIL  G4_drawer_dynamic_dep_baked — http 200 baked=False
-[03:18:19] FAIL  G4_drawer_dynamic_dep_baked — http 200 baked=False
+[03:20:55] PASS  G3_auth_plan_self_delivered — http 200 marker=True
+PASS  G4_drawer_dynamic_dep_baked — http 200 baked=True
+[03:20:55] PASS  G4_drawer_dynamic_dep_baked — http 200 baked=True
 
-VERDICT: GAPS: G1_pages_stamped_expected,G2_bytes_identity,G4_drawer_dynamic_dep_baked
-[03:18:19] VERDICT: GAPS: G1_pages_stamped_expected,G2_bytes_identity,G4_drawer_dynamic_dep_baked
+VERDICT: PASS_ALL
+[03:20:55] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3370_asset_cache_integrity.md
+→ Report written to aws/ops/reports/latest/3371_asset_regate_reskin_aware.md
