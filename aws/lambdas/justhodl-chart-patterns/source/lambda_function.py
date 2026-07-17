@@ -426,6 +426,52 @@ def scan_symbol(symbol):
     return res
 
 
+# ── ops 3396: SECTOR-ETF technical layer (fleet-audit gap fill) ──
+# The audit found double-top/bottom + MA machinery existed only for S&P 500
+# stocks; sector ETFs had no own-price ladder anywhere (and 100-DMA existed
+# nowhere in the fleet). Same detectors, pointed at the 11 SPDRs + SPY.
+SECTOR_ETFS = ["XLK", "XLF", "XLV", "XLY", "XLP", "XLE", "XLI", "XLB",
+               "XLU", "XLRE", "XLC", "SPY"]
+
+
+def sector_scan(sym):
+    h = get_history(sym)
+    if not h:
+        return None
+    dates, closes, vols = h
+    out = {"symbol": sym, "close": round(closes[-1], 2), "date": dates[-1],
+           "ma": {}}
+    for w in (20, 50, 100, 200):
+        if len(closes) < w + 1:
+            out["ma"][f"d{w}"] = None
+            continue
+        m = sum(closes[-w:]) / w
+        above = closes[-1] >= m
+        cross = None
+        if len(closes) > w + 6:
+            for k in range(1, 6):
+                mk = sum(closes[-w - k:-k]) / w
+                if (closes[-1 - k] >= mk) != above:
+                    cross = "up" if above else "down"
+                    break
+        out["ma"][f"d{w}"] = {"sma": round(m, 2), "above": above,
+                              "dist_pct": round((closes[-1] / m - 1) * 100, 2),
+                              "fresh_cross": cross}
+    dt = detect_double_top(dates, closes, vols)
+    db = detect_double_bottom(dates, closes, vols)
+    if dt:
+        out["double_top"] = dt
+    if db:
+        out["double_bottom"] = db
+    ladder = [out["ma"][f"d{w}"]["above"] for w in (20, 50, 100, 200)
+              if out["ma"].get(f"d{w}")]
+    out["ladder_score"] = sum(ladder)
+    out["posture"] = ("FULL UPTREND" if len(ladder) == 4 and all(ladder)
+                      else "FULL DOWNTREND" if len(ladder) == 4 and not any(ladder)
+                      else "MIXED")
+    return out
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
@@ -464,6 +510,16 @@ def lambda_handler(event, context):
                 volume_breakouts.append({"symbol": sym, **res["volume_breakout"]})
             if "gap_and_go" in res:
                 gap_and_gos.append({"symbol": sym, **res["gap_and_go"]})
+
+    # ops 3396: sector-ETF layer
+    sector_etfs = {}
+    for _sym in SECTOR_ETFS:
+        try:
+            _r = sector_scan(_sym)
+            if _r:
+                sector_etfs[_r["symbol"]] = _r
+        except Exception as _e:
+            print(f"[sector] {_sym}: {str(_e)[:60]}")
 
     # ── Forward-expectancy: aggregate every historical occurrence into honest
     # hit-rate / avg-return stats per pattern + quality bucket. This is what
@@ -510,6 +566,7 @@ def lambda_handler(event, context):
         "build_seconds": round(time.time() - t0, 1),
         "universe_size": len(universe),
         "n_with_signal": n_scanned,
+        "sector_etfs": sector_etfs,
         "counts": {
             "cross_up_200dma": len(cross_up),
             "cross_down_200dma": len(cross_down),

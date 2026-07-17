@@ -175,3 +175,11 @@ Self-critique of v1 (all chart-visible): full-sample level-z = regime contaminat
 
 ### 3394–3395 addendum — sovereign arc CLOSED
 Strip (breadth bars + comove band under GSSI chart) + sentinel sovereign/GSSI watch (europe regime flip, sovereign crossing ≥65, GSSI band change, comove≥0.5 systemic alert) LIVE. ⚠️ SG/HK hunt DEFINITIVE after 3 empirical rounds: HKMA apidocs 404 (no harvestable public paths), MAS CKAN empty/404, data.gov.sg catalog has NO SGS yields (fuzzy junk). Closure: v2.4.6 DORMANT ledger-YoY path — when sovereign-stress-history rows≥300 (~2027-07), wgb names lacking yield_yoy_bp auto-gain stress_yoy_pct ("true stress YoY — own daily ledger"); tornado renders it when it appears. Never guess external endpoints twice — harvest catalogs or use own ledger.
+
+---
+
+## ops 3396 — SECTOR-ETF TECHNICAL LAYER (fleet-audit gap fill, 2026-07-17)
+
+Khalid audit ask (sector ETFs: acc/dist, institutions, options, $ in/out, double tops/bottoms, MA 200/100/50/20). MATRIX: acc/dist=accumulation-radar (Wyckoff, all 11 XL*) ✓ · institutions=capital-flow v2+13F ✓ · options=options-flow XL* flow_5d ✓ · $ flows=sectors-tornado/etf-fund-flows/fusion ✓ · GAPS: chart-patterns had detect_double_top/bottom but S&P500-STOCKS-only (0 XL*); NO engine computed sector-ETF OWN 20/50/100/200 ladder — 100-DMA existed NOWHERE fleet-wide (FinViz lacks SMA100). FILL (extend-don't-duplicate): chart-patterns sector_scan() 11 SPDRs+SPY (same detectors + ladder w/ fresh_cross 5-session + posture FULL UPTREND/DOWNTREND/MIXED) → payload.sector_etfs; sector-capital-fusion technicals join (defensive _walk over acc-radar for phase map, options-flow for flow_5d; ETF_OF GICS→SPDR map; display-layer only — six verdict lenses untouched) → row.technicals + technicals_joined; sector-flow.html self-contained appended 🩻 section (chips 20/50/100/200 ↑/↓ ⚡, pattern badge, Wyckoff, options). Gotchas: replace-gymnastics corrupted P2 in-memory — ast.parse BEFORE write saved disk; anchor was `doc = {` not `out/payload = {`.
+
+Next ops 3397.

@@ -288,6 +288,67 @@ def lambda_handler(event, context):
     else:
         head = "No strong sector flow consensus"
 
+    # -- ops 3396: TECHNICALS join (display layer; verdict lenses untouched) --
+    ETF_OF = {"Technology": "XLK", "Financials": "XLF", "Healthcare": "XLV",
+              "Consumer Discretionary": "XLY", "Consumer Staples": "XLP",
+              "Energy": "XLE", "Industrials": "XLI", "Materials": "XLB",
+              "Utilities": "XLU", "Real Estate": "XLRE",
+              "Communication Services": "XLC"}
+    try:
+        cp = rj("data/chart-patterns.json")
+        se = cp.get("sector_etfs") or {}
+        ar = rj("data/accumulation-radar.json")
+        ph_map = {}
+
+        def _walk(o):
+            if isinstance(o, dict):
+                if o.get("symbol") and o.get("phase"):
+                    ph_map.setdefault(str(o["symbol"]).upper(),
+                                      {"phase": o.get("phase"),
+                                       "flag": o.get("flag"),
+                                       "top_score": o.get("top_score"),
+                                       "bottom_score": o.get("bottom_score")})
+                for v in o.values():
+                    _walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _walk(v)
+        _walk(ar)
+        of = rj("data/options-flow.json")
+        of_map = {}
+
+        def _walk2(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                if tk and ("flow_5d" in o):
+                    of_map.setdefault(str(tk).upper(), o.get("flow_5d"))
+                for v in o.values():
+                    _walk2(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _walk2(v)
+        _walk2(of)
+        for row in sectors_out:
+            etf = ETF_OF.get(row.get("sector"))
+            if not etf:
+                continue
+            t = {"etf": etf}
+            if etf in se:
+                r = se[etf]
+                t["ma"] = r.get("ma")
+                t["posture"] = r.get("posture")
+                t["ladder_score"] = r.get("ladder_score")
+                pat = r.get("double_top") or r.get("double_bottom")
+                if pat:
+                    t["pattern"] = dict(pat, kind=("double_top" if r.get("double_top") else "double_bottom"))
+            if etf in ph_map:
+                t["wyckoff"] = ph_map[etf]
+            if etf in of_map:
+                t["options_flow_5d"] = of_map[etf]
+            row["technicals"] = t
+    except Exception as _e:
+        print(f"[technicals join] {str(_e)[:80]}")
+
     doc = {
         "engine": "justhodl-sector-capital-fusion", "version": "1.0.0",
         "generated_at": t0.isoformat(),
@@ -296,6 +357,7 @@ def lambda_handler(event, context):
         "backdrop": {"liquidity_regime": liq_regime, "risk_regime": rr_regime,
                      "risk_regime_score": rr_score},
         "sectors": sectors_out,
+        "technicals_joined": True,
         "top_inflow": [x["sector"] for x in inflow[:5]],
         "top_outflow": [x["sector"] for x in outflow[:5]],
         "divergences": [{"sector": d["sector"], "type": ("distribution" if d["price_dir"] > 0 else "accumulation"),

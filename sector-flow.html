@@ -587,5 +587,37 @@ setTimeout(()=>location.reload(),600000);
 </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>
+/* ops 3396 — Sector Technical Health (self-contained; reads the fusion feed's
+   new technicals join: MA ladder 20/50/100/200 · double patterns · Wyckoff
+   phase · options flow). Appends its own section; touches nothing above. */
+(function(){
+  const PX='https://justhodl-data-proxy.raafouis.workers.dev/data/sector-capital-fusion.json?ts='+Date.now();
+  fetch(PX).then(r=>r.ok?r.json():null).then(F=>{
+    if(!F||!F.sectors) return;
+    const rows=F.sectors.filter(x=>x.technicals&&x.technicals.ma);
+    if(!rows.length) return;
+    const chip=(lab,ok,fresh)=>`<span style="display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-family:var(--font-mono);border:1px solid ${ok?'var(--green)':'var(--red)'};color:${ok?'var(--green)':'var(--red)'};margin-right:3px">${lab}${ok?'↑':'↓'}${fresh?' ⚡':''}</span>`;
+    const html=rows.sort((a,b)=>(b.technicals.ladder_score||0)-(a.technicals.ladder_score||0)).map(x=>{
+      const t=x.technicals, ma=t.ma||{};
+      const chips=[20,50,100,200].map(w=>{const m=ma['d'+w]; return m?chip(w,m.above,!!m.fresh_cross):'';}).join('');
+      const pat=t.pattern?`<span style="color:${t.pattern.kind==='double_top'?'var(--red)':'var(--green)'};font-weight:700;font-size:10.5px;margin-left:6px">◭ ${t.pattern.kind.replace('_',' ').toUpperCase()}</span>`:'';
+      const wy=t.wyckoff?`<span style="font-size:10.5px;color:var(--fg-3);margin-left:6px">${t.wyckoff.phase}${t.wyckoff.flag?' · '+t.wyckoff.flag:''}</span>`:'';
+      const of=(t.options_flow_5d!=null)?`<span style="font-size:10.5px;margin-left:6px;color:${t.options_flow_5d>=0?'var(--green)':'var(--red)'}">opt ${t.options_flow_5d>0?'+':''}${(+t.options_flow_5d).toFixed(1)}</span>`:'';
+      const post=t.posture==='FULL UPTREND'?'var(--green)':t.posture==='FULL DOWNTREND'?'var(--red)':'var(--fg-3)';
+      return `<div class="row"><span class="sym" style="min-width:44px;color:${post}">${t.etf}</span>
+        <span class="nm" style="min-width:150px">${x.sector}</span>
+        <span style="flex:1">${chips}${pat}${wy}${of}</span>
+        <span class="val" style="color:${post};font-size:10.5px">${t.posture||''}</span></div>`;
+    }).join('');
+    const sec=document.createElement('div');
+    sec.innerHTML=`<div class="sec-hdr" style="margin-top:18px"><span class="dot g"></span><h2>🩻 Sector Technical Health — MA ladder · patterns · Wyckoff · options</h2><span class="ct">${rows.length}</span></div>
+      <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+        <div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">Each sector ETF vs its own 20/50/<b>100</b>/200-day averages (⚡ = crossed within 5 sessions), double top/bottom pattern scan, accumulation-radar Wyckoff phase, and 5-day options flow — the audit-requested join, one line per sector.</div>
+        ${html}</div>`;
+    (document.getElementById('content')||document.body).appendChild(sec);
+  }).catch(e=>console.error('[tech-health]',e));
+})();
+</script>
 </body>
 </html>
