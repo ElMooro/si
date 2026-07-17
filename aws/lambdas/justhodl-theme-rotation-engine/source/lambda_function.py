@@ -346,7 +346,9 @@ def fetch_etf_holdings(ticker, fallback_top=None):
     # Try newer stable endpoint first
     urls_to_try = [
         "https://financialmodelingprep.com/stable/etf/holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
-        "https://financialmodelingprep.com/stable/etf/holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
+        # ops 3374: second rung was a duplicate of the first (no-op ladder);
+        # real fallback is the dash spelling (2026 rename class)
+        "https://financialmodelingprep.com/stable/etf-holdings?symbol=" + ticker + "&apikey=" + FMP_KEY,
     ]
     for url in urls_to_try:
         try:
@@ -358,7 +360,11 @@ def fetch_etf_holdings(ticker, fallback_top=None):
                     sym = (h.get("asset") or h.get("symbol") or h.get("ticker") or "").upper().strip()
                     weight = h.get("weightPercentage") or h.get("weight") or h.get("pctHold") or 0
                     if sym and len(sym) <= 5 and sym.isalpha():
-                        holdings.append({"symbol": sym, "weight": float(weight) if weight else 0})
+                        try:
+                            wf = float(str(weight).replace("%", "").strip() or 0)
+                        except Exception:
+                            wf = 0.0
+                        holdings.append({"symbol": sym, "weight": wf})
                 if holdings:
                     return holdings
         except Exception:

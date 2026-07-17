@@ -92,3 +92,11 @@ Next ops 3373.
 
 ### 3372→3373 addendum — probe doctrine
 ⚠️ Two PROBE gotchas (product was fine): (1) NEVER append cache-busters to PRESIGNED URLs (Lambda Code.Location) — query mutation breaks the S3 signature → 403; fetch verbatim. (2) Emoji written as JS-escaped \ud83c\udfaf inside templates ships those ESCAPE BYTES in HTML — grep pages for bytes-as-authored, not rendered glyphs. hot-money live: 19 drilled (HK FinSvcs 42.5% · 1299.HK/0388.HK…), Europe 8/8, momentum 15/15; original-spelling FMP endpoints answered (rung 0) — emptiness was brittle parsing (% floats / asset-vs-symbol) + rank-gating, both now hardened. Next ops 3374.
+
+---
+
+## ops 3374 — FMP-ETF FLEET HARDENING (2026-07-17)
+
+Class-sweep after 3372: 5 /stable/etf consumers audited. cef-discount CLEAN (etf-info + guards); hot-money fixed 3372 (keeps local copy). NEW ⭐ aws/shared/fmp_etf.py = fleet single-source (pctf %-tolerant, get_json, _ladder slash→dash spellings, holdings/sector_weightings raw, top_holdings convenience; stdlib, never raises, [] on fail). Patched: etf-constituents → shared (schema byte-compatible: stock now asset|symbol, weights pctf); industry-rotation → _wpct coercion (sort key TypeError'd on "%"-strings); theme-rotation-engine → its 2-rung ladder was the SAME URL TWICE (no-op!) → real dash rung + tolerant float (⚠️ NO config.json in repo — source-hardened only, deploy state recon'd not forced). Gates: settle+zip-bundle markers (shared *.py rides every zip; transitive-closure redeploys importers), EC Event invoke → constituents file 50/50 weights numeric desc sum-sane, IR static, TR recon informational.
+
+Next ops 3375.

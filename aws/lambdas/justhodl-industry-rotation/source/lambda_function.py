@@ -26,6 +26,7 @@ Layers (all real data, zero LLM):
 Out: data/industry-rotation.json (CacheControl 900s).
 """
 import json
+from fmp_etf import pctf as _wpct  # ops 3374 %-tolerant weights
 import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -446,11 +447,11 @@ def fmp_holdings(tkr):
                       % (tkr, json.dumps(d)[:120]))
     rows = sorted(
         (r for r in d if (r.get("asset") or r.get("symbol"))),
-        key=lambda r: -(r.get("weightPercentage")
-                        or r.get("weightPercent") or 0))[:12]
+        key=lambda r: -_wpct(r.get("weightPercentage")
+                             or r.get("weightPercent") or 0))[:12]
     out = [{"ticker": (r.get("asset") or r.get("symbol")),
-           "weight_pct": round(r.get("weightPercentage")
-                               or r.get("weightPercent") or 0, 2)}
+           "weight_pct": round(_wpct(r.get("weightPercentage")
+                                     or r.get("weightPercent") or 0), 2)}
           for r in rows]
     return (out, None) if out else (None, "zero usable rows for %s" % tkr)
 

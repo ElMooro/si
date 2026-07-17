@@ -27,6 +27,7 @@ import json
 import os
 import time
 import urllib.request
+from fmp_etf import holdings as fmp_holdings, pctf  # ops 3374 shared hardened client
 import urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -63,43 +64,36 @@ def fetch_constituents(etf_ticker: str) -> dict:
     """
     if not FMP_KEY:
         return {"etf": etf_ticker, "error": "FMP_KEY not set"}
-    url = f"{HOLDINGS_ENDPOINT}?symbol={etf_ticker}&apikey={FMP_KEY}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-Constituents/1.0"})
-        with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT) as r:
-            data = json.loads(r.read())
-            if isinstance(data, dict) and ("error" in data or "Error Message" in data):
-                return {"etf": etf_ticker, "error": "api_error",
-                        "body": json.dumps(data)[:300]}
-            if not isinstance(data, list):
-                return {"etf": etf_ticker, "error": "unexpected_format",
-                        "body": str(data)[:200]}
-            if not data:
-                return {"etf": etf_ticker, "error": "no_results"}
-            # Sort by weight desc and clamp to top N
-            sorted_holdings = sorted(
-                [d for d in data if d.get("weightPercentage") is not None],
-                key=lambda x: float(x.get("weightPercentage") or 0),
-                reverse=True,
-            )[:TOP_N_CONSTITUENTS]
-            updated_at = sorted_holdings[0].get("updatedAt") if sorted_holdings else None
-            return {
-                "etf": etf_ticker,
-                "processed_date": (updated_at or "")[:10],  # date portion
-                "n_constituents": len(sorted_holdings),
-                "n_total_holdings": len(data),
-                "top_constituents": [
-                    {
-                        "stock": d.get("asset"),
-                        "name": d.get("name"),
-                        "weight_pct": float(d.get("weightPercentage") or 0),
-                        "market_value": float(d.get("marketValue") or 0),
-                        "shares_held": float(d.get("sharesNumber") or 0),
-                        "isin": d.get("isin"),
-                    }
-                    for d in sorted_holdings if d.get("asset")
-                ],
-            }
+        # ops 3374: shared hardened client — endpoint ladder, %-tolerant
+        # weights, asset|symbol fallback. Output schema unchanged.
+        data = fmp_holdings(etf_ticker, FMP_KEY, timeout=FETCH_TIMEOUT)
+        if not data:
+            return {"etf": etf_ticker, "error": "no_results"}
+        sorted_holdings = sorted(
+            [d for d in data if isinstance(d, dict)
+             and (d.get("weightPercentage") is not None or d.get("weight") is not None)],
+            key=lambda x: pctf(x.get("weightPercentage") or x.get("weight")),
+            reverse=True,
+        )[:TOP_N_CONSTITUENTS]
+        updated_at = sorted_holdings[0].get("updatedAt") if sorted_holdings else None
+        return {
+            "etf": etf_ticker,
+            "processed_date": (updated_at or "")[:10],  # date portion
+            "n_constituents": len(sorted_holdings),
+            "n_total_holdings": len(data),
+            "top_constituents": [
+                {
+                    "stock": d.get("asset") or d.get("symbol"),
+                    "name": d.get("name"),
+                    "weight_pct": pctf(d.get("weightPercentage") or d.get("weight")),
+                    "market_value": pctf(d.get("marketValue")),
+                    "shares_held": pctf(d.get("sharesNumber")),
+                    "isin": d.get("isin"),
+                }
+                for d in sorted_holdings if (d.get("asset") or d.get("symbol"))
+            ],
+        }
     except urllib.error.HTTPError as e:
         body = ""
         try:
