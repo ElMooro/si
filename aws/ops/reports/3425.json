@@ -1,0 +1,238 @@
+{
+  "ok": true,
+  "generated_at": "2026-07-17T23:34:49.202364+00:00",
+  "cost_bps": 10.0,
+  "families": {
+    "ignition": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_5": {
+          "n": 267,
+          "hit": 0.191,
+          "avg_pct": -9.093,
+          "med_pct": -6.663,
+          "flip_hit": 0.809,
+          "flip_hit_h1": 0.864,
+          "flip_hit_h2": 0.742,
+          "flip_avg_after_cost_pct": 8.993
+        },
+        "day_21": {
+          "n": 139,
+          "hit": 0.137,
+          "avg_pct": -13.176,
+          "med_pct": -13.982,
+          "flip_hit": 0.863,
+          "flip_hit_h1": 0.863,
+          "flip_hit_h2": null,
+          "flip_avg_after_cost_pct": 13.076
+        }
+      }
+    },
+    "eng:accumulation-radar": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_7": {
+          "n": 58,
+          "hit": 0.103,
+          "avg_pct": -10.246,
+          "med_pct": -10.309,
+          "flip_hit": 0.897,
+          "flip_hit_h1": 0.846,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 10.146
+        },
+        "day_14": {
+          "n": 36,
+          "hit": 0.056,
+          "avg_pct": -13.96,
+          "med_pct": -15.523,
+          "flip_hit": 0.944,
+          "flip_hit_h1": 0.944,
+          "flip_hit_h2": null,
+          "flip_avg_after_cost_pct": 13.86
+        }
+      }
+    },
+    "eng:radar-backtest": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_7": {
+          "n": 43,
+          "hit": 0.209,
+          "avg_pct": -7.477,
+          "med_pct": -5.681,
+          "flip_hit": 0.791,
+          "flip_hit_h1": 0.88,
+          "flip_hit_h2": 0.667,
+          "flip_avg_after_cost_pct": 7.377
+        },
+        "day_14": {
+          "n": 27,
+          "hit": 0.074,
+          "avg_pct": -9.597,
+          "med_pct": -8.36,
+          "flip_hit": 0.926,
+          "flip_hit_h1": 0.92,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 9.497
+        }
+      }
+    },
+    "eng:smart-money-13f": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_7": {
+          "n": 23,
+          "hit": 0.174,
+          "avg_pct": -6.797,
+          "med_pct": -5.179,
+          "flip_hit": 0.826,
+          "flip_hit_h1": 0.8,
+          "flip_hit_h2": 0.875,
+          "flip_avg_after_cost_pct": 6.697
+        },
+        "day_14": {
+          "n": 11,
+          "hit": 0.182,
+          "avg_pct": -15.425,
+          "med_pct": -16.302,
+          "flip_hit": 0.818,
+          "flip_hit_h1": 0.818,
+          "flip_hit_h2": null,
+          "flip_avg_after_cost_pct": 15.325
+        }
+      }
+    },
+    "eng:ai-infra-stack": {
+      "verdict": "INVERT",
+      "windows": {
+        "day_7": {
+          "n": 77,
+          "hit": 0.234,
+          "avg_pct": -11.109,
+          "med_pct": -12.388,
+          "flip_hit": 0.766,
+          "flip_hit_h1": 0.894,
+          "flip_hit_h2": 0.567,
+          "flip_avg_after_cost_pct": 11.009
+        },
+        "day_14": {
+          "n": 48,
+          "hit": 0.104,
+          "avg_pct": -18.544,
+          "med_pct": -17.468,
+          "flip_hit": 0.896,
+          "flip_hit_h1": 0.894,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 18.444
+        }
+      }
+    },
+    "eng:boom-radar": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_7": {
+          "n": 14,
+          "hit": 0.214,
+          "avg_pct": -8.159,
+          "med_pct": -4.346,
+          "flip_hit": 0.786,
+          "flip_hit_h1": 0.667,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 8.059
+        },
+        "day_14": {
+          "n": 10,
+          "hit": 0.1,
+          "avg_pct": -8.508,
+          "med_pct": -11.594,
+          "flip_hit": 0.9,
+          "flip_hit_h1": 0.889,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 8.408
+        }
+      }
+    },
+    "nobrainer_XOP": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_30": {
+          "n": 13,
+          "hit": 0.077,
+          "avg_pct": -10.17,
+          "med_pct": -12.288,
+          "flip_hit": 0.923,
+          "flip_hit_h1": 0.875,
+          "flip_hit_h2": 1.0,
+          "flip_avg_after_cost_pct": 10.07
+        }
+      }
+    },
+    "nobrainer_AIQ": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_30": {
+          "n": 22,
+          "hit": 0.182,
+          "avg_pct": -8.714,
+          "med_pct": -6.894,
+          "flip_hit": 0.818,
+          "flip_hit_h1": 0.769,
+          "flip_hit_h2": 0.889,
+          "flip_avg_after_cost_pct": 8.614
+        }
+      }
+    },
+    "eng:attention-signals": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_7": {
+          "n": 78,
+          "hit": 0.231,
+          "avg_pct": -6.689,
+          "med_pct": -5.508,
+          "flip_hit": 0.769,
+          "flip_hit_h1": 0.739,
+          "flip_hit_h2": 0.812,
+          "flip_avg_after_cost_pct": 6.589
+        },
+        "day_14": {
+          "n": 49,
+          "hit": 0.184,
+          "avg_pct": -9.567,
+          "med_pct": -9.585,
+          "flip_hit": 0.816,
+          "flip_hit_h1": 0.848,
+          "flip_hit_h2": 0.333,
+          "flip_avg_after_cost_pct": 9.467
+        }
+      }
+    },
+    "eng:finnhub-signals": {
+      "verdict": "INVERT",
+      "windows": {
+        "day_7": {
+          "n": 104,
+          "hit": 0.221,
+          "avg_pct": -5.155,
+          "med_pct": -3.998,
+          "flip_hit": 0.779,
+          "flip_hit_h1": 0.82,
+          "flip_hit_h2": 0.721,
+          "flip_avg_after_cost_pct": 5.055
+        },
+        "day_14": {
+          "n": 66,
+          "hit": 0.106,
+          "avg_pct": -10.669,
+          "med_pct": -9.585,
+          "flip_hit": 0.894,
+          "flip_hit_h1": 0.902,
+          "flip_hit_h2": 0.8,
+          "flip_avg_after_cost_pct": 10.569
+        }
+      }
+    }
+  },
+  "method": "direction-normalized excess per window; flip=1-hit with 10bps cost haircut; INVERT needs n>=60 + flip_hit>=0.65 in BOTH time halves + flip day_21 >= +30bps after cost; hit<=5% with big |excess| = FIX (emitter bug); else RETIRE"
+}
