@@ -11,7 +11,7 @@ Gates:
   G3  deployed-zip markers: filed_q + pinned params
   G4  in-runner proof: fully-filed selection lands Q1 2026 with >3000 holders
 """
-import io, json, sys, time, urllib.request, zipfile
+import io, json, sys, time, urllib.error, urllib.request, zipfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ops_report import report
@@ -40,15 +40,25 @@ def _probe(y=None, q=None):
 
 with report("3364_ignition_filed_quarter") as r:
     r.section("G1 — FMP default (no year/quarter) behavior")
-    d = _probe()
-    r.log(f"[G1] default → date={d.get('date')} investorsHolding={d.get('investorsHolding')} "
-          f"investorsHoldingChange={d.get('investorsHoldingChange')} "
-          f"totalInvestedChange={d.get('totalInvestedChange')}")
-    default_partial = (d.get("investorsHolding") or 0) <= 3000
-    if default_partial:
-        r.warn("G1 ⚠ FMP default = PARTIAL quarter → ignition WAS ingesting garbage change-fields")
+    default_400 = False
+    d = {}
+    try:
+        d = _probe()
+    except urllib.error.HTTPError as e:
+        default_400 = (e.code == 400)
+        r.log(f"[G1] no-param probe → HTTP {e.code}")
+    if default_400:
+        r.ok("G1 ✓ endpoint REQUIRES year+quarter (400 without) → ignition's unpinned call "
+             "was silently 400ing into the institutional-holders fallback = inst lens DEAD "
+             "(no change-fields). v1.1.0 revives it with clean pinned data.")
     else:
-        r.ok("G1 ✓ FMP default currently full — pinning still required (default flips every quarter)")
+        r.log(f"[G1] default → date={d.get('date')} investorsHolding={d.get('investorsHolding')} "
+              f"investorsHoldingChange={d.get('investorsHoldingChange')} "
+              f"totalInvestedChange={d.get('totalInvestedChange')}")
+        if (d.get("investorsHolding") or 0) <= 3000:
+            r.warn("G1 ⚠ FMP default = PARTIAL quarter → ignition WAS ingesting garbage change-fields")
+        else:
+            r.ok("G1 ✓ FMP default currently full — pinning still required (default flips every quarter)")
 
     r.section("G2 — deploy ignition v1.1.0")
     env = LAM.get_function_configuration(FunctionName=FN).get("Environment", {}).get("Variables", {})
@@ -100,7 +110,7 @@ with report("3364_ignition_filed_quarter") as r:
     r.ok("G4 ✓ gate selects fully-filed quarter")
 
     Path(ROOT / "ops" / "reports" / "3364.json").write_text(json.dumps({
-        "g1_default_partial": default_partial,
+        "g1_requires_year_quarter": default_400,
         "g1_default_date": d.get("date"),
         "g1_default_holders": d.get("investorsHolding"),
         "g4_selected": f"Q{pick[1]} {pick[0]}",
