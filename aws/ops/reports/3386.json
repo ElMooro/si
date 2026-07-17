@@ -1,0 +1,66 @@
+{
+  "gates": {
+    "G0_brain_scan": {
+      "ok": true,
+      "detail": "src=data/brain.json top=[('japan', 1487), ('china', 828), ('gold', 813), ('switzerland', 290), ('turkey', 159), ('mexico', 75)] uncovered=['turkey', 'argentina']"
+    },
+    "G1_engine_220_settled": {
+      "ok": true,
+      "detail": "markers in zip"
+    },
+    "G2_ch_sg_hk": {
+      "ok": false,
+      "detail": "CH=16.3 (CDS 6.76bp) SG_bp=None HK_bp=None yoy_errs=[yoy/singapore: MAS SGS HTTP Error 404: Not Found | yoy/hong_kong: HKMA empty]"
+    },
+    "G3_gssi_validated": {
+      "ok": true,
+      "detail": "pts=1866 first=1990-01-01 now={\"date\": \"2026-07-10\", \"gssi\": 39.19, \"pctile\": 19.1, \"yoy_pct\": -6.2, \"d6m\": -0.9} alive_comps=21 detected=8/14 must_ok=True"
+    },
+    "G4_page_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "brain": {
+    "source": "data/brain.json",
+    "counts": {
+      "switzerland": 290,
+      "japan": 1487,
+      "sweden": 9,
+      "norway": 4,
+      "korea": 58,
+      "turkey": 159,
+      "mexico": 75,
+      "argentina": 31,
+      "china": 828,
+      "gold": 813,
+      "canary": 26
+    },
+    "hot_uncovered": [
+      "turkey",
+      "argentina"
+    ]
+  },
+  "ch_sg_hk": {
+    "switzerland": 16.3,
+    "sg_bp": null,
+    "hk_bp": null
+  },
+  "gssi": {
+    "latest": {
+      "date": "2026-07-10",
+      "gssi": 39.19,
+      "pctile": 19.1,
+      "yoy_pct": -6.2,
+      "d6m": -0.9
+    },
+    "detected": "8/14",
+    "leads": {
+      "Lehman": 198,
+      "COVID crash": -10,
+      "Euro debt crisis (IT/ES)": 61
+    },
+    "elapsed_s": 24.17
+  },
+  "verdict": "GAPS: G2_ch_sg_hk"
+}

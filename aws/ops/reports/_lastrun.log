@@ -1,13 +1,17 @@
-executing-against: a59e02f65fa83dc4c3ff1f1628aeafcf751cc303
-ops 3385 — Sovereign YoY chart
-PASS  G1_engine_211_settled — markers in zip
-[15:02:14] PASS  G1_engine_211_settled — markers in zip
-PASS  G2_yoy_in_feed — ecb_numeric=11 yield_proxy=3 accruing=4 total=18
-[15:02:55] PASS  G2_yoy_in_feed — ecb_numeric=11 yield_proxy=3 accruing=4 total=18
-PASS  G3_page_live — missing=[]
-[15:04:20] PASS  G3_page_live — missing=[]
+executing-against: 86c88108732b2c842b54f04f24974ebe5599e6c9
+ops 3386 — GSSI 1990-index + SG/HK + Switzerland + brain scan
+PASS  G0_brain_scan — src=data/brain.json top=[('japan', 1487), ('china', 828), ('gold', 813), ('switzerland', 290), ('turkey', 159), ('mexico', 75)] uncovered=['turkey', 'argentina']
+[15:20:04] PASS  G0_brain_scan — src=data/brain.json top=[('japan', 1487), ('china', 828), ('gold', 813), ('switzerland', 290), ('turkey', 159), ('mexico', 75)] uncovered=['turkey', 'argentina']
+PASS  G1_engine_220_settled — markers in zip
+[15:20:05] PASS  G1_engine_220_settled — markers in zip
+FAIL  G2_ch_sg_hk — CH=16.3 (CDS 6.76bp) SG_bp=None HK_bp=None yoy_errs=[yoy/singapore: MAS SGS HTTP Error 404: Not Found | yoy/hong_kong: HKMA empty]
+[15:21:27] FAIL  G2_ch_sg_hk — CH=16.3 (CDS 6.76bp) SG_bp=None HK_bp=None yoy_errs=[yoy/singapore: MAS SGS HTTP Error 404: Not Found | yoy/hong_kong: HKMA empty]
+PASS  G3_gssi_validated — pts=1866 first=1990-01-01 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0.9} alive_comps=21 detected=8/14 must_ok=True
+[15:21:27] PASS  G3_gssi_validated — pts=1866 first=1990-01-01 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0.9} alive_comps=21 detected=8/14 must_ok=True
+PASS  G4_page_live — missing=[]
+[15:22:27] PASS  G4_page_live — missing=[]
 
-VERDICT: PASS_ALL | {"top_moves": [{"china": 1009.98}, {"united_kingdom": 530.38}, {"france": 154.12}, {"euro_area": 78.62}], "yield_proxy": [{"south_korea": 134.0}, {"chile": -21.0}, {"netherlands": 32.0}]}
-[15:04:20] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_ch_sg_hk
+[15:22:27] VERDICT: GAPS: G2_ch_sg_hk
 
-→ Report written to aws/ops/reports/latest/3385_sovereign_yoy.md
+→ Report written to aws/ops/reports/latest/3386_gssi.md
