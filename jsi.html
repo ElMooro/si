@@ -190,6 +190,17 @@ function render(d) {
   if (!d || !d.ok) { document.getElementById('updated').textContent = 'load error'; return; }
   document.getElementById('updated').textContent = 'updated ' + new Date(d.generated_at).toLocaleString();
   document.getElementById('n-overlay').textContent = d.n_overlay_live ?? 12;
+  window.__jsiFeed = d;   /* JSI_CHART_V3: toggles re-render from this */
+  /* field coverage (ops 3381): history span · weight mode · run time */
+  try {
+    let meta = document.getElementById('hist-meta');
+    if (!meta) { meta = document.createElement('span');
+      meta.id = 'hist-meta'; meta.className = 'text-[var(--text-muted)] mono';
+      meta.style.marginLeft = '10px'; meta.style.fontSize = '.68rem';
+      document.getElementById('updated').after(meta); }
+    const hs = d.history_span || {};
+    meta.textContent = `· ${hs.start||''} → ${hs.end||''} · ${(hs.n||0).toLocaleString()} obs · weights: ${d.spine_weight_mode||'—'} · ${d.elapsed_s??'—'}s`;
+  } catch(e){}
 
   // KPIs
   const jsiEl = document.getElementById('kpi-jsi');
@@ -203,7 +214,8 @@ function render(d) {
     : '—';
   const ext = d.historical_extremes||{};
   document.getElementById('kpi-max').textContent = fmt((ext.max||{}).value);
-  document.getElementById('kpi-max-date').textContent = (ext.max||{}).date || '—';
+  document.getElementById('kpi-max-date').textContent =
+    ((ext.max||{}).date || '—') + '  ·  min ' + fmt((ext.min||{}).value) + ' (' + ((ext.min||{}).date||'—') + ')';
   document.getElementById('kpi-overlay').textContent = fmt(d.overlay_score);
   document.getElementById('kpi-overlay').style.color = stressColor(d.overlay_score||0);
   document.getElementById('kpi-spine').textContent = fmt(d.jsi_spine);
@@ -229,6 +241,10 @@ function renderV2(d){
   if(per.pts_to_next_up!=null) chips.push(chip(`${per.pts_to_next_up} pts to ${per.next_up}`, 'var(--amber)'));
   if(ep.current&&ep.current.active) chips.push(chip('🔴 ACTIVE ≥90th-pct episode', 'var(--red)'));
   if(dv.state && dv.state!=='NONE') chips.push(chip(`⚠ ${dv.state.replace('_',' ')}`, 'var(--amber)'));
+  const ss = v.signal_state || {};
+  if (ss.fired && ss.fired.length) chips.push(chip('📡 fired: ' + ss.fired.join(', '), 'var(--red)'));
+  else if (ss.regime_changed) chips.push(chip('↷ regime ' + (ss.regime_prev||'?') + ' → now', 'var(--amber)'));
+  else chips.push(chip('📡 grading loop armed', 'var(--text-muted)'));
   document.getElementById('v2-chips').innerHTML = chips.join('');
 
   // atlas table
@@ -274,44 +290,134 @@ function renderV2(d){
 }
 
 function renderChart(d) {
+  /* ═══ JSI_CHART_V3 (ops 3381) — regime bands · episode shading · crosshair
+     · range + view toggles (Level / Δ12m pts / YoY %). Daily series when
+     available, weekly fallback. ═══ */
   const svg = document.getElementById('chart');
-  const W=1400, H=420, padL=44, padR=16, padT=16, padB=42;
-  const series = d.series_weekly || [];
-  if (!series.length) return;
-  const xs = series.map(p=>p.d), ys = series.map(p=>p.v);
-  const n = series.length;
-  const yMax = 100, yMin = Math.max(0, Math.floor(Math.min(...ys)/10)*10 - 5);
+  const W=1400, H=420, padL=48, padR=64, padT=16, padB=42;
+  const st = window.__jsiChart = window.__jsiChart || { mode:'level', range:'all' };
+
+  // controls (once)
+  let ctl = document.getElementById('chart-ctl');
+  if (!ctl) {
+    ctl = document.createElement('div');
+    ctl.id = 'chart-ctl';
+    ctl.className = 'flex flex-wrap items-center gap-1 mb-2 mono';
+    ctl.style.fontSize = '.66rem';
+    ctl.innerHTML =
+      ['all','10y','5y','1y'].map(r=>`<button data-r="${r}" class="jsi-ctl px-2 py-1 rounded border" style="border-color:var(--border-soft);color:var(--text-secondary);background:transparent;cursor:pointer">${r.toUpperCase()}</button>`).join('')
+      + '<span style="width:14px"></span>'
+      + [['level','Level'],['d12','Δ12m pts'],['yoy','YoY %']].map(([k,l])=>`<button data-m="${k}" class="jsi-ctl px-2 py-1 rounded border" style="border-color:var(--border-soft);color:var(--text-secondary);background:transparent;cursor:pointer">${l}</button>`).join('');
+    document.getElementById('chart-wrap').before(ctl);
+    ctl.addEventListener('click', e=>{
+      const b = e.target.closest('button'); if(!b) return;
+      if (b.dataset.r) st.range = b.dataset.r;
+      if (b.dataset.m) st.mode = b.dataset.m;
+      renderChart(window.__jsiFeed);
+    });
+  }
+  ctl.querySelectorAll('button').forEach(b=>{
+    const on = (b.dataset.r===st.range)||(b.dataset.m===st.mode);
+    b.style.color = on?'var(--blue)':'var(--text-secondary)';
+    b.style.borderColor = on?'var(--blue)':'var(--border-soft)';
+  });
+
+  // data: daily preferred; transform on FULL series so 12m lookback survives range slice
+  const daily = d._daily && d._daily.length>500;
+  const base = daily ? d._daily : (d.series_weekly||[]);
+  if (!base.length) return;
+  const OFF = daily ? 252 : 52;
+  let pts;
+  if (st.mode==='level') pts = base.map(p=>({d:p.d, v:p.v}));
+  else pts = base.map((p,i)=>{
+    if (i<OFF) return null;
+    const prev = base[i-OFF].v;
+    if (st.mode==='d12') return {d:p.d, v:+(p.v-prev).toFixed(2), from:prev};
+    return prev>0 ? {d:p.d, v:+((p.v/prev-1)*100).toFixed(2), from:prev} : null;
+  }).filter(Boolean);
+
+  // range slice
+  if (st.range!=='all' && pts.length){
+    const yrs = {'10y':10,'5y':5,'1y':1}[st.range];
+    const cut = new Date(pts[pts.length-1].d); cut.setFullYear(cut.getFullYear()-yrs);
+    const cs = cut.toISOString().slice(0,10);
+    pts = pts.filter(p=>p.d>=cs);
+  }
+  // downsample for perf
+  if (pts.length>1500){ const k=Math.ceil(pts.length/1500);
+    pts = pts.filter((_,i)=>i%k===0 || i===pts.length-1); }
+  st.lastN = pts.length;
+  const xs = pts.map(p=>p.d), ys = pts.map(p=>p.v), n = pts.length;
+  if (n<2) return;
+
+  const LV = st.mode==='level';
+  let yMin, yMax;
+  if (LV){ yMin=0; yMax=100; }
+  else { const a=Math.max(Math.abs(Math.min(...ys)),Math.abs(Math.max(...ys)))*1.08||1; yMin=-a; yMax=a; }
   const px = i => padL + (i/(n-1))*(W-padL-padR);
   const py = v => padT + (1-(v-yMin)/(yMax-yMin))*(H-padT-padB);
 
-  // gradient area path
-  let area = `M ${px(0)} ${py(ys[0])}`;
-  for (let i=1;i<n;i++) area += ` L ${px(i)} ${py(ys[i])}`;
-  const line = area;
-  area += ` L ${px(n-1)} ${H-padB} L ${px(0)} ${H-padB} Z`;
+  // paths
+  let line = `M ${px(0)} ${py(ys[0])}`;
+  for (let i=1;i<n;i++) line += ` L ${px(i)} ${py(ys[i])}`;
+  const baseY = LV ? (H-padB) : py(0);
+  const area = line + ` L ${px(n-1)} ${baseY} L ${px(0)} ${baseY} Z`;
 
-  // year gridlines
+  // regime bands (level) — the instant-read layer
+  let bands='';
+  if (LV){
+    [[0,30,'--green',.05,'CALM'],[30,45,'--green',.025,'NORMAL'],[45,60,'--amber',.06,'ELEVATED'],[60,75,'--red',.055,'STRESS'],[75,100,'--red',.10,'CRISIS']]
+      .forEach(([a,b,c,o,lab])=>{
+        bands += `<rect class="jsi-band" x="${padL}" y="${py(b)}" width="${W-padL-padR}" height="${py(a)-py(b)}" fill="var(${c})" opacity="${o}"/>`;
+        bands += `<text x="${W-padR+6}" y="${py((a+b)/2)+3}" fill="var(${c})" opacity="0.8" font-size="9" font-family="JetBrains Mono">${lab}</text>`;
+      });
+  }
+
+  // gridlines
   let grid='', lastYr=null;
-  for (let i=0;i<n;i++){ const yr=xs[i].slice(0,4); if(yr!==lastYr && (+yr)%5===0){ lastYr=yr;
+  const yrStep = st.range==='1y'?1:(st.range==='5y'?1:5);
+  for (let i=0;i<n;i++){ const yr=xs[i].slice(0,4); if(yr!==lastYr && (+yr)%yrStep===0){ lastYr=yr;
     grid += `<line x1="${px(i)}" y1="${padT}" x2="${px(i)}" y2="${H-padB}" stroke="var(--border-soft)" stroke-width="1"/>`;
     grid += `<text x="${px(i)}" y="${H-padB+16}" fill="var(--text-muted)" font-size="11" text-anchor="middle" font-family="JetBrains Mono">${yr}</text>`;
   }}
-  // y gridlines (regime bands)
-  [25,45,60,75].forEach(v=>{ grid += `<line x1="${padL}" y1="${py(v)}" x2="${W-padR}" y2="${py(v)}" stroke="var(--border-soft)" stroke-dasharray="2 4" stroke-width="1"/>`;
+  const yticks = LV ? [25,45,60,75] : [yMin*0.66,yMin*0.33,0,yMax*0.33,yMax*0.66].map(v=>+v.toFixed(1));
+  yticks.forEach(v=>{ grid += `<line x1="${padL}" y1="${py(v)}" x2="${W-padR}" y2="${py(v)}" stroke="var(--border-soft)" stroke-dasharray="2 4" stroke-width="1"/>`;
     grid += `<text x="${padL-6}" y="${py(v)+3}" fill="var(--text-muted)" font-size="10" text-anchor="end" font-family="JetBrains Mono">${v}</text>`; });
+  if (!LV) grid += `<line class="jsi-zero" x1="${padL}" y1="${py(0)}" x2="${W-padR}" y2="${py(0)}" stroke="var(--text-secondary)" stroke-width="1.2" opacity="0.8"/>`;
 
-  // crisis markers
+  // episode shading (level, when the range shows them)
+  let epr='';
+  if (LV && d.v2 && d.v2.episodes && d.v2.episodes.list){
+    const idxOf = dt => { let lo=0,hi=n-1; while(lo<hi){const m=(lo+hi)>>1; xs[m]<dt?lo=m+1:hi=m;} return lo; };
+    d.v2.episodes.list.forEach(e=>{
+      if (e.end < xs[0] || e.start > xs[n-1]) return;
+      const a=px(idxOf(e.start)), b=px(idxOf(e.end));
+      epr += `<rect class="jsi-ep" x="${a}" y="${padT}" width="${Math.max(2,b-a)}" height="${H-padT-padB}" fill="var(--red)" opacity="0.07"/>`;
+    });
+  }
+
+  // crisis markers (level only — Δ views stay clean)
   let marks='';
-  (d.crisis_markers||[]).forEach(m=>{ // find nearest index by year-month
+  if (LV) (d.crisis_markers||[]).forEach(m=>{
     let idx = xs.findIndex(x=>x.slice(0,7)>=m.date);
-    if (idx<0) idx = n-1;
+    if (idx<0) return;
     marks += `<line x1="${px(idx)}" y1="${padT}" x2="${px(idx)}" y2="${H-padB}" stroke="var(--red)" stroke-width="1" opacity="0.18"/>`;
   });
 
-  // "you are here" line
-  const nowX = px(n-1);
+  // now marker + right-edge value label
+  const nowX = px(n-1), nowY = py(ys[n-1]);
+  const lastLab = LV ? ys[n-1].toFixed(1) : (ys[n-1]>0?'+':'')+ys[n-1].toFixed(1)+(st.mode==='yoy'?'%':'');
   const nowLine = `<line x1="${nowX}" y1="${padT}" x2="${nowX}" y2="${H-padB}" stroke="var(--text-primary)" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7"/>
-    <circle cx="${nowX}" cy="${py(ys[n-1])}" r="4" fill="var(--blue)"/>`;
+    <circle cx="${nowX}" cy="${nowY}" r="4" fill="var(--blue)"><animate attributeName="r" values="4;6;4" dur="2.4s" repeatCount="indefinite"/></circle>
+    <text x="${nowX+7}" y="${nowY+4}" fill="var(--blue)" font-size="12" font-weight="700" font-family="JetBrains Mono">${lastLab}</text>`;
+
+  // dual-tone fill for Δ views: gradient split at the zero fraction
+  const zf = Math.max(0, Math.min(1, (py(0)-padT)/(H-padT-padB)));
+  const dynGrad = LV ? '' : `<linearGradient id="jsiDyn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--red)" stop-opacity="0.22"/>
+      <stop offset="${zf}" stop-color="var(--red)" stop-opacity="0.05"/>
+      <stop offset="${zf}" stop-color="var(--green)" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="var(--green)" stop-opacity="0.20"/></linearGradient>`;
 
   svg.innerHTML = `
     <defs>
@@ -323,22 +429,37 @@ function renderChart(d) {
       <linearGradient id="jsiLine" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stop-color="var(--blue)"/><stop offset="100%" stop-color="var(--purple)"/>
       </linearGradient>
+      ${dynGrad}
     </defs>
-    ${grid}${marks}
-    <path d="${area}" fill="url(#jsiArea)"/>
+    ${bands}${epr}${grid}${marks}
+    <path d="${area}" fill="url(#${LV?'jsiArea':'jsiDyn'})"/>
     <path d="${line}" fill="none" stroke="url(#jsiLine)" stroke-width="1.5"/>
+    <g id="xh" style="display:none"><line y1="${padT}" y2="${H-padB}" stroke="var(--text-secondary)" stroke-width="1" opacity="0.5"/><circle r="3.5" fill="var(--text-primary)"/></g>
     ${nowLine}`;
 
-  // hover tip
+  // crosshair + rich tip
   const tip = document.getElementById('chart-tip');
+  const xh = svg.querySelector('#xh');
+  const modeLab = {level:'JSI', d12:'Δ vs 12m ago', yoy:'YoY change'}[st.mode];
   svg.onmousemove = e => {
     const r = svg.getBoundingClientRect();
-    const xrel = (e.clientX - r.left)/r.width*W;
+    const xrel = (e.clientX - r.left)/Math.max(1,r.width)*W;
     let i = Math.round((xrel-padL)/(W-padL-padR)*(n-1));
     i = Math.max(0, Math.min(n-1, i));
-    tip.textContent = `${xs[i]} · JSI ${ys[i].toFixed(1)}`;
+    const X=px(i), Y=py(ys[i]);
+    xh.style.display='';
+    xh.querySelector('line').setAttribute('x1',X); xh.querySelector('line').setAttribute('x2',X);
+    const c=xh.querySelector('circle'); c.setAttribute('cx',X); c.setAttribute('cy',Y);
+    if (st.mode==='level'){
+      const reg = ys[i]>=75?'CRISIS':ys[i]>=60?'STRESS':ys[i]>=45?'ELEVATED':ys[i]>=30?'NORMAL':'CALM';
+      tip.textContent = `${xs[i]} · JSI ${ys[i].toFixed(1)} · ${reg}`;
+    } else {
+      const u = st.mode==='yoy'?'%':' pts';
+      tip.textContent = `${xs[i]} · ${modeLab} ${(ys[i]>0?'+':'')}${ys[i].toFixed(1)}${u}${pts[i].from!=null?` (from ${pts[i].from.toFixed(1)})`:''}`;
+    }
   };
-  svg.onmouseleave = () => { tip.textContent=''; };
+  svg.onmouseleave = () => { tip.textContent=''; xh.style.display='none'; };
+  tip.textContent = '';
 }
 
 function renderComponents(d) {
@@ -382,9 +503,13 @@ function renderComponents(d) {
     '<div class="text-xs text-[var(--text-muted)]">overlay feeds loading…</div>';
 }
 
-fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/jsi.json?ts=' + Date.now())
-  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(render)
+/* JSI_CHART_V3: load the full DAILY 1990→ series alongside the feed */
+Promise.all([
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/jsi.json?ts=' + Date.now())
+    .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/jsi-history.json?ts=' + Date.now())
+    .then(r => r.ok ? r.json() : null).catch(() => null)
+]).then(([d, h]) => { if (h && h.series && h.series.length > 500) d._daily = h.series; render(d); })
   .catch(e => { document.getElementById('updated').textContent = 'load error: ' + e.message; });
 </script>
 <script src="/jh-nav-drawer.js" defer></script>

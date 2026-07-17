@@ -133,3 +133,11 @@ Next ops 3380.
 
 ### 3379→3380 addendum — E2E proven + caveat
 E2E PROVEN: synthetic row with BOTH defects (literal ma + day_-windows, no ts) → normalizer recovered QQQ from signal_id, synthesized timestamps, scored both windows → status=complete, return −1.41% vs 40d baseline, UP judged correct=False (honest). Stray cleaned. ⚠️ Invoke doctrine: account Lambda throttling is real — ALWAYS invoke_resilient (backoff on TooManyRequests, ≥5 tries); retries=1 sync invoke = fatal. Checker live cadence = 2×/day (21:29 + 23:00 rules; "-4h" name is a lie) → codified; backlog auto-resurrects within hours. ⚠️ CAVEAT: checker prices windows at CHECK-TIME (current price) — long-elapsed backlog windows all grade vs today's price (day_5==day_21 return on old rows); fine going forward (2×-daily), historical-close scoring = future checker-v3 item. JSI signal_state ARMED (NORMAL, no transitions). Next ops 3381.
+
+---
+
+## ops 3381 — JSI CHART V3 + FIELD COVERAGE (2026-07-17, page-only)
+
+Coverage audit: page NEVER fetched data/jsi-history.json (daily 1990→) — now loaded in parallel (weekly fallback), and missing fields surfaced: history_span+spine_weight_mode+elapsed_s meta line, historical MIN beside max, v2.signal_state chip (armed/fired/↷). CHART V3 (Khalid-authorized graph rework, ids/identity kept): regime BAND rects CALM→CRISIS w/ right-edge labels; episode shading (.jsi-ep from v2 list, binary idxOf); crosshair group #xh + regime-aware tip; pulsing now-dot + right-edge value; RANGE chips ALL/10y/5y/1y; VIEW chips Level(default)/Δ12m pts/YoY % — ⭐ transforms computed on FULL series BEFORE range slice (12m lookback survives 1y view), OFF=252 daily/52 weekly; Δ-views: .jsi-zero line + red/green split fill via gradient stop at zero-fraction, bands+crisis marks OFF for clean read; downsample ≤1500 pts; st.lastN debug. Harness gotchas: strip external <script src> AND normalize dangling src-tags before jsdom; stub getBoundingClientRect for crosshair. 11-behavior jsdom PASS_ALL.
+
+Next ops 3382.
