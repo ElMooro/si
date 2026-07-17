@@ -30,7 +30,7 @@ OUT_KEY = "data/ignition.json"
 FMP_KEY = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
 POLY_KEY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 
 DEFAULT_UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
                     "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -53,6 +53,40 @@ def http_json(url, headers=None, timeout=25):
 def fmp(path, params):
     params["apikey"] = FMP_KEY
     return http_json(f"https://financialmodelingprep.com/stable/{path}?" + urllib.parse.urlencode(params))
+
+
+_FILED_Q = None
+
+
+def filed_q():
+    """Most recent FULLY-FILED 13F quarter (3360 doctrine): quarter-end >=60d
+    past AND AAPL investorsHolding>3000. Without explicit year/quarter FMP
+    defaults to the latest MID-FILING quarter whose *Change fields are garbage
+    (Q2-2026 on Jul 16: AAPL 946 holders, fake -$2.3T change)."""
+    global _FILED_Q
+    if _FILED_Q:
+        return _FILED_Q
+    from datetime import date as _date
+    now = datetime.now(timezone.utc)
+    qends = []
+    for cy in (now.year, now.year - 1):
+        for cq in (4, 3, 2, 1):
+            m = cq * 3
+            qends.append((cy, cq, _date(cy, m, 30 if m in (6, 9) else 31)))
+    eligible = sorted([t for t in qends if (now.date() - t[2]).days >= 60],
+                      key=lambda t: -t[2].toordinal())
+    for cy, cq, _qd in eligible[:4]:
+        try:
+            js = fmp("institutional-ownership/symbol-positions-summary",
+                     {"symbol": "AAPL", "year": cy, "quarter": cq})
+            if isinstance(js, list) and js and (js[0].get("investorsHolding") or 0) > 3000:
+                _FILED_Q = (cy, cq)
+                print(f"[filed_q] Q{cq} {cy} fully filed ({js[0].get('investorsHolding')} AAPL holders)")
+                return _FILED_Q
+        except Exception:
+            continue
+    _FILED_Q = (now.year - 1, 4)
+    return _FILED_Q
 
 
 def load_universe():
@@ -207,8 +241,12 @@ def fmp_pillars(ticker, probes):
         out["rev_up30"], out["rev_dn30"] = up, dn
         out["rev_net"] = up - dn
     if probes.get("inst"):
-        h = fmp(probes["inst"] if isinstance(probes["inst"], str)
-                else "institutional-ownership/symbol-positions-summary", {"symbol": ticker}) or []
+        ep = probes["inst"] if isinstance(probes["inst"], str) else "institutional-ownership/symbol-positions-summary"
+        prm = {"symbol": ticker}
+        if "positions-summary" in ep:
+            yy, qq = filed_q()
+            prm.update({"year": yy, "quarter": qq})
+        h = fmp(ep, prm) or []
         h0 = h[0] if isinstance(h, list) and h else (h if isinstance(h, dict) else {})
         out["inst_investors_chg"] = h0.get("investorsHoldingChange") or h0.get("newPositions")
     if probes.get("insider_fmp"):
@@ -277,7 +315,11 @@ def lambda_handler(event=None, context=None):
     probes["grades"] = isinstance(g, list) and len(g) > 0
     probes["inst"] = False
     for ep in ("institutional-ownership/symbol-positions-summary", "institutional-holders"):
-        h = fmp(ep, {"symbol": "NVDA"})
+        prm = {"symbol": "NVDA"}
+        if "positions-summary" in ep:
+            _y, _q = filed_q()
+            prm.update({"year": _y, "quarter": _q})
+        h = fmp(ep, prm)
         if isinstance(h, (list, dict)) and h:
             probes["inst"] = ep
             break
