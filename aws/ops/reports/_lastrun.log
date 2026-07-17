@@ -1,11 +1,17 @@
-executing-against: f2f2dcaa5461419331b53005fbd764b48cc1a568
-ops 3395 — dormant ledger-YoY + closure
-PASS  G1_246_settled — ledger-yoy marker in zip
-[16:50:57] PASS  G1_246_settled — ledger-yoy marker in zip
-PASS  G2_dormant_healthy — v=2.4.6 ledger_yoy_errs=[] (dormant, activates ~2027-07)
-[16:52:38] PASS  G2_dormant_healthy — v=2.4.6 ledger_yoy_errs=[] (dormant, activates ~2027-07)
+executing-against: a8cd4e919ad7f00972947eb56e803ded6e2761c4
+ops 3396 — sector technical layer E2E
+PASS  G1_patterns_deployed — sector_scan marker in zip
+[19:41:39] PASS  G1_patterns_deployed — sector_scan marker in zip
+PASS  G2_sector_ladder — rows=12 d100=12 d200=12 patterns_today={'XLK': 'double_top', 'XLF': 'double_top', 'XLV': 'double_top', 'XLY': 'double_top', 'XLP': 'double_bottom', 'XLE': 'double_top', 'XLI': 'double_top', 'XLB': 'double_top', 'XLU': 'double_top', 'XLRE': 'double_top', 'XLC': 'double_top'}
+[19:42:00] PASS  G2_sector_ladder — rows=12 d100=12 d200=12 patterns_today={'XLK': 'double_top', 'XLF': 'double_top', 'XLV': 'double_top', 'XLY': 'double_top', 'XLP': 'double_bottom', 'XLE': 'double_top', 'XLI': 'double_top', 'XLB': 'double_top', 'XLU': 'double_top', 'XLRE': 'double_top', 'XLC': 'double_top'}
+PASS  G3_fusion_deployed — technicals join in zip
+[19:42:00] PASS  G3_fusion_deployed — technicals join in zip
+PASS  G3b_fusion_joined — sectors_with_ma=11 with_wyckoff=0
+[19:42:15] PASS  G3b_fusion_joined — sectors_with_ma=11 with_wyckoff=0
+PASS  G4_page_live — missing=[]
+[19:46:04] PASS  G4_page_live — missing=[]
 
 VERDICT: PASS_ALL
-[16:52:38] VERDICT: PASS_ALL
+[19:46:04] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3395_ledger_yoy_dormant.md
+→ Report written to aws/ops/reports/latest/3396_sector_tech_layer.md

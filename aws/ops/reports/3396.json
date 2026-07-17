@@ -1,0 +1,138 @@
+{
+  "gates": {
+    "G1_patterns_deployed": {
+      "ok": true,
+      "detail": "sector_scan marker in zip"
+    },
+    "G2_sector_ladder": {
+      "ok": true,
+      "detail": "rows=12 d100=12 d200=12 patterns_today={'XLK': 'double_top', 'XLF': 'double_top', 'XLV': 'double_top', 'XLY': 'double_top', 'XLP': 'double_bottom', 'XLE': 'double_top', 'XLI': 'double_top', 'XLB': 'double_top', 'XLU': 'double_top', 'XLRE': 'double_top', 'XLC': 'double_top'}"
+    },
+    "G3_fusion_deployed": {
+      "ok": true,
+      "detail": "technicals join in zip"
+    },
+    "G3b_fusion_joined": {
+      "ok": true,
+      "detail": "sectors_with_ma=11 with_wyckoff=0"
+    },
+    "G4_page_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "ladder_snapshot": {
+    "XLK": {
+      "posture": "MIXED",
+      "ladder": 2,
+      "d200_above": true,
+      "fresh": [
+        "d20",
+        "d50"
+      ]
+    },
+    "XLF": {
+      "posture": "FULL UPTREND",
+      "ladder": 4,
+      "d200_above": true,
+      "fresh": []
+    },
+    "XLV": {
+      "posture": "FULL UPTREND",
+      "ladder": 4,
+      "d200_above": true,
+      "fresh": []
+    },
+    "XLY": {
+      "posture": "FULL DOWNTREND",
+      "ladder": 0,
+      "d200_above": false,
+      "fresh": [
+        "d20",
+        "d50",
+        "d100"
+      ]
+    },
+    "XLP": {
+      "posture": "FULL UPTREND",
+      "ladder": 4,
+      "d200_above": true,
+      "fresh": [
+        "d20",
+        "d50",
+        "d100"
+      ]
+    },
+    "XLE": {
+      "posture": "FULL UPTREND",
+      "ladder": 4,
+      "d200_above": true,
+      "fresh": [
+        "d50",
+        "d100"
+      ]
+    },
+    "XLI": {
+      "posture": "MIXED",
+      "ladder": 3,
+      "d200_above": true,
+      "fresh": [
+        "d20"
+      ]
+    },
+    "XLB": {
+      "posture": "MIXED",
+      "ladder": 1,
+      "d200_above": true,
+      "fresh": []
+    },
+    "XLU": {
+      "posture": "MIXED",
+      "ladder": 2,
+      "d200_above": true,
+      "fresh": [
+        "d20",
+        "d100"
+      ]
+    },
+    "XLRE": {
+      "posture": "FULL UPTREND",
+      "ladder": 4,
+      "d200_above": true,
+      "fresh": [
+        "d20"
+      ]
+    },
+    "XLC": {
+      "posture": "MIXED",
+      "ladder": 1,
+      "d200_above": false,
+      "fresh": [
+        "d50"
+      ]
+    },
+    "SPY": {
+      "posture": "MIXED",
+      "ladder": 2,
+      "d200_above": true,
+      "fresh": [
+        "d20",
+        "d50"
+      ]
+    }
+  },
+  "patterns_today": {
+    "XLK": "double_top",
+    "XLF": "double_top",
+    "XLV": "double_top",
+    "XLY": "double_top",
+    "XLP": "double_bottom",
+    "XLE": "double_top",
+    "XLI": "double_top",
+    "XLB": "double_top",
+    "XLU": "double_top",
+    "XLRE": "double_top",
+    "XLC": "double_top"
+  },
+  "verdict": "PASS_ALL"
+}
