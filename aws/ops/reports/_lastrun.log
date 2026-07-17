@@ -1,20 +1,11 @@
-executing-against: 4573fd126a736c2b529f27ddc0d45c7efde04f5d
-ops 3380 — grading E2E, throttle-resilient
-PASS  G0_stray_cleaned — 3379 stray removed=True
-[05:27:54] PASS  G0_stray_cleaned — 3379 stray removed=True
-PASS  G0b_schedules_codified — [{"rule_name": "justhodl-outcome-checker-4h", "cron": "cron(29 21 * * ? *)"}, {"rule_name": "justhodl-outcome-checker-daily", "cron": "cron(0 23 * * ? *)"}]
-[05:27:54] PASS  G0b_schedules_codified — [{"rule_name": "justhodl-outcome-checker-4h", "cron": "cron(29 21 * * ? *)"}, {"rule_name": "justhodl-outcome-checker-daily", "cron": "cron(0 23 * * ? *)"}]
-[test] inserted zz-ops3379-test#QQQ#2026-06-07 baseline=716.07
-PASS  G2_legacy_row_scored — outcomes=['day_21', 'day_5'] status=complete
-[05:28:34] PASS  G2_legacy_row_scored — outcomes=['day_21', 'day_5'] status=complete
-PASS  G3_cleanup — deleted=True
-[05:28:34] PASS  G3_cleanup — deleted=True
-PASS  G4_emitters_deployed — jsi 1.9.1 + hot-money ts markers
-[05:28:35] PASS  G4_emitters_deployed — jsi 1.9.1 + hot-money ts markers
-PASS  G5_jsi_191_healthy — signal_state={"regime_prev": "NORMAL", "regime_changed": false, "escalated": false, "flare": false}
-[05:28:50] PASS  G5_jsi_191_healthy — signal_state={"regime_prev": "NORMAL", "regime_changed": false, "escalated": false, "flare": false}
+executing-against: 176b14c80f299eaa4ecb9b6f28f478e898a2eff7
+ops 3381 — JSI Chart V3 + coverage gates
+FAIL  G1_page_v3_live — missing=['data-m="d12"']
+[05:43:24] FAIL  G1_page_v3_live — missing=['data-m="d12"']
+PASS  G2_daily_history_served — http 200 series_n=9469
+[05:43:25] PASS  G2_daily_history_served — http 200 series_n=9469
 
-VERDICT: PASS_ALL
-[05:28:50] VERDICT: PASS_ALL
+VERDICT: GAPS: G1_page_v3_live
+[05:43:25] VERDICT: GAPS: G1_page_v3_live
 
-→ Report written to aws/ops/reports/latest/3380_grading_e2e_resilient.md
+→ Report written to aws/ops/reports/latest/3381_jsi_chart_v3.md
