@@ -615,7 +615,12 @@ setTimeout(()=>location.reload(),600000);
       <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
         <div style="font-size:11px;color:var(--fg-3);margin-bottom:8px">Each sector ETF vs its own 20/50/<b>100</b>/200-day averages (⚡ = crossed within 5 sessions), double top/bottom pattern scan, accumulation-radar Wyckoff phase, and 5-day options flow — the audit-requested join, one line per sector.</div>
         ${html}</div>`;
-    (document.getElementById('content')||document.body).appendChild(sec);
+    sec.id='tech-health-sec';
+    if(document.getElementById('tech-health-sec')) return;
+    const c=document.getElementById('content');
+    /* mount as SIBLING after #content — the main render replaces
+       content.innerHTML wholesale and was wiping an inner append */
+    if(c&&c.parentNode) c.after(sec); else document.body.appendChild(sec);
   }).catch(e=>console.error('[tech-health]',e));
 })();
 </script>
