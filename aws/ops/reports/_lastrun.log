@@ -1,13 +1,15 @@
-executing-against: ea548c29bf54e2c8a0d0175e97264ec7327e2b39
-ops 3383 — regime table · sparklines · record readout
-PASS  G1_engine_192_settled — markers in zip
-[05:54:23] PASS  G1_engine_192_settled — markers in zip
-PASS  G2_sparks_in_feed — comps=9 pts={'VIXCLS': 157, 'NFCI': 157, 'KCFSI': 157, 'STLFSI4': 157, 'BAMLH0A0HYM2': 157, 'T10Y2Y': 157, 'BAMLC0A0CM': 157, 'WRESBAL': 157, 'WALCL': 157} vrange=(17.3,96.0)
-[05:54:39] PASS  G2_sparks_in_feed — comps=9 pts={'VIXCLS': 157, 'NFCI': 157, 'KCFSI': 157, 'STLFSI4': 157, 'BAMLH0A0HYM2': 157, 'T10Y2Y': 157, 'BAMLC0A0CM': 157, 'WRESBAL': 157, 'WALCL': 157} vrange=(17.3,96.0)
-PASS  G3_page_live — missing=[]
-[05:56:27] PASS  G3_page_live — missing=[]
+executing-against: b6afb63b520908f243d1d9968a324cadc7517465
+ops 3384 — Sovereign Stress v2.0.0
+PASS  G1_engine_v2_settled — markers in zip
+[14:49:34] PASS  G1_engine_v2_settled — markers in zip
+PASS  G2_new_sovereigns — new3={'chile': 46.0, 'peru': 66.3, 'netherlands': 23.7} scored=3 wgb_n=7 fired=0
+[14:50:15] PASS  G2_new_sovereigns — new3={'chile': 46.0, 'peru': 66.3, 'netherlands': 23.7} scored=3 wgb_n=7 fired=0
+PASS  G3_ledger_live — rows=1 last=2026-07-17 chile_in_last=True
+[14:50:15] PASS  G3_ledger_live — rows=1 last=2026-07-17 chile_in_last=True
+PASS  G4_page_live — missing=[]
+[14:52:04] PASS  G4_page_live — missing=[]
 
-VERDICT: PASS_ALL
-[05:56:27] VERDICT: PASS_ALL
+VERDICT: PASS_ALL | {"europe": 30.7, "regime": "NORMAL", "wgb": {"south_korea": 31.2, "singapore": 26.9, "hong_kong": 31.6, "taiwan": 31.1, "chile": 46.0, "peru": 66.3, "netherlands": 23.7}, "errors": 0}
+[14:52:04] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3383_jsi_three_additions.md
+→ Report written to aws/ops/reports/latest/3384_sovereign_v2.md
