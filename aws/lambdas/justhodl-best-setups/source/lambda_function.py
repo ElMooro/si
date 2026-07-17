@@ -1219,8 +1219,59 @@ def lambda_handler(event, context):
                 for v in o:
                     _ocwalk(v)
         _ocwalk(_oc)
+        _sfs = read_json("data/sector-flow-state.json", {}) or {}
+        _sec_ctx = {}
+
+        def _sfwalk2(o):
+            if isinstance(o, dict):
+                sec = o.get("sector")
+                if sec and ("posture" in o or "conviction" in o):
+                    _sec_ctx.setdefault(str(sec), {
+                        "posture": o.get("posture"),
+                        "conviction": o.get("conviction")})
+                for v in o.values():
+                    _sfwalk2(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _sfwalk2(v)
+        _sfwalk2(_sfs)
+        _og = read_json("data/options-gamma.json", {}) or read_json("data/dealer-gex.json", {}) or {}
+        _walls = {}
+
+        def _ogwalk(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                lv = {k: o[k] for k in ("call_wall", "put_wall", "zero_gamma",
+                                        "gamma_flip", "max_pain")
+                      if isinstance(o.get(k), (int, float))}
+                if tk and lv:
+                    _walls.setdefault(str(tk).upper(), lv)
+                for v in o.values():
+                    _ogwalk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _ogwalk(v)
+        _ogwalk(_og)
+        _playbook_ctx = []
+        globals()["_PB_CTX"] = _playbook_ctx
+        try:
+            _pb = read_json("data/playbook-rules.json", {}) or {}
+            _rules = [r for r in (_pb.get("rules") or []) if isinstance(r, dict)]
+            _rules.sort(key=lambda r: -(r.get("hit_rate") or r.get("score") or 0))
+            for _r in _rules[:3]:
+                _playbook_ctx.append({k: _r.get(k) for k in
+                                      ("series", "label", "when", "when_text",
+                                       "hit_rate", "n", "then", "horizon")
+                                      if _r.get(k) is not None})
+        except Exception as _e:
+            print(f"[playbook-ctx] {str(_e)[:60]}")
         for _s in setups[:25]:
             _tk = str(_s.get("ticker") or "").upper()
+            _sc2 = _sec_ctx.get(str(_s.get("sector") or ""))
+            if _sc2:
+                _s["sector_context"] = _sc2
+            if _tk in _walls:
+                _s["gamma_levels"] = _walls[_tk]
             _os = _ocm.get(_tk)
             _s["options_confluence_score"] = _os
             if _os is not None and _os >= 70:
@@ -1272,6 +1323,7 @@ def lambda_handler(event, context):
             "improvement loop accumulates scored outcomes. Confluence across "
             "INDEPENDENT signal families is the core driver."
         ),
+        "playbook_context": globals().get("_PB_CTX", []),
         "stats": {
             "n_setups": len(setups),
             "strong_buy": len(by_verdict["STRONG BUY"]),

@@ -29,7 +29,7 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/short-book.json"
 ETF_OF = {"Technology": "XLK", "Financials": "XLF", "Financial Services": "XLF",
@@ -134,6 +134,24 @@ def lambda_handler(event, context):
                 _arwalk(v)
     _arwalk(ar)
 
+    # ops 3415 (#2): squeeze guard — never short your own squeeze cockpit
+    sq = rj("data/squeeze-fuel.json")
+    sq_map = {}
+
+    def _sqwalk(o):
+        if isinstance(o, dict):
+            tk = o.get("ticker") or o.get("symbol")
+            sc = o.get("squeeze_score") or o.get("score")
+            if tk and isinstance(sc, (int, float)):
+                k = str(tk).upper()
+                sq_map[k] = max(sq_map.get(k, 0.0), float(sc))
+            for v in o.values():
+                _sqwalk(v)
+        elif isinstance(o, list):
+            for v in o:
+                _sqwalk(v)
+    _sqwalk(sq)
+
     uni = rj("data/universe.json")
     uni_list = uni if isinstance(uni, list) else (uni.get("stocks")
                                                   or uni.get("universe") or [])
@@ -143,6 +161,17 @@ def lambda_handler(event, context):
     rows = [dict(ticker=tk, **v) for tk, v in L.items()
             if len(v["lenses"]) >= 2 and tk not in ETF_OF.values()
             and tk not in ("SPY", "QQQ")]
+    squeeze_excluded = []
+    kept = []
+    for r in rows:
+        sqs = sq_map.get(r["ticker"])
+        if sqs is not None and sqs >= 70:
+            squeeze_excluded.append({"ticker": r["ticker"], "squeeze": sqs})
+            continue
+        if sqs is not None and sqs >= 40:
+            r["squeeze_risk"] = round(sqs, 1)
+        kept.append(r)
+    rows = kept
     rows.sort(key=lambda r: -r["score"])
     rows = rows[:20]
 
@@ -156,7 +185,8 @@ def lambda_handler(event, context):
         time.sleep(0.1)
         if r["mark"] and log_signal(
                 tbl, "short-book", r["ticker"], "DOWN", [5, 21, 63], r["mark"],
-                confidence=min(0.85, 0.45 + r["score"] / 250.0),
+                confidence=min(0.85, (0.45 + r["score"] / 250.0)
+                               * (0.7 if r.get("squeeze_risk") else 1.0)),
                 rationale="composed bear lenses: " + ", ".join(r["lenses"][:4]),
                 benchmark=r["pair_etf"],
                 signal_value=str(r["score"]),
@@ -167,6 +197,7 @@ def lambda_handler(event, context):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
            "n_candidates": len(L), "n_book": len(rows), "logged": logged,
+           "squeeze_excluded": squeeze_excluded,
            "book": rows,
            "lens_weights": {"dark_distribution": 25, "forensic_flag": 20,
                             "beneish_fail": 20, "ladder_break_200": 20,

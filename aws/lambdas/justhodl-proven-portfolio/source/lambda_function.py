@@ -34,7 +34,7 @@ from decimal import Decimal
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/proven-portfolio.json"
 HIST_KEY = "data/proven-portfolio-history.json"
@@ -160,8 +160,33 @@ def lambda_handler(event, context):
 
     # ── ops 3413: regime throttle + orthogonality caps + earnings + conflicts ──
     jsi = rj("data/stress-index.json")
-    lat = (jsi.get("latest") or {})
-    _pv = lat.get("pctile") or lat.get("percentile") or 50
+    _pv, _psrc = None, "default"
+    for _path in (("latest",), ("v2", "latest"), ("signal_state",), ("v2",)):
+        _o = jsi
+        for _k in _path:
+            _o = _o.get(_k) if isinstance(_o, dict) else None
+        if isinstance(_o, dict):
+            for _k in ("pctile", "percentile", "pct"):
+                if isinstance(_o.get(_k), (int, float)):
+                    _pv, _psrc = float(_o[_k]), "/".join(_path) + "." + _k
+                    break
+        if _pv is not None:
+            break
+    if _pv is None:
+        def _pw(o, depth=0):
+            if depth > 4 or not isinstance(o, dict):
+                return None
+            for k, v in o.items():
+                if "pctile" in str(k) and isinstance(v, (int, float)):
+                    return float(v)
+                r = _pw(v, depth + 1)
+                if r is not None:
+                    return r
+            return None
+        _pv = _pw(jsi)
+        _psrc = "walker" if _pv is not None else "default"
+    if _pv is None:
+        _pv = 50.0
     gssi = ((rj("data/sovereign-gssi.json").get("latest") or {}).get("gssi")
             or 0)
     gross_scale = 1.0
@@ -298,7 +323,7 @@ def lambda_handler(event, context):
            "elapsed_s": round(time.time() - t0, 2),
            "mode": mode,
            "regime": {"gross_scale": gross_scale, "notes": regime_note,
-                      "jsi_pctile": _pv, "gssi": gssi},
+                      "jsi_pctile": _pv, "jsi_src": _psrc, "gssi": gssi},
            "n_conflicts": sum(1 for p in book if p.get("conflict")),
            "n_earnings_window": sum(1 for p in book
                                     if p.get("earnings_in_window")),

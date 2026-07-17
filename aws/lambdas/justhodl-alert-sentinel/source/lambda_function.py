@@ -91,6 +91,10 @@ def snapshot():
     s["semis_off_low"] = sm.get("off_180d_low_pct")
     s["smallcap_vs_high"] = scl.get("vs_365d_high_pct")
 
+    # ops 3415: feed-freshness watch (newly-stale upstream feeds)
+    fr = gj("data/feed-registry.json")
+    s["stale_feeds"] = sorted(x["key"] for x in (fr.get("stale") or []))[:40]
+
     # ops 3394: Sovereign desk + GSSI watch
     sov = gj("data/sovereign-stress.json")
     s["sov_europe_regime"] = (sov.get("europe_stress") or {}).get("regime")
@@ -211,6 +215,14 @@ def snapshot():
 
 def diff(old, new):
     msgs = []
+    # ops 3415: newly-stale feeds
+    new_stale = [k for k in (new.get("stale_feeds") or [])
+                 if k not in (old.get("stale_feeds") or [])]
+    if new_stale:
+        msgs.append("🥀 Feeds newly STALE past SLA: " +
+                     ", ".join(k.replace("data/", "") for k in new_stale[:8]) +
+                     (f" (+{len(new_stale)-8} more)" if len(new_stale) > 8 else ""))
+
     # ops 3394: sovereign flips
     if (new.get("sov_europe_regime") and old.get("sov_europe_regime")
             and new["sov_europe_regime"] != old["sov_europe_regime"]):

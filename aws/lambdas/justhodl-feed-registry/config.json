@@ -1,0 +1,4 @@
+{"description":"Fleet feed-freshness registry + SLA staleness ledger (ops 3415)",
+ "timeout":120,"memory":256,
+ "env":{"S3_BUCKET":"justhodl-dashboard-live"},
+ "schedule":{"scheduler_name":"justhodl-feed-registry-daily","cron":"cron(30 7 ? * * *)"}}
