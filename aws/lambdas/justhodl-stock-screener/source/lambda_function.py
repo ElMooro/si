@@ -208,11 +208,18 @@ def get_latest_13f_quarter():
         try:
             test = fmp("institutional-ownership/symbol-positions-summary",
                           f"&symbol=AAPL&year={yy}&quarter={qq}", max_retries=1)
-            if isinstance(test, list) and test:
+            # 3365: completeness band — FMP serves partial mid-filing quarters
+            # (Q2-2026 @17d: AAPL 946 holders, garbage change-fields). Require
+            # a fully-loaded quarter, not merely a non-empty response.
+            if isinstance(test, list) and test and \
+                    (test[0].get("investorsHolding") or 0) > 3000:
                 _LATEST_13F_QUARTER = (yy, qq)
                 print(f"[inst] using fully-filed 13F quarter Q{qq} {yy} "
                        f"({(now - qd).days}d since quarter end)")
                 return _LATEST_13F_QUARTER
+            elif isinstance(test, list) and test:
+                print(f"[inst] Q{qq} {yy} incomplete "
+                       f"({test[0].get('investorsHolding')} AAPL holders) — skip")
         except Exception:
             continue
     _LATEST_13F_QUARTER = (now.year - 1, 4)
