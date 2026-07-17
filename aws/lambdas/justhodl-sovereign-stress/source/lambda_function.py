@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.1"
+VERSION = "2.4.2"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -348,13 +348,12 @@ GSSI_EU = {"italy": "IRLTLT01ITM156N", "spain": "IRLTLT01ESM156N",
 GSSI_US = {"united_kingdom": "IRLTLT01GBM156N", "japan": "IRLTLT01JPM156N",
            "switzerland": "IRLTLT01CHM156N", "south_korea": "IRLTLT01KRM156N",
            "canada": "IRLTLT01CAM156N", "australia": "IRLTLT01AUM156N",
-           "mexico": "IRLTLT01MXM156N", "chile": "IRLTLT01CLM156N",
-           "turkey": "IRLTLT01TRM156N"}
+           "mexico": "IRLTLT01MXM156N", "chile": "IRLTLT01CLM156N"}
 GSSI_CANARY = [
     ("ch_unemployment", ["LRHUTTTTCHM156S", "LMUNRRTTCHM156S"], "un12", 1.0, 1.0),
     ("chf_safe_haven", ["DEXSZUS"], "pct63", -1.0, 1.0),
     ("jpy_safe_haven", ["DEXJPUS"], "pct63", -1.0, 0.8),
-    ("gold_bid", ["GOLDAMGBD228NLBM", "GOLDPMGBD228NLBM"], "pct63", 1.0, 0.6),
+    ("krw_canary", ["DEXKOUS"], "pct63", 1.0, 0.6),
 ]
 GSSI_CRISES = [
     ("1992-09-16", "ERM crisis (Black Wednesday)"),
