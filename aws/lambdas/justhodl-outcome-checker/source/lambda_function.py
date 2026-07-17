@@ -5,11 +5,12 @@ has elapsed, fetches the actual market price and scores the prediction.
 """
 
 import json
+import re
 import boto3
 import time
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from boto3.dynamodb.conditions import Attr
 from _sentry_lite import track_errors
@@ -246,6 +247,31 @@ def check_pending_signals():
         pred_dir    = signal.get("predicted_direction", "NEUTRAL")
         baseline    = float(signal.get("baseline_price") or 0)
         check_ts    = signal.get("check_timestamps", {})
+        # ─── ops 3379: normalize legacy schema-v2 emissions (fleet-wide) ───
+        # ~40 direct emitters wrote check_windows WITHOUT check_timestamps
+        # (this loop then no-oped → pending forever) and/or a LITERAL string
+        # in measure_against ("ticker", "ticker_vs_benchmark", …) which we
+        # then tried to PRICE. Synthesize timestamps from logged_at+window,
+        # and recover the real symbol from signal_id "type#TICKER#date".
+        if (not check_ts) and signal.get("check_windows"):
+            try:
+                _base = datetime.fromisoformat(
+                    str(signal.get("logged_at")).replace("Z", "+00:00"))
+                check_ts = {}
+                for _w in signal["check_windows"]:
+                    _d = int(str(_w).replace("day_", ""))
+                    check_ts[f"day_{_d}"] = (_base + timedelta(days=_d)).isoformat()
+            except Exception:
+                check_ts = {}
+        _LIT = {"ticker", "ticker_vs_benchmark", "ticker_vs_acwx", "ticker_vs_btc",
+                "ticker_vs_spy", "basket_vs_benchmark", "benchmark_forward_return"}
+        if (not ticker) or ticker in _LIT:
+            _parts = str(signal_id).split("#")
+            _cand = _parts[1] if len(_parts) >= 2 else None
+            if _cand and re.fullmatch(r"[A-Z0-9.\-\^=]{1,10}", _cand):
+                ticker = _cand
+            elif ticker in _LIT:
+                ticker = None
         existing_outcomes = dict(signal.get("outcomes", {}))
         pred_type   = "relative" if pred_dir in ("OUTPERFORM", "UNDERPERFORM") else "directional"
 

@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.9.0"
+VERSION = "1.9.1"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -675,6 +675,42 @@ def lambda_handler(event=None, context=None):
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(payload, default=str).encode(),
                   ContentType="application/json", CacheControl="max-age=300, public")
+
+    # ── ops 3379: closed-loop signals on TRANSITIONS (graded by the fleet
+    #    outcome-checker; QQQ directional, harvester contract via shared).
+    try:
+        from signals_emit import log_signal, yprice
+        pv2 = ((prev_feed or {}).get("v2") or {})
+        pev = ((pv2.get("episodes") or {}).get("current") or {}).get("active")
+        pfl = ((pv2.get("velocity") or {}).get("flare"))
+        pdv = ((pv2.get("divergence") or {}).get("state"))
+        if jsi_v2:
+            ev = ((jsi_v2.get("episodes") or {}).get("current") or {}).get("active")
+            fl = ((jsi_v2.get("velocity") or {}).get("flare"))
+            dv_state = ((jsi_v2.get("divergence") or {}).get("state"))
+            fires = []
+            if ev and not pev:
+                fires.append(("jsi-episode-entry", "UP", [21, 63], 0.60,
+                              "JSI crossed into >=90th-pctile episode — atlas: decile-9 3m median +8.2%, 64% positive since 1990"))
+            if fl and not pfl:
+                fires.append(("jsi-flare", "DOWN", [5, 21], 0.55,
+                              "JSI 21d velocity >=2 sigma — stress accelerating"))
+            if dv_state == "COMPLACENCY" and pdv != "COMPLACENCY":
+                fires.append(("jsi-complacency", "DOWN", [21, 63], 0.55,
+                              "Stress >=80th pctile while NASDAQ +3%/21d — complacency divergence"))
+            if fires:
+                q = yprice("QQQ")
+                tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+                for st_, dr, ws, cf, why in fires:
+                    ok = log_signal(tbl, st_, "QQQ", dr, ws, q, confidence=cf,
+                                    rationale=why, benchmark="SPY",
+                                    signal_value=str(jsi_now),
+                                    metadata={"engine": "stress-index", "v": VERSION,
+                                              "jsi": jsi_now, "pctile": pctile})
+                    print(f"[jsi] signal {st_} written={ok}")
+                jsi_v2["signal_state"]["fired"] = [f[0] for f in fires]
+    except Exception as e:
+        print(f"[jsi] signal emit failed: {str(e)[:120]}")
 
     # Compact full-resolution history for lightweight chart loads.
     s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,

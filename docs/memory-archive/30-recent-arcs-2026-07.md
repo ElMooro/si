@@ -122,3 +122,11 @@ Next ops 3378.
 
 ### 3377→3378 addendum — atlas gate doctrine + FINDING
 ⚠️ Gate doctrine: never assert a DIRECTIONAL market hypothesis as a sanity check — assert invariants (coverage, quartile ordering, bucket validity) and record direction as a FINDING. ⭐ FINDING (1990→, NASDAQ, expanding-pctile honest): decile-9 stress → 3m median +8.2% vs decile-2 +3.1% (n=724) — peak JSI stress = contrarian buy historically; SVB episode (2023-03-09→17, peak 73.1) → +17.1% next 3m. Live now: JSI 35.97 NORMAL 73d (median dur exists), pctile 27.2, decile 2, no divergence, movers live 8. Next ops 3379.
+
+---
+
+## ops 3379 — SIGNALS GRADING LOOP RESURRECTION (2026-07-17)
+
+⚠️⚠️ FLEET FINDING: ~40 direct schema-v2 emitters wrote rows the outcome-checker cannot score — TWO orthogonal breaks: (1) check_windows WITHOUT check_timestamps → checker's window loop iterates {} → pending forever; (2) measure_against = LITERAL string ("ticker","ticker_vs_benchmark","ticker_vs_acwx","ticker_vs_btc","basket_vs_benchmark","benchmark_forward_return") which the checker PRICES (line: ticker = measure_against or ticker). Equity picks only graded because justhodl-signal-harvester re-logs top_picks with the CORRECT contract (measure_against=SYMBOL, precomputed ts, "day_N" keys) — harvester = the Rosetta template. Macro emitters (nyfed-pd/ofr-stfm/settlement-fails/hot-money) were dead-on-arrival. FIX (single-point): outcome-checker in-loop NORMALIZER — synthesize check_timestamps from logged_at+window ("day_" stripped), recover symbol from signal_id "type#TICKER#date" regex [A-Z0-9.\-\^=]{1,10} — heals ALL past+future rows without touching 40 sources. ⭐ NEW aws/shared/signals_emit.py (harvester contract verbatim: log_signal + yprice Yahoo-keyless + dedupe ConditionExpression) for all NEW emissions. hot-money emits clean; stress-index v1.9.1 JSI closed loop: jsi-episode-entry(UP 21/63, atlas-backed)/jsi-flare(DOWN 5/21)/jsi-complacency(DOWN 21/63) on TRANSITIONS via shared, QQQ directional. ⚠️ outcome-checker had NO SCHEDULE anywhere (config cron None) — G0 recons live and CREATES Scheduler cron(0 8 ? * MON *) + codifies config. Gotcha: outcomes key = f"{signal_id}_{window}". Synthetic-legacy E2E gate proves both normalizations in one pass, then deletes itself.
+
+Next ops 3380.

@@ -501,8 +501,11 @@ def lambda_handler(event=None, context=None):
                 "signal_id": f"hotmoney-UP#{etf}#{nowt.date().isoformat()}",
                 "signal_type": "hot_money_inflow", "predicted_direction": "UP",
                 "signal_value": str(c["hot_money_score"]), "confidence": Decimal("0.55"),
-                "measure_against": "ticker_vs_acwx", "baseline_price": str(pr), "benchmark": WORLD,
-                "check_windows": ["day_5", "day_21", "day_63"], "outcomes": {}, "accuracy_scores": {},
+                "measure_against": etf, "baseline_price": str(pr), "benchmark": WORLD,
+                "check_windows": ["5", "21", "63"],
+                "check_timestamps": {f"day_{d}": (nowt + timedelta(days=d)).isoformat()
+                                     for d in (5, 21, 63)},
+                "outcomes": {}, "accuracy_scores": {},
                 "status": "pending", "logged_at": nowt.isoformat(), "logged_epoch": int(nowt.timestamp()),
                 "horizon_days_primary": 21, "schema_version": "2",
                 "ttl": int(nowt.timestamp()) + 120 * 86400,
