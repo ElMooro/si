@@ -1242,27 +1242,27 @@ def lambda_handler(event, context):
                    for u in _ul if isinstance(u, dict) and u.get("sector")}
         _og = read_json("data/dealer-gex.json", {}) or {}
         _og = _og.get("underlyings") or _og
+        # dealer-gex underlyings is keyed BY symbol (no inner ticker field):
+        # extract levels directly — flip scalar + top wall strikes + front max-pain
         _walls = {}
-
-        def _ogwalk(o):
-            if isinstance(o, dict):
-                tk = o.get("ticker") or o.get("symbol")
-                lv = {}
-                for k, v in o.items():
-                    kl = str(k).lower()
-                    if (isinstance(v, (int, float)) and v > 0
-                            and any(t in kl for t in
-                                    ("wall", "flip", "max_pain", "maxpain",
-                                     "zero_gamma", "zerogamma"))):
-                        lv[kl] = v
-                if tk and lv:
-                    _walls.setdefault(str(tk).upper(), lv)
-                for v in o.values():
-                    _ogwalk(v)
-            elif isinstance(o, list):
-                for v in o:
-                    _ogwalk(v)
-        _ogwalk(_og)
+        for _sym, _u in (_og.items() if isinstance(_og, dict) else []):
+            if not isinstance(_u, dict) or _u.get("err"):
+                continue
+            lv = {}
+            zf = _u.get("zero_gamma_flip_level")
+            if isinstance(zf, (int, float)):
+                lv["gamma_flip"] = zf
+            cw = _u.get("call_walls_top5") or []
+            if cw and isinstance(cw[0], dict) and cw[0].get("strike"):
+                lv["call_wall"] = cw[0]["strike"]
+            pw = _u.get("put_walls_top5") or []
+            if pw and isinstance(pw[0], dict) and pw[0].get("strike"):
+                lv["put_wall"] = pw[0]["strike"]
+            mp = _u.get("max_pain_by_expiry") or {}
+            if isinstance(mp, dict) and mp:
+                lv["max_pain"] = mp[sorted(mp.keys())[0]]
+            if lv:
+                _walls[str(_sym).upper()] = lv
         _playbook_ctx = []
         globals()["_PB_CTX"] = _playbook_ctx
         try:
