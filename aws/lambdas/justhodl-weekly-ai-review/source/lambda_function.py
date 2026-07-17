@@ -277,7 +277,69 @@ Write the JSON weekly memo now. Be specific. Use actual numbers."""
         return {"narrative_raw": raw[:2000], "parse_error": str(e)}
 
 
-def build_telegram_digest(memo: dict, context: dict) -> str:
+def _alpha_council_block():
+    """ops 3410 (#9): the Monday operator cockpit — portfolio, stack, shorts,
+    dated events — appended to the weekly digest. Tolerant; returns "" on any
+    failure so the core digest never breaks."""
+    try:
+        import boto3 as _b3
+        _s3 = _b3.client("s3", "us-east-1")
+
+        def _rj(k):
+            try:
+                return json.loads(_s3.get_object(
+                    Bucket="justhodl-dashboard-live", Key=k)["Body"].read())
+            except Exception:
+                return {}
+        pp = _rj("data/proven-portfolio.json")
+        bs = _rj("data/best-setups.json")
+        sb = _rj("data/short-book.json")
+        ir = _rj("data/index-recon.json")
+        L = ["", "━━ ALPHA COUNCIL ━━"]
+        nav = pp.get("nav") or {}
+        if nav.get("nav") is not None:
+            L.append(f"📈 Proven-Edge NAV {nav.get('nav')} vs SPY "
+                     f"{nav.get('spy_nav')} · {len(pp.get('book') or [])} pos "
+                     f"({pp.get('mode')})")
+            L.append("   top: " + ", ".join(
+                p["ticker"] for p in (pp.get("book") or [])[:5]))
+        tops = (bs.get("top_setups") or [])[:8]
+        if tops:
+            L.append("🎯 Stack: " + ", ".join(
+                f"{t.get('ticker')}{'✓' if t.get('entry_confirmed') else ''}"
+                for t in tops))
+        sbk = (sb.get("book") or [])[:5]
+        if sbk:
+            L.append("🔻 Short book: " + ", ".join(
+                f"{r['ticker']}({r['score']} vs {r.get('pair_etf')})"
+                for r in sbk))
+        evs = []
+
+        def _evwalk(o):
+            if isinstance(o, dict):
+                d = o.get("effective_date") or o.get("date") or o.get("event_date")
+                t = o.get("ticker") or o.get("symbol")
+                if d and t and str(d) >= __import__("datetime").datetime.utcnow().date().isoformat():
+                    evs.append(f"{d} {t}")
+                for v in o.values():
+                    _evwalk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _evwalk(v)
+        _evwalk(ir)
+        if evs:
+            L.append("🗓 Forced-flow events: " + "; ".join(sorted(set(evs))[:6]))
+        return "\n".join(L) if len(L) > 2 else ""
+    except Exception as _e:
+        print(f"[council] failed: {str(_e)[:80]}")
+        return ""
+
+
+def build_telegram_digest(memo, context):
+    return _build_telegram_digest_core(memo, context) + _alpha_council_block()
+
+
+def _build_telegram_digest_core(memo: dict, context: dict) -> str:
     """Format the weekly memo for Telegram."""
     if not memo or memo.get("error") or memo.get("fallback"):
         return ""

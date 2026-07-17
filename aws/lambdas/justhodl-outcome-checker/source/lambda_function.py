@@ -99,6 +99,39 @@ def get_coingecko_price(ticker):
     return None
 
 
+_hist_cache = {}
+
+
+def get_price_at(ticker, date_iso):
+    """checker-v3 (ops 3411): close ON/BEFORE date_iso via Yahoo daily chart.
+    Elapsed windows are graded at their own date, not at check-time."""
+    key = (ticker, date_iso)
+    if key in _hist_cache:
+        return _hist_cache[key]
+    try:
+        u = (f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+             "?range=2y&interval=1d")
+        req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            j = json.loads(r.read())
+        res = j["chart"]["result"][0]
+        ts = res.get("timestamp") or []
+        cl = res["indicators"]["quote"][0]["close"]
+        best = None
+        for i, t in enumerate(ts):
+            d = datetime.fromtimestamp(t, tz=timezone.utc).date().isoformat()
+            if d <= date_iso and cl[i] is not None:
+                best = float(cl[i])
+            elif d > date_iso:
+                break
+        _hist_cache[key] = best
+        return best
+    except Exception as e:
+        print(f"[PRICE-AT] {ticker}@{date_iso}: {str(e)[:60]}")
+        _hist_cache[key] = None
+        return None
+
+
 def get_price(ticker):
     """
     Get current price with fallback chain.
@@ -307,12 +340,19 @@ def check_pending_signals():
             if check_time_iso > now_iso:
                 continue
 
-            # Fetch current price (cached)
-            if ticker not in price_cache:
-                price_cache[ticker] = get_price(ticker)
-                time.sleep(0.3)  # rate limit
-
-            current_price = price_cache[ticker]
+            # checker-v3: elapsed windows priced AT THEIR DATE (historical
+            # close), not at check-time. <=2d-fresh windows use live price.
+            _stale = check_time_iso < (datetime.now(timezone.utc)
+                                       - timedelta(days=2)).isoformat()
+            _as_of = check_time_iso[:10] if _stale else None
+            _pk = (ticker, _as_of or "LIVE")
+            if _pk not in price_cache:
+                price_cache[_pk] = (get_price_at(ticker, _as_of) if _as_of
+                                    else get_price(ticker))
+                time.sleep(0.3)
+            current_price = price_cache[_pk]
+            if _as_of:
+                print(f"[CHECKER v3] {ticker} {window_key} priced as-of {_as_of}")
 
             if not current_price:
                 print(f"[CHECKER] No price for {ticker}, skipping window {window_key}")
@@ -320,12 +360,14 @@ def check_pending_signals():
 
             # Score the prediction
             if pred_type == "relative":
-                if benchmark not in price_cache:
-                    price_cache[benchmark] = get_price(benchmark)
+                _bk = (benchmark, _as_of or "LIVE")
+                if _bk not in price_cache:
+                    price_cache[_bk] = (get_price_at(benchmark, _as_of)
+                                        if _as_of else get_price(benchmark))
                     time.sleep(0.3)
 
                 baseline_bm  = float(signal.get("baseline_benchmark_price") or 0)
-                current_bm   = price_cache.get(benchmark)
+                current_bm   = price_cache.get(_bk)
                 correct, excess = score_relative(
                     pred_dir, ticker, benchmark,
                     baseline, current_price,

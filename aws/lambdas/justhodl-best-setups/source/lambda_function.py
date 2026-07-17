@@ -1201,6 +1201,38 @@ def lambda_handler(event, context):
             _s["rel_volume"] = _r
             _s["entry_confirmed"] = (bool(_r >= 1.3) if _r is not None else None)
             _s["hold_horizon_days"] = _fleet_hold
+        # ops 3410 (#6): options expression bridge — v1 rule set. Uses the
+        # options-confluence synthesizer score (no clean IVR feed yet — noted).
+        _oc = read_json("data/options-confluence.json", {}) or {}
+        _ocm = {}
+
+        def _ocwalk(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                sc = o.get("score")
+                if tk and isinstance(sc, (int, float)):
+                    k = str(tk).upper()
+                    _ocm[k] = max(_ocm.get(k, 0.0), float(sc))
+                for v in o.values():
+                    _ocwalk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _ocwalk(v)
+        _ocwalk(_oc)
+        for _s in setups[:25]:
+            _tk = str(_s.get("ticker") or "").upper()
+            _os = _ocm.get(_tk)
+            _s["options_confluence_score"] = _os
+            if _os is not None and _os >= 70:
+                _s["suggested_structure"] = ("call debit spread — options desks "
+                                             "already confluent; defined risk "
+                                             "into strength")
+            elif _s.get("entry_confirmed"):
+                _s["suggested_structure"] = ("3-6m calls, half size; add on "
+                                             "participation follow-through")
+            else:
+                _s["suggested_structure"] = ("shares first; sell 30-45d covered "
+                                             "calls after entry confirms")
         try:
             from signals_emit import log_signal, yprice
             _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
