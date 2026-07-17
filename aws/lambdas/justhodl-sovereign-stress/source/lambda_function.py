@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.4"
+VERSION = "2.4.6"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -1141,6 +1141,31 @@ def lambda_handler(event, context):
 
     apply_api_pair("singapore", sg_yield_pair, "MAS SGS")
     apply_api_pair("hong_kong", hk_yield_pair, "HKMA")
+
+    # ops 3395: TRUE stress-YoY from our own daily ledger — dormant until the
+    # ledger is ~12 months deep, then activates by itself for every sovereign
+    # that still lacks an external 12m source (SG/HK/TW/PE today). The hunt
+    # for public MAS/HKMA per-tenor endpoints came back empty three times;
+    # our own history is the honest source.
+    try:
+        _led = read_existing(HIST_KEY) or {}
+        _rows = _led.get("rows") or []
+        if len(_rows) >= 300:
+            _tgt = (datetime.now(timezone.utc) - timedelta(days=366)).date().isoformat()
+            _back = min(_rows, key=lambda r: abs(
+                (datetime.fromisoformat(r["date"]) - datetime.fromisoformat(_tgt)).days))
+            if abs((datetime.fromisoformat(_back["date"])
+                    - datetime.fromisoformat(_tgt)).days) <= 21:
+                for _nm, _e in wgb_all.items():
+                    if not isinstance(_e, dict) or _e.get("yield_yoy_bp") is not None:
+                        continue
+                    _then = ((_back.get("countries") or {}).get(_nm) or {}).get("s")
+                    _now = _e.get("stress_0_100")
+                    if _then and _now is not None:
+                        _e["stress_yoy_pct"] = round((_now / _then - 1) * 100, 1)
+                        _e["yoy_note"] = "true stress YoY — own daily ledger"
+    except Exception as _ex:
+        errors.append(f"ledger-yoy: {str(_ex)[:50]}")
 
     yoy_chart = []
     for name, c in sov.items():
