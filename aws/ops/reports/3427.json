@@ -1,0 +1,121 @@
+{
+  "functions": {
+    "justhodl-ai-brief": {
+      "fn": "justhodl-ai-brief",
+      "ok": true,
+      "code_modified": "2026-07-12T06:14",
+      "classic_rules": [
+        "justhodl-ai-brief-4h"
+      ],
+      "schedules": [],
+      "last_log": "2026-07-17T17:23",
+      "tail": [
+        "[ai-brief] decisive-call-history snapshot appended (call=UNKNOWN, n_total=300)",
+        "[ai-brief] telegram digest sent: ok=False chars=438 info=HTTP Error 401: Unauthorized / fallback: HTTP Error 4",
+        "END RequestId: 3a0fb252-a768-4ec8-9ef9-c7a6cd33281a",
+        "REPORT RequestId: 3a0fb252-a768-4ec8-9ef9-c7a6cd33281a\tDuration: 2713.18 ms\tBilled Duration: 3268 ms\tMemory Si"
+      ]
+    },
+    "justhodl-ai-brief-router": {
+      "fn": "justhodl-ai-brief-router",
+      "ok": true,
+      "code_modified": "2026-07-12T06:14",
+      "classic_rules": [],
+      "schedules": [],
+      "last_log": "2026-07-17T21:00",
+      "tail": [
+        "[ai-brief-router] alerts-digest-close: OK 2.74s",
+        "[ai-brief-router] done: 1/1 OK in 2.96s",
+        "END RequestId: 260df8d6-ea52-42be-a674-26ecef77655d",
+        "REPORT RequestId: 260df8d6-ea52-42be-a674-26ecef77655d\tDuration: 2960.64 ms\tBilled Duration: 3554 ms\tMemory Si"
+      ]
+    },
+    "justhodl-regime-engine": {
+      "fn": "justhodl-regime-engine",
+      "ok": true,
+      "code_modified": "2026-06-10T22:54",
+      "classic_rules": [
+        "justhodl-regime-engine-daily"
+      ],
+      "schedules": [],
+      "last_log": "2026-07-17T13:05",
+      "tail": [
+        "START RequestId: 9136f609-2fac-462c-9a82-09b2530e9c98 Version: $LATEST",
+        "[regime] STAGFLATION (3m) classified=754 3.9s",
+        "END RequestId: 9136f609-2fac-462c-9a82-09b2530e9c98",
+        "REPORT RequestId: 9136f609-2fac-462c-9a82-09b2530e9c98\tDuration: 3923.80 ms\tBilled Duration: 4443 ms\tMemory Si"
+      ]
+    },
+    "justhodl-alert-backtester": {
+      "fn": "justhodl-alert-backtester",
+      "ok": true,
+      "code_modified": "2026-07-05T17:18",
+      "classic_rules": [
+        "justhodl-alert-backtester-daily"
+      ],
+      "schedules": [],
+      "last_log": "2026-07-17T12:02",
+      "tail": [
+        "INIT_START Runtime Version: python:3.12.mainlinev2.v11\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:"
+      ]
+    }
+  },
+  "feeds": {
+    "data/regime-decisive-call.json": {
+      "age_d": 37,
+      "top": [
+        "regime",
+        "confidence",
+        "one_liner",
+        "thesis",
+        "supporting_evidence",
+        "historical_analogs",
+        "cross_asset",
+        "trade_ideas"
+      ],
+      "gen": "2026-06-10T03:01"
+    },
+    "data/backtest-summary.json": {
+      "age_d": 36,
+      "top": [
+        "generated_at",
+        "snapshot_today",
+        "forward_returns_computed_today",
+        "by_signal",
+        "fetch_duration_s"
+      ],
+      "gen": "2026-06-11T22:00"
+    },
+    "data/market-internals-history.json": {
+      "age_d": 37,
+      "top": [
+        "snapshots",
+        "summation_index",
+        "updated_at"
+      ],
+      "gen": "None"
+    },
+    "data/finviz-signals-state.json": {
+      "age_d": 32,
+      "top": [
+        "generated_at",
+        "by_ticker"
+      ],
+      "gen": "2026-06-15T23:22"
+    },
+    "data/regime.json": {
+      "age_d": 0,
+      "top": [
+        "engine",
+        "version",
+        "generated_at",
+        "duration_s",
+        "current",
+        "playbook",
+        "transition_matrix_3m",
+        "regime_strip"
+      ],
+      "gen": "2026-07-17T13:05"
+    }
+  }
+}
