@@ -1,39 +1,11 @@
-executing-against: 61aef4650433c7536a8ac03c4e992e6d34b9fd1e
-ops 3394 — SG/HK hunt + strip + sentinel
-[harvest hk] https://apidocs.hkma.gov.hk/documentation/market-data-and-statistics/daily-market-data/ HTTP Error 404: Not Found
-[harvest] hkma paths total=0 bondish=0
-[harvest] data.gov.sg SGS datasets=10
-  ds: {'id': 'd_9e7de44094f876f6804b8b5bcee45c81', 'name': 'Historical Rainfall across Singapore (2020)'}
-  ds: {'id': 'd_ca32584c91ee07d091a4ce75fa868414', 'name': 'Overall Unemployment Rate, Quarterly'}
-  ds: {'id': 'd_f0b6868ab1c4b2fb1ac9aa7f0e722e4f', 'name': "Total Employees' Trade Union Membership"}
-  ds: {'id': 'd_fbd803776b29cbfee6fa4063d29830e0', 'name': 'MP08 Mapsheet Major Road Name-CA'}
-  ds: {'id': 'd_b35f360f3b08aee3f3cffda5528a1d19', 'name': 'Resident Unemployed Persons Aged 15 Years and Over by Duration of Unemployment, Highest Qualification Attained and Sex (General Household Survey 2005)'}
-  ds: {'id': 'd_6d144381f0f4b775e29364b85f04b9af', 'name': 'Key Data Of Gross Domestic Product In Chained (2015) Dollars, By Industry (SSIC 2020), Quarterly, Seasonally Adjusted'}
-  ds: {'id': 'd_34a1f6789a62e1aa88415364cb1c6622', 'name': 'RP CET Enrolment 2020-2024'}
-  ds: {'id': 'd_0d78329a03f290956a7dc53fc47daebb', 'name': 'Temasek Polytechnic Part-Time Enrolment Figures Breakdown, Annual (2015-2017)'}
-  ds: {'id': 'd_c1fcecb3467c7151de6863391cdb4846', 'name': 'Overall SPS Population'}
-  ds: {'id': 'd_a5ff719648a0e6d4b4c623ee383ab686', 'name': 'Gross Domestic Product, Year On Year Growth Rate, Quarterly'}
-[probe sg] Historical Rainfall across Singapore (2020) {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Overall Unemployment Rate, Quarterly {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Total Employees' Trade Union Membership {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] MP08 Mapsheet Major Road Name-CA {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Resident Unemployed Persons Aged 15 Years and Over by Duration of Unemployment, Highest Qualification Attained and Sex (General Household Survey 2005) {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Key Data Of Gross Domestic Product In Chained (2015) Dollars, By Industry (SSIC 2020), Quarterly, Seasonally Adjusted {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] RP CET Enrolment 2020-2024 {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Temasek Polytechnic Part-Time Enrolment Figures Breakdown, Annual (2015-2017) {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Overall SPS Population {"status": -1, "err": "HTTP Error 404: Not Found"}
-[probe sg] Gross Domestic Product, Year On Year Growth Rate, Quarterly {"status": -1, "err": "HTTP Error 404: Not Found"}
-PASS  G0_hunt_ran — hk_bondish=0 hk_found=None sg_datasets=10 (findings in report)
-[16:47:37] PASS  G0_hunt_ran — hk_bondish=0 hk_found=None sg_datasets=10 (findings in report)
-[hotpatch] applied=False
-PASS  G1_sg_hk_outcome — SG_bp=None HK_bp=None resolved=False patched=False (honest 'accruing' notes remain for unresolved; ledger self-heals)
-[16:49:19] PASS  G1_sg_hk_outcome — SG_bp=None HK_bp=None resolved=False patched=False (honest 'accruing' notes remain for unresolved; ledger self-heals)
-PASS  G2_strip_live — missing=[]
-[16:49:31] PASS  G2_strip_live — missing=[]
-PASS  G3_sentinel_armed — sovereign+GSSI watch markers in deployed sentinel
-[16:49:31] PASS  G3_sentinel_armed — sovereign+GSSI watch markers in deployed sentinel
+executing-against: f2f2dcaa5461419331b53005fbd764b48cc1a568
+ops 3395 — dormant ledger-YoY + closure
+PASS  G1_246_settled — ledger-yoy marker in zip
+[16:50:57] PASS  G1_246_settled — ledger-yoy marker in zip
+PASS  G2_dormant_healthy — v=2.4.6 ledger_yoy_errs=[] (dormant, activates ~2027-07)
+[16:52:38] PASS  G2_dormant_healthy — v=2.4.6 ledger_yoy_errs=[] (dormant, activates ~2027-07)
 
 VERDICT: PASS_ALL
-[16:49:31] VERDICT: PASS_ALL
+[16:52:38] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3394_sghk_hunt_strip_sentinel.md
+→ Report written to aws/ops/reports/latest/3395_ledger_yoy_dormant.md
