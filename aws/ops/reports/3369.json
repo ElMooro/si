@@ -1,0 +1,22 @@
+{
+  "gates": {
+    "G1_pages_hash_stamped": {
+      "ok": true,
+      "detail": "stamps={'/why.html': 'a10a2abb', '/index.html': 'a10a2abb', '/capital-flow.html': 'a10a2abb'}"
+    },
+    "G2_client_url_serves_tags": {
+      "ok": true,
+      "detail": "http 200 v=a10a2abb missing=[]"
+    },
+    "G3_stamp_matches_head": {
+      "ok": true,
+      "detail": "live=a10a2abb head_md5=a10a2abb"
+    }
+  },
+  "stamps": {
+    "/why.html": "a10a2abb",
+    "/index.html": "a10a2abb",
+    "/capital-flow.html": "a10a2abb"
+  },
+  "verdict": "PASS_ALL"
+}

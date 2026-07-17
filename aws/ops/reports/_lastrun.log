@@ -1,11 +1,13 @@
-executing-against: 8bdbea79626b8ba125de52ed11fea8211586c5c8
-ops 3368 — drawer color tags deploy gates
-PASS  G1_live_js_markers — http 200 missing=[]
-[02:55:45] PASS  G1_live_js_markers — http 200 missing=[]
-PASS  G2_tags_survive_blob — put=200 get=200 verbatim=True
-[02:55:45] PASS  G2_tags_survive_blob — put=200 get=200 verbatim=True
+executing-against: 08797057cb63d7fc8947e3e99c8e10be2271080a
+ops 3369 — drawer client cache-pickup gates
+PASS  G1_pages_hash_stamped — stamps={'/why.html': 'a10a2abb', '/index.html': 'a10a2abb', '/capital-flow.html': 'a10a2abb'}
+[03:03:40] PASS  G1_pages_hash_stamped — stamps={'/why.html': 'a10a2abb', '/index.html': 'a10a2abb', '/capital-flow.html': 'a10a2abb'}
+PASS  G2_client_url_serves_tags — http 200 v=a10a2abb missing=[]
+[03:03:40] PASS  G2_client_url_serves_tags — http 200 v=a10a2abb missing=[]
+PASS  G3_stamp_matches_head — live=a10a2abb head_md5=a10a2abb
+[03:03:40] PASS  G3_stamp_matches_head — live=a10a2abb head_md5=a10a2abb
 
 VERDICT: PASS_ALL
-[02:55:45] VERDICT: PASS_ALL
+[03:03:40] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3368_drawer_color_tags.md
+→ Report written to aws/ops/reports/latest/3369_drawer_cache_pickup.md
