@@ -34,7 +34,7 @@ from decimal import Decimal
 
 import boto3
 
-VERSION = "1.2.2"
+VERSION = "1.2.3"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/proven-portfolio.json"
 HIST_KEY = "data/proven-portfolio-history.json"
@@ -188,7 +188,8 @@ def lambda_handler(event, context):
     if _pv is None:
         try:
             _h = rj("data/jsi-history.json")
-            _rows = _h.get("rows") or _h.get("series") or _h if isinstance(_h, list) else []
+            _rows = ((_h.get("rows") or _h.get("series") or [])
+                     if isinstance(_h, dict) else (_h if isinstance(_h, list) else []))
             _vals = [float(r.get("v") if isinstance(r, dict) else r)
                      for r in _rows
                      if (r.get("v") if isinstance(r, dict) else r) is not None]

@@ -1224,7 +1224,7 @@ def lambda_handler(event, context):
 
         def _sfwalk2(o):
             if isinstance(o, dict):
-                sec = o.get("sector")
+                sec = o.get("sector") or o.get("name")
                 if sec and ("posture" in o or "conviction" in o):
                     _sec_ctx.setdefault(str(sec), {
                         "posture": o.get("posture"),
@@ -1235,7 +1235,8 @@ def lambda_handler(event, context):
                 for v in o:
                     _sfwalk2(v)
         _sfwalk2(_sfs)
-        _og = read_json("data/options-gamma.json", {}) or read_json("data/dealer-gex.json", {}) or {}
+        _og = read_json("data/dealer-gex.json", {}) or {}
+        _og = _og.get("underlyings") or _og
         _walls = {}
 
         def _ogwalk(o):
