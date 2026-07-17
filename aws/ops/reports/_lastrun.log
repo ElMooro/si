@@ -1,15 +1,9 @@
-executing-against: 2b333c869e15523c0778a6cfb40b6d7e3e0dba3e
-ops 3388 — GSSI math v2 + barometer
-FAIL  G1_engine_240_settled — markers in zip
-[15:50:38] FAIL  G1_engine_240_settled — markers in zip
-FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
-[15:59:50] FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
-FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
-[15:59:50] FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
-PASS  G4_gauge_live — missing=[]
-[15:59:50] PASS  G4_gauge_live — missing=[]
+executing-against: 2d8687ff6eb41a15a567c12398ae9c4500764bf4
+ops 3390 — GSSI crash diagnosis
+DEPLOYED: ['VERSION = "2.4.0"'] | _expz: True | dispersion: True | mu_ref_in_gssi: True
+[16:01:31] deployed ['VERSION = "2.4.0"'] expz=True
+FEED version: 2.4.0 | gssi_current: None | gssi errors: ['gssi/IRLTLT01TRM156N: HTTP Error 400: Bad Request', 'gssi/LRHUTTTTCHM156S: HTTP Error 400: Bad Request', 'gssi/GOLDAMGBD228NLBM: HTTP Error 400: Bad Request']
+[16:01:31] feed v=2.4.0 gssi_errs=['gssi/IRLTLT01TRM156N: HTTP Error 400: Bad Request', 'gssi/LRHUTTTTCHM156S: HTTP Error 400: Bad Request']
+GSSI feed version: 2.3.0 gen: 2026-07-17T15:28:50.202202+00:00
 
-VERDICT: GAPS: G1_engine_240_settled,G2_v2_feed,G3_detection
-[15:59:50] VERDICT: GAPS: G1_engine_240_settled,G2_v2_feed,G3_detection
-
-→ Report written to aws/ops/reports/latest/3389_gssi_math_v2_fix.md
+→ Report written to aws/ops/reports/latest/3390_gssi_diag.md
