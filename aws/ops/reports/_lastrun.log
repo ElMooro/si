@@ -1,17 +1,17 @@
-executing-against: 8642c53be2574a24791c7d87b079eba2d4f10e80
-── G1 — FMP default (no year/quarter) behavior ──
-[00:48:38] [G1] no-param probe → HTTP 400
-[00:48:38] ✅ G1 ✓ endpoint REQUIRES year+quarter (400 without) → ignition's unpinned call was silently 400ing into the institutional-holders fallback = inst lens DEAD (no change-fields). v1.1.0 revives it with clean pinned data.
-── G2 — deploy ignition v1.1.0 ──
-[00:48:38]   zip: 82999 bytes
+executing-against: dd1d3396edcf707b5900522945def8b7cbd2eb47
+── G1 — pre-deploy sanity ──
+[02:07:26] [G1] deployed has band already: False (expect False)
+[02:07:26] ✅ G1 ✓ local carries the band; proceeding
+── G2 — deploy screener (config passthrough) ──
+[02:07:26]   zip: 99787 bytes
 ── 1. Lambda ──
-[00:48:38]   Lambda exists — updating
-[00:48:41] ✅   ✓ updated justhodl-ignition
-── G3 — deployed-code markers ──
-[00:48:52] ✅ G3 ✓ v1.1.0 markers deployed & settled
-── G4 — fully-filed selection proof (runner-side) ──
-[00:48:52] [G4] selection → Q1 2026 (6,347 AAPL holders)
-[00:48:52] ✅ G4 ✓ gate selects fully-filed quarter
-[00:48:52] ✅ VERDICT: PASS
+[02:07:27]   Lambda exists — updating
+[02:07:30] ✅   ✓ updated justhodl-stock-screener
+── G3 — deployed markers settled ──
+[02:07:40] ✅ G3 ✓ band deployed & settled
+── G4 — band selection proof ──
+[02:07:40] [G4] band → Q1 2026 (6,347 AAPL holders)
+[02:07:40] ✅ G4 ✓ selects fully-filed quarter
+[02:07:40] ✅ VERDICT: PASS
 
-→ Report written to aws/ops/reports/latest/3364_ignition_filed_quarter.md
+→ Report written to aws/ops/reports/latest/3365_screener_quarter_band.md
