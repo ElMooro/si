@@ -1,0 +1,23 @@
+{
+  "gates": {
+    "G1_deploys_settled_bundled": {
+      "ok": true,
+      "detail": "settled=['justhodl-etf-constituents', 'justhodl-industry-rotation']"
+    },
+    "G2_ec_feed_quality": {
+      "ok": false,
+      "detail": "no fresh file"
+    },
+    "G3_ir_tolerant_weights": {
+      "ok": true,
+      "detail": "zip bundles pctf + _wpct; next 21:35Z run self-proves"
+    }
+  },
+  "ec_sample": {},
+  "theme_rotation": {
+    "deployed": true,
+    "last_modified": "2026-07-17T03:57:48.000+0000",
+    "timeout": 900
+  },
+  "verdict": "GAPS: G2_ec_feed_quality"
+}
