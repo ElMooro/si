@@ -207,7 +207,7 @@ document.getElementById('tbody').addEventListener('click',async ev=>{
   }catch(e){/* ops 3252: dormant fallback — render index data, never a raw error */const r=ENG.find(x=>x.engine_id===tr.dataset.eid);db.innerHTML=r?`<h3>${esc(r.name||r.engine_id)}</h3><div class="kvrow"><span>theme <b>${esc(r.theme||'—')}</b></span><span>state <b>${esc(r.state||'—')}</b></span><span>members <b>${mrc(r)??'—'}/${r.members_total??'—'}</b></span></div>${r.reason?`<div class="small" style="color:var(--neg,#e05252)">${esc(r.reason)}</div>`:''}<div class="small" style="margin-top:8px;opacity:.7">no detail feed for this engine — index data shown</div>`:'<span class="err">'+esc(e.message)+'</span>';}
 });
 </script>
-<script src="/jh-nav-drawer.js?v=3335" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-right-rail.js" defer></script>
 </body>
 </html>

@@ -62,3 +62,11 @@ Next ops 3368.
 jh-nav-drawer.js: 5-color tags (red/orange/yellow/green/blue) on every row incl. favorites — unlimited pages per color, multiple colors per page. Row dots + 🎨 button → fixed-position swatch popover (toggle each color); filter chip strip under search (per-color counts, click filters, ✕ clears, stacks with search via guarded second input listener). Storage localStorage `jh_tags` {href:[colors]} (500-path/sanitized cap). Sync: pushSync blob += `tags`; pullSync per-page UNION merge (never-shrink, favs doctrine) → pushes back when local contributed. Filter/tag toggles route through full `render(lastM)` for clean visibility state. GEN 3335→3368. ⚠️GOTCHAS: CSS.escape inside quoted attr selectors breaks nwsapi/jsdom — plain href works (paths are safe); render-truth harness = jsdom@24 + `runScripts:"outside-only"` + `w.eval(src)` + fetch stub, remember `process.exit(0)` (jsdom keeps loop alive) and that dot-count asserts must scope to ONE `.jhtag-dots` span (favorites row duplicates pages). Harness PASS_ALL 9 behaviors pre-push; ops 3368 gates live GEN/markers + tags-survive-blob.
 
 Next ops 3369.
+
+---
+
+## ops 3369 — Drawer CACHE-PICKUP root-cause (2026-07-17)
+
+⚠️⚠️ WHY 3368's tags were invisible: committed HTML carried a FROZEN literal `jh-nav-drawer.js?v=3335` (373 pages, +1 stray v=3407) while the pages.yml stamper only replaced the UNVERSIONED src — and only on index.html (3272c). Stamper = silent no-op fleet-wide → every drawer JS change since the 3335 freeze never reached clients (clients+CF keyed on the old ?v URL). FIX: source normalized to unversioned src (374 pages; screener/ source untouched — protected — its deploy artifact still gets stamped), pages.yml step now regex-stamps ALL _site *.html with md5-8 of jh-nav-drawer.js and tolerates any pre-existing ?v= (freeze-proof). ⭐ GATE DOCTRINE: always gate the URL the PAGE references (extract src from live HTML, fetch that exact URL), never a synthetic cache-busted one — 3368's G1 passed while clients were stale.
+
+Next ops 3370.

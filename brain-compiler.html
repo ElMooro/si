@@ -61,6 +61,6 @@ function tbl(){const rows=(DATA.claims||[]).filter(c=>filt=='all'||c.status==fil
   ||'<tr><td colspan="4" class="muted" style="padding:16px">None in this view.</td></tr>';}
 getJSON('data/brain-compiler.json').then(render).catch(()=>{document.getElementById('sub').textContent='Compiler feed not published yet — first run pending.';});
 </script>
-<script defer src="/jh-nav-drawer.js?v=3335"></script>
+<script defer src="/jh-nav-drawer.js"></script>
 <script defer src="/jh-page-ai.js"></script>
 </body></html>

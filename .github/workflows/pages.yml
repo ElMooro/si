@@ -85,16 +85,20 @@ jobs:
 
       - name: Reskin legacy palette -> Amber (all pages; index+screener untouched)
         run: python3 scripts/reskin_site.py _site || true
-      - name: Version drawer tag on index (reskin skips index)  # ops 3272c
+      - name: Version drawer tag on ALL pages (regex — survives pre-stamped src)  # ops 3369
         run: |
           python3 - <<'V'
-          import hashlib, pathlib
+          import hashlib, pathlib, re
           v = hashlib.md5(open('jh-nav-drawer.js', 'rb').read()).hexdigest()[:8]
-          p = pathlib.Path('_site/index.html')
-          s = p.read_text()
-          p.write_text(s.replace('src="/jh-nav-drawer.js"',
-                                 'src="/jh-nav-drawer.js?v=' + v + '"'))
-          print('index drawer v', v)
+          pat = re.compile(r'/jh-nav-drawer\.js(\?v=[A-Za-z0-9]+)?')
+          n = 0
+          for p in pathlib.Path('_site').rglob('*.html'):
+              s = p.read_text(errors='ignore')
+              t = pat.sub('/jh-nav-drawer.js?v=' + v, s)
+              if t != s:
+                  p.write_text(t)
+                  n += 1
+          print('drawer v', v, 'stamped on', n, 'pages')
           V
       - name: Bake SEO layer (canonical/OG/description + sitemap)
         run: python3 scripts/bake_seo.py _site || true
