@@ -1,17 +1,11 @@
-executing-against: 91fb995bb52a40c0eb0063437bb17ae33bfc771b
-ops 3367 — /userdata/self alias security re-gate
-PASS  G1_tokenless_self_401 — http 401
-[02:35:00] PASS  G1_tokenless_self_401 — http 401
-PASS  G2_garbage_bearer_self_401 — http 401
-[02:35:00] PASS  G2_garbage_bearer_self_401 — http 401
-PASS  G3_garbage_bearer_devuid_401 — http 401
-[02:35:00] PASS  G3_garbage_bearer_devuid_401 — http 401
-PASS  G4_anon_roundtrip — put=200 get=200 echo=True
-[02:35:00] PASS  G4_anon_roundtrip — put=200 get=200 echo=True
-PASS  G5_short_uid_400 — http 400
-[02:35:00] PASS  G5_short_uid_400 — http 400
+executing-against: 8bdbea79626b8ba125de52ed11fea8211586c5c8
+ops 3368 — drawer color tags deploy gates
+PASS  G1_live_js_markers — http 200 missing=[]
+[02:55:45] PASS  G1_live_js_markers — http 200 missing=[]
+PASS  G2_tags_survive_blob — put=200 get=200 verbatim=True
+[02:55:45] PASS  G2_tags_survive_blob — put=200 get=200 verbatim=True
 
 VERDICT: PASS_ALL
-[02:35:00] VERDICT: PASS_ALL
+[02:55:45] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3367_userdata_self_regate.md
+→ Report written to aws/ops/reports/latest/3368_drawer_color_tags.md
