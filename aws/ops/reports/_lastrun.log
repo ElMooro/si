@@ -1,7 +1,11 @@
-executing-against: 082b09c0f7b65ebe4568c2c3f1eab825492e07e1
-── G1-G3 — live page markers ──
-[00:13:07]   poll 1: page up, markers not yet (29243b) — CDN lag, retry
-[00:13:32] ✅ G1-G3 ✓ all 15 markers live, 0 regressions, 33,429b
-[00:13:32] ✅ VERDICT: PASS
+executing-against: 407052745406c77bb9f0d90be374e426c85f26e2
+── live markers ──
+[00:22:41]   poll 1: not yet (33429b)
+[00:23:06]   poll 2: not yet (33429b)
+[00:23:31]   poll 3: not yet (33429b)
+[00:23:56]   poll 4: not yet (33429b)
+[00:24:21]   poll 5: not yet (33429b)
+[00:24:46] ✅ side-by-side grid + compact mode live; stack collapse gone
+[00:24:46] ✅ VERDICT: PASS
 
-→ Report written to aws/ops/reports/latest/3361_capital_flow_ux_verify.md
+→ Report written to aws/ops/reports/latest/3362_capital_flow_sidebyside_verify.md
