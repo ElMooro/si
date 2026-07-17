@@ -1,0 +1,25 @@
+{
+  "gates": {
+    "G1_tokenless_self_401": {
+      "ok": true,
+      "detail": "http 401"
+    },
+    "G2_garbage_bearer_self_401": {
+      "ok": true,
+      "detail": "http 401"
+    },
+    "G3_garbage_bearer_devuid_401": {
+      "ok": true,
+      "detail": "http 401"
+    },
+    "G4_anon_roundtrip": {
+      "ok": true,
+      "detail": "put=200 get=200 echo=True"
+    },
+    "G5_short_uid_400": {
+      "ok": true,
+      "detail": "http 400"
+    }
+  },
+  "verdict": "PASS_ALL"
+}

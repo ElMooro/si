@@ -1,17 +1,17 @@
-executing-against: e6d3b4588fd4b32c632d5750acfba43107e8fce1
-ops 3366 — Supabase per-user layer install verify
-PASS  G0_repo_config — https://bdmjenqcyvzouusfcgow.supabase.co enabled=True
-PASS  G1_live_auth_config — http 200, url_match=True
-PASS  G2_supabase_alive — http 200 {"version":"v2.193.0","name":"GoTrue","description":"GoTrue is a user registrati
-PASS  G3_profiles_table — table exists, RLS filtering anon (correct)
-PASS  G4_signup — signup ok; email confirmations ON — JWT gates skipped (prod-correct posture)
-PASS  G5a_tokenless_rejected — http 400
-FAIL  G5b_garbage_bearer_401 — http 400
-PASS  G5c_webhook_signature — http 400 (unsigned must be 400)
-PASS  G5d_portal_unauth_401 — http 401
-PASS  G6_checkout_url — http 200 stripe_url=True
+executing-against: 91fb995bb52a40c0eb0063437bb17ae33bfc771b
+ops 3367 — /userdata/self alias security re-gate
+PASS  G1_tokenless_self_401 — http 401
+[02:35:00] PASS  G1_tokenless_self_401 — http 401
+PASS  G2_garbage_bearer_self_401 — http 401
+[02:35:00] PASS  G2_garbage_bearer_self_401 — http 401
+PASS  G3_garbage_bearer_devuid_401 — http 401
+[02:35:00] PASS  G3_garbage_bearer_devuid_401 — http 401
+PASS  G4_anon_roundtrip — put=200 get=200 echo=True
+[02:35:00] PASS  G4_anon_roundtrip — put=200 get=200 echo=True
+PASS  G5_short_uid_400 — http 400
+[02:35:00] PASS  G5_short_uid_400 — http 400
 
-VERDICT: GAPS: G5b_garbage_bearer_401
-[02:32:59] VERDICT: GAPS: G5b_garbage_bearer_401
+VERDICT: PASS_ALL
+[02:35:00] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3366_supabase_install_verify.md
+→ Report written to aws/ops/reports/latest/3367_userdata_self_regate.md
