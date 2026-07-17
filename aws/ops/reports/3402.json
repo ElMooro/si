@@ -1,0 +1,149 @@
+{
+  "gates": {
+    "G1_engine_deployed": {
+      "ok": true,
+      "detail": "markers in zip"
+    },
+    "G2_schedule": {
+      "ok": true,
+      "detail": "created cron(45 21 ? * * *)"
+    },
+    "G3_first_compose": {
+      "ok": true,
+      "detail": "mode=PROVEN types=70 book=391 nav=100.0 ledger_today=True"
+    },
+    "G4_page_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "snapshot": {
+    "mode": "PROVEN",
+    "qualifying_types": {
+      "crisis_dfii10_vs_gld": "PROVEN",
+      "nobrainer_SMH": "PROVEN",
+      "cycle_top": "PROVEN",
+      "crypto_options_rr": "PROVEN",
+      "squeeze_risk": "PROVEN",
+      "retail_divergence": "PROVEN",
+      "crypto_dvol_buyfear": "PROVEN",
+      "eng:crypto-etf-arb": "PROVEN",
+      "eng:capital-return": "PROVEN",
+      "nobrainer_ROBO": "PROVEN",
+      "eng:dealer-gex": "PROVEN",
+      "nobrainer_SOXX": "PROVEN",
+      "eng:buyback-scanner": "PROVEN",
+      "eng:beta-laggards": "PROVEN",
+      "eng:dark-pool": "PROVEN",
+      "eng:asymmetric-scorer": "PROVEN",
+      "eng:flow-confluence": "PROVEN",
+      "eng:auction-decisive-call": "PROVEN",
+      "eng:conviction-decisive-call": "PROVEN",
+      "eng:compass-decisive-call": "PROVEN",
+      "eng:liquidity-decisive-call": "PROVEN",
+      "eng:retail-edges-decisive-call": "PROVEN",
+      "eng:crypto-emergence": "PROVEN",
+      "eng:buyback-yield-ranking": "PROVEN",
+      "eng:defcon-decisive-call": "PROVEN",
+      "eng:crisis-decisive-call": "PROVEN",
+      "eng:divergence-decisive-call": "PROVEN",
+      "eng:risk-radar-decisive-call": "PROVEN",
+      "eng:bond-vol-decisive-call": "PROVEN",
+      "eng:dollar-decisive-call": "PROVEN",
+      "eng:yield-curve-decisive-call": "PROVEN",
+      "eng:vix-curve-decisive-call": "PROVEN",
+      "crypto_risk_score": "PROVEN",
+      "nobrainer_BOTZ": "PROVEN",
+      "eng:consumer-pulse-decisive-call": "PROVEN",
+      "eng:fundamentals-decisive-call": "PROVEN",
+      "eng:lce-decisive-call": "PROVEN",
+      "eng:ipo-pipeline": "PROVEN",
+      "eng:opportunities": "PROVEN",
+      "eng:finviz-earnings-surprise": "PROVEN",
+      "eng:research-papers": "PROVEN",
+      "eng:valuations-decisive-call": "PROVEN",
+      "eng:predictability": "PROVEN",
+      "eng:gf-value": "PROVEN",
+      "eng:smart-beta": "PROVEN",
+      "eng:insider-radar": "PROVEN",
+      "eng:revenue-acceleration": "PROVEN",
+      "eng:eva-spread": "PROVEN",
+      "eng:13f-positions": "PROVEN",
+      "eng:factor-decomposition": "PROVEN",
+      "eng:deep-value-overlap": "PROVEN",
+      "eng:supply-chain-linkage": "PROVEN",
+      "eng:analyst-consensus": "PROVEN",
+      "eng:earnings-cascade": "PROVEN",
+      "eng:theme-tiers": "PROVEN",
+      "eng:short-interest": "PROVISIONAL",
+      "eng:sequence-alpha": "PROVISIONAL",
+      "eng:capex-pulse": "PROVISIONAL",
+      "eng:chart-vision": "PROVISIONAL",
+      "eng:sec-filing-diff": "PROVISIONAL",
+      "eng:best-ideas": "PROVISIONAL",
+      "eng:earnings-confluence": "PROVISIONAL",
+      "eng:fundamentals": "PROVISIONAL",
+      "eng:kill-theses": "PROVISIONAL",
+      "eng:rv-iv-scanner": "PROVISIONAL",
+      "eng:volatility-squeeze": "PROVISIONAL",
+      "eng:political-intel": "PROVISIONAL",
+      "cycle_bottom": "PROVISIONAL",
+      "eng:ma200-reclaim": "PROVISIONAL",
+      "eng:implied-prob": "PROVISIONAL"
+    },
+    "n_book": 391,
+    "top": [
+      {
+        "signal_type": "eng:dealer-gex",
+        "ticker": "MSFT",
+        "direction": "UP",
+        "confidence": 0.95,
+        "logged_at": "2026-07-13T23:15:31.084883+00:00",
+        "tier": "PROVEN",
+        "weight_pct": 0.34,
+        "mark": 393.82
+      },
+      {
+        "signal_type": "eng:deep-value-overlap",
+        "ticker": "GILD",
+        "direction": "UP",
+        "confidence": 0.95,
+        "logged_at": "2026-07-10T23:15:30.336729+00:00",
+        "tier": "PROVEN",
+        "weight_pct": 0.34,
+        "mark": 134.28
+      },
+      {
+        "signal_type": "eng:asymmetric-scorer",
+        "ticker": "FOX",
+        "direction": "UP",
+        "confidence": 0.95,
+        "logged_at": "2026-07-11T23:15:29.709085+00:00",
+        "tier": "PROVEN",
+        "weight_pct": 0.34,
+        "mark": 51.63
+      },
+      {
+        "signal_type": "eng:dark-pool",
+        "ticker": "WTFC",
+        "direction": "UP",
+        "confidence": 0.95,
+        "logged_at": "2026-07-13T23:15:30.992174+00:00",
+        "tier": "PROVEN",
+        "weight_pct": 0.34,
+        "mark": 164.3
+      },
+      {
+        "signal_type": "eng:dealer-gex",
+        "ticker": "META",
+        "direction": "UP",
+        "confidence": 0.95,
+        "logged_at": "2026-07-13T23:15:31.084883+00:00",
+        "tier": "PROVEN",
+        "weight_pct": 0.34,
+        "mark": 646.01
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}

@@ -1,9 +1,16 @@
-executing-against: 1debafe2bb4c60ccb58efae9d0b7aed60c28bac7
-ops 3401 — tech-health sibling mount
-PASS  G1_sibling_mount_live — missing=[]
-[20:30:55] PASS  G1_sibling_mount_live — missing=[]
+executing-against: 9cab7232e4d7f5f845bd3f04172b0948db977cee
+ops 3402 — the composer, born
+PASS  G1_engine_deployed — markers in zip
+[21:23:30] PASS  G1_engine_deployed — markers in zip
+PASS  G2_schedule — created cron(45 21 ? * * *)
+[21:23:31] PASS  G2_schedule — created cron(45 21 ? * * *)
+[invoke] status=200 err=None
+PASS  G3_first_compose — mode=PROVEN types=70 book=391 nav=100.0 ledger_today=True
+[21:24:56] PASS  G3_first_compose — mode=PROVEN types=70 book=391 nav=100.0 ledger_today=True
+PASS  G4_page_live — missing=[]
+[21:26:08] PASS  G4_page_live — missing=[]
 
 VERDICT: PASS_ALL
-[20:30:55] VERDICT: PASS_ALL
+[21:26:08] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3401_tech_health_mount.md
+→ Report written to aws/ops/reports/latest/3402_proven_portfolio.md
