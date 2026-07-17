@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.3"
+VERSION = "2.4.4"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -669,7 +669,9 @@ def build_gssi(errors):
               for i in range(0, m, 5)]
     if weekly and weekly[-1]["d"] != dts[-1]:
         weekly.append({"d": dts[-1], "v": vs[-1],
-                       "yoy": (round(yoy[-1], 1) if yoy[-1] is not None else None)})
+                       "yoy": (round(yoy[-1], 1) if yoy[-1] is not None else None),
+                       "b": (round(br[-1], 0) if br[-1] is not None else None),
+                       "c": (round(cmv[-1], 2) if cmv[-1] is not None else None)})
 
     comp_meta = []
     for name, c in comps.items():
