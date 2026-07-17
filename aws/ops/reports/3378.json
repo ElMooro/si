@@ -1,0 +1,38 @@
+{
+  "gates": {
+    "G1_coverage": {
+      "ok": true,
+      "detail": "sum_n_1m=9197 vs history_n=9469"
+    },
+    "G2_quartile_ordering": {
+      "ok": true,
+      "detail": "p25<=med<=p75 across all 40 cells"
+    },
+    "G3_current_bucket": {
+      "ok": true,
+      "detail": "{\"decile\": 2, \"expanding_pctile\": 27.2, \"regime_spine\": \"NORMAL\"}"
+    },
+    "G4_contrarian_recorded": {
+      "ok": true,
+      "detail": "d9 3m med=8.2% pos=64.0% n=724 vs d2 med=3.1%"
+    }
+  },
+  "finding_contrarian": {
+    "decile9_3m": {
+      "n": 724,
+      "med": 8.2,
+      "p25": -7.2,
+      "p75": 18.3,
+      "pos_pct": 64.0
+    },
+    "decile2_3m": {
+      "n": 805,
+      "med": 3.1,
+      "p25": -1.3,
+      "p75": 6.5,
+      "pos_pct": 69.0
+    },
+    "read": "peak-stress deciles carry HIGHER median fwd returns \u2014 mean-reversion regime, 1990\u2192"
+  },
+  "verdict": "PASS_ALL"
+}
