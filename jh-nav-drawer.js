@@ -16,7 +16,7 @@
      GEN bumped 3310->3335: benzinga.html 'Failed to fetch' traced to a
      stale SW intercepting the agent Function URL; force clients fresh. */
   try {
-    var GEN = "3335";
+    var GEN = "3368"; /* 3368: color tags on drawer rows + filter + per-user sync */
     if (localStorage.getItem("jh_sw_gen") !== GEN &&
         sessionStorage.getItem("jh_fresh_try") !== GEN) {
       sessionStorage.setItem("jh_fresh_try", GEN);
@@ -135,6 +135,32 @@
   var lastM = null;
   function getFavs(){ try { return JSON.parse(localStorage.getItem("jh_favs") || "[]"); } catch(e){ return []; } }
   function setFavs(a){ try { localStorage.setItem("jh_favs", JSON.stringify(a.slice(0, 80))); } catch(e){} }
+  /* ops 3368: color tags — per-page, per-user, unlimited per color. */
+  var TAG_COLORS = ["red","orange","yellow","green","blue"];
+  var TAG_HEX = { red:"#ef4444", orange:"#f97316", yellow:"#eab308", green:"#22c55e", blue:"#3b82f6" };
+  var activeTagFilter = null;
+  function getTags(){ try { var o = JSON.parse(localStorage.getItem("jh_tags") || "{}"); return (o && typeof o === "object") ? o : {}; } catch(e){ return {}; } }
+  function setTags(o){ try {
+    var clean = {}, keys = Object.keys(o || {}).slice(0, 500);
+    for (var i = 0; i < keys.length; i++) {
+      var cs = (o[keys[i]] || []).filter(function(c){ return TAG_COLORS.indexOf(c) >= 0; });
+      cs = cs.filter(function(c, j){ return cs.indexOf(c) === j; });
+      if (cs.length) clean[keys[i]] = cs;
+    }
+    localStorage.setItem("jh_tags", JSON.stringify(clean));
+  } catch(e){} }
+  function tagDotsHtml(href){
+    var t = getTags()[href] || []; if (!t.length) return "";
+    return t.map(function(c){ return '<i class="jhtag-d" style="background:' + TAG_HEX[c] + '"></i>'; }).join("");
+  }
+  function toggleTag(href, color){
+    var o = getTags(); var a = o[href] || []; var i = a.indexOf(color);
+    if (i >= 0) a.splice(i, 1); else a.push(color);
+    o[href] = a; setTags(o); queueSync();
+    var ds = document.querySelectorAll('.jhtag-dots[data-dots="' + href + '"]');
+    for (var j = 0; j < ds.length; j++) ds[j].innerHTML = tagDotsHtml(href);
+    if (activeTagFilter && lastM) render(lastM); else buildTagFilter();
+  }
   function toggleFav(h){ var f = getFavs(); var i = f.indexOf(h); if (i >= 0) f.splice(i, 1); else f.unshift(h); setFavs(f); queueSync(); }
 
 
@@ -168,7 +194,7 @@
   function queueSync(){ if (!sbToken()) return; clearTimeout(syncTimer); syncTimer = setTimeout(pushSync, 1500); }
   function pushSync(){
     var t = sbToken(); if (!t) return;
-    var blob = { v: 1, favs: getFavs(), theme: getTheme(), updated_at: Date.now() };
+    var blob = { v: 1, favs: getFavs(), theme: getTheme(), tags: getTags() /* ops 3368 */, updated_at: Date.now() };
     try {
       fetch(SYNC_URL, { method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t },
@@ -188,10 +214,24 @@
             var remote = (b.favs || []).filter(function(x){ return typeof x === "string"; });
             var merged = remote.concat(local.filter(function(x){ return remote.indexOf(x) < 0; }));
             setFavs(merged);
+            /* ops 3368: tags union-merge per page — remote \u222a local, never shrink */
+            var tagsGrew = false;
+            try {
+              var rT = (b.tags && typeof b.tags === "object") ? b.tags : {};
+              var lT = getTags(); var mT = {};
+              var ks = Object.keys(rT).concat(Object.keys(lT));
+              for (var ti = 0; ti < ks.length; ti++) {
+                var k = ks[ti]; if (mT[k]) continue;
+                var u = (rT[k] || []).slice();
+                (lT[k] || []).forEach(function(c){ if (u.indexOf(c) < 0) { u.push(c); tagsGrew = true; } });
+                if (u.length) mT[k] = u;
+              }
+              setTags(mT);
+            } catch(e){}
             var localTs = 0; try { localTs = +(localStorage.getItem("jh_theme_ts") || 0); } catch(e){}
             if (b.theme && (b.updated_at || 0) > localTs) setTheme(b.theme, true);
             if (lastM) render(lastM);
-            if (merged.length !== remote.length) pushSync();
+            if (merged.length !== remote.length || tagsGrew) pushSync();
           } catch(e){}
         }).catch(function(){});
     } catch(e){}
@@ -254,6 +294,8 @@
       var on = favs.indexOf(p.href) >= 0;
       return '<a class="jhnav-item' + (isHere ? " jhnav-here" : "") + '" href="' + esc(p.href) + '">'
         + '<span class="jhnav-t">' + esc(p.title) + (isHere ? " \u2014 you\u2019re here" : "") + '</span>'
+        + (p.href !== "#" ? '<span class="jhtag-dots" data-dots="' + esc(p.href) + '">' + tagDotsHtml(p.href) + '</span>'
+          + '<span class="jhnav-tagbtn" data-tag="' + esc(p.href) + '" title="Color tags">\ud83c\udfa8</span>' : "")
         + '<span class="jhnav-star' + (on ? " on" : "") + '" data-fav="' + esc(p.href) + '" title="' + (on ? "Unfavorite" : "Favorite") + '">' + (on ? "\u2605" : "\u2606") + '</span></a>';
     }
     var html = "";
@@ -276,6 +318,8 @@
     if (!groupsEl.__jhFavWired) {
       groupsEl.__jhFavWired = true;
       groupsEl.addEventListener("click", function (e) {
+        var tb = e.target && e.target.classList && e.target.classList.contains("jhnav-tagbtn") ? e.target : null;
+        if (tb) { e.preventDefault(); e.stopPropagation(); openTagPop(tb.getAttribute("data-tag"), tb); return; }
         var st = e.target && e.target.classList && e.target.classList.contains("jhnav-star") ? e.target : null;
         if (!st) return;
         e.preventDefault(); e.stopPropagation();
@@ -308,6 +352,85 @@
         g.style.display = (q && !any) ? "none" : "";
       }
     });
+    /* ops 3368: tag filter strip + re-apply after the search pass runs */
+    buildTagFilter(); applyTagFilter();
+    if (!search.__jhTagWired) { search.__jhTagWired = true;
+      search.addEventListener("input", function(){ applyTagFilter(); }); }
+  }
+
+  /* ops 3368: color-tag UI — filter chips + swatch popover */
+  function buildTagFilter(){
+    var el = document.getElementById("jhnav-tagfilter"); if (!el) return;
+    var tags = getTags(), counts = {};
+    TAG_COLORS.forEach(function(c){ counts[c] = 0; });
+    Object.keys(tags).forEach(function(h){ (tags[h] || []).forEach(function(c){ counts[c]++; }); });
+    el.innerHTML = TAG_COLORS.map(function(c){
+      return '<span class="jhtag-chip' + (activeTagFilter === c ? " on" : "") + '" data-tf="' + c + '">'
+        + '<i class="jhtag-d" style="background:' + TAG_HEX[c] + '"></i>' + (counts[c] || 0) + '</span>';
+    }).join("") + (activeTagFilter ? '<span class="jhtag-chip jhtag-clear" data-tf="">\u2715</span>' : "");
+    if (!el.__wired) { el.__wired = true;
+      el.addEventListener("click", function(e){
+        var ch = e.target.closest ? e.target.closest(".jhtag-chip") : null; if (!ch) return;
+        var c = ch.getAttribute("data-tf") || null;
+        activeTagFilter = (c && activeTagFilter !== c) ? c : null;
+        if (lastM) render(lastM); else { buildTagFilter(); applyTagFilter(); }
+      });
+    }
+  }
+  function applyTagFilter(){
+    var groupsEl = document.getElementById("jhnav-groups"); if (!groupsEl) return;
+    if (!activeTagFilter) return; /* search pass already set base visibility */
+    var tags = getTags();
+    var gs = groupsEl.querySelectorAll(".jhnav-group");
+    for (var i = 0; i < gs.length; i++) {
+      var g = gs[i], any = false, items = g.querySelectorAll(".jhnav-item");
+      for (var j = 0; j < items.length; j++) {
+        var it = items[j];
+        if (it.style.display === "none") continue; /* respect search hits */
+        var st = it.querySelector(".jhnav-star");
+        var href = st ? st.getAttribute("data-fav") : null;
+        var hit = href && (tags[href] || []).indexOf(activeTagFilter) >= 0;
+        it.style.display = hit ? "" : "none";
+        if (hit) any = true;
+      }
+      g.style.display = any ? "" : "none";
+      if (any) g.classList.add("jhnav-gopen");
+    }
+  }
+  var tagPop = null;
+  function closeTagPop(){ if (tagPop) { tagPop.style.display = "none"; tagPop.__href = null; } }
+  function openTagPop(href, btn){
+    if (!tagPop) {
+      tagPop = document.createElement("div");
+      tagPop.className = "jhtag-pop";
+      document.body.appendChild(tagPop);
+      document.addEventListener("click", function(e){
+        if (tagPop.style.display !== "none" && !tagPop.contains(e.target)
+            && !(e.target.classList && e.target.classList.contains("jhnav-tagbtn"))) closeTagPop();
+      }, true);
+      document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeTagPop(); });
+      tagPop.addEventListener("click", function(e){
+        var sw = e.target.closest ? e.target.closest(".jhtag-sw") : null; if (!sw) return;
+        e.preventDefault(); e.stopPropagation();
+        toggleTag(tagPop.__href, sw.getAttribute("data-c"));
+        renderTagPop();
+      });
+    }
+    if (tagPop.__href === href && tagPop.style.display !== "none") { closeTagPop(); return; }
+    tagPop.__href = href;
+    renderTagPop();
+    var r = btn.getBoundingClientRect();
+    tagPop.style.display = "flex";
+    var pw = 5 * 26 + 16;
+    tagPop.style.top = Math.max(6, Math.min(window.innerHeight - 44, r.bottom + 6)) + "px";
+    tagPop.style.left = Math.max(6, Math.min(window.innerWidth - pw - 6, r.left - pw + r.width)) + "px";
+  }
+  function renderTagPop(){
+    if (!tagPop || !tagPop.__href) return;
+    var on = getTags()[tagPop.__href] || [];
+    tagPop.innerHTML = TAG_COLORS.map(function(c){
+      return '<span class="jhtag-sw' + (on.indexOf(c) >= 0 ? " on" : "") + '" data-c="' + c + '" style="background:' + TAG_HEX[c] + '" title="' + c + '"></span>';
+    }).join("");
   }
 
   function inject() {
@@ -317,7 +440,19 @@
       + ".jhnav-item .jhnav-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
       + ".jhnav-star{flex:none;color:#5a6675;font-size:13px;padding:0 3px;cursor:pointer}"
       + ".jhnav-star.on{color:#ffd75e}.jhnav-star:hover{color:#ffd75e}"
-      + ".jhnav-favgroup .jhnav-ghead{color:#ffd75e}";
+      + ".jhnav-favgroup .jhnav-ghead{color:#ffd75e}"
+      /* ops 3368: color tags */
+      + ".jhtag-dots{flex:none;display:inline-flex;gap:3px;align-items:center}"
+      + ".jhtag-d{display:inline-block;width:7px;height:7px;border-radius:50%}"
+      + ".jhnav-tagbtn{flex:none;font-size:11px;padding:0 2px;cursor:pointer;opacity:.35;filter:grayscale(1)}"
+      + ".jhnav-item:hover .jhnav-tagbtn,.jhnav-tagbtn:hover{opacity:1;filter:none}"
+      + ".jhtag-filter{display:flex;gap:6px;align-items:center;margin:8px 0 2px;flex-wrap:wrap}"
+      + ".jhtag-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#8fa0b8;background:#161d2a;border:1px solid #1d2636;border-radius:20px;padding:3px 8px;cursor:pointer;font-family:ui-monospace,monospace}"
+      + ".jhtag-chip.on{border-color:#4fc3f7;color:#e6edf7}"
+      + ".jhtag-clear{padding:3px 7px}"
+      + ".jhtag-pop{position:fixed;z-index:2147483647;display:none;gap:8px;background:#0f1520;border:1px solid #263044;border-radius:10px;padding:8px;box-shadow:0 8px 28px rgba(0,0,0,.5)}"
+      + ".jhtag-sw{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;box-sizing:border-box}"
+      + ".jhtag-sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}";
     document.head.appendChild(styleEl);
 
     backdrop = document.createElement("div");
@@ -335,6 +470,7 @@
     drawer.innerHTML =
       '<div class="jhnav-head"><span class="jhnav-dot"></span><span class="jhnav-brand">JustHodl<b>.AI</b></span><span class="jhnav-count" id="jhnav-count"></span></div>'
       + '<input class="jhnav-search" id="jhnav-search" placeholder="Search pages\u2026" autocomplete="off">'
+      + '<div id="jhnav-tagfilter" class="jhtag-filter"></div>'
       + '<div id="jhnav-groups"></div>'
       + '<div style="margin-top:12px;border-top:1px solid #1d2636;padding-top:10px">'
       +   '<button id="jhnav-themebtn" style="width:100%;background:#161d2a;border:1px solid #1d2636;border-radius:8px;padding:9px 11px;color:#a8b3c7;font-size:12px;cursor:pointer;font-family:inherit">theme</button>'
