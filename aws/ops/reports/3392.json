@@ -1,0 +1,49 @@
+{
+  "gates": {
+    "G1_engine_240_settled": {
+      "ok": true,
+      "detail": "markers in zip"
+    },
+    "G2_v2_feed": {
+      "ok": false,
+      "detail": "latest={\"date\": \"2026-07-10\", \"gssi\": 36.08, \"pctile\": 32.5, \"breadth_pct\": 0.0, \"comove\": 0.0, \"yoy_pct\": -4.0, \"d6m\": -2.4} pts=1715 bc_tail_ok=False"
+    },
+    "G3_detection": {
+      "ok": true,
+      "detail": "detected=8/14 (v1: 8/14) must_ok=True leads_v1_to_v2={\"Lehman\": {\"v1\": 198, \"v2\": 262}, \"COVID crash\": {\"v1\": -10, \"v2\": -10}, \"Euro debt crisis (IT/ES)\": {\"v1\": 61, \"v2\": 224}} improved_or_equal=3/3"
+    },
+    "G4_gauge_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "comparison": {
+    "detected_v1": "8/14",
+    "detected_v2": "8/14",
+    "leads": {
+      "Lehman": {
+        "v1": 198,
+        "v2": 262
+      },
+      "COVID crash": {
+        "v1": -10,
+        "v2": -10
+      },
+      "Euro debt crisis (IT/ES)": {
+        "v1": 61,
+        "v2": 224
+      }
+    },
+    "all_leads_v2": {
+      "Tequila crisis (MXN)": 233,
+      "Russia default / LTCM": -35,
+      "Dot-com peak": 164,
+      "Lehman": 262,
+      "Greece bailout request": 233,
+      "Euro debt crisis (IT/ES)": 224,
+      "COVID crash": -10,
+      "SVB / regional banks": -53
+    }
+  },
+  "verdict": "GAPS: G2_v2_feed"
+}
