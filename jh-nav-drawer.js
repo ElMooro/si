@@ -269,6 +269,7 @@
       el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#8fa0b8;padding:2px 2px">'
         + '<span style="width:7px;height:7px;border-radius:50%;background:#3ddc84;flex:none"></span>'
         + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" title="favorites + theme sync to your account">' + em + '</span>'
+        + '<a href="/settings.html" title="Account & settings" style="color:#4fc3f7;text-decoration:none;flex:none;margin-right:2px">\u2699</a>'
         + '<a href="#" id="jhnav-signout" style="color:#5d6b82;text-decoration:none;flex:none">sign out</a></div>';
       var so = document.getElementById("jhnav-signout");
       if (so) so.addEventListener("click", function(e){ e.preventDefault();

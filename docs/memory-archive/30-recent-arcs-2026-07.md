@@ -103,3 +103,11 @@ Next ops 3375.
 
 ### 3374→3375 addendum — EC healthy; probe-origin doctrine
 ops 3375 ground truth: etf-constituents (shared fmp_etf aboard) runs in **15.4s**, 284/289 ETFs written fresh (SPY NVDA 7.89/AAPL 7.37/MSFT 4.50, sum63.3; 2,258-stock exposure map; universe 300 incl SPY/QQQ/IVV). 3374-G2 "no fresh file" = WRONG ORIGIN: ⚠️ justhodl.ai only exposes data/* — S3-native prefixes (etf-flows/*, userdata etc.) 404 at the site host; gate them via boto3 list/get from the runner. BONUS: deploy-lambdas transitively redeployed theme-rotation-engine (live, timeout 900) from the shared-module change despite no repo config.json — TR's fixed dash-rung ladder is LIVE. Fleet sweep CLOSED: 5/5 /stable/etf consumers hardened or verified clean. Next ops 3376.
+
+---
+
+## ops 3376 — SETTINGS.HTML V3 + drawer ⚙ + TR config codified (2026-07-17)
+
+⚠️ LIVE DEFECT on settings.html since it shipped: `<script src="/jh-nav-drawer.js" defer>` NEVER CLOSED → the following inline JH_SETTINGS_V2 block (theme buttons + billing-portal handler) parsed as that script's CONTENT = inert. Fixed. ADDITIVE V3: ⭐/🎨 synced favorites+tags card (Bearer /userdata/self + nav-manifest title join, read-only mirror; TAG_HEX local), checkout=success|cancel toast + history.replaceState (worker already redirects here), drawer signed-in row gains ⚙→/settings.html. Side-task: theme-rotation-engine config.json RECONSTRUCTED FROM LIVE (get_function_configuration + list_rule_names_by_target→describe_rule) and written by the ops for auto-commit — repo=truth restored. ⚠️GOTCHA class: unclosed <script src> silently swallows the next inline block — grep pages for `defer>` not followed by `</script>` when wiring dies mysteriously.
+
+Next ops 3377.

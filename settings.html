@@ -73,6 +73,10 @@ function render(){
       <div class="row"><span class="k">Sync</span><span class="v" style="color:var(--green)">Cloud-synced ✓</span></div>
       <div class="muted">Your watchlists now sync across devices via your account.</div>
     </div>
+    <div class="card"><h2>⭐ Favorites &amp; tags</h2>
+      <div id="jh-favtags"><span class="muted">Loading synced favorites…</span></div>
+      <div class="muted">Star pages and color-tag them from the sidebar (Ctrl/Cmd+B) — they sync to your account across devices.</div>
+    </div><!-- JH_SETTINGS_V3 -->
     <div class="card"><h2>⚙️ Session</h2>
       <button class="btn ghost" onclick="JustHodlAuth.signOut()">Sign Out</button>
     </div>`;
@@ -91,7 +95,7 @@ else boot();   // DOM already parsed (scripts ran late/cached) → run now
 </script>
 <script src="/cmdk.js"></script>
   <script src="/jh-page-ai.js" defer></script>
-<script src="/jh-nav-drawer.js" defer>
+<script src="/jh-nav-drawer.js" defer></script>
 <script>
 /* JH_SETTINGS_V2 wiring */
 (function(){
@@ -114,6 +118,52 @@ else boot();   // DOM already parsed (scripts ran late/cached) → run now
       .catch(function(){ t.textContent = "Unavailable"; });
     }
   });
+
+  /* JH_SETTINGS_V3: checkout result toast */
+  try {
+    var qs = new URLSearchParams(location.search);
+    var ck = qs.get("checkout");
+    if (ck === "success" || ck === "cancel") {
+      var b = document.createElement("div");
+      b.style.cssText = "max-width:620px;margin:14px auto -30px;padding:12px 16px;border-radius:10px;font-size:13px;border:1px solid " +
+        (ck === "success" ? "#26ffaf;color:#26ffaf;background:rgba(38,255,175,.06)" : "#2a3550;color:#a8b3c7;background:#0f1420");
+      b.textContent = ck === "success"
+        ? "✓ Payment confirmed — your plan updates here within a minute."
+        : "Checkout canceled — no changes were made.";
+      var w = document.querySelector(".wrap"); if (w) w.insertBefore(b, w.firstChild);
+      try { history.replaceState(null, "", location.pathname); } catch(_){}
+    }
+  } catch(e){}
+
+  /* JH_SETTINGS_V3: synced favorites + color tags (read-only mirror of the sidebar) */
+  var TAG_HEX = { red:"#ef4444", orange:"#f97316", yellow:"#eab308", green:"#22c55e", blue:"#3b82f6" };
+  function loadFavTags(){
+    var el = document.getElementById("jh-favtags"); if (!el) return;
+    var tok = sbTok();
+    if (!tok) { el.innerHTML = '<span class="muted">Sign in to see your synced favorites.</span>'; return; }
+    Promise.all([
+      fetch("https://justhodl-data-proxy.raafouis.workers.dev/userdata/self",
+            { headers: { "Authorization": "Bearer " + tok } }).then(function(r){ return r.ok ? r.json() : null; }),
+      fetch("/nav-manifest.json?v=" + Math.floor(Date.now()/36e5)).then(function(r){ return r.ok ? r.json() : null; })
+    ]).then(function(res){
+      var blob = res[0] || {}, man = res[1] || {};
+      var favs = (blob.favs || []).filter(function(x){ return typeof x === "string"; });
+      var tags = (blob.tags && typeof blob.tags === "object") ? blob.tags : {};
+      var title = {};
+      (man.categories || []).forEach(function(c){ (c.pages || []).forEach(function(p){ title[p.href] = p.title; }); });
+      if (!favs.length) { el.innerHTML = '<span class="muted">No favorites synced yet — tap ☆ next to any page in the sidebar.</span>'; return; }
+      el.innerHTML = favs.slice(0, 40).map(function(h){
+        var dots = (tags[h] || []).map(function(c){
+          return '<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:' + (TAG_HEX[c] || "#666") + '"></i>';
+        }).join("");
+        var t = title[h] || h.replace(/^\//,"").replace(/\.html$/,"").replace(/-/g," ");
+        return '<div class="row"><span class="k" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:75%">' +
+               dots + '<a href="' + esc(h) + '">' + esc(t) + '</a></span><span class="v" style="color:var(--fg-3);font-size:11px">★</span></div>';
+      }).join("");
+    }).catch(function(){ el.innerHTML = '<span class="muted">Couldn\u2019t load synced data right now.</span>'; });
+  }
+  try { if (window.JustHodlAuth) JustHodlAuth.onChange(function(){ setTimeout(loadFavTags, 80); }); } catch(e){}
+  setTimeout(loadFavTags, 350);
 })();
 </script>
 </body></html>
