@@ -1,13 +1,21 @@
-executing-against: 1905dff32adbc8c6ffa92705f1915cfefc511ef2
-ops 3376 — settings V3 + drawer link + TR config codify
-PASS  G1_settings_v3_live — missing=[] v3_count=3
-[04:33:43] PASS  G1_settings_v3_live — missing=[] v3_count=3
-PASS  G2_drawer_account_link — drawer /jh-nav-drawer.js?v=c3efc5d3 http 200 link=True gear=True
-[04:33:43] PASS  G2_drawer_account_link — drawer /jh-nav-drawer.js?v=c3efc5d3 http 200 link=True gear=True
-PASS  G3_tr_config_codified — {"memory": 1024, "timeout": 900, "env_keys": ["FMP_KEY", "N_WORKERS", "S3_BUCKET", "TIMEOUT_BUDGET_S"], "schedule": null}
-[04:33:44] PASS  G3_tr_config_codified — {"memory": 1024, "timeout": 900, "env_keys": ["FMP_KEY", "N_WORKERS", "S3_BUCKET", "TIMEOUT_BUDGET_S"], "schedule": null}
+executing-against: ec77ba2b228d4881cab2672ba25d4121d35205a1
+ops 3377 — JSI v1.9.0 decision layer E2E
+PASS  G1_engine_v190_settled — markers in deployed zip
+[04:52:27] PASS  G1_engine_v190_settled — markers in deployed zip
+PASS  G2_fresh_v190_v2 — gen=2026-07-17T04:52:33 v2=yes
+[04:52:42] PASS  G2_fresh_v190_v2 — gen=2026-07-17T04:52:33 v2=yes
+FAIL  G3_atlas_sane — d9_1m_n=724 d9_3m=8.2 d2_3m=3.1 current_decile=2
+[04:52:42] FAIL  G3_atlas_sane — d9_1m_n=724 d9_3m=8.2 d2_3m=3.1 current_decile=2
+PASS  G4_episodes — n=16 spans_2008=True spans_2020=True latest={'start': '2023-03-09', 'end': '2023-03-17', 'days': 7, 'peak': 73.1, 'peak_date': '2023-03-13', 'nasdaq_max_dd_pct': -1.8, 'nasdaq_fwd_63d_from_peak_pct': 17.1}
+[04:52:42] PASS  G4_episodes — n=16 spans_2008=True spans_2020=True latest={'start': '2023-03-09', 'end': '2023-03-17', 'days': 7, 'peak': 73.1, 'peak_date': '2023-03-13', 'nasdaq_max_dd_pct': -1.8, 'nasdaq_fwd_63d_from_peak_pct': 17.1}
+PASS  G5_layers_typed — vel21=-1.79 vz=-0.33 flare=False regime=NORMAL/73d div=NONE movers=yes(8)
+[04:52:42] PASS  G5_layers_typed — vel21=-1.79 vz=-0.33 flare=False regime=NORMAL/73d div=NONE movers=yes(8)
+PASS  G6_page_v2_live — markers=all
+[04:54:19] PASS  G6_page_v2_live — markers=all
+PASS  G7_sentinel_jsi_armed — jsi_regime marker in deployed sentinel
+[04:54:19] PASS  G7_sentinel_jsi_armed — jsi_regime marker in deployed sentinel
 
-VERDICT: PASS_ALL
-[04:33:44] VERDICT: PASS_ALL
+VERDICT: GAPS: G3_atlas_sane | now: {"jsi": 35.97, "regime": "NORMAL", "pctile": 27.2, "velocity": {"chg_5d": -0.37, "chg_21d": -1.79, "velocity_z_21d": -0.33, "flare": false, "note": "spine-series changes \u2014 continuous 1990 basis"}
+[04:54:19] VERDICT: GAPS: G3_atlas_sane
 
-→ Report written to aws/ops/reports/latest/3376_settings_v3.md
+→ Report written to aws/ops/reports/latest/3377_jsi_decision_layer.md

@@ -1,0 +1,52 @@
+{
+  "gates": {
+    "G1_engine_v190_settled": {
+      "ok": true,
+      "detail": "markers in deployed zip"
+    },
+    "G2_fresh_v190_v2": {
+      "ok": true,
+      "detail": "gen=2026-07-17T04:52:33 v2=yes"
+    },
+    "G3_atlas_sane": {
+      "ok": false,
+      "detail": "d9_1m_n=724 d9_3m=8.2 d2_3m=3.1 current_decile=2"
+    },
+    "G4_episodes": {
+      "ok": true,
+      "detail": "n=16 spans_2008=True spans_2020=True latest={'start': '2023-03-09', 'end': '2023-03-17', 'days': 7, 'peak': 73.1, 'peak_date': '2023-03-13', 'nasdaq_max_dd_pct': -1.8, 'nasdaq_fwd_63d_from_peak_pct': 17.1}"
+    },
+    "G5_layers_typed": {
+      "ok": true,
+      "detail": "vel21=-1.79 vz=-0.33 flare=False regime=NORMAL/73d div=NONE movers=yes(8)"
+    },
+    "G6_page_v2_live": {
+      "ok": true,
+      "detail": "markers=all"
+    },
+    "G7_sentinel_jsi_armed": {
+      "ok": true,
+      "detail": "jsi_regime marker in deployed sentinel"
+    }
+  },
+  "atlas_current": {
+    "decile": 2,
+    "expanding_pctile": 27.2,
+    "regime_spine": "NORMAL"
+  },
+  "snapshot": {
+    "jsi": 35.97,
+    "regime": "NORMAL",
+    "pctile": 27.2,
+    "velocity": {
+      "chg_5d": -0.37,
+      "chg_21d": -1.79,
+      "velocity_z_21d": -0.33,
+      "flare": false,
+      "note": "spine-series changes \u2014 continuous 1990 basis"
+    },
+    "divergence": "NONE",
+    "current_decile": 2
+  },
+  "verdict": "GAPS: G3_atlas_sane"
+}
