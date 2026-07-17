@@ -1,0 +1,90 @@
+{
+  "gates": {
+    "G1_deployed": {
+      "ok": true,
+      "detail": "settled + marker"
+    },
+    "G2_schedule": {
+      "ok": true,
+      "detail": "created"
+    },
+    "G3_book_graded": {
+      "ok": false,
+      "detail": "book=6 logged_today=0 top=[('WDC', 45, 'XLK'), ('BLK', 40, 'SPY'), ('JEF', 40, 'SPY'), ('SNDK', 35, 'XLK'), ('SNPS', 30, 'XLK')]"
+    },
+    "G4_page_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "book_top": [
+    {
+      "ticker": "WDC",
+      "score": 45,
+      "lenses": [
+        "beneish_fail",
+        "double_top",
+        "wyckoff_distribution"
+      ],
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "mark": 477.22
+    },
+    {
+      "ticker": "BLK",
+      "score": 40,
+      "lenses": [
+        "dark_distribution",
+        "wyckoff_distribution"
+      ],
+      "sector": null,
+      "pair_etf": "SPY",
+      "mark": 1072.2
+    },
+    {
+      "ticker": "JEF",
+      "score": 40,
+      "lenses": [
+        "dark_distribution",
+        "wyckoff_distribution"
+      ],
+      "sector": null,
+      "pair_etf": "SPY",
+      "mark": 54.87
+    },
+    {
+      "ticker": "SNDK",
+      "score": 35,
+      "lenses": [
+        "beneish_fail",
+        "wyckoff_distribution"
+      ],
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "mark": 1354.82
+    },
+    {
+      "ticker": "SNPS",
+      "score": 30,
+      "lenses": [
+        "beneish_fail",
+        "double_top"
+      ],
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "mark": 384.275
+    },
+    {
+      "ticker": "DVN",
+      "score": 25,
+      "lenses": [
+        "double_top",
+        "wyckoff_distribution"
+      ],
+      "sector": "Energy",
+      "pair_etf": "XLE",
+      "mark": 43.83
+    }
+  ],
+  "verdict": "GAPS: G3_book_graded"
+}
