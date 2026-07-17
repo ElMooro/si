@@ -86,6 +86,31 @@ a{color:var(--cyan);text-decoration:none}
 .fc-fill.g{background:linear-gradient(90deg,rgba(38,255,175,.28),var(--green))}
 .fc-fill.r{background:linear-gradient(90deg,rgba(255,85,119,.28),var(--red))}
 .fc-row .fc-sc{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right}
+.sbar{display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px}
+.sbar .sb-lb{width:170px;color:var(--fg-1)}
+.sbar .sb-track{width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.sbar .sb-fill{height:100%;border-radius:3px}
+.sbar .sb-v{width:120px}
+.sbar .sb-m{color:var(--fg-3)}
+.lg-head{font-family:var(--mono);font-size:9.5px;color:var(--fg-3);display:flex;gap:10px;padding:2px 0 6px}
+.lgc-tk{width:56px}.lgc-nm{flex:1}.lgc-sc{width:56px;text-align:right}
+.lgc-f13{width:150px;text-align:right}.lgc-qoq{width:110px;text-align:right}
+.lgc-mt{font-family:var(--mono);font-size:9.5px;color:var(--fg-3)}
+.et-a{font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:70px;text-align:right}
+.et-b{font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:120px;text-align:right}
+@media(max-width:820px){
+.sbar{gap:6px;font-size:9px;flex-wrap:wrap}
+.sbar .sb-lb{width:86px;font-size:8.5px}
+.sbar .sb-track{width:auto;flex:1;min-width:56px}
+.sbar .sb-v{width:auto;min-width:62px;font-size:8.5px}
+.sbar .sb-m{font-size:7.5px}
+.lg-head{gap:6px;font-size:7.5px}
+.lgc-tk{width:40px}.lgc-sc{width:34px}
+.lgc-f13{width:78px}.lgc-qoq{width:72px}
+.lgc-mt{font-size:7.5px}
+.et-a{min-width:44px;font-size:7.5px}
+.et-b{min-width:84px;font-size:7.5px}
+}
 .disclaimer{max-width:900px;margin:24px auto 0;font-size:11px;color:var(--fg-3);line-height:1.6;background:var(--bg-1);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--mono)}
 .footer-note{text-align:center;color:var(--fg-3);font-size:12px;padding:24px;border-top:1px solid var(--border);font-family:var(--mono)}
 </style>
@@ -209,8 +234,8 @@ function render(){
       return `<div class="row" onclick="window.open('/chart-pro.html','_blank')"><span class="tk">${esc(e.ticker)}</span>
       <span class="nm">${esc(e.name||e.category||'')}${tf?' · 5d net flow':''}</span>
       <span class="sc" style="color:${neg?'var(--red)':'var(--green)'}">${disp}</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:70px;text-align:right">${tf?(e.aum_est_b?'$'+e.aum_est_b+'B':''):esc(e.flow_signal||'')}</span>
-      <span style="font-family:var(--mono);font-size:9px;color:var(--fg-3);min-width:120px;text-align:right">${e.dvol_z!=null?'z '+Number(e.dvol_z).toFixed(2)+' · ':''}${e.return_5d_pct!=null?'5d '+fpc(e.return_5d_pct):''}${e.return_20d_pct!=null?' · 20d '+fpc(e.return_20d_pct):''}</span></div>`;
+      <span class="et-a">${tf?(e.aum_est_b?'$'+e.aum_est_b+'B':''):esc(e.flow_signal||'')}</span>
+      <span class="et-b">${e.dvol_z!=null?'z '+Number(e.dvol_z).toFixed(2)+' · ':''}${e.return_5d_pct!=null?'5d '+fpc(e.return_5d_pct):''}${e.return_20d_pct!=null?' · 20d '+fpc(e.return_20d_pct):''}</span></div>`;
     };
     h=`<div class="grid">
       <div class="col"><h2>🟢 ETF Inflows (capital rotating in)</h2>${ein.length?ein.map(e=>erow(e,false)).join(''):'<div class="loading">Awaiting market-day volume.</div>'}</div>
@@ -227,26 +252,26 @@ function render(){
       const rows=Object.entries(ag).map(([s,a])=>({s,...a,net:a.acc-a.dis,avg:a.sum/a.n})).sort((x,y)=>y.net-x.net);
       const mx=Math.max(...rows.map(r=>Math.abs(r.net)),1);
       h+=sect('🧲','Smart-money footprint by sector','13F + inst QoQ fused · net names acc − dis')+
-        rows.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
-          <span style="width:170px;color:var(--fg)">${esc(r.s)}</span>
-          <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(r.net)/mx*100,100)}%;background:${r.net>=0?'var(--green)':'var(--red)'}"></div></div>
-          <span style="width:120px;color:${r.net>=0?'var(--green)':'var(--red)'}">net ${r.net>=0?'+':''}${r.net} names</span>
-          <span style="width:130px;color:var(--fg-3)">acc ${r.acc} · dis ${r.dis} · n ${r.n}</span>
-          <span style="color:var(--fg-3)">avg score ${r.avg>=0?'+':''}${r.avg.toFixed(1)}</span></div>`).join('');
+        rows.map(r=>`<div class="sbar">
+          <span class="sb-lb">${esc(r.s)}</span>
+          <div class="sb-track"><div class="sb-fill" style="width:${Math.min(Math.abs(r.net)/mx*100,100)}%;background:${r.net>=0?'var(--green)':'var(--red)'}"></div></div>
+          <span class="sb-v" style="color:${r.net>=0?'var(--green)':'var(--red)'}">net ${r.net>=0?'+':''}${r.net} names</span>
+          <span class="sb-m">acc ${r.acc} · dis ${r.dis} · n ${r.n}</span>
+          <span class="sb-m">avg ${r.avg>=0?'+':''}${r.avg.toFixed(1)}</span></div>`).join('');
     }
   } else if(tab==='ledger'){
     const bt=Object.values(DATA.by_ticker||{}).sort((a,b)=>(b.flow_score||0)-(a.flow_score||0));
     const q=LQ.toUpperCase();
     const list=q?bt.filter(r=>(r.ticker||'').includes(q)||(r.name||'').toUpperCase().includes(q)):bt;
     h=sumStrip()+`<input id="cf-q" placeholder="Search 300 scored names — ticker or name…" value="${esc(LQ)}" style="width:100%;max-width:420px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--fg-1);padding:8px 12px;font-family:var(--mono);font-size:12px;margin-bottom:12px">
-      <div style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);display:flex;gap:10px;padding:2px 0 6px"><span style="width:56px">ticker</span><span style="flex:1">name · sector</span><span style="width:56px;text-align:right">score</span><span style="width:150px;text-align:right">13F new/add/trim/exit</span><span style="width:110px;text-align:right">QoQ shares · inv</span></div>`+
+      <div class="lg-head"><span class="lgc-tk">ticker</span><span class="lgc-nm">name · sector</span><span class="lgc-sc">score</span><span class="lgc-f13">13F new/add/trim/exit</span><span class="lgc-qoq">QoQ shares · inv</span></div>`+
       list.slice(0,120).map(r=>{const f=(r.detail&&r.detail['13f'])||{};const ic=(r.detail&&r.detail.inst_change)||{};
         return `<div class="row" onclick="window.open('/why.html?ticker=${esc(r.ticker)}','_blank')" style="display:flex;gap:10px;align-items:center">
-        <span class="tk" style="width:56px">${esc(r.ticker)}</span>
-        <span class="nm" style="flex:1">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
-        <span class="sc" style="width:56px;text-align:right;color:${(r.flow_score||0)>=0?'var(--green)':'var(--red)'}">${(r.flow_score||0)>=0?'+':''}${r.flow_score}</span>
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);width:150px;text-align:right">${f.new!=null?`${f.new}/${f.added}/${f.trimmed}/${f.exited}`:'—'}</span>
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--fg-3);width:110px;text-align:right">${ic.shares_chg!=null?fpc(Math.abs(ic.shares_chg)<3?ic.shares_chg*100:ic.shares_chg):'—'} · ${ic.investor_chg!=null?(ic.investor_chg>=0?'+':'')+ic.investor_chg:'—'}</span></div>`;}).join('')+
+        <span class="tk lgc-tk">${esc(r.ticker)}</span>
+        <span class="nm lgc-nm">${esc(r.name||'')}${r.sector?' · '+esc(r.sector):''}</span>
+        <span class="sc lgc-sc" style="color:${(r.flow_score||0)>=0?'var(--green)':'var(--red)'}">${(r.flow_score||0)>=0?'+':''}${r.flow_score}</span>
+        <span class="lgc-f13 lgc-mt">${f.new!=null?`${f.new}/${f.added}/${f.trimmed}/${f.exited}`:'—'}</span>
+        <span class="lgc-qoq lgc-mt">${ic.shares_chg!=null?fpc(Math.abs(ic.shares_chg)<3?ic.shares_chg*100:ic.shares_chg):'—'} · ${ic.investor_chg!=null?(ic.investor_chg>=0?'+':'')+ic.investor_chg:'—'}</span></div>`;}).join('')+
       (list.length>120?`<div class="loading">${list.length-120} more — refine search.</div>`:'')+(list.length?'':'<div class="loading">No matches.</div>');
   } else if(tab==='intel'){
     const cf=DATA.lens_conflicts||[], np=DATA.top_new_positions||[];
@@ -284,11 +309,11 @@ function render(){
     if(sdf.length){
       const mx=Math.max(...sdf.map(x=>Math.abs(x.usd_chg||0)),1);
       h+=sect('🧭','Sector dollar rotation','institutional $ QoQ across flagged names')+
-        sdf.map(x=>`<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-family:var(--mono);font-size:11px">
-          <span style="width:170px;color:var(--fg-1)">${esc(x.sector)}</span>
-          <div style="width:180px;height:9px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.abs(x.usd_chg||0)/mx*100,100)}%;background:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}"></div></div>
-          <span style="width:110px;color:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}">${fmT(x.usd_chg)}</span>
-          <span style="color:var(--fg-3)">n ${x.n} · Δ investors ${(x.investors_chg||0)>=0?'+':''}${x.investors_chg||0}</span></div>`).join('');
+        sdf.map(x=>`<div class="sbar">
+          <span class="sb-lb">${esc(x.sector)}</span>
+          <div class="sb-track"><div class="sb-fill" style="width:${Math.min(Math.abs(x.usd_chg||0)/mx*100,100)}%;background:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}"></div></div>
+          <span class="sb-v" style="color:${(x.usd_chg||0)>=0?'var(--green)':'var(--red)'}">${fmT(x.usd_chg)}</span>
+          <span class="sb-m">n ${x.n} · Δ investors ${(x.investors_chg||0)>=0?'+':''}${x.investors_chg||0}</span></div>`).join('');
     }
   }
   h+=`<div class="disclaimer">${esc((DATA.methodology||''))}<br><br>Sources: 13F ${DATA.sources&&DATA.sources['13f']?'✓':'—'} · inst change ${DATA.sources?DATA.sources.inst_change:0} names · ETFs ${DATA.sources?DATA.sources.etf_flows:0} · $-deep ${DATA.sources&&DATA.sources.inst_deep?DATA.sources.inst_deep+' names ('+esc(DATA.quarter_13f||'')+')':'—'} · Generated ${esc((DATA.generated_at||'').slice(0,16))} UTC.</div>`;
