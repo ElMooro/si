@@ -81,3 +81,11 @@ Next ops 3371.
 
 ### 3370→3371 addendum — reskin-aware gating
 ⚠️⚠️ reskin_site.py transforms **.js/.css/.svg too** (not just HTML) in _site before stamping — deployed asset bytes ≠ repo bytes by design. 3370's G1/G2/G4 "fails" were the GATE's model, not production: live stamps were self-consistent content-addresses of reskinned bytes (proof: reskin-aware replica == live 7/7 exact). DOCTRINE: expected-hash replication must run the same pre-transforms as pages.yml (copy assets → reskin_site.py → stamp_assets.compute_versions). G3 confirmed auth.js "/plan/self" client-delivered. Next ops 3372.
+
+---
+
+## ops 3372 — HOT-MONEY drilldowns fixed + Asia/Europe STANDING FOCUS (2026-07-17)
+
+hot-money.html "Inside the hot countries" was empty: (1) FMP /stable/etf/sector-weightings + /stable/etf/holdings had ZERO rename-resilience — non-list responses silently produced empty sectors/holdings (2026 rename class); (2) drill gated on top-6 INFLOW RANK, so HK/TW/KR/CN/Europe vanished whenever LatAm/MEA led. Engine v1.4.0: _fmp_list endpoint LADDER (etf/x → etf-x spellings, logs winning rung), _pctf %-tolerant weights, asset|symbol + name|securityName field fallbacks, shared _drill_one path, _day_changes with ONE comma-joined /stable/quote batch + per-symbol fallback, and FOCUS set drilled EVERY run (Asia: HK/TW/KR/CN/JP/SG/IN + Europe: DE/UK/FR/CH/NL/IT/ES/SE) marked focus:true, budget guards 800/820s (timeout 870). Feed adds focus_list/focus_note. Page ADDITIVE: 🎯 focus badge in drill header + legend line. Gates: deploy-settle+zip-marker (3342 race doctrine) → Event invoke → fresh v1.4.0 feed → core-4 Asia populated (≥3 sectors, ≥8 holdings) → ≥5 Europe + ≥5 Asia populated → ≥60% momentum coverage → live page 🎯.
+
+Next ops 3373.

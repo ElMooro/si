@@ -33,7 +33,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/hot-money.json"
 POLY = os.environ.get("POLYGON_KEY", "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d")
 FMP = os.environ.get("FMP_KEY", "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 WORLD = "ACWX"          # world ex-US benchmark for relative momentum
 N_DRILL = 6             # how many top inflow countries to drill into sectors/stocks
 
@@ -139,6 +139,101 @@ def _read(key):
         return json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
         return {}
+
+
+def _pctf(v):
+    try:
+        return float(str(v).replace("%", "").strip() or 0)
+    except Exception:
+        return 0.0
+
+
+def _fmp_list(paths, timeout=12):
+    """Endpoint ladder: FMP has renamed /stable feeds before (2026 class) and
+    the old name 400s while callers silently go empty. Try spellings in order,
+    first non-empty list wins."""
+    for i, u in enumerate(paths):
+        j = _get(u, timeout=timeout)
+        if isinstance(j, list) and j:
+            if i:
+                print(f"[fmp-ladder] rung {i} won: {u.split('?')[0].split('/stable/')[-1]}")
+            return j
+    return []
+
+
+def etf_sectors(etf):
+    j = _fmp_list([
+        f"https://financialmodelingprep.com/stable/etf/sector-weightings?symbol={etf}&apikey={FMP}",
+        f"https://financialmodelingprep.com/stable/etf-sector-weightings?symbol={etf}&apikey={FMP}",
+    ])
+    out = [{"sector": x.get("sector"), "weight_pct": round(_pctf(x.get("weightPercentage")), 1)}
+           for x in j if isinstance(x, dict) and x.get("sector")]
+    return sorted(out, key=lambda x: -x["weight_pct"])[:6]
+
+
+def etf_holdings(etf):
+    j = _fmp_list([
+        f"https://financialmodelingprep.com/stable/etf/holdings?symbol={etf}&apikey={FMP}",
+        f"https://financialmodelingprep.com/stable/etf-holdings?symbol={etf}&apikey={FMP}",
+    ])
+    names = []
+    for h in j:
+        if not isinstance(h, dict):
+            continue
+        tk = h.get("asset") or h.get("symbol")
+        if not tk:
+            continue
+        names.append({"ticker": tk,
+                      "name": (h.get("name") or h.get("securityName") or "")[:30],
+                      "weight_pct": round(_pctf(h.get("weightPercentage") or h.get("weight")), 2)})
+    return sorted(names, key=lambda x: -x["weight_pct"])[:15]
+
+
+def _day_changes(us, foreign, t0, hard_stop):
+    """US via one Polygon snapshot; foreign via ONE comma-joined FMP quote
+    (many /stable endpoints accept lists), per-symbol fallback for misses."""
+    chg = {}
+    if us:
+        snap = _get("https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
+                    f"?tickers={','.join(us)}&apiKey={POLY}")
+        if isinstance(snap, dict):
+            for t in (snap.get("tickers") or []):
+                chg[t["ticker"]] = t.get("todaysChangePerc")
+    if foreign:
+        q = _get(f"https://financialmodelingprep.com/stable/quote?symbol={','.join(foreign[:12])}&apikey={FMP}",
+                 timeout=12)
+        if isinstance(q, list):
+            for row in q:
+                if isinstance(row, dict) and row.get("symbol") and row.get("changePercentage") is not None:
+                    chg[row["symbol"]] = row["changePercentage"]
+        for sym in foreign[:12]:
+            if sym in chg:
+                continue
+            if time.time() - t0 > hard_stop:
+                break
+            q1 = _get(f"https://financialmodelingprep.com/stable/quote?symbol={sym}&apikey={FMP}", timeout=10)
+            if isinstance(q1, list) and q1 and q1[0].get("changePercentage") is not None:
+                chg[sym] = q1[0]["changePercentage"]
+    return chg
+
+
+def _drill_one(c, etf, t0, hard_stop):
+    """Sectors + holdings + day momentum for one country ETF (shared by the
+    hot-inflow loop and the standing Asia/Europe focus loop — one code path)."""
+    if not etf:
+        return None
+    sectors = etf_sectors(etf)
+    names = etf_holdings(etf)
+    us = [n["ticker"] for n in names if n["ticker"] and "." not in n["ticker"]
+          and n["ticker"].isalpha() and len(n["ticker"]) <= 5]
+    foreign = [n["ticker"] for n in names if n["ticker"] and "." in n["ticker"]]
+    chg = _day_changes(us, foreign, t0, hard_stop)
+    for n in names:
+        if n["ticker"] in chg and chg[n["ticker"]] is not None:
+            n["day_chg_pct"] = round(chg[n["ticker"]], 2)
+    return {"etf": etf, "hot_money_score": c["hot_money_score"],
+            "rel_mom_20d": c["rel_mom_20d"], "net_flow_5d_usd": c["net_flow_5d_usd"],
+            "top_sectors": sectors, "top_holdings": names}
 
 
 def _z(vals):
@@ -318,42 +413,28 @@ def lambda_handler(event=None, context=None):
     for c in inflow[:N_DRILL]:
         if time.time() - t0 > 700:
             break
-        etf = primary_etf.get(c["country"])
-        if not etf:
+        d1 = _drill_one(c, primary_etf.get(c["country"]), t0, 740)
+        if d1:
+            drill[c["country"]] = d1
+
+    # ── ops 3372 (ADDITIVE): standing FOCUS drill — Asia hubs & Europe are
+    # drilled EVERY run regardless of inflow rank (Khalid: HK/TW/KR/CN +
+    # other Asia hubs + Europe must always be populated).
+    FOCUS = ["Hong Kong", "Taiwan", "South Korea", "China", "Japan", "Singapore", "India",
+             "Germany", "UK", "France", "Switzerland", "Netherlands", "Italy", "Spain", "Sweden"]
+    by_country = {c["country"]: c for c in clist}
+    for name in FOCUS:
+        if name in drill or name not in by_country:
+            if name in drill:
+                drill[name]["focus"] = True
             continue
-        secs = _get(f"https://financialmodelingprep.com/stable/etf/sector-weightings?symbol={etf}&apikey={FMP}")
-        holds = _get(f"https://financialmodelingprep.com/stable/etf/holdings?symbol={etf}&apikey={FMP}")
-        sectors = sorted([{"sector": s.get("sector"), "weight_pct": round(float(s.get("weightPercentage") or 0), 1)}
-                          for s in secs if isinstance(s, dict)],
-                         key=lambda x: -x["weight_pct"])[:6] if isinstance(secs, list) else []
-        names = []
-        if isinstance(holds, list):
-            for h in sorted(holds, key=lambda x: -float(x.get("weightPercentage") or 0))[:15]:
-                names.append({"ticker": h.get("asset"), "name": (h.get("name") or "")[:30],
-                              "weight_pct": round(float(h.get("weightPercentage") or 0), 2)})
-        # momentum for holdings: US via Polygon snapshot, foreign listings via FMP quote
-        us = [n["ticker"] for n in names if n["ticker"] and "." not in n["ticker"]
-              and n["ticker"].isalpha() and len(n["ticker"]) <= 5]
-        foreign = [n["ticker"] for n in names if n["ticker"] and "." in n["ticker"]]
-        chg = {}
-        if us:
-            snap = _get("https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers"
-                        f"?tickers={','.join(us)}&apiKey={POLY}")
-            if isinstance(snap, dict):
-                for t in (snap.get("tickers") or []):
-                    chg[t["ticker"]] = t.get("todaysChangePerc")
-        for sym in foreign[:12]:
-            if time.time() - t0 > 740:
-                break
-            q = _get(f"https://financialmodelingprep.com/stable/quote?symbol={sym}&apikey={FMP}")
-            if isinstance(q, list) and q and q[0].get("changePercentage") is not None:
-                chg[sym] = q[0]["changePercentage"]
-        for n in names:
-            if n["ticker"] in chg and chg[n["ticker"]] is not None:
-                n["day_chg_pct"] = round(chg[n["ticker"]], 2)
-        drill[c["country"]] = {"etf": etf, "hot_money_score": c["hot_money_score"],
-                               "rel_mom_20d": c["rel_mom_20d"], "net_flow_5d_usd": c["net_flow_5d_usd"],
-                               "top_sectors": sectors, "top_holdings": names}
+        if time.time() - t0 > 800:
+            print(f"[focus] budget stop before {name}")
+            break
+        d1 = _drill_one(by_country[name], primary_etf.get(name), t0, 820)
+        if d1:
+            d1["focus"] = True
+            drill[name] = d1
 
     # ── EM-DEBT channel — sovereign + local-currency bond ETF flows (hot money the equity ETFs miss) ──
     em_debt = []
@@ -400,7 +481,11 @@ def lambda_handler(event=None, context=None):
                       "PRICE_LED": "price up without confirmed foreign flow (possibly local money)",
                       "flow_velocity": "ACCELERATING = 5d flow run-rate above the 21d run-rate"},
            "inflow_leaders": inflow[:15], "outflow_leaders": list(reversed(outflow))[:15],
-           "all_countries": clist, "drilldowns": drill, "em_debt_flows": em_debt_block}
+           "all_countries": clist, "drilldowns": drill,
+           "focus_list": ["Hong Kong", "Taiwan", "South Korea", "China", "Japan", "Singapore", "India",
+                          "Germany", "UK", "France", "Switzerland", "Netherlands", "Italy", "Spain", "Sweden"],
+           "focus_note": "focus=true drilldowns are the standing Asia-hub + Europe set, populated every run regardless of inflow rank",
+           "em_debt_flows": em_debt_block}
 
     # closed loop — log top inflow-country ETFs, graded on forward excess-vs-ACWX
     try:

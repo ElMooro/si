@@ -46,7 +46,7 @@ function card(c){const sc=c.hot_money_score;const scc=sc>=0?'var(--grn)':'var(--
 function drill(cn,v){
   const secs=(v.top_sectors||[]).map(s=>`<span class="chip">${esc(s.sector)} ${s.weight_pct}%</span>`).join('');
   const st=(v.top_holdings||[]).slice(0,10).map(h=>`<span class="chip">${esc(h.ticker)}${h.day_chg_pct!=null?' '+(h.day_chg_pct>0?'+':'')+h.day_chg_pct+'%':''}</span>`).join('');
-  return `<div class="dd"><div class="ddh"><span class="ddc">${esc(cn)}</span><span class="ddm">${esc(v.etf)} · score ${v.hot_money_score} · flow ${usd(v.net_flow_5d_usd)}</span></div>`
+  return `<div class="dd"><div class="ddh"><span class="ddc">${esc(cn)}</span><span class="ddm">${esc(v.etf)} · score ${v.hot_money_score} · flow ${usd(v.net_flow_5d_usd)}</span>${v.focus?'<span class="chip" style="border-color:#4fc3f7;color:#4fc3f7;margin-left:8px">\ud83c\udfaf focus</span>':''}</div>`
    +`<div class="row"><span class="k">Sectors the money is in:</span><div class="chips">${secs||'<span class="chip">—</span>'}</div></div>`
    +`<div class="row" style="margin-top:6px"><span class="k">Stocks (ETF top holdings):</span><div class="chips">${st||'<span class="chip">—</span>'}</div></div></div>`;}
 (async function(){
@@ -63,6 +63,7 @@ function drill(cn,v){
   const dd=d.drilldowns||{};
   if(Object.keys(dd).length){
     h+=`<div class="sec">Inside the hot countries <span class="n">— sectors & stocks the money is buying</span></div>`;
+    if(Object.values(dd).some(v=>v&&v.focus)) h+=`<div class="sub" style="margin:2px 0 10px">\ud83c\udfaf = standing focus — Asia hubs &amp; Europe, drilled every run regardless of inflow rank</div>`;
     for(const [cn,v] of Object.entries(dd)) h+=drill(cn,v);
   }
   const em=d.em_debt_flows;
