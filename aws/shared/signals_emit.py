@@ -55,6 +55,27 @@ def _f2d(x):
 _REGIME = {"t": 0.0, "v": None}
 
 
+_SUP = {"t": 0.0, "v": None}
+
+
+def _suppress_set():
+    """ops 3426 — alpha-triage RETIRE list: families proven noise stop
+    emitting fleet-wide. Cached 10 min; empty set on any failure."""
+    if time.time() - _SUP["t"] < 600 and _SUP["v"] is not None:
+        return _SUP["v"]
+    out = set()
+    try:
+        s3c = boto3.client("s3", "us-east-1")
+        j = json.loads(s3c.get_object(Bucket="justhodl-dashboard-live",
+                                      Key="data/signal-suppress.json")["Body"].read())
+        out = set(j.get("suppressed") or [])
+    except Exception:
+        pass
+    _SUP["v"] = out
+    _SUP["t"] = time.time()
+    return out
+
+
 def _regime_snapshot():
     """ops 3412 — regime stamp at emission. Every signal carries the regime it
     fired in (JSI decile, GSSI band, liquidity), so grading becomes natively
@@ -105,6 +126,9 @@ def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
     if not (ticker and re.fullmatch(r"[A-Z0-9.\-\^=]{1,10}", ticker)):
         return False
     if not baseline_price or baseline_price <= 0:
+        return False
+    if signal_type in _suppress_set():
+        print(f"[signals] SUPPRESSED family {signal_type} (alpha-triage RETIRE)")
         return False
     md = dict(metadata or {})
     md.setdefault("regime", _regime_snapshot())
