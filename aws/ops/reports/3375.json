@@ -1,0 +1,71 @@
+{
+  "gates": {
+    "G1_invoke_completed": {
+      "ok": true,
+      "detail": "err=None timed_out=False tail=['[constituents] per-stock exposure: 2258 stocks with ETF holdings', '[constituents] DONE \u2014 284/289 ETFs, 2258 stocks, top mover:   ($+135456M)', 'REPORT RequestId: 4268c721-be4b-4b97-917a-1417dd666509\\tDuration: 15359.65 ms\\tBilled Duration: 15841 ms\\tMemory Size: 1024 MB\\tMax Memory Used: 131 MB\\tInit Durat"
+    },
+    "G2_fresh_writes": {
+      "ok": true,
+      "detail": "objects=284 fresh_this_invoke=284 newest=2026-07-17 04:05:34+00:00"
+    },
+    "G3_object_quality": {
+      "ok": true,
+      "detail": "{\"key\": \"etf-flows/constituents/SPY.json\", \"top3\": [[\"NVDA\", 7.88606626], [\"AAPL\", 7.37011103], [\"MSFT\", 4.50311066]], \"sum_w\": 63.3}"
+    }
+  },
+  "invoke": {
+    "status": 200,
+    "function_error": null,
+    "body_head": "{\"statusCode\": 200, \"headers\": {\"Content-Type\": \"application/json\", \"Access-Control-Allow-Origin\": \"*\"}, \"body\": \"{\\\"ok\\\": true, \\\"elapsed_s\\\": 14.9, \\\"n_etfs_total\\\": 289, \\\"n_etfs_high_z\\\": 20, \\\"n_",
+    "tail": [
+      "[constituents] reading etf-flows/daily.json...",
+      "[constituents] ALL mode: 289 ETFs \u00b7 high-z subset: 20 ETFs (|z|>=1.5\u03c3)",
+      "[constituents] fetching top 50 per ETF, parallel x6...",
+      "[constituents] got constituents for 284/289 ETFs",
+      "[constituents] high-z pressure: 246 unique stocks",
+      "[constituents] per-stock exposure: 2258 stocks with ETF holdings",
+      "[constituents] DONE \u2014 284/289 ETFs, 2258 stocks, top mover:   ($+135456M)",
+      "REPORT RequestId: 4268c721-be4b-4b97-917a-1417dd666509\tDuration: 15359.65 ms\tBilled Duration: 15841 ms\tMemory Size: 1024 MB\tMax Memory Used: 131 MB\tInit Duration: 480.82 ms\t"
+    ]
+  },
+  "s3": {
+    "n_objects": 284,
+    "n_fresh_this_invoke": 284,
+    "newest": "etf-flows/constituents/ARKX.json",
+    "newest_at": "2026-07-17 04:05:34+00:00"
+  },
+  "sample": {
+    "key": "etf-flows/constituents/SPY.json",
+    "top3": [
+      [
+        "NVDA",
+        7.88606626
+      ],
+      [
+        "AAPL",
+        7.37011103
+      ],
+      [
+        "MSFT",
+        4.50311066
+      ]
+    ],
+    "sum_w": 63.3
+  },
+  "universe": {
+    "n": 300,
+    "has_SPY": true,
+    "has_QQQ": true,
+    "head": [
+      "SPY",
+      "VOO",
+      "IVV",
+      "QQQ",
+      "IWM",
+      "VTI",
+      "DIA",
+      "XLK"
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
