@@ -157,7 +157,7 @@
         <div class="eyebrow mb-1">🌍 Global Sovereign Stress Index · 1990 → today</div>
         <p class="text-xs text-[var(--text-muted)] mb-2 max-w-3xl">One continuous index built from every sovereign on this desk — 18 10-year spreads vs their bloc's safe asset (Bund / UST), each z-scored on its full own history and logistic-mapped, plus the classic crisis canaries: <b>Swiss unemployment</b>, the <b>CHF</b> and <b>JPY safe-haven bids</b>, and gold. Identical computation across every era. Default view: <b>YoY % change</b> — the line you asked for.</p>
       </div>
-      <div id="gssi-kpi" class="mono text-sm"></div>
+      <div id="gssi-gauge" class="flex flex-col items-center" style="min-width:250px"></div>
     </div>
     <div id="gssi-ctl" class="flex flex-wrap items-center gap-1 mb-2 mono" style="font-size:.66rem"></div>
     <div style="overflow-x:auto"><svg id="gssi-chart" viewBox="0 0 1400 380" style="width:100%;min-width:900px;height:auto"></svg></div>
@@ -308,11 +308,36 @@ function render(d) {
 }
 
 const GSSI_ST = { mode:'yoy', range:'all' };
+function renderGSSIGauge(kp){
+  /* ═══ the barometer (ops 3388) — semicircular dial, needle at GSSI ═══ */
+  const v = Math.max(0, Math.min(100, kp.gssi||0));
+  const cx=115, cy=105, R=88, r=64;
+  const a = t => Math.PI * (1 - t/100);              // 0→π (left), 100→0 (right)
+  const P = (rad,t)=>[cx+rad*Math.cos(a(t)), cy-rad*Math.sin(a(t))];
+  const arc=(t0,t1,color,op)=>{const [x0,y0]=P(R,t0),[x1,y1]=P(R,t1),[x2,y2]=P(r,t1),[x3,y3]=P(r,t0);
+    return `<path d="M ${x0} ${y0} A ${R} ${R} 0 0 1 ${x1} ${y1} L ${x2} ${y2} A ${r} ${r} 0 0 0 ${x3} ${y3} Z" fill="${color}" opacity="${op}"/>`;};
+  const bands = [[0,30,'var(--green)',.28,'CALM'],[30,45,'var(--green)',.15,'NORMAL'],[45,60,'var(--amber)',.3,'ELEVATED'],[60,75,'var(--red)',.28,'STRESS'],[75,100,'var(--red)',.5,'CRISIS']];
+  let g2 = bands.map(b=>arc(b[0],b[1],b[2],b[3])).join('');
+  bands.forEach(b=>{const [lx,ly]=P(R+11,(b[0]+b[1])/2);
+    g2+=`<text x="${lx}" y="${ly}" fill="var(--text-muted)" font-size="7.5" text-anchor="middle" font-family="JetBrains Mono">${b[4]}</text>`;});
+  const [nx,ny]=P(r-7,v);
+  const reg = v>=75?'CRISIS':v>=60?'STRESS':v>=45?'ELEVATED':v>=30?'NORMAL':'CALM';
+  const col = stressColor(v);
+  g2+=`<line class="gssi-needle" x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${col}" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="5.5" fill="${col}"/>
+      <text x="${cx}" y="${cy-24}" fill="${col}" font-size="24" font-weight="800" text-anchor="middle" font-family="JetBrains Mono">${fmt(v,1)}</text>
+      <text x="${cx}" y="${cy+18}" fill="${col}" font-size="11" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">${reg}</text>`;
+  document.getElementById('gssi-gauge').innerHTML =
+    `<svg viewBox="0 0 230 128" style="width:230px;height:128px">${g2}</svg>
+     <div class="mono text-[10px] text-[var(--text-muted)] mt-1" style="text-align:center">
+       ${fmt(kp.pctile,0)}th pct since 1990 · YoY <span style="color:${(kp.yoy_pct||0)>=0?'var(--red)':'var(--green)'}">${kp.yoy_pct>0?'+':''}${fmt(kp.yoy_pct,1)}%</span><br>
+       breadth <span style="color:${(kp.breadth_pct||0)>=25?'var(--red)':'var(--text-secondary)'}">${fmt(kp.breadth_pct,0)}%</span> hot · co-movement <span style="color:${(kp.comove||0)>=0.5?'var(--red)':'var(--text-secondary)'}">${fmt(kp.comove,2)}</span>
+     </div>`;
+}
 function renderGSSI(d){
   const g = d._gssi; if (!g || !g.series_weekly) return;
   const kp = g.latest||{};
-  document.getElementById('gssi-kpi').innerHTML =
-    `GSSI <b style="color:${stressColor(kp.gssi)}">${fmt(kp.gssi,1)}</b> · ${fmt(kp.pctile,0)}th pct since 1990 · YoY <b style="color:${(kp.yoy_pct||0)>=0?'var(--red)':'var(--green)'}">${kp.yoy_pct>0?'+':''}${fmt(kp.yoy_pct,1)}%</b>`;
+  renderGSSIGauge(kp);
   let ctl = document.getElementById('gssi-ctl');
   if (!ctl.dataset.wired){
     ctl.innerHTML = ['all','10y','5y'].map(r=>`<button data-r="${r}" class="px-2 py-1 rounded border" style="border-color:var(--border-soft);color:var(--text-secondary);background:transparent;cursor:pointer">${r.toUpperCase()}</button>`).join('')

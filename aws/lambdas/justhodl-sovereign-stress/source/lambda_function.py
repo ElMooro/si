@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -463,37 +463,138 @@ def build_gssi(errors):
         if c["kind"] == "un12":
             c["x"] = [(v * c.get("pol", 1.0)) if v is not None else None
                       for v in c["x"]]
-        present = [v for v in c["x"] if v is not None]
-        if len(present) < 260:
-            c["dead"] = True
-            continue
-        mu = sum(present) / len(present)
-        var = sum((v - mu) ** 2 for v in present) / len(present)
-        c["mu"], c["sd"] = mu, (var ** 0.5) or 1.0
+        # ops 3388 math v2: expanding (as-known-then) standardization of BOTH
+        # the level and the 63-step velocity. No future information; the
+        # early 90s are scored with early-90s baselines.
+        x = c["x"]
+        vel = [None] * n
+        for i in range(63, n):
+            if x[i] is not None and x[i - 63] is not None:
+                vel[i] = x[i] - x[i - 63]
+        c["vel"] = vel
 
-    series = []
-    for i in range(n):
-        a_num = a_w = b_num = b_w = 0.0
-        for c in comps.values():
-            if c.get("dead") or c["x"][i] is None:
+        def _expz(arr, min_n=756):
+            zs = [None] * n
+            cnt = 0
+            mean = 0.0
+            m2 = 0.0
+            for i in range(n):
+                v = arr[i]
+                if v is None:
+                    continue
+                cnt += 1
+                d = v - mean
+                mean += d / cnt
+                m2 += d * (v - mean)
+                if cnt >= min_n:
+                    sd = (m2 / cnt) ** 0.5 or 1.0
+                    zs[i] = (v - mean) / sd
+            return zs
+
+        c["z_lvl"] = _expz(x)
+        c["z_vel"] = _expz(vel)
+        # expanding sigma of velocity (for the co-movement layer's
+        # standardized changes)
+        c["vel_std"] = [None] * n
+        cnt = 0
+        mean = 0.0
+        m2 = 0.0
+        for i in range(n):
+            v = vel[i]
+            if v is None:
                 continue
-            st = _gz_stress((c["x"][i] - c["mu"]) / c["sd"])
-            if c["block"] == "A":
-                a_num += st * c["wt"]
-                a_w += c["wt"]
-            else:
-                b_num += st * c["wt"]
-                b_w += c["wt"]
-        if a_w == 0 and b_w == 0:
-            series.append(None)
+            cnt += 1
+            d = v - mean
+            mean += d / cnt
+            m2 += d * (v - mean)
+            if cnt >= 252:
+                sd = (m2 / cnt) ** 0.5 or 1.0
+                c["vel_std"][i] = v / sd
+        if sum(1 for v in c["z_lvl"] if v is not None) < 260:
+            c["dead"] = True
+
+    # ── cross-sectional CO-MOVEMENT (the systemic ingredient) ──
+    # avg pairwise correlation of standardized spread velocities via the
+    # dispersion identity: Var(mean of N unit-variance series) =
+    # (1 + (N-1)·rho) / N  ->  rho = (N·Var(m) - 1)/(N - 1),
+    # with Var(m) rolled over 126 steps.
+    spreads = [c for c in comps.values()
+               if c.get("block") == "A" and not c.get("dead")]
+    mseries = [None] * n
+    for i in range(n):
+        vsx = [c["vel_std"][i] for c in spreads if c["vel_std"][i] is not None]
+        if len(vsx) >= 6:
+            mseries[i] = (sum(vsx) / len(vsx), len(vsx))
+    comove = [None] * n
+    from collections import deque
+    win = deque()
+    sm = sm2 = 0.0
+    for i in range(n):
+        if mseries[i] is None:
             continue
-        a = a_num / a_w if a_w else None
-        b = b_num / b_w if b_w else None
-        if a is not None and b is not None:
-            series.append(0.70 * a + 0.30 * b)
+        mv, ncs = mseries[i]
+        win.append(mv)
+        sm += mv
+        sm2 += mv * mv
+        if len(win) > 126:
+            ov = win.popleft()
+            sm -= ov
+            sm2 -= ov * ov
+        if len(win) >= 60:
+            k = len(win)
+            var_m = max(0.0, sm2 / k - (sm / k) ** 2)
+            rho = (ncs * var_m - 1.0) / (ncs - 1.0)
+            comove[i] = max(0.0, min(1.0, rho))
+
+    series, breadth_s = [], []
+    for i in range(n):
+        # country stress: 45% chronic level + 55% widening velocity,
+        # each expanding-z -> logistic
+        svals = []
+        for c in spreads:
+            zl, zv = c["z_lvl"][i], c["z_vel"][i]
+            if zl is None and zv is None:
+                continue
+            if zl is not None and zv is not None:
+                st = 0.45 * _gz_stress(zl) + 0.55 * _gz_stress(zv)
+            else:
+                st = _gz_stress(zl if zl is not None else zv)
+            svals.append(st)
+        b_num = b_w = 0.0
+        for c in comps.values():
+            if c.get("block") != "B" or c.get("dead"):
+                continue
+            z = c["z_lvl"][i]
+            if z is None:
+                continue
+            b_num += _gz_stress(z) * c["wt"]
+            b_w += c["wt"]
+        if not svals and b_w == 0:
+            series.append(None)
+            breadth_s.append(None)
+            continue
+        spread_block = None
+        if svals:
+            # stress-weighted intensity: hot sovereigns count up to 2x —
+            # the tail is the signal, the calm core cannot drown it
+            wts = [1.0 + sv / 100.0 for sv in svals]
+            intensity = sum(sv * w for sv, w in zip(svals, wts)) / sum(wts)
+            # co-movement amplifier: idiosyncratic blowups discounted
+            # (x0.75), fully systemic episodes amplified (x1.25)
+            rho = comove[i]
+            amp = 0.75 + 0.5 * rho if rho is not None else 1.0
+            spread_block = max(0.0, min(100.0, intensity * amp))
+        canary_block = (b_num / b_w) if b_w else None
+        if spread_block is not None and canary_block is not None:
+            series.append(0.72 * spread_block + 0.28 * canary_block)
         else:
-            series.append(a if a is not None else b)
-    vals = [(grid[i], round(series[i], 2)) for i in range(n)
+            series.append(spread_block if spread_block is not None
+                          else canary_block)
+        breadth_s.append(
+            round(100.0 * sum(1 for sv in svals if sv >= 70)
+                  / len(svals), 1) if svals else None)
+
+        vals = [(grid[i], round(series[i], 2)) for i in range(n)
             if series[i] is not None]
     dts = [d for d, _ in vals]
     vs = [v for _, v in vals]
@@ -559,8 +660,13 @@ def build_gssi(errors):
                           "detected": bool(w)})
     det = sum(1 for r in scorecard if r["detected"])
 
+    keep = [i for i in range(n) if series[i] is not None]
+    br = [breadth_s[i] for i in keep]
+    cmv = [comove[i] for i in keep]
     weekly = [{"d": dts[i], "v": vs[i],
-               "yoy": (round(yoy[i], 1) if yoy[i] is not None else None)}
+               "yoy": (round(yoy[i], 1) if yoy[i] is not None else None),
+               "b": (round(br[i], 0) if br[i] is not None else None),
+               "c": (round(cmv[i], 2) if cmv[i] is not None else None)}
               for i in range(0, m, 5)]
     if weekly and weekly[-1]["d"] != dts[-1]:
         weekly.append({"d": dts[-1], "v": vs[-1],
@@ -584,14 +690,21 @@ def build_gssi(errors):
     out = {"ok": True, "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
-           "method": ("spread block 70% (10Y vs Bund/UST, full-history z, "
-                      "logistic 0-100) + canary block 30% (CH unemployment "
-                      "12m-change, CHF & JPY safe-haven 63d inverted, gold "
-                      "63d); GSSI = weighted mean of present components — "
-                      "identical computation across every era"),
+           "method": ("v2 math (ops 3388): per country s_c = 0.45*L(z_lvl) "
+                      "+ 0.55*L(z_vel63), both EXPANDING as-known-then z, "
+                      "L = logistic 0-100. Spread block = stress-weighted "
+                      "intensity (weights 1+s/100 — the tail is the signal) "
+                      "x co-movement amplifier (0.75+0.5*rho, rho = rolling "
+                      "avg pairwise corr of standardized velocities via the "
+                      "dispersion identity). GSSI = 0.72*spread + "
+                      "0.28*canary. No future information anywhere."),
+           "math_baseline": {"v1_detected": "8/14 (ops 3386: full-sample "
+                             "level-z, plain mean)"},
            "series_weekly": weekly,
            "latest": {"date": dts[-1], "gssi": vs[-1],
                       "pctile": round(pct[-1], 1),
+                      "breadth_pct": (round(br[-1], 0) if br and br[-1] is not None else None),
+                      "comove": (round(cmv[-1], 2) if cmv and cmv[-1] is not None else None),
                       "yoy_pct": (round(yoy[-1], 1) if yoy[-1] is not None else None),
                       "d6m": (round(d6[-1], 1) if d6[-1] is not None else None)},
            "components": sorted(comp_meta,
