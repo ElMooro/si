@@ -1,15 +1,13 @@
-executing-against: b6afb63b520908f243d1d9968a324cadc7517465
-ops 3384 — Sovereign Stress v2.0.0
-PASS  G1_engine_v2_settled — markers in zip
-[14:49:34] PASS  G1_engine_v2_settled — markers in zip
-PASS  G2_new_sovereigns — new3={'chile': 46.0, 'peru': 66.3, 'netherlands': 23.7} scored=3 wgb_n=7 fired=0
-[14:50:15] PASS  G2_new_sovereigns — new3={'chile': 46.0, 'peru': 66.3, 'netherlands': 23.7} scored=3 wgb_n=7 fired=0
-PASS  G3_ledger_live — rows=1 last=2026-07-17 chile_in_last=True
-[14:50:15] PASS  G3_ledger_live — rows=1 last=2026-07-17 chile_in_last=True
-PASS  G4_page_live — missing=[]
-[14:52:04] PASS  G4_page_live — missing=[]
+executing-against: a59e02f65fa83dc4c3ff1f1628aeafcf751cc303
+ops 3385 — Sovereign YoY chart
+PASS  G1_engine_211_settled — markers in zip
+[15:02:14] PASS  G1_engine_211_settled — markers in zip
+PASS  G2_yoy_in_feed — ecb_numeric=11 yield_proxy=3 accruing=4 total=18
+[15:02:55] PASS  G2_yoy_in_feed — ecb_numeric=11 yield_proxy=3 accruing=4 total=18
+PASS  G3_page_live — missing=[]
+[15:04:20] PASS  G3_page_live — missing=[]
 
-VERDICT: PASS_ALL | {"europe": 30.7, "regime": "NORMAL", "wgb": {"south_korea": 31.2, "singapore": 26.9, "hong_kong": 31.6, "taiwan": 31.1, "chile": 46.0, "peru": 66.3, "netherlands": 23.7}, "errors": 0}
-[14:52:04] VERDICT: PASS_ALL
+VERDICT: PASS_ALL | {"top_moves": [{"china": 1009.98}, {"united_kingdom": 530.38}, {"france": 154.12}, {"euro_area": 78.62}], "yield_proxy": [{"south_korea": 134.0}, {"chile": -21.0}, {"netherlands": 32.0}]}
+[15:04:20] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3384_sovereign_v2.md
+→ Report written to aws/ops/reports/latest/3385_sovereign_yoy.md
