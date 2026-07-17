@@ -91,6 +91,19 @@ def snapshot():
     s["semis_off_low"] = sm.get("off_180d_low_pct")
     s["smallcap_vs_high"] = scl.get("vs_365d_high_pct")
 
+    # ops 3394: Sovereign desk + GSSI watch
+    sov = gj("data/sovereign-stress.json")
+    s["sov_europe_regime"] = (sov.get("europe_stress") or {}).get("regime")
+    wgx = sov.get("wgb_sovereigns") or {}
+    s["sov_hot"] = sorted(k for k, v in wgx.items()
+                          if isinstance(v, dict) and (v.get("stress_0_100") or 0) >= 65)
+    gs = gj("data/sovereign-gssi.json")
+    gv = (gs.get("latest") or {}).get("gssi")
+    s["gssi_band"] = (None if gv is None else
+                      "CRISIS" if gv >= 75 else "STRESS" if gv >= 60 else
+                      "ELEVATED" if gv >= 45 else "NORMAL" if gv >= 30 else "CALM")
+    s["gssi_comove_hot"] = bool(((gs.get("latest") or {}).get("comove") or 0) >= 0.5)
+
     # ops 3377: JustHodl Stress Index — regime + flare watch
     jsi = gj("data/jsi.json")
     s["jsi_regime"] = jsi.get("regime")
@@ -198,6 +211,21 @@ def snapshot():
 
 def diff(old, new):
     msgs = []
+    # ops 3394: sovereign flips
+    if (new.get("sov_europe_regime") and old.get("sov_europe_regime")
+            and new["sov_europe_regime"] != old["sov_europe_regime"]):
+        msgs.append(f"🌍 Europe sovereign regime: {old['sov_europe_regime']} → "
+                     f"{new['sov_europe_regime']} — justhodl.ai/sovereign-stress.html")
+    new_hot = [c for c in (new.get("sov_hot") or []) if c not in (old.get("sov_hot") or [])]
+    if new_hot:
+        msgs.append("🔥 Sovereign crossing hot (≥65): " + ", ".join(new_hot)
+                     + " — justhodl.ai/sovereign-stress.html")
+    if (new.get("gssi_band") and old.get("gssi_band")
+            and new["gssi_band"] != old["gssi_band"]):
+        msgs.append(f"🧭 GSSI band: {old['gssi_band']} → {new['gssi_band']}")
+    if new.get("gssi_comove_hot") and not old.get("gssi_comove_hot"):
+        msgs.append("⚠️ GSSI co-movement ≥0.5 — sovereigns moving TOGETHER (systemic, not idiosyncratic)")
+
     # ops 3377: JSI regime flips + flare onset
     if (new.get("jsi_regime") and old.get("jsi_regime")
             and new["jsi_regime"] != old["jsi_regime"]):

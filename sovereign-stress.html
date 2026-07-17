@@ -162,6 +162,8 @@
     <div id="gssi-ctl" class="flex flex-wrap items-center gap-1 mb-2 mono" style="font-size:.66rem"></div>
     <div style="overflow-x:auto"><svg id="gssi-chart" viewBox="0 0 1400 380" style="width:100%;min-width:900px;height:auto"></svg></div>
     <div id="gssi-tip" class="mono text-xs text-[var(--text-secondary)] mt-1" style="min-height:16px"></div>
+    <div class="text-[10px] text-[var(--text-muted)] mono mt-2">systemic internals · <span style="color:var(--red)">breadth</span> (% sovereigns hot) · <span style="color:var(--amber)">co-movement ρ̄</span> — the difference between one country blowing up and the system moving together</div>
+    <div style="overflow-x:auto"><svg id="gssi-strip" viewBox="0 0 1400 56" style="width:100%;min-width:900px;height:auto"></svg></div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
       <div>
         <div class="eyebrow mb-1">🚨 Crisis-detection scorecard · did it see them coming?</div>
@@ -398,6 +400,7 @@ function renderGSSI(d){
     tip.textContent=`${xs[i]} · ${LV?'GSSI '+ys[i].toFixed(1):'YoY '+(ys[i]>0?'+':'')+ys[i].toFixed(1)+'%'}`;};
   svg.onmouseleave=()=>{tip.textContent='';};
 
+  try { renderGSSIStrip(g); } catch(e) { console.error('[gssi strip]', e); }
   const sc=g.crisis_scorecard||[];
   document.getElementById('gssi-scorecard').innerHTML =
     `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Crisis</th><th class="px-2 py-1 text-right">started</th><th class="px-2 py-1 text-right">first warning</th><th class="px-2 py-1 text-right">lead</th><th class="px-2 py-1 text-right">GSSI@start→peak</th></tr></thead><tbody>`+
@@ -410,6 +413,26 @@ function renderGSSI(d){
     cm.filter(c=>c.block==='B').map(c=>`<div class="row" style="grid-template-columns:1.6fr 2fr auto"><div class="text-sm">${cap(c.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${c.stress||0}%;background:${stressColor(c.stress||0)}"></div></div><div class="mono text-sm" style="color:${stressColor(c.stress||0)};min-width:60px;text-align:right">${fmt(c.stress,0)} · z${c.z>=0?'+':''}${fmt(c.z,1)}</div></div>`).join('')+
     `<div class="eyebrow mt-3 mb-1" style="color:var(--blue)">Hottest sovereign spreads · of 18</div>`+
     cm.filter(c=>c.block==='A').slice(0,6).map(c=>`<div class="row" style="grid-template-columns:1.6fr 2fr auto"><div class="text-sm">${FLAG[c.name]||''} ${cap(c.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${c.stress||0}%;background:${stressColor(c.stress||0)}"></div></div><div class="mono text-sm" style="color:${stressColor(c.stress||0)};min-width:60px;text-align:right">${fmt(c.stress,0)} · z${c.z>=0?'+':''}${fmt(c.z,1)}</div></div>`).join('');
+}
+
+function renderGSSIStrip(g){
+  const rows=(g.series_weekly||[]).filter(r=>r.c!=null||r.b!=null);
+  const svg=document.getElementById('gssi-strip');
+  if(rows.length<20){ svg.innerHTML=''; return; }
+  const W=1400,H=56,padL=52,padR=20,n=rows.length;
+  const px=i=>padL+(i/(n-1))*(W-padL-padR);
+  let comA=`M ${px(0)} ${H-4-((rows[0].c||0)*44)}`;
+  for(let i=1;i<n;i++) comA+=` L ${px(i).toFixed(1)} ${(H-4-((rows[i].c||0)*44)).toFixed(1)}`;
+  const comArea=comA+` L ${px(n-1)} ${H-4} L ${px(0)} ${H-4} Z`;
+  let bars='';
+  const bw=Math.max(0.8,(W-padL-padR)/n*0.7);
+  for(let i=0;i<n;i++){ const b=rows[i].b||0; if(b<=0) continue;
+    const h=(b/100)*44; bars+=`<rect x="${(px(i)-bw/2).toFixed(1)}" y="${(H-4-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="var(--red)" opacity="0.55"/>`; }
+  svg.innerHTML=`<line x1="${padL}" y1="${H-4}" x2="${W-padR}" y2="${H-4}" stroke="var(--border-soft)"/>
+    <text x="${padL-6}" y="12" fill="var(--text-muted)" font-size="9" text-anchor="end" font-family="JetBrains Mono">1.0</text>
+    <path d="${comArea}" fill="var(--amber)" opacity="0.18"/>
+    <path d="${comA}" fill="none" stroke="var(--amber)" stroke-width="1.1" opacity="0.9"/>
+    ${bars}`;
 }
 
 function renderYoY(d){
