@@ -1,15 +1,15 @@
-executing-against: 85cdc28490b24cdd3ccadb8baa8ff63d84175576
-ops 3387 — SG/HK retry + Turkey/Argentina
-PASS  G1_engine_230_settled — markers in zip
-[15:27:14] PASS  G1_engine_230_settled — markers in zip
-FAIL  G2_sg_hk — SG_bp=None HK_bp=None errs=[yoy/singapore: MAS SGS empty | yoy/hong_kong: HKMA empty]
-[15:28:55] FAIL  G2_sg_hk — SG_bp=None HK_bp=None errs=[yoy/singapore: MAS SGS empty | yoy/hong_kong: HKMA empty]
-PASS  G3_tr_ar_on_desk — TR=68.6 (CDS 228.61bp) AR=10.0 (CDS Nonebp)
-[15:28:55] PASS  G3_tr_ar_on_desk — TR=68.6 (CDS 228.61bp) AR=10.0 (CDS Nonebp)
-PASS  G4_gssi_regen — gen_fresh=True turkey_in=True detected=8/14 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0
-[15:28:55] PASS  G4_gssi_regen — gen_fresh=True turkey_in=True detected=8/14 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0
+executing-against: de4d68381ea31ab3a21459ed6dba3e9d76bd7308
+ops 3388 — GSSI math v2 + barometer
+PASS  G1_engine_240_settled — markers in zip
+[15:34:57] PASS  G1_engine_240_settled — markers in zip
+FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
+[15:44:10] FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
+FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
+[15:44:10] FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
+PASS  G4_gauge_live — missing=[]
+[15:44:10] PASS  G4_gauge_live — missing=[]
 
-VERDICT: GAPS: G2_sg_hk
-[15:28:55] VERDICT: GAPS: G2_sg_hk
+VERDICT: GAPS: G2_v2_feed,G3_detection
+[15:44:10] VERDICT: GAPS: G2_v2_feed,G3_detection
 
-→ Report written to aws/ops/reports/latest/3387_gssi_round2.md
+→ Report written to aws/ops/reports/latest/3388_gssi_math_v2.md
