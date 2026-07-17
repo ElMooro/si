@@ -1,11 +1,8 @@
-executing-against: 06e0aff3f7db4333499ec675bec795dc47c45076
-ops 3421 — GEX walls join
-PASS  G1_settled — extractor marker
-[23:17:02] PASS  G1_settled — extractor marker
-PASS  G2_walls_on_setups — walls=5/25 sample=[{"NVDA": {"call_wall": 215.0, "put_wall": 200.0, "max_pain": 200.0}}, {"MSFT": {"call_wall": 500.0, "put_wall": 350.0, "max_pain": 385.0}}, {"AMZN": {"call_wall": 270.0, "put_wall": 225.0, "max_pain"
-[23:17:23] PASS  G2_walls_on_setups — walls=5/25 sample=[{"NVDA": {"call_wall": 215.0, "put_wall": 200.0, "max_pain": 200.0}}, {"MSFT": {"call_wall": 500.0, "put_wall": 350.0, "max_pain": 385.0}}, {"AMZN": {"call_wall": 270.0, "put_wall": 225.0, "max_pain"
+executing-against: 82cd7f449e15efec4be1fce7d6a2943ec891eeaa
+ops 3422 — quality census
+stale engine feeds: 55 of 60 stale · worst: _freshness-status.json(56d), eventbridge-audit.json(54d), system-audit.json(52d), congress-party-map.json(47d), _probe_shares.json(43d), history-index.json(39d), spx-history-deep.json(37d), regime-decisive-call.json(37d), market-internals-history.json(37d), quiver-lobbying-cache.json(36d), backtest-summary.json(36d), finviz-signals-state.json(31d), askdesk-config.json(30d), engine-manifest.json(27d)
+[23:22:46] stale engine feeds: 55 of 60 stale · worst: _freshness-status.json(56d), eventbridge-audit.json(54d), system-audit.json(52d), congress-party-map.json(47d), _probe_shares.json(43d), history-index.json(39d), spx-history-deep.json(37d), regime-decisive-call.json(37d), market-internals-history.json(37d), quiver-lobbying-cache.json(36d), backtest-summary.json(36d), finviz-signals-state.json(31d), askdesk-config.json(30d), engine-manifest.json(27d)
+negative-alpha families (n>=20): 156 · worst: nobrainer_XOP(IR -2.35,n20), eng:accumulation-radar(IR -1.31,n94), eng:radar-backtest(IR -1.19,n70), eng:smart-money-13f(IR -1.18,n34), eng:ai-infra-stack(IR -1.18,n125), ignition(IR -1.00,n390), eng:boom-radar(IR -0.94,n24), nobrainer_AIQ(IR -0.92,n29), eng:attention-signals(IR -0.90,n125), eng:finnhub-signals(IR -0.90,n166), eng:lead-lag-graph(IR -0.88,n125), eng:momentum-names(IR -0.85,n75)
+[23:22:46] negative-alpha families (n>=20): 156 · worst: nobrainer_XOP(IR -2.35,n20), eng:accumulation-radar(IR -1.31,n94), eng:radar-backtest(IR -1.19,n70), eng:smart-money-13f(IR -1.18,n34), eng:ai-infra-stack(IR -1.18,n125), ignition(IR -1.00,n390), eng:boom-radar(IR -0.94,n24), nobrainer_AIQ(IR -0.92,n29), eng:attention-signals(IR -0.90,n125), eng:finnhub-signals(IR -0.90,n166), eng:lead-lag-graph(IR -0.88,n125), eng:momentum-names(IR -0.85,n75)
 
-VERDICT: PASS_ALL
-[23:17:23] VERDICT: PASS_ALL
-
-→ Report written to aws/ops/reports/latest/3421_walls.md
+→ Report written to aws/ops/reports/latest/3422_quality_census.md
