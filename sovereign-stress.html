@@ -151,6 +151,14 @@
 </section>
 
 <section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="card p-5">
+    <div class="eyebrow mb-1">📊 Year over Year · stress vs 12 months ago</div>
+    <p class="text-xs text-[var(--text-muted)] mb-3">Percentage change in each sovereign/systemic stress gauge against its own level 12 months ago — red = more stressed than a year ago. ECB series carry true 12-month history today; bond-desk sovereigns show a 10Y-yield proxy (Δbp) where an OECD series exists, and unlock true stress YoY automatically as the daily ledger matures.</p>
+    <div id="yoy-chart"></div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="card p-5">
       <div class="eyebrow mb-1">📈 Market Stress &amp; Sovereign Spreads</div>
@@ -274,6 +282,46 @@ function render(d) {
   try { renderSovV2(d); } catch(e) { console.error('[sov v2]', e); }
 }
 
+function renderYoY(d){
+  const rows = d.yoy_chart || [];
+  const el = document.getElementById('yoy-chart');
+  if (!rows.length) { el.innerHTML = '<div class="text-xs text-[var(--text-muted)]">YoY data warming up.</div>'; return; }
+  const pctRows = rows.filter(r=>r.yoy_pct!=null);
+  const maxAbs = Math.max(...pctRows.map(r=>Math.abs(r.yoy_pct)), 1);
+  const KIND = {sovciss:'SovCISS', ciss:'CISS'};
+  const bar = r=>{
+    const v=r.yoy_pct, up=v>=0, w=Math.min(50, Math.abs(v)/maxAbs*50);
+    const col=up?'var(--red)':'var(--green)';
+    return `<div class="flex items-center gap-2 py-1">
+      <span class="mono text-xs" style="width:150px;color:var(--text-secondary)">${FLAG[r.name]||''} ${cap(r.name)} <span style="color:var(--text-muted)">· ${KIND[r.kind]||r.kind}</span></span>
+      <div style="flex:1;position:relative;height:14px">
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border-soft)"></div>
+        <div style="position:absolute;top:2px;bottom:2px;${up?`left:50%`:`right:50%`};width:${w}%;background:${col};opacity:.85;border-radius:2px"></div>
+      </div>
+      <span class="mono text-xs" style="width:120px;text-align:right;color:${col}">${v>0?'+':''}${fmt(v,1)}% <span style="color:var(--text-muted)">${r.level_12m!=null?fmt(r.level_12m,3)+'→'+fmt(r.level,3):''}</span></span>
+    </div>`;
+  };
+  const proxy = rows.filter(r=>r.kind==='wgb_yield');
+  const maxBp = Math.max(...proxy.map(r=>Math.abs(r.yoy_bp||0)), 1);
+  const pbar = r=>{
+    if (r.yoy_bp==null) return `<div class="flex items-center gap-2 py-1"><span class="mono text-xs" style="width:150px;color:var(--text-secondary)">${FLAG[r.name]||''} ${cap(r.name)}</span><span class="text-[10px] text-[var(--text-muted)]">${r.note||'accruing'}</span></div>`;
+    const v=r.yoy_bp, up=v>=0, w=Math.min(50, Math.abs(v)/maxBp*50);
+    const col=up?'var(--red)':'var(--green)';
+    return `<div class="flex items-center gap-2 py-1">
+      <span class="mono text-xs" style="width:150px;color:var(--text-secondary)">${FLAG[r.name]||''} ${cap(r.name)}</span>
+      <div style="flex:1;position:relative;height:14px">
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border-soft)"></div>
+        <div style="position:absolute;top:2px;bottom:2px;${up?`left:50%`:`right:50%`};width:${w}%;background:${col};opacity:.85;border-radius:2px"></div>
+      </div>
+      <span class="mono text-xs" style="width:120px;text-align:right;color:${col}">${v>0?'+':''}${fmt(v,0)}bp 10Y</span>
+    </div>`;
+  };
+  el.innerHTML =
+    `<div class="eyebrow mb-1" style="color:var(--purple)">ECB stress gauges · true 12-month history</div>` +
+    pctRows.map(bar).join('') +
+    (proxy.length ? `<div class="eyebrow mt-3 mb-1" style="color:var(--blue)">Bond-desk sovereigns · 10Y-yield Δ12m proxy</div>` + proxy.map(pbar).join('') : '');
+}
+
 /* ═══ SOV_V2 (ops 3384) — global desk · league · markets · cross-refs ═══ */
 const FLAG = {netherlands:'🇳🇱',chile:'🇨🇱',peru:'🇵🇪',south_korea:'🇰🇷',singapore:'🇸🇬',hong_kong:'🇭🇰',taiwan:'🇹🇼',germany:'🇩🇪',france:'🇫🇷',italy:'🇮🇹',spain:'🇪🇸',greece:'🇬🇷',portugal:'🇵🇹',finland:'🇫🇮'};
 function sovSpark(rows, name){
@@ -359,6 +407,7 @@ function renderSovV2(d){
   document.getElementById('cross-list').innerHTML = Object.entries(cx).map(([k,v])=>
     `<div class="row" style="grid-template-columns:2fr 1fr"><div class="text-sm">${cap(k)}</div><div class="mono text-sm text-right" style="color:${typeof v==='number'?stressColor(v):'var(--text-secondary)'}">${v!=null?(typeof v==='number'?fmt(v,1):v):'—'}</div></div>`).join('')
     || '<div class="text-xs text-[var(--text-muted)]">no cross-references</div>';
+  try { renderYoY(d); } catch(e) { console.error('[sov yoy]', e); }
   document.getElementById('src-meta').textContent =
     `v${d.version||d.schema_version} · ${(d.sources||[]).length} live sources · ${(d.errors||[]).length} feed errors · run ${d.elapsed_s??'—'}s`;
 }

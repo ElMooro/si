@@ -50,7 +50,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -353,6 +353,8 @@ def lambda_handler(event, context):
             "change_3m": level_change(obs, 91),
             "percentile_3y": p,
             "status": status_from_pct(p),
+            "yoy_pct": pct_change(obs, 366),
+            "level_12m": val_days_ago(obs, 366),
         }
     if ciss:
         sources.append("ECB Data Portal — CISS systemic stress")
@@ -370,6 +372,8 @@ def lambda_handler(event, context):
                 "level": round(obs[0][1], 4),
                 "as_of": obs[0][0],
                 "change_3m": level_change(obs, 95),
+                "yoy_pct": pct_change(obs, 366),
+                "level_12m": val_days_ago(obs, 366),
                 "change_12m": level_change(obs, 370),
                 "percentile_5y": p,
                 "status": status_from_pct(p),
@@ -623,6 +627,48 @@ def lambda_handler(event, context):
         "cds_proxy_regime": cdsp.get("regime"),
     }
 
+    # ══ ops 3385 — YoY block: true 12m change where a real 12m source exists ══
+    WGB_YIELD_FRED = {"netherlands": "IRLTLT01NLM156N",
+                      "south_korea": "IRLTLT01KRM156N",
+                      "chile": "IRLTLT01CLM156N"}
+    for name, e in wgb_all.items():
+        if not isinstance(e, dict) or e.get("data_unavailable"):
+            continue
+        sid = WGB_YIELD_FRED.get(name)
+        if not sid:
+            e["yield_yoy_bp"] = None
+            e["yoy_note"] = "no 12m source yet — daily ledger accruing; true stress YoY unlocks automatically"
+            continue
+        try:
+            obs = fred(sid, limit=30)
+            y12 = val_days_ago(obs, 366)
+            ynow = obs[0][1] if obs else None
+            e["yield_yoy_bp"] = (round((ynow - y12) * 100, 0)
+                                 if ynow is not None and y12 is not None else None)
+            e["yoy_note"] = "10Y-yield change proxy (OECD via FRED) until the ledger matures"
+        except Exception as ex:
+            e["yield_yoy_bp"] = None
+            e["yoy_note"] = "proxy fetch failed"
+            errors.append(f"yoy/{name}: {str(ex)[:40]}")
+
+    yoy_chart = []
+    for name, c in sov.items():
+        if name != "euro_area" and c.get("yoy_pct") is not None:
+            yoy_chart.append({"name": name, "kind": "sovciss",
+                              "yoy_pct": c["yoy_pct"], "level": c.get("level"),
+                              "level_12m": c.get("level_12m")})
+    for name, c in ciss.items():
+        if c.get("yoy_pct") is not None:
+            yoy_chart.append({"name": name, "kind": "ciss",
+                              "yoy_pct": c["yoy_pct"], "level": c.get("level"),
+                              "level_12m": c.get("level_12m")})
+    for name, e in wgb_all.items():
+        if isinstance(e, dict) and not e.get("data_unavailable"):
+            yoy_chart.append({"name": name, "kind": "wgb_yield",
+                              "yoy_bp": e.get("yield_yoy_bp"),
+                              "note": e.get("yoy_note")})
+    yoy_chart.sort(key=lambda r: -abs(r.get("yoy_pct") or 0))
+
     # ══ ops 3384 — HISTORY LEDGER (trend > level) + Δ + transition signals ══
     deltas, signals_fired = {}, []
     try:
@@ -715,6 +761,7 @@ def lambda_handler(event, context):
         "deltas": deltas,
         "signals_fired": signals_fired,
         "history_key": HIST_KEY,
+        "yoy_chart": yoy_chart,
         "cross_reference": cross,
         "sources": sources,
         "errors": errors,
