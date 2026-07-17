@@ -1,0 +1,33 @@
+{
+  "gates": {
+    "G1_engine_230_settled": {
+      "ok": true,
+      "detail": "markers in zip"
+    },
+    "G2_sg_hk": {
+      "ok": false,
+      "detail": "SG_bp=None HK_bp=None errs=[yoy/singapore: MAS SGS empty | yoy/hong_kong: HKMA empty]"
+    },
+    "G3_tr_ar_on_desk": {
+      "ok": true,
+      "detail": "TR=68.6 (CDS 228.61bp) AR=10.0 (CDS Nonebp)"
+    },
+    "G4_gssi_regen": {
+      "ok": true,
+      "detail": "gen_fresh=True turkey_in=True detected=8/14 now={\"date\": \"2026-07-10\", \"gssi\": 39.19, \"pctile\": 19.1, \"yoy_pct\": -6.2, \"d6m\": -0"
+    }
+  },
+  "desk": {
+    "turkey": {
+      "s": 68.6,
+      "cds": 228.61
+    },
+    "argentina": {
+      "s": 10.0,
+      "cds": null
+    },
+    "sg_bp": null,
+    "hk_bp": null
+  },
+  "verdict": "GAPS: G2_sg_hk"
+}

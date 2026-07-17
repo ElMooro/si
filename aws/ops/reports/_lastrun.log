@@ -1,17 +1,15 @@
-executing-against: 86c88108732b2c842b54f04f24974ebe5599e6c9
-ops 3386 — GSSI 1990-index + SG/HK + Switzerland + brain scan
-PASS  G0_brain_scan — src=data/brain.json top=[('japan', 1487), ('china', 828), ('gold', 813), ('switzerland', 290), ('turkey', 159), ('mexico', 75)] uncovered=['turkey', 'argentina']
-[15:20:04] PASS  G0_brain_scan — src=data/brain.json top=[('japan', 1487), ('china', 828), ('gold', 813), ('switzerland', 290), ('turkey', 159), ('mexico', 75)] uncovered=['turkey', 'argentina']
-PASS  G1_engine_220_settled — markers in zip
-[15:20:05] PASS  G1_engine_220_settled — markers in zip
-FAIL  G2_ch_sg_hk — CH=16.3 (CDS 6.76bp) SG_bp=None HK_bp=None yoy_errs=[yoy/singapore: MAS SGS HTTP Error 404: Not Found | yoy/hong_kong: HKMA empty]
-[15:21:27] FAIL  G2_ch_sg_hk — CH=16.3 (CDS 6.76bp) SG_bp=None HK_bp=None yoy_errs=[yoy/singapore: MAS SGS HTTP Error 404: Not Found | yoy/hong_kong: HKMA empty]
-PASS  G3_gssi_validated — pts=1866 first=1990-01-01 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0.9} alive_comps=21 detected=8/14 must_ok=True
-[15:21:27] PASS  G3_gssi_validated — pts=1866 first=1990-01-01 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0.9} alive_comps=21 detected=8/14 must_ok=True
-PASS  G4_page_live — missing=[]
-[15:22:27] PASS  G4_page_live — missing=[]
+executing-against: 85cdc28490b24cdd3ccadb8baa8ff63d84175576
+ops 3387 — SG/HK retry + Turkey/Argentina
+PASS  G1_engine_230_settled — markers in zip
+[15:27:14] PASS  G1_engine_230_settled — markers in zip
+FAIL  G2_sg_hk — SG_bp=None HK_bp=None errs=[yoy/singapore: MAS SGS empty | yoy/hong_kong: HKMA empty]
+[15:28:55] FAIL  G2_sg_hk — SG_bp=None HK_bp=None errs=[yoy/singapore: MAS SGS empty | yoy/hong_kong: HKMA empty]
+PASS  G3_tr_ar_on_desk — TR=68.6 (CDS 228.61bp) AR=10.0 (CDS Nonebp)
+[15:28:55] PASS  G3_tr_ar_on_desk — TR=68.6 (CDS 228.61bp) AR=10.0 (CDS Nonebp)
+PASS  G4_gssi_regen — gen_fresh=True turkey_in=True detected=8/14 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0
+[15:28:55] PASS  G4_gssi_regen — gen_fresh=True turkey_in=True detected=8/14 now={"date": "2026-07-10", "gssi": 39.19, "pctile": 19.1, "yoy_pct": -6.2, "d6m": -0
 
-VERDICT: GAPS: G2_ch_sg_hk
-[15:22:27] VERDICT: GAPS: G2_ch_sg_hk
+VERDICT: GAPS: G2_sg_hk
+[15:28:55] VERDICT: GAPS: G2_sg_hk
 
-→ Report written to aws/ops/reports/latest/3386_gssi.md
+→ Report written to aws/ops/reports/latest/3387_gssi_round2.md
