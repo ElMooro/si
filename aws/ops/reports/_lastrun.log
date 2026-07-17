@@ -1,9 +1,13 @@
-executing-against: 39bf7c1bada5fd94d73548eb0df9160ec2eb7903
-ops 3409 — short-book regate
-PASS  G3_book_graded — feed.logged=6 ddb_paginated_today=6 book=6
-[22:02:52] PASS  G3_book_graded — feed.logged=6 ddb_paginated_today=6 book=6
+executing-against: 301ae7ed9babb5b4b3ef8b278eb556b8160cb109
+ops 3411 — checker-v3 hist pricing E2E
+PASS  G1_v3_deployed — get_price_at in zip
+[22:07:30] PASS  G1_v3_deployed — get_price_at in zip
+[e2e] synthetic in: baseline 737.5499877929688 @ 2026-06-07
+FAIL  G2_historical_grading — day5={"price_at_check": "741.75", "actual_direction": "UP", "return_pct": "0.569453", "checked_at": "2026-07-17T22: day21={"price_at_check": "728.98999", "actual_direction": "DOWN", "return_pct": "-1.160601", "checked_at": "2026-07- asof_prints=0
+[22:07:58] FAIL  G2_historical_grading — day5={"price_at_check": "741.75", "actual_direction": "UP", "return_pct": "0.569453", "checked_at": "2026-07-17T22: day21={"price_at_check": "728.98999", "actual_direction": "DOWN", "return_pct": "-1.160601", "checked_at": "2026-07- asof_prints=0
+[e2e] synthetic cleaned
 
-VERDICT: PASS_ALL
-[22:02:52] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_historical_grading
+[22:07:58] VERDICT: GAPS: G2_historical_grading
 
-→ Report written to aws/ops/reports/latest/3409_shortbook_regate.md
+→ Report written to aws/ops/reports/latest/3411_checker_v3.md
