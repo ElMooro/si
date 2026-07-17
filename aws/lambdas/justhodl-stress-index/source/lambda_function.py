@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.9.1"
+VERSION = "1.9.2"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -193,7 +193,7 @@ def build_spine_series():
                             "inception": inception, "mode": mode, "obs": obs}
 
     if not comps:
-        return [], [], {}, [], weight_mode
+        return [], [], {}, [], weight_mode, {}
 
     all_dates = sorted({d for c in comps.values() for d, _ in c["obs"]})
     CHG_LAG = 63  # ~3 trading months for the "chg" transform
@@ -249,9 +249,23 @@ def build_spine_series():
 
     meta = [{"series": sid, "label": c["label"], "weight": round(c["wt"], 4),
              "inception": c["inception"], "mode": c["mode"]} for sid, c in comps.items()]
+    # ops 3383: per-component sparkline series — weekly-downsampled mapped
+    # stress sub-scores (last ~3y), for the page's spine rows.
+    sparks = {}
+    for sid, c in comps.items():
+        pts = [(d, z_to_stress((v - c["mu"]) / c["sd"] * c["pol"]))
+               for d, v in zip(all_dates, c["xform"]) if v is not None]
+        pts = pts[-780:][::5]
+        if pts and pts[-1][0] != all_dates[-1] and c["xform"][-1] is not None:
+            pts.append((all_dates[-1],
+                        z_to_stress((c["xform"][-1] - c["mu"]) / c["sd"] * c["pol"])))
+        if len(pts) >= 8:
+            sparks[sid] = {"label": c["label"],
+                           "points": [{"d": d, "v": round(v, 1)} for d, v in pts]}
+
     dates = [d for d, _ in jsi_series]
     vals = [v for _, v in jsi_series]
-    return dates, vals, latest, meta, weight_mode
+    return dates, vals, latest, meta, weight_mode, sparks
 
 
 def build_overlay():
@@ -597,7 +611,7 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
 
     # 1) Historical spine (1990 → today), identical method across all eras.
-    dates, vals, spine_latest, spine_meta, weight_mode = build_spine_series()
+    dates, vals, spine_latest, spine_meta, weight_mode, spine_sparks = build_spine_series()
     if not vals:
         payload = {"version": VERSION, "ok": False,
                    "error": "spine build failed — FRED unavailable",
@@ -658,6 +672,7 @@ def lambda_handler(event=None, context=None):
             "min": {"value": lo, "date": lo_date},
         },
         "spine_components": spine_latest,
+        "spine_sparks": spine_sparks,
         "spine_meta": spine_meta,
         "spine_weight_mode": weight_mode,
         "overlay_components": overlay_components,

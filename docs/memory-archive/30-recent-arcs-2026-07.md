@@ -141,3 +141,11 @@ E2E PROVEN: synthetic row with BOTH defects (literal ma + day_-windows, no ts) �
 Coverage audit: page NEVER fetched data/jsi-history.json (daily 1990→) — now loaded in parallel (weekly fallback), and missing fields surfaced: history_span+spine_weight_mode+elapsed_s meta line, historical MIN beside max, v2.signal_state chip (armed/fired/↷). CHART V3 (Khalid-authorized graph rework, ids/identity kept): regime BAND rects CALM→CRISIS w/ right-edge labels; episode shading (.jsi-ep from v2 list, binary idxOf); crosshair group #xh + regime-aware tip; pulsing now-dot + right-edge value; RANGE chips ALL/10y/5y/1y; VIEW chips Level(default)/Δ12m pts/YoY % — ⭐ transforms computed on FULL series BEFORE range slice (12m lookback survives 1y view), OFF=252 daily/52 weekly; Δ-views: .jsi-zero line + red/green split fill via gradient stop at zero-fraction, bands+crisis marks OFF for clean read; downsample ≤1500 pts; st.lastN debug. Harness gotchas: strip external <script src> AND normalize dangling src-tags before jsdom; stub getBoundingClientRect for crosshair. 11-behavior jsdom PASS_ALL.
 
 Next ops 3382.
+
+---
+
+## ops 3383 — JSI THREE ADDITIONS (2026-07-17): regime atlas table · spine sparklines · record readout
+
+Engine v1.9.2: build_spine_series returns 6th element sparks — per-comp mapped stress sub-scores z_to_stress((xform-mu)/sd*pol), last 780 daily present pts stride-5 (~156 weekly) + today appended; emitted payload.spine_sparks {sid:{label,points[{d,v}]}}. ⚠️ early-return tuple must grow too ([], [], {}, [], mode, {}). PAGE: (1) #v2-atlas-regimes full table CALM→CRISIS reusing decile cell(), current regime ◀ now highlighted; (2) spineRow gains .jsi-sparkslot span; renderSparks() fills 90×22 min-max-normalized polyline, stroke=stressColor(latest), title=3y range — called after spine-list innerHTML; (3) #kpi-record-dist under max-date: pts-below-record · %-of-peak · highest-since (backward scan of d._daily), AT-RECORD state red. Harness 17 behaviors PASS_ALL.
+
+Next ops 3384.
