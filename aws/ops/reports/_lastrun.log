@@ -1,11 +1,11 @@
-executing-against: 22ef928359784799a6f4eb4352b78dd2d6b8792f
+executing-against: 0592c2827732cd78f1483c886ce09075cfa78a52
 ops 3399 — radar->fusion phase chain
-FAIL  G1_radar_phases_fresh — etf_phases=0 xl_count=<10
-[20:11:22] FAIL  G1_radar_phases_fresh — etf_phases=0 xl_count=<10
-FAIL  G2_wyckoff_joined — sectors_with_wyckoff=4/11
-[20:16:28] FAIL  G2_wyckoff_joined — sectors_with_wyckoff=4/11
+PASS  G1_radar_phases_fresh — etf_phases=35 xl_count=11
+[20:19:22] PASS  G1_radar_phases_fresh — etf_phases=35 xl_count=11
+PASS  G2_wyckoff_joined — sectors_with_wyckoff=11/11
+[20:19:38] PASS  G2_wyckoff_joined — sectors_with_wyckoff=11/11
 
-VERDICT: GAPS: G1_radar_phases_fresh,G2_wyckoff_joined
-[20:16:28] VERDICT: GAPS: G1_radar_phases_fresh,G2_wyckoff_joined
+VERDICT: PASS_ALL
+[20:19:38] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3399_phase_chain.md
+→ Report written to aws/ops/reports/latest/3400_phase_chain2.md
