@@ -1,16 +1,19 @@
-executing-against: ed53f3c2d7eccba3e7a6c0728ab77437cc58cfe6
-ops 3371 — reskin-aware asset re-gate
-expected mode: topo | drawer 70248786 auth 00f49db2
-PASS  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
-[03:20:55] PASS  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
-PASS  G2_bytes_identity — jh-nav-drawer.js:ok jh-page-ai.js:ok auth.js:ok auth-config.js:ok interp-kit.js:ok jh-enhance.js:ok cmdk.js:ok jh-wire.js:ok jh-theme.css:ok
-[03:20:55] PASS  G2_bytes_identity — jh-nav-drawer.js:ok jh-page-ai.js:ok auth.js:ok auth-config.js:ok interp-kit.js:ok jh-enhance.js:ok cmdk.js:ok jh-wire.js:ok jh-theme.css:ok
-PASS  G3_auth_plan_self_delivered — http 200 marker=True
-[03:20:55] PASS  G3_auth_plan_self_delivered — http 200 marker=True
-PASS  G4_drawer_dynamic_dep_baked — http 200 baked=True
-[03:20:55] PASS  G4_drawer_dynamic_dep_baked — http 200 baked=True
+executing-against: ea668c7fcce55e0738ef9777f22237cafa763482
+ops 3372 — hot-money Asia/Europe focus drilldowns
+FAIL  G1_deploy_settled_v140 — LastUpdateStatus=Successful
+[03:34:41] FAIL  G1_deploy_settled_v140 — LastUpdateStatus=Successful
+PASS  G2_fresh_v140_feed — version=1.4.0 at=2026-07-17T03:34:58
+[03:39:43] PASS  G2_fresh_v140_feed — version=1.4.0 at=2026-07-17T03:34:58
+PASS  G3_core_asia_populated — {"Hong Kong": true, "Taiwan": true, "South Korea": true, "China": true}
+[03:39:43] PASS  G3_core_asia_populated — {"Hong Kong": true, "Taiwan": true, "South Korea": true, "China": true}
+PASS  G4_focus_breadth — europe=8['Germany', 'UK', 'France', 'Switzerland', 'Netherlands', 'Italy'] asia=7
+[03:39:43] PASS  G4_focus_breadth — europe=8['Germany', 'UK', 'France', 'Switzerland', 'Netherlands', 'Italy'] asia=7
+PASS  G5_momentum_wired — 15/15 focus drills carry day_chg_pct
+[03:39:43] PASS  G5_momentum_wired — 15/15 focus drills carry day_chg_pct
+FAIL  G6_page_focus_markers — http 200
+[03:43:43] FAIL  G6_page_focus_markers — http 200
 
-VERDICT: PASS_ALL
-[03:20:55] VERDICT: PASS_ALL
+VERDICT: GAPS: G1_deploy_settled_v140,G6_page_focus_markers | HK sample: {'sectors': [{'sector': 'Financial Services', 'weight_pct': 42.5}, {'sector': 'Industrials', 'weight_pct': 19.8}, {'sector': 'Real Estate', 'weight_pct': 17.5}], 'holdings': ['1299.HK', '0388.HK', '0001.HK', '0669.HK', '2388.HK', '0002.HK']}
+[03:43:43] VERDICT: GAPS: G1_deploy_settled_v140,G6_page_focus_markers
 
-→ Report written to aws/ops/reports/latest/3371_asset_regate_reskin_aware.md
+→ Report written to aws/ops/reports/latest/3372_hot_money_focus.md
