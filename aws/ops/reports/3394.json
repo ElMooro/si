@@ -1,0 +1,91 @@
+{
+  "gates": {
+    "G0_hunt_ran": {
+      "ok": true,
+      "detail": "hk_bondish=0 hk_found=None sg_datasets=10 (findings in report)"
+    },
+    "G1_sg_hk_outcome": {
+      "ok": true,
+      "detail": "SG_bp=None HK_bp=None resolved=False patched=False (honest 'accruing' notes remain for unresolved; ledger self-heals)"
+    },
+    "G2_strip_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    },
+    "G3_sentinel_armed": {
+      "ok": true,
+      "detail": "sovereign+GSSI watch markers in deployed sentinel"
+    }
+  },
+  "hunt": {
+    "sg": [
+      {
+        "Historical Rainfall across Singapore (2020)": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Overall Unemployment Rate, Quarterly": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Total Employees' Trade Union Membership": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "MP08 Mapsheet Major Road Name-CA": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Resident Unemployed Persons Aged 15 Years and Over by Duration of Unemployment, Highest Qualification Attained and Sex (General Household Survey 2005)": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Key Data Of Gross Domestic Product In Chained (2015) Dollars, By Industry (SSIC 2020), Quarterly, Seasonally Adjusted": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "RP CET Enrolment 2020-2024": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Temasek Polytechnic Part-Time Enrolment Figures Breakdown, Annual (2015-2017)": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Overall SPS Population": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      },
+      {
+        "Gross Domestic Product, Year On Year Growth Rate, Quarterly": {
+          "status": -1,
+          "err": "HTTP Error 404: Not Found"
+        }
+      }
+    ]
+  },
+  "sg_hk": {
+    "sg_bp": null,
+    "hk_bp": null,
+    "hotpatched": false,
+    "hk_found": null
+  },
+  "verdict": "PASS_ALL"
+}
