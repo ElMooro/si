@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.0"
+VERSION = "2.4.1"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -677,15 +677,22 @@ def build_gssi(errors):
         if c.get("dead"):
             comp_meta.append({"name": name, "status": "insufficient history"})
             continue
-        lastv = next((c["x"][i] for i in range(n - 1, -1, -1)
-                      if c["x"][i] is not None), None)
-        z = ((lastv - c["mu"]) / c["sd"]) if lastv is not None else None
+        zl = next((c["z_lvl"][i] for i in range(n - 1, -1, -1)
+                   if c["z_lvl"][i] is not None), None)
+        zv = next((c["z_vel"][i] for i in range(n - 1, -1, -1)
+                   if c["z_vel"][i] is not None), None)
+        if zl is not None and zv is not None and c["block"] == "A":
+            st = 0.45 * _gz_stress(zl) + 0.55 * _gz_stress(zv)
+        elif zl is not None:
+            st = _gz_stress(zl)
+        else:
+            st = _gz_stress(zv) if zv is not None else None
         first = next((grid[i] for i in range(n) if c["x"][i] is not None), None)
         comp_meta.append({"name": name, "block": c["block"], "weight": c["wt"],
                           "kind": c["kind"], "first_date": first,
-                          "z": (round(z, 2) if z is not None else None),
-                          "stress": (round(_gz_stress(z), 1)
-                                     if z is not None else None)})
+                          "z": (round(zl, 2) if zl is not None else None),
+                          "z_vel": (round(zv, 2) if zv is not None else None),
+                          "stress": (round(st, 1) if st is not None else None)})
 
     out = {"ok": True, "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
