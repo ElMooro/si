@@ -1,11 +1,11 @@
-executing-against: 91e265aa64de39263af58091f7800a4222f41175
+executing-against: c310c275f389d4e4c4def424334c8267517625ba
 ops 3397 — wyckoff join regate
-PASS  G1_fix_deployed — key-fix marker
-[19:47:33] PASS  G1_fix_deployed — key-fix marker
-FAIL  G2_wyckoff_joined — sectors_with_wyckoff=5
-[19:52:35] FAIL  G2_wyckoff_joined — sectors_with_wyckoff=5
+PASS  G1_fix_deployed — etf_phases marker
+[19:54:58] PASS  G1_fix_deployed — etf_phases marker
+FAIL  G2_wyckoff_joined — sectors_with_wyckoff=4
+[20:01:34] FAIL  G2_wyckoff_joined — sectors_with_wyckoff=4
 
 VERDICT: GAPS: G2_wyckoff_joined
-[19:52:35] VERDICT: GAPS: G2_wyckoff_joined
+[20:01:34] VERDICT: GAPS: G2_wyckoff_joined
 
-→ Report written to aws/ops/reports/latest/3397_wyckoff_join_fix.md
+→ Report written to aws/ops/reports/latest/3398_etf_phases.md
