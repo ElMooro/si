@@ -1235,6 +1235,11 @@ def lambda_handler(event, context):
                 for v in o:
                     _sfwalk2(v)
         _sfwalk2(_sfs)
+        _uni = read_json("data/universe.json", {}) or {}
+        _ul = _uni if isinstance(_uni, list) else (_uni.get("stocks")
+                                                   or _uni.get("universe") or [])
+        _tk_sec = {str(u.get("symbol") or u.get("ticker")).upper(): u.get("sector")
+                   for u in _ul if isinstance(u, dict) and u.get("sector")}
         _og = read_json("data/dealer-gex.json", {}) or {}
         _og = _og.get("underlyings") or _og
         _walls = {}
@@ -1280,8 +1285,11 @@ def lambda_handler(event, context):
                         "Consumer Cyclical": "Consumer Discretionary",
                         "Consumer Defensive": "Consumer Staples",
                         "Communications": "Communication Services"}.get(x, x)
-            _sc2 = (_sec_ctx.get(_canon_sec(_s.get("sector")))
-                    or _sec_ctx.get(str(_s.get("sector") or "")))
+            _rawsec = _s.get("sector") or _tk_sec.get(_tk)
+            if _rawsec and not _s.get("sector"):
+                _s["sector"] = _rawsec
+            _sc2 = (_sec_ctx.get(_canon_sec(_rawsec))
+                    or _sec_ctx.get(str(_rawsec or "")))
             if _sc2:
                 _s["sector_context"] = _sc2
             if _tk in _walls:
