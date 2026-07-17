@@ -1,0 +1,99 @@
+{
+  "gates": {
+    "G1_deployed": {
+      "ok": true,
+      "detail": "composer 1.1 + best-setups self-log markers"
+    },
+    "G2_composer_capped": {
+      "ok": true,
+      "detail": "book=40 gross=100.0% mode=PROVEN top=['MSFT', 'GILD', 'FOX', 'WTFC', 'META', 'FOXA']"
+    },
+    "G3_wires_live": {
+      "ok": false,
+      "detail": "rows_fielded=True stack_signals_today=0 sample=[{'ticker': 'NVDA', 'rel_volume': None, 'entry_confirmed': None, 'hold_horizon_days': 21}, {'ticker': 'BKNG', 'rel_volume': 0.86, 'entry_confirmed': False, 'hold_horizon_days': 21}, {'ticker': 'ABBV', 'rel_volume': 1.12, 'entry_confirmed': False, 'hold_horizon_days': 21}]"
+    }
+  },
+  "book_top": [
+    {
+      "signal_type": "eng:dealer-gex",
+      "ticker": "MSFT",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-13T23:15:31.084883+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 393.82
+    },
+    {
+      "signal_type": "eng:deep-value-overlap",
+      "ticker": "GILD",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-10T23:15:30.336729+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 134.28
+    },
+    {
+      "signal_type": "eng:asymmetric-scorer",
+      "ticker": "FOX",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-11T23:15:29.709085+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 51.63
+    },
+    {
+      "signal_type": "eng:dark-pool",
+      "ticker": "WTFC",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-13T23:15:30.992174+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 164.3
+    },
+    {
+      "signal_type": "eng:dealer-gex",
+      "ticker": "META",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-13T23:15:31.084883+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 646.01
+    },
+    {
+      "signal_type": "eng:asymmetric-scorer",
+      "ticker": "FOXA",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-15T23:15:30.834183+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 57.62
+    },
+    {
+      "signal_type": "eng:dealer-gex",
+      "ticker": "AMZN",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-13T23:15:30.992174+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 247.23
+    },
+    {
+      "signal_type": "eng:asymmetric-scorer",
+      "ticker": "DECK",
+      "direction": "UP",
+      "confidence": 0.95,
+      "logged_at": "2026-07-11T23:15:29.709085+00:00",
+      "tier": "PROVEN",
+      "weight_pct": 2.54,
+      "mark": 106.49
+    }
+  ],
+  "verdict": "GAPS: G3_wires_live"
+}
