@@ -1,29 +1,24 @@
 ## G1 — FMP default (no year/quarter) behavior
 
-**Status:** failure  
-**Duration:** 0.5s  
-**Finished:** 2026-07-17T00:44:21+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3364_ignition_filed_quarter.py", line 66, in <module>
-    deploy_lambda(report=r, function_name=FN,
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 257, in deploy_lambda
-    zip_bytes = build_zip(source_dir)
-                ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/_lambda_deploy_helpers.py", line 59, in build_zip
-    local_names = {f.name for f in source_dir.rglob("*.py") if f.is_file()}
-                                   ^^^^^^^^^^^^^^^^
-AttributeError: 'str' object has no attribute 'rglob'
-
-```
+**Status:** success  
+**Duration:** 14.3s  
+**Finished:** 2026-07-17T00:48:52+00:00  
 
 ## Log
-- `00:44:21` [G1] no-param probe → HTTP 400
-- `00:44:21` ✅ G1 ✓ endpoint REQUIRES year+quarter (400 without) → ignition's unpinned call was silently 400ing into the institutional-holders fallback = inst lens DEAD (no change-fields). v1.1.0 revives it with clean pinned data.
+- `00:48:38` [G1] no-param probe → HTTP 400
+- `00:48:38` ✅ G1 ✓ endpoint REQUIRES year+quarter (400 without) → ignition's unpinned call was silently 400ing into the institutional-holders fallback = inst lens DEAD (no change-fields). v1.1.0 revives it with clean pinned data.
 ## G2 — deploy ignition v1.1.0
 
+- `00:48:38`   zip: 82999 bytes
+## 1. Lambda
+
+- `00:48:38`   Lambda exists — updating
+- `00:48:41` ✅   ✓ updated justhodl-ignition
+## G3 — deployed-code markers
+
+- `00:48:52` ✅ G3 ✓ v1.1.0 markers deployed & settled
+## G4 — fully-filed selection proof (runner-side)
+
+- `00:48:52` [G4] selection → Q1 2026 (6,347 AAPL holders)
+- `00:48:52` ✅ G4 ✓ gate selects fully-filed quarter
+- `00:48:52` ✅ VERDICT: PASS
