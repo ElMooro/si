@@ -70,3 +70,11 @@ Next ops 3369.
 ⚠️⚠️ WHY 3368's tags were invisible: committed HTML carried a FROZEN literal `jh-nav-drawer.js?v=3335` (373 pages, +1 stray v=3407) while the pages.yml stamper only replaced the UNVERSIONED src — and only on index.html (3272c). Stamper = silent no-op fleet-wide → every drawer JS change since the 3335 freeze never reached clients (clients+CF keyed on the old ?v URL). FIX: source normalized to unversioned src (374 pages; screener/ source untouched — protected — its deploy artifact still gets stamped), pages.yml step now regex-stamps ALL _site *.html with md5-8 of jh-nav-drawer.js and tolerates any pre-existing ?v= (freeze-proof). ⭐ GATE DOCTRINE: always gate the URL the PAGE references (extract src from live HTML, fetch that exact URL), never a synthetic cache-busted one — 3368's G1 passed while clients were stale.
 
 Next ops 3370.
+
+---
+
+## ops 3370 — CONTENT-ADDRESSED SHARED ASSETS, fleet-wide (2026-07-17)
+
+3369's defect was a CLASS: 39 local js/css (jh-page-ai 324 pages, interp-kit 133, jh-enhance 59, auth 17…) shipped unversioned → any change could strand in browser/CDN cache. NEW scripts/stamp_assets.py (single source of truth, used by pages.yml AND ops gates): TOPOLOGICAL versioner — deps version first, referrer bytes finalized (deps' ?v baked) BEFORE hashing referrer, so edits propagate transitively (auth-config→auth→drawer→all pages). Handles the drawer's DYNAMIC injection chain ("/auth-config.js"→"/auth.js"). ⚠️GOTCHAS learned: (1) naive fixpoint NEVER converges when a file both refs and is ref'd — hash churn forever; (2) SELF-references must be skipped in rewrite (KeyError mid-file + they're runtime string compares, e.g. auth.js doc/src checks — stamping would break them; refs set already strips self for topo); (3) graphlib ts.add(node,*deps) + belt-and-braces deps-first position assert. Proof battery pre-push: DETERMINISTIC / IDEMPOTENT (rerun=0 changes) / TRANSITIVE / dynamic refs baked / self-ref preserved / zero unversioned. pages.yml step replaced (3369's regex drawer stamp → stamp_assets.py). Gate doctrine: ops replicates expected versions via the SAME module on tmp copy of repo assets; gates = live stamps==expected, full-body md5==version (topo ⇒ version IS final-bytes hash), auth.js "/plan/self" finally client-delivered (3366 was cache-stranded), drawer bakes exact auth ?v.
+
+Next ops 3371.
