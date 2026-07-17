@@ -1,19 +1,11 @@
-executing-against: ea668c7fcce55e0738ef9777f22237cafa763482
-ops 3372 — hot-money Asia/Europe focus drilldowns
-FAIL  G1_deploy_settled_v140 — LastUpdateStatus=Successful
-[03:34:41] FAIL  G1_deploy_settled_v140 — LastUpdateStatus=Successful
-PASS  G2_fresh_v140_feed — version=1.4.0 at=2026-07-17T03:34:58
-[03:39:43] PASS  G2_fresh_v140_feed — version=1.4.0 at=2026-07-17T03:34:58
-PASS  G3_core_asia_populated — {"Hong Kong": true, "Taiwan": true, "South Korea": true, "China": true}
-[03:39:43] PASS  G3_core_asia_populated — {"Hong Kong": true, "Taiwan": true, "South Korea": true, "China": true}
-PASS  G4_focus_breadth — europe=8['Germany', 'UK', 'France', 'Switzerland', 'Netherlands', 'Italy'] asia=7
-[03:39:43] PASS  G4_focus_breadth — europe=8['Germany', 'UK', 'France', 'Switzerland', 'Netherlands', 'Italy'] asia=7
-PASS  G5_momentum_wired — 15/15 focus drills carry day_chg_pct
-[03:39:43] PASS  G5_momentum_wired — 15/15 focus drills carry day_chg_pct
-FAIL  G6_page_focus_markers — http 200
-[03:43:43] FAIL  G6_page_focus_markers — http 200
+executing-against: e1755ec06f33909f18f95ffde715db2e476c3855
+ops 3373 — hot-money harness re-gate
+PASS  G1_deployed_zip_v140 — zip 85868 bytes, markers present
+[03:47:47] PASS  G1_deployed_zip_v140 — zip 85868 bytes, markers present
+PASS  G6_page_focus_markers — http 200 (escaped-literal match)
+[03:47:47] PASS  G6_page_focus_markers — http 200 (escaped-literal match)
 
-VERDICT: GAPS: G1_deploy_settled_v140,G6_page_focus_markers | HK sample: {'sectors': [{'sector': 'Financial Services', 'weight_pct': 42.5}, {'sector': 'Industrials', 'weight_pct': 19.8}, {'sector': 'Real Estate', 'weight_pct': 17.5}], 'holdings': ['1299.HK', '0388.HK', '0001.HK', '0669.HK', '2388.HK', '0002.HK']}
-[03:43:43] VERDICT: GAPS: G1_deploy_settled_v140,G6_page_focus_markers
+VERDICT: PASS_ALL
+[03:47:47] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3372_hot_money_focus.md
+→ Report written to aws/ops/reports/latest/3373_hot_money_regate.md
