@@ -111,3 +111,11 @@ ops 3375 ground truth: etf-constituents (shared fmp_etf aboard) runs in **15.4s*
 ⚠️ LIVE DEFECT on settings.html since it shipped: `<script src="/jh-nav-drawer.js" defer>` NEVER CLOSED → the following inline JH_SETTINGS_V2 block (theme buttons + billing-portal handler) parsed as that script's CONTENT = inert. Fixed. ADDITIVE V3: ⭐/🎨 synced favorites+tags card (Bearer /userdata/self + nav-manifest title join, read-only mirror; TAG_HEX local), checkout=success|cancel toast + history.replaceState (worker already redirects here), drawer signed-in row gains ⚙→/settings.html. Side-task: theme-rotation-engine config.json RECONSTRUCTED FROM LIVE (get_function_configuration + list_rule_names_by_target→describe_rule) and written by the ops for auto-commit — repo=truth restored. ⚠️GOTCHA class: unclosed <script src> silently swallows the next inline block — grep pages for `defer>` not followed by `</script>` when wiring dies mysteriously.
 
 Next ops 3377.
+
+---
+
+## ops 3377 — JSI DECISION LAYER v1.9.0 (2026-07-17, ADDITIVE — Khalid: keep everything, add)
+
+justhodl-stress-index 1.8.0→1.9.0: payload.v2 (try-wrapped, can never break core) computed from the in-hand 1990 spine + NASDAQCOM (fred_full): [1] fwd-return ATLAS by EXPANDING percentile decile (as-known-then, bisect.insort O(n log n)) + by regime, windows 21/63/126/252 (grid=business-daily), _stats med/p25/p75/pos%; [2] EPISODES ≥90th full-sample pctile spells (gap≤10 merge, ≥5d) w/ NASDAQ max-DD during + fwd63 from peak, current.active; [3] VELOCITY Δ5/Δ21 + 21d-change z, FLARE=vz≥2 & jsi≥40; [4] regime PERSISTENCE (run-length, per-regime median spell, pts-to-next-threshold); [5] DIVERGENCE COMPLACENCY(pct≥80 & NAS21>+3%)/STRESS_REPAIR + complacency-days own fwd-3m stats; [6] MOVERS from jsi-overlay-history Δ5-sessions (no spine-internals risk); [7] SIGNAL_STATE vs prev OUT_KEY read. PAGE: hidden #jsi-v2-sec (chips/atlas-highlighted-decile/episodes/movers-bars/divergence) via renderV2 wrapped after render. SENTINEL: jsi_regime/flare in snapshot()+diff() → Telegram on flip/flare-onset. Gates incl atlas sanity d9_3m<d2_3m + episodes span 2008&2020.
+
+Next ops 3378.

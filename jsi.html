@@ -142,6 +142,37 @@
   </div>
 </section>
 
+<!-- JSI_V2 (ops 3377) — decision layer: additive, everything above untouched -->
+<section id="jsi-v2-sec" class="max-w-[1500px] mx-auto px-4 pb-6" style="display:none">
+  <div class="card p-5 mb-4">
+    <div class="flex flex-wrap gap-2 items-center" id="v2-chips"></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="eyebrow mb-1">What happened next · NASDAQ forward returns, 1990→</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Median forward return by JSI percentile decile — percentile computed <b>as-known-then</b> (expanding window, no lookahead). Your current decile is highlighted.</p>
+      <div id="v2-atlas" class="mono text-xs" style="overflow-x:auto"></div>
+      <div id="v2-atlas-regime" class="text-xs text-[var(--text-secondary)] mt-3"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Stress episodes · ≥90th percentile spells</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Every sustained top-decile stress spell since 1990 — how deep NASDAQ fell during it, and what the next quarter after the peak looked like.</p>
+      <div id="v2-episodes" class="mono text-xs" style="overflow-x:auto"></div>
+      <div id="v2-episode-now" class="text-xs mt-3"></div>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+    <div class="card p-5">
+      <div class="eyebrow mb-1">This week's stress movers · live overlay Δ5 sessions</div>
+      <div id="v2-movers" class="text-xs"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-1">Divergence read</div>
+      <div id="v2-div" class="text-xs"></div>
+    </div>
+  </div>
+</section>
+
 <!-- FOOTER -->
 <footer class="max-w-[1500px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
   <div class="border-t border-[var(--border-soft)] pt-6">
@@ -179,6 +210,67 @@ function render(d) {
 
   renderChart(d);
   renderComponents(d);
+  try { renderV2(d); } catch(e) { console.error('[jsi v2]', e); }
+}
+
+/* ═══ JSI_V2 (ops 3377) ═══ */
+function chip(txt, color){ return `<span class="badge mono" style="background:transparent;border:1px solid ${color};color:${color};font-size:.68rem;padding:3px 9px">${txt}</span>`; }
+function renderV2(d){
+  const v = d.v2; const sec = document.getElementById('jsi-v2-sec');
+  if(!v){ if(d.v2_error) console.warn('[jsi v2]', d.v2_error); return; }
+  sec.style.display='';
+  const vel=v.velocity||{}, per=v.regime_persistence||{}, dv=v.divergence||{}, ep=v.episodes||{}, at=v.atlas||{};
+  const sgn=x=>x==null?'—':(x>0?'+':'')+x;
+  const chips=[];
+  chips.push(chip(`Δ5d ${sgn(vel.chg_5d)}`, (vel.chg_5d||0)>0?'var(--red)':'var(--green)'));
+  chips.push(chip(`Δ21d ${sgn(vel.chg_21d)} · vz ${fmt(vel.velocity_z_21d,1)}`, Math.abs(vel.velocity_z_21d||0)>=2?'var(--red)':'var(--text-secondary)'));
+  if(vel.flare) chips.push(chip('⚡ FLARE — stress accelerating', 'var(--red)'));
+  chips.push(chip(`${per.regime_spine||'—'} for ${per.days_in_regime??'—'}d (median ${per.median_duration_days??'—'}d)`, 'var(--blue)'));
+  if(per.pts_to_next_up!=null) chips.push(chip(`${per.pts_to_next_up} pts to ${per.next_up}`, 'var(--amber)'));
+  if(ep.current&&ep.current.active) chips.push(chip('🔴 ACTIVE ≥90th-pct episode', 'var(--red)'));
+  if(dv.state && dv.state!=='NONE') chips.push(chip(`⚠ ${dv.state.replace('_',' ')}`, 'var(--amber)'));
+  document.getElementById('v2-chips').innerHTML = chips.join('');
+
+  // atlas table
+  const W=['1m','3m','6m','12m']; const cur=(at.current||{}).decile;
+  const cell=st=> st? `<td class="px-2 py-1 text-right" style="color:${st.med>0?'var(--green)':'var(--red)'}">${sgn(st.med)}%<span style="color:var(--text-muted)"> ·${st.pos_pct}%↑</span></td>` : '<td class="px-2 py-1 text-right" style="color:var(--text-muted)">—</td>';
+  let rows='';
+  for(let dec=0;dec<10;dec++){
+    const r=(at.by_decile||{})[String(dec)]||{};
+    const hot=dec===cur;
+    rows+=`<tr style="${hot?'outline:1px solid var(--blue);background:rgba(34,211,238,.05)':''}"><td class="px-2 py-1" style="color:${hot?'var(--blue)':'var(--text-secondary)'}">${dec*10}–${dec*10+10} ${hot?'◀ now':''}</td>${W.map(w=>cell(r[w])).join('')}</tr>`;
+  }
+  document.getElementById('v2-atlas').innerHTML =
+    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">JSI pctile</th>${W.map(w=>`<th class="px-2 py-1 text-right">${w}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
+  const rg=(at.by_regime||{})[(at.current||{}).regime_spine];
+  document.getElementById('v2-atlas-regime').innerHTML = rg?
+    `In <b style="color:${regimeColor((at.current||{}).regime_spine)}">${(at.current||{}).regime_spine}</b> regimes historically: 3m median ${sgn((rg['3m']||{}).med)}% (${(rg['3m']||{}).pos_pct??'—'}% positive, n=${(rg['3m']||{}).n??'—'}).` : '';
+
+  // episodes
+  const eps=(ep.list||[]).slice().reverse().slice(0,10);
+  document.getElementById('v2-episodes').innerHTML =
+    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Spell</th><th class="px-2 py-1 text-right">days</th><th class="px-2 py-1 text-right">peak</th><th class="px-2 py-1 text-right">NAS max DD</th><th class="px-2 py-1 text-right">+3m after peak</th></tr></thead><tbody>`+
+    eps.map(e=>`<tr><td class="px-2 py-1" style="color:var(--text-secondary)">${e.start} → ${e.end}</td><td class="px-2 py-1 text-right">${e.days}</td><td class="px-2 py-1 text-right" style="color:var(--red)">${e.peak}</td><td class="px-2 py-1 text-right" style="color:var(--red)">${e.nasdaq_max_dd_pct??'—'}%</td><td class="px-2 py-1 text-right" style="color:${(e.nasdaq_fwd_63d_from_peak_pct||0)>0?'var(--green)':'var(--red)'}">${sgn(e.nasdaq_fwd_63d_from_peak_pct)}%</td></tr>`).join('')+`</tbody></table>`;
+  document.getElementById('v2-episode-now').innerHTML = ep.current&&ep.current.active
+    ? `<span style="color:var(--red)">You are inside an active ≥90th-percentile stress episode.</span>`
+    : `<span style="color:var(--text-muted)">No active ≥90th-percentile episode — ${ep.n_total??'—'} historical spells catalogued.</span>`;
+
+  // movers
+  const mv=(v.movers||{}).overlay;
+  document.getElementById('v2-movers').innerHTML = mv&&mv.top&&mv.top.length ?
+    `<div class="text-[var(--text-muted)] mono mb-2">${mv.basis} · spine Δ5d ${sgn((v.movers||{}).spine_delta_5d)}</div>`+
+    mv.top.map(m=>{const w=Math.min(100,Math.abs(m.delta_5s)*6);const c=m.delta_5s>0?'var(--red)':'var(--green)';
+      return `<div class="flex items-center gap-2 py-1"><span class="mono" style="width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${m.label}</span><div style="flex:1;height:7px;background:var(--border-soft);border-radius:4px;overflow:hidden"><div style="width:${w}%;height:100%;background:${c}"></div></div><span class="mono" style="width:56px;text-align:right;color:${c}">${sgn(m.delta_5s)}</span></div>`;}).join('')
+    : '<span class="text-[var(--text-muted)]">Overlay snapshot history still warming up.</span>';
+
+  // divergence
+  document.getElementById('v2-div').innerHTML =
+    (dv.state==='COMPLACENCY'
+      ? `<div style="color:var(--amber)"><b>COMPLACENCY</b> — stress ≥80th percentile while NASDAQ is +${fmt(dv.nasdaq_21d_pct,1)}% over 21d.</div>`
+      : dv.state==='STRESS_REPAIR'
+      ? `<div style="color:var(--green)"><b>STRESS REPAIR</b> — stress unwinding from the top decile while price is still down; historically an early-recovery tell.</div>`
+      : `<div style="color:var(--text-muted)">No active divergence — stress and price are telling the same story.</div>`)
+    + ((dv.complacency_hist_fwd_3m)? `<div class="mono text-[var(--text-muted)] mt-2">History of COMPLACENCY days (n=${dv.complacency_hist_fwd_3m.n}): 3m median ${dv.complacency_hist_fwd_3m.med>0?'+':''}${dv.complacency_hist_fwd_3m.med}% · ${dv.complacency_hist_fwd_3m.pos_pct}% positive.</div>`:'');
 }
 
 function renderChart(d) {

@@ -91,6 +91,13 @@ def snapshot():
     s["semis_off_low"] = sm.get("off_180d_low_pct")
     s["smallcap_vs_high"] = scl.get("vs_365d_high_pct")
 
+    # ops 3377: JustHodl Stress Index — regime + flare watch
+    jsi = gj("data/jsi.json")
+    s["jsi_regime"] = jsi.get("regime")
+    s["jsi_score"] = jsi.get("jsi")
+    s["jsi_flare"] = bool(((jsi.get("v2") or {}).get("velocity") or {}).get("flare"))
+    s["jsi_pctile"] = jsi.get("percentile_since_1990")
+
     mp = gj("data/market-map.json")
     cap = (mp.get("breadth") or {}).get("mcap_weighted_chg")
     s["breadth_capwtd"] = cap
@@ -191,6 +198,17 @@ def snapshot():
 
 def diff(old, new):
     msgs = []
+    # ops 3377: JSI regime flips + flare onset
+    if (new.get("jsi_regime") and old.get("jsi_regime")
+            and new["jsi_regime"] != old["jsi_regime"]):
+        sev = {"CRISIS": "🚨", "STRESS": "🔴", "ELEVATED": "🟠",
+               "NORMAL": "🟢", "CALM": "🟢"}.get(new["jsi_regime"], "⚪")
+        msgs.append(f"{sev} JSI regime: {old['jsi_regime']} → {new['jsi_regime']} "
+                     f"(score {new.get('jsi_score')}, {new.get('jsi_pctile')}th pctile since 1990) "
+                     f"— justhodl.ai/jsi.html")
+    if new.get("jsi_flare") and not old.get("jsi_flare"):
+        msgs.append(f"⚡ JSI FLARE — stress accelerating (21d velocity ≥2σ), score "
+                     f"{new.get('jsi_score')} · justhodl.ai/jsi.html")
     def newset(k, label, emoji):
         o, n = set(old.get(k) or []), set(new.get(k) or [])
         add = sorted(n - o)

@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/jsi.json"
 HIST_KEY = "data/jsi-history.json"
@@ -347,6 +347,203 @@ def build_plumbing_signals():
     return out
 
 
+# ═══════════ v1.9.0 (ops 3377) — decision layer: atlas / episodes / velocity ═══════════
+import bisect
+
+
+def _pct_expanding(vals, min_n=252):
+    """As-known-then percentile (no lookahead) — honest bucketing for the atlas."""
+    out = [None] * len(vals)
+    sl = []
+    for i, v in enumerate(vals):
+        bisect.insort(sl, v)
+        if i + 1 >= min_n:
+            out[i] = bisect.bisect_right(sl, v) / (i + 1) * 100.0
+    return out
+
+
+def _pct_full(vals):
+    sv = sorted(vals)
+    n = len(sv) or 1
+    return [bisect.bisect_right(sv, v) / n * 100.0 for v in vals]
+
+
+def _nas_on_grid(dates):
+    """NASDAQCOM (FRED, 1971→) forward-filled onto the spine's business-day grid."""
+    obs = fred_full("NASDAQCOM")
+    m = {d: v for d, v in obs}
+    out, last = [], None
+    for d in dates:
+        if d in m:
+            last = m[d]
+        out.append(last)
+    return out
+
+
+def _stats(rets):
+    xs = sorted(r for r in rets if r is not None)
+    if not xs:
+        return None
+    n = len(xs)
+    q = lambda p: xs[min(n - 1, int(p * n))]
+    return {"n": n, "med": round(q(0.5), 1), "p25": round(q(0.25), 1),
+            "p75": round(q(0.75), 1), "pos_pct": round(sum(1 for x in xs if x > 0) / n * 100, 0)}
+
+
+def build_decision_layer(dates, vals, jsi_now, prev_feed):
+    """Everything computed from the spine series + NASDAQCOM. Pure, bounded, and
+    wrapped by the caller — the core index can never be taken down by this layer."""
+    n = len(vals)
+    nas = _nas_on_grid(dates)
+    pexp = _pct_expanding(vals)
+    pfull = _pct_full(vals)
+    WINDOWS = [(21, "1m"), (63, "3m"), (126, "6m"), (252, "12m")]
+
+    def fwd(i, w):
+        j = i + w
+        if j >= n or not nas[i] or not nas[j]:
+            return None
+        return (nas[j] / nas[i] - 1.0) * 100.0
+
+    # ── forward-return ATLAS by expanding-percentile decile + by regime ──
+    by_dec = {d: {lab: [] for _, lab in WINDOWS} for d in range(10)}
+    by_reg = {}
+    compl_fwd = []          # complacency-divergence condition set
+    for i in range(n - 21):
+        p = pexp[i]
+        if p is None:
+            continue
+        dec = min(9, int(p // 10))
+        reg = regime_from(vals[i])
+        by_reg.setdefault(reg, {lab: [] for _, lab in WINDOWS})
+        for w, lab in WINDOWS:
+            r = fwd(i, w)
+            if r is not None:
+                by_dec[dec][lab].append(r)
+                by_reg[reg][lab].append(r)
+        if p >= 80 and i >= 21 and nas[i] and nas[i - 21] and (nas[i] / nas[i - 21] - 1) * 100 > 3:
+            r63 = fwd(i, 63)
+            if r63 is not None:
+                compl_fwd.append(r63)
+    atlas = {
+        "asset": "NASDAQCOM", "grid": "business-daily", "min_history_days": 252,
+        "percentile_mode": "expanding (as-known-then, no lookahead)",
+        "by_decile": {str(d): {lab: _stats(by_dec[d][lab]) for _, lab in WINDOWS}
+                      for d in range(10)},
+        "by_regime": {r: {lab: _stats(by_reg[r][lab]) for _, lab in WINDOWS}
+                      for r in sorted(by_reg)},
+        "current": {"decile": (min(9, int(pexp[-1] // 10)) if pexp[-1] is not None else None),
+                    "expanding_pctile": (round(pexp[-1], 1) if pexp[-1] is not None else None),
+                    "regime_spine": regime_from(vals[-1])},
+    }
+
+    # ── EPISODES: ≥90th-percentile spells (full-sample, descriptive) ──
+    episodes, i = [], 0
+    while i < n:
+        if pfull[i] >= 90:
+            j = i
+            gap = 0
+            end = i
+            while j < n and gap <= 10:
+                if pfull[j] >= 90:
+                    end = j
+                    gap = 0
+                else:
+                    gap += 1
+                j += 1
+            if end - i + 1 >= 5:
+                seg = vals[i:end + 1]
+                pk = max(seg)
+                pk_i = i + seg.index(pk)
+                dd = None
+                w0 = nas[i]
+                if w0:
+                    lo = min(x for x in nas[i:min(n, end + 22)] if x)
+                    dd = round((lo / w0 - 1) * 100, 1)
+                episodes.append({"start": dates[i], "end": dates[end], "days": end - i + 1,
+                                 "peak": round(pk, 1), "peak_date": dates[pk_i],
+                                 "nasdaq_max_dd_pct": dd,
+                                 "nasdaq_fwd_63d_from_peak_pct": (round(fwd(pk_i, 63), 1)
+                                                                  if fwd(pk_i, 63) is not None else None)})
+            i = j
+        else:
+            i += 1
+    cur_ep = {"active": pfull[-1] >= 90,
+              "days": (episodes[-1]["days"] if episodes and episodes[-1]["end"] == dates[-1] else 0)}
+
+    # ── REGIME persistence + distance ──
+    regs = [regime_from(v) for v in vals]
+    k = n - 1
+    while k > 0 and regs[k - 1] == regs[-1]:
+        k -= 1
+    days_in = n - k
+    spells = {}
+    start = 0
+    for idx in range(1, n + 1):
+        if idx == n or regs[idx] != regs[start]:
+            spells.setdefault(regs[start], []).append(idx - start)
+            start = idx
+    durs = {r: sorted(v) for r, v in spells.items()}
+    med_dur = {r: v[len(v) // 2] for r, v in durs.items()}
+    TH = [(30, "NORMAL"), (45, "ELEVATED"), (60, "STRESS"), (75, "CRISIS")]
+    up = next(((t - jsi_now, name) for t, name in TH if jsi_now < t), None)
+    dn = next(((jsi_now - t, name) for t, name in reversed(TH) if jsi_now >= t), None)
+    persistence = {"regime_spine": regs[-1], "since": dates[k], "days_in_regime": days_in,
+                   "median_duration_days": med_dur.get(regs[-1]),
+                   "pts_to_next_up": (round(up[0], 1) if up else None),
+                   "next_up": (up[1] if up else None),
+                   "pts_above_floor": (round(dn[0], 1) if dn else None)}
+
+    # ── VELOCITY / FLARE ──
+    d5 = round(vals[-1] - vals[-6], 2) if n > 6 else None
+    d21 = round(vals[-1] - vals[-22], 2) if n > 22 else None
+    ch21 = [vals[i] - vals[i - 21] for i in range(21, n)]
+    mu, sd = _mean(ch21), _std(ch21) or 1e-9
+    vz = round(((d21 or 0) - mu) / sd, 2) if d21 is not None else None
+    flare = bool(vz is not None and vz >= 2.0 and jsi_now >= 40)
+    velocity = {"chg_5d": d5, "chg_21d": d21, "velocity_z_21d": vz, "flare": flare,
+                "note": "spine-series changes — continuous 1990 basis"}
+
+    # ── DIVERGENCE (now) ──
+    nas21 = (nas[-1] / nas[-22] - 1) * 100 if n > 22 and nas[-1] and nas[-22] else None
+    state = "NONE"
+    if pfull[-1] >= 80 and nas21 is not None and nas21 > 3:
+        state = "COMPLACENCY"
+    elif n > 22 and pfull[-22] >= 90 and (pfull[-22] - pfull[-1]) >= 15 and nas21 is not None and nas21 < 0:
+        state = "STRESS_REPAIR"
+    divergence = {"state": state, "nasdaq_21d_pct": (round(nas21, 1) if nas21 is not None else None),
+                  "complacency_hist_fwd_3m": _stats(compl_fwd)}
+
+    # ── SIGNAL STATE vs previous feed (for sentinel + page) ──
+    prev_reg = (prev_feed or {}).get("regime")
+    sig = {"regime_prev": prev_reg, "regime_changed": bool(prev_reg and prev_reg != regime_from(jsi_now)),
+           "escalated": bool(prev_reg and regime_from(jsi_now) in ("STRESS", "CRISIS")
+                             and prev_reg not in ("STRESS", "CRISIS")),
+           "flare": flare}
+
+    return {"v2_version": "1.9.0", "velocity": velocity, "atlas": atlas,
+            "episodes": {"threshold_pctile": 90, "list": episodes[-20:], "current": cur_ep,
+                         "n_total": len(episodes)},
+            "regime_persistence": persistence, "divergence": divergence, "signal_state": sig}
+
+
+def build_overlay_movers():
+    """5-session overlay deltas from our own snapshot history — attribution without
+    touching spine internals."""
+    try:
+        h = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=OVERLAY_HIST_KEY)["Body"].read())
+        rows = h.get("snapshots") or []
+        if len(rows) < 2:
+            return None
+        a, b = rows[-1].get("feeds") or {}, rows[max(0, len(rows) - 6)].get("feeds") or {}
+        mv = [{"label": k, "now": round(a[k], 1), "delta_5s": round(a[k] - b[k], 1)}
+              for k in a if k in b]
+        mv.sort(key=lambda x: -abs(x["delta_5s"]))
+        return {"basis": f"{rows[max(0, len(rows) - 6)]['date']} → {rows[-1]['date']}", "top": mv[:8]}
+    except Exception:
+        return None
+
+
 def percentile_of(value, series_vals):
     if not series_vals:
         return None
@@ -411,6 +608,7 @@ def lambda_handler(event=None, context=None):
 
     jsi_spine = vals[-1]
     pctile = percentile_of(jsi_spine, vals)
+    prev_feed = _read_s3_json(OUT_KEY)  # ops 3377: for regime-change signal state
 
     # 2) Live overlay (contemporary enrichment).
     overlay_components, overlay_score, n_overlay = build_overlay()
@@ -431,6 +629,19 @@ def lambda_handler(event=None, context=None):
     weekly = [(dates[i], vals[i]) for i in range(0, len(vals), 5)]
     if weekly and weekly[-1][0] != dates[-1]:
         weekly.append((dates[-1], vals[-1]))
+
+    # ── v1.9.0 decision layer (ops 3377): atlas / episodes / velocity /
+    #    persistence / divergence / movers. Fully wrapped — can never take
+    #    down the core index.
+    jsi_v2, v2_err = None, None
+    try:
+        jsi_v2 = build_decision_layer(dates, vals, jsi_now, prev_feed)
+        mv = build_overlay_movers()
+        jsi_v2["movers"] = {"spine_delta_5d": jsi_v2["velocity"]["chg_5d"],
+                            "overlay": mv}
+    except Exception as e:
+        v2_err = str(e)[:200]
+        print(f"[jsi] v2 layer failed: {v2_err}")
 
     generated = datetime.now(timezone.utc).isoformat()
     payload = {
@@ -453,6 +664,7 @@ def lambda_handler(event=None, context=None):
         "n_overlay_live": n_overlay,
         "crisis_markers": [{"date": d, "label": l} for d, l in CRISIS_MARKERS],
         "series_weekly": [{"d": d, "v": v} for d, v in weekly],
+        "v2": jsi_v2, "v2_error": v2_err,
         "methodology": {
             "spine": "FRED components z-scored on own full history since 1990, logistic-mapped to 0-100, weighted-blended. Same computation across all eras → continuous percentile.",
             "overlay": "12 live JustHodl stress feeds normalized to 0-100; contemporary enrichment only, never reaches into history.",
