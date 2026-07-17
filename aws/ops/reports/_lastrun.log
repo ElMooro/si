@@ -1,25 +1,20 @@
-executing-against: 16245da9fecd0609fcdc8682fcbb0be28222e4e1
-ops 3379 — signals grading loop resurrection
-PASS  G0_checker_scheduled — rules=['justhodl-outcome-checker-4h', 'justhodl-outcome-checker-daily'] schedules=[] created=None
-[05:09:40] PASS  G0_checker_scheduled — rules=['justhodl-outcome-checker-4h', 'justhodl-outcome-checker-daily'] schedules=[] created=None
-PASS  G1_normalizer_deployed — marker in zip
-[05:10:06] PASS  G1_normalizer_deployed — marker in zip
+executing-against: 4573fd126a736c2b529f27ddc0d45c7efde04f5d
+ops 3380 — grading E2E, throttle-resilient
+PASS  G0_stray_cleaned — 3379 stray removed=True
+[05:27:54] PASS  G0_stray_cleaned — 3379 stray removed=True
+PASS  G0b_schedules_codified — [{"rule_name": "justhodl-outcome-checker-4h", "cron": "cron(29 21 * * ? *)"}, {"rule_name": "justhodl-outcome-checker-daily", "cron": "cron(0 23 * * ? *)"}]
+[05:27:54] PASS  G0b_schedules_codified — [{"rule_name": "justhodl-outcome-checker-4h", "cron": "cron(29 21 * * ? *)"}, {"rule_name": "justhodl-outcome-checker-daily", "cron": "cron(0 23 * * ? *)"}]
 [test] inserted zz-ops3379-test#QQQ#2026-06-07 baseline=716.07
+PASS  G2_legacy_row_scored — outcomes=['day_21', 'day_5'] status=complete
+[05:28:34] PASS  G2_legacy_row_scored — outcomes=['day_21', 'day_5'] status=complete
+PASS  G3_cleanup — deleted=True
+[05:28:34] PASS  G3_cleanup — deleted=True
+PASS  G4_emitters_deployed — jsi 1.9.1 + hot-money ts markers
+[05:28:35] PASS  G4_emitters_deployed — jsi 1.9.1 + hot-money ts markers
+PASS  G5_jsi_191_healthy — signal_state={"regime_prev": "NORMAL", "regime_changed": false, "escalated": false, "flare": false}
+[05:28:50] PASS  G5_jsi_191_healthy — signal_state={"regime_prev": "NORMAL", "regime_changed": false, "escalated": false, "flare": false}
 
-→ Report written to aws/ops/reports/latest/3379_grading_loop_resurrection.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3379_grading_loop_resurrection.py", line 226, in <module>
-    main(_rep)
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3379_grading_loop_resurrection.py", line 160, in main
-    resp = LAM.invoke(FunctionName=CHECKER, InvocationType="RequestResponse", Payload=b"{}")
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.TooManyRequestsException: An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 1): Rate Exceeded.
-❌ OPS-FAIL: aws/ops/pending/ops_3379_grading_loop_resurrection.py
+VERDICT: PASS_ALL
+[05:28:50] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3380_grading_e2e_resilient.md

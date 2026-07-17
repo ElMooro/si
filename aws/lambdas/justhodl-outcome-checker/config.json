@@ -5,6 +5,13 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 300,
-  "architectures": ["x86_64"],
-  "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "schedule": {
+    "rule_name": "justhodl-outcome-checker-4h",
+    "cron": "cron(29 21 * * ? *)",
+    "description": "codified from live (ops 3380); also live: justhodl-outcome-checker-daily"
+  }
 }

@@ -1,0 +1,40 @@
+{
+  "gates": {
+    "G0_stray_cleaned": {
+      "ok": true,
+      "detail": "3379 stray removed=True"
+    },
+    "G0b_schedules_codified": {
+      "ok": true,
+      "detail": "[{\"rule_name\": \"justhodl-outcome-checker-4h\", \"cron\": \"cron(29 21 * * ? *)\"}, {\"rule_name\": \"justhodl-outcome-checker-daily\", \"cron\": \"cron(0 23 * * ? *)\"}]"
+    },
+    "G2_legacy_row_scored": {
+      "ok": true,
+      "detail": "outcomes=['day_21', 'day_5'] status=complete"
+    },
+    "G3_cleanup": {
+      "ok": true,
+      "detail": "deleted=True"
+    },
+    "G4_emitters_deployed": {
+      "ok": true,
+      "detail": "jsi 1.9.1 + hot-money ts markers"
+    },
+    "G5_jsi_191_healthy": {
+      "ok": true,
+      "detail": "signal_state={\"regime_prev\": \"NORMAL\", \"regime_changed\": false, \"escalated\": false, \"flare\": false}"
+    }
+  },
+  "test_row": {
+    "status": "complete",
+    "day_5": {
+      "return_pct": "-1.414666",
+      "correct": "False"
+    },
+    "day_21": {
+      "return_pct": "-1.414666",
+      "correct": "False"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
