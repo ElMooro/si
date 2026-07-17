@@ -302,8 +302,9 @@ def lambda_handler(event, context):
 
         def _walk(o):
             if isinstance(o, dict):
-                if o.get("symbol") and o.get("phase"):
-                    ph_map.setdefault(str(o["symbol"]).upper(),
+                _tk = o.get("symbol") or o.get("ticker")
+                if _tk and o.get("phase"):
+                    ph_map.setdefault(str(_tk).upper(),
                                       {"phase": o.get("phase"),
                                        "flag": o.get("flag"),
                                        "top_score": o.get("top_score"),
