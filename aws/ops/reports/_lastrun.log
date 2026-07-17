@@ -1,15 +1,15 @@
-executing-against: de4d68381ea31ab3a21459ed6dba3e9d76bd7308
+executing-against: 2b333c869e15523c0778a6cfb40b6d7e3e0dba3e
 ops 3388 — GSSI math v2 + barometer
-PASS  G1_engine_240_settled — markers in zip
-[15:34:57] PASS  G1_engine_240_settled — markers in zip
+FAIL  G1_engine_240_settled — markers in zip
+[15:50:38] FAIL  G1_engine_240_settled — markers in zip
 FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
-[15:44:10] FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
+[15:59:50] FAIL  G2_v2_feed — latest={} pts=0 bc_tail_ok=[]
 FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
-[15:44:10] FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
+[15:59:50] FAIL  G3_detection — detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={"Lehman": {"v1": 198, "v2": null}, "COVID crash": {"v1": -10, "v2": null}, "Euro debt crisis (IT/ES)": {"v1": 61, "v2": null}} improved_or_equal=0/3
 PASS  G4_gauge_live — missing=[]
-[15:44:10] PASS  G4_gauge_live — missing=[]
+[15:59:50] PASS  G4_gauge_live — missing=[]
 
-VERDICT: GAPS: G2_v2_feed,G3_detection
-[15:44:10] VERDICT: GAPS: G2_v2_feed,G3_detection
+VERDICT: GAPS: G1_engine_240_settled,G2_v2_feed,G3_detection
+[15:59:50] VERDICT: GAPS: G1_engine_240_settled,G2_v2_feed,G3_detection
 
-→ Report written to aws/ops/reports/latest/3388_gssi_math_v2.md
+→ Report written to aws/ops/reports/latest/3389_gssi_math_v2_fix.md

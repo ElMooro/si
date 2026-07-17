@@ -1,0 +1,40 @@
+{
+  "gates": {
+    "G1_engine_240_settled": {
+      "ok": false,
+      "detail": "markers in zip"
+    },
+    "G2_v2_feed": {
+      "ok": false,
+      "detail": "latest={} pts=0 bc_tail_ok=[]"
+    },
+    "G3_detection": {
+      "ok": false,
+      "detail": "detected=0/14 (v1: 8/14) must_ok=False leads_v1_to_v2={\"Lehman\": {\"v1\": 198, \"v2\": null}, \"COVID crash\": {\"v1\": -10, \"v2\": null}, \"Euro debt crisis (IT/ES)\": {\"v1\": 61, \"v2\": null}} improved_or_equal=0/3"
+    },
+    "G4_gauge_live": {
+      "ok": true,
+      "detail": "missing=[]"
+    }
+  },
+  "comparison": {
+    "detected_v1": "8/14",
+    "detected_v2": "0/14",
+    "leads": {
+      "Lehman": {
+        "v1": 198,
+        "v2": null
+      },
+      "COVID crash": {
+        "v1": -10,
+        "v2": null
+      },
+      "Euro debt crisis (IT/ES)": {
+        "v1": 61,
+        "v2": null
+      }
+    },
+    "all_leads_v2": {}
+  },
+  "verdict": "GAPS: G1_engine_240_settled,G2_v2_feed,G3_detection"
+}
