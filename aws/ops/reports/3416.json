@@ -1,0 +1,87 @@
+{
+  "gates": {
+    "G0_all_settled": {
+      "ok": true,
+      "detail": "5 engines settled"
+    },
+    "G1_registry_schedule": {
+      "ok": true,
+      "detail": "exists"
+    },
+    "G2_registry": {
+      "ok": false,
+      "detail": "feeds=4077 stale=2595 worst=['data/secretary-history/2026-03-01_2026.json', 'data/secretary-history/2026-03-01_2027.json', 'data/secretary-history/2026-03-01_2028.json', 'data/secretary-history/2026-03-01_2045.json']"
+    },
+    "G3_squeeze_guard": {
+      "ok": true,
+      "detail": "book=6 excluded=[] risk_tagged=0"
+    },
+    "G4_jsi_src": {
+      "ok": false,
+      "detail": "jsi_pctile=50.0 src=default scale=1.0"
+    },
+    "G5_setups_context": {
+      "ok": false,
+      "detail": "sector_ctx=0/25 walls=0/25 playbook_rules=3 sample_pb=[{\"id\": \"tv-0a62c4e914bbe3e3\", \"symbol\": \"UNTAGGED\", \"family\": \"TIMING\", \"text\": \"[TV:UNTAGGED] ECONOMY CRASH LAGS YIELD"
+    }
+  },
+  "stale_top": [
+    {
+      "key": "data/secretary-history/2026-03-01_2026.json",
+      "age_h": 3309.4,
+      "sla_h": 48,
+      "size": 116313,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-01_2027.json",
+      "age_h": 3309.4,
+      "sla_h": 48,
+      "size": 116313,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-01_2028.json",
+      "age_h": 3309.3,
+      "sla_h": 48,
+      "size": 116332,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-01_2045.json",
+      "age_h": 3309.1,
+      "sla_h": 48,
+      "size": 123570,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-01_2056.json",
+      "age_h": 3308.9,
+      "sla_h": 48,
+      "size": 126543,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-02_0026.json",
+      "age_h": 3305.4,
+      "sla_h": 48,
+      "size": 127032,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-02_0426.json",
+      "age_h": 3301.4,
+      "sla_h": 48,
+      "size": 126263,
+      "stale": true
+    },
+    {
+      "key": "data/secretary-history/2026-03-02_0826.json",
+      "age_h": 3297.4,
+      "sla_h": 48,
+      "size": 130460,
+      "stale": true
+    }
+  ],
+  "verdict": "GAPS: G2_registry,G4_jsi_src,G5_setups_context"
+}

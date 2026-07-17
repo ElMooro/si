@@ -1,0 +1,20 @@
+# ops 3415 — joins wave 2
+
+**Status:** success  
+**Duration:** 139.8s  
+**Finished:** 2026-07-17T22:50:46+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `22:49:33` PASS  G0_all_settled — 5 engines settled
+- `22:49:33` PASS  G1_registry_schedule — exists
+- `22:50:16` FAIL  G2_registry — feeds=4077 stale=2595 worst=['data/secretary-history/2026-03-01_2026.json', 'data/secretary-history/2026-03-01_2027.json', 'data/secretary-history/2026-03-01_2028.json', 'data/secretary-history/2026-03-01_2045.json']
+- `22:50:18` PASS  G3_squeeze_guard — book=6 excluded=[] risk_tagged=0
+- `22:50:38` FAIL  G4_jsi_src — jsi_pctile=50.0 src=default scale=1.0
+- `22:50:46` FAIL  G5_setups_context — sector_ctx=0/25 walls=0/25 playbook_rules=3 sample_pb=[{"id": "tv-0a62c4e914bbe3e3", "symbol": "UNTAGGED", "family": "TIMING", "text": "[TV:UNTAGGED] ECONOMY CRASH LAGS YIELD
+- `22:50:46` VERDICT: GAPS: G2_registry,G4_jsi_src,G5_setups_context
