@@ -1,0 +1,55 @@
+{
+  "gates": {
+    "G1_pages_stamped_expected": {
+      "ok": false,
+      "detail": "{\"/why.html\": \"ok\", \"/index.html\": \"ok\", \"/capital-flow.html\": \"ok\", \"/chart-pro.html\": \"ok\"}"
+    },
+    "G2_bytes_identity": {
+      "ok": false,
+      "detail": "jh-nav-drawer.js:70248786 jh-page-ai.js:a62c53e1 auth.js:00f49db2 auth-config.js:ok interp-kit.js:c97a5881 jh-enhance.js:2d1133d3 cmdk.js:05f5380a jh-wire.js:83773466 jh-theme.css:ok"
+    },
+    "G3_auth_plan_self_delivered": {
+      "ok": true,
+      "detail": "http 200 marker=True"
+    },
+    "G4_drawer_dynamic_dep_baked": {
+      "ok": false,
+      "detail": "http 200 baked=False"
+    }
+  },
+  "mode": "topo",
+  "expected": {
+    "/jh-nav-drawer.js": "b6704cdb",
+    "/jh-page-ai.js": "fe2b5b4f",
+    "/auth.js": "d4f1d72a",
+    "/auth-config.js": "d35cea03",
+    "/interp-kit.js": "12c432c8",
+    "/jh-enhance.js": "37e6f51e",
+    "/cmdk.js": "7a714a7f",
+    "/jh-wire.js": "1332f898",
+    "/jh-theme.css": "5d68e84a"
+  },
+  "pages": {
+    "/why.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": false
+    },
+    "/index.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": false
+    },
+    "/capital-flow.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": false
+    },
+    "/chart-pro.html": {
+      "http": 200,
+      "unversioned_or_bad": [],
+      "key_ok": false
+    }
+  },
+  "verdict": "GAPS: G1_pages_stamped_expected,G2_bytes_identity,G4_drawer_dynamic_dep_baked"
+}

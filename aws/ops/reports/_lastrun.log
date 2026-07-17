@@ -1,13 +1,16 @@
-executing-against: 08797057cb63d7fc8947e3e99c8e10be2271080a
-ops 3369 — drawer client cache-pickup gates
-PASS  G1_pages_hash_stamped — stamps={'/why.html': 'a10a2abb', '/index.html': 'a10a2abb', '/capital-flow.html': 'a10a2abb'}
-[03:03:40] PASS  G1_pages_hash_stamped — stamps={'/why.html': 'a10a2abb', '/index.html': 'a10a2abb', '/capital-flow.html': 'a10a2abb'}
-PASS  G2_client_url_serves_tags — http 200 v=a10a2abb missing=[]
-[03:03:40] PASS  G2_client_url_serves_tags — http 200 v=a10a2abb missing=[]
-PASS  G3_stamp_matches_head — live=a10a2abb head_md5=a10a2abb
-[03:03:40] PASS  G3_stamp_matches_head — live=a10a2abb head_md5=a10a2abb
+executing-against: faedbc71c02f6fba524d4d0b4a2d845edd0657c6
+ops 3370 — content-addressed shared assets, fleet gates
+expected mode: topo | drawer b6704cdb auth d4f1d72a
+FAIL  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
+[03:18:17] FAIL  G1_pages_stamped_expected — {"/why.html": "ok", "/index.html": "ok", "/capital-flow.html": "ok", "/chart-pro.html": "ok"}
+FAIL  G2_bytes_identity — jh-nav-drawer.js:70248786 jh-page-ai.js:a62c53e1 auth.js:00f49db2 auth-config.js:ok interp-kit.js:c97a5881 jh-enhance.js:2d1133d3 cmdk.js:05f5380a jh-wire.js:83773466 jh-theme.css:ok
+[03:18:19] FAIL  G2_bytes_identity — jh-nav-drawer.js:70248786 jh-page-ai.js:a62c53e1 auth.js:00f49db2 auth-config.js:ok interp-kit.js:c97a5881 jh-enhance.js:2d1133d3 cmdk.js:05f5380a jh-wire.js:83773466 jh-theme.css:ok
+PASS  G3_auth_plan_self_delivered — http 200 marker=True
+[03:18:19] PASS  G3_auth_plan_self_delivered — http 200 marker=True
+FAIL  G4_drawer_dynamic_dep_baked — http 200 baked=False
+[03:18:19] FAIL  G4_drawer_dynamic_dep_baked — http 200 baked=False
 
-VERDICT: PASS_ALL
-[03:03:40] VERDICT: PASS_ALL
+VERDICT: GAPS: G1_pages_stamped_expected,G2_bytes_identity,G4_drawer_dynamic_dep_baked
+[03:18:19] VERDICT: GAPS: G1_pages_stamped_expected,G2_bytes_identity,G4_drawer_dynamic_dep_baked
 
-→ Report written to aws/ops/reports/latest/3369_drawer_cache_pickup.md
+→ Report written to aws/ops/reports/latest/3370_asset_cache_integrity.md
