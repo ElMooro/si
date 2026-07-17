@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "generated_at": "2026-07-17T23:28:38.957786+00:00",
+  "cost_bps": 10.0,
+  "families": {
+    "ignition": {
+      "verdict": "RETIRE",
+      "windows": {
+        "day_5": {
+          "n": 267,
+          "hit": 0.191,
+          "avg_pct": -9.093,
+          "med_pct": -6.663,
+          "flip_hit": 0.809,
+          "flip_hit_h1": 0.863,
+          "flip_hit_h2": 0.737,
+          "flip_avg_after_cost_pct": 8.993
+        },
+        "day_21": {
+          "n": 139,
+          "hit": 0.137,
+          "avg_pct": -13.176,
+          "med_pct": -13.982,
+          "flip_hit": 0.863,
+          "flip_hit_h1": 0.863,
+          "flip_hit_h2": null,
+          "flip_avg_after_cost_pct": 13.076
+        }
+      }
+    }
+  },
+  "method": "direction-normalized excess per window; flip=1-hit with 10bps cost haircut; INVERT needs n>=60 + flip_hit>=0.65 in BOTH time halves + flip day_21 >= +30bps after cost; hit<=5% with big |excess| = FIX (emitter bug); else RETIRE"
+}

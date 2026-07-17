@@ -1,8 +1,8 @@
-executing-against: 82cd7f449e15efec4be1fce7d6a2943ec891eeaa
-ops 3422 — quality census
-stale engine feeds: 55 of 60 stale · worst: _freshness-status.json(56d), eventbridge-audit.json(54d), system-audit.json(52d), congress-party-map.json(47d), _probe_shares.json(43d), history-index.json(39d), spx-history-deep.json(37d), regime-decisive-call.json(37d), market-internals-history.json(37d), quiver-lobbying-cache.json(36d), backtest-summary.json(36d), finviz-signals-state.json(31d), askdesk-config.json(30d), engine-manifest.json(27d)
-[23:22:46] stale engine feeds: 55 of 60 stale · worst: _freshness-status.json(56d), eventbridge-audit.json(54d), system-audit.json(52d), congress-party-map.json(47d), _probe_shares.json(43d), history-index.json(39d), spx-history-deep.json(37d), regime-decisive-call.json(37d), market-internals-history.json(37d), quiver-lobbying-cache.json(36d), backtest-summary.json(36d), finviz-signals-state.json(31d), askdesk-config.json(30d), engine-manifest.json(27d)
-negative-alpha families (n>=20): 156 · worst: nobrainer_XOP(IR -2.35,n20), eng:accumulation-radar(IR -1.31,n94), eng:radar-backtest(IR -1.19,n70), eng:smart-money-13f(IR -1.18,n34), eng:ai-infra-stack(IR -1.18,n125), ignition(IR -1.00,n390), eng:boom-radar(IR -0.94,n24), nobrainer_AIQ(IR -0.92,n29), eng:attention-signals(IR -0.90,n125), eng:finnhub-signals(IR -0.90,n166), eng:lead-lag-graph(IR -0.88,n125), eng:momentum-names(IR -0.85,n75)
-[23:22:46] negative-alpha families (n>=20): 156 · worst: nobrainer_XOP(IR -2.35,n20), eng:accumulation-radar(IR -1.31,n94), eng:radar-backtest(IR -1.19,n70), eng:smart-money-13f(IR -1.18,n34), eng:ai-infra-stack(IR -1.18,n125), ignition(IR -1.00,n390), eng:boom-radar(IR -0.94,n24), nobrainer_AIQ(IR -0.92,n29), eng:attention-signals(IR -0.90,n125), eng:finnhub-signals(IR -0.90,n166), eng:lead-lag-graph(IR -0.88,n125), eng:momentum-names(IR -0.85,n75)
+executing-against: f900e44b8fda077ff85121706e8eb29a60cfbafa
+ops 3423 — negative-alpha evidence study
+[study] pulled 902 signal rows for 10 families
+[23:28:38] rows=902
+ignition                     -> RETIRE d21 n=139 hit=0.137 flip_hit h1/h2=0.863/None flip_avg_ac=13.076%
+[23:28:38] ignition                     -> RETIRE d21 n=139 hit=0.137 flip_hit h1/h2=0.863/None flip_avg_ac=13.076%
 
-→ Report written to aws/ops/reports/latest/3422_quality_census.md
+→ Report written to aws/ops/reports/latest/3423_alpha_triage_study.md
