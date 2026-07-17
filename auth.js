@@ -114,6 +114,25 @@
           const plan = res && res.data && res.data.plan;
           if (plan) { currentTier = plan; return; }
         }
+        // ops 3366 (additive): server-authoritative fallback. The worker's
+        // /plan/self reads the Stripe-webhook KV cache + profiles via the
+        // service role — works even if client RLS reads are misconfigured.
+        if (supabase && currentUser && CFG.syncBase) {
+          try {
+            const tk = await Promise.race([
+              supabase.auth.getSession().then((r) => r.data.session && r.data.session.access_token),
+              new Promise((r) => setTimeout(() => r(null), 1500)),
+            ]);
+            if (tk) {
+              const pr = await Promise.race([
+                fetch(CFG.syncBase + "/plan/self", { headers: { "Authorization": "Bearer " + tk } })
+                  .then((r) => (r.ok ? r.json() : null)),
+                new Promise((r) => setTimeout(() => r(null), 2500)),
+              ]);
+              if (pr && pr.plan) { currentTier = pr.plan; return; }
+            }
+          } catch (e) {}
+        }
         currentTier = (currentUser && currentUser.user_metadata && currentUser.user_metadata.tier)
           || (currentUser && currentUser.app_metadata && currentUser.app_metadata.tier)
           || "free";

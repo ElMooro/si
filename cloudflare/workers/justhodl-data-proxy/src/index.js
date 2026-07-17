@@ -636,6 +636,32 @@ export default {
       } catch (e) { return null; }
     }
 
+    // GET /plan/self — server-authoritative plan for the signed-in user
+    // (ops 3366). KV edge cache first (written by the Stripe webhook), then
+    // profiles via service role, else "free". Client entitlement checks
+    // prefer this: it survives RLS/client-read misconfig entirely.
+    if (url.pathname === "/plan/self" && request.method === "GET") {
+      const pUid = await verifySupabaseUser();
+      if (!pUid) return jsonResp({ error: "auth required" }, 401);
+      let plan = null, src = "default";
+      try {
+        if (env.USER_DATA) {
+          plan = await env.USER_DATA.get("plan:" + pUid);
+          if (plan) src = "kv";
+        }
+      } catch (e) {}
+      if (!plan && env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY) {
+        try {
+          const pr = await fetch(env.SUPABASE_URL + "/rest/v1/profiles?id=eq." + pUid + "&select=plan", {
+            headers: { "apikey": env.SUPABASE_SERVICE_KEY,
+                       "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY } });
+          const rows = await pr.json().catch(() => null);
+          if (rows && rows[0] && rows[0].plan) { plan = rows[0].plan; src = "profiles"; }
+        } catch (e) {}
+      }
+      return jsonResp({ plan: (plan || "free"), src });
+    }
+
     // GET  /userdata/:uid           → returns stored JSON blob for user
     // PUT  /userdata/:uid {json}    → stores JSON blob for user
     // Keyed by anonymous device UID generated client-side. Backed by KV.
@@ -813,17 +839,20 @@ export default {
           plan = (obj.metadata && obj.metadata.plan) || "pro";
         }
         if (userId && plan) {
-          // Update Supabase profiles.plan via REST (service role bypasses RLS)
-          await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
-            method: "PATCH",
+          // ops 3366: UPSERT (not PATCH). A PATCH with id=eq matches 0 rows if
+          // the profile row doesn't exist yet (e.g. signup trigger not
+          // installed, or user pre-dates it) and the paid plan is silently
+          // lost. on_conflict=id + merge-duplicates creates-or-updates.
+          await fetch(`${env.SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
+            method: "POST",
             headers: {
               "apikey": env.SUPABASE_SERVICE_KEY,
               "Authorization": "Bearer " + env.SUPABASE_SERVICE_KEY,
               "Content-Type": "application/json",
-              "Prefer": "return=minimal",
+              "Prefer": "resolution=merge-duplicates,return=minimal",
             },
-            body: JSON.stringify({ plan,
-              stripe_customer_id: obj.customer || null }),
+            body: JSON.stringify(Object.assign({ id: userId, plan },
+              obj.customer ? { stripe_customer_id: obj.customer } : {})),
           });
           // cache entitlement at the edge for fast gating
           if (env.USER_DATA) {
