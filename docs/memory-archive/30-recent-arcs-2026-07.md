@@ -37,3 +37,20 @@ Once FRESH_GUARD delivered the real page, browser console showed the true blocke
 1. ⚠️ **benzinga Function URL DOUBLED ACAO**: `Access-Control-Allow-Origin: '*, https://justhodl.ai'` (browser rejects multi-value). CAUSE: Lambda Function URL native CORS (AllowOrigins ['*']) AND the handler code BOTH emit Access-Control-Allow-* → they stack. FIX: handler now returns ONLY {Content-Type}; Function URL native CORS is SOLE owner. ⭐ DOCTRINE: when a Lambda has Function-URL native CORS, the handler must NOT also set Access-Control-* headers or they double. (urllib doesn't merge them so ops 3333 missed it — only a real browser shows the doubled header.)
 2. ⚠️ **data-proxy /userdata/self preflight rejected Authorization**: worker corsHeaders() Allow-Headers lacked 'Authorization' but /userdata/self REQUIRES Authorization: Bearer <jwt> (line ~620). FIX: added Authorization to Access-Control-Allow-Headers in cloudflare/workers/justhodl-data-proxy/src/index.js. (This runs on EVERY page via drawer account-sync, so the error was noisy site-wide, not benzinga-specific.)
 VERIFIED: benzinga ACAO single-value (justhodl.ai) 200; /userdata/self OPTIONS 204 w/ Authorization allowed. benzinga.html now loads fully. Next ops 3341.
+
+---
+
+## ops 3366–3367 — Supabase per-user layer: install verify + 3 live defects fixed (2026-07-17)
+
+VERIFIED CORRECT (runner-side real requests): project bdmjenqcyvzouusfcgow alive (GoTrue v2.193.0); justhodl.ai/auth-config.js live + matches repo (enabled:true); **profiles table EXISTS with RLS ON** (anon filtered); email confirmations ON (prod-correct); /stripe-webhook signature enforced + worker secrets present (400 unsigned, not 503); /billing-portal 401 unauth; /create-checkout returns live checkout.stripe.com URL carrying metadata[plan]; anon device /userdata roundtrip intact.
+
+FIXED (were live defects):
+1. **`/userdata/self` returned 400 BEFORE auth** — uid "self" (4 chars) failed the length gate ahead of Bearer verify, so the drawer's signed-in favorites/theme sync (SYNC_URL=/userdata/self) was a **silent no-op** (client swallows errors). ⚠️ corrects 3292 memory: "tokenless=403 proven" was wrong — it was 400, and the authed path was equally dead. Now: `self` exempt from length gate, binds to verified uid, **unauthed self = hard 401** (no anon:self bucket possible). Re-gated ops 3367 PASS_ALL (tokenless 401, garbage-Bearer 401 on self AND ≥8-char uids, anon roundtrip intact, short-uid 400 kept).
+2. **Webhook PATCH→UPSERT**: `PATCH profiles?id=eq.` matches 0 rows when the profile row doesn't exist → paid plan silently lost. Now POST `on_conflict=id` + `Prefer: resolution=merge-duplicates`; stripe_customer_id only set when present.
+3. **NEW worker `GET /plan/self`** (Bearer → KV `plan:<uid>` → profiles via service role → "free") + additive auth.js `_loadTier` fallback = server-authoritative plan that survives any client/RLS misconfig.
+
+Repo gains `supabase/setup.sql` — idempotent DDL (profiles + RLS select-own + signup trigger auto-creating rows + backfill + sanity readout).
+
+PENDING KHALID (once, 30s): Supabase → SQL Editor → paste supabase/setup.sql → Run. Guarantees the **signup trigger** (only unproven leaf — confirm-ON blocked the JWT gate) + backfills existing users. Later, when plans are defined: create real Stripe products → add price IDs to `stripePrices` map in auth-config.js, swap pk_test→live, and register `https://justhodl-data-proxy.raafouis.workers.dev/stripe-webhook` in the Stripe dashboard. Entitlements map (free/pro/elite feature sets) already in auth.js awaiting his tier definitions.
+
+Next ops 3368.
