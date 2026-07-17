@@ -49,6 +49,8 @@ import boto3
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
+HIST_KEY = "data/sovereign-stress-history.json"
+VERSION = "2.0.0"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -92,6 +94,16 @@ WGB_SOVEREIGNS = {                      # display key -> WGB country slug
     "hong_kong": "hong-kong",
     "taiwan": "taiwan",
 }
+# ops 3384: WGB works for any covered sovereign - extend beyond Asia.
+WGB_EXTRA = {"chile": "chile", "peru": "peru", "netherlands": "netherlands"}
+WGB_REGION = {"south_korea": "Asia-Pacific", "singapore": "Asia-Pacific",
+              "hong_kong": "Asia-Pacific", "taiwan": "Asia-Pacific",
+              "chile": "Latin America", "peru": "Latin America",
+              "netherlands": "Europe"}
+COUNTRY_ETF = {"south_korea": "EWY", "singapore": "EWS", "hong_kong": "EWH",
+               "taiwan": "EWT", "chile": "ECH", "peru": "EPU",
+               "netherlands": "EWN", "germany": "EWG", "france": "EWQ",
+               "italy": "EWI", "spain": "EWP", "greece": "GREK"}
 WGB_ENDPOINT = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"
 WGB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
           "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
@@ -377,14 +389,12 @@ def lambda_handler(event, context):
     # Live 10Y yield, sovereign CDS, spread-vs-Bund, rating and CB rate for SG/HK/TW/KR.
     # Sovereign stress score 0-100 = blend of CDS level (primary — direct default pricing),
     # spread-vs-Bund, and yield level. CDS is the best single sovereign-stress gauge.
-    asia_sov = {}
-    for name, slug in WGB_SOVEREIGNS.items():
+    def wgb_entry(name, slug):
         try:
             d = wgb_country(slug)
             if not d or d.get("bond10y_pct") is None:
-                asia_sov[name] = {"data_unavailable": True, "source": "WGB " + slug}
-                errors.append(f"AsiaSov/{name}: WGB empty")
-                continue
+                errors.append(f"WGBSov/{name}: WGB empty")
+                return {"data_unavailable": True, "source": "WGB " + slug}
             cds = d.get("cds_bp")
             spread = d.get("spread_vs_bund_bp")
             y = d.get("bond10y_pct")
@@ -399,7 +409,7 @@ def lambda_handler(event, context):
             parts = [(cds_stress, 0.5), (spr_stress, 0.3), (yld_stress, 0.2)]
             live = [(s, w) for s, w in parts if s is not None]
             score = round(sum(s * w for s, w in live) / sum(w for _, w in live), 1) if live else None
-            asia_sov[name] = {
+            return {
                 "sovereign_10y_yield_pct": y,
                 "cds_bp": cds,
                 "cds_default_prob_pct": d.get("cds_default_prob_pct"),
@@ -412,8 +422,15 @@ def lambda_handler(event, context):
                 "basis": "10Y yield + sovereign CDS + spread-vs-Bund (World Government Bonds)",
             }
         except Exception as e:
-            asia_sov[name] = {"data_unavailable": True}
-            errors.append(f"AsiaSov/{name}: {str(e)[:50]}")
+            errors.append(f"WGBSov/{name}: {str(e)[:50]}")
+            return {"data_unavailable": True}
+
+    asia_sov = {name: wgb_entry(name, slug) for name, slug in WGB_SOVEREIGNS.items()}
+    wgb_all = {}
+    for name, slug in {**WGB_SOVEREIGNS, **WGB_EXTRA}.items():
+        e = asia_sov.get(name) or wgb_entry(name, slug)
+        wgb_all[name] = dict(e, region=WGB_REGION.get(name, "Other"),
+                             etf=COUNTRY_ETF.get(name))
 
     if any(isinstance(v, dict) and v.get("stress_0_100") is not None for v in asia_sov.values()):
         sources.append("World Government Bonds — Asian sovereign 10Y yields, CDS & spreads")
@@ -606,10 +623,73 @@ def lambda_handler(event, context):
         "cds_proxy_regime": cdsp.get("regime"),
     }
 
+    # ══ ops 3384 — HISTORY LEDGER (trend > level) + Δ + transition signals ══
+    deltas, signals_fired = {}, []
+    try:
+        ledger = read_existing(HIST_KEY) or {"rows": []}
+        rows = ledger.get("rows") or []
+        today = now.date().isoformat()
+        snap_countries = {}
+        for name, e in wgb_all.items():
+            if isinstance(e, dict) and e.get("stress_0_100") is not None:
+                snap_countries[name] = {"s": e["stress_0_100"], "cds": e.get("cds_bp")}
+        for name, sc in country_scores.items():
+            snap_countries.setdefault(name, {})["comp"] = sc
+        row = {"date": today, "europe": europe_score, "countries": snap_countries}
+        if rows and rows[-1].get("date") == today:
+            rows[-1] = row
+        else:
+            rows.append(row)
+        rows = rows[-400:]
+        s3.put_object(Bucket=S3_BUCKET, Key=HIST_KEY,
+                      Body=json.dumps({"rows": rows}, separators=(",", ":")).encode(),
+                      ContentType="application/json", CacheControl="max-age=300")
+
+        def back(k):
+            return rows[-1 - k] if len(rows) > k else None
+
+        for name in set(list(wgb_all) + list(country_scores)):
+            cur = (snap_countries.get(name) or {})
+            curv = cur.get("s", cur.get("comp"))
+            if curv is None:
+                continue
+            d5r, d21r = back(5), back(21)
+            def _pull(r):
+                c = ((r or {}).get("countries") or {}).get(name) or {}
+                return c.get("s", c.get("comp"))
+            p5, p21 = _pull(d5r), _pull(d21r)
+            deltas[name] = {"d5": (round(curv - p5, 1) if p5 is not None else None),
+                            "d21": (round(curv - p21, 1) if p21 is not None else None)}
+
+        # transition signal: sovereign crossing hot (>=65) with velocity (Δ5>=10)
+        try:
+            from signals_emit import log_signal, yprice
+            tbl = None
+            for name, e in wgb_all.items():
+                etf = e.get("etf") if isinstance(e, dict) else None
+                sc = (e or {}).get("stress_0_100")
+                d5 = (deltas.get(name) or {}).get("d5")
+                if etf and sc is not None and sc >= 65 and d5 is not None and d5 >= 10:
+                    if tbl is None:
+                        tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+                    pr = yprice(etf)
+                    ok = log_signal(tbl, "sov-stress-spike", etf, "DOWN", [5, 21], pr,
+                                    confidence=0.55, benchmark="SPY",
+                                    rationale=f"{name} sovereign stress {sc} (+{d5} in 5d) - CDS/spread/yield composite",
+                                    signal_value=str(sc),
+                                    metadata={"engine": "sovereign-stress", "country": name})
+                    if ok:
+                        signals_fired.append({"country": name, "etf": etf, "score": sc, "d5": d5})
+        except Exception as e:
+            errors.append(f"signals: {str(e)[:60]}")
+    except Exception as e:
+        errors.append(f"ledger: {str(e)[:60]}")
+
     core_ok = bool(ciss) and bool(sov) and (bool(unemployment)
                                             or bool(industrial))
     out = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
+        "version": VERSION,
         "method": "sovereign_systemic_stress",
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
@@ -631,6 +711,10 @@ def lambda_handler(event, context):
         "unemployment": unemployment,
         "industrial_production": industrial,
         "country_stress_scores": country_scores,
+        "wgb_sovereigns": wgb_all,
+        "deltas": deltas,
+        "signals_fired": signals_fired,
+        "history_key": HIST_KEY,
         "cross_reference": cross,
         "sources": sources,
         "errors": errors,

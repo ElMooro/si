@@ -149,3 +149,11 @@ Next ops 3382.
 Engine v1.9.2: build_spine_series returns 6th element sparks — per-comp mapped stress sub-scores z_to_stress((xform-mu)/sd*pol), last 780 daily present pts stride-5 (~156 weekly) + today appended; emitted payload.spine_sparks {sid:{label,points[{d,v}]}}. ⚠️ early-return tuple must grow too ([], [], {}, [], mode, {}). PAGE: (1) #v2-atlas-regimes full table CALM→CRISIS reusing decile cell(), current regime ◀ now highlighted; (2) spineRow gains .jsi-sparkslot span; renderSparks() fills 90×22 min-max-normalized polyline, stroke=stressColor(latest), title=3y range — called after spine-list innerHTML; (3) #kpi-record-dist under max-date: pts-below-record · %-of-peak · highest-since (backward scan of d._daily), AT-RECORD state red. Harness 17 behaviors PASS_ALL.
 
 Next ops 3384.
+
+---
+
+## ops 3384 — SOVEREIGN STRESS v2.0.0 (2026-07-17): CL/PE/NL + ledger + league + coverage
+
+Engine: WGB module generalized — shared wgb_entry(name,slug); NEW wgb_sovereigns (7: KR/SG/HK/TW + chile/peru/netherlands) w/ WGB_REGION + COUNTRY_ETF (ECH/EPU/EWN/EWY/EWS/EWH/EWT/EWG/EWQ/EWI/EWP/GREK); asia_sovereigns UNCHANGED (page back-compat). HISTORY LEDGER data/sovereign-stress-history.json (rows[{date,europe,countries:{name:{s,cds,comp}}}] 400d, same-day replace) → deltas{d5,d21}. Transition signals via shared signals_emit: score≥65 & Δ5≥+10 → country-ETF DOWN [5,21] (sov-stress-spike). Payload +version/wgb_sovereigns/deltas/signals_fired/history_key, schema 2.0. PAGE (all legacy kept): 🌐 bond desk region-grouped (flags/rating/ETF/CDS+dflt-prob/CB rate, Δ5 chips, 📡 signal banner), 🏆 league table (bond-desk|SovCISS|composite unified + 60-session sparks from ledger), 📈 markets card (VIX/S&P/spreads + bond_market_read — WERE NEVER DISPLAYED), 🔗 cross-checks + src-meta (version·sources·errors·runtime), synth-read para into hero (JS-created). Coverage now total. ⚠️ heredoc python triple-quote replace() with ''' blocks = SyntaxError trap → write patch to /tmp/*.py file instead. Harness sov.js 13 behaviors.
+
+Next ops 3385.

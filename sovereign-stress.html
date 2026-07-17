@@ -92,6 +92,27 @@
 </section>
 
 <section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="card p-5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <div>
+        <div class="eyebrow mb-1">🌐 Global Sovereign Bond Desk</div>
+        <p class="text-xs text-[var(--text-muted)] mb-3">Live 10-year yield, sovereign CDS (default pricing), spread-vs-Bund, rating and central-bank rate — Europe, Latin America and Asia-Pacific on one desk. Δ5d from the daily ledger.</p>
+      </div>
+      <div id="sov-signals-banner"></div>
+    </div>
+    <div id="wgb-desk"></div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="card p-5">
+    <div class="eyebrow mb-1">🏆 Sovereign League Table · every gauge, one ranking</div>
+    <p class="text-xs text-[var(--text-muted)] mb-3">All sovereigns across all three measurement systems — bond-desk stress (CDS/spread/yield), ECB SovCISS percentile, and the real-economy composite — with 60-session trend and 5-day change.</p>
+    <div id="sov-league" class="mono text-xs" style="overflow-x:auto"></div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="card p-5">
       <div class="eyebrow mb-1">SovCISS · sovereign systemic stress by country</div>
@@ -125,6 +146,23 @@
       <div class="eyebrow mb-1">Real economy · the soft underbelly</div>
       <p class="text-xs text-[var(--text-muted)] mb-3">Unemployment and industrial production — the slower-moving stress channel.</p>
       <div id="econ-list"></div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card p-5">
+      <div class="eyebrow mb-1">📈 Market Stress &amp; Sovereign Spreads</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">The equity channel and cross-market sovereign spreads the engine watches alongside the systemic gauges.</p>
+      <div id="mkt-list"></div>
+      <div id="bond-read" class="text-xs text-[var(--text-secondary)] mt-3 leading-relaxed"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-1">🔗 Cross-Checks · the rest of the fleet</div>
+      <p class="text-xs text-[var(--text-muted)] mb-3">Independent JustHodl engines reading the same world — agreement here is signal, disagreement is information.</p>
+      <div id="cross-list"></div>
+      <div id="src-meta" class="text-[10px] text-[var(--text-muted)] mono mt-3"></div>
     </div>
   </div>
 </section>
@@ -232,11 +270,105 @@ function render(d) {
       <div class="mono text-xs">ind.prod <span style="color:${iColor}">${i.yoy_pct>=0?'+':''}${fmt(i.yoy_pct,1)}%</span> <span class="text-[var(--text-muted)]">YoY</span></div>
     </div>`;
   }).join('') || '<div class="text-xs text-[var(--text-muted)]">no real-economy data</div>';
+
+  try { renderSovV2(d); } catch(e) { console.error('[sov v2]', e); }
 }
 
-fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress.json?ts=' + Date.now())
-  .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(render)
+/* ═══ SOV_V2 (ops 3384) — global desk · league · markets · cross-refs ═══ */
+const FLAG = {netherlands:'🇳🇱',chile:'🇨🇱',peru:'🇵🇪',south_korea:'🇰🇷',singapore:'🇸🇬',hong_kong:'🇭🇰',taiwan:'🇹🇼',germany:'🇩🇪',france:'🇫🇷',italy:'🇮🇹',spain:'🇪🇸',greece:'🇬🇷',portugal:'🇵🇹',finland:'🇫🇮'};
+function sovSpark(rows, name){
+  const vs=[]; (rows||[]).slice(-60).forEach(r=>{const c=((r.countries||{})[name])||{}; const v=c.s!=null?c.s:c.comp; if(v!=null) vs.push(v);});
+  if (vs.length<5) return '';
+  const mn=Math.min(...vs), mx=Math.max(...vs), rg=(mx-mn)||1, n=vs.length;
+  let dd=`M 1 ${(20-((vs[0]-mn)/rg)*16).toFixed(1)}`;
+  for(let i=1;i<n;i++) dd+=` L ${((i/(n-1))*66+1).toFixed(1)} ${(20-((vs[i]-mn)/rg)*16).toFixed(1)}`;
+  const col=stressColor(vs[n-1]);
+  return `<svg width="68" height="22" viewBox="0 0 68 22"><path d="${dd}" fill="none" stroke="${col}" stroke-width="1.2" opacity="0.85"/><circle cx="${((n-1)/(n-1))*66+1}" cy="${(20-((vs[n-1]-mn)/rg)*16).toFixed(1)}" r="1.8" fill="${col}"/></svg>`;
+}
+function dchip(dl){
+  if (!dl || dl.d5==null) return '';
+  const c = dl.d5>0.5?'var(--red)':dl.d5<-0.5?'var(--green)':'var(--text-muted)';
+  return `<span class="mono" style="color:${c};font-size:.66rem;margin-left:6px">${dl.d5>0?'+':''}${dl.d5} 5d</span>`;
+}
+function renderSovV2(d){
+  /* synthesis read + signals banner (hero, JS-created) */
+  try {
+    let sr = document.getElementById('synth-read');
+    if (!sr) { sr = document.createElement('p');
+      sr.id='synth-read'; sr.className='text-xs max-w-3xl leading-relaxed mt-2';
+      sr.style.color='var(--text-muted)';
+      document.getElementById('headline').after(sr); }
+    sr.textContent = (d.europe_stress||{}).read || '';
+  } catch(e){}
+  const sf = d.signals_fired||[];
+  document.getElementById('sov-signals-banner').innerHTML = sf.length
+    ? sf.map(x=>`<span class="badge" style="border:1px solid var(--red);color:var(--red)">📡 ${cap(x.country)} spike → ${x.etf} DOWN logged</span>`).join(' ')
+    : '';
+
+  /* global bond desk, grouped by region */
+  const wg = d.wgb_sovereigns || {};
+  const groups = {};
+  Object.entries(wg).forEach(([n,c])=>{ (groups[c.region||'Other']=groups[c.region||'Other']||[]).push([n,c]); });
+  const order = ['Europe','Latin America','Asia-Pacific','Other'].filter(r=>groups[r]);
+  document.getElementById('wgb-desk').innerHTML = order.map(rg=>{
+    const rows = groups[rg].sort((a,b)=>((b[1].stress_0_100||0)-(a[1].stress_0_100||0)));
+    return `<div class="eyebrow mt-3 mb-1 first:mt-0" style="color:var(--blue)">${rg}</div>` + rows.map(([name,c])=>{
+      if (c.data_unavailable) return `<div class="row" style="grid-template-columns:1.3fr 3fr auto"><div class="text-sm font-medium">${FLAG[name]||''} ${cap(name)}</div><div class="text-xs text-[var(--text-muted)]">data unavailable</div><div><span class="badge" style="border:1px solid var(--text-muted);color:var(--text-muted)">N/A</span></div></div>`;
+      const sv = c.stress_0_100||0;
+      return `<div class="row">
+        <div><div class="text-sm font-medium">${FLAG[name]||''} ${cap(name)} ${c.rating?`<span class="badge" style="border:1px solid var(--blue);color:var(--blue);margin-left:4px">${c.rating}</span>`:''} ${c.etf?`<span class="badge" style="border:1px solid var(--border-soft);color:var(--text-muted);margin-left:2px">${c.etf}</span>`:''}</div>
+          <div class="text-[10px] text-[var(--text-muted)] mono">10Y ${fmt(c.sovereign_10y_yield_pct,2)}% · CDS ${c.cds_bp!=null?fmt(c.cds_bp,0)+'bp':'—'}${c.cds_default_prob_pct!=null?` (${fmt(c.cds_default_prob_pct,2)}% dflt)`:''} · vs Bund ${c.spread_vs_bund_bp!=null?(c.spread_vs_bund_bp>=0?'+':'')+fmt(c.spread_vs_bund_bp,0)+'bp':'—'} · CB ${fmt(c.cb_rate_pct,2)}%</div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${sv}%;background:${stressColor(sv)}"></div></div>
+        <div class="mono text-sm" style="color:${stressColor(sv)};min-width:52px;text-align:right">${fmt(sv,0)}${dchip((d.deltas||{})[name])}</div>
+        <div><span class="badge" style="border:1px solid ${statusColor(c.status)};color:${statusColor(c.status)}">${c.status||''}</span></div>
+      </div>`;
+    }).join('');
+  }).join('') || '<div class="text-xs text-[var(--text-muted)]">bond desk loading…</div>';
+
+  /* league table across all three gauges */
+  const sov = d.sovereign_stress_sovciss||{}, cs = d.country_stress_scores||{};
+  const names = [...new Set([...Object.keys(wg), ...Object.keys(sov).filter(k=>k!=='euro_area'), ...Object.keys(cs)])];
+  const league = names.map(n=>{
+    const w=(wg[n]||{}).stress_0_100, sp=(sov[n]||{}).percentile_5y, cp=cs[n];
+    const best = Math.max(...[w,sp,cp].filter(v=>v!=null), 0);
+    return {n, w, sp, cp, best};
+  }).sort((a,b)=>b.best-a.best);
+  document.getElementById('sov-league').innerHTML =
+    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Sovereign</th><th class="px-2 py-1 text-right">Bond desk</th><th class="px-2 py-1 text-right">SovCISS pct</th><th class="px-2 py-1 text-right">Composite</th><th class="px-2 py-1 text-right">Δ5d</th><th class="px-2 py-1 text-right">60-session</th></tr></thead><tbody>` +
+    league.map(r=>{
+      const dl=(d.deltas||{})[r.n]||{};
+      const cell=v=> v!=null?`<td class="px-2 py-1 text-right" style="color:${stressColor(v)}">${fmt(v,0)}</td>`:'<td class="px-2 py-1 text-right" style="color:var(--text-muted)">—</td>';
+      return `<tr><td class="px-2 py-1" style="color:var(--text-primary)">${FLAG[r.n]||''} ${cap(r.n)}</td>${cell(r.w)}${cell(r.sp)}${cell(r.cp)}<td class="px-2 py-1 text-right" style="color:${dl.d5>0.5?'var(--red)':dl.d5<-0.5?'var(--green)':'var(--text-muted)'}">${dl.d5!=null?(dl.d5>0?'+':'')+dl.d5:'—'}</td><td class="px-2 py-1 text-right">${sovSpark(d._hist, r.n)}</td></tr>`;
+    }).join('')+`</tbody></table>`;
+
+  /* markets & spreads */
+  const eq = d.equity_market_stress||{}, sp = d.sovereign_spreads||{};
+  let mk='';
+  if (eq.vix) mk += `<div class="row" style="grid-template-columns:1.3fr 2fr auto"><div class="text-sm font-medium">VIX</div><div class="mono text-xs text-[var(--text-secondary)]">level ${fmt(eq.vix.level,2)}${eq.vix.percentile_3y!=null?` · ${fmt(eq.vix.percentile_3y,0)}th pct 3y`:''}</div><div><span class="badge" style="border:1px solid ${statusColor(eq.vix.status)};color:${statusColor(eq.vix.status)}">${eq.vix.status||''}</span></div></div>`;
+  if (eq.sp500) mk += `<div class="row" style="grid-template-columns:1.3fr 2fr auto"><div class="text-sm font-medium">S&amp;P 500</div><div class="mono text-xs text-[var(--text-secondary)]">${Object.entries(eq.sp500).filter(([k,v])=>typeof v==='number').map(([k,v])=>`${k.replace(/_/g,' ')} ${fmt(v,1)}`).join(' · ')}</div><div></div></div>`;
+  Object.entries(sp).forEach(([label,c])=>{
+    if (!c || typeof c!=='object') return;
+    const nums = Object.entries(c).filter(([k,v])=>typeof v==='number').slice(0,4);
+    mk += `<div class="row" style="grid-template-columns:1.3fr 2fr auto"><div class="text-sm font-medium">${cap(label)}</div><div class="mono text-xs text-[var(--text-secondary)]">${nums.map(([k,v])=>`${k.replace(/_/g,' ')} ${fmt(v,2)}`).join(' · ')||'—'}</div><div></div></div>`;
+  });
+  document.getElementById('mkt-list').innerHTML = mk || '<div class="text-xs text-[var(--text-muted)]">no market data</div>';
+  document.getElementById('bond-read').textContent = d.bond_market_read || '';
+
+  /* cross-refs + sources meta */
+  const cx = d.cross_reference||{};
+  document.getElementById('cross-list').innerHTML = Object.entries(cx).map(([k,v])=>
+    `<div class="row" style="grid-template-columns:2fr 1fr"><div class="text-sm">${cap(k)}</div><div class="mono text-sm text-right" style="color:${typeof v==='number'?stressColor(v):'var(--text-secondary)'}">${v!=null?(typeof v==='number'?fmt(v,1):v):'—'}</div></div>`).join('')
+    || '<div class="text-xs text-[var(--text-muted)]">no cross-references</div>';
+  document.getElementById('src-meta').textContent =
+    `v${d.version||d.schema_version} · ${(d.sources||[]).length} live sources · ${(d.errors||[]).length} feed errors · run ${d.elapsed_s??'—'}s`;
+}
+
+Promise.all([
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress.json?ts=' + Date.now())
+    .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress-history.json?ts=' + Date.now())
+    .then(r => r.ok ? r.json() : null).catch(() => null)
+]).then(([d, h]) => { if (h && h.rows) d._hist = h.rows; render(d); })
   .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
 </script>
 <script src="/jh-nav-drawer.js" defer></script>
