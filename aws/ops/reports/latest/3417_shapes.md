@@ -1,0 +1,17 @@
+# ops 3417 — shapes
+
+**Status:** success  
+**Duration:** 0.4s  
+**Finished:** 2026-07-17T22:54:01+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `22:54:01` data/jsi-history.json → {"top": ["generated_at", "series"], "sample": {"series": {"d": "1990-01-02", "v": 54.8}}}
+- `22:54:01` data/sector-flow-state.json → {"top": ["engine", "version", "generated_at", "liquidity_regime", "cycle_phase", "n_sectors", "overweight", "underweight", "sectors", "methodology"], "sample": {"sectors": {"symbol": "XLF", "name": "Financials", "conviction": 99.2, "posture": "OVERWEIGHT", "quadrant": "Improving", "confluence": 6, "drivers": "['RRG Improving', 'flow stron
+- `22:54:01` data/options-gamma.json → {"top": ["generated_at", "underlying", "spot", "vix", "regime", "interpretation", "total_gex", "by_expiry", "by_strike", "zero_gamma_strike"], "sample": null}
+- `22:54:01` data/dealer-gex.json → {"top": ["generated_at", "generated_at_unix", "version", "elapsed_seconds", "calculation_config", "market_composite", "squeeze_candidates", "underlyings"], "sample": {"squeeze_candidates": {"symbol": "TSLA", "score": 90, "gex_billions": -0.507, "pcr_oi": 0.661, "spot": 391.06, "regime": "NEGATIVE_GAMMA"}}}
