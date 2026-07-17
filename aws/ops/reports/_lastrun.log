@@ -1,16 +1,9 @@
-executing-against: f82d8707290494b4e4e74de16bd9f0b5e1c07090
-ops 3408 — short & avoid book
-PASS  G1_deployed — settled + marker
-[21:57:24] PASS  G1_deployed — settled + marker
-PASS  G2_schedule — created
-[21:57:24] PASS  G2_schedule — created
-invoke: 200 None
-FAIL  G3_book_graded — book=6 logged_today=0 top=[('WDC', 45, 'XLK'), ('BLK', 40, 'SPY'), ('JEF', 40, 'SPY'), ('SNDK', 35, 'XLK'), ('SNPS', 30, 'XLK')]
-[21:57:27] FAIL  G3_book_graded — book=6 logged_today=0 top=[('WDC', 45, 'XLK'), ('BLK', 40, 'SPY'), ('JEF', 40, 'SPY'), ('SNDK', 35, 'XLK'), ('SNPS', 30, 'XLK')]
-PASS  G4_page_live — missing=[]
-[21:59:40] PASS  G4_page_live — missing=[]
+executing-against: 39bf7c1bada5fd94d73548eb0df9160ec2eb7903
+ops 3409 — short-book regate
+PASS  G3_book_graded — feed.logged=6 ddb_paginated_today=6 book=6
+[22:02:52] PASS  G3_book_graded — feed.logged=6 ddb_paginated_today=6 book=6
 
-VERDICT: GAPS: G3_book_graded
-[21:59:40] VERDICT: GAPS: G3_book_graded
+VERDICT: PASS_ALL
+[22:02:52] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3408_short_book.md
+→ Report written to aws/ops/reports/latest/3409_shortbook_regate.md
