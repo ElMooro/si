@@ -64,7 +64,7 @@ with report("3364_ignition_filed_quarter") as r:
     env = LAM.get_function_configuration(FunctionName=FN).get("Environment", {}).get("Variables", {})
     cfg = LAM.get_function_configuration(FunctionName=FN)
     deploy_lambda(report=r, function_name=FN,
-                  source_dir=str(ROOT / "lambdas" / FN / "source"),
+                  source_dir=ROOT / "lambdas" / FN / "source",
                   env_vars=env, timeout=cfg["Timeout"], memory=cfg["MemorySize"],
                   description="Ignition v1.1.0 — inst lens pinned to fully-filed 13F quarter (ops 3364)",
                   create_function_url=False, smoke=False)
