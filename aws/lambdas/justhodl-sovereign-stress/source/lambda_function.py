@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.4.2"
+VERSION = "2.4.3"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -593,7 +593,7 @@ def build_gssi(errors):
             round(100.0 * sum(1 for sv in svals if sv >= 70)
                   / len(svals), 1) if svals else None)
 
-        vals = [(grid[i], round(series[i], 2)) for i in range(n)
+    vals = [(grid[i], round(series[i], 2)) for i in range(n)
             if series[i] is not None]
     dts = [d for d, _ in vals]
     vs = [v for _, v in vals]
