@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/feed-registry.json"
 WEEKLY_HINTS = ("13f", "weekly", "cot", "clone", "playbook", "wl-", "brain",
@@ -33,6 +33,10 @@ def lambda_handler(event, context):
         for o in r.get("Contents", []):
             k = o["Key"]
             if not k.endswith(".json"):
+                continue
+            if any(seg in k for seg in ("data/archive/", "data/_alerts/",
+                                        "data/reports/", "data/history/",
+                                        "data/userdata/", "backup")):
                 continue
             age_h = round((now - o["LastModified"]).total_seconds() / 3600, 1)
             sla = 24 * 8 if any(h in k for h in WEEKLY_HINTS) else 48

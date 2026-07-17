@@ -34,7 +34,7 @@ from decimal import Decimal
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/proven-portfolio.json"
 HIST_KEY = "data/proven-portfolio-history.json"
@@ -185,6 +185,20 @@ def lambda_handler(event, context):
             return None
         _pv = _pw(jsi)
         _psrc = "walker" if _pv is not None else "default"
+    if _pv is None:
+        try:
+            _h = rj("data/jsi-history.json")
+            _rows = _h.get("rows") or _h.get("series") or _h if isinstance(_h, list) else []
+            _vals = [float(r.get("v") if isinstance(r, dict) else r)
+                     for r in _rows
+                     if (r.get("v") if isinstance(r, dict) else r) is not None]
+            if len(_vals) > 500:
+                import bisect as _b
+                _cur = _vals[-1]
+                _pv = _b.bisect_right(sorted(_vals), _cur) / len(_vals) * 100.0
+                _psrc = "jsi-history.self"
+        except Exception:
+            pass
     if _pv is None:
         _pv = 50.0
     gssi = ((rj("data/sovereign-gssi.json").get("latest") or {}).get("gssi")

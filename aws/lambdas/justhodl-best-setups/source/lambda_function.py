@@ -1241,9 +1241,14 @@ def lambda_handler(event, context):
         def _ogwalk(o):
             if isinstance(o, dict):
                 tk = o.get("ticker") or o.get("symbol")
-                lv = {k: o[k] for k in ("call_wall", "put_wall", "zero_gamma",
-                                        "gamma_flip", "max_pain")
-                      if isinstance(o.get(k), (int, float))}
+                lv = {}
+                for k, v in o.items():
+                    kl = str(k).lower()
+                    if (isinstance(v, (int, float)) and v > 0
+                            and any(t in kl for t in
+                                    ("wall", "flip", "max_pain", "maxpain",
+                                     "zero_gamma", "zerogamma"))):
+                        lv[kl] = v
                 if tk and lv:
                     _walls.setdefault(str(tk).upper(), lv)
                 for v in o.values():
@@ -1259,15 +1264,23 @@ def lambda_handler(event, context):
             _rules = [r for r in (_pb.get("rules") or []) if isinstance(r, dict)]
             _rules.sort(key=lambda r: -(r.get("hit_rate") or r.get("score") or 0))
             for _r in _rules[:3]:
-                _playbook_ctx.append({k: _r.get(k) for k in
-                                      ("series", "label", "when", "when_text",
-                                       "hit_rate", "n", "then", "horizon")
-                                      if _r.get(k) is not None})
+                _row = {}
+                for k, v in _r.items():
+                    if isinstance(v, (str, int, float, bool)) and len(_row) < 7:
+                        _row[k] = v
+                _playbook_ctx.append(_row)
         except Exception as _e:
             print(f"[playbook-ctx] {str(_e)[:60]}")
         for _s in setups[:25]:
             _tk = str(_s.get("ticker") or "").upper()
-            _sc2 = _sec_ctx.get(str(_s.get("sector") or ""))
+            def _canon_sec(x):
+                x = str(x or "").strip()
+                return {"Financial Services": "Financials",
+                        "Consumer Cyclical": "Consumer Discretionary",
+                        "Consumer Defensive": "Consumer Staples",
+                        "Communications": "Communication Services"}.get(x, x)
+            _sc2 = (_sec_ctx.get(_canon_sec(_s.get("sector")))
+                    or _sec_ctx.get(str(_s.get("sector") or "")))
             if _sc2:
                 _s["sector_context"] = _sc2
             if _tk in _walls:
