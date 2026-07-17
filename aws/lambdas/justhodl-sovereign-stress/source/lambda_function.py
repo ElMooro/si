@@ -51,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -97,14 +97,15 @@ WGB_SOVEREIGNS = {                      # display key -> WGB country slug
 }
 # ops 3384: WGB works for any covered sovereign - extend beyond Asia.
 WGB_EXTRA = {"chile": "chile", "peru": "peru", "netherlands": "netherlands",
-             "switzerland": "switzerland"}
+             "switzerland": "switzerland", "turkey": "turkey", "argentina": "argentina"}
 WGB_REGION = {"south_korea": "Asia-Pacific", "singapore": "Asia-Pacific",
               "hong_kong": "Asia-Pacific", "taiwan": "Asia-Pacific",
               "chile": "Latin America", "peru": "Latin America",
-              "netherlands": "Europe", "switzerland": "Europe"}
+              "netherlands": "Europe", "switzerland": "Europe",
+              "turkey": "EM Canaries", "argentina": "EM Canaries"}
 COUNTRY_ETF = {"south_korea": "EWY", "singapore": "EWS", "hong_kong": "EWH",
                "taiwan": "EWT", "chile": "ECH", "peru": "EPU",
-               "netherlands": "EWN", "switzerland": "EWL", "germany": "EWG", "france": "EWQ",
+               "netherlands": "EWN", "switzerland": "EWL", "turkey": "TUR", "argentina": "ARGT", "germany": "EWG", "france": "EWQ",
                "italy": "EWI", "spain": "EWP", "greece": "GREK"}
 WGB_ENDPOINT = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"
 WGB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -347,7 +348,8 @@ GSSI_EU = {"italy": "IRLTLT01ITM156N", "spain": "IRLTLT01ESM156N",
 GSSI_US = {"united_kingdom": "IRLTLT01GBM156N", "japan": "IRLTLT01JPM156N",
            "switzerland": "IRLTLT01CHM156N", "south_korea": "IRLTLT01KRM156N",
            "canada": "IRLTLT01CAM156N", "australia": "IRLTLT01AUM156N",
-           "mexico": "IRLTLT01MXM156N", "chile": "IRLTLT01CLM156N"}
+           "mexico": "IRLTLT01MXM156N", "chile": "IRLTLT01CLM156N",
+           "turkey": "IRLTLT01TRM156N"}
 GSSI_CANARY = [
     ("ch_unemployment", ["LRHUTTTTCHM156S", "LMUNRRTTCHM156S"], "un12", 1.0, 1.0),
     ("chf_safe_haven", ["DEXSZUS"], "pct63", -1.0, 1.0),
@@ -935,22 +937,40 @@ def lambda_handler(event, context):
                 best = fv
         return best
 
+    def _ckan_recs(url):
+        j = json.loads(_get(url, timeout=25))
+        return ((j.get("result") or {}).get("records")) or (j.get("records")) or []
+
     def sg_yield_pair():
-        base = ("https://eservices.mas.gov.sg/api/action/datastore/search"
-                "?resource_id=9a0bf149-308c-4bd2-832d-76c8e6cb47ed")
-        cur = json.loads(_get(base + "&limit=1&sort=end_of_day%20desc", timeout=25))
-        recs = ((cur.get("result") or {}).get("records")) or []
-        now_v = _num_from(recs[0]) if recs else None
+        """Singapore 10Y now + ~12m ago — ladder across MAS API forms."""
         ago = (datetime.now(timezone.utc) - timedelta(days=366)).date().isoformat()
-        old_j = json.loads(_get(base + "&limit=7&q=" + ago[:7], timeout=25))
-        orecs = ((old_j.get("result") or {}).get("records")) or []
-        old_v = _num_from(orecs[0]) if orecs else None
-        return now_v, old_v
+        bases = (
+            "https://eservices.mas.gov.sg/api/action/datastore_search?resource_id=9a0bf149-308c-4bd2-832d-76c8e6cb47ed",
+            "https://eservices.mas.gov.sg/api/action/datastore/search?resource_id=9a0bf149-308c-4bd2-832d-76c8e6cb47ed",
+            "https://eservices.mas.gov.sg/apimg-gw/server/monthly_statistical_bulletin_non610mssql/domestic_interest_rates_daily/views/domestic_interest_rates_daily",
+        )
+        for base in bases:
+            try:
+                sep = "&" if "?" in base else "?"
+                cur = _ckan_recs(base + sep + "limit=1&sort=end_of_day%20desc")
+                if not cur:
+                    cur = _ckan_recs(base + sep + "rows=1")
+                now_v = _num_from(cur[0]) if cur else None
+                old_r = _ckan_recs(base + sep + "limit=7&q=" + ago[:7])
+                old_v = _num_from(old_r[0]) if old_r else None
+                if now_v is not None and old_v is not None:
+                    return now_v, old_v
+            except Exception:
+                continue
+        return None, None
 
     def hk_yield_pair():
-        for url in (
-            "https://api.hkma.gov.hk/public/market-data-and-statistics/monthly-statistical-bulletin/er-ir/hkgb-yield-monthly?pagesize=15&sortby=end_of_month&sortorder=desc",
-            "https://api.hkma.gov.hk/public/market-data-and-statistics/daily-market-data/govt-bond-yield-daily?pagesize=280&sortby=end_of_date&sortorder=desc",
+        """Hong Kong 10Y now + ~12m ago — ladder across HKMA open-API paths."""
+        for url, back in (
+            ("https://api.hkma.gov.hk/public/market-data-and-statistics/daily-market-data/govt-bond-benchmark-yield-daily?pagesize=280&sortby=end_of_date&sortorder=desc", 250),
+            ("https://api.hkma.gov.hk/public/market-data-and-statistics/monthly-statistical-bulletin/govt-bond/hkgb-benchmark-yield-monthly?pagesize=15&sortby=end_of_month&sortorder=desc", 12),
+            ("https://api.hkma.gov.hk/public/market-data-and-statistics/monthly-statistical-bulletin/er-ir/hkgb-yield-monthly?pagesize=15&sortby=end_of_month&sortorder=desc", 12),
+            ("https://api.hkma.gov.hk/public/market-data-and-statistics/daily-market-data/govt-bond-yield-daily?pagesize=280&sortby=end_of_date&sortorder=desc", 250),
         ):
             try:
                 j = json.loads(_get(url, timeout=25))
@@ -958,7 +978,7 @@ def lambda_handler(event, context):
                 if not recs:
                     continue
                 now_v = _num_from(recs[0])
-                old_v = _num_from(recs[min(len(recs) - 1, 12 if "monthly" in url else 250)])
+                old_v = _num_from(recs[min(len(recs) - 1, back)])
                 if now_v is not None and old_v is not None:
                     return now_v, old_v
             except Exception:

@@ -428,7 +428,7 @@ function renderYoY(d){
 }
 
 /* ═══ SOV_V2 (ops 3384) — global desk · league · markets · cross-refs ═══ */
-const FLAG = {netherlands:'🇳🇱',chile:'🇨🇱',peru:'🇵🇪',south_korea:'🇰🇷',singapore:'🇸🇬',hong_kong:'🇭🇰',taiwan:'🇹🇼',germany:'🇩🇪',france:'🇫🇷',italy:'🇮🇹',spain:'🇪🇸',greece:'🇬🇷',portugal:'🇵🇹',finland:'🇫🇮'};
+const FLAG = {switzerland:'🇨🇭',turkey:'🇹🇷',argentina:'🇦🇷',sweden:'🇸🇪',japan:'🇯🇵',mexico:'🇲🇽',canada:'🇨🇦',australia:'🇦🇺',ireland:'🇮🇪',belgium:'🇧🇪',united_kingdom:'🇬🇧',netherlands:'🇳🇱',chile:'🇨🇱',peru:'🇵🇪',south_korea:'🇰🇷',singapore:'🇸🇬',hong_kong:'🇭🇰',taiwan:'🇹🇼',germany:'🇩🇪',france:'🇫🇷',italy:'🇮🇹',spain:'🇪🇸',greece:'🇬🇷',portugal:'🇵🇹',finland:'🇫🇮'};
 function sovSpark(rows, name){
   const vs=[]; (rows||[]).slice(-60).forEach(r=>{const c=((r.countries||{})[name])||{}; const v=c.s!=null?c.s:c.comp; if(v!=null) vs.push(v);});
   if (vs.length<5) return '';
