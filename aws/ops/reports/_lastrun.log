@@ -1,15 +1,13 @@
-executing-against: 410603f598c01a5e8efbc7ab16c8816b084a4043
-ops 3375 — etf-constituents ground truth
-PASS  G1_invoke_completed — err=None timed_out=False tail=['[constituents] per-stock exposure: 2258 stocks with ETF holdings', '[constituents] DONE — 284/289 ETFs, 2258 stocks, top mover:   ($+135456M)', 'REPORT RequestId: 4268c721-be4b-4b97-917a-1417dd666509\tDuration: 15359.65 ms\tBilled Duration: 15841 m
-[04:05:33] PASS  G1_invoke_completed — err=None timed_out=False tail=['[constituents] per-stock exposure: 2258 stocks with ETF holdings', '[constituents] DONE — 284/289 ETFs, 2258 stocks, top mover:   ($+135456M)', 'REPORT RequestId: 4268c721-be4b-4b97-917a-1417dd666509\tDuration: 15359.65 ms\tBilled Duration: 15841 m
-PASS  G2_fresh_writes — objects=284 fresh_this_invoke=284 newest=2026-07-17 04:05:34+00:00
-[04:05:34] PASS  G2_fresh_writes — objects=284 fresh_this_invoke=284 newest=2026-07-17 04:05:34+00:00
-PASS  G3_object_quality — {"key": "etf-flows/constituents/SPY.json", "top3": [["NVDA", 7.88606626], ["AAPL", 7.37011103], ["MSFT", 4.50311066]], "sum_w": 63.3}
-[04:05:34] PASS  G3_object_quality — {"key": "etf-flows/constituents/SPY.json", "top3": [["NVDA", 7.88606626], ["AAPL", 7.37011103], ["MSFT", 4.50311066]], "sum_w": 63.3}
-universe: {'n': 300, 'has_SPY': True, 'has_QQQ': True, 'head': ['SPY', 'VOO', 'IVV', 'QQQ', 'IWM', 'VTI', 'DIA', 'XLK']}
-[04:05:34] universe: {"n": 300, "has_SPY": true, "has_QQQ": true, "head": ["SPY", "VOO", "IVV", "QQQ", "IWM", "VTI", "DIA", "XLK"]}
+executing-against: 1905dff32adbc8c6ffa92705f1915cfefc511ef2
+ops 3376 — settings V3 + drawer link + TR config codify
+PASS  G1_settings_v3_live — missing=[] v3_count=3
+[04:33:43] PASS  G1_settings_v3_live — missing=[] v3_count=3
+PASS  G2_drawer_account_link — drawer /jh-nav-drawer.js?v=c3efc5d3 http 200 link=True gear=True
+[04:33:43] PASS  G2_drawer_account_link — drawer /jh-nav-drawer.js?v=c3efc5d3 http 200 link=True gear=True
+PASS  G3_tr_config_codified — {"memory": 1024, "timeout": 900, "env_keys": ["FMP_KEY", "N_WORKERS", "S3_BUCKET", "TIMEOUT_BUDGET_S"], "schedule": null}
+[04:33:44] PASS  G3_tr_config_codified — {"memory": 1024, "timeout": 900, "env_keys": ["FMP_KEY", "N_WORKERS", "S3_BUCKET", "TIMEOUT_BUDGET_S"], "schedule": null}
 
 VERDICT: PASS_ALL
-[04:05:34] VERDICT: PASS_ALL
+[04:33:44] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3375_ec_ground_truth.md
+→ Report written to aws/ops/reports/latest/3376_settings_v3.md

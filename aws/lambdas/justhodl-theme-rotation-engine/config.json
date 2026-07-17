@@ -1,0 +1,15 @@
+{
+  "function_name": "justhodl-theme-rotation-engine",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 900,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "TIMEOUT_BUDGET_S": "260",
+    "FMP_KEY": "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb",
+    "N_WORKERS": "12"
+  }
+}

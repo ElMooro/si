@@ -1,0 +1,28 @@
+{
+  "gates": {
+    "G1_settings_v3_live": {
+      "ok": true,
+      "detail": "missing=[] v3_count=3"
+    },
+    "G2_drawer_account_link": {
+      "ok": true,
+      "detail": "drawer /jh-nav-drawer.js?v=c3efc5d3 http 200 link=True gear=True"
+    },
+    "G3_tr_config_codified": {
+      "ok": true,
+      "detail": "{\"memory\": 1024, \"timeout\": 900, \"env_keys\": [\"FMP_KEY\", \"N_WORKERS\", \"S3_BUCKET\", \"TIMEOUT_BUDGET_S\"], \"schedule\": null}"
+    }
+  },
+  "tr_config": {
+    "memory": 1024,
+    "timeout": 900,
+    "env_keys": [
+      "FMP_KEY",
+      "N_WORKERS",
+      "S3_BUCKET",
+      "TIMEOUT_BUDGET_S"
+    ],
+    "schedule": null
+  },
+  "verdict": "PASS_ALL"
+}
