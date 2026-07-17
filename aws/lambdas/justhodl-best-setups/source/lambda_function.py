@@ -1161,6 +1161,68 @@ def lambda_handler(event, context):
     for s in setups:
         by_verdict[s["verdict"]].append(s["ticker"])
 
+    # ── ops 3403: entry gate (participation) + hold horizon + SELF-GRADING ──
+    try:
+        fz = read_json("data/finviz-signals.json", {}) or {}
+        _rv = {}
+
+        def _rvwalk(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                rv = o.get("rel_volume") or o.get("relvol")
+                if tk and isinstance(rv, (int, float)):
+                    k = str(tk).upper()
+                    _rv[k] = max(_rv.get(k, 0.0), float(rv))
+                for v in o.values():
+                    _rvwalk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _rvwalk(v)
+        _rvwalk(fz)
+        hl = read_json("data/signal-halflife.json", {}) or {}
+        _hvals = []
+
+        def _hlwalk(o):
+            if isinstance(o, dict):
+                v = o.get("half_life")
+                if isinstance(v, (int, float)) and v > 0:
+                    _hvals.append(float(v))
+                for x in o.values():
+                    _hlwalk(x)
+            elif isinstance(o, list):
+                for x in o:
+                    _hlwalk(x)
+        _hlwalk(hl)
+        _hvals.sort()
+        _fleet_hold = round(_hvals[len(_hvals) // 2], 0) if _hvals else 21
+        for _s in setups:
+            _tk = str(_s.get("ticker") or "").upper()
+            _r = _rv.get(_tk)
+            _s["rel_volume"] = _r
+            _s["entry_confirmed"] = (bool(_r >= 1.3) if _r is not None else None)
+            _s["hold_horizon_days"] = _fleet_hold
+        try:
+            from signals_emit import log_signal, yprice
+            _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+            _logged = 0
+            for _s in setups[:15]:
+                _tk = str(_s.get("ticker") or "").upper()
+                if not _tk:
+                    continue
+                _pr = yprice(_tk)
+                _cv = float(_s.get("conviction") or _s.get("score") or 50)
+                if log_signal(_tbl, "best-setup-stack", _tk, "UP", [5, 21, 63], _pr,
+                              confidence=min(0.9, 0.5 + _cv / 250.0),
+                              rationale="best-setups top stack (multi-lens confluence)",
+                              signal_value=str(round(_cv, 1)),
+                              metadata={"engine": "best-setups"}):
+                    _logged += 1
+            print(f"[best-setups] self-logged {_logged} stack signals")
+        except Exception as _e:
+            print(f"[best-setups] self-log failed: {str(_e)[:80]}")
+    except Exception as _e:
+        print(f"[best-setups] 3403 layer failed: {str(_e)[:80]}")
+
     output = {
         "schema_version": "1.0",
         "engine": "best-setups (unified conviction)",

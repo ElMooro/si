@@ -34,11 +34,12 @@ from decimal import Decimal
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/proven-portfolio.json"
 HIST_KEY = "data/proven-portfolio-history.json"
 MAX_W = 8.0
+MAX_POSITIONS = 40
 LOOKBACK_D = 10
 UA = {"User-Agent": "Mozilla/5.0 (JustHodl proven-portfolio)"}
 
@@ -144,6 +145,12 @@ def compose(signals, sizing):
     if gross > 100.0 and gross > 0:
         for p in book:
             p["weight_pct"] = round(p["weight_pct"] * 100.0 / gross, 2)
+    book = sorted(book, key=lambda p: (-1 if p["tier"] == "PROVEN" else 0,
+                                        -p["weight_pct"] * p["confidence"]))
+    book = book[:MAX_POSITIONS]
+    gross = sum(p["weight_pct"] for p in book) or 1.0
+    for p in book:
+        p["weight_pct"] = round(p["weight_pct"] * 100.0 / gross, 2)
     return sorted(book, key=lambda p: -p["weight_pct"])
 
 
