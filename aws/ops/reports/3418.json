@@ -1,0 +1,87 @@
+{
+  "gates": {
+    "G0_all_settled": {
+      "ok": true,
+      "detail": "5 engines settled"
+    },
+    "G1_registry_schedule": {
+      "ok": true,
+      "detail": "exists"
+    },
+    "G2_registry": {
+      "ok": true,
+      "detail": "feeds=785 stale=105 worst=['data/feedback-summary.json', 'data/history-api-url.json', 'data/user-trades-stats.json', 'data/user-trades.json']"
+    },
+    "G3_squeeze_guard": {
+      "ok": true,
+      "detail": "book=6 excluded=[] risk_tagged=0"
+    },
+    "G4_jsi_src": {
+      "ok": true,
+      "detail": "jsi_pctile=29.728588024078572 src=jsi-history.self scale=1.0"
+    },
+    "G5_setups_context": {
+      "ok": false,
+      "detail": "sector_ctx=0/25 walls=0/25 playbook_rules=3 sample_pb=[{\"id\": \"tv-0a62c4e914bbe3e3\", \"symbol\": \"UNTAGGED\", \"family\": \"TIMING\", \"text\": \"[TV:UNTAGGED] ECONOMY CRASH LAGS YIELD"
+    }
+  },
+  "stale_top": [
+    {
+      "key": "data/feedback-summary.json",
+      "age_h": 1786.2,
+      "sla_h": 48,
+      "size": 466,
+      "stale": true
+    },
+    {
+      "key": "data/history-api-url.json",
+      "age_h": 1733.0,
+      "sla_h": 48,
+      "size": 130,
+      "stale": true
+    },
+    {
+      "key": "data/user-trades-stats.json",
+      "age_h": 1711.5,
+      "sla_h": 48,
+      "size": 90,
+      "stale": true
+    },
+    {
+      "key": "data/user-trades.json",
+      "age_h": 1711.5,
+      "sla_h": 48,
+      "size": 79,
+      "stale": true
+    },
+    {
+      "key": "data/user-watchlist.json",
+      "age_h": 1711.5,
+      "sla_h": 48,
+      "size": 603,
+      "stale": true
+    },
+    {
+      "key": "data/_freshness-status.json",
+      "age_h": 1353.8,
+      "sla_h": 48,
+      "size": 3300,
+      "stale": true
+    },
+    {
+      "key": "data/eventbridge-audit.json",
+      "age_h": 1305.1,
+      "sla_h": 48,
+      "size": 173824,
+      "stale": true
+    },
+    {
+      "key": "data/system-audit.json",
+      "age_h": 1263.2,
+      "sla_h": 48,
+      "size": 25274,
+      "stale": true
+    }
+  ],
+  "verdict": "GAPS: G5_setups_context"
+}
