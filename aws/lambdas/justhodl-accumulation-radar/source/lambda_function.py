@@ -486,6 +486,13 @@ def lambda_handler(event=None, context=None):
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1), "buffer_days": len(buf["dates"]),
         "n_scored": len(rows), "days_added": added,
+        # ops 3398: canonical per-ETF phase map — full coverage for the
+        # sector-capital-fusion technicals join (curated buckets slice [:12]
+        # and drop unranked names; consumers should read THIS, not walk lists)
+        "etf_phases": {r["symbol"]: {"phase": r.get("phase"), "flag": r.get("flag"),
+                                     "top_score": r.get("top_score"),
+                                     "bottom_score": r.get("bottom_score")}
+                       for r in rows if r.get("class") == "etf" and r.get("symbol")},
         "market_context": {"capitulation_signal": _cap.get("signal"), "capitulation_score": _cap_score,
                            "market_washout": market_washout, "consensus_bottom_names": len(cb_set),
                            "note": ("Tape is capitulating — bottoms are more reliable here." if market_washout

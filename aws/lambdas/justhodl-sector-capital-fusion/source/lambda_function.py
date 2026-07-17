@@ -298,7 +298,7 @@ def lambda_handler(event, context):
         cp = rj("data/chart-patterns.json")
         se = cp.get("sector_etfs") or {}
         ar = rj("data/accumulation-radar.json")
-        ph_map = {}
+        ph_map = {str(k).upper(): v for k, v in (ar.get("etf_phases") or {}).items()}
 
         def _walk(o):
             if isinstance(o, dict):
@@ -314,7 +314,8 @@ def lambda_handler(event, context):
             elif isinstance(o, list):
                 for v in o:
                     _walk(v)
-        _walk(ar)
+        if not ph_map:
+            _walk(ar)
         of = rj("data/options-flow.json")
         of_map = {}
 
