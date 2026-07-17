@@ -1,13 +1,15 @@
-executing-against: 16245da9fecd0609fcdc8682fcbb0be28222e4e1
-ops 3379 — signals grading loop resurrection
-PASS  G0_checker_scheduled — rules=['justhodl-outcome-checker-4h', 'justhodl-outcome-checker-daily'] schedules=[] created=None
-[05:09:40] PASS  G0_checker_scheduled — rules=['justhodl-outcome-checker-4h', 'justhodl-outcome-checker-daily'] schedules=[] created=None
-PASS  G1_normalizer_deployed — marker in zip
-[05:10:06] PASS  G1_normalizer_deployed — marker in zip
-[test] inserted zz-ops3379-test#QQQ#2026-06-07 baseline=716.07
+# ops 3379 — signals grading loop resurrection
 
-→ Report written to aws/ops/reports/latest/3379_grading_loop_resurrection.md
+**Status:** failure  
+**Duration:** 316.0s  
+**Finished:** 2026-07-17T05:14:49+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3379_grading_loop_resurrection.py", line 226, in <module>
     main(_rep)
   File "/home/runner/work/si/si/aws/ops/pending/ops_3379_grading_loop_resurrection.py", line 160, in main
@@ -22,4 +24,9 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.TooManyRequestsException: An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 1): Rate Exceeded.
-❌ OPS-FAIL: aws/ops/pending/ops_3379_grading_loop_resurrection.py
+
+```
+
+## Log
+- `05:09:40` PASS  G0_checker_scheduled — rules=['justhodl-outcome-checker-4h', 'justhodl-outcome-checker-daily'] schedules=[] created=None
+- `05:10:06` PASS  G1_normalizer_deployed — marker in zip
