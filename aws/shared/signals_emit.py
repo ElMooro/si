@@ -14,6 +14,8 @@ Contract (mirrors justhodl-signal-harvester exactly):
 """
 
 import json
+import boto3
+import time
 import re
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -50,6 +52,51 @@ def _f2d(x):
     return x
 
 
+_REGIME = {"t": 0.0, "v": None}
+
+
+def _regime_snapshot():
+    """ops 3412 — regime stamp at emission. Every signal carries the regime it
+    fired in (JSI decile, GSSI band, liquidity), so grading becomes natively
+    per-regime across the whole fleet. Cached 5 min; never raises."""
+    if time.time() - _REGIME["t"] < 300 and _REGIME["v"] is not None:
+        return _REGIME["v"]
+    out = {}
+    try:
+        s3c = boto3.client("s3", "us-east-1")
+
+        def _rj(k):
+            try:
+                return json.loads(s3c.get_object(
+                    Bucket="justhodl-dashboard-live", Key=k)["Body"].read())
+            except Exception:
+                return {}
+        j = _rj("data/stress-index.json")
+        lat = (j.get("latest") or j.get("v2") or {})
+        dec = (lat.get("decile") if isinstance(lat.get("decile"), int)
+               else (j.get("signal_state") or {}).get("decile"))
+        if dec is None:
+            pv = lat.get("pctile") or lat.get("percentile")
+            dec = int(min(9, float(pv) // 10)) if pv is not None else None
+        if dec is not None:
+            out["jsi_decile"] = int(dec)
+        g = (_rj("data/sovereign-gssi.json").get("latest") or {}).get("gssi")
+        if g is not None:
+            out["gssi_band"] = ("CRISIS" if g >= 75 else "STRESS" if g >= 60
+                                else "ELEVATED" if g >= 45 else "NORMAL"
+                                if g >= 30 else "CALM")
+        li = _rj("data/liquidity-inflection.json")
+        tone = ((li.get("composite") or {}).get("tone") or li.get("tone")
+                or (li.get("onshore_funding") or {}).get("tone"))
+        if tone:
+            out["liquidity"] = str(tone)[:16]
+    except Exception:
+        pass
+    _REGIME["v"] = out
+    _REGIME["t"] = time.time()
+    return out
+
+
 def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
                confidence=0.55, rationale="", metadata=None, benchmark=None,
                signal_value=""):
@@ -59,6 +106,9 @@ def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
         return False
     if not baseline_price or baseline_price <= 0:
         return False
+    md = dict(metadata or {})
+    md.setdefault("regime", _regime_snapshot())
+    metadata = md
     now = datetime.now(timezone.utc)
     windows = [int(w) for w in windows]
     item = {

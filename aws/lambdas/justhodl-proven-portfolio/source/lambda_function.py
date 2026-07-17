@@ -34,7 +34,7 @@ from decimal import Decimal
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/proven-portfolio.json"
 HIST_KEY = "data/proven-portfolio-history.json"
@@ -158,6 +158,52 @@ def lambda_handler(event, context):
     t0 = time.time()
     today = datetime.now(timezone.utc).date().isoformat()
 
+    # ── ops 3413: regime throttle + orthogonality caps + earnings + conflicts ──
+    jsi = rj("data/stress-index.json")
+    lat = (jsi.get("latest") or {})
+    _pv = lat.get("pctile") or lat.get("percentile") or 50
+    gssi = ((rj("data/sovereign-gssi.json").get("latest") or {}).get("gssi")
+            or 0)
+    gross_scale = 1.0
+    regime_note = []
+    if _pv >= 90:
+        gross_scale *= 0.70
+        regime_note.append(f"JSI {int(_pv)}p → ×0.70")
+    elif _pv >= 75:
+        gross_scale *= 0.85
+        regime_note.append(f"JSI {int(_pv)}p → ×0.85")
+    if gssi >= 60:
+        gross_scale *= 0.85
+        regime_note.append(f"GSSI {round(gssi)} → ×0.85")
+
+    orth = rj("data/signal-orthogonality.json")
+    clusters = {}
+    for ci, cl in enumerate(orth.get("clusters") or []):
+        members = ((cl.get("members") or cl.get("signal_types") or [])
+                   if isinstance(cl, dict)
+                   else (cl if isinstance(cl, list) else []))
+        for m in members:
+            clusters[str(m)] = ci
+
+    ecal = rj("data/benzinga-earnings-calendar.json")
+    edates = {}
+
+    def _ewalk(o):
+        if isinstance(o, dict):
+            tk = o.get("ticker") or o.get("symbol")
+            d = o.get("date") or o.get("earnings_date") or o.get("report_date")
+            if tk and d:
+                edates.setdefault(str(tk).upper(), str(d)[:10])
+            for v in o.values():
+                _ewalk(v)
+        elif isinstance(o, list):
+            for v in o:
+                _ewalk(v)
+    _ewalk(ecal)
+
+    sbk = {r.get("ticker") for r in (rj("data/short-book.json").get("book")
+                                     or [])}
+
     sc = rj("data/signal-scorecard.json")
     types = qualifying_types(sc)
     mode = ("PROVEN" if any(v == "PROVEN" for v in types.values())
@@ -196,8 +242,34 @@ def lambda_handler(event, context):
     if rows and rows[0].get("spy_close") and spy_now:
         spy_nav = round(100.0 * spy_now / float(rows[0]["spy_close"]), 4)
 
+    # orthogonality cluster caps: no correlated family cluster > 25% gross
+    cl_gross = {}
+    for p in book:
+        ci = clusters.get(p["signal_type"])
+        if ci is not None:
+            cl_gross[ci] = cl_gross.get(ci, 0.0) + p["weight_pct"]
+    for ci, g in cl_gross.items():
+        if g > 25.0:
+            f = 25.0 / g
+            for p in book:
+                if clusters.get(p["signal_type"]) == ci:
+                    p["weight_pct"] = round(p["weight_pct"] * f, 2)
+                    p["cluster_capped"] = True
+    # regime gross throttle
+    if gross_scale < 1.0:
+        for p in book:
+            p["weight_pct"] = round(p["weight_pct"] * gross_scale, 2)
+    from datetime import date as _date
+    _horizon = (datetime.now(timezone.utc) + timedelta(days=21)).date().isoformat()
     for p in book:
         p["mark"] = marks.get(p["ticker"])
+        ed = edates.get(p["ticker"])
+        p["earnings_in_window"] = bool(ed and today <= ed <= _horizon)
+        if ed:
+            p["earnings_date"] = ed
+        if p["ticker"] in sbk:
+            p["conflict"] = "in short-book bear lenses"
+            p["weight_pct"] = round(p["weight_pct"] * 0.5, 2)
 
     attrib = {}
     for p in book:
@@ -225,6 +297,11 @@ def lambda_handler(event, context):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
            "mode": mode,
+           "regime": {"gross_scale": gross_scale, "notes": regime_note,
+                      "jsi_pctile": _pv, "gssi": gssi},
+           "n_conflicts": sum(1 for p in book if p.get("conflict")),
+           "n_earnings_window": sum(1 for p in book
+                                    if p.get("earnings_in_window")),
            "mode_note": {"PROVEN": "book built only from signal_types with graded, friction-surviving alpha",
                          "PROVISIONAL": "day_7 grading still maturing — using best graded tiers; auto-upgrades to PROVEN",
                          "WAITING": "no signal_type has enough graded history yet — book empty by design"}[mode],
