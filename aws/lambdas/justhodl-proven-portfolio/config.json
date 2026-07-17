@@ -1,0 +1,9 @@
+{
+  "description": "Proven-Edge Portfolio composer: graded signal_types -> sized paper book -> daily NAV vs SPY (ops 3402)",
+  "timeout": 300,
+  "memory": 512,
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "schedule": {"scheduler_name": "justhodl-proven-portfolio-daily",
+               "cron": "cron(45 21 ? * * *)",
+               "description": "Daily 21:45 UTC, after the 21:29 outcome-checker"}
+}

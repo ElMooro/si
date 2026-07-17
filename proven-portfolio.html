@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proven-Edge Portfolio · JustHodl.AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/jh-theme.css">
+<script src="/jh-nav-drawer.js" defer></script>
+<style>
+:root{--blue:#22d3ee;--purple:#a78bfa;--green:#34d399;--amber:#fbbf24;--red:#f87171;--text-primary:#e5e7eb;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-soft:#1f2937;--card:#0b1220}
+body{background:#060a12;color:var(--text-primary);font-family:Inter,system-ui,sans-serif}
+.card{background:var(--card);border:1px solid var(--border-soft);border-radius:14px}
+.eyebrow{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.68rem;font-weight:700}
+.prow{display:grid;grid-template-columns:70px 1.4fr 90px 1fr 90px 90px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border-soft)}
+@media(max-width:760px){.prow{grid-template-columns:60px 1fr 70px 70px}.prow .hide-m{display:none}}
+</style>
+</head>
+<body>
+<header class="max-w-[1300px] mx-auto px-4 pt-8 pb-4">
+  <div class="eyebrow mb-1">JustHodl · The Composer</div>
+  <h1 class="text-2xl md:text-3xl font-extrabold">Proven-Edge Portfolio <span id="mode-badge"></span></h1>
+  <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">One accountable equity curve for the whole fleet. Only signal families with a <b>graded record</b> get in; sizes come from measured edge (quarter-Kelly); yesterday's book is marked at today's closes. Paper &amp; frictionless v1 — the scoreboard everything else answers to.</p>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="updated">loading…</div>
+</header>
+
+<section class="max-w-[1300px] mx-auto px-4 pb-4">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="card p-4"><div class="eyebrow">NAV</div><div id="k-nav" class="text-2xl font-extrabold mono">—</div><div id="k-day" class="text-xs mono"></div></div>
+    <div class="card p-4"><div class="eyebrow">vs SPY (same window)</div><div id="k-spy" class="text-2xl font-extrabold mono">—</div><div id="k-alpha" class="text-xs mono"></div></div>
+    <div class="card p-4"><div class="eyebrow">Positions</div><div id="k-n" class="text-2xl font-extrabold mono">—</div><div id="k-gross" class="text-xs mono text-[var(--text-muted)]"></div></div>
+    <div class="card p-4"><div class="eyebrow">Qualifying signal families</div><div id="k-types" class="text-2xl font-extrabold mono">—</div><div id="k-tier" class="text-xs mono text-[var(--text-muted)]"></div></div>
+  </div>
+  <div id="mode-note" class="text-xs mt-3 text-[var(--amber)]"></div>
+</section>
+
+<section class="max-w-[1300px] mx-auto px-4 pb-4">
+  <div class="card p-5">
+    <div class="eyebrow mb-2">Equity curve · portfolio vs SPY (indexed 100)</div>
+    <svg id="nav-chart" viewBox="0 0 1300 300" style="width:100%;height:auto"></svg>
+    <div id="chart-tip" class="mono text-xs text-[var(--text-secondary)] mt-1" style="min-height:15px"></div>
+  </div>
+</section>
+
+<section class="max-w-[1300px] mx-auto px-4 pb-4">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="card p-5 lg:col-span-2">
+      <div class="eyebrow mb-2">Today's book</div>
+      <div class="prow eyebrow" style="border-bottom:1px solid var(--border-soft)"><span>Ticker</span><span>Signal family</span><span class="hide-m">Tier</span><span class="hide-m">Direction</span><span style="text-align:right">Weight</span><span style="text-align:right">Mark</span></div>
+      <div id="book"></div>
+    </div>
+    <div class="card p-5">
+      <div class="eyebrow mb-2">Attribution · weight by signal family</div>
+      <div id="attrib"></div>
+      <div class="eyebrow mb-2 mt-5">The gate</div>
+      <div id="gate" class="text-xs text-[var(--text-secondary)] leading-relaxed"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="max-w-[1300px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">
+  <p id="method"></p>
+  <p class="mt-2">Data: proven-portfolio.json · proven-portfolio-history.json · Sources: signal-scorecard (grading) · justhodl-signals (live) · sizing-engine (quarter-Kelly). Research only — not investment advice.</p>
+</footer>
+
+<script>
+const fmt=(v,d=1)=>v==null?'—':(+v).toFixed(d);
+const C={PROVEN:'var(--green)',PROVISIONAL:'var(--amber)',WAITING:'var(--text-muted)'};
+function render(d,h){
+  document.getElementById('updated').textContent='updated '+new Date(d.generated_at).toLocaleString()+' · v'+d.version+' · '+fmt(d.elapsed_s,1)+'s';
+  const mb=document.getElementById('mode-badge');
+  mb.innerHTML=`<span class="badge" style="border:1px solid ${C[d.mode]};color:${C[d.mode]}">${d.mode}</span>`;
+  document.getElementById('mode-note').textContent=d.mode!=='PROVEN'?('ⓘ '+d.mode_note):'';
+  const nav=d.nav||{};
+  document.getElementById('k-nav').textContent=fmt(nav.nav,2);
+  const dr=nav.day_ret_pct;
+  document.getElementById('k-day').innerHTML=dr==null?'inception day':`<span style="color:${dr>=0?'var(--green)':'var(--red)'}">${dr>0?'+':''}${fmt(dr,2)}% today</span>`;
+  document.getElementById('k-spy').textContent=fmt(nav.spy_nav,2);
+  const alpha=(nav.nav!=null&&nav.spy_nav!=null)?nav.nav-nav.spy_nav:null;
+  document.getElementById('k-alpha').innerHTML=alpha==null?'':`<span style="color:${alpha>=0?'var(--green)':'var(--red)'}">${alpha>0?'+':''}${fmt(alpha,2)} pts vs SPY · since ${nav.inception}</span>`;
+  document.getElementById('k-n').textContent=(d.book||[]).length;
+  document.getElementById('k-gross').textContent='gross '+fmt((d.book||[]).reduce((a,p)=>a+(+p.weight_pct||0),0),1)+'%';
+  const qt=d.qualifying_types||{};
+  document.getElementById('k-types').textContent=Object.keys(qt).length;
+  document.getElementById('k-tier').textContent=Object.values(qt).filter(v=>v==='PROVEN').length+' proven · '+Object.values(qt).filter(v=>v==='PROVISIONAL').length+' provisional';
+
+  document.getElementById('book').innerHTML=(d.book||[]).map(p=>`<div class="prow mono text-sm">
+    <span style="font-weight:700">${p.ticker}</span>
+    <span class="text-[var(--text-secondary)]" style="font-size:.78rem">${p.signal_type}</span>
+    <span class="hide-m"><span class="badge" style="border:1px solid ${C[p.tier]};color:${C[p.tier]};font-size:.6rem">${p.tier}</span></span>
+    <span class="hide-m" style="color:${p.direction==='DOWN'?'var(--red)':'var(--green)'}">${p.direction}</span>
+    <span style="text-align:right">${fmt(p.weight_pct,1)}%</span>
+    <span style="text-align:right;color:var(--text-secondary)">${fmt(p.mark,2)}</span>
+  </div>`).join('')||'<div class="text-xs text-[var(--text-muted)] py-3">Book is empty — '+(d.mode==='WAITING'?'no family has graded history yet. It fills itself as day_7 grading lands.':'no live signals from qualifying families in the last 10 days.')+'</div>';
+
+  const at=Object.entries(d.attribution||{}).sort((a,b)=>b[1].weight_pct-a[1].weight_pct);
+  const mx=Math.max(...at.map(([,v])=>v.weight_pct),1);
+  document.getElementById('attrib').innerHTML=at.map(([k,v])=>`<div class="flex items-center gap-2 py-1">
+    <span class="mono" style="width:150px;font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${k}</span>
+    <div style="flex:1;height:8px;background:var(--border-soft);border-radius:4px;overflow:hidden"><div style="width:${v.weight_pct/mx*100}%;height:100%;background:${C[v.tier]}"></div></div>
+    <span class="mono text-xs" style="width:70px;text-align:right">${fmt(v.weight_pct,1)}% · ${v.n}</span>
+  </div>`).join('')||'<div class="text-xs text-[var(--text-muted)]">—</div>';
+  document.getElementById('gate').textContent='Explicit proven/alpha status from the grading scorecard, else n≥20 scored outcomes with hit≥55% and positive info-ratio (PROVISIONAL). The gate tightens itself automatically as day_7 grading matures.';
+  document.getElementById('method').textContent=d.methodology||'';
+
+  const rows=(h&&h.rows)||[]; if(rows.length<2){document.getElementById('nav-chart').innerHTML='';return;}
+  const W=1300,H=300,pL=48,pR=20,pT=14,pB=30,n=rows.length;
+  const navs=rows.map(r=>+r.nav), spyc=rows.map(r=>+r.spy_close);
+  const spy=spyc.map(v=>100*v/spyc[0]);
+  const all=[...navs,...spy.filter(v=>isFinite(v))];
+  const yMin=Math.min(...all)*0.995,yMax=Math.max(...all)*1.005;
+  const px=i=>pL+(i/(n-1))*(W-pL-pR), py=v=>pT+(1-(v-yMin)/(yMax-yMin))*(H-pT-pB);
+  const path=a=>a.map((v,i)=>(i?'L':'M')+' '+px(i).toFixed(1)+' '+py(v).toFixed(1)).join(' ');
+  let grid='';
+  rows.forEach((r,i)=>{if(i===0||r.date.slice(0,7)!==rows[i-1].date.slice(0,7)){grid+=`<line x1="${px(i)}" y1="${pT}" x2="${px(i)}" y2="${H-pB}" stroke="var(--border-soft)"/><text x="${px(i)}" y="${H-8}" fill="var(--text-muted)" font-size="9" text-anchor="middle" font-family="JetBrains Mono">${r.date.slice(2,7)}</text>`;}});
+  [yMin,(yMin+yMax)/2,yMax].forEach(v=>{grid+=`<line x1="${pL}" y1="${py(v)}" x2="${W-pR}" y2="${py(v)}" stroke="var(--border-soft)" stroke-dasharray="2 4"/><text x="${pL-5}" y="${py(v)+3}" fill="var(--text-muted)" font-size="9" text-anchor="end" font-family="JetBrains Mono">${v.toFixed(1)}</text>`;});
+  document.getElementById('nav-chart').innerHTML=grid
+    +`<path d="${path(spy)}" fill="none" stroke="var(--text-muted)" stroke-width="1.2" stroke-dasharray="4 3"/>`
+    +`<path d="${path(navs)}" fill="none" stroke="var(--blue)" stroke-width="1.8"/>`
+    +`<circle cx="${px(n-1)}" cy="${py(navs[n-1])}" r="3.5" fill="var(--blue)"/>`
+    +`<text x="${px(n-1)-6}" y="${py(navs[n-1])-8}" fill="var(--blue)" font-size="12" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${navs[n-1].toFixed(2)}</text>`;
+  const svg=document.getElementById('nav-chart'),tip=document.getElementById('chart-tip');
+  svg.onmousemove=e=>{const r=svg.getBoundingClientRect();let i=Math.round(((e.clientX-r.left)/Math.max(1,r.width)*W-pL)/(W-pL-pR)*(n-1));i=Math.max(0,Math.min(n-1,i));
+    tip.textContent=`${rows[i].date} · NAV ${navs[i].toFixed(2)} · SPY ${isFinite(spy[i])?spy[i].toFixed(2):'—'} · ${rows[i].n_positions} pos · ${rows[i].mode}`;};
+  svg.onmouseleave=()=>{tip.textContent='';};
+}
+Promise.all([
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/proven-portfolio.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}),
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/proven-portfolio-history.json?ts='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
+]).then(([d,h])=>render(d,h)).catch(e=>{document.getElementById('updated').textContent='load error: '+e.message;});
+</script>
+</body>
+</html>
