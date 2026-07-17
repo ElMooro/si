@@ -152,6 +152,31 @@
 
 <section class="max-w-[1400px] mx-auto px-4 pb-6">
   <div class="card p-5">
+    <div class="flex items-start justify-between flex-wrap gap-2">
+      <div>
+        <div class="eyebrow mb-1">🌍 Global Sovereign Stress Index · 1990 → today</div>
+        <p class="text-xs text-[var(--text-muted)] mb-2 max-w-3xl">One continuous index built from every sovereign on this desk — 18 10-year spreads vs their bloc's safe asset (Bund / UST), each z-scored on its full own history and logistic-mapped, plus the classic crisis canaries: <b>Swiss unemployment</b>, the <b>CHF</b> and <b>JPY safe-haven bids</b>, and gold. Identical computation across every era. Default view: <b>YoY % change</b> — the line you asked for.</p>
+      </div>
+      <div id="gssi-kpi" class="mono text-sm"></div>
+    </div>
+    <div id="gssi-ctl" class="flex flex-wrap items-center gap-1 mb-2 mono" style="font-size:.66rem"></div>
+    <div style="overflow-x:auto"><svg id="gssi-chart" viewBox="0 0 1400 380" style="width:100%;min-width:900px;height:auto"></svg></div>
+    <div id="gssi-tip" class="mono text-xs text-[var(--text-secondary)] mt-1" style="min-height:16px"></div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <div>
+        <div class="eyebrow mb-1">🚨 Crisis-detection scorecard · did it see them coming?</div>
+        <div id="gssi-scorecard" class="mono text-xs" style="overflow-x:auto"></div>
+      </div>
+      <div>
+        <div class="eyebrow mb-1">🐤 Canaries &amp; components · right now</div>
+        <div id="gssi-canaries"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-[1400px] mx-auto px-4 pb-6">
+  <div class="card p-5">
     <div class="eyebrow mb-1">📊 Year over Year · stress vs 12 months ago</div>
     <p class="text-xs text-[var(--text-muted)] mb-3">Percentage change in each sovereign/systemic stress gauge against its own level 12 months ago — red = more stressed than a year ago. ECB series carry true 12-month history today; bond-desk sovereigns show a 10Y-yield proxy (Δbp) where an OECD series exists, and unlock true stress YoY automatically as the daily ledger matures.</p>
     <div id="yoy-chart"></div>
@@ -282,6 +307,86 @@ function render(d) {
   try { renderSovV2(d); } catch(e) { console.error('[sov v2]', e); }
 }
 
+const GSSI_ST = { mode:'yoy', range:'all' };
+function renderGSSI(d){
+  const g = d._gssi; if (!g || !g.series_weekly) return;
+  const kp = g.latest||{};
+  document.getElementById('gssi-kpi').innerHTML =
+    `GSSI <b style="color:${stressColor(kp.gssi)}">${fmt(kp.gssi,1)}</b> · ${fmt(kp.pctile,0)}th pct since 1990 · YoY <b style="color:${(kp.yoy_pct||0)>=0?'var(--red)':'var(--green)'}">${kp.yoy_pct>0?'+':''}${fmt(kp.yoy_pct,1)}%</b>`;
+  let ctl = document.getElementById('gssi-ctl');
+  if (!ctl.dataset.wired){
+    ctl.innerHTML = ['all','10y','5y'].map(r=>`<button data-r="${r}" class="px-2 py-1 rounded border" style="border-color:var(--border-soft);color:var(--text-secondary);background:transparent;cursor:pointer">${r.toUpperCase()}</button>`).join('')
+      + '<span style="width:12px"></span>'
+      + [['yoy','YoY %'],['level','Level']].map(([k,l])=>`<button data-m="${k}" class="px-2 py-1 rounded border" style="border-color:var(--border-soft);color:var(--text-secondary);background:transparent;cursor:pointer">${l}</button>`).join('');
+    ctl.dataset.wired='1';
+    ctl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+      if(b.dataset.r)GSSI_ST.range=b.dataset.r; if(b.dataset.m)GSSI_ST.mode=b.dataset.m; renderGSSI(d);});
+  }
+  ctl.querySelectorAll('button').forEach(b=>{const on=(b.dataset.r===GSSI_ST.range)||(b.dataset.m===GSSI_ST.mode);
+    b.style.color=on?'var(--blue)':'var(--text-secondary)'; b.style.borderColor=on?'var(--blue)':'var(--border-soft)';});
+
+  let pts = g.series_weekly.map(p=>({d:p.d, v:GSSI_ST.mode==='yoy'?p.yoy:p.v})).filter(p=>p.v!=null);
+  if (GSSI_ST.range!=='all' && pts.length){
+    const yrs={'10y':10,'5y':5}[GSSI_ST.range];
+    const cut=new Date(pts[pts.length-1].d); cut.setFullYear(cut.getFullYear()-yrs);
+    const cs=cut.toISOString().slice(0,10); pts=pts.filter(p=>p.d>=cs);
+  }
+  const svg=document.getElementById('gssi-chart');
+  const W=1400,H=380,padL=52,padR=20,padT=14,padB=40, n=pts.length; if(n<2)return;
+  const xs=pts.map(p=>p.d), ys=pts.map(p=>p.v);
+  const LV = GSSI_ST.mode==='level';
+  let yMin,yMax;
+  if(LV){yMin=0;yMax=100;}else{const a=Math.max(Math.abs(Math.min(...ys)),Math.abs(Math.max(...ys)))*1.08||1;yMin=-a;yMax=a;}
+  const px=i=>padL+(i/(n-1))*(W-padL-padR), py=v=>padT+(1-(v-yMin)/(yMax-yMin))*(H-padT-padB);
+  let line=`M ${px(0)} ${py(ys[0])}`; for(let i=1;i<n;i++) line+=` L ${px(i).toFixed(1)} ${py(ys[i]).toFixed(1)}`;
+  const baseY=LV?(H-padB):py(0);
+  const area=line+` L ${px(n-1)} ${baseY} L ${px(0)} ${baseY} Z`;
+  let grid='',lastYr=null;
+  const step = GSSI_ST.range==='all'?5:1;
+  for(let i=0;i<n;i++){const yr=xs[i].slice(0,4); if(yr!==lastYr&&(+yr)%step===0){lastYr=yr;
+    grid+=`<line x1="${px(i)}" y1="${padT}" x2="${px(i)}" y2="${H-padB}" stroke="var(--border-soft)"/>`;
+    grid+=`<text x="${px(i)}" y="${H-padB+15}" fill="var(--text-muted)" font-size="10" text-anchor="middle" font-family="JetBrains Mono">${yr}</text>`;}}
+  const ticks = LV?[25,50,75]:[yMin*0.5,0,yMax*0.5].map(v=>+v.toFixed(0));
+  ticks.forEach(v=>{grid+=`<line x1="${padL}" y1="${py(v)}" x2="${W-padR}" y2="${py(v)}" stroke="var(--border-soft)" stroke-dasharray="2 4"/>`;
+    grid+=`<text x="${padL-6}" y="${py(v)+3}" fill="var(--text-muted)" font-size="10" text-anchor="end" font-family="JetBrains Mono">${v}</text>`;});
+  if(!LV) grid+=`<line class="gssi-zero" x1="${padL}" y1="${py(0)}" x2="${W-padR}" y2="${py(0)}" stroke="var(--text-secondary)" stroke-width="1.2" opacity="0.8"/>`;
+  // crisis markers: actual starts (red) + first warnings (amber dots)
+  let marks='';
+  (g.crisis_scorecard||[]).forEach(c=>{
+    const at=xs.findIndex(x=>x>=c.started);
+    if(at>=0){marks+=`<line class="gssi-crisis" x1="${px(at)}" y1="${padT}" x2="${px(at)}" y2="${H-padB}" stroke="var(--red)" opacity="0.25"/>`;}
+    if(c.first_warning){const w=xs.findIndex(x=>x>=c.first_warning);
+      if(w>=0) marks+=`<circle class="gssi-warn" cx="${px(w)}" cy="${padT+6}" r="3" fill="var(--amber)" opacity="0.9"><title>${c.crisis}: warned ${c.first_warning} (${c.lead_days>=0?c.lead_days+'d early':Math.abs(c.lead_days)+'d late'})</title></circle>`;}
+  });
+  const zf=Math.max(0,Math.min(1,(py(0)-padT)/(H-padT-padB)));
+  svg.innerHTML=`<defs>
+    <linearGradient id="gssiA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--red)" stop-opacity="0.25"/><stop offset="100%" stop-color="var(--green)" stop-opacity="0.05"/></linearGradient>
+    <linearGradient id="gssiD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--red)" stop-opacity="0.22"/><stop offset="${zf}" stop-color="var(--red)" stop-opacity="0.04"/><stop offset="${zf}" stop-color="var(--green)" stop-opacity="0.04"/><stop offset="1" stop-color="var(--green)" stop-opacity="0.2"/></linearGradient>
+  </defs>${grid}${marks}
+  <path d="${area}" fill="url(#${LV?'gssiA':'gssiD'})"/>
+  <path d="${line}" fill="none" stroke="var(--blue)" stroke-width="1.4"/>
+  <circle cx="${px(n-1)}" cy="${py(ys[n-1])}" r="3.5" fill="var(--blue)"/>
+  <text x="${px(n-1)-6}" y="${py(ys[n-1])-8}" fill="var(--blue)" font-size="12" font-weight="700" text-anchor="end" font-family="JetBrains Mono">${(LV?'':'YoY ')+(ys[n-1]>0&&!LV?'+':'')+ys[n-1].toFixed(1)+(LV?'':'%')}</text>`;
+  const tip=document.getElementById('gssi-tip');
+  svg.onmousemove=e=>{const r=svg.getBoundingClientRect();const xr=(e.clientX-r.left)/Math.max(1,r.width)*W;
+    let i=Math.round((xr-padL)/(W-padL-padR)*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    tip.textContent=`${xs[i]} · ${LV?'GSSI '+ys[i].toFixed(1):'YoY '+(ys[i]>0?'+':'')+ys[i].toFixed(1)+'%'}`;};
+  svg.onmouseleave=()=>{tip.textContent='';};
+
+  const sc=g.crisis_scorecard||[];
+  document.getElementById('gssi-scorecard').innerHTML =
+    `<table class="w-full"><thead><tr style="color:var(--text-muted)"><th class="px-2 py-1 text-left">Crisis</th><th class="px-2 py-1 text-right">started</th><th class="px-2 py-1 text-right">first warning</th><th class="px-2 py-1 text-right">lead</th><th class="px-2 py-1 text-right">GSSI@start→peak</th></tr></thead><tbody>`+
+    sc.map(c=>`<tr><td class="px-2 py-1" style="color:var(--text-primary)">${c.crisis}</td><td class="px-2 py-1 text-right" style="color:var(--text-secondary)">${c.started}</td><td class="px-2 py-1 text-right" style="color:${c.detected?'var(--amber)':'var(--red)'}">${c.first_warning||'missed'}</td><td class="px-2 py-1 text-right" style="color:${(c.lead_days||0)>=0?'var(--green)':'var(--amber)'}">${c.lead_days!=null?(c.lead_days>=0?c.lead_days+'d early':Math.abs(c.lead_days)+'d late'):'—'}</td><td class="px-2 py-1 text-right mono" style="color:var(--text-secondary)">${fmt(c.gssi_at_start,0)}→${fmt(c.peak_6m,0)}</td></tr>`).join('')+
+    `</tbody></table><div class="text-[10px] text-[var(--text-muted)] mt-1">Rule: ${(g.detection||{}).rule||''} · detected ${(g.detection||{}).detected}/${(g.detection||{}).total}</div>`;
+
+  const cm=(g.components||[]);
+  document.getElementById('gssi-canaries').innerHTML =
+    `<div class="eyebrow mb-1" style="color:var(--amber)">Canary block · 30%</div>`+
+    cm.filter(c=>c.block==='B').map(c=>`<div class="row" style="grid-template-columns:1.6fr 2fr auto"><div class="text-sm">${cap(c.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${c.stress||0}%;background:${stressColor(c.stress||0)}"></div></div><div class="mono text-sm" style="color:${stressColor(c.stress||0)};min-width:60px;text-align:right">${fmt(c.stress,0)} · z${c.z>=0?'+':''}${fmt(c.z,1)}</div></div>`).join('')+
+    `<div class="eyebrow mt-3 mb-1" style="color:var(--blue)">Hottest sovereign spreads · of 18</div>`+
+    cm.filter(c=>c.block==='A').slice(0,6).map(c=>`<div class="row" style="grid-template-columns:1.6fr 2fr auto"><div class="text-sm">${FLAG[c.name]||''} ${cap(c.name)}</div><div class="bar-track"><div class="bar-fill" style="width:${c.stress||0}%;background:${stressColor(c.stress||0)}"></div></div><div class="mono text-sm" style="color:${stressColor(c.stress||0)};min-width:60px;text-align:right">${fmt(c.stress,0)} · z${c.z>=0?'+':''}${fmt(c.z,1)}</div></div>`).join('');
+}
+
 function renderYoY(d){
   const rows = d.yoy_chart || [];
   const el = document.getElementById('yoy-chart');
@@ -407,6 +512,7 @@ function renderSovV2(d){
   document.getElementById('cross-list').innerHTML = Object.entries(cx).map(([k,v])=>
     `<div class="row" style="grid-template-columns:2fr 1fr"><div class="text-sm">${cap(k)}</div><div class="mono text-sm text-right" style="color:${typeof v==='number'?stressColor(v):'var(--text-secondary)'}">${v!=null?(typeof v==='number'?fmt(v,1):v):'—'}</div></div>`).join('')
     || '<div class="text-xs text-[var(--text-muted)]">no cross-references</div>';
+  try { renderGSSI(d); } catch(e) { console.error('[gssi]', e); }
   try { renderYoY(d); } catch(e) { console.error('[sov yoy]', e); }
   document.getElementById('src-meta').textContent =
     `v${d.version||d.schema_version} · ${(d.sources||[]).length} live sources · ${(d.errors||[]).length} feed errors · run ${d.elapsed_s??'—'}s`;
@@ -416,8 +522,10 @@ Promise.all([
   fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress.json?ts=' + Date.now())
     .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
   fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress-history.json?ts=' + Date.now())
+    .then(r => r.ok ? r.json() : null).catch(() => null),
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-gssi.json?ts=' + Date.now())
     .then(r => r.ok ? r.json() : null).catch(() => null)
-]).then(([d, h]) => { if (h && h.rows) d._hist = h.rows; render(d); })
+]).then(([d, h, g]) => { if (h && h.rows) d._hist = h.rows; if (g) d._gssi = g; render(d); })
   .catch(e => { document.getElementById('updated').textContent='load error: '+e.message; });
 </script>
 <script src="/jh-nav-drawer.js" defer></script>

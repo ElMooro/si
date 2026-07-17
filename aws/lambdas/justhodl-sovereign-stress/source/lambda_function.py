@@ -37,6 +37,7 @@ Real data only — ECB Data Portal + Eurostat + FRED. Not investment advice.
 import csv
 import io
 import json
+import math
 import re
 import os
 import time
@@ -50,7 +51,7 @@ s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/sovereign-stress.json"
 HIST_KEY = "data/sovereign-stress-history.json"
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
 
 ECB_API = "https://data-api.ecb.europa.eu/service/data"
@@ -95,14 +96,15 @@ WGB_SOVEREIGNS = {                      # display key -> WGB country slug
     "taiwan": "taiwan",
 }
 # ops 3384: WGB works for any covered sovereign - extend beyond Asia.
-WGB_EXTRA = {"chile": "chile", "peru": "peru", "netherlands": "netherlands"}
+WGB_EXTRA = {"chile": "chile", "peru": "peru", "netherlands": "netherlands",
+             "switzerland": "switzerland"}
 WGB_REGION = {"south_korea": "Asia-Pacific", "singapore": "Asia-Pacific",
               "hong_kong": "Asia-Pacific", "taiwan": "Asia-Pacific",
               "chile": "Latin America", "peru": "Latin America",
-              "netherlands": "Europe"}
+              "netherlands": "Europe", "switzerland": "Europe"}
 COUNTRY_ETF = {"south_korea": "EWY", "singapore": "EWS", "hong_kong": "EWH",
                "taiwan": "EWT", "chile": "ECH", "peru": "EPU",
-               "netherlands": "EWN", "germany": "EWG", "france": "EWQ",
+               "netherlands": "EWN", "switzerland": "EWL", "germany": "EWG", "france": "EWQ",
                "italy": "EWI", "spain": "EWP", "greece": "GREK"}
 WGB_ENDPOINT = "https://www.worldgovernmentbonds.com/wp-json/country/v1/main"
 WGB_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -319,6 +321,292 @@ def wgb_country(slug):
         "cb_rate_pct": num("cbRateNumber"),
         "as_of": d.get("lastDataValDesc"),
     }
+
+
+# ═════════ ops 3386 — GLOBAL SOVEREIGN STRESS INDEX (GSSI), 1990→ ═════════
+# One continuous index from the sovereign complex + the classic crisis
+# canaries. Same doctrine as the JSI spine: every component z-scored on its
+# FULL own history, logistic-mapped 0-100, weight-blended over whatever is
+# present at t — so 1992 and today are the same computation.
+#
+#   spread block (70%): 10Y spread vs the bloc's safe asset
+#       Europe vs Bund:  IT ES PT GR FR NL FI IE BE SE
+#       World vs UST:    GB JP CH KR CA AU MX CL
+#   canary block (30%): Switzerland unemployment (12m change, pp),
+#       CHF safe-haven bid (USDCHF 63d %, inverted), JPY safe-haven
+#       (USDJPY 63d %, inverted), gold (63d %).
+#
+#   stress_c(t) = 100 / (1 + exp(-1.1 * z_c(t)))
+#   GSSI(t)     = 0.70 * mean_w(spread block) + 0.30 * mean_w(canary block)
+GSSI_KEY = "data/sovereign-gssi.json"
+GSSI_EU = {"italy": "IRLTLT01ITM156N", "spain": "IRLTLT01ESM156N",
+           "portugal": "IRLTLT01PTM156N", "greece": "IRLTLT01GRM156N",
+           "france": "IRLTLT01FRM156N", "netherlands": "IRLTLT01NLM156N",
+           "finland": "IRLTLT01FIM156N", "ireland": "IRLTLT01IEM156N",
+           "belgium": "IRLTLT01BEM156N", "sweden": "IRLTLT01SEM156N"}
+GSSI_US = {"united_kingdom": "IRLTLT01GBM156N", "japan": "IRLTLT01JPM156N",
+           "switzerland": "IRLTLT01CHM156N", "south_korea": "IRLTLT01KRM156N",
+           "canada": "IRLTLT01CAM156N", "australia": "IRLTLT01AUM156N",
+           "mexico": "IRLTLT01MXM156N", "chile": "IRLTLT01CLM156N"}
+GSSI_CANARY = [
+    ("ch_unemployment", ["LRHUTTTTCHM156S", "LMUNRRTTCHM156S"], "un12", 1.0, 1.0),
+    ("chf_safe_haven", ["DEXSZUS"], "pct63", -1.0, 1.0),
+    ("jpy_safe_haven", ["DEXJPUS"], "pct63", -1.0, 0.8),
+    ("gold_bid", ["GOLDAMGBD228NLBM", "GOLDPMGBD228NLBM"], "pct63", 1.0, 0.6),
+]
+GSSI_CRISES = [
+    ("1992-09-16", "ERM crisis (Black Wednesday)"),
+    ("1994-12-20", "Tequila crisis (MXN)"),
+    ("1997-07-02", "Asian crisis (THB float)"),
+    ("1998-08-17", "Russia default / LTCM"),
+    ("2000-03-10", "Dot-com peak"),
+    ("2001-09-11", "9/11"),
+    ("2007-08-09", "GFC first tremor (BNP freeze)"),
+    ("2008-09-15", "Lehman"),
+    ("2010-04-23", "Greece bailout request"),
+    ("2011-08-01", "Euro debt crisis (IT/ES)"),
+    ("2015-08-11", "China devaluation"),
+    ("2020-02-20", "COVID crash"),
+    ("2022-09-23", "UK gilt crisis"),
+    ("2023-03-09", "SVB / regional banks"),
+]
+
+
+def _gz_stress(z):
+    try:
+        return 100.0 / (1.0 + math.exp(-1.1 * z))
+    except OverflowError:
+        return 100.0 if z > 0 else 0.0
+
+
+def build_gssi(errors):
+    t0 = time.time()
+
+    def full(sid):
+        try:
+            obs = fred(sid, limit=20000)
+            return {d: v for d, v in obs if d >= "1989-06"}
+        except Exception as e:
+            errors.append(f"gssi/{sid}: {str(e)[:40]}")
+            return {}
+
+    de = full("IRLTLT01DEM156N")
+    us = full("IRLTLT01USM156N")
+    comps = {}
+    for name, sid in GSSI_EU.items():
+        comps[name] = {"raw": full(sid), "bench": de, "kind": "spread",
+                       "wt": 1.0, "block": "A"}
+    for name, sid in GSSI_US.items():
+        comps[name] = {"raw": full(sid), "bench": us, "kind": "spread",
+                       "wt": 1.0, "block": "A"}
+    for name, sids, tf, pol, wt in GSSI_CANARY:
+        raw = {}
+        for sid in sids:
+            raw = full(sid)
+            if raw:
+                break
+        comps[name] = {"raw": raw, "kind": tf, "pol": pol, "wt": wt,
+                       "block": "B"}
+
+    grid = sorted({d for c in comps.values() for d in c["raw"]}
+                  | {d for d in de} | {d for d in us})
+    grid = [d for d in grid if d >= "1990-01-01"]
+    if len(grid) < 500:
+        errors.append("gssi: grid too thin")
+        return None
+
+    def ffill(m):
+        out, last = [], None
+        pre = [v for d, v in sorted(m.items()) if d < grid[0]]
+        if pre:
+            last = pre[-1]
+        it = sorted(m.items())
+        j = 0
+        for d in grid:
+            while j < len(it) and it[j][0] <= d:
+                last = it[j][1]
+                j += 1
+            out.append(last)
+        return out
+
+    n = len(grid)
+    for c in comps.values():
+        f = ffill(c["raw"])
+        if c["kind"] == "spread":
+            b = ffill(c["bench"])
+            c["x"] = [(f[i] - b[i]) if f[i] is not None and b[i] is not None
+                      else None for i in range(n)]
+        elif c["kind"] == "un12":
+            c["x"] = [None] * n
+            for i in range(n):
+                if f[i] is None:
+                    continue
+                # 12m back on a mixed grid: bisect ~1 calendar year
+                ti = grid[i]
+                tgt = f"{int(ti[:4]) - 1}{ti[4:]}"
+                lo = 0
+                hi = i
+                while lo < hi:
+                    m2 = (lo + hi) // 2
+                    if grid[m2] < tgt:
+                        lo = m2 + 1
+                    else:
+                        hi = m2
+                back = f[lo] if lo < i else None
+                c["x"][i] = (f[i] - back) if back is not None else None
+        else:  # pct63 — 63 grid steps (~3m on business-ish grid)
+            c["x"] = [((f[i] / f[i - 63] - 1.0) * 100.0 * c.get("pol", 1.0))
+                      if i >= 63 and f[i] and f[i - 63] else None
+                      for i in range(n)]
+        if c["kind"] == "un12":
+            c["x"] = [(v * c.get("pol", 1.0)) if v is not None else None
+                      for v in c["x"]]
+        present = [v for v in c["x"] if v is not None]
+        if len(present) < 260:
+            c["dead"] = True
+            continue
+        mu = sum(present) / len(present)
+        var = sum((v - mu) ** 2 for v in present) / len(present)
+        c["mu"], c["sd"] = mu, (var ** 0.5) or 1.0
+
+    series = []
+    for i in range(n):
+        a_num = a_w = b_num = b_w = 0.0
+        for c in comps.values():
+            if c.get("dead") or c["x"][i] is None:
+                continue
+            st = _gz_stress((c["x"][i] - c["mu"]) / c["sd"])
+            if c["block"] == "A":
+                a_num += st * c["wt"]
+                a_w += c["wt"]
+            else:
+                b_num += st * c["wt"]
+                b_w += c["wt"]
+        if a_w == 0 and b_w == 0:
+            series.append(None)
+            continue
+        a = a_num / a_w if a_w else None
+        b = b_num / b_w if b_w else None
+        if a is not None and b is not None:
+            series.append(0.70 * a + 0.30 * b)
+        else:
+            series.append(a if a is not None else b)
+    vals = [(grid[i], round(series[i], 2)) for i in range(n)
+            if series[i] is not None]
+    dts = [d for d, _ in vals]
+    vs = [v for _, v in vals]
+    m = len(vs)
+
+    # full-sample percentile + YoY (365 calendar days back via bisect)
+    import bisect as _b
+    sv = sorted(vs)
+    pct = [_b.bisect_right(sv, v) / m * 100.0 for v in vs]
+
+    def idx_back(i, days=365):
+        ti = dts[i]
+        tgt = f"{int(ti[:4]) - (days // 365)}{ti[4:]}"
+        j = _b.bisect_left(dts, tgt)
+        return j if j < i else None
+
+    yoy = [None] * m
+    d6 = [None] * m
+    for i in range(m):
+        j = idx_back(i, 365)
+        if j is not None and vs[j]:
+            yoy[i] = (vs[i] / vs[j] - 1.0) * 100.0
+        ti = dts[i]
+        y, mo = int(ti[:4]), int(ti[5:7])
+        mo -= 6
+        if mo <= 0:
+            y, mo = y - 1, mo + 12
+        j6 = _b.bisect_left(dts, f"{y:04d}-{mo:02d}" + ti[7:])
+        if j6 < i:
+            d6[i] = vs[i] - vs[j6]
+
+    # crisis-detection scorecard: pctile>=85 crossing OR d6m>=+12 crossing
+    def first_warning(start):
+        lo = _b.bisect_left(dts, (datetime.fromisoformat(start)
+                                  - timedelta(days=270)).date().isoformat())
+        hi = _b.bisect_left(dts, (datetime.fromisoformat(start)
+                                  + timedelta(days=60)).date().isoformat())
+        for i in range(max(1, lo), min(hi, m)):
+            trig = None
+            if pct[i] >= 85 and pct[i - 1] < 85:
+                trig = "pctile>=85"
+            elif d6[i] is not None and d6[i] >= 12 and (d6[i - 1] or 0) < 12:
+                trig = "surge Δ6m>=+12"
+            if trig:
+                return dts[i], trig
+        return None, None
+
+    scorecard = []
+    for start, label in GSSI_CRISES:
+        w, trig = first_warning(start)
+        i0 = min(_b.bisect_left(dts, start), m - 1)
+        peak = max(vs[i0:min(m, i0 + 130)]) if i0 < m else None
+        lead = None
+        if w:
+            lead = (datetime.fromisoformat(start)
+                    - datetime.fromisoformat(w)).days
+        scorecard.append({"crisis": label, "started": start,
+                          "first_warning": w, "trigger": trig,
+                          "lead_days": lead,
+                          "gssi_at_start": (round(vs[i0], 1) if i0 < m else None),
+                          "pctile_at_start": (round(pct[i0], 1) if i0 < m else None),
+                          "peak_6m": (round(peak, 1) if peak else None),
+                          "detected": bool(w)})
+    det = sum(1 for r in scorecard if r["detected"])
+
+    weekly = [{"d": dts[i], "v": vs[i],
+               "yoy": (round(yoy[i], 1) if yoy[i] is not None else None)}
+              for i in range(0, m, 5)]
+    if weekly and weekly[-1]["d"] != dts[-1]:
+        weekly.append({"d": dts[-1], "v": vs[-1],
+                       "yoy": (round(yoy[-1], 1) if yoy[-1] is not None else None)})
+
+    comp_meta = []
+    for name, c in comps.items():
+        if c.get("dead"):
+            comp_meta.append({"name": name, "status": "insufficient history"})
+            continue
+        lastv = next((c["x"][i] for i in range(n - 1, -1, -1)
+                      if c["x"][i] is not None), None)
+        z = ((lastv - c["mu"]) / c["sd"]) if lastv is not None else None
+        first = next((grid[i] for i in range(n) if c["x"][i] is not None), None)
+        comp_meta.append({"name": name, "block": c["block"], "weight": c["wt"],
+                          "kind": c["kind"], "first_date": first,
+                          "z": (round(z, 2) if z is not None else None),
+                          "stress": (round(_gz_stress(z), 1)
+                                     if z is not None else None)})
+
+    out = {"ok": True, "version": VERSION,
+           "generated_at": datetime.now(timezone.utc).isoformat(),
+           "elapsed_s": round(time.time() - t0, 2),
+           "method": ("spread block 70% (10Y vs Bund/UST, full-history z, "
+                      "logistic 0-100) + canary block 30% (CH unemployment "
+                      "12m-change, CHF & JPY safe-haven 63d inverted, gold "
+                      "63d); GSSI = weighted mean of present components — "
+                      "identical computation across every era"),
+           "series_weekly": weekly,
+           "latest": {"date": dts[-1], "gssi": vs[-1],
+                      "pctile": round(pct[-1], 1),
+                      "yoy_pct": (round(yoy[-1], 1) if yoy[-1] is not None else None),
+                      "d6m": (round(d6[-1], 1) if d6[-1] is not None else None)},
+           "components": sorted(comp_meta,
+                                key=lambda r: -(r.get("stress") or 0)),
+           "crisis_scorecard": scorecard,
+           "detection": {"detected": det, "total": len(scorecard),
+                         "rule": "pctile>=85 crossing OR Δ6m>=+12, window "
+                                 "[start-270d, start+60d]"}}
+    s3.put_object(Bucket=S3_BUCKET, Key=GSSI_KEY,
+                  Body=json.dumps(out, separators=(",", ":")).encode(),
+                  ContentType="application/json", CacheControl="max-age=300")
+    print(f"[gssi] {m} obs {dts[0]}->{dts[-1]} | now {vs[-1]:.1f} "
+          f"({pct[-1]:.0f}p) yoy {yoy[-1] and round(yoy[-1], 1)} | "
+          f"detected {det}/{len(scorecard)} | {round(time.time() - t0, 1)}s")
+    return {"gssi": vs[-1], "pctile": round(pct[-1], 1),
+            "yoy_pct": (round(yoy[-1], 1) if yoy[-1] is not None else None),
+            "detected": f"{det}/{len(scorecard)}"}
 
 
 def lambda_handler(event, context):
@@ -630,7 +918,66 @@ def lambda_handler(event, context):
     # ══ ops 3385 — YoY block: true 12m change where a real 12m source exists ══
     WGB_YIELD_FRED = {"netherlands": "IRLTLT01NLM156N",
                       "south_korea": "IRLTLT01KRM156N",
-                      "chile": "IRLTLT01CLM156N"}
+                      "chile": "IRLTLT01CLM156N",
+                      "switzerland": "IRLTLT01CHM156N"}
+
+    def _num_from(rec):
+        best = None
+        for k, v in (rec or {}).items():
+            kl = str(k).lower()
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if "10" in kl and ("y" in kl or "year" in kl):
+                return fv
+            if best is None and ("yield" in kl or "bond" in kl):
+                best = fv
+        return best
+
+    def sg_yield_pair():
+        base = ("https://eservices.mas.gov.sg/api/action/datastore/search"
+                "?resource_id=9a0bf149-308c-4bd2-832d-76c8e6cb47ed")
+        cur = json.loads(_get(base + "&limit=1&sort=end_of_day%20desc", timeout=25))
+        recs = ((cur.get("result") or {}).get("records")) or []
+        now_v = _num_from(recs[0]) if recs else None
+        ago = (datetime.now(timezone.utc) - timedelta(days=366)).date().isoformat()
+        old_j = json.loads(_get(base + "&limit=7&q=" + ago[:7], timeout=25))
+        orecs = ((old_j.get("result") or {}).get("records")) or []
+        old_v = _num_from(orecs[0]) if orecs else None
+        return now_v, old_v
+
+    def hk_yield_pair():
+        for url in (
+            "https://api.hkma.gov.hk/public/market-data-and-statistics/monthly-statistical-bulletin/er-ir/hkgb-yield-monthly?pagesize=15&sortby=end_of_month&sortorder=desc",
+            "https://api.hkma.gov.hk/public/market-data-and-statistics/daily-market-data/govt-bond-yield-daily?pagesize=280&sortby=end_of_date&sortorder=desc",
+        ):
+            try:
+                j = json.loads(_get(url, timeout=25))
+                recs = ((j.get("result") or {}).get("records")) or []
+                if not recs:
+                    continue
+                now_v = _num_from(recs[0])
+                old_v = _num_from(recs[min(len(recs) - 1, 12 if "monthly" in url else 250)])
+                if now_v is not None and old_v is not None:
+                    return now_v, old_v
+            except Exception:
+                continue
+        return None, None
+
+    def apply_api_pair(name, fn_pair, label):
+        e = wgb_all.get(name)
+        if not isinstance(e, dict) or e.get("data_unavailable"):
+            return
+        try:
+            now_v, old_v = fn_pair()
+            if now_v is not None and old_v is not None:
+                e["yield_yoy_bp"] = round((now_v - old_v) * 100, 0)
+                e["yoy_note"] = "10Y-yield change proxy (" + label + ") until the ledger matures"
+            else:
+                errors.append("yoy/" + name + ": " + label + " empty")
+        except Exception as ex:
+            errors.append("yoy/" + name + ": " + label + " " + str(ex)[:40])
     for name, e in wgb_all.items():
         if not isinstance(e, dict) or e.get("data_unavailable"):
             continue
@@ -650,6 +997,9 @@ def lambda_handler(event, context):
             e["yield_yoy_bp"] = None
             e["yoy_note"] = "proxy fetch failed"
             errors.append(f"yoy/{name}: {str(ex)[:40]}")
+
+    apply_api_pair("singapore", sg_yield_pair, "MAS SGS")
+    apply_api_pair("hong_kong", hk_yield_pair, "HKMA")
 
     yoy_chart = []
     for name, c in sov.items():
@@ -731,6 +1081,13 @@ def lambda_handler(event, context):
     except Exception as e:
         errors.append(f"ledger: {str(e)[:60]}")
 
+    # ══ ops 3386 — GSSI build (wrapped; writes its own feed) ══
+    gssi_current = None
+    try:
+        gssi_current = build_gssi(errors)
+    except Exception as e:
+        errors.append(f"gssi: {str(e)[:80]}")
+
     core_ok = bool(ciss) and bool(sov) and (bool(unemployment)
                                             or bool(industrial))
     out = {
@@ -762,6 +1119,8 @@ def lambda_handler(event, context):
         "signals_fired": signals_fired,
         "history_key": HIST_KEY,
         "yoy_chart": yoy_chart,
+        "gssi_key": GSSI_KEY,
+        "gssi_current": gssi_current,
         "cross_reference": cross,
         "sources": sources,
         "errors": errors,
