@@ -489,10 +489,12 @@ def lambda_handler(event=None, context=None):
         # ops 3398: canonical per-ETF phase map — full coverage for the
         # sector-capital-fusion technicals join (curated buckets slice [:12]
         # and drop unranked names; consumers should read THIS, not walk lists)
-        "etf_phases": {r["symbol"]: {"phase": r.get("phase"), "flag": r.get("flag"),
-                                     "top_score": r.get("top_score"),
-                                     "bottom_score": r.get("bottom_score")}
-                       for r in rows if r.get("class") == "etf" and r.get("symbol")},
+        "etf_phases": {(r.get("symbol") or r.get("ticker")): {
+                           "phase": r.get("phase"), "flag": r.get("flag"),
+                           "top_score": r.get("top_score"),
+                           "bottom_score": r.get("bottom_score")}
+                       for r in rows
+                       if r.get("class") == "etf" and (r.get("symbol") or r.get("ticker"))},
         "market_context": {"capitulation_signal": _cap.get("signal"), "capitulation_score": _cap_score,
                            "market_washout": market_washout, "consensus_bottom_names": len(cb_set),
                            "note": ("Tape is capitulating — bottoms are more reliable here." if market_washout
