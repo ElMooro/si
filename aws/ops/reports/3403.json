@@ -1,0 +1,18 @@
+{
+  "gates": {
+    "G1_deployed": {
+      "ok": true,
+      "detail": "composer 1.1 + best-setups self-log markers"
+    },
+    "G2_composer_capped": {
+      "ok": false,
+      "detail": "book=0 gross=0% mode=None top=[]"
+    },
+    "G3_wires_live": {
+      "ok": false,
+      "detail": "rows_fielded=True stack_signals_today=0 sample=[{'ticker': 'BKNG', 'rel_volume': 0.86, 'entry_confirmed': False, 'hold_horizon_days': 21}, {'ticker': 'NVDA', 'rel_volume': None, 'entry_confirmed': None, 'hold_horizon_days': 21}, {'ticker': 'ABBV', 'rel_volume': 1.12, 'entry_confirmed': False, 'hold_horizon_days': 21}]"
+    }
+  },
+  "book_top": [],
+  "verdict": "GAPS: G2_composer_capped,G3_wires_live"
+}
