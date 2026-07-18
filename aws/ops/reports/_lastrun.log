@@ -1,29 +1,109 @@
-executing-against: f3cf88ad8bec26dc6a904ae99ad20fabccc9c09c
-regime ctx cfg keys={"title": "Macro Regime \u2014 Decisive Call", "output_key": "regime-decisive-call", "primary_feed": "data/regime.json", "cross_feeds": "{'yield_curve': 'data/yield-curve.json', 'vix': 'data/vix-cu", "cross_regime_fields": "{'yield_curve': 'regime', 'vix': 'composite_regime', 'credit", "kb_keywords": "['regime', 'stagflation', 'goldilocks', 'reflation', 'qua
-[00:01:01] regime ctx cfg keys={"title": "Macro Regime \u2014 Decisive Call", "output_key": "regime-decisive-call", "primary_feed": "data/regime.json", "cross_feeds": "{'yield_curve': 'data/yield-curve.json', 'vix': 'data/vix-cu", "cross_regime_fields": "{'yield_curve': 'regime', 'vix': 'composite_regime', 'credit", "kb_keywords": "['regime', 'stagflation', 'goldilocks', 'reflation', 'qua
-data/regime-decisive-call.json age_h=909.0
-[00:01:01] data/regime-decisive-call.json age_h=909.0
-data/aibrief/regime-decisive-call.json ERR An error occurred (404) when calling the HeadObjec
-[00:01:01] data/aibrief/regime-decisive-call.json ERR An error occurred (404) when calling the HeadObjec
-data/regime-decisive-call.json age_h=909.0
-[00:01:01] data/regime-decisive-call.json age_h=909.0
-router timeout=240s mem=1024
-[00:01:01] router timeout=240s mem=1024
+executing-against: 8da7686a8eda3d4abc6fdb34c04746dc5f470707
+[ai-brief-router] yield-curve-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] yield-curve-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] systemic-stress-decisive-call: ERR_CLAUDE ?s [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[00:03:34] [ai-brief-router] systemic-stress-decisive-call: ERR_CLAUDE ?s [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[ai-brief-router] eurodollar-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] eurodollar-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] retail-edges-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] retail-edges-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] vix-curve-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] vix-curve-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] risk-radar-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] risk-radar-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] lce-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] lce-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] dollar-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] dollar-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] bond-vol-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] bond-vol-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] compass-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] compass-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] regime-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] regime-decisive-call: ERR_EXC ?s
+[ai-brief-router] bonds-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] bonds-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] liquidity-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] liquidity-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] fundamentals-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] fundamentals-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] conviction-decisive-call: ERR_CLAUDE ?s [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[00:03:34] [ai-brief-router] conviction-decisive-call: ERR_CLAUDE ?s [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback
+[ai-brief-router] trend-engine-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] trend-engine-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] divergence-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] divergence-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] consumer-pulse-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] consumer-pulse-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] crisis-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] crisis-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] macro-data-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] macro-data-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] auction-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] auction-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] baggers-names: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] baggers-names: ERR_CLAUDE ?s
+[llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback[ai-brief-router] deep-value-names: ERR_CLAUDE ?s
+[00:03:34] [llm_router] mode=on_demand: background call gated -> empty; engine uses deterministic fallback[ai-brief-router] deep-value-names: ERR_CLAUDE ?s
+[ai-brief-router] activist-13d-names: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] activist-13d-names: ERR_CLAUDE ?s
+[ai-brief-router] eps-velocity-names: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] eps-velocity-names: ERR_CLAUDE ?s
+[ai-brief-router] momentum-names: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] momentum-names: ERR_CLAUDE ?s
+[ai-brief-router] valuations-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] valuations-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] smart-money-names: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] smart-money-names: ERR_CLAUDE ?s
+[ai-brief-router] portfolio-manager-brief: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] portfolio-manager-brief: ERR_CLAUDE ?s
+[ai-brief-router] opportunity-ranker: OK 0.68s
+[00:03:34] [ai-brief-router] opportunity-ranker: OK 0.68s
+[ai-brief-router] ignition-names: ERR_EXC ?s
+[00:03:34] [ai-brief-router] ignition-names: ERR_EXC ?s
+[ai-brief-router] bottleneck-names: ERR_EXC ?s
+[00:03:34] [ai-brief-router] bottleneck-names: ERR_EXC ?s
+[ai-brief-router] canaries-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] canaries-decisive-call: ERR_EXC ?s
+[ai-brief-router] self-improvement-calibrator: OK 1.46s
+[00:03:34] [ai-brief-router] self-improvement-calibrator: OK 1.46s
+[ai-brief-router] liquidity-inflection-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] liquidity-inflection-decisive-call: ERR_EXC ?s
+[ai-brief-router] system-uptime-monitor: OK 1.67s
+[00:03:34] [ai-brief-router] system-uptime-monitor: OK 1.67s
+[ai-brief-router] macro-frontrun-sniffer: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] macro-frontrun-sniffer: ERR_CLAUDE ?s
+[ai-brief-router] eu-dump-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] eu-dump-decisive-call: ERR_EXC ?s
+[ai-brief-router] confluence-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] confluence-decisive-call: ERR_EXC ?s
+[ai-brief-router] us-cycle-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] us-cycle-decisive-call: ERR_EXC ?s
+[ai-brief-router] alerts-digest: OK 1.92s
+[00:03:34] [ai-brief-router] alerts-digest: OK 1.92s
+[ai-brief-router] system-critic-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] system-critic-decisive-call: ERR_EXC ?s
+[ai-brief-router] ma-reversion-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] ma-reversion-decisive-call: ERR_EXC ?s
+[ai-brief-router] alerts-digest-close: OK 2.03s
+[00:03:34] [ai-brief-router] alerts-digest-close: OK 2.03s
+[ai-brief-router] market-internals-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] market-internals-decisive-call: ERR_EXC ?s
+[ai-brief-router] upside-radar-names: ERR_EXC ?s
+[00:03:34] [ai-brief-router] upside-radar-names: ERR_EXC ?s
+[ai-brief-router] market-map-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] market-map-decisive-call: ERR_EXC ?s
 [ai-brief-router] sizing-decisive-call: ERR_EXC ?s
-[00:01:01] [ai-brief-router] sizing-decisive-call: ERR_EXC ?s
+[00:03:34] [ai-brief-router] sizing-decisive-call: ERR_EXC ?s
 [ai-brief-router] desk-consensus: ERR_CLAUDE ?s
-[00:01:01] [ai-brief-router] desk-consensus: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] desk-consensus: ERR_CLAUDE ?s
 [ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
-[00:01:01] [ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] frontrun-skill-aggregator: OK 2.67s
+[00:03:34] [ai-brief-router] frontrun-skill-aggregator: OK 2.67s
 [ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
-[00:01:01] [ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
+[00:03:34] [ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
 [ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
-[00:01:01] [ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
-[ai-brief-router] done: 6/53 OK in 8.71s
-[00:01:01] [ai-brief-router] done: 6/53 OK in 8.71s
-[ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']
-[00:01:02] [ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']
-[ai-brief-router] done: 1/1 OK in 2.96s
-[00:01:02] [ai-brief-router] done: 1/1 OK in 2.96s
+[00:03:34] [ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
 
-→ Report written to aws/ops/reports/latest/3429_router_diag2.md
+→ Report written to aws/ops/reports/latest/3430_router_errs.md
