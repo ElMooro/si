@@ -1,0 +1,18 @@
+{
+  "ops": 3471,
+  "gates": {
+    "D1_symdir_built": {
+      "ok": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    },
+    "D2_relevance_quartet": {
+      "ok": false,
+      "detail": "{'micro': ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD'], 'apple': ['AAPL', 'APPLX', 'APUSD'], 'tesla': ['TSLA', 'TXLZF', 'DTSLAUSD'], 'berkshire': ['BGRY', 'BFOCX', 'BGRYW'], 'src': None}"
+    },
+    "D3_engine_regression": {
+      "ok": true,
+      "detail": "{'keys': 197, 'version': '1.1.1'}"
+    }
+  },
+  "status": "FAILS: ['D1_symdir_built', 'D2_relevance_quartet']"
+}

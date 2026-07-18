@@ -1,10 +1,16 @@
-executing-against: 32169db9cb4d81f5048db78f2b5f62f2e04ef596
-ops 3470 — why.html x Fundamental Graphs embedded module
-PASS  E1_why_module_live_additive — {'status': 200, 'module': True, 'vitals_intact': True, 'dollarflows_intact': True, 'old_block_gone': True}
-[21:25:54] PASS  E1_why_module_live_additive — {'status': 200, 'module': True, 'vitals_intact': True, 'dollarflows_intact': True, 'old_block_gone': True}
-PASS  E2_engine_regression — {'keys': 197, 'version': '1.1.1', 'cached': True}
-[21:25:55] PASS  E2_engine_regression — {'keys': 197, 'version': '1.1.1', 'cached': True}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: be0748c26bc97cd83a1fc33215dfdff057eedace
+ops 3471 — symdir ranked search + memory-archive 34
+[21:31:31]   zip: 94264 bytes
+── 1. Lambda ──
+[21:31:31]   Lambda exists — updating
+[21:31:36] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  D1_symdir_built — An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+[21:31:44] FAIL  D1_symdir_built — An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+FAIL  D2_relevance_quartet — {'micro': ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD'], 'apple': ['AAPL', 'APPLX', 'APUSD'], 'tesla': ['TSLA', 'TXLZF', 'DTSLAUSD'], 'berkshire': ['BGRY', 'BFOCX', 'BGRYW'], 'src': None}
+[21:31:51] FAIL  D2_relevance_quartet — {'micro': ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD'], 'apple': ['AAPL', 'APPLX', 'APUSD'], 'tesla': ['TSLA', 'TXLZF', 'DTSLAUSD'], 'berkshire': ['BGRY', 'BFOCX', 'BGRYW'], 'src': None}
+PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
+[21:31:51] PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
+RESULT: FAILS: ['D1_symdir_built', 'D2_relevance_quartet']
+RESULT: FAILS: ['D1_symdir_built', 'D2_relevance_quartet']
 
-→ Report written to aws/ops/reports/latest/3470_why_fundgraph_module.md
+→ Report written to aws/ops/reports/latest/3471_fundgraph_symdir_search.md
