@@ -1,16 +1,10 @@
-executing-against: ee44d1328d3016dd90d0a85f182e05cd1571abda
-ops 3455 — congress direct
-PASS  G1_settled — marker
-[14:39:18] PASS  G1_settled — marker
-PASS  G2_schedule — created
-[14:39:19] PASS  G2_schedule — created
-[invoke] 200 None b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"senate_tx\\": 95, \\"house\\": 200}"}'
-FAIL  G3_live_data — senate tx=95 tickered=0 house=200 errs=(None,None) samp=[]
-[14:39:30] FAIL  G3_live_data — senate tx=95 tickered=0 house=200 errs=(None,None) samp=[]
-PASS  G4_page_live — OPS3455 on political.html
-[14:41:31] PASS  G4_page_live — OPS3455 on political.html
+executing-against: 65bb73f4bcdd207184a6cbee87d9917ae1c85adc
+PASS  G1_v101 — settled
+[14:44:51] PASS  G1_v101 — settled
+PASS  G2_tickers — tx=95 tickered=32 samp=[('Thomas H', 'WAB', 'Sale (Full)', '$1,001 - $15,000'), ('Thomas H', 'AWK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'CSX', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'DUK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'LMT', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H',
+[14:45:01] PASS  G2_tickers — tx=95 tickered=32 samp=[('Thomas H', 'WAB', 'Sale (Full)', '$1,001 - $15,000'), ('Thomas H', 'AWK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'CSX', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'DUK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'LMT', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H',
 
-VERDICT: GAPS: G3_live_data
-[14:41:31] VERDICT: GAPS: G3_live_data
+VERDICT: PASS_ALL
+[14:45:01] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3455_congress_direct.md
+→ Report written to aws/ops/reports/latest/3456_congress_close.md
