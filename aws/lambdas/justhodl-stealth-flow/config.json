@@ -1,0 +1,4 @@
+{"description":"Stealth-flow graded family: fresh STEALTH ETF detections emitted as UP signals (ops 3442)",
+ "timeout":180,"memory":256,
+ "env":{"S3_BUCKET":"justhodl-dashboard-live"},
+ "schedule":{"scheduler_name":"justhodl-stealth-flow-daily","cron":"cron(35 21 ? * * *)"}}

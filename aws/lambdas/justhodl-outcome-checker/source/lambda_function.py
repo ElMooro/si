@@ -393,6 +393,17 @@ def check_pending_signals():
                     "checked_at":        now_iso,
                 }
 
+            # REGIME_BRIDGE_V1 (ops 3442): regime AT LOG TIME rides on every
+            # outcome so scorecard.by_regime / engine-trust conditioning is fed.
+            try:
+                _mr = (signal.get("metadata") or {}).get("regime") or {}
+                _lbl = (_mr.get("label")
+                        or (f"J{_mr.get('jsi_decile')}|{_mr.get('gssi_band')}"
+                            if _mr.get("jsi_decile") is not None
+                            or _mr.get("gssi_band") else None))
+                outcome["regime_at_log"] = str(_lbl)[:32] if _lbl else "UNKNOWN"
+            except Exception:
+                outcome["regime_at_log"] = "UNKNOWN"
             existing_outcomes[window_key] = outcome
             outcomes_updated = True
             print(f"[CHECKER] {signal_type} [{window_key}] → "
@@ -407,6 +418,7 @@ def check_pending_signals():
                 "signal_type":   signal_type,
                 "signal_value":  signal.get("signal_value"),
                 "window_key":    window_key,
+                "regime_at_log": outcome.get("regime_at_log", "UNKNOWN"),
                 "correct":       correct,
                 "predicted_dir": pred_dir,
                 "outcome":       outcome,

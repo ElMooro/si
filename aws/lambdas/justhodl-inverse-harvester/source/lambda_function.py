@@ -17,14 +17,34 @@ from boto3.dynamodb.conditions import Attr
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
-INVERT_FAMILIES = ["eng:ai-infra-stack", "eng:finnhub-signals"]
+VERSION = "1.1.0"
+FALLBACK_INVERT = ["eng:ai-infra-stack", "eng:finnhub-signals"]
+
+
+def invert_families():
+    """v1.1 (ops 3442): the fade desk is now SELF-UPDATING — families come
+    from data/alpha-triage.json verdicts, so future triage runs change the
+    book without touching this engine."""
+    try:
+        import boto3 as _b
+        j = json.loads(_b.client("s3", "us-east-1").get_object(
+            Bucket="justhodl-dashboard-live",
+            Key="data/alpha-triage.json")["Body"].read())
+        fams = sorted(f for f, v in (j.get("families") or {}).items()
+                      if (v or {}).get("verdict") == "INVERT")
+        return fams or FALLBACK_INVERT
+    except Exception as e:
+        print(f"[inverse] triage read failed ({str(e)[:60]}) -> fallback")
+        return FALLBACK_INVERT
 ddb = boto3.resource("dynamodb", "us-east-1")
 
 
 def lambda_handler(event, context):
     t0 = time.time()
     tbl = ddb.Table("justhodl-signals")
+    fams = invert_families()
+    if (event or {}).get("_families_probe"):
+        return {"statusCode": 200, "body": json.dumps({"families": fams})}
     if (event or {}).get("_test_suppress"):
         ok = log_signal(tbl, event["_test_suppress"], "SPY", "UP", [5],
                         100.0, confidence=0.5, rationale="suppress-test")
@@ -33,7 +53,7 @@ def lambda_handler(event, context):
                                     "logged": bool(ok)})}
     today = datetime.now(timezone.utc).date().isoformat()
     rows, lek = [], None
-    fe = Attr("signal_type").is_in(INVERT_FAMILIES)
+    fe = Attr("signal_type").is_in(fams)
     while True:
         kw = {"FilterExpression": fe}
         if lek:

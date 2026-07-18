@@ -106,6 +106,11 @@ def _regime_snapshot():
             out["gssi_band"] = ("CRISIS" if g >= 75 else "STRESS" if g >= 60
                                 else "ELEVATED" if g >= 45 else "NORMAL"
                                 if g >= 30 else "CALM")
+        rm = _rj("data/regime-map.json")
+        lab = ((rm.get("regime") or {}).get("label")
+               if isinstance(rm.get("regime"), dict) else rm.get("regime"))
+        if lab:
+            out["label"] = str(lab)[:32]
         li = _rj("data/liquidity-inflection.json")
         tone = ((li.get("composite") or {}).get("tone") or li.get("tone")
                 or (li.get("onshore_funding") or {}).get("tone"))
