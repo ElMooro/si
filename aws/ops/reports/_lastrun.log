@@ -1,12 +1,12 @@
-executing-against: 0933501e50892a8b163492738521eeec223b64d9
-ops 3476 — shared catalog + full picker on why.html
-PASS  K1_catalog_live — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
-[21:59:06] PASS  K1_catalog_live — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
-PASS  K2_flagship_v15 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
-[21:59:06] PASS  K2_flagship_v15 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
-PASS  K3_why_module_v2 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
-[21:59:06] PASS  K3_why_module_v2 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+executing-against: 49b71e2c768db3128bf3d605c6f66f391d1dfa12
+ops 3477 — /fg-chart.js core + module v3 live picker
+PASS  P1_served_js_integrity — {'core_bytes': 9430, 'bad': []}
+[22:18:09] PASS  P1_served_js_integrity — {'core_bytes': 9430, 'bad': []}
+PASS  P2_flagship_v16 — {'delegated': True, 'core_removed': True}
+[22:18:09] PASS  P2_flagship_v16 — {'delegated': True, 'core_removed': True}
+PASS  P3_why_module_v3 — {'v3': True, 'old_gone': True, 'tdz_intact': True}
+[22:18:09] PASS  P3_why_module_v3 — {'v3': True, 'old_gone': True, 'tdz_intact': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3476_why_full_picker.md
+→ Report written to aws/ops/reports/latest/3477_shared_chart_core.md
