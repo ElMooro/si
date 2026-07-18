@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.0 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.1 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -883,7 +883,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -932,7 +932,46 @@ def save_cache(doc):
         print(f"cache write failed: {e}")
 
 
-def get_doc(sym, period, refresh=False):
+STATIC_CORE = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA",
+               "AVGO", "BRK-B", "JPM", "V", "MA", "UNH", "LLY", "XOM", "CVX",
+               "HD", "COST", "PG", "JNJ", "ABBV", "MRK", "NFLX", "AMD", "CRM",
+               "ORCL", "ADBE", "WMT", "KO", "PEP", "CSCO", "QCOM", "TXN",
+               "GE", "CAT", "CHTR"]
+
+
+def touch_hit(sym):
+    """Demand marker — the daily warmer refreshes symbols hit in the last 7d."""
+    try:
+        _s3.put_object(Bucket=S3_BUCKET, Key=f"data/fundgraph/hits/{sym}", Body=b"")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def recent_hits(days=7, cap=80):
+    out = []
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        tok = None
+        while True:
+            kw = {"Bucket": S3_BUCKET, "Prefix": "data/fundgraph/hits/",
+                  "MaxKeys": 500}
+            if tok:
+                kw["ContinuationToken"] = tok
+            r = _s3.list_objects_v2(**kw)
+            for o in r.get("Contents", []):
+                if o["LastModified"] >= cutoff:
+                    out.append(o["Key"].rsplit("/", 1)[-1])
+            tok = r.get("NextContinuationToken")
+            if not tok:
+                break
+    except Exception:  # noqa: BLE001
+        pass
+    return out[:cap]
+
+
+def get_doc(sym, period, refresh=False, track=False):
+    if track:
+        touch_hit(sym)
     if not refresh:
         cached = load_cache(sym, period)
         if cached:
@@ -979,6 +1018,38 @@ def lambda_handler(event, context):  # noqa: ARG001
     if not FMP_KEY:
         return _resp(500, {"ok": False, "error": "FMP_KEY not set"}, {})
 
+    if isinstance(event, dict) and event.get("warm_auto"):
+        t0 = time.time()
+        syms = list(dict.fromkeys(
+            STATIC_CORE + [s2 for s2 in recent_hits()
+                           if _valid_symbol(s2)]))[:60]
+        annual_too = datetime.now(timezone.utc).weekday() == 0
+        built, errors, skipped = [], {}, []
+
+        def time_left():
+            try:
+                return context.get_remaining_time_in_millis() / 1000.0
+            except Exception:  # noqa: BLE001
+                return 900 - (time.time() - t0)
+
+        for sym in syms:
+            if time_left() < 50:
+                skipped = syms[syms.index(sym):]
+                break
+            try:
+                get_doc(sym, "quarter", refresh=True)
+                if annual_too and sym in STATIC_CORE and time_left() > 70:
+                    get_doc(sym, "annual", refresh=True)
+                built.append(sym)
+            except Exception as e:  # noqa: BLE001
+                errors[sym] = str(e)[:120]
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.1",
+                "marker": "FUNDGRAPH_V1_OPS3462",
+                "symbols_n": len(syms), "built": len(built),
+                "annual_pass": annual_too, "errors": errors,
+                "skipped_for_time": skipped,
+                "elapsed_s": round(time.time() - t0, 1)}
+
     if isinstance(event, dict) and event.get("warm"):
         out = {}
         periods = event.get("periods") or ["quarter"]
@@ -996,7 +1067,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.0"}
+                "version": "1.1.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1021,7 +1092,7 @@ def lambda_handler(event, context):  # noqa: ARG001
         headers_in = dict(headers_in or {})
         headers_in["x-gz"] = "1"
     try:
-        doc = get_doc(sym, period, refresh=str(qp.get("refresh") or "") in ("1", "true"))
+        doc = get_doc(sym, period, refresh=str(qp.get("refresh") or "") in ("1", "true"), track=True)
         return _resp(200, doc, headers_in)
     except Exception as e:  # noqa: BLE001
         return _resp(502, {"ok": False, "symbol": sym, "period": period,

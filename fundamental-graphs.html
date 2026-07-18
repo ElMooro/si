@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.2 ops3465 -->
+<!-- fundgraph v1.0 ops3462 · v1.3 ops3466 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -65,7 +65,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.2 · ops 3465</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.3 · ops 3466</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -77,10 +77,13 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <input id="symin" type="text" placeholder="Add symbol… (max 3)" class="w-40" maxlength="10">
       <button class="btn pri" id="symadd">+ Symbol</button>
       <button class="btn pri" id="metadd">+ Add metric</button>
+      <button class="btn" id="favload" title="Add all favorited metrics">★ Load favs</button>
       <span class="note" id="metcount"></span>
       <span class="flex-1"></span>
       <button class="btn" id="savebtn">Save</button>
       <select id="loadsel"><option value="">Load saved…</option></select>
+      <button class="btn" id="csvbtn" title="fgExportCSV — download visible series">CSV</button>
+      <button class="btn" id="pngbtn" title="fgExportPNG — download chart image">PNG</button>
       <button class="btn" id="linkbtn" title="Copy deep link">🔗 Link</button>
     </div>
     <div id="legend" class="flex flex-wrap items-center gap-2 mt-3"></div>
@@ -104,6 +107,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <label class="btn" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
         <input type="checkbox" id="pxchk" style="accent-color:#22d3ee"> Show price charts
       </label>
+      <button class="btn" id="logbtn" title="Log scale (Values mode)">Log</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -290,7 +294,7 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false};
 function readURL(){
   const q=new URLSearchParams(location.search);
   if(q.get('s'))S.syms=q.get('s').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).slice(0,MAXS);
@@ -298,7 +302,7 @@ function readURL(){
   if(q.get('p'))S.per={q:'quarter',a:'annual',ttm:'ttm'}[q.get('p')]||'quarter';
   if(q.get('r'))S.rng=+q.get('r')||10;
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
-  S.px=q.get('px')==='1';
+  S.px=q.get('px')==='1';S.log=q.get('lg')==='1';
   if(!S.syms.length){S.syms=['CHTR'];S.mets=S.mets.length?S.mets:['grossProfit'];}
   if(!S.mets.length)S.mets=['grossProfit'];
 }
@@ -306,7 +310,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -331,7 +335,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.2 · ops 3465 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.3 · ops 3466 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -411,8 +415,9 @@ function buildSeriesList(){
     S.mets.forEach((mk)=>{
       const m=CATIDX[mk];if(!m)return;
       const pts=applyMode(series(doc,mk),mk);
+      const isEst=mk.indexOf('est_')===0;
       out.push({sym,si,mk,label:m.label,u:m.u,color:colorOf(mk),
-                dash:DASH[si],pts,grp:UGROUP[m.u]});
+                dash:isEst?'4 4':DASH[si],pts,grp:UGROUP[m.u],isEst});
       ci++;
     });
     if(S.px){
@@ -437,16 +442,17 @@ function draw(){
   if(!list.length){emptyEl.style.display='flex';return;}
   emptyEl.style.display='none';
 
-  /* axis grouping */
   let groups=[...new Set(list.filter(s=>!s.isPx).map(s=>s.grp))];
   let mixMsg='';
   if(S.mode!=='val'){groups=['%chg'];}
   if(S.mode==='val'&&groups.length>2){
-    if(!S.mixOk){S.mode='pct';S.mixOk=true;toast('Mixed units → switched to % Change (click Values to override)');return draw();}
-    mixMsg='⚠ '+(groups.length-2)+' unit group(s) hidden in Values mode — use % Change to see all';
+    if(!S.mixOk){S.mode='pct';S.mixOk=true;toast('Mixed units \u2192 switched to % Change (click Values to override)');return draw();}
+    mixMsg='\u26a0 '+(groups.length-2)+' unit group(s) hidden in Values mode \u2014 use % Change to see all';
     groups=groups.slice(0,2);
   }
-  document.getElementById('mixnote').textContent=mixMsg;
+  const LOGON=S.log&&S.mode==='val';
+  document.getElementById('logbtn').classList.toggle('on',S.log);
+  document.getElementById('mixnote').textContent=mixMsg+(LOGON?'  \u00b7 log scale (\u22640 values hidden)':'');
   const axisOf=s=>S.mode!=='val'?0:(s.isPx?(groups.length<2?1:-2):groups.indexOf(s.grp));
   const drawn=list.filter(s=>{const a=axisOf(s);return a===0||a===1||a===-2;});
 
@@ -454,55 +460,55 @@ function draw(){
   const padL=64,padR=(groups.length>1||S.px)?110:96,padT=16,padB=30;
   const x0=padL,x1=W-padR,y0=padT,y1=H-padB;
 
-  /* x domain */
   let dmin='9999',dmax='0000';
   drawn.forEach(s=>s.pts.forEach(p=>{if(p[0]<dmin)dmin=p[0];if(p[0]>dmax)dmax=p[0];}));
   const tmin=+new Date(dmin),tmax=+new Date(dmax)||tmin+1;
   const X=d=>x0+(x1-x0)*((+new Date(d))-tmin)/Math.max(1,(tmax-tmin));
 
-  /* y domains per axis */
+  const T=v=>LOGON?(v>0?Math.log10(v):null):v;   // axis-space transform
   function dom(filter){
     let lo=Infinity,hi=-Infinity;
-    drawn.filter(filter).forEach(s=>s.pts.forEach(p=>{if(p[1]<lo)lo=p[1];if(p[1]>hi)hi=p[1];}));
+    drawn.filter(filter).forEach(s=>s.pts.forEach(p=>{const t=T(p[1]);
+      if(t==null)return;if(t<lo)lo=t;if(t>hi)hi=t;}));
     if(!isFinite(lo)){lo=0;hi=1;}
     if(lo===hi){lo-=Math.abs(lo)*.1||1;hi+=Math.abs(hi)*.1||1;}
     const pad=(hi-lo)*.07;return [lo-pad,hi+pad];
   }
   const [l0,h0]=dom(s=>axisOf(s)===0);
   const [l1,h1]=groups.length>1||S.px?dom(s=>axisOf(s)===1||axisOf(s)===-2):[0,1];
-  const Y0=v=>y1-(y1-y0)*(v-l0)/(h0-l0);
-  const Y1=v=>y1-(y1-y0)*(v-l1)/(h1-l1);
+  const Y0=v=>{const t=T(v);return t==null?null:y1-(y1-y0)*(t-l0)/(h0-l0);};
+  const Y1=v=>{const t=T(v);return t==null?null:y1-(y1-y0)*(t-l1)/(h1-l1);};
 
   const NS='http://www.w3.org/2000/svg';
   const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
 
-  /* grid + y ticks (left axis) */
   const fmtAxis=(v,grp)=>{
     if(S.mode!=='val')return (v>=0?'+':'')+v.toFixed(0)+'%';
     if(grp==='$'){const a=Math.abs(v);
       if(a>=1e12)return (v/1e12).toFixed(1)+'T';if(a>=1e9)return (v/1e9).toFixed(1)+'B';
-      if(a>=1e6)return (v/1e6).toFixed(0)+'M';return v.toFixed(0);}
+      if(a>=1e6)return (v/1e6).toFixed(0)+'M';return v.toFixed(a<10?2:0);}
     if(grp==='%')return v.toFixed(0)+'%';
     if(grp==='days')return v.toFixed(0)+'d';
-    if(grp==='px'||grp==='$/sh')return '$'+v.toFixed(0);
+    if(grp==='px'||grp==='$/sh')return '$'+v.toFixed(v<10?2:0);
     return v.toFixed(1);
   };
+  const untf=v=>LOGON?Math.pow(10,v):v;
   niceTicks(l0,h0,6).forEach(v=>{
-    const y=Y0(v);
+    const y=y1-(y1-y0)*(v-l0)/(h0-l0);
     svg.appendChild(el('line',{x1:x0,x2:x1,y1:y,y2:y,class:'grid'}));
     const t=el('text',{x:x0-8,y:y+3,'text-anchor':'end',class:'axis'});
-    t.textContent=fmtAxis(v,S.mode!=='val'?'%chg':groups[0]);svg.appendChild(t);
+    t.textContent=fmtAxis(untf(v),S.mode!=='val'?'%chg':groups[0]);svg.appendChild(t);
   });
   if(S.mode==='val'&&(groups.length>1||S.px)){
     niceTicks(l1,h1,6).forEach(v=>{
-      const t=el('text',{x:x1+8,y:Y1(v)+3,'text-anchor':'start',class:'axis'});
-      t.textContent=fmtAxis(v,S.px&&groups.length<2?'px':groups[1]||'px');svg.appendChild(t);
+      const t=el('text',{x:x1+8,y:(y1-(y1-y0)*(v-l1)/(h1-l1))+3,'text-anchor':'start',class:'axis'});
+      t.textContent=fmtAxis(untf(v),S.px&&groups.length<2?'px':groups[1]||'px');svg.appendChild(t);
     });
   }
   if(S.mode!=='val'&&l0<0&&h0>0){
-    svg.appendChild(el('line',{x1:x0,x2:x1,y1:Y0(0),y2:Y0(0),stroke:'#334155','stroke-width':1.2}));
+    const yz=y1-(y1-y0)*(0-l0)/(h0-l0);
+    svg.appendChild(el('line',{x1:x0,x2:x1,y1:yz,y2:yz,stroke:'#334155','stroke-width':1.2}));
   }
-  /* x ticks: year marks */
   const yStart=+dmin.slice(0,4),yEnd=+dmax.slice(0,4);
   for(let y=yStart;y<=yEnd;y++){
     const d=y+'-01-01';if(+new Date(d)<tmin||+new Date(d)>tmax)continue;
@@ -510,23 +516,29 @@ function draw(){
     svg.appendChild(el('line',{x1:x,x2:x,y1:y0,y2:y1,class:'grid'}));
     const t=el('text',{x,y:y1+16,'text-anchor':'middle',class:'axis'});t.textContent=y;svg.appendChild(t);
   }
+  /* today divider (history | estimates) */
+  const todayISO=new Date().toISOString().slice(0,10);
+  if(+new Date(todayISO)>tmin&&+new Date(todayISO)<tmax){
+    const xt=X(todayISO);
+    svg.appendChild(el('line',{x1:xt,x2:xt,y1:y0,y2:y1,stroke:'var(--amber)','stroke-dasharray':'2 4','stroke-width':1.1,opacity:.8}));
+    const tl=el('text',{x:xt+4,y:y0+10,class:'axis',fill:'var(--amber)'});tl.textContent='today';svg.appendChild(tl);
+  }
 
-  /* series paths + point dots + right badges */
   const badges=[];
   drawn.forEach(s=>{
     const Y=axisOf(s)===0?Y0:Y1;
     let dstr='',pen=false;
-    s.pts.forEach(p=>{const x=X(p[0]),y=Y(p[1]);
-      dstr+=(pen?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);pen=true;});
-    const path=el('path',{d:dstr,fill:'none',stroke:s.color,'stroke-width':s.isPx?1.4:2,
-      'stroke-dasharray':s.dash,opacity:s.isPx?.85:1,'stroke-linejoin':'round'});
-    svg.appendChild(path);
-    if(s.pts.length<=60&&!s.isPx)s.pts.forEach(p=>{
-      svg.appendChild(el('circle',{cx:X(p[0]),cy:Y(p[1]),r:2.1,fill:s.color}));});
-    const lp=s.pts[s.pts.length-1];
-    badges.push({y:Y(lp[1]),txt:fmt(lp[1],s.u),color:s.color,isPx:s.isPx});
+    s.pts.forEach(p=>{const y=Y(p[1]);
+      if(y==null){pen=false;return;}
+      dstr+=(pen?'L':'M')+X(p[0]).toFixed(1)+' '+y.toFixed(1);pen=true;});
+    if(!dstr)return;
+    svg.appendChild(el('path',{d:dstr,fill:'none',stroke:s.color,'stroke-width':s.isPx?1.4:2,
+      'stroke-dasharray':s.dash,opacity:s.isPx?.85:(s.isEst?.9:1),'stroke-linejoin':'round'}));
+    if(s.pts.length<=60&&!s.isPx)s.pts.forEach(p=>{const y=Y(p[1]);
+      if(y!=null)svg.appendChild(el('circle',{cx:X(p[0]),cy:y,r:2.1,fill:s.color}));});
+    let lp=null;for(let i=s.pts.length-1;i>=0;i--){if(Y(s.pts[i][1])!=null){lp=s.pts[i];break;}}
+    if(lp)badges.push({y:Y(lp[1]),txt:fmt(lp[1],s.u),color:s.color,isPx:s.isPx});
   });
-  /* collision-avoided latest-value pills */
   badges.sort((a,b)=>a.y-b.y);
   let lastY=-99;badges.forEach(b=>{
     let y=Math.max(y0+8,Math.min(y1-8,b.y));if(y-lastY<15)y=lastY+15;lastY=y;
@@ -536,7 +548,6 @@ function draw(){
     t.textContent=b.txt;svg.appendChild(t);
   });
 
-  /* crosshair */
   const cross=el('line',{x1:0,x2:0,y1:y0,y2:y1,stroke:'#475569','stroke-dasharray':'3 3',visibility:'hidden'});
   svg.appendChild(cross);
   const hit=el('rect',{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:'transparent'});
@@ -552,7 +563,7 @@ function draw(){
       let best=null,bd=Infinity;
       for(const p of s.pts){const dd=Math.abs(+new Date(p[0])-tcur);if(dd<bd){bd=dd;best=p;}}
       if(!best)return;dshow=best[0];
-      rows+=`<div class="tr"><span><span class="dot" style="background:${s.color}"></span> ${s.sym}·${s.isPx?'Price':esc(s.label)}</span><b class="mono">${fmt(best[1],s.u)}</b></div>`;
+      rows+=`<div class="tr"><span><span class="dot" style="background:${s.color}"></span> ${s.sym}\u00b7${s.isPx?'Price':esc(s.label)}${s.isEst?' (est)':''}</span><b class="mono">${fmt(best[1],s.u)}</b></div>`;
     });
     tip.innerHTML=`<div class="mono" style="color:#64748b;margin-bottom:3px">${dshow}</div>`+rows;
     tip.style.display='block';
@@ -563,6 +574,28 @@ function draw(){
   hit.addEventListener('mousemove',onMove);
   hit.addEventListener('touchmove',e=>{onMove(e);e.preventDefault();},{passive:false});
   hit.addEventListener('mouseleave',()=>{tip.style.display='none';cross.setAttribute('visibility','hidden');});
+}
+
+/* \u2500\u2500 export: fgExportCSV / fgExportPNG \u2500\u2500 */
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+function fgExportCSV(){
+  if(!RENDERED.length)return toast('Nothing to export');
+  const cols=RENDERED.map(s=>s.sym+' \u00b7 '+(s.isPx?'Price':CATIDX[s.mk]?CATIDX[s.mk].label:s.mk)+(S.mode!=='val'?' ('+S.mode+' %)':''));
+  const dates=[...new Set([].concat(...RENDERED.map(s=>s.pts.map(p=>p[0]))))].sort();
+  const idx=RENDERED.map(s=>Object.fromEntries(s.pts));
+  let csv='date,'+cols.map(c=>'"'+c.replace(/"/g,"'")+'"').join(',')+'\n';
+  dates.forEach(d=>{csv+=d+','+idx.map(m=>m[d]!=null?m[d]:'').join(',')+'\n';});
+  dl('fundgraph_'+S.syms.join('-')+'_'+S.per+'.csv',new Blob([csv],{type:'text/csv'}));
+}
+function fgExportPNG(){
+  if(!RENDERED.length)return toast('Nothing to export');
+  const xml=new XMLSerializer().serializeToString(svg);
+  const img=new Image(),sc=2,w=svg.clientWidth,h=+svg.getAttribute('height');
+  img.onload=()=>{const c=document.createElement('canvas');c.width=w*sc;c.height=h*sc;
+    const ctx=c.getContext('2d');ctx.fillStyle='#060a12';ctx.fillRect(0,0,c.width,c.height);
+    ctx.scale(sc,sc);ctx.drawImage(img,0,0,w,h);
+    c.toBlob(b=>dl('fundgraph_'+S.syms.join('-')+'.png',b),'image/png');};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" '));
 }
 
 /* ───────────────────────── UI render ───────────────────────── */
@@ -725,6 +758,15 @@ document.querySelectorAll('#perseg .btn').forEach(b=>b.onclick=async()=>{S.per=b
 document.querySelectorAll('#rngseg .btn').forEach(b=>b.onclick=()=>{S.rng=+b.dataset.r;draw();});
 document.querySelectorAll('#modeseg .btn').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;if(b.dataset.m==='val')S.mixOk=true;draw();});
 document.getElementById('pxchk').onchange=e=>{S.px=e.target.checked;draw();};
+document.getElementById('logbtn').onclick=()=>{S.log=!S.log;if(S.log&&S.mode!=='val')toast('Log applies in Values mode');draw();};
+document.getElementById('csvbtn').onclick=fgExportCSV;
+document.getElementById('pngbtn').onclick=fgExportPNG;
+document.getElementById('favload').onclick=()=>{
+  if(!FAVM.length)return toast('No favorites yet — ☆ metrics in the picker first');
+  const before=S.mets.length;
+  FAVM.forEach(k=>{if(CATIDX[k]&&!S.mets.includes(k)&&S.mets.length<MAXM)S.mets.push(k);});
+  if(S.mets.length===before)return toast('Favorites already loaded (or 20-cap)');
+  draw();toast('Loaded '+(S.mets.length-before)+' favorite metric(s)');};
 window.addEventListener('resize',()=>{clearTimeout(window.__rs);window.__rs=setTimeout(draw,180);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
