@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.3 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.4 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -883,7 +883,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.3",
+        "version": "1.1.4",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1043,7 +1043,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.3",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.4",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "errors": errors,
@@ -1067,7 +1067,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.3"}
+                "version": "1.1.4"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1079,6 +1079,7 @@ def lambda_handler(event, context):  # noqa: ARG001
 
     srch = (qp.get("search") or "").strip()
     if srch:
+      try:
         q = "".join(c for c in srch if c.isalnum() or c in " .-&")[:40]
 
         def _srch(ep):
@@ -1102,16 +1103,22 @@ def lambda_handler(event, context):  # noqa: ARG001
                 "exchange": r0.get("exchangeShortName")
                 or r0.get("exchange") or ""})
         qU = q.upper()
-        merged.sort(key=lambda r: (
-            0 if r["symbol"] == qU else 1,
-            0 if "." not in r["symbol"] else 1,
-            merged.index(r)))
-        results = merged[:8]
+        # GOTCHA (ops 3469): never call list.index() inside a sort key of the
+        # list being sorted — CPython empties the list during sort -> ValueError.
+        ranked = sorted(
+            enumerate(merged),
+            key=lambda t: (0 if t[1]["symbol"] == qU else 1,
+                           0 if "." not in t[1]["symbol"] else 1,
+                           t[0]))
+        results = [r for _, r in ranked][:8]
         if not results:
             return _resp(502, {"ok": False, "error": "search unavailable"},
                          headers_in)
         return _resp(200, {"ok": True, "query": q, "results": results,
                            "marker": "FUNDGRAPH_V1_OPS3462"}, headers_in)
+      except Exception as e:  # noqa: BLE001
+        return _resp(502, {"ok": False, "error": "search: " + str(e)[:180]},
+                     headers_in)
 
     sym = _valid_symbol(qp.get("symbol") or qp.get("s"))
     if not sym:
