@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.2.1 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.2.2 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -1014,6 +1014,11 @@ def build_doc(sym, period):
     for k in list(P.keys()):
         P[k].sort(key=lambda t: t[0])
 
+    flags = []
+    try:
+        flags = derive_flags(P, lb)
+    except Exception:  # noqa: BLE001
+        pass
     vintage_days = 0
     try:
         vintage_days = record_vintage(sym, P)
@@ -1023,7 +1028,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.2.1",
+        "version": "1.2.2",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1031,6 +1036,7 @@ def build_doc(sym, period):
         "profile": profile,
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
         "vintage_days": vintage_days,
+        "flags": flags,
         "catalog_n": len(P),
         "points": P,
         "earnings": earnings,
@@ -1045,6 +1051,82 @@ def build_doc(sym, period):
 
 
 # ── cache + handler ──────────────────────────────────────────────────────────
+def derive_flags(P, lb):
+    """Auto-forensic digest: rule engine over the 200-series doc.
+    Reads latest vs 1y (lb periods) and 2y back; returns top-6 by severity.
+    FLAGS_ENGINE_OPS3480"""
+    def v(key, back=0):
+        a = P.get(key) or []
+        i = len(a) - 1 - back
+        return a[i][1] if 0 <= i < len(a) else None
+
+    F = []
+
+    def add(fid, sev, msg, keys, latest, prior):
+        F.append({"id": fid, "sev": sev, "msg": msg, "keys": keys,
+                  "latest": rnd(latest, 3), "prior": rnd(prior, 3)})
+
+    dso, dso1 = v("dso_days"), v("dso_days", lb)
+    rg = v("revenue_yoy_pct")
+    if dso and dso1 and rg is not None and dso >= dso1 * 1.2 and rg < 5:
+        add("DSO_STRETCH", 2,
+            "Receivables days +%d%% YoY while revenue growth is %.1f%% — "
+            "channel stuffing risk" % (round((dso / dso1 - 1) * 100), rg),
+            ["dso_days", "revenue_yoy_pct"], dso, dso1)
+    cd, cd2 = v("capex_to_da"), v("capex_to_da", 2 * lb)
+    if cd is not None and cd < 0.8 and (cd2 is None or cd < cd2):
+        add("CAPEX_STARVED", 1,
+            "Capex only %.2fx D&A and falling — asset base under-reinvested"
+            % cd, ["capex_to_da"], cd, cd2)
+    dpo, dpo1 = v("dpo_days"), v("dpo_days", lb)
+    if dpo and dpo1 and dpo >= dpo1 * 1.25:
+        add("DPO_GAMES", 1,
+            "Days payable +%d%% YoY — cash flow flattered by stretching "
+            "suppliers" % round((dpo / dpo1 - 1) * 100),
+            ["dpo_days"], dpo, dpo1)
+    iq, iq1 = v("income_quality"), v("income_quality", lb)
+    if iq is not None and iq1 is not None and iq < 0.8 and iq < iq1:
+        add("EARNINGS_QUALITY", 3,
+            "CFO covers only %.0f%% of net income and deteriorating — "
+            "accrual-driven earnings" % (iq * 100),
+            ["income_quality", "sloan_accruals_pct"], iq, iq1)
+    dl, dl1 = v("share_count_yoy_pct"), v("share_count_yoy_pct", lb)
+    if dl is not None and dl > 3 and (dl1 is None or dl > dl1):
+        add("DILUTION_ACCEL", 2,
+            "Share count +%.1f%%/yr and accelerating — dilution eating "
+            "returns" % dl, ["share_count_yoy_pct", "sbc_to_revenue_pct"],
+            dl, dl1)
+    gm, gm1 = v("gross_margin_pct"), v("gross_margin_pct", lb)
+    if gm is not None and gm1 is not None and gm <= gm1 - 2:
+        add("MARGIN_ROLL", 2,
+            "Gross margin -%.0fbp YoY — pricing power eroding"
+            % ((gm1 - gm) * 100), ["gross_margin_pct"], gm, gm1)
+    sl = v("sloan_accruals_pct")
+    if sl is not None and sl > 10:
+        add("SLOAN_HIGH", 2,
+            "Sloan accruals %.1f%% of assets — earnings persistence risk"
+            % sl, ["sloan_accruals_pct", "income_quality"], sl, None)
+    nd, nd1 = v("netdebt_to_ebitda_ttm"), v("netdebt_to_ebitda_ttm", lb)
+    if nd is not None and nd1 is not None and nd >= nd1 + 1 and nd > 2:
+        add("LEVERAGE_UP", 2,
+            "Net debt/EBITDA %.1fx, +%.1f turns YoY — balance sheet "
+            "loading up" % (nd, nd - nd1),
+            ["netdebt_to_ebitda_ttm", "netDebt"], nd, nd1)
+    bm = v("beneish_m")
+    if bm is not None and bm > -1.78:
+        add("BENEISH", 3,
+            "Beneish M %.2f above -1.78 — manipulation-risk zone" % bm,
+            ["beneish_m", "sloan_accruals_pct", "dso_days"], bm, None)
+    sb, sb1 = v("sbc_to_revenue_pct"), v("sbc_to_revenue_pct", lb)
+    if sb is not None and sb1 is not None and sb >= sb1 + 1.5:
+        add("SBC_CREEP", 1,
+            "SBC/revenue +%.1fpp YoY to %.1f%% — comp creep diluting "
+            "owners" % (sb - sb1, sb),
+            ["sbc_to_revenue_pct", "share_count_yoy_pct"], sb, sb1)
+    F.sort(key=lambda f: -f["sev"])
+    return F[:6]
+
+
 VINTAGE_PREFIX = "data/fundgraph/vintage/"
 VINTAGE_CAP = 500
 
@@ -1230,7 +1312,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.2.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.2.2",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1254,7 +1336,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.2.1"}
+                "version": "1.2.2"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1270,7 +1352,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.2.1"}, headers_in)
+                               "version": "1.2.2"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

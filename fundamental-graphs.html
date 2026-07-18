@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.7 ops3478 pctile+earnings -->
+<!-- fundgraph v1.0 ops3462 · v1.8 ops3480 flags -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.7 · ops 3478</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.8 · ops 3480</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -121,6 +121,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
 
   <!-- meta strip -->
   <div id="metastrip" class="flex flex-wrap gap-2 mb-3"></div>
+  <div id="fgFlags" class="flex flex-wrap gap-2 mb-3"></div>
 
   <!-- chart -->
   <div class="card" id="chartcard">
@@ -222,7 +223,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.7 · ops 3478 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.8 · ops 3480 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -386,7 +387,7 @@ function renderChips(){
   document.querySelectorAll('#modeseg .btn').forEach(b=>b.classList.toggle('on',b.dataset.m===S.mode));
   document.getElementById('pxchk').checked=S.px;
 }
-function renderMeta(){
+function renderMeta(){renderFlags();
   const ms=document.getElementById('metastrip');
   ms.innerHTML=S.syms.map(sym=>{
     const doc=DCACHE[sym+'_'+basePer()];
@@ -398,6 +399,23 @@ function renderMeta(){
       <span class="mono">MCap ${mc?fmtBig(mc):'—'} · P/E ${nn(last('pe_ttm'))} · FCF yld ${nn(last('fcf_yield_pct'))}% · Z ${nn(last('altman_z'))} · F ${last('piotroski_f')??'—'}</span>
       · <a href="/why.html?ticker=${esc(sym)}" style="color:var(--blue)">why</a></div>`;
   }).join('');
+}
+function renderFlags(){
+  const box=document.getElementById('fgFlags');
+  const SEVC={3:'var(--red)',2:'var(--amber)',1:'#64748b'};
+  const cards=S.syms.map(sym=>{
+    const doc=DCACHE[sym+'_'+basePer()];
+    const fl=(doc&&doc.flags)||[];
+    if(!fl.length)return '';
+    return `<div class="metacard" style="border-color:#3b1d1d"><b style="color:var(--red)">⚠ ${esc(sym)} red-flag digest</b><br>`+
+      fl.map(f=>`<span class="fgflag" data-k="${esc(f.keys.join(','))}" title="click to chart the evidence" style="display:block;cursor:pointer;margin-top:5px;font-size:.7rem;line-height:1.35"><span style="color:${SEVC[f.sev]||'#64748b'}">●</span> ${esc(f.msg)}</span>`).join('')+'</div>';
+  }).join('');
+  box.innerHTML=cards;
+  box.querySelectorAll('.fgflag').forEach(el=>el.onclick=()=>{
+    let added=0;
+    el.dataset.k.split(',').forEach(k=>{if(CATIDX[k]&&!S.mets.includes(k)&&S.mets.length<MAXM){S.mets.push(k);added++;}});
+    if(added){draw();toast('Charted '+added+' evidence series');}else toast('Evidence already on chart');
+  });
 }
 const fmtBig=v=>{const a=Math.abs(v);return a>=1e12?(v/1e12).toFixed(2)+'T':a>=1e9?(v/1e9).toFixed(1)+'B':(v/1e6).toFixed(0)+'M';};
 const nn=v=>v==null?'—':(+v).toFixed(1);

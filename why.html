@@ -3660,6 +3660,7 @@ function build(){
   var addbtn='<button id="jhfgAdd" style="border:1px solid #22d3ee;color:#22d3ee;background:#0b2530;border-radius:8px;padding:3px 12px;font-size:.7rem;font-weight:700;cursor:pointer">+ Add metric</button>'+(CUST?' <button id="jhfgClear" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\u21ba Lenses</button> <span style="font-size:.66rem;color:#5d6b82">'+keys().length+'/'+MAXM+'</span>':'');
   sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 institutional chart <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 '+(CUST?'custom '+keys().length:'lens: '+LENS[ST.lens][0])+')</span></div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
+    ((DOC.flags&&DOC.flags.length)?('<div id="jhfgFlags" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+DOC.flags.slice(0,3).map(function(f){var c=f.sev===3?'#f87171':f.sev===2?'#fbbf24':'#64748b';return '<span data-fk="'+esc(f.keys.join(','))+'" title="click to chart the evidence" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.68rem">\u26a0 '+esc(f.msg)+'</span>';}).join('')+'</div>'):'')+
     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' '+addbtn+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">'+
       seg(['val:Values','pct:% Chg','yoy:YoY %'],ST.mode,'m')+' '+
@@ -3680,6 +3681,11 @@ function build(){
   sec.querySelector('#jhfgErn').onclick=function(){ST.ern=!ST.ern;build();};
   sec.querySelector('#jhfgPx').onchange=function(e){ST.px=e.target.checked;build();};
   var ab=sec.querySelector('#jhfgAdd');if(ab)ab.onclick=openPicker;
+  sec.querySelectorAll('[data-fk]').forEach(function(el2){el2.onclick=function(){
+    if(!CUST)CUST=keys().slice();
+    var added=0;el2.dataset.fk.split(',').forEach(function(k){
+      if(CATIDX&&CATIDX[k]&&CUST.indexOf(k)<0&&CUST.length<MAXM){CUST.push(k);added++;}});
+    saveCust();build();};});
   var cb=sec.querySelector('#jhfgClear');if(cb)cb.onclick=function(){CUST=null;saveCust();build();};
   chart();
 }
