@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.0 ops3482 impliedG+NBER+whales -->
+<!-- fundgraph v1.0 ops3462 · v2.1 ops3486 pairs-ratio -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.0 · ops 3482</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.1 · ops 3486</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -116,6 +116,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <button class="btn" id="tblbtn" title="Side-by-side snapshot table">Table</button>
       <button class="btn" id="ernbtn" title="Earnings dates + beat/miss (single symbol)">Earnings</button>
       <button class="btn" id="mkclr" title="clear all placed markers" style="display:none">📍 Clear marks</button>
+      <button class="btn" id="rtbtn" title="Pairs ratio: chart symA·metric ÷ symB·metric">Ratio</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -183,7 +184,8 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,marks:[]};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,marks:[],ratios:[]};
+const MAXR=6;
 function readURL(){
   const q=new URLSearchParams(location.search);
   if(q.get('s'))S.syms=q.get('s').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).slice(0,MAXS);
@@ -193,6 +195,7 @@ function readURL(){
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
   S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';
   if(q.get('mk'))S.marks=q.get('mk').split(',').filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
+  if(q.get('rt'))S.ratios=q.get('rt').split(',').map(t=>{const p=t.split('~');return {a:{s:(p[0]||'').toUpperCase(),m:p[1]},b:{s:(p[2]||'').toUpperCase(),m:p[3]}};}).filter(r=>CATIDX[r.a.m]&&CATIDX[r.b.m]).slice(0,MAXR);
   if(!S.syms.length){S.syms=['CHTR'];S.mets=S.mets.length?S.mets:['grossProfit'];}
   if(!S.mets.length)S.mets=['grossProfit'];
 }
@@ -200,7 +203,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -225,7 +228,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.0 · ops 3482 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.1 · ops 3486 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -281,6 +284,15 @@ function fmt(v,u){return FGChart.fmt(v,u,S.mode);}
 const svg=document.getElementById('chart'),wrap=document.getElementById('chartwrap'),
       tip=document.getElementById('tip'),emptyEl=document.getElementById('empty');
 let RENDERED=[];
+function ratioRaw(r){
+  const da=DCACHE[r.a.s+'_'+basePer()],db=DCACHE[r.b.s+'_'+basePer()];
+  if(!da||!db)return [];
+  return FGChart.ratio(series(da,r.a.m),series(db,r.b.m));
+}
+function ratioLabel(r){
+  const la=(CATIDX[r.a.m]||{}).label||r.a.m,lb=(CATIDX[r.b.m]||{}).label||r.b.m;
+  return `${r.a.s} ${la} ÷ ${r.b.s} ${lb}`;
+}
 function buildSeriesList(){
   const out=[];let ci=0;
   S.syms.forEach((sym,si)=>{
@@ -298,6 +310,12 @@ function buildSeriesList(){
       out.push({sym,si,mk:'__price',label:'Price',u:'c',color:'#e5e7eb',
                 dash:DASH[si],pts,grp:S.mode==='val'?'px':'%chg',isPx:true});
     }
+  });
+  S.ratios.forEach((r,ri)=>{
+    const raw=ratioRaw(r);if(raw.length<2)return;
+    out.push({sym:'',mk:'__ratio'+ri,label:ratioLabel(r),u:'x',
+      color:PAL[(12+ri)%PAL.length],dash:'6 3',
+      pts:applyMode(raw,'__ratio'),grp:FGChart.grp('x'),isRatio:true});
   });
   return out.filter(s=>s.pts.length>=2);
 }
@@ -385,7 +403,20 @@ function renderChips(){
       chips.push(`<span class="metchip"><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>·${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-m="${mk}" title="remove metric">✕</span></span>`);
     });
   });
+    S.ratios.forEach((r,ri)=>{
+    const color=PAL[(12+ri)%PAL.length];
+    const raw=ratioRaw(r);
+    let latest='—',extra='';
+    if(raw.length){
+      const lastV=raw[raw.length-1][1];
+      latest=lastV==null?'—':lastV.toFixed(2)+'x';
+      const stq=seriesStats(raw);
+      if(stq)extra=` <span class="u" title="percentile of own history · z" style="border-color:#22304a;color:#94a3b8">p${stq.pct}·z${stq.z>=0?'+':''}${stq.z.toFixed(1)}</span>`;
+    }
+    chips.push(`<span class="metchip" style="border-style:dashed;border-color:${color}66"><span class="dot" style="background:${color}"></span>${esc(ratioLabel(r))} <b class="mono">${latest}</b>${extra}<span class="x" data-ri="${ri}" title="remove ratio">✕</span></span>`);
+  });
   lg.innerHTML=chips.join('');
+  lg.querySelectorAll('[data-ri]').forEach(x=>x.onclick=()=>{S.ratios.splice(+x.dataset.ri,1);draw();});
   lg.querySelectorAll('.x').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.m);draw();});
   document.getElementById('metcount').textContent=`${S.mets.length}/${MAXM} metrics · ${S.syms.length}/${MAXS} symbols`;
   document.querySelectorAll('#perseg .btn').forEach(b=>b.classList.toggle('on',b.dataset.p===S.per));
@@ -593,11 +624,11 @@ function renderSaves(){const sel=document.getElementById('loadsel');
   sel.innerHTML='<option value="">Load saved…</option>'+Object.keys(saves()).map(n=>`<option>${esc(n)}</option>`).join('');}
 document.getElementById('savebtn').onclick=()=>{
   const n=prompt('Name this graph:');if(!n)return;
-  const all=saves();all[n]={syms:S.syms,mets:S.mets,per:S.per,rng:S.rng,mode:S.mode,px:S.px};
+  const all=saves();all[n]={syms:S.syms,mets:S.mets,per:S.per,rng:S.rng,mode:S.mode,px:S.px,ratios:S.ratios};
   localStorage.setItem(LSK,JSON.stringify(all));renderSaves();toast('Saved "'+n+'"');};
 document.getElementById('loadsel').onchange=e=>{
   const v=e.target.value;if(!v)return;const st=saves()[v];if(!st)return;
-  Object.assign(S,st);S.mixOk=false;e.target.value='';refresh();};
+  S.ratios=[];S.marks=[];Object.assign(S,st);S.mixOk=false;e.target.value='';refresh();};
 document.getElementById('linkbtn').onclick=()=>{
   writeURL();navigator.clipboard&&navigator.clipboard.writeText(location.href);toast('Deep link copied');};
 
@@ -624,6 +655,36 @@ document.querySelectorAll('#rngseg .btn').forEach(b=>b.onclick=()=>{S.rng=+b.dat
 document.querySelectorAll('#modeseg .btn').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;if(b.dataset.m==='val')S.mixOk=true;draw();});
 document.getElementById('pxchk').onchange=e=>{S.px=e.target.checked;draw();};
 document.getElementById('logbtn').onclick=()=>{S.log=!S.log;if(S.log&&S.mode!=='val')toast('Log applies in Values mode');draw();};
+function rtPop(){
+  const ex=document.getElementById('rtpop');if(ex){ex.remove();return;}
+  if(S.syms.length<1){toast('Load at least one symbol first');return;}
+  const groups={};CAT.forEach(c=>{(groups[c[2]]=groups[c[2]]||[]).push(c);});
+  const metSel=id=>`<select id="${id}" class="btn" style="max-width:190px;font-size:.72rem">${TABS.filter(t=>groups[t[0]]).map(t=>`<optgroup label="${esc(t[1])}">${groups[t[0]].map(c=>`<option value="${c[0]}">${esc(c[1])}</option>`).join('')}</optgroup>`).join('')}</select>`;
+  const symSel=id=>`<select id="${id}" class="btn" style="font-size:.72rem">${S.syms.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`;
+  const d=document.createElement('div');d.id='rtpop';
+  d.style.cssText='position:fixed;z-index:120;background:#0a1120;border:1px solid #22304a;border-radius:12px;padding:12px;box-shadow:0 18px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px';
+  d.innerHTML=`<b style="font-size:.8rem">Pairs ratio <span class="note">(${S.ratios.length}/${MAXR})</span></b>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${symSel('rtsa')}${metSel('rtma')}<b>÷</b>${symSel('rtsb')}${metSel('rtmb')}</div>
+    <div style="display:flex;gap:8px"><button class="btn on" id="rtadd">Add ratio</button><button class="btn" id="rtx">Close</button></div>
+    <span class="note" style="max-width:420px">Aligned at-or-before by date (≤140d gap). Ratios ride Values/%Chg/YoY like any series — dashed lines, x-axis unit.</span>`;
+  document.body.appendChild(d);
+  const rc=document.getElementById('rtbtn').getBoundingClientRect();
+  d.style.left=Math.min(rc.left,window.innerWidth-d.offsetWidth-10)+'px';
+  d.style.top=Math.min(rc.bottom+6,window.innerHeight-d.offsetHeight-10)+'px';
+  if(S.syms.length>1)d.querySelector('#rtsb').selectedIndex=1;
+  d.querySelector('#rtmb').value=d.querySelector('#rtma').value;
+  d.querySelector('#rtx').onclick=()=>d.remove();
+  d.querySelector('#rtadd').onclick=()=>{
+    if(S.ratios.length>=MAXR){toast('Max '+MAXR+' ratios');return;}
+    const r={a:{s:d.querySelector('#rtsa').value,m:d.querySelector('#rtma').value},
+             b:{s:d.querySelector('#rtsb').value,m:d.querySelector('#rtmb').value}};
+    if(r.a.s===r.b.s&&r.a.m===r.b.m){toast('That ratio is always 1.0');return;}
+    if(S.ratios.some(x=>x.a.s===r.a.s&&x.a.m===r.a.m&&x.b.s===r.b.s&&x.b.m===r.b.m)){toast('Already added');return;}
+    S.ratios.push(r);draw();
+    d.querySelector('b .note,.note')&&(d.querySelector('b span.note').textContent='('+S.ratios.length+'/'+MAXR+')');
+    toast('Ratio added — '+ratioLabel(r));};
+}
+document.getElementById('rtbtn').onclick=rtPop;
 document.getElementById('mkclr').onclick=()=>{S.marks=[];saveMarks();draw();};
 document.getElementById('ernbtn').onclick=()=>{S.ern=!S.ern;if(S.ern&&S.syms.length>1)toast('Earnings layer shows for a single symbol');draw();};
 document.getElementById('csvbtn').onclick=fgExportCSV;

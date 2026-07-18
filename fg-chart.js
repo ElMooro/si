@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 (NBER backdrop) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -246,5 +246,21 @@ function render(svg,tip,list,opts){
   hit.addEventListener('mouseleave',function(){if(tip)tip.style.display='none';cross.setAttribute('visibility','hidden');});
   return {autoPct:false,hiddenGroups:hidden};
 }
-window.FGChart={render:render,fmt:fmt,grp:function(u){return UGROUP[u]||'x';},niceTicks:niceTicks};
+function ratio(a,b,maxGapDays){
+  maxGapDays=maxGapDays||140;
+  if(!a||!b||!a.length||!b.length)return [];
+  var out=[],j=0;
+  for(var i=0;i<a.length;i++){
+    var d=a[i][0],va=a[i][1];
+    if(va==null)continue;
+    while(j+1<b.length&&b[j+1][0]<=d)j++;
+    var db=b[j][0],vb=b[j][1];
+    if(db>d||vb==null)continue;
+    if((+new Date(d)-(+new Date(db)))/86400000>maxGapDays)continue;
+    if(Math.abs(vb)<1e-12)continue;
+    out.push([d,va/vb]);
+  }
+  return out;
+}
+window.FGChart={render:render,fmt:fmt,grp:function(u){return UGROUP[u]||'x';},niceTicks:niceTicks,ratio:ratio};
 })();
