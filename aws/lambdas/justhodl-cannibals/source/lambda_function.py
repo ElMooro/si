@@ -18,7 +18,7 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT = "data/cannibals.json"
 BAD = {"SBC_WASH", "MGMT_SELLING_INTO_BUYBACK", "DEATH_SPIRAL"}
@@ -43,6 +43,18 @@ def lambda_handler(event, context):
     t0 = time.time()
     sf = rj("data/share-flows.json")
     rows = {}
+    # primary shape: {"tickers": {SYM: row}} — rows carry no inner ticker field
+    for k, o in (sf.get("tickers") or {}).items() if isinstance(sf.get("tickers"), dict) else []:
+        if not isinstance(o, dict):
+            continue
+        cg = o.get("sh_3y_cagr_pct")
+        if isinstance(cg, (int, float)):
+            rows[str(k).upper()] = {
+                "ticker": str(k).upper(), "sh_3y_cagr_pct": float(cg),
+                "flags": o.get("flags") or [],
+                "buyback_yield": (o.get("buyback_net_yield_pct")
+                                  if isinstance(o.get("buyback_net_yield_pct"),
+                                                (int, float)) else None)}
 
     def walk(o):
         if isinstance(o, dict):
