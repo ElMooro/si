@@ -1,18 +1,10 @@
-executing-against: 198ca377f437887903c849469c7afe38376933e6
-ops 3474 — symdir ranked search + memory-archive 34
-[21:38:12]   zip: 94822 bytes
-── 1. Lambda ──
-[21:38:12]   Lambda exists — updating
-[21:38:17] ✅   ✓ updated justhodl-fundamental-graphs
-SYMDIR DIAG: [["company-screener?marketCapMoreThan=2000000000&limit=10000", "raw=5462 kept=2683"], ["company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000", "raw=10000 kept=4657"], ["stock-list", "raw=90758 kept=0 keys=['companyName', 'symbol']"]]
-[21:38:24] symdir diag: [["company-screener?marketCapMoreThan=2000000000&limit=10000", "raw=5462 kept=2683"], ["company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000", "raw=10000 kept=4657"], ["stock-list", "raw=90758 kept=0 keys=['companyName', 'symbol']"]]
-PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ', 4912261010000.0], ['AAPL', 'Apple Inc.', 'NASDAQ', 4901758191440.0], ['GOOGL', 'Alphabet Inc.', 'NASDAQ', 4194138171504.0]]}
-[21:38:26] PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ', 4912261010000.0], ['AAPL', 'Apple Inc.', 'NASDAQ', 4901758191440.0], ['GOOGL', 'Alphabet Inc.', 'NASDAQ', 4194138171504.0]]}
-PASS  D2_relevance_quartet — {'micro': ['MSFT', 'MU', 'MCHP', 'STRF'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-B', 'BRK-A', 'OMAH'], 'src': 'symdir'}
-[21:38:26] PASS  D2_relevance_quartet — {'micro': ['MSFT', 'MU', 'MCHP', 'STRF'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-B', 'BRK-A', 'OMAH'], 'src': 'symdir'}
-PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
-[21:38:27] PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
+executing-against: 6a310677613a537dfc48779568c93e45b1c14ce0
+ops 3475 — why.html renderDilutionPillar TDZ fix (verdict)
+PASS  T1_fix_live — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
+[21:48:18] PASS  T1_fix_live — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
+PASS  T2_no_collateral — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
+[21:48:18] PASS  T2_no_collateral — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3474_fundgraph_symdir_search.md
+→ Report written to aws/ops/reports/latest/3475_why_tdz_fix.md
