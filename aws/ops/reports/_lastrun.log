@@ -1,12 +1,18 @@
-executing-against: 49b71e2c768db3128bf3d605c6f66f391d1dfa12
-ops 3477 — /fg-chart.js core + module v3 live picker
-PASS  P1_served_js_integrity — {'core_bytes': 9430, 'bad': []}
-[22:18:09] PASS  P1_served_js_integrity — {'core_bytes': 9430, 'bad': []}
-PASS  P2_flagship_v16 — {'delegated': True, 'core_removed': True}
-[22:18:09] PASS  P2_flagship_v16 — {'delegated': True, 'core_removed': True}
-PASS  P3_why_module_v3 — {'v3': True, 'old_gone': True, 'tdz_intact': True}
-[22:18:09] PASS  P3_why_module_v3 — {'v3': True, 'old_gone': True, 'tdz_intact': True}
+executing-against: bce156423d17e313954516f43516e9152659d3ba
+ops 3478 — percentile bands + earnings layer
+[22:47:42]   zip: 94988 bytes
+── 1. Lambda ──
+[22:47:43]   Lambda exists — updating
+[22:47:46] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  N1_engine_earnings — {'version': '1.2.0', 'rows': 48, 'with_both': 47, 'beats': 42, 'misses': 2, 'last': ['2026-07-30', None, 1.88]}
+[22:47:57] PASS  N1_engine_earnings — {'version': '1.2.0', 'rows': 48, 'with_both': 47, 'beats': 42, 'misses': 2, 'last': ['2026-07-30', None, 1.88]}
+PASS  N2_served_js — {'bad': [], 'core_bytes': 11034}
+[22:50:01] PASS  N2_served_js — {'bad': [], 'core_bytes': 11034}
+PASS  N3_flagship_v17 — {}
+[22:50:01] PASS  N3_flagship_v17 — {}
+PASS  N4_why_v31 — {}
+[22:50:01] PASS  N4_why_v31 — {}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3477_shared_chart_core.md
+→ Report written to aws/ops/reports/latest/3478_pctile_earnings.md
