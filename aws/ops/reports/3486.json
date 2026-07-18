@@ -1,0 +1,18 @@
+{
+  "ops": 3486,
+  "gates": {
+    "T1_ratio_micro": {
+      "ok": false,
+      "detail": "/tmp/tmpqbp8y40s.js:272\n  var R=FGChart.ratio(A,B);\n        ^\n\nReferenceError: FGChart is not defined\n    at /tmp/tmpqbp8y40s.js:272:9\n    at Object.<anonymous> (/tmp/tmpqbp8y40s.js:277:3)\n    at Module._compile (node:in"
+    },
+    "T2_served_core": {
+      "ok": true,
+      "detail": "{'node_ok': [True, True, True, True]}"
+    },
+    "T3_flagship_v21": {
+      "ok": true,
+      "detail": "{'ops3486': True, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}"
+    }
+  },
+  "status": "FAILS: ['T1_ratio_micro']"
+}
