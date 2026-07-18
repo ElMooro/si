@@ -1,0 +1,18 @@
+{
+  "ops": 3473,
+  "gates": {
+    "D1_symdir_built": {
+      "ok": true,
+      "detail": "{'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ'], ['AAPL', 'Apple Inc.', 'NASDAQ'], ['GOOGL', 'Alphabet Inc.', 'NASDAQ']]}"
+    },
+    "D2_relevance_quartet": {
+      "ok": false,
+      "detail": "{'micro': ['MU', 'MBOT', 'MCHP', 'MLGO'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-A', 'BRK-B', 'OMAH'], 'src': 'symdir'}"
+    },
+    "D3_engine_regression": {
+      "ok": true,
+      "detail": "{'keys': 197, 'version': '1.1.1'}"
+    }
+  },
+  "status": "FAILS: ['D2_relevance_quartet']"
+}
