@@ -1,0 +1,21 @@
+{
+  "gates": {
+    "G1_deployed_scheduled": {
+      "ok": true,
+      "detail": "settled=True sched=exists"
+    },
+    "G2_feed_live": {
+      "ok": true,
+      "detail": "seen=1 fresh=0 logged=0 fresh_rows=[]"
+    },
+    "G3_signals_match": {
+      "ok": true,
+      "detail": "ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)"
+    }
+  },
+  "real_read": {
+    "fresh": [],
+    "logged": 0
+  },
+  "verdict": "PASS_ALL"
+}

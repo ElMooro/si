@@ -1,9 +1,13 @@
-executing-against: 4cc2c8bddacf72b4ba6d8e83827907e6569c4ff7
-top: ["schema_version", "method", "generated_at", "input_auction_data_modified", "n_graded", "summary", "graded_auctions", "by_tenor", "regime_from_crisis_detector", "composite_score_crisis", "duration_s"]
-[03:37:43] top: ["schema_version", "method", "generated_at", "input_auction_data_modified", "n_graded", "summary", "graded_auctions", "by_tenor", "regime_from_crisis_detector", "composite_score_crisis", "duration_s"]
-row keys: ["accepted_billions", "auction_date", "composite_score", "cusip", "dimensions", "high_rate", "issue_date", "narrative", "overall_grade", "security_term", "security_type", "tenor_bucket"]
-[03:37:43] row keys: ["accepted_billions", "auction_date", "composite_score", "cusip", "dimensions", "high_rate", "issue_date", "narrative", "overall_grade", "security_term", "security_type", "tenor_bucket"]
-row sample: {"cusip": "912797UU9", "auction_date": "2026-07-16", "issue_date": "2026-07-21", "security_type": "Bill", "security_term": "4-Week", "tenor_bucket": "bills_lt_90d", "accepted_billions": 116.4472653, "high_rate": 3.66, "overall_grade": "C", "composite_score": 1.95, "dimensions": "{'bid_to_cover': {'grade': 'D', 'value': 2.57, 'no", "narrative": "Soft auction. Issues: weak demand, dealer absorpti"}
-[03:37:43] row sample: {"cusip": "912797UU9", "auction_date": "2026-07-16", "issue_date": "2026-07-21", "security_type": "Bill", "security_term": "4-Week", "tenor_bucket": "bills_lt_90d", "accepted_billions": 116.4472653, "high_rate": 3.66, "overall_grade": "C", "composite_score": 1.95, "dimensions": "{'bid_to_cover': {'grade': 'D', 'value': 2.57, 'no", "narrative": "Soft auction. Issues: weak demand, dealer absorpti"}
+executing-against: 1de021f5cf41028876c6ff09122d2e7969d2ce69
+ops 3446 — auction-tail family
+PASS  G1_deployed_scheduled — settled=True sched=exists
+[03:40:34] PASS  G1_deployed_scheduled — settled=True sched=exists
+PASS  G2_feed_live — seen=1 fresh=0 logged=0 fresh_rows=[]
+[03:40:35] PASS  G2_feed_live — seen=1 fresh=0 logged=0 fresh_rows=[]
+PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
+[03:40:39] PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
 
-→ Report written to aws/ops/reports/latest/3447_grades_peek.md
+VERDICT: PASS_ALL
+[03:40:39] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3448_at_regate.md
