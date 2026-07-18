@@ -402,7 +402,7 @@ function renderMeta(){renderFlags();
     const mc=last('mcap')||p.mktCap;
     return `<div class="metacard"><b style="color:var(--blue)">${esc(sym)}</b> · ${esc(p.name||'')}<br>
       <span class="note">${esc(p.sector||'')}${p.industry?' · '+esc(p.industry):''}</span><br>
-      <span class="mono">MCap ${mc?fmtBig(mc):'—'} · P/E ${nn(last('pe_ttm'))} · FCF yld ${nn(last('fcf_yield_pct'))}% · Z ${nn(last('altman_z'))} · F ${last('piotroski_f')??'—'}</span>
+      <span class="mono">MCap ${mc?fmtBig(mc):'—'} · P/E ${nn(last('pe_ttm'))} · FCF yld ${nn(last('fcf_yield_pct'))}% · Z ${nn(last('altman_z'))} · F ${last('piotroski_f')??'—'}${doc.whales_q&&doc.whales_q.net_usd!=null?` · <span title="latest-quarter 13F institutional net $ flow (whale-weighted feed)" style="color:${doc.whales_q.net_usd>=0?'var(--green)':'var(--red)'}">🐋 ${doc.whales_q.net_usd>=0?'+':''}${fmtBig(doc.whales_q.net_usd)}</span>${doc.whales_q.n_funds?`<span class="note"> ${doc.whales_q.n_funds}f</span>`:''}`:''}</span>
       · <a href="/why.html?ticker=${esc(sym)}" style="color:var(--blue)">why</a></div>`;
   }).join('');
 }

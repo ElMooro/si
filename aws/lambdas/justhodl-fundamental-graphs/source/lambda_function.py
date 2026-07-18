@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.3.0 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.3.1 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -1033,7 +1033,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.3.0",
+        "version": "1.3.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1099,17 +1099,17 @@ def whale_lookup(sym):
             raw = json.loads(_s3.get_object(
                 Bucket=S3_BUCKET,
                 Key="data/13f-flows-by-ticker.json")["Body"].read())
-            mp = raw.get("by_ticker") or raw.get("tickers") or raw
+            mp = raw.get("t") or raw.get("by_ticker") or raw
             _WHALES.update(map=mp if isinstance(mp, dict) else {}, ts=now)
         except Exception:  # noqa: BLE001
             _WHALES.update(map={}, ts=now)
     r = (_WHALES["map"] or {}).get(sym) or {}
     if not isinstance(r, dict) or not r:
         return None
-    return {"net_usd": g(r, "net", "net_usd", "net_flow_usd"),
-            "whale_net_usd": g(r, "whale_net_usd", "whale_net"),
-            "n_funds": g(r, "n_funds", "funds"),
-            "held_usd": g(r, "held_usd", "total_held_usd")}
+    return {"net_usd": g(r, "n", "net", "net_usd"),
+            "whale_net_usd": g(r, "wn", "whale_net_usd"),
+            "n_funds": g(r, "nf", "n_funds"),
+            "held_usd": g(r, "tv", "held_usd")}
 
 
 def derive_flags(P, lb):
@@ -1373,7 +1373,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.3.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.3.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1397,7 +1397,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.3.0"}
+                "version": "1.3.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1413,7 +1413,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.3.0"}, headers_in)
+                               "version": "1.3.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
