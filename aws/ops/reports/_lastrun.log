@@ -1,16 +1,11 @@
-executing-against: 6f61b28ec05fc376c4343b1d427f43a91597d24a
-ops 3442 — regime bridge + stealth + fade v1.1
-PASS  G1_settled — 4 markers incl label-stamp in bundled shared
-[03:16:16] PASS  G1_settled — 4 markers incl label-stamp in bundled shared
-FAIL  G2_bridge_e2e — on_row=TESTREGIME3442 table=None
-[03:19:53] FAIL  G2_bridge_e2e — on_row=TESTREGIME3442 table=None
+executing-against: 25dad125120c97a93c567adcd62b6aaa2e305474
+key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
+[03:22:04] key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
+FAIL  G1_table_leg — rows=1 regime_at_log=None keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
+[03:22:30] FAIL  G1_table_leg — rows=1 regime_at_log=None keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
 [cleanup] ok
-PASS  G3_stealth_live — sched=created recent=0 logged=0 rows=[]
-[03:19:54] PASS  G3_stealth_live — sched=created recent=0 logged=0 rows=[]
-PASS  G4_fade_selfupdating — families_from_triage=['eng:ai-infra-stack', 'eng:finnhub-signals']
-[03:19:56] PASS  G4_fade_selfupdating — families_from_triage=['eng:ai-infra-stack', 'eng:finnhub-signals']
 
-VERDICT: GAPS: G2_bridge_e2e
-[03:19:56] VERDICT: GAPS: G2_bridge_e2e
+VERDICT: GAPS: G1_table_leg
+[03:22:30] VERDICT: GAPS: G1_table_leg
 
-→ Report written to aws/ops/reports/latest/3442_regime_bridge.md
+→ Report written to aws/ops/reports/latest/3443_bridge_table.md
