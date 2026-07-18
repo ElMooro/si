@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha Lab — Graded Families · JustHodl.AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/jh-theme.css">
+<script src="/jh-nav-drawer.js" defer></script>
+<style>
+:root{--blue:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;--text-primary:#e5e7eb;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-soft:#1f2937;--card:#0b1220}
+body{background:#060a12;color:var(--text-primary);font-family:Inter,system-ui,sans-serif}
+.card{background:var(--card);border:1px solid var(--border-soft);border-radius:14px;padding:18px;margin-bottom:16px}
+.eyebrow{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-weight:700}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.h2{font-weight:800;font-size:1.05rem;margin-bottom:2px}
+.meth{font-size:.72rem;color:var(--text-muted);margin-top:8px;line-height:1.45}
+.chip{display:inline-block;padding:1px 8px;border-radius:4px;font-size:.62rem;border:1px solid var(--border-soft);color:var(--text-secondary);margin-left:6px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{color:var(--text-muted);text-align:left;padding:4px 8px;font-weight:600}
+td{padding:4px 8px;border-top:1px solid var(--border-soft)}
+.lensbar{height:8px;background:#111827;border-radius:4px;overflow:hidden;margin:3px 0}
+.lensfill{height:100%;background:var(--red)}
+.emptynote{color:var(--text-muted);font-size:.8rem}
+</style>
+</head>
+<body>
+<header class="max-w-[1200px] mx-auto px-4 pt-8 pb-3">
+  <div class="eyebrow mb-1">JustHodl · The Family Nursery</div>
+  <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Alpha Lab — Graded Families</h1>
+  <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Every new signal family born from the creative program, each emitting real graded signals through the regime-stamped, historically-priced loop. <b>Nothing here is trusted on backtest — the PROVEN gate decides who graduates into the <a href="/proven-portfolio.html" style="color:var(--blue)">composer</a>.</b></p>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="stamp">loading feeds…</div>
+</header>
+<section class="max-w-[1200px] mx-auto px-4 pb-12">
+  <div class="card" id="c-congress"><div class="h2" style="color:var(--green)">🏛 Congress Alpha — grade the filers<span class="chip">congress-buy · [21,63] vs SPY</span></div><div id="b-congress" class="emptynote">…</div><div class="meth">Senate PURCHASES only, entered at disclosure price (the copy-tradeable moment), tagged per filer. Skill ledger self-builds; n≥10 &amp; hit≥60% → PROVEN_FILER. Official sources (eFD + House Clerk), vendor-free. Raw tape on <a href="/political.html" style="color:var(--blue)">political.html</a>.</div></div>
+  <div class="card" id="c-cannibals"><div class="h2" style="color:var(--green)">🍖 Cannibals + Insiders<span class="chip">cannibals · [21,63] vs sector</span></div><div id="b-cannibals" class="emptynote">…</div><div class="meth">Net buyback yield ≥4% ∩ forensically clean (no SBC wash / mgmt-selling / death-spiral) ∩ not data-suspect ∩ ≥$2B. Insider conviction boosts confidence, never gates.</div></div>
+  <div class="card" id="c-credit"><div class="h2" style="color:var(--red)">🩸 Credit-Plumbing Composite<span class="chip">credit-composite · DOWN LQD/HYG vs SPY</span></div><div id="b-credit" class="emptynote">…</div><div class="meth">Five first-party lenses — FR2004 dealer positioning, corporate settlement fails, GCF–TRI funding, OFR FSI, credit-stress aggregate. Emits only at ≥55/100 confluence; ≥70 adds HYG.</div></div>
+  <div class="card" id="c-auction"><div class="h2" style="color:var(--amber)">🏦 Auction Tail<span class="chip">auction-tail · [3,10,21] vs BIL</span></div><div id="b-auction" class="emptynote">…</div><div class="meth">Weak coupon auctions (tail ≥ +1.2bp or D/F composite) → DOWN the tenor's duration ETF; A-tier stop-throughs → UP. Carry-neutralized vs cash. Runs weekdays 16:20 after the grader.</div></div>
+  <div class="card" id="c-stealth"><div class="h2" style="color:var(--blue)">🕵️ Stealth Flow<span class="chip">stealth-flow · [5,21] vs ladder bench</span></div><div id="b-stealth" class="emptynote">…</div><div class="meth">Fresh STEALTH-quadrant ETF detections (real inflows, flat price, |z|≥2 vs 60d) — the cohort the event study measured at 75% hit / +298bps over 5 days. Rare by construction; silence is correct.</div></div>
+  <div class="card" id="c-fade"><div class="h2" style="color:var(--red)">🔄 Fade Desk<span class="chip">inv:* · mirrored, graded forward</span></div><div id="b-fade" class="emptynote">…</div><div class="meth">Alpha-triage verdicts drive this desk with zero code edits: RETIRE families are suppressed fleet-wide at emission; INVERT families (both-halves flip consistency + ≥30bps after cost) get shadow-mirrored as inv:&lt;family&gt; and graded fully out-of-sample.</div></div>
+</section>
+<footer class="max-w-[1200px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">Feeds: congress-alpha · congress-filer-skill · cannibals · credit-composite · auction-tail · stealth-flow · alpha-triage · signal-suppress. Research only — not investment advice.</footer>
+<script>
+const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
+const gj=k=>fetch(PX+k+'?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});
+const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+function tbl(cols,rows){return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')+'</table>';}
+Promise.allSettled([
+ gj('data/congress-alpha.json'),gj('data/congress-filer-skill.json'),gj('data/cannibals.json'),
+ gj('data/credit-composite.json'),gj('data/auction-tail.json'),gj('data/stealth-flow.json'),
+ gj('data/alpha-triage.json'),gj('data/signal-suppress.json')
+]).then(([ca,sk,cb,cc,at,sf,tr,sp])=>{
+  const V=x=>x.status==='fulfilled'?x.value:null;
+  const A=V(ca),K=V(sk),B=V(cb),C=V(cc),T=V(at),S=V(sf),R=V(tr),P=V(sp);
+  document.getElementById('stamp').textContent='feeds loaded '+new Date().toLocaleString();
+  if(A){const rows=(A.plans||[]).map(p=>[esc(p.filer),'<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',esc(p.amount||'—'),esc(p.tx_date||'—'),p.proven_filer?'<span style="color:var(--green)">PROVEN</span>':'']);
+    let h=rows.length?tbl(['Filer','Ticker','Amount','Traded',''],rows):'<div class="emptynote">No fresh purchases in the current window.</div>';
+    const pf=(K&&(K.filers||[]).filter(f=>f.proven))||[];
+    h+='<div class="meth mono">'+ (A.n_purchases||0)+' buys emitted today · '+(K?K.n_filers:0)+' filers in ledger · proven: '+(pf.length?pf.map(f=>esc(f.filer)).join(', '):'none yet (ledger matures with day_21 grades)')+'</div>';
+    document.getElementById('b-congress').innerHTML=h;}
+  if(B){const rows=(B.plans||[]).map(p=>['<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',(+p.net_buyback_yield_pct).toFixed(1)+'%',p.insider_conviction?'<span style="color:var(--green)">✓</span>':'',esc(p.pair_etf),esc(p.sector||'—')]);
+    document.getElementById('b-cannibals').innerHTML=(rows.length?tbl(['Ticker','Net BB yield','Insider','Pair','Sector'],rows):'<div class="emptynote">No qualifiers today.</div>')+'<div class="meth mono">'+(B.n_rows_scanned||0)+' names scanned · '+(B.logged||0)+' graded today</div>';}
+  if(C){const L=C.lenses||{};let h='<div class="mono" style="font-size:1.6rem;font-weight:800;color:'+((C.composite||0)>=55?'var(--red)':'var(--text-secondary)')+'">'+(C.composite??'—')+'<span style="font-size:.8rem;color:var(--text-muted)">/100</span></div>';
+    const max={dealer_positioning:25,corporate_fails:25,funding_gcf_tri:20,ofr_fsi:15,credit_stress:15};
+    for(const[k,v]of Object.entries(L)){h+='<div style="font-size:.72rem;color:var(--text-secondary)">'+k+' — '+v.pts+'/'+(max[k]||'')+'</div><div class="lensbar"><div class="lensfill" style="width:'+Math.round(100*v.pts/(max[k]||25))+'%"></div></div>';}
+    h+='<div class="meth mono">plans: '+((C.plans||[]).map(p=>p.etf+' '+p.direction).join(', ')||'none — confluence not met (correct silence)')+'</div>';
+    document.getElementById('b-credit').innerHTML=h;}
+  if(T){const rows=(T.plans||[]).map(p=>['<b>'+esc(p.etf)+'</b>',esc(p.direction),esc(p.term),esc(p.grade),(p.tail_bp!=null?p.tail_bp+'bp':'—'),esc(p.auction_date)]);
+    document.getElementById('b-auction').innerHTML=(rows.length?tbl(['ETF','Dir','Term','Grade','Tail','Auction'],rows):'<div class="emptynote">No fresh actionable coupon auction (weekends/quiet tape = silence).</div>')+'<div class="meth mono">'+(T.n_graded_rows||0)+' graded auctions on file · '+(T.logged||0)+' signals today</div>';}
+  if(S){const rows=(S.recent_stealth||[]).map(h2=>['<b style="color:var(--blue)">'+esc(h2.ticker)+'</b>',esc(h2.quadrant),esc(h2.date),(h2.z!=null?(+h2.z).toFixed(2):'—'),esc(h2.bench)]);
+    document.getElementById('b-stealth').innerHTML=(rows.length?tbl(['ETF','Quadrant','Date','z','Bench'],rows):'<div class="emptynote">No fresh stealth detections (≤2d). The edge is rare — that\'s why it works.</div>')+'<div class="meth mono">'+(S.logged||0)+' signals today</div>';}
+  if(R){const fams=Object.entries(R.families||{});
+    const rows=fams.map(([f,v])=>{const w=v.windows||{};const wk=w.day_21||w.day_14||w.day_7||w.day_30||{};
+      return [esc(f),'<b style="color:'+(v.verdict==='INVERT'?'var(--green)':'var(--red)')+'">'+esc(v.verdict)+'</b>',wk.n??'—',(wk.hit!=null?(100*wk.hit).toFixed(0)+'%':'—'),(wk.flip_avg_after_cost_pct!=null?wk.flip_avg_after_cost_pct+'%':'—')];});
+    let sup=(P&&P.suppressed)||[];
+    document.getElementById('b-fade').innerHTML=(rows.length?tbl(['Family','Verdict','n','Hit','Flip after cost'],rows):'<div class="emptynote">Triage feed unavailable.</div>')+'<div class="meth mono">'+sup.length+' families suppressed fleet-wide at emission · INVERTs mirrored daily 22:10 as inv:&lt;family&gt;</div>';}
+}).catch(e=>{document.getElementById('stamp').textContent='load error: '+e.message;});
+</script>
+</body>
+</html>
