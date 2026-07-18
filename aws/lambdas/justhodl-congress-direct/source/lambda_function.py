@@ -23,7 +23,7 @@ from http.cookiejar import CookieJar
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/congress-direct.json"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -83,8 +83,12 @@ def senate_fetch(days=30, max_reports=25):
         j = json.loads(body(op.open(req, timeout=30)))
         for row in (j.get("data") or [])[:max_reports]:
             try:
-                name = re.sub(r"<[^>]+>", "", str(row[0])).strip()
-                office = re.sub(r"<[^>]+>", "", str(row[1])).strip()
+                # eFD row: [First, Last, Office, ReportLink, Filed]
+                first = re.sub(r"<[^>]+>", "", str(row[0])).strip()
+                last = re.sub(r"<[^>]+>", "", str(row[1])).strip()
+                name = f"{first} {last}".strip()
+                office = re.sub(r"<[^>]+>", "", str(row[2])).strip() \
+                    if len(row) > 2 else ""
                 m = re.search(r'href="([^"]+)"', str(row[3]))
                 link = (SEN + m.group(1)) if m else None
                 filed = re.sub(r"<[^>]+>", "", str(row[4])).strip() \
