@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.3 ops3466 -->
+<!-- fundgraph v1.0 ops3462 · v1.4 ops3467 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -65,7 +65,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.3 · ops 3466</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.4 · ops 3467</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -87,6 +87,9 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <button class="btn" id="linkbtn" title="Copy deep link">🔗 Link</button>
     </div>
     <div id="legend" class="flex flex-wrap items-center gap-2 mt-3"></div>
+    <div class="flex flex-wrap items-center gap-2 mt-3" id="fgPresets">
+      <span class="note">Lenses:</span>
+    </div>
     <div class="flex flex-wrap items-center gap-2 mt-3">
       <span class="seg" id="perseg">
         <button class="btn" data-p="quarter">Quarterly</button>
@@ -108,6 +111,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
         <input type="checkbox" id="pxchk" style="accent-color:#22d3ee"> Show price charts
       </label>
       <button class="btn" id="logbtn" title="Log scale (Values mode)">Log</button>
+      <button class="btn" id="tblbtn" title="Side-by-side snapshot table">Table</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -124,6 +128,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
         <div class="note">Add a symbol and a metric to start comparing.<br>Example: <b class="mono" style="color:var(--blue)">CHTR</b> · Gross profit · 10Y quarterly.</div>
       </div>
     </div>
+    <div id="cmptbl" class="mt-3" style="display:none;overflow-x:auto"></div>
     <div class="note mt-2" id="srcnote">Sources: FMP /stable statements + estimates + price tape · ratios &amp; forensic scores derived in-engine per period · research only, not investment advice.</div>
   </div>
 </section>
@@ -335,7 +340,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.3 · ops 3466 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.4 · ops 3467 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -436,7 +441,7 @@ function niceTicks(lo,hi,n){
   return t;
 }
 function draw(){
-  writeURL();renderChips();renderMeta();
+  writeURL();renderChips();renderMeta();renderTable();
   const list=buildSeriesList();RENDERED=list;
   svg.innerHTML='';
   if(!list.length){emptyEl.style.display='flex';return;}
@@ -724,6 +729,78 @@ function renderList(){
 }
 
 /* ── save / load ── */
+const PRESETS=[
+ ['Quality (HF)',['roic_pct','gp_to_assets_pct','gross_margin_pct','fcf_conversion_pct','income_quality','fcf_margin_pct','roe_pct']],
+ ['Growth',['revenue_yoy_pct','eps_yoy_pct','fcf_yoy_pct','revenue_cagr_3y_pct','revenue_cagr_5y_pct','rule_of_40']],
+ ['Value',['pe_ttm','ev_ebitda_ttm','ev_gp_ttm','p_fcf_ttm','fcf_yield_pct','earnings_yield_ebit_pct','ps_ttm']],
+ ['Capital return',['dividend_yield_pct','net_buyback_yield_pct','net_shareholder_yield_pct','total_yield_pct','share_count_yoy_pct','payout_ratio_pct']],
+ ['Credit',['netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','altman_z']],
+ ['Forensics',['beneish_m','sloan_accruals_pct','piotroski_f','dso_days','income_quality','sbc_to_revenue_pct','zmijewski_x']],
+ ['Compounders',['revenue','grossProfit','fcf','eps_ttm','book_value_ps','mcap']]];
+const LOWER_BETTER=new Set(['pe_ttm','ps_ttm','pb','ptb','p_fcf_ttm','p_cfo_ttm','ev_ebitda_ttm','ev_ebit_ttm','ev_sales_ttm','ev_gp_ttm','ev_fcf_ttm','peg_ttm','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','netdebt_to_fcf','debt_to_equity','debt_to_assets','debt_to_capital','debt_to_revenue','liab_to_assets','equity_multiplier','dso_days','dio_days','ccc_days','beneish_m','zmijewski_x','kz_index','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','cogs_to_revenue_pct','effective_tax_rate_pct']);
+function renderPresets(){
+  const box=document.getElementById('fgPresets');
+  box.innerHTML='<span class="note">Lenses:</span>'+PRESETS.map((p,i)=>`<button class="btn" data-i="${i}" style="font-size:.72rem;padding:3px 9px">${p[0]}</button>`).join('');
+  box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{
+    const pr=PRESETS[+b.dataset.i];
+    S.mets=pr[1].filter(k=>CATIDX[k]).slice(0,MAXM);S.mixOk=false;
+    draw();toast('Lens: '+pr[0]+' — '+S.mets.length+' metrics');});
+}
+let SUGT=null;
+function closeSug(){const d=document.getElementById('symsuggest');if(d)d.remove();}
+async function suggest(){
+  const inp=document.getElementById('symin');
+  const q=(inp.value||'').trim();
+  closeSug();
+  if(q.length<2||!API)return;
+  let res=[];
+  try{const r=await fetch(`${API}/?search=${encodeURIComponent(q)}`);const d=await r.json();res=(d.results||[]).slice(0,8);}catch(e){return;}
+  if(!res.length||document.activeElement!==inp)return;
+  const d=document.createElement('div');d.id='symsuggest';
+  d.style.cssText='position:fixed;z-index:110;background:#0a1120;border:1px solid #22304a;border-radius:10px;min-width:260px;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.6);overflow:hidden';
+  d.innerHTML=res.map(r=>`<div class="srow" data-s="${esc(r.symbol)}" style="padding:7px 11px;font-size:.78rem;cursor:pointer;display:flex;justify-content:space-between;gap:10px"><span><b style="color:var(--blue)">${esc(r.symbol)}</b> ${esc((r.name||'').slice(0,34))}</span><span class="note">${esc(r.exchange||'')}</span></div>`).join('');
+  document.body.appendChild(d);
+  const rc=inp.getBoundingClientRect();
+  d.style.left=Math.min(rc.left,window.innerWidth-d.offsetWidth-8)+'px';
+  d.style.top=(rc.bottom+4)+'px';
+  d.querySelectorAll('.srow').forEach(r=>{
+    r.onmouseenter=()=>r.style.background='#0e1830';
+    r.onmouseleave=()=>r.style.background='';
+    r.onmousedown=e=>{e.preventDefault();inp.value=r.dataset.s;closeSug();addSym();};});
+}
+function renderTable(){
+  const box=document.getElementById('cmptbl');
+  if(box.style.display==='none')return;
+  if(!S.mets.length||!S.syms.length){box.innerHTML='<div class="note">Add symbols and metrics first.</div>';return;}
+  const lb=basePer()==='quarter'?4:1;
+  const cell=(sym,mk)=>{
+    const doc=DCACHE[sym+'_'+basePer()];if(!doc)return{v:null,y:null};
+    const pts=series(doc,mk);if(!pts.length)return{v:null,y:null};
+    const v=pts[pts.length-1][1];
+    const pv=pts.length>lb?pts[pts.length-1-lb][1]:null;
+    return{v,y:(pv&&pv>0)?((v/pv-1)*100):null};
+  };
+  let html='<table style="width:100%;border-collapse:collapse;font-size:.76rem"><thead><tr><th style="text-align:left;padding:6px 8px;color:var(--text-muted);border-bottom:1px solid var(--border-soft)">Metric (latest '+(S.per==='ttm'?'TTM':S.per==='annual'?'FY':'FQ')+' · YoY)</th>'+
+    S.syms.map((sy,i)=>`<th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border-soft)"><span class="dot d${i+1}" style="background:#e5e7eb"></span> ${esc(sy)}</th>`).join('')+'</tr></thead><tbody>';
+  S.mets.forEach(mk=>{
+    const m=CATIDX[mk];if(!m)return;
+    const cells=S.syms.map(sy=>cell(sy,mk));
+    let bi=-1;
+    if(S.syms.length>1&&['%','x','n','d'].includes(m.u)){
+      const vals=cells.map(c=>c.v);
+      const ok=vals.filter(v=>v!=null);
+      if(ok.length>1){const pick=LOWER_BETTER.has(mk)?Math.min(...ok):Math.max(...ok);bi=vals.indexOf(pick);}
+    }
+    const savedMode=S.mode;S.mode='val';
+    html+=`<tr><td style="padding:6px 8px;border-bottom:1px solid #0f1729"><span class="dot" style="background:${colorOf(mk)}"></span> ${esc(m.label)}</td>`+
+      cells.map((c,i)=>{
+        const hl=i===bi?'background:rgba(52,211,153,.08);border-left:2px solid var(--green);':'';
+        const yv=c.y==null?'':`<span class="delta" style="font-size:.66rem;color:${c.y>=0?'var(--green)':'var(--red)'}"> ${c.y>=0?'+':''}${c.y.toFixed(1)}%</span>`;
+        return `<td class="mono" style="text-align:right;padding:6px 8px;border-bottom:1px solid #0f1729;${hl}">${fmt(c.v,m.u)}${yv}</td>`;}).join('')+'</tr>';
+    S.mode=savedMode;
+  });
+  box.innerHTML=html+'</tbody></table>';
+}
 const LSK='jh_fg_saves';
 function saves(){try{return JSON.parse(localStorage.getItem(LSK)||'{}');}catch(e){return{};}}
 function renderSaves(){const sel=document.getElementById('loadsel');
@@ -749,7 +826,9 @@ function addSym(){
   S.syms.push(v);document.getElementById('symin').value='';refresh();
 }
 document.getElementById('symadd').onclick=addSym;
-document.getElementById('symin').addEventListener('keydown',e=>{if(e.key==='Enter')addSym();});
+document.getElementById('symin').addEventListener('keydown',e=>{if(e.key==='Enter'){closeSug();addSym();}if(e.key==='Escape')closeSug();});
+document.getElementById('symin').addEventListener('input',()=>{clearTimeout(SUGT);SUGT=setTimeout(suggest,260);});
+document.getElementById('symin').addEventListener('blur',()=>setTimeout(closeSug,180));
 document.getElementById('metadd').onclick=openModal;
 document.getElementById('mclose').onclick=closeModal;
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
@@ -760,6 +839,9 @@ document.querySelectorAll('#modeseg .btn').forEach(b=>b.onclick=()=>{S.mode=b.da
 document.getElementById('pxchk').onchange=e=>{S.px=e.target.checked;draw();};
 document.getElementById('logbtn').onclick=()=>{S.log=!S.log;if(S.log&&S.mode!=='val')toast('Log applies in Values mode');draw();};
 document.getElementById('csvbtn').onclick=fgExportCSV;
+document.getElementById('tblbtn').onclick=()=>{const b=document.getElementById('cmptbl');
+  const on=b.style.display==='none';b.style.display=on?'':'none';
+  document.getElementById('tblbtn').classList.toggle('on',on);if(on)renderTable();};
 document.getElementById('pngbtn').onclick=fgExportPNG;
 document.getElementById('favload').onclick=()=>{
   if(!FAVM.length)return toast('No favorites yet — ☆ metrics in the picker first');
@@ -772,7 +854,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* ── boot ── */
 (async function(){
-  readURL();renderChips();renderSaves();
+  readURL();renderChips();renderSaves();renderPresets();
   await bootAPI();
   if(API)await refresh();else draw();
 })();
