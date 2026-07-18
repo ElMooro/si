@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 -->
+<!-- fundgraph v1.0 ops3462 · v1.0.2 ops3464 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -146,7 +146,8 @@ Engine: justhodl-fundamental-graphs (S3-cached, gzip API) · Companions: <a href
 'use strict';
 /* ───────────────────────── config / data layer ───────────────────────── */
 const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
-let API=null;                          // Function URL, from data/fundgraph/config.json
+const FALLBACK_API='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
+let API=null;                          // from data/fundgraph/config.json, else FALLBACK_API
 const DCACHE={};                       // "SYM_period" -> doc
 const MAXS=3, MAXM=20;
 const PAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#4ade80','#e879f9','#60a5fa','#f472b6','#2dd4bf','#facc15','#c084fc','#38bdf8','#fca5a5','#86efac','#fde047','#93c5fd','#f9a8d4','#5eead4'];
@@ -260,10 +261,9 @@ function writeURL(){
 
 /* ───────────────────────── fetch ───────────────────────── */
 async function bootAPI(){
-  try{const c=await fetch(PX+'data/fundgraph/config.json?ts='+Date.now()).then(r=>r.json());
-      API=(c.api_url||'').replace(/\/$/,'');}catch(e){API=null;}
-  if(!API){toast('Engine config not published yet — retrying…');
-    setTimeout(bootAPI,8000);}
+  try{const c=await fetch(PX+'data/fundgraph/config.json?ts='+Date.now()).then(r=>r.ok?r.json():null);
+      API=((c&&c.api_url)||'').replace(/\/$/,'');}catch(e){API=null;}
+  if(!API)API=FALLBACK_API;
 }
 const basePer=()=>S.per==='ttm'?'quarter':S.per;
 async function loadSym(sym){

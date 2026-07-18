@@ -681,7 +681,7 @@ def build_doc(sym, period):
     doc = {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -747,7 +747,9 @@ def _resp(status, doc, headers_in):
     hdrs = {
         "Content-Type": "application/json",
         "Cache-Control": "public, max-age=600",
-        "Access-Control-Allow-Origin": "*",
+        # NOTE: no CORS headers here — the Function URL's Cors config is the
+        # single authority. Emitting ACAO from the function too produces
+        # duplicate headers ("*, *") which browsers reject (ops 3464).
     }
     ae = ""
     if isinstance(headers_in, dict):
