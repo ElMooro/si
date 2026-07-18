@@ -22,7 +22,7 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/credit-composite.json"
 s3 = boto3.client("s3", "us-east-1")
@@ -72,8 +72,16 @@ def score_lenses(docs):
     L["dealer_positioning"] = {"pts": pts,
                                "detail": f"squeeze={sq} regime={rg} corp_net={cn} ({cp})"}
     sf = docs.get("fails") or {}
-    corp = ((sf.get("classes") or {}).get("corporate")
-            or (sf.get("corporate") if isinstance(sf.get("corporate"), dict) else {}) or {})
+    cls = sf.get("classes")
+    if isinstance(cls, dict):
+        corp = cls.get("corporate") or {}
+    elif isinstance(cls, list):
+        corp = next((c for c in cls if isinstance(c, dict)
+                     and "corp" in str(c.get("name") or c.get("class")
+                                       or c.get("asset_class")
+                                       or c.get("id") or "").lower()), {})
+    else:
+        corp = sf.get("corporate") if isinstance(sf.get("corporate"), dict) else {}
     spike, _ = hunt({"x": corp}, ("spike",), want=("bool", "num"))
     st, _ = hunt({"x": corp}, ("status", "level"), want=("str",))
     stU = str(st or "").upper()
