@@ -3598,9 +3598,13 @@ def generate_opportunity_ranker(ctx_id, cfg, episode_ref):
 # ─────────────────────────────────────────────────────────────────────
 def _det_state(v):
     if isinstance(v, dict):
-        for k in ("regime", "label", "state", "call", "posture", "tone", "verdict"):
-            if v.get(k):
-                return str(v[k])[:40]
+        for k in ("regime", "label", "state", "call", "posture", "tone",
+                  "verdict", "regime_3m", "name", "classification", "signal"):
+            vv = v.get(k)
+            if isinstance(vv, dict):
+                vv = vv.get("label") or vv.get("regime") or vv.get("name")
+            if vv not in (None, ""):
+                return str(vv)[:40]
         return None
     return str(v)[:40] if v not in (None, "") else None
 

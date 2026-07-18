@@ -84,6 +84,11 @@ jobs:
           git reset --hard origin/main >/dev/null
           echo "executing-against: $(git rev-parse HEAD) — $(git log -1 --pretty=%s | head -c 70)"
 
+      - name: Refresh engine manifest (fleet self-knowledge)
+        run: |
+          python scripts/gen_engine_manifest.py || true
+          aws s3 cp engine-manifest.json s3://justhodl-dashboard-live/data/engine-manifest.json --content-type application/json --cache-control max-age=900 || true
+
       - name: Run script(s)
         if: steps.pick.outputs.scripts != ''
         env:
