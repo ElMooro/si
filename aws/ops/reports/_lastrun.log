@@ -1,10 +1,11 @@
-executing-against: 6003fd611ef893d399ef3c34d8b439f0aef07d26
-PASS  G1_v101 — settled
-[04:39:07] PASS  G1_v101 — settled
-FAIL  G2_scan_breadth — scanned=30 plans=[] logged=0
-[04:39:09] FAIL  G2_scan_breadth — scanned=30 plans=[] logged=0
+executing-against: 0d646fe459aab53eb4ad7003b10e17cfce3a6cef
+share-flows top=['version', 'generated_at', 'n_tickers', 'fresh_fetched', 'tickers', 'boards', 'method', 'warns'] tickers_map=739
+[04:41:53] share-flows top=['version', 'generated_at', 'n_tickers', 'fresh_fetched', 'tickers', 'boards', 'method', 'warns'] tickers_map=739
+flag_rows=25 conviction=1 conviction∩cagr<=-2=[] sample_fields=['_v', 'as_of', 'buyback_net_ttm_usd', 'buyback_net_yield_pct', 'buyback_ttm_usd', 'data_suspect', 'div_ttm_usd', 'extreme', 'flags', 'issuance_ttm_usd', 'market_cap', 'pe_ttm']
+[04:41:53] flag_rows=25 conviction=1 conviction∩cagr<=-2=[] sample_fields=['_v', 'as_of', 'buyback_net_ttm_usd', 'buyback_net_yield_pct', 'buyback_ttm_usd', 'data_suspect', 'div_ttm_usd', 'extreme', 'flags', 'issuance_ttm_usd', 'market_cap', 'pe_ttm']
+data/buyback-yield-ranking.json: top=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_qualified', 'n_strong', 'n_medium'] n=0
+[04:41:53] data/buyback-yield-ranking.json: top=['engine', 'version', 'as_of', 'state', 'signal_strength', 'n_qualified', 'n_strong', 'n_medium'] n=0
+data/buyback-yield.json: top=['_err'] n=0
+[04:41:53] data/buyback-yield.json: top=['_err'] n=0
 
-VERDICT: GAPS: G2_scan_breadth
-[04:39:09] VERDICT: GAPS: G2_scan_breadth
-
-→ Report written to aws/ops/reports/latest/3449_cannibals_v101.md
+→ Report written to aws/ops/reports/latest/3450_sf_shape.md
