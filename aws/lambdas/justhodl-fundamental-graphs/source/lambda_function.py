@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.7 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.8 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -205,7 +205,7 @@ def fetch_employees(sym):
     return out
 
 
-SYMDIR_KEY = "data/fundgraph/symdir.json"
+SYMDIR_KEY = "data/fundgraph/symdir2.json"  # v2: rows carry marketCap
 SYMDIR_TTL = 8 * 86400
 _SYMDIR = {"rows": None, "ts": 0, "diag": []}
 US_EXCH = {"NASDAQ", "NYSE", "AMEX", "NYSE ARCA", "BATS", "CBOE", "NYSE MKT"}
@@ -244,7 +244,8 @@ def build_symdir():
                     and "index" not in ty
                     and r.get("isActivelyTrading") in (None, True, "true")
                     and str(r.get("isFund")).lower() != "true"):
-                rows.append([sy, str(nm)[:60], tok])
+                rows.append([sy, str(nm)[:60], tok,
+                             num(r.get("marketCap")) or 0])
         if len(rows) == 0 and n_raw > 0:
             try:
                 diag.append([ep, "raw=%d kept=0 keys=%s"
@@ -295,7 +296,9 @@ def symdir_search(q, cap=8):
         return None
     qU, qL = q.upper(), q.lower()
     scored = []
-    for sy, nm, ex in rows:
+    for row in rows:
+        sy, nm, ex = row[0], row[1], row[2]
+        mc = row[3] if len(row) > 3 else 0
         nl = nm.lower()
         if sy == qU:
             tier = 0
@@ -309,10 +312,12 @@ def symdir_search(q, cap=8):
             tier = 4
         else:
             continue
-        scored.append((tier, 0 if ex in ("NASDAQ", "NYSE") else 1,
-                       len(sy), sy, nm, ex))
+        # within a tier: biggest company first (Microsoft > MicroBot)
+        scored.append((tier, -(mc or 0),
+                       0 if ex in ("NASDAQ", "NYSE") else 1, len(sy),
+                       sy, nm, ex))
     scored.sort()
-    return [{"symbol": t[3], "name": t[4], "exchange": t[5]}
+    return [{"symbol": t[4], "name": t[5], "exchange": t[6]}
             for t in scored[:cap]]
 
 
@@ -994,7 +999,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.7",
+        "version": "1.1.8",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1160,7 +1165,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.7",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.8",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1184,7 +1189,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.7"}
+                "version": "1.1.8"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1200,7 +1205,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.1.7"}, headers_in)
+                               "version": "1.1.8"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
