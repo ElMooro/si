@@ -1,13 +1,12 @@
-executing-against: 83dfbdf2b69836cccf12ed9ad1d7ab83fe8ff02b
-ops 3459 — alpha lab + sidebar
-PASS  G1_page_live — missing=[]
-[15:31:06] PASS  G1_page_live — missing=[]
-FAIL  G2_sidebar_manifest — {"/alpha-families.html": "in", "/proven-portfolio.html": "in", "/short-book.html": "in", "/political.html": "in"}
-[15:36:07] FAIL  G2_sidebar_manifest — {"/alpha-families.html": "in", "/proven-portfolio.html": "in", "/short-book.html": "in", "/political.html": "in"}
-PASS  G3_feeds — 6/6 reachable
-[15:36:09] PASS  G3_feeds — 6/6 reachable
+executing-against: 798d944a3032fbcb604204f616808c512e2a1647
+shape: dict:generated_at,n_pages,categories
+[15:40:58] shape: dict:generated_at,n_pages,categories
+ref primary-dealers → None
+[15:40:58] ref primary-dealers -> None
+FAIL  G1_categories — {"shape": "dict:generated_at,n_pages,categories", "ref": null, "/alpha-families.html": null, "/proven-portfolio.html": null, "/short-book.html": null, "/political.html": null}
+[15:40:58] FAIL  G1_categories — {"shape": "dict:generated_at,n_pages,categories", "ref": null, "/alpha-families.html": null, "/proven-portfolio.html": null, "/short-book.html": null, "/political.html": null}
 
-VERDICT: GAPS: G2_sidebar_manifest
-[15:36:09] VERDICT: GAPS: G2_sidebar_manifest
+VERDICT: GAPS: G1_categories
+[15:40:58] VERDICT: GAPS: G1_categories
 
-→ Report written to aws/ops/reports/latest/3459_alpha_lab_sidebar.md
+→ Report written to aws/ops/reports/latest/3460_sidebar_close.md
