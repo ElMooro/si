@@ -1,20 +1,18 @@
-executing-against: 878b85e1842613039cebf4c846efdb8617ec3331
-ops 3463 — Fundamental Graphs G4 close (CORS + gzip)
-[16:35:06] current Cors: {"AllowCredentials": false, "AllowHeaders": ["content-type"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "MaxAge": 86400}
-current Cors: {"AllowCredentials": false, "AllowHeaders": ["content-type"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "MaxAge": 86400}
-PASS  H1_url_cors_config — {'url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws', 'had': ['*']}
-[16:35:06] PASS  H1_url_cors_config — {'url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws', 'had': ['*']}
-[16:35:06]   zip: 89383 bytes
+executing-against: aaae181caf1ab9540153ac581e262245198416c0
+ops 3464 — browser CORS close (duplicate-ACAO fix)
+[16:53:13]   zip: 89478 bytes
 ── 1. Lambda ──
-[16:35:06]   Lambda exists — updating
-[16:35:12] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  H2_cors_star — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922}
-[16:35:16] PASS  H2_cors_star — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922}
-PASS  H3_gzip_header_path — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922, 'version': '1.0.0'}
-[16:35:16] PASS  H3_gzip_header_path — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922, 'version': '1.0.0'}
-PASS  H4_gz_query_force — {'acao': '*', 'enc': 'gzip', 'wire': 31809, 'plain': 160665, 'sym': 'CHTR'}
-[16:35:16] PASS  H4_gz_query_force — {'acao': '*', 'enc': 'gzip', 'wire': 31809, 'plain': 160665, 'sym': 'CHTR'}
+[16:53:14]   Lambda exists — updating
+[16:53:17] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  B1_single_acao — {'acao_all': ['*'], 'enc': 'gzip', 'version': '1.0.0'}
+[16:53:20] PASS  B1_single_acao — {'acao_all': ['*'], 'enc': 'gzip', 'version': '1.0.0'}
+PASS  B2_px_config — {'status': 200, 'api_url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws'}
+[16:53:21] PASS  B2_px_config — {'status': 200, 'api_url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws'}
+PASS  B3_boot_path — {'acao': ['*'], 'enc': 'gzip', 'sym': 'CHTR', 'n': 44}
+[16:53:21] PASS  B3_boot_path — {'acao': ['*'], 'enc': 'gzip', 'sym': 'CHTR', 'n': 44}
+PASS  B4_page_fallback_live — {'status': 200, 'has_fallback': True}
+[16:55:43] PASS  B4_page_fallback_live — {'status': 200, 'has_fallback': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3463_fundgraph_g4_close.md
+→ Report written to aws/ops/reports/latest/3464_fundgraph_browser_fix.md
