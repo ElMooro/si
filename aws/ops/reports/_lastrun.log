@@ -1,18 +1,18 @@
-executing-against: a5d6c8df7dad20c0441b5d30a4f0d91792aafd63
-ops 3473 — symdir ranked search + memory-archive 34
-[21:36:07]   zip: 94724 bytes
+executing-against: 198ca377f437887903c849469c7afe38376933e6
+ops 3474 — symdir ranked search + memory-archive 34
+[21:38:12]   zip: 94822 bytes
 ── 1. Lambda ──
-[21:36:08]   Lambda exists — updating
-[21:36:13] ✅   ✓ updated justhodl-fundamental-graphs
+[21:38:12]   Lambda exists — updating
+[21:38:17] ✅   ✓ updated justhodl-fundamental-graphs
 SYMDIR DIAG: [["company-screener?marketCapMoreThan=2000000000&limit=10000", "raw=5462 kept=2683"], ["company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000", "raw=10000 kept=4657"], ["stock-list", "raw=90758 kept=0 keys=['companyName', 'symbol']"]]
-[21:36:19] symdir diag: [["company-screener?marketCapMoreThan=2000000000&limit=10000", "raw=5462 kept=2683"], ["company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000", "raw=10000 kept=4657"], ["stock-list", "raw=90758 kept=0 keys=['companyName', 'symbol']"]]
-PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ'], ['AAPL', 'Apple Inc.', 'NASDAQ'], ['GOOGL', 'Alphabet Inc.', 'NASDAQ']]}
-[21:36:21] PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ'], ['AAPL', 'Apple Inc.', 'NASDAQ'], ['GOOGL', 'Alphabet Inc.', 'NASDAQ']]}
-FAIL  D2_relevance_quartet — {'micro': ['MU', 'MBOT', 'MCHP', 'MLGO'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-A', 'BRK-B', 'OMAH'], 'src': 'symdir'}
-[21:36:21] FAIL  D2_relevance_quartet — {'micro': ['MU', 'MBOT', 'MCHP', 'MLGO'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-A', 'BRK-B', 'OMAH'], 'src': 'symdir'}
+[21:38:24] symdir diag: [["company-screener?marketCapMoreThan=2000000000&limit=10000", "raw=5462 kept=2683"], ["company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000", "raw=10000 kept=4657"], ["stock-list", "raw=90758 kept=0 keys=['companyName', 'symbol']"]]
+PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ', 4912261010000.0], ['AAPL', 'Apple Inc.', 'NASDAQ', 4901758191440.0], ['GOOGL', 'Alphabet Inc.', 'NASDAQ', 4194138171504.0]]}
+[21:38:26] PASS  D1_symdir_built — {'rows': 7340, 'built': 7340, 'sample': [['NVDA', 'NVIDIA Corporation', 'NASDAQ', 4912261010000.0], ['AAPL', 'Apple Inc.', 'NASDAQ', 4901758191440.0], ['GOOGL', 'Alphabet Inc.', 'NASDAQ', 4194138171504.0]]}
+PASS  D2_relevance_quartet — {'micro': ['MSFT', 'MU', 'MCHP', 'STRF'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-B', 'BRK-A', 'OMAH'], 'src': 'symdir'}
+[21:38:26] PASS  D2_relevance_quartet — {'micro': ['MSFT', 'MU', 'MCHP', 'STRF'], 'apple': ['AAPL', 'APLE', 'MLP'], 'tesla': ['TSLA'], 'berkshire': ['BRK-B', 'BRK-A', 'OMAH'], 'src': 'symdir'}
 PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
-[21:36:22] PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
-RESULT: FAILS: ['D2_relevance_quartet']
-RESULT: FAILS: ['D2_relevance_quartet']
+[21:38:27] PASS  D3_engine_regression — {'keys': 197, 'version': '1.1.1'}
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3473_fundgraph_symdir_search.md
+→ Report written to aws/ops/reports/latest/3474_fundgraph_symdir_search.md
