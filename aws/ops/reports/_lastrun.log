@@ -1,5 +1,10 @@
-executing-against: e235b53f6e0e9898fdb04dc7759a5ffa01ae5339
-FunctionError=Unhandled payload={"errorMessage": "'list' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "360ff0c4-f0b4-4c5d-8276-d81f9bffe045", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 119, in lambda_handler\n    L, comp = score_lenses(docs)\n", "  File \"/var/task/lambda_function.py\", line 75, in score_lenses\n    corp = ((sf.get(\"classes\") or {}).get(\"corporate\")\n"]}
-[04:56:14] FunctionError=Unhandled payload={"errorMessage": "'list' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "360ff0c4-f0b4-4c5d-8276-d81f9bffe045", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 119, in lambda_handler\n    L, comp = score_lenses(docs)\n", "  File \"/var/task/lambda_function.py\", line 75, in score_lenses\n    corp = ((sf.get(\"classes\") or {}).get(\"corporate\")\n"]}
+executing-against: 483c441c64b3cb0a687ca30605e851f25f77c754
+PASS  G1_v101 — settled
+[04:58:57] PASS  G1_v101 — settled
+PASS  G2_live — err=None composite=25 lens={'dealer_positioning': 25, 'corporate_fails': 0, 'funding_gcf_tri': 0, 'ofr_fsi': 0, 'credit_stress': 0} details={'dealer_positioning': 'squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)', 'corporate_fails': 'spike=None status=None', 'funding_gcf_tri': 'bp=3.75 (
+[04:59:01] PASS  G2_live — err=None composite=25 lens={'dealer_positioning': 25, 'corporate_fails': 0, 'funding_gcf_tri': 0, 'ofr_fsi': 0, 'credit_stress': 0} details={'dealer_positioning': 'squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)', 'corporate_fails': 'spike=None status=None', 'funding_gcf_tri': 'bp=3.75 (
 
-→ Report written to aws/ops/reports/latest/3453_cc_err.md
+VERDICT: PASS_ALL
+[04:59:01] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3454_cc_close.md

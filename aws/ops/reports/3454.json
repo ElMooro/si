@@ -1,0 +1,35 @@
+{
+  "gates": {
+    "G1_v101": {
+      "ok": true,
+      "detail": "settled"
+    },
+    "G2_live": {
+      "ok": true,
+      "detail": "err=None composite=25 lens={'dealer_positioning': 25, 'corporate_fails': 0, 'funding_gcf_tri': 0, 'ofr_fsi': 0, 'credit_stress': 0} details={'dealer_positioning': 'squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)', 'corporate_fails': 'spike=None status=None', 'funding_gcf_tri': 'bp=3.75 (.repo.series.REPO-GCF_AR_AG-F.latest)', "
+    }
+  },
+  "live": {
+    "dealer_positioning": {
+      "pts": 25,
+      "detail": "squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)"
+    },
+    "corporate_fails": {
+      "pts": 0,
+      "detail": "spike=None status=None"
+    },
+    "funding_gcf_tri": {
+      "pts": 0,
+      "detail": "bp=3.75 (.repo.series.REPO-GCF_AR_AG-F.latest)"
+    },
+    "ofr_fsi": {
+      "pts": 0,
+      "detail": "fsi=-2.455 (.fsi.latest)"
+    },
+    "credit_stress": {
+      "pts": 0,
+      "detail": "value=1.85 (.metrics.BAMLC0A2CAA.z_score_60d)"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
