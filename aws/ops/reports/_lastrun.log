@@ -1,16 +1,10 @@
-executing-against: e9ccd4f35aeec7925ff2dea19582a071e7083aca
-ops 3469 — search relevance close (name-first ranked merge)
-[21:15:39]   zip: 93276 bytes
-── 1. Lambda ──
-[21:15:39]   Lambda exists — updating
-[21:15:45] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  S1_apple_top3 — ['AAPL', 'APPLX', 'APUSD', 'AAPI', 'APRU']
-[21:15:49] PASS  S1_apple_top3 — ['AAPL', 'APPLX', 'APUSD', 'AAPI', 'APRU']
-FAIL  S2_micro_has_msft — ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD', 'VENAW', 'MCRNT.TA']
-[21:15:50] FAIL  S2_micro_has_msft — ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD', 'VENAW', 'MCRNT.TA']
-PASS  S3_tesla_top3 — ['TSLA', 'TXLZF', 'DTSLAUSD', 'TSLA.NE', 'TL0.DE']
-[21:15:51] PASS  S3_tesla_top3 — ['TSLA', 'TXLZF', 'DTSLAUSD', 'TSLA.NE', 'TL0.DE']
-RESULT: FAILS: ['S2_micro_has_msft']
-RESULT: FAILS: ['S2_micro_has_msft']
+executing-against: 32169db9cb4d81f5048db78f2b5f62f2e04ef596
+ops 3470 — why.html x Fundamental Graphs embedded module
+PASS  E1_why_module_live_additive — {'status': 200, 'module': True, 'vitals_intact': True, 'dollarflows_intact': True, 'old_block_gone': True}
+[21:25:54] PASS  E1_why_module_live_additive — {'status': 200, 'module': True, 'vitals_intact': True, 'dollarflows_intact': True, 'old_block_gone': True}
+PASS  E2_engine_regression — {'keys': 197, 'version': '1.1.1', 'cached': True}
+[21:25:55] PASS  E2_engine_regression — {'keys': 197, 'version': '1.1.1', 'cached': True}
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3469_fundgraph_search_rank.md
+→ Report written to aws/ops/reports/latest/3470_why_fundgraph_module.md
