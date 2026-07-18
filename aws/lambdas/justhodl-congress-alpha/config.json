@@ -1,0 +1,4 @@
+{"description":"Grade-the-filers: Senate purchases as graded signals at disclosure + self-building filer skill ledger (ops 3457)",
+ "timeout":240,"memory":512,
+ "env":{"S3_BUCKET":"justhodl-dashboard-live"},
+ "schedule":{"scheduler_name":"justhodl-congress-alpha-daily","cron":"cron(45 15 ? * * *)"}}
