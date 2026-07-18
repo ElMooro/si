@@ -19,7 +19,7 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SRC = "data/auction-grades.json"
 OUT = "data/auction-tail.json"
@@ -51,19 +51,24 @@ def lambda_handler(event, context):
     def walk(o):
         if isinstance(o, dict):
             dims = o.get("dimensions") or {}
-            tv = ((dims.get("tail_bp") or {}).get("value")
-                  if isinstance(dims.get("tail_bp"), dict) else None)
+            tv = None
+            for _dk, _dv in (dims.items() if isinstance(dims, dict) else []):
+                if "tail" in str(_dk).lower():
+                    tv = (_dv.get("value") if isinstance(_dv, dict) else _dv)
+                    break
             d = str(o.get("auction_date") or o.get("date") or "")[:10]
-            if tv is not None and d:
+            sec_type = str(o.get("security_type") or "")
+            if d and (tv is not None or o.get("overall_grade"))                     and "BILL" not in sec_type.upper():
                 term = (o.get("tenor") or o.get("term") or o.get("security_term")
                         or o.get("security") or "")
                 key = f"{term}|{d}"
                 if key not in seen:
                     seen.add(key)
                     rows.append({
-                        "term": str(term), "date": d, "tail_bp": float(tv),
-                        "grade": o.get("grade") or o.get("letter")
-                        or o.get("composite_grade"),
+                        "term": str(term), "date": d,
+                        "tail_bp": (float(tv) if tv is not None else None),
+                        "grade": o.get("overall_grade") or o.get("grade")
+                        or o.get("letter"),
                         "composite": o.get("composite_score"),
                         "btc": ((dims.get("bid_to_cover") or {}).get("value")
                                 if isinstance(dims.get("bid_to_cover"), dict)
@@ -81,8 +86,9 @@ def lambda_handler(event, context):
     logged = 0
     for r in fresh:
         g = str(r.get("grade") or "").upper()[:1]
-        weak = r["tail_bp"] >= 1.2 or g in ("D", "F")
-        strong = r["tail_bp"] <= -1.0 or g == "A"
+        tb = r.get("tail_bp")
+        weak = (tb is not None and tb >= 1.2) or g in ("D", "F")
+        strong = (tb is not None and tb <= -1.0) or g == "A"
         if not weak and not strong:
             r["action"] = "NEUTRAL"
             continue
@@ -96,12 +102,12 @@ def lambda_handler(event, context):
                 tbl, "auction-tail", r["etf"], direction, [3, 10, 21], mark,
                 confidence=conf,
                 rationale=(f"{r['term']} auction {r['date']}: tail "
-                           f"{r['tail_bp']:+.1f}bp, grade {r.get('grade')}, "
+                           f"{(r.get('tail_bp') if r.get('tail_bp') is not None else 0):+.1f}bp, grade {r.get('grade')}, "
                            f"b/c {r.get('btc')} — "
                            + ("weak demand, duration fade"
                               if weak else "stopped through, duration bid")),
                 benchmark="BIL",
-                signal_value=str(r["tail_bp"]),
+                signal_value=str(r.get("tail_bp")),
                 metadata={"engine": "auction-tail", "term": r["term"]}):
             logged += 1
     out = {"ok": True, "version": VERSION,
