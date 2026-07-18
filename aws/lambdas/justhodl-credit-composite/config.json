@@ -1,0 +1,4 @@
+{"description":"Credit-plumbing composite: dealer FR2004 + fails + GCF-TRI + FSI + credit-stress -> joined LQD/HYG short family (ops 3452)",
+ "timeout":180,"memory":256,
+ "env":{"S3_BUCKET":"justhodl-dashboard-live"},
+ "schedule":{"scheduler_name":"justhodl-credit-composite-daily","cron":"cron(40 21 ? * * *)"}}
