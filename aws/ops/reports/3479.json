@@ -1,0 +1,14 @@
+{
+  "ops": 3479,
+  "gates": {
+    "V1_vintage_recorded": {
+      "ok": true,
+      "detail": "{'CHTR': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'AAPL': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'MSFT': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}}"
+    },
+    "V2_same_day_idempotent": {
+      "ok": true,
+      "detail": "{'CHTR': {'before': 1, 'after': 1}, 'AAPL': {'before': 1, 'after': 1}, 'MSFT': {'before': 1, 'after': 1}}"
+    }
+  },
+  "status": "ALL PASS"
+}
