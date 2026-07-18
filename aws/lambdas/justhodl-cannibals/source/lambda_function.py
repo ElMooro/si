@@ -1,13 +1,13 @@
-"""justhodl-cannibals v1.0 — cannibals-with-conviction family (ops 3449).
+"""justhodl-cannibals v1.0 — buybacks + insider conviction, forensically
+clean, as a graded family (creative #9, ops 3447).
 
-The classic documented factor, composed from feeds you already forensically
-clean: companies EATING their own float (3y share CAGR <= -2%/yr, true
-retirement — the SBC_WASH / MGMT_SELLING_INTO_BUYBACK / DEATH_SPIRAL flags
-disqualify fakes) where insiders are ALSO buying with size (INSIDER_CONVICTION:
->=$1M net insider buys, 90d). Top names graded UP over 21/63d vs their
-sector ETF pair — beta-stripped, PROVEN-gated like every family.
+The documented factor: companies genuinely retiring shares (3y share CAGR
+<= -2%/yr) where insiders are ALSO buying, excluding every forensic trap the
+desk already flags (SBC_WASH, MGMT_SELLING_INTO_BUYBACK, DEATH_SPIRAL).
+Each qualifier is emitted UP [21,63] vs its sector ETF — beta-stripped —
+and the PROVEN gate decides promotion.
 
-Feed: data/cannibals.json · Signals: type "cannibal-conviction".
+Feed: data/cannibals.json · Signals: type "cannibals".
 """
 import json
 import os
@@ -18,9 +18,10 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.1"
+VERSION = "1.0.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-OUT = "data/cannibals.json"
+SRC_KEY = "data/share-flows.json"
+OUT_KEY = "data/cannibals.json"
 BAD = {"SBC_WASH", "MGMT_SELLING_INTO_BUYBACK", "DEATH_SPIRAL"}
 ETF_OF = {"Technology": "XLK", "Financials": "XLF", "Financial Services": "XLF",
           "Healthcare": "XLV", "Consumer Discretionary": "XLY",
@@ -32,99 +33,85 @@ s3 = boto3.client("s3", "us-east-1")
 ddb = boto3.resource("dynamodb", "us-east-1")
 
 
-def rj(k):
+def rj(key):
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=k)["Body"].read())
+        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
     except Exception:
         return {}
 
 
+def plan(rows, sec_of):
+    plans, seen = [], set()
+    for r in rows:
+        tk = str(r.get("ticker") or "").upper()
+        fl = r.get("flags") or []
+        cg = r.get("sh_3y_cagr_pct")
+        if (not tk or tk in seen or not isinstance(cg, (int, float))
+                or not isinstance(fl, list)):
+            continue
+        if cg <= -2.0 and "INSIDER_CONVICTION" in fl and not (BAD & set(fl)):
+            seen.add(tk)
+            sec = sec_of.get(tk)
+            plans.append({"ticker": tk, "sh_3y_cagr_pct": round(cg, 2),
+                          "sector": sec, "pair_etf": ETF_OF.get(sec, "SPY"),
+                          "flags": [f for f in fl if f != "INSIDER_CONVICTION"][:3]})
+    plans.sort(key=lambda p: p["sh_3y_cagr_pct"])
+    return plans[:10]
+
+
 def lambda_handler(event, context):
     t0 = time.time()
-    sf = rj("data/share-flows.json")
-    rows = {}
-    # primary shape: {"tickers": {SYM: row}} — rows carry no inner ticker field
-    for k, o in (sf.get("tickers") or {}).items() if isinstance(sf.get("tickers"), dict) else []:
-        if not isinstance(o, dict):
-            continue
-        cg = o.get("sh_3y_cagr_pct")
-        if isinstance(cg, (int, float)):
-            rows[str(k).upper()] = {
-                "ticker": str(k).upper(), "sh_3y_cagr_pct": float(cg),
-                "flags": o.get("flags") or [],
-                "buyback_yield": (o.get("buyback_net_yield_pct")
-                                  if isinstance(o.get("buyback_net_yield_pct"),
-                                                (int, float)) else None)}
+    if (event or {}).get("_probe"):
+        rows = event["_probe"].get("rows") or []
+        sec_of = event["_probe"].get("sec_of") or {}
+        return {"statusCode": 200,
+                "body": json.dumps({"plans": plan(rows, sec_of)})}
+    doc = rj(SRC_KEY)
+    rows = []
 
     def walk(o):
         if isinstance(o, dict):
-            tk = o.get("ticker") or o.get("symbol")
-            cg = o.get("sh_3y_cagr_pct")
-            fl = o.get("flags")
-            if tk and isinstance(cg, (int, float)) and isinstance(fl, list):
-                k = str(tk).upper()
-                if k not in rows:
-                    by = None
-                    for kk, vv in o.items():
-                        if ("buyback" in str(kk).lower()
-                                and "yield" in str(kk).lower()
-                                and isinstance(vv, (int, float))):
-                            by = float(vv)
-                            break
-                    rows[k] = {"ticker": k, "sh_3y_cagr_pct": float(cg),
-                               "flags": fl, "buyback_yield": by}
+            if o.get("ticker") and "flags" in o:
+                rows.append(o)
             for v in o.values():
                 walk(v)
         elif isinstance(o, list):
             for v in o:
                 walk(v)
-    walk(sf)
-
+    walk(doc)
     uni = rj("data/universe.json")
     ul = uni if isinstance(uni, list) else (uni.get("stocks")
                                             or uni.get("universe") or [])
     sec_of = {str(u.get("symbol") or u.get("ticker")).upper(): u.get("sector")
               for u in ul if isinstance(u, dict) and u.get("sector")}
-
-    screen = []
-    for r in rows.values():
-        fl = set(r["flags"])
-        if r["sh_3y_cagr_pct"] <= -2.0 and "INSIDER_CONVICTION" in fl \
-                and not (fl & BAD):
-            r["sector"] = sec_of.get(r["ticker"])
-            r["pair_etf"] = ETF_OF.get(r["sector"], "SPY")
-            screen.append(r)
-    screen.sort(key=lambda x: x["sh_3y_cagr_pct"])
-    screen = screen[:15]
-
+    plans = plan(rows, sec_of)
     tbl = ddb.Table("justhodl-signals")
     logged = 0
-    for r in screen:
-        mark = yprice(r["ticker"])
+    for p in plans:
+        mark = yprice(p["ticker"])
         time.sleep(0.15)
-        r["mark"] = mark
+        p["mark"] = mark
         if mark and log_signal(
-                tbl, "cannibal-conviction", r["ticker"], "UP", [21, 63], mark,
-                confidence=min(0.78, 0.55 + abs(r["sh_3y_cagr_pct"]) / 40.0),
-                rationale=(f"cannibal: shares {r['sh_3y_cagr_pct']:+.1f}%/yr "
-                           f"3y + insider conviction (>=$1M net buys, 90d), "
-                           "forensically clean"),
-                benchmark=r["pair_etf"],
-                signal_value=str(r["sh_3y_cagr_pct"]),
-                metadata={"engine": "cannibals"}):
+                tbl, "cannibals", p["ticker"], "UP", [21, 63], mark,
+                confidence=0.62,
+                rationale=(f"cannibal: 3y share CAGR {p['sh_3y_cagr_pct']}%/yr "
+                           "+ INSIDER_CONVICTION, forensically clean → UP vs "
+                           f"{p['pair_etf']}"),
+                benchmark=p["pair_etf"],
+                metadata={"engine": "cannibals",
+                          "sh_3y_cagr_pct": p["sh_3y_cagr_pct"]}):
             logged += 1
     out = {"ok": True, "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 2),
-           "n_universe": len(rows), "n_screen": len(screen), "logged": logged,
-           "screen": screen,
-           "rules": ("sh_3y_cagr_pct <= -2%/yr AND INSIDER_CONVICTION AND no "
-                     "SBC_WASH/MGMT_SELLING/DEATH_SPIRAL -> UP [21,63] vs "
-                     "sector ETF")}
-    s3.put_object(Bucket=S3_BUCKET, Key=OUT,
+           "n_rows_scanned": len(rows), "plans": plans, "logged": logged,
+           "methodology": ("sh_3y_cagr_pct <= -2%/yr ∩ INSIDER_CONVICTION ∩ "
+                           "no {SBC_WASH, MGMT_SELLING_INTO_BUYBACK, "
+                           "DEATH_SPIRAL}; top-10 by shrink rate; UP [21,63] "
+                           "vs sector ETF. PROVEN gate controls promotion.")}
+    s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json", CacheControl="max-age=600")
-    print(f"[cannibals] universe={len(rows)} screen={len(screen)} "
-          f"logged={logged} {round(time.time() - t0, 1)}s")
+    print(f"[cannibals] scanned={len(rows)} plans={len(plans)} logged={logged}")
     return {"statusCode": 200, "body": json.dumps(
-        {"ok": True, "n": len(screen), "logged": logged})}
+        {"ok": True, "plans": len(plans), "logged": logged})}
