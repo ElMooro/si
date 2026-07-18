@@ -1,0 +1,22 @@
+{
+  "ops": 3466,
+  "gates": {
+    "W1_warm_auto_smoke": {
+      "ok": true,
+      "detail": "{'built': 36, 'symbols_n': 36, 'elapsed_s': 83.1, 'skipped': 0, 'errors': {}, 'wall_s': 83.8}"
+    },
+    "W2_demand_tracking": {
+      "ok": true,
+      "detail": "{'doc_ok': True, 'keys': 200, 'hit_marker': True}"
+    },
+    "W3_daily_scheduler": {
+      "ok": true,
+      "detail": "{'act': 'created', 'expr': 'cron(25 9 * * ? *)', 'state': 'ENABLED'}"
+    },
+    "W4_page_v13_live": {
+      "ok": true,
+      "detail": "{'status': 200, 'markers': True}"
+    }
+  },
+  "status": "ALL PASS"
+}
