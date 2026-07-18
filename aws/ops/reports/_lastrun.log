@@ -1,56 +1,13 @@
-executing-against: a1a4b0ab6cc0f2b5653b1f2870d59ce7bef5b9f0
-")
-[03:24:56] ")
+executing-against: 62da1e01958e9c3d57951fcaf22cdfd120ca37ea
+PASS  G0_v1b_settled
+[03:28:03] G0_v1b_settled True
+key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
+[03:28:03] key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
+PASS  G1_table_leg — rows=1 regime_at_log=TESTREGIME3445 keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
+[03:28:30] PASS  G1_table_leg — rows=1 regime_at_log=TESTREGIME3445 keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
+[cleanup] ok
 
-[03:24:56] 
-            # Also write to outcomes table for easy aggregation
-[03:24:56]             # Also write to outcomes table for easy aggregation
-            outcomes_table.put_item(Item=float_to_decimal({
-[03:24:56]             outcomes_table.put_item(Item=float_to_decimal({
-                "outcome_id":    f"{signal_id}_{window_key}",
-[03:24:56]                 "outcome_id":    f"{signal_id}_{window_key}",
-                "signal_id":     signal_id,
-[03:24:56]                 "signal_id":     signal_id,
-                "signal_type":   signal_type,
-[03:24:56]                 "signal_type":   signal_type,
-                "signal_value":  signal.get("signal_value"),
-[03:24:56]                 "signal_value":  signal.get("signal_value"),
-                "window_key":    window_key,
-[03:24:56]                 "window_key":    window_key,
-                "regime_at_log": outcome.get("regime_at_log", "UNKNOWN"),
-[03:24:56]                 "regime_at_log": outcome.get("regime_at_log", "UNKNOWN"),
-                "correct":       correct,
-[03:24:56]                 "correct":       correct,
-                "predicted_dir": pred_dir,
-[03:24:56]                 "predicted_dir": pred_dir,
-                "outcome":       outcome,
-[03:24:56]                 "outcome":       outcome,
-                "logged_at":     signal.get("logged_at"),
-[03:24:56]                 "logged_at":     signal.get("logged_at"),
-                "regime_at_log": signal.get("regime_at_log"),
-[03:24:56]                 "regime_at_log": signal.get("regime_at_log"),
-                "checked_at":    now_iso,
-[03:24:56]                 "checked_at":    now_iso,
-                "ttl":         
-[03:24:56]                 "ttl":         
----bridge---
-REGIME_BRIDGE_V1 (ops 3442): regime AT LOG TIME rides on every
-[03:24:56] REGIME_BRIDGE_V1 (ops 3442): regime AT LOG TIME rides on every
-            # outcome so scorecard.by_regime / engine-trust conditioning is fed.
-[03:24:56]             # outcome so scorecard.by_regime / engine-trust conditioning is fed.
-            try:
-[03:24:56]             try:
-                _mr = (signal.get("metadata") or {}).get("regime") or {}
-[03:24:56]                 _mr = (signal.get("metadata") or {}).get("regime") or {}
-                _lbl = (_mr.get("label")
-[03:24:56]                 _lbl = (_mr.get("label")
-                        or (f"J{_mr.get('jsi_decile')}|{_mr.get('gssi_band')}"
-[03:24:56]                         or (f"J{_mr.get('jsi_decile')}|{_mr.get('gssi_band')}"
-                            if _mr.get("jsi_decile") is not None
-[03:24:56]                             if _mr.get("jsi_decile") is not None
-                            or _mr.get("gssi_band") else None))
-[03:24:56]                             or _mr.get("gssi_band") else None))
-                o
-[03:24:56]                 o
+VERDICT: PASS_ALL
+[03:28:30] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3444_zipread.md
+→ Report written to aws/ops/reports/latest/3445_bridge_close.md
