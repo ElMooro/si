@@ -1,0 +1,4 @@
+{"description":"Auction-tail continuation family: fresh auction grades -> two-sided duration signals vs BIL (ops 3446)",
+ "timeout":120,"memory":256,
+ "env":{"S3_BUCKET":"justhodl-dashboard-live"},
+ "schedule":{"scheduler_name":"justhodl-auction-tail-daily","cron":"cron(20 16 ? * MON-FRI *)"}}
