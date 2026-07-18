@@ -1,18 +1,14 @@
 {
   "gates": {
-    "G1_deployed_scheduled": {
+    "G1_v101": {
       "ok": true,
-      "detail": "settled=True sched=created"
+      "detail": "settled"
     },
-    "G2_screen_live": {
+    "G2_scan_breadth": {
       "ok": false,
-      "detail": "universe=6 screen=0 logged=0 names=[]"
-    },
-    "G3_signals_match": {
-      "ok": true,
-      "detail": "ddb_today=0 feed.logged=0"
+      "detail": "scanned=30 plans=[] logged=0"
     }
   },
-  "screen": [],
-  "verdict": "GAPS: G2_screen_live"
+  "plans": [],
+  "verdict": "GAPS: G2_scan_breadth"
 }

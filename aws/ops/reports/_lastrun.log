@@ -1,15 +1,10 @@
-executing-against: 09a1626c5cfcf806e719e3408263c457665ef4cf
-ops 3448 — cannibals verify
-PASS  G1_settled — cannibals v1.0.0 in zip
-[04:36:09] PASS  G1_settled — cannibals v1.0.0 in zip
-PASS  G2_schedule — exists
-[04:36:09] PASS  G2_schedule — exists
-PASS  G3_rule_probe — plans=[('GOODCO', 'XLK')]
-[04:36:10] PASS  G3_rule_probe — plans=[('GOODCO', 'XLK')]
-PASS  G4_feed_live — scanned=6 plans=[] logged=0
-[04:36:11] PASS  G4_feed_live — scanned=6 plans=[] logged=0
+executing-against: 6003fd611ef893d399ef3c34d8b439f0aef07d26
+PASS  G1_v101 — settled
+[04:39:07] PASS  G1_v101 — settled
+FAIL  G2_scan_breadth — scanned=30 plans=[] logged=0
+[04:39:09] FAIL  G2_scan_breadth — scanned=30 plans=[] logged=0
 
-VERDICT: PASS_ALL
-[04:36:11] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_scan_breadth
+[04:39:09] VERDICT: GAPS: G2_scan_breadth
 
-→ Report written to aws/ops/reports/latest/3448_cannibals_verify.md
+→ Report written to aws/ops/reports/latest/3449_cannibals_v101.md
