@@ -1,16 +1,29 @@
-executing-against: ec28106a7bfa51b6b41818d690395581babdcf5d
-ops 3428 — aiPanel resurrection
-PASS  G1_registry — contexts=53 panel-class=['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call', 'bond-vol-decisive-call', 'risk-radar-decisive-call', 'compass-decisive-call', 'defcon-decisi
-[23:52:33] PASS  G1_registry — contexts=53 panel-class=['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call', 'bond-vol-decisive-call', 'risk-radar-decisive-call', 'compass-decisive-call', 'defcon-decisi
-[invoke] sync 200 None
-FAIL  G2_class_regenerated — regenerated=0/14 regime=None detail={'yield-curve-decisive-call': 'n', 'vix-curve-decisive-call': 'n', 'dollar-decisive-call': 'n', 'eurodollar-decisive-call': 'n', 'lce-decisive-call': 'n', 'systemic-stress-decisive-call': 'n', 'bond-vol-decisive-call': 'n', 'risk-radar-decisive
-[23:59:58] FAIL  G2_class_regenerated — regenerated=0/14 regime=None detail={'yield-curve-decisive-call': 'n', 'vix-curve-decisive-call': 'n', 'dollar-decisive-call': 'n', 'eurodollar-decisive-call': 'n', 'lce-decisive-call': 'n', 'systemic-stress-decisive-call': 'n', 'bond-vol-decisive-call': 'n', 'risk-radar-decisive
-LIVE CALL: {"one_liner": "HMM locked in CONTRACTION (97.7% persistence) with zero anomalies\u2014but yield curve inversion + VIX at 70th pctile signals regime TRANSITION r", "regime": "RISK_OFF", "confidence": "MEDIUM"}
-[23:59:59] LIVE CALL: {"one_liner": "HMM locked in CONTRACTION (97.7% persistence) with zero anomalies\u2014but yield curve inversion + VIX at 70th pctile signals regime TRANSITION r", "regime": "RISK_OFF", "confidence": "MEDIUM"}
-PASS  G3_schedule — created
-[23:59:59] PASS  G3_schedule — created
+executing-against: f3cf88ad8bec26dc6a904ae99ad20fabccc9c09c
+regime ctx cfg keys={"title": "Macro Regime \u2014 Decisive Call", "output_key": "regime-decisive-call", "primary_feed": "data/regime.json", "cross_feeds": "{'yield_curve': 'data/yield-curve.json', 'vix': 'data/vix-cu", "cross_regime_fields": "{'yield_curve': 'regime', 'vix': 'composite_regime', 'credit", "kb_keywords": "['regime', 'stagflation', 'goldilocks', 'reflation', 'qua
+[00:01:01] regime ctx cfg keys={"title": "Macro Regime \u2014 Decisive Call", "output_key": "regime-decisive-call", "primary_feed": "data/regime.json", "cross_feeds": "{'yield_curve': 'data/yield-curve.json', 'vix': 'data/vix-cu", "cross_regime_fields": "{'yield_curve': 'regime', 'vix': 'composite_regime', 'credit", "kb_keywords": "['regime', 'stagflation', 'goldilocks', 'reflation', 'qua
+data/regime-decisive-call.json age_h=909.0
+[00:01:01] data/regime-decisive-call.json age_h=909.0
+data/aibrief/regime-decisive-call.json ERR An error occurred (404) when calling the HeadObjec
+[00:01:01] data/aibrief/regime-decisive-call.json ERR An error occurred (404) when calling the HeadObjec
+data/regime-decisive-call.json age_h=909.0
+[00:01:01] data/regime-decisive-call.json age_h=909.0
+router timeout=240s mem=1024
+[00:01:01] router timeout=240s mem=1024
+[ai-brief-router] sizing-decisive-call: ERR_EXC ?s
+[00:01:01] [ai-brief-router] sizing-decisive-call: ERR_EXC ?s
+[ai-brief-router] desk-consensus: ERR_CLAUDE ?s
+[00:01:01] [ai-brief-router] desk-consensus: ERR_CLAUDE ?s
+[ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
+[00:01:01] [ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
+[ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
+[00:01:01] [ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
+[ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
+[00:01:01] [ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
+[ai-brief-router] done: 6/53 OK in 8.71s
+[00:01:01] [ai-brief-router] done: 6/53 OK in 8.71s
+[ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']
+[00:01:02] [ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']
+[ai-brief-router] done: 1/1 OK in 2.96s
+[00:01:02] [ai-brief-router] done: 1/1 OK in 2.96s
 
-VERDICT: GAPS: G2_class_regenerated
-[23:59:59] VERDICT: GAPS: G2_class_regenerated
-
-→ Report written to aws/ops/reports/latest/3428_aipanel_resurrect.md
+→ Report written to aws/ops/reports/latest/3429_router_diag2.md

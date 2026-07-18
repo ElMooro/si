@@ -1,0 +1,24 @@
+- `00:01:01` regime ctx cfg keys={"title": "Macro Regime \u2014 Decisive Call", "output_key": "regime-decisive-call", "primary_feed": "data/regime.json", "cross_feeds": "{'yield_curve': 'data/yield-curve.json', 'vix': 'data/vix-cu", "cross_regime_fields": "{'yield_curve': 'regime', 'vix': 'composite_regime', 'credit", "kb_keywords": "['regime', 'stagflation', 'goldilocks', 'reflation', 'qua
+- `00:01:01` data/regime-decisive-call.json age_h=909.0
+**Status:** success  
+**Duration:** 1.5s  
+**Finished:** 2026-07-18T00:01:02+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `00:01:01` data/aibrief/regime-decisive-call.json ERR An error occurred (404) when calling the HeadObjec
+- `00:01:01` data/regime-decisive-call.json age_h=909.0
+- `00:01:01` router timeout=240s mem=1024
+- `00:01:01` [ai-brief-router] sizing-decisive-call: ERR_EXC ?s
+- `00:01:01` [ai-brief-router] desk-consensus: ERR_CLAUDE ?s
+- `00:01:01` [ai-brief-router] defcon-decisive-call: ERR_CLAUDE ?s
+- `00:01:01` [ai-brief-router] frontrun-sniffer: ERR_CLAUDE ?s
+- `00:01:01` [ai-brief-router] insider-clusters-names: ERR_CLAUDE ?s
+- `00:01:01` [ai-brief-router] done: 6/53 OK in 8.71s
+- `00:01:02` [ai-brief-router] running 1 contexts in parallel: ['alerts-digest-close']
+- `00:01:02` [ai-brief-router] done: 1/1 OK in 2.96s
