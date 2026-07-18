@@ -3559,15 +3559,17 @@ window.fillJHDollarFlows=async function(d){ try{
 }catch(e){ try{ var s2=document.getElementById('jhDollarFlows'); if(s2) s2.style.display='none'; }catch(_e){} } };
 })();
 </script>
-<script id="fgwhy-3470">/* ops 3470 ADDITIVE: Fundamental Graphs embedded analysis module (null-safe; touches nothing existing) */
+<script id="fgwhy-3476">/* ops 3476 ADDITIVE: Fundamental Graphs module v2 — full metric picker (shared /fg-catalog.js), favorites + color tags shared with the flagship. Null-safe; touches nothing existing. */
 (function(){
 'use strict';
 var PXW='https://justhodl-data-proxy.raafouis.workers.dev/';
 var FB='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
 var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
 if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
-var PAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c'];
-var LBL={roic_pct:['ROIC %','%'],gp_to_assets_pct:['GP/Assets %','%'],gross_margin_pct:['Gross mgn %','%'],fcf_margin_pct:['FCF mgn %','%'],income_quality:['CFO/NI','x'],revenue_yoy_pct:['Rev YoY %','%'],eps_yoy_pct:['EPS YoY %','%'],fcf_yoy_pct:['FCF YoY %','%'],revenue_cagr_3y_pct:['Rev CAGR 3Y %','%'],rule_of_40:['Rule of 40','n'],pe_ttm:['P/E','x'],ev_ebitda_ttm:['EV/EBITDA','x'],ev_gp_ttm:['EV/GP','x'],fcf_yield_pct:['FCF yield %','%'],earnings_yield_ebit_pct:['EBIT/EV %','%'],dividend_yield_pct:['Div yield %','%'],net_buyback_yield_pct:['Net BB yield %','%'],net_shareholder_yield_pct:['Net shr yield %','%'],share_count_yoy_pct:['Dilution YoY %','%'],netdebt_to_ebitda_ttm:['NetDebt/EBITDA','x'],ebitda_interest_coverage:['EBITDA/Int','x'],fcf_to_debt_pct:['FCF/Debt %','%'],current_ratio:['Current ratio','x'],altman_z:['Altman Z','n'],beneish_m:['Beneish M','n'],sloan_accruals_pct:['Sloan accr %','%'],piotroski_f:['Piotroski F','n'],dso_days:['DSO days','d'],sbc_to_revenue_pct:['SBC/Rev %','%']};
+var PAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#4ade80','#e879f9','#60a5fa','#f472b6','#2dd4bf','#facc15','#c084fc','#38bdf8','#fca5a5','#86efac','#fde047','#93c5fd','#f9a8d4','#5eead4'];
+var TAGPAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#e879f9','#60a5fa','#f472b6','#facc15','#2dd4bf','#e5e7eb'];
+var MAXM=20;
+var LBL_MIN={roic_pct:['ROIC %','%'],gp_to_assets_pct:['GP/Assets %','%'],gross_margin_pct:['Gross mgn %','%'],fcf_margin_pct:['FCF mgn %','%'],income_quality:['CFO/NI','x'],revenue_yoy_pct:['Rev YoY %','%'],eps_yoy_pct:['EPS YoY %','%'],fcf_yoy_pct:['FCF YoY %','%'],revenue_cagr_3y_pct:['Rev CAGR 3Y %','%'],rule_of_40:['Rule of 40','n'],pe_ttm:['P/E','x'],ev_ebitda_ttm:['EV/EBITDA','x'],ev_gp_ttm:['EV/GP','x'],fcf_yield_pct:['FCF yield %','%'],earnings_yield_ebit_pct:['EBIT/EV %','%'],dividend_yield_pct:['Div yield %','%'],net_buyback_yield_pct:['Net BB yield %','%'],net_shareholder_yield_pct:['Net shr yield %','%'],share_count_yoy_pct:['Dilution YoY %','%'],netdebt_to_ebitda_ttm:['NetDebt/EBITDA','x'],ebitda_interest_coverage:['EBITDA/Int','x'],fcf_to_debt_pct:['FCF/Debt %','%'],current_ratio:['Current ratio','x'],altman_z:['Altman Z','n'],beneish_m:['Beneish M','n'],sloan_accruals_pct:['Sloan accr %','%'],piotroski_f:['Piotroski F','n'],dso_days:['DSO days','d'],sbc_to_revenue_pct:['SBC/Rev %','%']};
 var LENS=[['Quality',['roic_pct','gp_to_assets_pct','gross_margin_pct','fcf_margin_pct','income_quality']],
 ['Growth',['revenue_yoy_pct','eps_yoy_pct','fcf_yoy_pct','revenue_cagr_3y_pct','rule_of_40']],
 ['Value',['pe_ttm','ev_ebitda_ttm','ev_gp_ttm','fcf_yield_pct','earnings_yield_ebit_pct']],
@@ -3584,33 +3586,51 @@ var VIT=[['roic_pct','ROIC',function(v){return v>=15?2:v>=5?1:0;},function(v){re
 ['piotroski_f','Piotroski',function(v){return v>=7?2:v>=4?1:0;},function(v){return v.toFixed(0)+'/9';}],
 ['beneish_m','Beneish',function(v){return v<=-2.22?2:v<=-1.78?1:0;},function(v){return v.toFixed(2);}]];
 var CLR=['#f87171','#fbbf24','#34d399'];
-var st={lens:0,mode:'pct',yrs:10},DOC=null,sec=null;
+var FAVM=[],METC={},CUST=null;
+try{FAVM=JSON.parse(localStorage.getItem('jh_fg_favm')||'[]')||[];}catch(e){}
+try{METC=JSON.parse(localStorage.getItem('jh_fg_metc')||'{}')||{};}catch(e){}
+try{CUST=JSON.parse(localStorage.getItem('jh_fgwhy_custom')||'null');}catch(e){}
+if(CUST&&!(CUST instanceof Array&&CUST.length))CUST=null;
+var saveFav=function(){localStorage.setItem('jh_fg_favm',JSON.stringify(FAVM));};
+var saveMetc=function(){localStorage.setItem('jh_fg_metc',JSON.stringify(METC));};
+var saveCust=function(){if(CUST&&CUST.length)localStorage.setItem('jh_fgwhy_custom',JSON.stringify(CUST));else localStorage.removeItem('jh_fgwhy_custom');};
+var st={lens:0,mode:'pct',yrs:10},DOC=null,sec=null,CATIDX=null,mtab='IN';
+function catReady(){if(CATIDX)return true;
+  if(window.FG_CAT&&window.FG_CAT.length){CATIDX={};window.FG_CAT.forEach(function(c){CATIDX[c[0]]={k:c[0],label:c[1],cat:c[2],u:c[3],f:c[4]};});return true;}
+  return false;}
+function lbl(k){if(catReady()&&CATIDX[k])return [CATIDX[k].label,CATIDX[k].u];return LBL_MIN[k]||[k,''];}
+function keys(){return (CUST&&CUST.length)?CUST:LENS[st.lens][1];}
+function colorOf(k){return METC[k]||PAL[Math.max(0,keys().indexOf(k))%PAL.length];}
 function last(k){var a=DOC&&DOC.points&&DOC.points[k];return a&&a.length?a[a.length-1][1]:null;}
-function fmtv(v,u){if(v==null)return '\u2014';if(u==='%')return (v>=0?'+':'')+v.toFixed(1)+'%';if(u==='x')return v.toFixed(2)+'x';if(u==='d')return v.toFixed(0)+'d';return v.toFixed(2);}
+function fmtv(v,u){if(v==null)return '\u2014';if(u==='%')return (v>=0?'+':'')+v.toFixed(1)+'%';if(u==='x')return v.toFixed(2)+'x';if(u==='d')return v.toFixed(0)+'d';if(u==='$'){var a=Math.abs(v);return a>=1e12?(v/1e12).toFixed(2)+'T':a>=1e9?(v/1e9).toFixed(2)+'B':a>=1e6?(v/1e6).toFixed(1)+'M':v.toFixed(2);}if(u==='c')return '$'+v.toFixed(2);if(u==='s'){var b=Math.abs(v);return b>=1e9?(v/1e9).toFixed(2)+'B':b>=1e6?(v/1e6).toFixed(1)+'M':v.toFixed(0);}return v.toFixed(2);}
 function esc(s){return String(s==null?'':s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
 function build(){
   var vit=VIT.map(function(v){var val=last(v[0]);if(val==null)return '';
     return '<span style="display:inline-flex;gap:5px;align-items:center;border:1px solid #22304a;border-radius:8px;padding:3px 9px;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:7px;height:7px;border-radius:50%;background:'+CLR[v[2](val)]+'"></span>'+v[1]+' <b>'+v[3](val)+'</b></span>';}).join(' ');
-  var lens=LENS.map(function(l,i){return '<button data-l="'+i+'" style="border:1px solid '+(i===st.lens?'#22d3ee':'#22304a')+';color:'+(i===st.lens?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">'+l[0]+'</button>';}).join(' ');
+  var lens=LENS.map(function(l,i){var on=!CUST&&i===st.lens;
+    return '<button data-l="'+i+'" style="border:1px solid '+(on?'#22d3ee':'#22304a')+';color:'+(on?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">'+l[0]+'</button>';}).join(' ');
+  var addbtn='<button id="jhfgAdd" style="border:1px solid #22d3ee;color:#22d3ee;background:#0b2530;border-radius:8px;padding:3px 12px;font-size:.7rem;font-weight:700;cursor:pointer">+ Add metric</button>'+(CUST?' <button id="jhfgClear" title="Back to lens presets" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\u21ba Lenses</button> <span style="font-size:.66rem;color:#5d6b82">'+keys().length+'/'+MAXM+'</span>':'');
   var segs='<span style="display:inline-flex;border:1px solid #22304a;border-radius:8px;overflow:hidden">'+
     ['pct:% Chg','yoy:YoY %'].map(function(x){var p=x.split(':');return '<button data-m="'+p[0]+'" style="border:0;background:'+(st.mode===p[0]?'#0e2433':'#0d1526')+';color:'+(st.mode===p[0]?'#22d3ee':'#8b98ad')+';padding:3px 10px;font-size:.68rem;cursor:pointer">'+p[1]+'</button>';}).join('')+'</span> '+
     '<span style="display:inline-flex;border:1px solid #22304a;border-radius:8px;overflow:hidden">'+
     [5,10].map(function(y){return '<button data-y="'+y+'" style="border:0;background:'+(st.yrs===y?'#0e2433':'#0d1526')+';color:'+(st.yrs===y?'#22d3ee':'#8b98ad')+';padding:3px 10px;font-size:.68rem;cursor:pointer">'+y+'Y</button>';}).join('')+'</span>';
-  sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 10-year institutional read <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 engine v'+esc(DOC.version||'')+')</span></div>'+
+  sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 10-year institutional read <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 '+(CUST?'custom '+keys().length+' metrics':'lens: '+LENS[st.lens][0])+')</span></div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' <span style="flex:1"></span>'+segs+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' '+addbtn+' <span style="flex:1"></span>'+segs+'</div>'+
     '<div id="jhfgChart"></div><div id="jhfgLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>'+
-    '<div style="margin-top:10px"><a id="fg-xlink" href="/fundamental-graphs.html?s='+encodeURIComponent(TK)+'&m='+LENS[st.lens][1].join(',')+'&r='+st.yrs+'&mo='+(st.mode==='pct'?'pct':'yoy')+'" style="display:inline-block;padding:4px 11px;border:1px solid #22304a;border-radius:8px;font-size:.72rem;color:#22d3ee;text-decoration:none">Open full comparator \u2192 3 symbols \u00d7 20 metrics \u00d7 200-metric library</a></div>';
-  sec.querySelectorAll('[data-l]').forEach(function(b){b.onclick=function(){st.lens=+b.dataset.l;build();};});
+    '<div style="margin-top:10px"><a id="fg-xlink" href="/fundamental-graphs.html?s='+encodeURIComponent(TK)+'&m='+keys().join(',')+'&r='+st.yrs+'&mo='+(st.mode==='pct'?'pct':'yoy')+'" style="display:inline-block;padding:4px 11px;border:1px solid #22304a;border-radius:8px;font-size:.72rem;color:#22d3ee;text-decoration:none">Open full comparator \u2192 add 2 peers, Values mode, CSV/PNG, table</a></div>';
+  sec.querySelectorAll('[data-l]').forEach(function(b){b.onclick=function(){CUST=null;saveCust();st.lens=+b.dataset.l;build();};});
   sec.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){st.mode=b.dataset.m;build();};});
   sec.querySelectorAll('[data-y]').forEach(function(b){b.onclick=function(){st.yrs=+b.dataset.y;build();};});
+  var ab=sec.querySelector('#jhfgAdd');if(ab)ab.onclick=openPicker;
+  var cb=sec.querySelector('#jhfgClear');if(cb)cb.onclick=function(){CUST=null;saveCust();build();};
   chart();
 }
 function chart(){
   var box=sec.querySelector('#jhfgChart'),leg=sec.querySelector('#jhfgLegend');
   var rs=new Date();rs.setFullYear(rs.getFullYear()-st.yrs);rs=rs.toISOString().slice(0,10);
   var series=[];
-  LENS[st.lens][1].forEach(function(k,ci){
+  keys().forEach(function(k){
     var pts=(DOC.points&&DOC.points[k])?DOC.points[k].slice():[];
     var outp=[];
     if(st.mode==='pct'){var vis=pts.filter(function(p){return p[0]>=rs;});var b=null;
@@ -3619,10 +3639,10 @@ function chart(){
     }else{for(var j=4;j<pts.length;j++){var pv=pts[j-4][1];
       if(pv&&pv>0)outp.push([pts[j][0],(pts[j][1]/pv-1)*100]);}
       outp=outp.filter(function(p){return p[0]>=rs;});}
-    if(outp.length>=2)series.push({k:k,c:PAL[ci%PAL.length],pts:outp,raw:pts});
+    if(outp.length>=2)series.push({k:k,c:colorOf(k),pts:outp,raw:pts});
   });
-  if(!series.length){box.innerHTML='<div style="color:#5d6b82;font-size:.72rem">No chartable history for this lens \u2014 open the full comparator.</div>';leg.innerHTML='';return;}
-  var W=box.clientWidth||sec.clientWidth||800,H=280,pL=44,pR=14,pT=10,pB=22;
+  if(!series.length){box.innerHTML='<div style="color:#5d6b82;font-size:.72rem">No chartable history for this set \u2014 % Change needs a positive base; try YoY or other metrics.</div>';leg.innerHTML='';return;}
+  var W=box.clientWidth||sec.clientWidth||800,H=290,pL=44,pR=14,pT=10,pB=22;
   var tmin=Infinity,tmax=-Infinity,lo=Infinity,hi=-Infinity;
   series.forEach(function(s){s.pts.forEach(function(p){var t=+new Date(p[0]);
     if(t<tmin)tmin=t;if(t>tmax)tmax=t;if(p[1]<lo)lo=p[1];if(p[1]>hi)hi=p[1];});});
@@ -3640,12 +3660,88 @@ function chart(){
     s.pts.forEach(function(p){d+=(pen?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);pen=true;});
     svg+='<path d="'+d+'" fill="none" stroke="'+s.c+'" stroke-width="2" stroke-linejoin="round"/>';});
   box.innerHTML=svg+'</svg>';
-  leg.innerHTML=series.map(function(s){var u=(LBL[s.k]||[s.k,''])[1];
+  leg.innerHTML=series.map(function(s){var L=lbl(s.k);
     var lastRaw=s.raw.length?s.raw[s.raw.length-1][1]:null;
-    var d0=s.pts[0][1],d1=s.pts[s.pts.length-1][1];var dd=d1-d0;
-    return '<span style="display:inline-flex;gap:6px;align-items:center;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:9px;height:9px;border-radius:3px;background:'+s.c+'"></span>'+esc((LBL[s.k]||[s.k])[0])+' <b>'+fmtv(lastRaw,u)+'</b> <span style="color:'+(dd>=0?'#34d399':'#f87171')+'">'+(dd>=0?'+':'')+dd.toFixed(0)+'pp</span></span>';}).join('');
+    var dd=s.pts[s.pts.length-1][1]-s.pts[0][1];
+    return '<span style="display:inline-flex;gap:6px;align-items:center;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:9px;height:9px;border-radius:3px;background:'+s.c+'"></span>'+esc(L[0])+' <b>'+fmtv(lastRaw,L[1])+'</b> <span style="color:'+(dd>=0?'#34d399':'#f87171')+'">'+(dd>=0?'+':'')+dd.toFixed(0)+'pp</span>'+(CUST?' <span data-rm="'+s.k+'" style="cursor:pointer;color:#5d6b82;font-weight:800">\u2715</span>':'')+'</span>';}).join('');
+  leg.querySelectorAll('[data-rm]').forEach(function(x){x.onclick=function(){CUST=CUST.filter(function(v){return v!==x.dataset.rm;});if(!CUST.length)CUST=null;saveCust();build();};});
+}
+/* ── full metric picker (shared catalog + shared favorites/colors) ── */
+function openPicker(){
+  if(!catReady()){alert('Metric catalog still loading \u2014 try again in a second.');return;}
+  if(!CUST)CUST=keys().slice();
+  var ov=document.createElement('div');ov.id='jhfgPicker';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(3,6,12,.74);z-index:130;display:flex;align-items:flex-start;justify-content:center;padding:6vh 10px';
+  ov.innerHTML='<div style="background:#0a1120;border:1px solid #22304a;border-radius:14px;max-width:760px;width:100%;max-height:80vh;display:flex;flex-direction:column">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px"><b style="font-size:1.05rem">Add metrics \u2014 '+esc(TK)+' <span id="jhfgCnt" style="font-size:.7rem;color:#5d6b82"></span></b><button id="jhfgX" style="border:1px solid #22304a;background:#0d1526;color:#8b98ad;border-radius:8px;padding:3px 10px;cursor:pointer">\u2715</button></div>'+
+    '<div style="padding:0 16px 8px"><input id="jhfgQ" placeholder="Search 200 metrics\u2026" style="width:100%;background:#0a1120;border:1px solid #22304a;border-radius:8px;color:#e5e7eb;padding:6px 10px;font-size:.8rem;outline:none"></div>'+
+    '<div id="jhfgTabs" style="display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto"></div>'+
+    '<div id="jhfgList" style="overflow-y:auto;flex:1;border-top:1px solid #10192b"></div>'+
+    '<div style="padding:8px 16px;font-size:.68rem;color:#5d6b82;border-top:1px solid #10192b">Click to add/remove (max '+MAXM+'). \u2605 favorites &amp; color tags sync with the full comparator.</div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)close();});
+  ov.querySelector('#jhfgX').onclick=close;
+  ov.querySelector('#jhfgQ').addEventListener('input',list);
+  function close(){ov.remove();saveCust();build();}
+  var POP=null;
+  function closePop(){if(POP){POP.remove();POP=null;}}
+  function tabs(){
+    var T=window.FG_TABS||[];
+    ov.querySelector('#jhfgTabs').innerHTML=T.map(function(t){return '<span data-t="'+t[0]+'" style="white-space:nowrap;cursor:pointer;padding:4px 12px;border-radius:999px;font-size:.72rem;border:1px solid '+(t[0]===mtab?'#e5e7eb':'#22304a')+';background:'+(t[0]===mtab?'#e5e7eb':'transparent')+';color:'+(t[0]===mtab?'#0a0f1a':'#8b98ad')+';font-weight:'+(t[0]===mtab?'700':'400')+'">'+t[1]+'</span>';}).join('');
+    ov.querySelectorAll('#jhfgTabs [data-t]').forEach(function(x){x.onclick=function(){mtab=x.dataset.t;tabs();list();};});
+  }
+  function rowsFor(){
+    var q=(ov.querySelector('#jhfgQ').value||'').toLowerCase().trim();
+    var CAT=window.FG_CAT;
+    if(q)return CAT.filter(function(c){return c[1].toLowerCase().indexOf(q)>=0||c[0].toLowerCase().indexOf(q)>=0;});
+    if(mtab==='FAV')return FAVM.map(function(k){return CAT.filter(function(c){return c[0]===k;})[0];}).filter(Boolean);
+    if(mtab==='IN')return (window.FG_INST||[]).map(function(k){return CAT.filter(function(c){return c[0]===k;})[0];}).filter(Boolean);
+    var r=CAT.filter(function(c){return c[2]===mtab;});
+    return r.filter(function(c){return FAVM.indexOf(c[0])>=0;}).concat(r.filter(function(c){return FAVM.indexOf(c[0])<0;}));
+  }
+  function list(){
+    closePop();
+    var UN={'$':'$','%':'%','x':'ratio','d':'days','s':'count','c':'$/sh','n':'score'};
+    var INST=window.FG_INST||[];
+    ov.querySelector('#jhfgCnt').textContent=CUST.length+'/'+MAXM+' selected';
+    ov.querySelector('#jhfgList').innerHTML=rowsFor().map(function(c){
+      var k=c[0],sel=CUST.indexOf(k)>=0,fav=FAVM.indexOf(k)>=0,
+          nod=!(DOC.points&&DOC.points[k]&&DOC.points[k].length),
+          col=METC[k]||'';
+      return '<div data-k="'+k+'" style="display:flex;align-items:center;justify-content:space-between;padding:7px 16px;border-bottom:1px solid #0e1626;cursor:'+(nod?'not-allowed':'pointer')+';font-size:.8rem;opacity:'+(nod?'.35':'1')+';color:'+(sel?'#22d3ee':'#e5e7eb')+'">'+
+        '<span style="display:flex;align-items:center;gap:9px;min-width:0">'+
+        '<span data-st="'+k+'" style="cursor:pointer;color:'+(fav?'#fbbf24':'#334155')+';font-size:1rem">'+(fav?'\u2605':'\u2606')+'</span>'+
+        '<span data-sw="'+k+'" title="color tag" style="cursor:pointer;width:12px;height:12px;border-radius:4px;flex:0 0 auto;background:'+(col||'linear-gradient(135deg,#22d3ee,#a78bfa)')+';border:1px solid #22304a;opacity:'+(col?1:.45)+'"></span>'+
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(sel?'\u2713 ':'')+esc(c[1])+'</span>'+
+        '<span style="font-size:.6rem;color:#6b7280;border:1px solid #1f2937;border-radius:4px;padding:0 5px">'+UN[c[3]]+'</span>'+
+        (INST.indexOf(k)>=0?'<span style="font-size:.6rem;color:#fbbf24;border:1px solid #4d3b0a;border-radius:4px;padding:0 5px">HF</span>':'')+
+        '</span></div>';}).join('')||'<div style="padding:12px 16px;color:#5d6b82;font-size:.75rem">'+(mtab==='FAV'?'No favorites yet \u2014 tap \u2606 on any metric.':'No matches.')+'</div>';
+    ov.querySelectorAll('#jhfgList [data-st]').forEach(function(x){x.onclick=function(e){e.stopPropagation();
+      var k=x.dataset.st;FAVM=FAVM.indexOf(k)>=0?FAVM.filter(function(v){return v!==k;}):FAVM.concat([k]);saveFav();list();};});
+    ov.querySelectorAll('#jhfgList [data-sw]').forEach(function(x){x.onclick=function(e){e.stopPropagation();
+      var k=x.dataset.sw;closePop();
+      POP=document.createElement('div');
+      POP.style.cssText='position:fixed;z-index:140;background:#0a1120;border:1px solid #22304a;border-radius:10px;padding:8px;display:grid;grid-template-columns:repeat(6,22px);gap:6px';
+      POP.innerHTML=TAGPAL.map(function(cc){return '<span data-c="'+cc+'" style="width:22px;height:22px;border-radius:6px;background:'+cc+';cursor:pointer;border:2px solid '+(METC[k]===cc?'#fff':'transparent')+'"></span>';}).join('')+'<span data-c="" style="grid-column:span 6;text-align:center;font-size:.66rem;color:#9ca3af;border:1px solid #1f2937;border-radius:6px;padding:2px;cursor:pointer">Auto</span>';
+      document.body.appendChild(POP);
+      var rc=x.getBoundingClientRect();
+      POP.style.left=Math.min(rc.left,window.innerWidth-POP.offsetWidth-8)+'px';
+      POP.style.top=Math.min(rc.bottom+6,window.innerHeight-POP.offsetHeight-8)+'px';
+      POP.querySelectorAll('[data-c]').forEach(function(sw){sw.onclick=function(ev){ev.stopPropagation();
+        if(sw.dataset.c)METC[k]=sw.dataset.c;else delete METC[k];saveMetc();closePop();list();};});};});
+    ov.querySelectorAll('#jhfgList [data-k]').forEach(function(r){r.onclick=function(){
+      var k=r.dataset.k;
+      if(CUST.indexOf(k)>=0){CUST=CUST.filter(function(v){return v!==k;});}
+      else{if(CUST.length>=MAXM)return;
+        if(!(DOC.points&&DOC.points[k]&&DOC.points[k].length))return;
+        CUST.push(k);}
+      list();};});
+  }
+  tabs();list();
+  setTimeout(function(){ov.querySelector('#jhfgQ').focus();},60);
 }
 function boot(){
+  var cs=document.createElement('script');cs.src='/fg-catalog.js';document.head.appendChild(cs);
   var n=0,t=setInterval(function(){
     var v=document.getElementById('jhVitalsTop');
     if(v){clearInterval(t);

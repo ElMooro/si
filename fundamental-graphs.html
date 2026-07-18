@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.4 ops3467 -->
+<!-- fundgraph v1.0 ops3462 · v1.5 ops3476 shared-catalog -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/jh-theme.css">
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/fg-catalog.js"></script>
 <style>
 :root{--blue:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;--violet:#a78bfa;
 --text-primary:#e5e7eb;--text-secondary:#9ca3af;--text-muted:#6b7280;--border-soft:#1f2937;--card:#0b1220}
@@ -65,7 +66,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.4 · ops 3467</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.5 · ops 3476</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -153,6 +154,7 @@ Engine: justhodl-fundamental-graphs (S3-cached, gzip API) · Companions: <a href
 
 <script>
 'use strict';
+if(!window.FG_CAT||!window.FG_CAT.length){document.addEventListener('DOMContentLoaded',function(){var t=document.createElement('div');t.className='toast';t.textContent='Catalog failed to load — hard refresh';document.body.appendChild(t);});}
 /* ───────────────────────── config / data layer ───────────────────────── */
 const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
 const FALLBACK_API='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
@@ -164,132 +166,10 @@ const DASH=['', '7 5', '2 4'];         // per-symbol line style
 
 /* ── metric catalog — keys mirror the engine exactly ── */
 /* u: $ big-USD, % percent, x ratio, d days, s shares, c $/share, n score/count */
-const CAT=[
-/* Income statement */
-['revenue','Total revenue','IS','$',1],['costOfRevenue','Cost of revenue','IS','$',1],
-['grossProfit','Gross profit','IS','$',1],['opex','Operating expenses','IS','$',1],
-['rnd','Research & development','IS','$',1],['sgna','SG&A expense','IS','$',1],
-['operatingIncome','Operating income (EBIT)','IS','$',1],['ebitda','EBITDA','IS','$',1],
-['da','Depreciation & amortization','IS','$',1],['interestExpense','Interest expense','IS','$',1],
-['interestIncome','Interest income','IS','$',1],['pretaxIncome','Pretax income','IS','$',1],
-['taxExpense','Income tax expense','IS','$',1],['netIncome','Net income','IS','$',1],
-['eps','EPS (basic)','IS','c',1],['epsDiluted','EPS (diluted)','IS','c',1],
-['shs','Shares outstanding (basic wtd)','IS','s',0],['shsDil','Shares outstanding (diluted wtd)','IS','s',0],
-['revenue_ttm','Revenue (TTM)','IS','$',0],['gross_profit_ttm','Gross profit (TTM)','IS','$',0],
-['ebitda_ttm','EBITDA (TTM)','IS','$',0],['ebit_ttm','EBIT (TTM)','IS','$',0],
-['net_income_ttm','Net income (TTM)','IS','$',0],
-/* Balance sheet */
-['cash','Cash & equivalents','BS','$',0],['sti','Short-term investments','BS','$',0],
-['cashSTI','Cash & ST investments','BS','$',0],['receivables','Net receivables','BS','$',0],
-['inventory','Inventory','BS','$',0],['totalCurrentAssets','Total current assets','BS','$',0],
-['ppeNet','PP&E (net)','BS','$',0],['goodwill','Goodwill','BS','$',0],
-['intangibles','Other intangibles','BS','$',0],['gwIntang','Goodwill + intangibles','BS','$',0],
-['ltInvestments','Long-term investments','BS','$',0],['totalAssets','Total assets','BS','$',0],
-['accountsPayable','Accounts payable','BS','$',0],['shortTermDebt','Short-term debt','BS','$',0],
-['deferredRevenue','Deferred revenue','BS','$',0],['totalCurrentLiabilities','Total current liabilities','BS','$',0],
-['longTermDebt','Long-term debt','BS','$',0],['totalLiabilities','Total liabilities','BS','$',0],
-['retainedEarnings','Retained earnings','BS','$',0],['equity','Shareholders\u2019 equity','BS','$',0],
-['totalDebt','Total debt','BS','$',0],['netDebt','Net debt','BS','$',0],
-['net_debt_calc','Net debt (calc)','BS','$',0],['working_capital','Working capital','BS','$',0],
-['tangible_equity','Tangible equity','BS','$',0],['minorityInterest','Minority interest','BS','$',0],
-/* Cash flow */
-['cfo','Cash from operations','CF','$',1],['sbc','Stock-based compensation','CF','$',1],
-['dWorkingCapital','Δ working capital','CF','$',1],['capex','Capital expenditures','CF','$',1],
-['acquisitions','Acquisitions (net)','CF','$',1],['purchInvest','Purchases of investments','CF','$',1],
-['saleInvest','Sale/maturity of investments','CF','$',1],['cfi','Cash from investing','CF','$',1],
-['debtRepayment','Debt issuance/repayment (net)','CF','$',1],['stockIssued','Stock issued','CF','$',1],
-['stockRepurchased','Stock repurchased','CF','$',1],['dividendsPaid','Dividends paid','CF','$',1],
-['cff','Cash from financing','CF','$',1],['fcf','Free cash flow','CF','$',1],
-['cfo_ttm','CFO (TTM)','CF','$',0],['fcf_ttm','Free cash flow (TTM)','CF','$',0],
-/* Statistics */
-['mcap','Market capitalization','ST','$',0],['ev','Enterprise value','ST','$',0],
-['pe_ttm','P/E (TTM)','ST','x',0],['ps_ttm','P/S (TTM)','ST','x',0],
-['pb','Price / book','ST','x',0],['ptb','Price / tangible book','ST','x',0],
-['p_fcf_ttm','Price / FCF (TTM)','ST','x',0],['p_cfo_ttm','Price / CFO (TTM)','ST','x',0],
-['ev_ebitda_ttm','EV / EBITDA (TTM)','ST','x',0],['ev_ebit_ttm','EV / EBIT (TTM)','ST','x',0],
-['ev_sales_ttm','EV / Sales (TTM)','ST','x',0],['ev_fcf_ttm','EV / FCF (TTM)','ST','x',0],
-['earnings_yield_pct','Earnings yield %','ST','%',0],['fcf_yield_pct','FCF yield %','ST','%',0],
-['dividend_yield_pct','Dividend yield %','ST','%',0],['buyback_yield_pct','Buyback yield %','ST','%',0],
-['shareholder_yield_pct','Shareholder yield %','ST','%',0],['payout_ratio_pct','Dividend payout ratio %','ST','%',0],
-['gross_margin_pct','Gross margin %','ST','%',0],['operating_margin_pct','Operating margin %','ST','%',0],
-['ebitda_margin_pct','EBITDA margin %','ST','%',0],['net_margin_pct','Net margin %','ST','%',0],
-['fcf_margin_pct','FCF margin %','ST','%',0],
-['roe_pct','Return on equity %','ST','%',0],['roa_pct','Return on assets %','ST','%',0],
-['roic_pct','Return on invested capital %','ST','%',0],['rota_pct','Return on tangible assets %','ST','%',0],
-['debt_to_equity','Debt / equity','ST','x',0],['debt_to_assets','Debt / assets','ST','x',0],
-['equity_to_assets','Equity / assets','ST','x',0],['liab_to_assets','Liabilities / assets','ST','x',0],
-['netdebt_to_ebitda_ttm','Net debt / EBITDA (TTM)','ST','x',0],['interest_coverage_ttm','Interest coverage (TTM)','ST','x',0],
-['current_ratio','Current ratio','ST','x',0],['quick_ratio','Quick ratio','ST','x',0],
-['cash_ratio','Cash ratio','ST','x',0],['asset_turnover_ttm','Asset turnover (TTM)','ST','x',0],
-['inventory_turnover_ttm','Inventory turnover (TTM)','ST','x',0],
-['dso_days','Days sales outstanding','ST','d',0],['dio_days','Days inventory','ST','d',0],
-['dpo_days','Days payable','ST','d',0],['ccc_days','Cash conversion cycle','ST','d',0],
-['income_quality','Income quality (CFO/NI)','ST','x',0],
-['sbc_to_revenue_pct','SBC / revenue %','ST','%',0],['capex_to_revenue_pct','Capex / revenue %','ST','%',0],
-['rnd_to_revenue_pct','R&D / revenue %','ST','%',0],['sga_to_revenue_pct','SG&A / revenue %','ST','%',0],
-['effective_tax_rate_pct','Effective tax rate %','ST','%',0],['sloan_accruals_pct','Sloan accruals %','ST','%',0],
-['share_count_yoy_pct','Share count YoY % (dilution)','ST','%',0],
-['altman_z','Altman Z-score','ST','n',0],['piotroski_f','Piotroski F-score','ST','n',0],
-['beneish_m','Beneish M-score','ST','n',0],['graham_number','Graham number','ST','c',0],
-/* Per share */
-['eps_ttm','EPS (TTM)','PS','c',0],['fcf_ps_ttm','FCF per share (TTM)','PS','c',0],
-['cfo_ps_ttm','CFO per share (TTM)','PS','c',0],['revenue_ps_ttm','Revenue per share (TTM)','PS','c',0],
-['book_value_ps','Book value per share','PS','c',0],['tangible_bv_ps','Tangible book per share','PS','c',0],
-['dps_ttm','Dividends per share (TTM)','PS','c',0],['cash_ps','Cash per share','PS','c',0],
-/* Forecasts */
-['est_revenue_avg','Revenue estimate (avg)','FC','$',1],['est_revenue_low','Revenue estimate (low)','FC','$',1],
-['est_revenue_high','Revenue estimate (high)','FC','$',1],['est_eps_avg','EPS estimate (avg)','FC','c',1],
-['est_eps_low','EPS estimate (low)','FC','c',1],['est_eps_high','EPS estimate (high)','FC','c',1],
-['est_ebitda_avg','EBITDA estimate (avg)','FC','$',1],['est_ebit_avg','EBIT estimate (avg)','FC','$',1],
-['est_net_income_avg','Net income estimate (avg)','FC','$',1],['est_sga_avg','SG&A estimate (avg)','FC','$',1],
-['est_num_analysts','# analysts (revenue)','FC','n',0],
-/* Growth */
-['revenue_yoy_pct','Revenue growth YoY %','GR','%',0],['gross_profit_yoy_pct','Gross profit growth YoY %','GR','%',0],
-['operating_income_yoy_pct','Operating income growth YoY %','GR','%',0],['ebitda_yoy_pct','EBITDA growth YoY %','GR','%',0],
-['net_income_yoy_pct','Net income growth YoY %','GR','%',0],['eps_yoy_pct','EPS growth YoY %','GR','%',0],
-['cfo_yoy_pct','CFO growth YoY %','GR','%',0],['fcf_yoy_pct','FCF growth YoY %','GR','%',0],
-['dps_yoy_pct','Dividend/share growth YoY %','GR','%',0],['bvps_yoy_pct','Book value/share growth YoY %','GR','%',0],
-['capex_yoy_pct','Capex growth YoY %','GR','%',0],['sbc_yoy_pct','SBC growth YoY %','GR','%',0],
-['revenue_cagr_3y_pct','Revenue CAGR 3Y %','GR','%',0],['revenue_cagr_5y_pct','Revenue CAGR 5Y %','GR','%',0],
-['eps_cagr_3y_pct','EPS CAGR 3Y %','GR','%',0],['eps_cagr_5y_pct','EPS CAGR 5Y %','GR','%',0],
-['fcf_cagr_3y_pct','FCF CAGR 3Y %','GR','%',0],['fcf_cagr_5y_pct','FCF CAGR 5Y %','GR','%',0],
-['sustainable_growth_pct','Sustainable growth rate %','GR','%',0],['retention_pct','Earnings retention %','GR','%',0],
-['rule_of_40','Rule of 40 (rev YoY + FCF mgn)','GR','n',0],
-/* HF quality / capital return */
-['gp_to_assets_pct','Gross profits / assets % (Novy-Marx)','ST','%',0],
-['earnings_yield_ebit_pct','EBIT / EV yield % (Greenblatt)','ST','%',0],
-['roc_greenblatt_pct','Return on capital % (Greenblatt)','ST','%',0],
-['ev_gp_ttm','EV / gross profit (TTM)','ST','x',0],['fcf_ev_yield_pct','FCF / EV yield %','ST','%',0],
-['fcf_conversion_pct','FCF conversion % (FCF/EBITDA)','ST','%',0],
-['cash_conversion_pct','Cash conversion % (CFO/EBITDA)','ST','%',0],
-['fcf_to_ni','FCF / net income','ST','x',0],['capex_to_da','Capex / D&A','ST','x',0],
-['net_buyback_yield_pct','Net buyback yield % (net of issuance)','ST','%',0],
-['net_shareholder_yield_pct','Net shareholder yield %','ST','%',0],
-['debt_paydown_yield_pct','Debt paydown yield %','ST','%',0],
-['total_yield_pct','Total yield % (div+netBB+debt)','ST','%',0],
-['peg_ttm','PEG (trailing)','ST','x',0],['tobins_q','Tobin\u2019s Q (approx)','ST','x',0],
-['pretax_margin_pct','Pretax margin %','ST','%',0],
-['cogs_to_revenue_pct','COGS / revenue %','ST','%',0],['wc_to_revenue_pct','Working capital / revenue %','ST','%',0],
-['debt_to_revenue','Debt / revenue','ST','x',0],['cash_to_debt','Cash / debt','ST','x',0],
-['goodwill_to_assets_pct','Goodwill / assets %','ST','%',0],['intangibles_to_assets_pct','GW+intangibles / assets %','ST','%',0],
-['tangible_ce_ratio','Tangible common equity ratio','ST','x',0],['equity_multiplier','Equity multiplier (assets/equity)','ST','x',0],
-['debt_to_capital','Debt / capital','ST','x',0],['gross_debt_to_ebitda','Gross debt / EBITDA (TTM)','ST','x',0],
-['ebitda_interest_coverage','EBITDA / interest (TTM)','ST','x',0],
-['fcf_to_debt_pct','FCF / total debt %','ST','%',0],['cfo_to_debt_pct','CFO / total debt %','ST','%',0],
-['netdebt_to_fcf','Net debt / FCF (yrs)','ST','x',0],
-['altman_z_prime','Altman Z\u2033 (non-mfg)','ST','n',0],['springate','Springate score','ST','n',0],
-['zmijewski_x','Zmijewski X-score','ST','n',0],['fulmer_h','Fulmer H factor','ST','n',0],
-['kz_index','KZ index (fin. constraint)','ST','n',0],
-['employees','Number of employees','ST','s',0],
-['revenue_per_employee','Revenue per employee (TTM)','ST','$',0],
-['net_income_per_employee','Net income per employee (TTM)','ST','$',0],
-['net_buyback_ttm','Net buybacks (TTM, net of issuance)','CF','$',0],
-['ncav','Net current asset value (NCAV)','BS','$',0],
-['ncav_ps','NCAV per share','PS','c',0],
-];
+const CAT=window.FG_CAT||[];
 const CATIDX=Object.fromEntries(CAT.map(c=>[c[0],{k:c[0],label:c[1],cat:c[2],u:c[3],f:c[4]}]));
-const TABS=[['FAV','\u2605 Favorites'],['IN','Institutional'],['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['GR','Growth'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
-const INST_ORDER=['roic_pct','fcf_yield_pct','earnings_yield_ebit_pct','roc_greenblatt_pct','ev_ebitda_ttm','ev_gp_ttm','ev_sales_ttm','pe_ttm','p_fcf_ttm','peg_ttm','gp_to_assets_pct','gross_margin_pct','operating_margin_pct','fcf_margin_pct','rule_of_40','revenue_yoy_pct','revenue_cagr_3y_pct','eps_yoy_pct','fcf_yoy_pct','fcf_conversion_pct','income_quality','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','net_buyback_yield_pct','dividend_yield_pct','net_shareholder_yield_pct','total_yield_pct','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','capex_to_da','tobins_q','roe_pct','ccc_days','dso_days','altman_z','piotroski_f','beneish_m','kz_index','sustainable_growth_pct'];
+const TABS=window.FG_TABS||[['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
+const INST_ORDER=window.FG_INST||[];
 const TAGPAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#e879f9','#60a5fa','#f472b6','#facc15','#2dd4bf','#e5e7eb'];
 let FAVM=[],METC={};
 try{FAVM=JSON.parse(localStorage.getItem('jh_fg_favm')||'[]')||[];}catch(e){FAVM=[];}
@@ -340,7 +220,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.4 · ops 3467 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.5 · ops 3476 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
