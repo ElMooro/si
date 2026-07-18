@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.6 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.7 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -217,8 +217,10 @@ EXCH_TOK = ("NASDAQ", "NYSE", "AMEX", "BATS", "CBOE")
 def build_symdir():
     """Multi-endpoint, tolerant US-universe builder with diagnostics."""
     diag = []
-    for ep in ("stock-list", "stock/list", "available-traded/list",
-               "company-screener?marketCapMoreThan=10000000&limit=10000"):
+    acc = {}
+    for ep in ("company-screener?marketCapMoreThan=2000000000&limit=10000",
+               "company-screener?marketCapMoreThan=5000000&marketCapLowerThan=2000000000&limit=10000",
+               "stock-list"):
         try:
             data = _fmp(ep)
             n_raw = len(data) if isinstance(data, list) else -1
@@ -243,12 +245,20 @@ def build_symdir():
                     and r.get("isActivelyTrading") in (None, True, "true")
                     and str(r.get("isFund")).lower() != "true"):
                 rows.append([sy, str(nm)[:60], tok])
-        diag.append([ep, f"raw={n_raw} kept={len(rows)}"])
-        if len(rows) > 3000:
-            _SYMDIR["diag"] = diag
-            return rows
+        if len(rows) == 0 and n_raw > 0:
+            try:
+                diag.append([ep, "raw=%d kept=0 keys=%s"
+                             % (n_raw, sorted(list(data[0].keys()))[:10])])
+            except Exception:  # noqa: BLE001
+                diag.append([ep, f"raw={n_raw} kept=0"])
+        else:
+            diag.append([ep, f"raw={n_raw} kept={len(rows)}"])
+        for row in rows:
+            acc.setdefault(row[0], row)
+        if len(acc) >= 12000:
+            break
     _SYMDIR["diag"] = diag
-    return []
+    return list(acc.values())
 
 
 def load_symdir(force=False):
@@ -984,7 +994,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.6",
+        "version": "1.1.7",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1150,7 +1160,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.6",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.7",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1174,7 +1184,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.6"}
+                "version": "1.1.7"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1190,7 +1200,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.1.6"}, headers_in)
+                               "version": "1.1.7"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
