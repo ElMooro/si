@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.2 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.3 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -883,7 +883,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.2",
+        "version": "1.1.3",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1043,7 +1043,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.2",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.3",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "errors": errors,
@@ -1067,7 +1067,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.2"}
+                "version": "1.1.3"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1080,21 +1080,36 @@ def lambda_handler(event, context):  # noqa: ARG001
     srch = (qp.get("search") or "").strip()
     if srch:
         q = "".join(c for c in srch if c.isalnum() or c in " .-&")[:40]
-        results = []
-        try:
-            rows = _fmp(f"search-symbol?query={urllib.parse.quote(q)}&limit=8")
-            if not (isinstance(rows, list) and rows):
-                rows = _fmp(f"search-name?query={urllib.parse.quote(q)}&limit=8")
-            for r0 in rows if isinstance(rows, list) else []:
-                sy = str(r0.get("symbol") or "").upper()
-                if sy:
-                    results.append({
-                        "symbol": sy,
-                        "name": r0.get("name") or r0.get("companyName") or "",
-                        "exchange": r0.get("exchangeShortName")
-                        or r0.get("exchange") or ""})
-        except Exception as e:  # noqa: BLE001
-            return _resp(502, {"ok": False, "error": str(e)[:200]}, headers_in)
+
+        def _srch(ep):
+            try:
+                rows = _fmp(f"{ep}?query={urllib.parse.quote(q)}&limit=10")
+                return rows if isinstance(rows, list) else []
+            except Exception:  # noqa: BLE001
+                return []
+
+        # name matches first (company-name intent: "micro" -> Microsoft),
+        # then ticker matches ("aap" -> AAPL); US listings outrank foreign.
+        merged, seen = [], set()
+        for r0 in _srch("search-name") + _srch("search-symbol"):
+            sy = str(r0.get("symbol") or "").upper()
+            if not sy or sy in seen:
+                continue
+            seen.add(sy)
+            merged.append({
+                "symbol": sy,
+                "name": r0.get("name") or r0.get("companyName") or "",
+                "exchange": r0.get("exchangeShortName")
+                or r0.get("exchange") or ""})
+        qU = q.upper()
+        merged.sort(key=lambda r: (
+            0 if r["symbol"] == qU else 1,
+            0 if "." not in r["symbol"] else 1,
+            merged.index(r)))
+        results = merged[:8]
+        if not results:
+            return _resp(502, {"ok": False, "error": "search unavailable"},
+                         headers_in)
         return _resp(200, {"ok": True, "query": q, "results": results,
                            "marker": "FUNDGRAPH_V1_OPS3462"}, headers_in)
 
