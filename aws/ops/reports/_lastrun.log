@@ -1,16 +1,12 @@
-executing-against: adb6915293b3913d32765ad9f386e976e1dff9de
-ops 3467 — lenses + typeahead + snapshot table + why.html link
-[21:09:25]   zip: 92951 bytes
+executing-against: 30e01fa5001ed7adf70e898e1eddd13d0fa05a5c
+ops 3468 — search relevance close (name-first ranked merge)
+[21:13:50]   zip: 93152 bytes
 ── 1. Lambda ──
-[21:09:26]   Lambda exists — updating
-[21:09:31] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  R1_search_proxy — {'apple': ['AAPL.DE', 'APC.DE', 'AAPL.NE', 'AAPL', 'AAPL.MX'], 'micro': ['MICRO.BK', 'MICROSE.BO', 'MICROPRO.NS', '20MICRONS.NS', '20MICRONS.BO']}
-[21:09:37] FAIL  R1_search_proxy — {'apple': ['AAPL.DE', 'APC.DE', 'AAPL.NE', 'AAPL', 'AAPL.MX'], 'micro': ['MICRO.BK', 'MICROSE.BO', 'MICROPRO.NS', '20MICRONS.NS', '20MICRONS.BO']}
-PASS  R2_page_v14_live — {'status': 200, 'markers': True}
-[21:11:58] PASS  R2_page_v14_live — {'status': 200, 'markers': True}
-PASS  R3_why_additive_link — {'status': 200, 'xlink': True, 'vitals_intact': True, 'dollarflows_intact': True}
-[21:11:58] PASS  R3_why_additive_link — {'status': 200, 'xlink': True, 'vitals_intact': True, 'dollarflows_intact': True}
-RESULT: FAILS: ['R1_search_proxy']
-RESULT: FAILS: ['R1_search_proxy']
+[21:13:50]   Lambda exists — updating
+[21:13:55] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  R1b_apple_top3 — HTTP Error 502: Bad Gateway
+[21:13:59] FAIL  R1b_apple_top3 — HTTP Error 502: Bad Gateway
+RESULT: FAILS: ['R1b_apple_top3']
+RESULT: FAILS: ['R1b_apple_top3']
 
-→ Report written to aws/ops/reports/latest/3467_fundgraph_research_desk.md
+→ Report written to aws/ops/reports/latest/3468_fundgraph_search_rank.md
