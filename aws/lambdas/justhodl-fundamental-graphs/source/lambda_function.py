@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.8 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.2.0 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -44,7 +44,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v11"
+CACHE_VER = "v12"  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -187,6 +187,23 @@ def fetch_price(sym):
         else:
             weekly[-1] = [d, rnd(c, 4)]
     return rows, weekly
+
+
+def fetch_earnings(sym):
+    """Report dates + est-vs-actual EPS (beat/miss layer). /stable 'earnings'."""
+    try:
+        rows = _fmp(f"earnings?symbol={urllib.parse.quote(sym)}&limit=70")
+    except Exception:  # noqa: BLE001
+        rows = []
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        d = str(r.get("date") or "")[:10]
+        act = g(r, "epsActual", "actualEPS", "eps")
+        est = g(r, "epsEstimated", "estimatedEPS")
+        if len(d) == 10 and (act is not None or est is not None):
+            out.append([d, rnd(act, 4), rnd(est, 4)])
+    out.sort(key=lambda t: t[0])
+    return out[-48:]
 
 
 def fetch_employees(sym):
@@ -381,6 +398,7 @@ def build_doc(sym, period):
     profile = fetch_profile(sym)
     daily_px, weekly_px = fetch_price(sym)
     emp_series = fetch_employees(sym)
+    earnings = fetch_earnings(sym)
 
     bmap, cmap = by_date(bal), by_date(cf)
     inc_sorted = sorted(
@@ -999,7 +1017,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.8",
+        "version": "1.2.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1008,6 +1026,7 @@ def build_doc(sym, period):
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
         "catalog_n": len(P),
         "points": P,
+        "earnings": earnings,
         "price": weekly_px,
         "sources": [
             "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
@@ -1165,7 +1184,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.8",
+        return {"ok": True, "mode": "warm_auto", "version": "1.2.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1189,7 +1208,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.8"}
+                "version": "1.2.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1205,7 +1224,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.1.8"}, headers_in)
+                               "version": "1.2.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

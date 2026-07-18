@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.6 ops3477 shared-core -->
+<!-- fundgraph v1.0 ops3462 · v1.7 ops3478 pctile+earnings -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.6 · ops 3477</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.7 · ops 3478</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -114,6 +114,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       </label>
       <button class="btn" id="logbtn" title="Log scale (Values mode)">Log</button>
       <button class="btn" id="tblbtn" title="Side-by-side snapshot table">Table</button>
+      <button class="btn" id="ernbtn" title="Earnings dates + beat/miss (single symbol)">Earnings</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -180,7 +181,7 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false};
 function readURL(){
   const q=new URLSearchParams(location.search);
   if(q.get('s'))S.syms=q.get('s').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).slice(0,MAXS);
@@ -188,7 +189,7 @@ function readURL(){
   if(q.get('p'))S.per={q:'quarter',a:'annual',ttm:'ttm'}[q.get('p')]||'quarter';
   if(q.get('r'))S.rng=+q.get('r')||10;
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
-  S.px=q.get('px')==='1';S.log=q.get('lg')==='1';
+  S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';
   if(!S.syms.length){S.syms=['CHTR'];S.mets=S.mets.length?S.mets:['grossProfit'];}
   if(!S.mets.length)S.mets=['grossProfit'];
 }
@@ -196,7 +197,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -221,7 +222,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.6 · ops 3477 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.7 · ops 3478 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -303,7 +304,18 @@ function draw(){
   if(!list.length){svg.innerHTML='';emptyEl.style.display='flex';return;}
   emptyEl.style.display='none';
   document.getElementById('logbtn').classList.toggle('on',S.log);
-  const r=FGChart.render(svg,tip,list,{mode:S.mode,log:S.log,mixOk:S.mixOk});
+  document.getElementById('ernbtn').classList.toggle('on',S.ern);
+  let band=null;
+  if(S.mode==='val'){
+    const cnt={};list.filter(x=>!x.isPx).forEach(x=>{cnt[x.grp]=(cnt[x.grp]||0)+1;});
+    const solo=list.find(x=>!x.isPx&&cnt[x.grp]===1);
+    if(solo){const doc=DCACHE[solo.sym+'_'+basePer()];
+      if(doc){const st=seriesStats(series(doc,solo.mk));
+        if(st)band={axis:0,lo:st.p10,hi:st.p90,mid:st.p50,color:solo.color};}}
+  }
+  let ern=null;
+  if(S.ern&&S.syms.length===1){const d0=DCACHE[S.syms[0]+'_'+basePer()];ern=(d0&&d0.earnings)||null;}
+  const r=FGChart.render(svg,tip,list,{mode:S.mode,log:S.log,mixOk:S.mixOk,band,earnings:ern});
   if(r.autoPct){S.mode='pct';S.mixOk=true;toast('Mixed units \u2192 switched to % Change (click Values to override)');return draw();}
   document.getElementById('mixnote').textContent=
     (r.hiddenGroups?('\u26a0 '+r.hiddenGroups+' unit group(s) hidden in Values mode \u2014 use % Change to see all'):'')+
@@ -359,6 +371,8 @@ function renderChips(){
           const savedMode=S.mode;S.mode='val';latest=fmt(lastV,m.u);S.mode=savedMode;
           if(base&&base[1]>0){const d=(lastV/base[1]-1)*100;
             delta=`<span class="delta" style="color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?'+':''}${d.toFixed(1)}%</span>`;}
+          const stt=seriesStats(series(doc,mk));
+          if(stt)delta+=` <span class="u" title="percentile of own 10y history · z-score" style="border-color:#22304a;color:#94a3b8">p${stt.pct}·z${stt.z>=0?'+':''}${stt.z.toFixed(1)}</span>`;
         }else latest='—';
       }
       chips.push(`<span class="metchip"><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>·${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-m="${mk}" title="remove metric">✕</span></span>`);
@@ -503,11 +517,12 @@ function renderTable(){
   if(!S.mets.length||!S.syms.length){box.innerHTML='<div class="note">Add symbols and metrics first.</div>';return;}
   const lb=basePer()==='quarter'?4:1;
   const cell=(sym,mk)=>{
-    const doc=DCACHE[sym+'_'+basePer()];if(!doc)return{v:null,y:null};
-    const pts=series(doc,mk);if(!pts.length)return{v:null,y:null};
+    const doc=DCACHE[sym+'_'+basePer()];if(!doc)return{v:null,y:null,p:null};
+    const pts=series(doc,mk);if(!pts.length)return{v:null,y:null,p:null};
     const v=pts[pts.length-1][1];
     const pv=pts.length>lb?pts[pts.length-1-lb][1]:null;
-    return{v,y:(pv&&pv>0)?((v/pv-1)*100):null};
+    const stq=seriesStats(pts);
+    return{v,y:(pv&&pv>0)?((v/pv-1)*100):null,p:stq?stq.pct:null};
   };
   let html='<table style="width:100%;border-collapse:collapse;font-size:.76rem"><thead><tr><th style="text-align:left;padding:6px 8px;color:var(--text-muted);border-bottom:1px solid var(--border-soft)">Metric (latest '+(S.per==='ttm'?'TTM':S.per==='annual'?'FY':'FQ')+' · YoY)</th>'+
     S.syms.map((sy,i)=>`<th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border-soft)"><span class="dot d${i+1}" style="background:#e5e7eb"></span> ${esc(sy)}</th>`).join('')+'</tr></thead><tbody>';
@@ -525,10 +540,22 @@ function renderTable(){
       cells.map((c,i)=>{
         const hl=i===bi?'background:rgba(52,211,153,.08);border-left:2px solid var(--green);':'';
         const yv=c.y==null?'':`<span class="delta" style="font-size:.66rem;color:${c.y>=0?'var(--green)':'var(--red)'}"> ${c.y>=0?'+':''}${c.y.toFixed(1)}%</span>`;
-        return `<td class="mono" style="text-align:right;padding:6px 8px;border-bottom:1px solid #0f1729;${hl}">${fmt(c.v,m.u)}${yv}</td>`;}).join('')+'</tr>';
+        const pp=c.p==null?'':`<span style="font-size:.6rem;color:#64748b"> p${c.p}</span>`;
+        return `<td class="mono" style="text-align:right;padding:6px 8px;border-bottom:1px solid #0f1729;${hl}">${fmt(c.v,m.u)}${yv}${pp}</td>`;}).join('')+'</tr>';
     S.mode=savedMode;
   });
   box.innerHTML=html+'</tbody></table>';
+}
+function seriesStats(pts){ /* own-history percentile + z of latest (>=12 obs) */
+  const vs=pts.map(p=>p[1]).filter(v=>v!=null&&isFinite(v));
+  if(vs.length<12)return null;
+  const last=vs[vs.length-1],n=vs.length;
+  const mean=vs.reduce((a,b)=>a+b,0)/n;
+  const sd=Math.sqrt(vs.reduce((a,b)=>a+(b-mean)*(b-mean),0)/n);
+  const rank=vs.filter(v=>v<=last).length;
+  const sorted=vs.slice().sort((a,b)=>a-b);
+  const q=p=>sorted[Math.min(n-1,Math.max(0,Math.floor(p*(n-1))))];
+  return {pct:Math.round(rank/n*100),z:sd>0?(last-mean)/sd:0,p10:q(.1),p50:q(.5),p90:q(.9)};
 }
 const LSK='jh_fg_saves';
 function saves(){try{return JSON.parse(localStorage.getItem(LSK)||'{}');}catch(e){return{};}}
@@ -567,6 +594,7 @@ document.querySelectorAll('#rngseg .btn').forEach(b=>b.onclick=()=>{S.rng=+b.dat
 document.querySelectorAll('#modeseg .btn').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;if(b.dataset.m==='val')S.mixOk=true;draw();});
 document.getElementById('pxchk').onchange=e=>{S.px=e.target.checked;draw();};
 document.getElementById('logbtn').onclick=()=>{S.log=!S.log;if(S.log&&S.mode!=='val')toast('Log applies in Values mode');draw();};
+document.getElementById('ernbtn').onclick=()=>{S.ern=!S.ern;if(S.ern&&S.syms.length>1)toast('Earnings layer shows for a single symbol');draw();};
 document.getElementById('csvbtn').onclick=fgExportCSV;
 document.getElementById('tblbtn').onclick=()=>{const b=document.getElementById('cmptbl');
   const on=b.style.display==='none';b.style.display=on?'':'none';

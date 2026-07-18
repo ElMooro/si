@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 (band + earnings layer) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -115,6 +115,31 @@ function render(svg,tip,list,opts){
     var xx=X(dd);
     svg.appendChild(el('line',{x1:xx,x2:xx,y1:y0,y2:y1,stroke:'#111b2e','stroke-width':1}));
     var t2=el('text',{x:xx,y:y1+16,'text-anchor':'middle',fill:'#64748b','font-size':'10.5'});t2.textContent=yy;svg.appendChild(t2);
+  }
+  /* own-history percentile band (opts.band = {axis:0|1, lo, hi, mid?, color?}) — Values mode */
+  if(opts.band&&mode==='val'){
+    var B=opts.band,YB=B.axis===1?Y1:Y0,byl=YB(B.lo),byh=YB(B.hi);
+    if(byl!=null&&byh!=null){
+      svg.appendChild(el('rect',{x:x0,y:Math.min(byl,byh),width:x1-x0,height:Math.abs(byl-byh),
+        fill:B.color||'#22d3ee',opacity:.07}));
+      if(B.mid!=null){var bym=YB(B.mid);if(bym!=null)
+        svg.appendChild(el('line',{x1:x0,x2:x1,y1:bym,y2:bym,stroke:B.color||'#22d3ee','stroke-dasharray':'5 5',opacity:.35}));}
+      var bt=el('text',{x:x1-4,y:Math.min(byl,byh)+11,'text-anchor':'end',fill:B.color||'#22d3ee','font-size':'9.5',opacity:.7});
+      bt.textContent='10y p10\u2013p90';svg.appendChild(bt);
+    }
+  }
+  /* earnings layer (opts.earnings = [[date, epsActual, epsEstimated],...]) */
+  if(opts.earnings&&opts.earnings.length){
+    opts.earnings.forEach(function(e2){
+      var t2=+new Date(e2[0]);if(t2<tmin||t2>tmax)return;
+      var xe=X(e2[0]),act=e2[1],est2=e2[2];
+      var cc=(act==null||est2==null)?'#64748b':(act>est2?'#34d399':(act<est2?'#f87171':'#fbbf24'));
+      svg.appendChild(el('line',{x1:xe,x2:xe,y1:y1-7,y2:y1,stroke:cc,'stroke-width':1.4,opacity:.9}));
+      var dot=el('circle',{cx:xe,cy:y1-11,r:3,fill:cc,opacity:.95});
+      var tt=svg.ownerDocument.createElementNS(NS,'title');
+      tt.textContent=e2[0]+'  EPS '+(act==null?'\u2014':act)+' vs est '+(est2==null?'\u2014':est2)+((act!=null&&est2!=null)?(act>=est2?'  BEAT':'  MISS'):'');
+      dot.appendChild(tt);svg.appendChild(dot);
+    });
   }
   var todayISO=new Date().toISOString().slice(0,10);
   if(+new Date(todayISO)>tmin&&+new Date(todayISO)<tmax){
