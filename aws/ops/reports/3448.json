@@ -1,21 +1,22 @@
 {
   "gates": {
-    "G1_deployed_scheduled": {
+    "G1_settled": {
       "ok": true,
-      "detail": "settled=True sched=exists"
+      "detail": "cannibals v1.0.0 in zip"
     },
-    "G2_feed_live": {
+    "G2_schedule": {
       "ok": true,
-      "detail": "seen=1 fresh=0 logged=0 fresh_rows=[]"
+      "detail": "exists"
     },
-    "G3_signals_match": {
+    "G3_rule_probe": {
       "ok": true,
-      "detail": "ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)"
+      "detail": "plans=[('GOODCO', 'XLK')]"
+    },
+    "G4_feed_live": {
+      "ok": true,
+      "detail": "scanned=6 plans=[] logged=0"
     }
   },
-  "real_read": {
-    "fresh": [],
-    "logged": 0
-  },
+  "plans": [],
   "verdict": "PASS_ALL"
 }
