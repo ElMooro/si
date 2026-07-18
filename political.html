@@ -209,4 +209,31 @@ document.addEventListener('DOMContentLoaded',function(){
     document.body.insertBefore(b,document.body.firstChild);
   }).catch(function(){});
 });</script>
+<script>/* OPS3455: LIVE official-source congress feed (Senate eFD + House Clerk) — no vendor */
+document.addEventListener('DOMContentLoaded',function(){
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/congress-direct.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var sec=document.createElement('div');
+    sec.style.cssText='max-width:1200px;margin:18px auto;padding:0 16px';
+    var tx=(d.senate&&d.senate.transactions)||[];
+    var hf=(d.house&&d.house.filings)||[];
+    var h='<div style="background:#0b1220;border:1px solid #1f2937;border-radius:14px;padding:18px">';
+    h+='<div style="color:#34d399;font:800 15px Inter">🏛 LIVE — Official Sources (Senate eFD + House Clerk)</div>';
+    h+='<div style="color:#6b7280;font:12px Inter;margin:3px 0 10px">Direct from government filings — no vendor, no key, cannot expire. Updated '+(d.generated_at?String(d.generated_at).slice(0,16).replace("T"," "):"—")+' UTC · Senate: '+((d.senate&&d.senate.n_transactions)||0)+' transactions ('+((d.senate&&d.senate.n_with_ticker)||0)+' tickered) · House: '+((d.house&&d.house.n_ptr_filings)||0)+' PTR filings</div>';
+    if(tx.length){
+      h+='<table style="width:100%;border-collapse:collapse;font:12.5px JetBrains Mono,monospace;color:#e5e7eb"><tr style="color:#6b7280;text-align:left"><th style="padding:5px 8px">Senator</th><th>Date</th><th>Ticker</th><th>Asset</th><th>Type</th><th>Amount</th></tr>';
+      tx.slice(0,25).forEach(function(t){
+        var buy=/purchase|buy/i.test(t.type||''); var col=buy?'#34d399':(/sale|sell/i.test(t.type||'')?'#f87171':'#9ca3af');
+        h+='<tr style="border-top:1px solid #1f2937"><td style="padding:5px 8px">'+(t.filer||'—')+'</td><td>'+(t.tx_date||'—')+'</td><td style="color:#22d3ee;font-weight:700">'+(t.ticker||'')+'</td><td style="color:#9ca3af">'+String(t.asset||'').slice(0,42)+'</td><td style="color:'+col+'">'+(t.type||'—')+'</td><td>'+(t.amount||'—')+'</td></tr>';
+      });
+      h+='</table>';
+    } else { h+='<div style="color:#9ca3af;font:13px Inter">Senate feed initializing…</div>'; }
+    if(hf.length){
+      h+='<div style="color:#fbbf24;font:700 11px Inter;letter-spacing:.1em;text-transform:uppercase;margin:12px 0 6px">Latest House PTR filings</div><div style="font:12px Inter;color:#9ca3af">'+hf.slice(0,10).map(function(f){return '<a href="'+(f.pdf||'#')+'" style="color:#22d3ee" target="_blank">'+f.name+'</a> ('+f.state_district+', '+f.filing_date+')';}).join(' · ')+'</div>';
+    }
+    h+='</div>';
+    sec.innerHTML=h;
+    var bar=document.querySelector('div[style*="7c2d12"]');
+    (bar&&bar.parentNode)?bar.parentNode.insertBefore(sec,bar.nextSibling):document.body.insertBefore(sec,document.body.firstChild);
+  }).catch(function(e){console.log('congress-direct',e);});
+});</script>
 </body></html>
