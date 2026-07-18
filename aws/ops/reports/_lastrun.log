@@ -1,17 +1,16 @@
-executing-against: 830d6ee9a5d38d003dbd39cfc8e8b7423ea043da
-ops 3441 — self-monitoring
-PASS  G1_corpses_retired — retired list now 6
-[03:00:09] PASS  G1_corpses_retired — retired list now 6
-PASS  G_fleet_error_monitor — last_log_age_h=0.02 (max 0.5)
-[03:00:09] PASS  G_fleet_error_monitor — last_log_age_h=0.02 (max 0.5)
-PASS  G_fleet_freshness_monitor — last_log_age_h=0.02 (max 2.0)
-[03:00:10] PASS  G_fleet_freshness_monitor — last_log_age_h=0.02 (max 2.0)
-PASS  G_fleet_monitor — last_log_age_h=1.52 (max 7.0)
-[03:00:10] PASS  G_fleet_monitor — last_log_age_h=1.52 (max 7.0)
-PASS  G_schedule_liveness — last_log_age_h=13.49 (max 26.0)
-[03:00:10] PASS  G_schedule_liveness — last_log_age_h=13.49 (max 26.0)
+executing-against: 6f61b28ec05fc376c4343b1d427f43a91597d24a
+ops 3442 — regime bridge + stealth + fade v1.1
+PASS  G1_settled — 4 markers incl label-stamp in bundled shared
+[03:16:16] PASS  G1_settled — 4 markers incl label-stamp in bundled shared
+FAIL  G2_bridge_e2e — on_row=TESTREGIME3442 table=None
+[03:19:53] FAIL  G2_bridge_e2e — on_row=TESTREGIME3442 table=None
+[cleanup] ok
+PASS  G3_stealth_live — sched=created recent=0 logged=0 rows=[]
+[03:19:54] PASS  G3_stealth_live — sched=created recent=0 logged=0 rows=[]
+PASS  G4_fade_selfupdating — families_from_triage=['eng:ai-infra-stack', 'eng:finnhub-signals']
+[03:19:56] PASS  G4_fade_selfupdating — families_from_triage=['eng:ai-infra-stack', 'eng:finnhub-signals']
 
-VERDICT: PASS_ALL
-[03:00:10] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_bridge_e2e
+[03:19:56] VERDICT: GAPS: G2_bridge_e2e
 
-→ Report written to aws/ops/reports/latest/3441_selfmon.md
+→ Report written to aws/ops/reports/latest/3442_regime_bridge.md

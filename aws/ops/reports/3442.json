@@ -1,0 +1,21 @@
+{
+  "gates": {
+    "G1_settled": {
+      "ok": true,
+      "detail": "4 markers incl label-stamp in bundled shared"
+    },
+    "G2_bridge_e2e": {
+      "ok": false,
+      "detail": "on_row=TESTREGIME3442 table=None"
+    },
+    "G3_stealth_live": {
+      "ok": true,
+      "detail": "sched=created recent=0 logged=0 rows=[]"
+    },
+    "G4_fade_selfupdating": {
+      "ok": true,
+      "detail": "families_from_triage=['eng:ai-infra-stack', 'eng:finnhub-signals']"
+    }
+  },
+  "verdict": "GAPS: G2_bridge_e2e"
+}
