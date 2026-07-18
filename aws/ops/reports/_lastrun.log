@@ -1,13 +1,15 @@
-executing-against: 4638b3b97abd047444ad5b8026aa8979a4c56bde
-ops 3449 — cannibals family
-PASS  G1_deployed_scheduled — settled=True sched=exists
-[03:49:55] PASS  G1_deployed_scheduled — settled=True sched=exists
-PASS  G2_screen_live — universe=649 screen=0 logged=0 names=[]
-[03:49:56] PASS  G2_screen_live — universe=649 screen=0 logged=0 names=[]
-PASS  G3_signals_match — ddb_today=0 feed.logged=0
-[03:49:59] PASS  G3_signals_match — ddb_today=0 feed.logged=0
+executing-against: a70c3fa42d6f1cbc34080852368615b97e26d8d0
+ops 3446 — auction-tail family
+PASS  G1_settled — marker
+[04:28:47] PASS  G1_settled — marker
+PASS  G2_schedule — exists
+[04:28:47] PASS  G2_schedule — exists
+PASS  G3_rule_probe — plans=[('TLT', 'DOWN', 'D'), ('IEF', 'UP', 'A')]
+[04:28:48] PASS  G3_rule_probe — plans=[('TLT', 'DOWN', 'D'), ('IEF', 'UP', 'A')]
+PASS  G4_feed_live — graded_rows=20 plans=0 logged=0
+[04:28:48] PASS  G4_feed_live — graded_rows=20 plans=0 logged=0
 
 VERDICT: PASS_ALL
-[03:49:59] VERDICT: PASS_ALL
+[04:28:48] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3451_cannibals_regate.md
+→ Report written to aws/ops/reports/latest/3446_auction_tail.md
