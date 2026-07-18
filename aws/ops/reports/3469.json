@@ -1,0 +1,18 @@
+{
+  "ops": 3469,
+  "gates": {
+    "S1_apple_top3": {
+      "ok": true,
+      "detail": "['AAPL', 'APPLX', 'APUSD', 'AAPI', 'APRU']"
+    },
+    "S2_micro_has_msft": {
+      "ok": false,
+      "detail": "['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD', 'VENAW', 'MCRNT.TA']"
+    },
+    "S3_tesla_top3": {
+      "ok": true,
+      "detail": "['TSLA', 'TXLZF', 'DTSLAUSD', 'TSLA.NE', 'TL0.DE']"
+    }
+  },
+  "status": "FAILS: ['S2_micro_has_msft']"
+}

@@ -1,12 +1,16 @@
-executing-against: 30e01fa5001ed7adf70e898e1eddd13d0fa05a5c
-ops 3468 — search relevance close (name-first ranked merge)
-[21:13:50]   zip: 93152 bytes
+executing-against: e9ccd4f35aeec7925ff2dea19582a071e7083aca
+ops 3469 — search relevance close (name-first ranked merge)
+[21:15:39]   zip: 93276 bytes
 ── 1. Lambda ──
-[21:13:50]   Lambda exists — updating
-[21:13:55] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  R1b_apple_top3 — HTTP Error 502: Bad Gateway
-[21:13:59] FAIL  R1b_apple_top3 — HTTP Error 502: Bad Gateway
-RESULT: FAILS: ['R1b_apple_top3']
-RESULT: FAILS: ['R1b_apple_top3']
+[21:15:39]   Lambda exists — updating
+[21:15:45] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  S1_apple_top3 — ['AAPL', 'APPLX', 'APUSD', 'AAPI', 'APRU']
+[21:15:49] PASS  S1_apple_top3 — ['AAPL', 'APPLX', 'APUSD', 'AAPI', 'APRU']
+FAIL  S2_micro_has_msft — ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD', 'VENAW', 'MCRNT.TA']
+[21:15:50] FAIL  S2_micro_has_msft — ['PETSUSD', 'TICKUSD', 'MCRT', 'AMMUSD', 'VENAW', 'MCRNT.TA']
+PASS  S3_tesla_top3 — ['TSLA', 'TXLZF', 'DTSLAUSD', 'TSLA.NE', 'TL0.DE']
+[21:15:51] PASS  S3_tesla_top3 — ['TSLA', 'TXLZF', 'DTSLAUSD', 'TSLA.NE', 'TL0.DE']
+RESULT: FAILS: ['S2_micro_has_msft']
+RESULT: FAILS: ['S2_micro_has_msft']
 
-→ Report written to aws/ops/reports/latest/3468_fundgraph_search_rank.md
+→ Report written to aws/ops/reports/latest/3469_fundgraph_search_rank.md
