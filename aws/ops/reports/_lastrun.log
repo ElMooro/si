@@ -1,13 +1,13 @@
-executing-against: 62da1e01958e9c3d57951fcaf22cdfd120ca37ea
-PASS  G0_v1b_settled
-[03:28:03] G0_v1b_settled True
-key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
-[03:28:03] key schema: [{"AttributeName": "outcome_id", "KeyType": "HASH"}]
-PASS  G1_table_leg — rows=1 regime_at_log=TESTREGIME3445 keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
-[03:28:30] PASS  G1_table_leg — rows=1 regime_at_log=TESTREGIME3445 keys=['checked_at', 'correct', 'logged_at', 'outcome', 'outcome_id', 'predicted_dir', 'regime_at_log', 'signal_id']
-[cleanup] ok
+executing-against: bc9f82cf28eece209ac20895b10dca3f21cdf0df
+ops 3446 — auction-tail family
+PASS  G1_deployed_scheduled — settled=True sched=created
+[03:34:51] PASS  G1_deployed_scheduled — settled=True sched=created
+PASS  G2_feed_live — seen=0 fresh=0 logged=0 fresh_rows=[]
+[03:34:52] PASS  G2_feed_live — seen=0 fresh=0 logged=0 fresh_rows=[]
+PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
+[03:34:53] PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
 
 VERDICT: PASS_ALL
-[03:28:30] VERDICT: PASS_ALL
+[03:34:53] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3445_bridge_close.md
+→ Report written to aws/ops/reports/latest/3446_auction_tail.md
