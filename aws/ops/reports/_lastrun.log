@@ -1,15 +1,5 @@
-executing-against: f8e5698eddc613f49a8ae458c5034a70fa05c6d4
-ops 3452 — credit composite
-PASS  G1_settled — marker
-[04:53:17] PASS  G1_settled — marker
-PASS  G2_schedule — created
-[04:53:18] PASS  G2_schedule — created
-PASS  G3_probe — hot=100/['LQD', 'HYG'] calm=0
-[04:53:19] PASS  G3_probe — hot=100/['LQD', 'HYG'] calm=0
-FAIL  G4_live — composite=None lens_pts={} resolved_details=0/5 plans=[] logged=None
-[04:53:22] FAIL  G4_live — composite=None lens_pts={} resolved_details=0/5 plans=[] logged=None
+executing-against: e235b53f6e0e9898fdb04dc7759a5ffa01ae5339
+FunctionError=Unhandled payload={"errorMessage": "'list' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "360ff0c4-f0b4-4c5d-8276-d81f9bffe045", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 119, in lambda_handler\n    L, comp = score_lenses(docs)\n", "  File \"/var/task/lambda_function.py\", line 75, in score_lenses\n    corp = ((sf.get(\"classes\") or {}).get(\"corporate\")\n"]}
+[04:56:14] FunctionError=Unhandled payload={"errorMessage": "'list' object has no attribute 'get'", "errorType": "AttributeError", "requestId": "360ff0c4-f0b4-4c5d-8276-d81f9bffe045", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 119, in lambda_handler\n    L, comp = score_lenses(docs)\n", "  File \"/var/task/lambda_function.py\", line 75, in score_lenses\n    corp = ((sf.get(\"classes\") or {}).get(\"corporate\")\n"]}
 
-VERDICT: GAPS: G4_live
-[04:53:22] VERDICT: GAPS: G4_live
-
-→ Report written to aws/ops/reports/latest/3452_credit_composite.md
+→ Report written to aws/ops/reports/latest/3453_cc_err.md
