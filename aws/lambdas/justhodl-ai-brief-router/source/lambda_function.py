@@ -3614,12 +3614,25 @@ def _det_brief(ctx_id, cfg):
     (/justhodl/llm/mode=on_demand). States read directly from the same live
     feeds the LLM would see; marked mode=deterministic. Zero LLM spend."""
     primary = s3io.get_json(cfg.get("primary_feed") or "", default={}) or {}
+    # DET_PRIMARY_BFS (ops 3437): bounded search — first string under any
+    # regime-ish key, up to depth 3, wherever the engine nested it.
     pstate = None
-    for k in ("regime", "composite_regime", "current", "signal", "state",
-              "posture", "call", "latest"):
-        pstate = _det_state(primary.get(k))
-        if pstate:
-            break
+    _q = [(primary, 0)]
+    while _q and pstate is None:
+        _o, _d = _q.pop(0)
+        if not isinstance(_o, dict) or _d > 3:
+            continue
+        for _k, _v in _o.items():
+            _kl = str(_k).lower()
+            if any(t in _kl for t in ("regime", "label", "classification",
+                                       "state", "posture", "call"))                     and isinstance(_v, str) and 2 < len(_v) < 48:
+                pstate = _v[:40]
+                break
+            if isinstance(_v, dict):
+                _q.append((_v, _d + 1))
+        else:
+            continue
+        break
     crosses = {}
     cf = cfg.get("cross_feeds") or {}
     crf = cfg.get("cross_regime_fields") or {}
