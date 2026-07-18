@@ -1,18 +1,18 @@
-executing-against: aaae181caf1ab9540153ac581e262245198416c0
-ops 3464 — browser CORS close (duplicate-ACAO fix)
-[16:53:13]   zip: 89478 bytes
+executing-against: b968cc84430e908d4bf2daf6194e1be5a9d3a1c7
+ops 3465 — 200-metric library + Favorites/Institutional picker
+[19:33:34]   zip: 91818 bytes
 ── 1. Lambda ──
-[16:53:14]   Lambda exists — updating
-[16:53:17] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  B1_single_acao — {'acao_all': ['*'], 'enc': 'gzip', 'version': '1.0.0'}
-[16:53:20] PASS  B1_single_acao — {'acao_all': ['*'], 'enc': 'gzip', 'version': '1.0.0'}
-PASS  B2_px_config — {'status': 200, 'api_url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws'}
-[16:53:21] PASS  B2_px_config — {'status': 200, 'api_url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws'}
-PASS  B3_boot_path — {'acao': ['*'], 'enc': 'gzip', 'sym': 'CHTR', 'n': 44}
-[16:53:21] PASS  B3_boot_path — {'acao': ['*'], 'enc': 'gzip', 'sym': 'CHTR', 'n': 44}
-PASS  B4_page_fallback_live — {'status': 200, 'has_fallback': True}
-[16:55:43] PASS  B4_page_fallback_live — {'status': 200, 'has_fallback': True}
+[19:33:35]   Lambda exists — updating
+[19:33:38] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  M1_deploy_warm_v110 — {'version': '1.1.0', 'warmed': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 197}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 197}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 200}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 200}}}
+[19:33:54] PASS  M1_deploy_warm_v110 — {'version': '1.1.0', 'warmed': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 197}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 197}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 200}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 200}}}
+PASS  M2_hard_institutional_set — {'catalog_n': 200, 'missing': [], 'thin': [], 'rule_of_40_last': ['2026-03-28', 41.371], 'roic_last': ['2026-03-28', 99.697]}
+[19:33:55] PASS  M2_hard_institutional_set — {'catalog_n': 200, 'missing': [], 'thin': [], 'rule_of_40_last': ['2026-03-28', 41.371], 'roic_last': ['2026-03-28', 99.697]}
+PASS  M3_soft_coverage_log — {'employees': 44, 'revenue_per_employee': 44, 'peg_ttm': 32, 'kz_index': 42, 'fulmer_h': 37, 'rule_of_40': 43, 'dps_yoy_pct': 43, 'retention_pct': 44}
+[19:33:55] PASS  M3_soft_coverage_log — {'employees': 44, 'revenue_per_employee': 44, 'peg_ttm': 32, 'kz_index': 42, 'fulmer_h': 37, 'rule_of_40': 43, 'dps_yoy_pct': 43, 'retention_pct': 44}
+PASS  M4_page_v12_live — {'status': 200, 'markers': True}
+[19:37:11] PASS  M4_page_v12_live — {'status': 200, 'markers': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3464_fundgraph_browser_fix.md
+→ Report written to aws/ops/reports/latest/3465_fundgraph_metric_expansion.md

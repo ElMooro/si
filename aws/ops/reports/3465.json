@@ -1,0 +1,22 @@
+{
+  "ops": 3465,
+  "gates": {
+    "M1_deploy_warm_v110": {
+      "ok": true,
+      "detail": "{'version': '1.1.0', 'warmed': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 197}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 197}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 200}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 200}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 200}}}"
+    },
+    "M2_hard_institutional_set": {
+      "ok": true,
+      "detail": "{'catalog_n': 200, 'missing': [], 'thin': [], 'rule_of_40_last': ['2026-03-28', 41.371], 'roic_last': ['2026-03-28', 99.697]}"
+    },
+    "M3_soft_coverage_log": {
+      "ok": true,
+      "detail": "{'employees': 44, 'revenue_per_employee': 44, 'peg_ttm': 32, 'kz_index': 42, 'fulmer_h': 37, 'rule_of_40': 43, 'dps_yoy_pct': 43, 'retention_pct': 44}"
+    },
+    "M4_page_v12_live": {
+      "ok": true,
+      "detail": "{'status': 200, 'markers': True}"
+    }
+  },
+  "status": "ALL PASS"
+}
