@@ -1,10 +1,16 @@
-executing-against: 483c441c64b3cb0a687ca30605e851f25f77c754
-PASS  G1_v101 — settled
-[04:58:57] PASS  G1_v101 — settled
-PASS  G2_live — err=None composite=25 lens={'dealer_positioning': 25, 'corporate_fails': 0, 'funding_gcf_tri': 0, 'ofr_fsi': 0, 'credit_stress': 0} details={'dealer_positioning': 'squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)', 'corporate_fails': 'spike=None status=None', 'funding_gcf_tri': 'bp=3.75 (
-[04:59:01] PASS  G2_live — err=None composite=25 lens={'dealer_positioning': 25, 'corporate_fails': 0, 'funding_gcf_tri': 0, 'ofr_fsi': 0, 'credit_stress': 0} details={'dealer_positioning': 'squeeze=True regime=NET_SHORT corp_net=-0.13 (.net_bonds_b)', 'corporate_fails': 'spike=None status=None', 'funding_gcf_tri': 'bp=3.75 (
+executing-against: ee44d1328d3016dd90d0a85f182e05cd1571abda
+ops 3455 — congress direct
+PASS  G1_settled — marker
+[14:39:18] PASS  G1_settled — marker
+PASS  G2_schedule — created
+[14:39:19] PASS  G2_schedule — created
+[invoke] 200 None b'{"statusCode": 200, "body": "{\\"ok\\": true, \\"senate_tx\\": 95, \\"house\\": 200}"}'
+FAIL  G3_live_data — senate tx=95 tickered=0 house=200 errs=(None,None) samp=[]
+[14:39:30] FAIL  G3_live_data — senate tx=95 tickered=0 house=200 errs=(None,None) samp=[]
+PASS  G4_page_live — OPS3455 on political.html
+[14:41:31] PASS  G4_page_live — OPS3455 on political.html
 
-VERDICT: PASS_ALL
-[04:59:01] VERDICT: PASS_ALL
+VERDICT: GAPS: G3_live_data
+[14:41:31] VERDICT: GAPS: G3_live_data
 
-→ Report written to aws/ops/reports/latest/3454_cc_close.md
+→ Report written to aws/ops/reports/latest/3455_congress_direct.md
