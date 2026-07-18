@@ -1,5 +1,12 @@
-executing-against: 80749fcf7c779e4b3f99355db031c6df4c079173
-no det-fallback prints found
-[02:19:57] none found
+executing-against: e47a30f8d7422423173f4bdd1d42aefbf1c13b65
+ops 3435 — det rotation final
+PASS  G1_v2_settled — DET_FALLBACK_V2 in zip
+[02:22:58] PASS  G1_v2_settled — DET_FALLBACK_V2 in zip
+[invoke] 200 None
+PASS  G2_rotation_full — fresh=33/33 regime_mode=deterministic one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
+[02:23:10] PASS  G2_rotation_full — fresh=33/33 regime_mode=deterministic one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
 
-→ Report written to aws/ops/reports/latest/3434_detfallback_err.md
+VERDICT: PASS_ALL
+[02:23:10] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3435_det_final.md
