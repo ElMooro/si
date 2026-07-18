@@ -1,18 +1,12 @@
-executing-against: 143d743a6d67c3c26ec1890b3adb43a48a4e3222
-ops 3480 — red-flag digest (rules + both surfaces)
-PASS  R1_rule_unit — {'tripped': [('EARNINGS_QUALITY', 3), ('BENEISH', 3), ('DILUTION_ACCEL', 2), ('MARGIN_ROLL', 2)]}
-[22:56:21] PASS  R1_rule_unit — {'tripped': [('EARNINGS_QUALITY', 3), ('BENEISH', 3), ('DILUTION_ACCEL', 2), ('MARGIN_ROLL', 2)]}
-[22:56:21]   zip: 96821 bytes
-── 1. Lambda ──
-[22:56:21]   Lambda exists — updating
-[22:56:25] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  R2_docs_carry_flags — {'version': '1.2.2', 'CHTR': [('MARGIN_ROLL', 2)], 'AAPL': [], 'MSFT': [('SLOAN_HIGH', 2)]}
-[22:56:36] PASS  R2_docs_carry_flags — {'version': '1.2.2', 'CHTR': [('MARGIN_ROLL', 2)], 'AAPL': [], 'MSFT': [('SLOAN_HIGH', 2)]}
-PASS  R3_flagship_v18 — {}
-[22:58:38] PASS  R3_flagship_v18 — {}
-PASS  R4_module_flags — {}
-[22:58:38] PASS  R4_module_flags — {}
+executing-against: 9e093c1bf32a086108fd3e0222253d22c77fc724
+ops 3481 — px own-scale + vertical markers
+PASS  Y1_served_js — {'node_ok': [True, True, True, True], 'core_bytes': 13264}
+[23:10:27] PASS  Y1_served_js — {'node_ok': [True, True, True, True], 'core_bytes': 13264}
+PASS  Y2_flagship_v19 — {}
+[23:10:27] PASS  Y2_flagship_v19 — {}
+PASS  Y3_module_marks — {}
+[23:10:27] PASS  Y3_module_marks — {}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3480_redflag_digest.md
+→ Report written to aws/ops/reports/latest/3481_marks_pxscale.md
