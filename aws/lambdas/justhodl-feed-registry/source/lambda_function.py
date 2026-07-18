@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/feed-registry.json"
 WEEKLY_HINTS = ("13f", "weekly", "cot", "clone", "playbook", "wl-", "brain",
@@ -24,6 +24,11 @@ s3 = boto3.client("s3", "us-east-1")
 def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
+    try:
+        retired = set(json.loads(s3.get_object(Bucket=S3_BUCKET,
+            Key="config/feed-retired.json")["Body"].read()).get("retired") or [])
+    except Exception:
+        retired = set()
     rows, token = [], None
     while True:
         kw = {"Bucket": S3_BUCKET, "Prefix": "data/", "MaxKeys": 1000}
@@ -39,7 +44,9 @@ def lambda_handler(event, context):
             age_h = round((now - o["LastModified"]).total_seconds() / 3600, 1)
             sla = 24 * 8 if any(h in k for h in WEEKLY_HINTS) else 48
             rows.append({"key": k, "age_h": age_h, "sla_h": sla,
-                         "size": o["Size"], "stale": age_h > sla})
+                         "size": o["Size"],
+                         "retired": k in retired,
+                         "stale": (age_h > sla) and k not in retired})
         token = r.get("NextContinuationToken")
         if not token:
             break

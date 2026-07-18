@@ -3596,7 +3596,68 @@ def generate_opportunity_ranker(ctx_id, cfg, episode_ref):
 # ─────────────────────────────────────────────────────────────────────
 # Per-context worker — dispatches based on brief_type
 # ─────────────────────────────────────────────────────────────────────
+def _det_state(v):
+    if isinstance(v, dict):
+        for k in ("regime", "label", "state", "call", "posture", "tone", "verdict"):
+            if v.get(k):
+                return str(v[k])[:40]
+        return None
+    return str(v)[:40] if v not in (None, "") else None
+
+
+def _det_brief(ctx_id, cfg):
+    """ops 3431 — deterministic decisive-call when LLM is cost-gated
+    (/justhodl/llm/mode=on_demand). States read directly from the same live
+    feeds the LLM would see; marked mode=deterministic. Zero LLM spend."""
+    primary = s3io.get_json(cfg.get("primary_feed") or "", default={}) or {}
+    pstate = None
+    for k in ("regime", "composite_regime", "current", "signal", "state",
+              "posture", "call", "latest"):
+        pstate = _det_state(primary.get(k))
+        if pstate:
+            break
+    crosses = {}
+    cf = cfg.get("cross_feeds") or {}
+    crf = cfg.get("cross_regime_fields") or {}
+    for cid, fkey in list(cf.items())[:8]:
+        d = s3io.get_json(fkey, default={}) or {}
+        st = _det_state(d.get(crf.get(cid) or "regime")) or _det_state(d.get("regime"))
+        if st:
+            crosses[cid] = st
+    conf = "HIGH" if len(crosses) >= 4 else "MEDIUM" if len(crosses) >= 2 else "LOW"
+    one = (f"{cfg.get('title', ctx_id)}: {pstate or 'state unavailable'}"
+           + (" · " + ", ".join(f"{k}={v}" for k, v in list(crosses.items())[:4])
+              if crosses else ""))[:160]
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "context_id": ctx_id, "title": cfg.get("title"),
+        "mode": "deterministic",
+        "regime": pstate, "confidence": conf,
+        "one_liner": one,
+        "thesis": ("Engine synthesis (LLM cost-gated: /justhodl/llm/mode="
+                   "on_demand). States below are read directly from the live "
+                   "feeds this desk normally reasons over — no model text."),
+        "supporting_evidence": ([f"primary {cfg.get('primary_feed')}: {pstate}"]
+                                + [f"{k}: {v}" for k, v in crosses.items()]),
+        "trade_ideas": [],
+    }
+
+
 def generate_one_brief(ctx_id, cfg, episode_ref):
+    r = _generate_one_brief_core(ctx_id, cfg, episode_ref)
+    try:
+        if isinstance(r, dict) and str(r.get("status", "")).startswith("ERR_CLAUDE"):
+            det = _det_brief(ctx_id, cfg)
+            okey = f"data/{cfg.get('output_key') or ctx_id}.json"
+            s3io.put_json(okey, det, cache_control="public, max-age=900")
+            r["status"] = "OK_DET"
+            r["one_liner"] = det["one_liner"]
+    except Exception as e:
+        print(f"[det-fallback] {ctx_id}: {str(e)[:80]}")
+    return r
+
+
+def _generate_one_brief_core(ctx_id, cfg, episode_ref):
     """Generate the brief for a single context. Dispatches by brief_type."""
     bt = cfg.get("brief_type")
     if bt == "names":
