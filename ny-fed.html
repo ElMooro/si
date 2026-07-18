@@ -830,7 +830,7 @@
     <script>
         // NY Fed API v3.0 Configuration
         const NYFED_CONFIG = {
-            baseUrl: 'https://jc6ripzwk1.execute-api.us-east-1.amazonaws.com/prod',
+            baseUrl: '' /* legacy gateway retired — ops 3438 */,
             endpoints: {
                 info: '/',
                 health: '/health',
@@ -1790,5 +1790,24 @@
     </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>/* OPS3438: real NY Fed dealer data from data/nyfed-primary-dealer.json */
+document.addEventListener('DOMContentLoaded',function(){
+  var fin=function(x){ if(x==null) return '—'; var v=+x; if(!isFinite(v)) return String(x).slice(0,24);
+    var a=Math.abs(v); return (v<0?'-':'')+(a>=1e12?(a/1e12).toFixed(2)+'T':a>=1e9?(a/1e9).toFixed(1)+'B':a>=1e6?(a/1e6).toFixed(1)+'M':a.toFixed(1)); };
+  var pick=function(o,ks){ for(var i=0;i<ks.length;i++){ var v=o; ks[i].split('.').forEach(function(k){v=(v||{})[k];}); if(v!=null&&typeof v!=='object') return v; } return null; };
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/nyfed-primary-dealer.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var reg=pick(d,['signal.regime','regime','corporate.regime'])||'—';
+    var net=pick(d,['corporate.net','corporate.net_bn','corporate.net_position']);
+    var rin=pick(d,['financing.reverse_repo_in','financing.rev_in','financing.in']);
+    var rout=pick(d,['financing.repo_out','financing.out']);
+    var bar=document.createElement('div'); bar.style.cssText='position:sticky;top:0;z-index:99;background:#7c2d12;color:#fed7aa;padding:10px 16px;font:600 13px Inter,system-ui;border-bottom:1px solid #9a3412';
+    bar.innerHTML='⚠️ <b>Legacy page.</b> The old NY Fed gateway is dead; the tiles below are retired. LIVE FR2004 read — corp net: <b>'+fin(net)+'</b> · regime: <b>'+reg+'</b> · rev-repo in: <b>'+fin(rin)+'</b> / repo out: <b>'+fin(rout)+'</b> → full desk: <a href="/primary-dealers.html" style="color:#fdba74;text-decoration:underline">primary-dealers.html</a>';
+    document.body.insertBefore(bar,document.body.firstChild);
+  }).catch(function(e){console.log('nyfed feed',e);});
+  ['overview','cmdi','primary-dealers','financial-stability','rates','repo','historical'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.innerHTML='<div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:22px;margin:14px;color:#9ca3af;font:14px Inter,system-ui;line-height:1.55"><b style="color:#fbbf24">Retired.</b> This tab ran on a decommissioned API gateway. The maintained primary-dealer desk (positions, financing, fails, transactions, OFR funding) is at <a href="/primary-dealers.html" style="color:#22d3ee">primary-dealers.html</a>.</div>';
+  });
+  if(window.loadAllData) window.loadAllData=async function(){};
+});</script>
 </body>
 </html>

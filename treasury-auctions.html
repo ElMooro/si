@@ -500,7 +500,7 @@
     <script>
         // Treasury API Configuration
         const TREASURY_API = {
-            base: 'https://klehdyiwrl.execute-api.us-east-1.amazonaws.com/prod',
+            base: '' /* legacy gateway retired — ops 3438 */,
             endpoints: {
                 main: '/treasury',
                 current: '/auctions/current',
@@ -1854,5 +1854,23 @@
     </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>/* OPS3438: real auctions from data/treasury-auctions.json (TreasuryDirect via sovereign-fiscal) */
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.loadAllRealData) window.loadAllRealData=async function(){};
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/treasury-auctions.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var rows=d.upcoming||d.auctions||d.rows||[]; if(!rows.length&&d.latest) rows=[d.latest];
+    var el=document.getElementById('auctionResultsContent')||document.body;
+    var h='<div style="padding:14px"><div style="color:#fbbf24;font:700 12px Inter;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Upcoming auctions — live TreasuryDirect feed'+(d.generated_at?' · '+String(d.generated_at).slice(0,10):'')+'</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font:13px JetBrains Mono,monospace;color:#e5e7eb"><tr style="color:#6b7280;text-align:left"><th style="padding:6px 8px">Date</th><th>Term</th><th>Type</th><th>Offering</th><th>Reopen</th><th>CUSIP</th></tr>';
+    rows.slice(0,20).forEach(function(x){
+      var off=x.offering; var offs=(off==null?'—':(isFinite(+String(off).replace(/[^0-9.]/g,''))&&+String(off).replace(/[^0-9.]/g,'')>1e6?(+String(off).replace(/[^0-9.]/g,'')/1e9).toFixed(0)+'B':String(off)));
+      h+='<tr style="border-top:1px solid #1f2937"><td style="padding:6px 8px">'+(x.date||'—')+'</td><td>'+(x.term||'—')+'</td><td>'+(x.type||'—')+'</td><td>'+offs+'</td><td>'+(x.reopening?'Y':'')+'</td><td style="color:#6b7280">'+(x.cusip||'')+'</td></tr>';
+    });
+    h+='</table><div style="color:#6b7280;font:12px Inter;margin-top:10px">Legacy analytics tiles above are retired (dead gateway, synthetic variation) — grades &amp; crisis reads live in data/auction-grades.json + auction desks.</div></div>';
+    el.innerHTML=h;
+    var st=document.getElementById('statusText'); if(st) st.textContent='LIVE · S3 feed';
+    var sd=document.getElementById('apiStatus'); if(sd) sd.style.background='#34d399';
+  }).catch(function(e){ var el=document.getElementById('auctionResultsContent'); if(el) el.innerHTML='<div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:22px;margin:14px;color:#9ca3af;font:14px Inter,system-ui;line-height:1.55">Feed unavailable: '+e.message+'</div>'; });
+});</script>
 </body>
 </html>

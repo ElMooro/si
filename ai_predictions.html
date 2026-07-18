@@ -587,9 +587,9 @@
                 dates.push(date.toISOString().split('T')[0]);
                 
                 // Simulate historical signals
-                const rand = Math.random();
+                const rand = 0; /* mock retired ops 3438 */
                 signals.push(rand > 0.7 ? 1 : rand < 0.3 ? -1 : 0);
-                confidence.push(0.6 + Math.random() * 0.35);
+                confidence.push(null);
             }
             
             // Signals History Chart
@@ -677,5 +677,23 @@
     </script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>/* OPS3438: real prediction layer — data/wl-predictions.json (panel theses tested AS predictions) */
+document.addEventListener('DOMContentLoaded',function(){
+  var cs=document.getElementById('chartsSection'); if(cs) cs.style.display='none';
+  var host=document.getElementById('assetsSection')||document.body;
+  var sec=document.createElement('div');
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/wl-predictions.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    var ps=(d.predictions||[]).slice(0,40);
+    var h='<div style="padding:16px"><div style="color:#22d3ee;font:800 16px Inter">Live Prediction Layer — '+(d.n_theses||ps.length)+' theses · horizon '+(d.horizon_weeks||'—')+'w'+(d.generated_at?' · '+String(d.generated_at).slice(0,10):'')+'</div>';
+    h+='<div style="color:#6b7280;font:12px Inter;margin:4px 0 10px">'+(d.note||'')+'</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font:13px JetBrains Mono,monospace;color:#e5e7eb"><tr style="color:#6b7280;text-align:left"><th style="padding:6px 8px">Thesis</th><th>Status</th><th>z</th></tr>';
+    ps.forEach(function(x){
+      var st=String(x.status||'—'); var col=/LIVE|FIRING|AWAKE|CONFIRM/i.test(st)?'#34d399':/FAIL|MISS|DEAD/i.test(st)?'#f87171':'#9ca3af';
+      h+='<tr style="border-top:1px solid #1f2937"><td style="padding:6px 8px">'+(x.name||x.thesis||'—')+'</td><td style="color:'+col+'">'+st+'</td><td>'+(x.z!=null?(+x.z).toFixed(2):'—')+'</td></tr>';
+    });
+    h+='</table><div style="color:#6b7280;font:12px Inter;margin-top:10px">The demo charts previously on this page were synthetic and are retired. Everything above is the live graded thesis engine.</div></div>';
+    sec.innerHTML=h; host.parentNode.insertBefore(sec,host);
+  }).catch(function(e){ sec.innerHTML='<div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:22px;margin:14px;color:#9ca3af;font:14px Inter,system-ui;line-height:1.55">Prediction feed unavailable: '+e.message+'</div>'; host.parentNode.insertBefore(sec,host); });
+});</script>
 </body>
 </html>

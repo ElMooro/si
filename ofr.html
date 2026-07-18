@@ -698,7 +698,7 @@
         // OFR API Configuration
         const OFR_CONFIG = {
             API: {
-                baseUrl: 'https://6nl5fzfus7.execute-api.us-east-1.amazonaws.com/prod/ofr',
+                baseUrl: '' /* legacy OFR API retired — ops 3438 */,
                 endpoints: {
                     stats: '/stats',
                     search: '/search',
@@ -852,7 +852,7 @@
             } catch (error) {
                 console.error('Error loading historical data:', error);
                 // Generate mock historical data if API fails
-                generateMockHistoricalData();
+                /* mock generator retired (ops 3438) */
             }
         }
 
@@ -1787,5 +1787,16 @@
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-wire.js" defer data-feeds="data/ofr-fsi.json|justhodl-gap-metrics|OFR FINANCIAL STRESS INDEX"></script>
 <span id="jhBuildStamp" style="position:fixed;bottom:6px;right:10px;z-index:9999;font:10px monospace;opacity:.45;pointer-events:none">build 3310</span>
+<script>/* OPS3438: legacy OFR API retired — real desk lives on the STFM tab */
+document.addEventListener('DOMContentLoaded',function(){
+  var retire=function(){
+    ['overview','financial-stress','markets','credit','leverage','concentration','systemic-risk','crisis','ml-predictions'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      el.innerHTML='<div style="background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:22px;margin:14px;color:#9ca3af;font:14px Inter,system-ui;line-height:1.55"><b style="color:#fbbf24">Section retired.</b> The legacy OFR API behind this tab was decommissioned; nothing here was live data. The real, daily-updated short-term-funding desk — repo venues, MMF flows, settlement fails, FSI history — is on the <a href="#" onclick="document.querySelector(\'[data-tab=&quot;stfm&quot;]\').click();return false" style="color:#22d3ee">🚰 Short-Term Funding</a> tab, and the full dealer desk at <a href="/primary-dealers.html" style="color:#22d3ee">primary-dealers.html</a>.</div>';
+    });
+    var st=document.querySelector('[data-tab="stfm"]'); if(st) st.click();
+  };
+  retire(); setTimeout(retire,900);
+});</script>
 </body>
 </html>
