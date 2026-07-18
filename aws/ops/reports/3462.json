@@ -1,0 +1,27 @@
+{
+  "ops": 3462,
+  "gates": {
+    "G1_deploy_url": {
+      "ok": true,
+      "detail": "{'url': True, 'warm': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 136}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 136}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 138}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 138}}}"
+    },
+    "G2_aapl_coverage": {
+      "ok": true,
+      "detail": "{'rev_pts': 44, 'first': '2015-06-27', 'keys': 138, 'price_pts': 552, 'missing': []}"
+    },
+    "G3_chtr_crosscheck": {
+      "ok": true,
+      "detail": "{'last_fq': ['2026-03-31', 5434000000.0], 'n': 44}"
+    },
+    "G4_url_cors_gzip": {
+      "ok": false,
+      "detail": "{'status': 200, 'gzip': None, 'acao': None, 'cached': True, 'bytes': 167922}"
+    },
+    "G5_page_and_sidebar_live": {
+      "ok": true,
+      "detail": "{'page_ok': True, 'manifest_ok': True, 'err': 'HTTP Error 404: Not Found', 'page': 200, 'manifest': 200}"
+    }
+  },
+  "function_url": "https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws",
+  "status": "FAILS: ['G4_url_cors_gzip']"
+}
