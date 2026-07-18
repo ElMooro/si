@@ -1,13 +1,17 @@
-executing-against: cf0252482053596b08eb391c5f7d98809354c53c
-ops 3440 — political honesty
-PASS  G1_settled — both stamps in zips
-[02:54:27] PASS  G1_settled — both stamps in zips
-PASS  G2_feed_honest — {"stale": true, "status": "STALE_CACHE \u2014 Quiver API 401 (key expired); data age 874.9h"}
-[02:54:31] PASS  G2_feed_honest — {"stale": true, "status": "STALE_CACHE \u2014 Quiver API 401 (key expired); data age 874.9h"}
-PASS  G3_banner_live — OPS3440 on page
-[02:56:32] PASS  G3_banner_live — OPS3440 on page
+executing-against: 830d6ee9a5d38d003dbd39cfc8e8b7423ea043da
+ops 3441 — self-monitoring
+PASS  G1_corpses_retired — retired list now 6
+[03:00:09] PASS  G1_corpses_retired — retired list now 6
+PASS  G_fleet_error_monitor — last_log_age_h=0.02 (max 0.5)
+[03:00:09] PASS  G_fleet_error_monitor — last_log_age_h=0.02 (max 0.5)
+PASS  G_fleet_freshness_monitor — last_log_age_h=0.02 (max 2.0)
+[03:00:10] PASS  G_fleet_freshness_monitor — last_log_age_h=0.02 (max 2.0)
+PASS  G_fleet_monitor — last_log_age_h=1.52 (max 7.0)
+[03:00:10] PASS  G_fleet_monitor — last_log_age_h=1.52 (max 7.0)
+PASS  G_schedule_liveness — last_log_age_h=13.49 (max 26.0)
+[03:00:10] PASS  G_schedule_liveness — last_log_age_h=13.49 (max 26.0)
 
 VERDICT: PASS_ALL
-[02:56:32] VERDICT: PASS_ALL
+[03:00:10] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3440_political_honesty.md
+→ Report written to aws/ops/reports/latest/3441_selfmon.md

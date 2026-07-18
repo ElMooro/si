@@ -1,0 +1,31 @@
+{
+  "gates": {
+    "G1_corpses_retired": {
+      "ok": true,
+      "detail": "retired list now 6"
+    },
+    "G_fleet_error_monitor": {
+      "ok": true,
+      "detail": "last_log_age_h=0.02 (max 0.5)"
+    },
+    "G_fleet_freshness_monitor": {
+      "ok": true,
+      "detail": "last_log_age_h=0.02 (max 2.0)"
+    },
+    "G_fleet_monitor": {
+      "ok": true,
+      "detail": "last_log_age_h=1.52 (max 7.0)"
+    },
+    "G_schedule_liveness": {
+      "ok": true,
+      "detail": "last_log_age_h=13.49 (max 26.0)"
+    }
+  },
+  "beats": {
+    "justhodl-fleet-error-monitor": 0.02,
+    "justhodl-fleet-freshness-monitor": 0.02,
+    "justhodl-fleet-monitor": 1.52,
+    "justhodl-schedule-liveness": 13.49
+  },
+  "verdict": "PASS_ALL"
+}
