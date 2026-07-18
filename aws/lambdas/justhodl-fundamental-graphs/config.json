@@ -1,0 +1,18 @@
+{
+  "function_name": "justhodl-fundamental-graphs",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 120,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "environment_keys": ["FMP_KEY", "S3_BUCKET"],
+  "inherit_env": true,
+  "inherit_env_from": "justhodl-confluence-meta",
+  "function_url": {
+    "enabled": true,
+    "cors_origins": ["*"]
+  },
+  "eventbridge_rules": [],
+  "notes": "ops 3462 — Fundamental Graphs API for fundamental-graphs.html. Deployed by ops (deploy_lambda helper); this config keeps deploy-lambdas.yml consistent on future edits."
+}
