@@ -1,13 +1,13 @@
-executing-against: da752d839779e0104d37b0c2bab3d768a8dfc762
+executing-against: f724045c84dabed498e3ccbb0c2c4b13a922d018
 ops 3436 — census #2 close
 PASS  G1_manifest_fresh — age_min=0.0 engines=694 with_keys=339
-[02:26:34] PASS  G1_manifest_fresh — age_min=0.0 engines=694 with_keys=339
+[02:29:34] PASS  G1_manifest_fresh — age_min=0.0 engines=694 with_keys=339
 PASS  G2_polish_settled — regime_3m key in det_state
-[02:26:34] PASS  G2_polish_settled — regime_3m key in det_state
-FAIL  G3_regime_state — regime=None one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
-[02:26:36] FAIL  G3_regime_state — regime=None one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
+[02:29:34] PASS  G2_polish_settled — regime_3m key in det_state
+PASS  G3_regime_state — regime=EASY one_liner=Macro Regime — Decisive Call: EASY · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
+[02:29:36] PASS  G3_regime_state — regime=EASY one_liner=Macro Regime — Decisive Call: EASY · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
 
-VERDICT: GAPS: G3_regime_state
-[02:26:36] VERDICT: GAPS: G3_regime_state
+VERDICT: PASS_ALL
+[02:29:36] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3436_close2.md
+→ Report written to aws/ops/reports/latest/3437_close2b.md
