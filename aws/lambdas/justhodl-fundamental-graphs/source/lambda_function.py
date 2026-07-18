@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.5 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.6 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -207,29 +207,48 @@ def fetch_employees(sym):
 
 SYMDIR_KEY = "data/fundgraph/symdir.json"
 SYMDIR_TTL = 8 * 86400
-_SYMDIR = {"rows": None, "ts": 0}
+_SYMDIR = {"rows": None, "ts": 0, "diag": []}
 US_EXCH = {"NASDAQ", "NYSE", "AMEX", "NYSE ARCA", "BATS", "CBOE", "NYSE MKT"}
 
 
+EXCH_TOK = ("NASDAQ", "NYSE", "AMEX", "BATS", "CBOE")
+
+
 def build_symdir():
-    rows = []
-    for ep in ("stock-list", "stock/list", "available-traded/list"):
+    """Multi-endpoint, tolerant US-universe builder with diagnostics."""
+    diag = []
+    for ep in ("stock-list", "stock/list", "available-traded/list",
+               "company-screener?marketCapMoreThan=10000000&limit=10000"):
         try:
             data = _fmp(ep)
-        except Exception:  # noqa: BLE001
-            data = None
-        if isinstance(data, list) and len(data) > 1000:
-            for r in data:
-                sy = str(r.get("symbol") or "").upper()
-                nm = r.get("name") or r.get("companyName") or ""
-                ex = (r.get("exchangeShortName") or r.get("exchange") or "").upper()
-                ty = (r.get("type") or r.get("assetType") or "").lower()
-                if (sy and nm and ex in US_EXCH
-                        and (not ty or "stock" in ty or "etf" in ty or ty in ("cs", "et"))
-                        and "USD" not in sy and len(sy) <= 6):
-                    rows.append([sy, nm[:60], ex])
-            break
-    return rows
+            n_raw = len(data) if isinstance(data, list) else -1
+        except Exception as e:  # noqa: BLE001
+            diag.append([ep, "ERR " + str(e)[:60]])
+            continue
+        if not (isinstance(data, list) and n_raw > 800):
+            diag.append([ep, f"raw={n_raw}"])
+            continue
+        rows = []
+        for r in data:
+            sy = str(r.get("symbol") or "").upper()
+            nm = r.get("name") or r.get("companyName") or ""
+            exU = str(r.get("exchangeShortName") or r.get("exchange")
+                      or "").upper()
+            ty = str(r.get("type") or r.get("assetType") or "").lower()
+            tok = next((t for t in EXCH_TOK if t in exU), None)
+            if (sy and nm and tok
+                    and "USD" not in sy and len(sy) <= 6
+                    and "crypto" not in ty and "forex" not in ty
+                    and "index" not in ty
+                    and r.get("isActivelyTrading") in (None, True, "true")
+                    and str(r.get("isFund")).lower() != "true"):
+                rows.append([sy, str(nm)[:60], tok])
+        diag.append([ep, f"raw={n_raw} kept={len(rows)}"])
+        if len(rows) > 3000:
+            _SYMDIR["diag"] = diag
+            return rows
+    _SYMDIR["diag"] = diag
+    return []
 
 
 def load_symdir(force=False):
@@ -965,7 +984,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.5",
+        "version": "1.1.6",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1131,7 +1150,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.5",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.6",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1155,7 +1174,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.5"}
+                "version": "1.1.6"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1164,6 +1183,17 @@ def lambda_handler(event, context):  # noqa: ARG001
         qp = {"symbol": event.get("symbol"), "period": event.get("period", "quarter"),
               "refresh": "1" if event.get("refresh") else ""}
     headers_in = event.get("headers") or {}
+
+    if str(qp.get("symdir") or "") == "1":
+        try:
+            rows = load_symdir(force=True)
+            return _resp(200, {"ok": True, "n": len(rows),
+                               "diag": _SYMDIR.get("diag"),
+                               "sample": rows[:3],
+                               "version": "1.1.6"}, headers_in)
+        except Exception as e:  # noqa: BLE001
+            return _resp(502, {"ok": False, "error": str(e)[:240],
+                               "diag": _SYMDIR.get("diag")}, headers_in)
 
     srch = (qp.get("search") or "").strip()
     if srch:
@@ -1213,6 +1243,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(502, {"ok": False, "error": "search unavailable"},
                          headers_in)
         return _resp(200, {"ok": True, "query": q, "results": results,
+                           "src": "fmp",
                            "marker": "FUNDGRAPH_V1_OPS3462"}, headers_in)
       except Exception as e:  # noqa: BLE001
         return _resp(502, {"ok": False, "error": "search: " + str(e)[:180]},
