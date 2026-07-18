@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 (NBER backdrop) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -116,6 +116,15 @@ function render(svg,tip,list,opts){
     var yz=y1-(y1-y0)*(0-l0)/(h0-l0);
     svg.appendChild(el('line',{x1:x0,x2:x1,y1:yz,y2:yz,stroke:'#334155','stroke-width':1.2}));
   }
+  /* NBER recession backdrop (append future ranges here) */
+  var NBER=[['2007-12-01','2009-06-30'],['2020-02-01','2020-04-30']];
+  NBER.forEach(function(bR){
+    var a=Math.max(tmin,+new Date(bR[0])),b2=Math.min(tmax,+new Date(bR[1]));
+    if(b2<=a)return;
+    var xa=x0+(x1-x0)*(a-tmin)/Math.max(1,tmax-tmin),xb=x0+(x1-x0)*(b2-tmin)/Math.max(1,tmax-tmin);
+    svg.appendChild(el('rect',{x:xa,y:y0,width:Math.max(1,xb-xa),height:y1-y0,fill:'#94a3b8',opacity:.05}));
+    var nt=el('text',{x:xa+3,y:y0+11,fill:'#94a3b8','font-size':'8.5',opacity:.55});nt.textContent='NBER';svg.appendChild(nt);
+  });
   var yStart=+dmin.slice(0,4),yEnd=+dmax.slice(0,4);
   for(var yy=yStart;yy<=yEnd;yy++){
     var dd=yy+'-01-01';if(+new Date(dd)<tmin||+new Date(dd)>tmax)continue;

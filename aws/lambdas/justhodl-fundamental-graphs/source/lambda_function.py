@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.2.2 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.3.0 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -44,7 +44,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v12"  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v13"  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -399,6 +399,7 @@ def build_doc(sym, period):
     daily_px, weekly_px = fetch_price(sym)
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
+    whales = whale_lookup(sym)
 
     bmap, cmap = by_date(bal), by_date(cf)
     inc_sorted = sorted(
@@ -734,6 +735,10 @@ def build_doc(sym, period):
             if bvps_ > 0:
                 gn = math.sqrt(22.5 * eps_t[i] * bvps_)
         put("graham_number", i, gn, 3)
+        ig = implied_fcf_growth(evv, fcf_t[i])
+        put("implied_fcf_growth_pct", i, ig, 3)
+        if ig is not None and c_fcf3[i] is not None:
+            put("implied_vs_actual_gap_pct", i, ig - c_fcf3[i], 3)
 
         # leverage / liquidity / credit
         put("debt_to_equity", i, div_(r.get("totalDebt"), EQ), 3)
@@ -1028,7 +1033,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.2.2",
+        "version": "1.3.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1037,6 +1042,7 @@ def build_doc(sym, period):
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
         "vintage_days": vintage_days,
         "flags": flags,
+        "whales_q": whales,
         "catalog_n": len(P),
         "points": P,
         "earnings": earnings,
@@ -1045,12 +1051,67 @@ def build_doc(sym, period):
             "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
             "FMP /stable historical-price-eod/light (mcap_t = close_t x diluted shares_t)",
             "Ratios, growth/CAGR, HF quality set and all scores derived in-engine per period",
+            "Reverse-DCF: 2-stage 10y, r=9%%, terminal 2.5%% (implied_fcf_growth_pct)",
             "Scores: Altman Z & Z'', Piotroski F, Beneish M, Sloan, Springate, Zmijewski, Fulmer H, KZ, Tobin's Q",
         ],
     }
 
 
 # ── cache + handler ──────────────────────────────────────────────────────────
+DCF_R, DCF_GT, DCF_YRS = 0.09, 0.025, 10
+
+
+def implied_fcf_growth(ev, fcf):
+    """Mauboussin expectations: growth g the price is paying for.
+    Two-stage: g for 10y, terminal 2.5%, discount 9%. Bisection; None
+    when FCF<=0 or EV<=0 or outside [-50%, +100%]."""
+    if not ev or not fcf or ev <= 0 or fcf <= 0:
+        return None
+
+    def pv(g):
+        v, f = 0.0, fcf
+        for y in range(1, DCF_YRS + 1):
+            f *= (1 + g)
+            v += f / (1 + DCF_R) ** y
+        v += (f * (1 + DCF_GT) / (DCF_R - DCF_GT)) / (1 + DCF_R) ** DCF_YRS
+        return v
+
+    lo, hi = -0.5, 1.0
+    if pv(lo) >= ev or pv(hi) <= ev:
+        return None
+    for _ in range(64):
+        mid = (lo + hi) / 2
+        if pv(mid) < ev:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2 * 100
+
+
+_WHALES = {"ts": 0, "map": None}
+
+
+def whale_lookup(sym):
+    """Fleet fusion: latest-quarter 13F dollar flows (13f-flows-by-ticker)."""
+    now = time.time()
+    if _WHALES["map"] is None or now - _WHALES["ts"] > 3600:
+        try:
+            raw = json.loads(_s3.get_object(
+                Bucket=S3_BUCKET,
+                Key="data/13f-flows-by-ticker.json")["Body"].read())
+            mp = raw.get("by_ticker") or raw.get("tickers") or raw
+            _WHALES.update(map=mp if isinstance(mp, dict) else {}, ts=now)
+        except Exception:  # noqa: BLE001
+            _WHALES.update(map={}, ts=now)
+    r = (_WHALES["map"] or {}).get(sym) or {}
+    if not isinstance(r, dict) or not r:
+        return None
+    return {"net_usd": g(r, "net", "net_usd", "net_flow_usd"),
+            "whale_net_usd": g(r, "whale_net_usd", "whale_net"),
+            "n_funds": g(r, "n_funds", "funds"),
+            "held_usd": g(r, "held_usd", "total_held_usd")}
+
+
 def derive_flags(P, lb):
     """Auto-forensic digest: rule engine over the 200-series doc.
     Reads latest vs 1y (lb periods) and 2y back; returns top-6 by severity.
@@ -1312,7 +1373,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.2.2",
+        return {"ok": True, "mode": "warm_auto", "version": "1.3.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1336,7 +1397,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.2.2"}
+                "version": "1.3.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1352,7 +1413,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.2.2"}, headers_in)
+                               "version": "1.3.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

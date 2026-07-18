@@ -1,4 +1,4 @@
-/* FG_CATALOG_OPS3476 — single source of truth for the Fundamental Graphs
+/* FG_CATALOG_OPS3476 + OPS3482 — single source of truth for the Fundamental Graphs
    metric catalog. Consumers: /fundamental-graphs.html + why.html module.
    Keys MUST mirror engine justhodl-fundamental-graphs output. */
 window.FG_CAT=[
@@ -67,7 +67,9 @@ window.FG_CAT=[
 ['effective_tax_rate_pct','Effective tax rate %','ST','%',0],['sloan_accruals_pct','Sloan accruals %','ST','%',0],
 ['share_count_yoy_pct','Share count YoY % (dilution)','ST','%',0],
 ['altman_z','Altman Z-score','ST','n',0],['piotroski_f','Piotroski F-score','ST','n',0],
-['beneish_m','Beneish M-score','ST','n',0],['graham_number','Graham number','ST','c',0],
+['beneish_m','Beneish M-score','ST','n',0],['implied_fcf_growth_pct','Market-implied FCF growth % (rev-DCF, r=9%)','ST','%',0],
+['implied_vs_actual_gap_pct','Expectations gap % (implied \u2212 3y FCF CAGR)','ST','%',0],
+['graham_number','Graham number','ST','c',0],
 /* Per share */
 ['eps_ttm','EPS (TTM)','PS','c',0],['fcf_ps_ttm','FCF per share (TTM)','PS','c',0],
 ['cfo_ps_ttm','CFO per share (TTM)','PS','c',0],['revenue_ps_ttm','Revenue per share (TTM)','PS','c',0],
@@ -125,4 +127,4 @@ window.FG_CAT=[
 ['ncav_ps','NCAV per share','PS','c',0],
 ];
 window.FG_TABS=[['FAV','\u2605 Favorites'],['IN','Institutional'],['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['GR','Growth'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
-window.FG_INST=['roic_pct','fcf_yield_pct','earnings_yield_ebit_pct','roc_greenblatt_pct','ev_ebitda_ttm','ev_gp_ttm','ev_sales_ttm','pe_ttm','p_fcf_ttm','peg_ttm','gp_to_assets_pct','gross_margin_pct','operating_margin_pct','fcf_margin_pct','rule_of_40','revenue_yoy_pct','revenue_cagr_3y_pct','eps_yoy_pct','fcf_yoy_pct','fcf_conversion_pct','income_quality','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','net_buyback_yield_pct','dividend_yield_pct','net_shareholder_yield_pct','total_yield_pct','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','capex_to_da','tobins_q','roe_pct','ccc_days','dso_days','altman_z','piotroski_f','beneish_m','kz_index','sustainable_growth_pct'];
+window.FG_INST=['implied_fcf_growth_pct','roic_pct','fcf_yield_pct','earnings_yield_ebit_pct','roc_greenblatt_pct','ev_ebitda_ttm','ev_gp_ttm','ev_sales_ttm','pe_ttm','p_fcf_ttm','peg_ttm','gp_to_assets_pct','gross_margin_pct','operating_margin_pct','fcf_margin_pct','rule_of_40','revenue_yoy_pct','revenue_cagr_3y_pct','eps_yoy_pct','fcf_yoy_pct','fcf_conversion_pct','income_quality','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','net_buyback_yield_pct','dividend_yield_pct','net_shareholder_yield_pct','total_yield_pct','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','capex_to_da','tobins_q','roe_pct','ccc_days','dso_days','altman_z','piotroski_f','beneish_m','kz_index','sustainable_growth_pct'];
