@@ -1,10 +1,15 @@
-executing-against: 65bb73f4bcdd207184a6cbee87d9917ae1c85adc
-PASS  G1_v101 — settled
-[14:44:51] PASS  G1_v101 — settled
-PASS  G2_tickers — tx=95 tickered=32 samp=[('Thomas H', 'WAB', 'Sale (Full)', '$1,001 - $15,000'), ('Thomas H', 'AWK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'CSX', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'DUK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'LMT', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H',
-[14:45:01] PASS  G2_tickers — tx=95 tickered=32 samp=[('Thomas H', 'WAB', 'Sale (Full)', '$1,001 - $15,000'), ('Thomas H', 'AWK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'CSX', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'DUK', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H', 'LMT', 'Sale (Full)', '$15,001 - $50,000'), ('Thomas H',
+executing-against: a37afd2fc4c00cfcbee2bd418bb91d2a1d240b4e
+ops 3457 — grade the filers
+PASS  G1_settled — marker
+[15:16:44] PASS  G1_settled — marker
+PASS  G2_schedule — created
+[15:16:44] PASS  G2_schedule — created
+PASS  G3_probe — plans=[('Sen A', 'NVDA')]
+[15:16:45] PASS  G3_probe — plans=[('Sen A', 'NVDA')]
+PASS  G4_live — err=None src=95 buys=8 logged=7 filers_tracked=0 plans=[('John', 'IGV'), ('John', 'PALL'), ('John', 'UNH'), ('Sheldon', 'COHR'), ('Sheldon', 'MU')]
+[15:16:49] PASS  G4_live — err=None src=95 buys=8 logged=7 filers_tracked=0 plans=[('John', 'IGV'), ('John', 'PALL'), ('John', 'UNH'), ('Sheldon', 'COHR'), ('Sheldon', 'MU')]
 
 VERDICT: PASS_ALL
-[14:45:01] VERDICT: PASS_ALL
+[15:16:49] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3456_congress_close.md
+→ Report written to aws/ops/reports/latest/3457_congress_alpha.md

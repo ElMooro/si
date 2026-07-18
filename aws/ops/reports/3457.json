@@ -1,0 +1,98 @@
+{
+  "gates": {
+    "G1_settled": {
+      "ok": true,
+      "detail": "marker"
+    },
+    "G2_schedule": {
+      "ok": true,
+      "detail": "created"
+    },
+    "G3_probe": {
+      "ok": true,
+      "detail": "plans=[('Sen A', 'NVDA')]"
+    },
+    "G4_live": {
+      "ok": true,
+      "detail": "err=None src=95 buys=8 logged=7 filers_tracked=0 plans=[('John', 'IGV'), ('John', 'PALL'), ('John', 'UNH'), ('Sheldon', 'COHR'), ('Sheldon', 'MU')]"
+    }
+  },
+  "live": {
+    "buys": 8,
+    "plans": [
+      {
+        "filer": "John",
+        "ticker": "IGV",
+        "tx_date": "06/25/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 92.8,
+        "proven_filer": false
+      },
+      {
+        "filer": "John",
+        "ticker": "PALL",
+        "tx_date": "06/25/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 22.7,
+        "proven_filer": false
+      },
+      {
+        "filer": "John",
+        "ticker": "UNH",
+        "tx_date": "06/04/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 426.09,
+        "proven_filer": false
+      },
+      {
+        "filer": "Sheldon",
+        "ticker": "COHR",
+        "tx_date": "06/25/2026",
+        "amount": "$15,001 - $50,000",
+        "type": "Purchase",
+        "mark": 277.6,
+        "proven_filer": false
+      },
+      {
+        "filer": "Sheldon",
+        "ticker": "MU",
+        "tx_date": "06/25/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 848.95,
+        "proven_filer": false
+      },
+      {
+        "filer": "Gary C",
+        "ticker": "T",
+        "tx_date": "06/29/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 21.81,
+        "proven_filer": false
+      },
+      {
+        "filer": "A. Mitchell",
+        "ticker": "WFC",
+        "tx_date": "06/01/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": 87.51,
+        "proven_filer": false
+      },
+      {
+        "filer": "Jerry",
+        "ticker": "BRK.B",
+        "tx_date": "05/27/2026",
+        "amount": "$1,001 - $15,000",
+        "type": "Purchase",
+        "mark": null,
+        "proven_filer": false
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
