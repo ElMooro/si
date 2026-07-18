@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.1.4 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.1.5 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -203,6 +203,88 @@ def fetch_employees(sym):
             out.append((d, c))
     out.sort(key=lambda t: t[0])
     return out
+
+
+SYMDIR_KEY = "data/fundgraph/symdir.json"
+SYMDIR_TTL = 8 * 86400
+_SYMDIR = {"rows": None, "ts": 0}
+US_EXCH = {"NASDAQ", "NYSE", "AMEX", "NYSE ARCA", "BATS", "CBOE", "NYSE MKT"}
+
+
+def build_symdir():
+    rows = []
+    for ep in ("stock-list", "stock/list", "available-traded/list"):
+        try:
+            data = _fmp(ep)
+        except Exception:  # noqa: BLE001
+            data = None
+        if isinstance(data, list) and len(data) > 1000:
+            for r in data:
+                sy = str(r.get("symbol") or "").upper()
+                nm = r.get("name") or r.get("companyName") or ""
+                ex = (r.get("exchangeShortName") or r.get("exchange") or "").upper()
+                ty = (r.get("type") or r.get("assetType") or "").lower()
+                if (sy and nm and ex in US_EXCH
+                        and (not ty or "stock" in ty or "etf" in ty or ty in ("cs", "et"))
+                        and "USD" not in sy and len(sy) <= 6):
+                    rows.append([sy, nm[:60], ex])
+            break
+    return rows
+
+
+def load_symdir(force=False):
+    now = time.time()
+    if not force and _SYMDIR["rows"] and now - _SYMDIR["ts"] < 3600:
+        return _SYMDIR["rows"]
+    rows = None
+    if not force:
+        try:
+            obj = _s3.get_object(Bucket=S3_BUCKET, Key=SYMDIR_KEY)
+            doc = json.loads(obj["Body"].read())
+            if now - doc.get("ts", 0) < SYMDIR_TTL and len(doc.get("rows", [])) > 3000:
+                rows = doc["rows"]
+        except Exception:  # noqa: BLE001
+            rows = None
+    if rows is None:
+        rows = build_symdir()
+        if len(rows) > 3000:
+            try:
+                _s3.put_object(Bucket=S3_BUCKET, Key=SYMDIR_KEY,
+                               Body=json.dumps({"ts": now, "n": len(rows),
+                                                "rows": rows},
+                                               separators=(",", ":")).encode(),
+                               ContentType="application/json")
+            except Exception:  # noqa: BLE001
+                pass
+    _SYMDIR.update(rows=rows or [], ts=now)
+    return _SYMDIR["rows"]
+
+
+def symdir_search(q, cap=8):
+    rows = load_symdir()
+    if not rows:
+        return None
+    qU, qL = q.upper(), q.lower()
+    scored = []
+    for sy, nm, ex in rows:
+        nl = nm.lower()
+        if sy == qU:
+            tier = 0
+        elif sy.startswith(qU):
+            tier = 1
+        elif nl.startswith(qL):
+            tier = 2
+        elif (" " + qL) in (" " + nl):
+            tier = 3
+        elif qL in nl:
+            tier = 4
+        else:
+            continue
+        scored.append((tier, 0 if ex in ("NASDAQ", "NYSE") else 1,
+                       len(sy), sy, nm, ex))
+    scored.sort()
+    return [{"symbol": t[3], "name": t[4], "exchange": t[5]}
+            for t in scored[:cap]]
 
 
 def at_or_before(series, date, max_gap_days=460):
@@ -883,7 +965,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.1.4",
+        "version": "1.1.5",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1024,6 +1106,12 @@ def lambda_handler(event, context):  # noqa: ARG001
             STATIC_CORE + [s2 for s2 in recent_hits()
                            if _valid_symbol(s2)]))[:60]
         annual_too = datetime.now(timezone.utc).weekday() == 0
+        symdir_n = None
+        if annual_too:
+            try:
+                symdir_n = len(load_symdir(force=True))
+            except Exception:  # noqa: BLE001
+                symdir_n = -1
         built, errors, skipped = [], {}, []
 
         def time_left():
@@ -1043,10 +1131,10 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.1.4",
+        return {"ok": True, "mode": "warm_auto", "version": "1.1.5",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
-                "annual_pass": annual_too, "errors": errors,
+                "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
                 "skipped_for_time": skipped,
                 "elapsed_s": round(time.time() - t0, 1)}
 
@@ -1067,7 +1155,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.1.4"}
+                "version": "1.1.5"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1081,6 +1169,16 @@ def lambda_handler(event, context):  # noqa: ARG001
     if srch:
       try:
         q = "".join(c for c in srch if c.isalnum() or c in " .-&")[:40]
+
+        dir_hits = None
+        try:
+            dir_hits = symdir_search(q)
+        except Exception:  # noqa: BLE001
+            dir_hits = None
+        if dir_hits:
+            return _resp(200, {"ok": True, "query": q, "results": dir_hits,
+                               "src": "symdir",
+                               "marker": "FUNDGRAPH_V1_OPS3462"}, headers_in)
 
         def _srch(ep):
             try:
