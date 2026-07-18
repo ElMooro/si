@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.2.0 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.2.1 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -1014,16 +1014,23 @@ def build_doc(sym, period):
     for k in list(P.keys()):
         P[k].sort(key=lambda t: t[0])
 
+    vintage_days = 0
+    try:
+        vintage_days = record_vintage(sym, P)
+    except Exception:  # noqa: BLE001
+        pass
+
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "profile": profile,
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
+        "vintage_days": vintage_days,
         "catalog_n": len(P),
         "points": P,
         "earnings": earnings,
@@ -1038,6 +1045,45 @@ def build_doc(sym, period):
 
 
 # ── cache + handler ──────────────────────────────────────────────────────────
+VINTAGE_PREFIX = "data/fundgraph/vintage/"
+VINTAGE_CAP = 500
+
+
+def record_vintage(sym, P):
+    """Daily snapshot of forward estimates -> self-built IBES-style ledger.
+
+    One row per calendar day per symbol: the street's CURRENT view of the
+    next ~6 forward periods for revenue + EPS. Revision-momentum series
+    become computable automatically once history accrues (nobody retail
+    has this; FMP only serves current vintage). Idempotent per day."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    def fwd(key):
+        return [[d, v] for d, v in (P.get(key) or []) if d > today][:6]
+
+    eps, rev = fwd("est_eps_avg"), fwd("est_revenue_avg")
+    if not eps and not rev:
+        return 0
+    key = f"{VINTAGE_PREFIX}{sym}.json"
+    try:
+        led = json.loads(_s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        if not isinstance(led.get("rows"), list):
+            led = {"symbol": sym, "rows": []}
+    except Exception:  # noqa: BLE001
+        led = {"symbol": sym, "rows": []}
+    if led["rows"] and led["rows"][-1].get("d") == today:
+        return len(led["rows"])
+    led["rows"].append({"d": today, "eps": eps, "rev": rev})
+    led["rows"] = led["rows"][-VINTAGE_CAP:]
+    try:
+        _s3.put_object(Bucket=S3_BUCKET, Key=key,
+                       Body=json.dumps(led, separators=(",", ":")).encode(),
+                       ContentType="application/json")
+    except Exception:  # noqa: BLE001
+        pass
+    return len(led["rows"])
+
+
 def cache_key(sym, period):
     return f"{CACHE_PREFIX}{sym}_{period}_{CACHE_VER}.json"
 
@@ -1184,7 +1230,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.2.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.2.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1208,7 +1254,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.2.0"}
+                "version": "1.2.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1224,7 +1270,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.2.0"}, headers_in)
+                               "version": "1.2.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
