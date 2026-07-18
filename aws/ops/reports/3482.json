@@ -1,0 +1,26 @@
+{
+  "ops": 3482,
+  "gates": {
+    "Z1_solver_unit": {
+      "ok": true,
+      "detail": "{'implied_pct': 12.16, 'inversion_err': 0.0}"
+    },
+    "Z2_implied_series": {
+      "ok": true,
+      "detail": "{'pts': 42, 'latest_implied_pct': 10.363, 'gap_pts': 35, 'latest_gap': 0.529}"
+    },
+    "Z3_whale_crosscheck": {
+      "ok": false,
+      "detail": "{'GOOGL_net_usd': None, 'expected': '~+11.5e9', 'n_funds': None}"
+    },
+    "Z4_served_js": {
+      "ok": true,
+      "detail": "{'node_ok': [True, True, True, True]}"
+    },
+    "Z5_surfaces": {
+      "ok": false,
+      "detail": "{}"
+    }
+  },
+  "status": "FAILS: ['Z3_whale_crosscheck', 'Z5_surfaces']"
+}

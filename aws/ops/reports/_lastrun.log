@@ -1,12 +1,20 @@
-executing-against: 9e093c1bf32a086108fd3e0222253d22c77fc724
-ops 3481 — px own-scale + vertical markers
-PASS  Y1_served_js — {'node_ok': [True, True, True, True], 'core_bytes': 13264}
-[23:10:27] PASS  Y1_served_js — {'node_ok': [True, True, True, True], 'core_bytes': 13264}
-PASS  Y2_flagship_v19 — {}
-[23:10:27] PASS  Y2_flagship_v19 — {}
-PASS  Y3_module_marks — {}
-[23:10:27] PASS  Y3_module_marks — {}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: 48570e9d697389ad95f6d23b14790b64c23e471c
+ops 3482 — implied growth + NBER + whale fusion
+PASS  Z1_solver_unit — {'implied_pct': 12.16, 'inversion_err': 0.0}
+[23:19:05] PASS  Z1_solver_unit — {'implied_pct': 12.16, 'inversion_err': 0.0}
+[23:19:05]   zip: 97566 bytes
+── 1. Lambda ──
+[23:19:06]   Lambda exists — updating
+[23:19:08] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  Z2_implied_series — {'pts': 42, 'latest_implied_pct': 10.363, 'gap_pts': 35, 'latest_gap': 0.529}
+[23:19:23] PASS  Z2_implied_series — {'pts': 42, 'latest_implied_pct': 10.363, 'gap_pts': 35, 'latest_gap': 0.529}
+FAIL  Z3_whale_crosscheck — {'GOOGL_net_usd': None, 'expected': '~+11.5e9', 'n_funds': None}
+[23:19:23] FAIL  Z3_whale_crosscheck — {'GOOGL_net_usd': None, 'expected': '~+11.5e9', 'n_funds': None}
+PASS  Z4_served_js — {'node_ok': [True, True, True, True]}
+[23:26:26] PASS  Z4_served_js — {'node_ok': [True, True, True, True]}
+FAIL  Z5_surfaces — {}
+[23:26:26] FAIL  Z5_surfaces — {}
+RESULT: FAILS: ['Z3_whale_crosscheck', 'Z5_surfaces']
+RESULT: FAILS: ['Z3_whale_crosscheck', 'Z5_surfaces']
 
-→ Report written to aws/ops/reports/latest/3481_marks_pxscale.md
+→ Report written to aws/ops/reports/latest/3482_impliedg_nber_whales.md
