@@ -1,12 +1,8 @@
-executing-against: 798d944a3032fbcb604204f616808c512e2a1647
-shape: dict:generated_at,n_pages,categories
-[15:40:58] shape: dict:generated_at,n_pages,categories
-ref primary-dealers → None
-[15:40:58] ref primary-dealers -> None
-FAIL  G1_categories — {"shape": "dict:generated_at,n_pages,categories", "ref": null, "/alpha-families.html": null, "/proven-portfolio.html": null, "/short-book.html": null, "/political.html": null}
-[15:40:58] FAIL  G1_categories — {"shape": "dict:generated_at,n_pages,categories", "ref": null, "/alpha-families.html": null, "/proven-portfolio.html": null, "/short-book.html": null, "/political.html": null}
+executing-against: 9167338164c8bbd031f75ac6c4e9c272dcbc79fd
+PASS  G1_categories — {"generated_at": "2026-07-18", "ref_primary_dealers": "Macro & Liquidity", "/alpha-families.html": "Portfolio & Execution", "/proven-portfolio.html": "Portfolio & Execution", "/short-book.html": "Portfolio & Execution", "/political.html": "Research & Tools"}
+[15:43:50] PASS  G1_categories — {"generated_at": "2026-07-18", "ref_primary_dealers": "Macro & Liquidity", "/alpha-families.html": "Portfolio & Execution", "/proven-portfolio.html": "Portfolio & Execution", "/short-book.html": "Portfolio & Execution", "/political.html": "Research & Tools"}
 
-VERDICT: GAPS: G1_categories
-[15:40:58] VERDICT: GAPS: G1_categories
+VERDICT: PASS_ALL
+[15:43:50] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3460_sidebar_close.md
+→ Report written to aws/ops/reports/latest/3461_sidebar_final.md
