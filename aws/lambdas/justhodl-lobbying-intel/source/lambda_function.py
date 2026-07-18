@@ -135,6 +135,7 @@ def fetch_lobbying_with_cache():
         )
         age_h = (datetime.now(timezone.utc) - cache_dt).total_seconds() / 3600
         print(f"[lobbying] S3 cache: {len(records)} records (age {age_h:.1f}h)")
+        globals()["_STALE_CACHE_H"] = round(age_h, 1)
         return records, f"s3_cache_{age_h:.1f}h"
     except Exception as e:
         print(f"[lobbying] S3 cache missing: {e}")
@@ -431,7 +432,12 @@ def handler(event, context):
         for b, d in bills_tracked.items()
     ], key=lambda x: -x["amount_usd"])[:20]
     
+    _stale_h = globals().get("_STALE_CACHE_H")
     out = {
+        "source_status": ("STALE_CACHE — Quiver API 401 (key expired); data age "
+                          f"{_stale_h}h" if _stale_h else "LIVE"),
+        "stale_cache": bool(_stale_h),
+        "cache_age_h": _stale_h,
         "schema_version":  "1.0",
         "method":          "lobbying_intel_v1",
         "generated_at":    datetime.now(timezone.utc).isoformat(timespec="seconds"),

@@ -528,7 +528,15 @@ def handler(event, context):
     bipartisan_buys = [r for r in ticker_aggregation
                         if r["bipartisan"] and r["n_buys"] >= 2][:20]
     
+    _cache_note = globals().get("_QUIVER_CACHE_AGE_H")
+    
     out = {
+    
+        "source_status": ("STALE_CACHE — Quiver key expired; congress data age "
+    
+                          f"{_cache_note}h" if _cache_note else "LIVE"),
+    
+        "stale_cache": bool(_cache_note),
         "schema_version":   "1.3",
         "method":           "political_stocks_v1_s3cached",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),

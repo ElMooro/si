@@ -199,4 +199,14 @@ async function load(){
 load();
 </script>  <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<script>/* OPS3440: honest staleness banner when Quiver key is dead */
+document.addEventListener('DOMContentLoaded',function(){
+  fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/lobbying-intel.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(d){
+    if(!d.stale_cache) return;
+    var b=document.createElement('div');
+    b.style.cssText='position:sticky;top:0;z-index:99;background:#7c2d12;color:#fed7aa;padding:10px 16px;font:600 13px Inter,system-ui;border-bottom:1px solid #9a3412';
+    b.innerHTML='⚠️ <b>Political data is running on a stale cache</b> — '+(d.source_status||'Quiver API key expired')+'. Renew the Quiver key (SSM /justhodl/quiver-api-key) and the desk self-heals at the next 16:00 UTC run.';
+    document.body.insertBefore(b,document.body.firstChild);
+  }).catch(function(){});
+});</script>
 </body></html>
