@@ -18,7 +18,7 @@ import boto3
 
 from signals_emit import log_signal, yprice
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 SRC_KEY = "data/share-flows.json"
 OUT_KEY = "data/cannibals.json"
@@ -69,11 +69,18 @@ def lambda_handler(event, context):
     doc = rj(SRC_KEY)
     rows = []
 
+    import re as _re
+
     def walk(o):
         if isinstance(o, dict):
             if o.get("ticker") and "flags" in o:
                 rows.append(o)
-            for v in o.values():
+            for k, v in o.items():
+                # keyed-by-symbol maps (share-flows "tickers": {SYM: {...}})
+                if (isinstance(v, dict) and "flags" in v
+                        and not v.get("ticker")
+                        and _re.fullmatch(r"[A-Z][A-Z0-9.\-]{0,6}", str(k))):
+                    rows.append({**v, "ticker": k})
                 walk(v)
         elif isinstance(o, list):
             for v in o:
