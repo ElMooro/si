@@ -892,7 +892,6 @@ function renderDilutionPillar(d){
   const m = d.dilution;
   if(!m) return `<div style="grid-column:1/-1;margin-top:8px;font-size:11.5px;color:var(--text-dim);font-family:var(--font-mono)">Pillar 6 · Share Count &amp; Dilution — engine upgraded; hit Research again on this name to compute it.</div>`;
   const V={SHRINKING:'#3ddc84',STABLE:'#9acd32',DILUTING:'#ffd166',HEAVY_DILUTION:'#ff9f43',DEATH_SPIRAL:'#ff2d2d',UNKNOWN:'#8899aa'};
-  const col=V[verdict]||'#8899aa';
   const f=(x,s2)=>x==null?'—':((x>0&&s2?'+':'')+x.toFixed(1)+'%');
   const shFmt=x=>x==null?'—':(x>=1e9?(x/1e9).toFixed(2)+'B':x>=1e6?(x/1e6).toFixed(1)+'M':Math.round(x).toLocaleString());
   const ser=(m.annual_series&&m.annual_series.length>2?m.annual_series:(m.quarterly_series||[])).slice(-11);
@@ -914,6 +913,7 @@ function renderDilutionPillar(d){
     }
   }catch(e){}
   const risky=!!m.risk_flag||verdict==='HEAVY_DILUTION'||verdict==='DEATH_SPIRAL';
+  const col=V[verdict]||'#8899aa'; /* ops3475: col AFTER verdict-guard — TDZ fix + badge matches recomputed verdict */
   const mult=m.ten_year_multiple;
 
   /* ── HUGE RISK banner ── */
