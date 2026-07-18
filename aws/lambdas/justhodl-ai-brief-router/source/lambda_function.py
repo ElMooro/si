@@ -3643,6 +3643,9 @@ def _det_brief(ctx_id, cfg):
     }
 
 
+DET_FALLBACK_V2 = True  # ops 3435 gate marker
+
+
 def generate_one_brief(ctx_id, cfg, episode_ref):
     r = _generate_one_brief_core(ctx_id, cfg, episode_ref)
     try:
