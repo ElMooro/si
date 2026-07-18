@@ -1,15 +1,10 @@
-executing-against: a37afd2fc4c00cfcbee2bd418bb91d2a1d240b4e
-ops 3457 — grade the filers
-PASS  G1_settled — marker
-[15:16:44] PASS  G1_settled — marker
-PASS  G2_schedule — created
-[15:16:44] PASS  G2_schedule — created
-PASS  G3_probe — plans=[('Sen A', 'NVDA')]
-[15:16:45] PASS  G3_probe — plans=[('Sen A', 'NVDA')]
-PASS  G4_live — err=None src=95 buys=8 logged=7 filers_tracked=0 plans=[('John', 'IGV'), ('John', 'PALL'), ('John', 'UNH'), ('Sheldon', 'COHR'), ('Sheldon', 'MU')]
-[15:16:49] PASS  G4_live — err=None src=95 buys=8 logged=7 filers_tracked=0 plans=[('John', 'IGV'), ('John', 'PALL'), ('John', 'UNH'), ('Sheldon', 'COHR'), ('Sheldon', 'MU')]
+executing-against: a3187bd070f04a5e4bf542217846cdc4aa02ee57
+PASS  G1_v102 — settled
+[15:19:40] PASS  G1_v102 — settled
+PASS  G2_full_names — tx=95 full_named=95 sample=['A. Mitchell McConnell, Jr.', 'David H McCormick', 'Gary C Peters', 'Jerry Moran,']
+[15:19:50] PASS  G2_full_names — tx=95 full_named=95 sample=['A. Mitchell McConnell, Jr.', 'David H McCormick', 'Gary C Peters', 'Jerry Moran,']
 
 VERDICT: PASS_ALL
-[15:16:49] VERDICT: PASS_ALL
+[15:19:50] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3457_congress_alpha.md
+→ Report written to aws/ops/reports/latest/3458_names_close.md
