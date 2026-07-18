@@ -55,7 +55,13 @@ inside `/why.html` (`#jhFundGraphs`, script id `fgwhy-3470`).
    passes**. Executed ops move to `ran/` on commit-back — source follow-ups
    from `aws/ops/ran/`.
 5. FMP `search-symbol` matches TICKERS ("micro"→MICRO.BK); `search-name`
-   ordering buries megacaps. Own symdir search is the fix (v1.1.5).
+   buries megacaps. FIX (v1.1.8): own directory `data/fundgraph/symdir2.json`
+   built from company-screener TWO BANDS (>2B + 5M–2B, limit 10000 each,
+   union ≈7.3k US names) — rows [sym,name,exch,marketCap]; search ranks
+   tier (exact>sym-prefix>name-prefix>word>contains) then **mcap DESC**
+   (Microsoft > MicroBot). ⚠ /stable `stock-list` = 90k rows but ONLY
+   [companyName,symbol] — no exchange field, unusable for filtering;
+   stock/list + available-traded/list = 404 on /stable.
 6. Estimates are CURRENT-vintage — never fabricate historical forward
    multiples from them.
 7. Page↔engine key parity is checked pre-push (CAT keys ⊆ lambda source,
@@ -67,5 +73,6 @@ inside `/why.html` (`#jhFundGraphs`, script id `fgwhy-3470`).
 3464 CORS single-authority + FALLBACK_API · 3465 200-metric library +
 Favorites/Institutional/color-tags · 3466 warmer + log/today/export/Load-favs ·
 3467 lenses/typeahead/Table + why.html link · 3468–69 search rank + 502 fix ·
-3470 why.html embedded module (9-chip vitals, 6 lenses) · 3471 symdir search
-+ this archive.
+3470 why.html embedded module (9-chip vitals, 6 lenses) · 3471–74 symdir
+saga (diag hook ?symdir=1 → stock-list fieldless finding → two-band union
+→ mcap ranking; quartet green: micro→MSFT#1) + this archive.
