@@ -1,13 +1,13 @@
-executing-against: 1de021f5cf41028876c6ff09122d2e7969d2ce69
-ops 3446 — auction-tail family
-PASS  G1_deployed_scheduled — settled=True sched=exists
-[03:40:34] PASS  G1_deployed_scheduled — settled=True sched=exists
-PASS  G2_feed_live — seen=1 fresh=0 logged=0 fresh_rows=[]
-[03:40:35] PASS  G2_feed_live — seen=1 fresh=0 logged=0 fresh_rows=[]
-PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
-[03:40:39] PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
+executing-against: 32847f39d1da5f7790348676b2f3795a4a80689f
+ops 3449 — cannibals family
+PASS  G1_deployed_scheduled — settled=True sched=created
+[03:44:19] PASS  G1_deployed_scheduled — settled=True sched=created
+FAIL  G2_screen_live — universe=6 screen=0 logged=0 names=[]
+[03:44:20] FAIL  G2_screen_live — universe=6 screen=0 logged=0 names=[]
+PASS  G3_signals_match — ddb_today=0 feed.logged=0
+[03:44:25] PASS  G3_signals_match — ddb_today=0 feed.logged=0
 
-VERDICT: PASS_ALL
-[03:40:39] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_screen_live
+[03:44:25] VERDICT: GAPS: G2_screen_live
 
-→ Report written to aws/ops/reports/latest/3448_at_regate.md
+→ Report written to aws/ops/reports/latest/3449_cannibals.md
