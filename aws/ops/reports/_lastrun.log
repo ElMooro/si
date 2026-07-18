@@ -1,22 +1,16 @@
-executing-against: 3ee2ef5a29e1676bb440ea4ab0bd50158d8e01fb
-ops 3427 — dead-feed diagnosis
-justhodl-ai-brief → {"fn": "justhodl-ai-brief", "ok": true, "code_modified": "2026-07-12T06:14", "classic_rules": ["justhodl-ai-brief-4h"], "schedules": [], "last_log": "2026-07-17T17:23", "tail": ["[ai-brief] decisive-call-history snapshot appended (call=UNKNOWN, n_total=300)", "[ai-brief] telegram digest sent: ok=Fal
-[23:48:46] justhodl-ai-brief → {"fn": "justhodl-ai-brief", "ok": true, "code_modified": "2026-07-12T06:14", "classic_rules": ["justhodl-ai-brief-4h"], "schedules": [], "last_log": "2026-07-17T17:23", "tail": ["[ai-brief] decisive-call-history snapshot appended (call=UNKNOWN, n_total=300)", "[ai-brief] telegram digest sent: ok=Fal
-justhodl-ai-brief-router → {"fn": "justhodl-ai-brief-router", "ok": true, "code_modified": "2026-07-12T06:14", "classic_rules": [], "schedules": [], "last_log": "2026-07-17T21:00", "tail": ["[ai-brief-router] alerts-digest-close: OK 2.74s", "[ai-brief-router] done: 1/1 OK in 2.96s", "END RequestId: 260df8d6-ea52-42be-a674-26e
-[23:48:46] justhodl-ai-brief-router → {"fn": "justhodl-ai-brief-router", "ok": true, "code_modified": "2026-07-12T06:14", "classic_rules": [], "schedules": [], "last_log": "2026-07-17T21:00", "tail": ["[ai-brief-router] alerts-digest-close: OK 2.74s", "[ai-brief-router] done: 1/1 OK in 2.96s", "END RequestId: 260df8d6-ea52-42be-a674-26e
-justhodl-regime-engine → {"fn": "justhodl-regime-engine", "ok": true, "code_modified": "2026-06-10T22:54", "classic_rules": ["justhodl-regime-engine-daily"], "schedules": [], "last_log": "2026-07-17T13:05", "tail": ["START RequestId: 9136f609-2fac-462c-9a82-09b2530e9c98 Version: $LATEST", "[regime] STAGFLATION (3m) classifi
-[23:48:47] justhodl-regime-engine → {"fn": "justhodl-regime-engine", "ok": true, "code_modified": "2026-06-10T22:54", "classic_rules": ["justhodl-regime-engine-daily"], "schedules": [], "last_log": "2026-07-17T13:05", "tail": ["START RequestId: 9136f609-2fac-462c-9a82-09b2530e9c98 Version: $LATEST", "[regime] STAGFLATION (3m) classifi
-justhodl-alert-backtester → {"fn": "justhodl-alert-backtester", "ok": true, "code_modified": "2026-07-05T17:18", "classic_rules": ["justhodl-alert-backtester-daily"], "schedules": [], "last_log": "2026-07-17T12:02", "tail": ["INIT_START Runtime Version: python:3.12.mainlinev2.v11\tRuntime Version ARN: arn:aws:lambda:us-east-1:
-[23:48:48] justhodl-alert-backtester → {"fn": "justhodl-alert-backtester", "ok": true, "code_modified": "2026-07-05T17:18", "classic_rules": ["justhodl-alert-backtester-daily"], "schedules": [], "last_log": "2026-07-17T12:02", "tail": ["INIT_START Runtime Version: python:3.12.mainlinev2.v11\tRuntime Version ARN: arn:aws:lambda:us-east-1:
-data/regime-decisive-call.json → {"age_d": 37, "top": ["regime", "confidence", "one_liner", "thesis", "supporting_evidence", "historical_analogs", "cross_asset", "trade_ideas"], "gen": "2026-06-10T03:01"}
-[23:48:48] data/regime-decisive-call.json → {"age_d": 37, "top": ["regime", "confidence", "one_liner", "thesis", "supporting_evidence", "historical_analogs", "cross_asset", "trade_ideas"], "gen": "2026-06-10T03:01"}
-data/backtest-summary.json → {"age_d": 36, "top": ["generated_at", "snapshot_today", "forward_returns_computed_today", "by_signal", "fetch_duration_s"], "gen": "2026-06-11T22:00"}
-[23:48:48] data/backtest-summary.json → {"age_d": 36, "top": ["generated_at", "snapshot_today", "forward_returns_computed_today", "by_signal", "fetch_duration_s"], "gen": "2026-06-11T22:00"}
-data/market-internals-history.json → {"age_d": 37, "top": ["snapshots", "summation_index", "updated_at"], "gen": "None"}
-[23:48:48] data/market-internals-history.json → {"age_d": 37, "top": ["snapshots", "summation_index", "updated_at"], "gen": "None"}
-data/finviz-signals-state.json → {"age_d": 32, "top": ["generated_at", "by_ticker"], "gen": "2026-06-15T23:22"}
-[23:48:49] data/finviz-signals-state.json → {"age_d": 32, "top": ["generated_at", "by_ticker"], "gen": "2026-06-15T23:22"}
-data/regime.json → {"age_d": 0, "top": ["engine", "version", "generated_at", "duration_s", "current", "playbook", "transition_matrix_3m", "regime_strip"], "gen": "2026-07-17T13:05"}
-[23:48:49] data/regime.json → {"age_d": 0, "top": ["engine", "version", "generated_at", "duration_s", "current", "playbook", "transition_matrix_3m", "regime_strip"], "gen": "2026-07-17T13:05"}
+executing-against: ec28106a7bfa51b6b41818d690395581babdcf5d
+ops 3428 — aiPanel resurrection
+PASS  G1_registry — contexts=53 panel-class=['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call', 'bond-vol-decisive-call', 'risk-radar-decisive-call', 'compass-decisive-call', 'defcon-decisi
+[23:52:33] PASS  G1_registry — contexts=53 panel-class=['yield-curve-decisive-call', 'vix-curve-decisive-call', 'dollar-decisive-call', 'eurodollar-decisive-call', 'lce-decisive-call', 'systemic-stress-decisive-call', 'bond-vol-decisive-call', 'risk-radar-decisive-call', 'compass-decisive-call', 'defcon-decisi
+[invoke] sync 200 None
+FAIL  G2_class_regenerated — regenerated=0/14 regime=None detail={'yield-curve-decisive-call': 'n', 'vix-curve-decisive-call': 'n', 'dollar-decisive-call': 'n', 'eurodollar-decisive-call': 'n', 'lce-decisive-call': 'n', 'systemic-stress-decisive-call': 'n', 'bond-vol-decisive-call': 'n', 'risk-radar-decisive
+[23:59:58] FAIL  G2_class_regenerated — regenerated=0/14 regime=None detail={'yield-curve-decisive-call': 'n', 'vix-curve-decisive-call': 'n', 'dollar-decisive-call': 'n', 'eurodollar-decisive-call': 'n', 'lce-decisive-call': 'n', 'systemic-stress-decisive-call': 'n', 'bond-vol-decisive-call': 'n', 'risk-radar-decisive
+LIVE CALL: {"one_liner": "HMM locked in CONTRACTION (97.7% persistence) with zero anomalies\u2014but yield curve inversion + VIX at 70th pctile signals regime TRANSITION r", "regime": "RISK_OFF", "confidence": "MEDIUM"}
+[23:59:59] LIVE CALL: {"one_liner": "HMM locked in CONTRACTION (97.7% persistence) with zero anomalies\u2014but yield curve inversion + VIX at 70th pctile signals regime TRANSITION r", "regime": "RISK_OFF", "confidence": "MEDIUM"}
+PASS  G3_schedule — created
+[23:59:59] PASS  G3_schedule — created
 
-→ Report written to aws/ops/reports/latest/3427_deadfeed_diag.md
+VERDICT: GAPS: G2_class_regenerated
+[23:59:59] VERDICT: GAPS: G2_class_regenerated
+
+→ Report written to aws/ops/reports/latest/3428_aipanel_resurrect.md
