@@ -3595,7 +3595,9 @@ var saveFav=function(){localStorage.setItem('jh_fg_favm',JSON.stringify(FAVM));}
 var saveMetc=function(){localStorage.setItem('jh_fg_metc',JSON.stringify(METC));};
 var saveCust=function(){if(CUST&&CUST.length)localStorage.setItem('jh_fgwhy_custom',JSON.stringify(CUST));else localStorage.removeItem('jh_fgwhy_custom');};
 var saveSt=function(){localStorage.setItem('jh_fgwhy_st',JSON.stringify(ST));};
-var DOC=null,sec=null,CATIDX=null,mtab='IN',skipped=[],MIXOK=false;
+var DOC=null,sec=null,CATIDX=null,mtab='IN',skipped=[],MIXOK=false,MARKS=[];
+try{var mk0=JSON.parse(localStorage.getItem('jh_fgwhy_marks')||'{}');MARKS=(mk0[TK]||[]).slice();}catch(e){}
+function saveMarks(){try{var all=JSON.parse(localStorage.getItem('jh_fgwhy_marks')||'{}');all[TK]=MARKS;localStorage.setItem('jh_fgwhy_marks',JSON.stringify(all));}catch(e){}}
 function catReady(){if(CATIDX)return true;
   if(window.FG_CAT&&window.FG_CAT.length){CATIDX={};window.FG_CAT.forEach(function(c){CATIDX[c[0]]={label:c[1],cat:c[2],u:c[3],f:c[4]};});return true;}
   return false;}
@@ -3700,11 +3702,14 @@ function chart(){
     if(solo&&solo._full){var stb=seriesStats(solo._full);
       if(stb)band={axis:0,lo:stb.p10,hi:stb.p90,mid:stb.p50,color:solo.color};}
   }
-  var r=window.FGChart.render(svg,tip,list,{mode:ST.mode,log:ST.log,mixOk:MIXOK,band:band,earnings:(ST.ern&&DOC.earnings)?DOC.earnings:null});
+  var r=window.FGChart.render(svg,tip,list,{mode:ST.mode,log:ST.log,mixOk:MIXOK,band:band,earnings:(ST.ern&&DOC.earnings)?DOC.earnings:null,
+    marks:MARKS,
+    onMark:function(d){if(MARKS.indexOf(d)<0){MARKS.push(d);MARKS.sort();saveMarks();chart();}},
+    onUnmark:function(d){MARKS=MARKS.filter(function(x){return x!==d;});saveMarks();chart();}});
   if(r.autoPct){ST.mode='pct';saveSt();
     sec.querySelectorAll('[data-m]').forEach(function(b){b.style.background=b.dataset.m==='pct'?'#0e2433':'#0d1526';b.style.color=b.dataset.m==='pct'?'#22d3ee':'#8b98ad';});
     return chart();}
-  note.textContent=(skipped.length?('\u26a0 skipped (\u22640 base): '+skipped.join(', ')+'  '):'')+(r.hiddenGroups?('\u26a0 '+r.hiddenGroups+' unit group hidden \u2014 use % Chg  '):'')+((ST.log&&ST.mode==='val')?'\u00b7 log (\u22640 hidden)':'');
+  note.textContent=(skipped.length?('\u26a0 skipped (\u22640 base): '+skipped.join(', ')+'  '):'')+(r.hiddenGroups?('\u26a0 '+r.hiddenGroups+' unit group hidden \u2014 use % Chg  '):'')+((ST.log&&ST.mode==='val')?'\u00b7 log (\u22640 hidden)  ':'')+(MARKS.length?('\ud83d\udccd '+MARKS.length+' marker'+(MARKS.length>1?'s':'')+' \u2014 click a line\u2019s \u2715 to remove'):'');
   leg.innerHTML=list.map(function(s){
     var lastRaw=s._raw&&s._raw.length?s._raw[s._raw.length-1][1]:null;
     var d0=s.pts[0][1],d1=s.pts[s.pts.length-1][1];

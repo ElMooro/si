@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 (band + earnings layer) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -50,8 +50,8 @@ function render(svg,tip,list,opts){
     if(!opts.mixOk)return {autoPct:true,hiddenGroups:groups.length-2};
     hidden=groups.length-2;groups=groups.slice(0,2);
   }
-  var axisOf=function(s){return mode!=='val'?0:(s.isPx?(groups.length<2?1:-2):groups.indexOf(s.grp));};
-  var drawn=list.filter(function(s){var a=axisOf(s);return a===0||a===1||a===-2;});
+  var axisOf=function(s){return s.isPx?2:(mode!=='val'?0:groups.indexOf(s.grp));};
+  var drawn=list.filter(function(s){var a=axisOf(s);return a===0||a===1||a===2;});
 
   var W=svg.clientWidth||(svg.parentNode&&svg.parentNode.clientWidth)||1000,
       H=+svg.getAttribute('height')||470;
@@ -74,10 +74,12 @@ function render(svg,tip,list,opts){
     var pad=(hi-lo)*.07;return [lo-pad,hi+pad];
   }
   var d0=dom(function(s){return axisOf(s)===0;}),l0=d0[0],h0=d0[1];
-  var need2=groups.length>1||showPx;
-  var d1=need2?dom(function(s){return axisOf(s)===1||axisOf(s)===-2;}):[0,1],l1=d1[0],h1=d1[1];
+  var need2=groups.length>1;
+  var d1=need2?dom(function(s){return axisOf(s)===1;}):[0,1],l1=d1[0],h1=d1[1];
+  var dp=showPx?dom(function(s){return s.isPx;}):[0,1],lp=dp[0],hp=dp[1];
   var Y0=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l0)/(h0-l0);};
   var Y1=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l1)/(h1-l1);};
+  var Ypx=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-lp)/(hp-lp);};
 
   var NS='http://www.w3.org/2000/svg';
   var el=function(t,a){var e=svg.ownerDocument.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;};
@@ -102,7 +104,12 @@ function render(svg,tip,list,opts){
   if(mode==='val'&&need2){
     niceTicks(l1,h1,6).forEach(function(v){
       var t=el('text',{x:x1+8,y:(y1-(y1-y0)*(v-l1)/(h1-l1))+3,'text-anchor':'start',fill:'#64748b','font-size':'10.5'});
-      t.textContent=fmtAxis(untf(v),showPx&&groups.length<2?'px':groups[1]||'px');svg.appendChild(t);
+      t.textContent=fmtAxis(untf(v),groups[1]);svg.appendChild(t);
+    });
+  }else if(showPx){ /* price own-scale ticks only when the right rail is free */
+    niceTicks(lp,hp,6).forEach(function(v){
+      var t=el('text',{x:x1+8,y:(y1-(y1-y0)*(v-lp)/(hp-lp))+3,'text-anchor':'start',fill:'#8b98ad','font-size':'10',opacity:.85});
+      t.textContent=fmtAxis(untf(v),mode!=='val'?'%chg':'px');svg.appendChild(t);
     });
   }
   if(mode!=='val'&&l0<0&&h0>0){
@@ -150,7 +157,7 @@ function render(svg,tip,list,opts){
 
   var badges=[];
   drawn.forEach(function(s){
-    var Y=axisOf(s)===0?Y0:Y1;
+    var Y=s.isPx?Ypx:(axisOf(s)===0?Y0:Y1);
     var dstr='',pen=false;
     s.pts.forEach(function(p){var y=Y(p[1]);
       if(y==null){pen=false;return;}
@@ -170,6 +177,22 @@ function render(svg,tip,list,opts){
     svg.appendChild(el('rect',{x:x1+4,y:y-9,width:w2,height:16,rx:4,fill:b.color,opacity:b.isPx?.75:1}));
     var t3=el('text',{x:x1+4+w2/2,y:y+3.5,'text-anchor':'middle',fill:'#04121a','font-size':'10.5','font-weight':'800'});
     t3.textContent=b.txt;svg.appendChild(t3);
+  });
+
+  /* placed vertical markers (opts.marks: ISO dates; onUnmark(date) on handle) */
+  var unionDates=[];drawn.forEach(function(s){s.pts.forEach(function(p){unionDates.push(p[0]);});});
+  unionDates=Array.from(new Set(unionDates)).sort();
+  (opts.marks||[]).forEach(function(md){
+    var t2=+new Date(md);if(t2<tmin||t2>tmax)return;
+    var xm=X(md);
+    svg.appendChild(el('line',{x1:xm,x2:xm,y1:y0,y2:y1,stroke:'#a78bfa','stroke-width':1.4,opacity:.85}));
+    var lb2=el('text',{x:xm+4,y:y1-6,fill:'#a78bfa','font-size':'9.5',opacity:.9});lb2.textContent=md;svg.appendChild(lb2);
+    var hg=el('g',{style:'cursor:pointer'});
+    hg.appendChild(el('circle',{cx:xm,cy:y0+7,r:7,fill:'#0a1120',stroke:'#a78bfa','stroke-width':1.2}));
+    var xt=el('text',{x:xm,y:y0+10.5,'text-anchor':'middle',fill:'#a78bfa','font-size':'9','font-weight':'800'});xt.textContent='\u2715';hg.appendChild(xt);
+    var tt2=svg.ownerDocument.createElementNS(NS,'title');tt2.textContent='remove marker '+md;hg.appendChild(tt2);
+    hg.addEventListener('click',function(ev){ev.stopPropagation();if(opts.onUnmark)opts.onUnmark(md);});
+    svg.appendChild(hg);
   });
 
   var cross=el('line',{x1:0,x2:0,y1:y0,y2:y1,stroke:'#475569','stroke-dasharray':'3 3',visibility:'hidden'});
@@ -195,6 +218,19 @@ function render(svg,tip,list,opts){
     var tw=tip.offsetWidth;
     tip.style.left=Math.min(cx+14,((svg.clientWidth||W)-tw-8))+'px';
     tip.style.top=(y0+8)+'px';
+  }
+  if(opts.onMark){
+    var tt3=svg.ownerDocument.createElementNS(NS,'title');
+    tt3.textContent='click: drop a vertical marker at this date';hit.appendChild(tt3);
+    hit.addEventListener('click',function(ev){
+      var r2=svg.getBoundingClientRect();
+      var cx2=(ev.touches?ev.touches[0].clientX:ev.clientX)-r2.left;
+      if(cx2<x0||cx2>x1||!unionDates.length)return;
+      var tcur2=tmin+(tmax-tmin)*(cx2-x0)/(x1-x0);
+      var best=unionDates[0],bd=Infinity;
+      unionDates.forEach(function(d2){var df=Math.abs(+new Date(d2)-tcur2);if(df<bd){bd=df;best=d2;}});
+      opts.onMark(best);
+    });
   }
   hit.addEventListener('mousemove',onMove);
   hit.addEventListener('touchmove',function(e){onMove(e);e.preventDefault();},{passive:false});
