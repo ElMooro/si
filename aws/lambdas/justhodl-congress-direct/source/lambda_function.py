@@ -23,7 +23,7 @@ from http.cookiejar import CookieJar
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/congress-direct.json"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -104,13 +104,21 @@ def senate_fetch(days=30, max_reports=25):
                                    r"<td[^>]*>(.*?)</td>", tr, re.S)]
                         if len(tds) < 7:
                             continue
-                        asset = tds[3]
-                        tkm = re.search(r"\(([A-Z][A-Z0-9.\-]{0,6})\)", asset)
+                        # eFD PTR columns: #, TxDate, Owner, TICKER, Asset,
+                        # AssetType, Type, Amount, Comment
+                        raw_tk = tds[3].strip()
+                        asset = tds[4] if len(tds) > 4 else raw_tk
+                        tk = raw_tk if re.fullmatch(
+                            r"[A-Z][A-Z0-9.\-]{0,6}", raw_tk) else None
+                        if not tk:
+                            m2 = re.search(r"\(([A-Z][A-Z0-9.\-]{0,6})\)",
+                                           asset)
+                            tk = m2.group(1) if m2 else None
                         txns.append({
                             "filer": name, "tx_date": tds[1],
                             "owner": tds[2], "asset": asset[:90],
-                            "ticker": tkm.group(1) if tkm else None,
-                            "type": tds[6] if len(tds) > 6 else tds[4],
+                            "ticker": tk,
+                            "type": tds[6] if len(tds) > 6 else None,
                             "amount": tds[7] if len(tds) > 7 else None})
             except Exception as e:
                 print(f"[senate] report parse: {str(e)[:70]}")
