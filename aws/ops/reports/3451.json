@@ -1,18 +1,115 @@
 {
   "gates": {
-    "G1_deployed_scheduled": {
+    "G1_v11": {
       "ok": true,
-      "detail": "settled=True sched=exists"
+      "detail": "settled"
     },
-    "G2_screen_live": {
+    "G2_live_book": {
       "ok": true,
-      "detail": "universe=649 screen=0 logged=0 names=[]"
-    },
-    "G3_signals_match": {
-      "ok": true,
-      "detail": "ddb_today=0 feed.logged=0"
+      "detail": "scanned=701 logged=10 plans=[('CHTR', 29.02, ''), ('CRM', 27.82, ''), ('IT', 26.49, ''), ('CRBG', 21.3, ''), ('PYPL', 15.12, ''), ('OMC', 14.58, ''), ('FISV', 14.08, ''), ('BLDR', 13.73, '')]"
     }
   },
-  "screen": [],
+  "plans": [
+    {
+      "ticker": "CHTR",
+      "net_buyback_yield_pct": 29.02,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -6.17,
+      "sector": null,
+      "pair_etf": "SPY",
+      "market_cap": 18456248179,
+      "mark": 131.37
+    },
+    {
+      "ticker": "CRM",
+      "net_buyback_yield_pct": 27.82,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -4.11,
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "market_cap": 133759080000,
+      "mark": 170.77
+    },
+    {
+      "ticker": "IT",
+      "net_buyback_yield_pct": 26.49,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -4.49,
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "market_cap": 8920671023,
+      "mark": 140.19
+    },
+    {
+      "ticker": "CRBG",
+      "net_buyback_yield_pct": 21.3,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -10.06,
+      "sector": null,
+      "pair_etf": "SPY",
+      "market_cap": 14302947709,
+      "mark": 31.88
+    },
+    {
+      "ticker": "PYPL",
+      "net_buyback_yield_pct": 15.12,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -6.73,
+      "sector": "Financial Services",
+      "pair_etf": "XLF",
+      "market_cap": 40859126436,
+      "mark": 56.56
+    },
+    {
+      "ticker": "OMC",
+      "net_buyback_yield_pct": 14.58,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": 0.07,
+      "sector": "Communication Services",
+      "pair_etf": "XLC",
+      "market_cap": 23350557638,
+      "mark": 81.73
+    },
+    {
+      "ticker": "FISV",
+      "net_buyback_yield_pct": 14.08,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -5.34,
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "market_cap": 26902664300,
+      "mark": 50.63
+    },
+    {
+      "ticker": "BLDR",
+      "net_buyback_yield_pct": 13.73,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -7.41,
+      "sector": "Basic Materials",
+      "pair_etf": "XLB",
+      "market_cap": 8141216400,
+      "mark": 74.26
+    },
+    {
+      "ticker": "ADBE",
+      "net_buyback_yield_pct": 13.38,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -4.32,
+      "sector": "Technology",
+      "pair_etf": "XLK",
+      "market_cap": 88896900000,
+      "mark": 237.25
+    },
+    {
+      "ticker": "SYF",
+      "net_buyback_yield_pct": 13.28,
+      "insider_conviction": false,
+      "sh_3y_cagr_pct": -7.5,
+      "sector": "Financial Services",
+      "pair_etf": "XLF",
+      "market_cap": 24366660330,
+      "mark": 73.62
+    }
+  ],
   "verdict": "PASS_ALL"
 }
