@@ -3559,6 +3559,112 @@ window.fillJHDollarFlows=async function(d){ try{
 }catch(e){ try{ var s2=document.getElementById('jhDollarFlows'); if(s2) s2.style.display='none'; }catch(_e){} } };
 })();
 </script>
-<script id="fg-xlink-js">/* ops 3467 additive: Fundamental Graphs cross-link (null-safe) */(function(){var n=0,t=setInterval(function(){var v=document.getElementById('jhVitalsTop');if(v){clearInterval(t);var tk=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();var a=document.createElement('a');a.id='fg-xlink';a.textContent='\ud83d\udcca Fundamental Graphs \u2014 10y metric comparator';a.href='/fundamental-graphs.html'+(tk?('?s='+encodeURIComponent(tk)+'&m=revenue,grossProfit,fcf_ttm,fcf_yield_pct&r=10'):'');a.style.cssText='display:inline-block;margin-top:8px;padding:4px 10px;border:1px solid #22304a;border-radius:8px;font-size:.74rem;color:#22d3ee;text-decoration:none';v.appendChild(a);}else if(++n>24){clearInterval(t);}},500);})();</script>
+<script id="fgwhy-3470">/* ops 3470 ADDITIVE: Fundamental Graphs embedded analysis module (null-safe; touches nothing existing) */
+(function(){
+'use strict';
+var PXW='https://justhodl-data-proxy.raafouis.workers.dev/';
+var FB='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
+var TK=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();
+if(!TK||!/^[A-Z0-9.\-^]{1,12}$/.test(TK))return;
+var PAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c'];
+var LBL={roic_pct:['ROIC %','%'],gp_to_assets_pct:['GP/Assets %','%'],gross_margin_pct:['Gross mgn %','%'],fcf_margin_pct:['FCF mgn %','%'],income_quality:['CFO/NI','x'],revenue_yoy_pct:['Rev YoY %','%'],eps_yoy_pct:['EPS YoY %','%'],fcf_yoy_pct:['FCF YoY %','%'],revenue_cagr_3y_pct:['Rev CAGR 3Y %','%'],rule_of_40:['Rule of 40','n'],pe_ttm:['P/E','x'],ev_ebitda_ttm:['EV/EBITDA','x'],ev_gp_ttm:['EV/GP','x'],fcf_yield_pct:['FCF yield %','%'],earnings_yield_ebit_pct:['EBIT/EV %','%'],dividend_yield_pct:['Div yield %','%'],net_buyback_yield_pct:['Net BB yield %','%'],net_shareholder_yield_pct:['Net shr yield %','%'],share_count_yoy_pct:['Dilution YoY %','%'],netdebt_to_ebitda_ttm:['NetDebt/EBITDA','x'],ebitda_interest_coverage:['EBITDA/Int','x'],fcf_to_debt_pct:['FCF/Debt %','%'],current_ratio:['Current ratio','x'],altman_z:['Altman Z','n'],beneish_m:['Beneish M','n'],sloan_accruals_pct:['Sloan accr %','%'],piotroski_f:['Piotroski F','n'],dso_days:['DSO days','d'],sbc_to_revenue_pct:['SBC/Rev %','%']};
+var LENS=[['Quality',['roic_pct','gp_to_assets_pct','gross_margin_pct','fcf_margin_pct','income_quality']],
+['Growth',['revenue_yoy_pct','eps_yoy_pct','fcf_yoy_pct','revenue_cagr_3y_pct','rule_of_40']],
+['Value',['pe_ttm','ev_ebitda_ttm','ev_gp_ttm','fcf_yield_pct','earnings_yield_ebit_pct']],
+['Capital return',['dividend_yield_pct','net_buyback_yield_pct','net_shareholder_yield_pct','share_count_yoy_pct']],
+['Credit',['netdebt_to_ebitda_ttm','ebitda_interest_coverage','fcf_to_debt_pct','current_ratio','altman_z']],
+['Forensics',['beneish_m','sloan_accruals_pct','piotroski_f','dso_days','sbc_to_revenue_pct']]];
+var VIT=[['roic_pct','ROIC',function(v){return v>=15?2:v>=5?1:0;},function(v){return v.toFixed(1)+'%';}],
+['fcf_yield_pct','FCF yld',function(v){return v>=4?2:v>=1?1:0;},function(v){return v.toFixed(1)+'%';}],
+['ev_ebitda_ttm','EV/EBITDA',function(v){return v<=12?2:v<=20?1:0;},function(v){return v.toFixed(1)+'x';}],
+['revenue_yoy_pct','Rev YoY',function(v){return v>=8?2:v>=0?1:0;},function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}],
+['net_buyback_yield_pct','Net BB',function(v){return v>=1?2:v>=-1?1:0;},function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}],
+['netdebt_to_ebitda_ttm','ND/EBITDA',function(v){return v<=1?2:v<=3?1:0;},function(v){return v.toFixed(1)+'x';}],
+['altman_z','Altman Z',function(v){return v>=3?2:v>=1.8?1:0;},function(v){return v.toFixed(1);}],
+['piotroski_f','Piotroski',function(v){return v>=7?2:v>=4?1:0;},function(v){return v.toFixed(0)+'/9';}],
+['beneish_m','Beneish',function(v){return v<=-2.22?2:v<=-1.78?1:0;},function(v){return v.toFixed(2);}]];
+var CLR=['#f87171','#fbbf24','#34d399'];
+var st={lens:0,mode:'pct',yrs:10},DOC=null,sec=null;
+function last(k){var a=DOC&&DOC.points&&DOC.points[k];return a&&a.length?a[a.length-1][1]:null;}
+function fmtv(v,u){if(v==null)return '\u2014';if(u==='%')return (v>=0?'+':'')+v.toFixed(1)+'%';if(u==='x')return v.toFixed(2)+'x';if(u==='d')return v.toFixed(0)+'d';return v.toFixed(2);}
+function esc(s){return String(s==null?'':s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
+function build(){
+  var vit=VIT.map(function(v){var val=last(v[0]);if(val==null)return '';
+    return '<span style="display:inline-flex;gap:5px;align-items:center;border:1px solid #22304a;border-radius:8px;padding:3px 9px;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:7px;height:7px;border-radius:50%;background:'+CLR[v[2](val)]+'"></span>'+v[1]+' <b>'+v[3](val)+'</b></span>';}).join(' ');
+  var lens=LENS.map(function(l,i){return '<button data-l="'+i+'" style="border:1px solid '+(i===st.lens?'#22d3ee':'#22304a')+';color:'+(i===st.lens?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">'+l[0]+'</button>';}).join(' ');
+  var segs='<span style="display:inline-flex;border:1px solid #22304a;border-radius:8px;overflow:hidden">'+
+    ['pct:% Chg','yoy:YoY %'].map(function(x){var p=x.split(':');return '<button data-m="'+p[0]+'" style="border:0;background:'+(st.mode===p[0]?'#0e2433':'#0d1526')+';color:'+(st.mode===p[0]?'#22d3ee':'#8b98ad')+';padding:3px 10px;font-size:.68rem;cursor:pointer">'+p[1]+'</button>';}).join('')+'</span> '+
+    '<span style="display:inline-flex;border:1px solid #22304a;border-radius:8px;overflow:hidden">'+
+    [5,10].map(function(y){return '<button data-y="'+y+'" style="border:0;background:'+(st.yrs===y?'#0e2433':'#0d1526')+';color:'+(st.yrs===y?'#22d3ee':'#8b98ad')+';padding:3px 10px;font-size:.68rem;cursor:pointer">'+y+'Y</button>';}).join('')+'</span>';
+  sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 10-year institutional read <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 engine v'+esc(DOC.version||'')+')</span></div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' <span style="flex:1"></span>'+segs+'</div>'+
+    '<div id="jhfgChart"></div><div id="jhfgLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>'+
+    '<div style="margin-top:10px"><a id="fg-xlink" href="/fundamental-graphs.html?s='+encodeURIComponent(TK)+'&m='+LENS[st.lens][1].join(',')+'&r='+st.yrs+'&mo='+(st.mode==='pct'?'pct':'yoy')+'" style="display:inline-block;padding:4px 11px;border:1px solid #22304a;border-radius:8px;font-size:.72rem;color:#22d3ee;text-decoration:none">Open full comparator \u2192 3 symbols \u00d7 20 metrics \u00d7 200-metric library</a></div>';
+  sec.querySelectorAll('[data-l]').forEach(function(b){b.onclick=function(){st.lens=+b.dataset.l;build();};});
+  sec.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){st.mode=b.dataset.m;build();};});
+  sec.querySelectorAll('[data-y]').forEach(function(b){b.onclick=function(){st.yrs=+b.dataset.y;build();};});
+  chart();
+}
+function chart(){
+  var box=sec.querySelector('#jhfgChart'),leg=sec.querySelector('#jhfgLegend');
+  var rs=new Date();rs.setFullYear(rs.getFullYear()-st.yrs);rs=rs.toISOString().slice(0,10);
+  var series=[];
+  LENS[st.lens][1].forEach(function(k,ci){
+    var pts=(DOC.points&&DOC.points[k])?DOC.points[k].slice():[];
+    var outp=[];
+    if(st.mode==='pct'){var vis=pts.filter(function(p){return p[0]>=rs;});var b=null;
+      for(var i=0;i<vis.length;i++){if(vis[i][1]!=null){b=vis[i][1];break;}}
+      if(b&&b>0)outp=vis.map(function(p){return [p[0],(p[1]/b-1)*100];});
+    }else{for(var j=4;j<pts.length;j++){var pv=pts[j-4][1];
+      if(pv&&pv>0)outp.push([pts[j][0],(pts[j][1]/pv-1)*100]);}
+      outp=outp.filter(function(p){return p[0]>=rs;});}
+    if(outp.length>=2)series.push({k:k,c:PAL[ci%PAL.length],pts:outp,raw:pts});
+  });
+  if(!series.length){box.innerHTML='<div style="color:#5d6b82;font-size:.72rem">No chartable history for this lens \u2014 open the full comparator.</div>';leg.innerHTML='';return;}
+  var W=box.clientWidth||sec.clientWidth||800,H=280,pL=44,pR=14,pT=10,pB=22;
+  var tmin=Infinity,tmax=-Infinity,lo=Infinity,hi=-Infinity;
+  series.forEach(function(s){s.pts.forEach(function(p){var t=+new Date(p[0]);
+    if(t<tmin)tmin=t;if(t>tmax)tmax=t;if(p[1]<lo)lo=p[1];if(p[1]>hi)hi=p[1];});});
+  if(lo===hi){lo-=1;hi+=1;}var pad=(hi-lo)*.08;lo-=pad;hi+=pad;
+  var X=function(d){return pL+(W-pL-pR)*((+new Date(d))-tmin)/Math.max(1,tmax-tmin);};
+  var Y=function(v){return (H-pB)-(H-pB-pT)*(v-lo)/(hi-lo);};
+  var svg='<svg width="100%" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block">';
+  for(var yy=new Date(tmin).getFullYear();yy<=new Date(tmax).getFullYear();yy++){
+    var xd=+new Date(yy+'-01-01');if(xd<tmin||xd>tmax)continue;var xx=X(yy+'-01-01');
+    svg+='<line x1="'+xx+'" x2="'+xx+'" y1="'+pT+'" y2="'+(H-pB)+'" stroke="#111b2e"/><text x="'+xx+'" y="'+(H-6)+'" fill="#64748b" font-size="10" text-anchor="middle">'+yy+'</text>';}
+  [lo,(lo+hi)/2,hi].forEach(function(v){var yv=Y(v);
+    svg+='<line x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yv+'" y2="'+yv+'" stroke="#111b2e"/><text x="'+(pL-6)+'" y="'+(yv+3)+'" fill="#64748b" font-size="10" text-anchor="end">'+(v>=0?'+':'')+v.toFixed(0)+'%</text>';});
+  if(lo<0&&hi>0)svg+='<line x1="'+pL+'" x2="'+(W-pR)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="#334155" stroke-width="1.2"/>';
+  series.forEach(function(s){var d='',pen=false;
+    s.pts.forEach(function(p){d+=(pen?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1);pen=true;});
+    svg+='<path d="'+d+'" fill="none" stroke="'+s.c+'" stroke-width="2" stroke-linejoin="round"/>';});
+  box.innerHTML=svg+'</svg>';
+  leg.innerHTML=series.map(function(s){var u=(LBL[s.k]||[s.k,''])[1];
+    var lastRaw=s.raw.length?s.raw[s.raw.length-1][1]:null;
+    var d0=s.pts[0][1],d1=s.pts[s.pts.length-1][1];var dd=d1-d0;
+    return '<span style="display:inline-flex;gap:6px;align-items:center;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:9px;height:9px;border-radius:3px;background:'+s.c+'"></span>'+esc((LBL[s.k]||[s.k])[0])+' <b>'+fmtv(lastRaw,u)+'</b> <span style="color:'+(dd>=0?'#34d399':'#f87171')+'">'+(dd>=0?'+':'')+dd.toFixed(0)+'pp</span></span>';}).join('');
+}
+function boot(){
+  var n=0,t=setInterval(function(){
+    var v=document.getElementById('jhVitalsTop');
+    if(v){clearInterval(t);
+      sec=document.createElement('section');sec.className='block';sec.id='jhFundGraphs';
+      v.parentNode.insertBefore(sec,v.nextSibling);
+      sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 loading 10-year read\u2026</div>';
+      var api=null;
+      fetch(PXW+'data/fundgraph/config.json?ts='+Date.now()).then(function(r){return r.ok?r.json():null;})
+      .catch(function(){return null;})
+      .then(function(c){api=((c&&c.api_url)||FB).replace(/\/$/,'');
+        return fetch(api+'/?symbol='+encodeURIComponent(TK)+'&period=quarter');})
+      .then(function(r){return r.json();})
+      .then(function(d){if(!d||!d.ok)throw 0;DOC=d;build();
+        window.addEventListener('resize',function(){clearTimeout(window.__jhfgr);window.__jhfgr=setTimeout(chart,200);});})
+      .catch(function(){sec.style.display='none';});
+    }else if(++n>24){clearInterval(t);}
+  },500);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();</script>
 </body>
 </html>
