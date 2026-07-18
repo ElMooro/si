@@ -681,7 +681,7 @@ def build_doc(sym, period):
     doc = {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -751,7 +751,10 @@ def _resp(status, doc, headers_in):
     }
     ae = ""
     if isinstance(headers_in, dict):
-        ae = (headers_in.get("accept-encoding") or headers_in.get("Accept-Encoding") or "")
+        low = {str(k).lower(): str(v) for k, v in headers_in.items()}
+        ae = low.get("accept-encoding", "")
+        if low.get("x-gz") == "1":
+            ae = "gzip"
     if "gzip" in ae.lower() and len(body) > 1400:
         gz = gzip.compress(body.encode())
         hdrs["Content-Encoding"] = "gzip"
@@ -810,6 +813,9 @@ def lambda_handler(event, context):  # noqa: ARG001
     if period not in ("quarter", "annual"):
         return _resp(400, {"ok": False, "error": "period must be quarter|annual"},
                      headers_in)
+    if str(qp.get("gz") or "") == "1":
+        headers_in = dict(headers_in or {})
+        headers_in["x-gz"] = "1"
     try:
         doc = get_doc(sym, period, refresh=str(qp.get("refresh") or "") in ("1", "true"))
         return _resp(200, doc, headers_in)
