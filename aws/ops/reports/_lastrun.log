@@ -1,25 +1,20 @@
-executing-against: 5c551eca822ff01f1c731ba961cb8dc2c0562b57
-ops 3462 — Fundamental Graphs (engine + page + sidebar)
-[16:30:04]   zip: 89317 bytes
+executing-against: 878b85e1842613039cebf4c846efdb8617ec3331
+ops 3463 — Fundamental Graphs G4 close (CORS + gzip)
+[16:35:06] current Cors: {"AllowCredentials": false, "AllowHeaders": ["content-type"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "MaxAge": 86400}
+current Cors: {"AllowCredentials": false, "AllowHeaders": ["content-type"], "AllowMethods": ["*"], "AllowOrigins": ["*"], "MaxAge": 86400}
+PASS  H1_url_cors_config — {'url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws', 'had': ['*']}
+[16:35:06] PASS  H1_url_cors_config — {'url': 'https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws', 'had': ['*']}
+[16:35:06]   zip: 89383 bytes
 ── 1. Lambda ──
-[16:30:04]   Lambda missing — creating
-[16:30:10] ✅   ✓ created justhodl-fundamental-graphs
-[16:30:10] ✅   ✓ Function URL: https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws/
-Function URL: https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws
-[16:30:10] Function URL: https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws
-[16:30:11] published data/fundgraph/config.json
-PASS  G1_deploy_url — {'url': True, 'warm': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 136}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 136}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 138}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 138}}}
-[16:30:22] PASS  G1_deploy_url — {'url': True, 'warm': {'CHTR_quarter': {'ok': True, 'n': 44, 'keys': 136}, 'CHTR_annual': {'ok': True, 'n': 12, 'keys': 136}, 'AAPL_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'AAPL_annual': {'ok': True, 'n': 12, 'keys': 138}, 'MSFT_quarter': {'ok': True, 'n': 44, 'keys': 138}, 'MSFT_annual': {'ok': True, 'n': 12, 'keys': 138}}}
-PASS  G2_aapl_coverage — {'rev_pts': 44, 'first': '2015-06-27', 'keys': 138, 'price_pts': 552, 'missing': []}
-[16:30:22] PASS  G2_aapl_coverage — {'rev_pts': 44, 'first': '2015-06-27', 'keys': 138, 'price_pts': 552, 'missing': []}
-PASS  G3_chtr_crosscheck — {'last_fq': ['2026-03-31', 5434000000.0], 'n': 44}
-[16:30:22] PASS  G3_chtr_crosscheck — {'last_fq': ['2026-03-31', 5434000000.0], 'n': 44}
-FAIL  G4_url_cors_gzip — {'status': 200, 'gzip': None, 'acao': None, 'cached': True, 'bytes': 167922}
-[16:30:23] FAIL  G4_url_cors_gzip — {'status': 200, 'gzip': None, 'acao': None, 'cached': True, 'bytes': 167922}
-PASS  G5_page_and_sidebar_live — {'page_ok': True, 'manifest_ok': True, 'err': 'HTTP Error 404: Not Found', 'page': 200, 'manifest': 200}
-[16:32:52] PASS  G5_page_and_sidebar_live — {'page_ok': True, 'manifest_ok': True, 'err': 'HTTP Error 404: Not Found', 'page': 200, 'manifest': 200}
-RESULT: FAILS: ['G4_url_cors_gzip']
-RESULT: FAILS: ['G4_url_cors_gzip']
-[16:32:52] failed gates: G4_url_cors_gzip
+[16:35:06]   Lambda exists — updating
+[16:35:12] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  H2_cors_star — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922}
+[16:35:16] PASS  H2_cors_star — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922}
+PASS  H3_gzip_header_path — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922, 'version': '1.0.0'}
+[16:35:16] PASS  H3_gzip_header_path — {'acao': '*', 'enc': 'gzip', 'wire': 35896, 'plain': 167922, 'version': '1.0.0'}
+PASS  H4_gz_query_force — {'acao': '*', 'enc': 'gzip', 'wire': 31809, 'plain': 160665, 'sym': 'CHTR'}
+[16:35:16] PASS  H4_gz_query_force — {'acao': '*', 'enc': 'gzip', 'wire': 31809, 'plain': 160665, 'sym': 'CHTR'}
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3462_fundamental_graphs.md
+→ Report written to aws/ops/reports/latest/3463_fundgraph_g4_close.md
