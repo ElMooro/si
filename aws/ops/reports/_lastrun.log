@@ -1,14 +1,18 @@
-executing-against: b92b03f28b4b8795961c0d8db009f52d23c5b48c
-ops 3479 — estimate-vintage recorder (clock starts now)
-[22:52:33]   zip: 95483 bytes
+executing-against: 143d743a6d67c3c26ec1890b3adb43a48a4e3222
+ops 3480 — red-flag digest (rules + both surfaces)
+PASS  R1_rule_unit — {'tripped': [('EARNINGS_QUALITY', 3), ('BENEISH', 3), ('DILUTION_ACCEL', 2), ('MARGIN_ROLL', 2)]}
+[22:56:21] PASS  R1_rule_unit — {'tripped': [('EARNINGS_QUALITY', 3), ('BENEISH', 3), ('DILUTION_ACCEL', 2), ('MARGIN_ROLL', 2)]}
+[22:56:21]   zip: 96821 bytes
 ── 1. Lambda ──
-[22:52:33]   Lambda exists — updating
-[22:52:38] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  V1_vintage_recorded — {'CHTR': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'AAPL': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'MSFT': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}}
-[22:52:49] PASS  V1_vintage_recorded — {'CHTR': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'AAPL': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}, 'MSFT': {'rows': 1, 'today': True, 'eps_fwd': 6, 'rev_fwd': 6, 'vintage_days': 1}}
-PASS  V2_same_day_idempotent — {'CHTR': {'before': 1, 'after': 1}, 'AAPL': {'before': 1, 'after': 1}, 'MSFT': {'before': 1, 'after': 1}}
-[22:52:56] PASS  V2_same_day_idempotent — {'CHTR': {'before': 1, 'after': 1}, 'AAPL': {'before': 1, 'after': 1}, 'MSFT': {'before': 1, 'after': 1}}
+[22:56:21]   Lambda exists — updating
+[22:56:25] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  R2_docs_carry_flags — {'version': '1.2.2', 'CHTR': [('MARGIN_ROLL', 2)], 'AAPL': [], 'MSFT': [('SLOAN_HIGH', 2)]}
+[22:56:36] PASS  R2_docs_carry_flags — {'version': '1.2.2', 'CHTR': [('MARGIN_ROLL', 2)], 'AAPL': [], 'MSFT': [('SLOAN_HIGH', 2)]}
+PASS  R3_flagship_v18 — {}
+[22:58:38] PASS  R3_flagship_v18 — {}
+PASS  R4_module_flags — {}
+[22:58:38] PASS  R4_module_flags — {}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3479_vintage_recorder.md
+→ Report written to aws/ops/reports/latest/3480_redflag_digest.md
