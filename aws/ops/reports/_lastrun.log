@@ -1,10 +1,12 @@
-executing-against: 6a310677613a537dfc48779568c93e45b1c14ce0
-ops 3475 — why.html renderDilutionPillar TDZ fix (verdict)
-PASS  T1_fix_live — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
-[21:48:18] PASS  T1_fix_live — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
-PASS  T2_no_collateral — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
-[21:48:18] PASS  T2_no_collateral — {'marker': True, 'old_adjacency_gone': True, 'prior_markers': True}
+executing-against: 0933501e50892a8b163492738521eeec223b64d9
+ops 3476 — shared catalog + full picker on why.html
+PASS  K1_catalog_live — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+[21:59:06] PASS  K1_catalog_live — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+PASS  K2_flagship_v15 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+[21:59:06] PASS  K2_flagship_v15 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+PASS  K3_why_module_v2 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
+[21:59:06] PASS  K3_why_module_v2 — {'err': 'HTTP Error 404: Not Found', 'catalog': {'status': 200, 'bytes': 11527}, 'flagship': {'externalized': True}, 'why': {'module': True, 'picker': True, 'tdz_fix_intact': True}}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3475_why_tdz_fix.md
+→ Report written to aws/ops/reports/latest/3476_why_full_picker.md
