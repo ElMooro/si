@@ -1,12 +1,13 @@
-executing-against: e47a30f8d7422423173f4bdd1d42aefbf1c13b65
-ops 3435 — det rotation final
-PASS  G1_v2_settled — DET_FALLBACK_V2 in zip
-[02:22:58] PASS  G1_v2_settled — DET_FALLBACK_V2 in zip
-[invoke] 200 None
-PASS  G2_rotation_full — fresh=33/33 regime_mode=deterministic one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
-[02:23:10] PASS  G2_rotation_full — fresh=33/33 regime_mode=deterministic one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
+executing-against: da752d839779e0104d37b0c2bab3d768a8dfc762
+ops 3436 — census #2 close
+PASS  G1_manifest_fresh — age_min=0.0 engines=694 with_keys=339
+[02:26:34] PASS  G1_manifest_fresh — age_min=0.0 engines=694 with_keys=339
+PASS  G2_polish_settled — regime_3m key in det_state
+[02:26:34] PASS  G2_polish_settled — regime_3m key in det_state
+FAIL  G3_regime_state — regime=None one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
+[02:26:36] FAIL  G3_regime_state — regime=None one_liner=Macro Regime — Decisive Call: state unavailable · yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP
 
-VERDICT: PASS_ALL
-[02:23:10] VERDICT: PASS_ALL
+VERDICT: GAPS: G3_regime_state
+[02:26:36] VERDICT: GAPS: G3_regime_state
 
-→ Report written to aws/ops/reports/latest/3435_det_final.md
+→ Report written to aws/ops/reports/latest/3436_close2.md

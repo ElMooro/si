@@ -1,0 +1,17 @@
+{
+  "gates": {
+    "G1_manifest_fresh": {
+      "ok": true,
+      "detail": "age_min=0.0 engines=694 with_keys=339"
+    },
+    "G2_polish_settled": {
+      "ok": true,
+      "detail": "regime_3m key in det_state"
+    },
+    "G3_regime_state": {
+      "ok": false,
+      "detail": "regime=None one_liner=Macro Regime \u2014 Decisive Call: state unavailable \u00b7 yield_curve=BULL_STEEPENER, vix=NORMAL_CONTANGO, dollar=LEAN PUMP"
+    }
+  },
+  "verdict": "GAPS: G3_regime_state"
+}
