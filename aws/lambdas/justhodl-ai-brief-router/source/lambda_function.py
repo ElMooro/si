@@ -3646,7 +3646,7 @@ def _det_brief(ctx_id, cfg):
 def generate_one_brief(ctx_id, cfg, episode_ref):
     r = _generate_one_brief_core(ctx_id, cfg, episode_ref)
     try:
-        if isinstance(r, dict) and str(r.get("status", "")).startswith("ERR_CLAUDE"):
+        if isinstance(r, dict) and str(r.get("status", "")).startswith("ERR"):
             det = _det_brief(ctx_id, cfg)
             okey = f"data/{cfg.get('output_key') or ctx_id}.json"
             s3io.put_json(okey, det, cache_control="public, max-age=900")
