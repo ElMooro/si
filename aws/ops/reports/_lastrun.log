@@ -1,10 +1,15 @@
-executing-against: eb788ad581c6b8c368a3b885674f45c26e78ac95
-PASS  G1_v11 — settled
-[04:45:16] PASS  G1_v11 — settled
-PASS  G2_live_book — scanned=701 logged=10 plans=[('CHTR', 29.02, ''), ('CRM', 27.82, ''), ('IT', 26.49, ''), ('CRBG', 21.3, ''), ('PYPL', 15.12, ''), ('OMC', 14.58, ''), ('FISV', 14.08, ''), ('BLDR', 13.73, '')]
-[04:45:23] PASS  G2_live_book — scanned=701 logged=10 plans=[('CHTR', 29.02, ''), ('CRM', 27.82, ''), ('IT', 26.49, ''), ('CRBG', 21.3, ''), ('PYPL', 15.12, ''), ('OMC', 14.58, ''), ('FISV', 14.08, ''), ('BLDR', 13.73, '')]
+executing-against: f8e5698eddc613f49a8ae458c5034a70fa05c6d4
+ops 3452 — credit composite
+PASS  G1_settled — marker
+[04:53:17] PASS  G1_settled — marker
+PASS  G2_schedule — created
+[04:53:18] PASS  G2_schedule — created
+PASS  G3_probe — hot=100/['LQD', 'HYG'] calm=0
+[04:53:19] PASS  G3_probe — hot=100/['LQD', 'HYG'] calm=0
+FAIL  G4_live — composite=None lens_pts={} resolved_details=0/5 plans=[] logged=None
+[04:53:22] FAIL  G4_live — composite=None lens_pts={} resolved_details=0/5 plans=[] logged=None
 
-VERDICT: PASS_ALL
-[04:45:23] VERDICT: PASS_ALL
+VERDICT: GAPS: G4_live
+[04:53:22] VERDICT: GAPS: G4_live
 
-→ Report written to aws/ops/reports/latest/3451_cannibals_v11.md
+→ Report written to aws/ops/reports/latest/3452_credit_composite.md
