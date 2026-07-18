@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v1.0.2 ops3464 -->
+<!-- fundgraph v1.0 ops3462 · v1.2 ops3465 -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -64,8 +64,8 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
 <header class="max-w-[1280px] mx-auto px-4 pt-8 pb-3">
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
-  <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.0 · ops 3462</div>
+  <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v1.2 · ops 3465</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -234,9 +234,60 @@ const CAT=[
 ['est_ebitda_avg','EBITDA estimate (avg)','FC','$',1],['est_ebit_avg','EBIT estimate (avg)','FC','$',1],
 ['est_net_income_avg','Net income estimate (avg)','FC','$',1],['est_sga_avg','SG&A estimate (avg)','FC','$',1],
 ['est_num_analysts','# analysts (revenue)','FC','n',0],
+/* Growth */
+['revenue_yoy_pct','Revenue growth YoY %','GR','%',0],['gross_profit_yoy_pct','Gross profit growth YoY %','GR','%',0],
+['operating_income_yoy_pct','Operating income growth YoY %','GR','%',0],['ebitda_yoy_pct','EBITDA growth YoY %','GR','%',0],
+['net_income_yoy_pct','Net income growth YoY %','GR','%',0],['eps_yoy_pct','EPS growth YoY %','GR','%',0],
+['cfo_yoy_pct','CFO growth YoY %','GR','%',0],['fcf_yoy_pct','FCF growth YoY %','GR','%',0],
+['dps_yoy_pct','Dividend/share growth YoY %','GR','%',0],['bvps_yoy_pct','Book value/share growth YoY %','GR','%',0],
+['capex_yoy_pct','Capex growth YoY %','GR','%',0],['sbc_yoy_pct','SBC growth YoY %','GR','%',0],
+['revenue_cagr_3y_pct','Revenue CAGR 3Y %','GR','%',0],['revenue_cagr_5y_pct','Revenue CAGR 5Y %','GR','%',0],
+['eps_cagr_3y_pct','EPS CAGR 3Y %','GR','%',0],['eps_cagr_5y_pct','EPS CAGR 5Y %','GR','%',0],
+['fcf_cagr_3y_pct','FCF CAGR 3Y %','GR','%',0],['fcf_cagr_5y_pct','FCF CAGR 5Y %','GR','%',0],
+['sustainable_growth_pct','Sustainable growth rate %','GR','%',0],['retention_pct','Earnings retention %','GR','%',0],
+['rule_of_40','Rule of 40 (rev YoY + FCF mgn)','GR','n',0],
+/* HF quality / capital return */
+['gp_to_assets_pct','Gross profits / assets % (Novy-Marx)','ST','%',0],
+['earnings_yield_ebit_pct','EBIT / EV yield % (Greenblatt)','ST','%',0],
+['roc_greenblatt_pct','Return on capital % (Greenblatt)','ST','%',0],
+['ev_gp_ttm','EV / gross profit (TTM)','ST','x',0],['fcf_ev_yield_pct','FCF / EV yield %','ST','%',0],
+['fcf_conversion_pct','FCF conversion % (FCF/EBITDA)','ST','%',0],
+['cash_conversion_pct','Cash conversion % (CFO/EBITDA)','ST','%',0],
+['fcf_to_ni','FCF / net income','ST','x',0],['capex_to_da','Capex / D&A','ST','x',0],
+['net_buyback_yield_pct','Net buyback yield % (net of issuance)','ST','%',0],
+['net_shareholder_yield_pct','Net shareholder yield %','ST','%',0],
+['debt_paydown_yield_pct','Debt paydown yield %','ST','%',0],
+['total_yield_pct','Total yield % (div+netBB+debt)','ST','%',0],
+['peg_ttm','PEG (trailing)','ST','x',0],['tobins_q','Tobin\u2019s Q (approx)','ST','x',0],
+['pretax_margin_pct','Pretax margin %','ST','%',0],
+['cogs_to_revenue_pct','COGS / revenue %','ST','%',0],['wc_to_revenue_pct','Working capital / revenue %','ST','%',0],
+['debt_to_revenue','Debt / revenue','ST','x',0],['cash_to_debt','Cash / debt','ST','x',0],
+['goodwill_to_assets_pct','Goodwill / assets %','ST','%',0],['intangibles_to_assets_pct','GW+intangibles / assets %','ST','%',0],
+['tangible_ce_ratio','Tangible common equity ratio','ST','x',0],['equity_multiplier','Equity multiplier (assets/equity)','ST','x',0],
+['debt_to_capital','Debt / capital','ST','x',0],['gross_debt_to_ebitda','Gross debt / EBITDA (TTM)','ST','x',0],
+['ebitda_interest_coverage','EBITDA / interest (TTM)','ST','x',0],
+['fcf_to_debt_pct','FCF / total debt %','ST','%',0],['cfo_to_debt_pct','CFO / total debt %','ST','%',0],
+['netdebt_to_fcf','Net debt / FCF (yrs)','ST','x',0],
+['altman_z_prime','Altman Z\u2033 (non-mfg)','ST','n',0],['springate','Springate score','ST','n',0],
+['zmijewski_x','Zmijewski X-score','ST','n',0],['fulmer_h','Fulmer H factor','ST','n',0],
+['kz_index','KZ index (fin. constraint)','ST','n',0],
+['employees','Number of employees','ST','s',0],
+['revenue_per_employee','Revenue per employee (TTM)','ST','$',0],
+['net_income_per_employee','Net income per employee (TTM)','ST','$',0],
+['net_buyback_ttm','Net buybacks (TTM, net of issuance)','CF','$',0],
+['ncav','Net current asset value (NCAV)','BS','$',0],
+['ncav_ps','NCAV per share','PS','c',0],
 ];
 const CATIDX=Object.fromEntries(CAT.map(c=>[c[0],{k:c[0],label:c[1],cat:c[2],u:c[3],f:c[4]}]));
-const TABS=[['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
+const TABS=[['FAV','\u2605 Favorites'],['IN','Institutional'],['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['GR','Growth'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
+const INST_ORDER=['roic_pct','fcf_yield_pct','earnings_yield_ebit_pct','roc_greenblatt_pct','ev_ebitda_ttm','ev_gp_ttm','ev_sales_ttm','pe_ttm','p_fcf_ttm','peg_ttm','gp_to_assets_pct','gross_margin_pct','operating_margin_pct','fcf_margin_pct','rule_of_40','revenue_yoy_pct','revenue_cagr_3y_pct','eps_yoy_pct','fcf_yoy_pct','fcf_conversion_pct','income_quality','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','net_buyback_yield_pct','dividend_yield_pct','net_shareholder_yield_pct','total_yield_pct','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','capex_to_da','tobins_q','roe_pct','ccc_days','dso_days','altman_z','piotroski_f','beneish_m','kz_index','sustainable_growth_pct'];
+const TAGPAL=['#22d3ee','#34d399','#fbbf24','#f87171','#a78bfa','#fb923c','#e879f9','#60a5fa','#f472b6','#facc15','#2dd4bf','#e5e7eb'];
+let FAVM=[],METC={};
+try{FAVM=JSON.parse(localStorage.getItem('jh_fg_favm')||'[]')||[];}catch(e){FAVM=[];}
+try{METC=JSON.parse(localStorage.getItem('jh_fg_metc')||'{}')||{};}catch(e){METC={};}
+const saveFav=()=>localStorage.setItem('jh_fg_favm',JSON.stringify(FAVM));
+const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
+const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
 const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false};
@@ -280,7 +331,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v1.0 · ops 3462 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v1.2 · ops 3465 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -360,7 +411,7 @@ function buildSeriesList(){
     S.mets.forEach((mk)=>{
       const m=CATIDX[mk];if(!m)return;
       const pts=applyMode(series(doc,mk),mk);
-      out.push({sym,si,mk,label:m.label,u:m.u,color:PAL[S.mets.indexOf(mk)%PAL.length],
+      out.push({sym,si,mk,label:m.label,u:m.u,color:colorOf(mk),
                 dash:DASH[si],pts,grp:UGROUP[m.u]});
       ci++;
     });
@@ -532,7 +583,7 @@ function renderChips(){
     S.mets.forEach(mk=>{
       const m=CATIDX[mk];if(!m)return;
       const doc=DCACHE[sym+'_'+basePer()];
-      const color=PAL[S.mets.indexOf(mk)%PAL.length];
+      const color=colorOf(mk);
       let latest='…',delta='';
       if(doc){
         const pts=series(doc,mk).filter(p=>p[0]>=rs);
@@ -570,12 +621,12 @@ function renderMeta(){
 const fmtBig=v=>{const a=Math.abs(v);return a>=1e12?(v/1e12).toFixed(2)+'T':a>=1e9?(v/1e9).toFixed(1)+'B':(v/1e6).toFixed(0)+'M';};
 const nn=v=>v==null?'—':(+v).toFixed(1);
 
-/* ── metric picker ── */
-let mtab='IS';
+/* ── metric picker (favorites + color tags) ── */
+let mtab='IN';
 function openModal(){document.getElementById('modal').classList.add('open');
   document.getElementById('msearch').value='';renderTabs();renderList();
   setTimeout(()=>document.getElementById('msearch').focus(),60);}
-function closeModal(){document.getElementById('modal').classList.remove('open');}
+function closeModal(){closePop();document.getElementById('modal').classList.remove('open');}
 function renderTabs(){
   document.getElementById('mtabs').innerHTML=TABS.map(t=>`<span class="tab${t[0]===mtab?' on':''}" data-t="${t[0]}">${t[1]}</span>`).join('');
   document.querySelectorAll('#mtabs .tab').forEach(t=>t.onclick=()=>{mtab=t.dataset.t;renderTabs();renderList();});
@@ -584,16 +635,51 @@ function hasData(mk){
   return S.syms.some(sym=>{const d=DCACHE[sym+'_'+basePer()];
     return d&&d.points&&d.points[mk]&&d.points[mk].length;});
 }
-function renderList(){
+let POPK=null;
+function closePop(){const p=document.getElementById('cpop');if(p)p.remove();POPK=null;}
+function openPop(anchor,mk){
+  closePop();POPK=mk;
+  const p=document.createElement('div');p.id='cpop';
+  p.style.cssText='position:fixed;z-index:120;background:#0a1120;border:1px solid #22304a;border-radius:10px;padding:8px;display:grid;grid-template-columns:repeat(6,22px);gap:6px;box-shadow:0 12px 40px rgba(0,0,0,.6)';
+  p.innerHTML=TAGPAL.map(c=>`<span data-c="${c}" style="width:22px;height:22px;border-radius:6px;background:${c};cursor:pointer;border:2px solid ${METC[mk]===c?'#fff':'transparent'}"></span>`).join('')+
+    `<span data-c="" title="Auto" style="grid-column:span 6;text-align:center;font-size:.68rem;color:#9ca3af;border:1px solid #1f2937;border-radius:6px;padding:2px;cursor:pointer">Auto (palette)</span>`;
+  document.body.appendChild(p);
+  const r=anchor.getBoundingClientRect();
+  p.style.left=Math.min(r.left,window.innerWidth-p.offsetWidth-10)+'px';
+  p.style.top=Math.min(r.bottom+6,window.innerHeight-p.offsetHeight-10)+'px';
+  p.querySelectorAll('[data-c]').forEach(sw=>sw.onclick=e=>{e.stopPropagation();
+    const c=sw.dataset.c;if(c)METC[mk]=c;else delete METC[mk];
+    saveMetc();closePop();renderList();draw();});
+}
+document.addEventListener('click',e=>{if(POPK&&!e.target.closest('#cpop')&&!e.target.closest('.sw'))closePop();});
+function tabRows(){
   const q=(document.getElementById('msearch').value||'').toLowerCase().trim();
-  const rows=CAT.filter(c=>(q?(c[1].toLowerCase().includes(q)||c[0].toLowerCase().includes(q)):c[2]===mtab));
-  const UN={'$':'$','%':'%','x':'ratio','d':'days','s':'shares','c':'$/sh','n':'score'};
+  if(q)return CAT.filter(c=>c[1].toLowerCase().includes(q)||c[0].toLowerCase().includes(q));
+  if(mtab==='FAV')return FAVM.map(k=>CATIDX[k]&&CAT.find(c=>c[0]===k)).filter(Boolean);
+  if(mtab==='IN')return INST_ORDER.map(k=>CAT.find(c=>c[0]===k)).filter(Boolean);
+  const rows=CAT.filter(c=>c[2]===mtab);
+  return [...rows.filter(c=>FAVM.includes(c[0])),...rows.filter(c=>!FAVM.includes(c[0]))];
+}
+function renderList(){
+  const rows=tabRows();
+  const UN={'$':'$','%':'%','x':'ratio','d':'days','s':'count','c':'$/sh','n':'score'};
   document.getElementById('mlist').innerHTML=rows.map(c=>{
-    const sel=S.mets.includes(c[0]),nod=S.syms.length&&!hasData(c[0]);
-    return `<div class="mrow${sel?' sel':''}${nod?' dis':''}" data-k="${c[0]}">
-      <span>${sel?'✓ ':''}${esc(c[1])}<span class="u">${UN[c[3]]}</span>${c[4]?'<span class="u">TTM-able</span>':''}</span>
-      <span class="note">${TABS.find(t=>t[0]===c[2])[1]}</span></div>`;
-  }).join('')||'<div class="mrow note">No matches.</div>';
+    const k=c[0],sel=S.mets.includes(k),nod=S.syms.length&&!hasData(k),fav=FAVM.includes(k);
+    const inst=INST_ORDER.includes(k)?'<span class="u" style="color:var(--amber);border-color:#4d3b0a">HF</span>':'';
+    const col=METC[k]||'';
+    return `<div class="mrow${sel?' sel':''}${nod?' dis':''}" data-k="${k}">
+      <span style="display:flex;align-items:center;gap:8px;min-width:0">
+        <span class="st" data-k="${k}" title="favorite" style="cursor:pointer;color:${fav?'var(--amber)':'#334155'};font-size:1rem">${fav?'\u2605':'\u2606'}</span>
+        <span class="sw" data-k="${k}" title="color tag" style="cursor:pointer;width:13px;height:13px;border-radius:4px;flex:0 0 auto;background:${col||'linear-gradient(135deg,#22d3ee,#a78bfa)'};border:1px solid #22304a;opacity:${col?1:.45}"></span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sel?'\u2713 ':''}${esc(c[1])}</span>
+        <span class="u">${UN[c[3]]}</span>${c[4]?'<span class="u">TTM-able</span>':''}${inst}
+      </span>
+      <span class="note" style="flex:0 0 auto">${(TABS.find(t=>t[0]===c[2])||['',''])[1]}</span></div>`;
+  }).join('')||'<div class="mrow note">'+(mtab==='FAV'?'No favorites yet — tap \u2606 on any metric.':'No matches.')+'</div>';
+  document.querySelectorAll('#mlist .st').forEach(st=>st.onclick=e=>{e.stopPropagation();
+    const k=st.dataset.k;
+    FAVM=FAVM.includes(k)?FAVM.filter(v=>v!==k):[...FAVM,k];saveFav();renderList();});
+  document.querySelectorAll('#mlist .sw').forEach(sw=>sw.onclick=e=>{e.stopPropagation();openPop(sw,sw.dataset.k);});
   document.querySelectorAll('#mlist .mrow[data-k]').forEach(r=>r.onclick=()=>{
     const k=r.dataset.k;
     if(S.mets.includes(k)){S.mets=S.mets.filter(v=>v!==k);}

@@ -1,25 +1,29 @@
-"""justhodl-fundamental-graphs v1.0.0 (ops 3462)
+"""justhodl-fundamental-graphs v1.1.0 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
-One call per symbol+period returns ~150 aligned time series over 10+ years:
+One call per symbol+period returns 200+ aligned series over 10+ years:
 
-  - Raw statement lines (income / balance / cash-flow) straight from
-    FMP /stable (same field vocabulary the Beneish + share-flows engines
-    already parse in production — zero field-name roulette).
-  - Every ratio/margin/valuation COMPUTED IN-HOUSE from the statements +
-    dilluted share count + the price tape (mcap_t = close(t) x shares_t),
-    TTM-proper, period-aligned. No dependence on FMP's ratio endpoints.
-  - Forensic scores per period: Altman Z, Piotroski F, Beneish M,
-    Sloan accruals — consistent with the fleet's forensic-screen doctrine.
-  - Analyst estimates (history + future) for the Forecasts tab.
-  - Weekly close series for the "Show price charts" overlay.
+  - Raw statement lines (income / balance / cash-flow) from FMP /stable.
+  - Every ratio/margin/valuation COMPUTED IN-HOUSE, TTM-proper, with
+    mcap_t = close_t x diluted shares_t. No vendor-ratio roulette.
+  - Institutional/HF set: ROIC, GP/Assets (Novy-Marx), Rule of 40,
+    Greenblatt earnings-yield + ROC, EV/GP, FCF conversion, net-buyback
+    yield (net of issuance, SBC_WASH doctrine), total shareholder yield,
+    capex/D&A, full credit block (debt/EBITDA, EBITDA/interest, FCF/debt).
+  - Growth family: YoY for 12 lines + 3y/5y CAGRs (TTM-based).
+  - Distress/quality scores per period: Altman Z + Z'', Piotroski F,
+    Beneish M, Sloan, Springate, Zmijewski, Fulmer H, KZ index, Tobin's Q.
+  - Analyst estimates (history + future) and per-employee series.
+  - Weekly closes for the "Show price charts" overlay.
 
-Real data only. S3-cached 20h (data/fundgraph/cache/). Served through a
-public Function URL (CORS *), gzip-encoded when the client accepts it.
+Real data only. S3-cached 20h (data/fundgraph/cache/, _v11 keys). Public
+Function URL; CORS emitted ONLY by the URL config (single authority —
+dual emission produced duplicate ACAO and browser "Failed to fetch",
+closed in ops 3464). gzip via Accept-Encoding or ?gz=1.
 
 Invoke shapes:
-  Function URL GET  ?symbol=AAPL&period=quarter|annual[&refresh=1]
+  Function URL GET  ?symbol=AAPL&period=quarter|annual[&refresh=1][&gz=1]
   Direct/Event      {"symbol":"AAPL","period":"quarter"}
   Warm (Event)      {"warm":["AAPL","CHTR"],"periods":["quarter","annual"]}
 """
@@ -40,12 +44,13 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
+CACHE_VER = "v11"
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
-MAX_Q = 44          # ~11y of quarters served
-MAX_A = 12          # annuals served
-FETCH_Q = 50        # fetch a little extra for TTM/YoY lookbacks
+MAX_Q = 44
+MAX_A = 12
+FETCH_Q = 50
 FETCH_A = 14
-UA = {"User-Agent": "Mozilla/5.0 (justhodl-fundamental-graphs/1.0)"}
+UA = {"User-Agent": "Mozilla/5.0 (justhodl-fundamental-graphs/1.1)"}
 SLEEP = 0.22
 
 _s3 = boto3.client("s3")
@@ -65,7 +70,6 @@ def num(x):
 
 
 def g(row, *names):
-    """First non-null numeric among alias field names."""
     for n in names:
         v = num(row.get(n))
         if v is not None:
@@ -109,7 +113,11 @@ def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
-# ── FMP fetchers (field names mirror in-fleet consumers) ─────────────────────
+def log10p(v):
+    return None if (v is None or v <= 0) else math.log10(v)
+
+
+# ── FMP fetchers ─────────────────────────────────────────────────────────────
 def fetch_statements(sym, period):
     lim = FETCH_Q if period == "quarter" else FETCH_A
     pq = f"symbol={urllib.parse.quote(sym)}&period={period}&limit={lim}"
@@ -152,7 +160,6 @@ def fetch_profile(sym):
 
 
 def fetch_price(sym):
-    """Daily closes ~10.5y. Returns (daily list[(date,close)] asc, weekly list)."""
     frm = (datetime.now(timezone.utc) - timedelta(days=3860)).strftime("%Y-%m-%d")
     try:
         data = _fmp(
@@ -182,20 +189,44 @@ def fetch_price(sym):
     return rows, weekly
 
 
-def price_at(daily, date):
-    """Nearest close on/before date (binary search)."""
-    if not daily:
+def fetch_employees(sym):
+    """Historical head-count (annual-ish). Graceful when absent."""
+    try:
+        rows = _fmp(f"employee-count?symbol={urllib.parse.quote(sym)}&limit=200")
+    except Exception:  # noqa: BLE001
+        rows = []
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        d = str(r.get("periodOfReport") or r.get("date") or r.get("filingDate") or "")[:10]
+        c = g(r, "employeeCount", "numberOfEmployees", "employeesCount")
+        if len(d) == 10 and c and c > 0:
+            out.append((d, c))
+    out.sort(key=lambda t: t[0])
+    return out
+
+
+def at_or_before(series, date, max_gap_days=460):
+    """Nearest (d, v) on/before date within gap (binary search)."""
+    if not series or date < series[0][0]:
         return None
-    lo, hi = 0, len(daily) - 1
-    if date < daily[0][0]:
-        return None
+    lo, hi = 0, len(series) - 1
     while lo < hi:
         mid = (lo + hi + 1) // 2
-        if daily[mid][0] <= date:
+        if series[mid][0] <= date:
             lo = mid
         else:
             hi = mid - 1
-    return daily[lo][1]
+    d, v = series[lo]
+    try:
+        gap = (datetime.strptime(date, "%Y-%m-%d")
+               - datetime.strptime(d, "%Y-%m-%d")).days
+    except ValueError:
+        return None
+    return v if gap <= max_gap_days else None
+
+
+def price_at(daily, date):
+    return at_or_before(daily, date, max_gap_days=30)
 
 
 # ── series assembly ──────────────────────────────────────────────────────────
@@ -233,6 +264,7 @@ def build_doc(sym, period):
     est_rows = fetch_estimates(sym, period)
     profile = fetch_profile(sym)
     daily_px, weekly_px = fetch_price(sym)
+    emp_series = fetch_employees(sym)
 
     bmap, cmap = by_date(bal), by_date(cf)
     inc_sorted = sorted(
@@ -244,15 +276,13 @@ def build_doc(sym, period):
         d = str(r["date"])[:10]
         frames.append({"date": d, "inc": r, "bal": nearest(bmap, d), "cf": nearest(cmap, d)})
     n = len(frames)
-    lb = 4 if period == "quarter" else 1  # YoY lookback in periods
+    lb = 4 if period == "quarter" else 1
 
-    # raw extract per frame ---------------------------------------------------
     R = []
     for f in frames:
         i, b, c = f["inc"], f["bal"], f["cf"]
         row = {
             "date": f["date"],
-            # income
             "revenue": g(i, "revenue"),
             "costOfRevenue": g(i, "costOfRevenue"),
             "grossProfit": g(i, "grossProfit"),
@@ -272,7 +302,6 @@ def build_doc(sym, period):
             "epsDiluted": g(i, "epsDiluted", "epsdiluted"),
             "shs": g(i, "weightedAverageShsOut"),
             "shsDil": g(i, "weightedAverageShsOutDil"),
-            # balance
             "cash": g(b, "cashAndCashEquivalents"),
             "sti": g(b, "shortTermInvestments"),
             "cashSTI": g(b, "cashAndShortTermInvestments"),
@@ -296,7 +325,6 @@ def build_doc(sym, period):
             "totalDebt": g(b, "totalDebt"),
             "netDebt": g(b, "netDebt"),
             "minorityInterest": g(b, "minorityInterest"),
-            # cash flow
             "cfo": g(c, "netCashProvidedByOperatingActivities",
                      "operatingCashFlow"),
             "da_cf": g(c, "depreciationAndAmortization"),
@@ -327,7 +355,7 @@ def build_doc(sym, period):
             gi = [x for x in (row["goodwill"], row["intangibles"]) if x is not None]
             row["gwIntang"] = sum(gi) if gi else None
         if row["fcf"] is None and row["cfo"] is not None and row["capex"] is not None:
-            row["fcf"] = row["cfo"] + row["capex"]  # capex reported negative
+            row["fcf"] = row["cfo"] + row["capex"]
         if row["ebitda"] is None and row["operatingIncome"] is not None:
             row["ebitda"] = row["operatingIncome"] + (row["da_is"] or row["da_cf"] or 0)
         R.append(row)
@@ -336,7 +364,6 @@ def build_doc(sym, period):
         return [r.get(key) for r in R]
 
     def ttm(vals):
-        """Rolling sum of the trailing `lb` periods (annual passthrough)."""
         out = [None] * n
         if lb == 1:
             return list(vals)
@@ -366,12 +393,14 @@ def build_doc(sym, period):
     intexp_t = ttm(col("interestExpense"))
     div_t = ttm(col("dividendsPaid"))
     buyb_t = ttm(col("stockRepurchased"))
+    iss_t = ttm(col("stockIssued"))
+    debtrep_t = ttm(col("debtRepayment"))
     eps_t = ttm(col("epsDiluted")) if lb > 1 else col("epsDiluted")
 
-    # market cap / EV per period ---------------------------------------------
+    sh_arr = [(r.get("shsDil") or r.get("shs")) for r in R]
     mcap, ev = [None] * n, [None] * n
     for i, r in enumerate(R):
-        sh = r.get("shsDil") or r.get("shs")
+        sh = sh_arr[i]
         px = price_at(daily_px, r["date"])
         if sh and px:
             mcap[i] = sh * px
@@ -381,6 +410,51 @@ def build_doc(sym, period):
                          if x is not None]
                 debt = sum(parts) if parts else 0.0
             ev[i] = mcap[i] + (debt or 0) - (r.get("cashSTI") or 0)
+
+    # helper arrays for the Growth family
+    dps_arr = [(-div_t[i] / sh_arr[i]) if (div_t[i] is not None and sh_arr[i])
+               else None for i in range(n)]
+    bvps_arr = [(R[i].get("equity") / sh_arr[i])
+                if (R[i].get("equity") is not None and sh_arr[i]) else None
+                for i in range(n)]
+    capexabs_t = [(-capex_t[i]) if capex_t[i] is not None else None for i in range(n)]
+    netbuyb_t = [None if (buyb_t[i] is None and iss_t[i] is None)
+                 else -((buyb_t[i] or 0) + (iss_t[i] or 0)) for i in range(n)]
+
+    def yoy_arr(a, allow_neg_base=False):
+        out = [None] * n
+        for i in range(lb, n):
+            p, v = a[i - lb], a[i]
+            if v is None or p is None:
+                continue
+            if p > 0 or (allow_neg_base and p != 0):
+                out[i] = (v / p - 1) * 100 if p > 0 else None
+        return out
+
+    def cagr_arr(a, yrs):
+        per = yrs * lb
+        out = [None] * n
+        for i in range(per, n):
+            p, v = a[i - per], a[i]
+            if p and v and p > 0 and v > 0:
+                out[i] = ((v / p) ** (1.0 / yrs) - 1) * 100
+        return out
+
+    g_rev = yoy_arr(rev_t)
+    g_gp = yoy_arr(gp_t)
+    g_ebit = yoy_arr(ebit_t)
+    g_ebitda = yoy_arr(ebitda_t)
+    g_ni = yoy_arr(ni_t)
+    g_eps = yoy_arr(eps_t)
+    g_cfo = yoy_arr(cfo_t)
+    g_fcf = yoy_arr(fcf_t)
+    g_dps = yoy_arr(dps_arr)
+    g_bvps = yoy_arr(bvps_arr)
+    g_capex = yoy_arr(capexabs_t)
+    g_sbc = yoy_arr(sbc_t)
+    c_rev3, c_rev5 = cagr_arr(rev_t, 3), cagr_arr(rev_t, 5)
+    c_eps3, c_eps5 = cagr_arr(eps_t, 3), cagr_arr(eps_t, 5)
+    c_fcf3, c_fcf5 = cagr_arr(fcf_t, 3), cagr_arr(fcf_t, 5)
 
     def div_(a, b, mult=1.0, pos_denom=True):
         if a is None or b in (None, 0):
@@ -421,17 +495,16 @@ def build_doc(sym, period):
         put("da", i, r.get("da_cf") if r.get("da_cf") is not None else r.get("da_is"), 2)
 
         TA, TL, EQ = r.get("totalAssets"), r.get("totalLiabilities"), r.get("equity")
-        sh = r.get("shsDil") or r.get("shs")
+        CA, CL = r.get("totalCurrentAssets"), r.get("totalCurrentLiabilities")
+        sh = sh_arr[i]
         mc, evv = mcap[i], ev[i]
-        wc = (None if (r.get("totalCurrentAssets") is None or
-                       r.get("totalCurrentLiabilities") is None)
-              else r["totalCurrentAssets"] - r["totalCurrentLiabilities"])
+        wc = None if (CA is None or CL is None) else CA - CL
         nd = r.get("netDebt")
         if nd is None and r.get("totalDebt") is not None:
             nd = r["totalDebt"] - (r.get("cashSTI") or 0)
         tang_eq = (None if EQ is None else EQ - (r.get("gwIntang") or 0))
+        tang_assets = (None if TA is None else TA - (r.get("gwIntang") or 0))
 
-        # TTM flow snapshots
         put("revenue_ttm", i, rev_t[i], 2)
         put("ebitda_ttm", i, ebitda_t[i], 2)
         put("ebit_ttm", i, ebit_t[i], 2)
@@ -439,27 +512,32 @@ def build_doc(sym, period):
         put("cfo_ttm", i, cfo_t[i], 2)
         put("fcf_ttm", i, fcf_t[i], 2)
         put("gross_profit_ttm", i, gp_t[i], 2)
+        put("net_buyback_ttm", i, netbuyb_t[i], 2)
 
-        # market layer
         put("mcap", i, mc, 2)
         put("ev", i, evv, 2)
         put("working_capital", i, wc, 2)
         put("tangible_equity", i, tang_eq, 2)
         put("net_debt_calc", i, nd, 2)
+        put("ncav", i, None if (CA is None or TL is None) else CA - TL, 2)
 
         # margins %
-        put("gross_margin_pct", i, div_(gp_t[i], rev_t[i], 100), 3)
+        gm_v = div_(gp_t[i], rev_t[i], 100)
+        fcfm_v = div_(fcf_t[i], rev_t[i], 100)
+        put("gross_margin_pct", i, gm_v, 3)
         put("operating_margin_pct", i, div_(ebit_t[i], rev_t[i], 100), 3)
         put("ebitda_margin_pct", i, div_(ebitda_t[i], rev_t[i], 100), 3)
-        put("net_margin_pct", i, div_(ni_t[i], rev_t[i], 100, pos_denom=True), 3)
-        put("fcf_margin_pct", i, div_(fcf_t[i], rev_t[i], 100), 3)
+        put("pretax_margin_pct", i, div_(pretax_t[i], rev_t[i], 100), 3)
+        put("net_margin_pct", i, div_(ni_t[i], rev_t[i], 100), 3)
+        put("fcf_margin_pct", i, fcfm_v, 3)
 
         # returns %
         eq_prev = R[i - lb]["equity"] if i - lb >= 0 else None
         eq_avg = (EQ + eq_prev) / 2 if (EQ is not None and eq_prev is not None) else EQ
         ta_prev = R[i - lb]["totalAssets"] if i - lb >= 0 else None
         ta_avg = (TA + ta_prev) / 2 if (TA is not None and ta_prev is not None) else TA
-        put("roe_pct", i, div_(ni_t[i], eq_avg, 100), 3)
+        roe_v = div_(ni_t[i], eq_avg, 100)
+        put("roe_pct", i, roe_v, 3)
         put("roa_pct", i, div_(ni_t[i], ta_avg, 100), 3)
         nopat = None
         if ebit_t[i] is not None:
@@ -467,15 +545,22 @@ def build_doc(sym, period):
                                                  pretax_t[i] and pretax_t[i] > 0) else 0.21
             tr = clamp(tr, 0.0, 0.5)
             nopat = ebit_t[i] * (1 - tr)
-        ic = None
+        icap = None
         if EQ is not None:
-            ic = EQ + (r.get("totalDebt") or 0) - (r.get("cashSTI") or 0)
-        put("roic_pct", i, div_(nopat, ic, 100), 3)
-        rota_base = (None if TA is None else TA - (r.get("gwIntang") or 0))
-        put("rota_pct", i, div_(ni_t[i], rota_base, 100), 3)
+            icap = EQ + (r.get("totalDebt") or 0) - (r.get("cashSTI") or 0)
+        put("roic_pct", i, div_(nopat, icap, 100), 3)
+        put("rota_pct", i, div_(ni_t[i], tang_assets, 100), 3)
+        gden = (max(wc, 0) if wc is not None else None)
+        if gden is not None and r.get("ppeNet") is not None:
+            gden += r["ppeNet"]
+        put("roc_greenblatt_pct", i, div_(ebit_t[i], gden, 100), 3)
+        put("gp_to_assets_pct", i, div_(gp_t[i], TA, 100), 3)
+        put("goodwill_to_assets_pct", i, div_(r.get("goodwill"), TA, 100), 3)
+        put("intangibles_to_assets_pct", i, div_(r.get("gwIntang"), TA, 100), 3)
 
         # valuation
-        put("pe_ttm", i, div_(mc, ni_t[i]), 3)
+        pe_v = div_(mc, ni_t[i])
+        put("pe_ttm", i, pe_v, 3)
         put("ps_ttm", i, div_(mc, rev_t[i]), 3)
         put("pb", i, div_(mc, EQ), 3)
         put("ptb", i, div_(mc, tang_eq), 3)
@@ -484,15 +569,31 @@ def build_doc(sym, period):
         put("ev_ebitda_ttm", i, div_(evv, ebitda_t[i]), 3)
         put("ev_ebit_ttm", i, div_(evv, ebit_t[i]), 3)
         put("ev_sales_ttm", i, div_(evv, rev_t[i]), 3)
+        put("ev_gp_ttm", i, div_(evv, gp_t[i]), 3)
         put("ev_fcf_ttm", i, div_(evv, fcf_t[i]), 3)
         put("earnings_yield_pct", i, div_(ni_t[i], mc, 100), 3)
+        put("earnings_yield_ebit_pct", i, div_(ebit_t[i], evv, 100), 3)
         put("fcf_yield_pct", i, div_(fcf_t[i], mc, 100), 3)
+        put("fcf_ev_yield_pct", i, div_(fcf_t[i], evv, 100), 3)
         dy = div_(-div_t[i] if div_t[i] is not None else None, mc, 100)
         by = div_(-buyb_t[i] if buyb_t[i] is not None else None, mc, 100)
+        nby = div_(netbuyb_t[i], mc, 100)
+        dpy = div_(-debtrep_t[i] if debtrep_t[i] is not None else None, mc, 100)
         put("dividend_yield_pct", i, dy, 3)
         put("buyback_yield_pct", i, by, 3)
+        put("net_buyback_yield_pct", i, nby, 3)
+        put("debt_paydown_yield_pct", i, dpy, 3)
         if dy is not None or by is not None:
             put("shareholder_yield_pct", i, (dy or 0) + (by or 0), 3)
+        if dy is not None or nby is not None:
+            put("net_shareholder_yield_pct", i, (dy or 0) + (nby or 0), 3)
+        if any(v is not None for v in (dy, nby, dpy)):
+            put("total_yield_pct", i, (dy or 0) + (nby or 0) + (dpy or 0), 3)
+        if g_eps[i] is not None and g_eps[i] > 0 and pe_v is not None and pe_v > 0:
+            put("peg_ttm", i, pe_v / g_eps[i], 3)
+        put("tobins_q", i,
+            None if (mc is None or TA in (None, 0) or TA <= 0)
+            else (mc + (r.get("totalDebt") or 0)) / TA, 3)
         gn = None
         if eps_t[i] is not None and EQ is not None and sh and eps_t[i] > 0:
             bvps_ = EQ / sh
@@ -500,24 +601,34 @@ def build_doc(sym, period):
                 gn = math.sqrt(22.5 * eps_t[i] * bvps_)
         put("graham_number", i, gn, 3)
 
-        # leverage / liquidity
+        # leverage / liquidity / credit
         put("debt_to_equity", i, div_(r.get("totalDebt"), EQ), 3)
         put("debt_to_assets", i, div_(r.get("totalDebt"), TA), 3)
+        put("debt_to_revenue", i, div_(r.get("totalDebt"), rev_t[i]), 3)
+        put("debt_to_capital", i,
+            div_(r.get("totalDebt"),
+                 (r.get("totalDebt") or 0) + EQ if EQ is not None else None), 3)
         put("equity_to_assets", i, div_(EQ, TA), 3)
+        put("equity_multiplier", i, div_(TA, EQ), 3)
         put("liab_to_assets", i, div_(TL, TA), 3)
+        put("cash_to_debt", i, div_(r.get("cashSTI"), r.get("totalDebt")), 3)
         put("netdebt_to_ebitda_ttm", i,
-            (None if (nd is None or ebitda_t[i] in (None, 0) or ebitda_t[i] <= 0)
-             else nd / ebitda_t[i]), 3)
-        put("interest_coverage_ttm", i,
-            (None if (ebit_t[i] is None or intexp_t[i] in (None, 0) or intexp_t[i] <= 0)
-             else ebit_t[i] / intexp_t[i]), 3)
-        put("current_ratio", i, div_(r.get("totalCurrentAssets"),
-                                     r.get("totalCurrentLiabilities")), 3)
-        qa = (None if r.get("totalCurrentAssets") is None
-              else r["totalCurrentAssets"] - (r.get("inventory") or 0))
-        put("quick_ratio", i, div_(qa, r.get("totalCurrentLiabilities")), 3)
-        put("cash_ratio", i, div_(r.get("cashSTI"),
-                                  r.get("totalCurrentLiabilities")), 3)
+            None if (nd is None or ebitda_t[i] in (None, 0) or ebitda_t[i] <= 0)
+            else nd / ebitda_t[i], 3)
+        put("gross_debt_to_ebitda", i, div_(r.get("totalDebt"), ebitda_t[i]), 3)
+        put("netdebt_to_fcf", i,
+            None if (nd is None or fcf_t[i] in (None, 0) or fcf_t[i] <= 0)
+            else nd / fcf_t[i], 3)
+        put("interest_coverage_ttm", i, div_(ebit_t[i], intexp_t[i]), 3)
+        put("ebitda_interest_coverage", i, div_(ebitda_t[i], intexp_t[i]), 3)
+        put("fcf_to_debt_pct", i, div_(fcf_t[i], r.get("totalDebt"), 100), 3)
+        put("cfo_to_debt_pct", i, div_(cfo_t[i], r.get("totalDebt"), 100), 3)
+        cr_v = div_(CA, CL)
+        put("current_ratio", i, cr_v, 3)
+        qa = None if CA is None else CA - (r.get("inventory") or 0)
+        put("quick_ratio", i, div_(qa, CL), 3)
+        put("cash_ratio", i, div_(r.get("cashSTI"), CL), 3)
+        put("tangible_ce_ratio", i, div_(tang_eq, tang_assets), 3)
 
         # efficiency / quality
         put("asset_turnover_ttm", i, div_(rev_t[i], ta_avg), 3)
@@ -531,37 +642,77 @@ def build_doc(sym, period):
         if dso is not None and dio is not None and dpo is not None:
             put("ccc_days", i, dso + dio - dpo, 2)
         put("income_quality", i,
-            (None if (ni_t[i] in (None, 0) or ni_t[i] <= 0 or cfo_t[i] is None)
-             else cfo_t[i] / ni_t[i]), 3)
+            None if (ni_t[i] in (None, 0) or ni_t[i] <= 0 or cfo_t[i] is None)
+            else cfo_t[i] / ni_t[i], 3)
+        put("fcf_conversion_pct", i, div_(fcf_t[i], ebitda_t[i], 100), 3)
+        put("cash_conversion_pct", i, div_(cfo_t[i], ebitda_t[i], 100), 3)
+        put("fcf_to_ni", i,
+            None if (ni_t[i] in (None, 0) or ni_t[i] <= 0) else div_(fcf_t[i], ni_t[i], 1, False), 3)
+        put("capex_to_da", i, div_(capexabs_t[i], da_t[i]), 3)
         put("sbc_to_revenue_pct", i, div_(sbc_t[i], rev_t[i], 100), 3)
-        put("capex_to_revenue_pct", i,
-            div_(-capex_t[i] if capex_t[i] is not None else None, rev_t[i], 100), 3)
+        put("capex_to_revenue_pct", i, div_(capexabs_t[i], rev_t[i], 100), 3)
         put("rnd_to_revenue_pct", i, div_(rnd_t[i], rev_t[i], 100), 3)
         put("sga_to_revenue_pct", i, div_(sga_t[i], rev_t[i], 100), 3)
+        put("cogs_to_revenue_pct", i, div_(cogs_t[i], rev_t[i], 100), 3)
+        put("wc_to_revenue_pct", i, div_(wc, rev_t[i], 100), 3)
         put("effective_tax_rate_pct", i,
-            (None if (tax_t[i] is None or pretax_t[i] in (None, 0) or pretax_t[i] <= 0)
-             else clamp(tax_t[i] / pretax_t[i] * 100, -50, 100)), 3)
+            None if (tax_t[i] is None or pretax_t[i] in (None, 0) or pretax_t[i] <= 0)
+            else clamp(tax_t[i] / pretax_t[i] * 100, -50, 100), 3)
         if ni_t[i] is not None and cfo_t[i] is not None and cfi_t[i] is not None and TA:
             put("sloan_accruals_pct", i, (ni_t[i] - cfo_t[i] - cfi_t[i]) / TA * 100, 3)
 
         # per-share
-        put("eps_ttm", i, div_(ni_t[i], sh, pos_denom=True), 4)
+        put("eps_ttm", i, div_(ni_t[i], sh), 4)
         put("fcf_ps_ttm", i, div_(fcf_t[i], sh), 4)
         put("cfo_ps_ttm", i, div_(cfo_t[i], sh), 4)
         put("revenue_ps_ttm", i, div_(rev_t[i], sh), 4)
         put("book_value_ps", i, div_(EQ, sh), 4)
         put("tangible_bv_ps", i, div_(tang_eq, sh), 4)
-        put("dps_ttm", i, div_(-div_t[i] if div_t[i] is not None else None, sh), 4)
+        put("dps_ttm", i, dps_arr[i], 4)
         put("cash_ps", i, div_(r.get("cashSTI"), sh), 4)
-        put("payout_ratio_pct", i,
-            (None if (div_t[i] is None or ni_t[i] in (None, 0) or ni_t[i] <= 0)
-             else clamp(-div_t[i] / ni_t[i] * 100, 0, 400)), 3)
-        sh_prev = (R[i - lb].get("shsDil") or R[i - lb].get("shs")) if i - lb >= 0 else None
+        put("ncav_ps", i, div_(None if (CA is None or TL is None) else CA - TL, sh), 4)
+        payout_v = (None if (div_t[i] is None or ni_t[i] in (None, 0) or ni_t[i] <= 0)
+                    else clamp(-div_t[i] / ni_t[i] * 100, 0, 400))
+        put("payout_ratio_pct", i, payout_v, 3)
+        retention_v = (100 - payout_v) if payout_v is not None else (
+            100.0 if (ni_t[i] is not None and ni_t[i] > 0 and div_t[i] in (None, 0)) else None)
+        put("retention_pct", i, retention_v, 3)
+        if roe_v is not None and retention_v is not None:
+            put("sustainable_growth_pct", i, roe_v * retention_v / 100, 3)
+        sh_prev = sh_arr[i - lb] if i - lb >= 0 else None
         if sh and sh_prev:
             put("share_count_yoy_pct", i, (sh / sh_prev - 1) * 100, 3)
 
-        # ── forensic scores ─────────────────────────────────────────────────
-        # Altman Z (classic manufacturing form — fleet standard)
+        # growth family
+        put("revenue_yoy_pct", i, g_rev[i], 3)
+        put("gross_profit_yoy_pct", i, g_gp[i], 3)
+        put("operating_income_yoy_pct", i, g_ebit[i], 3)
+        put("ebitda_yoy_pct", i, g_ebitda[i], 3)
+        put("net_income_yoy_pct", i, g_ni[i], 3)
+        put("eps_yoy_pct", i, g_eps[i], 3)
+        put("cfo_yoy_pct", i, g_cfo[i], 3)
+        put("fcf_yoy_pct", i, g_fcf[i], 3)
+        put("dps_yoy_pct", i, g_dps[i], 3)
+        put("bvps_yoy_pct", i, g_bvps[i], 3)
+        put("capex_yoy_pct", i, g_capex[i], 3)
+        put("sbc_yoy_pct", i, g_sbc[i], 3)
+        put("revenue_cagr_3y_pct", i, c_rev3[i], 3)
+        put("revenue_cagr_5y_pct", i, c_rev5[i], 3)
+        put("eps_cagr_3y_pct", i, c_eps3[i], 3)
+        put("eps_cagr_5y_pct", i, c_eps5[i], 3)
+        put("fcf_cagr_3y_pct", i, c_fcf3[i], 3)
+        put("fcf_cagr_5y_pct", i, c_fcf5[i], 3)
+        if g_rev[i] is not None and fcfm_v is not None:
+            put("rule_of_40", i, g_rev[i] + fcfm_v, 3)
+
+        # per-employee
+        emp = at_or_before(emp_series, r["date"])
+        if emp:
+            put("employees", i, emp, 0)
+            put("revenue_per_employee", i, div_(rev_t[i], emp), 2)
+            put("net_income_per_employee", i, div_(ni_t[i], emp, 1, False), 2)
+
+        # ── distress / quality scores ───────────────────────────────────────
         if TA and TA > 0 and TL and TL > 0:
             z_parts = [
                 1.2 * (wc / TA) if wc is not None else None,
@@ -572,8 +723,61 @@ def build_doc(sym, period):
             ]
             if all(p is not None for p in z_parts):
                 put("altman_z", i, sum(z_parts), 3)
+            zp = [
+                6.56 * (wc / TA) if wc is not None else None,
+                3.26 * (r["retainedEarnings"] / TA) if r.get("retainedEarnings") is not None else None,
+                6.72 * (ebit_t[i] / TA) if ebit_t[i] is not None else None,
+                1.05 * (EQ / TL) if EQ is not None else None,
+            ]
+            if all(p is not None for p in zp):
+                put("altman_z_prime", i, sum(zp), 3)
+            sp = [
+                1.03 * (wc / TA) if wc is not None else None,
+                3.07 * (ebit_t[i] / TA) if ebit_t[i] is not None else None,
+                0.66 * (pretax_t[i] / CL) if (pretax_t[i] is not None and CL and CL > 0) else None,
+                0.4 * (rev_t[i] / TA) if rev_t[i] is not None else None,
+            ]
+            if all(p is not None for p in sp):
+                put("springate", i, sum(sp), 3)
+            if ni_t[i] is not None and cr_v is not None:
+                put("zmijewski_x", i,
+                    -4.336 - 4.513 * (ni_t[i] / TA) + 5.679 * (TL / TA)
+                    + 0.004 * cr_v, 3)
+            # Fulmer H (approx; TA in $M for the log term)
+            fh_ok = all(v is not None for v in (
+                r.get("retainedEarnings"), rev_t[i], pretax_t[i], EQ, cfo_t[i],
+                CL, wc, tang_assets)) and EQ > 0 and tang_assets and tang_assets > 0
+            ratio_ei = (None if (ebit_t[i] is None or intexp_t[i] in (None, 0)
+                                 or intexp_t[i] <= 0 or ebit_t[i] <= 0)
+                        else ebit_t[i] / intexp_t[i])
+            if fh_ok and ratio_ei:
+                put("fulmer_h", i,
+                    5.528 * (r["retainedEarnings"] / TA)
+                    + 0.212 * (rev_t[i] / TA)
+                    + 0.073 * (pretax_t[i] / EQ)
+                    + 1.270 * (cfo_t[i] / TL)
+                    - 0.120 * (TL / TA)
+                    + 2.335 * (CL / TA)
+                    + 0.575 * log10p(tang_assets / 1e6)
+                    + 1.083 * (wc / TL)
+                    + 0.894 * log10p(ratio_ei)
+                    - 6.075, 3)
+            # KZ index (K = prior-year net PP&E)
+            j0 = i - lb
+            K = R[j0].get("ppeNet") if j0 >= 0 else None
+            if (K and K > 0 and mc is not None and EQ is not None
+                    and ni_t[i] is not None and da_t[i] is not None):
+                dcap = ((r.get("totalDebt") or 0)
+                        / ((r.get("totalDebt") or 0) + EQ)) if ((r.get("totalDebt") or 0) + EQ) > 0 else None
+                if dcap is not None:
+                    put("kz_index", i,
+                        -1.002 * ((ni_t[i] + da_t[i]) / K)
+                        + 0.283 * ((TA + mc - EQ) / TA)
+                        + 3.139 * dcap
+                        - 39.368 * ((-div_t[i] if div_t[i] is not None else 0) / K)
+                        - 1.315 * ((r.get("cashSTI") or 0) / K), 3)
 
-        # Piotroski F (TTM vs prior-year TTM)
+        # Piotroski F
         j = i - lb
         if j >= 0:
             rp = R[j]
@@ -596,12 +800,11 @@ def build_doc(sym, period):
             lev_now = div_(r.get("longTermDebt"), TA)
             lev_prev = div_(rp.get("longTermDebt"), rp.get("totalAssets"))
             chk(None if (lev_now is None or lev_prev is None) else lev_now <= lev_prev)
-            cr_now = div_(r.get("totalCurrentAssets"), r.get("totalCurrentLiabilities"))
             cr_prev = div_(rp.get("totalCurrentAssets"), rp.get("totalCurrentLiabilities"))
-            chk(None if (cr_now is None or cr_prev is None) else cr_now > cr_prev)
+            chk(None if (cr_v is None or cr_prev is None) else cr_v > cr_prev)
             chk(None if (sh is None or sh_prev is None) else sh <= sh_prev * 1.005)
-            gm_now = div_(gp_t[i], rev_t[i])
             gm_prev = div_(gp_t[j], rev_t[j])
+            gm_now = div_(gp_t[i], rev_t[i])
             chk(None if (gm_now is None or gm_prev is None) else gm_now > gm_prev)
             at_now = div_(rev_t[i], TA)
             at_prev = div_(rev_t[j], rp.get("totalAssets"))
@@ -609,7 +812,7 @@ def build_doc(sym, period):
             if avail >= 7:
                 put("piotroski_f", i, checks, 0)
 
-            # Beneish M-score (8-variable), TTM vs prior-year TTM
+            # Beneish M-score
             def _ix(a, b):
                 v = div_(a, b)
                 return clamp(v, 0.05, 20.0)
@@ -619,13 +822,12 @@ def build_doc(sym, period):
                        div_(rp.get("receivables"), rev_t[j]))
             gmi = _ix(gm_prev, gm_now)
             aq_now = (None if TA in (None, 0) else
-                      1 - ((r.get("totalCurrentAssets") or 0) + (r.get("ppeNet") or 0)) / TA)
+                      1 - ((CA or 0) + (r.get("ppeNet") or 0)) / TA)
             aq_prev = (None if TAp in (None, 0) else
                        1 - ((rp.get("totalCurrentAssets") or 0) + (rp.get("ppeNet") or 0)) / TAp)
             aqi = _ix(aq_now, aq_prev) if (aq_now and aq_prev and aq_now > 0 and aq_prev > 0) else 1.0
             sgi = _ix(rev_t[i], rev_t[j])
-            dep_now = da_t[i]
-            dep_prev = da_t[j]
+            dep_now, dep_prev = da_t[i], da_t[j]
             depi = None
             if all(v is not None for v in (dep_now, dep_prev, r.get("ppeNet"), rp.get("ppeNet"))):
                 a = dep_prev / (dep_prev + rp["ppeNet"]) if (dep_prev + rp["ppeNet"]) > 0 else None
@@ -635,7 +837,7 @@ def build_doc(sym, period):
             tata = (None if (ni_t[i] is None or cfo_t[i] is None or not TA)
                     else (ni_t[i] - cfo_t[i]) / TA)
             lv_now = (None if not TA else
-                      ((r.get("longTermDebt") or 0) + (r.get("totalCurrentLiabilities") or 0)) / TA)
+                      ((r.get("longTermDebt") or 0) + (CL or 0)) / TA)
             lv_prev = (None if not TAp else
                        ((rp.get("longTermDebt") or 0) + (rp.get("totalCurrentLiabilities") or 0)) / TAp)
             lvgi = _ix(lv_now, lv_prev)
@@ -678,31 +880,31 @@ def build_doc(sym, period):
     for k in list(P.keys()):
         P[k].sort(key=lambda t: t[0])
 
-    doc = {
+    return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.0.2",
+        "version": "1.1.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "profile": profile,
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
+        "catalog_n": len(P),
         "points": P,
         "price": weekly_px,
         "sources": [
-            "FMP /stable income-statement / balance-sheet-statement / cash-flow-statement",
-            "FMP /stable analyst-estimates (Forecasts tab)",
+            "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
             "FMP /stable historical-price-eod/light (mcap_t = close_t x diluted shares_t)",
-            "Altman Z / Piotroski F / Beneish M / Sloan derived in-engine per period",
+            "Ratios, growth/CAGR, HF quality set and all scores derived in-engine per period",
+            "Scores: Altman Z & Z'', Piotroski F, Beneish M, Sloan, Springate, Zmijewski, Fulmer H, KZ, Tobin's Q",
         ],
     }
-    return doc
 
 
 # ── cache + handler ──────────────────────────────────────────────────────────
 def cache_key(sym, period):
-    return f"{CACHE_PREFIX}{sym}_{period}.json"
+    return f"{CACHE_PREFIX}{sym}_{period}_{CACHE_VER}.json"
 
 
 def load_cache(sym, period):
@@ -777,7 +979,6 @@ def lambda_handler(event, context):  # noqa: ARG001
     if not FMP_KEY:
         return _resp(500, {"ok": False, "error": "FMP_KEY not set"}, {})
 
-    # warm mode (Event invokes / ops)
     if isinstance(event, dict) and event.get("warm"):
         out = {}
         periods = event.get("periods") or ["quarter"]
@@ -794,7 +995,8 @@ def lambda_handler(event, context):  # noqa: ARG001
                                          "keys": len(d.get("points", {}))}
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
-        return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462"}
+        return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
+                "version": "1.1.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -811,7 +1013,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                            "marker": "FUNDGRAPH_V1_OPS3462"}, headers_in)
     period = (qp.get("period") or "quarter").lower()
     if period == "ttm":
-        period = "quarter"  # client derives TTM from quarters
+        period = "quarter"
     if period not in ("quarter", "annual"):
         return _resp(400, {"ok": False, "error": "period must be quarter|annual"},
                      headers_in)
