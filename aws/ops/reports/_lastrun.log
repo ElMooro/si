@@ -1,15 +1,13 @@
-executing-against: a70c3fa42d6f1cbc34080852368615b97e26d8d0
-ops 3446 — auction-tail family
-PASS  G1_settled — marker
-[04:28:47] PASS  G1_settled — marker
-PASS  G2_schedule — exists
-[04:28:47] PASS  G2_schedule — exists
-PASS  G3_rule_probe — plans=[('TLT', 'DOWN', 'D'), ('IEF', 'UP', 'A')]
-[04:28:48] PASS  G3_rule_probe — plans=[('TLT', 'DOWN', 'D'), ('IEF', 'UP', 'A')]
-PASS  G4_feed_live — graded_rows=20 plans=0 logged=0
-[04:28:48] PASS  G4_feed_live — graded_rows=20 plans=0 logged=0
+executing-against: 058a7001cf110df78ff5ae920252b467dde81965
+ops 3446 — cannibals family
+PASS  G1_deployed_scheduled — settled=True sched=exists
+[04:32:19] PASS  G1_deployed_scheduled — settled=True sched=exists
+FAIL  G2_feed_live — seen=None fresh=None logged=0 fresh_rows=[]
+[04:32:20] FAIL  G2_feed_live — seen=None fresh=None logged=0 fresh_rows=[]
+PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
+[04:32:22] PASS  G3_signals_match — ddb_today=0 feed.logged=0 (0/0 valid if no fresh actionable auction)
 
-VERDICT: PASS_ALL
-[04:28:48] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_feed_live
+[04:32:22] VERDICT: GAPS: G2_feed_live
 
-→ Report written to aws/ops/reports/latest/3446_auction_tail.md
+→ Report written to aws/ops/reports/latest/3447_cannibals.md
