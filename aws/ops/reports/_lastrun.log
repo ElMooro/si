@@ -1,14 +1,14 @@
-executing-against: 10d5ff8533149f0d1787e065b67631692a4cf4a0
+executing-against: 2d9d2c8b964da81690e2c844b53beea0dacf080f
 ops 3431 — deterministic rotation
 PASS  G1_router_v2 — det-fallback in zip
-[00:07:41] PASS  G1_router_v2 — det-fallback in zip
+[02:08:47] PASS  G1_router_v2 — det-fallback in zip
 [invoke] 200 None
-FAIL  G2_rotation_live — fresh=22/33 regime_mode=None one_liner=HMM locked in CONTRACTION (97.7% persistence) with zero anomalies—but yield curve inversion + VIX at 70th pcti
-[00:15:03] FAIL  G2_rotation_live — fresh=22/33 regime_mode=None one_liner=HMM locked in CONTRACTION (97.7% persistence) with zero anomalies—but yield curve inversion + VIX at 70th pcti
-PASS  G3_retired_list — 3 published
-[00:15:03] PASS  G3_retired_list — 3 published
+FAIL  G2_rotation_live — fresh=22/33 regime_mode=None one_liner=None
+[02:16:10] FAIL  G2_rotation_live — fresh=22/33 regime_mode=None one_liner=None
+PASS  G3_retired_list — 3 on file
+[02:16:10] PASS  G3_retired_list — 3 on file
 
 VERDICT: GAPS: G2_rotation_live
-[00:15:03] VERDICT: GAPS: G2_rotation_live
+[02:16:10] VERDICT: GAPS: G2_rotation_live
 
-→ Report written to aws/ops/reports/latest/3431_det_rotation.md
+→ Report written to aws/ops/reports/latest/3432_det_close.md
