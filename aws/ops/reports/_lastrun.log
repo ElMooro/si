@@ -1,13 +1,9 @@
-executing-against: 32847f39d1da5f7790348676b2f3795a4a80689f
-ops 3449 — cannibals family
-PASS  G1_deployed_scheduled — settled=True sched=created
-[03:44:19] PASS  G1_deployed_scheduled — settled=True sched=created
-FAIL  G2_screen_live — universe=6 screen=0 logged=0 names=[]
-[03:44:20] FAIL  G2_screen_live — universe=6 screen=0 logged=0 names=[]
-PASS  G3_signals_match — ddb_today=0 feed.logged=0
-[03:44:25] PASS  G3_signals_match — ddb_today=0 feed.logged=0
+executing-against: 5ea31cb498e27a832e2d35ee73df4c7faaa89a21
+top: ["version", "generated_at", "n_tickers", "fresh_fetched", "tickers", "boards", "method", "warns"]
+[03:47:07] top: ["version", "generated_at", "n_tickers", "fresh_fetched", "tickers", "boards", "method", "warns"]
+row keys: ["_v", "as_of", "buyback_net_ttm_usd", "buyback_net_yield_pct", "buyback_ttm_usd", "buyback_yield_pct", "div_ttm_usd", "eps_growth_yoy_pct", "fcf_yield_pct", "issuance_ttm_usd", "market_cap", "pe_ttm", "peg", "price", "ps_ttm", "read", "rev_growth_yoy_pct", "sbc_pct_mcap", "sbc_ttm_usd", "sh_3y_cagr
+[03:47:07] row keys: ["_v", "as_of", "buyback_net_ttm_usd", "buyback_net_yield_pct", "buyback_ttm_usd", "buyback_yield_pct", "div_ttm_usd", "eps_growth_yoy_pct", "fcf_yield_pct", "issuance_ttm_usd", "market_cap", "pe_ttm", "peg", "price", "ps_ttm", "read", "rev_growth_yoy_pct", "sbc_pct_mcap", "sbc_ttm_usd", "sh_3y_cagr
+row sample: {"price": 134.29, "pe_ttm": 26.9, "ps_ttm": 5.2, "buyback_ttm_usd": 387000000, "issuance_ttm_usd": 0, "buyback_net_ttm_usd": 387000000, "sbc_ttm_usd": 131000000, "div_ttm_usd": 285000000, "sh_qoq_pct": 0.0, "sh_yoy_pct": -0.35, "sh_3y_cagr_pct": -1.48, "rev_growth_yoy_pct": 9.1}
+[03:47:07] row sample: {"price": 134.29, "pe_ttm": 26.9, "ps_ttm": 5.2, "buyback_ttm_usd": 387000000, "issuance_ttm_usd": 0, "buyback_net_ttm_usd": 387000000, "sbc_ttm_usd": 131000000, "div_ttm_usd": 285000000, "sh_qoq_pct": 0.0, "sh_yoy_pct": -0.35, "sh_3y_cagr_pct": -1.48, "rev_growth_yoy_pct": 9.1}
 
-VERDICT: GAPS: G2_screen_live
-[03:44:25] VERDICT: GAPS: G2_screen_live
-
-→ Report written to aws/ops/reports/latest/3449_cannibals.md
+→ Report written to aws/ops/reports/latest/3450_sf_peek.md
