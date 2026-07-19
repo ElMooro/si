@@ -31,6 +31,52 @@ from collections import defaultdict
 import boto3
 
 S3_BUCKET = "justhodl-dashboard-live"
+
+
+# ── CENSUS OVERLAY (ops 3550 · BS-CENSUS): conviction / combo / risk / patterns /
+# whale-flow per ticker from the Fundamental Census matrix ──
+_CENSUS_CACHE = None
+
+
+def census_idx(s3_client, bucket):
+    global _CENSUS_CACHE
+    if _CENSUS_CACHE is not None:
+        return _CENSUS_CACHE
+    import json as _cj
+    out = {}
+    try:
+        mx = _cj.loads(s3_client.get_object(
+            Bucket=bucket,
+            Key="data/fundamental-census-matrix.json")["Body"].read())
+        C = mx.get("cols") or {}
+        rk = C.get("risk_score") or []
+        xs = sorted(v for v in rk if isinstance(v, (int, float)))
+        lo = xs[len(xs)//3] if len(xs) >= 3 else None
+        hi = xs[2*len(xs)//3] if len(xs) >= 3 else None
+        col = lambda k: C.get(k) or [None] * len(mx.get("tickers") or [])
+        for i, t in enumerate(mx.get("tickers") or []):
+            pats = [lbl for lbl, k in
+                    (("double_bottom", "double_bottom"),
+                     ("double_top", "double_top"),
+                     ("golden_cross", "golden_cross_10_40w"),
+                     ("breakout_20w", "breakout_20w"))
+                    if col(k)[i] == 1]
+            rv = col("risk_score")[i]
+            tier = (None if not isinstance(rv, (int, float)) or lo is None
+                    else "LOW" if rv <= lo else "HIGH" if rv >= hi
+                    else "MED")
+            out[t] = {"conviction": col("conviction_score")[i],
+                      "combo": col("combo_score")[i],
+                      "risk": rv, "risk_tier": tier,
+                      "turn": (mx.get("turn") or [None]*(i+1))[i]
+                      if i < len(mx.get("turn") or []) else None,
+                      "patterns": pats,
+                      "whale_usd_m": col("whale_net_usd_m")[i]}
+    except Exception as _e:  # noqa: BLE001
+        print("[census-overlay]", str(_e)[:80])
+    _CENSUS_CACHE = out
+    return out
+
 OUTPUT_KEY = "data/best-setups.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -1294,6 +1340,9 @@ def lambda_handler(event, context):
                 _s["sector_context"] = _sc2
             if _tk in _walls:
                 _s["gamma_levels"] = _walls[_tk]
+            _cc = census_idx(s3, S3_BUCKET).get(_tk)
+            if _cc:
+                _s["census_context"] = _cc
             _os = _ocm.get(_tk)
             _s["options_confluence_score"] = _os
             if _os is not None and _os >= 70:

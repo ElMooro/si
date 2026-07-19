@@ -4034,5 +4034,32 @@ function boot(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();</script>
+<script id="OPS3550">
+/* Census chips on Vitals — conviction/combo/risk/patterns from the S&P census matrix (additive; silent off-universe) */
+(function(){try{
+var t=(new URLSearchParams(location.search).get('ticker')||'').toUpperCase();if(!t)return;
+fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/fundamental-census-matrix.json?ts='+(Date.now()/3600000|0))
+.then(function(r){return r.json();}).then(function(mx){
+  var i=(mx.tickers||[]).indexOf(t);if(i<0)return;
+  var C=mx.cols||{},g=function(k){return (C[k]||[])[i];};
+  var rk=g('risk_score'),xs=(C.risk_score||[]).filter(function(v){return typeof v==='number';}).sort(function(a,b){return a-b;});
+  var tier=rk==null?null:rk<=xs[(xs.length/3)|0]?'LOW':rk>=xs[(2*xs.length/3)|0]?'HIGH':'MED';
+  var pats=[['double_bottom','🟢 double bottom'],['double_top','🔴 double top'],['golden_cross_10_40w','✨ golden cross'],['breakout_20w','🚀 20w breakout']]
+    .filter(function(p){return g(p[0])===1;}).map(function(p){return p[1];});
+  function chip(txt,col){return '<span style="border:1px solid '+col+';color:'+col+';border-radius:6px;padding:1px 7px;font-size:.64rem;font-weight:700;margin-right:6px;display:inline-block">'+txt+'</span>';}
+  var h='';
+  if(g('conviction_score')!=null)h+=chip('🎯 Conviction '+g('conviction_score'),'#22d3ee');
+  if(g('combo_score')!=null)h+=chip('⚡ Fund+Tech '+g('combo_score'),'#a78bfa');
+  if(rk!=null)h+=chip('⚠️ Risk '+rk+(tier?' · '+tier:''),tier==='HIGH'?'#f87171':tier==='LOW'?'#34d399':'#fbbf24');
+  if(g('whale_net_usd_m')!=null)h+=chip('🐳 '+(g('whale_net_usd_m')>=0?'+':'')+g('whale_net_usd_m')+'$M','#60a5fa');
+  pats.forEach(function(p){h+=chip(p,'#e2e8f0');});
+  if(!h)return;
+  var tries=0,tm=setInterval(function(){tries++;var v=document.getElementById('jhVitalsTop');
+    if(v){clearInterval(tm);var d=document.createElement('div');d.style.cssText='margin:6px 0 2px';
+      d.innerHTML=h+'<a href="/fundamental-census.html" style="font-size:.6rem;color:#5d6b82">census →</a>';
+      v.insertBefore(d, v.children[1]||null);}
+    else if(tries>40)clearInterval(tm);},250);
+});}catch(e){}})();
+</script>
 </body>
 </html>
