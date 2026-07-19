@@ -1,1 +1,8 @@
-executing-against: 1d361e5bf6c3e2b3b54985832ca2b3cb483688bc
+executing-against: 94db0956d3c97359b4c42d6278ef0ad5be0443a9
+PASS  R0_deployed — {'desc': 'Census v1.7.2 retail wire (ops 3544)', 'last_mod': '2026-07-19T22:14:40.000+0000'}
+[22:33:11] PASS  R0_deployed — {'desc': 'Census v1.7.2 retail wire (ops 3544)', 'last_mod': '2026-07-19T22:14:40.000+0000'}
+FAIL  R1_retail — {'retail_n': 0, 'score_n': 0, 'acc_n': 0, 'dist_n': 0, 'acc_sample': [], 'dist_sample': [], 'acc_high_conviction': []}
+[22:34:20] FAIL  R1_retail — {'retail_n': 0, 'score_n': 0, 'acc_n': 0, 'dist_n': 0, 'acc_sample': [], 'dist_sample': [], 'acc_high_conviction': []}
+RESULT: FAILS: ['R1_retail']
+
+→ Report written to aws/ops/reports/latest/3546_retail_regate.md
