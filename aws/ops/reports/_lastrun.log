@@ -1,18 +1,13 @@
-executing-against: 554df73b6fa55b4d01be87a1a1591f3b396cc36d
-ops 3513 — equity-FTD family (SEC CNS)
-PASS  L1_ci_battery — {'parse': True, 'spike': True, 'floors_etf': True, 'few_priors': True}
-[16:07:31] PASS  L1_ci_battery — {'parse': True, 'spike': True, 'floors_etf': True, 'few_priors': True}
-[16:07:32]   zip: 83423 bytes
+executing-against: f986a62e78054deacdd5ba0072f7324a6a1e3771
+ops 3514 — FTD v1.0.1 (min-base spike)
+[16:13:48]   zip: 83513 bytes
 ── 1. Lambda ──
-[16:07:32]   Lambda missing — creating
-[16:07:37] ✅   ✓ created justhodl-equity-ftd
-FAIL  L2_live_run — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'universe_n': 13707, 'n_candidates': 252, 'top_dollars_3': [('GOOG', 83557.25), ('GOOGL', 67455.76), ('AMD', 59448.28)], 'top_spikes_3': [('EME', 33910.86, 5.09), ('IVZ', 17528.29, 6.71), ('SPCX', 13372.21, 0.03)], 'qualifiers': [{'t': 'EME', 'q': 2758083, 'usd': 2201.23, 'peak_day_q': 2757895, 'spike': 33910.86, 'avg20': 542270.0, 'px': 744.16, 'dtc_peak': 5.09, 'desc': 'EMCOR GROUP INC'}, {'t': 'IVZ', 'q': 37366809, 
-[16:07:56] FAIL  L2_live_run — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'universe_n': 13707, 'n_candidates': 252, 'top_dollars_3': [('GOOG', 83557.25), ('GOOGL', 67455.76), ('AMD', 59448.28)], 'top_spikes_3': [('EME', 33910.86, 5.09), ('IVZ', 17528.29, 6.71), ('SPCX', 13372.21, 0.03)], 'qualifiers': [{'t': 'EME', 'q': 2758083, 'usd': 2201.23, 'peak_day_q': 2757895, 'spike': 33910.86, 'avg20': 542270.0, 'px': 744.16, 'dtc_peak': 5.09, 'desc': 'EMCOR GROUP INC'}, {'t': 'IVZ', 'q': 37366809, 
-PASS  L3_schedule — {'name': 'equity-ftd-sched', 'expr': 'cron(10 15 ? * MON,THU *)'}
-[16:07:57] PASS  L3_schedule — {'name': 'equity-ftd-sched', 'expr': 'cron(10 15 ? * MON,THU *)'}
-PASS  L4_families_page — {'card': True, 'feed': True, 'node': True}
-[16:11:59] PASS  L4_families_page — {'card': True, 'feed': True, 'node': True}
-RESULT: FAILS: ['L2_live_run']
-RESULT: FAILS: ['L2_live_run']
+[16:13:49]   Lambda exists — updating
+[16:13:52] ✅   ✓ updated justhodl-equity-ftd
+PASS  M1_live — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'n_candidates': 255, 'top_spikes_5': [('GOOG', 4607.1, 54183.0, 10.6), ('PG', 3731.24, 47632.0, 17.95), ('MS', 3528.37, 22189.0, 12.08), ('GOOGL', 2166.22, 92286.0, 5.64), ('XOM', 1985.57, 161242.0, 18.39)], 'qualifiers': [{'t': 'GOOG', 'q': 249626317, 'usd': 83557.25, 'peak_day_q': 248973807, 'spike': 4607.1, 'base': 54183.0, 'avg20': 23487552.0, 'px': 346.12, 'dtc_peak': 10.6, 'desc': 'ALPHABET INC CAP STK CL C'}, {'t': 'PG', 'q': 177725815, 'usd': 26484.78, 'peak_day_q': 177
+[16:14:09] PASS  M1_live — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'n_candidates': 255, 'top_spikes_5': [('GOOG', 4607.1, 54183.0, 10.6), ('PG', 3731.24, 47632.0, 17.95), ('MS', 3528.37, 22189.0, 12.08), ('GOOGL', 2166.22, 92286.0, 5.64), ('XOM', 1985.57, 161242.0, 18.39)], 'qualifiers': [{'t': 'GOOG', 'q': 249626317, 'usd': 83557.25, 'peak_day_q': 248973807, 'spike': 4607.1, 'base': 54183.0, 'avg20': 23487552.0, 'px': 346.12, 'dtc_peak': 10.6, 'desc': 'ALPHABET INC CAP STK CL C'}, {'t': 'PG', 'q': 177725815, 'usd': 26484.78, 'peak_day_q': 177
+PASS  M2_signal_row — {'id': 'ftd-squeeze#GOOGL#2026-07-19', 'schema': '2', 'bench': 'SPY', 'regime': True, 'conf': '0.75'}
+[16:14:09] PASS  M2_signal_row — {'id': 'ftd-squeeze#GOOGL#2026-07-19', 'schema': '2', 'bench': 'SPY', 'regime': True, 'conf': '0.75'}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3513_equity_ftd_family.md
+→ Report written to aws/ops/reports/latest/3514_ftd_v101.md
