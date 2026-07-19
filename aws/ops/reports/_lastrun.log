@@ -1,15 +1,1 @@
-executing-against: ad9f7e366e6c930ed7cc1adc840b5a865774a426
-ops 3539 — factors + joins + saved screens
-PASS  N1_ci — exact
-[21:37:39] PASS  N1_ci — exact
-[21:37:39]   zip: 87104 bytes
-── 1. Lambda ──
-[21:37:39]   Lambda exists — updating
-[21:37:43] ✅   ✓ updated justhodl-fundamental-census
-FAIL  N2_live — {'factor_cov': {'factor_value': 495, 'factor_quality': 496, 'factor_momentum': 494, 'factor_safety': 496}, 'fq_top5': [('BKNG', 94.5), ('EXPE', 93.4), ('ADBE', 91.4), ('ABNB', 90.4), ('ADSK', 90.4)], 'whale_n': 0, 'earn_n': 408, 'in_long_book': (22, 22), 'whales_and_quality': []}
-[21:38:57] FAIL  N2_live — {'factor_cov': {'factor_value': 495, 'factor_quality': 496, 'factor_momentum': 494, 'factor_safety': 496}, 'fq_top5': [('BKNG', 94.5), ('EXPE', 93.4), ('ADBE', 91.4), ('ABNB', 90.4), ('ADSK', 90.4)], 'whale_n': 0, 'earn_n': 408, 'in_long_book': (22, 22), 'whales_and_quality': []}
-PASS  N3_page — {'node': True}
-[21:39:59] PASS  N3_page — {'node': True}
-RESULT: FAILS: ['N2_live']
-
-→ Report written to aws/ops/reports/latest/3539_institutional_l2.md
+executing-against: c05d76e22da3d9966ae1bddb6a61cc0b162e551f
