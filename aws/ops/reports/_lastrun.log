@@ -1,19 +1,20 @@
-executing-against: cd455332ae66604932fc9c792ad7c2f149a23bfe
-ops 3526 — spx refresher + macro card
-PASS  A1_ci — {'n': 7, 'windows': 5}
-[18:28:20] PASS  A1_ci — {'n': 7, 'windows': 5}
-[18:28:20]   zip: 81468 bytes
+executing-against: 8db4547fd0ba7695d098705cb6f40a03fa92ca72
+ops 3527 — Fundamental Census (S&P sweep)
+PASS  B1_ci — {'r1_score': 10, 'r2': (['DILUTION_SEVERE', 'EARNINGS_INTEGRITY_LOW'], 8)}
+[18:44:19] PASS  B1_ci — {'r1_score': 10, 'r2': (['DILUTION_SEVERE', 'EARNINGS_INTEGRITY_LOW'], 8)}
+[18:44:19]   zip: 83405 bytes
 ── 1. Lambda ──
-[18:28:20]   Lambda missing — creating
-[18:28:25] ✅   ✓ created justhodl-spx-history
-FAIL  A2_refreshed — {'n_points': 22937, 'first': '1935-01-07', 'last': '2026-07-17', 'shape': 'list', 'prev_shape': 'list', 'keys_superset': True}
-[18:28:30] FAIL  A2_refreshed — {'n_points': 22937, 'first': '1935-01-07', 'last': '2026-07-17', 'shape': 'list', 'prev_shape': 'list', 'keys_superset': True}
-PASS  A3_consumer — {'status': 200, 'err': None, 'peek': '{"statusCode": 200, "body": "{\\"rules\\": 11}"}'}
-[18:28:34] PASS  A3_consumer — {'status': 200, 'err': None, 'peek': '{"statusCode": 200, "body": "{\\"rules\\": 11}"}'}
-PASS  A4_schedule — cron(10 8 ? * SUN *)
-[18:28:34] PASS  A4_schedule — cron(10 8 ? * SUN *)
-PASS  A5_macro_card — {'served': True, 'vals': {'geopolitical_risk.gpr': 173.6, 'geopolitical_risk.z_5y': 0.65, 'heavy_truck_sales.yoy_pct': -6.0, 'rate_cut_diffusion.net_pct_cutting': -25.0}}
-[18:30:50] PASS  A5_macro_card — {'served': True, 'vals': {'geopolitical_risk.gpr': 173.6, 'geopolitical_risk.z_5y': 0.65, 'heavy_truck_sales.yoy_pct': -6.0, 'rate_cut_diffusion.net_pct_cutting': -25.0}}
-RESULT: FAILS: ['A2_refreshed']
+[18:44:19]   Lambda missing — creating
+[18:44:25] ✅   ✓ created justhodl-fundamental-census
+FAIL  B2_pilot — {'scored': 3, 'universe': 496, 'top5': [('NVDA', 31, 13), ('AAPL', 26, 7), ('PG', 6, 0)], 'bottom3': [('PG', 6), ('AAPL', 26), ('NVDA', 31)], 'careful3': [('NVDA', ['HIGH_CONCERN'], 8)], 'avg': 21.0, 'n_flagged': 1}
+[18:44:41] FAIL  B2_pilot — {'scored': 3, 'universe': 496, 'top5': [('NVDA', 31, 13), ('AAPL', 26, 7), ('PG', 6, 0)], 'bottom3': [('PG', 6), ('AAPL', 26), ('NVDA', 31)], 'careful3': [('NVDA', ['HIGH_CONCERN'], 8)], 'avg': 21.0, 'n_flagged': 1}
+FAIL  B3_boards_real — {'buyback_top': [{'t': 'AAPL', 'v': -1.91}, {'t': 'PG', 'v': -1.36}, {'t': 'NVDA', 'v': -0.89}], 'issuer_top': [{'t': 'NVDA', 'v': -0.89}, {'t': 'PG', 'v': -1.36}, {'t': 'AAPL', 'v': -1.91}], 'gm_best': {'t': 'NVDA', 'v': 74.14}, 'gm_worst': {'t': 'AAPL', 'v': 47.86}}
+[18:44:41] FAIL  B3_boards_real — {'buyback_top': [{'t': 'AAPL', 'v': -1.91}, {'t': 'PG', 'v': -1.36}, {'t': 'NVDA', 'v': -0.89}], 'issuer_top': [{'t': 'NVDA', 'v': -0.89}, {'t': 'PG', 'v': -1.36}, {'t': 'AAPL', 'v': -1.91}], 'gm_best': {'t': 'NVDA', 'v': 74.14}, 'gm_worst': {'t': 'AAPL', 'v': 47.86}}
+PASS  B4_schedule — cron(0 6 1,15 * ? *)
+[18:44:42] PASS  B4_schedule — cron(0 6 1,15 * ? *)
+PASS  B5_page — {'served': True, 'node': True, 'pinned': True}
+[18:46:43] PASS  B5_page — {'served': True, 'node': True, 'pinned': True}
+FULL-CHAIN FIRED async (cursor 0)
+RESULT: FAILS: ['B2_pilot', 'B3_boards_real']
 
-→ Report written to aws/ops/reports/latest/3526_spx_macro.md
+→ Report written to aws/ops/reports/latest/3527_fundamental_census.md
