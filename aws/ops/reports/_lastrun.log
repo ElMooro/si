@@ -1,36 +1,15 @@
-executing-against: bf957427545f841bbe0d4c58b35c5b3356e3b468
-ops 3535 — 22 boards + turnarounds
-[census] board operating_margin_pct skipped — coverage 0
-[census] board net_margin_pct skipped — coverage 0
-[census] board ebitda_margin_pct skipped — coverage 0
-[census] board fcf_margin_pct skipped — coverage 0
-[census] board fcf_yield_pct skipped — coverage 0
-[census] board roe_pct skipped — coverage 0
-[census] board roa_pct skipped — coverage 0
-[census] board roic_pct skipped — coverage 0
-[census] board revenue_yoy_pct skipped — coverage 0
-[census] board eps_yoy_pct skipped — coverage 0
-[census] board fcf_yoy_pct skipped — coverage 0
-[census] board interest_coverage_ttm skipped — coverage 0
-[census] board current_ratio skipped — coverage 0
-[census] board piotroski skipped — coverage 0
-[census] board altman_z skipped — coverage 0
-[census] board shareholder_yield_pct skipped — coverage 0
-[census] board buyback_yield_pct skipped — coverage 0
-[census] board debt_to_equity skipped — coverage 0
-[census] board dio_days skipped — coverage 0
-[census] board sbc_to_revenue_pct skipped — coverage 0
-[census] board share_count_yoy_pct skipped — coverage 0
-PASS  J1_ci — {'turn_top': 99.8, 'crash': 0.2}
-[20:49:48] PASS  J1_ci — {'turn_top': 99.8, 'crash': 0.2}
-[20:49:48]   zip: 85295 bytes
+executing-against: 785070d8b484edeb3202178225171169e2a87713
+ops 3536 — filters + board personalization
+PASS  K1_ci — {'m6': 19.55, 'm121': 44.86}
+[21:02:41] PASS  K1_ci — {'m6': 19.55, 'm121': 44.86}
+[21:02:41]   zip: 85538 bytes
 ── 1. Lambda ──
-[20:49:49]   Lambda exists — updating
-[20:49:52] ✅   ✓ updated justhodl-fundamental-census
-PASS  J2_live — {'n_boards': 21, 'roic_best3': [{'t': 'ABNB', 'v': 2136.341}, {'t': 'IBKR', 'v': 1917.556}, {'t': 'EG', 'v': 855.915}], 'revgrow_best3': [{'t': 'MU', 'v': 166.98}, {'t': 'EXE', 'v': 163.772}, {'t': 'SNDK', 'v': 82.756}], 'sbc_worst3': [{'t': 'CRWD', 'v': 22.394}, {'t': 'DDOG', 'v': 21.33}, {'t': 'AXON', 'v': 21.074}], 'improving5': [('WDC', 93.7, [('EPS growth', 329.2022), ('op margin', 15.947)], 14), ('EQT', 92.3, [('rev growth', 79.2283), ('gross margin', 20.087)], 16), ('MU', 90.2, [('op margin', 27.5085), ('gross margin', 22.7445)], 27), ('NEM', 84.2, [('share count YoY', -29.9612), ('gross margin', 20.0478)], 34), ('LRCX', 83.3
-[20:51:05] PASS  J2_live — {'n_boards': 21, 'roic_best3': [{'t': 'ABNB', 'v': 2136.341}, {'t': 'IBKR', 'v': 1917.556}, {'t': 'EG', 'v': 855.915}], 'revgrow_best3': [{'t': 'MU', 'v': 166.98}, {'t': 'EXE', 'v': 163.772}, {'t': 'SNDK', 'v': 82.756}], 'sbc_worst3': [{'t': 'CRWD', 'v': 22.394}, {'t': 'DDOG', 'v': 21.33}, {'t': 'AXON', 'v': 21.074}], 'improving5': [('WDC', 93.7, [('EPS growth', 329.2022), ('op margin', 15.947)], 14), ('EQT', 92.3, [('rev growth', 79.2283), ('gross margin', 20.087)], 16), ('MU', 90.2, [('op margin', 27.5085), ('gross margin', 22.7445)], 27), ('NEM', 84.2, [('share count YoY', -29.9612), ('gross margin', 20.0478)], 34), ('LRCX', 83.3
-PASS  J3_page — {'node': True}
-[20:52:06] PASS  J3_page — {'node': True}
+[21:02:41]   Lambda exists — updating
+[21:02:44] ✅   ✓ updated justhodl-fundamental-census
+PASS  K2_matrix_mom — {'n_mom': 494, 'aapl': (41.12, 41.12), 'terciles': (-4.85, 19.13), 'top_momentum': [('SNDK', 5078.36), ('WDC', 997.4), ('MU', 891.34)]}
+[21:03:57] PASS  K2_matrix_mom — {'n_mom': 494, 'aapl': (41.12, 41.12), 'terciles': (-4.85, 19.13), 'top_momentum': [('SNDK', 5078.36), ('WDC', 997.4), ('MU', 891.34)]}
+PASS  K3_page — {'node': [True, True]}
+[21:04:19] PASS  K3_page — {'node': [True, True]}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3535_turnarounds.md
+→ Report written to aws/ops/reports/latest/3536_filters_boards.md
