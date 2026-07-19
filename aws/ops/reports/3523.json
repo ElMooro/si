@@ -1,0 +1,126 @@
+{
+ "ops": 3523,
+ "fails": [
+  "X3_enhanced_pages"
+ ],
+ "wave2": [
+  {
+   "page": "political.html",
+   "feed": "data/lobbying-intel.json",
+   "mode": "bars",
+   "path": "all_tickers",
+   "label": "ticker",
+   "val": "score",
+   "n": 200
+  },
+  {
+   "page": "primary-dealers.html",
+   "feed": "data/nyfed-primary-dealer.json",
+   "mode": "bars-dict",
+   "path": "by_tenor_usd_b.TREASURY_COUPONS",
+   "n": 7
+  },
+  {
+   "page": "us-data-desk.html",
+   "feed": "data/census-economic.json",
+   "mode": "bars-dict",
+   "path": "summary",
+   "n": 12
+  },
+  {
+   "page": "bls.html",
+   "feed": "data/bls-employment.json",
+   "mode": "bars",
+   "path": "crisis.components",
+   "label": "key",
+   "val": "value",
+   "n": 8
+  },
+  {
+   "page": "heatmap.html",
+   "feed": "data/stock-valuations.json",
+   "mode": "bars",
+   "path": "sp_table",
+   "label": "t",
+   "val": "pe",
+   "n": 499
+  },
+  {
+   "page": "valuations.html",
+   "feed": "data/stock-valuations.json",
+   "mode": "bars",
+   "path": "sp_table",
+   "label": "t",
+   "val": "pe",
+   "n": 499
+  },
+  {
+   "page": "ofr.html",
+   "feed": "data/settlement-fails.json",
+   "mode": "bars",
+   "path": "classes",
+   "label": "key",
+   "val": "ftd_latest",
+   "n": 6
+  },
+  {
+   "page": "dollar.html",
+   "feed": "data/dollar-radar.json",
+   "mode": "bars",
+   "path": "canaries",
+   "label": "label",
+   "val": "lean",
+   "n": 15
+  },
+  {
+   "page": "eurodollar.html",
+   "feed": "data/eurodollar-plumbing.json",
+   "mode": "bars",
+   "path": "layers.us_core.metrics",
+   "label": "id",
+   "val": "value",
+   "n": 9
+  },
+  {
+   "page": "tv-notes.html",
+   "feed": "data/tradingview-notes.json",
+   "mode": "bars",
+   "path": "notes",
+   "label": "symbol",
+   "val": "created",
+   "n": 3322
+  }
+ ],
+ "misses": [
+  {
+   "page": "macro-leads.html",
+   "feed": "data/macro-leads.json",
+   "top_keys": [
+    "_populated",
+    "copper_gold_silver",
+    "freight_activity",
+    "generated_at",
+    "geopolitical_risk",
+    "heavy_truck_sales",
+    "rate_cut_diffusion",
+    "source"
+   ]
+  },
+  {
+   "page": "credit-desk.html",
+   "feed": "data/cds-proxy.json",
+   "top_keys": [
+    "composite_credit_risk",
+    "corporate",
+    "duration_s",
+    "generated_at",
+    "method",
+    "notes",
+    "regime",
+    "schema_version",
+    "sovereigns",
+    "top_reasons"
+   ]
+  }
+ ]
+}
