@@ -1,13 +1,15 @@
-executing-against: c2bfd0cd3197bc1d09dc8613c033ee1196088944
-ops 3517 — price stitcher + depth regate
-[17:21:09]   zip: 107416 bytes
+executing-against: 6d0c7d8434a1aff4e41119419555b8bea10a9ac2
+ops 3518 — MAX_Q 44->220 (full statements)
+[17:24:22]   zip: 107435 bytes
 ── 1. Lambda ──
-[17:21:09]   Lambda exists — updating
-[17:21:15] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  Q1_aapl — {'n_revenue': 44, 'oldest_revenue': '2015-06-27', 'n_px_weeks': 2380, 'oldest_px': '1980-12-12', 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}, 'doc_kb': 761, 'ver': '1.11.1'}
-[17:21:30] FAIL  Q1_aapl — {'n_revenue': 44, 'oldest_revenue': '2015-06-27', 'n_px_weeks': 2380, 'oldest_px': '1980-12-12', 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}, 'doc_kb': 761, 'ver': '1.11.1'}
-FAIL  Q2_pg — {'n_revenue': 44, 'oldest_revenue': '2015-06-30', 'n_px_weeks': 3368, 'oldest_px': '1962-01-05', 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}, 'doc_kb': 970, 'ver': '1.11.1'}
-[17:21:30] FAIL  Q2_pg — {'n_revenue': 44, 'oldest_revenue': '2015-06-30', 'n_px_weeks': 3368, 'oldest_px': '1962-01-05', 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}, 'doc_kb': 970, 'ver': '1.11.1'}
-RESULT: FAILS: ['Q1_aapl', 'Q2_pg']
+[17:24:22]   Lambda exists — updating
+[17:24:27] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  R1_aapl — {'n_revenue': 163, 'oldest_revenue': '1985-09-30', 'oldest_px': '1980-12-12', 'n_px_weeks': 2380, 'doc_kb': 1202, 'n_green': 18, 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}}
+[17:24:46] PASS  R1_aapl — {'n_revenue': 163, 'oldest_revenue': '1985-09-30', 'oldest_px': '1980-12-12', 'n_px_weeks': 2380, 'doc_kb': 1202, 'n_green': 18, 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}}
+PASS  R2_pg — {'n_revenue': 163, 'oldest_revenue': '1985-09-30', 'oldest_px': '1962-01-05', 'n_px_weeks': 3368, 'doc_kb': 1422, 'n_green': 13, 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}}
+[17:24:46] PASS  R2_pg — {'n_revenue': 163, 'oldest_revenue': '1985-09-30', 'oldest_px': '1962-01-05', 'n_px_weeks': 3368, 'doc_kb': 1422, 'n_green': 13, 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}}
+FAIL  R3_nvda — {'n_revenue': 109, 'oldest_revenue': '1999-05-02', 'oldest_px': '1999-01-22', 'n_px_weeks': 1435, 'doc_kb': 803, 'n_green': 19, 'stmt_rows': {'inc': 109, 'bal': 109, 'cf': 109}}
+[17:24:46] FAIL  R3_nvda — {'n_revenue': 109, 'oldest_revenue': '1999-05-02', 'oldest_px': '1999-01-22', 'n_px_weeks': 1435, 'doc_kb': 803, 'n_green': 19, 'stmt_rows': {'inc': 109, 'bal': 109, 'cf': 109}}
+RESULT: FAILS: ['R3_nvda']
 
-→ Report written to aws/ops/reports/latest/3517_history_close.md
+→ Report written to aws/ops/reports/latest/3518_keep_clamp.md
