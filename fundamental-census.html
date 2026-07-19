@@ -57,6 +57,12 @@ a{color:var(--blue);text-decoration:none}
 <button id="fxCsv" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--border);color:var(--text)">⬇ CSV</button>
 <input id="fxQ" placeholder="filter ticker…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;width:120px">
 <span id="fxN" class="rk" style="font-size:.66rem"></span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 2px;align-items:center">
+<span class="rk" style="font-size:.64rem">Legend screens:</span>
+<select id="fxInv" style="background:#0a1220;color:var(--green);border:1px solid var(--green);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:230px"><option value="">🏆 Long — famous investors…</option></select>
+<select id="fxShort" style="background:#0a1220;color:var(--red);border:1px solid var(--red);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:230px"><option value="">🩸 Short — legendary criteria…</option></select>
+<span id="fxStratNote" class="rk" style="font-size:.64rem"></span>
+</div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 2px">
 <span class="rk" style="font-size:.64rem;align-self:center">Presets:</span>
 <button class="chip fxP" data-p="qc" style="cursor:pointer;border:1px solid var(--green);color:var(--green);background:#0a1220">Quality compounders</button>
@@ -103,6 +109,55 @@ a{color:var(--blue);text-decoration:none}
 (function(){
 var FB='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
 var CATMAP={};(window.FG_CAT||[]).forEach(function(r){CATMAP[r[0]]={label:r[1],u:r[3]||'n'};});
+var HARDF=null; // {metric:[min|null,max|null]}
+var INV={
+ buffett:{name:"Warren Buffett — quality moats, low leverage",
+  chips:[["roe_pct",0],["gross_margin_pct",0],["fcf_margin_pct",0],["debt_to_equity",1]],
+  hard:{roe_pct:[15,null],gross_margin_pct:[35,null],debt_to_equity:[null,0.8],interest_coverage_ttm:[8,null]},noflag:1},
+ munger:{name:"Charlie Munger — great businesses, clean comp",
+  chips:[["roic_pct",0],["gross_margin_pct",0],["sbc_to_revenue_pct",1]],
+  hard:{roic_pct:[15,null]},qmin:10,noflag:1},
+ graham:{name:"Ben Graham — deep value with safety",
+  chips:[["pe_ttm",1],["current_ratio",0],["debt_to_equity",1]],
+  hard:{pe_ttm:[0,15],current_ratio:[1.5,null],debt_to_equity:[null,1]}},
+ lynch:{name:"Peter Lynch — GARP",
+  chips:[["peg",1],["eps_yoy_pct",0],["revenue_yoy_pct",0]],
+  hard:{peg:[0,1.5],eps_yoy_pct:[10,null]}},
+ greenblatt:{name:"Joel Greenblatt — Magic Formula",
+  chips:[["roic_pct",0],["fcf_ev_yield_pct",0]],hard:{}},
+ simons:{name:"Jim Simons — systematic momentum",
+  chips:[["mom_12_1_pct",0],["mom_6m_pct",0],["revenue_yoy_pct",0]],hard:{},mom:"H"},
+ soros:{name:"George Soros — reflexivity, accelerating trends",
+  chips:[["mom_6m_pct",0],["eps_yoy_pct",0],["revenue_yoy_pct",0]],hard:{},turnmin:1},
+ druck:{name:"Stanley Druckenmiller — concentrated inflections",
+  chips:[["mom_12_1_pct",0],["eps_yoy_pct",0]],hard:{},turnmin:1,mom:"H"},
+ fisher:{name:"Phil Fisher — durable growth quality",
+  chips:[["revenue_yoy_pct",0],["gross_margin_pct",0],["roic_pct",0]],
+  hard:{revenue_yoy_pct:[15,null]}},
+ ackman:{name:"Bill Ackman — FCF machines returning capital",
+  chips:[["fcf_yield_pct",0],["buyback_yield_pct",0],["roic_pct",0]],
+  hard:{fcf_yield_pct:[4,null]},noflag:1},
+ klarman:{name:"Seth Klarman — margin of safety",
+  chips:[["fcf_yield_pct",0],["pe_ttm",1],["altman_z",0]],
+  hard:{fcf_yield_pct:[6,null]},noflag:1}};
+var SHORTS={
+ chanos:{name:"Jim Chanos — accounting red flags & fads",
+  chips:[["beneish_m",0],["sloan_accruals_pct",0],["share_count_yoy_pct",0],["fcf_margin_pct",1]],
+  hard:{beneish_m:[-1.78,null]}},
+ burry:{name:"Michael Burry — bubble valuations cracking",
+  chips:[["pe_ttm",0],["ps_ttm",0],["mom_6m_pct",1]],
+  hard:{pe_ttm:[35,null]},turnmax:1},
+ einhorn:{name:"David Einhorn — balance-sheet stress",
+  chips:[["altman_z",1],["interest_coverage_ttm",1],["beneish_m",0]],
+  hard:{altman_z:[null,3]}},
+ block:{name:"Muddy Waters — forensic manipulation profile",
+  chips:[["beneish_m",0],["sloan_accruals_pct",0],["share_count_yoy_pct",0]],
+  hard:{beneish_m:[-1.5,null]}},
+ sorosS:{name:"Soros macro short — broken trends, leverage",
+  chips:[["mom_12_1_pct",1],["debt_to_equity",0],["fcf_yield_pct",1]],hard:{},turnmax:1},
+ growthtrap:{name:"Growth-trap — SBC bleeders, no cash",
+  chips:[["sbc_to_revenue_pct",0],["fcf_margin_pct",1],["share_count_yoy_pct",0]],
+  hard:{sbc_to_revenue_pct:[8,null]}}};
 var LOWRE=/(debt|days|share_count|pe_|ps_|peg|ev_to|payout|dso|dpo|capex_to|interest_to|sloan|beneish|concern)/;
 var MX=null,SEL=[],DIR='desc',Q='',DOCC={},CUR=null,MSEL=[],RNG=0,PXON=false;
 function esc(x){return String(x==null?'':x).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
@@ -112,7 +167,7 @@ function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false;
+var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false;
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
@@ -126,6 +181,12 @@ function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers
     if(QMIN!=null&&!((MX.quality||[])[i]>=QMIN))continue;
     if(NOFLAG&&(MX.flagged||[])[i])continue;
     if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
+    if(TURNMAX&&!((MX.turn||[])[i]<=25))continue;
+    if(HARDF){var hOk=true;for(var hk in HARDF){var hv=(MX.cols[hk]||[])[i],b2=HARDF[hk];
+      if(typeof hv!=='number'){hOk=false;break;}
+      if(b2[0]!=null&&hv<b2[0]){hOk=false;break;}
+      if(b2[1]!=null&&hv>b2[1]){hOk=false;break;}}
+      if(!hOk)continue;}
     if(MOMF){var mt=momTiers(),v=mt.col[i];
       if(typeof v!=='number')continue;
       if(MOMF==='H'&&!(v>=mt.hi))continue;
@@ -198,8 +259,34 @@ document.getElementById('fxCsv').onclick=function(){var rows=compute();
   var csv=lines.join('\n');window.__lastCsv=csv;
   try{var b=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');
     a.href=URL.createObjectURL(b);a.download='census-explorer.csv';a.click();}catch(e){}};
+function resetStrat(){HARDF=null;TURNMAX=false;TURNMIN=false;NOFLAG=false;QMIN=null;MOMF='';
+  document.getElementById('fxTurn').checked=false;document.getElementById('fxNoFlag').checked=false;
+  document.getElementById('fxQmin').value='';document.getElementById('fxMom').value='';}
+function applyStrat(cfg){resetStrat();SEL=[];
+  cfg.chips.forEach(function(c){SEL.push({k:c[0],low:!!c[1]});});
+  HARDF=cfg.hard&&Object.keys(cfg.hard).length?cfg.hard:null;
+  if(cfg.noflag){NOFLAG=true;document.getElementById('fxNoFlag').checked=true;}
+  if(cfg.qmin!=null){QMIN=cfg.qmin;document.getElementById('fxQmin').value=String(cfg.qmin===15?10:cfg.qmin);}
+  if(cfg.turnmin){TURNMIN=true;document.getElementById('fxTurn').checked=true;}
+  if(cfg.turnmax)TURNMAX=true;
+  if(cfg.mom){MOMF=cfg.mom;document.getElementById('fxMom').value=cfg.mom;}
+  document.getElementById('fxStratNote').textContent=cfg.name;
+  chips();draw();}
+document.getElementById('fxInv').onchange=function(e){var k=e.target.value;
+  document.getElementById('fxShort').value='';
+  if(!k){resetStrat();document.getElementById('fxStratNote').textContent='';chips();draw();return;}
+  applyStrat(INV[k]);};
+document.getElementById('fxShort').onchange=function(e){var k=e.target.value;
+  document.getElementById('fxInv').value='';
+  if(!k){resetStrat();document.getElementById('fxStratNote').textContent='';chips();draw();return;}
+  applyStrat(SHORTS[k]);};
+(function(){var iv=document.getElementById('fxInv'),sv=document.getElementById('fxShort');
+  Object.keys(INV).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=INV[k].name.split(' — ')[0];iv.appendChild(o);});
+  Object.keys(SHORTS).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=SHORTS[k].name.split(' — ')[0];sv.appendChild(o);});})();
 Array.prototype.forEach.call(document.querySelectorAll('.fxP'),function(b){
   b.onclick=function(){var p=b.getAttribute('data-p');SEL=[];
+    resetStrat();document.getElementById('fxInv').value='';document.getElementById('fxShort').value='';
+    document.getElementById('fxStratNote').textContent='';
     document.getElementById('fxNoFlag').checked=false;NOFLAG=false;
     document.getElementById('fxTurn').checked=false;TURNMIN=false;
     document.getElementById('fxQmin').value='';QMIN=null;
