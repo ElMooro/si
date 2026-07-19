@@ -1,18 +1,14 @@
-executing-against: c396c7c8864f15d6cc4da3a56408d3dcc29c461f
-ops 3489 — congress + insider events on the tape
-PASS  V1_parser_units — {'congress': [['2026-03-15', 'Jane Doe', 'B', '$15,001 - $50,000'], ['2026-04-02', 'John Roe', 'S', '$1,001 - $15,000']], 'insiders': [['2026-05-01', 'Tim C (CEO)', 'B', 2500000.0], ['2026-06-01', 'SELL CLUSTER 4 insiders (30d)', 'S', 9000000.0]]}
-[00:35:36] PASS  V1_parser_units — {'congress': [['2026-03-15', 'Jane Doe', 'B', '$15,001 - $50,000'], ['2026-04-02', 'John Roe', 'S', '$1,001 - $15,000']], 'insiders': [['2026-05-01', 'Tim C (CEO)', 'B', 2500000.0], ['2026-06-01', 'SELL CLUSTER 4 insiders (30d)', 'S', 9000000.0]]}
-[00:35:36]   zip: 98475 bytes
-── 1. Lambda ──
-[00:35:36]   Lambda exists — updating
-[00:35:40] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  V2_realdata_selfselect — {'symbol': 'WAB', 'congress_n': 1, 'insiders_n': 0, 'sample': [['2026-06-09', 'Thomas H Tuberville', 'S', '$1,001 - $15,000']], 'picked_filer': 'Thomas H Tuberville'}
-[00:35:47] PASS  V2_realdata_selfselect — {'symbol': 'WAB', 'congress_n': 1, 'insiders_n': 0, 'sample': [['2026-06-09', 'Thomas H Tuberville', 'S', '$1,001 - $15,000']], 'picked_filer': 'Thomas H Tuberville'}
-PASS  V3_served_js — {'node_ok': [True, True, True, True]}
-[00:38:11] PASS  V3_served_js — {'node_ok': [True, True, True, True]}
-PASS  V4_surfaces — {'flag_ops3489': True, 'evtbtn': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'why_evt': True, 'tdz_intact': True}
-[00:38:11] PASS  V4_surfaces — {'flag_ops3489': True, 'evtbtn': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'why_evt': True, 'tdz_intact': True}
+executing-against: c66fa028d00dd866e62770b7c5f09f78396fcd71
+ops 3490 — macro overlays via wl-series bridge
+[01:42:05] resolved id map: {"US10Y": {"id": "TVC:US10Y", "n": 1906, "last": ["2026-28", 4.54]}, "US02Y": {"id": "TVC:US02Y", "n": 1906, "last": ["2026-28", 4.16]}, "HYOAS": {"id": "FRED:BAMLH0A0HYM2", "n": 157, "last": ["2026-28", 2.7]}, "FEDFUNDS": {"id": "FRED:FEDFUNDS", "n": 438, "last": ["2026-23", 3.63]}, "UNRATE": {"id": "FRED:UNRATE", "n": 437, "last": ["2026-23", 4.2]}, "DXY": {"id": "TVC:DXY", "n": 1906, "last": ["2026-28", 101.11499786376953]}}
+RESOLVED: {"US10Y": {"id": "TVC:US10Y", "n": 1906, "last": ["2026-28", 4.54]}, "US02Y": {"id": "TVC:US02Y", "n": 1906, "last": ["2026-28", 4.16]}, "HYOAS": {"id": "FRED:BAMLH0A0HYM2", "n": 157, "last": ["2026-28", 2.7]}, "FEDFUNDS": {"id": "FRED:FEDFUNDS", "n": 438, "last": ["2026-23", 3.63]}, "UNRATE": {"id": "FRED:UNRATE", "n": 437, "last": ["2026-23", 4.2]}, "DXY": {"id": "TVC:DXY", "n": 1906, "last": ["2026-28", 101.11499786376953]}}
+PASS  X1_bridge_probe — {'resolved': {'US10Y': 'TVC:US10Y', 'US02Y': 'TVC:US02Y', 'HYOAS': 'FRED:BAMLH0A0HYM2', 'FEDFUNDS': 'FRED:FEDFUNDS', 'UNRATE': 'FRED:UNRATE', 'DXY': 'TVC:DXY'}, 'missed': ['T10Y2Y', 'CPIYOY'], 'sample_last': {'US10Y': ['2026-28', 4.54], 'US02Y': ['2026-28', 4.16], 'HYOAS': ['2026-28', 2.7]}}
+[01:42:05] PASS  X1_bridge_probe — {'resolved': {'US10Y': 'TVC:US10Y', 'US02Y': 'TVC:US02Y', 'HYOAS': 'FRED:BAMLH0A0HYM2', 'FEDFUNDS': 'FRED:FEDFUNDS', 'UNRATE': 'FRED:UNRATE', 'DXY': 'TVC:DXY'}, 'missed': ['T10Y2Y', 'CPIYOY'], 'sample_last': {'US10Y': ['2026-28', 4.54], 'US02Y': ['2026-28', 4.16], 'HYOAS': ['2026-28', 2.7]}}
+PASS  X2_served_js — {'node_ok': [True, True, True, True]}
+[01:44:28] PASS  X2_served_js — {'node_ok': [True, True, True, True]}
+PASS  X3_flagship_v23 — {'ops3490': True, 'mxbtn': True, 'registry': True, 'chip_x': True, 'evt_intact': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True}
+[01:44:28] PASS  X3_flagship_v23 — {'ops3490': True, 'mxbtn': True, 'registry': True, 'chip_x': True, 'evt_intact': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3489_fleet_events.md
+→ Report written to aws/ops/reports/latest/3490_macro_bridge.md
