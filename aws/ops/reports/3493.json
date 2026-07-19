@@ -1,0 +1,18 @@
+{
+  "ops": 3493,
+  "gates": {
+    "H1_republish": {
+      "ok": false,
+      "detail": "{'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct']}"
+    },
+    "H2_realdata_sanity": {
+      "ok": true,
+      "detail": "{'tech_pe': 34.0, 'util_pe': 22.3, 'beneish_band_ok': True, 'sample': {'Technology': 34.0, 'Healthcare': 25.5, 'Utilities': 22.3, 'Communication Services': 21.9}}"
+    },
+    "H3_surfaces": {
+      "ok": true,
+      "detail": "{'node_ok': True, 'core_hlines': True, 'flag': True, 'why': True, 'priors': True}"
+    }
+  },
+  "status": "FAILS: ['H1_republish']"
+}

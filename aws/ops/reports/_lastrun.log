@@ -1,14 +1,16 @@
-executing-against: accc970146eb98db096a5bba8dbfb1a54658337c
-ops 3492 — module parity: ratio + macro + DuPont
-PASS  P1_shared_config — {'bytes': 12827}
-[02:38:03] PASS  P1_shared_config — {'bytes': 12827}
-PASS  P2_flagship_v25 — {'ops3492': True, 'consumes_shared': True, 'inline_gone': True, 'dupont': True, 'mx_intact': True, 'rt_intact': True, 'evt_intact': True, 'whales_intact': True}
-[02:38:03] PASS  P2_flagship_v25 — {'ops3492': True, 'consumes_shared': True, 'inline_gone': True, 'dupont': True, 'mx_intact': True, 'rt_intact': True, 'evt_intact': True, 'whales_intact': True}
-PASS  P3_module_parity — {'ratio_btn': True, 'macro_btn': True, 'loader': True, 'dupont': True, 'ops3492': True, 'ratios_store': True, 'macro_store': True, 'tdz_intact': True, 'evt_intact': True, 'flags_intact': True, 'marks_intact': True}
-[02:38:03] PASS  P3_module_parity — {'ratio_btn': True, 'macro_btn': True, 'loader': True, 'dupont': True, 'ops3492': True, 'ratios_store': True, 'macro_store': True, 'tdz_intact': True, 'evt_intact': True, 'flags_intact': True, 'marks_intact': True}
-PASS  P4_served_js — {'node_ok': [True, True, True, True]}
-[02:38:03] PASS  P4_served_js — {'node_ok': [True, True, True, True]}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: 9ecd9dd60b9fe19c0529762c58a71cd5506dd31a
+ops 3493 — sector medians republish + vs-Sector surfaces
+[03:04:22]   zip: 99137 bytes
+── 1. Lambda ──
+[03:04:23]   Lambda exists — updating
+[03:04:28] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  H1_republish — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct']}
+[03:04:32] FAIL  H1_republish — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct']}
+PASS  H2_realdata_sanity — {'tech_pe': 34.0, 'util_pe': 22.3, 'beneish_band_ok': True, 'sample': {'Technology': 34.0, 'Healthcare': 25.5, 'Utilities': 22.3, 'Communication Services': 21.9}}
+[03:04:32] PASS  H2_realdata_sanity — {'tech_pe': 34.0, 'util_pe': 22.3, 'beneish_band_ok': True, 'sample': {'Technology': 34.0, 'Healthcare': 25.5, 'Utilities': 22.3, 'Communication Services': 21.9}}
+PASS  H3_surfaces — {'node_ok': True, 'core_hlines': True, 'flag': True, 'why': True, 'priors': True}
+[03:06:54] PASS  H3_surfaces — {'node_ok': True, 'core_hlines': True, 'flag': True, 'why': True, 'priors': True}
+RESULT: FAILS: ['H1_republish']
+RESULT: FAILS: ['H1_republish']
 
-→ Report written to aws/ops/reports/latest/3492_module_parity.md
+→ Report written to aws/ops/reports/latest/3493_sector_medians.md
