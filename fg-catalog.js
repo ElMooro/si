@@ -1,4 +1,4 @@
-/* FG_CATALOG_OPS3476 + OPS3482 — single source of truth for the Fundamental Graphs
+/* FG_CATALOG_OPS3476 + OPS3482 + FG_SHARED_OPS3492 (macro registry + wk2d) — single source of truth for the Fundamental Graphs
    metric catalog. Consumers: /fundamental-graphs.html + why.html module.
    Keys MUST mirror engine justhodl-fundamental-graphs output. */
 window.FG_CAT=[
@@ -128,3 +128,16 @@ window.FG_CAT=[
 ];
 window.FG_TABS=[['FAV','\u2605 Favorites'],['IN','Institutional'],['IS','Income statement'],['BS','Balance sheet'],['CF','Cash flow'],['GR','Growth'],['ST','Statistics'],['PS','Per share'],['FC','Forecasts']];
 window.FG_INST=['implied_fcf_growth_pct','roic_pct','fcf_yield_pct','earnings_yield_ebit_pct','roc_greenblatt_pct','ev_ebitda_ttm','ev_gp_ttm','ev_sales_ttm','pe_ttm','p_fcf_ttm','peg_ttm','gp_to_assets_pct','gross_margin_pct','operating_margin_pct','fcf_margin_pct','rule_of_40','revenue_yoy_pct','revenue_cagr_3y_pct','eps_yoy_pct','fcf_yoy_pct','fcf_conversion_pct','income_quality','sloan_accruals_pct','sbc_to_revenue_pct','share_count_yoy_pct','net_buyback_yield_pct','dividend_yield_pct','net_shareholder_yield_pct','total_yield_pct','netdebt_to_ebitda_ttm','gross_debt_to_ebitda','ebitda_interest_coverage','fcf_to_debt_pct','debt_to_capital','current_ratio','capex_to_da','tobins_q','roe_pct','ccc_days','dso_days','altman_z','piotroski_f','beneish_m','kz_index','sustainable_growth_pct'];
+
+/* ── FG_SHARED_OPS3492: macro bridge config (single source for flagship + why module) ── */
+window.FG_WLAPI='https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws';
+window.FG_wk2d=function(w){var q=String(w).split('-'),y=+q[0],n=+q[1];if(!n||String(w).length>7)return String(w).slice(0,10);var d=new Date(Date.UTC(y,0,4));var dow=(d.getUTCDay()||7);d.setUTCDate(d.getUTCDate()-dow+1+(n-1)*7);return d.toISOString().slice(0,10);};
+window.FG_MACROS=[
+ {k:'US10Y',label:'US 10Y yield',u:'%',ids:['TVC:US10Y','FRED:DGS10','DGS10']},
+ {k:'US02Y',label:'US 2Y yield',u:'%',ids:['TVC:US02Y','FRED:DGS2','DGS2']},
+ {k:'T10Y2Y',label:'2s10s spread (10Y\u22122Y)',u:'%',derived:['US10Y','US02Y']},
+ {k:'HYOAS',label:'HY OAS',u:'%',ids:['FRED:BAMLH0A0HYM2','BAMLH0A0HYM2']},
+ {k:'FEDFUNDS',label:'Fed Funds',u:'%',ids:['FRED:FEDFUNDS','FEDFUNDS','FRED:DFF']},
+ {k:'UNRATE',label:'Unemployment',u:'%',ids:['FRED:UNRATE','UNRATE']},
+ {k:'DXY',label:'US Dollar (DXY)',u:'x',ids:['TVC:DXY','CAPITALCOM:DXY','DXY','FRED:DTWEXBGS']}];
+
