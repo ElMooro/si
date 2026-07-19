@@ -1,0 +1,22 @@
+{
+  "ops": 3508,
+  "gates": {
+    "H1_factor_battery": {
+      "ok": true,
+      "detail": "{'quality_pct': 98.2, 'expected': 98.2, 'axes': ['quality', 'value', 'momentum', 'growth', 'composite'], 'dormancy': ['ZZZZ not in master-ranker top set', 'ranker rows <30']}"
+    },
+    "H2_nvda_radar": {
+      "ok": false,
+      "detail": "{'state': 'insufficient', 'why': 'ranker rows <30', 'n_universe': None, 'axes': []}"
+    },
+    "H3_nightly_medians": {
+      "ok": true,
+      "detail": "{'marker_before_monday_gate': True, 'medians_age_s': 2}"
+    },
+    "H4_surfaces": {
+      "ok": true,
+      "detail": "{'node': True, 'catalog': True, 'flag': True, 'why': True, 'priors': True}"
+    }
+  },
+  "status": "FAILS: ['H2_nvda_radar']"
+}

@@ -1,12 +1,18 @@
-executing-against: 73d04933e967d40e0d5e01906a5678398e9443c3
-ops 3507 — Tier-3 recon
-FAIL  R1_master_ranker_schema — {'top_keys': ['alerts', 'as_of', 'calibration_weights', 'duration_s', 'feed_freshness', 'feed_health', 'method', 'missing_feeds', 'n_macro_signals', 'n_tickers_total', 'nowcast_regime', 'regime_context', 'risk_regime', 'schema_version', 'stale_feeds_excluded', 'top_macro', 'top_tickers', 'wl_research'], 'n_rows': 0, 'row_keys': [], 'nvda_row': None, 'sample': '[]'}
-[05:59:51] FAIL  R1_master_ranker_schema — {'top_keys': ['alerts', 'as_of', 'calibration_weights', 'duration_s', 'feed_freshness', 'feed_health', 'method', 'missing_feeds', 'n_macro_signals', 'n_tickers_total', 'nowcast_regime', 'regime_context', 'risk_regime', 'schema_version', 'stale_feeds_excluded', 'top_macro', 'top_tickers', 'wl_research'], 'n_rows': 0, 'row_keys': [], 'nvda_row': None, 'sample': '[]'}
-PASS  R2_freshness — {'sector_medians_lastmod': '2026-07-19 03:38:08+00:00', 'forensic_lastmod': '2026-07-18 17:26:48+00:00'}
-[05:59:52] PASS  R2_freshness — {'sector_medians_lastmod': '2026-07-19 03:38:08+00:00', 'forensic_lastmod': '2026-07-18 17:26:48+00:00'}
-PASS  R3_schedules — [{'name': 'fundamental-graphs-warmer-sched', 'expr': 'cron(25 9 * * ? *)', 'input': '{"warm_auto": true}'}, {'name': 'fundamentals-engine-sched', 'expr': 'cron(0 13 ? * MON-FRI *)', 'input': ''}]
-[05:59:52] PASS  R3_schedules — [{'name': 'fundamental-graphs-warmer-sched', 'expr': 'cron(25 9 * * ? *)', 'input': '{"warm_auto": true}'}, {'name': 'fundamentals-engine-sched', 'expr': 'cron(0 13 ? * MON-FRI *)', 'input': ''}]
-RESULT: FAILS: ['R1_master_ranker_schema']
-RESULT: FAILS: ['R1_master_ranker_schema']
+executing-against: 23fd1df887a105d2f935afc1ee06dc59599bc61d
+ops 3508 — factor-DNA radar · nightly medians · DuPont
+PASS  H1_factor_battery — {'quality_pct': 98.2, 'expected': 98.2, 'axes': ['quality', 'value', 'momentum', 'growth', 'composite'], 'dormancy': ['ZZZZ not in master-ranker top set', 'ranker rows <30']}
+[06:06:58] PASS  H1_factor_battery — {'quality_pct': 98.2, 'expected': 98.2, 'axes': ['quality', 'value', 'momentum', 'growth', 'composite'], 'dormancy': ['ZZZZ not in master-ranker top set', 'ranker rows <30']}
+[06:06:58]   zip: 106775 bytes
+── 1. Lambda ──
+[06:06:58]   Lambda exists — updating
+[06:07:03] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  H2_nvda_radar — {'state': 'insufficient', 'why': 'ranker rows <30', 'n_universe': None, 'axes': []}
+[06:07:13] FAIL  H2_nvda_radar — {'state': 'insufficient', 'why': 'ranker rows <30', 'n_universe': None, 'axes': []}
+PASS  H3_nightly_medians — {'marker_before_monday_gate': True, 'medians_age_s': 2}
+[06:07:16] PASS  H3_nightly_medians — {'marker_before_monday_gate': True, 'medians_age_s': 2}
+PASS  H4_surfaces — {'node': True, 'catalog': True, 'flag': True, 'why': True, 'priors': True}
+[06:09:20] PASS  H4_surfaces — {'node': True, 'catalog': True, 'flag': True, 'why': True, 'priors': True}
+RESULT: FAILS: ['H2_nvda_radar']
+RESULT: FAILS: ['H2_nvda_radar']
 
-→ Report written to aws/ops/reports/latest/3507_recon_t3.md
+→ Report written to aws/ops/reports/latest/3508_tier3_close.md
