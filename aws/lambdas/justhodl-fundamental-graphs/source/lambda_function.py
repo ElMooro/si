@@ -341,15 +341,35 @@ def compute_ta(daily):
             "wk_sample": wk_sample, "cutoff_year": cutoff}
 
 
+PRICE_WINDOWS = [("1962-01-01", "1980-12-31"),
+                 ("1981-01-01", "1995-12-31"),
+                 ("1996-01-01", "2008-12-31"),
+                 ("2009-01-01", None)]
+
+
 def fetch_price(sym):
-    frm = "1962-01-01"  # full price history (ops 3515)
-    try:
-        data = _fmp(
-            f"historical-price-eod/light?symbol={urllib.parse.quote(sym)}&from={frm}"
-        )
-    except Exception:  # noqa: BLE001
-        data = []
-    hist = data.get("historical") or data.get("data") or [] if isinstance(data, dict) else data
+    """FULL price history via windowed stitch — the /light endpoint caps
+    ~5k rows per request (single from=1962 stops ~2006; ops 3516 probe).
+    Four windows each under the cap, concat + dedupe by date."""
+    hist = []
+    for w_from, w_to in PRICE_WINDOWS:
+        qs = (f"historical-price-eod/light?symbol="
+              f"{urllib.parse.quote(sym)}&from={w_from}")
+        if w_to:
+            qs += f"&to={w_to}"
+        try:
+            data = _fmp(qs)
+        except Exception:  # noqa: BLE001
+            data = []
+        part = (data.get("historical") or data.get("data") or []
+                if isinstance(data, dict) else data)
+        if isinstance(part, list):
+            hist += part
+    seen = set()
+    hist = [r for r in hist
+            if isinstance(r, dict) and r.get("date")
+            and not (str(r["date"])[:10] in seen
+                     or seen.add(str(r["date"])[:10]))]
     rows, vrows = [], []
     for r in hist if isinstance(hist, list) else []:
         d = r.get("date")
@@ -1305,7 +1325,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.11.0",
+        "version": "1.11.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1323,6 +1343,7 @@ def build_doc(sym, period):
         "price": weekly_px,
         "tech": tech_doc,
         "factor_dna": _fdna,
+        "stmt_rows": {"inc": len(inc), "bal": len(bal), "cf": len(cf)},
         "sources": [
             "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
             "FMP /stable historical-price-eod/light (mcap_t = close_t x diluted shares_t)",
@@ -2202,7 +2223,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.11.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.11.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2226,7 +2247,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.11.0"}
+                "version": "1.11.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2242,7 +2263,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.11.0"}, headers_in)
+                               "version": "1.11.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
