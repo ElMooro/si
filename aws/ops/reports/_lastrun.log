@@ -1,16 +1,16 @@
-executing-against: 68ed517281508e3575720b8f64d5f11eb629951c
-ops 3499 — controls + red/yellow/green + flashing extremes
-PASS  C1_extreme_suites — {'hard_table': True, 'dual_basis': True, 'elite_not_extreme': True}
-[03:57:09] PASS  C1_extreme_suites — {'hard_table': True, 'dual_basis': True, 'elite_not_extreme': True}
-[03:57:10]   zip: 101817 bytes
+executing-against: c6492304bb7487ba8fa523f3903ca2d0d9a7ae9d
+ops 3500 — technicals: MAs, crosses, Bollinger, RSI, patterns
+PASS  T1_math_battery — {'sma': True, 'bb': True, 'rsi': True, 'x200': (True, '2024-11-01'), 'gc': (True, '2024-11-13'), 'stack_and_nofalse': True, 'patterns': True}
+[04:04:20] PASS  T1_math_battery — {'sma': True, 'bb': True, 'rsi': True, 'x200': (True, '2024-11-01'), 'gc': (True, '2024-11-13'), 'stack_and_nofalse': True, 'patterns': True}
+[04:04:20]   zip: 103953 bytes
 ── 1. Lambda ──
-[03:57:10]   Lambda exists — updating
-[03:57:13] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  C2_aapl_extremes — {'n_extreme': 4, 'extremes': ['Altman Z 10.94 ≥ 3.00 norm — ELITE (≥ 8.00)', 'Piotroski F 9.00 ≥ 7.00 norm — ELITE (≥ 9.00)', 'ROIC 99.70 ≥ 15.00 norm — ELITE (≥ 30.00)', 'Interest coverage 120.35 ≥ 12.00 norm — ELITE (≥ 50.00)']}
-[03:57:20] PASS  C2_aapl_extremes — {'n_extreme': 4, 'extremes': ['Altman Z 10.94 ≥ 3.00 norm — ELITE (≥ 8.00)', 'Piotroski F 9.00 ≥ 7.00 norm — ELITE (≥ 9.00)', 'ROIC 99.70 ≥ 15.00 norm — ELITE (≥ 30.00)', 'Interest coverage 120.35 ≥ 12.00 norm — ELITE (≥ 50.00)']}
-PASS  C3_surfaces — {'node_ok': True, 'flag': True, 'why': True, 'priors': True}
-[03:59:24] PASS  C3_surfaces — {'node_ok': True, 'flag': True, 'why': True, 'priors': True}
-RESULT: ALL PASS
-RESULT: ALL PASS
+[04:04:20]   Lambda exists — updating
+[04:04:25] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  T2_aapl_live — {'status': {'last_close': None, 'ma200': None, 'pct_vs_200': None, 'above_200': None, 'bull_stack': None, 'rsi14': None, 'bb_pos': None, 'last_cross': None}, 'n_events': 0, 'n_px_ma200': 0, 'patterns': None}
+[04:04:33] FAIL  T2_aapl_live — {'status': {'last_close': None, 'ma200': None, 'pct_vs_200': None, 'above_200': None, 'bull_stack': None, 'rsi14': None, 'bb_pos': None, 'last_cross': None}, 'n_events': 0, 'n_px_ma200': 0, 'patterns': None}
+PASS  T3_surfaces — {'node_ok': True, 'core': True, 'flag': True, 'why': True, 'priors': True}
+[04:06:57] PASS  T3_surfaces — {'node_ok': True, 'core': True, 'flag': True, 'why': True, 'priors': True}
+RESULT: FAILS: ['T2_aapl_live']
+RESULT: FAILS: ['T2_aapl_live']
 
-→ Report written to aws/ops/reports/latest/3499_controls_semantics.md
+→ Report written to aws/ops/reports/latest/3500_ta_layer.md

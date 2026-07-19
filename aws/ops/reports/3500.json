@@ -1,0 +1,18 @@
+{
+  "ops": 3500,
+  "gates": {
+    "T1_math_battery": {
+      "ok": true,
+      "detail": "{'sma': True, 'bb': True, 'rsi': True, 'x200': (True, '2024-11-01'), 'gc': (True, '2024-11-13'), 'stack_and_nofalse': True, 'patterns': True}"
+    },
+    "T2_aapl_live": {
+      "ok": false,
+      "detail": "{'status': {'last_close': None, 'ma200': None, 'pct_vs_200': None, 'above_200': None, 'bull_stack': None, 'rsi14': None, 'bb_pos': None, 'last_cross': None}, 'n_events': 0, 'n_px_ma200': 0, 'patterns': None}"
+    },
+    "T3_surfaces": {
+      "ok": true,
+      "detail": "{'node_ok': True, 'core': True, 'flag': True, 'why': True, 'priors': True}"
+    }
+  },
+  "status": "FAILS: ['T2_aapl_live']"
+}
