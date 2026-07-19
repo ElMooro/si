@@ -1,39 +1,10 @@
-executing-against: 5cef4de0a285f4f6987b7407686ae6eea11f5423
-ops 3550 — census fleet propagation
-[23:13:59]   zip: 103622 bytes
-── 1. Lambda ──
-[23:13:59]   Lambda exists — updating
-[23:14:04] ✅   ✓ updated justhodl-best-setups
-[23:14:07]   zip: 83254 bytes
-── 1. Lambda ──
-[23:14:07]   Lambda exists — updating
-[23:14:10] ✅   ✓ updated justhodl-short-book
-[23:14:13]   zip: 131577 bytes
-── 1. Lambda ──
-[23:14:13]   Lambda exists — updating
-[23:14:18] ✅   ✓ updated justhodl-equity-research
-[23:14:21]   zip: 84965 bytes
-── 1. Lambda ──
-[23:14:21]   Lambda exists — updating
-[23:14:24] ✅   ✓ updated justhodl-comeback-screener
-[23:14:26]   zip: 97782 bytes
-── 1. Lambda ──
-[23:14:27]   Lambda exists — updating
-[23:14:32] ✅   ✓ updated justhodl-master-ranker
-PASS  V1_zip_markers — {'justhodl-best-setups': True, 'justhodl-short-book': True, 'justhodl-equity-research': True, 'justhodl-comeback-screener': True, 'justhodl-master-ranker': True}
-[23:14:34] PASS  V1_zip_markers — {'justhodl-best-setups': True, 'justhodl-short-book': True, 'justhodl-equity-research': True, 'justhodl-comeback-screener': True, 'justhodl-master-ranker': True}
-FAIL  V2_best_setups — {'n_setups': 0, 'with_census': 0, 'sample': []}
-[23:14:44] FAIL  V2_best_setups — {'n_setups': 0, 'with_census': 0, 'sample': []}
-PASS  V3_short_book — {'n': 5, 'with_census': 4, 'sample': [('WDC', 66.9, []), ('BLK', 37.0, []), ('SNDK', 62.2, []), ('DVN', 46.7, [])]}
-[23:14:49] PASS  V3_short_book — {'n': 5, 'with_census': 4, 'sample': [('WDC', 66.9, []), ('BLK', 37.0, []), ('SNDK', 62.2, []), ('DVN', 46.7, [])]}
-FAIL  V4_equity_research — {'census': None}
-[23:14:52] FAIL  V4_equity_research — {'census': None}
-FAIL  V5_comeback — {'n_rows': 0, 'with_census': 0, 'sample': []}
-[23:15:12] FAIL  V5_comeback — {'n_rows': 0, 'with_census': 0, 'sample': []}
-PASS  V6_master_ranker_zip — field self-activates on next scheduled run
-[23:15:12] PASS  V6_master_ranker_zip — field self-activates on next scheduled run
-PASS  V7_why_chips — {'node': True}
-[23:16:13] PASS  V7_why_chips — {'node': True}
-RESULT: FAILS: ['V2_best_setups', 'V4_equity_research', 'V5_comeback']
+executing-against: 819bef860996ae6acf63b088a71607dfe78db6ac
+PASS  W1_best_setups — {'lastmod': '2026-07-19 23:14:43', 'pre_deploy_doc': False, 'top_keys': ['alpha_trust_wiring', 'bond_vol_regime', 'brain_aligned', 'buildout_threats', 'by_verdict', 'contested_picks', 'duration_s', 'engine', 'generated_at', 'industry_context'], 'n_rows': 149, 'with_census': 27, 'sample': [('BKNG', 63.5, 'HIGH'), ('GILD', 66.0, 'LOW'), ('MU', 81.6, 'MED'), ('EOG', 41.0, 'LOW')]}
+[23:25:11] PASS  W1_best_setups — {'lastmod': '2026-07-19 23:14:43', 'pre_deploy_doc': False, 'top_keys': ['alpha_trust_wiring', 'bond_vol_regime', 'brain_aligned', 'buildout_threats', 'by_verdict', 'contested_picks', 'duration_s', 'engine', 'generated_at', 'industry_context'], 'n_rows': 149, 'with_census': 27, 'sample': [('BKNG', 63.5, 'HIGH'), ('GILD', 66.0, 'LOW'), ('MU', 81.6, 'MED'), ('EOG', 41.0, 'LOW')]}
+FAIL  W2_comeback — {'lastmod': '2026-07-19 23:15:11', 'pre_deploy_doc': False, 'top_keys': ['as_of', 'boards', 'candidates_n', 'duration_s', 'engine', 'fmp_dilution_pulls', 'methodology', 'schema', 'universe_n', 'warns'], 'n_rows': 87, 'with_census': 0, 'sample': []}
+[23:25:12] FAIL  W2_comeback — {'lastmod': '2026-07-19 23:15:11', 'pre_deploy_doc': False, 'top_keys': ['as_of', 'boards', 'candidates_n', 'duration_s', 'engine', 'fmp_dilution_pulls', 'methodology', 'schema', 'universe_n', 'warns'], 'n_rows': 87, 'with_census': 0, 'sample': []}
+PASS  W3_equity_research — {'prefix': 'equity-research/', 'n_listed': 6, 'newest': [('NVDA.json', '2026-07-19 23:14:53'), ('LLY.json', '2026-07-19 08:00:46'), ('UNH.json', '2026-07-19 08:00:46'), ('WFC.json', '2026-07-19 08:00:46')], 'post_deploy_with_census': ('equity-research/NVDA.json', 42.7, 'LOW'), 'self_activation': False}
+[23:25:12] PASS  W3_equity_research — {'prefix': 'equity-research/', 'n_listed': 6, 'newest': [('NVDA.json', '2026-07-19 23:14:53'), ('LLY.json', '2026-07-19 08:00:46'), ('UNH.json', '2026-07-19 08:00:46'), ('WFC.json', '2026-07-19 08:00:46')], 'post_deploy_with_census': ('equity-research/NVDA.json', 42.7, 'LOW'), 'self_activation': False}
+RESULT: FAILS: ['W2_comeback']
 
-→ Report written to aws/ops/reports/latest/3550_census_propagation.md
+→ Report written to aws/ops/reports/latest/3551_prop_truth.md
