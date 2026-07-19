@@ -22,7 +22,7 @@ import boto3
 
 from signals_emit import log_signal
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/equity-ftd.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -35,6 +35,7 @@ ETFISH = ("ETF", "ETN", " FUND", "TRUST", "INDEX", "ISHARES", "SPDR",
 
 FLOORS = {"price": 5.0, "avg20": 500_000, "usd": 5_000_000,
           "spike": 3.0, "dtc_peak": 0.5}
+MIN_SPIKE_BASE = 20_000  # prior-mean shares; kills near-zero-denominator artifacts
 MAX_SIGNALS = 8
 CAND_VOL_CAP = 350
 
@@ -124,8 +125,8 @@ def spike_map(files):
         obs = [p["per"][sym]["q"] for p in priors if sym in p["per"]]
         if len(obs) >= 3:
             mu = sum(obs) / len(obs)
-            if mu > 0:
-                out[sym] = e["q"] / mu
+            if mu >= MIN_SPIKE_BASE:
+                out[sym] = (e["q"] / mu, mu)
     return out
 
 
@@ -164,7 +165,7 @@ def evaluate(files, vol_fn, floors=FLOORS, max_signals=MAX_SIGNALS):
     latest = files[0]["per"]
     spk = spike_map(files)
     by_usd = sorted(latest.items(), key=lambda x: -x[1]["usd"])[:250]
-    by_spk = sorted(((s, v) for s, v in spk.items()
+    by_spk = sorted(((s, v[0]) for s, v in spk.items()
                      if latest[s]["q"] >= 100_000),
                     key=lambda x: -x[1])[:250]
     cand = list(dict.fromkeys(
@@ -178,7 +179,8 @@ def evaluate(files, vol_fn, floors=FLOORS, max_signals=MAX_SIGNALS):
         peak = max(e["days"].values()) if e["days"] else 0
         r = {"t": sym, "q": e["q"], "usd": rnd(e["usd"] / 1e6, 2),
              "peak_day_q": peak,
-             "spike": rnd(spk.get(sym), 2),
+             "spike": rnd(spk.get(sym, (None, None))[0], 2),
+             "base": rnd(spk.get(sym, (None, None))[1], 0),
              "avg20": rnd(av, 0), "px": rnd(px, 2),
              "dtc_peak": rnd(peak / av, 2) if av else None,
              "desc": e["desc"][:40]}
