@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.6.0"
+VERSION = "1.6.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -386,8 +386,9 @@ def joins(S3c, tickers):
             i = pos.get(str(t).upper())
             if i is None or not isinstance(o, dict):
                 continue
-            v = None
-            for kk, vv in o.items():
+            v = o.get("wn") if isinstance(o.get("wn"),
+                                          (int, float)) else None
+            for kk, vv in (o.items() if v is None else []):
                 if "whale" in kk and "usd" in kk and                         isinstance(vv, (int, float)):
                     v = vv; break
             if v is None:
