@@ -1,16 +1,12 @@
-executing-against: c6492304bb7487ba8fa523f3903ca2d0d9a7ae9d
-ops 3500 — technicals: MAs, crosses, Bollinger, RSI, patterns
-PASS  T1_math_battery — {'sma': True, 'bb': True, 'rsi': True, 'x200': (True, '2024-11-01'), 'gc': (True, '2024-11-13'), 'stack_and_nofalse': True, 'patterns': True}
-[04:04:20] PASS  T1_math_battery — {'sma': True, 'bb': True, 'rsi': True, 'x200': (True, '2024-11-01'), 'gc': (True, '2024-11-13'), 'stack_and_nofalse': True, 'patterns': True}
-[04:04:20]   zip: 103953 bytes
+executing-against: 55b1fe0987fdcb29112495d48118372f16d87a60
+ops 3501 — TA relocation close (v1.7.1)
+[04:09:18]   zip: 103999 bytes
 ── 1. Lambda ──
-[04:04:20]   Lambda exists — updating
-[04:04:25] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  T2_aapl_live — {'status': {'last_close': None, 'ma200': None, 'pct_vs_200': None, 'above_200': None, 'bull_stack': None, 'rsi14': None, 'bb_pos': None, 'last_cross': None}, 'n_events': 0, 'n_px_ma200': 0, 'patterns': None}
-[04:04:33] FAIL  T2_aapl_live — {'status': {'last_close': None, 'ma200': None, 'pct_vs_200': None, 'above_200': None, 'bull_stack': None, 'rsi14': None, 'bb_pos': None, 'last_cross': None}, 'n_events': 0, 'n_px_ma200': 0, 'patterns': None}
-PASS  T3_surfaces — {'node_ok': True, 'core': True, 'flag': True, 'why': True, 'priors': True}
-[04:06:57] PASS  T3_surfaces — {'node_ok': True, 'core': True, 'flag': True, 'why': True, 'priors': True}
-RESULT: FAILS: ['T2_aapl_live']
-RESULT: FAILS: ['T2_aapl_live']
+[04:09:18]   Lambda exists — updating
+[04:09:24] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  Z2_aapl_live — {'version': '1.7.1', 'tech_error': None, 'status': {'last_close': 333.74, 'ma200': 274.2158, 'pct_vs_200': 21.71, 'above_200': True, 'bull_stack': True, 'rsi14': 71.6, 'bb_pos': 0.86, 'last_cross': {'d': '2026-07-02', 'type': 'X_UP_20'}}, 'n_events': 40, 'n_px_ma200': 510, 'recent_events': [['2026-06-25', 'X_DN_50', 'price crossed below the 50-DMA'], ['2026-06-26', 'X_UP_100', 'price crossed above the 100-DMA'], ['2026-07-01', 'X_UP_50', 'price crossed abo
+[04:09:30] PASS  Z2_aapl_live — {'version': '1.7.1', 'tech_error': None, 'status': {'last_close': 333.74, 'ma200': 274.2158, 'pct_vs_200': 21.71, 'above_200': True, 'bull_stack': True, 'rsi14': 71.6, 'bb_pos': 0.86, 'last_cross': {'d': '2026-07-02', 'type': 'X_UP_20'}}, 'n_events': 40, 'n_px_ma200': 510, 'recent_events': [['2026-06-25', 'X_DN_50', 'price crossed below the 50-DMA'], ['2026-06-26', 'X_UP_100', 'price crossed above the 100-DMA'], ['2026-07-01', 'X_UP_50', 'price crossed abo
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3500_ta_layer.md
+→ Report written to aws/ops/reports/latest/3501_ta_close.md
