@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -36,11 +36,11 @@ MX_EXCLUDE_PRE = ("px_", "rsi_", "vol", "est_")
 HIST_KEY = "data/fundamental-census-history.json"
 CACHE_TPL = "data/fundgraph/cache/{sym}_quarter_v21.json"
 FG_FN = "justhodl-fundamental-graphs"
-BATCH = 25
+BATCH = 8  # v1.2.0: small SYNC batches — proven robust; Event-25 dropped silently
 
 S3 = boto3.client("s3", region_name="us-east-1")
 LAM = boto3.client("lambda", region_name="us-east-1",
-                   config=Config(read_timeout=900,
+                   config=Config(read_timeout=420,
                                  connect_timeout=10,
                                  retries={"max_attempts": 0}))
 
@@ -233,14 +233,16 @@ def lambda_handler(event, context):
         batch = [u["t"] for u in uni[cur:cur + BATCH]]
         try:
             if batch:
-                LAM.invoke(FunctionName=FG_FN,
-                           InvocationType="Event",
-                           Payload=json.dumps(
-                               {"warm": batch, "periods": ["quarter"],
-                                "refresh": refresh}).encode())
-                time.sleep(35)
+                rr = LAM.invoke(FunctionName=FG_FN,
+                                Payload=json.dumps(
+                                    {"warm": batch,
+                                     "periods": ["quarter"],
+                                     "refresh": refresh}).encode())
+                print(f"[census] warm@{cur} status="
+                      f"{rr.get('StatusCode')} err="
+                      f"{rr.get('FunctionError')}")
         except Exception as e:  # noqa: BLE001
-            print(f"[census] warm batch@{cur}: {str(e)[:80]}")
+            print(f"[census] warm batch@{cur}: {str(e)[:90]}")
         finally:
             nxt = cur + BATCH
             payload = ({"phase": "warm", "cursor": nxt,
