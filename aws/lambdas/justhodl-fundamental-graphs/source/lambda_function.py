@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v19"  # v19: + ROE/ROA/DIO rules, tech-basis verdicts, module digest parity  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v20"  # v20: + factor-DNA radar join (master-ranker), nightly sector medians  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -635,6 +635,10 @@ def build_doc(sym, period):
     profile = fetch_profile(sym)
     daily_px, weekly_px, vol_px = fetch_price(sym)
     tech_doc = None
+    try:
+        _fdna = factor_dna(sym)
+    except Exception as _fe:  # noqa: BLE001
+        _fdna = {"state": "insufficient", "why": str(_fe)[:80]}
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
     whales = whale_lookup(sym)
@@ -1301,7 +1305,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.9.1",
+        "version": "1.10.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1318,6 +1322,7 @@ def build_doc(sym, period):
         "earnings": earnings,
         "price": weekly_px,
         "tech": tech_doc,
+        "factor_dna": _fdna,
         "sources": [
             "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
             "FMP /stable historical-price-eod/light (mcap_t = close_t x diluted shares_t)",
@@ -1603,6 +1608,74 @@ ELITE_NORM = {"roic_pct": ("H", 30), "gross_margin_pct": ("H", 75),
               "netdebt_to_ebitda_ttm": ("L", -1.0),
               "sbc_to_revenue_pct": ("L", 0.5), "current_ratio": ("H", 3),
               "roe_pct": ("H", 40), "roa_pct": ("H", 20)}
+
+
+_RANKER = {"doc": None, "ts": 0}
+FACTOR_PREF = ["quality", "value", "momentum", "growth", "safety",
+               "yield", "sentiment", "flow", "technical", "composite",
+               "conviction", "score", "final_score", "rank_score"]
+
+
+def ranker_rows():
+    if _RANKER["doc"] is not None and time.time() - _RANKER["ts"] < 21600:
+        return _RANKER["doc"]
+    try:
+        d = json.loads(_s3().get_object(
+            Bucket=S3_BUCKET,
+            Key="data/master-ranker.json")["Body"].read())
+        rows = d.get("top_tickers") or []
+        _RANKER["doc"] = rows if isinstance(rows, list) else []
+        _RANKER["ts"] = time.time()
+    except Exception:  # noqa: BLE001
+        _RANKER["doc"] = []
+        _RANKER["ts"] = time.time()
+    return _RANKER["doc"]
+
+
+def factor_dna(sym):
+    """Radar axes from the master-ranker cross-section: pick numeric
+    factor fields present in >=80% of rows (preferred order, cap 7),
+    convert this ticker's values to CROSS-SECTIONAL percentiles.
+    Honest dormancy when the join or coverage is insufficient."""
+    rows = ranker_rows()
+    if len(rows) < 30:
+        return {"state": "insufficient", "why": "ranker rows <30"}
+    me = next((r for r in rows
+               if (r.get("ticker") or r.get("symbol")
+                   or r.get("t")) == sym), None)
+    if not me:
+        return {"state": "insufficient",
+                "why": "%s not in master-ranker top set" % sym}
+    n = len(rows)
+    axes = []
+    seen = set()
+
+    def numeric_col(k):
+        vals = [r.get(k) for r in rows]
+        vals = [v for v in vals if isinstance(v, (int, float))]
+        return vals if len(vals) >= 0.8 * n else None
+
+    cand = FACTOR_PREF + [k for k in sorted(me.keys())
+                          if isinstance(me.get(k), (int, float))]
+    for k in cand:
+        if k in seen or len(axes) >= 7:
+            continue
+        seen.add(k)
+        if not isinstance(me.get(k), (int, float)):
+            continue
+        col = numeric_col(k)
+        if not col or len(set(col)) < 5:
+            continue
+        below = sum(1 for v in col if v < me[k])
+        eq = sum(1 for v in col if v == me[k])
+        axes.append({"k": k, "label": k.replace("_", " "),
+                     "val": rnd(me[k], 3),
+                     "pct": rnd(100.0 * (below + 0.5 * eq) / len(col), 1)})
+    if len(axes) < 4:
+        return {"state": "insufficient",
+                "why": "only %d comparable factor columns" % len(axes)}
+    return {"state": "ok", "n_universe": n, "axes": axes,
+            "as_of": None}
 
 
 def derive_verdicts(P, lb, sector, med, bands=None, tech=None):
@@ -2062,12 +2135,12 @@ def lambda_handler(event, context):  # noqa: ARG001
         annual_too = datetime.now(timezone.utc).weekday() == 0
         symdir_n = None
         secmed_n = None
+        try:  # NIGHTLY (ops 3508): cross-sectional medians+bands daily
+            sm = build_sector_medians()
+            secmed_n = sm["n_sectors"] if sm else -1
+        except Exception:  # noqa: BLE001
+            secmed_n = -1
         if annual_too:
-            try:
-                sm = build_sector_medians()
-                secmed_n = sm["n_sectors"] if sm else -1
-            except Exception:  # noqa: BLE001
-                secmed_n = -1
             try:
                 symdir_n = len(load_symdir(force=True))
             except Exception:  # noqa: BLE001
@@ -2091,7 +2164,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.9.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.10.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2115,7 +2188,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.9.1"}
+                "version": "1.10.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2131,7 +2204,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.9.1"}, headers_in)
+                               "version": "1.10.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

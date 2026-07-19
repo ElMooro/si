@@ -141,3 +141,15 @@ window.FG_MACROS=[
  {k:'UNRATE',label:'Unemployment',u:'%',ids:['FRED:UNRATE','UNRATE']},
  {k:'DXY',label:'US Dollar (DXY)',u:'x',ids:['TVC:DXY','CAPITALCOM:DXY','DXY','FRED:DTWEXBGS']}];
 
+/* FG_RADAR_OPS3508: tiny dependency-free radar. axes=[{label,pct,val}] */
+window.FG_RADAR=function(axes,size){
+  var S=size||190,cx=S/2,cy=S/2,R=S/2-34,n=axes.length,NS='http://www.w3.org/2000/svg';
+  var pt=function(i,r){var a=-Math.PI/2+i*2*Math.PI/n;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  var h='<svg width="'+S+'" height="'+S+'" viewBox="0 0 '+S+' '+S+'">';
+  [0.33,0.66,1].forEach(function(f){
+    h+='<polygon points="'+axes.map(function(_,i){return pt(i,R*f).join(',');}).join(' ')+'" fill="none" stroke="#1e293b" stroke-width="1"/>';});
+  axes.forEach(function(_,i){var p=pt(i,R);h+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="#1e293b" stroke-width="1"/>';});
+  h+='<polygon points="'+axes.map(function(a,i){return pt(i,R*Math.max(0.02,(a.pct||0)/100)).join(',');}).join(' ')+'" fill="#22d3ee2e" stroke="#22d3ee" stroke-width="1.6"><title>'+axes.map(function(a){return a.label+' p'+a.pct;}).join(' \u00b7 ')+'</title></polygon>';
+  axes.forEach(function(a,i){var p=pt(i,R+16);
+    h+='<text x="'+p[0]+'" y="'+p[1]+'" fill="#8b98ad" font-size="8.5" text-anchor="middle" dominant-baseline="middle">'+a.label+' <tspan fill="#22d3ee">p'+Math.round(a.pct)+'</tspan></text>';});
+  return h+'</svg>';};
