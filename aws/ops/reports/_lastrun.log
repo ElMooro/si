@@ -1,12 +1,16 @@
-executing-against: d1b9db14e9d0a1921fceb6ab22a6c7d8b0666c9f
-[22:36:12]   zip: 89634 bytes
+executing-against: 9aac4931d93cd5df75c425383d6bc08126b71e87
+ops 3548 — risk layer
+[joins] finviz insider fields: ['insider_own_pct', 'insider_trans_pct']
+PASS  T1_ci — {'safe': 14.3, 'risk': 99.7, 'util_ind': 34.8}
+[22:50:13] PASS  T1_ci — {'safe': 14.3, 'risk': 99.7, 'util_ind': 34.8}
+[22:50:13]   zip: 89950 bytes
 ── 1. Lambda ──
-[22:36:12]   Lambda exists — updating
-[22:36:17] ✅   ✓ updated justhodl-fundamental-census
-PASS  S1_zip_marker — {'zip_kb': 87, 'has_new': True, 'old_gone': True}
-[22:36:19] PASS  S1_zip_marker — {'zip_kb': 87, 'has_new': True, 'old_gone': True}
-PASS  S2_retail — {'retail_n': 27, 'acc_n': 25, 'dist_n': 2, 'acc_sample': ['EVRG', 'DRI', 'SPGI', 'MRSH', 'LHX', 'RVTY', 'RCL', 'TXT', 'MSFT', 'GLW'], 'dist_sample': ['KKR', 'ARES'], 'acc_high_conviction': [('VRTX', 62.7), ('WST', 57.2), ('GLW', 57.0), ('PAYX', 56.1), ('DRI', 55.2), ('DPZ', 53.3)]}
-[22:37:26] PASS  S2_retail — {'retail_n': 27, 'acc_n': 25, 'dist_n': 2, 'acc_sample': ['EVRG', 'DRI', 'SPGI', 'MRSH', 'LHX', 'RVTY', 'RCL', 'TXT', 'MSFT', 'GLW'], 'dist_sample': ['KKR', 'ARES'], 'acc_high_conviction': [('VRTX', 62.7), ('WST', 57.2), ('GLW', 57.0), ('PAYX', 56.1), ('DRI', 55.2), ('DPZ', 53.3)]}
+[22:50:13]   Lambda exists — updating
+[22:50:18] ✅   ✓ updated justhodl-fundamental-census
+PASS  T2_live — {'zip_marker': True, 'risk_n': 496, 'ind_risk_n': 394, 'terciles': (44.4, 56.9), 'safest5': [('MNST', 15.7), ('COST', 17.9), ('JNJ', 18.3), ('AME', 18.7), ('EA', 19.4)], 'riskiest5': [('NCLH', 98.6), ('PSKY', 95.6), ('CHTR', 93.0), ('VST', 91.2), ('WYNN', 87.8)], 'safest_industries': [('Insurance - Diversified', 26.8), ('Insurance - Property & Casualty', 32.8), ('Beverages - Non-Alcoholic', 36.0), ('Insurance - Life', 38.1), ('Drug Manufacturers - General', 39.0)], 'riskiest_industries': [('Travel Services', 70.5), ('Computer Hardware', 65.5), ('Telecommunications Services', 62.5), ('Packaging & Containers', 61.7), ('Medical - Care 
+[22:51:29] PASS  T2_live — {'zip_marker': True, 'risk_n': 496, 'ind_risk_n': 394, 'terciles': (44.4, 56.9), 'safest5': [('MNST', 15.7), ('COST', 17.9), ('JNJ', 18.3), ('AME', 18.7), ('EA', 19.4)], 'riskiest5': [('NCLH', 98.6), ('PSKY', 95.6), ('CHTR', 93.0), ('VST', 91.2), ('WYNN', 87.8)], 'safest_industries': [('Insurance - Diversified', 26.8), ('Insurance - Property & Casualty', 32.8), ('Beverages - Non-Alcoholic', 36.0), ('Insurance - Life', 38.1), ('Drug Manufacturers - General', 39.0)], 'riskiest_industries': [('Travel Services', 70.5), ('Computer Hardware', 65.5), ('Telecommunications Services', 62.5), ('Packaging & Containers', 61.7), ('Medical - Care 
+PASS  T3_page — {'node': True}
+[22:52:31] PASS  T3_page — {'node': True}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3547_deploy_proof.md
+→ Report written to aws/ops/reports/latest/3548_risk_layer.md
