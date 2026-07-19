@@ -1,15 +1,9 @@
-executing-against: 1e431fc93a5686b20f5ed39142a49df363dc0090
-ops 3537 — industry + institutional pack
-PASS  L1_ci — aligned
-[21:13:59] PASS  L1_ci — aligned
-[21:13:59]   zip: 85878 bytes
-── 1. Lambda ──
-[21:14:00]   Lambda exists — updating
-[21:14:05] ✅   ✓ updated justhodl-fundamental-census
-PASS  L2_live — {'distinct_industries': 113, 'n_ind': 496, 'aapl_industry': 'Consumer Electronics', 'semis_sample': ['NVDA', 'MU', 'TER', 'MCHP', 'AVGO', 'MRVL', 'Q', 'AMD'], 'n_turn': 493, 'n_flagged': 60, 'careful': 60, 'n_mcap': 495}
-[21:15:23] PASS  L2_live — {'distinct_industries': 113, 'n_ind': 496, 'aapl_industry': 'Consumer Electronics', 'semis_sample': ['NVDA', 'MU', 'TER', 'MCHP', 'AVGO', 'MRVL', 'Q', 'AMD'], 'n_turn': 493, 'n_flagged': 60, 'careful': 60, 'n_mcap': 495}
-PASS  L3_page — {'node': True}
-[21:16:25] PASS  L3_page — {'node': True}
+executing-against: be66fde91199dc24970433b405097bf0bd722e89
+ops 3538 — legend screens
+PASS  M1_page — {'node': True, 'missing': []}
+[21:30:03] PASS  M1_page — {'node': True, 'missing': []}
+PASS  M2_live_screens — {'buffett_n': 88, 'buffett_head': ['WDC', 'NVDA', 'MU', 'SNDK', 'TER'], 'chanos_n': 41, 'chanos_head': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN']}
+[21:30:03] PASS  M2_live_screens — {'buffett_n': 88, 'buffett_head': ['WDC', 'NVDA', 'MU', 'SNDK', 'TER'], 'chanos_n': 41, 'chanos_head': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN']}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3537_industry_pack.md
+→ Report written to aws/ops/reports/latest/3538_legend_screens.md
