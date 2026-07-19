@@ -1,18 +1,14 @@
-executing-against: 8b7e020f9ebde9e7a435294d714839789aeee450
-ops 3505 — tech verdicts + module digest parity
-PASS  F1_ci_battery — {'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}
-[05:41:26] PASS  F1_ci_battery — {'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}
-[05:41:26]   zip: 105731 bytes
+executing-against: 6cb41f88d8d8d7da46f728f67110c6566622a4fd
+ops 3506 — tech verdicts cap-exempt
+[05:46:57]   zip: 105862 bytes
 ── 1. Lambda ──
-[05:41:26]   Lambda exists — updating
-[05:41:32] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  F2_nvda_live — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating — accrual-driven e', 'Beneish M -0.78 above -1.78 — manipulation-risk zone', 'Sloan accruals 41.4% of assets — earnings persistence risk']}
-[05:41:41] FAIL  F2_nvda_live — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating — accrual-driven e', 'Beneish M -0.78 above -1.78 — manipulation-risk zone', 'Sloan accruals 41.4% of assets — earnings persistence risk']}
-PASS  F3_aapl_live — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}
-[05:41:41] PASS  F3_aapl_live — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}
-PASS  F4_surfaces — {'node': True, 'cards': True, 'single_emitter': True, 'priors': True}
-[05:44:05] PASS  F4_surfaces — {'node': True, 'cards': True, 'single_emitter': True, 'priors': True}
-RESULT: FAILS: ['F2_nvda_live']
-RESULT: FAILS: ['F2_nvda_live']
+[05:46:57]   Lambda exists — updating
+[05:47:00] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  G2_nvda — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech': ['Golden-cross regime (50>200)', 'Price +5.4% above the 200-DMA', 'Double top confirmed 2026-02-25 (neck 171.88)']}
+[05:47:10] PASS  G2_nvda — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech': ['Golden-cross regime (50>200)', 'Price +5.4% above the 200-DMA', 'Double top confirmed 2026-02-25 (neck 171.88)']}
+PASS  G3_aapl — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Golden-cross regime (50>200) since 2025-09-15', 'Bull MA stack 20>50>100>200', 'Price +21.7% above the 200-DMA', 'Double top confirmed 2026-02-06 (neck 246.70)']}
+[05:47:10] PASS  G3_aapl — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Golden-cross regime (50>200) since 2025-09-15', 'Bull MA stack 20>50>100>200', 'Price +21.7% above the 200-DMA', 'Double top confirmed 2026-02-06 (neck 246.70)']}
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3505_full_spectrum_verdicts.md
+→ Report written to aws/ops/reports/latest/3506_tech_cap.md
