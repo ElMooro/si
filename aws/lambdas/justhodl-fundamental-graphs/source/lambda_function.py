@@ -1301,7 +1301,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.9.0",
+        "version": "1.9.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1808,8 +1808,14 @@ def derive_verdicts(P, lb, sector, med, bands=None, tech=None):
 
     out.sort(key=lambda x: (-(1 if x.get("elite") else 0),
                             -x["sev"], x["k"]))
-    greens = [x for x in out if x["side"] == "G"][:14]
-    reds = [x for x in out if x["side"] == "R"][:12]
+    # caps apply to fundamentals only; tech verdicts are few (<=7) and
+    # always shown, appended after the capped fundamental block
+    g_f = [x for x in out if x["side"] == "G" and x["basis"] != "tech"]
+    r_f = [x for x in out if x["side"] == "R" and x["basis"] != "tech"]
+    g_t = [x for x in out if x["side"] == "G" and x["basis"] == "tech"]
+    r_t = [x for x in out if x["side"] == "R" and x["basis"] == "tech"]
+    greens = g_f[:14] + g_t
+    reds = r_f[:12] + r_t
     return {"greens": greens, "reds": reds,
             "summary": {"n_elite": len([x for x in out
                                         if x.get("elite")]),
@@ -2085,7 +2091,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.9.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.9.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2109,7 +2115,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.9.0"}
+                "version": "1.9.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2125,7 +2131,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.9.0"}, headers_in)
+                               "version": "1.9.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
