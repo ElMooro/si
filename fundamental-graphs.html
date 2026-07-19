@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.3 ops3490 macro-bridge -->
+<!-- fundgraph v1.0 ops3462 · v2.4 ops3491 wk2d+derived-2s10s -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.3 · ops 3490</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.4 · ops 3491</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -231,7 +231,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.3 · ops 3490 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.4 · ops 3491 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -291,22 +291,33 @@ const WLAPI='https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aw
 const MACROS=[
  {k:'US10Y',label:'US 10Y yield',u:'%',ids:['TVC:US10Y','FRED:DGS10','DGS10']},
  {k:'US02Y',label:'US 2Y yield',u:'%',ids:['TVC:US02Y','FRED:DGS2','DGS2']},
- {k:'T10Y2Y',label:'2s10s spread',u:'%',ids:['FRED:T10Y2Y','T10Y2Y']},
+ {k:'T10Y2Y',label:'2s10s spread (10Y−2Y)',u:'%',derived:['US10Y','US02Y']},
  {k:'HYOAS',label:'HY OAS',u:'%',ids:['FRED:BAMLH0A0HYM2','BAMLH0A0HYM2']},
- {k:'CPIYOY',label:'CPI YoY',u:'%',ids:['FRED:CPIAUCSL~pct4','CPIAUCSL~pct4','FRED:CPIAUCSL']},
  {k:'FEDFUNDS',label:'Fed Funds',u:'%',ids:['FRED:FEDFUNDS','FEDFUNDS','FRED:DFF']},
  {k:'UNRATE',label:'Unemployment',u:'%',ids:['FRED:UNRATE','UNRATE']},
  {k:'DXY',label:'US Dollar (DXY)',u:'x',ids:['TVC:DXY','CAPITALCOM:DXY','DXY','FRED:DTWEXBGS']}];
+function wk2d(w){var q=String(w).split('-'),y=+q[0],n=+q[1];if(!n||String(w).length>7)return String(w).slice(0,10);var d=new Date(Date.UTC(y,0,4));var dow=(d.getUTCDay()||7);d.setUTCDate(d.getUTCDate()-dow+1+(n-1)*7);return d.toISOString().slice(0,10);} /* chart-pro parity — bridge keys are ISO weeks (ops3491) */
 const MPAL=['#94a3b8','#cbd5e1','#e2e8f0'];
 const MCACHE={};
 async function loadMacro(k){
   if(MCACHE[k]!==undefined)return MCACHE[k];
   const cfg=MACROS.find(m2=>m2.k===k);if(!cfg)return MCACHE[k]=null;
+  if(cfg.derived){
+    const parts=await Promise.all(cfg.derived.map(loadMacro));
+    if(parts.some(p=>!p))return MCACHE[k]=null;
+    const b=new Map(parts[1].pts.map(p=>[p[0],p[1]]));
+    const pts=parts[0].pts.filter(p=>b.has(p[0])&&p[1]!=null&&b.get(p[0])!=null)
+      .map(p=>[p[0],p[1]-b.get(p[0])]);
+    return MCACHE[k]=pts.length>10?{id:'derived:'+cfg.derived.join('-'),pts}:null;
+  }
   for(const id of cfg.ids){
     try{const r=await fetch(WLAPI+'/?sym='+encodeURIComponent(id));
       if(!r.ok)continue;
       const d=await r.json();
-      if(d&&d.points&&d.points.length>10){MCACHE[k]={id,pts:d.points};return MCACHE[k];}
+      if(d&&d.points&&d.points.length>10){
+        const pts=d.points.map(p=>[wk2d(p[0]),p[1]]).filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p[0]));
+        if(pts.length>10){MCACHE[k]={id,pts};return MCACHE[k];}
+      }
     }catch(e){}
   }
   return MCACHE[k]=null;
