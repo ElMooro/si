@@ -568,7 +568,7 @@ function renderRadar(){
   const d0=DCACHE[S.syms[0]+'_'+basePer()];
   const f=d0&&d0.factor_dna;
   if(!(f&&f.state==='ok'&&window.FG_RADAR)){box.innerHTML='';return;}
-  box.innerHTML=`<div class="metacard" style="border-color:#164e63"><b style="color:#22d3ee">\ud83e\uddec ${esc(S.syms[0])} factor DNA</b> <span class="note">vs master-ranker universe (n=${f.n_universe})</span><div style="display:flex;justify-content:center;margin-top:4px">${window.FG_RADAR(f.axes,196)}</div></div>`;
+  box.innerHTML=`<div class="metacard" style="border-color:#164e63"><b style="color:#22d3ee">\ud83e\uddec ${esc(S.syms[0])} factor DNA</b> <span class="note">vs master-ranker universe (n=${f.n_universe})</span><div style="display:flex;justify-content:center;margin-top:4px">${window.FG_RADAR(f.axes,196)}</div>${f.conviction?`<div style="margin-top:2px;font-size:.66rem;color:#f59e0b">\ud83c\udfc6 master-ranker #${f.conviction.rank} \u00b7 score ${f.conviction.score} \u00b7 ${f.conviction.n_systems} systems: ${esc((f.conviction.systems||[]).join(', '))}</div>`:''}</div>`;
 }
 function renderDupont(){
   const box=document.getElementById('fgDup');if(!box)return;

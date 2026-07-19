@@ -1305,7 +1305,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.10.0",
+        "version": "1.10.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1611,16 +1611,27 @@ ELITE_NORM = {"roic_pct": ("H", 30), "gross_margin_pct": ("H", 75),
 
 
 _RANKER = {"doc": None, "ts": 0}
-FACTOR_PREF = ["quality", "value", "momentum", "growth", "safety",
-               "yield", "sentiment", "flow", "technical", "composite",
-               "conviction", "score", "final_score", "rank_score"]
+_FOREN = {"rows": None, "ts": 0}
+FACTOR_PREF = ["piotroski", "piotroski_f", "altman_z", "beneish_m",
+               "sloan_accruals_pct", "fcf_yield_pct", "roic",
+               "roic_pct", "pe_ttm", "peg", "quality_score",
+               "composite", "three_statement_score", "strength_score"]
+FACTOR_LOW = {"beneish_m", "sloan_accruals_pct", "pe_ttm", "peg"}
+FACTOR_LBL = {"piotroski": "quality (Piotroski)",
+              "piotroski_f": "quality (Piotroski)",
+              "altman_z": "safety (Altman)",
+              "beneish_m": "earnings integrity",
+              "sloan_accruals_pct": "accrual discipline",
+              "fcf_yield_pct": "FCF value", "pe_ttm": "P/E value",
+              "peg": "PEG value", "roic": "capital efficiency",
+              "roic_pct": "capital efficiency"}
 
 
 def ranker_rows():
     if _RANKER["doc"] is not None and time.time() - _RANKER["ts"] < 21600:
         return _RANKER["doc"]
     try:
-        d = json.loads(_s3().get_object(
+        d = json.loads(_s3.get_object(
             Bucket=S3_BUCKET,
             Key="data/master-ranker.json")["Body"].read())
         rows = d.get("top_tickers") or []
@@ -1632,29 +1643,47 @@ def ranker_rows():
     return _RANKER["doc"]
 
 
+def foren_rows():
+    if _FOREN["rows"] is not None and time.time() - _FOREN["ts"] < 21600:
+        return _FOREN["rows"]
+    try:
+        d = json.loads(_s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/forensic-screen.json")["Body"].read())
+        _FOREN["rows"] = d.get("all_results") or []
+        _FOREN["ts"] = time.time()
+    except Exception:  # noqa: BLE001
+        _FOREN["rows"] = []
+        _FOREN["ts"] = time.time()
+    return _FOREN["rows"]
+
+
 def factor_dna(sym):
-    """Radar axes from the master-ranker cross-section: pick numeric
-    factor fields present in >=80% of rows (preferred order, cap 7),
-    convert this ticker's values to CROSS-SECTIONAL percentiles.
-    Honest dormancy when the join or coverage is insufficient."""
-    rows = ranker_rows()
+    """Radar over OUR 503-name forensic cross-section (real
+    distributions): schema-adaptive numeric columns (>=60% coverage,
+    >=8 distinct), percentiles flipped to GOODNESS for lower-better
+    axes. master-ranker joins as a conviction overlay when the ticker
+    is in the top set. Named dormancy otherwise."""
+    rows = foren_rows()
     if len(rows) < 30:
-        return {"state": "insufficient", "why": "ranker rows <30"}
+        return {"state": "insufficient",
+                "why": "forensic universe rows <30"}
     me = next((r for r in rows
-               if (r.get("ticker") or r.get("symbol")
-                   or r.get("t")) == sym), None)
+               if (r.get("ticker") or r.get("symbol")) == sym), None)
+    conv = None
+    for i, rr in enumerate(ranker_rows()):
+        if (rr.get("ticker") or rr.get("symbol")) == sym:
+            conv = {"rank": i + 1, "score": rnd(rr.get("score"), 1),
+                    "n_systems": rr.get("n_systems"),
+                    "systems": rr.get("systems"),
+                    "rationale": (rr.get("rationale") or "")[:140]}
+            break
     if not me:
         return {"state": "insufficient",
-                "why": "%s not in master-ranker top set" % sym}
+                "why": "%s not in the forensic universe" % sym,
+                "conviction": conv}
     n = len(rows)
-    axes = []
-    seen = set()
-
-    def numeric_col(k):
-        vals = [r.get(k) for r in rows]
-        vals = [v for v in vals if isinstance(v, (int, float))]
-        return vals if len(vals) >= 0.8 * n else None
-
+    axes, seen = [], set()
     cand = FACTOR_PREF + [k for k in sorted(me.keys())
                           if isinstance(me.get(k), (int, float))]
     for k in cand:
@@ -1663,19 +1692,25 @@ def factor_dna(sym):
         seen.add(k)
         if not isinstance(me.get(k), (int, float)):
             continue
-        col = numeric_col(k)
-        if not col or len(set(col)) < 5:
+        col = [r.get(k) for r in rows]
+        col = [v for v in col if isinstance(v, (int, float))]
+        if len(col) < 0.6 * n or len(set(col)) < 8:
             continue
         below = sum(1 for v in col if v < me[k])
         eq = sum(1 for v in col if v == me[k])
-        axes.append({"k": k, "label": k.replace("_", " "),
-                     "val": rnd(me[k], 3),
-                     "pct": rnd(100.0 * (below + 0.5 * eq) / len(col), 1)})
+        pct = 100.0 * (below + 0.5 * eq) / len(col)
+        if k in FACTOR_LOW:
+            pct = 100.0 - pct
+        axes.append({"k": k, "label": FACTOR_LBL.get(
+            k, k.replace("_", " ")), "val": rnd(me[k], 3),
+            "pct": rnd(pct, 1),
+            "dir": "L" if k in FACTOR_LOW else "H"})
     if len(axes) < 4:
         return {"state": "insufficient",
-                "why": "only %d comparable factor columns" % len(axes)}
+                "why": "only %d comparable factor columns" % len(axes),
+                "conviction": conv}
     return {"state": "ok", "n_universe": n, "axes": axes,
-            "as_of": None}
+            "conviction": conv}
 
 
 def derive_verdicts(P, lb, sector, med, bands=None, tech=None):
@@ -2164,7 +2199,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.10.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.10.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2188,7 +2223,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.10.0"}
+                "version": "1.10.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2204,7 +2239,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.10.0"}, headers_in)
+                               "version": "1.10.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
