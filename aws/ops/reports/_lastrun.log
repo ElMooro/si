@@ -1,14 +1,12 @@
-executing-against: c66fa028d00dd866e62770b7c5f09f78396fcd71
-ops 3490 — macro overlays via wl-series bridge
-[01:42:05] resolved id map: {"US10Y": {"id": "TVC:US10Y", "n": 1906, "last": ["2026-28", 4.54]}, "US02Y": {"id": "TVC:US02Y", "n": 1906, "last": ["2026-28", 4.16]}, "HYOAS": {"id": "FRED:BAMLH0A0HYM2", "n": 157, "last": ["2026-28", 2.7]}, "FEDFUNDS": {"id": "FRED:FEDFUNDS", "n": 438, "last": ["2026-23", 3.63]}, "UNRATE": {"id": "FRED:UNRATE", "n": 437, "last": ["2026-23", 4.2]}, "DXY": {"id": "TVC:DXY", "n": 1906, "last": ["2026-28", 101.11499786376953]}}
-RESOLVED: {"US10Y": {"id": "TVC:US10Y", "n": 1906, "last": ["2026-28", 4.54]}, "US02Y": {"id": "TVC:US02Y", "n": 1906, "last": ["2026-28", 4.16]}, "HYOAS": {"id": "FRED:BAMLH0A0HYM2", "n": 157, "last": ["2026-28", 2.7]}, "FEDFUNDS": {"id": "FRED:FEDFUNDS", "n": 438, "last": ["2026-23", 3.63]}, "UNRATE": {"id": "FRED:UNRATE", "n": 437, "last": ["2026-23", 4.2]}, "DXY": {"id": "TVC:DXY", "n": 1906, "last": ["2026-28", 101.11499786376953]}}
-PASS  X1_bridge_probe — {'resolved': {'US10Y': 'TVC:US10Y', 'US02Y': 'TVC:US02Y', 'HYOAS': 'FRED:BAMLH0A0HYM2', 'FEDFUNDS': 'FRED:FEDFUNDS', 'UNRATE': 'FRED:UNRATE', 'DXY': 'TVC:DXY'}, 'missed': ['T10Y2Y', 'CPIYOY'], 'sample_last': {'US10Y': ['2026-28', 4.54], 'US02Y': ['2026-28', 4.16], 'HYOAS': ['2026-28', 2.7]}}
-[01:42:05] PASS  X1_bridge_probe — {'resolved': {'US10Y': 'TVC:US10Y', 'US02Y': 'TVC:US02Y', 'HYOAS': 'FRED:BAMLH0A0HYM2', 'FEDFUNDS': 'FRED:FEDFUNDS', 'UNRATE': 'FRED:UNRATE', 'DXY': 'TVC:DXY'}, 'missed': ['T10Y2Y', 'CPIYOY'], 'sample_last': {'US10Y': ['2026-28', 4.54], 'US02Y': ['2026-28', 4.16], 'HYOAS': ['2026-28', 2.7]}}
-PASS  X2_served_js — {'node_ok': [True, True, True, True]}
-[01:44:28] PASS  X2_served_js — {'node_ok': [True, True, True, True]}
-PASS  X3_flagship_v23 — {'ops3490': True, 'mxbtn': True, 'registry': True, 'chip_x': True, 'evt_intact': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True}
-[01:44:28] PASS  X3_flagship_v23 — {'ops3490': True, 'mxbtn': True, 'registry': True, 'chip_x': True, 'evt_intact': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True}
+executing-against: de17cd8e3da431304be79e1ea7b16e7f98f03539
+ops 3491 — ISO-week conversion + derived 2s10s (live)
+PASS  Y1_wk2d_recency — {'last_week': '2026-28', 'iso': '2026-07-06', 'age_days': 13, 'us10y': 4.54}
+[01:47:24] PASS  Y1_wk2d_recency — {'last_week': '2026-28', 'iso': '2026-07-06', 'age_days': 13, 'us10y': 4.54}
+PASS  Y2_derived_2s10s — {'n': 1906, 'last_week': '2026-28', 'spread': 0.38, 'check': '4.54-4.16'}
+[01:47:24] PASS  Y2_derived_2s10s — {'n': 1906, 'last_week': '2026-28', 'spread': 0.38, 'check': '4.54-4.16'}
+PASS  Y3_flagship_v24 — {'ops3491': True, 'wk2d': True, 'derived': True, 'cpi_dropped': True, 'node_ok': True, 'mx_intact': True, 'evt_intact': True, 'rt_intact': True}
+[01:49:29] PASS  Y3_flagship_v24 — {'ops3491': True, 'wk2d': True, 'derived': True, 'cpi_dropped': True, 'node_ok': True, 'mx_intact': True, 'evt_intact': True, 'rt_intact': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3490_macro_bridge.md
+→ Report written to aws/ops/reports/latest/3491_wk2d_close.md
