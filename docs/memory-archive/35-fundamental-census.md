@@ -20,3 +20,12 @@
 31. Explorer Σ math: percentile with avg-rank ties `100*((i+j)/2+0.5)/n`; names missing a metric contribute nothing (n-scaled) — EEE-null ordering surprises hand-math.
 32. FB modal fetch is the Function URL (CF proxy is data/ only); cache docs per ticker client-side (`DOCC`).
 33. Runner brute-force completion: 300 names / 6-batch sync = 50 links, 1,456s, 0 errors — the reliable big-sweep pattern when a chain must finish TODAY.
+
+## Quant-floor arc addendum (ops 3542–3547) + gotchas 34–39
+Engine v1.7.2: 13F wb/ws/b/s/n → whale/inst $M cols; finviz-universe short_float_pct + insider_own/trans (496/496); dark-pool board → retail_dp_pct / retail_accum(+1/−1) / retail_dp_score (27 names; ACC 25 / DIST 2 — KKR & ARES the distributions); tech kernel (tech_series/detect_double/beta_vs) — detector v2 = neckline confirmation + extremeness (12% of 78w range) + gap≥6/recent≤12 → live 9 tops/13 bottoms; tech/combo/conviction composites; justhodl-screen-backtest Function URL (hindsight EW basket vs SPX, config feed data/config-backtest-url.json). Harness census2.js = 34 behaviors.
+34. Backslash-continuation lines in match anchors silently no-op patches (×3: 3540/3544). Anchor small or regex-DOTALL; every patch prints its own applied-proof.
+35. Ops files are ALWAYS written whole — deriving from HEAD/pruned paths made 0-byte files that "ran green" twice (3540, 3545). `wc -c` before push.
+36. Read verdicts from aws/ops/reports/<n>.json + latest/<name>.md — no-op runs clobber _lastrun.log.
+37. Deploy truth = the DEPLOYED ZIP: download Code.Location, grep the change marker. Descriptions lie (3544 shipped old code under a v1.7.2 label).
+38. Beta fixtures need return VARIANCE (constant-growth series ⇒ beta garbage); pattern fixtures need monotonic real dates and ≥6-bar extremum gaps.
+39. joins() columns land AFTER the ≥50%-coverage filter (keys=sorted(cols) at the end) — sparse-but-real columns (retail 27, whales 460, earnings 408) ride matrix legally.
