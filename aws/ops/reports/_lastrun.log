@@ -1,17 +1,19 @@
-executing-against: 78ed84fc30ae6128bf866e7b3147b7ec93f6ce3c
-ops 3525 — JSI rewire + probes
-[18:24:11]   zip: 85812 bytes
+executing-against: cd455332ae66604932fc9c792ad7c2f149a23bfe
+ops 3526 — spx refresher + macro card
+PASS  A1_ci — {'n': 7, 'windows': 5}
+[18:28:20] PASS  A1_ci — {'n': 7, 'windows': 5}
+[18:28:20]   zip: 81468 bytes
 ── 1. Lambda ──
-[18:24:11]   Lambda exists — updating
-[18:24:15] ✅   ✓ updated justhodl-proven-portfolio
-PASS  Z1_jsi_live — {'jsi_pctile': 25.3, 'jsi_src': 'walker', 'gross_scale': 1.0, 'missing': [], 'n_book': 40}
-[18:24:40] PASS  Z1_jsi_live — {'jsi_pctile': 25.3, 'jsi_src': 'walker', 'gross_scale': 1.0, 'missing': [], 'n_book': 40}
-PASS  Z2_spx_shape — {'kb': 334, 'lastmod': '2026-06-10 02:27:42+00:00', 'top': ['built_at', 'first', 'id', 'last', 'n_points', 'note', 'points', 'source', 'units'], 'n_rows': 0, 'row0': None, 'row_last': None}
-[18:24:41] PASS  Z2_spx_shape — {'kb': 334, 'lastmod': '2026-06-10 02:27:42+00:00', 'top': ['built_at', 'first', 'id', 'last', 'n_points', 'note', 'points', 'source', 'units'], 'n_rows': 0, 'row0': None, 'row_last': None}
-PASS  Z3_macro — {"copper_gold_silver": {"copper_gold": "dict[5]", "gold_silver": "dict[5]"}, "rate_cut_diffusion": {"n_central_banks": "int=8", "cutting": "int=2", "hiking": "int=4", "holding": "int=2", "net_pct_cutting": "float=-25.0", "regime": "str", "by_country": "dict[8]", "note": "str"}, "geopolitical_risk": {"gpr": "float=173.6", "z_5y": "float=0.65", "n": "int=498", "note": "str"}, "heavy_truck_sales": {"saar_millions": "float=0.426", "asof": "str", "yoy_pct": "float=-6.0", "z_1y": "float=0.27", "note": "str"}, "freight_activity": {"cass_shipments": "dict[4]", "bts_freight_tsi": "dict[4]", "rail_intermodal": "dict[4]", "
-[18:24:41] PASS  Z3_macro — {"copper_gold_silver": {"copper_gold": "dict[5]", "gold_silver": "dict[5]"}, "rate_cut_diffusion": {"n_central_banks": "int=8", "cutting": "int=2", "hiking": "int=4", "holding": "int=2", "net_pct_cutting": "float=-25.0", "regime": "str", "by_country": "dict[8]", "note": "str"}, "geopolitical_risk": {"gpr": "float=173.6", "z_5y": "float=0.65", "n": "int=498", "note": "str"}, "heavy_truck_sales": {"saar_millions": "float=0.426", "asof": "str", "yoy_pct": "float=-6.0", "z_1y": "float=0.27", "note": "str"}, "freight_activity": {"cass_shipments": "dict[4]", "bts_freight_tsi": "dict[4]", "rail_intermodal": "dict[4]", "
-PASS  Z3_cds — {"sovereigns": {"germany_10y": "dict[5]", "italy_10y": "dict[5]", "spain_10y": "dict[5]", "france_10y": "dict[5]", "japan_10y": "dict[5]", "uk_10y": "dict[5]"}, "corporate": {"hy_oas": "dict[4]", "ig_oas": "dict[4]", "aaa_oas": "dict[4]", "single_a_oas": "dict[4]", "bbb_oas": "dict[4]", "ccc_oas": "dict[4]"}}
-[18:24:41] PASS  Z3_cds — {"sovereigns": {"germany_10y": "dict[5]", "italy_10y": "dict[5]", "spain_10y": "dict[5]", "france_10y": "dict[5]", "japan_10y": "dict[5]", "uk_10y": "dict[5]"}, "corporate": {"hy_oas": "dict[4]", "ig_oas": "dict[4]", "aaa_oas": "dict[4]", "single_a_oas": "dict[4]", "bbb_oas": "dict[4]", "ccc_oas": "dict[4]"}}
-RESULT: ALL PASS
+[18:28:20]   Lambda missing — creating
+[18:28:25] ✅   ✓ created justhodl-spx-history
+FAIL  A2_refreshed — {'n_points': 22937, 'first': '1935-01-07', 'last': '2026-07-17', 'shape': 'list', 'prev_shape': 'list', 'keys_superset': True}
+[18:28:30] FAIL  A2_refreshed — {'n_points': 22937, 'first': '1935-01-07', 'last': '2026-07-17', 'shape': 'list', 'prev_shape': 'list', 'keys_superset': True}
+PASS  A3_consumer — {'status': 200, 'err': None, 'peek': '{"statusCode": 200, "body": "{\\"rules\\": 11}"}'}
+[18:28:34] PASS  A3_consumer — {'status': 200, 'err': None, 'peek': '{"statusCode": 200, "body": "{\\"rules\\": 11}"}'}
+PASS  A4_schedule — cron(10 8 ? * SUN *)
+[18:28:34] PASS  A4_schedule — cron(10 8 ? * SUN *)
+PASS  A5_macro_card — {'served': True, 'vals': {'geopolitical_risk.gpr': 173.6, 'geopolitical_risk.z_5y': 0.65, 'heavy_truck_sales.yoy_pct': -6.0, 'rate_cut_diffusion.net_pct_cutting': -25.0}}
+[18:30:50] PASS  A5_macro_card — {'served': True, 'vals': {'geopolitical_risk.gpr': 173.6, 'geopolitical_risk.z_5y': 0.65, 'heavy_truck_sales.yoy_pct': -6.0, 'rate_cut_diffusion.net_pct_cutting': -25.0}}
+RESULT: FAILS: ['A2_refreshed']
 
-→ Report written to aws/ops/reports/latest/3525_jsi_probes.md
+→ Report written to aws/ops/reports/latest/3526_spx_macro.md
