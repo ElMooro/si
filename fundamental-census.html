@@ -75,6 +75,11 @@ a{color:var(--blue);text-decoration:none}
 </div>
 <div class="card"><h2>🚩 Be careful — dilution, integrity & severity-3 flags</h2><div class="tblbox"><table id="careT"><tr><th>Ticker</th><th>Sector</th><th>Weight</th><th>Flags</th><th>Sev-3 metrics</th><th>Share Δ YoY</th><th>Score</th></tr></table></div>
 <div class="meth">DILUTION_SEVERE = share count growing ≥8%/yr · HEAVY ≥4%/yr. EARNINGS_INTEGRITY_LOW / ACCRUALS_HIGH = bottom-decile Beneish / Sloan vs the 496-name forensic cross-section. Sev-3 reds come straight from the verdict engine.</div></div>
+<div class="card"><h2>🔄 Turnarounds — fundamentals inflecting fast <span class="rk" style="font-size:.62rem;font-weight:400">4-quarter vs prior 4-quarter deltas, cross-sectionally percentiled and direction-adjusted (deleveraging & buybacks count as improvement)</span></h2>
+<div class="cols">
+<div><div style="color:var(--green);font-size:.72rem;margin:2px 0 6px"><b>IMPROVING FASTEST</b></div><div class="tblbox" style="max-height:460px"><table id="jhTurnUp"><tr><th>Ticker</th><th>Sector</th><th>Turn</th><th>Top drivers (Δ 4q vs 4q)</th><th>Quality now</th><th></th></tr></table></div></div>
+<div><div style="color:var(--red);font-size:.72rem;margin:2px 0 6px"><b>DETERIORATING FASTEST</b></div><div class="tblbox" style="max-height:460px"><table id="jhTurnDn"><tr><th>Ticker</th><th>Sector</th><th>Turn</th><th>Worst drivers (Δ)</th><th>Quality now</th><th></th></tr></table></div></div>
+</div><div class="meth" id="jhTurnMeth"></div></div>
 <div class="card"><h2>📊 Metric leaders & laggards</h2><div class="mgrid" id="mgrid"></div></div>
 <div class="card"><h2>🏭 Sectors</h2><div class="secstrip" id="secs"></div></div>
 <div class="card meth" id="covbox"></div>
@@ -186,6 +191,13 @@ fetch(PX+'data/fundamental-census.json?ts='+Date.now()).then(r=>r.json()).then(D
       <div style="margin-top:5px;color:var(--red);font-size:.64rem">WORST</div>${(b.worst||[]).slice(0,5).map(x=>row(x,'neg')).join('')}`;
     mg.appendChild(cell);});
   document.getElementById('secs').innerHTML=(D.sectors||[]).map(s=>`<div class="sec"><b>${esc(s.sector)}</b> · avg <b class="${s.avg_score>=0?'pos':'neg'}">${s.avg_score}</b> · n=${s.n}<br><span class="rk">best ${esc((s.best||[])[0]||'—')} ${(s.best||[])[1]??''} · worst ${esc((s.worst||[])[0]||'—')} ${(s.worst||[])[1]??''}</span></div>`).join('');
+  const fdel=d=>{const v=+d.delta;const s2=(v>=0?'+':'')+v.toFixed(v>=10||v<=-10?1:2)+(d.u==='pp'?'pp':'×');
+    return `<span class="${(d.k==='debt_to_equity'||d.k==='share_count_yoy_pct')? (v<0?'pos':'neg') : (v>=0?'pos':'neg')}">${esc(d.label)} ${s2}</span>`;};
+  const TT=D.turnarounds||{};
+  const tRow=(r,drv)=>`<tr><td>${lk(r.t)}</td><td class="rk">${esc(r.sector)}</td><td><b>${r.turn_score}</b></td><td>${(drv||[]).map(fdel).join(' · ')}</td><td class="${r.quality_now>=0?'pos':'neg'}">${r.quality_now}</td><td>${(r.flags||[]).map(f=>`<span class="chip ${f==='DILUTION_SEVERE'?'c-dil':'c-flag'}">${esc(f)}</span>`).join('')}</td></tr>`;
+  const tu=document.getElementById('jhTurnUp');(TT.improving||[]).forEach(r=>tu.insertAdjacentHTML('beforeend',tRow(r,r.drivers)));
+  const td=document.getElementById('jhTurnDn');(TT.deteriorating||[]).forEach(r=>td.insertAdjacentHTML('beforeend',tRow(r,r.laggers)));
+  document.getElementById('jhTurnMeth').textContent='Method: '+(TT.method||'')+'. Turn score 50 = universe median pace; >75 = top-quartile inflection. Double-click rows in the Explorer above to chart any name.';
   document.getElementById('covbox').innerHTML=`Coverage: ${C.scored}/${C.universe} scored${C.dormant_n?` · ${C.dormant_n} dormant (docs pending next sweep): <span style="font-family:var(--mono)">${(C.dormant_sample||[]).map(esc).join(', ')}${C.dormant_n>12?'…':''}</span>`:''}. Sweep chain: warm batches of 25 through the fundamental-graphs engine → aggregate. Click any ticker for its full research module; deep charts at <a href="/fundamental-graphs.html">fundamental-graphs</a>.`;
 }).catch(e=>{document.getElementById('stamp').textContent='feed error: '+e.message;});
 </script></div></body></html>

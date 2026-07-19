@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -46,16 +46,41 @@ LAM = boto3.client("lambda", region_name="us-east-1",
 
 CORE_METRICS = [
     ("gross_margin_pct", "Gross margin %", "H"),
+    ("operating_margin_pct", "Operating margin %", "H"),
+    ("net_margin_pct", "Net margin %", "H"),
     ("ebitda_margin_pct", "EBITDA margin %", "H"),
     ("fcf_margin_pct", "FCF margin %", "H"),
     ("fcf_yield_pct", "FCF yield %", "H"),
     ("roe_pct", "Return on equity %", "H"),
     ("roa_pct", "Return on assets %", "H"),
+    ("roic_pct", "ROIC %", "H"),
+    ("revenue_yoy_pct", "Revenue growth YoY %", "H"),
+    ("eps_yoy_pct", "EPS growth YoY %", "H"),
     ("fcf_yoy_pct", "FCF growth YoY %", "H"),
+    ("interest_coverage_ttm", "Interest coverage (x)", "H"),
+    ("current_ratio", "Current ratio", "H"),
+    ("piotroski", "Piotroski F-score", "H"),
+    ("altman_z", "Altman Z", "H"),
+    ("shareholder_yield_pct", "Shareholder yield %", "H"),
+    ("buyback_yield_pct", "Buyback yield %", "H"),
     ("debt_to_equity", "Debt / equity", "L"),
     ("dio_days", "Inventory days", "L"),
+    ("sbc_to_revenue_pct", "SBC / revenue %", "L"),
     ("share_count_yoy_pct", "Share count YoY %", "L"),
 ]
+TURN_METRICS = [
+    ("gross_margin_pct", "gross margin", "H", "pp"),
+    ("operating_margin_pct", "op margin", "H", "pp"),
+    ("fcf_margin_pct", "FCF margin", "H", "pp"),
+    ("roe_pct", "ROE", "H", "pp"),
+    ("roic_pct", "ROIC", "H", "pp"),
+    ("revenue_yoy_pct", "rev growth", "H", "pp"),
+    ("eps_yoy_pct", "EPS growth", "H", "pp"),
+    ("interest_coverage_ttm", "int. coverage", "H", "x"),
+    ("debt_to_equity", "debt/equity", "L", "x"),
+    ("share_count_yoy_pct", "share count YoY", "L", "pp"),
+]
+MIN_BOARD_N = 150
 FLAG_W = {"DILUTION_SEVERE": 3, "DILUTION_HEAVY": 2,
           "EARNINGS_INTEGRITY_LOW": 2, "ACCRUALS_HIGH": 2,
           "HIGH_CONCERN": 2}
@@ -80,6 +105,17 @@ def universe():
             seen.add(t)
             out.append({"t": t, "sector": r.get("sector") or "Unknown"})
     return out
+
+
+def turn_delta(P, key, w=4):
+    """4q-vs-prior-4q mean delta; needs >=2w numeric points; None else."""
+    ser = [v for _, v in ((P or {}).get(key) or [])
+           if isinstance(v, (int, float))]
+    if len(ser) < 2 * w:
+        return None
+    a = sum(ser[-w:]) / w
+    b = sum(ser[-2 * w:-w]) / w
+    return round(a - b, 4)
 
 
 def last_val(P, key):
@@ -119,6 +155,7 @@ def extract(doc, sector):
     red3 = [v["k"] for v in reds if int(v.get("sev") or 1) >= 3]
     flag_w = (sum(FLAG_W.get(f, 1) for f in flags)
               + 3 * len(red3))
+    tr = {k: turn_delta(P, k) for k, _, _, _ in TURN_METRICS}
     return {"t": doc.get("symbol") or doc.get("ticker"),
             "sector": sector, "score": score,
             "n_elite": len(elites), "n_green": len(greens),
@@ -126,7 +163,7 @@ def extract(doc, sector):
             "top_elites": [v["k"] for v in elites[:3]],
             "red3": red3[:4], "flags": flags,
             "flag_w": flag_w, "dilution_yoy": dil,
-            "metrics": met,
+            "metrics": met, "_tr": tr,
             "_lv": {k: rnd(last_val(P, k), 4) for k in P
                     if not any(k.startswith(pre)
                                for pre in MX_EXCLUDE_PRE)
@@ -146,8 +183,12 @@ def build_census(rows_by_t, uni):
     top = sorted(rows_scored, key=lambda r: (-r["score"], r["t"]))
     boards = {}
     for k, label, direction in CORE_METRICS:
-        vals = [(r["t"], r["metrics"].get(k)) for r in rows_scored
-                if r["metrics"].get(k) is not None]
+        vals = [(r["t"], (r.get("_lv") or {}).get(
+            k, r["metrics"].get(k))) for r in rows_scored]
+        vals = [(t, v) for t, v in vals if v is not None]
+        if len(vals) < MIN_BOARD_N:
+            print(f"[census] board {k} skipped — coverage {len(vals)}")
+            continue
         srt = sorted(vals, key=lambda x: x[1],
                      reverse=(direction == "H"))
         boards[k] = {"label": label, "dir": direction,
@@ -175,6 +216,62 @@ def build_census(rows_by_t, uni):
           "best": v["best"], "worst": v["worst"]}
          for k, v in sectors.items()],
         key=lambda x: -x["avg_score"])
+    # ── TURNAROUNDS: cross-sectional percentile of 4q-vs-4q deltas,
+    # direction-adjusted; needs >=5 comparable metrics per name ──
+    def _pct_map(kk, low):
+        col = [(r["t"], (r.get("_tr") or {}).get(kk))
+               for r in rows_scored]
+        col = [(t, v) for t, v in col if v is not None]
+        col.sort(key=lambda x: x[1])
+        n = len(col)
+        out = {}
+        i = 0
+        while i < n:
+            j = i
+            while j + 1 < n and col[j + 1][1] == col[i][1]:
+                j += 1
+            p = 100.0 * ((i + j) / 2 + 0.5) / n
+            for q2 in range(i, j + 1):
+                out[col[q2][0]] = 100.0 - p if low else p
+            i = j + 1
+        return out, n
+    tmaps = {}
+    for kk, lbl2, d2, u2 in TURN_METRICS:
+        mp, nn = _pct_map(kk, d2 == "L")
+        if nn >= MIN_BOARD_N:
+            tmaps[kk] = mp
+    trows = []
+    for r in rows_scored:
+        parts = []
+        for kk, lbl2, d2, u2 in TURN_METRICS:
+            mp = tmaps.get(kk)
+            if not mp or r["t"] not in mp:
+                continue
+            dv = (r.get("_tr") or {}).get(kk)
+            parts.append((kk, lbl2, u2, dv, mp[r["t"]]))
+        if len(parts) < 5:
+            continue
+        tscore = rnd(sum(p[4] for p in parts) / len(parts), 1)
+        drivers = sorted(parts, key=lambda p: -p[4])[:3]
+        laggers = sorted(parts, key=lambda p: p[4])[:3]
+        trows.append({"t": r["t"], "sector": r["sector"],
+                      "turn_score": tscore,
+                      "n_metrics": len(parts),
+                      "drivers": [{"k": d[0], "label": d[1],
+                                   "u": d[2], "delta": d[3]}
+                                  for d in drivers],
+                      "laggers": [{"k": d[0], "label": d[1],
+                                   "u": d[2], "delta": d[3]}
+                                  for d in laggers],
+                      "quality_now": r["score"],
+                      "flags": r["flags"]})
+    trows.sort(key=lambda x: -x["turn_score"])
+    turnarounds = {"improving": trows[:25],
+                   "deteriorating": trows[-15:][::-1],
+                   "method": ("mean of direction-adjusted cross-"
+                              "sectional percentiles of 4q-vs-prior-"
+                              "4q deltas; >=5 comparable metrics")}
+
     slim = ["t", "sector", "score", "n_elite", "n_green", "n_red",
             "top_elites", "red3", "flags", "dilution_yoy"]
     return {
@@ -183,7 +280,8 @@ def build_census(rows_by_t, uni):
                            for r in top[-50:]][::-1],
         "careful": [{k: r[k] for k in slim + ["flag_w"]}
                     for r in careful],
-        "metric_boards": boards, "sectors": sec_rows,
+        "metric_boards": boards, "turnarounds": turnarounds,
+        "sectors": sec_rows,
         "coverage": {"universe": len(uni), "scored": len(rows_scored),
                      "dormant_n": len(dormant),
                      "dormant_sample": dormant[:12]},
