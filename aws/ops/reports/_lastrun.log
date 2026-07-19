@@ -1,7 +1,26 @@
-executing-against: 4a614b5db676f55136823e7ee2a8b3b58cace203
-PASS  G1_forensic — {"top_keys": ["all_results", "cleanest_top_25", "duration_s", "fortress_financials", "generated_at", "most_concerning_top_25", "n_errors", "n_scored_ok", "n_skipped_missing_data", "n_strength", "n_universe_attempted", "problem_financials"], "n_all_results": 496, "row0_keys": ["altman_z", "components_missing", "concern_score", "dilution_flag", "factors", "fcf_yield_pct", "goodwill_bloat_flag", "goodwill_pct", "history", "industry_pctile", "m_deteriorating", "m_flag", "m_high_risk", "m_score"], "row0_ticker": null, "row0_symbol": "SMCI", "generated_at": "2026-07-19T17:26:47+00:00"}
-PASS  G2_census — {"generated_at": "2026-07-19T19:56:52.202475+00:00", "coverage": {"universe": 496, "scored": 196, "dormant_n": 300, "dormant_sample": ["CDNS", "MCHP", "SNPS", "TKO", "UNP", "WY", "PNW", "AVGO", "MRVL", "Q", "AMD", "LMT"]}, "elapsed_s": 29.8}
-[20:06:02] probe
+executing-against: b09d1fd173bef568c6f1286a154dddb6f40624f5
+[20:08:40]   zip: 84135 bytes
+── 1. Lambda ──
+[20:08:40]   Lambda exists — updating
+[20:08:45] ✅   ✓ updated justhodl-fundamental-census
+PASS  H1_deploy — v1.2.0 live
+[20:08:47] PASS  H1_deploy — v1.2.0 live
+[3534] universe=496 cached=196 missing=300
+[20:08:47] missing=300
+[3534] progress 6/300 ok=1 err=0 t=31s
+[3534] progress 36/300 ok=6 err=0 t=169s
+[3534] progress 66/300 ok=11 err=0 t=311s
+[3534] progress 96/300 ok=16 err=0 t=473s
+[3534] progress 126/300 ok=21 err=0 t=623s
+[3534] progress 156/300 ok=26 err=0 t=780s
+[3534] progress 186/300 ok=31 err=0 t=921s
+[3534] progress 216/300 ok=36 err=0 t=1064s
+[3534] progress 246/300 ok=41 err=0 t=1200s
+[3534] progress 276/300 ok=46 err=0 t=1341s
+PASS  H2_warmed — {'missing_at_start': 300, 'batches_ok': 50, 'batches_err': 0, 'elapsed_s': 1456}
+[20:33:03] PASS  H2_warmed — {'missing_at_start': 300, 'batches_ok': 50, 'batches_err': 0, 'elapsed_s': 1456}
+PASS  H3_full — {'scored': 496, 'matrix': (496, 191), 'top10': [('APP', 39, 14), ('DECK', 36, 11), ('FIX', 34, 10), ('NEM', 34, 12), ('ADBE', 32, 10), ('INCY', 32, 10), ('ANET', 31, 9), ('FICO', 31, 10), ('NVDA', 31, 13), ('EXPE', 29, 11)], 'careful10': [('SNPS', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 17), ('AES', [], 15), ('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('NCLH', ['DILUTION_HEAVY'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('WY', ['HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('DOW', [], 12)], 'issuers5': [{'t': 'COF', 'v': 62.34}, {'t': 'A
+[20:34:17] PASS  H3_full — {'scored': 496, 'matrix': (496, 191), 'top10': [('APP', 39, 14), ('DECK', 36, 11), ('FIX', 34, 10), ('NEM', 34, 12), ('ADBE', 32, 10), ('INCY', 32, 10), ('ANET', 31, 9), ('FICO', 31, 10), ('NVDA', 31, 13), ('EXPE', 29, 11)], 'careful10': [('SNPS', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 17), ('AES', [], 15), ('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('NCLH', ['DILUTION_HEAVY'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('WY', ['HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('DOW', [], 12)], 'issuers5': [{'t': 'COF', 'v': 62.34}, {'t': 'A
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3533_probe_uni.md
+→ Report written to aws/ops/reports/latest/3534_universe_complete.md
