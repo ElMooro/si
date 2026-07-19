@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.7.0"
+VERSION = "1.7.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -127,7 +127,7 @@ def _peaks(px, trough=False):
 
 
 def detect_double(price, kind="top", look=78, tol=0.03, depth=0.05,
-                  recent=20):
+                  recent=12, extreme=0.12):
     """Weekly double-top/bottom. Two comparable extrema (within tol),
     separated by a counter-move of >= depth, second extremum within
     `recent` weeks, and price now confirming (below peaks / above
@@ -140,20 +140,31 @@ def detect_double(price, kind="top", look=78, tol=0.03, depth=0.05,
     ex = _peaks(px, trough=(kind == "bottom"))
     if len(ex) < 2:
         return 0
+    rng_hi, rng_lo = max(px), min(px)
+    band = (rng_hi - rng_lo) or 1e-9
     for a in range(len(ex) - 1):
         for b in range(a + 1, len(ex)):
             (i1, v1), (i2, v2) = ex[a], ex[b]
-            if i2 < len(px) - recent or i2 - i1 < 5:
+            if i2 < len(px) - recent or i2 - i1 < 6:
                 continue
             hi, lo = max(v1, v2), min(v1, v2)
             if (hi - lo) / hi > tol:
                 continue
+            # extremeness: both peaks near the 78w extreme
+            if kind == "top":
+                if min(v1, v2) < rng_hi - extreme * band:
+                    continue
+            else:
+                if max(v1, v2) > rng_lo + extreme * band:
+                    continue
             between = px[i1:i2 + 1]
             if kind == "top":
-                if min(between) <= lo * (1 - depth) and px[-1] < lo:
+                neck = min(between)
+                if neck <= lo * (1 - depth) and px[-1] < neck:
                     return 1
             else:
-                if max(between) >= hi * (1 + depth) and px[-1] > hi:
+                neck = max(between)
+                if neck >= hi * (1 + depth) and px[-1] > neck:
                     return 1
     return 0
 
