@@ -1,8 +1,18 @@
-executing-against: 0d2dd047b16c2eadbebbbc3456b8c99067d80778
-ops 3494 — sector-medians contract (6 core keys)
-PASS  K1_contract — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct'], 'tech_pe': 34.0, 'util_pe': 22.3}
-[03:08:52] PASS  K1_contract — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct'], 'tech_pe': 34.0, 'util_pe': 22.3}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: 20605716e942ee84cd32281081482feceb87e50f
+ops 3496 — green/red verdict layer
+PASS  U1_six_suites — {'fortress': True, 'disaster': True, 'fin': True, 'missing': True, 'sector': True, 'rich': True, 'sev3': ['altman_z', 'beneish_m', 'fcf_margin_pct', 'interest_coverage_ttm', 'net_shareholder_yield_pct', 'netdebt_to_ebitda_ttm', 'sloan_accruals_pct']}
+[03:20:31] PASS  U1_six_suites — {'fortress': True, 'disaster': True, 'fin': True, 'missing': True, 'sector': True, 'rich': True, 'sev3': ['altman_z', 'beneish_m', 'fcf_margin_pct', 'interest_coverage_ttm', 'net_shareholder_yield_pct', 'netdebt_to_ebitda_ttm', 'sloan_accruals_pct']}
+[03:20:31]   zip: 100922 bytes
+── 1. Lambda ──
+[03:20:31]   Lambda exists — updating
+[03:20:34] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  U2_aapl_live — 'n_green'
+[03:20:47] FAIL  U2_aapl_live — 'n_green'
+FAIL  U3_jpm_suppression — 'fin_suppressed'
+[03:20:47] FAIL  U3_jpm_suppression — 'fin_suppressed'
+PASS  U4_surfaces — {'node_ok': True, 'flag': True, 'why': True, 'priors': True}
+[03:22:48] PASS  U4_surfaces — {'node_ok': True, 'flag': True, 'why': True, 'priors': True}
+RESULT: FAILS: ['U2_aapl_live', 'U3_jpm_suppression']
+RESULT: FAILS: ['U2_aapl_live', 'U3_jpm_suppression']
 
-→ Report written to aws/ops/reports/latest/3494_secmed_contract.md
+→ Report written to aws/ops/reports/latest/3496_verdict_layer.md

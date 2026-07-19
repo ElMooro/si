@@ -1,0 +1,22 @@
+{
+  "ops": 3496,
+  "gates": {
+    "U1_six_suites": {
+      "ok": true,
+      "detail": "{'fortress': True, 'disaster': True, 'fin': True, 'missing': True, 'sector': True, 'rich': True, 'sev3': ['altman_z', 'beneish_m', 'fcf_margin_pct', 'interest_coverage_ttm', 'net_shareholder_yield_pct', 'netdebt_to_ebitda_ttm', 'sloan_accruals_pct']}"
+    },
+    "U2_aapl_live": {
+      "ok": false,
+      "detail": "'n_green'"
+    },
+    "U3_jpm_suppression": {
+      "ok": false,
+      "detail": "'fin_suppressed'"
+    },
+    "U4_surfaces": {
+      "ok": true,
+      "detail": "{'node_ok': True, 'flag': True, 'why': True, 'priors': True}"
+    }
+  },
+  "status": "FAILS: ['U2_aapl_live', 'U3_jpm_suppression']"
+}
