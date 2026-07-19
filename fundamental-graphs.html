@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v3.0 ops3500 technicals -->
+<!-- fundgraph v1.0 ops3462 · v3.1 ops3502 vol+autota -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +68,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v3.0 · ops 3500</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v3.1 · ops 3502</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -119,7 +119,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <button class="btn" id="mkclr" title="clear all placed markers" style="display:none">📍 Clear marks</button>
       <button class="btn" id="rtbtn" title="Pairs ratio: chart symA·metric ÷ symB·metric">Ratio</button>
       <button class="btn" id="evtbtn" title="Congress trades (◆) + insider Form-4s (▲▼) on the tape — single symbol">Events</button>
-      <button class="btn" id="mxbtn" title="Macro overlays via the wl-series bridge (own-scale)">Macro</button>
+      <select id="mxsel" class="btn" title="Overlay a macro series (own-scale, via wl-series bridge)" style="max-width:150px"><option value="">+ Macro\u2026</option></select><span id="mxchips" style="display:inline-flex;gap:4px;flex-wrap:wrap"></span>
       <button class="btn" id="tabtn" title="Technical layer: 20/50/100/200-DMA + Bollinger on price, cross/GC/DC/pattern markers, status strip — single symbol">TA</button>
       <button class="btn" id="secbtn" title="S&amp;P 500 sector medians (dashed p50 lines + Δ chips) — single symbol">vs Sector</button>
       <span class="note" id="mixnote"></span>
@@ -236,7 +236,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v3.0 · ops 3500 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v3.1 · ops 3502 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -329,27 +329,6 @@ async function loadMacro(k){
 }
 async function ensureMacro(){await Promise.all(S.macro.map(loadMacro));}
 function rtPopClose(){const p=document.getElementById('mxpop');if(p)p.remove();}
-function mxPop(){
-  const ex=document.getElementById('mxpop');if(ex){ex.remove();return;}
-  const d=document.createElement('div');d.id='mxpop';
-  d.style.cssText='position:fixed;z-index:120;background:#0a1120;border:1px solid #22304a;border-radius:12px;padding:12px;box-shadow:0 18px 60px rgba(0,0,0,.6);min-width:230px';
-  d.innerHTML='<b style="font-size:.8rem">Macro overlays <span class="note">(max 3 · own scale)</span></b>'+
-    MACROS.map(m2=>`<label style="display:flex;gap:8px;align-items:center;margin-top:7px;font-size:.74rem;cursor:pointer"><input type="checkbox" data-mk="${m2.k}" ${S.macro.includes(m2.k)?'checked':''} style="accent-color:#94a3b8"> ${esc(m2.label)}</label>`).join('')+
-    '<div class="note" style="margin-top:8px;max-width:230px">Weekly series from the wl-series bridge; dashed slate lines, never squash metric axes.</div>';
-  document.body.appendChild(d);
-  const rc=document.getElementById('mxbtn').getBoundingClientRect();
-  d.style.left=Math.min(rc.left,window.innerWidth-d.offsetWidth-10)+'px';
-  d.style.top=Math.min(rc.bottom+6,window.innerHeight-d.offsetHeight-10)+'px';
-  d.querySelectorAll('[data-mk]').forEach(cb=>cb.onchange=async()=>{
-    const k=cb.dataset.mk;
-    if(cb.checked){if(S.macro.length>=3){cb.checked=false;toast('Max 3 macro overlays');return;}
-      S.macro.push(k);const got=await loadMacro(k);
-      if(!got){toast(MACROS.find(x=>x.k===k).label+' unavailable on the bridge');S.macro=S.macro.filter(v=>v!==k);cb.checked=false;}
-    }else S.macro=S.macro.filter(v=>v!==k);
-    draw();});
-  const clk=e=>{if(!d.contains(e.target)&&e.target.id!=='mxbtn'){d.remove();document.removeEventListener('mousedown',clk);}};
-  setTimeout(()=>document.addEventListener('mousedown',clk),50);
-}
 function ratioRaw(r){
   const da=DCACHE[r.a.s+'_'+basePer()],db=DCACHE[r.b.s+'_'+basePer()];
   if(!da||!db)return [];
@@ -394,6 +373,9 @@ function buildSeriesList(){
       ['px_bb_up','px_bb_dn'].forEach(k=>{const a=d0.points[k];if(a&&a.length>2)
         out.push({sym:'',mk:k,label:'BB '+(k.endsWith('up')?'+2\u03c3':'\u22122\u03c3'),u:'c',
           color:'#64748b',dash:'2 2',pts:applyMode(a,'__price'),grp:'px',pxAux:true});});
+      const vw=d0.points.volume_w;if(vw&&vw.length>2)
+        out.push({sym:'',mk:'volume_w',label:'Volume (wk)',u:'x',color:'#475569',
+          pts:vw.map(p=>[p[0],p[1]]),grp:'vol',own:true,bars:true});
     }
   }
   S.macro.forEach((k,mi)=>{
@@ -406,7 +388,7 @@ function buildSeriesList(){
   return out.filter(s=>s.pts.length>=2);
 }
 function draw(){
-  writeURL();renderChips();renderTech();renderMeta();renderTable();
+  writeURL();renderChips();renderMacroChips();renderTech();renderMeta();renderTable();
   const list=buildSeriesList();RENDERED=list;
   if(!list.length){svg.innerHTML='';emptyEl.style.display='flex';return;}
   emptyEl.style.display='none';
@@ -424,7 +406,9 @@ function draw(){
   if(S.syms.length===1){const d0=DCACHE[S.syms[0]+'_'+basePer()];
     if(S.ern)ern=(d0&&d0.earnings)||null;
     if(S.evt)evt=(d0&&d0.events)||null;
-    if(S.ta&&d0&&d0.tech&&!d0.tech.error)tech=d0.tech.events||null;}
+    if(d0&&d0.tech&&!d0.tech.error&&d0.tech.events){
+      tech=S.ta?d0.tech.events:d0.tech.events.filter(e9=>/_200$|^GC|^DC|^DBL/.test(e9[1])&&(!/^DBL/.test(e9[1])||/confirmed/.test(e9[2]||'')));
+      if(!tech.length)tech=null;}}
   document.getElementById('evtbtn').classList.toggle('on',S.evt);
   document.getElementById('secbtn').classList.toggle('on',S.sec);
   document.getElementById('tabtn').classList.toggle('on',S.ta);
@@ -507,7 +491,7 @@ function renderChips(){
         }else latest='—';
       }
       const hid=S.hidden.includes(mk);
-      chips.push(`<span class="metchip" data-hid="${hid?1:0}" style="${hid?'opacity:.35;':''}><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>·${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-m="${mk}" title="remove metric">✕</span> <span class="x" data-eye="${esc(mk)}" title="${hid?'show on chart':'hide from chart'}">${hid?'\ud83d\udc41\u200d\ud83d\udde8':'\ud83d\udc41'}</span><span class="x" data-del="${esc(mk)}" title="remove metric">\u2715</span></span>`);
+      chips.push(`<span class="metchip" data-hid="${hid?1:0}" style="${hid?'opacity:.35':''}"><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>\u00b7${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-eye="${esc(mk)}" title="${hid?'show on chart':'hide from chart'}">\ud83d\udc41</span><span class="x" data-m="${mk}" title="remove metric">\u2715</span></span>`);
     });
   });
     S.ratios.forEach((r,ri)=>{
@@ -531,10 +515,9 @@ function renderChips(){
   lg.innerHTML=chips.join('');
   lg.querySelectorAll('[data-eye]').forEach(x=>x.onclick=()=>{const k=x.dataset.eye;
     S.hidden=S.hidden.includes(k)?S.hidden.filter(v=>v!==k):S.hidden.concat([k]);draw();});
-  lg.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.del);S.hidden=S.hidden.filter(v=>v!==x.dataset.del);draw();});
   lg.querySelectorAll('[data-ri]').forEach(x=>x.onclick=()=>{S.ratios.splice(+x.dataset.ri,1);draw();});
   lg.querySelectorAll('[data-mx]').forEach(x=>x.onclick=()=>{S.macro=S.macro.filter(v=>v!==x.dataset.mx);draw();});
-  lg.querySelectorAll('.x').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.m);draw();});
+  lg.querySelectorAll('[data-m]').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.m);S.hidden=S.hidden.filter(v=>v!==x.dataset.m);draw();});
   document.getElementById('metcount').textContent=`${S.mets.length}/${MAXM} metrics · ${S.syms.length}/${MAXS} symbols`;
   document.querySelectorAll('#perseg .btn').forEach(b=>b.classList.toggle('on',b.dataset.p===S.per));
   document.querySelectorAll('#rngseg .btn').forEach(b=>b.classList.toggle('on',+b.dataset.r===S.rng));
@@ -568,6 +551,10 @@ function renderTech(){
   if(st.rsi14!=null){const rc=st.rsi14>=70?'var(--red)':st.rsi14<=30?'var(--green)':'var(--text)';
     chips.push(`<span class="metchip" style="color:${rc}" title="RSI-14 (Wilder)">RSI ${st.rsi14.toFixed(0)}${st.rsi14>=70?' overbought':st.rsi14<=30?' oversold':''}</span>`);}
   if(st.bb_pos!=null)chips.push(`<span class="metchip" title="position within Bollinger band (\u00b11 = band edges)">BB ${st.bb_pos>=0?'+':''}${st.bb_pos.toFixed(2)}</span>`);
+  const vst=st.volume;
+  if(vst&&vst.state==='ok'&&vst.rvol!=null){const rc2=vst.rvol>=2?'var(--green)':vst.rvol<=0.5?'var(--text-muted)':'var(--text)';
+    chips.push(`<span class="metchip" style="color:${rc2}" title="today vs prior 20-day average volume \u00b7 coverage ${vst.coverage_pct}%">RVOL ${vst.rvol.toFixed(2)}\u00d7</span>`);}
+  else if(vst&&vst.state==='insufficient')chips.push(`<span class="metchip" title="${esc(vst.why)}" style="color:var(--text-muted)">volume: n/a</span>`);
   (st.patterns||[]).forEach(p2=>{const pc=p2.type==='DBL_TOP'?'var(--red)':'var(--green)';
     chips.push(`<span class="metchip" style="border-color:${pc}66;color:${pc}">${p2.type==='DBL_TOP'?'M':'W'} ${esc(p2.type.replace('_',' ').toLowerCase())} ${p2.confirmed?'confirmed':'forming'} \u00b7 neck ${fmtTA(p2.neck)}</span>`);});
   box.innerHTML=chips.join(' ');
@@ -837,7 +824,24 @@ function rtPop(){
     toast('Ratio added — '+ratioLabel(r));};
 }
 document.getElementById('rtbtn').onclick=rtPop;
-document.getElementById('mxbtn').onclick=mxPop;
+(function(){const sel=document.getElementById('mxsel');
+  const fill=()=>{if(sel.options.length>1)return;
+    (window.FG_MACROS||[]).forEach(m9=>{const o=document.createElement('option');o.value=m9.k;o.textContent=m9.label;sel.appendChild(o);});};
+  fill();sel.onfocus=fill;
+  sel.onchange=async()=>{const v=sel.value;sel.value='';if(!v)return;
+    if(S.macro.includes(v))return toast('Already overlaid');
+    if(S.macro.length>=3)return toast('Max 3 macro overlays');
+    S.macro.push(v);draw();
+    const got=await loadMacro(v);
+    if(!got){const m9=(window.FG_MACROS||[]).find(x=>x.k===v);
+      toast((m9?m9.label:v)+' unavailable on the bridge');
+      S.macro=S.macro.filter(x=>x!==v);}
+    draw();};
+})();
+function renderMacroChips(){const b=document.getElementById('mxchips');if(!b)return;
+  b.innerHTML=S.macro.map(k=>{const m9=(window.FG_MACROS||[]).find(x=>x.k===k);
+    return `<span class="metchip" style="border-color:#7dd3fc55;color:#7dd3fc">${esc(m9?m9.label:k)}<span class="x" data-mx="${esc(k)}" title="remove overlay">\u2715</span></span>`;}).join('');
+  b.querySelectorAll('[data-mx]').forEach(x=>x.onclick=()=>{S.macro=S.macro.filter(v=>v!==x.dataset.mx);draw();});}
 document.getElementById('mkclr').onclick=()=>{S.marks=[];saveMarks();draw();};
 document.getElementById('tabtn').onclick=()=>{S.ta=!S.ta;if(S.ta){S.px=true;if(S.syms.length>1)toast('TA layer shows for a single symbol');}draw();};
 document.getElementById('secbtn').onclick=async()=>{S.sec=!S.sec;if(S.sec){await ensureSecmed();if(S.syms.length>1)toast('Sector medians show for a single symbol');}draw();};

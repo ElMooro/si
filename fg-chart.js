@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 + OPS3500 (pxAux + tech rail) (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 + OPS3500 + OPS3502 (vol bars) (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -217,6 +217,16 @@ function render(svg,tip,list,opts){
 
   var badges=[];
   drawn.forEach(function(s){
+    if(s.bars){
+      var Yb=isOwn(s)?Yown(s.__own):((s.isPx||s.pxAux)?Ypx:(axisOf(s)===0?Y0:Y1));
+      var vals=s.pts.filter(function(p){return p[1]!=null;});
+      var bw=Math.max(1.5,Math.min(6,(x1-x0)/Math.max(1,vals.length)*0.6));
+      vals.forEach(function(p){
+        var yv=Yb(p[1]),h=Math.max(0.5,y1-yv);
+        svg.appendChild(el('rect',{x:X(p[0])-bw/2,y:yv,width:bw,height:h,fill:s.color,opacity:.55}));
+      });
+      return;
+    }
     var Y=(s.isPx||s.pxAux)?Ypx:(isOwn(s)?Yown(s.__own):(axisOf(s)===0?Y0:Y1));
     var dstr='',pen=false;
     s.pts.forEach(function(p){var y=Y(p[1]);

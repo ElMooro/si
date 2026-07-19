@@ -3703,6 +3703,9 @@ function buildList(){
     ['px_bb_up','px_bb_dn'].forEach(function(k){var a=DOC.points[k];if(a&&a.length>2)
       list.push({label:'BB '+(k.slice(-2)==='up'?'+2\u03c3':'\u22122\u03c3'),u:'c',color:'#64748b',dash:'2 2',
         pts:transform(a.slice(),true),grp:'px',pxAux:true,_full:a});});
+    var vw9=DOC.points.volume_w;if(vw9&&vw9.length>2)
+      list.push({label:'Volume (wk)',u:'x',color:'#475569',own:true,bars:true,grp:'vol',
+        pts:vw9.map(function(p){return [p[0],p[1]];}),_full:vw9});
   }
   if(ST.px&&DOC.price&&DOC.price.length){
     var pp=transform(DOC.price.slice(),true);
@@ -3719,7 +3722,7 @@ function build(){
     return '<span style="display:inline-flex;gap:5px;align-items:center;border:1px solid #22304a;border-radius:8px;padding:3px 9px;font-size:.7rem;font-family:var(--mono,monospace)"><span style="width:7px;height:7px;border-radius:50%;background:'+CLR[v[2](val)]+'"></span>'+v[1]+' <b>'+v[3](val)+'</b></span>';}).join(' ');
   var lens=LENS.map(function(l,i){var on=!CUST&&i===ST.lens;
     return '<button data-l="'+i+'" style="border:1px solid '+(on?'#22d3ee':'#22304a')+';color:'+(on?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">'+l[0]+'</button>';}).join(' ');
-  var addbtn='<button id="jhfgRt" title="metric \u00f7 metric ratio for this ticker" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\uff0bRatio</button> <button id="jhfgMx" title="macro overlays (own scale)" style="border:1px solid '+(MACRO.length?'#94a3b8':'#22304a')+';color:'+(MACRO.length?'#cbd5e1':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">Macro'+(MACRO.length?' \u00b7'+MACRO.length:'')+'</button> '+'<button id="jhfgAdd" style="border:1px solid #22d3ee;color:#22d3ee;background:#0b2530;border-radius:8px;padding:3px 12px;font-size:.7rem;font-weight:700;cursor:pointer">+ Add metric</button>'+(CUST?' <button id="jhfgClear" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\u21ba Lenses</button> <span style="font-size:.66rem;color:#5d6b82">'+keys().length+'/'+MAXM+'</span>':'');
+  var addbtn='<button id="jhfgRt" title="metric \u00f7 metric ratio for this ticker" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\uff0bRatio</button> <select id="jhfgMxSel" title="overlay a macro series (own scale)" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 8px;font-size:.68rem;max-width:130px"><option value="">+ Macro\u2026</option></select>'+MACRO.map(function(k9){var m9=(window.FG_MACROS||[]).find(function(x){return x.k===k9;});return ' <span style="border:1px solid #7dd3fc55;color:#7dd3fc;border-radius:8px;padding:2px 8px;font-size:.64rem">'+esc(m9?m9.label:k9)+' <span data-mxrm="'+esc(k9)+'" style="cursor:pointer;font-weight:800">\u2715</span></span>';}).join('')+' '+'<button id="jhfgAdd" style="border:1px solid #22d3ee;color:#22d3ee;background:#0b2530;border-radius:8px;padding:3px 12px;font-size:.7rem;font-weight:700;cursor:pointer">+ Add metric</button>'+(CUST?' <button id="jhfgClear" style="border:1px solid #22304a;color:#8b98ad;background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.7rem;cursor:pointer">\u21ba Lenses</button> <span style="font-size:.66rem;color:#5d6b82">'+keys().length+'/'+MAXM+'</span>':'');
   sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 institutional chart <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 '+(CUST?'custom '+keys().length:'lens: '+LENS[ST.lens][0])+')</span>'+((DOC.whales_q&&DOC.whales_q.net_usd!=null)?(' <span title="latest-quarter 13F net $ — tracked whale cohort" style="font-size:.64rem;color:'+(DOC.whales_q.net_usd>=0?'#34d399':'#f87171')+'">\ud83d\udc0b '+(DOC.whales_q.net_usd>=0?'+':'')+(Math.abs(DOC.whales_q.net_usd)>=1e9?(DOC.whales_q.net_usd/1e9).toFixed(1)+'B':(DOC.whales_q.net_usd/1e6).toFixed(0)+'M')+'</span>'):'')+'</div>'+ /* ops3482 whale chip */
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
     ((DOC.flags&&DOC.flags.length)?('<div id="jhfgFlags" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+DOC.flags.slice(0,3).map(function(f){var c=f.sev===3?'#f87171':f.sev===2?'#fbbf24':'#64748b';return '<span data-fk="'+esc(f.keys.join(','))+'" title="click to chart the evidence" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.68rem">\u26a0 '+esc(f.msg)+'</span>';}).join('')+'</div>'):'')+
@@ -3729,6 +3732,7 @@ function build(){
       if(st.bull_stack)ch.push('<span style="border:1px solid #34d39966;color:#34d399;border-radius:8px;padding:3px 10px;font-size:.66rem">Bull MA stack</span>');
       if(st.last_cross)ch.push('<span style="border:1px solid #22304a;color:#8b98ad;border-radius:8px;padding:3px 10px;font-size:.66rem">'+esc(st.last_cross.type)+' '+esc(st.last_cross.d)+'</span>');
       if(st.rsi14!=null)ch.push('<span style="border:1px solid #22304a;color:'+(st.rsi14>=70?'#f87171':st.rsi14<=30?'#34d399':'#c9d4e5')+';border-radius:8px;padding:3px 10px;font-size:.66rem">RSI '+st.rsi14.toFixed(0)+'</span>');
+      if(st.volume&&st.volume.state==='ok'&&st.volume.rvol!=null)ch.push('<span style="border:1px solid #22304a;color:'+(st.volume.rvol>=2?'#34d399':'#c9d4e5')+';border-radius:8px;padding:3px 10px;font-size:.66rem" title="coverage '+st.volume.coverage_pct+'%">RVOL '+st.volume.rvol.toFixed(2)+'\u00d7</span>');
       (st.patterns||[]).forEach(function(p2){var pc=p2.type==='DBL_TOP'?'#f87171':'#34d399';
         ch.push('<span style="border:1px solid '+pc+'66;color:'+pc+';border-radius:8px;padding:3px 10px;font-size:.66rem">'+esc(p2.type.replace('_',' ').toLowerCase())+' '+(p2.confirmed?'confirmed':'forming')+'</span>');});
       return '<div id="jhfgTaStrip" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+ch.join('')+'</div>';})():'')+
@@ -3764,6 +3768,15 @@ function build(){
   sec.querySelector('#jhfgLog').onclick=function(){ST.log=!ST.log;build();};
   sec.querySelector('#jhfgErn').onclick=function(){ST.ern=!ST.ern;build();};
   sec.querySelector('#jhfgEvt').onclick=function(){ST.evt=!ST.evt;build();};
+  (function(){var sel=sec.querySelector('#jhfgMxSel');if(!sel)return;
+    (window.FG_MACROS||[]).forEach(function(m9){var o=document.createElement('option');o.value=m9.k;o.textContent=m9.label;sel.appendChild(o);});
+    sel.onchange=function(){var v=sel.value;sel.value='';if(!v)return;
+      if(MACRO.indexOf(v)>=0)return;
+      if(MACRO.length>=2){alert('Max 2 macro overlays');return;}
+      MACRO.push(v);saveMacro2();build();
+      loadMacro2(v,function(got){if(!got){MACRO=MACRO.filter(function(x){return x!==v;});saveMacro2();}build();});};
+  })();
+  sec.querySelectorAll('[data-mxrm]').forEach(function(x){x.onclick=function(){MACRO=MACRO.filter(function(v){return v!==x.getAttribute('data-mxrm');});saveMacro2();build();};});
   sec.querySelector('#jhfgTa').onclick=function(){ST.ta=!ST.ta;if(ST.ta)ST.px=true;build();};
   sec.querySelector('#jhfgSec').onclick=function(){ST.sec=!ST.sec;
     if(ST.sec&&SECMED===null){
@@ -3804,24 +3817,6 @@ function build(){
       if(RATIOS.some(function(r){return r.a===a&&r.b===b2;}))return;
       RATIOS.push({a:a,b:b2});saveRatios();build();};
   };
-  sec.querySelector('#jhfgMx').onclick=function(){
-    var ex=document.getElementById('jhfgMxPop');if(ex){ex.remove();return;}
-    var d=document.createElement('div');d.id='jhfgMxPop';
-    d.style.cssText='position:fixed;z-index:135;background:#0a1120;border:1px solid #22304a;border-radius:12px;padding:12px;box-shadow:0 18px 60px rgba(0,0,0,.6);min-width:210px';
-    d.innerHTML='<b style="font-size:.78rem">Macro overlays <span style="font-size:.62rem;color:#5d6b82">(max 2 \u00b7 own scale)</span></b>'+(window.FG_MACROS||[]).map(function(m2){return '<label style="display:flex;gap:8px;align-items:center;margin-top:7px;font-size:.72rem;cursor:pointer"><input type="checkbox" data-mk2="'+m2.k+'" '+(MACRO.indexOf(m2.k)>=0?'checked':'')+' style="accent-color:#94a3b8"> '+esc(m2.label)+'</label>';}).join('');
-    document.body.appendChild(d);
-    var rc=sec.querySelector('#jhfgMx').getBoundingClientRect();
-    d.style.left=Math.min(rc.left,window.innerWidth-d.offsetWidth-10)+'px';
-    d.style.top=Math.min(rc.bottom+6,window.innerHeight-d.offsetHeight-10)+'px';
-    d.querySelectorAll('[data-mk2]').forEach(function(cb2){cb2.onchange=function(){
-      var k=cb2.dataset.mk2;
-      if(cb2.checked){if(MACRO.length>=2){cb2.checked=false;return;}
-        MACRO.push(k);saveMacro2();
-        loadMacro2(k,function(got){if(!got){MACRO=MACRO.filter(function(v){return v!==k;});saveMacro2();cb2.checked=false;}build();});
-      }else{MACRO=MACRO.filter(function(v){return v!==k;});saveMacro2();build();}};});
-    var clk=function(e){if(!d.contains(e.target)&&e.target.id!=='jhfgMx'){d.remove();document.removeEventListener('mousedown',clk);}};
-    setTimeout(function(){document.addEventListener('mousedown',clk);},50);
-  };
   chart();
 }
 function chart(){
@@ -3848,7 +3843,9 @@ function chart(){
   }
   var r=window.FGChart.render(svg,tip,list,{mode:ST.mode,log:ST.log,mixOk:MIXOK,band:band,hlines:hlines,earnings:(ST.ern&&DOC.earnings)?DOC.earnings:null,
     events:(ST.evt&&DOC.events)?DOC.events:null,
-    tech:(ST.ta&&DOC.tech&&!DOC.tech.error&&DOC.tech.events)?DOC.tech.events:null,
+    tech:(function(){if(!(DOC.tech&&!DOC.tech.error&&DOC.tech.events))return null;
+      var ev9=ST.ta?DOC.tech.events:DOC.tech.events.filter(function(e9){return /_200$|^GC|^DC|^DBL/.test(e9[1])&&(!/^DBL/.test(e9[1])||/confirmed/.test(e9[2]||''));});
+      return ev9.length?ev9:null;})(),
     marks:MARKS,
     onMark:function(d){if(MARKS.indexOf(d)<0){MARKS.push(d);MARKS.sort();saveMarks();chart();}},
     onUnmark:function(d){MARKS=MARKS.filter(function(x){return x!==d;});saveMarks();chart();}});

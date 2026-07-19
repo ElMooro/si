@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v17"  # v17: + TA layer (daily MAs/BB/RSI/crosses/patterns)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v18"  # v18: + volume (weekly sums, RVOL, spike events; continuity-gated)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -350,13 +350,17 @@ def fetch_price(sym):
     except Exception:  # noqa: BLE001
         data = []
     hist = data.get("historical") or data.get("data") or [] if isinstance(data, dict) else data
-    rows = []
+    rows, vrows = [], []
     for r in hist if isinstance(hist, list) else []:
         d = r.get("date")
         c = g(r, "close", "price", "adjClose")
         if d and c is not None and c > 0:
             rows.append((str(d)[:10], c))
+            v = r.get("volume")
+            vrows.append((str(d)[:10],
+                          float(v) if isinstance(v, (int, float)) else 0.0))
     rows.sort(key=lambda t: t[0])
+    vrows.sort(key=lambda t: t[0])
     weekly, last_wk = [], None
     for d, c in rows:
         try:
@@ -368,7 +372,58 @@ def fetch_price(sym):
             last_wk = wk
         else:
             weekly[-1] = [d, rnd(c, 4)]
-    return rows, weekly
+    return rows, weekly, vrows
+
+
+def volume_layer(vrows, weekly_px):
+    """Continuity-gated volume: weekly sums, 20d avg, RVOL, spikes.
+    Returns (P_add dict, events list, status dict) or (None, [], status)
+    with named insufficiency."""
+    if not vrows or len(vrows) < 250:
+        return None, [], {"state": "insufficient",
+                          "why": "fewer than 250 daily volume rows"}
+    tail = vrows[-756:]
+    nz = sum(1 for _, v in tail if v > 0)
+    cov = 100.0 * nz / len(tail)
+    if cov < 95.0:
+        return None, [], {"state": "insufficient",
+                          "why": "coverage %.1f%% of last %d days (<95%%)"
+                          % (cov, len(tail))}
+    ds = [d for d, _ in vrows]
+    vs = [v for _, v in vrows]
+    va20 = _sma(vs, 20)
+    wk_bucket, wk_of = {}, {}
+    for d, v in vrows:
+        try:
+            wk = datetime.strptime(d, "%Y-%m-%d").isocalendar()[:2]
+        except ValueError:
+            continue
+        wk_bucket[wk] = wk_bucket.get(wk, 0.0) + v
+    for d, _ in weekly_px:
+        try:
+            wk_of[d] = datetime.strptime(d, "%Y-%m-%d").isocalendar()[:2]
+        except ValueError:
+            pass
+    vol_w = [[d, rnd(wk_bucket.get(wk_of.get(d), 0.0), 0)]
+             for d, _ in weekly_px if wk_of.get(d) in wk_bucket]
+    idx = {d: i for i, d in enumerate(ds)}
+    ma20_w = [[d, rnd(va20[idx[d]], 0)] for d, _ in weekly_px
+              if d in idx and va20[idx[d]] is not None]
+    events = []
+    start = max(20, len(vs) - 520)
+    for i in range(start, len(vs)):
+        base = va20[i - 1] if i >= 1 else None
+        if base and base > 0 and vs[i] >= 2.5 * base:
+            events.append([ds[i], "VOL_SPIKE",
+                           "volume spike %.1fx 20d avg" % (vs[i] / base)])
+    events = events[-15:]
+    avg_prior = (sum(vs[-21:-1]) / 20.0) if len(vs) >= 21 else None
+    status = {"state": "ok", "coverage_pct": rnd(cov, 1),
+              "last": rnd(vs[-1], 0),
+              "avg20": rnd(avg_prior, 0) if avg_prior else None,
+              "rvol": rnd(vs[-1] / avg_prior, 2)
+              if avg_prior and avg_prior > 0 else None}
+    return {"volume_w": vol_w, "vol_ma20": ma20_w}, events, status
 
 
 def fetch_earnings(sym):
@@ -578,7 +633,7 @@ def build_doc(sym, period):
         raise RuntimeError(f"no income data for {sym}")
     est_rows = fetch_estimates(sym, period)
     profile = fetch_profile(sym)
-    daily_px, weekly_px = fetch_price(sym)
+    daily_px, weekly_px, vol_px = fetch_price(sym)
     tech_doc = None
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
@@ -1214,6 +1269,11 @@ def build_doc(sym, period):
             P["px_bb_dn"] = _ta["wk_sample"](_ta["bb_dn"], _wd, _idx)
             P["rsi_14"] = _ta["wk_sample"](_ta["rsi"], _wd, _idx)
             tech_doc = {"events": _ta["events"], "status": _ta["status"]}
+            _vp, _vev, _vst = volume_layer(vol_px, weekly_px)
+            tech_doc["status"]["volume"] = _vst
+            if _vp:
+                P.update(_vp)
+                tech_doc["events"] = sorted(tech_doc["events"] + _vev)[-55:]
     except Exception as _te:  # noqa: BLE001
         tech_doc = {"error": str(_te)[:120]}
 
@@ -1239,7 +1299,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.7.1",
+        "version": "1.8.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1957,7 +2017,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.7.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.8.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1981,7 +2041,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.7.1"}
+                "version": "1.8.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1997,7 +2057,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.7.1"}, headers_in)
+                               "version": "1.8.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
