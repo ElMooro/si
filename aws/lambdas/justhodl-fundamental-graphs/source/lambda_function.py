@@ -1043,7 +1043,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.6.0",
+        "version": "1.6.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1324,6 +1324,11 @@ def secmed_row(sector):
             "bands": (d.get("bands") or {}).get(sector) or {}}
 
 
+EXTREME_NORM = {"roic_pct": ("H", 60), "interest_coverage_ttm": ("H", 100),
+                "altman_z": ("H", 10), "piotroski_f": ("H", 9),
+                "beneish_m": ("L", -3.5), "netdebt_to_ebitda_ttm": ("L", -2),
+                "gross_margin_pct": ("H", 85), "fcf_margin_pct": ("H", 40)}
+
 ELITE_NORM = {"roic_pct": ("H", 30), "gross_margin_pct": ("H", 75),
               "operating_margin_pct": ("H", 40), "fcf_margin_pct": ("H", 30),
               "fcf_yield_pct": ("H", 10), "income_quality": ("H", 1.5),
@@ -1358,13 +1363,29 @@ def derive_verdicts(P, lb, sector, med, bands=None):
         # ELITE upgrade (ops 3498): astonishing-by-norm or sector
         # top-decile, greens only, real value required
         if side == "G" and val is not None:
+            norm_el = decile_el = False
             en = ELITE_NORM.get(key)
             if en and ((en[0] == "H" and val >= en[1])
                        or (en[0] == "L" and val <= en[1])):
+                norm_el = True
                 e["elite"] = True
                 e["why"] += " \u2014 ELITE (%s %.2f)" % (
                     "\u2265" if en[0] == "H" else "\u2264", en[1])
             bd = bands.get(key)
+            if bd and bd.get("n", 0) >= 10:
+                dr9 = next((r5[3] for r5 in VERDICT_RULES
+                            if r5[0] == key), "H")
+                if (dr9 == "H" and bd.get("p90") is not None
+                        and val >= bd["p90"]) or \
+                   (dr9 == "L" and bd.get("p10") is not None
+                        and val <= bd["p10"]):
+                    decile_el = True
+            xn = EXTREME_NORM.get(key)
+            if e.get("elite") and (
+                    (norm_el and decile_el)
+                    or (xn and ((xn[0] == "H" and val >= xn[1])
+                                or (xn[0] == "L" and val <= xn[1])))):
+                e["extreme"] = True
             if not e.get("elite") and bd and bd.get("n", 0) >= 10:
                 dr2 = next((r5[3] for r5 in VERDICT_RULES
                             if r5[0] == key), "H")
@@ -1739,7 +1760,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.6.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.6.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1763,7 +1784,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.6.0"}
+                "version": "1.6.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1779,7 +1800,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.6.0"}, headers_in)
+                               "version": "1.6.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

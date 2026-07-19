@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.8 ops3498 elite -->
+<!-- fundgraph v1.0 ops3462 · v2.9 ops3499 controls+semantics -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -25,6 +25,7 @@ body{background:#060a12;color:var(--text-primary);font-family:Inter,system-ui,sa
 .seg .btn:last-child{border-right:0}
 .symchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-soft);border-radius:9px;padding:4px 10px;font-size:.8rem;font-weight:700;background:#0d1526}
 .metchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border-soft);border-radius:8px;padding:3px 9px;font-size:.72rem;background:#0c1424;cursor:default}
+.jhfl{animation:jhfl 1.1s ease-in-out infinite}@keyframes jhfl{50%{opacity:.4}}
 .metchip .x,.symchip .x{cursor:pointer;color:var(--text-muted);font-weight:800;padding:0 2px}
 .metchip .x:hover,.symchip .x:hover{color:var(--red)}
 .dot{width:9px;height:9px;border-radius:3px;display:inline-block;flex:0 0 auto}
@@ -67,7 +68,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.8 · ops 3498</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.9 · ops 3499</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -187,7 +188,7 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,sec:false,marks:[],ratios:[],macro:[]};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,sec:false,hidden:[],marks:[],ratios:[],macro:[]};
 const MAXR=6;
 function readURL(){
   const q=new URLSearchParams(location.search);
@@ -198,6 +199,7 @@ function readURL(){
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
   S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';S.evt=q.get('ev')==='1';S.sec=q.get('sc')==='1';
   if(q.get('mx'))S.macro=q.get('mx').split(',').filter(k=>MACROS.some(m2=>m2.k===k)).slice(0,3);
+  if(q.get('h'))S.hidden=q.get('h').split(',').filter(k=>CATIDX[k]);
   if(q.get('mk'))S.marks=q.get('mk').split(',').filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
   if(q.get('rt'))S.ratios=q.get('rt').split(',').map(t=>{const p=t.split('~');return {a:{s:(p[0]||'').toUpperCase(),m:p[1]},b:{s:(p[2]||'').toUpperCase(),m:p[3]}};}).filter(r=>CATIDX[r.a.m]&&CATIDX[r.b.m]).slice(0,MAXR);
   if(!S.syms.length){S.syms=['CHTR'];S.mets=S.mets.length?S.mets:['grossProfit'];}
@@ -207,7 +209,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.sec)q.set('sc','1');if(S.macro.length)q.set('mx',S.macro.join(','));if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.sec)q.set('sc','1');if(S.macro.length)q.set('mx',S.macro.join(','));if(S.hidden.length)q.set('h',S.hidden.join(','));if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -232,7 +234,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.8 · ops 3498 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.9 · ops 3499 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -361,7 +363,7 @@ function buildSeriesList(){
   S.syms.forEach((sym,si)=>{
     const doc=DCACHE[sym+'_'+basePer()];if(!doc)return;
     S.mets.forEach((mk)=>{
-      const m=CATIDX[mk];if(!m)return;
+      const m=CATIDX[mk];if(!m||S.hidden.includes(mk))return;
       const pts=applyMode(series(doc,mk),mk);
       const isEst=mk.indexOf('est_')===0;
       out.push({sym,si,mk,label:m.label,u:m.u,color:colorOf(mk),
@@ -488,7 +490,8 @@ function renderChips(){
           if(stt)delta+=` <span class="u" title="percentile of own 10y history · z-score" style="border-color:#22304a;color:#94a3b8">p${stt.pct}·z${stt.z>=0?'+':''}${stt.z.toFixed(1)}</span>`;
         }else latest='—';
       }
-      chips.push(`<span class="metchip"><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>·${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-m="${mk}" title="remove metric">✕</span></span>`);
+      const hid=S.hidden.includes(mk);
+      chips.push(`<span class="metchip" data-hid="${hid?1:0}" style="${hid?'opacity:.35;':''}><span class="dot d${si+1}" style="background:${color}"></span><b>${esc(sym)}</b>·${esc(m.label)} <b class="mono">${latest}</b> ${delta}<span class="x" data-m="${mk}" title="remove metric">✕</span> <span class="x" data-eye="${esc(mk)}" title="${hid?'show on chart':'hide from chart'}">${hid?'\ud83d\udc41\u200d\ud83d\udde8':'\ud83d\udc41'}</span><span class="x" data-del="${esc(mk)}" title="remove metric">\u2715</span></span>`);
     });
   });
     S.ratios.forEach((r,ri)=>{
@@ -510,6 +513,9 @@ function renderChips(){
     chips.push(`<span class="metchip" style="border-style:dotted;border-color:${color}88"><span class="dot" style="background:${color}"></span>${esc(cfg.label)} <b class="mono">${latest}</b><span class="x" data-mx="${mk2}" title="remove overlay">✕</span></span>`);
   });
   lg.innerHTML=chips.join('');
+  lg.querySelectorAll('[data-eye]').forEach(x=>x.onclick=()=>{const k=x.dataset.eye;
+    S.hidden=S.hidden.includes(k)?S.hidden.filter(v=>v!==k):S.hidden.concat([k]);draw();});
+  lg.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.del);S.hidden=S.hidden.filter(v=>v!==x.dataset.del);draw();});
   lg.querySelectorAll('[data-ri]').forEach(x=>x.onclick=()=>{S.ratios.splice(+x.dataset.ri,1);draw();});
   lg.querySelectorAll('[data-mx]').forEach(x=>x.onclick=()=>{S.macro=S.macro.filter(v=>v!==x.dataset.mx);draw();});
   lg.querySelectorAll('.x').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.m);draw();});
@@ -548,7 +554,8 @@ function renderFlags(){
     const d0=DCACHE[S.syms[0]+'_'+basePer()];
     const V=(d0&&d0.verdicts)||null;
     if(V&&((V.greens&&V.greens.length)||(V.reds&&V.reds.length))){
-      const chip=(x,g)=>`<span class="fgverd" data-vk="${esc(x.k)}" title="${esc(x.basis)} basis \u00b7 click to chart" style="display:block;cursor:pointer;margin-top:5px;font-size:.7rem;line-height:1.35;${x.elite?'color:#fbbf24':''}"><span style="color:${x.elite?'#fbbf24':g?'var(--green)':SEVC[x.sev]||'var(--red)'}">${x.elite?'\u2b50':g?'\u2705':'\ud83d\udea9'}</span> ${esc(x.why)}${x.elite?' <b style="color:#fbbf24;font-size:.58rem;border:1px solid #fbbf2455;border-radius:4px;padding:0 4px">ELITE</b>':''}${x.sev===3?' <b style="color:var(--red);font-size:.6rem">SEV3</b>':''}</span>`;
+      const chip=(x,g)=>{const warn=!g&&x.sev<3,c=g?'var(--green)':warn?'#fbbf24':'var(--red)',fl=(x.extreme||(!g&&x.sev===3))?' jhfl':'';
+        return `<span class="fgverd${fl}" data-vk="${esc(x.k)}" title="${esc(x.basis)} basis \u00b7 click to chart" style="display:block;cursor:pointer;margin-top:5px;font-size:.7rem;line-height:1.35;color:${c}"><span>${x.elite?'\u2b50':g?'\u2705':warn?'\u26a0':'\ud83d\udea9'}</span> ${esc(x.why)}${x.elite?` <b style="font-size:.58rem;border:1px solid ${c}55;border-radius:4px;padding:0 4px">${x.extreme?'EXTREME':'ELITE'}</b>`:''}${(!g&&x.sev===3)?' <b style="font-size:.6rem">SEV3</b>':''}</span>`;};
       vp=`<div class="metacard" style="border-color:#173325"><b style="color:var(--green)">\u2705 ${esc(S.syms[0])} green flags <span class="note">(${V.summary.n_green}${V.summary.n_elite?` \u00b7 \u2b50${V.summary.n_elite} elite`:''})</span></b><br>${(V.greens||[]).map(x=>chip(x,1)).join('')||'<span class="note">none</span>'}</div>`+
          `<div class="metacard" style="border-color:#3b1d1d"><b style="color:var(--red)">\ud83d\udea9 ${esc(S.syms[0])} red flags <span class="note">(${V.summary.n_red})</span></b><br>${(V.reds||[]).map(x=>chip(x,0)).join('')||'<span class="note">none</span>'}${(V.summary.fin_suppressed&&V.summary.fin_suppressed.length)?`<div class="note" style="margin-top:6px">financial-sector doctrine: ${V.summary.fin_suppressed.length} statement rules suppressed</div>`:''}</div>`;
     }
@@ -735,11 +742,11 @@ function renderSaves(){const sel=document.getElementById('loadsel');
   sel.innerHTML='<option value="">Load saved…</option>'+Object.keys(saves()).map(n=>`<option>${esc(n)}</option>`).join('');}
 document.getElementById('savebtn').onclick=()=>{
   const n=prompt('Name this graph:');if(!n)return;
-  const all=saves();all[n]={syms:S.syms,mets:S.mets,per:S.per,rng:S.rng,mode:S.mode,px:S.px,ratios:S.ratios};
+  const all=saves();all[n]={syms:S.syms,mets:S.mets,per:S.per,rng:S.rng,mode:S.mode,px:S.px,ratios:S.ratios,hidden:S.hidden};
   localStorage.setItem(LSK,JSON.stringify(all));renderSaves();toast('Saved "'+n+'"');};
 document.getElementById('loadsel').onchange=e=>{
   const v=e.target.value;if(!v)return;const st=saves()[v];if(!st)return;
-  S.ratios=[];S.marks=[];Object.assign(S,st);S.mixOk=false;e.target.value='';refresh();};
+  S.ratios=[];S.marks=[];S.hidden=[];Object.assign(S,st);S.mixOk=false;e.target.value='';refresh();};
 document.getElementById('linkbtn').onclick=()=>{
   writeURL();navigator.clipboard&&navigator.clipboard.writeText(location.href);toast('Deep link copied');};
 
