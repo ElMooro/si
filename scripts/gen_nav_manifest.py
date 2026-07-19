@@ -52,6 +52,7 @@ FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
     "/proven-portfolio.html": "Portfolio & Execution",  # ops 3459
     "/short-book.html": "Portfolio & Execution",        # ops 3459
     "/political.html": "Research & Tools",              # ops 3459
+    "/fundamental-census.html": "Research & Tools",    # ops 3527
     "/fundamental-graphs.html": "Research & Tools",     # ops 3462
     "/primary-dealers.html": "Macro & Liquidity",
     "/jsi.html": "Risk & Crisis",

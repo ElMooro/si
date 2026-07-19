@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fundamental Census — S&P 500 · JustHodl.AI</title>
+<style>
+:root{--bg:#070d18;--card:#0b1322;--border:#1c2a42;--text:#c9d4e5;--muted:#5d6b82;--blue:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 16px 70px}
+h1{font-size:1.3rem;margin:6px 0 2px}.sub{color:var(--muted);font-size:.78rem;max-width:900px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:16px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.tile b{font-size:1.3rem;display:block}.tile span{color:var(--muted);font-size:.66rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:0 0 16px}
+.card h2{font-size:.95rem;margin:0 0 8px}
+table{border-collapse:collapse;width:100%;font-size:.74rem}
+th{color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-weight:600;position:sticky;top:0;background:var(--card)}
+td{padding:5px 8px;border-bottom:1px solid #101c31;font-family:var(--mono);white-space:nowrap}
+tr:hover td{background:#0d1730}
+a{color:var(--blue);text-decoration:none}
+.rk{color:var(--muted)}.pos{color:var(--green)}.neg{color:var(--red)}
+.chip{border-radius:6px;padding:1px 7px;font-size:.62rem;font-weight:700;margin-right:4px;display:inline-block}
+.c-flag{color:var(--red);border:1px solid #f8717155}
+.c-dil{color:#fff;background:#7f1d1d;animation:fl 1.1s infinite}
+.c-heavy{color:var(--amber);border:1px solid #fbbf2455}
+.c-elite{color:var(--green);border:1px solid #34d39955}
+@keyframes fl{0%,100%{opacity:1}50%{opacity:.45}}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.cols{grid-template-columns:1fr}}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.mcell{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#0a1220}
+.mcell b{font-size:.76rem}.mrow{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.7rem;padding:1px 0}
+.secstrip{display:flex;gap:8px;flex-wrap:wrap}
+.sec{border:1px solid var(--border);border-radius:10px;padding:7px 11px;font-size:.68rem;background:#0a1220}
+.meth{color:var(--muted);font-size:.68rem;line-height:1.6;margin-top:8px}
+#stamp{color:var(--muted);font-size:.66rem;font-family:var(--mono)}
+.tblbox{max-height:560px;overflow:auto;border:1px solid #101c31;border-radius:8px}
+</style></head><body><div class="wrap">
+<h1>🏛️ Fundamental Census — S&P 500</h1>
+<div class="sub">Biweekly sweep of the <b>entire S&P universe</b> through every metric in the fundamental-graphs verdict engine (29 fundamental rules, sector-elite deciles, factor-DNA). Quality score = 2×elites + greens − severity-weighted reds — fundamentals only, technicals excluded. Every number is computed from real statements; nothing modeled, nothing filled.</div>
+<div id="stamp">loading…</div>
+<div class="tiles" id="tiles"></div>
+<div class="cols">
+  <div class="card"><h2>⭐ Top quality</h2><div class="tblbox"><table id="topT"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>Score</th><th>⭐</th><th>G</th><th>R</th><th>Dilution</th><th>Elite metrics</th></tr></table></div></div>
+  <div class="card"><h2>🔻 Worst quality</h2><div class="tblbox"><table id="botT"><tr><th>#</th><th>Ticker</th><th>Sector</th><th>Score</th><th>⭐</th><th>G</th><th>R</th><th>Dilution</th><th>Red-3 flags</th></tr></table></div></div>
+</div>
+<div class="card"><h2>🚩 Be careful — dilution, integrity & severity-3 flags</h2><div class="tblbox"><table id="careT"><tr><th>Ticker</th><th>Sector</th><th>Weight</th><th>Flags</th><th>Sev-3 metrics</th><th>Share Δ YoY</th><th>Score</th></tr></table></div>
+<div class="meth">DILUTION_SEVERE = share count growing ≥8%/yr · HEAVY ≥4%/yr. EARNINGS_INTEGRITY_LOW / ACCRUALS_HIGH = bottom-decile Beneish / Sloan vs the 496-name forensic cross-section. Sev-3 reds come straight from the verdict engine.</div></div>
+<div class="card"><h2>📊 Metric leaders & laggards</h2><div class="mgrid" id="mgrid"></div></div>
+<div class="card"><h2>🏭 Sectors</h2><div class="secstrip" id="secs"></div></div>
+<div class="card meth" id="covbox"></div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+'use strict';
+const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
+const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const lk=t=>`<a href="/why.html?ticker=${encodeURIComponent(t)}"><b>${esc(t)}</b></a>`;
+const dil=v=>v==null?'—':v>=8?`<span class="chip c-dil">+${v.toFixed(1)}%</span>`:v>=4?`<span class="chip c-heavy">+${v.toFixed(1)}%</span>`:`<span class="${v<=0?'pos':''}">${v>0?'+':''}${v.toFixed(1)}%</span>`;
+fetch(PX+'data/fundamental-census.json?ts='+Date.now()).then(r=>r.json()).then(D=>{
+  const S=D.summary||{},C=D.coverage||{};
+  document.getElementById('stamp').textContent='generated '+String(D.generated_at||'').slice(0,16).replace('T',' ')+' UTC · cadence '+(D.cadence||'')+' · '+(D.elapsed_s||0)+'s';
+  document.getElementById('tiles').innerHTML=[["Universe",C.universe],["Scored",C.scored],["Avg score",S.avg_score],["Elite-heavy (≥5⭐)",S.n_elite_heavy],["🚩 Flagged",S.n_flagged],["Dormant",C.dormant_n]]
+    .map(([l,v])=>`<div class="tile"><b>${v==null?'—':v}</b><span>${l}</span></div>`).join('');
+  const topT=document.getElementById('topT');
+  (D.top_quality||[]).forEach((r,i)=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="rk">${i+1}</td><td>${lk(r.t)}</td><td class="rk">${esc(r.sector)}</td><td><b class="pos">${r.score}</b></td><td>${r.n_elite}</td><td>${r.n_green}</td><td>${r.n_red}</td><td>${dil(r.dilution_yoy)}</td><td>${(r.top_elites||[]).map(k=>`<span class="chip c-elite">${esc(k)}</span>`).join('')}</td>`;
+    topT.appendChild(tr);});
+  const botT=document.getElementById('botT');
+  (D.bottom_quality||[]).forEach((r,i)=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="rk">${i+1}</td><td>${lk(r.t)}</td><td class="rk">${esc(r.sector)}</td><td><b class="neg">${r.score}</b></td><td>${r.n_elite}</td><td>${r.n_green}</td><td>${r.n_red}</td><td>${dil(r.dilution_yoy)}</td><td>${(r.red3||[]).map(k=>`<span class="chip c-flag">${esc(k)}</span>`).join('')}</td>`;
+    botT.appendChild(tr);});
+  const careT=document.getElementById('careT');
+  (D.careful||[]).forEach(r=>{const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${lk(r.t)}</td><td class="rk">${esc(r.sector)}</td><td><b>${r.flag_w}</b></td><td>${(r.flags||[]).map(f=>`<span class="chip ${f==='DILUTION_SEVERE'?'c-dil':f==='DILUTION_HEAVY'?'c-heavy':'c-flag'}">${esc(f)}</span>`).join('')}</td><td>${(r.red3||[]).map(k=>`<span class="chip c-flag">${esc(k)}</span>`).join('')}</td><td>${dil(r.dilution_yoy)}</td><td>${r.score}</td>`;
+    careT.appendChild(tr);});
+  const mg=document.getElementById('mgrid');
+  Object.entries(D.metric_boards||{}).forEach(([k,b])=>{
+    const cell=document.createElement('div');cell.className='mcell';
+    const row=(x,cls)=>`<div class="mrow"><span>${lk(x.t)}</span><span class="${cls}">${(+x.v).toFixed(2)}</span></div>`;
+    cell.innerHTML=`<b>${esc(b.label)}</b> <span class="rk" style="font-size:.6rem">${b.dir==='H'?'higher better':'lower better'} · n=${b.n}</span>
+      <div style="margin-top:5px;color:var(--green);font-size:.64rem">BEST</div>${(b.best||[]).slice(0,5).map(x=>row(x,'pos')).join('')}
+      <div style="margin-top:5px;color:var(--red);font-size:.64rem">WORST</div>${(b.worst||[]).slice(0,5).map(x=>row(x,'neg')).join('')}`;
+    mg.appendChild(cell);});
+  document.getElementById('secs').innerHTML=(D.sectors||[]).map(s=>`<div class="sec"><b>${esc(s.sector)}</b> · avg <b class="${s.avg_score>=0?'pos':'neg'}">${s.avg_score}</b> · n=${s.n}<br><span class="rk">best ${esc((s.best||[])[0]||'—')} ${(s.best||[])[1]??''} · worst ${esc((s.worst||[])[0]||'—')} ${(s.worst||[])[1]??''}</span></div>`).join('');
+  document.getElementById('covbox').innerHTML=`Coverage: ${C.scored}/${C.universe} scored${C.dormant_n?` · ${C.dormant_n} dormant (docs pending next sweep): <span style="font-family:var(--mono)">${(C.dormant_sample||[]).map(esc).join(', ')}${C.dormant_n>12?'…':''}</span>`:''}. Sweep chain: warm batches of 25 through the fundamental-graphs engine → aggregate. Click any ticker for its full research module; deep charts at <a href="/fundamental-graphs.html">fundamental-graphs</a>.`;
+}).catch(e=>{document.getElementById('stamp').textContent='feed error: '+e.message;});
+</script></div></body></html>
