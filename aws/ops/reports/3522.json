@@ -1,0 +1,225 @@
+{
+ "ops": 3522,
+ "fails": [
+  "W2_live_hygiene",
+  "W3_enhance_paths",
+  "W5_discovery"
+ ],
+ "table": [
+  {
+   "page": "proven-alpha.html",
+   "feed": "data/proven-alpha.json",
+   "mode": "bars",
+   "path": "families",
+   "label": "family",
+   "val": "hit_primary",
+   "n": 413
+  },
+  {
+   "page": "liquidity-inflection.html",
+   "feed": "data/liquidity-inflection.json",
+   "mode": "line",
+   "path": "usd.impulse_tail_180d",
+   "n": 180
+  },
+  {
+   "page": "industry-rotation.html",
+   "feed": "data/industry-rotation.json",
+   "mode": "bars",
+   "path": "ladder",
+   "label": "name",
+   "val": "price",
+   "n": 40
+  },
+  {
+   "page": "capital-flow.html",
+   "feed": "data/capital-flow.json",
+   "mode": "bars",
+   "path": "dollar_flow_in",
+   "label": "ticker",
+   "val": "flow_score",
+   "n": 20
+  },
+  {
+   "page": "share-flows.html",
+   "feed": "data/share-flows.json",
+   "mode": "bars",
+   "path": "boards.top_buybacks",
+   "label": "ticker",
+   "val": "price",
+   "n": 20
+  },
+  {
+   "page": "opportunities.html",
+   "feed": "data/opportunities.json",
+   "mode": "bars",
+   "path": "top_opportunities",
+   "label": "ticker",
+   "val": "price",
+   "n": 30
+  },
+  {
+   "page": "panels.html",
+   "feed": "data/wl-engines.json",
+   "mode": "bars",
+   "path": "engines",
+   "label": "name",
+   "val": "coverage",
+   "n": 207
+  },
+  {
+   "page": "equity-ftd-page-placeholder",
+   "feed": "data/equity-ftd.json",
+   "mode": "bars",
+   "path": "top_dollars",
+   "label": "t",
+   "val": "usd",
+   "n": 30
+  }
+ ],
+ "misses": [
+  {
+   "page": "political.html",
+   "feed": "data/congress-direct.json",
+   "top_keys": [
+    "elapsed_s",
+    "generated_at",
+    "house",
+    "ok",
+    "senate",
+    "source",
+    "version"
+   ]
+  },
+  {
+   "page": "primary-dealers.html",
+   "feed": "data/nyfed-primary-dealer.json",
+   "top_keys": [
+    "as_of",
+    "by_tenor_usd_b",
+    "corp_history_key",
+    "corporate",
+    "engine",
+    "financing",
+    "generated_at",
+    "metric",
+    "net_positions_usd_b",
+    "net_treasury_total_b"
+   ]
+  },
+  {
+   "page": "us-data-desk.html",
+   "feed": "data/bls-labor.json",
+   "top_keys": [
+    "_error",
+    "_series_live",
+    "api_version",
+    "generated_at",
+    "inflation",
+    "key_valid",
+    "labor_market",
+    "productivity",
+    "source",
+    "summary"
+   ]
+  },
+  {
+   "page": "macro-leads.html",
+   "feed": "data/macro-leads.json",
+   "top_keys": [
+    "_populated",
+    "copper_gold_silver",
+    "freight_activity",
+    "generated_at",
+    "geopolitical_risk",
+    "heavy_truck_sales",
+    "rate_cut_diffusion",
+    "source"
+   ]
+  },
+  {
+   "page": "bls.html",
+   "feed": "data/bls-labor.json",
+   "top_keys": [
+    "_error",
+    "_series_live",
+    "api_version",
+    "generated_at",
+    "inflation",
+    "key_valid",
+    "labor_market",
+    "productivity",
+    "source",
+    "summary"
+   ]
+  },
+  {
+   "page": "heatmap.html",
+   "feed": "data/heatmap.json",
+   "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  },
+  {
+   "page": "valuations.html",
+   "feed": "data/valuations.json",
+   "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  },
+  {
+   "page": "ofr.html",
+   "feed": "data/ofr-stfm.json",
+   "top_keys": [
+    "catalog",
+    "charts_shard",
+    "engine",
+    "fsi",
+    "generated_at",
+    "health",
+    "mmf",
+    "nypd_fails_cross",
+    "repo",
+    "source"
+   ]
+  },
+  {
+   "page": "credit-desk.html",
+   "feed": "data/credit-stress.json",
+   "top_keys": [
+    "composite_regime",
+    "composite_signal",
+    "current_bps",
+    "current_yields_pct",
+    "data_date",
+    "dealer_positioning",
+    "derived_spreads",
+    "elapsed_seconds",
+    "europe_sovereign",
+    "generated_at"
+   ]
+  },
+  {
+   "page": "dollar.html",
+   "feed": "data/dollar-engine.json",
+   "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  },
+  {
+   "page": "eurodollar.html",
+   "feed": "data/eurodollar-plumbing.json",
+   "top_keys": [
+    "ai",
+    "compat_note",
+    "composite_score",
+    "duration_s",
+    "engine",
+    "euro_policy_corridor",
+    "generated_at",
+    "honesty",
+    "layers",
+    "massive_fx"
+   ]
+  },
+  {
+   "page": "tv-notes.html",
+   "feed": "data/tv-notes.json",
+   "err": "An error occurred (NoSuchKey) when calling the GetObject ope"
+  }
+ ]
+}
