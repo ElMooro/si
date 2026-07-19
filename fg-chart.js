@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 + OPS3500 + OPS3502 (vol bars) (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 + OPS3500 + OPS3502 + OPS3515 (deep NBER) (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -121,7 +121,7 @@ function render(svg,tip,list,opts){
     svg.appendChild(el('line',{x1:x0,x2:x1,y1:yz,y2:yz,stroke:'#334155','stroke-width':1.2}));
   }
   /* NBER recession backdrop (append future ranges here) */
-  var NBER=[['2007-12-01','2009-06-30'],['2020-02-01','2020-04-30']];
+  var NBER=[['1969-12-01','1970-11-30'],['1973-11-01','1975-03-31'],['1980-01-01','1980-07-31'],['1981-07-01','1982-11-30'],['1990-07-01','1991-03-31'],['2001-03-01','2001-11-30'],['2007-12-01','2009-06-30'],['2020-02-01','2020-04-30']];
   NBER.forEach(function(bR){
     var a=Math.max(tmin,+new Date(bR[0])),b2=Math.min(tmax,+new Date(bR[1]));
     if(b2<=a)return;

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v3.2 ops3508 radar+dupont -->
+<!-- fundgraph v1.0 ops3462 · v3.3 ops3515 full-history -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +68,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v3.2 · ops 3508</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v3.3 · ops 3515</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -104,6 +104,8 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
         <button class="btn" data-r="3">3Y</button>
         <button class="btn" data-r="5">5Y</button>
         <button class="btn" data-r="10">10Y</button>
+        <button class="btn" data-r="20">20Y</button>
+        <button class="btn" data-r="0" title="full available history">MAX</button>
       </span>
       <span class="seg" id="modeseg">
         <button class="btn" data-m="val">Values</button>
@@ -199,7 +201,7 @@ function readURL(){
   if(q.get('s'))S.syms=q.get('s').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean).slice(0,MAXS);
   if(q.get('m'))S.mets=q.get('m').split(',').filter(k=>CATIDX[k]).slice(0,MAXM);
   if(q.get('p'))S.per={q:'quarter',a:'annual',ttm:'ttm'}[q.get('p')]||'quarter';
-  if(q.get('r'))S.rng=+q.get('r')||10;
+  if(q.get('r')!=null&&q.get('r')!=='')S.rng=+q.get('r')||0;
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
   S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';S.evt=q.get('ev')==='1';S.sec=q.get('sc')==='1';S.ta=q.get('ta')==='1';
   if(q.get('mx'))S.macro=q.get('mx').split(',').filter(k=>MACROS.some(m2=>m2.k===k)).slice(0,3);
@@ -238,7 +240,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v3.2 · ops 3508 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v3.3 · ops 3515 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -257,7 +259,7 @@ function series(doc,mk){
   if(S.per==='ttm'&&m&&m.f===1&&mk!=='__price')pts=ttmize(pts);
   return pts;
 }
-function rangeStart(){const d=new Date();d.setFullYear(d.getFullYear()-S.rng);return d.toISOString().slice(0,10);}
+function rangeStart(){if(!S.rng)return '1900-01-01';const d=new Date();d.setFullYear(d.getFullYear()-S.rng);return d.toISOString().slice(0,10);}
 function applyMode(pts,mk){
   const rs=rangeStart();
   if(S.mode==='val')return pts.filter(p=>p[0]>=rs);

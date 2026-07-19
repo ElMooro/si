@@ -3652,7 +3652,7 @@ function seriesStats(pts){var vs=pts.map(function(p){return p[1];}).filter(funct
   var q=function(p){return so[Math.min(n-1,Math.max(0,Math.floor(p*(n-1))))];};
   return {pct:Math.round(rank/n*100),z:sd>0?(last-mean)/sd:0,p10:q(.1),p50:q(.5),p90:q(.9)};}
 function ttm4(pts){var o=[];for(var i=3;i<pts.length;i++){var w4=pts.slice(i-3,i+1);o.push([pts[i][0],w4.reduce(function(a,p){return a+p[1];},0)]);}return o;}
-function rangeStart(){var d=new Date();d.setFullYear(d.getFullYear()-ST.yrs);return d.toISOString().slice(0,10);}
+function rangeStart(){if(!ST.yrs)return '1900-01-01';var d=new Date();d.setFullYear(d.getFullYear()-ST.yrs);return d.toISOString().slice(0,10);}
 function seriesFor(k){
   var L=lbl(k),pts=(DOC.points&&DOC.points[k])?DOC.points[k].slice():[];
   if(ST.per==='ttm'&&L[2]===1)pts=ttm4(pts);
@@ -3766,7 +3766,7 @@ function build(){
     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' '+addbtn+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">'+
       seg(['val:Values','pct:% Chg','yoy:YoY %'],ST.mode,'m')+' '+
-      seg(['1:1Y','3:3Y','5:5Y','10:10Y'],ST.yrs,'y')+' '+
+      seg(['1:1Y','3:3Y','5:5Y','10:10Y','20:20Y','0:Max'],ST.yrs,'y')+' '+
       seg(['q:FQ','ttm:TTM'],ST.per,'p')+' '+
       '<button id="jhfgTa" title="MAs/Bollinger on price + cross/pattern markers + status" style="border:1px solid '+(ST.ta?'#38bdf8':'#22304a')+';color:'+(ST.ta?'#38bdf8':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">TA</button>'+
       '<button id="jhfgSec" title="S&P-500 sector medians (p50 lines + \u0394)" style="border:1px solid '+(ST.sec?'#64748b':'#22304a')+';color:'+(ST.sec?'#94a3b8':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">vs Sector</button>'+

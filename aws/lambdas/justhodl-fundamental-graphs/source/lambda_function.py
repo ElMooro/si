@@ -45,12 +45,12 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v20"  # v20: + factor-DNA radar join (master-ranker), nightly sector medians  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v21"  # v21: FULL history (statements to inception, price from 1962, deep NBER)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
-FETCH_Q = 50
-FETCH_A = 14
+FETCH_Q = 200   # ~50y of quarters — FMP serves to inception
+FETCH_A = 60    # ~60y annual
 UA = {"User-Agent": "Mozilla/5.0 (justhodl-fundamental-graphs/1.1)"}
 SLEEP = 0.22
 
@@ -342,7 +342,7 @@ def compute_ta(daily):
 
 
 def fetch_price(sym):
-    frm = (datetime.now(timezone.utc) - timedelta(days=3860)).strftime("%Y-%m-%d")
+    frm = "1962-01-01"  # full price history (ops 3515)
     try:
         data = _fmp(
             f"historical-price-eod/light?symbol={urllib.parse.quote(sym)}&from={frm}"
@@ -1305,7 +1305,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.10.2",
+        "version": "1.11.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -2202,7 +2202,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.10.2",
+        return {"ok": True, "mode": "warm_auto", "version": "1.11.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2226,7 +2226,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.10.2"}
+                "version": "1.11.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2242,7 +2242,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.10.2"}, headers_in)
+                               "version": "1.11.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
