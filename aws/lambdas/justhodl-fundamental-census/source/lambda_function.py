@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.6.1"
+VERSION = "1.7.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -117,6 +117,118 @@ def momentum(price, weeks):
     return round((px[-1] / px[-1 - weeks] - 1.0) * 100.0, 2)
 
 
+def _peaks(px, trough=False):
+    out = []
+    for i in range(2, len(px) - 2):
+        seg = px[i-2:i+3]
+        if (min(seg) == px[i]) if trough else (max(seg) == px[i]):
+            out.append((i, px[i]))
+    return out
+
+
+def detect_double(price, kind="top", look=78, tol=0.03, depth=0.05,
+                  recent=20):
+    """Weekly double-top/bottom. Two comparable extrema (within tol),
+    separated by a counter-move of >= depth, second extremum within
+    `recent` weeks, and price now confirming (below peaks / above
+    troughs). Returns 0/1; None if series too short."""
+    px = [v for _, v in (price or []) if isinstance(v, (int, float))
+          and v > 0]
+    if len(px) < 30:
+        return None
+    px = px[-look:]
+    ex = _peaks(px, trough=(kind == "bottom"))
+    if len(ex) < 2:
+        return 0
+    for a in range(len(ex) - 1):
+        for b in range(a + 1, len(ex)):
+            (i1, v1), (i2, v2) = ex[a], ex[b]
+            if i2 < len(px) - recent or i2 - i1 < 5:
+                continue
+            hi, lo = max(v1, v2), min(v1, v2)
+            if (hi - lo) / hi > tol:
+                continue
+            between = px[i1:i2 + 1]
+            if kind == "top":
+                if min(between) <= lo * (1 - depth) and px[-1] < lo:
+                    return 1
+            else:
+                if max(between) >= hi * (1 + depth) and px[-1] > hi:
+                    return 1
+    return 0
+
+
+def tech_series(price):
+    """Weekly technical columns from the doc's price series."""
+    rows = [(d, v) for d, v in (price or [])
+            if isinstance(v, (int, float)) and v > 0]
+    px = [v for _, v in rows]
+    out = {}
+    if len(px) < 30:
+        return out
+    hi52 = max(px[-52:]); lo52 = min(px[-52:])
+    out["dist_52w_high_pct"] = round((px[-1] / hi52 - 1) * 100, 2)
+    out["dist_52w_low_pct"] = round((px[-1] / lo52 - 1) * 100, 2)
+    ma10 = [sum(px[i-9:i+1]) / 10 for i in range(9, len(px))]
+    ma40 = ([sum(px[i-39:i+1]) / 40 for i in range(39, len(px))]
+            if len(px) >= 40 else [])
+    if ma40:
+        off = len(ma10) - len(ma40)
+        rel = [ma10[off + i] - ma40[i] for i in range(len(ma40))]
+        out["above_ma40w"] = 1 if px[-1] > (ma40[-1]) else 0
+        gc = 0
+        for i in range(max(1, len(rel) - 8), len(rel)):
+            if rel[i - 1] <= 0 < rel[i]:
+                gc = 1
+        out["golden_cross_10_40w"] = gc
+    out["breakout_20w"] = 1 if (len(px) >= 24 and
+                                max(px[-4:]) >= max(px[-24:-4])) else 0
+    if len(px) >= 15:
+        g, l = [], []
+        for i in range(len(px) - 14, len(px)):
+            ch = px[i] - px[i - 1]
+            (g if ch > 0 else l).append(abs(ch))
+        ag = sum(g) / 14; al = sum(l) / 14
+        out["rsi_14w"] = round(100 - 100 / (1 + ag / al), 1) if al > 0             else 100.0
+    if len(px) >= 53:
+        rets = [px[i] / px[i - 1] - 1 for i in range(len(px) - 52,
+                                                     len(px))]
+        mu = sum(rets) / len(rets)
+        var = sum((r - mu) ** 2 for r in rets) / (len(rets) - 1)
+        out["vol_52w_pct"] = round((var ** 0.5) * (52 ** 0.5) * 100, 1)
+    dt = detect_double(price, "top")
+    db = detect_double(price, "bottom")
+    if dt is not None:
+        out["double_top"] = dt
+    if db is not None:
+        out["double_bottom"] = db
+    return out
+
+
+def beta_vs(price, spx_map, weeks=104):
+    """Weekly beta vs SPX using date-matched closes (nearest <=)."""
+    rows = [(str(d)[:10], v) for d, v in (price or [])
+            if isinstance(v, (int, float)) and v > 0]
+    if len(rows) < weeks // 2 or not spx_map:
+        return None
+    sdates = sorted(spx_map.keys())
+    import bisect
+    pairs = []
+    for d, v in rows[-weeks - 1:]:
+        j = bisect.bisect_right(sdates, d) - 1
+        if j >= 0:
+            pairs.append((v, spx_map[sdates[j]]))
+    if len(pairs) < 40:
+        return None
+    ra = [pairs[i][0] / pairs[i-1][0] - 1 for i in range(1, len(pairs))]
+    rb = [pairs[i][1] / pairs[i-1][1] - 1 for i in range(1, len(pairs))]
+    mb = sum(rb) / len(rb); ma = sum(ra) / len(ra)
+    cov = sum((ra[i] - ma) * (rb[i] - mb)
+              for i in range(len(ra))) / (len(ra) - 1)
+    var = sum((x - mb) ** 2 for x in rb) / (len(rb) - 1)
+    return round(cov / var, 2) if var > 0 else None
+
+
 def mom_12_1(price):
     px = [v for _, v in (price or []) if isinstance(v, (int, float))
           and v > 0]
@@ -144,7 +256,7 @@ def last_val(P, key):
     return None
 
 
-def extract(doc, sector):
+def extract(doc, sector, spx_map=None):
     """Pure per-ticker census row from a fundgraph doc."""
     V = doc.get("verdicts") or {}
     greens = [v for v in (V.get("greens") or [])
@@ -178,6 +290,10 @@ def extract(doc, sector):
     price = doc.get("price") or []
     moms = {"mom_6m_pct": momentum(price, 26),
             "mom_12_1_pct": mom_12_1(price)}
+    moms.update(tech_series(price))
+    bta = beta_vs(price, spx_map or {})
+    if bta is not None:
+        moms["beta_2y"] = bta
     return {"t": doc.get("symbol") or doc.get("ticker"),
             "sector": sector, "industry": industry, "score": score,
             "n_elite": len(elites), "n_green": len(greens),
@@ -399,6 +515,15 @@ def joins(S3c, tickers):
                             v = vv; break
             if v is not None:
                 out["whale_net_usd_m"][i] = round(v / 1e6, 1)
+            for src, dst in (("wb", "whale_buy_usd_m"),
+                             ("ws", "whale_sell_usd_m"),
+                             ("b", "inst_buy_usd_m"),
+                             ("s", "inst_sell_usd_m"),
+                             ("n", "inst_net_usd_m")):
+                vv = o.get(src)
+                if isinstance(vv, (int, float)):
+                    out.setdefault(dst, [None] * len(tickers))
+                    out[dst][i] = round(vv / 1e6, 1)
     except Exception as e:  # noqa: BLE001
         print("[joins] 13f:", str(e)[:80])
     try:
@@ -432,6 +557,53 @@ def joins(S3c, tickers):
                 continue
     except Exception as e:  # noqa: BLE001
         print("[joins] ecal:", str(e)[:80])
+    try:
+        fv = _j.loads(S3c.get_object(
+            Bucket=BUCKET,
+            Key="data/finviz-universe.json")["Body"].read())
+        bt = fv.get("by_ticker") or {}
+        ins_keys = [k for k in (next(iter(bt.values()), {}) or {})
+                    if "insider" in k]
+        print("[joins] finviz insider fields:", ins_keys[:4])
+        for t, rec in bt.items():
+            i = pos.get(str(t).upper())
+            if i is None or not isinstance(rec, dict):
+                continue
+            sf = rec.get("short_float_pct")
+            if isinstance(sf, (int, float)):
+                out.setdefault("short_float_pct",
+                               [None] * len(tickers))
+                out["short_float_pct"][i] = round(sf, 2)
+            for ik in ins_keys:
+                vv = rec.get(ik)
+                if isinstance(vv, (int, float)):
+                    cn = ("insider_trans_pct" if "trans" in ik
+                          else "insider_own_pct")
+                    out.setdefault(cn, [None] * len(tickers))
+                    out[cn][i] = round(vv, 2)
+    except Exception as e:  # noqa: BLE001
+        print("[joins] finviz:", str(e)[:80])
+    try:
+        dp = _j.loads(S3c.get_object(
+            Bucket=BUCKET,
+            Key="data/dark-pool.json")["Body"].read())
+        for r in dp.get("board") or []:
+            i = pos.get(str(r.get("ticker") or "").upper())
+            if i is None:
+                continue
+            sv = r.get("short_vol") or r.get("short_volume")
+            tv = r.get("total_vol") or r.get("total_volume")
+            v = None
+            if isinstance(sv, (int, float)) and                     isinstance(tv, (int, float)) and tv > 0:
+                v = 100.0 * sv / tv
+            elif isinstance(r.get("svr"), (int, float)):
+                v = r["svr"] * (100 if r["svr"] <= 1.5 else 1)
+            if v is not None:
+                out.setdefault("retail_dp_svr_pct",
+                               [None] * len(tickers))
+                out["retail_dp_svr_pct"][i] = round(v, 1)
+    except Exception as e:  # noqa: BLE001
+        print("[joins] darkpool:", str(e)[:80])
     for key, colname in (("data/proven-portfolio.json", "in_long_book"),
                          ("data/short-book.json", "in_short_book")):
         try:
@@ -472,6 +644,45 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
         cols.update(joins(S3, scored))
     except Exception as e:  # noqa: BLE001
         print("[matrix] joins:", str(e)[:80])
+    # tech_score: momentum/position composite + pattern bonuses
+    n2 = len(scored)
+    base_parts = [cross_pct(cols.get(k) or [None] * n2, low)
+                  for k, low in (("mom_12_1_pct", 0), ("mom_6m_pct", 0),
+                                 ("dist_52w_high_pct", 0),
+                                 ("rsi_14w", 0))
+                  if cols.get(k)]
+    if base_parts:
+        ts_col = []
+        for i in range(n2):
+            vs = [bp[i] for bp in base_parts if bp[i] is not None]
+            if len(vs) < 2:
+                ts_col.append(None)
+                continue
+            v = sum(vs) / len(vs)
+            v += 8 * ((cols.get("double_bottom") or [0]*n2)[i] or 0)
+            v += 6 * ((cols.get("breakout_20w") or [0]*n2)[i] or 0)
+            v += 6 * ((cols.get("golden_cross_10_40w") or [0]*n2)[i]
+                      or 0)
+            v -= 8 * ((cols.get("double_top") or [0]*n2)[i] or 0)
+            ts_col.append(round(max(0.0, min(100.0, v)), 1))
+        cols["tech_score"] = ts_col
+    qp = cross_pct(quality)
+    if cols.get("tech_score"):
+        cols["combo_score"] = [
+            round((qp[i] + cols["tech_score"][i]) / 2, 1)
+            if qp[i] is not None and cols["tech_score"][i] is not None
+            else None for i in range(n2)]
+    wp = cross_pct(cols.get("whale_net_usd_m") or [None] * n2)
+    conv = []
+    for i in range(n2):
+        parts = [x for x in (cols.get("combo_score",
+                                      [None]*n2)[i],
+                             cols.get("factor_quality",
+                                      [None]*n2)[i],
+                             turn[i], wp[i]) if x is not None]
+        conv.append(round(sum(parts) / len(parts), 1)
+                    if len(parts) >= 2 else None)
+    cols["conviction_score"] = conv
     keys = sorted(cols.keys())
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "n_tickers": len(scored), "n_metrics": len(keys),
@@ -520,6 +731,17 @@ def lambda_handler(event, context):
         time.sleep(min(600, int(event["settle_s"])))
 
     t0 = time.time()
+    spx_map = {}
+    try:
+        _sd = json.loads(S3.get_object(
+            Bucket=BUCKET,
+            Key="data/spx-history-deep.json")["Body"].read())
+        for pt in (_sd.get("points") or [])[-1600:]:
+            d2, v2 = (pt[0], pt[1]) if isinstance(pt, list) else                 (pt.get("date"), pt.get("close"))
+            if d2 and isinstance(v2, (int, float)):
+                spx_map[str(d2)[:10]] = float(v2)
+    except Exception as e:  # noqa: BLE001
+        print("[census] spx map:", str(e)[:70])
     rows_by_t = {}
     for u in uni:
         try:
@@ -527,7 +749,7 @@ def lambda_handler(event, context):
                 Bucket=BUCKET,
                 Key=CACHE_TPL.format(sym=u["t"]))["Body"].read())
             doc.setdefault("symbol", u["t"])
-            rows_by_t[u["t"]] = extract(doc, u["sector"])
+            rows_by_t[u["t"]] = extract(doc, u["sector"], spx_map)
         except Exception:  # noqa: BLE001
             continue
     census = build_census(rows_by_t, uni)

@@ -54,8 +54,10 @@ a{color:var(--blue);text-decoration:none}
 <select id="fxDir" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="desc">Σ high → low</option><option value="asc">Σ low → high</option></select>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxNoFlag"> hide 🚩</label>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxTurn"> inflecting ≥75</label>
+<select id="fxPat" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any pattern</option><option value="db">🟢 Double bottom</option><option value="dt">🔴 Double top</option><option value="gc">✨ Golden cross</option><option value="bo">🚀 20w breakout</option></select>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxWhale"> 🐳 whales buying</label>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxNoEarn"> no earnings ≤7d</label>
+<button id="fxBT" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--amber);color:var(--amber)">🧪 backtest top-20</button>
 <button id="fxCsv" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--border);color:var(--text)">⬇ CSV</button>
 <input id="fxQ" placeholder="filter ticker…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;width:120px">
 <span id="fxN" class="rk" style="font-size:.66rem"></span></div>
@@ -74,10 +76,17 @@ a{color:var(--blue);text-decoration:none}
 <button class="chip fxP" data-p="qc" style="cursor:pointer;border:1px solid var(--green);color:var(--green);background:#0a1220">Quality compounders</button>
 <button class="chip fxP" data-p="cv" style="cursor:pointer;border:1px solid var(--blue);color:var(--blue);background:#0a1220">Cash-flow value</button>
 <button class="chip fxP" data-p="mt" style="cursor:pointer;border:1px solid var(--amber);color:var(--amber);background:#0a1220">Momentum turnarounds</button>
+<button class="chip fxP" data-p="ft" style="cursor:pointer;border:1px solid var(--blue);color:var(--blue);background:#0a1220">⚡ Fund+Tech combo</button>
+<button class="chip fxP" data-p="wa" style="cursor:pointer;border:1px solid #34d399;color:#34d399;background:#0a1220">🧲 Whale accumulation</button>
 <button class="chip fxP" data-p="bs" style="cursor:pointer;border:1px solid #a78bfa;color:#a78bfa;background:#0a1220">Fortress balance sheets</button>
 </div>
 <div id="fxChips" style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"></div>
 <div class="tblbox" style="max-height:520px"><table id="fxT"></table></div>
+<div id="fxBTBox" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#0a1220">
+<div id="fxBTStats" style="font-family:var(--mono);font-size:.72rem"></div>
+<svg id="fxBTSvg" width="100%" height="220" style="margin-top:6px"></svg>
+<div id="fxBTTip" style="position:fixed;display:none;background:#0d1730;border:1px solid var(--border);border-radius:8px;padding:6px 9px;font-size:.66rem;font-family:var(--mono);pointer-events:none;z-index:70"></div>
+<div class="rk" style="font-size:.62rem;margin-top:4px" id="fxBTMeth"></div></div>
 </div>
 <div id="fxModal" style="display:none;position:fixed;inset:0;background:#000a;z-index:60;align-items:center;justify-content:center">
 <div style="background:#0b1322;border:1px solid var(--border);border-radius:14px;max-width:1060px;width:94vw;max-height:92vh;overflow:auto;padding:14px 16px">
@@ -114,6 +123,9 @@ a{color:var(--blue);text-decoration:none}
 'use strict';
 (function(){
 var FB='https://fqb6ztg7v6ax4qzylimqjiezmq0kqyyy.lambda-url.us-east-1.on.aws';
+var BTURL='__BT_URL__';
+fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/config-backtest-url.json?ts='+Date.now())
+  .then(function(r){return r.json();}).then(function(c){if(c&&c.url)BTURL=c.url.replace(/\/$/,'');}).catch(function(){});
 var CATMAP={};(window.FG_CAT||[]).forEach(function(r){CATMAP[r[0]]={label:r[1],u:r[3]||'n'};});
 var HARDF=null; // {metric:[min|null,max|null]}
 var INV={
@@ -170,14 +182,20 @@ function esc(x){return String(x==null?'':x).replace(/[<>&]/g,function(c){return 
 var XLBL={factor_value:'Factor: Value',factor_quality:'Factor: Quality',factor_momentum:'Factor: Momentum',
   factor_growth:'Factor: Growth',factor_safety:'Factor: Safety',whale_net_usd_m:'Whales net $M (Q)',
   earnings_in_days:'Days to earnings',mcap:'Market cap $',mom_12_1_pct:'Momentum 12-1 %',mom_6m_pct:'Momentum 6m %',
-  in_long_book:'In long book',in_short_book:'In short book'};
+  in_long_book:'In long book',in_short_book:'In short book',
+  whale_buy_usd_m:'Whales bought $M',whale_sell_usd_m:'Whales sold $M',inst_net_usd_m:'Institutions net $M',
+  inst_buy_usd_m:'Institutions bought $M',inst_sell_usd_m:'Institutions sold $M',short_float_pct:'Short float %',
+  insider_own_pct:'Insider ownership %',insider_trans_pct:'Insider transactions %',retail_dp_svr_pct:'Retail dark-pool SVR %',
+  dist_52w_high_pct:'% vs 52w high',dist_52w_low_pct:'% vs 52w low',rsi_14w:'RSI (14w)',vol_52w_pct:'Volatility 52w %',
+  beta_2y:'Beta (2y wk)',tech_score:'Tech score',combo_score:'⚡ Fund+Tech combo',conviction_score:'🎯 Conviction',
+  double_top:'Double top',double_bottom:'Double bottom',golden_cross_10_40w:'Golden cross',breakout_20w:'20w breakout',above_ma40w:'Above 40w MA'};
 function lbl(k){return XLBL[k]||(CATMAP[k]&&CATMAP[k].label)||k;}
 function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p){return typeof p[0]==='number';});
   xs.sort(function(a,b){return a[0]-b[0];});var out=new Array(col.length).fill(null);
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false;
+var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATF='';
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
@@ -192,6 +210,8 @@ function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers
     if(NOFLAG&&(MX.flagged||[])[i])continue;
     if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
     if(TURNMAX&&!((MX.turn||[])[i]<=25))continue;
+    if(PATF){var pc={db:'double_bottom',dt:'double_top',gc:'golden_cross_10_40w',bo:'breakout_20w'}[PATF];
+      if(((MX.cols[pc]||[])[i])!==1)continue;}
     if(WHALEF&&!(((MX.cols['whale_net_usd_m']||[])[i])>0))continue;
     if(NOEARN){var ei=(MX.cols['earnings_in_days']||[])[i];
       if(typeof ei==='number'&&ei<=7)continue;}
@@ -263,6 +283,25 @@ document.getElementById('fxCap').onchange=function(e){CAPF=e.target.value;draw()
 document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
 document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
 document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
+document.getElementById('fxPat').onchange=function(e){PATF=e.target.value;draw();};
+document.getElementById('fxBT').onclick=function(){var rows=compute().slice(0,20);
+  if(rows.length<2)return;var tk=rows.map(function(r){return r.t;}).join(',');
+  var box=document.getElementById('fxBTBox');box.style.display='block';
+  document.getElementById('fxBTStats').textContent='running backtest on '+rows.length+' names…';
+  fetch(BTURL+'/?tickers='+encodeURIComponent(tk)).then(function(r){return r.json();}).then(function(d){
+    if(!d.ok){document.getElementById('fxBTStats').textContent='backtest error: '+(d.error||'');return;}
+    var st=d.stats,B=st.basket,S=st.spx;
+    document.getElementById('fxBTStats').innerHTML='BASKET  1y '+fmtp(B.cagr_1y)+' · 3y '+fmtp(B.cagr_3y)+' · 5y '+fmtp(B.cagr_5y)+' · maxDD '+B.maxdd_pct+'%'
+      +'<br>SPX &nbsp;&nbsp;&nbsp; 1y '+fmtp(S.cagr_1y)+' · 3y '+fmtp(S.cagr_3y)+' · 5y '+fmtp(S.cagr_5y)+' · maxDD '+S.maxdd_pct+'%'
+      +'<br><b class="'+((st.excess_3y||0)>=0?'pos':'neg')+'">EXCESS 1y '+fmtp(st.excess_1y)+' · 3y '+fmtp(st.excess_3y)+' · 5y '+fmtp(st.excess_5y)+'</b>'
+      +(st.dropped&&st.dropped.length?' <span class="rk">(no history: '+st.dropped.join(', ')+')</span>':'');
+    document.getElementById('fxBTMeth').textContent=d.method;
+    var pts=function(a){return d.series.dates.map(function(dd,i){return [dd,a[i]];});};
+    window.FGChart.render(document.getElementById('fxBTSvg'),document.getElementById('fxBTTip'),
+      [{sym:'',label:'Screen basket',u:'n',color:'#22d3ee',pts:pts(d.series.basket),grp:window.FGChart.grp('n')},
+       {sym:'',label:'S&P 500',u:'n',color:'#94a3b8',dash:'4 3',pts:pts(d.series.spx),grp:window.FGChart.grp('n')}],{mode:'val'});
+  }).catch(function(e){document.getElementById('fxBTStats').textContent='backtest fetch failed: '+e.message;});};
+function fmtp(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
 document.getElementById('fxWhale').onchange=function(e){WHALEF=e.target.checked;draw();};
 document.getElementById('fxNoEarn').onchange=function(e){NOEARN=e.target.checked;draw();};
 function stateGet(){return {sel:SEL.map(function(x){return [x.k,x.low?1:0];}),
@@ -336,6 +375,9 @@ Array.prototype.forEach.call(document.querySelectorAll('.fxP'),function(b){
     if(p==='cv'){['fcf_yield_pct','fcf_margin_pct','pe_ttm','shareholder_yield_pct'].forEach(addSel);}
     if(p==='mt'){['mom_12_1_pct','revenue_yoy_pct','eps_yoy_pct'].forEach(addSel);
       TURNMIN=true;document.getElementById('fxTurn').checked=true;}
+    if(p==='ft'){['combo_score','conviction_score'].forEach(addSel);}
+    if(p==='wa'){['whale_net_usd_m','inst_net_usd_m','factor_quality'].forEach(addSel);
+      document.getElementById('fxWhale').checked=true;WHALEF=true;}
     if(p==='bs'){['interest_coverage_ttm','debt_to_equity','altman_z'].forEach(addSel);
       NOFLAG=true;document.getElementById('fxNoFlag').checked=true;}
     chips();draw();};});
