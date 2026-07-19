@@ -105,7 +105,10 @@
     try{
       if(LINE){ var pts=toSeries(dig(data,LINE)); if(pts&&pts.length>1){ renderLine(body,pts); return; } body.innerHTML='<div style="color:#777;font-size:11px">No time-series available.</div>'; return; }
       if(METRICS){ var mi=METRICS.split("|").map(function(seg){ var i=seg.indexOf(":"); return {label:seg.slice(i+1), v:num(dig(data,seg.slice(0,i)))}; }); renderBars(body, mi, true); return; }
-      if(BARS){ var sp=BARS.split(":"); var arr=dig(data,sp[0]); if(!Array.isArray(arr)){ body.innerHTML='<div style="color:#777;font-size:11px">No data.</div>'; return; }
+      if(BARS){ var sp=BARS.split(":"); var arr=dig(data,sp[0]);
+      /* DICT-BARS (ops 3524): object-of-numbers -> entries */
+      if(arr&&!Array.isArray(arr)&&typeof arr==='object'){var _e=Object.keys(arr).filter(function(k){return typeof arr[k]==='number';}).map(function(k){var o={};o.__k=k;o.__v=arr[k];return o;});if(_e.length>=3){arr=_e;sp[1]=sp[1]||'__k';sp[2]=sp[2]||'__v';}}
+      if(!Array.isArray(arr)){ body.innerHTML='<div style="color:#777;font-size:11px">No data.</div>'; return; }
         var items=arr.map(function(o){ return {label:String(dig(o,sp[1])!=null?dig(o,sp[1]):o[sp[1]]), v:num(dig(o,sp[2]))}; });
         renderBars(body,items); return; }
     }catch(e){ body.innerHTML='<div style="color:#777;font-size:11px">chart error</div>'; }

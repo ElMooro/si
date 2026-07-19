@@ -143,6 +143,6 @@ fetch(PX+'data/proven-alpha.json?ts='+Date.now()).then(function(r){return r.json
   var h=document.querySelector('h1');(h&&h.parentNode)?h.parentNode.insertBefore(el,h.nextSibling):document.body.insertBefore(el,document.body.firstChild);
 }).catch(function(){});})();
 </script>
-<script src="/jh-enhance.js" data-feed="data/proven-portfolio.json" data-bars="positions:ticker:weight_pct" data-title="Book weights (%)" data-max="20"></script>
+<script src="/jh-enhance.js" data-feed="data/proven-portfolio.json" data-bars="book:ticker:weight_pct" data-title="Book weights (%)" data-max="20"></script>
 </body>
 </html>
