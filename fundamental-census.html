@@ -54,6 +54,8 @@ a{color:var(--blue);text-decoration:none}
 <select id="fxDir" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="desc">Σ high → low</option><option value="asc">Σ low → high</option></select>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxNoFlag"> hide 🚩</label>
 <label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxTurn"> inflecting ≥75</label>
+<label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxWhale"> 🐳 whales buying</label>
+<label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxNoEarn"> no earnings ≤7d</label>
 <button id="fxCsv" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--border);color:var(--text)">⬇ CSV</button>
 <input id="fxQ" placeholder="filter ticker…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;width:120px">
 <span id="fxN" class="rk" style="font-size:.66rem"></span></div>
@@ -61,6 +63,10 @@ a{color:var(--blue);text-decoration:none}
 <span class="rk" style="font-size:.64rem">Legend screens:</span>
 <select id="fxInv" style="background:#0a1220;color:var(--green);border:1px solid var(--green);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:230px"><option value="">🏆 Long — famous investors…</option></select>
 <select id="fxShort" style="background:#0a1220;color:var(--red);border:1px solid var(--red);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:230px"><option value="">🩸 Short — legendary criteria…</option></select>
+<input id="fxScrName" placeholder="screen name…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:.68rem;width:110px">
+<button id="fxSave" class="chip" style="cursor:pointer;border:1px solid var(--border);background:#0a1220;color:var(--text)">💾 save</button>
+<select id="fxLoad" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:.68rem;max-width:150px"><option value="">My screens…</option></select>
+<button id="fxShare" class="chip" style="cursor:pointer;border:1px solid var(--border);background:#0a1220;color:var(--text)">🔗 link</button>
 <span id="fxStratNote" class="rk" style="font-size:.64rem"></span>
 </div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 2px">
@@ -161,13 +167,17 @@ var SHORTS={
 var LOWRE=/(debt|days|share_count|pe_|ps_|peg|ev_to|payout|dso|dpo|capex_to|interest_to|sloan|beneish|concern)/;
 var MX=null,SEL=[],DIR='desc',Q='',DOCC={},CUR=null,MSEL=[],RNG=0,PXON=false;
 function esc(x){return String(x==null?'':x).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];});}
-function lbl(k){return (CATMAP[k]&&CATMAP[k].label)||k;}
+var XLBL={factor_value:'Factor: Value',factor_quality:'Factor: Quality',factor_momentum:'Factor: Momentum',
+  factor_growth:'Factor: Growth',factor_safety:'Factor: Safety',whale_net_usd_m:'Whales net $M (Q)',
+  earnings_in_days:'Days to earnings',mcap:'Market cap $',mom_12_1_pct:'Momentum 12-1 %',mom_6m_pct:'Momentum 6m %',
+  in_long_book:'In long book',in_short_book:'In short book'};
+function lbl(k){return XLBL[k]||(CATMAP[k]&&CATMAP[k].label)||k;}
 function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p){return typeof p[0]==='number';});
   xs.sort(function(a,b){return a[0]-b[0];});var out=new Array(col.length).fill(null);
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false;
+var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false;
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
@@ -182,6 +192,9 @@ function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers
     if(NOFLAG&&(MX.flagged||[])[i])continue;
     if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
     if(TURNMAX&&!((MX.turn||[])[i]<=25))continue;
+    if(WHALEF&&!(((MX.cols['whale_net_usd_m']||[])[i])>0))continue;
+    if(NOEARN){var ei=(MX.cols['earnings_in_days']||[])[i];
+      if(typeof ei==='number'&&ei<=7)continue;}
     if(HARDF){var hOk=true;for(var hk in HARDF){var hv=(MX.cols[hk]||[])[i],b2=HARDF[hk];
       if(typeof hv!=='number'){hOk=false;break;}
       if(b2[0]!=null&&hv<b2[0]){hOk=false;break;}
@@ -210,7 +223,7 @@ function compute(){if(!MX||!SEL.length)return [];
 function draw(){var rows=compute();var T=document.getElementById('fxT');
   var cols=SEL.slice(0,6);
   var h='<tr><th>#</th><th>Ticker</th><th>Sector</th><th>Q</th><th>Turn</th>'+cols.map(function(s){return '<th>'+esc(lbl(s.k))+'</th>';}).join('')+(SEL.length>6?'<th>+'+(SEL.length-6)+'</th>':'')+'<th>Σ pct</th></tr>';
-  rows.slice(0,100).forEach(function(r,i){h+='<tr class="fxRow" data-t="'+esc(r.t)+'"><td class="rk">'+(i+1)+'</td><td><b style="color:var(--blue)">'+esc(r.t)+'</b></td><td class="rk">'+esc(r.sector)+'</td>'+'<td class="'+((r.q||0)>=0?'pos':'neg')+'">'+(r.q==null?'—':r.q)+'</td><td>'+(r.tsc==null?'—':r.tsc)+'</td>'+cols.map(function(s){var v=r.vals[s.k];return '<td>'+(v==null?'—':(+v).toFixed(2))+'</td>';}).join('')+(SEL.length>6?'<td class="rk">…</td>':'')+'<td><b>'+r.score.toFixed(0)+'</b></td></tr>';});
+  rows.slice(0,100).forEach(function(r,i){h+='<tr class="fxRow" data-t="'+esc(r.t)+'"><td class="rk">'+(i+1)+'</td><td><b style="color:var(--blue)">'+esc(r.t)+((MX.cols['in_long_book']||[])[MX.tickers.indexOf(r.t)]?' 📗':'')+((MX.cols['in_short_book']||[])[MX.tickers.indexOf(r.t)]?' 📕':'')+'</b></td><td class="rk">'+esc(r.sector)+'</td>'+'<td class="'+((r.q||0)>=0?'pos':'neg')+'">'+(r.q==null?'—':r.q)+'</td><td>'+(r.tsc==null?'—':r.tsc)+'</td>'+cols.map(function(s){var v=r.vals[s.k];return '<td>'+(v==null?'—':(+v).toFixed(2))+'</td>';}).join('')+(SEL.length>6?'<td class="rk">…</td>':'')+'<td><b>'+r.score.toFixed(0)+'</b></td></tr>';});
   T.innerHTML=h;document.getElementById('fxN').textContent=rows.length+' names · '+SEL.length+' metrics';
   Array.prototype.forEach.call(T.querySelectorAll('.fxRow'),function(tr){tr.ondblclick=function(){openModal(tr.getAttribute('data-t'));};});}
 function chips(){var box=document.getElementById('fxChips');
@@ -250,6 +263,34 @@ document.getElementById('fxCap').onchange=function(e){CAPF=e.target.value;draw()
 document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
 document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
 document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
+document.getElementById('fxWhale').onchange=function(e){WHALEF=e.target.checked;draw();};
+document.getElementById('fxNoEarn').onchange=function(e){NOEARN=e.target.checked;draw();};
+function stateGet(){return {sel:SEL.map(function(x){return [x.k,x.low?1:0];}),
+  sec:SECF,ind:INDF,cap:CAPF,mom:MOMF,qmin:QMIN,noflag:NOFLAG,turnmin:TURNMIN,turnmax:TURNMAX,
+  whale:WHALEF,noearn:NOEARN,dir:DIR,hard:HARDF};}
+function stateSet(st){resetStrat();SEL=(st.sel||[]).map(function(a){return {k:a[0],low:!!a[1]};});
+  SECF=st.sec||'';INDF=st.ind||'';CAPF=st.cap||'';MOMF=st.mom||'';QMIN=st.qmin==null?null:st.qmin;
+  NOFLAG=!!st.noflag;TURNMIN=!!st.turnmin;TURNMAX=!!st.turnmax;WHALEF=!!st.whale;NOEARN=!!st.noearn;
+  DIR=st.dir||'desc';HARDF=st.hard||null;
+  document.getElementById('fxSec').value=SECF;document.getElementById('fxInd').value=INDF;
+  document.getElementById('fxCap').value=CAPF;document.getElementById('fxMom').value=MOMF;
+  document.getElementById('fxQmin').value=QMIN==null?'':String(QMIN);
+  document.getElementById('fxNoFlag').checked=NOFLAG;document.getElementById('fxTurn').checked=TURNMIN;
+  document.getElementById('fxWhale').checked=WHALEF;document.getElementById('fxNoEarn').checked=NOEARN;
+  document.getElementById('fxDir').value=DIR;chips();draw();}
+var SCRK='jh_census_screens_v1';
+function scrAll(){try{return JSON.parse(localStorage.getItem(SCRK))||{};}catch(e){return {};}}
+function scrFill(){var all=scrAll();var sel=document.getElementById('fxLoad');
+  sel.innerHTML='<option value="">My screens…</option>'+Object.keys(all).sort().map(function(n){return '<option>'+esc(n)+'</option>';}).join('');}
+document.getElementById('fxSave').onclick=function(){var n=(document.getElementById('fxScrName').value||'').trim();
+  if(!n)return;var all=scrAll();all[n]=stateGet();try{localStorage.setItem(SCRK,JSON.stringify(all));}catch(e){}scrFill();};
+document.getElementById('fxLoad').onchange=function(e){var n=e.target.value;if(!n)return;
+  var st=scrAll()[n];if(st)stateSet(st);};
+document.getElementById('fxShare').onclick=function(){
+  try{var h='#scr='+encodeURIComponent(btoa(JSON.stringify(stateGet())));
+    history.replaceState(null,'',location.pathname+h);
+    if(navigator.clipboard)navigator.clipboard.writeText(location.href);}catch(e){}};
+scrFill();
 document.getElementById('fxCsv').onclick=function(){var rows=compute();
   var cols=SEL.map(function(s){return s.k;});
   var head=['ticker','sector','quality','turn_score','sum_pct'].concat(cols);
@@ -313,7 +354,9 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/fundamental-census-
   document.getElementById('fxInd').innerHTML='<option value="">All industries</option>'+inds.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
   var secs=[];mx.sectors.forEach(function(x){if(x&&secs.indexOf(x)<0)secs.push(x);});secs.sort();
   document.getElementById('fxSec').innerHTML='<option value="">All sectors</option>'+secs.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
-  addSel('gross_margin_pct');addSel('fcf_yield_pct');
+  var hh=(location.hash||'').match(/scr=([^&]+)/);
+  if(hh){try{stateSet(JSON.parse(atob(decodeURIComponent(hh[1]))));}catch(e){addSel('gross_margin_pct');addSel('fcf_yield_pct');}}
+  else{addSel('gross_margin_pct');addSel('fcf_yield_pct');}
 }).catch(function(e){document.getElementById('fxN').textContent='matrix unavailable: '+e.message;});
 })();
 </script>

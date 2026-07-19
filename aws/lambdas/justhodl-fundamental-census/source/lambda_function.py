@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -321,6 +321,130 @@ def build_census(rows_by_t, uni):
     }
 
 
+FACTORS = {
+    "factor_value": [("fcf_yield_pct", 0), ("fcf_ev_yield_pct", 0),
+                     ("pe_ttm", 1), ("ps_ttm", 1), ("peg", 1)],
+    "factor_quality": [("roic_pct", 0), ("roe_pct", 0),
+                       ("gross_margin_pct", 0), ("fcf_margin_pct", 0),
+                       ("sloan_accruals_pct", 1), ("beneish_m", 1)],
+    "factor_momentum": [("mom_12_1_pct", 0), ("mom_6m_pct", 0)],
+    "factor_growth": [("revenue_yoy_pct", 0), ("eps_yoy_pct", 0),
+                      ("fcf_yoy_pct", 0)],
+    "factor_safety": [("altman_z", 0), ("interest_coverage_ttm", 0),
+                      ("debt_to_equity", 1), ("current_ratio", 0)],
+}
+
+
+def cross_pct(col, low=False):
+    """Percentile per index with avg-rank ties; None-safe; low flips."""
+    idx = [(v, i) for i, v in enumerate(col)
+           if isinstance(v, (int, float))]
+    idx.sort(key=lambda x: x[0])
+    out = [None] * len(col)
+    n = len(idx)
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and idx[j + 1][0] == idx[i][0]:
+            j += 1
+        pv = 100.0 * ((i + j) / 2 + 0.5) / n
+        for q2 in range(i, j + 1):
+            out[idx[q2][1]] = round(100.0 - pv if low else pv, 2)
+        i = j + 1
+    return out
+
+
+def add_factors(cols, n):
+    for fk, parts in FACTORS.items():
+        mats = [cross_pct(cols.get(k) or [None] * n, low)
+                for k, low in parts if cols.get(k)]
+        if not mats:
+            continue
+        out = []
+        for i in range(n):
+            vs = [mm[i] for mm in mats if mm[i] is not None]
+            out.append(round(sum(vs) / len(vs), 1) if len(vs) >= 2
+                       else None)
+        cols[fk] = out
+    return cols
+
+
+def joins(S3c, tickers):
+    """Whale 13F $ + earnings-days + book membership columns."""
+    import json as _j
+    from datetime import datetime as _dt, timezone as _tz
+    out = {"whale_net_usd_m": [None] * len(tickers),
+           "earnings_in_days": [None] * len(tickers),
+           "in_long_book": [0] * len(tickers),
+           "in_short_book": [0] * len(tickers)}
+    pos = {t: i for i, t in enumerate(tickers)}
+    try:
+        tf = _j.loads(S3c.get_object(
+            Bucket=BUCKET,
+            Key="data/13f-flows-by-ticker.json")["Body"].read())
+        for t, o in (tf.get("t") or {}).items():
+            i = pos.get(str(t).upper())
+            if i is None or not isinstance(o, dict):
+                continue
+            v = None
+            for kk, vv in o.items():
+                if "whale" in kk and "usd" in kk and                         isinstance(vv, (int, float)):
+                    v = vv; break
+            if v is None:
+                w = o.get("whales")
+                if isinstance(w, dict):
+                    for kk, vv in w.items():
+                        if "usd" in kk and isinstance(vv, (int, float)):
+                            v = vv; break
+            if v is not None:
+                out["whale_net_usd_m"][i] = round(v / 1e6, 1)
+    except Exception as e:  # noqa: BLE001
+        print("[joins] 13f:", str(e)[:80])
+    try:
+        ecal = _j.loads(S3c.get_object(
+            Bucket=BUCKET,
+            Key="data/benzinga-earnings-calendar.json")["Body"].read())
+        ed = {}
+        def _ew(o):
+            if isinstance(o, dict):
+                tk = o.get("ticker") or o.get("symbol")
+                d = (o.get("date") or o.get("earnings_date")
+                     or o.get("report_date"))
+                if tk and d:
+                    ed.setdefault(str(tk).upper(), str(d)[:10])
+                for v in o.values():
+                    _ew(v)
+            elif isinstance(o, list):
+                for v in o:
+                    _ew(v)
+        _ew(ecal)
+        today = _dt.now(_tz.utc).date()
+        for t, d in ed.items():
+            i = pos.get(t)
+            if i is None:
+                continue
+            try:
+                dd = (_dt.fromisoformat(d).date() - today).days
+                if 0 <= dd <= 45:
+                    out["earnings_in_days"][i] = dd
+            except ValueError:
+                continue
+    except Exception as e:  # noqa: BLE001
+        print("[joins] ecal:", str(e)[:80])
+    for key, colname in (("data/proven-portfolio.json", "in_long_book"),
+                         ("data/short-book.json", "in_short_book")):
+        try:
+            d = _j.loads(S3c.get_object(Bucket=BUCKET, Key=key)
+                         ["Body"].read())
+            for r in d.get("book") or []:
+                i = pos.get(str(r.get("ticker") or "").upper())
+                if i is not None:
+                    out[colname][i] = 1
+        except Exception as e:  # noqa: BLE001
+            print("[joins]", key, str(e)[:60])
+    return out
+
+
 def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
     """Columnar latest-value matrix over EVERY fundamentals metric
     present in >=50%% of scored docs (tech/price/estimate keys
@@ -342,6 +466,12 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
     n = max(1, len(scored))
     keys = sorted([k for k, c in counts.items() if c >= 0.5 * n])[:240]
     cols = {k: [latest[t].get(k) for t in scored] for k in keys}
+    add_factors(cols, len(scored))
+    try:
+        cols.update(joins(S3, scored))
+    except Exception as e:  # noqa: BLE001
+        print("[matrix] joins:", str(e)[:80])
+    keys = sorted(cols.keys())
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "n_tickers": len(scored), "n_metrics": len(keys),
             "tickers": scored, "sectors": sectors,
