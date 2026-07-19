@@ -1,32 +1,22 @@
-# 35 — Fundamental Census (S&P-wide sweep + Metric Explorer)
-*(ops 3527–3534, 2026-07-19 · engine justhodl-fundamental-census v1.2.0 · page fundamental-census.html pinned Research & Tools · Scheduler fundamental-census-sched cron(0 6 1,15 * ? *) input {"phase":"warm","cursor":0,"refresh":true})*
+# 35 — Fundamental Census (S&P-wide sweep) · ops 3527–3534 (2026-07-19)
 
-## What it is
-Institutional census of the FULL forensic universe (496 S&P names) through the fundamental-graphs verdict machinery. Extend-don't-rebuild: the census ORCHESTRATES, fundgraph computes.
+**Engine `justhodl-fundamental-census` v1.2.0** — biweekly (1st+15th 06:00 UTC, Scheduler `fundamental-census-sched`, input `{"phase":"warm","cursor":0,"refresh":true}`). Orchestrates the EXISTING fundamental-graphs verdict machinery (extend-don't-rebuild): phase `warm` sync-invokes fundgraph `{"warm": batch8, "periods":["quarter"], refresh}` per link, `finally`-guaranteed self-chain (Event) to the next cursor; last link chains `{"phase":"aggregate","settle_s":240}`. Aggregate reads `data/fundgraph/cache/{SYM}_quarter_v21.json` for the forensic universe → writes:
+- `data/fundamental-census.json` — top_quality/bottom_quality (50 ea), careful (60), metric_boards (10 core, direction-aware best/worst 10), sectors, coverage (honest dormant list), summary; history-lite in `data/fundamental-census-history.json`.
+- `data/fundamental-census-matrix.json` — columnar latest-value matrix: every fundamentals metric in ≥50% of docs (tech/px_/rsi_/vol*/est_ excluded), 496 tickers × 191 metrics, aligned `cols{k:[v|null]}` + sectors. **Exactness proven: AAPL gross_margin matrix==doc 47.862.**
 
-**Feeds:** `data/fundamental-census.json` (boards) · `data/fundamental-census-matrix.json` (columnar latest-value matrix, 191 metrics × 496 tickers) · `data/fundamental-census-history.json` (60-row daily summary).
+**Scoring:** quality = 2×n_elite + n_green − Σsev(reds), FUNDAMENTAL basis only (`basis!='tech'`); verdict doc shape is `{greens:[],reds:[]}` rows `{k,side,sev,label,basis,elite}` (NOT items/color). Careful flags: share_count_yoy ≥8→DILUTION_SEVERE(3)/≥4→HEAVY(2); factor_dna goodness pct<10 → EARNINGS_INTEGRITY_LOW/ACCRUALS_HIGH(2 ea); concern<5→HIGH_CONCERN(2); sev-3 reds ×3. flag_w sorts the board.
 
-## Architecture (v1.2.0, the DURABLE shape)
-- phase "warm": **SYNC** invoke fundgraph {"warm": batch, "periods":["quarter"], refresh} with **BATCH=8**, per-link status prints, next link fired in **finally** (Event self-invoke). ~62 links ≈ 2h full refresh.
-- phase "aggregate" (optionally {"settle_s":240} first): reads every `data/fundgraph/cache/{SYM}_quarter_v21.json`, extract() → boards + matrix.
-- Scoring: **quality = 2×elites + greens − Σsev(reds)**, FUNDAMENTAL basis only (verdict entries with basis=='tech' excluded). Verdict doc shape: `verdicts.greens/reds` lists of `{k, side, sev, label, basis, elite}` — NOT items/color.
-- Careful flags: `share_count_yoy_pct` ≥8 → DILUTION_SEVERE (w3), ≥4 → HEAVY (w2); factor_dna goodness pct <10 on beneish/sloan → EARNINGS_INTEGRITY_LOW/ACCRUALS_HIGH (w2); concern <5 → HIGH_CONCERN (w2); each sev-3 red ×3. flag_w sorts the board.
-- Matrix: per-doc latest-value map built INSIDE extract() as `_lv` (keys with ≥50% coverage, cap 240; exclude prefixes px_/rsi_/vol/est_). Columnar `cols[k]` aligned to `tickers`; nulls preserved.
+**Page `fundamental-census.html`** (FORCE-pinned Research & Tools): hero tiles, top/worst tables, careful board (flashing SEVERE chip), 10 metric leader/laggard cells, sector strip, coverage box. **Metric Explorer (ops 3529–30):** dropdown over matrix metrics, unlimited chips, Σ = sum of cross-sectional percentiles (avg-rank ties, nulls excluded per-name), per-chip ↑H/↓L (LOW auto via regex debt|days|share_count|pe_|ps_|peg|ev_to|payout|dso|dpo|capex_to|interest_to|sloan|beneish|concern), asc/desc, filter; **dblclick → FGChart modal**: `FGChart.render(svg,tip,list,{mode:'val'})`, list rows `{label,u,color,pts,grp:FGChart.grp(u),own?}`, doc via FB URL `?symbol=T&period=quarter`, FG_CAT rows are ARRAYS `[k,label,tab,unit,flag]`, add-metric from doc.points∩catalog, price own-scale, 5/10/MAX, hand-off link `?s=&m=&r=&px=1`. Harness `/home/claude/census2.js` — 10 behaviors, exit-enforced.
 
-## Page + Metric Explorer (OPS3529 block)
-Boards (top/worst/careful/10 metric leader-laggard cells/sectors/coverage) + **Explorer**: any-metric dropdown, unlimited chips, **Σ of cross-sectional percentiles** (midrank, ties averaged; nulls excluded per-name from n), per-chip ↑H/↓L (LOW auto via regex debt|days|share_count|pe_|ps_|peg|ev_to|payout|dso|dpo|capex_to|interest_to|sloan|beneish|concern), asc/desc, filter, **dblclick → FGChart modal** (doc via FB function URL ?symbol&period=quarter; series list [{label,u,color,pts,grp:FGChart.grp(u)}], price as own:true; add-metric from doc.points∩FG_CAT; 5Y/10Y/MAX; hand-off link to full comparator). FG_CAT rows are ARRAYS [k,label,tab,unit,flag]. Harness `/home/claude/census2.js` = 10 behaviors exit-enforced.
+**Live full-universe (2026-07-19):** top10 APP 39(14⭐)·DECK 36·FIX 34·NEM 34(12⭐)·ADBE 32·INCY 32·ANET 31·FICO 31·NVDA 31(13⭐)·EXPE 29. Careful: **SNPS 17 (SEVERE+HIGH_CONCERN)**, AES 15, BA 15, BG 15, EVRG, NCLH, SMCI, WY, AMCR, DOW. Issuer wall COF +62.3%/yr; buybacks CRM −10.2/FTV −9.2/JCI −7.3. Avg 9.2 · 74+ flagged.
 
-## Live truth (2026-07-19 full universe)
-Top: APP 39(14⭐) · DECK 36 · FIX 34 · NEM 34(12⭐) · ADBE 32 · INCY 32 · ANET 31 · FICO 31 · NVDA 31(13⭐) · EXPE 29. Careful: **SNPS 17 (DILUTION_SEVERE+HIGH_CONCERN)** · AES 15 · BA 15 · BG 15 · EVRG · NCLH · SMCI · WY · AMCR · DOW. Issuer wall COF +62.3%/yr; buyback kings CRM −10.2 / FTV −9.2 / JCI −7.3. avg 9.2 · 74+ flagged. Matrix↔doc exactness proven: AAPL gross_margin 47.862 == 47.862.
-
-## Gotchas (blood-earned, ops 3527–3534)
-25. **Aggregate must NOT retain full points**: keeping `_P` per doc ⇒ ~1.5GB @496 ⇒ Lambda SIGKILL ⇒ botocore ConnectionClosed. Extract the latest-value map immediately; drop the doc.
-26. **Never sync-wait a 900s Lambda from a 900s Lambda** — the orchestrator dies mid-wait and the chain link never fires. And **Event-invoked heavy batches (25 names) were silently dropped** (zero docs). The proven shape: SYNC small batches (≤8) + finally-guaranteed chaining.
-27. **The matrix is written only by the final aggregate** — polling it as a chain-progress odometer reads flat. Progress = v21 cache-doc count (list_objects paginate).
-28. **forensic-screen rows drifted ticker→symbol** (2026-07-19 run: ticker null, symbol set). Always parse `r.get("ticker") or r.get("symbol")`; ops-side parsers too, not just engines.
-29. Warm invoke response MUST be checked (StatusCode/FunctionError) — 3527's silent pilot failure cost two ops.
-30. FB function URL doc contract: GET ?symbol=X&period=quarter → full doc (points/price/verdicts/factor_dna); MSFT 163q proven from the runner.
-
-## Reuse pointers
-- Full-history lineage: archive 34 (FETCH/MAX clamps, price stitcher, stmt_rows).
-- Sweep-anything pattern: this chain shape (sync-8 + finally) is the template for any future full-universe orchestration.
+## Gotchas (25–33, fleet-grade)
+25. **OOM by retention:** aggregate kept full `_P` per doc → ~1.5GB @496 → SIGKILL → `ConnectionClosedError` on invoke. Extract latest-values (`_lv`) in `extract()`; never carry points maps across an aggregate.
+26. **Sync-wait chain kill:** orchestrator sync-waiting a callee with EQUAL 900s timeout dies mid-wait → self-chain never fires. Either callee-timeout < caller budget or go small-sync.
+27. **Event-invoked heavy batches dropped silently** (25-name fundgraph warms produced ZERO docs, no error surface). Fire-and-forget is not delivery. Durable = SYNC small batches (8) + per-link status print + `finally` chain.
+28. **Progress odometer:** matrix/census docs update ONLY at aggregate — chain progress must be measured by CACHE COUNT (`*_quarter_v21.json`), never the output feed (3531-E2 false-flat).
+29. **Forensic schema drift:** rows moved `ticker`→`symbol` (ticker null) mid-arc. ALWAYS parse `r.get("ticker") or r.get("symbol")`; a zero-universe read is a parse bug until proven otherwise.
+30. **Ops-fixture drift:** gate fixtures must drive the REAL extractor (`extract()`), not hand-built internal rows — 3530-D1 tested a shape the engine no longer read.
+31. Explorer Σ math: percentile with avg-rank ties `100*((i+j)/2+0.5)/n`; names missing a metric contribute nothing (n-scaled) — EEE-null ordering surprises hand-math.
+32. FB modal fetch is the Function URL (CF proxy is data/ only); cache docs per ticker client-side (`DOCC`).
+33. Runner brute-force completion: 300 names / 6-batch sync = 50 links, 1,456s, 0 errors — the reliable big-sweep pattern when a chain must finish TODAY.
