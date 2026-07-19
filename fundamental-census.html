@@ -49,6 +49,8 @@ a{color:var(--blue);text-decoration:none}
 <select id="fxSec" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All sectors</option></select>
 <select id="fxInd" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:210px"><option value="">All industries</option></select>
 <select id="fxCap" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All caps</option><option value="mega">Mega ≥$200B</option><option value="large">Large $10–200B</option><option value="mid">Mid $2–10B</option><option value="small">Small &lt;$2B</option></select>
+<select id="fxRisk" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any stock risk</option><option value="L">🟢 Low risk (bottom ⅓)</option><option value="M">🟡 Medium risk</option><option value="H">🔴 High risk (top ⅓)</option></select>
+<select id="fxIndRisk" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any industry risk</option><option value="L">🏭🟢 Low-risk industries</option><option value="M">🏭🟡 Medium</option><option value="H">🏭🔴 High-risk industries</option></select>
 <select id="fxQmin" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any quality</option><option value="0">Quality ≥ 0</option><option value="10">Quality ≥ 10</option><option value="20">Quality ≥ 20</option></select>
 <select id="fxMom" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All momentum</option><option value="H">High momentum (top ⅓)</option><option value="L">Low momentum (bottom ⅓)</option></select>
 <select id="fxDir" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="desc">Σ high → low</option><option value="asc">Σ low → high</option></select>
@@ -188,20 +190,23 @@ var XLBL={factor_value:'Factor: Value',factor_quality:'Factor: Quality',factor_m
   insider_own_pct:'Insider ownership %',insider_trans_pct:'Insider transactions %',retail_dp_pct:'Dark-pool % of volume',retail_accum:'Retail acc(+1)/dist(−1)',retail_dp_score:'Dark-pool score',
   dist_52w_high_pct:'% vs 52w high',dist_52w_low_pct:'% vs 52w low',rsi_14w:'RSI (14w)',vol_52w_pct:'Volatility 52w %',
   beta_2y:'Beta (2y wk)',tech_score:'Tech score',combo_score:'⚡ Fund+Tech combo',conviction_score:'🎯 Conviction',
-  double_top:'Double top',double_bottom:'Double bottom',golden_cross_10_40w:'Golden cross',breakout_20w:'20w breakout',above_ma40w:'Above 40w MA'};
+  risk_score:'⚠️ Stock risk score',industry_risk_score:'🏭 Industry risk score',double_top:'Double top',double_bottom:'Double bottom',golden_cross_10_40w:'Golden cross',breakout_20w:'20w breakout',above_ma40w:'Above 40w MA'};
 function lbl(k){return XLBL[k]||(CATMAP[k]&&CATMAP[k].label)||k;}
 function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p){return typeof p[0]==='number';});
   xs.sort(function(a,b){return a[0]-b[0];});var out=new Array(col.length).fill(null);
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATF='';
+var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATF='',RISKF='',IRISKF='',RTIERS=null,ITIERS=null;
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
   MOMT={col:col,lo:xs[Math.floor(xs.length/3)],hi:xs[Math.floor(2*xs.length/3)]};return MOMT;}
 function capBucket(v){if(typeof v!=='number')return '';
   return v>=2e11?'mega':v>=1e10?'large':v>=2e9?'mid':'small';}
+function terciles(col){var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
+  if(xs.length<3)return null;return {lo:xs[Math.floor(xs.length/3)],hi:xs[Math.floor(2*xs.length/3)]};}
+function tierOf(v,t){if(t==null||typeof v!=='number')return '';return v<=t.lo?'L':v>=t.hi?'H':'M';}
 function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers.length;i++){
     if(SECF&&MX.sectors[i]!==SECF)continue;
     if(INDF&&(MX.industries||[])[i]!==INDF)continue;
@@ -210,6 +215,10 @@ function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers
     if(NOFLAG&&(MX.flagged||[])[i])continue;
     if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
     if(TURNMAX&&!((MX.turn||[])[i]<=25))continue;
+    if(RISKF){if(!RTIERS)RTIERS=terciles(MX.cols['risk_score']||[]);
+      if(tierOf((MX.cols['risk_score']||[])[i],RTIERS)!==RISKF)continue;}
+    if(IRISKF){if(!ITIERS)ITIERS=terciles(MX.cols['industry_risk_score']||[]);
+      if(tierOf((MX.cols['industry_risk_score']||[])[i],ITIERS)!==IRISKF)continue;}
     if(PATF){var pc={db:'double_bottom',dt:'double_top',gc:'golden_cross_10_40w',bo:'breakout_20w'}[PATF];
       if(((MX.cols[pc]||[])[i])!==1)continue;}
     if(WHALEF&&!(((MX.cols['whale_net_usd_m']||[])[i])>0))continue;
@@ -283,6 +292,8 @@ document.getElementById('fxCap').onchange=function(e){CAPF=e.target.value;draw()
 document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
 document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
 document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
+document.getElementById('fxRisk').onchange=function(e){RISKF=e.target.value;draw();};
+document.getElementById('fxIndRisk').onchange=function(e){IRISKF=e.target.value;draw();};
 document.getElementById('fxPat').onchange=function(e){PATF=e.target.value;draw();};
 document.getElementById('fxBT').onclick=function(){var rows=compute().slice(0,20);
   if(rows.length<2)return;var tk=rows.map(function(r){return r.t;}).join(',');

@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.7.2"
+VERSION = "1.8.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -697,6 +697,33 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
         conv.append(round(sum(parts) / len(parts), 1)
                     if len(parts) >= 2 else None)
     cols["conviction_score"] = conv
+    # ── RISK layer (ops 3548): stock risk = mean of risk-direction
+    # percentiles (+8 if on the careful board); industry risk = member
+    # mean (n>=4), inherited by every member ──
+    RISK_PARTS = [("vol_52w_pct", 0), ("beta_2y", 0),
+                  ("debt_to_equity", 0), ("short_float_pct", 0),
+                  ("altman_z", 1), ("interest_coverage_ttm", 1),
+                  ("dist_52w_high_pct", 1)]
+    rparts = [(cross_pct(cols.get(k) or [None] * n2, low))
+              for k, low in RISK_PARTS if cols.get(k)]
+    if rparts:
+        rk = []
+        for i in range(n2):
+            vs = [rp[i] for rp in rparts if rp[i] is not None]
+            if len(vs) < 3:
+                rk.append(None)
+                continue
+            v = sum(vs) / len(vs) + (8 if flagged[i] else 0)
+            rk.append(round(max(0.0, min(100.0, v)), 1))
+        cols["risk_score"] = rk
+        ind_groups = {}
+        for i, ind in enumerate(industries):
+            if ind and rk[i] is not None:
+                ind_groups.setdefault(ind, []).append(rk[i])
+        ind_mean = {k: round(sum(v) / len(v), 1)
+                    for k, v in ind_groups.items() if len(v) >= 4}
+        cols["industry_risk_score"] = [
+            ind_mean.get(industries[i]) for i in range(n2)]
     keys = sorted(cols.keys())
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "n_tickers": len(scored), "n_metrics": len(keys),
