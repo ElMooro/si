@@ -1,10 +1,6 @@
-executing-against: e465fa665930accf8ce0a10a04bfe5e762e4305e
-[17:44:32]   zip: 81097 bytes
-── 1. Lambda ──
-[17:44:33]   Lambda exists — updating
-[17:44:36] ✅   ✓ updated justhodl-feed-registry
-FAIL  U1_explicit — {'version': '1.4.0', 'n_rows': 808, 'n_explicit': 0, 'sample': []}
-[17:45:18] FAIL  U1_explicit — {'version': '1.4.0', 'n_rows': 808, 'n_explicit': 0, 'sample': []}
-RESULT: FAILS: ['U1_explicit']
+executing-against: 637f1a8ecfa1f231aa7c37bbe7933af521a04e58
+PASS  V1_explicit — {'n_explicit': 10, 'sample': [('data/brain.json', 960, 148.0, False), ('data/auction-grades.json', 30, 23.9, False), ('data/master-ranker.json', 26, 23.9, False), ('data/13f-flows-by-ticker.json', 240, 20.6, False), ('data/wl-predictions.json', 192, 19.2, False)]}
+[17:47:28] PASS  V1_explicit — {'n_explicit': 10, 'sample': [('data/brain.json', 960, 148.0, False), ('data/auction-grades.json', 30, 23.9, False), ('data/master-ranker.json', 26, 23.9, False), ('data/13f-flows-by-ticker.json', 240, 20.6, False), ('data/wl-predictions.json', 192, 19.2, False)]}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3520_sla_close.md
+→ Report written to aws/ops/reports/latest/3521_sla_upload.md
