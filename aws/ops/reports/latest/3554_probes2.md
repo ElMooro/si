@@ -1,0 +1,12 @@
+- `23:44:21` PASS  Y0_prefix — {"keys": ["etf-flows/ai-analysis.json", "etf-flows/composite.json", "etf-flows/constituent-pressure.json", "etf-flows/daily.json", "etf-flows/event-study.json", "etf-flows/per-ticker-context.json", "etf-flows/rotation.json", "etf-flows/stock-exposure-lookup.json"], "subdirs": ["etf-flows/ai-history/", "etf-flows/constituent-history/", "etf-flows/constituents/", "etf-flows/history/"]}
+- `23:44:21` PASS  Y1_latest — {"err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."}
+**Status:** success  
+**Duration:** 2.6s  
+**Finished:** 2026-07-19T23:44:23+00:00  
+
+## Log
+- `23:44:21` PASS  Y1b_legacy — {"top": ["by_category", "by_etf", "data_sources", "duration_s", "generated_at", "heavy_inflow", "heavy_outflow", "n_etfs_analyzed", "rotation_in", "rotation_out", "signal_definitions", "unusual_vol"], "container": null, "n": 0, "t0": null, "r0_keys": [], "r0": "{}"}
+- `23:44:21` PASS  Y2_cds — {"hy_oas": {"oas_pct": 2.71, "oas_bp": 271.0, "change_5d_bp": 1.0, "change_30d_bp": -3.0}, "italy": {"yield": 3.734, "spread_vs_us_bp": -73.6, "change_5d_bp": -1.8, "change_30d_bp": -53.7, "status": "CALM"}, "top": ["composite_credit_risk", "corporate", "duration_s", "generated_at", "method", "notes", "regime", "schema_version", "sovereigns", "top_reasons", "us_10y_yield"]}
+- `23:44:22` PASS  Y3_info — {"keys": ["assetClass", "assetsUnderManagement", "avgVolume", "description", "domicile", "etfCompany", "expenseRatio", "holdingsCount", "inceptionDate", "isActivelyTrading", "isin", "name", "nav", "navCurrency", "sectorsList", "securityCusip", "symbol", "updatedAt", "website"], "peek": "{\"symbol\": \"AGG\", \"name\": \"iShares Core U.S. Aggregate Bond ETF\", \"description\": \"iShares Trust - iShares Core U.S. Aggregate Bond ETF is an exchange traded fund launched by BlackRock, Inc. The fund is managed by BlackRock Fund Advisors. It invests in fixed income markets of the United States. The fund invests in U.S. "}
+- `23:44:22` PASS  Y4_AGG — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}
+- `23:44:23` PASS  Y4_TLT — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}

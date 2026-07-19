@@ -1,17 +1,18 @@
-executing-against: 9c2a589fd33b8f8ed0f9aa9f8f4c50764486fd60
+executing-against: 9916e9ee296e1f393cecd69b42a50dc56e6975b5
+PASS  Y0_prefix — {"keys": ["etf-flows/ai-analysis.json", "etf-flows/composite.json", "etf-flows/constituent-pressure.json", "etf-flows/daily.json", "etf-flows/event-study.json", "etf-flows/per-ticker-context.json", "etf-flows/rotation.json", "etf-flows/stock-exposure-lookup.json"], "subdirs": ["etf-flows/ai-history/", "etf-flows/constituent-history/", "etf-flows/constituents/", "etf-flows/history/"]}
+[23:44:21] PASS  Y0_prefix — {"keys": ["etf-flows/ai-analysis.json", "etf-flows/composite.json", "etf-flows/constituent-pressure.json", "etf-flows/daily.json", "etf-flows/event-study.json", "etf-flows/per-ticker-context.json", "etf-flows/rotation.json", "etf-flows/stock-exposure-lookup.json"], "subdirs": ["etf-flows/ai-history/", "etf-flows/constituent-history/", "etf-flows/constituents/", "etf-flows/history/"]}
+PASS  Y1_latest — {"err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."}
+[23:44:21] PASS  Y1_latest — {"err": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."}
+PASS  Y1b_legacy — {"top": ["by_category", "by_etf", "data_sources", "duration_s", "generated_at", "heavy_inflow", "heavy_outflow", "n_etfs_analyzed", "rotation_in", "rotation_out", "signal_definitions", "unusual_vol"], "container": null, "n": 0, "t0": null, "r0_keys": [], "r0": "{}"}
+[23:44:21] PASS  Y1b_legacy — {"top": ["by_category", "by_etf", "data_sources", "duration_s", "generated_at", "heavy_inflow", "heavy_outflow", "n_etfs_analyzed", "rotation_in", "rotation_out", "signal_definitions", "unusual_vol"], "container": null, "n": 0, "t0": null, "r0_keys": [], "r0": "{}"}
+PASS  Y2_cds — {"hy_oas": {"oas_pct": 2.71, "oas_bp": 271.0, "change_5d_bp": 1.0, "change_30d_bp": -3.0}, "italy": {"yield": 3.734, "spread_vs_us_bp": -73.6, "change_5d_bp": -1.8, "change_30d_bp": -53.7, "status": "CALM"}, "top": ["composite_credit_risk", "corporate", "duration_s", "generated_at", "method", "notes", "regime", "schema_version", "sovereigns", "top_reasons", "us_10y_yield"]}
+[23:44:21] PASS  Y2_cds — {"hy_oas": {"oas_pct": 2.71, "oas_bp": 271.0, "change_5d_bp": 1.0, "change_30d_bp": -3.0}, "italy": {"yield": 3.734, "spread_vs_us_bp": -73.6, "change_5d_bp": -1.8, "change_30d_bp": -53.7, "status": "CALM"}, "top": ["composite_credit_risk", "corporate", "duration_s", "generated_at", "method", "notes", "regime", "schema_version", "sovereigns", "top_reasons", "us_10y_yield"]}
+PASS  Y3_info — {"keys": ["assetClass", "assetsUnderManagement", "avgVolume", "description", "domicile", "etfCompany", "expenseRatio", "holdingsCount", "inceptionDate", "isActivelyTrading", "isin", "name", "nav", "navCurrency", "sectorsList", "securityCusip", "symbol", "updatedAt", "website"], "peek": "{\"symbol\": \"AGG\", \"name\": \"iShares Core U.S. Aggregate Bond ETF\", \"description\": \"iShares Trust - iShares Core U.S. Aggregate Bond ETF is an exchange traded fund launched by BlackRock, Inc. The fund is managed by BlackRock Fund Advisors. It invests in fixed income markets of the United States. The fund invests in U.S. "}
+[23:44:22] PASS  Y3_info — {"keys": ["assetClass", "assetsUnderManagement", "avgVolume", "description", "domicile", "etfCompany", "expenseRatio", "holdingsCount", "inceptionDate", "isActivelyTrading", "isin", "name", "nav", "navCurrency", "sectorsList", "securityCusip", "symbol", "updatedAt", "website"], "peek": "{\"symbol\": \"AGG\", \"name\": \"iShares Core U.S. Aggregate Bond ETF\", \"description\": \"iShares Trust - iShares Core U.S. Aggregate Bond ETF is an exchange traded fund launched by BlackRock, Inc. The fund is managed by BlackRock Fund Advisors. It invests in fixed income markets of the United States. The fund invests in U.S. "}
+PASS  Y4_AGG — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}
+[23:44:22] PASS  Y4_AGG — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}
+PASS  Y4_TLT — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}
+[23:44:23] PASS  Y4_TLT — {"n": 5000, "oldest": "2006-08-30", "newest": "2026-07-17"}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3553_census2_probes.md
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3553_census2_probes.py", line 25, in <module>
-    d = json.loads(s3c.get_object(Bucket=BUCKET,
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_3553_census2_probes.py
+→ Report written to aws/ops/reports/latest/3554_probes2.md
