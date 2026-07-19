@@ -1,8 +1,18 @@
-executing-against: 8f04888ecd18858e7032e3506043bc9c4452b71c
-PASS  Y1_format — {'tag': '202606b', 'zip_kb': 1556, 'header': 'SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE', 'n_rows': 69961, 'n_symbols': 13707, 'settle_dates': ['20260615', '20260630', 11], 'has_price_col': True}
-[12:09:27] PASS  Y1_format — {'tag': '202606b', 'zip_kb': 1556, 'header': 'SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE', 'n_rows': 69961, 'n_symbols': 13707, 'settle_dates': ['20260615', '20260630', 11], 'has_price_col': True}
-PASS  Y2_content — {'top10_shares': [('ADTX', 475574345), ('XOM', 320156391), ('GOOG', 249626317), ('GOOGL', 199912019), ('PG', 177725815), ('HBAN', 131884732), ('AMD', 113935922), ('QCOM', 108757325), ('DVN', 89652404), ('CCL', 81623143)], 'top10_dollars': [('GOOG', 83557.2), ('GOOGL', 67455.8), ('AMD', 59448.3), ('XOM', 43714.2), ('PG', 26484.8), ('QCOM', 20598.2), ('MS', 16603.5), ('UNP', 12724.7), ('CDNS', 8592.1), ('AEP', 6347.7)], 'samples': {'AAPL': 288689, 'TSLA': 94173, 'GME': 404087, 'AMC': 2300825, 'NVDA': 233972}}
-[12:09:27] PASS  Y2_content — {'top10_shares': [('ADTX', 475574345), ('XOM', 320156391), ('GOOG', 249626317), ('GOOGL', 199912019), ('PG', 177725815), ('HBAN', 131884732), ('AMD', 113935922), ('QCOM', 108757325), ('DVN', 89652404), ('CCL', 81623143)], 'top10_dollars': [('GOOG', 83557.2), ('GOOGL', 67455.8), ('AMD', 59448.3), ('XOM', 43714.2), ('PG', 26484.8), ('QCOM', 20598.2), ('MS', 16603.5), ('UNP', 12724.7), ('CDNS', 8592.1), ('AEP', 6347.7)], 'samples': {'AAPL': 288689, 'TSLA': 94173, 'GME': 404087, 'AMC': 2300825, 'NVDA': 233972}}
-RESULT: ALL PASS
+executing-against: 554df73b6fa55b4d01be87a1a1591f3b396cc36d
+ops 3513 — equity-FTD family (SEC CNS)
+PASS  L1_ci_battery — {'parse': True, 'spike': True, 'floors_etf': True, 'few_priors': True}
+[16:07:31] PASS  L1_ci_battery — {'parse': True, 'spike': True, 'floors_etf': True, 'few_priors': True}
+[16:07:32]   zip: 83423 bytes
+── 1. Lambda ──
+[16:07:32]   Lambda missing — creating
+[16:07:37] ✅   ✓ created justhodl-equity-ftd
+FAIL  L2_live_run — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'universe_n': 13707, 'n_candidates': 252, 'top_dollars_3': [('GOOG', 83557.25), ('GOOGL', 67455.76), ('AMD', 59448.28)], 'top_spikes_3': [('EME', 33910.86, 5.09), ('IVZ', 17528.29, 6.71), ('SPCX', 13372.21, 0.03)], 'qualifiers': [{'t': 'EME', 'q': 2758083, 'usd': 2201.23, 'peak_day_q': 2757895, 'spike': 33910.86, 'avg20': 542270.0, 'px': 744.16, 'dtc_peak': 5.09, 'desc': 'EMCOR GROUP INC'}, {'t': 'IVZ', 'q': 37366809, 
+[16:07:56] FAIL  L2_live_run — {'files': ['202606b', '202606a', '202604b', '202604a', '202603b', '202603a'], 'universe_n': 13707, 'n_candidates': 252, 'top_dollars_3': [('GOOG', 83557.25), ('GOOGL', 67455.76), ('AMD', 59448.28)], 'top_spikes_3': [('EME', 33910.86, 5.09), ('IVZ', 17528.29, 6.71), ('SPCX', 13372.21, 0.03)], 'qualifiers': [{'t': 'EME', 'q': 2758083, 'usd': 2201.23, 'peak_day_q': 2757895, 'spike': 33910.86, 'avg20': 542270.0, 'px': 744.16, 'dtc_peak': 5.09, 'desc': 'EMCOR GROUP INC'}, {'t': 'IVZ', 'q': 37366809, 
+PASS  L3_schedule — {'name': 'equity-ftd-sched', 'expr': 'cron(10 15 ? * MON,THU *)'}
+[16:07:57] PASS  L3_schedule — {'name': 'equity-ftd-sched', 'expr': 'cron(10 15 ? * MON,THU *)'}
+PASS  L4_families_page — {'card': True, 'feed': True, 'node': True}
+[16:11:59] PASS  L4_families_page — {'card': True, 'feed': True, 'node': True}
+RESULT: FAILS: ['L2_live_run']
+RESULT: FAILS: ['L2_live_run']
 
-→ Report written to aws/ops/reports/latest/3512_ftd_recon.md
+→ Report written to aws/ops/reports/latest/3513_equity_ftd_family.md
