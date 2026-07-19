@@ -1,24 +1,15 @@
-executing-against: 44abba8bea36cc859dda0e879f71018d867b4c02
-ops 3542 — quant floor
-PASS  P1_ci — {'beta': 2.0, 'bt_excess_1y': 12.3}
-[22:01:28] PASS  P1_ci — {'beta': 2.0, 'bt_excess_1y': 12.3}
-[22:01:28]   zip: 89502 bytes
+executing-against: ce79acc58b47fbc06ee201e4f70a3b3a1dc88e90
+ops 3543 — patterns v2 + retail
+PASS  Q1_ci — 1/1/0/0
+[22:10:38] PASS  Q1_ci — 1/1/0/0
+PASS  Q2_dp_probe — {'n_board': 60, 'row0_keys': ['ats_shares_wk', 'dark_accel', 'dark_pool_pct', 'offex_pct', 'offex_shares_wk', 'score', 'state', 'ticker', 'total_vol_wk', 'week_return_pct'], 'row0': '{"ticker": "SSD", "state": "ACCUMULATION", "score": 90.6, "dark_pool_pct": 36.57, "offex_pct": 47.35, "dark_accel": 1.224, "week_return_pct": 5.94, "ats_shares_wk": 854597, "offex_shares_wk": 1106360, "total_vol_wk": 2336625}'}
+[22:10:38] PASS  Q2_dp_probe — {'n_board': 60, 'row0_keys': ['ats_shares_wk', 'dark_accel', 'dark_pool_pct', 'offex_pct', 'offex_shares_wk', 'score', 'state', 'ticker', 'total_vol_wk', 'week_return_pct'], 'row0': '{"ticker": "SSD", "state": "ACCUMULATION", "score": 90.6, "dark_pool_pct": 36.57, "offex_pct": 47.35, "dark_accel": 1.224, "week_return_pct": 5.94, "ats_shares_wk": 854597, "offex_shares_wk": 1106360, "total_vol_wk": 2336625}'}
+[22:10:38]   zip: 89616 bytes
 ── 1. Lambda ──
-[22:01:29]   Lambda exists — updating
-[22:01:32] ✅   ✓ updated justhodl-fundamental-census
-[22:01:34]   zip: 81983 bytes
-── 1. Lambda ──
-[22:01:34]   Lambda missing — creating
-[22:01:39] ✅   ✓ created justhodl-screen-backtest
-[22:01:40] ✅   ✓ Function URL: https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws/
-PASS  P2_bt_url — https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws
-[22:01:40] PASS  P2_bt_url — https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws
-FAIL  P3_matrix — {'tech_n': 495, 'beta_n': 494, 'short_n': 496, 'insider_n': (496, 496), 'retail_n': 0, 'n_dt': 214, 'n_db': 300, 'n_gc': 77, 'combo_top10': [('INCY', 99.5), ('FTNT', 97.4), ('AAPL', 97.4), ('ALL', 96.3), ('TRV', 95.9), ('PRU', 92.9), ('BBY', 92.0), ('MAS', 91.9), ('ANET', 91.4), ('NTAP', 91.4)], 'conviction_top5': [('AAPL', 85.5), ('MU', 81.6), ('LRCX', 81.6), ('DXCM', 81.5), ('SNDK', 80.8)], 'double_bottoms': ['WAT', 'NVDA', 'GEN', 'CMS', 'VST', 'MCHP', 'UNP', 'WY', 'PNW', 'AVGO', 'LMT', 'CVNA']}
-[22:02:52] FAIL  P3_matrix — {'tech_n': 495, 'beta_n': 494, 'short_n': 496, 'insider_n': (496, 496), 'retail_n': 0, 'n_dt': 214, 'n_db': 300, 'n_gc': 77, 'combo_top10': [('INCY', 99.5), ('FTNT', 97.4), ('AAPL', 97.4), ('ALL', 96.3), ('TRV', 95.9), ('PRU', 92.9), ('BBY', 92.0), ('MAS', 91.9), ('ANET', 91.4), ('NTAP', 91.4)], 'conviction_top5': [('AAPL', 85.5), ('MU', 81.6), ('LRCX', 81.6), ('DXCM', 81.5), ('SNDK', 80.8)], 'double_bottoms': ['WAT', 'NVDA', 'GEN', 'CMS', 'VST', 'MCHP', 'UNP', 'WY', 'PNW', 'AVGO', 'LMT', 'CVNA']}
-PASS  P4_bt_smoke — {'weeks': 320, 'basket_3y': 80.0, 'spx_3y': 18.0, 'excess_3y': 62.0}
-[22:02:54] PASS  P4_bt_smoke — {'weeks': 320, 'basket_3y': 80.0, 'spx_3y': 18.0, 'excess_3y': 62.0}
-PASS  P5_page — {'node': True}
-[22:03:55] PASS  P5_page — {'node': True}
-RESULT: FAILS: ['P3_matrix']
+[22:10:38]   Lambda exists — updating
+[22:10:41] ✅   ✓ updated justhodl-fundamental-census
+PASS  Q3_scale — {'n_dt': 9, 'n_db': 13, 'retail_n': 0, 'double_bottoms': ['AMCR', 'SPGI', 'MA', 'CTAS', 'DASH', 'AON', 'AJG', 'PYPL', 'AIG', 'PAYX', 'VEEV', 'KHC', 'DOC'], 'double_tops': ['MCHP', 'TKO', 'BG', 'IBM', 'KEYS', 'SLB', 'WMT', 'YUM', 'HAL'], 'combo_top10': [('FTNT', 96.8), ('INCY', 96.0), ('AAPL', 95.0), ('ALL', 92.3), ('BBY', 92.0), ('TRV', 91.9), ('JBHT', 90.0), ('FFIV', 89.0), ('PRU', 88.9), ('MNST', 88.0)], 'conviction_top10': [('AAPL', 84.9), ('MU', 81.6), ('SNDK', 80.8), ('LRCX', 80.6), ('DXCM', 80.5), ('ANET', 79.7), ('NEM', 77.9), ('WDC', 77.7), ('EA', 77.0), ('AVGO', 76.0)]}
+[22:11:54] PASS  Q3_scale — {'n_dt': 9, 'n_db': 13, 'retail_n': 0, 'double_bottoms': ['AMCR', 'SPGI', 'MA', 'CTAS', 'DASH', 'AON', 'AJG', 'PYPL', 'AIG', 'PAYX', 'VEEV', 'KHC', 'DOC'], 'double_tops': ['MCHP', 'TKO', 'BG', 'IBM', 'KEYS', 'SLB', 'WMT', 'YUM', 'HAL'], 'combo_top10': [('FTNT', 96.8), ('INCY', 96.0), ('AAPL', 95.0), ('ALL', 92.3), ('BBY', 92.0), ('TRV', 91.9), ('JBHT', 90.0), ('FFIV', 89.0), ('PRU', 88.9), ('MNST', 88.0)], 'conviction_top10': [('AAPL', 84.9), ('MU', 81.6), ('SNDK', 80.8), ('LRCX', 80.6), ('DXCM', 80.5), ('ANET', 79.7), ('NEM', 77.9), ('WDC', 77.7), ('EA', 77.0), ('AVGO', 76.0)]}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3542_quant_floor.md
+→ Report written to aws/ops/reports/latest/3543_patterns_retail.md

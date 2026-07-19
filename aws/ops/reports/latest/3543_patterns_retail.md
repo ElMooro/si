@@ -1,0 +1,15 @@
+# ops 3543 — patterns v2 + retail
+
+**Status:** success  
+**Duration:** 76.8s  
+**Finished:** 2026-07-19T22:11:54+00:00  
+
+## Log
+- `22:10:38` PASS  Q1_ci — 1/1/0/0
+- `22:10:38` PASS  Q2_dp_probe — {'n_board': 60, 'row0_keys': ['ats_shares_wk', 'dark_accel', 'dark_pool_pct', 'offex_pct', 'offex_shares_wk', 'score', 'state', 'ticker', 'total_vol_wk', 'week_return_pct'], 'row0': '{"ticker": "SSD", "state": "ACCUMULATION", "score": 90.6, "dark_pool_pct": 36.57, "offex_pct": 47.35, "dark_accel": 1.224, "week_return_pct": 5.94, "ats_shares_wk": 854597, "offex_shares_wk": 1106360, "total_vol_wk": 2336625}'}
+- `22:10:38`   zip: 89616 bytes
+## 1. Lambda
+
+- `22:10:38`   Lambda exists — updating
+- `22:10:41` ✅   ✓ updated justhodl-fundamental-census
+- `22:11:54` PASS  Q3_scale — {'n_dt': 9, 'n_db': 13, 'retail_n': 0, 'double_bottoms': ['AMCR', 'SPGI', 'MA', 'CTAS', 'DASH', 'AON', 'AJG', 'PYPL', 'AIG', 'PAYX', 'VEEV', 'KHC', 'DOC'], 'double_tops': ['MCHP', 'TKO', 'BG', 'IBM', 'KEYS', 'SLB', 'WMT', 'YUM', 'HAL'], 'combo_top10': [('FTNT', 96.8), ('INCY', 96.0), ('AAPL', 95.0), ('ALL', 92.3), ('BBY', 92.0), ('TRV', 91.9), ('JBHT', 90.0), ('FFIV', 89.0), ('PRU', 88.9), ('MNST', 88.0)], 'conviction_top10': [('AAPL', 84.9), ('MU', 81.6), ('SNDK', 80.8), ('LRCX', 80.6), ('DXCM', 80.5), ('ANET', 79.7), ('NEM', 77.9), ('WDC', 77.7), ('EA', 77.0), ('AVGO', 76.0)]}
