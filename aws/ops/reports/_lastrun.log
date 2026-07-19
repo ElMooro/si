@@ -1,8 +1,18 @@
-executing-against: 8a6117784c81b76c3145c615602e4ab530991b08
-ops 3504 — module parity (hide/table/csv/png)
-PASS  M1_surfaces — {'node': True, 'module_new': True, 'module_priors': True, 'flagship_green': True}
-[05:25:19] PASS  M1_surfaces — {'node': True, 'module_new': True, 'module_priors': True, 'flagship_green': True}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: 8b7e020f9ebde9e7a435294d714839789aeee450
+ops 3505 — tech verdicts + module digest parity
+PASS  F1_ci_battery — {'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}
+[05:41:26] PASS  F1_ci_battery — {'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}
+[05:41:26]   zip: 105731 bytes
+── 1. Lambda ──
+[05:41:26]   Lambda exists — updating
+[05:41:32] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  F2_nvda_live — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating — accrual-driven e', 'Beneish M -0.78 above -1.78 — manipulation-risk zone', 'Sloan accruals 41.4% of assets — earnings persistence risk']}
+[05:41:41] FAIL  F2_nvda_live — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating — accrual-driven e', 'Beneish M -0.78 above -1.78 — manipulation-risk zone', 'Sloan accruals 41.4% of assets — earnings persistence risk']}
+PASS  F3_aapl_live — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}
+[05:41:41] PASS  F3_aapl_live — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}
+PASS  F4_surfaces — {'node': True, 'cards': True, 'single_emitter': True, 'priors': True}
+[05:44:05] PASS  F4_surfaces — {'node': True, 'cards': True, 'single_emitter': True, 'priors': True}
+RESULT: FAILS: ['F2_nvda_live']
+RESULT: FAILS: ['F2_nvda_live']
 
-→ Report written to aws/ops/reports/latest/3504_module_parity.md
+→ Report written to aws/ops/reports/latest/3505_full_spectrum_verdicts.md

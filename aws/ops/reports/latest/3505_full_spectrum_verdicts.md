@@ -1,0 +1,18 @@
+# ops 3505 — tech verdicts + module digest parity
+
+**Status:** success  
+**Duration:** 158.5s  
+**Finished:** 2026-07-19T05:44:05+00:00  
+
+## Log
+- `05:41:26` PASS  F1_ci_battery — {'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}
+- `05:41:26`   zip: 105731 bytes
+## 1. Lambda
+
+- `05:41:26`   Lambda exists — updating
+- `05:41:32` ✅   ✓ updated justhodl-fundamental-graphs
+- `05:41:41` FAIL  F2_nvda_live — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating — accrual-driven e', 'Beneish M -0.78 above -1.78 — manipulation-risk zone', 'Sloan accruals 41.4% of assets — earnings persistence risk']}
+- `05:41:41` PASS  F3_aapl_live — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}
+- `05:44:05` PASS  F4_surfaces — {'node': True, 'cards': True, 'single_emitter': True, 'priors': True}
+# RESULT: FAILS: ['F2_nvda_live']
+

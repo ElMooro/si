@@ -1,0 +1,22 @@
+{
+  "ops": 3505,
+  "gates": {
+    "F1_ci_battery": {
+      "ok": true,
+      "detail": "{'tech_up': True, 'tech_down': True, 'no_tech_silent': True, 'roe_roa_dio': True, 'roa_fin_suppressed': True}"
+    },
+    "F2_nvda_live": {
+      "ok": false,
+      "detail": "{'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech_verdicts': ['Double top confirmed 2026-02-25 (neck 171.88)'], 'n_digest': 3, 'digest': ['CFO covers only 79% of net income and deteriorating \u2014 accrual-driven e', 'Beneish M -0.78 above -1.78 \u2014 manipulation-risk zone', 'Sloan accruals 41.4% of assets \u2014 earnings persistence risk']}"
+    },
+    "F3_aapl_live": {
+      "ok": true,
+      "detail": "{'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech_verdicts': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Double top confirmed 2026-02-06 (neck 246.70)'], 'n_digest': 0, 'digest': []}"
+    },
+    "F4_surfaces": {
+      "ok": true,
+      "detail": "{'node': True, 'cards': True, 'single_emitter': True, 'priors': True}"
+    }
+  },
+  "status": "FAILS: ['F2_nvda_live']"
+}
