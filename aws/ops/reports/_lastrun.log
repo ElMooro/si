@@ -1,12 +1,14 @@
-executing-against: de17cd8e3da431304be79e1ea7b16e7f98f03539
-ops 3491 — ISO-week conversion + derived 2s10s (live)
-PASS  Y1_wk2d_recency — {'last_week': '2026-28', 'iso': '2026-07-06', 'age_days': 13, 'us10y': 4.54}
-[01:47:24] PASS  Y1_wk2d_recency — {'last_week': '2026-28', 'iso': '2026-07-06', 'age_days': 13, 'us10y': 4.54}
-PASS  Y2_derived_2s10s — {'n': 1906, 'last_week': '2026-28', 'spread': 0.38, 'check': '4.54-4.16'}
-[01:47:24] PASS  Y2_derived_2s10s — {'n': 1906, 'last_week': '2026-28', 'spread': 0.38, 'check': '4.54-4.16'}
-PASS  Y3_flagship_v24 — {'ops3491': True, 'wk2d': True, 'derived': True, 'cpi_dropped': True, 'node_ok': True, 'mx_intact': True, 'evt_intact': True, 'rt_intact': True}
-[01:49:29] PASS  Y3_flagship_v24 — {'ops3491': True, 'wk2d': True, 'derived': True, 'cpi_dropped': True, 'node_ok': True, 'mx_intact': True, 'evt_intact': True, 'rt_intact': True}
+executing-against: accc970146eb98db096a5bba8dbfb1a54658337c
+ops 3492 — module parity: ratio + macro + DuPont
+PASS  P1_shared_config — {'bytes': 12827}
+[02:38:03] PASS  P1_shared_config — {'bytes': 12827}
+PASS  P2_flagship_v25 — {'ops3492': True, 'consumes_shared': True, 'inline_gone': True, 'dupont': True, 'mx_intact': True, 'rt_intact': True, 'evt_intact': True, 'whales_intact': True}
+[02:38:03] PASS  P2_flagship_v25 — {'ops3492': True, 'consumes_shared': True, 'inline_gone': True, 'dupont': True, 'mx_intact': True, 'rt_intact': True, 'evt_intact': True, 'whales_intact': True}
+PASS  P3_module_parity — {'ratio_btn': True, 'macro_btn': True, 'loader': True, 'dupont': True, 'ops3492': True, 'ratios_store': True, 'macro_store': True, 'tdz_intact': True, 'evt_intact': True, 'flags_intact': True, 'marks_intact': True}
+[02:38:03] PASS  P3_module_parity — {'ratio_btn': True, 'macro_btn': True, 'loader': True, 'dupont': True, 'ops3492': True, 'ratios_store': True, 'macro_store': True, 'tdz_intact': True, 'evt_intact': True, 'flags_intact': True, 'marks_intact': True}
+PASS  P4_served_js — {'node_ok': [True, True, True, True]}
+[02:38:03] PASS  P4_served_js — {'node_ok': [True, True, True, True]}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3491_wk2d_close.md
+→ Report written to aws/ops/reports/latest/3492_module_parity.md
