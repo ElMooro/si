@@ -1,10 +1,8 @@
-executing-against: 6cdc25e289f64dd61f9aaf8745c9c14cd853b4b3
-[06:20:52]   zip: 107097 bytes
-── 1. Lambda ──
-[06:20:52]   Lambda exists — updating
-[06:20:58] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  K1_flip — {'concern': {'k': 'concern_score', 'label': 'low concern', 'val': 65.0, 'pct': 0.8, 'dir': 'L'}, 'altman': 99.3}
-[06:21:09] PASS  K1_flip — {'concern': {'k': 'concern_score', 'label': 'low concern', 'val': 65.0, 'pct': 0.8, 'dir': 'L'}, 'altman': 99.3}
+executing-against: 8f04888ecd18858e7032e3506043bc9c4452b71c
+PASS  Y1_format — {'tag': '202606b', 'zip_kb': 1556, 'header': 'SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE', 'n_rows': 69961, 'n_symbols': 13707, 'settle_dates': ['20260615', '20260630', 11], 'has_price_col': True}
+[12:09:27] PASS  Y1_format — {'tag': '202606b', 'zip_kb': 1556, 'header': 'SETTLEMENT DATE|CUSIP|SYMBOL|QUANTITY (FAILS)|DESCRIPTION|PRICE', 'n_rows': 69961, 'n_symbols': 13707, 'settle_dates': ['20260615', '20260630', 11], 'has_price_col': True}
+PASS  Y2_content — {'top10_shares': [('ADTX', 475574345), ('XOM', 320156391), ('GOOG', 249626317), ('GOOGL', 199912019), ('PG', 177725815), ('HBAN', 131884732), ('AMD', 113935922), ('QCOM', 108757325), ('DVN', 89652404), ('CCL', 81623143)], 'top10_dollars': [('GOOG', 83557.2), ('GOOGL', 67455.8), ('AMD', 59448.3), ('XOM', 43714.2), ('PG', 26484.8), ('QCOM', 20598.2), ('MS', 16603.5), ('UNP', 12724.7), ('CDNS', 8592.1), ('AEP', 6347.7)], 'samples': {'AAPL': 288689, 'TSLA': 94173, 'GME': 404087, 'AMC': 2300825, 'NVDA': 233972}}
+[12:09:27] PASS  Y2_content — {'top10_shares': [('ADTX', 475574345), ('XOM', 320156391), ('GOOG', 249626317), ('GOOGL', 199912019), ('PG', 177725815), ('HBAN', 131884732), ('AMD', 113935922), ('QCOM', 108757325), ('DVN', 89652404), ('CCL', 81623143)], 'top10_dollars': [('GOOG', 83557.2), ('GOOGL', 67455.8), ('AMD', 59448.3), ('XOM', 43714.2), ('PG', 26484.8), ('QCOM', 20598.2), ('MS', 16603.5), ('UNP', 12724.7), ('CDNS', 8592.1), ('AEP', 6347.7)], 'samples': {'AAPL': 288689, 'TSLA': 94173, 'GME': 404087, 'AMC': 2300825, 'NVDA': 233972}}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3511_concern_flip.md
+→ Report written to aws/ops/reports/latest/3512_ftd_recon.md
