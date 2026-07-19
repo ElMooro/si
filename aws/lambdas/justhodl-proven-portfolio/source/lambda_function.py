@@ -47,11 +47,81 @@ s3 = boto3.client("s3", "us-east-1")
 ddb = boto3.resource("dynamodb", "us-east-1")
 
 
+HYG = {}
+FEED_SLA_H = {"data/stress-index.json": 30, "data/jsi-history.json": 48,
+              "data/sovereign-gssi.json": 30,
+              "data/signal-orthogonality.json": 24 * 8,
+              "data/benzinga-earnings-calendar.json": 48,
+              "data/short-book.json": 30, "data/signal-scorecard.json": 30,
+              "data/sizing.json": 24 * 15}
+
+
+def _age_h(doc):
+    for k in ("generated_at", "as_of", "asof", "updated_at"):
+        v = doc.get(k)
+        if not v:
+            continue
+        try:
+            dt = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return round((datetime.now(timezone.utc) - dt
+                          ).total_seconds() / 3600, 1)
+        except ValueError:
+            continue
+    return None
+
+
 def rj(key):
+    """Tracked feed loader (census #9): every composer input lands in
+    HYG with presence, age vs its SLA, and shape notes — published as
+    doc.input_hygiene. Behavior identical; honesty added."""
+    rec = {"present": False, "age_h": None, "stale": None, "issues": []}
     try:
-        return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
-    except Exception:
+        d = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        rec["present"] = True
+        rec["age_h"] = _age_h(d)
+        sla = FEED_SLA_H.get(key, 72)
+        rec["sla_h"] = sla
+        if rec["age_h"] is None:
+            rec["issues"].append("no timestamp field")
+        else:
+            rec["stale"] = rec["age_h"] > sla
+        if not isinstance(d, dict) or not d:
+            rec["issues"].append("empty or non-dict")
+        HYG[key] = rec
+        return d
+    except Exception as e:  # noqa: BLE001
+        rec["issues"].append(str(e)[:60])
+        HYG[key] = rec
         return {}
+
+
+def sanitize_positions(rows):
+    """Output guard: finite weights only, ticker-dedupe (first wins),
+    clamp weight to [0, MAX_W]. Returns (clean, counters)."""
+    seen, out = set(), []
+    c = {"dropped_nonfinite": 0, "deduped": 0, "clamped": 0}
+    for r in rows or []:
+        t = r.get("ticker")
+        w = r.get("weight_pct", r.get("weight"))
+        try:
+            w = float(w)
+            ok = w == w and abs(w) != float("inf")
+        except (TypeError, ValueError):
+            ok = False
+        if not t or not ok:
+            c["dropped_nonfinite"] += 1
+            continue
+        if t in seen:
+            c["deduped"] += 1
+            continue
+        seen.add(t)
+        if w > MAX_W:
+            r = dict(r); r["weight_pct" if "weight_pct" in r else "weight"] = MAX_W
+            c["clamped"] += 1
+        out.append(r)
+    return out, c
 
 
 def yprice(sym):
@@ -250,6 +320,7 @@ def lambda_handler(event, context):
             else "PROVISIONAL" if types else "WAITING")
     signals = live_signals(types) if types else []
     book = compose(signals, rj("data/sizing.json"))
+    book, _guard_counters = sanitize_positions(book)
 
     # marks (book + carry-over tickers + SPY)
     ledger = rj(HIST_KEY) or {"rows": []}
@@ -335,6 +406,12 @@ def lambda_handler(event, context):
 
     out = {"ok": True, "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
+           "input_hygiene": {"feeds": HYG,
+                             "n_stale": sum(1 for v in HYG.values()
+                                            if v.get("stale")),
+                             "n_missing": sum(1 for v in HYG.values()
+                                              if not v["present"]),
+                             "output_guard": _guard_counters},
            "elapsed_s": round(time.time() - t0, 2),
            "mode": mode,
            "regime": {"gross_scale": gross_scale, "notes": regime_note,

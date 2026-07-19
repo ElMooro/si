@@ -130,5 +130,19 @@ Promise.all([
   fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/proven-portfolio-history.json?ts='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
 ]).then(([d,h])=>render(d,h)).catch(e=>{document.getElementById('updated').textContent='load error: '+e.message;});
 </script>
+<script id="OPS3522-proven-portfolio">
+(function(){var PX='https://justhodl-data-proxy.raafouis.workers.dev/';
+fetch(PX+'data/proven-alpha.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(D){
+  var S=D.summary||{},top=(D.families||[]).filter(function(f){return f.verdict==='PROVEN';}).slice(0,3);
+  var el=document.createElement('div');
+  el.style.cssText='max-width:1200px;margin:10px auto;padding:10px 14px;border:1px solid #1c2a42;border-radius:12px;background:#0b1322;font-size:.74rem;color:#c9d4e5';
+  el.innerHTML='\ud83c\udfc6 <b>Powered by graded families</b> \u2014 '+(S.n_proven||0)+' PROVEN of '+(S.n_families||0)+' \u00b7 '
+    +top.map(function(f){return '<span style="color:#34d399;font-family:monospace">'+f.family+' '+(f.hit_primary!=null?f.hit_primary.toFixed(1)+'%':'')+'</span>';}).join(' \u00b7 ')
+    +' \u00b7 <a href="/proven-alpha.html" style="color:#22d3ee">full report \u2192</a>'
+    +'<span style="float:right;color:#5d6b82;font-family:monospace;font-size:.62rem">proven-portfolio \u00b7 ops3522</span>';
+  var h=document.querySelector('h1');(h&&h.parentNode)?h.parentNode.insertBefore(el,h.nextSibling):document.body.insertBefore(el,document.body.firstChild);
+}).catch(function(){});})();
+</script>
+<script src="/jh-enhance.js" data-feed="data/proven-portfolio.json" data-bars="positions:ticker:weight_pct" data-title="Book weights (%)" data-max="20"></script>
 </body>
 </html>

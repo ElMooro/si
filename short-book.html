@@ -47,5 +47,19 @@ fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/short-book.json?ts=
   </div>`).join('')||'<div class="text-xs text-[var(--text-muted)] py-4">No name clears ≥2 independent bear lenses today.</div>';
 }).catch(e=>{document.getElementById('updated').textContent='load error: '+e.message;});
 </script>
+<script id="OPS3522-short-book">
+(function(){var PX='https://justhodl-data-proxy.raafouis.workers.dev/';
+fetch(PX+'data/proven-alpha.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(D){
+  var S=D.summary||{},top=(D.families||[]).filter(function(f){return f.verdict==='PROVEN';}).slice(0,3);
+  var el=document.createElement('div');
+  el.style.cssText='max-width:1200px;margin:10px auto;padding:10px 14px;border:1px solid #1c2a42;border-radius:12px;background:#0b1322;font-size:.74rem;color:#c9d4e5';
+  el.innerHTML='\ud83c\udfc6 <b>Powered by graded families</b> \u2014 '+(S.n_proven||0)+' PROVEN of '+(S.n_families||0)+' \u00b7 '
+    +top.map(function(f){return '<span style="color:#34d399;font-family:monospace">'+f.family+' '+(f.hit_primary!=null?f.hit_primary.toFixed(1)+'%':'')+'</span>';}).join(' \u00b7 ')
+    +' \u00b7 <a href="/proven-alpha.html" style="color:#22d3ee">full report \u2192</a>'
+    +'<span style="float:right;color:#5d6b82;font-family:monospace;font-size:.62rem">short-book \u00b7 ops3522</span>';
+  var h=document.querySelector('h1');(h&&h.parentNode)?h.parentNode.insertBefore(el,h.nextSibling):document.body.insertBefore(el,document.body.firstChild);
+}).catch(function(){});})();
+</script>
+<script src="/jh-enhance.js" data-feed="data/short-book.json" data-bars="book:ticker:score" data-title="Bear-lens scores" data-max="20"></script>
 </body>
 </html>
