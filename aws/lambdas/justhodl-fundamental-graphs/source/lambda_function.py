@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v18"  # v18: + volume (weekly sums, RVOL, spike events; continuity-gated)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v19"  # v19: + ROE/ROA/DIO rules, tech-basis verdicts, module digest parity  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -1284,7 +1284,9 @@ def build_doc(sym, period):
             _smr = secmed_row((profile or {}).get("sector"))
             verdicts = derive_verdicts(
                 P, lb, (profile or {}).get("sector"),
-                _smr.get("med"), _smr.get("bands"))
+                _smr.get("med"), _smr.get("bands"),
+                tech_doc if tech_doc and not tech_doc.get("error")
+                else None)
         except Exception as _ve:  # noqa: BLE001
             verdicts = {"greens": [], "reds": [],
                         "summary": {"error": str(_ve)[:120]}}
@@ -1299,7 +1301,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.8.0",
+        "version": "1.9.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1557,6 +1559,9 @@ VERDICT_RULES = [
     ("operating_margin_pct",  "Op-margin trend",     "T", "H",  3,  -3,   2, 2, True),
     ("gross_margin_pct",      "Gross-margin trend",  "T", "H",  3,  -3,   1, 2, True),
     ("dso_days",              "DSO trend",           "T", "L", -10,  15,  1, 2, True),
+    ("roe_pct",               "ROE",                 "N", "H", 18,   5,   1, 1, False),
+    ("roa_pct",               "ROA",                 "N", "H", 10,   2,   1, 1, True),
+    ("dio_days",              "Inventory-days trend", "T", "L", -12,  20,  1, 2, True),
     ("pe_ttm",                "P/E vs sector",       "S", "L", 0.70, 1.60, 2, 2, False),
     ("ps_ttm",                "P/S vs sector",       "S", "L", 0.60, 1.80, 1, 1, False),
     ("peg_ttm",               "PEG vs sector",       "S", "L", 0.70, 1.80, 2, 2, False),
@@ -1596,10 +1601,11 @@ ELITE_NORM = {"roic_pct": ("H", 30), "gross_margin_pct": ("H", 75),
               "net_shareholder_yield_pct": ("H", 8),
               "beneish_m": ("L", -3.0), "sloan_accruals_pct": ("L", 1.0),
               "netdebt_to_ebitda_ttm": ("L", -1.0),
-              "sbc_to_revenue_pct": ("L", 0.5), "current_ratio": ("H", 3)}
+              "sbc_to_revenue_pct": ("L", 0.5), "current_ratio": ("H", 3),
+              "roe_pct": ("H", 40), "roa_pct": ("H", 20)}
 
 
-def derive_verdicts(P, lb, sector, med, bands=None):
+def derive_verdicts(P, lb, sector, med, bands=None, tech=None):
     """VERDICTS_ENGINE_OPS3495 — green/red verdict layer over the doc.
     Pure; NEVER emits a verdict without a numeric value; financial-sector
     rules suppressed per fleet doctrine (list reported)."""
@@ -1738,9 +1744,71 @@ def derive_verdicts(P, lb, sector, med, bands=None):
                      "%s %.2f vs sector %.2f (%+.0f%%)"
                      % (label, val, mv, (ratio - 1) * 100), val, mv, "sector")
 
+    # ── TECH-BASIS VERDICTS (ops 3505): judge the technical state too.
+    # Never fin-suppressed, never elite; regime-level (state now), not
+    # event spam. Requires a clean tech doc.
+    try:
+        tst = (tech or {}).get("status") or {}
+        tev = (tech or {}).get("events") or []
+        if tst and not (tech or {}).get("error"):
+            lc, m200 = tst.get("last_close"), tst.get("ma200")
+            if lc is not None and m200:
+                pv = tst.get("pct_vs_200")
+                if tst.get("above_200"):
+                    emit("G", 1, "px_vs_200", "Price vs 200-DMA",
+                         "Price %+.1f%% above the 200-DMA" % (pv or 0),
+                         pv, m200, "tech")
+                else:
+                    emit("R", 1, "px_vs_200", "Price vs 200-DMA",
+                         "Price %.1f%% below the 200-DMA" % (pv or 0),
+                         pv, m200, "tech")
+            if tst.get("bull_stack"):
+                emit("G", 1, "ma_stack", "MA stack",
+                     "Bull MA stack 20>50>100>200", 1, None, "tech")
+            ma50 = tst.get("ma50")
+            if ma50 and m200:
+                reg_up = ma50 > m200
+                want = "GC_50_200" if reg_up else "DC_50_200"
+                since = ([e[0] for e in tev if e[1] == want] or [None])[-1]
+                if reg_up:
+                    emit("G", 1, "ma_regime", "50/200 regime",
+                         "Golden-cross regime (50>200)%s"
+                         % (" since %s" % since if since else ""),
+                         1, None, "tech")
+                else:
+                    emit("R", 2, "ma_regime", "50/200 regime",
+                         "Death-cross regime (50<200)%s"
+                         % (" since %s" % since if since else ""),
+                         -1, None, "tech")
+            for p9 in (tst.get("patterns") or []):
+                if not p9.get("confirmed"):
+                    continue
+                if p9.get("type") == "DBL_TOP":
+                    emit("R", 2, "dbl_top", "Double top",
+                         "Double top confirmed %s (neck %.2f)"
+                         % (p9.get("d"), p9.get("neck") or 0),
+                         p9.get("level"), p9.get("neck"), "tech")
+                elif p9.get("type") == "DBL_BOTTOM":
+                    emit("G", 2, "dbl_bottom", "Double bottom",
+                         "Double bottom confirmed %s (neck %.2f)"
+                         % (p9.get("d"), p9.get("neck") or 0),
+                         p9.get("level"), p9.get("neck"), "tech")
+            r14 = tst.get("rsi14")
+            if r14 is not None and r14 >= 80:
+                emit("R", 1, "rsi_hot", "RSI-14",
+                     "RSI %.0f overbought (\u226580)" % r14,
+                     r14, 80, "tech")
+            vst9 = tst.get("volume") or {}
+            if vst9.get("state") == "ok" and (vst9.get("rvol") or 0) >= 3:
+                emit("R", 1, "rvol_hot", "Relative volume",
+                     "RVOL %.1fx 20d average \u2014 unusual activity"
+                     % vst9["rvol"], vst9["rvol"], 3, "tech")
+    except Exception:  # noqa: BLE001
+        pass
+
     out.sort(key=lambda x: (-(1 if x.get("elite") else 0),
                             -x["sev"], x["k"]))
-    greens = [x for x in out if x["side"] == "G"][:12]
+    greens = [x for x in out if x["side"] == "G"][:14]
     reds = [x for x in out if x["side"] == "R"][:12]
     return {"greens": greens, "reds": reds,
             "summary": {"n_elite": len([x for x in out
@@ -2017,7 +2085,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.8.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.9.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -2041,7 +2109,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.8.0"}
+                "version": "1.9.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -2057,7 +2125,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.8.0"}, headers_in)
+                               "version": "1.9.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
