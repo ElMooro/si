@@ -1,10 +1,8 @@
-executing-against: 1bc880b12bcc0a0da525c27b6f90e733f0c25fb2
-ops 3503 — FMP volume probe + exact week reconciliation
-PASS  W0_probe — {'n': 136, 'with_volume_120': 120, 'sample': [('2026-07-16', 62970617), ('2026-07-17', 63407059)]}
-[04:51:10] PASS  W0_probe — {'n': 136, 'with_volume_120': 120, 'sample': [('2026-07-16', 62970617), ('2026-07-17', 63407059)]}
-PASS  W1_exact_week_recon — {'iso_week': (2026, 27), 'probe_sum': 257092060.0, 'engine_sum': 257092060.0}
-[04:51:11] PASS  W1_exact_week_recon — {'iso_week': (2026, 27), 'probe_sum': 257092060.0, 'engine_sum': 257092060.0}
+executing-against: 8a6117784c81b76c3145c615602e4ab530991b08
+ops 3504 — module parity (hide/table/csv/png)
+PASS  M1_surfaces — {'node': True, 'module_new': True, 'module_priors': True, 'flagship_green': True}
+[05:25:19] PASS  M1_surfaces — {'node': True, 'module_new': True, 'module_priors': True, 'flagship_green': True}
 RESULT: ALL PASS
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3503_probe_recon.md
+→ Report written to aws/ops/reports/latest/3504_module_parity.md
