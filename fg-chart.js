@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 (events rail) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -43,19 +43,21 @@ function render(svg,tip,list,opts){
   svg.innerHTML='';
   if(!list.length)return {autoPct:false,hiddenGroups:0,empty:true};
 
-  var groups=[];list.forEach(function(s){if(!s.isPx&&groups.indexOf(s.grp)<0)groups.push(s.grp);});
+  var groups=[];list.forEach(function(s){if(!(s.own||s.isPx)&&groups.indexOf(s.grp)<0)groups.push(s.grp);});
   var hidden=0;
   if(mode!=='val'){groups=['%chg'];}
   if(mode==='val'&&groups.length>2){
     if(!opts.mixOk)return {autoPct:true,hiddenGroups:groups.length-2};
     hidden=groups.length-2;groups=groups.slice(0,2);
   }
-  var axisOf=function(s){return s.isPx?2:(mode!=='val'?0:groups.indexOf(s.grp));};
+  var isOwn=function(s){return !!(s.own||s.isPx);};
+  var axisOf=function(s){return isOwn(s)?2:(mode!=='val'?0:groups.indexOf(s.grp));};
   var drawn=list.filter(function(s){var a=axisOf(s);return a===0||a===1||a===2;});
 
   var W=svg.clientWidth||(svg.parentNode&&svg.parentNode.clientWidth)||1000,
       H=+svg.getAttribute('height')||470;
   var showPx=drawn.some(function(s){return s.isPx;});
+  var ownList=drawn.filter(isOwn);
   var padL=64,padR=(groups.length>1||showPx)?110:96,padT=16,padB=30;
   var x0=padL,x1=W-padR,y0=padT,y1=H-padB;
 
@@ -76,10 +78,12 @@ function render(svg,tip,list,opts){
   var d0=dom(function(s){return axisOf(s)===0;}),l0=d0[0],h0=d0[1];
   var need2=groups.length>1;
   var d1=need2?dom(function(s){return axisOf(s)===1;}):[0,1],l1=d1[0],h1=d1[1];
+  var ownDom={};ownList.forEach(function(s,oi){s.__own=oi;ownDom[oi]=dom(function(x){return x===s;});});
   var dp=showPx?dom(function(s){return s.isPx;}):[0,1],lp=dp[0],hp=dp[1];
   var Y0=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l0)/(h0-l0);};
   var Y1=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l1)/(h1-l1);};
   var Ypx=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-lp)/(hp-lp);};
+  var Yown=function(oi){var d2=ownDom[oi];return function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-d2[0])/(d2[1]-d2[0]);};};
 
   var NS='http://www.w3.org/2000/svg';
   var el=function(t,a){var e=svg.ownerDocument.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;};
@@ -106,7 +110,7 @@ function render(svg,tip,list,opts){
       var t=el('text',{x:x1+8,y:(y1-(y1-y0)*(v-l1)/(h1-l1))+3,'text-anchor':'start',fill:'#64748b','font-size':'10.5'});
       t.textContent=fmtAxis(untf(v),groups[1]);svg.appendChild(t);
     });
-  }else if(showPx){ /* price own-scale ticks only when the right rail is free */
+  }else if(showPx&&ownList.length===1){ /* price own-scale ticks only when the right rail is free */
     niceTicks(lp,hp,6).forEach(function(v){
       var t=el('text',{x:x1+8,y:(y1-(y1-y0)*(v-lp)/(hp-lp))+3,'text-anchor':'start',fill:'#8b98ad','font-size':'10',opacity:.85});
       t.textContent=fmtAxis(untf(v),mode!=='val'?'%chg':'px');svg.appendChild(t);
@@ -189,7 +193,7 @@ function render(svg,tip,list,opts){
 
   var badges=[];
   drawn.forEach(function(s){
-    var Y=s.isPx?Ypx:(axisOf(s)===0?Y0:Y1);
+    var Y=s.isPx?Ypx:(isOwn(s)?Yown(s.__own):(axisOf(s)===0?Y0:Y1));
     var dstr='',pen=false;
     s.pts.forEach(function(p){var y=Y(p[1]);
       if(y==null){pen=false;return;}

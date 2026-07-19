@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.2 ops3489 events -->
+<!-- fundgraph v1.0 ops3462 · v2.3 ops3490 macro-bridge -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.2 · ops 3489</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.3 · ops 3490</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -118,6 +118,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <button class="btn" id="mkclr" title="clear all placed markers" style="display:none">📍 Clear marks</button>
       <button class="btn" id="rtbtn" title="Pairs ratio: chart symA·metric ÷ symB·metric">Ratio</button>
       <button class="btn" id="evtbtn" title="Congress trades (◆) + insider Form-4s (▲▼) on the tape — single symbol">Events</button>
+      <button class="btn" id="mxbtn" title="Macro overlays via the wl-series bridge (own-scale)">Macro</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -185,7 +186,7 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,marks:[],ratios:[]};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,marks:[],ratios:[],macro:[]};
 const MAXR=6;
 function readURL(){
   const q=new URLSearchParams(location.search);
@@ -195,6 +196,7 @@ function readURL(){
   if(q.get('r'))S.rng=+q.get('r')||10;
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
   S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';S.evt=q.get('ev')==='1';
+  if(q.get('mx'))S.macro=q.get('mx').split(',').filter(k=>MACROS.some(m2=>m2.k===k)).slice(0,3);
   if(q.get('mk'))S.marks=q.get('mk').split(',').filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
   if(q.get('rt'))S.ratios=q.get('rt').split(',').map(t=>{const p=t.split('~');return {a:{s:(p[0]||'').toUpperCase(),m:p[1]},b:{s:(p[2]||'').toUpperCase(),m:p[3]}};}).filter(r=>CATIDX[r.a.m]&&CATIDX[r.b.m]).slice(0,MAXR);
   if(!S.syms.length){S.syms=['CHTR'];S.mets=S.mets.length?S.mets:['grossProfit'];}
@@ -204,7 +206,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.macro.length)q.set('mx',S.macro.join(','));if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -229,7 +231,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.2 · ops 3489 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.3 · ops 3490 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -285,11 +287,59 @@ function fmt(v,u){return FGChart.fmt(v,u,S.mode);}
 const svg=document.getElementById('chart'),wrap=document.getElementById('chartwrap'),
       tip=document.getElementById('tip'),emptyEl=document.getElementById('empty');
 let RENDERED=[];
+const WLAPI='https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws';
+const MACROS=[
+ {k:'US10Y',label:'US 10Y yield',u:'%',ids:['TVC:US10Y','FRED:DGS10','DGS10']},
+ {k:'US02Y',label:'US 2Y yield',u:'%',ids:['TVC:US02Y','FRED:DGS2','DGS2']},
+ {k:'T10Y2Y',label:'2s10s spread',u:'%',ids:['FRED:T10Y2Y','T10Y2Y']},
+ {k:'HYOAS',label:'HY OAS',u:'%',ids:['FRED:BAMLH0A0HYM2','BAMLH0A0HYM2']},
+ {k:'CPIYOY',label:'CPI YoY',u:'%',ids:['FRED:CPIAUCSL~pct4','CPIAUCSL~pct4','FRED:CPIAUCSL']},
+ {k:'FEDFUNDS',label:'Fed Funds',u:'%',ids:['FRED:FEDFUNDS','FEDFUNDS','FRED:DFF']},
+ {k:'UNRATE',label:'Unemployment',u:'%',ids:['FRED:UNRATE','UNRATE']},
+ {k:'DXY',label:'US Dollar (DXY)',u:'x',ids:['TVC:DXY','CAPITALCOM:DXY','DXY','FRED:DTWEXBGS']}];
+const MPAL=['#94a3b8','#cbd5e1','#e2e8f0'];
+const MCACHE={};
+async function loadMacro(k){
+  if(MCACHE[k]!==undefined)return MCACHE[k];
+  const cfg=MACROS.find(m2=>m2.k===k);if(!cfg)return MCACHE[k]=null;
+  for(const id of cfg.ids){
+    try{const r=await fetch(WLAPI+'/?sym='+encodeURIComponent(id));
+      if(!r.ok)continue;
+      const d=await r.json();
+      if(d&&d.points&&d.points.length>10){MCACHE[k]={id,pts:d.points};return MCACHE[k];}
+    }catch(e){}
+  }
+  return MCACHE[k]=null;
+}
+async function ensureMacro(){await Promise.all(S.macro.map(loadMacro));}
+function rtPopClose(){const p=document.getElementById('mxpop');if(p)p.remove();}
+function mxPop(){
+  const ex=document.getElementById('mxpop');if(ex){ex.remove();return;}
+  const d=document.createElement('div');d.id='mxpop';
+  d.style.cssText='position:fixed;z-index:120;background:#0a1120;border:1px solid #22304a;border-radius:12px;padding:12px;box-shadow:0 18px 60px rgba(0,0,0,.6);min-width:230px';
+  d.innerHTML='<b style="font-size:.8rem">Macro overlays <span class="note">(max 3 · own scale)</span></b>'+
+    MACROS.map(m2=>`<label style="display:flex;gap:8px;align-items:center;margin-top:7px;font-size:.74rem;cursor:pointer"><input type="checkbox" data-mk="${m2.k}" ${S.macro.includes(m2.k)?'checked':''} style="accent-color:#94a3b8"> ${esc(m2.label)}</label>`).join('')+
+    '<div class="note" style="margin-top:8px;max-width:230px">Weekly series from the wl-series bridge; dashed slate lines, never squash metric axes.</div>';
+  document.body.appendChild(d);
+  const rc=document.getElementById('mxbtn').getBoundingClientRect();
+  d.style.left=Math.min(rc.left,window.innerWidth-d.offsetWidth-10)+'px';
+  d.style.top=Math.min(rc.bottom+6,window.innerHeight-d.offsetHeight-10)+'px';
+  d.querySelectorAll('[data-mk]').forEach(cb=>cb.onchange=async()=>{
+    const k=cb.dataset.mk;
+    if(cb.checked){if(S.macro.length>=3){cb.checked=false;toast('Max 3 macro overlays');return;}
+      S.macro.push(k);const got=await loadMacro(k);
+      if(!got){toast(MACROS.find(x=>x.k===k).label+' unavailable on the bridge');S.macro=S.macro.filter(v=>v!==k);cb.checked=false;}
+    }else S.macro=S.macro.filter(v=>v!==k);
+    draw();});
+  const clk=e=>{if(!d.contains(e.target)&&e.target.id!=='mxbtn'){d.remove();document.removeEventListener('mousedown',clk);}};
+  setTimeout(()=>document.addEventListener('mousedown',clk),50);
+}
 function ratioRaw(r){
   const da=DCACHE[r.a.s+'_'+basePer()],db=DCACHE[r.b.s+'_'+basePer()];
   if(!da||!db)return [];
   return FGChart.ratio(series(da,r.a.m),series(db,r.b.m));
 }
+function fmtAxisMacro(v,u){return v==null?'\u2014':(u==='%'?v.toFixed(2)+'%':v.toFixed(1));}
 function ratioLabel(r){
   const la=(CATIDX[r.a.m]||{}).label||r.a.m,lb=(CATIDX[r.b.m]||{}).label||r.b.m;
   return `${r.a.s} ${la} ÷ ${r.b.s} ${lb}`;
@@ -317,6 +367,13 @@ function buildSeriesList(){
     out.push({sym:'',mk:'__ratio'+ri,label:ratioLabel(r),u:'x',
       color:PAL[(12+ri)%PAL.length],dash:'6 3',
       pts:applyMode(raw,'__ratio'),grp:FGChart.grp('x'),isRatio:true});
+  });
+  S.macro.forEach((k,mi)=>{
+    const got=MCACHE[k];if(!got||!got.pts)return;
+    const cfg=MACROS.find(m2=>m2.k===k);
+    const pts=applyMode(got.pts,'__macro');
+    out.push({sym:'',mk:'__macro'+k,label:cfg.label+' (macro)',u:cfg.u,
+      color:MPAL[mi%3],dash:'2 3',pts,grp:'own',own:true,isMacro:true});
   });
   return out.filter(s=>s.pts.length>=2);
 }
@@ -419,8 +476,15 @@ function renderChips(){
     }
     chips.push(`<span class="metchip" style="border-style:dashed;border-color:${color}66"><span class="dot" style="background:${color}"></span>${esc(ratioLabel(r))} <b class="mono">${latest}</b>${extra}<span class="x" data-ri="${ri}" title="remove ratio">✕</span></span>`);
   });
+    S.macro.forEach((mk2,mi)=>{
+    const cfg=MACROS.find(m2=>m2.k===mk2);const got=MCACHE[mk2];
+    const color=MPAL[mi%3];
+    const latest=(got&&got.pts&&got.pts.length)?fmtAxisMacro(got.pts[got.pts.length-1][1],cfg.u):'…';
+    chips.push(`<span class="metchip" style="border-style:dotted;border-color:${color}88"><span class="dot" style="background:${color}"></span>${esc(cfg.label)} <b class="mono">${latest}</b><span class="x" data-mx="${mk2}" title="remove overlay">✕</span></span>`);
+  });
   lg.innerHTML=chips.join('');
   lg.querySelectorAll('[data-ri]').forEach(x=>x.onclick=()=>{S.ratios.splice(+x.dataset.ri,1);draw();});
+  lg.querySelectorAll('[data-mx]').forEach(x=>x.onclick=()=>{S.macro=S.macro.filter(v=>v!==x.dataset.mx);draw();});
   lg.querySelectorAll('.x').forEach(x=>x.onclick=()=>{S.mets=S.mets.filter(v=>v!==x.dataset.m);draw();});
   document.getElementById('metcount').textContent=`${S.mets.length}/${MAXM} metrics · ${S.syms.length}/${MAXS} symbols`;
   document.querySelectorAll('#perseg .btn').forEach(b=>b.classList.toggle('on',b.dataset.p===S.per));
@@ -637,7 +701,7 @@ document.getElementById('linkbtn').onclick=()=>{
   writeURL();navigator.clipboard&&navigator.clipboard.writeText(location.href);toast('Deep link copied');};
 
 /* ── controls wiring ── */
-async function refresh(){renderChips();await ensureData();loadMarks();draw();}
+async function refresh(){renderChips();await ensureData();await ensureMacro();loadMarks();draw();}
 function addSym(){
   const v=(document.getElementById('symin').value||'').trim().toUpperCase();
   if(!v)return;
@@ -689,6 +753,7 @@ function rtPop(){
     toast('Ratio added — '+ratioLabel(r));};
 }
 document.getElementById('rtbtn').onclick=rtPop;
+document.getElementById('mxbtn').onclick=mxPop;
 document.getElementById('mkclr').onclick=()=>{S.marks=[];saveMarks();draw();};
 document.getElementById('evtbtn').onclick=()=>{S.evt=!S.evt;if(S.evt&&S.syms.length>1)toast('Events layer shows for a single symbol');draw();};
 document.getElementById('ernbtn').onclick=()=>{S.ern=!S.ern;if(S.ern&&S.syms.length>1)toast('Earnings layer shows for a single symbol');draw();};
