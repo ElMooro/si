@@ -1,15 +1,15 @@
-executing-against: 785070d8b484edeb3202178225171169e2a87713
-ops 3536 — filters + board personalization
-PASS  K1_ci — {'m6': 19.55, 'm121': 44.86}
-[21:02:41] PASS  K1_ci — {'m6': 19.55, 'm121': 44.86}
-[21:02:41]   zip: 85538 bytes
+executing-against: 1e431fc93a5686b20f5ed39142a49df363dc0090
+ops 3537 — industry + institutional pack
+PASS  L1_ci — aligned
+[21:13:59] PASS  L1_ci — aligned
+[21:13:59]   zip: 85878 bytes
 ── 1. Lambda ──
-[21:02:41]   Lambda exists — updating
-[21:02:44] ✅   ✓ updated justhodl-fundamental-census
-PASS  K2_matrix_mom — {'n_mom': 494, 'aapl': (41.12, 41.12), 'terciles': (-4.85, 19.13), 'top_momentum': [('SNDK', 5078.36), ('WDC', 997.4), ('MU', 891.34)]}
-[21:03:57] PASS  K2_matrix_mom — {'n_mom': 494, 'aapl': (41.12, 41.12), 'terciles': (-4.85, 19.13), 'top_momentum': [('SNDK', 5078.36), ('WDC', 997.4), ('MU', 891.34)]}
-PASS  K3_page — {'node': [True, True]}
-[21:04:19] PASS  K3_page — {'node': [True, True]}
+[21:14:00]   Lambda exists — updating
+[21:14:05] ✅   ✓ updated justhodl-fundamental-census
+PASS  L2_live — {'distinct_industries': 113, 'n_ind': 496, 'aapl_industry': 'Consumer Electronics', 'semis_sample': ['NVDA', 'MU', 'TER', 'MCHP', 'AVGO', 'MRVL', 'Q', 'AMD'], 'n_turn': 493, 'n_flagged': 60, 'careful': 60, 'n_mcap': 495}
+[21:15:23] PASS  L2_live — {'distinct_industries': 113, 'n_ind': 496, 'aapl_industry': 'Consumer Electronics', 'semis_sample': ['NVDA', 'MU', 'TER', 'MCHP', 'AVGO', 'MRVL', 'Q', 'AMD'], 'n_turn': 493, 'n_flagged': 60, 'careful': 60, 'n_mcap': 495}
+PASS  L3_page — {'node': True}
+[21:16:25] PASS  L3_page — {'node': True}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3536_filters_boards.md
+→ Report written to aws/ops/reports/latest/3537_industry_pack.md
