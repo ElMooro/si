@@ -1,19 +1,15 @@
-executing-against: 6f19b9a6dd99b1c8b964568ff93972e9a319c1ba
-ops 3529 — Metric Explorer + matrix
-FAIL  D1_matrix_ci — {'metrics': []}
-[19:32:13] FAIL  D1_matrix_ci — {'metrics': []}
-[19:32:13]   zip: 83892 bytes
+executing-against: 971ed74d88a70132660bc685503f4a4148298260
+ops 3531 — chain-hardened full universe
+PASS  E1_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct']}
+[19:36:40] PASS  E1_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct']}
+[19:36:40]   zip: 84052 bytes
 ── 1. Lambda ──
-[19:32:13]   Lambda exists — updating
-[19:32:18] ✅   ✓ updated justhodl-fundamental-census
-FAIL  D2_matrix_live — {'n_tickers': 196, 'n_metrics': 191, 'aapl_gm': (47.862, 47.862), 'sample_metrics': ['accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'asset_turnover_ttm', 'beneish_m', 'book_value_ps', 'buyback_yield_pct']}
-[19:33:01] FAIL  D2_matrix_live — {'n_tickers': 196, 'n_metrics': 191, 'aapl_gm': (47.862, 47.862), 'sample_metrics': ['accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'asset_turnover_ttm', 'beneish_m', 'book_value_ps', 'buyback_yield_pct']}
-FAIL  D3_full_boards — {'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'avg': 9.2, 'flagged': 74, 'issuers': [{'t': 'COF', 'v
-[19:33:01] FAIL  D3_full_boards — {'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'avg': 9.2, 'flagged': 74, 'issuers': [{'t': 'COF', 'v
-PASS  D4_page — {'node': True}
-[19:33:01] PASS  D4_page — {'node': True}
-PASS  D5_fb_contract — {'n_revenue': 163, 'oldest': '1985-09-30'}
-[19:33:03] PASS  D5_fb_contract — {'n_revenue': 163, 'oldest': '1985-09-30'}
-RESULT: FAILS: ['D1_matrix_ci', 'D2_matrix_live', 'D3_full_boards']
+[19:36:40]   Lambda exists — updating
+[19:36:45] ✅   ✓ updated justhodl-fundamental-census
+FAIL  E2_chain — {'trajectory': [196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196], 'final': 196}
+[19:55:00] FAIL  E2_chain — {'trajectory': [196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196, 196], 'final': 196}
+FAIL  E3_full — {'matrix': (196, 191), 'aapl_gm': (47.862, 47.862), 'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'is
+[19:55:00] FAIL  E3_full — {'matrix': (196, 191), 'aapl_gm': (47.862, 47.862), 'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'is
+RESULT: FAILS: ['E2_chain', 'E3_full']
 
-→ Report written to aws/ops/reports/latest/3530_explorer.md
+→ Report written to aws/ops/reports/latest/3531_chain_close.md
