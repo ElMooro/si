@@ -1,7 +1,14 @@
-executing-against: 9c2a589fd33b8f8ed0f9aa9f8f4c50764486fd60
 
-→ Report written to aws/ops/reports/latest/3553_census2_probes.md
+**Status:** failure  
+**Duration:** 0.2s  
+**Finished:** 2026-07-19T23:37:59+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3553_census2_probes.py", line 25, in <module>
     d = json.loads(s3c.get_object(Bucket=BUCKET,
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,4 +21,8 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
 botocore.errorfactory.NoSuchKey: An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-❌ OPS-FAIL: aws/ops/pending/ops_3553_census2_probes.py
+
+```
+
+## Log
+
