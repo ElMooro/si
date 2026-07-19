@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.4.1 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.5.0 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v14"  # v14: + fleet events (congress + insiders)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v15"  # v15: + verdict layer (green/red, norm+sector+trend)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -1024,6 +1024,13 @@ def build_doc(sym, period):
     flags = []
     try:
         flags = derive_flags(P, lb)
+        try:
+            verdicts = derive_verdicts(
+                P, lb, (prof or {}).get("sector"),
+                secmed_row((prof or {}).get("sector")))
+        except Exception as _ve:  # noqa: BLE001
+            verdicts = {"greens": [], "reds": [],
+                        "summary": {"error": str(_ve)[:120]}}
     except Exception:  # noqa: BLE001
         pass
     vintage_days = 0
@@ -1035,7 +1042,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.4.1",
+        "version": "1.5.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1044,6 +1051,7 @@ def build_doc(sym, period):
         "n_periods": min(n, MAX_Q if period == "quarter" else MAX_A),
         "vintage_days": vintage_days,
         "flags": flags,
+        "verdicts": verdicts,
         "whales_q": whales,
         "events": events,
         "catalog_n": len(P),
@@ -1244,6 +1252,165 @@ def whale_lookup(sym):
             "whale_net_usd": g(r, "wn", "whale_net_usd"),
             "n_funds": g(r, "nf", "n_funds"),
             "held_usd": g(r, "tv", "held_usd")}
+
+
+VERD_FIN = {"Financial Services", "Financials", "Financial",
+            "Insurance", "Real Estate", "Banks"}  # == forensic FIN_SECTORS
+
+# (key, label, kind, dir, green, red, sev_g, sev_r, fin_suppress)
+#  kind: N=norm-latest  T=trend(vs lb*3 back)  S=vs-sector-median
+#  dir : H=higher-better  L=lower-better  (S rules resolve via ratio bands)
+VERDICT_RULES = [
+    ("roic_pct",              "ROIC",                "N", "H", 15,   5,   2, 2, True),
+    ("gross_margin_pct",      "Gross margin",        "N", "H", 55,  20,   1, 1, True),
+    ("operating_margin_pct",  "Operating margin",    "N", "H", 25,   5,   1, 1, True),
+    ("fcf_margin_pct",        "FCF margin",          "N", "H", 20,   0,   2, 3, True),
+    ("fcf_yield_pct",         "FCF yield",           "N", "H",  6, 0.5,   2, 2, False),
+    ("income_quality",        "Income quality",      "N", "H", 1.2, 0.7,  1, 2, True),
+    ("piotroski_f",           "Piotroski F",         "N", "H",  7,   3,   2, 2, False),
+    ("altman_z",              "Altman Z",            "N", "H",  3, 1.8,   2, 3, True),
+    ("interest_coverage_ttm", "Interest coverage",   "N", "H", 12,   2,   1, 3, True),
+    ("revenue_cagr_3y_pct",   "Revenue 3y CAGR",     "N", "H", 12,   0,   1, 2, False),
+    ("eps_cagr_3y_pct",       "EPS 3y CAGR",         "N", "H", 12,  -5,   1, 2, False),
+    ("fcf_cagr_3y_pct",       "FCF 3y CAGR",         "N", "H", 12, -10,   1, 2, False),
+    ("net_shareholder_yield_pct", "Net shareholder yield", "N", "H", 4, -2, 2, 3, False),
+    ("beneish_m",             "Beneish M",           "N", "L", -2.5, -1.78, 2, 3, True),
+    ("sloan_accruals_pct",    "Sloan accruals",      "N", "L",  3,  10,   1, 3, True),
+    ("netdebt_to_ebitda_ttm", "Net debt / EBITDA",   "N", "L", 0.5,  4,   2, 3, True),
+    ("sbc_to_revenue_pct",    "SBC / revenue",       "N", "L",  2,  10,   1, 2, False),
+    ("current_ratio",         "Current ratio",       "N", "H",  2,   1,   1, 2, True),
+    ("operating_margin_pct",  "Op-margin trend",     "T", "H",  3,  -3,   2, 2, True),
+    ("gross_margin_pct",      "Gross-margin trend",  "T", "H",  3,  -3,   1, 2, True),
+    ("dso_days",              "DSO trend",           "T", "L", -10,  15,  1, 2, True),
+    ("pe_ttm",                "P/E vs sector",       "S", "L", 0.70, 1.60, 2, 2, False),
+    ("ps_ttm",                "P/S vs sector",       "S", "L", 0.60, 1.80, 1, 1, False),
+    ("peg_ttm",               "PEG vs sector",       "S", "L", 0.70, 1.80, 2, 2, False),
+    ("fcf_yield_pct",         "FCF yield vs sector", "S", "H", 1.50, 0.50, 2, 2, False),
+    ("beneish_m",             "Beneish vs sector",   "S", "L", -0.5,  0.5, 1, 2, True),
+]
+
+_SECMED = {"ts": 0, "doc": None}
+
+
+def secmed_row(sector):
+    now = time.time()
+    if _SECMED["doc"] is None or now - _SECMED["ts"] > 3600:
+        try:
+            _SECMED["doc"] = json.loads(_s3.get_object(
+                Bucket=S3_BUCKET, Key=SECMED_KEY)["Body"].read())
+        except Exception:  # noqa: BLE001
+            _SECMED["doc"] = {}
+        _SECMED["ts"] = now
+    return ((_SECMED["doc"] or {}).get("sectors") or {}).get(sector) or {}
+
+
+def derive_verdicts(P, lb, sector, med):
+    """VERDICTS_ENGINE_OPS3495 — green/red verdict layer over the doc.
+    Pure; NEVER emits a verdict without a numeric value; financial-sector
+    rules suppressed per fleet doctrine (list reported)."""
+    def v(key, back=0):
+        a = P.get(key) or []
+        i = len(a) - 1 - back
+        return a[i][1] if 0 <= i < len(a) else None
+
+    fin = (sector or "") in VERD_FIN
+    out, suppressed = [], []
+
+    def emit(side, sev, key, label, why, val, ref, basis):
+        out.append({"k": key, "side": side, "sev": sev, "label": label,
+                    "why": why, "val": rnd(val, 3),
+                    "ref": rnd(ref, 3) if ref is not None else None,
+                    "basis": basis})
+
+    for key, label, kind, dr, gthr, rthr, sg, sr, fsup in VERDICT_RULES:
+        if fsup and fin:
+            suppressed.append(label)
+            continue
+        if kind == "N":
+            val = v(key)
+            if val is None:
+                continue
+            if dr == "H":
+                if val >= gthr:
+                    emit("G", sg, key, label,
+                         "%s %.2f \u2265 %.2f norm" % (label, val, gthr),
+                         val, gthr, "norm")
+                elif val <= rthr:
+                    emit("R", sr, key, label,
+                         "%s %.2f \u2264 %.2f norm" % (label, val, rthr),
+                         val, rthr, "norm")
+            else:
+                if val <= gthr:
+                    emit("G", sg, key, label,
+                         "%s %.2f \u2264 %.2f norm" % (label, val, gthr),
+                         val, gthr, "norm")
+                elif val >= rthr:
+                    emit("R", sr, key, label,
+                         "%s %.2f \u2265 %.2f norm" % (label, val, rthr),
+                         val, rthr, "norm")
+        elif kind == "T":
+            back = lb * 3
+            now_v, old_v = v(key), v(key, back)
+            if now_v is None or old_v is None:
+                continue
+            d = now_v - old_v
+            if dr == "H":
+                if d >= gthr:
+                    emit("G", sg, key, label,
+                         "%s +%.1f over 3y (%.1f\u2192%.1f)"
+                         % (label, d, old_v, now_v), d, old_v, "trend")
+                elif d <= rthr:
+                    emit("R", sr, key, label,
+                         "%s %.1f over 3y (%.1f\u2192%.1f)"
+                         % (label, d, old_v, now_v), d, old_v, "trend")
+            else:
+                pct = (d / abs(old_v) * 100) if old_v else None
+                if pct is None:
+                    continue
+                if pct <= gthr:
+                    emit("G", sg, key, label,
+                         "%s %.0f%% over 3y (%.1f\u2192%.1f)"
+                         % (label, pct, old_v, now_v), pct, old_v, "trend")
+                elif pct >= rthr and d >= 8:
+                    emit("R", sr, key, label,
+                         "%s +%.0f%% over 3y (%.1f\u2192%.1f)"
+                         % (label, pct, old_v, now_v), pct, old_v, "trend")
+        else:  # S — vs sector median
+            val, mv = v(key), (med or {}).get(key)
+            if val is None or mv is None:
+                continue
+            if key == "beneish_m":
+                d = val - mv
+                if d <= gthr:
+                    emit("G", sg, key, label,
+                         "%s %.2f vs sector %.2f (cleaner)"
+                         % (label, val, mv), val, mv, "sector")
+                elif d >= rthr:
+                    emit("R", sr, key, label,
+                         "%s %.2f vs sector %.2f" % (label, val, mv),
+                         val, mv, "sector")
+                continue
+            if val <= 0 or mv <= 0:
+                continue
+            ratio = val / mv
+            cheap = ratio <= gthr if dr == "L" else ratio >= gthr
+            rich = ratio >= rthr if dr == "L" else ratio <= rthr
+            if cheap:
+                emit("G", sg, key, label,
+                     "%s %.2f vs sector %.2f (%.0f%%)"
+                     % (label, val, mv, (ratio - 1) * 100), val, mv, "sector")
+            elif rich:
+                emit("R", sr, key, label,
+                     "%s %.2f vs sector %.2f (%+.0f%%)"
+                     % (label, val, mv, (ratio - 1) * 100), val, mv, "sector")
+
+    out.sort(key=lambda x: (-x["sev"], x["k"]))
+    greens = [x for x in out if x["side"] == "G"][:12]
+    reds = [x for x in out if x["side"] == "R"][:12]
+    return {"greens": greens, "reds": reds,
+            "summary": {"n_green": len([x for x in out if x["side"] == "G"]),
+                        "n_red": len([x for x in out if x["side"] == "R"]),
+                        "fin_suppressed": suppressed if fin else []}}
 
 
 def derive_flags(P, lb):
@@ -1513,7 +1680,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.4.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.5.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1537,7 +1704,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.4.1"}
+                "version": "1.5.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1553,7 +1720,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.4.1"}, headers_in)
+                               "version": "1.5.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

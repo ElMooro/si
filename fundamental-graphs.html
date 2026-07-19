@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.6 ops3493 vs-sector -->
+<!-- fundgraph v1.0 ops3462 · v2.7 ops3495 verdicts -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.6 · ops 3493</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.7 · ops 3495</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -232,7 +232,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.6 · ops 3493 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.7 · ops 3495 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -528,7 +528,7 @@ function renderMeta(){renderFlags();
     const mc=last('mcap')||p.mktCap;
     return `<div class="metacard"><b style="color:var(--blue)">${esc(sym)}</b> · ${esc(p.name||'')}<br>
       <span class="note">${esc(p.sector||'')}${p.industry?' · '+esc(p.industry):''}</span><br>
-      <span class="mono">MCap ${mc?fmtBig(mc):'—'} · P/E ${nn(last('pe_ttm'))} · FCF yld ${nn(last('fcf_yield_pct'))}% · Z ${nn(last('altman_z'))} · F ${last('piotroski_f')??'—'}${doc.whales_q&&doc.whales_q.net_usd!=null?` · <span title="latest-quarter 13F net $ flow — tracked whale cohort (clone-alpha ledger)" style="color:${doc.whales_q.net_usd>=0?'var(--green)':'var(--red)'}">🐋 ${doc.whales_q.net_usd>=0?'+':''}${fmtBig(doc.whales_q.net_usd)}</span>${doc.whales_q.n_funds?`<span class="note"> ${doc.whales_q.n_funds}f</span>`:''}`:''}</span>
+      <span class="mono">${doc.verdicts&&doc.verdicts.summary?`<span title="green / red verdicts (norm + sector + trend)" class="mono" style="font-size:.66rem">\u2705${doc.verdicts.summary.n_green||0} \ud83d\udea9${doc.verdicts.summary.n_red||0}</span> \u00b7 `:''}MCap ${mc?fmtBig(mc):'—'} · P/E ${nn(last('pe_ttm'))} · FCF yld ${nn(last('fcf_yield_pct'))}% · Z ${nn(last('altman_z'))} · F ${last('piotroski_f')??'—'}${doc.whales_q&&doc.whales_q.net_usd!=null?` · <span title="latest-quarter 13F net $ flow — tracked whale cohort (clone-alpha ledger)" style="color:${doc.whales_q.net_usd>=0?'var(--green)':'var(--red)'}">🐋 ${doc.whales_q.net_usd>=0?'+':''}${fmtBig(doc.whales_q.net_usd)}</span>${doc.whales_q.n_funds?`<span class="note"> ${doc.whales_q.n_funds}f</span>`:''}`:''}</span>
       · <a href="/why.html?ticker=${esc(sym)}" style="color:var(--blue)">why</a></div>`;
   }).join('');
 }
@@ -542,7 +542,22 @@ function renderFlags(){
     return `<div class="metacard" style="border-color:#3b1d1d"><b style="color:var(--red)">⚠ ${esc(sym)} red-flag digest</b><br>`+
       fl.map(f=>`<span class="fgflag" data-k="${esc(f.keys.join(','))}" title="click to chart the evidence" style="display:block;cursor:pointer;margin-top:5px;font-size:.7rem;line-height:1.35"><span style="color:${SEVC[f.sev]||'#64748b'}">●</span> ${esc(f.msg)}</span>`).join('')+'</div>';
   }).join('');
-  box.innerHTML=cards;
+  /* verdict layer (ops3495): engine-computed greens/reds \u2014 no page-side rules */
+  let vp='';
+  if(S.syms.length===1){
+    const d0=DCACHE[S.syms[0]+'_'+basePer()];
+    const V=(d0&&d0.verdicts)||null;
+    if(V&&((V.greens&&V.greens.length)||(V.reds&&V.reds.length))){
+      const chip=(x,g)=>`<span class="fgverd" data-vk="${esc(x.k)}" title="${esc(x.basis)} basis \u00b7 click to chart" style="display:block;cursor:pointer;margin-top:5px;font-size:.7rem;line-height:1.35"><span style="color:${g?'var(--green)':SEVC[x.sev]||'var(--red)'}">${g?'\u2705':'\ud83d\udea9'}</span> ${esc(x.why)}${x.sev===3?' <b style="color:var(--red);font-size:.6rem">SEV3</b>':''}</span>`;
+      vp=`<div class="metacard" style="border-color:#173325"><b style="color:var(--green)">\u2705 ${esc(S.syms[0])} green flags <span class="note">(${V.summary.n_green})</span></b><br>${(V.greens||[]).map(x=>chip(x,1)).join('')||'<span class="note">none</span>'}</div>`+
+         `<div class="metacard" style="border-color:#3b1d1d"><b style="color:var(--red)">\ud83d\udea9 ${esc(S.syms[0])} red flags <span class="note">(${V.summary.n_red})</span></b><br>${(V.reds||[]).map(x=>chip(x,0)).join('')||'<span class="note">none</span>'}${(V.summary.fin_suppressed&&V.summary.fin_suppressed.length)?`<div class="note" style="margin-top:6px">financial-sector doctrine: ${V.summary.fin_suppressed.length} statement rules suppressed</div>`:''}</div>`;
+    }
+  }
+  box.innerHTML=vp+cards;
+  box.querySelectorAll('.fgverd').forEach(el=>el.onclick=()=>{
+    const k=el.dataset.vk;
+    if(CATIDX[k]){if(!S.mets.includes(k)&&S.mets.length<MAXM)S.mets.push(k);draw();toast('Charted '+CATIDX[k].label);}
+  });
   box.querySelectorAll('.fgflag').forEach(el=>el.onclick=()=>{
     let added=0;
     el.dataset.k.split(',').forEach(k=>{if(CATIDX[k]&&!S.mets.includes(k)&&S.mets.length<MAXM){S.mets.push(k);added++;}});

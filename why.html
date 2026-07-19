@@ -3714,6 +3714,14 @@ function build(){
   sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 institutional chart <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 '+(CUST?'custom '+keys().length:'lens: '+LENS[ST.lens][0])+')</span>'+((DOC.whales_q&&DOC.whales_q.net_usd!=null)?(' <span title="latest-quarter 13F net $ — tracked whale cohort" style="font-size:.64rem;color:'+(DOC.whales_q.net_usd>=0?'#34d399':'#f87171')+'">\ud83d\udc0b '+(DOC.whales_q.net_usd>=0?'+':'')+(Math.abs(DOC.whales_q.net_usd)>=1e9?(DOC.whales_q.net_usd/1e9).toFixed(1)+'B':(DOC.whales_q.net_usd/1e6).toFixed(0)+'M')+'</span>'):'')+'</div>'+ /* ops3482 whale chip */
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
     ((DOC.flags&&DOC.flags.length)?('<div id="jhfgFlags" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+DOC.flags.slice(0,3).map(function(f){var c=f.sev===3?'#f87171':f.sev===2?'#fbbf24':'#64748b';return '<span data-fk="'+esc(f.keys.join(','))+'" title="click to chart the evidence" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.68rem">\u26a0 '+esc(f.msg)+'</span>';}).join('')+'</div>'):'')+
+    ((DOC.verdicts&&((DOC.verdicts.greens||[]).length||(DOC.verdicts.reds||[]).length))?(function(){
+      var V=DOC.verdicts,mk2=function(x,g){var c=g?'#34d399':(x.sev===3?'#f87171':x.sev===2?'#fbbf24':'#f87171');
+        return '<span data-vk="'+esc(x.k)+'" title="'+esc(x.basis)+' basis \u00b7 click to chart" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.66rem">'+(g?'\u2705':'\ud83d\udea9')+' '+esc(x.why)+(x.sev===3?' <b style="font-size:.56rem">SEV3</b>':'')+'</span>';};
+      var G=(V.greens||[]).slice(0,5),R=(V.reds||[]).slice(0,5);
+      return '<div id="jhfgVerd" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+
+        G.map(function(x){return mk2(x,1);}).join('')+((V.summary.n_green>5)?'<span style="font-size:.62rem;color:#5d6b82;align-self:center">+'+(V.summary.n_green-5)+' green</span>':'')+
+        R.map(function(x){return mk2(x,0);}).join('')+((V.summary.n_red>5)?'<span style="font-size:.62rem;color:#5d6b82;align-self:center">+'+(V.summary.n_red-5)+' red</span>':'')+
+        ((V.summary.fin_suppressed&&V.summary.fin_suppressed.length)?'<span style="font-size:.6rem;color:#5d6b82;align-self:center" title="'+esc(V.summary.fin_suppressed.join(', '))+'">FIN doctrine: '+V.summary.fin_suppressed.length+' rules suppressed</span>':'')+'</div>';})():'')+
     '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px">'+lens+' '+addbtn+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">'+
       seg(['val:Values','pct:% Chg','yoy:YoY %'],ST.mode,'m')+' '+
@@ -3743,6 +3751,11 @@ function build(){
     build();};
   sec.querySelector('#jhfgPx').onchange=function(e){ST.px=e.target.checked;build();};
   var ab=sec.querySelector('#jhfgAdd');if(ab)ab.onclick=openPicker;
+  sec.querySelectorAll('[data-vk]').forEach(function(x){x.onclick=function(){
+    var k=x.dataset.vk;
+    if(!CUST)CUST=keys().slice();
+    if(CUST.indexOf(k)<0&&CUST.length<8)CUST.push(k);
+    saveCust();build();};});
   sec.querySelectorAll('[data-fk]').forEach(function(el2){el2.onclick=function(){
     if(!CUST)CUST=keys().slice();
     var added=0;el2.dataset.fk.split(',').forEach(function(k){
