@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -174,11 +174,12 @@ def extract(doc, sector):
     flag_w = (sum(FLAG_W.get(f, 1) for f in flags)
               + 3 * len(red3))
     tr = {k: turn_delta(P, k) for k, _, _, _ in TURN_METRICS}
+    industry = ((doc.get("profile") or {}).get("industry") or "").strip()
     price = doc.get("price") or []
     moms = {"mom_6m_pct": momentum(price, 26),
             "mom_12_1_pct": mom_12_1(price)}
     return {"t": doc.get("symbol") or doc.get("ticker"),
-            "sector": sector, "score": score,
+            "sector": sector, "industry": industry, "score": score,
             "n_elite": len(elites), "n_green": len(greens),
             "n_red": len(reds), "sev_sum": sev,
             "top_elites": [v["k"] for v in elites[:3]],
@@ -289,6 +290,7 @@ def build_census(rows_by_t, uni):
                       "quality_now": r["score"],
                       "flags": r["flags"]})
     trows.sort(key=lambda x: -x["turn_score"])
+    _turn_full = {r["t"]: r["turn_score"] for r in trows}
     turnarounds = {"improving": trows[:25],
                    "deteriorating": trows[-15:][::-1],
                    "method": ("mean of direction-adjusted cross-"
@@ -303,6 +305,7 @@ def build_census(rows_by_t, uni):
                            for r in top[-50:]][::-1],
         "careful": [{k: r[k] for k in slim + ["flag_w"]}
                     for r in careful],
+        "_turn_full": _turn_full,
         "metric_boards": boards, "turnarounds": turnarounds,
         "sectors": sec_rows,
         "coverage": {"universe": len(uni), "scored": len(rows_scored),
@@ -318,13 +321,17 @@ def build_census(rows_by_t, uni):
     }
 
 
-def build_matrix(rows_by_t, uni):
+def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
     """Columnar latest-value matrix over EVERY fundamentals metric
     present in >=50%% of scored docs (tech/price/estimate keys
     excluded) — the explorer's sorting substrate. rows_by_t entries
     carry _P (full points) attached by the aggregate loop."""
     scored = [u["t"] for u in uni if u["t"] in rows_by_t]
     sectors = [rows_by_t[t]["sector"] for t in scored]
+    industries = [rows_by_t[t].get("industry") or "" for t in scored]
+    quality = [rows_by_t[t].get("score") for t in scored]
+    turn = [(turn_map or {}).get(t) for t in scored]
+    flagged = [1 if t in (flag_set or set()) else 0 for t in scored]
     counts = {}
     latest = {}
     for t in scored:
@@ -338,6 +345,8 @@ def build_matrix(rows_by_t, uni):
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "n_tickers": len(scored), "n_metrics": len(keys),
             "tickers": scored, "sectors": sectors,
+            "industries": industries, "quality": quality,
+            "turn": turn, "flagged": flagged,
             "metrics": keys, "cols": cols}
 
 
@@ -391,7 +400,15 @@ def lambda_handler(event, context):
         except Exception:  # noqa: BLE001
             continue
     census = build_census(rows_by_t, uni)
-    matrix = build_matrix(rows_by_t, uni)
+    turn_map = {r["t"]: r["turn_score"]
+                for r in (census["turnarounds"]["improving"]
+                          + census["turnarounds"]["deteriorating"])}
+    # full turn coverage: recompute quick map from all trows? improving/
+    # deteriorating are trimmed — rebuild full from rows via the same
+    # path is heavy; instead attach every scored trow captured below.
+    turn_map = census.pop("_turn_full", turn_map)
+    flag_set = {r["t"] for r in census["careful"]}
+    matrix = build_matrix(rows_by_t, uni, turn_map, flag_set)
     S3.put_object(Bucket=BUCKET, Key=MATRIX_KEY,
                   Body=json.dumps(matrix, separators=(",", ":"),
                                   default=str).encode(),

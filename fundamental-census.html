@@ -47,10 +47,23 @@ a{color:var(--blue);text-decoration:none}
 <select id="fxSel" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:280px"></select>
 <button id="fxAdd" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--blue);color:var(--blue)">+ add</button>
 <select id="fxSec" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All sectors</option></select>
+<select id="fxInd" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:210px"><option value="">All industries</option></select>
+<select id="fxCap" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All caps</option><option value="mega">Mega ≥$200B</option><option value="large">Large $10–200B</option><option value="mid">Mid $2–10B</option><option value="small">Small &lt;$2B</option></select>
+<select id="fxQmin" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any quality</option><option value="0">Quality ≥ 0</option><option value="10">Quality ≥ 10</option><option value="20">Quality ≥ 20</option></select>
 <select id="fxMom" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All momentum</option><option value="H">High momentum (top ⅓)</option><option value="L">Low momentum (bottom ⅓)</option></select>
 <select id="fxDir" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="desc">Σ high → low</option><option value="asc">Σ low → high</option></select>
+<label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxNoFlag"> hide 🚩</label>
+<label style="font-size:.68rem;white-space:nowrap"><input type="checkbox" id="fxTurn"> inflecting ≥75</label>
+<button id="fxCsv" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--border);color:var(--text)">⬇ CSV</button>
 <input id="fxQ" placeholder="filter ticker…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;width:120px">
 <span id="fxN" class="rk" style="font-size:.66rem"></span></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 2px">
+<span class="rk" style="font-size:.64rem;align-self:center">Presets:</span>
+<button class="chip fxP" data-p="qc" style="cursor:pointer;border:1px solid var(--green);color:var(--green);background:#0a1220">Quality compounders</button>
+<button class="chip fxP" data-p="cv" style="cursor:pointer;border:1px solid var(--blue);color:var(--blue);background:#0a1220">Cash-flow value</button>
+<button class="chip fxP" data-p="mt" style="cursor:pointer;border:1px solid var(--amber);color:var(--amber);background:#0a1220">Momentum turnarounds</button>
+<button class="chip fxP" data-p="bs" style="cursor:pointer;border:1px solid #a78bfa;color:#a78bfa;background:#0a1220">Fortress balance sheets</button>
+</div>
 <div id="fxChips" style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"></div>
 <div class="tblbox" style="max-height:520px"><table id="fxT"></table></div>
 </div>
@@ -99,13 +112,20 @@ function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null;
+var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false;
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
   MOMT={col:col,lo:xs[Math.floor(xs.length/3)],hi:xs[Math.floor(2*xs.length/3)]};return MOMT;}
-function idxSet(){var out=[];for(var i=0;i<MX.tickers.length;i++){
+function capBucket(v){if(typeof v!=='number')return '';
+  return v>=2e11?'mega':v>=1e10?'large':v>=2e9?'mid':'small';}
+function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers.length;i++){
     if(SECF&&MX.sectors[i]!==SECF)continue;
+    if(INDF&&(MX.industries||[])[i]!==INDF)continue;
+    if(CAPF&&capBucket(mc[i])!==CAPF)continue;
+    if(QMIN!=null&&!((MX.quality||[])[i]>=QMIN))continue;
+    if(NOFLAG&&(MX.flagged||[])[i])continue;
+    if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
     if(MOMF){var mt=momTiers(),v=mt.col[i];
       if(typeof v!=='number')continue;
       if(MOMF==='H'&&!(v>=mt.hi))continue;
@@ -122,13 +142,14 @@ function compute(){if(!MX||!SEL.length)return [];
     if(Q&&t.indexOf(Q.toUpperCase())<0)continue;
     var tot=0,n=0,vals={};SEL.forEach(function(s){var pv=P[s.k][j];
       vals[s.k]=(MX.cols[s.k]||[])[i];if(pv!=null){tot+=pv;n++;}});
-    if(!n)continue;rows.push({t:t,sector:MX.sectors[i],score:tot,n:n,vals:vals});}
+    if(!n)continue;rows.push({t:t,sector:MX.sectors[i],q:(MX.quality||[])[i],
+      tsc:(MX.turn||[])[i],score:tot,n:n,vals:vals});}
   rows.sort(function(a,b){return DIR==='desc'?b.score-a.score:a.score-b.score;});
   return rows;}
 function draw(){var rows=compute();var T=document.getElementById('fxT');
   var cols=SEL.slice(0,6);
-  var h='<tr><th>#</th><th>Ticker</th><th>Sector</th>'+cols.map(function(s){return '<th>'+esc(lbl(s.k))+'</th>';}).join('')+(SEL.length>6?'<th>+'+(SEL.length-6)+'</th>':'')+'<th>Σ pct</th></tr>';
-  rows.slice(0,100).forEach(function(r,i){h+='<tr class="fxRow" data-t="'+esc(r.t)+'"><td class="rk">'+(i+1)+'</td><td><b style="color:var(--blue)">'+esc(r.t)+'</b></td><td class="rk">'+esc(r.sector)+'</td>'+cols.map(function(s){var v=r.vals[s.k];return '<td>'+(v==null?'—':(+v).toFixed(2))+'</td>';}).join('')+(SEL.length>6?'<td class="rk">…</td>':'')+'<td><b>'+r.score.toFixed(0)+'</b></td></tr>';});
+  var h='<tr><th>#</th><th>Ticker</th><th>Sector</th><th>Q</th><th>Turn</th>'+cols.map(function(s){return '<th>'+esc(lbl(s.k))+'</th>';}).join('')+(SEL.length>6?'<th>+'+(SEL.length-6)+'</th>':'')+'<th>Σ pct</th></tr>';
+  rows.slice(0,100).forEach(function(r,i){h+='<tr class="fxRow" data-t="'+esc(r.t)+'"><td class="rk">'+(i+1)+'</td><td><b style="color:var(--blue)">'+esc(r.t)+'</b></td><td class="rk">'+esc(r.sector)+'</td>'+'<td class="'+((r.q||0)>=0?'pos':'neg')+'">'+(r.q==null?'—':r.q)+'</td><td>'+(r.tsc==null?'—':r.tsc)+'</td>'+cols.map(function(s){var v=r.vals[s.k];return '<td>'+(v==null?'—':(+v).toFixed(2))+'</td>';}).join('')+(SEL.length>6?'<td class="rk">…</td>':'')+'<td><b>'+r.score.toFixed(0)+'</b></td></tr>';});
   T.innerHTML=h;document.getElementById('fxN').textContent=rows.length+' names · '+SEL.length+' metrics';
   Array.prototype.forEach.call(T.querySelectorAll('.fxRow'),function(tr){tr.ondblclick=function(){openModal(tr.getAttribute('data-t'));};});}
 function chips(){var box=document.getElementById('fxChips');
@@ -163,6 +184,33 @@ function openModal(t){CUR=t;
   if(DOCC[t])doit();
   else fetch(FB+'/?symbol='+encodeURIComponent(t)+'&period=quarter').then(function(r){return r.json();}).then(function(d){DOCC[t]=d;doit();}).catch(function(e){document.getElementById('fxMT').textContent=t+' — load failed: '+e.message;});}
 document.getElementById('fxAdd').onclick=function(){addSel(document.getElementById('fxSel').value);};
+document.getElementById('fxInd').onchange=function(e){INDF=e.target.value;draw();};
+document.getElementById('fxCap').onchange=function(e){CAPF=e.target.value;draw();};
+document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
+document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
+document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
+document.getElementById('fxCsv').onclick=function(){var rows=compute();
+  var cols=SEL.map(function(s){return s.k;});
+  var head=['ticker','sector','quality','turn_score','sum_pct'].concat(cols);
+  var lines=[head.join(',')].concat(rows.map(function(r){
+    return [r.t,'"'+String(r.sector).replace(/"/g,'')+'"',r.q==null?'':r.q,r.tsc==null?'':r.tsc,r.score.toFixed(1)]
+      .concat(cols.map(function(k){var v=r.vals[k];return v==null?'':v;})).join(',');}));
+  var csv=lines.join('\n');window.__lastCsv=csv;
+  try{var b=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='census-explorer.csv';a.click();}catch(e){}};
+Array.prototype.forEach.call(document.querySelectorAll('.fxP'),function(b){
+  b.onclick=function(){var p=b.getAttribute('data-p');SEL=[];
+    document.getElementById('fxNoFlag').checked=false;NOFLAG=false;
+    document.getElementById('fxTurn').checked=false;TURNMIN=false;
+    document.getElementById('fxQmin').value='';QMIN=null;
+    if(p==='qc'){['roic_pct','gross_margin_pct','fcf_yield_pct'].forEach(addSel);
+      QMIN=10;document.getElementById('fxQmin').value='10';}
+    if(p==='cv'){['fcf_yield_pct','fcf_margin_pct','pe_ttm','shareholder_yield_pct'].forEach(addSel);}
+    if(p==='mt'){['mom_12_1_pct','revenue_yoy_pct','eps_yoy_pct'].forEach(addSel);
+      TURNMIN=true;document.getElementById('fxTurn').checked=true;}
+    if(p==='bs'){['interest_coverage_ttm','debt_to_equity','altman_z'].forEach(addSel);
+      NOFLAG=true;document.getElementById('fxNoFlag').checked=true;}
+    chips();draw();};});
 document.getElementById('fxSec').onchange=function(e){SECF=e.target.value;draw();};
 document.getElementById('fxMom').onchange=function(e){MOMF=e.target.value;draw();};
 document.getElementById('fxDir').onchange=function(e){DIR=e.target.value;draw();};
@@ -174,6 +222,8 @@ Array.prototype.forEach.call(document.querySelectorAll('.fxR'),function(b){b.onc
 fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/fundamental-census-matrix.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(mx){MX=mx;
   var sel=document.getElementById('fxSel');
   sel.innerHTML=mx.metrics.map(function(k){return '<option value="'+k+'">'+esc(lbl(k))+'</option>';}).join('');
+  var inds=[];(mx.industries||[]).forEach(function(x){if(x&&inds.indexOf(x)<0)inds.push(x);});inds.sort();
+  document.getElementById('fxInd').innerHTML='<option value="">All industries</option>'+inds.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
   var secs=[];mx.sectors.forEach(function(x){if(x&&secs.indexOf(x)<0)secs.push(x);});secs.sort();
   document.getElementById('fxSec').innerHTML='<option value="">All sectors</option>'+secs.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
   addSel('gross_margin_pct');addSel('fcf_yield_pct');
