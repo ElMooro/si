@@ -1,0 +1,22 @@
+{
+  "ops": 3489,
+  "gates": {
+    "V1_parser_units": {
+      "ok": true,
+      "detail": "{'congress': [['2026-03-15', 'Jane Doe', 'B', '$15,001 - $50,000'], ['2026-04-02', 'John Roe', 'S', '$1,001 - $15,000']], 'insiders': [['2026-05-01', 'Tim C (CEO)', 'B', 2500000.0], ['2026-06-01', 'SELL CLUSTER 4 insiders (30d)', 'S', 9000000.0]]}"
+    },
+    "V2_realdata_selfselect": {
+      "ok": true,
+      "detail": "{'symbol': 'WAB', 'congress_n': 1, 'insiders_n': 0, 'sample': [['2026-06-09', 'Thomas H Tuberville', 'S', '$1,001 - $15,000']], 'picked_filer': 'Thomas H Tuberville'}"
+    },
+    "V3_served_js": {
+      "ok": true,
+      "detail": "{'node_ok': [True, True, True, True]}"
+    },
+    "V4_surfaces": {
+      "ok": true,
+      "detail": "{'flag_ops3489': True, 'evtbtn': True, 'rt_intact': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'why_evt': True, 'tdz_intact': True}"
+    }
+  },
+  "status": "ALL PASS"
+}
