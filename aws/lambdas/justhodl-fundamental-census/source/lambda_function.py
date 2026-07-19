@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.7.1"
+VERSION = "1.7.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -602,17 +602,20 @@ def joins(S3c, tickers):
             i = pos.get(str(r.get("ticker") or "").upper())
             if i is None:
                 continue
-            sv = r.get("short_vol") or r.get("short_volume")
-            tv = r.get("total_vol") or r.get("total_volume")
-            v = None
-            if isinstance(sv, (int, float)) and                     isinstance(tv, (int, float)) and tv > 0:
-                v = 100.0 * sv / tv
-            elif isinstance(r.get("svr"), (int, float)):
-                v = r["svr"] * (100 if r["svr"] <= 1.5 else 1)
-            if v is not None:
-                out.setdefault("retail_dp_svr_pct",
+            v = r.get("dark_pool_pct")
+            if isinstance(v, (int, float)):
+                out.setdefault("retail_dp_pct", [None] * len(tickers))
+                out["retail_dp_pct"][i] = round(v, 1)
+            st = str(r.get("state") or "").upper()
+            if st in ("ACCUMULATION", "DISTRIBUTION"):
+                out.setdefault("retail_accum", [None] * len(tickers))
+                out["retail_accum"][i] = (1 if st == "ACCUMULATION"
+                                          else -1)
+            sc = r.get("score")
+            if isinstance(sc, (int, float)):
+                out.setdefault("retail_dp_score",
                                [None] * len(tickers))
-                out["retail_dp_svr_pct"][i] = round(v, 1)
+                out["retail_dp_score"][i] = round(sc, 1)
     except Exception as e:  # noqa: BLE001
         print("[joins] darkpool:", str(e)[:80])
     for key, colname in (("data/proven-portfolio.json", "in_long_book"),
