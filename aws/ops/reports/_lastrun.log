@@ -1,8 +1,12 @@
-executing-against: 94db0956d3c97359b4c42d6278ef0ad5be0443a9
-PASS  R0_deployed — {'desc': 'Census v1.7.2 retail wire (ops 3544)', 'last_mod': '2026-07-19T22:14:40.000+0000'}
-[22:33:11] PASS  R0_deployed — {'desc': 'Census v1.7.2 retail wire (ops 3544)', 'last_mod': '2026-07-19T22:14:40.000+0000'}
-FAIL  R1_retail — {'retail_n': 0, 'score_n': 0, 'acc_n': 0, 'dist_n': 0, 'acc_sample': [], 'dist_sample': [], 'acc_high_conviction': []}
-[22:34:20] FAIL  R1_retail — {'retail_n': 0, 'score_n': 0, 'acc_n': 0, 'dist_n': 0, 'acc_sample': [], 'dist_sample': [], 'acc_high_conviction': []}
-RESULT: FAILS: ['R1_retail']
+executing-against: d1b9db14e9d0a1921fceb6ab22a6c7d8b0666c9f
+[22:36:12]   zip: 89634 bytes
+── 1. Lambda ──
+[22:36:12]   Lambda exists — updating
+[22:36:17] ✅   ✓ updated justhodl-fundamental-census
+PASS  S1_zip_marker — {'zip_kb': 87, 'has_new': True, 'old_gone': True}
+[22:36:19] PASS  S1_zip_marker — {'zip_kb': 87, 'has_new': True, 'old_gone': True}
+PASS  S2_retail — {'retail_n': 27, 'acc_n': 25, 'dist_n': 2, 'acc_sample': ['EVRG', 'DRI', 'SPGI', 'MRSH', 'LHX', 'RVTY', 'RCL', 'TXT', 'MSFT', 'GLW'], 'dist_sample': ['KKR', 'ARES'], 'acc_high_conviction': [('VRTX', 62.7), ('WST', 57.2), ('GLW', 57.0), ('PAYX', 56.1), ('DRI', 55.2), ('DPZ', 53.3)]}
+[22:37:26] PASS  S2_retail — {'retail_n': 27, 'acc_n': 25, 'dist_n': 2, 'acc_sample': ['EVRG', 'DRI', 'SPGI', 'MRSH', 'LHX', 'RVTY', 'RCL', 'TXT', 'MSFT', 'GLW'], 'dist_sample': ['KKR', 'ARES'], 'acc_high_conviction': [('VRTX', 62.7), ('WST', 57.2), ('GLW', 57.0), ('PAYX', 56.1), ('DRI', 55.2), ('DPZ', 53.3)]}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3546_retail_regate.md
+→ Report written to aws/ops/reports/latest/3547_deploy_proof.md
