@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.3.2 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.4.0 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -32,6 +32,7 @@ import base64
 import gzip
 import json
 import math
+import re
 import os
 import time
 import urllib.parse
@@ -44,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v13"  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v14"  # v14: + fleet events (congress + insiders)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -400,6 +401,7 @@ def build_doc(sym, period):
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
     whales = whale_lookup(sym)
+    events = fleet_events(sym)
 
     bmap, cmap = by_date(bal), by_date(cf)
     inc_sorted = sorted(
@@ -1033,7 +1035,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.3.2",
+        "version": "1.4.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1043,6 +1045,7 @@ def build_doc(sym, period):
         "vintage_days": vintage_days,
         "flags": flags,
         "whales_q": whales,
+        "events": events,
         "catalog_n": len(P),
         "points": P,
         "earnings": earnings,
@@ -1086,6 +1089,87 @@ def implied_fcf_growth(ev, fcf):
         else:
             hi = mid
     return (lo + hi) / 2 * 100
+
+
+def _norm_date(d):
+    d = str(d or "").strip()
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}.*", d):
+        return d[:10]
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", d)
+    if m:
+        return "%s-%02d-%02d" % (m.group(3), int(m.group(1)), int(m.group(2)))
+    return None
+
+
+def parse_congress_rows(rows, sym):
+    """EVENTS_ENGINE_OPS3489 — pure: senate.transactions -> markers."""
+    out = []
+    for t in rows or []:
+        if (t.get("ticker") or "").upper() != sym:
+            continue
+        d = _norm_date(t.get("tx_date"))
+        if not d:
+            continue
+        ty = (t.get("type") or "").lower()
+        side = "B" if "purchase" in ty else ("S" if "sale" in ty else "?")
+        out.append([d, str(t.get("filer") or "")[:40], side,
+                    str(t.get("amount") or "")[:30]])
+    out.sort()
+    return out[-40:]
+
+
+def parse_insider_feeds(buys_doc, sells_doc, sym):
+    """Pure: insider-trades big_buys/clusters + sell-cluster -> markers."""
+    out = []
+    for b in (buys_doc or {}).get("big_buys") or []:
+        if (b.get("ticker") or "").upper() != sym:
+            continue
+        d = _norm_date(b.get("filed_at"))
+        if d:
+            out.append([d, "%s (%s)" % (str(b.get("insider") or "")[:28],
+                                        str(b.get("role") or "")[:14]),
+                        "B", rnd(b.get("value"), 0)])
+    for c in (buys_doc or {}).get("clusters") or []:
+        if (c.get("ticker") or "").upper() != sym:
+            continue
+        d = _norm_date(c.get("last_filing"))
+        if d:
+            out.append([d, "CLUSTER %s insiders" % c.get("insider_count"),
+                        "B", rnd(c.get("total_value"), 0)])
+    # sell-cluster feed is WINDOW-based (no per-cluster dates) — mark at
+    # the feed's generated_at as a "selling now" flag (real schema:
+    # n_distinct_sellers / total_sale_value_usd, ops 3489 audit).
+    sd = _norm_date((sells_doc or {}).get("generated_at")
+                    or (sells_doc or {}).get("as_of"))
+    for c in (sells_doc or {}).get("clusters") or []:
+        if (c.get("ticker") or "").upper() != sym or not sd:
+            continue
+        out.append([sd, "SELL CLUSTER %s insiders (30d)"
+                    % c.get("n_distinct_sellers"),
+                    "S", rnd(c.get("total_sale_value_usd"), 0)])
+    out.sort()
+    return out[-40:]
+
+
+_EVFEEDS = {"ts": 0, "cg": None, "ib": None, "isl": None}
+
+
+def fleet_events(sym):
+    now = time.time()
+    if _EVFEEDS["cg"] is None or now - _EVFEEDS["ts"] > 3600:
+        def _ld(key):
+            try:
+                return json.loads(_s3.get_object(
+                    Bucket=S3_BUCKET, Key=key)["Body"].read())
+            except Exception:  # noqa: BLE001
+                return {}
+        _EVFEEDS.update(ts=now,
+                        cg=_ld("data/congress-direct.json"),
+                        ib=_ld("data/insider-trades.json"),
+                        isl=_ld("data/insider-sell-cluster.json"))
+    cg_rows = ((_EVFEEDS["cg"] or {}).get("senate") or {}).get("transactions")
+    return {"congress": parse_congress_rows(cg_rows, sym),
+            "insiders": parse_insider_feeds(_EVFEEDS["ib"], _EVFEEDS["isl"], sym)}
 
 
 _WHALES = {"ts": 0, "map": None}
@@ -1374,7 +1458,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.3.2",
+        return {"ok": True, "mode": "warm_auto", "version": "1.4.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
@@ -1398,7 +1482,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.3.2"}
+                "version": "1.4.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1414,7 +1498,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.3.2"}, headers_in)
+                               "version": "1.4.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

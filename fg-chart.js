@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 (events rail) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -155,6 +155,29 @@ function render(svg,tip,list,opts){
       var tt=svg.ownerDocument.createElementNS(NS,'title');
       tt.textContent=e2[0]+'  EPS '+(act==null?'\u2014':act)+' vs est '+(est2==null?'\u2014':est2)+((act!=null&&est2!=null)?(act>=est2?'  BEAT':'  MISS'):'');
       dot.appendChild(tt);svg.appendChild(dot);
+    });
+  }
+  /* fleet events rail (opts.events = {congress:[[d,who,side,amt]..], insiders:[..]}) */
+  if(opts.events){
+    var evc='#a855f7';
+    (opts.events.congress||[]).slice(-60).forEach(function(e3){
+      var t3=+new Date(e3[0]);if(t3<tmin||t3>tmax)return;
+      var xe=X(e3[0]),cc=e3[2]==='B'?'#34d399':(e3[2]==='S'?'#f87171':'#94a3b8');
+      var dm=el('path',{d:'M '+xe+' '+(y1-27)+' l 5 5 l -5 5 l -5 -5 z',fill:cc,stroke:evc,'stroke-width':1,opacity:.95});
+      var tt4=svg.ownerDocument.createElementNS(NS,'title');
+      tt4.textContent='CONGRESS '+e3[0]+' \u00b7 '+e3[1]+' \u00b7 '+(e3[2]==='B'?'BUY':'SELL')+' '+(e3[3]||'');
+      dm.appendChild(tt4);svg.appendChild(dm);
+    });
+    (opts.events.insiders||[]).slice(-60).forEach(function(e4){
+      var t4=+new Date(e4[0]);if(t4<tmin||t4>tmax)return;
+      var xe2=X(e4[0]),up=e4[2]==='B';
+      var cc2=up?'#34d399':'#f87171';
+      var tri=up?('M '+xe2+' '+(y1-40)+' l 5 8 l -10 0 z'):('M '+xe2+' '+(y1-32)+' l 5 -8 l -10 0 z');
+      var pp2=el('path',{d:tri,fill:cc2,opacity:.95});
+      var val=e4[3]!=null?(' $'+(Math.abs(e4[3])>=1e6?(e4[3]/1e6).toFixed(1)+'M':(e4[3]/1e3).toFixed(0)+'K')):'';
+      var tt5=svg.ownerDocument.createElementNS(NS,'title');
+      tt5.textContent='INSIDER '+e4[0]+' \u00b7 '+e4[1]+' \u00b7 '+(up?'BUY':'SELL')+val;
+      pp2.appendChild(tt5);svg.appendChild(pp2);
     });
   }
   var todayISO=new Date().toISOString().slice(0,10);

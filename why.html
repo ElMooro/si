@@ -3585,7 +3585,7 @@ var VIT=[['roic_pct','ROIC',function(v){return v>=15?2:v>=5?1:0;},function(v){re
 ['piotroski_f','Piotroski',function(v){return v>=7?2:v>=4?1:0;},function(v){return v.toFixed(0)+'/9';}],
 ['beneish_m','Beneish',function(v){return v<=-2.22?2:v<=-1.78?1:0;},function(v){return v.toFixed(2);}]];
 var CLR=['#f87171','#fbbf24','#34d399'];
-var FAVM=[],METC={},CUST=null,ST={mode:'val',yrs:10,per:'q',log:false,px:false,ern:false,lens:0};
+var FAVM=[],METC={},CUST=null,ST={mode:'val',yrs:10,per:'q',log:false,px:false,ern:false,evt:false,lens:0};
 try{FAVM=JSON.parse(localStorage.getItem('jh_fg_favm')||'[]')||[];}catch(e){}
 try{METC=JSON.parse(localStorage.getItem('jh_fg_metc')||'{}')||{};}catch(e){}
 try{CUST=JSON.parse(localStorage.getItem('jh_fgwhy_custom')||'null');}catch(e){}
@@ -3668,6 +3668,7 @@ function build(){
       seg(['val:Values','pct:% Chg','yoy:YoY %'],ST.mode,'m')+' '+
       seg(['1:1Y','3:3Y','5:5Y','10:10Y'],ST.yrs,'y')+' '+
       seg(['q:FQ','ttm:TTM'],ST.per,'p')+' '+
+      '<button id="jhfgEvt" style="border:1px solid '+(ST.evt?'#a855f7':'#22304a')+';color:'+(ST.evt?'#a855f7':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer" title="Congress \u25c6 + insider \u25b2\u25bc markers">Events</button>'+
       '<button id="jhfgErn" style="border:1px solid '+(ST.ern?'#22d3ee':'#22304a')+';color:'+(ST.ern?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">Earnings</button>'+
       '<button id="jhfgLog" style="border:1px solid '+(ST.log?'#22d3ee':'#22304a')+';color:'+(ST.log?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">Log</button>'+
       '<label style="display:inline-flex;gap:5px;align-items:center;font-size:.68rem;color:#8b98ad;border:1px solid #22304a;border-radius:8px;padding:3px 10px;cursor:pointer"><input id="jhfgPx" type="checkbox" '+(ST.px?'checked':'')+' style="accent-color:#22d3ee"> Price</label>'+
@@ -3681,6 +3682,7 @@ function build(){
   sec.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){ST.per=b.dataset.p;build();};});
   sec.querySelector('#jhfgLog').onclick=function(){ST.log=!ST.log;build();};
   sec.querySelector('#jhfgErn').onclick=function(){ST.ern=!ST.ern;build();};
+  sec.querySelector('#jhfgEvt').onclick=function(){ST.evt=!ST.evt;build();};
   sec.querySelector('#jhfgPx').onchange=function(e){ST.px=e.target.checked;build();};
   var ab=sec.querySelector('#jhfgAdd');if(ab)ab.onclick=openPicker;
   sec.querySelectorAll('[data-fk]').forEach(function(el2){el2.onclick=function(){
@@ -3703,6 +3705,7 @@ function chart(){
       if(stb)band={axis:0,lo:stb.p10,hi:stb.p90,mid:stb.p50,color:solo.color};}
   }
   var r=window.FGChart.render(svg,tip,list,{mode:ST.mode,log:ST.log,mixOk:MIXOK,band:band,earnings:(ST.ern&&DOC.earnings)?DOC.earnings:null,
+    events:(ST.evt&&DOC.events)?DOC.events:null,
     marks:MARKS,
     onMark:function(d){if(MARKS.indexOf(d)<0){MARKS.push(d);MARKS.sort();saveMarks();chart();}},
     onUnmark:function(d){MARKS=MARKS.filter(function(x){return x!==d;});saveMarks();chart();}});
