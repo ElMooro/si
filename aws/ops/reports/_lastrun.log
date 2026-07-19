@@ -1,14 +1,12 @@
-executing-against: 6cb41f88d8d8d7da46f728f67110c6566622a4fd
-ops 3506 — tech verdicts cap-exempt
-[05:46:57]   zip: 105862 bytes
-── 1. Lambda ──
-[05:46:57]   Lambda exists — updating
-[05:47:00] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  G2_nvda — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech': ['Golden-cross regime (50>200)', 'Price +5.4% above the 200-DMA', 'Double top confirmed 2026-02-25 (neck 171.88)']}
-[05:47:10] PASS  G2_nvda — {'summary': {'n_elite': 13, 'n_green': 19, 'n_red': 5, 'fin_suppressed': []}, 'tech': ['Golden-cross regime (50>200)', 'Price +5.4% above the 200-DMA', 'Double top confirmed 2026-02-25 (neck 171.88)']}
-PASS  G3_aapl — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Golden-cross regime (50>200) since 2025-09-15', 'Bull MA stack 20>50>100>200', 'Price +21.7% above the 200-DMA', 'Double top confirmed 2026-02-06 (neck 246.70)']}
-[05:47:10] PASS  G3_aapl — {'summary': {'n_elite': 7, 'n_green': 18, 'n_red': 2, 'fin_suppressed': []}, 'tech': ['Double bottom confirmed 2026-03-30 (neck 278.12)', 'Golden-cross regime (50>200) since 2025-09-15', 'Bull MA stack 20>50>100>200', 'Price +21.7% above the 200-DMA', 'Double top confirmed 2026-02-06 (neck 246.70)']}
-RESULT: ALL PASS
-RESULT: ALL PASS
+executing-against: 73d04933e967d40e0d5e01906a5678398e9443c3
+ops 3507 — Tier-3 recon
+FAIL  R1_master_ranker_schema — {'top_keys': ['alerts', 'as_of', 'calibration_weights', 'duration_s', 'feed_freshness', 'feed_health', 'method', 'missing_feeds', 'n_macro_signals', 'n_tickers_total', 'nowcast_regime', 'regime_context', 'risk_regime', 'schema_version', 'stale_feeds_excluded', 'top_macro', 'top_tickers', 'wl_research'], 'n_rows': 0, 'row_keys': [], 'nvda_row': None, 'sample': '[]'}
+[05:59:51] FAIL  R1_master_ranker_schema — {'top_keys': ['alerts', 'as_of', 'calibration_weights', 'duration_s', 'feed_freshness', 'feed_health', 'method', 'missing_feeds', 'n_macro_signals', 'n_tickers_total', 'nowcast_regime', 'regime_context', 'risk_regime', 'schema_version', 'stale_feeds_excluded', 'top_macro', 'top_tickers', 'wl_research'], 'n_rows': 0, 'row_keys': [], 'nvda_row': None, 'sample': '[]'}
+PASS  R2_freshness — {'sector_medians_lastmod': '2026-07-19 03:38:08+00:00', 'forensic_lastmod': '2026-07-18 17:26:48+00:00'}
+[05:59:52] PASS  R2_freshness — {'sector_medians_lastmod': '2026-07-19 03:38:08+00:00', 'forensic_lastmod': '2026-07-18 17:26:48+00:00'}
+PASS  R3_schedules — [{'name': 'fundamental-graphs-warmer-sched', 'expr': 'cron(25 9 * * ? *)', 'input': '{"warm_auto": true}'}, {'name': 'fundamentals-engine-sched', 'expr': 'cron(0 13 ? * MON-FRI *)', 'input': ''}]
+[05:59:52] PASS  R3_schedules — [{'name': 'fundamental-graphs-warmer-sched', 'expr': 'cron(25 9 * * ? *)', 'input': '{"warm_auto": true}'}, {'name': 'fundamentals-engine-sched', 'expr': 'cron(0 13 ? * MON-FRI *)', 'input': ''}]
+RESULT: FAILS: ['R1_master_ranker_schema']
+RESULT: FAILS: ['R1_master_ranker_schema']
 
-→ Report written to aws/ops/reports/latest/3506_tech_cap.md
+→ Report written to aws/ops/reports/latest/3507_recon_t3.md

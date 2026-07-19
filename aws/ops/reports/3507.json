@@ -1,0 +1,18 @@
+{
+  "ops": 3507,
+  "gates": {
+    "R1_master_ranker_schema": {
+      "ok": false,
+      "detail": "{'top_keys': ['alerts', 'as_of', 'calibration_weights', 'duration_s', 'feed_freshness', 'feed_health', 'method', 'missing_feeds', 'n_macro_signals', 'n_tickers_total', 'nowcast_regime', 'regime_context', 'risk_regime', 'schema_version', 'stale_feeds_excluded', 'top_macro', 'top_tickers', 'wl_research'], 'n_rows': 0, 'row_keys': [], 'nvda_row': None, 'sample': '[]'}"
+    },
+    "R2_freshness": {
+      "ok": true,
+      "detail": "{'sector_medians_lastmod': '2026-07-19 03:38:08+00:00', 'forensic_lastmod': '2026-07-18 17:26:48+00:00'}"
+    },
+    "R3_schedules": {
+      "ok": true,
+      "detail": "[{'name': 'fundamental-graphs-warmer-sched', 'expr': 'cron(25 9 * * ? *)', 'input': '{\"warm_auto\": true}'}, {'name': 'fundamentals-engine-sched', 'expr': 'cron(0 13 ? * MON-FRI *)', 'input': ''}]"
+    }
+  },
+  "status": "FAILS: ['R1_master_ranker_schema']"
+}
