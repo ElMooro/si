@@ -1,4 +1,6 @@
-"""ops 3529 — Metric Explorer on the Fundamental Census (Khalid spec):
+"""ops 3530 — (rerun of 3529 after the v1.1.0 OOM: aggregate retained full _P per doc → ~1.5GB at 496 names → Lambda SIGKILL → ConnectionClosed. v1.1.1 keeps only the latest-value map.)
+
+Original spec: ops 3529 — Metric Explorer on the Fundamental Census (Khalid spec):
 sort by ANY metric asc/desc, stack unlimited metrics into a Σ of
 cross-sectional percentiles (per-chip ↑H/↓L direction toggles,
 LOW-better auto-detected for debt/days/dilution/valuation families),
@@ -47,7 +49,7 @@ def fetch(url, t=40):
         return r.read()
 
 
-with report("3529_explorer") as rep:
+with report("3530_explorer") as rep:
     fails = []
     def gate(n, ok, d):
         line = ("PASS  " if ok else "FAIL  ") + n + " — " + str(d)[:600]
@@ -92,9 +94,19 @@ with report("3529_explorer") as rep:
         c = lam.get_function_configuration(FunctionName=FN)
         if c.get("LastUpdateStatus") == "Successful": break
         time.sleep(2)
-    lam.invoke(FunctionName=FN,
+    lam.invoke(FunctionName=FN, InvocationType="Event",
                Payload=json.dumps({"phase": "aggregate"}).encode())
-    time.sleep(3)
+    for _ in range(24):
+        time.sleep(10)
+        try:
+            _h = s3c.head_object(Bucket=BUCKET,
+                Key="data/fundamental-census-matrix.json")
+            import datetime as _dt
+            if (_dt.datetime.now(_dt.timezone.utc)
+                    - _h["LastModified"]).total_seconds() < 120:
+                break
+        except Exception:
+            pass
     try:
         MX = json.loads(s3c.get_object(
             Bucket=BUCKET,
@@ -168,5 +180,5 @@ with report("3529_explorer") as rep:
 
     print("RESULT:", "ALL PASS" if not fails else f"FAILS: {fails}")
     (REPO/"aws/ops/reports/3529.json").write_text(
-        json.dumps({"ops": 3529, "fails": fails}))
+        json.dumps({"ops": 3530, "fails": fails}))
 sys.exit(0)

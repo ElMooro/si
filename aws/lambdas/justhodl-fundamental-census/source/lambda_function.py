@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -126,7 +126,11 @@ def extract(doc, sector):
             "top_elites": [v["k"] for v in elites[:3]],
             "red3": red3[:4], "flags": flags,
             "flag_w": flag_w, "dilution_yoy": dil,
-            "metrics": met, "_P": P,
+            "metrics": met,
+            "_lv": {k: rnd(last_val(P, k), 4) for k in P
+                    if not any(k.startswith(pre)
+                               for pre in MX_EXCLUDE_PRE)
+                    and last_val(P, k) is not None},
             "vintage_days": doc.get("vintage_days")}
 
 
@@ -203,15 +207,9 @@ def build_matrix(rows_by_t, uni):
     counts = {}
     latest = {}
     for t in scored:
-        P = rows_by_t[t].get("_P") or {}
-        lv = {}
-        for k, ser in P.items():
-            if any(k.startswith(pre) for pre in MX_EXCLUDE_PRE):
-                continue
-            v = last_val(P, k)
-            if v is not None:
-                lv[k] = rnd(v, 4)
-                counts[k] = counts.get(k, 0) + 1
+        lv = rows_by_t[t].get("_lv") or {}
+        for k in lv:
+            counts[k] = counts.get(k, 0) + 1
         latest[t] = lv
     n = max(1, len(scored))
     keys = sorted([k for k, c in counts.items() if c >= 0.5 * n])[:240]
