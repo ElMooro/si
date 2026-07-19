@@ -48,7 +48,7 @@ ddb = boto3.resource("dynamodb", "us-east-1")
 
 
 HYG = {}
-FEED_SLA_H = {"data/stress-index.json": 30, "data/jsi-history.json": 48,
+FEED_SLA_H = {"data/jsi.json": 30, "data/jsi-history.json": 48,
               "data/sovereign-gssi.json": 30,
               "data/signal-orthogonality.json": 24 * 8,
               "data/benzinga-earnings-calendar.json": 48,
@@ -229,7 +229,7 @@ def lambda_handler(event, context):
     today = datetime.now(timezone.utc).date().isoformat()
 
     # ── ops 3413: regime throttle + orthogonality caps + earnings + conflicts ──
-    jsi = rj("data/stress-index.json")
+    jsi = rj("data/jsi.json")  # ops 3525: stress-index.json was a phantom key (no writer fleet-wide)
     _pv, _psrc = None, "default"
     for _path in (("latest",), ("v2", "latest"), ("signal_state",), ("v2",)):
         _o = jsi
