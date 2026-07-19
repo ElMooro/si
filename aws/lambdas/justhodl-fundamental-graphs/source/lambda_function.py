@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v16"  # v16: + ELITE tier (astonishing norms + sector top-decile)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v17"  # v17: + TA layer (daily MAs/BB/RSI/crosses/patterns)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -158,6 +158,187 @@ def fetch_profile(sym):
     except Exception:  # noqa: BLE001
         return {"name": sym, "sector": "", "industry": "", "currency": "USD",
                 "mktCap": None, "price": None, "exchange": ""}
+
+
+# ── TA_ENGINE_OPS3500: pure daily-bar technicals ─────────────────────
+def _sma(cs, n):
+    out, acc = [None] * len(cs), 0.0
+    for i, c in enumerate(cs):
+        acc += c
+        if i >= n:
+            acc -= cs[i - n]
+        if i >= n - 1:
+            out[i] = acc / n
+    return out
+
+
+def _rsi14(cs):
+    n = 14
+    out = [None] * len(cs)
+    if len(cs) <= n:
+        return out
+    gains = losses = 0.0
+    for i in range(1, n + 1):
+        d = cs[i] - cs[i - 1]
+        gains += max(d, 0)
+        losses += max(-d, 0)
+    ag, al = gains / n, losses / n
+    out[n] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    for i in range(n + 1, len(cs)):
+        d = cs[i] - cs[i - 1]
+        ag = (ag * (n - 1) + max(d, 0)) / n
+        al = (al * (n - 1) + max(-d, 0)) / n
+        out[i] = 100.0 if al == 0 else 100 - 100 / (1 + ag / al)
+    return out
+
+
+def _bb20(cs):
+    n = 20
+    up, dn, mid = [None] * len(cs), [None] * len(cs), _sma(cs, n)
+    for i in range(n - 1, len(cs)):
+        w = cs[i - n + 1:i + 1]
+        mu = sum(w) / n
+        sd = (sum((x - mu) ** 2 for x in w) / n) ** 0.5
+        up[i], dn[i] = mu + 2 * sd, mu - 2 * sd
+    return up, dn, mid
+
+
+def _pivots(cs, k=10):
+    hi, lo = [], []
+    for i in range(k, len(cs) - k):
+        w = cs[i - k:i + k + 1]
+        if cs[i] == max(w) and w.count(cs[i]) == 1:
+            hi.append(i)
+        if cs[i] == min(w) and w.count(cs[i]) == 1:
+            lo.append(i)
+    return hi, lo
+
+
+def _doubles(ds, cs, look=600):
+    """Last double top / double bottom in the window (classic 3% peaks,
+    20-250 bar gap, >=5% valley/peak between; confirmed on break)."""
+    st = max(0, len(cs) - look)
+    hi, lo = _pivots(cs[st:], 10)
+    hi = [i + st for i in hi]
+    lo = [i + st for i in lo]
+    out = []
+
+    def scan(piv, top):
+        best = None
+        for a in range(len(piv) - 1):
+            for b in range(a + 1, len(piv)):
+                i, j = piv[a], piv[b]
+                if not 20 <= j - i <= 250:
+                    continue
+                h1, h2 = cs[i], cs[j]
+                if abs(h2 - h1) / h1 > 0.03:
+                    continue
+                between = cs[i + 1:j]
+                if not between:
+                    continue
+                if top:
+                    v = min(between)
+                    if v > 0.95 * min(h1, h2):
+                        continue
+                    conf = any(c < v for c in cs[j + 1:])
+                else:
+                    v = max(between)
+                    if v < 1.05 * max(h1, h2):
+                        continue
+                    conf = any(c > v for c in cs[j + 1:])
+                best = {"type": "DBL_TOP" if top else "DBL_BOTTOM",
+                        "d": ds[j], "p1": ds[i],
+                        "level": rnd((h1 + h2) / 2, 2),
+                        "neck": rnd(v, 2),
+                        "confirmed": bool(conf)}
+        return best
+
+    t = scan(hi, True)
+    b2 = scan(lo, False)
+    if t:
+        out.append(t)
+    if b2:
+        out.append(b2)
+    return out
+
+
+def compute_ta(daily):
+    """daily = sorted [(iso, close)]; returns None if too short."""
+    if not daily or len(daily) < 60:
+        return None
+    ds = [d for d, _ in daily]
+    cs = [float(c) for _, c in daily]
+    mas = {n: _sma(cs, n) for n in (20, 50, 100, 200)}
+    bb_up, bb_dn, _ = _bb20(cs)
+    rsi = _rsi14(cs)
+    events = []
+    cutoff = ds[-1][:4]
+    two_y = max(0, len(ds) - 520)
+    for n in (20, 50, 100, 200):
+        ma = mas[n]
+        prev = None
+        for i in range(len(cs)):
+            if ma[i] is None:
+                continue
+            sgn = 1 if cs[i] > ma[i] else (-1 if cs[i] < ma[i] else 0)
+            if prev is not None and sgn != 0 and sgn != prev:
+                if i >= two_y:
+                    events.append([ds[i],
+                                   "X_UP_%d" % n if sgn > 0 else "X_DN_%d" % n,
+                                   "price crossed %s the %d-DMA"
+                                   % ("above" if sgn > 0 else "below", n)])
+            if sgn != 0:
+                prev = sgn
+    prev = None
+    for i in range(len(cs)):
+        a, b3 = mas[50][i], mas[200][i]
+        if a is None or b3 is None:
+            continue
+        sgn = 1 if a > b3 else (-1 if a < b3 else 0)
+        if prev is not None and sgn != 0 and sgn != prev:
+            events.append([ds[i],
+                           "GC_50_200" if sgn > 0 else "DC_50_200",
+                           "golden cross 50/200" if sgn > 0
+                           else "death cross 50/200"])
+        if sgn != 0:
+            prev = sgn
+    pats = _doubles(ds, cs)
+    for p2 in pats:
+        events.append([p2["d"], p2["type"],
+                       "%s %s (neck %.2f)"
+                       % (p2["type"].replace("_", " ").lower(),
+                          "confirmed" if p2["confirmed"] else "forming",
+                          p2["neck"])])
+    events.sort()
+    last = cs[-1]
+    m200 = mas[200][-1]
+    status = {"last_close": rnd(last, 4), "last_date": ds[-1],
+              "ma20": rnd(mas[20][-1], 4), "ma50": rnd(mas[50][-1], 4),
+              "ma100": rnd(mas[100][-1], 4), "ma200": rnd(m200, 4),
+              "above_200": bool(m200 and last > m200),
+              "pct_vs_200": rnd((last / m200 - 1) * 100, 2) if m200 else None,
+              "above_50": bool(mas[50][-1] and last > mas[50][-1]),
+              "bull_stack": bool(mas[20][-1] and mas[50][-1]
+                                 and mas[100][-1] and m200
+                                 and mas[20][-1] > mas[50][-1]
+                                 > mas[100][-1] > m200),
+              "rsi14": rnd(rsi[-1], 1) if rsi[-1] is not None else None,
+              "bb_pos": rnd((last - (bb_up[-1] + bb_dn[-1]) / 2)
+                            / ((bb_up[-1] - bb_dn[-1]) / 2), 2)
+              if bb_up[-1] is not None and bb_up[-1] != bb_dn[-1] else None,
+              "last_cross": ([{"d": e[0], "type": e[1]}
+                              for e in events
+                              if e[1].startswith(("X_", "GC", "DC"))]
+                             or [None])[-1],
+              "patterns": pats}
+
+    def wk_sample(arr, wdates, idx):
+        return [[wd, rnd(arr[idx[wd]], 4)] for wd in wdates
+                if wd in idx and arr[idx[wd]] is not None]
+
+    return {"mas": mas, "bb_up": bb_up, "bb_dn": bb_dn, "rsi": rsi,
+            "ds": ds, "events": events[-40:], "status": status,
+            "wk_sample": wk_sample, "cutoff_year": cutoff}
 
 
 def fetch_price(sym):
@@ -398,6 +579,20 @@ def build_doc(sym, period):
     est_rows = fetch_estimates(sym, period)
     profile = fetch_profile(sym)
     daily_px, weekly_px = fetch_price(sym)
+    tech_doc = None
+    try:
+        _ta = compute_ta(daily_px)
+        if _ta:
+            _idx = {d: i for i, (d, _) in enumerate(daily_px)}
+            _wd = [d for d, _ in weekly_px]
+            for _n in (20, 50, 100, 200):
+                P["px_ma%d" % _n] = _ta["wk_sample"](_ta["mas"][_n], _wd, _idx)
+            P["px_bb_up"] = _ta["wk_sample"](_ta["bb_up"], _wd, _idx)
+            P["px_bb_dn"] = _ta["wk_sample"](_ta["bb_dn"], _wd, _idx)
+            P["rsi_14"] = _ta["wk_sample"](_ta["rsi"], _wd, _idx)
+            tech_doc = {"events": _ta["events"], "status": _ta["status"]}
+    except Exception as _te:  # noqa: BLE001
+        tech_doc = {"error": str(_te)[:120]}
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
     whales = whale_lookup(sym)
@@ -1043,7 +1238,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.6.1",
+        "version": "1.7.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1059,6 +1254,7 @@ def build_doc(sym, period):
         "points": P,
         "earnings": earnings,
         "price": weekly_px,
+        "tech": tech_doc,
         "sources": [
             "FMP /stable income/balance/cash-flow statements + analyst-estimates + employee-count",
             "FMP /stable historical-price-eod/light (mcap_t = close_t x diluted shares_t)",
@@ -1760,7 +1956,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.6.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.7.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1784,7 +1980,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.6.1"}
+                "version": "1.7.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1800,7 +1996,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.6.1"}, headers_in)
+                               "version": "1.7.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)

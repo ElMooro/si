@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 + OPS3500 (pxAux + tech rail) (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -43,20 +43,20 @@ function render(svg,tip,list,opts){
   svg.innerHTML='';
   if(!list.length)return {autoPct:false,hiddenGroups:0,empty:true};
 
-  var groups=[];list.forEach(function(s){if(!(s.own||s.isPx)&&groups.indexOf(s.grp)<0)groups.push(s.grp);});
+  var groups=[];list.forEach(function(s){if(!(s.own||s.isPx||s.pxAux)&&groups.indexOf(s.grp)<0)groups.push(s.grp);});
   var hidden=0;
   if(mode!=='val'){groups=['%chg'];}
   if(mode==='val'&&groups.length>2){
     if(!opts.mixOk)return {autoPct:true,hiddenGroups:groups.length-2};
     hidden=groups.length-2;groups=groups.slice(0,2);
   }
-  var isOwn=function(s){return !!(s.own||s.isPx);};
-  var axisOf=function(s){return isOwn(s)?2:(mode!=='val'?0:groups.indexOf(s.grp));};
+  var isOwn=function(s){return !!(s.own||s.isPx)&&!s.pxAux;};
+  var axisOf=function(s){return (s.pxAux)?2:isOwn(s)?2:(mode!=='val'?0:groups.indexOf(s.grp));};
   var drawn=list.filter(function(s){var a=axisOf(s);return a===0||a===1||a===2;});
 
   var W=svg.clientWidth||(svg.parentNode&&svg.parentNode.clientWidth)||1000,
       H=+svg.getAttribute('height')||470;
-  var showPx=drawn.some(function(s){return s.isPx;});
+  var showPx=drawn.some(function(s){return s.isPx||s.pxAux;});
   var ownList=drawn.filter(isOwn);
   var padL=64,padR=(groups.length>1||showPx)?110:96,padT=16,padB=30;
   var x0=padL,x1=W-padR,y0=padT,y1=H-padB;
@@ -79,7 +79,7 @@ function render(svg,tip,list,opts){
   var need2=groups.length>1;
   var d1=need2?dom(function(s){return axisOf(s)===1;}):[0,1],l1=d1[0],h1=d1[1];
   var ownDom={};ownList.forEach(function(s,oi){s.__own=oi;ownDom[oi]=dom(function(x){return x===s;});});
-  var dp=showPx?dom(function(s){return s.isPx;}):[0,1],lp=dp[0],hp=dp[1];
+  var dp=showPx?dom(function(s){return s.isPx||s.pxAux;}):[0,1],lp=dp[0],hp=dp[1];
   var Y0=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l0)/(h0-l0);};
   var Y1=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-l1)/(h1-l1);};
   var Ypx=function(v){var t=T(v);return t==null?null:y1-(y1-y0)*(t-lp)/(hp-lp);};
@@ -174,6 +174,17 @@ function render(svg,tip,list,opts){
       dot.appendChild(tt);svg.appendChild(dot);
     });
   }
+  /* technical events (opts.tech = [[d,type,label]..]) — small circles on the rail */
+  if(opts.tech){
+    opts.tech.slice(-60).forEach(function(t9){
+      var tt=+new Date(t9[0]);if(tt<tmin||tt>tmax)return;
+      var up9=/UP|GC|BOTTOM/.test(t9[1]),c9=up9?'#34d399':'#f87171';
+      var ci=el('circle',{cx:X(t9[0]),cy:y1-15,r:3.4,fill:c9,stroke:'#0b1220','stroke-width':1,opacity:.95});
+      var tl=svg.ownerDocument.createElementNS(NS,'title');
+      tl.textContent='TA '+t9[0]+' \u00b7 '+(t9[2]||t9[1]);
+      ci.appendChild(tl);svg.appendChild(ci);
+    });
+  }
   /* fleet events rail (opts.events = {congress:[[d,who,side,amt]..], insiders:[..]}) */
   if(opts.events){
     var evc='#a855f7';
@@ -206,7 +217,7 @@ function render(svg,tip,list,opts){
 
   var badges=[];
   drawn.forEach(function(s){
-    var Y=s.isPx?Ypx:(isOwn(s)?Yown(s.__own):(axisOf(s)===0?Y0:Y1));
+    var Y=(s.isPx||s.pxAux)?Ypx:(isOwn(s)?Yown(s.__own):(axisOf(s)===0?Y0:Y1));
     var dstr='',pen=false;
     s.pts.forEach(function(p){var y=Y(p[1]);
       if(y==null){pen=false;return;}

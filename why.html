@@ -3586,7 +3586,7 @@ var VIT=[['roic_pct','ROIC',function(v){return v>=15?2:v>=5?1:0;},function(v){re
 ['piotroski_f','Piotroski',function(v){return v>=7?2:v>=4?1:0;},function(v){return v.toFixed(0)+'/9';}],
 ['beneish_m','Beneish',function(v){return v<=-2.22?2:v<=-1.78?1:0;},function(v){return v.toFixed(2);}]];
 var CLR=['#f87171','#fbbf24','#34d399'];
-var FAVM=[],METC={},CUST=null,RATIOS=[],MACRO=[],MC={},ST={mode:'val',yrs:10,per:'q',log:false,px:false,ern:false,evt:false,sec:false,lens:0};
+var FAVM=[],METC={},CUST=null,RATIOS=[],MACRO=[],MC={},ST={mode:'val',yrs:10,per:'q',log:false,px:false,ern:false,evt:false,sec:false,ta:false,lens:0};
 try{FAVM=JSON.parse(localStorage.getItem('jh_fg_favm')||'[]')||[];}catch(e){}
 try{METC=JSON.parse(localStorage.getItem('jh_fg_metc')||'{}')||{};}catch(e){}
 try{CUST=JSON.parse(localStorage.getItem('jh_fgwhy_custom')||'null');}catch(e){}
@@ -3695,6 +3695,15 @@ function buildList(){
       color:['#94a3b8','#cbd5e1'][mi%2],dash:'2 3',pts:tp,grp:'own',own:true,
       isMacro:true,_mk2:k,_raw:got.pts,_full:got.pts});
   });
+  if(ST.ta&&DOC.points){
+    var TAC={px_ma20:'#38bdf8',px_ma50:'#a78bfa',px_ma100:'#f472b6',px_ma200:'#f59e0b'};
+    Object.keys(TAC).forEach(function(k){var a=DOC.points[k];if(a&&a.length>2)
+      list.push({label:k.replace('px_ma','')+'-DMA',u:'c',color:TAC[k],
+        pts:transform(a.slice(),true),grp:'px',pxAux:true,_full:a});});
+    ['px_bb_up','px_bb_dn'].forEach(function(k){var a=DOC.points[k];if(a&&a.length>2)
+      list.push({label:'BB '+(k.slice(-2)==='up'?'+2\u03c3':'\u22122\u03c3'),u:'c',color:'#64748b',dash:'2 2',
+        pts:transform(a.slice(),true),grp:'px',pxAux:true,_full:a});});
+  }
   if(ST.px&&DOC.price&&DOC.price.length){
     var pp=transform(DOC.price.slice(),true);
     if(pp&&pp.length>=2)list.push({sym:'',label:'Price',u:'c',color:'#e5e7eb',dash:'',
@@ -3714,6 +3723,15 @@ function build(){
   sec.innerHTML='<div class="sub"><span class="ico">\ud83d\udcca</span> Fundamental Graphs \u2014 institutional chart <span style="font-size:.62rem;color:#5d6b82">('+esc(TK)+' \u00b7 '+(CUST?'custom '+keys().length:'lens: '+LENS[ST.lens][0])+')</span>'+((DOC.whales_q&&DOC.whales_q.net_usd!=null)?(' <span title="latest-quarter 13F net $ — tracked whale cohort" style="font-size:.64rem;color:'+(DOC.whales_q.net_usd>=0?'#34d399':'#f87171')+'">\ud83d\udc0b '+(DOC.whales_q.net_usd>=0?'+':'')+(Math.abs(DOC.whales_q.net_usd)>=1e9?(DOC.whales_q.net_usd/1e9).toFixed(1)+'B':(DOC.whales_q.net_usd/1e6).toFixed(0)+'M')+'</span>'):'')+'</div>'+ /* ops3482 whale chip */
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
     ((DOC.flags&&DOC.flags.length)?('<div id="jhfgFlags" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+DOC.flags.slice(0,3).map(function(f){var c=f.sev===3?'#f87171':f.sev===2?'#fbbf24':'#64748b';return '<span data-fk="'+esc(f.keys.join(','))+'" title="click to chart the evidence" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.68rem">\u26a0 '+esc(f.msg)+'</span>';}).join('')+'</div>'):'')+
+    ((ST.ta&&DOC.tech&&DOC.tech.status)?(function(){var st=DOC.tech.status;
+      var ch=[],cc=st.above_200?'#34d399':'#f87171';
+      ch.push('<span style="border:1px solid '+cc+'66;color:'+cc+';border-radius:8px;padding:3px 10px;font-size:.66rem">'+(st.above_200?'\u25b2':'\u25bc')+' '+(st.pct_vs_200!=null?((st.pct_vs_200>=0?'+':'')+st.pct_vs_200.toFixed(1)+'%'):'')+' vs 200-DMA</span>');
+      if(st.bull_stack)ch.push('<span style="border:1px solid #34d39966;color:#34d399;border-radius:8px;padding:3px 10px;font-size:.66rem">Bull MA stack</span>');
+      if(st.last_cross)ch.push('<span style="border:1px solid #22304a;color:#8b98ad;border-radius:8px;padding:3px 10px;font-size:.66rem">'+esc(st.last_cross.type)+' '+esc(st.last_cross.d)+'</span>');
+      if(st.rsi14!=null)ch.push('<span style="border:1px solid #22304a;color:'+(st.rsi14>=70?'#f87171':st.rsi14<=30?'#34d399':'#c9d4e5')+';border-radius:8px;padding:3px 10px;font-size:.66rem">RSI '+st.rsi14.toFixed(0)+'</span>');
+      (st.patterns||[]).forEach(function(p2){var pc=p2.type==='DBL_TOP'?'#f87171':'#34d399';
+        ch.push('<span style="border:1px solid '+pc+'66;color:'+pc+';border-radius:8px;padding:3px 10px;font-size:.66rem">'+esc(p2.type.replace('_',' ').toLowerCase())+' '+(p2.confirmed?'confirmed':'forming')+'</span>');});
+      return '<div id="jhfgTaStrip" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+ch.join('')+'</div>';})():'')+
     ((DOC.verdicts&&((DOC.verdicts.greens||[]).length||(DOC.verdicts.reds||[]).length))?(function(){
       var V=DOC.verdicts;
       if(!document.getElementById('jhfgFlashCss')){var st2=document.createElement('style');st2.id='jhfgFlashCss';st2.textContent='.jhfgfl{animation:jhfgfl 1.1s ease-in-out infinite}@keyframes jhfgfl{50%{opacity:.4}}';document.head.appendChild(st2);}
@@ -3729,6 +3747,7 @@ function build(){
       seg(['val:Values','pct:% Chg','yoy:YoY %'],ST.mode,'m')+' '+
       seg(['1:1Y','3:3Y','5:5Y','10:10Y'],ST.yrs,'y')+' '+
       seg(['q:FQ','ttm:TTM'],ST.per,'p')+' '+
+      '<button id="jhfgTa" title="MAs/Bollinger on price + cross/pattern markers + status" style="border:1px solid '+(ST.ta?'#38bdf8':'#22304a')+';color:'+(ST.ta?'#38bdf8':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">TA</button>'+
       '<button id="jhfgSec" title="S&P-500 sector medians (p50 lines + \u0394)" style="border:1px solid '+(ST.sec?'#64748b':'#22304a')+';color:'+(ST.sec?'#94a3b8':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">vs Sector</button>'+
       '<button id="jhfgEvt" style="border:1px solid '+(ST.evt?'#a855f7':'#22304a')+';color:'+(ST.evt?'#a855f7':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer" title="Congress \u25c6 + insider \u25b2\u25bc markers">Events</button>'+
       '<button id="jhfgErn" style="border:1px solid '+(ST.ern?'#22d3ee':'#22304a')+';color:'+(ST.ern?'#22d3ee':'#8b98ad')+';background:#0d1526;border-radius:8px;padding:3px 10px;font-size:.68rem;cursor:pointer">Earnings</button>'+
@@ -3745,6 +3764,7 @@ function build(){
   sec.querySelector('#jhfgLog').onclick=function(){ST.log=!ST.log;build();};
   sec.querySelector('#jhfgErn').onclick=function(){ST.ern=!ST.ern;build();};
   sec.querySelector('#jhfgEvt').onclick=function(){ST.evt=!ST.evt;build();};
+  sec.querySelector('#jhfgTa').onclick=function(){ST.ta=!ST.ta;if(ST.ta)ST.px=true;build();};
   sec.querySelector('#jhfgSec').onclick=function(){ST.sec=!ST.sec;
     if(ST.sec&&SECMED===null){
       fetch(PXW+'data/fundgraph/sector-medians.json?ts='+Math.floor(Date.now()/36e5))
@@ -3828,6 +3848,7 @@ function chart(){
   }
   var r=window.FGChart.render(svg,tip,list,{mode:ST.mode,log:ST.log,mixOk:MIXOK,band:band,hlines:hlines,earnings:(ST.ern&&DOC.earnings)?DOC.earnings:null,
     events:(ST.evt&&DOC.events)?DOC.events:null,
+    tech:(ST.ta&&DOC.tech&&!DOC.tech.error&&DOC.tech.events)?DOC.tech.events:null,
     marks:MARKS,
     onMark:function(d){if(MARKS.indexOf(d)<0){MARKS.push(d);MARKS.sort();saveMarks();chart();}},
     onUnmark:function(d){MARKS=MARKS.filter(function(x){return x!==d;});saveMarks();chart();}});
