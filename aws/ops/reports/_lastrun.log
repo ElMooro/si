@@ -1,16 +1,8 @@
-executing-against: 9ecd9dd60b9fe19c0529762c58a71cd5506dd31a
-ops 3493 — sector medians republish + vs-Sector surfaces
-[03:04:22]   zip: 99137 bytes
-── 1. Lambda ──
-[03:04:23]   Lambda exists — updating
-[03:04:28] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  H1_republish — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct']}
-[03:04:32] FAIL  H1_republish — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct']}
-PASS  H2_realdata_sanity — {'tech_pe': 34.0, 'util_pe': 22.3, 'beneish_band_ok': True, 'sample': {'Technology': 34.0, 'Healthcare': 25.5, 'Utilities': 22.3, 'Communication Services': 21.9}}
-[03:04:32] PASS  H2_realdata_sanity — {'tech_pe': 34.0, 'util_pe': 22.3, 'beneish_band_ok': True, 'sample': {'Technology': 34.0, 'Healthcare': 25.5, 'Utilities': 22.3, 'Communication Services': 21.9}}
-PASS  H3_surfaces — {'node_ok': True, 'core_hlines': True, 'flag': True, 'why': True, 'priors': True}
-[03:06:54] PASS  H3_surfaces — {'node_ok': True, 'core_hlines': True, 'flag': True, 'why': True, 'priors': True}
-RESULT: FAILS: ['H1_republish']
-RESULT: FAILS: ['H1_republish']
+executing-against: 0d2dd047b16c2eadbebbbc3456b8c99067d80778
+ops 3494 — sector-medians contract (6 core keys)
+PASS  K1_contract — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct'], 'tech_pe': 34.0, 'util_pe': 22.3}
+[03:08:52] PASS  K1_contract — {'n_sectors': 11, 'keys': ['beneish_m', 'fcf_yield_pct', 'pe_ttm', 'peg_ttm', 'ps_ttm', 'sloan_accruals_pct'], 'tech_pe': 34.0, 'util_pe': 22.3}
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3493_sector_medians.md
+→ Report written to aws/ops/reports/latest/3494_secmed_contract.md
