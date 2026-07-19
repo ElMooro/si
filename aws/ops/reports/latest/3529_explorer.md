@@ -1,13 +1,12 @@
-executing-against: 98224db85aed0066ef02662525732038366250b8
-ops 3529 — Metric Explorer + matrix
-PASS  D1_matrix_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct', 'only_a']}
-[19:23:30] PASS  D1_matrix_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct', 'only_a']}
-[19:23:30]   zip: 83900 bytes
-── 1. Lambda ──
-[19:23:30]   Lambda exists — updating
-[19:23:36] ✅   ✓ updated justhodl-fundamental-census
+# ops 3529 — Metric Explorer + matrix
 
-→ Report written to aws/ops/reports/latest/3529_explorer.md
+**Status:** failure  
+**Duration:** 290.4s  
+**Finished:** 2026-07-19T19:28:20+00:00  
+
+## Error
+
+```
 Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
     response = self._make_request(
@@ -62,6 +61,8 @@ urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Re
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
+  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 97, in report
+    yield r
   File "/home/runner/work/si/si/aws/ops/pending/ops_3529_explorer.py", line 95, in <module>
     lam.invoke(FunctionName=FN,
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
@@ -120,4 +121,13 @@ Traceback (most recent call last):
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
     raise ConnectionClosedError(
 botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-fundamental-census/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3529_explorer.py
+
+```
+
+## Log
+- `19:23:30` PASS  D1_matrix_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct', 'only_a']}
+- `19:23:30`   zip: 83900 bytes
+## 1. Lambda
+
+- `19:23:30`   Lambda exists — updating
+- `19:23:36` ✅   ✓ updated justhodl-fundamental-census
