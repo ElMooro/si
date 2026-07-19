@@ -1,8 +1,13 @@
-executing-against: caac865b0b3fb0cd6d9f74410d9efd0502b0d494
-PASS  P0_zip — {'FETCH_Q_200': True, 'from_1962': True, 'ver': True}
-PASS  P1_statements — {'q_n': 163, 'q_oldest': '1985-09-30', 'a_n': 40, 'a_oldest': '1986-06-30'}
-PASS  P2_price_windows — {'1990s_n': 2528, '2000_06_n': 1508, 'sample': [{'symbol': 'PG', 'date': '1999-12-31', 'price': 54.37, 'volume': 618802}]}
-[17:17:37] probe done
-RESULT: ALL PASS
+executing-against: c2bfd0cd3197bc1d09dc8613c033ee1196088944
+ops 3517 — price stitcher + depth regate
+[17:21:09]   zip: 107416 bytes
+── 1. Lambda ──
+[17:21:09]   Lambda exists — updating
+[17:21:15] ✅   ✓ updated justhodl-fundamental-graphs
+FAIL  Q1_aapl — {'n_revenue': 44, 'oldest_revenue': '2015-06-27', 'n_px_weeks': 2380, 'oldest_px': '1980-12-12', 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}, 'doc_kb': 761, 'ver': '1.11.1'}
+[17:21:30] FAIL  Q1_aapl — {'n_revenue': 44, 'oldest_revenue': '2015-06-27', 'n_px_weeks': 2380, 'oldest_px': '1980-12-12', 'stmt_rows': {'inc': 163, 'bal': 151, 'cf': 146}, 'doc_kb': 761, 'ver': '1.11.1'}
+FAIL  Q2_pg — {'n_revenue': 44, 'oldest_revenue': '2015-06-30', 'n_px_weeks': 3368, 'oldest_px': '1962-01-05', 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}, 'doc_kb': 970, 'ver': '1.11.1'}
+[17:21:30] FAIL  Q2_pg — {'n_revenue': 44, 'oldest_revenue': '2015-06-30', 'n_px_weeks': 3368, 'oldest_px': '1962-01-05', 'stmt_rows': {'inc': 163, 'bal': 150, 'cf': 145}, 'doc_kb': 970, 'ver': '1.11.1'}
+RESULT: FAILS: ['Q1_aapl', 'Q2_pg']
 
-→ Report written to aws/ops/reports/latest/3516_depth_probe.md
+→ Report written to aws/ops/reports/latest/3517_history_close.md
