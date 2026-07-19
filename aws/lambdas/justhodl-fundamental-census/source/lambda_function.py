@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -225,25 +225,36 @@ def lambda_handler(event, context):
     phase = event.get("phase") or "aggregate"
     uni = universe()
     if phase == "warm":
+        # v1.1.2 chain-hardening: fundgraph batches fire-and-forget
+        # (Event) with ~35s pacing so a slow batch can NEVER kill the
+        # orchestrator; the next chain link is guaranteed by finally.
         cur = int(event.get("cursor") or 0)
         refresh = bool(event.get("refresh"))
         batch = [u["t"] for u in uni[cur:cur + BATCH]]
-        if batch:
-            try:
+        try:
+            if batch:
                 LAM.invoke(FunctionName=FG_FN,
+                           InvocationType="Event",
                            Payload=json.dumps(
                                {"warm": batch, "periods": ["quarter"],
                                 "refresh": refresh}).encode())
-            except Exception as e:  # noqa: BLE001
-                print(f"[census] warm batch@{cur}: {str(e)[:80]}")
-        nxt = cur + BATCH
-        payload = ({"phase": "warm", "cursor": nxt, "refresh": refresh}
-                   if nxt < len(uni) else {"phase": "aggregate"})
-        LAM.invoke(FunctionName=context.function_name,
-                   InvocationType="Event",
-                   Payload=json.dumps(payload).encode())
+                time.sleep(35)
+        except Exception as e:  # noqa: BLE001
+            print(f"[census] warm batch@{cur}: {str(e)[:80]}")
+        finally:
+            nxt = cur + BATCH
+            payload = ({"phase": "warm", "cursor": nxt,
+                        "refresh": refresh}
+                       if nxt < len(uni)
+                       else {"phase": "aggregate", "settle_s": 240})
+            LAM.invoke(FunctionName=context.function_name,
+                       InvocationType="Event",
+                       Payload=json.dumps(payload).encode())
         return {"ok": True, "phase": "warm", "cursor": cur,
-                "n_batch": len(batch), "next": payload["phase"]}
+                "n_batch": len(batch)}
+
+    if event.get("settle_s"):
+        time.sleep(min(600, int(event["settle_s"])))
 
     t0 = time.time()
     rows_by_t = {}
