@@ -73,6 +73,7 @@ a{color:var(--blue);text-decoration:none}
 <button id="fxShare" class="chip" style="cursor:pointer;border:1px solid var(--border);background:#0a1220;color:var(--text)">🔗 link</button>
 <span id="fxStratNote" class="rk" style="font-size:.64rem"></span>
 </div>
+<div id="fxFacetChips" style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0"></div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 2px">
 <span class="rk" style="font-size:.64rem;align-self:center">Presets:</span>
 <button class="chip fxP" data-p="qc" style="cursor:pointer;border:1px solid var(--green);color:var(--green);background:#0a1220">Quality compounders</button>
@@ -197,7 +198,19 @@ function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECF='',MOMF='',MOMT=null,INDF='',CAPF='',QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATF='',RISKF='',IRISKF='',RTIERS=null,ITIERS=null;
+var SECS=[],MOMS=[],MOMT=null,INDS=[],CAPS=[],QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATS=[],RISKS=[],IRISKS=[],RTIERS=null,ITIERS=null;
+var FACETS={sec:{el:'fxSec',arr:SECS,name:'Sector'},ind:{el:'fxInd',arr:INDS,name:'Industry'},cap:{el:'fxCap',arr:CAPS,name:'Cap'},
+  mom:{el:'fxMom',arr:MOMS,name:'Momentum'},pat:{el:'fxPat',arr:PATS,name:'Pattern'},risk:{el:'fxRisk',arr:RISKS,name:'Stock risk'},irisk:{el:'fxIndRisk',arr:IRISKS,name:'Industry risk'}};
+function facetChips(){var box=document.getElementById('fxFacetChips');if(!box)return;var h='';
+  Object.keys(FACETS).forEach(function(fk){var f=FACETS[fk];
+    f.arr.forEach(function(v,i){var sel=document.getElementById(f.el);
+      var lab=v;if(sel){for(var o=0;o<sel.options.length;o++)if(sel.options[o].value===v){lab=sel.options[o].textContent;break;}}
+      h+='<span class="chip" style="border:1px solid var(--blue);color:var(--text)">'+f.name+': '+esc(lab)+' <b data-fx="'+fk+'" data-fi="'+i+'" style="color:var(--red);cursor:pointer">✕</b></span>';});});
+  box.innerHTML=h;
+  Array.prototype.forEach.call(box.querySelectorAll('[data-fx]'),function(el){el.onclick=function(){
+    FACETS[el.getAttribute('data-fx')].arr.splice(+el.getAttribute('data-fi'),1);facetChips();draw();};});}
+function facetToggle(fk,v){var a=FACETS[fk].arr;if(!v){a.length=0;}else{var i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);}
+  var sel=document.getElementById(FACETS[fk].el);if(sel)sel.value='';facetChips();draw();}
 function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
   var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
@@ -208,19 +221,20 @@ function terciles(col){var xs=col.filter(function(v){return typeof v==='number';
   if(xs.length<3)return null;return {lo:xs[Math.floor(xs.length/3)],hi:xs[Math.floor(2*xs.length/3)]};}
 function tierOf(v,t){if(t==null||typeof v!=='number')return '';return v<=t.lo?'L':v>=t.hi?'H':'M';}
 function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers.length;i++){
-    if(SECF&&MX.sectors[i]!==SECF)continue;
-    if(INDF&&(MX.industries||[])[i]!==INDF)continue;
-    if(CAPF&&capBucket(mc[i])!==CAPF)continue;
+    if(SECS.length&&SECS.indexOf(MX.sectors[i])<0)continue;
+    if(INDS.length&&INDS.indexOf((MX.industries||[])[i])<0)continue;
+    if(CAPS.length&&CAPS.indexOf(capBucket(mc[i]))<0)continue;
     if(QMIN!=null&&!((MX.quality||[])[i]>=QMIN))continue;
     if(NOFLAG&&(MX.flagged||[])[i])continue;
     if(TURNMIN&&!((MX.turn||[])[i]>=75))continue;
     if(TURNMAX&&!((MX.turn||[])[i]<=25))continue;
-    if(RISKF){if(!RTIERS)RTIERS=terciles(MX.cols['risk_score']||[]);
-      if(tierOf((MX.cols['risk_score']||[])[i],RTIERS)!==RISKF)continue;}
-    if(IRISKF){if(!ITIERS)ITIERS=terciles(MX.cols['industry_risk_score']||[]);
-      if(tierOf((MX.cols['industry_risk_score']||[])[i],ITIERS)!==IRISKF)continue;}
-    if(PATF){var pc={db:'double_bottom',dt:'double_top',gc:'golden_cross_10_40w',bo:'breakout_20w'}[PATF];
-      if(((MX.cols[pc]||[])[i])!==1)continue;}
+    if(RISKS.length){if(!RTIERS)RTIERS=terciles(MX.cols['risk_score']||[]);
+      if(RISKS.indexOf(tierOf((MX.cols['risk_score']||[])[i],RTIERS))<0)continue;}
+    if(IRISKS.length){if(!ITIERS)ITIERS=terciles(MX.cols['industry_risk_score']||[]);
+      if(IRISKS.indexOf(tierOf((MX.cols['industry_risk_score']||[])[i],ITIERS))<0)continue;}
+    if(PATS.length){var pmap={db:'double_bottom',dt:'double_top',gc:'golden_cross_10_40w',bo:'breakout_20w'};
+      var pok=false;for(var pi=0;pi<PATS.length;pi++){if(((MX.cols[pmap[PATS[pi]]]||[])[i])===1){pok=true;break;}}
+      if(!pok)continue;}
     if(WHALEF&&!(((MX.cols['whale_net_usd_m']||[])[i])>0))continue;
     if(NOEARN){var ei=(MX.cols['earnings_in_days']||[])[i];
       if(typeof ei==='number'&&ei<=7)continue;}
@@ -229,10 +243,10 @@ function idxSet(){var mc=MX.cols['mcap']||[];var out=[];for(var i=0;i<MX.tickers
       if(b2[0]!=null&&hv<b2[0]){hOk=false;break;}
       if(b2[1]!=null&&hv>b2[1]){hOk=false;break;}}
       if(!hOk)continue;}
-    if(MOMF){var mt=momTiers(),v=mt.col[i];
+    if(MOMS.length){var mt=momTiers(),v=mt.col[i];
       if(typeof v!=='number')continue;
-      if(MOMF==='H'&&!(v>=mt.hi))continue;
-      if(MOMF==='L'&&!(v<=mt.lo))continue;}
+      var mtier=(mt.hi!=null&&v>=mt.hi)?'H':(mt.lo!=null&&v<=mt.lo)?'L':'M';
+      if(MOMS.indexOf(mtier)<0)continue;}
     out.push(i);}
   return out;}
 function compute(){if(!MX||!SEL.length)return [];
@@ -287,14 +301,14 @@ function openModal(t){CUR=t;
   if(DOCC[t])doit();
   else fetch(FB+'/?symbol='+encodeURIComponent(t)+'&period=quarter').then(function(r){return r.json();}).then(function(d){DOCC[t]=d;doit();}).catch(function(e){document.getElementById('fxMT').textContent=t+' — load failed: '+e.message;});}
 document.getElementById('fxAdd').onclick=function(){addSel(document.getElementById('fxSel').value);};
-document.getElementById('fxInd').onchange=function(e){INDF=e.target.value;draw();};
-document.getElementById('fxCap').onchange=function(e){CAPF=e.target.value;draw();};
+document.getElementById('fxInd').onchange=function(e){facetToggle('ind',e.target.value);};
+document.getElementById('fxCap').onchange=function(e){facetToggle('cap',e.target.value);};
 document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
 document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
 document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
-document.getElementById('fxRisk').onchange=function(e){RISKF=e.target.value;draw();};
-document.getElementById('fxIndRisk').onchange=function(e){IRISKF=e.target.value;draw();};
-document.getElementById('fxPat').onchange=function(e){PATF=e.target.value;draw();};
+document.getElementById('fxRisk').onchange=function(e){facetToggle('risk',e.target.value);};
+document.getElementById('fxIndRisk').onchange=function(e){facetToggle('irisk',e.target.value);};
+document.getElementById('fxPat').onchange=function(e){facetToggle('pat',e.target.value);};
 document.getElementById('fxBT').onclick=function(){var rows=compute().slice(0,20);
   if(rows.length<2)return;var tk=rows.map(function(r){return r.t;}).join(',');
   var box=document.getElementById('fxBTBox');box.style.display='block';
@@ -316,15 +330,20 @@ function fmtp(v){return v==null?'—':(v>=0?'+':'')+v+'%';}
 document.getElementById('fxWhale').onchange=function(e){WHALEF=e.target.checked;draw();};
 document.getElementById('fxNoEarn').onchange=function(e){NOEARN=e.target.checked;draw();};
 function stateGet(){return {sel:SEL.map(function(x){return [x.k,x.low?1:0];}),
-  sec:SECF,ind:INDF,cap:CAPF,mom:MOMF,qmin:QMIN,noflag:NOFLAG,turnmin:TURNMIN,turnmax:TURNMAX,
-  whale:WHALEF,noearn:NOEARN,dir:DIR,hard:HARDF};}
+  secs:SECS.slice(),inds:INDS.slice(),caps:CAPS.slice(),moms:MOMS.slice(),pats:PATS.slice(),risks:RISKS.slice(),irisks:IRISKS.slice(),
+  qmin:QMIN,noflag:NOFLAG,turnmin:TURNMIN,turnmax:TURNMAX,whale:WHALEF,noearn:NOEARN,dir:DIR,hard:HARDF};}
 function stateSet(st){resetStrat();SEL=(st.sel||[]).map(function(a){return {k:a[0],low:!!a[1]};});
-  SECF=st.sec||'';INDF=st.ind||'';CAPF=st.cap||'';MOMF=st.mom||'';QMIN=st.qmin==null?null:st.qmin;
+  (st.secs||(st.sec?[st.sec]:[])).forEach(function(v){SECS.push(v);});
+  (st.inds||(st.ind?[st.ind]:[])).forEach(function(v){INDS.push(v);});
+  (st.caps||(st.cap?[st.cap]:[])).forEach(function(v){CAPS.push(v);});
+  (st.moms||(st.mom?[st.mom]:[])).forEach(function(v){MOMS.push(v);});
+  (st.pats||[]).forEach(function(v){PATS.push(v);});
+  (st.risks||[]).forEach(function(v){RISKS.push(v);});
+  (st.irisks||[]).forEach(function(v){IRISKS.push(v);});
+  QMIN=st.qmin==null?null:st.qmin;
   NOFLAG=!!st.noflag;TURNMIN=!!st.turnmin;TURNMAX=!!st.turnmax;WHALEF=!!st.whale;NOEARN=!!st.noearn;
   DIR=st.dir||'desc';HARDF=st.hard||null;
-  document.getElementById('fxSec').value=SECF;document.getElementById('fxInd').value=INDF;
-  document.getElementById('fxCap').value=CAPF;document.getElementById('fxMom').value=MOMF;
-  document.getElementById('fxQmin').value=QMIN==null?'':String(QMIN);
+  document.getElementById('fxQmin').value=QMIN==null?'':String(QMIN);facetChips();
   document.getElementById('fxNoFlag').checked=NOFLAG;document.getElementById('fxTurn').checked=TURNMIN;
   document.getElementById('fxWhale').checked=WHALEF;document.getElementById('fxNoEarn').checked=NOEARN;
   document.getElementById('fxDir').value=DIR;chips();draw();}
@@ -350,9 +369,9 @@ document.getElementById('fxCsv').onclick=function(){var rows=compute();
   var csv=lines.join('\n');window.__lastCsv=csv;
   try{var b=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');
     a.href=URL.createObjectURL(b);a.download='census-explorer.csv';a.click();}catch(e){}};
-function resetStrat(){HARDF=null;TURNMAX=false;TURNMIN=false;NOFLAG=false;QMIN=null;MOMF='';
+function resetStrat(){HARDF=null;TURNMAX=false;TURNMIN=false;NOFLAG=false;QMIN=null;Object.keys(FACETS).forEach(function(k){FACETS[k].arr.length=0;});facetChips();
   document.getElementById('fxTurn').checked=false;document.getElementById('fxNoFlag').checked=false;
-  document.getElementById('fxQmin').value='';document.getElementById('fxMom').value='';}
+  document.getElementById('fxQmin').value='';}
 function applyStrat(cfg){resetStrat();SEL=[];
   cfg.chips.forEach(function(c){SEL.push({k:c[0],low:!!c[1]});});
   HARDF=cfg.hard&&Object.keys(cfg.hard).length?cfg.hard:null;
@@ -360,7 +379,7 @@ function applyStrat(cfg){resetStrat();SEL=[];
   if(cfg.qmin!=null){QMIN=cfg.qmin;document.getElementById('fxQmin').value=String(cfg.qmin===15?10:cfg.qmin);}
   if(cfg.turnmin){TURNMIN=true;document.getElementById('fxTurn').checked=true;}
   if(cfg.turnmax)TURNMAX=true;
-  if(cfg.mom){MOMF=cfg.mom;document.getElementById('fxMom').value=cfg.mom;}
+  if(cfg.mom){MOMS.push(cfg.mom);facetChips();}
   document.getElementById('fxStratNote').textContent=cfg.name;
   chips();draw();}
 document.getElementById('fxInv').onchange=function(e){var k=e.target.value;
@@ -392,8 +411,8 @@ Array.prototype.forEach.call(document.querySelectorAll('.fxP'),function(b){
     if(p==='bs'){['interest_coverage_ttm','debt_to_equity','altman_z'].forEach(addSel);
       NOFLAG=true;document.getElementById('fxNoFlag').checked=true;}
     chips();draw();};});
-document.getElementById('fxSec').onchange=function(e){SECF=e.target.value;draw();};
-document.getElementById('fxMom').onchange=function(e){MOMF=e.target.value;draw();};
+document.getElementById('fxSec').onchange=function(e){facetToggle('sec',e.target.value);};
+document.getElementById('fxMom').onchange=function(e){facetToggle('mom',e.target.value);};
 document.getElementById('fxDir').onchange=function(e){DIR=e.target.value;draw();};
 document.getElementById('fxQ').oninput=function(e){Q=e.target.value;draw();};
 document.getElementById('fxClose').onclick=function(){document.getElementById('fxModal').style.display='none';};
