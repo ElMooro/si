@@ -46,6 +46,8 @@ a{color:var(--blue);text-decoration:none}
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
 <select id="fxSel" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:280px"></select>
 <button id="fxAdd" class="chip" style="cursor:pointer;background:#0a1220;border:1px solid var(--blue);color:var(--blue)">+ add</button>
+<select id="fxSec" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All sectors</option></select>
+<select id="fxMom" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All momentum</option><option value="H">High momentum (top ⅓)</option><option value="L">Low momentum (bottom ⅓)</option></select>
 <select id="fxDir" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="desc">Σ high → low</option><option value="asc">Σ low → high</option></select>
 <input id="fxQ" placeholder="filter ticker…" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;width:120px">
 <span id="fxN" class="rk" style="font-size:.66rem"></span></div>
@@ -97,12 +99,28 @@ function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
+var SECF='',MOMF='',MOMT=null;
+function momTiers(){if(MOMT)return MOMT;var col=MX.cols['mom_12_1_pct']||MX.cols['mom_6m_pct']||[];
+  var xs=col.filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
+  if(xs.length<3){MOMT={col:col,lo:null,hi:null};return MOMT;}
+  MOMT={col:col,lo:xs[Math.floor(xs.length/3)],hi:xs[Math.floor(2*xs.length/3)]};return MOMT;}
+function idxSet(){var out=[];for(var i=0;i<MX.tickers.length;i++){
+    if(SECF&&MX.sectors[i]!==SECF)continue;
+    if(MOMF){var mt=momTiers(),v=mt.col[i];
+      if(typeof v!=='number')continue;
+      if(MOMF==='H'&&!(v>=mt.hi))continue;
+      if(MOMF==='L'&&!(v<=mt.lo))continue;}
+    out.push(i);}
+  return out;}
 function compute(){if(!MX||!SEL.length)return [];
-  var P={};SEL.forEach(function(s){var base=pct(MX.cols[s.k]||[]);
+  var idx=idxSet();
+  var P={};SEL.forEach(function(s){
+    var sub=idx.map(function(i){return (MX.cols[s.k]||[])[i];});
+    var base=pct(sub);
     P[s.k]=base.map(function(v){return v==null?null:(s.low?100-v:v);});});
-  var rows=[];for(var i=0;i<MX.tickers.length;i++){var t=MX.tickers[i];
+  var rows=[];for(var j=0;j<idx.length;j++){var i=idx[j],t=MX.tickers[i];
     if(Q&&t.indexOf(Q.toUpperCase())<0)continue;
-    var tot=0,n=0,vals={};SEL.forEach(function(s){var pv=P[s.k][i];
+    var tot=0,n=0,vals={};SEL.forEach(function(s){var pv=P[s.k][j];
       vals[s.k]=(MX.cols[s.k]||[])[i];if(pv!=null){tot+=pv;n++;}});
     if(!n)continue;rows.push({t:t,sector:MX.sectors[i],score:tot,n:n,vals:vals});}
   rows.sort(function(a,b){return DIR==='desc'?b.score-a.score:a.score-b.score;});
@@ -145,6 +163,8 @@ function openModal(t){CUR=t;
   if(DOCC[t])doit();
   else fetch(FB+'/?symbol='+encodeURIComponent(t)+'&period=quarter').then(function(r){return r.json();}).then(function(d){DOCC[t]=d;doit();}).catch(function(e){document.getElementById('fxMT').textContent=t+' — load failed: '+e.message;});}
 document.getElementById('fxAdd').onclick=function(){addSel(document.getElementById('fxSel').value);};
+document.getElementById('fxSec').onchange=function(e){SECF=e.target.value;draw();};
+document.getElementById('fxMom').onchange=function(e){MOMF=e.target.value;draw();};
 document.getElementById('fxDir').onchange=function(e){DIR=e.target.value;draw();};
 document.getElementById('fxQ').oninput=function(e){Q=e.target.value;draw();};
 document.getElementById('fxClose').onclick=function(){document.getElementById('fxModal').style.display='none';};
@@ -154,8 +174,73 @@ Array.prototype.forEach.call(document.querySelectorAll('.fxR'),function(b){b.onc
 fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/fundamental-census-matrix.json?ts='+Date.now()).then(function(r){return r.json();}).then(function(mx){MX=mx;
   var sel=document.getElementById('fxSel');
   sel.innerHTML=mx.metrics.map(function(k){return '<option value="'+k+'">'+esc(lbl(k))+'</option>';}).join('');
+  var secs=[];mx.sectors.forEach(function(x){if(x&&secs.indexOf(x)<0)secs.push(x);});secs.sort();
+  document.getElementById('fxSec').innerHTML='<option value="">All sectors</option>'+secs.map(function(x){return '<option>'+esc(x)+'</option>';}).join('');
   addSel('gross_margin_pct');addSel('fcf_yield_pct');
 }).catch(function(e){document.getElementById('fxN').textContent='matrix unavailable: '+e.message;});
+})();
+</script>
+<script id="OPS3536">
+'use strict';
+(function(){
+var LSK='jh_census_boards_v1';
+function loadP(){try{return JSON.parse(localStorage.getItem(LSK))||{};}catch(e){return {};}}
+function saveP(p){try{localStorage.setItem(LSK,JSON.stringify(p));}catch(e){}}
+var PALC=['','#22d3ee','#34d399','#fbbf24','#f87171'];
+function decorate(){var grid=document.getElementById('mgrid');if(!grid)return;
+  var cells=Array.prototype.slice.call(grid.querySelectorAll('.mcell'));
+  if(!cells.length)return false;
+  var P=loadP();P.favs=P.favs||[];P.tags=P.tags||{};P.order=P.order||[];
+  cells.forEach(function(c){
+    if(c.getAttribute('data-jh'))return;
+    var k=(c.querySelector('b')||{}).textContent||'';c.setAttribute('data-k',k);c.setAttribute('data-jh','1');
+    c.setAttribute('draggable','true');
+    var bar=document.createElement('div');bar.className='jhBar';
+    bar.style.cssText='display:flex;gap:6px;align-items:center;margin:-2px 0 4px';
+    bar.innerHTML='<span class="jhFav" style="cursor:pointer;font-size:.85rem" title="favorite">'+(P.favs.indexOf(k)>=0?'★':'☆')+'</span>'
+      +'<span class="jhDot" style="cursor:pointer;width:12px;height:12px;border-radius:50%;border:1px solid var(--border);background:'+(P.tags[k]||'transparent')+'" title="color tag"></span>'
+      +'<span style="margin-left:auto;display:flex;gap:2px"><b class="jhMv" data-d="-1" style="cursor:pointer;color:var(--muted)">◀</b><b class="jhMv" data-d="1" style="cursor:pointer;color:var(--muted)">▶</b></span>';
+    c.insertBefore(bar,c.firstChild);
+    if(P.tags[k])c.style.borderColor=P.tags[k];
+    bar.querySelector('.jhFav').onclick=function(){var P2=loadP();P2.favs=P2.favs||[];
+      var ix=P2.favs.indexOf(k);if(ix>=0)P2.favs.splice(ix,1);else P2.favs.unshift(k);
+      saveP(P2);apply();};
+    bar.querySelector('.jhDot').onclick=function(ev){var P2=loadP();P2.tags=P2.tags||{};
+      var cur=PALC.indexOf(P2.tags[k]||'');var nx=PALC[(cur+1)%PALC.length];
+      if(nx)P2.tags[k]=nx;else delete P2.tags[k];saveP(P2);
+      ev.target.style.background=nx||'transparent';c.style.borderColor=nx||'var(--border)';};
+    Array.prototype.forEach.call(bar.querySelectorAll('.jhMv'),function(b){
+      b.onclick=function(){var P2=loadP();P2.order=curOrder();
+        var i=P2.order.indexOf(k),j=i+(+b.getAttribute('data-d'));
+        if(i<0||j<0||j>=P2.order.length)return;
+        P2.order.splice(i,1);P2.order.splice(j,0,k);saveP(P2);apply();};});
+    c.ondragstart=function(ev){ev.dataTransfer.setData('text/plain',k);};
+    c.ondragover=function(ev){ev.preventDefault();};
+    c.ondrop=function(ev){ev.preventDefault();var src=ev.dataTransfer.getData('text/plain');
+      if(!src||src===k)return;var P2=loadP();P2.order=curOrder();
+      var i=P2.order.indexOf(src),j=P2.order.indexOf(k);
+      if(i<0||j<0)return;P2.order.splice(i,1);P2.order.splice(j,0,src);saveP(P2);apply();};
+  });
+  return true;
+  function curOrder(){return Array.prototype.map.call(grid.querySelectorAll('.mcell'),function(c){return c.getAttribute('data-k');});}
+}
+function apply(){var grid=document.getElementById('mgrid');if(!grid)return;
+  var P=loadP();P.favs=P.favs||[];P.order=P.order||[];
+  var cells=Array.prototype.slice.call(grid.querySelectorAll('.mcell'));
+  cells.forEach(function(c){var k=c.getAttribute('data-k');
+    var st=c.querySelector('.jhFav');if(st)st.textContent=P.favs.indexOf(k)>=0?'★':'☆';
+    if(P.favs.indexOf(k)>=0)st.style.color='var(--amber)';else if(st)st.style.color='';});
+  var keys=cells.map(function(c){return c.getAttribute('data-k');});
+  var base=P.order.length?P.order.filter(function(k){return keys.indexOf(k)>=0;}):keys.slice();
+  keys.forEach(function(k){if(base.indexOf(k)<0)base.push(k);});
+  var ordered=P.favs.filter(function(k){return base.indexOf(k)>=0;})
+    .concat(base.filter(function(k){return P.favs.indexOf(k)<0;}));
+  ordered.forEach(function(k){var c=cells.filter(function(x){return x.getAttribute('data-k')===k;})[0];
+    if(c)grid.appendChild(c);});
+}
+var tries=0;var tm=setInterval(function(){tries++;
+  if(decorate()){apply();clearInterval(tm);}
+  else if(tries>40)clearInterval(tm);},250);
 })();
 </script>
 <script src="/jh-nav-drawer.js" defer></script>

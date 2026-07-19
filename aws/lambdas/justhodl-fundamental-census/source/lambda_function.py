@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -107,6 +107,24 @@ def universe():
     return out
 
 
+def momentum(price, weeks):
+    """Price momentum over `weeks` (12-1 style handled by caller):
+    pct change last close vs close `weeks` back; needs weekly rows."""
+    px = [v for _, v in (price or []) if isinstance(v, (int, float))
+          and v > 0]
+    if len(px) < weeks + 1:
+        return None
+    return round((px[-1] / px[-1 - weeks] - 1.0) * 100.0, 2)
+
+
+def mom_12_1(price):
+    px = [v for _, v in (price or []) if isinstance(v, (int, float))
+          and v > 0]
+    if len(px) < 53:
+        return None
+    return round((px[-5] / px[-53] - 1.0) * 100.0, 2)
+
+
 def turn_delta(P, key, w=4):
     """4q-vs-prior-4q mean delta; needs >=2w numeric points; None else."""
     ser = [v for _, v in ((P or {}).get(key) or [])
@@ -156,6 +174,9 @@ def extract(doc, sector):
     flag_w = (sum(FLAG_W.get(f, 1) for f in flags)
               + 3 * len(red3))
     tr = {k: turn_delta(P, k) for k, _, _, _ in TURN_METRICS}
+    price = doc.get("price") or []
+    moms = {"mom_6m_pct": momentum(price, 26),
+            "mom_12_1_pct": mom_12_1(price)}
     return {"t": doc.get("symbol") or doc.get("ticker"),
             "sector": sector, "score": score,
             "n_elite": len(elites), "n_green": len(greens),
@@ -164,10 +185,12 @@ def extract(doc, sector):
             "red3": red3[:4], "flags": flags,
             "flag_w": flag_w, "dilution_yoy": dil,
             "metrics": met, "_tr": tr,
-            "_lv": {k: rnd(last_val(P, k), 4) for k in P
+            "_lv": {**{mk: mv for mk, mv in moms.items()
+                       if mv is not None},
+                    **{k: rnd(last_val(P, k), 4) for k in P
                     if not any(k.startswith(pre)
                                for pre in MX_EXCLUDE_PRE)
-                    and last_val(P, k) is not None},
+                    and last_val(P, k) is not None}},
             "vintage_days": doc.get("vintage_days")}
 
 
