@@ -153,3 +153,33 @@ evidence, marker place/persist/remove).
 Parked: Tier-3 (sector medians, factor-DNA radar, DuPont stack), module
 ratio/macro inheritance, CPI overlay if the wl map gains it.
 
+
+
+---
+
+## Arc 3–4 addendum (ops 3482–3511, 2026-07-18/19) — verdict/TA/volume/Tier-3 layers
+
+**Engine `justhodl-fundamental-graphs` v1.10.2, CACHE v20.** Doc fields added this arc: `tech` {events,status{...,volume}}, `factor_dna` {state,n_universe,axes[{k,label,val,pct,dir}],conviction{rank,score,n_systems,systems,rationale}|null}, P gains px_ma20/50/100/200, px_bb_up/dn, rsi_14, volume_w, vol_ma20 (TA/vol keys are toggle-only, NOT in catalog — catalog-parity is catalog⊆engine).
+
+**Layer map (all PASS-gated):**
+- 3482–85 impliedG/NBER/whales · 3486–88 pairs ratio (FGChart.ratio) · 3489 fleet event markers (congress ◆ / insider ▲▼) · 3490–92 macro via wl-series bridge (ISO-WEEK wk2d) + module parity + shared FG_* promotion · 3493–94 SECMED p50 + vs-Sector UI · 3495–97 verdict layer (26 rules N/T/S, FIN suppression, six-suite battery) · 3498 ELITE (ELITE_NORM 18 + sector top-decile via bands p10/p90 v2) · 3499 controls+semantics (👁 hide/✕, red=sev3 flash, yellow=warn, green=elite, EXTREME flash; EXTREME_NORM 8) · 3500–01 TA (daily-bar SMA/BB/RSI-Wilder/crosses/GC-DC/dbl-patterns; compute AFTER P assembly line ~798) · 3502–03 volume (continuity ≥95%/3y else named dormancy; weekly SUM reconciled EXACT to the share ISO-wk 2026-27 = 257,092,060; RVOL; VOL_SPIKE ≥2.5×; core v10 bars primitive) + eye-fix + macro dropdowns (loadMacro rollback) + auto tech markers (200/GC/DC/confirmed-DBL always-on) · 3504 module parity (hide+ghost, Table, CSV pure builder, PNG) · 3505–06 full-spectrum verdicts (tech-basis rules px_vs_200/ma_stack/ma_regime-dated/dbl/rsi≥80/rvol≥3; ROE/ROA/DIO; **tech cap-exempt** — fundamentals capped 14/12, tech appended) + module three-card block (green/red/digest ●, single data-vk emitter) · 3507–11 Tier-3 (nightly medians — pulled out of Monday gate; factor-DNA radar on the 496-name FORENSIC universe with goodness-flip FACTOR_LOW {beneish,sloan,pe,peg,concern_score}, master-ranker = conviction chip only (top_tickers is a 25-name conviction list, NOT a factor panel); DuPont SIGNED log-contribution stacks around a zero axis summing exactly to log ROE, both surfaces).
+
+**Flagship v3.2 URL params:** s,m,p,r,mo,px,lg,e,ev,mk,rt,mx,ta,sc,h + S.dup. Buttons: DuPont/TA/vs-Sector/📍/Ratio/Table/Earnings/Events; mxsel dropdown + mxchips; #fgRadar #fgDup #fgTech #fgFlags. Module ids: jhfgMxSel/data-mxrm, jhfgTa/jhfgTaStrip, jhfgDup/jhfgDupBox, jhfgTbl2/Csv2/Png2, data-eye/data-unhide (jh_fgwhy_hidden), jhfgVerd cards + digest data-fk, jhfgRadar.
+
+**Harness v13 = 37 behaviors, exit-code enforced** (repro2.js; microband2.js core 9 suites incl pxAux shared-scale + bars). Fixture DOC carries tech/status.volume/factor_dna.conviction/flags×2.
+
+**Gotchas 13–24 (append to 1–12):**
+13. python open('w') truncates BEFORE encode errors — safe_write (encode→tmp→os.replace) always; emoji in page patches as \\uXXXX doubled.
+14. assert-every-replace applies to HARNESS edits too.
+15. Engine helper call-sites use REAL var names (profile not prof) — grep before wiring.
+16. P initialized ~line 798 — P-writing blocks sit AFTER assembly (3500 NameError caught live).
+17. Synthetic TA fixtures: exact ties never seed cross prev-sign; duplicate peak values kill unique-pivot; ramp must stop short of the peak.
+18. bull_stack strict > — flat synthetics fail correctly.
+19. Flagship metric chips: template attrs MUST close ("style=..." quote) and the generic '.x' binder was scoped to [data-m] — new chip controls need their own data-attrs or the last onclick wins.
+20. mxPop died because shared-promotion renamed its source; ANY popover → dropdown rewrite must call the real loader (loadMacro/loadMacro2) with unavailable-rollback.
+21. Verdict caps evict low-sev entries — regime/state verdicts must be cap-exempt (3506).
+22. DuPont: log(NM/100)<0 always for NM<100% — only SIGNED log stacks are mathematically true.
+23. master-ranker top_tickers = 25 conviction rows {ticker,score,n_systems,systems,contributions,rationale} — join as overlay, never as a percentile universe. Forensic all_results rows carry piotroski/altman_z/beneish_m/sloan/fcf_yield/pe_ttm/peg/strength_score/concern_score(+ HIGH=BAD → FACTOR_LOW).
+24. Harness mk(base,NEG) second arg NEGATES; jsdom shim must not clobber page window.__ops (use __lastOpts); final PASS line must exit on the FULL aggregate.
+
+**Equity-FTD queue note (#5):** ignition already owns the SEC CNS fetch (`load_ftd()`: cnsfails{YYYYMM}{a|b}.zip, pipe cols date|CUSIP|SYMBOL|QTY|desc|price, half-month per-symbol sums + chg ratio) — the family build EXTENDS this (per-day rows, $-value, days-to-cover via FMP volume, schema-v2 signals + grading), never re-fetches from scratch.
