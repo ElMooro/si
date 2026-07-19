@@ -1,26 +1,36 @@
-executing-against: b09d1fd173bef568c6f1286a154dddb6f40624f5
-[20:08:40]   zip: 84135 bytes
+executing-against: bf957427545f841bbe0d4c58b35c5b3356e3b468
+ops 3535 — 22 boards + turnarounds
+[census] board operating_margin_pct skipped — coverage 0
+[census] board net_margin_pct skipped — coverage 0
+[census] board ebitda_margin_pct skipped — coverage 0
+[census] board fcf_margin_pct skipped — coverage 0
+[census] board fcf_yield_pct skipped — coverage 0
+[census] board roe_pct skipped — coverage 0
+[census] board roa_pct skipped — coverage 0
+[census] board roic_pct skipped — coverage 0
+[census] board revenue_yoy_pct skipped — coverage 0
+[census] board eps_yoy_pct skipped — coverage 0
+[census] board fcf_yoy_pct skipped — coverage 0
+[census] board interest_coverage_ttm skipped — coverage 0
+[census] board current_ratio skipped — coverage 0
+[census] board piotroski skipped — coverage 0
+[census] board altman_z skipped — coverage 0
+[census] board shareholder_yield_pct skipped — coverage 0
+[census] board buyback_yield_pct skipped — coverage 0
+[census] board debt_to_equity skipped — coverage 0
+[census] board dio_days skipped — coverage 0
+[census] board sbc_to_revenue_pct skipped — coverage 0
+[census] board share_count_yoy_pct skipped — coverage 0
+PASS  J1_ci — {'turn_top': 99.8, 'crash': 0.2}
+[20:49:48] PASS  J1_ci — {'turn_top': 99.8, 'crash': 0.2}
+[20:49:48]   zip: 85295 bytes
 ── 1. Lambda ──
-[20:08:40]   Lambda exists — updating
-[20:08:45] ✅   ✓ updated justhodl-fundamental-census
-PASS  H1_deploy — v1.2.0 live
-[20:08:47] PASS  H1_deploy — v1.2.0 live
-[3534] universe=496 cached=196 missing=300
-[20:08:47] missing=300
-[3534] progress 6/300 ok=1 err=0 t=31s
-[3534] progress 36/300 ok=6 err=0 t=169s
-[3534] progress 66/300 ok=11 err=0 t=311s
-[3534] progress 96/300 ok=16 err=0 t=473s
-[3534] progress 126/300 ok=21 err=0 t=623s
-[3534] progress 156/300 ok=26 err=0 t=780s
-[3534] progress 186/300 ok=31 err=0 t=921s
-[3534] progress 216/300 ok=36 err=0 t=1064s
-[3534] progress 246/300 ok=41 err=0 t=1200s
-[3534] progress 276/300 ok=46 err=0 t=1341s
-PASS  H2_warmed — {'missing_at_start': 300, 'batches_ok': 50, 'batches_err': 0, 'elapsed_s': 1456}
-[20:33:03] PASS  H2_warmed — {'missing_at_start': 300, 'batches_ok': 50, 'batches_err': 0, 'elapsed_s': 1456}
-PASS  H3_full — {'scored': 496, 'matrix': (496, 191), 'top10': [('APP', 39, 14), ('DECK', 36, 11), ('FIX', 34, 10), ('NEM', 34, 12), ('ADBE', 32, 10), ('INCY', 32, 10), ('ANET', 31, 9), ('FICO', 31, 10), ('NVDA', 31, 13), ('EXPE', 29, 11)], 'careful10': [('SNPS', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 17), ('AES', [], 15), ('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('NCLH', ['DILUTION_HEAVY'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('WY', ['HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('DOW', [], 12)], 'issuers5': [{'t': 'COF', 'v': 62.34}, {'t': 'A
-[20:34:17] PASS  H3_full — {'scored': 496, 'matrix': (496, 191), 'top10': [('APP', 39, 14), ('DECK', 36, 11), ('FIX', 34, 10), ('NEM', 34, 12), ('ADBE', 32, 10), ('INCY', 32, 10), ('ANET', 31, 9), ('FICO', 31, 10), ('NVDA', 31, 13), ('EXPE', 29, 11)], 'careful10': [('SNPS', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 17), ('AES', [], 15), ('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('NCLH', ['DILUTION_HEAVY'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('WY', ['HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('DOW', [], 12)], 'issuers5': [{'t': 'COF', 'v': 62.34}, {'t': 'A
+[20:49:49]   Lambda exists — updating
+[20:49:52] ✅   ✓ updated justhodl-fundamental-census
+PASS  J2_live — {'n_boards': 21, 'roic_best3': [{'t': 'ABNB', 'v': 2136.341}, {'t': 'IBKR', 'v': 1917.556}, {'t': 'EG', 'v': 855.915}], 'revgrow_best3': [{'t': 'MU', 'v': 166.98}, {'t': 'EXE', 'v': 163.772}, {'t': 'SNDK', 'v': 82.756}], 'sbc_worst3': [{'t': 'CRWD', 'v': 22.394}, {'t': 'DDOG', 'v': 21.33}, {'t': 'AXON', 'v': 21.074}], 'improving5': [('WDC', 93.7, [('EPS growth', 329.2022), ('op margin', 15.947)], 14), ('EQT', 92.3, [('rev growth', 79.2283), ('gross margin', 20.087)], 16), ('MU', 90.2, [('op margin', 27.5085), ('gross margin', 22.7445)], 27), ('NEM', 84.2, [('share count YoY', -29.9612), ('gross margin', 20.0478)], 34), ('LRCX', 83.3
+[20:51:05] PASS  J2_live — {'n_boards': 21, 'roic_best3': [{'t': 'ABNB', 'v': 2136.341}, {'t': 'IBKR', 'v': 1917.556}, {'t': 'EG', 'v': 855.915}], 'revgrow_best3': [{'t': 'MU', 'v': 166.98}, {'t': 'EXE', 'v': 163.772}, {'t': 'SNDK', 'v': 82.756}], 'sbc_worst3': [{'t': 'CRWD', 'v': 22.394}, {'t': 'DDOG', 'v': 21.33}, {'t': 'AXON', 'v': 21.074}], 'improving5': [('WDC', 93.7, [('EPS growth', 329.2022), ('op margin', 15.947)], 14), ('EQT', 92.3, [('rev growth', 79.2283), ('gross margin', 20.087)], 16), ('MU', 90.2, [('op margin', 27.5085), ('gross margin', 22.7445)], 27), ('NEM', 84.2, [('share count YoY', -29.9612), ('gross margin', 20.0478)], 34), ('LRCX', 83.3
+PASS  J3_page — {'node': True}
+[20:52:06] PASS  J3_page — {'node': True}
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3534_universe_complete.md
+→ Report written to aws/ops/reports/latest/3535_turnarounds.md
