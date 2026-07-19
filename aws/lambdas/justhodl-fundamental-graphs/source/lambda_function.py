@@ -1,4 +1,4 @@
-"""justhodl-fundamental-graphs v1.4.0 (ops 3462/3464/3465)
+"""justhodl-fundamental-graphs v1.4.1 (ops 3462/3464/3465)
 MARKER: FUNDGRAPH_V1_OPS3462
 
 TradingView-class "Fundamental Graphs" API for fundamental-graphs.html.
@@ -1035,7 +1035,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.4.0",
+        "version": "1.4.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1152,6 +1152,55 @@ def parse_insider_feeds(buys_doc, sells_doc, sym):
 
 
 _EVFEEDS = {"ts": 0, "cg": None, "ib": None, "isl": None}
+
+
+SECMED_KEY = "data/fundgraph/sector-medians.json"
+SECMED_MAP = [("pe_ttm", "pe_ttm", 1), ("ps_ttm", "ps_ttm", 1),
+              ("peg", "peg_ttm", 1), ("fcf_yield_pct", "fcf_yield_pct", 1),
+              ("gross_margin_pct", "gross_margin_pct", 1),
+              ("op_margin_pct", "operating_margin_pct", 1),
+              ("m_score", "beneish_m", 1),
+              ("sloan_accruals", "sloan_accruals_pct", 100)]
+
+
+def build_sector_medians():
+    """SECMED_OPS3493 — republish sector medians from the sanctioned
+    forensic-screen feed (val_med block + row-computed extras), keyed by
+    fg catalog metric ids. Tiny file, zero new data sources."""
+    try:
+        fs = json.loads(_s3.get_object(
+            Bucket=S3_BUCKET, Key="data/forensic-screen.json")["Body"].read())
+    except Exception:  # noqa: BLE001
+        return None
+    rows = fs.get("all_results") or []
+    val_med = fs.get("sector_valuation_medians") or {}
+    sectors = {}
+    for sec, mm in val_med.items():
+        for src, fg2, mult in SECMED_MAP[:4]:
+            v = mm.get(src)
+            if v is not None:
+                sectors.setdefault(sec, {})[fg2] = rnd(v * mult, 4)
+    grp = {}
+    for r in rows:
+        sec = r.get("sector") or "Unknown"
+        for src, fg2, mult in SECMED_MAP[4:]:
+            v = r.get(src)
+            if v is not None:
+                grp.setdefault((sec, fg2), []).append(v * mult)
+    for (sec, fg2), vals in grp.items():
+        if len(vals) >= 5:
+            vv = sorted(vals)
+            sectors.setdefault(sec, {})[fg2] = rnd(vv[len(vv) // 2], 4)
+    doc = {"as_of": datetime.now(timezone.utc).isoformat(),
+           "source": "forensic-screen (S&P 500 cross-section)",
+           "n_sectors": len(sectors),
+           "keys": sorted({k for m2 in sectors.values() for k in m2}),
+           "sectors": sectors}
+    _s3.put_object(Bucket=S3_BUCKET, Key=SECMED_KEY,
+                   Body=json.dumps(doc, separators=(",", ":")).encode(),
+                   ContentType="application/json",
+                   CacheControl="public, max-age=3600")
+    return doc
 
 
 def fleet_events(sym):
@@ -1434,7 +1483,13 @@ def lambda_handler(event, context):  # noqa: ARG001
                            if _valid_symbol(s2)]))[:60]
         annual_too = datetime.now(timezone.utc).weekday() == 0
         symdir_n = None
+        secmed_n = None
         if annual_too:
+            try:
+                sm = build_sector_medians()
+                secmed_n = sm["n_sectors"] if sm else -1
+            except Exception:  # noqa: BLE001
+                secmed_n = -1
             try:
                 symdir_n = len(load_symdir(force=True))
             except Exception:  # noqa: BLE001
@@ -1458,10 +1513,10 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.4.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.4.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
-                "annual_pass": annual_too, "symdir_n": symdir_n, "errors": errors,
+                "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
                 "skipped_for_time": skipped,
                 "elapsed_s": round(time.time() - t0, 1)}
 
@@ -1482,7 +1537,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.4.0"}
+                "version": "1.4.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1498,10 +1553,17 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.4.0"}, headers_in)
+                               "version": "1.4.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
+
+    if str(qp.get("secmed") or "") == "1" or (
+            isinstance(event, dict) and event.get("sector_medians")):
+        d = build_sector_medians()
+        return _resp(200 if d else 502,
+                     d or {"ok": False, "error": "forensic feed unavailable"},
+                     headers_in)
 
     srch = (qp.get("search") or "").strip()
     if srch:

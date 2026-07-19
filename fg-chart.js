@@ -1,4 +1,4 @@
-/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
+/* FG_CHART_OPS3477 + OPS3478 + OPS3481 + OPS3482 + OPS3486 + OPS3489 + OPS3490 + OPS3493 (grp-resolved hlines) (per-series own-scale overlays) (FGChart.ratio pairs) (px own-scale, no axis-steal; click-to-place vertical markers) — shared Fundamental Graphs chart core.
    Single source for the flagship (/fundamental-graphs.html) and the why.html
    embedded module. Extracted from flagship v1.3 draw(); behavior-identical.
 
@@ -135,6 +135,19 @@ function render(svg,tip,list,opts){
     var xx=X(dd);
     svg.appendChild(el('line',{x1:xx,x2:xx,y1:y0,y2:y1,stroke:'#111b2e','stroke-width':1}));
     var t2=el('text',{x:xx,y:y1+16,'text-anchor':'middle',fill:'#64748b','font-size':'10.5'});t2.textContent=yy;svg.appendChild(t2);
+  }
+  /* horizontal reference lines (opts.hlines=[{grp,y,label,color}]) — Values mode,
+     axis resolved from the metric's unit group so callers never guess. */
+  if(opts.hlines&&mode==='val'){
+    opts.hlines.forEach(function(h){
+      var ai=groups.indexOf(h.grp);if(ai!==0&&ai!==1)return;
+      var YH=ai===1?Y1:Y0,yv=YH(h.y);if(yv==null)return;
+      svg.appendChild(el('line',{x1:x0,x2:x1,y1:yv,y2:yv,stroke:h.color||'#64748b',
+        'stroke-dasharray':'3 3','stroke-width':1.2,opacity:.6}));
+      var ht=el('text',{x:x1-4,y:yv-4,'text-anchor':'end',fill:h.color||'#64748b',
+        'font-size':'9.5',opacity:.75});
+      ht.textContent=h.label||'';svg.appendChild(ht);
+    });
   }
   /* own-history percentile band (opts.band = {axis:0|1, lo, hi, mid?, color?}) — Values mode */
   if(opts.band&&mode==='val'){

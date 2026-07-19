@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<!-- fundgraph v1.0 ops3462 · v2.5 ops3492 shared-config+DuPont -->
+<!-- fundgraph v1.0 ops3462 · v2.6 ops3493 vs-sector -->
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fundamental Graphs · JustHodl.AI · Research Terminal</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -67,7 +67,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
   <div class="eyebrow mb-1">JustHodl · Research Terminal</div>
   <h1 class="text-2xl md:text-3xl font-extrabold" style="color:var(--blue)">Fundamental Graphs</h1>
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Institutional fundamentals comparator — up to <b>3 symbols</b> × <b>20 metrics</b> across <b>10+ years</b> from a <b>200+ metric library</b>. Every ratio computed period-true from the raw statements (mcap<sub>t</sub> = close<sub>t</sub> × diluted shares<sub>t</sub>), with Altman&nbsp;Z / Piotroski&nbsp;F / Beneish&nbsp;M derived per period, analyst estimates on the Forecasts tab, and the price tape overlayable on any graph. Real data only.</p>
-  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.5 · ops 3492</div>
+  <div class="text-xs text-[var(--text-muted)] mono mt-1" id="jhBuildStamp">fundgraph v2.6 · ops 3493</div>
 </header>
 
 <section class="max-w-[1280px] mx-auto px-4 pb-12">
@@ -119,6 +119,7 @@ select{background:#0a1120;border:1px solid var(--border-soft);border-radius:9px;
       <button class="btn" id="rtbtn" title="Pairs ratio: chart symA·metric ÷ symB·metric">Ratio</button>
       <button class="btn" id="evtbtn" title="Congress trades (◆) + insider Form-4s (▲▼) on the tape — single symbol">Events</button>
       <button class="btn" id="mxbtn" title="Macro overlays via the wl-series bridge (own-scale)">Macro</button>
+      <button class="btn" id="secbtn" title="S&amp;P 500 sector medians (dashed p50 lines + Δ chips) — single symbol">vs Sector</button>
       <span class="note" id="mixnote"></span>
     </div>
   </div>
@@ -186,7 +187,7 @@ const saveMetc=()=>localStorage.setItem('jh_fg_metc',JSON.stringify(METC));
 const colorOf=mk=>METC[mk]||PAL[Math.max(0,S.mets.indexOf(mk))%PAL.length];
 
 /* ───────────────────────── state ───────────────────────── */
-const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,marks:[],ratios:[],macro:[]};
+const S={syms:[],mets:[],per:'quarter',rng:10,mode:'val',px:false,mixOk:false,log:false,ern:false,evt:false,sec:false,marks:[],ratios:[],macro:[]};
 const MAXR=6;
 function readURL(){
   const q=new URLSearchParams(location.search);
@@ -195,7 +196,7 @@ function readURL(){
   if(q.get('p'))S.per={q:'quarter',a:'annual',ttm:'ttm'}[q.get('p')]||'quarter';
   if(q.get('r'))S.rng=+q.get('r')||10;
   if(q.get('mo'))S.mode=['val','pct','yoy'].includes(q.get('mo'))?q.get('mo'):'val';
-  S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';S.evt=q.get('ev')==='1';
+  S.px=q.get('px')==='1';S.log=q.get('lg')==='1';S.ern=q.get('e')==='1';S.evt=q.get('ev')==='1';S.sec=q.get('sc')==='1';
   if(q.get('mx'))S.macro=q.get('mx').split(',').filter(k=>MACROS.some(m2=>m2.k===k)).slice(0,3);
   if(q.get('mk'))S.marks=q.get('mk').split(',').filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d));
   if(q.get('rt'))S.ratios=q.get('rt').split(',').map(t=>{const p=t.split('~');return {a:{s:(p[0]||'').toUpperCase(),m:p[1]},b:{s:(p[2]||'').toUpperCase(),m:p[3]}};}).filter(r=>CATIDX[r.a.m]&&CATIDX[r.b.m]).slice(0,MAXR);
@@ -206,7 +207,7 @@ function writeURL(){
   const q=new URLSearchParams();
   q.set('s',S.syms.join(','));q.set('m',S.mets.join(','));
   q.set('p',{quarter:'q',annual:'a',ttm:'ttm'}[S.per]);q.set('r',S.rng);q.set('mo',S.mode);
-  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.macro.length)q.set('mx',S.macro.join(','));if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
+  if(S.px)q.set('px','1');if(S.log)q.set('lg','1');if(S.ern)q.set('e','1');if(S.evt)q.set('ev','1');if(S.sec)q.set('sc','1');if(S.macro.length)q.set('mx',S.macro.join(','));if(S.marks.length)q.set('mk',S.marks.join(','));else q.delete('mk');if(S.ratios.length)q.set('rt',S.ratios.map(r=>[r.a.s,r.a.m,r.b.s,r.b.m].join('~')).join(','));
   history.replaceState(null,'', location.pathname+'?'+q.toString());
 }
 
@@ -231,7 +232,7 @@ async function ensureData(){
   const res=await Promise.allSettled(S.syms.map(loadSym));
   const bad=res.map((r,i)=>r.status==='rejected'?S.syms[i]+': '+(r.reason&&r.reason.message||'failed'):null).filter(Boolean);
   if(bad.length)toast(bad.join(' · '));
-  stamp('fundgraph v2.5 · ops 3492 · '+new Date().toLocaleString(),false);
+  stamp('fundgraph v2.6 · ops 3493 · '+new Date().toLocaleString(),false);
 }
 
 /* ───────────────────────── transforms ───────────────────────── */
@@ -291,6 +292,13 @@ const WLAPI=window.FG_WLAPI;
 const MACROS=window.FG_MACROS||[];
 const wk2d=window.FG_wk2d;
 const MPAL=['#94a3b8','#cbd5e1','#e2e8f0'];
+let SECMED=null;
+async function ensureSecmed(){if(SECMED!==null)return;
+  try{const r=await fetch(PX+'data/fundgraph/sector-medians.json?ts='+Math.floor(Date.now()/36e5));
+    SECMED=r.ok?await r.json():false;}catch(e){SECMED=false;}}
+function secMedFor(mk){if(!SECMED||!S.sec||S.syms.length!==1)return null;
+  const doc=DCACHE[S.syms[0]+'_'+basePer()];const sec=doc&&doc.profile&&doc.profile.sector;
+  const m2=sec&&SECMED.sectors&&SECMED.sectors[sec];return m2&&m2[mk]!=null?{sec,v:m2[mk]}:null;}
 const MCACHE={};
 async function loadMacro(k){
   if(MCACHE[k]!==undefined)return MCACHE[k];
@@ -401,8 +409,19 @@ function draw(){
     if(S.ern)ern=(d0&&d0.earnings)||null;
     if(S.evt)evt=(d0&&d0.events)||null;}
   document.getElementById('evtbtn').classList.toggle('on',S.evt);
+  document.getElementById('secbtn').classList.toggle('on',S.sec);
+  let hlines=null;
+  if(S.sec&&S.mode==='val'&&S.syms.length===1){
+    hlines=[];const seen={};
+    S.mets.forEach(mk=>{const sm=secMedFor(mk);const m2=CATIDX[mk];
+      if(sm&&m2&&!seen[mk]){seen[mk]=1;
+        hlines.push({grp:FGChart.grp(m2.u),y:sm.v,color:'#64748b',
+          label:'sector p50 · '+m2.label.split(' ')[0]+' '+fmt(sm.v,m2.u)});}});
+    if(!hlines.length)hlines=null;
+  }
+
   const mkb=document.getElementById('mkclr');mkb.style.display=S.marks.length?'':'none';
-  const r=FGChart.render(svg,tip,list,{mode:S.mode,log:S.log,mixOk:S.mixOk,band,earnings:ern,events:evt,
+  const r=FGChart.render(svg,tip,list,{mode:S.mode,log:S.log,mixOk:S.mixOk,band,earnings:ern,events:evt,hlines,
     marks:S.marks,
     onMark:d=>{if(!S.marks.includes(d)){S.marks.push(d);S.marks.sort();saveMarks();draw();toast('Marker @ '+d+' — click its \u2715 to remove');}},
     onUnmark:d=>{S.marks=S.marks.filter(x=>x!==d);saveMarks();draw();}});
@@ -461,6 +480,10 @@ function renderChips(){
           const savedMode=S.mode;S.mode='val';latest=fmt(lastV,m.u);S.mode=savedMode;
           if(base&&base[1]>0){const d=(lastV/base[1]-1)*100;
             delta=`<span class="delta" style="color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?'+':''}${d.toFixed(1)}%</span>`;}
+          const sm=secMedFor(mk);
+          if(sm&&lastV!=null&&sm.v){const dd=((lastV/sm.v)-1)*100;
+            const better=LOWER_BETTER.has(mk)?dd<0:dd>0;
+            delta+=` <span class="u" title="vs ${esc(sm.sec)} S&P-500 median" style="border-color:#22304a;color:${better?'var(--green)':'var(--red)'}">sec ${dd>=0?'+':''}${dd.toFixed(0)}%</span>`;}
           const stt=seriesStats(series(doc,mk));
           if(stt)delta+=` <span class="u" title="percentile of own 10y history · z-score" style="border-color:#22304a;color:#94a3b8">p${stt.pct}·z${stt.z>=0?'+':''}${stt.z.toFixed(1)}</span>`;
         }else latest='—';
@@ -760,6 +783,7 @@ function rtPop(){
 document.getElementById('rtbtn').onclick=rtPop;
 document.getElementById('mxbtn').onclick=mxPop;
 document.getElementById('mkclr').onclick=()=>{S.marks=[];saveMarks();draw();};
+document.getElementById('secbtn').onclick=async()=>{S.sec=!S.sec;if(S.sec){await ensureSecmed();if(S.syms.length>1)toast('Sector medians show for a single symbol');}draw();};
 document.getElementById('evtbtn').onclick=()=>{S.evt=!S.evt;if(S.evt&&S.syms.length>1)toast('Events layer shows for a single symbol');draw();};
 document.getElementById('ernbtn').onclick=()=>{S.ern=!S.ern;if(S.ern&&S.syms.length>1)toast('Earnings layer shows for a single symbol');draw();};
 document.getElementById('csvbtn').onclick=fgExportCSV;
