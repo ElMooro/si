@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/feed-registry.json"
 WEEKLY_HINTS = ("13f", "weekly", "cot", "clone", "playbook", "wl-", "brain",
@@ -29,6 +29,12 @@ def lambda_handler(event, context):
             Key="config/feed-retired.json")["Body"].read()).get("retired") or [])
     except Exception:
         retired = set()
+    try:  # census #10 (ops 3519): explicit per-feed SLA overrides
+        SLA_OVERRIDES = {k: v for k, v in json.loads(s3.get_object(
+            Bucket=S3_BUCKET, Key="config/feed-sla.json")["Body"].read())
+            .items() if isinstance(v, (int, float))}
+    except Exception:
+        SLA_OVERRIDES = {}
     rows, token = [], None
     while True:
         kw = {"Bucket": S3_BUCKET, "Prefix": "data/", "MaxKeys": 1000}
@@ -42,8 +48,10 @@ def lambda_handler(event, context):
             if k.count("/") > 1:   # top-level feeds only — no subdir archives
                 continue
             age_h = round((now - o["LastModified"]).total_seconds() / 3600, 1)
-            sla = 24 * 8 if any(h in k for h in WEEKLY_HINTS) else 48
+            _ov = SLA_OVERRIDES.get(k)
+            sla = _ov if _ov else (24 * 8 if any(h in k for h in WEEKLY_HINTS) else 48)
             rows.append({"key": k, "age_h": age_h, "sla_h": sla,
+                         "sla_source": "explicit" if _ov else "heuristic",
                          "size": o["Size"],
                          "retired": k in retired,
                          "stale": (age_h > sla) and k not in retired})

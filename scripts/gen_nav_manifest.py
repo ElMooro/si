@@ -47,6 +47,7 @@ def title_of(p):
 
 
 FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
+    "/proven-alpha.html": "Portfolio & Execution",     # ops 3519
     "/alpha-families.html": "Portfolio & Execution",   # ops 3459
     "/proven-portfolio.html": "Portfolio & Execution",  # ops 3459
     "/short-book.html": "Portfolio & Execution",        # ops 3459

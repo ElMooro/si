@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proven Alpha Report — JustHodl.AI</title>
+<style>
+:root{--bg:#070d18;--card:#0b1322;--border:#1c2a42;--text:#c9d4e5;--text-muted:#5d6b82;--blue:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1160px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:1.25rem;margin:6px 0 2px}.sub{color:var(--text-muted);font-size:.78rem}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.tile b{font-size:1.35rem;display:block}.tile span{color:var(--text-muted);font-size:.68rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+table{border-collapse:collapse;width:100%;font-size:.76rem}
+th{color:var(--text-muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-weight:600}
+td{padding:6px 8px;border-bottom:1px solid #101c31;font-family:var(--mono)}
+tr:hover td{background:#0d1730}
+.chip{border-radius:7px;padding:2px 8px;font-size:.64rem;font-weight:700}
+.v-PROVEN{color:var(--green);border:1px solid #34d39966}
+.v-EVALUATING{color:var(--blue);border:1px solid #22d3ee55}
+.v-PENDING{color:var(--amber);border:1px solid #fbbf2455}
+.v-SUPPRESSED{color:var(--text-muted);border:1px solid #33415566;text-decoration:line-through}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.meth{color:var(--text-muted);font-size:.68rem;line-height:1.6;margin-top:8px}
+#stamp{color:var(--text-muted);font-size:.66rem;font-family:var(--mono)}
+.callout{border:1px solid #fbbf2455;background:#161104;border-radius:10px;padding:8px 12px;font-size:.72rem;margin:10px 0}
+</style></head><body><div class="wrap">
+<h1>🏆 Proven Alpha Report</h1>
+<div class="sub">Every signal family the platform emits, judged only by its <b>graded outcomes</b> in the fleet signals table — hit rates and excess vs benchmark from checker-v3, never from claims. PROVEN = n≥10 graded and ≥60% hit on the primary window.</div>
+<div id="stamp">loading…</div>
+<div class="tiles" id="tiles"></div>
+<div id="callout"></div>
+<div class="card"><table id="tbl"><tr><th>Family</th><th>Verdict</th><th>Graded</th><th>Hit @primary</th><th>Avg excess</th><th>hit@21</th><th>hit@63</th><th>Pending</th><th>First → Last</th></tr></table>
+<div class="meth">Suppressed families are silenced fleet-wide at emission by alpha-triage (their rows remain for the record). Inverted sources (†) feed <span style="font-family:var(--mono)">inv:*</span> mirror families graded forward out-of-sample. Excess is vs each signal's own benchmark (bps). This report regenerates daily at 22:40 UTC after the graders.</div></div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+'use strict';
+const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
+const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const bps=v=>v==null?'—':`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${(+v).toFixed(0)}bps</span>`;
+const pct=v=>v==null?'—':(+v).toFixed(1)+'%';
+fetch(PX+'data/proven-alpha.json?ts='+Date.now()).then(r=>r.json()).then(D=>{
+  const S=D.summary||{};
+  document.getElementById('stamp').textContent='generated '+String(D.generated_at||'').slice(0,19).replace('T',' ')+' UTC · '+(D.n_rows_scanned||0)+' signal rows scanned';
+  document.getElementById('tiles').innerHTML=[
+    ['Families',S.n_families],['⭐ PROVEN',S.n_proven],['Evaluating',S.n_evaluating],
+    ['Pending',S.n_pending],['Graded signals',S.n_graded_signals],['In flight',S.n_pending_signals]
+  ].map(([l,v])=>`<div class="tile"><b>${v==null?'—':v}</b><span>${l}</span></div>`).join('');
+  const pend=(D.families||[]).filter(f=>f.verdict==='PENDING'&&f.first_grades_eta);
+  if(pend.length)document.getElementById('callout').innerHTML=`<div class="callout">⏳ ${pend.map(f=>`<b>${esc(f.family)}</b> — ${f.pending} signals in flight, first grades ~${esc(f.first_grades_eta)}`).join(' · ')}</div>`;
+  const t=document.getElementById('tbl');
+  (D.families||[]).forEach(f=>{
+    const w=f.windows||{},h21=(w.day_21||{}).hit,h63=(w.day_63||{}).hit;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b style="color:var(--blue)">${esc(f.family)}</b>${f.inverted_source?' <span title="inverted source — inv: mirror graded forward">†</span>':''}</td>
+      <td><span class="chip v-${f.verdict}">${f.verdict}</span></td>
+      <td>${f.graded||0}</td><td>${pct(f.hit_primary)}${f.primary_window?` <span style="color:var(--text-muted)">${esc(String(f.primary_window).replace('day_','d'))}</span>`:''}</td>
+      <td>${bps(f.avg_excess_bps)}</td><td>${pct(h21)}</td><td>${pct(h63)}</td>
+      <td>${f.pending||0}</td><td style="color:var(--text-muted)">${esc(f.first||'—')} → ${esc(f.last||'—')}</td>`;
+    t.appendChild(tr);});
+}).catch(e=>{document.getElementById('stamp').textContent='feed error: '+e.message;});
+</script></div></body></html>
