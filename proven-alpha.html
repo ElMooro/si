@@ -58,4 +58,5 @@ fetch(PX+'data/proven-alpha.json?ts='+Date.now()).then(r=>r.json()).then(D=>{
       <td>${f.pending||0}</td><td style="color:var(--text-muted)">${esc(f.first||'—')} → ${esc(f.last||'—')}</td>`;
     t.appendChild(tr);});
 }).catch(e=>{document.getElementById('stamp').textContent='feed error: '+e.message;});
-</script></div></body></html>
+</script></div><script src="/jh-enhance.js" data-feed="data/proven-alpha.json" data-bars="families:family:graded" data-title="Most-graded families (n)" data-max="20"></script>
+</body></html>

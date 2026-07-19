@@ -320,6 +320,7 @@ def lambda_handler(event, context):
             else "PROVISIONAL" if types else "WAITING")
     signals = live_signals(types) if types else []
     book = compose(signals, rj("data/sizing.json"))
+    _n_raw = len(book or [])
     book, _guard_counters = sanitize_positions(book)
 
     # marks (book + carry-over tickers + SPY)
@@ -411,7 +412,8 @@ def lambda_handler(event, context):
                                             if v.get("stale")),
                              "n_missing": sum(1 for v in HYG.values()
                                               if not v["present"]),
-                             "output_guard": _guard_counters},
+                             "output_guard": _guard_counters,
+                             "n_raw_positions": _n_raw},
            "elapsed_s": round(time.time() - t0, 2),
            "mode": mode,
            "regime": {"gross_scale": gross_scale, "notes": regime_note,
