@@ -1,0 +1,18 @@
+{
+  "ops": 3487,
+  "gates": {
+    "T1_ratio_micro": {
+      "ok": true,
+      "detail": "{\"t1\":true,\"t2\":true,\"R\":[[\"2024-01-15\",5],[\"2024-04-15\",5],[\"2024-07-15\",6]]}\n"
+    },
+    "T2_served_core": {
+      "ok": false,
+      "detail": "{'node_ok': [True, True, True, True]}"
+    },
+    "T3_flagship_v21": {
+      "ok": false,
+      "detail": "{'ops3487': False, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}"
+    }
+  },
+  "status": "FAILS: ['T2_served_core', 'T3_flagship_v21']"
+}

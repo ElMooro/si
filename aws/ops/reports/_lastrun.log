@@ -1,26 +1,14 @@
-executing-against: 2a3ce2819a9b40be4d3493c34794ef55ebe45e17
-ops 3486 — pairs ratio builder
-FAIL  T1_ratio_micro — /tmp/tmpqbp8y40s.js:272
-  var R=FGChart.ratio(A,B);
-        ^
+executing-against: 2e4f2e955b7197b4d575289854f0bb18439195e3
+ops 3487 — pairs ratio builder
+PASS  T1_ratio_micro — {"t1":true,"t2":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
 
-ReferenceError: FGChart is not defined
-    at /tmp/tmpqbp8y40s.js:272:9
-    at Object.<anonymous> (/tmp/tmpqbp8y40s.js:277:3)
-    at Module._compile (node:in
-[23:54:45] FAIL  T1_ratio_micro — /tmp/tmpqbp8y40s.js:272
-  var R=FGChart.ratio(A,B);
-        ^
+[23:58:39] PASS  T1_ratio_micro — {"t1":true,"t2":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
 
-ReferenceError: FGChart is not defined
-    at /tmp/tmpqbp8y40s.js:272:9
-    at Object.<anonymous> (/tmp/tmpqbp8y40s.js:277:3)
-    at Module._compile (node:in
-PASS  T2_served_core — {'node_ok': [True, True, True, True]}
-[23:57:08] PASS  T2_served_core — {'node_ok': [True, True, True, True]}
-PASS  T3_flagship_v21 — {'ops3486': True, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
-[23:57:08] PASS  T3_flagship_v21 — {'ops3486': True, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
-RESULT: FAILS: ['T1_ratio_micro']
-RESULT: FAILS: ['T1_ratio_micro']
+FAIL  T2_served_core — {'node_ok': [True, True, True, True]}
+[00:04:43] FAIL  T2_served_core — {'node_ok': [True, True, True, True]}
+FAIL  T3_flagship_v21 — {'ops3487': False, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
+[00:04:43] FAIL  T3_flagship_v21 — {'ops3487': False, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
+RESULT: FAILS: ['T2_served_core', 'T3_flagship_v21']
+RESULT: FAILS: ['T2_served_core', 'T3_flagship_v21']
 
-→ Report written to aws/ops/reports/latest/3486_pairs_ratio.md
+→ Report written to aws/ops/reports/latest/3487_ratio_regate.md
