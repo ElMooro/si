@@ -28,9 +28,11 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
+MATRIX_KEY = "data/fundamental-census-matrix.json"
+MX_EXCLUDE_PRE = ("px_", "rsi_", "vol", "est_")
 HIST_KEY = "data/fundamental-census-history.json"
 CACHE_TPL = "data/fundgraph/cache/{sym}_quarter_v21.json"
 FG_FN = "justhodl-fundamental-graphs"
@@ -124,7 +126,7 @@ def extract(doc, sector):
             "top_elites": [v["k"] for v in elites[:3]],
             "red3": red3[:4], "flags": flags,
             "flag_w": flag_w, "dilution_yoy": dil,
-            "metrics": met,
+            "metrics": met, "_P": P,
             "vintage_days": doc.get("vintage_days")}
 
 
@@ -191,6 +193,35 @@ def build_census(rows_by_t, uni):
     }
 
 
+def build_matrix(rows_by_t, uni):
+    """Columnar latest-value matrix over EVERY fundamentals metric
+    present in >=50%% of scored docs (tech/price/estimate keys
+    excluded) — the explorer's sorting substrate. rows_by_t entries
+    carry _P (full points) attached by the aggregate loop."""
+    scored = [u["t"] for u in uni if u["t"] in rows_by_t]
+    sectors = [rows_by_t[t]["sector"] for t in scored]
+    counts = {}
+    latest = {}
+    for t in scored:
+        P = rows_by_t[t].get("_P") or {}
+        lv = {}
+        for k, ser in P.items():
+            if any(k.startswith(pre) for pre in MX_EXCLUDE_PRE):
+                continue
+            v = last_val(P, k)
+            if v is not None:
+                lv[k] = rnd(v, 4)
+                counts[k] = counts.get(k, 0) + 1
+        latest[t] = lv
+    n = max(1, len(scored))
+    keys = sorted([k for k, c in counts.items() if c >= 0.5 * n])[:240]
+    cols = {k: [latest[t].get(k) for t in scored] for k in keys}
+    return {"generated_at": datetime.now(timezone.utc).isoformat(),
+            "n_tickers": len(scored), "n_metrics": len(keys),
+            "tickers": scored, "sectors": sectors,
+            "metrics": keys, "cols": cols}
+
+
 def lambda_handler(event, context):
     event = event or {}
     phase = event.get("phase") or "aggregate"
@@ -228,6 +259,12 @@ def lambda_handler(event, context):
         except Exception:  # noqa: BLE001
             continue
     census = build_census(rows_by_t, uni)
+    matrix = build_matrix(rows_by_t, uni)
+    S3.put_object(Bucket=BUCKET, Key=MATRIX_KEY,
+                  Body=json.dumps(matrix, separators=(",", ":"),
+                                  default=str).encode(),
+                  ContentType="application/json",
+                  CacheControl="no-cache")
     doc = {"ok": True, "version": VERSION,
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": rnd(time.time() - t0, 1),
