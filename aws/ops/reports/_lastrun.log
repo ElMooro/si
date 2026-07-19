@@ -1,123 +1,19 @@
-executing-against: 98224db85aed0066ef02662525732038366250b8
+executing-against: 6f19b9a6dd99b1c8b964568ff93972e9a319c1ba
 ops 3529 — Metric Explorer + matrix
-PASS  D1_matrix_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct', 'only_a']}
-[19:23:30] PASS  D1_matrix_ci — {'metrics': ['debt_to_equity', 'gross_margin_pct', 'only_a']}
-[19:23:30]   zip: 83900 bytes
+FAIL  D1_matrix_ci — {'metrics': []}
+[19:32:13] FAIL  D1_matrix_ci — {'metrics': []}
+[19:32:13]   zip: 83892 bytes
 ── 1. Lambda ──
-[19:23:30]   Lambda exists — updating
-[19:23:36] ✅   ✓ updated justhodl-fundamental-census
+[19:32:13]   Lambda exists — updating
+[19:32:18] ✅   ✓ updated justhodl-fundamental-census
+FAIL  D2_matrix_live — {'n_tickers': 196, 'n_metrics': 191, 'aapl_gm': (47.862, 47.862), 'sample_metrics': ['accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'asset_turnover_ttm', 'beneish_m', 'book_value_ps', 'buyback_yield_pct']}
+[19:33:01] FAIL  D2_matrix_live — {'n_tickers': 196, 'n_metrics': 191, 'aapl_gm': (47.862, 47.862), 'sample_metrics': ['accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'asset_turnover_ttm', 'beneish_m', 'book_value_ps', 'buyback_yield_pct']}
+FAIL  D3_full_boards — {'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'avg': 9.2, 'flagged': 74, 'issuers': [{'t': 'COF', 'v
+[19:33:01] FAIL  D3_full_boards — {'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'avg': 9.2, 'flagged': 74, 'issuers': [{'t': 'COF', 'v
+PASS  D4_page — {'node': True}
+[19:33:01] PASS  D4_page — {'node': True}
+PASS  D5_fb_contract — {'n_revenue': 163, 'oldest': '1985-09-30'}
+[19:33:03] PASS  D5_fb_contract — {'n_revenue': 163, 'oldest': '1985-09-30'}
+RESULT: FAILS: ['D1_matrix_ci', 'D2_matrix_live', 'D3_full_boards']
 
-→ Report written to aws/ops/reports/latest/3529_explorer.md
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 305, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-http.client.RemoteDisconnected: Remote end closed connection without response
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 477, in send
-    urllib_response = conn.urlopen(
-                      ^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 842, in urlopen
-    retries = retries.increment(
-              ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/retry.py", line 473, in increment
-    raise reraise(type(error), error, _stacktrace)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/util/util.py", line 38, in reraise
-    raise value.with_traceback(tb)
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 788, in urlopen
-    response = self._make_request(
-               ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connectionpool.py", line 534, in _make_request
-    response = conn.getresponse()
-               ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/urllib3/connection.py", line 571, in getresponse
-    httplib_response = super().getresponse()
-                       ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 1450, in getresponse
-    response.begin()
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 336, in begin
-    version, status, reason = self._read_status()
-                              ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/client.py", line 305, in _read_status
-    raise RemoteDisconnected("Remote end closed connection without"
-urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_3529_explorer.py", line 95, in <module>
-    lam.invoke(FunctionName=FN,
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1076, in _make_api_call
-    http, parsed_response = self._make_request(
-                            ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/client.py", line 1100, in _make_request
-    return self._endpoint.make_request(operation_model, request_dict)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 119, in make_request
-    return self._send_request(request_dict, operation_model)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 200, in _send_request
-    while self._needs_retry(
-          ^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 360, in _needs_retry
-    responses = self._event_emitter.emit(
-                ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 412, in emit
-    return self._emitter.emit(aliased_event_name, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 256, in emit
-    return self._emit(event_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/hooks.py", line 239, in _emit
-    response = handler(**kwargs)
-               ^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 207, in __call__
-    if self._checker(**checker_kwargs):
-       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 284, in __call__
-    should_retry = self._should_retry(
-                   ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 320, in _should_retry
-    return self._checker(attempt_number, response, caught_exception)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 363, in __call__
-    checker_response = checker(
-                       ^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 247, in __call__
-    return self._check_caught_exception(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/retryhandler.py", line 416, in _check_caught_exception
-    raise caught_exception
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 279, in _do_get_response
-    http_response = self._send(request)
-                    ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/endpoint.py", line 383, in _send
-    return self.http_session.send(request)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
-    raise ConnectionClosedError(
-botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-fundamental-census/invocations".
-❌ OPS-FAIL: aws/ops/pending/ops_3529_explorer.py
+→ Report written to aws/ops/reports/latest/3530_explorer.md

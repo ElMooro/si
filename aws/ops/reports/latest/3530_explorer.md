@@ -1,0 +1,17 @@
+# ops 3529 — Metric Explorer + matrix
+
+**Status:** success  
+**Duration:** 49.8s  
+**Finished:** 2026-07-19T19:33:03+00:00  
+
+## Log
+- `19:32:13` FAIL  D1_matrix_ci — {'metrics': []}
+- `19:32:13`   zip: 83892 bytes
+## 1. Lambda
+
+- `19:32:13`   Lambda exists — updating
+- `19:32:18` ✅   ✓ updated justhodl-fundamental-census
+- `19:33:01` FAIL  D2_matrix_live — {'n_tickers': 196, 'n_metrics': 191, 'aapl_gm': (47.862, 47.862), 'sample_metrics': ['accountsPayable', 'acquisitions', 'altman_z', 'altman_z_prime', 'asset_turnover_ttm', 'beneish_m', 'book_value_ps', 'buyback_yield_pct']}
+- `19:33:01` FAIL  D3_full_boards — {'scored': 196, 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'avg': 9.2, 'flagged': 74, 'issuers': [{'t': 'COF', 'v
+- `19:33:01` PASS  D4_page — {'node': True}
+- `19:33:03` PASS  D5_fb_contract — {'n_revenue': 163, 'oldest': '1985-09-30'}
