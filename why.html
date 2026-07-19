@@ -3715,8 +3715,8 @@ function build(){
     '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px">'+vit+'</div>'+
     ((DOC.flags&&DOC.flags.length)?('<div id="jhfgFlags" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+DOC.flags.slice(0,3).map(function(f){var c=f.sev===3?'#f87171':f.sev===2?'#fbbf24':'#64748b';return '<span data-fk="'+esc(f.keys.join(','))+'" title="click to chart the evidence" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.68rem">\u26a0 '+esc(f.msg)+'</span>';}).join('')+'</div>'):'')+
     ((DOC.verdicts&&((DOC.verdicts.greens||[]).length||(DOC.verdicts.reds||[]).length))?(function(){
-      var V=DOC.verdicts,mk2=function(x,g){var c=g?'#34d399':(x.sev===3?'#f87171':x.sev===2?'#fbbf24':'#f87171');
-        return '<span data-vk="'+esc(x.k)+'" title="'+esc(x.basis)+' basis \u00b7 click to chart" style="cursor:pointer;border:1px solid '+c+'55;color:'+c+';border-radius:8px;padding:3px 10px;font-size:.66rem">'+(g?'\u2705':'\ud83d\udea9')+' '+esc(x.why)+(x.sev===3?' <b style="font-size:.56rem">SEV3</b>':'')+'</span>';};
+      var V=DOC.verdicts,mk2=function(x,g){var c=x.elite?'#fbbf24':g?'#34d399':(x.sev===3?'#f87171':x.sev===2?'#fbbf24':'#f87171');
+        return '<span data-vk="'+esc(x.k)+'" title="'+esc(x.basis)+' basis \u00b7 click to chart" style="cursor:pointer;border:1px solid '+c+(x.elite?'aa':'55')+';color:'+c+';border-radius:8px;padding:3px 10px;font-size:.66rem'+(x.elite?';background:#1a1607':'')+'">'+(x.elite?'\u2b50':g?'\u2705':'\ud83d\udea9')+' '+esc(x.why)+(x.elite?' <b style="font-size:.54rem">ELITE</b>':'')+(x.sev===3?' <b style="font-size:.56rem">SEV3</b>':'')+'</span>';};
       var G=(V.greens||[]).slice(0,5),R=(V.reds||[]).slice(0,5);
       return '<div id="jhfgVerd" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px">'+
         G.map(function(x){return mk2(x,1);}).join('')+((V.summary.n_green>5)?'<span style="font-size:.62rem;color:#5d6b82;align-self:center">+'+(V.summary.n_green-5)+' green</span>':'')+

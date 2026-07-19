@@ -45,7 +45,7 @@ FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CACHE_PREFIX = "data/fundgraph/cache/"
-CACHE_VER = "v15"  # v15: + verdict layer (green/red, norm+sector+trend)  # v12: + earnings layer (report dates, beat/miss)
+CACHE_VER = "v16"  # v16: + ELITE tier (astonishing norms + sector top-decile)  # v12: + earnings layer (report dates, beat/miss)
 CACHE_TTL_SEC = int(os.environ.get("CACHE_TTL_SEC", 20 * 3600))
 MAX_Q = 44
 MAX_A = 12
@@ -1025,9 +1025,10 @@ def build_doc(sym, period):
     try:
         flags = derive_flags(P, lb)
         try:
+            _smr = secmed_row((profile or {}).get("sector"))
             verdicts = derive_verdicts(
                 P, lb, (profile or {}).get("sector"),
-                secmed_row((profile or {}).get("sector")))
+                _smr.get("med"), _smr.get("bands"))
         except Exception as _ve:  # noqa: BLE001
             verdicts = {"greens": [], "reds": [],
                         "summary": {"error": str(_ve)[:120]}}
@@ -1042,7 +1043,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.5.1",
+        "version": "1.6.0",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1195,15 +1196,32 @@ def build_sector_medians():
             v = r.get(src)
             if v is not None:
                 grp.setdefault((sec, fg2), []).append(v * mult)
+    bands = {}
     for (sec, fg2), vals in grp.items():
         if len(vals) >= 5:
             vv = sorted(vals)
             sectors.setdefault(sec, {})[fg2] = rnd(vv[len(vv) // 2], 4)
+    # p10/p90 distribution bands (SECMED v2, ops 3498) — computed from
+    # rows for EVERY mapped key so elite-vs-sector has real deciles
+    grp2 = {}
+    for r in rows:
+        sec = r.get("sector") or "Unknown"
+        for src, fg2, mult in SECMED_MAP:
+            v = r.get(src)
+            if v is not None:
+                grp2.setdefault((sec, fg2), []).append(v * mult)
+    for (sec, fg2), vals in grp2.items():
+        if len(vals) >= 10:
+            vv = sorted(vals)
+            n = len(vv)
+            bands.setdefault(sec, {})[fg2] = {
+                "p10": rnd(vv[n // 10], 4),
+                "p90": rnd(vv[(9 * n) // 10], 4), "n": n}
     doc = {"as_of": datetime.now(timezone.utc).isoformat(),
            "source": "forensic-screen (S&P 500 cross-section)",
            "n_sectors": len(sectors),
            "keys": sorted({k for m2 in sectors.values() for k in m2}),
-           "sectors": sectors}
+           "sectors": sectors, "bands": bands}
     _s3.put_object(Bucket=S3_BUCKET, Key=SECMED_KEY,
                    Body=json.dumps(doc, separators=(",", ":")).encode(),
                    ContentType="application/json",
@@ -1301,10 +1319,25 @@ def secmed_row(sector):
         except Exception:  # noqa: BLE001
             _SECMED["doc"] = {}
         _SECMED["ts"] = now
-    return ((_SECMED["doc"] or {}).get("sectors") or {}).get(sector) or {}
+    d = _SECMED["doc"] or {}
+    return {"med": (d.get("sectors") or {}).get(sector) or {},
+            "bands": (d.get("bands") or {}).get(sector) or {}}
 
 
-def derive_verdicts(P, lb, sector, med):
+ELITE_NORM = {"roic_pct": ("H", 30), "gross_margin_pct": ("H", 75),
+              "operating_margin_pct": ("H", 40), "fcf_margin_pct": ("H", 30),
+              "fcf_yield_pct": ("H", 10), "income_quality": ("H", 1.5),
+              "piotroski_f": ("H", 9), "altman_z": ("H", 8),
+              "interest_coverage_ttm": ("H", 50),
+              "revenue_cagr_3y_pct": ("H", 25), "eps_cagr_3y_pct": ("H", 25),
+              "fcf_cagr_3y_pct": ("H", 25),
+              "net_shareholder_yield_pct": ("H", 8),
+              "beneish_m": ("L", -3.0), "sloan_accruals_pct": ("L", 1.0),
+              "netdebt_to_ebitda_ttm": ("L", -1.0),
+              "sbc_to_revenue_pct": ("L", 0.5), "current_ratio": ("H", 3)}
+
+
+def derive_verdicts(P, lb, sector, med, bands=None):
     """VERDICTS_ENGINE_OPS3495 — green/red verdict layer over the doc.
     Pure; NEVER emits a verdict without a numeric value; financial-sector
     rules suppressed per fleet doctrine (list reported)."""
@@ -1314,13 +1347,36 @@ def derive_verdicts(P, lb, sector, med):
         return a[i][1] if 0 <= i < len(a) else None
 
     fin = (sector or "") in VERD_FIN
+    bands = bands or {}
     out, suppressed = [], []
 
     def emit(side, sev, key, label, why, val, ref, basis):
-        out.append({"k": key, "side": side, "sev": sev, "label": label,
-                    "why": why, "val": rnd(val, 3),
-                    "ref": rnd(ref, 3) if ref is not None else None,
-                    "basis": basis})
+        e = {"k": key, "side": side, "sev": sev, "label": label,
+             "why": why, "val": rnd(val, 3),
+             "ref": rnd(ref, 3) if ref is not None else None,
+             "basis": basis}
+        # ELITE upgrade (ops 3498): astonishing-by-norm or sector
+        # top-decile, greens only, real value required
+        if side == "G" and val is not None:
+            en = ELITE_NORM.get(key)
+            if en and ((en[0] == "H" and val >= en[1])
+                       or (en[0] == "L" and val <= en[1])):
+                e["elite"] = True
+                e["why"] += " \u2014 ELITE (%s %.2f)" % (
+                    "\u2265" if en[0] == "H" else "\u2264", en[1])
+            bd = bands.get(key)
+            if not e.get("elite") and bd and bd.get("n", 0) >= 10:
+                dr2 = next((r5[3] for r5 in VERDICT_RULES
+                            if r5[0] == key), "H")
+                if dr2 == "H" and bd.get("p90") is not None \
+                        and val >= bd["p90"]:
+                    e["elite"] = True
+                    e["why"] += " \u2014 ELITE top decile of sector (p90 %.2f)" % bd["p90"]
+                elif dr2 == "L" and bd.get("p10") is not None \
+                        and val <= bd["p10"]:
+                    e["elite"] = True
+                    e["why"] += " \u2014 ELITE top decile of sector (p10 %.2f)" % bd["p10"]
+        out.append(e)
 
     for key, label, kind, dr, gthr, rthr, sg, sr, fsup in VERDICT_RULES:
         if fsup and fin:
@@ -1404,11 +1460,14 @@ def derive_verdicts(P, lb, sector, med):
                      "%s %.2f vs sector %.2f (%+.0f%%)"
                      % (label, val, mv, (ratio - 1) * 100), val, mv, "sector")
 
-    out.sort(key=lambda x: (-x["sev"], x["k"]))
+    out.sort(key=lambda x: (-(1 if x.get("elite") else 0),
+                            -x["sev"], x["k"]))
     greens = [x for x in out if x["side"] == "G"][:12]
     reds = [x for x in out if x["side"] == "R"][:12]
     return {"greens": greens, "reds": reds,
-            "summary": {"n_green": len([x for x in out if x["side"] == "G"]),
+            "summary": {"n_elite": len([x for x in out
+                                        if x.get("elite")]),
+                        "n_green": len([x for x in out if x["side"] == "G"]),
                         "n_red": len([x for x in out if x["side"] == "R"]),
                         "fin_suppressed": suppressed if fin else []}}
 
@@ -1680,7 +1739,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.5.1",
+        return {"ok": True, "mode": "warm_auto", "version": "1.6.0",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1704,7 +1763,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.5.1"}
+                "version": "1.6.0"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1720,7 +1779,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.5.1"}, headers_in)
+                               "version": "1.6.0"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
