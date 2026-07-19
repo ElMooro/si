@@ -1,10 +1,7 @@
-executing-against: 357793030a0530d021192038638e7ec580bd0a24
-PASS  F1_cache_truth — {'universe': 0, 'cached': 0, 'missing_n': 0, 'missing_head': []}
-[19:56:21] PASS  F1_cache_truth — {'universe': 0, 'cached': 0, 'missing_n': 0, 'missing_head': []}
-PASS  F2_topup — {'attempted': 0, 'warmed_ok': 0, 'left_for_schedule': 0}
-[19:56:21] PASS  F2_topup — {'attempted': 0, 'warmed_ok': 0, 'left_for_schedule': 0}
-FAIL  F3_full — {'matrix': (196, 191), 'scored': 196, 'aapl_gm': (47.862, 47.862), 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'issuers5': [{'t': 'COF
-[19:56:55] FAIL  F3_full — {'matrix': (196, 191), 'scored': 196, 'aapl_gm': (47.862, 47.862), 'top10': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('FICO', 31, 10), ('NVDA', 31, 13), ('INTU', 28, 8), ('VRSK', 28, 9), ('MU', 27, 12), ('VEEV', 27, 7), ('AAPL', 26, 7)], 'careful10': [('BA', ['DILUTION_SEVERE'], 15), ('BG', ['DILUTION_SEVERE'], 15), ('EVRG', ['HIGH_CONCERN'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], 14), ('AMCR', ['DILUTION_SEVERE'], 12), ('INTC', ['DILUTION_SEVERE'], 12), ('PCG', [], 12), ('XEL', ['DILUTION_SEVERE'], 12), ('CMS', ['HIGH_CONCERN'], 11), ('VST', ['HIGH_CONCERN'], 11)], 'issuers5': [{'t': 'COF
-RESULT: FAILS: ['F3_full']
+executing-against: 4a614b5db676f55136823e7ee2a8b3b58cace203
+PASS  G1_forensic — {"top_keys": ["all_results", "cleanest_top_25", "duration_s", "fortress_financials", "generated_at", "most_concerning_top_25", "n_errors", "n_scored_ok", "n_skipped_missing_data", "n_strength", "n_universe_attempted", "problem_financials"], "n_all_results": 496, "row0_keys": ["altman_z", "components_missing", "concern_score", "dilution_flag", "factors", "fcf_yield_pct", "goodwill_bloat_flag", "goodwill_pct", "history", "industry_pctile", "m_deteriorating", "m_flag", "m_high_risk", "m_score"], "row0_ticker": null, "row0_symbol": "SMCI", "generated_at": "2026-07-19T17:26:47+00:00"}
+PASS  G2_census — {"generated_at": "2026-07-19T19:56:52.202475+00:00", "coverage": {"universe": 496, "scored": 196, "dormant_n": 300, "dormant_sample": ["CDNS", "MCHP", "SNPS", "TKO", "UNP", "WY", "PNW", "AVGO", "MRVL", "Q", "AMD", "LMT"]}, "elapsed_s": 29.8}
+[20:06:02] probe
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3532_final_universe.md
+→ Report written to aws/ops/reports/latest/3533_probe_uni.md
