@@ -1,14 +1,10 @@
-executing-against: 2e4f2e955b7197b4d575289854f0bb18439195e3
-ops 3487 — pairs ratio builder
-PASS  T1_ratio_micro — {"t1":true,"t2":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
+executing-against: 9400f3c71a13105bb11abf623abd66c158b099f2
+ops 3488 — ratio math on the SERVED core (node, window stub)
+PASS  U1_served_ratio_math — {"t1":true,"t2":true,"t3":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
 
-[23:58:39] PASS  T1_ratio_micro — {"t1":true,"t2":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
+[00:06:35] PASS  U1_served_ratio_math — {"t1":true,"t2":true,"t3":true,"R":[["2024-01-15",5],["2024-04-15",5],["2024-07-15",6]]}
 
-FAIL  T2_served_core — {'node_ok': [True, True, True, True]}
-[00:04:43] FAIL  T2_served_core — {'node_ok': [True, True, True, True]}
-FAIL  T3_flagship_v21 — {'ops3487': False, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
-[00:04:43] FAIL  T3_flagship_v21 — {'ops3487': False, 'rtbtn': True, 'ratioRaw': True, 'chip_x': True, 'whales_intact': True, 'flags_intact': True, 'marks_intact': True, 'ern_intact': True}
-RESULT: FAILS: ['T2_served_core', 'T3_flagship_v21']
-RESULT: FAILS: ['T2_served_core', 'T3_flagship_v21']
+RESULT: ALL PASS
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3487_ratio_regate.md
+→ Report written to aws/ops/reports/latest/3488_ratio_t1_final.md
