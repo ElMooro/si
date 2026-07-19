@@ -1,20 +1,14 @@
-executing-against: 8db4547fd0ba7695d098705cb6f40a03fa92ca72
-ops 3527 — Fundamental Census (S&P sweep)
-PASS  B1_ci — {'r1_score': 10, 'r2': (['DILUTION_SEVERE', 'EARNINGS_INTEGRITY_LOW'], 8)}
-[18:44:19] PASS  B1_ci — {'r1_score': 10, 'r2': (['DILUTION_SEVERE', 'EARNINGS_INTEGRITY_LOW'], 8)}
-[18:44:19]   zip: 83405 bytes
-── 1. Lambda ──
-[18:44:19]   Lambda missing — creating
-[18:44:25] ✅   ✓ created justhodl-fundamental-census
-FAIL  B2_pilot — {'scored': 3, 'universe': 496, 'top5': [('NVDA', 31, 13), ('AAPL', 26, 7), ('PG', 6, 0)], 'bottom3': [('PG', 6), ('AAPL', 26), ('NVDA', 31)], 'careful3': [('NVDA', ['HIGH_CONCERN'], 8)], 'avg': 21.0, 'n_flagged': 1}
-[18:44:41] FAIL  B2_pilot — {'scored': 3, 'universe': 496, 'top5': [('NVDA', 31, 13), ('AAPL', 26, 7), ('PG', 6, 0)], 'bottom3': [('PG', 6), ('AAPL', 26), ('NVDA', 31)], 'careful3': [('NVDA', ['HIGH_CONCERN'], 8)], 'avg': 21.0, 'n_flagged': 1}
-FAIL  B3_boards_real — {'buyback_top': [{'t': 'AAPL', 'v': -1.91}, {'t': 'PG', 'v': -1.36}, {'t': 'NVDA', 'v': -0.89}], 'issuer_top': [{'t': 'NVDA', 'v': -0.89}, {'t': 'PG', 'v': -1.36}, {'t': 'AAPL', 'v': -1.91}], 'gm_best': {'t': 'NVDA', 'v': 74.14}, 'gm_worst': {'t': 'AAPL', 'v': 47.86}}
-[18:44:41] FAIL  B3_boards_real — {'buyback_top': [{'t': 'AAPL', 'v': -1.91}, {'t': 'PG', 'v': -1.36}, {'t': 'NVDA', 'v': -0.89}], 'issuer_top': [{'t': 'NVDA', 'v': -0.89}, {'t': 'PG', 'v': -1.36}, {'t': 'AAPL', 'v': -1.91}], 'gm_best': {'t': 'NVDA', 'v': 74.14}, 'gm_worst': {'t': 'AAPL', 'v': 47.86}}
-PASS  B4_schedule — cron(0 6 1,15 * ? *)
-[18:44:42] PASS  B4_schedule — cron(0 6 1,15 * ? *)
-PASS  B5_page — {'served': True, 'node': True, 'pinned': True}
-[18:46:43] PASS  B5_page — {'served': True, 'node': True, 'pinned': True}
-FULL-CHAIN FIRED async (cursor 0)
-RESULT: FAILS: ['B2_pilot', 'B3_boards_real']
+executing-against: b2d7725aebd0e15f26f9285df9e2fd237f6629a1
+PASS  C1_warm_response — {'status': 200, 'err': None, 'peek': '{"ok": true, "warmed": {"MSFT_quarter": {"ok": true, "n": 163, "keys": 211}, "JPM_quarter": {"ok": true, "n": 164, "keys": 210}, "XOM_quarter": {"ok": true, "n": 163, "keys": 208}}, "marker": "FUNDGRAPH_V1_OPS3462", "version": "1.11.2"}'}
+[18:48:39] PASS  C1_warm_response — {'status': 200, 'err': None, 'peek': '{"ok": true, "warmed": {"MSFT_quarter": {"ok": true, "n": 163, "keys": 211}, "JPM_quarter": {"ok": true, "n": 164, "keys": 210}, "XOM_quarter": {"ok": true, "n": 163, "keys": 208}}, "marker": "FUNDGRAPH_V1_OPS3462", "version": "1.11.2"}'}
+PASS  C2_warm_writes — {'before': 20, 'after': 32}
+[18:48:44] PASS  C2_warm_writes — {'before': 20, 'after': 32}
+PASS  C3_chain_progress — {'trajectory': [32, 41, 50, 60, 70, 81, 91, 97, 105, 114, 123]}
+[18:56:18] PASS  C3_chain_progress — {'trajectory': [32, 41, 50, 60, 70, 81, 91, 97, 105, 114, 123]}
+PASS  C4_scale — {'scored': 127, 'top5': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('NVDA', 31, 13), ('VRSK', 28, 9)], 'careful5': [('BA', ['DILUTION_SEVERE'], ['altman_z', 'fcf_margin_pct'], 15), ('BG', ['DILUTION_SEVERE'], ['beneish_m', 'interest_coverage_ttm'], 15), ('EVRG', ['HIGH_CONCERN'], ['altman_z', 'beneish_m'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], ['beneish_m', 'fcf_margin_pct'], 14), ('AMCR', ['DILUTION_SEVERE'], ['altman_z', 'beneish_m'], 12)], 'buybacks': [{'t': 'CRM', 'v': -10.21}, {'t': 'FTV', 'v': -9.23}, {'t': 'JCI', 'v': -7.26}
+[18:56:43] PASS  C4_scale — {'scored': 127, 'top5': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('NVDA', 31, 13), ('VRSK', 28, 9)], 'careful5': [('BA', ['DILUTION_SEVERE'], ['altman_z', 'fcf_margin_pct'], 15), ('BG', ['DILUTION_SEVERE'], ['beneish_m', 'interest_coverage_ttm'], 15), ('EVRG', ['HIGH_CONCERN'], ['altman_z', 'beneish_m'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], ['beneish_m', 'fcf_margin_pct'], 14), ('AMCR', ['DILUTION_SEVERE'], ['altman_z', 'beneish_m'], 12)], 'buybacks': [{'t': 'CRM', 'v': -10.21}, {'t': 'FTV', 'v': -9.23}, {'t': 'JCI', 'v': -7.26}
+PASS  C5_direction — {'best': {'t': 'CRM', 'v': -10.21}, 'worst': {'t': 'COF', 'v': 62.34}}
+[18:56:43] PASS  C5_direction — {'best': {'t': 'CRM', 'v': -10.21}, 'worst': {'t': 'COF', 'v': 62.34}}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3527_fundamental_census.md
+→ Report written to aws/ops/reports/latest/3528_census_diag.md

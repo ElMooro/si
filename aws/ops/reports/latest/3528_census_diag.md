@@ -1,0 +1,10 @@
+- `18:48:39` PASS  C1_warm_response — {'status': 200, 'err': None, 'peek': '{"ok": true, "warmed": {"MSFT_quarter": {"ok": true, "n": 163, "keys": 211}, "JPM_quarter": {"ok": true, "n": 164, "keys": 210}, "XOM_quarter": {"ok": true, "n": 163, "keys": 208}}, "marker": "FUNDGRAPH_V1_OPS3462", "version": "1.11.2"}'}
+- `18:48:44` PASS  C2_warm_writes — {'before': 20, 'after': 32}
+**Status:** success  
+**Duration:** 518.2s  
+**Finished:** 2026-07-19T18:56:43+00:00  
+
+## Log
+- `18:56:18` PASS  C3_chain_progress — {'trajectory': [32, 41, 50, 60, 70, 81, 91, 97, 105, 114, 123]}
+- `18:56:43` PASS  C4_scale — {'scored': 127, 'top5': [('APP', 39, 14), ('FIX', 34, 10), ('ADBE', 32, 10), ('NVDA', 31, 13), ('VRSK', 28, 9)], 'careful5': [('BA', ['DILUTION_SEVERE'], ['altman_z', 'fcf_margin_pct'], 15), ('BG', ['DILUTION_SEVERE'], ['beneish_m', 'interest_coverage_ttm'], 15), ('EVRG', ['HIGH_CONCERN'], ['altman_z', 'beneish_m'], 14), ('SMCI', ['DILUTION_SEVERE', 'HIGH_CONCERN'], ['beneish_m', 'fcf_margin_pct'], 14), ('AMCR', ['DILUTION_SEVERE'], ['altman_z', 'beneish_m'], 12)], 'buybacks': [{'t': 'CRM', 'v': -10.21}, {'t': 'FTV', 'v': -9.23}, {'t': 'JCI', 'v': -7.26}
+- `18:56:43` PASS  C5_direction — {'best': {'t': 'CRM', 'v': -10.21}, 'worst': {'t': 'COF', 'v': 62.34}}
