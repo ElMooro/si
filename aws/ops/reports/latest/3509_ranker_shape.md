@@ -1,0 +1,8 @@
+- `06:11:50` {"schema_version": {"type": "str", "len": null}, "method": {"type": "str", "len": null}, "as_of": {"type": "str", "len": null}, "regime_context": {"type": "dict", "len": 18}, "risk_regime": {"type": "dict", "len": 4}, "nowcast_regime": {"type": "dict", "len": 6}, "n_tickers_total": {"type": "int", "len": null}, "n_macro_signals": {"type": "int", "len": null}, "alerts": {"type": "dict", "len": 5}, "top_tickers": {"type": "list", "len": 25}, "top_macro": {"type": "list", "len": 8}, "feed_health": {"type": "dict", "len": 31}, "feed_freshness": {"type": "list", "len": 56}, "stale_feeds_excluded": {"type": "list", "len": 0}, "missing_feeds": {"type": "list", "len": 0}, "calibration_weights": {"ty
+- `06:11:50` [{"ticker": "OXY", "score": 143.6, "n_systems": 4, "systems": ["compound", "institutional_13f", "pead", "smart_money"], "contributions": [{"system": "compound", "raw_score": 442.6, "normalized": 100, "weight": 1.0, "trust_mult": 1.0, "contribution": 100.0}, {"system": "smart_money", "raw_score": 65.7, "normalized": 65.7, "weight": 1.0, "trust_mult": 1.0, "contribution": 65.7}, {"system": "institutional_13f", "raw_score": 88, "normalized": 88.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 88.0}, {"system": "pead", "raw_score": 95.0, "normalized": 95.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 95.0}], "capital_flow_mult": 1.06, "risk_regime_mult": 1.0, "liquidity_regime_mult": 1.0, "nowcast_regime_mult": 1.0, "cycle_phase": null, "cycle_warning": null, "red_flags": null, "rationale": "4 systems agree (compound=143.6) [compound, institutional_13f, pead, smart_money] \u00b7 le
+**Status:** success  
+**Duration:** 0.5s  
+**Finished:** 2026-07-19T06:11:50+00:00  
+
+## Log
+

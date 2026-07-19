@@ -1,18 +1,9 @@
-executing-against: 23fd1df887a105d2f935afc1ee06dc59599bc61d
-ops 3508 — factor-DNA radar · nightly medians · DuPont
-PASS  H1_factor_battery — {'quality_pct': 98.2, 'expected': 98.2, 'axes': ['quality', 'value', 'momentum', 'growth', 'composite'], 'dormancy': ['ZZZZ not in master-ranker top set', 'ranker rows <30']}
-[06:06:58] PASS  H1_factor_battery — {'quality_pct': 98.2, 'expected': 98.2, 'axes': ['quality', 'value', 'momentum', 'growth', 'composite'], 'dormancy': ['ZZZZ not in master-ranker top set', 'ranker rows <30']}
-[06:06:58]   zip: 106775 bytes
-── 1. Lambda ──
-[06:06:58]   Lambda exists — updating
-[06:07:03] ✅   ✓ updated justhodl-fundamental-graphs
-FAIL  H2_nvda_radar — {'state': 'insufficient', 'why': 'ranker rows <30', 'n_universe': None, 'axes': []}
-[06:07:13] FAIL  H2_nvda_radar — {'state': 'insufficient', 'why': 'ranker rows <30', 'n_universe': None, 'axes': []}
-PASS  H3_nightly_medians — {'marker_before_monday_gate': True, 'medians_age_s': 2}
-[06:07:16] PASS  H3_nightly_medians — {'marker_before_monday_gate': True, 'medians_age_s': 2}
-PASS  H4_surfaces — {'node': True, 'catalog': True, 'flag': True, 'why': True, 'priors': True}
-[06:09:20] PASS  H4_surfaces — {'node': True, 'catalog': True, 'flag': True, 'why': True, 'priors': True}
-RESULT: FAILS: ['H2_nvda_radar']
-RESULT: FAILS: ['H2_nvda_radar']
+executing-against: 828b5063b01afe71ea6e9a7df7c01193a7b626b5
+PASS  S1_shapes — {"schema_version": {"type": "str", "len": null}, "method": {"type": "str", "len": null}, "as_of": {"type": "str", "len": null}, "regime_context": {"type": "dict", "len": 18}, "risk_regime": {"type": "dict", "len": 4}, "nowcast_regime": {"type": "dict", "len": 6}, "n_tickers_total": {"type": "int", "len": null}, "n_macro_signals": {"type": "int", "len": null}, "alerts": {"type": "dict", "len": 5}, "top_tickers": {"type": "list", "len": 25}, "top_macro": {"type": "list", "len": 8}, "feed_health": {"type": "dict", "len": 31}, "feed_freshness": {"type": "list", "len": 56}, "stale_feeds_excluded": {"type": "list", "len": 0}, "missing_feeds": {"type": "list", "len": 0}, "calibration_weights": {"ty
+PASS  S2_top_tickers — [{"ticker": "OXY", "score": 143.6, "n_systems": 4, "systems": ["compound", "institutional_13f", "pead", "smart_money"], "contributions": [{"system": "compound", "raw_score": 442.6, "normalized": 100, "weight": 1.0, "trust_mult": 1.0, "contribution": 100.0}, {"system": "smart_money", "raw_score": 65.7, "normalized": 65.7, "weight": 1.0, "trust_mult": 1.0, "contribution": 65.7}, {"system": "institutional_13f", "raw_score": 88, "normalized": 88.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 88.0}, {"system": "pead", "raw_score": 95.0, "normalized": 95.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 95.0}], "capital_flow_mult": 1.06, "risk_regime_mult": 1.0, "liquidity_regime_mult": 1.0, "nowcast_regime_mult": 1.0, "cycle_phase": null, "cycle_warning": null, "red_flags": null, "rationale": "4 systems agree (compound=143.6) [compound, institutional_13f, pead, smart_money] \u00b7 le
+PASS  S3_wl_research — {"context": {"CREDIT": {"pressure_pctile": 41.7, "firing": 5, "of": 27, "proven": 0, "top": ["European Bonds", "Global 10 year yields", "Convertible Bonds"], "verdict": "QUIET"}}, "divergences": [], "contract": "additive-only; evidence-weighted; aws/shared/wl_fusion.py"}
+[06:11:50] {"schema_version": {"type": "str", "len": null}, "method": {"type": "str", "len": null}, "as_of": {"type": "str", "len": null}, "regime_context": {"type": "dict", "len": 18}, "risk_regime": {"type": "dict", "len": 4}, "nowcast_regime": {"type": "dict", "len": 6}, "n_tickers_total": {"type": "int", "len": null}, "n_macro_signals": {"type": "int", "len": null}, "alerts": {"type": "dict", "len": 5}, "top_tickers": {"type": "list", "len": 25}, "top_macro": {"type": "list", "len": 8}, "feed_health": {"type": "dict", "len": 31}, "feed_freshness": {"type": "list", "len": 56}, "stale_feeds_excluded": {"type": "list", "len": 0}, "missing_feeds": {"type": "list", "len": 0}, "calibration_weights": {"ty
+[06:11:50] [{"ticker": "OXY", "score": 143.6, "n_systems": 4, "systems": ["compound", "institutional_13f", "pead", "smart_money"], "contributions": [{"system": "compound", "raw_score": 442.6, "normalized": 100, "weight": 1.0, "trust_mult": 1.0, "contribution": 100.0}, {"system": "smart_money", "raw_score": 65.7, "normalized": 65.7, "weight": 1.0, "trust_mult": 1.0, "contribution": 65.7}, {"system": "institutional_13f", "raw_score": 88, "normalized": 88.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 88.0}, {"system": "pead", "raw_score": 95.0, "normalized": 95.0, "weight": 1.0, "trust_mult": 1.0, "contribution": 95.0}], "capital_flow_mult": 1.06, "risk_regime_mult": 1.0, "liquidity_regime_mult": 1.0, "nowcast_regime_mult": 1.0, "cycle_phase": null, "cycle_warning": null, "red_flags": null, "rationale": "4 systems agree (compound=143.6) [compound, institutional_13f, pead, smart_money] \u00b7 le
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3508_tier3_close.md
+→ Report written to aws/ops/reports/latest/3509_ranker_shape.md
