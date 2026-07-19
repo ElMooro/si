@@ -1,0 +1,15 @@
+# ops 3541 — factors + joins + saved screens
+
+**Status:** success  
+**Duration:** 78.5s  
+**Finished:** 2026-07-19T21:46:45+00:00  
+
+## Log
+- `21:45:27` PASS  N1_ci — exact
+- `21:45:27`   zip: 87123 bytes
+## 1. Lambda
+
+- `21:45:27`   Lambda exists — updating
+- `21:45:32` ✅   ✓ updated justhodl-fundamental-census
+- `21:46:45` PASS  N2_live — {'factor_cov': {'factor_value': 495, 'factor_quality': 496, 'factor_momentum': 494, 'factor_safety': 496}, 'fq_top5': [('BKNG', 94.5), ('EXPE', 93.4), ('ADBE', 91.4), ('ABNB', 90.4), ('ADSK', 90.4)], 'whale_n': 460, 'earn_n': 408, 'in_long_book': (22, 22), 'whales_and_quality': [('GEN', 732.3, 18), ('MU', 56.1, 27), ('SNDK', 945.8, 22), ('NEM', 180.9, 34), ('EA', 955.0, 20), ('LRCX', 467.4, 23)]}
+- `21:46:45` PASS  N3_page — {'node': True}
