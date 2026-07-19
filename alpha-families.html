@@ -30,6 +30,11 @@ td{padding:4px 8px;border-top:1px solid var(--border-soft)}
   <p class="text-sm text-[var(--text-secondary)] max-w-3xl mt-2">Every new signal family born from the creative program, each emitting real graded signals through the regime-stamped, historically-priced loop. <b>Nothing here is trusted on backtest — the PROVEN gate decides who graduates into the <a href="/proven-portfolio.html" style="color:var(--blue)">composer</a>.</b></p>
   <div class="text-xs text-[var(--text-muted)] mono mt-1" id="stamp">loading feeds…</div>
 </header>
+<section class="card">
+  <div class="flex items-center justify-between"><h2>⚡ FTD Squeeze <span class="tag">SEC CNS · graded [21,63] vs SPY</span></h2></div>
+  <p class="desc">Fails-to-deliver spikes vs the trailing half-month mean, liquidity-floored (px≥$5, vol≥500k, ≥$5M fails, spike≥3×, peak-day cover≥0.5). ETFs/funds excluded — creation-unit fails are benign.</p>
+  <div id="b-ftd" class="body"><div class="emptynote">loading…</div></div>
+</section>
 <section class="max-w-[1200px] mx-auto px-4 pb-12">
   <div class="card" id="c-congress"><div class="h2" style="color:var(--green)">🏛 Congress Alpha — grade the filers<span class="chip">congress-buy · [21,63] vs SPY</span></div><div id="b-congress" class="emptynote">…</div><div class="meth">Senate PURCHASES only, entered at disclosure price (the copy-tradeable moment), tagged per filer. Skill ledger self-builds; n≥10 &amp; hit≥60% → PROVEN_FILER. Official sources (eFD + House Clerk), vendor-free. Raw tape on <a href="/political.html" style="color:var(--blue)">political.html</a>.</div></div>
   <div class="card" id="c-cannibals"><div class="h2" style="color:var(--green)">🍖 Cannibals + Insiders<span class="chip">cannibals · [21,63] vs sector</span></div><div id="b-cannibals" class="emptynote">…</div><div class="meth">Net buyback yield ≥4% ∩ forensically clean (no SBC wash / mgmt-selling / death-spiral) ∩ not data-suspect ∩ ≥$2B. Insider conviction boosts confidence, never gates.</div></div>
@@ -38,7 +43,7 @@ td{padding:4px 8px;border-top:1px solid var(--border-soft)}
   <div class="card" id="c-stealth"><div class="h2" style="color:var(--blue)">🕵️ Stealth Flow<span class="chip">stealth-flow · [5,21] vs ladder bench</span></div><div id="b-stealth" class="emptynote">…</div><div class="meth">Fresh STEALTH-quadrant ETF detections (real inflows, flat price, |z|≥2 vs 60d) — the cohort the event study measured at 75% hit / +298bps over 5 days. Rare by construction; silence is correct.</div></div>
   <div class="card" id="c-fade"><div class="h2" style="color:var(--red)">🔄 Fade Desk<span class="chip">inv:* · mirrored, graded forward</span></div><div id="b-fade" class="emptynote">…</div><div class="meth">Alpha-triage verdicts drive this desk with zero code edits: RETIRE families are suppressed fleet-wide at emission; INVERT families (both-halves flip consistency + ≥30bps after cost) get shadow-mirrored as inv:&lt;family&gt; and graded fully out-of-sample.</div></div>
 </section>
-<footer class="max-w-[1200px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">Feeds: congress-alpha · congress-filer-skill · cannibals · credit-composite · auction-tail · stealth-flow · alpha-triage · signal-suppress. Research only — not investment advice.</footer>
+<footer class="max-w-[1200px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">Feeds: equity-ftd · congress-alpha · congress-filer-skill · cannibals · credit-composite · auction-tail · stealth-flow · alpha-triage · signal-suppress. Research only — not investment advice.</footer>
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
 const gj=k=>fetch(PX+k+'?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});
@@ -47,17 +52,20 @@ function tbl(cols,rows){return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join(
 Promise.allSettled([
  gj('data/congress-alpha.json'),gj('data/congress-filer-skill.json'),gj('data/cannibals.json'),
  gj('data/credit-composite.json'),gj('data/auction-tail.json'),gj('data/stealth-flow.json'),
- gj('data/alpha-triage.json'),gj('data/signal-suppress.json')
-]).then(([ca,sk,cb,cc,at,sf,tr,sp])=>{
+ gj('data/alpha-triage.json'),gj('data/signal-suppress.json'),gj('data/equity-ftd.json')
+]).then(([ca,sk,cb,cc,at,sf,tr,sp,fd])=>{
   const V=x=>x.status==='fulfilled'?x.value:null;
-  const A=V(ca),K=V(sk),B=V(cb),C=V(cc),T=V(at),S=V(sf),R=V(tr),P=V(sp);
+  const A=V(ca),K=V(sk),B=V(cb),C=V(cc),T=V(at),S=V(sf),R=V(tr),P=V(sp),F2=V(fd);
   document.getElementById('stamp').textContent='feeds loaded '+new Date().toLocaleString();
   if(A){const rows=(A.plans||[]).map(p=>[esc(p.filer),'<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',esc(p.amount||'—'),esc(p.tx_date||'—'),p.proven_filer?'<span style="color:var(--green)">PROVEN</span>':'']);
     let h=rows.length?tbl(['Filer','Ticker','Amount','Traded',''],rows):'<div class="emptynote">No fresh purchases in the current window.</div>';
     const pf=(K&&(K.filers||[]).filter(f=>f.proven))||[];
     h+='<div class="meth mono">'+ (A.n_purchases||0)+' buys emitted today · '+(K?K.n_filers:0)+' filers in ledger · proven: '+(pf.length?pf.map(f=>esc(f.filer)).join(', '):'none yet (ledger matures with day_21 grades)')+'</div>';
     document.getElementById('b-congress').innerHTML=h;}
-  if(B){const rows=(B.plans||[]).map(p=>['<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',(+p.net_buyback_yield_pct).toFixed(1)+'%',p.insider_conviction?'<span style="color:var(--green)">✓</span>':'',esc(p.pair_etf),esc(p.sector||'—')]);
+  if(F2){const rows=(F2.qualifiers&&F2.qualifiers.length?F2.qualifiers:(F2.top_spikes||[]).slice(0,8)).map(r=>['<b style="color:var(--blue)">'+esc(r.t)+'</b>','$'+(r.usd==null?'—':(+r.usd).toFixed(1))+'M',r.spike==null?'—':(+r.spike).toFixed(1)+'×',r.dtc_peak==null?'—':(+r.dtc_peak).toFixed(2),(F2.signals||[]).includes(r.t)?'<span style="color:var(--green)">SIGNAL</span>':'']);
+    document.getElementById('b-ftd').innerHTML=(rows.length?tbl(['Ticker','Fails $','Spike','Peak DTC',''],rows):'<div class="emptynote">No fresh SEC file or no names above the floors.</div>')
+      +'<div class="meth mono">'+esc(F2.latest_tag||'')+' · '+(F2.universe_n||0)+' symbols · '+(F2.n_candidates||0)+' liquidity candidates · '+(F2.logged||0)+' signals logged · files: '+esc((F2.files||[]).join(', '))+'</div>';}
+    if(B){const rows=(B.plans||[]).map(p=>['<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',(+p.net_buyback_yield_pct).toFixed(1)+'%',p.insider_conviction?'<span style="color:var(--green)">✓</span>':'',esc(p.pair_etf),esc(p.sector||'—')]);
     document.getElementById('b-cannibals').innerHTML=(rows.length?tbl(['Ticker','Net BB yield','Insider','Pair','Sector'],rows):'<div class="emptynote">No qualifiers today.</div>')+'<div class="meth mono">'+(B.n_rows_scanned||0)+' names scanned · '+(B.logged||0)+' graded today</div>';}
   if(C){const L=C.lenses||{};let h='<div class="mono" style="font-size:1.6rem;font-weight:800;color:'+((C.composite||0)>=55?'var(--red)':'var(--text-secondary)')+'">'+(C.composite??'—')+'<span style="font-size:.8rem;color:var(--text-muted)">/100</span></div>';
     const max={dealer_positioning:25,corporate_fails:25,funding_gcf_tri:20,ofr_fsi:15,credit_stress:15};
