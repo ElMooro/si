@@ -1026,8 +1026,8 @@ def build_doc(sym, period):
         flags = derive_flags(P, lb)
         try:
             verdicts = derive_verdicts(
-                P, lb, (prof or {}).get("sector"),
-                secmed_row((prof or {}).get("sector")))
+                P, lb, (profile or {}).get("sector"),
+                secmed_row((profile or {}).get("sector")))
         except Exception as _ve:  # noqa: BLE001
             verdicts = {"greens": [], "reds": [],
                         "summary": {"error": str(_ve)[:120]}}
@@ -1042,7 +1042,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.5.0",
+        "version": "1.5.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1680,7 +1680,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.5.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.5.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1704,7 +1704,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.5.0"}
+                "version": "1.5.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1720,7 +1720,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.5.0"}, headers_in)
+                               "version": "1.5.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
