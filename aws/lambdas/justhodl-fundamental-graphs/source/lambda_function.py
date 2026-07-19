@@ -580,19 +580,6 @@ def build_doc(sym, period):
     profile = fetch_profile(sym)
     daily_px, weekly_px = fetch_price(sym)
     tech_doc = None
-    try:
-        _ta = compute_ta(daily_px)
-        if _ta:
-            _idx = {d: i for i, (d, _) in enumerate(daily_px)}
-            _wd = [d for d, _ in weekly_px]
-            for _n in (20, 50, 100, 200):
-                P["px_ma%d" % _n] = _ta["wk_sample"](_ta["mas"][_n], _wd, _idx)
-            P["px_bb_up"] = _ta["wk_sample"](_ta["bb_up"], _wd, _idx)
-            P["px_bb_dn"] = _ta["wk_sample"](_ta["bb_dn"], _wd, _idx)
-            P["rsi_14"] = _ta["wk_sample"](_ta["rsi"], _wd, _idx)
-            tech_doc = {"events": _ta["events"], "status": _ta["status"]}
-    except Exception as _te:  # noqa: BLE001
-        tech_doc = {"error": str(_te)[:120]}
     emp_series = fetch_employees(sym)
     earnings = fetch_earnings(sym)
     whales = whale_lookup(sym)
@@ -1216,6 +1203,20 @@ def build_doc(sym, period):
     for k in list(P.keys()):
         P[k].sort(key=lambda t: t[0])
 
+    try:
+        _ta = compute_ta(daily_px)
+        if _ta:
+            _idx = {d: i for i, (d, _) in enumerate(daily_px)}
+            _wd = [d for d, _ in weekly_px]
+            for _n in (20, 50, 100, 200):
+                P["px_ma%d" % _n] = _ta["wk_sample"](_ta["mas"][_n], _wd, _idx)
+            P["px_bb_up"] = _ta["wk_sample"](_ta["bb_up"], _wd, _idx)
+            P["px_bb_dn"] = _ta["wk_sample"](_ta["bb_dn"], _wd, _idx)
+            P["rsi_14"] = _ta["wk_sample"](_ta["rsi"], _wd, _idx)
+            tech_doc = {"events": _ta["events"], "status": _ta["status"]}
+    except Exception as _te:  # noqa: BLE001
+        tech_doc = {"error": str(_te)[:120]}
+
     flags = []
     try:
         flags = derive_flags(P, lb)
@@ -1238,7 +1239,7 @@ def build_doc(sym, period):
     return {
         "ok": True,
         "engine": "fundamental-graphs",
-        "version": "1.7.0",
+        "version": "1.7.1",
         "marker": "FUNDGRAPH_V1_OPS3462",
         "symbol": sym,
         "period": period,
@@ -1956,7 +1957,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 built.append(sym)
             except Exception as e:  # noqa: BLE001
                 errors[sym] = str(e)[:120]
-        return {"ok": True, "mode": "warm_auto", "version": "1.7.0",
+        return {"ok": True, "mode": "warm_auto", "version": "1.7.1",
                 "marker": "FUNDGRAPH_V1_OPS3462",
                 "symbols_n": len(syms), "built": len(built),
                 "annual_pass": annual_too, "symdir_n": symdir_n, "secmed_n": secmed_n, "errors": errors,
@@ -1980,7 +1981,7 @@ def lambda_handler(event, context):  # noqa: ARG001
                 except Exception as e:  # noqa: BLE001
                     out[f"{sym}_{p}"] = {"ok": False, "error": str(e)[:180]}
         return {"ok": True, "warmed": out, "marker": "FUNDGRAPH_V1_OPS3462",
-                "version": "1.7.0"}
+                "version": "1.7.1"}
 
     qp = event.get("queryStringParameters") or {}
     if not qp and event.get("rawQueryString"):
@@ -1996,7 +1997,7 @@ def lambda_handler(event, context):  # noqa: ARG001
             return _resp(200, {"ok": True, "n": len(rows),
                                "diag": _SYMDIR.get("diag"),
                                "sample": rows[:3],
-                               "version": "1.7.0"}, headers_in)
+                               "version": "1.7.1"}, headers_in)
         except Exception as e:  # noqa: BLE001
             return _resp(502, {"ok": False, "error": str(e)[:240],
                                "diag": _SYMDIR.get("diag")}, headers_in)
