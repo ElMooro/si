@@ -1,15 +1,24 @@
-executing-against: 56aa4d27be29afd17ce0aeaf738d9186729f452a
-ops 3541 — factors + joins + saved screens
-PASS  N1_ci — exact
-[21:45:27] PASS  N1_ci — exact
-[21:45:27]   zip: 87123 bytes
+executing-against: 44abba8bea36cc859dda0e879f71018d867b4c02
+ops 3542 — quant floor
+PASS  P1_ci — {'beta': 2.0, 'bt_excess_1y': 12.3}
+[22:01:28] PASS  P1_ci — {'beta': 2.0, 'bt_excess_1y': 12.3}
+[22:01:28]   zip: 89502 bytes
 ── 1. Lambda ──
-[21:45:27]   Lambda exists — updating
-[21:45:32] ✅   ✓ updated justhodl-fundamental-census
-PASS  N2_live — {'factor_cov': {'factor_value': 495, 'factor_quality': 496, 'factor_momentum': 494, 'factor_safety': 496}, 'fq_top5': [('BKNG', 94.5), ('EXPE', 93.4), ('ADBE', 91.4), ('ABNB', 90.4), ('ADSK', 90.4)], 'whale_n': 460, 'earn_n': 408, 'in_long_book': (22, 22), 'whales_and_quality': [('GEN', 732.3, 18), ('MU', 56.1, 27), ('SNDK', 945.8, 22), ('NEM', 180.9, 34), ('EA', 955.0, 20), ('LRCX', 467.4, 23)]}
-[21:46:45] PASS  N2_live — {'factor_cov': {'factor_value': 495, 'factor_quality': 496, 'factor_momentum': 494, 'factor_safety': 496}, 'fq_top5': [('BKNG', 94.5), ('EXPE', 93.4), ('ADBE', 91.4), ('ABNB', 90.4), ('ADSK', 90.4)], 'whale_n': 460, 'earn_n': 408, 'in_long_book': (22, 22), 'whales_and_quality': [('GEN', 732.3, 18), ('MU', 56.1, 27), ('SNDK', 945.8, 22), ('NEM', 180.9, 34), ('EA', 955.0, 20), ('LRCX', 467.4, 23)]}
-PASS  N3_page — {'node': True}
-[21:46:45] PASS  N3_page — {'node': True}
-RESULT: ALL PASS
+[22:01:29]   Lambda exists — updating
+[22:01:32] ✅   ✓ updated justhodl-fundamental-census
+[22:01:34]   zip: 81983 bytes
+── 1. Lambda ──
+[22:01:34]   Lambda missing — creating
+[22:01:39] ✅   ✓ created justhodl-screen-backtest
+[22:01:40] ✅   ✓ Function URL: https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws/
+PASS  P2_bt_url — https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws
+[22:01:40] PASS  P2_bt_url — https://qwegtcji2yjk2n3efc7wc76ygq0wolru.lambda-url.us-east-1.on.aws
+FAIL  P3_matrix — {'tech_n': 495, 'beta_n': 494, 'short_n': 496, 'insider_n': (496, 496), 'retail_n': 0, 'n_dt': 214, 'n_db': 300, 'n_gc': 77, 'combo_top10': [('INCY', 99.5), ('FTNT', 97.4), ('AAPL', 97.4), ('ALL', 96.3), ('TRV', 95.9), ('PRU', 92.9), ('BBY', 92.0), ('MAS', 91.9), ('ANET', 91.4), ('NTAP', 91.4)], 'conviction_top5': [('AAPL', 85.5), ('MU', 81.6), ('LRCX', 81.6), ('DXCM', 81.5), ('SNDK', 80.8)], 'double_bottoms': ['WAT', 'NVDA', 'GEN', 'CMS', 'VST', 'MCHP', 'UNP', 'WY', 'PNW', 'AVGO', 'LMT', 'CVNA']}
+[22:02:52] FAIL  P3_matrix — {'tech_n': 495, 'beta_n': 494, 'short_n': 496, 'insider_n': (496, 496), 'retail_n': 0, 'n_dt': 214, 'n_db': 300, 'n_gc': 77, 'combo_top10': [('INCY', 99.5), ('FTNT', 97.4), ('AAPL', 97.4), ('ALL', 96.3), ('TRV', 95.9), ('PRU', 92.9), ('BBY', 92.0), ('MAS', 91.9), ('ANET', 91.4), ('NTAP', 91.4)], 'conviction_top5': [('AAPL', 85.5), ('MU', 81.6), ('LRCX', 81.6), ('DXCM', 81.5), ('SNDK', 80.8)], 'double_bottoms': ['WAT', 'NVDA', 'GEN', 'CMS', 'VST', 'MCHP', 'UNP', 'WY', 'PNW', 'AVGO', 'LMT', 'CVNA']}
+PASS  P4_bt_smoke — {'weeks': 320, 'basket_3y': 80.0, 'spx_3y': 18.0, 'excess_3y': 62.0}
+[22:02:54] PASS  P4_bt_smoke — {'weeks': 320, 'basket_3y': 80.0, 'spx_3y': 18.0, 'excess_3y': 62.0}
+PASS  P5_page — {'node': True}
+[22:03:55] PASS  P5_page — {'node': True}
+RESULT: FAILS: ['P3_matrix']
 
-→ Report written to aws/ops/reports/latest/3541_whale_regate.md
+→ Report written to aws/ops/reports/latest/3542_quant_floor.md
