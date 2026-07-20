@@ -130,6 +130,106 @@ def _dbn(url, timeout=25):
         return None
 
 
+_PBOC_LIST = "http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html"
+_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def _html(url, timeout=18, limit=500_000):
+    import re as _re
+    from urllib import request as _rq
+    try:
+        r = _rq.urlopen(_rq.Request(url, headers={"User-Agent": "JustHodl research contact@justhodl.ai"}),
+                        timeout=timeout)
+        return r.read(limit).decode("utf-8", "replace")
+    except Exception as e:
+        print("[china-liq] pboc fetch fail", url[:60], str(e)[:80])
+        return ""
+
+
+def _tables_rows(html):
+    import re as _re
+    rows = []
+    for tb in _re.findall(r"<table[\s\S]*?</table>", html, _re.I)[:4]:
+        for tr in _re.findall(r"<tr[\s\S]*?</tr>", tb, _re.I):
+            cells = [_re.sub(r"<[^>]+>|&nbsp;|&#160;|\s+", " ", c).strip()
+                     for c in _re.findall(r"<t[dh][\s\S]*?</t[dh]>", tr, _re.I)]
+            if any(cells):
+                rows.append(cells)
+    return rows
+
+
+def pboc_afre_block():
+    """v2.1 (ops 3587): the REAL monthly TSF — scraped from PBoC's English
+    'Report on Aggregate Financing to the Real Economy (Flow)'. Listing walked
+    fresh each run; parsed reports cached to S3 (pboc/afre-flow-cache.json) so
+    history self-builds and YoY/credit-impulse activate once two vintages
+    accumulate. EN site lags the CN release by weeks — labeled. Never fabricates."""
+    import re as _re
+    out = {"source": _PBOC_LIST, "latest_report": None, "series": None, "error": None,
+           "note": ("PBoC EN monthly AFRE Flow report (units: 100 million yuan). "
+                    "EN publication lags the CN release; freshest-available honestly labeled.")}
+    try:
+        listing = _html(_PBOC_LIST)
+        items = [(u, t) for u, t in
+                 [( _m.group(1), _re.sub(r"<[^>]+>|\s+", " ", _m.group(2)).strip())
+                  for _m in _re.finditer(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', listing, _re.I | _re.S)]
+                 if "aggregate financing" in t.lower() and "(flow)" in t.lower()]
+        if not items:
+            out["error"] = "no Flow items on listing"
+            return out
+        url = items[0][0]
+        if url.startswith("/"):
+            url = "http://www.pbc.gov.cn" + url
+        page = _html(url)
+        rows = _tables_rows(page)
+        hdr = next((r0 for r0 in rows if sum(1 for c in r0 if any(m in c for m in _MONTHS)) >= 3), None)
+        afre = next((r0 for r0 in rows if r0 and "aggregate financing" in r0[0].lower()), None)
+        parsed_rows = []
+        for r0 in rows:
+            if not r0 or len(r0) < 3:
+                continue
+            vals = []
+            for c in r0[1:]:
+                try:
+                    vals.append(float(c.replace(",", "")))
+                except Exception:
+                    vals.append(None)
+            if sum(1 for v in vals if v is not None) >= 2:
+                parsed_rows.append({"item": r0[0][:70], "values": vals[:14]})
+        out["latest_report"] = {"title": items[0][1][:110], "url": url,
+                               "header": (hdr[:14] if hdr else None),
+                               "n_rows_parsed": len(parsed_rows)}
+        if afre:
+            vals = []
+            for c in afre[1:]:
+                try:
+                    vals.append(float(c.replace(",", "")))
+                except Exception:
+                    pass
+            out["series"] = {"item": afre[0][:70], "monthly_flow_100m_rmb": vals[:14],
+                             "latest": (vals[-1] if vals else None)}
+        out["rows"] = parsed_rows[:12]
+        # self-building cache → YoY once two vintages exist
+        try:
+            key = "pboc/afre-flow-cache.json"
+            try:
+                cache = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+            except Exception:
+                cache = {"reports": {}}
+            cache["reports"][items[0][1][:110]] = {"url": url,
+                                                   "series": out.get("series"),
+                                                   "fetched_at": datetime.now(timezone.utc).isoformat()}
+            cache["reports"] = dict(list(cache["reports"].items())[-36:])
+            s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(cache).encode(),
+                          ContentType="application/json")
+            out["cache_n_reports"] = len(cache["reports"])
+        except Exception as _e:
+            print("[china-liq] afre cache skip", str(_e)[:60])
+    except Exception as e:
+        out["error"] = str(e)[:140]
+    return out
+
+
 def real_tsf_block():
     """v2 (ops 3584): the REAL Total Social Financing from NBS via DBnomics —
     the textbook credit-impulse input this engine previously proxied with
@@ -306,6 +406,7 @@ def lambda_handler(event, context):
     }
 
     out["tsf"] = real_tsf_block()
+    out["tsf"]["pboc_monthly"] = pboc_afre_block()
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                    Body=json.dumps(out, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=3600")
