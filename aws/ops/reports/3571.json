@@ -1,0 +1,73 @@
+{
+  "gates": {
+    "G1_settled_v2": {
+      "ok": true,
+      "detail": "zip markers VERSION 2.0.0 + deal-win + by_sector"
+    },
+    "G2_schedule_3x": {
+      "ok": false,
+      "detail": "rule deal-scanner-daily = cron(5 */3 * * ? *)"
+    },
+    "G3_feed_v2_live": {
+      "ok": true,
+      "detail": "prs=3600 deals=16 sectors_boards=11 caps_boards=6 sectors_hit=6/11 caps_hit=6/6 tape_tickers=1299 sources={'fmp_pr': 1400, 'fmp_news': 1400, 'polygon': 800}"
+    },
+    "G4_graded_family": {
+      "ok": true,
+      "detail": "signals_logged=4 list=['IREN', 'EPR', 'MRAI', 'KMDA'] \u00b7 DDB deal-win#IREN#2026-07-20: FOUND conf=0.66 base=40.237 regime=True"
+    },
+    "G5_page_boards": {
+      "ok": true,
+      "detail": "served markers: Market Coverage / All Cap Tiers / Graded Signals"
+    }
+  },
+  "feed_snapshot": {
+    "n_deals": 16,
+    "n_green": 5,
+    "n_ai": 3,
+    "n_ai_mega": 2,
+    "signals_logged": 4,
+    "signals": [
+      {
+        "ticker": "IREN",
+        "conf": 0.66,
+        "value": "$4bn",
+        "vs_mc_pct": 33.34
+      },
+      {
+        "ticker": "EPR",
+        "conf": 0.66,
+        "value": "$1.6 Billion",
+        "vs_mc_pct": 33.62
+      },
+      {
+        "ticker": "MRAI",
+        "conf": 0.62,
+        "value": "$26.4 Million",
+        "vs_mc_pct": 75.16
+      },
+      {
+        "ticker": "KMDA",
+        "conf": 0.62,
+        "value": "$50 Million",
+        "vs_mc_pct": 12.15
+      }
+    ],
+    "coverage": {
+      "sources": {
+        "fmp_pr": 1400,
+        "fmp_news": 1400,
+        "polygon": 800
+      },
+      "n_items": 3600,
+      "n_unique_tickers_in_tape": 1299,
+      "n_tickers_crossref": 20,
+      "sectors_with_deals": 6,
+      "n_sectors_tracked": 11,
+      "caps_with_deals": 6,
+      "runs_per_day": 3,
+      "note": "full-market: every ticker on the PR/news tape is eligible \u2014 no universe filter, all caps nano\u2192mega, all 11 GICS sectors"
+    }
+  },
+  "verdict": "GAPS: G2_schedule_3x"
+}

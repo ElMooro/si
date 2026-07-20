@@ -1,6 +1,35 @@
-executing-against: accffbe0b7ffe6f856db99cb94648770c2096e7b
-PASS  N1_final — {"generated_at": "2026-07-20T05:44:58.600554+00:00", "metrics_total": 293, "raw>=400": 30, "stats>=400": 43, "n_pe_fwd": 482, "low_cov": [["inventory_turnover", 389]], "cheapest_fwd": [["SNDK", 3.886], ["GPN", 4.715], ["CHTR", 5.13], ["VTRS", 5.499], ["GM", 5.756], ["EG", 6.177], ["MPC", 6.401], ["MU", 6.427]], "spots": {"WMT_days_inventory": 41.97, "WMT_inv_turnover": 8.697, "MSFT_pe_fwd": 19.96, "COST_graham": 183.673, "AAPL_netChangeInCash": 255000000.0}}
-[05:45:27] PASS  N1_final — {"generated_at": "2026-07-20T05:44:58.600554+00:00", "metrics_total": 293, "raw>=400": 30, "stats>=400": 43, "n_pe_fwd": 482, "low_cov": [["inventory_turnover", 389]], "cheapest_fwd": [["SNDK", 3.886], ["GPN", 4.715], ["CHTR", 5.13], ["VTRS", 5.499], ["GM", 5.756], ["EG", 6.177], ["MPC", 6.401], ["MU", 6.427]], "spots": {"WMT_days_inventory": 41.97, "WMT_inv_turnover": 8.697, "MSFT_pe_fwd": 19.96, "COST_graham": 183.673, "AAPL_netChangeInCash": 255000000.0}}
-RESULT: ALL PASS
+executing-against: 763019e393f98e630888b889244b9612ba9eb666
+ops 3571 — deal-scanner v2.0.0 full-market + graded family
+PASS  G1_settled_v2 — zip markers VERSION 2.0.0 + deal-win + by_sector
+[16:40:16] PASS  G1_settled_v2 — zip markers VERSION 2.0.0 + deal-win + by_sector
+FAIL  G2_schedule_3x — rule deal-scanner-daily = cron(5 */3 * * ? *)
+[16:40:16] FAIL  G2_schedule_3x — rule deal-scanner-daily = cron(5 */3 * * ? *)
+PASS  G3_feed_v2_live — prs=3600 deals=16 sectors_boards=11 caps_boards=6 sectors_hit=6/11 caps_hit=6/6 tape_tickers=1299 sources={'fmp_pr': 1400, 'fmp_news': 1400, 'polygon': 800}
+[16:40:31] PASS  G3_feed_v2_live — prs=3600 deals=16 sectors_boards=11 caps_boards=6 sectors_hit=6/11 caps_hit=6/6 tape_tickers=1299 sources={'fmp_pr': 1400, 'fmp_news': 1400, 'polygon': 800}
+PASS  G4_graded_family — signals_logged=4 list=['IREN', 'EPR', 'MRAI', 'KMDA'] · DDB deal-win#IREN#2026-07-20: FOUND conf=0.66 base=40.237 regime=True
+[16:40:31] PASS  G4_graded_family — signals_logged=4 list=['IREN', 'EPR', 'MRAI', 'KMDA'] · DDB deal-win#IREN#2026-07-20: FOUND conf=0.66 base=40.237 regime=True
+PASS  G5_page_boards — served markers: Market Coverage / All Cap Tiers / Graded Signals
+[16:42:17] PASS  G5_page_boards — served markers: Market Coverage / All Cap Tiers / Graded Signals
 
-→ Report written to aws/ops/reports/latest/3570_final_numbers.md
+VERDICT: GAPS: G2_schedule_3x
+[16:42:17] VERDICT: GAPS: G2_schedule_3x
+
+→ Report written to aws/ops/reports/latest/3571_deal_scanner_v2.md
+ops 3572 — deal-win fusion across the fleet
+PASS  G1_best_setups_ctx — zip markers deal_context join
+[16:42:17] PASS  G1_best_setups_ctx — zip markers deal_context join
+PASS  G2_master_ranker_overlay — zip markers deal_win overlay + fusion print
+[16:42:18] PASS  G2_master_ranker_overlay — zip markers deal_win overlay + fusion print
+PASS  G3_mi_facts — zip markers feed + fresh_deal_wins fact
+[16:42:18] PASS  G3_mi_facts — zip markers feed + fresh_deal_wins fact
+PASS  G4_ranker_behavior — feed regenerated post-patch · rows carrying deal_win overlay = 0 (count depends on a ranked name having a fresh <=72h deal — overlay attach is data-gated, presence of ANY is bonus proof)
+[16:42:33] PASS  G4_ranker_behavior — feed regenerated post-patch · rows carrying deal_win overlay = 0 (count depends on a ranked name having a fresh <=72h deal — overlay attach is data-gated, presence of ANY is bonus proof)
+PASS  G5_alpha_families_card — served markers: c-deals card + feed wire
+[16:42:33] PASS  G5_alpha_families_card — served markers: c-deals card + feed wire
+PASS  G6_why_deal_radar — served markers: Deal Radar section + filler
+[16:42:33] PASS  G6_why_deal_radar — served markers: Deal Radar section + filler
+
+VERDICT: PASS_ALL
+[16:42:33] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3572_deal_fusion.md

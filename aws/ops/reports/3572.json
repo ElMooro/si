@@ -1,0 +1,29 @@
+{
+  "gates": {
+    "G1_best_setups_ctx": {
+      "ok": true,
+      "detail": "zip markers deal_context join"
+    },
+    "G2_master_ranker_overlay": {
+      "ok": true,
+      "detail": "zip markers deal_win overlay + fusion print"
+    },
+    "G3_mi_facts": {
+      "ok": true,
+      "detail": "zip markers feed + fresh_deal_wins fact"
+    },
+    "G4_ranker_behavior": {
+      "ok": true,
+      "detail": "feed regenerated post-patch \u00b7 rows carrying deal_win overlay = 0 (count depends on a ranked name having a fresh <=72h deal \u2014 overlay attach is data-gated, presence of ANY is bonus proof)"
+    },
+    "G5_alpha_families_card": {
+      "ok": true,
+      "detail": "served markers: c-deals card + feed wire"
+    },
+    "G6_why_deal_radar": {
+      "ok": true,
+      "detail": "served markers: Deal Radar section + filler"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
