@@ -59,8 +59,10 @@ def fred(series, start="1988-01-01"):
     return out
 
 
-def yahoo_move():
-    j = _j("https://query1.finance.yahoo.com/v8/finance/chart/%5EMOVE?range=2y&interval=1d")
+def yahoo_hist(sym, rng="2y"):
+    import urllib.parse as _up
+    j = _j("https://query1.finance.yahoo.com/v8/finance/chart/"
+           f"{_up.quote(sym)}?range={rng}&interval=1d")
     try:
         r = j["chart"]["result"][0]
         ts = r["timestamp"]
@@ -68,8 +70,12 @@ def yahoo_move():
         return [(datetime.fromtimestamp(t, tz=timezone.utc).strftime("%Y-%m-%d"), c)
                 for t, c in zip(ts, cl) if isinstance(c, (int, float))]
     except Exception as e:
-        print("[fifx] MOVE fail", str(e)[:70])
+        print("[fifx] yahoo fail", sym, str(e)[:70])
         return []
+
+
+def yahoo_move():
+    return yahoo_hist("^MOVE", "2y")
 
 
 def realized_series(rows, n=20, diff="log"):
@@ -159,6 +165,28 @@ def lambda_handler(event=None, context=None):
     fx_z, fx_pct, fxv = z_and_pct(comp_rows)
     dxy_rows = realized_series(fred("DTWEXBGS"), 20)
     dxy_z, dxy_pct, dxyv = z_and_pct(dxy_rows)
+    # ── ASIA CANARY leg (v1.3, Khalid: KOSPI vol preceded 2008; + Hang Seng)
+    ks_px = yahoo_hist("^KS11", "max")
+    hs_px = yahoo_hist("^HSI", "max")
+    ks_rv = realized_series(ks_px, 20)
+    hs_rv = realized_series(hs_px, 20)
+    ks_z, ks_pct, ks_lv = z_and_pct(ks_rv)
+    hs_z, hs_pct, hs_lv = z_and_pct(hs_rv)
+    vhsi = yahoo_hist("^VHSI", "2y")
+    vhsi_z, _vp, vhsi_lv = z_and_pct(vhsi) if len(vhsi) >= 60 else (None, None, None)
+    asia_z = max((v for v in (ks_z, hs_z) if v is not None), default=None)
+    asia_spill = round(asia_z - eq_z, 2) if (asia_z is not None and eq_z is not None) else None
+    if asia_z is None:
+        asia_state = "DEGRADED"
+    elif asia_z >= 1 and (asia_spill or 0) >= 1:
+        asia_state = "ASIA_CANARY"
+    elif asia_z >= 1:
+        asia_state = "ASIA_ELEVATED"
+    else:
+        asia_state = "ASIA_CALM"
+    ks_h = rolling_z(ks_rv, keep=99999)
+    hs_h = rolling_z(hs_rv, keep=99999)
+
     # ── ratios vs own history
     def ratio_hist(a_rows, b_rows):
         bm = dict(b_rows)
@@ -206,8 +234,13 @@ def lambda_handler(event=None, context=None):
         a, b = fis_h.get(dte), fx_full_h.get(dte)
         if a is None or b is None:
             continue
-        deep.append({"d": dte, "fis": a, "fx": b, "eq": eq_full_h[dte],
-                     "spill": round(max(a, b) - eq_full_h[dte], 2)})
+        row = {"d": dte, "fis": a, "fx": b, "eq": eq_full_h[dte],
+               "spill": round(max(a, b) - eq_full_h[dte], 2)}
+        az = [v for v in (ks_h.get(dte), hs_h.get(dte)) if v is not None]
+        if az:
+            row["as"] = round(max(az), 2)
+            row["asp"] = round(row["as"] - eq_full_h[dte], 2)
+        deep.append(row)
     # downsample: weekly (Fridays) before trailing 730d, daily after
     cutoff = (datetime.now(timezone.utc) - __import__("datetime").timedelta(days=730)).strftime("%Y-%m-%d")
     deep_ds = [r for r in deep if r["d"] >= cutoff
@@ -234,10 +267,13 @@ def lambda_handler(event=None, context=None):
         if x is None and f is None:
             continue
         up = max(v for v in (f, x) if v is not None)
-        hist.append({"d": d, "fi": f, "fx": x, "eq": e,
-                     "spill": round(up - e, 2)})
+        h0 = {"d": d, "fi": f, "fx": x, "eq": e, "spill": round(up - e, 2)}
+        az2 = [v for v in (ks_h.get(d), hs_h.get(d)) if v is not None]
+        if az2:
+            h0["as"] = round(max(az2), 2)
+        hist.append(h0)
     hist = hist[-180:]
-    out = {"engine": "fifx-vol-migration", "version": "1.2.0",
+    out = {"engine": "fifx-vol-migration", "version": "1.3.0",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "legs": {
                "fixed_income": {"measure": fi_src, "level": move, "z": fi_z, "pctile": fi_pct,
@@ -247,12 +283,21 @@ def lambda_handler(event=None, context=None):
                       "broad_dollar": {"realized_20d_pct": dxyv, "z": dxy_z, "pctile": dxy_pct},
                       "note": "implied FX vol indices dead/paid (EVZ disc. 2025-03, TYVIX 2020, CVIX paid) — realized is the free institutional proxy"},
                "equity": {"measure": "VIXCLS (FRED)", "level": vix, "z": eq_z, "pctile": eq_pct,
-                          "trend_5d": eq_trend}},
+                          "trend_5d": eq_trend},
+               "asia": {"thesis": "KOSPI vol = the global risk canary (led 2008; Korea = high-beta foreigner-flow market); Hang Seng = China-gateway stress",
+                        "kospi": {"realized_20d_pct": ks_lv, "z": ks_z, "pctile": ks_pct,
+                                  "n_history": len(ks_rv)},
+                        "hang_seng": {"realized_20d_pct": hs_lv, "z": hs_z, "pctile": hs_pct,
+                                      "n_history": len(hs_rv),
+                                      "implied_vhsi": ({"level": vhsi_lv, "z": vhsi_z}
+                                                       if vhsi_lv is not None else None)},
+                        "asia_z": asia_z}},
            "ratios": {"move_vix": {"last": mv_last, "z": mv_z, "pctile": mv_pctile,
                                    "sibling": "risk-ratios also carries this series"},
                       "fxvol_vix": {"last": fxvix_last, "z": fxvix_z, "pctile": fxvix_pctile}},
            "migration": {"upstream_z": up_z, "equity_z": eq_z, "spillover": spill,
-                         "state": state, "read": reads[state]},
+                         "state": state, "read": reads[state],
+                         "asia_spill": asia_spill, "asia_state": asia_state},
            "history": hist, "deep_history_key": DEEP_KEY,
            "methodology": {"thesis": "vol begins in fixed income/FX and migrates to equities; z-score each leg vs its own 2y and watch the spillover gap",
                            "spillover": "max(FI_z, FX_z) − EQ_z; ≥1 with upstream z ≥1 = UPSTREAM_BREWING"},
