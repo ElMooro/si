@@ -1,6 +1,16 @@
-executing-against: f05068504b4a2233e8062f960c979d30dae02c7e
-PASS  E1_flagship_rr — {'n': 494, 'best_rr': [('CPRT', 7.34, 36.1, 4.9), ('MCD', 6.41, 23.5, 3.7), ('PG', 5.1, 17.8, 3.5), ('GD', 5.09, 37.8, 7.4), ('ACGL', 4.9, 36.7, 7.5), ('COST', 4.71, 22.0, 4.7), ('PGR', 4.5, 33.9, 7.5), ('BRK-B', 4.33, 13.4, 3.1), ('STE', 4.31, 26.2, 6.1), ('RMD', 4.28, 31.7, 7.4)], 'worst_rr': [('WBD', 0.21, 13.9, 65.6), ('MU', 0.18, 38.2, 210.2), ('INTC', 0.17, 24.9, 144.2), ('LITE', 0.13, 24.4, 181.6), ('SNDK', 0.05, 42.2, 842.2)], 'top_upside': [('PYPL', 48.2), ('INTU', 46.5), ('IT', 45.9), ('FISV', 45.7), ('VEEV', 45.0), ('KHC', 44.3)], 'lowest_downside': [('BRK-B', 3.1), ('PG', 3.5), ('MCD', 3.7), ('COST', 4.7), ('CPRT', 4.9), ('ORLY', 5.5)]}
-[01:49:19] PASS  E1_flagship_rr — {'n': 494, 'best_rr': [('CPRT', 7.34, 36.1, 4.9), ('MCD', 6.41, 23.5, 3.7), ('PG', 5.1, 17.8, 3.5), ('GD', 5.09, 37.8, 7.4), ('ACGL', 4.9, 36.7, 7.5), ('COST', 4.71, 22.0, 4.7), ('PGR', 4.5, 33.9, 7.5), ('BRK-B', 4.33, 13.4, 3.1), ('STE', 4.31, 26.2, 6.1), ('RMD', 4.28, 31.7, 7.4)], 'worst_rr': [('WBD', 0.21, 13.9, 65.6), ('MU', 0.18, 38.2, 210.2), ('INTC', 0.17, 24.9, 144.2), ('LITE', 0.13, 24.4, 181.6), ('SNDK', 0.05, 42.2, 842.2)], 'top_upside': [('PYPL', 48.2), ('INTU', 46.5), ('IT', 45.9), ('FISV', 45.7), ('VEEV', 45.0), ('KHC', 44.3)], 'lowest_downside': [('BRK-B', 3.1), ('PG', 3.5), ('MCD', 3.7), ('COST', 4.7), ('CPRT', 4.9), ('ORLY', 5.5)]}
+executing-against: a5b7f6d7025af9a55de183f8013cf715cb0d2f75
+[02:17:10]   zip: 110348 bytes
+── 1. Lambda ──
+[02:17:10]   Lambda exists — updating
+[02:17:13] ✅   ✓ updated justhodl-fundamental-graphs
+[02:17:16]   zip: 92737 bytes
+── 1. Lambda ──
+[02:17:17]   Lambda exists — updating
+[02:17:20] ✅   ✓ updated justhodl-fundamental-census
+PASS  F2_aapl — {'present': 30, 'of': 30, 'missing': [], 'aapl_latest': {'costAndExpenses': 75299000000.0, 'totalNonCurrentAssets': 226968000000.0, 'netChangeInCash': 255000000.0, 'nonOpIncomeTotal': -52000000.0}}
+[02:17:32] PASS  F2_aapl — {'present': 30, 'of': 30, 'missing': [], 'aapl_latest': {'costAndExpenses': 75299000000.0, 'totalNonCurrentAssets': 226968000000.0, 'netChangeInCash': 255000000.0, 'nonOpIncomeTotal': -52000000.0}}
+PASS  F3_chain_kicked — 496-doc refresh chain running; aggregate auto at end
+[02:17:32] PASS  F3_chain_kicked — 496-doc refresh chain running; aggregate auto at end
 RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3560_flagship_rr_regate.md
+→ Report written to aws/ops/reports/latest/3562_tv_parity_rerun.md
