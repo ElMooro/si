@@ -1,0 +1,8 @@
+- `03:15:01` PASS  I1_doc_freshness — {'lastmod_utc': {'AAPL': '02:51:00', 'MSFT': '18:48:13', 'NVDA': '02:51:22', 'JNJ': '03:00:25', 'XOM': '02:54:24', 'WMT': '18:53:12', 'ZTS': '20:23:36', 'YUM': '18:59:44'}, 'n_post_0217': 8, 'of': 8}
+- `03:16:15` PASS  I2_matrix_after_agg — {'generated_at': '2026-07-20T03:16:11.904799+00:00', 'metrics_total': 291, 'raw_nn': {'otherOpex': 129, 'netChangeInCash': 129, 'preferredStock': 129, 'totalNonCurrentAssets': 129, 'dReceivables': 129, 'taxPayables': 129}, 'stat_nn': {'price_to_book': 128, 'roa_pct': 496, 'days_inventory': 129, 'zmijewski_x': 496, 'pe_fwd': 128, 'graham_number': 493, 'quick_ratio': 496, 'asset_turnover': 129}, 'AAPL_pb': 34.503, 'NVDA_pe_fwd': 20.86, 'invoke_head': '{"ok": true, "version": "1.10.0", "generated_at": "2026-07-20T03:16:12.105509+00:00", "elapsed_s": 70.1, "cadence": "1st + 15th monthly, 06:00 UTC", "top_quality": [{"t": "APP", "sector": "Technology"'}
+**Status:** success  
+**Duration:** 74.7s  
+**Finished:** 2026-07-20T03:16:15+00:00  
+
+## Log
+
