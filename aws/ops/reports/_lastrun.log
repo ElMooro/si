@@ -1,17 +1,12 @@
-executing-against: 397863cf81ea66769ca3d03855e8043683d443e0
-[scan] 0/496 missing=0 0s
-[scan] 120/496 missing=0 20s
-[scan] 240/496 missing=1 38s
-[scan] 360/496 missing=2 57s
-[scan] 480/496 missing=4 76s
-PASS  K1_scan — {'missing_n': 5, 'sample': ['FFIV', 'DASH', 'VEEV', 'TROW', 'DPZ'], 'scan_s': 78.5}
-[03:48:31] PASS  K1_scan — {'missing_n': 5, 'sample': ['FFIV', 'DASH', 'VEEV', 'TROW', 'DPZ'], 'scan_s': 78.5}
-[rebuild] 5/5 errs=0 22s
-[rebuild-final] 5/5 errs=0 22s
-PASS  K2_rebuild — {'rebuilt': 5, 'errs': 0, 'elapsed_s': 21.8}
-[03:48:53] PASS  K2_rebuild — {'rebuilt': 5, 'errs': 0, 'elapsed_s': 21.8}
-FAIL  K3_fleet — {'raw>=400': 0, 'stats>=400': 12, 'n_pe_fwd': 133, 'metrics_total': 291, 'cheapest_fwd': [('SNDK', 3.886), ('GPN', 4.715), ('MPC', 6.401), ('MU', 6.427), ('GEN', 6.509), ('FISV', 6.888), ('OMC', 7.251), ('FIS', 7.323)], 'low_cov': [('price_to_tangible_book', 0), ('inventory_turnover', 0), ('rote_pct', 128), ('fcf_per_employee', 131), ('ebitda_per_employee', 131), ('op_income_per_employee', 131), ('debt_per_employee', 131), ('assets_per_employee', 131)], 'spots': {'WMT_days_inventory': None, 'MSFT_pe_fwd': None, 'WMT_inventory_turnover': None}}
-[03:50:00] FAIL  K3_fleet — {'raw>=400': 0, 'stats>=400': 12, 'n_pe_fwd': 133, 'metrics_total': 291, 'cheapest_fwd': [('SNDK', 3.886), ('GPN', 4.715), ('MPC', 6.401), ('MU', 6.427), ('GEN', 6.509), ('FISV', 6.888), ('OMC', 7.251), ('FIS', 7.323)], 'low_cov': [('price_to_tangible_book', 0), ('inventory_turnover', 0), ('rote_pct', 128), ('fcf_per_employee', 131), ('ebitda_per_employee', 131), ('op_income_per_employee', 131), ('debt_per_employee', 131), ('assets_per_employee', 131)], 'spots': {'WMT_days_inventory': None, 'MSFT_pe_fwd': None, 'WMT_inventory_turnover': None}}
-RESULT: FAILS: ['K3_fleet']
+executing-against: 08953f983b5db3f69a8754f1d7c38db8b536b883
+PASS  P_WMT — {"doc_generated": "2026-07-19T18:53:11", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [1.393, 129], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 1.393, "price_to_book": null}}
+[04:10:12] PASS  P_WMT — {"doc_generated": "2026-07-19T18:53:11", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [1.393, 129], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 1.393, "price_to_book": null}}
+PASS  P_MSFT — {"doc_generated": "2026-07-19T18:48:12", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [2.634, 67], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 2.634, "price_to_book": null}}
+[04:10:12] PASS  P_MSFT — {"doc_generated": "2026-07-19T18:48:12", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [2.634, 67], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 2.634, "price_to_book": null}}
+PASS  P_AAPL — {"doc_generated": "2026-07-20T02:50:59", "doc": {"days_inventory": [10.46, 146], "netChangeInCash": [255000000.0, 146], "pe_fwd": [27.299, 1], "roce_pct": [62.327, 150], "fulmer_h": [0.607, 148], "price_to_book": [34.503, 151]}, "matrix": {"days_inventory": 10.46, "netChangeInCash": 255000000.0, "pe_fwd": 27.299, "roce_pct": 62.327, "fulmer_h": 0.607, "price_to_book": 34.503}}
+[04:10:12] PASS  P_AAPL — {"doc_generated": "2026-07-20T02:50:59", "doc": {"days_inventory": [10.46, 146], "netChangeInCash": [255000000.0, 146], "pe_fwd": [27.299, 1], "roce_pct": [62.327, 150], "fulmer_h": [0.607, 148], "price_to_book": [34.503, 151]}, "matrix": {"days_inventory": 10.46, "netChangeInCash": 255000000.0, "pe_fwd": 27.299, "roce_pct": 62.327, "fulmer_h": 0.607, "price_to_book": 34.503}}
+PASS  P_ZTS — {"doc_generated": "2026-07-19T20:23:35", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [3.6, 58], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 3.6, "price_to_book": null}}
+[04:10:12] PASS  P_ZTS — {"doc_generated": "2026-07-19T20:23:35", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [3.6, 58], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 3.6, "price_to_book": null}}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3567_bruteforce_close.md
+→ Report written to aws/ops/reports/latest/3569_wmt_probe.md

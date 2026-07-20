@@ -1,0 +1,9 @@
+- `04:10:12` PASS  P_WMT — {"doc_generated": "2026-07-19T18:53:11", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [1.393, 129], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 1.393, "price_to_book": null}}
+- `04:10:12` PASS  P_MSFT — {"doc_generated": "2026-07-19T18:48:12", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [2.634, 67], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 2.634, "price_to_book": null}}
+**Status:** success  
+**Duration:** 1.9s  
+**Finished:** 2026-07-20T04:10:12+00:00  
+
+## Log
+- `04:10:12` PASS  P_AAPL — {"doc_generated": "2026-07-20T02:50:59", "doc": {"days_inventory": [10.46, 146], "netChangeInCash": [255000000.0, 146], "pe_fwd": [27.299, 1], "roce_pct": [62.327, 150], "fulmer_h": [0.607, 148], "price_to_book": [34.503, 151]}, "matrix": {"days_inventory": 10.46, "netChangeInCash": 255000000.0, "pe_fwd": 27.299, "roce_pct": 62.327, "fulmer_h": 0.607, "price_to_book": 34.503}}
+- `04:10:12` PASS  P_ZTS — {"doc_generated": "2026-07-19T20:23:35", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [3.6, 58], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 3.6, "price_to_book": null}}
