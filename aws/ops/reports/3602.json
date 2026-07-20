@@ -1,0 +1,23 @@
+{
+  "gates": {
+    "G1_asia_legs": {
+      "ok": true,
+      "detail": "KOSPI rlzd=208.67% z=1.96 (95.2p, 336 pts) \u00b7 HSI rlzd=106.31% z=-1.29 (140 pts, VHSI=None) \u00b7 asia_z=1.96 asia_spill=1.95 state=ASIA_CANARY"
+    },
+    "G2_deep_crisis": {
+      "ok": false,
+      "detail": "asia rows=49/2212 from 2003-10-31 \u00b7 asp maxima: 97-98=None \u2b502008-09=0.62 2020=-0.55 \u00b7 today asp=None"
+    },
+    "G3_page_served": {
+      "ok": false,
+      "detail": "served: ASIA node + cyan canary overlay + state chip, card still top"
+    }
+  },
+  "crisis_asia": {
+    "1997-98": null,
+    "2008-09": 0.62,
+    "2020": -0.55,
+    "today": null
+  },
+  "verdict": "GAPS: G2_deep_crisis,G3_page_served"
+}
