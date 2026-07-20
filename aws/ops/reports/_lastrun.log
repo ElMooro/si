@@ -1,35 +1,13 @@
-executing-against: 763019e393f98e630888b889244b9612ba9eb666
-ops 3571 — deal-scanner v2.0.0 full-market + graded family
-PASS  G1_settled_v2 — zip markers VERSION 2.0.0 + deal-win + by_sector
-[16:40:16] PASS  G1_settled_v2 — zip markers VERSION 2.0.0 + deal-win + by_sector
-FAIL  G2_schedule_3x — rule deal-scanner-daily = cron(5 */3 * * ? *)
-[16:40:16] FAIL  G2_schedule_3x — rule deal-scanner-daily = cron(5 */3 * * ? *)
-PASS  G3_feed_v2_live — prs=3600 deals=16 sectors_boards=11 caps_boards=6 sectors_hit=6/11 caps_hit=6/6 tape_tickers=1299 sources={'fmp_pr': 1400, 'fmp_news': 1400, 'polygon': 800}
-[16:40:31] PASS  G3_feed_v2_live — prs=3600 deals=16 sectors_boards=11 caps_boards=6 sectors_hit=6/11 caps_hit=6/6 tape_tickers=1299 sources={'fmp_pr': 1400, 'fmp_news': 1400, 'polygon': 800}
-PASS  G4_graded_family — signals_logged=4 list=['IREN', 'EPR', 'MRAI', 'KMDA'] · DDB deal-win#IREN#2026-07-20: FOUND conf=0.66 base=40.237 regime=True
-[16:40:31] PASS  G4_graded_family — signals_logged=4 list=['IREN', 'EPR', 'MRAI', 'KMDA'] · DDB deal-win#IREN#2026-07-20: FOUND conf=0.66 base=40.237 regime=True
-PASS  G5_page_boards — served markers: Market Coverage / All Cap Tiers / Graded Signals
-[16:42:17] PASS  G5_page_boards — served markers: Market Coverage / All Cap Tiers / Graded Signals
-
-VERDICT: GAPS: G2_schedule_3x
-[16:42:17] VERDICT: GAPS: G2_schedule_3x
-
-→ Report written to aws/ops/reports/latest/3571_deal_scanner_v2.md
-ops 3572 — deal-win fusion across the fleet
-PASS  G1_best_setups_ctx — zip markers deal_context join
-[16:42:17] PASS  G1_best_setups_ctx — zip markers deal_context join
-PASS  G2_master_ranker_overlay — zip markers deal_win overlay + fusion print
-[16:42:18] PASS  G2_master_ranker_overlay — zip markers deal_win overlay + fusion print
-PASS  G3_mi_facts — zip markers feed + fresh_deal_wins fact
-[16:42:18] PASS  G3_mi_facts — zip markers feed + fresh_deal_wins fact
-PASS  G4_ranker_behavior — feed regenerated post-patch · rows carrying deal_win overlay = 0 (count depends on a ranked name having a fresh <=72h deal — overlay attach is data-gated, presence of ANY is bonus proof)
-[16:42:33] PASS  G4_ranker_behavior — feed regenerated post-patch · rows carrying deal_win overlay = 0 (count depends on a ranked name having a fresh <=72h deal — overlay attach is data-gated, presence of ANY is bonus proof)
-PASS  G5_alpha_families_card — served markers: c-deals card + feed wire
-[16:42:33] PASS  G5_alpha_families_card — served markers: c-deals card + feed wire
-PASS  G6_why_deal_radar — served markers: Deal Radar section + filler
-[16:42:33] PASS  G6_why_deal_radar — served markers: Deal Radar section + filler
+executing-against: 99d0dfb1d5a5dfb6043b4abde50e414bd174c7ff
+ops 3573 — deal-scanner cadence parity (config == live rule)
+PASS  G1_rule_parity — config=cron(5 */3 * * ? *) live=cron(5 */3 * * ? *)
+[16:44:25] PASS  G1_rule_parity — config=cron(5 */3 * * ? *) live=cron(5 */3 * * ? *)
+PASS  G2_engine_8x_strings — zip markers runs_per_day=8 + every-3-hours
+[16:44:25] PASS  G2_engine_8x_strings — zip markers runs_per_day=8 + every-3-hours
+PASS  G3_feed_v2_intact — version=2.0.0 boards=11
+[16:44:26] PASS  G3_feed_v2_intact — version=2.0.0 boards=11
 
 VERDICT: PASS_ALL
-[16:42:33] VERDICT: PASS_ALL
+[16:44:26] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3572_deal_fusion.md
+→ Report written to aws/ops/reports/latest/3573_cadence_parity.md
