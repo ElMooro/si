@@ -21,7 +21,7 @@ _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = os.environ.get("FMP_API_KEY",
@@ -140,6 +140,35 @@ def curve_block():
     return m
 
 
+def ttm_yield(sym, last_close):
+    """TTM distribution yield % from FMP dividends (real payouts)."""
+    try:
+        d = fmp(f"dividends?symbol={sym}")
+        if isinstance(d, dict):
+            d = d.get("historical") or []
+        from datetime import datetime as _dt, timedelta as _td
+        cut = (_dt.utcnow() - _td(days=370)).strftime("%Y-%m-%d")
+        tot = sum(float(x.get("adjDividend") or x.get("dividend") or 0)
+                  for x in d if str(x.get("date", ""))[:10] >= cut)
+        if tot > 0 and last_close:
+            return round(100 * tot / last_close, 2)
+    except Exception as e:  # noqa: BLE001
+        print(f"[yield] {sym}: {str(e)[:50]}")
+    return None
+
+
+def ratio_z(wk_a, wk_b, look=156):
+    ma, mb = dict(wk_a), dict(wk_b)
+    dates = sorted(set(ma) & set(mb))[-look:]
+    if len(dates) < 60:
+        return None
+    r = [ma[d] / mb[d] for d in dates]
+    mu = sum(r) / len(r)
+    sd = (sum((x - mu) ** 2 for x in r) / (len(r) - 1)) ** 0.5
+    return {"z": round((r[-1] - mu) / sd, 2) if sd > 0 else None,
+            "ratio": round(r[-1], 4), "n_weeks": len(dates)}
+
+
 def lambda_handler(event, context):
     event = event or {}
     t0 = time.time()
@@ -149,6 +178,7 @@ def lambda_handler(event, context):
     tlt_map = {d: v for d, v in price_weekly("TLT")}
 
     rows = {}
+    wk_map = {}
     for i, (sym, seg) in enumerate(uni):
         wk = price_weekly(sym)
         lv = {"mom_6m_pct": momentum(wk, 26),
@@ -161,6 +191,14 @@ def lambda_handler(event, context):
         if bt is not None:
             lv["beta_tlt"] = bt
         rec = {"t": sym, "segment": seg, "_lv": lv}
+        wk_map[sym] = wk
+        yy = ttm_yield(sym, wk[-1][1] if wk else None)
+        if yy is not None:
+            lv["ttm_yield_pct"] = yy
+        if isinstance(bt, (int, float)) and abs(bt) >= 0.05 and \
+                isinstance(lv.get("mom_12_1_pct"), (int, float)):
+            lv["ret_per_duration"] = round(
+                lv["mom_12_1_pct"] / abs(bt), 1)
         try:
             info = fmp(f"etf/info?symbol={sym}")
             i0 = info[0] if isinstance(info, list) and info else {}
@@ -218,6 +256,17 @@ def lambda_handler(event, context):
         rk.append(round(sum(vs) / len(vs), 1) if len(vs) >= 2
                   else None)
     cols["risk_score"] = rk
+    yb = None
+    if cols.get("ttm_yield_pct"):
+        try:
+            yb = cols["ttm_yield_pct"][tickers.index("BIL")]
+        except Exception:  # noqa: BLE001
+            yb = None
+        if isinstance(yb, (int, float)):
+            cols["carry_vs_cash_bp"] = [
+                round((v - yb) * 100, 0)
+                if isinstance(v, (int, float)) else None
+                for v in cols["ttm_yield_pct"]]
 
     now = datetime.now(timezone.utc).isoformat()
     mx = {"generated_at": now, "version": VERSION, "n": n,
@@ -233,7 +282,33 @@ def lambda_handler(event, context):
               if isinstance(v, (int, float))]
         pr.sort(key=lambda x: -x[1] if rev else x[1])
         return pr[:nn]
+    spreads = [dict(pair=lbl, note=note,
+                    **(ratio_z(wk_map.get(a) or [],
+                               wk_map.get(b) or []) or {}))
+               for lbl, a, b, note in
+               (("HYG/LQD", "HYG", "LQD", "HY vs IG risk appetite"),
+                ("LQD/IEF", "LQD", "IEF", "credit vs rates"),
+                ("TIP/IEF", "TIP", "IEF", "breakeven direction"),
+                ("EMB/IEF", "EMB", "IEF", "EM risk"),
+                ("TLT/SHY", "TLT", "SHY",
+                 "flattener (falling = steepener)"))
+               if wk_map.get(a) and wk_map.get(b)]
+    dealer, funding = None, None
+    try:
+        cs = s3json("data/credit-stress.json") or {}
+        dealer = cs.get("dealer_positioning")
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        ep = s3json("data/eurodollar-plumbing.json") or {}
+        for mrec in ((ep.get("us_core") or {}).get("metrics") or []):
+            if "gcf" in str(mrec.get("id", "")).lower():
+                funding = mrec
+                break
+    except Exception:  # noqa: BLE001
+        pass
     doc = {"generated_at": now, "version": VERSION, "n": n,
+           "spreads": spreads, "dealer": dealer, "funding": funding,
            "curve": curve_block(),
            "credit": credit_blocks(),
            "boards": {"duration_ladder": tops("beta_tlt", 12),

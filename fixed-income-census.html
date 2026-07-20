@@ -23,6 +23,7 @@ tr.fxRow{cursor:pointer}tr.fxRow:hover{background:#101c33}
 </style></head><body><div class="wrap">
 <h1>Fixed-Income Census — Explorer</h1><div class="rk">bond wrappers · duration ladder (β to TLT) · curve &amp; credit live · biweekly sweep · real data only · <span id="stamp"></span></div>
 <div class="card"><div class="rk" style="margin-bottom:6px">RATES &amp; CREDIT</div><div class="strip" id="creditStrip"></div></div>
+<div class="card"><div class="rk" style="margin-bottom:6px">CREDIT &amp; CURVE SPREADS — 3y ratio z-scores · dealer &amp; funding</div><div class="strip" id="spreadStrip"></div></div>
 <div class="card">
 <div id="selChips" style="margin-bottom:6px"></div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -41,7 +42,7 @@ tr.fxRow{cursor:pointer}tr.fxRow:hover{background:#101c33}
 <div class="rk" style="margin-top:6px">click a header to sort · click a chip's ↑↓ to flip direction · double-click a row → chart-pro</div></div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script id="OPSPAGE">
-var CFG={"slug": "fi-census", "title": "Fixed-Income Census \u2014 Explorer", "sub": "bond wrappers \u00b7 duration ladder (\u03b2 to TLT) \u00b7 curve &amp; credit live", "matrix": "https://justhodl-data-proxy.raafouis.workers.dev/data/fi-census-matrix.json", "doc": "https://justhodl-data-proxy.raafouis.workers.dev/data/fi-census.json", "facField": "segments", "facLabel": "Segment", "credit": true, "labels": {"mom_12_1_pct": "Momentum 12-1 %", "mom_6m_pct": "Momentum 6m %", "dist_52w_high_pct": "% vs 52w high", "dist_52w_low_pct": "% vs 52w low", "rsi_14w": "RSI 14w", "vol_52w_pct": "Volatility 52w %", "beta_spy": "Beta vs SPY", "beta_tlt": "Duration proxy (\u03b2 TLT)", "tech_score": "Tech score", "risk_score": "\u26a0\ufe0f Risk score", "aum_usd_m": "AUM $M", "expense_pct": "Expense %", "leveraged": "Leveraged/Inverse", "golden_cross_10_40w": "Golden cross", "breakout_20w": "20w breakout", "double_top": "Double top", "double_bottom": "Double bottom", "above_ma40w": "Above 40w MA", "nav": "NAV", "avg_volume": "Avg volume", "holdings_n": "Holdings"}, "presets": {"dl": {"sel": [["beta_tlt", 0], ["mom_12_1_pct", 0]]}, "cc": {"sel": [["mom_6m_pct", 0], ["vol_52w_pct", 1]], "risk": ["L", "M"]}, "fq": {"sel": [["beta_tlt", 0], ["vol_52w_pct", 1]], "risk": ["L"]}, "st": {"sel": [["beta_tlt", 1], ["mom_12_1_pct", 0]]}}};
+var CFG={"slug": "fi-census", "title": "Fixed-Income Census \u2014 Explorer", "sub": "bond wrappers \u00b7 duration ladder (\u03b2 to TLT) \u00b7 curve &amp; credit live", "matrix": "https://justhodl-data-proxy.raafouis.workers.dev/data/fi-census-matrix.json", "doc": "https://justhodl-data-proxy.raafouis.workers.dev/data/fi-census.json", "facField": "segments", "facLabel": "Segment", "credit": true, "labels": {"rs_13w_pct":"RS vs SPY 13w %","corr_spy_52w":"Correlation to SPY","up_capture_pct":"Up-capture %","down_capture_pct":"Down-capture %","prem_disc_pct":"Premium/discount %","dollar_vol_usd_m":"$ volume /day $M","variance_drag_pct_ann":"Variance drag %/yr","ttm_yield_pct":"TTM yield %","carry_vs_cash_bp":"Carry vs cash bp","ret_per_duration":"Return per unit duration","mom_12_1_pct": "Momentum 12-1 %", "mom_6m_pct": "Momentum 6m %", "dist_52w_high_pct": "% vs 52w high", "dist_52w_low_pct": "% vs 52w low", "rsi_14w": "RSI 14w", "vol_52w_pct": "Volatility 52w %", "beta_spy": "Beta vs SPY", "beta_tlt": "Duration proxy (\u03b2 TLT)", "tech_score": "Tech score", "risk_score": "\u26a0\ufe0f Risk score", "aum_usd_m": "AUM $M", "expense_pct": "Expense %", "leveraged": "Leveraged/Inverse", "golden_cross_10_40w": "Golden cross", "breakout_20w": "20w breakout", "double_top": "Double top", "double_bottom": "Double bottom", "above_ma40w": "Above 40w MA", "nav": "NAV", "avg_volume": "Avg volume", "holdings_n": "Holdings"}, "presets": {"dl": {"sel": [["beta_tlt", 0], ["mom_12_1_pct", 0]]}, "cc": {"sel": [["mom_6m_pct", 0], ["vol_52w_pct", 1]], "risk": ["L", "M"]}, "fq": {"sel": [["beta_tlt", 0], ["vol_52w_pct", 1]], "risk": ["L"]}, "st": {"sel": [["beta_tlt", 1], ["mom_12_1_pct", 0]]}}};
 var MX=null,SEL=[],FACS=[],RISKS=[],MOMS=[],PATS=[],Q='',SORTK='__sum',SORTD=-1,RT=null,MT=null;
 var LOWRX=/(expense|vol_52w|risk_score|beta|double_top|dist_52w_high)/;
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -123,6 +124,12 @@ function renderCredit(){fetch(CFG.doc+'?ts='+(Date.now()/600000|0)).then(functio
   var c=d.curve||{},cr=(d.credit||{});var hy=((cr.corporate||{}).hy_oas)||{};
   var el=document.getElementById('creditStrip');if(!el)return;
   function tl(v,l,fmt){return '<div class="tile"><b>'+(v==null?'—':fmt?fmt(v):v)+'</b><span>'+l+'</span></div>';}
+  var sp=document.getElementById('spreadStrip');
+  if(sp){var h=(d.spreads||[]).map(function(p){var z=p.z;var col=z==null?'var(--muted)':z>=1.5?'var(--green)':z<=-1.5?'var(--red)':'var(--text)';
+    return '<div class="tile"><b style="color:'+col+'">'+(z==null?'—':(z>0?'+':'')+z+'σ')+'</b><span>'+esc(p.pair)+' · '+esc(p.note)+'</span></div>';}).join('');
+   if(d.dealer)h+='<div class="tile"><b>'+esc(d.dealer.net!=null?d.dealer.net+'B':(d.dealer.regime||'—'))+'</b><span>dealer corp net'+(d.dealer.squeeze?' · SQUEEZE':'')+'</span></div>';
+   if(d.funding)h+='<div class="tile"><b>'+esc(d.funding.value!=null?d.funding.value:(d.funding.v!=null?d.funding.v:'—'))+'</b><span>'+esc(d.funding.id||'GCF-TRI')+'</span></div>';
+   sp.innerHTML=h;}
   el.innerHTML=tl(c.y10,'US 10y %')+tl(c.curve_2s10s_bp,'2s10s bp')+tl(c.curve_5s30s_bp,'5s30s bp')+tl(c.real_10y,'real 10y %')+tl(c.breakeven_5y,'5y breakeven %')
     +tl(hy.oas_bp,'HY OAS bp')+tl(hy.change_30d_bp,'HY Δ30d bp')+tl(cr.composite_credit_risk,'credit risk 0-100')+tl(cr.regime,'regime');
 });}

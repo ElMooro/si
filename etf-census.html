@@ -23,6 +23,7 @@ tr.fxRow{cursor:pointer}tr.fxRow:hover{background:#101c33}
 </style></head><body><div class="wrap">
 <h1>ETF Census — Explorer</h1><div class="rk">every wrapper the fleet tracks: flows · momentum · patterns · decay guard · biweekly sweep · real data only · <span id="stamp"></span></div>
 
+<div class="card"><div class="rk" style="margin-bottom:6px">INSTITUTIONAL PAIRS — 3y ratio z-scores</div><div class="strip" id="pairsStrip"></div></div>
 <div class="card">
 <div id="selChips" style="margin-bottom:6px"></div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -41,7 +42,7 @@ tr.fxRow{cursor:pointer}tr.fxRow:hover{background:#101c33}
 <div class="rk" style="margin-top:6px">click a header to sort · click a chip's ↑↓ to flip direction · double-click a row → chart-pro</div></div>
 <script src="/jh-nav-drawer.js" defer></script>
 <script id="OPSPAGE">
-var CFG={"slug": "etf-census", "title": "ETF Census \u2014 Explorer", "sub": "every wrapper the fleet tracks: flows \u00b7 momentum \u00b7 patterns \u00b7 decay guard", "matrix": "https://justhodl-data-proxy.raafouis.workers.dev/data/etf-census-matrix.json", "doc": "https://justhodl-data-proxy.raafouis.workers.dev/data/etf-census.json", "facField": "categories", "facLabel": "Category", "credit": false, "labels": {"mom_12_1_pct": "Momentum 12-1 %", "mom_6m_pct": "Momentum 6m %", "dist_52w_high_pct": "% vs 52w high", "dist_52w_low_pct": "% vs 52w low", "rsi_14w": "RSI 14w", "vol_52w_pct": "Volatility 52w %", "beta_spy": "Beta vs SPY", "beta_tlt": "Duration proxy (\u03b2 TLT)", "tech_score": "Tech score", "risk_score": "\u26a0\ufe0f Risk score", "aum_usd_m": "AUM $M", "expense_pct": "Expense %", "leveraged": "Leveraged/Inverse", "golden_cross_10_40w": "Golden cross", "breakout_20w": "20w breakout", "double_top": "Double top", "double_bottom": "Double bottom", "above_ma40w": "Above 40w MA", "nav": "NAV", "avg_volume": "Avg volume", "holdings_n": "Holdings"}, "presets": {"fl": {"sel": [["f_flow_5d", 0], ["mom_12_1_pct", 0], ["tech_score", 0]]}, "mr": {"sel": [["mom_12_1_pct", 0], ["tech_score", 0]], "mom": ["H"]}, "sc": {"sel": [["vol_52w_pct", 1], ["aum_usd_m", 0], ["mom_6m_pct", 0]], "risk": ["L"]}, "dt": {"sel": [["expense_pct", 0], ["vol_52w_pct", 0]], "risk": ["H"]}}};
+var CFG={"slug": "etf-census", "title": "ETF Census \u2014 Explorer", "sub": "every wrapper the fleet tracks: flows \u00b7 momentum \u00b7 patterns \u00b7 decay guard", "matrix": "https://justhodl-data-proxy.raafouis.workers.dev/data/etf-census-matrix.json", "doc": "https://justhodl-data-proxy.raafouis.workers.dev/data/etf-census.json", "facField": "categories", "facLabel": "Category", "credit": false, "labels": {"rs_13w_pct":"RS vs SPY 13w %","corr_spy_52w":"Correlation to SPY","up_capture_pct":"Up-capture %","down_capture_pct":"Down-capture %","prem_disc_pct":"Premium/discount %","dollar_vol_usd_m":"$ volume /day $M","variance_drag_pct_ann":"Variance drag %/yr","ttm_yield_pct":"TTM yield %","carry_vs_cash_bp":"Carry vs cash bp","ret_per_duration":"Return per unit duration","mom_12_1_pct": "Momentum 12-1 %", "mom_6m_pct": "Momentum 6m %", "dist_52w_high_pct": "% vs 52w high", "dist_52w_low_pct": "% vs 52w low", "rsi_14w": "RSI 14w", "vol_52w_pct": "Volatility 52w %", "beta_spy": "Beta vs SPY", "beta_tlt": "Duration proxy (\u03b2 TLT)", "tech_score": "Tech score", "risk_score": "\u26a0\ufe0f Risk score", "aum_usd_m": "AUM $M", "expense_pct": "Expense %", "leveraged": "Leveraged/Inverse", "golden_cross_10_40w": "Golden cross", "breakout_20w": "20w breakout", "double_top": "Double top", "double_bottom": "Double bottom", "above_ma40w": "Above 40w MA", "nav": "NAV", "avg_volume": "Avg volume", "holdings_n": "Holdings"}, "presets": {"fl": {"sel": [["f_flow_5d", 0], ["mom_12_1_pct", 0], ["tech_score", 0]]}, "mr": {"sel": [["mom_12_1_pct", 0], ["tech_score", 0]], "mom": ["H"]}, "sc": {"sel": [["vol_52w_pct", 1], ["aum_usd_m", 0], ["mom_6m_pct", 0]], "risk": ["L"]}, "dt": {"sel": [["expense_pct", 0], ["vol_52w_pct", 0]], "risk": ["H"]}}};
 var MX=null,SEL=[],FACS=[],RISKS=[],MOMS=[],PATS=[],Q='',SORTK='__sum',SORTD=-1,RT=null,MT=null;
 var LOWRX=/(expense|vol_52w|risk_score|beta|double_top|dist_52w_high)/;
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -53,6 +54,7 @@ fetch(CFG.matrix+'?ts='+(Date.now()/600000|0)).then(function(r){return r.json();
   var ff=document.getElementById('fxFac');var seen={};
   (d[CFG.facField]||[]).forEach(function(c){if(c&&!seen[c]){seen[c]=1;var o=document.createElement('option');o.value=c;o.textContent=c;ff.appendChild(o);}});
   if(CFG.credit)renderCredit();
+  renderPairs();
   draw();});
 function tiers(col){var xs=(col||[]).filter(function(v){return typeof v==='number';}).slice().sort(function(a,b){return a-b;});
   if(xs.length<3)return null;return {lo:xs[(xs.length/3)|0],hi:xs[(2*xs.length/3)|0]};}
@@ -119,6 +121,11 @@ Array.prototype.forEach.call(document.querySelectorAll('.fxP'),function(btn){btn
   var pc=CFG.presets[btn.getAttribute('data-p')]||{};
   (pc.risk||[]).forEach(function(v){RISKS.push(v);});(pc.pat||[]).forEach(function(v){PATS.push(v);});(pc.mom||[]).forEach(function(v){MOMS.push(v);});
   draw();};});
+function renderPairs(){fetch(CFG.doc+'?ts='+(Date.now()/600000|0)).then(function(r){return r.json();}).then(function(d){
+  var el=document.getElementById('pairsStrip');if(!el||!d.pairs)return;
+  el.innerHTML=d.pairs.map(function(p){var z=p.z==null?null:p.z;var col=z==null?'var(--muted)':z>=1.5?'var(--green)':z<=-1.5?'var(--red)':'var(--text)';
+    return '<div class="tile"><b style="color:'+col+'">'+(z==null?'—':(z>0?'+':'')+z+'σ')+'</b><span>'+esc(p.pair)+' · '+esc(p.note)+'</span></div>';}).join('');
+});}
 function renderCredit(){fetch(CFG.doc+'?ts='+(Date.now()/600000|0)).then(function(r){return r.json();}).then(function(d){
   var c=d.curve||{},cr=(d.credit||{});var hy=((cr.corporate||{}).hy_oas)||{};
   var el=document.getElementById('creditStrip');if(!el)return;

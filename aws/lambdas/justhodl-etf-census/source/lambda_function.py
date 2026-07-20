@@ -24,7 +24,7 @@ _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = __import__("os").environ.get(
@@ -127,6 +127,56 @@ def price_weekly(sym):
         return []
 
 
+def _wret(wk, n=None):
+    px = [v for _, v in wk]
+    if n:
+        px = px[-(n + 1):]
+    return [px[i] / px[i - 1] - 1 for i in range(1, len(px))]
+
+
+def rs_corr_capture(wk, spy_wk):
+    """13w relative strength, 52w correlation, up/down capture vs
+    SPY on date-matched weekly closes."""
+    sm = dict(spy_wk)
+    pairs = [(v, sm[d]) for d, v in wk if d in sm]
+    out = {}
+    if len(pairs) >= 15:
+        a13 = pairs[-14:]
+        r_s = a13[-1][0] / a13[0][0] - 1
+        r_m = a13[-1][1] / a13[0][1] - 1
+        out["rs_13w_pct"] = round((r_s - r_m) * 100, 2)
+    if len(pairs) >= 40:
+        tail = pairs[-53:]
+        ra = [tail[i][0] / tail[i-1][0] - 1 for i in range(1, len(tail))]
+        rb = [tail[i][1] / tail[i-1][1] - 1 for i in range(1, len(tail))]
+        ma = sum(ra) / len(ra); mb = sum(rb) / len(rb)
+        cov = sum((ra[i]-ma)*(rb[i]-mb) for i in range(len(ra)))
+        va = sum((x-ma)**2 for x in ra); vb = sum((x-mb)**2 for x in rb)
+        if va > 0 and vb > 0:
+            out["corr_spy_52w"] = round(cov / (va**.5 * vb**.5), 2)
+        ups = [(ra[i], rb[i]) for i in range(len(rb)) if rb[i] > 0]
+        dns = [(ra[i], rb[i]) for i in range(len(rb)) if rb[i] < 0]
+        if len(ups) >= 8:
+            out["up_capture_pct"] = round(100 * (sum(u[0] for u in ups)
+                                          / sum(u[1] for u in ups)), 1)
+        if len(dns) >= 8:
+            out["down_capture_pct"] = round(100 * (sum(d[0] for d in dns)
+                                            / sum(d[1] for d in dns)), 1)
+    return out
+
+
+def ratio_z(wk_a, wk_b, look=156):
+    ma, mb = dict(wk_a), dict(wk_b)
+    dates = sorted(set(ma) & set(mb))[-look:]
+    if len(dates) < 60:
+        return None
+    r = [ma[d] / mb[d] for d in dates]
+    mu = sum(r) / len(r)
+    sd = (sum((x - mu) ** 2 for x in r) / (len(r) - 1)) ** 0.5
+    return {"z": round((r[-1] - mu) / sd, 2) if sd > 0 else None,
+            "ratio": round(r[-1], 4), "n_weeks": len(dates)}
+
+
 def lambda_handler(event, context):
     event = event or {}
     t0 = time.time()
@@ -138,6 +188,7 @@ def lambda_handler(event, context):
     spx_map = {d: v for d, v in spx_rows}
 
     rows = {}
+    wk_map = {}
     n_info = 0
     for i, sym in enumerate(uni):
         rec = {"t": sym}
@@ -179,6 +230,15 @@ def lambda_handler(event, context):
         b = beta_vs(wk, spx_map)
         if b is not None:
             lv["beta_spy"] = b
+        lv.update(rs_corr_capture(wk, spx_rows))
+        if wk and isinstance(rec.get("nav"), (int, float)) \
+                and rec["nav"] > 0:
+            lv["prem_disc_pct"] = round(
+                (wk[-1][1] / rec["nav"] - 1) * 100, 2)
+        if wk and isinstance(rec.get("avg_volume"), (int, float)):
+            lv["dollar_vol_usd_m"] = round(
+                rec["avg_volume"] * wk[-1][1] / 1e6, 1)
+        wk_map[sym] = wk
         # flow columns (tolerant): any numeric field mentioning flow /
         # dvol / return copied through with a normalized name
         for k, v in fr.items():
@@ -244,6 +304,25 @@ def lambda_handler(event, context):
         v = sum(vs) / len(vs) + (12 if lev[i] else 0)
         rk.append(round(max(0.0, min(100.0, v)), 1))
     cols["risk_score"] = rk
+    # variance-drag estimate for leveraged wrappers:
+    # drag ≈ 0.5·(L²−L)·σ_SPY² annualized (weekly σ from SPY 52w)
+    spy_r = _wret(spx_rows, 52)
+    if len(spy_r) >= 40:
+        mu = sum(spy_r) / len(spy_r)
+        var_w = sum((x - mu) ** 2 for x in spy_r) / (len(spy_r) - 1)
+        var_a = var_w * 52
+        drag = []
+        for i in range(n):
+            if lev[i] == 1 and isinstance(
+                    (cols.get("beta_spy") or [None]*n)[i],
+                    (int, float)):
+                L = abs(round(cols["beta_spy"][i]))
+                drag.append(round(50 * (L * L - L) * var_a, 2)
+                            if L >= 2 else None)
+            else:
+                drag.append(None)
+        if any(v is not None for v in drag):
+            cols["variance_drag_pct_ann"] = drag
 
     now = datetime.now(timezone.utc).isoformat()
     mx = {"generated_at": now, "version": VERSION, "n": n,
@@ -274,6 +353,20 @@ def lambda_handler(event, context):
                "decay_careful": [tickers[i] for i in range(n)
                                  if lev[i] == 1],
            },
+           "pairs": [dict(pair=lbl, note=note,
+                          **(ratio_z(wk_map.get(a) or [],
+                                     wk_map.get(b) or []) or {}))
+                     for lbl, a, b, note in
+                     (("IWD/IWF", "IWD", "IWF", "value vs growth"),
+                      ("IWM/SPY", "IWM", "SPY", "small vs large"),
+                      ("SMH/SPY", "SMH", "SPY", "semis leadership"),
+                      ("XLY/XLP", "XLY", "XLP",
+                       "cyclicals vs defensives"),
+                      ("EEM/EFA", "EEM", "EFA", "EM vs DM"),
+                      ("HYG/IEF", "HYG", "IEF", "credit risk appetite"),
+                      ("GLD/SPY", "GLD", "SPY", "gold vs equities"),
+                      ("RSP/SPY", "RSP", "SPY", "equal-weight breadth"))
+                     if wk_map.get(a) and wk_map.get(b)],
            "coverage": {"n_info": n_info,
                         "flow_cols": [k for k in cols
                                       if k.startswith("f_")][:20]},
