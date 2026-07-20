@@ -55,6 +55,8 @@ tr:last-child td{border-bottom:none}
     <div class="card" id="gpr"><div class="err">loading…</div></div>
     <div class="card" id="heavy-truck"><div class="err">loading…</div></div>
     <div class="card" id="freight"><div class="err">loading…</div></div>
+    <div class="card" id="asia-pulse"><div class="err">loading…</div></div>
+    <div class="card" id="next-prints"><div class="err">loading…</div></div>
   </div>
 
   <div class="note" style="margin-top:24px">Sources: metals ratios (Yahoo/COMEX), rate-cut diffusion (FRED central-bank rates), Geopolitical Risk Index (Caldara &amp; Iacoviello), heavy-truck sales (FRED HTRUCKSSAAR). Refreshed daily. Real data only.</div>
@@ -62,6 +64,28 @@ tr:last-child td{border-bottom:none}
 <script>
 function zbadge(z){ if(z==null) return ''; var c=z>=1?'bd-hot':z<=-1?'bd-cool':'bd-warm'; return '<span class="badge '+c+'">z '+(z>0?'+':'')+z+'</span>'; }
 function el(id){return document.getElementById(id);}
+/* ops 3584 ADDITIVE: Asia tech-pulse (justhodl-asia-leads) + next prints (existing justhodl-econ-calendar — wired, not rebuilt) */
+(async function(){
+  try{
+    var r=await fetch('data/asia-leads.json?cb='+Date.now()); if(!r.ok) throw 0;
+    var a=await r.json(), kr=a.korea_exports||{}, tw=a.taiwan_exports||{};
+    function row(lbl,b){ var y=b.yoy_pct; var c=(y>10?'good':y<0?'bad':'flat');
+      return '<div class="kv"><span>'+lbl+'</span><b class="'+c+'">'+(y>0?'+':'')+y+'% YoY</b><span class="mute"> · 3m '+(b.chg_3m_pct>0?'+':'')+b.chg_3m_pct+'% · '+(b.last_period||'').slice(0,7)+'</span></div>'; }
+    var hot=(Math.min(kr.yoy_pct||0,tw.yoy_pct||0)>15);
+    el('asia-pulse').innerHTML='<h3>🌏 Asia tech pulse — KR &amp; TW exports</h3>'
+      +'<div class="big">'+(hot?'SEMIS DEMAND HOT':'MIXED')+' <span class="badge '+(hot?'bd-hot':'bd-warm')+'">'+(hot?'AI-cycle tailwind':'watch')+'</span></div>'
+      +row('Korea exports',kr)+row('Taiwan exports',tw)
+      +'<div class="note">The classic global semis/AI-demand leads, straight from FRED primaries. Korea 20-day customs flash + true MOEA export ORDERS queued (free-key / endpoint discovery).</div>';
+  }catch(e){ try{el('asia-pulse').innerHTML='<h3>🌏 Asia tech pulse</h3><div class="err">unavailable</div>';}catch(_e){} }
+  try{
+    var r2=await fetch('data/econ-calendar.json?cb='+Date.now()); if(!r2.ok) throw 0;
+    var c=await r2.json(); var up=(c.upcoming||[]).slice(0,6); var nm=c.next_major||null;
+    var rows=up.map(function(u){ return '<div class="kv"><span>'+(u.date||'').slice(5)+'</span><b>'+((u.event||u.release||'')+'').slice(0,34)+'</b><span class="mute">'+(u.estimate!=null?' est '+u.estimate:'')+'</span></div>'; }).join('');
+    el('next-prints').innerHTML='<h3>📅 Next prints — consensus watch</h3>'
+      +(nm?('<div class="big">'+((nm.event||'')+'').slice(0,26)+' <span class="badge bd-warm">'+(nm.date||'')+'</span></div>'):'')
+      +rows+'<div class="note">Forward calendar with consensus from the econ-calendar desk (surprise tape on its own page).</div>';
+  }catch(e){ try{el('next-prints').innerHTML='<h3>📅 Next prints</h3><div class="err">unavailable</div>';}catch(_e){} }
+})();
 async function getJSON(){
   var urls=['data/macro-leads.json','https://justhodl.ai/data/macro-leads.json','https://justhodl-dashboard-live.s3.amazonaws.com/data/macro-leads.json'];
   for(var i=0;i<urls.length;i++){ try{ var r=await fetch(urls[i]+'?cb='+Date.now()); if(r.ok) return await r.json(); }catch(e){} }

@@ -179,6 +179,7 @@ def load_all():
         # ─── Primary dealers + OFR funding stack (ops 3308) ─────────
         "primary_dealers":"data/nyfed-primary-dealer.json",
         "ofr_stfm":"data/ofr-stfm.json",
+        "asia_leads":"data/asia-leads.json",
         "settlement_fails":"data/settlement-fails.json",
         "deal_scanner":"data/deal-scanner.json",
         "risk_recommendations":"risk/recommendations.json",

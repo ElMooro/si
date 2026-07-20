@@ -120,6 +120,61 @@ def yoy(obs, periods=12):
     return None
 
 
+def _dbn(url, timeout=25):
+    try:
+        req = request.Request(url, headers={"User-Agent": "JustHodl research contact@justhodl.ai",
+                                            "Accept": "application/json"})
+        return json.loads(request.urlopen(req, timeout=timeout).read())
+    except Exception as e:
+        print("[china-liq] dbnomics fail", str(e)[:80])
+        return None
+
+
+def real_tsf_block():
+    """v2 (ops 3584): the REAL Total Social Financing from NBS via DBnomics —
+    the textbook credit-impulse input this engine previously proxied with
+    money-growth acceleration (proxy retained alongside; this is additive).
+    Annual composition always (A_A0L08); monthly series when the probed
+    dataset code is provided via env NBS_TSF_MONTHLY."""
+    out = {"source_annual": "DBnomics NBS/A_A0L08",
+           "annual_composition": [], "monthly": None,
+           "note": ("Real NBS Total Social Financing — replaces the money-acceleration "
+                    "PROXY as the textbook credit-impulse input; proxy kept for continuity.")}
+    j = _dbn("https://api.db.nomics.world/v22/series/NBS/A_A0L08?limit=30&observations=1")
+    for d in ((j or {}).get("series") or {}).get("docs") or []:
+        pv = [(p, v) for p, v in zip(d.get("period") or [], d.get("value") or [])
+              if isinstance(v, (int, float))]
+        if not pv:
+            continue
+        per = [p for p, _ in pv]; val = [v for _, v in pv]
+        yoy1 = round((val[-1] / val[-2] - 1) * 100, 2) if len(val) >= 2 and val[-2] else None
+        out["annual_composition"].append({"code": d.get("series_code"),
+                                          "name": (d.get("series_name") or "")[:110],
+                                          "frequency": "A", "last_period": per[-1],
+                                          "last_value": val[-1], "yoy_pct": yoy1})
+    mcode = os.environ.get("NBS_TSF_MONTHLY")
+    if mcode:
+        jm = _dbn("https://api.db.nomics.world/v22/series/NBS/%s?limit=40&observations=1" % mcode)
+        docs = ((jm or {}).get("series") or {}).get("docs") or []
+        rows = []
+        for d in docs:
+            pv = [(p, v) for p, v in zip(d.get("period") or [], d.get("value") or [])
+                  if isinstance(v, (int, float))]
+            if len(pv) < 13:
+                continue
+            per = [p for p, _ in pv]; val = [v for _, v in pv]
+            f12 = sum(val[-12:]); f12p = sum(val[-24:-12]) if len(val) >= 24 else None
+            rows.append({"code": d.get("series_code"), "name": (d.get("series_name") or "")[:110],
+                         "frequency": "M", "last_period": per[-1], "last_value": val[-1],
+                         "yoy_pct": round((val[-1] / val[-13] - 1) * 100, 2) if val[-13] else None,
+                         "flow_12m": round(f12, 1),
+                         "credit_impulse_flow_yoy_pct": (round((f12 / f12p - 1) * 100, 2)
+                                                         if f12p else None)})
+        out["monthly"] = {"source": "DBnomics NBS/%s" % mcode, "series": rows[:12],
+                          "n_series": len(rows)}
+    return out
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     print(f"[china-liquidity] starting {datetime.now(timezone.utc).isoformat()}")
@@ -250,6 +305,7 @@ def lambda_handler(event, context):
         },
     }
 
+    out["tsf"] = real_tsf_block()
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                    Body=json.dumps(out, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=3600")
