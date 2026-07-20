@@ -3572,6 +3572,9 @@ window.fillJHDealRadar=async function(d){ try{
     if(x.confirmed_8k)m.push('<span style="color:#3ddc84;font-weight:700">📄 8-K ✓</span>');
     if(x.counterparty_quality==='GOV'||x.counterparty_quality==='HYPERSCALER')m.push('🏛 '+x.counterparty_quality+((x.counterparties&&x.counterparties[0])?': '+E9(x.counterparties[0]):''));
     if(x.promo_risk)m.push('<span style="color:#ff8080">⚠ PROMO-RISK</span>');
+    if(x.options_confirm)m.push('<span style="color:#22d3ee;font-weight:700">📈 CALL FLOW ✓</span>');
+    if(x.filing&&x.filing.match==='CONFIRMS')m.push('<span style="color:#3ddc84;font-weight:700">📄 TERMS ✓</span>');
+    if(x.filing&&x.filing.match==='PR_LARGER')m.push('<span style="color:#ff8080;font-weight:700">⚠ PR &gt; FILING</span>');
     var ag=(x.age_h!=null?(x.age_h<24?Math.round(x.age_h)+'h ago':Math.round(x.age_h/24)+'d ago'):'');
     return '<div class="jhf-row" style="grid-template-columns:1fr"><div><div class="jhf-who">'+pill+' <span class="jhf-sub" style="margin-left:8px">'+ag+'</span></div>'
       +'<a href="'+E9(x.url||'#')+'" target="_blank" rel="noopener" style="color:inherit">'+E9(x.title||'')+'</a>'

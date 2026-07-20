@@ -36,7 +36,7 @@ from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "3.1.1"
+VERSION = "3.2.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -480,6 +480,67 @@ def load_13f_flows():
         return {}
 
 
+def load_options_flow():
+    """v3.2: informed-flow confirmation — merge the LIVE options fleet's four
+    per-ticker views (flow-scanner tiers, analytics most-unusual, polygon call
+    flow, confluence posture). A deal + elevated call flow = the tape agreeing.
+    Coverage is the options universes' (large/liquid names); absence is honest."""
+    out = {}
+
+    def _g(key):
+        try:
+            return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+        except Exception:
+            return {}
+
+    def _sym(x):
+        return ((x.get("ticker") or x.get("symbol") or "") or "").upper()
+
+    fs = _g("data/options-flow-scanner.json")
+    for x in fs.get("all_qualifying") or []:
+        t = _sym(x)
+        if not t:
+            continue
+        m = x.get("metrics") or {}
+        out.setdefault(t, {}).update({"tier": x.get("tier"),
+                                      "call_vol_surge": m.get("call_vol_surge"),
+                                      "cpr_change_pct": m.get("cpr_change_pct")})
+        out[t].setdefault("sources", []).append("flow-scanner")
+    oa = _g("data/options-analytics.json")
+    for x in oa.get("most_unusual") or []:
+        t = _sym(x)
+        if not t:
+            continue
+        out.setdefault(t, {}).update({"n_unusual": x.get("n_unusual"),
+                                      "net_premium_usd": x.get("net_premium_usd"),
+                                      "pcr_vol": x.get("pcr_vol")})
+        out[t].setdefault("sources", []).append("analytics-unusual")
+    pf = _g("data/polygon-options-flow.json")
+    for lst, tag in ((pf.get("extreme") or [], "extreme"),
+                     (pf.get("bullish_call_flow") or [], "bullish")):
+        for x in lst:
+            t = _sym(x)
+            if not t:
+                continue
+            out.setdefault(t, {}).setdefault("poly_flow", tag)
+            out[t].setdefault("sources", []).append("polygon-flow-" + tag)
+    oc = _g("data/options-confluence.json")
+    for x in oc.get("multi_engine_confluence") or []:
+        t = _sym(x)
+        if not t:
+            continue
+        out.setdefault(t, {}).update({"posture": x.get("posture")})
+        out[t].setdefault("sources", []).append("confluence")
+    for t, v in out.items():
+        v["bullish_confirm"] = bool(
+            (v.get("tier") or "").startswith("TIER_A")
+            or (v.get("tier") or "").startswith("TIER_B")
+            or v.get("poly_flow") in ("extreme", "bullish")
+            or v.get("posture") in ("BULLISH_FLOW", "SQUEEZE_FUEL")
+            or ((v.get("n_unusual") or 0) >= 3 and (v.get("net_premium_usd") or 0) > 0))
+    return out
+
+
 def load_8k_set(now):
     """SEC EDGAR full-text search: 8-Ks citing Item 1.01 (material definitive agreement)
     in the last 3 days → set of tickers with a filed confirmation. A PR without an 8-K
@@ -501,7 +562,7 @@ def load_8k_set(now):
                           ContentType="application/json")
         d0 = (now - timedelta(days=3)).strftime("%Y-%m-%d")
         d1 = now.strftime("%Y-%m-%d")
-        tks = set()
+        tks = {}
         for frm in (0, 100, 200):
             q = (f"https://efts.sec.gov/LATEST/search-index?q=%22Item%201.01%22&forms=8-K"
                  f"&startdt={d0}&enddt={d1}&from={frm}")
@@ -512,13 +573,66 @@ def load_8k_set(now):
             if not hits:
                 break
             for h in hits:
-                for cik in (h.get("_source") or {}).get("ciks") or []:
+                src0 = h.get("_source") or {}
+                adsh = src0.get("adsh") or (h.get("_id") or "").split(":")[0]
+                fname = (h.get("_id") or "").split(":")[-1]
+                for cik in src0.get("ciks") or []:
                     tk = cmap.get(str(int(cik)))
-                    if tk:
-                        tks.add(tk)
+                    if tk and tk not in tks:
+                        doc = (f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/"
+                               f"{adsh.replace('-', '')}/{fname}") if adsh and fname else None
+                        tks[tk] = {"adsh": adsh, "cik": int(cik), "doc": doc}
         return tks
     except Exception as _e:
         print("[deal-scanner] 8-K join skipped:", str(_e)[:80])
+        return None
+
+
+_TERM_RE = re.compile(r"(\d{1,2})[- ]year", re.I)
+_THROUGH_RE = re.compile(r"through (?:fiscal |calendar )?(20\d\d)", re.I)
+_TFC_RE = re.compile(r"terminat\w* (?:.{0,40})?for convenience", re.I)
+
+
+def fetch_8k_terms(meta, pr_value, now):
+    """v3.2: read the ACTUAL 8-K primary document and extract contract terms —
+    filed value, term, non-binding language, termination-for-convenience — and
+    verdict them against the PR's number. Institutions read the exhibit, not
+    the press release. Sequential, polite, capped upstream, fully non-fatal."""
+    try:
+        if not (meta and meta.get("doc")):
+            return None
+        raw = urllib.request.urlopen(urllib.request.Request(
+            meta["doc"], headers={"User-Agent": "JustHodl research contact@justhodl.ai"}),
+            timeout=20).read(900_000)
+        txt = re.sub(r"<[^>]+>", " ", raw.decode("utf-8", "replace"))
+        txt = re.sub(r"&nbsp;|&#160;", " ", txt)
+        txt = re.sub(r"\s+", " ", txt)
+        # focus on Item 1.01 section when locatable
+        m = re.search(r"Item\s*1\.01(.{0,12000}?)(?:Item\s*[2-9]\.|SIGNATURE)", txt, re.I | re.S)
+        section = m.group(1) if m else txt[:12000]
+        f_val, f_str = parse_value("", section)
+        term_y = None
+        tm = _TERM_RE.search(section)
+        if tm:
+            term_y = int(tm.group(1))
+        else:
+            th = _THROUGH_RE.search(section)
+            if th:
+                term_y = max(1, int(th.group(1)) - now.year)
+        nonbind = bool(_NONBIND_RE.search(section))
+        tfc = bool(_TFC_RE.search(section))
+        if f_val and pr_value:
+            r = pr_value / f_val
+            match = "CONFIRMS" if 0.6 <= r <= 1.6 else ("PR_LARGER" if r > 1.6 else "FILING_LARGER")
+        elif f_val:
+            match = "FILED_VALUE"
+        else:
+            match = "NO_VALUE_IN_FILING"
+        return {"value_usd": f_val, "value_str": f_str, "term_years": term_y,
+                "non_binding": nonbind, "termination_for_convenience": tfc,
+                "match": match, "url": meta["doc"]}
+    except Exception as _e:
+        print("[deal-scanner] 8-K terms skipped:", str(_e)[:80])
         return None
 
 
@@ -625,6 +739,7 @@ def lambda_handler(event, context):
     census = load_census()
     f13 = load_13f_flows()
     sfm = load_shareflows()
+    oflow = load_options_flow()
     sec8k = load_8k_set(now)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
@@ -731,6 +846,8 @@ def lambda_handler(event, context):
         _f = f13.get(d["symbol"]) or {}
         inst_flow = ({"net_usd": _f.get("n"), "whale_net_usd": _f.get("wn"),
                       "n_funds": _f.get("nf")} if _f else None)
+        _of = oflow.get(d["symbol"])
+        opt_confirm = bool(_of and _of.get("bullish_confirm"))
         _sf = sfm.get(d["symbol"]) or {}
         diluting = bool((_sf.get("sh_yoy_pct") or 0) >= 3)
         dilution = ({"sh_yoy_pct": _sf.get("sh_yoy_pct"), "flags": _sf.get("flags")}
@@ -743,7 +860,8 @@ def lambda_handler(event, context):
         cp_boost = 25 if cp_q in ("GOV", "HYPERSCALER") else 8 if cp_q == "MEGACAP" else 0
         v3_adj = cp_boost + (12 if c8k else 0) - (60 if promo else 0) \
                  - (40 if ev == "ma_target" else 0) - (25 if listed is False else 0) \
-                 - (70 if ev == "capital_structure" else 0) - (10 if diluting else 0)
+                 - (70 if ev == "capital_structure" else 0) - (10 if diluting else 0) \
+                 + (10 if opt_confirm else 0)
         score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
                       + sec_boost + sm_boost + (8 if d["multi_year"] else 0) + v3_adj, 1)
         why_bits = []
@@ -781,6 +899,9 @@ def lambda_handler(event, context):
             why_bits.append("🏦 capital-structure event (financing) — not a revenue deal")
         if diluting:
             why_bits.append(f"⚠️ diluting {_sf.get('sh_yoy_pct')}%/yr (share-flows)")
+        if opt_confirm:
+            why_bits.append("📈 call flow confirms (options fleet: "
+                            + ",".join((_of.get("sources") or [])[:2]) + ")")
         deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
             "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
@@ -793,8 +914,33 @@ def lambda_handler(event, context):
             "event_type": ev, "counterparties": cp_names, "counterparty_quality": cp_q,
             "listed": listed, "exchange": exch, "promo_risk": promo, "non_binding": nonbind,
             "confirmed_8k": c8k, "census": cen, "inst_flow": inst_flow,
-            "dilution": dilution,
+            "dilution": dilution, "options_flow": _of, "options_confirm": opt_confirm,
+            "filing": None,
             "score": score, "why": "; ".join(why_bits)})
+
+    # v3.2: read the actual filings for material, 8-K-confirmed deals (cap 8/run)
+    _n_terms = 0
+    for d in deals:
+        if _n_terms >= 8:
+            break
+        if not d.get("confirmed_8k"):
+            continue
+        if not (d.get("highlight") or d.get("ai_megadeal") or d.get("is_billion")):
+            continue
+        fil = fetch_8k_terms((sec8k or {}).get(d["symbol"]) if isinstance(sec8k, dict) else None,
+                             d.get("deal_value_usd"), now)
+        if fil:
+            d["filing"] = fil
+            _n_terms += 1
+            if fil["match"] == "CONFIRMS":
+                d["score"] = round(d["score"] + 8, 1)
+                d["why"] += f"; 📄 filing terms confirm ({fil.get('value_str') or 'filed'})"
+            elif fil["match"] == "PR_LARGER":
+                d["score"] = round(d["score"] - 15, 1)
+                d["why"] += "; ⚠️ PR number LARGER than filed value — spin risk"
+            if fil.get("term_years"):
+                d["why"] += f"; {fil['term_years']}-year term (filed)"
+            time.sleep(0.2)
 
     deals.sort(key=lambda x: x["score"], reverse=True)
     green = [d for d in deals if d["highlight"] == "green"]
@@ -855,6 +1001,8 @@ def lambda_handler(event, context):
                      "generated_at": uni_gen,
                      "note": "exhaustive universe-builder v4 — every NYSE/NASDAQ/AMEX common stock incl. ADRs; tape names outside it are OTC/unlisted (flagged, barred from signals)"},
         "n_8k_item101_3d": (len(sec8k) if sec8k is not None else None),
+        "n_options_confirmed": sum(1 for d in deals if d.get("options_confirm")),
+        "n_filings_parsed": sum(1 for d in deals if d.get("filing")),
         "runs_per_day": 8,
         "note": ("full-market: every ticker on the PR/news tape is eligible — no universe "
                  "filter, all caps nano→mega, all 11 GICS sectors"),
@@ -973,6 +1121,10 @@ def lambda_handler(event, context):
                 _conf += 0.04
             if d.get("confirmed_8k"):
                 _conf += 0.03
+            if d.get("options_confirm"):
+                _conf += 0.03
+            if (d.get("filing") or {}).get("match") == "CONFIRMS":
+                _conf += 0.02
             if _chased:
                 _conf -= 0.06
             _conf = round(max(0.50, min(0.74, _conf)), 2)
@@ -998,6 +1150,8 @@ def lambda_handler(event, context):
                               "counterparty_quality": d.get("counterparty_quality"),
                               "confirmed_8k": d.get("confirmed_8k"),
                               "pop_since_announce_pct": d.get("pop_since_announce_pct"),
+                              "options_confirm": bool(d.get("options_confirm")),
+                              "filing_match": (d.get("filing") or {}).get("match"),
                               "exchange": d.get("exchange"),
                               "age_h": d.get("age_h")}):
                 logged.append({"ticker": d["symbol"], "conf": _conf,
@@ -1036,6 +1190,8 @@ def lambda_handler(event, context):
             "coverage": "8 scans/day (every 3h); every ticker on the PR/news tape is eligible — all sectors, all cap tiers (nano→mega)",
             "signals": "material fresh deals (green / AI-mega / $1B+ ≥5% mcap, ≤30h old) → family deal-win, UP [5,21,63] vs SPY at announcement price; graded by the fleet loop, PROVEN gate applies",
             "institutional_bar": "signals require: US-listed (NYSE/NASDAQ/AMEX incl. ADRs — OTC barred), not an M&A target (arb-pinned, no drift), not promo-risk (LOI/MOU/non-binding + nano-cap unnamed-counterparty pumps filtered); chase-guard skips names already +25% since announcement (house event-study: chasing loses); conf +0.04 GOV/HYPERSCALER counterparty, +0.03 SEC 8-K Item 1.01 confirmed",
+            "informed_flow": "deal tickers cross-checked against the live options fleet (Tier-A/B flow, most-unusual premium, bullish call flow, confluence posture) — elevated calls at announcement = the tape agreeing; conf +0.03",
+            "filed_terms": "material 8-K-confirmed deals get the ACTUAL filing parsed (Item 1.01 section): filed value vs PR value (CONFIRMS / PR_LARGER spin flag), term-years, non-binding + termination-for-convenience language; conf +0.02 on CONFIRMS",
             "event_taxonomy": "every deal classified: contract_win / govt_contract / ma_target / ma_acquirer / partnership / licensing_supply / equity_investment / other — base-rate fwd 5d/21d excess vs SPY tracked per type in data/deal-history.json (population study, not just signaled subset)",
             "deal_filter": "strong deal-win language (awarded/wins/secures/contract/order/supply/"
                            "multi-year/LOI/MOU/design-win) minus financing/governance/earnings PRs",
@@ -1045,7 +1201,7 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "FMP income-statement", "universe-builder v4 (exhaustive US-listed incl. ADRs)", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)", "smart-money-13f", "SEC EDGAR 8-K Item 1.01 (efts full-text)", "fundamental-census matrix (overlay)", "13f-flows-by-ticker (inst $)", "Polygon aggs (base-rate study + chase-guard)", "signals: justhodl-signals family deal-win"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "FMP income-statement", "universe-builder v4 (exhaustive US-listed incl. ADRs)", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)", "smart-money-13f", "SEC EDGAR 8-K Item 1.01 (efts full-text)", "fundamental-census matrix (overlay)", "13f-flows-by-ticker (inst $)", "Polygon aggs (base-rate study + chase-guard)", "options fleet: flow-scanner + analytics most-unusual + polygon-flow + confluence (informed-flow confirm)", "SEC 8-K primary documents (filed contract terms)", "signals: justhodl-signals family deal-win"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
