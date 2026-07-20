@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -724,6 +724,37 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
                     for k, v in ind_groups.items() if len(v) >= 4}
         cols["industry_risk_score"] = [
             ind_mean.get(industries[i]) for i in range(n2)]
+    # ── RISK/REWARD layer (ops 3559): transparent component math —
+    # upside = 52w-high recapture ×0.5 + combo extension ×0.30 +
+    # pattern adds; downside = risk-scaled vol ×0.6 + room-above-
+    # support ×0.25 + pattern/flag penalties; rr = up/down ──
+    def g(k, i):
+        v = (cols.get(k) or [None] * n2)[i]
+        return v if isinstance(v, (int, float)) else None
+    ups, dns, rrs = [], [], []
+    for i in range(n2):
+        dh = g("dist_52w_high_pct", i)
+        dl = g("dist_52w_low_pct", i)
+        cs = g("combo_score", i)
+        vol = g("vol_52w_pct", i)
+        rk2 = g("risk_score", i)
+        if dh is None or vol is None or rk2 is None:
+            ups.append(None); dns.append(None); rrs.append(None)
+            continue
+        up = 0.5 * max(0.0, -dh) + 0.30 * (cs if cs is not None
+                                           else 50.0)
+        up += 8 * (g("double_bottom", i) or 0)
+        up += 6 * (g("golden_cross_10_40w", i) or 0)
+        up += 6 * (g("breakout_20w", i) or 0)
+        dn = 0.6 * vol * (rk2 / 100.0) + 0.25 * max(0.0, dl or 0.0)
+        dn += 10 * (g("double_top", i) or 0)
+        dn += 8 if flagged[i] else 0
+        dn = max(3.0, dn)
+        ups.append(round(up, 1)); dns.append(round(dn, 1))
+        rrs.append(round(up / dn, 2))
+    cols["upside_pct"] = ups
+    cols["downside_pct"] = dns
+    cols["rr_ratio"] = rrs
     keys = sorted(cols.keys())
     return {"generated_at": datetime.now(timezone.utc).isoformat(),
             "n_tickers": len(scored), "n_metrics": len(keys),

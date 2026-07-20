@@ -21,7 +21,7 @@ _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = os.environ.get("FMP_API_KEY",
@@ -268,6 +268,31 @@ def lambda_handler(event, context):
                 if isinstance(v, (int, float)) else None
                 for v in cols["ttm_yield_pct"]]
 
+    def g(k, i):
+        v = (cols.get(k) or [None] * n)[i]
+        return v if isinstance(v, (int, float)) else None
+    ups, dns, rrs = [], [], []
+    for i in range(n):
+        dh = g("dist_52w_high_pct", i)
+        dl = g("dist_52w_low_pct", i)
+        vol = g("vol_52w_pct", i)
+        rk2 = g("risk_score", i)
+        yy2 = g("ttm_yield_pct", i)
+        if dh is None or vol is None:
+            ups.append(None); dns.append(None); rrs.append(None)
+            continue
+        up = (yy2 or 0.0) + 0.4 * max(0.0, -dh)
+        up += 0.10 * (g("tech_score", i) or 50.0)
+        up += 5 * (g("double_bottom", i) or 0)
+        dn = 0.6 * vol * ((rk2 if rk2 is not None else 50.0) / 100.0)
+        dn += 0.15 * max(0.0, dl or 0.0)
+        dn += 5 * (g("double_top", i) or 0)
+        dn = max(1.5, dn)
+        ups.append(round(up, 1)); dns.append(round(dn, 1))
+        rrs.append(round(up / dn, 2))
+    cols["upside_pct"] = ups
+    cols["downside_pct"] = dns
+    cols["rr_ratio"] = rrs
     now = datetime.now(timezone.utc).isoformat()
     mx = {"generated_at": now, "version": VERSION, "n": n,
           "tickers": tickers, "segments": segs, "names": names,

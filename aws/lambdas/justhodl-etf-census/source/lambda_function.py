@@ -24,7 +24,7 @@ _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = __import__("os").environ.get(
@@ -324,6 +324,33 @@ def lambda_handler(event, context):
         if any(v is not None for v in drag):
             cols["variance_drag_pct_ann"] = drag
 
+    def g(k, i):
+        v = (cols.get(k) or [None] * n)[i]
+        return v if isinstance(v, (int, float)) else None
+    ups, dns, rrs = [], [], []
+    for i in range(n):
+        dh = g("dist_52w_high_pct", i)
+        dl = g("dist_52w_low_pct", i)
+        ts2 = g("tech_score", i)
+        vol = g("vol_52w_pct", i)
+        rk2 = g("risk_score", i)
+        if dh is None or vol is None or rk2 is None:
+            ups.append(None); dns.append(None); rrs.append(None)
+            continue
+        up = 0.5 * max(0.0, -dh) + 0.25 * (ts2 if ts2 is not None
+                                           else 50.0)
+        up += 8 * (g("double_bottom", i) or 0)
+        up += 6 * (g("golden_cross_10_40w", i) or 0)
+        dn = 0.6 * vol * (rk2 / 100.0) + 0.2 * max(0.0, dl or 0.0)
+        dn += 10 * (g("double_top", i) or 0)
+        dn += (g("variance_drag_pct_ann", i) or 0)
+        dn += 8 if lev[i] else 0
+        dn = max(3.0, dn)
+        ups.append(round(up, 1)); dns.append(round(dn, 1))
+        rrs.append(round(up / dn, 2))
+    cols["upside_pct"] = ups
+    cols["downside_pct"] = dns
+    cols["rr_ratio"] = rrs
     now = datetime.now(timezone.utc).isoformat()
     mx = {"generated_at": now, "version": VERSION, "n": n,
           "tickers": tickers, "categories": cats,

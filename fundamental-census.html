@@ -49,6 +49,7 @@ a{color:var(--blue);text-decoration:none}
 <select id="fxSec" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All sectors</option></select>
 <select id="fxInd" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem;max-width:210px"><option value="">All industries</option></select>
 <select id="fxCap" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">All caps</option><option value="mega">Mega ≥$200B</option><option value="large">Large $10–200B</option><option value="mid">Mid $2–10B</option><option value="small">Small &lt;$2B</option></select>
+<select id="fxRR" style="background:#0a1220;color:var(--text);border:1px solid var(--amber);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">⚖️ Sort by R/R & targets…</option><option value="rr_ratio">Best risk/reward</option><option value="upside_pct">Highest potential upside</option><option value="downside_pct">Lowest potential downside</option></select>
 <select id="fxRisk" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any stock risk</option><option value="L">🟢 Low risk (bottom ⅓)</option><option value="M">🟡 Medium risk</option><option value="H">🔴 High risk (top ⅓)</option></select>
 <select id="fxIndRisk" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any industry risk</option><option value="L">🏭🟢 Low-risk industries</option><option value="M">🏭🟡 Medium</option><option value="H">🏭🔴 High-risk industries</option></select>
 <select id="fxQmin" style="background:#0a1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:.72rem"><option value="">Any quality</option><option value="0">Quality ≥ 0</option><option value="10">Quality ≥ 10</option><option value="20">Quality ≥ 20</option></select>
@@ -191,7 +192,7 @@ var XLBL={factor_value:'Factor: Value',factor_quality:'Factor: Quality',factor_m
   insider_own_pct:'Insider ownership %',insider_trans_pct:'Insider transactions %',retail_dp_pct:'Dark-pool % of volume',retail_accum:'Retail acc(+1)/dist(−1)',retail_dp_score:'Dark-pool score',
   dist_52w_high_pct:'% vs 52w high',dist_52w_low_pct:'% vs 52w low',rsi_14w:'RSI (14w)',vol_52w_pct:'Volatility 52w %',
   beta_2y:'Beta (2y wk)',tech_score:'Tech score',combo_score:'⚡ Fund+Tech combo',conviction_score:'🎯 Conviction',
-  risk_score:'⚠️ Stock risk score',industry_risk_score:'🏭 Industry risk score',double_top:'Double top',double_bottom:'Double bottom',golden_cross_10_40w:'Golden cross',breakout_20w:'20w breakout',above_ma40w:'Above 40w MA'};
+  upside_pct:'🎯 Potential upside %',downside_pct:'🛑 Potential downside %',rr_ratio:'⚖️ Risk/Reward ratio',risk_score:'⚠️ Stock risk score',industry_risk_score:'🏭 Industry risk score',double_top:'Double top',double_bottom:'Double bottom',golden_cross_10_40w:'Golden cross',breakout_20w:'20w breakout',above_ma40w:'Above 40w MA'};
 function lbl(k){return XLBL[k]||(CATMAP[k]&&CATMAP[k].label)||k;}
 function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p){return typeof p[0]==='number';});
   xs.sort(function(a,b){return a[0]-b[0];});var out=new Array(col.length).fill(null);
@@ -306,6 +307,8 @@ document.getElementById('fxCap').onchange=function(e){facetToggle('cap',e.target
 document.getElementById('fxQmin').onchange=function(e){QMIN=e.target.value===''?null:+e.target.value;draw();};
 document.getElementById('fxNoFlag').onchange=function(e){NOFLAG=e.target.checked;draw();};
 document.getElementById('fxTurn').onchange=function(e){TURNMIN=e.target.checked;draw();};
+document.getElementById('fxRR').onchange=function(e){var k=e.target.value;if(!k)return;
+  addSel(k,k==='downside_pct');e.target.value='';draw();};
 document.getElementById('fxRisk').onchange=function(e){facetToggle('risk',e.target.value);};
 document.getElementById('fxIndRisk').onchange=function(e){facetToggle('irisk',e.target.value);};
 document.getElementById('fxPat').onchange=function(e){facetToggle('pat',e.target.value);};
