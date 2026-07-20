@@ -68,6 +68,82 @@ def fred_block(sid, label, extra_note=""):
             "note": extra_note}
 
 
+_GOV_PROXY = "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+_KCS_LIST = "https://www.customs.go.kr/kcs/na/ntt/selectNttList.do?mi=2889&bbsId=1362"
+
+
+def _num_kr(x):
+    try:
+        return float(x.replace(",", "").replace("+", "").replace("△", "-").replace("▲", "").strip())
+    except Exception:
+        return None
+
+
+def korea_flash():
+    """v1.3 (ops 3592): the Korea 1-20 day export FLASH — the best high-frequency
+    global trade nowcast — scraped from the PUBLIC KCS press release via the
+    CF-worker /gov edge-fetch (KR gov firewalls cloud-ASN runners; data.go.kr
+    key path dead: US phone rejected). Parses total + semiconductor prints with
+    stated YoY. History caches to S3; never fabricates."""
+    import re, urllib.parse
+    out = {"source": _KCS_LIST, "via": "cf-edge /gov",
+           "label": "Korea exports, 1st-20th of month (KCS provisional flash)",
+           "period": None, "total_usd_bn": None, "total_yoy_pct": None,
+           "semis_usd_bn": None, "semis_yoy_pct": None, "error": None}
+    try:
+        raw = urllib.request.urlopen(urllib.request.Request(
+            _GOV_PROXY + urllib.parse.quote(_KCS_LIST, safe=""), headers=UA), timeout=25).read(600_000)
+        lst = raw.decode("utf-8", "replace")
+        items = [(u, re.sub(r"<[^>]+>|\s+", " ", t).strip())
+                 for u, t in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', lst, re.S)]
+        tgt = next(((u, t) for u, t in items if re.search(r"수출입\s*현황", t)), None)
+        if not tgt:
+            out["error"] = "no 수출입 현황 item on board"
+            return out
+        iu = tgt[0]
+        if iu.startswith("/"):
+            iu = "https://www.customs.go.kr" + iu
+        out["period"] = tgt[1][:80]
+        raw2 = urllib.request.urlopen(urllib.request.Request(
+            _GOV_PROXY + urllib.parse.quote(iu, safe=""), headers=UA), timeout=25).read(700_000)
+        body = re.sub(r"<[^>]+>|&nbsp;|\s+", " ", raw2.decode("utf-8", "replace"))
+        out["item_url"] = iu
+        m = re.search(r"수출[은는]?\s*([\d,]+(?:\.\d+)?)\s*억\s*달러\s*\(?[^)%]*?([+\-△▲]?\s*[\d.]+)\s*%", body)
+        if m:
+            v = _num_kr(m.group(1))
+            out["total_usd_bn"] = round(v / 10.0, 2) if v is not None else None
+            out["total_yoy_pct"] = _num_kr(m.group(2)) if "△" not in m.group(2) else -abs(_num_kr(m.group(2)) or 0)
+        ms = re.search(r"반도체[^%]{0,60}?([+\-△▲]?\s*[\d.]+)\s*%", body)
+        if ms:
+            g = ms.group(1)
+            val = _num_kr(g)
+            out["semis_yoy_pct"] = (-abs(val) if ("△" in g and val is not None) else val)
+        ms2 = re.search(r"반도체\s*\(?([\d,]+(?:\.\d+)?)\s*억", body)
+        if ms2:
+            v2 = _num_kr(ms2.group(1))
+            out["semis_usd_bn"] = round(v2 / 10.0, 2) if v2 is not None else None
+        out["raw_head"] = body[:200]
+        if out["total_usd_bn"] is None and out["total_yoy_pct"] is None:
+            out["error"] = "parse found no export print in item"
+        else:
+            try:
+                key = "kcs/flash-cache.json"
+                try:
+                    cache = json.loads(s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read())
+                except Exception:
+                    cache = {"releases": {}}
+                cache["releases"][out["period"]] = {k: out[k] for k in
+                    ("total_usd_bn", "total_yoy_pct", "semis_usd_bn", "semis_yoy_pct", "item_url")}
+                cache["releases"] = dict(list(cache["releases"].items())[-40:])
+                s3.put_object(Bucket=S3_BUCKET, Key=key, Body=json.dumps(cache).encode(),
+                              ContentType="application/json")
+            except Exception as _e:
+                print("[asia-leads] kcs cache skip", str(_e)[:60])
+    except Exception as e:
+        out["error"] = str(e)[:140]
+    return out
+
+
 _DGBAS_ORDERS = "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713"
 
 
@@ -125,11 +201,12 @@ def lambda_handler(event=None, context=None):
     t0 = time.time()
     now = datetime.now(timezone.utc)
     out = {
-        "engine": "asia-leads", "version": "1.2.0",
+        "engine": "asia-leads", "version": "1.3.0",
         "generated_at": now.isoformat(),
         "korea_exports": fred_block(
             "XTEXVA01KRM667N", "Korea merchandise exports (monthly, NSA)",
             "20-day customs flash (the true nowcast) requires a free Bank of Korea ECOS key — PENDING."),
+        "korea_flash": korea_flash(),
         "taiwan_orders": taiwan_orders(),
         "taiwan_exports": fred_block(
             "VALEXPTWM052N", "Taiwan goods exports (monthly)",

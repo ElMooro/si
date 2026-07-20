@@ -84,9 +84,54 @@ async function fetchUpstream(upstreamUrl, ttl) {
   });
 }
 
+
+// ── ops 3592: /gov — allowlisted read-only edge-fetch for geo-blocked gov
+// primaries (KR customs / TW MOEA-DGBAS / CN PBoC-NBS block cloud-ASN runners;
+// Cloudflare edge IPs get through). GET only, hostname-locked, size-capped,
+// edge-cached 10min. NOT an open proxy.
+const GOV_ALLOW = new Set([
+  "www.customs.go.kr", "tradedata.go.kr", "unipass.customs.go.kr",
+  "www.moea.gov.tw", "eng.stat.gov.tw", "nstatdb.dgbas.gov.tw", "data.gov.tw",
+  "www.pbc.gov.cn", "data.stats.gov.cn",
+]);
+async function handleGov(url) {
+  const target = url.searchParams.get("u") || "";
+  let tu;
+  try { tu = new URL(target); } catch (e) {
+    return new Response(JSON.stringify({ error: "bad u" }), { status: 400,
+      headers: { "content-type": "application/json" } });
+  }
+  if (!GOV_ALLOW.has(tu.hostname) || (tu.protocol !== "https:" && tu.protocol !== "http:")) {
+    return new Response(JSON.stringify({ error: "host not allowed" }), { status: 403,
+      headers: { "content-type": "application/json" } });
+  }
+  const upstream = await fetch(tu.toString(), {
+    method: "GET",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36",
+      "Accept-Language": "ko,zh;q=0.9,en;q=0.8",
+      "Accept": "text/html,application/json;q=0.9,*/*;q=0.7",
+    },
+    redirect: "follow",
+    cf: { cacheTtl: 600, cacheEverything: true },
+  });
+  const buf = await upstream.arrayBuffer();
+  const capped = buf.byteLength > 1_500_000 ? buf.slice(0, 1_500_000) : buf;
+  return new Response(capped, {
+    status: upstream.status,
+    headers: {
+      "content-type": upstream.headers.get("content-type") || "text/html; charset=utf-8",
+      "cache-control": "public, max-age=600",
+      "access-control-allow-origin": "*",
+      "x-gov-fetch": tu.hostname,
+    },
+  });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname === "/gov") { return handleGov(url); }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
