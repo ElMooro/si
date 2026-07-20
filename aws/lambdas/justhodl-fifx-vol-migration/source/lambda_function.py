@@ -60,9 +60,17 @@ def fred(series, start="1988-01-01"):
 
 
 def yahoo_hist(sym, rng="2y"):
+    """v1.4: rng='max' via explicit period1/period2 epochs — Yahoo silently
+    downgrades range=max to MONTHLY bars on many foreign indices (^KS11 came
+    back 356 monthly closes → 208% fake 'realized vol'; gates caught it)."""
     import urllib.parse as _up
-    j = _j("https://query1.finance.yahoo.com/v8/finance/chart/"
-           f"{_up.quote(sym)}?range={rng}&interval=1d")
+    if rng == "max":
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+               f"{_up.quote(sym)}?period1=315532800&period2={int(time.time())}&interval=1d")
+    else:
+        url = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+               f"{_up.quote(sym)}?range={rng}&interval=1d")
+    j = _j(url)
     try:
         r = j["chart"]["result"][0]
         ts = r["timestamp"]
@@ -166,12 +174,43 @@ def lambda_handler(event=None, context=None):
     dxy_rows = realized_series(fred("DTWEXBGS"), 20)
     dxy_z, dxy_pct, dxyv = z_and_pct(dxy_rows)
     # ── ASIA CANARY leg (v1.3, Khalid: KOSPI vol preceded 2008; + Hang Seng)
-    ks_px = yahoo_hist("^KS11", "max")
-    hs_px = yahoo_hist("^HSI", "max")
-    ks_rv = realized_series(ks_px, 20)
-    hs_rv = realized_series(hs_px, 20)
-    ks_z, ks_pct, ks_lv = z_and_pct(ks_rv)
-    hs_z, hs_pct, hs_lv = z_and_pct(hs_rv)
+    def _idx_leg(sym):
+        px = yahoo_hist(sym, "max")
+        rv = realized_series(px, 20)
+        z, p, lv = z_and_pct(rv)
+        # sanity: daily-bar realized for a major index lives ~5-120% annualized;
+        # too-shallow history or absurd level = bar-interval corruption → suspect
+        ok = len(px) >= 1500 and lv is not None and 3 <= lv <= 150
+        if not ok:
+            print(f"[fifx] SUSPECT {sym}: n={len(px)} rlzd={lv} — excluded")
+        return {"ok": ok, "n_px": len(px), "rv": rv, "z": (z if ok else None),
+                "pct": (p if ok else None), "lv": (lv if ok else None)}
+
+    _ks = _idx_leg("^KS11")
+    _hs = _idx_leg("^HSI")
+    ks_rv, hs_rv = _ks["rv"], _hs["rv"]
+    ks_z, ks_pct, ks_lv = _ks["z"], _ks["pct"], _ks["lv"]
+    hs_z, hs_pct, hs_lv = _hs["z"], _hs["pct"], _hs["lv"]
+    # ── GLOBAL VOL CANARY GRID (v1.4): the major world indices, symbols reused
+    # from global-business-cycle's country table (price engine — vol was nowhere)
+    GLOBAL_IX = {"Nikkei": "^N225", "DAX": "^GDAXI", "FTSE": "^FTSE",
+                 "CAC": "^FCHI", "Shanghai": "000001.SS", "Sensex": "^BSESN",
+                 "Bovespa": "^BVSP", "ASX": "^AXJO"}
+    grid = {"KOSPI": {"sym": "^KS11", **{k: _ks[k] for k in ("n_px",)},
+                      "realized_20d_pct": ks_lv, "z": ks_z, "pctile": ks_pct},
+            "HangSeng": {"sym": "^HSI", "n_px": _hs["n_px"],
+                         "realized_20d_pct": hs_lv, "z": hs_z, "pctile": hs_pct}}
+    grid_rz = {"KOSPI": ks_rv, "HangSeng": hs_rv}
+    for nm, sym in GLOBAL_IX.items():
+        leg = _idx_leg(sym)
+        time.sleep(0.15)
+        grid[nm] = {"sym": sym, "n_px": leg["n_px"],
+                    "realized_20d_pct": leg["lv"], "z": leg["z"], "pctile": leg["pct"]}
+        grid_rz[nm] = leg["rv"] if leg["ok"] else []
+    _gz = [(nm, g["z"]) for nm, g in grid.items() if isinstance(g.get("z"), (int, float))]
+    elevated = sorted([nm for nm, z in _gz if z >= 1])
+    breadth = round(100.0 * len(elevated) / len(_gz), 1) if _gz else None
+    leader = max(_gz, key=lambda x: x[1]) if _gz else (None, None)
     vhsi = yahoo_hist("^VHSI", "2y")
     vhsi_z, _vp, vhsi_lv = z_and_pct(vhsi) if len(vhsi) >= 60 else (None, None, None)
     asia_z = max((v for v in (ks_z, hs_z) if v is not None), default=None)
@@ -186,6 +225,12 @@ def lambda_handler(event=None, context=None):
         asia_state = "ASIA_CALM"
     ks_h = rolling_z(ks_rv, keep=99999)
     hs_h = rolling_z(hs_rv, keep=99999)
+    grid_h = {nm: rolling_z(rv, keep=99999) for nm, rv in grid_rz.items() if rv}
+
+    def _gb(dte):
+        zs = [h.get(dte) for h in grid_h.values()]
+        zs = [z for z in zs if z is not None]
+        return round(100.0 * sum(1 for z in zs if z >= 1) / len(zs), 1) if len(zs) >= 5 else None
 
     # ── ratios vs own history
     def ratio_hist(a_rows, b_rows):
@@ -240,6 +285,9 @@ def lambda_handler(event=None, context=None):
         if az:
             row["as"] = round(max(az), 2)
             row["asp"] = round(row["as"] - eq_full_h[dte], 2)
+        gbv = _gb(dte)
+        if gbv is not None:
+            row["gb"] = gbv
         deep.append(row)
     # downsample: weekly (Fridays) before trailing 730d, daily after
     cutoff = (datetime.now(timezone.utc) - __import__("datetime").timedelta(days=730)).strftime("%Y-%m-%d")
@@ -271,9 +319,12 @@ def lambda_handler(event=None, context=None):
         az2 = [v for v in (ks_h.get(d), hs_h.get(d)) if v is not None]
         if az2:
             h0["as"] = round(max(az2), 2)
+        gb2 = _gb(d)
+        if gb2 is not None:
+            h0["gb"] = gb2
         hist.append(h0)
     hist = hist[-180:]
-    out = {"engine": "fifx-vol-migration", "version": "1.3.0",
+    out = {"engine": "fifx-vol-migration", "version": "1.4.0",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "legs": {
                "fixed_income": {"measure": fi_src, "level": move, "z": fi_z, "pctile": fi_pct,
@@ -291,7 +342,11 @@ def lambda_handler(event=None, context=None):
                                       "n_history": len(hs_rv),
                                       "implied_vhsi": ({"level": vhsi_lv, "z": vhsi_z}
                                                        if vhsi_lv is not None else None)},
-                        "asia_z": asia_z}},
+                        "asia_z": asia_z},
+               "global": {"thesis": "vol-stress BREADTH: the share of major world indices with realized-vol z >= 1 — in real crises it sweeps toward 100% (2008, 2020)",
+                          "grid": grid, "elevated": elevated,
+                          "breadth_pct": breadth,
+                          "leader": {"name": leader[0], "z": leader[1]}}},
            "ratios": {"move_vix": {"last": mv_last, "z": mv_z, "pctile": mv_pctile,
                                    "sibling": "risk-ratios also carries this series"},
                       "fxvol_vix": {"last": fxvix_last, "z": fxvix_z, "pctile": fxvix_pctile}},
