@@ -1,26 +1,26 @@
-executing-against: b4f7cfc3a93759755b3f024d32df15caf1eb58f4
-ops 3589 — Industry Boom League v1
-[19:21:28]   zip: 86120 bytes
+executing-against: 3deda5cb62638ec145500b5695da0b3f51bf2210
+ops 3590 — Industry Boom League v1
+[19:26:10]   zip: 86284 bytes
 ── 1. Lambda ──
-[19:21:28]   Lambda exists — updating
-[19:21:34] ✅   ✓ updated justhodl-industry-boom
+[19:26:10]   Lambda exists — updating
+[19:26:14] ✅   ✓ updated justhodl-industry-boom
 ── 3. Smoke test ──
-[19:21:34]   invoking justhodl-industry-boom…
-[19:21:36] ✅   ✓ smoke test passed
-[19:21:36]     ok                       True
-[19:21:36]     n                        139
-[19:21:36]     sources_ok               8
-[19:21:36]     top                      Medical - Pharmaceuticals
-PASS  G1_deploy_schedule — deployed; schedule=created daily 10:50
-[19:21:37] PASS  G1_deploy_schedule — deployed; schedule=created daily 10:50
-PASS  G2_feed_real — industries=139 sources_ok=8/8 top3=[('Medical - Pharmaceuticals', 84.8), ('Publishing', 84.8), ('Broadcasting', 84.6)] top_comp={'rev_mean': None, 'deal_wins_30d': 0, 'inst_net_bps': 16.7, 'census_conviction': None, 'dilution_share': None}
-[19:21:39] PASS  G2_feed_real — industries=139 sources_ok=8/8 top3=[('Medical - Pharmaceuticals', 84.8), ('Publishing', 84.8), ('Broadcasting', 84.6)] top_comp={'rev_mean': None, 'deal_wins_30d': 0, 'inst_net_bps': 16.7, 'census_conviction': None, 'dilution_share': None}
+[19:26:14]   invoking justhodl-industry-boom…
+[19:26:15] ✅   ✓ smoke test passed
+[19:26:15]     ok                       True
+[19:26:15]     n                        120
+[19:26:15]     sources_ok               8
+[19:26:15]     top                      Computer Hardware
+PASS  G1_deploy_schedule — deployed; schedule=kept ['justhodl-industry-boom-daily']
+[19:26:16] PASS  G1_deploy_schedule — deployed; schedule=kept ['justhodl-industry-boom-daily']
+PASS  G2_feed_real — industries=120 sources_ok=8/8 top3=[('Computer Hardware', 83.9), ('Semiconductors', 82.2), ('Electrical Equipment & Parts', 80.2)] top_comp={'rev_mean': 81.7, 'deal_wins_30d': 2, 'inst_net_bps': 37.4, 'census_conviction': 62.4, 'dilution_share': 60.0}
+[19:26:18] PASS  G2_feed_real — industries=120 sources_ok=8/8 top3=[('Computer Hardware', 83.9), ('Semiconductors', 82.2), ('Electrical Equipment & Parts', 80.2)] top_comp={'rev_mean': 81.7, 'deal_wins_30d': 2, 'inst_net_bps': 37.4, 'census_conviction': 62.4, 'dilution_share': 60.0}
 PASS  G3_history_seeded — ledger days=1
-[19:21:39] PASS  G3_history_seeded — ledger days=1
+[19:26:18] PASS  G3_history_seeded — ledger days=1
 PASS  G4_page_section — served: Industry Boom League section
-[19:24:10] PASS  G4_page_section — served: Industry Boom League section
+[19:26:18] PASS  G4_page_section — served: Industry Boom League section
 
 VERDICT: PASS_ALL
-[19:24:10] VERDICT: PASS_ALL
+[19:26:18] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3589_industry_boom.md
+→ Report written to aws/ops/reports/latest/3590_boom_v11.md
