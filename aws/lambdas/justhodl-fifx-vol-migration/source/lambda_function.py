@@ -227,8 +227,21 @@ def lambda_handler(event=None, context=None):
     hs_h = rolling_z(hs_rv, keep=99999)
     grid_h = {nm: rolling_z(rv, keep=99999) for nm, rv in grid_rz.items() if rv}
 
+    def _dtol(h, dte):
+        """v1.4.1: Asia sessions close before US date grid — exact-date joins
+        missed KOSPI's latest bar; tolerate d, d-1, d-2 (weekend bridge)."""
+        v = h.get(dte)
+        if v is not None:
+            return v
+        base = datetime.strptime(dte, "%Y-%m-%d")
+        for back in (1, 2):
+            v = h.get((base - __import__("datetime").timedelta(days=back)).strftime("%Y-%m-%d"))
+            if v is not None:
+                return v
+        return None
+
     def _gb(dte):
-        zs = [h.get(dte) for h in grid_h.values()]
+        zs = [_dtol(h, dte) for h in grid_h.values()]
         zs = [z for z in zs if z is not None]
         return round(100.0 * sum(1 for z in zs if z >= 1) / len(zs), 1) if len(zs) >= 5 else None
 
@@ -281,7 +294,7 @@ def lambda_handler(event=None, context=None):
             continue
         row = {"d": dte, "fis": a, "fx": b, "eq": eq_full_h[dte],
                "spill": round(max(a, b) - eq_full_h[dte], 2)}
-        az = [v for v in (ks_h.get(dte), hs_h.get(dte)) if v is not None]
+        az = [v for v in (_dtol(ks_h, dte), _dtol(hs_h, dte)) if v is not None]
         if az:
             row["as"] = round(max(az), 2)
             row["asp"] = round(row["as"] - eq_full_h[dte], 2)
@@ -316,7 +329,7 @@ def lambda_handler(event=None, context=None):
             continue
         up = max(v for v in (f, x) if v is not None)
         h0 = {"d": d, "fi": f, "fx": x, "eq": e, "spill": round(up - e, 2)}
-        az2 = [v for v in (ks_h.get(d), hs_h.get(d)) if v is not None]
+        az2 = [v for v in (_dtol(ks_h, d), _dtol(hs_h, d)) if v is not None]
         if az2:
             h0["as"] = round(max(az2), 2)
         gb2 = _gb(d)
@@ -324,7 +337,7 @@ def lambda_handler(event=None, context=None):
             h0["gb"] = gb2
         hist.append(h0)
     hist = hist[-180:]
-    out = {"engine": "fifx-vol-migration", "version": "1.4.0",
+    out = {"engine": "fifx-vol-migration", "version": "1.4.1",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "legs": {
                "fixed_income": {"measure": fi_src, "level": move, "z": fi_z, "pctile": fi_pct,
