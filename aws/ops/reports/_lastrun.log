@@ -1,24 +1,11 @@
-executing-against: 0efa93bff992bd301f0d9695aa73206f6c11c468
-ops 3604 — Asia date-tolerant join + page forensic
-[22:57:58]   zip: 88910 bytes
-── 1. Lambda ──
-[22:57:58]   Lambda exists — updating
-[22:58:03] ✅   ✓ updated justhodl-fifx-vol-migration
-── 3. Smoke test ──
-[22:58:03]   invoking justhodl-fifx-vol-migration…
-[22:58:35] ✅   ✓ smoke test passed
-[22:58:35]     ok                       True
-[22:58:35]     state                    CALM
-[22:58:35]     spillover                -0.77
-[22:58:35]     fi_z                     -0.84
-[22:58:35]     fx_z                     -0.76
-[22:58:35]     eq_z                     0.01
-PASS  G1_join_fixed — today deep as=2.73 asp=2.72 gb=10.0% vs main kospi_z=2.73 breadth=10.0% state=ASIA_CANARY
-[22:59:09] PASS  G1_join_fixed — today deep as=2.73 asp=2.72 gb=10.0% vs main kospi_z=2.73 breadth=10.0% state=ASIA_CANARY
-FAIL  G2_page_cyan — ABSENT · len=38200 has_grid=True has_asia_node=True n_scripts=21
-[23:06:10] FAIL  G2_page_cyan — ABSENT · len=38200 has_grid=True has_asia_node=True n_scripts=21
+executing-against: 75b40b3fde278b13dfaf9b79c9e7ee93e86657ea
+ops 3606 — reskin-stable neutral canary accent, served-proof
+FAIL  G1_served_roles — roles={0: False, 1: True, 2: False} order_top=True len=38195
+[23:58:12] FAIL  G1_served_roles — roles={0: False, 1: True, 2: False} order_top=True len=38195
+reskin_site.py v2 hue engine on _site: [165-300 sat]→amber · [90-165 s>.35 greens]→semantic · [>=300 or <15 s>.40 pinks/reds]→semantic. Stable accents: hue 15-90 OR desaturated. Canary overlay now neutral #e6e8ee dashed (institutional reference-series grey). #22d3ee/#ff6ec7 were both converted, never lost.
+[23:58:12] reskin_site.py v2 hue engine on _site: [165-300 sat]→amber · [90-165 s>.35 greens]→semantic · [>=300 or <15 s>.40 pinks/reds]→semantic. Stable accents: hue 15-90 OR desaturated. Canary overlay now neutral #e6e8ee dashed (institutional reference-series grey). #22d3ee/#ff6ec7 were both converted, never lost.
 
-VERDICT: GAPS: G2_page_cyan
-[23:06:10] VERDICT: GAPS: G2_page_cyan
+VERDICT: GAPS: G1_served_roles
+[23:58:12] VERDICT: GAPS: G1_served_roles
 
-→ Report written to aws/ops/reports/latest/3604_join_fix.md
+→ Report written to aws/ops/reports/latest/3606_neutral_accent.md
