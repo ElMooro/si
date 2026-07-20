@@ -1,0 +1,49 @@
+{
+  "gates": {
+    "G1_deploy_schedule": {
+      "ok": true,
+      "detail": "deployed; schedule=created 21:20 M-F"
+    },
+    "G2_legs_real": {
+      "ok": true,
+      "detail": "FI ^MOVE (Yahoo,  72.6592025756836 z=-0.84 \u00b7 FX 6.44% z=-0.76 (EUR 5.66 JPY 6.71 GBP 6.94) \u00b7 VIX 18.77 z=0.01 \u00b7 spill=-0.77 state=CALM"
+    },
+    "G3_ratios": {
+      "ok": true,
+      "detail": "MOVE/VIX 3.776 (18.6p) \u00b7 FXvol/VIX 0.343 (20.2p)"
+    },
+    "G4_page_card": {
+      "ok": true,
+      "detail": "served: Vol Migration Barometer card"
+    },
+    "G5_mi_feed": {
+      "ok": true,
+      "detail": "fifx_vol feed in deployed MI (zip marker)"
+    }
+  },
+  "snapshot": {
+    "migration": {
+      "upstream_z": -0.76,
+      "equity_z": 0.01,
+      "spillover": -0.77,
+      "state": "CALM",
+      "read": "no upstream pressure \u2014 FI/FX vol at or below normal vs equity vol"
+    },
+    "fi": {
+      "level": 72.6592025756836,
+      "z": -0.84,
+      "pctile": 24.6
+    },
+    "fx": {
+      "level_pct": 6.44,
+      "z": -0.76,
+      "pctile": 23.2
+    },
+    "eq": {
+      "level": 18.77,
+      "z": 0.01,
+      "pctile": 64.9
+    }
+  },
+  "verdict": "PASS_ALL"
+}

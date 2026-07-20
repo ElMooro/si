@@ -1,30 +1,30 @@
-executing-against: 4a429155e0268997deed71363c1fffe46550bf37
-ops 3597 — S&P 500 MA Command engine
-[21:32:42]   zip: 86813 bytes
+executing-against: 3b8d22d55a0fee03cb4d1f652d60cab10991c965
+ops 3598 — vol migration barometer (FI+FX → equities)
+[21:48:22]   zip: 85981 bytes
 ── 1. Lambda ──
-[21:32:42]   Lambda exists — updating
-[21:32:47] ✅   ✓ updated justhodl-spx-ma
+[21:48:22]   Lambda exists — updating
+[21:48:25] ✅   ✓ updated justhodl-fifx-vol-migration
 ── 3. Smoke test ──
-[21:32:47]   invoking justhodl-spx-ma…
-[21:33:35] ✅   ✓ smoke test passed
-[21:33:35]     ok                       True
-[21:33:35]     stack                    2/4 MIXED
-[21:33:35]     b50                      60.3
-[21:33:35]     b200                     65.2
-[21:33:35]     b20                      58.7
-[21:33:35]     ledger_days              210
-PASS  G1_deploy_schedule — deployed 1024/900; schedule=kept
-[21:33:35] PASS  G1_deploy_schedule — deployed 1024/900; schedule=kept
-PASS  G2_index_ladder — px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%
-[21:33:38] PASS  G2_index_ladder — px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%
-PASS  G3_breadth_50_200 — cov200=489/494 above50=64.3% above200=66.9% spread=-2.6 narrow=False
-[21:33:38] PASS  G3_breadth_50_200 — cov200=489/494 above50=64.3% above200=66.9% spread=-2.6 narrow=False
-PASS  G4_ledger_bootstrap — ledger=210/210 added=0 b20=58.7% (cov 494) b100=64.7 (cov 493)
-[21:33:38] PASS  G4_ledger_bootstrap — ledger=210/210 added=0 b20=58.7% (cov 494) b100=64.7 (cov 493)
-PASS  G5_page_card — served: S&P 500 MA Command card on signal-board
-[21:33:38] PASS  G5_page_card — served: S&P 500 MA Command card on signal-board
+[21:48:25]   invoking justhodl-fifx-vol-migration…
+[21:48:28] ✅   ✓ smoke test passed
+[21:48:28]     ok                       True
+[21:48:28]     state                    CALM
+[21:48:28]     spillover                -0.77
+[21:48:28]     fi_z                     -0.84
+[21:48:28]     fx_z                     -0.76
+[21:48:28]     eq_z                     0.01
+PASS  G1_deploy_schedule — deployed; schedule=created 21:20 M-F
+[21:48:29] PASS  G1_deploy_schedule — deployed; schedule=created 21:20 M-F
+PASS  G2_legs_real — FI ^MOVE (Yahoo,  72.6592025756836 z=-0.84 · FX 6.44% z=-0.76 (EUR 5.66 JPY 6.71 GBP 6.94) · VIX 18.77 z=0.01 · spill=-0.77 state=CALM
+[21:48:32] PASS  G2_legs_real — FI ^MOVE (Yahoo,  72.6592025756836 z=-0.84 · FX 6.44% z=-0.76 (EUR 5.66 JPY 6.71 GBP 6.94) · VIX 18.77 z=0.01 · spill=-0.77 state=CALM
+PASS  G3_ratios — MOVE/VIX 3.776 (18.6p) · FXvol/VIX 0.343 (20.2p)
+[21:48:32] PASS  G3_ratios — MOVE/VIX 3.776 (18.6p) · FXvol/VIX 0.343 (20.2p)
+PASS  G4_page_card — served: Vol Migration Barometer card
+[21:50:33] PASS  G4_page_card — served: Vol Migration Barometer card
+PASS  G5_mi_feed — fifx_vol feed in deployed MI (zip marker)
+[21:50:33] PASS  G5_mi_feed — fifx_vol feed in deployed MI (zip marker)
 
 VERDICT: PASS_ALL
-[21:33:38] VERDICT: PASS_ALL
+[21:50:33] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3597_spx_ma_v101.md
+→ Report written to aws/ops/reports/latest/3598_fifx_vol.md

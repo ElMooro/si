@@ -1,0 +1,34 @@
+# ops 3598 — vol migration barometer (FI+FX → equities)
+
+**Status:** success  
+**Duration:** 131.6s  
+**Finished:** 2026-07-20T21:50:33+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `21:48:22`   zip: 85981 bytes
+## 1. Lambda
+
+- `21:48:22`   Lambda exists — updating
+- `21:48:25` ✅   ✓ updated justhodl-fifx-vol-migration
+## 3. Smoke test
+
+- `21:48:25`   invoking justhodl-fifx-vol-migration…
+- `21:48:28` ✅   ✓ smoke test passed
+- `21:48:28`     ok                       True
+- `21:48:28`     state                    CALM
+- `21:48:28`     spillover                -0.77
+- `21:48:28`     fi_z                     -0.84
+- `21:48:28`     fx_z                     -0.76
+- `21:48:28`     eq_z                     0.01
+- `21:48:29` PASS  G1_deploy_schedule — deployed; schedule=created 21:20 M-F
+- `21:48:32` PASS  G2_legs_real — FI ^MOVE (Yahoo,  72.6592025756836 z=-0.84 · FX 6.44% z=-0.76 (EUR 5.66 JPY 6.71 GBP 6.94) · VIX 18.77 z=0.01 · spill=-0.77 state=CALM
+- `21:48:32` PASS  G3_ratios — MOVE/VIX 3.776 (18.6p) · FXvol/VIX 0.343 (20.2p)
+- `21:50:33` PASS  G4_page_card — served: Vol Migration Barometer card
+- `21:50:33` PASS  G5_mi_feed — fifx_vol feed in deployed MI (zip marker)
+- `21:50:33` VERDICT: PASS_ALL
