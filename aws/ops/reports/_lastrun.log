@@ -1,25 +1,13 @@
-executing-against: 07a209a92622e517493a943a9af9f010564bd502
-ops 3592 — Korea 20-day flash (KCS via CF-edge /gov)
-FAIL  G1_edge_breakthrough — status=200 host_hdr=www.customs.go.kr len=182 kr_str=False
-[19:53:56] FAIL  G1_edge_breakthrough — status=200 host_hdr=www.customs.go.kr len=182 kr_str=False
-moea_via_edge: {'status': 200, 'len': 50000}
-[19:53:57] moea_via_edge: {"status": 200, "len": 50000}
-[19:53:57]   zip: 86588 bytes
-── 1. Lambda ──
-[19:53:58]   Lambda exists — updating
-[19:54:03] ✅   ✓ updated justhodl-asia-leads
-── 3. Smoke test ──
-[19:54:03]   invoking justhodl-asia-leads…
-[19:54:14] ✅   ✓ smoke test passed
-[19:54:14]     ok                       True
-[19:54:14]     kr_yoy                   47.96
-[19:54:14]     tw_yoy                   48.33
-FAIL  G2_flash_real — v1.3.0 period='' total=$NoneB None% YoY · semis=$NoneB None% err=no 수출입 현황 item on board raw=''
-[19:54:20] FAIL  G2_flash_real — v1.3.0 period='' total=$NoneB None% YoY · semis=$NoneB None% err=no 수출입 현황 item on board raw=''
-PASS  G3_page_row — served: Korea 20-day flash row
-[19:54:20] PASS  G3_page_row — served: Korea 20-day flash row
+executing-against: f5bfad8c0237ed976d03fb87ddc4eefe9b9909b4
+ops 3593 — deal-scanner sized-cards + industry-peer context
+PASS  G1_config_heal — mem=1024 timeout=900 status=Successful
+[20:11:48] PASS  G1_config_heal — mem=1024 timeout=900 status=Successful
+FAIL  G2_fields_live — v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=0 rev_growth=16 · sample RTX: $1 billion · 0.38% mcap · 1.1% rev · Aerospace & Defense boom None #None · co rev 9.7% YoY
+[20:11:54] FAIL  G2_fields_live — v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=0 rev_growth=16 · sample RTX: $1 billion · 0.38% mcap · 1.1% rev · Aerospace & Defense boom None #None · co rev 9.7% YoY
+PASS  G3_page_served — served: Sized Wins section + industry-peer context renderer
+[20:11:54] PASS  G3_page_served — served: Sized Wins section + industry-peer context renderer
 
-VERDICT: GAPS: G1_edge_breakthrough,G2_flash_real
-[19:54:20] VERDICT: GAPS: G1_edge_breakthrough,G2_flash_real
+VERDICT: GAPS: G2_fields_live
+[20:11:54] VERDICT: GAPS: G2_fields_live
 
-→ Report written to aws/ops/reports/latest/3592_kcs_flash.md
+→ Report written to aws/ops/reports/latest/3593_ds_restore.md
