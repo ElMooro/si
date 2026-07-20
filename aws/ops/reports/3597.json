@@ -1,0 +1,39 @@
+{
+  "gates": {
+    "G1_deploy_schedule": {
+      "ok": true,
+      "detail": "deployed 1024/900; schedule=kept"
+    },
+    "G2_index_ladder": {
+      "ok": true,
+      "detail": "px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%"
+    },
+    "G3_breadth_50_200": {
+      "ok": true,
+      "detail": "cov200=489/494 above50=64.3% above200=66.9% spread=-2.6 narrow=False"
+    },
+    "G4_ledger_bootstrap": {
+      "ok": true,
+      "detail": "ledger=210/210 added=0 b20=58.7% (cov 494) b100=64.7 (cov 493)"
+    },
+    "G5_page_card": {
+      "ok": true,
+      "detail": "served: S&P 500 MA Command card on signal-board"
+    }
+  },
+  "snapshot": {
+    "index": {
+      "price": 7444.73,
+      "stack": "2/4 MIXED",
+      "regime": "BULL"
+    },
+    "breadth": {
+      "above20_pct": 58.7,
+      "above50_pct": 64.3,
+      "above100_pct": 64.7,
+      "above200_pct": 66.9,
+      "divergence_narrow_market": false
+    }
+  },
+  "verdict": "PASS_ALL"
+}
