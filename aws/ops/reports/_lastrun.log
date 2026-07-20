@@ -1,40 +1,33 @@
-executing-against: 87c3738475e8f509dc5c1e45345a5f4a9546b592
-ops 3584 — asia v1.1: real TSF into china-liquidity · lean tech-pulse · calendar wired
-PASS  G0_nbs_monthly_probe — candidates=[] chosen=NONE (annual-only mode)
-[18:33:43] PASS  G0_nbs_monthly_probe — candidates=[] chosen=NONE (annual-only mode)
-[18:33:44]   zip: 85237 bytes
-── 1. Lambda ──
-[18:33:44]   Lambda exists — updating
-[18:33:47] ✅   ✓ updated justhodl-china-liquidity
-── 3. Smoke test ──
-[18:33:47]   invoking justhodl-china-liquidity…
-[18:33:50] ✅   ✓ smoke test passed
-[18:33:50]     ok                       True
-[18:33:50]     regime                   NEUTRAL
-[18:33:50]     credit_impulse_pp        -5.52
-[18:33:50]     m2_yoy                   8.21
-[18:33:50]   zip: 84292 bytes
-── 1. Lambda ──
-[18:33:50]   Lambda exists — updating
-[18:33:53] ✅   ✓ updated justhodl-asia-leads
-── 3. Smoke test ──
-[18:33:53]   invoking justhodl-asia-leads…
-[18:33:54] ✅   ✓ smoke test passed
-[18:33:54]     ok                       True
-[18:33:54]     kr_yoy                   47.96
-[18:33:54]     tw_yoy                   48.33
-PASS  G1_deployed — both deployed via helper; NBS_TSF_MONTHLY=unset
-[18:33:54] PASS  G1_deployed — both deployed via helper; NBS_TSF_MONTHLY=unset
-PASS  G2_engines_real — asia v1.1.0 kr=47.96% tw=48.33% dup_blocks_removed=True · cl.tsf annual=8 monthly_series=None sample= impulse=None
-[18:33:58] PASS  G2_engines_real — asia v1.1.0 kr=47.96% tw=48.33% dup_blocks_removed=True · cl.tsf annual=8 monthly_series=None sample= impulse=None
-PASS  G3_econ_calendar_alive — age_h=7.6 upcoming=0 · re-invoked, upcoming=80 next_major=Initial Jobless Claims (Jul/18)
-[18:34:00] PASS  G3_econ_calendar_alive — age_h=7.6 upcoming=0 · re-invoked, upcoming=80 next_major=Initial Jobless Claims (Jul/18)
-PASS  G4_page_cards — served: asia-pulse + next-prints cards
-[18:36:15] PASS  G4_page_cards — served: asia-pulse + next-prints cards
-PASS  G5_mi_feed — asia_leads feed in deployed MI · econ_calendar already present=True
-[18:36:15] PASS  G5_mi_feed — asia_leads feed in deployed MI · econ_calendar already present=True
+executing-against: d5801c8f85f03ada41e3f7aabc1305927731eca7
+ops 3585 — discovery #2: TW export orders + PBoC monthly TSF
+A1_datagovtw_search: {"err": "HTTP Error 404: Not Found", "top_keys": null, "hits": []}
+[18:44:15] A1_datagovtw_search: {"err": "HTTP Error 404: Not Found", "top_keys": null, "hits": []}
+A2_datagovtw_en: {"err": "HTTP Error 404: Not Found", "hits": []}
+[18:44:15] A2_datagovtw_en: {"err": "HTTP Error 404: Not Found", "hits": []}
+A3_moea_root: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
+[18:44:15] A3_moea_root: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
+A4_moea_bulletin: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
+[18:44:16] A4_moea_bulletin: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
+A5_nstatdb: {"status": 200, "len": 21, "orders_str": false, "err": null}
+[18:44:17] A5_nstatdb: {"status": 200, "len": 21, "orders_str": false, "err": null}
+A6_stat_eng: {"status": 200, "len": 112551, "orders_str": true, "err": null}
+[18:44:18] A6_stat_eng: {"status": 200, "len": 112551, "orders_str": true, "err": null}
+A7_dbn_taipei: {"err": null, "hits": []}
+[18:44:19] A7_dbn_taipei: {"err": null, "hits": []}
+A8_dbn_tw_manuf: {"err": null, "hits": []}
+[18:44:20] A8_dbn_tw_manuf: {"err": null, "hits": []}
+B1_nbs_hgyd_root: {"err": "HTTP Error 403: Forbidden", "n": 0, "cats": []}
+[18:44:24] B1_nbs_hgyd_root: {"err": "HTTP Error 403: Forbidden", "n": 0, "cats": []}
+B2_nbs_financing_nodes: {"hits": []}
+[18:44:24] B2_nbs_financing_nodes: {"hits": []}
+B3_nbs_sample_query: {"skipped": "no financing node found"}
+[18:44:24] B3_nbs_sample_query: {"skipped": "no financing node found"}
+B4_pboc_en_reach: {"status": 200, "afre_str": true, "err": null}
+[18:44:26] B4_pboc_en_reach: {"status": 200, "afre_str": true, "err": null}
+B5_dbn_cn_providers: {"err": null, "matches": ["NBS", "SAIS-CARI"]}
+[18:44:28] B5_dbn_cn_providers: {"err": null, "matches": ["NBS", "SAIS-CARI"]}
 
-VERDICT: PASS_ALL
-[18:36:15] VERDICT: PASS_ALL
+VERDICT: PROBE_COMPLETE
+[18:44:28] VERDICT: PROBE_COMPLETE
 
-→ Report written to aws/ops/reports/latest/3584_asia_v11.md
+→ Report written to aws/ops/reports/latest/3585_discovery2.md

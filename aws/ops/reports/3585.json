@@ -1,0 +1,69 @@
+{
+  "probes": {
+    "A1_datagovtw_search": {
+      "err": "HTTP Error 404: Not Found",
+      "top_keys": null,
+      "hits": []
+    },
+    "A2_datagovtw_en": {
+      "err": "HTTP Error 404: Not Found",
+      "hits": []
+    },
+    "A3_moea_root": {
+      "status": null,
+      "len": null,
+      "orders_str": false,
+      "err": "HTTP Error 403: Forbidden"
+    },
+    "A4_moea_bulletin": {
+      "status": null,
+      "len": null,
+      "orders_str": false,
+      "err": "HTTP Error 403: Forbidden"
+    },
+    "A5_nstatdb": {
+      "status": 200,
+      "len": 21,
+      "orders_str": false,
+      "err": null
+    },
+    "A6_stat_eng": {
+      "status": 200,
+      "len": 112551,
+      "orders_str": true,
+      "err": null
+    },
+    "A7_dbn_taipei": {
+      "err": null,
+      "hits": []
+    },
+    "A8_dbn_tw_manuf": {
+      "err": null,
+      "hits": []
+    },
+    "B1_nbs_hgyd_root": {
+      "err": "HTTP Error 403: Forbidden",
+      "n": 0,
+      "cats": []
+    },
+    "B2_nbs_financing_nodes": {
+      "hits": []
+    },
+    "B3_nbs_sample_query": {
+      "skipped": "no financing node found"
+    },
+    "B4_pboc_en_reach": {
+      "status": 200,
+      "afre_str": true,
+      "err": null
+    },
+    "B5_dbn_cn_providers": {
+      "err": null,
+      "matches": [
+        "NBS",
+        "SAIS-CARI"
+      ]
+    }
+  },
+  "verdict": "PROBE_COMPLETE"
+}
