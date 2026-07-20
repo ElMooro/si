@@ -1,11 +1,23 @@
-executing-against: d180868c5606f495a0381d8bc16ae7a1a14a13ae
-ops 3576 — deal-scanner config enforcement (1024/600)
-PASS  G1_deal_cfg — mem=1024 timeout=600 env_vars=0 (env preserved)
-[17:09:44] PASS  G1_deal_cfg — mem=1024 timeout=600 env_vars=0 (env preserved)
-PASS  G2_universe_cfg — mem=512 timeout=420
-[17:09:44] PASS  G2_universe_cfg — mem=512 timeout=420
+executing-against: cb9b41b29da2aa34e90d4e398d7ce225b6c3e0cc
+ops 3577 — deal-scanner v3.1 (taxonomy fix + institutional page layer)
+PASS  G1_settled_v31 — markers ok=True mem=1024 timeout=600
+[17:24:01] PASS  G1_settled_v31 — markers ok=True mem=1024 timeout=600
+PASS  G2_feed_v31 — by_event=9 keys · capital_structure n=5 · wins-leak=none · deals=16 · dilution-joined=2
+[17:24:16] PASS  G2_feed_v31 — by_event=9 keys · capital_structure n=5 · wins-leak=none · deals=16 · dilution-joined=2
+PASS  G3_page_v31 — served: capstr label + universe line + filter chips + dilution + 8-K count
+[17:25:16] PASS  G3_page_v31 — served: capstr label + universe line + filter chips + dilution + 8-K count
 
 VERDICT: PASS_ALL
-[17:09:44] VERDICT: PASS_ALL
+[17:25:16] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3576_deal_cfg.md
+→ Report written to aws/ops/reports/latest/3577_deal_v31.md
+ops 3578 — base-rate ledger backfill (population study born live)
+FAIL  G1_ledger_populated — ledger did not populate (pre=16)
+[17:34:40] FAIL  G1_ledger_populated — ledger did not populate (pre=16)
+FAIL  G2_feed_base_rates — feed did not refresh with base_rates
+[17:42:44] FAIL  G2_feed_base_rates — feed did not refresh with base_rates
+
+VERDICT: GAPS: G1_ledger_populated,G2_feed_base_rates
+[17:42:44] VERDICT: GAPS: G1_ledger_populated,G2_feed_base_rates
+
+→ Report written to aws/ops/reports/latest/3578_backfill.md

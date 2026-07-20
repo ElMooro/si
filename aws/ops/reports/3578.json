@@ -1,0 +1,13 @@
+{
+  "gates": {
+    "G1_ledger_populated": {
+      "ok": false,
+      "detail": "ledger did not populate (pre=16)"
+    },
+    "G2_feed_base_rates": {
+      "ok": false,
+      "detail": "feed did not refresh with base_rates"
+    }
+  },
+  "verdict": "GAPS: G1_ledger_populated,G2_feed_base_rates"
+}
