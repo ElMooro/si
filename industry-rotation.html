@@ -355,6 +355,27 @@ __safe(renderRRGCards,"RRG cards");__safe(renderRRGBarcode,"RRG barcode");__safe
 }).catch(function(e){var er=document.getElementById("err");if(er)er.textContent="desk render error: "+((e&&e.message)||e)+" — every isolated section above still rendered";try{console.error("[IR main]",e);}catch(e9){}});
 })();
 </script>
+<div id="jh-ind-boom" style="max-width:1200px;margin:26px auto;padding:0 16px"></div>
+<script>/* ops 3589 ADDITIVE: full-breadth Industry Boom League (justhodl-industry-boom) */
+(async function(){try{
+  var r=await fetch('data/industry-boom.json?t='+Date.now()); if(!r.ok) return;
+  var d=await r.json(); var L=(d.league||[]).slice(0,20); var T=d.trouble||[];
+  function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function chip(l,v,suf,good){if(v==null)return'';var c=good===null?'#9aa4b2':(good?'#3ddc84':'#ff8080');return '<span style="margin-right:9px;color:#9aa4b2">'+l+' <b style="color:'+c+'">'+v+(suf||'')+'</b></span>';}
+  var rows=L.map(function(x,i){var c=x.comp||{};
+    return '<tr style="border-top:1px solid rgba(255,255,255,.07)"><td style="padding:7px 8px;color:#9aa4b2">'+(i+1)+'</td>'
+      +'<td style="padding:7px 8px"><b>'+esc(x.industry)+'</b><div style="font-size:11px;color:#9aa4b2">'+esc(x.sector||'')+' · '+x.n+' names · $'+x.mcap_b+'B · '+(x.top_names||[]).join(' ')+'</div></td>'
+      +'<td style="padding:7px 8px;font-weight:800;color:'+(x.boom_score>=70?'#3ddc84':x.boom_score>=50?'#fbbf24':'#e6e8ee')+'">'+x.boom_score+(x.score_delta_20d!=null?' <span style="font-size:11px;color:'+(x.score_delta_20d>=0?'#3ddc84':'#ff8080')+'">'+(x.score_delta_20d>=0?'+':'')+x.score_delta_20d+' 20d</span>':'')+'</td>'
+      +'<td style="padding:7px 8px;font-size:12px">'+chip('rev',c.rev_mean!=null?Math.round(c.rev_mean):null,'',c.rev_mean>0)+chip('deals',c.deal_wins_30d,'',c.deal_wins_30d>0)+chip('backlog',c.backlog_accel_share,'%',c.backlog_accel_share>0)+chip('13F',c.inst_net_bps,'bps',c.inst_net_bps>0)+chip('insider',c.insider_buys_30d,'',c.insider_buys_30d>0)+chip('census',c.census_conviction,'',null)+chip('dilute',c.dilution_share,'%',c.dilution_share!=null?c.dilution_share<15:null)+'</td></tr>';}).join('');
+  var trows=T.slice(0,8).map(function(x){var c=x.comp||{};return '<span style="display:inline-block;margin:0 12px 8px 0;color:#ff9a9a">'+esc(x.industry)+' <span style="color:#9aa4b2;font-size:11px">dilute '+(c.dilution_share||0)+'% · risk '+(c.risk_high_share||0)+'%</span></span>';}).join('');
+  document.getElementById('jh-ind-boom').innerHTML=
+    '<div style="font-size:19px;font-weight:800;margin:8px 0 4px">🏭 Industry Boom League — which industries boom next</div>'
+    +'<div style="color:#9aa4b2;font-size:13px;margin-bottom:10px">Full-breadth ('+d.n_industries+' industries · '+(d.n_universe||0).toLocaleString()+' US-listed names) fusion of the platform\'s own alpha feeds — revision velocity, real deal wins, backlog/RPO acceleration, 13F dollars, insider buys, census quality, dilution trouble. Complements the 22-ETF momentum ladder above and the M3/G.17 supply-pressure groups.</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="color:#9aa4b2;text-align:left"><th style="padding:6px 8px">#</th><th style="padding:6px 8px">Industry</th><th style="padding:6px 8px">Boom score</th><th style="padding:6px 8px">Components</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +(trows?('<div style="margin-top:14px;font-weight:700">⚠ Trouble board — dilution + balance-sheet risk clusters</div><div style="margin-top:6px">'+trows+'</div>'):'')
+    +'<div style="color:#9aa4b2;font-size:11px;margin-top:10px">Percentile composite, renormalized on available coverage; 20d deltas self-activate as the daily ledger accrues. Real internal data only.</div>';
+}catch(e){}})();
+</script>
 <script src="/jh-wire.js" defer data-feeds="data/industry-rotation.json|justhodl-industry-rotation|INDUSTRY ROTATION;data/finviz-groups.json|justhodl-finviz-groups|FINVIZ GROUP AGGREGATES"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
