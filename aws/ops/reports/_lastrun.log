@@ -1,26 +1,11 @@
-executing-against: b2bc3cc1510701eca3651de5b9a28fe7c4f61779
-ops 3600 — barometer top placement + 1990→today spillover history
-[22:09:26]   zip: 86967 bytes
-── 1. Lambda ──
-[22:09:26]   Lambda exists — updating
-[22:09:30] ✅   ✓ updated justhodl-fifx-vol-migration
-── 3. Smoke test ──
-[22:09:30]   invoking justhodl-fifx-vol-migration…
-[22:09:47] ✅   ✓ smoke test passed
-[22:09:47]     ok                       True
-[22:09:47]     state                    CALM
-[22:09:47]     spillover                -0.77
-[22:09:47]     fi_z                     -0.84
-[22:09:47]     fx_z                     -0.76
-[22:09:47]     eq_z                     0.01
-PASS  G1_deep_shard — rows=2212 span 1990-03-30→2026-07-17 · crisis spill maxima: LTCM97-98=4.09 GFC08-09=2.88 COVID20=2.96 · last={'d': '2026-07-17', 'fis': -0.49, 'fx': -0.76, 'eq': 0.01, 'spill': -0.5}
-[22:10:00] PASS  G1_deep_shard — rows=2212 span 1990-03-30→2026-07-17 · crisis spill maxima: LTCM97-98=4.09 GFC08-09=2.88 COVID20=2.96 · last={'d': '2026-07-17', 'fis': -0.49, 'fx': -0.76, 'eq': 0.01, 'spill': -0.5}
-PASS  G2_main_intact — main v1.2.0 hist=173 state=CALM spill=-0.77
-[22:10:01] PASS  G2_main_intact — main v1.2.0 hist=173 state=CALM spill=-0.77
-PASS  G3_page_top_deep — order_top=True deep_markers=True
-[22:11:47] PASS  G3_page_top_deep — order_top=True deep_markers=True
+executing-against: 87502b51ec9394d7024abc7af6d17499e30d4734
+ops 3601 — 12m trend-reversal ribbon
+PASS  G1_math_harness — rows=2212 ma_cov=2204 yoy_cov=2162 reversal_flips=212 ma_last=-0.53 yoy_last=0.0 slope_last=RISING shard_last=2026-07-17
+[22:18:08] PASS  G1_math_harness — rows=2212 ma_cov=2204 yoy_cov=2162 reversal_flips=212 ma_last=-0.53 yoy_last=0.0 slope_last=RISING shard_last=2026-07-17
+PASS  G2_page_served — served: 12m trend overlay + YoY pane markers, card still top
+[22:20:39] PASS  G2_page_served — served: 12m trend overlay + YoY pane markers, card still top
 
 VERDICT: PASS_ALL
-[22:11:47] VERDICT: PASS_ALL
+[22:20:39] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3600_fifx_deep.md
+→ Report written to aws/ops/reports/latest/3601_ribbon_trend.md
