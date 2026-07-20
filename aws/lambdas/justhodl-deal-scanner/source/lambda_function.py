@@ -36,7 +36,7 @@ from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "3.1.0"
+VERSION = "3.1.1"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -171,6 +171,36 @@ def fetch_polygon(limit=100, pages=8):
                         "publishedDate": (a.get("published_utc") or "").replace("T", " ")[:19],
                         "publisher": (a.get("publisher") or {}).get("name") or "Polygon",
                         "url": a.get("article_url"), "trust": "news", "origin": "polygon"})
+        nu = j.get("next_url")
+        if not nu:
+            break
+        url = nu + f"&apiKey={POLYGON_KEY}"
+    return out
+
+
+def fetch_polygon_window(days, limit=1000, max_pages=250):
+    """v3.1.1 HISTORICAL mode: Polygon news date-windowed paging — the only leg
+    that reaches WEEKS back (FMP latest-feeds cap out at ~3-7 days; ops 3579
+    proved 100 pages = 22k items but zero matured entries). limit=1000 requested;
+    tier gracefully serves what it allows."""
+    now = datetime.now(timezone.utc)
+    gte = (now - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00Z")
+    out, url = [], (f"https://api.polygon.io/v2/reference/news?limit={limit}"
+                    f"&published_utc.gte={gte}&order=desc&sort=published_utc"
+                    f"&apiKey={POLYGON_KEY}")
+    for _ in range(max_pages):
+        j = _http_json(url, timeout=25)
+        if not isinstance(j, dict):
+            break
+        for a in j.get("results", []) or []:
+            tks = a.get("tickers") or []
+            if not tks:
+                continue
+            out.append({"symbol": tks[0], "title": a.get("title"),
+                        "text": a.get("description") or "",
+                        "publishedDate": (a.get("published_utc") or "").replace("T", " ")[:19],
+                        "publisher": (a.get("publisher") or {}).get("name") or "Polygon",
+                        "url": a.get("article_url"), "trust": "news", "origin": "polygon_hist"})
         nu = j.get("next_url")
         if not nu:
             break
@@ -494,7 +524,7 @@ def load_8k_set(now):
 
 def _poly_closes(sym, d_from, d_to):
     j = _http_json(f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(sym)}/range/1/day/"
-                   f"{d_from}/{d_to}?adjusted=true&sort=asc&limit=60&apiKey={POLYGON_KEY}")
+                   f"{d_from}/{d_to}?adjusted=true&sort=asc&limit=150&apiKey={POLYGON_KEY}")
     if not isinstance(j, dict):
         return []
     return [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d"), r.get("c"))
@@ -564,10 +594,12 @@ def lambda_handler(event, context):
     # SAME pipeline, skips signals + the live feed write — matured entries get
     # forward returns filled immediately, so base rates are born populated.
     bf = 0
+    bf_days = 0
     try:
         bf = int((event or {}).get("backfill_pages") or 0)
+        bf_days = int((event or {}).get("backfill_days") or 0)
     except Exception:
-        bf = 0
+        bf, bf_days = 0, 0
     try:
         universe = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/universe.json")["Body"].read())
         uni = {s["symbol"]: {"name": s.get("name"), "industry": s.get("industry"),
@@ -577,8 +609,13 @@ def lambda_handler(event, context):
     except Exception:
         uni = {}
 
-    prs = fetch_news(pages=(bf or 14), limit=100)   # v2: full-market sweep; v3.1 backfill goes deep
-    prs += fetch_polygon(limit=100, pages=(20 if bf else 8))
+    if bf_days:
+        # historical ledger backfill: Polygon windowed tape only (reaches weeks back)
+        prs = fetch_polygon_window(bf_days)
+        bf = bf or bf_days
+    else:
+        prs = fetch_news(pages=(bf or 14), limit=100)   # v2: full-market sweep; v3.1 backfill goes deep
+        prs += fetch_polygon(limit=100, pages=(20 if bf else 8))
     # Benzinga leg REMOVED 2026-07-15: Massive stopped serving Benzinga (403 NOT_AUTHORIZED)
     ai_universe = load_ai_universe()
     sector_scores, sector_rotating_in, sector_conv, sector_posture = load_sector_signal()
@@ -862,7 +899,7 @@ def lambda_handler(event, context):
             return round(((e[1] / b[1]) - (se / sb)) * 100, 2)
 
         _fills = 0
-        _fill_cap = 150 if bf else 40
+        _fill_cap = 300 if bf else 40
         for _id, v in entries.items():
             if _fills >= _fill_cap or v.get("listed") is False:
                 continue
