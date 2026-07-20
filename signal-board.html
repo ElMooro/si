@@ -231,6 +231,25 @@ function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <div id="jh-spx-ma" style="max-width:1200px;margin:24px auto;padding:0 16px"></div>
+<div id="jh-fifx" style="max-width:1200px;margin:8px auto 24px;padding:0 16px"></div>
+<script>/* ops 3598 ADDITIVE: FI+FX vol migration barometer (justhodl-fifx-vol-migration) */
+(async function(){try{
+  var r=await fetch('data/fifx-vol.json?t='+Date.now()); if(!r.ok) return;
+  var d=await r.json(), L=d.legs||{}, m=d.migration||{}, rt=d.ratios||{};
+  function leg(t,o,lv,suf){o=o||{};var z=o.z,c=z==null?'#9aa4b2':z>=1.5?'#ff8080':z>=1?'#fbbf24':'#3ddc84';
+    return '<div style="border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:11px"><div style="font-size:11px;color:#9aa4b2">'+t+'</div><div style="font-size:20px;font-weight:800">'+(lv!=null?lv:'—')+(suf||'')+' <span style="font-size:13px;color:'+c+'">z '+(z!=null?(z>0?'+':'')+z:'—')+'</span></div><div style="font-size:11px;color:#9aa4b2">'+(o.pctile!=null?o.pctile+'th pctile 2y':'')+'</div></div>';}
+  var sc=m.state==='CALM'?'#3ddc84':m.state==='BROAD_STRESS'?'#ff8080':'#fbbf24';
+  document.getElementById('jh-fifx').innerHTML=
+    '<div style="font-size:19px;font-weight:800;margin:6px 0 2px">🌊 Vol Migration Barometer — fixed income &amp; FX → equities</div>'
+    +'<div style="color:#9aa4b2;font-size:13px;margin-bottom:10px">Volatility starts upstream. Each leg z-scored vs its own 2y; the spillover gap is the early warning.</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">'
+    +leg('FIXED INCOME · '+((L.fixed_income||{}).measure||'MOVE'),L.fixed_income,(L.fixed_income||{}).level,'')
+    +leg('FX · G3 realized 20d',L.fx,(L.fx||{}).level_pct,'%')
+    +leg('EQUITY · VIX',L.equity,(L.equity||{}).level,'')
+    +'<div style="border:1px solid '+sc+'55;border-radius:12px;padding:11px"><div style="font-size:11px;color:#9aa4b2">MIGRATION GAUGE · spillover</div><div style="font-size:20px;font-weight:800;color:'+sc+'">'+(m.spillover!=null?(m.spillover>0?'+':'')+m.spillover:'—')+' · '+(m.state||'—')+'</div><div style="font-size:11px;color:#9aa4b2;margin-top:2px">'+(m.read||'')+'</div></div></div>'
+    +'<div style="color:#9aa4b2;font-size:11px;margin-top:8px">MOVE/VIX '+((rt.move_vix||{}).last!=null?(rt.move_vix||{}).last+' ('+((rt.move_vix||{}).pctile)+'p)':'—')+' · FXvol/VIX '+((rt.fxvol_vix||{}).last!=null?(rt.fxvol_vix||{}).last+' ('+((rt.fxvol_vix||{}).pctile)+'p)':'—')+' · FI synthetic 5-channel + MOVE/VIX series live in bond-vol &amp; risk-ratios (wired, not rebuilt). EVZ/TYVIX discontinued — realized FX vol is the free institutional proxy. Real data only.</div>';
+}catch(e){}})();
+</script>
 <script>/* ops 3596 ADDITIVE: S&P 500 MA Command (justhodl-spx-ma) — the index ladder + true membership breadth */
 (async function(){try{
   var r=await fetch('data/spx-ma.json?t='+Date.now()); if(!r.ok) return;

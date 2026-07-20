@@ -181,6 +181,7 @@ def load_all():
         "ofr_stfm":"data/ofr-stfm.json",
         "asia_leads":"data/asia-leads.json",
         "spx_ma":"data/spx-ma.json",
+        "fifx_vol":"data/fifx-vol.json",
         "settlement_fails":"data/settlement-fails.json",
         "deal_scanner":"data/deal-scanner.json",
         "risk_recommendations":"risk/recommendations.json",
