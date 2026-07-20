@@ -51,7 +51,15 @@ function lbl(k){return (CFG.labels[k]||k).replace(/_/g,' ');}
 fetch(CFG.matrix+'?ts='+(Date.now()/600000|0)).then(function(r){return r.json();}).then(function(d){MX=d;
   document.getElementById('stamp').textContent=(d.generated_at||'').slice(0,16)+' · n='+d.n;
   var sel=document.getElementById('fxSel');
-  (d.metrics||[]).forEach(function(k){if(!Array.isArray(d.cols[k]))return;var o=document.createElement('option');o.value=k;o.textContent=lbl(k);sel.appendChild(o);});
+  var CATR=[['⚖️ Risk & R/R',/^(rr_ratio|upside_pct|downside_pct|risk_score|tech_score)$/],['🌊 Flows',/^f_|flow/],
+   ['📈 Technicals',/^(mom_|rsi_|vol_52w|beta_|dist_52w|golden_|breakout_|double_|above_ma|rs_13w|corr_spy|up_capture|down_capture)/],
+   ['💵 Fundamentals & Carry',/(aum|expense|nav|prem_disc|dollar_vol|holdings|ttm_yield|carry|ret_per_duration|leveraged|variance_drag|avg_volume)/]];
+  function catOf(k){for(var c=0;c<CATR.length;c++)if(CATR[c][1].test(k))return CATR[c][0];return '📊 Other';}
+  var GROUPS={};(d.metrics||[]).forEach(function(k){if(!Array.isArray(d.cols[k]))return;var c=catOf(k);(GROUPS[c]=GROUPS[c]||[]).push(k);});
+  CATR.map(function(r){return r[0];}).concat(['📊 Other']).forEach(function(cn){var ks=GROUPS[cn];if(!ks||!ks.length)return;
+    var og=document.createElement('optgroup');og.label=cn;
+    ks.sort().forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=lbl(k);og.appendChild(o);});
+    sel.appendChild(og);});
   var ff=document.getElementById('fxFac');var seen={};
   (d[CFG.facField]||[]).forEach(function(c){if(c&&!seen[c]){seen[c]=1;var o=document.createElement('option');o.value=c;o.textContent=c;ff.appendChild(o);}});
   if(CFG.credit)renderCredit();

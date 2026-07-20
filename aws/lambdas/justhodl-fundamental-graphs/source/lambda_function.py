@@ -811,6 +811,12 @@ def build_doc(sym, period):
     rev_t = ttm(col("revenue"))
     cogs_t = ttm(col("costOfRevenue"))
     gp_t = ttm(col("grossProfit"))
+    cogs_t = ttm(col("costOfRevenue"))
+    intexp_t = ttm(col("interestExpense"))
+    divp_t = ttm(col("dividendsPaid"))
+    buyb_t = ttm(col("stockRepurchased"))
+    opinc_t = ttm(col("operatingIncome"))
+    rnd_t = ttm(col("rnd"))
     ebitda_t = ttm(col("ebitda"))
     ebit_t = ttm(col("operatingIncome"))
     ni_t = ttm(col("netIncome"))
@@ -1159,6 +1165,96 @@ def build_doc(sym, period):
             put("employees", i, emp, 0)
             put("revenue_per_employee", i, div_(rev_t[i], emp), 2)
             put("net_income_per_employee", i, div_(ni_t[i], emp, 1, False), 2)
+            put("fcf_per_employee", i, div_(fcf_t[i], emp, 1, False), 2)
+            put("ebitda_per_employee", i, div_(ebitda_t[i], emp, 1,
+                                               False), 2)
+            put("op_income_per_employee", i, div_(opinc_t[i], emp, 1,
+                                                  False), 2)
+            put("debt_per_employee", i, div_(r.get("totalDebt"), emp,
+                                             1, False), 2)
+            put("assets_per_employee", i, div_(TA, emp, 1, False), 2)
+            put("rnd_per_employee", i, div_(rnd_t[i], emp, 1,
+                                            False), 2)
+
+        # ── TV_STATS_OPS3563: full TradingView Statistics parity ──
+        import math as _m
+        TD = r.get("totalDebt")
+        inv = r.get("inventory")
+        AP = r.get("accountsPayable")
+        RE = r.get("retainedEarnings")
+        LTD = r.get("longTermDebt")
+        eps_ttm = div_(ni_t[i], sh, 1, False)
+        bvps = div_(EQ, sh, 1, False)
+        put("ps_ttm", i, div_(mc, rev_t[i]), 3)
+        put("price_to_book", i, div_(mc, EQ), 3)
+        put("price_to_cfo_ttm", i, div_(mc, cfo_t[i]), 3)
+        put("price_to_tangible_book", i, div_(mc, tang_eq), 3)
+        put("book_value_per_share", i, bvps, 3)
+        put("tangible_bvps", i, div_(tang_eq, sh, 1, False), 3)
+        put("fcf_per_share", i, div_(fcf_t[i], sh, 1, False), 3)
+        if eps_ttm is not None and bvps is not None and \
+                eps_ttm > 0 and bvps > 0:
+            put("graham_number", i,
+                _m.sqrt(22.5 * eps_ttm * bvps), 3)
+        put("roa_pct", i, div_(ni_t[i], TA, 100), 3)
+        if TA is not None and CL is not None and TA - CL > 0:
+            put("roce_pct", i, div_(ebit_t[i], TA - CL, 100), 3)
+        put("rota_pct", i, div_(ni_t[i], tang_assets, 100), 3)
+        put("rote_pct", i, div_(ni_t[i], tang_eq, 100), 3)
+        if CA is not None and inv is not None and CL:
+            put("quick_ratio", i, div_(CA - inv, CL), 3)
+        put("inventory_turnover", i, div_(cogs_t[i], inv), 3)
+        put("asset_turnover", i, div_(rev_t[i], TA), 3)
+        put("debt_to_assets_pct", i, div_(TD, TA, 100), 3)
+        put("lt_debt_to_assets_pct", i, div_(LTD, TA, 100), 3)
+        put("lt_debt_to_equity", i, div_(LTD, EQ), 3)
+        put("debt_to_revenue", i, div_(TD, rev_t[i]), 3)
+        put("effective_interest_rate_pct", i,
+            div_(intexp_t[i], TD, 100), 3)
+        put("equity_to_assets_pct", i, div_(EQ, TA, 100), 3)
+        put("goodwill_to_assets_pct", i,
+            div_(r.get("goodwill"), TA, 100), 3)
+        put("inventory_to_revenue_pct", i, div_(inv, rev_t[i],
+                                                100), 3)
+        put("cash_to_debt", i, div_(r.get("cashSTI"), TD), 3)
+        put("cogs_to_revenue_pct", i, div_(cogs_t[i], rev_t[i],
+                                           100), 3)
+        put("days_inventory", i, div_(inv, cogs_t[i], 365,
+                                      False), 2)
+        put("days_payable", i, div_(AP, cogs_t[i], 365, False), 2)
+        if ni_t[i] and ni_t[i] > 0 and divp_t[i] is not None:
+            put("payout_ratio_pct", i,
+                abs(divp_t[i]) / ni_t[i] * 100, 2)
+        if mc and buyb_t[i] is not None:
+            put("buyback_yield_gross_pct", i,
+                abs(buyb_t[i]) / mc * 100, 3)
+        put("tangible_common_equity_pct", i,
+            div_(tang_eq, tang_assets, 100), 3)
+        if all(v is not None for v in (TA, TL, CA, CL)) and TA > 0 \
+                and CL > 0:
+            _roa = (ni_t[i] or 0) / TA
+            put("zmijewski_x", i, -4.336 - 4.513 * _roa
+                + 5.679 * (TL / TA) + 0.004 * (CA / CL), 3)
+            if pretax_t[i] is not None and ebit_t[i] is not None \
+                    and rev_t[i]:
+                put("springate_s", i, 1.03 * (wc or 0) / TA
+                    + 3.07 * ebit_t[i] / TA
+                    + 0.66 * pretax_t[i] / CL
+                    + 0.4 * rev_t[i] / TA, 3)
+            if all(v not in (None, 0) for v in
+                   (EQ, TL, tang_assets)) and RE is not None and \
+                    cfo_t[i] is not None and \
+                    (intexp_t[i] or 0) > 0 and \
+                    (ebit_t[i] or 0) > 0 and tang_assets > 0:
+                put("fulmer_h", i,
+                    5.528 * RE / TA + 0.212 * (rev_t[i] or 0) / TA
+                    + 0.073 * (pretax_t[i] or 0) / EQ
+                    + 1.270 * cfo_t[i] / TL - 0.120 * TL / EQ
+                    + 2.335 * CL / TA
+                    + 0.575 * _m.log10(max(tang_assets, 1.0))
+                    + 1.083 * (wc or 0) / TL
+                    + 0.894 * _m.log10(ebit_t[i] / intexp_t[i])
+                    - 6.075, 3)
 
         # ── distress / quality scores ───────────────────────────────────────
         if TA and TA > 0 and TL and TL > 0:
@@ -1324,6 +1420,36 @@ def build_doc(sym, period):
             v = g(e, *names)
             if v is not None:
                 P.setdefault(out_k, []).append([d, rnd(v, 4)])
+
+    # ── FORWARD RATIOS (ops 3563): NTM sums from analyst estimates ──
+    try:
+        last_d = str(R[-1]["date"])[:10] if R else ""
+        mc_l, ev_l = mcap[-1] if mcap else None, ev[-1] if ev else None
+        sh_l = sh_arr[-1] if sh_arr else None
+
+        def ntm(key):
+            rows = [(str(d)[:10], v) for d, v in P.get(key) or []
+                    if v is not None and str(d)[:10] > last_d]
+            rows = rows[:4]
+            return sum(v for _, v in rows) if len(rows) == 4 else None
+        eps_n = ntm("est_eps_avg")
+        rev_n = ntm("est_revenue_avg")
+        ebd_n = ntm("est_ebitda_avg")
+        ebt_n = ntm("est_ebit_avg")
+        px_l = (mc_l / sh_l) if (mc_l and sh_l) else None
+        if px_l and eps_n and eps_n > 0:
+            P["pe_fwd"] = [[last_d, round(px_l / eps_n, 3)]]
+        if mc_l and rev_n and rev_n > 0:
+            P["ps_fwd"] = [[last_d, round(mc_l / rev_n, 3)]]
+        if ev_l and rev_n and rev_n > 0:
+            P["ev_revenue_fwd"] = [[last_d, round(ev_l / rev_n, 3)]]
+        if ev_l and ebd_n and ebd_n > 0:
+            P["ev_ebitda_fwd"] = [[last_d, round(ev_l / ebd_n, 3)]]
+        if ev_l and ebt_n and ebt_n > 0:
+            P["ev_ebit_fwd"] = [[last_d, round(ev_l / ebt_n, 3)]]
+    except Exception as _e:  # noqa: BLE001
+        print("[fwd]", str(_e)[:60])
+
 
     for k in list(P.keys()):
         P[k].sort(key=lambda t: t[0])
