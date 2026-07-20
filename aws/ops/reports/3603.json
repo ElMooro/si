@@ -1,0 +1,37 @@
+{
+  "gates": {
+    "G1_daily_depth": {
+      "ok": true,
+      "detail": "KOSPI n_px=7285 rlzd=79.76% z=2.73 (99.0p) \u00b7 HSI n_px=9757 rlzd=21.53% z=-0.08 \u00b7 asia_spill=2.72 state=ASIA_CANARY"
+    },
+    "G2_global_grid": {
+      "ok": true,
+      "detail": "indices_ok=10/10 breadth=10.0% elevated=['KOSPI'] leader={'name': 'KOSPI', 'z': 2.73} zs=[('KOSPI', 2.73), ('Shanghai', 0.92), ('Nikkei', 0.89), ('Sensex', 0.14), ('Bovespa', 0.1), ('DAX', 0.09)]"
+    },
+    "G3_deep_crisis": {
+      "ok": true,
+      "detail": "as_rows=2171 gb_rows=2175 from 1990-03-30 \u00b7 asp: 97-98=3.38 \u2b502008=2.93 2020=3.6 \u00b7 breadth gb: 2008=100.0% 2020=100.0% \u00b7 today as=-0.08 asp=-0.09 gb=0.0%"
+    },
+    "G4_page_served": {
+      "ok": false,
+      "detail": "{'GLOBAL VOL CANARIES': True, 'stress breadth': True, '22d3ee': False, 'KOSPI': True}"
+    }
+  },
+  "crisis": {
+    "asp": {
+      "97-98": 3.38,
+      "2008": 2.93,
+      "2020": 3.6
+    },
+    "breadth": {
+      "2008": 100.0,
+      "2020": 100.0
+    },
+    "today": {
+      "as": -0.08,
+      "asp": -0.09,
+      "gb": 0.0
+    }
+  },
+  "verdict": "GAPS: G4_page_served"
+}
