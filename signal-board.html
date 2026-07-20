@@ -230,6 +230,29 @@ function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75
 <script src="/freshness.js"></script><script>window.addEventListener("load",function(){if(window.Freshness)Freshness.fromUrl("fresh-slot","/data/best-setups.json",{label:"Data"});});</script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
+<div id="jh-spx-ma" style="max-width:1200px;margin:24px auto;padding:0 16px"></div>
+<script>/* ops 3596 ADDITIVE: S&P 500 MA Command (justhodl-spx-ma) — the index ladder + true membership breadth */
+(async function(){try{
+  var r=await fetch('data/spx-ma.json?t='+Date.now()); if(!r.ok) return;
+  var d=await r.json(), ix=d.index||{}, b=d.breadth||{};
+  function pill(t,on,warn){return '<span style="display:inline-block;margin:0 8px 6px 0;padding:4px 10px;border-radius:12px;font-size:12px;border:1px solid '+(on?'#3ddc8455':'#ff808055')+';color:'+(on?'#3ddc84':(warn?'#fbbf24':'#ff8080'))+'">'+t+'</span>';}
+  function bbar(l,v,cov){if(v==null)return '<div style="margin:5px 0;color:#9aa4b2;font-size:12px">'+l+': <i>warming'+(cov?' ('+cov+' covered)':'')+'</i></div>';var c=v>=60?'#3ddc84':v>=40?'#fbbf24':'#ff8080';return '<div style="margin:5px 0;font-size:13px">'+l+' <b style="color:'+c+'">'+v+'%</b><div style="height:6px;border-radius:3px;background:rgba(255,255,255,.07);margin-top:3px"><div style="height:6px;border-radius:3px;width:'+Math.min(100,v)+'%;background:'+c+'"></div></div></div>';}
+  var mas=['20','50','100','200'].map(function(n){var a=(ix.above||{})[n];var dm=(ix.distance_pct||{})[n];return pill('SMA'+n+(dm!=null?' '+(dm>0?'+':'')+dm+'%':''),!!a);}).join('');
+  var cr=ix.cross_50x200||{};
+  document.getElementById('jh-spx-ma').innerHTML=
+    '<div style="font-size:19px;font-weight:800;margin:6px 0 2px">📐 S&amp;P 500 MA Command — the index as a whole</div>'
+    +'<div style="color:#9aa4b2;font-size:13px;margin-bottom:10px">Dedicated ^GSPC ladder (not an ETF proxy) + true membership breadth across all '+(b.n_members||503)+' constituents.</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">'
+    +'<div style="border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:12px"><div style="font-size:12px;color:#9aa4b2">INDEX LADDER · '+(ix.as_of||'')+'</div>'
+    +'<div style="font-size:24px;font-weight:800;margin:3px 0">'+(ix.price!=null?ix.price.toLocaleString():'—')+' <span style="font-size:13px;color:'+((ix.stack||'').indexOf('BULL')>=0?'#3ddc84':(ix.stack||'').indexOf('BEAR')>=0?'#ff8080':'#fbbf24')+'">'+(ix.stack||'')+'</span></div>'
+    +'<div style="margin:6px 0 2px">'+mas+'</div>'
+    +'<div style="font-size:12px;color:#9aa4b2">'+(cr.state?('50×200: <b style="color:'+(cr.state==='GOLDEN'?'#3ddc84':'#ff8080')+'">'+cr.state+' CROSS</b> · '+cr.days_since_flip+'d ago · '):'')+'regime <b>'+(ix.regime||'—')+'</b>'+(ix.ma_compression_pct!=null?' · MA spread '+ix.ma_compression_pct+'% (coil watch)':'')+'</div></div>'
+    +'<div style="border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:12px"><div style="font-size:12px;color:#9aa4b2">MEMBERSHIP BREADTH · % of '+(b.n_priced||b.n_members||'—')+' above MA</div>'
+    +bbar('Above 20d',b.above20_pct,b.above20_covered)+bbar('Above 50d',b.above50_pct)+bbar('Above 100d',b.above100_pct,b.above100_covered)+bbar('Above 200d',b.above200_pct)
+    +'<div style="font-size:12px;margin-top:4px">'+(b.divergence_narrow_market?'<span style="color:#fbbf24">⚠ NARROW MARKET — index above 200d but breadth &lt;50%</span>':'<span style="color:#9aa4b2">50−200 spread '+(b.spread_50_200!=null?b.spread_50_200+'%':'—')+'</span>')+'</div></div></div>'
+    +'<div style="color:#9aa4b2;font-size:11px;margin-top:8px">Index closes from the spx-history engine + live tape print; 50/200 breadth daily via batch quotes; 20/100 from the self-building grouped-daily ledger ('+((b.warming||{}).ledger_days||0)+'/'+((b.warming||{}).target_days||110)+' sessions — activates automatically). Real data only.</div>';
+}catch(e){}})();
+</script>
 <script src="/jh-wire.js" defer data-feeds="data/activist-filings-state.json|justhodl-activist-filings-scanner|ACTIVIST FILINGS SCANNER;data/analyst-consensus-history.json|justhodl-analyst-consensus|ANALYST CONSENSUS;data/ark-holdings-prev.json|justhodl-ark-holdings|ARK HOLDINGS;data/bagger-engine.json|justhodl-bagger-engine|BAGGER ENGINE;data/benzinga-earnings-calendar.json|justhodl-benzinga-earnings|BENZINGA EARNINGS;data/beta-laggards.json|justhodl-beta-laggard|BETA LAGGARD;data/capital-return.json|justhodl-capital-return|CAPITAL RETURN;data/causality-discoveries.json|justhodl-causality-scanner|CAUSALITY SCANNER;data/chart-patterns.json|justhodl-chart-patterns|CHART PATTERNS;data/dividend-growth.json|justhodl-dividend-growth|DIVIDEND GROWTH;data/earnings-confluence.json|justhodl-earnings-confluence|EARNINGS CONFLUENCE;data/earnings-nlp.json|justhodl-earnings-nlp|EARNINGS NLP;data/industry-rotation.json|justhodl-industry-rotation|INDUSTRY ROTATION;data/factor-regime.json|justhodl-factor-regime|FACTOR REGIME"></script>
 </body>
 </html>
