@@ -101,6 +101,21 @@ def z_and_pct(series):
     return z, pct, last
 
 
+def rolling_z(series, keep=180, win=504):
+    """Rolling z of each of the last `keep` values vs its own trailing window."""
+    xs = [(d, v) for d, v in series if isinstance(v, (int, float))]
+    out = {}
+    for i in range(max(60, len(xs) - keep), len(xs)):
+        hist = [v for _, v in xs[max(0, i - win):i]]
+        if len(hist) < 60:
+            continue
+        mu = sum(hist) / len(hist)
+        sd = (sum((x - mu) ** 2 for x in hist) / (len(hist) - 1)) ** 0.5
+        if sd:
+            out[xs[i][0]] = round((xs[i][1] - mu) / sd, 2)
+    return out
+
+
 def trend_5d(series):
     xs = [v for _, v in series if isinstance(v, (int, float))]
     return round(xs[-1] - xs[-6], 2) if len(xs) >= 6 else None
@@ -171,7 +186,20 @@ def lambda_handler(event=None, context=None):
              "MIGRATING": "upstream vol elevated and VIX now rising toward it — migration underway",
              "BROAD_STRESS": "all three markets in high-vol regime — migration complete",
              "DEGRADED": "a leg failed to price — see coverage"}
-    out = {"engine": "fifx-vol-migration", "version": "1.0.0",
+    # v1.1: rolling z history → the page's spillover ribbon + node pulses
+    fi_h = rolling_z(move_rows) if move_rows else {}
+    fx_h = rolling_z(comp_rows)
+    eq_h = rolling_z(vix_rows)
+    hist = []
+    for d in sorted(eq_h):
+        f, x, e = fi_h.get(d), fx_h.get(d), eq_h[d]
+        if x is None and f is None:
+            continue
+        up = max(v for v in (f, x) if v is not None)
+        hist.append({"d": d, "fi": f, "fx": x, "eq": e,
+                     "spill": round(up - e, 2)})
+    hist = hist[-180:]
+    out = {"engine": "fifx-vol-migration", "version": "1.1.0",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "legs": {
                "fixed_income": {"measure": fi_src, "level": move, "z": fi_z, "pctile": fi_pct,
@@ -187,6 +215,7 @@ def lambda_handler(event=None, context=None):
                       "fxvol_vix": {"last": fxvix_last, "z": fxvix_z, "pctile": fxvix_pctile}},
            "migration": {"upstream_z": up_z, "equity_z": eq_z, "spillover": spill,
                          "state": state, "read": reads[state]},
+           "history": hist,
            "methodology": {"thesis": "vol begins in fixed income/FX and migrates to equities; z-score each leg vs its own 2y and watch the spillover gap",
                            "spillover": "max(FI_z, FX_z) − EQ_z; ≥1 with upstream z ≥1 = UPSTREAM_BREWING"},
            "siblings": {"fi_realized_5ch": "data/bond-vol.json", "move_vix_series": "risk-ratios",
