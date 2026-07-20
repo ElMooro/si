@@ -710,7 +710,7 @@ def load_industry_boom():
     """v3.2.1: join the Industry Boom League — per-deal industry rank/score so
     every card can show growth-vs-industry-peers context."""
     try:
-        j = json.loads(S3.get_object(Bucket=BUCKET, Key="data/industry-boom.json")["Body"].read())
+        j = json.loads(s3.get_object(Bucket=BUCKET, Key="data/industry-boom.json")["Body"].read())
         L = j.get("league") or []
         return {r["industry"]: {"score": r.get("boom_score"), "rank": i + 1,
                                 "n": len(L), "delta_20d": r.get("score_delta_20d")}
