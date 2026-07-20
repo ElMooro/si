@@ -36,7 +36,7 @@ from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "3.2.0"
+VERSION = "3.2.1"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -122,7 +122,7 @@ def _fmp(path, retries=2):
             return None
 
 
-def fetch_news(pages=14, limit=100):
+def fetch_news(pages=14, limit=200):
     """Scan BOTH official company PRs and third-party financial news (catches widely-reported
     billion-dollar deals that aren't self-announced)."""
     out = []
@@ -295,10 +295,13 @@ def is_deal(title, text, value, trust="pr"):
 
 
 def revenue_and_cap(symbol, uni):
-    inc = _fmp(f"income-statement?symbol={urllib.parse.quote(symbol)}&limit=1")
+    inc = _fmp(f"income-statement?symbol={urllib.parse.quote(symbol)}&limit=2")
     rev = None
     if isinstance(inc, list) and inc:
         rev = _num(inc[0].get("revenue"))
+        rev_prev = _num(inc[1].get("revenue")) if len(inc) > 1 else None
+        rev_g = (round((rev / rev_prev - 1) * 100, 1)
+                 if (rev and rev_prev and rev_prev > 0) else None)
     mu = uni.get(symbol, {})
     mc = mu.get("market_cap")
     if not mc:
@@ -307,9 +310,11 @@ def revenue_and_cap(symbol, uni):
             mc = _num(prof[0].get("marketCap"))
             if not mu.get("name"):
                 mu = {"name": prof[0].get("companyName"), "industry": prof[0].get("industry"),
+                      "rev_growth_pct": rev_g,
                       "sector": prof[0].get("sector")}
             elif not mu.get("sector"):
                 mu = dict(mu, sector=prof[0].get("sector"))
+    mu = dict(mu or {}, rev_growth_pct=rev_g)
     return rev, mc, mu
 
 
@@ -701,6 +706,20 @@ def load_sector_signal():
     return scores, rin, conv_map, posture_map
 
 
+def load_industry_boom():
+    """v3.2.1: join the Industry Boom League — per-deal industry rank/score so
+    every card can show growth-vs-industry-peers context."""
+    try:
+        j = json.loads(S3.get_object(Bucket=BUCKET, Key="data/industry-boom.json")["Body"].read())
+        L = j.get("league") or []
+        return {r["industry"]: {"score": r.get("boom_score"), "rank": i + 1,
+                                "n": len(L), "delta_20d": r.get("score_delta_20d")}
+                for i, r in enumerate(L)}
+    except Exception as e:
+        print("[deal-scanner] industry-boom join skip", str(e)[:70])
+        return {}
+
+
 def lambda_handler(event, context):
     t0 = time.time()
     # v3.1 BACKFILL MODE: event {"backfill_pages": N} sweeps the tape N pages
@@ -769,6 +788,7 @@ def lambda_handler(event, context):
                           "multi_year": ("multi-year" in title.lower() or "multiyear" in title.lower()),
                           "text_snippet": (pr.get("text") or "")[:300]})
 
+    ind_boom = load_industry_boom()
     # cross-ref revenue + cap for unique tickers (bounded)
     tickers = list({d["symbol"] for d in deals_raw})[:450]
     info = {}
@@ -907,6 +927,10 @@ def lambda_handler(event, context):
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
             "vs_market_cap_pct": vs_mc, "highlight": hl, "ai_relevant": ai_rel,
             "ai_keywords": ai_kws, "is_billion": is_billion, "ai_megadeal": ai_mega,
+            "industry": (mu or {}).get("industry") or (uni.get(d["symbol"], {}) or {}).get("industry"),
+            "rev_growth_pct": (mu or {}).get("rev_growth_pct"),
+            "industry_boom": ind_boom.get((mu or {}).get("industry")
+                                          or (uni.get(d["symbol"], {}) or {}).get("industry")),
             "sector": sector, "sector_etf": sec_etf, "sector_rotation_score": sec_score,
             "sector_conviction": sec_conv, "sector_posture": sec_post,
             "sector_rotating_in": sec_rot_in, "sector_tailwind": sector_tailwind,

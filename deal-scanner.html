@@ -157,6 +157,7 @@ function card(d){
     ${(()=>{const f$=v=>v==null?null:(Math.abs(v)>=1e9?"$"+(v/1e9).toFixed(1)+"B":Math.abs(v)>=1e6?"$"+(v/1e6).toFixed(0)+"M":"$"+Math.round(v/1e3)+"K");
       const c=[];
       if(d.exchange)c.push(esc(d.exchange));
+      if(d.industry){let ib=d.industry_boom;c.push(`industry: ${esc(d.industry)}${ib&&ib.score!=null?` · 🏭 boom <b style="color:${ib.score>=70?"var(--green)":ib.score>=50?"var(--amber)":"var(--fg-3)"}">#${ib.rank}/${ib.n}</b> (${ib.score}${ib.delta_20d!=null?", "+(ib.delta_20d>=0?"+":"")+ib.delta_20d+" 20d":""})`:""}${d.rev_growth_pct!=null?` · co revenue <b style="color:${d.rev_growth_pct>=15?"var(--green)":d.rev_growth_pct<0?"#ff8080":"inherit"}">${d.rev_growth_pct>0?"+":""}${d.rev_growth_pct}% YoY</b>`:""}`);}
       if(d.census&&(d.census.conviction!=null||d.census.combo!=null))c.push(`census: conviction ${d.census.conviction!=null?Math.round(d.census.conviction):"—"} · combo ${d.census.combo!=null?Math.round(d.census.combo):"—"}${d.census.whale_usd_m!=null?" · whales "+f$(d.census.whale_usd_m*1e6):""}`);
       if(d.inst_flow&&d.inst_flow.net_usd!=null)c.push(`13F: <span style="color:${d.inst_flow.net_usd>=0?"var(--green)":"#ff8080"}">${d.inst_flow.net_usd>=0?"net buy ":"net sell "}${f$(Math.abs(d.inst_flow.net_usd))}</span> (${d.inst_flow.n_funds||0} funds${d.inst_flow.whale_net_usd?", whales "+f$(d.inst_flow.whale_net_usd):""})`);
       if(d.dilution&&d.dilution.sh_yoy_pct!=null&&d.dilution.sh_yoy_pct>=3)c.push(`<span style="color:var(--amber)">⚠ diluting ${d.dilution.sh_yoy_pct}%/yr</span>${(d.dilution.flags||[]).length?" · "+esc(d.dilution.flags.join(", ")):""}`);
@@ -173,7 +174,9 @@ function render(j){
   const ai=deals.filter(d=>d.ai_relevant&&d.event_type!=="capital_structure");
   const green=deals.filter(d=>!d.ai_relevant&&d.highlight==="green"&&d.event_type!=="capital_structure");
   const yellow=deals.filter(d=>!d.ai_relevant&&d.highlight==="yellow"&&d.event_type!=="capital_structure");
-  const other=deals.filter(d=>!d.ai_relevant&&!d.highlight&&d.event_type!=="capital_structure");
+  const _oth=deals.filter(d=>!d.ai_relevant&&!d.highlight&&d.event_type!=="capital_structure");
+  const sizedOther=_oth.filter(d=>d.deal_value_str);
+  const other=_oth.filter(d=>!d.deal_value_str);
   const gen=j.generated_at?new Date(j.generated_at):null;
   const _sc=(j.coverage||{}).sources||{};
   document.getElementById("meta").innerHTML=`scanned <b>${s.n_prs_scanned||0}</b> items${_sc.fmp_pr?` (PR wire ${_sc.fmp_pr} · news ${(_sc.fmp_news||0)+(_sc.polygon||0)})`:""} · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
@@ -196,6 +199,10 @@ function render(j){
   h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Big Deals vs Market Cap &amp; Revenue</h2><span class="ct">${green.length}</span></div>`;
   h+= green.length?green.map(card).join(""):'<div class="empty">No other green-tier deals right now.</div>';
   if(yellow.length){h+=`<div class="sec-hdr"><span class="dot y"></span><h2>Notable</h2><span class="ct">${yellow.length}</span></div>`+yellow.map(card).join("");}
+  if(sizedOther.length){
+    h+=`<div class="sec-hdr"><span class="dot y"></span><h2>Sized Wins — vs Revenue &amp; Market Cap <span style="color:var(--fg-4);font-weight:400">(disclosed $, below big-deal thresholds)</span></h2><span class="ct">${sizedOther.length}</span></div>`;
+    h+=sizedOther.map(card).join("");
+  }
   if(other.length){
     h+=`<div class="sec-hdr"><span class="dot o"></span><h2>Other Wins <span style="color:var(--fg-4);font-weight:400">(no disclosed size)</span></h2><span class="ct">${other.length}</span></div>`;
     h+=`<table class="otable"><thead><tr><th>Ticker</th><th>Cap</th><th>Announcement</th><th>Age</th></tr></thead><tbody>`+
