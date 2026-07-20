@@ -1,0 +1,39 @@
+{
+  "gates": {
+    "G1_deploy_schedule": {
+      "ok": true,
+      "detail": "deployed 1024/900; schedule=created 21:15 M-F"
+    },
+    "G2_index_ladder": {
+      "ok": true,
+      "detail": "px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%"
+    },
+    "G3_breadth_50_200": {
+      "ok": false,
+      "detail": "n_priced=None/494 above50=None% above200=None% spread=None narrow=False"
+    },
+    "G4_ledger_bootstrap": {
+      "ok": true,
+      "detail": "ledger=110/110 added=0 b20=58.7% (cov 494) b100=64.6 (cov 492)"
+    },
+    "G5_page_card": {
+      "ok": true,
+      "detail": "served: S&P 500 MA Command card on signal-board"
+    }
+  },
+  "snapshot": {
+    "index": {
+      "price": 7444.73,
+      "stack": "2/4 MIXED",
+      "regime": "BULL"
+    },
+    "breadth": {
+      "above20_pct": 58.7,
+      "above50_pct": null,
+      "above100_pct": 64.6,
+      "above200_pct": null,
+      "divergence_narrow_market": false
+    }
+  },
+  "verdict": "GAPS: G3_breadth_50_200"
+}

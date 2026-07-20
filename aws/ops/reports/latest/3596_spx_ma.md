@@ -1,0 +1,32 @@
+# ops 3596 — S&P 500 MA Command engine
+
+**Status:** success  
+**Duration:** 119.0s  
+**Finished:** 2026-07-20T21:29:04+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `21:27:05`   zip: 86638 bytes
+## 1. Lambda
+
+- `21:27:05`   Lambda missing — creating
+- `21:27:10` ✅   ✓ created justhodl-spx-ma
+## 3. Smoke test
+
+- `21:27:10`   invoking justhodl-spx-ma…
+- `21:28:01` ✅   ✓ smoke test passed
+- `21:28:01`     ok                       True
+- `21:28:01`     stack                    2/4 MIXED
+- `21:28:01`     b20                      58.7
+- `21:28:01`     ledger_days              110
+- `21:28:01` PASS  G1_deploy_schedule — deployed 1024/900; schedule=created 21:15 M-F
+- `21:28:04` PASS  G2_index_ladder — px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%
+- `21:28:04` FAIL  G3_breadth_50_200 — n_priced=None/494 above50=None% above200=None% spread=None narrow=False
+- `21:28:04` PASS  G4_ledger_bootstrap — ledger=110/110 added=0 b20=58.7% (cov 494) b100=64.6 (cov 492)
+- `21:29:04` PASS  G5_page_card — served: S&P 500 MA Command card on signal-board
+- `21:29:04` VERDICT: GAPS: G3_breadth_50_200

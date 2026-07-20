@@ -1,13 +1,28 @@
-executing-against: b4abbb25ea15856b0570f554719e9244aaef7122
-ops 3595 — deal-scanner sized-cards + industry-peer context
-PASS  G1_config_heal — mem=1024 timeout=900 status=Successful
-[20:20:43] PASS  G1_config_heal — mem=1024 timeout=900 status=Successful
-PASS  G2_fields_live — v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=15 rev_growth=16 · sample RTX: $1 billion · 0.38% mcap · 1.1% rev · Aerospace & Defense boom 76.1 #6 · co rev 9.7% YoY
-[20:20:49] PASS  G2_fields_live — v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=15 rev_growth=16 · sample RTX: $1 billion · 0.38% mcap · 1.1% rev · Aerospace & Defense boom 76.1 #6 · co rev 9.7% YoY
-PASS  G3_page_served — served: Sized Wins section + industry-peer context renderer
-[20:20:58] PASS  G3_page_served — served: Sized Wins section + industry-peer context renderer
+executing-against: 65d2d8fa6743ef2adbf7a35aa8d0ade676cd7a2e
+ops 3596 — S&P 500 MA Command engine
+[21:27:05]   zip: 86638 bytes
+── 1. Lambda ──
+[21:27:05]   Lambda missing — creating
+[21:27:10] ✅   ✓ created justhodl-spx-ma
+── 3. Smoke test ──
+[21:27:10]   invoking justhodl-spx-ma…
+[21:28:01] ✅   ✓ smoke test passed
+[21:28:01]     ok                       True
+[21:28:01]     stack                    2/4 MIXED
+[21:28:01]     b20                      58.7
+[21:28:01]     ledger_days              110
+PASS  G1_deploy_schedule — deployed 1024/900; schedule=created 21:15 M-F
+[21:28:01] PASS  G1_deploy_schedule — deployed 1024/900; schedule=created 21:15 M-F
+PASS  G2_index_ladder — px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%
+[21:28:04] PASS  G2_index_ladder — px=7444.73 stack=2/4 MIXED sma200=6991.01 dist200=6.49% cross=GOLDEN >220d regime=BULL compression=6.94%
+FAIL  G3_breadth_50_200 — n_priced=None/494 above50=None% above200=None% spread=None narrow=False
+[21:28:04] FAIL  G3_breadth_50_200 — n_priced=None/494 above50=None% above200=None% spread=None narrow=False
+PASS  G4_ledger_bootstrap — ledger=110/110 added=0 b20=58.7% (cov 494) b100=64.6 (cov 492)
+[21:28:04] PASS  G4_ledger_bootstrap — ledger=110/110 added=0 b20=58.7% (cov 494) b100=64.6 (cov 492)
+PASS  G5_page_card — served: S&P 500 MA Command card on signal-board
+[21:29:04] PASS  G5_page_card — served: S&P 500 MA Command card on signal-board
 
-VERDICT: PASS_ALL
-[20:20:58] VERDICT: PASS_ALL
+VERDICT: GAPS: G3_breadth_50_200
+[21:29:04] VERDICT: GAPS: G3_breadth_50_200
 
-→ Report written to aws/ops/reports/latest/3595_ds_boomjoin2.md
+→ Report written to aws/ops/reports/latest/3596_spx_ma.md
