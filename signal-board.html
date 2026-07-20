@@ -276,25 +276,60 @@ function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75
     +node(252,98,'EQUITIES',(eqL.level!=null?('VIX '+eqL.level.toFixed(1)):'—'),eqL.z)
     +'<text x="160" y="182" text-anchor="middle" fill="#9aa4b2" font-size="10">vol migrates downstream — arrow pulse = upstream pressure</text></svg>';
   // ── SPILLOVER RIBBON: FULL 1990+ deep track (weekly→daily splice), lazy-loaded
-  function drawRibbon(R){if(!R||R.length<30)return '';var W=860,Hh=170,pad=10;
+  function drawRibbon(R){if(!R||R.length<30)return '';
+    var DAY=86400000;function dn(x){return Date.parse(x.d);}
+    // 12m MA + YoY by DATE window (handles weekly/daily splice)
+    var ma=[],yoy=[],j0=0;
+    for(var i=0;i<R.length;i++){var t=dn(R[i]);
+      while(dn(R[j0])<t-365*DAY)j0++;
+      var acc=0,n=0;for(var k=j0;k<=i;k++){acc+=R[k].spill;n++;}
+      ma.push((t-dn(R[j0])>=60*DAY||i-j0>=40)?acc/n:null);
+      var tgt=t-365*DAY,pi=-1;for(var k2=i;k2>=0;k2--){if(dn(R[k2])<=tgt){pi=k2;break;}}
+      yoy.push((pi>=0&&t-dn(R[pi])>=300*DAY)?R[i].spill-R[pi].spill:null);}
+    // denoised MA slope (4-row spacing) → segments + reversal flips
+    var slope=ma.map(function(v,i){return (v!=null&&i>=4&&ma[i-4]!=null)?v-ma[i-4]:null;});
+    var W=860,Hh=168,Hb=54,pad=10;
     var vs=R.map(function(h){return h.spill;});
     var mn=Math.max(-4,Math.min(-1.5,Math.min.apply(null,vs))),mx=Math.min(5,Math.max(2,Math.max.apply(null,vs)));
-    function X(i){return pad+i/(R.length-1)*(W-2*pad);}function Y(vv){return pad+(mx-Math.max(mn,Math.min(mx,vv)))/(mx-mn)*(Hh-2*pad);}
-    var line='',area='M '+X(0)+' '+Y(0);
-    R.forEach(function(h,i){line+=(i?'L':'M')+' '+X(i).toFixed(1)+' '+Y(h.spill).toFixed(1)+' ';area+=' L '+X(i).toFixed(1)+' '+Y(h.spill).toFixed(1);});
-    area+=' L '+X(R.length-1)+' '+Y(0)+' Z';
-    var yrTicks='',lastYr='';R.forEach(function(h,i){var y=h.d.slice(0,4);if(y!==lastYr){lastYr=y;if((+y)%5===0){yrTicks+='<line x1="'+X(i).toFixed(0)+'" y1="'+(Hh-pad)+'" x2="'+X(i).toFixed(0)+'" y2="'+(Hh-pad+5)+'" stroke="#4a5568"/><text x="'+X(i).toFixed(0)+'" y="'+(Hh+14)+'" fill="#9aa4b2" font-size="10" text-anchor="middle">'+y+'</text>';}}});
+    function X(i){return pad+i/(R.length-1)*(W-2*pad);}
+    function Y(vv){return pad+(mx-Math.max(mn,Math.min(mx,vv)))/(mx-mn)*(Hh-2*pad);}
+    var raw='';R.forEach(function(h,i){raw+=(i?'L':'M')+' '+X(i).toFixed(1)+' '+Y(h.spill).toFixed(1)+' ';});
+    var segs='',cur='',curCol=null,revs='',lastSign=0;
+    for(var i2=0;i2<R.length;i2++){if(ma[i2]==null||slope[i2]==null)continue;
+      var sgn=slope[i2]>=0?1:-1,col=sgn>0?'#3ddc84':'#ff5c5c';
+      if(curCol===null){curCol=col;cur='M '+X(i2).toFixed(1)+' '+Y(ma[i2]).toFixed(1)+' ';}
+      else if(col!==curCol){segs+='<path d="'+cur+'" fill="none" stroke="'+curCol+'" stroke-width="2.4"/>';
+        cur='M '+X(i2).toFixed(1)+' '+Y(ma[i2]).toFixed(1)+' ';curCol=col;
+        var yy=Y(ma[i2]);revs+=(sgn>0
+          ?'<path d="M '+(X(i2)-5).toFixed(1)+' '+(yy+9)+' L '+(X(i2)+5).toFixed(1)+' '+(yy+9)+' L '+X(i2).toFixed(1)+' '+(yy+1)+' Z" fill="#3ddc84" style="filter:drop-shadow(0 0 3px #3ddc84)"/>'
+          :'<path d="M '+(X(i2)-5).toFixed(1)+' '+(yy-9)+' L '+(X(i2)+5).toFixed(1)+' '+(yy-9)+' L '+X(i2).toFixed(1)+' '+(yy-1)+' Z" fill="#ff5c5c" style="filter:drop-shadow(0 0 3px #ff5c5c)"/>');}
+      else cur+='L '+X(i2).toFixed(1)+' '+Y(ma[i2]).toFixed(1)+' ';
+      lastSign=sgn;}
+    if(cur&&curCol)segs+='<path d="'+cur+'" fill="none" stroke="'+curCol+'" stroke-width="2.4"/>';
+    var yrTicks='',lastYr='';R.forEach(function(h,i){var y=h.d.slice(0,4);if(y!==lastYr){lastYr=y;if((+y)%5===0){yrTicks+='<line x1="'+X(i).toFixed(0)+'" y1="'+(Hh-pad)+'" x2="'+X(i).toFixed(0)+'" y2="'+(Hh-pad+5)+'" stroke="#4a5568"/><text x="'+X(i).toFixed(0)+'" y="'+(Hh+13)+'" fill="#9aa4b2" font-size="10" text-anchor="middle">'+y+'</text>';}}});
     var li=R[R.length-1];
-    return '<svg viewBox="0 0 '+W+' '+(Hh+24)+'" style="width:100%">'
-      +'<rect x="'+pad+'" y="'+Y(mx)+'" width="'+(W-2*pad)+'" height="'+Math.max(0,(Y(1)-Y(mx)))+'" fill="#ff5c5c0d"/>'
+    // lower pane: YoY Δ histogram
+    var yv=yoy.filter(function(v){return v!=null;});
+    var bars='',bTop=Hh+22,by0=null;
+    if(yv.length>=30){var ymax=Math.max(1,Math.max.apply(null,yv.map(Math.abs)));
+      by0=bTop+Hb/2;
+      for(var i3=0;i3<R.length;i3++){if(yoy[i3]==null)continue;var hgt=Math.min(1,Math.abs(yoy[i3])/ymax)*(Hb/2-3);
+        bars+='<rect x="'+(X(i3)-0.6).toFixed(1)+'" y="'+(yoy[i3]>=0?by0-hgt:by0).toFixed(1)+'" width="1.2" height="'+hgt.toFixed(1)+'" fill="'+(yoy[i3]>=0?'#3ddc84':'#ff5c5c')+'" opacity="0.85"/>';}
+      bars='<line x1="'+pad+'" y1="'+by0+'" x2="'+(W-pad)+'" y2="'+by0+'" stroke="#4a5568" stroke-dasharray="3 4"/>'+bars
+        +'<text x="'+pad+'" y="'+(bTop+9)+'" fill="#9aa4b2" font-size="9">12-MONTH CHANGE (YoY Δ) — zero-crossings confirm reversals'+(yoy[R.length-1]!=null?' · now '+(yoy[R.length-1]>0?'+':'')+yoy[R.length-1].toFixed(2):'')+'</text>';}
+    var totH=(yv.length>=30?bTop+Hb+6:Hh+22);
+    return '<svg viewBox="0 0 '+W+' '+totH+'" style="width:100%">'
       +'<line x1="'+pad+'" y1="'+Y(0)+'" x2="'+(W-pad)+'" y2="'+Y(0)+'" stroke="#4a5568" stroke-dasharray="3 4"/>'
       +'<line x1="'+pad+'" y1="'+Y(1)+'" x2="'+(W-pad)+'" y2="'+Y(1)+'" stroke="#fbbf2466" stroke-dasharray="2 5"/>'
       +'<text x="'+(W-pad-2)+'" y="'+(Y(1)-3)+'" fill="#fbbf24" font-size="9" text-anchor="end">UPSTREAM BREWING ≥ +1</text>'
       +yrTicks
-      +'<path d="'+area+'" fill="'+sc+'12"/><path d="'+line+'" fill="none" stroke="'+sc+'" stroke-width="1.6"/>'
+      +'<path d="'+raw+'" fill="none" stroke="'+sc+'" stroke-width="1" opacity="0.32"/>'
+      +segs+revs
       +'<circle cx="'+X(R.length-1)+'" cy="'+Y(li.spill)+'" r="4" fill="'+sc+'" style="filter:drop-shadow(0 0 4px '+sc+')"/>'
-      +'<text x="'+pad+'" y="'+(Hh+14)+'" fill="#9aa4b2" font-size="10">'+(R[0].d||'')+'</text>'
-      +'<text x="'+(W-pad)+'" y="'+(Y(li.spill)-8)+'" fill="'+sc+'" font-size="11" font-weight="700" text-anchor="end">'+(li.spill>0?'+':'')+li.spill+' · '+(li.d||'')+'</text></svg>';}
+      +'<text x="'+(W-pad)+'" y="'+(Y(li.spill)-8)+'" fill="'+sc+'" font-size="11" font-weight="700" text-anchor="end">'+(li.spill>0?'+':'')+li.spill+' · '+(li.d||'')+' · 12m trend '+(lastSign>0?'▲ RISING':'▼ FALLING')+'</text>'
+      +'<text x="'+pad+'" y="'+(Hh+13)+'" fill="#9aa4b2" font-size="10">'+(R[0].d||'')+'</text>'
+      +bars+'</svg>'
+      +'<div style="font-size:10px;color:#9aa4b2;margin-top:4px">faint = raw spillover · bold = 12-month trend (green rising / red falling) · ▲▼ = trend reversals · lower pane = YoY Δ</div>';}
   var ribbon='<div id="jh-fifx-rb">'+(H.length>=30?drawRibbon(H):'')+'</div>';
   function rail(lbl,o){o=o||{};var p=o.pctile;if(p==null)return '';var c=p>=80?'#ff5c5c':p>=60?'#fbbf24':'#3ddc84';
     return '<div style="margin:7px 0"><div style="display:flex;justify-content:space-between;font-size:11px;color:#9aa4b2"><span>'+lbl+'</span><b style="color:'+c+'">'+o.last+' · '+p+'p / 2y</b></div><div style="height:6px;border-radius:3px;background:rgba(255,255,255,.07);position:relative;margin-top:3px"><div style="position:absolute;left:'+p+'%;top:-3px;width:2px;height:12px;background:'+c+';box-shadow:0 0 5px '+c+'"></div><div style="height:6px;border-radius:3px;width:'+p+'%;background:linear-gradient(90deg,#3ddc8455,'+c+')"></div></div></div>';}
@@ -313,7 +348,7 @@ function catColor(v){return v>=0.75?"var(--green)":v>=0.2?"var(--cyan)":v<=-0.75
     var R=null; if(r2.ok){var dj=await r2.json();R=dj.rows||[];}
     var tEl=document.getElementById('jh-fifx-rbt');
     if(R&&R.length>=200){document.getElementById('jh-fifx-rb').innerHTML=drawRibbon(R);
-      if(tEl)tEl.textContent='SPILLOVER · '+((dj.first||'').slice(0,4))+' → TODAY · '+R.length+' pts (weekly pre-2y, daily recent · deep FI leg = rates-realized z for full-history consistency)';}
+      if(tEl)tEl.textContent='SPILLOVER · '+((dj.first||'').slice(0,4))+' → TODAY · '+R.length+' pts (weekly pre-2y, daily recent · deep FI leg = rates-realized z · 12m trend + YoY reversal overlay)';}
     else if(tEl&&H.length>=30){tEl.textContent='SPILLOVER · LAST '+H.length+' SESSIONS';}
   }catch(e2){try{var t2=document.getElementById('jh-fifx-rbt');if(t2&&H.length>=30)t2.textContent='SPILLOVER · LAST '+H.length+' SESSIONS';}catch(e3){}}
 }catch(e){}})();
