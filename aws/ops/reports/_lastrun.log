@@ -1,37 +1,25 @@
-executing-against: 6b9750dff523e0558af4fd306efc10abb41fa221
-ops 3582 — Asia leads + calendar source probe (MacroMicro gap analysis)
-A1_dbnomics_search_tw_export_orders: {"err": null, "hits": []}
-[18:18:33] A1_dbnomics_search_tw_export_orders: {"err": null, "hits": []}
-A2_fred_search_tw_export_orders: {"err": null, "hits": []}
-[18:18:33] A2_fred_search_tw_export_orders: {"err": null, "hits": []}
-A3_fred_search_tw_exports: {"err": null, "hits": [{"id": "VALEXPTWM052N", "title": "Goods, Value of Exports for Taiwan Province of China", "freq": "M", "last_updated": "2026-07-20", "end": "2026-05-01"}, {"id": "EXP5830", "title": "U.S. Exports of Goods by F.A.S. Basis to Taiwan", "freq": "M", "last_updated": "2026-07-07", "end": "2026-05-01"}, {"id": "TWNTXRPCPPPT", "title": "External Trade: Volume of Exports of Goods and Services for Taiwan 
-[18:18:33] A3_fred_search_tw_exports: {"err": null, "hits": [{"id": "VALEXPTWM052N", "title": "Goods, Value of Exports for Taiwan Province of China", "freq": "M", "last_updated": "2026-07-20", "end": "2026-05-01"}, {"id": "EXP5830", "title": "U.S. Exports of Goods by F.A.S. Basis to Taiwan", "freq": "M", "last_updated": "2026-07-07", "end": "2026-05-01"}, {"id": "TWNTXRPCPPPT", "title": "External Trade: Volume of Exports of Goods and Services for Taiwan 
-A4_moea_direct_reach: {"reachable_json": false, "err": "<urlopen error [Errno -5] No address associated with hostname>"}
-[18:18:34] A4_moea_direct_reach: {"reachable_json": false, "err": "<urlopen error [Errno -5] No address associated with hostname>"}
-B1_dbnomics_search_kr_customs: {"err": null, "hits": [{"provider": "OECD", "dataset": "DSD_BIMTS@DF_BIMTS_HS2017_2D", "name": "Balanced international merchandise trade statistics (BIMTS) - HS2017-2D", "nb": 4088840}, {"provider": "OECD", "dataset": "DSD_BIMTS@DF_BIMTS_CPA_2_1", "name": "Balanced international merchandise trade statistics (BIMTS) - CPA 2.1", "nb": 2775304}, {"provider": "WB", "dataset": "GEM", "name": "Global Economic Monitor", "nb
-[18:18:35] B1_dbnomics_search_kr_customs: {"err": null, "hits": [{"provider": "OECD", "dataset": "DSD_BIMTS@DF_BIMTS_HS2017_2D", "name": "Balanced international merchandise trade statistics (BIMTS) - HS2017-2D", "nb": 4088840}, {"provider": "OECD", "dataset": "DSD_BIMTS@DF_BIMTS_CPA_2_1", "name": "Balanced international merchandise trade statistics (BIMTS) - CPA 2.1", "nb": 2775304}, {"provider": "WB", "dataset": "GEM", "name": "Global Economic Monitor", "nb
-B2_fred_search_kr_exports: {"err": null, "hits": [{"id": "XTEXVA01KRM667N", "title": "International Merchandise Trade Statistics: Exports: Commodities for Korea", "freq": "M", "last_updated": "2026-06-15", "end": "2026-04-01"}, {"id": "NXRSAXDCKRQ", "title": "Real Exports of Goods and Services for Republic of Korea", "freq": "Q", "last_updated": "2026-06-15", "end": "2026-01-01"}, {"id": "XTEXVA01KRM664S", "title": "International Merchandise T
-[18:18:35] B2_fred_search_kr_exports: {"err": null, "hits": [{"id": "XTEXVA01KRM667N", "title": "International Merchandise Trade Statistics: Exports: Commodities for Korea", "freq": "M", "last_updated": "2026-06-15", "end": "2026-04-01"}, {"id": "NXRSAXDCKRQ", "title": "Real Exports of Goods and Services for Republic of Korea", "freq": "Q", "last_updated": "2026-06-15", "end": "2026-01-01"}, {"id": "XTEXVA01KRM664S", "title": "International Merchandise T
-B3_kr_customs_reach: {"reachable": false, "err": "<urlopen error timed out>"}
-[18:18:55] B3_kr_customs_reach: {"reachable": false, "err": "<urlopen error timed out>"}
-C1_dbnomics_search_cn_tsf: {"err": null, "hits": []}
-[18:18:56] C1_dbnomics_search_cn_tsf: {"err": null, "hits": []}
-C2_dbnomics_search_cn_social: {"err": null, "hits": [{"provider": "OECD", "dataset": "DSD_SHA@DF_SHA_FS", "name": "Revenues of healthcare financing schemes", "nb": 10165}, {"provider": "OECD", "dataset": "DSD_SHA@DF_SHA", "name": "Health expenditure and financing", "nb": 788997}, {"provider": "IMF", "dataset": "GFSSSUC", "name": "Government Finance Statistics (GFS), Statement of Sources and Uses of Cash", "nb": 81120}, {"provider": "NBS", "datase
-[18:18:57] C2_dbnomics_search_cn_social: {"err": null, "hits": [{"provider": "OECD", "dataset": "DSD_SHA@DF_SHA_FS", "name": "Revenues of healthcare financing schemes", "nb": 10165}, {"provider": "OECD", "dataset": "DSD_SHA@DF_SHA", "name": "Health expenditure and financing", "nb": 788997}, {"provider": "IMF", "dataset": "GFSSSUC", "name": "Government Finance Statistics (GFS), Statement of Sources and Uses of Cash", "nb": 81120}, {"provider": "NBS", "datase
-C3_fred_search_cn_tsf: {"err": null, "hits": []}
-[18:18:57] C3_fred_search_cn_tsf: {"err": null, "hits": []}
-C4_fred_search_cn_loans: {"err": null, "hits": [{"id": "GGGDTACNA188N", "title": "General government gross debt for China", "freq": "A", "last_updated": "2025-04-29", "end": "2024-01-01"}, {"id": "DEBTTLCNA188A", "title": "Central government debt, total (% of GDP) for China", "freq": "A", "last_updated": "2011-09-23", "end": "1999-01-01"}, {"id": "QCNPAM770A", "title": "Total Credit to Private Non-Financial Sector, Adjusted for Breaks, for C
-[18:18:58] C4_fred_search_cn_loans: {"err": null, "hits": [{"id": "GGGDTACNA188N", "title": "General government gross debt for China", "freq": "A", "last_updated": "2025-04-29", "end": "2024-01-01"}, {"id": "DEBTTLCNA188A", "title": "Central government debt, total (% of GDP) for China", "freq": "A", "last_updated": "2011-09-23", "end": "1999-01-01"}, {"id": "QCNPAM770A", "title": "Total Credit to Private Non-Financial Sector, Adjusted for Breaks, for C
-D1_fred_releases_dates: {"err": null, "n": 25, "sample": [{"date": "2026-07-20", "release": "Commercial Paper"}, {"date": "2026-07-20", "release": "Economic Policy Uncertainty"}, {"date": "2026-07-20", "release": "Euro Short Term Rate"}, {"date": "2026-07-20", "release": "Federal Funds Data"}, {"date": "2026-07-20", "release": "FOMC Press Release"}, {"date": "2026-07-20", "release": "Historical Overnight AMERIBOR Unsecured Interest Rate"}, 
-[18:19:02] D1_fred_releases_dates: {"err": null, "n": 25, "sample": [{"date": "2026-07-20", "release": "Commercial Paper"}, {"date": "2026-07-20", "release": "Economic Policy Uncertainty"}, {"date": "2026-07-20", "release": "Euro Short Term Rate"}, {"date": "2026-07-20", "release": "Federal Funds Data"}, {"date": "2026-07-20", "release": "FOMC Press Release"}, {"date": "2026-07-20", "release": "Historical Overnight AMERIBOR Unsecured Interest Rate"}, 
-E1_tw_drill: {"skipped": "no search hits"}
-[18:19:02] E1_tw_drill: {"skipped": "no search hits"}
-E2_kr_drill: {"drilled": "OECD/DSD_BIMTS@DF_BIMTS_HS2017_2D", "err": null, "series": [{"id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B", "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u2013 Dairy produce; bi", "last": ["2019", 0.043591186917468]}, {"id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B_ADJ_RX", "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u201
-[18:19:03] E2_kr_drill: {"drilled": "OECD/DSD_BIMTS@DF_BIMTS_HS2017_2D", "err": null, "series": [{"id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B", "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u2013 Dairy produce; bi", "last": ["2019", 0.043591186917468]}, {"id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B_ADJ_RX", "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u201
-E3_cn_drill: {"drilled": "OECD/DSD_SHA@DF_SHA_FS", "err": null, "series": [{"id": "ARG.A.REVENUE.PT_B1GQ.HF1._T._Z._Z._Z._Z._Z._Z", "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government/compulsory scheme", "last": ["2023", 6.29]}, {"id": "ARG.A.REVENUE.PT_B1GQ.HF11._T._Z._Z._Z._Z._Z._Z", "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government schemes \u2013
-[18:19:04] E3_cn_drill: {"drilled": "OECD/DSD_SHA@DF_SHA_FS", "err": null, "series": [{"id": "ARG.A.REVENUE.PT_B1GQ.HF1._T._Z._Z._Z._Z._Z._Z", "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government/compulsory scheme", "last": ["2023", 6.29]}, {"id": "ARG.A.REVENUE.PT_B1GQ.HF11._T._Z._Z._Z._Z._Z._Z", "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government schemes \u2013
+executing-against: 7ecc066e4a6316042fb288d65e44f3fcfe8771da
+ops 3583 — asia-leads v1 (China TSF · KR/TW exports · US calendar)
+[18:23:47]   zip: 85079 bytes
+── 1. Lambda ──
+[18:23:47]   Lambda missing — creating
+[18:23:50] ✅   ✓ created justhodl-asia-leads
+── 3. Smoke test ──
+[18:23:50]   invoking justhodl-asia-leads…
+[18:24:15] ✅   ✓ smoke test passed
+[18:24:15]     ok                       True
+[18:24:15]     tsf_series               8
+[18:24:15]     kr_yoy                   47.96
+[18:24:15]     tw_yoy                   48.33
+[18:24:15]     cal_high_impact          20
+PASS  G1_deployed — deployed via ops helper (no workflow stomp)
+[18:24:15] PASS  G1_deployed — deployed via ops helper (no workflow stomp)
+PASS  G2_schedule — created justhodl-asia-leads-daily cron(20 10 * * ? *)
+[18:24:16] PASS  G2_schedule — created justhodl-asia-leads-daily cron(20 10 * * ? *)
+PASS  G3_feed_real — tsf_series=8 headline=[('2025', 356000.0), ('2024', 170496.0)] kr_yoy=47.96% (2026-04-01) tw_yoy=48.33% (2026-05-01) cal_hi=20 next_hi=[('2026-07-20', 'FOMC Press Release'), ('2026-07-21', 'FOMC Press Release'), ('2026-07-22', 'FOMC Press Release'), ('2026-07-23', 'FOMC Press Release')]
+[18:24:17] PASS  G3_feed_real — tsf_series=8 headline=[('2025', 356000.0), ('2024', 170496.0)] kr_yoy=47.96% (2026-04-01) tw_yoy=48.33% (2026-05-01) cal_hi=20 next_hi=[('2026-07-20', 'FOMC Press Release'), ('2026-07-21', 'FOMC Press Release'), ('2026-07-22', 'FOMC Press Release'), ('2026-07-23', 'FOMC Press Release')]
 
-VERDICT: PROBE_COMPLETE
-[18:19:04] VERDICT: PROBE_COMPLETE
+VERDICT: PASS_ALL
+[18:24:17] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3582_asia_leads_probe.md
+→ Report written to aws/ops/reports/latest/3583_asia_leads.md

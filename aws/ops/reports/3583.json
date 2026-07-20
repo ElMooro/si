@@ -1,0 +1,93 @@
+{
+  "gates": {
+    "G1_deployed": {
+      "ok": true,
+      "detail": "deployed via ops helper (no workflow stomp)"
+    },
+    "G2_schedule": {
+      "ok": true,
+      "detail": "created justhodl-asia-leads-daily cron(20 10 * * ? *)"
+    },
+    "G3_feed_real": {
+      "ok": true,
+      "detail": "tsf_series=8 headline=[('2025', 356000.0), ('2024', 170496.0)] kr_yoy=47.96% (2026-04-01) tw_yoy=48.33% (2026-05-01) cal_hi=20 next_hi=[('2026-07-20', 'FOMC Press Release'), ('2026-07-21', 'FOMC Press Release'), ('2026-07-22', 'FOMC Press Release'), ('2026-07-23', 'FOMC Press Release')]"
+    }
+  },
+  "snapshot": {
+    "tsf_headline": [
+      {
+        "code": "A0L0801",
+        "name": "Social Financing",
+        "last_period": "2025",
+        "last_value": 356000.0,
+        "yoy_pct": null,
+        "chg_3m_pct": 11.21,
+        "n_obs": 10,
+        "is_headline": true
+      },
+      {
+        "code": "A0L0802",
+        "name": "RMB Loans of Social Financing",
+        "last_period": "2024",
+        "last_value": 170496.0,
+        "yoy_pct": null,
+        "chg_3m_pct": -14.5,
+        "n_obs": 9,
+        "is_headline": true
+      }
+    ],
+    "kr": {
+      "yoy_pct": 47.96,
+      "chg_3m_pct": 30.41,
+      "last_period": "2026-04-01"
+    },
+    "tw": {
+      "yoy_pct": 48.33,
+      "chg_3m_pct": 57.36,
+      "last_period": "2026-05-01"
+    },
+    "cal_next": [
+      {
+        "date": "2026-07-20",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-21",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-22",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-23",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-23",
+        "release": "H.4.1 Factors Affecting Reserve Balances",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-24",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-25",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      },
+      {
+        "date": "2026-07-26",
+        "release": "FOMC Press Release",
+        "high_impact": true
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
