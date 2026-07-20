@@ -32,7 +32,7 @@ s3 = boto3.client("s3", region_name="us-east-1")
 FMP = os.environ.get("FMP_API_KEY") or ""
 POLY = os.environ.get("POLYGON_API_KEY") or ""
 UA = {"User-Agent": "JustHodl research contact@justhodl.ai"}
-TARGET_DAYS = 110
+TARGET_DAYS = 210   # v1.0.1: full 200d breadth from the self-owned ledger
 
 
 def _g(key):
@@ -122,11 +122,13 @@ def members():
 
 
 def breadth_quotes(tks):
-    """50d/200d breadth via FMP batch quotes (priceAvg50/priceAvg200)."""
+    """Cross-check breadth via FMP quotes (priceAvg50/priceAvg200). v1.0.1:
+    /stable batch shape is batch-quote?symbols=; fall back to quote?symbol=."""
     a50 = a200 = n = 0
-    for i in range(0, len(tks), 80):
-        chunk = ",".join(tks[i:i + 80])
-        rows = _j(f"https://financialmodelingprep.com/stable/quote?symbol={chunk}&apikey={FMP}")
+    for i in range(0, len(tks), 60):
+        chunk = ",".join(tks[i:i + 60])
+        rows = _j(f"https://financialmodelingprep.com/stable/batch-quote?symbols={chunk}&apikey={FMP}") \
+            or _j(f"https://financialmodelingprep.com/stable/quote?symbol={chunk}&apikey={FMP}")
         for r in rows or []:
             p, m5, m2 = r.get("price"), r.get("priceAvg50"), r.get("priceAvg200")
             if all(isinstance(x, (int, float)) and x > 0 for x in (p, m5, m2)):
@@ -225,24 +227,33 @@ def lambda_handler(event=None, context=None):
                         if context else 720)
     idx = index_layer()
     tks = members()
-    bq = breadth_quotes(tks) if tks else {"error": "no members"}
     led, added = ledger_update(tks, deadline) if tks else ({"dates": []}, 0)
     b20, c20 = breadth_ledger(led, 20)
+    b50, c50 = breadth_ledger(led, 50)
     b100, c100 = breadth_ledger(led, 100)
+    b200, c200 = breadth_ledger(led, 200)
+    bq = breadth_quotes(tks) if tks else {"error": "no members"}
     n_days = len(led.get("dates") or [])
     warming = {"ledger_days": n_days, "target_days": TARGET_DAYS, "added_this_run": added,
                "b20_ready": b20 is not None, "b100_ready": b100 is not None,
                "note": ("self-building: one grouped-daily call per session; 100d breadth "
                         "activates automatically as the ledger fills" if n_days < TARGET_DAYS
                         else "ledger full")}
+    a200_final = b200 if b200 is not None else bq.get("above200_pct")
     narrow = bool((idx.get("above") or {}).get("200") and
-                  isinstance(bq.get("above200_pct"), (int, float)) and bq["above200_pct"] < 50)
-    out = {"engine": "spx-ma", "version": "1.0.0",
+                  isinstance(a200_final, (int, float)) and a200_final < 50)
+    out = {"engine": "spx-ma", "version": "1.0.1",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "index": idx,
-           "breadth": {"n_members": len(tks), **bq,
+           "breadth": {"n_members": len(tks),
                        "above20_pct": b20, "above20_covered": c20,
+                       "above50_pct": (b50 if b50 is not None else bq.get("above50_pct")),
+                       "above50_covered": c50,
                        "above100_pct": b100, "above100_covered": c100,
+                       "above200_pct": a200_final, "above200_covered": c200,
+                       "spread_50_200": (round(b50 - b200, 1) if (b50 is not None and b200 is not None)
+                                         else bq.get("spread_50_200")),
+                       "quotes_crosscheck": bq,
                        "divergence_narrow_market": narrow, "warming": warming},
            "siblings": {"per_etf_ladder": "data/industry-rotation.json (33 ETFs SMA50/100/200)",
                         "index_price_source": "data/spx-history-deep.json",
