@@ -199,7 +199,7 @@ function pct(col){var xs=col.map(function(v,i){return [v,i];}).filter(function(p
   for(var i=0;i<xs.length;i++){var j=i;while(j+1<xs.length&&xs[j+1][0]===xs[i][0])j++;
     var p=100*((i+j)/2+0.5)/xs.length;for(var q2=i;q2<=j;q2++)out[xs[q2][1]]=p;i=j;}
   return out;}
-var SECS=[],MOMS=[],MOMT=null,INDS=[],CAPS=[],QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATS=[],RISKS=[],IRISKS=[],RTIERS=null,ITIERS=null;
+var SECS=[],MOMS=[],MOMT=null,INDS=[],CAPS=[],QMIN=null,NOFLAG=false,TURNMIN=false,TURNMAX=false,WHALEF=false,NOEARN=false,PATS=[],RISKS=[],IRISKS=[],RTIERS=null,ITIERS=null,HSORT=null,HDIR=-1;
 var FACETS={sec:{el:'fxSec',arr:SECS,name:'Sector'},ind:{el:'fxInd',arr:INDS,name:'Industry'},cap:{el:'fxCap',arr:CAPS,name:'Cap'},
   mom:{el:'fxMom',arr:MOMS,name:'Momentum'},pat:{el:'fxPat',arr:PATS,name:'Pattern'},risk:{el:'fxRisk',arr:RISKS,name:'Stock risk'},irisk:{el:'fxIndRisk',arr:IRISKS,name:'Industry risk'}};
 function facetChips(){var box=document.getElementById('fxFacetChips');if(!box)return;var h='';
@@ -264,12 +264,20 @@ function compute(){if(!MX||!SEL.length)return [];
       tsc:(MX.turn||[])[i],score:tot,n:n,vals:vals});}
   rows.sort(function(a,b){return DIR==='desc'?b.score-a.score:a.score-b.score;});
   return rows;}
+function hval(r,k){if(k==='__sum')return r.score;if(k==='__q')return r.q;if(k==='__turn')return r.tsc;
+  var v=r.vals&&r.vals[k];if(v==null){var i=MX.tickers.indexOf(r.t);v=(MX.cols[k]||[])[i];}return v;}
 function draw(){var rows=compute();var T=document.getElementById('fxT');
   var cols=SEL.slice(0,6);
-  var h='<tr><th>#</th><th>Ticker</th><th>Sector</th><th>Q</th><th>Turn</th>'+cols.map(function(s){return '<th>'+esc(lbl(s.k))+'</th>';}).join('')+(SEL.length>6?'<th>+'+(SEL.length-6)+'</th>':'')+'<th>Σ pct</th></tr>';
+  if(HSORT){rows=rows.slice().sort(function(a,b){var av=hval(a,HSORT),bv=hval(b,HSORT);
+    if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;return HDIR*(av-bv);});}
+  function th(label,k){var arr=HSORT===k?(HDIR<0?' ▼':' ▲'):'';
+    return '<th data-hk="'+k+'" style="cursor:pointer" title="click to sort asc/desc">'+label+arr+'</th>';}
+  var h='<tr><th>#</th><th>Ticker</th><th>Sector</th>'+th('Q','__q')+th('Turn','__turn')+cols.map(function(s){return th(esc(lbl(s.k)),s.k);}).join('')+(SEL.length>6?'<th>+'+(SEL.length-6)+'</th>':'')+th('Σ pct','__sum')+'</tr>';
   rows.slice(0,100).forEach(function(r,i){h+='<tr class="fxRow" data-t="'+esc(r.t)+'"><td class="rk">'+(i+1)+'</td><td><b style="color:var(--blue)">'+esc(r.t)+((MX.cols['in_long_book']||[])[MX.tickers.indexOf(r.t)]?' 📗':'')+((MX.cols['in_short_book']||[])[MX.tickers.indexOf(r.t)]?' 📕':'')+'</b></td><td class="rk">'+esc(r.sector)+'</td>'+'<td class="'+((r.q||0)>=0?'pos':'neg')+'">'+(r.q==null?'—':r.q)+'</td><td>'+(r.tsc==null?'—':r.tsc)+'</td>'+cols.map(function(s){var v=r.vals[s.k];return '<td>'+(v==null?'—':(+v).toFixed(2))+'</td>';}).join('')+(SEL.length>6?'<td class="rk">…</td>':'')+'<td><b>'+r.score.toFixed(0)+'</b></td></tr>';});
   T.innerHTML=h;document.getElementById('fxN').textContent=rows.length+' names · '+SEL.length+' metrics';
-  Array.prototype.forEach.call(T.querySelectorAll('.fxRow'),function(tr){tr.ondblclick=function(){openModal(tr.getAttribute('data-t'));};});}
+  Array.prototype.forEach.call(T.querySelectorAll('.fxRow'),function(tr){tr.ondblclick=function(){openModal(tr.getAttribute('data-t'));};});
+  Array.prototype.forEach.call(T.querySelectorAll('th[data-hk]'),function(el){el.onclick=function(){var k=el.getAttribute('data-hk');
+    if(HSORT===k)HDIR*=-1;else{HSORT=k;HDIR=-1;}draw();};});}
 function chips(){var box=document.getElementById('fxChips');
   box.innerHTML=SEL.map(function(s,i){return '<span class="chip" style="border:1px solid var(--blue);color:var(--text);cursor:pointer" data-i="'+i+'">'+esc(lbl(s.k))+' <b style="color:var(--blue)" data-flip="'+i+'">'+(s.low?'↓L':'↑H')+'</b> <b data-x="'+i+'" style="color:var(--red)">✕</b></span>';}).join('');
   Array.prototype.forEach.call(box.querySelectorAll('[data-flip]'),function(el){el.onclick=function(e){e.stopPropagation();var s=SEL[+el.getAttribute('data-flip')];s.low=!s.low;chips();draw();};});
