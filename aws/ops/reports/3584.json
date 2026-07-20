@@ -1,0 +1,35 @@
+{
+  "gates": {
+    "G0_nbs_monthly_probe": {
+      "ok": true,
+      "detail": "candidates=[] chosen=NONE (annual-only mode)"
+    },
+    "G1_deployed": {
+      "ok": true,
+      "detail": "both deployed via helper; NBS_TSF_MONTHLY=unset"
+    },
+    "G2_engines_real": {
+      "ok": true,
+      "detail": "asia v1.1.0 kr=47.96% tw=48.33% dup_blocks_removed=True \u00b7 cl.tsf annual=8 monthly_series=None sample= impulse=None"
+    },
+    "G3_econ_calendar_alive": {
+      "ok": true,
+      "detail": "age_h=7.6 upcoming=0 \u00b7 re-invoked, upcoming=80 next_major=Initial Jobless Claims (Jul/18)"
+    },
+    "G4_page_cards": {
+      "ok": true,
+      "detail": "served: asia-pulse + next-prints cards"
+    },
+    "G5_mi_feed": {
+      "ok": true,
+      "detail": "asia_leads feed in deployed MI \u00b7 econ_calendar already present=True"
+    }
+  },
+  "nbs_monthly": null,
+  "snapshot": {
+    "kr": 47.96,
+    "tw": 48.33,
+    "tsf_monthly": []
+  },
+  "verdict": "PASS_ALL"
+}
