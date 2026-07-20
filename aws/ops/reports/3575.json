@@ -1,0 +1,49 @@
+{
+  "gates": {
+    "G1_settled_v3": {
+      "ok": false,
+      "detail": "markers ok=True mem=512 timeout=300"
+    },
+    "G2_feed_v3": {
+      "ok": true,
+      "detail": "deals=16 by_event_keys=8 universe=5315 (adr=1241) 8k_3d=34 events_hit=4/8 sample_ev=other"
+    },
+    "G3_history_ledger": {
+      "ok": true,
+      "detail": "entries=16 base_rate_types=[]"
+    },
+    "G4_signal_bar": {
+      "ok": true,
+      "detail": "logged=0 [] bar_ok=True (0 logged = correct silence, bar is strict)"
+    },
+    "G5_page_boards": {
+      "ok": true,
+      "detail": "served markers: Event Mix / Base Rates / US-Listed tile / institutional note"
+    }
+  },
+  "summary": {
+    "n_deals": 16,
+    "n_green": 5,
+    "n_ai_mega": 2,
+    "signals_logged": 0,
+    "signals": []
+  },
+  "base_rates": {},
+  "universe": {
+    "n_listed": 5315,
+    "n_adr": 1241,
+    "by_exchange": {
+      "NASDAQ Global Select": 1130,
+      "New York Stock Exchange": 1903,
+      "NASDAQ": 538,
+      "NASDAQ Global Market": 742,
+      "NASDAQ Capital Market": 769,
+      "New York Stock Exchange American": 189,
+      "New York Stock Exchange Arca": 43,
+      "NYSE": 1
+    },
+    "generated_at": "2026-07-20T17:04:48+00:00",
+    "note": "exhaustive universe-builder v4 \u2014 every NYSE/NASDAQ/AMEX common stock incl. ADRs; tape names outside it are OTC/unlisted (flagged, barred from signals)"
+  },
+  "verdict": "GAPS: G1_settled_v3"
+}
