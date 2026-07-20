@@ -1,24 +1,6 @@
-executing-against: c88af98ad94eb70a4f69bcdb5be24e5bd8ad5288
-[01:40:49]   zip: 92735 bytes
-── 1. Lambda ──
-[01:40:49]   Lambda exists — updating
-[01:40:52] ✅   ✓ updated justhodl-fundamental-census
-[01:40:55]   zip: 87820 bytes
-── 1. Lambda ──
-[01:40:55]   Lambda exists — updating
-[01:41:00] ✅   ✓ updated justhodl-etf-census
-[01:41:03]   zip: 86892 bytes
-── 1. Lambda ──
-[01:41:03]   Lambda exists — updating
-[01:41:08] ✅   ✓ updated justhodl-fi-census
-FAIL  D2_flagship — 'n'
-[01:42:21] FAIL  D2_flagship — 'n'
-PASS  D3_etf — {'n': 80, 'best_rr': [('USMV', 8.17, 24.5, 3.0), ('EMB', 7.02, 21.1, 3.0), ('BIL', 6.96, 20.9, 3.0), ('TIP', 5.89, 17.7, 3.0), ('XLF', 4.42, 26.4, 6.0), ('MUB', 4.3, 12.9, 3.0), ('TLT', 3.99, 12.0, 3.0), ('BND', 3.87, 11.6, 3.0)], 'worst_rr': [('SOXX', 0.7, 27.4, 39.3), ('USO', 0.64, 24.2, 38.1), ('SQQQ', 0.62, 29.6, 47.7), ('SOXS', 0.58, 48.4, 83.6), ('UVXY', 0.57, 36.5, 64.3), ('SPXL', 0.49, 21.8, 44.2), ('TQQQ', 0.43, 27.3, 62.8), ('SOXL', 0.22, 42.5, 190.5)], 'lev_in_bottom8': 6}
-[01:42:48] PASS  D3_etf — {'n': 80, 'best_rr': [('USMV', 8.17, 24.5, 3.0), ('EMB', 7.02, 21.1, 3.0), ('BIL', 6.96, 20.9, 3.0), ('TIP', 5.89, 17.7, 3.0), ('XLF', 4.42, 26.4, 6.0), ('MUB', 4.3, 12.9, 3.0), ('TLT', 3.99, 12.0, 3.0), ('BND', 3.87, 11.6, 3.0)], 'worst_rr': [('SOXX', 0.7, 27.4, 39.3), ('USO', 0.64, 24.2, 38.1), ('SQQQ', 0.62, 29.6, 47.7), ('SOXS', 0.58, 48.4, 83.6), ('UVXY', 0.57, 36.5, 64.3), ('SPXL', 0.49, 21.8, 44.2), ('TQQQ', 0.43, 27.3, 62.8), ('SOXL', 0.22, 42.5, 190.5)], 'lev_in_bottom8': 6}
-PASS  D4_fi — {'n': 45, 'best_rr': [('FLOT', 8.81, 13.2, 1.5), ('SRLN', 8.4, 12.6, 1.5), ('JNK', 8.29, 12.4, 1.5), ('SGOV', 8.2, 12.3, 1.5), ('USFR', 8.12, 12.2, 1.5), ('HYG', 8.06, 12.1, 1.5), ('SHYG', 8.04, 12.1, 1.5), ('TFLO', 7.95, 11.9, 1.5)], 'srln_up': 12.6, 'bil_up': 11.8}
-[01:43:08] PASS  D4_fi — {'n': 45, 'best_rr': [('FLOT', 8.81, 13.2, 1.5), ('SRLN', 8.4, 12.6, 1.5), ('JNK', 8.29, 12.4, 1.5), ('SGOV', 8.2, 12.3, 1.5), ('USFR', 8.12, 12.2, 1.5), ('HYG', 8.06, 12.1, 1.5), ('SHYG', 8.04, 12.1, 1.5), ('TFLO', 7.95, 11.9, 1.5)], 'srln_up': 12.6, 'bil_up': 11.8}
-PASS  D5_pages — fxRR served + node x3
-[01:43:30] PASS  D5_pages — fxRR served + node x3
-RESULT: FAILS: ['D2_flagship']
+executing-against: f05068504b4a2233e8062f960c979d30dae02c7e
+PASS  E1_flagship_rr — {'n': 494, 'best_rr': [('CPRT', 7.34, 36.1, 4.9), ('MCD', 6.41, 23.5, 3.7), ('PG', 5.1, 17.8, 3.5), ('GD', 5.09, 37.8, 7.4), ('ACGL', 4.9, 36.7, 7.5), ('COST', 4.71, 22.0, 4.7), ('PGR', 4.5, 33.9, 7.5), ('BRK-B', 4.33, 13.4, 3.1), ('STE', 4.31, 26.2, 6.1), ('RMD', 4.28, 31.7, 7.4)], 'worst_rr': [('WBD', 0.21, 13.9, 65.6), ('MU', 0.18, 38.2, 210.2), ('INTC', 0.17, 24.9, 144.2), ('LITE', 0.13, 24.4, 181.6), ('SNDK', 0.05, 42.2, 842.2)], 'top_upside': [('PYPL', 48.2), ('INTU', 46.5), ('IT', 45.9), ('FISV', 45.7), ('VEEV', 45.0), ('KHC', 44.3)], 'lowest_downside': [('BRK-B', 3.1), ('PG', 3.5), ('MCD', 3.7), ('COST', 4.7), ('CPRT', 4.9), ('ORLY', 5.5)]}
+[01:49:19] PASS  E1_flagship_rr — {'n': 494, 'best_rr': [('CPRT', 7.34, 36.1, 4.9), ('MCD', 6.41, 23.5, 3.7), ('PG', 5.1, 17.8, 3.5), ('GD', 5.09, 37.8, 7.4), ('ACGL', 4.9, 36.7, 7.5), ('COST', 4.71, 22.0, 4.7), ('PGR', 4.5, 33.9, 7.5), ('BRK-B', 4.33, 13.4, 3.1), ('STE', 4.31, 26.2, 6.1), ('RMD', 4.28, 31.7, 7.4)], 'worst_rr': [('WBD', 0.21, 13.9, 65.6), ('MU', 0.18, 38.2, 210.2), ('INTC', 0.17, 24.9, 144.2), ('LITE', 0.13, 24.4, 181.6), ('SNDK', 0.05, 42.2, 842.2)], 'top_upside': [('PYPL', 48.2), ('INTU', 46.5), ('IT', 45.9), ('FISV', 45.7), ('VEEV', 45.0), ('KHC', 44.3)], 'lowest_downside': [('BRK-B', 3.1), ('PG', 3.5), ('MCD', 3.7), ('COST', 4.7), ('CPRT', 4.9), ('ORLY', 5.5)]}
+RESULT: ALL PASS
 
-→ Report written to aws/ops/reports/latest/3559_risk_reward.md
+→ Report written to aws/ops/reports/latest/3560_flagship_rr_regate.md
