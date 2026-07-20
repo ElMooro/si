@@ -3573,7 +3573,7 @@ window.fillJHDealRadar=async function(d){ try{
       +'<div class="jhf-sub" style="margin-top:3px">'+m.join(' · ')+'</div></div></div>';
   }).join('');
   sec.innerHTML='<div class="sub"><span class="ico">🤝</span> Deal Radar — fresh contract wins on '+E9(t)+' <a href="/deal-scanner.html" class="jhf-sub" style="margin-left:8px">full board →</a></div>'+rows
-    +'<div class="jhf-sub" style="margin-top:8px">Live from the deal-scanner (full-market PR + news sweep, 3×/day). Material wins (green / AI-mega / $1B+) are entered at announcement price and graded [5,21,63] vs SPY in the fleet signals loop.</div>';
+    +'<div class="jhf-sub" style="margin-top:8px">Live from the deal-scanner (full-market PR + news sweep, every 3h). Material wins (green / AI-mega / $1B+) are entered at announcement price and graded [5,21,63] vs SPY in the fleet signals loop.</div>';
   sec.style.display='';
 }catch(e){ try{ var s3b=document.getElementById('jhDealRadar'); if(s3b) s3b.style.display='none'; }catch(_e){} } };
 })();

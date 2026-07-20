@@ -12,7 +12,7 @@ reported revenue for several quarters, but the stock can move now.
 
 SOURCE: FMP /stable/news/press-releases-latest (official PRs across all tickers)
         + /stable/income-statement (revenue) + universe / FMP profile (market cap)
-OUTPUT data/deal-scanner.json   SCHEDULE 3x/day 13:30/17:30/22:00 UTC.
+OUTPUT data/deal-scanner.json   SCHEDULE every 3 hours (8 runs/day).
 v2.0.0: full-market boards (by_sector / by_cap / coverage, all 11 sectors, nano→mega)
 + graded deal-win signals [5,21,63] vs SPY via shared signals_emit. Real data, research only.
 """
@@ -560,7 +560,7 @@ def lambda_handler(event, context):
         "sectors_with_deals": sum(1 for v in by_sector.values() if v["n"] > 0),
         "n_sectors_tracked": len(SECTORS_ALL),
         "caps_with_deals": sum(1 for v in by_cap.values() if v["n"] > 0),
-        "runs_per_day": 3,
+        "runs_per_day": 8,
         "note": ("full-market: every ticker on the PR/news tape is eligible — no universe "
                  "filter, all caps nano→mega, all 11 GICS sectors"),
     }
@@ -608,7 +608,7 @@ def lambda_handler(event, context):
     out = {
         "engine": "deal-scanner", "version": VERSION,
         "generated_at": now.isoformat(),
-        "window": "rolling PR + news tape (~last 24-72h), rescanned 3x/day",
+        "window": "rolling PR + news tape (~last 24-72h), rescanned every 3h",
         "summary": {
             "n_prs_scanned": len(prs), "n_deals": len(deals), "n_with_size": len(sized),
             "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat),
@@ -627,7 +627,7 @@ def lambda_handler(event, context):
         "by_sector": by_sector, "by_cap": by_cap, "coverage": coverage,
         "methodology": {
             "source": "FMP press-releases-latest + stock-latest + Polygon news — full-market, no universe filter",
-            "coverage": "3 scans/day (13:30/17:30/22:00 UTC); every ticker on the PR/news tape is eligible — all sectors, all cap tiers (nano→mega)",
+            "coverage": "8 scans/day (every 3h); every ticker on the PR/news tape is eligible — all sectors, all cap tiers (nano→mega)",
             "signals": "material fresh deals (green / AI-mega / $1B+ ≥5% mcap, ≤30h old) → family deal-win, UP [5,21,63] vs SPY at announcement price; graded by the fleet loop, PROVEN gate applies",
             "deal_filter": "strong deal-win language (awarded/wins/secures/contract/order/supply/"
                            "multi-year/LOI/MOU/design-win) minus financing/governance/earnings PRs",
