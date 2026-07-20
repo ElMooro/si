@@ -1,0 +1,36 @@
+{
+  "gates": {
+    "G1_history_real": {
+      "ok": true,
+      "detail": "v1.1.0 hist=173 first=2025-11-05 last=2026-07-17 spill_last=-0.77 vs headline -0.77 state=CALM fi_z=-0.94 fx_z=-0.76 eq_z=0.01"
+    },
+    "G2_card_served": {
+      "ok": true,
+      "detail": "served: gauge + migration map + ribbon + flow animation"
+    }
+  },
+  "hist_sample": [
+    {
+      "d": "2026-07-15",
+      "fi": -1.07,
+      "fx": -0.75,
+      "eq": -0.67,
+      "spill": -0.08
+    },
+    {
+      "d": "2026-07-16",
+      "fi": -1.09,
+      "fx": -0.75,
+      "eq": -0.44,
+      "spill": -0.31
+    },
+    {
+      "d": "2026-07-17",
+      "fi": -0.94,
+      "fx": -0.76,
+      "eq": 0.01,
+      "spill": -0.77
+    }
+  ],
+  "verdict": "PASS_ALL"
+}
