@@ -29,3 +29,9 @@ Engine v1.7.2: 13F wb/ws/b/s/n → whale/inst $M cols; finviz-universe short_flo
 37. Deploy truth = the DEPLOYED ZIP: download Code.Location, grep the change marker. Descriptions lie (3544 shipped old code under a v1.7.2 label).
 38. Beta fixtures need return VARIANCE (constant-growth series ⇒ beta garbage); pattern fixtures need monotonic real dates and ≥6-bar extremum gaps.
 39. joins() columns land AFTER the ≥50%-coverage filter (keys=sorted(cols) at the end) — sparse-but-real columns (retail 27, whales 460, earnings 408) ride matrix legally.
+
+## TV-parity arc (ops 3561–3570) + gotchas 40–42
+Graphs v1.11.0: +30 raw FMP statement pass-throughs, +44 Statistics metrics (P/B·P/S·P/CF·P/TBV, BVPS/tangible, FCF/sh, Graham, ROA/ROCE/ROTA/ROTE, quick/turnovers, debt suite, eff-int-rate, days inv/payable, payout, gross buyback yield, TCE, 6× per-employee, Zmijewski/Springate/Fulmer) + 5 NTM forwards from analyst estimates. Census floor 0.25/cap 300; matrix 231→293 metrics; categorized optgroups on all 3 explorers (13 fund / 4 ETF-FI). Final: raw 30/30 & stats 43/44 at ≥400 names (inventory_turnover 389 = no-inventory sectors, honest), pe_fwd 482 (SNDK 3.9 cheapest), WMT days-inv 41.97/turn 8.70, MSFT fwd 19.96. NOT-IN-SOURCE (never synthesized): PP&E/acc-dep by class, inventory splits, dom/foreign tax, interest capitalized, notes payable, accrued payroll, dividends payable, separate impairment lines, free float.
+40. Substring scans on cache docs LIE — docs echo metric NAMES without series. Data-aware pattern `b'"key": [['` only.
+41. run-ops.yml timeout-minutes=30 + concurrency: every ops self-budgets ≤25 min (budgeted while-loop + finally prints); long sweeps split.
+42. Parallel-session runs clobber latest/*.md and collide ops numbers — reports/<n>.json (written by the script itself) is the verdict-of-record; check pending/ for foreign files before pushing.
