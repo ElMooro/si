@@ -1,29 +1,11 @@
-executing-against: 89ebb7e570274fdef398bbc061762ea9f3f51f2e
-ops 3574 — exhaustive all-US-listed universe (v4)
-PASS  G1_settled_v4 — zip markers: v4 method + bisection + is_adr
-[17:04:45] PASS  G1_settled_v4 — zip markers: v4 method + bisection + is_adr
-PASS  G2_schedule — live cadence kept: rules=[] scheduler=['justhodl-screen-builder-universe-daily', 'finviz-universe-sched']
-[17:04:45] PASS  G2_schedule — live cadence kept: rules=[] scheduler=['justhodl-screen-builder-universe-daily', 'finviz-universe-sched']
-PASS  G3_feed_exhaustive — total=5315 (invoke said 5315) by_exchange={'NASDAQ Global Select': 1130, 'New York Stock Exchange': 1903, 'NASDAQ': 538, 'NASDAQ Global Market': 742, 'NASDAQ Capital Market': 769, 'New York Stock Exchange American': 189, 'New York Stock Exchange Arca': 43, 'NYSE': 1} n_adr=1241 buckets={'nano': 968, 'micro': 961, 'small': 1306, 'mid': 1130, 'large': 880, 'me
-[17:04:49] PASS  G3_feed_exhaustive — total=5315 (invoke said 5315) by_exchange={'NASDAQ Global Select': 1130, 'New York Stock Exchange': 1903, 'NASDAQ': 538, 'NASDAQ Global Market': 742, 'NASDAQ Capital Market': 769, 'New York Stock Exchange American': 189, 'New York Stock Exchange Arca': 43, 'NYSE': 1} n_adr=1241 buckets={'nano': 968, 'micro': 961, 'small': 1306, 'mid': 1130, 'large': 880, 'me
+executing-against: d180868c5606f495a0381d8bc16ae7a1a14a13ae
+ops 3576 — deal-scanner config enforcement (1024/600)
+PASS  G1_deal_cfg — mem=1024 timeout=600 env_vars=0 (env preserved)
+[17:09:44] PASS  G1_deal_cfg — mem=1024 timeout=600 env_vars=0 (env preserved)
+PASS  G2_universe_cfg — mem=512 timeout=420
+[17:09:44] PASS  G2_universe_cfg — mem=512 timeout=420
 
 VERDICT: PASS_ALL
-[17:04:49] VERDICT: PASS_ALL
+[17:09:44] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3574_universe_v4.md
-ops 3575 — deal-scanner v3 institutional layer
-FAIL  G1_settled_v3 — markers ok=True mem=512 timeout=300
-[17:04:50] FAIL  G1_settled_v3 — markers ok=True mem=512 timeout=300
-PASS  G2_feed_v3 — deals=16 by_event_keys=8 universe=5315 (adr=1241) 8k_3d=34 events_hit=4/8 sample_ev=other
-[17:05:05] PASS  G2_feed_v3 — deals=16 by_event_keys=8 universe=5315 (adr=1241) 8k_3d=34 events_hit=4/8 sample_ev=other
-PASS  G3_history_ledger — entries=16 base_rate_types=[]
-[17:05:05] PASS  G3_history_ledger — entries=16 base_rate_types=[]
-PASS  G4_signal_bar — logged=0 [] bar_ok=True (0 logged = correct silence, bar is strict)
-[17:05:05] PASS  G4_signal_bar — logged=0 [] bar_ok=True (0 logged = correct silence, bar is strict)
-PASS  G5_page_boards — served markers: Event Mix / Base Rates / US-Listed tile / institutional note
-[17:06:35] PASS  G5_page_boards — served markers: Event Mix / Base Rates / US-Listed tile / institutional note
-
-VERDICT: GAPS: G1_settled_v3
-[17:06:35] VERDICT: GAPS: G1_settled_v3
-
-→ Report written to aws/ops/reports/latest/3575_deal_v3.md
+→ Report written to aws/ops/reports/latest/3576_deal_cfg.md
