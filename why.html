@@ -3567,6 +3567,11 @@ window.fillJHDealRadar=async function(d){ try{
   var rows=mine.slice(0,3).map(function(x){
     var pill=x.ai_megadeal?'<span style="color:#a78bfa;font-weight:700">🤖 AI MEGA-DEAL</span>':x.ai_relevant?'<span style="color:#22d3ee;font-weight:700">🤖 AI DEAL</span>':x.highlight==='green'?'<span style="color:#3ddc84;font-weight:700">🟢 BIG vs SIZE</span>':x.highlight==='yellow'?'<span style="color:#fbbf24;font-weight:700">🟡 NOTABLE</span>':'<span class="jhf-sub">WIN</span>';
     var m=[]; if(x.deal_value_str)m.push(E9(x.deal_value_str)); if(x.vs_market_cap_pct!=null)m.push(x.vs_market_cap_pct+'% of mcap'); if(x.materiality_pct!=null)m.push(x.materiality_pct===9999?'pre-revenue':x.materiality_pct+'% of revenue');
+    var EVN={contract_win:'CONTRACT',govt_contract:'GOV CONTRACT',ma_target:'M&A TARGET',ma_acquirer:'M&A ACQUIRER',partnership:'PARTNERSHIP',licensing_supply:'LICENSE/SUPPLY',equity_investment:'EQUITY INV'};
+    if(x.event_type&&EVN[x.event_type])m.push(EVN[x.event_type]);
+    if(x.confirmed_8k)m.push('<span style="color:#3ddc84;font-weight:700">📄 8-K ✓</span>');
+    if(x.counterparty_quality==='GOV'||x.counterparty_quality==='HYPERSCALER')m.push('🏛 '+x.counterparty_quality+((x.counterparties&&x.counterparties[0])?': '+E9(x.counterparties[0]):''));
+    if(x.promo_risk)m.push('<span style="color:#ff8080">⚠ PROMO-RISK</span>');
     var ag=(x.age_h!=null?(x.age_h<24?Math.round(x.age_h)+'h ago':Math.round(x.age_h/24)+'d ago'):'');
     return '<div class="jhf-row" style="grid-template-columns:1fr"><div><div class="jhf-who">'+pill+' <span class="jhf-sub" style="margin-left:8px">'+ag+'</span></div>'
       +'<a href="'+E9(x.url||'#')+'" target="_blank" rel="noopener" style="color:inherit">'+E9(x.title||'')+'</a>'

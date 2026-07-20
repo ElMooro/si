@@ -3,14 +3,16 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 512,
-  "timeout": 420,
-  "architectures": ["x86_64"],
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Scans company press releases for fresh contract/order/supply wins, parses deal size, cross-references revenue to flag un-recognized forward revenue. Small-cap weighted (one contract is transformative). v2: full-market all sectors/caps, every 3h, graded deal-win signals.",
+  "description": "v3 institutional deal-win engine: full-market PR/news tape vs exhaustive US-listed universe (incl. ADRs), event taxonomy, counterparty quality, promo/chase guards, SEC 8-K confirmation, census+13F overlays, base-rate ledger, graded deal-win signals. Every 3h.",
   "schedule": {
     "rule_name": "deal-scanner-daily",
     "cron": "cron(5 */3 * * ? *)",
-    "description": "Full-market deal-win scan every 3 hours (live rule cadence — catches PR dumps around the clock)"
+    "description": "Full-market deal-win scan every 3 hours (live rule cadence \u2014 catches PR dumps around the clock)"
   }
 }

@@ -126,6 +126,14 @@ function card(d){
   const mtCls=(d.materiality_pct>=25||d.materiality_pct===9999)?"hot":d.materiality_pct>=10?"warm":"size";
   const mcCls=(d.vs_market_cap_pct>=10)?"hot":d.vs_market_cap_pct>=4?"warm":"size";
   const flowBadge=(d.sector_tailwind&&d.sector_etf)?`<span class="badge flow">🌊 ${esc(d.sector_etf)}${d.sector_rotating_in?" ROTATING IN":(d.sector_rotation_score!=null?" "+Math.round(d.sector_rotation_score):"")}</span>`:"";
+  const EVN={contract_win:"CONTRACT",govt_contract:"GOV CONTRACT",ma_target:"M&A TARGET",ma_acquirer:"M&A ACQUIRER",partnership:"PARTNERSHIP",licensing_supply:"LICENSE/SUPPLY",equity_investment:"EQUITY INV"};
+  const v3=[
+    d.event_type&&EVN[d.event_type]?`<span class="badge" style="background:rgba(120,140,255,.12);color:#9fb0ff">${EVN[d.event_type]}</span>`:"",
+    (d.counterparty_quality==="GOV"||d.counterparty_quality==="HYPERSCALER")?`<span class="badge" style="background:rgba(61,220,132,.12);color:var(--green)">🏛 ${esc(d.counterparty_quality)}${(d.counterparties&&d.counterparties[0])?": "+esc(d.counterparties[0]):""}</span>`:"",
+    d.confirmed_8k?'<span class="badge" style="background:rgba(61,220,132,.10);color:var(--green)">📄 8-K ✓</span>':"",
+    d.promo_risk?'<span class="badge" style="background:rgba(255,92,92,.12);color:#ff8080">⚠ PROMO-RISK</span>':"",
+    d.listed===false?'<span class="badge" style="background:rgba(255,176,32,.12);color:var(--amber)">OTC / UNLISTED</span>':""
+  ].join("");
   return `<div class="card ${cls}">
     <div class="top">
       <span class="sym">${esc(d.symbol)}</span>
@@ -133,6 +141,7 @@ function card(d){
       ${flowBadge}
       ${d.cap_bucket?`<span class="cap ${d.cap_bucket}">${d.cap_bucket}</span>`:""}
       ${d.name?`<span class="co">${esc(d.name)}</span>`:""}
+      ${v3}
       ${pill}
     </div>
     <a class="headline" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>
@@ -160,7 +169,8 @@ function render(j){
      <div class="stat amber"><div class="n">${s.n_yellow||0}</div><div class="l">🟡 Notable</div></div>
      <div class="stat"><div class="n">${s.n_small_cap||0}</div><div class="l">Small-Cap</div></div>
      <div class="stat cyan"><div class="n">${(j.coverage||{}).sectors_with_deals||0}<span style="font-size:13px;color:var(--fg-3)">/${(j.coverage||{}).n_sectors_tracked||11}</span></div><div class="l">Sectors Hit</div></div>
-     <div class="stat green"><div class="n">${s.signals_logged||0}</div><div class="l">📡 Graded Signals</div></div>`;
+     <div class="stat green"><div class="n">${s.signals_logged||0}</div><div class="l">📡 Graded Signals</div></div>
+     <div class="stat"><div class="n">${((j.coverage||{}).universe||{}).n_listed?(((j.coverage||{}).universe||{}).n_listed).toLocaleString():"—"}</div><div class="l">US-Listed Monitored</div></div>`;
   let h="";
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>🤖 AI Deals — small/mid-caps landing AI contracts</h2><span class="ct">${ai.length}${s.n_ai_mega?` · ${s.n_ai_mega} mega`:""}</span></div>`;
   h+= ai.length?ai.map(card).join(""):'<div class="empty">No AI-tagged deal in the current window. A real AI mega-deal (e.g. a billion-dollar GPU/compute supply agreement) will land here and jump to the top the moment it\'s announced.</div>';
@@ -182,6 +192,17 @@ function render(j){
     h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Market Coverage — every sector</h2><span class="ct">${cv.sectors_with_deals||0}/${cv.n_sectors_tracked||11} sectors with deals · ${cv.n_unique_tickers_in_tape||0} tickers on tape · ${cv.runs_per_day||8}× daily sweep</span></div>`+btab(bs);
     h+=`<div class="sec-hdr"><span class="dot c"></span><h2>All Cap Tiers — nano → mega</h2><span class="ct">${cv.caps_with_deals||0}/6 tiers with deals</span></div>`+btab(bc);
   }
+  // ── v3: institutional layer — event taxonomy + base-rate event study ──
+  const be=j.by_event||{}, br=j.base_rates||{}, hi=j.history||{};
+  const EVL={contract_win:"Contract wins",govt_contract:"🏛 Government contracts",ma_target:"⚖️ M&A targets",ma_acquirer:"M&A acquirers",partnership:"Partnerships",licensing_supply:"Licensing / supply",equity_investment:"Equity investments",other:"Other"};
+  if(Object.keys(be).length){
+    h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Event Mix — what kind of deals hit the tape</h2><span class="ct">${cv.events_with_deals||0}/8 event types this window</span></div>`
+      +`<table class="otable"><thead><tr><th></th><th>Deals</th><th>Sized $</th><th>🟢</th><th>🤖</th><th>Top</th></tr></thead><tbody>${Object.entries(be).map(([k,v])=>brow(EVL[k]||k,v)).join("")}</tbody></table>`;
+  }
+  const brKeys=Object.keys(br);
+  h+=`<div class="sec-hdr"><span class="dot y"></span><h2>Base Rates — what deals actually return</h2><span class="ct">${hi.n_entries||0} deals ledgered · fwd excess vs SPY · population study</span></div>`;
+  h+= brKeys.length?`<table class="otable"><thead><tr><th>Event type</th><th>n (5d)</th><th>Med 5d ex</th><th>n (21d)</th><th>Med 21d ex</th><th>Hit 21d</th></tr></thead><tbody>${brKeys.map(k=>{const v=br[k];const c5=v.med_fwd5_ex>0?"color:var(--green)":v.med_fwd5_ex<0?"color:#ff8080":"";const c21=v.med_fwd21_ex>0?"color:var(--green)":v.med_fwd21_ex<0?"color:#ff8080":"";return `<tr><td><span class="s">${esc(EVL[k]||k)}</span></td><td>${v.n5||0}</td><td style="${c5};font-weight:700">${v.med_fwd5_ex!=null?v.med_fwd5_ex+"%":"—"}</td><td>${v.n21||0}</td><td style="${c21};font-weight:700">${v.med_fwd21_ex!=null?v.med_fwd21_ex+"%":"—"}</td><td>${v.hit21!=null?v.hit21+"%":"—"}</td></tr>`;}).join("")}</tbody></table><div class="empty" style="padding-top:8px">Every detected deal (not just the signaled subset) is ledgered in <code>data/deal-history.json</code>; matured entries get forward 5d/21d returns <i>in excess of SPY</i> filled automatically. This is the honest population baseline the graded <code>deal-win</code> family is measured against.</div>`
+    :'<div class="empty">Ledger is young — forward returns fill automatically as detected deals mature (5 and 21 trading days after announcement). Check back; base rates by event type will appear here.</div>';
   const sig=(s.signals||[]);
   h+=`<div class="sec-hdr"><span class="dot y"></span><h2>📡 Graded Signals — family <span style="color:var(--cyan)">deal-win</span></h2><span class="ct">${s.signals_logged||0} logged this run</span></div>`;
   h+= sig.length?`<table class="otable"><thead><tr><th>Ticker</th><th>Deal</th><th>vs MCap</th><th>Conf</th></tr></thead><tbody>${sig.map(x=>`<tr><td><span class="s">${esc(x.ticker)}</span></td><td>${esc(x.value||"—")}</td><td>${x.vs_mc_pct!=null?x.vs_mc_pct+"%":"—"}</td><td>${x.conf}</td></tr>`).join("")}</tbody></table><div class="empty" style="padding-top:8px">Entered at announcement price, UP [5,21,63] vs SPY — graded by the fleet loop; PROVEN gate on the <a href="/alpha-families.html">Alpha Lab</a>.</div>`
@@ -190,7 +211,8 @@ function render(j){
   document.getElementById("note").innerHTML=
     `<b style="color:var(--fg-2)">How it works.</b> 🤖 <b style="color:var(--cyan)">AI Deals</b> = the company or deal is AI-relevant (keywords + the AI-infra-stack universe); an <b style="color:var(--violet)">AI MEGA-DEAL</b> is AI + ≥20% of market cap or a billion-dollar deal.
      🟢 <b style="color:var(--green)">Green</b> = deal ≥25% of revenue <i>or</i> ≥10% of market cap; 🟡 <b style="color:var(--amber)">Yellow</b> = ≥10% of revenue or ≥4% of market cap.
-     Sources: company press releases <i>and</i> third-party financial news via <code>FMP</code> + <code>Polygon</code> — <b>full-market, no universe filter</b>: every ticker on the tape, all 11 GICS sectors, all cap tiers nano→mega, rescanned <b>every 3 hours</b>, around the clock. Cross-referenced to latest-FY revenue and market cap. Material fresh wins are logged as graded <code>deal-win</code> signals ([5,21,63] vs SPY) into the fleet's PROVEN loop and fused into best-setups, the master ranker, why.html and the morning brief. Direct X/Twitter scanning needs an X API key (not yet wired).
+     Sources: company press releases <i>and</i> third-party financial news via <code>FMP</code> + <code>Polygon</code> — <b>full-market, no universe filter</b>: every ticker on the tape, all 11 GICS sectors, all cap tiers nano→mega, rescanned <b>every 3 hours</b>, around the clock, checked against the <b>exhaustive US-listed universe</b> (every NYSE / NASDAQ / AMEX common stock incl. ADRs — OTC names are flagged and barred from signals).
+     <b style="color:var(--fg-2)">Institutional layer:</b> every deal is classified (contract / gov / M&amp;A / partnership / licensing / equity), counterparty quality scored (🏛 GOV &amp; HYPERSCALER upweighted), cross-checked for a filed <b>SEC 8-K Item 1.01</b> (📄 confirmed = a real material definitive agreement, not just a press release), and screened by a <b>promo-risk guard</b> (LOI / MOU / non-binding paper and nano-cap unnamed-counterparty pumps never reach the signal book) and a <b>chase-guard</b> (names already +25% since announcement are skipped — our own event-study shows chasing loses). Cross-referenced to latest-FY revenue and market cap. Material fresh wins are logged as graded <code>deal-win</code> signals ([5,21,63] vs SPY) into the fleet's PROVEN loop and fused into best-setups, the master ranker, why.html and the morning brief. Direct X/Twitter scanning needs an X API key (not yet wired).
      Deal size is parsed from the release and may be approximate; "not yet in revenue" is inferred from announcement freshness. Real data, research only — not investment advice.`;
 }
 load(DATA).then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load deal data. <a href="javascript:location.reload()">Retry</a></div>';});

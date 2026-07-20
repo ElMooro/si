@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-universe-builder",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 420,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "v4 exhaustive all-US-listed universe: FMP screener with adaptive mcap bisection (zero truncation), NYSE/NASDAQ/AMEX incl. ADRs, $1M floor, fund/preferred/warrant filters, curated AI seed. Writes data/universe.json (13+ consumers)."
+}

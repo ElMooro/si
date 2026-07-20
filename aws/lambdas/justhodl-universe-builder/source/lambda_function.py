@@ -1,5 +1,15 @@
 """
-justhodl-universe-builder v3 — comprehensive multi-cap universe.
+justhodl-universe-builder v4 — EXHAUSTIVE all-US-listed universe.
+
+v4 (2026-07-20): institutional coverage guarantee —
+  • adaptive mcap-range BISECTION: FMP screener caps every response at 1000
+    rows; when a range saturates we split it at the geometric midpoint and
+    recurse until every sub-range returns <1000 → ZERO truncation.
+  • ADRs INCLUDED: country filter removed — "US-listed" = NYSE/NASDAQ/AMEX,
+    which includes TSM, BABA, ASML-class ADRs institutions trade all day.
+  • floor lowered $5M → $1M so living nano-caps are not dropped.
+  • per-stock exchange/country/is_adr + stats.by_exchange/n_adr (shape is
+    otherwise unchanged — 13+ downstream consumers unaffected, additive only).
 
 Pulls stocks across ALL 6 cap buckets via FMP /company-screener:
   • nano    $5M-$50M       (typically 300-500 real stocks)
@@ -49,7 +59,7 @@ S3 = boto3.client("s3", region_name=REGION)
 
 # Cap buckets (low_inclusive, high_exclusive)
 CAP_BUCKETS = [
-    ("nano",    5_000_000,         50_000_000),
+    ("nano",    1_000_000,         50_000_000),
     ("micro",   50_000_000,        300_000_000),
     ("small",   300_000_000,       2_000_000_000),
     ("mid",     2_000_000_000,     10_000_000_000),
@@ -117,24 +127,38 @@ def fetch_url(url, timeout=20):
         return json.loads(r.read())
 
 
-def fetch_screener_bucket(bucket_name, low, high):
-    """Fetch all stocks for a cap bucket from FMP screener."""
+def _screener_call(low, high):
     url = ("https://financialmodelingprep.com/stable/company-screener?"
            "marketCapMoreThan=" + str(low) +
            "&marketCapLowerThan=" + str(high) +
            "&isActivelyTrading=true"
-           "&country=US"
-           "&exchange=NYSE,NASDAQ,AMEX"
+           "&exchange=NYSE,NASDAQ,AMEX"      # v4: no country filter — ADRs are US-listed
            "&limit=1000"
            "&apikey=" + FMP_KEY)
+    data = fetch_url(url, timeout=30)
+    return data if isinstance(data, list) else []
+
+
+def fetch_screener_bucket(bucket_name, low, high, depth=0):
+    """v4 EXHAUSTIVE: FMP caps responses at 1000 rows. When a range saturates,
+    bisect at the geometric midpoint (mcap is log-distributed) and recurse until
+    every sub-range returns <1000 — guarantees zero truncation of the listed
+    universe. Depth-capped; failures degrade to whatever was fetched."""
     try:
-        data = fetch_url(url, timeout=30)
-        if not isinstance(data, list):
-            return []
-        return [{**d, "_cap_bucket": bucket_name} for d in data]
+        rows = _screener_call(low, high)
     except Exception as e:
-        print("[universe] bucket " + bucket_name + " failed: " + str(e))
+        print("[universe] range " + bucket_name + " " + str(low) + "-" + str(high)
+              + " failed: " + str(e))
         return []
+    if len(rows) >= 1000 and depth < 10 and (high - low) > 2_000_000:
+        mid = int((low * high) ** 0.5)
+        if mid <= low or mid >= high:
+            mid = (low + high) // 2
+        print("[universe] " + bucket_name + " saturated at 1000 (" + str(low) + "-"
+              + str(high) + ") → bisect @ " + str(mid))
+        return (fetch_screener_bucket(bucket_name, low, mid, depth + 1)
+                + fetch_screener_bucket(bucket_name, mid, high, depth + 1))
+    return [{**d, "_cap_bucket": bucket_name} for d in rows]
 
 
 def fetch_quote_for_seed(symbol):
@@ -203,7 +227,7 @@ def is_valid_common_stock(stock):
 
 def lambda_handler(event=None, context=None):
     started = time.time()
-    print("[universe] v3.0 starting — full multi-cap")
+    print("[universe] v4.0 starting — exhaustive all-US-listed (bisection + ADRs)")
 
     # Fetch all 6 cap buckets in parallel
     all_raw = {}
@@ -302,6 +326,8 @@ def lambda_handler(event=None, context=None):
     by_bucket = {name: 0 for name, _, _ in CAP_BUCKETS}
     by_bucket["unknown"] = 0
     by_sector = {}
+    by_exchange = {}
+    n_adr = 0
     
     for s in valid_stocks:
         sym = (s.get("symbol") or "").upper()
@@ -316,13 +342,21 @@ def lambda_handler(event=None, context=None):
         sector = s.get("sector") or "Unknown"
         by_sector[sector] = by_sector.get(sector, 0) + 1
         by_bucket[cap_bucket] = by_bucket.get(cap_bucket, 0) + 1
-        
+        _exch = s.get("exchange") or s.get("exchangeShortName") or ""
+        _ctry = s.get("country") or ""
+        by_exchange[_exch or "?"] = by_exchange.get(_exch or "?", 0) + 1
+        _adr = bool(_ctry and _ctry.upper() not in ("US", "USA"))
+        if _adr:
+            n_adr += 1
+
         final_stocks.append({
             "symbol": sym,
             "name": s.get("companyName") or "",
             "sector": sector,
             "industry": s.get("industry") or "Unknown",
-            "exchange": s.get("exchange") or "",
+            "exchange": _exch,
+            "country": _ctry,
+            "is_adr": _adr,
             "market_cap": mc,
             "price": s.get("price"),
             "cap_bucket": cap_bucket,
@@ -333,14 +367,16 @@ def lambda_handler(event=None, context=None):
     final_stocks.sort(key=lambda x: -(x.get("market_cap") or 0))
 
     out = {
-        "schema_version": 3,
-        "method": "universe_builder_v3_multicap",
+        "schema_version": 4,
+        "method": "universe_builder_v4_exhaustive_bisection",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
             "total_stocks": len(final_stocks),
             "by_cap_bucket": by_bucket,
             "by_sector_top_10": dict(sorted(by_sector.items(), key=lambda x: -x[1])[:10]),
+            "by_exchange": by_exchange,
+            "n_adr": n_adr,
             "n_curated_seed_added": seed_added,
         },
         "cap_buckets": [

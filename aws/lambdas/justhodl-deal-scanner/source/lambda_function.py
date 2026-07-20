@@ -14,20 +14,29 @@ SOURCE: FMP /stable/news/press-releases-latest (official PRs across all tickers)
         + /stable/income-statement (revenue) + universe / FMP profile (market cap)
 OUTPUT data/deal-scanner.json   SCHEDULE every 3 hours (8 runs/day).
 v2.0.0: full-market boards (by_sector / by_cap / coverage, all 11 sectors, nano→mega)
+v3.0.0: institutional layer — ALL US-listed universe join (exhaustive universe-builder v4,
+        ADRs included; OTC/unlisted tape names flagged + barred from signals), event
+        taxonomy (M&A target/acquirer, gov contract, licensing, partnership, equity inv),
+        counterparty extraction + quality (GOV / HYPERSCALER / MEGACAP), promo-risk guard
+        (LOI/MOU/non-binding + nano-cap unnamed-counterparty pumps), SEC EDGAR 8-K Item 1.01
+        confirmation, chase-guard (event-study house finding: chasing loses), census +
+        13F dollar-flow overlays, and a persistent deal-history ledger with base-rate
+        event study (population fwd returns vs SPY by event type).
 + graded deal-win signals [5,21,63] vs SPY via shared signals_emit. Real data, research only.
 """
+import hashlib
 import json
 import re
 import time
 import urllib.request
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "2.0.0"
+VERSION = "3.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -327,6 +336,171 @@ def ai_tag(symbol, title, text, ai_universe):
     return (len(seen) > 0), seen[:5]
 
 
+# ── v3 institutional layer ──────────────────────────────────────────────
+EVENTS_ALL = ["contract_win", "govt_contract", "ma_target", "ma_acquirer",
+              "partnership", "licensing_supply", "equity_investment", "other"]
+
+_EV_PATTERNS = [
+    ("ma_target", re.compile(r"to be acquired|going.private|take[- ]private|receives?\s+(?:an?\s+)?(?:unsolicited\s+)?(?:acquisition|takeover|buyout)\s+(?:proposal|offer|bid)|merger agreement (?:with|under which)|per share in cash", re.I)),
+    ("ma_acquirer", re.compile(r"\b(?:to acquire|acquires|agreement to acquire|completes? (?:the )?acquisition of|to merge with|definitive (?:merger|acquisition) agreement)\b", re.I)),
+    ("govt_contract", re.compile(r"department of defense|\bdod\b|u\.?s\.? (?:army|navy|air force|space force)|\bdarpa\b|\bpentagon\b|\bgsa\b|\bnasa\b|\bidiq\b|task order|federal contract|government contract|department of energy|homeland security|defense contract", re.I)),
+    ("equity_investment", re.compile(r"strategic (?:equity )?investment (?:in|from)|equity stake|\bpipe\b financing|takes? .{0,20} stake", re.I)),
+    ("licensing_supply", re.compile(r"licens(?:e|ing) agreement|royalt(?:y|ies)|long[- ]term supply agreement|supply agreement", re.I)),
+    ("partnership", re.compile(r"strategic (?:partnership|collaboration|alliance)|joint venture|teams? up with|partners? with", re.I)),
+    ("contract_win", re.compile(r"award(?:ed|s)?|\bwins?\b|secures?|purchase order|order for|contract (?:to|for|with|valued)|design win|selected (?:by|to)|deploy", re.I)),
+]
+_NONBIND_RE = re.compile(r"letter of intent|\bloi\b|memorandum of understanding|\bmou\b|non[- ]binding", re.I)
+_PROMO_RE = re.compile(r"revolutionar|game[- ]chang|poised to|first[- ]of[- ]its[- ]kind|paradigm|disrupt(?:s|ive)", re.I)
+
+_CP_GOV = ["department of defense", " dod ", "u.s. army", "u.s. navy", "air force",
+           "space force", "darpa", "pentagon", "gsa", "nasa", "department of energy",
+           "homeland security", "federal government", "u.s. government"]
+_CP_HYPER = ["microsoft", "azure", "google", "alphabet", "amazon", "aws", "meta ",
+             "oracle", "nvidia", "openai", "anthropic", "xai", "coreweave", "tesla"]
+_CP_MEGA = ["apple", "boeing", "lockheed", "raytheon", "rtx", "northrop", "general dynamics",
+            "jpmorgan", "goldman", "berkshire", "exxon", "chevron", "walmart", "unitedhealth",
+            "johnson & johnson", "eli lilly", "pfizer", "broadcom", "qualcomm", "intel",
+            "samsung", "tsmc", "taiwan semiconductor", "at&t", "verizon", "comcast",
+            "general motors", "ford", "caterpillar", "honeywell", "ge aerospace", "siemens",
+            "airbus", "toyota", "volkswagen", "salesforce", "ibm", "dell", "cisco"]
+
+
+def classify_event(title, text):
+    blob = (title or "") + " " + (text or "")[:400]
+    for ev, rx in _EV_PATTERNS:
+        if rx.search(blob):
+            return ev
+    return "other"
+
+
+def counterparty(title, text, self_name):
+    """Who is the deal WITH — curated megacap/gov list scan → quality tier."""
+    blob = ((title or "") + " " + (text or "")[:400]).lower()
+    sn = (self_name or "").lower()[:18]
+    hits, q = [], None
+    for lst, tier in ((_CP_GOV, "GOV"), (_CP_HYPER, "HYPERSCALER"), (_CP_MEGA, "MEGACAP")):
+        for nm in lst:
+            if nm.strip() in blob and (not sn or nm.strip() not in sn):
+                hits.append(nm.strip())
+                q = q or tier
+    if not q:
+        q = "NAMED" if re.search(r"(?:with|from|for|by)\s+[A-Z][A-Za-z&.\-]{2,}", title or "") else "UNNAMED"
+    return hits[:3], q
+
+
+def promo_guard(title, text, cap_bucket, cp_quality, val):
+    """Institutional pump filter: non-binding paper + nano-cap unnamed-counterparty
+    sizeless 'deals' + heavy promo language never reach the signal book."""
+    blob = (title or "") + " " + (text or "")[:400]
+    nonbind = bool(_NONBIND_RE.search(blob))
+    promo_lang = len(_PROMO_RE.findall(blob)) >= 2
+    pump = (cap_bucket in ("nano", "micro") and cp_quality == "UNNAMED" and not val)
+    return (nonbind or promo_lang or pump), nonbind
+
+
+def load_universe_meta():
+    """Exhaustive universe-builder v4 feed → listed-set + per-symbol exchange."""
+    try:
+        u = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/universe.json")["Body"].read())
+        ex = {s0["symbol"]: (s0.get("exchange") or "") for s0 in u.get("stocks", []) if s0.get("symbol")}
+        return ex, (u.get("stats") or {}), u.get("generated_at")
+    except Exception:
+        return {}, {}, None
+
+
+def load_census():
+    """Nervous-system overlay (fundamental-census matrix) — same fields best-setups uses."""
+    out = {}
+    try:
+        mx = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/fundamental-census-matrix.json")["Body"].read())
+        C = mx.get("cols") or {}
+        col = lambda k: C.get(k) or [None] * len(mx.get("tickers") or [])
+        for i, t in enumerate(mx.get("tickers") or []):
+            out[t] = {"conviction": col("conviction_score")[i], "combo": col("combo_score")[i],
+                      "risk": col("risk_score")[i], "whale_usd_m": col("whale_net_usd_m")[i]}
+    except Exception as _e:
+        print("[deal-scanner] census overlay skipped:", str(_e)[:80])
+    return out
+
+
+def load_13f_flows():
+    """Per-ticker institutional dollar flows (13F complex): b/s/n $, whale wb/ws/wn, nf funds."""
+    try:
+        tf = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/13f-flows-by-ticker.json")["Body"].read())
+        return tf.get("t") or {}
+    except Exception:
+        return {}
+
+
+def load_8k_set(now):
+    """SEC EDGAR full-text search: 8-Ks citing Item 1.01 (material definitive agreement)
+    in the last 3 days → set of tickers with a filed confirmation. A PR without an 8-K
+    is unconfirmed paper; institutions check the filing. Fully non-fatal."""
+    try:
+        try:
+            ct = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="sec/company-tickers.json")["Body"].read())
+            if (now - datetime.fromisoformat(ct.get("_cached_at"))).days > 7:
+                raise ValueError("stale")
+            cmap = ct["map"]
+        except Exception:
+            raw = urllib.request.urlopen(urllib.request.Request(
+                "https://www.sec.gov/files/company_tickers.json",
+                headers={"User-Agent": "JustHodl research contact@justhodl.ai"}), timeout=25).read()
+            j = json.loads(raw)
+            cmap = {str(v["cik_str"]): v["ticker"] for v in j.values() if v.get("ticker")}
+            s3.put_object(Bucket=S3_BUCKET, Key="sec/company-tickers.json",
+                          Body=json.dumps({"_cached_at": now.isoformat(), "map": cmap}).encode(),
+                          ContentType="application/json")
+        d0 = (now - timedelta(days=3)).strftime("%Y-%m-%d")
+        d1 = now.strftime("%Y-%m-%d")
+        tks = set()
+        for frm in (0, 100, 200):
+            q = (f"https://efts.sec.gov/LATEST/search-index?q=%22Item%201.01%22&forms=8-K"
+                 f"&startdt={d0}&enddt={d1}&from={frm}")
+            raw = urllib.request.urlopen(urllib.request.Request(
+                q, headers={"User-Agent": "JustHodl research contact@justhodl.ai",
+                            "Accept": "application/json"}), timeout=20).read()
+            hits = (json.loads(raw).get("hits") or {}).get("hits") or []
+            if not hits:
+                break
+            for h in hits:
+                for cik in (h.get("_source") or {}).get("ciks") or []:
+                    tk = cmap.get(str(int(cik)))
+                    if tk:
+                        tks.add(tk)
+        return tks
+    except Exception as _e:
+        print("[deal-scanner] 8-K join skipped:", str(_e)[:80])
+        return None
+
+
+def _poly_closes(sym, d_from, d_to):
+    j = _http_json(f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(sym)}/range/1/day/"
+                   f"{d_from}/{d_to}?adjusted=true&sort=asc&limit=60&apiKey={POLYGON_KEY}")
+    if not isinstance(j, dict):
+        return []
+    return [(datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).strftime("%Y-%m-%d"), r.get("c"))
+            for r in (j.get("results") or []) if r.get("c")]
+
+
+def pop_since_announce(sym, announce_date, now):
+    """Chase-guard input: % move since the close before the announcement. House
+    event-study (ops 3344-47): CHASING LOSES — hit21 16.7%, median −406bps."""
+    try:
+        d_from = (datetime.strptime(announce_date, "%Y-%m-%d") - timedelta(days=6)).strftime("%Y-%m-%d")
+        cl = _poly_closes(sym, d_from, now.strftime("%Y-%m-%d"))
+        if len(cl) < 2:
+            return None
+        base = None
+        for dt_, c in cl:
+            if dt_ < announce_date:
+                base = c
+        base = base or cl[0][1]
+        return round((cl[-1][1] / base - 1) * 100, 1) if base else None
+    except Exception:
+        return None
+
+
 SECTOR_TO_SPDR = {
     "technology": "XLK", "information technology": "XLK",
     "financial services": "XLF", "financials": "XLF", "financial": "XLF",
@@ -382,6 +556,11 @@ def lambda_handler(event, context):
     ai_universe = load_ai_universe()
     sector_scores, sector_rotating_in, sector_conv, sector_posture = load_sector_signal()
     now = datetime.now(timezone.utc)
+    # v3 institutional joins (each cached / non-fatal)
+    exch_map, uni_stats, uni_gen = load_universe_meta()
+    census = load_census()
+    f13 = load_13f_flows()
+    sec8k = load_8k_set(now)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
     for pr in prs:
@@ -476,8 +655,22 @@ def lambda_handler(event, context):
         bil_boost = 45 if is_billion else 0                           # billion-dollar deals
         smbk = d["symbol"] in sm_long
         sm_boost = 22 if smbk else 0                                  # proven thematic 13F money is long this name
+        # ── v3: taxonomy, counterparty, listing, promo, 8-K, overlays ──
+        ev = classify_event(d["title"], txt)
+        cp_names, cp_q = counterparty(d["title"], txt, (mu or {}).get("name"))
+        listed = (d["symbol"] in exch_map) if exch_map else None
+        exch = exch_map.get(d["symbol"]) if exch_map else None
+        promo, nonbind = promo_guard(d["title"], txt, bkt, cp_q, val)
+        c8k = (d["symbol"] in sec8k) if sec8k is not None else None
+        cen = census.get(d["symbol"])
+        _f = f13.get(d["symbol"]) or {}
+        inst_flow = ({"net_usd": _f.get("n"), "whale_net_usd": _f.get("wn"),
+                      "n_funds": _f.get("nf")} if _f else None)
+        cp_boost = 25 if cp_q in ("GOV", "HYPERSCALER") else 8 if cp_q == "MEGACAP" else 0
+        v3_adj = cp_boost + (12 if c8k else 0) - (60 if promo else 0) \
+                 - (40 if ev == "ma_target" else 0) - (25 if listed is False else 0)
         score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
-                      + sec_boost + sm_boost + (8 if d["multi_year"] else 0), 1)
+                      + sec_boost + sm_boost + (8 if d["multi_year"] else 0) + v3_adj, 1)
         why_bits = []
         if d["deal_value_str"]:
             why_bits.append(f"{d['deal_value_str']}{' multi-year' if d['multi_year'] else ''} deal")
@@ -499,6 +692,16 @@ def lambda_handler(event, context):
             why_bits.append(f"{bkt}-cap — single contract moves the needle")
         if smbk:
             why_bits.append("★ smart money long (13F)")
+        if cp_q in ("GOV", "HYPERSCALER"):
+            why_bits.append(f"🏛 {cp_q.lower()} counterparty" + (f" ({cp_names[0]})" if cp_names else ""))
+        if c8k:
+            why_bits.append("📄 8-K Item 1.01 on file (SEC-confirmed)")
+        if ev == "ma_target":
+            why_bits.append("⚖️ M&A target — price pins to deal terms (arb, not drift)")
+        if promo:
+            why_bits.append("⚠️ promo-risk" + (" (non-binding LOI/MOU)" if nonbind else ""))
+        if listed is False:
+            why_bits.append("⚠️ not on NYSE/NASDAQ/AMEX (OTC/unlisted)")
         deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
             "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
@@ -508,6 +711,9 @@ def lambda_handler(event, context):
             "sector_conviction": sec_conv, "sector_posture": sec_post,
             "sector_rotating_in": sec_rot_in, "sector_tailwind": sector_tailwind,
             "smart_money_backed": smbk,
+            "event_type": ev, "counterparties": cp_names, "counterparty_quality": cp_q,
+            "listed": listed, "exchange": exch, "promo_risk": promo, "non_binding": nonbind,
+            "confirmed_8k": c8k, "census": cen, "inst_flow": inst_flow,
             "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
@@ -535,9 +741,11 @@ def lambda_handler(event, context):
         return {"n": 0, "n_sized": 0, "total_value_usd": 0.0, "n_green": 0, "n_ai": 0, "top": []}
     by_sector = {sn: _zero() for sn in SECTORS_ALL}
     by_cap = {c: _zero() for c in CAPS_ALL}
+    by_event = {e: _zero() for e in EVENTS_ALL}
     for d in deals:                                   # deals already score-sorted
         for board, key in ((by_sector, (d.get("sector") or "Unclassified")),
-                           (by_cap, (d.get("cap_bucket") or "unknown"))):
+                           (by_cap, (d.get("cap_bucket") or "unknown")),
+                           (by_event, (d.get("event_type") or "other"))):
             b = board.setdefault(key, _zero())
             b["n"] += 1
             if d.get("deal_value_usd"):
@@ -560,10 +768,91 @@ def lambda_handler(event, context):
         "sectors_with_deals": sum(1 for v in by_sector.values() if v["n"] > 0),
         "n_sectors_tracked": len(SECTORS_ALL),
         "caps_with_deals": sum(1 for v in by_cap.values() if v["n"] > 0),
+        "events_with_deals": sum(1 for v in by_event.values() if v["n"] > 0),
+        "universe": {"n_listed": (uni_stats or {}).get("total_stocks"),
+                     "n_adr": (uni_stats or {}).get("n_adr"),
+                     "by_exchange": (uni_stats or {}).get("by_exchange"),
+                     "generated_at": uni_gen,
+                     "note": "exhaustive universe-builder v4 — every NYSE/NASDAQ/AMEX common stock incl. ADRs; tape names outside it are OTC/unlisted (flagged, barred from signals)"},
+        "n_8k_item101_3d": (len(sec8k) if sec8k is not None else None),
         "runs_per_day": 8,
         "note": ("full-market: every ticker on the PR/news tape is eligible — no universe "
                  "filter, all caps nano→mega, all 11 GICS sectors"),
     }
+
+    # ── v3: persistent deal-history ledger + base-rate event study ─────────
+    # Institutions demand the POPULATION study, not just the signaled subset:
+    # every detected deal is ledgered; matured entries get fwd 5d/21d excess vs
+    # SPY filled from Polygon closes; base_rates aggregates by event type.
+    base_rates, hist_n, hist_filled = {}, 0, 0
+    try:
+        try:
+            _hist = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/deal-history.json")["Body"].read())
+            entries = _hist.get("entries") or {}
+        except Exception:
+            entries = {}
+        for d in deals:
+            if not d.get("published"):
+                continue
+            _ad = d["published"][:10]
+            _id = hashlib.sha1(f"{d['symbol']}|{_ad}|{(d['title'] or '')[:60]}".encode()).hexdigest()[:16]
+            if _id not in entries:
+                entries[_id] = {"sym": d["symbol"], "announce": _ad, "event_type": d.get("event_type"),
+                                "cap": d.get("cap_bucket"), "sector": d.get("sector"),
+                                "val": d.get("deal_value_usd"), "vs_mc": d.get("vs_market_cap_pct"),
+                                "highlight": d.get("highlight"), "promo": d.get("promo_risk"),
+                                "listed": d.get("listed"), "fwd5_ex": None, "fwd21_ex": None}
+        _cut = (now - timedelta(days=120)).strftime("%Y-%m-%d")
+        entries = {k: v for k, v in entries.items() if (v.get("announce") or "9999") >= _cut}
+        _spy = dict(_poly_closes("SPY", (now - timedelta(days=135)).strftime("%Y-%m-%d"),
+                                 now.strftime("%Y-%m-%d")))
+        _spy_days = sorted(_spy)
+
+        def _fwd(closes, spy_map, ad, n_td):
+            days = [x for x in closes if x[0] >= ad]
+            if len(days) <= n_td:
+                return None
+            b, e = days[0], days[n_td]
+            sb, se = spy_map.get(b[0]), spy_map.get(e[0])
+            if not (b[1] and e[1] and sb and se):
+                return None
+            return round(((e[1] / b[1]) - (se / sb)) * 100, 2)
+
+        _fills = 0
+        for _id, v in entries.items():
+            if _fills >= 40 or v.get("listed") is False:
+                continue
+            ad = v.get("announce")
+            need5 = v.get("fwd5_ex") is None and ad and len([x for x in _spy_days if x >= ad]) > 6
+            need21 = v.get("fwd21_ex") is None and ad and len([x for x in _spy_days if x >= ad]) > 22
+            if not (need5 or need21):
+                continue
+            cl = _poly_closes(v["sym"], ad, now.strftime("%Y-%m-%d"))
+            if not cl:
+                continue
+            if need5:
+                v["fwd5_ex"] = _fwd(cl, _spy, ad, 5)
+            if need21:
+                v["fwd21_ex"] = _fwd(cl, _spy, ad, 21)
+            _fills += 1
+        hist_filled = _fills
+        hist_n = len(entries)
+        for ev0 in EVENTS_ALL:
+            xs5 = sorted(v["fwd5_ex"] for v in entries.values()
+                         if v.get("event_type") == ev0 and v.get("fwd5_ex") is not None)
+            xs21 = sorted(v["fwd21_ex"] for v in entries.values()
+                          if v.get("event_type") == ev0 and v.get("fwd21_ex") is not None)
+            if xs5 or xs21:
+                base_rates[ev0] = {
+                    "n5": len(xs5), "med_fwd5_ex": (xs5[len(xs5) // 2] if xs5 else None),
+                    "n21": len(xs21), "med_fwd21_ex": (xs21[len(xs21) // 2] if xs21 else None),
+                    "hit21": (round(100 * sum(1 for x in xs21 if x > 0) / len(xs21), 1) if xs21 else None)}
+        s3.put_object(Bucket=S3_BUCKET, Key="data/deal-history.json",
+                      Body=json.dumps({"generated_at": now.isoformat(), "n": hist_n,
+                                       "base_rates": base_rates, "entries": entries}).encode(),
+                      ContentType="application/json")
+    except Exception as _e:
+        print("[deal-scanner] history ledger skipped:", str(_e)[:100])
 
     # ── v2.0.0: graded signals — material fresh deals enter the fleet loop ─
     logged = []
@@ -573,13 +862,31 @@ def lambda_handler(event, context):
         _cands = [d for d in deals
                   if d.get("age_h") is not None and d["age_h"] <= 30
                   and (d.get("highlight") == "green" or d.get("ai_megadeal")
-                       or (d.get("is_billion") and (d.get("vs_market_cap_pct") or 0) >= 5))]
+                       or (d.get("is_billion") and (d.get("vs_market_cap_pct") or 0) >= 5))
+                  # v3 institutional bar: listed only, no M&A-pinned targets, no promo paper
+                  and d.get("listed") is not False
+                  and d.get("event_type") != "ma_target"
+                  and not d.get("promo_risk")]
         for d in _cands[:10]:
             _px = yprice(d["symbol"])
             if not _px:
                 continue
             _conf = (0.66 if (d.get("ai_megadeal") and d.get("highlight") == "green")
                      else 0.62 if d.get("highlight") == "green" else 0.58)
+            # v3 conf adjustments + chase-guard (house event-study: chasing loses)
+            _pop = pop_since_announce(d["symbol"], (d.get("published") or "")[:10], now)
+            d["pop_since_announce_pct"] = _pop
+            _chased = _pop is not None and _pop >= 25
+            if _chased and not (d.get("ai_megadeal") and d.get("highlight") == "green"):
+                print(f"[deal-scanner] chase-guard skip {d['symbol']} pop={_pop}%")
+                continue
+            if d.get("counterparty_quality") in ("GOV", "HYPERSCALER"):
+                _conf += 0.04
+            if d.get("confirmed_8k"):
+                _conf += 0.03
+            if _chased:
+                _conf -= 0.06
+            _conf = round(max(0.50, min(0.74, _conf)), 2)
             _mat = d.get("materiality_pct")
             _mat_s = ("pre-revenue" if _mat == 9999.0
                       else f"{_mat}% of revenue" if _mat is not None else "rev n/a")
@@ -598,10 +905,18 @@ def lambda_handler(event, context):
                               "cap_bucket": d.get("cap_bucket"), "sector": d.get("sector"),
                               "highlight": d.get("highlight"),
                               "ai_megadeal": bool(d.get("ai_megadeal")),
+                              "event_type": d.get("event_type"),
+                              "counterparty_quality": d.get("counterparty_quality"),
+                              "confirmed_8k": d.get("confirmed_8k"),
+                              "pop_since_announce_pct": d.get("pop_since_announce_pct"),
+                              "exchange": d.get("exchange"),
                               "age_h": d.get("age_h")}):
                 logged.append({"ticker": d["symbol"], "conf": _conf,
                                "value": d.get("deal_value_str"),
-                               "vs_mc_pct": d.get("vs_market_cap_pct")})
+                               "vs_mc_pct": d.get("vs_market_cap_pct"),
+                               "event_type": d.get("event_type"),
+                               "confirmed_8k": d.get("confirmed_8k"),
+                               "pop_pct": d.get("pop_since_announce_pct")})
     except Exception as _e:
         print(f"[deal-scanner] signal emit skipped: {str(_e)[:100]}")
 
@@ -624,11 +939,15 @@ def lambda_handler(event, context):
             "top_high_materiality": sorted(high_mat, key=lambda x: x["materiality_pct"], reverse=True)[:15],
         },
         "deals": deals[:200],
-        "by_sector": by_sector, "by_cap": by_cap, "coverage": coverage,
+        "by_sector": by_sector, "by_cap": by_cap, "by_event": by_event,
+        "base_rates": base_rates, "history": {"n_entries": hist_n, "n_filled_this_run": hist_filled},
+        "coverage": coverage,
         "methodology": {
             "source": "FMP press-releases-latest + stock-latest + Polygon news — full-market, no universe filter",
             "coverage": "8 scans/day (every 3h); every ticker on the PR/news tape is eligible — all sectors, all cap tiers (nano→mega)",
             "signals": "material fresh deals (green / AI-mega / $1B+ ≥5% mcap, ≤30h old) → family deal-win, UP [5,21,63] vs SPY at announcement price; graded by the fleet loop, PROVEN gate applies",
+            "institutional_bar": "signals require: US-listed (NYSE/NASDAQ/AMEX incl. ADRs — OTC barred), not an M&A target (arb-pinned, no drift), not promo-risk (LOI/MOU/non-binding + nano-cap unnamed-counterparty pumps filtered); chase-guard skips names already +25% since announcement (house event-study: chasing loses); conf +0.04 GOV/HYPERSCALER counterparty, +0.03 SEC 8-K Item 1.01 confirmed",
+            "event_taxonomy": "every deal classified: contract_win / govt_contract / ma_target / ma_acquirer / partnership / licensing_supply / equity_investment / other — base-rate fwd 5d/21d excess vs SPY tracked per type in data/deal-history.json (population study, not just signaled subset)",
             "deal_filter": "strong deal-win language (awarded/wins/secures/contract/order/supply/"
                            "multi-year/LOI/MOU/design-win) minus financing/governance/earnings PRs",
             "deal_value": "largest $ figure parsed from title+text",
@@ -637,7 +956,7 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)", "smart-money-13f", "signals: justhodl-signals family deal-win"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "FMP income-statement", "universe-builder v4 (exhaustive US-listed incl. ADRs)", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)", "smart-money-13f", "SEC EDGAR 8-K Item 1.01 (efts full-text)", "fundamental-census matrix (overlay)", "13f-flows-by-ticker (inst $)", "Polygon aggs (base-rate study + chase-guard)", "signals: justhodl-signals family deal-win"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
@@ -645,6 +964,7 @@ def lambda_handler(event, context):
                   ContentType="application/json")
     print(f"[deal-scanner] prs={len(prs)} deals={len(deals)} sized={len(sized)} "
           f"small={len(small_deals)} highmat={len(high_mat)} logged={len(logged)} "
-          f"sectors={coverage['sectors_with_deals']}/11 {out['elapsed_s']}s")
+          f"sectors={coverage['sectors_with_deals']}/11 universe={coverage['universe'].get('n_listed')} "
+          f"8k={coverage.get('n_8k_item101_3d')} hist={hist_n}(+{hist_filled}) {out['elapsed_s']}s")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "n_prs": len(prs), "n_deals": len(deals),
             "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat), "logged": len(logged)})}
