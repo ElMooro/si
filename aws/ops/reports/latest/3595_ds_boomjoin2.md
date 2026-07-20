@@ -1,0 +1,17 @@
+# ops 3595 — deal-scanner sized-cards + industry-peer context
+
+**Status:** success  
+**Duration:** 171.0s  
+**Finished:** 2026-07-20T20:20:58+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `20:20:43` PASS  G1_config_heal — mem=1024 timeout=900 status=Successful
+- `20:20:49` PASS  G2_fields_live — v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=15 rev_growth=16 · sample RTX: $1 billion · 0.38% mcap · 1.1% rev · Aerospace & Defense boom 76.1 #6 · co rev 9.7% YoY
+- `20:20:58` PASS  G3_page_served — served: Sized Wins section + industry-peer context renderer
+- `20:20:58` VERDICT: PASS_ALL

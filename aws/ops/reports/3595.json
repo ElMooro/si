@@ -1,0 +1,32 @@
+{
+  "gates": {
+    "G1_config_heal": {
+      "ok": true,
+      "detail": "mem=1024 timeout=900 status=Successful"
+    },
+    "G2_fields_live": {
+      "ok": true,
+      "detail": "v3.2.1 deals=16 sized_not_green=4 industry=16 boom_join=15 rev_growth=16 \u00b7 sample RTX: $1 billion \u00b7 0.38% mcap \u00b7 1.1% rev \u00b7 Aerospace & Defense boom 76.1 #6 \u00b7 co rev 9.7% YoY"
+    },
+    "G3_page_served": {
+      "ok": true,
+      "detail": "served: Sized Wins section + industry-peer context renderer"
+    }
+  },
+  "sample": {
+    "symbol": "RTX",
+    "deal_value_str": "$1 billion",
+    "vs_market_cap_pct": 0.38,
+    "materiality_pct": 1.1,
+    "industry": "Aerospace & Defense",
+    "industry_boom": {
+      "score": 76.1,
+      "rank": 6,
+      "n": 120,
+      "delta_20d": 0.0
+    },
+    "rev_growth_pct": 9.7,
+    "highlight": null
+  },
+  "verdict": "PASS_ALL"
+}
