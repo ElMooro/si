@@ -42,8 +42,9 @@ td{padding:4px 8px;border-top:1px solid var(--border-soft)}
   <div class="card" id="c-auction"><div class="h2" style="color:var(--amber)">🏦 Auction Tail<span class="chip">auction-tail · [3,10,21] vs BIL</span></div><div id="b-auction" class="emptynote">…</div><div class="meth">Weak coupon auctions (tail ≥ +1.2bp or D/F composite) → DOWN the tenor's duration ETF; A-tier stop-throughs → UP. Carry-neutralized vs cash. Runs weekdays 16:20 after the grader.</div></div>
   <div class="card" id="c-stealth"><div class="h2" style="color:var(--blue)">🕵️ Stealth Flow<span class="chip">stealth-flow · [5,21] vs ladder bench</span></div><div id="b-stealth" class="emptynote">…</div><div class="meth">Fresh STEALTH-quadrant ETF detections (real inflows, flat price, |z|≥2 vs 60d) — the cohort the event study measured at 75% hit / +298bps over 5 days. Rare by construction; silence is correct.</div></div>
   <div class="card" id="c-fade"><div class="h2" style="color:var(--red)">🔄 Fade Desk<span class="chip">inv:* · mirrored, graded forward</span></div><div id="b-fade" class="emptynote">…</div><div class="meth">Alpha-triage verdicts drive this desk with zero code edits: RETIRE families are suppressed fleet-wide at emission; INVERT families (both-halves flip consistency + ≥30bps after cost) get shadow-mirrored as inv:&lt;family&gt; and graded fully out-of-sample.</div></div>
+  <div class="card" id="c-deals"><div class="h2" style="color:var(--amber)">🤝 Deal Wins<span class="chip">deal-win · [5,21,63] vs SPY</span></div><div id="b-deals" class="emptynote">…</div><div class="meth">Fresh material contract wins entered at announcement price — green (≥25% of revenue or ≥10% of mcap), AI mega-deals, and $1B+ awards ≥5% of mcap, ≤30h old. Full-market PR + news sweep 3×/day, no universe filter, all caps nano→mega. Board: <a href="/deal-scanner.html" style="color:var(--blue)">deal-scanner.html</a>.</div></div>
 </section>
-<footer class="max-w-[1200px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">Feeds: equity-ftd · congress-alpha · congress-filer-skill · cannibals · credit-composite · auction-tail · stealth-flow · alpha-triage · signal-suppress. Research only — not investment advice.</footer>
+<footer class="max-w-[1200px] mx-auto px-4 pb-12 text-xs text-[var(--text-muted)]">Feeds: equity-ftd · congress-alpha · congress-filer-skill · cannibals · credit-composite · auction-tail · stealth-flow · deal-scanner · alpha-triage · signal-suppress. Research only — not investment advice.</footer>
 <script>
 const PX='https://justhodl-data-proxy.raafouis.workers.dev/';
 const gj=k=>fetch(PX+k+'?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});
@@ -52,10 +53,10 @@ function tbl(cols,rows){return '<table><tr>'+cols.map(c=>'<th>'+c+'</th>').join(
 Promise.allSettled([
  gj('data/congress-alpha.json'),gj('data/congress-filer-skill.json'),gj('data/cannibals.json'),
  gj('data/credit-composite.json'),gj('data/auction-tail.json'),gj('data/stealth-flow.json'),
- gj('data/alpha-triage.json'),gj('data/signal-suppress.json'),gj('data/equity-ftd.json')
-]).then(([ca,sk,cb,cc,at,sf,tr,sp,fd])=>{
+ gj('data/alpha-triage.json'),gj('data/signal-suppress.json'),gj('data/equity-ftd.json'),gj('data/deal-scanner.json')
+]).then(([ca,sk,cb,cc,at,sf,tr,sp,fd,dw])=>{
   const V=x=>x.status==='fulfilled'?x.value:null;
-  const A=V(ca),K=V(sk),B=V(cb),C=V(cc),T=V(at),S=V(sf),R=V(tr),P=V(sp),F2=V(fd);
+  const A=V(ca),K=V(sk),B=V(cb),C=V(cc),T=V(at),S=V(sf),R=V(tr),P=V(sp),F2=V(fd),DW=V(dw);
   document.getElementById('stamp').textContent='feeds loaded '+new Date().toLocaleString();
   if(A){const rows=(A.plans||[]).map(p=>[esc(p.filer),'<b style="color:var(--blue)">'+esc(p.ticker)+'</b>',esc(p.amount||'—'),esc(p.tx_date||'—'),p.proven_filer?'<span style="color:var(--green)">PROVEN</span>':'']);
     let h=rows.length?tbl(['Filer','Ticker','Amount','Traded',''],rows):'<div class="emptynote">No fresh purchases in the current window.</div>';
@@ -81,6 +82,11 @@ Promise.allSettled([
       return [esc(f),'<b style="color:'+(v.verdict==='INVERT'?'var(--green)':'var(--red)')+'">'+esc(v.verdict)+'</b>',wk.n??'—',(wk.hit!=null?(100*wk.hit).toFixed(0)+'%':'—'),(wk.flip_avg_after_cost_pct!=null?wk.flip_avg_after_cost_pct+'%':'—')];});
     let sup=(P&&P.suppressed)||[];
     document.getElementById('b-fade').innerHTML=(rows.length?tbl(['Family','Verdict','n','Hit','Flip after cost'],rows):'<div class="emptynote">Triage feed unavailable.</div>')+'<div class="meth mono">'+sup.length+' families suppressed fleet-wide at emission · INVERTs mirrored daily 22:10 as inv:&lt;family&gt;</div>';}
+  if(DW){const sm=DW.summary||{};const sig=sm.signals||[];
+    const rows=(sig.length?sig:((sm.green_highlights||[]).slice(0,6).map(g=>({ticker:g.symbol,value:g.deal_value_str,vs_mc_pct:g.vs_market_cap_pct,conf:null}))))
+      .map(x=>['<b style="color:var(--blue)">'+esc(x.ticker)+'</b>',esc(x.value||'—'),(x.vs_mc_pct!=null?(+x.vs_mc_pct).toFixed(1)+'%':'—'),(x.conf!=null?x.conf:'')]);
+    document.getElementById('b-deals').innerHTML=(rows.length?tbl(['Ticker','Deal','vs MCap','Conf'],rows):'<div class="emptynote">No material fresh deal in the current window — the family only fires on transformative wins (green / AI-mega / $1B+).</div>')
+      +'<div class="meth mono">'+(sm.n_deals||0)+' deal wins on tape · '+(sm.n_green||0)+' green · '+(sm.n_ai||0)+' AI · '+(sm.signals_logged||0)+' graded signals this run · '+((DW.coverage||{}).sectors_with_deals||0)+'/'+((DW.coverage||{}).n_sectors_tracked||11)+' sectors covered</div>';}
 }).catch(e=>{document.getElementById('stamp').textContent='load error: '+e.message;});
 </script>
 </body>

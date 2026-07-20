@@ -180,6 +180,7 @@ def load_all():
         "primary_dealers":"data/nyfed-primary-dealer.json",
         "ofr_stfm":"data/ofr-stfm.json",
         "settlement_fails":"data/settlement-fails.json",
+        "deal_scanner":"data/deal-scanner.json",
         "risk_recommendations":"risk/recommendations.json",
         # ─── Earnings tracker (#3) ────────────────────────────────
         "earnings":"data/earnings-tracker.json",
@@ -350,6 +351,10 @@ def extract_metrics(data,weights):
         "dealer_turnover_x":_pc.get("turnover_velocity"),
         "fails_regime":((_sf.get("signal") or {}).get("regime")),
         "fails_spike_classes":[x.get("key") for x in (_sf.get("classes") or []) if (x.get("stats") or {}).get("spike")][:3],
+        # ─── deal-scanner (ops 3572) ───
+        "fresh_deal_wins":[f"{x.get('symbol')} {x.get('deal_value_str') or 'sized'} ({x.get('vs_market_cap_pct')}% mcap{', AI-mega' if x.get('ai_megadeal') else ''})"
+                          for x in (((data.get("deal_scanner") or {}).get("summary") or {}).get("green_highlights") or [])[:5]],
+        "deal_signals_today":(((data.get("deal_scanner") or {}).get("summary") or {})).get("signals_logged"),
         "gcf_tri_bp":(round((_ven.get("GCF",{}).get("rate_pct")-_ven.get("TRI",{}).get("rate_pct"))*100,1) if _ven.get("GCF",{}).get("rate_pct") is not None and _ven.get("TRI",{}).get("rate_pct") is not None else None),
         "ofr_fsi":((_of.get("fsi") or {}).get("latest")),
         "ofr_fsi_pctile26y":((_of.get("fsi") or {}).get("pctile_full")),

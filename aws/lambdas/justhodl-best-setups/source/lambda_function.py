@@ -1323,6 +1323,22 @@ def lambda_handler(event, context):
                 _playbook_ctx.append(_row)
         except Exception as _e:
             print(f"[playbook-ctx] {str(_e)[:60]}")
+        _deal_idx = {}                                  # ops 3572: fresh deal-win context
+        try:
+            for _dd in (read_json("data/deal-scanner.json", {}) or {}).get("deals", []) or []:
+                _dt = str(_dd.get("symbol") or "").upper()
+                if not _dt or (_dd.get("age_h") or 999) > 72:
+                    continue
+                if _dt not in _deal_idx or (_dd.get("score") or 0) > (_deal_idx[_dt].get("score") or 0):
+                    _deal_idx[_dt] = {"value": _dd.get("deal_value_str"),
+                                      "vs_mc_pct": _dd.get("vs_market_cap_pct"),
+                                      "materiality_pct": _dd.get("materiality_pct"),
+                                      "highlight": _dd.get("highlight"),
+                                      "ai_megadeal": bool(_dd.get("ai_megadeal")),
+                                      "age_h": _dd.get("age_h"), "score": _dd.get("score"),
+                                      "title": (_dd.get("title") or "")[:120]}
+        except Exception as _e:
+            print(f"[deal-ctx] {str(_e)[:60]}")
         for _s in setups[:25]:
             _tk = str(_s.get("ticker") or "").upper()
             def _canon_sec(x):
@@ -1343,6 +1359,9 @@ def lambda_handler(event, context):
             _cc = census_idx(s3, S3_BUCKET).get(_tk)
             if _cc:
                 _s["census_context"] = _cc
+            _dw2 = _deal_idx.get(_tk)
+            if _dw2:                                    # ops 3572: deal-win chip
+                _s["deal_context"] = _dw2
             _os = _ocm.get(_tk)
             _s["options_confluence_score"] = _os
             if _os is not None and _os >= 70:

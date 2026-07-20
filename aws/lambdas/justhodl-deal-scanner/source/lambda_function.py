@@ -12,7 +12,9 @@ reported revenue for several quarters, but the stock can move now.
 
 SOURCE: FMP /stable/news/press-releases-latest (official PRs across all tickers)
         + /stable/income-statement (revenue) + universe / FMP profile (market cap)
-OUTPUT data/deal-scanner.json   SCHEDULE daily 22:00 UTC. Real data, research only.
+OUTPUT data/deal-scanner.json   SCHEDULE 3x/day 13:30/17:30/22:00 UTC.
+v2.0.0: full-market boards (by_sector / by_cap / coverage, all 11 sectors, nano→mega)
++ graded deal-win signals [5,21,63] vs SPY via shared signals_emit. Real data, research only.
 """
 import json
 import re
@@ -25,12 +27,11 @@ from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
 POLYGON_KEY = "zvEY_KYYMHoAN0JqY7n2Ze6q0kBuJX_d"
-BENZINGA_KEY = "bzMJ62WO2YP2OKVIE2YSF4ZWVSVOJ6CTNP"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 CAP_BOOST = {"nano": 35, "micro": 28, "small": 20, "mid": 8, "large": 3, "mega": 0}
@@ -112,7 +113,7 @@ def _fmp(path, retries=2):
             return None
 
 
-def fetch_news(pages=8, limit=100):
+def fetch_news(pages=14, limit=100):
     """Scan BOTH official company PRs and third-party financial news (catches widely-reported
     billion-dollar deals that aren't self-announced)."""
     out = []
@@ -122,8 +123,10 @@ def fetch_news(pages=8, limit=100):
         d = _fmp(f"news/{feed}?page={p}&limit={limit}")
         items = d if isinstance(d, list) else []
         tr = "pr" if feed == "press-releases-latest" else "news"
+        org = "fmp_pr" if feed == "press-releases-latest" else "fmp_news"
         for it in items:
             it["trust"] = tr
+            it["origin"] = org
         return items
     tasks = [("press-releases-latest", p) for p in range(pages)] + \
             [("stock-latest", p) for p in range(pages)]
@@ -142,7 +145,7 @@ def _http_json(url, timeout=15):
         return None
 
 
-def fetch_polygon(limit=100, pages=3):
+def fetch_polygon(limit=100, pages=8):
     """Polygon news — wide third-party coverage, multi-ticker tagged."""
     out, url = [], (f"https://api.polygon.io/v2/reference/news?limit={limit}"
                     f"&order=desc&sort=published_utc&apiKey={POLYGON_KEY}")
@@ -158,36 +161,11 @@ def fetch_polygon(limit=100, pages=3):
                         "text": a.get("description") or "",
                         "publishedDate": (a.get("published_utc") or "").replace("T", " ")[:19],
                         "publisher": (a.get("publisher") or {}).get("name") or "Polygon",
-                        "url": a.get("article_url"), "trust": "news"})
+                        "url": a.get("article_url"), "trust": "news", "origin": "polygon"})
         nu = j.get("next_url")
         if not nu:
             break
         url = nu + f"&apiKey={POLYGON_KEY}"
-    return out
-
-
-def fetch_benzinga(pagesize=100, pages=2):
-    """Benzinga news — fast deal/PR coverage, ticker-tagged."""
-    out = []
-    for p in range(pages):
-        j = _http_json(f"https://api.benzinga.com/api/v2/news?token={BENZINGA_KEY}"
-                       f"&pageSize={pagesize}&page={p}&displayOutput=full")
-        items = j if isinstance(j, list) else (j.get("data") if isinstance(j, dict) else None)
-        if not isinstance(items, list) or not items:
-            break
-        for a in items:
-            stocks = a.get("stocks") or []
-            sym = stocks[0].get("name") if (stocks and isinstance(stocks[0], dict)) else None
-            if not sym:
-                continue
-            try:
-                pub = parsedate_to_datetime(a.get("created")).strftime("%Y-%m-%d %H:%M:%S")
-            except Exception:
-                pub = ""
-            out.append({"symbol": sym, "title": a.get("title"),
-                        "text": a.get("teaser") or a.get("body") or "",
-                        "publishedDate": pub, "publisher": "Benzinga", "url": a.get("url"),
-                        "trust": "news"})
     return out
 
 
@@ -398,9 +376,9 @@ def lambda_handler(event, context):
     except Exception:
         uni = {}
 
-    prs = fetch_news(pages=8, limit=100)
-    prs += fetch_polygon(limit=100, pages=3)   # wider third-party AI-deal coverage
-    prs += fetch_benzinga(pagesize=100, pages=2)
+    prs = fetch_news(pages=14, limit=100)        # v2: full-market sweep, both FMP feeds, deeper pages
+    prs += fetch_polygon(limit=100, pages=8)     # wider third-party coverage
+    # Benzinga leg REMOVED 2026-07-15: Massive stopped serving Benzinga (403 NOT_AUTHORIZED)
     ai_universe = load_ai_universe()
     sector_scores, sector_rotating_in, sector_conv, sector_posture = load_sector_signal()
     now = datetime.now(timezone.utc)
@@ -433,7 +411,7 @@ def lambda_handler(event, context):
                           "text_snippet": (pr.get("text") or "")[:300]})
 
     # cross-ref revenue + cap for unique tickers (bounded)
-    tickers = list({d["symbol"] for d in deals_raw})[:300]
+    tickers = list({d["symbol"] for d in deals_raw})[:450]
     info = {}
     with ThreadPoolExecutor(max_workers=20) as ex:
         fut = {ex.submit(revenue_and_cap, s, uni): s for s in tickers}
@@ -542,24 +520,115 @@ def lambda_handler(event, context):
     sized = [d for d in deals if d["deal_value_usd"]]
     high_mat = [d for d in deals if d["materiality_pct"] and d["materiality_pct"] >= 25]
 
+    # ── v2.0.0: full-market boards — every sector, every cap tier ──────────
+    SECTORS_ALL = ["Technology", "Financial Services", "Healthcare", "Industrials",
+                   "Energy", "Basic Materials", "Consumer Defensive", "Consumer Cyclical",
+                   "Utilities", "Real Estate", "Communication Services"]
+    CAPS_ALL = ["nano", "micro", "small", "mid", "large", "mega"]
+
+    def _slim(d):
+        return {k: d.get(k) for k in ("symbol", "name", "title", "deal_value_str",
+                                      "vs_market_cap_pct", "materiality_pct", "highlight",
+                                      "ai_relevant", "ai_megadeal", "score", "age_h", "url")}
+
+    def _zero():
+        return {"n": 0, "n_sized": 0, "total_value_usd": 0.0, "n_green": 0, "n_ai": 0, "top": []}
+    by_sector = {sn: _zero() for sn in SECTORS_ALL}
+    by_cap = {c: _zero() for c in CAPS_ALL}
+    for d in deals:                                   # deals already score-sorted
+        for board, key in ((by_sector, (d.get("sector") or "Unclassified")),
+                           (by_cap, (d.get("cap_bucket") or "unknown"))):
+            b = board.setdefault(key, _zero())
+            b["n"] += 1
+            if d.get("deal_value_usd"):
+                b["n_sized"] += 1
+                b["total_value_usd"] = round(b["total_value_usd"] + d["deal_value_usd"], 0)
+            if d.get("highlight") == "green":
+                b["n_green"] += 1
+            if d.get("ai_relevant"):
+                b["n_ai"] += 1
+            if len(b["top"]) < 3:
+                b["top"].append(_slim(d))
+    src_counts = {}
+    for p in prs:
+        _o = p.get("origin") or "other"
+        src_counts[_o] = src_counts.get(_o, 0) + 1
+    coverage = {
+        "sources": src_counts, "n_items": len(prs),
+        "n_unique_tickers_in_tape": len({p.get("symbol") for p in prs if p.get("symbol")}),
+        "n_tickers_crossref": len(tickers),
+        "sectors_with_deals": sum(1 for v in by_sector.values() if v["n"] > 0),
+        "n_sectors_tracked": len(SECTORS_ALL),
+        "caps_with_deals": sum(1 for v in by_cap.values() if v["n"] > 0),
+        "runs_per_day": 3,
+        "note": ("full-market: every ticker on the PR/news tape is eligible — no universe "
+                 "filter, all caps nano→mega, all 11 GICS sectors"),
+    }
+
+    # ── v2.0.0: graded signals — material fresh deals enter the fleet loop ─
+    logged = []
+    try:
+        from signals_emit import log_signal, yprice
+        _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
+        _cands = [d for d in deals
+                  if d.get("age_h") is not None and d["age_h"] <= 30
+                  and (d.get("highlight") == "green" or d.get("ai_megadeal")
+                       or (d.get("is_billion") and (d.get("vs_market_cap_pct") or 0) >= 5))]
+        for d in _cands[:10]:
+            _px = yprice(d["symbol"])
+            if not _px:
+                continue
+            _conf = (0.66 if (d.get("ai_megadeal") and d.get("highlight") == "green")
+                     else 0.62 if d.get("highlight") == "green" else 0.58)
+            _mat = d.get("materiality_pct")
+            _mat_s = ("pre-revenue" if _mat == 9999.0
+                      else f"{_mat}% of revenue" if _mat is not None else "rev n/a")
+            if log_signal(
+                    _tbl, "deal-win", d["symbol"], "UP", [5, 21, 63], _px,
+                    confidence=_conf,
+                    rationale=(f"deal-win: {d.get('deal_value_str') or 'sized deal'}"
+                               f"{' AI-mega' if d.get('ai_megadeal') else ''} = "
+                               f"{d.get('vs_market_cap_pct')}% of mcap / {_mat_s} "
+                               f"→ UP vs SPY at announcement"),
+                    benchmark="SPY",
+                    metadata={"engine": "deal-scanner",
+                              "deal_value_usd": d.get("deal_value_usd"),
+                              "vs_mc_pct": d.get("vs_market_cap_pct"),
+                              "materiality_pct": _mat,
+                              "cap_bucket": d.get("cap_bucket"), "sector": d.get("sector"),
+                              "highlight": d.get("highlight"),
+                              "ai_megadeal": bool(d.get("ai_megadeal")),
+                              "age_h": d.get("age_h")}):
+                logged.append({"ticker": d["symbol"], "conf": _conf,
+                               "value": d.get("deal_value_str"),
+                               "vs_mc_pct": d.get("vs_market_cap_pct")})
+    except Exception as _e:
+        print(f"[deal-scanner] signal emit skipped: {str(_e)[:100]}")
+
     out = {
         "engine": "deal-scanner", "version": VERSION,
         "generated_at": now.isoformat(),
-        "window": "rolling latest press releases (~last 24-48h)",
+        "window": "rolling PR + news tape (~last 24-72h), rescanned 3x/day",
         "summary": {
             "n_prs_scanned": len(prs), "n_deals": len(deals), "n_with_size": len(sized),
             "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat),
             "n_green": len(green), "n_yellow": len(yellow),
             "n_ai": len(ai_deals), "n_ai_mega": len(ai_mega),
+            "signals_logged": len(logged), "signals": logged,
+            "sectors_with_deals": coverage["sectors_with_deals"],
+            "caps_with_deals": coverage["caps_with_deals"],
             "ai_megadeals": ai_mega, "ai_deals": ai_deals[:25],
             "green_highlights": green, "yellow_highlights": yellow[:20],
             "top_deals": deals[:20],
             "top_smallcap_deals": small_deals[:15],
             "top_high_materiality": sorted(high_mat, key=lambda x: x["materiality_pct"], reverse=True)[:15],
         },
-        "deals": deals[:120],
+        "deals": deals[:200],
+        "by_sector": by_sector, "by_cap": by_cap, "coverage": coverage,
         "methodology": {
-            "source": "FMP press-releases-latest (official company PRs)",
+            "source": "FMP press-releases-latest + stock-latest + Polygon news — full-market, no universe filter",
+            "coverage": "3 scans/day (13:30/17:30/22:00 UTC); every ticker on the PR/news tape is eligible — all sectors, all cap tiers (nano→mega)",
+            "signals": "material fresh deals (green / AI-mega / $1B+ ≥5% mcap, ≤30h old) → family deal-win, UP [5,21,63] vs SPY at announcement price; graded by the fleet loop, PROVEN gate applies",
             "deal_filter": "strong deal-win language (awarded/wins/secures/contract/order/supply/"
                            "multi-year/LOI/MOU/design-win) minus financing/governance/earnings PRs",
             "deal_value": "largest $ figure parsed from title+text",
@@ -568,13 +637,14 @@ def lambda_handler(event, context):
             "caveat": "size parsed from PR text (may misparse); 'not yet in revenue' inferred from announcement "
                       "freshness — a fresh award lags reported revenue by quarters",
         },
-        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "Benzinga news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)"],
+        "sources": ["FMP news/press-releases-latest", "FMP news/stock-latest", "Polygon news", "FMP income-statement", "universe", "FMP profile", "ai-infra-stack (AI universe)", "sector-rotation (sector tailwind)", "smart-money-13f", "signals: justhodl-signals family deal-win"],
         "disclaimer": "Announcement-driven forward-revenue signal. Real data, research only — not advice.",
         "elapsed_s": round(time.time() - t0, 2),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=json.dumps(out).encode(),
                   ContentType="application/json")
     print(f"[deal-scanner] prs={len(prs)} deals={len(deals)} sized={len(sized)} "
-          f"small={len(small_deals)} highmat={len(high_mat)} {out['elapsed_s']}s")
+          f"small={len(small_deals)} highmat={len(high_mat)} logged={len(logged)} "
+          f"sectors={coverage['sectors_with_deals']}/11 {out['elapsed_s']}s")
     return {"statusCode": 200, "body": json.dumps({"ok": True, "n_prs": len(prs), "n_deals": len(deals),
-            "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat)})}
+            "n_small_cap": len(small_deals), "n_high_materiality": len(high_mat), "logged": len(logged)})}

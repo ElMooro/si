@@ -1224,7 +1224,24 @@ def lambda_handler(event, context):
     _sqf_idx = {(r.get("ticker") or "").upper():
                 {"score": r.get("score"), "state": r.get("state")}
                 for r in (_sqf.get("board") or []) if r.get("ticker")}
+    _deal_idx = {}                                      # ops 3572: fresh deal-win overlay
+    try:
+        for _dd in (fetch_json("data/deal-scanner.json") or {}).get("deals", []) or []:
+            _dt = str(_dd.get("symbol") or "").upper()
+            if not _dt or (_dd.get("age_h") or 999) > 72:
+                continue
+            if _dt not in _deal_idx or (_dd.get("score") or 0) > (_deal_idx[_dt].get("score") or 0):
+                _deal_idx[_dt] = {"value": _dd.get("deal_value_str"),
+                                  "vs_mc_pct": _dd.get("vs_market_cap_pct"),
+                                  "materiality_pct": _dd.get("materiality_pct"),
+                                  "highlight": _dd.get("highlight"),
+                                  "ai_megadeal": bool(_dd.get("ai_megadeal")),
+                                  "age_h": _dd.get("age_h"), "score": _dd.get("score"),
+                                  "title": (_dd.get("title") or "")[:120]}
+    except Exception:
+        _deal_idx = {}
     n_kill = n_sqf = n_notes = 0
+    n_deal = 0
     for t in top_tickers:
         if t["ticker"] in _kill_idx:
             t["kill_risk"] = _kill_idx[t["ticker"]]
@@ -1242,7 +1259,10 @@ def lambda_handler(event, context):
         if t["ticker"] in _sqf_idx:
             t["squeeze_fuel"] = _sqf_idx[t["ticker"]]
             n_sqf += 1
-    print(f"[ranker] fusion overlays: kill_risk={n_kill} squeeze_fuel={n_sqf} khalid_notes={n_notes}")
+        if t["ticker"] in _deal_idx:                    # ops 3572: deal-win overlay
+            t["deal_win"] = _deal_idx[t["ticker"]]
+            n_deal += 1
+    print(f"[ranker] fusion overlays: kill_risk={n_kill} squeeze_fuel={n_sqf} khalid_notes={n_notes} deal_wins={n_deal}")
 
     _ck = fetch_json("data/chokepoint.json") or {}
     _structural = _ck.get("structural_names") or {}
