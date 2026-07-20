@@ -1,0 +1,24 @@
+- `01:40:49`   zip: 92735 bytes
+## 1. Lambda
+**Status:** success  
+**Duration:** 161.1s  
+**Finished:** 2026-07-20T01:43:30+00:00  
+
+## Log
+
+- `01:40:49`   Lambda exists — updating
+- `01:40:52` ✅   ✓ updated justhodl-fundamental-census
+- `01:40:55`   zip: 87820 bytes
+## 1. Lambda
+
+- `01:40:55`   Lambda exists — updating
+- `01:41:00` ✅   ✓ updated justhodl-etf-census
+- `01:41:03`   zip: 86892 bytes
+## 1. Lambda
+
+- `01:41:03`   Lambda exists — updating
+- `01:41:08` ✅   ✓ updated justhodl-fi-census
+- `01:42:21` FAIL  D2_flagship — 'n'
+- `01:42:48` PASS  D3_etf — {'n': 80, 'best_rr': [('USMV', 8.17, 24.5, 3.0), ('EMB', 7.02, 21.1, 3.0), ('BIL', 6.96, 20.9, 3.0), ('TIP', 5.89, 17.7, 3.0), ('XLF', 4.42, 26.4, 6.0), ('MUB', 4.3, 12.9, 3.0), ('TLT', 3.99, 12.0, 3.0), ('BND', 3.87, 11.6, 3.0)], 'worst_rr': [('SOXX', 0.7, 27.4, 39.3), ('USO', 0.64, 24.2, 38.1), ('SQQQ', 0.62, 29.6, 47.7), ('SOXS', 0.58, 48.4, 83.6), ('UVXY', 0.57, 36.5, 64.3), ('SPXL', 0.49, 21.8, 44.2), ('TQQQ', 0.43, 27.3, 62.8), ('SOXL', 0.22, 42.5, 190.5)], 'lev_in_bottom8': 6}
+- `01:43:08` PASS  D4_fi — {'n': 45, 'best_rr': [('FLOT', 8.81, 13.2, 1.5), ('SRLN', 8.4, 12.6, 1.5), ('JNK', 8.29, 12.4, 1.5), ('SGOV', 8.2, 12.3, 1.5), ('USFR', 8.12, 12.2, 1.5), ('HYG', 8.06, 12.1, 1.5), ('SHYG', 8.04, 12.1, 1.5), ('TFLO', 7.95, 11.9, 1.5)], 'srln_up': 12.6, 'bil_up': 11.8}
+- `01:43:30` PASS  D5_pages — fxRR served + node x3
