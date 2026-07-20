@@ -1,0 +1,7 @@
+- `05:45:27` PASS  N1_final — {"generated_at": "2026-07-20T05:44:58.600554+00:00", "metrics_total": 293, "raw>=400": 30, "stats>=400": 43, "n_pe_fwd": 482, "low_cov": [["inventory_turnover", 389]], "cheapest_fwd": [["SNDK", 3.886], ["GPN", 4.715], ["CHTR", 5.13], ["VTRS", 5.499], ["GM", 5.756], ["EG", 6.177], ["MPC", 6.401], ["MU", 6.427]], "spots": {"WMT_days_inventory": 41.97, "WMT_inv_turnover": 8.697, "MSFT_pe_fwd": 19.96, "COST_graham": 183.673, "AAPL_netChangeInCash": 255000000.0}}
+**Status:** success  
+**Duration:** 0.3s  
+**Finished:** 2026-07-20T05:45:27+00:00  
+
+## Log
+

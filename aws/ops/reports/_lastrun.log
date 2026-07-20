@@ -1,10 +1,6 @@
-executing-against: 4c8badfb92d94120a3f7028ffa343aace3a79b8b
-PASS  L1_probe — {'probe': {'WMT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'MSFT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'AAPL': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}}, 'scan_lied': False}
-[04:42:57] PASS  L1_probe — {'probe': {'WMT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'MSFT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'AAPL': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}}, 'scan_lied': False}
-[scan2] 0/496 missing=1 0s
-[scan2] 120/496 missing=121 20s
-[scan2] 240/496 missing=241 40s
-[scan2] 360/496 missing=361 60s
-[scan2] 480/496 missing=481 80s
-PASS  L2_scan — {'true_missing': 496, 'sample': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN', 'MU', 'CMS', 'EVRG'], 'scan_s': 82.1}
-[04:44:19] PASS  L2_scan — {'true_missing': 496, 'sample': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN', 'MU', 'CMS', 'EVRG'], 'scan_s': 82.1}
+executing-against: accffbe0b7ffe6f856db99cb94648770c2096e7b
+PASS  N1_final — {"generated_at": "2026-07-20T05:44:58.600554+00:00", "metrics_total": 293, "raw>=400": 30, "stats>=400": 43, "n_pe_fwd": 482, "low_cov": [["inventory_turnover", 389]], "cheapest_fwd": [["SNDK", 3.886], ["GPN", 4.715], ["CHTR", 5.13], ["VTRS", 5.499], ["GM", 5.756], ["EG", 6.177], ["MPC", 6.401], ["MU", 6.427]], "spots": {"WMT_days_inventory": 41.97, "WMT_inv_turnover": 8.697, "MSFT_pe_fwd": 19.96, "COST_graham": 183.673, "AAPL_netChangeInCash": 255000000.0}}
+[05:45:27] PASS  N1_final — {"generated_at": "2026-07-20T05:44:58.600554+00:00", "metrics_total": 293, "raw>=400": 30, "stats>=400": 43, "n_pe_fwd": 482, "low_cov": [["inventory_turnover", 389]], "cheapest_fwd": [["SNDK", 3.886], ["GPN", 4.715], ["CHTR", 5.13], ["VTRS", 5.499], ["GM", 5.756], ["EG", 6.177], ["MPC", 6.401], ["MU", 6.427]], "spots": {"WMT_days_inventory": 41.97, "WMT_inv_turnover": 8.697, "MSFT_pe_fwd": 19.96, "COST_graham": 183.673, "AAPL_netChangeInCash": 255000000.0}}
+RESULT: ALL PASS
+
+→ Report written to aws/ops/reports/latest/3570_final_numbers.md
