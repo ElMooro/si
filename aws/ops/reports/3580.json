@@ -1,0 +1,62 @@
+{
+  "gates": {
+    "G1_settled_3111": {
+      "ok": true,
+      "detail": "markers ok=True mem=1024 timeout=900"
+    },
+    "G2_hist_backfill": {
+      "ok": false,
+      "detail": "hist90: prs=16798 deals=28 ledger=104 filled=45 \u00b7 ledger=104 \u00b7 base_rates: contract_win: n5=24 med5=-5.71% n21=7 med21=5.15% hit21=57.1% | govt_contract: n5=3 med5=-5.3% n21=1 med21=1.83% hit21=100.0% | partnership: n5=1 med5=-7.74% n21=0 med21=None% hit21=None% | licensing_supply: n5=8 med5=-0.26% n21=8 med21=-6.82% hit21=37.5% | equity_investment: n5=1 med5=-5.0% n21=0 med21=None% hit21=None% | other: n5=7 med5=0.17% n21=0 med21=None% hit21=None%"
+    },
+    "G3_feed_base_rates": {
+      "ok": true,
+      "detail": "feed base_rate types=['contract_win', 'govt_contract', 'partnership', 'licensing_supply', 'equity_investment', 'other'] history.n=104"
+    }
+  },
+  "base_rates": {
+    "contract_win": {
+      "n5": 24,
+      "med_fwd5_ex": -5.71,
+      "n21": 7,
+      "med_fwd21_ex": 5.15,
+      "hit21": 57.1
+    },
+    "govt_contract": {
+      "n5": 3,
+      "med_fwd5_ex": -5.3,
+      "n21": 1,
+      "med_fwd21_ex": 1.83,
+      "hit21": 100.0
+    },
+    "partnership": {
+      "n5": 1,
+      "med_fwd5_ex": -7.74,
+      "n21": 0,
+      "med_fwd21_ex": null,
+      "hit21": null
+    },
+    "licensing_supply": {
+      "n5": 8,
+      "med_fwd5_ex": -0.26,
+      "n21": 8,
+      "med_fwd21_ex": -6.82,
+      "hit21": 37.5
+    },
+    "equity_investment": {
+      "n5": 1,
+      "med_fwd5_ex": -5.0,
+      "n21": 0,
+      "med_fwd21_ex": null,
+      "hit21": null
+    },
+    "other": {
+      "n5": 7,
+      "med_fwd5_ex": 0.17,
+      "n21": 0,
+      "med_fwd21_ex": null,
+      "hit21": null
+    }
+  },
+  "ledger_n": 104,
+  "verdict": "GAPS: G2_hist_backfill"
+}
