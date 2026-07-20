@@ -1,0 +1,80 @@
+{
+  "gates": {
+    "G1_deploy_schedule": {
+      "ok": true,
+      "detail": "deployed; schedule=created daily 10:50"
+    },
+    "G2_feed_real": {
+      "ok": true,
+      "detail": "industries=139 sources_ok=8/8 top3=[('Medical - Pharmaceuticals', 84.8), ('Publishing', 84.8), ('Broadcasting', 84.6)] top_comp={'rev_mean': None, 'deal_wins_30d': 0, 'inst_net_bps': 16.7, 'census_conviction': None, 'dilution_share': None}"
+    },
+    "G3_history_seeded": {
+      "ok": true,
+      "detail": "ledger days=1"
+    },
+    "G4_page_section": {
+      "ok": true,
+      "detail": "served: Industry Boom League section"
+    }
+  },
+  "top10": [
+    [
+      "Medical - Pharmaceuticals",
+      84.8
+    ],
+    [
+      "Publishing",
+      84.8
+    ],
+    [
+      "Broadcasting",
+      84.6
+    ],
+    [
+      "Computer Hardware",
+      83.9
+    ],
+    [
+      "Industrial Materials",
+      82.7
+    ],
+    [
+      "Semiconductors",
+      82.2
+    ],
+    [
+      "Electrical Equipment & Parts",
+      80.2
+    ],
+    [
+      "Education & Training Services",
+      79.1
+    ],
+    [
+      "Drug Manufacturers - General",
+      77.6
+    ],
+    [
+      "Staffing & Employment Services",
+      77.4
+    ]
+  ],
+  "trouble": [
+    [
+      "Auto - Dealerships"
+    ],
+    [
+      "Advertising Agencies"
+    ],
+    [
+      "REIT - Office"
+    ],
+    [
+      "Computer Hardware"
+    ],
+    [
+      "Airlines, Airports & Air Services"
+    ]
+  ],
+  "verdict": "PASS_ALL"
+}

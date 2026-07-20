@@ -1,36 +1,26 @@
-executing-against: 16544828665d7fe7400d6bbb4ae0ed432194d4b2
-ops 3588 — PBoC AFRE + DGBAS export-orders live
-[19:00:20]   zip: 86937 bytes
+executing-against: b4f7cfc3a93759755b3f024d32df15caf1eb58f4
+ops 3589 — Industry Boom League v1
+[19:21:28]   zip: 86120 bytes
 ── 1. Lambda ──
-[19:00:20]   Lambda exists — updating
-[19:00:25] ✅   ✓ updated justhodl-china-liquidity
+[19:21:28]   Lambda exists — updating
+[19:21:34] ✅   ✓ updated justhodl-industry-boom
 ── 3. Smoke test ──
-[19:00:25]   invoking justhodl-china-liquidity…
-[19:00:43] ✅   ✓ smoke test passed
-[19:00:43]     ok                       True
-[19:00:43]     regime                   NEUTRAL
-[19:00:43]     credit_impulse_pp        -5.52
-[19:00:43]     m2_yoy                   8.21
-[19:00:43]   zip: 85383 bytes
-── 1. Lambda ──
-[19:00:43]   Lambda exists — updating
-[19:00:49] ✅   ✓ updated justhodl-asia-leads
-── 3. Smoke test ──
-[19:00:49]   invoking justhodl-asia-leads…
-[19:00:58] ✅   ✓ smoke test passed
-[19:00:58]     ok                       True
-[19:00:58]     kr_yoy                   47.96
-[19:00:58]     tw_yoy                   48.33
-PASS  G1_deployed — both v-bumps deployed via helper
-[19:00:58] PASS  G1_deployed — both v-bumps deployed via helper
-PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='       Import on customs basis Growth Rate       Export on customs basis Growth Rate       Total Population   '
-[19:01:08] PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='       Import on customs basis Growth Rate       Export on customs basis Growth Rate       Total Population   '
-FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
-[19:01:19] FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
-PASS  G4_page_row — served: Taiwan export ORDERS row
-[19:01:19] PASS  G4_page_row — served: Taiwan export ORDERS row
+[19:21:34]   invoking justhodl-industry-boom…
+[19:21:36] ✅   ✓ smoke test passed
+[19:21:36]     ok                       True
+[19:21:36]     n                        139
+[19:21:36]     sources_ok               8
+[19:21:36]     top                      Medical - Pharmaceuticals
+PASS  G1_deploy_schedule — deployed; schedule=created daily 10:50
+[19:21:37] PASS  G1_deploy_schedule — deployed; schedule=created daily 10:50
+PASS  G2_feed_real — industries=139 sources_ok=8/8 top3=[('Medical - Pharmaceuticals', 84.8), ('Publishing', 84.8), ('Broadcasting', 84.6)] top_comp={'rev_mean': None, 'deal_wins_30d': 0, 'inst_net_bps': 16.7, 'census_conviction': None, 'dilution_share': None}
+[19:21:39] PASS  G2_feed_real — industries=139 sources_ok=8/8 top3=[('Medical - Pharmaceuticals', 84.8), ('Publishing', 84.8), ('Broadcasting', 84.6)] top_comp={'rev_mean': None, 'deal_wins_30d': 0, 'inst_net_bps': 16.7, 'census_conviction': None, 'dilution_share': None}
+PASS  G3_history_seeded — ledger days=1
+[19:21:39] PASS  G3_history_seeded — ledger days=1
+PASS  G4_page_section — served: Industry Boom League section
+[19:24:10] PASS  G4_page_section — served: Industry Boom League section
 
-VERDICT: GAPS: G3_pboc_afre
-[19:01:19] VERDICT: GAPS: G3_pboc_afre
+VERDICT: PASS_ALL
+[19:24:10] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3588_scrapers_v2.md
+→ Report written to aws/ops/reports/latest/3589_industry_boom.md
