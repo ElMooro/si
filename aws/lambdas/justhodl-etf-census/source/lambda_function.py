@@ -24,7 +24,7 @@ _sys.path.insert(0, "/var/task")
 from census_lib import (tech_series, beta_vs, momentum, mom_12_1,
                         cross_pct)
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 S3 = boto3.client("s3", region_name="us-east-1")
 FMP_KEY = __import__("os").environ.get(
@@ -76,6 +76,18 @@ def flow_records():
             if isinstance(r, dict):
                 out[str(t).upper()] = dict(r)
                 vocab |= set(r.keys())
+    ptc = s3json("etf-flows/per-ticker-context.json") or {}
+    for cand in (ptc, ptc.get("tickers"), ptc.get("by_ticker"),
+                 ptc.get("context")):
+        if isinstance(cand, dict) and len(cand) > 50:
+            for t, r in cand.items():
+                if isinstance(r, dict) and str(t).isupper() \
+                        and len(str(t)) <= 6:
+                    rec = out.setdefault(str(t).upper(), {})
+                    for k, v in r.items():
+                        rec.setdefault(k, v)
+                    vocab |= set(r.keys())
+            break
     legacy = (s3json("data/etf-flows.json") or {}).get("by_etf") or {}
     for t, r in legacy.items():
         if isinstance(r, dict):
