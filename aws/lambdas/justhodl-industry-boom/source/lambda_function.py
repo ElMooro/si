@@ -206,12 +206,15 @@ def lambda_handler(event=None, context=None):
             p = pcts[f][k]
             if p is not None:
                 num += w * (100 - p); den += w
-        if den < 40:
-            continue
+        n_fam = sum(1 for f in list(W) + list(NEG) if pcts[f][k] is not None)
+        if den < 60 or n_fam < 3:
+            continue                      # v1.1: thin-coverage industries can't rank on one metric
         m = meta[k]
+        shrink = min(1.0, m["n"] / 15.0)  # v1.1: small-n shrinkage toward neutral 50
+        sc = 50.0 + (num / den - 50.0) * shrink
         league.append({"industry": k, "sector": m["sector"], "n": m["n"],
                        "mcap_b": round(m["mcap"] / 1e9, 1),
-                       "boom_score": round(num / den, 1),
+                       "boom_score": round(sc, 1), "n_component_families": n_fam,
                        "coverage_w": round(den, 0),
                        "comp": raw[k], "top_names": m["names"]})
     league.sort(key=lambda x: x["boom_score"], reverse=True)
@@ -231,7 +234,7 @@ def lambda_handler(event=None, context=None):
     trouble = sorted([r for r in league if r["comp"].get("dilution_share") is not None],
                      key=lambda r: ((r["comp"].get("dilution_share") or 0)
                                     + (r["comp"].get("risk_high_share") or 0)), reverse=True)[:10]
-    out = {"engine": "industry-boom", "version": "1.0.0", "generated_at": now.isoformat(),
+    out = {"engine": "industry-boom", "version": "1.1.0", "generated_at": now.isoformat(),
            "n_industries": len(league), "n_universe": len(ind_of),
            "league": league, "trouble": trouble,
            "coverage": {"sources_ok": src,
@@ -239,7 +242,7 @@ def lambda_handler(event=None, context=None):
            "siblings": {"industry_etf_momentum": "data/industry-rotation.json (22-ETF ladder)",
                         "supply_pressure": "data/bottleneck-boom.json (M3 + G.17 groups)",
                         "external_group_stats": "data/finviz-groups.json"},
-           "methodology": {"score": "percentile composite — DEMAND(rev velocity 20 + breadth 10 + deal-wins 15 + backlog-accel 15) FLOWS(13F bps 15 + insider 10) QUALITY(census 15) − TROUBLE(dilution 10 + high-risk 5); industries n>=5; renormalized on covered weight",
+           "methodology": {"score": "percentile composite — DEMAND(rev velocity 20 + breadth 10 + deal-wins 15 + backlog-accel 15) FLOWS(13F bps 15 + insider 10) QUALITY(census 15) − TROUBLE(dilution 10 + high-risk 5); industries n>=5; v1.1 guards: covered weight >=60, >=3 component families, small-n shrinkage min(1, n/15) toward 50",
                            "reads": "top decile + positive 20d delta = boom forming; high trouble composite = avoid/short-book candidates"},
            "disclaimer": "Real internal + primary data only. Research, not advice.",
            "elapsed_s": round(time.time() - t0, 2)}
