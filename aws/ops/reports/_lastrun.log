@@ -1,16 +1,16 @@
-executing-against: a5b7f6d7025af9a55de183f8013cf715cb0d2f75
-[02:17:10]   zip: 110348 bytes
+executing-against: 347c44be9e1e5be27f7887df82485fef42f23e6a
+FAIL  G1_phase2_raw — {'raw_cols_present': 0, 'of': 30, 'metrics_total': 231, 'sparse_examples': {'preferredStock': 0, 'capLeaseObligations': 0, 'netChangeInCash': 0}}
+[02:50:45] FAIL  G1_phase2_raw — {'raw_cols_present': 0, 'of': 30, 'metrics_total': 231, 'sparse_examples': {'preferredStock': 0, 'capLeaseObligations': 0, 'netChangeInCash': 0}}
+[02:50:45]   zip: 111595 bytes
 ── 1. Lambda ──
-[02:17:10]   Lambda exists — updating
-[02:17:13] ✅   ✓ updated justhodl-fundamental-graphs
-[02:17:16]   zip: 92737 bytes
-── 1. Lambda ──
-[02:17:17]   Lambda exists — updating
-[02:17:20] ✅   ✓ updated justhodl-fundamental-census
-PASS  F2_aapl — {'present': 30, 'of': 30, 'missing': [], 'aapl_latest': {'costAndExpenses': 75299000000.0, 'totalNonCurrentAssets': 226968000000.0, 'netChangeInCash': 255000000.0, 'nonOpIncomeTotal': -52000000.0}}
-[02:17:32] PASS  F2_aapl — {'present': 30, 'of': 30, 'missing': [], 'aapl_latest': {'costAndExpenses': 75299000000.0, 'totalNonCurrentAssets': 226968000000.0, 'netChangeInCash': 255000000.0, 'nonOpIncomeTotal': -52000000.0}}
-PASS  F3_chain_kicked — 496-doc refresh chain running; aggregate auto at end
-[02:17:32] PASS  F3_chain_kicked — 496-doc refresh chain running; aggregate auto at end
-RESULT: ALL PASS
+[02:50:46]   Lambda exists — updating
+[02:50:51] ✅   ✓ updated justhodl-fundamental-graphs
+PASS  G2_aapl_stats — {'zip': True, 'present': 44, 'of': 44, 'missing': [], 'aapl': {'price_to_book': 34.503, 'roa_pct': 33.032, 'days_inventory': 10.46, 'zmijewski_x': -1.773, 'graham_number': 36.696, 'pe_fwd': 27.299, 'ev_ebitda_fwd': 20.409}}
+[02:51:02] PASS  G2_aapl_stats — {'zip': True, 'present': 44, 'of': 44, 'missing': [], 'aapl': {'price_to_book': 34.503, 'roa_pct': 33.032, 'days_inventory': 10.46, 'zmijewski_x': -1.773, 'graham_number': 36.696, 'pe_fwd': 27.299, 'ev_ebitda_fwd': 20.409}}
+PASS  G3_chain2 — stats sweep running
+[02:51:02] PASS  G3_chain2 — stats sweep running
+PASS  G4_pages — categories served + node x3
+[02:53:06] PASS  G4_pages — categories served + node x3
+RESULT: FAILS: ['G1_phase2_raw']
 
-→ Report written to aws/ops/reports/latest/3562_tv_parity_rerun.md
+→ Report written to aws/ops/reports/latest/3563_tv_stats.md
