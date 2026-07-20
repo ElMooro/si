@@ -1,0 +1,348 @@
+{
+  "probes": {
+    "A1_dbnomics_search_tw_export_orders": {
+      "err": null,
+      "hits": []
+    },
+    "A2_fred_search_tw_export_orders": {
+      "err": null,
+      "hits": []
+    },
+    "A3_fred_search_tw_exports": {
+      "err": null,
+      "hits": [
+        {
+          "id": "VALEXPTWM052N",
+          "title": "Goods, Value of Exports for Taiwan Province of China",
+          "freq": "M",
+          "last_updated": "2026-07-20",
+          "end": "2026-05-01"
+        },
+        {
+          "id": "EXP5830",
+          "title": "U.S. Exports of Goods by F.A.S. Basis to Taiwan",
+          "freq": "M",
+          "last_updated": "2026-07-07",
+          "end": "2026-05-01"
+        },
+        {
+          "id": "TWNTXRPCPPPT",
+          "title": "External Trade: Volume of Exports of Goods and Services for Taiwan Province of C",
+          "freq": "A",
+          "last_updated": "2019-10-23",
+          "end": "2024-01-01"
+        },
+        {
+          "id": "OPENCPTWA156NUPN",
+          "title": "Openness at Current Prices for Taiwan",
+          "freq": "A",
+          "last_updated": "2012-09-17",
+          "end": "2010-01-01"
+        },
+        {
+          "id": "RGDPLPTWA625NUPN",
+          "title": "Purchasing Power Parity Converted GDP Per Capita (Laspeyres), derived from growt",
+          "freq": "A",
+          "last_updated": "2012-09-17",
+          "end": "2010-01-01"
+        }
+      ]
+    },
+    "A4_moea_direct_reach": {
+      "reachable_json": false,
+      "err": "<urlopen error [Errno -5] No address associated with hostname>"
+    },
+    "B1_dbnomics_search_kr_customs": {
+      "err": null,
+      "hits": [
+        {
+          "provider": "OECD",
+          "dataset": "DSD_BIMTS@DF_BIMTS_HS2017_2D",
+          "name": "Balanced international merchandise trade statistics (BIMTS) - HS2017-2D",
+          "nb": 4088840
+        },
+        {
+          "provider": "OECD",
+          "dataset": "DSD_BIMTS@DF_BIMTS_CPA_2_1",
+          "name": "Balanced international merchandise trade statistics (BIMTS) - CPA 2.1",
+          "nb": 2775304
+        },
+        {
+          "provider": "WB",
+          "dataset": "GEM",
+          "name": "Global Economic Monitor",
+          "nb": 23760
+        },
+        {
+          "provider": "IMF",
+          "dataset": "DOT",
+          "name": "Direction of Trade Statistics (DOTS)",
+          "nb": 471714
+        },
+        {
+          "provider": "WB",
+          "dataset": "WDI",
+          "name": "World Development Indicators",
+          "nb": 396872
+        },
+        {
+          "provider": "UNDATA",
+          "dataset": "DF_UNDATA_WDI",
+          "name": "WB World Development Indicators",
+          "nb": 29261
+        }
+      ]
+    },
+    "B2_fred_search_kr_exports": {
+      "err": null,
+      "hits": [
+        {
+          "id": "XTEXVA01KRM667N",
+          "title": "International Merchandise Trade Statistics: Exports: Commodities for Korea",
+          "freq": "M",
+          "last_updated": "2026-06-15",
+          "end": "2026-04-01"
+        },
+        {
+          "id": "NXRSAXDCKRQ",
+          "title": "Real Exports of Goods and Services for Republic of Korea",
+          "freq": "Q",
+          "last_updated": "2026-06-15",
+          "end": "2026-01-01"
+        },
+        {
+          "id": "XTEXVA01KRM664S",
+          "title": "International Merchandise Trade Statistics: Exports: Commodities for Korea",
+          "freq": "M",
+          "last_updated": "2026-06-15",
+          "end": "2026-04-01"
+        },
+        {
+          "id": "EXPKR",
+          "title": "U.S. Exports of Goods by F.A.S. Basis to South Korea",
+          "freq": "M",
+          "last_updated": "2026-07-07",
+          "end": "2026-05-01"
+        },
+        {
+          "id": "XTEXVA01KRM667S",
+          "title": "International Merchandise Trade Statistics: Exports: Commodities for Korea",
+          "freq": "M",
+          "last_updated": "2026-06-15",
+          "end": "2026-04-01"
+        }
+      ]
+    },
+    "B3_kr_customs_reach": {
+      "reachable": false,
+      "err": "<urlopen error timed out>"
+    },
+    "C1_dbnomics_search_cn_tsf": {
+      "err": null,
+      "hits": []
+    },
+    "C2_dbnomics_search_cn_social": {
+      "err": null,
+      "hits": [
+        {
+          "provider": "OECD",
+          "dataset": "DSD_SHA@DF_SHA_FS",
+          "name": "Revenues of healthcare financing schemes",
+          "nb": 10165
+        },
+        {
+          "provider": "OECD",
+          "dataset": "DSD_SHA@DF_SHA",
+          "name": "Health expenditure and financing",
+          "nb": 788997
+        },
+        {
+          "provider": "IMF",
+          "dataset": "GFSSSUC",
+          "name": "Government Finance Statistics (GFS), Statement of Sources and Uses of Cash",
+          "nb": 81120
+        },
+        {
+          "provider": "NBS",
+          "dataset": "A_A0L08",
+          "name": "Social Financing and Its Composition",
+          "nb": 8
+        },
+        {
+          "provider": "ISTAT",
+          "dataset": "742_1136_DF_DCSI_CPI_ENVRESSINT_15",
+          "name": "Modalities in funding - Nace 4 digit",
+          "nb": 25927
+        },
+        {
+          "provider": "ISTAT",
+          "dataset": "742_1136_DF_DCSI_CPI_ENVRESSINT_11",
+          "name": "Financial or resource-sharing tools - Nace 4 digit",
+          "nb": 50818
+        }
+      ]
+    },
+    "C3_fred_search_cn_tsf": {
+      "err": null,
+      "hits": []
+    },
+    "C4_fred_search_cn_loans": {
+      "err": null,
+      "hits": [
+        {
+          "id": "GGGDTACNA188N",
+          "title": "General government gross debt for China",
+          "freq": "A",
+          "last_updated": "2025-04-29",
+          "end": "2024-01-01"
+        },
+        {
+          "id": "DEBTTLCNA188A",
+          "title": "Central government debt, total (% of GDP) for China",
+          "freq": "A",
+          "last_updated": "2011-09-23",
+          "end": "1999-01-01"
+        },
+        {
+          "id": "QCNPAM770A",
+          "title": "Total Credit to Private Non-Financial Sector, Adjusted for Breaks, for China",
+          "freq": "Q",
+          "last_updated": "2026-06-15",
+          "end": "2025-10-01"
+        },
+        {
+          "id": "QCNCAM770A",
+          "title": "Total Credit to Non-Financial Sector, Adjusted for Breaks, for China",
+          "freq": "Q",
+          "last_updated": "2026-06-15",
+          "end": "2025-10-01"
+        },
+        {
+          "id": "DDSI02CNA156NWDB",
+          "title": "Bank Non-Performing Loans to Gross Loans for China",
+          "freq": "A",
+          "last_updated": "2024-05-07",
+          "end": "2020-01-01"
+        }
+      ]
+    },
+    "D1_fred_releases_dates": {
+      "err": null,
+      "n": 25,
+      "sample": [
+        {
+          "date": "2026-07-20",
+          "release": "Commercial Paper"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Economic Policy Uncertainty"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Euro Short Term Rate"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Federal Funds Data"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "FOMC Press Release"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Historical Overnight AMERIBOR Unsecured Interest Rate"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "International Financial Statistics"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Key ECB Interest Rates"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Moody's Daily Corporate Bond Yield Averages"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "National Accounts - GDP (Eurostat)"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Overnight Bank Funding Rate Data"
+        },
+        {
+          "date": "2026-07-20",
+          "release": "Risk-On Risk-Off Index"
+        }
+      ]
+    },
+    "E1_tw_drill": {
+      "skipped": "no search hits"
+    },
+    "E2_kr_drill": {
+      "drilled": "OECD/DSD_BIMTS@DF_BIMTS_HS2017_2D",
+      "err": null,
+      "series": [
+        {
+          "id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B",
+          "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u2013 Dairy produce; bi",
+          "last": [
+            "2019",
+            0.043591186917468
+          ]
+        },
+        {
+          "id": "ABW.AFG.X.C._Z.HS17_04.A.USD_EXC.B_ADJ_RX",
+          "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u2013 Dairy produce; bi",
+          "last": [
+            "2019",
+            0.043591186917468
+          ]
+        },
+        {
+          "id": "ABW.AFG.X.C._Z.HS17_16.A.USD_EXC.B",
+          "name": "Aruba \u2013 Afghanistan \u2013 Exports \u2013 Commodities \u2013 Not applicable \u2013 Meat, fish or cru",
+          "last": [
+            "2018",
+            0.000353374976531091
+          ]
+        }
+      ]
+    },
+    "E3_cn_drill": {
+      "drilled": "OECD/DSD_SHA@DF_SHA_FS",
+      "err": null,
+      "series": [
+        {
+          "id": "ARG.A.REVENUE.PT_B1GQ.HF1._T._Z._Z._Z._Z._Z._Z",
+          "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government/compulsory scheme",
+          "last": [
+            "2023",
+            6.29
+          ]
+        },
+        {
+          "id": "ARG.A.REVENUE.PT_B1GQ.HF11._T._Z._Z._Z._Z._Z._Z",
+          "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Government schemes \u2013 Total \u2013",
+          "last": [
+            "2023",
+            2.738
+          ]
+        },
+        {
+          "id": "ARG.A.REVENUE.PT_B1GQ.HF121._T._Z._Z._Z._Z._Z._Z",
+          "name": "Argentina \u2013 Annual \u2013 Revenues \u2013 Percentage of GDP \u2013 Social health insurance sche",
+          "last": [
+            "2016",
+            3.849
+          ]
+        }
+      ]
+    }
+  },
+  "verdict": "PROBE_COMPLETE"
+}
