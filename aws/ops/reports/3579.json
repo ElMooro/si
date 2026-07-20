@@ -1,0 +1,31 @@
+{
+  "gates": {
+    "G0_diagnosis": {
+      "ok": true,
+      "detail": "REPORT RequestId: db69187a-9f77-4933-9f1b-a2aae47829fb\tDuration: 4696.60 ms\tBilled Duration: 5218 ms\tMemory Size: 512 MB\tMax Memory Used: 122 MB\tInit Duration:  || REPORT RequestId: af4fd2d4-0e93-4e2b-a59f-99a7b845f03e\tDuration: 5473.93 ms\tBilled Duration: 5934 ms\tMemory Size: 512 MB\tMax Memory Used: 135 MB\tInit Duration:  || REPORT RequestId: 975e68e9-817f-4152-a426-45db0493303b\tDuration: 6249.27 ms\tBilled Duration: 6727 ms\tMemory Size: 1024 MB\tMax Memory Used: 134 MB\tInit Duration: || [deal-sc"
+    },
+    "G1_timeout_900": {
+      "ok": true,
+      "detail": "timeout=900 mem=1024"
+    },
+    "G2_backfill_sync": {
+      "ok": false,
+      "detail": "prs=22000 deals=80 ledger=80 filled=0 \u00b7 base_rates: EMPTY"
+    },
+    "G3_feed_base_rates": {
+      "ok": false,
+      "detail": "feed did not refresh with base_rates"
+    }
+  },
+  "base_rates": {},
+  "backfill": {
+    "ok": true,
+    "backfill": 100,
+    "n_prs": 22000,
+    "n_deals": 80,
+    "ledger_n": 80,
+    "filled": 0,
+    "base_rate_types": []
+  },
+  "verdict": "GAPS: G2_backfill_sync,G3_feed_base_rates"
+}

@@ -1,23 +1,15 @@
-executing-against: cb9b41b29da2aa34e90d4e398d7ce225b6c3e0cc
-ops 3577 — deal-scanner v3.1 (taxonomy fix + institutional page layer)
-PASS  G1_settled_v31 — markers ok=True mem=1024 timeout=600
-[17:24:01] PASS  G1_settled_v31 — markers ok=True mem=1024 timeout=600
-PASS  G2_feed_v31 — by_event=9 keys · capital_structure n=5 · wins-leak=none · deals=16 · dilution-joined=2
-[17:24:16] PASS  G2_feed_v31 — by_event=9 keys · capital_structure n=5 · wins-leak=none · deals=16 · dilution-joined=2
-PASS  G3_page_v31 — served: capstr label + universe line + filter chips + dilution + 8-K count
-[17:25:16] PASS  G3_page_v31 — served: capstr label + universe line + filter chips + dilution + 8-K count
+executing-against: ca1f33f003462cd0964a1db7f9177637edea2e89
+ops 3579 — backfill v2 (900s + sync)
+PASS  G0_diagnosis — REPORT RequestId: db69187a-9f77-4933-9f1b-a2aae47829fb	Duration: 4696.60 ms	Billed Duration: 5218 ms	Memory Size: 512 MB	Max Memory Used: 122 MB	Init Duration:  || REPORT RequestId: af4fd2d4-0e93-4e2b-a59f-99a7b845f03e	Duration: 5473.93 ms	Billed Duration: 5934 ms	Memory Size: 512 MB	Max Memory Used: 135 MB	Init Duration:  || REPORT RequestId: 975e68e9-817f-4152-a426-45db0493303b	Duration: 6249.27 ms	Billed Duration: 6727 ms	Memory Size: 1024 MB	Max Memory
+[17:48:57] PASS  G0_diagnosis — REPORT RequestId: db69187a-9f77-4933-9f1b-a2aae47829fb	Duration: 4696.60 ms	Billed Duration: 5218 ms	Memory Size: 512 MB	Max Memory Used: 122 MB	Init Duration:  || REPORT RequestId: af4fd2d4-0e93-4e2b-a59f-99a7b845f03e	Duration: 5473.93 ms	Billed Duration: 5934 ms	Memory Size: 512 MB	Max Memory Used: 135 MB	Init Duration:  || REPORT RequestId: 975e68e9-817f-4152-a426-45db0493303b	Duration: 6249.27 ms	Billed Duration: 6727 ms	Memory Size: 1024 MB	Max Memory
+PASS  G1_timeout_900 — timeout=900 mem=1024
+[17:49:04] PASS  G1_timeout_900 — timeout=900 mem=1024
+FAIL  G2_backfill_sync — prs=22000 deals=80 ledger=80 filled=0 · base_rates: EMPTY
+[17:49:15] FAIL  G2_backfill_sync — prs=22000 deals=80 ledger=80 filled=0 · base_rates: EMPTY
+FAIL  G3_feed_base_rates — feed did not refresh with base_rates
+[17:57:27] FAIL  G3_feed_base_rates — feed did not refresh with base_rates
 
-VERDICT: PASS_ALL
-[17:25:16] VERDICT: PASS_ALL
+VERDICT: GAPS: G2_backfill_sync,G3_feed_base_rates
+[17:57:27] VERDICT: GAPS: G2_backfill_sync,G3_feed_base_rates
 
-→ Report written to aws/ops/reports/latest/3577_deal_v31.md
-ops 3578 — base-rate ledger backfill (population study born live)
-FAIL  G1_ledger_populated — ledger did not populate (pre=16)
-[17:34:40] FAIL  G1_ledger_populated — ledger did not populate (pre=16)
-FAIL  G2_feed_base_rates — feed did not refresh with base_rates
-[17:42:44] FAIL  G2_feed_base_rates — feed did not refresh with base_rates
-
-VERDICT: GAPS: G1_ledger_populated,G2_feed_base_rates
-[17:42:44] VERDICT: GAPS: G1_ledger_populated,G2_feed_base_rates
-
-→ Report written to aws/ops/reports/latest/3578_backfill.md
+→ Report written to aws/ops/reports/latest/3579_backfill_v2.md

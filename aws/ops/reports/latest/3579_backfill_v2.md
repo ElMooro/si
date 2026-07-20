@@ -1,0 +1,18 @@
+# ops 3579 — backfill v2 (900s + sync)
+
+**Status:** success  
+**Duration:** 510.6s  
+**Finished:** 2026-07-20T17:57:27+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `17:48:57` PASS  G0_diagnosis — REPORT RequestId: db69187a-9f77-4933-9f1b-a2aae47829fb	Duration: 4696.60 ms	Billed Duration: 5218 ms	Memory Size: 512 MB	Max Memory Used: 122 MB	Init Duration:  || REPORT RequestId: af4fd2d4-0e93-4e2b-a59f-99a7b845f03e	Duration: 5473.93 ms	Billed Duration: 5934 ms	Memory Size: 512 MB	Max Memory Used: 135 MB	Init Duration:  || REPORT RequestId: 975e68e9-817f-4152-a426-45db0493303b	Duration: 6249.27 ms	Billed Duration: 6727 ms	Memory Size: 1024 MB	Max Memory
+- `17:49:04` PASS  G1_timeout_900 — timeout=900 mem=1024
+- `17:49:15` FAIL  G2_backfill_sync — prs=22000 deals=80 ledger=80 filled=0 · base_rates: EMPTY
+- `17:57:27` FAIL  G3_feed_base_rates — feed did not refresh with base_rates
+- `17:57:27` VERDICT: GAPS: G2_backfill_sync,G3_feed_base_rates
