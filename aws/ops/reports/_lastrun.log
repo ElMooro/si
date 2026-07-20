@@ -1,12 +1,10 @@
-executing-against: 08953f983b5db3f69a8754f1d7c38db8b536b883
-PASS  P_WMT — {"doc_generated": "2026-07-19T18:53:11", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [1.393, 129], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 1.393, "price_to_book": null}}
-[04:10:12] PASS  P_WMT — {"doc_generated": "2026-07-19T18:53:11", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [1.393, 129], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 1.393, "price_to_book": null}}
-PASS  P_MSFT — {"doc_generated": "2026-07-19T18:48:12", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [2.634, 67], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 2.634, "price_to_book": null}}
-[04:10:12] PASS  P_MSFT — {"doc_generated": "2026-07-19T18:48:12", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [2.634, 67], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 2.634, "price_to_book": null}}
-PASS  P_AAPL — {"doc_generated": "2026-07-20T02:50:59", "doc": {"days_inventory": [10.46, 146], "netChangeInCash": [255000000.0, 146], "pe_fwd": [27.299, 1], "roce_pct": [62.327, 150], "fulmer_h": [0.607, 148], "price_to_book": [34.503, 151]}, "matrix": {"days_inventory": 10.46, "netChangeInCash": 255000000.0, "pe_fwd": 27.299, "roce_pct": 62.327, "fulmer_h": 0.607, "price_to_book": 34.503}}
-[04:10:12] PASS  P_AAPL — {"doc_generated": "2026-07-20T02:50:59", "doc": {"days_inventory": [10.46, 146], "netChangeInCash": [255000000.0, 146], "pe_fwd": [27.299, 1], "roce_pct": [62.327, 150], "fulmer_h": [0.607, 148], "price_to_book": [34.503, 151]}, "matrix": {"days_inventory": 10.46, "netChangeInCash": 255000000.0, "pe_fwd": 27.299, "roce_pct": 62.327, "fulmer_h": 0.607, "price_to_book": 34.503}}
-PASS  P_ZTS — {"doc_generated": "2026-07-19T20:23:35", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [3.6, 58], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 3.6, "price_to_book": null}}
-[04:10:12] PASS  P_ZTS — {"doc_generated": "2026-07-19T20:23:35", "doc": {"days_inventory": [null, 0], "netChangeInCash": [null, 0], "pe_fwd": [null, 0], "roce_pct": [null, 0], "fulmer_h": [3.6, 58], "price_to_book": [null, 0]}, "matrix": {"days_inventory": null, "netChangeInCash": null, "pe_fwd": null, "roce_pct": null, "fulmer_h": 3.6, "price_to_book": null}}
-RESULT: ALL PASS
-
-→ Report written to aws/ops/reports/latest/3569_wmt_probe.md
+executing-against: 4c8badfb92d94120a3f7028ffa343aace3a79b8b
+PASS  L1_probe — {'probe': {'WMT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'MSFT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'AAPL': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}}, 'scan_lied': False}
+[04:42:57] PASS  L1_probe — {'probe': {'WMT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'MSFT': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}, 'AAPL': {'name_in_body': True, 'series_in_points': True, 'pe_fwd_series': True}}, 'scan_lied': False}
+[scan2] 0/496 missing=1 0s
+[scan2] 120/496 missing=121 20s
+[scan2] 240/496 missing=241 40s
+[scan2] 360/496 missing=361 60s
+[scan2] 480/496 missing=481 80s
+PASS  L2_scan — {'true_missing': 496, 'sample': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN', 'MU', 'CMS', 'EVRG'], 'scan_s': 82.1}
+[04:44:19] PASS  L2_scan — {'true_missing': 496, 'sample': ['SMCI', 'WDC', 'WAT', 'NVDA', 'GEN', 'MU', 'CMS', 'EVRG'], 'scan_s': 82.1}
