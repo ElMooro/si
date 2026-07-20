@@ -1,19 +1,25 @@
-executing-against: e3cea280953d68821b6a0ad93770f70221109218
-ops 3591 — KCS 20-day flash probe (public release path)
-P1_tradedata_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-[19:39:52] P1_tradedata_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-P2_customs_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-[19:40:06] P2_customs_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-P3_customs_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-[19:40:21] P3_customs_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-P4_kcs_press_kr: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-[19:40:35] P4_kcs_press_kr: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-P5_kcs_press_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-[19:40:50] P5_kcs_press_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
-P6_item_drill: {"skipped": "press board not reachable/linked"}
-[19:40:50] P6_item_drill: {"skipped": "press board not reachable/linked"}
+executing-against: 07a209a92622e517493a943a9af9f010564bd502
+ops 3592 — Korea 20-day flash (KCS via CF-edge /gov)
+FAIL  G1_edge_breakthrough — status=200 host_hdr=www.customs.go.kr len=182 kr_str=False
+[19:53:56] FAIL  G1_edge_breakthrough — status=200 host_hdr=www.customs.go.kr len=182 kr_str=False
+moea_via_edge: {'status': 200, 'len': 50000}
+[19:53:57] moea_via_edge: {"status": 200, "len": 50000}
+[19:53:57]   zip: 86588 bytes
+── 1. Lambda ──
+[19:53:58]   Lambda exists — updating
+[19:54:03] ✅   ✓ updated justhodl-asia-leads
+── 3. Smoke test ──
+[19:54:03]   invoking justhodl-asia-leads…
+[19:54:14] ✅   ✓ smoke test passed
+[19:54:14]     ok                       True
+[19:54:14]     kr_yoy                   47.96
+[19:54:14]     tw_yoy                   48.33
+FAIL  G2_flash_real — v1.3.0 period='' total=$NoneB None% YoY · semis=$NoneB None% err=no 수출입 현황 item on board raw=''
+[19:54:20] FAIL  G2_flash_real — v1.3.0 period='' total=$NoneB None% YoY · semis=$NoneB None% err=no 수출입 현황 item on board raw=''
+PASS  G3_page_row — served: Korea 20-day flash row
+[19:54:20] PASS  G3_page_row — served: Korea 20-day flash row
 
-VERDICT: PROBE_COMPLETE
-[19:40:50] VERDICT: PROBE_COMPLETE
+VERDICT: GAPS: G1_edge_breakthrough,G2_flash_real
+[19:54:20] VERDICT: GAPS: G1_edge_breakthrough,G2_flash_real
 
-→ Report written to aws/ops/reports/latest/3591_kcs_probe.md
+→ Report written to aws/ops/reports/latest/3592_kcs_flash.md

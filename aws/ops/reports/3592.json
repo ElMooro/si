@@ -1,0 +1,30 @@
+{
+  "gates": {
+    "G1_edge_breakthrough": {
+      "ok": false,
+      "detail": "status=200 host_hdr=www.customs.go.kr len=182 kr_str=False"
+    },
+    "G2_flash_real": {
+      "ok": false,
+      "detail": "v1.3.0 period='' total=$NoneB None% YoY · semis=$NoneB None% err=no 수출입 현황 item on board raw=''"
+    },
+    "G3_page_row": {
+      "ok": true,
+      "detail": "served: Korea 20-day flash row"
+    }
+  },
+  "moea_via_edge": {
+    "status": 200,
+    "len": 50000
+  },
+  "flash": {
+    "period": null,
+    "total_usd_bn": null,
+    "total_yoy_pct": null,
+    "semis_usd_bn": null,
+    "semis_yoy_pct": null,
+    "item_url": null,
+    "error": "no 수출입 현황 item on board"
+  },
+  "verdict": "GAPS: G1_edge_breakthrough,G2_flash_real"
+}
