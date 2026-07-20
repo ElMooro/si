@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.9.0"
+VERSION = "1.10.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fundamental-census.json"
 MATRIX_KEY = "data/fundamental-census-matrix.json"
@@ -651,7 +651,7 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
             counts[k] = counts.get(k, 0) + 1
         latest[t] = lv
     n = max(1, len(scored))
-    keys = sorted([k for k, c in counts.items() if c >= 0.5 * n])[:240]
+    keys = sorted([k for k, c in counts.items() if c >= 0.25 * n])[:300]
     cols = {k: [latest[t].get(k) for t in scored] for k in keys}
     add_factors(cols, len(scored))
     try:
