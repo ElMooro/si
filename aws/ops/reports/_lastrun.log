@@ -1,21 +1,36 @@
-executing-against: 43c4c20395637b92236c2aa7781c3e4ceb48af6d
-ops 3586 — discovery #3: PBoC AFRE recipe + TW retargets
-B1_stats_index: {"status": 200, "afre_links": [["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/5839519/index.html", "Report on Aggregate Financing to the Real Economy (Stock) (Aug..."],
-[18:49:21] B1_stats_index: {"status": 200, "afre_links": [["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/5839519/index.html", "Report on Aggregate Financing to the Real Economy (Stock) (Aug..."],
-B2_afre_listing: {"status": 200, "items": [["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "2025"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5188168/index.html", "2024"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4756448/index.html", "2023"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4601725/index.html", "2022"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4437187/index.html"
-[18:49:22] B2_afre_listing: {"status": 200, "items": [["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "2025"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5188168/index.html", "2024"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4756448/index.html", "2023"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4601725/index.html", "2022"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4437187/index.html"
-B3_afre_item: {"status": 200, "url": "http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "attachments": [], "table_rows": []}
-[18:49:24] B3_afre_item: {"status": 200, "url": "http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "attachments": [], "table_rows": []}
-A1_dgtw_v2_singular: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
-[18:49:24] A1_dgtw_v2_singular: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
-A2_dgtw_front_list: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
-[18:49:24] A2_dgtw_front_list: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
-A3_dgtw_front_search: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 404: Not Found"}
-[18:49:25] A3_dgtw_front_search: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 404: Not Found"}
-A4_engstat_order_links: {"status": 200, "links": [["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"]]}
-[18:49:26] A4_engstat_order_links: {"status": 200, "links": [["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"]]}
+executing-against: a04bb35f62c48273b347adbe7b4515e8fe619e87
+ops 3587 — PBoC AFRE + DGBAS export-orders live
+[18:55:12]   zip: 86673 bytes
+── 1. Lambda ──
+[18:55:12]   Lambda exists — updating
+[18:55:18] ✅   ✓ updated justhodl-china-liquidity
+── 3. Smoke test ──
+[18:55:18]   invoking justhodl-china-liquidity…
+[18:55:25] ✅   ✓ smoke test passed
+[18:55:25]     ok                       True
+[18:55:25]     regime                   NEUTRAL
+[18:55:25]     credit_impulse_pp        -5.52
+[18:55:25]     m2_yoy                   8.21
+[18:55:26]   zip: 85144 bytes
+── 1. Lambda ──
+[18:55:26]   Lambda exists — updating
+[18:55:29] ✅   ✓ updated justhodl-asia-leads
+── 3. Smoke test ──
+[18:55:29]   invoking justhodl-asia-leads…
+[18:55:33] ✅   ✓ smoke test passed
+[18:55:33]     ok                       True
+[18:55:33]     kr_yoy                   47.96
+[18:55:33]     tw_yoy                   48.33
+PASS  G1_deployed — both v-bumps deployed via helper
+[18:55:33] PASS  G1_deployed — both v-bumps deployed via helper
+PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid='
+[18:55:36] PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid='
+FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
+[18:55:43] FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
+PASS  G4_page_row — served: Taiwan export ORDERS row
+[18:57:28] PASS  G4_page_row — served: Taiwan export ORDERS row
 
-VERDICT: PROBE_COMPLETE
-[18:49:26] VERDICT: PROBE_COMPLETE
+VERDICT: GAPS: G3_pboc_afre
+[18:57:28] VERDICT: GAPS: G3_pboc_afre
 
-→ Report written to aws/ops/reports/latest/3586_discovery3.md
+→ Report written to aws/ops/reports/latest/3587_scrapers.md

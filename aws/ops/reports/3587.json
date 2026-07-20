@@ -1,0 +1,35 @@
+{
+  "gates": {
+    "G1_deployed": {
+      "ok": true,
+      "detail": "both v-bumps deployed via helper"
+    },
+    "G2_tw_orders": {
+      "ok": true,
+      "detail": "v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid='"
+    },
+    "G3_pboc_afre": {
+      "ok": false,
+      "detail": "report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None"
+    },
+    "G4_page_row": {
+      "ok": true,
+      "detail": "served: Taiwan export ORDERS row"
+    }
+  },
+  "tw_orders": {
+    "source": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+    "label": "Taiwan export orders (MOEA via DGBAS point page)",
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "period": null,
+    "error": "regex found no orders print on page",
+    "raw_head": "                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid=t.6&amp;n=4205&amp;sms=11713&amp;Create=1&amp;_guid=b6636f4d-ad5e-444d-9190-83c553b715c9'        window.dataLa"
+  },
+  "pboc": {
+    "title": "Report on Aggregate Financing to the Real Economy (Flow) (August 2025)",
+    "latest": null,
+    "vals": []
+  },
+  "verdict": "GAPS: G3_pboc_afre"
+}
