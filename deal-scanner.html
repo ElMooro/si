@@ -126,7 +126,7 @@ function card(d){
   const mtCls=(d.materiality_pct>=25||d.materiality_pct===9999)?"hot":d.materiality_pct>=10?"warm":"size";
   const mcCls=(d.vs_market_cap_pct>=10)?"hot":d.vs_market_cap_pct>=4?"warm":"size";
   const flowBadge=(d.sector_tailwind&&d.sector_etf)?`<span class="badge flow">🌊 ${esc(d.sector_etf)}${d.sector_rotating_in?" ROTATING IN":(d.sector_rotation_score!=null?" "+Math.round(d.sector_rotation_score):"")}</span>`:"";
-  const EVN={contract_win:"CONTRACT",govt_contract:"GOV CONTRACT",ma_target:"M&A TARGET",ma_acquirer:"M&A ACQUIRER",partnership:"PARTNERSHIP",licensing_supply:"LICENSE/SUPPLY",equity_investment:"EQUITY INV"};
+  const EVN={contract_win:"CONTRACT",govt_contract:"GOV CONTRACT",ma_target:"M&A TARGET",ma_acquirer:"M&A ACQUIRER",partnership:"PARTNERSHIP",licensing_supply:"LICENSE/SUPPLY",equity_investment:"EQUITY INV",capital_structure:"🏦 CAPITAL STRUCTURE"};
   const v3=[
     d.event_type&&EVN[d.event_type]?`<span class="badge" style="background:rgba(120,140,255,.12);color:#9fb0ff">${EVN[d.event_type]}</span>`:"",
     (d.counterparty_quality==="GOV"||d.counterparty_quality==="HYPERSCALER")?`<span class="badge" style="background:rgba(61,220,132,.12);color:var(--green)">🏛 ${esc(d.counterparty_quality)}${(d.counterparties&&d.counterparties[0])?": "+esc(d.counterparties[0]):""}</span>`:"",
@@ -151,17 +151,27 @@ function card(d){
       ${metric(mtCls,mt,"vs Revenue")}
     </div>
     ${d.why?`<div class="why">${esc(d.why)}</div>`:""}
+    ${(()=>{const f$=v=>v==null?null:(Math.abs(v)>=1e9?"$"+(v/1e9).toFixed(1)+"B":Math.abs(v)>=1e6?"$"+(v/1e6).toFixed(0)+"M":"$"+Math.round(v/1e3)+"K");
+      const c=[];
+      if(d.exchange)c.push(esc(d.exchange));
+      if(d.census&&(d.census.conviction!=null||d.census.combo!=null))c.push(`census: conviction ${d.census.conviction!=null?Math.round(d.census.conviction):"—"} · combo ${d.census.combo!=null?Math.round(d.census.combo):"—"}${d.census.whale_usd_m!=null?" · whales "+f$(d.census.whale_usd_m*1e6):""}`);
+      if(d.inst_flow&&d.inst_flow.net_usd!=null)c.push(`13F: <span style="color:${d.inst_flow.net_usd>=0?"var(--green)":"#ff8080"}">${d.inst_flow.net_usd>=0?"net buy ":"net sell "}${f$(Math.abs(d.inst_flow.net_usd))}</span> (${d.inst_flow.n_funds||0} funds${d.inst_flow.whale_net_usd?", whales "+f$(d.inst_flow.whale_net_usd):""})`);
+      if(d.dilution&&d.dilution.sh_yoy_pct!=null&&d.dilution.sh_yoy_pct>=3)c.push(`<span style="color:var(--amber)">⚠ diluting ${d.dilution.sh_yoy_pct}%/yr</span>${(d.dilution.flags||[]).length?" · "+esc(d.dilution.flags.join(", ")):""}`);
+      return c.length?`<div class="why" style="opacity:.85;border-top:1px dashed var(--border,#2a2f3a);margin-top:6px;padding-top:6px">🏛 ${c.join(" &nbsp;·&nbsp; ")}</div>`:"";})()}
     <div class="foot">${d.publisher?`<span>${esc(d.publisher)}</span>`:""}${d.age_h!=null?`<span>${age(d.age_h)}</span>`:""}${d.multi_year?'<span class="my">▸ MULTI-YEAR</span>':""}</div>
   </div>`;
 }
 function render(j){
+  if(!window.__DSRAW)window.__DSRAW=j;
   const s=j.summary||{}, deals=j.deals||[];
-  const ai=deals.filter(d=>d.ai_relevant);
-  const green=deals.filter(d=>!d.ai_relevant&&d.highlight==="green");
-  const yellow=deals.filter(d=>!d.ai_relevant&&d.highlight==="yellow");
-  const other=deals.filter(d=>!d.ai_relevant&&!d.highlight);
+  const capstr=deals.filter(d=>d.event_type==="capital_structure");
+  const ai=deals.filter(d=>d.ai_relevant&&d.event_type!=="capital_structure");
+  const green=deals.filter(d=>!d.ai_relevant&&d.highlight==="green"&&d.event_type!=="capital_structure");
+  const yellow=deals.filter(d=>!d.ai_relevant&&d.highlight==="yellow"&&d.event_type!=="capital_structure");
+  const other=deals.filter(d=>!d.ai_relevant&&!d.highlight&&d.event_type!=="capital_structure");
   const gen=j.generated_at?new Date(j.generated_at):null;
-  document.getElementById("meta").innerHTML=`scanned <b>${s.n_prs_scanned||0}</b> items · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
+  const _sc=(j.coverage||{}).sources||{};
+  document.getElementById("meta").innerHTML=`scanned <b>${s.n_prs_scanned||0}</b> items${_sc.fmp_pr?` (PR wire ${_sc.fmp_pr} · news ${(_sc.fmp_news||0)+(_sc.polygon||0)})`:""} · updated <b>${gen?gen.toISOString().slice(0,16).replace("T"," ")+"Z":"—"}</b>`;
   document.getElementById("statbar").innerHTML=
     `<div class="stat"><div class="n">${s.n_deals||0}</div><div class="l">Deal Wins</div></div>
      <div class="stat cyan"><div class="n">${s.n_ai||0}</div><div class="l">🤖 AI Deals</div></div>
@@ -172,6 +182,10 @@ function render(j){
      <div class="stat green"><div class="n">${s.signals_logged||0}</div><div class="l">📡 Graded Signals</div></div>
      <div class="stat"><div class="n">${((j.coverage||{}).universe||{}).n_listed?(((j.coverage||{}).universe||{}).n_listed).toLocaleString():"—"}</div><div class="l">US-Listed Monitored</div></div>`;
   let h="";
+  // ── v3.1: institutional slicing — filter the deal cards (boards stay full-market) ──
+  const FF=window.__DSF||{ev:"all",listed:false};
+  const chip=(id,lbl)=>`<span onclick="window.__dsSet('${id}')" style="cursor:pointer;padding:4px 11px;border-radius:14px;border:1px solid var(--border,#2a2f3a);margin:0 6px 6px 0;display:inline-block;font-size:12px;${(FF.ev===id||(id==='listed'&&FF.listed))?"background:rgba(61,220,132,.14);color:var(--green);border-color:var(--green)":"color:var(--fg-3)"}">${lbl}</span>`;
+  h+=`<div style="margin:2px 0 10px">${chip("all","All")}${chip("contract_win","Contracts")}${chip("govt_contract","🏛 Gov")}${chip("ma_target","M&A")}${chip("partnership","Partnerships")}${chip("licensing_supply","License/Supply")}${chip("capital_structure","🏦 Capital structure")}${chip("listed","Listed only")}<span style="font-size:11px;color:var(--fg-4);margin-left:4px">filters the deal cards · coverage boards stay full-market</span></div>`;
   h+=`<div class="sec-hdr"><span class="dot c"></span><h2>🤖 AI Deals — small/mid-caps landing AI contracts</h2><span class="ct">${ai.length}${s.n_ai_mega?` · ${s.n_ai_mega} mega`:""}</span></div>`;
   h+= ai.length?ai.map(card).join(""):'<div class="empty">No AI-tagged deal in the current window. A real AI mega-deal (e.g. a billion-dollar GPU/compute supply agreement) will land here and jump to the top the moment it\'s announced.</div>';
   h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Big Deals vs Market Cap &amp; Revenue</h2><span class="ct">${green.length}</span></div>`;
@@ -183,18 +197,27 @@ function render(j){
        other.map(d=>`<tr><td><span class="s">${esc(d.symbol)}</span></td><td>${esc(d.cap_bucket||"—")}</td><td><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a></td><td>${age(d.age_h)}</td></tr>`).join("")+
        `</tbody></table>`;
   }
+  if(capstr.length){
+    h+=`<div class="sec-hdr"><span class="dot o"></span><h2>🏦 Capital Structure &amp; Financing <span style="color:var(--fg-4);font-weight:400">(not deal wins — credit facilities, offerings, warrants, restructurings)</span></h2><span class="ct">${capstr.length}</span></div>`;
+    h+=`<table class="otable"><thead><tr><th>Ticker</th><th>Cap</th><th>Announcement</th><th>Size</th><th>Age</th></tr></thead><tbody>`+
+       capstr.map(d=>`<tr><td><span class="s">${esc(d.symbol)}</span></td><td>${esc(d.cap_bucket||"—")}</td><td><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a></td><td>${d.deal_value_str?esc(d.deal_value_str):"—"}</td><td>${age(d.age_h)}</td></tr>`).join("")+
+       `</tbody></table><div class="empty" style="padding-top:8px">Financing and balance-sheet events are classified out of the win boards, never green-lit, never signaled — but shown here because a "transformative deal" that arrives alongside heavy financing is the classic dilution trap.</div>`;
+  }
   // ── v2: full-market coverage boards — every sector, every cap tier ──
   const bs=j.by_sector||{}, bc=j.by_cap||{}, cv=j.coverage||{};
   const $b=v=>v>=1e9?"$"+(v/1e9).toFixed(1)+"B":v>=1e6?"$"+Math.round(v/1e6)+"M":v?"$"+Math.round(v/1e3)+"K":"—";
   const brow=(k,v)=>`<tr><td><span class="s">${esc(k)}</span></td><td>${v.n||0}</td><td>${v.n_sized?$b(v.total_value_usd):"—"}</td><td>${v.n_green?`<span style="color:var(--green);font-weight:700">${v.n_green}</span>`:"—"}</td><td>${v.n_ai?`<span style="color:var(--cyan);font-weight:700">${v.n_ai}</span>`:"—"}</td><td>${(v.top||[]).map(t=>`<span class="s" style="margin-right:9px">${esc(t.symbol)}</span>`).join("")||"—"}</td></tr>`;
   const btab=o=>`<table class="otable"><thead><tr><th></th><th>Deals</th><th>Sized $</th><th>🟢</th><th>🤖</th><th>Top</th></tr></thead><tbody>${Object.entries(o).map(([k,v])=>brow(k,v)).join("")}</tbody></table>`;
   if(Object.keys(bs).length){
-    h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Market Coverage — every sector</h2><span class="ct">${cv.sectors_with_deals||0}/${cv.n_sectors_tracked||11} sectors with deals · ${cv.n_unique_tickers_in_tape||0} tickers on tape · ${cv.runs_per_day||8}× daily sweep</span></div>`+btab(bs);
+    h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Market Coverage — every sector</h2><span class="ct">${cv.sectors_with_deals||0}/${cv.n_sectors_tracked||11} sectors with deals · ${cv.n_unique_tickers_in_tape||0} tickers on tape · ${cv.n_8k_item101_3d!=null?cv.n_8k_item101_3d+" 8-Ks (Item 1.01, 3d) · ":""}${cv.runs_per_day||8}× daily sweep</span></div>`+btab(bs);
     h+=`<div class="sec-hdr"><span class="dot c"></span><h2>All Cap Tiers — nano → mega</h2><span class="ct">${cv.caps_with_deals||0}/6 tiers with deals</span></div>`+btab(bc);
+    const un=cv.universe||{};
+    if(un.n_listed){const bx=un.by_exchange||{};const topv=Object.entries(bx).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${esc(k)} ${v.toLocaleString()}`).join(" · ");
+      h+=`<div class="empty" style="padding-top:6px">Reference universe: <b style="color:var(--fg-2)">${un.n_listed.toLocaleString()}</b> US-listed common stocks (${(un.n_adr||0).toLocaleString()} ADRs) — ${topv}${Object.keys(bx).length>4?" · +"+(Object.keys(bx).length-4)+" venues":""} · rebuilt daily via exhaustive market-cap bisection (zero truncation).</div>`;}
   }
   // ── v3: institutional layer — event taxonomy + base-rate event study ──
   const be=j.by_event||{}, br=j.base_rates||{}, hi=j.history||{};
-  const EVL={contract_win:"Contract wins",govt_contract:"🏛 Government contracts",ma_target:"⚖️ M&A targets",ma_acquirer:"M&A acquirers",partnership:"Partnerships",licensing_supply:"Licensing / supply",equity_investment:"Equity investments",other:"Other"};
+  const EVL={contract_win:"Contract wins",govt_contract:"🏛 Government contracts",ma_target:"⚖️ M&A targets",ma_acquirer:"M&A acquirers",partnership:"Partnerships",licensing_supply:"Licensing / supply",equity_investment:"Equity investments",capital_structure:"🏦 Capital structure (financing)",other:"Other"};
   if(Object.keys(be).length){
     h+=`<div class="sec-hdr"><span class="dot g"></span><h2>Event Mix — what kind of deals hit the tape</h2><span class="ct">${cv.events_with_deals||0}/8 event types this window</span></div>`
       +`<table class="otable"><thead><tr><th></th><th>Deals</th><th>Sized $</th><th>🟢</th><th>🤖</th><th>Top</th></tr></thead><tbody>${Object.entries(be).map(([k,v])=>brow(EVL[k]||k,v)).join("")}</tbody></table>`;
@@ -205,7 +228,7 @@ function render(j){
     :'<div class="empty">Ledger is young — forward returns fill automatically as detected deals mature (5 and 21 trading days after announcement). Check back; base rates by event type will appear here.</div>';
   const sig=(s.signals||[]);
   h+=`<div class="sec-hdr"><span class="dot y"></span><h2>📡 Graded Signals — family <span style="color:var(--cyan)">deal-win</span></h2><span class="ct">${s.signals_logged||0} logged this run</span></div>`;
-  h+= sig.length?`<table class="otable"><thead><tr><th>Ticker</th><th>Deal</th><th>vs MCap</th><th>Conf</th></tr></thead><tbody>${sig.map(x=>`<tr><td><span class="s">${esc(x.ticker)}</span></td><td>${esc(x.value||"—")}</td><td>${x.vs_mc_pct!=null?x.vs_mc_pct+"%":"—"}</td><td>${x.conf}</td></tr>`).join("")}</tbody></table><div class="empty" style="padding-top:8px">Entered at announcement price, UP [5,21,63] vs SPY — graded by the fleet loop; PROVEN gate on the <a href="/alpha-families.html">Alpha Lab</a>.</div>`
+  h+= sig.length?`<table class="otable"><thead><tr><th>Ticker</th><th>Deal</th><th>vs MCap</th><th>Event</th><th>8-K</th><th>Pop</th><th>Conf</th></tr></thead><tbody>${sig.map(x=>`<tr><td><span class="s">${esc(x.ticker)}</span></td><td>${esc(x.value||"—")}</td><td>${x.vs_mc_pct!=null?x.vs_mc_pct+"%":"—"}</td><td>${esc((x.event_type||"—").replace(/_/g," "))}</td><td>${x.confirmed_8k?"✓":"—"}</td><td>${x.pop_pct!=null?x.pop_pct+"%":"—"}</td><td>${x.conf}</td></tr>`).join("")}</tbody></table><div class="empty" style="padding-top:8px">Entered at announcement price, UP [5,21,63] vs SPY — graded by the fleet loop; PROVEN gate on the <a href="/alpha-families.html">Alpha Lab</a>.</div>`
     :'<div class="empty">No material fresh deal crossed the emission bar this run (green / AI-mega / $1B+ ≥5% of mcap, ≤30h old). Silence is correct — this family only fires on transformative wins.</div>';
   document.getElementById("content").innerHTML=h;
   document.getElementById("note").innerHTML=
@@ -215,6 +238,14 @@ function render(j){
      <b style="color:var(--fg-2)">Institutional layer:</b> every deal is classified (contract / gov / M&amp;A / partnership / licensing / equity), counterparty quality scored (🏛 GOV &amp; HYPERSCALER upweighted), cross-checked for a filed <b>SEC 8-K Item 1.01</b> (📄 confirmed = a real material definitive agreement, not just a press release), and screened by a <b>promo-risk guard</b> (LOI / MOU / non-binding paper and nano-cap unnamed-counterparty pumps never reach the signal book) and a <b>chase-guard</b> (names already +25% since announcement are skipped — our own event-study shows chasing loses). Cross-referenced to latest-FY revenue and market cap. Material fresh wins are logged as graded <code>deal-win</code> signals ([5,21,63] vs SPY) into the fleet's PROVEN loop and fused into best-setups, the master ranker, why.html and the morning brief. Direct X/Twitter scanning needs an X API key (not yet wired).
      Deal size is parsed from the release and may be approximate; "not yet in revenue" is inferred from announcement freshness. Real data, research only — not investment advice.`;
 }
+window.__dsSet=function(id){
+  const F=window.__DSF||{ev:"all",listed:false};
+  if(id==="listed")F.listed=!F.listed; else F.ev=(F.ev===id?"all":id);
+  window.__DSF=F;
+  const R=window.__DSRAW; if(!R)return;
+  const C=Object.assign({},R,{deals:(R.deals||[]).filter(d=>(F.ev==="all"||d.event_type===F.ev)&&(!F.listed||d.listed!==false))});
+  render(C);
+};
 load(DATA).then(render).catch(e=>{document.getElementById("content").innerHTML='<div class="loading">Could not load deal data. <a href="javascript:location.reload()">Retry</a></div>';});
 setTimeout(()=>location.reload(),600000);
 </script>

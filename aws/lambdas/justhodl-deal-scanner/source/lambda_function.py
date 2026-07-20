@@ -36,7 +36,7 @@ from email.utils import parsedate_to_datetime
 
 import boto3
 
-VERSION = "3.0.0"
+VERSION = "3.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/deal-scanner.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -338,21 +338,26 @@ def ai_tag(symbol, title, text, ai_universe):
 
 # ── v3 institutional layer ──────────────────────────────────────────────
 EVENTS_ALL = ["contract_win", "govt_contract", "ma_target", "ma_acquirer",
-              "partnership", "licensing_supply", "equity_investment", "other"]
+              "partnership", "licensing_supply", "equity_investment",
+              "capital_structure", "other"]
 
 _EV_PATTERNS = [
+    # capital-structure / financing events are NOT deal wins — classified first,
+    # stripped of green/AI-mega highlighting, barred from signals (v3.1: EPR
+    # credit agreement, LASE warrant exercise, MRAI debt restructuring class)
+    ("capital_structure", re.compile(r"credit (?:agreement|facility)|revolving credit|term loan|warrants?\b|equity line|at[- ]the[- ]market|controlled equity offering|open market sale|public offering|private placement|registered direct|convertible (?:notes?|senior|debt)|notes offering|debt (?:restructuring|refinanc\w*|repayment|reduction|service)|cost savings|share repurchase|buyback program|reverse (?:stock )?split|shelf registration|equity offering|unit offering|pricing of .{0,30}offering", re.I)),
     ("ma_target", re.compile(r"to be acquired|going.private|take[- ]private|receives?\s+(?:an?\s+)?(?:unsolicited\s+)?(?:acquisition|takeover|buyout)\s+(?:proposal|offer|bid)|merger agreement (?:with|under which)|per share in cash", re.I)),
     ("ma_acquirer", re.compile(r"\b(?:to acquire|acquires|agreement to acquire|completes? (?:the )?acquisition of|to merge with|definitive (?:merger|acquisition) agreement)\b", re.I)),
     ("govt_contract", re.compile(r"department of defense|\bdod\b|u\.?s\.? (?:army|navy|air force|space force)|\bdarpa\b|\bpentagon\b|\bgsa\b|\bnasa\b|\bidiq\b|task order|federal contract|government contract|department of energy|homeland security|defense contract", re.I)),
     ("equity_investment", re.compile(r"strategic (?:equity )?investment (?:in|from)|equity stake|\bpipe\b financing|takes? .{0,20} stake", re.I)),
     ("licensing_supply", re.compile(r"licens(?:e|ing) agreement|royalt(?:y|ies)|long[- ]term supply agreement|supply agreement", re.I)),
     ("partnership", re.compile(r"strategic (?:partnership|collaboration|alliance)|joint venture|teams? up with|partners? with", re.I)),
-    ("contract_win", re.compile(r"award(?:ed|s)?|\bwins?\b|secures?|purchase order|order for|contract (?:to|for|with|valued)|design win|selected (?:by|to)|deploy", re.I)),
+    ("contract_win", re.compile(r"award(?:ed|s)?|\bwins?\b|secures?|purchase order|order for|contracts? (?:to|for|with|valued)|design win|selected (?:by|to)|deploy|\\bcontracts?\\b", re.I)),
 ]
 _NONBIND_RE = re.compile(r"letter of intent|\bloi\b|memorandum of understanding|\bmou\b|non[- ]binding", re.I)
 _PROMO_RE = re.compile(r"revolutionar|game[- ]chang|poised to|first[- ]of[- ]its[- ]kind|paradigm|disrupt(?:s|ive)", re.I)
 
-_CP_GOV = ["department of defense", " dod ", "u.s. army", "u.s. navy", "air force",
+_CP_GOV = ["department of defense", "dod", "u.s. army", "u.s. navy", "air force",
            "space force", "darpa", "pentagon", "gsa", "nasa", "department of energy",
            "homeland security", "federal government", "u.s. government"]
 _CP_HYPER = ["microsoft", "azure", "google", "alphabet", "amazon", "aws", "meta ",
@@ -380,8 +385,10 @@ def counterparty(title, text, self_name):
     hits, q = [], None
     for lst, tier in ((_CP_GOV, "GOV"), (_CP_HYPER, "HYPERSCALER"), (_CP_MEGA, "MEGACAP")):
         for nm in lst:
-            if nm.strip() in blob and (not sn or nm.strip() not in sn):
-                hits.append(nm.strip())
+            nm = nm.strip()
+            if re.search(r"(?<![a-z])" + re.escape(nm) + r"(?![a-z])", blob) \
+                    and (not sn or nm not in sn):
+                hits.append(nm)
                 q = q or tier
     if not q:
         q = "NAMED" if re.search(r"(?:with|from|for|by)\s+[A-Z][A-Za-z&.\-]{2,}", title or "") else "UNNAMED"
@@ -421,6 +428,17 @@ def load_census():
     except Exception as _e:
         print("[deal-scanner] census overlay skipped:", str(_e)[:80])
     return out
+
+
+def load_shareflows():
+    """Dilution truth from share-flows: a 'transformative' deal at a serial
+    diluter is a trap — join sh_yoy_pct + forensic flags per ticker."""
+    try:
+        sf = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/share-flows.json")["Body"].read())
+        return {t: {"sh_yoy_pct": v.get("sh_yoy_pct"), "flags": v.get("flags") or []}
+                for t, v in (sf.get("tickers") or {}).items() if not v.get("data_suspect")}
+    except Exception:
+        return {}
 
 
 def load_13f_flows():
@@ -541,6 +559,15 @@ def load_sector_signal():
 
 def lambda_handler(event, context):
     t0 = time.time()
+    # v3.1 BACKFILL MODE: event {"backfill_pages": N} sweeps the tape N pages
+    # deep (days/weeks of PR history), classifies + ledgers everything with the
+    # SAME pipeline, skips signals + the live feed write — matured entries get
+    # forward returns filled immediately, so base rates are born populated.
+    bf = 0
+    try:
+        bf = int((event or {}).get("backfill_pages") or 0)
+    except Exception:
+        bf = 0
     try:
         universe = json.loads(s3.get_object(Bucket=S3_BUCKET, Key="data/universe.json")["Body"].read())
         uni = {s["symbol"]: {"name": s.get("name"), "industry": s.get("industry"),
@@ -550,8 +577,8 @@ def lambda_handler(event, context):
     except Exception:
         uni = {}
 
-    prs = fetch_news(pages=14, limit=100)        # v2: full-market sweep, both FMP feeds, deeper pages
-    prs += fetch_polygon(limit=100, pages=8)     # wider third-party coverage
+    prs = fetch_news(pages=(bf or 14), limit=100)   # v2: full-market sweep; v3.1 backfill goes deep
+    prs += fetch_polygon(limit=100, pages=(20 if bf else 8))
     # Benzinga leg REMOVED 2026-07-15: Massive stopped serving Benzinga (403 NOT_AUTHORIZED)
     ai_universe = load_ai_universe()
     sector_scores, sector_rotating_in, sector_conv, sector_posture = load_sector_signal()
@@ -560,6 +587,7 @@ def lambda_handler(event, context):
     exch_map, uni_stats, uni_gen = load_universe_meta()
     census = load_census()
     f13 = load_13f_flows()
+    sfm = load_shareflows()
     sec8k = load_8k_set(now)
     # dedupe + filter deals, keep freshest per (symbol,title)
     seen, deals_raw = set(), []
@@ -666,9 +694,19 @@ def lambda_handler(event, context):
         _f = f13.get(d["symbol"]) or {}
         inst_flow = ({"net_usd": _f.get("n"), "whale_net_usd": _f.get("wn"),
                       "n_funds": _f.get("nf")} if _f else None)
+        _sf = sfm.get(d["symbol"]) or {}
+        diluting = bool((_sf.get("sh_yoy_pct") or 0) >= 3)
+        dilution = ({"sh_yoy_pct": _sf.get("sh_yoy_pct"), "flags": _sf.get("flags")}
+                    if _sf else None)
+        if ev == "capital_structure":
+            # financing / balance-sheet events are not revenue deals — never
+            # green, never AI-mega, never signaled; shown in their own section
+            hl = None
+            ai_mega = False
         cp_boost = 25 if cp_q in ("GOV", "HYPERSCALER") else 8 if cp_q == "MEGACAP" else 0
         v3_adj = cp_boost + (12 if c8k else 0) - (60 if promo else 0) \
-                 - (40 if ev == "ma_target" else 0) - (25 if listed is False else 0)
+                 - (40 if ev == "ma_target" else 0) - (25 if listed is False else 0) \
+                 - (70 if ev == "capital_structure" else 0) - (10 if diluting else 0)
         score = round(mat_score + mc_score + cb + rec + size_score + focus + ai_boost + bil_boost
                       + sec_boost + sm_boost + (8 if d["multi_year"] else 0) + v3_adj, 1)
         why_bits = []
@@ -702,6 +740,10 @@ def lambda_handler(event, context):
             why_bits.append("⚠️ promo-risk" + (" (non-binding LOI/MOU)" if nonbind else ""))
         if listed is False:
             why_bits.append("⚠️ not on NYSE/NASDAQ/AMEX (OTC/unlisted)")
+        if ev == "capital_structure":
+            why_bits.append("🏦 capital-structure event (financing) — not a revenue deal")
+        if diluting:
+            why_bits.append(f"⚠️ diluting {_sf.get('sh_yoy_pct')}%/yr (share-flows)")
         deals.append({k: v for k, v in d.items() if k != "text_snippet"} | {
             "name": (mu or {}).get("name"), "cap_bucket": bkt, "market_cap": mc,
             "is_small_cap": small, "revenue_fy": rev, "materiality_pct": materiality,
@@ -714,6 +756,7 @@ def lambda_handler(event, context):
             "event_type": ev, "counterparties": cp_names, "counterparty_quality": cp_q,
             "listed": listed, "exchange": exch, "promo_risk": promo, "non_binding": nonbind,
             "confirmed_8k": c8k, "census": cen, "inst_flow": inst_flow,
+            "dilution": dilution,
             "score": score, "why": "; ".join(why_bits)})
 
     deals.sort(key=lambda x: x["score"], reverse=True)
@@ -819,8 +862,9 @@ def lambda_handler(event, context):
             return round(((e[1] / b[1]) - (se / sb)) * 100, 2)
 
         _fills = 0
+        _fill_cap = 150 if bf else 40
         for _id, v in entries.items():
-            if _fills >= 40 or v.get("listed") is False:
+            if _fills >= _fill_cap or v.get("listed") is False:
                 continue
             ad = v.get("announce")
             need5 = v.get("fwd5_ex") is None and ad and len([x for x in _spy_days if x >= ad]) > 6
@@ -856,6 +900,14 @@ def lambda_handler(event, context):
 
     # ── v2.0.0: graded signals — material fresh deals enter the fleet loop ─
     logged = []
+    if bf:
+        print(f"[deal-scanner] BACKFILL pages={bf}: prs={len(prs)} deals={len(deals)} "
+              f"ledger={hist_n}(+{hist_filled} filled) base_rate_types={list(base_rates)} "
+              f"{round(time.time()-t0,1)}s — signals + feed write skipped")
+        return {"statusCode": 200, "body": json.dumps(
+            {"ok": True, "backfill": bf, "n_prs": len(prs), "n_deals": len(deals),
+             "ledger_n": hist_n, "filled": hist_filled,
+             "base_rate_types": list(base_rates)})}
     try:
         from signals_emit import log_signal, yprice
         _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
@@ -865,7 +917,7 @@ def lambda_handler(event, context):
                        or (d.get("is_billion") and (d.get("vs_market_cap_pct") or 0) >= 5))
                   # v3 institutional bar: listed only, no M&A-pinned targets, no promo paper
                   and d.get("listed") is not False
-                  and d.get("event_type") != "ma_target"
+                  and d.get("event_type") not in ("ma_target", "capital_structure")
                   and not d.get("promo_risk")]
         for d in _cands[:10]:
             _px = yprice(d["symbol"])
