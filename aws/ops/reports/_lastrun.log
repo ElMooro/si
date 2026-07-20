@@ -1,13 +1,13 @@
-executing-against: 5057b61ab08feaaea6311bc6d18f04b0115ed80b
-ops 3580 — historical backfill (Polygon 90d window)
-PASS  G1_settled_3111 — markers ok=True mem=1024 timeout=900
-[18:00:04] PASS  G1_settled_3111 — markers ok=True mem=1024 timeout=900
-FAIL  G2_hist_backfill — hist90: prs=16798 deals=28 ledger=104 filled=45 · ledger=104 · base_rates: contract_win: n5=24 med5=-5.71% n21=7 med21=5.15% hit21=57.1% | govt_contract: n5=3 med5=-5.3% n21=1 med21=1.83% hit21=100.0% | partnership: n5=1 med5=-7.74% n21=0 med21=None% hit21=None% | licensing_supply: n5=8 med5=-0.26% n21=8 med21=-6.82% hit21=37.5% | equity_investment: n5=1 med5=-5.0% n21=0 med21=None% hit21=None% | other: n5=7 med5=0.17% n21=0 med21=None% hit21=None%
-[18:00:35] FAIL  G2_hist_backfill — hist90: prs=16798 deals=28 ledger=104 filled=45 · ledger=104 · base_rates: contract_win: n5=24 med5=-5.71% n21=7 med21=5.15% hit21=57.1% | govt_contract: n5=3 med5=-5.3% n21=1 med21=1.83% hit21=100.0% | partnership: n5=1 med5=-7.74% n21=0 med21=None% hit21=None% | licensing_supply: n5=8 med5=-0.26% n21=8 med21=-6.82% hit21=37.5% | equity_investment: n5=1 med5=-5.0% n21=0 med21=None% hit21=None% | other: n5=7 med5=0.17% n21=0 med21=None% hit21=None%
-PASS  G3_feed_base_rates — feed base_rate types=['contract_win', 'govt_contract', 'partnership', 'licensing_supply', 'equity_investment', 'other'] history.n=104
-[18:00:51] PASS  G3_feed_base_rates — feed base_rate types=['contract_win', 'govt_contract', 'partnership', 'licensing_supply', 'equity_investment', 'other'] history.n=104
+executing-against: 2e4be87d76e9b97111e1adc3d92dda52c66532da
+ops 3581 — deal-scanner v3.2 (options confirm + filed terms)
+PASS  G1_settled_v32 — markers ok=True mem=1024 timeout=900
+[18:08:45] PASS  G1_settled_v32 — markers ok=True mem=1024 timeout=900
+PASS  G2_feed_v32 — deals=4 struct_ok=True options_confirmed=0 filings_parsed=0 8k_3d=34 base_rate_types=6 signals=0
+[18:09:17] PASS  G2_feed_v32 — deals=4 struct_ok=True options_confirmed=0 filings_parsed=0 8k_3d=34 base_rate_types=6 signals=0
+PASS  G3_page_v32 — served: call-flow pill + filing verdict pills + filing context + note
+[18:11:02] PASS  G3_page_v32 — served: call-flow pill + filing verdict pills + filing context + note
 
-VERDICT: GAPS: G2_hist_backfill
-[18:00:51] VERDICT: GAPS: G2_hist_backfill
+VERDICT: PASS_ALL
+[18:11:02] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3580_backfill_hist.md
+→ Report written to aws/ops/reports/latest/3581_deal_v32.md

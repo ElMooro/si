@@ -1,0 +1,23 @@
+{
+  "gates": {
+    "G1_settled_v32": {
+      "ok": true,
+      "detail": "markers ok=True mem=1024 timeout=900"
+    },
+    "G2_feed_v32": {
+      "ok": true,
+      "detail": "deals=4 struct_ok=True options_confirmed=0 filings_parsed=0 8k_3d=34 base_rate_types=6 signals=0"
+    },
+    "G3_page_v32": {
+      "ok": true,
+      "detail": "served: call-flow pill + filing verdict pills + filing context + note"
+    }
+  },
+  "summary": {
+    "n_deals": 4,
+    "options_confirmed": 0,
+    "filings_parsed": 0,
+    "filing_sample": null
+  },
+  "verdict": "PASS_ALL"
+}
