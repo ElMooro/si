@@ -82,6 +82,19 @@ def taiwan_orders():
         ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
         raw = urllib.request.urlopen(urllib.request.Request(_DGBAS_ORDERS, headers=UA),
                                      timeout=20, context=ctx).read(300_000)
+        shell = raw.decode("utf-8", "replace")
+        # v1.2.1: the Point page is a JS shell — it embeds its own data
+        # querystring (const jhxiaoQS = '?sid=...&Create=1&_guid=...'); extract
+        # it and fetch stage-2 from the same endpoint for the real content.
+        qs = re.search(r"jhxiaoQS\s*=\s*'([^']+)'", shell)
+        if qs:
+            u2 = "https://eng.stat.gov.tw/Point.aspx" + qs.group(1).replace("&amp;", "&")
+            try:
+                raw = urllib.request.urlopen(urllib.request.Request(u2, headers=UA),
+                                             timeout=20, context=ctx).read(400_000)
+                out["stage2"] = u2[:120]
+            except Exception as _e2:
+                out["stage2_err"] = str(_e2)[:90]
         txt = re.sub(r"<[^>]+>|&nbsp;|\s+", " ", raw.decode("utf-8", "replace"))
         seg = txt
         m = re.search(r"[Ee]xport [Oo]rders(.{0,600})", txt)

@@ -182,6 +182,23 @@ def pboc_afre_block():
             url = "http://www.pbc.gov.cn" + url
         page = _html(url)
         rows = _tables_rows(page)
+        att_used = None
+        if len(rows) < 3:
+            # PBoC EN item pages often carry the table as an attached .htm —
+            # follow the first same-host htm/html attachment and parse THAT.
+            import re as _re2
+            atts = [_re2.sub(r'^/', 'http://www.pbc.gov.cn/', a) if a.startswith('/')
+                    else a
+                    for a in _re2.findall(r'href="([^"]+\.html?)"', page, _re2.I)
+                    if "index.html" not in a]
+            for a in atts[:3]:
+                if not a.startswith("http"):
+                    a = url.rsplit("/", 1)[0] + "/" + a
+                sub = _html(a)
+                r2 = _tables_rows(sub)
+                if len(r2) >= 3:
+                    rows, att_used = r2, a
+                    break
         hdr = next((r0 for r0 in rows if sum(1 for c in r0 if any(m in c for m in _MONTHS)) >= 3), None)
         afre = next((r0 for r0 in rows if r0 and "aggregate financing" in r0[0].lower()), None)
         parsed_rows = []
@@ -196,7 +213,7 @@ def pboc_afre_block():
                     vals.append(None)
             if sum(1 for v in vals if v is not None) >= 2:
                 parsed_rows.append({"item": r0[0][:70], "values": vals[:14]})
-        out["latest_report"] = {"title": items[0][1][:110], "url": url,
+        out["latest_report"] = {"title": items[0][1][:110], "url": url, "attachment": att_used,
                                "header": (hdr[:14] if hdr else None),
                                "n_rows_parsed": len(parsed_rows)}
         if afre:
