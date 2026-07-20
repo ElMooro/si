@@ -1,36 +1,36 @@
-executing-against: a04bb35f62c48273b347adbe7b4515e8fe619e87
-ops 3587 — PBoC AFRE + DGBAS export-orders live
-[18:55:12]   zip: 86673 bytes
+executing-against: 16544828665d7fe7400d6bbb4ae0ed432194d4b2
+ops 3588 — PBoC AFRE + DGBAS export-orders live
+[19:00:20]   zip: 86937 bytes
 ── 1. Lambda ──
-[18:55:12]   Lambda exists — updating
-[18:55:18] ✅   ✓ updated justhodl-china-liquidity
+[19:00:20]   Lambda exists — updating
+[19:00:25] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[18:55:18]   invoking justhodl-china-liquidity…
-[18:55:25] ✅   ✓ smoke test passed
-[18:55:25]     ok                       True
-[18:55:25]     regime                   NEUTRAL
-[18:55:25]     credit_impulse_pp        -5.52
-[18:55:25]     m2_yoy                   8.21
-[18:55:26]   zip: 85144 bytes
+[19:00:25]   invoking justhodl-china-liquidity…
+[19:00:43] ✅   ✓ smoke test passed
+[19:00:43]     ok                       True
+[19:00:43]     regime                   NEUTRAL
+[19:00:43]     credit_impulse_pp        -5.52
+[19:00:43]     m2_yoy                   8.21
+[19:00:43]   zip: 85383 bytes
 ── 1. Lambda ──
-[18:55:26]   Lambda exists — updating
-[18:55:29] ✅   ✓ updated justhodl-asia-leads
+[19:00:43]   Lambda exists — updating
+[19:00:49] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[18:55:29]   invoking justhodl-asia-leads…
-[18:55:33] ✅   ✓ smoke test passed
-[18:55:33]     ok                       True
-[18:55:33]     kr_yoy                   47.96
-[18:55:33]     tw_yoy                   48.33
+[19:00:49]   invoking justhodl-asia-leads…
+[19:00:58] ✅   ✓ smoke test passed
+[19:00:58]     ok                       True
+[19:00:58]     kr_yoy                   47.96
+[19:00:58]     tw_yoy                   48.33
 PASS  G1_deployed — both v-bumps deployed via helper
-[18:55:33] PASS  G1_deployed — both v-bumps deployed via helper
-PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid='
-[18:55:36] PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='                        #chartdiv { width: 100%; height: 500px; max-width: 100%; }     const jhxiaoQS = '?sid='
+[19:00:58] PASS  G1_deployed — both v-bumps deployed via helper
+PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='       Import on customs basis Growth Rate       Export on customs basis Growth Rate       Total Population   '
+[19:01:08] PASS  G2_tw_orders — v1.2.0 orders yoy=None% usd_bn=None period=None err=regex found no orders print on page raw='       Import on customs basis Growth Rate       Export on customs basis Growth Rate       Total Population   '
 FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
-[18:55:43] FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
+[19:01:19] FAIL  G3_pboc_afre — report='Report on Aggregate Financing to the Real Economy (Flow) (August 2025)' rows=0 afre_latest=None (100M RMB) n_vals=0 cache=None err=None
 PASS  G4_page_row — served: Taiwan export ORDERS row
-[18:57:28] PASS  G4_page_row — served: Taiwan export ORDERS row
+[19:01:19] PASS  G4_page_row — served: Taiwan export ORDERS row
 
 VERDICT: GAPS: G3_pboc_afre
-[18:57:28] VERDICT: GAPS: G3_pboc_afre
+[19:01:19] VERDICT: GAPS: G3_pboc_afre
 
-→ Report written to aws/ops/reports/latest/3587_scrapers.md
+→ Report written to aws/ops/reports/latest/3588_scrapers_v2.md
