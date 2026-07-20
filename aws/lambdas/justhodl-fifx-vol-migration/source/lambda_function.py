@@ -31,6 +31,7 @@ import boto3
 
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/fifx-vol.json"
+DEEP_KEY = "data/fifx-vol-history.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 FRED = os.environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
 UA = {"User-Agent": "Mozilla/5.0 (JustHodl research contact@justhodl.ai)"}
@@ -45,7 +46,7 @@ def _j(url, timeout=25):
         return None
 
 
-def fred(series, start="2019-01-01"):
+def fred(series, start="1988-01-01"):
     j = _j("https://api.stlouisfed.org/fred/series/observations?"
            + urllib.parse.urlencode({"series_id": series, "api_key": FRED,
                                      "file_type": "json", "observation_start": start}))
@@ -123,7 +124,7 @@ def trend_5d(series):
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    # ── EQ leg
+    # ── EQ leg (VIXCLS starts 1990 — the deep-history anchor)
     vix_rows = fred("VIXCLS")
     eq_z, eq_pct, vix = z_and_pct(vix_rows)
     # ── FI leg: real MOVE + synthetic feed cross-check
@@ -186,6 +187,43 @@ def lambda_handler(event=None, context=None):
              "MIGRATING": "upstream vol elevated and VIX now rising toward it — migration underway",
              "BROAD_STRESS": "all three markets in high-vol regime — migration complete",
              "DEGRADED": "a leg failed to price — see coverage"}
+    # ── v1.2: DEEP 1990+ track — fully-consistent FRED legs (MOVE is shallow
+    # on Yahoo; EUR only exists post-1999): FI = DGS10 30d realized (bp) z;
+    # FX composite = JPY+GBP pre-1999, +EUR after (documented splice); EQ = VIX z.
+    r10_full = realized_series(fred("DGS10"), 30, diff="diff")
+    fis_h = rolling_z(r10_full, keep=99999)
+    fxd = {}
+    for name, sid in {"USDJPY": "DEXJPUS", "GBPUSD": "DEXUSUK",
+                      "EURUSD": "DEXUSEU"}.items():
+        for dte, v in realized_series(fred(sid), 20):
+            fxd.setdefault(dte, []).append(v)
+    fx_full = sorted((dte, round(sum(v) / len(v), 2))
+                     for dte, v in fxd.items() if len(v) >= 2)
+    fx_full_h = rolling_z(fx_full, keep=99999)
+    eq_full_h = rolling_z(vix_rows, keep=99999)
+    deep = []
+    for dte in sorted(eq_full_h):
+        a, b = fis_h.get(dte), fx_full_h.get(dte)
+        if a is None or b is None:
+            continue
+        deep.append({"d": dte, "fis": a, "fx": b, "eq": eq_full_h[dte],
+                     "spill": round(max(a, b) - eq_full_h[dte], 2)})
+    # downsample: weekly (Fridays) before trailing 730d, daily after
+    cutoff = (datetime.now(timezone.utc) - __import__("datetime").timedelta(days=730)).strftime("%Y-%m-%d")
+    deep_ds = [r for r in deep if r["d"] >= cutoff
+               or datetime.strptime(r["d"], "%Y-%m-%d").weekday() == 4]
+    s3.put_object(Bucket=BUCKET, Key=DEEP_KEY, Body=json.dumps({
+        "engine": "fifx-vol-migration", "rows": deep_ds,
+        "first": deep_ds[0]["d"] if deep_ds else None,
+        "last": deep_ds[-1]["d"] if deep_ds else None,
+        "n_rows": len(deep_ds),
+        "methodology": ("Consistent 1990+ track: FI = DGS10 30d realized (bp) z; "
+                        "FX = equal-weight 20d realized JPY+GBP (pre-1999) +EUR (post); "
+                        "EQ = VIX z; each z vs own trailing 2y. Weekly before last "
+                        "730d, daily after. Real MOVE z lives in the main feed's "
+                        "recent history (Yahoo depth-limited)."),
+        "generated_at": datetime.now(timezone.utc).isoformat()}).encode(),
+        ContentType="application/json")
     # v1.1: rolling z history → the page's spillover ribbon + node pulses
     fi_h = rolling_z(move_rows) if move_rows else {}
     fx_h = rolling_z(comp_rows)
@@ -199,7 +237,7 @@ def lambda_handler(event=None, context=None):
         hist.append({"d": d, "fi": f, "fx": x, "eq": e,
                      "spill": round(up - e, 2)})
     hist = hist[-180:]
-    out = {"engine": "fifx-vol-migration", "version": "1.1.0",
+    out = {"engine": "fifx-vol-migration", "version": "1.2.0",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "legs": {
                "fixed_income": {"measure": fi_src, "level": move, "z": fi_z, "pctile": fi_pct,
@@ -215,7 +253,7 @@ def lambda_handler(event=None, context=None):
                       "fxvol_vix": {"last": fxvix_last, "z": fxvix_z, "pctile": fxvix_pctile}},
            "migration": {"upstream_z": up_z, "equity_z": eq_z, "spillover": spill,
                          "state": state, "read": reads[state]},
-           "history": hist,
+           "history": hist, "deep_history_key": DEEP_KEY,
            "methodology": {"thesis": "vol begins in fixed income/FX and migrates to equities; z-score each leg vs its own 2y and watch the spillover gap",
                            "spillover": "max(FI_z, FX_z) − EQ_z; ≥1 with upstream z ≥1 = UPSTREAM_BREWING"},
            "siblings": {"fi_realized_5ch": "data/bond-vol.json", "move_vix_series": "risk-ratios",
