@@ -1,16 +1,10 @@
-executing-against: 347c44be9e1e5be27f7887df82485fef42f23e6a
-FAIL  G1_phase2_raw — {'raw_cols_present': 0, 'of': 30, 'metrics_total': 231, 'sparse_examples': {'preferredStock': 0, 'capLeaseObligations': 0, 'netChangeInCash': 0}}
-[02:50:45] FAIL  G1_phase2_raw — {'raw_cols_present': 0, 'of': 30, 'metrics_total': 231, 'sparse_examples': {'preferredStock': 0, 'capLeaseObligations': 0, 'netChangeInCash': 0}}
-[02:50:45]   zip: 111595 bytes
-── 1. Lambda ──
-[02:50:46]   Lambda exists — updating
-[02:50:51] ✅   ✓ updated justhodl-fundamental-graphs
-PASS  G2_aapl_stats — {'zip': True, 'present': 44, 'of': 44, 'missing': [], 'aapl': {'price_to_book': 34.503, 'roa_pct': 33.032, 'days_inventory': 10.46, 'zmijewski_x': -1.773, 'graham_number': 36.696, 'pe_fwd': 27.299, 'ev_ebitda_fwd': 20.409}}
-[02:51:02] PASS  G2_aapl_stats — {'zip': True, 'present': 44, 'of': 44, 'missing': [], 'aapl': {'price_to_book': 34.503, 'roa_pct': 33.032, 'days_inventory': 10.46, 'zmijewski_x': -1.773, 'graham_number': 36.696, 'pe_fwd': 27.299, 'ev_ebitda_fwd': 20.409}}
-PASS  G3_chain2 — stats sweep running
-[02:51:02] PASS  G3_chain2 — stats sweep running
-PASS  G4_pages — categories served + node x3
-[02:53:06] PASS  G4_pages — categories served + node x3
-RESULT: FAILS: ['G1_phase2_raw']
+executing-against: 4b556b64ad3974a2516290c8168ecb71041c20af
+FAIL  H1_matrix — {'raw_present': 0, 'stat_present': 12, 'metrics_total': 231, 'generated_at': '2026-07-20T01:49:15.276470+00:00', 'raw_missing': ['otherOpex', 'costAndExpenses', 'sellingMarketing', 'nonOpIncomeTotal', 'otherCurrentAssets', 'otherNonCurrentAssets', 'totalNonCurrentAssets', 'deferredTaxAssets'], 'stat_missing': ['price_to_book', 'price_to_cfo_ttm', 'price_to_tangible_book', 'book_value_per_share', 'tangible_bvps', 'fcf_per_share', 'roce_pct', 'rote_pct']}
+[03:11:06] FAIL  H1_matrix — {'raw_present': 0, 'stat_present': 12, 'metrics_total': 231, 'generated_at': '2026-07-20T01:49:15.276470+00:00', 'raw_missing': ['otherOpex', 'costAndExpenses', 'sellingMarketing', 'nonOpIncomeTotal', 'otherCurrentAssets', 'otherNonCurrentAssets', 'totalNonCurrentAssets', 'deferredTaxAssets'], 'stat_missing': ['price_to_book', 'price_to_cfo_ttm', 'price_to_tangible_book', 'book_value_per_share', 'tangible_bvps', 'fcf_per_share', 'roce_pct', 'rote_pct']}
+PASS  H2_checklist — {'DIRECT_raw': 0, 'DIRECT_stats': 12, 'AGGREGATE_MAPPED': ['EBIT→operating income', 'impairment/restructuring→other expenses & non-op total', 'treasury stock→other equity', 'buyback yield≈net_buyback_yield (+gross added)'], 'NOT_IN_SOURCE_never_synthesized': ['PP&E by class (buildings/machinery/land/leases/…)', 'Accumulated depreciation by class', 'Inventory WIP / finished / raw splits', 'Receivables gross / bad-debt split', 'Income tax current-vs-deferred domestic/foreign', 'Interest capitalized', 'Notes payable', 'Accrued payroll', 'Dividends payable', 'Separate impairment/restructuring/legal lines', 'Free float', 'Preferred dividends paid (separate)']}
+[03:11:06] PASS  H2_checklist — {'DIRECT_raw': 0, 'DIRECT_stats': 12, 'AGGREGATE_MAPPED': ['EBIT→operating income', 'impairment/restructuring→other expenses & non-op total', 'treasury stock→other equity', 'buyback yield≈net_buyback_yield (+gross added)'], 'NOT_IN_SOURCE_never_synthesized': ['PP&E by class (buildings/machinery/land/leases/…)', 'Accumulated depreciation by class', 'Inventory WIP / finished / raw splits', 'Receivables gross / bad-debt split', 'Income tax current-vs-deferred domestic/foreign', 'Interest capitalized', 'Notes payable', 'Accrued payroll', 'Dividends payable', 'Separate impairment/restructuring/legal lines', 'Free float', 'Preferred dividends paid (separate)']}
+FAIL  H3_spots — {'AAPL_price_to_book': None, 'MSFT_roa_pct': 19.925, 'NVDA_pe_fwd': None, 'AAPL_netChangeInCash': None, 'JNJ_payout_ratio_pct': 59.52}
+[03:11:06] FAIL  H3_spots — {'AAPL_price_to_book': None, 'MSFT_roa_pct': 19.925, 'NVDA_pe_fwd': None, 'AAPL_netChangeInCash': None, 'JNJ_payout_ratio_pct': 59.52}
+RESULT: FAILS: ['H1_matrix', 'H3_spots']
 
-→ Report written to aws/ops/reports/latest/3563_tv_stats.md
+→ Report written to aws/ops/reports/latest/3564_parity_final.md
