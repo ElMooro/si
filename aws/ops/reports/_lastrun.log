@@ -1,33 +1,21 @@
-executing-against: d5801c8f85f03ada41e3f7aabc1305927731eca7
-ops 3585 — discovery #2: TW export orders + PBoC monthly TSF
-A1_datagovtw_search: {"err": "HTTP Error 404: Not Found", "top_keys": null, "hits": []}
-[18:44:15] A1_datagovtw_search: {"err": "HTTP Error 404: Not Found", "top_keys": null, "hits": []}
-A2_datagovtw_en: {"err": "HTTP Error 404: Not Found", "hits": []}
-[18:44:15] A2_datagovtw_en: {"err": "HTTP Error 404: Not Found", "hits": []}
-A3_moea_root: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
-[18:44:15] A3_moea_root: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
-A4_moea_bulletin: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
-[18:44:16] A4_moea_bulletin: {"status": null, "len": null, "orders_str": false, "err": "HTTP Error 403: Forbidden"}
-A5_nstatdb: {"status": 200, "len": 21, "orders_str": false, "err": null}
-[18:44:17] A5_nstatdb: {"status": 200, "len": 21, "orders_str": false, "err": null}
-A6_stat_eng: {"status": 200, "len": 112551, "orders_str": true, "err": null}
-[18:44:18] A6_stat_eng: {"status": 200, "len": 112551, "orders_str": true, "err": null}
-A7_dbn_taipei: {"err": null, "hits": []}
-[18:44:19] A7_dbn_taipei: {"err": null, "hits": []}
-A8_dbn_tw_manuf: {"err": null, "hits": []}
-[18:44:20] A8_dbn_tw_manuf: {"err": null, "hits": []}
-B1_nbs_hgyd_root: {"err": "HTTP Error 403: Forbidden", "n": 0, "cats": []}
-[18:44:24] B1_nbs_hgyd_root: {"err": "HTTP Error 403: Forbidden", "n": 0, "cats": []}
-B2_nbs_financing_nodes: {"hits": []}
-[18:44:24] B2_nbs_financing_nodes: {"hits": []}
-B3_nbs_sample_query: {"skipped": "no financing node found"}
-[18:44:24] B3_nbs_sample_query: {"skipped": "no financing node found"}
-B4_pboc_en_reach: {"status": 200, "afre_str": true, "err": null}
-[18:44:26] B4_pboc_en_reach: {"status": 200, "afre_str": true, "err": null}
-B5_dbn_cn_providers: {"err": null, "matches": ["NBS", "SAIS-CARI"]}
-[18:44:28] B5_dbn_cn_providers: {"err": null, "matches": ["NBS", "SAIS-CARI"]}
+executing-against: 43c4c20395637b92236c2aa7781c3e4ceb48af6d
+ops 3586 — discovery #3: PBoC AFRE recipe + TW retargets
+B1_stats_index: {"status": 200, "afre_links": [["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/5839519/index.html", "Report on Aggregate Financing to the Real Economy (Stock) (Aug..."],
+[18:49:21] B1_stats_index: {"status": 200, "afre_links": [["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html", "Aggregate Financing Reports"], ["http://www.pbc.gov.cn/en/3688247/3688978/3709140/5839519/index.html", "Report on Aggregate Financing to the Real Economy (Stock) (Aug..."],
+B2_afre_listing: {"status": 200, "items": [["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "2025"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5188168/index.html", "2024"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4756448/index.html", "2023"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4601725/index.html", "2022"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4437187/index.html"
+[18:49:22] B2_afre_listing: {"status": 200, "items": [["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "2025"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5188168/index.html", "2024"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4756448/index.html", "2023"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4601725/index.html", "2022"], ["http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/4437187/index.html"
+B3_afre_item: {"status": 200, "url": "http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "attachments": [], "table_rows": []}
+[18:49:24] B3_afre_item: {"status": 200, "url": "http://www.pbc.gov.cn/en/3688110/3688259/3689026/3706088/5624524/index.html", "attachments": [], "table_rows": []}
+A1_dgtw_v2_singular: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
+[18:49:24] A1_dgtw_v2_singular: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
+A2_dgtw_front_list: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
+[18:49:24] A2_dgtw_front_list: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 405: Method Not Allowed"}
+A3_dgtw_front_search: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 404: Not Found"}
+[18:49:25] A3_dgtw_front_search: {"status": null, "json": false, "hits": [], "body_head": "HTTP Error 404: Not Found"}
+A4_engstat_order_links: {"status": 200, "links": [["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"]]}
+[18:49:26] A4_engstat_order_links: {"status": 200, "links": [["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"], ["https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713", "Value of Export Orders"]]}
 
 VERDICT: PROBE_COMPLETE
-[18:44:28] VERDICT: PROBE_COMPLETE
+[18:49:26] VERDICT: PROBE_COMPLETE
 
-→ Report written to aws/ops/reports/latest/3585_discovery2.md
+→ Report written to aws/ops/reports/latest/3586_discovery3.md
