@@ -1,26 +1,19 @@
-executing-against: 3deda5cb62638ec145500b5695da0b3f51bf2210
-ops 3590 — Industry Boom League v1
-[19:26:10]   zip: 86284 bytes
-── 1. Lambda ──
-[19:26:10]   Lambda exists — updating
-[19:26:14] ✅   ✓ updated justhodl-industry-boom
-── 3. Smoke test ──
-[19:26:14]   invoking justhodl-industry-boom…
-[19:26:15] ✅   ✓ smoke test passed
-[19:26:15]     ok                       True
-[19:26:15]     n                        120
-[19:26:15]     sources_ok               8
-[19:26:15]     top                      Computer Hardware
-PASS  G1_deploy_schedule — deployed; schedule=kept ['justhodl-industry-boom-daily']
-[19:26:16] PASS  G1_deploy_schedule — deployed; schedule=kept ['justhodl-industry-boom-daily']
-PASS  G2_feed_real — industries=120 sources_ok=8/8 top3=[('Computer Hardware', 83.9), ('Semiconductors', 82.2), ('Electrical Equipment & Parts', 80.2)] top_comp={'rev_mean': 81.7, 'deal_wins_30d': 2, 'inst_net_bps': 37.4, 'census_conviction': 62.4, 'dilution_share': 60.0}
-[19:26:18] PASS  G2_feed_real — industries=120 sources_ok=8/8 top3=[('Computer Hardware', 83.9), ('Semiconductors', 82.2), ('Electrical Equipment & Parts', 80.2)] top_comp={'rev_mean': 81.7, 'deal_wins_30d': 2, 'inst_net_bps': 37.4, 'census_conviction': 62.4, 'dilution_share': 60.0}
-PASS  G3_history_seeded — ledger days=1
-[19:26:18] PASS  G3_history_seeded — ledger days=1
-PASS  G4_page_section — served: Industry Boom League section
-[19:26:18] PASS  G4_page_section — served: Industry Boom League section
+executing-against: e3cea280953d68821b6a0ad93770f70221109218
+ops 3591 — KCS 20-day flash probe (public release path)
+P1_tradedata_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+[19:39:52] P1_tradedata_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+P2_customs_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+[19:40:06] P2_customs_root: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+P3_customs_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+[19:40:21] P3_customs_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+P4_kcs_press_kr: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+[19:40:35] P4_kcs_press_kr: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+P5_kcs_press_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+[19:40:50] P5_kcs_press_en: {"status": null, "len": null, "flash_str": false, "links": [], "err": "<urlopen error timed out>"}
+P6_item_drill: {"skipped": "press board not reachable/linked"}
+[19:40:50] P6_item_drill: {"skipped": "press board not reachable/linked"}
 
-VERDICT: PASS_ALL
-[19:26:18] VERDICT: PASS_ALL
+VERDICT: PROBE_COMPLETE
+[19:40:50] VERDICT: PROBE_COMPLETE
 
-→ Report written to aws/ops/reports/latest/3590_boom_v11.md
+→ Report written to aws/ops/reports/latest/3591_kcs_probe.md
