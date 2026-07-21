@@ -1,0 +1,24 @@
+{
+  "gates": {
+    "G1_classified": {
+      "ok": true,
+      "detail": "n=60 counts={'RETIRED': 13, 'SCHEDULE_DEAD': 5, 'KEY_DRIFT': 31, 'SLA_TIGHT': 11, 'OTHER': 0} healed_n=24 sched_dead=['data/feedback-summary.json', 'data/user-trades-stats.json', 'data/user-trades.json', 'data/brain-history.json', 'data/warroom-replay.json'] drift=['data/history-api-url.json', 'data/user-watchlist.json', 'data/congress-party-map.json', 'data/history-index.json', 'data/quiver-lobbying-cache.json', 'data/quiver-congress-cache.json']"
+    },
+    "G2_stale_dropped": {
+      "ok": true,
+      "detail": "stale 60 -> 50 (healed 24 overrides; remaining = genuine repair backlog)"
+    }
+  },
+  "counts": {
+    "RETIRED": 13,
+    "SCHEDULE_DEAD": 5,
+    "KEY_DRIFT": 31,
+    "SLA_TIGHT": 11,
+    "OTHER": 0
+  },
+  "stale_before_after": [
+    60,
+    50
+  ],
+  "verdict": "PASS_ALL"
+}
