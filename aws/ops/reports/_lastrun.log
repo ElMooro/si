@@ -1,19 +1,19 @@
-executing-against: cd602b81afbfaef77a59388965a3448bdc122cd9
-ops 3611 — scatter v2 + famous portfolio styles + 13F clones
-[01:00:39]   zip: 92128 bytes
+executing-against: 571bae96b7ed141512a369ba35a55ec3fe21fcfb
+ops 3612 — benchmark_portfolios gate + clone reader fix
+[01:11:57]   zip: 92198 bytes
 ── 1. Lambda ──
-[01:00:40]   Lambda exists — updating
-[01:00:43] ✅   ✓ updated justhodl-forward-returns
+[01:11:57]   Lambda exists — updating
+[01:12:01] ✅   ✓ updated justhodl-forward-returns
 ── 3. Smoke test ──
-[01:00:43]   invoking justhodl-forward-returns…
-[01:01:08] ✅   ✓ smoke test passed
-[01:01:08]     ok                       True
-[01:01:08]     n_assets                 15
-FAIL  G1_portfolios — n=0 keys=[] bad_sums={} rp={} 60/40 ER=None swensen ER=None clones={}
-[01:01:21] G1_portfolios False
-FAIL  G2_page — {'chips': True, 'sec_collapse': True, 'tooltips': True, 'ray': True, 'legacy': True, 'port_note': False}
-[01:08:22] G2_page False
-VERDICT: GAPS: G1_portfolios,G2_page
-[01:08:22] VERDICT: GAPS: G1_portfolios,G2_page
+[01:12:01]   invoking justhodl-forward-returns…
+[01:12:06] ✅   ✓ smoke test passed
+[01:12:06]     ok                       True
+[01:12:06]     n_assets                 15
+FAIL  G1_bench — n=14 bad={} rp={'SPY': 0.252, 'TLT': 0.279, 'GLD': 0.252, 'DBC': 0.217} ERs: 60/40=None perm=4.98 GB=5.32 swensen=6.54 ivy5=5.73 bogle3=6.56 rpER=4.67 clones={'clone_bridgewater': {'cov': 50.4, 'er': 7.03, 'as_of': None, 'n_hold': 10}, 'clone_berkshire': {'cov': 0.0, 'er': None, 'as_of': None, 'n_hold': 10}}
+[01:12:11] G1_bench False
+PASS  G2_page — {'chips': True, 'sec': True, 'ray': True, 'note_tpl': True, 'hold_tpl': True, 'legacy': True}
+[01:12:11] G2_page True
+VERDICT: GAPS: G1_bench
+[01:12:11] VERDICT: GAPS: G1_bench
 
-→ Report written to aws/ops/reports/latest/3611_scatter_portfolios.md
+→ Report written to aws/ops/reports/latest/3612_bench_key.md

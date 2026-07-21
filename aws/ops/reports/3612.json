@@ -1,0 +1,71 @@
+{
+  "gates": {
+    "G1_bench": {
+      "ok": false,
+      "detail": "n=14 bad={} rp={'SPY': 0.252, 'TLT': 0.279, 'GLD': 0.252, 'DBC': 0.217} ERs: 60/40=None perm=4.98 GB=5.32 swensen=6.54 ivy5=5.73 bogle3=6.56 rpER=4.67 clones={'clone_bridgewater': {'cov': 50.4, 'er': 7.03, 'as_of': None, 'n_hold': 10}, 'clone_berkshire': {'cov': 0.0, 'er': None, 'as_of': None, 'n_hold': 10}}"
+    },
+    "G2_page": {
+      "ok": true,
+      "detail": "{'chips': True, 'sec': True, 'ray': True, 'note_tpl': True, 'hold_tpl': True, 'legacy': True}"
+    }
+  },
+  "bench": {
+    "all_cash": {
+      "er": 3.85,
+      "tenk": 14590
+    },
+    "60_40": {
+      "er": 6.18,
+      "tenk": 18215
+    },
+    "all_weather": {
+      "er": 5.33,
+      "tenk": 16808
+    },
+    "all_stocks": {
+      "er": 7.26,
+      "tenk": 20155
+    },
+    "diversified_global": {
+      "er": 6.29,
+      "tenk": 18405
+    },
+    "permanent": {
+      "er": 4.98,
+      "tenk": 16258
+    },
+    "golden_butterfly": {
+      "er": 5.32,
+      "tenk": 16792
+    },
+    "swensen": {
+      "er": 6.54,
+      "tenk": 18842
+    },
+    "ivy5": {
+      "er": 5.73,
+      "tenk": 17458
+    },
+    "bogle3": {
+      "er": 6.56,
+      "tenk": 18877
+    },
+    "dalio_growth": {
+      "er": 5.48,
+      "tenk": 17049
+    },
+    "risk_parity": {
+      "er": 4.67,
+      "tenk": 15784
+    },
+    "clone_bridgewater": {
+      "er": 7.03,
+      "tenk": 19727
+    },
+    "clone_berkshire": {
+      "er": null,
+      "tenk": null
+    }
+  },
+  "verdict": "GAPS: G1_bench"
+}
