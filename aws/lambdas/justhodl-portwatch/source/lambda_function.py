@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -80,14 +80,14 @@ def lambda_handler(event=None, context=None):
             j = _q(url, {"where": w, "outFields": "*",
                          "orderByFields": "date ASC",
                          "resultOffset": offset,
-                         "resultRecordCount": 2000})
+                         "resultRecordCount": 1000})
             if j.get("_err"):
                 return rows, j["_err"]
             fs = _feats(j)
             rows += fs
-            if len(fs) < 2000:
+            if len(fs) < 1000:
                 return rows, None
-            offset += 2000
+            offset += 1000
         return rows, None
 
     rows, err = fetch_daily(DAILY_CHOKE)
@@ -128,11 +128,14 @@ def lambda_handler(event=None, context=None):
             continue
         by.setdefault(pid, []).append((ds, float(v)))
     out["metric_field"] = metric_field
+    out["pids_seen"] = {p: len(v) for p, v in list(by.items())[:6]}
+    out["date_span"] = ([str(min(d for d, _ in v)) + ".." + str(max(d for d, _ in v))
+                          for v in list(by.values())[:1]] or [None])[0]
 
     def stats(series):
         series.sort()
         vals = [v for _, v in series]
-        if len(vals) < 40:
+        if len(vals) < 30:
             return None
         last7 = vals[-7:]
         prev30 = vals[-37:-7] or vals[-30:]
