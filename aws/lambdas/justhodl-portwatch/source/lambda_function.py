@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.2"
+VERSION = "1.3.3"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -276,7 +276,7 @@ def lambda_handler(event=None, context=None):
                     break
         out["ports_ref_matched"] = len(cand)
         if cand:
-            ids = ",".join("'" + i + "'" for i in list(cand)[:40])
+            ids = ",".join("'" + i + "'" for i in list(cand)[:60])
             prow, perr = fetch_daily(DAILY_PORTS,
                                      "portid IN (" + ids + ")")
             if perr:

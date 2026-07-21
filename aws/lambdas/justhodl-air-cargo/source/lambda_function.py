@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
@@ -28,8 +28,11 @@ S3 = boto3.client("s3", region_name="us-east-1")
 CANDIDATES = [
     ("fact_figures", "https://www.hongkongairport.com/en/the-airport/"
      "hkia-at-a-glance/fact-figures.page"),
-    ("press_list", "https://www.hongkongairport.com/en/media-centre/"
-     "press-release.page"),
+]
+PRESS_LISTS = [
+    "https://www.hongkongairport.com/en/media-centre/press-releases.page",
+    "https://www.hongkongairport.com/en/media-centre/press-release.page",
+    "https://www.hongkongairport.com/en/media-centre.page",
 ]
 MONTHS = ("january february march april may june july august september "
           "october november december").split()
@@ -90,10 +93,18 @@ def lambda_handler(event=None, context=None):
     if err:
         out["errors"].append(f"{via}: {err}")
 
+    if not parsed.get("tonnes") and html:
+        out["fact_probe"] = re.sub(r"\s+", " ", re.sub(
+            r"<[^>]+>", " ", html))[:700]
     if not parsed.get("tonnes"):
-        listing, err2 = _get(CANDIDATES[1][1])
-        if err2:
-            out["errors"].append("press_list: " + err2)
+        listing = ""
+        for pl_url in PRESS_LISTS:
+            listing, err2 = _get(pl_url)
+            if listing and not err2:
+                out["press_src"] = pl_url[-32:]
+                break
+            if err2:
+                out["errors"].append("press_list: " + err2)
         link = None
         if listing:
             lm = re.search(r'href="([^"]+)"[^>]*>[^<]*'
