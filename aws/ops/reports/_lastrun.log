@@ -1,31 +1,31 @@
-executing-against: 83184a90f28b929399a2aa31af5f1015f087f1f6
+executing-against: 3c647d5dfd5380f872b568e9618abf6fd08896cb
 ops 3621 — regime-context + sentinel + best-setups wiring
-[03:12:22]   zip: 107081 bytes
+[03:18:29]   zip: 107204 bytes
 ── 1. Lambda ──
-[03:12:23]   Lambda exists — updating
-[03:12:28] ✅   ✓ updated justhodl-best-setups
+[03:18:30]   Lambda exists — updating
+[03:18:35] ✅   ✓ updated justhodl-best-setups
 ── 3. Smoke test ──
-[03:12:28]   invoking justhodl-best-setups…
-[03:12:36] ✅   ✓ smoke test passed
-[03:12:36]     ok                       True
-[03:12:36]     n_setups                 488
-[03:12:36]     strong_buy               1
-[03:12:36]     buy                      14
-[03:12:36]     weight_source            prior-only
-FAIL  G1_shared_and_boom — zip_markers={'spx_regime': False, 'kr_flash_yoy': False, 'asia_flash_tailwind': False, 'industry_boom': False} err=None boom_meta={'joined': 0, 'tailwind_flags': 0, 'kr_flash_yoy': 52.3, 'note': 'league score/rank per setup industry; tailwind = KR 1-20 flash ≥15% on semi-linked industries'} rows_key_scanned=50 rows_boom=0 rows_tailwind=0
-[03:12:42] G1_shared_and_boom False
-[03:12:42]   zip: 89562 bytes
+[03:18:35]   invoking justhodl-best-setups…
+[03:18:43] ✅   ✓ smoke test passed
+[03:18:43]     ok                       True
+[03:18:43]     n_setups                 488
+[03:18:43]     strong_buy               1
+[03:18:43]     buy                      14
+[03:18:43]     weight_source            prior-only
+FAIL  G1_shared_and_boom — zip_markers={'spx_regime': True, 'kr_flash_yoy': True, 'asia_flash_tailwind': True, 'industry_boom': True} err=None boom_meta={'joined': 0, 'tailwind_flags': 0, 'kr_flash_yoy': 52.3, 'sample_rows': [['MU', 'technology'], ['ELV', 'healthcare'], ['NVDA', 'technology'], ['GILD', 'healthcare']], 'league_n': 120, 'note': 'league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked'} rows_key_scanned=50 rows_boom=0 rows_tailwind=0
+[03:18:49] G1_shared_and_boom False
+[03:18:49]   zip: 89562 bytes
 ── 1. Lambda ──
-[03:12:42]   Lambda exists — updating
-[03:12:46] ✅   ✓ updated justhodl-alert-sentinel
+[03:18:50]   Lambda exists — updating
+[03:18:53] ✅   ✓ updated justhodl-alert-sentinel
 ── 3. Smoke test ──
-[03:12:46]   invoking justhodl-alert-sentinel…
-[03:12:48] ✅   ✓ smoke test passed
-[03:12:48]     sent                     False
-[03:12:48]     changes                  5
-FAIL  G2_sentinel_kr — An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
-[03:12:51] G2_sentinel_kr False
-VERDICT: GAPS: G1_shared_and_boom,G2_sentinel_kr
-[03:12:51] VERDICT: GAPS: G1_shared_and_boom,G2_sentinel_kr
+[03:18:53]   invoking justhodl-alert-sentinel…
+[03:18:55] ✅   ✓ smoke test passed
+[03:18:55]     sent                     False
+[03:18:55]     changes                  0
+PASS  G2_sentinel_kr — err=None diag=[] state_period=2026-07-01..20 yoy=52.3 buffered_line=🇰🇷 Korea 1-20 exports flash: +52.3% YoY (2026-07-01..20) — justhodl.ai/macro-leads.html buf_n=294
+[03:18:58] G2_sentinel_kr True
+VERDICT: GAPS: G1_shared_and_boom
+[03:18:58] VERDICT: GAPS: G1_shared_and_boom
 
-→ Report written to aws/ops/reports/latest/3621_wiring.md
+→ Report written to aws/ops/reports/latest/3622_wiring2.md
