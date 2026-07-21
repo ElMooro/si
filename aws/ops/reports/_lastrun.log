@@ -1,8 +1,19 @@
-executing-against: 78a01034cf0aaae93a6f589db03e4defa40cc258
-ops 3610 — chip gate, downstream window (saga close)
-PASS  G1_roles_final — chip_downstream=True r0=True r1=True hex=5 ctx_tail='ia_state===\'ASIA_ELEVATED\'?\'#F0B429\':\'#e8e8e8\')+\'">\'+m.asia_state.replace(\'_\',\' \')+(m.asia_spill!=null?\' (\'+(m.asia_spil'
-[00:49:56] G1_roles_final True
-VERDICT: PASS_ALL
-[00:49:56] VERDICT: PASS_ALL
+executing-against: cd602b81afbfaef77a59388965a3448bdc122cd9
+ops 3611 — scatter v2 + famous portfolio styles + 13F clones
+[01:00:39]   zip: 92128 bytes
+── 1. Lambda ──
+[01:00:40]   Lambda exists — updating
+[01:00:43] ✅   ✓ updated justhodl-forward-returns
+── 3. Smoke test ──
+[01:00:43]   invoking justhodl-forward-returns…
+[01:01:08] ✅   ✓ smoke test passed
+[01:01:08]     ok                       True
+[01:01:08]     n_assets                 15
+FAIL  G1_portfolios — n=0 keys=[] bad_sums={} rp={} 60/40 ER=None swensen ER=None clones={}
+[01:01:21] G1_portfolios False
+FAIL  G2_page — {'chips': True, 'sec_collapse': True, 'tooltips': True, 'ray': True, 'legacy': True, 'port_note': False}
+[01:08:22] G2_page False
+VERDICT: GAPS: G1_portfolios,G2_page
+[01:08:22] VERDICT: GAPS: G1_portfolios,G2_page
 
-→ Report written to aws/ops/reports/latest/3610_chip_window.md
+→ Report written to aws/ops/reports/latest/3611_scatter_portfolios.md
