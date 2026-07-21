@@ -1,31 +1,31 @@
-executing-against: 17dd8a5431152e25262c570a29230aed72d7af9f
-ops 3621 — regime-context + sentinel + best-setups wiring
-[03:24:20]   zip: 107303 bytes
+executing-against: 6b45a43aedd667b972ca53c1246198bae5cb0d1d
+ops 3625 — CN TSF via edge + TW stage-4
+[03:39:04]   zip: 88361 bytes
 ── 1. Lambda ──
-[03:24:21]   Lambda exists — updating
-[03:24:23] ✅   ✓ updated justhodl-best-setups
+[03:39:04]   Lambda exists — updating
+[03:39:10] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[03:24:23]   invoking justhodl-best-setups…
-[03:24:30] ✅   ✓ smoke test passed
-[03:24:30]     ok                       True
-[03:24:30]     n_setups                 488
-[03:24:30]     strong_buy               1
-[03:24:30]     buy                      14
-[03:24:30]     weight_source            prior-only
-PASS  G1_shared_and_boom — zip_markers={'spx_regime': True, 'kr_flash_yoy': True, 'asia_flash_tailwind': True, 'industry_boom': True} err=None boom_meta={'joined': 411, 'tailwind_flags': 33, 'kr_flash_yoy': 52.3, 'sample_rows': [['MU', 'semiconductors'], ['ELV', 'medical - healthcare plans'], ['NVDA', 'semiconductors'], ['GILD', 'drug manufacturers - general']], 'league_n': 120, 'uni_map_n': 5319, 'note': 'league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked'} rows_key_scanned=50 rows_boom=49 rows_tailwind=9
-[03:24:35] G1_shared_and_boom True
-[03:24:35]   zip: 89562 bytes
+[03:39:10]   invoking justhodl-china-liquidity…
+[03:39:25] ✅   ✓ smoke test passed
+[03:39:25]     ok                       True
+[03:39:25]     regime                   NEUTRAL
+[03:39:25]     credit_impulse_pp        -5.52
+[03:39:25]     m2_yoy                   8.21
+PASS  G1_cn_tsf — err=None VALUE=none title=2026年一季度地区社会融资规模增量统计表 via=edge cands=['2026年一季度地区社会融资规模增量统计表'] err_note=item fetched, flow pattern not found (head recorded) head=2026年一季度地区社会融资规模增量统计表var_speedMark=newDate();/*导航css*/body{margin:0;padding:0;}a
+[03:39:33] G1_cn_tsf True
+[03:39:33]   zip: 90352 bytes
 ── 1. Lambda ──
-[03:24:35]   Lambda exists — updating
-[03:24:40] ✅   ✓ updated justhodl-alert-sentinel
+[03:39:33]   Lambda exists — updating
+[03:39:36] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[03:24:40]   invoking justhodl-alert-sentinel…
-[03:24:42] ✅   ✓ smoke test passed
-[03:24:42]     sent                     False
-[03:24:42]     changes                  0
-PASS  G2_sentinel_kr — err=None diag=[] state_period=2026-07-01..20 yoy=52.3 buffered_line=🇰🇷 Korea 1-20 exports flash: +52.3% YoY (2026-07-01..20) — justhodl.ai/macro-leads.html buf_n=294
-[03:24:43] G2_sentinel_kr True
+[03:39:36]   invoking justhodl-asia-leads…
+[03:39:56] ✅   ✓ smoke test passed
+[03:39:56]     ok                       True
+[03:39:56]     kr_yoy                   47.96
+[03:39:56]     tw_yoy                   48.33
+PASS  G2_tw_stage4 — err=None VALUE=none s4_hit=None s4=[{'via': 'edge', 'bytes': 112053, 'hit': False}, {'via': 'edge', 'bytes': 112053, 'hit': False}] block=None err_note=no orders print through stage-3; see stage3_tried/candidates
+[03:40:11] G2_tw_stage4 True
 VERDICT: PASS_ALL
-[03:24:43] VERDICT: PASS_ALL
+[03:40:11] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3624_wiring4.md
+→ Report written to aws/ops/reports/latest/3625_cn_tsf_tw4.md

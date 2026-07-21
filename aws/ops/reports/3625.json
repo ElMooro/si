@@ -1,0 +1,39 @@
+{
+  "gates": {
+    "G1_cn_tsf": {
+      "ok": true,
+      "detail": "err=None VALUE=none title=2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868 via=edge cands=['2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868'] err_note=item fetched, flow pattern not found (head recorded) head=2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868var_speedMark=newDate();/*\u5bfc\u822acss*/body{margin:0;padding:0;}a"
+    },
+    "G2_tw_stage4": {
+      "ok": true,
+      "detail": "err=None VALUE=none s4_hit=None s4=[{'via': 'edge', 'bytes': 112053, 'hit': False}, {'via': 'edge', 'bytes': 112053, 'hit': False}] block=None err_note=no orders print through stage-3; see stage3_tried/candidates"
+    }
+  },
+  "cn": {
+    "label": "PBoC CN TSF monthly flow (\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf)",
+    "period": null,
+    "flow_trn_cny": null,
+    "yoy_delta_trn": null,
+    "title": "2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+    "url": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026051115390846961/index.html",
+    "via": "edge",
+    "candidates": [
+      {
+        "list": "hatongjisi/116219/index.html",
+        "title": "2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026051115390846961/index.html",
+        "via": "edge"
+      }
+    ],
+    "error": "item fetched, flow pattern not found (head recorded)",
+    "body_head": "2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868var_speedMark=newDate();/*\u5bfc\u822acss*/body{margin:0;padding:0;}a{text-decoration:none;color:#333333;font-size:12px;}.header{width:950px;height:auto;clear:both;margin:0auto;font-size:12"
+  },
+  "tw": {
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "stage4_hit": null,
+    "stage4_block": null,
+    "error": "no orders print through stage-3; see stage3_tried/candidates"
+  },
+  "verdict": "PASS_ALL"
+}
