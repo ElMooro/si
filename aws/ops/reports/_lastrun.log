@@ -1,41 +1,43 @@
-executing-against: f334422d5126725a50b0cdbe324d5704ef78d583
-ops 3651 — BIS cross-border claims engine + plumbing wire
-[16:03:19]   zip: 84952 bytes
+executing-against: 5fe49a08361db1ff1ae52ba9dfae9b9b56c251ed
+ops 3652 — BIS cross-border claims engine + plumbing wire
+[16:15:37]   zip: 84952 bytes
 ── 1. Lambda ──
-[16:03:19]   Lambda exists — updating
-[16:03:25] ✅   ✓ updated justhodl-bis-crossborder
+[16:15:38]   Lambda exists — updating
+[16:15:43] ✅   ✓ updated justhodl-bis-crossborder
 ── 3. Smoke test ──
-[16:03:25]   invoking justhodl-bis-crossborder…
-FAIL  G1_bis — err=None cps=252 TOTAL=117.33tn 2025-Q4 yoy=12.0% offshore={'label': 'offshore centres', 'n': 10, 'period': '2025-Q4', 'latest_bn': 6299.0, 'yoy_pct': 14.6} em_asia={'label': 'EM Asia', 'n': 9, 'period': '2025-Q4', 'latest_bn': 10748.2, 'yoy_pct': 7.7} top=[('US', 27100.7, 11.7), ('JP', 16202.8, 3.2), ('DE', 8298.0, 13.8), ('FR', 7734.8, 15.2), ('GB', 6131.7, 12.7), ('IN', 3647.7, 4.2)] errors=[]
-[16:03:29] G1_bis False
-[16:03:29]   zip: 94783 bytes
+[16:15:43]   invoking justhodl-bis-crossborder…
+PASS  G1_bis — err=None cps=252 TOTAL=117.33tn 2025-Q4 yoy=12.0% offshore={'label': 'offshore centres', 'n': 10, 'period': '2025-Q4', 'latest_bn': 6299.0, 'yoy_pct': 14.6} em_asia={'label': 'EM Asia', 'n': 9, 'period': '2025-Q4', 'latest_bn': 10748.2, 'yoy_pct': 7.7} top=[('US', 27100.7, 11.7), ('JP', 16202.8, 3.2), ('DE', 8298.0, 13.8), ('FR', 7734.8, 15.2), ('GB', 6131.7, 12.7), ('IN', 3647.7, 4.2)] errors=[]
+[16:15:47] G1_bis True
+[16:15:47]   zip: 94782 bytes
 ── 1. Lambda ──
-[16:03:29]   Lambda exists — updating
-[16:03:34] ✅   ✓ updated justhodl-eurodollar-plumbing
+[16:15:47]   Lambda exists — updating
+[16:15:50] ✅   ✓ updated justhodl-eurodollar-plumbing
 ── 3. Smoke test ──
-[16:03:34]   invoking justhodl-eurodollar-plumbing…
-[16:03:46] ✗   ✗ FunctionError: Unhandled
-[16:03:46]   body: {"errorMessage": "name 'bis_cb' is not defined", "errorType": "NameError", "requestId": "d5fbfae3-1e27-45e6-b114-6a3d44a0f8ea", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 533, in lambda_handler\n    health, verdict, reds, yellows = composite(layers)\n", "  File \"/var/task/lambda_function.py\", line 459, in composite\n    weight = {\"bis_crossborder\": bis_cb,\n"]}
-FAIL  G2_plumbing — err=name 'bis_cb' is not defined block=None
-[16:03:55] G2_plumbing False
-[16:03:56]   zip: 107400 bytes
+[16:15:50]   invoking justhodl-eurodollar-plumbing…
+[16:16:02] ✅   ✓ smoke test passed
+[16:16:02]     ok                       True
+[16:16:02]     health                   85.5
+[16:16:02]     verdict                  FUNCTIONING
+FAIL  G2_plumbing — err=None block=None
+[16:16:15] G2_plumbing False
+[16:16:15]   zip: 107400 bytes
 ── 1. Lambda ──
-[16:03:56]   Lambda exists — updating
-[16:03:59] ✅   ✓ updated justhodl-morning-intelligence
+[16:16:15]   Lambda exists — updating
+[16:16:21] ✅   ✓ updated justhodl-morning-intelligence
 ── 3. Smoke test ──
-[16:03:59]   invoking justhodl-morning-intelligence…
-[16:04:31] ✅   ✓ smoke test passed
-[16:04:31]     success                  True
-[16:04:31]     khalid_adj               46.0
-[16:04:31]     regime                   NEUTRAL
-[16:04:31]     btc                      66797
-[16:04:31]     outcomes                 17453
-[16:04:31]     improved                 False
-[16:04:31]     weights_active           277
-[16:04:31]     ka_adj                   46.0
+[16:16:21]   invoking justhodl-morning-intelligence…
+[16:16:36] ✅   ✓ smoke test passed
+[16:16:36]     success                  True
+[16:16:36]     khalid_adj               46.0
+[16:16:36]     regime                   NEUTRAL
+[16:16:36]     btc                      66797
+[16:16:36]     outcomes                 17453
+[16:16:36]     improved                 False
+[16:16:36]     weights_active           277
+[16:16:36]     ka_adj                   46.0
 PASS  G3_mi — zip bis_cb=True
-[16:04:32] G3_mi True
-VERDICT: GAPS: G1_bis,G2_plumbing
-[16:04:32] VERDICT: GAPS: G1_bis,G2_plumbing
+[16:16:36] G3_mi True
+VERDICT: GAPS: G2_plumbing
+[16:16:36] VERDICT: GAPS: G2_plumbing
 
-→ Report written to aws/ops/reports/latest/3651_bis_crossborder.md
+→ Report written to aws/ops/reports/latest/3652_bis_fix.md

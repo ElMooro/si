@@ -1,0 +1,50 @@
+{
+  "gates": {
+    "G1_bis": {
+      "ok": true,
+      "detail": "err=None cps=252 TOTAL=117.33tn 2025-Q4 yoy=12.0% offshore={'label': 'offshore centres', 'n': 10, 'period': '2025-Q4', 'latest_bn': 6299.0, 'yoy_pct': 14.6} em_asia={'label': 'EM Asia', 'n': 9, 'period': '2025-Q4', 'latest_bn': 10748.2, 'yoy_pct': 7.7} top=[('US', 27100.7, 11.7), ('JP', 16202.8, 3.2), ('DE', 8298.0, 13.8), ('FR', 7734.8, 15.2), ('GB', 6131.7, 12.7), ('IN', 3647.7, 4.2)] errors=[]"
+    },
+    "G2_plumbing": {
+      "ok": false,
+      "detail": "err=None block=None"
+    },
+    "G3_mi": {
+      "ok": true,
+      "detail": "zip bis_cb=True"
+    }
+  },
+  "snapshot": {
+    "total": {
+      "code": "5J",
+      "name": "All countries",
+      "period": "2025-Q4",
+      "latest_bn": 117328.0,
+      "qoq_pct": -0.8,
+      "yoy_pct": 12.0,
+      "latest_tn": 117.33
+    },
+    "offshore": {
+      "label": "offshore centres",
+      "n": 10,
+      "period": "2025-Q4",
+      "latest_bn": 6299.0,
+      "yoy_pct": 14.6
+    },
+    "em_asia": {
+      "label": "EM Asia",
+      "n": 9,
+      "period": "2025-Q4",
+      "latest_bn": 10748.2,
+      "yoy_pct": 7.7
+    },
+    "china": {
+      "code": "CN",
+      "name": "China",
+      "period": "2025-Q4",
+      "latest_bn": 813.7,
+      "qoq_pct": 1.4,
+      "yoy_pct": 0.9
+    }
+  },
+  "verdict": "GAPS: G2_plumbing"
+}
