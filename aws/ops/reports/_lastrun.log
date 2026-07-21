@@ -1,8 +1,8 @@
-executing-against: e0842baf6c1ec1882debb76529c0585f1860416e
-ops 3609 — observed-bytes chip gate (palette saga close)
-FAIL  G1_observed_roles — chip_in_ctx=False r0=True r1=True hex=5 ctx='ty starts upstream. Each leg z-scored vs its own 2y; the spillover gap is the early warning. <b style="color:\'+sc+\'">\'+(m.read||\'\')+\'</b>\'+(m.asia_state?(\' · <b sty'
-[00:48:59] G1_observed_roles False
-VERDICT: GAPS: G1
-[00:48:59] VERDICT: GAPS: G1
+executing-against: 78a01034cf0aaae93a6f589db03e4defa40cc258
+ops 3610 — chip gate, downstream window (saga close)
+PASS  G1_roles_final — chip_downstream=True r0=True r1=True hex=5 ctx_tail='ia_state===\'ASIA_ELEVATED\'?\'#F0B429\':\'#e8e8e8\')+\'">\'+m.asia_state.replace(\'_\',\' \')+(m.asia_spill!=null?\' (\'+(m.asia_spil'
+[00:49:56] G1_roles_final True
+VERDICT: PASS_ALL
+[00:49:56] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3609_chip_observe.md
+→ Report written to aws/ops/reports/latest/3610_chip_window.md
