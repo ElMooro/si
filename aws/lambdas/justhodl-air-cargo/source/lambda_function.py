@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
@@ -87,11 +87,48 @@ def lambda_handler(event=None, context=None):
            "errors": [], "attribution": "Airport Authority Hong Kong "
            "published monthly traffic figures (free public stats)"}
 
-    html, err = _get(CANDIDATES[0][1])
-    via = CANDIDATES[0][0]
-    parsed = _parse_cargo(html) if html else {}
-    if err:
-        out["errors"].append(f"{via}: {err}")
+    # v1.1 primary: HK Civil Aviation Dept statistics (classic HTML)
+    parsed = {}
+    via = None
+    cad, cerr = _get("https://www.cad.gov.hk/english/statistics.html")
+    if cerr:
+        out["errors"].append("cad: " + cerr)
+    if cad:
+        ct = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "|", cad))
+        fm = re.search(r"[Ff]reight[^|]{0,60}(?:\|[^|]{0,30}){0,6}?\|"
+                       r"\s*([\d,]{6,9})\s*\|", ct)
+        if not fm:
+            fm = re.search(r"([\d,]{6,9})(?=[^\d].{0,120}?[Ff]reight)", ct)
+        if fm:
+            v = float(fm.group(1).replace(",", ""))
+            if 150_000 <= v <= 700_000:
+                parsed["tonnes"] = v
+                via = "cad_stats"
+                ym = re.search(r"(" + "|".join(mo.capitalize()
+                               for mo in MONTHS) + r")\s+(20\d\d)", ct)
+                if ym:
+                    parsed["month"] = (f"{ym.group(2)}-"
+                                       f"{MONTHS.index(ym.group(1).lower()) + 1:02d}")
+        if not parsed.get("tonnes"):
+            out["cad_probe"] = ct[:700]
+    if not parsed.get("tonnes"):
+        html, err = _get(CANDIDATES[0][1])
+        via = CANDIDATES[0][0]
+        parsed = _parse_cargo(html) if html else {}
+        if err:
+            out["errors"].append(f"{via}: {err}")
+        if not parsed.get("tonnes"):
+            sm, _se = _get("https://www.hongkongairport.com/sitemap.xml")
+            if sm:
+                su = re.findall(r"<loc>([^<]*(?:traffic|figures|statistic)"
+                                r"[^<]*)</loc>", sm, re.I)[:3]
+                out["sitemap_hits"] = su
+                for u2 in su:
+                    pg, _pe = _get(u2)
+                    parsed = _parse_cargo(pg) if pg else {}
+                    if parsed.get("tonnes"):
+                        via = "sitemap:" + u2[-40:]
+                        break
 
     if not parsed.get("tonnes") and html:
         out["fact_probe"] = re.sub(r"\s+", " ", re.sub(
