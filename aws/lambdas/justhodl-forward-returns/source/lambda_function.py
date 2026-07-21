@@ -538,6 +538,17 @@ def compute_forward_returns():
             portfolios[_k] = {"label": _lbl, "weights": _wn,
                               "forward_er_pct": port_er(_wn), "ten_k_10yr": port_ten_k(_wn),
                               "description": _d, "updates": "auto — recomputed from live forward ERs daily"}
+    for _bk in list(_styles.keys()):
+        _e0 = portfolios.get(_bk)
+        if _e0 is None:
+            print("[portfolios] MISSING style:", _bk)
+        elif _e0.get("forward_er_pct") is None and _e0.get("weights"):
+            try:
+                _e0["forward_er_pct"] = port_er(_e0["weights"])
+                _e0["ten_k_10yr"] = port_ten_k(_e0["weights"])
+                print("[portfolios] backstop healed:", _bk, _e0["forward_er_pct"])
+            except Exception as _x:
+                print("[portfolios] backstop fail", _bk, str(_x)[:90])
     try:
         _rp_syms = [x for x in ("SPY", "TLT", "GLD", "DBC") if x in HISTORICAL]
         _iv = {x: 1.0 / max(1.0, HISTORICAL[x]["vol_10y"]) for x in _rp_syms}
@@ -600,7 +611,7 @@ def compute_forward_returns():
                     cov += wpct
             entry = {"label": _pretty,
                      "holdings_top10": [f"{tk} {wp}%" for tk, wp in raw],
-                     "as_of": fobj.get("as_of") or fobj.get("quarter") or _pos.get("quarter") or _pos.get("as_of"),
+                     "as_of": fobj.get("as_of") or fobj.get("quarter") or _pos.get("quarter") or _pos.get("as_of") or _pos.get("generated_at"),
                      "updates": "auto — refreshed each 13F quarter from the fund's actual filing",
                      "description": "Live clone of the fund's largest reported positions."}
             if cov >= 40 and mapped:
