@@ -131,6 +131,79 @@ def _dbn(url, timeout=25):
 
 
 _PBOC_LIST = "http://www.pbc.gov.cn/en/3688247/3688978/3709140/index.html"
+
+EDGE = "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
+
+
+def _edge(u, timeout=25, cap=500_000):
+    """ops 3625: fetch CN gov via the CF /gov edge (allowlisted); direct fallback."""
+    import urllib.parse as _up
+    from urllib import request as _rq
+    try:
+        r = _rq.urlopen(_rq.Request(EDGE + _up.quote(u, safe=""),
+                                     headers={"User-Agent": "Mozilla/5.0"}), timeout=timeout)
+        b = r.read(cap)
+        if r.status == 200 and len(b) > 300:
+            return b.decode("utf-8", "replace"), "edge"
+    except Exception as e:
+        print("[china-liq] edge fail", str(e)[:60])
+    return _html(u, timeout=timeout, limit=cap), "direct"
+
+
+def pboc_cn_tsf():
+    """ops 3625: CN-side 社会融资规模增量 (TSF flow) via /gov edge — the EN
+    report lags ~11 months; the CN release is same-week. Listing candidates
+    probed, first 增量 item parsed for 万亿/亿元 flow + YoY delta. Honest
+    hop-map recorded when structure blocks; never fabricates."""
+    import re as _re
+    out = {"label": "PBoC CN TSF monthly flow (社会融资规模增量)",
+           "period": None, "flow_trn_cny": None, "yoy_delta_trn": None,
+           "title": None, "url": None, "via": None,
+           "candidates": [], "error": None}
+    LISTS = ("http://www.pbc.gov.cn/diaochatongjisi/116219/116319/index.html",
+             "http://www.pbc.gov.cn/diaochatongjisi/116219/index.html",
+             "http://www.pbc.gov.cn/goutongjiaoliu/113456/113469/index.html")
+    try:
+        item = None
+        for L in LISTS:
+            listing, via0 = _edge(L)
+            if not listing:
+                continue
+            for _m in _re.finditer(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>',
+                                   listing, _re.I | _re.S):
+                t0 = _re.sub(r"<[^>]+>|\s+", "", _m.group(2))
+                if "社会融资规模增量" in t0:
+                    hu = _m.group(1)
+                    if hu.startswith("/"):
+                        hu = "http://www.pbc.gov.cn" + hu
+                    out["candidates"].append({"list": L[-28:], "title": t0[:60],
+                                              "u": hu[:110], "via": via0})
+                    if item is None:
+                        item = (hu, t0)
+            if item:
+                break
+        if not item:
+            out["error"] = "no 增量 item on CN listings (see candidates/list probes)"
+            return out
+        page, via1 = _edge(item[0])
+        out["url"], out["title"], out["via"] = item[0][:130], item[1][:100], via1
+        body = _re.sub(r"<[^>]+>|&nbsp;|\s+", "", page)
+        m = _re.search(r"(20\d\d)年(\d{1,2})月(?:份)?社会融资规模增量为([\d.]+)(万亿|亿)元", body)
+        if m:
+            out["period"] = f"{m.group(1)}-{int(m.group(2)):02d}"
+            v = float(m.group(3))
+            out["flow_trn_cny"] = round(v if m.group(4) == "万亿" else v / 10000.0, 3)
+        d = _re.search(r"比上年同期(多|少)([\d.]+)(万亿|亿)元", body)
+        if d:
+            dv = float(d.group(2))
+            dv = dv if d.group(3) == "万亿" else dv / 10000.0
+            out["yoy_delta_trn"] = round(dv if d.group(1) == "多" else -dv, 3)
+        if out["flow_trn_cny"] is None:
+            out["error"] = "item fetched, flow pattern not found (head recorded)"
+            out["body_head"] = body[:200]
+    except Exception as e:
+        out["error"] = str(e)[:120]
+    return out
 _MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 
@@ -424,6 +497,7 @@ def lambda_handler(event, context):
 
     out["tsf"] = real_tsf_block()
     out["tsf"]["pboc_monthly"] = pboc_afre_block()
+    out["tsf"]["pboc_cn"] = pboc_cn_tsf()
     s3.put_object(Bucket=S3_BUCKET, Key=S3_KEY,
                    Body=json.dumps(out, default=str).encode("utf-8"),
                    ContentType="application/json", CacheControl="public, max-age=3600")

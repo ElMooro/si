@@ -358,6 +358,7 @@ def taiwan_orders():
                 cands.sort(key=lambda x: -x[0])
                 out["stage3_candidates"] = [{"u": c[1][:110], "label": c[2]} for c in cands[:6]]
                 tried = []
+                _bodies3 = []
                 for sc0, au, lab2 in cands[:3]:
                     if sc0 == 0 and tried:
                         break
@@ -366,11 +367,43 @@ def taiwan_orders():
                     pr3 = _parse_orders(t3)
                     tried.append({"u": au[:110], "label": lab2, "via": via3,
                                   "bytes": len(b3), "hit": pr3["usd_bn"] is not None or pr3["yoy"] is not None})
+                    _bodies3.append((au, b3.decode("utf-8", "replace")))
                     if tried[-1]["hit"]:
                         pr = pr3
                         out["stage3_hit"] = au[:130]
                         break
                 out["stage3_tried"] = tried
+                # v1.5.1 STAGE-4: candidate pages are often shells too — probe
+                # nested jhxiaoQS / iframe / meta-refresh one hop deeper via edge.
+                if pr["usd_bn"] is None and pr["yoy"] is None:
+                    s4 = []
+                    for au0, bs in _bodies3[:2]:
+                        hops = []
+                        q4 = re.search(r"jhxiaoQS\s*=\s*'([^']+)'", bs)
+                        if q4:
+                            hops.append(au0.split("?")[0] + q4.group(1).replace("&amp;", "&"))
+                        for ifr in re.findall(r'<iframe[^>]+src="([^"]+)"', bs, re.I)[:2]:
+                            hops.append(ifr if ifr.startswith("http")
+                                        else "https://eng.stat.gov.tw/" + ifr.lstrip("/"))
+                        mr = re.search(r'http-equiv="refresh"[^>]+url=([^"\'>]+)', bs, re.I)
+                        if mr:
+                            hops.append(mr.group(1))
+                        for h4 in hops[:2]:
+                            b4, via4 = _edge(h4, cap=400_000)
+                            t4 = re.sub(r"<[^>]+>|&nbsp;|\s+", " ",
+                                        b4.decode("utf-8", "replace"))
+                            pr4 = _parse_orders(t4)
+                            s4.append({"u": h4[:110], "via": via4, "bytes": len(b4),
+                                       "hit": pr4["usd_bn"] is not None or pr4["yoy"] is not None})
+                            if s4[-1]["hit"]:
+                                pr = pr4
+                                out["stage4_hit"] = h4[:130]
+                                break
+                        if out.get("stage4_hit"):
+                            break
+                    if not s4 and _bodies3 and "__doPostBack" in _bodies3[0][1]:
+                        out["stage4_block"] = "postback-only shells — needs worker POST"
+                    out["stage4_tried"] = s4
         out["latest_usd_bn"], out["yoy_pct"] = pr["usd_bn"], pr["yoy"]
         if pr["period"]:
             out["period"] = pr["period"]
