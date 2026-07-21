@@ -456,8 +456,7 @@ def build_layers():
 
 def composite(layers):
     pts = {"green": 0, "yellow": 1, "red": 2}
-    weight = {"bis_crossborder": bis_cb,
-        "us_core": 1.0, "bank_funding": 1.1, "credit": 0.6, "backstops": 1.8,
+    weight = {"us_core": 1.0, "bank_funding": 1.1, "credit": 0.6, "backstops": 1.8,
               "settlement": 1.0, "fx": 0.7, "hubs": 0.8}
     num_, den_, reds, yellows = 0.0, 0.0, [], []
     for lk, lv in layers.items():
@@ -559,6 +558,7 @@ def lambda_handler(event, context):
 
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
+        "bis_crossborder": bis_cb,
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "euro_policy_corridor": __import__("wl_series").block({
         "estr": ("ICEEUR:EON2!", "€STR overnight"),
