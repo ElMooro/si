@@ -231,6 +231,12 @@ def pboc_cn_tsf():
                 if "社会融资规模增量为" in _re.sub(r"\s+", "", _sub):
                     page = _sub
                     out["attachment"], out["via"] = _r0[:120], _v4
+                    _t2 = _re.search(r"<title>([^<]{4,90})</title>", _sub, _re.I)
+                    _d2 = _re.search(r'name="createDate"\s+content="(20\d\d)-', _sub)
+                    if _t2:
+                        out["att_title"] = _t2.group(1).strip()[:90]
+                    if _d2:
+                        out["att_year"] = int(_d2.group(1))
                     break
             for _wf in _w[:3]:
                 if _wf.startswith("/"):
@@ -285,6 +291,23 @@ def pboc_cn_tsf():
                 v = float(mc.group(3))
                 out["flow_trn_cny"] = round(
                     v if mc.group(4) == "万亿" else v / 10000.0, 3)
+                _cum = True
+        if out.get("flow_trn_cny") is None:
+            mh = _re.search(r"(上半年|前三季度|一季度|全年)[，,]?社会融资规模增量"
+                            r"(?:累计)?为([\d.]+)(万亿|亿)元", body)
+            if mh:
+                _yr = None
+                _ty = _re.search(r"(20\d\d)", str(out.get("att_title") or ""))
+                if _ty:
+                    _yr = _ty.group(1)
+                elif out.get("att_year"):
+                    _yr = str(out["att_year"])
+                _tag = {"上半年": "H1", "前三季度": "9M", "一季度": "Q1",
+                        "全年": "FY"}[mh.group(1)]
+                out["period"] = f"{_yr or '20??'}-{_tag} (cum)"
+                v = float(mh.group(2))
+                out["flow_trn_cny"] = round(
+                    v if mh.group(3) == "万亿" else v / 10000.0, 3)
                 _cum = True
         if _cum:
             out["cumulative"] = True
