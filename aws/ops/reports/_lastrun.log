@@ -1,31 +1,31 @@
-executing-against: 0415c50308c152baf341ee7e82f2063d1369663d
-ops 3649 — IMF PortWatch chokepoint engine
-[15:34:31]   zip: 85528 bytes
+executing-against: 1fca382ce9806373dbdaea7b8708aea063598d2e
+ops 3650 — IMF PortWatch chokepoint engine
+[15:56:45]   zip: 86290 bytes
 ── 1. Lambda ──
-[15:34:31]   Lambda exists — updating
-[15:34:36] ✅   ✓ updated justhodl-portwatch
+[15:56:45]   Lambda exists — updating
+[15:56:51] ✅   ✓ updated justhodl-portwatch
 ── 3. Smoke test ──
-[15:34:36]   invoking justhodl-portwatch…
-PASS  G1_data — err=None layer=Daily_Chokepoints_Data rows=11172 metric=n_total n=28 worst={'name': 'Kerch Strait', 'z': -1.59, 'vs_baseline_pct': -89.3, 'status': 'DISRUPTED'} pids={'chokepoint1': 399, 'chokepoint2': 399, 'chokepoint3': 399, 'chokepoint4': 399, 'chokepoint5': 399, 'chokepoint6': 399} span=2025-06-16..2026-07-19 disrupted=2 sample=[('Kerch Strait', -1.59, -89.3, 'DISRUPTED'), ('Bohai Strait', -1.29, -16.0, 'NORMAL'), ('Strait of Hormuz', -1.06, -78.1, 'DISRUPTED'), ('Bosporus Strait', -1.02, -19.1, 'NORMAL'), ('Malacca Strait', -0.9, -7.4, 'NORMAL')] errors=[]
-[15:34:49] G1_data True
-[15:34:50]   zip: 107384 bytes
+[15:56:51]   invoking justhodl-portwatch…
+PASS  G1_data — err=None layer=Daily_Chokepoints_Data rows=11172 metric=n_total n=28 worst={'name': 'Kerch Strait', 'z': -1.59, 'vs_baseline_pct': -89.3, 'status': 'DISRUPTED'} pids={'chokepoint1': 399, 'chokepoint2': 399, 'chokepoint3': 399, 'chokepoint4': 399, 'chokepoint5': 399, 'chokepoint6': 399} span=2025-06-16..2026-07-19 disrupted=2 sample=[('Kerch Strait', -1.59, -89.3, 'DISRUPTED'), ('Bohai Strait', -1.29, -16.0, 'NORMAL'), ('Strait of Hormuz', -1.06, -78.1, 'DISRUPTED'), ('Bosporus Strait', -1.02, -19.1, 'NORMAL'), ('Malacca Strait', -0.9, -7.4, 'NORMAL')] ports_n=14 ports_metric=portcalls ports_sa
+[15:57:02] G1_data True
+[15:57:03]   zip: 107384 bytes
 ── 1. Lambda ──
-[15:34:50]   Lambda exists — updating
-[15:34:55] ✅   ✓ updated justhodl-morning-intelligence
+[15:57:03]   Lambda exists — updating
+[15:57:08] ✅   ✓ updated justhodl-morning-intelligence
 ── 3. Smoke test ──
-[15:34:55]   invoking justhodl-morning-intelligence…
-[15:35:24] ✅   ✓ smoke test passed
-[15:35:24]     success                  True
-[15:35:24]     khalid_adj               46.0
-[15:35:24]     regime                   NEUTRAL
-[15:35:24]     btc                      66797
-[15:35:24]     outcomes                 17453
-[15:35:24]     improved                 False
-[15:35:24]     weights_active           277
-[15:35:24]     ka_adj                   46.0
-PASS  G2_wires — row=True fetch=True mi_zip=True
-[15:35:24] G2_wires True
+[15:57:08]   invoking justhodl-morning-intelligence…
+[15:57:40] ✅   ✓ smoke test passed
+[15:57:40]     success                  True
+[15:57:40]     khalid_adj               46.0
+[15:57:40]     regime                   NEUTRAL
+[15:57:40]     btc                      66797
+[15:57:40]     outcomes                 17453
+[15:57:40]     improved                 False
+[15:57:40]     weights_active           277
+[15:57:40]     ka_adj                   46.0
+PASS  G2_wires — panel=True ports_col=True mi_zip=True
+[15:59:01] G2_wires True
 VERDICT: PASS_ALL
-[15:35:24] VERDICT: PASS_ALL
+[15:59:01] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3649_pw_date.md
+→ Report written to aws/ops/reports/latest/3650_ports_panel.md
