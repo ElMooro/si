@@ -1,0 +1,20 @@
+{
+  "gates": {
+    "G1_cn_tsf": {
+      "ok": false,
+      "detail": "name 'tw' is not defined"
+    },
+    "G2_tw_stage4": {
+      "ok": false,
+      "detail": "err=None VALUE=none s4_hit=None s4=[{'via': 'edge', 'bytes': 112053, 'hit': False}, {'via': 'edge', 'bytes': 112053, 'hit': False}] block=None err_note=no orders print through stage-3; see stage3_tried/candidates"
+    }
+  },
+  "tw": {
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "stage4_hit": null,
+    "stage4_block": null,
+    "error": "no orders print through stage-3; see stage3_tried/candidates"
+  },
+  "verdict": "GAPS: G1_cn_tsf,G2_tw_stage4"
+}
