@@ -1,24 +1,24 @@
-executing-against: 94d15027805165217804b0a5722abc6a928bc593
-ops 3662 — HKIA air canary + freight page + sidebar
-[18:56:53]   zip: 85072 bytes
+executing-against: 2d7afe0727fbfe7f634c6c49f919f5a08dc1b50c
+ops 3663 — HKIA air canary + freight page + sidebar
+[19:06:48]   zip: 85162 bytes
 ── 1. Lambda ──
-[18:56:53]   Lambda exists — updating
-[18:56:59] ✅   ✓ updated justhodl-air-cargo
+[19:06:48]   Lambda exists — updating
+[19:06:53] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[18:56:59]   invoking justhodl-air-cargo…
-FAIL  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found'] probe=None
-[18:57:02] G1_air False
-[18:57:02]   zip: 87682 bytes
+[19:06:53]   invoking justhodl-air-cargo…
+PASS  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] probe= Facts and Figures, HKIA at a Glance - Hong Kong International Airport .iw_container { max-width:800px !important; margin-left: auto !important; margin-right: auto !important; } .iw_stretch { min-width: 100% !important; } (function(w,d,s,l,i){w[l]=w[l]||[];w[l
+[19:06:59] G1_air True
+[19:06:59]   zip: 87681 bytes
 ── 1. Lambda ──
-[18:57:02]   Lambda exists — updating
-[18:57:09] ✅   ✓ updated justhodl-portwatch
+[19:06:59]   Lambda exists — updating
+[19:07:04] ✅   ✓ updated justhodl-portwatch
 ── 3. Smoke test ──
-[18:57:09]   invoking justhodl-portwatch…
-PASS  G2_refsearch — nations=15 ref_search=[{'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Bremerhaven', 'full': 'Bremerhaven, Germany', 'country': 'Germany'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]
-[18:57:32] G2_refsearch True
-FAIL  G3_page_sidebar — {'page': False, 'sidebar': True}
-[19:05:33] G3_page_sidebar False
-VERDICT: GAPS: G1_air,G3_page_sidebar
-[19:05:33] VERDICT: GAPS: G1_air,G3_page_sidebar
+[19:07:04]   invoking justhodl-portwatch…
+PASS  G2_refsearch — nations=16 ref_search=[{'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Bremerhaven', 'full': 'Bremerhaven, Germany', 'country': 'Germany'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]
+[19:07:50] G2_refsearch True
+PASS  G3_page_sidebar — {'page': True, 'sidebar': True}
+[19:07:50] G3_page_sidebar True
+VERDICT: PASS_ALL
+[19:07:50] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3662_air_page.md
+→ Report written to aws/ops/reports/latest/3663_air_fix.md
