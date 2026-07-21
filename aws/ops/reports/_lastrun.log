@@ -1,17 +1,17 @@
-executing-against: 5b8314d78dcbb0434a6b2265461951cd7384ce9a
-ops 3613 — sixty_forty forensic + backstop
-[01:18:35]   zip: 92348 bytes
+executing-against: 329294be9e75a9d19eb7f34c56cb2f720dabde72
+ops 3614 — 2-asset style guard fix + 60/40 dedupe
+[01:24:07]   zip: 92392 bytes
 ── 1. Lambda ──
-[01:18:35]   Lambda exists — updating
-[01:18:38] ✅   ✓ updated justhodl-forward-returns
+[01:24:07]   Lambda exists — updating
+[01:24:11] ✅   ✓ updated justhodl-forward-returns
 ── 3. Smoke test ──
-[01:18:38]   invoking justhodl-forward-returns…
-[01:18:42] ✅   ✓ smoke test passed
-[01:18:42]     ok                       True
-[01:18:42]     n_assets                 15
-FAIL  G1_styles — n=14 keys=['60_40', 'all_cash', 'all_stocks', 'all_weather', 'bogle3', 'clone_berkshire', 'clone_bridgewater', 'dalio_growth', 'diversified_global', 'golden_butterfly', 'ivy5', 'permanent', 'risk_parity', 'swensen'] ers={'sixty_forty': None, 'permanent': 4.98, 'golden_butterfly': 5.32, 'swensen': 6.54, 'ivy5': 5.73, 'bogle3': 6.56, 'risk_parity': 4.67} sixty_entry=null port_logs=['[portfolios] MISSING style: sixty_forty']
-[01:18:51] G1_styles False
-VERDICT: GAPS: G1
-[01:18:51] VERDICT: GAPS: G1
+[01:24:11]   invoking justhodl-forward-returns…
+[01:24:14] ✅   ✓ smoke test passed
+[01:24:14]     ok                       True
+[01:24:14]     n_assets                 15
+PASS  G1_all_styles — ers={'60_40': 6.18, 'permanent': 4.98, 'golden_butterfly': 5.32, 'swensen': 6.54, 'ivy5': 5.73, 'bogle3': 6.56, 'dalio_growth': 5.48, 'risk_parity': 4.67} dedup=True 60_40_note=auto — recomputed from live forward ERs daily bw_clone_er=7.03 bw_as_of=2026-07-20T21:15:38+00:00 n=14
+[01:24:19] G1_all_styles True
+VERDICT: PASS_ALL
+[01:24:19] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3613_sixty_forensic.md
+→ Report written to aws/ops/reports/latest/3614_sixty_fix.md
