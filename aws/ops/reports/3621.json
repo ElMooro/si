@@ -1,0 +1,13 @@
+{
+  "gates": {
+    "G1_shared_and_boom": {
+      "ok": false,
+      "detail": "zip_markers={'spx_regime': False, 'kr_flash_yoy': False, 'asia_flash_tailwind': False, 'industry_boom': False} err=None boom_meta={'joined': 0, 'tailwind_flags': 0, 'kr_flash_yoy': 52.3, 'note': 'league score/rank per setup industry; tailwind = KR 1-20 flash \u226515% on semi-linked industries'} rows_key_scanned=50 rows_boom=0 rows_tailwind=0"
+    },
+    "G2_sentinel_kr": {
+      "ok": false,
+      "detail": "An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist."
+    }
+  },
+  "verdict": "GAPS: G1_shared_and_boom,G2_sentinel_kr"
+}

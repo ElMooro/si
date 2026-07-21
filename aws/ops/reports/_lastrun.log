@@ -1,21 +1,31 @@
-executing-against: 89e5fb3fcdaf5ea78b1619bffd8b6ffda4a918e0
-ops 3620 — TW stage-3 link-follow via edge
-[02:59:34]   zip: 89566 bytes
+executing-against: 83184a90f28b929399a2aa31af5f1015f087f1f6
+ops 3621 — regime-context + sentinel + best-setups wiring
+[03:12:22]   zip: 107081 bytes
 ── 1. Lambda ──
-[02:59:34]   Lambda exists — updating
-[02:59:40] ✅   ✓ updated justhodl-asia-leads
+[03:12:23]   Lambda exists — updating
+[03:12:28] ✅   ✓ updated justhodl-best-setups
 ── 3. Smoke test ──
-[02:59:40]   invoking justhodl-asia-leads…
-[03:00:13] ✅   ✓ smoke test passed
-[03:00:13]     ok                       True
-[03:00:13]     kr_yoy                   47.96
-[03:00:13]     tw_yoy                   48.33
-PASS  G1_stage3 — VALUE=none hit=None tried=[{'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}] cands=['Value of Export Orders', 'Value of Export Orders', 'Value of Export Orders', 'Economic Growth Rate'] err=no orders print through stage-3; see stage3_tried/candidates
-[03:00:39] G1_stage3 True
-[03:00:39] KR tape: scanned=65 latest={"yoy_pct": 52.3, "semis_yoy_pct": null, "period": "2026-07-01..20", "headline": "Korea\u2019s July 1-20 exports jump 52.3% on chip boom - \ub9e4\uc77c\uacbd\uc
-PASS  G2_page_row — tape_row=True ternary_ok=True
-[03:00:39] G2_page_row True
-VERDICT: PASS_ALL
-[03:00:39] VERDICT: PASS_ALL
+[03:12:28]   invoking justhodl-best-setups…
+[03:12:36] ✅   ✓ smoke test passed
+[03:12:36]     ok                       True
+[03:12:36]     n_setups                 488
+[03:12:36]     strong_buy               1
+[03:12:36]     buy                      14
+[03:12:36]     weight_source            prior-only
+FAIL  G1_shared_and_boom — zip_markers={'spx_regime': False, 'kr_flash_yoy': False, 'asia_flash_tailwind': False, 'industry_boom': False} err=None boom_meta={'joined': 0, 'tailwind_flags': 0, 'kr_flash_yoy': 52.3, 'note': 'league score/rank per setup industry; tailwind = KR 1-20 flash ≥15% on semi-linked industries'} rows_key_scanned=50 rows_boom=0 rows_tailwind=0
+[03:12:42] G1_shared_and_boom False
+[03:12:42]   zip: 89562 bytes
+── 1. Lambda ──
+[03:12:42]   Lambda exists — updating
+[03:12:46] ✅   ✓ updated justhodl-alert-sentinel
+── 3. Smoke test ──
+[03:12:46]   invoking justhodl-alert-sentinel…
+[03:12:48] ✅   ✓ smoke test passed
+[03:12:48]     sent                     False
+[03:12:48]     changes                  5
+FAIL  G2_sentinel_kr — An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+[03:12:51] G2_sentinel_kr False
+VERDICT: GAPS: G1_shared_and_boom,G2_sentinel_kr
+[03:12:51] VERDICT: GAPS: G1_shared_and_boom,G2_sentinel_kr
 
-→ Report written to aws/ops/reports/latest/3620_tw_stage3.md
+→ Report written to aws/ops/reports/latest/3621_wiring.md
