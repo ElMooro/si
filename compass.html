@@ -400,12 +400,25 @@ table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
     var grid='';for(var gx=10;gx<=xm;gx+=10){grid+='<line x1="'+X(gx)+'" y1="16" x2="'+X(gx)+'" y2="'+(Hh-pad)+'" stroke="#232a36"/><text x="'+X(gx)+'" y="'+(Hh-pad+16)+'" fill="'+MUT+'" font-size="10" text-anchor="middle">'+gx+'%</text>';}
     for(var gy=Math.ceil(ym0/2)*2;gy<=ym1;gy+=2){grid+='<line x1="'+pad+'" y1="'+Y(gy)+'" x2="'+(W-16)+'" y2="'+Y(gy)+'" stroke="#232a36"/><text x="'+(pad-7)+'" y="'+(Y(gy)+3.5)+'" fill="'+MUT+'" font-size="10" text-anchor="end">'+gy+'%</text>';}
     var cash=CP[HOR+'y'];var cl=cash!=null?'<line x1="'+pad+'" y1="'+Y(cash)+'" x2="'+(W-16)+'" y2="'+Y(cash)+'" stroke="'+MUT+'" stroke-dasharray="3 6"/>':'';
-    var inBub=pts.length<=24;
-    var dots=pts.map(function(p){var c=ccol(p.c);var rad=(p.agg?15:11+p.fp/12);
+    /* always-label with greedy collision avoidance (lblSlot) */
+    var placed=[];function hit(x,y,w,h){for(var i=0;i<placed.length;i++){var b=placed[i];if(x<b.x+b.w&&x+w>b.x&&y<b.y+b.h&&y+h>b.y)return true;}return false;}
+    function lblSlot(cx,cy,rad,k){var w=k.length*5.9+4,h=11;
+      var fits=rad>=(k.length*2.95+2);
+      cands=fits?[['in',cx-w/2,cy-4]]:[];
+      cands=cands.concat([['ab',cx-w/2,cy-rad-13],['be',cx-w/2,cy+rad+3],['ri',cx+rad+3,cy-6],['le',cx-rad-3-w,cy-6]]);
+      for(var i=0;i<cands.length;i++){var c=cands[i];if(c[1]<2||c[1]+w>W-2||c[2]<2||c[2]+h>Hh-2)continue;if(!hit(c[1],c[2],w,h)){placed.push({x:c[1],y:c[2],w:w,h:h});return c;}}
+      var f=cands[0]||['ab',cx-w/2,cy-rad-13];placed.push({x:f[1],y:f[2],w:w,h:h});return f;}
+    pts.sort(function(a,b){return b.e-a.e;});
+    var circ='',labs='';
+    pts.forEach(function(p){var c=ccol(p.c);var rad=(p.agg?16:Math.max(12,11+p.fp/12));
       var tt=p.k+' | ER '+HOR+'y '+p.e.toFixed(1)+'% | s '+p.s.toFixed(1)+'%'+(p.rr!=null?' | RR '+p.rr.toFixed(2):'')+(p.sc!=null?' | score '+p.sc:'')+' | hist '+p.fp+'%';
-      var t='<circle cx="'+X(p.s).toFixed(1)+'" cy="'+Y(p.e).toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="#0b0f15" stroke="'+c+'" stroke-width="2.4"><title>'+tt+'</title></circle>';
-      if(inBub)t+='<text x="'+X(p.s).toFixed(1)+'" y="'+(Y(p.e)+3.4).toFixed(1)+'" text-anchor="middle" font-size="'+(p.k.length>4?8.4:9.6)+'" font-weight="800" fill="'+NEU+'">'+p.k+'</text>';
-      return t;}).join('');
+      var cx=+X(p.s).toFixed(1),cy=+Y(p.e).toFixed(1);
+      circ+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rad.toFixed(1)+'" fill="#0b0f15" stroke="'+c+'" stroke-width="2.4"><title>'+tt+'</title></circle>';
+      var sl=lblSlot(cx,cy,rad,p.k);var mode=sl[0],lx=sl[1],ly=sl[2];
+      var anch='start',tx=lx,ty=ly+9;
+      if(mode==='in'){anch='middle';tx=cx;ty=cy+3.4;}
+      labs+='<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="'+anch+'" font-size="'+(p.k.length>4?8.6:9.6)+'" font-weight="800" fill="'+(mode==='in'?NEU:c)+'">'+p.k+'</text>';});
+    var dots=circ+labs;
     var CLSL=['equities','sectors','bonds','credit','cash','metals','reits','commodities','crypto'];
     var chips=CLSL.map(function(c){var off=window._jhOff[c];return '<span class="jh-sc-chip" onclick="window._jhCls(&quot;'+c+'&quot;)" style="cursor:pointer;padding:3px 10px;border-radius:999px;border:1px solid '+(off?'#2c3240':ccol(c))+';color:'+(off?MUT:ccol(c))+';font-size:11px;margin:0 6px 6px 0;display:inline-block">'+c+'</span>';}).join('');
     return '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div style="font-weight:800">Expected Return vs Risk</div><div style="font-size:10.5px;color:'+MUT+'">● bubble size = historical attractiveness · ring = asset class · dashed = cash hurdle</div></div>'
