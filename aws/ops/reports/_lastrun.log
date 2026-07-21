@@ -1,20 +1,21 @@
-executing-against: af5a718db6892669ffdac9bd78f9c54e8b9fa0ec
-ops 3618 — KR tape via Google News RSS
-[02:34:07]   zip: 88900 bytes
+executing-against: 89e5fb3fcdaf5ea78b1619bffd8b6ffda4a918e0
+ops 3620 — TW stage-3 link-follow via edge
+[02:59:34]   zip: 89566 bytes
 ── 1. Lambda ──
-[02:34:07]   Lambda exists — updating
-[02:34:11] ✅   ✓ updated justhodl-asia-leads
+[02:59:34]   Lambda exists — updating
+[02:59:40] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[02:34:11]   invoking justhodl-asia-leads…
-[02:34:41] ✅   ✓ smoke test passed
-[02:34:41]     ok                       True
-[02:34:41]     kr_yoy                   47.96
-[02:34:41]     tw_yoy                   48.33
-PASS  G1_tape_mech — scanned=63 sources=[{'gnews': 63}, {'newsapi': 0}, {'fmp': 0}] LIVE=None validated=None err=None
-[02:34:56] G1_tape_mech True
-FAIL  G2_page_row — tape_row=False
-[02:42:57] G2_page_row False
-VERDICT: GAPS: G2_page_row
-[02:42:57] VERDICT: GAPS: G2_page_row
+[02:59:40]   invoking justhodl-asia-leads…
+[03:00:13] ✅   ✓ smoke test passed
+[03:00:13]     ok                       True
+[03:00:13]     kr_yoy                   47.96
+[03:00:13]     tw_yoy                   48.33
+PASS  G1_stage3 — VALUE=none hit=None tried=[{'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}] cands=['Value of Export Orders', 'Value of Export Orders', 'Value of Export Orders', 'Economic Growth Rate'] err=no orders print through stage-3; see stage3_tried/candidates
+[03:00:39] G1_stage3 True
+[03:00:39] KR tape: scanned=65 latest={"yoy_pct": 52.3, "semis_yoy_pct": null, "period": "2026-07-01..20", "headline": "Korea\u2019s July 1-20 exports jump 52.3% on chip boom - \ub9e4\uc77c\uacbd\uc
+PASS  G2_page_row — tape_row=True ternary_ok=True
+[03:00:39] G2_page_row True
+VERDICT: PASS_ALL
+[03:00:39] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3618_gnews.md
+→ Report written to aws/ops/reports/latest/3620_tw_stage3.md

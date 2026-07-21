@@ -1,0 +1,43 @@
+{
+  "gates": {
+    "G1_stage3": {
+      "ok": true,
+      "detail": "VALUE=none hit=None tried=[{'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}, {'label': 'Value of Export Orders', 'via': 'edge', 'bytes': 400000, 'hit': False}] cands=['Value of Export Orders', 'Value of Export Orders', 'Value of Export Orders', 'Economic Growth Rate'] err=no orders print through stage-3; see stage3_tried/candidates"
+    },
+    "G2_page_row": {
+      "ok": true,
+      "detail": "tape_row=True ternary_ok=True"
+    }
+  },
+  "kr_tape": {
+    "scanned": 65,
+    "latest": {
+      "yoy_pct": 52.3,
+      "semis_yoy_pct": null,
+      "period": "2026-07-01..20",
+      "headline": "Korea\u2019s July 1-20 exports jump 52.3% on chip boom - \ub9e4\uc77c\uacbd\uc81c",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE5nYlV5c0tBbTYya2JOdWEydm11UC1fOWJENTQtZG9ON1BtR29aaTg0WlFtVTNyZ2xoT255cDNwMkl0UjhPMFVMVUZURDJsN3k5X2c?oc=5",
+      "published": "2026-07-21",
+      "via": "gnews"
+    },
+    "sources": [
+      {
+        "gnews": 65
+      },
+      {
+        "newsapi": 0
+      },
+      {
+        "fmp": 0
+      }
+    ]
+  },
+  "tw": {
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "period": null,
+    "stage3_hit": null,
+    "error": "no orders print through stage-3; see stage3_tried/candidates"
+  },
+  "verdict": "PASS_ALL"
+}
