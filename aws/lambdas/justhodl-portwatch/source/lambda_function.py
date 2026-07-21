@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -123,7 +123,10 @@ def lambda_handler(event=None, context=None):
         if not isinstance(v, (int, float)):
             continue
         try:
-            ds = datetime.fromtimestamp(d / 1000, tz=timezone.utc).date()
+            if isinstance(d, (int, float)):
+                ds = datetime.fromtimestamp(d / 1000, tz=timezone.utc).date()
+            else:
+                ds = datetime.fromisoformat(str(d)[:10]).date()
         except Exception:
             continue
         by.setdefault(pid, []).append((ds, float(v)))
