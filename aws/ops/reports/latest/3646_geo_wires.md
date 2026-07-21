@@ -1,0 +1,54 @@
+# ops 3646 — geo-risk five-wire
+
+**Status:** success  
+**Duration:** 142.0s  
+**Finished:** 2026-07-21T14:28:39+00:00  
+
+## Error
+
+```
+SystemExit: 0
+```
+
+## Log
+- `14:26:18`   zip: 93288 bytes
+## 1. Lambda
+
+- `14:26:18`   Lambda exists — updating
+- `14:26:21` ✅   ✓ updated justhodl-geopolitical-risk
+## 3. Smoke test
+
+- `14:26:21`   invoking justhodl-geopolitical-risk…
+- `14:27:08` G1_cross True
+- `14:27:08`   zip: 89795 bytes
+## 1. Lambda
+
+- `14:27:08`   Lambda exists — updating
+- `14:27:13` ✅   ✓ updated justhodl-alert-sentinel
+## 3. Smoke test
+
+- `14:27:13`   invoking justhodl-alert-sentinel…
+- `14:27:16` ✅   ✓ smoke test passed
+- `14:27:16`     sent                     False
+- `14:27:16`     changes                  4
+- `14:27:18` G2_sentinel Iran
+- `14:27:18`   zip: 107372 bytes
+## 1. Lambda
+
+- `14:27:18`   Lambda exists — updating
+- `14:27:23` ✅   ✓ updated justhodl-morning-intelligence
+## 3. Smoke test
+
+- `14:27:23`   invoking justhodl-morning-intelligence…
+- `14:27:59` ✅   ✓ smoke test passed
+- `14:27:59`     success                  True
+- `14:27:59`     khalid_adj               46.0
+- `14:27:59`     regime                   NEUTRAL
+- `14:27:59`     btc                      64283
+- `14:27:59`     outcomes                 17453
+- `14:27:59`     improved                 False
+- `14:27:59`     weights_active           277
+- `14:27:59`     ka_adj                   46.0
+- `14:27:59` G3_mi True
+- `14:28:39` G4_pages True
+- `14:28:39` VERDICT: PASS_ALL

@@ -1,0 +1,143 @@
+{
+  "gates": {
+    "G1_cross": {
+      "ok": true,
+      "detail": "err=None v=1.1.0 mapped=13 states={'PRICED_IN': 1, 'NEWS_LEADS': 2, 'CONFIRMED_HIGH': 2, 'CALM': 8} news_leads=[('China', 35.8), ('Israel', 24.5)] priced_in=[('Turkey', -64.8)] cross_err=None"
+    },
+    "G2_sentinel": {
+      "ok": true,
+      "detail": "err=None geo_top=Iran temp=32.5 escalating=[]"
+    },
+    "G3_mi": {
+      "ok": true,
+      "detail": "zip geo_risk=True"
+    },
+    "G4_pages": {
+      "ok": true,
+      "detail": "{'defcon_panel': True, 'defcon_cross': True, 'ml_row': True, 'ml_fetch': True}"
+    }
+  },
+  "cross": {
+    "mapped_n": 13,
+    "rows": [
+      {
+        "country": "Turkey",
+        "news": 0.5,
+        "fin": 65.3,
+        "state": "PRICED_IN",
+        "gap": -64.8
+      },
+      {
+        "country": "China",
+        "news": 58.1,
+        "fin": 22.3,
+        "state": "NEWS_LEADS",
+        "gap": 35.8
+      },
+      {
+        "country": "Israel",
+        "news": 68.1,
+        "fin": 43.6,
+        "state": "NEWS_LEADS",
+        "gap": 24.5
+      },
+      {
+        "country": "Russia",
+        "news": 72.0,
+        "fin": 94.6,
+        "state": "CONFIRMED_HIGH",
+        "gap": -22.6
+      },
+      {
+        "country": "Taiwan",
+        "news": 3.3,
+        "fin": 25.8,
+        "state": "CALM",
+        "gap": -22.5
+      },
+      {
+        "country": "France",
+        "news": 6.2,
+        "fin": 28.5,
+        "state": "CALM",
+        "gap": -22.3
+      },
+      {
+        "country": "S.Korea",
+        "news": 2.4,
+        "fin": 24.1,
+        "state": "CALM",
+        "gap": -21.7
+      },
+      {
+        "country": "UK",
+        "news": 3.8,
+        "fin": 24.2,
+        "state": "CALM",
+        "gap": -20.4
+      },
+      {
+        "country": "US",
+        "news": 43.4,
+        "fin": 25.3,
+        "state": "CALM",
+        "gap": 18.1
+      },
+      {
+        "country": "Germany",
+        "news": 22.4,
+        "fin": 17.3,
+        "state": "CALM",
+        "gap": 5.1
+      },
+      {
+        "country": "Japan",
+        "news": 24.7,
+        "fin": 28.1,
+        "state": "CALM",
+        "gap": -3.4
+      },
+      {
+        "country": "Saudi",
+        "news": 59.5,
+        "fin": 56.5,
+        "state": "CONFIRMED_HIGH",
+        "gap": 3.0
+      },
+      {
+        "country": "India",
+        "news": 39.5,
+        "fin": 41.2,
+        "state": "CALM",
+        "gap": -1.7
+      }
+    ],
+    "news_leads": [
+      {
+        "country": "China",
+        "news": 58.1,
+        "fin": 22.3,
+        "state": "NEWS_LEADS",
+        "gap": 35.8
+      },
+      {
+        "country": "Israel",
+        "news": 68.1,
+        "fin": 43.6,
+        "state": "NEWS_LEADS",
+        "gap": 24.5
+      }
+    ],
+    "priced_in": [
+      {
+        "country": "Turkey",
+        "news": 0.5,
+        "fin": 65.3,
+        "state": "PRICED_IN",
+        "gap": -64.8
+      }
+    ],
+    "source": "data/global-sovereign.json"
+  },
+  "verdict": "PASS_ALL"
+}
