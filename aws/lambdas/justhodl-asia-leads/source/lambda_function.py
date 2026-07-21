@@ -471,6 +471,12 @@ def taiwan_orders():
                                     blob = " ".join(str((it or {}).get(k) or "")
                                                     for k in ("Content", "Date",
                                                               "Title", "Num"))
+                                    rec["item_blob"] = blob[:200]
+                                    mm2 = re.search(r"([\d,]+(?:\.\d+)?)\s*\(?\s*million US",
+                                                    blob, re.I)
+                                    if mm2:
+                                        pr["usd_bn"] = round(float(
+                                            mm2.group(1).replace(",", "")) / 1000.0, 2)
                                     vv = re.search(r"([\d,]+\.?\d*)\s*"
                                                    r"(?:US\$|billion|億美元)", blob) \
                                         or re.search(r"US\$\s*([\d,]+\.?\d*)", blob)
@@ -494,6 +500,37 @@ def taiwan_orders():
                         if rec["hit"]:
                             break
                     out["stage6_tried"] = s6
+                # v1.8: self-building monthly levels cache → YoY activates
+                # automatically once the 12m-prior vintage accumulates.
+                if pr["usd_bn"] is not None and pr.get("period"):
+                    try:
+                        _lk = "asia/tw-orders-levels.json"
+                        try:
+                            _lv = json.loads(s3.get_object(
+                                Bucket=BUCKET, Key=_lk)["Body"].read())
+                        except Exception:
+                            _lv = {"levels": {}}
+                        import re as _rp
+                        _pm = _rp.search(r"([A-Z][a-z]{2})[a-z]*\.?\s*(20\d\d)",
+                                         str(pr["period"]))
+                        if _pm:
+                            _mn = {"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5,
+                                   "Jun": 6, "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10,
+                                   "Nov": 11, "Dec": 12}.get(_pm.group(1))
+                            if _mn:
+                                _pk = f"{_pm.group(2)}-{_mn:02d}"
+                                _lv["levels"][_pk] = pr["usd_bn"]
+                                _prior = _lv["levels"].get(
+                                    f"{int(_pm.group(2)) - 1}-{_mn:02d}")
+                                if _prior:
+                                    pr["yoy"] = round(
+                                        100.0 * (pr["usd_bn"] / _prior - 1.0), 1)
+                                s3.put_object(Bucket=BUCKET, Key=_lk,
+                                              Body=json.dumps(_lv).encode(),
+                                              ContentType="application/json")
+                                out["levels_cached"] = len(_lv["levels"])
+                    except Exception as _lc:
+                        out["levels_err"] = str(_lc)[:70]
         out["latest_usd_bn"], out["yoy_pct"] = pr["usd_bn"], pr["yoy"]
         if pr["period"]:
             out["period"] = pr["period"]
