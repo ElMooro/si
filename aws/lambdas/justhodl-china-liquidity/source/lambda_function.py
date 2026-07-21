@@ -207,6 +207,7 @@ def pboc_cn_tsf():
             _w = _re.findall(r'["\']((?:https?://[^"\']+)?/?[^"\']*W0\d{9,}[^"\']*'
                              r'\.(?:html?|txt))["\']', page, _re.I)
             out["js_files"] = [w[:110] for w in _w[:4]]
+            out["body_probe"] = page[:800]
             for _wf in _w[:3]:
                 if _wf.startswith("/"):
                     _wf = "http://www.pbc.gov.cn" + _wf
