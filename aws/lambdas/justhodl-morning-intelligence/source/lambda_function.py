@@ -183,6 +183,7 @@ def load_all():
         "china_liq":"data/china-liquidity.json",
         "geo_risk":"data/geopolitical-risk.json",
         "portwatch":"data/portwatch.json",
+        "bis_cb":"data/bis-crossborder.json",
         "spx_ma":"data/spx-ma.json",
         "fifx_vol":"data/fifx-vol.json",
         "settlement_fails":"data/settlement-fails.json",

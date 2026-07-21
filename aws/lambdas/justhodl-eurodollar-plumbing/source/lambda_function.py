@@ -456,7 +456,8 @@ def build_layers():
 
 def composite(layers):
     pts = {"green": 0, "yellow": 1, "red": 2}
-    weight = {"us_core": 1.0, "bank_funding": 1.1, "credit": 0.6, "backstops": 1.8,
+    weight = {"bis_crossborder": bis_cb,
+        "us_core": 1.0, "bank_funding": 1.1, "credit": 0.6, "backstops": 1.8,
               "settlement": 1.0, "fx": 0.7, "hubs": 0.8}
     num_, den_, reds, yellows = 0.0, 0.0, [], []
     for lk, lv in layers.items():
@@ -532,6 +533,30 @@ def lambda_handler(event, context):
     health, verdict, reds, yellows = composite(layers)
     massive_fx = _massive_fx_block()
     ai = ai_scan(layers, health, verdict, reds, yellows, fx_context=massive_fx)
+    # ops 3651: BIS cross-border foreign-claims pulse (offshore-USD
+    # credit growth) — additive block from data/bis-crossborder.json
+    bis_cb = None
+    try:
+        _b = json.loads(s3.get_object(
+            Bucket=S3_BUCKET,
+            Key="data/bis-crossborder.json")["Body"].read())
+        if _b.get("ok"):
+            bis_cb = {
+                "period": (_b.get("total") or {}).get("period"),
+                "total_tn": (_b.get("total") or {}).get("latest_tn"),
+                "total_yoy_pct": (_b.get("total") or {}).get("yoy_pct"),
+                "offshore_yoy_pct": (_b.get("offshore_centres")
+                                       or {}).get("yoy_pct"),
+                "em_asia_yoy_pct": (_b.get("em_asia")
+                                      or {}).get("yoy_pct"),
+                "china_yoy_pct": next(
+                    (r.get("yoy_pct") for r in
+                     _b.get("by_counterparty") or []
+                     if r.get("code") == "CN"), None),
+                "source": "BIS CBS foreign claims (quarterly)"}
+    except Exception as _e:
+        print("[plumbing] bis_cb skip", str(_e)[:60])
+
     payload = {
         "engine": "justhodl-eurodollar-plumbing", "version": "1.0",
         "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
