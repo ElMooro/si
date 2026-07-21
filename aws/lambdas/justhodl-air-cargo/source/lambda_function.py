@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
@@ -111,14 +111,15 @@ def lambda_handler(event=None, context=None):
                                        f"{MONTHS.index(ym.group(1).lower()) + 1:02d}")
         if not parsed.get("tonnes"):
             # v1.2: statistics.html is an INDEX — hunt the latest monthly link
-            links = re.findall(r'href="([^"]+)"[^>]*>([^<]{0,80})</a>', cad)
+            hrefs = re.findall(r'href=["\']([^"\'>]+)["\']', cad)
             cands = []
-            for href, txt in links:
-                blob = (href + " " + txt).lower()
-                if (".pdf" in href.lower() or href.startswith("#")
-                        or "mailto:" in href or "javascript" in href):
+            for href in hrefs:
+                blob = href.lower()
+                if (".pdf" in blob or blob.startswith("#")
+                        or "mailto:" in blob or "javascript" in blob
+                        or ".css" in blob or ".js" in blob):
                     continue
-                if ("statistic" in blob or "traffic" in blob
+                if ("stat" in blob or "traffic" in blob
                         or "transport" in blob):
                     u3 = href
                     if u3.startswith("/"):
