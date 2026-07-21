@@ -1,0 +1,25 @@
+{
+  "gates": {
+    "G1_kr_tape": {
+      "ok": false,
+      "detail": "scanned=0 sources=[{'newsapi': 0}, {'fmp': 0}] validated=None latest=None err=no matching flash headline on tape yet"
+    },
+    "G2_tw_edge": {
+      "ok": true,
+      "detail": "via1=edge via2=edge stage2=https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713& val=None yoy=None period=None err=regex found no orders print on page s2err=None"
+    },
+    "G3_page_row": {
+      "ok": false,
+      "detail": "tape_row=False news_tape_label=False"
+    }
+  },
+  "kr": null,
+  "tw": {
+    "via_stage1": "edge",
+    "via_stage2": "edge",
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "period": null
+  },
+  "verdict": "GAPS: G1_kr_tape,G3_page_row"
+}

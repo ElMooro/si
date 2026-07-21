@@ -1,8 +1,22 @@
-executing-against: 93016ec177c5164cb1d4134d7d62fbadf68fc53a
-ops 3616 — always-on chart labels served-proof
-PASS  G1_labels — {'lblSlot': True, 'no_inBub': True, 'dash': True, 'legacy': True}
-[02:12:36] G1_labels True
-VERDICT: PASS_ALL
-[02:12:36] VERDICT: PASS_ALL
+executing-against: a1a6257ee1f392ee44f37c68d2684adeceedd493
+ops 3617 — KR news-tape flash + TW via edge
+[02:23:46]   zip: 88412 bytes
+── 1. Lambda ──
+[02:23:46]   Lambda exists — updating
+[02:23:52] ✅   ✓ updated justhodl-asia-leads
+── 3. Smoke test ──
+[02:23:52]   invoking justhodl-asia-leads…
+[02:24:11] ✅   ✓ smoke test passed
+[02:24:11]     ok                       True
+[02:24:11]     kr_yoy                   47.96
+[02:24:11]     tw_yoy                   48.33
+FAIL  G1_kr_tape — scanned=0 sources=[{'newsapi': 0}, {'fmp': 0}] validated=None latest=None err=no matching flash headline on tape yet
+[02:24:18] G1_kr_tape False
+PASS  G2_tw_edge — via1=edge via2=edge stage2=https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713& val=None yoy=None period=None err=regex found no orders print on page s2err=None
+[02:24:18] G2_tw_edge True
+FAIL  G3_page_row — tape_row=False news_tape_label=False
+[02:30:20] G3_page_row False
+VERDICT: GAPS: G1_kr_tape,G3_page_row
+[02:30:20] VERDICT: GAPS: G1_kr_tape,G3_page_row
 
-→ Report written to aws/ops/reports/latest/3616_labels.md
+→ Report written to aws/ops/reports/latest/3617_kr_tape_tw_edge.md
