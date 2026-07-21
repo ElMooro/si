@@ -28,6 +28,8 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margi
 <div class="card" id="cps"></div>
 <div class="sec">Major Ports — worst first</div>
 <div class="card" id="pts"></div>
+<div class="sec">Export Nations Pulse — gateway-port activity by country</div>
+<div class="card" id="exp"></div>
 <div class="sec">IMF-Flagged Disruptions</div>
 <div class="card" id="dis"></div>
 <div class="foot" id="foot"></div>
@@ -54,6 +56,7 @@ document.getElementById('hero').innerHTML=
 +'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">CROSS-CONFIRM</div><div class="mono" style="font-size:12.5px;margin-top:6px">Hormuz collapse × Iran news-stress 80+ = physical supply shock confirmed. Shanghai + Bohai softness joins the China-slowdown stack (TSF credit, NEWS_LEADS).</div><div class="mono" style="font-size:11px;margin-top:6px"><a href="/geo-risk.html" style="color:'+AMB+'">→ Geopolitical Risk Monitor</a></div></div>';
 document.getElementById('cps').innerHTML=(p.chokepoints||[]).map(function(x){return bar(x,150);}).join('')||'<span class="mono" style="color:'+MUT+'">no data</span>';
 document.getElementById('pts').innerHTML=(p.ports||[]).map(function(x){return bar(x,150);}).join('')||'<span class="mono" style="color:'+MUT+'">port layer building…</span>';
+document.getElementById('exp').innerHTML=((p.exporters||[]).map(function(e){var c=e.verdict==='SLOWING'?RED:e.verdict==='ACCELERATING'?GRN:NEU;return '<div class="brow mono"><div style="width:150px;font-weight:700;color:'+c+'">'+e.country+'</div><div style="width:60px;color:'+MUT+'">'+e.n_ports+' ports</div><div style="flex:1;color:'+MUT+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e.ports.join(', ')+'">'+e.ports.join(', ')+'</div><div style="width:66px;text-align:right;font-weight:800;color:'+c+'">'+(e.avg_vs_baseline_pct>0?'+':'')+e.avg_vs_baseline_pct+'%</div><div style="width:58px;text-align:right;color:'+MUT+'">z '+e.avg_z+'</div><div style="width:110px;text-align:right;color:'+c+';font-size:10px">'+e.verdict+'</div></div>';}).join(''))||'<span class="mono" style="color:'+MUT+'">building…</span>';
 document.getElementById('dis').innerHTML=((p.disruptions||[]).map(function(d){var nm=d.portname||d.name||d.chokepoint||'';var extra=[d.type,d.status,d.date].filter(Boolean).join(' · ');return nm?'<span class="chip" title="'+extra+'">'+nm+(extra?' — '+extra:'')+'</span>':'';}).join(''))||'<span class="mono" style="font-size:11px;color:'+MUT+'">none currently flagged by IMF</span>';
 document.getElementById('foot').textContent='Source: IMF PortWatch (portwatch.imf.org) — UN Global Platform AIS; keyless public ArcGIS FeatureServer. Metric: '+(p.metric_field||'')+' (chokepoints) / '+(p.ports_metric||'')+' (ports). Baselines: trailing 1-year mean; yoy = same 7d window prior year. Generated '+p.generated_at;
 }catch(e){console.error(e);}})();

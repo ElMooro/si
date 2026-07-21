@@ -184,6 +184,7 @@ def load_all():
         "geo_risk":"data/geopolitical-risk.json",
         "portwatch":"data/portwatch.json",
         "bis_cb":"data/bis-crossborder.json",
+        "freight":"data/freight-pulse.json",
         "spx_ma":"data/spx-ma.json",
         "fifx_vol":"data/fifx-vol.json",
         "settlement_fails":"data/settlement-fails.json",

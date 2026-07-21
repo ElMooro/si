@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -33,7 +33,19 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "los angeles", "long beach", "hamburg",
                "jebel ali", "dubai", "houston", "santos",
                "tanjung pelepas", "port klang", "kaohsiung",
-               "new york", "savannah")
+               "new york", "savannah", "yokohama", "tokyo",
+               "haiphong", "ho chi minh", "cai mep", "mundra",
+               "nhava sheva", "jawaharlal", "manzanillo",
+               "bremerhaven", "colombo", "tanjung priok",
+               "laem chabang", "gwangyang", "incheon")
+# v1.2: export-nation aggregation — country -> gateway-port pulse
+EXPORT_NATIONS = {"CHN": "China", "KOR": "Korea", "JPN": "Japan",
+                  "TWN": "Taiwan", "SGP": "Singapore", "VNM": "Vietnam",
+                  "DEU": "Germany", "IND": "India", "MEX": "Mexico",
+                  "NLD": "Netherlands", "USA": "United States",
+                  "MYS": "Malaysia", "THA": "Thailand", "IDN": "Indonesia",
+                  "BRA": "Brazil", "ARE": "UAE", "LKA": "Sri Lanka",
+                  "BEL": "Belgium"}
 
 
 def _q(url, params, timeout=30):
@@ -213,7 +225,7 @@ def lambda_handler(event=None, context=None):
                     break
         out["ports_ref_matched"] = len(cand)
         if cand:
-            ids = ",".join("'" + i + "'" for i in list(cand)[:24])
+            ids = ",".join("'" + i + "'" for i in list(cand)[:40])
             prow, perr = fetch_daily(DAILY_PORTS,
                                      "portid IN (" + ids + ")")
             if perr:
@@ -256,6 +268,32 @@ def lambda_handler(event=None, context=None):
         out["errors"].append("ports_layer: " + str(_pe)[:90])
     out["ports_disrupted"] = sum(1 for p in out["ports"]
                                  if p["status"] == "DISRUPTED")
+    # v1.2: exporters pulse — group ports by country code
+    exp = {}
+    for p in out["ports"]:
+        cc = str(p.get("country") or "").upper()[:3]
+        nm = EXPORT_NATIONS.get(cc)
+        if not nm:
+            continue
+        exp.setdefault(cc, {"country": nm, "ports": [], "pcts": [],
+                            "zs": []})
+        exp[cc]["ports"].append(p["name"])
+        exp[cc]["pcts"].append(p["vs_baseline_pct"])
+        exp[cc]["zs"].append(p["z"])
+    out["exporters"] = []
+    for cc, e in exp.items():
+        avg = round(sum(e["pcts"]) / len(e["pcts"]), 1)
+        az = round(sum(e["zs"]) / len(e["zs"]), 2)
+        verdict = ("SLOWING" if (avg <= -12 or az <= -1.2) else
+                   "ACCELERATING" if (avg >= 12 or az >= 1.2) else "STABLE")
+        out["exporters"].append({"code": cc, "country": e["country"],
+                                 "n_ports": len(e["ports"]),
+                                 "ports": e["ports"][:4],
+                                 "avg_vs_baseline_pct": avg,
+                                 "avg_z": az, "verdict": verdict})
+    out["exporters"].sort(key=lambda x: x["avg_vs_baseline_pct"])
+    out["exporters_slowing"] = [x["country"] for x in out["exporters"]
+                                if x["verdict"] == "SLOWING"]
 
     worst = out["chokepoints"][0] if out["chokepoints"] else None
     out["worst"] = ({"name": worst["name"], "z": worst["z"],
