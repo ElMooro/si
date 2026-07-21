@@ -180,6 +180,7 @@ def load_all():
         "primary_dealers":"data/nyfed-primary-dealer.json",
         "ofr_stfm":"data/ofr-stfm.json",
         "asia_leads":"data/asia-leads.json",
+        "china_liq":"data/china-liquidity.json",
         "spx_ma":"data/spx-ma.json",
         "fifx_vol":"data/fifx-vol.json",
         "settlement_fails":"data/settlement-fails.json",
