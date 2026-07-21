@@ -203,6 +203,22 @@ def pboc_cn_tsf():
         # national item pages carry the body in an attachment .htm (EN pattern)
         _p0 = _re.sub(r"\s+", "", page)
         if "社会融资规模增量为" not in _p0:
+            # v2.5: shells reference content via JS file lists (W020… paths)
+            _w = _re.findall(r'["\']((?:https?://[^"\']+)?/?[^"\']*W0\d{9,}[^"\']*'
+                             r'\.(?:html?|txt))["\']', page, _re.I)
+            out["js_files"] = [w[:110] for w in _w[:4]]
+            for _wf in _w[:3]:
+                if _wf.startswith("/"):
+                    _wf = "http://www.pbc.gov.cn" + _wf
+                elif not _wf.startswith("http"):
+                    _wf = item[0].rsplit("/", 1)[0] + "/" + _wf
+                _sub, _v3 = _edge(_wf)
+                if "社会融资规模增量为" in _re.sub(r"\s+", "", _sub):
+                    page = _sub
+                    out["attachment"], out["via"] = _wf[:120], _v3
+                    break
+        _p0 = _re.sub(r"\s+", "", page)
+        if "社会融资规模增量为" not in _p0:
             for _att in _re.findall(r'href="([^"]+\.html?)"', page, _re.I)[:6]:
                 if "index" in _att:
                     continue

@@ -442,15 +442,21 @@ def taiwan_orders():
                 # v1.7 STAGE-6: GetPointData.ashx is THE feed — sweep every
                 # SitesSN embedded in the orders frames; scan JSON for the
                 # Export-Orders item and pull value/YoY from Content/Date.
+                out["stage6_sitesns"] = []
+                out["stage6_tried"] = []
+                out["v17"] = True
                 if pr["usd_bn"] is None and pr["yoy"] is None:
                     sns = []
                     for _, bs in (_bodies4 + _bodies3):
                         for sn in re.findall(r"SitesSN=(\d{2,5})", bs):
                             if sn not in sns:
                                 sns.append(sn)
+                    if not sns:
+                        sns = [str(x) for x in range(455, 476)]
+                        out["stage6_brute"] = True
                     out["stage6_sitesns"] = sns[:10]
                     s6 = []
-                    for sn in sns[:5]:
+                    for sn in sns[:8]:
                         u6 = "https://eng.stat.gov.tw/Common/GetPointData.ashx?SitesSN=" + sn
                         b6, via6 = _edge(u6, cap=200_000)
                         h6 = b6.decode("utf-8", "replace")
