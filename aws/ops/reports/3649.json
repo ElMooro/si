@@ -1,0 +1,86 @@
+{
+  "gates": {
+    "G1_data": {
+      "ok": true,
+      "detail": "err=None layer=Daily_Chokepoints_Data rows=11172 metric=n_total n=28 worst={'name': 'Kerch Strait', 'z': -1.59, 'vs_baseline_pct': -89.3, 'status': 'DISRUPTED'} pids={'chokepoint1': 399, 'chokepoint2': 399, 'chokepoint3': 399, 'chokepoint4': 399, 'chokepoint5': 399, 'chokepoint6': 399} span=2025-06-16..2026-07-19 disrupted=2 sample=[('Kerch Strait', -1.59, -89.3, 'DISRUPTED'), ('Bohai Strait', -1.29, -16.0, 'NORMAL'), ('Strait of Hormuz', -1.06, -78.1, 'DISRUPTED'), ('Bosporus Strait', -1.02, -19.1, 'NORMAL'), ('Malacca Strait', -0.9, -7.4, 'NORMAL')] errors=[]"
+    },
+    "G2_wires": {
+      "ok": true,
+      "detail": "row=True fetch=True mi_zip=True"
+    }
+  },
+  "catalog": {
+    "already_ours": {
+      "ecb_data_api": 16,
+      "gdelt": 3,
+      "aaii": 12,
+      "finnhub": 4,
+      "fred/eia/yahoo/sec/treasury/bls": "fleet-wide"
+    },
+    "new_adopted": "IMF PortWatch (this ops)",
+    "queued": [
+      "BIS stats API WS_CBS/LBS (eurodollar cross-border claims)",
+      "UN Comtrade (laggy monthly trade)"
+    ],
+    "skipped_no_edge": [
+      "MITRE ATT&CK",
+      "OpenAQ/WAQI",
+      "aviationstack",
+      "arxiv",
+      "eur-lex raw",
+      "ACLED (ToS/commercial)"
+    ]
+  },
+  "snapshot": {
+    "worst": {
+      "name": "Kerch Strait",
+      "z": -1.59,
+      "vs_baseline_pct": -89.3,
+      "status": "DISRUPTED"
+    },
+    "sample": [
+      [
+        "Kerch Strait",
+        -1.59,
+        "DISRUPTED"
+      ],
+      [
+        "Bohai Strait",
+        -1.29,
+        "NORMAL"
+      ],
+      [
+        "Strait of Hormuz",
+        -1.06,
+        "DISRUPTED"
+      ],
+      [
+        "Bosporus Strait",
+        -1.02,
+        "NORMAL"
+      ],
+      [
+        "Malacca Strait",
+        -0.9,
+        "NORMAL"
+      ],
+      [
+        "Dover Strait",
+        -0.66,
+        "NORMAL"
+      ],
+      [
+        "Oresund Strait",
+        -0.64,
+        "NORMAL"
+      ],
+      [
+        "Gibraltar Strait",
+        -0.61,
+        "NORMAL"
+      ]
+    ],
+    "disruptions_n": 15
+  },
+  "verdict": "PASS_ALL"
+}
