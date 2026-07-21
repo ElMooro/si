@@ -534,10 +534,13 @@ def compute_forward_returns():
     }
     for _k, (_lbl, _w, _d) in _styles.items():
         _wn = _avail(_w)
-        if len(_wn) >= 3:
+        if len(_wn) >= 2:
             portfolios[_k] = {"label": _lbl, "weights": _wn,
                               "forward_er_pct": port_er(_wn), "ten_k_10yr": port_ten_k(_wn),
                               "description": _d, "updates": "auto — recomputed from live forward ERs daily"}
+    if "60_40" in portfolios:
+        portfolios["60_40"].setdefault("updates", "auto — recomputed from live forward ERs daily")
+        portfolios.pop("sixty_forty", None)
     for _bk in list(_styles.keys()):
         _e0 = portfolios.get(_bk)
         if _e0 is None:
