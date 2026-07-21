@@ -73,3 +73,4 @@ with report("3635_cn_wire") as rep:
     print("VERDICT:", out["verdict"]); rep.log("VERDICT: " + out["verdict"])
     Path("aws/ops/reports/3635.json").write_text(json.dumps(out, indent=2, default=str))
     sys.exit(0)
+# retrigger 051941 — prior run lost to push-race
