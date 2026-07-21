@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -27,6 +27,13 @@ CHOKE_REF = BASE + "/PortWatch_chokepoints_database/FeatureServer/0/query"
 DAILY_CHOKE = BASE + "/Daily_Chokepoints_Data/FeatureServer/0/query"
 DAILY_PORTS = BASE + "/Daily_Ports_Data/FeatureServer/0/query"
 DISRUPT = BASE + "/portwatch_disruptions_database/FeatureServer/0/query"
+PORTS_REF = BASE + "/PortWatch_ports_database/FeatureServer/0/query"
+MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
+               "qingdao", "busan", "rotterdam", "antwerp",
+               "los angeles", "long beach", "hamburg",
+               "jebel ali", "dubai", "houston", "santos",
+               "tanjung pelepas", "port klang", "kaohsiung",
+               "new york", "savannah")
 
 
 def _q(url, params, timeout=30):
@@ -186,6 +193,69 @@ def lambda_handler(event=None, context=None):
              if k.lower() in ("portname", "name", "date", "start", "end",
                               "comment", "type", "status", "chokepoint",
                               "objectid")})
+
+    # v1.1: port-level activity layer (major ports, same stats frame)
+    out["ports"] = []
+    try:
+        pref = _q(PORTS_REF, {"where": "1=1",
+                              "outFields": "portid,portname,country,fullname",
+                              "resultRecordCount": 2000})
+        cand = {}
+        for a2 in _feats(pref):
+            nm = str(a2.get("portname") or a2.get("fullname") or "").lower()
+            pid2 = a2.get("portid")
+            if pid2 is None:
+                continue
+            for mp in MAJOR_PORTS:
+                if mp in nm:
+                    cand[str(pid2)] = {"name": a2.get("portname") or nm,
+                                       "country": a2.get("country")}
+                    break
+        out["ports_ref_matched"] = len(cand)
+        if cand:
+            ids = ",".join("'" + i + "'" for i in list(cand)[:24])
+            prow, perr = fetch_daily(DAILY_PORTS,
+                                     "portid IN (" + ids + ")")
+            if perr:
+                out["errors"].append("ports_daily: " + perr)
+            pby = {}
+            pmetric = None
+            for a2 in prow:
+                pid2 = str(a2.get("portid") or "")
+                d2 = a2.get("date")
+                if pid2 not in cand or d2 is None:
+                    continue
+                if pmetric is None:
+                    for c2 in ("portcalls", "n_total", "calls",
+                               "import", "export"):
+                        if isinstance(a2.get(c2), (int, float)):
+                            pmetric = c2
+                            break
+                v2 = a2.get(pmetric) if pmetric else None
+                if not isinstance(v2, (int, float)):
+                    continue
+                try:
+                    if isinstance(d2, (int, float)):
+                        ds2 = datetime.fromtimestamp(
+                            d2 / 1000, tz=timezone.utc).date()
+                    else:
+                        ds2 = datetime.fromisoformat(str(d2)[:10]).date()
+                except Exception:
+                    continue
+                pby.setdefault(pid2, []).append((ds2, float(v2)))
+            out["ports_metric"] = pmetric
+            for pid2, ser2 in pby.items():
+                st2 = stats(ser2)
+                if st2:
+                    out["ports"].append({"id": pid2,
+                                         "name": cand[pid2]["name"],
+                                         "country": cand[pid2]["country"],
+                                         **st2})
+            out["ports"].sort(key=lambda p: p["z"])
+    except Exception as _pe:
+        out["errors"].append("ports_layer: " + str(_pe)[:90])
+    out["ports_disrupted"] = sum(1 for p in out["ports"]
+                                 if p["status"] == "DISRUPTED")
 
     worst = out["chokepoints"][0] if out["chokepoints"] else None
     out["worst"] = ({"name": worst["name"], "z": worst["z"],

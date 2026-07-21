@@ -267,6 +267,33 @@ function gaugeColor(score){return score>=80?"var(--red)":score>=60?"var(--orange
     +'<div style="font-size:10px;color:'+MUT+';margin-top:8px;font-family:monospace">news-flow velocity + crisis-lexicon intensity + 20d z-escalation · corpus adapted from World Monitor (AGPL) · scores JustHodl-original · cross vs global-sovereign CDS stress</div>';
 }catch(e){console.error('georisk',e);}})();
 </script>
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#e8e8e8;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Global Shipping — Chokepoints &amp; Major Ports (IMF PortWatch)</h2><div id="jh-shipping"><div style="text-align:center;padding:20px;color:#6f7b91;font-family:monospace;font-size:12px">LOADING PORTWATCH…</div></div></div>
+<script>/* ops 3650: shipping panel (data/portwatch.json) */
+(async function(){try{
+  var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/portwatch.json?t='+Date.now());
+  if(!r.ok)return;var p=await r.json();var el=document.getElementById('jh-shipping');if(!el)return;
+  var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#8b93a3';
+  function bar(x){var pct=Math.max(-95,Math.min(60,x.vs_baseline_pct||0));
+    var c=x.status==='DISRUPTED'?RED:x.status==='ELEVATED'?AMB:NEU;
+    var w=Math.abs(pct)*0.9;var neg=pct<0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-family:monospace;font-size:11.5px">'
+      +'<div style="width:132px;font-weight:700;color:'+c+'" title="'+(x.country||'')+'">'+x.name+'</div>'
+      +'<div style="flex:1;display:flex;justify-content:center"><div style="width:180px;position:relative;height:12px;background:rgba(255,255,255,.05);border-radius:6px"><div style="position:absolute;'+(neg?'right:50%':'left:50%')+';width:'+w+'px;max-width:90px;height:12px;background:'+c+'" title="z '+x.z+' | 7d '+x.latest_7d_avg+' vs 1y '+x.baseline_1y+'"></div><div style="position:absolute;left:50%;top:-1px;width:1px;height:14px;background:#3a4150"></div></div></div>'
+      +'<div style="width:56px;text-align:right;font-weight:800;color:'+c+'">'+(pct>0?'+':'')+pct.toFixed(0)+'%</div>'
+      +'<div style="width:70px;text-align:right;color:'+MUT+'">z '+x.z+'</div>'
+      +'<div style="width:78px;text-align:right;color:'+c+';font-size:10px">'+x.status+'</div></div>';}
+  var cps=(p.chokepoints||[]).slice(0,10).map(bar).join('');
+  var pts=(p.ports||[]).slice(0,8).map(bar).join('');
+  var dis=(p.disruptions||[]).slice(0,4).map(function(dd){var nm=dd.portname||dd.name||dd.chokepoint||'';return nm?'<span style="border:1px solid '+MUT+';color:'+MUT+';border-radius:999px;padding:2px 9px;font-size:10.5px;margin-right:6px">'+nm+'</span>':'';}).join('');
+  el.innerHTML='<div style="font-family:monospace;font-size:11px;color:'+MUT+';margin-bottom:6px">7-day transit vs 1-year baseline · '+(p.chokepoints||[]).length+' chokepoints · '+(p.ports||[]).length+' major ports · disrupted: chokepoints '+(p.n_disrupted||0)+' / ports '+(p.ports_disrupted||0)+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="jh-ship-grid"><div><div style="font-family:monospace;font-size:11px;color:'+AMB+';margin-bottom:4px">CHOKEPOINTS (worst first)</div>'+cps+'</div>'
+    +'<div><div style="font-family:monospace;font-size:11px;color:'+AMB+';margin-bottom:4px">MAJOR PORTS (worst first)</div>'+(pts||'<div style="color:'+MUT+';font-size:11px;font-family:monospace">port layer building…</div>')+'</div></div>'
+    +(dis?'<div style="margin-top:8px;font-family:monospace"><span style="font-size:10.5px;color:'+MUT+';margin-right:8px">IMF-flagged disruptions:</span>'+dis+'</div>':'')
+    +'<div style="font-size:10px;color:'+MUT+';margin-top:8px;font-family:monospace">IMF PortWatch (UN Global Platform AIS) · keyless public feed · Hormuz/Kerch cross-confirm the geo-risk panel above</div>'
+    +'<style>@media(max-width:860px){.jh-ship-grid{grid-template-columns:1fr !important}}</style>';
+}catch(e){console.error('shipping',e);}})();
+</script>
+
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
