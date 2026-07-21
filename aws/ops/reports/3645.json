@@ -1,0 +1,50 @@
+{
+  "gates": {
+    "G1_deploy_sched": {
+      "ok": true,
+      "detail": "deployed + scheduler exists-updated 11:30 UTC"
+    },
+    "G2_feed": {
+      "ok": true,
+      "detail": "feeds_ok=112/164 articles=3608 temp=31.5 top=Iran top5=[('Iran', 84.2, 261, 92), ('Ukraine', 76.1, 87, 27), ('Russia', 74.1, 89, 25), ('China', 60.4, 158, 10), ('Israel', 57.3, 82, 9)] escalating=[]"
+    }
+  },
+  "snapshot": {
+    "top": "Iran",
+    "temp": 31.5,
+    "top5": [
+      [
+        "Iran",
+        84.2,
+        261,
+        92
+      ],
+      [
+        "Ukraine",
+        76.1,
+        87,
+        27
+      ],
+      [
+        "Russia",
+        74.1,
+        89,
+        25
+      ],
+      [
+        "China",
+        60.4,
+        158,
+        10
+      ],
+      [
+        "Israel",
+        57.3,
+        82,
+        9
+      ]
+    ],
+    "escalating": []
+  },
+  "verdict": "PASS_ALL"
+}

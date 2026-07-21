@@ -1,16 +1,16 @@
-executing-against: c294dc602f6cf2ae3453557e9dc57468c7ea590d
-ops 3643 — geopolitical-risk engine (news-flow country stress)
-[07:01:03]   zip: 92453 bytes
+executing-against: fc581db07036ea1fcf7885becb89c224d6fc50fe
+ops 3645 (recal verify post-fix) — geopolitical-risk engine (news-flow country stress)
+[07:12:06]   zip: 92625 bytes
 ── 1. Lambda ──
-[07:01:04]   Lambda exists — updating
-[07:01:09] ✅   ✓ updated justhodl-geopolitical-risk
+[07:12:06]   Lambda exists — updating
+[07:12:09] ✅   ✓ updated justhodl-geopolitical-risk
 ── 3. Smoke test ──
-[07:01:09]   invoking justhodl-geopolitical-risk…
-PASS  G1_deploy_sched — deployed + scheduler created 11:30 UTC
-[07:01:38] G1_deploy_sched True
-PASS  G2_feed — feeds_ok=113/164 articles=3646 temp=28.9 top=China top5=[('China', 60, 140, 7), ('Russia', 60, 91, 26), ('Iran', 60, 264, 93), ('Israel', 60, 82, 9), ('Ukraine', 60, 87, 28)] escalating=[]
-[07:01:59] G2_feed True
+[07:12:09]   invoking justhodl-geopolitical-risk…
+PASS  G1_deploy_sched — deployed + scheduler exists-updated 11:30 UTC
+[07:12:34] G1_deploy_sched True
+PASS  G2_feed — feeds_ok=112/164 articles=3608 temp=31.5 top=Iran top5=[('Iran', 84.2, 261, 92), ('Ukraine', 76.1, 87, 27), ('Russia', 74.1, 89, 25), ('China', 60.4, 158, 10), ('Israel', 57.3, 82, 9)] escalating=[]
+[07:12:57] G2_feed True
 VERDICT: PASS_ALL
-[07:01:59] VERDICT: PASS_ALL
+[07:12:57] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3643_geo_risk.md
+→ Report written to aws/ops/reports/latest/3645_geo_verify.md
