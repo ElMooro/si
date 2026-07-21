@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -238,11 +238,24 @@ def lambda_handler(event=None, context=None):
     # v1.1: port-level activity layer (major ports, same stats frame)
     out["ports"] = []
     try:
-        pref = _q(PORTS_REF, {"where": "1=1",
-                              "outFields": "portid,portname,country,fullname",
-                              "resultRecordCount": 2000})
         cand = {}
-        for a2 in _feats(pref):
+        _pref_rows = []
+        _off = 0
+        while _off < 12000:
+            pref = _q(PORTS_REF, {"where": "1=1",
+                                  "outFields": "portid,portname,country,fullname",
+                                  "resultOffset": _off,
+                                  "resultRecordCount": 1000})
+            if pref.get("_err"):
+                out["errors"].append("ports_ref: " + pref["_err"])
+                break
+            _fs = _feats(pref)
+            _pref_rows += _fs
+            if len(_fs) < 1000:
+                break
+            _off += 1000
+        out["ports_ref_total"] = len(_pref_rows)
+        for a2 in _pref_rows:
             nm = (str(a2.get("portname") or "") + " " +
                   str(a2.get("fullname") or "")).lower()
             pid2 = a2.get("portid")
