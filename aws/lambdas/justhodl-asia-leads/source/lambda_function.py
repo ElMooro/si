@@ -125,15 +125,41 @@ def korea_flash_tape():
            "latest": None, "validated_sample": None, "articles_scanned": 0,
            "sources": [], "error": None}
     arts = []
+    # source 0 (keyless primary): Google News RSS — carries Yonhap/Reuters flashes
+    try:
+        import re as _re0
+        for gq in ('%22South%20Korea%22%20exports%20%2220%20days%22%20when%3A14d',
+                   'Korea%20exports%20first%2020%20days%20when%3A35d'):
+            xml = urllib.request.urlopen(urllib.request.Request(
+                "https://news.google.com/rss/search?q=" + gq + "&hl=en-US&gl=US&ceid=US:en",
+                headers=UA), timeout=20).read().decode("utf-8", "replace")
+            for it in _re0.findall(r"<item>(.*?)</item>", xml, _re0.S)[:40]:
+                tt = _re0.search(r"<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>", it, _re0.S)
+                lk = _re0.search(r"<link>(.*?)</link>", it, _re0.S)
+                pd = _re0.search(r"<pubDate>(.*?)</pubDate>", it)
+                if tt:
+                    from email.utils import parsedate_to_datetime as _p2d
+                    try:
+                        pds = _p2d(pd.group(1)).strftime("%Y-%m-%d") if pd else ""
+                    except Exception:
+                        pds = ""
+                    arts.append({"t": tt.group(1), "u": (lk.group(1) if lk else None),
+                                 "p": pds, "src": "gnews"})
+        out["sources"].append({"gnews": len(arts)})
+    except Exception as e:
+        out["sources"].append({"gnews_err": str(e)[:70]})
     try:
         q = urllib.parse.quote('"South Korea" exports "20 days"')
         j = _json_get("https://newsapi.org/v2/everything?q=" + q +
                       "&language=en&sortBy=publishedAt&pageSize=50&apiKey=" + NEWSAPI_KEY)
+        n0 = len(arts)
+        if isinstance(j, dict) and j.get("status") != "ok":
+            out["sources"].append({"newsapi_status": str(j.get("code") or j.get("status"))[:40]})
         for a in (j or {}).get("articles") or []:
             arts.append({"t": (a.get("title") or "") + ". " + (a.get("description") or ""),
                          "u": a.get("url"), "p": (a.get("publishedAt") or "")[:10],
                          "src": "newsapi"})
-        out["sources"].append({"newsapi": len(arts)})
+        out["sources"].append({"newsapi": len(arts) - n0})
     except Exception as e:
         out["sources"].append({"newsapi_err": str(e)[:60]})
     try:
