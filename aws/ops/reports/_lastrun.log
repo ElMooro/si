@@ -1,39 +1,14 @@
-executing-against: 508fe73d1e8d5ccd41b3514e09e5376681e1ba2f
-ops 3659 — freight pulse + exporters pulse
-[18:29:26]   zip: 84442 bytes
+executing-against: 44c0e9eff82f14719ba0b13c88a13f1535d957a1
+ops 3660 — exporters full-coverage v1.3
+[18:38:01]   zip: 87509 bytes
 ── 1. Lambda ──
-[18:29:26]   Lambda exists — updating
-[18:29:31] ✅   ✓ updated justhodl-freight-pulse
+[18:38:01]   Lambda exists — updating
+[18:38:07] ✅   ✓ updated justhodl-portwatch
 ── 3. Smoke test ──
-[18:29:31]   invoking justhodl-freight-pulse…
-PASS  G1_freight — err=None live=6 comp=57.2 verdict=ACCELERATING infl=['cass_shipments'] sample=[('tsi_freight', 1.4, 4.4), ('cass_shipments', -4.1, 17.2), ('cass_expend', 11.2, 37.8), ('truck_tonnage', 3.4, 10.2)] errs=[]
-[18:29:36] G1_freight True
-[18:29:37]   zip: 87034 bytes
-── 1. Lambda ──
-[18:29:37]   Lambda exists — updating
-[18:29:42] ✅   ✓ updated justhodl-portwatch
-── 3. Smoke test ──
-[18:29:42]   invoking justhodl-portwatch…
-FAIL  G2_exporters — err=None ports_n=21 exporters_n=10 slowing=['UAE', 'China'] board=[('UAE', 2, -29.8, 'SLOWING'), ('China', 4, -29.4, 'SLOWING'), ('Belgium', 1, -7.5, 'STABLE'), ('Japan', 2, -6.6, 'STABLE'), ('United States', 4, -4.2, 'STABLE'), ('Indonesia', 1, 2.5, 'STABLE'), ('Mexico', 1, 5.9, 'STABLE'), ('Thailand', 1, 6.6, 'STABLE')]
-[18:30:00] G2_exporters False
-[18:30:00]   zip: 107416 bytes
-── 1. Lambda ──
-[18:30:00]   Lambda exists — updating
-[18:30:06] ✅   ✓ updated justhodl-morning-intelligence
-── 3. Smoke test ──
-[18:30:06]   invoking justhodl-morning-intelligence…
-[18:30:22] ✅   ✓ smoke test passed
-[18:30:22]     success                  True
-[18:30:22]     khalid_adj               46.0
-[18:30:22]     regime                   NEUTRAL
-[18:30:22]     btc                      66797
-[18:30:22]     outcomes                 17453
-[18:30:22]     improved                 False
-[18:30:22]     weights_active           277
-[18:30:22]     ka_adj                   46.0
-PASS  G3_serves — {'exp_board': True, 'freight_row': True, 'exp_row': True, 'fp_fetch': True, 'mi_zip': True}
-[18:30:22] G3_serves True
-VERDICT: GAPS: G2_exporters
-[18:30:22] VERDICT: GAPS: G2_exporters
+[18:38:07]   invoking justhodl-portwatch…
+FAIL  G1_full — err=None ports_n=27 nations=10 have=['Belgium', 'Brazil', 'China', 'Indonesia', 'Japan', 'Mexico', 'Netherlands', 'Thailand', 'UAE', 'United States'] slowing=['UAE', 'China', 'Brazil'] board=[('UAE', 2, -29.8, 'SLOWING'), ('China', 4, -29.4, 'SLOWING'), ('Brazil', 2, -18.8, 'SLOWING'), ('Belgium', 1, -7.5, 'STABLE'), ('United States', 4, -4.2, 'STABLE'), ('Japan', 5, -1.9, 'STABLE'), ('Indonesia', 1, 2.5, 'STABLE'), ('Thailand', 1, 6.6, 'STABLE'), ('Netherlands', 1, 7.0, 'STABLE'), ('Mexico', 3, 8.6, 'STABLE')] misses=['singapore', 'busan', 'hamburg', 'tanjung pelepas', 'port klang', 'kaohsiung', 'haiphong', 'ho chi minh', 'cai mep', 'mundra', 'nhava s
+[18:39:33] G1_full False
+VERDICT: GAPS: G1_full
+[18:39:33] VERDICT: GAPS: G1_full
 
-→ Report written to aws/ops/reports/latest/3659_exporters_fix.md
+→ Report written to aws/ops/reports/latest/3660_exporters_full.md
