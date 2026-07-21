@@ -1,0 +1,144 @@
+{
+  "gates": {
+    "G1_freight": {
+      "ok": true,
+      "detail": "err=None live=6 comp=57.2 verdict=ACCELERATING infl=['cass_shipments'] sample=[('tsi_freight', 1.4, 4.4), ('cass_shipments', -4.1, 17.2), ('cass_expend', 11.2, 37.8), ('truck_tonnage', 3.4, 10.2)] errs=[]"
+    },
+    "G2_exporters": {
+      "ok": false,
+      "detail": "err=None ports_n=21 exporters_n=10 slowing=['UAE', 'China'] board=[('UAE', 2, -29.8, 'SLOWING'), ('China', 4, -29.4, 'SLOWING'), ('Belgium', 1, -7.5, 'STABLE'), ('Japan', 2, -6.6, 'STABLE'), ('United States', 4, -4.2, 'STABLE'), ('Indonesia', 1, 2.5, 'STABLE'), ('Mexico', 1, 5.9, 'STABLE'), ('Thailand', 1, 6.6, 'STABLE')]"
+    },
+    "G3_serves": {
+      "ok": true,
+      "detail": "{'exp_board': True, 'freight_row': True, 'exp_row': True, 'fp_fetch': True, 'mi_zip': True}"
+    }
+  },
+  "freight": {
+    "composite": 57.2,
+    "verdict": "ACCELERATING",
+    "inflections": [
+      "cass_shipments"
+    ]
+  },
+  "exporters": [
+    {
+      "code": "UAE",
+      "country": "UAE",
+      "n_ports": 2,
+      "ports": [
+        "Jebel Ali",
+        "Dubai"
+      ],
+      "avg_vs_baseline_pct": -29.8,
+      "avg_z": -0.45,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "CHI",
+      "country": "China",
+      "n_ports": 4,
+      "ports": [
+        "Shanghai",
+        "Ningbo",
+        "Qingdao Port",
+        "Shekou (Shenzhen)"
+      ],
+      "avg_vs_baseline_pct": -29.4,
+      "avg_z": -1.41,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "BEL",
+      "country": "Belgium",
+      "n_ports": 1,
+      "ports": [
+        "Antwerp"
+      ],
+      "avg_vs_baseline_pct": -7.5,
+      "avg_z": -0.44,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "JAP",
+      "country": "Japan",
+      "n_ports": 2,
+      "ports": [
+        "Tokyo",
+        "Yokohama"
+      ],
+      "avg_vs_baseline_pct": -6.6,
+      "avg_z": -0.3,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "UNI",
+      "country": "United States",
+      "n_ports": 4,
+      "ports": [
+        "Houston (US-TX)",
+        "Savannah",
+        "New York-New Jersey",
+        "Los Angeles-Long Beach"
+      ],
+      "avg_vs_baseline_pct": -4.2,
+      "avg_z": -0.15,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "IND",
+      "country": "Indonesia",
+      "n_ports": 1,
+      "ports": [
+        "Tanjung Priok"
+      ],
+      "avg_vs_baseline_pct": 2.5,
+      "avg_z": 0.14,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "MEX",
+      "country": "Mexico",
+      "n_ports": 1,
+      "ports": [
+        "Manzanillo"
+      ],
+      "avg_vs_baseline_pct": 5.9,
+      "avg_z": 0.16,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "THA",
+      "country": "Thailand",
+      "n_ports": 1,
+      "ports": [
+        "Laem Chabang"
+      ],
+      "avg_vs_baseline_pct": 6.6,
+      "avg_z": 0.29,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "NET",
+      "country": "Netherlands",
+      "n_ports": 1,
+      "ports": [
+        "Rotterdam"
+      ],
+      "avg_vs_baseline_pct": 7.0,
+      "avg_z": 0.54,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "BRA",
+      "country": "Brazil",
+      "n_ports": 1,
+      "ports": [
+        "Santos"
+      ],
+      "avg_vs_baseline_pct": 13.8,
+      "avg_z": 0.57,
+      "verdict": "ACCELERATING"
+    }
+  ],
+  "verdict": "GAPS: G2_exporters"
+}
