@@ -1,0 +1,137 @@
+{
+  "gates": {
+    "G_treasury-noise": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/treasury-noise.json': 0.1, 'data/treasury-noise-history.json': 0.1} healed=justhodl-treasury-noise-daily log_tail=6af41343bba\tDuration: 9453.25 ms\tBilled Duration: 9928 ms\tMemory Size: 512 MB\tMax Memory Used: 99 MB\tInit Duration: 474.30 ms\t\nXRAY TraceId: 1-6a5f14de-3a8a9b5848c306666d3c430d\tSegmentId: e1f845e32ff08f8a\tSampled: true\t\n"
+    },
+    "G_forward-orders": {
+      "ok": true,
+      "detail": "inv7=12 err7=0 scheds=[] invoke_err=None fresh={'data/forward-orders.json': 0.1} healed=justhodl-forward-orders-daily log_tail=31f3c4b\tDuration: 64334.32 ms\tBilled Duration: 64815 ms\tMemory Size: 1024 MB\tMax Memory Used: 151 MB\tInit Duration: 480.12 ms\t\nXRAY TraceId: 1-6a5f14ed-5acf1c7735f1340017d5e07c\tSegmentId: b9099061f431f0b1\tSampled: true\t\n"
+    },
+    "G_supply-chain-graph": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/supply-chain-graph.json': 0.1} healed=justhodl-supply-chain-graph-daily log_tail=ef0eb170fc\tDuration: 8188.98 ms\tBilled Duration: 8695 ms\tMemory Size: 512 MB\tMax Memory Used: 222 MB\tInit Duration: 505.98 ms\t\nXRAY TraceId: 1-6a5f1534-3acdbb5a337bda966c1bdbc7\tSegmentId: c208fe04c76412ba\tSampled: true\t\n"
+    },
+    "G_cftc-deep-view": {
+      "ok": true,
+      "detail": "inv7=3 err7=0 scheds=['justhodl-cftc-deep-view-fri'] invoke_err=None fresh={'data/cftc-deep-view.json': 0.1} healed=None log_tail=0516ceb1bf49\tDuration: 234.01 ms\tBilled Duration: 717 ms\tMemory Size: 1024 MB\tMax Memory Used: 97 MB\tInit Duration: 482.80 ms\t\nXRAY TraceId: 1-6a5f1542-321c57517918f16f59f1ea27\tSegmentId: 4882a1b63d58e935\tSampled: true\t\n"
+    },
+    "G_tv-watchlist-tracker": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/tv-watchlist-tracker.json': 0.1} healed=justhodl-tv-watchlist-tracker-daily log_tail=e3f50c47\tDuration: 13482.89 ms\tBilled Duration: 13953 ms\tMemory Size: 512 MB\tMax Memory Used: 101 MB\tInit Duration: 469.94 ms\t\nXRAY TraceId: 1-6a5f1547-2e94b2335d520e9d60300208\tSegmentId: f49826bc36ce4188\tSampled: true\t\n"
+    },
+    "G_thesis-engine": {
+      "ok": false,
+      "detail": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-thesis-engine/invocations\""
+    },
+    "G_symbol-dictionary": {
+      "ok": true,
+      "detail": "inv7=2 err7=0 scheds=[] invoke_err=None fresh={'data/symbol-dictionary.json': 0.0} healed=justhodl-symbol-dictionary-daily log_tail=ebf9d\tDuration: 229398.76 ms\tBilled Duration: 230224 ms\tMemory Size: 2048 MB\tMax Memory Used: 113 MB\tInit Duration: 824.92 ms\t\nXRAY TraceId: 1-6a5f17b4-52b1f48671c6c6ce64fb21f6\tSegmentId: ca91458f36d024fa\tSampled: true\t\n"
+    }
+  },
+  "engines": {
+    "justhodl-treasury-noise": {
+      "fn": "justhodl-treasury-noise",
+      "timeout": 180,
+      "mem": 512,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "START RequestId: 4e9f99e5-1d45-4aa5-86e2-66af41343bba Version: $LATEST\n[treasury-noise] stress=14.5 regime=CALM bill_sofr=12.0 sofr_effr=-4.0 cp_bill=5.0 ns_diag=4.699bps in 9.4s\nEND RequestId: 4e9f99e5-1d45-4aa5-86e2-66af41343bba\nREPORT RequestId: 4e9f99e5-1d45-4aa5-86e2-66af41343bba\tDuration: 9453.25 ms\tBilled Duration: 9928 ms\tMemory Size: 512 MB\tMax Memory Used: 99 MB\tInit Duration: 474.30 ms\t\nXRAY TraceId: 1-6a5f14de-3a8a9b5848c306666d3c430d\tSegmentId: e1f845e32ff08f8a\tSampled: true\t\n",
+      "fresh_min": {
+        "data/treasury-noise.json": 0.1,
+        "data/treasury-noise-history.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-treasury-noise-daily"
+    },
+    "justhodl-forward-orders": {
+      "fn": "justhodl-forward-orders",
+      "timeout": 900,
+      "mem": 1024,
+      "inv7": 12,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": " 40  elapsed 51s\n[fwd-orders] processed 225/250  found 45  elapsed 58s\n[fwd-orders] processed 250/250  found 54  elapsed 64s\n[fwd-orders] wrote 123,134B to data/forward-orders.json\nEND RequestId: 5b31113f-63f9-47b3-a79d-01da431f3c4b\nREPORT RequestId: 5b31113f-63f9-47b3-a79d-01da431f3c4b\tDuration: 64334.32 ms\tBilled Duration: 64815 ms\tMemory Size: 1024 MB\tMax Memory Used: 151 MB\tInit Duration: 480.12 ms\t\nXRAY TraceId: 1-6a5f14ed-5acf1c7735f1340017d5e07c\tSegmentId: b9099061f431f0b1\tSampled: true\t\n",
+      "fresh_min": {
+        "data/forward-orders.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-forward-orders-daily"
+    },
+    "justhodl-supply-chain-graph": {
+      "fn": "justhodl-supply-chain-graph",
+      "timeout": 300,
+      "mem": 512,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "eb170fc Version: $LATEST\n[scg] related-graph cache hit (age 5.7d)\n[scg] confirm: mutual=16 one_way=39 | discovered=40\n[scg] nodes=174 edges=222 themes=18 booming=2 laggards=17 in 8.1s\nEND RequestId: 396f89e6-1022-4413-8417-65ef0eb170fc\nREPORT RequestId: 396f89e6-1022-4413-8417-65ef0eb170fc\tDuration: 8188.98 ms\tBilled Duration: 8695 ms\tMemory Size: 512 MB\tMax Memory Used: 222 MB\tInit Duration: 505.98 ms\t\nXRAY TraceId: 1-6a5f1534-3acdbb5a337bda966c1bdbc7\tSegmentId: c208fe04c76412ba\tSampled: true\t\n",
+      "fresh_min": {
+        "data/supply-chain-graph.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-supply-chain-graph-daily"
+    },
+    "justhodl-cftc-deep-view": {
+      "fn": "justhodl-cftc-deep-view",
+      "timeout": 300,
+      "mem": 1024,
+      "inv7": 3,
+      "err7": 0,
+      "schedules": [
+        "justhodl-cftc-deep-view-fri"
+      ],
+      "err": null,
+      "log_tail": "=['cached_at', 'contracts', 'data', 'source', 'timestamp']\n[cftc-deep-view] loaded 29 contracts from cache\n[cftc-deep-view] state=NORMAL_POSITIONING contracts=0 extremes=0 divergences=0\nEND RequestId: 450d2b19-8490-4619-ae77-0516ceb1bf49\nREPORT RequestId: 450d2b19-8490-4619-ae77-0516ceb1bf49\tDuration: 234.01 ms\tBilled Duration: 717 ms\tMemory Size: 1024 MB\tMax Memory Used: 97 MB\tInit Duration: 482.80 ms\t\nXRAY TraceId: 1-6a5f1542-321c57517918f16f59f1ea27\tSegmentId: 4882a1b63d58e935\tSampled: true\t\n",
+      "fresh_min": {
+        "data/cftc-deep-view.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": null
+    },
+    "justhodl-tv-watchlist-tracker": {
+      "fn": "justhodl-tv-watchlist-tracker",
+      "timeout": 240,
+      "mem": 512,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "START RequestId: ec5c5ea3-717f-468a-89bc-d796e3f50c47 Version: $LATEST\n{\"ok\": true, \"n_lists\": 23, \"signals_logged\": 0}\nEND RequestId: ec5c5ea3-717f-468a-89bc-d796e3f50c47\nREPORT RequestId: ec5c5ea3-717f-468a-89bc-d796e3f50c47\tDuration: 13482.89 ms\tBilled Duration: 13953 ms\tMemory Size: 512 MB\tMax Memory Used: 101 MB\tInit Duration: 469.94 ms\t\nXRAY TraceId: 1-6a5f1547-2e94b2335d520e9d60300208\tSegmentId: f49826bc36ce4188\tSampled: true\t\n",
+      "fresh_min": {
+        "data/tv-watchlist-tracker.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-tv-watchlist-tracker-daily"
+    },
+    "justhodl-thesis-engine": {
+      "fn": "justhodl-thesis-engine",
+      "timeout": 900,
+      "mem": 3008,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "fatal": "Read timeout on endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-thesis-engine/invocations\""
+    },
+    "justhodl-symbol-dictionary": {
+      "fn": "justhodl-symbol-dictionary",
+      "timeout": 900,
+      "mem": 2048,
+      "inv7": 2,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "countries, 19 WB indicators, 124s\n[dict] 6507 symbols, 779 need a name\n[dict] FRED pass done (55) at 223s\n{\"ok\": true, \"named\": 5729, \"of\": 6507, \"filled\": 779, \"elapsed\": 229.2}\nEND RequestId: c2dd59c9-d432-4ba9-af9f-db9e8e1ebf9d\nREPORT RequestId: c2dd59c9-d432-4ba9-af9f-db9e8e1ebf9d\tDuration: 229398.76 ms\tBilled Duration: 230224 ms\tMemory Size: 2048 MB\tMax Memory Used: 113 MB\tInit Duration: 824.92 ms\t\nXRAY TraceId: 1-6a5f17b4-52b1f48671c6c6ce64fb21f6\tSegmentId: ca91458f36d024fa\tSampled: true\t\n",
+      "fresh_min": {
+        "data/symbol-dictionary.json": 0.0
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-symbol-dictionary-daily"
+    }
+  },
+  "verdict": "GAPS: G_thesis-engine"
+}
