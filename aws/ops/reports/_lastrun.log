@@ -1,34 +1,33 @@
-executing-against: d7747afbd3ba10ee8307eaa23edca66ef170b3f5
-ops 3633 — deployed-zip forensic + v1.7.1/v2.5
-[04:39:25]   zip: 92099 bytes
+executing-against: 993f60fe4b109a851d4bbf7fb7d50e3e3f900603
+ops 3634 — deployed-zip forensic + v1.7.1/v2.5
+[04:46:19]   zip: 92099 bytes
 ── 1. Lambda ──
-[04:39:25]   Lambda exists — updating
-[04:39:29] ✅   ✓ updated justhodl-asia-leads
+[04:46:19]   Lambda exists — updating
+[04:46:22] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[04:39:29]   invoking justhodl-asia-leads…
-[04:39:55] ✅   ✓ smoke test passed
-[04:39:55]     ok                       True
-[04:39:55]     kr_yoy                   47.96
-[04:39:55]     tw_yoy                   48.33
+[04:46:22]   invoking justhodl-asia-leads…
+[04:46:39] ✅   ✓ smoke test passed
+[04:46:39]     ok                       True
+[04:46:39]     kr_yoy                   47.96
+[04:46:39]     tw_yoy                   48.33
 PASS  G1_tw — zip={'out["v17"]': True, 'stage6_brute': True, 'GetPointData': True} err=None keys=['error', 'label', 'latest_usd_bn', 'levels_cached', 'period', 'raw_head', 'source', 'stage2', 'stage3_candidates', 'stage3_tried', 'stage4_tried', 'stage5_endpoints', 'stage5_tried', 'stage6_hit', 'stage6_sitesns', 'stage6_tried', 'v17', 'via_stage1'] VALUE=usd_bn=89.47 yoy=None per=May. 2026 levels_err=None levels=1 brute=None sns=['464'] s6_hit={'sn': '464', 'title': 'Value of Export Orders'} s6_sample=[{'sn': '464', 'hit': True, 'xerr': None, 'err': None, 'item_blob': 'May. 2026 89,475(million US dollars) Value of Export Orders '}] blob=May. 2026 89,475(million US do
-[04:40:12] G1_tw True
-[04:40:12]   zip: 89752 bytes
+[04:46:55] G1_tw True
+[04:46:55]   zip: 90049 bytes
 ── 1. Lambda ──
-[04:40:12]   Lambda exists — updating
-[04:40:16] ✅   ✓ updated justhodl-china-liquidity
+[04:46:56]   Lambda exists — updating
+[04:47:01] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[04:40:16]   invoking justhodl-china-liquidity…
-[04:40:42] ✅   ✓ smoke test passed
-[04:40:42]     ok                       True
-[04:40:42]     regime                   NEUTRAL
-[04:40:42]     credit_impulse_pp        -5.52
-[04:40:42]     m2_yoy                   8.21
-PASS  G2_cn — err=None VALUE=none title=2025年8月社会融资规模增量统计数据报告 att=https://www.pbc.gov.cn/goutongjiaoliu/113456/2986536/index.html cum=None phrase_ctx=万亿元，同比增长5.2%。社会融资规模增量合理增长，金融体系较好地满足了实体经济的资金需求。上半年，社会融资规模增量为20.84万亿元。从结构看，一是金融机构对实体经济的信贷支持力度稳固。上半年，金融机构对实体经济新发放人民币贷款扣除偿还额后的净增加10.76万亿元。二是企业直接融资同比多增较多，占比明显上升。上半年，非金融企业债券净融资2.07万亿元，同比多9167亿元；非金融企业股票融资2933亿元，同比多1224亿元。两者合计占社 refs=['.pbc.gov.cn/rmyh/109339/index.html', 'gov.cn/publish/main/926/index.html', '.pbc.gov.cn/rmyh/109342/index.html'] probe=ext/html; charset=utf-8" /><title>2025年8月社会融资规模增量统计数据报告 </title>
+[04:47:01]   invoking justhodl-china-liquidity…
+[04:47:49] ✅   ✓ smoke test passed
+[04:47:49]     ok                       True
+[04:47:49]     regime                   NEUTRAL
+[04:47:49]     credit_impulse_pp        -5.52
+[04:47:49]     m2_yoy                   8.21
+PASS  G2_cn — err=None VALUE=20.84 trn 20??-H1 (cum) yoyΔ -2.02 title=2025年8月社会融资规模增量统计数据报告 att=https://www.pbc.gov.cn/goutongjiaoliu/113456/2986536/index.html att_title=None cum=True phrase_ctx=万亿元，同比增长5.2%。社会融资规模增量合理增长，金融体系较好地满足了实体经济的资金需求。上半年，社会融资规模增量为20.84万亿元。从结构看，一是金融机构对实体经济的信贷支持力度稳固。上半年，金融机构对实体经济新发放人民币贷款扣除偿还额后的净增加10.76万亿元。二是企业直接融资同比多增较多，占比明显上升。上半年，非金融企业债券净融资2.07万亿元，同比多9167亿元；非金融企业股票融资2933亿元，同比多1224亿元。两者合计占社 refs=['.pbc.gov.cn/rmyh/109339/index.html', 'gov.cn/publish/main/926/index.html', '.pbc.gov.cn/rmyh/109342/index.html'] probe=ext/html; charset=utf-8" /><title>2025年8月社会融资规模增量统计数据报告 </title>
 <meta  name="createDate" content="2025-12-10 10:16:38" />
-<meta name=renderer content=webkit>
-<link rel="shor
-[04:41:21] G2_cn True
+<meta n
+[04:48:05] G2_cn True
 VERDICT: PASS_ALL
-[04:41:21] VERDICT: PASS_ALL
+[04:48:05] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3633_bucket_cum.md
+→ Report written to aws/ops/reports/latest/3634_cn_landed.md
