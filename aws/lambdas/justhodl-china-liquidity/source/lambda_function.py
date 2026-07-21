@@ -208,6 +208,30 @@ def pboc_cn_tsf():
                              r'\.(?:html?|txt))["\']', page, _re.I)
             out["js_files"] = [w[:110] for w in _w[:4]]
             out["body_probe"] = page[:800]
+            # v2.6: GENERIC same-host content-ref harvester — the shell loads
+            # its article body from some referenced resource (iframe/script/
+            # ajax url). Collect every plausible ref, edge-fetch, phrase-check.
+            _refs = []
+            for _pat in (r'src="([^"]+)"', r"src='([^']+)'",
+                         r'href="([^"]+\.(?:html?|json|txt))"',
+                         r'url\s*[:=]\s*["\']([^"\']+)["\']'):
+                for _r0 in _re.findall(_pat, page, _re.I):
+                    if any(x in _r0.lower() for x in
+                           (".css", ".js", ".png", ".gif", ".jpg", "logo")):
+                        continue
+                    if _r0.startswith("/"):
+                        _r0 = "http://www.pbc.gov.cn" + _r0
+                    elif not _r0.startswith("http"):
+                        _r0 = item[0].rsplit("/", 1)[0] + "/" + _r0
+                    if "pbc.gov.cn" in _r0 and _r0 not in _refs:
+                        _refs.append(_r0)
+            out["content_refs"] = [r0[:110] for r0 in _refs[:8]]
+            for _r0 in _refs[:6]:
+                _sub, _v4 = _edge(_r0)
+                if "社会融资规模增量为" in _re.sub(r"\s+", "", _sub):
+                    page = _sub
+                    out["attachment"], out["via"] = _r0[:120], _v4
+                    break
             for _wf in _w[:3]:
                 if _wf.startswith("/"):
                     _wf = "http://www.pbc.gov.cn" + _wf
