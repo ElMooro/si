@@ -1,24 +1,24 @@
-executing-against: e95c78c662e812f30db11006a7b94e8df43a6bff
-ops 3664 — HKIA air canary + freight page + sidebar
-[19:13:02]   zip: 85579 bytes
+executing-against: a3ea1d4a37e20b1f65ad58da70d04367395c3a19
+ops 3665 — HKIA air canary + freight page + sidebar
+[20:23:58]   zip: 86079 bytes
 ── 1. Lambda ──
-[19:13:02]   Lambda exists — updating
-[19:13:06] ✅   ✓ updated justhodl-air-cargo
+[20:23:58]   Lambda exists — updating
+[20:24:01] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[19:13:06]   invoking justhodl-air-cargo…
-PASS  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] cadp=| | | | | | | | --> |Civil Aviation Department - Air Traffic Statistics| | | --> | | | || || || || | var revisionDate = '07/13/2026'; //date format: mm/dd/yyyy var revisionDateType = '0'; | | | | |Skip to main content| | | | || || sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures
-[19:13:16] G1_air True
-[19:13:16]   zip: 87681 bytes
+[20:24:01]   invoking justhodl-air-cargo…
+FAIL  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] cadl=[] cadsp=None sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']
+[20:24:13] G1_air False
+[20:24:14]   zip: 84487 bytes
 ── 1. Lambda ──
-[19:13:16]   Lambda exists — updating
-[19:13:22] ✅   ✓ updated justhodl-portwatch
+[20:24:14]   Lambda exists — updating
+[20:24:19] ✅   ✓ updated justhodl-freight-pulse
 ── 3. Smoke test ──
-[19:13:22]   invoking justhodl-portwatch…
-PASS  G2_refsearch — nations=16 ref_search=[{'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Bremerhaven', 'full': 'Bremerhaven, Germany', 'country': 'Germany'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]
-[19:13:54] G2_refsearch True
-PASS  G3_page_sidebar — {'page': True, 'sidebar': True}
-[19:13:54] G3_page_sidebar True
-VERDICT: PASS_ALL
-[19:13:54] VERDICT: PASS_ALL
+[20:24:19]   invoking justhodl-freight-pulse…
+PASS  G2_sparks — spark_n=13 level=1003578.0
+[20:24:24] G2_sparks True
+FAIL  G3_page_sidebar — {'fmt': False, 'spark': True, 'air_txt': True, 'lag': True}
+[20:32:29] G3_page_sidebar False
+VERDICT: GAPS: G1_air,G3_page_sidebar
+[20:32:29] VERDICT: GAPS: G1_air,G3_page_sidebar
 
-→ Report written to aws/ops/reports/latest/3664_air_cad.md
+→ Report written to aws/ops/reports/latest/3665_land_polish.md
