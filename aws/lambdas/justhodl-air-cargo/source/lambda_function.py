@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
@@ -115,11 +115,11 @@ def lambda_handler(event=None, context=None):
             cands = []
             for href, txt in links:
                 blob = (href + " " + txt).lower()
-                if ".pdf" in href.lower():
+                if (".pdf" in href.lower() or href.startswith("#")
+                        or "mailto:" in href or "javascript" in href):
                     continue
-                if (("statistic" in blob or "traffic" in blob or
-                     "monthly" in blob)
-                        and re.search(r"20(2[4-9])", blob)):
+                if ("statistic" in blob or "traffic" in blob
+                        or "transport" in blob):
                     u3 = href
                     if u3.startswith("/"):
                         u3 = "https://www.cad.gov.hk" + u3
@@ -155,8 +155,9 @@ def lambda_handler(event=None, context=None):
                                 f"{ym2.group(2)}-"
                                 f"{MONTHS.index(ym2.group(1).lower()) + 1:02d}")
                         break
-                if not parsed.get("tonnes") and st:
-                    out["cad_sub_probe"] = st[:600]
+                if not parsed.get("tonnes") and st and \
+                        "cad_sub_probe" not in out:
+                    out["cad_sub_probe"] = u3[-50:] + " :: " + st[:560]
         if not parsed.get("tonnes"):
             out["cad_probe"] = ct[:500]
     if not parsed.get("tonnes"):
