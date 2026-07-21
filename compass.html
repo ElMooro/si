@@ -344,17 +344,49 @@ table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
   var HOR=10, SORT='opportunity_score';
   function erk(){return 'er_'+HOR+'y_pct';} function exk(){return 'excess_vs_cash_'+HOR+'y_pct';} function tkk(){return 'tenk_'+HOR+'y';}
   function ccol(c){return c==='sectors'?AMB:c==='equities'?GRN:(c==='bonds'||c==='credit'||c==='cash')?NEU:c==='crypto'?RED:MUT;}
-  function scatter(){var ks=keys.filter(function(k){return isFinite(g(k,erk()))&&isFinite(g(k,'sigma_pct'));});
-    var W=760,Hh=300,pad=42; var xs=ks.map(function(k){return g(k,'sigma_pct');}),ys=ks.map(function(k){return g(k,erk());});
-    var xm=Math.max(25,Math.max.apply(null,xs)*1.06),ym0=Math.min(0,Math.min.apply(null,ys)-0.5),ym1=Math.max.apply(null,ys)+1;
-    function X(v){return pad+v/xm*(W-pad-12);} function Y(v){return Hh-pad+ (v-ym1)/(ym0-ym1)*(Hh-pad-10)* -1;}
-    function Y2(v){return 10+(ym1-v)/(ym1-ym0)*(Hh-pad-10);}
-    var dots=ks.map(function(k){var h=H[k];var rr=(h.fr_percentile!=null?h.fr_percentile:50);var rad=5+rr/14;var c=ccol(h.class);
-      return '<circle cx="'+X(h.sigma_pct).toFixed(1)+'" cy="'+Y2(h[erk()]).toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+c+'33" stroke="'+c+'"/><text x="'+X(h.sigma_pct).toFixed(1)+'" y="'+(Y2(h[erk()])-rad-3).toFixed(1)+'" text-anchor="middle" font-size="10" fill="'+NEU+'">'+k+'</text>';}).join('');
-    var cash=CP[HOR+'y'];var cl=cash!=null?'<line x1="'+pad+'" y1="'+Y2(cash)+'" x2="'+(W-10)+'" y2="'+Y2(cash)+'" stroke="'+MUT+'" stroke-dasharray="3 5"/><text x="'+(W-12)+'" y="'+(Y2(cash)-4)+'" fill="'+MUT+'" font-size="10" text-anchor="end">cash '+cash+'%</text>':'';
-    return '<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%"><line x1="'+pad+'" y1="'+(Hh-pad)+'" x2="'+(W-10)+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/><line x1="'+pad+'" y1="10" x2="'+pad+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/>'+cl+dots
-      +'<text x="'+(W/2)+'" y="'+(Hh-8)+'" fill="'+MUT+'" font-size="11" text-anchor="middle">expected volatility (σ, %)</text><text x="14" y="'+(Hh/2)+'" fill="'+MUT+'" font-size="11" transform="rotate(-90 14 '+(Hh/2)+')" text-anchor="middle">expected return '+HOR+'y (%)</text></svg>'
-      +'<div style="font-size:10px;color:'+MUT+'">bubble size = attractiveness vs own history (forward-returns join) · dashed = cash hurdle</div>';}
+  window._jhOff = window._jhOff || {};
+  window._jhSecX = window._jhSecX || false;
+  function scatter(){
+    var CLSL=['equities','sectors','bonds','credit','cash','metals','reits','commodities','crypto'];
+    var pts=[];var secAgg=[];
+    keys.forEach(function(k){var h=H[k];if(!isFinite(h[erk()])||!isFinite(h.sigma_pct))return;
+      if(window._jhOff[h.class])return;
+      if(h.class==='sectors'&&HOR>1&&!window._jhSecX){secAgg.push([h.sigma_pct,h[erk()]]);return;}
+      pts.push({k:k,s:h.sigma_pct,e:h[erk()],c:h.class,fp:(h.fr_percentile!=null?h.fr_percentile:50),sc:h.opportunity_score,rr:h.rr_10y,cf:h.confidence});});
+    if(secAgg.length){var ms=secAgg.reduce(function(a,b){return a+b[0];},0)/secAgg.length,me=secAgg.reduce(function(a,b){return a+b[1];},0)/secAgg.length;
+      pts.push({k:'SECTORS x'+secAgg.length,s:ms,e:me,c:'sectors',fp:50,sc:null,agg:true});}
+    if(!pts.length)return '<div style="color:'+MUT+'">all classes filtered out</div>';
+    var W=760,Hh=340,pad=46;
+    var xm=Math.max(25,Math.max.apply(null,pts.map(function(p){return p.s;}))*1.08);
+    var ym1=Math.max.apply(null,pts.map(function(p){return p.e;}))+1.2;
+    var ym0=Math.min(0,Math.min.apply(null,pts.map(function(p){return p.e;}))-0.6);
+    function X(v){return pad+v/xm*(W-pad-14);} function Y(v){return 14+(ym1-v)/(ym1-ym0)*(Hh-pad-14);}
+    var grid='';for(var gx=10;gx<xm;gx+=10){grid+='<line x1="'+X(gx)+'" y1="14" x2="'+X(gx)+'" y2="'+(Hh-pad)+'" stroke="#2c3240"/><text x="'+X(gx)+'" y="'+(Hh-pad+14)+'" fill="'+MUT+'" font-size="10" text-anchor="middle">'+gx+'</text>';}
+    for(var gy=Math.ceil(ym0);gy<ym1;gy+=(ym1-ym0>14?4:2)){grid+='<line x1="'+pad+'" y1="'+Y(gy)+'" x2="'+(W-14)+'" y2="'+Y(gy)+'" stroke="#2c3240"/><text x="'+(pad-6)+'" y="'+(Y(gy)+3)+'" fill="'+MUT+'" font-size="10" text-anchor="end">'+gy+'</text>';}
+    var cash=CP[HOR+'y'];
+    var ray='';if(cash!=null){var best=pts.filter(function(p){return p.rr!=null&&p.s>=4;}).sort(function(a,b){return b.rr-a.rr;})[0];
+      if(best){var y2v=cash+best.rr*xm;ray='<line x1="'+X(0)+'" y1="'+Y(cash)+'" x2="'+X(xm)+'" y2="'+Y(Math.min(y2v,ym1))+'" stroke="'+GRN+'55" stroke-dasharray="2 6"/><text x="'+(W-16)+'" y="'+(Y(Math.min(y2v,ym1))+12)+'" fill="'+GRN+'" font-size="9" text-anchor="end">best RR ray ('+best.k+')</text>';}
+      ray+='<line x1="'+pad+'" y1="'+Y(cash)+'" x2="'+(W-14)+'" y2="'+Y(cash)+'" stroke="'+MUT+'" stroke-dasharray="3 5"/><text x="'+(W-16)+'" y="'+(Y(cash)-4)+'" fill="'+MUT+'" font-size="10" text-anchor="end">cash '+cash+'%</text>';}
+    var lbl={};(function(){[T.highest_expected_10y,T.best_risk_reward_10y,T.most_attractive_vs_history,T.worst_opportunity].forEach(function(x){if(x)lbl[x]=1;});
+      pts.slice().sort(function(a,b){return (b.sc||-1)-(a.sc||-1);}).slice(0,3).forEach(function(p){lbl[p.k]=1;});
+      var bysig=pts.slice().sort(function(a,b){return a.s-b.s;});lbl[bysig[0].k]=1;lbl[bysig[bysig.length-1].k]=1;
+      pts.forEach(function(p){if(p.agg)lbl[p.k]=1;});})();
+    var li=0;
+    var dots=pts.map(function(p){var c=ccol(p.c);var rad=(p.agg?9:4.5+p.fp/16);
+      var tt=p.k+' | '+p.c+' | ER '+HOR+'y: '+p.e.toFixed(1)+'% | sigma '+p.s.toFixed(1)+'%'+(p.rr!=null?' | RR10y '+p.rr.toFixed(2):'')+(p.sc!=null?' | score '+p.sc:'')+' | vs history '+p.fp+'%'+(p.cf?' | conf '+p.cf:'');
+      var t='<circle cx="'+X(p.s).toFixed(1)+'" cy="'+Y(p.e).toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+c+'2e" stroke="'+c+'" stroke-width="1.4"><title>'+tt+'</title></circle>';
+      if(lbl[p.k]){li++;var dy=(li%2? -rad-5 : rad+11);t+='<text x="'+X(p.s).toFixed(1)+'" y="'+(Y(p.e)+dy).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="700" fill="'+NEU+'">'+p.k+'</text>';}
+      return t;}).join('');
+    var chips=CLSL.map(function(c){var off=window._jhOff[c];return '<span class="jh-sc-chip" onclick="window._jhCls(&quot;'+c+'&quot;)" style="cursor:pointer;padding:3px 9px;border-radius:999px;border:1px solid '+(off?'#3a4150':ccol(c))+';color:'+(off?MUT:ccol(c))+';font-size:11px;margin-right:6px">'+c+'</span>';}).join('')
+      +(HOR>1?'<span class="jh-sc-chip" onclick="window._jhSecToggle()" style="cursor:pointer;padding:3px 9px;border-radius:999px;border:1px dashed '+AMB+';color:'+AMB+';font-size:11px">'+(window._jhSecX?'collapse':'expand')+' sectors</span>':'');
+    return '<div style="margin:4px 0 8px">'+chips+'</div><svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%">'
+      +grid+'<line x1="'+pad+'" y1="'+(Hh-pad)+'" x2="'+(W-14)+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/><line x1="'+pad+'" y1="14" x2="'+pad+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/>'
+      +ray+dots
+      +'<text x="'+(W/2)+'" y="'+(Hh-10)+'" fill="'+MUT+'" font-size="11" text-anchor="middle">expected volatility sigma (%)</text>'
+      +'<text x="15" y="'+(Hh/2)+'" fill="'+MUT+'" font-size="11" transform="rotate(-90 15 '+(Hh/2)+')" text-anchor="middle">expected return '+HOR+'y (%)</text></svg>'
+      +'<div style="font-size:10px;color:'+MUT+'">hover any bubble for full stats | labels only on notable points | bubble size = attractiveness vs own history | sectors collapse to one marker at 5/10y (converge to SPY by design) | chips filter classes</div>';}
+  window._jhCls=function(c){window._jhOff[c]=!window._jhOff[c];render();};
+  window._jhSecToggle=function(){window._jhSecX=!window._jhSecX;render();};
   function table(){var ks=keys.slice().sort(function(a,b){return (g(b,SORT)||-9e9)-(g(a,SORT)||-9e9);});
     var rows=ks.map(function(k){var h=H[k];var ex=h[exk()];var exc=ex==null?MUT:ex>=2?GRN:ex>=0?NEU:RED;
       return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:5px 8px;font-weight:700">'+k+'</td><td style="color:'+MUT+'">'+h.class+'</td><td style="text-align:right">'+(g(k,erk())!=null?g(k,erk()).toFixed(1)+'%':'—')+'</td><td style="text-align:right;color:'+exc+'">'+(ex!=null?((ex>0?'+':'')+ex.toFixed(1)+'%'):'—')+'</td><td style="text-align:right">'+(h.rr_10y!=null?h.rr_10y.toFixed(2):'—')+'</td><td style="text-align:right">'+(h.fr_percentile!=null?h.fr_percentile+'%':'—')+'</td><td style="text-align:right;font-weight:800;color:'+AMB+'">'+(h.opportunity_score!=null?h.opportunity_score:'—')+'</td><td style="color:'+MUT+'">'+(h.confidence||'')+'</td></tr>';}).join('');
@@ -488,7 +520,7 @@ function render(data) {
       <div class="portfolio-weights">
         ${Object.entries(p.weights).map(([s, w]) => `<div class="weight-pill"><strong>${s}</strong> ${((w*100)%1?(w*100).toFixed(1):(w*100).toFixed(0))}%</div>`).join("")}
       </div>
-      <div class="portfolio-desc">${p.description}</div>
+      <div class="portfolio-desc">${p.description}</div>${p.updates?`<div class="portfolio-desc" style="opacity:.75">${p.updates}${p.mapped_coverage_pct!=null?` · mapped ${p.mapped_coverage_pct}%`:``}</div>`:``}${p.holdings_top10?`<div class="portfolio-desc" style="opacity:.75">${p.holdings_top10.join(" · ")}</div>`:``}
     </div>
   `).join("");
   const portfoliosHTML = `

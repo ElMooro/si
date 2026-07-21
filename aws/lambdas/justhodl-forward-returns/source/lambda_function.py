@@ -509,6 +509,102 @@ def compute_forward_returns():
             "description": "Geographic + asset-class diversification. Smoother ride, captures whoever is cheapest at any time.",
         },
     }
+    # ── FAMOUS PORTFOLIO STYLES + 13F INVESTOR CLONES (ops 3611, additive) ──
+    # Formula styles auto-update via our forward ERs; risk-parity re-weights by
+    # inverse vol; clones re-weight each 13F quarter from data/13f-positions.
+    def _avail(w):
+        w2 = {k: v for k, v in w.items() if k in HISTORICAL}
+        tot = sum(w2.values()) or 1.0
+        return {k: round(v / tot, 4) for k, v in w2.items()}
+    _styles = {
+        "sixty_forty": ("Classic 60/40", {"SPY": 0.60, "IEF": 0.40},
+                        "The default institutional benchmark. IEF proxies the agg-bond sleeve."),
+        "permanent": ("Permanent Portfolio (Harry Browne)", {"SPY": 0.25, "TLT": 0.25, "GLD": 0.25, "BIL": 0.25},
+                      "Equal prosperity/deflation/inflation/recession sleeves."),
+        "golden_butterfly": ("Golden Butterfly", {"SPY": 0.20, "IWM": 0.20, "TLT": 0.20, "BIL": 0.20, "GLD": 0.20},
+                             "Permanent Portfolio + a growth tilt via small caps."),
+        "swensen": ("Yale Endowment style (Swensen)", {"SPY": 0.30, "EFA": 0.15, "EEM": 0.05, "VNQ": 0.20, "TLT": 0.15, "TIP": 0.15},
+                    "Diversified real-asset heavy endowment model (VNQ sleeve drops if unavailable)."),
+        "ivy5": ("Ivy Portfolio 5 (Faber)", {"SPY": 0.20, "EFA": 0.20, "IEF": 0.20, "DBC": 0.20, "VNQ": 0.20},
+                 "Equal-weight endowment-lite across the five big asset classes."),
+        "bogle3": ("Bogleheads 3-Fund", {"SPY": 0.50, "EFA": 0.20, "IEF": 0.30},
+                   "Total-market simplicity: US + international + bonds (ETF proxies)."),
+        "dalio_growth": ("All-Weather + Growth tilt", {"SPY": 0.40, "TLT": 0.30, "IEF": 0.10, "GLD": 0.10, "DBC": 0.10},
+                         "Risk-balanced core with a heavier prosperity sleeve."),
+    }
+    for _k, (_lbl, _w, _d) in _styles.items():
+        _wn = _avail(_w)
+        if len(_wn) >= 3:
+            portfolios[_k] = {"label": _lbl, "weights": _wn,
+                              "forward_er_pct": port_er(_wn), "ten_k_10yr": port_ten_k(_wn),
+                              "description": _d, "updates": "auto — recomputed from live forward ERs daily"}
+    try:
+        _rp_syms = [x for x in ("SPY", "TLT", "GLD", "DBC") if x in HISTORICAL]
+        _iv = {x: 1.0 / max(1.0, HISTORICAL[x]["vol_10y"]) for x in _rp_syms}
+        _tv = sum(_iv.values())
+        _rw = {x: round(v / _tv, 4) for x, v in _iv.items()}
+        portfolios["risk_parity"] = {"label": "Risk Parity (naive inverse-vol)", "weights": _rw,
+                                     "forward_er_pct": port_er(_rw), "ten_k_10yr": port_ten_k(_rw),
+                                     "description": "Bridgewater-inspired: each sleeve sized by 1/volatility so risk, not dollars, is balanced.",
+                                     "updates": "auto — re-weights from volatility inputs"}
+    except Exception as _e:
+        print("[portfolios] risk_parity skip", str(_e)[:80])
+    try:
+        _pos = get_s3_json("data/13f-positions.json", {}) or {}
+        _byf = _pos.get("by_fund") or {}
+        _ETF = {"IVV": "SPY", "VOO": "SPY", "VTI": "SPY", "SPY": "SPY", "QQQ": "QQQ",
+                "IWM": "IWM", "VWO": "EEM", "IEMG": "EEM", "EEM": "EEM", "VEA": "EFA",
+                "IEFA": "EFA", "EFA": "EFA", "GLD": "GLD", "IAU": "GLD", "TLT": "TLT",
+                "IEF": "IEF", "LQD": "LQD", "HYG": "HYG", "BIL": "BIL", "TIP": "TIP"}
+        def _rows_of(f):
+            for kk in ("positions", "holdings", "top_positions", "rows"):
+                v = f.get(kk)
+                if isinstance(v, list) and v and isinstance(v[0], dict):
+                    return v
+            for v in f.values():
+                if isinstance(v, list) and v and isinstance(v[0], dict) and \
+                   any(x in v[0] for x in ("ticker", "symbol")):
+                    return v
+            return []
+        for _fund, _pretty in (("BRIDGEWATER", "Bridgewater (Dalio) — 13F clone"),
+                               ("BERKSHIRE", "Berkshire (Buffett) — 13F top book")):
+            fobj = _byf.get(_fund) or {}
+            rows = _rows_of(fobj)
+            if not rows:
+                continue
+            def _val(r):
+                for kk in ("weight_pct", "pct", "weight", "value_usd", "value", "mv"):
+                    if isinstance(r.get(kk), (int, float)):
+                        return float(r[kk])
+                return 0.0
+            top = sorted(rows, key=_val, reverse=True)[:10]
+            tot = sum(_val(r) for r in top) or 1.0
+            raw = [((r.get("ticker") or r.get("symbol") or "?").upper(), round(100 * _val(r) / tot, 1))
+                   for r in top]
+            mapped = {}
+            cov = 0.0
+            for tk, wpct in raw:
+                mt = _ETF.get(tk)
+                if mt and mt in HISTORICAL:
+                    mapped[mt] = mapped.get(mt, 0) + wpct / 100.0
+                    cov += wpct
+            entry = {"label": _pretty,
+                     "holdings_top10": [f"{tk} {wp}%" for tk, wp in raw],
+                     "as_of": fobj.get("as_of") or fobj.get("quarter") or _pos.get("quarter") or _pos.get("as_of"),
+                     "updates": "auto — refreshed each 13F quarter from the fund's actual filing",
+                     "description": "Live clone of the fund's largest reported positions."}
+            if cov >= 40 and mapped:
+                tt = sum(mapped.values())
+                wn = {k: round(v / tt, 4) for k, v in mapped.items()}
+                entry.update(weights=wn, forward_er_pct=port_er(wn), ten_k_10yr=port_ten_k(wn),
+                             mapped_coverage_pct=round(cov, 1))
+            else:
+                entry.update(weights={}, forward_er_pct=None, ten_k_10yr=None,
+                             mapped_coverage_pct=round(cov, 1),
+                             description="Single-stock book — ER not mappable to asset-class CMAs; see the 13F desk for full holdings.")
+            portfolios["clone_" + _fund.lower()] = entry
+    except Exception as _e:
+        print("[portfolios] clones skip", str(_e)[:100])
 
     # Headlines
     best_3 = ranked_by_opportunity[:3]
