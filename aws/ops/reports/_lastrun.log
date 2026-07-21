@@ -1,8 +1,8 @@
-executing-against: c7a006428b35fce2dd6ea515ec08d8e73293e18e
-ops 3639 — reasoned silences + residue surface
-PASS  G1_refined — stale 50 -> 41 silenced=9 residue=['data/factor-data-cache.json', 'data/brain-history.json', 'data/page-ai-manifest.json', 'data/_freshness-manifest.json', 'data/engine-registry.json', 'data/fleet-audit.json', 'data/warroom-replay.json', 'data/warroom-weights.json', 'data/tv-watchlists.json', 'data/symbol-map.json', 'data/fomc-calibration.json', 'data/ka-config.json', 'data/khalid-config.json', 'data/divergence-interpreted-state.json']
-[06:05:06] G1_refined True
+executing-against: 00bbf4b23f3306b0eafcceb4e4150d27064592ec
+ops 3640 — rules v3: weekly-cadence SLAs + state/retired silences
+PASS  G1_refined — stale 41 -> 13 silenced=28 residue=['data/options-analytics-iv-history.json', 'data/options-analytics.json', 'data/tail-risk-history.json', 'data/tail-risk.json', 'data/squeeze-fuel.json', 'data/treasury-noise-history.json', 'data/treasury-noise.json', 'data/forward-orders.json', 'data/supply-chain-graph.json', 'data/cftc-deep-view.json', 'data/tv-watchlist-tracker.json', 'data/thesis-engine.json', 'data/symbol-dictionary.json']
+[06:10:40] G1_refined True
 VERDICT: PASS_ALL
-[06:05:06] VERDICT: PASS_ALL
+[06:10:40] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3639_stale_refine.md
+→ Report written to aws/ops/reports/latest/3640_rules_v3.md
