@@ -1,0 +1,187 @@
+{
+  "gates": {
+    "G1_tw": {
+      "ok": true,
+      "detail": "zip={'out[\"v17\"]': True, 'stage6_brute': True, 'GetPointData': True} err=None keys=['error', 'label', 'latest_usd_bn', 'period', 'raw_head', 'source', 'stage2', 'stage3_candidates', 'stage3_tried', 'stage4_tried', 'stage5_endpoints', 'stage5_tried', 'stage6_sitesns', 'stage6_tried', 'v17', 'via_stage1', 'via_stage2', 'yoy_pct'] VALUE=none brute=None sns=['464'] s6_hit=None s6_sample=[{'sn': '464', 'hit': False, 'titles': ['Economic Growth Rate(yoy)', 'CPI Change Rate', 'Unemployment Rate', 'Monthly Regular Earnings of All Em', 'Industrial Production Index Growth', 'Value of Export Orders']}] blob=None"
+    },
+    "G2_cn": {
+      "ok": true,
+      "detail": "err=None VALUE=none title=2025\u5e748\u6708\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u6570\u636e\u62a5\u544a att=None js_files=[] via=edge note=item fetched, flow pattern not found (head recorded)"
+    }
+  },
+  "tw": {
+    "source": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+    "label": "Taiwan export orders (MOEA via DGBAS point page)",
+    "latest_usd_bn": null,
+    "yoy_pct": null,
+    "period": "May. 2026",
+    "error": "no orders print through stage-3; see stage3_tried/candidates",
+    "via_stage1": "edge",
+    "stage2": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713&Create=1&_guid=b6636f4d-ad5e-444d-9190-83c553b715c9",
+    "via_stage2": "edge",
+    "raw_head": "       Import on customs basis Growth Rate       Export on customs basis Growth Rate       Total Population       Foreign Exchange Reserves       Trend-adjusted Leading Index       Number of Visitor Arrivals       Key Ec",
+    "stage3_candidates": [
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.1&n=4200&sms=11713",
+        "label": "Economic Growth Rate"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.2&n=4201&sms=11713",
+        "label": "CPI Change Rate"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.3&n=4202&sms=11713",
+        "label": "Unemployment Rate"
+      }
+    ],
+    "stage3_tried": [
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders",
+        "via": "edge",
+        "bytes": 400000,
+        "hit": false
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders",
+        "via": "edge",
+        "bytes": 400000,
+        "hit": false
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+        "label": "Value of Export Orders",
+        "via": "edge",
+        "bytes": 400000,
+        "hit": false
+      }
+    ],
+    "stage4_tried": [
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713&Create=1&_guid=b6636f4d-ad5e-444d-9190-83c553b715c",
+        "via": "edge",
+        "bytes": 112113,
+        "hit": false
+      },
+      {
+        "u": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713&Create=1&_guid=b6636f4d-ad5e-444d-9190-83c553b715c",
+        "via": "edge",
+        "bytes": 112053,
+        "hit": false
+      }
+    ],
+    "stage5_endpoints": [
+      {
+        "u": "https://eng.stat.gov.tw/Common/GetPointData.ashx?SitesSN=464",
+        "src_frame": "uid=b6636f4d-ad5e-444d-9190-83c553b715c9"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/PointHomeItem.ashx?_guid=",
+        "src_frame": "uid=b6636f4d-ad5e-444d-9190-83c553b715c9"
+      }
+    ],
+    "stage5_tried": [
+      {
+        "u": "https://eng.stat.gov.tw/Common/GetPointData.ashx?SitesSN=464",
+        "via": "edge",
+        "bytes": 2879,
+        "json": true,
+        "hit": false,
+        "head": "[{\"Content\":\"2026 forecast\",\"Date\":\"9.64(%)\",\"Img_src\":\"images/icon001.png\",\"Title\":\"Economic Growth"
+      },
+      {
+        "u": "https://eng.stat.gov.tw/PointHomeItem.ashx?_guid=",
+        "via": "edge",
+        "bytes": 112053,
+        "json": false,
+        "hit": false,
+        "head": "\ufeff\r\n\r\n<!DOCTYPE html>\r\n\r\n<html id=\"FormHtml\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\r\n<head i"
+      }
+    ],
+    "stage6_sitesns": [
+      "464"
+    ],
+    "stage6_tried": [
+      {
+        "sn": "464",
+        "via": "edge",
+        "bytes": 2879,
+        "hit": false,
+        "titles": [
+          "Economic Growth Rate(yoy)",
+          "CPI Change Rate",
+          "Unemployment Rate",
+          "Monthly Regular Earnings of All Em",
+          "Industrial Production Index Growth",
+          "Value of Export Orders"
+        ],
+        "item_blob": "May. 2026 89,475(million US dollars) Value of Export Orders "
+      }
+    ],
+    "v17": true
+  },
+  "cn": {
+    "label": "PBoC CN TSF monthly flow (\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf)",
+    "period": null,
+    "flow_trn_cny": null,
+    "yoy_delta_trn": 4.66,
+    "title": "2025\u5e748\u6708\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u6570\u636e\u62a5\u544a",
+    "url": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/523c260b344c4f1390664430295064a9/index.html",
+    "via": "edge",
+    "candidates": [
+      {
+        "list": "isi/116219/116225/index.html",
+        "title": "2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026051115390846961/index.html",
+        "via": "edge"
+      },
+      {
+        "list": "isi/116219/116225/index.html",
+        "title": "2025\u5e74\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026020709570828806/index.html",
+        "via": "edge"
+      },
+      {
+        "list": "isi/116219/116225/index.html",
+        "title": "2025\u5e74\u524d\u4e09\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/5897233/index.html",
+        "via": "edge"
+      },
+      {
+        "list": "isi/116219/116225/index.html",
+        "title": "2025\u5e748\u6708\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u6570\u636e\u62a5\u544a",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/523c260b344c4f1390664430295064a9/index.html",
+        "via": "edge"
+      },
+      {
+        "list": "isi/116219/116225/index.html",
+        "title": "2025\u5e74\u4e0a\u534a\u5e74\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/5814151/index.html",
+        "via": "edge"
+      },
+      {
+        "list": "hatongjisi/116219/index.html",
+        "title": "2026\u5e74\u4e00\u5b63\u5ea6\u5730\u533a\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u8868",
+        "u": "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026051115390846961/index.html",
+        "via": "edge"
+      }
+    ],
+    "error": "item fetched, flow pattern not found (head recorded)",
+    "js_files": [],
+    "body_head": "2025\u5e748\u6708\u793e\u4f1a\u878d\u8d44\u89c4\u6a21\u589e\u91cf\u7edf\u8ba1\u6570\u636e\u62a5\u544avar_speedMark=newDate();/*\u5bfc\u822acss*/body{margin:0;padding:0;}a{text-decoration:none;color:#333333;font-size:12px;}.header{width:950px;height:auto;clear:both;margin:0auto;font-size:12"
+  },
+  "verdict": "PASS_ALL"
+}
