@@ -223,6 +223,12 @@ def diff(old, new):
                      ", ".join(k.replace("data/", "") for k in new_stale[:8]) +
                      (f" (+{len(new_stale)-8} more)" if len(new_stale) > 8 else ""))
 
+    # ops 3621: new KR 1-20 flash print
+    if new.get("kr_flash_period") and new["kr_flash_period"] != old.get("kr_flash_period"):
+        _y = new.get("kr_flash_yoy")
+        msgs.append(f"🇰🇷 Korea 1-20 exports flash: {'+' if _y and _y > 0 else ''}{_y}% YoY "
+                     f"({new['kr_flash_period']}) — justhodl.ai/macro-leads.html")
+
     # ops 3394: sovereign flips
     if (new.get("sov_europe_regime") and old.get("sov_europe_regime")
             and new["sov_europe_regime"] != old["sov_europe_regime"]):
@@ -371,6 +377,16 @@ def compose_report(buffer, today):
 def lambda_handler(event=None, context=None):
     DIAG.clear()
     new = snapshot()
+    # ops 3621: KR 1-20 flash wire (news-tape latest → daily report on new period)
+    try:
+        _al = json.loads(S3.get_object(Bucket=BUCKET,
+                                       Key="data/asia-leads.json")["Body"].read())
+        _kt = (_al.get("korea_flash_tape") or {}).get("latest") or {}
+        if isinstance(_kt.get("yoy_pct"), (int, float)) and _kt.get("period"):
+            new["kr_flash_period"] = _kt["period"]
+            new["kr_flash_yoy"] = _kt["yoy_pct"]
+    except Exception as _e:
+        DIAG.append("kr_flash wire: " + str(_e)[:60])
     try:
         old = json.loads(S3.get_object(Bucket=BUCKET, Key=STATE_KEY)["Body"].read())
         first = False

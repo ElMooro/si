@@ -118,6 +118,34 @@ def _regime_snapshot():
             out["liquidity"] = str(tone)[:16]
     except Exception:
         pass
+    try:
+        sm = _rj("data/spx-ma.json")
+        ix = sm.get("index") or {}
+        br = sm.get("breadth") or {}
+        if ix.get("regime"):
+            out["spx_regime"] = str(ix["regime"])[:12]
+            if ix.get("stack") is not None:
+                out["spx_stack"] = str(ix.get("stack"))[:14]
+        b2 = br.get("pct_above_200d") or br.get("200d")
+        if isinstance(b2, (int, float)):
+            out["breadth200"] = round(float(b2), 1)
+        nm = (sm.get("divergence") or {}).get("narrow_market", sm.get("narrow_market"))
+        if nm is not None:
+            out["narrow_market"] = bool(nm)
+        fv = _rj("data/fifx-vol.json")
+        mg = fv.get("migration") or {}
+        if mg.get("state"):
+            out["vol_state"] = str(mg["state"])[:18]
+        if mg.get("asia_state"):
+            out["asia_vol"] = str(mg["asia_state"])[:14]
+        gb = (fv.get("global") or {}).get("breadth_pct")
+        if isinstance(gb, (int, float)):
+            out["gvol_breadth"] = round(float(gb), 1)
+        kt = ((_rj("data/asia-leads.json").get("korea_flash_tape") or {}).get("latest") or {})
+        if isinstance(kt.get("yoy_pct"), (int, float)):
+            out["kr_flash_yoy"] = kt["yoy_pct"]
+    except Exception:
+        pass
     _REGIME["v"] = out
     _REGIME["t"] = time.time()
     return out

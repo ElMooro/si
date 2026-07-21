@@ -1470,6 +1470,40 @@ def lambda_handler(event, context):
         "industry_context": {"meta": _ind_meta,
                              "factor_appetite": _fa_score},
     }
+    # ── ops 3621: industry-boom league join + KR-flash semis tailwind ──
+    try:
+        _ib = read_json("data/industry-boom.json") or {}
+        _lg = _ib.get("league") or _ib.get("rows") or []
+        _bm = {}
+        for _r in _lg:
+            _nm = (_r.get("industry") or "").strip().lower()
+            if _nm:
+                _bm[_nm] = {"score": _r.get("score"), "rank": _r.get("rank")}
+        _kr = None
+        try:
+            _kt = ((read_json("data/asia-leads.json") or {}).get("korea_flash_tape")
+                   or {}).get("latest") or {}
+            if isinstance(_kt.get("yoy_pct"), (int, float)):
+                _kr = _kt["yoy_pct"]
+        except Exception:
+            pass
+        _SEMI = {"semiconductors", "semiconductor equipment & materials",
+                 "computer hardware", "electronic components",
+                 "consumer electronics", "communication equipment"}
+        _nj = _nt = 0
+        for _s in setups:
+            _ind = (_s.get("industry") or "").strip().lower()
+            if _ind and _ind in _bm:
+                _s["industry_boom"] = _bm[_ind]
+                _nj += 1
+            if _kr is not None and _kr >= 15 and _ind in _SEMI:
+                _s["asia_flash_tailwind"] = _kr
+                _nt += 1
+        output["industry_context"]["industry_boom"] = {
+            "joined": _nj, "tailwind_flags": _nt, "kr_flash_yoy": _kr,
+            "note": "league score/rank per setup industry; tailwind = KR 1-20 flash ≥15% on semi-linked industries"}
+    except Exception as _e:
+        output["industry_context"]["industry_boom"] = {"error": str(_e)[:90]}
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
                   Body=json.dumps(output, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=600")
