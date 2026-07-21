@@ -1,31 +1,31 @@
-executing-against: 2499abbad5b6bfcc52187de46dd926d578b23797
-ops 3625 — CN TSF via edge + TW stage-4
-[03:47:13]   zip: 88580 bytes
+executing-against: 20cdb4b44b6cb670df2f57f62390e20456609951
+ops 3627 — CN national + TW stage-5 (frame-body scan)
+[03:53:01]   zip: 88580 bytes
 ── 1. Lambda ──
-[03:47:13]   Lambda exists — updating
-[03:47:16] ✅   ✓ updated justhodl-china-liquidity
+[03:53:01]   Lambda exists — updating
+[03:53:06] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[03:47:16]   invoking justhodl-china-liquidity…
-[03:47:51] ✅   ✓ smoke test passed
-[03:47:51]     ok                       True
-[03:47:51]     regime                   NEUTRAL
-[03:47:51]     credit_impulse_pp        -5.52
-[03:47:51]     m2_yoy                   8.21
-FAIL  G1_cn_tsf — name 'tw' is not defined
-[03:47:59] G1_cn_tsf False
-[03:47:59]   zip: 90868 bytes
+[03:53:06]   invoking justhodl-china-liquidity…
+[03:53:14] ✅   ✓ smoke test passed
+[03:53:14]     ok                       True
+[03:53:14]     regime                   NEUTRAL
+[03:53:14]     credit_impulse_pp        -5.52
+[03:53:14]     m2_yoy                   8.21
+PASS  G1_cn — err=None VALUE=none title=2025年8月社会融资规模增量统计数据报告 monthly_pref=True att=None via=edge cands=['2026年一季度地区社会融资规模增量统计表', '2025年地区社会融资规模增量统计表', '2025年前三季度地区社会融资规模增量统计表', '2025年8月社会融资规模增量统计数据报告'] note=item fetched, flow pattern not found (head recorded) head=2025年8月社会融资规模增量统计数据报告var_speedMark=newDate();/*导航css*/body{margin:0;pa
+[03:53:20] G1_cn True
+[03:53:20]   zip: 90897 bytes
 ── 1. Lambda ──
-[03:47:59]   Lambda exists — updating
-[03:48:05] ✅   ✓ updated justhodl-asia-leads
+[03:53:20]   Lambda exists — updating
+[03:53:23] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[03:48:05]   invoking justhodl-asia-leads…
-[03:48:21] ✅   ✓ smoke test passed
-[03:48:21]     ok                       True
-[03:48:21]     kr_yoy                   47.96
-[03:48:21]     tw_yoy                   48.33
-FAIL  G2_tw_stage4 — err=None VALUE=none s4_hit=None s4=[{'via': 'edge', 'bytes': 112053, 'hit': False}, {'via': 'edge', 'bytes': 112053, 'hit': False}] block=None err_note=no orders print through stage-3; see stage3_tried/candidates
-[03:48:35] G2_tw_stage4 None
-VERDICT: GAPS: G1_cn_tsf,G2_tw_stage4
-[03:48:35] VERDICT: GAPS: G1_cn_tsf,G2_tw_stage4
+[03:53:23]   invoking justhodl-asia-leads…
+[03:53:46] ✅   ✓ smoke test passed
+[03:53:46]     ok                       True
+[03:53:46]     kr_yoy                   47.96
+[03:53:46]     tw_yoy                   48.33
+PASS  G2_tw5 — err=None VALUE=none s5_hit=None eps=['.gov.tw/Common/GetPointData.ashx?SitesSN=464', '://eng.stat.gov.tw/PointHomeItem.ashx?_guid='] s5=[{'via': 'edge', 'json': True, 'hit': False, 'head': '[{"Content":"2026 forecast","Date":"9.64(%)","Img_src":"images/icon001.png","Title":"Economic Growth'}, {'via': 'edge', 'json': False, 'hit': False, 'head': '\ufeff\r\n\r\n<!DOCTYPE html>\r\n\r\n<html id="FormHtml" xmlns="http://www.w3.org/1999/xhtml" lang="en">\r\n<head i'}] block=None
+[03:54:01] G2_tw5 True
+VERDICT: PASS_ALL
+[03:54:01] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3626_cn_nat_tw5.md
+→ Report written to aws/ops/reports/latest/3627_cn_tw_regate.md
