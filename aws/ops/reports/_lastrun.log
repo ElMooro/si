@@ -1,31 +1,31 @@
-executing-against: 20cdb4b44b6cb670df2f57f62390e20456609951
-ops 3627 — CN national + TW stage-5 (frame-body scan)
-[03:53:01]   zip: 88580 bytes
+executing-against: 0825a0ec1f55ed61a741902a5627f5aac353bb2b
+ops 3628 — CN national + TW stage-5 (frame-body scan)
+[03:58:54]   zip: 88769 bytes
 ── 1. Lambda ──
-[03:53:01]   Lambda exists — updating
-[03:53:06] ✅   ✓ updated justhodl-china-liquidity
+[03:58:54]   Lambda exists — updating
+[03:58:59] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[03:53:06]   invoking justhodl-china-liquidity…
-[03:53:14] ✅   ✓ smoke test passed
-[03:53:14]     ok                       True
-[03:53:14]     regime                   NEUTRAL
-[03:53:14]     credit_impulse_pp        -5.52
-[03:53:14]     m2_yoy                   8.21
+[03:58:59]   invoking justhodl-china-liquidity…
+[03:59:24] ✅   ✓ smoke test passed
+[03:59:24]     ok                       True
+[03:59:24]     regime                   NEUTRAL
+[03:59:24]     credit_impulse_pp        -5.52
+[03:59:24]     m2_yoy                   8.21
 PASS  G1_cn — err=None VALUE=none title=2025年8月社会融资规模增量统计数据报告 monthly_pref=True att=None via=edge cands=['2026年一季度地区社会融资规模增量统计表', '2025年地区社会融资规模增量统计表', '2025年前三季度地区社会融资规模增量统计表', '2025年8月社会融资规模增量统计数据报告'] note=item fetched, flow pattern not found (head recorded) head=2025年8月社会融资规模增量统计数据报告var_speedMark=newDate();/*导航css*/body{margin:0;pa
-[03:53:20] G1_cn True
-[03:53:20]   zip: 90897 bytes
+[03:59:35] G1_cn True
+[03:59:36]   zip: 91545 bytes
 ── 1. Lambda ──
-[03:53:20]   Lambda exists — updating
-[03:53:23] ✅   ✓ updated justhodl-asia-leads
+[03:59:36]   Lambda exists — updating
+[03:59:41] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[03:53:23]   invoking justhodl-asia-leads…
-[03:53:46] ✅   ✓ smoke test passed
-[03:53:46]     ok                       True
-[03:53:46]     kr_yoy                   47.96
-[03:53:46]     tw_yoy                   48.33
-PASS  G2_tw5 — err=None VALUE=none s5_hit=None eps=['.gov.tw/Common/GetPointData.ashx?SitesSN=464', '://eng.stat.gov.tw/PointHomeItem.ashx?_guid='] s5=[{'via': 'edge', 'json': True, 'hit': False, 'head': '[{"Content":"2026 forecast","Date":"9.64(%)","Img_src":"images/icon001.png","Title":"Economic Growth'}, {'via': 'edge', 'json': False, 'hit': False, 'head': '\ufeff\r\n\r\n<!DOCTYPE html>\r\n\r\n<html id="FormHtml" xmlns="http://www.w3.org/1999/xhtml" lang="en">\r\n<head i'}] block=None
-[03:54:01] G2_tw5 True
+[03:59:41]   invoking justhodl-asia-leads…
+[04:00:07] ✅   ✓ smoke test passed
+[04:00:07]     ok                       True
+[04:00:07]     kr_yoy                   47.96
+[04:00:07]     tw_yoy                   48.33
+PASS  G2_tw5 — err=None VALUE=none s6_hit=None s5_hit=None eps=['.gov.tw/Common/GetPointData.ashx?SitesSN=464', '://eng.stat.gov.tw/PointHomeItem.ashx?_guid='] s5=[{'sn': None, 'via': 'edge', 'hit': False, 'titles': None, 'item_blob': None, 'head': '[{"Content":"2026 forecast","Date":"9.64(%)","Img_src":"images/icon001.png","Title":"Economic Growth'}, {'sn': None, 'via': 'edge', 'hit': False, 'titles': None, 'item_blob': None, 'head': '\ufeff\r\n\r\n<!DOCTYPE html>\r\n\r\n<html id="FormHtml" xmlns="http://www.w3.org/1999/xhtml" lang="en">\r\n<head i'}] block=None
+[04:00:38] G2_tw5 True
 VERDICT: PASS_ALL
-[03:54:01] VERDICT: PASS_ALL
+[04:00:38] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3627_cn_tw_regate.md
+→ Report written to aws/ops/reports/latest/3628_stage6_cnv4.md
