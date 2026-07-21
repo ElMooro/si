@@ -8,9 +8,12 @@ forensics on miss so the next cycle lands with certainty. Self-building
 levels ledger air/hkia-cargo-levels.json -> yoy once 13 months. Feeds
 data/air-cargo.json. stdlib-only; never fabricates.
 """
+import io
 import json
 import re
+import urllib.parse
 import urllib.request
+import zipfile
 from datetime import datetime, timezone
 
 import boto3
@@ -134,6 +137,77 @@ def lambda_handler(event=None, context=None):
             cands.sort(key=_lk, reverse=True)
             out["cad_links"] = [c[-60:] for c in cands[:5]]
             for u3 in cands[:3]:
+                if u3.lower().endswith(".xlsx"):
+                    try:
+                        uq = urllib.parse.quote(u3, safe=":/")
+                        rb = urllib.request.urlopen(
+                            urllib.request.Request(uq, headers=UA),
+                            timeout=30).read()
+                        zf = zipfile.ZipFile(io.BytesIO(rb))
+                        sh = zf.read("xl/sharedStrings.xml").decode(
+                            "utf-8", "replace")
+                        strings = ["".join(re.findall(
+                            r"<t[^>]*>([^<]*)</t>", si))
+                            for si in re.split(r"<si>", sh)[1:]]
+                        best = None
+                        for nm2 in sorted(zf.namelist()):
+                            if not nm2.startswith("xl/worksheets/sheet"):
+                                continue
+                            xml = zf.read(nm2).decode("utf-8", "replace")
+                            for rowx in re.findall(
+                                    r"<row[^>]*>(.*?)</row>", xml, re.S):
+                                cells = []
+                                for cm in re.finditer(
+                                        r"<c([^>]*)>(?:.*?<v>([^<]*)"
+                                        r"</v>)?.*?(?:</c>|/>)",
+                                        rowx, re.S):
+                                    attrs, val = cm.group(1), cm.group(2)
+                                    if val is None:
+                                        continue
+                                    if 't="s"' in attrs:
+                                        try:
+                                            cells.append(
+                                                ("s", strings[int(val)]))
+                                        except Exception:
+                                            pass
+                                    else:
+                                        try:
+                                            cells.append(("n", float(val)))
+                                        except Exception:
+                                            pass
+                                labels = " ".join(
+                                    c2[1].lower() for c2 in cells
+                                    if c2[0] == "s")
+                                if "freight" in labels or "cargo" in labels:
+                                    nums = [c2[1] for c2 in cells
+                                            if c2[0] == "n" and c2[1] > 10]
+                                    if len(nums) >= 3:
+                                        best = (labels[:90], nums)
+                                        break
+                            if best:
+                                break
+                        if best:
+                            series = best[1]
+                            v3 = series[-1]
+                            mult = 1000 if v3 < 5000 else 1
+                            parsed["tonnes"] = v3 * mult
+                            via = "cad_xlsx"
+                            if len(series) >= 13 and series[-13]:
+                                parsed["yoy_pct"] = round(
+                                    100 * (series[-1] / series[-13] - 1), 1)
+                            out["xlsx_row"] = best[0]
+                            out["xlsx_tail"] = [round(n2, 1)
+                                                 for n2 in series[-6:]]
+                            out["xlsx_n"] = len(series)
+                        else:
+                            out["xlsx_probe"] = (
+                                "no freight/cargo row; strings: "
+                                + " | ".join(strings[:20])[:380])
+                    except Exception as _xe:
+                        out["errors"].append("xlsx: " + str(_xe)[:100])
+                    if parsed.get("tonnes"):
+                        break
+                    continue
                 sub, serr = _get(u3)
                 if serr or not sub:
                     continue
