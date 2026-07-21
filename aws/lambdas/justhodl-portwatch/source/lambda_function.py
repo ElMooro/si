@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.1"
+VERSION = "1.3.2"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -255,6 +255,14 @@ def lambda_handler(event=None, context=None):
                 break
             _off += 1000
         out["ports_ref_total"] = len(_pref_rows)
+        out["ref_search"] = [
+            {"name": (r2.get("portname") or "")[:36],
+             "full": (r2.get("fullname") or "")[:36],
+             "country": r2.get("country")}
+            for r2 in _pref_rows
+            if any(t in ((str(r2.get("portname") or "") + " " +
+                          str(r2.get("fullname") or "")).lower())
+                   for t in ("hambur", "phong", "bremer"))][:8]
         for a2 in _pref_rows:
             nm = (str(a2.get("portname") or "") + " " +
                   str(a2.get("fullname") or "")).lower()

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freight &amp; Trade Pulse · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:860px){.grid3,.grid2{grid-template-columns:1fr}}
+.srow{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:12.5px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🚛 Freight &amp; Trade Pulse</h1>
+<div class="sub">The physical-economy canary chain: US inland freight (rail · truck · Cass · DOT TSI) + high-value air cargo + sea gateways. Anticipate slowdown or acceleration before it prints in GDP.</div>
+<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
+<div class="sec">US Freight Series — level · YoY · 6-month annualized · 5-yr z</div>
+<div class="card" id="series"></div>
+<div class="sec">✈️ High-Value Air Cargo — HKIA (world #1 cargo airport)</div>
+<div class="grid2" id="air"><div class="card mono">LOADING…</div></div>
+<div class="sec">🚢 Sea Legs — cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Origin volume: <a href="/portwatch.html">Export-Nations Pulse &amp; chokepoints (PortWatch)</a> · Geopolitical overlay: <a href="/geo-risk.html">Geo-Risk Monitor</a> · Credit stock: <a href="/bis-crossborder.html">BIS Cross-Border Claims</a>. Value-vs-volume doctrine: chips fly, bulk sails — read air and sea together.</div>
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){try{
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
+function vg(v){return v==null?MUT:v>0?GRN:v<0?RED:NEU;}
+var fp={},ac={};
+try{var r1=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/freight-pulse.json?t='+Date.now());if(r1.ok)fp=await r1.json();}catch(e){}
+try{var r2=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/air-cargo.json?t='+Date.now());if(r2.ok)ac=await r2.json();}catch(e){}
+var vc=fp.verdict==='ACCELERATING'?GRN:fp.verdict==='DECELERATING'?RED:NEU;
+document.getElementById('hero').innerHTML=
+ '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">US FREIGHT COMPOSITE</div><div class="mono" style="font-size:32px;font-weight:800;color:'+vc+'">'+(fp.composite>0?'+':'')+(fp.composite==null?'—':fp.composite)+'</div><div class="mono" style="font-size:13px;font-weight:700;color:'+vc+'">'+(fp.verdict||'')+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+(fp.n_live||0)+' series live · scale ±100</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">⚠ INFLECTIONS (slope vs YoY diverge)</div><div style="margin-top:8px">'+(((fp.inflections||[]).map(function(k){var s=(fp.series||{})[k]||{};return '<div class="mono" style="font-size:12px;color:'+AMB+'">▲ '+(s.name||k)+' <span style="color:'+MUT+'">yoy '+s.yoy_pct+'% vs 6m-ann '+s.m6_ann_pct+'%</span></div>';}).join(''))||'<span class="mono" style="font-size:11px;color:'+MUT+'">none — trend and momentum aligned</span>')+'</div><div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:8px">an inflection = turning point forming before the YoY flips</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">CHAIN READ</div><div class="mono" style="font-size:12.5px;margin-top:6px">Foreign gateways → chokepoints → US inland freight → GDP. Sea slowing in CN/UAE/BR/MY while US freight '+((fp.verdict||'').toLowerCase()||'—')+' = demand pulled forward or re-routing — watch the spread.</div></div>';
+var order=['tsi_freight','cass_shipments','cass_expend','truck_tonnage','rail_carloads','rail_intermodal'];
+document.getElementById('series').innerHTML=order.map(function(k){var s=(fp.series||{})[k];if(!s||!s.ok)return '';
+ return '<div class="srow mono"><div style="width:300px;font-weight:700">'+s.name+'</div>'
+ +'<div style="width:90px;color:'+MUT+'">'+s.date+'</div>'
+ +'<div style="width:80px;text-align:right">'+s.level+'</div>'
+ +'<div style="width:90px;text-align:right;font-weight:800;color:'+vg(s.yoy_pct)+'">'+(s.yoy_pct>0?'+':'')+s.yoy_pct+'% yoy</div>'
+ +'<div style="width:110px;text-align:right;color:'+vg(s.m6_ann_pct)+'">'+(s.m6_ann_pct>0?'+':'')+s.m6_ann_pct+'% 6m-ann</div>'
+ +'<div style="width:70px;text-align:right;color:'+MUT+'">z '+s.z_5y+'</div>'
+ +(s.inflection?'<div style="color:'+AMB+'">▲ inflection</div>':'')+'</div>';}).join('');
+var airEl=document.getElementById('air');
+if(ac.ok){var yc=vg(ac.yoy_pct);
+ airEl.innerHTML='<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">HKIA CARGO — '+(ac.month||'latest')+'</div><div class="mono" style="font-size:30px;font-weight:800;color:'+AMB+'">'+(ac.tonnes_k||'—')+'k tonnes</div><div class="mono" style="font-size:13px;font-weight:700;color:'+yc+'">'+(ac.yoy_pct==null?'yoy building (ledger '+(ac.levels_cached||0)+'/13)':((ac.yoy_pct>0?'+':'')+ac.yoy_pct+'% yoy'))+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+(ac.read||'')+'</div></div>'
+ +'<div class="card mono" style="font-size:12px;color:'+MUT+'">Why air matters: high-value goods (semis, pharma, electronics) fly. Korea sea calls flat while chip exports +52% — the value flows show up HERE first. Source: '+(ac.via||'')+' · '+(ac.airport||'')+'</div>';
+}else{airEl.innerHTML='<div class="card mono" style="font-size:12px;color:'+MUT+'">HKIA feed building — engine probing free monthly stats ('+((ac.errors||[]).join('; ')||'first run pending')+'). No fake data shown.</div>';}
+document.getElementById('foot').textContent='US series: FRED (DOT TSI, Cass, ATA, AAR). Air: Airport Authority Hong Kong public monthly figures. Method: '+(fp.method||'')+' Generated '+(fp.generated_at||'');
+}catch(e){console.error(e);}})();
+</script>
+</body>
+</html>
