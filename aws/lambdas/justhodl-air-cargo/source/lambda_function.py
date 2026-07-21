@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
@@ -110,7 +110,55 @@ def lambda_handler(event=None, context=None):
                     parsed["month"] = (f"{ym.group(2)}-"
                                        f"{MONTHS.index(ym.group(1).lower()) + 1:02d}")
         if not parsed.get("tonnes"):
-            out["cad_probe"] = ct[:700]
+            # v1.2: statistics.html is an INDEX — hunt the latest monthly link
+            links = re.findall(r'href="([^"]+)"[^>]*>([^<]{0,80})</a>', cad)
+            cands = []
+            for href, txt in links:
+                blob = (href + " " + txt).lower()
+                if ".pdf" in href.lower():
+                    continue
+                if (("statistic" in blob or "traffic" in blob or
+                     "monthly" in blob)
+                        and re.search(r"20(2[4-9])", blob)):
+                    u3 = href
+                    if u3.startswith("/"):
+                        u3 = "https://www.cad.gov.hk" + u3
+                    elif not u3.startswith("http"):
+                        u3 = "https://www.cad.gov.hk/english/" + u3
+                    if u3 not in cands:
+                        cands.append(u3)
+            def _lk(u):
+                m2 = re.search(r"20(2\d)", u)
+                return (m2.group(0) if m2 else "0", u)
+            cands.sort(key=_lk, reverse=True)
+            out["cad_links"] = [c[-60:] for c in cands[:5]]
+            for u3 in cands[:3]:
+                sub, serr = _get(u3)
+                if serr or not sub:
+                    continue
+                st = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "|", sub))
+                fm2 = (re.search(r"[Ff]reight[^|]{0,60}(?:\|[^|]{0,30})"
+                                 r"{0,8}?\|\s*([\d,]{6,9})\s*\|", st)
+                       or re.search(r"[Cc]argo[^|]{0,60}(?:\|[^|]{0,30})"
+                                    r"{0,8}?\|\s*([\d,]{6,9})\s*\|", st))
+                if fm2:
+                    v2 = float(fm2.group(1).replace(",", ""))
+                    if 150_000 <= v2 <= 700_000:
+                        parsed["tonnes"] = v2
+                        via = "cad_monthly:" + u3[-34:]
+                        ym2 = re.search(
+                            r"(" + "|".join(mo.capitalize()
+                                            for mo in MONTHS) +
+                            r")\s+(20\d\d)", st)
+                        if ym2:
+                            parsed["month"] = (
+                                f"{ym2.group(2)}-"
+                                f"{MONTHS.index(ym2.group(1).lower()) + 1:02d}")
+                        break
+                if not parsed.get("tonnes") and st:
+                    out["cad_sub_probe"] = st[:600]
+        if not parsed.get("tonnes"):
+            out["cad_probe"] = ct[:500]
     if not parsed.get("tonnes"):
         html, err = _get(CANDIDATES[0][1])
         via = CANDIDATES[0][0]

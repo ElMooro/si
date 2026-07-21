@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/freight-pulse.json"
 FRED_KEY = os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
@@ -66,7 +66,8 @@ def lambda_handler(event=None, context=None):
         sd = (sum((x - mean) ** 2 for x in base) / len(base)) ** 0.5 or 1e-9
         z = round((latest - mean) / sd, 2)
         d = {"name": name, "ok": True, "date": latest_d,
-             "level": round(latest, 1),
+             "level": round(latest, 2 if latest < 100 else 0),
+             "spark": [[p[0][:7], round(p[1], 2)] for p in pts[-13:]],
              "yoy_pct": round(yoy, 1) if yoy is not None else None,
              "m6_ann_pct": round(m6, 1) if m6 is not None else None,
              "z_5y": z}
