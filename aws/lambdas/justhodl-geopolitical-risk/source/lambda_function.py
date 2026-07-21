@@ -208,18 +208,34 @@ def lambda_handler(event=None, context=None):
         cser = [hist["days"][k].get(cc, {}).get("c", 0) for k in keys[:-1]]
         vz = _z(vser, countries[cc]["velocity_per_day"])
         cz = _z(cser, countries[cc]["crisis_hits"])
-        countries[cc]["velocity_z"] = vz
-        countries[cc]["crisis_z"] = cz
-        # composite 0-100: base on absolute crisis flow + z escalation
-        base = min(60, countries[cc]["crisis_hits"] * 4
-                   + countries[cc]["mentions_48h"] * 0.6)
-        esc = max(0, vz) * 8 + max(0, cz) * 12
-        countries[cc]["stress_score"] = round(min(100, base + esc), 1)
+        countries[cc]["_vz"] = vz
+        countries[cc]["_cz"] = cz
         # yesterday delta
         if len(keys) >= 2:
             y = hist["days"][keys[-2]].get(cc, {})
             countries[cc]["velocity_delta"] = round(
                 countries[cc]["velocity_per_day"] - y.get("v", 0), 1)
+
+    import math as _m
+    _cvals = sorted(d["crisis_hits"] for d in countries.values())
+    _mvals = sorted(d["mentions_48h"] for d in countries.values())
+
+    def _pctl(sv, x):
+        if not sv or sv[-1] == sv[0]:
+            return 0.0
+        lo = sum(1 for v in sv if v < x)
+        return 100.0 * lo / (len(sv) - 1) if len(sv) > 1 else 0.0
+
+    for cc, d in countries.items():
+        crisis_abs = min(45, 12 * _m.log1p(d["crisis_hits"]))
+        crisis_rank = _pctl(_cvals, d["crisis_hits"]) * 0.25
+        mention_rank = _pctl(_mvals, d["mentions_48h"]) * 0.10
+        esc = max(0, d["_vz"]) * 7 + max(0, d["_cz"]) * 10
+        intensity = d["crisis_share"] * 12
+        d["stress_score"] = round(min(100, crisis_abs + crisis_rank
+                                      + mention_rank + esc + intensity), 1)
+        d["velocity_z"] = d.pop("_vz")
+        d["crisis_z"] = d.pop("_cz")
 
     ranked = sorted(countries.items(), key=lambda x: -x[1]["stress_score"])
     escalating = sorted(
