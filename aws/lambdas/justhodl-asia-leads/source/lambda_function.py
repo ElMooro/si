@@ -404,6 +404,39 @@ def taiwan_orders():
                     if not s4 and _bodies3 and "__doPostBack" in _bodies3[0][1]:
                         out["stage4_block"] = "postback-only shells — needs worker POST"
                     out["stage4_tried"] = s4
+                # v1.6 STAGE-5: frames are JS apps — the value arrives by XHR.
+                # Extract api/ajax endpoint literals from frame bodies, probe
+                # top candidates via edge, parse any JSON/text for the print.
+                if pr["usd_bn"] is None and pr["yoy"] is None and _bodies3:
+                    eps = []
+                    for au0, bs in _bodies3[:2]:
+                        for e0 in re.findall(
+                                r'["\']((?:https?://[^"\']+|/[A-Za-z0-9_./-]+)?'
+                                r'[A-Za-z0-9_./-]*(?:api|ajax|Ashx|ashx|asmx|'
+                                r'Handler|GetData|Query|\.json)'
+                                r'[A-Za-z0-9_./?&=%\-]*)["\']', bs):
+                            if len(e0) > 6 and "css" not in e0 and "js" != e0[-2:]:
+                                u5 = e0 if e0.startswith("http") else                                      "https://eng.stat.gov.tw" + (e0 if e0.startswith("/")
+                                                                  else "/" + e0)
+                                if u5 not in [x["u"] for x in eps]:
+                                    eps.append({"u": u5, "src_frame": au0[-40:]})
+                    out["stage5_endpoints"] = eps[:8]
+                    s5 = []
+                    for ep in eps[:3]:
+                        b5, via5 = _edge(ep["u"], cap=300_000)
+                        h5 = b5.decode("utf-8", "replace")
+                        t5 = re.sub(r"<[^>]+>|\s+", " ", h5)
+                        pr5 = _parse_orders(t5)
+                        looks_json = h5.lstrip()[:1] in "[{"
+                        s5.append({"u": ep["u"][:110], "via": via5, "bytes": len(b5),
+                                   "json": looks_json, "hit": pr5["usd_bn"] is not None
+                                   or pr5["yoy"] is not None,
+                                   "head": h5.strip()[:100]})
+                        if s5[-1]["hit"]:
+                            pr = pr5
+                            out["stage5_hit"] = ep["u"][:130]
+                            break
+                    out["stage5_tried"] = s5
         out["latest_usd_bn"], out["yoy_pct"] = pr["usd_bn"], pr["yoy"]
         if pr["period"]:
             out["period"] = pr["period"]
