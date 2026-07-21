@@ -1474,11 +1474,14 @@ def lambda_handler(event, context):
     try:
         _ib = read_json("data/industry-boom.json") or {}
         _lg = _ib.get("league") or _ib.get("rows") or []
+        def _normi(x):
+            return " ".join((x or "").strip().lower().replace("&", "and").split())
         _bm = {}
-        for _r in _lg:
-            _nm = (_r.get("industry") or "").strip().lower()
+        for _rk, _r in enumerate(_lg, 1):
+            _nm = _normi(_r.get("industry"))
             if _nm:
-                _bm[_nm] = {"score": _r.get("score"), "rank": _r.get("rank")}
+                _bm[_nm] = {"score": _r.get("boom_score", _r.get("score")),
+                            "rank": _r.get("rank") or _rk, "n": _r.get("n")}
         _kr = None
         try:
             _kt = ((read_json("data/asia-leads.json") or {}).get("korea_flash_tape")
@@ -1491,8 +1494,12 @@ def lambda_handler(event, context):
                  "computer hardware", "electronic components",
                  "consumer electronics", "communication equipment"}
         _nj = _nt = 0
+        _samp = []
         for _s in setups:
-            _ind = (_s.get("industry") or "").strip().lower()
+            _ind = _normi(_s.get("industry") or _s.get("industry_label")
+                          or _s.get("sector"))
+            if len(_samp) < 4:
+                _samp.append([_s.get("ticker"), _ind[:32]])
             if _ind and _ind in _bm:
                 _s["industry_boom"] = _bm[_ind]
                 _nj += 1
@@ -1501,7 +1508,8 @@ def lambda_handler(event, context):
                 _nt += 1
         output["industry_context"]["industry_boom"] = {
             "joined": _nj, "tailwind_flags": _nt, "kr_flash_yoy": _kr,
-            "note": "league score/rank per setup industry; tailwind = KR 1-20 flash ≥15% on semi-linked industries"}
+            "sample_rows": _samp, "league_n": len(_bm),
+            "note": "league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked"}
     except Exception as _e:
         output["industry_context"]["industry_boom"] = {"error": str(_e)[:90]}
     s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
