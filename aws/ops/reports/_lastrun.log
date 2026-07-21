@@ -1,23 +1,10 @@
-executing-against: 4db990ef60d38196a8621e6a9aa9da19a87407be
-ops 3636 — MI +china_liq (zip-marker)
-[05:26:48]   zip: 107353 bytes
-── 1. Lambda ──
-[05:26:49]   Lambda exists — updating
-[05:26:52] ✅   ✓ updated justhodl-morning-intelligence
-── 3. Smoke test ──
-[05:26:52]   invoking justhodl-morning-intelligence…
-[05:27:26] ✅   ✓ smoke test passed
-[05:27:26]     success                  True
-[05:27:26]     khalid_adj               46.0
-[05:27:26]     regime                   NEUTRAL
-[05:27:26]     btc                      64283
-[05:27:26]     outcomes                 17453
-[05:27:26]     improved                 False
-[05:27:26]     weights_active           277
-[05:27:26]     ka_adj                   46.0
-PASS  G1 — marker True
-[05:27:27] G1 True
+executing-against: f1d8f5e6c87d18a60bfcbe859a7c7276987b3087
+ops 3637 — census 6-10 closure + divergence tile
+PASS  G1_div_tile — tile=True verdict=True
+[05:53:55] G1_div_tile True
+PASS  G2_sla_chain — sla_overrides=13 registry_rows=816 stale_now=60
+[05:53:56] G2_sla_chain True
 VERDICT: PASS_ALL
-[05:27:27] VERDICT: PASS_ALL
+[05:53:56] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3636_mi_cn.md
+→ Report written to aws/ops/reports/latest/3637_census_close.md

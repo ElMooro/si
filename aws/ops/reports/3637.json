@@ -1,0 +1,20 @@
+{
+  "gates": {
+    "G1_div_tile": {
+      "ok": true,
+      "detail": "tile=True verdict=True"
+    },
+    "G2_sla_chain": {
+      "ok": true,
+      "detail": "sla_overrides=13 registry_rows=816 stale_now=60"
+    }
+  },
+  "census_proof": {
+    "shell_missing": 0,
+    "jh_enhance_pages": 83,
+    "sla": "config/feed-sla.json -> feed-registry -> sentinel (3415)",
+    "monetization": "pricing.html + Stripe live",
+    "composer": "doc.input_hygiene exported"
+  },
+  "verdict": "PASS_ALL"
+}
