@@ -1497,7 +1497,7 @@ def lambda_handler(event, context):
         _u2i = {}
         try:
             _uni = read_json("data/universe.json") or {}
-            for _u0 in (_uni.get("rows") or _uni.get("universe")
+            for _u0 in (_uni.get("stocks") or _uni.get("rows") or _uni.get("universe")
                         or _uni.get("symbols") or []):
                 if isinstance(_u0, dict) and _u0.get("symbol"):
                     _u2i[_u0["symbol"].upper()] = _normi(_u0.get("industry"))
