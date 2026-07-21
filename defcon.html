@@ -241,6 +241,32 @@ function gaugeColor(score){return score>=80?"var(--red)":score>=60?"var(--orange
 })();
 </script>
 
+<div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#e8e8e8;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Geopolitical Risk — News-Flow Country Stress</h2><div id="jh-georisk"><div style="text-align:center;padding:20px;color:#6f7b91;font-family:monospace;font-size:12px">LOADING GEO-RISK…</div></div></div>
+<script>/* ops 3646: geo-risk panel (data/geopolitical-risk.json) */
+(async function(){try{
+  var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/geopolitical-risk.json?t='+Date.now());
+  if(!r.ok)return;var g=await r.json();var el=document.getElementById('jh-georisk');if(!el)return;
+  var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#8b93a3';
+  var rk=(g.rankings||[]).slice(0,8);var mx=Math.max.apply(null,rk.map(function(x){return x.stress_score||1;}));
+  var bars=rk.map(function(x){var w=(100*(x.stress_score||0)/mx).toFixed(1);
+    var c=x.stress_score>=70?RED:x.stress_score>=50?AMB:NEU;
+    return '<div style="display:flex;align-items:center;gap:9px;margin:5px 0;font-family:monospace;font-size:12px">'
+      +'<div style="width:74px;font-weight:700;color:'+c+'">'+x.country+'</div>'
+      +'<div style="flex:1;height:13px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden"><div style="width:'+w+'%;height:13px;background:linear-gradient(90deg,'+c+'44,'+c+')" title="mentions48h '+x.mentions_48h+' | crisis '+x.crisis_hits+' | vz '+(x.velocity_z||0)+'"></div></div>'
+      +'<div style="width:44px;text-align:right;font-weight:800;color:'+c+'">'+x.stress_score+'</div>'
+      +'<div style="width:120px;color:'+MUT+';font-size:10.5px">'+x.crisis_hits+' crisis · '+x.mentions_48h+' mentions</div></div>';}).join('');
+  var esc=(g.escalating||[]).map(function(e){return '<span style="border:1px solid '+RED+';color:'+RED+';border-radius:999px;padding:2px 10px;font-size:11px;margin-right:6px">▲ '+e.country+' z'+e.velocity_z+'</span>';}).join('')||'<span style="color:'+MUT+';font-size:11px">no z-escalations (history building)</span>';
+  var gc=g.gssi_cross||{};var leads=(gc.news_leads||[]).slice(0,5).map(function(x){return '<span style="border:1px solid '+AMB+';color:'+AMB+';border-radius:999px;padding:2px 10px;font-size:11px;margin-right:6px" title="news '+x.news+' vs financial '+x.fin+'">'+x.country+' news-leads +'+x.gap+'</span>';}).join('');
+  var priced=(gc.priced_in||[]).slice(0,4).map(function(x){return '<span style="border:1px solid '+MUT+';color:'+MUT+';border-radius:999px;padding:2px 10px;font-size:11px;margin-right:6px" title="news '+x.news+' vs financial '+x.fin+'">'+x.country+' priced-in '+x.gap+'</span>';}).join('');
+  el.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px;font-family:monospace">'
+    +'<span style="font-size:12px;color:'+MUT+'">GLOBAL TEMP</span><span style="font-size:22px;font-weight:800;color:'+(g.global_temp>=45?RED:g.global_temp>=30?AMB:GRN)+'">'+g.global_temp+'</span>'
+    +'<span style="font-size:11px;color:'+MUT+'">'+((g.sources||{}).feeds_responding||0)+' feeds · '+((g.sources||{}).articles_scanned||0)+' articles (48h) · top '+g.top_country+'</span></div>'
+    +bars
+    +'<div style="margin-top:10px">'+esc+'</div>'
+    +((leads||priced)?'<div style="margin-top:8px;font-family:monospace"><span style="font-size:10.5px;color:'+MUT+';margin-right:8px">vs FINANCIAL stress (CDS):</span>'+leads+priced+'</div>':'')
+    +'<div style="font-size:10px;color:'+MUT+';margin-top:8px;font-family:monospace">news-flow velocity + crisis-lexicon intensity + 20d z-escalation · corpus adapted from World Monitor (AGPL) · scores JustHodl-original · cross vs global-sovereign CDS stress</div>';
+}catch(e){console.error('georisk',e);}})();
+</script>
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>

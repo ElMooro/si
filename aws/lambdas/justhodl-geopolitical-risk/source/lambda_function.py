@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/geopolitical-risk.json"
 HIST_KEY = "geo/geopolitical-risk-history.json"
@@ -243,6 +243,48 @@ def lambda_handler(event=None, context=None):
          if d.get("velocity_z", 0) >= 1.5 and d["crisis_hits"] >= 2],
         key=lambda x: -x[1]["velocity_z"])
 
+    # v1.1: cross news-flow stress vs FINANCIAL stress (global-sovereign
+    # CDS-derived stress_0_100). NEWS_LEADS = news hot before markets
+    # price it; PRICED_IN = markets stressed while news quiet.
+    G2F = {"US": "United States", "UK": "United Kingdom",
+           "S.Korea": "South Korea", "Saudi": "Saudi Arabia",
+           "China": "China", "Russia": "Russia", "Japan": "Japan",
+           "India": "India", "Germany": "Germany", "France": "France",
+           "Turkey": "Turkey", "Taiwan": "Taiwan", "Israel": "Israel",
+           "Egypt": "Egypt", "Pakistan": "Pakistan",
+           "Venezuela": "Venezuela", "Iran": "Iran", "Ukraine": "Ukraine",
+           "Lebanon": "Lebanon"}
+    gssi_cross = {"mapped_n": 0, "rows": [], "news_leads": [],
+                  "priced_in": [], "source": "data/global-sovereign.json"}
+    try:
+        gs = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="data/global-sovereign.json")["Body"].read())
+        fin = {(r.get("country") or ""): r.get("stress_0_100")
+               for r in (gs.get("countries") or [])}
+        for cc, d in countries.items():
+            fname = G2F.get(cc)
+            fs = fin.get(fname) if fname else None
+            if fs is None:
+                continue
+            gssi_cross["mapped_n"] += 1
+            news_hot = d["stress_score"] >= 55 or d.get("velocity_z", 0) >= 1.5
+            fin_hot = fs >= 55
+            state = ("CONFIRMED_HIGH" if news_hot and fin_hot else
+                     "NEWS_LEADS" if news_hot else
+                     "PRICED_IN" if fin_hot else "CALM")
+            row = {"country": cc, "news": d["stress_score"],
+                   "fin": fs, "state": state,
+                   "gap": round(d["stress_score"] - fs, 1)}
+            gssi_cross["rows"].append(row)
+            if state == "NEWS_LEADS":
+                gssi_cross["news_leads"].append(row)
+            elif state == "PRICED_IN":
+                gssi_cross["priced_in"].append(row)
+        gssi_cross["rows"].sort(key=lambda r: -abs(r["gap"]))
+        gssi_cross["news_leads"].sort(key=lambda r: -r["gap"])
+    except Exception as _e:
+        gssi_cross["error"] = str(_e)[:80]
+
     doc = {
         "ok": True, "version": VERSION, "generated_at": now.isoformat(),
         "sources": {"feeds_in_corpus": len(feeds), "feeds_responding": feeds_ok,
@@ -253,6 +295,7 @@ def lambda_handler(event=None, context=None):
         "global_temp": round(sum(d["stress_score"] for _, d in ranked)
                              / max(1, len(ranked)), 1),
         "rankings": [{"country": cc, **d} for cc, d in ranked],
+        "gssi_cross": gssi_cross,
         "escalating": [{"country": cc, "velocity_z": d["velocity_z"],
                         "crisis_hits": d["crisis_hits"],
                         "stress_score": d["stress_score"],

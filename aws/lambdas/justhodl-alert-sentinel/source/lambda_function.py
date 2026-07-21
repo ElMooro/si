@@ -223,6 +223,13 @@ def diff(old, new):
                      ", ".join(k.replace("data/", "") for k in new_stale[:8]) +
                      (f" (+{len(new_stale)-8} more)" if len(new_stale) > 8 else ""))
 
+    # ops 3646: geopolitical escalation alerts
+    _gnew = set(new.get("geo_escalating") or []) - set(old.get("geo_escalating") or [])
+    for _gc in sorted(_gnew):
+        msgs.append(f"\U0001F30D Geo escalation: {_gc} — news-flow z-spike with "
+                     f"crisis headlines (global temp {new.get('geo_temp')}) — "
+                     f"justhodl.ai/defcon.html")
+
     # ops 3621: new KR 1-20 flash print
     if new.get("kr_flash_period") and new["kr_flash_period"] != old.get("kr_flash_period"):
         _y = new.get("kr_flash_yoy")
@@ -377,6 +384,17 @@ def compose_report(buffer, today):
 def lambda_handler(event=None, context=None):
     DIAG.clear()
     new = snapshot()
+    # ops 3646: geopolitical escalation wire (new country enters escalating)
+    try:
+        _gr = json.loads(S3.get_object(Bucket=BUCKET,
+                                       Key="data/geopolitical-risk.json")["Body"].read())
+        new["geo_escalating"] = sorted(e.get("country") for e in
+                                       (_gr.get("escalating") or []))[:8]
+        new["geo_top"] = _gr.get("top_country")
+        new["geo_temp"] = _gr.get("global_temp")
+    except Exception as _e:
+        DIAG.append("geo wire: " + str(_e)[:60])
+
     # ops 3621: KR 1-20 flash wire (news-tape latest → daily report on new period)
     try:
         _al = json.loads(S3.get_object(Bucket=BUCKET,
