@@ -1,8 +1,18 @@
-executing-against: 00bbf4b23f3306b0eafcceb4e4150d27064592ec
-ops 3640 — rules v3: weekly-cadence SLAs + state/retired silences
-PASS  G1_refined — stale 41 -> 13 silenced=28 residue=['data/options-analytics-iv-history.json', 'data/options-analytics.json', 'data/tail-risk-history.json', 'data/tail-risk.json', 'data/squeeze-fuel.json', 'data/treasury-noise-history.json', 'data/treasury-noise.json', 'data/forward-orders.json', 'data/supply-chain-graph.json', 'data/cftc-deep-view.json', 'data/tv-watchlist-tracker.json', 'data/thesis-engine.json', 'data/symbol-dictionary.json']
-[06:10:40] G1_refined True
-VERDICT: PASS_ALL
-[06:10:40] VERDICT: PASS_ALL
+executing-against: d17c5452ea376f46c4f1790aa86c350b96f4e028
+ops 3641 — squeeze-fuel / options-analytics / tail-risk
+PASS  G_squeeze-fuel — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/squeeze-fuel.json': 0.0} healed=justhodl-squeeze-fuel-daily log_tail=d5108e010	Duration: 8522.81 ms	Billed Duration: 8917 ms	Memory Size: 1024 MB	Max Memory Used: 122 MB	Init Duration: 393.35 ms	
+XRAY TraceId: 1-6a5f1393-263655a01728466f55a0cdca	SegmentId: c6a3b907c50a3dcf	Sampled: true	
 
-→ Report written to aws/ops/reports/latest/3640_rules_v3.md
+[06:37:19] G_squeeze-fuel True
+PASS  G_options-analytics — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/options-analytics.json': 0.1, 'data/options-analytics-iv-history.json': 0.1} healed=justhodl-options-analytics-daily log_tail=d8e3ab8d8	Duration: 2301.48 ms	Billed Duration: 2761 ms	Memory Size: 1024 MB	Max Memory Used: 110 MB	Init Duration: 459.01 ms	
+XRAY TraceId: 1-6a5f13a0-5582ccd268a5d38c3f2aebec	SegmentId: a7f715d5e83ebd58	Sampled: true	
+
+[06:37:27] G_options-analytics True
+PASS  G_tail-risk — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/tail-risk.json': 0.0, 'data/tail-risk-history.json': 0.0} healed=justhodl-tail-risk-daily log_tail=105af4e6626	Duration: 712.40 ms	Billed Duration: 1199 ms	Memory Size: 512 MB	Max Memory Used: 104 MB	Init Duration: 486.35 ms	
+XRAY TraceId: 1-6a5f13a8-00a1d3637ec23f5a7ed35cd4	SegmentId: 98f75529a5e6f651	Sampled: true	
+
+[06:37:33] G_tail-risk True
+VERDICT: PASS_ALL
+[06:37:33] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3641_resurrect_trio.md

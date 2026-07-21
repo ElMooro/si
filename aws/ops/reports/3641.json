@@ -1,0 +1,66 @@
+{
+  "gates": {
+    "G_squeeze-fuel": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/squeeze-fuel.json': 0.0} healed=justhodl-squeeze-fuel-daily log_tail=d5108e010\tDuration: 8522.81 ms\tBilled Duration: 8917 ms\tMemory Size: 1024 MB\tMax Memory Used: 122 MB\tInit Duration: 393.35 ms\t\nXRAY TraceId: 1-6a5f1393-263655a01728466f55a0cdca\tSegmentId: c6a3b907c50a3dcf\tSampled: true\t\n"
+    },
+    "G_options-analytics": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/options-analytics.json': 0.1, 'data/options-analytics-iv-history.json': 0.1} healed=justhodl-options-analytics-daily log_tail=d8e3ab8d8\tDuration: 2301.48 ms\tBilled Duration: 2761 ms\tMemory Size: 1024 MB\tMax Memory Used: 110 MB\tInit Duration: 459.01 ms\t\nXRAY TraceId: 1-6a5f13a0-5582ccd268a5d38c3f2aebec\tSegmentId: a7f715d5e83ebd58\tSampled: true\t\n"
+    },
+    "G_tail-risk": {
+      "ok": true,
+      "detail": "inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/tail-risk.json': 0.0, 'data/tail-risk-history.json': 0.0} healed=justhodl-tail-risk-daily log_tail=105af4e6626\tDuration: 712.40 ms\tBilled Duration: 1199 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 486.35 ms\t\nXRAY TraceId: 1-6a5f13a8-00a1d3637ec23f5a7ed35cd4\tSegmentId: 98f75529a5e6f651\tSampled: true\t\n"
+    }
+  },
+  "engines": {
+    "justhodl-squeeze-fuel": {
+      "fn": "justhodl-squeeze-fuel",
+      "timeout": 300,
+      "mem": 1024,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "-06-30\n[squeeze-fuel] SEC FTD: 13707 symbols from cnsfails202606b.zip\n[squeeze-fuel] daily short-vol: 501 symbols\n[squeeze-fuel] DONE scored=329 loaded=7 building=92 picks=20 in 8.4s\nEND RequestId: 2ffa1566-4c5e-44a4-9dd0-4f3d5108e010\nREPORT RequestId: 2ffa1566-4c5e-44a4-9dd0-4f3d5108e010\tDuration: 8522.81 ms\tBilled Duration: 8917 ms\tMemory Size: 1024 MB\tMax Memory Used: 122 MB\tInit Duration: 393.35 ms\t\nXRAY TraceId: 1-6a5f1393-263655a01728466f55a0cdca\tSegmentId: c6a3b907c50a3dcf\tSampled: true\t\n",
+      "fresh_min": {
+        "data/squeeze-fuel.json": 0.0
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-squeeze-fuel-daily"
+    },
+    "justhodl-options-analytics": {
+      "fn": "justhodl-options-analytics",
+      "timeout": 300,
+      "mem": 1024,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "START RequestId: bf7e223a-4935-4180-b346-42ad8e3ab8d8 Version: $LATEST\n[options-analytics] analyzed=58 short_gamma=20 setups=10 picks=10 in 2.3s\nEND RequestId: bf7e223a-4935-4180-b346-42ad8e3ab8d8\nREPORT RequestId: bf7e223a-4935-4180-b346-42ad8e3ab8d8\tDuration: 2301.48 ms\tBilled Duration: 2761 ms\tMemory Size: 1024 MB\tMax Memory Used: 110 MB\tInit Duration: 459.01 ms\t\nXRAY TraceId: 1-6a5f13a0-5582ccd268a5d38c3f2aebec\tSegmentId: a7f715d5e83ebd58\tSampled: true\t\n",
+      "fresh_min": {
+        "data/options-analytics.json": 0.1,
+        "data/options-analytics-iv-history.json": 0.1
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-options-analytics-daily"
+    },
+    "justhodl-tail-risk": {
+      "fn": "justhodl-tail-risk",
+      "timeout": 180,
+      "mem": 512,
+      "inv7": 10,
+      "err7": 0,
+      "schedules": [],
+      "err": null,
+      "log_tail": "START RequestId: e4beb5c3-720f-4eac-9c06-6105af4e6626 Version: $LATEST\n[tail-risk] system=54.7 regime=ELEVATED val=CHEAP idx=3 in 0.7s\nEND RequestId: e4beb5c3-720f-4eac-9c06-6105af4e6626\nREPORT RequestId: e4beb5c3-720f-4eac-9c06-6105af4e6626\tDuration: 712.40 ms\tBilled Duration: 1199 ms\tMemory Size: 512 MB\tMax Memory Used: 104 MB\tInit Duration: 486.35 ms\t\nXRAY TraceId: 1-6a5f13a8-00a1d3637ec23f5a7ed35cd4\tSegmentId: 98f75529a5e6f651\tSampled: true\t\n",
+      "fresh_min": {
+        "data/tail-risk.json": 0.0,
+        "data/tail-risk-history.json": 0.0
+      },
+      "freshened": true,
+      "healed_schedule": "justhodl-tail-risk-daily"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
