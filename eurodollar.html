@@ -60,6 +60,22 @@ h1{font-size:20px;font-weight:700;}h1 .s{color:var(--fg3);font-weight:400;font-s
 <div class="sec">The funding board · green normal · yellow watch · red stress</div>
 <div id="layers" class="grid"></div>
 
+<div id="jh-biscb" style="margin:18px 0;padding:14px;background:#10151d;border:1px solid #1c2330;border-radius:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px"></div>
+<script>/* ops 3656: BIS cross-border card */
+(async function(){try{
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/eurodollar-plumbing.json?t='+Date.now());if(!r.ok)return;
+var d=await r.json();var b=d.bis_crossborder;var el=document.getElementById('jh-biscb');if(!el||!b){if(el)el.style.display='none';return;}
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
+function g(y){return y==null?MUT:y>=10?AMB:y>=0?GRN:RED;}
+el.innerHTML='<div style="font-size:11px;letter-spacing:1px;color:'+MUT+';text-transform:uppercase;margin-bottom:8px">BIS Cross-Border Claims — offshore-USD stock ('+(b.period||'')+')</div>'
++'<div style="display:flex;gap:22px;flex-wrap:wrap">'
++'<span>Total <b style="color:'+AMB+'">$'+b.total_tn+'tn</b> <b style="color:'+g(b.total_yoy_pct)+'">'+(b.total_yoy_pct>0?'+':'')+b.total_yoy_pct+'%</b></span>'
++'<span>Offshore centres <b style="color:'+g(b.offshore_yoy_pct)+'">'+(b.offshore_yoy_pct>0?'+':'')+b.offshore_yoy_pct+'% yoy</b></span>'
++'<span>EM Asia <b style="color:'+g(b.em_asia_yoy_pct)+'">'+(b.em_asia_yoy_pct>0?'+':'')+b.em_asia_yoy_pct+'%</b></span>'
++'<span>China <b style="color:'+g(b.china_yoy_pct)+'">'+(b.china_yoy_pct>0?'+':'')+b.china_yoy_pct+'% (flat)</b></span>'
++'<a href="/bis-crossborder.html" style="color:'+AMB+';margin-left:auto">full board →</a></div>';
+}catch(e){}})();
+</script>
 <div id="note" class="note"></div>
 
 <script>
