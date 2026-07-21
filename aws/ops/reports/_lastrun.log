@@ -1,32 +1,16 @@
-executing-against: 8a0ec48722ef2e2d760ce33a096346ee782c39f0
-ops 3642 — remaining seven true-breakage engines
-PASS  G_treasury-noise — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/treasury-noise.json': 0.1, 'data/treasury-noise-history.json': 0.1} healed=justhodl-treasury-noise-daily log_tail=6af41343bba	Duration: 9453.25 ms	Billed Duration: 9928 ms	Memory Size: 512 MB	Max Memory Used: 99 MB	Init Duration: 474.30 ms	
-XRAY TraceId: 1-6a5f14de-3a8a9b5848c306666d3c430d	SegmentId: e1f845e32ff08f8a	Sampled: true	
+executing-against: c294dc602f6cf2ae3453557e9dc57468c7ea590d
+ops 3643 — geopolitical-risk engine (news-flow country stress)
+[07:01:03]   zip: 92453 bytes
+── 1. Lambda ──
+[07:01:04]   Lambda exists — updating
+[07:01:09] ✅   ✓ updated justhodl-geopolitical-risk
+── 3. Smoke test ──
+[07:01:09]   invoking justhodl-geopolitical-risk…
+PASS  G1_deploy_sched — deployed + scheduler created 11:30 UTC
+[07:01:38] G1_deploy_sched True
+PASS  G2_feed — feeds_ok=113/164 articles=3646 temp=28.9 top=China top5=[('China', 60, 140, 7), ('Russia', 60, 91, 26), ('Iran', 60, 264, 93), ('Israel', 60, 82, 9), ('Ukraine', 60, 87, 28)] escalating=[]
+[07:01:59] G2_feed True
+VERDICT: PASS_ALL
+[07:01:59] VERDICT: PASS_ALL
 
-[06:42:52] G_treasury-noise True
-PASS  G_forward-orders — inv7=12 err7=0 scheds=[] invoke_err=None fresh={'data/forward-orders.json': 0.1} healed=justhodl-forward-orders-daily log_tail=31f3c4b	Duration: 64334.32 ms	Billed Duration: 64815 ms	Memory Size: 1024 MB	Max Memory Used: 151 MB	Init Duration: 480.12 ms	
-XRAY TraceId: 1-6a5f14ed-5acf1c7735f1340017d5e07c	SegmentId: b9099061f431f0b1	Sampled: true	
-
-[06:44:02] G_forward-orders True
-PASS  G_supply-chain-graph — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/supply-chain-graph.json': 0.1} healed=justhodl-supply-chain-graph-daily log_tail=ef0eb170fc	Duration: 8188.98 ms	Billed Duration: 8695 ms	Memory Size: 512 MB	Max Memory Used: 222 MB	Init Duration: 505.98 ms	
-XRAY TraceId: 1-6a5f1534-3acdbb5a337bda966c1bdbc7	SegmentId: c208fe04c76412ba	Sampled: true	
-
-[06:44:16] G_supply-chain-graph True
-PASS  G_cftc-deep-view — inv7=3 err7=0 scheds=['justhodl-cftc-deep-view-fri'] invoke_err=None fresh={'data/cftc-deep-view.json': 0.1} healed=None log_tail=0516ceb1bf49	Duration: 234.01 ms	Billed Duration: 717 ms	Memory Size: 1024 MB	Max Memory Used: 97 MB	Init Duration: 482.80 ms	
-XRAY TraceId: 1-6a5f1542-321c57517918f16f59f1ea27	SegmentId: 4882a1b63d58e935	Sampled: true	
-
-[06:44:22] G_cftc-deep-view True
-PASS  G_tv-watchlist-tracker — inv7=10 err7=0 scheds=[] invoke_err=None fresh={'data/tv-watchlist-tracker.json': 0.1} healed=justhodl-tv-watchlist-tracker-daily log_tail=e3f50c47	Duration: 13482.89 ms	Billed Duration: 13953 ms	Memory Size: 512 MB	Max Memory Used: 101 MB	Init Duration: 469.94 ms	
-XRAY TraceId: 1-6a5f1547-2e94b2335d520e9d60300208	SegmentId: f49826bc36ce4188	Sampled: true	
-
-[06:44:41] G_tv-watchlist-tracker True
-FAIL  G_thesis-engine — Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-thesis-engine/invocations"
-[06:54:43] G_thesis-engine False
-PASS  G_symbol-dictionary — inv7=2 err7=0 scheds=[] invoke_err=None fresh={'data/symbol-dictionary.json': 0.0} healed=justhodl-symbol-dictionary-daily log_tail=ebf9d	Duration: 229398.76 ms	Billed Duration: 230224 ms	Memory Size: 2048 MB	Max Memory Used: 113 MB	Init Duration: 824.92 ms	
-XRAY TraceId: 1-6a5f17b4-52b1f48671c6c6ce64fb21f6	SegmentId: ca91458f36d024fa	Sampled: true	
-
-[06:58:38] G_symbol-dictionary True
-VERDICT: GAPS: G_thesis-engine
-[06:58:38] VERDICT: GAPS: G_thesis-engine
-
-→ Report written to aws/ops/reports/latest/3642_resurrect_seven.md
+→ Report written to aws/ops/reports/latest/3643_geo_risk.md

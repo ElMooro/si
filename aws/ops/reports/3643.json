@@ -1,0 +1,50 @@
+{
+  "gates": {
+    "G1_deploy_sched": {
+      "ok": true,
+      "detail": "deployed + scheduler created 11:30 UTC"
+    },
+    "G2_feed": {
+      "ok": true,
+      "detail": "feeds_ok=113/164 articles=3646 temp=28.9 top=China top5=[('China', 60, 140, 7), ('Russia', 60, 91, 26), ('Iran', 60, 264, 93), ('Israel', 60, 82, 9), ('Ukraine', 60, 87, 28)] escalating=[]"
+    }
+  },
+  "snapshot": {
+    "top": "China",
+    "temp": 28.9,
+    "top5": [
+      [
+        "China",
+        60,
+        140,
+        7
+      ],
+      [
+        "Russia",
+        60,
+        91,
+        26
+      ],
+      [
+        "Iran",
+        60,
+        264,
+        93
+      ],
+      [
+        "Israel",
+        60,
+        82,
+        9
+      ],
+      [
+        "Ukraine",
+        60,
+        87,
+        28
+      ]
+    ],
+    "escalating": []
+  },
+  "verdict": "PASS_ALL"
+}
