@@ -1,0 +1,47 @@
+{
+  "gates": {
+    "G1_air": {
+      "ok": true,
+      "detail": "err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] cadp=| | | | | | | | --> |Civil Aviation Department - Air Traffic Statistics| | | --> | | | || || || || | var revisionDate = '07/13/2026'; //date format: mm/dd/yyyy var revisionDateType = '0'; | | | | |Skip to main content| | | | || || sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']"
+    },
+    "G2_refsearch": {
+      "ok": true,
+      "detail": "nations=16 ref_search=[{'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Bremerhaven', 'full': 'Bremerhaven, Germany', 'country': 'Germany'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]"
+    },
+    "G3_page_sidebar": {
+      "ok": true,
+      "detail": "{'page': True, 'sidebar': True}"
+    }
+  },
+  "air": {
+    "ok": false,
+    "tonnes_k": null,
+    "month": null,
+    "yoy_pct": null,
+    "via": null,
+    "read": null
+  },
+  "ref_search": [
+    {
+      "name": "Hai Phong",
+      "full": "Hai Phong, Vietnam",
+      "country": "Vietnam"
+    },
+    {
+      "name": "Bremerhaven",
+      "full": "Bremerhaven, Germany",
+      "country": "Germany"
+    },
+    {
+      "name": "Hamburg",
+      "full": "Hamburg, Germany",
+      "country": "Germany"
+    },
+    {
+      "name": "Van Phong",
+      "full": "Van Phong, Vietnam",
+      "country": "Vietnam"
+    }
+  ],
+  "verdict": "PASS_ALL"
+}
