@@ -1,24 +1,24 @@
-executing-against: 7518bbcd3ee3a718fef69a43ef310087e83b42ac
-ops 3667 — HKIA air canary + freight page + sidebar
-[20:39:12]   zip: 86111 bytes
+executing-against: e7c46b87f63f15b5f902452edc96026e36a3f100
+ops 3668 — HKIA air canary + freight page + sidebar
+[20:45:41]   zip: 86112 bytes
 ── 1. Lambda ──
-[20:39:13]   Lambda exists — updating
-[20:39:18] ✅   ✓ updated justhodl-air-cargo
+[20:45:41]   Lambda exists — updating
+[20:45:46] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[20:39:18]   invoking justhodl-air-cargo…
-PASS  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] cadl=['https://www.cad.gov.hk/english/./pdf/Stat Webpage.xlsx'] cadsp=None sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']
-[20:39:27] G1_air True
-[20:39:27]   zip: 84487 bytes
+[20:45:46]   invoking justhodl-air-cargo…
+FAIL  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] row=None tail=None n=None xp=None cadsp=None sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']
+[20:45:57] G1_air False
+[20:45:57]   zip: 84487 bytes
 ── 1. Lambda ──
-[20:39:27]   Lambda exists — updating
-[20:39:30] ✅   ✓ updated justhodl-freight-pulse
+[20:45:57]   Lambda exists — updating
+[20:46:02] ✅   ✓ updated justhodl-freight-pulse
 ── 3. Smoke test ──
-[20:39:30]   invoking justhodl-freight-pulse…
+[20:46:02]   invoking justhodl-freight-pulse…
 PASS  G2_sparks — spark_n=13 level=1003578.0
-[20:39:35] G2_sparks True
+[20:46:07] G2_sparks True
 PASS  G3_page_sidebar — {'fmt': True, 'spark': True, 'air_txt': True, 'lag': True}
-[20:39:36] G3_page_sidebar True
-VERDICT: PASS_ALL
-[20:39:36] VERDICT: PASS_ALL
+[20:46:07] G3_page_sidebar True
+VERDICT: GAPS: G1_air
+[20:46:07] VERDICT: GAPS: G1_air
 
-→ Report written to aws/ops/reports/latest/3667_air_href.md
+→ Report written to aws/ops/reports/latest/3668_air_xlsx.md
