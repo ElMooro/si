@@ -325,6 +325,60 @@ table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
   </div>
 </div>
 
+<div id="jh-strategic" style="max-width:1280px;margin:0 auto 20px;padding:0 24px"></div>
+<script>/* ops 3607 ADDITIVE: multi-horizon strategic layer (asset-compass v2 join) */
+(async function(){try{
+  var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/asset-compass.json?t='+Date.now());
+  if(!r.ok) return; var D=await r.json(); var H=D.horizons||{}; var T=D.verdict_trio||{}; var CP=D.cash_path_pct||{};
+  var keys=Object.keys(H); if(!keys.length) return;
+  var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e6e8ee',MUT='#9aa4b2';
+  function g(sym,k){return (H[sym]||{})[k];}
+  function tile(t,sym,extra,col){if(!sym)return '';var h=H[sym]||{};
+    return '<div style="border:1px solid '+col+'55;border-radius:12px;padding:11px;background:'+col+'0d"><div style="font-size:11px;color:'+MUT+'">'+t+'</div><div style="font-size:19px;font-weight:800">'+sym+' <span style="color:'+col+'">'+extra+'</span></div><div style="font-size:11px;color:'+MUT+'">'+(h.confidence?('confidence '+h.confidence):'')+'</div></div>';}
+  var trio='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px">'
+    +tile('🏆 HIGHEST EXPECTED · 10Y',T.highest_expected_10y,(g(T.highest_expected_10y,'er_10y_pct')||0).toFixed(1)+'%'+((H[T.highest_expected_10y]||{}).er_10y_range_pct?' (range '+(H[T.highest_expected_10y]||{}).er_10y_range_pct.join('..')+'%)':''),AMB)
+    +tile('⚖️ BEST RISK/REWARD · 10Y',T.best_risk_reward_10y,'RR '+(g(T.best_risk_reward_10y,'rr_10y')||0).toFixed(2),GRN)
+    +tile('💰 MOST ATTRACTIVE vs HISTORY',T.most_attractive_vs_history,(g(T.most_attractive_vs_history,'fr_percentile')||0)+'% of history',NEU)
+    +tile('⚠️ WORST OPPORTUNITY',T.worst_opportunity,'score '+(g(T.worst_opportunity,'opportunity_score')||0),RED)
+    +'</div><div style="font-size:11px;color:'+MUT+';margin:6px 0 2px">'+(T.note||'')+' · Cash path (market-implied): 1y '+ (CP['1y']||'—')+'% · 5y '+(CP['5y']||'—')+'% · 10y '+(CP['10y']||'—')+'%</div>';
+  var HOR=10, SORT='opportunity_score';
+  function erk(){return 'er_'+HOR+'y_pct';} function exk(){return 'excess_vs_cash_'+HOR+'y_pct';} function tkk(){return 'tenk_'+HOR+'y';}
+  function ccol(c){return c==='sectors'?AMB:c==='equities'?GRN:(c==='bonds'||c==='credit'||c==='cash')?NEU:c==='crypto'?RED:MUT;}
+  function scatter(){var ks=keys.filter(function(k){return isFinite(g(k,erk()))&&isFinite(g(k,'sigma_pct'));});
+    var W=760,Hh=300,pad=42; var xs=ks.map(function(k){return g(k,'sigma_pct');}),ys=ks.map(function(k){return g(k,erk());});
+    var xm=Math.max(25,Math.max.apply(null,xs)*1.06),ym0=Math.min(0,Math.min.apply(null,ys)-0.5),ym1=Math.max.apply(null,ys)+1;
+    function X(v){return pad+v/xm*(W-pad-12);} function Y(v){return Hh-pad+ (v-ym1)/(ym0-ym1)*(Hh-pad-10)* -1;}
+    function Y2(v){return 10+(ym1-v)/(ym1-ym0)*(Hh-pad-10);}
+    var dots=ks.map(function(k){var h=H[k];var rr=(h.fr_percentile!=null?h.fr_percentile:50);var rad=5+rr/14;var c=ccol(h.class);
+      return '<circle cx="'+X(h.sigma_pct).toFixed(1)+'" cy="'+Y2(h[erk()]).toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="'+c+'33" stroke="'+c+'"/><text x="'+X(h.sigma_pct).toFixed(1)+'" y="'+(Y2(h[erk()])-rad-3).toFixed(1)+'" text-anchor="middle" font-size="10" fill="'+NEU+'">'+k+'</text>';}).join('');
+    var cash=CP[HOR+'y'];var cl=cash!=null?'<line x1="'+pad+'" y1="'+Y2(cash)+'" x2="'+(W-10)+'" y2="'+Y2(cash)+'" stroke="'+MUT+'" stroke-dasharray="3 5"/><text x="'+(W-12)+'" y="'+(Y2(cash)-4)+'" fill="'+MUT+'" font-size="10" text-anchor="end">cash '+cash+'%</text>':'';
+    return '<svg viewBox="0 0 '+W+' '+Hh+'" style="width:100%"><line x1="'+pad+'" y1="'+(Hh-pad)+'" x2="'+(W-10)+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/><line x1="'+pad+'" y1="10" x2="'+pad+'" y2="'+(Hh-pad)+'" stroke="#3a4150"/>'+cl+dots
+      +'<text x="'+(W/2)+'" y="'+(Hh-8)+'" fill="'+MUT+'" font-size="11" text-anchor="middle">expected volatility (σ, %)</text><text x="14" y="'+(Hh/2)+'" fill="'+MUT+'" font-size="11" transform="rotate(-90 14 '+(Hh/2)+')" text-anchor="middle">expected return '+HOR+'y (%)</text></svg>'
+      +'<div style="font-size:10px;color:'+MUT+'">bubble size = attractiveness vs own history (forward-returns join) · dashed = cash hurdle</div>';}
+  function table(){var ks=keys.slice().sort(function(a,b){return (g(b,SORT)||-9e9)-(g(a,SORT)||-9e9);});
+    var rows=ks.map(function(k){var h=H[k];var ex=h[exk()];var exc=ex==null?MUT:ex>=2?GRN:ex>=0?NEU:RED;
+      return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:5px 8px;font-weight:700">'+k+'</td><td style="color:'+MUT+'">'+h.class+'</td><td style="text-align:right">'+(g(k,erk())!=null?g(k,erk()).toFixed(1)+'%':'—')+'</td><td style="text-align:right;color:'+exc+'">'+(ex!=null?((ex>0?'+':'')+ex.toFixed(1)+'%'):'—')+'</td><td style="text-align:right">'+(h.rr_10y!=null?h.rr_10y.toFixed(2):'—')+'</td><td style="text-align:right">'+(h.fr_percentile!=null?h.fr_percentile+'%':'—')+'</td><td style="text-align:right;font-weight:800;color:'+AMB+'">'+(h.opportunity_score!=null?h.opportunity_score:'—')+'</td><td style="color:'+MUT+'">'+(h.confidence||'')+'</td></tr>';}).join('');
+    function hb(l,key){return '<th style="cursor:pointer;text-align:right;padding:5px 8px;color:'+(SORT===key?AMB:MUT)+'" onclick="window._jhSort(\''+key+'\')">'+l+'</th>';}
+    return '<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="color:'+MUT+';font-size:11px"><th style="text-align:left;padding:5px 8px">ASSET</th><th style="text-align:left">CLASS</th>'+hb('EXPECTED '+HOR+'Y','er_'+HOR+'y_pct')+hb('EXCESS vs CASH','excess_vs_cash_'+HOR+'y_pct')+hb('RR (10y)','rr_10y')+hb('vs HISTORY','fr_percentile')+hb('SCORE','opportunity_score')+'<th style="text-align:left">CONF</th></tr></thead><tbody>'+rows+'</tbody></table>';}
+  function bars(){var ks=keys.filter(function(k){return H[k][tkk()];}).sort(function(a,b){return H[b][tkk()].base-H[a][tkk()].base;}).slice(0,16);
+    var mx=Math.max.apply(null,ks.map(function(k){return H[k][tkk()].p90;}));
+    return ks.map(function(k){var t=H[k][tkk()];var w=function(v){return (100*v/mx).toFixed(1);}
+      return '<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><div style="width:52px;font-weight:700;font-size:12px">'+k+'</div><div style="flex:1;position:relative;height:14px;background:rgba(255,255,255,.05);border-radius:7px"><div style="position:absolute;left:'+w(t.p10)+'%;width:'+ (w(t.p90)-w(t.p10)).toFixed(1)+'%;top:5px;height:4px;background:'+MUT+'55;border-radius:2px"></div><div style="position:absolute;left:0;width:'+w(t.base)+'%;height:14px;border-radius:7px;background:linear-gradient(90deg,'+AMB+'33,'+AMB+')"></div></div><div style="width:170px;font-size:11px;color:'+MUT+'">$'+(t.base/1000).toFixed(1)+'k <span style="opacity:.8">('+ (t.p10/1000).toFixed(1)+'k 10th · '+(t.p90/1000).toFixed(1)+'k 90th)</span></div></div>';}).join('')
+      +'<div style="font-size:10px;color:'+MUT+';margin-top:4px">$10,000 · lognormal 10th/90th percentiles from (expected return, σ) — labeled, not vague bear/bull</div>';}
+  function render(){document.getElementById('jh-strategic').innerHTML=
+    '<div style="font-size:20px;font-weight:800;margin:4px 0 2px">🧭 Strategic Capital Compass — multi-horizon</div>'
+    +'<div style="color:'+MUT+';font-size:13px;margin-bottom:10px">Three different questions get three different answers; horizons are market-implied building blocks (assumptions labeled per asset). The tactical AI call below is a separate 1–6&nbsp;month regime overlay — not a contradiction of the 10-year view.</div>'
+    +trio
+    +'<div style="margin:12px 0 8px">'+[1,5,10].map(function(h){return '<button onclick="window._jhHor('+h+')" style="margin-right:6px;padding:5px 14px;border-radius:8px;border:1px solid '+(HOR===h?AMB:'#3a4150')+';background:'+(HOR===h?AMB+'22':'transparent')+';color:'+(HOR===h?AMB:NEU)+';font-weight:700;cursor:pointer">'+h+'Y</button>';}).join('')+'<span style="font-size:11px;color:'+MUT+';margin-left:8px">horizon · '+(D.h_meta?D.h_meta.n_assets:keys.length)+' assets incl. 11 sectors</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">'
+    +'<div style="border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px"><div style="font-size:11px;color:'+MUT+';letter-spacing:1">RETURN vs RISK · '+HOR+'Y</div>'+scatter()+'</div>'
+    +'<div style="border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px;overflow:auto"><div style="font-size:11px;color:'+MUT+';letter-spacing:1">COMPASS TABLE · click headers to sort</div>'+table()+'</div></div>'
+    +'<div style="border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px;margin-top:14px"><div style="font-size:11px;color:'+MUT+';letter-spacing:1">$10,000 · '+HOR+'-YEAR OUTCOME BANDS</div>'+bars()+'</div>';}
+  window._jhHor=function(h){HOR=h;render();};
+  window._jhSort=function(k){SORT=k;render();};
+  render();
+}catch(e){}})();
+</script>
 <div id="ai-decisive-call" style="max-width:1280px;margin:0 auto 18px;padding:0 24px"></div>
 <script>if(window.JHAIBrief)JHAIBrief.mount("ai-decisive-call","compass-decisive-call");</script>
 
@@ -432,7 +486,7 @@ function render(data) {
       <div class="portfolio-er">${fmtPct(p.forward_er_pct)}<small>expected / yr</small></div>
       <div class="portfolio-tenk">$10k → <strong style="color:var(--accent)">${fmtMoney(p.ten_k_10yr)}</strong> <span>in 10 years</span></div>
       <div class="portfolio-weights">
-        ${Object.entries(p.weights).map(([s, w]) => `<div class="weight-pill"><strong>${s}</strong> ${(w*100).toFixed(0)}%</div>`).join("")}
+        ${Object.entries(p.weights).map(([s, w]) => `<div class="weight-pill"><strong>${s}</strong> ${((w*100)%1?(w*100).toFixed(1):(w*100).toFixed(0))}%</div>`).join("")}
       </div>
       <div class="portfolio-desc">${p.description}</div>
     </div>

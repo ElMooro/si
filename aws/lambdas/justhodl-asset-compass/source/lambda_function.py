@@ -1142,6 +1142,214 @@ def lambda_handler(event, context):
     except Exception as e:
         warns.append("v12 ledger: %s" % str(e)[:120])
 
+    # ══ MULTI-HORIZON v2 (ops 3607, additive) — 5y/10y CMAs, sectors, scores.
+    # Risk (sigma, P-loss, percentile) JOINS data/forward-returns.json; sectors
+    # ride SPY building blocks + decaying momentum tilt; assumptions labeled.
+    payload_extra = {"h_meta": {"version": "v2-3607", "error": "init"}}
+    try:
+        import math as _m, os as _os, time as _t2, json as _js
+        import urllib.request as _ur
+        def _fl2(sid):
+            try:
+                key = _os.environ.get("FRED_API_KEY", "2f057499936072679d8843d7fce99989")
+                j = _js.loads(_ur.urlopen(
+                    "https://api.stlouisfed.org/fred/series/observations?series_id="
+                    + sid + "&api_key=" + key + "&file_type=json&sort_order=desc&limit=8",
+                    timeout=15).read())
+                for o in j.get("observations", []):
+                    try:
+                        return float(o["value"])
+                    except Exception:
+                        continue
+            except Exception:
+                return None
+        _cash = {1: _fl2("DGS1"), 5: _fl2("DGS5"), 10: _fl2("DGS10")}
+        _y30 = _fl2("DGS30") or _fl2("DGS20")
+        _bei = _fl2("T10YIE") or 2.3
+        _real10 = _fl2("DFII10")
+        _oasm = {"LQD": _fl2("BAMLC0A0CM"), "HYG": _fl2("BAMLH0A0HYM2"),
+                 "EMB": _fl2("BAMLEMCBPIOAS")}
+        try:
+            _frA = (_js.loads(_ur.urlopen(
+                "https://justhodl-dashboard-live.s3.amazonaws.com/data/forward-returns.json",
+                timeout=20).read()).get("assets")) or {}
+        except Exception:
+            _frA = {}
+        _amap = {(a.get("ticker") or a.get("symbol")): a for a in assets if isinstance(a, dict)}
+        def _er1(sym):
+            a = _amap.get(sym) or {}
+            for k in ("er_1y_pct", "forecast_er_pct", "er_pct", "expected_return_1y_pct"):
+                if isinstance(a.get(k), (int, float)):
+                    return a[k]
+            f = _frA.get(sym) or {}
+            v = f.get("forward_return_pct")
+            return v if isinstance(v, (int, float)) else None
+        _spy1 = _er1("SPY")
+        _spy10 = round(3.0 + _bei + 1.7, 2)
+        _spy5 = round((_spy1 + _spy10) / 2, 2) if _spy1 is not None else _spy10
+        _off10 = {"QQQ": 0.3, "IWM": 0.5, "EEM": 1.0, "EFA": 0.3, "EWJ": 0.3,
+                  "FXI": 0.8, "INDA": 1.2}
+        SECTORS = ["XLK", "XLF", "XLV", "XLY", "XLP", "XLI", "XLE", "XLU",
+                   "XLB", "XLRE", "XLC"]
+        _FMP = _os.environ.get("FMP_API_KEY", "")
+        def _cl1y(sym):
+            try:
+                rows = _js.loads(_ur.urlopen(
+                    "https://financialmodelingprep.com/stable/historical-price-eod/light?symbol="
+                    + sym + "&from=2025-07-01&apikey=" + _FMP, timeout=20).read())
+                pts = sorted((r.get("date", ""), r.get("price") or r.get("close"))
+                             for r in rows
+                             if isinstance(r.get("price") or r.get("close"), (int, float)))
+                return [p for _, p in pts]
+            except Exception:
+                return []
+        def _msig(cs):
+            if len(cs) < 150:
+                return None, None
+            mom = 100.0 * (cs[-1] / cs[0] - 1)
+            rets = [_m.log(cs[i] / cs[i - 1]) for i in range(1, len(cs)) if cs[i - 1] > 0]
+            mu = sum(rets) / len(rets)
+            sd = (sum((x - mu) ** 2 for x in rets) / (len(rets) - 1)) ** 0.5
+            return mom, round(sd * _m.sqrt(252) * 100, 1)
+        _spy_mom, _sd0 = _msig(_cl1y("SPY"))
+        _sig_asm = {"BTC": 65.0, "ETH": 80.0, "SOL": 95.0, "URA": 45.0, "UNG": 55.0,
+                    "USO": 38.0, "CPER": 28.0, "GDX": 38.0, "SLV": 30.0, "PPLT": 28.0,
+                    "DBA": 16.0, "DBC": 17.0, "AMLP": 22.0, "MUB": 6.0, "EMB": 9.0}
+        H = {}
+        def _sig_of(sym, cls):
+            f = ((_frA.get(sym) or {}).get("risk") or {}).get("vol_pct_annualized")
+            if isinstance(f, (int, float)) and f > 0:
+                return f, "forward-returns join"
+            if sym in _sig_asm:
+                return _sig_asm[sym], "assumed (labeled)"
+            return ({"equities": 16.0, "bonds": 7.0, "credit": 8.0, "metals": 15.0,
+                     "reits": 18.0, "commodities": 20.0, "crypto": 70.0, "cash": 0.6,
+                     "sectors": 19.0}.get(cls, 18.0), "class default (labeled)")
+        def _put(sym, cls, e1, e5, e10, sig, ssrc, note, conf="MEDIUM",
+                 rng10=None, tilt=None):
+            if e10 is None or not sig:
+                return
+            row = {"class": cls, "er_1y_pct": (round(e1, 2) if e1 is not None else None),
+                   "er_5y_pct": round(e5, 2), "er_10y_pct": round(e10, 2),
+                   "sigma_pct": round(sig, 1), "sigma_src": ssrc,
+                   "confidence": conf, "note": note}
+            if tilt is not None:
+                row["tactical_tilt_1y_pct"] = round(tilt, 2)
+            if rng10:
+                row["er_10y_range_pct"] = rng10
+            for h in (1, 5, 10):
+                e = row.get("er_%dy_pct" % h)
+                if e is None:
+                    continue
+                srt = sig / 100.0 * _m.sqrt(h)
+                g = e - (sig ** 2) / 200.0
+                mu = h * _m.log(max(1e-6, 1 + g / 100.0))
+                row["tenk_%dy" % h] = {"p10": round(10000 * _m.exp(mu - 1.2816 * srt)),
+                                       "base": round(10000 * _m.exp(mu)),
+                                       "p90": round(10000 * _m.exp(mu + 1.2816 * srt))}
+                row["p_loss_%dy_pct" % h] = (round(50 * (1 - _m.erf(mu / (srt * _m.sqrt(2)))), 1)
+                                             if srt else None)
+                c = _cash.get(h)
+                if c is not None:
+                    row["excess_vs_cash_%dy_pct" % h] = round(e - c, 2)
+            if row.get("excess_vs_cash_10y_pct") is not None:
+                row["rr_10y"] = round(row["excess_vs_cash_10y_pct"] / sig, 2)
+            H[sym] = row
+        for _tk, _cls, _lbl, _dur, _st, _mdl in UNIVERSE:
+            e1 = _er1(_tk)
+            sig, ssrc = _sig_of(_tk, _cls)
+            if _mdl == "cash" or _tk == "CASH":
+                if _cash[10] is not None:
+                    _put(_tk, "cash", _cash[1], _cash[5], _cash[10], 0.6, "T-bill ladder",
+                         "market-implied avg short-rate path (DGS1/5/10) — fixes todays-yield-forever")
+            elif _mdl == "ust":
+                y = _y30 if _tk == "TLT" else _cash[10]
+                if y is not None:
+                    _put(_tk, _cls, e1, ((e1 + y) / 2 if e1 is not None else y), y, sig, ssrc,
+                         "10y anchored to current YTM (constant-duration caveat); 1y = engine curve-implied")
+            elif _mdl == "tips":
+                if _real10 is not None:
+                    e10 = _real10 + _bei
+                    _put(_tk, _cls, e1, ((e1 + e10) / 2 if e1 is not None else e10), e10, sig, ssrc,
+                         "10y = DFII10 real + breakeven")
+            elif _mdl == "credit":
+                loss = {"LQD": 0.15, "HYG": 2.3, "EMB": 0.60, "MUB": 0.10}.get(_tk, 0.3)
+                if _cash[10] is not None:
+                    sp = _oasm.get(_tk)
+                    sp = sp if isinstance(sp, (int, float)) else (0.4 if _tk == "MUB" else 1.0)
+                    e10 = _cash[10] + sp - loss
+                    _put(_tk, _cls, e1, ((e1 + e10) / 2 if e1 is not None else e10), e10, sig, ssrc,
+                         "UST10 + live OAS - credit loss %.2f%%/yr (published assumption)" % loss)
+            elif _cls == "equities":
+                off = _off10.get(_tk, 0.0)
+                d1 = (e1 - _spy1) if (e1 is not None and _spy1 is not None) else off
+                e10 = _spy10 + (off if _tk != "SPY" else 0.0)
+                e5 = (_spy5 + 0.5 * d1) if _tk != "SPY" else _spy5
+                _put(_tk, _cls, e1, e5, e10, sig, ssrc,
+                     "income 3.0 + BEI + real g 1.7 (labeled); offsets decay by 10y",
+                     conf=("MEDIUM" if _tk in ("SPY", "QQQ", "EFA") else "LOW"))
+            elif _cls == "metals":
+                e10 = _bei + {"GLD": 0.0, "SLV": 0.3, "GDX": 1.0, "PPLT": 0.2}.get(_tk, 0.0)
+                _put(_tk, _cls, e1, ((e1 + e10) / 2 if e1 is not None else e10), e10, sig, ssrc,
+                     "long-run = inflation anchor (+miner beta)", conf="LOW")
+            elif _cls == "reits":
+                e10 = (3.8 + _bei) if _tk == "VNQ" else (5.5 + _bei * 0.5)
+                _put(_tk, _cls, e1, ((e1 + e10) / 2 if e1 is not None else e10), e10, sig, ssrc,
+                     "yield + inflation pass-through (assumption)", conf="LOW")
+            elif _cls == "commodities":
+                e10 = _bei - 1.0
+                _put(_tk, _cls, e1, ((e1 + e10) / 2 if e1 is not None else e10), e10, sig, ssrc,
+                     "inflation - roll cost (assumption)", conf="LOW")
+            elif _cls == "crypto":
+                pt = {"BTC": 15.0, "ETH": 12.0, "SOL": 10.0}.get(_tk, 8.0)
+                _put(_tk, _cls, e1, pt, pt, sig, ssrc,
+                     "point estimate only — no consensus model", conf="VERY LOW", rng10=[-20, 60])
+        for sec in SECTORS:
+            mom, rsig = _msig(_cl1y(sec))
+            tilt = 0.0
+            if mom is not None and _spy_mom is not None:
+                tilt = max(-2.5, min(2.5, (mom - _spy_mom) / 10.0))
+            _put(sec, "sectors", (_spy1 + tilt) if _spy1 is not None else None,
+                 _spy5 + 0.4 * tilt, _spy10, rsig or 19.0,
+                 "computed 1y realized" if rsig else "class default (labeled)",
+                 "SPY building blocks + momentum tilt (decays 100/40/0 pct at 1/5/10y)",
+                 conf="LOW", tilt=tilt)
+            _t2.sleep(0.08)
+        _vals = lambda k: sorted(v[k] for v in H.values() if isinstance(v.get(k), (int, float)))
+        def _rank(arr, x):
+            return (sum(1 for a in arr if a <= x) / len(arr)) if arr else 0.5
+        e10a, exa, rra = _vals("er_10y_pct"), _vals("excess_vs_cash_10y_pct"), _vals("rr_10y")
+        _scored = []
+        for sym, row in H.items():
+            fp = (_frA.get(sym) or {}).get("current_vs_history_percentile")
+            pl = row.get("p_loss_10y_pct")
+            sc = (30 * _rank(e10a, row["er_10y_pct"])
+                  + 20 * _rank(exa, row.get("excess_vs_cash_10y_pct", 0))
+                  + 15 * ((fp / 100.0) if isinstance(fp, (int, float)) else 0.5)
+                  + 15 * _rank(rra, row.get("rr_10y", 0))
+                  + 10 * (1 - (pl if pl is not None else 50) / 100.0) + 10 * 0.5)
+            row["opportunity_score"] = round(sc, 1)
+            row["fr_percentile"] = fp
+            _scored.append([sym, round(sc, 1)])
+        _scored.sort(key=lambda x: -x[1])
+        _rrp = [(k, H[k]["rr_10y"]) for k in H
+                if H[k].get("rr_10y") is not None and H[k]["sigma_pct"] >= 4]
+        _frp = [(k, H[k]["fr_percentile"]) for k in H
+                if isinstance(H[k].get("fr_percentile"), (int, float))]
+        trio = {"highest_expected_10y": (max(H, key=lambda k: H[k]["er_10y_pct"]) if H else None),
+                "best_risk_reward_10y": (max(_rrp, key=lambda x: x[1])[0] if _rrp else None),
+                "most_attractive_vs_history": (max(_frp, key=lambda x: x[1])[0] if _frp else None),
+                "worst_opportunity": (_scored[-1][0] if _scored else None),
+                "note": "three questions, three answers — the old single best conflated them"}
+        payload_extra = {"horizons": H, "compass_ranking": _scored, "verdict_trio": trio,
+                         "cash_path_pct": {"1y": _cash[1], "5y": _cash[5], "10y": _cash[10]},
+                         "h_meta": {"version": "v2-3607", "n_assets": len(H),
+                                    "risk_join": "data/forward-returns.json",
+                                    "quantiles": "lognormal 10th/90th from (er, sigma)"}}
+    except Exception as _e:
+        print("[compass-v2] horizons layer failed:", str(_e)[:220])
+        payload_extra = {"h_meta": {"version": "v2-3607", "error": str(_e)[:220]}}
+
     out = {
         "schema_version": "1.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1156,6 +1364,7 @@ def lambda_handler(event, context):
                   "gdx_vs_gold": beta_gdx_gold,
                   "gold_silver_ratio": gsr_now, "gsr_z_10y": gsr_z},
         "assets": assets,
+        **payload_extra,
         "correlations": v12.get("correlations"),
         "factor_betas": v12.get("factor_betas"),
         "scenarios": v12.get("scenarios"),
