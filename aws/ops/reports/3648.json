@@ -1,0 +1,40 @@
+{
+  "gates": {
+    "G1_data": {
+      "ok": false,
+      "detail": "err=None layer=Daily_Chokepoints_Data rows=11172 metric=n_total n=0 worst=None pids={} span=None disrupted=0 sample=[] errors=[]"
+    },
+    "G2_wires": {
+      "ok": true,
+      "detail": "row=True fetch=True mi_zip=True"
+    }
+  },
+  "catalog": {
+    "already_ours": {
+      "ecb_data_api": 16,
+      "gdelt": 3,
+      "aaii": 12,
+      "finnhub": 4,
+      "fred/eia/yahoo/sec/treasury/bls": "fleet-wide"
+    },
+    "new_adopted": "IMF PortWatch (this ops)",
+    "queued": [
+      "BIS stats API WS_CBS/LBS (eurodollar cross-border claims)",
+      "UN Comtrade (laggy monthly trade)"
+    ],
+    "skipped_no_edge": [
+      "MITRE ATT&CK",
+      "OpenAQ/WAQI",
+      "aviationstack",
+      "arxiv",
+      "eur-lex raw",
+      "ACLED (ToS/commercial)"
+    ]
+  },
+  "snapshot": {
+    "worst": null,
+    "sample": [],
+    "disruptions_n": 15
+  },
+  "verdict": "GAPS: G1_data"
+}
