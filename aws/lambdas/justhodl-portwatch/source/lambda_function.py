@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -39,13 +39,17 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "bremerhaven", "colombo", "tanjung priok",
                "laem chabang", "gwangyang", "incheon")
 # v1.2: export-nation aggregation — country -> gateway-port pulse
-EXPORT_NATIONS = {"CHN": "China", "KOR": "Korea", "JPN": "Japan",
-                  "TWN": "Taiwan", "SGP": "Singapore", "VNM": "Vietnam",
-                  "DEU": "Germany", "IND": "India", "MEX": "Mexico",
-                  "NLD": "Netherlands", "USA": "United States",
-                  "MYS": "Malaysia", "THA": "Thailand", "IDN": "Indonesia",
-                  "BRA": "Brazil", "ARE": "UAE", "LKA": "Sri Lanka",
-                  "BEL": "Belgium"}
+EXPORT_NATIONS = (("china", "China"), ("hong kong", "China"),
+                  ("korea", "Korea"), ("japan", "Japan"),
+                  ("taiwan", "Taiwan"), ("singapore", "Singapore"),
+                  ("viet", "Vietnam"), ("german", "Germany"),
+                  ("india", "India"), ("mexico", "Mexico"),
+                  ("netherland", "Netherlands"),
+                  ("united states", "United States"), ("u.s.", "United States"),
+                  ("malaysia", "Malaysia"), ("thailand", "Thailand"),
+                  ("indonesia", "Indonesia"), ("brazil", "Brazil"),
+                  ("emirates", "UAE"), ("sri lanka", "Sri Lanka"),
+                  ("belgium", "Belgium"))
 
 
 def _q(url, params, timeout=30):
@@ -271,10 +275,11 @@ def lambda_handler(event=None, context=None):
     # v1.2: exporters pulse — group ports by country code
     exp = {}
     for p in out["ports"]:
-        cc = str(p.get("country") or "").upper()[:3]
-        nm = EXPORT_NATIONS.get(cc)
+        raw = str(p.get("country") or "").lower()
+        nm = next((v for k, v in EXPORT_NATIONS if k in raw), None)
         if not nm:
             continue
+        cc = nm[:3].upper()
         exp.setdefault(cc, {"country": nm, "ports": [], "pcts": [],
                             "zs": []})
         exp[cc]["ports"].append(p["name"])
