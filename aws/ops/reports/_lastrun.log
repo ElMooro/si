@@ -1,11 +1,11 @@
-executing-against: ce3b63bdad5083205e1358628b65e4a9c294dd39
-ops 3670 — HKIA air canary + freight page + sidebar
-[20:51:48]   zip: 86928 bytes
+executing-against: 7b4d02d14220770d8c2d6f40b58fa8f657050712
+ops 3671 — air v1.4 async landing
+[23:49:03]   zip: 86928 bytes
 ── 1. Lambda ──
-[20:51:48]   Lambda exists — updating
-[20:51:53] ✅   ✓ updated justhodl-air-cargo
+[23:49:03]   Lambda exists — updating
+[23:49:06] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[20:51:53]   invoking justhodl-air-cargo…
+[23:49:06]   invoking justhodl-air-cargo…
 CRASH: end(request)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
@@ -13,6 +13,6 @@ CRASH: end(request)
 botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-air-cargo/invocations"
 
 VERDICT: CRASH
-[20:57:01] VERDICT: CRASH
+[23:54:13] VERDICT: CRASH
 
-→ Report written to aws/ops/reports/latest/3670_air_regate.md
+→ Report written to aws/ops/reports/latest/3671_air_async.md
