@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -37,7 +37,32 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "haiphong", "ho chi minh", "cai mep", "mundra",
                "nhava sheva", "jawaharlal", "manzanillo",
                "bremerhaven", "colombo", "tanjung priok",
-               "laem chabang", "gwangyang", "incheon")
+               "laem chabang", "gwangyang", "incheon", "pusan",
+               "yangshan", "hai phong", "vung tau", "jawaharlal",
+               "nhava", "klang", "priok", "bremen", "felixstowe",
+               "algeciras", "valencia", "yokkaichi", "osaka", "kobe")
+# v1.3: port-name -> nation fallback (ref country field is unreliable/blank
+# for some rows; a known gateway's nation is a fact)
+PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
+               ("ningbo", "China"), ("shenzhen", "China"),
+               ("qingdao", "China"), ("busan", "Korea"), ("pusan", "Korea"),
+               ("gwangyang", "Korea"), ("incheon", "Korea"),
+               ("kaohsiung", "Taiwan"), ("yokohama", "Japan"),
+               ("tokyo", "Japan"), ("osaka", "Japan"), ("kobe", "Japan"),
+               ("yokkaichi", "Japan"), ("singapore", "Singapore"),
+               ("haiphong", "Vietnam"), ("hai phong", "Vietnam"),
+               ("ho chi minh", "Vietnam"), ("cai mep", "Vietnam"),
+               ("vung tau", "Vietnam"), ("hamburg", "Germany"),
+               ("bremen", "Germany"), ("rotterdam", "Netherlands"),
+               ("antwerp", "Belgium"), ("mundra", "India"),
+               ("nhava", "India"), ("jawaharlal", "India"),
+               ("manzanillo", "Mexico"), ("klang", "Malaysia"),
+               ("tanjung pelepas", "Malaysia"), ("priok", "Indonesia"),
+               ("laem chabang", "Thailand"), ("santos", "Brazil"),
+               ("jebel ali", "UAE"), ("dubai", "UAE"),
+               ("colombo", "Sri Lanka"), ("los angeles", "United States"),
+               ("long beach", "United States"), ("houston", "United States"),
+               ("new york", "United States"), ("savannah", "United States"))
 # v1.2: export-nation aggregation — country -> gateway-port pulse
 EXPORT_NATIONS = (("china", "China"), ("hong kong", "China"),
                   ("korea", "Korea"), ("japan", "Japan"),
@@ -218,7 +243,8 @@ def lambda_handler(event=None, context=None):
                               "resultRecordCount": 2000})
         cand = {}
         for a2 in _feats(pref):
-            nm = str(a2.get("portname") or a2.get("fullname") or "").lower()
+            nm = (str(a2.get("portname") or "") + " " +
+                  str(a2.get("fullname") or "")).lower()
             pid2 = a2.get("portid")
             if pid2 is None:
                 continue
@@ -270,13 +296,21 @@ def lambda_handler(event=None, context=None):
             out["ports"].sort(key=lambda p: p["z"])
     except Exception as _pe:
         out["errors"].append("ports_layer: " + str(_pe)[:90])
+    out["ports_ref_sample"] = [
+        {"name": p["name"], "country": p.get("country")}
+        for p in out["ports"][:14]]
+    _matched_names = " ".join(p["name"].lower() for p in out["ports"])
+    out["ref_misses"] = [mp for mp in MAJOR_PORTS
+                         if mp not in _matched_names][:20]
     out["ports_disrupted"] = sum(1 for p in out["ports"]
                                  if p["status"] == "DISRUPTED")
     # v1.2: exporters pulse — group ports by country code
     exp = {}
     for p in out["ports"]:
         raw = str(p.get("country") or "").lower()
-        nm = next((v for k, v in EXPORT_NATIONS if k in raw), None)
+        pnm = str(p.get("name") or "").lower()
+        nm = (next((v for k, v in EXPORT_NATIONS if k in raw), None)
+              or next((v for k, v in PORT_NATION if k in pnm), None))
         if not nm:
             continue
         cc = nm[:3].upper()
