@@ -1,17 +1,8 @@
-executing-against: 329294be9e75a9d19eb7f34c56cb2f720dabde72
-ops 3614 — 2-asset style guard fix + 60/40 dedupe
-[01:24:07]   zip: 92392 bytes
-── 1. Lambda ──
-[01:24:07]   Lambda exists — updating
-[01:24:11] ✅   ✓ updated justhodl-forward-returns
-── 3. Smoke test ──
-[01:24:11]   invoking justhodl-forward-returns…
-[01:24:14] ✅   ✓ smoke test passed
-[01:24:14]     ok                       True
-[01:24:14]     n_assets                 15
-PASS  G1_all_styles — ers={'60_40': 6.18, 'permanent': 4.98, 'golden_butterfly': 5.32, 'swensen': 6.54, 'ivy5': 5.73, 'bogle3': 6.56, 'dalio_growth': 5.48, 'risk_parity': 4.67} dedup=True 60_40_note=auto — recomputed from live forward ERs daily bw_clone_er=7.03 bw_as_of=2026-07-20T21:15:38+00:00 n=14
-[01:24:19] G1_all_styles True
+executing-against: da413390957462fc3c52e6a55482593655c13ea8
+ops 3615 — Capital Compass visual dashboard served-proof
+PASS  G1_dashboard_served — all 10 markers served; len=41371
+[01:59:52] G1_dashboard_served True
 VERDICT: PASS_ALL
-[01:24:19] VERDICT: PASS_ALL
+[01:59:52] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3614_sixty_fix.md
+→ Report written to aws/ops/reports/latest/3615_visual_dash.md
