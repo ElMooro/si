@@ -1,31 +1,33 @@
-executing-against: 9e5c49be89ae55b7de460ec2aacf0644d24cb099
-ops 3629 — deployed-zip forensic + v1.7.1/v2.5
-[04:15:03]   zip: 91607 bytes
+executing-against: 8ec5abc3656083f159147b87b6111fe71c760e25
+ops 3630 — deployed-zip forensic + v1.7.1/v2.5
+[04:20:37]   zip: 91607 bytes
 ── 1. Lambda ──
-[04:15:04]   Lambda exists — updating
-[04:15:09] ✅   ✓ updated justhodl-asia-leads
+[04:20:37]   Lambda exists — updating
+[04:20:42] ✅   ✓ updated justhodl-asia-leads
 ── 3. Smoke test ──
-[04:15:09]   invoking justhodl-asia-leads…
-[04:15:50] ✅   ✓ smoke test passed
-[04:15:50]     ok                       True
-[04:15:50]     kr_yoy                   47.96
-[04:15:50]     tw_yoy                   48.33
-PASS  G1_tw — zip={'out["v17"]': True, 'stage6_brute': True, 'GetPointData': True} err=None keys=['error', 'label', 'latest_usd_bn', 'period', 'raw_head', 'source', 'stage2', 'stage3_candidates', 'stage3_tried', 'stage4_tried', 'stage5_endpoints', 'stage5_tried', 'stage6_sitesns', 'stage6_tried', 'v17', 'via_stage1', 'via_stage2', 'yoy_pct'] VALUE=none brute=None sns=['464'] s6_hit=None s6_sample=[{'sn': '464', 'hit': False, 'titles': ['Economic Growth Rate(yoy)', 'CPI Change Rate', 'Unemployment Rate', 'Monthly Regular Earnings of All Em', 'Industrial Production Index Growth', 'Value of Export Orders']}] blob=None
-[04:16:22] G1_tw True
-[04:16:22]   zip: 88970 bytes
+[04:20:42]   invoking justhodl-asia-leads…
+[04:21:02] ✅   ✓ smoke test passed
+[04:21:02]     ok                       True
+[04:21:02]     kr_yoy                   47.96
+[04:21:02]     tw_yoy                   48.33
+PASS  G1_tw — zip={'out["v17"]': True, 'stage6_brute': True, 'GetPointData': True} err=None keys=['error', 'label', 'latest_usd_bn', 'period', 'raw_head', 'source', 'stage2', 'stage3_candidates', 'stage3_tried', 'stage4_tried', 'stage5_endpoints', 'stage5_tried', 'stage6_sitesns', 'stage6_tried', 'v17', 'via_stage1', 'via_stage2', 'yoy_pct'] VALUE=none brute=None sns=['464'] s6_hit=None s6_sample=[{'sn': '464', 'hit': False, 'xerr': None, 'err': None, 'item_blob': 'May. 2026 89,475(million US dollars) Value of Export Orders '}] blob=None
+[04:21:19] G1_tw True
+[04:21:19]   zip: 88983 bytes
 ── 1. Lambda ──
-[04:16:22]   Lambda exists — updating
-[04:16:28] ✅   ✓ updated justhodl-china-liquidity
+[04:21:19]   Lambda exists — updating
+[04:21:24] ✅   ✓ updated justhodl-china-liquidity
 ── 3. Smoke test ──
-[04:16:28]   invoking justhodl-china-liquidity…
-[04:16:53] ✅   ✓ smoke test passed
-[04:16:53]     ok                       True
-[04:16:53]     regime                   NEUTRAL
-[04:16:53]     credit_impulse_pp        -5.52
-[04:16:53]     m2_yoy                   8.21
-PASS  G2_cn — err=None VALUE=none title=2025年8月社会融资规模增量统计数据报告 att=None js_files=[] via=edge note=item fetched, flow pattern not found (head recorded)
-[04:17:30] G2_cn True
+[04:21:24]   invoking justhodl-china-liquidity…
+[04:21:37] ✅   ✓ smoke test passed
+[04:21:37]     ok                       True
+[04:21:37]     regime                   NEUTRAL
+[04:21:37]     credit_impulse_pp        -5.52
+[04:21:37]     m2_yoy                   8.21
+PASS  G2_cn — err=None VALUE=none title=2025年8月社会融资规模增量统计数据报告 att=None js_files=[] probe=<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
+ <head>
+  <meta http-equiv="Content-Type" content="t via=edge note=item fetched, flow pattern not found (head recorded)
+[04:21:48] G2_cn True
 VERDICT: PASS_ALL
-[04:17:30] VERDICT: PASS_ALL
+[04:21:48] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3629_forensic_v171.md
+→ Report written to aws/ops/reports/latest/3630_xerr_dump.md
