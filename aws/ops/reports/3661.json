@@ -1,0 +1,209 @@
+{
+  "gates": {
+    "G1_full": {
+      "ok": true,
+      "detail": "err=None ref_total=2065 ports_n=40 nations=15 have=['Belgium', 'Brazil', 'China', 'Indonesia', 'Japan', 'Korea', 'Malaysia', 'Mexico', 'Netherlands', 'Singapore', 'Sri Lanka', 'Thailand', 'UAE', 'United States', 'Vietnam'] slowing=['UAE', 'China', 'Brazil', 'Malaysia'] board=[('UAE', 2, -29.8, 'SLOWING'), ('China', 5, -22.0, 'SLOWING'), ('Brazil', 2, -18.8, 'SLOWING'), ('Malaysia', 2, -13.6, 'SLOWING'), ('Singapore', 2, -8.0, 'STABLE'), ('Belgium', 1, -7.5, 'STABLE'), ('Korea', 3, -4.3, 'STABLE'), ('United States', 4, -4.2, 'STABLE'), ('Japan', 5, -1.9, 'STABLE'), ('Sri Lanka', 1, 3.0, 'STABLE'), ('Thailand', 1, 6.6, 'STABLE'), ('Netherlands', 1, 7.0, 'STABLE')] misses=['hamburg', 'haiphong'"
+    }
+  },
+  "board": [
+    {
+      "code": "UAE",
+      "country": "UAE",
+      "n_ports": 2,
+      "ports": [
+        "Jebel Ali",
+        "Dubai"
+      ],
+      "avg_vs_baseline_pct": -29.8,
+      "avg_z": -0.45,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "CHI",
+      "country": "China",
+      "n_ports": 5,
+      "ports": [
+        "Shanghai",
+        "Ningbo",
+        "Qingdao Port",
+        "Shekou (Shenzhen)"
+      ],
+      "avg_vs_baseline_pct": -22.0,
+      "avg_z": -1.07,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "BRA",
+      "country": "Brazil",
+      "n_ports": 2,
+      "ports": [
+        "General Santos",
+        "Santos"
+      ],
+      "avg_vs_baseline_pct": -18.8,
+      "avg_z": -0.13,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "MAL",
+      "country": "Malaysia",
+      "n_ports": 2,
+      "ports": [
+        "Port Klang",
+        "Tanjung Pelepas"
+      ],
+      "avg_vs_baseline_pct": -13.6,
+      "avg_z": -0.82,
+      "verdict": "SLOWING"
+    },
+    {
+      "code": "SIN",
+      "country": "Singapore",
+      "n_ports": 2,
+      "ports": [
+        "Serangoon Harbor",
+        "Singapore"
+      ],
+      "avg_vs_baseline_pct": -8.0,
+      "avg_z": -0.36,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "BEL",
+      "country": "Belgium",
+      "n_ports": 1,
+      "ports": [
+        "Antwerp"
+      ],
+      "avg_vs_baseline_pct": -7.5,
+      "avg_z": -0.44,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "KOR",
+      "country": "Korea",
+      "n_ports": 3,
+      "ports": [
+        "Busan",
+        "Gwangyang (Kwangyang)",
+        "Incheon"
+      ],
+      "avg_vs_baseline_pct": -4.3,
+      "avg_z": -0.33,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "UNI",
+      "country": "United States",
+      "n_ports": 4,
+      "ports": [
+        "Houston (US-TX)",
+        "Savannah",
+        "New York-New Jersey",
+        "Los Angeles-Long Beach"
+      ],
+      "avg_vs_baseline_pct": -4.2,
+      "avg_z": -0.15,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "JAP",
+      "country": "Japan",
+      "n_ports": 5,
+      "ports": [
+        "Tokyo",
+        "Kobe",
+        "Yokohama",
+        "Osaka"
+      ],
+      "avg_vs_baseline_pct": -1.9,
+      "avg_z": -0.11,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "SRI",
+      "country": "Sri Lanka",
+      "n_ports": 1,
+      "ports": [
+        "Colombo"
+      ],
+      "avg_vs_baseline_pct": 3.0,
+      "avg_z": 0.12,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "THA",
+      "country": "Thailand",
+      "n_ports": 1,
+      "ports": [
+        "Laem Chabang"
+      ],
+      "avg_vs_baseline_pct": 6.6,
+      "avg_z": 0.29,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "NET",
+      "country": "Netherlands",
+      "n_ports": 1,
+      "ports": [
+        "Rotterdam"
+      ],
+      "avg_vs_baseline_pct": 7.0,
+      "avg_z": 0.54,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "MEX",
+      "country": "Mexico",
+      "n_ports": 3,
+      "ports": [
+        "Manzanillo",
+        "Pepillo Salcedo (Manzanillo)",
+        "Manzanillo"
+      ],
+      "avg_vs_baseline_pct": 8.6,
+      "avg_z": 0.06,
+      "verdict": "STABLE"
+    },
+    {
+      "code": "VIE",
+      "country": "Vietnam",
+      "n_ports": 3,
+      "ports": [
+        "Hai Phong",
+        "Vung Tau",
+        "Cai Mep"
+      ],
+      "avg_vs_baseline_pct": 16.5,
+      "avg_z": 0.26,
+      "verdict": "ACCELERATING"
+    },
+    {
+      "code": "IND",
+      "country": "Indonesia",
+      "n_ports": 2,
+      "ports": [
+        "Tanjung Priok",
+        "Mundra"
+      ],
+      "avg_vs_baseline_pct": 16.6,
+      "avg_z": 0.4,
+      "verdict": "ACCELERATING"
+    }
+  ],
+  "misses": [
+    "hamburg",
+    "haiphong",
+    "ho chi minh",
+    "nhava sheva",
+    "jawaharlal",
+    "bremerhaven",
+    "pusan",
+    "yangshan",
+    "jawaharlal",
+    "nhava",
+    "bremen"
+  ],
+  "verdict": "PASS_ALL"
+}
