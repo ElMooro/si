@@ -1,0 +1,30 @@
+{
+  "gates": {
+    "G1_thesis": {
+      "ok": true,
+      "detail": "sched=updated async=202 age_min=10.9 "
+    },
+    "G2_registry": {
+      "ok": false,
+      "detail": "stale_n=11 residue=['data/gsi-calibration.json', 'data/gsi-horizons.json', 'data/jsi-calibration.json', 'data/signal-orthogonality.json', 'data/edge-discovery-graduated.json', 'data/edge-discovery.json', 'data/bagger-engine.json', 'data/strategy-portfolio.json', 'data/hiring-velocity.json', 'data/asset-discovery.json']"
+    },
+    "G3_serves": {
+      "ok": true,
+      "detail": "{'bis_card': True, 'bis_link': True, 'cn_tile': True, 'bcb_fetch': True}"
+    }
+  },
+  "stale_residue": [
+    "data/gsi-calibration.json",
+    "data/gsi-horizons.json",
+    "data/jsi-calibration.json",
+    "data/signal-orthogonality.json",
+    "data/edge-discovery-graduated.json",
+    "data/edge-discovery.json",
+    "data/bagger-engine.json",
+    "data/strategy-portfolio.json",
+    "data/hiring-velocity.json",
+    "data/asset-discovery.json",
+    "data/ma-target-predictor.json"
+  ],
+  "verdict": "GAPS: G2_registry"
+}

@@ -1,10 +1,12 @@
-executing-against: 728bddde190f8bb1ed56f26eecbf4dfd744db89a
-ops 3655 — geo-stack dedicated pages + sidebar
-PASS  G1_pages — {'geo-risk.html': True, 'portwatch.html': True, 'bis-crossborder.html': True}
-[16:29:59] G1_pages True
-PASS  G2_sidebar — {'/geo-risk.html': True, '/portwatch.html': True, '/bis-crossborder.html': True} total=393 cats={'/geo-risk.html': 'Risk & Crisis', '/bis-crossborder.html': 'Macro & Liquidity', '/portwatch.html': 'Macro & Liquidity'}
-[16:29:59] G2_sidebar True
-VERDICT: PASS_ALL
-[16:29:59] VERDICT: PASS_ALL
+executing-against: e6947abb2c20f26b94c689a557828184e94abd5e
+ops 3657 — thesis heal + stale endgame + synthesis serves
+PASS  G1_thesis — sched=updated async=202 age_min=10.9 
+[16:53:32] G1_thesis True
+FAIL  G2_registry — stale_n=11 residue=['data/gsi-calibration.json', 'data/gsi-horizons.json', 'data/jsi-calibration.json', 'data/signal-orthogonality.json', 'data/edge-discovery-graduated.json', 'data/edge-discovery.json', 'data/bagger-engine.json', 'data/strategy-portfolio.json', 'data/hiring-velocity.json', 'data/asset-discovery.json']
+[16:54:13] G2_registry False
+PASS  G3_serves — {'bis_card': True, 'bis_link': True, 'cn_tile': True, 'bcb_fetch': True}
+[16:54:13] G3_serves True
+VERDICT: GAPS: G2_registry
+[16:54:13] VERDICT: GAPS: G2_registry
 
-→ Report written to aws/ops/reports/latest/3655_pages_verify.md
+→ Report written to aws/ops/reports/latest/3657_stack_retry.md
