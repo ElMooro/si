@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIS Cross-Border Claims · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}@media(max-width:860px){.grid3{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{color:var(--text-mute);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🏦 BIS Cross-Border Banking Claims</h1>
+<div class="sub">Consolidated foreign claims of all BIS-reporting banks by counterparty country — the offshore-dollar credit pulse. Quarterly source (WS_CBS_PUB), checked weekly Mon 09:40 UTC.</div>
+<div class="grid3" id="hero"><div class="card mono">LOADING…</div></div>
+<div class="sec">Counterparty Board — claims outstanding &amp; growth</div>
+<div class="card"><table id="tbl"><thead><tr><th>Counterparty</th><th style="text-align:right">Claims $bn</th><th style="width:30%">YoY growth</th><th style="text-align:right">YoY %</th><th style="text-align:right">QoQ %</th></tr></thead><tbody></tbody></table></div>
+<div class="sec">Why this matters — eurodollar lens</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Cross-border bank claims are the balance-sheet footprint of the offshore dollar system. Accelerating claims on offshore centres (Cayman, Hong Kong, Singapore, Luxembourg) = the eurodollar machine expanding — risk-asset supportive but fragility-building. Deceleration or contraction historically precedes global dollar squeezes. Pair with the <a href="/eurodollar-plumbing.html" style="color:var(--accent)">Eurodollar Plumbing board</a> (funding rates, dealer positioning, FX basis) for the flow-vs-stock picture.</div>
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){try{
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/bis-crossborder.json?t='+Date.now());
+if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable</div>';return;}
+var b=await r.json();
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
+var tot=b.total||{},off=b.offshore_centres||{},ema=b.em_asia||{};
+function gcol(y){return y==null?MUT:y>=10?AMB:y>=0?GRN:RED;}
+document.getElementById('hero').innerHTML=
+ '<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">TOTAL FOREIGN CLAIMS</div><div class="mono" style="font-size:30px;font-weight:800;color:'+AMB+'">$'+(tot.latest_tn||'—')+'tn</div><div class="mono" style="font-size:12px;color:'+gcol(tot.yoy_pct)+'">'+(tot.yoy_pct>0?'+':'')+(tot.yoy_pct==null?'—':tot.yoy_pct)+'% YoY · '+(tot.period||'')+'</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">OFFSHORE CENTRES ('+(off.n||0)+')</div><div class="mono" style="font-size:30px;font-weight:800;color:'+gcol(off.yoy_pct)+'">'+(off.yoy_pct>0?'+':'')+(off.yoy_pct==null?'—':off.yoy_pct)+'%</div><div class="mono" style="font-size:12px;color:'+MUT+'">$'+((off.latest_bn||0)/1000).toFixed(2)+'tn — the eurodollar machine\u2019s pulse</div></div>'
++'<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">EM ASIA ('+(ema.n||0)+')</div><div class="mono" style="font-size:30px;font-weight:800;color:'+gcol(ema.yoy_pct)+'">'+(ema.yoy_pct>0?'+':'')+(ema.yoy_pct==null?'—':ema.yoy_pct)+'%</div><div class="mono" style="font-size:12px;color:'+MUT+'">$'+((ema.latest_bn||0)/1000).toFixed(2)+'tn claims on EM-Asia counterparties</div></div>';
+var rows=(b.by_counterparty||[]).filter(function(x){return x.code!=='5J';});
+var mx=Math.max.apply(null,rows.map(function(x){return Math.abs(x.yoy_pct||0);}))||1;
+document.querySelector('#tbl tbody').innerHTML=rows.map(function(x){
+ var c=gcol(x.yoy_pct);var w=Math.abs(x.yoy_pct||0)/mx*100;
+ return '<tr><td class="mono" style="font-weight:700">'+x.name+' <span style="color:'+MUT+'">'+x.code+'</span></td>'
+ +'<td class="mono" style="text-align:right">'+(x.latest_bn||0).toLocaleString()+'</td>'
+ +'<td><div style="height:12px;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden"><div style="width:'+w+'%;height:12px;background:linear-gradient(90deg,'+c+'44,'+c+')"></div></div></td>'
+ +'<td class="mono" style="text-align:right;font-weight:800;color:'+c+'">'+(x.yoy_pct>0?'+':'')+(x.yoy_pct==null?'—':x.yoy_pct)+'%</td>'
+ +'<td class="mono" style="text-align:right;color:'+MUT+'">'+(x.qoq_pct>0?'+':'')+(x.qoq_pct==null?'—':x.qoq_pct)+'%</td></tr>';}).join('');
+document.getElementById('foot').textContent='Source: BIS Consolidated Banking Statistics (WS_CBS_PUB), immediate counterparty basis, all reporting banks; '+(b.counterparties_in_response||0)+' counterparties in response. Dataflow shape credit: World Monitor project documentation (facts). Units USD; quarterly. Generated '+b.generated_at;
+}catch(e){console.error(e);}})();
+</script>
+</body>
+</html>

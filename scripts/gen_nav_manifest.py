@@ -60,6 +60,9 @@ FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
     "/jsi.html": "Risk & Crisis",
     "/sovereign-stress.html": "Risk & Crisis",
     "/global-sovereign.html": "Macro & Liquidity",
+    "/geo-risk.html": "Risk & Crisis",              # ops 3653
+    "/portwatch.html": "Macro & Liquidity",          # ops 3653
+    "/bis-crossborder.html": "Macro & Liquidity",    # ops 3653
 }
 
 
