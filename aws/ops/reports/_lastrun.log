@@ -1,28 +1,8 @@
-executing-against: 2a334f91296dfde92f2415d512bfab1f5bbd4289
-ops 3607 — multi-horizon Capital Compass v2
-FAIL  G0_3606_closed — [False, True, False]
-[00:19:12] FAIL  G0_3606_closed — [False, True, False]
-[00:19:12]   zip: 103916 bytes
-── 1. Lambda ──
-[00:19:12]   Lambda exists — updating
-[00:19:17] ✅   ✓ updated justhodl-asset-compass
-── 3. Smoke test ──
-[00:19:17]   invoking justhodl-asset-compass…
-[00:20:13] ✅   ✓ smoke test passed
-[00:20:13]     ok                       True
-[00:20:13]     assets                   31
-[00:20:13]     er_modeled               20
-[00:20:13]     warns                    0
-PASS  G1_engine — n=42 sectors=11 err=None cash_path={'1y': 4.01, '5y': 4.28, '10y': 4.55} legacy_assets_intact=True
-[00:21:06] PASS  G1_engine — n=42 sectors=11 err=None cash_path={'1y': 4.01, '5y': 4.28, '10y': 4.55} legacy_assets_intact=True
-PASS  G2_math — SPY 1/5/10y=2.66/4.8/6.95 σ=15.5 RR=0.15 tenk10={'p10': 9331, 'base': 17488, 'p90': 32777} · LQD 10y=5.19 (UST10 + live OAS - credit loss 0.15%/y) · XLE tilt=0.0 · monotonic=True
-[00:21:06] PASS  G2_math — SPY 1/5/10y=2.66/4.8/6.95 σ=15.5 RR=0.15 tenk10={'p10': 9331, 'base': 17488, 'p90': 32777} · LQD 10y=5.19 (UST10 + live OAS - credit loss 0.15%/y) · XLE tilt=0.0 · monotonic=True
-PASS  G3_trio_scores — trio={'highest_expected_10y': 'BTC', 'best_risk_reward_10y': 'INDA', 'most_attractive_vs_history': 'GLD', 'worst_opportunity': 'DBC'} top5=[['INDA', 83.0], ['FXI', 80.1], ['EEM', 79.3], ['BTC', 79.0], ['EFA', 77.2]]
-[00:21:06] PASS  G3_trio_scores — trio={'highest_expected_10y': 'BTC', 'best_risk_reward_10y': 'INDA', 'most_attractive_vs_history': 'GLD', 'worst_opportunity': 'DBC'} top5=[['INDA', 83.0], ['FXI', 80.1], ['EEM', 79.3], ['BTC', 79.0], ['EFA', 77.2]]
-PASS  G4_page — {'strategic': True, 'table': True, 'weights_fix': True, 'legacy_cards': True, 'decisive_kept': True}
-[00:21:06] PASS  G4_page — {'strategic': True, 'table': True, 'weights_fix': True, 'legacy_cards': True, 'decisive_kept': True}
+executing-against: b8fa87a392e850ae271aa7f6b800ed641c49e6df
+ops 3608 — true-neutral canary accent, served-proof
+FAIL  G1_served_roles — [True, True, False] e8e8e8_count=5
+[00:34:42] G1_served_roles False
+VERDICT: GAPS: G1
+[00:34:42] VERDICT: GAPS: G1
 
-VERDICT: GAPS: G0_3606_closed
-[00:21:06] VERDICT: GAPS: G0_3606_closed
-
-→ Report written to aws/ops/reports/latest/3607_compass_v2.md
+→ Report written to aws/ops/reports/latest/3608_true_neutral.md
