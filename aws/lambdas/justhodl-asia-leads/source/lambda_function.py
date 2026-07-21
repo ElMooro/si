@@ -316,27 +316,66 @@ def taiwan_orders():
                 out["via_stage2"] = via2
             except Exception as _e2:
                 out["stage2_err"] = str(_e2)[:90]
-        txt = re.sub(r"<[^>]+>|&nbsp;|\s+", " ", raw.decode("utf-8", "replace"))
-        seg = txt
-        m = re.search(r"[Ee]xport [Oo]rders(.{0,600})", txt)
-        if m:
-            seg = m.group(1)
-        v = re.search(r"US\$ ?([\d,]+\.?\d*) ?billion", seg)
-        y = re.search(r"(?:increase|decrease|grew|fell|down|up)[a-z]* (?:by )?([\d.]+) ?%", seg, re.I) \
-            or re.search(r"([+-]\d+\.\d+) ?%", seg)
-        p = re.search(r"(January|February|March|April|May|June|July|August|September|October|November|December) 20\d\d", seg) \
-            or re.search(r"20\d\d[./-]\d{1,2}", seg)
-        neg = bool(re.search(r"decrease|fell|down|declin", seg[:200], re.I))
-        if v:
-            out["latest_usd_bn"] = float(v.group(1).replace(",", ""))
-        if y:
-            val = float(y.group(1).replace("+", ""))
-            out["yoy_pct"] = round(-val if (neg and val > 0) else val, 2)
-        if p:
-            out["period"] = p.group(0)
-        out["raw_head"] = seg[:220]
-        if out["latest_usd_bn"] is None and out["yoy_pct"] is None:
-            out["error"] = "regex found no orders print on page"
+        def _parse_orders(txt0):
+            r0 = {"usd_bn": None, "yoy": None, "period": None, "head": None}
+            seg0 = txt0
+            m0 = re.search(r"[Ee]xport [Oo]rders(.{0,600})", txt0)
+            if m0:
+                seg0 = m0.group(1)
+            v0 = re.search(r"US\$ ?([\d,]+\.?\d*) ?billion", seg0)
+            y0 = re.search(r"(?:increase|decrease|grew|fell|down|up)[a-z]* (?:by )?([\d.]+) ?%", seg0, re.I) \
+                or re.search(r"([+-]\d+\.\d+) ?%", seg0)
+            p0 = re.search(r"(January|February|March|April|May|June|July|August|September|October|November|December) 20\d\d", seg0) \
+                or re.search(r"20\d\d[./-]\d{1,2}", seg0)
+            neg0 = bool(re.search(r"decrease|fell|down|declin", seg0[:200], re.I))
+            if v0:
+                r0["usd_bn"] = float(v0.group(1).replace(",", ""))
+            if y0:
+                val0 = float(y0.group(1).replace("+", ""))
+                r0["yoy"] = round(-val0 if (neg0 and val0 > 0) else val0, 2)
+            if p0:
+                r0["period"] = p0.group(0)
+            r0["head"] = seg0[:220]
+            return r0
+
+        raw_s = raw.decode("utf-8", "replace")
+        txt = re.sub(r"<[^>]+>|&nbsp;|\s+", " ", raw_s)
+        pr = _parse_orders(txt)
+        out["raw_head"] = pr["head"]
+        # v1.5 STAGE-3: value sits one link deeper — follow order-labeled hrefs
+        if pr["usd_bn"] is None and pr["yoy"] is None:
+            if "__doPostBack" in raw_s and "href=" not in raw_s.lower():
+                out["error"] = "stage3 requires POST (__doPostBack) — /gov is GET-only; next: worker POST support"
+            else:
+                cands = []
+                for hu, lab in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', raw_s, re.S):
+                    lab2 = re.sub(r"<[^>]+>|\s+", " ", lab)[:70].strip()
+                    if hu.startswith("javascript") or "#" == hu:
+                        continue
+                    au = hu if hu.startswith("http") else ("https://eng.stat.gov.tw/" + hu.lstrip("/"))
+                    score = 2 if re.search(r"order|訂單|外銷", lab2 + hu, re.I) else                             (1 if "sid=" in hu else 0)
+                    cands.append((score, au, lab2))
+                cands.sort(key=lambda x: -x[0])
+                out["stage3_candidates"] = [{"u": c[1][:110], "label": c[2]} for c in cands[:6]]
+                tried = []
+                for sc0, au, lab2 in cands[:3]:
+                    if sc0 == 0 and tried:
+                        break
+                    b3, via3 = _edge(au, cap=400_000)
+                    t3 = re.sub(r"<[^>]+>|&nbsp;|\s+", " ", b3.decode("utf-8", "replace"))
+                    pr3 = _parse_orders(t3)
+                    tried.append({"u": au[:110], "label": lab2, "via": via3,
+                                  "bytes": len(b3), "hit": pr3["usd_bn"] is not None or pr3["yoy"] is not None})
+                    if tried[-1]["hit"]:
+                        pr = pr3
+                        out["stage3_hit"] = au[:130]
+                        break
+                out["stage3_tried"] = tried
+        out["latest_usd_bn"], out["yoy_pct"] = pr["usd_bn"], pr["yoy"]
+        if pr["period"]:
+            out["period"] = pr["period"]
+        if out["latest_usd_bn"] is None and out["yoy_pct"] is None and not out.get("error"):
+            out["error"] = "no orders print through stage-3; see stage3_tried/candidates"
     except Exception as e:
         out["error"] = str(e)[:140]
     return out
