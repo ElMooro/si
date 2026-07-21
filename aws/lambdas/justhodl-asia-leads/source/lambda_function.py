@@ -377,6 +377,7 @@ def taiwan_orders():
                 # nested jhxiaoQS / iframe / meta-refresh one hop deeper via edge.
                 if pr["usd_bn"] is None and pr["yoy"] is None:
                     s4 = []
+                    _bodies4 = []
                     for au0, bs in _bodies3[:2]:
                         hops = []
                         q4 = re.search(r"jhxiaoQS\s*=\s*'([^']+)'", bs)
@@ -390,6 +391,7 @@ def taiwan_orders():
                             hops.append(mr.group(1))
                         for h4 in hops[:2]:
                             b4, via4 = _edge(h4, cap=400_000)
+                            _bodies4.append((h4, b4.decode("utf-8", "replace")))
                             t4 = re.sub(r"<[^>]+>|&nbsp;|\s+", " ",
                                         b4.decode("utf-8", "replace"))
                             pr4 = _parse_orders(t4)
@@ -409,7 +411,7 @@ def taiwan_orders():
                 # top candidates via edge, parse any JSON/text for the print.
                 if pr["usd_bn"] is None and pr["yoy"] is None and _bodies3:
                     eps = []
-                    for au0, bs in _bodies3[:2]:
+                    for au0, bs in (_bodies4 + _bodies3)[:4]:
                         for e0 in re.findall(
                                 r'["\']((?:https?://[^"\']+|/[A-Za-z0-9_./-]+)?'
                                 r'[A-Za-z0-9_./-]*(?:api|ajax|Ashx|ashx|asmx|'
