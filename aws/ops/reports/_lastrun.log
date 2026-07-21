@@ -1,12 +1,39 @@
-executing-against: e6947abb2c20f26b94c689a557828184e94abd5e
-ops 3657 — thesis heal + stale endgame + synthesis serves
-PASS  G1_thesis — sched=updated async=202 age_min=10.9 
-[16:53:32] G1_thesis True
-FAIL  G2_registry — stale_n=11 residue=['data/gsi-calibration.json', 'data/gsi-horizons.json', 'data/jsi-calibration.json', 'data/signal-orthogonality.json', 'data/edge-discovery-graduated.json', 'data/edge-discovery.json', 'data/bagger-engine.json', 'data/strategy-portfolio.json', 'data/hiring-velocity.json', 'data/asset-discovery.json']
-[16:54:13] G2_registry False
-PASS  G3_serves — {'bis_card': True, 'bis_link': True, 'cn_tile': True, 'bcb_fetch': True}
-[16:54:13] G3_serves True
-VERDICT: GAPS: G2_registry
-[16:54:13] VERDICT: GAPS: G2_registry
+executing-against: 4ebd8b81b12a7daa10e9ab793b309ca6530e9f0e
+ops 3658 — freight pulse + exporters pulse
+[18:23:59]   zip: 84442 bytes
+── 1. Lambda ──
+[18:24:00]   Lambda exists — updating
+[18:24:04] ✅   ✓ updated justhodl-freight-pulse
+── 3. Smoke test ──
+[18:24:04]   invoking justhodl-freight-pulse…
+PASS  G1_freight — err=None live=6 comp=57.2 verdict=ACCELERATING infl=['cass_shipments'] sample=[('tsi_freight', 1.4, 4.4), ('cass_shipments', -4.1, 17.2), ('cass_expend', 11.2, 37.8), ('truck_tonnage', 3.4, 10.2)] errs=[]
+[18:24:12] G1_freight True
+[18:24:12]   zip: 86997 bytes
+── 1. Lambda ──
+[18:24:12]   Lambda exists — updating
+[18:24:17] ✅   ✓ updated justhodl-portwatch
+── 3. Smoke test ──
+[18:24:17]   invoking justhodl-portwatch…
+FAIL  G2_exporters — err=None ports_n=21 exporters_n=5 slowing=[] board=[('Belgium', 1, -7.5, 'STABLE'), ('India', 1, 2.5, 'STABLE'), ('Mexico', 1, 5.9, 'STABLE'), ('Thailand', 1, 6.6, 'STABLE'), ('Brazil', 1, 13.8, 'ACCELERATING')]
+[18:24:37] G2_exporters False
+[18:24:37]   zip: 107416 bytes
+── 1. Lambda ──
+[18:24:37]   Lambda exists — updating
+[18:24:40] ✅   ✓ updated justhodl-morning-intelligence
+── 3. Smoke test ──
+[18:24:40]   invoking justhodl-morning-intelligence…
+[18:25:09] ✅   ✓ smoke test passed
+[18:25:09]     success                  True
+[18:25:09]     khalid_adj               46.0
+[18:25:09]     regime                   NEUTRAL
+[18:25:09]     btc                      66797
+[18:25:09]     outcomes                 17453
+[18:25:09]     improved                 False
+[18:25:09]     weights_active           277
+[18:25:09]     ka_adj                   46.0
+PASS  G3_serves — {'exp_board': True, 'freight_row': True, 'exp_row': True, 'fp_fetch': True, 'mi_zip': True}
+[18:26:50] G3_serves True
+VERDICT: GAPS: G2_exporters
+[18:26:50] VERDICT: GAPS: G2_exporters
 
-→ Report written to aws/ops/reports/latest/3657_stack_retry.md
+→ Report written to aws/ops/reports/latest/3658_freight_exporters.md
