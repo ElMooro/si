@@ -162,6 +162,7 @@ def pboc_cn_tsf():
            "candidates": [], "error": None}
     LISTS = ("http://www.pbc.gov.cn/diaochatongjisi/116219/116225/index.html",
              "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/index_1.html",
+             "http://www.pbc.gov.cn/diaochatongjisi/116219/116225/index_2.html",
              "http://www.pbc.gov.cn/diaochatongjisi/116219/116319/index.html",
              "http://www.pbc.gov.cn/diaochatongjisi/116219/index.html")
     try:
@@ -183,16 +184,26 @@ def pboc_cn_tsf():
                              - (2 if ("地区" in t0 or "季度" in t0) else 0)
                     if item is None or _score > item[2]:
                         item = (hu, t0, _score)
-            if item:
-                break
+            # keep collecting across pages; newest-monthly chosen below
+        # prefer the NEWEST monthly item across all pages probed
+        _mons = []
+        for c0 in out["candidates"]:
+            mm = _re.search(r"(20\d\d)年(\d{1,2})月", c0.get("title", ""))
+            if mm and "地区" not in c0["title"]:
+                _mons.append((int(mm.group(1)), int(mm.group(2)), c0))
+        if _mons:
+            _mons.sort(reverse=True)
+            _c = _mons[0][2]
+            item = (_c["u"], _c["title"], 9)
         if not item:
             out["error"] = "no 增量 item on CN listings (see candidates/list probes)"
             return out
         page, via1 = _edge(item[0])
         out["url"], out["title"], out["via"] = item[0][:130], item[1][:100], via1
         # national item pages carry the body in an attachment .htm (EN pattern)
-        if "社会融资规模增量为" not in page:
-            for _att in _re.findall(r'href="([^"]+\.html?)"', page, _re.I)[:4]:
+        _p0 = _re.sub(r"\s+", "", page)
+        if "社会融资规模增量为" not in _p0:
+            for _att in _re.findall(r'href="([^"]+\.html?)"', page, _re.I)[:6]:
                 if "index" in _att:
                     continue
                 if _att.startswith("/"):
@@ -200,7 +211,7 @@ def pboc_cn_tsf():
                 elif not _att.startswith("http"):
                     _att = item[0].rsplit("/", 1)[0] + "/" + _att
                 _sub, _v2 = _edge(_att)
-                if "社会融资规模增量为" in _sub:
+                if "社会融资规模增量为" in _re.sub(r"\s+", "", _sub):
                     page = _sub
                     out["attachment"], out["via"] = _att[:120], _v2
                     break

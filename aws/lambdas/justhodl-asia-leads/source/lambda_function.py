@@ -439,6 +439,55 @@ def taiwan_orders():
                             out["stage5_hit"] = ep["u"][:130]
                             break
                     out["stage5_tried"] = s5
+                # v1.7 STAGE-6: GetPointData.ashx is THE feed — sweep every
+                # SitesSN embedded in the orders frames; scan JSON for the
+                # Export-Orders item and pull value/YoY from Content/Date.
+                if pr["usd_bn"] is None and pr["yoy"] is None:
+                    sns = []
+                    for _, bs in (_bodies4 + _bodies3):
+                        for sn in re.findall(r"SitesSN=(\d{2,5})", bs):
+                            if sn not in sns:
+                                sns.append(sn)
+                    out["stage6_sitesns"] = sns[:10]
+                    s6 = []
+                    for sn in sns[:5]:
+                        u6 = "https://eng.stat.gov.tw/Common/GetPointData.ashx?SitesSN=" + sn
+                        b6, via6 = _edge(u6, cap=200_000)
+                        h6 = b6.decode("utf-8", "replace")
+                        rec = {"sn": sn, "via": via6, "bytes": len(b6), "hit": False}
+                        try:
+                            arr = json.loads(h6)
+                            rec["titles"] = [str((it or {}).get("Title"))[:34]
+                                             for it in arr[:6]]
+                            for it in arr:
+                                ti = str((it or {}).get("Title") or "")
+                                if re.search(r"order", ti, re.I):
+                                    blob = " ".join(str((it or {}).get(k) or "")
+                                                    for k in ("Content", "Date",
+                                                              "Title", "Num"))
+                                    vv = re.search(r"([\d,]+\.?\d*)\s*"
+                                                   r"(?:US\$|billion|億美元)", blob) \
+                                        or re.search(r"US\$\s*([\d,]+\.?\d*)", blob)
+                                    yy = re.search(r"(-?[\d.]+)\s*\(?%", blob)
+                                    if vv:
+                                        pr["usd_bn"] = float(vv.group(1).replace(",", ""))
+                                    if yy:
+                                        pr["yoy"] = float(yy.group(1))
+                                    pm = re.search(r"(20\d\d[./-]\d{1,2}|"
+                                                   r"[A-Z][a-z]{2,8}\.? 20\d\d)", blob)
+                                    if pm:
+                                        pr["period"] = pm.group(1)
+                                    rec["hit"] = pr["usd_bn"] is not None or                                         pr["yoy"] is not None
+                                    rec["item_blob"] = blob[:160]
+                                    if rec["hit"]:
+                                        out["stage6_hit"] = {"sn": sn, "title": ti[:60]}
+                                    break
+                        except Exception as _e6:
+                            rec["err"] = str(_e6)[:60]
+                        s6.append(rec)
+                        if rec["hit"]:
+                            break
+                    out["stage6_tried"] = s6
         out["latest_usd_bn"], out["yoy_pct"] = pr["usd_bn"], pr["yoy"]
         if pr["period"]:
             out["period"] = pr["period"]
