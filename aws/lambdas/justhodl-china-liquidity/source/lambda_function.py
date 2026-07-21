@@ -257,7 +257,37 @@ def pboc_cn_tsf():
                     out["attachment"], out["via"] = _att[:120], _v2
                     break
         body = _re.sub(r"<[^>]+>|&nbsp;|\s+", "", page)
+        _cnnum = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6,
+                  "七": 7, "八": 8, "九": 9, "十": 10, "十一": 11, "十二": 12}
+        # phrase-context dump: certainty even when patterns miss
+        _pi = body.find("社会融资规模增量为")
+        if _pi >= 0:
+            out["phrase_ctx"] = body[max(0, _pi - 50):_pi + 170]
         m = _re.search(r"(20\d\d)年(\d{1,2})月(?:份)?社会融资规模增量为([\d.]+)(万亿|亿)元", body)
+        _cum = None
+        if not m:
+            mc = _re.search(r"(20\d\d)年1[—\-]?(\d{1,2})月(?:份)?社会融资规模增量"
+                            r"(?:累计)?为([\d.]+)(万亿|亿)元", body)
+            if not mc:
+                mc2 = _re.search(r"(20\d\d)年前(十[一二]?|[一二三四五六七八九])个月"
+                                 r"社会融资规模增量(?:累计)?为([\d.]+)(万亿|亿)元", body)
+                if mc2:
+                    _mo = _cnnum.get(mc2.group(2))
+                    if _mo:
+                        m = None
+                        out["period"] = f"{mc2.group(1)}-01..{_mo:02d} (cum)"
+                        v = float(mc2.group(3))
+                        out["flow_trn_cny"] = round(
+                            v if mc2.group(4) == "万亿" else v / 10000.0, 3)
+                        _cum = True
+            else:
+                out["period"] = f"{mc.group(1)}-01..{int(mc.group(2)):02d} (cum)"
+                v = float(mc.group(3))
+                out["flow_trn_cny"] = round(
+                    v if mc.group(4) == "万亿" else v / 10000.0, 3)
+                _cum = True
+        if _cum:
+            out["cumulative"] = True
         if m:
             out["period"] = f"{m.group(1)}-{int(m.group(2)):02d}"
             v = float(m.group(3))

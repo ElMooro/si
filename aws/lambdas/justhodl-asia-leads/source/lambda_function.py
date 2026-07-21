@@ -23,6 +23,7 @@ S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/asia-leads.json"
 FRED = os.environ.get("FRED_API_KEY") or "2f057499936072679d8843d7fce99989"
 s3 = boto3.client("s3", region_name="us-east-1")
+BUCKET = "justhodl-dashboard-live"
 UA = {"User-Agent": "JustHodl research contact@justhodl.ai", "Accept": "application/json"}
 
 
