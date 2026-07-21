@@ -1,0 +1,67 @@
+{
+  "gates": {
+    "G0_3606_closed": {
+      "ok": false,
+      "detail": "[False, True, False]"
+    },
+    "G1_engine": {
+      "ok": true,
+      "detail": "n=42 sectors=11 err=None cash_path={'1y': 4.01, '5y': 4.28, '10y': 4.55} legacy_assets_intact=True"
+    },
+    "G2_math": {
+      "ok": true,
+      "detail": "SPY 1/5/10y=2.66/4.8/6.95 \u03c3=15.5 RR=0.15 tenk10={'p10': 9331, 'base': 17488, 'p90': 32777} \u00b7 LQD 10y=5.19 (UST10 + live OAS - credit loss 0.15%/y) \u00b7 XLE tilt=0.0 \u00b7 monotonic=True"
+    },
+    "G3_trio_scores": {
+      "ok": true,
+      "detail": "trio={'highest_expected_10y': 'BTC', 'best_risk_reward_10y': 'INDA', 'most_attractive_vs_history': 'GLD', 'worst_opportunity': 'DBC'} top5=[['INDA', 83.0], ['FXI', 80.1], ['EEM', 79.3], ['BTC', 79.0], ['EFA', 77.2]]"
+    },
+    "G4_page": {
+      "ok": true,
+      "detail": "{'strategic': True, 'table': True, 'weights_fix': True, 'legacy_cards': True, 'decisive_kept': True}"
+    }
+  },
+  "snapshot": {
+    "trio": {
+      "highest_expected_10y": "BTC",
+      "best_risk_reward_10y": "INDA",
+      "most_attractive_vs_history": "GLD",
+      "worst_opportunity": "DBC",
+      "note": "three questions, three answers \u2014 the old single best conflated them"
+    },
+    "cash_path": {
+      "1y": 4.01,
+      "5y": 4.28,
+      "10y": 4.55
+    },
+    "top5": [
+      [
+        "INDA",
+        83.0
+      ],
+      [
+        "FXI",
+        80.1
+      ],
+      [
+        "EEM",
+        79.3
+      ],
+      [
+        "BTC",
+        79.0
+      ],
+      [
+        "EFA",
+        77.2
+      ]
+    ],
+    "spy": {
+      "er_1y_pct": 2.66,
+      "er_5y_pct": 4.8,
+      "er_10y_pct": 6.95,
+      "rr_10y": 0.15
+    }
+  },
+  "verdict": "GAPS: G0_3606_closed"
+}
