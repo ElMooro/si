@@ -1,0 +1,47 @@
+{
+  "gates": {
+    "G1_air": {
+      "ok": false,
+      "detail": "err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found'] probe=None"
+    },
+    "G2_refsearch": {
+      "ok": true,
+      "detail": "nations=15 ref_search=[{'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Bremerhaven', 'full': 'Bremerhaven, Germany', 'country': 'Germany'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]"
+    },
+    "G3_page_sidebar": {
+      "ok": false,
+      "detail": "{'page': False, 'sidebar': True}"
+    }
+  },
+  "air": {
+    "ok": false,
+    "tonnes_k": null,
+    "month": null,
+    "yoy_pct": null,
+    "via": null,
+    "read": null
+  },
+  "ref_search": [
+    {
+      "name": "Hai Phong",
+      "full": "Hai Phong, Vietnam",
+      "country": "Vietnam"
+    },
+    {
+      "name": "Bremerhaven",
+      "full": "Bremerhaven, Germany",
+      "country": "Germany"
+    },
+    {
+      "name": "Hamburg",
+      "full": "Hamburg, Germany",
+      "country": "Germany"
+    },
+    {
+      "name": "Van Phong",
+      "full": "Van Phong, Vietnam",
+      "country": "Vietnam"
+    }
+  ],
+  "verdict": "GAPS: G1_air,G3_page_sidebar"
+}
