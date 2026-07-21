@@ -1,24 +1,24 @@
-executing-against: a3ea1d4a37e20b1f65ad58da70d04367395c3a19
-ops 3665 — HKIA air canary + freight page + sidebar
-[20:23:58]   zip: 86079 bytes
+executing-against: f33852cd701975d59ef33399f5b05d5ee80bec7c
+ops 3666 — HKIA air canary + freight page + sidebar
+[20:33:53]   zip: 86116 bytes
 ── 1. Lambda ──
-[20:23:58]   Lambda exists — updating
-[20:24:01] ✅   ✓ updated justhodl-air-cargo
+[20:33:54]   Lambda exists — updating
+[20:33:59] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[20:24:01]   invoking justhodl-air-cargo…
+[20:33:59]   invoking justhodl-air-cargo…
 FAIL  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] cadl=[] cadsp=None sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']
-[20:24:13] G1_air False
-[20:24:14]   zip: 84487 bytes
+[20:34:08] G1_air False
+[20:34:09]   zip: 84487 bytes
 ── 1. Lambda ──
-[20:24:14]   Lambda exists — updating
-[20:24:19] ✅   ✓ updated justhodl-freight-pulse
+[20:34:09]   Lambda exists — updating
+[20:34:12] ✅   ✓ updated justhodl-freight-pulse
 ── 3. Smoke test ──
-[20:24:19]   invoking justhodl-freight-pulse…
+[20:34:12]   invoking justhodl-freight-pulse…
 PASS  G2_sparks — spark_n=13 level=1003578.0
-[20:24:24] G2_sparks True
-FAIL  G3_page_sidebar — {'fmt': False, 'spark': True, 'air_txt': True, 'lag': True}
-[20:32:29] G3_page_sidebar False
-VERDICT: GAPS: G1_air,G3_page_sidebar
-[20:32:29] VERDICT: GAPS: G1_air,G3_page_sidebar
+[20:34:17] G2_sparks True
+PASS  G3_page_sidebar — {'fmt': True, 'spark': True, 'air_txt': True, 'lag': True}
+[20:34:17] G3_page_sidebar True
+VERDICT: GAPS: G1_air
+[20:34:17] VERDICT: GAPS: G1_air
 
-→ Report written to aws/ops/reports/latest/3665_land_polish.md
+→ Report written to aws/ops/reports/latest/3666_air_hunt2.md
