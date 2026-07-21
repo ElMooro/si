@@ -1,31 +1,31 @@
-executing-against: 3c647d5dfd5380f872b568e9618abf6fd08896cb
+executing-against: 17dd8a5431152e25262c570a29230aed72d7af9f
 ops 3621 — regime-context + sentinel + best-setups wiring
-[03:18:29]   zip: 107204 bytes
+[03:24:20]   zip: 107303 bytes
 ── 1. Lambda ──
-[03:18:30]   Lambda exists — updating
-[03:18:35] ✅   ✓ updated justhodl-best-setups
+[03:24:21]   Lambda exists — updating
+[03:24:23] ✅   ✓ updated justhodl-best-setups
 ── 3. Smoke test ──
-[03:18:35]   invoking justhodl-best-setups…
-[03:18:43] ✅   ✓ smoke test passed
-[03:18:43]     ok                       True
-[03:18:43]     n_setups                 488
-[03:18:43]     strong_buy               1
-[03:18:43]     buy                      14
-[03:18:43]     weight_source            prior-only
-FAIL  G1_shared_and_boom — zip_markers={'spx_regime': True, 'kr_flash_yoy': True, 'asia_flash_tailwind': True, 'industry_boom': True} err=None boom_meta={'joined': 0, 'tailwind_flags': 0, 'kr_flash_yoy': 52.3, 'sample_rows': [['MU', 'technology'], ['ELV', 'healthcare'], ['NVDA', 'technology'], ['GILD', 'healthcare']], 'league_n': 120, 'note': 'league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked'} rows_key_scanned=50 rows_boom=0 rows_tailwind=0
-[03:18:49] G1_shared_and_boom False
-[03:18:49]   zip: 89562 bytes
+[03:24:23]   invoking justhodl-best-setups…
+[03:24:30] ✅   ✓ smoke test passed
+[03:24:30]     ok                       True
+[03:24:30]     n_setups                 488
+[03:24:30]     strong_buy               1
+[03:24:30]     buy                      14
+[03:24:30]     weight_source            prior-only
+PASS  G1_shared_and_boom — zip_markers={'spx_regime': True, 'kr_flash_yoy': True, 'asia_flash_tailwind': True, 'industry_boom': True} err=None boom_meta={'joined': 411, 'tailwind_flags': 33, 'kr_flash_yoy': 52.3, 'sample_rows': [['MU', 'semiconductors'], ['ELV', 'medical - healthcare plans'], ['NVDA', 'semiconductors'], ['GILD', 'drug manufacturers - general']], 'league_n': 120, 'uni_map_n': 5319, 'note': 'league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked'} rows_key_scanned=50 rows_boom=49 rows_tailwind=9
+[03:24:35] G1_shared_and_boom True
+[03:24:35]   zip: 89562 bytes
 ── 1. Lambda ──
-[03:18:50]   Lambda exists — updating
-[03:18:53] ✅   ✓ updated justhodl-alert-sentinel
+[03:24:35]   Lambda exists — updating
+[03:24:40] ✅   ✓ updated justhodl-alert-sentinel
 ── 3. Smoke test ──
-[03:18:53]   invoking justhodl-alert-sentinel…
-[03:18:55] ✅   ✓ smoke test passed
-[03:18:55]     sent                     False
-[03:18:55]     changes                  0
+[03:24:40]   invoking justhodl-alert-sentinel…
+[03:24:42] ✅   ✓ smoke test passed
+[03:24:42]     sent                     False
+[03:24:42]     changes                  0
 PASS  G2_sentinel_kr — err=None diag=[] state_period=2026-07-01..20 yoy=52.3 buffered_line=🇰🇷 Korea 1-20 exports flash: +52.3% YoY (2026-07-01..20) — justhodl.ai/macro-leads.html buf_n=294
-[03:18:58] G2_sentinel_kr True
-VERDICT: GAPS: G1_shared_and_boom
-[03:18:58] VERDICT: GAPS: G1_shared_and_boom
+[03:24:43] G2_sentinel_kr True
+VERDICT: PASS_ALL
+[03:24:43] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3622_wiring2.md
+→ Report written to aws/ops/reports/latest/3624_wiring4.md
