@@ -1,24 +1,17 @@
-executing-against: e7c46b87f63f15b5f902452edc96026e36a3f100
-ops 3668 — HKIA air canary + freight page + sidebar
-[20:45:41]   zip: 86112 bytes
+executing-against: e97cc1d1541ff761b37ac8f16233b97d507e19eb
+ops 3669 — HKIA air canary + freight page + sidebar
+[20:46:47]   zip: 86928 bytes
 ── 1. Lambda ──
-[20:45:41]   Lambda exists — updating
-[20:45:46] ✅   ✓ updated justhodl-air-cargo
+[20:46:47]   Lambda exists — updating
+[20:46:52] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[20:45:46]   invoking justhodl-air-cargo…
-FAIL  G1_air — err=None ok=False via=None tonnes_k=None month=None yoy=None link= errs=['press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found', 'press_list: HTTP Error 404: Not Found'] row=None tail=None n=None xp=None cadsp=None sm=['https://www.hongkongairport.com/en/the-airport/hkia-at-a-glance/fact-figures.page', 'https://www.hongkongairport.com/en/transport/hong-kong-traffic-conditions.page', 'https://www.hongkongairport.com/tc/the-airport/hkia-at-a-glance/fact-figures.page']
-[20:45:57] G1_air False
-[20:45:57]   zip: 84487 bytes
-── 1. Lambda ──
-[20:45:57]   Lambda exists — updating
-[20:46:02] ✅   ✓ updated justhodl-freight-pulse
-── 3. Smoke test ──
-[20:46:02]   invoking justhodl-freight-pulse…
-PASS  G2_sparks — spark_n=13 level=1003578.0
-[20:46:07] G2_sparks True
-PASS  G3_page_sidebar — {'fmt': True, 'spark': True, 'air_txt': True, 'lag': True}
-[20:46:07] G3_page_sidebar True
-VERDICT: GAPS: G1_air
-[20:46:07] VERDICT: GAPS: G1_air
+[20:46:52]   invoking justhodl-air-cargo…
+CRASH: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
+    raise ConnectionClosedError(
+botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-air-cargo/invocations".
 
-→ Report written to aws/ops/reports/latest/3668_air_xlsx.md
+VERDICT: CRASH
+[20:51:11] VERDICT: CRASH
+
+→ Report written to aws/ops/reports/latest/3669_air_land.md
