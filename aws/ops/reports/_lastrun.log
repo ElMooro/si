@@ -1,21 +1,23 @@
-executing-against: 13a66a012e2aaa5b51a74519636bc3d669677f02
-ops 3635 — year fix + CN/TW rows
-[05:20:05]   zip: 90144 bytes
+executing-against: 4db990ef60d38196a8621e6a9aa9da19a87407be
+ops 3636 — MI +china_liq (zip-marker)
+[05:26:48]   zip: 107353 bytes
 ── 1. Lambda ──
-[05:20:05]   Lambda exists — updating
-[05:20:10] ✅   ✓ updated justhodl-china-liquidity
+[05:26:49]   Lambda exists — updating
+[05:26:52] ✅   ✓ updated justhodl-morning-intelligence
 ── 3. Smoke test ──
-[05:20:10]   invoking justhodl-china-liquidity…
-[05:20:46] ✅   ✓ smoke test passed
-[05:20:46]     ok                       True
-[05:20:46]     regime                   NEUTRAL
-[05:20:46]     credit_impulse_pp        -5.52
-[05:20:46]     m2_yoy                   8.21
-PASS  G1_year — err=None flow=20.84 period=2026-H1 (cum) yoyΔ=-2.02 att_title=None att_year=None
-[05:20:59] G1_year True
-PASS  G2_rows — {'cn_row': True, 'tw_relax': True}
-[05:21:00] G2_rows True
+[05:26:52]   invoking justhodl-morning-intelligence…
+[05:27:26] ✅   ✓ smoke test passed
+[05:27:26]     success                  True
+[05:27:26]     khalid_adj               46.0
+[05:27:26]     regime                   NEUTRAL
+[05:27:26]     btc                      64283
+[05:27:26]     outcomes                 17453
+[05:27:26]     improved                 False
+[05:27:26]     weights_active           277
+[05:27:26]     ka_adj                   46.0
+PASS  G1 — marker True
+[05:27:27] G1 True
 VERDICT: PASS_ALL
-[05:21:00] VERDICT: PASS_ALL
+[05:27:27] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3635_cn_wire.md
+→ Report written to aws/ops/reports/latest/3636_mi_cn.md
