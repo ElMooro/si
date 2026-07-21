@@ -1,17 +1,18 @@
-executing-against: e97cc1d1541ff761b37ac8f16233b97d507e19eb
-ops 3669 — HKIA air canary + freight page + sidebar
-[20:46:47]   zip: 86928 bytes
+executing-against: ce3b63bdad5083205e1358628b65e4a9c294dd39
+ops 3670 — HKIA air canary + freight page + sidebar
+[20:51:48]   zip: 86928 bytes
 ── 1. Lambda ──
-[20:46:47]   Lambda exists — updating
-[20:46:52] ✅   ✓ updated justhodl-air-cargo
+[20:51:48]   Lambda exists — updating
+[20:51:53] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[20:46:52]   invoking justhodl-air-cargo…
-CRASH: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 516, in send
-    raise ConnectionClosedError(
-botocore.exceptions.ConnectionClosedError: Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-air-cargo/invocations".
+[20:51:53]   invoking justhodl-air-cargo…
+CRASH: end(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
+    raise ReadTimeoutError(endpoint_url=request.url, error=e)
+botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-air-cargo/invocations"
 
 VERDICT: CRASH
-[20:51:11] VERDICT: CRASH
+[20:57:01] VERDICT: CRASH
 
-→ Report written to aws/ops/reports/latest/3669_air_land.md
+→ Report written to aws/ops/reports/latest/3670_air_regate.md
