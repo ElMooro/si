@@ -550,7 +550,17 @@ def compute_forward_returns():
     except Exception as _e:
         print("[portfolios] risk_parity skip", str(_e)[:80])
     try:
-        _pos = get_s3_json("data/13f-positions.json", {}) or {}
+        def _g13(k):
+            try:
+                return json.loads(s3.get_object(Bucket=S3_BUCKET, Key=k)["Body"].read())
+            except Exception:
+                try:
+                    import boto3 as _b3
+                    return json.loads(_b3.client("s3", "us-east-1").get_object(
+                        Bucket="justhodl-dashboard-live", Key=k)["Body"].read())
+                except Exception:
+                    return {}
+        _pos = _g13("data/13f-positions.json") or {}
         _byf = _pos.get("by_fund") or {}
         _ETF = {"IVV": "SPY", "VOO": "SPY", "VTI": "SPY", "SPY": "SPY", "QQQ": "QQQ",
                 "IWM": "IWM", "VWO": "EEM", "IEMG": "EEM", "EEM": "EEM", "VEA": "EFA",
