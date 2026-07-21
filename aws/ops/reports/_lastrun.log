@@ -1,19 +1,17 @@
-executing-against: 571bae96b7ed141512a369ba35a55ec3fe21fcfb
-ops 3612 — benchmark_portfolios gate + clone reader fix
-[01:11:57]   zip: 92198 bytes
+executing-against: 5b8314d78dcbb0434a6b2265461951cd7384ce9a
+ops 3613 — sixty_forty forensic + backstop
+[01:18:35]   zip: 92348 bytes
 ── 1. Lambda ──
-[01:11:57]   Lambda exists — updating
-[01:12:01] ✅   ✓ updated justhodl-forward-returns
+[01:18:35]   Lambda exists — updating
+[01:18:38] ✅   ✓ updated justhodl-forward-returns
 ── 3. Smoke test ──
-[01:12:01]   invoking justhodl-forward-returns…
-[01:12:06] ✅   ✓ smoke test passed
-[01:12:06]     ok                       True
-[01:12:06]     n_assets                 15
-FAIL  G1_bench — n=14 bad={} rp={'SPY': 0.252, 'TLT': 0.279, 'GLD': 0.252, 'DBC': 0.217} ERs: 60/40=None perm=4.98 GB=5.32 swensen=6.54 ivy5=5.73 bogle3=6.56 rpER=4.67 clones={'clone_bridgewater': {'cov': 50.4, 'er': 7.03, 'as_of': None, 'n_hold': 10}, 'clone_berkshire': {'cov': 0.0, 'er': None, 'as_of': None, 'n_hold': 10}}
-[01:12:11] G1_bench False
-PASS  G2_page — {'chips': True, 'sec': True, 'ray': True, 'note_tpl': True, 'hold_tpl': True, 'legacy': True}
-[01:12:11] G2_page True
-VERDICT: GAPS: G1_bench
-[01:12:11] VERDICT: GAPS: G1_bench
+[01:18:38]   invoking justhodl-forward-returns…
+[01:18:42] ✅   ✓ smoke test passed
+[01:18:42]     ok                       True
+[01:18:42]     n_assets                 15
+FAIL  G1_styles — n=14 keys=['60_40', 'all_cash', 'all_stocks', 'all_weather', 'bogle3', 'clone_berkshire', 'clone_bridgewater', 'dalio_growth', 'diversified_global', 'golden_butterfly', 'ivy5', 'permanent', 'risk_parity', 'swensen'] ers={'sixty_forty': None, 'permanent': 4.98, 'golden_butterfly': 5.32, 'swensen': 6.54, 'ivy5': 5.73, 'bogle3': 6.56, 'risk_parity': 4.67} sixty_entry=null port_logs=['[portfolios] MISSING style: sixty_forty']
+[01:18:51] G1_styles False
+VERDICT: GAPS: G1
+[01:18:51] VERDICT: GAPS: G1
 
-→ Report written to aws/ops/reports/latest/3612_bench_key.md
+→ Report written to aws/ops/reports/latest/3613_sixty_forensic.md
