@@ -536,8 +536,8 @@ def lambda_handler(event, context):
     # credit growth) — additive block from data/bis-crossborder.json
     bis_cb = None
     try:
-        _b = json.loads(s3.get_object(
-            Bucket=S3_BUCKET,
+        _b = __import__("json").loads(S3.get_object(
+            Bucket=BUCKET,
             Key="data/bis-crossborder.json")["Body"].read())
         if _b.get("ok"):
             bis_cb = {
