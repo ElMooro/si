@@ -1494,10 +1494,20 @@ def lambda_handler(event, context):
                  "computer hardware", "electronic components",
                  "consumer electronics", "communication equipment"}
         _nj = _nt = 0
+        _u2i = {}
+        try:
+            _uni = read_json("data/universe.json") or {}
+            for _u0 in (_uni.get("rows") or _uni.get("universe")
+                        or _uni.get("symbols") or []):
+                if isinstance(_u0, dict) and _u0.get("symbol"):
+                    _u2i[_u0["symbol"].upper()] = _normi(_u0.get("industry"))
+        except Exception:
+            pass
         _samp = []
         for _s in setups:
-            _ind = _normi(_s.get("industry") or _s.get("industry_label")
-                          or _s.get("sector"))
+            _tk0 = (_s.get("ticker") or "").upper()
+            _ind = _u2i.get(_tk0) or _normi(_s.get("industry")
+                                            or _s.get("industry_label"))
             if len(_samp) < 4:
                 _samp.append([_s.get("ticker"), _ind[:32]])
             if _ind and _ind in _bm:
@@ -1508,7 +1518,7 @@ def lambda_handler(event, context):
                 _nt += 1
         output["industry_context"]["industry_boom"] = {
             "joined": _nj, "tailwind_flags": _nt, "kr_flash_yoy": _kr,
-            "sample_rows": _samp, "league_n": len(_bm),
+            "sample_rows": _samp, "league_n": len(_bm), "uni_map_n": len(_u2i),
             "note": "league boom_score/rank per setup industry; tailwind = KR flash ≥15% on semi-linked"}
     except Exception as _e:
         output["industry_context"]["industry_boom"] = {"error": str(_e)[:90]}
