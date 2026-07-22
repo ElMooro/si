@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boom-Stage Lens · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.life{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+.stagebox{border:1px solid var(--border);border-radius:9px;padding:8px 12px;min-width:150px}
+.pair{border-left:3px solid var(--border);padding:10px 12px;margin:10px 0;background:rgba(255,255,255,.02);border-radius:0 10px 10px 0}
+.leg{display:inline-block;margin-right:18px;font-size:12px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+.arrow{color:var(--text-mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🧭 Boom-Stage Lens</h1>
+<div class="sub">Is a boom EARLY or PLATEAUING? Physical proof: cross VALUE signals (export value, orders, credit) against VOLUME signals (AIS port calls, air cargo). A boom where price does all the work and volume hasn't expanded is in its pricing-power phase — not at plateau. Plateaus look like the opposite: volume caught up, value cooling. Daily 12:30 UTC.</div>
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+<div class="sec">Lifecycle — where each pair sits</div>
+<div class="card"><div class="life" id="life"></div></div>
+<div class="sec">Country-Industry Pairs — value leg × volume leg</div>
+<div id="pairs"></div>
+<div class="sec">Doctrine &amp; Method</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Volume legs: <a href="/portwatch.html">PortWatch Export-Nations Pulse</a> · <a href="/freight-pulse.html">US Freight &amp; Air Cargo</a>. Value legs: <a href="/macro-leads.html">Macro Leads (KR flash · TW orders · CN TSF)</a>. Industry context: <a href="/boom-radar.html">Boom Radar</a>.</div>
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){try{
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
+var SC={EARLY_PRICE_LED:GRN,BROADENING:GRN,PLATEAU_FORMING:AMB,MIXED:NEU,VALUE_LED_DOWNTURN:AMB,CONTRACTION:RED,NA:MUT};
+var ORDER=['EARLY_PRICE_LED','BROADENING','PLATEAU_FORMING','VALUE_LED_DOWNTURN','CONTRACTION'];
+var DESC={EARLY_PRICE_LED:'value surging · volume flat — pricing power',BROADENING:'value AND volume up — capex phase',PLATEAU_FORMING:'volume caught up · value cooling',VALUE_LED_DOWNTURN:'value falls first · margin squeeze',CONTRACTION:'both falling — demand fade'};
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/boom-stage.json?t='+Date.now());
+if(!r.ok){document.getElementById('hero').innerHTML='<span class="mono">feed unavailable</span>';return;}
+var b=await r.json();
+var hp=(b.pairs||[]).filter(function(p){return p.stage==='EARLY_PRICE_LED';})[0];
+document.getElementById('hero').innerHTML=
+ '<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline">'
++'<div><div class="mono" style="font-size:11px;color:'+MUT+'">HEADLINE</div><div class="mono" style="font-size:19px;font-weight:800;color:'+(hp?GRN:NEU)+'">'+(b.headline||'no EARLY_PRICE_LED pair right now')+'</div></div>'
++(hp?('<div class="mono" style="font-size:12px;color:'+MUT+'">value '+(hp.value.yoy_pct>0?'+':'')+hp.value.yoy_pct+'% vs volume '+(hp.volume.vs_baseline_pct>0?'+':'')+hp.volume.vs_baseline_pct+'% — the divergence IS the proof</div>'):'')
++'</div>';
+document.getElementById('life').innerHTML=ORDER.map(function(st,i){
+ var here=(b.pairs||[]).filter(function(p){return p.stage===st;});
+ return '<div class="stagebox" style="border-color:'+(here.length?SC[st]:'#1c2330')+'">'
+ +'<div style="font-weight:800;color:'+SC[st]+'">'+st+'</div>'
+ +'<div style="color:'+MUT+';font-size:10px">'+DESC[st]+'</div>'
+ +(here.length?('<div style="margin-top:5px">'+here.map(function(p){return '<span style="color:'+SC[st]+'">● '+p.id+'</span>';}).join(' ')+'</div>'):'')
+ +'</div>'+(i<ORDER.length-1?'<span class="arrow">→</span>':'');}).join('');
+document.getElementById('pairs').innerHTML=(b.pairs||[]).map(function(p){
+ var c=SC[p.stage]||NEU,v=p.value||{},vo=p.volume||{},cx=p.context||{};
+ return '<div class="pair" style="border-left-color:'+c+'">'
+ +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline"><b class="mono" style="font-size:14px">'+p.label+'</b><b class="mono" style="color:'+c+'">'+p.stage+'</b></div>'
+ +'<div style="margin-top:6px" class="mono">'
+ +'<span class="leg"><span style="color:'+MUT+'">VALUE</span> <b style="color:'+((v.yoy_pct||0)>=0?GRN:RED)+'">'+(v.yoy_pct==null?'building':((v.yoy_pct>0?'+':'')+v.yoy_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(v.src||'')+'</span></span>'
+ +'<span class="leg"><span style="color:'+MUT+'">VOLUME</span> <b style="color:'+((vo.vs_baseline_pct||0)>=0?NEU:RED)+'">'+(vo.vs_baseline_pct==null?'—':((vo.vs_baseline_pct>0?'+':'')+vo.vs_baseline_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(vo.src||'')+((vo.n_ports)?(' · '+vo.n_ports+' ports'):'')+'</span></span>'
+ +((cx.industry_boom_score!=null)?('<span class="leg"><span style="color:'+MUT+'">IND-BOOM</span> <b style="color:'+AMB+'">'+cx.industry_boom_score+'</b></span>'):'')
+ +((cx.air_cargo!=null)?('<span class="leg"><span style="color:'+MUT+'">AIR</span> <b>'+(cx.air_cargo>0?'+':'')+cx.air_cargo+'%</b></span>'):'')
+ +'</div>'
+ +'<div class="mono" style="color:'+MUT+';font-size:11.5px;margin-top:5px">→ '+p.why+'</div>'
+ +((v.note)?('<div class="mono" style="color:'+MUT+';font-size:10.5px;margin-top:3px">'+v.note+'</div>'):'')
+ +'</div>';}).join('');
+document.getElementById('method').textContent=(b.method||'')+' — '+(b.doctrine||'');
+document.getElementById('foot').textContent='Feed data/boom-stage.json · legs from asia-leads / portwatch / china-liquidity / air-cargo / industry-boom · generated '+b.generated_at;
+}catch(e){console.error(e);}})();
+</script>
+</body>
+</html>
