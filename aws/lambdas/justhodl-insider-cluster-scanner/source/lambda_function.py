@@ -497,7 +497,8 @@ def lambda_handler(event, context):
     
     all_txns = []
     n_parsed = 0
-    n_failed = 0
+    n_no_purchase = 0
+    n_parse_error = 0
     deadline = t0 + (context.get_remaining_time_in_millis() / 1000) - 60 if context else t0 + 540
     print(f"[insider-cluster] parse deadline: {deadline - t0:.0f}s from start")
     
@@ -517,11 +518,16 @@ def lambda_handler(event, context):
                 if txns:
                     all_txns.extend(txns)
                 else:
-                    n_failed += 1
+                    # ops 3748: this is NOT a failure. ~77% of Form 4s are
+                    # sells/grants/tax-withholding/exercises (codes S/F/A/M),
+                    # correctly skipped — only code 'P' open-market purchases
+                    # count. Insider BUYING is genuinely rare (~9% of filings).
+                    n_no_purchase += 1
             except Exception:
-                n_failed += 1
+                n_parse_error += 1
     
-    print(f"[insider-cluster] parsed {n_parsed} filings, extracted {len(all_txns)} buy transactions ({n_failed} failed)")
+    print(f"[insider-cluster] parsed {n_parsed} filings, extracted {len(all_txns)} buy transactions "
+          f"({n_no_purchase} had no open-market purchase [normal], {n_parse_error} parse/fetch errors)")
     
     # 4. CLUSTER
     by_ticker = build_clusters(all_txns, LOOKBACK_DAYS)
