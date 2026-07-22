@@ -105,6 +105,30 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   + pre-exec sync, ops 2911). deploy-lambdas still diffs the triggering event —
   keep one push per logical change there; `workflow_dispatch function=<name>`
   is the deterministic override.
+- **New function `State='Pending'`** (ops 3735): on FIRST creation a function
+  can report `LastUpdateStatus='Successful'` while `State='Pending'`. Settle
+  loops that check only LastUpdateStatus pass at 0s and the invoke throws
+  `ResourceConflictException`. Always require `State == "Active"` too.
+- **Sync gate on a many-call engine drops the runner** (ops 3730): a
+  RequestResponse invoke of an engine making ~1,200 HTTP calls died with
+  `ConnectionClosedError` at 272s. Thread the fetches AND gate with
+  `InvocationType='Event'` + S3 `head_object` freshness. 272s -> 48s.
+- **Page audits read the Cloudflare edge, not the repo** (ops 3740): the served
+  page was the PRE-EDIT copy (12,563 B) while the repo held the fix (11,550 B),
+  so a correct page "failed" its own field-coverage audit. Bust with
+  `?v=<epoch+attempt>` + `Cache-Control/Pragma: no-cache`, and require a NEW
+  marker string to be present before trusting the fetch.
+- **Declarative `schedule` may not materialise on first create** (ops 3735):
+  config.json alone created the function but no rule appeared. Ops should
+  ensure via EventBridge Scheduler (role `justhodl-scheduler-role`, FTW OFF)
+  and then verify, treating ConflictException as success.
+- **XLSX in Lambda has no pandas/openpyxl** (ops 3737): parse with
+  `zipfile` + regex. Map sheet NAME -> path through
+  `xl/_rels/workbook.xml.rels` (rId -> Target) — worksheet FILENAME order is
+  NOT workbook order, and trusting it reads the wrong tab confidently. Header
+  rows are often not row 0 (CAISO's is index 3). Verify magnitudes against a
+  probed ground truth: a CAISO parse returning 1,009 MW instead of 120,495 MW
+  passed every shape check and was caught only by a magnitude gate.
 
 ## Session-start checklist
 
