@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.2"
+VERSION = "1.4.3"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -214,7 +214,7 @@ def lambda_handler(event=None, context=None):
     def stats(series):
         series.sort()
         vals = [v for _, v in series]
-        if len(vals) < 30:
+        if len(vals) < 20:
             return None
         last7 = vals[-7:]
         prev30 = vals[-37:-7] or vals[-30:]
@@ -346,6 +346,17 @@ def lambda_handler(event=None, context=None):
                     continue
                 pby.setdefault(pid2, []).append((ds2, float(v2)))
             out["ports_metric"] = pmetric
+            # v1.4.3 forensics: trace Chile through every pipeline stage
+            _cl_ids = [i3 for i3, m3 in cand.items()
+                       if "chile" in str(m3.get("country") or "").lower()]
+            out["chile_trace"] = {
+                "in_cand": _cl_ids[:12],
+                "in_query": [i3 for i3 in _cl_ids if i3 in _ids_all[:120]][:12],
+                "rows_returned": {i3: len(pby.get(i3) or [])
+                                   for i3 in _cl_ids[:8]},
+                "sample": [(str(d3), v3) for d3, v3 in
+                            (pby.get(_cl_ids[0]) or [])[-3:]]
+                           if _cl_ids else []}
             for pid2, ser2 in pby.items():
                 st2 = stats(ser2)
                 if st2:
