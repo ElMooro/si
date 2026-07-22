@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.3"
+VERSION = "1.4.4"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -88,6 +88,16 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("long beach", "United States"), ("houston", "United States"),
                ("new york", "United States"), ("savannah", "United States"))
 # v1.2: export-nation aggregation — country -> gateway-port pulse
+CODE3 = {"China": "CHN", "Chile": "CHL", "Korea": "KOR", "Japan": "JPN",
+         "Taiwan": "TWN", "Singapore": "SGP", "Vietnam": "VNM",
+         "Germany": "DEU", "India": "IND", "Mexico": "MEX",
+         "Netherlands": "NLD", "United States": "USA", "Malaysia": "MYS",
+         "Thailand": "THA", "Indonesia": "IDN", "Brazil": "BRA",
+         "UAE": "ARE", "Sri Lanka": "LKA", "Belgium": "BEL", "Peru": "PER",
+         "Finland": "FIN", "Saudi Arabia": "SAU", "Australia": "AUS",
+         "Qatar": "QAT", "Switzerland": "CHE", "Canada": "CAN",
+         "Norway": "NOR"}
+
 EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
                   ("china", "China"), ("hong kong", "China"),
                   ("korea", "Korea"), ("japan", "Japan"),
@@ -384,7 +394,10 @@ def lambda_handler(event=None, context=None):
               or next((v for k, v in PORT_NATION if k in pnm), None))
         if not nm:
             continue
-        cc = nm[:3].upper()
+        # v1.4.4 BUGFIX: nm[:3] made Chile AND China both "CHI" — Chile's
+        # ports were silently merged into China's bucket (and China's larger
+        # port count dominated the average). Key by full nation name.
+        cc = CODE3.get(nm) or nm.upper().replace(" ", "")[:4]
         exp.setdefault(cc, {"country": nm, "ports": [], "pcts": [],
                             "zs": []})
         exp[cc]["ports"].append(p["name"])
