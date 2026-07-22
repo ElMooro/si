@@ -1,5 +1,24 @@
-executing-against: 58ab60ce9667be56c914317ba8bdbe8788a84f57
-ops 3685 — Chile coverage, correct daily layer
-PASS  G1_diag2 — chile_ref=20 chile_daily_rows=12 chile_in_daily=['port208', 'port1031', 'port1034', 'port1053', 'port1058', 'port1082', 'port1302', 'port1432', 'port2054', 'port2106', 'port2107'] daily_distinct_ports=1000 shanghai_rows=3 [{"portid": "port1188", "date": "2026-07-17", "portcalls": 86}] chile_sample=[{"portid": "port56", "date": "2026-07-17", "portcalls": 1}, {"portid": "port89", "date": "2026-07-17", "portcalls": 0}]
+executing-against: 1d4dbd0d1ce6157f1b30266d6580f2a4eae44e38
+ops 3686 — 4-factor + new pairs + TW/CL fixes
+[02:25:28]   zip: 88342 bytes
+── 1. Lambda ──
+[02:25:28]   Lambda exists — updating
+[02:25:31] ✅   ✓ updated justhodl-portwatch
+── 3. Smoke test ──
+[02:25:31]   invoking justhodl-portwatch…
+FAIL  G1_ports — matched=74 nations=20 TW={'code': 'TAI', 'country': 'Taiwan', 'n_ports': 6, 'ports': ['Keelung', 'Kaohsiung', 'Taichung', 'Hualien'], 'avg_vs_baseline_pct': 41.4, 'avg_z': 0.65, 'verdict': 'ACCELERATING'} CL=None CN_ports=17 slowing=['China', 'UAE', 'Brazil', 'Malaysia']
+[02:27:12] G1_ports False
+[02:27:12]   zip: 91520 bytes
+── 1. Lambda ──
+[02:27:12]   Lambda exists — updating
+[02:27:15] ✅   ✓ updated justhodl-boom-stage
+── 3. Smoke test ──
+[02:27:15]   invoking justhodl-boom-stage…
+PASS  G2_engine — err=None n_pairs=15 factor4_on=11 new=['AU-iron', 'ID-nickel', 'QA-lng', 'DE-machinery', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=65 infl=100 tilt=0 f4reads={'KR-semis': 'IDLING', 'CN-broad': 'STEADY', 'BR-commodities': 'RAMPING', 'US-freight': 'INVENTORY_DRAW', 'CL-copper': 'RAMPING', 'PE-copper': 'RAMPING', 'FI-pulp': 'INVENTORY_DRAW', 'TW-semis': 'IDLING', 'AU-iron': 'RAMPING', 'ID-nickel': 'RAMPING', 'DE-machinery': 'STEADY'} stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -30.4), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.1, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.4, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.4, None), ('PE-copper', 'BROADENING', 16.4, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.1, -9.8), ('TW
+[02:27:24] G2_engine STAGFLATIONARY SQUEEZE
+PASS  G3_page — {'f4': True, 'defensive': True, 'tilt': True}
+[02:27:24] G3_page True
+VERDICT: GAPS: G1_ports
+[02:27:24] VERDICT: GAPS: G1_ports
 
-→ Report written to aws/ops/reports/latest/3685_chile_diag2.md
+→ Report written to aws/ops/reports/latest/3686_chile_land.md
