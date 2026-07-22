@@ -84,7 +84,8 @@ return '<div class="irow"><div class="head"><span class="name">'+x.industry
 +' · '+(x.n_insiders||0)+' insiders / '+(x.n_transactions||0)+' txns'
 +' · z '+(x.z_vs_own_history==null?'building':x.z_vs_own_history)
 +(x.dollar_hhi==null?'':' · HHI '+x.dollar_hhi+(x.top_company_share_pct?' (top '+x.top_company+' '+x.top_company_share_pct+'%)':''))
-+(x.awaiting_base_rate?' · <span style="color:'+MUT+'">awaiting base rate</span>':'')+'</div>'
++(x.awaiting_base_rate?' · <span style="color:'+MUT+'">awaiting base rate</span>':'')
++(x.thin_universe?' · <span style="color:'+NEG+'">thin universe ('+(x.n_listed||0)+' listed)</span>':'')+'</div>'
 +'<div class="bar"><i style="width:'+pw+'%;background:'+tierCol(x.tier)+'"></i></div>'
 +'<div style="margin-top:8px">'+comps+'</div>'
 +(x.ceo_cfo_companies&&x.ceo_cfo_companies.length?'<div class="note">★ = CEO/CFO purchase</div>':'')
