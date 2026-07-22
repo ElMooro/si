@@ -1,0 +1,69 @@
+{
+  "verdict": "PASS",
+  "reachable": [
+    "eia_retail_sales_IND",
+    "eia_facility_fuel",
+    "eia_electricity_routes",
+    "ercot_mis_json",
+    "caiso_queue_xlsx",
+    "epa_envirofacts",
+    "echo_air"
+  ],
+  "blocked": [
+    "eia_planned_gen",
+    "lbnl_queues_page",
+    "pjm_dataminer_root",
+    "miso_api",
+    "gridstatus_datasets"
+  ],
+  "findings": {
+    "eia_retail_sales_IND": {
+      "status": 200,
+      "len": 1961
+    },
+    "eia_planned_gen": {
+      "status": 400,
+      "err": "{\"error\":\"Invalid facet 'statusid' provided. The only valid facets are 'stateid', 'sector', 'entityid', 'plantid', 'generatorid', 'unit', 'technology', 'energy_"
+    },
+    "eia_facility_fuel": {
+      "status": 200,
+      "len": 1564
+    },
+    "eia_electricity_routes": {
+      "status": 200,
+      "len": 1471
+    },
+    "lbnl_queues_page": {
+      "status": 403,
+      "err": "<!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endi"
+    },
+    "pjm_dataminer_root": {
+      "status": 401,
+      "err": ""
+    },
+    "ercot_mis_json": {
+      "status": 200,
+      "len": 78218
+    },
+    "caiso_queue_xlsx": {
+      "status": 200,
+      "len": 113808
+    },
+    "miso_api": {
+      "status": 404,
+      "err": "The resource you are looking for has been removed, had its name changed, or is temporarily unavailable."
+    },
+    "gridstatus_datasets": {
+      "status": 401,
+      "err": "{\"detail\":\"Missing API Key.\"}"
+    },
+    "epa_envirofacts": {
+      "status": 200,
+      "len": 4495
+    },
+    "echo_air": {
+      "status": 200,
+      "len": 274
+    }
+  }
+}
