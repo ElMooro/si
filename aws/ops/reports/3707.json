@@ -1,0 +1,303 @@
+{
+  "gates": {
+    "G1_shipped": {
+      "ok": true,
+      "detail": "v1.1.0=True join=True flow_cons=True backlog_asof=True"
+    },
+    "G2_backlog_asof": {
+      "ok": true,
+      "detail": "backlog names=53 with_asof=53 sample={'ZS': '2026-04-30', 'PLTR': '2026-03-31', 'DDOG': '2026-03-31', 'OKTA': '2026-04-30', 'CRWD': '2026-04-30'}"
+    },
+    "G3_invoke": {
+      "ok": true,
+      "detail": "refreshed=True waited=15.3s"
+    },
+    "G4_flow_conservation": {
+      "ok": true,
+      "detail": "tier-share sums checked=14 overruns=[] example={'SMCI/T1_DIRECT_SUPPLIER': 0.55, 'DELL/T1_DIRECT_SUPPLIER': 0.55, 'SMCI/T2_TIER2_INPUT': 0.15, 'DELL/T2_TIER2_INPUT': 0.15}"
+    },
+    "G5_join_live": {
+      "ok": true,
+      "detail": "v=1.1.0 quadrants={'TWICE_UNPRICED': 11, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 3, 'FULLY_PRICED': 0, 'PRICE_ONLY': 70} rows=84 rows_with_fundamentals=14 degraded=['fundamental sidecar missing: forward-orders']"
+    },
+    "G6_unbooked_test": {
+      "ok": true,
+      "detail": "rows where the last RPO filing predates the catalyst: 18 -> ['AMD', 'AMD', 'MU', 'MU', 'AVGO', 'NVDA', 'LRCX', 'LRCX', 'KLAC', 'KLAC']"
+    }
+  },
+  "board": {
+    "version": "1.1.0",
+    "quadrants": {
+      "TWICE_UNPRICED": 11,
+      "ESTIMATES_LEADING": 0,
+      "PRICE_LEADING": 3,
+      "FULLY_PRICED": 0,
+      "PRICE_ONLY": 70
+    },
+    "n_events": 10,
+    "n_rows": 84,
+    "twice_unpriced": [
+      {
+        "t": "AMD",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 11.56,
+        "sc": 100.0,
+        "implied": 9519000000,
+        "cap": 0.15865,
+        "unbooked": 36.057,
+        "rpo_asof": "2026-03-28",
+        "est": null
+      },
+      {
+        "t": "AMD",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 3.69,
+        "sc": 95.4,
+        "implied": 10420800000,
+        "cap": 0.17368,
+        "unbooked": 39.473,
+        "rpo_asof": "2026-03-28",
+        "est": null
+      },
+      {
+        "t": "MU",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 5.65,
+        "sc": 93.8,
+        "implied": 3172800000,
+        "cap": 0.05288,
+        "unbooked": 0.635,
+        "rpo_asof": "2026-05-28",
+        "est": null
+      },
+      {
+        "t": "MU",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 2.19,
+        "sc": 92.9,
+        "implied": 3473400000,
+        "cap": 0.05789,
+        "unbooked": 0.695,
+        "rpo_asof": "2026-05-28",
+        "est": null
+      },
+      {
+        "t": "AVGO",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 2.58,
+        "sc": 65.3,
+        "implied": 1428000000,
+        "cap": 0.0238,
+        "unbooked": 0.009,
+        "rpo_asof": "2026-05-03",
+        "est": null
+      },
+      {
+        "t": "NVDA",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 2.87,
+        "sc": 65.1,
+        "implied": 9519000000,
+        "cap": 0.15865,
+        "unbooked": 3.661,
+        "rpo_asof": "2026-04-26",
+        "est": null
+      },
+      {
+        "t": "LRCX",
+        "via": "SMCI",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 4.42,
+        "sc": 62.1,
+        "implied": 1139400000,
+        "cap": 0.01899,
+        "unbooked": 0.513,
+        "rpo_asof": "2026-03-29",
+        "est": null
+      },
+      {
+        "t": "LRCX",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 2.35,
+        "sc": 62.0,
+        "implied": 1084200000,
+        "cap": 0.01807,
+        "unbooked": 0.488,
+        "rpo_asof": "2026-03-29",
+        "est": null
+      },
+      {
+        "t": "KLAC",
+        "via": "SMCI",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 4.17,
+        "sc": 61.9,
+        "implied": 683400000,
+        "cap": 0.01139,
+        "unbooked": 0.087,
+        "rpo_asof": "2025-06-30",
+        "est": null
+      },
+      {
+        "t": "KLAC",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 2.16,
+        "sc": 61.9,
+        "implied": 650400000,
+        "cap": 0.01084,
+        "unbooked": 0.083,
+        "rpo_asof": "2025-06-30",
+        "est": null
+      },
+      {
+        "t": "AVGO",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 0.45,
+        "sc": 58.3,
+        "implied": 1563000000,
+        "cap": 0.02605,
+        "unbooked": 0.009,
+        "rpo_asof": "2026-05-03",
+        "est": null
+      }
+    ],
+    "smci": [
+      {
+        "t": "AMD",
+        "cap": 0.15865,
+        "implied": 9519000000,
+        "exp": 13.43,
+        "gap": 11.56,
+        "q": "TWICE_UNPRICED",
+        "sc": 100.0
+      },
+      {
+        "t": "LITE",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 17.28,
+        "gap": 16.68,
+        "q": "PRICE_ONLY",
+        "sc": 94.6
+      },
+      {
+        "t": "MU",
+        "cap": 0.05288,
+        "implied": 3172800000,
+        "exp": 5.81,
+        "gap": 5.65,
+        "q": "TWICE_UNPRICED",
+        "sc": 93.8
+      },
+      {
+        "t": "CRDO",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 17.28,
+        "gap": 15.55,
+        "q": "PRICE_ONLY",
+        "sc": 93.0
+      },
+      {
+        "t": "MPWR",
+        "cap": 0.01587,
+        "implied": 952200000,
+        "exp": 12.89,
+        "gap": 11.11,
+        "q": "PRICE_ONLY",
+        "sc": 87.0
+      },
+      {
+        "t": "COHR",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 8.75,
+        "gap": 8.53,
+        "q": "PRICE_ONLY",
+        "sc": 85.0
+      },
+      {
+        "t": "VRT",
+        "cap": 0.01587,
+        "implied": 952200000,
+        "exp": 6.03,
+        "gap": 7.63,
+        "q": "PRICE_ONLY",
+        "sc": 82.5
+      },
+      {
+        "t": "ARM",
+        "cap": 0.03797,
+        "implied": 2278200000,
+        "exp": 10.57,
+        "gap": 12.13,
+        "q": "PRICE_ONLY",
+        "sc": 80.3
+      },
+      {
+        "t": "WDC",
+        "cap": 0.02115,
+        "implied": 1269000000,
+        "exp": 7.14,
+        "gap": 5.08,
+        "q": "PRICE_ONLY",
+        "sc": 76.5
+      },
+      {
+        "t": "STX",
+        "cap": 0.02115,
+        "implied": 1269000000,
+        "exp": 7.31,
+        "gap": 4.71,
+        "q": "PRICE_ONLY",
+        "sc": 75.1
+      },
+      {
+        "t": "TER",
+        "cap": 0.01139,
+        "implied": 683400000,
+        "exp": 6.1,
+        "gap": 6.99,
+        "q": "PRICE_ONLY",
+        "sc": 72.4
+      },
+      {
+        "t": "CLS",
+        "cap": 0.01899,
+        "implied": 1139400000,
+        "exp": 3.88,
+        "gap": 3.88,
+        "q": "PRICE_ONLY",
+        "sc": 68.4
+      },
+      {
+        "t": "INTC",
+        "cap": 0.02644,
+        "implied": 1586400000,
+        "exp": 5.2,
+        "gap": 5.22,
+        "q": "PRICE_ONLY",
+        "sc": 66.2
+      },
+      {
+        "t": "AVGO",
+        "cap": 0.0238,
+        "implied": 1428000000,
+        "exp": 4.08,
+        "gap": 2.58,
+        "q": "TWICE_UNPRICED",
+        "sc": 65.3
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}

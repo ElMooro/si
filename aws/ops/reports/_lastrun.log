@@ -1,53 +1,52 @@
-executing-against: fbd5f662c094661d554fe60c680f58e5d588f25c
-ops 3706 — SMCI bill-of-materials + adjacent-theme T3
-  artifact ready after 21s
-PASS  G1_shipped — theme_infra=True capture_mod=True v1.0.5=True graph_bom=True
-[06:27:09] G1_shipped True
-  graph rebuilt in 30s
-PASS  G2_invoke — refreshed=True waited=15.1s
-[06:27:55] G2_invoke True
-PASS  G3_smci_present — SMCI move=29.03% (regular 7.01% + extended 22.02%) type=BACKLOG_ORDERS order=$60.0B benef=22 unpriced=22 | Super Micro surges on new order and margin disclosure after SpaceX announcement
-[06:27:55] G3_smci_present True
-PASS  G4_order_value — order_value_usd=60000000000.0 (expect ~6e10 from the $60 billion headline)
-[06:27:55] G4_order_value True
-PASS  G5_smci_chain — SMCI rows=22 T1=['AMD', 'AVGO', 'COHR', 'CRDO', 'INTC', 'LITE', 'MPWR', 'MU', 'NVDA', 'STX', 'VRT', 'WDC'] tiers={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 2}
-[06:27:55] G5_smci_chain True
+executing-against: 4eb2eaaadcdd5dddaf9c41b279be82a62e1834d2
+ops 3707 — backlog reverse-engineering, stage 1
+  artifacts ready after 43 s
+PASS  G1_shipped — v1.1.0=True join=True flow_cons=True backlog_asof=True
+[16:17:29] G1_shipped True
+  backlog sidecar refreshed in 20 s
+PASS  G2_backlog_asof — backlog names=53 with_asof=53 sample={'ZS': '2026-04-30', 'PLTR': '2026-03-31', 'DDOG': '2026-03-31', 'OKTA': '2026-04-30', 'CRWD': '2026-04-30'}
+[16:17:50] G2_backlog_asof True
+PASS  G3_invoke — refreshed=True waited=15.3s
+[16:18:06] G3_invoke True
+PASS  G4_flow_conservation — tier-share sums checked=14 overruns=[] example={'SMCI/T1_DIRECT_SUPPLIER': 0.55, 'DELL/T1_DIRECT_SUPPLIER': 0.55, 'SMCI/T2_TIER2_INPUT': 0.15, 'DELL/T2_TIER2_INPUT': 0.15}
+[16:18:06] G4_flow_conservation True
+PASS  G5_join_live — v=1.1.0 quadrants={'TWICE_UNPRICED': 11, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 3, 'FULLY_PRICED': 0, 'PRICE_ONLY': 70} rows=84 rows_with_fundamentals=14 degraded=['fundamental sidecar missing: forward-orders']
+[16:18:06] G5_join_live True
+PASS  G6_unbooked_test — rows where the last RPO filing predates the catalyst: 18 -> ['AMD', 'AMD', 'MU', 'MU', 'AVGO', 'NVDA', 'LRCX', 'LRCX', 'KLAC', 'KLAC']
+[16:18:06] G6_unbooked_test True
 
-=== CATALYSTS ===
-  SMCI     29.03% (reg   7.01 + ext  22.02) BACKLOG_ORDERS       $60.0B benef=22 unpriced=22
-         Super Micro surges on new order and margin disclosure after SpaceX announcement
-  DELL     12.21% (reg   5.83 + ext   6.38) BACKLOG_ORDERS       $57.0B benef=22 unpriced=3
-         Satya Nadella Maps Out the Future of Enterprise AI as Server Backlogs Hit $57 Billion
-  BE       16.16% (reg  14.82 + ext   1.34) BACKLOG_ORDERS         None benef=5 unpriced=1
-         3 Stocks Poised to Outperform Before Their Biggest Growth Years Begin
-  RKLB     12.44% (reg   5.14 + ext    7.3) MEGA_CONTRACT         $0.3B benef=5 unpriced=0
-         Rocket Lab Stock Rises After the Bell: Here's Why
-  NBIS      20.4% (reg  18.78 + ext   1.62) CAPACITY_EXPANSION     None benef=22 unpriced=6
-         Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
-  CRWV     11.76% (reg   8.92 + ext   2.83) CAPACITY_EXPANSION     None benef=22 unpriced=5
-         Price Prediction: CoreWeave Has 124% Upside Despite Capex Concerns
-  CRDO      7.34% (reg   5.56 + ext   1.77) CAPACITY_EXPANSION     None benef=13 unpriced=0
-         Credo: The Buying Opportunity Is Finally Flashing (Rating Upgrade)
-  STX      13.18% (reg  11.14 + ext   2.04) EARNINGS_BEAT          None benef=6 unpriced=0
-         Seagate (STX) Earnings Expected to Grow: Should You Buy?
+=== QUADRANTS === {'TWICE_UNPRICED': 11, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 3, 'FULLY_PRICED': 0, 'PRICE_ONLY': 70}
 
-=== SMCI READ-THROUGH CHAIN ===
-  AMD    T1_DIRECT_SUPPLIER         exp=  24.68 real=    0.3 gap=  24.38 UNPRICED  sc=97.5 mat=1.0 []
-  INTC   T1_DIRECT_SUPPLIER         exp=  24.68 real=   0.64 gap=  24.04 UNPRICED  sc=97.1 mat=1.0 []
-  AVGO   T1_DIRECT_SUPPLIER         exp=  20.32 real=  -0.49 gap=  20.81 UNPRICED  sc=95.5 mat=1.0 []
-  MPWR   T1_DIRECT_SUPPLIER         exp=  20.32 real=  -0.28 gap=   20.6 UNPRICED  sc=95.5 mat=1.0 []
-  VRT    T1_DIRECT_SUPPLIER         exp=  20.32 real=   0.36 gap=  19.96 UNPRICED  sc=95.1 mat=1.0 []
-  LITE   T1_DIRECT_SUPPLIER         exp=  20.32 real=   0.81 gap=  19.51 UNPRICED  sc=94.5 mat=1.0 []
-  COHR   T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.06 gap=  19.26 UNPRICED  sc=94.2 mat=1.0 []
-  MU     T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.67 gap=  18.66 UNPRICED  sc=93.5 mat=1.0 []
-  CRDO   T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.71 gap=  18.61 UNPRICED  sc=93.4 mat=1.0 []
-  STX    T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.86 gap=  18.46 UNPRICED  sc=93.2 mat=1.0 []
-  WDC    T1_DIRECT_SUPPLIER         exp=  20.32 real=   2.06 gap=  18.26 UNPRICED  sc=93.0 mat=1.0 []
-  NVDA   T1_DIRECT_SUPPLIER         exp=  10.98 real=  -0.43 gap=  11.41 UNPRICED  sc=86.7 mat=0.445 []
-  TER    T2_TIER2_INPUT             exp=  13.21 real=   0.28 gap=  12.93 UNPRICED  sc=81.0 mat=1.0 []
-  KLAC   T2_TIER2_INPUT             exp=    8.9 real=  -0.55 gap=   9.45 UNPRICED  sc=75.0 mat=0.674 []
+=== SMCI CHAIN, flow-conserved ===
+  AMD    capture= 0.15865 implied=   $9.52B exp=  13.43 gap=  11.56 TWICE_UNPRICED     sc=100.0
+  LITE   capture= 0.01851 implied=   $1.11B exp=  17.28 gap=  16.68 PRICE_ONLY         sc=94.6
+  MU     capture= 0.05288 implied=   $3.17B exp=   5.81 gap=   5.65 TWICE_UNPRICED     sc=93.8
+  CRDO   capture= 0.01851 implied=   $1.11B exp=  17.28 gap=  15.55 PRICE_ONLY         sc=93.0
+  MPWR   capture= 0.01587 implied=   $0.95B exp=  12.89 gap=  11.11 PRICE_ONLY         sc=87.0
+  COHR   capture= 0.01851 implied=   $1.11B exp=   8.75 gap=   8.53 PRICE_ONLY         sc=85.0
+  VRT    capture= 0.01587 implied=   $0.95B exp=   6.03 gap=   7.63 PRICE_ONLY         sc=82.5
+  ARM    capture= 0.03797 implied=   $2.28B exp=  10.57 gap=  12.13 PRICE_ONLY         sc=80.3
+  WDC    capture= 0.02115 implied=   $1.27B exp=   7.14 gap=   5.08 PRICE_ONLY         sc=76.5
+  STX    capture= 0.02115 implied=   $1.27B exp=   7.31 gap=   4.71 PRICE_ONLY         sc=75.1
+  TER    capture= 0.01139 implied=   $0.68B exp=    6.1 gap=   6.99 PRICE_ONLY         sc=72.4
+  CLS    capture= 0.01899 implied=   $1.14B exp=   3.88 gap=   3.88 PRICE_ONLY         sc=68.4
+  INTC   capture= 0.02644 implied=   $1.59B exp=    5.2 gap=   5.22 PRICE_ONLY         sc=66.2
+  AVGO   capture=  0.0238 implied=   $1.43B exp=   4.08 gap=   2.58 TWICE_UNPRICED     sc=65.3
+
+=== TWICE UN-PRICED ===
+  AMD    via SMCI   T1_DIRECT_SUPPLIER         gap=  11.56 unbooked_vs_rpo=36.057 rpo_asof=2026-03-28 est=None sc=100.0
+  AMD    via DELL   T1_DIRECT_SUPPLIER         gap=   3.69 unbooked_vs_rpo=39.473 rpo_asof=2026-03-28 est=None sc=95.4
+  MU     via SMCI   T1_DIRECT_SUPPLIER         gap=   5.65 unbooked_vs_rpo=0.635 rpo_asof=2026-05-28 est=None sc=93.8
+  MU     via DELL   T1_DIRECT_SUPPLIER         gap=   2.19 unbooked_vs_rpo=0.695 rpo_asof=2026-05-28 est=None sc=92.9
+  AVGO   via SMCI   T1_DIRECT_SUPPLIER         gap=   2.58 unbooked_vs_rpo=0.009 rpo_asof=2026-05-03 est=None sc=65.3
+  NVDA   via SMCI   T1_DIRECT_SUPPLIER         gap=   2.87 unbooked_vs_rpo=3.661 rpo_asof=2026-04-26 est=None sc=65.1
+  LRCX   via SMCI   T2_TIER2_INPUT             gap=   4.42 unbooked_vs_rpo=0.513 rpo_asof=2026-03-29 est=None sc=62.1
+  LRCX   via DELL   T2_TIER2_INPUT             gap=   2.35 unbooked_vs_rpo=0.488 rpo_asof=2026-03-29 est=None sc=62.0
+  KLAC   via SMCI   T2_TIER2_INPUT             gap=   4.17 unbooked_vs_rpo=0.087 rpo_asof=2025-06-30 est=None sc=61.9
+  KLAC   via DELL   T2_TIER2_INPUT             gap=   2.16 unbooked_vs_rpo=0.083 rpo_asof=2025-06-30 est=None sc=61.9
+  AVGO   via DELL   T1_DIRECT_SUPPLIER         gap=   0.45 unbooked_vs_rpo=0.009 rpo_asof=2026-05-03 est=None sc=58.3
 
 VERDICT: PASS_ALL
-[06:27:55] VERDICT: PASS_ALL
+[16:18:06] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3706_smci_chain.md
+→ Report written to aws/ops/reports/latest/3707_backlog_join.md
