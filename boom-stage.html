@@ -26,6 +26,10 @@ a{color:var(--accent)}
 <h1>🧭 Boom-Stage Lens</h1>
 <div class="sub">Is a boom EARLY or PLATEAUING? Physical proof: cross VALUE signals (export value, orders, credit) against VOLUME signals (AIS port calls, air cargo). A boom where price does all the work and volume hasn't expanded is in its pricing-power phase — not at plateau. Plateaus look like the opposite: volume caught up, value cooling. Daily 12:30 UTC.</div>
 <div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+<div class="sec">⚡ Divergence Radar — same commodity, opposite physical flow</div>
+<div class="card" id="diverge"></div>
+<div class="sec">📊 Breadth — is the world price-led or volume-led?</div>
+<div class="card" id="breadth"></div>
 <div class="sec">🚨 Signals — transitions &amp; sliding-watches</div>
 <div class="card" id="signals"></div>
 <div class="sec">Lifecycle — where each pair sits</div>
@@ -59,6 +63,10 @@ var _unusedHero='<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:ba
 +'<div><div class="mono" style="font-size:11px;color:'+MUT+'">HEADLINE</div><div class="mono" style="font-size:19px;font-weight:800;color:'+(hp?GRN:NEU)+'">'+(b.headline||'no EARLY_PRICE_LED pair right now')+'</div></div>'
 +(hp?('<div class="mono" style="font-size:12px;color:'+MUT+'">value '+(hp.value.yoy_pct>0?'+':'')+hp.value.yoy_pct+'% vs volume '+(hp.volume.vs_baseline_pct>0?'+':'')+hp.volume.vs_baseline_pct+'% — the divergence IS the proof</div>'):'')
 +'</div>';
+var dv=b.divergences||[];
+document.getElementById('diverge').innerHTML=(dv.length?dv.map(function(x){return '<div style="border-left:3px solid '+RED+';padding:8px 12px;margin:6px 0;font-family:ui-monospace,Menlo,monospace"><div style="font-size:13px;font-weight:800;color:'+RED+'">'+x.commodity.toUpperCase()+' \u2014 '+x.spread_pp+'pp SPREAD</div><div style="font-size:12px;margin-top:4px">'+x.read+'</div><div style="font-size:11px;color:'+MUT+';margin-top:4px">trade: '+x.trade+'</div></div>';}).join(''):'<span class="mono" style="color:'+MUT+';font-size:12px">no same-commodity divergence \u2265 25pp \u2014 physical flows are globally consistent right now</span>');
+var bw=b.breadth;
+document.getElementById('breadth').innerHTML=(bw?('<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline"><div><div class="mono" style="font-size:11px;color:'+MUT+'">PRICE-LED SHARE</div><div class="mono" style="font-size:26px;font-weight:800;color:'+(bw.price_led_share>=50?RED:GRN)+'">'+bw.price_led_share+'%</div></div><div style="flex:1;min-width:280px"><div class="mono" style="font-size:13px;font-weight:700;color:'+(bw.price_led_share>=50?RED:GRN)+'">'+bw.read+'</div><div class="mono" style="font-size:11px;color:'+MUT+';margin-top:4px">'+bw.price_led_n+' price-led ('+bw.price_led.join(', ')+') \u00b7 '+bw.volume_led_n+' volume-led ('+(bw.volume_led.join(', ')||'none')+') \u00b7 '+bw.falling_n+' falling ('+(bw.falling.join(', ')||'none')+')</div></div></div>'+'<div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:8px">Price-led means the value leg is doing the work while physical volume is flat or falling \u2014 activity you can see in prices but not in ships. A high share is the classic late-cycle / supply-constrained signature.</div>'):'<span class="mono" style="color:'+MUT+';font-size:12px">breadth building\u2026</span>');
 var sg=b.signals||[];
 document.getElementById('signals').innerHTML=(sg.length?sg.map(function(x){var c=x.type==='STAGE_CHANGE'?RED:x.type==='SLIDING_WATCH'?AMB:GRN;var t=x.trade||{};return '<div style="border-left:3px solid '+c+';padding:7px 10px;margin:6px 0;font-family:ui-monospace,Menlo,monospace;font-size:12px"><b style="color:'+c+'">'+(x.type==='STAGE_CHANGE'?'\uD83D\uDEA8 ':x.type==='SLIDING_WATCH'?'\u26A0\uFE0F ':'\uD83D\uDFE2 ')+x.type+'</b> '+x.line+(t.bias?('<div style="color:'+MUT+';font-size:11px;margin-top:3px">trade: <b style="color:'+c+'">'+t.bias+'</b> '+t.instruments+' \u2014 '+t.line+'</div>'):'')+'</div>';}).join(''):'<span class="mono" style="color:'+MUT+';font-size:12px">no transitions or sliding-watches today \u2014 '+(b.pairs||[]).length+' pairs steady. '+(b.signals_note||'')+'</span>');
 document.getElementById('life').innerHTML=ORDER.map(function(st,i){
@@ -81,15 +89,21 @@ function card(p){
  +'</div>'
  +'<div class="mono" style="color:'+MUT+';font-size:11.5px;margin-top:5px">→ '+p.why+'</div>'
  +((p.trajectory)?('<div class="mono" style="font-size:11px;margin-top:4px;color:'+MUT+'">trajectory vs '+p.trajectory.prev_day+': value '+(p.trajectory.d_value>0?'\u2197 +':'\u2198 ')+p.trajectory.d_value+'pp \u00b7 volume '+(p.trajectory.d_volume>0?'\u2197 +':'\u2198 ')+p.trajectory.d_volume+'pp</div>'):'')
+ +((p.choke_cause)?('<div class="mono" style="font-size:11px;margin-top:4px;color:'+RED+'">\u26D3\uFE0F cause: '+p.choke_cause+'</div>'):'')
+ +((p.chokepoints&&p.chokepoints.length&&!p.choke_cause)?('<div class="mono" style="font-size:10.5px;margin-top:3px;color:'+MUT+'">\u26D3\uFE0F transit: '+p.chokepoints.map(function(h){return h.name+' '+(h.vs_baseline_pct>0?'+':'')+h.vs_baseline_pct+'%';}).join(' \u00b7 ')+'</div>'):'')
+ +((p.maturity)?('<div class="mono" style="font-size:11px;margin-top:3px;color:'+((p.stage_days>=30)?AMB:MUT)+'">\u23F1 '+p.maturity+'</div>'):'')
+ +((p.reclassified)?('<div class="mono" style="font-size:10.5px;margin-top:3px;color:'+AMB+'">\u21BB reclassified to INFLATION this run \u2014 supply bottleneck behaviour</div>'):'')
  +((p.factor4)?('<div class="mono" style="font-size:11px;margin-top:4px"><span style="color:'+MUT+'">\uD83D\uDCE6 4th factor:</span> <b style="color:'+((p.factor4.read==='INVENTORY_DRAW'||p.factor4.read==='RAMPING')?GRN:(p.factor4.read==='INVENTORY_BUILD'||p.factor4.read==='IDLING')?RED:NEU)+'">'+p.factor4.read+'</b> <span style="color:'+MUT+'">'+p.factor4.name+' '+p.factor4.level+(p.factor4.yoy_chg!=null?(' ('+(p.factor4.yoy_chg>0?'+':'')+p.factor4.yoy_chg+' yoy)'):'')+' \u2014 '+(p.factor4.means||'')+'</span></div>'):'')
  +((p.factor4_note)?('<div class="mono" style="font-size:11px;margin-top:3px;color:'+AMB+'">\u2713 '+p.factor4_note+'</div>'):'')
  +((p.trade)?('<div class="mono" style="font-size:11px;margin-top:4px"><span style="color:'+MUT+'">stage trade:</span> <b style="color:'+c+'">'+p.trade.bias+'</b> '+p.trade.instruments+' <span style="color:'+MUT+'">\u2014 '+p.trade.line+'</span></div>'):'')
  +((v.note)?('<div class="mono" style="color:'+MUT+';font-size:10.5px;margin-top:3px">'+v.note+'</div>'):'')
  +'</div>';}
-var gp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='GROWTH';});
-var ip=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='INFLATION';});
-var dp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='DEFENSIVE';});
-document.getElementById('pairs').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+';margin:4px 0">\uD83D\uDCC9 GROWTH CANARIES \u2014 physical demand for goods (slowdown detectors)</div>'+gp.map(card).join('')+'<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDD25 INFLATION CANARIES \u2014 input prices vs supply flow</div>'+ip.map(card).join('')+((dp.length)?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDEE1\uFE0F DEFENSIVE \u2014 acyclical demand baseline</div>'+dp.map(card).join('')):'');
+var isNA=function(p){return p.stage==='NA';};
+var naP=(b.pairs||[]).filter(isNA);
+var gp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='GROWTH'&&!isNA(p);});
+var ip=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='INFLATION'&&!isNA(p);});
+var dp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='DEFENSIVE'&&!isNA(p);});
+document.getElementById('pairs').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+';margin:4px 0">\uD83D\uDCC9 GROWTH CANARIES \u2014 physical demand for goods (slowdown detectors)</div>'+gp.map(card).join('')+'<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDD25 INFLATION CANARIES \u2014 input prices vs supply flow</div>'+ip.map(card).join('')+((naP.length)?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\u23F3 AWAITING DATA ('+naP.length+') \u2014 one leg still building; shown for transparency, excluded from dials</div>'+naP.map(function(p){return '<div class="mono" style="font-size:11.5px;color:'+MUT+';padding:4px 10px">'+p.label+' \u2014 '+((p.value||{}).yoy_pct==null?'value building':'volume leg missing')+'</div>';}).join('')):'')+((dp.length)?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDEE1\uFE0F DEFENSIVE \u2014 acyclical demand baseline</div>'+dp.map(card).join('')):'');
 document.getElementById('method').textContent=(b.method||'')+' — '+(b.doctrine||'');
 document.getElementById('foot').textContent='Feed data/boom-stage.json · legs from asia-leads / portwatch / china-liquidity / air-cargo / industry-boom · generated '+b.generated_at;
 }catch(e){console.error(e);}})();

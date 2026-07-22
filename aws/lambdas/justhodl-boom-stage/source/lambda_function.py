@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -38,6 +38,8 @@ FRED_KEY = "2f057499936072679d8843d7fce99989"
 # producers are ramping (build) or drawing down (draw). Proven live in 3681.
 FACTOR4 = {
     "semis": ("CAPUTLG3344S", "util", "Semiconductor capacity utilization"),
+    "gas_stocks": ("WGTSTUS1", "inv", "US natural gas in storage"),
+    "copper_stocks": ("PCU2122302122300", "inv", "Copper ore PPI (proxy)"),
     "mining": ("CAPUTLG21S", "util", "Mining capacity utilization"),
     "mfg": ("TCU", "util", "Total industry capacity utilization"),
     "inv_sales": ("MNFCTRIRSA", "inv", "Manufacturers inventories/sales"),
@@ -440,6 +442,8 @@ def lambda_handler(event=None, context=None):
 
     # attach factor-4 to the original pairs
     F4MAP = {"KR-semis": "semis", "TW-semis": "semis",
+             "AU-iron": "mining", "QA-lng": "gas_stocks",
+             "DE-machinery": "mfg", "CH-pharma": "mfg",
              "CL-copper": "mining", "PE-copper": "mining",
              "US-freight": "biz_inv", "FI-pulp": "retail_inv",
              "CN-broad": "mfg", "BR-commodities": "mining",
@@ -523,7 +527,123 @@ def lambda_handler(event=None, context=None):
     for p in pairs:
         tag = CANARY.get(p["id"])
         if tag:
-            p["canary"] = {"type": tag[0], "why": tag[1]}
+            typ, why = tag[0], tag[1]
+            # v1.4 FIX: a GROWTH pair printing SUPPLY_SHOCK_PRICING is
+            # behaving as an INFLATION canary (Chile: mining util RAMPING but
+            # port volume -29.7% = export bottleneck, not demand). Reclassify
+            # dynamically so the dials read the world correctly.
+            if typ == "GROWTH" and p["stage"] == "SUPPLY_SHOCK_PRICING":
+                typ = "INFLATION"
+                why = why + " — currently acting as an INFLATION canary " \
+                            "(supply bottleneck, not demand)"
+                p["reclassified"] = True
+            p["canary"] = {"type": typ, "why": why}
+
+    # ---- NEW CANARY A: same-commodity divergence ----
+    # Two countries, one commodity, opposite physical flow = the price move
+    # is a LOCAL SUPPLY problem, not global demand. Highest-conviction read
+    # on the board and nothing else in the fleet computes it.
+    COMMODITY_GROUPS = {
+        "copper": ["CL-copper", "PE-copper"],
+        "crude": ["SA-oil", "UAE-energy"],
+        "semis": ["KR-semis", "TW-semis"],
+    }
+    divergences = []
+    byid = {p["id"]: p for p in pairs}
+    for comm, ids in COMMODITY_GROUPS.items():
+        legs = [byid[i] for i in ids if i in byid
+                and (byid[i].get("volume") or {}).get("vs_baseline_pct")
+                is not None]
+        if len(legs) < 2:
+            continue
+        vols = [(l["id"], (l["volume"] or {}).get("vs_baseline_pct"))
+                for l in legs]
+        vols.sort(key=lambda x: x[1])
+        lo, hi = vols[0], vols[-1]
+        spread = round(hi[1] - lo[1], 1)
+        if spread >= 25:
+            divergences.append({
+                "commodity": comm, "spread_pp": spread,
+                "weak": lo[0], "weak_pct": lo[1],
+                "strong": hi[0], "strong_pct": hi[1],
+                "read": (f"{comm.upper()}: {lo[0]} volume {lo[1]}% vs "
+                         f"{hi[0]} {hi[1]}% — {spread}pp gap. Same commodity, "
+                         f"opposite flow = LOCAL SUPPLY DISRUPTION in "
+                         f"{lo[0].split('-')[0]}, not a global demand signal. "
+                         f"Price strength here is supply-driven "
+                         f"(inflationary), and producers in "
+                         f"{hi[0].split('-')[0]} gain share."),
+                "trade": (f"prefer {hi[0].split('-')[0]}-exposed producers "
+                          f"over {lo[0].split('-')[0]}-exposed; the spread "
+                          f"is the alpha")})
+    divergences.sort(key=lambda x: -x["spread_pp"])
+
+    # ---- NEW CANARY B: price-led vs volume-led BREADTH ----
+    # One number: is the world's activity real demand or just price?
+    price_led = [p["id"] for p in pairs
+                 if p["stage"] in ("EARLY_PRICE_LED", "SUPPLY_SHOCK_PRICING")]
+    volume_led = [p["id"] for p in pairs if p["stage"] == "BROADENING"]
+    falling = [p["id"] for p in pairs
+               if p["stage"] in ("CONTRACTION", "VALUE_LED_DOWNTURN")]
+    scored = len(price_led) + len(volume_led) + len(falling)
+    breadth = None
+    if scored >= 4:
+        breadth = {
+            "price_led_n": len(price_led), "volume_led_n": len(volume_led),
+            "falling_n": len(falling), "scored_n": scored,
+            "price_led_share": round(100 * len(price_led) / scored),
+            "read": ("PRICE-LED WORLD — most activity is price, not volume: "
+                     "inflation without real growth"
+                     if len(price_led) > (len(volume_led) + len(falling))
+                     else "VOLUME-LED WORLD — real physical expansion "
+                          "underway" if len(volume_led) >= len(price_led)
+                     else "CONTRACTING WORLD — falling pairs dominate"),
+            "price_led": price_led, "volume_led": volume_led,
+            "falling": falling}
+
+    # ---- NEW CANARY C: stage persistence (how mature is each stage?) ----
+    for p in pairs:
+        streak = 0
+        for day in sorted(hist["days"], reverse=True):
+            st_then = (hist["days"][day].get(p["id"]) or {}).get("stage")
+            if st_then == p["stage"]:
+                streak += 1
+            elif st_then:
+                break
+        p["stage_days"] = streak
+        if streak >= 30 and p["stage"] == "EARLY_PRICE_LED":
+            p["maturity"] = ("LATE-EARLY: this pricing-power phase has held "
+                             f"{streak}d — historically where plateaus form; "
+                             "tighten stops")
+        elif streak <= 3 and p["stage"] != "NA":
+            p["maturity"] = f"FRESH: {streak}d in this stage"
+
+    # ---- NEW CANARY D: chokepoint attribution ----
+    CHOKE_MAP = {"UAE-energy": ["hormuz"], "SA-oil": ["hormuz", "bab"],
+                 "QA-lng": ["hormuz"], "CN-broad": ["malacca", "taiwan"],
+                 "KR-semis": ["taiwan", "malacca"],
+                 "TW-semis": ["taiwan"], "DE-machinery": ["suez", "gibraltar"],
+                 "BR-commodities": ["panama"], "CL-copper": ["panama"]}
+    chokes = {str(c.get("name", "")).lower(): c
+              for c in (pw.get("chokepoints") or [])}
+    for p in pairs:
+        keys = CHOKE_MAP.get(p["id"]) or []
+        hits = []
+        for k in keys:
+            for nm2, c in chokes.items():
+                if k in nm2 and c.get("vs_baseline_pct") is not None:
+                    hits.append({"name": c.get("name"),
+                                 "vs_baseline_pct": c.get("vs_baseline_pct"),
+                                 "status": c.get("status")})
+                    break
+        bad = [h for h in hits if (h.get("vs_baseline_pct") or 0) <= -20]
+        if hits:
+            p["chokepoints"] = hits[:2]
+        if bad and p["stage"] in ("SUPPLY_SHOCK_PRICING", "EARLY_PRICE_LED"):
+            p["choke_cause"] = (
+                f"{bad[0]['name']} transit {bad[0]['vs_baseline_pct']}% — "
+                "the price move has a physical cause upstream, not a demand "
+                "cause; treat as supply shock until transit normalizes")
 
     # ---- MACRO VERDICT: two plain-English dials ----
     SLOW = {"CONTRACTION": 30, "VALUE_LED_DOWNTURN": 20,
@@ -595,6 +715,7 @@ def lambda_handler(event=None, context=None):
     live = [p for p in pairs if p["stage"] != "NA"]
     doc = {"ok": len(live) >= 8, "version": VERSION,
            "generated_at": now.isoformat(), "pairs": pairs, "signals": signals,
+           "divergences": divergences, "breadth": breadth,
            "macro": {"slowdown_risk": slow, "slowdown_band": slow_band,
                       "inflation_pressure": infl, "inflation_band": infl_band,
                       "regime": regime, "plain_english": " ".join(parts),
@@ -611,10 +732,15 @@ def lambda_handler(event=None, context=None):
                              for p in pairs
                              if p["stage"] == "EARLY_PRICE_LED"), None),
            "method": ("stage = f(value_yoy, volume_vs_baseline): "
-                      "EARLY_PRICE_LED v>=15 & vol in [-12,8]; BROADENING "
-                      "v>=8 & vol>8; PLATEAU v in [0,8) & vol>8; "
-                      "CONTRACTION v<0 & vol<-8; value legs = exports/"
-                      "orders/credit; volume legs = AIS port calls"),
+                     "SUPPLY_SHOCK_PRICING v>=10 & vol<=-15 (price up, flow "
+                     "collapsing — inflation signature); EARLY_PRICE_LED "
+                     "v>=10 & vol in [-15,5]; BROADENING v>=8 & vol>8; "
+                     "PLATEAU_FORMING v in [0,8) & vol>8; VALUE_LED_DOWNTURN "
+                     "v<0<=vol; CONTRACTION v<0 & vol<-8. Value legs = "
+                     "export value/orders/credit/commodity price; volume "
+                     "legs = AIS port calls; 4th factor = capacity "
+                     "utilization + inventories/sales; canary class flips to "
+                     "INFLATION when a growth pair prints SUPPLY_SHOCK."),
            "doctrine": ("value-vs-volume: surging value on flat volume = "
                         "pricing power (early); volume catch-up with "
                         "cooling value = plateau forming")}
