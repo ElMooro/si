@@ -570,7 +570,7 @@ def lambda_handler(event, context):
     n_contrarian = sum(1 for c in final_clusters if c.get("fundamentals", {}).get("pct_from_52w_high", 0) < -25 and c["score"] >= 60)
     
     output = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
         "method": "insider_cluster_scanner_v2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "lookback_days": LOOKBACK_DAYS,
@@ -594,6 +594,29 @@ def lambda_handler(event, context):
             "score_strong_threshold": 70,
         },
         "clusters": final_clusters,
+        # ops 3743 (canary #16): ADDITIVE breadth sidecar. The cluster filter
+        # above drops every ticker with a single insider, but 4 DIFFERENT
+        # companies in one industry each seeing one CEO buy IS the peer-group
+        # signal — the industry canary needs exactly the rows the filter
+        # discards. Existing consumers of `clusters` are untouched.
+        "all_ticker_buys": [
+            {
+                "ticker": t,
+                "n_insiders": len({x.get("insider_name") for x in txns}),
+                "n_transactions": len(txns),
+                "total_value": round(sum(float(x.get("value") or 0) for x in txns), 2),
+                "total_shares": sum(int(x.get("shares") or 0) for x in txns),
+                "first_buy": min((str(x.get("txn_date") or "") for x in txns),
+                                 default=""),
+                "last_buy": max((str(x.get("txn_date") or "") for x in txns),
+                                default=""),
+                "roles": sorted({(x.get("role") or "")[:60]
+                                 for x in txns if x.get("role")}),
+                "max_role_tier": max((int(x.get("role_tier") or 0) for x in txns),
+                                     default=0),
+            }
+            for t, txns in by_ticker.items() if txns
+        ],
     }
     body = json.dumps(output, default=str)
     S3.put_object(Bucket=S3_BUCKET, Key=S3_KEY, Body=body.encode(),

@@ -1,0 +1,17 @@
+{
+  "function_name": "justhodl-insider-industry-cluster",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 512,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Peer-group insider conviction (canary #16). Aggregates Form 4 buys to industry: distinct-company breadth, participation rate vs listed, CEO/CFO conviction, dollar HHI, self-building base-rate z. Guards biotech/regional-bank false positives.",
+  "environment": {},
+  "schedule": {
+    "rule_name": "justhodl-insider-industry-cluster-daily",
+    "cron": "cron(20 14 * * ? *)",
+    "description": "Insider industry cluster — daily 14:20 UTC, after insider-cluster-scanner publishes"
+  }
+}
