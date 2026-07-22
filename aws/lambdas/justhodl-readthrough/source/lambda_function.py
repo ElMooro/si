@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -750,6 +750,11 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
 
 SNAP_KEY = "readthrough/consensus-snapshots.json"
 
+# Analysts do not revise within hours of a print. Below this many days after
+# the catalyst, "consensus has not moved" is trivially true and carries no
+# information — the board says so instead of dressing it up as an edge.
+CONSENSUS_LAG_DAYS = 3
+
 
 def load_analyst_actions():
     """Dated sell-side actions per ticker. Day-one observable, unlike revisions."""
@@ -837,13 +842,23 @@ def consensus_view(t, cat_day, fund, actions, covered, deltas):
     moved = (fund.get("estimates_revised_since_catalyst") is True
              or net > 0
              or (dl.get("consensus_rev_delta_pct") or 0) > 0.5)
-    # observable if: revisions cover it, OR the sell side covers it at all, OR we
-    # hold a prior consensus snapshot to diff against
-    observed = (fund.get("est_direction") is not None
-                or t in covered
-                or bool(dl))
+    dissent = (net < 0 or (dl.get("consensus_rev_delta_pct") or 0) < -0.5
+               or fund.get("est_direction") == "DOWN")
+
+    # Observability must be SPECIFIC to this name. Merely appearing somewhere in
+    # the latest sell-side news feed means someone acted on it, not that we are
+    # tracking it. Require a revision record, our own consensus delta, or a
+    # dated action on this ticker.
+    observed = (fund.get("est_direction") is not None or bool(dl) or bool(acts))
     fund["consensus_moved"] = bool(moved)
+    fund["consensus_dissenting"] = bool(dissent)
     fund["consensus_observed"] = bool(observed)
+    fund["sellside_feed_covers"] = t in covered
+
+    try:
+        fund["days_since_catalyst"] = (date.today() - date.fromisoformat(cat_day)).days
+    except Exception:  # noqa: BLE001
+        fund["days_since_catalyst"] = None
     return fund
 
 
@@ -958,7 +973,16 @@ def pricing_quadrant(price_status, fund):
                     "order is not in the last filing, but no revision data to confirm "
                     "whether analysts have moved")
         return "PRICE_ONLY", "no revision coverage for this name, price signal only"
+    if fund.get("consensus_dissenting"):
+        return ("CONSENSUS_DISSENTING",
+                "the sell side has moved the OTHER way since this catalyst - "
+                "the read-through says buy and the analysts disagree")
     if price_open and not est_moved:
+        age = fund.get("days_since_catalyst")
+        if age is not None and age < CONSENSUS_LAG_DAYS:
+            return ("CONSENSUS_NOT_DUE_YET",
+                    f"only {age}d since the catalyst - analysts have not had time to "
+                    "revise, so silence here carries no information yet")
         return "TWICE_UNPRICED", "the tape has not paid for it and consensus has not modelled it"
     if price_open and est_moved:
         return "ESTIMATES_LEADING", "analysts moved first, the tape is the laggard here"
@@ -1123,6 +1147,11 @@ def lambda_handler(event=None, context=None):
                     sr["catch_up_score"] = round(min(100.0, sr["catch_up_score"] * 1.15), 1)
                 elif q == "UNBOOKED_NO_CONSENSUS":
                     sr["catch_up_score"] = round(min(100.0, sr["catch_up_score"] * 1.05), 1)
+                elif q == "CONSENSUS_DISSENTING":
+                    sr["catch_up_score"] = round(sr["catch_up_score"] * 0.55, 1)
+                    sr["flags"].append(
+                        "CONSENSUS_DISSENT - sell side moved down on this name since "
+                        "the catalyst; the mechanism and the analysts disagree")
                 elif q == "FULLY_PRICED":
                     sr["catch_up_score"] = round(sr["catch_up_score"] * 0.6, 1)
                 if fund.get("claim_predates_filing"):
@@ -1154,7 +1183,8 @@ def lambda_handler(event=None, context=None):
                   "residual_pct": r["residual_pct"], "note": r["thesis"][:220]}
                  for r in unpriced
                  if r["tier"] in ("T1_DIRECT_SUPPLIER", "T2_TIER2_INPUT", "T3_INFRASTRUCTURE")
-                 and r["catch_up_score"] >= 55][:15]
+                 and r["catch_up_score"] >= 55
+                 and r.get("pricing_quadrant") != "CONSENSUS_DISSENTING"][:15]
 
     ind_boom = {}
     for row in ((boom or {}).get("industries") or (boom or {}).get("league") or []):
@@ -1201,7 +1231,8 @@ def lambda_handler(event=None, context=None):
         },
         "quadrant_counts": {q: sum(1 for x in all_rows
                                    if x.get("pricing_quadrant") == q)
-                            for q in ("TWICE_UNPRICED", "UNBOOKED_NO_CONSENSUS",
+                            for q in ("TWICE_UNPRICED", "CONSENSUS_NOT_DUE_YET",
+                                      "CONSENSUS_DISSENTING", "UNBOOKED_NO_CONSENSUS",
                                       "ESTIMATES_LEADING", "PRICE_LEADING",
                                       "FULLY_PRICED", "PRICE_ONLY")},
         "top_picks": top_picks,
