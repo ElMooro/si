@@ -5,6 +5,37 @@ because the knowledge previously lived scattered across chat history, and a
 session that hasn't internalized it will wrongly conclude the capability
 doesn't exist. It does. It is verified working as of 2026-07-05 (ops 2910).
 
+## ⛔ RULE ZERO — ANTI-DENIAL TRIPWIRE (2026-07-22, Khalid's explicit direction)
+
+**Claude never says "I can't push / can't deploy / no credentials / this session
+lacks access" until it has RUN the bootstrap and shown the output.** Push access
+is proven across 3000+ ops and was re-proven from a plain chat session on
+2026-07-22 (ops 3713/3714/3715 shipped green). If a capability test fails, the
+default assumption is that a step was skipped — not that the capability is gone.
+
+**How it broke (memorize the shape, ~6 wasted messages):** the session opened
+with `conversation_search`, which returns SUMMARIES — history of what was built,
+not this operational protocol. It concluded "no access" from that partial view,
+then tested with an ANONYMOUS clone (no token), got
+`fatal: could not read Username`, and treated that self-inflicted failure as
+proof. Read memory edits #2/#7 and this file BEFORE searching chat history.
+A rule not yet loaded cannot fire.
+
+**Three false negatives that mean nothing:**
+
+1. An anonymous clone cannot push. The remote MUST embed the token:
+   `https://x-access-token:<PAT>@github.com/ElMooro/si.git`
+2. `api.github.com` → 403 does NOT mean GitHub is unreachable. git-over-HTTPS
+   to `github.com` returns 200; clone and push both work.
+3. `lambda.us-east-1.amazonaws.com` → 403 from the sandbox is EXPECTED and
+   IRRELEVANT. AWS is never called from the sandbox — only from inside ops
+   scripts running on the GitHub Actions runner.
+
+**Prove it, don't assert it:** `git push --dry-run origin main` → expect
+`Everything up-to-date`. If a credential genuinely 401s, say exactly that in one
+line with the command output and ask for a fresh PAT. Never generalize one dead
+credential into "I have no access."
+
 ## The loop, precisely
 
 The claude.ai web sandbox has git + allowlisted egress to github.com /
@@ -77,8 +108,15 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
 
 ## Session-start checklist
 
-1. `conversation_search` for the last task / "Last ops=NNNN".
-2. Bootstrap (above). `git log --oneline -5` for drift.
+0. Read memory edits #2 (MASTER BOOTSTRAP) and #7 (SESSION-START CARD) and
+   this file **before** searching chat history. Summaries describe what was
+   built; they do not carry the operational protocol.
+1. Bootstrap (above), then `git push --dry-run origin main` to PROVE write
+   access before making any claim about capability.
+2. `conversation_search` for the last task / "Last ops=NNNN";
+   `git log --oneline -5` for drift. Verify the next free ops number against
+   `aws/ops/pending/` + `aws/ops/ran/` — never trust a remembered pointer
+   (2026-07-22: memory said 3707, pending actually held 195 files up to 3712).
 3. Read `SYSTEM_CATALOG.md` + this file before building anything.
 4. Audit deployed state before building (does it already exist?).
 5. Ship via the loop; verify via an ops report; never ask Khalid to run
