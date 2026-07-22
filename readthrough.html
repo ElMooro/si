@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunities · Read-Through Radar · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.ev{border-left:3px solid var(--accent);padding:12px 14px;margin:12px 0;background:rgba(240,180,41,.04);border-radius:0 10px 10px 0}
+.evh{font-size:15px;font-weight:600}
+.chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:1px 9px;font-size:10.5px;color:var(--text-dim);margin-right:6px}
+.row{border-left:3px solid var(--border);padding:9px 12px;margin:8px 0;background:rgba(255,255,255,.02);border-radius:0 10px 10px 0}
+.rowh{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.tkr{font-weight:700;font-size:14.5px}
+/* signature: the diffusion ladder — how far the tape has walked toward the mechanism */
+.lad{position:relative;height:16px;background:#0d1218;border:1px solid var(--border);border-radius:4px;margin:7px 0 5px;overflow:hidden}
+.lad .exp{position:absolute;top:0;bottom:0;left:0;background:rgba(240,180,41,.13)}
+.lad .real{position:absolute;top:0;bottom:0;left:0;background:var(--pos);opacity:.55}
+.lad .mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--accent)}
+.lad .lbl{position:absolute;right:6px;top:0;font-size:10px;line-height:16px;color:var(--text-dim);font-family:ui-monospace,monospace}
+.flag{font-size:10.5px;color:var(--neg);display:block}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);padding:6px 8px}
+td{padding:6px 8px;border-bottom:1px solid rgba(28,35,48,.6)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔗 Opportunities — Read-Through Radar</h1>
+<div class="sub">One company surges overnight on an order print. That print is a cash-flow claim on its whole chain. This board tiers every beneficiary by <b>mechanism</b> — who actually sells into it, who merely shares the theme, who is just a competitor whose market got validated — sizes the claim against each company's own revenue, strips market beta, and ranks <b>what the tape has not paid for yet</b>. Runs 21:20 UTC (after-hours catch), 11:20 and 13:20 UTC (premarket / pre-open).</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">⚡ Catalysts — what fired</div>
+<div id="events"></div>
+
+<div class="sec">🎯 Un-priced beneficiaries — the mechanism says they should have moved, the tape hasn't</div>
+<div id="unpriced"></div>
+
+<div class="sec">🛑 Chase guard — already moved more than the mechanism justifies</div>
+<div class="card" id="chase"></div>
+
+<div class="sec">📋 Full board — every beneficiary, every tier</div>
+<div class="card" style="overflow-x:auto"><table id="board"></table></div>
+
+<div class="sec">Method &amp; honest limits</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Graph: <a href="/supply-chain.html">Supply-Chain Graph</a> (30-day lead-lag) · Fundamentals: <a href="/bottleneck-boom.html">Bottleneck Boom</a> (quarterly backlog) · Events: <a href="/catalysts.html">Catalysts</a> · <a href="/deal-scanner.html">Deal Scanner</a> · Industry context: <a href="/boom-radar.html">Boom Radar</a>.</div>
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(function(){
+var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479',DIM='#8b96a8';
+var SC={UNPRICED:GRN,PARTIAL:AMB,PRICED:MUT,OVERSHOT:RED,NO_SIGNAL:MUT};
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function pc(v,d){return v==null?'—':(v>0?'+':'')+v.toFixed(d==null?1:d)+'%';}
+function usd(v){if(v==null)return '—';var a=Math.abs(v);if(a>=1e12)return '$'+(v/1e12).toFixed(2)+'T';if(a>=1e9)return '$'+(v/1e9).toFixed(1)+'B';if(a>=1e6)return '$'+(v/1e6).toFixed(0)+'M';return '$'+v.toFixed(0);}
+function tierShort(t){return (t||'').split('_').slice(1).join(' ').toLowerCase();}
+
+function ladder(r){
+  // Signature element: expected move = the rail, realized ex-beta = how far the tape has walked.
+  var exp=Math.max(Math.abs(r.expected_move_pct||0),0.01), real=r.realized_ex_beta_pct||0;
+  var w=Math.max(0,Math.min(100,(real/exp)*100));
+  return '<div class="lad"><div class="exp" style="width:100%"></div>'+
+    '<div class="real" style="width:'+w.toFixed(0)+'%;background:'+(real<0?RED:GRN)+'"></div>'+
+    '<div class="mark" style="left:100%"></div>'+
+    '<div class="lbl">walked '+pc(real)+' of '+pc(r.expected_move_pct)+'</div></div>';
+}
+
+function rowCard(r){
+  var c=SC[r.status]||MUT;
+  var flags=(r.flags||[]).map(function(f){return '<span class="flag">⚠ '+esc(f)+'</span>';}).join('');
+  return '<div class="row" style="border-left-color:'+c+'">'+
+    '<div class="rowh"><div><span class="tkr">'+esc(r.ticker)+'</span> '+
+      '<span class="mono" style="color:'+DIM+';font-size:11.5px">'+esc(r.company||'')+'</span></div>'+
+      '<div class="mono" style="font-size:11.5px"><span style="color:'+c+'">'+esc(r.status)+'</span>'+
+      ' · gap <b style="color:'+AMB+'">'+pc(r.residual_pct)+'</b> · score <b>'+(r.catch_up_score==null?'—':r.catch_up_score)+'</b></div></div>'+
+    '<div class="mono" style="font-size:11px;color:'+MUT+';margin-top:2px">'+
+      '<span class="chip">'+esc(tierShort(r.tier))+'</span>'+
+      '<span class="chip">via '+esc(r.catalyst_ticker)+'</span>'+
+      (r.days_to_earnings!=null?'<span class="chip">earnings in '+r.days_to_earnings+'d</span>':'')+
+      (r.market_cap!=null?'<span class="chip">'+usd(r.market_cap)+' cap</span>':'')+
+    '</div>'+
+    ladder(r)+
+    '<div style="font-size:12.5px;color:var(--text)">'+esc(r.thesis||'')+'</div>'+
+    '<div class="mono" style="font-size:11px;color:'+MUT+';margin-top:3px">'+esc(r.why||'')+' · materiality '+
+      (r.materiality==null?'—':r.materiality)+' ('+esc(r.materiality_note||'')+')</div>'+
+    flags+'</div>';
+}
+
+function eventCard(e,rows){
+  var mine=rows.filter(function(r){return r.catalyst_ticker===e.ticker;}).slice(0,8);
+  return '<div class="ev"><div class="evh">'+esc(e.ticker)+' <span style="color:'+(e.move_pct>=0?GRN:RED)+'">'+pc(e.move_pct)+'</span> '+
+    '<span class="mono" style="font-size:11.5px;color:'+DIM+'">'+esc(e.type)+
+    (e.order_value_str?' · <b style="color:'+AMB+'">'+esc(e.order_value_str)+'</b>':'')+
+    (e.sec_8k_confirm?' · <span style="color:'+GRN+'">8-K confirmed</span>':'')+'</span></div>'+
+    '<div style="font-size:12.5px;color:var(--text-dim);margin:3px 0 6px">'+esc(e.headline||'')+'</div>'+
+    '<div class="mono" style="font-size:11px;color:'+MUT+'">'+(e.age_h!=null?e.age_h+'h old':'')+
+      ' · anchor '+esc(e.anchor_day||'')+' · SPY since '+pc(e.spy_move_since_pct)+
+      ' · '+(e.n_beneficiaries||0)+' beneficiaries, <b style="color:'+GRN+'">'+(e.n_unpriced||0)+' un-priced</b>'+
+      ' · propagation '+(e.propagation!=null?e.propagation.toFixed(2):'—')+'</div>'+
+    (mine.length?('<div style="margin-top:8px">'+mine.map(rowCard).join('')+'</div>'):'')+
+    '</div>';
+}
+
+function boardTable(rows){
+  var h='<tr><th>Ticker</th><th>Tier</th><th>Catalyst</th><th>Expected</th><th>Realized ex-β</th><th>Gap</th><th>Capture</th><th>Status</th><th>Score</th></tr>';
+  return h+rows.map(function(r){
+    var c=SC[r.status]||MUT;
+    return '<tr><td class="mono"><b>'+esc(r.ticker)+'</b></td><td class="mono" style="color:'+DIM+'">'+esc(tierShort(r.tier))+
+      '</td><td class="mono">'+esc(r.catalyst_ticker)+'</td><td class="mono">'+pc(r.expected_move_pct)+
+      '</td><td class="mono">'+pc(r.realized_ex_beta_pct)+'</td><td class="mono" style="color:'+AMB+'">'+pc(r.residual_pct)+
+      '</td><td class="mono">'+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(2))+
+      '</td><td class="mono" style="color:'+c+'">'+esc(r.status)+'</td><td class="mono"><b>'+(r.catch_up_score==null?'—':r.catch_up_score)+'</b></td></tr>';
+  }).join('');
+}
+
+(async function(){
+  var d=null;
+  try{var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/readthrough.json?t='+Date.now());if(r.ok)d=await r.json();}catch(e){}
+  if(!d){try{var r2=await fetch('https://justhodl.ai/data/readthrough.json?t='+Date.now());if(r2.ok)d=await r2.json();}catch(e){}}
+  var hero=document.getElementById('hero');
+  if(!d){hero.innerHTML='<span class="mono" style="color:'+RED+'">Feed unreachable. The engine writes data/readthrough.json — if this persists the run failed; check CloudWatch for justhodl-readthrough.</span>';return;}
+
+  if(d.status==='QUIET'||!(d.events||[]).length){
+    hero.innerHTML='<div class="mono" style="font-size:13px">😴 <b>QUIET TAPE</b> — '+esc(d.note||'no qualifying catalyst in the last 48h')+'</div>'+
+      '<div class="mono" style="font-size:11px;color:'+MUT+';margin-top:6px">A quiet board is a real answer, not a failure. Nothing is invented to fill it.</div>';
+  } else {
+    var un=(d.unpriced||[]).length, ev=(d.events||[]).length;
+    var top=(d.unpriced||[])[0];
+    hero.innerHTML='<div style="font-size:15px"><b>'+ev+'</b> propagating catalyst'+(ev===1?'':'s')+
+      ' · <b>'+(d.n_beneficiaries||0)+'</b> beneficiaries mapped · <b style="color:'+GRN+'">'+un+'</b> un-priced</div>'+
+      (top?('<div style="margin-top:8px;font-size:13.5px">Widest gap: <b>'+esc(top.ticker)+'</b> — '+esc(top.thesis||'')+'</div>'):'')+
+      '<div class="mono" style="font-size:11px;color:'+MUT+';margin-top:8px">'+esc(d.status)+
+      ((d.degraded||[]).length?(' · degraded: '+esc(d.degraded.join(' | '))):'')+'</div>';
+  }
+
+  document.getElementById('events').innerHTML=(d.events||[]).map(function(e){return eventCard(e,d.beneficiaries||[]);}).join('')||
+    '<div class="card mono" style="color:'+MUT+'">No catalysts.</div>';
+  document.getElementById('unpriced').innerHTML=(d.unpriced||[]).length?
+    (d.unpriced||[]).map(rowCard).join(''):'<div class="card mono" style="color:'+MUT+'">Nothing un-priced right now — every mapped read-through is already in the tape.</div>';
+  document.getElementById('chase').innerHTML=(d.chase_guard||[]).length?
+    (d.chase_guard||[]).map(function(r){return '<div class="mono" style="font-size:12px;padding:4px 0"><b>'+esc(r.ticker)+'</b> '+
+      esc(tierShort(r.tier))+' via '+esc(r.catalyst_ticker)+' — realized '+pc(r.realized_ex_beta_pct)+
+      ' vs mechanism '+pc(r.expected_move_pct)+' (capture '+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(1))+'×)</div>';}).join(''):
+    '<div class="mono" style="font-size:12px;color:'+MUT+'">Nothing has overshot its mechanism.</div>';
+  document.getElementById('board').innerHTML=boardTable(d.beneficiaries||[]);
+
+  var tiers=d.tiers||{};
+  document.getElementById('method').innerHTML=
+    Object.keys(tiers).map(function(k){var t=tiers[k];return '<div style="padding:2px 0"><b style="color:var(--text)">'+esc(k)+'</b> — '+esc(t.label)+
+      ' · transmit weight '+t.weight+' · order-capture share '+(t.capture*100).toFixed(0)+'%</div>';}).join('')+
+    '<div style="margin-top:10px">expected = catalyst move × tier weight × edge confidence × materiality × propagation. '+
+    'realized ex-β = move since catalyst − β × SPY move. gap = expected − realized. '+
+    'capture &lt;0.33 → UNPRICED · &gt;1.5 → OVERSHOT.</div>'+
+    '<div style="margin-top:10px;color:'+RED+'">'+(d.caveats||[]).map(esc).join('<br>')+'</div>';
+
+  document.getElementById('foot').textContent='justhodl-readthrough v'+(d.version||'')+' · generated '+(d.generated_at||'')+
+    ' · '+(d.data_source||'')+' · '+(d.elapsed_s||'?')+'s. Research/education only — not investment advice.';
+})();
+})();
+</script>
+</body>
+</html>

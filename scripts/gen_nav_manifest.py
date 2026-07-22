@@ -47,6 +47,7 @@ def title_of(p):
 
 
 FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
+    "/readthrough.html": "Portfolio & Execution",   # ops 3699 read-through radar
     "etf-census.html": "Research & Tools",
     "fixed-income-census.html": "Research & Tools",
     "/proven-alpha.html": "Portfolio & Execution",     # ops 3519

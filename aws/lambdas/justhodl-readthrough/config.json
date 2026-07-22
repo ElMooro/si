@@ -1,0 +1,22 @@
+{
+  "function_name": "justhodl-readthrough",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Catalyst read-through engine: tiers beneficiaries of a spend-implying catalyst by mechanism (T1 supplier -> T5 competitor), sizes vs own revenue, strips beta on the event clock, ranks what the tape has not paid for. -> data/readthrough.json",
+  "environment": {},
+  "inherit_env": true,
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-readthrough-sched",
+    "cron": "cron(20 11,13,21 ? * MON-FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "21:20 UTC after-hours catch (the SMCI 8pm print) + 11:20 premarket + 13:20 pre-open, Mon-Fri"
+  }
+}
