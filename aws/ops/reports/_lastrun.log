@@ -1,8 +1,31 @@
-executing-against: bd5dffe8c3ab0549533be9063b5115367788c051
-ops 3676 — air landing v1.6
-PASS  G1_value — rows=386 cols={'unloaded': 'L', 'total': 'N', 'yoy': 'O', 'hdr_row': 8} n=29 tonnes_k=433.0 month=2026-05 yoy=3.1 read=HIGH-VALUE FLOW STEADY tail=[['2014-05', 367.2], ['2015-05', 365.7], ['2016-05', 362.3], ['2017-05', 408.8], ['2018-05', 428.3], ['2019-05', 395.7], ['2020-05', 374.4], ['2021-05', 401.3], ['2022-05', 362.1], ['2023-05', 347.0], ['2024-05', 413.7], ['2025-05', 420.0], ['2026-05', 433.0]] probe=None
-[00:50:52] G1_value True
+executing-against: b4183acc922b9ef32e66afdf1582b34ebb2976f8
+ops 3677 — boom-stage engine + wires
+[00:52:25]   zip: 85012 bytes
+── 1. Lambda ──
+[00:52:25]   Lambda exists — updating
+[00:52:30] ✅   ✓ updated justhodl-boom-stage
+── 3. Smoke test ──
+[00:52:30]   invoking justhodl-boom-stage…
+PASS  G1_engine — err=None ok=True headline=Korea · Semiconductors/Memory: EARLY_PRICE_LED stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6)]
+[00:52:34] G1_engine True
+[00:52:34]   zip: 107431 bytes
+── 1. Lambda ──
+[00:52:34]   Lambda exists — updating
+[00:52:43] ✅   ✓ updated justhodl-morning-intelligence
+── 3. Smoke test ──
+[00:52:43]   invoking justhodl-morning-intelligence…
+[00:53:00] ✅   ✓ smoke test passed
+[00:53:00]     success                  True
+[00:53:00]     khalid_adj               43.0
+[00:53:00]     regime                   BEAR
+[00:53:00]     btc                      66797
+[00:53:00]     outcomes                 17811
+[00:53:00]     improved                 False
+[00:53:00]     weights_active           277
+[00:53:00]     ka_adj                   43.0
+PASS  G2_wires — {'section': True, 'fetch': True, 'chain_live': True, 'mi': True}
+[00:54:41] G2_wires True
 VERDICT: PASS_ALL
-[00:50:52] VERDICT: PASS_ALL
+[00:54:41] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3676_air_land2.md
+→ Report written to aws/ops/reports/latest/3677_boom_stage.md

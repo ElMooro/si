@@ -1,0 +1,74 @@
+{
+  "gates": {
+    "G1_engine": {
+      "ok": true,
+      "detail": "err=None ok=True headline=Korea \u00b7 Semiconductors/Memory: EARLY_PRICE_LED stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6)]"
+    },
+    "G2_wires": {
+      "ok": true,
+      "detail": "{'section': True, 'fetch': True, 'chain_live': True, 'mi': True}"
+    }
+  },
+  "stages": [
+    {
+      "id": "KR-semis",
+      "label": "Korea \u00b7 Semiconductors/Memory",
+      "stage": "EARLY_PRICE_LED",
+      "why": "value surging while physical volume flat \u2014 pricing power / high-value goods; the boom has NOT plateaued",
+      "value": {
+        "src": "asia-leads KR 1-20 flash (news-tape)",
+        "yoy_pct": 52.3,
+        "note": "Korea\u2019s July 1-20 exports jump 52.3% on chip boom - \ub9e4\uc77c\uacbd\uc81c"
+      },
+      "volume": {
+        "src": "portwatch Korea gateway ports",
+        "vs_baseline_pct": -4.3,
+        "z": -0.33,
+        "n_ports": 3
+      },
+      "context": {
+        "industry_boom_score": 82.1,
+        "air_cargo": 3.1
+      }
+    },
+    {
+      "id": "TW-electronics",
+      "label": "Taiwan \u00b7 Electronics (export orders)",
+      "stage": "NA",
+      "why": "missing leg",
+      "value": {
+        "src": "asia-leads TW export orders",
+        "yoy_pct": null,
+        "level_usd_bn": null,
+        "note": "yoy self-building via levels cache"
+      },
+      "volume": {
+        "src": "portwatch Taiwan gateway ports",
+        "vs_baseline_pct": null,
+        "z": null,
+        "n_ports": null
+      },
+      "context": {}
+    },
+    {
+      "id": "CN-broad",
+      "label": "China \u00b7 Broad economy (credit vs ports)",
+      "stage": "CONTRACTION",
+      "why": "value and volume both falling \u2014 demand fade",
+      "value": {
+        "src": "PBoC TSF flow (credit impulse)",
+        "yoy_pct": -8.8,
+        "flow_trn_cny": 20.84,
+        "period": "2026-H1 (cum)"
+      },
+      "volume": {
+        "src": "portwatch China gateway ports",
+        "vs_baseline_pct": -25.6,
+        "z": -1.23,
+        "n_ports": 6
+      },
+      "context": {}
+    }
+  ],
+  "verdict": "PASS_ALL"
+}
