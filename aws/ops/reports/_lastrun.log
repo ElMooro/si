@@ -1,31 +1,10 @@
-executing-against: b4183acc922b9ef32e66afdf1582b34ebb2976f8
-ops 3677 — boom-stage engine + wires
-[00:52:25]   zip: 85012 bytes
-── 1. Lambda ──
-[00:52:25]   Lambda exists — updating
-[00:52:30] ✅   ✓ updated justhodl-boom-stage
-── 3. Smoke test ──
-[00:52:30]   invoking justhodl-boom-stage…
-PASS  G1_engine — err=None ok=True headline=Korea · Semiconductors/Memory: EARLY_PRICE_LED stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6)]
-[00:52:34] G1_engine True
-[00:52:34]   zip: 107431 bytes
-── 1. Lambda ──
-[00:52:34]   Lambda exists — updating
-[00:52:43] ✅   ✓ updated justhodl-morning-intelligence
-── 3. Smoke test ──
-[00:52:43]   invoking justhodl-morning-intelligence…
-[00:53:00] ✅   ✓ smoke test passed
-[00:53:00]     success                  True
-[00:53:00]     khalid_adj               43.0
-[00:53:00]     regime                   BEAR
-[00:53:00]     btc                      66797
-[00:53:00]     outcomes                 17811
-[00:53:00]     improved                 False
-[00:53:00]     weights_active           277
-[00:53:00]     ka_adj                   43.0
-PASS  G2_wires — {'section': True, 'fetch': True, 'chain_live': True, 'mi': True}
-[00:54:41] G2_wires True
+executing-against: 5245c46ce8e7f679bf2a63a1d1425834128bdf83
+ops 3678 — geo-stack dedicated pages + sidebar
+PASS  G1_pages — {'boom-stage.html': True}
+[01:25:40] G1_pages True
+PASS  G2_sidebar — {'/boom-stage.html': True} total=395 cats={'/boom-stage.html': 'Macro & Liquidity'}
+[01:25:40] G2_sidebar True
 VERDICT: PASS_ALL
-[00:54:41] VERDICT: PASS_ALL
+[01:25:40] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3677_boom_stage.md
+→ Report written to aws/ops/reports/latest/3678_bs_page.md
