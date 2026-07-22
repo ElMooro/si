@@ -1,0 +1,102 @@
+{
+  "verdict": "PASS",
+  "findings": {
+    "clusters": {
+      "present": true,
+      "n": 19,
+      "with_industry": 0,
+      "with_ticker": 19,
+      "keys": [
+        "avg_price",
+        "cik",
+        "company",
+        "first_buy",
+        "fundamentals",
+        "has_ceo",
+        "has_cfo",
+        "has_chairman",
+        "has_director",
+        "highest_role",
+        "insiders",
+        "last_buy",
+        "n_insiders",
+        "n_transactions",
+        "rationale",
+        "score",
+        "signal_type",
+        "ticker",
+        "total_shares",
+        "total_value",
+        "transactions"
+      ]
+    },
+    "radar": {
+      "present": true,
+      "n": 60,
+      "with_industry": 0,
+      "with_ticker": 60,
+      "keys": [
+        "perf_m",
+        "price",
+        "sector",
+        "ticker"
+      ]
+    },
+    "buys_enriched": {
+      "present": true,
+      "n": 2,
+      "with_industry": 0,
+      "with_ticker": 2,
+      "keys": [
+        "company",
+        "expected_returns",
+        "first_buy",
+        "fundamentals",
+        "has_ceo",
+        "has_cfo",
+        "has_chairman",
+        "highest_role",
+        "insiders",
+        "last_buy",
+        "n_insiders",
+        "n_transactions",
+        "recommended_trade",
+        "score",
+        "signal_type",
+        "ticker",
+        "total_value_usd",
+        "why_now_explainer"
+      ]
+    },
+    "aggregate": {
+      "present": true,
+      "n": 1,
+      "with_industry": 0,
+      "with_ticker": 1,
+      "keys": [
+        "n_buyers",
+        "name",
+        "symbol",
+        "total_usd"
+      ]
+    },
+    "edgar": {
+      "present": false
+    },
+    "universe": {
+      "stocks": 5320,
+      "mapped": 5320,
+      "industries": 150
+    },
+    "join_clusters": {
+      "tickers": 19,
+      "resolved": 13
+    },
+    "clusterable_clusters": 1,
+    "join_radar": {
+      "tickers": 60,
+      "resolved": 45
+    },
+    "clusterable_radar": 2
+  }
+}

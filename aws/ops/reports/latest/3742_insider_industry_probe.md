@@ -1,0 +1,62 @@
+# ops 3742 — insider industry-cluster feed probe (#16)
+
+**Status:** success  
+**Duration:** 0.6s  
+**Finished:** 2026-07-22T22:04:26+00:00  
+
+## Data
+
+| buildable | clusterable_industries | universe_mapped |
+|---|---|---|
+| True | 1 | 5320 |
+
+## Log
+## A — data/insider-clusters.json
+
+- `22:04:25` ✅ clusters: top-level=['clusters', 'duration_s', 'generated_at', 'lookback_days', 'method', 'schema_version', 'stats', 'thresholds']
+- `22:04:25`   biggest row list: n=19
+- `22:04:25`   row keys: ['avg_price', 'cik', 'company', 'first_buy', 'fundamentals', 'has_ceo', 'has_cfo', 'has_chairman', 'has_director', 'highest_role', 'insiders', 'last_buy', 'n_insiders', 'n_transactions', 'rationale', 'score', 'signal_type', 'ticker', 'total_shares', 'total_value', 'transactions']
+- `22:04:25`   sample: {"ticker": "ELV", "company": "Elevance Health, Inc.", "cik": "0001156039", "n_insiders": 2, "n_transactions": 3, "total_shares": 3725, "total_value": 1368280.05, "avg_price": 367.32, "first_buy": "2026-07-17", "last_buy": "2026-07-17", "highest_role": "Director, President and CEO", "has_ceo": true, "has_cfo": false, "has_chairman": false,
+- `22:04:25`   rows WITH industry: 0/19 · with ticker: 19/19
+## B — data/insider-radar.json
+
+- `22:04:26` ✅ radar: top-level=['clusters', 'decline_buys', 'decline_clusters', 'diagnostics', 'engine', 'finviz_buy_confirm', 'finviz_buys', 'finviz_sells', 'generated_at', 'latest_buys', 'logged', 'methodology', 'n_buys', 'n_raw']
+- `22:04:26`   biggest row list: n=60
+- `22:04:26`   row keys: ['perf_m', 'price', 'sector', 'ticker']
+- `22:04:26`   sample: {"ticker": "TOI", "sector": "Healthcare", "price": 5.43, "perf_m": 8.4}
+- `22:04:26`   rows WITH industry: 0/60 · with ticker: 60/60
+## C — alternates
+
+- `22:04:26` ✅ buys_enriched: top-level=['academic_basis', 'as_of', 'engine', 'methodology', 'schedule', 'signal_strength', 'source', 'source_as_of', 'sources', 'state', 'summary', 'top_setups', 'version']
+- `22:04:26`   biggest row list: n=2
+- `22:04:26`   row keys: ['company', 'expected_returns', 'first_buy', 'fundamentals', 'has_ceo', 'has_cfo', 'has_chairman', 'highest_role', 'insiders', 'last_buy', 'n_insiders', 'n_transactions', 'recommended_trade', 'score', 'signal_type', 'ticker', 'total_value_usd', 'why_now_explainer']
+- `22:04:26`   sample: {"ticker": "ELV", "company": "Elevance Health, Inc.", "score": 81.8, "signal_type": "ceo_conviction", "n_insiders": 2, "n_transactions": 3, "total_value_usd": 1368280.05, "first_buy": "2026-07-17", "last_buy": "2026-07-17", "highest_role": "Director, President and CEO", "has_ceo": true, "has_cfo": false, "has_chairman": false, "fundamenta
+- `22:04:26`   rows WITH industry: 0/2 · with ticker: 2/2
+- `22:04:26` ✅ aggregate: top-level=['data_coverage_days', 'elapsed_s', 'generated_at', 'headline_ratio_30d_dollar', 'method', 'methodology', 'n_transactions', 'notable_cluster_buys', 'regime', 'regime_read', 'schema_version', 'windows']
+- `22:04:26`   biggest row list: n=1
+- `22:04:26`   row keys: ['n_buyers', 'name', 'symbol', 'total_usd']
+- `22:04:26`   sample: {"symbol": "CHCO", "name": "CHCO", "n_buyers": 4, "total_usd": 59740}
+- `22:04:26`   rows WITH industry: 0/1 · with ticker: 1/1
+- `22:04:26` ⚠ data/edgar-insiders.json: NoSuchKey An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.
+## D — universe ticker->industry map
+
+- `22:04:26` ✅ universe stocks=5320 with industry=5320 distinct industries=150
+## D2 — JOIN TEST: can we recover industry ourselves?
+
+- `22:04:26` ✅   clusters: 13/19 tickers resolve to an industry via universe (68%)
+- `22:04:26`   top industries by distinct names: [('Biotechnology', 6), ('Banks - Regional', 2), ('Medical - Healthcare Plans', 1), ('Education & Training Services', 1), ('Electrical Equipment & Parts', 1), ('Other Precious Metals', 1), ('Marine Shipping', 1)]
+- `22:04:26`   industries with >=4 distinct tickers: 1 [('Biotechnology', 6)]
+- `22:04:26` ✅   radar: 45/60 tickers resolve to an industry via universe (75%)
+- `22:04:26`   top industries by distinct names: [('Biotechnology', 11), ('Banks - Regional', 4), ('Semiconductors', 2), ('Education & Training Services', 2), ('Information Technology Services', 2), ('Electrical Equipment & Parts', 2), ('Banks - Diversified', 2), ('Medical - Care Facilities', 1), ('Medical - Specialties', 1), ('Packaged Foods', 1)]
+- `22:04:26`   industries with >=4 distinct tickers: 2 [('Biotechnology', 11), ('Banks - Regional', 4)]
+## E — role / conviction fields
+
+- `22:04:26`   clusters role-ish keys: ['has_director', 'highest_role', 'insiders', 'n_insiders']
+- `22:04:26`   clusters date-ish keys: []
+- `22:04:26`   clusters value-ish keys: ['first_buy', 'last_buy', 'total_shares', 'total_value']
+- `22:04:26`   radar role-ish keys: []
+- `22:04:26`   radar date-ish keys: []
+- `22:04:26`   radar value-ish keys: []
+## VERDICT
+
+- `22:04:26` ✅ PROBE COMPLETE — join is viable, build against these shapes
