@@ -1,0 +1,42 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "engine emits all gated keys"
+    },
+    "G1_zip_settle": {
+      "ok": true,
+      "detail": "marker found after 15s"
+    },
+    "G2_census_key": {
+      "ok": true,
+      "detail": "key present len=40"
+    },
+    "G3_invoke_accepted": {
+      "ok": true,
+      "detail": "async accepted status=202"
+    },
+    "G3_artifact_written": {
+      "ok": true,
+      "detail": "new artifact observed"
+    },
+    "G4_artifact": {
+      "ok": true,
+      "detail": "age=0.1min shape_ok=True n_lines=33"
+    },
+    "G5_data_truth": {
+      "ok": true,
+      "detail": "month=2026-05 future=False HS4_8542_level=4476331643.0 plausible=True lines_with_level=26"
+    },
+    "G6_signals": {
+      "ok": true,
+      "detail": "signals=15 rollup_industries=16"
+    },
+    "G7_schedule": {
+      "ok": true,
+      "detail": "schedule present"
+    }
+  },
+  "verdict": "PASS_ALL",
+  "data_month": "2026-05"
+}

@@ -1,24 +1,42 @@
-executing-against: 821ba722cecdc5fdaca70cc6fe1674ca6a1d0a1e
-ops 3730 — SHIP justhodl-import-canary v1.0 (import flow canary)
+executing-against: 397e050efd15b22b72a054f22a2121d1e0b1ec13
+ops 3731 — SHIP justhodl-import-canary v1.0 (import flow canary)
 ── G0 — key contract (grep producer before gating) ──
-[20:28:44] PASS G0_key_contract — engine emits all gated keys
+[20:36:57] PASS G0_key_contract — engine emits all gated keys
 ── G1 — zip settle (never invoke the old artifact) ──
-[20:28:44] PASS G1_zip_settle — marker found after 0s
+[20:37:13] PASS G1_zip_settle — marker found after 15s
 ── G2 — CENSUS_API_KEY inherited ──
-[20:28:44] PASS G2_census_key — key present len=40
-── G3 — invoke ──
-[20:33:15] FAIL G3_invoke — ConnectionClosedError Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-import-canary/invocations".
+[20:37:14] PASS G2_census_key — key present len=40
+── G3 — async invoke (Event) + S3 freshness gate ──
+[20:37:14]   no prior artifact (first run)
+[20:37:14] PASS G3_invoke_accepted — async accepted status=202
+[20:37:44]   artifact written after ~30s (age 0.1min)
+[20:37:44] PASS G3_artifact_written — new artifact observed
 ── G4 — S3 artifact fresh + shape ──
-[20:33:15] FAIL G4_artifact — ClientError An error occurred (404) when calling the HeadObject operation: Not Found
+[20:37:45] PASS G4_artifact — age=0.1min shape_ok=True n_lines=33
 ── G5 — data truth (real numbers, no fabrication) ──
-[20:33:15] FAIL G5_data_truth — no doc
+[20:37:45] PASS G5_data_truth — month=2026-05 future=False HS4_8542_level=4476331643.0 plausible=True lines_with_level=26
+[20:37:45]   8542 top source: Taiwan 46.1% (HHI 0.259)
+[20:37:45]   8542 share shift: +Taiwan 9.14 / Thailand -20.82
 ── G6 — signal ladder + industry rollup ──
-[20:33:15] FAIL G6_signals — no doc
+[20:37:45]   Memory (DRAM/NAND)       SURGE_CONFIRMED YoY +344.3%  accel 20.98  src Taiwan
+[20:37:45]   Computer parts & accesso SURGE_CONFIRMED YoY +102.7%  accel 19.44  src Taiwan
+[20:37:45]   Semiconductor & electron SURGE_CONFIRMED YoY +53.1%  accel 9.56  src None
+[20:37:45]   Amplifiers               SURGE_CONFIRMED YoY +50.0%  accel 7.11  src Taiwan
+[20:37:45]   Radioactive elements (ur CONTRACTION_CONFIRMED YoY -78.7%  accel -138.27  src Canada
+[20:37:45]   Pharmaceutical & medicin CONTRACTION_CONFIRMED YoY -39.2%  accel -0.73  src None
+[20:37:45]   Refined copper           CONTRACTION_CONFIRMED YoY -35.3%  accel -14.31  src Canada
+[20:37:45]   Carbonates (incl. lithiu CONTRACTION_CONFIRMED YoY -30.4%  accel -7.02  src Germany
+[20:37:45]   ROLLUP Computer Hardware          +84.5%  $49.46B/mo (2 lines)
+[20:37:45]   ROLLUP Semiconductors             +60.0%  $8.19B/mo (4 lines)
+[20:37:45]   ROLLUP Industrial Machinery       +18.2%  $1.15B/mo (1 lines)
+[20:37:45]   ROLLUP Electronic Components      +12.9%  $0.26B/mo (1 lines)
+[20:37:45]   ROLLUP Electrical Equipment       +9.9%  $11.59B/mo (5 lines)
+[20:37:45]   ROLLUP Semiconductor Equipment    +7.8%  $2.04B/mo (2 lines)
+[20:37:45] PASS G6_signals — signals=15 rollup_industries=16
 ── G7 — schedule ──
-[20:33:16]   eventbridge rule: justhodl-import-canary-daily cron(40 13 * * ? *)
-[20:33:16] PASS G7_schedule — schedule present
+[20:37:46]   eventbridge rule: justhodl-import-canary-daily cron(40 13 * * ? *)
+[20:37:46] PASS G7_schedule — schedule present
 ── VERDICT ──
-[20:33:16] ✗ gates failed: ['G3_invoke', 'G4_artifact', 'G5_data_truth', 'G6_signals']
+[20:37:46] ✅ PASS_ALL — import-canary live; page next
 
-→ Report written to aws/ops/reports/latest/3730_import_canary.md
-❌ OPS-FAIL: aws/ops/pending/ops_3730_import_canary.py
+→ Report written to aws/ops/reports/latest/3731_import_canary_regate.md
