@@ -1,103 +1,43 @@
-executing-against: 8357b27451af7bb194ac75907476cc45643fd6b1
-ops 3722 — in-Lambda probe of fetch_calendar
-[19:37:06] zip_bytes: 84207
-  zip_bytes: 84207
-[19:37:11] probe_created: active
-  probe_created: active
-[19:37:14] function_error: None
-  function_error: None
-── PROBE RESULT ──
-{
-  "module": {
-    "path": "/var/task/benzinga.py",
-    "has_fmp_calendar": true,
-    "has_degrade": true,
-    "bytes": 14062
-  },
-  "env": {
-    "FMP_KEY_set": true,
-    "FMP_API_KEY_set": false,
-    "MASSIVE_API_KEY_set": false,
-    "benzinga_key_resolves": true
-  },
-  "massive_raw": {
-    "is_none": false,
-    "type": "dict",
-    "keys": [
-      "next_url",
-      "request_id",
-      "results",
-      "status"
-    ],
-    "n_results": 50,
-    "head": "{\"status\": \"OK\", \"request_id\": \"269632fb356e4bc382dbae298249dc40\", \"results\": [{\"currency\": \"USD\", \"date_status\": \"projected\", \"estimated_eps\": 0.28, \"previous_eps\": 0.26, \"benzinga_id\": \"6a5f19ef69f0580001b37dd9\", \"importance\": 2, \"company_name\": \"Whitestone REIT\", \"fiscal_period\": \"Q2\", \"fiscal_ye"
-  },
-  "fmp_shim": {
-    "n": 4000,
-    "n_with_eps": 2879,
-    "sample": {
-      "ticker": "0006.HK",
-      "company": null,
-      "date": "2026-08-05",
-      "time": null,
-      "session": "\u2014",
-      "importance": 3,
-      "fiscal_period": null,
-      "fiscal_year": null,
-      "estimated_eps": null,
-      "estimated_revenue": null,
-      "actual_eps": null,
-      "actual_revenue": null,
-      "_source": "fmp_fallback"
-    }
-  },
-  "fetch_calendar_minimp0": {
-    "n": 1000,
-    "n_with_eps": 822,
-    "sources": [
-      "benzinga"
-    ],
-    "sample": {
-      "ticker": "WSR",
-      "company": "Whitestone REIT",
-      "date": "2026-08-05",
-      "session": "AMC",
-      "date_status": "projected",
-      "estimated_eps": 0.28,
-      "previous_eps": 0.26,
-      "estimated_revenue": 42450800.0,
-      "importance": 2,
-      "fiscal_period": "Q2",
-      "fiscal_year": 2026
-    }
-  },
-  "fetch_calendar_minimp2": {
-    "n": 735,
-    "n_with_eps": 687,
-    "sources": [
-      "benzinga"
-    ],
-    "sample": {
-      "ticker": "WSR",
-      "company": "Whitestone REIT",
-      "date": "2026-08-05",
-      "session": "AMC",
-      "date_status": "projected",
-      "estimated_eps": 0.28,
-      "previous_eps": 0.26,
-      "estimated_revenue": 42450800.0,
-      "importance": 2,
-      "fiscal_period": "Q2",
-      "fiscal_year": 2026
-    }
-  }
-}
-[19:37:14] VERDICT_SIGNALS: module_has_shim=True fmp_shim_rows=4000 fetch_calendar(min_imp=0)=1000 fetch_calendar(min_imp=2)=735 massive_none=False
-  VERDICT_SIGNALS: module_has_shim=True fmp_shim_rows=4000 fetch_calendar(min_imp=0)=1000 fetch_calendar(min_imp=2)=735 massive_none=False
-[19:37:14] probe_deleted: True
-  probe_deleted: True
+executing-against: 2a049198ba5f2b6c57058615cbf7d84b06f87ba6
+ops 3723 — estimate-revisions ledger probe (obs[0] baselines)
+[19:47:20] ledger_updated: 2026-07-22T19:21:54.161781+00:00
+  ledger_updated: 2026-07-22T19:21:54.161781+00:00
+[19:47:20] n_keys: 448
+  n_keys: 448
+[19:47:20] obs_length_distribution: {1: 9, 2: 4, 3: 2, 4: 1, 5: 2, 6: 8, 7: 7, 8: 6, 9: 2, 10: 407}
+  obs_length_distribution: {1: 9, 2: 4, 3: 2, 4: 1, 5: 2, 6: 8, 7: 7, 8: 6, 9: 2, 10: 407}
+[19:47:20] baseline_eps: usable=369 null=79 zero=0 (usable_pct=82.4%)
+  baseline_eps: usable=369 null=79 zero=0 (usable_pct=82.4%)
+[19:47:20] latest_eps: usable=369 null=79
+  latest_eps: usable=369 null=79
+[19:47:20] keys_with_2plus_obs_and_usable_eps: 363
+  keys_with_2plus_obs_and_usable_eps: 363
+[19:47:20] obs_date_span: 2026-07-03 .. 2026-07-22 (20 distinct days)
+  obs_date_span: 2026-07-03 .. 2026-07-22 (20 distinct days)
+[19:47:20] move_distribution_vs_threshold: {'ZERO': 363}
+  move_distribution_vs_threshold: {'ZERO': 363}
+[19:47:20] would_pass_threshold: 0 of 363 (REV_THRESHOLD_PCT=1.0)
+  would_pass_threshold: 0 of 363 (REV_THRESHOLD_PCT=1.0)
 
-VERDICT: DIAGNOSIS COMPLETE
-[19:37:14] VERDICT: DIAGNOSIS COMPLETE
+  top implied moves in the ledger:
+    ZUMZ   |     0.0% |  base=0.05 -> last=0.05 (obs=10)
+    ZS     |     0.0% |  base=0.88 -> last=0.88 (obs=10)
+    ZM     |     0.0% |  base=1.38 -> last=1.38 (obs=10)
+    ZIM    |     0.0% |  base=1.08 -> last=1.08 (obs=10)
+    YSWY   |     0.0% |  base=0.47 -> last=0.47 (obs=10)
+    YSS    |     0.0% |  base=-0.17 -> last=-0.17 (obs=10)
+    YMM    |     0.0% |  base=0.18 -> last=0.18 (obs=10)
+    YEXT   |     0.0% |  base=0.16 -> last=0.16 (obs=10)
+    XP     |     0.0% |  base=0.51 -> last=0.51 (obs=10)
+    XE     |     0.0% |  base=-0.09 -> last=-0.09 (obs=10)
+    WSM    |     0.0% |  base=2.03 -> last=2.03 (obs=10)
+    WS     |     0.0% |  base=0.68 -> last=0.68 (obs=10)
+[19:47:21] artifact: version=2.1.0 n_tracked=436 n_with_history=436 n_state_keys=448 up=0 down=0 strength_leaders=40
+  artifact: version=2.1.0 n_tracked=436 n_with_history=436 n_state_keys=448 up=0 down=0 strength_leaders=40
+[19:47:21] DIAGNOSIS: HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_THRESHOLD_PCT=1.0. Empty arrays are the CORRECT reading. Consider lowering the threshold or surfacing sub-threshold drift as a separate 'estimate drift' row.
+  DIAGNOSIS: HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_THRESHOLD_PCT=1.0. Empty arrays are the CORRECT reading. Consider lowering the threshold or surfacing sub-threshold drift as a separate 'estimate drift' row.
 
-→ Report written to aws/ops/reports/latest/3722_inlambda_probe.md
+VERDICT: DIAGNOSIS COMPLETE — HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_
+[19:47:21] VERDICT: DIAGNOSIS COMPLETE
+
+→ Report written to aws/ops/reports/latest/3723_ledger_probe.md
