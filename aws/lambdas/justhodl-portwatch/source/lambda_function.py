@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -46,7 +46,9 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "jeddah", "dammam", "king abdulaziz", "jubail",
                "ras tanura", "yanbu", "antofagasta", "bahia de valparaiso",
                "san vicente", "coronel", "iquique", "quintero",
-               "keelung", "taichung", "mailiao", "taipei", "hualien")
+               "keelung", "taichung", "mailiao", "taipei", "hualien",
+               "lirquen", "caleta patillos", "puerto caldera",
+               "bahia quintero", "ventanas")
 # v1.3: port-name -> nation fallback (ref country field is unreliable/blank
 # for some rows; a known gateway's nation is a fact)
 PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
@@ -70,6 +72,9 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("antofagasta", "Chile"), ("valparaiso", "Chile"),
                ("san vicente", "Chile"), ("coronel", "Chile"),
                ("iquique", "Chile"), ("quintero", "Chile"),
+               ("lirquen", "Chile"), ("patillos", "Chile"),
+               ("caldera", "Chile"), ("mejillones", "Chile"),
+               ("ventanas", "Chile"),
                ("keelung", "Taiwan"), ("taichung", "Taiwan"),
                ("mailiao", "Taiwan"), ("hualien", "Taiwan"),
                ("callao", "Peru"),
@@ -301,7 +306,14 @@ def lambda_handler(event=None, context=None):
         if cand:
             # v1.4.1: cap raised — canary nations were truncated
             # (Taiwan's 6 ports pushed Chile past the old :60 slice)
-            _ids_all = list(cand)
+            # canary nations first so a slice can never drop them again
+            _PRIO = ("chile", "peru", "finland", "saudi", "taiwan",
+                     "australia", "indonesia", "qatar", "germany",
+                     "switzerland")
+            def _pk(i2):
+                c3 = str(cand[i2].get("country") or "").lower()
+                return (0 if any(p3 in c3 for p3 in _PRIO) else 1, i2)
+            _ids_all = sorted(cand, key=_pk)
             out["ports_ref_matched_total"] = len(_ids_all)
             ids = ",".join("'" + i + "'" for i in _ids_all[:120])
             prow, perr = fetch_daily(DAILY_PORTS,
