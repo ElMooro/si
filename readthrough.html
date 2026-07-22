@@ -45,6 +45,9 @@ td{padding:6px 8px;border-bottom:1px solid rgba(28,35,48,.6)}
 <div class="sec">🎯 Un-priced beneficiaries — the mechanism says they should have moved, the tape hasn't</div>
 <div id="unpriced"></div>
 
+<div class="sec">🧾 Twice un-priced — the tape hasn't paid AND consensus hasn't modelled it</div>
+<div id="twice"></div>
+
 <div class="sec">🛑 Chase guard — already moved more than the mechanism justifies</div>
 <div class="card" id="chase"></div>
 
@@ -91,6 +94,10 @@ function rowCard(r){
       '<span class="chip">via '+esc(r.catalyst_ticker)+'</span>'+
       (r.days_to_earnings!=null?'<span class="chip">earnings in '+r.days_to_earnings+'d</span>':'')+
       (r.market_cap!=null?'<span class="chip">'+usd(r.market_cap)+' cap</span>':'')+
+      (r.pricing_quadrant?'<span class="chip" style="border-color:'+(r.pricing_quadrant==='TWICE_UNPRICED'?GRN:MUT)+';color:'+(r.pricing_quadrant==='TWICE_UNPRICED'?GRN:DIM)+'">'+esc(r.pricing_quadrant.replace(/_/g,' ').toLowerCase())+'</span>':'')+
+      (r.implied_order_usd?'<span class="chip">implied '+usd(r.implied_order_usd)+'</span>':'')+
+      ((r.fundamentals&&r.fundamentals.unbooked_vs_rpo!=null)?'<span class="chip">'+(r.fundamentals.unbooked_vs_rpo*100).toFixed(0)+'% of reported RPO</span>':'')+
+      ((r.fundamentals&&r.fundamentals.rpo_asof)?'<span class="chip">RPO as of '+esc(r.fundamentals.rpo_asof)+'</span>':'')+
     '</div>'+
     ladder(r)+
     '<div style="font-size:12.5px;color:var(--text)">'+esc(r.thesis||'')+'</div>'+
@@ -150,6 +157,12 @@ function boardTable(rows){
     '<div class="card mono" style="color:'+MUT+'">No catalysts.</div>';
   document.getElementById('unpriced').innerHTML=(d.unpriced||[]).length?
     (d.unpriced||[]).map(rowCard).join(''):'<div class="card mono" style="color:'+MUT+'">Nothing un-priced right now — every mapped read-through is already in the tape.</div>';
+  var qc=d.quadrant_counts||{};
+  document.getElementById('twice').innerHTML=(d.twice_unpriced||[]).length?
+    ('<div class="card mono" style="font-size:11.5px;color:'+DIM+';margin-bottom:8px">quadrants — '+
+      Object.keys(qc).map(function(k){return esc(k.replace(/_/g,' ').toLowerCase())+': <b>'+qc[k]+'</b>';}).join(' · ')+
+      '</div>')+(d.twice_unpriced||[]).map(rowCard).join(''):
+    '<div class="card mono" style="color:'+MUT+'">Nothing sits in both quadrants right now.</div>';
   document.getElementById('chase').innerHTML=(d.chase_guard||[]).length?
     (d.chase_guard||[]).map(function(r){return '<div class="mono" style="font-size:12px;padding:4px 0"><b>'+esc(r.ticker)+'</b> '+
       esc(tierShort(r.tier))+' via '+esc(r.catalyst_ticker)+' — realized '+pc(r.realized_ex_beta_pct)+

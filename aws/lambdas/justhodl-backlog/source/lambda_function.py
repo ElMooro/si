@@ -88,7 +88,8 @@ def concept_series(cik, tag):
         v = u.get("val"); end = u.get("end")
         if v is None or not end:
             continue
-        rows.append({"end": end, "val": float(v), "fp": u.get("fp"), "form": u.get("form")})
+        rows.append({"end": end, "val": float(v), "fp": u.get("fp"),
+                     "form": u.get("form"), "filed": u.get("filed")})
     rows.sort(key=lambda x: x["end"])
     # dedupe by end date keeping last
     seen = {}
@@ -134,8 +135,13 @@ def analyze(sym, cik_map, meta):
         rec["rpo_qoq"] = pct(latest, rpo[-2]["val"]) if len(rpo) >= 2 else None
         rec["rpo_yoy"] = pct(latest, rpo[-5]["val"]) if len(rpo) >= 5 else None
         rec["rpo_tag"] = rpo_tag
+        rec["rpo_asof"] = rpo[-1].get("end")      # period the figure covers
+        rec["rpo_filed"] = rpo[-1].get("filed")   # when it became public
+        rec["rpo_form"] = rpo[-1].get("form")
     if defr:
         rec["deferred_rev"] = defr[-1]["val"]
+        rec["deferred_asof"] = defr[-1].get("end")
+        rec["deferred_filed"] = defr[-1].get("filed")
         rec["deferred_qoq"] = pct(defr[-1]["val"], defr[-2]["val"]) if len(defr) >= 2 else None
         rec["deferred_yoy"] = pct(defr[-1]["val"], defr[-5]["val"]) if len(defr) >= 5 else None
         if len(defr) >= 3:

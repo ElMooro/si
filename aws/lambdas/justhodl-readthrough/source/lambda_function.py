@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.5"
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -110,6 +110,59 @@ THEME_INFRA = {
     "Auto/EV/Materials": ("Automation/Power-semi",),
     "Aero/Defense": ("Machinery/Rail",),
 }
+
+# ── FLOW CONSERVATION (ops 3707) ────────────────────────────────────────────
+# Until now materiality applied the FULL tier capture share to EVERY named
+# supplier, so a $60B order with 12 T1 names was counted twelve times. Dollars
+# can only be spent once. The tier's capture share is now SPLIT across the named
+# suppliers in proportion to their place in the bill of materials.
+BOM_CLASS_WEIGHT = (
+    ("gpu", 6.0), ("accelerator", 6.0),
+    ("dram", 2.0), ("hbm", 2.0), ("memory", 2.0),
+    ("cpu", 1.0), ("server", 1.0), ("ai servers", 1.0),
+    ("networking", 0.9), ("switching", 0.9),
+    ("storage", 0.8), ("hdd", 0.8), ("ssd", 0.8),
+    ("optical", 0.7), ("interconnect", 0.7), ("aec", 0.7), ("connectivity", 0.7),
+    ("cooling", 0.6), ("power", 0.6), ("enclosure", 0.6), ("switchgear", 0.6),
+    ("grid", 0.5), ("construction", 0.5), ("epc", 0.5),
+    ("connector", 0.3), ("substrate", 0.3),
+    ("equipment", 0.35), ("materials", 0.35), ("test", 0.3), ("metrology", 0.3),
+    ("eda", 0.15), ("design tools", 0.15), (" ip", 0.15), ("software", 0.15),
+)
+
+
+def bom_weight(why):
+    w = (why or "").lower()
+    for kw, val in BOM_CLASS_WEIGHT:
+        if kw in w:
+            return val
+    return 0.5
+
+
+def assign_capture(rows, cat):
+    """Split each tier's capture share across its named suppliers by BOM weight.
+    A supplier explicitly named in the release gets double weight — that is the
+    one piece of vendor-mix evidence the market actually gets."""
+    text = f"{cat.get('headline') or ''}".lower()
+    by_tier = {}
+    for row in rows:
+        by_tier.setdefault(row["tier"], []).append(row)
+    for tier, rs in by_tier.items():
+        base = TIERS[tier]["capture"]
+        ws = []
+        for row in rs:
+            w = bom_weight(row.get("why"))
+            named = row["ticker"].lower() in text
+            if named:
+                w *= 2.0
+                row["named_in_release"] = True
+            ws.append(w)
+        tot = sum(ws) or 1.0
+        for row, w in zip(rs, ws):
+            row["bom_weight"] = w
+            row["capture_share"] = round(base * w / tot, 5)
+            row["n_at_tier"] = len(rs)
+
 
 # Not every tier-2 input captures the same share of an order. EDA seats and test
 # equipment do not scale with server units the way memory and optics do.
@@ -590,19 +643,20 @@ def fmp_days_to_earnings(sym):
 
 
 # ═══════════════════════════ Diffusion scoring ══════════════════════════════════
-def materiality(order_value, tier, revenue, why=""):
-    """How much could this order actually MOVE this company's P&L?"""
+def materiality(order_value, tier, revenue, why="", capture_share=None):
+    """How much could this order actually MOVE this company's P&L?
+    capture_share is the FLOW-CONSERVED slice of the order this name can win —
+    the tier share divided among that tier's named suppliers by BOM weight."""
     if not order_value or not revenue or revenue <= 0:
-        return 0.50, "unknown — order size or revenue unavailable"
-    cap = TIERS[tier]["capture"]
-    w = (why or "").lower()
-    for kw, mod in REL_CAPTURE_MOD:
-        if kw in w:
-            cap *= mod   # EDA/test/equipment do not scale with unit volume
-            break
-    share = (order_value * cap) / revenue
+        return 0.50, "unknown — order size or revenue unavailable", None
+    cap = capture_share if capture_share is not None else TIERS[tier]["capture"]
+    implied = order_value * cap
+    share = implied / revenue
     m = min(1.0, 0.20 + 0.80 * min(1.0, share / 0.50))
-    return round(m, 3), f"~{share * 100:.1f}% of TTM revenue at this tier's capture share"
+    return (round(m, 3),
+            f"~${implied/1e9:.1f}B of the order plausibly lands here = "
+            f"{share * 100:.1f}% of TTM revenue",
+            implied)
 
 
 def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
@@ -615,8 +669,9 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
     beta = (meta.get(t) or {}).get("beta") or 1.0
     realized = move - beta * spy_move
 
-    mat, mat_note = materiality(cat.get("order_value_usd"), tier,
-                                (meta.get(t) or {}).get("revenue"), row.get("why"))
+    mat, mat_note, implied_usd = materiality(
+        cat.get("order_value_usd"), tier, (meta.get(t) or {}).get("revenue"),
+        row.get("why"), row.get("capture_share"))
     expected = cat["move_pct"] * tw * row["edge_confidence"] * mat * cat["propagation"]
     residual = expected - realized
     capture = (realized / expected) if expected and abs(expected) > 0.01 else None
@@ -674,6 +729,11 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
         "capture_ratio": (round(capture, 2) if capture is not None else None),
         "status": status,
         "materiality": mat, "materiality_note": mat_note,
+        "capture_share": row.get("capture_share"),
+        "bom_weight": row.get("bom_weight"),
+        "n_at_tier": row.get("n_at_tier"),
+        "implied_order_usd": (round(implied_usd) if implied_usd else None),
+        "named_in_release": bool(row.get("named_in_release")),
         "run_5d_pct": (round(run5, 1) if run5 is not None else None),
         "days_to_earnings": d2e,
         "dollar_vol": int(q["dollar_vol"]),
@@ -686,6 +746,99 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
         "anchor_close": anchor,
     })
     return row
+
+
+def load_fundamentals():
+    """Join the three fundamental sidecars this platform already publishes.
+    A missing sidecar degrades the row to price-only. It never fabricates one."""
+    bl = s3_json("data/backlog.json") or {}
+    fo = s3_json("data/forward-orders.json") or {}
+    er = s3_json("data/estimate-revisions.json") or {}
+    backlog = bl.get("by_ticker") or {}
+
+    fwd = {}
+    for k in ("by_ticker", "results", "rankings", "top_picks", "all", "scored"):
+        v = fo.get(k)
+        if isinstance(v, dict):
+            fwd.update(v)
+        elif isinstance(v, list):
+            for row in v:
+                if isinstance(row, dict) and row.get("ticker"):
+                    fwd.setdefault(row["ticker"], row)
+
+    est = {}
+    for k in ("upward_revisions", "downward_revisions", "signals", "strength_rows", "all"):
+        for row in (er.get(k) or []):
+            if isinstance(row, dict) and row.get("ticker"):
+                est.setdefault(row["ticker"], row)
+
+    missing = [n for n, v in (("backlog", backlog), ("forward-orders", fwd),
+                              ("estimate-revisions", est)) if not v]
+    return backlog, fwd, est, missing
+
+
+def fundamental_row(t, implied_usd, cat_day, backlog, fwd, est):
+    """Is the claim already ON THE BOOKS, and has consensus caught up?
+
+    The thesis in one line: a customer's newly announced backlog is a purchase
+    order the supplier has not reported yet. If the supplier's last RPO filing
+    PREDATES the catalyst, the implied dollars are provably not in that number.
+    They land next print, and consensus has not modelled them.
+    """
+    b = backlog.get(t) or {}
+    f = fwd.get(t) or {}
+    e = est.get(t) or {}
+    rpo = num(b.get("rpo")) or num(f.get("rpo_latest_usd"))
+    asof = b.get("rpo_asof") or b.get("deferred_asof")
+    out = {
+        "rpo_usd": rpo,
+        "rpo_asof": asof,
+        "rpo_filed": b.get("rpo_filed") or b.get("deferred_filed"),
+        "rpo_yoy": b.get("rpo_yoy"),
+        "demand_accelerating": b.get("demand_accelerating"),
+        "deferred_rev_usd": num(b.get("deferred_rev")),
+        "fwd_orders_score": num(f.get("total_score")) or num(f.get("score")),
+        "est_direction": e.get("direction"),
+        "est_rev_pct": num(e.get("eps_rev_pct")),
+        "est_rev_recent_pct": num(e.get("eps_rev_recent_pct")),
+        "est_strength": num(e.get("estimate_strength")),
+        "est_baseline_date": e.get("baseline_date"),
+    }
+    if implied_usd and rpo and rpo > 0:
+        out["unbooked_vs_rpo"] = round(implied_usd / rpo, 3)
+    elif implied_usd and out["deferred_rev_usd"]:
+        out["unbooked_vs_deferred"] = round(implied_usd / out["deferred_rev_usd"], 3)
+
+    if asof and cat_day:
+        out["claim_predates_filing"] = bool(str(asof)[:10] < cat_day)
+        try:
+            out["rpo_stale_days"] = (date.today() - date.fromisoformat(str(asof)[:10])).days
+        except Exception:  # noqa: BLE001
+            pass
+
+    bd = e.get("baseline_date")
+    revised_up = (out["est_direction"] == "UP" and (out["est_rev_recent_pct"] or 0) > 0)
+    if bd:
+        out["estimates_revised_since_catalyst"] = bool(revised_up and str(bd)[:10] >= cat_day)
+    else:
+        out["estimates_revised_since_catalyst"] = (True if revised_up else None)
+    return out
+
+
+def pricing_quadrant(price_status, fund):
+    """Price is a day trade. Estimates are a quarter trade. The names worth
+    holding are the ones where NEITHER has moved yet."""
+    price_open = price_status in ("UNPRICED", "PARTIAL")
+    est_moved = fund.get("estimates_revised_since_catalyst") is True
+    if fund.get("est_direction") is None and fund.get("rpo_usd") is None:
+        return "PRICE_ONLY", "no backlog disclosure and no revision data, price signal only"
+    if price_open and not est_moved:
+        return "TWICE_UNPRICED", "the tape has not paid for it and consensus has not modelled it"
+    if price_open and est_moved:
+        return "ESTIMATES_LEADING", "analysts moved first, the tape is the laggard here"
+    if not price_open and not est_moved:
+        return "PRICE_LEADING", "price moved with no estimate change, momentum without fundamentals"
+    return "FULLY_PRICED", "price and consensus have both absorbed it"
 
 
 def plain_english(r, cat):
@@ -808,6 +961,10 @@ def lambda_handler(event=None, context=None):
         for s, d2e in ex.map(fmp_days_to_earnings, shortlist):
             meta.setdefault(s, {})["days_to_earnings"] = d2e
 
+    backlog_by, fwd_by, est_by, fund_missing = load_fundamentals()
+    for _m in fund_missing:
+        degraded.append("fundamental sidecar missing: " + _m)
+
     spy_now = tape.get("SPY", {}).get("last")
     all_rows, events = [], []
     for cat in cats:
@@ -819,9 +976,25 @@ def lambda_handler(event=None, context=None):
         cat["anchor_day"] = cat_day
 
         rows = []
+        assign_capture(per_event[cat["ticker"]], cat)   # flow conservation
         for r in per_event[cat["ticker"]]:
             try:
                 sr = score_row(r, cat, tape, hist, meta, spy_move, cat_day)
+                fund = fundamental_row(sr["ticker"], sr.get("implied_order_usd"),
+                                       cat_day, backlog_by, fwd_by, est_by)
+                sr["fundamentals"] = fund
+                q, qnote = pricing_quadrant(sr["status"], fund)
+                sr["pricing_quadrant"] = q
+                sr["quadrant_note"] = qnote
+                if q == "TWICE_UNPRICED":
+                    sr["catch_up_score"] = round(min(100.0, sr["catch_up_score"] * 1.15), 1)
+                elif q == "FULLY_PRICED":
+                    sr["catch_up_score"] = round(sr["catch_up_score"] * 0.6, 1)
+                if fund.get("claim_predates_filing"):
+                    sr["flags"].append(
+                        "UNBOOKED - last RPO filing is as of "
+                        + str(fund.get("rpo_asof"))
+                        + ", before this catalyst, so the implied order is not in that number")
                 sr["thesis"] = plain_english(sr, cat)
                 rows.append(sr)
             except Exception as e:  # noqa: BLE001
@@ -840,6 +1013,9 @@ def lambda_handler(event=None, context=None):
 
     top_picks = [{"ticker": r["ticker"], "score": r["catch_up_score"], "tier": r["tier"],
                   "status": r["status"], "catalyst": r["catalyst_ticker"],
+                  "quadrant": r.get("pricing_quadrant"),
+                  "implied_order_usd": r.get("implied_order_usd"),
+                  "unbooked_vs_rpo": (r.get("fundamentals") or {}).get("unbooked_vs_rpo"),
                   "residual_pct": r["residual_pct"], "note": r["thesis"][:220]}
                  for r in unpriced
                  if r["tier"] in ("T1_DIRECT_SUPPLIER", "T2_TIER2_INPUT", "T3_INFRASTRUCTURE")
@@ -866,6 +1042,12 @@ def lambda_handler(event=None, context=None):
         "unpriced": unpriced[:60],
         "beneficiaries": all_rows[:200],
         "chase_guard": overshot,
+        "twice_unpriced": [x for x in all_rows
+                           if x.get("pricing_quadrant") == "TWICE_UNPRICED"][:40],
+        "quadrant_counts": {q: sum(1 for x in all_rows
+                                   if x.get("pricing_quadrant") == q)
+                            for q in ("TWICE_UNPRICED", "ESTIMATES_LEADING",
+                                      "PRICE_LEADING", "FULLY_PRICED", "PRICE_ONLY")},
         "top_picks": top_picks,
         "tier_caps": TIER_CAPS,
         "tiers": {k: {"weight": v["w"], "capture_share": v["capture"], "label": v["label"]}
@@ -880,6 +1062,7 @@ def lambda_handler(event=None, context=None):
             "multiple re-rates and mean-revert far more often than revenue read-throughs.",
             "order_value_usd is parsed from the headline/body. Announced orders are not "
             "recognised revenue — they can be delayed, re-cut or cancelled.",
+            "Flow conservation: a tier's capture share is SPLIT across its named suppliers by BOM weight, so the same dollar is never counted twice. Implied order values are RANKED estimates, not dollar forecasts - vendor mix is undisclosed.",
             "MEASURE-BEFORE-TRUST: top_picks → signal-harvester (eng:justhodl-readthrough) → "
             "outcome-checker. This engine earns its scorecard slot like every other.",
         ],
