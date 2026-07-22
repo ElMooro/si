@@ -1,0 +1,97 @@
+{
+  "verdict": "PASS",
+  "findings": {
+    "endpoints": {
+      "hs_imports": {
+        "n_vars": 70,
+        "have": [
+          "GEN_VAL_MO",
+          "GEN_VAL_YR",
+          "CON_VAL_MO",
+          "GEN_QY1_MO",
+          "I_COMMODITY",
+          "I_COMMODITY_LDESC",
+          "CTY_CODE",
+          "CTY_NAME",
+          "DISTRICT",
+          "DIST_NAME",
+          "SUMMARY_LVL",
+          "COMM_LVL",
+          "time",
+          "YEAR",
+          "MONTH"
+        ]
+      },
+      "naics_imports": {
+        "n_vars": 50,
+        "have": [
+          "GEN_VAL_MO",
+          "GEN_VAL_YR",
+          "CON_VAL_MO",
+          "CTY_CODE",
+          "CTY_NAME",
+          "DISTRICT",
+          "DIST_NAME",
+          "NAICS",
+          "NAICS_LDESC",
+          "SUMMARY_LVL",
+          "COMM_LVL",
+          "time",
+          "YEAR",
+          "MONTH"
+        ]
+      },
+      "porths_imports": {
+        "n_vars": 28,
+        "have": [
+          "GEN_VAL_MO",
+          "GEN_VAL_YR",
+          "I_COMMODITY",
+          "I_COMMODITY_LDESC",
+          "CTY_CODE",
+          "CTY_NAME",
+          "PORT",
+          "PORT_NAME",
+          "SUMMARY_LVL",
+          "COMM_LVL",
+          "time",
+          "YEAR",
+          "MONTH"
+        ]
+      },
+      "statehs_imports": {
+        "n_vars": 29,
+        "have": [
+          "GEN_VAL_MO",
+          "GEN_VAL_YR",
+          "CON_VAL_MO",
+          "I_COMMODITY",
+          "I_COMMODITY_LDESC",
+          "CTY_CODE",
+          "CTY_NAME",
+          "SUMMARY_LVL",
+          "COMM_LVL",
+          "time",
+          "YEAR",
+          "MONTH"
+        ]
+      },
+      "hs_exports": {
+        "n_vars": 41,
+        "have": [
+          "E_COMMODITY",
+          "CTY_CODE",
+          "CTY_NAME",
+          "DISTRICT",
+          "DIST_NAME",
+          "SUMMARY_LVL",
+          "COMM_LVL",
+          "time",
+          "YEAR",
+          "MONTH"
+        ]
+      }
+    },
+    "latest_month": "2026-05"
+  }
+}
