@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -99,6 +99,26 @@ TIER_ORDER = list(TIERS.keys())
 TIER_CAPS = {"T1_DIRECT_SUPPLIER": 12, "T2_TIER2_INPUT": 8,
              "T3_INFRASTRUCTURE": 8, "T4_THEMATIC_SYMPATHY": 6,
              "T5_COMPETITOR_VALIDATION": 5}
+
+THEME_INFRA = {
+    "Servers/EMS": ("Power/Cooling/Grid", "Networking/Optical"),
+    "Neocloud/AI-DC": ("Power/Cooling/Grid", "Networking/Optical"),
+    "Hyperscaler": ("Power/Cooling/Grid", "Networking/Optical"),
+    "AI Compute": ("Power/Cooling/Grid", "Networking/Optical"),
+    "Foundry": ("Semicap", "Memory/Packaging"),
+    "Memory/Packaging": ("Semicap",),
+    "Auto/EV/Materials": ("Automation/Power-semi",),
+    "Aero/Defense": ("Machinery/Rail",),
+}
+
+# Not every tier-2 input captures the same share of an order. EDA seats and test
+# equipment do not scale with server units the way memory and optics do.
+REL_CAPTURE_MOD = (
+    ("eda", 0.15), ("design tools", 0.15), (" ip", 0.20), ("software", 0.20),
+    ("test", 0.40), ("metrology", 0.40), ("inspection", 0.40),
+    ("equipment", 0.50), ("subsystems", 0.50), ("materials", 0.50),
+    ("litho", 0.55), ("etch", 0.55), ("deposition", 0.55),
+)
 
 EDGE_CONF = {"curated_mutual": 1.00, "curated_one_way": 0.85,
              "curated_none": 0.70, "polygon_related": 0.60, "industry_peer": 0.45}
@@ -471,12 +491,17 @@ def beneficiaries_for(cat, g, tape, univ_meta):
                 continue
             add(s2, "T2_TIER2_INPUT", f"supplies {s}, a named supplier to {sym} ({rel2 or 'input'})",
                 cf2, True)
-    # T3 — same-theme infrastructure hubs on the curated graph
+    # T3 — the enabling layer the buildout needs. That is an ADJACENT theme
+    # (power, cooling, optical), not the catalyst's own theme: an AI-server
+    # order does not read through to other server assemblers, it reads through
+    # to the people who power and connect the racks.
     th = theme.get(sym)
     if th:
+        infra = THEME_INFRA.get(th, (th,))
         for t, mtheme in theme.items():
-            if mtheme == th and t != sym and t not in found:
-                add(t, "T3_INFRASTRUCTURE", f"same buildout theme: {th}", "curated_none", True)
+            if mtheme in infra and t != sym and t not in found:
+                add(t, "T3_INFRASTRUCTURE",
+                    f"{mtheme} — the layer a {th} buildout has to buy", "curated_none", True)
     # T4 — market-inferred related names (co-movement / co-mention, NOT suppliers)
     for t in peers.get(sym, []):
         add(t, "T4_THEMATIC_SYMPATHY",
@@ -565,11 +590,17 @@ def fmp_days_to_earnings(sym):
 
 
 # ═══════════════════════════ Diffusion scoring ══════════════════════════════════
-def materiality(order_value, tier, revenue):
+def materiality(order_value, tier, revenue, why=""):
     """How much could this order actually MOVE this company's P&L?"""
     if not order_value or not revenue or revenue <= 0:
         return 0.50, "unknown — order size or revenue unavailable"
-    share = (order_value * TIERS[tier]["capture"]) / revenue
+    cap = TIERS[tier]["capture"]
+    w = (why or "").lower()
+    for kw, mod in REL_CAPTURE_MOD:
+        if kw in w:
+            cap *= mod   # EDA/test/equipment do not scale with unit volume
+            break
+    share = (order_value * cap) / revenue
     m = min(1.0, 0.20 + 0.80 * min(1.0, share / 0.50))
     return round(m, 3), f"~{share * 100:.1f}% of TTM revenue at this tier's capture share"
 
@@ -584,7 +615,8 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
     beta = (meta.get(t) or {}).get("beta") or 1.0
     realized = move - beta * spy_move
 
-    mat, mat_note = materiality(cat.get("order_value_usd"), tier, (meta.get(t) or {}).get("revenue"))
+    mat, mat_note = materiality(cat.get("order_value_usd"), tier,
+                                (meta.get(t) or {}).get("revenue"), row.get("why"))
     expected = cat["move_pct"] * tw * row["edge_confidence"] * mat * cat["propagation"]
     residual = expected - realized
     capture = (realized / expected) if expected and abs(expected) > 0.01 else None

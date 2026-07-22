@@ -79,6 +79,21 @@ EDGES = [
     ("ETN", "AMZN", "power mgmt"), ("ETN", "MSFT", "power mgmt"), ("PWR", "GEV", "grid construction"),
     ("NVT", "MSFT", "power/enclosures"), ("TT", "MSFT", "HVAC cooling"), ("JCI", "AMZN", "building/cooling"),
     ("CARR", "MSFT", "cooling"), ("CCJ", "CEG", "uranium fuel"),
+    # ── SERVER-OEM INPUTS (ops 3706) ─────────────────────────────────────────
+    # SMCI/DELL/HPE were modelled only as SUPPLIERS. Their own bill of materials
+    # was missing, so SMCI's $60B backlog print resolved to exactly one named
+    # supplier (NVDA) and the rest of the chain was invisible.
+    ("AMD", "SMCI", "GPUs/CPUs"), ("INTC", "SMCI", "CPUs"),
+    ("MU", "SMCI", "DRAM/HBM"), ("STX", "SMCI", "storage"), ("WDC", "SMCI", "storage"),
+    ("AVGO", "SMCI", "networking silicon"), ("APH", "SMCI", "connectors"),
+    ("CRDO", "SMCI", "AEC connectivity"), ("COHR", "SMCI", "optical interconnect"),
+    ("LITE", "SMCI", "optical"), ("MPWR", "SMCI", "power semis"), ("VICR", "SMCI", "power modules"),
+    ("NVT", "SMCI", "enclosures/liquid cooling"), ("VRT", "SMCI", "rack cooling/power"),
+    ("AMD", "DELL", "GPUs/CPUs"), ("INTC", "DELL", "CPUs"), ("MU", "DELL", "DRAM/HBM"),
+    ("STX", "DELL", "storage"), ("WDC", "DELL", "storage"), ("AVGO", "DELL", "networking silicon"),
+    ("APH", "DELL", "connectors"), ("MPWR", "DELL", "power semis"), ("VRT", "DELL", "rack cooling"),
+    ("NVDA", "HPE", "GPUs"), ("AMD", "HPE", "GPUs/CPUs"), ("INTC", "HPE", "CPUs"),
+    ("MU", "HPE", "DRAM"), ("STX", "HPE", "storage"), ("APH", "HPE", "connectors"),
     # ── NEOCLOUD / AI-DATACENTER CLUSTER (ops 3701) ──────────────────────────
     # The GPU-cloud and converted-miner operators are where the AI capex cycle
     # physically lands. Without them on the graph an NBIS/IREN/APLD capex print
@@ -163,7 +178,7 @@ _tag(["TSM"], "Foundry")
 _tag(["MU","AMKR"], "Memory/Packaging")
 _tag(["NVDA","AMD","INTC"], "AI Compute")
 _tag(["AVGO","MRVL","ANET","CRDO","QCOM","COHR","LITE","APH","CIEN"], "Networking/Optical")
-_tag(["SMCI","DELL","CLS","JBL","FLEX"], "Servers/EMS")
+_tag(["SMCI","DELL","HPE","CLS","JBL","FLEX"], "Servers/EMS")
 _tag(["STX","WDC"], "Storage")
 _tag(["VRT","VST","CEG","GEV","ETN","PWR","NVT","TT","JCI","CARR","CCJ","NEE","HUBB","ATKR","MOD"], "Power/Cooling/Grid")
 _tag(["MSFT","META","GOOGL","AMZN","ORCL"], "Hyperscaler")
@@ -359,7 +374,7 @@ def lambda_handler(event=None, context=None):
 
     themes = sorted({n["theme"] for n in nodes})
     payload = {
-        "engine": "justhodl-supply-chain-graph", "version": "2.1.0", "ok": True,
+        "engine": "justhodl-supply-chain-graph", "version": "2.2.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Named supplier↔customer graph across semis/tech/datacenter/aero-defense/"
                    "industrial/auto/energy/biopharma. When a hub booms, its suppliers that "
