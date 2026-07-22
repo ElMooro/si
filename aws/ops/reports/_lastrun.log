@@ -1,16 +1,5 @@
-executing-against: 62ca4ab3c3448d47ce521cb8e1ca465d909a1907
-ops 3694 — Taiwan value leg lands + divergence signals
-[03:26:19]   zip: 93850 bytes
-── 1. Lambda ──
-[03:26:19]   Lambda exists — updating
-[03:26:25] ✅   ✓ updated justhodl-boom-stage
-── 3. Smoke test ──
-[03:26:25]   invoking justhodl-boom-stage…
-PASS  G1_tw — err=None TW_stage=BROADENING TW_value=48.33 src=asia-leads TW goods exports yoy (orders series still building its 12m vintage) TW_vol=41.4 why=value AND volume expanding — capex phase f4=IDLING semis_div={'commodity': 'semis', 'spread_pp': 45.7, 'weak': 'KR-semis', 'weak_pct': -4.3, 'strong': 'TW-semis', 'strong_pct': 41.4, 'read': 'SEMIS: KR-semis volume -4.3% vs TW-semis 41.4% — 45.7pp gap. Same commodity, opposite flow = LOCAL SUPPLY DISRUPTION in KR, not a global demand signal. Price strength here is supply-driven (inflationary), and producers in TW gain share.', 'trade': 'prefer TW-exposed producers over KR-exposed; the spread is the alpha'} div_signals=2 na_left=['AU-iron', 'QA-lng', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=60 infl=100 breadth=64%
-[03:26:35] G1_tw True
-PASS  G2_page — page live
-[03:26:35] G2_page True
-VERDICT: PASS_ALL
-[03:26:35] VERDICT: PASS_ALL
+executing-against: 0a45731fea0100c3a0cbfe48981ed64eddcc214e
+ops 3695 — Australia + Qatar port discovery
+PASS  G1_hunt — control=2 {"Australia": {"n": 57, "ports": [["port458", "Hay Point"], ["port469", "Hobart"], ["port591", "Koolan"], ["port0", "Abbot Point"], ["port675", "Mackay"], ["port729", "Melbourne"], ["port176", "Broome"], ["port190", "Bunbury"], ["port741", "Milner Bay"], ["port194", "Burnie"], ["port816", "Newcastle"], ["port854", "Onslow"], ["port918", "Point Murat"], ["port953", "Port Giles"], ["port28", "Albany"], ["port161", "Port Botany"]], "daily_rows": 8, "daily_sample": [{"portid": "port458", "date": "2026-07-17", "portcalls": 2}, {"portid": "port469", "date": "2026-07-17", "portcalls": 1}, {"portid": "port591", "date": "2026-07-17", "portcalls": 1}]}, "Qatar": {"n": 4, "ports": [["port1090", "Ras La
 
-→ Report written to aws/ops/reports/latest/3694_tw_land.md
+→ Report written to aws/ops/reports/latest/3695_au_qa_hunt.md
