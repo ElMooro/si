@@ -1,24 +1,6 @@
-executing-against: cb5f6d2e815a7a862032f15552cc58622b170587
-ops 3680 — global canary matrix
-[01:49:44]   zip: 87915 bytes
-── 1. Lambda ──
-[01:49:45]   Lambda exists — updating
-[01:49:48] ✅   ✓ updated justhodl-portwatch
-── 3. Smoke test ──
-[01:49:48]   invoking justhodl-portwatch…
-PASS  G1_ports — nations=19 new_have=['Peru', 'Finland', 'Saudi Arabia'] rows=[('Peru', 2, 11.2, 'STABLE'), ('Finland', 3, 3.8, 'STABLE'), ('Saudi Arabia', 6, -9.8, 'STABLE')] ref_search=[{'name': 'Jeddah', 'full': 'Jeddah, Saudi Arabia', 'country': 'Saudi Arabia'}, {'name': 'Callao', 'full': 'Callao, Peru', 'country': 'Peru'}, {'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Kaohsiung', 'full': 'Kaohsiung, Taiwan Province of China', 'country': 'Taiwan Province of China'}, {'name': 'Kotka', 'full': 'Kotka, Finland', 'country': 'Finland'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]
-[01:50:55] G1_ports True
-[01:50:56]   zip: 89332 bytes
-── 1. Lambda ──
-[01:50:56]   Lambda exists — updating
-[01:50:59] ✅   ✓ updated justhodl-boom-stage
-── 3. Smoke test ──
-[01:50:59]   invoking justhodl-boom-stage…
-PASS  G2_engine — err=None n_pairs=10 regime=STAGFLATIONARY SQUEEZE slow=75(HIGH) infl=100(HIGH) stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -31.1), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.7, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.5, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.5, None), ('PE-copper', 'BROADENING', 16.5, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.7, -9.8), ('TW-semis', 'NA', None, None)] say=Global slowdown risk is HIGH: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Saudi Arabia WITH volumes falling (supply-driven — the bad kind: raises prices AND hurts growth).
-[01:51:03] G2_engine True
-PASS  G3_page — {'regime': True, 'dials': True, 'plain': True, 'split': True, 'shock': True}
-[01:52:04] G3_page True
-VERDICT: PASS_ALL
-[01:52:04] VERDICT: PASS_ALL
+executing-against: 276e010b62522f22e133565ea68ea39f094772bb
+ops 3681 — TW alias / Chile / inventory-factor recon
+PASS  G1_ref — total=2065 TW=[{'name': 'Keelung', 'country': 'Taiwan Province of China', 'id': 'port238'}, {'name': 'Hualien', 'country': 'Taiwan Province of China', 'id': 'port482'}, {'name': 'Kaohsiung', 'country': 'Taiwan Province of China', 'id': 'port541'}, {'name': 'Mailiao', 'country': 'Taiwan Province of China', 'id': 'port681'}, {'name': 'Taichung', 'country': 'Taiwan Province of China', 'id': 'port1252'}, {'name': 'Taipei', 'country': 'Taiwan Province of China', 'id': 'port1261'}, {'name': 'Anping', 'country': 'Taiwan Province of China', 'id': 'port2229'}, {'name': 'Suao', 'country': 'Taiwan Province of China', 'id': 'port2230'}, {'name': 'Yung-An LNG Terminal', 'country': 'Taiwan Province of Chi
+PASS  G2_fred — {"semis_util": {"sid": "CAPUTLG3344S", "latest": "72.1577", "date": "2026-06-01", "yr_ago": "76.224"}, "total_util": {"sid": "TCU", "latest": "76.0937", "date": "2026-06-01", "yr_ago": "76.181"}, "mfg_inv_sales": {"sid": "MNFCTRIRSA", "latest": "1.47", "date": "2026-05-01", "yr_ago": "1.57"}, "biz_inv_sales": {"sid": "ISRATIO", "latest": "1.28", "date": "2026-05-01", "yr_ago": "1.39"}, "retail_inv": {"sid": "RETAILIRSA", "latest": "1.25", "date": "2026-05-01", "yr_ago": "1.31"}, "cu_mining": {"sid": "CAPUTLG21S", "latest": "87.4036", "date": "2026-06-01", "yr_ago": "85.0534"}}
 
-→ Report written to aws/ops/reports/latest/3680_canary_matrix.md
+→ Report written to aws/ops/reports/latest/3681_probe_gaps.md
