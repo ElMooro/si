@@ -1,0 +1,62 @@
+{
+  "gates": {
+    "G1_ports": {
+      "ok": false,
+      "detail": "matched=70 nations=20 TW={'code': 'TAI', 'country': 'Taiwan', 'n_ports': 6, 'ports': ['Keelung', 'Kaohsiung', 'Taichung', 'Hualien'], 'avg_vs_baseline_pct': 41.4, 'avg_z': 0.65, 'verdict': 'ACCELERATING'} CL=None CN_ports=13 slowing=['UAE', 'China', 'Brazil', 'Malaysia']"
+    },
+    "G2_engine": {
+      "ok": true,
+      "detail": "err=None n_pairs=15 factor4_on=11 new=['AU-iron', 'ID-nickel', 'QA-lng', 'DE-machinery', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=65 infl=100 tilt=0 f4reads={'KR-semis': 'IDLING', 'CN-broad': 'STEADY', 'BR-commodities': 'RAMPING', 'US-freight': 'INVENTORY_DRAW', 'CL-copper': 'RAMPING', 'PE-copper': 'RAMPING', 'FI-pulp': 'INVENTORY_DRAW', 'TW-semis': 'IDLING', 'AU-iron': 'RAMPING', 'ID-nickel': 'RAMPING', 'DE-machinery': 'STEADY'} stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -27.3), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.5, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.4, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.4, None), ('PE-copper', 'BROADENING', 16.4, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.5, -9.8), ('TW-semis', 'NA', None, 41.4), ('AU-iron', "
+    },
+    "G3_page": {
+      "ok": true,
+      "detail": "{'f4': True, 'defensive': True, 'tilt': True}"
+    }
+  },
+  "macro": {
+    "slowdown_risk": 65,
+    "slowdown_band": "MODERATE",
+    "inflation_pressure": 100,
+    "inflation_band": "HIGH",
+    "regime": "STAGFLATIONARY SQUEEZE",
+    "plain_english": "Global slowdown risk is MODERATE: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Saudi Arabia WITH volumes falling (supply-driven \u2014 the bad kind: raises prices AND hurts growth).",
+    "growth_canaries": 7,
+    "inventory_tilt": 0,
+    "factor4_reads": {
+      "KR-semis": "IDLING",
+      "CN-broad": "STEADY",
+      "BR-commodities": "RAMPING",
+      "US-freight": "INVENTORY_DRAW",
+      "CL-copper": "RAMPING",
+      "PE-copper": "RAMPING",
+      "FI-pulp": "INVENTORY_DRAW",
+      "TW-semis": "IDLING",
+      "AU-iron": "RAMPING",
+      "ID-nickel": "RAMPING",
+      "DE-machinery": "STEADY"
+    },
+    "inflation_canaries": 3,
+    "weak": [
+      "China",
+      "Finland"
+    ],
+    "hot": [
+      "UAE",
+      "Brazil",
+      "Saudi Arabia"
+    ],
+    "strong": [
+      "Korea",
+      "US",
+      "Peru",
+      "Indonesia"
+    ]
+  },
+  "notes": {
+    "US-freight": "CONFIRMED: inventories drawing down while price leads \u2014 genuine tightening, boom has room",
+    "PE-copper": "CONFIRMED: utilization rising with volumes \u2014 real capex",
+    "FI-pulp": "EARLY-TURN WATCH: stocks drawing down despite weak prints \u2014 restock impulse may be forming",
+    "ID-nickel": "CONFIRMED: utilization rising with volumes \u2014 real capex"
+  },
+  "verdict": "GAPS: G1_ports"
+}

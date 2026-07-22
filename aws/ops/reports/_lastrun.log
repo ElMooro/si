@@ -1,24 +1,24 @@
-executing-against: 2ed36b00702d3f60f0e069fb27ea1a77798d6968
-ops 3682 — 4-factor + new pairs + TW/CL fixes
-[02:04:49]   zip: 88039 bytes
+executing-against: faf38592b88a6a4ddbe4625e94d24865caec7770
+ops 3683 — 4-factor + new pairs + TW/CL fixes
+[02:10:21]   zip: 88132 bytes
 ── 1. Lambda ──
-[02:04:49]   Lambda exists — updating
-[02:04:57] ✅   ✓ updated justhodl-portwatch
+[02:10:21]   Lambda exists — updating
+[02:10:24] ✅   ✓ updated justhodl-portwatch
 ── 3. Smoke test ──
-[02:04:57]   invoking justhodl-portwatch…
-FAIL  G1_ports — nations=18 TW={'code': 'TAI', 'country': 'Taiwan', 'n_ports': 6, 'ports': ['Keelung', 'Kaohsiung', 'Taichung', 'Hualien'], 'avg_vs_baseline_pct': 41.4, 'avg_z': 0.65, 'verdict': 'ACCELERATING'} CL=None CN_ports=12 slowing=['UAE', 'China', 'Brazil']
-[02:07:24] G1_ports False
-[02:07:24]   zip: 91520 bytes
+[02:10:24]   invoking justhodl-portwatch…
+FAIL  G1_ports — matched=70 nations=20 TW={'code': 'TAI', 'country': 'Taiwan', 'n_ports': 6, 'ports': ['Keelung', 'Kaohsiung', 'Taichung', 'Hualien'], 'avg_vs_baseline_pct': 41.4, 'avg_z': 0.65, 'verdict': 'ACCELERATING'} CL=None CN_ports=13 slowing=['UAE', 'China', 'Brazil', 'Malaysia']
+[02:12:56] G1_ports False
+[02:12:56]   zip: 91520 bytes
 ── 1. Lambda ──
-[02:07:25]   Lambda exists — updating
-[02:07:30] ✅   ✓ updated justhodl-boom-stage
+[02:12:56]   Lambda exists — updating
+[02:13:01] ✅   ✓ updated justhodl-boom-stage
 ── 3. Smoke test ──
-[02:07:30]   invoking justhodl-boom-stage…
-PASS  G2_engine — err=None n_pairs=15 factor4_on=11 new=['AU-iron', 'ID-nickel', 'QA-lng', 'DE-machinery', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=60 infl=100 tilt=0 f4reads={'KR-semis': 'IDLING', 'CN-broad': 'STEADY', 'BR-commodities': 'RAMPING', 'US-freight': 'INVENTORY_DRAW', 'CL-copper': 'RAMPING', 'PE-copper': 'RAMPING', 'FI-pulp': 'INVENTORY_DRAW', 'TW-semis': 'IDLING', 'AU-iron': 'RAMPING', 'ID-nickel': 'RAMPING', 'DE-machinery': 'STEADY'} stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.5), ('CN-broad', 'CONTRACTION', -8.8, -25.9), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.6, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.6, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.6, None), ('PE-copper', 'BROADENING', 16.6, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.6, -9.8), ('TW
-[02:07:41] G2_engine STAGFLATIONARY SQUEEZE
+[02:13:01]   invoking justhodl-boom-stage…
+PASS  G2_engine — err=None n_pairs=15 factor4_on=11 new=['AU-iron', 'ID-nickel', 'QA-lng', 'DE-machinery', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=65 infl=100 tilt=0 f4reads={'KR-semis': 'IDLING', 'CN-broad': 'STEADY', 'BR-commodities': 'RAMPING', 'US-freight': 'INVENTORY_DRAW', 'CL-copper': 'RAMPING', 'PE-copper': 'RAMPING', 'FI-pulp': 'INVENTORY_DRAW', 'TW-semis': 'IDLING', 'AU-iron': 'RAMPING', 'ID-nickel': 'RAMPING', 'DE-machinery': 'STEADY'} stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -27.3), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.5, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.4, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.4, None), ('PE-copper', 'BROADENING', 16.4, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.5, -9.8), ('TW
+[02:13:11] G2_engine STAGFLATIONARY SQUEEZE
 PASS  G3_page — {'f4': True, 'defensive': True, 'tilt': True}
-[02:07:41] G3_page True
+[02:13:11] G3_page True
 VERDICT: GAPS: G1_ports
-[02:07:41] VERDICT: GAPS: G1_ports
+[02:13:11] VERDICT: GAPS: G1_ports
 
-→ Report written to aws/ops/reports/latest/3682_four_factor.md
+→ Report written to aws/ops/reports/latest/3683_chile_cap.md
