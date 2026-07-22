@@ -117,7 +117,11 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   page was the PRE-EDIT copy (12,563 B) while the repo held the fix (11,550 B),
   so a correct page "failed" its own field-coverage audit. Bust with
   `?v=<epoch+attempt>` + `Cache-Control/Pragma: no-cache`, and require a NEW
-  marker string to be present before trusting the fetch.
+  marker string to be present before trusting the fetch. **The marker MUST be
+  unique to the NEW version** (ops 3746): a sentinel that already existed in the
+  prior page (`awaiting_base_rate`) let the audit accept the stale copy as
+  current and fail on the very key the new copy renders. Pick a string only the
+  patched page contains.
 - **Declarative `schedule` may not materialise on first create** (ops 3735):
   config.json alone created the function but no rule appeared. Ops should
   ensure via EventBridge Scheduler (role `justhodl-scheduler-role`, FTW OFF)
