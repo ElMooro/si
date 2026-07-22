@@ -1,17 +1,16 @@
-executing-against: 0ccd6a23a482d8091026d11f9e1b3d081aceda5d
-ops 3726 — readthrough.html: surface the hidden engine fields
-[20:00:14] G0_key_contract True
+executing-against: 3a68e72772c2df3a2c0525d94bce6cd8a0cc4044
+ops 3727 — readthrough.html: surface the hidden engine fields
+[20:03:19] G0_key_contract True
   G0_key_contract                    True  engine actually publishes: {'top_picks': True, 'consensus_coverage': True, 'quadrant_counts': True, 'materiality': True, 'materiality_note': True, 'quadrant_note': True, 'edge_source': True, 'capture_share': True, 'consensus_observed': True}
-[20:00:14] G1_patched True
+[20:03:19] G1_patched True
   G1_patched                         True  already patched (idempotent re-run)
-[20:00:14] G2_columns_wired True
+[20:03:19] G2_columns_wired True
   G2_columns_wired                   True  board header now has 12 columns
-[20:00:14] G3_coverage_closed False
-  G3_coverage_closed                 False  rendered 12/13; still missing=['capture_share']
+[20:03:19] G3_coverage_closed True
+  G3_coverage_closed                 True  rendered 13/13; still missing=[]
 
-VERDICT: GAPS: G3_coverage_closed
+VERDICT: PASS_ALL
 NOTE: pages.yml publishes root *.html; live-marker check is ops 3726.
-[20:00:14] VERDICT: GAPS: G3_coverage_closed
+[20:03:19] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3726_readthrough_page_fix.md
-❌ OPS-FAIL: aws/ops/pending/ops_3726_readthrough_page_fix.py
+→ Report written to aws/ops/reports/latest/3727_readthrough_verify.md
