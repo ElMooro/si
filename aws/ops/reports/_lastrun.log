@@ -1,10 +1,40 @@
-executing-against: 5245c46ce8e7f679bf2a63a1d1425834128bdf83
-ops 3678 — geo-stack dedicated pages + sidebar
-PASS  G1_pages — {'boom-stage.html': True}
-[01:25:40] G1_pages True
-PASS  G2_sidebar — {'/boom-stage.html': True} total=395 cats={'/boom-stage.html': 'Macro & Liquidity'}
-[01:25:40] G2_sidebar True
+executing-against: bf436aaf1bf8072c09d2b7042bb0ee4560559daf
+ops 3679 — boom-stage v1.1 SIGNALS: 6 pairs + transitions/sliding + trades + sentinel
+[01:32:42]   zip: 87225 bytes
+── 1. Lambda ──
+[01:32:42]   Lambda exists — updating
+[01:32:48] ✅   ✓ updated justhodl-boom-stage
+── 3. Smoke test ──
+[01:32:48]   invoking justhodl-boom-stage…
+PASS  G1_engine — err=None ok=True headline=Korea · Semiconductors/Memory: EARLY_PRICE_LED signals=[] hist_prev=None stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6), ('UAE-energy', 'MIXED', 33.3, -29.8), ('BR-commodities', 'MIXED', 16.7, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1)]
+[01:32:51] G1_engine True
+[01:32:52]   zip: 107431 bytes
+── 1. Lambda ──
+[01:32:52]   Lambda exists — updating
+[01:32:57] ✅   ✓ updated justhodl-morning-intelligence
+── 3. Smoke test ──
+[01:32:57]   invoking justhodl-morning-intelligence…
+[01:33:30] ✅   ✓ smoke test passed
+[01:33:30]     success                  True
+[01:33:30]     khalid_adj               43.0
+[01:33:30]     regime                   BEAR
+[01:33:30]     btc                      66797
+[01:33:30]     outcomes                 17811
+[01:33:30]     improved                 False
+[01:33:30]     weights_active           277
+[01:33:30]     ka_adj                   43.0
+[01:33:31]   zip: 90002 bytes
+── 1. Lambda ──
+[01:33:31]   Lambda exists — updating
+[01:33:37] ✅   ✓ updated justhodl-alert-sentinel
+── 3. Smoke test ──
+[01:33:37]   invoking justhodl-alert-sentinel…
+[01:33:39] ✅   ✓ smoke test passed
+[01:33:39]     sent                     False
+[01:33:39]     changes                  4
+PASS  G2_wires — {'signals_panel': True, 'trade_lines': True, 'traj': True, 'mi': True}
+[01:35:01] G2_wires True
 VERDICT: PASS_ALL
-[01:25:40] VERDICT: PASS_ALL
+[01:35:01] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3678_bs_page.md
+→ Report written to aws/ops/reports/latest/3679_bs_signals.md

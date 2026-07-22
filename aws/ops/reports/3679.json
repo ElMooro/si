@@ -1,0 +1,148 @@
+{
+  "gates": {
+    "G1_engine": {
+      "ok": true,
+      "detail": "err=None ok=True headline=Korea \u00b7 Semiconductors/Memory: EARLY_PRICE_LED signals=[] hist_prev=None stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6), ('UAE-energy', 'MIXED', 33.3, -29.8), ('BR-commodities', 'MIXED', 16.7, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1)]"
+    },
+    "G2_wires": {
+      "ok": true,
+      "detail": "{'signals_panel': True, 'trade_lines': True, 'traj': True, 'mi': True}"
+    }
+  },
+  "stages": [
+    {
+      "id": "KR-semis",
+      "label": "Korea \u00b7 Semiconductors/Memory",
+      "stage": "EARLY_PRICE_LED",
+      "why": "value surging while physical volume flat \u2014 pricing power / high-value goods; the boom has NOT plateaued",
+      "value": {
+        "src": "asia-leads KR 1-20 flash (news-tape)",
+        "yoy_pct": 52.3,
+        "note": "Korea\u2019s July 1-20 exports jump 52.3% on chip boom - \ub9e4\uc77c\uacbd\uc81c"
+      },
+      "volume": {
+        "src": "portwatch Korea gateway ports",
+        "vs_baseline_pct": -4.3,
+        "z": -0.33,
+        "n_ports": 3
+      },
+      "context": {
+        "industry_boom_score": 82.1,
+        "air_cargo": 3.1
+      },
+      "trajectory": null,
+      "trade": {
+        "bias": "LONG",
+        "instruments": "MU / SOXX / 000660.KS-proxy",
+        "line": "memory pricing-power phase \u2014 ride it"
+      }
+    },
+    {
+      "id": "TW-electronics",
+      "label": "Taiwan \u00b7 Electronics (export orders)",
+      "stage": "NA",
+      "why": "missing leg",
+      "value": {
+        "src": "asia-leads TW export orders",
+        "yoy_pct": null,
+        "level_usd_bn": null,
+        "note": "yoy self-building via levels cache"
+      },
+      "volume": {
+        "src": "portwatch Taiwan gateway ports",
+        "vs_baseline_pct": null,
+        "z": null,
+        "n_ports": null
+      },
+      "context": {},
+      "trajectory": null
+    },
+    {
+      "id": "CN-broad",
+      "label": "China \u00b7 Broad economy (credit vs ports)",
+      "stage": "CONTRACTION",
+      "why": "value and volume both falling \u2014 demand fade",
+      "value": {
+        "src": "PBoC TSF flow (credit impulse)",
+        "yoy_pct": -8.8,
+        "flow_trn_cny": 20.84,
+        "period": "2026-H1 (cum)"
+      },
+      "volume": {
+        "src": "portwatch China gateway ports",
+        "vs_baseline_pct": -25.6,
+        "z": -1.23,
+        "n_ports": 6
+      },
+      "context": {},
+      "trajectory": null,
+      "trade": {
+        "bias": "AVOID/SHORT-BIAS",
+        "instruments": "FXI / AUD / copper demand",
+        "line": "credit and gateway volume both contracting"
+      }
+    },
+    {
+      "id": "UAE-energy",
+      "label": "UAE \u00b7 Energy re-export (Brent vs Jebel Ali)",
+      "stage": "MIXED",
+      "why": "legs conflict mildly \u2014 watch next prints",
+      "value": {
+        "src": "Brent crude (BZ=F) yoy",
+        "yoy_pct": 33.3
+      },
+      "volume": {
+        "src": "portwatch UAE gateway ports",
+        "vs_baseline_pct": -29.8,
+        "z": -0.45,
+        "n_ports": 2
+      },
+      "context": {},
+      "trajectory": null
+    },
+    {
+      "id": "BR-commodities",
+      "label": "Brazil \u00b7 Bulk commodities (Copper vs Santos)",
+      "stage": "MIXED",
+      "why": "legs conflict mildly \u2014 watch next prints",
+      "value": {
+        "src": "Copper (HG=F) yoy",
+        "yoy_pct": 16.7
+      },
+      "volume": {
+        "src": "portwatch Brazil gateway ports",
+        "vs_baseline_pct": -18.8,
+        "z": -0.13,
+        "n_ports": 2
+      },
+      "context": {},
+      "trajectory": null
+    },
+    {
+      "id": "US-freight",
+      "label": "US \u00b7 Freight carriers (Cass $ vs shipments)",
+      "stage": "EARLY_PRICE_LED",
+      "why": "value surging while physical volume flat \u2014 pricing power / high-value goods; the boom has NOT plateaued",
+      "value": {
+        "src": "Cass expenditures yoy",
+        "yoy_pct": 11.2
+      },
+      "volume": {
+        "src": "Cass shipments yoy",
+        "vs_baseline_pct": -4.1,
+        "z": -1.16,
+        "n_ports": null
+      },
+      "context": {
+        "inflection": true
+      },
+      "trajectory": null,
+      "trade": {
+        "bias": "LONG",
+        "instruments": "carriers: ODFL / UNP / SAIA",
+        "line": "freight $ up on falling shipments = carrier pricing power"
+      }
+    }
+  ],
+  "verdict": "PASS_ALL"
+}
