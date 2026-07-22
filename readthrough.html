@@ -152,7 +152,7 @@ function boardTable(rows){
       '</td><td class="mono">'+pc(r.realized_ex_beta_pct)+'</td><td class="mono" style="color:'+AMB+'">'+pc(r.residual_pct)+
       '</td><td class="mono">'+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(2))+
       '</td><td class="mono" title="'+esc(r.materiality_note||'')+'">'+(r.materiality==null?'—':(r.materiality).toFixed(3)+'×')+
-      '</td><td class="mono" style="font-size:11px;color:'+DIM+'">'+esc(r.edge_source||'—')+(r.edge_confidence==null?'':' '+(r.edge_confidence*100).toFixed(0)+'%')+
+      '</td><td class="mono" style="font-size:11px;color:'+DIM+'">'+esc(r.edge_source||'—')+(r.edge_confidence==null?'':' '+(r.edge_confidence*100).toFixed(0)+'%')+(r.capture_share==null?'':'<br><span style="color:'+MUT+'">captures '+(r.capture_share*100).toFixed(1)+'% of order</span>')+
       '</td><td class="mono" style="font-size:11px;color:'+MUT+'">'+((r.fundamentals||{}).days_since_catalyst==null?'—':(r.fundamentals||{}).days_since_catalyst+'d')+
       '</td><td class="mono" style="color:'+c+'">'+esc(r.status)+'</td><td class="mono"><b>'+(r.catch_up_score==null?'—':r.catch_up_score)+'</b></td></tr>';
   }).join('');
