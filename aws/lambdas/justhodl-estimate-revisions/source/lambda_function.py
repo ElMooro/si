@@ -130,7 +130,14 @@ def lambda_handler(event=None, context=None):
         fp, fy = r.get("fiscal_period"), r.get("fiscal_year")
         if not tk or not fp:
             continue
+        # Benzinga (Massive) has been 403 NOT_AUTHORIZED since 2026-07-15, so
+        # estimated_eps arrives empty and every direction collapsed to None.
+        # Fall back to the FMP forward consensus we already fetch for this name.
+        # Benzinga keeps precedence so entitlement restoration is automatic.
+        _prof_early = fmp.get(tk) or {}
         cur_eps = _num(r.get("estimated_eps"))
+        if cur_eps is None:
+            cur_eps = _num(_prof_early.get("fwd_eps_cur"))
         cur_rev = _num(r.get("estimated_revenue"))
         key = f"{tk}|{fp}|{fy}"
         rec = keys.get(key) or {"t": tk, "fp": fp, "fy": fy, "obs": []}
@@ -226,7 +233,7 @@ def lambda_handler(event=None, context=None):
         direction_map[_t] = "UP" if _v > 0.5 else "DOWN" if _v < -0.5 else "FLAT"
 
     out = {
-        "engine": "justhodl-estimate-revisions", "version": "2.0.0",
+        "engine": "justhodl-estimate-revisions", "version": "2.1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(), "status": status,
         "thesis": "FMP depth (forward-EPS growth, analyst coverage, dispersion — day 1) "
                   "fused with Benzinga freshness (timely current estimate) and self-built "
