@@ -1,27 +1,103 @@
-executing-against: cd2abac79fe645bc5e1265c4c025cb105278538e
-ops 3721 — FMP calendar shim: live verification
-── 1 — live zip inspection ──
-    justhodl-estimate-revisions: {'has_benzinga_module': True, 'has_shim': False, 'n_files': 19}
-    justhodl-earnings-tracker: {'has_benzinga_module': True, 'has_shim': False, 'n_files': 17}
-[19:21:25] G1_shim_state_known True
-  G1_shim_state_known                True  needs_republish=['justhodl-estimate-revisions', 'justhodl-earnings-tracker'] state={'justhodl-estimate-revisions': {'has_benzinga_module': True, 'has_shim': False, 'n_files': 19}, 'justhodl-earnings-tracker': {'has_benzinga_module': True, 'has_shim': False, 'n_files': 17}}
-── 2 — republish (deploy-lambdas skipped the [skip-deploy] commit) ──
-    republished justhodl-estimate-revisions (87390 bytes)
-[19:21:31] republished justhodl-estimate-revisions (87390 bytes)
-    republished justhodl-earnings-tracker (89642 bytes)
-[19:21:37] republished justhodl-earnings-tracker (89642 bytes)
-[19:21:49] G2_shim_live True
-  G2_shim_live                       True  shim missing after republish: none
-── 3 — invoke estimate-revisions ──
-[19:22:05] G3_refreshed True
-  G3_refreshed                       True  artifact refreshed in 15s
-[19:22:05] G4_directions_populate False
-  G4_directions_populate             False  upward=0 downward=0 (was 0/0) n_tracked=436 n_fmp_enriched=256 n_with_history=436
-[19:22:05] G5_calendar_alive True
-  G5_calendar_alive                  True  n_tracked=436 n_with_history=436 n_state_keys=448 (re-seed under new fiscal keys is expected — FMP supplies no fiscal_period/fiscal_year, so some names produce a direction only on the NEXT run)
+executing-against: 8357b27451af7bb194ac75907476cc45643fd6b1
+ops 3722 — in-Lambda probe of fetch_calendar
+[19:37:06] zip_bytes: 84207
+  zip_bytes: 84207
+[19:37:11] probe_created: active
+  probe_created: active
+[19:37:14] function_error: None
+  function_error: None
+── PROBE RESULT ──
+{
+  "module": {
+    "path": "/var/task/benzinga.py",
+    "has_fmp_calendar": true,
+    "has_degrade": true,
+    "bytes": 14062
+  },
+  "env": {
+    "FMP_KEY_set": true,
+    "FMP_API_KEY_set": false,
+    "MASSIVE_API_KEY_set": false,
+    "benzinga_key_resolves": true
+  },
+  "massive_raw": {
+    "is_none": false,
+    "type": "dict",
+    "keys": [
+      "next_url",
+      "request_id",
+      "results",
+      "status"
+    ],
+    "n_results": 50,
+    "head": "{\"status\": \"OK\", \"request_id\": \"269632fb356e4bc382dbae298249dc40\", \"results\": [{\"currency\": \"USD\", \"date_status\": \"projected\", \"estimated_eps\": 0.28, \"previous_eps\": 0.26, \"benzinga_id\": \"6a5f19ef69f0580001b37dd9\", \"importance\": 2, \"company_name\": \"Whitestone REIT\", \"fiscal_period\": \"Q2\", \"fiscal_ye"
+  },
+  "fmp_shim": {
+    "n": 4000,
+    "n_with_eps": 2879,
+    "sample": {
+      "ticker": "0006.HK",
+      "company": null,
+      "date": "2026-08-05",
+      "time": null,
+      "session": "\u2014",
+      "importance": 3,
+      "fiscal_period": null,
+      "fiscal_year": null,
+      "estimated_eps": null,
+      "estimated_revenue": null,
+      "actual_eps": null,
+      "actual_revenue": null,
+      "_source": "fmp_fallback"
+    }
+  },
+  "fetch_calendar_minimp0": {
+    "n": 1000,
+    "n_with_eps": 822,
+    "sources": [
+      "benzinga"
+    ],
+    "sample": {
+      "ticker": "WSR",
+      "company": "Whitestone REIT",
+      "date": "2026-08-05",
+      "session": "AMC",
+      "date_status": "projected",
+      "estimated_eps": 0.28,
+      "previous_eps": 0.26,
+      "estimated_revenue": 42450800.0,
+      "importance": 2,
+      "fiscal_period": "Q2",
+      "fiscal_year": 2026
+    }
+  },
+  "fetch_calendar_minimp2": {
+    "n": 735,
+    "n_with_eps": 687,
+    "sources": [
+      "benzinga"
+    ],
+    "sample": {
+      "ticker": "WSR",
+      "company": "Whitestone REIT",
+      "date": "2026-08-05",
+      "session": "AMC",
+      "date_status": "projected",
+      "estimated_eps": 0.28,
+      "previous_eps": 0.26,
+      "estimated_revenue": 42450800.0,
+      "importance": 2,
+      "fiscal_period": "Q2",
+      "fiscal_year": 2026
+    }
+  }
+}
+[19:37:14] VERDICT_SIGNALS: module_has_shim=True fmp_shim_rows=4000 fetch_calendar(min_imp=0)=1000 fetch_calendar(min_imp=2)=735 massive_none=False
+  VERDICT_SIGNALS: module_has_shim=True fmp_shim_rows=4000 fetch_calendar(min_imp=0)=1000 fetch_calendar(min_imp=2)=735 massive_none=False
+[19:37:14] probe_deleted: True
+  probe_deleted: True
 
-VERDICT: GAPS: G4_directions_populate
-[19:22:05] VERDICT: GAPS: G4_directions_populate
+VERDICT: DIAGNOSIS COMPLETE
+[19:37:14] VERDICT: DIAGNOSIS COMPLETE
 
-→ Report written to aws/ops/reports/latest/3721_shim_live_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3721_shim_live_verify.py
+→ Report written to aws/ops/reports/latest/3722_inlambda_probe.md
