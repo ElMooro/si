@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -106,7 +106,10 @@ EDGE_CONF = {"curated_mutual": 1.00, "curated_one_way": 0.85,
 # ── Catalyst taxonomy. propagate = how strongly this event type implies SPEND ───
 CATALYST_TYPES = [
     ("BACKLOG_ORDERS", 1.00, ("backlog", "new orders", "order book", "bookings",
-                              "record orders", "orders worth", "order intake", "orders totaling")),
+                              "record orders", "orders worth", "order intake", "orders totaling",
+                              "orders topped", "orders exceeded", "orders reached",
+                              "backlog of", "record backlog", "order backlog",
+                              "books $", "booked $", "preliminary business update")),
     ("MEGA_CONTRACT", 0.95, ("awarded", "wins contract", "contract worth", "purchase order",
                              "agreement to supply", "supply agreement", "multi-year deal",
                              "signs deal", "selects", "partnership with")),
@@ -200,13 +203,23 @@ def snapshot():
         if not sym:
             continue
         day, prev, mn = t.get("day") or {}, t.get("prevDay") or {}, t.get("min") or {}
+        lt = t.get("lastTrade") or {}
         pc = num(prev.get("c"))
-        last = num(day.get("c")) or num(mn.get("c")) or pc
+        # EXTENDED-HOURS AWARE (ops 3705). min.c is the most recent minute bar in
+        # ANY session — premarket, regular, after-hours. day.c freezes at the 4pm
+        # close, so preferring it blinds the engine to after-hours order prints,
+        # which is the single case this engine exists to catch.
+        last = num(lt.get("p")) or num(mn.get("c")) or num(day.get("c")) or pc
         if not pc or not last or pc <= 0:
             continue
+        reg = num(day.get("c"))
+        poly_chg = num(t.get("todaysChangePerc"))   # Polygon's own extended-aware calc
+        chg = poly_chg if poly_chg is not None else (last / pc - 1.0) * 100.0
+        reg_chg = ((reg / pc - 1.0) * 100.0) if reg else None
         out[sym] = {
-            "last": last, "prev_close": pc,
-            "chg_pct": (last / pc - 1.0) * 100.0,
+            "last": last, "prev_close": pc, "chg_pct": chg,
+            "regular_close": reg, "chg_regular_pct": reg_chg,
+            "chg_extended_pct": (chg - reg_chg) if reg_chg is not None else None,
             "dollar_vol": (num(prev.get("v")) or 0) * pc,
             "session_vol": num(day.get("v")) or 0,
         }
@@ -279,6 +292,21 @@ def extract_order_value(text):
     return best
 
 
+def anchor_day(published, fallback):
+    """Pre-catalyst anchor session. FMP stamps ET: >=16:00 means the release
+    landed after the close, so that day's close is still 'before' the news."""
+    try:
+        d = (published or "")[:10]
+        hh = int((published or "")[11:13])
+        if not d:
+            return fallback
+        if hh >= 16:
+            return d
+        return (date.fromisoformat(d) - timedelta(days=1)).isoformat()
+    except Exception:  # noqa: BLE001
+        return (published or "")[:10] or fallback
+
+
 def hours_since(iso):
     try:
         s = (iso or "").replace("Z", "+00:00").replace(" ", "T")
@@ -304,7 +332,13 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
             continue
         cands.append((q["chg_pct"] * math.log1p(q["dollar_vol"]), sym, q))
     cands.sort(reverse=True)
-    cands = cands[:40]
+    by_liq = sorted(cands, key=lambda x: -x[2]["dollar_vol"])[:25]
+    seen, merged = set(), []
+    for it in cands[:40] + by_liq:
+        if it[1] not in seen:
+            seen.add(it[1])
+            merged.append(it)
+    cands = merged
 
     def enrich(item):
         _, sym, q = item
@@ -341,6 +375,10 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
             return None
         best.update({
             "ticker": sym, "move_pct": round(q["chg_pct"], 2),
+            "move_regular_pct": (round(q["chg_regular_pct"], 2)
+                                 if q.get("chg_regular_pct") is not None else None),
+            "move_extended_pct": (round(q["chg_extended_pct"], 2)
+                                  if q.get("chg_extended_pct") is not None else None),
             "price": q["last"], "prev_close": q["prev_close"],
             "dollar_vol": int(q["dollar_vol"]),
             "market_cap": (univ_meta.get(sym) or {}).get("mcap"),
@@ -741,7 +779,8 @@ def lambda_handler(event=None, context=None):
     spy_now = tape.get("SPY", {}).get("last")
     all_rows, events = [], []
     for cat in cats:
-        cat_day = (cat.get("published") or "")[:10] or (date.today() - timedelta(days=1)).isoformat()
+        cat_day = anchor_day(cat.get("published"),
+                             (date.today() - timedelta(days=1)).isoformat())
         spy_anchor = close_on_or_before(hist, "SPY", cat_day)
         spy_move = ((spy_now / spy_anchor - 1.0) * 100.0) if (spy_now and spy_anchor) else 0.0
         cat["spy_move_since_pct"] = round(spy_move, 2)
