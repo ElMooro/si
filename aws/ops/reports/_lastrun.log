@@ -1,7 +1,31 @@
-executing-against: 9bfdee867dc3c6663ff4ac9fb48a02071d1481b8
-ops 3690 — CPB path hunt + FRED discovery + BDI parse
-PASS  G1_cpb_path — {"sitemap_n": 3406, "wtm_hits": ["https://www.cpb.nl/publicatie/effect-wederuitvoer-op-relevante-wereldhandel", "https://www.cpb.nl/publicatie/uitleg-over-de-cpb-tijdreeksen-van-de-wereldhandel", "https://www.cpb.nl/publicatie/monitor-duurzaam-nederland-2009", "https://www.cpb.nl/cijfer/wereldhandelsmonitor-augustus-2010", "https://www.cpb.nl/cijfer/wereldhandelsmonitor-september-2010", "https://www.cpb.nl/cijfer/wereldhandelsmonitor-oktober-2010", "https://www.cpb.nl/publicatie/bedrijfslocatiemonitor-2-regionale-verkenningen-2010", "https://www.cpb.nl/cijfer/wereldhandelsmonitor-november-2010", "https://www.cpb.
-PASS  G2_fred_disc — {"baltic dry index": [], "freight rate index": [{"id": "PCU484121484121", "title": "Producer Price Index by Industry: General Freight Trucking, Long-D", "freq": "M", "last": "2026-06-01"}, {"id": "FRGSHPUSM649NCIS", "title": "Cass Freight Index: Shipments", "freq": "M", "last": "2026-06-01"}, {"id": "TSIFRGHT", "title": "Freight Transportation Services Index", "freq": "M", "last": "2026-04-01"}, {"id": "PCU4841224841221", "title": "Producer Price Index by Industry: General Freight Trucking, Long-D", "freq": "M", "last": "2026-06-01"}, {"id": "PCU4831114831115", "title": "Producer Price Index by Industry: Deep Sea Freight Transportation:", "freq": "M", "last": "2026-06-01"}, {"id": "PCU483111483111", "title": "Producer Price Index by Industry: Deep Sea Freight Transportation", "freq": "M", "last": "2026-06-01"
-PASS  G3_bdi — {"pattern_p": "2,670.00", "pattern_last": "2670.000000000000", "pattern_txt": "2,670", "sample": "\r\n \r\n \r\n   \r\n\tBaltic Exchange Dry Index - Price - Chart - Historical Data - News\r\n        \r\n<link rel=\"stylesheet\" href"}
+executing-against: 681ddcb9c5ca0bc3015e67ccd15f20ae7b008552
+ops 3691 — trade-nowcast engine + wires
+[02:54:17]   zip: 85855 bytes
+── 1. Lambda ──
+[02:54:17]   Lambda missing — creating
+[02:54:22] ✅   ✓ created justhodl-trade-nowcast
+── 3. Smoke test ──
+[02:54:22]   invoking justhodl-trade-nowcast…
+PASS  G1_engine — err=None n_series=4 comp=22.2 verdict=RISING bdi={'level': 2670.0, 'read': 'TIGHT — dry-bulk rates elevated, commodity shipping demand strong'} cpb={"latest_url": "https://www.cpb.nl/agenda/wereldhandelsmonitor-juni-2026", "pages_n": 288, "period": "2026-6", "excerpt": " var _paq = _paq || [];(function(){var u=((\"https:\" == document.location.protocol) ? \"https:// series=[('ocean_ppi', 13.5), ('truck_ppi', 21.5), ('import_prices', 7.0), ('export_prices', 10.7)] plain=Freight rates are RISING — moving goods is getting more expensive, which feeds inflation and signals capacity tightness; Baltic Dry at 2670.0 (TIGHT — dry-bulk rates elevated, commodity shipping demand strong). errs=[]
+[02:54:33] G1_engine True
+[02:54:33]   zip: 107446 bytes
+── 1. Lambda ──
+[02:54:33]   Lambda exists — updating
+[02:54:39] ✅   ✓ updated justhodl-morning-intelligence
+── 3. Smoke test ──
+[02:54:39]   invoking justhodl-morning-intelligence…
+[02:55:11] ✅   ✓ smoke test passed
+[02:55:11]     success                  True
+[02:55:11]     khalid_adj               43.0
+[02:55:11]     regime                   BEAR
+[02:55:11]     btc                      66797
+[02:55:11]     outcomes                 17811
+[02:55:11]     improved                 False
+[02:55:11]     weights_active           277
+[02:55:11]     ka_adj                   43.0
+PASS  G2_wires — {'section': True, 'fetch': True, 'bdi': True, 'mi': True}
+[02:56:32] G2_wires True
+VERDICT: PASS_ALL
+[02:56:32] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3690_trade_probe2.md
+→ Report written to aws/ops/reports/latest/3691_trade_nowcast.md
