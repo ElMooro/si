@@ -1,19 +1,17 @@
-executing-against: 5f9c2280a82fc78f261677330ea9010beee72094
-ops 3747 — insider-industry-cluster page + field-coverage audit
-── G1 — page served ──
-[23:34:58]   served page is CURRENT (len=10824) after 0s
-[23:34:58] PASS G1_page_live — len=10824 missing_markers=[]
-── G2 — field coverage (live S3 artifact vs page render paths) ──
-[23:34:58]   top-level keys: ['attribution', 'coverage', 'degraded', 'generated_at', 'industries', 'lookback_days', 'method', 'n_clusters', 'n_diffuse', 'n_industries', 'source_feed', 'version']
-[23:34:58]   per-row keys:   ['awaiting_base_rate', 'ceo_cfo_companies', 'companies', 'dollar_hhi', 'has_exec_conviction', 'hist_n', 'industry', 'insider_rows_in', 'min_companies', 'min_listed_for_rate', 'min_participation_pct', 'n_companies', 'n_insiders', 'n_listed', 'n_transactions', 'participation_floor_pct', 'participation_pct', 'sector', 'strong_companies', 'thin_universe', 'tickers_unmapped', 'tier', 'top_company', 'top_company_share_pct', 'total_value_usd', 'universe_industries', 'z_vs_own_history']
-[23:34:58] PASS G2_field_coverage — every published key has a render path
-── G3 — nav manifest (served) ──
-[23:34:58] PASS G3_nav — listed under ('Research & Tools', 'Insider Industry Cluster')
-── G4 — ladder honesty (no sub-floor PEER, biotech guard) ──
-[23:34:58]   coverage: {'insider_rows_in': 53, 'tickers_unmapped': 20, 'universe_industries': 150, 'min_companies': 3, 'strong_companies': 4, 'min_listed_for_rate': 8, 'min_participation_pct': 4.0}
-[23:34:58]   Biotechnology: tier=DIFFUSE part=1.86% (regression sentinel)
-[23:34:58] PASS G4_ladder_honesty — sub_floor_peer=[] confirmed_without_base_rate=[]
+executing-against: 2ba36b063bae609b8eb1b343596e27ec037601d0
+ops 3748 — scanner 95% failure classification
+── A — recent Form 4 filings from the daily index ──
+[23:41:03] ✅   2026-07-21: 503 Form-4 rows
+[23:41:03]   classifying 80 filings
+── B — per-filing classification ──
+── C — results ──
+[23:41:21]   NOT_PURCHASE     62  (77.5%)  eg=M
+[23:41:21]   NO_TXN           10  (12.5%)  eg=
+[23:41:21]   PURCHASE          7  ( 8.8%)  eg=
+[23:41:21]   NO_NONDERIV       1  ( 1.2%)  eg=
+[23:41:21]   transaction code census: [('S', 38), ('F', 25), ('A', 15), ('M', 11), ('P', 11), ('D', 10), ('J', 5), ('G', 1)]
 ── VERDICT ──
-[23:34:58] ✅ PASS_ALL — page live, every field rendered
+[23:41:21]   DIAGNOSIS: NOT_PURCHASE dominates — the 95%% 'failure' is a MISNOMER; most Form 4s are sells/grants/exercises correctly skipped
+[23:41:21] ✅ DIAG COMPLETE
 
-→ Report written to aws/ops/reports/latest/3747_iic_page_v3.md
+→ Report written to aws/ops/reports/latest/3748_scanner_parse_diag.md
