@@ -1,16 +1,16 @@
-executing-against: ebdf8ec2908186ce55a9049c20f21893c2378441
-ops 3717 — estimate-revisions cur_eps re-sourced onto FMP
-[18:47:35] G0_key_contract True
+executing-against: b1481c4e25b4ca57b3c921ee10354434922bf6cf
+ops 3718 — verify estimate-revisions v2.1.0 live + directions populate
+[18:56:56] G0_key_contract True
   G0_key_contract                    True  fmp_estimate_profile() returns fwd_eps_cur (present=True)
-[18:47:35] G0b_fmp_ready_before_loop True
-  G0b_fmp_ready_before_loop          True  fmp populated at char 746 before row loop at 4740
-[18:47:35] G1_patch_applied True
-  G1_patch_applied                   True  cur_eps falls back to FMP fwd_eps_cur; version -> 2.1.0
-[18:54:39] G2_artifact_live False
-  G2_artifact_live                   False  patched zip proven live after 424s
+[18:56:56] G0b_fmp_ready_before_loop True
+  G0b_fmp_ready_before_loop          True  fmp populated at char 746 before row loop at 5093
+[18:56:56] G1_patch_committed True
+  G1_patch_committed                 True  source carries the FMP fallback + v2.1.0 (applied by ops 3717)
+[19:08:43] G2_artifact_live False
+  G2_artifact_live                   False  v2.1.0 zip proven live after 707s (3717 timed out at 424s waiting on the parallel deploy-lambdas run)
 
 VERDICT: GAPS: G2_artifact_live
-[18:54:39] VERDICT: GAPS: G2_artifact_live
+[19:08:43] VERDICT: GAPS: G2_artifact_live
 
-→ Report written to aws/ops/reports/latest/3717_est_rev_fmp_resource.md
-❌ OPS-FAIL: aws/ops/pending/ops_3717_est_rev_fmp_resource.py
+→ Report written to aws/ops/reports/latest/3718_est_rev_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3718_est_rev_verify.py
