@@ -1,0 +1,223 @@
+{
+  "gates": {
+    "G1_shipped": {
+      "ok": true,
+      "detail": "v1.2.0=False actions=True snapshot=True observed=True"
+    },
+    "G2_invoke": {
+      "ok": true,
+      "detail": "second pass refreshed=True"
+    },
+    "G3_snapshot_ledger": {
+      "ok": true,
+      "detail": "consensus snapshot ledger holds 73 names (sample=['AMAT', 'AMD', 'AN', 'ANET', 'APH', 'ARM'])"
+    },
+    "G4_consensus_observable": {
+      "ok": false,
+      "detail": "v=1.2.1 rows=74 consensus_observed=0 sellside_covered=None deltas=None quadrants={'TWICE_UNPRICED': 0, 'CONSENSUS_NOT_DUE_YET': 53, 'CONSENSUS_DISSENTING': 2, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 18, 'FULLY_PRICED': 1, 'PRICE_ONLY': 0} degraded=['fundamental sidecar missing: forward-orders']"
+    },
+    "G7_dissent_not_bullish": {
+      "ok": true,
+      "detail": "dissenting names in a bullish quadrant=[]"
+    },
+    "G8_twice_is_discriminating": {
+      "ok": true,
+      "detail": "TWICE_UNPRICED share=0% of 74 rows (was 68% at ops 3711, before the consensus-lag rule)"
+    },
+    "G9_lag_rule_active": {
+      "ok": true,
+      "detail": "CONSENSUS_NOT_DUE_YET=53 - fresh catalysts no longer masquerade as anomalies"
+    },
+    "G5_no_unearned_twice": {
+      "ok": true,
+      "detail": "TWICE_UNPRICED without observability=[]"
+    },
+    "G6_flow_conservation_holds": {
+      "ok": true,
+      "detail": "overruns=[] groups=12"
+    }
+  },
+  "board": {
+    "version": "1.2.1",
+    "quadrants": {
+      "TWICE_UNPRICED": 0,
+      "CONSENSUS_NOT_DUE_YET": 53,
+      "CONSENSUS_DISSENTING": 2,
+      "UNBOOKED_NO_CONSENSUS": 0,
+      "ESTIMATES_LEADING": 0,
+      "PRICE_LEADING": 18,
+      "FULLY_PRICED": 1,
+      "PRICE_ONLY": 0
+    },
+    "coverage": {},
+    "reacted": [
+      {
+        "t": "INTC",
+        "via": "SMCI",
+        "n_act": 1,
+        "net": -1,
+        "q": "CONSENSUS_DISSENTING",
+        "sc": 36.4
+      },
+      {
+        "t": "INTC",
+        "via": "DELL",
+        "n_act": 1,
+        "net": -1,
+        "q": "CONSENSUS_DISSENTING",
+        "sc": 35.4
+      },
+      {
+        "t": "KMX",
+        "via": "PAG",
+        "n_act": 1,
+        "net": 1,
+        "q": "FULLY_PRICED",
+        "sc": 3.0
+      }
+    ],
+    "top": [
+      {
+        "t": "LITE",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 17.67,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 95.5
+      },
+      {
+        "t": "CRDO",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 15.41,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 93.0
+      },
+      {
+        "t": "AMD",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 11.67,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 87.5
+      },
+      {
+        "t": "MPWR",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 11.29,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 87.5
+      },
+      {
+        "t": "COHR",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 9.27,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 85.6
+      },
+      {
+        "t": "MPWR",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 4.15,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 84.9
+      },
+      {
+        "t": "AMD",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 4.2,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 84.4
+      },
+      {
+        "t": "VRT",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 4.32,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 82.8
+      },
+      {
+        "t": "VRT",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 7.73,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 82.5
+      },
+      {
+        "t": "MU",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 2.55,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 82.5
+      },
+      {
+        "t": "MU",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 5.84,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 82.2
+      },
+      {
+        "t": "LITE",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 5.16,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 81.5
+      },
+      {
+        "t": "ARM",
+        "via": "SMCI",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 12.01,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 80.3
+      },
+      {
+        "t": "ARM",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 5.69,
+        "q": "CONSENSUS_NOT_DUE_YET",
+        "obs": true,
+        "moved": false,
+        "sc": 79.6
+      }
+    ]
+  },
+  "verdict": "GAPS: G4_consensus_observable"
+}
