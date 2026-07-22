@@ -1,27 +1,35 @@
-executing-against: 16502463b70bf0b5595430d1d289b52d07662e90
-ops 3699 — justhodl-readthrough v1.0.0 verification
-PASS  G1_function — runtime=python3.12 mem=1024 timeout=600 state=Active dlq=True xray=Active secrets_present=['FMP_KEY', 'POLYGON_KEY'] n_env=3
-[04:43:38] G1_function True
-PASS  G2_schedule — cron(20 11,13,21 ? * MON-FRI *) tz=UTC state=ENABLED ftw=OFF target=justhodl-readthrough
-[04:43:38] G2_schedule True
-PASS  G3_invoke_writes_feed — canonical run (gap>=6%): object refreshed=True age=9.1s waited=15.2s
-[04:43:54] G3_invoke_writes_feed True
-PASS  G4_payload — v=1.0.0 status=OK events=2 benef=44 unpriced=0 picks=0 elapsed=4.6s degraded=[]
-[04:43:54] G4_payload True
-PASS  G5_diffusion_path — canonical run already produced events — no diag needed
-[04:43:54] G5_diffusion_path True
+executing-against: e838c0d431dc62d972bcadfd1d82107864833841
+ops 3700 — readthrough v1.0.1 fix verification
+PASS  G1_telegram_env — env keys=['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'] missing=[]
+[04:46:51] G1_telegram_env True
+PASS  G2_code_shipped — version_line=1.0.1 structural_exclude=True positive_only=True bytes=37351
+[04:46:51] G2_code_shipped True
+PASS  G3_invoke — feed refreshed=True waited=15.3s
+[04:47:07] G3_invoke True
+PASS  G4_no_phantom_catalysts — version=1.0.1 events=1 negative=[] structural=[]
+[04:47:07] G4_no_phantom_catalysts True
+PASS  G5_row_integrity — rows=22 malformed=[] unpriced=0 picks=0 status=OK degraded=[]
+[04:47:07] G5_row_integrity True
 
-=== CATALYSTS ===
-  NBIS     18.78%  CAPACITY_EXPANSION       None  benef=22 unpriced=0
+=== CATALYSTS (v1.0.1) ===
+  NBIS     18.78%  CAPACITY_EXPANSION   benef=22 unpriced=0
          Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
-  CLBK    -54.78%  MA                      $1.7B  benef=22 unpriced=0
-         Columbia Financial, Inc. Announces Completion of Second Step Conversion and $1.7 Billion Stock Offering and Acquisition 
 
-=== UN-PRICED BENEFICIARIES ===
-PASS  G6_page_live — HTTP 200 bytes=14340 title_ok=True
-[04:43:54] G6_page_live True
+=== TOP BENEFICIARY ROWS ===
+  MSFT   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  ORCL   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  PLTR   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  PATH   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  PANW   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  CRWV   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  CRWD   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  SNPS   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  NET    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  FTNT   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  AKAM   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+  MDB    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
 
 VERDICT: PASS_ALL
-[04:43:54] VERDICT: PASS_ALL
+[04:47:07] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3699_readthrough_verify.md
+→ Report written to aws/ops/reports/latest/3700_readthrough_fixes.md

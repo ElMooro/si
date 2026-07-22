@@ -1,0 +1,173 @@
+{
+  "gates": {
+    "G1_telegram_env": {
+      "ok": true,
+      "detail": "env keys=['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'] missing=[]"
+    },
+    "G2_code_shipped": {
+      "ok": true,
+      "detail": "version_line=1.0.1 structural_exclude=True positive_only=True bytes=37351"
+    },
+    "G3_invoke": {
+      "ok": true,
+      "detail": "feed refreshed=True waited=15.3s"
+    },
+    "G4_no_phantom_catalysts": {
+      "ok": true,
+      "detail": "version=1.0.1 events=1 negative=[] structural=[]"
+    },
+    "G5_row_integrity": {
+      "ok": true,
+      "detail": "rows=22 malformed=[] unpriced=0 picks=0 status=OK degraded=[]"
+    }
+  },
+  "env_keys": [
+    "FMP_KEY",
+    "FRED_KEY",
+    "POLYGON_KEY",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_CHAT_ID"
+  ],
+  "board": {
+    "version": "1.0.1",
+    "status": "OK",
+    "n_events": 1,
+    "n_beneficiaries": 22,
+    "n_unpriced": 0,
+    "elapsed_s": 2.9,
+    "events": [
+      {
+        "ticker": "NBIS",
+        "move": 18.78,
+        "type": "CAPACITY_EXPANSION",
+        "order": null,
+        "benef": 22,
+        "unpriced": 0,
+        "headline": "Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex \u2014 Compute Is The New Oil"
+      }
+    ],
+    "top_rows": [
+      {
+        "ticker": "MSFT",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "ORCL",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "PLTR",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "PATH",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "PANW",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "CRWV",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "CRWD",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "SNPS",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "NET",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "FTNT",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "AKAM",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      },
+      {
+        "ticker": "MDB",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "real": 0.0,
+        "gap": 0.72,
+        "status": "PARTIAL",
+        "score": 44.8
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
