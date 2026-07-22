@@ -1,24 +1,6 @@
-executing-against: 313981bfbd0d12794a958bcfacec095857e91b52
-ops 3688 — 4-factor + new pairs + TW/CL fixes
-[02:35:46]   zip: 88888 bytes
-── 1. Lambda ──
-[02:35:46]   Lambda exists — updating
-[02:35:49] ✅   ✓ updated justhodl-portwatch
-── 3. Smoke test ──
-[02:35:49]   invoking justhodl-portwatch…
-PASS  G1_ports — matched=74 nations=22 TW={'code': 'TWN', 'country': 'Taiwan', 'n_ports': 6, 'ports': ['Keelung', 'Kaohsiung', 'Taichung', 'Hualien'], 'avg_vs_baseline_pct': 41.4, 'avg_z': 0.65, 'verdict': 'ACCELERATING'} CL={'code': 'CHL', 'country': 'Chile', 'n_ports': 12, 'ports': ['Bahia Quintero (Ventanas)', 'Puerto San Antonio', 'Lirquen', 'San Vicente'], 'avg_vs_baseline_pct': -29.7, 'avg_z': -0.35, 'verdict': 'SLOWING'} CN_ports=5 slowing=['China', 'UAE', 'Chile', 'Brazil', 'Malaysia'] TRACE={'in_cand': ['port56', 'port89', 'port90', 'port92', 'port208', 'port263', 'port499', 'port652', 'port728', 'port1031', 'port1058'], 'in_query': ['port56', 'port89', 'port90', 'port92', 'port208', 'port263', 'port499', 'port652', 'port728', 'port1031', 'port1058'], 'rows_returned': {'port56': 396, 'port89': 396, 'port90': 396, 'port92': 396, 'port208': 396, 'port263': 3
-[02:37:22] G1_ports True
-[02:37:23]   zip: 91520 bytes
-── 1. Lambda ──
-[02:37:23]   Lambda exists — updating
-[02:37:28] ✅   ✓ updated justhodl-boom-stage
-── 3. Smoke test ──
-[02:37:28]   invoking justhodl-boom-stage…
-PASS  G2_engine — err=None n_pairs=15 factor4_on=11 new=['AU-iron', 'ID-nickel', 'QA-lng', 'DE-machinery', 'CH-pharma'] regime=STAGFLATIONARY SQUEEZE slow=85 infl=100 tilt=0 f4reads={'KR-semis': 'IDLING', 'CN-broad': 'STEADY', 'BR-commodities': 'RAMPING', 'US-freight': 'INVENTORY_DRAW', 'CL-copper': 'RAMPING', 'PE-copper': 'RAMPING', 'FI-pulp': 'INVENTORY_DRAW', 'TW-semis': 'IDLING', 'AU-iron': 'RAMPING', 'ID-nickel': 'RAMPING', 'DE-machinery': 'STEADY'} stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -32.2), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.1, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.4, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'SUPPLY_SHOCK_PRICING', 16.4, -29.7), ('PE-copper', 'BROADENING', 16.4, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED'
-[02:37:36] G2_engine STAGFLATIONARY SQUEEZE
-PASS  G3_page — {'f4': True, 'defensive': True, 'tilt': True}
-[02:37:36] G3_page True
-VERDICT: PASS_ALL
-[02:37:36] VERDICT: PASS_ALL
+executing-against: fadd24aa50320ffc1ff535c2278efb217ef34244
+ops 3689 — CPB WTM + freight-rate source recon
+FAIL  G1_cpb — files=[] pages={'.cpb.nl/en/worldtrademonitor': 'ERR HTTP Error 404: Not Found', 'pb.nl/en/world-trade-monitor': 'ERR HTTP Error 404: Not Found', 'https://www.cpb.nl/en/data': 'ERR HTTP Error 404: Not Found'}
+PASS  G2_rates — {"bdi_like": {"sid": "BALTICDRY", "err": "HTTP Error 400: Bad Request"}, "harpex": {"sid": "HARPEX", "err": "HTTP Error 400: Bad Request"}, "container_ppi": {"sid": "PCU4831114831112", "err": "HTTP Error 400: Bad Request"}, "truck_ppi": {"sid": "PCU484121484121", "latest": "204.622", "date": "2026-06-01", "n": 16, "yr_ago": "168.388"}, "rail_ppi": {"sid": "PCU4821224821221", "err": "HTTP Error 400: Bad Request"}, "imp_price_idx": {"sid": "IR", "latest": "150.8", "date": "2026-06-01", "n": 15, "yr_ago": "141.0"}, "exp_price_idx": {"sid": "IQ", "latest": "167.8", "date": "2026-06-01", "n": 15, " | alts={"tradingeconomics_bdi": {"err": null, "bytes": 200000, "head": "\r\n<!doctype html>\r\n<htm
 
-→ Report written to aws/ops/reports/latest/3688_chi_collision.md
+→ Report written to aws/ops/reports/latest/3689_trade_probe.md

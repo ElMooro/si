@@ -1,0 +1,70 @@
+{
+  "gates": {
+    "G1_cpb": {
+      "ok": false,
+      "detail": "files=[] pages={'.cpb.nl/en/worldtrademonitor': 'ERR HTTP Error 404: Not Found', 'pb.nl/en/world-trade-monitor': 'ERR HTTP Error 404: Not Found', 'https://www.cpb.nl/en/data': 'ERR HTTP Error 404: Not Found'}"
+    },
+    "G2_rates": {
+      "ok": true,
+      "detail": "{\"bdi_like\": {\"sid\": \"BALTICDRY\", \"err\": \"HTTP Error 400: Bad Request\"}, \"harpex\": {\"sid\": \"HARPEX\", \"err\": \"HTTP Error 400: Bad Request\"}, \"container_ppi\": {\"sid\": \"PCU4831114831112\", \"err\": \"HTTP Error 400: Bad Request\"}, \"truck_ppi\": {\"sid\": \"PCU484121484121\", \"latest\": \"204.622\", \"date\": \"2026-06-01\", \"n\": 16, \"yr_ago\": \"168.388\"}, \"rail_ppi\": {\"sid\": \"PCU4821224821221\", \"err\": \"HTTP Error 400: Bad Request\"}, \"imp_price_idx\": {\"sid\": \"IR\", \"latest\": \"150.8\", \"date\": \"2026-06-01\", \"n\": 15, \"yr_ago\": \"141.0\"}, \"exp_price_idx\": {\"sid\": \"IQ\", \"latest\": \"167.8\", \"date\": \"2026-06-01\", \"n\": 15, \" | alts={\"tradingeconomics_bdi\": {\"err\": null, \"bytes\": 200000, \"head\": \"\\r\\n<!doctype html>\\r\\n<html >\\r\\n<head id=\\\"ctl00_Head1\\\"><meta charset=\\\"utf-8\\\" /><title>\\r\\n\\tBaltic Exchange Dry Index - Price - Chart - Historical Data - News\\r\\n</title\"}, \"stooq_bdiy\": {\""
+    }
+  },
+  "cpb_pages": {
+    ".cpb.nl/en/worldtrademonitor": "ERR HTTP Error 404: Not Found",
+    "pb.nl/en/world-trade-monitor": "ERR HTTP Error 404: Not Found",
+    "https://www.cpb.nl/en/data": "ERR HTTP Error 404: Not Found"
+  },
+  "cpb_files": [],
+  "fred_probe": {
+    "bdi_like": {
+      "sid": "BALTICDRY",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "harpex": {
+      "sid": "HARPEX",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "container_ppi": {
+      "sid": "PCU4831114831112",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "truck_ppi": {
+      "sid": "PCU484121484121",
+      "latest": "204.622",
+      "date": "2026-06-01",
+      "n": 16,
+      "yr_ago": "168.388"
+    },
+    "rail_ppi": {
+      "sid": "PCU4821224821221",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "imp_price_idx": {
+      "sid": "IR",
+      "latest": "150.8",
+      "date": "2026-06-01",
+      "n": 15,
+      "yr_ago": "141.0"
+    },
+    "exp_price_idx": {
+      "sid": "IQ",
+      "latest": "167.8",
+      "date": "2026-06-01",
+      "n": 15,
+      "yr_ago": "151.6"
+    }
+  },
+  "bdi_alts": {
+    "tradingeconomics_bdi": {
+      "err": null,
+      "bytes": 200000,
+      "head": "\r\n<!doctype html>\r\n<html >\r\n<head id=\"ctl00_Head1\"><meta charset=\"utf-8\" /><title>\r\n\tBaltic Exchange Dry Index - Price - Chart - Historical Data - News\r\n</title"
+    },
+    "stooq_bdiy": {
+      "err": null,
+      "bytes": 796,
+      "head": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"robots\" content=\"noindex,nofollow\"></head><body><noscript>This site requires JavaScript to verify y"
+    }
+  },
+  "verdict": "GAPS: G1_cpb"
+}
