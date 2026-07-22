@@ -1,0 +1,38 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "engine emits all gated keys"
+    },
+    "G1_zip_settle": {
+      "ok": true,
+      "detail": "marker found after 0s"
+    },
+    "G2_census_key": {
+      "ok": true,
+      "detail": "key present len=40"
+    },
+    "G3_invoke": {
+      "ok": false,
+      "detail": "ConnectionClosedError Connection was closed before we received a valid response from endpoint URL: \"https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-import-canary/invocations\"."
+    },
+    "G4_artifact": {
+      "ok": false,
+      "detail": "ClientError An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "G5_data_truth": {
+      "ok": false,
+      "detail": "no doc"
+    },
+    "G6_signals": {
+      "ok": false,
+      "detail": "no doc"
+    },
+    "G7_schedule": {
+      "ok": true,
+      "detail": "schedule present"
+    }
+  },
+  "verdict": "FAIL",
+  "data_month": null
+}

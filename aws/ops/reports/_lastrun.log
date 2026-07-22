@@ -1,43 +1,24 @@
-executing-against: 28e59744790f2142af1c33f270319cc5ff46ce01
-ops 3729 — Census International Trade API vocabulary probe (no deploy)
-── G1 — which trade endpoints answer ──
-[20:22:24] ✅ hs_imports: LIVE, 70 variables
-[20:22:25] ✅ naics_imports: LIVE, 50 variables
-[20:22:25] ✅ porths_imports: LIVE, 28 variables
-[20:22:25] ✅ statehs_imports: LIVE, 29 variables
-[20:22:25] ✅ hs_exports: LIVE, 41 variables
-── G2 — variable vocabulary ──
-[20:22:25]   hs_imports HAVE: ['GEN_VAL_MO', 'GEN_VAL_YR', 'CON_VAL_MO', 'GEN_QY1_MO', 'I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_CODE', 'CTY_NAME', 'DISTRICT', 'DIST_NAME', 'SUMMARY_LVL', 'COMM_LVL', 'time', 'YEAR', 'MONTH']
-[20:22:25]   hs_imports MISS: ['E_COMMODITY', 'PORT', 'PORT_NAME', 'NAICS', 'NAICS_LDESC']
-[20:22:25]   naics_imports HAVE: ['GEN_VAL_MO', 'GEN_VAL_YR', 'CON_VAL_MO', 'CTY_CODE', 'CTY_NAME', 'DISTRICT', 'DIST_NAME', 'NAICS', 'NAICS_LDESC', 'SUMMARY_LVL', 'COMM_LVL', 'time', 'YEAR', 'MONTH']
-[20:22:25]   naics_imports MISS: ['GEN_QY1_MO', 'I_COMMODITY', 'I_COMMODITY_LDESC', 'E_COMMODITY', 'PORT', 'PORT_NAME']
-[20:22:25]   porths_imports HAVE: ['GEN_VAL_MO', 'GEN_VAL_YR', 'I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_CODE', 'CTY_NAME', 'PORT', 'PORT_NAME', 'SUMMARY_LVL', 'COMM_LVL', 'time', 'YEAR', 'MONTH']
-[20:22:25]   porths_imports MISS: ['CON_VAL_MO', 'GEN_QY1_MO', 'E_COMMODITY', 'DISTRICT', 'DIST_NAME', 'NAICS', 'NAICS_LDESC']
-[20:22:25]   statehs_imports HAVE: ['GEN_VAL_MO', 'GEN_VAL_YR', 'CON_VAL_MO', 'I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_CODE', 'CTY_NAME', 'SUMMARY_LVL', 'COMM_LVL', 'time', 'YEAR', 'MONTH']
-[20:22:25]   statehs_imports MISS: ['GEN_QY1_MO', 'E_COMMODITY', 'DISTRICT', 'DIST_NAME', 'PORT', 'PORT_NAME', 'NAICS', 'NAICS_LDESC']
-[20:22:25]   hs_exports HAVE: ['E_COMMODITY', 'CTY_CODE', 'CTY_NAME', 'DISTRICT', 'DIST_NAME', 'SUMMARY_LVL', 'COMM_LVL', 'time', 'YEAR', 'MONTH']
-[20:22:25]   hs_exports MISS: ['GEN_VAL_MO', 'GEN_VAL_YR', 'CON_VAL_MO', 'GEN_QY1_MO', 'I_COMMODITY', 'I_COMMODITY_LDESC', 'PORT', 'PORT_NAME', 'NAICS', 'NAICS_LDESC']
-── G3 — latest available month ──
-[20:22:33] ✅ latest month with data: 2026-05 (200 rows)
-── G4 — HS granularity (8542 = electronic integrated circuits) ──
-[20:22:36] ✅ HS2 85: 2 rows | header=['I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_NAME', 'GEN_VAL_MO', 'time', 'COMM_LVL', 'I_COMMODITY']
-[20:22:36]     ['85', 'ELECTRICAL MACHINERY AND EQUIPMENT AND PARTS THEREOF; SOUND RECORDERS AND REPRODUCERS, TELEVISION RECORDERS AND REPRODUCERS, PARTS AND ACCESSORIES', 'TOTAL FOR ALL COUNTRIES', '51485276354', '2026-05', 'HS2', '85']
-[20:22:36] ✅ HS4 8542: 2 rows | header=['I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_NAME', 'GEN_VAL_MO', 'time', 'COMM_LVL', 'I_COMMODITY']
-[20:22:36]     ['8542', 'ELECTRONIC INTEGRATED CIRCUITS AND MICROASSEMBLIES; PARTS THEREOF', 'TOTAL FOR ALL COUNTRIES', '4476331643', '2026-05', 'HS4', '8542']
-[20:22:39] ✅ HS6 854231: 2 rows | header=['I_COMMODITY', 'I_COMMODITY_LDESC', 'CTY_NAME', 'GEN_VAL_MO', 'time', 'COMM_LVL', 'I_COMMODITY']
-[20:22:39]     ['854231', 'PROCESSORS AND CONTROLLERS, ELECTRONIC INTEGRATED CIRCUITS', 'TOTAL FOR ALL COUNTRIES', '2995744947', '2026-05', 'HS6', '854231']
-── G5 — district / port-of-entry breakout ──
-[20:22:39] ⚠ porths HS4 8542 by district: HTTP 400 — error: unknown variable 'DISTRICT'
-── G6 — Taiwan semiconductor imports (CTY_CODE 5830) ──
-[20:22:41] ✅ TW HS4 8542: 2 rows | header=['I_COMMODITY', 'CTY_NAME', 'GEN_VAL_MO', 'GEN_VAL_YR', 'time', 'COMM_LVL', 'I_COMMODITY', 'CTY_CODE']
-[20:22:41]     ['8542', 'TAIWAN', '1796879063', '8687731699', '2026-05', 'HS4', '8542', '5830']
-[20:22:41] ✅ PROOF: country x HS x month import value retrievable
-── G7 — NAICS import path (bridge to industry-boom) ──
-[20:22:41] ✅ NAICS NA4 3344: 2 rows | header=['NAICS', 'CTY_NAME', 'GEN_VAL_MO', 'time', 'COMM_LVL', 'NAICS']
-[20:22:41]     ['3344', 'TOTAL FOR ALL COUNTRIES', '20811257604', '2026-05', 'NA4', '3344']
-[20:22:42] ✅ NAICS NA6 334413: 2 rows | header=['NAICS', 'CTY_NAME', 'GEN_VAL_MO', 'time', 'COMM_LVL', 'NAICS']
-[20:22:42]     ['334413', 'TOTAL FOR ALL COUNTRIES', '5716504479', '2026-05', 'NA6', '334413']
+executing-against: 821ba722cecdc5fdaca70cc6fe1674ca6a1d0a1e
+ops 3730 — SHIP justhodl-import-canary v1.0 (import flow canary)
+── G0 — key contract (grep producer before gating) ──
+[20:28:44] PASS G0_key_contract — engine emits all gated keys
+── G1 — zip settle (never invoke the old artifact) ──
+[20:28:44] PASS G1_zip_settle — marker found after 0s
+── G2 — CENSUS_API_KEY inherited ──
+[20:28:44] PASS G2_census_key — key present len=40
+── G3 — invoke ──
+[20:33:15] FAIL G3_invoke — ConnectionClosedError Connection was closed before we received a valid response from endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-import-canary/invocations".
+── G4 — S3 artifact fresh + shape ──
+[20:33:15] FAIL G4_artifact — ClientError An error occurred (404) when calling the HeadObject operation: Not Found
+── G5 — data truth (real numbers, no fabrication) ──
+[20:33:15] FAIL G5_data_truth — no doc
+── G6 — signal ladder + industry rollup ──
+[20:33:15] FAIL G6_signals — no doc
+── G7 — schedule ──
+[20:33:16]   eventbridge rule: justhodl-import-canary-daily cron(40 13 * * ? *)
+[20:33:16] PASS G7_schedule — schedule present
 ── VERDICT ──
-[20:22:42] ✅ PROBE COMPLETE — engine will be built against this vocabulary
+[20:33:16] ✗ gates failed: ['G3_invoke', 'G4_artifact', 'G5_data_truth', 'G6_signals']
 
-→ Report written to aws/ops/reports/latest/3729_census_trade_probe.md
+→ Report written to aws/ops/reports/latest/3730_import_canary.md
+❌ OPS-FAIL: aws/ops/pending/ops_3730_import_canary.py
