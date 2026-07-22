@@ -46,7 +46,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/insider-industry-cluster.json"
 HIST_KEY = "data/insider-industry-cluster-history.json"
@@ -56,6 +56,10 @@ MIN_COMPANIES = 3          # below this it is not a cluster
 MIN_LISTED = 8             # tiny industries produce meaningless rates
 STRONG_COMPANIES = 4       # Khalid's "4+ across peers"
 HIST_MIN = 8               # observations before z activates
+# ops 3743: 6 buyers out of 590 listed biotech names = 1.02% is NOT a peer
+# cluster. Participation floor is what separates a real peer signal from
+# the permanent background hum of large, retail-dense industries.
+MIN_PARTICIPATION_PCT = 4.0
 
 
 def _load(key):
@@ -183,17 +187,32 @@ def lambda_handler(event, context):
         })
 
     # ── signal ladder ────────────────────────────────────────────────────
+    # ops 3743 LESSON: day one produced "Biotechnology 6/590 = 1.02%
+    # participation" tiered CONFIRMED, because z was None and the original
+    # rule treated UNKNOWN history as permission. That is backwards — with no
+    # base rate the engine must be MORE conservative, not less. Two fixes:
+    #   (a) a participation FLOOR: 6 buyers out of 590 listed names is not a
+    #       peer cluster in any meaningful sense, however many companies it is;
+    #   (b) z is required to CONFIRM. No history => cannot confirm, only
+    #       report. CONFIRMED now means "elevated versus this industry's own
+    #       normal", which is the only reading that survives biotech.
     for r in out_rows:
         n_co = r["n_companies"]
         conc = r["dollar_hhi"]
-        tier = None
+        part = r["participation_pct"]
+        z = r["z_vs_own_history"]
+        exec_conv = r["has_exec_conviction"]
+        part_ok = part is not None and part >= MIN_PARTICIPATION_PCT
+
         if r["thin_universe"]:
             tier = "THIN_UNIVERSE"           # published, never promoted
-        elif n_co >= STRONG_COMPANIES and r["has_exec_conviction"] and (
-                r["z_vs_own_history"] is None or r["z_vs_own_history"] >= 1.0):
+        elif not part_ok:
+            # broad-but-shallow: real buys, but a rounding error of the sector
+            tier = "DIFFUSE" if n_co >= STRONG_COMPANIES else "EMERGING"
+        elif n_co >= STRONG_COMPANIES and exec_conv and z is not None and z >= 1.0:
             tier = "PEER_CLUSTER_CONFIRMED"
-        elif n_co >= STRONG_COMPANIES and r["has_exec_conviction"]:
-            tier = "PEER_CLUSTER_EXEC"
+        elif n_co >= STRONG_COMPANIES and exec_conv:
+            tier = "PEER_CLUSTER_EXEC"       # awaiting base rate
         elif n_co >= STRONG_COMPANIES:
             tier = "PEER_CLUSTER_BROAD"
         else:
@@ -201,13 +220,17 @@ def lambda_handler(event, context):
         if conc is not None and conc >= 0.75 and tier.startswith("PEER"):
             tier += "_CONCENTRATED"          # breadth is cosmetic; say so
         r["tier"] = tier
+        r["participation_floor_pct"] = MIN_PARTICIPATION_PCT
+        r["awaiting_base_rate"] = bool(z is None)
 
     order = {"PEER_CLUSTER_CONFIRMED": 0, "PEER_CLUSTER_EXEC": 1,
-             "PEER_CLUSTER_BROAD": 2, "EMERGING": 3, "THIN_UNIVERSE": 4}
+             "PEER_CLUSTER_BROAD": 2, "DIFFUSE": 3, "EMERGING": 4,
+             "THIN_UNIVERSE": 5}
     out_rows.sort(key=lambda r: (order.get(r["tier"].replace("_CONCENTRATED", ""), 9),
                                  -r["n_companies"], -(r["total_value_usd"] or 0)))
 
     confirmed = [r for r in out_rows if r["tier"].startswith("PEER_CLUSTER")]
+    diffuse = [r for r in out_rows if r["tier"].startswith("DIFFUSE")]
 
     out = {
         "version": VERSION,
@@ -216,6 +239,7 @@ def lambda_handler(event, context):
         "lookback_days": lookback,
         "n_industries": len(out_rows),
         "n_clusters": len(confirmed),
+        "n_diffuse": len(diffuse),
         "industries": out_rows,
         "degraded": degraded,
         "coverage": {
@@ -225,6 +249,7 @@ def lambda_handler(event, context):
             "min_companies": MIN_COMPANIES,
             "strong_companies": STRONG_COMPANIES,
             "min_listed_for_rate": MIN_LISTED,
+            "min_participation_pct": MIN_PARTICIPATION_PCT,
         },
         "method": ("Breadth is DISTINCT COMPANIES, not transactions or dollars — "
                    "counting transactions rewards one insider filing five times "
