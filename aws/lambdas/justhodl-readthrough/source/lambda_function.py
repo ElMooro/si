@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -777,7 +777,7 @@ def load_fundamentals():
     return backlog, fwd, est, missing
 
 
-def fundamental_row(t, implied_usd, cat_day, backlog, fwd, est):
+def fundamental_row(t, implied_usd, cat_day, backlog, fwd, est, rev_ttm=None):
     """Is the claim already ON THE BOOKS, and has consensus caught up?
 
     The thesis in one line: a customer's newly announced backlog is a purchase
@@ -804,17 +804,33 @@ def fundamental_row(t, implied_usd, cat_day, backlog, fwd, est):
         "est_strength": num(e.get("estimate_strength")),
         "est_baseline_date": e.get("baseline_date"),
     }
-    if implied_usd and rpo and rpo > 0:
-        out["unbooked_vs_rpo"] = round(implied_usd / rpo, 3)
-    elif implied_usd and out["deferred_rev_usd"]:
-        out["unbooked_vs_deferred"] = round(implied_usd / out["deferred_rev_usd"], 3)
-
-    if asof and cat_day:
-        out["claim_predates_filing"] = bool(str(asof)[:10] < cat_day)
+    # Is the RPO denominator actually representative of this company's demand?
+    # RPO is a SaaS/cloud/defense disclosure. A hardware name that files a token
+    # RPO produces a huge, meaningless ratio. Require the disclosure to be both
+    # MATERIAL (>=15% of TTM revenue) and CURRENT (filed within ~200 days).
+    stale = None
+    if asof:
         try:
-            out["rpo_stale_days"] = (date.today() - date.fromisoformat(str(asof)[:10])).days
+            stale = (date.today() - date.fromisoformat(str(asof)[:10])).days
+            out["rpo_stale_days"] = stale
         except Exception:  # noqa: BLE001
             pass
+    material = (rpo is not None and rev_ttm and rev_ttm > 0 and rpo >= 0.15 * rev_ttm)
+    current = (stale is not None and stale <= 200)
+    out["rpo_representative"] = bool(material and current)
+    if rpo is not None and not out["rpo_representative"]:
+        out["rpo_unrepresentative"] = (
+            ("token disclosure vs revenue" if not material else "")
+            + ("; " if (not material and not current) else "")
+            + (f"last filing {stale}d stale" if not current else ""))
+
+    if implied_usd and rpo and rpo > 0 and out["rpo_representative"]:
+        out["unbooked_vs_rpo"] = round(implied_usd / rpo, 3)
+    elif implied_usd and out["deferred_rev_usd"] and current:
+        out["unbooked_vs_deferred"] = round(implied_usd / out["deferred_rev_usd"], 3)
+
+    if asof and cat_day and current:
+        out["claim_predates_filing"] = bool(str(asof)[:10] < cat_day)
 
     bd = e.get("baseline_date")
     revised_up = (out["est_direction"] == "UP" and (out["est_rev_recent_pct"] or 0) > 0)
@@ -829,9 +845,18 @@ def pricing_quadrant(price_status, fund):
     """Price is a day trade. Estimates are a quarter trade. The names worth
     holding are the ones where NEITHER has moved yet."""
     price_open = price_status in ("UNPRICED", "PARTIAL")
+    est_known = fund.get("est_direction") is not None
     est_moved = fund.get("estimates_revised_since_catalyst") is True
-    if fund.get("est_direction") is None and fund.get("rpo_usd") is None:
-        return "PRICE_ONLY", "no backlog disclosure and no revision data, price signal only"
+    has_backlog = bool(fund.get("rpo_representative"))
+
+    # UNKNOWN IS NOT UNMOVED. TWICE_UNPRICED asserts that consensus has not
+    # modelled the order — that requires actually observing consensus.
+    if not est_known:
+        if price_open and has_backlog:
+            return ("UNBOOKED_NO_CONSENSUS",
+                    "order is not in the last filing, but no revision data to confirm "
+                    "whether analysts have moved")
+        return "PRICE_ONLY", "no revision coverage for this name, price signal only"
     if price_open and not est_moved:
         return "TWICE_UNPRICED", "the tape has not paid for it and consensus has not modelled it"
     if price_open and est_moved:
@@ -981,13 +1006,16 @@ def lambda_handler(event=None, context=None):
             try:
                 sr = score_row(r, cat, tape, hist, meta, spy_move, cat_day)
                 fund = fundamental_row(sr["ticker"], sr.get("implied_order_usd"),
-                                       cat_day, backlog_by, fwd_by, est_by)
+                                       cat_day, backlog_by, fwd_by, est_by,
+                                       (meta.get(sr["ticker"]) or {}).get("revenue"))
                 sr["fundamentals"] = fund
                 q, qnote = pricing_quadrant(sr["status"], fund)
                 sr["pricing_quadrant"] = q
                 sr["quadrant_note"] = qnote
                 if q == "TWICE_UNPRICED":
                     sr["catch_up_score"] = round(min(100.0, sr["catch_up_score"] * 1.15), 1)
+                elif q == "UNBOOKED_NO_CONSENSUS":
+                    sr["catch_up_score"] = round(min(100.0, sr["catch_up_score"] * 1.05), 1)
                 elif q == "FULLY_PRICED":
                     sr["catch_up_score"] = round(sr["catch_up_score"] * 0.6, 1)
                 if fund.get("claim_predates_filing"):
@@ -1044,10 +1072,23 @@ def lambda_handler(event=None, context=None):
         "chase_guard": overshot,
         "twice_unpriced": [x for x in all_rows
                            if x.get("pricing_quadrant") == "TWICE_UNPRICED"][:40],
+        "by_beneficiary": sorted(
+            [{"ticker": t,
+              "implied_order_usd_total": round(sum(x.get("implied_order_usd") or 0
+                                                   for x in all_rows if x["ticker"] == t)),
+              "catalysts": sorted({x["catalyst_ticker"] for x in all_rows if x["ticker"] == t}),
+              "best_tier": min((x["tier"] for x in all_rows if x["ticker"] == t),
+                               key=lambda z: TIER_ORDER.index(z)),
+              "max_score": max(x["catch_up_score"] for x in all_rows if x["ticker"] == t),
+              "quadrant": next((x.get("pricing_quadrant") for x in all_rows
+                                if x["ticker"] == t), None)}
+             for t in {x["ticker"] for x in all_rows}],
+            key=lambda z: -z["implied_order_usd_total"])[:40],
         "quadrant_counts": {q: sum(1 for x in all_rows
                                    if x.get("pricing_quadrant") == q)
-                            for q in ("TWICE_UNPRICED", "ESTIMATES_LEADING",
-                                      "PRICE_LEADING", "FULLY_PRICED", "PRICE_ONLY")},
+                            for q in ("TWICE_UNPRICED", "UNBOOKED_NO_CONSENSUS",
+                                      "ESTIMATES_LEADING", "PRICE_LEADING",
+                                      "FULLY_PRICED", "PRICE_ONLY")},
         "top_picks": top_picks,
         "tier_caps": TIER_CAPS,
         "tiers": {k: {"weight": v["w"], "capture_share": v["capture"], "label": v["label"]}
