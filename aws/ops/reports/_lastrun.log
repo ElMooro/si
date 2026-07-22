@@ -1,11 +1,5 @@
-executing-against: ad122faedd181ad9654793f41a29bc29c1729adc
-ops 3673 — runner-side CAD xlsx landing + fn diag
-FAIL  G1_value — bytes=2142120 strings=53 tonnes_k=None yoy=None n=None tail=None row=None xp=no unloaded/loaded sheet; strings: Hong Kong International Airport    | Civil International Air Transport | Movements of Aircraft, Passenger and Freight | Aircraft | Year | Month | Landing | Take-off | Total | Year-on-year 
-% change | Arrival | Departure | Un errs=[]
-[00:27:12] G1_value False
-PASS  G2_diag — {'State': 'Active', 'LastUpdateStatus': 'Successful', 'Timeout': 120, 'MemorySize': 512, 'CodeSize': 86928, 'LastModified': '2026-07-21T23:49:06.000+0000', 'last_log_event': 1784678676858, 'log_tail': 'INIT_START Runtime Version: python:3.12.mainlinev2.v18\tRuntime Version ARN: arn:'}
-[00:27:13] G2_diag True
-VERDICT: GAPS: G1_value
-[00:27:13] VERDICT: GAPS: G1_value
+executing-against: 1790a4f47ab276491a83c0e5457c951986050020
+ops 3674 — CAD xlsx x-ray
+PASS  G1_xray — [{"sheet": "xl/worksheets/sheet1.xml", "len": 18192944, "rows": 409, "c_cells": 824524, "v_cells": 4953, "t_s": 451, "inline": 0, "around_unloaded": "0</v></c><c r=\"I8\" s=\"14\" t=\"s\"><v>11</v></c><c r=\"J8\" s=\"15\" t=\"s\"><v>8</v></c><c r=\"K8\" s=\"16\" t=\"s\"><v>9</v></c><c r=\"L8\" s=\"17\" t=\"s\"><v>12</v></c><c r=\"M8\" s=\"14\" t=\"s\"><v>13</v></c><c r=\"N8\" s=\"15\" t=\"s\"><v>8</v></c><c r=\"O8\" s=\"18\" t=\"s\"><v>9</v></c></row><row r=\"9\" spans=\"1:2", "head": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:mc"}]
 
-→ Report written to aws/ops/reports/latest/3673_air_cols.md
+→ Report written to aws/ops/reports/latest/3674_xlsx_xray.md
