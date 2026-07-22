@@ -1,0 +1,38 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "engine emits all gated keys"
+    },
+    "G1_zip_settle": {
+      "ok": true,
+      "detail": "marker found after 0s"
+    },
+    "G2_eia_key": {
+      "ok": true,
+      "detail": "key present len=40"
+    },
+    "G3_invoke_accepted": {
+      "ok": false,
+      "detail": "ResourceConflictException An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending"
+    },
+    "G4_artifact": {
+      "ok": false,
+      "detail": "ClientError An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    "G5_queue_parsed": {
+      "ok": false,
+      "detail": "no doc"
+    },
+    "G6_eia_legs": {
+      "ok": false,
+      "detail": "no doc"
+    },
+    "G7_schedule": {
+      "ok": false,
+      "detail": "NO SCHEDULE"
+    }
+  },
+  "verdict": "FAIL",
+  "data_month": null
+}

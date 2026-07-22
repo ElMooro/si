@@ -1,28 +1,24 @@
-executing-against: 1994a04df946add058a3ecf81d82ceb0f9b60f17
-ops 3734 — resolve ERCOT queue report ID + EIA planned-capacity facets
-── A — EIA operating-generator-capacity metadata ──
-[21:08:03] ✅ facets: ['stateid', 'sector', 'entityid', 'plantid', 'generatorid', 'unit', 'technology', 'energy_source_code', 'prime_mover_code', 'balancing_authority_code', 'status']
-[21:08:03]   data cols: ['nameplate-capacity-mw', 'net-summer-capacity-mw', 'net-winter-capacity-mw', 'operating-year-month', 'planned-retirement-year-month', 'planned-derate-year-month', 'planned-derate-summer-cap-mw', 'planned-uprate-year-month', 'planned-uprate-summer-cap-mw', 'county', 'longitude', 'latitude']
-[21:08:05] ✅   facet sector values: [('industrial-chp', 'Industrial CHP'), ('industrial-non-chp', 'Industrial Non-CHP'), ('commercial-chp', 'Commercial CHP'), ('ipp-chp', 'IPP CHP'), ('commercial-non-chp', 'Commercial Non-CHP'), ('ipp-non-chp', 'IPP Non-CHP'), ('electric-utility', 'Electric Utility')]
-[21:08:06] ✅   facet status values: [('OP', 'Operating'), ('OS', 'Out of service and NOT expected to return to service in next calendar year'), ('SB', 'Standby/Backup: available for service but not normally used'), ('OA', 'Out of service but expected to return to service in next calendar year')]
-── B — EIA planned capacity sample (real facet) ──
-[21:08:06]   status facet resolved = status
-[21:08:13] ✅ planned-capacity rows=6 total=4752607
-[21:08:13]   sample row: {"period": "2026-04", "stateid": "AK", "stateName": "Alaska", "sector": "electric-utility", "sectorName": "Electric Utility", "entityid": "63560", "entityName": "Sand Point Generating, LLC", "plantid": "1", "plantName": "Sand Point", "generatorid": "1", "technology": "Petroleum Liquids", "energy_source_code": "DFO", "energy-source-desc": "Disillate Fuel Oil", "prime_mover_code": "IC", "balancing_authority_code": null
-── C — ERCOT report catalogue search for queue/GIS ──
-[21:08:13]   15933 -> Co-located_Battery_Identification_Report_June_2026 (167 docs)
-[21:08:14]   12331 -> DAMSPNP4190_csv (64 docs)
-[21:08:15]   12300: Unterminated string starting at: line 1 column 399998 (char 399997)
-── D — CAISO public queue workbook ──
-[21:08:21] ✅ CAISO xlsx bytes=385058 magic=b'PK'
-[21:08:21]   zip members: ['[trash]/0002.dat', 'docProps/app.xml', '[trash]/0003.dat', '[trash]/0000.dat', 'xl/media/image1.jpg', 'xl/printerSettings/printerSettings1.bin', 'xl/printerSettings/printerSettings2.bin', 'xl/printerSettings/printerSettings3.bin', 'xl/styles.xml', 'xl/theme/theme1.xml', 'xl/workbook.xml', 'xl/worksheets/sheet1.xml']
-[21:08:21] ✅   sheets: ['Grid GenerationQueue', 'Completed Generation Projects', 'Withdrawn Generation Projects', '_xlnm._FilterDatabase', '_xlnm._FilterDatabase', '_xlnm._FilterDatabase', '_xlnm.Print_Titles', '_xlnm.Print_Titles', '_xlnm.Print_Titles']
-── E — EPA ECHO air facility detail (permit proxy) ──
-[21:08:22] ✅ ECHO major-source query rows=2699 qid=257
-[21:08:22] ✅   facility rows=1
-[21:08:22]   keys: ['AIRCity', 'AIRClassification', 'AIRCmsCategoryCode', 'AIRCmsCategoryDesc', 'AIRComplStatus', 'AIRCounty', 'AIRDaysLastEval', 'AIRDaysLastFce', 'AIREPARegion', 'AIREvalCnt', 'AIRFceCnt', 'AIRHpvStatus', 'AIRIDs', 'AIRIndianCntryFlg', 'AIRLastEvalDate', 'AIRLastEvalDateEPA', 'AIRLastEvalDateState', 'AIRLastFceDate', 'AIRLastFceDateEPA', 'AIRLastViolDate', 'AIRMacts', 'AIRMnthsWithHpv']
-[21:08:22]   sample: {"AIRName": "121 REGIONAL DISPOSAL FACILITY", "SourceID": "TX0000004808500209", "AIRStreet": "3820 SAM RAYBURN HWY", "AIRCity": "MELISSA", "AIRState": "TX", "LocalControlRegionCode": null, "AIRZip": "75454", "RegistryID": "110043803578", "AIRCounty": "Collin", "AIREPARegion": "06", "FacFederalAgencyCode": null, "FacFederalAgencyName": nul
+executing-against: 05bf2b3f6b18605f430fa1028cfaa494cbe47ca1
+ops 3735 — SHIP justhodl-grid-queue v1.0 (power buildout canary)
+── G0 — key contract (grep producer before gating) ──
+[21:14:36] PASS G0_key_contract — engine emits all gated keys
+── G1 — zip settle (never invoke the old artifact) ──
+[21:14:37] PASS G1_zip_settle — marker found after 0s
+── G2 — EIA_API_KEY inherited ──
+[21:14:37] PASS G2_eia_key — key present len=40
+── G3 — async invoke (Event) + S3 freshness gate ──
+[21:14:37]   no prior artifact (first run)
+[21:14:37] FAIL G3_invoke_accepted — ResourceConflictException An error occurred (ResourceConflictException) when calling the Invoke operation: The operation cannot be performed at this time. The function is currently in the following state: Pending
+── G4 — S3 artifact fresh + shape ──
+[21:14:37] FAIL G4_artifact — ClientError An error occurred (404) when calling the HeadObject operation: Not Found
+── G5 — data truth (CAISO parse is real, not empty) ──
+[21:14:37] FAIL G5_queue_parsed — no doc
+── G6 — EIA planned capacity + industrial load + hotspots ──
+[21:14:37] FAIL G6_eia_legs — no doc
+── G7 — schedule ──
+[21:14:37] FAIL G7_schedule — NO SCHEDULE
 ── VERDICT ──
-[21:08:22] ✅ PROBE 2 COMPLETE
+[21:14:37] ✗ gates failed: ['G3_invoke_accepted', 'G4_artifact', 'G5_queue_parsed', 'G6_eia_legs', 'G7_schedule']
 
-→ Report written to aws/ops/reports/latest/3734_grid_ids_probe.md
+→ Report written to aws/ops/reports/latest/3735_grid_queue.md
+❌ OPS-FAIL: aws/ops/pending/ops_3735_grid_queue.py
