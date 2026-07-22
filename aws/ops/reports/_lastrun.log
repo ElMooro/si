@@ -1,16 +1,5 @@
-executing-against: c580b29bde509d5e9b3bf1808a1b37d885b32e05
-ops 3692 — divergence/breadth/persistence/chokepoint
-[03:13:11]   zip: 93509 bytes
-── 1. Lambda ──
-[03:13:11]   Lambda exists — updating
-[03:13:16] ✅   ✓ updated justhodl-boom-stage
-── 3. Smoke test ──
-[03:13:16]   invoking justhodl-boom-stage…
-PASS  G1_engine — err=None pairs=15 breadth=70% 'PRICE-LED WORLD — most activity is price, not volume: inflation without real growth' divergences=[('semis', 45.7), ('copper', 40.9)] reclassified=['CL-copper'] choke_causes=[('UAE-energy', 'Strait of Hormuz transit -78.1% — the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes'), ('SA-oil', 'Strait of Hormuz transit -78.1% — the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes')] regime=STAGFLATIONARY SQUEEZE slow=75 infl=100
-[03:13:26] G1_engine True
-PASS  G2_page — {'diverge': True, 'breadth': True, 'choke': True, 'maturity': True, 'na_collapse': True}
-[03:15:47] G2_page True
-VERDICT: PASS_ALL
-[03:15:47] VERDICT: PASS_ALL
+executing-against: 4cbd04ba6ea10f33c1c6c8e9a7f6bec772ae2ce3
+ops 3693 — Taiwan value-leg audit
+PASS  G1_value_source — orders_yoy=False (None/None) exports_yoy=True (48.33) fred=False levels={'n': 2, 'keys': ['2026-05', '2026-06'], 'sample': {'2026-05': 89.47, '2026-06': 95.26}} fred_cands={"XTEXVA01TWM667S": {"sid": "XTEXVA01TWM667S", "err": "HTTP Error 400: Bad Request"}, "TWNXTEXVA01NCMLM": {"sid": "TWNXTEXVA01NCMLM", "err": "HTTP Error 400: Bad Request"}, "XTEXVA01TWM664N": {"sid": "XTEXVA01TWM664N", "err": "HTTP Error 400: Bad Request"}} search=[{"id": "VALEXPTWM052N", "title": "Goods, Value of Exports for Taiwan Province of China", "freq": "M", "last": "2026-05-01"}, {"id": "EXP5830", "title": "U.S. Exports of Goods by F.A.S. Basis to Taiwan", "freq": "M", "last": "2026-05-01"}, {"id": "TWNTXRPCPPPT", "title": "External Trade: Volume of E
 
-→ Report written to aws/ops/reports/latest/3692_canaries_v14.md
+→ Report written to aws/ops/reports/latest/3693_tw_value.md

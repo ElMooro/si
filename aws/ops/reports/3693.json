@@ -1,0 +1,107 @@
+{
+  "gates": {
+    "G1_value_source": {
+      "ok": true,
+      "detail": "orders_yoy=False (None/None) exports_yoy=True (48.33) fred=False levels={'n': 2, 'keys': ['2026-05', '2026-06'], 'sample': {'2026-05': 89.47, '2026-06': 95.26}} fred_cands={\"XTEXVA01TWM667S\": {\"sid\": \"XTEXVA01TWM667S\", \"err\": \"HTTP Error 400: Bad Request\"}, \"TWNXTEXVA01NCMLM\": {\"sid\": \"TWNXTEXVA01NCMLM\", \"err\": \"HTTP Error 400: Bad Request\"}, \"XTEXVA01TWM664N\": {\"sid\": \"XTEXVA01TWM664N\", \"err\": \"HTTP Error 400: Bad Request\"}} search=[{\"id\": \"VALEXPTWM052N\", \"title\": \"Goods, Value of Exports for Taiwan Province of China\", \"freq\": \"M\", \"last\": \"2026-05-01\"}, {\"id\": \"EXP5830\", \"title\": \"U.S. Exports of Goods by F.A.S. Basis to Taiwan\", \"freq\": \"M\", \"last\": \"2026-05-01\"}, {\"id\": \"TWNTXRPCPPPT\", \"title\": \"External Trade: Volume of E"
+    }
+  },
+  "taiwan_orders": {
+    "orders_usd_bn": null,
+    "yoy_pct": null,
+    "yoy": null,
+    "period": "Jun. 2026",
+    "usd_bn": null,
+    "error": null,
+    "stage6_hit": {
+      "sn": "464",
+      "title": "Value of Export Orders"
+    },
+    "source": "https://eng.stat.gov.tw/Point.aspx?sid=t.6&n=4205&sms=11713",
+    "label": "Taiwan export orders (MOEA via DGBAS point page)",
+    "levels_cached": 2
+  },
+  "taiwan_exports": {
+    "level": null,
+    "yoy_pct": 48.33,
+    "date": null,
+    "series_id": null,
+    "label": "Taiwan goods exports (monthly)",
+    "note": "Proxy for MOEA export ORDERS (orders lead shipments); direct MOEA endpoint discovery queued."
+  },
+  "levels_cache": {
+    "n": 2,
+    "keys": [
+      "2026-05",
+      "2026-06"
+    ],
+    "sample": {
+      "2026-05": 89.47,
+      "2026-06": 95.26
+    }
+  },
+  "fred_search_tw": [
+    {
+      "id": "VALEXPTWM052N",
+      "title": "Goods, Value of Exports for Taiwan Province of China",
+      "freq": "M",
+      "last": "2026-05-01"
+    },
+    {
+      "id": "EXP5830",
+      "title": "U.S. Exports of Goods by F.A.S. Basis to Taiwan",
+      "freq": "M",
+      "last": "2026-05-01"
+    },
+    {
+      "id": "TWNTXRPCPPPT",
+      "title": "External Trade: Volume of Exports of Goods and Services for Ta",
+      "freq": "A",
+      "last": "2024-01-01"
+    },
+    {
+      "id": "OPENCPTWA156NUPN",
+      "title": "Openness at Current Prices for Taiwan",
+      "freq": "A",
+      "last": "2010-01-01"
+    },
+    {
+      "id": "RGDPLPTWA625NUPN",
+      "title": "Purchasing Power Parity Converted GDP Per Capita (Laspeyres), ",
+      "freq": "A",
+      "last": "2010-01-01"
+    },
+    {
+      "id": "ORTWNA052SCEN",
+      "title": "Value of Exports to Taiwan from Oregon",
+      "freq": "A",
+      "last": "2022-01-01"
+    },
+    {
+      "id": "OPENRPTWA156NUPN",
+      "title": "Openness at constant prices for Taiwan",
+      "freq": "A",
+      "last": "2010-01-01"
+    },
+    {
+      "id": "MOTWNA052SCEN",
+      "title": "Value of Exports to Taiwan from Missouri",
+      "freq": "A",
+      "last": "2022-01-01"
+    }
+  ],
+  "fred_candidates": {
+    "XTEXVA01TWM667S": {
+      "sid": "XTEXVA01TWM667S",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "TWNXTEXVA01NCMLM": {
+      "sid": "TWNXTEXVA01NCMLM",
+      "err": "HTTP Error 400: Bad Request"
+    },
+    "XTEXVA01TWM664N": {
+      "sid": "XTEXVA01TWM664N",
+      "err": "HTTP Error 400: Bad Request"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
