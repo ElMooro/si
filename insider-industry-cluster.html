@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insider Industry Cluster · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+.irow{border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin:10px 0;background:rgba(255,255,255,.015)}
+.irow .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.irow .name{font-size:15px;font-weight:600}
+.irow .meta{font-size:11.5px;color:var(--text-mute);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
+.chip{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:2px 7px;border:1px solid var(--border);border-radius:6px;margin:3px 4px 0 0;color:var(--text-dim)}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:6px;max-width:340px}
+.bar>i{display:block;height:100%;border-radius:3px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>👥 Insider Industry Cluster — Peer Conviction</h1>
+<div class="sub">One CEO buying his own stock is idiosyncratic. Four executives at four <em>different</em> companies in the same industry buying inside one window is a different object: the people with the best view of an industry's order book reaching the same conclusion at once. Breadth is measured as <em>distinct companies</em>, guarded by a participation floor and a self-building base rate so the industries that always look active (biotech, regional banks) don't manufacture false signals. Daily 14:20 UTC.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">🎯 Peer Clusters — confirmed &amp; forming</div>
+<div id="clusters"></div>
+
+<div class="sec">🌫️ Diffuse &amp; Emerging — real buys, below the peer threshold</div>
+<div id="diffuse"></div>
+
+<div class="sec">Method &amp; Honesty</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Coverage</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="cov"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Single-name clusters: <a href="/insider-radar.html">Insider Radar</a> · Industry momentum: <a href="/boom-radar.html">Boom Radar</a> · Physical demand: <a href="/import-canary.html">Import Canary</a> · Power buildout: <a href="/grid-queue.html">Grid Queue</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){
+try{
+var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-industry-cluster.json?t='+Date.now());
+var d=await r.json();
+var cov=d.coverage||{};
+var inds=d.industries||[];
+var usd=function(v){if(v==null)return '—';if(v>=1e6)return '$'+(v/1e6).toFixed(2)+'M';if(v>=1e3)return '$'+(v/1e3).toFixed(0)+'k';return '$'+Math.round(v||0);};
+var tierCol=function(t){if(t.indexOf('CONFIRMED')>=0)return POS;if(t.indexOf('PEER_CLUSTER')>=0)return ACC;if(t.indexOf('DIFFUSE')>=0)return NEU;if(t.indexOf('THIN')>=0)return MUT;return NEU;};
+
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Peer clusters</div><div class="big" style="color:'+(d.n_clusters?POS:MUT)+'">'+(d.n_clusters||0)+'</div><div class="note">industries with 4+ companies buying, above the floor</div></div>'
++'<div class="tile"><div class="lbl">Industries with buying</div><div class="big">'+(d.n_industries||0)+'</div><div class="note">'+(d.n_diffuse||0)+' diffuse below threshold</div></div>'
++'<div class="tile"><div class="lbl">Insider rows in</div><div class="big">'+(cov.insider_rows_in||0)+'</div><div class="note">from the breadth sidecar · '+(cov.tickers_unmapped||0)+' unmapped</div></div>'
++'<div class="tile"><div class="lbl">Lookback</div><div class="big">'+(d.lookback_days||'—')+'d</div><div class="note">source: '+(d.source_feed||'—')+'</div></div>'
++'</div>';
+
+var maxpart=Math.max.apply(null,inds.map(function(x){return x.participation_pct||0;}).concat([1]));
+var renderRow=function(x){
+var pw=Math.min(100,(x.participation_pct||0)/maxpart*100);
+var comps=(x.companies||[]).map(function(c){var isExec=(x.ceo_cfo_companies||[]).indexOf(c)>=0;
+  return '<span class="chip" style="'+(isExec?'color:'+ACC+';border-color:'+ACC:'')+'">'+c+(isExec?' ★':'')+'</span>';}).join('');
+return '<div class="irow"><div class="head"><span class="name">'+x.industry
++' <span class="pill" style="color:'+tierCol(x.tier)+';border-color:'+tierCol(x.tier)+'">'+x.tier.replace(/_/g,' ')+'</span></span>'
++'<span class="mono" style="color:'+ACC+'">'+x.n_companies+' cos · '+usd(x.total_value_usd)+'</span></div>'
++'<div class="meta">participation '+(x.participation_pct==null?'—':x.participation_pct.toFixed(2)+'%')+' of '+(x.n_listed||0)+' listed'
++' · '+(x.n_insiders||0)+' insiders / '+(x.n_transactions||0)+' txns'
++' · z '+(x.z_vs_own_history==null?'building':x.z_vs_own_history)
++(x.dollar_hhi==null?'':' · HHI '+x.dollar_hhi+(x.top_company_share_pct?' (top '+x.top_company+' '+x.top_company_share_pct+'%)':''))
++(x.awaiting_base_rate?' · <span style="color:'+MUT+'">awaiting base rate</span>':'')+'</div>'
++'<div class="bar"><i style="width:'+pw+'%;background:'+tierCol(x.tier)+'"></i></div>'
++'<div style="margin-top:8px">'+comps+'</div>'
++(x.ceo_cfo_companies&&x.ceo_cfo_companies.length?'<div class="note">★ = CEO/CFO purchase</div>':'')
++'</div>';};
+
+var peers=inds.filter(function(x){return x.tier.indexOf('PEER_CLUSTER')>=0;});
+var rest=inds.filter(function(x){return x.tier.indexOf('PEER_CLUSTER')<0;});
+document.getElementById('clusters').innerHTML=peers.length?peers.map(renderRow).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+'">No industry currently clears the peer-cluster bar (4+ companies, participation ≥ '+(cov.min_participation_pct||4)+'%, elevated vs its own base rate). This is the correct read when insider buying is scattered rather than concentrated in one industry — the engine reports absence honestly rather than crowning the noisiest sector.</span></div>';
+document.getElementById('diffuse').innerHTML=rest.length?rest.map(renderRow).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+'">Nothing below the threshold either.</span></div>';
+
+document.getElementById('method').textContent=d.method||'';
+document.getElementById('cov').innerHTML='insider rows '+(cov.insider_rows_in||0)+' · unmapped tickers '+(cov.tickers_unmapped||0)
++' · universe industries '+(cov.universe_industries||0)+' · floor '+(cov.min_participation_pct||4)+'% · min companies '+(cov.min_companies||3)+' · strong '+(cov.strong_companies||4)
++((d.degraded&&d.degraded.length)?'<br><span style="color:'+NEG+'">degraded: '+d.degraded.join(' · ')+'</span>':'<br><span style="color:'+POS+'">no degraded feeds</span>');
+document.getElementById('foot').textContent='Feed data/insider-industry-cluster.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})();
+</script>
+</body>
+</html>
