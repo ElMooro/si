@@ -16,7 +16,7 @@ SCHEDULE: daily 11:30 UTC.
 """
 import json, os, time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
@@ -252,13 +252,31 @@ def lambda_handler(event=None, context=None):
     cheap_vs_backlog = sorted([r for r in results if r.get("ev_to_rpo") is not None],
                               key=lambda r: r.get("ev_to_rpo"))[:25]
 
+    # ── PERSISTENT LEDGER (ops 3710) ────────────────────────────────────────
+    # Each run walks a SLICE of the universe and this engine published only that
+    # slice, so data/backlog.json churned instead of converging. Two invokes
+    # minutes apart returned entirely different books (ZS/PLTR/DDOG/CRWD, then
+    # CETX/OLOX/TPET). Merge the slice into a standing ledger so coverage
+    # actually accumulates, and prune anything not re-verified in 60 days so it
+    # cannot go stale silently.
+    _now = datetime.now(timezone.utc).isoformat()
+    _prev = (read_json(OUT_KEY) or {}).get("by_ticker") or {}
+    ledger = dict(_prev)
+    for _r in results:
+        _r["refreshed_at"] = _now
+        ledger[_r["ticker"]] = _r
+    _cut = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
+    ledger = {k: v for k, v in ledger.items()
+              if not v.get("refreshed_at") or v["refreshed_at"] >= _cut}
+    print(f"[backlog] ledger {len(_prev)} + slice {len(results)} -> {len(ledger)}")
+
     out = {
         "engine": "backlog", "version": "1.0",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "duration_s": round(time.time() - t0, 1),
         "n_covered": len(results),
         "cap_distribution": _capdist(results),
-        "by_ticker": {r["ticker"]: r for r in results},
+        "by_ticker": ledger,
         "accelerating": accelerating,
         "cheap_vs_backlog": cheap_vs_backlog,
         "method": ("RPO (RevenueRemainingPerformanceObligation) + deferred revenue/"
@@ -266,6 +284,8 @@ def lambda_handler(event=None, context=None):
                    "growth, RPO-vs-revenue-growth divergence (demand accelerating), "
                    "deferred-revenue acceleration, EV/RPO. Leads earnings 1-2 quarters."),
         "sources": {"backlog": "SEC XBRL (data.sec.gov)", "revenue/EV": "FMP"},
+        "ledger_size": len(ledger),
+        "slice_this_run": len(results),
     }
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
