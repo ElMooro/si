@@ -1,5 +1,24 @@
-executing-against: 0a45731fea0100c3a0cbfe48981ed64eddcc214e
-ops 3695 — Australia + Qatar port discovery
-PASS  G1_hunt — control=2 {"Australia": {"n": 57, "ports": [["port458", "Hay Point"], ["port469", "Hobart"], ["port591", "Koolan"], ["port0", "Abbot Point"], ["port675", "Mackay"], ["port729", "Melbourne"], ["port176", "Broome"], ["port190", "Bunbury"], ["port741", "Milner Bay"], ["port194", "Burnie"], ["port816", "Newcastle"], ["port854", "Onslow"], ["port918", "Point Murat"], ["port953", "Port Giles"], ["port28", "Albany"], ["port161", "Port Botany"]], "daily_rows": 8, "daily_sample": [{"portid": "port458", "date": "2026-07-17", "portcalls": 2}, {"portid": "port469", "date": "2026-07-17", "portcalls": 1}, {"portid": "port591", "date": "2026-07-17", "portcalls": 1}]}, "Qatar": {"n": 4, "ports": [["port1090", "Ras La
+executing-against: c08d60c1177ef0a78ad6209c9c55d5180a9cd5b9
+ops 3696 — AU/QA legs + CH-pharma removal
+[03:45:16]   zip: 89087 bytes
+── 1. Lambda ──
+[03:45:17]   Lambda exists — updating
+[03:45:20] ✅   ✓ updated justhodl-portwatch
+── 3. Smoke test ──
+[03:45:20]   invoking justhodl-portwatch…
+PASS  G1_ports — nations=24 AU={'code': 'AUS', 'country': 'Australia', 'n_ports': 11, 'ports': ['Dampier', 'Hay Point', 'Port Hedland', 'Gladstone'], 'avg_vs_baseline_pct': -6.6, 'avg_z': -0.16, 'verdict': 'STABLE'} QA={'code': 'QAT', 'country': 'Qatar', 'n_ports': 4, 'ports': ['Ras Laffan', 'Doha-Umm Said', 'Hamad Port', 'Al Ruwais'], 'avg_vs_baseline_pct': 1.0, 'avg_z': -0.26, 'verdict': 'STABLE'} slowing=['China', 'UAE', 'Chile', 'Brazil', 'Malaysia']
+[03:49:40] G1_ports True
+[03:49:40]   zip: 93948 bytes
+── 1. Lambda ──
+[03:49:40]   Lambda exists — updating
+[03:49:43] ✅   ✓ updated justhodl-boom-stage
+── 3. Smoke test ──
+[03:49:43]   invoking justhodl-boom-stage…
+PASS  G2_engine — err=None n_pairs=14 na=[] ch_gone=True AU=MIXED (0.8/-6.6, 11 ports) QA=VALUE_LED_DOWNTURN (-13.4/1.0, 4 ports) AU_choke=[{}] QA_choke=None regime=STAGFLATIONARY SQUEEZE slow=65 infl=100 breadth=58% divs=[('semis', 45.7), ('copper', 40.9)]
+[03:49:52] G2_engine True
+PASS  G3_page — page live
+[03:49:52] G3_page True
+VERDICT: PASS_ALL
+[03:49:52] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3695_au_qa_hunt.md
+→ Report written to aws/ops/reports/latest/3696_au_qa_land.md

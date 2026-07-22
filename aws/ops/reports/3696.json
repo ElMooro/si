@@ -1,0 +1,61 @@
+{
+  "gates": {
+    "G1_ports": {
+      "ok": true,
+      "detail": "nations=24 AU={'code': 'AUS', 'country': 'Australia', 'n_ports': 11, 'ports': ['Dampier', 'Hay Point', 'Port Hedland', 'Gladstone'], 'avg_vs_baseline_pct': -6.6, 'avg_z': -0.16, 'verdict': 'STABLE'} QA={'code': 'QAT', 'country': 'Qatar', 'n_ports': 4, 'ports': ['Ras Laffan', 'Doha-Umm Said', 'Hamad Port', 'Al Ruwais'], 'avg_vs_baseline_pct': 1.0, 'avg_z': -0.26, 'verdict': 'STABLE'} slowing=['China', 'UAE', 'Chile', 'Brazil', 'Malaysia']"
+    },
+    "G2_engine": {
+      "ok": true,
+      "detail": "err=None n_pairs=14 na=[] ch_gone=True AU=MIXED (0.8/-6.6, 11 ports) QA=VALUE_LED_DOWNTURN (-13.4/1.0, 4 ports) AU_choke=[{}] QA_choke=None regime=STAGFLATIONARY SQUEEZE slow=65 infl=100 breadth=58% divs=[('semis', 45.7), ('copper', 40.9)]"
+    },
+    "G3_page": {
+      "ok": true,
+      "detail": "page live"
+    }
+  },
+  "au": "MIXED",
+  "qa": "VALUE_LED_DOWNTURN",
+  "na_residue": [],
+  "macro": {
+    "slowdown_risk": 65,
+    "slowdown_band": "MODERATE",
+    "inflation_pressure": 100,
+    "inflation_band": "HIGH",
+    "regime": "STAGFLATIONARY SQUEEZE",
+    "plain_english": "Global slowdown risk is MODERATE: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Chile WITH volumes falling (supply-driven \u2014 the bad kind: raises prices AND hurts growth).",
+    "growth_canaries": 9,
+    "inventory_tilt": 0,
+    "factor4_reads": {
+      "KR-semis": "IDLING",
+      "CN-broad": "STEADY",
+      "BR-commodities": "RAMPING",
+      "US-freight": "INVENTORY_DRAW",
+      "CL-copper": "RAMPING",
+      "PE-copper": "RAMPING",
+      "FI-pulp": "INVENTORY_DRAW",
+      "TW-semis": "IDLING",
+      "AU-iron": "RAMPING",
+      "ID-nickel": "RAMPING",
+      "DE-machinery": "STEADY"
+    },
+    "inflation_canaries": 5,
+    "weak": [
+      "China",
+      "Finland"
+    ],
+    "hot": [
+      "UAE",
+      "Brazil",
+      "Chile",
+      "Saudi Arabia"
+    ],
+    "strong": [
+      "Korea",
+      "US",
+      "Peru",
+      "Taiwan",
+      "Indonesia"
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
