@@ -1,0 +1,92 @@
+{
+  "gates": {
+    "G1_engine": {
+      "ok": true,
+      "detail": "err=None pairs=15 breadth=70% 'PRICE-LED WORLD \u2014 most activity is price, not volume: inflation without real growth' divergences=[('semis', 45.7), ('copper', 40.9)] reclassified=['CL-copper'] choke_causes=[('UAE-energy', 'Strait of Hormuz transit -78.1% \u2014 the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes'), ('SA-oil', 'Strait of Hormuz transit -78.1% \u2014 the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes')] regime=STAGFLATIONARY SQUEEZE slow=75 infl=100"
+    },
+    "G2_page": {
+      "ok": true,
+      "detail": "{'diverge': True, 'breadth': True, 'choke': True, 'maturity': True, 'na_collapse': True}"
+    }
+  },
+  "chokepoint_names": [
+    "Kerch Strait",
+    "Bohai Strait",
+    "Strait of Hormuz",
+    "Bosporus Strait",
+    "Malacca Strait",
+    "Dover Strait",
+    "Oresund Strait",
+    "Gibraltar Strait",
+    "Sunda Strait",
+    "Mona Passage",
+    "Torres Strait",
+    "Lombok Strait",
+    "Ombai Strait",
+    "Tsugaru Strait",
+    "Cape of Good Hope",
+    "Korea Strait",
+    "Windward Passage",
+    "Suez Canal",
+    "Makassar Strait",
+    "Taiwan Strait",
+    "Mindoro Strait",
+    "Yucatan Channel",
+    "Bering Strait",
+    "Magellan Strait",
+    "Bab el-Mandeb Strait",
+    "Luzon Strait",
+    "Balabac Strait",
+    "Panama Canal"
+  ],
+  "divergences": [
+    {
+      "commodity": "semis",
+      "spread_pp": 45.7,
+      "weak": "KR-semis",
+      "weak_pct": -4.3,
+      "strong": "TW-semis",
+      "strong_pct": 41.4,
+      "read": "SEMIS: KR-semis volume -4.3% vs TW-semis 41.4% \u2014 45.7pp gap. Same commodity, opposite flow = LOCAL SUPPLY DISRUPTION in KR, not a global demand signal. Price strength here is supply-driven (inflationary), and producers in TW gain share.",
+      "trade": "prefer TW-exposed producers over KR-exposed; the spread is the alpha"
+    },
+    {
+      "commodity": "copper",
+      "spread_pp": 40.9,
+      "weak": "CL-copper",
+      "weak_pct": -29.7,
+      "strong": "PE-copper",
+      "strong_pct": 11.2,
+      "read": "COPPER: CL-copper volume -29.7% vs PE-copper 11.2% \u2014 40.9pp gap. Same commodity, opposite flow = LOCAL SUPPLY DISRUPTION in CL, not a global demand signal. Price strength here is supply-driven (inflationary), and producers in PE gain share.",
+      "trade": "prefer PE-exposed producers over CL-exposed; the spread is the alpha"
+    }
+  ],
+  "breadth": {
+    "price_led_n": 7,
+    "volume_led_n": 1,
+    "falling_n": 2,
+    "scored_n": 10,
+    "price_led_share": 70,
+    "read": "PRICE-LED WORLD \u2014 most activity is price, not volume: inflation without real growth",
+    "price_led": [
+      "KR-semis",
+      "UAE-energy",
+      "BR-commodities",
+      "US-freight",
+      "CL-copper",
+      "SA-oil",
+      "ID-nickel"
+    ],
+    "volume_led": [
+      "PE-copper"
+    ],
+    "falling": [
+      "CN-broad",
+      "FI-pulp"
+    ]
+  },
+  "reclassified": [
+    "CL-copper"
+  ],
+  "verdict": "PASS_ALL"
+}

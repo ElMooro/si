@@ -1,31 +1,16 @@
-executing-against: 681ddcb9c5ca0bc3015e67ccd15f20ae7b008552
-ops 3691 — trade-nowcast engine + wires
-[02:54:17]   zip: 85855 bytes
+executing-against: c580b29bde509d5e9b3bf1808a1b37d885b32e05
+ops 3692 — divergence/breadth/persistence/chokepoint
+[03:13:11]   zip: 93509 bytes
 ── 1. Lambda ──
-[02:54:17]   Lambda missing — creating
-[02:54:22] ✅   ✓ created justhodl-trade-nowcast
+[03:13:11]   Lambda exists — updating
+[03:13:16] ✅   ✓ updated justhodl-boom-stage
 ── 3. Smoke test ──
-[02:54:22]   invoking justhodl-trade-nowcast…
-PASS  G1_engine — err=None n_series=4 comp=22.2 verdict=RISING bdi={'level': 2670.0, 'read': 'TIGHT — dry-bulk rates elevated, commodity shipping demand strong'} cpb={"latest_url": "https://www.cpb.nl/agenda/wereldhandelsmonitor-juni-2026", "pages_n": 288, "period": "2026-6", "excerpt": " var _paq = _paq || [];(function(){var u=((\"https:\" == document.location.protocol) ? \"https:// series=[('ocean_ppi', 13.5), ('truck_ppi', 21.5), ('import_prices', 7.0), ('export_prices', 10.7)] plain=Freight rates are RISING — moving goods is getting more expensive, which feeds inflation and signals capacity tightness; Baltic Dry at 2670.0 (TIGHT — dry-bulk rates elevated, commodity shipping demand strong). errs=[]
-[02:54:33] G1_engine True
-[02:54:33]   zip: 107446 bytes
-── 1. Lambda ──
-[02:54:33]   Lambda exists — updating
-[02:54:39] ✅   ✓ updated justhodl-morning-intelligence
-── 3. Smoke test ──
-[02:54:39]   invoking justhodl-morning-intelligence…
-[02:55:11] ✅   ✓ smoke test passed
-[02:55:11]     success                  True
-[02:55:11]     khalid_adj               43.0
-[02:55:11]     regime                   BEAR
-[02:55:11]     btc                      66797
-[02:55:11]     outcomes                 17811
-[02:55:11]     improved                 False
-[02:55:11]     weights_active           277
-[02:55:11]     ka_adj                   43.0
-PASS  G2_wires — {'section': True, 'fetch': True, 'bdi': True, 'mi': True}
-[02:56:32] G2_wires True
+[03:13:16]   invoking justhodl-boom-stage…
+PASS  G1_engine — err=None pairs=15 breadth=70% 'PRICE-LED WORLD — most activity is price, not volume: inflation without real growth' divergences=[('semis', 45.7), ('copper', 40.9)] reclassified=['CL-copper'] choke_causes=[('UAE-energy', 'Strait of Hormuz transit -78.1% — the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes'), ('SA-oil', 'Strait of Hormuz transit -78.1% — the price move has a physical cause upstream, not a demand cause; treat as supply shock until transit normalizes')] regime=STAGFLATIONARY SQUEEZE slow=75 infl=100
+[03:13:26] G1_engine True
+PASS  G2_page — {'diverge': True, 'breadth': True, 'choke': True, 'maturity': True, 'na_collapse': True}
+[03:15:47] G2_page True
 VERDICT: PASS_ALL
-[02:56:32] VERDICT: PASS_ALL
+[03:15:47] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3691_trade_nowcast.md
+→ Report written to aws/ops/reports/latest/3692_canaries_v14.md
