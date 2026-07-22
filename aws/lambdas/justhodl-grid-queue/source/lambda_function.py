@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/grid-queue.json"
 HIST_KEY = "data/grid-queue-history.json"
@@ -121,7 +121,7 @@ def _col_idx(ref):
     return n - 1
 
 
-def _sheet_rows(z, sheet_path, shared, max_rows=6000):
+def _sheet_rows(z, sheet_path, shared, max_rows=20000):
     """Yield lists of cell values for one worksheet."""
     try:
         xml = z.read(sheet_path).decode("utf-8", "replace")
@@ -169,7 +169,7 @@ def _f(v):
         return None
 
 
-def _find_header(rows, needles, scan=14):
+def _find_header(rows, needles, scan=30):
     """Locate the header row by matching expected column names."""
     for i, r in enumerate(rows[:scan]):
         low = [str(c).strip().lower() for c in r]
@@ -200,19 +200,35 @@ def parse_caiso(gaps):
         return {}
     shared = _shared_strings(z)
 
-    # map sheet display names -> internal paths, in workbook order
+    # ops 3737: map sheet NAME -> path via workbook.xml.rels. Filename order
+    # is NOT guaranteed to match workbook sheet order; relying on it is how
+    # a parser reads the wrong tab and reports confident nonsense.
+    sheet_map = {}
     try:
         wb = z.read("xl/workbook.xml").decode("utf-8", "replace")
-        names = re.findall(r'<sheet[^>]*name="([^"]+)"', wb)
-    except Exception:
-        names = []
-    paths = sorted([n for n in z.namelist()
-                    if n.startswith("xl/worksheets/sheet")],
-                   key=lambda p: int(re.search(r"(\d+)", p).group(1)))
-    sheet_map = {}
-    for i, nm in enumerate(names):
-        if i < len(paths):
-            sheet_map[nm] = paths[i]
+        pairs = re.findall(r'<sheet[^>]*name="([^"]+)"[^>]*r:id="([^"]+)"', wb)
+        rels = {}
+        rx = z.read("xl/_rels/workbook.xml.rels").decode("utf-8", "replace")
+        for m in re.finditer(r'Id="([^"]+)"[^>]*Target="([^"]+)"', rx):
+            rels[m.group(1)] = m.group(2)
+        for nm, rid in pairs:
+            tgt = rels.get(rid, "")
+            if tgt:
+                sheet_map[nm] = tgt if tgt.startswith("xl/") else "xl/" + tgt.lstrip("/")
+    except Exception as e:
+        gaps.append("CAISO sheet mapping fell back to order: %s" % str(e)[:50])
+    if not sheet_map:
+        try:
+            names = re.findall(r'<sheet[^>]*name="([^"]+)"',
+                               z.read("xl/workbook.xml").decode("utf-8", "replace"))
+        except Exception:
+            names = []
+        paths = sorted([n for n in z.namelist()
+                        if n.startswith("xl/worksheets/sheet")],
+                       key=lambda p: int(re.search(r"(\d+)", p).group(1)))
+        for i, nm in enumerate(names):
+            if i < len(paths):
+                sheet_map[nm] = paths[i]
 
     def load(display_key, needles):
         path = None
@@ -226,27 +242,46 @@ def parse_caiso(gaps):
         hi, hdr = _find_header(rows, needles)
         if hi is None:
             return []
-        c_mw = _pick(hdr, "net mw", "mw to grid", "capacity", "mw")
         c_st = _pick(hdr, "state")
         c_cty = _pick(hdr, "county")
-        c_fuel = _pick(hdr, "type-1", "fuel", "technology", "type")
+        c_fuel = _pick(hdr, "fuel-1", "fuel", "technology", "type-1")
         c_name = _pick(hdr, "project name", "generation project", "name")
-        c_stat = _pick(hdr, "interconnection request status", "status")
+        c_stat = _pick(hdr, "application status",
+                       "interconnection request status", "status")
         c_date = _pick(hdr, "proposed on-line date", "on-line date",
-                       "commercial operation")
+                       "commercial operation", "queue date")
+        # ops 3737 FINDING: 'net mws to grid' is populated on only 2 of 277
+        # CAISO rows — the real capacity sits in mw-1 / mw-2 / mw-3, one per
+        # fuel leg. Sum those; fall back to net-mws only if none parse.
+        mw_cols = [ci for ci, h in enumerate(hdr)
+                   if re.match(r"^mw-\d", h.strip())]
+        c_net = _pick(hdr, "net mws to grid", "net mw")
         out = []
         for r in rows[hi + 1:]:
             if not any(str(x).strip() for x in r):
                 continue
-            mw = _f(r[c_mw]) if (c_mw is not None and c_mw < len(r)) else None
-            if mw is None or mw <= 0:
+            mw = 0.0
+            for ci in mw_cols:
+                if ci < len(r):
+                    mw += _f(r[ci]) or 0.0
+            if mw <= 0 and c_net is not None and c_net < len(r):
+                mw = _f(r[c_net]) or 0.0
+            if mw <= 0:
                 continue
+            # fuel legs: join the non-empty fuel columns for an honest label
+            fuels = []
+            for ci, h in enumerate(hdr):
+                if h.strip().startswith("fuel-") and ci < len(r):
+                    v = str(r[ci]).strip()
+                    if v and v.lower() not in ("", "n/a", "none"):
+                        fuels.append(v)
             out.append({
                 "project": (r[c_name] if c_name is not None and c_name < len(r) else "")[:70],
                 "mw": round(mw, 1),
                 "state": (r[c_st] if c_st is not None and c_st < len(r) else "").strip()[:20] or "CA",
                 "county": (r[c_cty] if c_cty is not None and c_cty < len(r) else "").strip()[:40],
-                "fuel": (r[c_fuel] if c_fuel is not None and c_fuel < len(r) else "").strip()[:40],
+                "fuel": (" + ".join(fuels[:3]) if fuels else
+                         (r[c_fuel] if c_fuel is not None and c_fuel < len(r) else "").strip())[:44],
                 "status": (r[c_stat] if c_stat is not None and c_stat < len(r) else "").strip()[:40],
                 "online": (r[c_date] if c_date is not None and c_date < len(r) else "").strip()[:24],
             })
