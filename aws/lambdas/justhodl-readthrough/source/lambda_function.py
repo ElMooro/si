@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -75,6 +75,7 @@ UA = {"User-Agent": "Mozilla/5.0 (JustHodl readthrough)"}
 GAP_MIN_PCT = 6.0          # a catalyst must move its own name at least this much
 MIN_PRICE = 2.0            # no sub-$2 tape
 MIN_DOLLAR_VOL = 3_000_000  # $3M/day floor for a tradeable beneficiary
+EXTREME_MOVE_PCT = 45.0    # above this, require corroboration (8-K or a $ figure)
 MAX_CATALYSTS = 12         # deepest-moving, most material events only
 MAX_BENEF_PER_EVENT = 22
 SHORTLIST_CAP = 140        # per-ticker FMP enrichment budget
@@ -331,7 +332,13 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
                         "source": n.get("site") or n.get("publisher") or "fmp"}
         if best is None:
             return None
+        # Extreme-move corroboration gate: a >45% move needs either an SEC 8-K on
+        # the tape or an explicit dollar figure in the release. Otherwise it is
+        # unverified and does not get to move 22 other tickers.
         f8k = filings_by_ticker.get(sym)
+        if q["chg_pct"] >= EXTREME_MOVE_PCT and not (f8k or best.get("order_value_usd")):
+            print(f"[skip] {sym} {q['chg_pct']:.1f}% — extreme move, no 8-K and no $ figure")
+            return None
         best.update({
             "ticker": sym, "move_pct": round(q["chg_pct"], 2),
             "price": q["last"], "prev_close": q["prev_close"],
@@ -407,12 +414,23 @@ def beneficiaries_for(cat, g, tape, univ_meta):
                     "edge_confidence": EDGE_CONF.get(econf, 0.5),
                     "edge_source": econf, "named_edge": named}
 
-    # T1 — its own named suppliers (they sell into the order)
+    # T1 — its own NAMED suppliers (they sell into the order). A Polygon-inferred
+    # edge is co-movement, not a vendor relationship, so it can never enter a
+    # revenue tier — it is demoted to sympathy and labelled as such.
     for s, rel, cf in suppliers_of.get(sym, []):
-        add(s, "T1_DIRECT_SUPPLIER", f"named supplier to {sym} ({rel or 'supply'})", cf, True)
-    # T2 — suppliers of those suppliers (BOM tier)
-    for s, _rel, _cf in suppliers_of.get(sym, []):
+        if cf == "polygon_related":
+            add(s, "T4_THEMATIC_SYMPATHY",
+                "market-inferred co-movement link — NOT a named supplier", cf, False)
+        else:
+            add(s, "T1_DIRECT_SUPPLIER", f"named supplier to {sym} ({rel or 'supply'})", cf, True)
+    # T2 — suppliers of those suppliers (BOM tier). Curated edges only, both hops:
+    # an inferred link at either hop makes the chain a guess, not a bill of materials.
+    for s, _rel, cf in suppliers_of.get(sym, []):
+        if cf == "polygon_related":
+            continue
         for s2, rel2, cf2 in suppliers_of.get(s, []):
+            if cf2 == "polygon_related":
+                continue
             add(s2, "T2_TIER2_INPUT", f"supplies {s}, a named supplier to {sym} ({rel2 or 'input'})",
                 cf2, True)
     # T3 — same-theme infrastructure hubs on the curated graph
@@ -786,6 +804,7 @@ def lambda_handler(event=None, context=None):
                         "S3 siblings: supply-chain-graph, polygon-related-graph, 8k-filings, "
                         "universe, industry-boom"),
         "caveats": [
+            "Polygon-inferred edges are demoted to T4 and can never enter a revenue tier. "
             "T4/T5 rows are NOT supplier claims. Sympathy and competitor-validation moves are "
             "multiple re-rates and mean-revert far more often than revenue read-throughs.",
             "order_value_usd is parsed from the headline/body. Announced orders are not "
