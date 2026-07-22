@@ -1,0 +1,21 @@
+{
+  "gates": {
+    "G1_edge_allows_cad": {
+      "ok": true,
+      "detail": "status=200 bytes=4002 xgov=www.cad.gov.hk"
+    },
+    "G2_lambda_native": {
+      "ok": true,
+      "detail": "async=202 fresh@0.0min ok=True via=edge tonnes_k=433.0 month=2026-05 yoy=3.1 n=29 bytes=2142120 cols={'unloaded': 'L', 'total': 'N', 'yoy': 'O', 'header_row': 8} read=HIGH-VALUE FLOW STEADY levels=26 errs=[]"
+    }
+  },
+  "air": {
+    "tonnes_k": 433.0,
+    "month": "2026-05",
+    "yoy_pct": 3.1,
+    "fetch_via": "edge",
+    "xlsx_n": 29,
+    "read": "HIGH-VALUE FLOW STEADY"
+  },
+  "verdict": "PASS_ALL"
+}

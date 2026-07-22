@@ -1,16 +1,16 @@
-executing-against: 17937e88031451f84d6cfb374504fd91bfa422ae
-ops 3697 — air-cargo Lambda-native via /gov edge
+executing-against: 125082171834c76d66c99f0a16051c2e199ca806
+ops 3698 — air-cargo Lambda-native via /gov edge
 PASS  G1_edge_allows_cad — status=200 bytes=4002 xgov=www.cad.gov.hk
-[04:07:51] G1_edge_allows_cad True
-[04:07:51]   zip: 85788 bytes
+[04:12:35] G1_edge_allows_cad True
+[04:12:35]   zip: 85917 bytes
 ── 1. Lambda ──
-[04:07:51]   Lambda exists — updating
-[04:07:54] ✅   ✓ updated justhodl-air-cargo
+[04:12:35]   Lambda exists — updating
+[04:12:42] ✅   ✓ updated justhodl-air-cargo
 ── 3. Smoke test ──
-[04:07:54]   invoking justhodl-air-cargo…
-FAIL  G2_lambda_native — async=202 fresh@-0.0min ok=False via=None tonnes_k=None month=None yoy=None n=None bytes=0 cols=None read=None levels=None errs=["fetch: URL can't contain control characters. '/english/./pdf/Stat Webpage.xlsx' (found at least ' ')"]
-[04:07:55] G2_lambda_native False
-VERDICT: GAPS: G2_lambda_native
-[04:07:55] VERDICT: GAPS: G2_lambda_native
+[04:12:42]   invoking justhodl-air-cargo…
+PASS  G2_lambda_native — async=202 fresh@0.0min ok=True via=edge tonnes_k=433.0 month=2026-05 yoy=3.1 n=29 bytes=2142120 cols={'unloaded': 'L', 'total': 'N', 'yoy': 'O', 'header_row': 8} read=HIGH-VALUE FLOW STEADY levels=26 errs=[]
+[04:12:45] G2_lambda_native True
+VERDICT: PASS_ALL
+[04:12:45] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3697_air_lambda_native.md
+→ Report written to aws/ops/reports/latest/3698_air_native_fix.md
