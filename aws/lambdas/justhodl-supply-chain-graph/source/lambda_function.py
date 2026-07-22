@@ -79,6 +79,40 @@ EDGES = [
     ("ETN", "AMZN", "power mgmt"), ("ETN", "MSFT", "power mgmt"), ("PWR", "GEV", "grid construction"),
     ("NVT", "MSFT", "power/enclosures"), ("TT", "MSFT", "HVAC cooling"), ("JCI", "AMZN", "building/cooling"),
     ("CARR", "MSFT", "cooling"), ("CCJ", "CEG", "uranium fuel"),
+    # ── NEOCLOUD / AI-DATACENTER CLUSTER (ops 3701) ──────────────────────────
+    # The GPU-cloud and converted-miner operators are where the AI capex cycle
+    # physically lands. Without them on the graph an NBIS/IREN/APLD capex print
+    # has no suppliers to read through to and falls back to meaningless
+    # same-industry software peers. Category-level curation, house standard.
+    ("NVDA", "NBIS", "GPUs"), ("NVDA", "IREN", "GPUs"), ("NVDA", "APLD", "GPUs"),
+    ("NVDA", "WULF", "GPUs"), ("NVDA", "CIFR", "GPUs"),
+    ("DELL", "NBIS", "AI servers"), ("DELL", "IREN", "AI servers"),
+    ("SMCI", "NBIS", "AI servers"), ("SMCI", "CRWV", "AI servers"),
+    ("SMCI", "IREN", "AI servers"), ("SMCI", "APLD", "AI servers"),
+    ("VRT", "NBIS", "liquid cooling/power"), ("VRT", "IREN", "liquid cooling"),
+    ("VRT", "APLD", "liquid cooling/power"), ("VRT", "WULF", "cooling/power"),
+    ("VRT", "CIFR", "cooling/power"), ("VRT", "GDS", "cooling/power"),
+    ("ETN", "NBIS", "power distribution"), ("ETN", "CRWV", "power distribution"),
+    ("ETN", "IREN", "power distribution"), ("ETN", "APLD", "switchgear/power"),
+    ("ETN", "WULF", "switchgear/power"), ("ETN", "CIFR", "switchgear/power"),
+    ("ETN", "GDS", "power distribution"),
+    ("PWR", "APLD", "grid/EPC construction"), ("PWR", "WULF", "grid/EPC construction"),
+    ("PWR", "CIFR", "grid/EPC construction"),
+    ("GEV", "APLD", "grid/turbines"), ("GEV", "WULF", "grid/turbines"),
+    ("NVT", "CRWV", "enclosures/liquid cooling"), ("NVT", "APLD", "enclosures/cooling"),
+    ("NVT", "WULF", "enclosures/cooling"), ("NVT", "CIFR", "enclosures/cooling"),
+    ("HUBB", "APLD", "electrical"), ("HUBB", "WULF", "electrical"), ("HUBB", "CIFR", "electrical"),
+    ("MOD", "APLD", "datacenter cooling"), ("MOD", "CIFR", "datacenter cooling"),
+    ("ANET", "CRWV", "switching"), ("ANET", "NBIS", "switching"),
+    ("CRDO", "CRWV", "AEC connectivity"), ("CRDO", "NBIS", "AEC connectivity"),
+    ("COHR", "CRWV", "optical interconnect"), ("LITE", "NBIS", "optical"),
+    ("CIEN", "CRWV", "DCI optical transport"), ("CIEN", "NBIS", "DCI optical transport"),
+    ("CIEN", "GDS", "DCI optical transport"),
+    # neoclouds are themselves SUPPLIERS of compute to the hyperscalers — this is
+    # the edge that makes them read through when a hyperscaler capex print lands.
+    ("CRWV", "MSFT", "GPU cloud capacity"), ("CRWV", "META", "GPU cloud capacity"),
+    ("NBIS", "MSFT", "GPU cloud capacity"), ("IREN", "MSFT", "GPU cloud capacity"),
+    ("APLD", "CRWV", "AI datacenter leases"),
     # ── Apple chain ──
     ("QCOM", "AAPL", "modem"), ("SWKS", "AAPL", "RF"), ("QRVO", "AAPL", "RF"),
     ("CRUS", "AAPL", "audio codec"), ("GLW", "AAPL", "cover glass"), ("TXN", "AAPL", "analog"),
@@ -128,11 +162,12 @@ _tag(["SNPS","CDNS","ARM"], "EDA/IP")
 _tag(["TSM"], "Foundry")
 _tag(["MU","AMKR"], "Memory/Packaging")
 _tag(["NVDA","AMD","INTC"], "AI Compute")
-_tag(["AVGO","MRVL","ANET","CRDO","QCOM","COHR","LITE","APH"], "Networking/Optical")
+_tag(["AVGO","MRVL","ANET","CRDO","QCOM","COHR","LITE","APH","CIEN"], "Networking/Optical")
 _tag(["SMCI","DELL","CLS","JBL","FLEX"], "Servers/EMS")
 _tag(["STX","WDC"], "Storage")
-_tag(["VRT","VST","CEG","GEV","ETN","PWR","NVT","TT","JCI","CARR","CCJ","NEE","HUBB","ATKR"], "Power/Cooling/Grid")
-_tag(["MSFT","META","GOOGL","AMZN","ORCL","CRWV"], "Hyperscaler")
+_tag(["VRT","VST","CEG","GEV","ETN","PWR","NVT","TT","JCI","CARR","CCJ","NEE","HUBB","ATKR","MOD"], "Power/Cooling/Grid")
+_tag(["MSFT","META","GOOGL","AMZN","ORCL"], "Hyperscaler")
+_tag(["NBIS","CRWV","IREN","APLD","WULF","CIFR","GDS"], "Neocloud/AI-DC")
 _tag(["AAPL","SWKS","QRVO","CRUS","GLW","TXN","STM","GSAT","SYNA","ADI"], "Apple/Analog")
 _tag(["BA","RTX","LMT","NOC","GD","GE","HWM","HEI","TDG","SPR","CW","MRCY","KTOS","LHX","HII","AXON","MP"], "Aero/Defense")
 _tag(["ROK","AME","PH","DOV","MPWR","VICR"], "Automation/Power-semi")
@@ -324,7 +359,7 @@ def lambda_handler(event=None, context=None):
 
     themes = sorted({n["theme"] for n in nodes})
     payload = {
-        "engine": "justhodl-supply-chain-graph", "version": "2.0.0", "ok": True,
+        "engine": "justhodl-supply-chain-graph", "version": "2.1.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Named supplier↔customer graph across semis/tech/datacenter/aero-defense/"
                    "industrial/auto/energy/biopharma. When a hub booms, its suppliers that "

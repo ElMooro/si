@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -90,6 +90,14 @@ TIERS = {
     "T5_COMPETITOR_VALIDATION": {"w": 0.20, "capture": 0.00, "label": "Competitor — TAM validated, no revenue"},
 }
 TIER_ORDER = list(TIERS.keys())
+
+# Per-event tier caps (ops 3701). Without these an industry with 60 members
+# floods the board with identical-score peers — 22 rows of T5 software names
+# for a datacenter capex story, all scoring exactly the same. The cap is
+# tightest where the mechanism is weakest.
+TIER_CAPS = {"T1_DIRECT_SUPPLIER": 12, "T2_TIER2_INPUT": 8,
+             "T3_INFRASTRUCTURE": 8, "T4_THEMATIC_SYMPATHY": 6,
+             "T5_COMPETITOR_VALIDATION": 5}
 
 EDGE_CONF = {"curated_mutual": 1.00, "curated_one_way": 0.85,
              "curated_none": 0.70, "polygon_related": 0.60, "industry_peer": 0.45}
@@ -426,8 +434,26 @@ def beneficiaries_for(cat, g, tape, univ_meta):
                 f"same industry ({ind}) — demand validated, not supplied", "industry_peer", False)
 
     rows = list(found.values())
-    rows.sort(key=lambda r: (TIER_ORDER.index(r["tier"]), -tape[r["ticker"]]["dollar_vol"]))
-    return rows[:MAX_BENEF_PER_EVENT]
+    cat_mc = cat.get("market_cap") or 0
+
+    def _rank(r):
+        t = r["ticker"]
+        if r["tier"] in ("T4_THEMATIC_SYMPATHY", "T5_COMPETITOR_VALIDATION"):
+            # No revenue transfer in these tiers, so liquidity is the wrong sort —
+            # it just surfaces the biggest names in the industry. A comparable is
+            # useful when it is comparable IN SIZE: a $4T mega-cap does not re-rate
+            # on a mid-cap's capex print. Closest-in-size first.
+            mc = (univ_meta.get(t) or {}).get("mcap")
+            if mc and cat_mc:
+                return abs(math.log(mc / cat_mc))
+            return 99.0
+        return -tape[t]["dollar_vol"]   # revenue tiers: most tradeable first
+
+    out_rows = []
+    for tier in TIER_ORDER:
+        tier_rows = sorted([r for r in rows if r["tier"] == tier], key=_rank)
+        out_rows.extend(tier_rows[:TIER_CAPS.get(tier, 99)])
+    return out_rows[:MAX_BENEF_PER_EVENT]
 
 
 # ═══════════════════════════ Shortlist enrichment ═══════════════════════════════
@@ -752,6 +778,7 @@ def lambda_handler(event=None, context=None):
         "beneficiaries": all_rows[:200],
         "chase_guard": overshot,
         "top_picks": top_picks,
+        "tier_caps": TIER_CAPS,
         "tiers": {k: {"weight": v["w"], "capture_share": v["capture"], "label": v["label"]}
                   for k, v in TIERS.items()},
         "industry_boom_context": ind_boom,
