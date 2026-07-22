@@ -1,40 +1,24 @@
-executing-against: bf436aaf1bf8072c09d2b7042bb0ee4560559daf
-ops 3679 — boom-stage v1.1 SIGNALS: 6 pairs + transitions/sliding + trades + sentinel
-[01:32:42]   zip: 87225 bytes
+executing-against: cb5f6d2e815a7a862032f15552cc58622b170587
+ops 3680 — global canary matrix
+[01:49:44]   zip: 87915 bytes
 ── 1. Lambda ──
-[01:32:42]   Lambda exists — updating
-[01:32:48] ✅   ✓ updated justhodl-boom-stage
+[01:49:45]   Lambda exists — updating
+[01:49:48] ✅   ✓ updated justhodl-portwatch
 ── 3. Smoke test ──
-[01:32:48]   invoking justhodl-boom-stage…
-PASS  G1_engine — err=None ok=True headline=Korea · Semiconductors/Memory: EARLY_PRICE_LED signals=[] hist_prev=None stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('TW-electronics', 'NA', None, None), ('CN-broad', 'CONTRACTION', -8.8, -25.6), ('UAE-energy', 'MIXED', 33.3, -29.8), ('BR-commodities', 'MIXED', 16.7, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1)]
-[01:32:51] G1_engine True
-[01:32:52]   zip: 107431 bytes
+[01:49:48]   invoking justhodl-portwatch…
+PASS  G1_ports — nations=19 new_have=['Peru', 'Finland', 'Saudi Arabia'] rows=[('Peru', 2, 11.2, 'STABLE'), ('Finland', 3, 3.8, 'STABLE'), ('Saudi Arabia', 6, -9.8, 'STABLE')] ref_search=[{'name': 'Jeddah', 'full': 'Jeddah, Saudi Arabia', 'country': 'Saudi Arabia'}, {'name': 'Callao', 'full': 'Callao, Peru', 'country': 'Peru'}, {'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Kaohsiung', 'full': 'Kaohsiung, Taiwan Province of China', 'country': 'Taiwan Province of China'}, {'name': 'Kotka', 'full': 'Kotka, Finland', 'country': 'Finland'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]
+[01:50:55] G1_ports True
+[01:50:56]   zip: 89332 bytes
 ── 1. Lambda ──
-[01:32:52]   Lambda exists — updating
-[01:32:57] ✅   ✓ updated justhodl-morning-intelligence
+[01:50:56]   Lambda exists — updating
+[01:50:59] ✅   ✓ updated justhodl-boom-stage
 ── 3. Smoke test ──
-[01:32:57]   invoking justhodl-morning-intelligence…
-[01:33:30] ✅   ✓ smoke test passed
-[01:33:30]     success                  True
-[01:33:30]     khalid_adj               43.0
-[01:33:30]     regime                   BEAR
-[01:33:30]     btc                      66797
-[01:33:30]     outcomes                 17811
-[01:33:30]     improved                 False
-[01:33:30]     weights_active           277
-[01:33:30]     ka_adj                   43.0
-[01:33:31]   zip: 90002 bytes
-── 1. Lambda ──
-[01:33:31]   Lambda exists — updating
-[01:33:37] ✅   ✓ updated justhodl-alert-sentinel
-── 3. Smoke test ──
-[01:33:37]   invoking justhodl-alert-sentinel…
-[01:33:39] ✅   ✓ smoke test passed
-[01:33:39]     sent                     False
-[01:33:39]     changes                  4
-PASS  G2_wires — {'signals_panel': True, 'trade_lines': True, 'traj': True, 'mi': True}
-[01:35:01] G2_wires True
+[01:50:59]   invoking justhodl-boom-stage…
+PASS  G2_engine — err=None n_pairs=10 regime=STAGFLATIONARY SQUEEZE slow=75(HIGH) infl=100(HIGH) stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -31.1), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.7, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.5, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.5, None), ('PE-copper', 'BROADENING', 16.5, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.7, -9.8), ('TW-semis', 'NA', None, None)] say=Global slowdown risk is HIGH: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Saudi Arabia WITH volumes falling (supply-driven — the bad kind: raises prices AND hurts growth).
+[01:51:03] G2_engine True
+PASS  G3_page — {'regime': True, 'dials': True, 'plain': True, 'split': True, 'shock': True}
+[01:52:04] G3_page True
 VERDICT: PASS_ALL
-[01:35:01] VERDICT: PASS_ALL
+[01:52:04] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3679_bs_signals.md
+→ Report written to aws/ops/reports/latest/3680_canary_matrix.md

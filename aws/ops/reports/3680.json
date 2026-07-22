@@ -1,0 +1,98 @@
+{
+  "gates": {
+    "G1_ports": {
+      "ok": true,
+      "detail": "nations=19 new_have=['Peru', 'Finland', 'Saudi Arabia'] rows=[('Peru', 2, 11.2, 'STABLE'), ('Finland', 3, 3.8, 'STABLE'), ('Saudi Arabia', 6, -9.8, 'STABLE')] ref_search=[{'name': 'Jeddah', 'full': 'Jeddah, Saudi Arabia', 'country': 'Saudi Arabia'}, {'name': 'Callao', 'full': 'Callao, Peru', 'country': 'Peru'}, {'name': 'Hai Phong', 'full': 'Hai Phong, Vietnam', 'country': 'Vietnam'}, {'name': 'Kaohsiung', 'full': 'Kaohsiung, Taiwan Province of China', 'country': 'Taiwan Province of China'}, {'name': 'Kotka', 'full': 'Kotka, Finland', 'country': 'Finland'}, {'name': 'Hamburg', 'full': 'Hamburg, Germany', 'country': 'Germany'}, {'name': 'Van Phong', 'full': 'Van Phong, Vietnam', 'country': 'Vietnam'}]"
+    },
+    "G2_engine": {
+      "ok": true,
+      "detail": "err=None n_pairs=10 regime=STAGFLATIONARY SQUEEZE slow=75(HIGH) infl=100(HIGH) stages=[('KR-semis', 'EARLY_PRICE_LED', 52.3, -4.3), ('CN-broad', 'CONTRACTION', -8.8, -31.1), ('UAE-energy', 'SUPPLY_SHOCK_PRICING', 33.7, -29.8), ('BR-commodities', 'SUPPLY_SHOCK_PRICING', 16.5, -18.8), ('US-freight', 'EARLY_PRICE_LED', 11.2, -4.1), ('CL-copper', 'NA', 16.5, None), ('PE-copper', 'BROADENING', 16.5, 11.2), ('FI-pulp', 'VALUE_LED_DOWNTURN', -7.6, 3.8), ('SA-oil', 'EARLY_PRICE_LED', 33.7, -9.8), ('TW-semis', 'NA', None, None)] say=Global slowdown risk is HIGH: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Saudi Arabia WITH volumes falling (supply-driven \u2014 the bad kind: raises prices AND hurts growth)."
+    },
+    "G3_page": {
+      "ok": true,
+      "detail": "{'regime': True, 'dials': True, 'plain': True, 'split': True, 'shock': True}"
+    }
+  },
+  "new_nations": [
+    "Peru",
+    "Finland",
+    "Saudi Arabia"
+  ],
+  "macro": {
+    "slowdown_risk": 75,
+    "slowdown_band": "HIGH",
+    "inflation_pressure": 100,
+    "inflation_band": "HIGH",
+    "regime": "STAGFLATIONARY SQUEEZE",
+    "plain_english": "Global slowdown risk is HIGH: physical demand is contracting in China, Finland while Korea, US, Peru still expand. Inflation pressure is HIGH: prices are rising in UAE, Brazil, Saudi Arabia WITH volumes falling (supply-driven \u2014 the bad kind: raises prices AND hurts growth).",
+    "growth_canaries": 5,
+    "inflation_canaries": 3,
+    "weak": [
+      "China",
+      "Finland"
+    ],
+    "hot": [
+      "UAE",
+      "Brazil",
+      "Saudi Arabia"
+    ],
+    "strong": [
+      "Korea",
+      "US",
+      "Peru"
+    ]
+  },
+  "pairs": [
+    [
+      "KR-semis",
+      "EARLY_PRICE_LED",
+      "GROWTH"
+    ],
+    [
+      "CN-broad",
+      "CONTRACTION",
+      "GROWTH"
+    ],
+    [
+      "UAE-energy",
+      "SUPPLY_SHOCK_PRICING",
+      "INFLATION"
+    ],
+    [
+      "BR-commodities",
+      "SUPPLY_SHOCK_PRICING",
+      "INFLATION"
+    ],
+    [
+      "US-freight",
+      "EARLY_PRICE_LED",
+      "GROWTH"
+    ],
+    [
+      "CL-copper",
+      "NA",
+      "GROWTH"
+    ],
+    [
+      "PE-copper",
+      "BROADENING",
+      "GROWTH"
+    ],
+    [
+      "FI-pulp",
+      "VALUE_LED_DOWNTURN",
+      "GROWTH"
+    ],
+    [
+      "SA-oil",
+      "EARLY_PRICE_LED",
+      "INFLATION"
+    ],
+    [
+      "TW-semis",
+      "NA",
+      "GROWTH"
+    ]
+  ],
+  "verdict": "PASS_ALL"
+}
