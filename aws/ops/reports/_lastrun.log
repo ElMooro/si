@@ -1,18 +1,11 @@
-executing-against: 7b4d02d14220770d8c2d6f40b58fa8f657050712
-ops 3671 — air v1.4 async landing
-[23:49:03]   zip: 86928 bytes
-── 1. Lambda ──
-[23:49:03]   Lambda exists — updating
-[23:49:06] ✅   ✓ updated justhodl-air-cargo
-── 3. Smoke test ──
-[23:49:06]   invoking justhodl-air-cargo…
-CRASH: end(request)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages/botocore/httpsession.py", line 514, in send
-    raise ReadTimeoutError(endpoint_url=request.url, error=e)
-botocore.exceptions.ReadTimeoutError: Read timeout on endpoint URL: "https://lambda.us-east-1.amazonaws.com/2015-03-31/functions/justhodl-air-cargo/invocations"
+executing-against: 1df0240d4f30e09cdcaf1c5a28a4252a81b9386f
+ops 3672 — runner-side CAD xlsx landing + fn diag
+FAIL  G1_value — bytes=2142120 strings=53 tonnes_k=None yoy=None n=None tail=None row=None xp=no freight/cargo row; strings: Hong Kong International Airport    | Civil International Air Transport | Movements of Aircraft, Passenger and Freight | Aircraft | Year | Month | Landing | Take-off | Total | Year-on-year 
+% change | Arrival | Departure | Unload errs=[]
+[00:15:00] G1_value False
+PASS  G2_diag — {'State': 'Active', 'LastUpdateStatus': 'Successful', 'Timeout': 120, 'MemorySize': 512, 'CodeSize': 86928, 'LastModified': '2026-07-21T23:49:06.000+0000', 'last_log_event': 1784678676858, 'log_tail': 'INIT_START Runtime Version: python:3.12.mainlinev2.v18\tRuntime Version ARN: arn:'}
+[00:15:01] G2_diag True
+VERDICT: GAPS: G1_value
+[00:15:01] VERDICT: GAPS: G1_value
 
-VERDICT: CRASH
-[23:54:13] VERDICT: CRASH
-
-→ Report written to aws/ops/reports/latest/3671_air_async.md
+→ Report written to aws/ops/reports/latest/3672_air_runner.md
