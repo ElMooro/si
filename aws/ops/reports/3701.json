@@ -1,0 +1,185 @@
+{
+  "gates": {
+    "G1_code_shipped": {
+      "ok": false,
+      "detail": "graph: neocloud_block=False theme=False v2.1=False | readthrough: tier_caps=False v1.0.2=False"
+    },
+    "G2_graph_rebuilt": {
+      "ok": true,
+      "detail": "graph refreshed=True waited=15.1s"
+    },
+    "G3_neocloud_coverage": {
+      "ok": false,
+      "detail": "n_edges=222 (was 0 for these) missing_or_thin=['NBIS', 'IREN', 'APLD', 'WULF', 'CIFR', 'GDS'] NBIS<-0 | CRWV<-3 | IREN<-0 | APLD<-0 | WULF<-0 | CIFR<-0 | GDS<-0"
+    },
+    "G4_reverse_edges": {
+      "ok": false,
+      "detail": "CRWV->[] | NBIS->[] | IREN->[] | APLD->[]"
+    },
+    "G5_tier_caps": {
+      "ok": true,
+      "detail": "v=1.0.2 refreshed=True waited=15.1s events=2 rows=10 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}"
+    },
+    "G6_no_regression": {
+      "ok": true,
+      "detail": "status=OK negative=[] degraded=[] unpriced=5"
+    }
+  },
+  "coverage": {
+    "NBIS": [],
+    "CRWV": [
+      "DELL",
+      "NVDA",
+      "VRT"
+    ],
+    "IREN": [],
+    "APLD": [],
+    "WULF": [],
+    "CIFR": [],
+    "GDS": []
+  },
+  "graph": {
+    "version": "2.0.0",
+    "n_nodes": 174,
+    "n_edges": 222,
+    "themes": [
+      "AI Compute",
+      "Aero/Defense",
+      "Apple/Analog",
+      "Auto/EV/Materials",
+      "Automation/Power-semi",
+      "EDA/IP",
+      "Energy",
+      "Foundry",
+      "Healthcare/Biopharma",
+      "Hyperscaler",
+      "Machinery/Rail",
+      "Market-Inferred",
+      "Memory/Packaging",
+      "Networking/Optical",
+      "Power/Cooling/Grid",
+      "Semicap",
+      "Servers/EMS",
+      "Storage"
+    ]
+  },
+  "board": {
+    "version": "1.0.2",
+    "status": "OK",
+    "n_events": 2,
+    "n_rows": 10,
+    "n_unpriced": 5,
+    "tier_mix": {
+      "T5_COMPETITOR_VALIDATION": 10
+    },
+    "events": [
+      {
+        "t": "UTZ",
+        "mv": 88.72,
+        "type": "MEGA_CONTRACT",
+        "benef": 5,
+        "unpriced": 5
+      },
+      {
+        "t": "NBIS",
+        "mv": 18.78,
+        "type": "CAPACITY_EXPANSION",
+        "benef": 5,
+        "unpriced": 0
+      }
+    ],
+    "top": [
+      {
+        "t": "HLF",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "UTZ",
+        "exp": 3.79,
+        "gap": 3.79,
+        "st": "UNPRICED",
+        "sc": 44.8
+      },
+      {
+        "t": "SENEA",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "UTZ",
+        "exp": 3.79,
+        "gap": 3.79,
+        "st": "UNPRICED",
+        "sc": 44.8
+      },
+      {
+        "t": "JJSF",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "UTZ",
+        "exp": 3.79,
+        "gap": 3.79,
+        "st": "UNPRICED",
+        "sc": 44.8
+      },
+      {
+        "t": "BRBR",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "UTZ",
+        "exp": 3.79,
+        "gap": 3.79,
+        "st": "UNPRICED",
+        "sc": 44.8
+      },
+      {
+        "t": "SMPL",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "UTZ",
+        "exp": 3.79,
+        "gap": 3.79,
+        "st": "UNPRICED",
+        "sc": 44.8
+      },
+      {
+        "t": "XYZ",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "gap": 0.72,
+        "st": "PARTIAL",
+        "sc": 44.8
+      },
+      {
+        "t": "CRWV",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "gap": 0.72,
+        "st": "PARTIAL",
+        "sc": 44.8
+      },
+      {
+        "t": "SNPS",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "gap": 0.72,
+        "st": "PARTIAL",
+        "sc": 44.8
+      },
+      {
+        "t": "TWLO",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "gap": 0.72,
+        "st": "PARTIAL",
+        "sc": 44.8
+      },
+      {
+        "t": "NET",
+        "tier": "T5_COMPETITOR_VALIDATION",
+        "via": "NBIS",
+        "exp": 0.72,
+        "gap": 0.72,
+        "st": "PARTIAL",
+        "sc": 44.8
+      }
+    ]
+  },
+  "verdict": "GAPS: G1_code_shipped,G3_neocloud_coverage,G4_reverse_edges"
+}

@@ -1,35 +1,44 @@
-executing-against: e838c0d431dc62d972bcadfd1d82107864833841
-ops 3700 — readthrough v1.0.1 fix verification
-PASS  G1_telegram_env — env keys=['FMP_KEY', 'FRED_KEY', 'POLYGON_KEY', 'TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'] missing=[]
-[04:46:51] G1_telegram_env True
-PASS  G2_code_shipped — version_line=1.0.1 structural_exclude=True positive_only=True bytes=37351
-[04:46:51] G2_code_shipped True
-PASS  G3_invoke — feed refreshed=True waited=15.3s
-[04:47:07] G3_invoke True
-PASS  G4_no_phantom_catalysts — version=1.0.1 events=1 negative=[] structural=[]
-[04:47:07] G4_no_phantom_catalysts True
-PASS  G5_row_integrity — rows=22 malformed=[] unpriced=0 picks=0 status=OK degraded=[]
-[04:47:07] G5_row_integrity True
+executing-against: 860d4796c7fdfa1075437f550909263cd3fd0751
+ops 3701 — neocloud cluster + readthrough tier caps
+FAIL  G1_code_shipped — graph: neocloud_block=False theme=False v2.1=False | readthrough: tier_caps=False v1.0.2=False
+[05:24:36] G1_code_shipped False
+PASS  G2_graph_rebuilt — graph refreshed=True waited=15.1s
+[05:24:52] G2_graph_rebuilt True
+FAIL  G3_neocloud_coverage — n_edges=222 (was 0 for these) missing_or_thin=['NBIS', 'IREN', 'APLD', 'WULF', 'CIFR', 'GDS'] NBIS<-0 | CRWV<-3 | IREN<-0 | APLD<-0 | WULF<-0 | CIFR<-0 | GDS<-0
+[05:24:52] G3_neocloud_coverage False
 
-=== CATALYSTS (v1.0.1) ===
-  NBIS     18.78%  CAPACITY_EXPANSION   benef=22 unpriced=0
-         Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
+=== NEOCLOUD SUPPLIER RESOLUTION (this is the read-through path) ===
+  NBIS  theme=None             suppliers(0): 
+  CRWV  theme=Hyperscaler      suppliers(3): DELL, NVDA, VRT
+  IREN  theme=None             suppliers(0): 
+  APLD  theme=None             suppliers(0): 
+  WULF  theme=None             suppliers(0): 
+  CIFR  theme=None             suppliers(0): 
+  GDS   theme=None             suppliers(0): 
+FAIL  G4_reverse_edges — CRWV->[] | NBIS->[] | IREN->[] | APLD->[]
+[05:24:52] G4_reverse_edges False
+PASS  G5_tier_caps — v=1.0.2 refreshed=True waited=15.1s events=2 rows=10 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}
+[05:25:07] G5_tier_caps True
+PASS  G6_no_regression — status=OK negative=[] degraded=[] unpriced=5
+[05:25:07] G6_no_regression True
 
-=== TOP BENEFICIARY ROWS ===
-  MSFT   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  ORCL   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  PLTR   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  PATH   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  PANW   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  CRWV   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  CRWD   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  SNPS   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  NET    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  FTNT   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  AKAM   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
-  MDB    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 real=    0.0 gap=   0.72 PARTIAL   score=44.8
+=== READ-THROUGH BOARD (v1.0.2) ===
+  tier mix: {'T5_COMPETITOR_VALIDATION': 10}
+  CATALYST UTZ      88.72%  MEGA_CONTRACT        benef=5 unpriced=5
+  CATALYST NBIS     18.78%  CAPACITY_EXPANSION   benef=5 unpriced=0
+    HLF    T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
+    SENEA  T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
+    JJSF   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
+    BRBR   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
+    SMPL   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
+    XYZ    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
+    CRWV   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
+    SNPS   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
+    TWLO   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
+    NET    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
 
-VERDICT: PASS_ALL
-[04:47:07] VERDICT: PASS_ALL
+VERDICT: GAPS: G1_code_shipped,G3_neocloud_coverage,G4_reverse_edges
+[05:25:07] VERDICT: GAPS: G1_code_shipped,G3_neocloud_coverage,G4_reverse_edges
 
-→ Report written to aws/ops/reports/latest/3700_readthrough_fixes.md
+→ Report written to aws/ops/reports/latest/3701_neocloud_edges.md
+❌ OPS-FAIL: aws/ops/pending/ops_3701_neocloud_edges.py
