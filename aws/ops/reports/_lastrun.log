@@ -1,19 +1,27 @@
-executing-against: c540f6746f98086e1d5cabb16df03176d6ba5a18
-ops 3720 — shared/benzinga.py FMP calendar fallback
-── probe — is FMP earnings-calendar usable? ──
-[19:17:39] P1_fmp_probe True
-  P1_fmp_probe                     True  rows=4000 with_epsEstimated=2868 keys=['date', 'epsActual', 'epsEstimated', 'lastUpdated', 'revenueActual', 'revenueEstimated', 'symbol']
-    sample row: {"symbol": "SEER", "date": "2026-08-05", "epsActual": null, "epsEstimated": -0.27, "revenueActual": null, "revenueEstimated": 3550000, "lastUpdated": "2026-07-22"}
-── patch — shared/benzinga.py ──
-[19:17:39] G1_shim_added True
-  G1_shim_added                    True  fetch_calendar now falls back to FMP when Massive yields nothing
-[19:17:39] G2_module_compiles True
-  G2_module_compiles               True  shared/benzinga.py compiles
-[19:17:39] G3_consumers_identified True
-  G3_consumers_identified          True  repaired by this shim: ['justhodl-earnings-tracker', 'justhodl-estimate-revisions']
+executing-against: cd2abac79fe645bc5e1265c4c025cb105278538e
+ops 3721 — FMP calendar shim: live verification
+── 1 — live zip inspection ──
+    justhodl-estimate-revisions: {'has_benzinga_module': True, 'has_shim': False, 'n_files': 19}
+    justhodl-earnings-tracker: {'has_benzinga_module': True, 'has_shim': False, 'n_files': 17}
+[19:21:25] G1_shim_state_known True
+  G1_shim_state_known                True  needs_republish=['justhodl-estimate-revisions', 'justhodl-earnings-tracker'] state={'justhodl-estimate-revisions': {'has_benzinga_module': True, 'has_shim': False, 'n_files': 19}, 'justhodl-earnings-tracker': {'has_benzinga_module': True, 'has_shim': False, 'n_files': 17}}
+── 2 — republish (deploy-lambdas skipped the [skip-deploy] commit) ──
+    republished justhodl-estimate-revisions (87390 bytes)
+[19:21:31] republished justhodl-estimate-revisions (87390 bytes)
+    republished justhodl-earnings-tracker (89642 bytes)
+[19:21:37] republished justhodl-earnings-tracker (89642 bytes)
+[19:21:49] G2_shim_live True
+  G2_shim_live                       True  shim missing after republish: none
+── 3 — invoke estimate-revisions ──
+[19:22:05] G3_refreshed True
+  G3_refreshed                       True  artifact refreshed in 15s
+[19:22:05] G4_directions_populate False
+  G4_directions_populate             False  upward=0 downward=0 (was 0/0) n_tracked=436 n_fmp_enriched=256 n_with_history=436
+[19:22:05] G5_calendar_alive True
+  G5_calendar_alive                  True  n_tracked=436 n_with_history=436 n_state_keys=448 (re-seed under new fiscal keys is expected — FMP supplies no fiscal_period/fiscal_year, so some names produce a direction only on the NEXT run)
 
-VERDICT: PASS_ALL
-NOTE: live verification deferred to ops 3720 so deploy-lambdas can settle (3717/3718 both burned runs racing it).
-[19:17:39] VERDICT: PASS_ALL
+VERDICT: GAPS: G4_directions_populate
+[19:22:05] VERDICT: GAPS: G4_directions_populate
 
-→ Report written to aws/ops/reports/latest/3720_benzinga_fmp_shim.md
+→ Report written to aws/ops/reports/latest/3721_shim_live_verify.md
+❌ OPS-FAIL: aws/ops/pending/ops_3721_shim_live_verify.py
