@@ -1,52 +1,46 @@
-executing-against: 2442afd892024654d732786bcf032ecf38a38916
-ops 3710 — backlog reverse-engineering, stage 1
-  artifacts ready after 1 s
-PASS  G1_shipped — v1.1.0=False join=True flow_cons=True backlog_asof=True
-[16:34:17] G1_shipped True
-  backlog pass 1: ledger=83 slice=55
-  backlog pass 2: ledger=83 slice=55
-  backlog pass 3: ledger=83 slice=55
-  backlog sidecar refreshed in 303 s
-FAIL  G2b_ledger_accumulates — ledger sizes across 3 passes = [83, 83, 83] (must GROW, not churn)
-[16:44:45] G2b_ledger_accumulates False
-PASS  G2_backlog_asof — backlog names=83 with_asof=83 sample={'CETX': None, 'OLOX': None, 'LSH': None, 'TPET': None, 'HYFM': None}
-[16:44:45] G2_backlog_asof True
-PASS  G3_invoke — refreshed=True waited=15.2s
-[16:45:00] G3_invoke True
-PASS  G4_flow_conservation — tier-share sums checked=13 overruns=[] example={'SMCI/T1_DIRECT_SUPPLIER': 0.55, 'DELL/T1_DIRECT_SUPPLIER': 0.55, 'SMCI/T2_TIER2_INPUT': 0.15, 'DELL/T2_TIER2_INPUT': 0.15}
-[16:45:00] G4_flow_conservation True
-PASS  G5_join_live — v=1.1.1 quadrants={'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 1, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 78} rows=79 rows_with_fundamentals=14 degraded=['fundamental sidecar missing: forward-orders']
-[16:45:00] G5_join_live True
-PASS  G7_no_unearned_twice — TWICE_UNPRICED without revision data=[]
-[16:45:00] G7_no_unearned_twice True
-PASS  G8_rpo_denominator_sane — implausible unbooked ratios=[]
-[16:45:00] G8_rpo_denominator_sane True
-PASS  G6_unbooked_test — rows where the last RPO filing predates the catalyst: 14 -> ['AMD', 'AMD', 'MU', 'MU', 'AVGO', 'NVDA', 'AMAT', 'AMAT', 'LRCX', 'LRCX']
-[16:45:00] G6_unbooked_test True
+executing-against: 16417610816b029e241d981476e385ab42f8708c
+ops 3711 — consensus observability, stage 1.5
+  artifact ready after 1 s
+PASS  G1_shipped — v1.2.0=True actions=True snapshot=True observed=True
+[16:53:05] G1_shipped True
+  pass 1: refreshed=True in 15s
+  pass 2: refreshed=True in 15s
+PASS  G2_invoke — second pass refreshed=True
+[16:53:36] G2_invoke True
+PASS  G3_snapshot_ledger — consensus snapshot ledger holds 73 names (sample=['AMAT', 'AMD', 'AN', 'ANET', 'APH', 'ARM'])
+[16:53:37] G3_snapshot_ledger True
+PASS  G4_consensus_observable — v=1.2.0 rows=79 consensus_observed=74 sellside_covered=137 deltas=62 quadrants={'TWICE_UNPRICED': 54, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 19, 'FULLY_PRICED': 1, 'PRICE_ONLY': 5} degraded=['fundamental sidecar missing: forward-orders']
+[16:53:37] G4_consensus_observable True
+PASS  G5_no_unearned_twice — TWICE_UNPRICED without observability=[]
+[16:53:37] G5_no_unearned_twice True
+PASS  G6_flow_conservation_holds — overruns=[] groups=13
+[16:53:37] G6_flow_conservation_holds True
 
-=== QUADRANTS === {'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 1, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 78}
+=== QUADRANTS === {'TWICE_UNPRICED': 54, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 19, 'FULLY_PRICED': 1, 'PRICE_ONLY': 5}
+=== COVERAGE === {'analyst_actions_asof': '2026-07-22T13:45:11.552600+00:00', 'names_with_sellside_coverage': 137, 'names_with_consensus_delta': 62, 'rows_consensus_observed': 74}
 
-=== SMCI CHAIN, flow-conserved ===
-  LITE   capture= 0.01851 implied=   $1.11B exp=  17.47 gap=  16.91 PRICE_ONLY         sc=94.7
-  CRDO   capture= 0.01851 implied=   $1.11B exp=  17.47 gap=  15.21 PRICE_ONLY         sc=92.3
-  MPWR   capture= 0.01587 implied=   $0.95B exp=  13.03 gap=  11.53 PRICE_ONLY         sc=87.5
-  AMD    capture= 0.15865 implied=   $9.52B exp=  13.58 gap=  11.65 PRICE_ONLY         sc=87.0
-  COHR   capture= 0.01851 implied=   $1.11B exp=   8.84 gap=   9.02 PRICE_ONLY         sc=85.6
-  VRT    capture= 0.01587 implied=   $0.95B exp=    6.1 gap=   7.97 PRICE_ONLY         sc=82.5
-  MU     capture= 0.05288 implied=   $3.17B exp=   5.87 gap=   5.69 PRICE_ONLY         sc=81.5
-  ARM    capture= 0.03797 implied=   $2.28B exp=  10.69 gap=  12.64 PRICE_ONLY         sc=80.3
-  WDC    capture= 0.02115 implied=   $1.27B exp=   7.22 gap=   5.07 PRICE_ONLY         sc=76.3
-  STX    capture= 0.02115 implied=   $1.27B exp=   7.39 gap=   5.02 PRICE_ONLY         sc=75.9
-  TER    capture= 0.01139 implied=   $0.68B exp=   6.17 gap=   6.87 PRICE_ONLY         sc=72.4
-  CLS    capture= 0.01899 implied=   $1.14B exp=   3.92 gap=   4.36 PRICE_ONLY         sc=68.4
-  INTC   capture= 0.02644 implied=   $1.59B exp=   5.26 gap=   5.62 PRICE_ONLY         sc=66.2
-  GEV    capture=    0.04 implied=   $2.40B exp=   2.63 gap=  10.05 PRICE_ONLY         sc=61.5
+=== SELL SIDE ALREADY REACTED ===
+  INTC   via SMCI   actions=1 net=-1 TWICE_UNPRICED         sc=76.1
+  INTC   via DELL   actions=1 net=-1 TWICE_UNPRICED         sc=74.1
+  KMX    via PAG    actions=1 net=1 FULLY_PRICED           sc=3.0
 
-=== TWICE UN-PRICED ===
-  (none right now)
+=== TOP ROWS ===
+  LITE   T1_DIRECT_SUPPLIER         gap=   17.4 TWICE_UNPRICED         observed=True moved=False sc=100.0
+  CRDO   T1_DIRECT_SUPPLIER         gap=  14.99 TWICE_UNPRICED         observed=True moved=False sc=100.0
+  AMD    T1_DIRECT_SUPPLIER         gap=  11.48 TWICE_UNPRICED         observed=True moved=False sc=99.9
+  MPWR   T1_DIRECT_SUPPLIER         gap=  11.01 TWICE_UNPRICED         observed=True moved=False sc=99.8
+  COHR   T1_DIRECT_SUPPLIER         gap=   8.85 TWICE_UNPRICED         observed=True moved=False sc=98.4
+  MPWR   T1_DIRECT_SUPPLIER         gap=   3.91 TWICE_UNPRICED         observed=True moved=False sc=95.8
+  AMD    T1_DIRECT_SUPPLIER         gap=   4.05 TWICE_UNPRICED         observed=True moved=False sc=95.7
+  VRT    T1_DIRECT_SUPPLIER         gap=   4.16 TWICE_UNPRICED         observed=True moved=False sc=95.2
+  VRT    T1_DIRECT_SUPPLIER         gap=   7.56 TWICE_UNPRICED         observed=True moved=False sc=94.9
+  LITE   T2_TIER2_INPUT             gap=   4.83 TWICE_UNPRICED         observed=True moved=False sc=93.7
+  MU     T1_DIRECT_SUPPLIER         gap=   5.51 TWICE_UNPRICED         observed=True moved=False sc=93.0
+  ARM    T2_TIER2_INPUT             gap=  12.27 TWICE_UNPRICED         observed=True moved=False sc=92.3
+  ARM    T2_TIER2_INPUT             gap=   5.97 TWICE_UNPRICED         observed=True moved=False sc=91.5
+  MU     T1_DIRECT_SUPPLIER         gap=   2.24 TWICE_UNPRICED         observed=True moved=False sc=91.4
 
-VERDICT: GAPS: G2b_ledger_accumulates
-[16:45:00] VERDICT: GAPS: G2b_ledger_accumulates
+VERDICT: PASS_ALL
+[16:53:37] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3710_backlog_ledger_v2.md
-❌ OPS-FAIL: aws/ops/pending/ops_3710_backlog_ledger_v2.py
+→ Report written to aws/ops/reports/latest/3711_consensus_coverage.md

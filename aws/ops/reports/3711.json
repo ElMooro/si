@@ -1,0 +1,214 @@
+{
+  "gates": {
+    "G1_shipped": {
+      "ok": true,
+      "detail": "v1.2.0=True actions=True snapshot=True observed=True"
+    },
+    "G2_invoke": {
+      "ok": true,
+      "detail": "second pass refreshed=True"
+    },
+    "G3_snapshot_ledger": {
+      "ok": true,
+      "detail": "consensus snapshot ledger holds 73 names (sample=['AMAT', 'AMD', 'AN', 'ANET', 'APH', 'ARM'])"
+    },
+    "G4_consensus_observable": {
+      "ok": true,
+      "detail": "v=1.2.0 rows=79 consensus_observed=74 sellside_covered=137 deltas=62 quadrants={'TWICE_UNPRICED': 54, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 19, 'FULLY_PRICED': 1, 'PRICE_ONLY': 5} degraded=['fundamental sidecar missing: forward-orders']"
+    },
+    "G5_no_unearned_twice": {
+      "ok": true,
+      "detail": "TWICE_UNPRICED without observability=[]"
+    },
+    "G6_flow_conservation_holds": {
+      "ok": true,
+      "detail": "overruns=[] groups=13"
+    }
+  },
+  "board": {
+    "version": "1.2.0",
+    "quadrants": {
+      "TWICE_UNPRICED": 54,
+      "UNBOOKED_NO_CONSENSUS": 0,
+      "ESTIMATES_LEADING": 0,
+      "PRICE_LEADING": 19,
+      "FULLY_PRICED": 1,
+      "PRICE_ONLY": 5
+    },
+    "coverage": {
+      "analyst_actions_asof": "2026-07-22T13:45:11.552600+00:00",
+      "names_with_sellside_coverage": 137,
+      "names_with_consensus_delta": 62,
+      "rows_consensus_observed": 74
+    },
+    "reacted": [
+      {
+        "t": "INTC",
+        "via": "SMCI",
+        "n_act": 1,
+        "net": -1,
+        "q": "TWICE_UNPRICED",
+        "sc": 76.1
+      },
+      {
+        "t": "INTC",
+        "via": "DELL",
+        "n_act": 1,
+        "net": -1,
+        "q": "TWICE_UNPRICED",
+        "sc": 74.1
+      },
+      {
+        "t": "KMX",
+        "via": "PAG",
+        "n_act": 1,
+        "net": 1,
+        "q": "FULLY_PRICED",
+        "sc": 3.0
+      }
+    ],
+    "top": [
+      {
+        "t": "LITE",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 17.4,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 100.0
+      },
+      {
+        "t": "CRDO",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 14.99,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 100.0
+      },
+      {
+        "t": "AMD",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 11.48,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 99.9
+      },
+      {
+        "t": "MPWR",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 11.01,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 99.8
+      },
+      {
+        "t": "COHR",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 8.85,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 98.4
+      },
+      {
+        "t": "MPWR",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 3.91,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 95.8
+      },
+      {
+        "t": "AMD",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 4.05,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 95.7
+      },
+      {
+        "t": "VRT",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 4.16,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 95.2
+      },
+      {
+        "t": "VRT",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 7.56,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 94.9
+      },
+      {
+        "t": "LITE",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 4.83,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 93.7
+      },
+      {
+        "t": "MU",
+        "via": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 5.51,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 93.0
+      },
+      {
+        "t": "ARM",
+        "via": "SMCI",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 12.27,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 92.3
+      },
+      {
+        "t": "ARM",
+        "via": "DELL",
+        "tier": "T2_TIER2_INPUT",
+        "gap": 5.97,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 91.5
+      },
+      {
+        "t": "MU",
+        "via": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "gap": 2.24,
+        "q": "TWICE_UNPRICED",
+        "obs": true,
+        "moved": false,
+        "sc": 91.4
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
