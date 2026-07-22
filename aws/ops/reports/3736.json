@@ -1,0 +1,46 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "engine emits all gated keys"
+    },
+    "G1_zip_settle": {
+      "ok": true,
+      "detail": "marker found after 0s"
+    },
+    "G2_eia_key": {
+      "ok": true,
+      "detail": "key present len=40"
+    },
+    "G3_invoke_accepted": {
+      "ok": true,
+      "detail": "async accepted status=202"
+    },
+    "G3_artifact_written": {
+      "ok": true,
+      "detail": "new artifact observed"
+    },
+    "G4_artifact": {
+      "ok": true,
+      "detail": "age=0.1min shape_ok=True active_mw=1008.8"
+    },
+    "G5_queue_parsed": {
+      "ok": false,
+      "detail": "active=2 projects 1009 MW large>=100MW=2 fuels=1"
+    },
+    "G6_eia_legs": {
+      "ok": true,
+      "detail": "load_states=62 industrial_plants=5 hotspots=4"
+    },
+    "G6_gaps_declared": {
+      "ok": true,
+      "detail": "declared 5 known gaps (ERCOT/PJM/MISO/LBNL/permits)"
+    },
+    "G7_schedule": {
+      "ok": true,
+      "detail": "schedule present"
+    }
+  },
+  "verdict": "FAIL",
+  "data_month": null
+}

@@ -1,0 +1,67 @@
+# ops 3736 — SHIP justhodl-grid-queue v1.0 (power buildout canary)
+
+**Status:** failure  
+**Duration:** 16.8s  
+**Finished:** 2026-07-22T21:19:40+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| data_month | failed | function | n_lines | signals | verdict |
+|---|---|---|---|---|---|
+| ? | G5_queue_parsed | justhodl-grid-queue | 0 | 0 | FAIL |
+
+## Log
+## G0 — key contract (grep producer before gating)
+
+- `21:19:23` PASS G0_key_contract — engine emits all gated keys
+## G1 — zip settle (never invoke the old artifact)
+
+- `21:19:24` PASS G1_zip_settle — marker found after 0s
+## G2 — EIA_API_KEY inherited
+
+- `21:19:24` PASS G2_eia_key — key present len=40
+## G3 — async invoke (Event) + S3 freshness gate
+
+- `21:19:24`   no prior artifact (first run)
+- `21:19:24` PASS G3_invoke_accepted — async accepted status=202
+- `21:19:39`   artifact written after ~15s (age 0.1min)
+- `21:19:39` PASS G3_artifact_written — new artifact observed
+## G4 — S3 artifact fresh + shape
+
+- `21:19:39` PASS G4_artifact — age=0.1min shape_ok=True active_mw=1008.8
+## G5 — data truth (CAISO parse is real, not empty)
+
+- `21:19:39` FAIL G5_queue_parsed — active=2 projects 1009 MW large>=100MW=2 fuels=1
+- `21:19:39`   CPC WEST                                 600.0 MW  Wind Turbine KERN
+- `21:19:39`   POTENTIA-VIRIDI                          408.8 MW  Wind Turbine SAN JOAQUIN
+- `21:19:39`   fuel mix: [('Wind Turbine', 1008.8)]
+- `21:19:39`   withdrawal_ratio=70.2%  completion_ratio=0.0%
+## G6 — EIA planned capacity + industrial load + hotspots
+
+- `21:19:39`   planned period=2026-04 industrial_plants=5
+- `21:19:39`   industrial load period=2026-04 states=62
+- `21:19:39`   LOAD RI       51.3 GWh  YoY 16.2%  3m -2.2%
+- `21:19:39`   LOAD MS     1468.5 GWh  YoY 12.08%  3m 5.74%
+- `21:19:39`   LOAD NM     1333.1 GWh  YoY 11.04%  3m -1.66%
+- `21:19:39`   LOAD AK      130.1 GWh  YoY 10.73%  3m 2.53%
+- `21:19:39`   LOAD LA     3768.5 GWh  YoY 10.29%  3m 1.06%
+- `21:19:39`   HOTSPOT LA   legs=2 EMERGING_BUILDOUT    load 10.29% uprate 0.0 MW
+- `21:19:39`   HOTSPOT CA   legs=2 EMERGING_BUILDOUT    load 8.69% uprate 61.3 MW
+- `21:19:39`   HOTSPOT OR   legs=2 EMERGING_BUILDOUT    load 7.15% uprate 51.6 MW
+- `21:19:39`   HOTSPOT ID   legs=2 EMERGING_BUILDOUT    load 2.59% uprate 12.0 MW
+- `21:19:39` PASS G6_eia_legs — load_states=62 industrial_plants=5 hotspots=4
+- `21:19:39` PASS G6_gaps_declared — declared 5 known gaps (ERCOT/PJM/MISO/LBNL/permits)
+## G7 — schedule (ensure, then verify)
+
+- `21:19:39`   scheduler created
+- `21:19:40`   eventbridge rule: justhodl-grid-queue-daily cron(50 12 * * ? *)
+- `21:19:40` PASS G7_schedule — schedule present
+## VERDICT
+
+- `21:19:40` ✗ gates failed: ['G5_queue_parsed']
