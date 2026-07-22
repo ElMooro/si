@@ -1,70 +1,53 @@
-executing-against: c74d88f8078b707101579c525edb23a8e408638c
-ops 3704 — why is SMCI not on the read-through board?
-keys present: polygon=True fmp=True
-now UTC 2026-07-22T06:20:14.758529+00:00  (ET = UTC-4)
+executing-against: fff0a3cdf31e8cc981e7b87bd4978b2a3d347e85
+ops 3705 — readthrough v1.0.4, the SMCI fix
+  artifact ready after 21s
+PASS  G1_shipped — ext_tape=True lexicon=True anchor=True liq_union=True
+[06:23:33] G1_shipped True
+PASS  G2_invoke — refreshed=True waited=15.1s
+[06:23:48] G2_invoke True
+PASS  G3_smci_present — SMCI move=29.03% (regular 7.01% + extended 22.02%) type=BACKLOG_ORDERS order=$60.0B benef=17 unpriced=11 | Super Micro surges on new order and margin disclosure after SpaceX announcement
+[06:23:48] G3_smci_present True
+PASS  G4_order_value — order_value_usd=60000000000.0 (expect ~6e10 from the $60 billion headline)
+[06:23:48] G4_order_value True
+FAIL  G5_smci_chain — SMCI rows=17 T1=['NVDA'] tiers={'T3_INFRASTRUCTURE': 3, 'T5_COMPETITOR_VALIDATION': 5, 'T2_TIER2_INPUT': 8, 'T1_DIRECT_SUPPLIER': 1}
+[06:23:48] G5_smci_chain False
 
-=== POLYGON SNAPSHOT (what the catalyst gate reads) ===
-  SMCI  prevDay.c=    23.83 day.c=     25.5 min.c=  30.7469 lastTrade.p=     None
-        engine sees 7.01%  |  with lastTrade 7.01%  |  polygon todaysChangePerc 29.02601762484264
-  NBIS  prevDay.c=   182.62 day.c=   216.92 min.c= 219.8803 lastTrade.p=     None
-        engine sees 18.78%  |  with lastTrade 18.78%  |  polygon todaysChangePerc 20.403186945570038
-  NOK   prevDay.c=    10.08 day.c=    10.63 min.c=  11.0715 lastTrade.p=     None
-        engine sees 5.46%  |  with lastTrade 5.46%  |  polygon todaysChangePerc 9.836309523809526
-  DELL  prevDay.c=   381.88 day.c=   404.15 min.c= 428.4993 lastTrade.p=     None
-        engine sees 5.83%  |  with lastTrade 5.83%  |  polygon todaysChangePerc 12.20784015921232
-  VRT   prevDay.c=   291.67 day.c=    304.5 min.c=    305.5 lastTrade.p=     None
-        engine sees 4.4%  |  with lastTrade 4.4%  |  polygon todaysChangePerc 4.741660095313191
+=== CATALYSTS ===
+  SMCI     29.03% (reg   7.01 + ext  22.02) BACKLOG_ORDERS       $60.0B benef=17 unpriced=11
+         Super Micro surges on new order and margin disclosure after SpaceX announcement
+  DELL     12.21% (reg   5.83 + ext   6.38) BACKLOG_ORDERS       $57.0B benef=18 unpriced=2
+         Satya Nadella Maps Out the Future of Enterprise AI as Server Backlogs Hit $57 Billion
+  BE       16.16% (reg  14.82 + ext   1.34) BACKLOG_ORDERS         None benef=5 unpriced=1
+         3 Stocks Poised to Outperform Before Their Biggest Growth Years Begin
+  RKLB     12.44% (reg   5.14 + ext    7.3) MEGA_CONTRACT         $0.3B benef=5 unpriced=0
+         Rocket Lab Stock Rises After the Bell: Here's Why
+  NBIS      20.4% (reg  18.78 + ext   1.62) CAPACITY_EXPANSION     None benef=22 unpriced=2
+         Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
+  CRWV     11.76% (reg   8.92 + ext   2.83) CAPACITY_EXPANSION     None benef=22 unpriced=3
+         Price Prediction: CoreWeave Has 124% Upside Despite Capex Concerns
+  CRDO      7.34% (reg   5.56 + ext   1.77) CAPACITY_EXPANSION     None benef=13 unpriced=0
+         Credo: The Buying Opportunity Is Finally Flashing (Rating Upgrade)
+  STX      13.18% (reg  11.14 + ext   2.04) EARNINGS_BEAT          None benef=6 unpriced=0
+         Seagate (STX) Earnings Expected to Grow: Should You Buy?
 
-=== GROUPED-DAILY CLOSES (last 6 sessions) ===
-  2026-07-15  SMCI=26.89  NBIS=199.51  NOK=11.25  DELL=412.68  VRT=304.57
-  2026-07-16  SMCI=24.68  NBIS=171.77  NOK=10.38  DELL=391.38  VRT=294.11
-  2026-07-17  SMCI=24.18  NBIS=177.71  NOK=10.12  DELL=396.34  VRT=289.56
-  2026-07-20  SMCI=23.83  NBIS=182.62  NOK=10.08  DELL=381.88  VRT=291.67
-  2026-07-21  SMCI=25.5  NBIS=216.92  NOK=10.63  DELL=404.15  VRT=304.5
+=== SMCI READ-THROUGH CHAIN ===
+  NVDA   T1_DIRECT_SUPPLIER         exp=  10.98 real=  -0.43 gap=  11.41 UNPRICED  sc=86.7 mat=0.445 []
+  MPWR   T2_TIER2_INPUT             exp=  16.04 real=  -0.28 gap=  16.32 UNPRICED  sc=83.7 mat=1.0 []
+  SNPS   T2_TIER2_INPUT             exp=  13.21 real=  -0.13 gap=  13.34 UNPRICED  sc=81.5 mat=1.0 []
+  TER    T2_TIER2_INPUT             exp=  13.21 real=   0.28 gap=  12.93 UNPRICED  sc=81.0 mat=1.0 []
+  LITE   T2_TIER2_INPUT             exp=  13.21 real=   0.81 gap=  12.39 UNPRICED  sc=80.0 mat=1.0 []
+  COHR   T2_TIER2_INPUT             exp=  13.21 real=   1.06 gap=  12.15 UNPRICED  sc=79.5 mat=1.0 []
+  ARM    T2_TIER2_INPUT             exp=  13.21 real=   1.04 gap=  12.17 UNPRICED  sc=79.5 mat=1.0 []
+  MU     T2_TIER2_INPUT             exp=   9.38 real=   1.67 gap=   7.72 UNPRICED  sc=71.0 mat=0.585 []
+  FLEX   T3_INFRASTRUCTURE          exp=   4.83 real=  -0.04 gap=   4.87 UNPRICED  sc=65.0 mat=0.475 []
+  JBL    T3_INFRASTRUCTURE          exp=   4.65 real=   0.15 gap=   4.51 UNPRICED  sc=63.9 mat=0.458 []
+  TSM    T2_TIER2_INPUT             exp=   2.69 real=   0.06 gap=   2.63 UNPRICED  sc=52.0 mat=0.204 ['IMMATERIAL_READ_THROUGH']
+  HPQ    T5_COMPETITOR_VALIDATION   exp=   0.52 real=   0.11 gap=   0.41 PARTIAL   sc=27.7 mat=0.2 ['UNCONFIRMED_EDGE', 'IMMATERIAL_READ_THROUGH']
+  NTAP   T5_COMPETITOR_VALIDATION   exp=   0.52 real=   0.78 gap=  -0.25 PRICED    sc=6.8 mat=0.2 ['UNCONFIRMED_EDGE', 'IMMATERIAL_READ_THROUGH']
+  DELL   T3_INFRASTRUCTURE          exp=   2.72 real=   6.05 gap=  -3.33 OVERSHOT  sc=6.5 mat=0.268 ['IMMATERIAL_READ_THROUGH', 'CHASE_GUARD']
 
-=== FMP NEWS the engine polls (48h window, with its own classifier) ===
+VERDICT: GAPS: G5_smci_chain
+[06:23:48] VERDICT: GAPS: G5_smci_chain
 
-  --- SMCI: 12 articles ---
-    [2026-07-21 18:11:00] UNCLASSIFIED             None  Super Micro's stock soars as its margins unexpectedly double
-    [2026-07-21 17:57:01] UNCLASSIFIED             None  QUICK SPARK: Jim Cramer Flags Dell as the Next Winner After SMCI Preliminary Results
-    [2026-07-21 17:48:00] UNCLASSIFIED             None  Super Micro Computer Says Fourth-Quarter Margins Will Be Twice as High as Expected
-    [2026-07-21 16:46:35] BACKLOG_ORDERS         $60.0B  Super Micro surges on new order and margin disclosure after SpaceX announcement
-    [2026-07-21 16:24:38] UNCLASSIFIED           $60.0B  Super Micro says fourth-quarter orders topped $60 billion
-    [2026-07-21 16:05:00] CAPACITY_EXPANSION       None  Supermicro Provides Fourth Quarter of Fiscal Year 2026 Preliminary Business Update
-    [2026-07-21 12:55:12] UNCLASSIFIED             None  Super Micro Jumps 6%, Dell Climbs 7%, HPE Rises 5% as AI Hardware Rebounds With the NASDAQ
-    [2026-07-20 18:46:14] UNCLASSIFIED             None  Super Micro Computer (SMCI) Declines More Than Market: Some Information for Investors
-    [2026-07-20 10:01:04] UNCLASSIFIED             None  Super Micro Computer, Inc. (SMCI) is Attracting Investor Attention: Here is What You Should Kno
-    [2026-07-16 10:40:38] UNCLASSIFIED             None  Can Super Micro Computer's RDHx Expansion Fuel AI Data Center Demand?
-
-  --- NBIS: 12 articles ---
-    [2026-07-21 19:03:01] UNCLASSIFIED             None  Why Nebius Stock Soared Today
-    [2026-07-21 14:53:28] UNCLASSIFIED             None  Nebius Explodes 16% Higher on NVIDIA Stake Stunner; CoreWeave Surges 8%, Oracle Adds 5% as AI C
-    [2026-07-21 14:29:01] UNCLASSIFIED              $1M  Nebius Chairman Sells Company Shares Worth $1.4 Million. Here's a Closer Look at the Transactio
-    [2026-07-21 13:57:19] UNCLASSIFIED            $4.0B  Nvidia Just Plowed Nearly $4 Billion Into a Company That's Reshaping the Cloud Industry, Increa
-    [2026-07-21 12:54:50] CAPACITY_EXPANSION       None  Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
-    [2026-07-21 11:37:15] UNCLASSIFIED             None  Nebius soars as Nvidia stake signals deepening AI ties
-    [2026-07-21 11:23:00] UNCLASSIFIED             None  Nebius Jumps as Nvidia Reveals 9.3% Stake
-    [2026-07-21 10:25:26] UNCLASSIFIED            $775M  Can Nebius' $775M Debt Facility Accelerate Its Global AI Expansion?
-    [2026-07-21 09:12:43] UNCLASSIFIED             None  Nebius Advances On Nvidia Stake Disclosure Amid AI Cloud Swoon
-    [2026-07-21 09:02:00] UNCLASSIFIED             None  Nasdaq Futures Jump 357 Points as Earnings Season Heats Up
-
-  --- NOK: 12 articles ---
-    [2026-07-22 01:00:00] UNCLASSIFIED             None  Norsk Hydro: Operational strength delivering solid results
-    [2026-07-20 13:36:03] UNCLASSIFIED             None  Is Nokia Stock a Smart Buy Ahead of Q2 Earnings Release?
-    [2026-07-16 12:40:26] UNCLASSIFIED             None  Ciena vs. Nokia: Which AI Networking Stock Is the Better Buy?
-    [2026-07-16 08:10:00] UNCLASSIFIED             None  This Former Smartphone Maker Has Quietly Become a Top AI Stock
-    [2026-07-15 12:35:48] MEGA_CONTRACT            None  Can Nokia's Extended 5G Deal With Taiwan Mobile Drive Future Growth?
-    [2026-07-14 18:10:41] UNCLASSIFIED             None  Nokia: Q2 Needs To Justify The AI Revaluation
-    [2026-07-13 22:00:00] UNCLASSIFIED             None  Nokia and Taiwan Mobile extend 5G partnership to advance AI-powered networks
-    [2026-07-10 05:02:45] UNCLASSIFIED             None  Meme ETF rally leaves many underwater
-    [2026-07-08 12:16:08] UNCLASSIFIED             None  Nokia vs. Viavi: Which AI Networking Stock is the Better Buy?
-    [2026-07-08 11:01:20] UNCLASSIFIED             None  Equinor Accelerates NCS Growth With NOK 6B Subsea Investment
-
-=== LIVE BOARD === v1.0.3 generated 2026-07-22T05:30:24.536788+00:00
-  events: [('NBIS', 18.78, 'CAPACITY_EXPANSION')]
-  gate: gap_min_pct=6.0
-
-VERDICT: DIAGNOSTIC_COMPLETE
-[06:20:21] VERDICT: DIAGNOSTIC_COMPLETE
-
-→ Report written to aws/ops/reports/latest/3704_smci_diag.md
+→ Report written to aws/ops/reports/latest/3705_smci_fix.md
+❌ OPS-FAIL: aws/ops/pending/ops_3705_smci_fix.py
