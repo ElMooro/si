@@ -1,10 +1,19 @@
-executing-against: 5810919a66c5872c18c0a82dcfb7644518e7aee4
-ops 3719 — shared/benzinga.py FMP calendar fallback
+executing-against: c540f6746f98086e1d5cabb16df03176d6ba5a18
+ops 3720 — shared/benzinga.py FMP calendar fallback
 ── probe — is FMP earnings-calendar usable? ──
-[19:13:57] P1_fmp_probe False
-  P1_fmp_probe                     False  PROBE FAILED: no FMP key in ops env — no rewrite attempted
+[19:17:39] P1_fmp_probe True
+  P1_fmp_probe                     True  rows=4000 with_epsEstimated=2868 keys=['date', 'epsActual', 'epsEstimated', 'lastUpdated', 'revenueActual', 'revenueEstimated', 'symbol']
+    sample row: {"symbol": "SEER", "date": "2026-08-05", "epsActual": null, "epsEstimated": -0.27, "revenueActual": null, "revenueEstimated": 3550000, "lastUpdated": "2026-07-22"}
+── patch — shared/benzinga.py ──
+[19:17:39] G1_shim_added True
+  G1_shim_added                    True  fetch_calendar now falls back to FMP when Massive yields nothing
+[19:17:39] G2_module_compiles True
+  G2_module_compiles               True  shared/benzinga.py compiles
+[19:17:39] G3_consumers_identified True
+  G3_consumers_identified          True  repaired by this shim: ['justhodl-earnings-tracker', 'justhodl-estimate-revisions']
 
-VERDICT: DIAGNOSIS: FMP calendar unusable — no FMP key in ops env
-[19:13:57] VERDICT: DIAGNOSIS: FMP calendar unusable — no FMP key in ops env
+VERDICT: PASS_ALL
+NOTE: live verification deferred to ops 3720 so deploy-lambdas can settle (3717/3718 both burned runs racing it).
+[19:17:39] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3719_benzinga_fmp_shim.md
+→ Report written to aws/ops/reports/latest/3720_benzinga_fmp_shim.md

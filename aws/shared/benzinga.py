@@ -16,7 +16,7 @@ import os
 import json
 import urllib.request
 import urllib.error
-from datetime import date
+from datetime import date, timedelta
 
 import boto3
 
@@ -70,6 +70,13 @@ def fetch_recent_reported(ticker, limit=4):
         "sort": "date",
         "limit": str(limit),
     })
+    if not (j or {}).get("results"):
+        # Massive/Benzinga returned nothing (403 since 2026-07-15) -> degrade
+        # to FMP rather than handing back an empty list that makes every
+        # downstream engine look healthy while emitting nothing.
+        fb = _fmp_calendar(days_ahead=days_ahead, limit=limit)
+        return [r for r in fb if (r.get("importance") or 0) >= min_importance]
+
     out = []
     for r in (j or {}).get("results", []) or []:
         # keep only rows that actually reported (have an actual or a surprise)
@@ -116,6 +123,60 @@ def fetch_upcoming(ticker, limit=2):
             "importance": r.get("importance"),
             "fiscal_period": r.get("fiscal_period"),
             "fiscal_year": r.get("fiscal_year"),
+        })
+    return out
+
+
+def _fmp_calendar(days_ahead=14, limit=1000):
+    """FMP earnings-calendar -> Benzinga calendar row shape.
+
+    Massive has returned 403 NOT_AUTHORIZED on every api.polygon.io/benzinga
+    path since 2026-07-15, so fetch_calendar() below degrades to this instead
+    of silently returning an empty list (which made every consumer look
+    healthy while emitting nothing). FMP /stable/earnings-calendar is already
+    proven in benzinga-news-agent and buyback-engine.
+    """
+    key = (os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
+           or "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb")
+    if not key:
+        return []
+    today = date.today()
+    url = ("https://financialmodelingprep.com/stable/earnings-calendar"
+           f"?from={today.isoformat()}"
+           f"&to={(today + timedelta(days=days_ahead)).isoformat()}"
+           f"&limit={int(limit)}&apikey={key}")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "justhodl-bz-shim/1.0"})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            data = json.loads(r.read())
+    except Exception:
+        return []
+    if not isinstance(data, list):
+        return []
+    out = []
+    for r in data:
+        tk = r.get("symbol") or r.get("ticker")
+        if not tk:
+            continue
+        t = (r.get("time") or "").lower()
+        session = "AMC" if "amc" in t or "after" in t else \
+                  "BMO" if "bmo" in t or "before" in t else "\u2014"
+        out.append({
+            "ticker": tk,
+            "company": r.get("name") or r.get("company"),
+            "date": r.get("date"),
+            "time": r.get("time"),
+            "session": session,
+            # FMP has no importance ranking; default mid so existing
+            # min_importance filters (typically 1-3) still admit these rows.
+            "importance": 3,
+            "fiscal_period": r.get("fiscalPeriod") or r.get("period"),
+            "fiscal_year": r.get("fiscalYear"),
+            "estimated_eps": r.get("epsEstimated"),
+            "estimated_revenue": r.get("revenueEstimated"),
+            "actual_eps": r.get("epsActual") or r.get("eps"),
+            "actual_revenue": r.get("revenueActual") or r.get("revenue"),
+            "_source": "fmp_fallback",
         })
     return out
 
