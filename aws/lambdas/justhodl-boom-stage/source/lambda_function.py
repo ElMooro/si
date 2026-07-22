@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -50,7 +50,57 @@ def _yoy_yahoo(sym):
         return None
 
 
+CANARY = {
+    "TW-semis": ("GROWTH", "global tech cycle — foundry is the world's "
+                 "narrowest chokepoint"),
+    "KR-semis": ("GROWTH", "memory pricing = tech demand pulse"),
+    "CL-copper": ("GROWTH", "Dr. Copper: global construction/industrial "
+                  "demand"),
+    "PE-copper": ("GROWTH", "second copper read — confirms or denies Chile"),
+    "FI-pulp": ("GROWTH", "pulp/paper = packaging = physical goods "
+                "consumption"),
+    "SA-oil": ("INFLATION", "crude supply — the inflation input"),
+    "UAE-energy": ("INFLATION", "Gulf re-export + Hormuz transit risk"),
+    "BR-commodities": ("INFLATION", "metals/ags price pass-through"),
+    "CN-broad": ("GROWTH", "world's #2 economy, credit + gateway volume"),
+    "US-freight": ("GROWTH", "US inland demand + carrier pricing power"),
+}
+
 TRADE_MAP = {
+    "TW-semis": {
+        "EARLY_PRICE_LED": ("LONG", "TSM / SOXX / EWT",
+                            "foundry pricing power — tech cycle early"),
+        "PLATEAU_FORMING": ("TRIM", "TSM / SOXX", "orders cooling"),
+        "CONTRACTION": ("AVOID", "semis complex", "tech cycle rolling over")},
+    "CL-copper": {
+        "EARLY_PRICE_LED": ("LONG", "FCX / COPX / SCCO",
+                            "copper price-led, shipments lagging"),
+        "BROADENING": ("LONG", "FCX / COPX", "price AND cargoes up — real "
+                       "industrial demand"),
+        "SUPPLY_SHOCK_PRICING": ("LONG-MINERS/HEDGE-CPI", "FCX / COPX / TIPS",
+                                 "mine disruption pricing — inflationary"),
+        "CONTRACTION": ("AVOID", "copper complex",
+                        "global industrial demand fading")},
+    "PE-copper": {
+        "EARLY_PRICE_LED": ("LONG", "SCCO / COPX", "second copper confirm"),
+        "SUPPLY_SHOCK_PRICING": ("LONG-MINERS/HEDGE-CPI", "SCCO / TIPS",
+                                 "Andean supply disruption"),
+        "CONTRACTION": ("AVOID", "copper complex", "demand fade confirmed")},
+    "FI-pulp": {
+        "EARLY_PRICE_LED": ("LONG", "UPM / Stora Enso / Suzano",
+                            "pulp pricing power"),
+        "BROADENING": ("LONG", "UPM / Suzano", "packaging demand expanding"),
+        "CONTRACTION": ("AVOID", "paper/packaging",
+                        "physical goods consumption contracting — "
+                        "recession tell")},
+    "SA-oil": {
+        "EARLY_PRICE_LED": ("LONG", "XLE / XOP",
+                            "crude price-led with flat liftings"),
+        "SUPPLY_SHOCK_PRICING": ("LONG-ENERGY/HEDGE-CPI",
+                                 "XLE / tankers / TIPS",
+                                 "supply-driven crude spike — inflation "
+                                 "shock, growth-negative"),
+        "CONTRACTION": ("AVOID", "energy beta", "demand destruction")},
     "KR-semis": {
         "EARLY_PRICE_LED": ("LONG", "MU / SOXX / 000660.KS-proxy",
                             "memory pricing-power phase — ride it"),
@@ -58,10 +108,6 @@ TRADE_MAP = {
                             "volume caught up, price cooling — the RAM "
                             "sell-signal"),
         "CONTRACTION": ("AVOID", "semis complex", "cycle rolling over")},
-    "TW-electronics": {
-        "EARLY_PRICE_LED": ("LONG", "TSM / EWT", "orders value-led"),
-        "PLATEAU_FORMING": ("TRIM", "TSM / EWT", "orders cooling vs volume"),
-        "CONTRACTION": ("AVOID", "TSM / EWT", "orders and ships both down")},
     "CN-broad": {
         "EARLY_PRICE_LED": ("WATCH", "FXI / copper", "credit re-igniting"),
         "BROADENING": ("LONG", "FXI / KWEB / copper", "credit + ports up"),
@@ -97,6 +143,10 @@ def _get(key):
 def _stage(v_yoy, vol_pct):
     if v_yoy is None or vol_pct is None:
         return "NA", "missing leg"
+    if v_yoy >= 10 and vol_pct <= -15:
+        return "SUPPLY_SHOCK_PRICING", (
+            "price surging while physical volume COLLAPSES — supply "
+            "disruption, not demand; this is the inflation signature")
     if v_yoy >= 10 and -15 <= vol_pct <= 5:
         return "EARLY_PRICE_LED", ("value surging while physical volume flat "
                                    "— pricing power / high-value goods; the "
@@ -149,23 +199,9 @@ def lambda_handler(event=None, context=None):
                                   if air.get("ok") else None)},
     })
 
-    # TW - electronics/export orders (value yoy self-builds at 12m cache)
+    # TW value leg (orders) — pair rendered below as TW-semis
     tw = (asia.get("taiwan_orders") or {})
     v_yoy2 = tw.get("yoy_pct")
-    vp2, vz2, npt2 = vol("Taiwan")
-    st2, why2 = _stage(v_yoy2, vp2)
-    pairs.append({
-        "id": "TW-electronics", "label": "Taiwan · Electronics (export orders)",
-        "stage": st2, "why": why2,
-        "value": {"src": "asia-leads TW export orders",
-                  "yoy_pct": v_yoy2,
-                  "level_usd_bn": tw.get("orders_usd_bn"),
-                  "note": ("yoy self-building via levels cache"
-                           if v_yoy2 is None else "")},
-        "volume": {"src": "portwatch Taiwan gateway ports",
-                   "vs_baseline_pct": vp2, "z": vz2, "n_ports": npt2},
-        "context": {},
-    })
 
     # CN - broad economy (credit value vs port volume)
     tsf = ((cn.get("tsf") or {}).get("pboc_cn") or {})
@@ -225,6 +261,59 @@ def lambda_handler(event=None, context=None):
                              "vs_baseline_pct": csh.get("yoy_pct"),
                              "z": csh.get("z_5y"), "n_ports": None},
                   "context": {"inflection": csh.get("inflection")}})
+
+    # TW - semiconductors (foundry): orders value x Kaohsiung volume
+    vp7, vz7, npt7 = vol("Taiwan")
+    st7, why7 = _stage(v_yoy2, vp7)
+
+    # CL / PE - copper (LME copper value x Andean port volume)
+    for _cc, _lbl in (("Chile", "CL-copper"), ("Peru", "PE-copper")):
+        vpx, vzx, nptx = vol(_cc)
+        stx, whyx = _stage(cu_v, vpx)
+        pairs.append({"id": _lbl,
+                      "label": f"{_cc} · Copper (LME price vs port calls)",
+                      "stage": stx, "why": whyx,
+                      "value": {"src": "Copper (HG=F) yoy", "yoy_pct": cu_v},
+                      "volume": {"src": f"portwatch {_cc} ports",
+                                 "vs_baseline_pct": vpx, "z": vzx,
+                                 "n_ports": nptx}, "context": {}})
+
+    # FI - pulp & paper (proxy value: WOOD/pulp equity complex vs port calls)
+    fi_v = _yoy_yahoo("UPM.HE") or _yoy_yahoo("WOOD")
+    vp8, vz8, npt8 = vol("Finland")
+    st8, why8 = _stage(fi_v, vp8)
+    pairs.append({"id": "FI-pulp",
+                  "label": "Finland · Pulp & paper (producer tape vs ports)",
+                  "stage": st8, "why": why8,
+                  "value": {"src": "UPM.HE / WOOD yoy (pulp complex)",
+                            "yoy_pct": fi_v},
+                  "volume": {"src": "portwatch Finland ports",
+                             "vs_baseline_pct": vp8, "z": vz8,
+                             "n_ports": npt8}, "context": {}})
+
+    # SA - crude oil (Brent value x Saudi port calls)
+    vp9, vz9, npt9 = vol("Saudi Arabia")
+    st9, why9 = _stage(br_v, vp9)
+    pairs.append({"id": "SA-oil",
+                  "label": "Saudi Arabia · Crude oil (Brent vs liftings)",
+                  "stage": st9, "why": why9,
+                  "value": {"src": "Brent crude (BZ=F) yoy",
+                            "yoy_pct": br_v},
+                  "volume": {"src": "portwatch Saudi ports",
+                             "vs_baseline_pct": vp9, "z": vz9,
+                             "n_ports": npt9}, "context": {}})
+
+    # TW pair uses orders value (may be building) — append with volume now live
+    pairs.append({"id": "TW-semis",
+                  "label": "Taiwan · Semiconductors (orders vs Kaohsiung)",
+                  "stage": st7, "why": why7,
+                  "value": {"src": "asia-leads TW export orders",
+                            "yoy_pct": v_yoy2,
+                            "note": ("orders yoy self-building"
+                                     if v_yoy2 is None else "")},
+                  "volume": {"src": "portwatch Taiwan ports",
+                             "vs_baseline_pct": vp7, "z": vz7,
+                             "n_ports": npt7}, "context": {}})
 
     # ---- history ledger + transitions + sliding-watch signals ----
     try:
@@ -292,9 +381,77 @@ def lambda_handler(event=None, context=None):
                           "instruments": stage_tr[1],
                           "line": stage_tr[2]}
 
+    for p in pairs:
+        tag = CANARY.get(p["id"])
+        if tag:
+            p["canary"] = {"type": tag[0], "why": tag[1]}
+
+    # ---- MACRO VERDICT: two plain-English dials ----
+    SLOW = {"CONTRACTION": 30, "VALUE_LED_DOWNTURN": 20,
+            "PLATEAU_FORMING": 12, "SUPPLY_SHOCK_PRICING": 10,
+            "MIXED": 5, "EARLY_PRICE_LED": -5, "BROADENING": -15}
+    INFL = {"SUPPLY_SHOCK_PRICING": 30, "EARLY_PRICE_LED": 15,
+            "BROADENING": 8, "PLATEAU_FORMING": -5,
+            "VALUE_LED_DOWNTURN": -12, "CONTRACTION": -20, "MIXED": 0}
+    g_pairs = [p for p in pairs
+               if (p.get("canary") or {}).get("type") == "GROWTH"
+               and p["stage"] != "NA"]
+    i_pairs = [p for p in pairs
+               if (p.get("canary") or {}).get("type") == "INFLATION"
+               and p["stage"] != "NA"]
+    slow = min(100, max(0, 50 + sum(SLOW.get(p["stage"], 0)
+                                    for p in g_pairs)))
+    infl = min(100, max(0, 50 + sum(INFL.get(p["stage"], 0)
+                                    for p in i_pairs)))
+
+    def band(x, hi, mid):
+        return hi if x >= 70 else mid if x >= 40 else "LOW"
+
+    slow_band = band(slow, "HIGH", "MODERATE")
+    infl_band = band(infl, "HIGH", "MODERATE")
+    weak = [p["label"].split(" · ")[0] for p in g_pairs
+            if p["stage"] in ("CONTRACTION", "VALUE_LED_DOWNTURN",
+                              "PLATEAU_FORMING")]
+    hot = [p["label"].split(" · ")[0] for p in i_pairs
+           if p["stage"] in ("SUPPLY_SHOCK_PRICING", "EARLY_PRICE_LED")]
+    strong = [p["label"].split(" · ")[0] for p in g_pairs
+              if p["stage"] in ("EARLY_PRICE_LED", "BROADENING")]
+    parts = []
+    parts.append(
+        ("Global slowdown risk is " + slow_band + ": ")
+        + (("physical demand is contracting in " + ", ".join(weak[:4]))
+           if weak else "growth canaries are not flashing contraction")
+        + ((" while " + ", ".join(strong[:3]) + " still expand")
+           if strong else "") + ".")
+    parts.append(
+        ("Inflation pressure is " + infl_band + ": ")
+        + (("prices are rising in " + ", ".join(hot[:3])
+            + (" WITH volumes falling (supply-driven — the bad kind: "
+               "raises prices AND hurts growth)"
+               if any(p["stage"] == "SUPPLY_SHOCK_PRICING"
+                      for p in i_pairs) else " on firm demand"))
+           if hot else "inflation canaries are quiet")
+        + ".")
+    if slow >= 60 and infl >= 60:
+        regime = "STAGFLATIONARY SQUEEZE"
+    elif slow >= 60:
+        regime = "GLOBAL SLOWDOWN"
+    elif infl >= 60:
+        regime = "INFLATIONARY BOOM"
+    elif slow <= 40 and infl <= 40:
+        regime = "GOLDILOCKS"
+    else:
+        regime = "MIXED / TRANSITIONAL"
+
     live = [p for p in pairs if p["stage"] != "NA"]
-    doc = {"ok": len(live) >= 4, "version": VERSION,
+    doc = {"ok": len(live) >= 6, "version": VERSION,
            "generated_at": now.isoformat(), "pairs": pairs, "signals": signals,
+           "macro": {"slowdown_risk": slow, "slowdown_band": slow_band,
+                      "inflation_pressure": infl, "inflation_band": infl_band,
+                      "regime": regime, "plain_english": " ".join(parts),
+                      "growth_canaries": len(g_pairs),
+                      "inflation_canaries": len(i_pairs),
+                      "weak": weak, "hot": hot, "strong": strong},
            "signals_note": ("STAGE_CHANGE fires on flips; "
                             "SLIDING_WATCH pre-empts the flip "
                             "(needs >=1 prior day of history)"),

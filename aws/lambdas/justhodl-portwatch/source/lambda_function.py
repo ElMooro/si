@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.3"
+VERSION = "1.3.4"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -40,7 +40,11 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "laem chabang", "gwangyang", "incheon", "pusan",
                "yangshan", "hai phong", "vung tau", "jawaharlal",
                "nhava", "klang", "priok", "bremen", "felixstowe",
-               "algeciras", "valencia", "yokkaichi", "osaka", "kobe")
+               "algeciras", "valencia", "yokkaichi", "osaka", "kobe",
+               "san antonio", "valparaiso", "mejillones", "callao",
+               "matarani", "kotka", "hamina", "helsinki", "rauma",
+               "jeddah", "dammam", "king abdulaziz", "jubail",
+               "ras tanura", "yanbu")
 # v1.3: port-name -> nation fallback (ref country field is unreliable/blank
 # for some rows; a known gateway's nation is a fact)
 PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
@@ -60,7 +64,16 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("tanjung pelepas", "Malaysia"), ("priok", "Indonesia"),
                ("laem chabang", "Thailand"), ("santos", "Brazil"),
                ("jebel ali", "UAE"), ("dubai", "UAE"),
-               ("colombo", "Sri Lanka"), ("los angeles", "United States"),
+               ("colombo", "Sri Lanka"),
+               ("san antonio", "Chile"), ("valparaiso", "Chile"),
+               ("mejillones", "Chile"), ("callao", "Peru"),
+               ("matarani", "Peru"), ("kotka", "Finland"),
+               ("hamina", "Finland"), ("helsinki", "Finland"),
+               ("rauma", "Finland"), ("jeddah", "Saudi Arabia"),
+               ("dammam", "Saudi Arabia"), ("king abdulaziz", "Saudi Arabia"),
+               ("jubail", "Saudi Arabia"), ("ras tanura", "Saudi Arabia"),
+               ("yanbu", "Saudi Arabia"),
+               ("los angeles", "United States"),
                ("long beach", "United States"), ("houston", "United States"),
                ("new york", "United States"), ("savannah", "United States"))
 # v1.2: export-nation aggregation — country -> gateway-port pulse
@@ -74,7 +87,9 @@ EXPORT_NATIONS = (("china", "China"), ("hong kong", "China"),
                   ("malaysia", "Malaysia"), ("thailand", "Thailand"),
                   ("indonesia", "Indonesia"), ("brazil", "Brazil"),
                   ("emirates", "UAE"), ("sri lanka", "Sri Lanka"),
-                  ("belgium", "Belgium"))
+                  ("belgium", "Belgium"), ("chile", "Chile"),
+                  ("peru", "Peru"), ("finland", "Finland"),
+                  ("saudi", "Saudi Arabia"))
 
 
 def _q(url, params, timeout=30):
@@ -262,7 +277,7 @@ def lambda_handler(event=None, context=None):
             for r2 in _pref_rows
             if any(t in ((str(r2.get("portname") or "") + " " +
                           str(r2.get("fullname") or "")).lower())
-                   for t in ("hambur", "phong", "bremer"))][:8]
+                   for t in ("hambur", "phong", "kaohsiung", "callao", "kotka", "jeddah"))][:8]
         for a2 in _pref_rows:
             nm = (str(a2.get("portname") or "") + " " +
                   str(a2.get("fullname") or "")).lower()

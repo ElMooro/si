@@ -42,15 +42,20 @@ a{color:var(--accent)}
 <script>
 (async function(){try{
 var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
-var SC={EARLY_PRICE_LED:GRN,BROADENING:GRN,PLATEAU_FORMING:AMB,MIXED:NEU,VALUE_LED_DOWNTURN:AMB,CONTRACTION:RED,NA:MUT};
-var ORDER=['EARLY_PRICE_LED','BROADENING','PLATEAU_FORMING','VALUE_LED_DOWNTURN','CONTRACTION'];
-var DESC={EARLY_PRICE_LED:'value surging · volume flat — pricing power',BROADENING:'value AND volume up — capex phase',PLATEAU_FORMING:'volume caught up · value cooling',VALUE_LED_DOWNTURN:'value falls first · margin squeeze',CONTRACTION:'both falling — demand fade'};
+var SC={SUPPLY_SHOCK_PRICING:RED,EARLY_PRICE_LED:GRN,BROADENING:GRN,PLATEAU_FORMING:AMB,MIXED:NEU,VALUE_LED_DOWNTURN:AMB,CONTRACTION:RED,NA:MUT};
+var ORDER=['EARLY_PRICE_LED','BROADENING','SUPPLY_SHOCK_PRICING','PLATEAU_FORMING','VALUE_LED_DOWNTURN','CONTRACTION'];
+var DESC={SUPPLY_SHOCK_PRICING:'price UP · volume COLLAPSING — supply shock (inflationary)',EARLY_PRICE_LED:'value surging · volume flat — pricing power',BROADENING:'value AND volume up — capex phase',PLATEAU_FORMING:'volume caught up · value cooling',VALUE_LED_DOWNTURN:'value falls first · margin squeeze',CONTRACTION:'both falling — demand fade'};
 var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/boom-stage.json?t='+Date.now());
 if(!r.ok){document.getElementById('hero').innerHTML='<span class="mono">feed unavailable</span>';return;}
 var b=await r.json();
 var hp=(b.pairs||[]).filter(function(p){return p.stage==='EARLY_PRICE_LED';})[0];
-document.getElementById('hero').innerHTML=
- '<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline">'
+var M=b.macro||{};
+var RC={'STAGFLATIONARY SQUEEZE':RED,'GLOBAL SLOWDOWN':RED,'INFLATIONARY BOOM':AMB,'GOLDILOCKS':GRN,'MIXED / TRANSITIONAL':NEU};
+function dial(lbl,val,band,col){return '<div style="flex:1;min-width:230px"><div class="mono" style="font-size:11px;color:'+MUT+'">'+lbl+'</div><div class="mono" style="font-size:26px;font-weight:800;color:'+col+'">'+band+' <span style="font-size:14px;color:'+MUT+'">'+val+'/100</span></div><div style="height:7px;background:#1c2330;border-radius:4px;margin-top:5px;overflow:hidden"><div style="width:'+val+'%;height:100%;background:'+col+'"></div></div></div>';}
+var sCol=M.slowdown_risk>=70?RED:M.slowdown_risk>=40?AMB:GRN;
+var iCol=M.inflation_pressure>=70?RED:M.inflation_pressure>=40?AMB:GRN;
+document.getElementById('hero').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+'">GLOBAL REGIME</div>'+'<div class="mono" style="font-size:24px;font-weight:800;color:'+(RC[M.regime]||NEU)+';margin-bottom:4px">'+(M.regime||'—')+'</div>'+'<div style="font-size:14px;line-height:1.6;color:var(--text);margin-bottom:14px">'+(M.plain_english||'')+'</div>'+'<div style="display:flex;gap:26px;flex-wrap:wrap">'+dial('GLOBAL SLOWDOWN RISK',M.slowdown_risk,M.slowdown_band,sCol)+dial('INFLATION PRESSURE',M.inflation_pressure,M.inflation_band,iCol)+'</div>'+'<div class="mono" style="font-size:10.5px;color:'+MUT+';margin-top:10px">'+(M.growth_canaries||0)+' growth canaries \u00b7 '+(M.inflation_canaries||0)+' inflation canaries \u00b7 dials move as pairs change stage</div>';
+var _unusedHero='<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:baseline">'
 +'<div><div class="mono" style="font-size:11px;color:'+MUT+'">HEADLINE</div><div class="mono" style="font-size:19px;font-weight:800;color:'+(hp?GRN:NEU)+'">'+(b.headline||'no EARLY_PRICE_LED pair right now')+'</div></div>'
 +(hp?('<div class="mono" style="font-size:12px;color:'+MUT+'">value '+(hp.value.yoy_pct>0?'+':'')+hp.value.yoy_pct+'% vs volume '+(hp.volume.vs_baseline_pct>0?'+':'')+hp.volume.vs_baseline_pct+'% — the divergence IS the proof</div>'):'')
 +'</div>';
@@ -63,10 +68,11 @@ document.getElementById('life').innerHTML=ORDER.map(function(st,i){
  +'<div style="color:'+MUT+';font-size:10px">'+DESC[st]+'</div>'
  +(here.length?('<div style="margin-top:5px">'+here.map(function(p){return '<span style="color:'+SC[st]+'">● '+p.id+'</span>';}).join(' ')+'</div>'):'')
  +'</div>'+(i<ORDER.length-1?'<span class="arrow">→</span>':'');}).join('');
-document.getElementById('pairs').innerHTML=(b.pairs||[]).map(function(p){
+function card(p){
  var c=SC[p.stage]||NEU,v=p.value||{},vo=p.volume||{},cx=p.context||{};
  return '<div class="pair" style="border-left-color:'+c+'">'
  +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline"><b class="mono" style="font-size:14px">'+p.label+'</b><b class="mono" style="color:'+c+'">'+p.stage+'</b></div>'
+ +((p.canary)?('<div class="mono" style="font-size:10.5px;color:'+MUT+'">'+((p.canary.type==='GROWTH')?'\uD83D\uDCC9':'\uD83D\uDD25')+' '+p.canary.type+' canary \u2014 '+p.canary.why+'</div>'):'')
  +'<div style="margin-top:6px" class="mono">'
  +'<span class="leg"><span style="color:'+MUT+'">VALUE</span> <b style="color:'+((v.yoy_pct||0)>=0?GRN:RED)+'">'+(v.yoy_pct==null?'building':((v.yoy_pct>0?'+':'')+v.yoy_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(v.src||'')+'</span></span>'
  +'<span class="leg"><span style="color:'+MUT+'">VOLUME</span> <b style="color:'+((vo.vs_baseline_pct||0)>=0?NEU:RED)+'">'+(vo.vs_baseline_pct==null?'—':((vo.vs_baseline_pct>0?'+':'')+vo.vs_baseline_pct+'%'))+'</b> <span style="color:'+MUT+';font-size:10.5px">'+(vo.src||'')+((vo.n_ports)?(' · '+vo.n_ports+' ports'):'')+'</span></span>'
@@ -77,7 +83,10 @@ document.getElementById('pairs').innerHTML=(b.pairs||[]).map(function(p){
  +((p.trajectory)?('<div class="mono" style="font-size:11px;margin-top:4px;color:'+MUT+'">trajectory vs '+p.trajectory.prev_day+': value '+(p.trajectory.d_value>0?'\u2197 +':'\u2198 ')+p.trajectory.d_value+'pp \u00b7 volume '+(p.trajectory.d_volume>0?'\u2197 +':'\u2198 ')+p.trajectory.d_volume+'pp</div>'):'')
  +((p.trade)?('<div class="mono" style="font-size:11px;margin-top:4px"><span style="color:'+MUT+'">stage trade:</span> <b style="color:'+c+'">'+p.trade.bias+'</b> '+p.trade.instruments+' <span style="color:'+MUT+'">\u2014 '+p.trade.line+'</span></div>'):'')
  +((v.note)?('<div class="mono" style="color:'+MUT+';font-size:10.5px;margin-top:3px">'+v.note+'</div>'):'')
- +'</div>';}).join('');
+ +'</div>';}
+var gp=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='GROWTH';});
+var ip=(b.pairs||[]).filter(function(p){return (p.canary||{}).type==='INFLATION';});
+document.getElementById('pairs').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+';margin:4px 0">\uD83D\uDCC9 GROWTH CANARIES \u2014 physical demand for goods (slowdown detectors)</div>'+gp.map(card).join('')+'<div class="mono" style="font-size:11px;color:'+MUT+';margin:14px 0 4px">\uD83D\uDD25 INFLATION CANARIES \u2014 input prices vs supply flow</div>'+ip.map(card).join('');
 document.getElementById('method').textContent=(b.method||'')+' — '+(b.doctrine||'');
 document.getElementById('foot').textContent='Feed data/boom-stage.json · legs from asia-leads / portwatch / china-liquidity / air-cargo / industry-boom · generated '+b.generated_at;
 }catch(e){console.error(e);}})();
