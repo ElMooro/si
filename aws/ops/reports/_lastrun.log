@@ -1,17 +1,17 @@
-executing-against: 5b13447f4e0f43fd731b9adca1644948725b6999
-ops 3725 — readthrough.html: surface the hidden engine fields
-[19:56:28] G0_key_contract False
-  G0_key_contract                    False  engine actually publishes: {'top_picks': True, 'consensus_coverage': True, 'quadrant_counts': True, 'materiality_pct': False, 'edge_source': True, 'capture_share': True, 'consensus_observed': True}
-[19:56:28] G1_patched True
-  G1_patched                         True  page 13976 -> 19508 bytes; +picks +consensus +evidence columns +chips
-[19:56:28] G2_columns_wired True
+executing-against: 0ccd6a23a482d8091026d11f9e1b3d081aceda5d
+ops 3726 — readthrough.html: surface the hidden engine fields
+[20:00:14] G0_key_contract True
+  G0_key_contract                    True  engine actually publishes: {'top_picks': True, 'consensus_coverage': True, 'quadrant_counts': True, 'materiality': True, 'materiality_note': True, 'quadrant_note': True, 'edge_source': True, 'capture_share': True, 'consensus_observed': True}
+[20:00:14] G1_patched True
+  G1_patched                         True  already patched (idempotent re-run)
+[20:00:14] G2_columns_wired True
   G2_columns_wired                   True  board header now has 12 columns
-[19:56:28] G3_coverage_closed False
-  G3_coverage_closed                 False  rendered 10/12; still missing=['quadrant_note', 'capture_share']
+[20:00:14] G3_coverage_closed False
+  G3_coverage_closed                 False  rendered 12/13; still missing=['capture_share']
 
-VERDICT: GAPS: G0_key_contract,G3_coverage_closed
+VERDICT: GAPS: G3_coverage_closed
 NOTE: pages.yml publishes root *.html; live-marker check is ops 3726.
-[19:56:28] VERDICT: GAPS: G0_key_contract,G3_coverage_closed
+[20:00:14] VERDICT: GAPS: G3_coverage_closed
 
-→ Report written to aws/ops/reports/latest/3725_readthrough_page.md
-❌ OPS-FAIL: aws/ops/pending/ops_3725_readthrough_page.py
+→ Report written to aws/ops/reports/latest/3726_readthrough_page_fix.md
+❌ OPS-FAIL: aws/ops/pending/ops_3726_readthrough_page_fix.py
