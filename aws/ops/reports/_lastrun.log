@@ -1,5 +1,8 @@
-executing-against: 1790a4f47ab276491a83c0e5457c951986050020
-ops 3674 — CAD xlsx x-ray
-PASS  G1_xray — [{"sheet": "xl/worksheets/sheet1.xml", "len": 18192944, "rows": 409, "c_cells": 824524, "v_cells": 4953, "t_s": 451, "inline": 0, "around_unloaded": "0</v></c><c r=\"I8\" s=\"14\" t=\"s\"><v>11</v></c><c r=\"J8\" s=\"15\" t=\"s\"><v>8</v></c><c r=\"K8\" s=\"16\" t=\"s\"><v>9</v></c><c r=\"L8\" s=\"17\" t=\"s\"><v>12</v></c><c r=\"M8\" s=\"14\" t=\"s\"><v>13</v></c><c r=\"N8\" s=\"15\" t=\"s\"><v>8</v></c><c r=\"O8\" s=\"18\" t=\"s\"><v>9</v></c></row><row r=\"9\" spans=\"1:2", "head": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:mc"}]
+executing-against: 8ccd63b95655b08d93785607b5d5133fed77f865
+ops 3675 — air landing v1.6
+FAIL  G1_value — rows=386 cols={'unloaded': 'L', 'total': 'N', 'yoy': 'O', 'hdr_row': 8} n=None tonnes_k=None month=None yoy=None read=None tail=None probe={'unc': 'L', 'hdr': 8, 'row9': {'A': ('n', 1998.0), 'B': ('s', '*'), 'D': ('n', 81616.0), 'E': ('n', 81607.0), 'F': ('n', 163223.0), 'G': ('n', -1.2), 'H': ('n', 13634989.0), 'I': ('n', 13573803.0), 'J': ('n', 27208792.0), 'K': ('n', -3.9)}}
+[00:38:17] G1_value False
+VERDICT: GAPS: G1_value
+[00:38:17] VERDICT: GAPS: G1_value
 
-→ Report written to aws/ops/reports/latest/3674_xlsx_xray.md
+→ Report written to aws/ops/reports/latest/3675_air_final.md
