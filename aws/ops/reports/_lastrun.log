@@ -1,11 +1,11 @@
-executing-against: 1df0240d4f30e09cdcaf1c5a28a4252a81b9386f
-ops 3672 — runner-side CAD xlsx landing + fn diag
-FAIL  G1_value — bytes=2142120 strings=53 tonnes_k=None yoy=None n=None tail=None row=None xp=no freight/cargo row; strings: Hong Kong International Airport    | Civil International Air Transport | Movements of Aircraft, Passenger and Freight | Aircraft | Year | Month | Landing | Take-off | Total | Year-on-year 
-% change | Arrival | Departure | Unload errs=[]
-[00:15:00] G1_value False
+executing-against: ad122faedd181ad9654793f41a29bc29c1729adc
+ops 3673 — runner-side CAD xlsx landing + fn diag
+FAIL  G1_value — bytes=2142120 strings=53 tonnes_k=None yoy=None n=None tail=None row=None xp=no unloaded/loaded sheet; strings: Hong Kong International Airport    | Civil International Air Transport | Movements of Aircraft, Passenger and Freight | Aircraft | Year | Month | Landing | Take-off | Total | Year-on-year 
+% change | Arrival | Departure | Un errs=[]
+[00:27:12] G1_value False
 PASS  G2_diag — {'State': 'Active', 'LastUpdateStatus': 'Successful', 'Timeout': 120, 'MemorySize': 512, 'CodeSize': 86928, 'LastModified': '2026-07-21T23:49:06.000+0000', 'last_log_event': 1784678676858, 'log_tail': 'INIT_START Runtime Version: python:3.12.mainlinev2.v18\tRuntime Version ARN: arn:'}
-[00:15:01] G2_diag True
+[00:27:13] G2_diag True
 VERDICT: GAPS: G1_value
-[00:15:01] VERDICT: GAPS: G1_value
+[00:27:13] VERDICT: GAPS: G1_value
 
-→ Report written to aws/ops/reports/latest/3672_air_runner.md
+→ Report written to aws/ops/reports/latest/3673_air_cols.md

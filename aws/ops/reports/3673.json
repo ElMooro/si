@@ -1,0 +1,31 @@
+{
+  "gates": {
+    "G1_value": {
+      "ok": false,
+      "detail": "bytes=2142120 strings=53 tonnes_k=None yoy=None n=None tail=None row=None xp=no unloaded/loaded sheet; strings: Hong Kong International Airport    | Civil International Air Transport | Movements of Aircraft, Passenger and Freight | Aircraft | Year | Month | Landing | Take-off | Total | Year-on-year \r\n% change | Arrival | Departure | Un errs=[]"
+    },
+    "G2_diag": {
+      "ok": true,
+      "detail": "{'State': 'Active', 'LastUpdateStatus': 'Successful', 'Timeout': 120, 'MemorySize': 512, 'CodeSize': 86928, 'LastModified': '2026-07-21T23:49:06.000+0000', 'last_log_event': 1784678676858, 'log_tail': 'INIT_START Runtime Version: python:3.12.mainlinev2.v18\\tRuntime Version ARN: arn:'}"
+    }
+  },
+  "air": {
+    "tonnes_k": null,
+    "yoy_pct": null,
+    "read": null,
+    "xlsx_n": null,
+    "xlsx_row": null,
+    "via": null
+  },
+  "fn_diag": {
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "Timeout": 120,
+    "MemorySize": 512,
+    "CodeSize": 86928,
+    "LastModified": "2026-07-21T23:49:06.000+0000",
+    "last_log_event": 1784678676858,
+    "log_tail": "INIT_START Runtime Version: python:3.12.mainlinev2.v18\tRuntime Version ARN: arn:"
+  },
+  "verdict": "GAPS: G1_value"
+}
