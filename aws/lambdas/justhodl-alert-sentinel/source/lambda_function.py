@@ -223,6 +223,20 @@ def diff(old, new):
                      ", ".join(k.replace("data/", "") for k in new_stale[:8]) +
                      (f" (+{len(new_stale)-8} more)" if len(new_stale) > 8 else ""))
 
+    # ops 3679: boom-stage signal alerts
+    _bnew = set(new.get("boom_signals") or []) - set(old.get("boom_signals") or [])
+    if _bnew:
+        try:
+            _bs2 = json.loads(S3.get_object(Bucket=BUCKET,
+                                            Key="data/boom-stage.json")["Body"].read())
+            _lines = {(s0.get("type","")+":"+s0.get("pair","")): s0.get("line","")
+                      for s0 in (_bs2.get("signals") or [])}
+            for _bk in sorted(_bnew):
+                msgs.append("🧭 Boom-stage: " + _lines.get(_bk, _bk)[:170]
+                             + " — justhodl.ai/boom-stage.html")
+        except Exception:
+            pass
+
     # ops 3646: geopolitical escalation alerts
     _gnew = set(new.get("geo_escalating") or []) - set(old.get("geo_escalating") or [])
     for _gc in sorted(_gnew):
@@ -384,6 +398,16 @@ def compose_report(buffer, today):
 def lambda_handler(event=None, context=None):
     DIAG.clear()
     new = snapshot()
+    # ops 3679: boom-stage signal wire
+    try:
+        _bs = json.loads(S3.get_object(Bucket=BUCKET,
+                                       Key="data/boom-stage.json")["Body"].read())
+        new["boom_signals"] = sorted(
+            (s0.get("type","") + ":" + s0.get("pair",""))
+            for s0 in (_bs.get("signals") or []))[:10]
+    except Exception as _e:
+        DIAG.append("boom wire: " + str(_e)[:60])
+
     # ops 3646: geopolitical escalation wire (new country enters escalating)
     try:
         _gr = json.loads(S3.get_object(Bucket=BUCKET,

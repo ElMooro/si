@@ -19,14 +19,72 @@ air-cargo (high-value volume when live). Emits data/boom-stage.json.
 stdlib-only; never fabricates; missing legs stay null with NA stage.
 """
 import json
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
+
+
+UA = {"User-Agent": "Mozilla/5.0"}
+
+
+def _yoy_yahoo(sym):
+    """Keyless Yahoo chart: yoy %% of last close vs ~1y ago."""
+    try:
+        u = ("https://query1.finance.yahoo.com/v8/finance/chart/"
+             + urllib.parse.quote(sym) + "?range=1y&interval=1d")
+        j = json.loads(urllib.request.urlopen(
+            urllib.request.Request(u, headers=UA), timeout=15).read())
+        cl = (j["chart"]["result"][0]["indicators"]["quote"][0]["close"])
+        cl = [c for c in cl if isinstance(c, (int, float))]
+        if len(cl) < 100:
+            return None
+        return round(100 * (cl[-1] / cl[0] - 1), 1)
+    except Exception:
+        return None
+
+
+TRADE_MAP = {
+    "KR-semis": {
+        "EARLY_PRICE_LED": ("LONG", "MU / SOXX / 000660.KS-proxy",
+                            "memory pricing-power phase — ride it"),
+        "PLATEAU_FORMING": ("TRIM", "MU / SOXX",
+                            "volume caught up, price cooling — the RAM "
+                            "sell-signal"),
+        "CONTRACTION": ("AVOID", "semis complex", "cycle rolling over")},
+    "TW-electronics": {
+        "EARLY_PRICE_LED": ("LONG", "TSM / EWT", "orders value-led"),
+        "PLATEAU_FORMING": ("TRIM", "TSM / EWT", "orders cooling vs volume"),
+        "CONTRACTION": ("AVOID", "TSM / EWT", "orders and ships both down")},
+    "CN-broad": {
+        "EARLY_PRICE_LED": ("WATCH", "FXI / copper", "credit re-igniting"),
+        "BROADENING": ("LONG", "FXI / KWEB / copper", "credit + ports up"),
+        "CONTRACTION": ("AVOID/SHORT-BIAS", "FXI / AUD / copper demand",
+                        "credit and gateway volume both contracting")},
+    "UAE-energy": {
+        "EARLY_PRICE_LED": ("LONG", "XLE / tankers (FRO/STNG)",
+                            "crude price-led while transit volume flat"),
+        "PLATEAU_FORMING": ("TRIM", "XLE", "volume normalizing"),
+        "CONTRACTION": ("AVOID", "energy beta", "price and flow both down")},
+    "BR-commodities": {
+        "EARLY_PRICE_LED": ("LONG", "EWZ / FCX / VALE",
+                            "metal price-led, shipments lagging"),
+        "BROADENING": ("LONG", "EWZ / VALE", "price and cargoes both up"),
+        "CONTRACTION": ("AVOID", "EWZ / VALE",
+                        "copper and Santos flow both down")},
+    "US-freight": {
+        "EARLY_PRICE_LED": ("LONG", "carriers: ODFL / UNP / SAIA",
+                            "freight $ up on falling shipments = carrier "
+                            "pricing power"),
+        "PLATEAU_FORMING": ("TRIM", "carriers", "rate power fading"),
+        "CONTRACTION": ("AVOID", "transports", "volume and $ both down")},
+}
 
 
 def _get(key):
@@ -39,7 +97,7 @@ def _get(key):
 def _stage(v_yoy, vol_pct):
     if v_yoy is None or vol_pct is None:
         return "NA", "missing leg"
-    if v_yoy >= 15 and -12 <= vol_pct <= 8:
+    if v_yoy >= 10 and -15 <= vol_pct <= 5:
         return "EARLY_PRICE_LED", ("value surging while physical volume flat "
                                    "— pricing power / high-value goods; the "
                                    "boom has NOT plateaued")
@@ -131,9 +189,115 @@ def lambda_handler(event=None, context=None):
         "context": {},
     })
 
+    # UAE - energy re-export (Brent value x Jebel Ali volume)
+    br_v = _yoy_yahoo("BZ=F")
+    vp4, vz4, npt4 = vol("UAE")
+    st4, why4 = _stage(br_v, vp4)
+    pairs.append({"id": "UAE-energy", "label": "UAE · Energy re-export "
+                  "(Brent vs Jebel Ali)", "stage": st4, "why": why4,
+                  "value": {"src": "Brent crude (BZ=F) yoy", "yoy_pct": br_v},
+                  "volume": {"src": "portwatch UAE gateway ports",
+                             "vs_baseline_pct": vp4, "z": vz4,
+                             "n_ports": npt4}, "context": {}})
+
+    # BR - bulk commodities (Copper value x Santos volume)
+    cu_v = _yoy_yahoo("HG=F")
+    vp5, vz5, npt5 = vol("Brazil")
+    st5, why5 = _stage(cu_v, vp5)
+    pairs.append({"id": "BR-commodities", "label": "Brazil · Bulk "
+                  "commodities (Copper vs Santos)", "stage": st5,
+                  "why": why5,
+                  "value": {"src": "Copper (HG=F) yoy", "yoy_pct": cu_v},
+                  "volume": {"src": "portwatch Brazil gateway ports",
+                             "vs_baseline_pct": vp5, "z": vz5,
+                             "n_ports": npt5}, "context": {}})
+
+    # US - freight carriers (Cass $ value x Cass shipments volume)
+    fp = _get("data/freight-pulse.json")
+    ce = ((fp.get("series") or {}).get("cass_expend") or {})
+    csh = ((fp.get("series") or {}).get("cass_shipments") or {})
+    st6, why6 = _stage(ce.get("yoy_pct"), csh.get("yoy_pct"))
+    pairs.append({"id": "US-freight", "label": "US · Freight carriers "
+                  "(Cass $ vs shipments)", "stage": st6, "why": why6,
+                  "value": {"src": "Cass expenditures yoy",
+                            "yoy_pct": ce.get("yoy_pct")},
+                  "volume": {"src": "Cass shipments yoy",
+                             "vs_baseline_pct": csh.get("yoy_pct"),
+                             "z": csh.get("z_5y"), "n_ports": None},
+                  "context": {"inflection": csh.get("inflection")}})
+
+    # ---- history ledger + transitions + sliding-watch signals ----
+    try:
+        hist = json.loads(S3.get_object(
+            Bucket=BUCKET, Key="boom/boom-stage-history.json")["Body"].read())
+    except Exception:
+        hist = {"days": {}}
+    today = now.strftime("%Y-%m-%d")
+    prev_day = max([k for k in hist["days"] if k < today], default=None)
+    prev = hist["days"].get(prev_day, {}) if prev_day else {}
+    hist["days"][today] = {p["id"]: {
+        "v": (p["value"] or {}).get("yoy_pct"),
+        "vol": (p["volume"] or {}).get("vs_baseline_pct"),
+        "stage": p["stage"]} for p in pairs}
+    hist["days"] = {k: hist["days"][k]
+                    for k in sorted(hist["days"])[-60:]}
+    S3.put_object(Bucket=BUCKET, Key="boom/boom-stage-history.json",
+                  Body=json.dumps(hist).encode(),
+                  ContentType="application/json")
+
+    signals = []
+    for p in pairs:
+        pid = p["id"]
+        pv = prev.get(pid) or {}
+        v_now = (p["value"] or {}).get("yoy_pct")
+        vol_now = (p["volume"] or {}).get("vs_baseline_pct")
+        p["trajectory"] = None
+        if pv.get("v") is not None and v_now is not None:
+            dv = round(v_now - pv["v"], 1)
+            dvol = round((vol_now or 0) - (pv.get("vol") or 0), 1)
+            p["trajectory"] = {"d_value": dv, "d_volume": dvol,
+                               "prev_day": prev_day}
+        tm = TRADE_MAP.get(pid, {})
+        if pv.get("stage") and pv["stage"] not in ("NA",)                 and p["stage"] not in ("NA",)                 and pv["stage"] != p["stage"]:
+            tr = tm.get(p["stage"])
+            signals.append({
+                "type": "STAGE_CHANGE", "pair": pid,
+                "from": pv["stage"], "to": p["stage"],
+                "trade": ({"bias": tr[0], "instruments": tr[1],
+                           "line": tr[2]} if tr else None),
+                "line": f"{p['label']}: {pv['stage']} -> {p['stage']}"})
+        if p["stage"] == "EARLY_PRICE_LED" and p["trajectory"]:
+            dv = p["trajectory"]["d_value"]
+            dvol = p["trajectory"]["d_volume"]
+            if (dv <= -2 or dvol >= 3) and (v_now < 18 or (vol_now or 0) > 0):
+                tr = tm.get("PLATEAU_FORMING")
+                signals.append({
+                    "type": "SLIDING_WATCH", "pair": pid,
+                    "toward": "PLATEAU_FORMING",
+                    "trade": ({"bias": tr[0], "instruments": tr[1],
+                               "line": tr[2]} if tr else None),
+                    "line": (f"{p['label']}: sliding toward "
+                             f"PLATEAU_FORMING (value {dv:+}pp, volume "
+                             f"{dvol:+}pp) — pre-emptive trim signal")})
+        if p["stage"] == "CONTRACTION" and p["trajectory"]:
+            if p["trajectory"]["d_value"] >= 2                     and p["trajectory"]["d_volume"] >= 2:
+                signals.append({
+                    "type": "BASING_WATCH", "pair": pid,
+                    "toward": "MIXED",
+                    "line": f"{p['label']}: both legs improving — "
+                            f"basing watch"})
+        stage_tr = tm.get(p["stage"])
+        if stage_tr:
+            p["trade"] = {"bias": stage_tr[0],
+                          "instruments": stage_tr[1],
+                          "line": stage_tr[2]}
+
     live = [p for p in pairs if p["stage"] != "NA"]
-    doc = {"ok": len(live) >= 2, "version": VERSION,
-           "generated_at": now.isoformat(), "pairs": pairs,
+    doc = {"ok": len(live) >= 4, "version": VERSION,
+           "generated_at": now.isoformat(), "pairs": pairs, "signals": signals,
+           "signals_note": ("STAGE_CHANGE fires on flips; "
+                            "SLIDING_WATCH pre-empts the flip "
+                            "(needs >=1 prior day of history)"),
            "headline": next((f"{p['label']}: {p['stage']}"
                              for p in pairs
                              if p["stage"] == "EARLY_PRICE_LED"), None),
