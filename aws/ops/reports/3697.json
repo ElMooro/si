@@ -1,0 +1,21 @@
+{
+  "gates": {
+    "G1_edge_allows_cad": {
+      "ok": true,
+      "detail": "status=200 bytes=4002 xgov=www.cad.gov.hk"
+    },
+    "G2_lambda_native": {
+      "ok": false,
+      "detail": "async=202 fresh@-0.0min ok=False via=None tonnes_k=None month=None yoy=None n=None bytes=0 cols=None read=None levels=None errs=[\"fetch: URL can't contain control characters. '/english/./pdf/Stat Webpage.xlsx' (found at least ' ')\"]"
+    }
+  },
+  "air": {
+    "tonnes_k": null,
+    "month": null,
+    "yoy_pct": null,
+    "fetch_via": null,
+    "xlsx_n": null,
+    "read": null
+  },
+  "verdict": "GAPS: G2_lambda_native"
+}
