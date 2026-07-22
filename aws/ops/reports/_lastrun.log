@@ -1,53 +1,41 @@
-executing-against: a671de318df12b1da4e5d1b9ba5ad4b3b6600310
-ops 3712 — consensus observability, stage 1.5
-  artifact ready after 0 s
-PASS  G1_shipped — v1.2.0=False actions=True snapshot=True observed=True
-[16:59:18] G1_shipped True
-  pass 1: refreshed=True in 15s
-  pass 2: refreshed=True in 15s
-PASS  G2_invoke — second pass refreshed=True
-[16:59:48] G2_invoke True
-PASS  G3_snapshot_ledger — consensus snapshot ledger holds 73 names (sample=['AMAT', 'AMD', 'AN', 'ANET', 'APH', 'ARM'])
-[16:59:48] G3_snapshot_ledger True
-FAIL  G4_consensus_observable — v=1.2.1 rows=74 consensus_observed=0 sellside_covered=None deltas=None quadrants={'TWICE_UNPRICED': 0, 'CONSENSUS_NOT_DUE_YET': 53, 'CONSENSUS_DISSENTING': 2, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 18, 'FULLY_PRICED': 1, 'PRICE_ONLY': 0} degraded=['fundamental sidecar missing: forward-orders']
-[16:59:48] G4_consensus_observable False
-PASS  G7_dissent_not_bullish — dissenting names in a bullish quadrant=[]
-[16:59:48] G7_dissent_not_bullish True
-PASS  G8_twice_is_discriminating — TWICE_UNPRICED share=0% of 74 rows (was 68% at ops 3711, before the consensus-lag rule)
-[16:59:48] G8_twice_is_discriminating True
-PASS  G9_lag_rule_active — CONSENSUS_NOT_DUE_YET=53 - fresh catalysts no longer masquerade as anomalies
-[16:59:48] G9_lag_rule_active True
-PASS  G5_no_unearned_twice — TWICE_UNPRICED without observability=[]
-[16:59:48] G5_no_unearned_twice True
-PASS  G6_flow_conservation_holds — overruns=[] groups=12
-[16:59:48] G6_flow_conservation_holds True
+executing-against: 0b755f141b7421ac335311f9c452c7abd4899208
+ops 3713 — consensus observability re-gate (3712 key typo)
+[17:42:41] G0_key_contract True
+  G0_key_contract                    True  engine writes consensus_coverage=True consensus_honesty=False (3712 read the latter)
+[17:42:41] G1_shipped True
+  G1_shipped                         True  v1.2.1=True observed_field=True
+[17:42:41] G2_artifact_fresh True
+  G2_artifact_fresh                  True  version=1.2.1 rows=74 generated=2026-07-22T16:59:39 degraded=['fundamental sidecar missing: forward-orders']
+[17:42:41] G3_snapshot_ledger True
+  G3_snapshot_ledger                 True  consensus snapshot ledger holds 73 names
+[17:42:41] G4_consensus_observable True
+  G4_consensus_observable            True  rows_consensus_observed=74 rows=74 sellside_covered=137 deltas=62
+[17:42:41] G5_counter_matches_rows True
+  G5_counter_matches_rows            True  coverage_block=74 recount_from_rows=74 (mismatch = rollup drifted from row truth)
+[17:42:41] G6_quadrants_discriminate True
+  G6_quadrants_discriminate          True  non-empty={'CONSENSUS_NOT_DUE_YET': 53, 'CONSENSUS_DISSENTING': 2, 'PRICE_LEADING': 18, 'FULLY_PRICED': 1} top_share=0.716 (3710 collapsed to PRICE_ONLY 78/79)
 
-=== QUADRANTS === {'TWICE_UNPRICED': 0, 'CONSENSUS_NOT_DUE_YET': 53, 'CONSENSUS_DISSENTING': 2, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 18, 'FULLY_PRICED': 1, 'PRICE_ONLY': 0}
-=== COVERAGE === {}
+  quadrant distribution:
+    CONSENSUS_NOT_DUE_YET      53
+    PRICE_LEADING              18
+    CONSENSUS_DISSENTING       2
+    FULLY_PRICED               1
 
-=== SELL SIDE ALREADY REACTED ===
-  INTC   via SMCI   actions=1 net=-1 CONSENSUS_DISSENTING   sc=36.4
-  INTC   via DELL   actions=1 net=-1 CONSENSUS_DISSENTING   sc=35.4
-  KMX    via PAG    actions=1 net=1 FULLY_PRICED           sc=3.0
+  sample rows (observability truth):
+  LITE   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=95.5
+  CRDO   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=93.0
+  AMD    CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=87.5
+  MPWR   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=87.5
+  COHR   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=85.6
+  MPWR   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=84.9
+  AMD    CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=84.4
+  VRT    CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=82.8
+  VRT    CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=82.5
+  MU     CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=82.5
+  MU     CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=82.2
+  LITE   CONSENSUS_NOT_DUE_YET    observed=True moved=False dissent=False sc=81.5
 
-=== TOP ROWS ===
-  LITE   T1_DIRECT_SUPPLIER         gap=  17.67 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=95.5
-  CRDO   T1_DIRECT_SUPPLIER         gap=  15.41 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=93.0
-  AMD    T1_DIRECT_SUPPLIER         gap=  11.67 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=87.5
-  MPWR   T1_DIRECT_SUPPLIER         gap=  11.29 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=87.5
-  COHR   T1_DIRECT_SUPPLIER         gap=   9.27 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=85.6
-  MPWR   T1_DIRECT_SUPPLIER         gap=   4.15 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=84.9
-  AMD    T1_DIRECT_SUPPLIER         gap=    4.2 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=84.4
-  VRT    T1_DIRECT_SUPPLIER         gap=   4.32 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=82.8
-  VRT    T1_DIRECT_SUPPLIER         gap=   7.73 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=82.5
-  MU     T1_DIRECT_SUPPLIER         gap=   2.55 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=82.5
-  MU     T1_DIRECT_SUPPLIER         gap=   5.84 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=82.2
-  LITE   T2_TIER2_INPUT             gap=   5.16 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=81.5
-  ARM    T2_TIER2_INPUT             gap=  12.01 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=80.3
-  ARM    T2_TIER2_INPUT             gap=   5.69 CONSENSUS_NOT_DUE_YET  observed=True moved=False sc=79.6
+VERDICT: PASS_ALL
+[17:42:41] VERDICT: PASS_ALL
 
-VERDICT: GAPS: G4_consensus_observable
-[16:59:48] VERDICT: GAPS: G4_consensus_observable
-
-→ Report written to aws/ops/reports/latest/3712_consensus_honesty.md
-❌ OPS-FAIL: aws/ops/pending/ops_3712_consensus_honesty.py
+→ Report written to aws/ops/reports/latest/3713_consensus_regate.md
