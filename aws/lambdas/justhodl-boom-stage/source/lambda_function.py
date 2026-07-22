@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -297,9 +297,20 @@ def lambda_handler(event=None, context=None):
                                   if air.get("ok") else None)},
     })
 
-    # TW value leg (orders) — pair rendered below as TW-semis
+    # TW value leg (v1.5): orders yoy is still self-building (needs a 12m
+    # prior vintage in asia/tw-orders-levels.json, currently 2 months), so
+    # fall back to Taiwan goods-EXPORTS yoy which asia-leads already carries
+    # live. Orders lead shipments, so orders is preferred when it arrives.
     tw = (asia.get("taiwan_orders") or {})
+    twx = (asia.get("taiwan_exports") or {})
     v_yoy2 = tw.get("yoy_pct")
+    tw_src = "asia-leads TW export orders (MOEA)"
+    if v_yoy2 is None:
+        v_yoy2 = tw.get("yoy")
+    if v_yoy2 is None and isinstance(twx.get("yoy_pct"), (int, float)):
+        v_yoy2 = twx["yoy_pct"]
+        tw_src = ("asia-leads TW goods exports yoy (orders series still "
+                  "building its 12m vintage)")
 
     # CN - broad economy (credit value vs port volume)
     tsf = ((cn.get("tsf") or {}).get("pboc_cn") or {})
@@ -405,10 +416,13 @@ def lambda_handler(event=None, context=None):
     pairs.append({"id": "TW-semis",
                   "label": "Taiwan · Semiconductors (orders vs Kaohsiung)",
                   "stage": st7, "why": why7,
-                  "value": {"src": "asia-leads TW export orders",
-                            "yoy_pct": v_yoy2,
+                  "value": {"src": tw_src, "yoy_pct": v_yoy2,
                             "note": ("orders yoy self-building"
-                                     if v_yoy2 is None else "")},
+                                     if v_yoy2 is None else
+                                     ("orders levels cached: "
+                                      + str(tw.get("levels_cached") or 0)
+                                      + "/13 — will switch to true orders "
+                                        "when the vintage completes"))},
                   "volume": {"src": "portwatch Taiwan ports",
                              "vs_baseline_pct": vp7, "z": vz7,
                              "n_ports": npt7}, "context": {}})
@@ -711,6 +725,13 @@ def lambda_handler(event=None, context=None):
         regime = "GOLDILOCKS"
     else:
         regime = "MIXED / TRANSITIONAL"
+
+    for _d in divergences:
+        signals.append({
+            "type": "DIVERGENCE", "pair": _d["commodity"],
+            "line": _d["read"][:230],
+            "trade": {"bias": "PAIR", "instruments": _d["trade"][:90],
+                      "line": f"{_d['spread_pp']}pp spread"}})
 
     live = [p for p in pairs if p["stage"] != "NA"]
     doc = {"ok": len(live) >= 8, "version": VERSION,
