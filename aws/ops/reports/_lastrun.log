@@ -1,42 +1,25 @@
-executing-against: 397e050efd15b22b72a054f22a2121d1e0b1ec13
-ops 3731 — SHIP justhodl-import-canary v1.0 (import flow canary)
-── G0 — key contract (grep producer before gating) ──
-[20:36:57] PASS G0_key_contract — engine emits all gated keys
-── G1 — zip settle (never invoke the old artifact) ──
-[20:37:13] PASS G1_zip_settle — marker found after 15s
-── G2 — CENSUS_API_KEY inherited ──
-[20:37:14] PASS G2_census_key — key present len=40
-── G3 — async invoke (Event) + S3 freshness gate ──
-[20:37:14]   no prior artifact (first run)
-[20:37:14] PASS G3_invoke_accepted — async accepted status=202
-[20:37:44]   artifact written after ~30s (age 0.1min)
-[20:37:44] PASS G3_artifact_written — new artifact observed
-── G4 — S3 artifact fresh + shape ──
-[20:37:45] PASS G4_artifact — age=0.1min shape_ok=True n_lines=33
-── G5 — data truth (real numbers, no fabrication) ──
-[20:37:45] PASS G5_data_truth — month=2026-05 future=False HS4_8542_level=4476331643.0 plausible=True lines_with_level=26
-[20:37:45]   8542 top source: Taiwan 46.1% (HHI 0.259)
-[20:37:45]   8542 share shift: +Taiwan 9.14 / Thailand -20.82
-── G6 — signal ladder + industry rollup ──
-[20:37:45]   Memory (DRAM/NAND)       SURGE_CONFIRMED YoY +344.3%  accel 20.98  src Taiwan
-[20:37:45]   Computer parts & accesso SURGE_CONFIRMED YoY +102.7%  accel 19.44  src Taiwan
-[20:37:45]   Semiconductor & electron SURGE_CONFIRMED YoY +53.1%  accel 9.56  src None
-[20:37:45]   Amplifiers               SURGE_CONFIRMED YoY +50.0%  accel 7.11  src Taiwan
-[20:37:45]   Radioactive elements (ur CONTRACTION_CONFIRMED YoY -78.7%  accel -138.27  src Canada
-[20:37:45]   Pharmaceutical & medicin CONTRACTION_CONFIRMED YoY -39.2%  accel -0.73  src None
-[20:37:45]   Refined copper           CONTRACTION_CONFIRMED YoY -35.3%  accel -14.31  src Canada
-[20:37:45]   Carbonates (incl. lithiu CONTRACTION_CONFIRMED YoY -30.4%  accel -7.02  src Germany
-[20:37:45]   ROLLUP Computer Hardware          +84.5%  $49.46B/mo (2 lines)
-[20:37:45]   ROLLUP Semiconductors             +60.0%  $8.19B/mo (4 lines)
-[20:37:45]   ROLLUP Industrial Machinery       +18.2%  $1.15B/mo (1 lines)
-[20:37:45]   ROLLUP Electronic Components      +12.9%  $0.26B/mo (1 lines)
-[20:37:45]   ROLLUP Electrical Equipment       +9.9%  $11.59B/mo (5 lines)
-[20:37:45]   ROLLUP Semiconductor Equipment    +7.8%  $2.04B/mo (2 lines)
-[20:37:45] PASS G6_signals — signals=15 rollup_industries=16
-── G7 — schedule ──
-[20:37:46]   eventbridge rule: justhodl-import-canary-daily cron(40 13 * * ? *)
-[20:37:46] PASS G7_schedule — schedule present
+executing-against: 3f7fe316e9066d99ffd7db21c86ed8d23381333a
+ops 3732 — import-canary page + field-coverage audit
+── G1 — page served ──
+[20:43:55]   attempt 0: HTTP Error 404: Not Found
+[20:44:15]   attempt 1: HTTP Error 404: Not Found
+[20:44:35]   attempt 2: HTTP Error 404: Not Found
+[20:44:55]   attempt 3: HTTP Error 404: Not Found
+[20:45:15]   attempt 4: HTTP Error 404: Not Found
+[20:45:35]   attempt 5: HTTP Error 404: Not Found
+[20:45:55]   attempt 6: HTTP Error 404: Not Found
+[20:46:16]   attempt 7: HTTP Error 404: Not Found
+[20:46:36] PASS G1_page_live — len=12794 missing_markers=[]
+── G2 — field coverage (live S3 artifact vs page render paths) ──
+[20:46:36]   top-level keys: ['attribution', 'coverage', 'data_month', 'degraded', 'generated_at', 'industry_rollup', 'lag_note', 'lines', 'n_lines', 'naics_lines', 'scope_note', 'signals', 'source_url', 'version']
+[20:46:36]   per-row keys:   ['accel_pp', 'all_pp', 'basis', 'code', 'codes', 'concentration', 'covered_usd', 'fragile', 'gainer', 'gainer_pp', 'hhi', 'hist_n', 'import_usd_mo', 'import_yoy_pct', 'industry', 'label', 'level', 'level_code', 'loser', 'loser_pp', 'mom_3m_pct', 'month', 'n_lines', 'n_months', 'shares_pct', 'source_shift', 'tier', 'top_share_pct', 'top_source', 'yoy_pct', 'yoy_prev_pct', 'z_yoy']
+[20:46:36] PASS G2_field_coverage — every published key has a render path
+── G3 — nav manifest (served) ──
+[20:46:36] PASS G3_nav — listed under ('Macro & Liquidity', 'Import Canary')
+── G4 — degraded lines ──
+[20:46:36]   coverage: {'hs_requested': 26, 'hs_ok': 26, 'naics_requested': 7, 'naics_ok': 7}
+[20:46:36] PASS G4_degraded — coverage 100% (33/33), degraded=0
 ── VERDICT ──
-[20:37:46] ✅ PASS_ALL — import-canary live; page next
+[20:46:36] ✅ PASS_ALL — page live, every field rendered
 
-→ Report written to aws/ops/reports/latest/3731_import_canary_regate.md
+→ Report written to aws/ops/reports/latest/3732_import_canary_page.md
