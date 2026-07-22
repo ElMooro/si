@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -113,6 +113,18 @@ CATALYST_TYPES = [
     ("MA", 0.30, ("to acquire", "acquisition of", "merger", "takeover", "agrees to buy")),
     ("REGULATORY", 0.25, ("fda", "approval", "clearance", "authorization")),
 ]
+# Capital-structure / mechanical events. These move a tape hard and mean NOTHING
+# for a supply chain — a second-step conversion, a raise, a split. Hard-excluded
+# before classification so they can never become a propagating catalyst.
+STRUCTURAL_EXCLUDE = (
+    "second step conversion", "second-step conversion", "stock offering",
+    "public offering", "secondary offering", "rights offering", "at-the-market",
+    "shelf registration", "reverse split", "reverse stock split", "forward split",
+    "stock split", "share consolidation", "conversion and", "direct offering",
+    "registered direct", "warrant exercise", "convertible notes offering",
+    "special dividend", "spin-off completion", "dividend declaration",
+)
+
 MONEY_RE = re.compile(
     r"\$\s?([\d][\d,]*\.?\d*)\s*(trillion|billion|bn\b|b\b|million|mm\b|m\b)", re.I)
 MONEY_MULT = {"trillion": 1e12, "billion": 1e9, "bn": 1e9, "b": 1e9,
@@ -277,9 +289,11 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
             continue
         if q["prev_close"] < MIN_PRICE or q["dollar_vol"] < MIN_DOLLAR_VOL:
             continue
-        if abs(q["chg_pct"]) < GAP_MIN_PCT:
+        # POSITIVE ONLY: a surge is a claim on the chain. A collapse is
+        # contagion — a different engine's job, not a beneficiary board.
+        if q["chg_pct"] < GAP_MIN_PCT:
             continue
-        cands.append((abs(q["chg_pct"]) * math.log1p(q["dollar_vol"]), sym, q))
+        cands.append((q["chg_pct"] * math.log1p(q["dollar_vol"]), sym, q))
     cands.sort(reverse=True)
     cands = cands[:40]
 
@@ -294,6 +308,9 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
             age = hours_since(pub)
             if age is None or age > 48:
                 continue
+            blob = f"{title} {body}".lower()
+            if any(x in blob for x in STRUCTURAL_EXCLUDE):
+                continue  # capital-structure event — never propagates
             ctype, prop = classify(f"{title} {body}")
             if ctype == "UNCLASSIFIED":
                 continue
@@ -325,7 +342,7 @@ def find_catalysts(tape, univ_meta, filings_by_ticker):
             if r:
                 out.append(r)
     out.sort(key=lambda x: (x["propagation"], x.get("order_value_usd") or 0,
-                            abs(x["move_pct"])), reverse=True)
+                            x["move_pct"]), reverse=True)
     return out[:MAX_CATALYSTS]
 
 

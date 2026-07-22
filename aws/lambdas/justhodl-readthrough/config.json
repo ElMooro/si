@@ -11,7 +11,30 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Catalyst read-through engine: tiers beneficiaries of a spend-implying catalyst by mechanism (T1 supplier -> T5 competitor), sizes vs own revenue, strips beta on the event clock, ranks what the tape has not paid for. -> data/readthrough.json",
   "environment": {},
-  "inherit_env": true,
+  "inherit_env": [
+    {
+      "from_function": "justhodl-confluence-meta",
+      "keys": [
+        "FMP_KEY",
+        "POLYGON_KEY",
+        "FRED_KEY"
+      ]
+    },
+    {
+      "from_function": "justhodl-alert-sentinel",
+      "keys": [
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    },
+    {
+      "from_function": "justhodl-news-wire",
+      "keys": [
+        "TELEGRAM_BOT_TOKEN",
+        "TELEGRAM_CHAT_ID"
+      ]
+    }
+  ],
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-readthrough-sched",
     "cron": "cron(20 11,13,21 ? * MON-FRI *)",
