@@ -151,7 +151,7 @@ function boardTable(rows){
       '</td><td class="mono">'+esc(r.catalyst_ticker)+'</td><td class="mono">'+pc(r.expected_move_pct)+
       '</td><td class="mono">'+pc(r.realized_ex_beta_pct)+'</td><td class="mono" style="color:'+AMB+'">'+pc(r.residual_pct)+
       '</td><td class="mono">'+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(2))+
-      '</td><td class="mono">'+(r.materiality_pct==null?'—':r.materiality_pct.toFixed(2)+'%')+
+      '</td><td class="mono" title="'+esc(r.materiality_note||'')+'">'+(r.materiality==null?'—':(r.materiality).toFixed(3)+'×')+
       '</td><td class="mono" style="font-size:11px;color:'+DIM+'">'+esc(r.edge_source||'—')+(r.edge_confidence==null?'':' '+(r.edge_confidence*100).toFixed(0)+'%')+
       '</td><td class="mono" style="font-size:11px;color:'+MUT+'">'+((r.fundamentals||{}).days_since_catalyst==null?'—':(r.fundamentals||{}).days_since_catalyst+'d')+
       '</td><td class="mono" style="color:'+c+'">'+esc(r.status)+'</td><td class="mono"><b>'+(r.catch_up_score==null?'—':r.catch_up_score)+'</b></td></tr>';
@@ -208,8 +208,10 @@ function boardTable(rows){
         '<div class="mono" style="font-size:12px;margin-top:4px">'+
         'mechanism '+pc(p.expected_move_pct)+' · realized ex-β '+pc(p.realized_ex_beta_pct)+
         ' · gap '+pc(p.gap_pts)+
-        (p.materiality_pct!=null?' · materiality '+p.materiality_pct.toFixed(2)+'% of revenue':'')+
+        (p.materiality!=null?' · materiality '+p.materiality.toFixed(3)+'×':'')+
         '</div>'+
+        (p.materiality_note?'<div class="mono" style="font-size:11.5px;color:'+MUT+'">'+esc(p.materiality_note)+'</div>':'')+
+        (p.quadrant_note?'<div class="mono" style="font-size:11.5px;color:'+MUT+'">'+esc(p.quadrant_note)+'</div>':'')+
         (p.thesis?'<div style="font-size:12.5px;margin-top:6px;color:var(--text-dim)">'+esc(p.thesis)+'</div>':'')+
         consensusChips(f)+
         '</div>';
