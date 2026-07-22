@@ -1,0 +1,61 @@
+# ops 3744 — scanner forensics + canary #16 v1.1 ladder fix
+
+**Status:** success  
+**Duration:** 654.6s  
+**Finished:** 2026-07-22T22:33:03+00:00  
+
+## Data
+
+| clusters | failed | industries | peer_clusters | sidecar | verdict |
+|---|---|---|---|---|---|
+| 19 | none | 2 | 0 | 53 | PASS_ALL |
+
+## Log
+## G1 — scanner config + last run outcome
+
+- `22:22:09`   timeout=900s memory=1536MB state=Active lastUpdate=Successful
+- `22:22:09`   env keys: ['CLUSTER_MIN_INSIDERS', 'FMP_KEY', 'LOOKBACK_DAYS', 'MAX_FILINGS_TO_PARSE', 'MIN_BUY_VALUE_USD', 'N_BUSINESS_DAYS_INDEX', 'N_WORKERS', 'S3_BUCKET', 'S3_KEY', 'SEC_USER_AGENT', 'TELEGRAM_CHAT_ID', 'TELEGRAM_TOKEN']
+- `22:22:10`     LOG [insider-cluster] starting v2, lookback=30d, max_filings=3000
+- `22:22:10`     LOG [insider-cluster] pulling daily index for 7 biz days: 2026-07-14 → 2026-07-22
+- `22:22:10`     LOG [insider-cluster] found 4900 Form 4 filings (0 index errors)
+- `22:22:10`     LOG [insider-cluster] sampling top 3000 most recent for parsing
+- `22:22:10`     LOG [insider-cluster] parse deadline: 839s from start
+- `22:22:10`     LOG [insider-cluster] parsed 3000 filings, extracted 251 buy transactions (2838 failed)
+- `22:22:10`     LOG [insider-cluster] 53 unique tickers
+- `22:22:10`     LOG [insider-cluster] 19 clusters meeting threshold
+- `22:22:10`     LOG [insider-cluster] enriching top 19 with FMP fundamentals
+- `22:22:10`     LOG [insider-cluster] wrote 43,125b in 632.1s
+- `22:22:10`     LOG [insider-cluster] strong=3 smart_money=0 ceo_conv=2 cluster=3 contrarian=2
+- `22:22:10`     LOG [insider-cluster] TOP: ELV      score= 81.8 ceo_conviction         $ 1.37M 2-ins
+- `22:22:10`     LOG [insider-cluster] TOP: COE      score= 79.0 ceo_conviction         $ 8.48M 1-ins
+- `22:22:10`     LOG [insider-cluster] TOP: ANIX     score= 70.5 exec_pair              $ 0.07M 2-ins
+- `22:22:10`     LOG [insider-cluster] TOP: NONE     score= 59.2 cluster_buy            $ 1.43M 3-ins
+- `22:22:10`     LOG [insider-cluster] TOP: CHCO     score= 52.5 cluster_buy            $ 0.06M 4-ins
+- `22:22:10`     LOG END RequestId: 993ec90c-c205-4ef2-bc45-0e7d3d07cf49
+- `22:22:10`     LOG REPORT RequestId: 993ec90c-c205-4ef2-bc45-0e7d3d07cf49	Duration: 632103.27 ms	Billed Duration: 632629 ms	Memory Size: 1536 MB	Max Memory Used: 111 MB	Init Duration: 525.08 ms	
+XRAY TraceId: 1-6a613fdf
+- `22:22:10` PASS G1_scanner_config — timeout 900s (a 7-day SEC crawl needs headroom)
+## G2 — invoke scanner, wait its full timeout + margin
+
+- `22:22:10`   async accepted status=202
+- `22:22:10`   waiting up to 1080s
+- `22:32:53`   schema=2.1 clusters=19 all_ticker_buys=53 (waited 640s, fresh=True)
+- `22:32:53`   scanner stats: {"n_form4_filings_scanned": 4900, "n_form4_parsed": 3000, "n_buy_transactions": 251, "n_unique_tickers": 53, "n_clusters": 19, "n_strong_signals": 3, "n_smart_money_dual": 0, "n_ceo_conviction": 2, "n_cluster_buys": 3, "n_contrarian_clusters": 2}
+- `22:32:53` PASS G2_sidecar — sidecar=53 vs clusters=19
+## G3 — engine v1.1 settle + rerun
+
+- `22:32:53` PASS G3_engine_settled — v1.1.0 deployed
+- `22:33:03` PASS G3_artifact — industries=2 clusters=0 diffuse=1 source=all_ticker_buys
+## G4 — ladder proof (sub-floor industries cannot CONFIRM)
+
+- `22:33:03`   participation floor = 4.0%
+- `22:33:03`   Biotechnology                  DIFFUSE                    n_co=11/ 590  part= 1.86%  z=None   awaiting_br=True
+- `22:33:03`   Banks - Regional               EMERGING                   n_co= 3/ 319  part= 0.94%  z=None   awaiting_br=True
+- `22:33:03` PASS G4_ladder — sub_floor_promoted=[] confirmed_without_base_rate=[]
+## G5 — honesty fields on every PEER row
+
+- `22:33:03`   peer rows=0 diffuse=1 emerging=1
+- `22:33:03` PASS G5_honesty — missing honesty fields: []
+## VERDICT
+
+- `22:33:03` ✅ PASS_ALL — canary #16 v1.1 honest; page next

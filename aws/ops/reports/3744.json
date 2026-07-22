@@ -1,0 +1,29 @@
+{
+  "gates": {
+    "G1_scanner_config": {
+      "ok": true,
+      "detail": "timeout 900s (a 7-day SEC crawl needs headroom)"
+    },
+    "G2_sidecar": {
+      "ok": true,
+      "detail": "sidecar=53 vs clusters=19"
+    },
+    "G3_engine_settled": {
+      "ok": true,
+      "detail": "v1.1.0 deployed"
+    },
+    "G3_artifact": {
+      "ok": true,
+      "detail": "industries=2 clusters=0 diffuse=1 source=all_ticker_buys"
+    },
+    "G4_ladder": {
+      "ok": true,
+      "detail": "sub_floor_promoted=[] confirmed_without_base_rate=[]"
+    },
+    "G5_honesty": {
+      "ok": true,
+      "detail": "missing honesty fields: []"
+    }
+  },
+  "verdict": "PASS_ALL"
+}
