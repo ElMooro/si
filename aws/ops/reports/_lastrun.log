@@ -1,44 +1,47 @@
-executing-against: 860d4796c7fdfa1075437f550909263cd3fd0751
-ops 3701 — neocloud cluster + readthrough tier caps
-FAIL  G1_code_shipped — graph: neocloud_block=False theme=False v2.1=False | readthrough: tier_caps=False v1.0.2=False
-[05:24:36] G1_code_shipped False
-PASS  G2_graph_rebuilt — graph refreshed=True waited=15.1s
-[05:24:52] G2_graph_rebuilt True
-FAIL  G3_neocloud_coverage — n_edges=222 (was 0 for these) missing_or_thin=['NBIS', 'IREN', 'APLD', 'WULF', 'CIFR', 'GDS'] NBIS<-0 | CRWV<-3 | IREN<-0 | APLD<-0 | WULF<-0 | CIFR<-0 | GDS<-0
-[05:24:52] G3_neocloud_coverage False
+executing-against: 35dc40036b2d84bd1f07e091dfa246884e7d0d6a
+ops 3702 — neocloud cluster + readthrough tier caps
+  [justhodl-supply-chain-graph] artifact ready after 1s
+  [justhodl-readthrough] artifact ready after 1s
+PASS  G1_code_shipped — graph: neocloud_block=True theme=True v2.1=True | readthrough: tier_caps=True v1.0.2=True
+[05:26:59] G1_code_shipped True
+PASS  G2_graph_rebuilt — graph refreshed=True waited=30.6s
+[05:27:30] G2_graph_rebuilt True
+PASS  G3_neocloud_coverage — n_edges=274 (was 0 for these) missing_or_thin=[] NBIS<-9 | CRWV<-11 | IREN<-5 | APLD<-9 | WULF<-7 | CIFR<-9 | GDS<-3
+[05:27:30] G3_neocloud_coverage True
 
 === NEOCLOUD SUPPLIER RESOLUTION (this is the read-through path) ===
-  NBIS  theme=None             suppliers(0): 
-  CRWV  theme=Hyperscaler      suppliers(3): DELL, NVDA, VRT
-  IREN  theme=None             suppliers(0): 
-  APLD  theme=None             suppliers(0): 
-  WULF  theme=None             suppliers(0): 
-  CIFR  theme=None             suppliers(0): 
-  GDS   theme=None             suppliers(0): 
-FAIL  G4_reverse_edges — CRWV->[] | NBIS->[] | IREN->[] | APLD->[]
-[05:24:52] G4_reverse_edges False
-PASS  G5_tier_caps — v=1.0.2 refreshed=True waited=15.1s events=2 rows=10 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}
-[05:25:07] G5_tier_caps True
-PASS  G6_no_regression — status=OK negative=[] degraded=[] unpriced=5
-[05:25:07] G6_no_regression True
+  NBIS  theme=Neocloud/AI-DC   suppliers(9): ANET, CIEN, CRDO, DELL, ETN, LITE, NVDA, SMCI, VRT
+  CRWV  theme=Neocloud/AI-DC   suppliers(11): ANET, APLD, CIEN, COHR, CRDO, DELL, ETN, NVDA, NVT, SMCI, VRT
+  IREN  theme=Neocloud/AI-DC   suppliers(5): DELL, ETN, NVDA, SMCI, VRT
+  APLD  theme=Neocloud/AI-DC   suppliers(9): ETN, GEV, HUBB, MOD, NVDA, NVT, PWR, SMCI, VRT
+  WULF  theme=Neocloud/AI-DC   suppliers(7): ETN, GEV, HUBB, NVDA, NVT, PWR, VRT
+  CIFR  theme=Neocloud/AI-DC   suppliers(9): ETN, HUBB, HUT, MOD, NVDA, NVT, PWR, RIOT, VRT
+  GDS   theme=Neocloud/AI-DC   suppliers(3): CIEN, ETN, VRT
+PASS  G4_reverse_edges — CRWV->['META', 'MSFT'] | NBIS->['MSFT'] | IREN->['MSFT'] | APLD->['CRWV']
+[05:27:30] G4_reverse_edges True
+PASS  G5_tier_caps — v=1.0.2 refreshed=True waited=15.3s events=2 rows=27 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}
+[05:27:46] G5_tier_caps True
+PASS  G6_no_regression — status=OK negative=[] degraded=[] unpriced=27
+[05:27:46] G6_no_regression True
 
 === READ-THROUGH BOARD (v1.0.2) ===
-  tier mix: {'T5_COMPETITOR_VALIDATION': 10}
+  tier mix: {'T1_DIRECT_SUPPLIER': 9, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 5, 'T5_COMPETITOR_VALIDATION': 5}
   CATALYST UTZ      88.72%  MEGA_CONTRACT        benef=5 unpriced=5
-  CATALYST NBIS     18.78%  CAPACITY_EXPANSION   benef=5 unpriced=0
-    HLF    T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
-    SENEA  T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
-    JJSF   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
-    BRBR   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
-    SMPL   T5_COMPETITOR_VALIDATION   via UTZ    exp=   3.79 gap=   3.79 UNPRICED  sc=44.8
-    XYZ    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
-    CRWV   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
-    SNPS   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
-    TWLO   T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
-    NET    T5_COMPETITOR_VALIDATION   via NBIS   exp=   0.72 gap=   0.72 PARTIAL   sc=44.8
+  CATALYST NBIS     18.78%  CAPACITY_EXPANSION   benef=22 unpriced=22
+    NVDA   T1_DIRECT_SUPPLIER         via NBIS   exp=   6.78 gap=   6.78 UNPRICED  sc=87.8
+    LITE   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    DELL   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    CRDO   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    VRT    T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    ANET   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    CIEN   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    ETN    T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    SMCI   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
+    MU     T2_TIER2_INPUT             via NBIS   exp=   4.41 gap=   4.41 UNPRICED  sc=73.8
+    MPWR   T2_TIER2_INPUT             via NBIS   exp=   4.41 gap=   4.41 UNPRICED  sc=73.8
+    TSM    T2_TIER2_INPUT             via NBIS   exp=   3.63 gap=   3.63 UNPRICED  sc=71.5
 
-VERDICT: GAPS: G1_code_shipped,G3_neocloud_coverage,G4_reverse_edges
-[05:25:07] VERDICT: GAPS: G1_code_shipped,G3_neocloud_coverage,G4_reverse_edges
+VERDICT: PASS_ALL
+[05:27:46] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3701_neocloud_edges.md
-❌ OPS-FAIL: aws/ops/pending/ops_3701_neocloud_edges.py
+→ Report written to aws/ops/reports/latest/3702_neocloud_edges.md
