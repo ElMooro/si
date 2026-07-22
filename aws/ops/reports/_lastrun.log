@@ -1,29 +1,30 @@
-executing-against: fff0a3cdf31e8cc981e7b87bd4978b2a3d347e85
-ops 3705 — readthrough v1.0.4, the SMCI fix
+executing-against: fbd5f662c094661d554fe60c680f58e5d588f25c
+ops 3706 — SMCI bill-of-materials + adjacent-theme T3
   artifact ready after 21s
-PASS  G1_shipped — ext_tape=True lexicon=True anchor=True liq_union=True
-[06:23:33] G1_shipped True
+PASS  G1_shipped — theme_infra=True capture_mod=True v1.0.5=True graph_bom=True
+[06:27:09] G1_shipped True
+  graph rebuilt in 30s
 PASS  G2_invoke — refreshed=True waited=15.1s
-[06:23:48] G2_invoke True
-PASS  G3_smci_present — SMCI move=29.03% (regular 7.01% + extended 22.02%) type=BACKLOG_ORDERS order=$60.0B benef=17 unpriced=11 | Super Micro surges on new order and margin disclosure after SpaceX announcement
-[06:23:48] G3_smci_present True
+[06:27:55] G2_invoke True
+PASS  G3_smci_present — SMCI move=29.03% (regular 7.01% + extended 22.02%) type=BACKLOG_ORDERS order=$60.0B benef=22 unpriced=22 | Super Micro surges on new order and margin disclosure after SpaceX announcement
+[06:27:55] G3_smci_present True
 PASS  G4_order_value — order_value_usd=60000000000.0 (expect ~6e10 from the $60 billion headline)
-[06:23:48] G4_order_value True
-FAIL  G5_smci_chain — SMCI rows=17 T1=['NVDA'] tiers={'T3_INFRASTRUCTURE': 3, 'T5_COMPETITOR_VALIDATION': 5, 'T2_TIER2_INPUT': 8, 'T1_DIRECT_SUPPLIER': 1}
-[06:23:48] G5_smci_chain False
+[06:27:55] G4_order_value True
+PASS  G5_smci_chain — SMCI rows=22 T1=['AMD', 'AVGO', 'COHR', 'CRDO', 'INTC', 'LITE', 'MPWR', 'MU', 'NVDA', 'STX', 'VRT', 'WDC'] tiers={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 2}
+[06:27:55] G5_smci_chain True
 
 === CATALYSTS ===
-  SMCI     29.03% (reg   7.01 + ext  22.02) BACKLOG_ORDERS       $60.0B benef=17 unpriced=11
+  SMCI     29.03% (reg   7.01 + ext  22.02) BACKLOG_ORDERS       $60.0B benef=22 unpriced=22
          Super Micro surges on new order and margin disclosure after SpaceX announcement
-  DELL     12.21% (reg   5.83 + ext   6.38) BACKLOG_ORDERS       $57.0B benef=18 unpriced=2
+  DELL     12.21% (reg   5.83 + ext   6.38) BACKLOG_ORDERS       $57.0B benef=22 unpriced=3
          Satya Nadella Maps Out the Future of Enterprise AI as Server Backlogs Hit $57 Billion
   BE       16.16% (reg  14.82 + ext   1.34) BACKLOG_ORDERS         None benef=5 unpriced=1
          3 Stocks Poised to Outperform Before Their Biggest Growth Years Begin
   RKLB     12.44% (reg   5.14 + ext    7.3) MEGA_CONTRACT         $0.3B benef=5 unpriced=0
          Rocket Lab Stock Rises After the Bell: Here's Why
-  NBIS      20.4% (reg  18.78 + ext   1.62) CAPACITY_EXPANSION     None benef=22 unpriced=2
+  NBIS      20.4% (reg  18.78 + ext   1.62) CAPACITY_EXPANSION     None benef=22 unpriced=6
          Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
-  CRWV     11.76% (reg   8.92 + ext   2.83) CAPACITY_EXPANSION     None benef=22 unpriced=3
+  CRWV     11.76% (reg   8.92 + ext   2.83) CAPACITY_EXPANSION     None benef=22 unpriced=5
          Price Prediction: CoreWeave Has 124% Upside Despite Capex Concerns
   CRDO      7.34% (reg   5.56 + ext   1.77) CAPACITY_EXPANSION     None benef=13 unpriced=0
          Credo: The Buying Opportunity Is Finally Flashing (Rating Upgrade)
@@ -31,23 +32,22 @@ FAIL  G5_smci_chain — SMCI rows=17 T1=['NVDA'] tiers={'T3_INFRASTRUCTURE': 3, 
          Seagate (STX) Earnings Expected to Grow: Should You Buy?
 
 === SMCI READ-THROUGH CHAIN ===
+  AMD    T1_DIRECT_SUPPLIER         exp=  24.68 real=    0.3 gap=  24.38 UNPRICED  sc=97.5 mat=1.0 []
+  INTC   T1_DIRECT_SUPPLIER         exp=  24.68 real=   0.64 gap=  24.04 UNPRICED  sc=97.1 mat=1.0 []
+  AVGO   T1_DIRECT_SUPPLIER         exp=  20.32 real=  -0.49 gap=  20.81 UNPRICED  sc=95.5 mat=1.0 []
+  MPWR   T1_DIRECT_SUPPLIER         exp=  20.32 real=  -0.28 gap=   20.6 UNPRICED  sc=95.5 mat=1.0 []
+  VRT    T1_DIRECT_SUPPLIER         exp=  20.32 real=   0.36 gap=  19.96 UNPRICED  sc=95.1 mat=1.0 []
+  LITE   T1_DIRECT_SUPPLIER         exp=  20.32 real=   0.81 gap=  19.51 UNPRICED  sc=94.5 mat=1.0 []
+  COHR   T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.06 gap=  19.26 UNPRICED  sc=94.2 mat=1.0 []
+  MU     T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.67 gap=  18.66 UNPRICED  sc=93.5 mat=1.0 []
+  CRDO   T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.71 gap=  18.61 UNPRICED  sc=93.4 mat=1.0 []
+  STX    T1_DIRECT_SUPPLIER         exp=  20.32 real=   1.86 gap=  18.46 UNPRICED  sc=93.2 mat=1.0 []
+  WDC    T1_DIRECT_SUPPLIER         exp=  20.32 real=   2.06 gap=  18.26 UNPRICED  sc=93.0 mat=1.0 []
   NVDA   T1_DIRECT_SUPPLIER         exp=  10.98 real=  -0.43 gap=  11.41 UNPRICED  sc=86.7 mat=0.445 []
-  MPWR   T2_TIER2_INPUT             exp=  16.04 real=  -0.28 gap=  16.32 UNPRICED  sc=83.7 mat=1.0 []
-  SNPS   T2_TIER2_INPUT             exp=  13.21 real=  -0.13 gap=  13.34 UNPRICED  sc=81.5 mat=1.0 []
   TER    T2_TIER2_INPUT             exp=  13.21 real=   0.28 gap=  12.93 UNPRICED  sc=81.0 mat=1.0 []
-  LITE   T2_TIER2_INPUT             exp=  13.21 real=   0.81 gap=  12.39 UNPRICED  sc=80.0 mat=1.0 []
-  COHR   T2_TIER2_INPUT             exp=  13.21 real=   1.06 gap=  12.15 UNPRICED  sc=79.5 mat=1.0 []
-  ARM    T2_TIER2_INPUT             exp=  13.21 real=   1.04 gap=  12.17 UNPRICED  sc=79.5 mat=1.0 []
-  MU     T2_TIER2_INPUT             exp=   9.38 real=   1.67 gap=   7.72 UNPRICED  sc=71.0 mat=0.585 []
-  FLEX   T3_INFRASTRUCTURE          exp=   4.83 real=  -0.04 gap=   4.87 UNPRICED  sc=65.0 mat=0.475 []
-  JBL    T3_INFRASTRUCTURE          exp=   4.65 real=   0.15 gap=   4.51 UNPRICED  sc=63.9 mat=0.458 []
-  TSM    T2_TIER2_INPUT             exp=   2.69 real=   0.06 gap=   2.63 UNPRICED  sc=52.0 mat=0.204 ['IMMATERIAL_READ_THROUGH']
-  HPQ    T5_COMPETITOR_VALIDATION   exp=   0.52 real=   0.11 gap=   0.41 PARTIAL   sc=27.7 mat=0.2 ['UNCONFIRMED_EDGE', 'IMMATERIAL_READ_THROUGH']
-  NTAP   T5_COMPETITOR_VALIDATION   exp=   0.52 real=   0.78 gap=  -0.25 PRICED    sc=6.8 mat=0.2 ['UNCONFIRMED_EDGE', 'IMMATERIAL_READ_THROUGH']
-  DELL   T3_INFRASTRUCTURE          exp=   2.72 real=   6.05 gap=  -3.33 OVERSHOT  sc=6.5 mat=0.268 ['IMMATERIAL_READ_THROUGH', 'CHASE_GUARD']
+  KLAC   T2_TIER2_INPUT             exp=    8.9 real=  -0.55 gap=   9.45 UNPRICED  sc=75.0 mat=0.674 []
 
-VERDICT: GAPS: G5_smci_chain
-[06:23:48] VERDICT: GAPS: G5_smci_chain
+VERDICT: PASS_ALL
+[06:27:55] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3705_smci_fix.md
-❌ OPS-FAIL: aws/ops/pending/ops_3705_smci_fix.py
+→ Report written to aws/ops/reports/latest/3706_smci_chain.md

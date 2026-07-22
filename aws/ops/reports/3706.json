@@ -1,0 +1,279 @@
+{
+  "gates": {
+    "G1_shipped": {
+      "ok": true,
+      "detail": "theme_infra=True capture_mod=True v1.0.5=True graph_bom=True"
+    },
+    "G2_invoke": {
+      "ok": true,
+      "detail": "refreshed=True waited=15.1s"
+    },
+    "G3_smci_present": {
+      "ok": true,
+      "detail": "SMCI move=29.03% (regular 7.01% + extended 22.02%) type=BACKLOG_ORDERS order=$60.0B benef=22 unpriced=22 | Super Micro surges on new order and margin disclosure after SpaceX announcement"
+    },
+    "G4_order_value": {
+      "ok": true,
+      "detail": "order_value_usd=60000000000.0 (expect ~6e10 from the $60 billion headline)"
+    },
+    "G5_smci_chain": {
+      "ok": true,
+      "detail": "SMCI rows=22 T1=['AMD', 'AVGO', 'COHR', 'CRDO', 'INTC', 'LITE', 'MPWR', 'MU', 'NVDA', 'STX', 'VRT', 'WDC'] tiers={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 2}"
+    }
+  },
+  "board": {
+    "version": "1.0.5",
+    "status": "OK",
+    "n_events": 11,
+    "n_rows": 174,
+    "n_unpriced": 39,
+    "elapsed_s": 5.0,
+    "events": [
+      {
+        "t": "SMCI",
+        "mv": 29.03,
+        "reg": 7.01,
+        "ext": 22.02,
+        "type": "BACKLOG_ORDERS",
+        "usd": "$60.0B",
+        "benef": 22,
+        "unpriced": 22,
+        "head": "Super Micro surges on new order and margin disclosure after SpaceX announcement"
+      },
+      {
+        "t": "DELL",
+        "mv": 12.21,
+        "reg": 5.83,
+        "ext": 6.38,
+        "type": "BACKLOG_ORDERS",
+        "usd": "$57.0B",
+        "benef": 22,
+        "unpriced": 3,
+        "head": "Satya Nadella Maps Out the Future of Enterprise AI as Server Backlogs Hit $57 Billion"
+      },
+      {
+        "t": "BE",
+        "mv": 16.16,
+        "reg": 14.82,
+        "ext": 1.34,
+        "type": "BACKLOG_ORDERS",
+        "usd": null,
+        "benef": 5,
+        "unpriced": 1,
+        "head": "3 Stocks Poised to Outperform Before Their Biggest Growth Years Begin"
+      },
+      {
+        "t": "RKLB",
+        "mv": 12.44,
+        "reg": 5.14,
+        "ext": 7.3,
+        "type": "MEGA_CONTRACT",
+        "usd": "$0.3B",
+        "benef": 5,
+        "unpriced": 0,
+        "head": "Rocket Lab Stock Rises After the Bell: Here's Why"
+      },
+      {
+        "t": "NBIS",
+        "mv": 20.4,
+        "reg": 18.78,
+        "ext": 1.62,
+        "type": "CAPACITY_EXPANSION",
+        "usd": null,
+        "benef": 22,
+        "unpriced": 6,
+        "head": "Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex \u2014 Compute Is The New Oil"
+      },
+      {
+        "t": "CRWV",
+        "mv": 11.76,
+        "reg": 8.92,
+        "ext": 2.83,
+        "type": "CAPACITY_EXPANSION",
+        "usd": null,
+        "benef": 22,
+        "unpriced": 5,
+        "head": "Price Prediction: CoreWeave Has 124% Upside Despite Capex Concerns"
+      },
+      {
+        "t": "CRDO",
+        "mv": 7.34,
+        "reg": 5.56,
+        "ext": 1.77,
+        "type": "CAPACITY_EXPANSION",
+        "usd": null,
+        "benef": 13,
+        "unpriced": 0,
+        "head": "Credo: The Buying Opportunity Is Finally Flashing (Rating Upgrade)"
+      },
+      {
+        "t": "STX",
+        "mv": 13.18,
+        "reg": 11.14,
+        "ext": 2.04,
+        "type": "EARNINGS_BEAT",
+        "usd": null,
+        "benef": 6,
+        "unpriced": 0,
+        "head": "Seagate (STX) Earnings Expected to Grow: Should You Buy?"
+      }
+    ],
+    "smci_chain": [
+      {
+        "t": "AMD",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 24.68,
+        "real": 0.3,
+        "gap": 24.38,
+        "st": "UNPRICED",
+        "sc": 97.5,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "INTC",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 24.68,
+        "real": 0.64,
+        "gap": 24.04,
+        "st": "UNPRICED",
+        "sc": 97.1,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "AVGO",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": -0.49,
+        "gap": 20.81,
+        "st": "UNPRICED",
+        "sc": 95.5,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "MPWR",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": -0.28,
+        "gap": 20.6,
+        "st": "UNPRICED",
+        "sc": 95.5,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "VRT",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 0.36,
+        "gap": 19.96,
+        "st": "UNPRICED",
+        "sc": 95.1,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "LITE",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 0.81,
+        "gap": 19.51,
+        "st": "UNPRICED",
+        "sc": 94.5,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "COHR",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 1.06,
+        "gap": 19.26,
+        "st": "UNPRICED",
+        "sc": 94.2,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "MU",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 1.67,
+        "gap": 18.66,
+        "st": "UNPRICED",
+        "sc": 93.5,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "CRDO",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 1.71,
+        "gap": 18.61,
+        "st": "UNPRICED",
+        "sc": 93.4,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "STX",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 1.86,
+        "gap": 18.46,
+        "st": "UNPRICED",
+        "sc": 93.2,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "WDC",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 20.32,
+        "real": 2.06,
+        "gap": 18.26,
+        "st": "UNPRICED",
+        "sc": 93.0,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "NVDA",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "exp": 10.98,
+        "real": -0.43,
+        "gap": 11.41,
+        "st": "UNPRICED",
+        "sc": 86.7,
+        "mat": 0.445,
+        "flags": []
+      },
+      {
+        "t": "TER",
+        "tier": "T2_TIER2_INPUT",
+        "exp": 13.21,
+        "real": 0.28,
+        "gap": 12.93,
+        "st": "UNPRICED",
+        "sc": 81.0,
+        "mat": 1.0,
+        "flags": []
+      },
+      {
+        "t": "KLAC",
+        "tier": "T2_TIER2_INPUT",
+        "exp": 8.9,
+        "real": -0.55,
+        "gap": 9.45,
+        "st": "UNPRICED",
+        "sc": 75.0,
+        "mat": 0.674,
+        "flags": []
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}
