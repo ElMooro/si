@@ -1,42 +1,46 @@
-executing-against: ad3a30f84c324b106c4c4eddbda434600478c190
-ops 3737 — CAISO queue parser diagnosis
-[21:24:55] ✅ downloaded 385058 bytes
-── B — workbook sheet mapping (name -> rId -> path) ──
-[21:24:55]   sheets in workbook.xml: ['Grid GenerationQueue', 'Completed Generation Projects', 'Withdrawn Generation Projects']
-[21:24:55]   rels: [('rId8', '../customXml/item2.xml'), ('rId3', 'worksheets/sheet3.xml'), ('rId7', '../customXml/item1.xml'), ('rId2', 'worksheets/sheet2.xml'), ('rId1', 'worksheets/sheet1.xml'), ('rId6', 'sharedStrings.xml'), ('rId5', 'styles.xml'), ('rId4', 'theme/theme1.xml'), ('rId9', '../customXml/item3.xml')]
-[21:24:55] ✅   RESOLVED mapping: {'Grid GenerationQueue': 'xl/worksheets/sheet1.xml', 'Completed Generation Projects': 'xl/worksheets/sheet2.xml', 'Withdrawn Generation Projects': 'xl/worksheets/sheet3.xml'}
-── A — raw <row> counts per worksheet ──
-[21:24:55]   xl/worksheets/sheet1.xml     xml=  348914 bytes rows=281
-[21:24:55]   xl/worksheets/sheet2.xml     xml=  299209 bytes rows=256
-[21:24:55]   xl/worksheets/sheet3.xml     xml= 2063542 bytes rows=1768
-── C — first raw rows of the queue sheet ──
-[21:24:55] ✅   queue sheet path = xl/worksheets/sheet1.xml
-[21:24:55]   sheet xml bytes=348914 rows=281
-[21:24:55]   sharedStrings entries=6598 bytes=220269
-[21:24:55]   cell type census: [('s', 5050)]
-[21:24:55]   ROW0 raw[:400]: <row r="1" spans="1:33" x14ac:dyDescent="0.3"><c r="A1" s="34" /><c r="AF1" s="44" t="s"><v>150</v></c><c r="AG1" s="44" /></row>
-[21:24:55]   ROW1 raw[:400]: <row r="2" spans="1:33" ht="45.75" customHeight="1" x14ac:dyDescent="0.3"><c r="A2" s="35" /><c r="B2" s="24" /><c r="C2" s="24" /><c r="D2" s="24" /><c r="E2" s="24" /><c r="F2" s="45" t="s"><v>151</v></c><c r="G2" s="45" /><c r="H2" s="45" /><c r="I2" s="45" /><c r="J2" s="45" /><c r="K2" s="45" /><c r="L2" s="45" /><c r="M2" s="45" /><c r="N2" s="45" /><c r="O2" s="45" /><c r="P2" s="45" /><c r
-[21:24:55]   ROW2 raw[:400]: <row r="3" spans="1:33" ht="20.25" customHeight="1" x14ac:dyDescent="0.3"><c r="A3" s="36" /><c r="B3" s="29" /><c r="C3" s="29" /><c r="D3" s="29" /><c r="E3" s="29" /><c r="F3" s="29" /><c r="G3" s="47" t="s"><v>0</v></c><c r="H3" s="47" /><c r="I3" s="47" /><c r="J3" s="47" /><c r="K3" s="47" /><c r="L3" s="47" /><c r="M3" s="46" t="s"><v>131</v></c><c r="N3" s="46" /><c r="O3" s="46" /><c r="P
-[21:24:55]   ROW3 raw[:400]: <row r="4" spans="1:33" ht="70.5" customHeight="1" x14ac:dyDescent="0.3"><c r="A4" s="37" t="s"><v>112</v></c><c r="B4" s="11" t="s"><v>5</v></c><c r="C4" s="11" t="s"><v>6</v></c><c r="D4" s="11" t="s"><v>7</v></c><c r="E4" s="11" t="s"><v>8</v></c><c r="F4" s="11" t="s"><v>56</v></c><c r="G4" s="12" t="s"><v>58</v></c><c r="H4" s="12" t="s"><v>59</v></c><c r="I4" s="12" t="s"><v>125</v></c><c r=
-[21:24:55]   ROW4 raw[:400]: <row r="5" spans="1:33" s="32" customFormat="1" ht="26.4" x14ac:dyDescent="0.25"><c r="A5" s="38" t="s"><v>152</v></c><c r="B5" s="14"><v>22</v></c><c r="C5" s="15"><v>37943</v></c><c r="D5" s="15"><v>37943.3333333333</v></c><c r="E5" s="14" t="s"><v>154</v></c><c r="F5" s="14" t="s"><v>155</v></c><c r="G5" s="14" t="s"><v>156</v></c><c r="H5" s="14" t="s"><v>157</v></c><c r="I5" s="14" /><c r="J5
-── D — self-closing row / cell forms ──
-[21:24:55]   self-closing <row/>=0  <c/>=2078
-[21:24:55]   cells WITHOUT r= attribute: 0
-── E — filter-stage survival (where rows die) ──
-[21:24:55] ✅   STAGE1 rows extracted (no cap): 281
-[21:24:55]   header row index=3
-[21:24:55]   header cells: ['project name', 'queue position', 'interconnection request\r\nreceive date', 'queue date', 'application status', 'study\r\nprocess', 'type-1', 'type-2', 'type-3', 'fuel-1', 'fuel-2', 'fuel-3', 'mw-1', 'mw-2', 'mw-3', 'net mws to grid', 'full capacity, partial or energy only (fc/p/eo)', 'tpd allocation percentage', 'off-peak deliverability and economic only', 'tpd allocation group']
-[21:24:55]     MW-candidate col 12 = 'mw-1'
-[21:24:55]     MW-candidate col 13 = 'mw-2'
-[21:24:55]     MW-candidate col 14 = 'mw-3'
-[21:24:55]     MW-candidate col 15 = 'net mws to grid'
-[21:24:55]   STAGE2 body rows: 277
-[21:24:55]   chosen MW col=15
-[21:24:55]   STAGE3 rows with MW>0: 2
-[21:24:55]     sample: ['CPC WEST', '96', '38763', '38777.3333333333', 'ACTIVE', 'Serial LGIP', 'Wind Turbine', 'Storage', 'Storage']
-[21:24:55]     sample: ['POTENTIA-VIRIDI', '1702', '43934', '43936.2916666667', 'ACTIVE', 'C13', 'Wind Turbine', 'Photovoltaic', 'Storage']
-[21:24:55]   body rows with any numeric in first 15 cols: 276
+executing-against: e99cc32634aff539c9a5fdfbe94aedbc80ad775a
+ops 3738 — SHIP justhodl-grid-queue v1.0 (power buildout canary)
+── G0 — key contract (grep producer before gating) ──
+[21:29:41] PASS G0_key_contract — engine emits all gated keys
+── G1 — zip settle (never invoke the old artifact) ──
+[21:29:41] PASS G1_zip_settle — marker found after 0s
+── G2 — EIA_API_KEY inherited ──
+[21:29:41] PASS G2_eia_key — key present len=40
+── G3 — async invoke (Event) + S3 freshness gate ──
+[21:29:42] PASS G3_invoke_accepted — async accepted status=202
+[21:29:57]   artifact written after ~15s (age 0.1min)
+[21:29:57] PASS G3_artifact_written — new artifact observed
+── G4 — S3 artifact fresh + shape ──
+[21:29:57] PASS G4_artifact — age=0.1min shape_ok=True active_mw=120495.1
+── G5 — data truth (CAISO parse is real, not empty) ──
+[21:29:57] PASS G5_queue_parsed — active=272 projects 120495 MW large>=100MW=50 fuels=20
+[21:29:57]   ATLAS COMPLEX                           5456.0 MW  Solar + 2171 LA PAZ
+[21:29:57]   HOLMAN                                  3025.2 MW  Wind Turbine MONTEREY
+[21:29:57]   SANBORN HYBRID 3                        2820.2 MW  Solar + 672. KERN
+[21:29:57]   WINGTIP SOLAR 1                         2326.1 MW  Battery + 11 MERCED
+[21:29:57]   ANGELENO SOLAR FARM                     2300.0 MW  Solar + 1150 LOS ANGELES
+[21:29:57]   DARDEN                                  2300.0 MW  Solar + 1150 FRESNO
+[21:29:57]   fuel mix: [('Solar + 1150', 6900.0), ('Solar + 2171', 5456.0), ('Wind Turbine + 756.813', 3025.2), ('Solar + 672.27', 2820.2), ('Battery + 1176.1', 2326.1), ('Battery + 200', 2189.0)]
+[21:29:57]   withdrawal_ratio=79.1%  completion_ratio=24.9%
+── G6 — EIA planned capacity + industrial load + hotspots ──
+[21:29:57]   planned period=2026-04 industrial_plants=5
+[21:29:57]   industrial load period=2026-04 states=62
+[21:29:57]   LOAD RI       51.3 GWh  YoY 16.2%  3m -2.2%
+[21:29:57]   LOAD MS     1468.5 GWh  YoY 12.08%  3m 5.74%
+[21:29:57]   LOAD NM     1333.1 GWh  YoY 11.04%  3m -1.66%
+[21:29:57]   LOAD AK      130.1 GWh  YoY 10.73%  3m 2.53%
+[21:29:57]   LOAD LA     3768.5 GWh  YoY 10.29%  3m 1.06%
+[21:29:57]   HOTSPOT LA   legs=2 EMERGING_BUILDOUT    load 10.29% uprate 0.0 MW
+[21:29:57]   HOTSPOT CA   legs=2 EMERGING_BUILDOUT    load 8.69% uprate 61.3 MW
+[21:29:57]   HOTSPOT OR   legs=2 EMERGING_BUILDOUT    load 7.15% uprate 51.6 MW
+[21:29:57]   HOTSPOT ID   legs=2 EMERGING_BUILDOUT    load 2.59% uprate 12.0 MW
+[21:29:57] PASS G6_eia_legs — load_states=62 industrial_plants=5 hotspots=4
+[21:29:57] PASS G6_gaps_declared — declared 5 known gaps (ERCOT/PJM/MISO/LBNL/permits)
+── G7 — schedule (ensure, then verify) ──
+[21:29:58]   scheduler ensure: An error occurred (ConflictException) when calling the CreateSchedule operation: Schedule justhodl-grid-queue-daily already exists
+[21:29:58]   eventbridge rule: justhodl-grid-queue-daily cron(50 12 * * ? *)
+[21:29:58] PASS G7_schedule — schedule present
 ── VERDICT ──
-[21:24:55] ✅ DIAG COMPLETE — fix the parser against these facts
+[21:29:58] ✅ PASS_ALL — import-canary live; page next
 
-→ Report written to aws/ops/reports/latest/3737_caiso_parse_diag.md
+→ Report written to aws/ops/reports/latest/3738_grid_queue_fix.md

@@ -1,0 +1,64 @@
+# ops 3738 — SHIP justhodl-grid-queue v1.0 (power buildout canary)
+
+**Status:** success  
+**Duration:** 17.5s  
+**Finished:** 2026-07-22T21:29:58+00:00  
+
+## Data
+
+| data_month | failed | function | n_lines | signals | verdict |
+|---|---|---|---|---|---|
+| ? | none | justhodl-grid-queue | 0 | 0 | PASS_ALL |
+
+## Log
+## G0 — key contract (grep producer before gating)
+
+- `21:29:41` PASS G0_key_contract — engine emits all gated keys
+## G1 — zip settle (never invoke the old artifact)
+
+- `21:29:41` PASS G1_zip_settle — marker found after 0s
+## G2 — EIA_API_KEY inherited
+
+- `21:29:41` PASS G2_eia_key — key present len=40
+## G3 — async invoke (Event) + S3 freshness gate
+
+- `21:29:42` PASS G3_invoke_accepted — async accepted status=202
+- `21:29:57`   artifact written after ~15s (age 0.1min)
+- `21:29:57` PASS G3_artifact_written — new artifact observed
+## G4 — S3 artifact fresh + shape
+
+- `21:29:57` PASS G4_artifact — age=0.1min shape_ok=True active_mw=120495.1
+## G5 — data truth (CAISO parse is real, not empty)
+
+- `21:29:57` PASS G5_queue_parsed — active=272 projects 120495 MW large>=100MW=50 fuels=20
+- `21:29:57`   ATLAS COMPLEX                           5456.0 MW  Solar + 2171 LA PAZ
+- `21:29:57`   HOLMAN                                  3025.2 MW  Wind Turbine MONTEREY
+- `21:29:57`   SANBORN HYBRID 3                        2820.2 MW  Solar + 672. KERN
+- `21:29:57`   WINGTIP SOLAR 1                         2326.1 MW  Battery + 11 MERCED
+- `21:29:57`   ANGELENO SOLAR FARM                     2300.0 MW  Solar + 1150 LOS ANGELES
+- `21:29:57`   DARDEN                                  2300.0 MW  Solar + 1150 FRESNO
+- `21:29:57`   fuel mix: [('Solar + 1150', 6900.0), ('Solar + 2171', 5456.0), ('Wind Turbine + 756.813', 3025.2), ('Solar + 672.27', 2820.2), ('Battery + 1176.1', 2326.1), ('Battery + 200', 2189.0)]
+- `21:29:57`   withdrawal_ratio=79.1%  completion_ratio=24.9%
+## G6 — EIA planned capacity + industrial load + hotspots
+
+- `21:29:57`   planned period=2026-04 industrial_plants=5
+- `21:29:57`   industrial load period=2026-04 states=62
+- `21:29:57`   LOAD RI       51.3 GWh  YoY 16.2%  3m -2.2%
+- `21:29:57`   LOAD MS     1468.5 GWh  YoY 12.08%  3m 5.74%
+- `21:29:57`   LOAD NM     1333.1 GWh  YoY 11.04%  3m -1.66%
+- `21:29:57`   LOAD AK      130.1 GWh  YoY 10.73%  3m 2.53%
+- `21:29:57`   LOAD LA     3768.5 GWh  YoY 10.29%  3m 1.06%
+- `21:29:57`   HOTSPOT LA   legs=2 EMERGING_BUILDOUT    load 10.29% uprate 0.0 MW
+- `21:29:57`   HOTSPOT CA   legs=2 EMERGING_BUILDOUT    load 8.69% uprate 61.3 MW
+- `21:29:57`   HOTSPOT OR   legs=2 EMERGING_BUILDOUT    load 7.15% uprate 51.6 MW
+- `21:29:57`   HOTSPOT ID   legs=2 EMERGING_BUILDOUT    load 2.59% uprate 12.0 MW
+- `21:29:57` PASS G6_eia_legs — load_states=62 industrial_plants=5 hotspots=4
+- `21:29:57` PASS G6_gaps_declared — declared 5 known gaps (ERCOT/PJM/MISO/LBNL/permits)
+## G7 — schedule (ensure, then verify)
+
+- `21:29:58`   scheduler ensure: An error occurred (ConflictException) when calling the CreateSchedule operation: Schedule justhodl-grid-queue-daily already exists
+- `21:29:58`   eventbridge rule: justhodl-grid-queue-daily cron(50 12 * * ? *)
+- `21:29:58` PASS G7_schedule — schedule present
+## VERDICT
+
+- `21:29:58` ✅ PASS_ALL — import-canary live; page next
