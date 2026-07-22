@@ -1,16 +1,10 @@
-executing-against: b1481c4e25b4ca57b3c921ee10354434922bf6cf
-ops 3718 — verify estimate-revisions v2.1.0 live + directions populate
-[18:56:56] G0_key_contract True
-  G0_key_contract                    True  fmp_estimate_profile() returns fwd_eps_cur (present=True)
-[18:56:56] G0b_fmp_ready_before_loop True
-  G0b_fmp_ready_before_loop          True  fmp populated at char 746 before row loop at 5093
-[18:56:56] G1_patch_committed True
-  G1_patch_committed                 True  source carries the FMP fallback + v2.1.0 (applied by ops 3717)
-[19:08:43] G2_artifact_live False
-  G2_artifact_live                   False  v2.1.0 zip proven live after 707s (3717 timed out at 424s waiting on the parallel deploy-lambdas run)
+executing-against: 5810919a66c5872c18c0a82dcfb7644518e7aee4
+ops 3719 — shared/benzinga.py FMP calendar fallback
+── probe — is FMP earnings-calendar usable? ──
+[19:13:57] P1_fmp_probe False
+  P1_fmp_probe                     False  PROBE FAILED: no FMP key in ops env — no rewrite attempted
 
-VERDICT: GAPS: G2_artifact_live
-[19:08:43] VERDICT: GAPS: G2_artifact_live
+VERDICT: DIAGNOSIS: FMP calendar unusable — no FMP key in ops env
+[19:13:57] VERDICT: DIAGNOSIS: FMP calendar unusable — no FMP key in ops env
 
-→ Report written to aws/ops/reports/latest/3718_est_rev_verify.md
-❌ OPS-FAIL: aws/ops/pending/ops_3718_est_rev_verify.py
+→ Report written to aws/ops/reports/latest/3719_benzinga_fmp_shim.md
