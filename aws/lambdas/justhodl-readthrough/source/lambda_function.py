@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -748,6 +748,105 @@ def score_row(row, cat, tape, hist, meta, spy_move, cat_day):
     return row
 
 
+SNAP_KEY = "readthrough/consensus-snapshots.json"
+
+
+def load_analyst_actions():
+    """Dated sell-side actions per ticker. Day-one observable, unlike revisions."""
+    aa = s3_json("data/analyst-actions.json") or {}
+    per, covered = {}, set()
+    for key, w in (("upgrades", 1), ("pt_raises", 1), ("guidance_raises", 1),
+                   ("downgrades", -1), ("pt_cuts", -1), ("guidance_cuts", -1)):
+        for row in (aa.get(key) or []):
+            t = row.get("ticker") or row.get("symbol")
+            if not t:
+                continue
+            covered.add(t)
+            d = str(row.get("date") or row.get("publishedDate")
+                    or row.get("published_date") or row.get("newsPublishedDate") or "")[:10]
+            per.setdefault(t, []).append({
+                "kind": key, "w": w, "date": d,
+                "analyst": row.get("analyst") or row.get("gradingCompany")
+                or row.get("newsPublisher"),
+                "pt_pct": num(row.get("pt_pct")),
+            })
+    for row in (aa.get("most_bullish") or []):
+        if row.get("ticker"):
+            covered.add(row["ticker"])
+    return per, covered, aa.get("generated_at")
+
+
+def consensus_snapshot(shortlist, meta):
+    """Self-building ledger of FY+1 revenue consensus, so revision deltas accrue
+    for names that are nowhere near an earnings date."""
+    prev = s3_json(SNAP_KEY) or {}
+    today = date.today().isoformat()
+    cur, deltas = {}, {}
+
+    def one(sym):
+        if not FMP:
+            return sym, None
+        try:
+            d = jget("https://financialmodelingprep.com/stable/analyst-estimates"
+                     f"?symbol={urllib.parse.quote(sym)}&period=annual&limit=3"
+                     f"&apikey={FMP}", timeout=15)
+            rows = [x for x in (d or []) if isinstance(x, dict)]
+            if not rows:
+                return sym, None
+            yr = str(date.today().year + 1)
+            pick_row = next((x for x in rows if str(x.get("date", ""))[:4] == yr), rows[0])
+            return sym, pick(pick_row, "revenueAvg", "estimatedRevenueAvg", "revenue")
+        except Exception:  # noqa: BLE001
+            return sym, None
+
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        for sym, v in ex.map(one, shortlist):
+            if v:
+                cur[sym] = v
+                old = (prev.get(sym) or {}).get("rev")
+                if old and old > 0:
+                    deltas[sym] = {
+                        "consensus_rev_delta_pct": round((v / old - 1.0) * 100.0, 2),
+                        "consensus_baseline_date": (prev.get(sym) or {}).get("asof"),
+                    }
+
+    merged = dict(prev)
+    for sym, v in cur.items():
+        merged[sym] = {"rev": v, "asof": today}
+    try:
+        S3.put_object(Bucket=BUCKET, Key=SNAP_KEY,
+                      Body=json.dumps(merged, default=str).encode(),
+                      ContentType="application/json")
+    except Exception as e:  # noqa: BLE001
+        print(f"[snap] write failed: {str(e)[:90]}")
+    print(f"[snap] consensus ledger {len(prev)} -> {len(merged)}, deltas={len(deltas)}")
+    return deltas
+
+
+def consensus_view(t, cat_day, fund, actions, covered, deltas):
+    """Has the sell side reacted, and can we even see whether it has?"""
+    acts = actions.get(t) or []
+    since = [a for a in acts if a["date"] and a["date"] >= cat_day]
+    net = sum(a["w"] for a in since)
+    fund["analyst_actions_since_catalyst"] = len(since)
+    fund["analyst_net_since_catalyst"] = net
+    fund["analyst_actions"] = since[:4]
+    dl = deltas.get(t) or {}
+    fund.update(dl)
+
+    moved = (fund.get("estimates_revised_since_catalyst") is True
+             or net > 0
+             or (dl.get("consensus_rev_delta_pct") or 0) > 0.5)
+    # observable if: revisions cover it, OR the sell side covers it at all, OR we
+    # hold a prior consensus snapshot to diff against
+    observed = (fund.get("est_direction") is not None
+                or t in covered
+                or bool(dl))
+    fund["consensus_moved"] = bool(moved)
+    fund["consensus_observed"] = bool(observed)
+    return fund
+
+
 def load_fundamentals():
     """Join the three fundamental sidecars this platform already publishes.
     A missing sidecar degrades the row to price-only. It never fabricates one."""
@@ -845,12 +944,14 @@ def pricing_quadrant(price_status, fund):
     """Price is a day trade. Estimates are a quarter trade. The names worth
     holding are the ones where NEITHER has moved yet."""
     price_open = price_status in ("UNPRICED", "PARTIAL")
-    est_known = fund.get("est_direction") is not None
-    est_moved = fund.get("estimates_revised_since_catalyst") is True
+    est_known = bool(fund.get("consensus_observed"))
+    est_moved = bool(fund.get("consensus_moved"))
     has_backlog = bool(fund.get("rpo_representative"))
 
     # UNKNOWN IS NOT UNMOVED. TWICE_UNPRICED asserts that consensus has not
-    # modelled the order — that requires actually observing consensus.
+    # modelled the order — that requires actually observing consensus. Coverage
+    # now comes from three places: estimate revisions, dated sell-side actions,
+    # or a prior consensus snapshot to diff against.
     if not est_known:
         if price_open and has_backlog:
             return ("UNBOOKED_NO_CONSENSUS",
@@ -987,6 +1088,10 @@ def lambda_handler(event=None, context=None):
             meta.setdefault(s, {})["days_to_earnings"] = d2e
 
     backlog_by, fwd_by, est_by, fund_missing = load_fundamentals()
+    actions_by, act_covered, act_asof = load_analyst_actions()
+    if not actions_by:
+        fund_missing.append("analyst-actions")
+    consensus_deltas = consensus_snapshot(shortlist, meta)
     for _m in fund_missing:
         degraded.append("fundamental sidecar missing: " + _m)
 
@@ -1008,6 +1113,8 @@ def lambda_handler(event=None, context=None):
                 fund = fundamental_row(sr["ticker"], sr.get("implied_order_usd"),
                                        cat_day, backlog_by, fwd_by, est_by,
                                        (meta.get(sr["ticker"]) or {}).get("revenue"))
+                fund = consensus_view(sr["ticker"], cat_day, fund, actions_by,
+                                      act_covered, consensus_deltas)
                 sr["fundamentals"] = fund
                 q, qnote = pricing_quadrant(sr["status"], fund)
                 sr["pricing_quadrant"] = q
@@ -1084,6 +1191,14 @@ def lambda_handler(event=None, context=None):
                                 if x["ticker"] == t), None)}
              for t in {x["ticker"] for x in all_rows}],
             key=lambda z: -z["implied_order_usd_total"])[:40],
+        "consensus_coverage": {
+            "analyst_actions_asof": act_asof,
+            "names_with_sellside_coverage": len(act_covered),
+            "names_with_consensus_delta": len(consensus_deltas),
+            "rows_consensus_observed": sum(
+                1 for x in all_rows
+                if (x.get("fundamentals") or {}).get("consensus_observed")),
+        },
         "quadrant_counts": {q: sum(1 for x in all_rows
                                    if x.get("pricing_quadrant") == q)
                             for q in ("TWICE_UNPRICED", "UNBOOKED_NO_CONSENSUS",
