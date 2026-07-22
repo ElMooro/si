@@ -1,43 +1,18 @@
-executing-against: 2a049198ba5f2b6c57058615cbf7d84b06f87ba6
-ops 3723 — estimate-revisions ledger probe (obs[0] baselines)
-[19:47:20] ledger_updated: 2026-07-22T19:21:54.161781+00:00
-  ledger_updated: 2026-07-22T19:21:54.161781+00:00
-[19:47:20] n_keys: 448
-  n_keys: 448
-[19:47:20] obs_length_distribution: {1: 9, 2: 4, 3: 2, 4: 1, 5: 2, 6: 8, 7: 7, 8: 6, 9: 2, 10: 407}
-  obs_length_distribution: {1: 9, 2: 4, 3: 2, 4: 1, 5: 2, 6: 8, 7: 7, 8: 6, 9: 2, 10: 407}
-[19:47:20] baseline_eps: usable=369 null=79 zero=0 (usable_pct=82.4%)
-  baseline_eps: usable=369 null=79 zero=0 (usable_pct=82.4%)
-[19:47:20] latest_eps: usable=369 null=79
-  latest_eps: usable=369 null=79
-[19:47:20] keys_with_2plus_obs_and_usable_eps: 363
-  keys_with_2plus_obs_and_usable_eps: 363
-[19:47:20] obs_date_span: 2026-07-03 .. 2026-07-22 (20 distinct days)
-  obs_date_span: 2026-07-03 .. 2026-07-22 (20 distinct days)
-[19:47:20] move_distribution_vs_threshold: {'ZERO': 363}
-  move_distribution_vs_threshold: {'ZERO': 363}
-[19:47:20] would_pass_threshold: 0 of 363 (REV_THRESHOLD_PCT=1.0)
-  would_pass_threshold: 0 of 363 (REV_THRESHOLD_PCT=1.0)
+executing-against: 4aa20be7fe34d3843049a3b97954d26f35de0e22
+ops 3724 — estimate-revisions v3.0.0 (moving consensus)
+[19:51:30] G0_key_contract True
+  G0_key_contract                    True  fmp_estimate_profile() returns fwd_eps_cur (the moving epsAvg)
+[19:51:30] G0b_fmp_before_loop True
+  G0b_fmp_before_loop                True  fmp populated at 746 before row loop at 5278
+[19:51:30] G1_patched True
+  G1_patched                         True  cur_eps <- fmp fwd_eps_cur; sched_eps kept for context; ledger re-seeds pre-v3 keys; version -> 3.0.0
+[19:51:30] G2_compiles True
+  G2_compiles                        True  engine source compiles
+[19:51:30] G3_ledger_snapshot True
+  G3_ledger_snapshot                 True  n_keys=448 pre_v3_keys_to_reseed=448 updated=2026-07-22T19:21:54.161781+00:00
 
-  top implied moves in the ledger:
-    ZUMZ   |     0.0% |  base=0.05 -> last=0.05 (obs=10)
-    ZS     |     0.0% |  base=0.88 -> last=0.88 (obs=10)
-    ZM     |     0.0% |  base=1.38 -> last=1.38 (obs=10)
-    ZIM    |     0.0% |  base=1.08 -> last=1.08 (obs=10)
-    YSWY   |     0.0% |  base=0.47 -> last=0.47 (obs=10)
-    YSS    |     0.0% |  base=-0.17 -> last=-0.17 (obs=10)
-    YMM    |     0.0% |  base=0.18 -> last=0.18 (obs=10)
-    YEXT   |     0.0% |  base=0.16 -> last=0.16 (obs=10)
-    XP     |     0.0% |  base=0.51 -> last=0.51 (obs=10)
-    XE     |     0.0% |  base=-0.09 -> last=-0.09 (obs=10)
-    WSM    |     0.0% |  base=2.03 -> last=2.03 (obs=10)
-    WS     |     0.0% |  base=0.68 -> last=0.68 (obs=10)
-[19:47:21] artifact: version=2.1.0 n_tracked=436 n_with_history=436 n_state_keys=448 up=0 down=0 strength_leaders=40
-  artifact: version=2.1.0 n_tracked=436 n_with_history=436 n_state_keys=448 up=0 down=0 strength_leaders=40
-[19:47:21] DIAGNOSIS: HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_THRESHOLD_PCT=1.0. Empty arrays are the CORRECT reading. Consider lowering the threshold or surfacing sub-threshold drift as a separate 'estimate drift' row.
-  DIAGNOSIS: HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_THRESHOLD_PCT=1.0. Empty arrays are the CORRECT reading. Consider lowering the threshold or surfacing sub-threshold drift as a separate 'estimate drift' row.
+VERDICT: PASS_ALL
+NOTE: deploy-lambdas bundles aws/shared/**; live verification is ops 3725 AFTER settle. Directions appear on the SECOND v3 run — the first only re-seeds baselines.
+[19:51:30] VERDICT: PASS_ALL
 
-VERDICT: DIAGNOSIS COMPLETE — HEALTHY BUT QUIET — real baselines and real diffs exist, but no move clears REV_
-[19:47:21] VERDICT: DIAGNOSIS COMPLETE
-
-→ Report written to aws/ops/reports/latest/3723_ledger_probe.md
+→ Report written to aws/ops/reports/latest/3724_consensus_v3.md

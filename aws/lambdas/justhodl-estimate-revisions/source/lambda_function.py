@@ -130,17 +130,24 @@ def lambda_handler(event=None, context=None):
         fp, fy = r.get("fiscal_period"), r.get("fiscal_year")
         if not tk or not fp:
             continue
-        # Benzinga (Massive) has been 403 NOT_AUTHORIZED since 2026-07-15, so
-        # estimated_eps arrives empty and every direction collapsed to None.
-        # Fall back to the FMP forward consensus we already fetch for this name.
-        # Benzinga keeps precedence so entitlement restoration is automatic.
+        # v3.0.0 — the calendar's estimated_eps is a SCHEDULED-EVENT field: it is
+        # fixed when the earnings date is scheduled and does not move until the
+        # company reports. Snapshotting it produced 363/363 keys with EXACTLY
+        # zero drift over 20 days (ops 3723). It never measured revisions.
+        # The moving consensus is FMP analyst-estimates epsAvg (fwd_eps_cur),
+        # already fetched here and previously used only for the growth slope.
         _prof_early = fmp.get(tk) or {}
-        cur_eps = _num(r.get("estimated_eps"))
-        if cur_eps is None:
-            cur_eps = _num(_prof_early.get("fwd_eps_cur"))
+        sched_eps = _num(r.get("estimated_eps"))          # context only
+        cur_eps = _num(_prof_early.get("fwd_eps_cur"))    # the revisable number
         cur_rev = _num(r.get("estimated_revenue"))
         key = f"{tk}|{fp}|{fy}"
-        rec = keys.get(key) or {"t": tk, "fp": fp, "fy": fy, "obs": []}
+        rec = keys.get(key) or {"t": tk, "fp": fp, "fy": fy, "obs": [], "sv": 3}
+        # Pre-v3 observations hold the STATIC calendar estimate. Diffing the new
+        # moving consensus against a frozen baseline would manufacture a fake
+        # revision, so drop that history and re-seed the key from FMP. Real
+        # directions therefore appear from the SECOND v3 run onward.
+        if rec.get("sv") != 3:
+            rec = {"t": tk, "fp": fp, "fy": fy, "obs": [], "sv": 3}
         obs = rec["obs"]
 
         eps_rev_pct = eps_rev_recent = rev_rev_pct = baseline_date = None
@@ -172,6 +179,8 @@ def lambda_handler(event=None, context=None):
             "session": r.get("session"), "days_to_earnings": d2e,
             "fiscal_period": fp, "fiscal_year": fy, "importance": r.get("importance"),
             "current_eps_est": cur_eps, "baseline_eps_est": obs[0][1] if obs else None,
+            "scheduled_eps_est": sched_eps,
+            "consensus_source": "fmp_analyst_estimates_epsAvg",
             "eps_rev_pct": eps_rev_pct, "eps_rev_recent_pct": eps_rev_recent,
             "rev_rev_pct": rev_rev_pct, "revenue_confirms": same_dir,
             "baseline_date": baseline_date, "n_obs": len(obs),
@@ -233,7 +242,7 @@ def lambda_handler(event=None, context=None):
         direction_map[_t] = "UP" if _v > 0.5 else "DOWN" if _v < -0.5 else "FLAT"
 
     out = {
-        "engine": "justhodl-estimate-revisions", "version": "2.1.0",
+        "engine": "justhodl-estimate-revisions", "version": "3.0.0",
         "generated_at": datetime.now(timezone.utc).isoformat(), "status": status,
         "thesis": "FMP depth (forward-EPS growth, analyst coverage, dispersion — day 1) "
                   "fused with Benzinga freshness (timely current estimate) and self-built "
