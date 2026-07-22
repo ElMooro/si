@@ -76,8 +76,8 @@ var mw=function(v){if(v==null)return '—';if(v>=1000)return (v/1000).toFixed(1)
 
 document.getElementById('hero').innerHTML='<div class="grid">'
 +'<div class="tile"><div class="lbl">Active queue</div><div class="big" style="color:'+ACC+'">'+mw(q.active_mw)+'</div><div class="note">'+(q.active_projects||0)+' projects · CAISO</div></div>'
-+'<div class="tile"><div class="lbl">Withdrawal ratio</div><div class="big" style="color:'+(q.withdrawal_ratio>60?NEG:NEU)+'">'+(q.withdrawal_ratio==null?'—':q.withdrawal_ratio+'%')+'</div><div class="note">'+mw(q.withdrawn_mw)+' abandoned · a queue that only grows is an artifact</div></div>'
-+'<div class="tile"><div class="lbl">Completion ratio</div><div class="big" style="color:'+(q.completion_ratio>20?POS:NEU)+'">'+(q.completion_ratio==null?'—':q.completion_ratio+'%')+'</div><div class="note">'+mw(q.completed_mw)+' energised</div></div>'
++'<div class="tile"><div class="lbl">Withdrawal ratio</div><div class="big" style="color:'+(q.withdrawal_ratio>60?NEG:NEU)+'">'+(q.withdrawal_ratio==null?'—':q.withdrawal_ratio+'%')+'</div><div class="note">'+mw(q.withdrawn_mw)+' across '+(q.withdrawn_projects||0)+' withdrawn projects · a queue that only grows is an artifact</div></div>'
++'<div class="tile"><div class="lbl">Completion ratio</div><div class="big" style="color:'+(q.completion_ratio>20?POS:NEU)+'">'+(q.completion_ratio==null?'—':q.completion_ratio+'%')+'</div><div class="note">'+mw(q.completed_mw)+' energised across '+(q.completed_projects||0)+' completed projects</div></div>'
 +'<div class="tile"><div class="lbl">Hotspot states</div><div class="big">'+((d.hotspots||[]).length)+'</div><div class="note">'+(il.period||'—')+' load · '+(pc.period||'—')+' capacity</div></div>'
 +'</div>';
 
@@ -135,7 +135,7 @@ document.getElementById('load').innerHTML='<tr><th>State</th><th>Industrial sale
 // GAPS
 var gaps=d.gaps||[];
 document.getElementById('gaps').innerHTML=gaps.map(function(g){return '<div class="gap">• '+g+'</div>';}).join('')
-+'<div class="note">ISO queues live: '+((cov.iso_queues_live||[]).join(', ')||'none')+' · missing: '+((cov.iso_queues_missing||[]).join(', ')||'none')+'. These are declared on every run rather than papered over — a permit proxy built from compliance data would be a fabrication, so it is excluded.</div>';
++'<div class="note">Parsed this run: '+(cov.caiso_active_rows||0)+' CAISO active rows · '+(cov.eia_industrial_plants||0)+' EIA industrial plants · '+(cov.eia_load_states||0)+' states with industrial load.</div>'+'<div class="note">ISO queues live: '+((cov.iso_queues_live||[]).join(', ')||'none')+' · missing: '+((cov.iso_queues_missing||[]).join(', ')||'none')+'. These are declared on every run rather than papered over — a permit proxy built from compliance data would be a fabrication, so it is excluded.</div>';
 
 document.getElementById('method').textContent=d.method||'';
 document.getElementById('foot').textContent='Feed data/grid-queue.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
