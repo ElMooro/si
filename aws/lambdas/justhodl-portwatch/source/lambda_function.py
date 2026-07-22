@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -299,7 +299,11 @@ def lambda_handler(event=None, context=None):
                     break
         out["ports_ref_matched"] = len(cand)
         if cand:
-            ids = ",".join("'" + i + "'" for i in list(cand)[:60])
+            # v1.4.1: cap raised — canary nations were truncated
+            # (Taiwan's 6 ports pushed Chile past the old :60 slice)
+            _ids_all = list(cand)
+            out["ports_ref_matched_total"] = len(_ids_all)
+            ids = ",".join("'" + i + "'" for i in _ids_all[:120])
             prow, perr = fetch_daily(DAILY_PORTS,
                                      "portid IN (" + ids + ")")
             if perr:
