@@ -1,16 +1,27 @@
-executing-against: 125082171834c76d66c99f0a16051c2e199ca806
-ops 3698 — air-cargo Lambda-native via /gov edge
-PASS  G1_edge_allows_cad — status=200 bytes=4002 xgov=www.cad.gov.hk
-[04:12:35] G1_edge_allows_cad True
-[04:12:35]   zip: 85917 bytes
-── 1. Lambda ──
-[04:12:35]   Lambda exists — updating
-[04:12:42] ✅   ✓ updated justhodl-air-cargo
-── 3. Smoke test ──
-[04:12:42]   invoking justhodl-air-cargo…
-PASS  G2_lambda_native — async=202 fresh@0.0min ok=True via=edge tonnes_k=433.0 month=2026-05 yoy=3.1 n=29 bytes=2142120 cols={'unloaded': 'L', 'total': 'N', 'yoy': 'O', 'header_row': 8} read=HIGH-VALUE FLOW STEADY levels=26 errs=[]
-[04:12:45] G2_lambda_native True
-VERDICT: PASS_ALL
-[04:12:45] VERDICT: PASS_ALL
+executing-against: 16502463b70bf0b5595430d1d289b52d07662e90
+ops 3699 — justhodl-readthrough v1.0.0 verification
+PASS  G1_function — runtime=python3.12 mem=1024 timeout=600 state=Active dlq=True xray=Active secrets_present=['FMP_KEY', 'POLYGON_KEY'] n_env=3
+[04:43:38] G1_function True
+PASS  G2_schedule — cron(20 11,13,21 ? * MON-FRI *) tz=UTC state=ENABLED ftw=OFF target=justhodl-readthrough
+[04:43:38] G2_schedule True
+PASS  G3_invoke_writes_feed — canonical run (gap>=6%): object refreshed=True age=9.1s waited=15.2s
+[04:43:54] G3_invoke_writes_feed True
+PASS  G4_payload — v=1.0.0 status=OK events=2 benef=44 unpriced=0 picks=0 elapsed=4.6s degraded=[]
+[04:43:54] G4_payload True
+PASS  G5_diffusion_path — canonical run already produced events — no diag needed
+[04:43:54] G5_diffusion_path True
 
-→ Report written to aws/ops/reports/latest/3698_air_native_fix.md
+=== CATALYSTS ===
+  NBIS     18.78%  CAPACITY_EXPANSION       None  benef=22 unpriced=0
+         Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex — Compute Is The New Oil
+  CLBK    -54.78%  MA                      $1.7B  benef=22 unpriced=0
+         Columbia Financial, Inc. Announces Completion of Second Step Conversion and $1.7 Billion Stock Offering and Acquisition 
+
+=== UN-PRICED BENEFICIARIES ===
+PASS  G6_page_live — HTTP 200 bytes=14340 title_ok=True
+[04:43:54] G6_page_live True
+
+VERDICT: PASS_ALL
+[04:43:54] VERDICT: PASS_ALL
+
+→ Report written to aws/ops/reports/latest/3699_readthrough_verify.md

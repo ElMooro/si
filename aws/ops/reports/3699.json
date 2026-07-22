@@ -1,0 +1,69 @@
+{
+  "gates": {
+    "G1_function": {
+      "ok": true,
+      "detail": "runtime=python3.12 mem=1024 timeout=600 state=Active dlq=True xray=Active secrets_present=['FMP_KEY', 'POLYGON_KEY'] n_env=3"
+    },
+    "G2_schedule": {
+      "ok": true,
+      "detail": "cron(20 11,13,21 ? * MON-FRI *) tz=UTC state=ENABLED ftw=OFF target=justhodl-readthrough"
+    },
+    "G3_invoke_writes_feed": {
+      "ok": true,
+      "detail": "canonical run (gap>=6%): object refreshed=True age=9.1s waited=15.2s"
+    },
+    "G4_payload": {
+      "ok": true,
+      "detail": "v=1.0.0 status=OK events=2 benef=44 unpriced=0 picks=0 elapsed=4.6s degraded=[]"
+    },
+    "G5_diffusion_path": {
+      "ok": true,
+      "detail": "canonical run already produced events \u2014 no diag needed"
+    },
+    "G6_page_live": {
+      "ok": true,
+      "detail": "HTTP 200 bytes=14340 title_ok=True"
+    }
+  },
+  "config": {
+    "mem": 1024,
+    "timeout": 600,
+    "runtime": "python3.12",
+    "n_env": 3,
+    "telegram": false
+  },
+  "schedule": {
+    "cron": "cron(20 11,13,21 ? * MON-FRI *)",
+    "state": "ENABLED"
+  },
+  "canonical": {
+    "status": "OK",
+    "n_events": 2,
+    "n_beneficiaries": 44,
+    "n_unpriced": 0,
+    "degraded": [],
+    "elapsed_s": 4.6
+  },
+  "events": [
+    {
+      "ticker": "NBIS",
+      "type": "CAPACITY_EXPANSION",
+      "move_pct": 18.78,
+      "order_value": null,
+      "n_benef": 22,
+      "n_unpriced": 0,
+      "headline": "Neoclouds Nebius, IREN Tap Massive Hyperscaler AI Capex \u2014 Compute Is The New Oil"
+    },
+    {
+      "ticker": "CLBK",
+      "type": "MA",
+      "move_pct": -54.78,
+      "order_value": "$1.7B",
+      "n_benef": 22,
+      "n_unpriced": 0,
+      "headline": "Columbia Financial, Inc. Announces Completion of Second Step Conversion and $1.7 Billion Stock Offering and Acquisition "
+    }
+  ],
+  "unpriced_top": [],
+  "verdict": "PASS_ALL"
+}
