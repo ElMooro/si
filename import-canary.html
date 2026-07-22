@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import Canary · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+tr:hover td{background:rgba(255,255,255,.025)}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;border-radius:3px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🚢 Import Canary — Physical Flow</h1>
+<div class="sub">What actually <em>landed</em> in the United States, by commodity and source country. PortWatch shows a chokepoint moving; boom-stage shows a nation's exports moving. This shows the goods clearing US customs — the layer directly beneath a vessel manifest. Seasonality-neutral (YoY), with acceleration as the second derivative. Daily poll 13:40 UTC; Census publishes ~2 months in arrears.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">🚨 Signal Ladder — surges &amp; contractions, confirmed vs raw</div>
+<div class="card" id="signals"></div>
+
+<div class="sec">🏭 Industry Rollup — value-weighted import YoY (bridges to Industry Boom League)</div>
+<div class="card" id="rollup"></div>
+
+<div class="sec">📦 Commodity Lines — HS basis</div>
+<div class="card" style="overflow-x:auto"><table id="hstab"></table></div>
+
+<div class="sec">🏷️ NAICS Lines — industry-classified imports</div>
+<div class="card" style="overflow-x:auto"><table id="natab"></table></div>
+
+<div class="sec">🌍 Source Concentration &amp; Reshoring Shift</div>
+<div class="card" id="conc"></div>
+
+<div class="sec">Coverage &amp; Honesty</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="cov"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Chokepoints &amp; ports: <a href="/portwatch.html">PortWatch</a> · Stage lens: <a href="/boom-stage.html">Boom-Stage</a> · Freight: <a href="/freight-pulse.html">Freight Pulse</a> · Industry league: <a href="/boom-radar.html">Boom Radar</a> · Read-through: <a href="/readthrough.html">Opportunities</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){
+try{
+var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/import-canary.json?t='+Date.now());
+var d=await r.json();
+var num=function(v,dg){return (v==null)?'—':(v>=0?'+':'')+v.toFixed(dg==null?1:dg);};
+var col=function(v){return v==null?MUT:(v>0?POS:(v<0?NEG:NEU));};
+var usd=function(v){if(v==null)return '—';if(v>=1e9)return '$'+(v/1e9).toFixed(2)+'B';if(v>=1e6)return '$'+(v/1e6).toFixed(1)+'M';return '$'+Math.round(v);};
+
+// HERO
+var sig=d.signals||[],up=sig.filter(function(s){return s.tier.indexOf('SURGE')===0||s.tier==='INFLECTING_UP';}).length;
+var dn=sig.filter(function(s){return s.tier.indexOf('CONTRACTION')===0||s.tier==='INFLECTING_DOWN';}).length;
+var top=(d.industry_rollup||[])[0]||{};
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Data month</div><div class="big" style="color:'+ACC+'">'+(d.data_month||'—')+'</div><div class="note">'+(d.lag_note||'')+'</div></div>'
++'<div class="tile"><div class="lbl">Lines tracked</div><div class="big">'+(d.n_lines||0)+'</div><div class="note">'+((d.coverage||{}).hs_ok||0)+' HS · '+((d.coverage||{}).naics_ok||0)+' NAICS</div></div>'
++'<div class="tile"><div class="lbl">Expanding / contracting</div><div class="big"><span style="color:'+POS+'">'+up+'</span> <span style="color:'+MUT+'">/</span> <span style="color:'+NEG+'">'+dn+'</span></div><div class="note">'+sig.length+' lines tripped a tier</div></div>'
++'<div class="tile"><div class="lbl">Hottest industry</div><div class="big" style="color:'+col(top.import_yoy_pct)+'">'+num(top.import_yoy_pct)+'%</div><div class="note">'+(top.industry||'—')+' · '+usd(top.import_usd_mo)+'/mo</div></div>'
++'</div>';
+
+// SIGNALS
+var tierCol={SURGE_CONFIRMED:POS,SURGE_RAW:POS,INFLECTING_UP:POS,CONTRACTION_CONFIRMED:NEG,CONTRACTION_RAW:NEG,INFLECTING_DOWN:NEG};
+document.getElementById('signals').innerHTML=(sig.length?('<table><tr><th>Commodity</th><th>Tier</th><th>YoY</th><th>Accel (pp)</th><th>3m mom</th><th>z</th><th>Top source</th><th>Industry</th></tr>'
++sig.map(function(s){return '<tr><td>'+s.label+' <span style="color:'+MUT+'">'+s.code+'</span></td>'
++'<td><span class="pill" style="color:'+(tierCol[s.tier]||NEU)+';border-color:'+(tierCol[s.tier]||NEU)+'">'+s.tier.replace(/_/g,' ')+'</span></td>'
++'<td style="color:'+col(s.yoy_pct)+'">'+num(s.yoy_pct)+'%</td>'
++'<td style="color:'+col(s.accel_pp)+'">'+num(s.accel_pp)+'</td>'
++'<td style="color:'+col(s.mom_3m_pct)+'">'+num(s.mom_3m_pct)+'%</td>'
++'<td>'+(s.z_yoy==null?'<span style="color:'+MUT+'">building</span>':num(s.z_yoy,2))+'</td>'
++'<td>'+(s.top_source||'—')+(s.fragile?' <span class="pill" style="color:'+ACC+';border-color:'+ACC+'">FRAGILE</span>':'')+'</td>'
++'<td style="color:'+MUT+'">'+(s.industry||'')+'</td></tr>';}).join('')+'</table>'
++'<div class="note">CONFIRMED = YoY threshold breached AND accelerating AND 3m momentum agrees. RAW = level only, one leg unconfirmed. INFLECTING = second derivative moved ≥15pp without a level breach — the earliest read.</div>')
+:'<span class="mono" style="color:'+MUT+'">No line tripped a tier this month.</span>');
+
+// ROLLUP
+var roll=d.industry_rollup||[];
+var mx=Math.max.apply(null,roll.map(function(x){return Math.abs(x.import_yoy_pct||0);}).concat([1]));
+document.getElementById('rollup').innerHTML=roll.map(function(x){
+var w=Math.min(100,Math.abs(x.import_yoy_pct||0)/mx*100);
+return '<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span>'+x.industry+' <span class="mono" style="color:'+MUT+'">('+x.n_lines+' lines · '+usd(x.import_usd_mo)+'/mo)</span></span><span class="mono" style="color:'+col(x.import_yoy_pct)+'">'+num(x.import_yoy_pct)+'%</span></div>'
++'<div class="bar"><i style="width:'+w+'%;background:'+col(x.import_yoy_pct)+'"></i></div></div>';}).join('')
++'<div class="note">Value-weighted by monthly import dollars, so a big line moves the industry more than a small one. Cross-reference against the Industry Boom League: imports rising while the league score lags = physical demand not yet in prices.</div>';
+
+// TABLES
+var rowsFor=function(list){return '<tr><th>Code</th><th>Commodity</th><th>Level</th><th>YoY</th><th>Prev YoY</th><th>Accel</th><th>3m mom</th><th>z</th><th>Hist n</th><th>Industry</th></tr>'
++list.map(function(a){return '<tr><td style="color:'+MUT+'">'+a.level_code+' '+a.code+'</td><td>'+a.label+'</td>'
++'<td>'+usd(a.level)+'</td>'
++'<td style="color:'+col(a.yoy_pct)+'">'+num(a.yoy_pct)+'%</td>'
++'<td style="color:'+MUT+'">'+num(a.yoy_prev_pct)+'%</td>'
++'<td style="color:'+col(a.accel_pp)+'">'+num(a.accel_pp)+'</td>'
++'<td style="color:'+col(a.mom_3m_pct)+'">'+num(a.mom_3m_pct)+'%</td>'
++'<td>'+(a.z_yoy==null?'<span style="color:'+MUT+'">—</span>':num(a.z_yoy,2))+'</td>'
++'<td style="color:'+MUT+'">'+(a.hist_n||0)+'</td>'
++'<td style="color:'+MUT+'">'+(a.industry||'')+'</td></tr>';}).join('');};
+document.getElementById('hstab').innerHTML=rowsFor(d.lines||[]);
+document.getElementById('natab').innerHTML=rowsFor(d.naics_lines||[]);
+
+// CONCENTRATION
+var withC=(d.lines||[]).filter(function(a){return (a.concentration||{}).top_source;});
+document.getElementById('conc').innerHTML=(withC.length?('<table><tr><th>Commodity</th><th>Top source</th><th>Share</th><th>HHI</th><th>Gaining share</th><th>Losing share</th></tr>'
++withC.map(function(a){var c=a.concentration||{},s=a.source_shift||{};
+return '<tr><td>'+a.label+'</td>'
++'<td style="color:'+(c.fragile?ACC:NEU)+'">'+c.top_source+(c.fragile?' ⚠':'')+'</td>'
++'<td>'+(c.top_share_pct==null?'—':c.top_share_pct.toFixed(1)+'%')+'</td>'
++'<td style="color:'+MUT+'">'+(c.hhi==null?'—':c.hhi)+'</td>'
++'<td style="color:'+POS+'">'+(s.gainer||'—')+' '+(s.gainer_pp==null?'':num(s.gainer_pp,2)+'pp')+'</td>'
++'<td style="color:'+NEG+'">'+(s.loser||'—')+' '+(s.loser_pp==null?'':num(s.loser_pp,2)+'pp')+'</td></tr>';}).join('')+'</table>'
++'<div class="note">⚠ FRAGILE = one country supplies ≥50% of US imports for that line: a single-point-of-failure the chokepoint map can price. Share shift is year-over-year in percentage points — this is where reshoring and China+1 become visible before any company discloses it.</div>')
+:'<span class="mono" style="color:'+MUT+'">Concentration pending.</span>');
+
+// COVERAGE
+var cv=d.coverage||{},dg=d.degraded||[];
+document.getElementById('cov').innerHTML='HS lines '+(cv.hs_ok||0)+'/'+(cv.hs_requested||0)+' · NAICS '+(cv.naics_ok||0)+'/'+(cv.naics_requested||0)
++(dg.length?('<br><span style="color:'+NEG+'">degraded ('+dg.length+'): '+dg.slice(0,10).join(' · ')+'</span>'):'<br><span style="color:'+POS+'">no degraded lines</span>')
++'<div class="note">'+(d.scope_note||'')+'</div>';
+
+document.getElementById('foot').textContent='Feed data/import-canary.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})();
+</script>
+</body>
+</html>

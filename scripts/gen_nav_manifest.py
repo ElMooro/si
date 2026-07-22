@@ -66,6 +66,7 @@ FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
     "/bis-crossborder.html": "Macro & Liquidity",    # ops 3653
     "/freight-pulse.html": "Macro & Liquidity",      # ops 3662
     "/boom-stage.html": "Macro & Liquidity",         # ops 3678
+    "/import-canary.html": "Macro & Liquidity",      # ops 3732
 }
 
 
