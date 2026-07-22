@@ -1,0 +1,263 @@
+{
+  "gates": {
+    "G1_code_shipped": {
+      "ok": true,
+      "detail": "graph: neocloud_block=True theme=True v2.1=True | readthrough: extreme_gate=True demote=True v1.0.3=True"
+    },
+    "G2_graph_rebuilt": {
+      "ok": true,
+      "detail": "graph refreshed=True waited=16.0s"
+    },
+    "G3_neocloud_coverage": {
+      "ok": true,
+      "detail": "n_edges=274 (was 0 for these) missing_or_thin=[] NBIS<-9 | CRWV<-11 | IREN<-5 | APLD<-9 | WULF<-7 | CIFR<-9 | GDS<-3"
+    },
+    "G4_reverse_edges": {
+      "ok": true,
+      "detail": "CRWV->['META', 'MSFT'] | NBIS->['MSFT'] | IREN->['MSFT'] | APLD->['CRWV']"
+    },
+    "G5_tier_caps": {
+      "ok": true,
+      "detail": "v=1.0.3 refreshed=True waited=15.3s events=1 rows=22 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}"
+    },
+    "G6_no_inferred_in_revenue_tiers": {
+      "ok": true,
+      "detail": "revenue-tier rows=17 mislabelled=[]"
+    },
+    "G7_extreme_move_gate": {
+      "ok": true,
+      "detail": "status=OK events=1 uncorroborated_extreme=[] negative=[] unpriced=22 degraded=[]"
+    },
+    "G8_revenue_tiers_intact": {
+      "ok": true,
+      "detail": "T1 names=['ANET', 'CIEN', 'CRDO', 'DELL', 'ETN', 'LITE', 'NVDA', 'SMCI', 'VRT'] n_T1=9"
+    }
+  },
+  "coverage": {
+    "NBIS": [
+      "ANET",
+      "CIEN",
+      "CRDO",
+      "DELL",
+      "ETN",
+      "LITE",
+      "NVDA",
+      "SMCI",
+      "VRT"
+    ],
+    "CRWV": [
+      "ANET",
+      "APLD",
+      "CIEN",
+      "COHR",
+      "CRDO",
+      "DELL",
+      "ETN",
+      "NVDA",
+      "NVT",
+      "SMCI",
+      "VRT"
+    ],
+    "IREN": [
+      "DELL",
+      "ETN",
+      "NVDA",
+      "SMCI",
+      "VRT"
+    ],
+    "APLD": [
+      "ETN",
+      "GEV",
+      "HUBB",
+      "MOD",
+      "NVDA",
+      "NVT",
+      "PWR",
+      "SMCI",
+      "VRT"
+    ],
+    "WULF": [
+      "ETN",
+      "GEV",
+      "HUBB",
+      "NVDA",
+      "NVT",
+      "PWR",
+      "VRT"
+    ],
+    "CIFR": [
+      "ETN",
+      "HUBB",
+      "HUT",
+      "MOD",
+      "NVDA",
+      "NVT",
+      "PWR",
+      "RIOT",
+      "VRT"
+    ],
+    "GDS": [
+      "CIEN",
+      "ETN",
+      "VRT"
+    ]
+  },
+  "graph": {
+    "version": "2.1.0",
+    "n_nodes": 182,
+    "n_edges": 274,
+    "themes": [
+      "AI Compute",
+      "Aero/Defense",
+      "Apple/Analog",
+      "Auto/EV/Materials",
+      "Automation/Power-semi",
+      "EDA/IP",
+      "Energy",
+      "Foundry",
+      "Healthcare/Biopharma",
+      "Hyperscaler",
+      "Machinery/Rail",
+      "Market-Inferred",
+      "Memory/Packaging",
+      "Neocloud/AI-DC",
+      "Networking/Optical",
+      "Power/Cooling/Grid",
+      "Semicap",
+      "Servers/EMS",
+      "Storage"
+    ]
+  },
+  "board": {
+    "version": "1.0.3",
+    "status": "OK",
+    "n_events": 1,
+    "n_rows": 22,
+    "n_unpriced": 22,
+    "tier_mix": {
+      "T1_DIRECT_SUPPLIER": 9,
+      "T2_TIER2_INPUT": 8,
+      "T3_INFRASTRUCTURE": 5
+    },
+    "events": [
+      {
+        "t": "NBIS",
+        "mv": 18.78,
+        "type": "CAPACITY_EXPANSION",
+        "benef": 22,
+        "unpriced": 22
+      }
+    ],
+    "top": [
+      {
+        "t": "NVDA",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 6.78,
+        "gap": 6.78,
+        "st": "UNPRICED",
+        "sc": 87.8
+      },
+      {
+        "t": "LITE",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "DELL",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "CRDO",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "VRT",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "ANET",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "CIEN",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "ETN",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "SMCI",
+        "tier": "T1_DIRECT_SUPPLIER",
+        "via": "NBIS",
+        "exp": 5.59,
+        "gap": 5.59,
+        "st": "UNPRICED",
+        "sc": 85.5
+      },
+      {
+        "t": "MU",
+        "tier": "T2_TIER2_INPUT",
+        "via": "NBIS",
+        "exp": 4.41,
+        "gap": 4.41,
+        "st": "UNPRICED",
+        "sc": 73.8
+      },
+      {
+        "t": "MPWR",
+        "tier": "T2_TIER2_INPUT",
+        "via": "NBIS",
+        "exp": 4.41,
+        "gap": 4.41,
+        "st": "UNPRICED",
+        "sc": 73.8
+      },
+      {
+        "t": "TSM",
+        "tier": "T2_TIER2_INPUT",
+        "via": "NBIS",
+        "exp": 3.63,
+        "gap": 3.63,
+        "st": "UNPRICED",
+        "sc": 71.5
+      }
+    ]
+  },
+  "verdict": "PASS_ALL"
+}

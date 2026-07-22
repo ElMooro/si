@@ -1,13 +1,13 @@
-executing-against: 35dc40036b2d84bd1f07e091dfa246884e7d0d6a
-ops 3702 — neocloud cluster + readthrough tier caps
+executing-against: caf3509e34b2ac21ee72b72b4ebba6b53098ffb5
+ops 3703 — readthrough v1.0.3 honesty fixes
   [justhodl-supply-chain-graph] artifact ready after 1s
   [justhodl-readthrough] artifact ready after 1s
-PASS  G1_code_shipped — graph: neocloud_block=True theme=True v2.1=True | readthrough: tier_caps=True v1.0.2=True
-[05:26:59] G1_code_shipped True
-PASS  G2_graph_rebuilt — graph refreshed=True waited=30.6s
-[05:27:30] G2_graph_rebuilt True
+PASS  G1_code_shipped — graph: neocloud_block=True theme=True v2.1=True | readthrough: extreme_gate=True demote=True v1.0.3=True
+[05:30:03] G1_code_shipped True
+PASS  G2_graph_rebuilt — graph refreshed=True waited=16.0s
+[05:30:20] G2_graph_rebuilt True
 PASS  G3_neocloud_coverage — n_edges=274 (was 0 for these) missing_or_thin=[] NBIS<-9 | CRWV<-11 | IREN<-5 | APLD<-9 | WULF<-7 | CIFR<-9 | GDS<-3
-[05:27:30] G3_neocloud_coverage True
+[05:30:20] G3_neocloud_coverage True
 
 === NEOCLOUD SUPPLIER RESOLUTION (this is the read-through path) ===
   NBIS  theme=Neocloud/AI-DC   suppliers(9): ANET, CIEN, CRDO, DELL, ETN, LITE, NVDA, SMCI, VRT
@@ -18,15 +18,18 @@ PASS  G3_neocloud_coverage — n_edges=274 (was 0 for these) missing_or_thin=[] 
   CIFR  theme=Neocloud/AI-DC   suppliers(9): ETN, HUBB, HUT, MOD, NVDA, NVT, PWR, RIOT, VRT
   GDS   theme=Neocloud/AI-DC   suppliers(3): CIEN, ETN, VRT
 PASS  G4_reverse_edges — CRWV->['META', 'MSFT'] | NBIS->['MSFT'] | IREN->['MSFT'] | APLD->['CRWV']
-[05:27:30] G4_reverse_edges True
-PASS  G5_tier_caps — v=1.0.2 refreshed=True waited=15.3s events=2 rows=27 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}
-[05:27:46] G5_tier_caps True
-PASS  G6_no_regression — status=OK negative=[] degraded=[] unpriced=27
-[05:27:46] G6_no_regression True
+[05:30:20] G4_reverse_edges True
+PASS  G5_tier_caps — v=1.0.3 refreshed=True waited=15.3s events=1 rows=22 breaches=[] caps={'T1_DIRECT_SUPPLIER': 12, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 8, 'T4_THEMATIC_SYMPATHY': 6, 'T5_COMPETITOR_VALIDATION': 5}
+[05:30:36] G5_tier_caps True
+PASS  G6_no_inferred_in_revenue_tiers — revenue-tier rows=17 mislabelled=[]
+[05:30:36] G6_no_inferred_in_revenue_tiers True
+PASS  G7_extreme_move_gate — status=OK events=1 uncorroborated_extreme=[] negative=[] unpriced=22 degraded=[]
+[05:30:36] G7_extreme_move_gate True
+PASS  G8_revenue_tiers_intact — T1 names=['ANET', 'CIEN', 'CRDO', 'DELL', 'ETN', 'LITE', 'NVDA', 'SMCI', 'VRT'] n_T1=9
+[05:30:36] G8_revenue_tiers_intact True
 
 === READ-THROUGH BOARD (v1.0.2) ===
-  tier mix: {'T1_DIRECT_SUPPLIER': 9, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 5, 'T5_COMPETITOR_VALIDATION': 5}
-  CATALYST UTZ      88.72%  MEGA_CONTRACT        benef=5 unpriced=5
+  tier mix: {'T1_DIRECT_SUPPLIER': 9, 'T2_TIER2_INPUT': 8, 'T3_INFRASTRUCTURE': 5}
   CATALYST NBIS     18.78%  CAPACITY_EXPANSION   benef=22 unpriced=22
     NVDA   T1_DIRECT_SUPPLIER         via NBIS   exp=   6.78 gap=   6.78 UNPRICED  sc=87.8
     LITE   T1_DIRECT_SUPPLIER         via NBIS   exp=   5.59 gap=   5.59 UNPRICED  sc=85.5
@@ -42,6 +45,6 @@ PASS  G6_no_regression — status=OK negative=[] degraded=[] unpriced=27
     TSM    T2_TIER2_INPUT             via NBIS   exp=   3.63 gap=   3.63 UNPRICED  sc=71.5
 
 VERDICT: PASS_ALL
-[05:27:46] VERDICT: PASS_ALL
+[05:30:36] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3702_neocloud_edges.md
+→ Report written to aws/ops/reports/latest/3703_readthrough_honesty.md
