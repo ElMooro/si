@@ -1,24 +1,25 @@
-executing-against: a9b6b1792814bbb0a25026187a8a698756caf6b0
-ops 3714 — forward-orders sidecar diagnosis + EIA key revival
-── A — forward-orders sidecar ──
-[17:53:21] A0_artifact_exists True
-  A0_artifact_exists               True  data/forward-orders.json age=20.0h
-    top-level keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_universe', 'n_with_rpo', 'weights', 'top_25_by_score', 'all_results', 'notes']
-[17:53:21] top-level keys: ['schema_version', 'method', 'generated_at', 'duration_s', 'n_universe', 'n_with_rpo', 'weights', 'top_25_by_score', 'all_results', 'notes']
-[17:53:21] A1_reader_shape_hits False
-  A1_reader_shape_hits             False  reader-compatible keys present: NONE — shape mismatch (reader tries ('by_ticker', 'results', 'rankings', 'top_picks', 'all', 'scored'))
-[17:53:21] A2_join_nonempty False
-  A2_join_nonempty                 False  emulated readthrough join -> 0 tickers (sample=[])
-[17:53:21] A3_artifact_fresh True
-  A3_artifact_fresh                True  age=20.0h (schedule is cron(0 11 * * ? *) daily; >48h means the schedule is dead again, cf. ops 3642)
-    container keys reader IGNORES: {'weights': 'dict[6]', 'top_25_by_score': 'list[25]', 'all_results': 'list[53]'}
-[17:53:21] ignored containers: ['weights', 'top_25_by_score', 'all_results']
-── B — EIA key revival ──
-[17:53:44] B1_eia_key_set False
-  B1_eia_key_set                   False  had_key_before=True FunctionError=None key_present=False still_asking_for_key=False resp={"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Method
+executing-against: cd8056644cfad2927d5f3c6f763388cfbb1bc22b
+ops 3715 — readthrough reader shape fix + EIA re-gate
+── A — readthrough reader shape ──
+[17:57:40] A1_patch_applied True
+  A1_patch_applied                 True  reader tuple += all_results, top_25_by_score; VERSION -> 1.2.2
+[17:57:41]   zip: 102021 bytes
+── 1. Lambda ──
+[17:57:41]   Lambda exists — updating
+[17:57:44] ✅   ✓ updated justhodl-readthrough
+[17:57:44] A2_artifact_live True
+  A2_artifact_live                 True  v1.2.2 zip-proven live after 0s
+[17:57:59] A3_refreshed True
+  A3_refreshed                     True  artifact refreshed in 15s
+[17:57:59] A4_sidecar_joined True
+  A4_sidecar_joined                True  degraded=['fundamental sidecar missing: estimate-revisions'] (forward-orders entry must be GONE)
+[17:57:59] A5_fwd_fields_present True
+  A5_fwd_fields_present            True  rows carrying forward-orders-derived fields: 4/84
+── B — EIA re-gate ──
+[17:58:17] B1_eia_key_live True
+  B1_eia_key_live                  True  FunctionError=None eia_key_present=True steo_keys=[] steo_error=None
 
-VERDICT: GAPS: A1_reader_shape_hits,A2_join_nonempty,B1_eia_key_set
-[17:53:44] VERDICT: GAPS: A1_reader_shape_hits,A2_join_nonempty,B1_eia_key_set
+VERDICT: PASS_ALL
+[17:58:17] VERDICT: PASS_ALL
 
-→ Report written to aws/ops/reports/latest/3714_fwd_orders_eia.md
-❌ OPS-FAIL: aws/ops/pending/ops_3714_fwd_orders_eia.py
+→ Report written to aws/ops/reports/latest/3715_reader_shape_eia.md

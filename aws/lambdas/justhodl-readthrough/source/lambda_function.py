@@ -57,7 +57,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/readthrough.json"
@@ -871,7 +871,8 @@ def load_fundamentals():
     backlog = bl.get("by_ticker") or {}
 
     fwd = {}
-    for k in ("by_ticker", "results", "rankings", "top_picks", "all", "scored"):
+    for k in ("by_ticker", "results", "rankings", "top_picks", "all", "scored",
+              "all_results", "top_25_by_score"):
         v = fo.get(k)
         if isinstance(v, dict):
             fwd.update(v)
