@@ -1,0 +1,188 @@
+{
+  "gates": {
+    "G1_shipped": {
+      "ok": true,
+      "detail": "v1.1.0=False join=True flow_cons=True backlog_asof=True"
+    },
+    "G2b_ledger_accumulates": {
+      "ok": false,
+      "detail": "ledger sizes across 3 passes = [83, 83, 83] (must GROW, not churn)"
+    },
+    "G2_backlog_asof": {
+      "ok": true,
+      "detail": "backlog names=83 with_asof=83 sample={'CETX': None, 'OLOX': None, 'LSH': None, 'TPET': None, 'HYFM': None}"
+    },
+    "G3_invoke": {
+      "ok": true,
+      "detail": "refreshed=True waited=15.2s"
+    },
+    "G4_flow_conservation": {
+      "ok": true,
+      "detail": "tier-share sums checked=13 overruns=[] example={'SMCI/T1_DIRECT_SUPPLIER': 0.55, 'DELL/T1_DIRECT_SUPPLIER': 0.55, 'SMCI/T2_TIER2_INPUT': 0.15, 'DELL/T2_TIER2_INPUT': 0.15}"
+    },
+    "G5_join_live": {
+      "ok": true,
+      "detail": "v=1.1.1 quadrants={'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 1, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 78} rows=79 rows_with_fundamentals=14 degraded=['fundamental sidecar missing: forward-orders']"
+    },
+    "G7_no_unearned_twice": {
+      "ok": true,
+      "detail": "TWICE_UNPRICED without revision data=[]"
+    },
+    "G8_rpo_denominator_sane": {
+      "ok": true,
+      "detail": "implausible unbooked ratios=[]"
+    },
+    "G6_unbooked_test": {
+      "ok": true,
+      "detail": "rows where the last RPO filing predates the catalyst: 14 -> ['AMD', 'AMD', 'MU', 'MU', 'AVGO', 'NVDA', 'AMAT', 'AMAT', 'LRCX', 'LRCX']"
+    }
+  },
+  "ledger_growth": [
+    83,
+    83,
+    83
+  ],
+  "board": {
+    "version": "1.1.1",
+    "quadrants": {
+      "TWICE_UNPRICED": 0,
+      "UNBOOKED_NO_CONSENSUS": 1,
+      "ESTIMATES_LEADING": 0,
+      "PRICE_LEADING": 0,
+      "FULLY_PRICED": 0,
+      "PRICE_ONLY": 78
+    },
+    "n_events": 9,
+    "n_rows": 79,
+    "twice_unpriced": [],
+    "smci": [
+      {
+        "t": "LITE",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 17.47,
+        "gap": 16.91,
+        "q": "PRICE_ONLY",
+        "sc": 94.7
+      },
+      {
+        "t": "CRDO",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 17.47,
+        "gap": 15.21,
+        "q": "PRICE_ONLY",
+        "sc": 92.3
+      },
+      {
+        "t": "MPWR",
+        "cap": 0.01587,
+        "implied": 952200000,
+        "exp": 13.03,
+        "gap": 11.53,
+        "q": "PRICE_ONLY",
+        "sc": 87.5
+      },
+      {
+        "t": "AMD",
+        "cap": 0.15865,
+        "implied": 9519000000,
+        "exp": 13.58,
+        "gap": 11.65,
+        "q": "PRICE_ONLY",
+        "sc": 87.0
+      },
+      {
+        "t": "COHR",
+        "cap": 0.01851,
+        "implied": 1110600000,
+        "exp": 8.84,
+        "gap": 9.02,
+        "q": "PRICE_ONLY",
+        "sc": 85.6
+      },
+      {
+        "t": "VRT",
+        "cap": 0.01587,
+        "implied": 952200000,
+        "exp": 6.1,
+        "gap": 7.97,
+        "q": "PRICE_ONLY",
+        "sc": 82.5
+      },
+      {
+        "t": "MU",
+        "cap": 0.05288,
+        "implied": 3172800000,
+        "exp": 5.87,
+        "gap": 5.69,
+        "q": "PRICE_ONLY",
+        "sc": 81.5
+      },
+      {
+        "t": "ARM",
+        "cap": 0.03797,
+        "implied": 2278200000,
+        "exp": 10.69,
+        "gap": 12.64,
+        "q": "PRICE_ONLY",
+        "sc": 80.3
+      },
+      {
+        "t": "WDC",
+        "cap": 0.02115,
+        "implied": 1269000000,
+        "exp": 7.22,
+        "gap": 5.07,
+        "q": "PRICE_ONLY",
+        "sc": 76.3
+      },
+      {
+        "t": "STX",
+        "cap": 0.02115,
+        "implied": 1269000000,
+        "exp": 7.39,
+        "gap": 5.02,
+        "q": "PRICE_ONLY",
+        "sc": 75.9
+      },
+      {
+        "t": "TER",
+        "cap": 0.01139,
+        "implied": 683400000,
+        "exp": 6.17,
+        "gap": 6.87,
+        "q": "PRICE_ONLY",
+        "sc": 72.4
+      },
+      {
+        "t": "CLS",
+        "cap": 0.01899,
+        "implied": 1139400000,
+        "exp": 3.92,
+        "gap": 4.36,
+        "q": "PRICE_ONLY",
+        "sc": 68.4
+      },
+      {
+        "t": "INTC",
+        "cap": 0.02644,
+        "implied": 1586400000,
+        "exp": 5.26,
+        "gap": 5.62,
+        "q": "PRICE_ONLY",
+        "sc": 66.2
+      },
+      {
+        "t": "GEV",
+        "cap": 0.04,
+        "implied": 2400000000,
+        "exp": 2.63,
+        "gap": 10.05,
+        "q": "PRICE_ONLY",
+        "sc": 61.5
+      }
+    ]
+  },
+  "verdict": "GAPS: G2b_ledger_accumulates"
+}

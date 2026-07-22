@@ -1,47 +1,52 @@
-executing-against: a1f1b8b5c4e4cf628e8e38614d96b93914d4c577
-ops 3708 — backlog reverse-engineering, stage 1
+executing-against: 2442afd892024654d732786bcf032ecf38a38916
+ops 3710 — backlog reverse-engineering, stage 1
   artifacts ready after 1 s
 PASS  G1_shipped — v1.1.0=False join=True flow_cons=True backlog_asof=True
-[16:20:30] G1_shipped True
-  backlog sidecar refreshed in 20 s
-PASS  G2_backlog_asof — backlog names=28 with_asof=28 sample={'CETX': None, 'OLOX': None, 'LSH': None, 'TPET': None, 'HYFM': None}
-[16:20:51] G2_backlog_asof True
-PASS  G3_invoke — refreshed=True waited=15.3s
-[16:21:06] G3_invoke True
+[16:34:17] G1_shipped True
+  backlog pass 1: ledger=83 slice=55
+  backlog pass 2: ledger=83 slice=55
+  backlog pass 3: ledger=83 slice=55
+  backlog sidecar refreshed in 303 s
+FAIL  G2b_ledger_accumulates — ledger sizes across 3 passes = [83, 83, 83] (must GROW, not churn)
+[16:44:45] G2b_ledger_accumulates False
+PASS  G2_backlog_asof — backlog names=83 with_asof=83 sample={'CETX': None, 'OLOX': None, 'LSH': None, 'TPET': None, 'HYFM': None}
+[16:44:45] G2_backlog_asof True
+PASS  G3_invoke — refreshed=True waited=15.2s
+[16:45:00] G3_invoke True
 PASS  G4_flow_conservation — tier-share sums checked=13 overruns=[] example={'SMCI/T1_DIRECT_SUPPLIER': 0.55, 'DELL/T1_DIRECT_SUPPLIER': 0.55, 'SMCI/T2_TIER2_INPUT': 0.15, 'DELL/T2_TIER2_INPUT': 0.15}
-[16:21:07] G4_flow_conservation True
-FAIL  G5_join_live — v=1.1.1 quadrants={'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 79} rows=79 rows_with_fundamentals=0 degraded=['fundamental sidecar missing: forward-orders']
-[16:21:07] G5_join_live False
+[16:45:00] G4_flow_conservation True
+PASS  G5_join_live — v=1.1.1 quadrants={'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 1, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 78} rows=79 rows_with_fundamentals=14 degraded=['fundamental sidecar missing: forward-orders']
+[16:45:00] G5_join_live True
 PASS  G7_no_unearned_twice — TWICE_UNPRICED without revision data=[]
-[16:21:07] G7_no_unearned_twice True
+[16:45:00] G7_no_unearned_twice True
 PASS  G8_rpo_denominator_sane — implausible unbooked ratios=[]
-[16:21:07] G8_rpo_denominator_sane True
-PASS  G6_unbooked_test — rows where the last RPO filing predates the catalyst: 0 -> []
-[16:21:07] G6_unbooked_test True
+[16:45:00] G8_rpo_denominator_sane True
+PASS  G6_unbooked_test — rows where the last RPO filing predates the catalyst: 14 -> ['AMD', 'AMD', 'MU', 'MU', 'AVGO', 'NVDA', 'AMAT', 'AMAT', 'LRCX', 'LRCX']
+[16:45:00] G6_unbooked_test True
 
-=== QUADRANTS === {'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 0, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 79}
+=== QUADRANTS === {'TWICE_UNPRICED': 0, 'UNBOOKED_NO_CONSENSUS': 1, 'ESTIMATES_LEADING': 0, 'PRICE_LEADING': 0, 'FULLY_PRICED': 0, 'PRICE_ONLY': 78}
 
 === SMCI CHAIN, flow-conserved ===
-  LITE   capture= 0.01851 implied=   $1.11B exp=   18.0 gap=  17.17 PRICE_ONLY         sc=94.4
-  CRDO   capture= 0.01851 implied=   $1.11B exp=   18.0 gap=  15.95 PRICE_ONLY         sc=92.7
-  AMD    capture= 0.15865 implied=   $9.52B exp=  13.99 gap=  12.22 PRICE_ONLY         sc=87.4
-  MPWR   capture= 0.01587 implied=   $0.95B exp=  13.43 gap=  11.73 PRICE_ONLY         sc=87.3
-  COHR   capture= 0.01851 implied=   $1.11B exp=   9.11 gap=   8.91 PRICE_ONLY         sc=85.1
-  VRT    capture= 0.01587 implied=   $0.95B exp=   6.28 gap=   7.88 PRICE_ONLY         sc=82.5
-  MU     capture= 0.05288 implied=   $3.17B exp=   6.05 gap=   5.95 PRICE_ONLY         sc=81.8
-  ARM    capture= 0.03797 implied=   $2.28B exp=  11.01 gap=  12.58 PRICE_ONLY         sc=80.3
-  WDC    capture= 0.02115 implied=   $1.27B exp=   7.43 gap=   5.22 PRICE_ONLY         sc=76.3
-  STX    capture= 0.02115 implied=   $1.27B exp=   7.61 gap=   4.85 PRICE_ONLY         sc=74.9
-  TER    capture= 0.01139 implied=   $0.68B exp=   6.35 gap=   7.21 PRICE_ONLY         sc=72.4
-  CLS    capture= 0.01899 implied=   $1.14B exp=   4.04 gap=    4.1 PRICE_ONLY         sc=68.4
-  INTC   capture= 0.02644 implied=   $1.59B exp=   5.42 gap=   5.43 PRICE_ONLY         sc=66.2
-  GEV    capture=    0.04 implied=   $2.40B exp=   2.71 gap=  10.17 PRICE_ONLY         sc=61.5
+  LITE   capture= 0.01851 implied=   $1.11B exp=  17.47 gap=  16.91 PRICE_ONLY         sc=94.7
+  CRDO   capture= 0.01851 implied=   $1.11B exp=  17.47 gap=  15.21 PRICE_ONLY         sc=92.3
+  MPWR   capture= 0.01587 implied=   $0.95B exp=  13.03 gap=  11.53 PRICE_ONLY         sc=87.5
+  AMD    capture= 0.15865 implied=   $9.52B exp=  13.58 gap=  11.65 PRICE_ONLY         sc=87.0
+  COHR   capture= 0.01851 implied=   $1.11B exp=   8.84 gap=   9.02 PRICE_ONLY         sc=85.6
+  VRT    capture= 0.01587 implied=   $0.95B exp=    6.1 gap=   7.97 PRICE_ONLY         sc=82.5
+  MU     capture= 0.05288 implied=   $3.17B exp=   5.87 gap=   5.69 PRICE_ONLY         sc=81.5
+  ARM    capture= 0.03797 implied=   $2.28B exp=  10.69 gap=  12.64 PRICE_ONLY         sc=80.3
+  WDC    capture= 0.02115 implied=   $1.27B exp=   7.22 gap=   5.07 PRICE_ONLY         sc=76.3
+  STX    capture= 0.02115 implied=   $1.27B exp=   7.39 gap=   5.02 PRICE_ONLY         sc=75.9
+  TER    capture= 0.01139 implied=   $0.68B exp=   6.17 gap=   6.87 PRICE_ONLY         sc=72.4
+  CLS    capture= 0.01899 implied=   $1.14B exp=   3.92 gap=   4.36 PRICE_ONLY         sc=68.4
+  INTC   capture= 0.02644 implied=   $1.59B exp=   5.26 gap=   5.62 PRICE_ONLY         sc=66.2
+  GEV    capture=    0.04 implied=   $2.40B exp=   2.63 gap=  10.05 PRICE_ONLY         sc=61.5
 
 === TWICE UN-PRICED ===
   (none right now)
 
-VERDICT: GAPS: G5_join_live
-[16:21:07] VERDICT: GAPS: G5_join_live
+VERDICT: GAPS: G2b_ledger_accumulates
+[16:45:00] VERDICT: GAPS: G2b_ledger_accumulates
 
-→ Report written to aws/ops/reports/latest/3708_honest_quadrant.md
-❌ OPS-FAIL: aws/ops/pending/ops_3708_honest_quadrant.py
+→ Report written to aws/ops/reports/latest/3710_backlog_ledger_v2.md
+❌ OPS-FAIL: aws/ops/pending/ops_3710_backlog_ledger_v2.py
