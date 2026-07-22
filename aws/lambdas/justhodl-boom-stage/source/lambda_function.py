@@ -25,13 +25,104 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
 
 
 UA = {"User-Agent": "Mozilla/5.0"}
+FRED_KEY = "2f057499936072679d8843d7fce99989"
+
+# 4th factor (Khalid's framework): inventory / utilization — confirms whether
+# producers are ramping (build) or drawing down (draw). Proven live in 3681.
+FACTOR4 = {
+    "semis": ("CAPUTLG3344S", "util", "Semiconductor capacity utilization"),
+    "mining": ("CAPUTLG21S", "util", "Mining capacity utilization"),
+    "mfg": ("TCU", "util", "Total industry capacity utilization"),
+    "inv_sales": ("MNFCTRIRSA", "inv", "Manufacturers inventories/sales"),
+    "biz_inv": ("ISRATIO", "inv", "Business inventories/sales"),
+    "retail_inv": ("RETAILIRSA", "inv", "Retail inventories/sales"),
+}
+
+
+def _fred_pair(sid):
+    """latest + 12m-ago value."""
+    try:
+        u = ("https://api.stlouisfed.org/fred/series/observations?"
+             f"series_id={sid}&api_key={FRED_KEY}&file_type=json"
+             "&sort_order=desc&limit=16")
+        o = json.loads(urllib.request.urlopen(
+            urllib.request.Request(u, headers=UA), timeout=20).read())
+        obs = [x for x in (o.get("observations") or [])
+               if x.get("value") not in (".", "", None)]
+        if not obs:
+            return None, None, None
+        cur = float(obs[0]["value"])
+        prior = float(obs[12]["value"]) if len(obs) > 12 else None
+        return cur, prior, obs[0]["date"]
+    except Exception:
+        return None, None, None
+
+
+def _factor4(kind):
+    """Returns dict for a factor-4 key: level, yoy delta, and read."""
+    spec = FACTOR4.get(kind)
+    if not spec:
+        return None
+    sid, typ, name = spec
+    cur, prior, dt = _fred_pair(sid)
+    if cur is None:
+        return None
+    d = {"name": name, "series": sid, "level": round(cur, 2),
+         "date": dt, "type": typ}
+    if prior:
+        chg = round(cur - prior, 2)
+        d["yoy_chg"] = chg
+        if typ == "util":
+            d["read"] = ("RAMPING" if chg >= 1.5 else
+                         "IDLING" if chg <= -1.5 else "STEADY")
+            d["means"] = ("producers running hotter — supply responding"
+                          if chg >= 1.5 else
+                          "capacity going idle — demand not pulling"
+                          if chg <= -1.5 else "utilization flat")
+        else:
+            d["read"] = ("INVENTORY_BUILD" if chg >= 0.04 else
+                         "INVENTORY_DRAW" if chg <= -0.04 else "BALANCED")
+            d["means"] = ("stock piling up vs sales — slowdown warning"
+                          if chg >= 0.04 else
+                          "stocks drawn down vs sales — tightening, "
+                          "bullish for price" if chg <= -0.04 else
+                          "inventories balanced")
+    return d
+
+
+def _refine(stage, f4):
+    """4-factor refinement: inventory/utilization confirms or contradicts."""
+    if not f4 or not f4.get("read"):
+        return stage, None
+    r = f4["read"]
+    if stage == "EARLY_PRICE_LED" and r == "INVENTORY_DRAW":
+        return stage, ("CONFIRMED: inventories drawing down while price "
+                       "leads — genuine tightening, boom has room")
+    if stage == "EARLY_PRICE_LED" and r in ("INVENTORY_BUILD", "RAMPING"):
+        return stage, ("CAUTION: supply is responding (" + r.lower()
+                       + ") — pricing power may fade; watch for PLATEAU")
+    if stage in ("BROADENING",) and r == "RAMPING":
+        return stage, "CONFIRMED: utilization rising with volumes — real capex"
+    if stage in ("CONTRACTION", "VALUE_LED_DOWNTURN") \
+            and r == "INVENTORY_BUILD":
+        return stage, ("CONFIRMED: unsold stock building into falling "
+                       "demand — classic slowdown")
+    if stage in ("CONTRACTION", "VALUE_LED_DOWNTURN") \
+            and r == "INVENTORY_DRAW":
+        return stage, ("EARLY-TURN WATCH: stocks drawing down despite weak "
+                       "prints — restock impulse may be forming")
+    if stage == "SUPPLY_SHOCK_PRICING" and r == "IDLING":
+        return stage, ("CONFIRMED: capacity idle while prices spike — "
+                       "supply-side, not demand — inflationary and "
+                       "growth-negative")
+    return stage, None
 
 
 def _yoy_yahoo(sym):
@@ -64,6 +155,11 @@ CANARY = {
     "BR-commodities": ("INFLATION", "metals/ags price pass-through"),
     "CN-broad": ("GROWTH", "world's #2 economy, credit + gateway volume"),
     "US-freight": ("GROWTH", "US inland demand + carrier pricing power"),
+    "AU-iron": ("GROWTH", "iron ore = China steel = global construction"),
+    "ID-nickel": ("GROWTH", "nickel = EV battery + stainless demand"),
+    "QA-lng": ("INFLATION", "LNG = European/Asian energy input cost"),
+    "DE-machinery": ("GROWTH", "capital goods orders = global capex cycle"),
+    "CH-pharma": ("DEFENSIVE", "pharma exports = acyclical demand baseline"),
 }
 
 TRADE_MAP = {
@@ -315,6 +411,49 @@ def lambda_handler(event=None, context=None):
                              "vs_baseline_pct": vp7, "z": vz7,
                              "n_ports": npt7}, "context": {}})
 
+    # --- new specialization pairs (Khalid tier-1 map) ---
+    NEW = [
+        ("AU-iron", "Australia", "Australia · Iron ore (price vs ports)",
+         "TIO=F", "Iron ore 62% (TIO=F) yoy", "mining"),
+        ("ID-nickel", "Indonesia", "Indonesia · Nickel (price vs ports)",
+         "NICKEL", "Nickel complex proxy yoy", "mining"),
+        ("QA-lng", "Qatar", "Qatar · LNG (gas price vs liftings)",
+         "NG=F", "Henry Hub gas (NG=F) yoy", None),
+        ("DE-machinery", "Germany", "Germany · Machinery (capital goods "
+         "tape vs ports)", "EXS1.DE", "DAX industrials proxy yoy", "mfg"),
+        ("CH-pharma", "Switzerland", "Switzerland · Pharma (producer tape "
+         "vs ports)", "ROG.SW", "Roche/Novartis tape yoy", None),
+    ]
+    for pid, ctry, label, sym, vsrc, f4key in NEW:
+        vv = _yoy_yahoo(sym) if sym != "NICKEL" else _yoy_yahoo("XME")
+        vpn, vzn, nptn = vol(ctry)
+        stn, whyn = _stage(vv, vpn)
+        f4 = _factor4(f4key) if f4key else None
+        stn, note = _refine(stn, f4)
+        pairs.append({"id": pid, "label": label, "stage": stn, "why": whyn,
+                      "value": {"src": vsrc, "yoy_pct": vv},
+                      "volume": {"src": f"portwatch {ctry} ports",
+                                 "vs_baseline_pct": vpn, "z": vzn,
+                                 "n_ports": nptn},
+                      "factor4": f4, "factor4_note": note,
+                      "context": {}})
+
+    # attach factor-4 to the original pairs
+    F4MAP = {"KR-semis": "semis", "TW-semis": "semis",
+             "CL-copper": "mining", "PE-copper": "mining",
+             "US-freight": "biz_inv", "FI-pulp": "retail_inv",
+             "CN-broad": "mfg", "BR-commodities": "mining",
+             "UAE-energy": None, "SA-oil": None}
+    for p in pairs:
+        if p.get("factor4") is not None or p["id"] not in F4MAP:
+            continue
+        k = F4MAP.get(p["id"])
+        f4 = _factor4(k) if k else None
+        if f4:
+            st_new, note = _refine(p["stage"], f4)
+            p["factor4"] = f4
+            p["factor4_note"] = note
+
     # ---- history ledger + transitions + sliding-watch signals ----
     try:
         hist = json.loads(S3.get_object(
@@ -399,8 +538,18 @@ def lambda_handler(event=None, context=None):
     i_pairs = [p for p in pairs
                if (p.get("canary") or {}).get("type") == "INFLATION"
                and p["stage"] != "NA"]
-    slow = min(100, max(0, 50 + sum(SLOW.get(p["stage"], 0)
-                                    for p in g_pairs)))
+    inv_tilt = 0
+    for p in pairs:
+        f4 = p.get("factor4") or {}
+        if f4.get("read") == "INVENTORY_BUILD":
+            inv_tilt += 4
+        elif f4.get("read") == "INVENTORY_DRAW":
+            inv_tilt -= 3
+        elif f4.get("read") == "IDLING":
+            inv_tilt += 3
+    inv_tilt = max(-12, min(12, inv_tilt))
+    slow = min(100, max(0, 50 + inv_tilt + sum(SLOW.get(p["stage"], 0)
+                                               for p in g_pairs)))
     infl = min(100, max(0, 50 + sum(INFL.get(p["stage"], 0)
                                     for p in i_pairs)))
 
@@ -444,12 +593,15 @@ def lambda_handler(event=None, context=None):
         regime = "MIXED / TRANSITIONAL"
 
     live = [p for p in pairs if p["stage"] != "NA"]
-    doc = {"ok": len(live) >= 6, "version": VERSION,
+    doc = {"ok": len(live) >= 8, "version": VERSION,
            "generated_at": now.isoformat(), "pairs": pairs, "signals": signals,
            "macro": {"slowdown_risk": slow, "slowdown_band": slow_band,
                       "inflation_pressure": infl, "inflation_band": infl_band,
                       "regime": regime, "plain_english": " ".join(parts),
                       "growth_canaries": len(g_pairs),
+                      "inventory_tilt": inv_tilt,
+                      "factor4_reads": {p["id"]: (p.get("factor4") or {}).get("read")
+                                         for p in pairs if p.get("factor4")},
                       "inflation_canaries": len(i_pairs),
                       "weak": weak, "hot": hot, "strong": strong},
            "signals_note": ("STAGE_CHANGE fires on flips; "

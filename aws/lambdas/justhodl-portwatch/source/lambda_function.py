@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.3.4"
+VERSION = "1.4.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -44,7 +44,9 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "san antonio", "valparaiso", "mejillones", "callao",
                "matarani", "kotka", "hamina", "helsinki", "rauma",
                "jeddah", "dammam", "king abdulaziz", "jubail",
-               "ras tanura", "yanbu")
+               "ras tanura", "yanbu", "antofagasta", "bahia de valparaiso",
+               "san vicente", "coronel", "iquique", "quintero",
+               "keelung", "taichung", "mailiao", "taipei", "hualien")
 # v1.3: port-name -> nation fallback (ref country field is unreliable/blank
 # for some rows; a known gateway's nation is a fact)
 PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
@@ -65,8 +67,12 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("laem chabang", "Thailand"), ("santos", "Brazil"),
                ("jebel ali", "UAE"), ("dubai", "UAE"),
                ("colombo", "Sri Lanka"),
-               ("san antonio", "Chile"), ("valparaiso", "Chile"),
-               ("mejillones", "Chile"), ("callao", "Peru"),
+               ("antofagasta", "Chile"), ("valparaiso", "Chile"),
+               ("san vicente", "Chile"), ("coronel", "Chile"),
+               ("iquique", "Chile"), ("quintero", "Chile"),
+               ("keelung", "Taiwan"), ("taichung", "Taiwan"),
+               ("mailiao", "Taiwan"), ("hualien", "Taiwan"),
+               ("callao", "Peru"),
                ("matarani", "Peru"), ("kotka", "Finland"),
                ("hamina", "Finland"), ("helsinki", "Finland"),
                ("rauma", "Finland"), ("jeddah", "Saudi Arabia"),
@@ -77,8 +83,10 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("long beach", "United States"), ("houston", "United States"),
                ("new york", "United States"), ("savannah", "United States"))
 # v1.2: export-nation aggregation — country -> gateway-port pulse
-EXPORT_NATIONS = (("china", "China"), ("hong kong", "China"),
+EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
+                  ("china", "China"), ("hong kong", "China"),
                   ("korea", "Korea"), ("japan", "Japan"),
+                  ("taiwan province of china", "Taiwan"),
                   ("taiwan", "Taiwan"), ("singapore", "Singapore"),
                   ("viet", "Vietnam"), ("german", "Germany"),
                   ("india", "India"), ("mexico", "Mexico"),
