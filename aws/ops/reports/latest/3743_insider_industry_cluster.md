@@ -1,0 +1,52 @@
+# ops 3743 — canary #16: insider industry-cluster overlay
+
+**Status:** failure  
+**Duration:** 563.2s  
+**Finished:** 2026-07-22T22:20:01+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| clusters | failed | industries | verdict |
+|---|---|---|---|
+| 1 | G1_scanner_ran,G1_sidecar_breadth | 1 | FAIL |
+
+## Log
+## G0 — key contract (grep both producers)
+
+- `22:10:38` PASS G0_key_contract — scanner missing=[] engine missing=[]
+## G1 — scanner schema 2.1 + sidecar populated
+
+- `22:10:38` PASS G1_scanner_settled — schema 2.1 deployed after 0s
+- `22:19:48` FAIL G1_scanner_ran — scanner did not republish within 9min
+- `22:19:48`   clusters=19  all_ticker_buys=0 (breadth gain -19)
+- `22:19:48` FAIL G1_sidecar_breadth — sidecar carries 0 tickers vs 19 filtered clusters
+## G1b — scanner runs BEFORE the canary (no config.json)
+
+- `22:19:49`   scheduler justhodl-insider-buyback-confluence-daily -> cron(0 23 * * ? *)
+- `22:19:49`   scheduler justhodl-insider-sell-cluster-daily -> cron(30 23 * * ? *)
+- `22:19:49` PASS G1b_scanner_scheduled — scanner schedules found: [('justhodl-insider-buyback-confluence-daily', 'cron(0 23 * * ? *)'), ('justhodl-insider-sell-cluster-daily', 'cron(30 23 * * ? *)')]
+## G2 — industry engine settle + invoke
+
+- `22:19:49` PASS G2_engine_settled — engine deployed after 0s
+- `22:20:00` PASS G2_artifact — industries=1 clusters=1 source=clusters(filtered)
+## G3 — data truth (breadth is real, rates are sane)
+
+- `22:20:00`   Biotechnology                    PEER_CLUSTER_CONFIRMED       n_co= 6/590   1.02%  $3.33M  hhi=0.319  z=None
+- `22:20:00` PASS G3_data_truth — industries=1 impossible_breadth=[] bad_rate=[]
+## G4 — false-positive guard (biotech / thin universes)
+
+- `22:20:00`   thin universes labelled: 0 · concentrated flagged: []
+- `22:20:00` PASS G4_fp_guard — thin_promoted=[] missing_honesty_fields=[]
+## G5 — engine schedule
+
+- `22:20:01`   scheduler created
+- `22:20:01` PASS G5_schedule — schedule present
+## VERDICT
+
+- `22:20:01` ✗ gates failed: ['G1_scanner_ran', 'G1_sidecar_breadth']

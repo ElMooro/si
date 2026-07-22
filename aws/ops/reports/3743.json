@@ -1,0 +1,45 @@
+{
+  "gates": {
+    "G0_key_contract": {
+      "ok": true,
+      "detail": "scanner missing=[] engine missing=[]"
+    },
+    "G1_scanner_settled": {
+      "ok": true,
+      "detail": "schema 2.1 deployed after 0s"
+    },
+    "G1_scanner_ran": {
+      "ok": false,
+      "detail": "scanner did not republish within 9min"
+    },
+    "G1_sidecar_breadth": {
+      "ok": false,
+      "detail": "sidecar carries 0 tickers vs 19 filtered clusters"
+    },
+    "G1b_scanner_scheduled": {
+      "ok": true,
+      "detail": "scanner schedules found: [('justhodl-insider-buyback-confluence-daily', 'cron(0 23 * * ? *)'), ('justhodl-insider-sell-cluster-daily', 'cron(30 23 * * ? *)')]"
+    },
+    "G2_engine_settled": {
+      "ok": true,
+      "detail": "engine deployed after 0s"
+    },
+    "G2_artifact": {
+      "ok": true,
+      "detail": "industries=1 clusters=1 source=clusters(filtered)"
+    },
+    "G3_data_truth": {
+      "ok": true,
+      "detail": "industries=1 impossible_breadth=[] bad_rate=[]"
+    },
+    "G4_fp_guard": {
+      "ok": true,
+      "detail": "thin_promoted=[] missing_honesty_fields=[]"
+    },
+    "G5_schedule": {
+      "ok": true,
+      "detail": "schedule present"
+    }
+  },
+  "verdict": "FAIL"
+}
