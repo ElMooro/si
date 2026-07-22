@@ -1,18 +1,17 @@
-executing-against: 4aa20be7fe34d3843049a3b97954d26f35de0e22
-ops 3724 — estimate-revisions v3.0.0 (moving consensus)
-[19:51:30] G0_key_contract True
-  G0_key_contract                    True  fmp_estimate_profile() returns fwd_eps_cur (the moving epsAvg)
-[19:51:30] G0b_fmp_before_loop True
-  G0b_fmp_before_loop                True  fmp populated at 746 before row loop at 5278
-[19:51:30] G1_patched True
-  G1_patched                         True  cur_eps <- fmp fwd_eps_cur; sched_eps kept for context; ledger re-seeds pre-v3 keys; version -> 3.0.0
-[19:51:30] G2_compiles True
-  G2_compiles                        True  engine source compiles
-[19:51:30] G3_ledger_snapshot True
-  G3_ledger_snapshot                 True  n_keys=448 pre_v3_keys_to_reseed=448 updated=2026-07-22T19:21:54.161781+00:00
+executing-against: 5b13447f4e0f43fd731b9adca1644948725b6999
+ops 3725 — readthrough.html: surface the hidden engine fields
+[19:56:28] G0_key_contract False
+  G0_key_contract                    False  engine actually publishes: {'top_picks': True, 'consensus_coverage': True, 'quadrant_counts': True, 'materiality_pct': False, 'edge_source': True, 'capture_share': True, 'consensus_observed': True}
+[19:56:28] G1_patched True
+  G1_patched                         True  page 13976 -> 19508 bytes; +picks +consensus +evidence columns +chips
+[19:56:28] G2_columns_wired True
+  G2_columns_wired                   True  board header now has 12 columns
+[19:56:28] G3_coverage_closed False
+  G3_coverage_closed                 False  rendered 10/12; still missing=['quadrant_note', 'capture_share']
 
-VERDICT: PASS_ALL
-NOTE: deploy-lambdas bundles aws/shared/**; live verification is ops 3725 AFTER settle. Directions appear on the SECOND v3 run — the first only re-seeds baselines.
-[19:51:30] VERDICT: PASS_ALL
+VERDICT: GAPS: G0_key_contract,G3_coverage_closed
+NOTE: pages.yml publishes root *.html; live-marker check is ops 3726.
+[19:56:28] VERDICT: GAPS: G0_key_contract,G3_coverage_closed
 
-→ Report written to aws/ops/reports/latest/3724_consensus_v3.md
+→ Report written to aws/ops/reports/latest/3725_readthrough_page.md
+❌ OPS-FAIL: aws/ops/pending/ops_3725_readthrough_page.py

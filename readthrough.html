@@ -54,6 +54,12 @@ td{padding:6px 8px;border-bottom:1px solid rgba(28,35,48,.6)}
 <div class="sec">📋 Full board — every beneficiary, every tier</div>
 <div class="card" style="overflow-x:auto"><table id="board"></table></div>
 
+<div class="sec">🎯 Top picks — the engine's own shortlist</div>
+<div id="picks"></div>
+
+<div class="sec">🧭 Consensus &amp; pricing — has the sell side caught up?</div>
+<div class="card" id="consensus"></div>
+
 <div class="sec">Method &amp; honest limits</div>
 <div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
 
@@ -121,14 +127,33 @@ function eventCard(e,rows){
     '</div>';
 }
 
+
+function consensusChips(f){
+  if(!f) return '';
+  var c=[];
+  if(f.consensus_observed===false){
+    c.push('<span class="mono" style="font-size:11px;padding:1px 6px;border:1px solid var(--line);border-radius:9px;color:'+MUT+'">UNOBSERVED — sell side does not cover</span>');
+  }else{
+    if(f.consensus_dissenting) c.push('<span class="mono" style="font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(224,122,105,.16);color:'+RED+'">CONSENSUS CUTTING</span>');
+    else if(f.consensus_moved) c.push('<span class="mono" style="font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(111,206,138,.16);color:'+GRN+'">ESTIMATES MOVED UP</span>');
+    else c.push('<span class="mono" style="font-size:11px;padding:1px 6px;border:1px solid var(--line);border-radius:9px;color:'+MUT+'">NO REVISION YET</span>');
+  }
+  if(f.analyst_actions_since_catalyst) c.push('<span class="mono" style="font-size:11px;color:'+MUT+'">'+f.analyst_actions_since_catalyst+' analyst action'+(f.analyst_actions_since_catalyst===1?'':'s')+' since catalyst</span>');
+  if(f.rpo_representative!=null) c.push('<span class="mono" style="font-size:11px;color:'+MUT+'">RPO on book</span>');
+  if(f.book_to_bill_spread_pct!=null) c.push('<span class="mono" style="font-size:11px;color:'+MUT+'">B:B spread '+f.book_to_bill_spread_pct+'%</span>');
+  return c.length?'<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+c.join('')+'</div>':'';
+}
 function boardTable(rows){
-  var h='<tr><th>Ticker</th><th>Tier</th><th>Catalyst</th><th>Expected</th><th>Realized ex-β</th><th>Gap</th><th>Capture</th><th>Status</th><th>Score</th></tr>';
+  var h='<tr><th>Ticker</th><th>Tier</th><th>Catalyst</th><th>Expected</th><th>Realized ex-β</th><th>Gap</th><th>Capture</th><th>Materiality</th><th>Edge</th><th>Age</th><th>Status</th><th>Score</th></tr>';
   return h+rows.map(function(r){
     var c=SC[r.status]||MUT;
     return '<tr><td class="mono"><b>'+esc(r.ticker)+'</b></td><td class="mono" style="color:'+DIM+'">'+esc(tierShort(r.tier))+
       '</td><td class="mono">'+esc(r.catalyst_ticker)+'</td><td class="mono">'+pc(r.expected_move_pct)+
       '</td><td class="mono">'+pc(r.realized_ex_beta_pct)+'</td><td class="mono" style="color:'+AMB+'">'+pc(r.residual_pct)+
       '</td><td class="mono">'+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(2))+
+      '</td><td class="mono">'+(r.materiality_pct==null?'—':r.materiality_pct.toFixed(2)+'%')+
+      '</td><td class="mono" style="font-size:11px;color:'+DIM+'">'+esc(r.edge_source||'—')+(r.edge_confidence==null?'':' '+(r.edge_confidence*100).toFixed(0)+'%')+
+      '</td><td class="mono" style="font-size:11px;color:'+MUT+'">'+((r.fundamentals||{}).days_since_catalyst==null?'—':(r.fundamentals||{}).days_since_catalyst+'d')+
       '</td><td class="mono" style="color:'+c+'">'+esc(r.status)+'</td><td class="mono"><b>'+(r.catch_up_score==null?'—':r.catch_up_score)+'</b></td></tr>';
   }).join('');
 }
@@ -169,6 +194,57 @@ function boardTable(rows){
       ' vs mechanism '+pc(r.expected_move_pct)+' (capture '+(r.capture_ratio==null?'—':r.capture_ratio.toFixed(1))+'×)</div>';}).join(''):
     '<div class="mono" style="font-size:12px;color:'+MUT+'">Nothing has overshot its mechanism.</div>';
   document.getElementById('board').innerHTML=boardTable(d.beneficiaries||[]);
+
+  // ── top picks ───────────────────────────────────────────────────────────
+  var picks=d.top_picks||[];
+  document.getElementById('picks').innerHTML = picks.length ?
+    picks.map(function(p){
+      var f=p.fundamentals||{};
+      return '<div class="card" style="margin-bottom:8px">'+
+        '<div style="font-size:15px"><b>'+esc(p.ticker)+'</b> '+
+        '<span class="mono" style="color:'+MUT+';font-size:12px">'+esc(tierShort(p.tier))+
+        ' via '+esc(p.catalyst_ticker)+'</span>'+
+        '<span style="float:right" class="mono">score '+esc(String(p.catch_up_score))+'</span></div>'+
+        '<div class="mono" style="font-size:12px;margin-top:4px">'+
+        'mechanism '+pc(p.expected_move_pct)+' · realized ex-β '+pc(p.realized_ex_beta_pct)+
+        ' · gap '+pc(p.gap_pts)+
+        (p.materiality_pct!=null?' · materiality '+p.materiality_pct.toFixed(2)+'% of revenue':'')+
+        '</div>'+
+        (p.thesis?'<div style="font-size:12.5px;margin-top:6px;color:var(--text-dim)">'+esc(p.thesis)+'</div>':'')+
+        consensusChips(f)+
+        '</div>';
+    }).join('') :
+    '<div class="card mono" style="font-size:12px;color:'+MUT+'">No name currently clears the top-pick gate.</div>';
+
+  // ── consensus & pricing ─────────────────────────────────────────────────
+  var cov=d.consensus_coverage||{}, qc=d.quadrant_counts||{};
+  var QMEAN={
+    TWICE_UNPRICED:'neither price nor estimates have moved — the cleanest setup',
+    CONSENSUS_NOT_DUE_YET:'we can see the name, but no revision has landed yet',
+    CONSENSUS_DISSENTING:'sell side moved DOWN since the catalyst — mechanism and analysts disagree',
+    UNBOOKED_NO_CONSENSUS:'order is not in the last filing and nobody covers it',
+    ESTIMATES_LEADING:'estimates moved before the price did',
+    PRICE_LEADING:'price moved before estimates did',
+    FULLY_PRICED:'both have moved — the read-through is in the number',
+    PRICE_ONLY:'price-only read; no consensus visibility on this name'};
+  var qrows=Object.keys(qc).filter(function(k){return qc[k];}).sort(function(a,b){return qc[b]-qc[a];});
+  document.getElementById('consensus').innerHTML=
+    '<div class="mono" style="font-size:12.5px">'+
+      'names the sell side covers: <b>'+(cov.names_with_sellside_coverage==null?'—':cov.names_with_sellside_coverage)+'</b>'+
+      ' · names with a consensus delta: <b>'+(cov.names_with_consensus_delta==null?'—':cov.names_with_consensus_delta)+'</b>'+
+      ' · rows we can actually observe: <b>'+(cov.rows_consensus_observed==null?'—':cov.rows_consensus_observed)+'</b>'+
+      (cov.analyst_actions_asof?' · actions as of '+esc(String(cov.analyst_actions_asof)).slice(0,10):'')+
+    '</div>'+
+    '<div style="margin-top:10px">'+
+    (qrows.length? qrows.map(function(k){
+      return '<div style="padding:4px 0;border-top:1px solid var(--line)">'+
+        '<span class="mono" style="font-size:12px"><b>'+esc(k)+'</b> — '+qc[k]+'</span>'+
+        '<div style="font-size:12px;color:'+MUT+'">'+esc(QMEAN[k]||'')+'</div></div>';
+    }).join('') : '<span class="mono" style="font-size:12px;color:'+MUT+'">No quadrant data yet.</span>')+
+    '</div>'+
+    '<div class="mono" style="font-size:11.5px;color:'+MUT+';margin-top:10px">'+
+    'Honesty rule: a name the sell side never covers is UNOBSERVED, not unmoved. '+
+    'Absence of a revision only counts as evidence when the name is visible in the feed.</div>';
 
   var tiers=d.tiers||{};
   document.getElementById('method').innerHTML=
