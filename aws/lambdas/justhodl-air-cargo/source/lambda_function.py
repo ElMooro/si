@@ -50,7 +50,11 @@ S3 = boto3.client("s3", region_name="us-east-1")
 def _edge_get(url, timeout=60, cap=8_000_000):
     """Edge first (CAD blocks Lambda IPs), direct as fallback."""
     err = None
-    for attempt in (GOV_EDGE + urllib.parse.quote(url, safe=""), url):
+    # the CAD path contains a literal space ("Stat Webpage.xlsx"), which
+    # urllib rejects as a control character on a DIRECT fetch — percent-encode
+    # the path for the fallback (the edge form is fully quoted already).
+    direct = urllib.parse.quote(url, safe=":/?&=%")
+    for attempt in (GOV_EDGE + urllib.parse.quote(url, safe=""), direct):
         try:
             r = urllib.request.urlopen(
                 urllib.request.Request(attempt, headers=UA), timeout=timeout)
