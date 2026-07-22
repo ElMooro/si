@@ -1,25 +1,52 @@
-executing-against: cd8056644cfad2927d5f3c6f763388cfbb1bc22b
-ops 3715 — readthrough reader shape fix + EIA re-gate
-── A — readthrough reader shape ──
-[17:57:40] A1_patch_applied True
-  A1_patch_applied                 True  reader tuple += all_results, top_25_by_score; VERSION -> 1.2.2
-[17:57:41]   zip: 102021 bytes
-── 1. Lambda ──
-[17:57:41]   Lambda exists — updating
-[17:57:44] ✅   ✓ updated justhodl-readthrough
-[17:57:44] A2_artifact_live True
-  A2_artifact_live                 True  v1.2.2 zip-proven live after 0s
-[17:57:59] A3_refreshed True
-  A3_refreshed                     True  artifact refreshed in 15s
-[17:57:59] A4_sidecar_joined True
-  A4_sidecar_joined                True  degraded=['fundamental sidecar missing: estimate-revisions'] (forward-orders entry must be GONE)
-[17:57:59] A5_fwd_fields_present True
-  A5_fwd_fields_present            True  rows carrying forward-orders-derived fields: 4/84
-── B — EIA re-gate ──
-[17:58:17] B1_eia_key_live True
-  B1_eia_key_live                  True  FunctionError=None eia_key_present=True steo_keys=[] steo_error=None
+executing-against: fd1afdf1387655da41092814f5bf2ccb38a2748e
+ops 3716 — estimate-revisions diagnosis + readthrough page coverage
+── A — estimate-revisions sidecar ──
+[18:43:20] A0_artifact_exists True
+  A0_artifact_exists                 True  data/estimate-revisions.json age=1.0h
+[18:43:20] A1_revision_arrays_nonempty False
+  A1_revision_arrays_nonempty        False  upward=0 downward=0 n_tracked=436 n_fmp_enriched=256 n_with_history=436 status=LIVE
+[18:43:20] A2_reader_join_nonempty False
+  A2_reader_join_nonempty            False  emulated join -> 0 tickers (sample=[])
+[18:43:20] A3_fresh True
+  A3_fresh                           True  age=1.0h (>48h = schedule dead, cf. ops 3642 pattern)
+[18:43:20] A4_not_on_dead_benzinga False
+  A4_not_on_dead_benzinga            False  references_benzinga=True uses_shared_fmp_analyst=False (Benzinga 403-dead since 2026-07-15; ops 3311-3323 re-sourced peers onto aws/shared/fmp_analyst.py)
 
-VERDICT: PASS_ALL
-[17:58:17] VERDICT: PASS_ALL
+  estimate-revisions top-level keys:
+    ['engine', 'version', 'generated_at', 'status', 'thesis', 'horizon_days', 'n_tracked', 'direction_map', 'n_fmp_enriched', 'n_with_history', 'n_state_keys', 'estimate_strength_leaders', 'upward_revisions', 'downward_revisions', 'top_picks', 'data_source', 'caveats', 'elapsed_s']
+    caveats: ['estimate_strength available day 1 from FMP forward consensus; revision deltas accrue from daily snapshots.', 'fwd_eps_growth_pct = next-FY vs current-FY consensus EPS slope.', 'Tiny-estimate names c
+    status: LIVE
+    direction_map: {'STZ': 'FLAT', 'AEHR': 'FLAT', 'ANGO': 'FLAT', 'RPM': 'FLAT', 'NG': 'FLAT', 'CALM': 'FLAT', 'CAG': 'FLAT', 'AYI': 'FLAT', 'TMQ': 'FLAT', 'UNFI': 'FLAT', 'PAYX': 'FLAT', 'NKE': 'FLAT', 'LW': 'FLAT', '
+── B — readthrough.html field coverage ──
+[18:43:20] B0_page_exists True
+  B0_page_exists                     True  readthrough.html 13976 bytes
+[18:43:20] B1_all_engine_fields_rendered False
+  B1_all_engine_fields_rendered      False  rendered=3/13 MISSING=['consensus_coverage', 'quadrant_note', 'consensus_observed', 'consensus_moved', 'consensus_dissenting', 'analyst_actions', 'rpo_representative', 'book_to_bill_spread_pct', 'days_since_catalyst', 'materiality_pct']
 
-→ Report written to aws/ops/reports/latest/3715_reader_shape_eia.md
+  field coverage:
+    GAP  consensus_coverage
+    OK   quadrant_counts
+    OK   pricing_quadrant
+    GAP  quadrant_note
+    GAP  consensus_observed
+    GAP  consensus_moved
+    GAP  consensus_dissenting
+    GAP  analyst_actions
+    GAP  rpo_representative
+    GAP  book_to_bill_spread_pct
+    GAP  days_since_catalyst
+    OK   implied_order_usd
+    GAP  materiality_pct
+[18:43:20] B2_no_unrendered_row_fields False
+  B2_no_unrendered_row_fields        False  row+fundamental keys with NO render path (42): ['anchor_close', 'bom_weight', 'capture_share', 'catalyst_type', 'dollar_vol', 'edge_confidence', 'edge_source', 'move_since_catalyst_pct', 'n_at_tier', 'named_edge', 'named_in_release', 'quadrant_note', 'revenue_ttm', 'run_5d_pct', 'tier_label', 'analyst_actions', 'analyst_actions_since_catalyst', 'analyst_net_since_catalyst', 'claim_predates_filing', 'consensus_baseline_date', 'consensus_dissenting', 'consensus_moved', 'consensus_observed', 'consensus_rev_delta_pct']
+
+  artifact top-level keys: ['engine', 'version', 'ok', 'generated_at', 'status', 'degraded', 'thesis', 'params', 'n_events', 'n_beneficiaries', 'n_unpriced', 'events', 'unpriced', 'beneficiaries', 'chase_guard', 'twice_unpriced', 'by_beneficiary', 'consensus_coverage', 'quadrant_counts', 'top_picks', 'tier_caps', 'tiers', 'industry_boom_context', 'data_source', 'caveats', 'elapsed_s']
+  row keys: ['anchor_close', 'beta', 'bom_weight', 'capture_ratio', 'capture_share', 'catalyst_ticker', 'catalyst_type', 'catch_up_score', 'company', 'days_to_earnings', 'dollar_vol', 'edge_confidence', 'edge_source', 'expected_move_pct', 'flags', 'fundamentals', 'implied_order_usd', 'market_cap', 'materiality', 'materiality_note', 'move_since_catalyst_pct', 'n_at_tier', 'named_edge', 'named_in_release', 'price', 'pricing_quadrant', 'quadrant_note', 'realized_ex_beta_pct', 'residual_pct', 'revenue_ttm', 'run_5d_pct', 'status', 'thesis', 'ticker', 'tier', 'tier_label', 'why']
+  fundamentals keys: ['analyst_actions', 'analyst_actions_since_catalyst', 'analyst_net_since_catalyst', 'claim_predates_filing', 'consensus_baseline_date', 'consensus_dissenting', 'consensus_moved', 'consensus_observed', 'consensus_rev_delta_pct', 'days_since_catalyst', 'deferred_rev_usd', 'demand_accelerating', 'est_baseline_date', 'est_direction', 'est_rev_pct', 'est_rev_recent_pct', 'est_strength', 'estimates_revised_since_catalyst', 'fwd_orders_score', 'rpo_asof', 'rpo_filed', 'rpo_representative', 'rpo_stale_days', 'rpo_unrepresentative', 'rpo_usd', 'rpo_yoy', 'sellside_feed_covers', 'unbooked_vs_deferred', 'unbooked_vs_rpo']
+  degraded: ['fundamental sidecar missing: estimate-revisions']
+
+VERDICT: GAPS: A1_revision_arrays_nonempty,A2_reader_join_nonempty,A4_not_on_dead_benzinga,B1_all_engine_fields_rendered,B2_no_unrendered_row_fields
+[18:43:20] VERDICT: GAPS: A1_revision_arrays_nonempty,A2_reader_join_nonempty,A4_not_on_dead_benzinga,B1_all_engine_fields_rendered,B2_no_unrendered_row_fields
+
+→ Report written to aws/ops/reports/latest/3716_est_revisions_pagecov.md
+❌ OPS-FAIL: aws/ops/pending/ops_3716_est_revisions_pagecov.py
