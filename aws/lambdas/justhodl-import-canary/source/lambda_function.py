@@ -44,11 +44,16 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+# v1.0.1: the Census API is per-request tiny but we need ~1,200 of them.
+# Sequential = ~5 min and a dropped runner connection. Pool them.
+WORKERS = int(os.environ.get("CANARY_WORKERS", "16"))
+
+VERSION = "1.0.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/import-canary.json"
 HIST_KEY = "data/import-canary-history.json"
@@ -197,32 +202,68 @@ def find_latest_month():
 
 
 def fetch_line(base, lvl, code, months, code_var):
-    """Total-country monthly series for one commodity line."""
-    series = {}
-    for ym in months:
+    """Total-country monthly series for one commodity line (parallel)."""
+    def one(ym):
         d = _get(_q(base, {"get": "GEN_VAL_MO", "time": ym,
                            "COMM_LVL": lvl, code_var: code}))
         rows = _rows(d)
         if rows:
             v = _f(rows[0].get("GEN_VAL_MO"))
             if v is not None and v > 0:
+                return ym, v
+        return ym, None
+
+    series = {}
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        for ym, v in ex.map(one, months):
+            if v is not None:
                 series[ym] = v
     return series
 
 
 def fetch_country_split(lvl, code, ym):
-    """Per-country values for one month — powers concentration + source shift."""
-    out = {}
-    for cty, name in COUNTRIES.items():
-        if not name:
-            continue
-        d = _get(_q(BASE_HS, {"get": "GEN_VAL_MO,CTY_NAME", "time": ym,
-                              "COMM_LVL": lvl, "I_COMMODITY": code,
-                              "CTY_CODE": cty}))
-        rows = _rows(d)
-        if rows:
-            v = _f(rows[0].get("GEN_VAL_MO"))
+    """Per-country values for one month — concentration + source shift.
+
+    v1.0.1: ONE call returning every country beats 16 keyed calls. Census
+    accepts CTY_CODE=* to enumerate partners; we filter to tracked names
+    and fall back to per-country only if the wildcard is rejected.
+    """
+    d = _get(_q(BASE_HS, {"get": "GEN_VAL_MO,CTY_NAME,CTY_CODE", "time": ym,
+                          "COMM_LVL": lvl, "I_COMMODITY": code,
+                          "CTY_CODE": "*"}))
+    rows = _rows(d)
+    if rows:
+        out = {}
+        for r in rows:
+            cty = (r.get("CTY_CODE") or "").strip()
+            name = COUNTRIES.get(cty)
+            if not name:
+                continue
+            v = _f(r.get("GEN_VAL_MO"))
             if v is not None and v > 0:
+                out[name] = v
+        if out:
+            return out
+
+    # fallback: per-country, parallel
+    def one(item):
+        cty, name = item
+        if not name:
+            return None, None
+        d2 = _get(_q(BASE_HS, {"get": "GEN_VAL_MO,CTY_NAME", "time": ym,
+                               "COMM_LVL": lvl, "I_COMMODITY": code,
+                               "CTY_CODE": cty}))
+        rr = _rows(d2)
+        if rr:
+            v = _f(rr[0].get("GEN_VAL_MO"))
+            if v is not None and v > 0:
+                return name, v
+        return None, None
+
+    out = {}
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        for name, v in ex.map(one, list(COUNTRIES.items())):
+            if name and v:
                 out[name] = v
     return out
 
@@ -331,47 +372,61 @@ def lambda_handler(event, context):
     months = [_months_back(ym, i) for i in range(0, 15)]
     hist = _load(HIST_KEY) or {"lines": {}}
 
-    lines_out = []
-    for lvl, code, label, industry in LINES:
+    def build_hs(spec):
+        lvl, code, label, industry = spec
         series = fetch_line(BASE_HS, lvl, code, months, "I_COMMODITY")
         if not series:
-            degraded.append("%s %s no series" % (lvl, code))
-            continue
+            return None, "%s %s no series" % (lvl, code)
         a = analyse(series, ym)
         a.update({"level_code": lvl, "code": code, "label": label,
                   "industry": industry, "basis": "HS"})
-
         split_now = fetch_country_split(lvl, code, ym)
         a["concentration"] = concentration(split_now)
         split_yr = fetch_country_split(lvl, code, _months_back(ym, 12))
         a["source_shift"] = source_shift(split_now, split_yr)
+        return a, None
 
-        # self-building history ledger of YoY prints
-        hk = "%s:%s" % (lvl, code)
-        rec = hist["lines"].setdefault(hk, {})
-        if a["yoy_pct"] is not None:
-            rec[ym] = a["yoy_pct"]
-        a["z_yoy"] = zscore(list(rec.values()), a["yoy_pct"])
-        a["hist_n"] = len(rec)
-
-        lines_out.append(a)
-
-    naics_out = []
-    for lvl, code, label, industry in NAICS_LINES:
+    def build_naics(spec):
+        lvl, code, label, industry = spec
         series = fetch_line(BASE_NAICS, lvl, code, months, "NAICS")
         if not series:
-            degraded.append("NAICS %s no series" % code)
-            continue
+            return None, "NAICS %s no series" % code
         a = analyse(series, ym)
         a.update({"level_code": lvl, "code": code, "label": label,
                   "industry": industry, "basis": "NAICS"})
-        hk = "N:%s" % code
+        return a, None
+
+    lines_out, naics_out = [], []
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for a, err in ex.map(build_hs, LINES):
+            if err:
+                degraded.append(err)
+            elif a:
+                lines_out.append(a)
+        for a, err in ex.map(build_naics, NAICS_LINES):
+            if err:
+                degraded.append(err)
+            elif a:
+                naics_out.append(a)
+
+    # ledger writes are serial (dict mutation) after the parallel fetch
+    for a in lines_out:
+        hk = "%s:%s" % (a["level_code"], a["code"])
         rec = hist["lines"].setdefault(hk, {})
         if a["yoy_pct"] is not None:
             rec[ym] = a["yoy_pct"]
         a["z_yoy"] = zscore(list(rec.values()), a["yoy_pct"])
         a["hist_n"] = len(rec)
-        naics_out.append(a)
+    for a in naics_out:
+        hk = "N:%s" % a["code"]
+        rec = hist["lines"].setdefault(hk, {})
+        if a["yoy_pct"] is not None:
+            rec[ym] = a["yoy_pct"]
+        a["z_yoy"] = zscore(list(rec.values()), a["yoy_pct"])
+        a["hist_n"] = len(rec)
+
+    lines_out.sort(key=lambda x: (x["basis"], x["code"]))
+    naics_out.sort(key=lambda x: x["code"])
 
     # ── SIGNAL LADDER ────────────────────────────────────────────────────
     # A surge is only a canary if it is accelerating AND broad enough to be
