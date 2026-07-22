@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.4.4"
+VERSION = "1.5.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/portwatch.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -48,7 +48,11 @@ MAJOR_PORTS = ("shanghai", "singapore", "ningbo", "shenzhen",
                "san vicente", "coronel", "iquique", "quintero",
                "keelung", "taichung", "mailiao", "taipei", "hualien",
                "lirquen", "caleta patillos", "puerto caldera",
-               "bahia quintero", "ventanas")
+               "bahia quintero", "ventanas",
+               "port hedland", "dampier", "hay point", "abbot point",
+               "gladstone", "newcastle", "port walcott", "cape lambert",
+               "port botany", "melbourne", "brisbane", "fremantle",
+               "ras laffan", "hamad port", "doha-umm said", "al ruwais")
 # v1.3: port-name -> nation fallback (ref country field is unreliable/blank
 # for some rows; a known gateway's nation is a fact)
 PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
@@ -69,6 +73,13 @@ PORT_NATION = (("shanghai", "China"), ("yangshan", "China"),
                ("laem chabang", "Thailand"), ("santos", "Brazil"),
                ("jebel ali", "UAE"), ("dubai", "UAE"),
                ("colombo", "Sri Lanka"),
+               ("port hedland", "Australia"), ("dampier", "Australia"),
+               ("hay point", "Australia"), ("abbot point", "Australia"),
+               ("gladstone", "Australia"), ("port walcott", "Australia"),
+               ("cape lambert", "Australia"), ("port botany", "Australia"),
+               ("fremantle", "Australia"), ("brisbane", "Australia"),
+               ("ras laffan", "Qatar"), ("hamad port", "Qatar"),
+               ("umm said", "Qatar"), ("al ruwais", "Qatar"),
                ("antofagasta", "Chile"), ("valparaiso", "Chile"),
                ("san vicente", "Chile"), ("coronel", "Chile"),
                ("iquique", "Chile"), ("quintero", "Chile"),
@@ -110,6 +121,7 @@ EXPORT_NATIONS = (("taiwan province of china", "Taiwan"),
                   ("malaysia", "Malaysia"), ("thailand", "Thailand"),
                   ("indonesia", "Indonesia"), ("brazil", "Brazil"),
                   ("emirates", "UAE"), ("sri lanka", "Sri Lanka"),
+                  ("australia", "Australia"), ("qatar", "Qatar"),
                   ("belgium", "Belgium"), ("chile", "Chile"),
                   ("peru", "Peru"), ("finland", "Finland"),
                   ("saudi", "Saudi Arabia"))

@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/boom-stage.json"
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -161,7 +161,6 @@ CANARY = {
     "ID-nickel": ("GROWTH", "nickel = EV battery + stainless demand"),
     "QA-lng": ("INFLATION", "LNG = European/Asian energy input cost"),
     "DE-machinery": ("GROWTH", "capital goods orders = global capex cycle"),
-    "CH-pharma": ("DEFENSIVE", "pharma exports = acyclical demand baseline"),
 }
 
 TRADE_MAP = {
@@ -437,8 +436,6 @@ def lambda_handler(event=None, context=None):
          "NG=F", "Henry Hub gas (NG=F) yoy", None),
         ("DE-machinery", "Germany", "Germany · Machinery (capital goods "
          "tape vs ports)", "EXS1.DE", "DAX industrials proxy yoy", "mfg"),
-        ("CH-pharma", "Switzerland", "Switzerland · Pharma (producer tape "
-         "vs ports)", "ROG.SW", "Roche/Novartis tape yoy", None),
     ]
     for pid, ctry, label, sym, vsrc, f4key in NEW:
         vv = _yoy_yahoo(sym) if sym != "NICKEL" else _yoy_yahoo("XME")
@@ -457,7 +454,7 @@ def lambda_handler(event=None, context=None):
     # attach factor-4 to the original pairs
     F4MAP = {"KR-semis": "semis", "TW-semis": "semis",
              "AU-iron": "mining", "QA-lng": "gas_stocks",
-             "DE-machinery": "mfg", "CH-pharma": "mfg",
+             "DE-machinery": "mfg",
              "CL-copper": "mining", "PE-copper": "mining",
              "US-freight": "biz_inv", "FI-pulp": "retail_inv",
              "CN-broad": "mfg", "BR-commodities": "mining",
@@ -777,3 +774,9 @@ def lambda_handler(event=None, context=None):
 
 if __name__ == "__main__":
     print(json.dumps(lambda_handler(), indent=2))
+
+# NOTE (ops 3696): CH-pharma pair REMOVED — Switzerland is landlocked
+# (no AIS port volume leg exists) and pharma demand is acyclical by
+# design, so it cannot signal expansion or slowdown. Khalid's filter:
+# a pair earns its place only if it serves as a growth or inflation
+# canary. Better Swiss-pharma reads live in equity-research, not here.
