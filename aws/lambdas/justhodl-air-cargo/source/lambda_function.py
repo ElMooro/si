@@ -1,12 +1,28 @@
-"""justhodl-air-cargo v1.0 — high-value air-freight canary (HKIA).
+"""justhodl-air-cargo v2.0 — HKIA high-value air-freight canary, Lambda-native.
 
-Khalid's value-vs-volume insight: Korea ports flat while chip exports +52%
-— high-value goods FLY. HKIA (Hong Kong Intl) is the world's #1 cargo
-airport and publishes free monthly traffic figures. Probe-first design
-(proven on PBoC): multiple candidate sources, tolerant parses, body_probe
-forensics on miss so the next cycle lands with certainty. Self-building
-levels ledger air/hkia-cargo-levels.json -> yoy once 13 months. Feeds
-data/air-cargo.json. stdlib-only; never fabricates.
+Khalid's value-vs-volume insight: high-value goods FLY. HKIA is the world's #1
+cargo airport, so its monthly tonnage is the complement to sea-freight volume
+(portwatch) and inland freight (freight-pulse).
+
+Source: HK Civil Aviation Department monthly workbook ("Stat Webpage.xlsx").
+
+Why the edge: CAD tarpits AWS-Lambda IPs — proven across ops 3669-3672 with
+three separate invokes hanging at INIT_START while a GitHub runner fetched
+the same 2.1MB file instantly. v2.0 routes the fetch through the hostname-
+locked Cloudflare /gov worker (ops 3697), so this engine finally runs on its
+own 10:40 schedule instead of depending on runner-side ops.
+
+Workbook facts, x-rayed in ops 3674 and proven in 3676 (HKIA May-2026 =
+433.0k tonnes, +3.1% YoY):
+  * sheet1, header row 8; columns L/M/N/O = Unloaded / Loaded / Freight
+    Total / YoY%
+  * ~820k empty styled cells, so cells are anchored on '><v>' only
+  * the YEAR is printed only on January rows -> carry it forward
+  * layout is latest-month-per-year, giving a same-month series where the
+    workbook's own YoY column is directly valid
+
+stdlib only; never fabricates — a failed fetch or parse reports null with the
+error, and the page shows "building" rather than a made-up number.
 """
 import io
 import json
@@ -18,319 +34,188 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.4.0"
+VERSION = "2.0.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/air-cargo.json"
 LEVELS_KEY = "air/hkia-cargo-levels.json"
+XLSX_URL = "https://www.cad.gov.hk/english/./pdf/Stat Webpage.xlsx"
+GOV_EDGE = "https://justhodl-data-proxy.raafouis.workers.dev/gov?u="
 UA = {"User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                     "AppleWebKit/537.36 (KHTML, like Gecko) "
-                     "Chrome/126.0 Safari/537.36"),
-      "Accept-Language": "en"}
-S3 = boto3.client("s3", region_name="us-east-1")
-
-CANDIDATES = [
-    ("fact_figures", "https://www.hongkongairport.com/en/the-airport/"
-     "hkia-at-a-glance/fact-figures.page"),
-]
-PRESS_LISTS = [
-    "https://www.hongkongairport.com/en/media-centre/press-releases.page",
-    "https://www.hongkongairport.com/en/media-centre/press-release.page",
-    "https://www.hongkongairport.com/en/media-centre.page",
-]
+                     "AppleWebKit/537.36 Chrome/126.0 Safari/537.36")}
 MONTHS = ("january february march april may june july august september "
           "october november december").split()
+S3 = boto3.client("s3", region_name="us-east-1")
 
 
-def _get(url, timeout=25):
-    try:
-        r = urllib.request.urlopen(
-            urllib.request.Request(url, headers=UA), timeout=timeout)
-        return r.read(900_000).decode("utf-8", "replace"), None
-    except Exception as e:
-        return "", str(e)[:110]
+def _edge_get(url, timeout=60, cap=8_000_000):
+    """Edge first (CAD blocks Lambda IPs), direct as fallback."""
+    err = None
+    for attempt in (GOV_EDGE + urllib.parse.quote(url, safe=""), url):
+        try:
+            r = urllib.request.urlopen(
+                urllib.request.Request(attempt, headers=UA), timeout=timeout)
+            b = r.read(cap)
+            if b:
+                return b, ("edge" if attempt.startswith(GOV_EDGE)
+                           else "direct"), None
+        except Exception as e:
+            err = str(e)[:120]
+    return b"", None, err
 
 
-def _parse_cargo(text):
-    """Find monthly cargo tonnage + yoy near 'cargo' mentions."""
-    t = re.sub(r"\s+", " ", text)
-    out = {}
-    # tonnage: e.g. 'cargo throughput of 410,000 tonnes' / '0.41 million tonnes'
-    for m in re.finditer(r"[Cc]argo[^.]{0,160}?([\d][\d,\.]*)\s*"
-                         r"(million\s+)?tonnes", t):
-        v = float(m.group(1).replace(",", ""))
-        if m.group(2):
-            v *= 1_000_000
-        if 50_000 <= v <= 900_000:  # monthly HKIA range sanity
-            out["tonnes"] = v
-            seg = t[max(0, m.start() - 200):m.end() + 200]
-            ym = re.search(r"(" + "|".join(mo.capitalize()
-                                           for mo in MONTHS) + r")\s+(20\d\d)",
-                           seg)
-            if ym:
-                out["month"] = f"{ym.group(2)}-{MONTHS.index(ym.group(1).lower()) + 1:02d}"
-            yy = re.search(r"(increase|decrease|up|down|rose|fell|grew|"
-                           r"dropped)[^%]{0,60}?([\d.]+)\s*%", seg, re.I)
-            if yy:
-                sign = -1 if yy.group(1).lower() in (
-                    "decrease", "down", "fell", "dropped") else 1
-                out["yoy_pct"] = round(sign * float(yy.group(2)), 1)
-            else:
-                yp = re.search(r"\(\s*([+\-])\s*([\d.]+)\s*%\s*\)", seg)
-                if yp:
-                    out["yoy_pct"] = round(
-                        float(yp.group(2)) * (-1 if yp.group(1) == "-" else 1), 1)
+def _next_col(c):
+    l = list(c)
+    i = len(l) - 1
+    while i >= 0:
+        if l[i] != "Z":
+            l[i] = chr(ord(l[i]) + 1)
             break
-    return out
+        l[i] = "A"
+        i -= 1
+    else:
+        l = ["A"] + l
+    return "".join(l)
+
+
+def _parse_workbook(rb, out):
+    """Return sorted [(year, month, tonnes, yoy_or_None)]."""
+    zf = zipfile.ZipFile(io.BytesIO(rb))
+    sh = zf.read("xl/sharedStrings.xml").decode("utf-8", "replace")
+    strings = ["".join(re.findall(r"<t[^>]*>([^<]*)</t>", si))
+               for si in re.split(r"<si>", sh)[1:]]
+    xml = zf.read("xl/worksheets/sheet1.xml").decode("utf-8", "replace")
+
+    rows = {}
+    for rowm in re.finditer(r'<row r="(\d+)"[^>]*>(.*?)</row>', xml, re.S):
+        rno = int(rowm.group(1))
+        cells = {}
+        for cm in re.finditer(r"<c ([^>]*)><v>([^<]*)</v>", rowm.group(2)):
+            attrs, val = cm.group(1), cm.group(2)
+            rm = re.search(r'r="([A-Z]+)\d+"', attrs)
+            if not rm:
+                continue
+            col = rm.group(1)
+            if 't="s"' in attrs:
+                try:
+                    cells[col] = ("s", strings[int(val)])
+                except Exception:
+                    pass
+            else:
+                try:
+                    cells[col] = ("n", float(val))
+                except Exception:
+                    pass
+        if cells:
+            rows[rno] = cells
+    out["rows_parsed"] = len(rows)
+
+    unloaded_col = header_row = None
+    for rno, cs in sorted(rows.items()):
+        for col, v in cs.items():
+            if v[0] == "s" and v[1].strip().lower() == "unloaded":
+                unloaded_col, header_row = col, rno
+                break
+        if unloaded_col:
+            break
+    if not unloaded_col:
+        out["xlsx_probe"] = ("no 'Unloaded' header; strings: "
+                             + " | ".join(strings[:20])[:320])
+        return []
+
+    total_col = _next_col(_next_col(unloaded_col))
+    yoy_col = _next_col(total_col)
+    out["cols"] = {"unloaded": unloaded_col, "total": total_col,
+                   "yoy": yoy_col, "header_row": header_row}
+
+    series = []
+    carried_year = None
+    for rno, cs in sorted(rows.items()):
+        if rno <= header_row:
+            continue
+        year = month = None
+        for col, v in sorted(cs.items()):
+            if v[0] == "n" and 1990 <= v[1] <= 2035 and year is None:
+                year = int(v[1])
+            if v[0] == "s" and v[1].strip().lower() in MONTHS \
+                    and month is None:
+                month = MONTHS.index(v[1].strip().lower()) + 1
+        if year is None and month is not None:
+            year = carried_year
+        if year is not None:
+            carried_year = year
+        tv = cs.get(total_col)
+        yv = cs.get(yoy_col)
+        if year and month and tv and tv[0] == "n" \
+                and 50_000 <= tv[1] <= 900_000:
+            series.append((year, month, tv[1],
+                           (round(yv[1], 1) if yv and yv[0] == "n"
+                            and -80 <= yv[1] <= 200 else None)))
+    series.sort()
+    return series
 
 
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     out = {"ok": False, "version": VERSION, "generated_at": now.isoformat(),
            "airport": "HKIA (Hong Kong Intl) — world #1 cargo airport",
-           "errors": [], "attribution": "Airport Authority Hong Kong "
-           "published monthly traffic figures (free public stats)"}
+           "errors": [],
+           "attribution": ("HK Civil Aviation Department monthly statistics "
+                           "(Stat Webpage.xlsx, free public data)")}
 
-    # v1.1 primary: HK Civil Aviation Dept statistics (classic HTML)
-    parsed = {}
-    via = None
-    cad, cerr = _get("https://www.cad.gov.hk/english/statistics.html")
-    if cerr:
-        out["errors"].append("cad: " + cerr)
-    if cad:
-        ct = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "|", cad))
-        fm = re.search(r"[Ff]reight[^|]{0,60}(?:\|[^|]{0,30}){0,6}?\|"
-                       r"\s*([\d,]{6,9})\s*\|", ct)
-        if not fm:
-            fm = re.search(r"([\d,]{6,9})(?=[^\d].{0,120}?[Ff]reight)", ct)
-        if fm:
-            v = float(fm.group(1).replace(",", ""))
-            if 150_000 <= v <= 700_000:
-                parsed["tonnes"] = v
-                via = "cad_stats"
-                ym = re.search(r"(" + "|".join(mo.capitalize()
-                               for mo in MONTHS) + r")\s+(20\d\d)", ct)
-                if ym:
-                    parsed["month"] = (f"{ym.group(2)}-"
-                                       f"{MONTHS.index(ym.group(1).lower()) + 1:02d}")
-        if not parsed.get("tonnes"):
-            # v1.2: statistics.html is an INDEX — hunt the latest monthly link
-            hrefs = re.findall(r'href=["\']([^"\'>]+)["\']', cad)
-            cands = []
-            for href in hrefs:
-                blob = href.lower()
-                if (".pdf" in blob or blob.startswith("#")
-                        or "mailto:" in blob or "javascript" in blob
-                        or ".css" in blob or ".js" in blob):
-                    continue
-                if ("stat" in blob or "traffic" in blob
-                        or "transport" in blob):
-                    u3 = href
-                    if u3.startswith("/"):
-                        u3 = "https://www.cad.gov.hk" + u3
-                    elif not u3.startswith("http"):
-                        u3 = "https://www.cad.gov.hk/english/" + u3
-                    if u3 not in cands:
-                        cands.append(u3)
-            def _lk(u):
-                m2 = re.search(r"20(2\d)", u)
-                return (m2.group(0) if m2 else "0", u)
-            cands.sort(key=_lk, reverse=True)
-            out["cad_links"] = [c[-60:] for c in cands[:5]]
-            for u3 in cands[:3]:
-                if u3.lower().endswith(".xlsx"):
-                    try:
-                        uq = urllib.parse.quote(u3, safe=":/")
-                        rb = urllib.request.urlopen(
-                            urllib.request.Request(uq, headers=UA),
-                            timeout=30).read()
-                        zf = zipfile.ZipFile(io.BytesIO(rb))
-                        sh = zf.read("xl/sharedStrings.xml").decode(
-                            "utf-8", "replace")
-                        strings = ["".join(re.findall(
-                            r"<t[^>]*>([^<]*)</t>", si))
-                            for si in re.split(r"<si>", sh)[1:]]
-                        best = None
-                        for nm2 in sorted(zf.namelist()):
-                            if not nm2.startswith("xl/worksheets/sheet"):
-                                continue
-                            xml = zf.read(nm2).decode("utf-8", "replace")
-                            for rowx in re.findall(
-                                    r"<row[^>]*>(.*?)</row>", xml, re.S):
-                                cells = []
-                                for cm in re.finditer(
-                                        r"<c([^>]*)>(?:.*?<v>([^<]*)"
-                                        r"</v>)?.*?(?:</c>|/>)",
-                                        rowx, re.S):
-                                    attrs, val = cm.group(1), cm.group(2)
-                                    if val is None:
-                                        continue
-                                    if 't="s"' in attrs:
-                                        try:
-                                            cells.append(
-                                                ("s", strings[int(val)]))
-                                        except Exception:
-                                            pass
-                                    else:
-                                        try:
-                                            cells.append(("n", float(val)))
-                                        except Exception:
-                                            pass
-                                labels = " ".join(
-                                    c2[1].lower() for c2 in cells
-                                    if c2[0] == "s")
-                                if "freight" in labels or "cargo" in labels:
-                                    nums = [c2[1] for c2 in cells
-                                            if c2[0] == "n" and c2[1] > 10]
-                                    if len(nums) >= 3:
-                                        best = (labels[:90], nums)
-                                        break
-                            if best:
-                                break
-                        if best:
-                            series = best[1]
-                            v3 = series[-1]
-                            mult = 1000 if v3 < 5000 else 1
-                            parsed["tonnes"] = v3 * mult
-                            via = "cad_xlsx"
-                            if len(series) >= 13 and series[-13]:
-                                parsed["yoy_pct"] = round(
-                                    100 * (series[-1] / series[-13] - 1), 1)
-                            out["xlsx_row"] = best[0]
-                            out["xlsx_tail"] = [round(n2, 1)
-                                                 for n2 in series[-6:]]
-                            out["xlsx_n"] = len(series)
-                        else:
-                            out["xlsx_probe"] = (
-                                "no freight/cargo row; strings: "
-                                + " | ".join(strings[:20])[:380])
-                    except Exception as _xe:
-                        out["errors"].append("xlsx: " + str(_xe)[:100])
-                    if parsed.get("tonnes"):
-                        break
-                    continue
-                sub, serr = _get(u3)
-                if serr or not sub:
-                    continue
-                st = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "|", sub))
-                fm2 = (re.search(r"[Ff]reight[^|]{0,60}(?:\|[^|]{0,30})"
-                                 r"{0,8}?\|\s*([\d,]{6,9})\s*\|", st)
-                       or re.search(r"[Cc]argo[^|]{0,60}(?:\|[^|]{0,30})"
-                                    r"{0,8}?\|\s*([\d,]{6,9})\s*\|", st))
-                if fm2:
-                    v2 = float(fm2.group(1).replace(",", ""))
-                    if 150_000 <= v2 <= 700_000:
-                        parsed["tonnes"] = v2
-                        via = "cad_monthly:" + u3[-34:]
-                        ym2 = re.search(
-                            r"(" + "|".join(mo.capitalize()
-                                            for mo in MONTHS) +
-                            r")\s+(20\d\d)", st)
-                        if ym2:
-                            parsed["month"] = (
-                                f"{ym2.group(2)}-"
-                                f"{MONTHS.index(ym2.group(1).lower()) + 1:02d}")
-                        break
-                if not parsed.get("tonnes") and st and \
-                        "cad_sub_probe" not in out:
-                    out["cad_sub_probe"] = u3[-50:] + " :: " + st[:560]
-        if not parsed.get("tonnes"):
-            out["cad_probe"] = ct[:500]
-    if not parsed.get("tonnes"):
-        html, err = _get(CANDIDATES[0][1])
-        via = CANDIDATES[0][0]
-        parsed = _parse_cargo(html) if html else {}
-        if err:
-            out["errors"].append(f"{via}: {err}")
-        if not parsed.get("tonnes"):
-            sm, _se = _get("https://www.hongkongairport.com/sitemap.xml")
-            if sm:
-                su = re.findall(r"<loc>([^<]*(?:traffic|figures|statistic)"
-                                r"[^<]*)</loc>", sm, re.I)[:3]
-                out["sitemap_hits"] = su
-                for u2 in su:
-                    pg, _pe = _get(u2)
-                    parsed = _parse_cargo(pg) if pg else {}
-                    if parsed.get("tonnes"):
-                        via = "sitemap:" + u2[-40:]
-                        break
-
-    if not parsed.get("tonnes") and html:
-        out["fact_probe"] = re.sub(r"\s+", " ", re.sub(
-            r"<[^>]+>", " ", html))[:700]
-    if not parsed.get("tonnes"):
-        listing = ""
-        for pl_url in PRESS_LISTS:
-            listing, err2 = _get(pl_url)
-            if listing and not err2:
-                out["press_src"] = pl_url[-32:]
-                break
-            if err2:
-                out["errors"].append("press_list: " + err2)
-        link = None
-        if listing:
-            lm = re.search(r'href="([^"]+)"[^>]*>[^<]*'
-                           r'(?:Air\s*)?Traffic\s*Figures', listing, re.I)
-            if lm:
-                link = lm.group(1)
-                if link.startswith("/"):
-                    link = "https://www.hongkongairport.com" + link
-        out["press_link"] = (link or "")[:140]
-        if link:
-            page, err3 = _get(link)
-            if err3:
-                out["errors"].append("press_page: " + err3)
-            parsed = _parse_cargo(page) if page else {}
-            via = "press_release"
-            if not parsed.get("tonnes") and page:
-                out["body_probe"] = re.sub(r"\s+", " ", re.sub(
-                    r"<[^>]+>", " ", page))[:800]
-        elif listing:
-            out["list_probe"] = re.sub(r"\s+", " ", re.sub(
-                r"<[^>]+>", " ", listing))[:600]
-    elif html and not parsed.get("yoy_pct"):
-        out["body_probe"] = re.sub(r"\s+", " ", re.sub(
-            r"<[^>]+>", " ", html))[:800]
-
-    if parsed.get("tonnes"):
-        out.update(parsed)
-        out["via"] = via
-        out["tonnes_k"] = round(parsed["tonnes"] / 1000, 1)
-        # levels ledger -> self yoy backup
+    rb, via, err = _edge_get(XLSX_URL)
+    out["fetch_via"] = via
+    out["xlsx_bytes"] = len(rb)
+    if not rb:
+        out["errors"].append("fetch: " + str(err))
+    else:
         try:
-            lv = json.loads(S3.get_object(
-                Bucket=BUCKET, Key=LEVELS_KEY)["Body"].read())
-        except Exception:
-            lv = {"levels": {}}
-        if out.get("month"):
-            lv["levels"][out["month"]] = out["tonnes_k"]
-            lv["levels"] = dict(sorted(lv["levels"].items())[-26:])
-            S3.put_object(Bucket=BUCKET, Key=LEVELS_KEY,
-                          Body=json.dumps(lv).encode(),
-                          ContentType="application/json")
-            out["levels_cached"] = len(lv["levels"])
-            if out.get("yoy_pct") is None:
-                y, mo = out["month"].split("-")
-                prior = lv["levels"].get(f"{int(y) - 1}-{mo}")
-                if prior:
-                    out["yoy_pct"] = round(
-                        100 * (out["tonnes_k"] / prior - 1), 1)
-                    out["yoy_src"] = "ledger"
-        out["read"] = ("HIGH-VALUE FLOW " +
-                       ("ACCELERATING" if (out.get("yoy_pct") or 0) >= 5 else
-                        "CONTRACTING" if (out.get("yoy_pct") or 0) <= -5 else
-                        "STEADY"))
-        out["ok"] = True
+            series = _parse_workbook(rb, out)
+            if series:
+                year, month, tonnes, yoy = series[-1]
+                out["tonnes"] = tonnes
+                out["tonnes_k"] = round(tonnes / 1000, 1)
+                out["month"] = f"{year}-{month:02d}"
+                out["via"] = f"cad_xlsx({via})"
+                out["xlsx_n"] = len(series)
+                out["xlsx_tail"] = [[f"{y}-{m:02d}", round(t / 1000, 1)]
+                                    for y, m, t, _ in series[-13:]]
+                if yoy is not None:
+                    out["yoy_pct"] = yoy
+                else:
+                    prior = [t for y, m, t, _ in series
+                             if y == year - 1 and m == month]
+                    if prior:
+                        out["yoy_pct"] = round(
+                            100 * (tonnes / prior[0] - 1), 1)
+                y = out.get("yoy_pct") or 0
+                out["read"] = ("HIGH-VALUE FLOW "
+                               + ("ACCELERATING" if y >= 5 else
+                                  "CONTRACTING" if y <= -5 else "STEADY"))
+                out["ok"] = True
+                try:
+                    levels = {f"{y2}-{m2:02d}": round(t2 / 1000, 1)
+                              for y2, m2, t2, _ in series[-26:]}
+                    S3.put_object(Bucket=BUCKET, Key=LEVELS_KEY,
+                                  Body=json.dumps({"levels": levels}).encode(),
+                                  ContentType="application/json")
+                    out["levels_cached"] = len(levels)
+                except Exception as e:
+                    out["errors"].append("levels: " + str(e)[:80])
+        except Exception as e:
+            out["errors"].append("parse: " + str(e)[:140])
 
     S3.put_object(Bucket=BUCKET, Key=KEY,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",
                   CacheControl="public, max-age=3600")
-    print(f"[air] ok={out['ok']} via={out.get('via')} "
+    print(f"[air] ok={out['ok']} via={out.get('fetch_via')} "
           f"tonnes_k={out.get('tonnes_k')} month={out.get('month')} "
-          f"yoy={out.get('yoy_pct')} errs={out['errors']}")
+          f"yoy={out.get('yoy_pct')} n={out.get('xlsx_n')} "
+          f"errs={out['errors']}")
     return {"ok": out["ok"], "tonnes_k": out.get("tonnes_k"),
-            "yoy_pct": out.get("yoy_pct"), "month": out.get("month")}
+            "month": out.get("month"), "yoy_pct": out.get("yoy_pct"),
+            "via": out.get("fetch_via")}
 
 
 if __name__ == "__main__":
-    print(json.dumps(lambda_handler(), indent=2)[:1200])
+    print(json.dumps(lambda_handler(), indent=2))

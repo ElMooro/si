@@ -93,6 +93,11 @@ const GOV_ALLOW = new Set([
   "www.customs.go.kr", "tradedata.go.kr", "unipass.customs.go.kr",
   "www.moea.gov.tw", "eng.stat.gov.tw", "nstatdb.dgbas.gov.tw", "data.gov.tw",
   "www.pbc.gov.cn", "data.stats.gov.cn",
+  // ops 3697: HK Civil Aviation Dept — publishes the monthly HKIA air-cargo
+  // workbook (Stat Webpage.xlsx). CAD tarpits AWS-Lambda IPs (INIT_START
+  // hang x3, proven ops 3669-3672) while edge/runner IPs fetch instantly,
+  // so the air-cargo engine routes through here to become Lambda-native.
+  "www.cad.gov.hk", "www.hongkongairport.com",
 ]);
 async function handleGov(url) {
   const target = url.searchParams.get("u") || "";
@@ -116,7 +121,14 @@ async function handleGov(url) {
     cf: { cacheTtl: 600, cacheEverything: true },
   });
   const buf = await upstream.arrayBuffer();
-  const capped = buf.byteLength > 1_500_000 ? buf.slice(0, 1_500_000) : buf;
+  // ops 3697: binary datasets (xlsx/zip) need a larger cap than HTML pages —
+  // the CAD air-cargo workbook alone is ~2.1MB and truncation silently
+  // corrupts the zip central directory.
+  const ctype = upstream.headers.get("content-type") || "";
+  const isBin = /sheet|excel|zip|octet-stream/i.test(ctype)
+    || /\.(xlsx|xls|zip)(\?|$)/i.test(tu.pathname);
+  const CAP = isBin ? 8_000_000 : 1_500_000;
+  const capped = buf.byteLength > CAP ? buf.slice(0, CAP) : buf;
   return new Response(capped, {
     status: upstream.status,
     headers: {
