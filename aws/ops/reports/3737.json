@@ -1,0 +1,60 @@
+{
+  "verdict": "PASS",
+  "findings": {
+    "name_to_path": {
+      "Grid GenerationQueue": "xl/worksheets/sheet1.xml",
+      "Completed Generation Projects": "xl/worksheets/sheet2.xml",
+      "Withdrawn Generation Projects": "xl/worksheets/sheet3.xml"
+    },
+    "xl/worksheets/sheet1.xml": {
+      "bytes": 348914,
+      "rows": 281
+    },
+    "xl/worksheets/sheet2.xml": {
+      "bytes": 299209,
+      "rows": 256
+    },
+    "xl/worksheets/sheet3.xml": {
+      "bytes": 2063542,
+      "rows": 1768
+    },
+    "queue_path": "xl/worksheets/sheet1.xml",
+    "cell_types": [
+      [
+        "s",
+        5050
+      ]
+    ],
+    "selfclose_rows": 0,
+    "cells_no_r": 0,
+    "stage1_rows": 281,
+    "header": [
+      "project name",
+      "queue position",
+      "interconnection request\r\nreceive date",
+      "queue date",
+      "application status",
+      "study\r\nprocess",
+      "type-1",
+      "type-2",
+      "type-3",
+      "fuel-1",
+      "fuel-2",
+      "fuel-3",
+      "mw-1",
+      "mw-2",
+      "mw-3",
+      "net mws to grid",
+      "full capacity, partial or energy only (fc/p/eo)",
+      "tpd allocation percentage",
+      "off-peak deliverability and economic only",
+      "tpd allocation group",
+      "county",
+      "state",
+      "utility",
+      "pto study region"
+    ],
+    "header_idx": 3,
+    "stage3_rows": 2
+  }
+}

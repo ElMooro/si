@@ -1,0 +1,57 @@
+# ops 3737 — CAISO queue parser diagnosis
+
+**Status:** success  
+**Duration:** 0.4s  
+**Finished:** 2026-07-22T21:24:55+00:00  
+
+## Data
+
+| queue_path | stage1 | stage3 |
+|---|---|---|
+| xl/worksheets/sheet1.xml | 281 | 2 |
+
+## Log
+- `21:24:55` ✅ downloaded 385058 bytes
+## B — workbook sheet mapping (name -> rId -> path)
+
+- `21:24:55`   sheets in workbook.xml: ['Grid GenerationQueue', 'Completed Generation Projects', 'Withdrawn Generation Projects']
+- `21:24:55`   rels: [('rId8', '../customXml/item2.xml'), ('rId3', 'worksheets/sheet3.xml'), ('rId7', '../customXml/item1.xml'), ('rId2', 'worksheets/sheet2.xml'), ('rId1', 'worksheets/sheet1.xml'), ('rId6', 'sharedStrings.xml'), ('rId5', 'styles.xml'), ('rId4', 'theme/theme1.xml'), ('rId9', '../customXml/item3.xml')]
+- `21:24:55` ✅   RESOLVED mapping: {'Grid GenerationQueue': 'xl/worksheets/sheet1.xml', 'Completed Generation Projects': 'xl/worksheets/sheet2.xml', 'Withdrawn Generation Projects': 'xl/worksheets/sheet3.xml'}
+## A — raw <row> counts per worksheet
+
+- `21:24:55`   xl/worksheets/sheet1.xml     xml=  348914 bytes rows=281
+- `21:24:55`   xl/worksheets/sheet2.xml     xml=  299209 bytes rows=256
+- `21:24:55`   xl/worksheets/sheet3.xml     xml= 2063542 bytes rows=1768
+## C — first raw rows of the queue sheet
+
+- `21:24:55` ✅   queue sheet path = xl/worksheets/sheet1.xml
+- `21:24:55`   sheet xml bytes=348914 rows=281
+- `21:24:55`   sharedStrings entries=6598 bytes=220269
+- `21:24:55`   cell type census: [('s', 5050)]
+- `21:24:55`   ROW0 raw[:400]: <row r="1" spans="1:33" x14ac:dyDescent="0.3"><c r="A1" s="34" /><c r="AF1" s="44" t="s"><v>150</v></c><c r="AG1" s="44" /></row>
+- `21:24:55`   ROW1 raw[:400]: <row r="2" spans="1:33" ht="45.75" customHeight="1" x14ac:dyDescent="0.3"><c r="A2" s="35" /><c r="B2" s="24" /><c r="C2" s="24" /><c r="D2" s="24" /><c r="E2" s="24" /><c r="F2" s="45" t="s"><v>151</v></c><c r="G2" s="45" /><c r="H2" s="45" /><c r="I2" s="45" /><c r="J2" s="45" /><c r="K2" s="45" /><c r="L2" s="45" /><c r="M2" s="45" /><c r="N2" s="45" /><c r="O2" s="45" /><c r="P2" s="45" /><c r
+- `21:24:55`   ROW2 raw[:400]: <row r="3" spans="1:33" ht="20.25" customHeight="1" x14ac:dyDescent="0.3"><c r="A3" s="36" /><c r="B3" s="29" /><c r="C3" s="29" /><c r="D3" s="29" /><c r="E3" s="29" /><c r="F3" s="29" /><c r="G3" s="47" t="s"><v>0</v></c><c r="H3" s="47" /><c r="I3" s="47" /><c r="J3" s="47" /><c r="K3" s="47" /><c r="L3" s="47" /><c r="M3" s="46" t="s"><v>131</v></c><c r="N3" s="46" /><c r="O3" s="46" /><c r="P
+- `21:24:55`   ROW3 raw[:400]: <row r="4" spans="1:33" ht="70.5" customHeight="1" x14ac:dyDescent="0.3"><c r="A4" s="37" t="s"><v>112</v></c><c r="B4" s="11" t="s"><v>5</v></c><c r="C4" s="11" t="s"><v>6</v></c><c r="D4" s="11" t="s"><v>7</v></c><c r="E4" s="11" t="s"><v>8</v></c><c r="F4" s="11" t="s"><v>56</v></c><c r="G4" s="12" t="s"><v>58</v></c><c r="H4" s="12" t="s"><v>59</v></c><c r="I4" s="12" t="s"><v>125</v></c><c r=
+- `21:24:55`   ROW4 raw[:400]: <row r="5" spans="1:33" s="32" customFormat="1" ht="26.4" x14ac:dyDescent="0.25"><c r="A5" s="38" t="s"><v>152</v></c><c r="B5" s="14"><v>22</v></c><c r="C5" s="15"><v>37943</v></c><c r="D5" s="15"><v>37943.3333333333</v></c><c r="E5" s="14" t="s"><v>154</v></c><c r="F5" s="14" t="s"><v>155</v></c><c r="G5" s="14" t="s"><v>156</v></c><c r="H5" s="14" t="s"><v>157</v></c><c r="I5" s="14" /><c r="J5
+## D — self-closing row / cell forms
+
+- `21:24:55`   self-closing <row/>=0  <c/>=2078
+- `21:24:55`   cells WITHOUT r= attribute: 0
+## E — filter-stage survival (where rows die)
+
+- `21:24:55` ✅   STAGE1 rows extracted (no cap): 281
+- `21:24:55`   header row index=3
+- `21:24:55`   header cells: ['project name', 'queue position', 'interconnection request\r\nreceive date', 'queue date', 'application status', 'study\r\nprocess', 'type-1', 'type-2', 'type-3', 'fuel-1', 'fuel-2', 'fuel-3', 'mw-1', 'mw-2', 'mw-3', 'net mws to grid', 'full capacity, partial or energy only (fc/p/eo)', 'tpd allocation percentage', 'off-peak deliverability and economic only', 'tpd allocation group']
+- `21:24:55`     MW-candidate col 12 = 'mw-1'
+- `21:24:55`     MW-candidate col 13 = 'mw-2'
+- `21:24:55`     MW-candidate col 14 = 'mw-3'
+- `21:24:55`     MW-candidate col 15 = 'net mws to grid'
+- `21:24:55`   STAGE2 body rows: 277
+- `21:24:55`   chosen MW col=15
+- `21:24:55`   STAGE3 rows with MW>0: 2
+- `21:24:55`     sample: ['CPC WEST', '96', '38763', '38777.3333333333', 'ACTIVE', 'Serial LGIP', 'Wind Turbine', 'Storage', 'Storage']
+- `21:24:55`     sample: ['POTENTIA-VIRIDI', '1702', '43934', '43936.2916666667', 'ACTIVE', 'C13', 'Wind Turbine', 'Photovoltaic', 'Storage']
+- `21:24:55`   body rows with any numeric in first 15 cols: 276
+## VERDICT
+
+- `21:24:55` ✅ DIAG COMPLETE — fix the parser against these facts
