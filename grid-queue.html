@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Queue · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;padding:6px 8px;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+tr:hover td{background:rgba(255,255,255,.025)}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;border-radius:3px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+.gap{font-size:11.5px;color:var(--text-dim);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>⚡ Grid Queue — Power Buildout Canary</h1>
+<div class="sub">A fab, data center, or electrolyzer appears in an interconnection queue and in planned-capacity filings roughly 18–24 months before it reaches anyone's revenue line. This is the earliest physical signal on the board — and the one almost nobody watches. Daily 12:50 UTC.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">🔥 Hotspots — states where independent legs agree</div>
+<div class="card" id="hot"></div>
+
+<div class="sec">🏗️ Large Projects — CAISO active queue, ≥100 MW</div>
+<div class="card" style="overflow-x:auto"><table id="proj"></table></div>
+
+<div class="sec">⛽ Queue Composition — MW by fuel &amp; county</div>
+<div class="card" id="mix"></div>
+
+<div class="sec">📈 Planned Capacity — EIA-860M forward-dated uprates</div>
+<div class="card" id="plan"></div>
+
+<div class="sec">🏭 Industrial Electricity Load — EIA-861M by state</div>
+<div class="card" style="overflow-x:auto"><table id="load"></table></div>
+
+<div class="sec">⚠️ Known Gaps — declared, not hidden</div>
+<div class="card" id="gaps"></div>
+
+<div class="sec">Method</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Physical imports: <a href="/import-canary.html">Import Canary</a> · Chokepoints: <a href="/portwatch.html">PortWatch</a> · Stage lens: <a href="/boom-stage.html">Boom-Stage</a> · Corporate spend: <a href="/global-flow-desk.html">CapEx Pulse</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js" defer></script>
+<script>
+(async function(){
+try{
+var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/grid-queue.json?t='+Date.now());
+var d=await r.json();
+var q=d.queue||{},pc=d.planned_capacity||{},il=d.industrial_load||{},cov=d.coverage||{};
+var num=function(v,g){return (v==null)?'—':(v>=0?'+':'')+v.toFixed(g==null?1:g);};
+var col=function(v){return v==null?MUT:(v>0?POS:(v<0?NEG:NEU));};
+var mw=function(v){if(v==null)return '—';if(v>=1000)return (v/1000).toFixed(1)+' GW';return v.toFixed(0)+' MW';};
+
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Active queue</div><div class="big" style="color:'+ACC+'">'+mw(q.active_mw)+'</div><div class="note">'+(q.active_projects||0)+' projects · CAISO</div></div>'
++'<div class="tile"><div class="lbl">Withdrawal ratio</div><div class="big" style="color:'+(q.withdrawal_ratio>60?NEG:NEU)+'">'+(q.withdrawal_ratio==null?'—':q.withdrawal_ratio+'%')+'</div><div class="note">'+mw(q.withdrawn_mw)+' abandoned · a queue that only grows is an artifact</div></div>'
++'<div class="tile"><div class="lbl">Completion ratio</div><div class="big" style="color:'+(q.completion_ratio>20?POS:NEU)+'">'+(q.completion_ratio==null?'—':q.completion_ratio+'%')+'</div><div class="note">'+mw(q.completed_mw)+' energised</div></div>'
++'<div class="tile"><div class="lbl">Hotspot states</div><div class="big">'+((d.hotspots||[]).length)+'</div><div class="note">'+(il.period||'—')+' load · '+(pc.period||'—')+' capacity</div></div>'
++'</div>';
+
+// HOTSPOTS
+var hs=d.hotspots||[];
+document.getElementById('hot').innerHTML=(hs.length?('<table><tr><th>State</th><th>Read</th><th>Legs</th><th>Industrial load YoY</th><th>3m mom</th><th>Planned uprate</th><th>Industrial plants</th></tr>'
++hs.map(function(h){return '<tr><td style="color:'+ACC+'">'+h.state+'</td>'
++'<td><span class="pill" style="color:'+(h.legs===3?POS:NEU)+';border-color:'+(h.legs===3?POS:NEU)+'">'+(h.read||'').replace(/_/g,' ')+'</span></td>'
++'<td>'+h.legs+'/3</td>'
++'<td style="color:'+col(h.industrial_load_yoy_pct)+'">'+num(h.industrial_load_yoy_pct,2)+'%</td>'
++'<td style="color:'+col(h.load_3m_pct)+'">'+num(h.load_3m_pct,2)+'%</td>'
++'<td>'+mw(h.planned_uprate_mw)+'</td>'
++'<td>'+h.industrial_plants+'</td></tr>';}).join('')+'</table>'
++'<div class="note">Three independent legs: industrial electricity load rising, planned capacity uprates filed, and industrial self-generation plants present. Two must agree before a state is listed — a single leg is noise. CONFIRMED = all three.</div>')
+:'<span class="mono" style="color:'+MUT+'">No state cleared two legs this cycle.</span>');
+
+// PROJECTS
+var lp=q.large_projects||[];
+document.getElementById('proj').innerHTML='<tr><th>Project</th><th>MW</th><th>Fuel</th><th>County</th><th>Status</th><th>Queue date</th></tr>'
++lp.map(function(p){return '<tr><td>'+(p.project||'')+'</td><td style="color:'+ACC+'">'+(p.mw||0).toFixed(1)+'</td>'
++'<td>'+(p.fuel||'')+'</td><td style="color:'+MUT+'">'+(p.county||'')+'</td>'
++'<td style="color:'+MUT+'">'+(p.status||'')+'</td><td style="color:'+MUT+'">'+(p.online||'')+'</td></tr>';}).join('');
+
+// MIX
+var bf=q.by_fuel_mw||{},bc=q.by_county_mw||{};
+var mkbars=function(obj,title){
+var vals=Object.keys(obj).map(function(k){return [k,obj[k]];});
+var mx=Math.max.apply(null,vals.map(function(x){return x[1];}).concat([1]));
+return '<div class="mono" style="font-size:11px;color:'+MUT+';margin:6px 0">'+title+'</div>'
++vals.map(function(x){var w=x[1]/mx*100;
+return '<div style="margin:7px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><span>'+x[0]+'</span><span class="mono" style="color:'+ACC+'">'+mw(x[1])+'</span></div><div class="bar"><i style="width:'+w+'%;background:'+ACC+'"></i></div></div>';}).join('');};
+document.getElementById('mix').innerHTML=mkbars(bf,'BY FUEL')+mkbars(bc,'BY COUNTY');
+
+// PLANNED
+var up=pc.upcoming_uprates||[],ip=pc.industrial_plants||[],ubs=pc.uprate_by_state||{},ubsec=pc.uprate_by_sector||{};
+document.getElementById('plan').innerHTML='<div class="mono" style="font-size:11px;color:'+MUT+'">PERIOD '+(pc.period||'—')+' · '+(pc.n_industrial||0)+' industrial plants</div>'
++(up.length?('<table style="margin-top:8px"><tr><th>Plant</th><th>Entity</th><th>State</th><th>Uprate MW</th><th>When</th><th>Tech</th></tr>'
++up.map(function(u){return '<tr><td>'+(u.plant||'')+'</td><td style="color:'+MUT+'">'+(u.entity||'')+'</td><td>'+(u.state||'')+'</td>'
++'<td style="color:'+POS+'">'+(u.uprate_mw||0).toFixed(1)+'</td><td>'+(u.when||'')+'</td><td style="color:'+MUT+'">'+(u.tech||'')+'</td></tr>';}).join('')+'</table>'):'<div class="note">No forward-dated uprates in the current filing period.</div>')
++(ip.length?('<div class="mono" style="font-size:11px;color:'+MUT+';margin:12px 0 4px">INDUSTRIAL SELF-GENERATION PLANTS — the fab / data-center tell</div>'
++'<table><tr><th>Plant</th><th>Entity</th><th>State</th><th>County</th><th>Capacity MW</th><th>Tech</th><th>Sector</th></tr>'
++ip.map(function(p){return '<tr><td>'+(p.plant||'')+'</td><td style="color:'+MUT+'">'+(p.entity||'')+'</td><td>'+(p.state||'')+'</td>'
++'<td style="color:'+MUT+'">'+(p.county||'')+'</td><td style="color:'+ACC+'">'+(p.capacity_mw||0).toFixed(1)+'</td>'
++'<td style="color:'+MUT+'">'+(p.tech||'')+'</td><td style="color:'+MUT+'">'+(p.sector||'')+'</td></tr>';}).join('')+'</table>'):'')
++(Object.keys(ubs).length?('<div class="note">Uprate MW by state: '+Object.keys(ubs).slice(0,10).map(function(k){return k+' '+ubs[k].toFixed(0);}).join(' · ')+'</div>'):'')
++(Object.keys(ubsec).length?('<div class="note">By sector: '+Object.keys(ubsec).map(function(k){return k+' '+ubsec[k].toFixed(0);}).join(' · ')+'</div>'):'');
+
+// LOAD
+var st=il.states||[];
+document.getElementById('load').innerHTML='<tr><th>State</th><th>Industrial sales (GWh)</th><th>YoY</th><th>3m momentum</th></tr>'
++st.slice(0,30).map(function(s){return '<tr><td>'+s.state+'</td><td>'+(s.sales_gwh==null?'—':s.sales_gwh.toFixed(1))+'</td>'
++'<td style="color:'+col(s.yoy_pct)+'">'+num(s.yoy_pct,2)+'%</td>'
++'<td style="color:'+col(s.mom_3m_pct)+'">'+num(s.mom_3m_pct,2)+'%</td></tr>';}).join('');
+
+// GAPS
+var gaps=d.gaps||[];
+document.getElementById('gaps').innerHTML=gaps.map(function(g){return '<div class="gap">• '+g+'</div>';}).join('')
++'<div class="note">ISO queues live: '+((cov.iso_queues_live||[]).join(', ')||'none')+' · missing: '+((cov.iso_queues_missing||[]).join(', ')||'none')+'. These are declared on every run rather than papered over — a permit proxy built from compliance data would be a fabrication, so it is excluded.</div>';
+
+document.getElementById('method').textContent=d.method||'';
+document.getElementById('foot').textContent='Feed data/grid-queue.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})();
+</script>
+</body>
+</html>

@@ -67,6 +67,7 @@ FORCE = {  # ops 3302: explicit category pins (beat keyword collisions)
     "/freight-pulse.html": "Macro & Liquidity",      # ops 3662
     "/boom-stage.html": "Macro & Liquidity",         # ops 3678
     "/import-canary.html": "Macro & Liquidity",      # ops 3732
+    "/grid-queue.html": "Macro & Liquidity",         # ops 3739
 }
 
 

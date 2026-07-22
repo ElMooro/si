@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/grid-queue.json"
 HIST_KEY = "data/grid-queue-history.json"
@@ -268,20 +268,29 @@ def parse_caiso(gaps):
                 mw = _f(r[c_net]) or 0.0
             if mw <= 0:
                 continue
-            # fuel legs: join the non-empty fuel columns for an honest label
+            # fuel legs: join non-empty fuel columns. ops 3738 caught CAISO
+            # putting NUMBERS in fuel-2/fuel-3 (they mirror mw-2/mw-3), which
+            # produced labels like "Solar + 1150". Reject anything numeric.
             fuels = []
             for ci, h in enumerate(hdr):
                 if h.strip().startswith("fuel-") and ci < len(r):
                     v = str(r[ci]).strip()
-                    if v and v.lower() not in ("", "n/a", "none"):
+                    if not v or v.lower() in ("", "n/a", "none", "-"):
+                        continue
+                    if _f(v) is not None:      # numeric => not a fuel name
+                        continue
+                    if v not in fuels:
                         fuels.append(v)
+            if not fuels and c_fuel is not None and c_fuel < len(r):
+                v = str(r[c_fuel]).strip()
+                if v and _f(v) is None:
+                    fuels.append(v)
             out.append({
                 "project": (r[c_name] if c_name is not None and c_name < len(r) else "")[:70],
                 "mw": round(mw, 1),
                 "state": (r[c_st] if c_st is not None and c_st < len(r) else "").strip()[:20] or "CA",
                 "county": (r[c_cty] if c_cty is not None and c_cty < len(r) else "").strip()[:40],
-                "fuel": (" + ".join(fuels[:3]) if fuels else
-                         (r[c_fuel] if c_fuel is not None and c_fuel < len(r) else "").strip())[:44],
+                "fuel": (" + ".join(fuels[:3]) if fuels else "Unspecified")[:44],
                 "status": (r[c_stat] if c_stat is not None and c_stat < len(r) else "").strip()[:40],
                 "online": (r[c_date] if c_date is not None and c_date < len(r) else "").strip()[:24],
             })
