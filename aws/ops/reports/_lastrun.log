@@ -1,5 +1,5 @@
-executing-against: a019fac01eb079501f2f6d1368bc1a44f5bb35db
-ops 3684 — Chile daily-layer coverage diagnosis
-PASS  G1_diag — chile_ref_n=20 probed=8 with_daily_rows=0 probe={"port56": {"rows": 0, "sample": []}, "port89": {"rows": 0, "sample": []}, "port90": {"rows": 0, "sample": []}, "port92": {"rows": 0, "sample": []}, "port208": {"rows": 0, "sample": []}, "port263": {"rows": 0, "sample": []}, "port499": {"rows": 0, "sample": []}, "port652": {"rows": 0, "sample": []}} shanghai={"portid": "port1188", "rows": 0, "sample": []}
+executing-against: 58ab60ce9667be56c914317ba8bdbe8788a84f57
+ops 3685 — Chile coverage, correct daily layer
+PASS  G1_diag2 — chile_ref=20 chile_daily_rows=12 chile_in_daily=['port208', 'port1031', 'port1034', 'port1053', 'port1058', 'port1082', 'port1302', 'port1432', 'port2054', 'port2106', 'port2107'] daily_distinct_ports=1000 shanghai_rows=3 [{"portid": "port1188", "date": "2026-07-17", "portcalls": 86}] chile_sample=[{"portid": "port56", "date": "2026-07-17", "portcalls": 1}, {"portid": "port89", "date": "2026-07-17", "portcalls": 0}]
 
-→ Report written to aws/ops/reports/latest/3684_chile_diag.md
+→ Report written to aws/ops/reports/latest/3685_chile_diag2.md

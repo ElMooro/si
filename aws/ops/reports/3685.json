@@ -1,0 +1,63 @@
+{
+  "gates": {
+    "G1_diag2": {
+      "ok": true,
+      "detail": "chile_ref=20 chile_daily_rows=12 chile_in_daily=['port208', 'port1031', 'port1034', 'port1053', 'port1058', 'port1082', 'port1302', 'port1432', 'port2054', 'port2106', 'port2107'] daily_distinct_ports=1000 shanghai_rows=3 [{\"portid\": \"port1188\", \"date\": \"2026-07-17\", \"portcalls\": 86}] chile_sample=[{\"portid\": \"port56\", \"date\": \"2026-07-17\", \"portcalls\": 1}, {\"portid\": \"port89\", \"date\": \"2026-07-17\", \"portcalls\": 0}]"
+    }
+  },
+  "chile_ref_n": 20,
+  "chile_daily_rows": 12,
+  "chile_sample": [
+    {
+      "portid": "port56",
+      "date": "2026-07-17",
+      "portcalls": 1
+    },
+    {
+      "portid": "port89",
+      "date": "2026-07-17",
+      "portcalls": 0
+    },
+    {
+      "portid": "port90",
+      "date": "2026-07-17",
+      "portcalls": 0
+    },
+    {
+      "portid": "port92",
+      "date": "2026-07-17",
+      "portcalls": 0
+    }
+  ],
+  "shanghai_control": {
+    "portid": "port1188",
+    "rows": 3,
+    "sample": [
+      {
+        "portid": "port1188",
+        "date": "2026-07-17",
+        "portcalls": 86
+      },
+      {
+        "portid": "port1188",
+        "date": "2026-07-16",
+        "portcalls": 85
+      }
+    ]
+  },
+  "daily_distinct_n": 1000,
+  "chile_in_daily": [
+    "port208",
+    "port1031",
+    "port1034",
+    "port1053",
+    "port1058",
+    "port1082",
+    "port1302",
+    "port1432",
+    "port2054",
+    "port2106",
+    "port2107"
+  ],
+  "verdict": "PASS_ALL"
+}
