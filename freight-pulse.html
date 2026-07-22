@@ -28,6 +28,8 @@ a{color:var(--accent)}
 <div class="card" id="series"></div>
 <div class="sec">✈️ High-Value Air Cargo — HKIA (world #1 cargo airport)</div>
 <div class="grid2" id="air"><div class="card mono">LOADING…</div></div>
+<div class="sec">🚢 Trade Rates — the price of moving goods (leads reported trade)</div>
+<div class="card" id="traderates"><span class="mono" style="color:var(--text-mute);font-size:12px">LOADING…</span></div>
 <div class="sec">🧭 Boom-Stage Lens — is it early or plateauing? (value vs physical volume)</div>
 <div class="card" id="boomstage"><span class="mono" style="color:var(--text-mute);font-size:12px">LOADING…</span></div>
 <div class="sec">🚢 Sea Legs — cross-links</div>
@@ -39,10 +41,11 @@ a{color:var(--accent)}
 (async function(){try{
 var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',NEU='#e8e8e8',MUT='#5b6479';
 function vg(v){return v==null?MUT:v>0?GRN:v<0?RED:NEU;}
-var fp={},ac={},bs={},pwx={};
+var fp={},ac={},bs={},pwx={},tn={};
 try{var r1=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/freight-pulse.json?t='+Date.now());if(r1.ok)fp=await r1.json();}catch(e){}
 try{var r2=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/air-cargo.json?t='+Date.now());if(r2.ok)ac=await r2.json();}catch(e){}
 try{var r3=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/boom-stage.json?t='+Date.now());if(r3.ok)bs=await r3.json();}catch(e){}
+try{var r5=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/trade-nowcast.json?t='+Date.now());if(r5.ok)tn=await r5.json();}catch(e){}
 try{var r4=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/portwatch.json?t='+Date.now());if(r4.ok)pwx=await r4.json();}catch(e){}
 var vc=fp.verdict==='ACCELERATING'?GRN:fp.verdict==='DECELERATING'?RED:NEU;
 document.getElementById('hero').innerHTML=
@@ -66,6 +69,10 @@ if(ac.ok){var yc=vg(ac.yoy_pct);
  airEl.innerHTML='<div class="card"><div class="mono" style="font-size:11px;color:'+MUT+'">HKIA CARGO — '+(ac.month||'latest')+'</div><div class="mono" style="font-size:30px;font-weight:800;color:'+AMB+'">'+(ac.tonnes_k||'—')+'k tonnes</div><div class="mono" style="font-size:13px;font-weight:700;color:'+yc+'">'+(ac.yoy_pct==null?'yoy building (ledger '+(ac.levels_cached||0)+'/13)':((ac.yoy_pct>0?'+':'')+ac.yoy_pct+'% yoy'))+'</div><div class="mono" style="font-size:11px;color:'+MUT+'">'+(ac.read||'')+'</div></div>'
  +'<div class="card mono" style="font-size:12px;color:'+MUT+'">Why air matters: high-value goods (semis, pharma, electronics) fly. Korea sea calls flat while chip exports +52% — the value flows show up HERE first. Source: '+(ac.via||'')+' · '+(ac.airport||'')+'</div>';
 }else{airEl.innerHTML='<div class="card mono" style="font-size:12px;color:'+MUT+'">✈️ HKIA value landing via HK Civil Aviation Dept monthly statistics (source identified, revision-fresh; HKIA\u2019s own site is a JS shell). Engine retries daily 10:40 UTC — no fake data shown, ever.'+((ac.cad_links&&ac.cad_links.length)?'<div style="margin-top:6px;font-size:10.5px">index links found: '+ac.cad_links.length+'</div>':'')+'</div>';}
+var tnEl=document.getElementById('traderates');
+if(tnEl){if(tn.series){var vc=tn.verdict==='RISING'?RED:tn.verdict==='FALLING'?AMB:NEU;
+var rows=Object.keys(tn.series).map(function(k){var x=tn.series[k];return '<div class="srow mono"><div style="width:330px">'+x.name+'</div><div style="width:110px;color:'+MUT+'">'+x.date.slice(0,7)+'</div><div style="width:90px;text-align:right">'+x.level+'</div><div style="width:100px;text-align:right;font-weight:700;color:'+((x.yoy_pct||0)>0?RED:GRN)+'">'+(x.yoy_pct>0?'+':'')+x.yoy_pct+'% yoy</div></div>';}).join('');
+tnEl.innerHTML='<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:baseline;margin-bottom:10px"><div><div class="mono" style="font-size:11px;color:'+MUT+'">RATE PRESSURE</div><div class="mono" style="font-size:24px;font-weight:800;color:'+vc+'">'+(tn.rate_pressure>0?'+':'')+tn.rate_pressure+' <span style="font-size:14px">'+tn.verdict+'</span></div></div>'+((tn.bdi&&tn.bdi.level)?('<div><div class="mono" style="font-size:11px;color:'+MUT+'">BALTIC DRY INDEX</div><div class="mono" style="font-size:24px;font-weight:800;color:'+AMB+'">'+tn.bdi.level+'</div><div class="mono" style="font-size:10.5px;color:'+MUT+'">'+(tn.bdi.read||'')+'</div></div>'):'')+((tn.cpb_wtm&&tn.cpb_wtm.period)?('<div><div class="mono" style="font-size:11px;color:'+MUT+'">CPB WORLD TRADE MONITOR</div><div class="mono" style="font-size:14px">'+tn.cpb_wtm.period+((tn.cpb_wtm.trade_volume_chg_pct!=null)?(' \u00b7 volume '+(tn.cpb_wtm.trade_volume_chg_pct>0?'+':'')+tn.cpb_wtm.trade_volume_chg_pct+'%'):'')+'</div></div>'):'')+'</div>'+'<div style="font-size:13px;margin-bottom:8px">'+(tn.plain||'')+'</div>'+rows;}else{tnEl.innerHTML='<span class="mono" style="color:'+MUT+';font-size:12px">trade-rate feed building\u2026</span>';}}
 var bsEl=document.getElementById('boomstage');
 if(bsEl){if(bs.pairs&&bs.pairs.length){var SC={EARLY_PRICE_LED:GRN,BROADENING:GRN,PLATEAU_FORMING:AMB,MIXED:NEU,VALUE_LED_DOWNTURN:AMB,CONTRACTION:RED,NA:MUT};
 bsEl.innerHTML=bs.pairs.map(function(p){var c=SC[p.stage]||NEU;var v=p.value||{},vo=p.volume||{};return '<div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin:8px 0;font-family:ui-monospace,Menlo,monospace;font-size:12px"><b style="width:250px">'+p.label+'</b><b style="color:'+c+';width:170px">'+p.stage+'</b><span style="color:'+MUT+'">value '+(v.yoy_pct==null?'building':((v.yoy_pct>0?'+':'')+v.yoy_pct+'%'))+' · volume '+(vo.vs_baseline_pct==null?'—':((vo.vs_baseline_pct>0?'+':'')+vo.vs_baseline_pct+'% ('+(vo.n_ports||0)+' ports)'))+'</span><span style="flex-basis:100%;color:'+MUT+';font-size:11px">→ '+p.why+'</span></div>';}).join('')+'<div style="font-size:10.5px;color:'+MUT+';margin-top:6px;font-family:monospace">'+(bs.doctrine||'')+'</div>';}else{bsEl.innerHTML='<span class="mono" style="color:'+MUT+';font-size:12px">boom-stage feed building…</span>';}}

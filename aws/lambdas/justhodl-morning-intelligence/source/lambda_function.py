@@ -186,6 +186,7 @@ def load_all():
         "bis_cb":"data/bis-crossborder.json",
         "freight":"data/freight-pulse.json",
         "boom_stage":"data/boom-stage.json",
+        "trade_rates":"data/trade-nowcast.json",
         "spx_ma":"data/spx-ma.json",
         "fifx_vol":"data/fifx-vol.json",
         "settlement_fails":"data/settlement-fails.json",
