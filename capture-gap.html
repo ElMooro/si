@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture Gap · JustHodl.AI</title>
-<meta name="jh-page-version" content="v4-ops3774">
+<meta name="jh-page-version" content="v5-ops3782">
 <style>
 :root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
@@ -257,8 +257,26 @@ function cu(v,basis,capped){
  return '<span style="color:'+col+';font-weight:600">'+(v>0?'+':'')+num(v,0)+'%</span>'
  +(capped?'<span style="color:'+MUT+';font-size:9px"> cap</span>':'')
  +'<div style="color:'+MUT+';font-size:9px">'+(basis||'')+'</div>';}
-document.getElementById('leader').innerHTML=(lead.length?('<table><tr><th>#</th><th>Ticker</th><th>Company</th><th>Industry</th><th>Score</th><th>Catch-up to<br>industry median</th><th>Capture gap</th><th>Global gap</th><th>Crit</th><th>ROIC</th><th>Legs</th><th>Tier</th></tr>'
-+lead.map(function(r,i){return '<tr><td style="color:'+MUT+'">'+(i+1)+'</td>'
+var ldK='undervaluation_score',ldD=-1,ldInd='ALL';
+var ldCols=[['undervaluation_score','Score'],['catchup_pct','Catch-up to<br>industry median'],
+ ['capture_gap','Capture gap'],['global_capture_gap','Global gap'],['criticality','Crit'],
+ ['roic','ROIC'],['legs','Legs'],['tier','Tier']];
+function renderLeader(){
+var _inds=[];lead.forEach(function(r){if(r.industry&&_inds.indexOf(r.industry)<0)_inds.push(r.industry);});
+_inds.sort();
+var _l=lead.filter(function(r){return ldInd==='ALL'||r.industry===ldInd;})
+ .sort(function(a,b){var x=a[ldK],y=b[ldK];
+  if(typeof x==='string'||typeof y==='string'){x=String(x||'');y=String(y||'');return x<y?-1*ldD:x>y?1*ldD:0;}
+  if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*ldD;});
+document.getElementById('leader').innerHTML=(lead.length?(
+ '<div style="margin-bottom:9px"><span style="color:'+MUT+';font-size:11px;font-family:ui-monospace">Industry:</span> '
+ +'<select id="ldSel" style="background:#10151d;color:#e6ecf3;border:1px solid #1c2330;border-radius:6px;padding:3px 8px;font-size:11.5px;font-family:ui-monospace">'
+ +'<option value="ALL">All industries ('+lead.length+')</option>'
+ +_inds.map(function(x){return '<option value="'+x+'"'+(ldInd===x?' selected':'')+'>'+x+'</option>';}).join('')
+ +'</select> <span style="color:'+MUT+';font-size:10.5px">click any column header to sort ascending / descending</span></div>'
+ +'<table><tr><th>#</th><th data-lk="ticker">Ticker</th><th>Company</th><th data-lk="industry">Industry</th>'
+ +ldCols.map(function(c){return '<th data-lk="'+c[0]+'">'+c[1]+(ldK===c[0]?(ldD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
++_l.map(function(r,i){return '<tr><td style="color:'+MUT+'">'+(i+1)+'</td>'
 +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
 +'<td>'+(r.name||'').slice(0,22)+'</td>'
 +'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
@@ -268,17 +286,32 @@ document.getElementById('leader').innerHTML=(lead.length?('<table><tr><th>#</th>
 +'<td style="color:'+gapCol(r.global_capture_gap)+'">'+(r.global_capture_gap>0?'+':'')+num(r.global_capture_gap)+'pp</td>'
 +'<td>'+num(r.criticality)+'</td><td>'+num(r.roic)+'%</td>'
 +'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('')+'</table>'
-+'<div class="note"><strong>Rank is blended</strong> — capture gap (35%), cross-industry gap (25%), catch-up (15%), confirmation legs and criticality — so one loud metric cannot carry a name to the top. '+(c.catchup_note||'')+'</div>')
++'<div class="note"><strong>Default rank is blended</strong> — capture gap (35%), cross-industry gap (25%), catch-up (15%), confirmation legs and criticality — so one loud metric cannot carry a name to the top. Sorting by a single column overrides that blend and shows the raw axis. '+(c.catchup_note||'')+'</div>')
 :'<span class="mono" style="color:'+MUT+'">Leaderboard pending.</span>');
+Array.prototype.forEach.call(document.querySelectorAll('#leader th'),function(th){
+ th.onclick=function(){var k=th.getAttribute('data-lk');if(!k)return;
+  if(ldK===k)ldD=-ldD;else{ldK=k;ldD=(k==='ticker'||k==='industry'||k==='tier')?1:-1;}renderLeader();};});
+var _sel=document.getElementById('ldSel');
+if(_sel)_sel.onchange=function(){ldInd=_sel.value;renderLeader();};
+}
+renderLeader();
 
 // ── BY INDUSTRY (accordion) ────────────────────────────────────────────
 var bi=c.by_industry||[];
 function confChip2(k){var col=k==='HIGH'?POS:k==='MEDIUM'?ACC:MUT;
  return '<span class="tier" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+k+'</span>';}
+var biK='median_capture_gap',biD=-1;
+var biCols=[['industry','Industry'],['n_scored','Scored'],['listed_peers','Listed peers'],
+ ['sample_confidence','Conf'],['median_capture_gap','Median gap'],['median_catchup_pct','Median catch-up'],
+ ['median_ev_sales','EV/S med'],['median_pe','P/E med'],['n_undervalued','Undervalued']];
+function renderByInd(){
+var _bi=bi.slice().sort(function(a,b){var x=a[biK],y=b[biK];
+ if(typeof x==='string'||typeof y==='string'){x=String(x||'');y=String(y||'');return x<y?-1*biD:x>y?1*biD:0;}
+ if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*biD;});
 document.getElementById('byind').innerHTML=(bi.length?(
- '<div class="note" style="margin-bottom:10px">'+bi.length+' industries · click any row to expand its members. Industries are ranked by median capture gap; the median catch-up column is the middle name\'s distance to its own industry median multiple.</div>'
- +'<table><tr><th>Industry</th><th>Scored</th><th>Listed peers</th><th>Conf</th><th>Median gap</th><th>Median catch-up</th><th>EV/S med</th><th>P/E med</th><th>Undervalued</th></tr>'
- +bi.map(function(b,i){
+ '<div class="note" style="margin-bottom:10px">'+bi.length+' industries · <strong>click a column header to sort</strong> (click again to reverse) · click any industry row to expand its members. The median catch-up column is the middle name\'s distance to its own industry median multiple.</div>'
+ +'<table><tr>'+biCols.map(function(c){return '<th data-bk="'+c[0]+'">'+c[1]+(biK===c[0]?(biD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>'
+ +_bi.map(function(b,i){
   var head='<tr class="indrow" data-i="'+i+'" style="cursor:pointer">'
   +'<td style="color:'+ACC+'">▸ '+(b.industry||'').slice(0,30)+'</td>'
   +'<td>'+b.n_scored+'</td><td style="color:'+MUT+'">'+(b.listed_peers||'—')+'</td>'
@@ -306,6 +339,11 @@ Array.prototype.forEach.call(document.querySelectorAll('.indrow'),function(tr){
  tr.onclick=function(){var el=document.getElementById('mem'+tr.getAttribute('data-i'));
   if(!el)return;var open=el.style.display!=='none';el.style.display=open?'none':'table-row';
   tr.cells[0].innerHTML=(open?'▸ ':'▾ ')+tr.cells[0].textContent.slice(2);};});
+Array.prototype.forEach.call(document.querySelectorAll('#byind th'),function(th){
+ th.onclick=function(){var k=th.getAttribute('data-bk');if(!k)return;
+  if(biK===k)biD=-biD;else{biK=k;biD=(k==='industry'?1:-1);}renderByInd();};});
+}
+renderByInd();
 
 // METHOD
 var m=c.method||{};
