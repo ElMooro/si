@@ -1,0 +1,38 @@
+# ops 3751 — canary #19: short-interest v1.1 (SI collapse on flat price)
+
+**Status:** success  
+**Duration:** 17.2s  
+**Finished:** 2026-07-23T00:27:41+00:00  
+
+## Data
+
+| failed | priced | si_collapse | verdict |
+|---|---|---|---|
+| none | 153 | 5 | PASS_ALL |
+
+## Log
+## G0 — key contract
+
+- `00:27:24` PASS G0_key_contract — producer_missing=[] page_renders=True
+## G1 — zip settle to v1.1
+
+- `00:27:25` PASS G1_settle — v1.1 deployed
+## G2 — async invoke + S3 freshness
+
+- `00:27:41` PASS G2_artifact — priced=153 si_collapse=5 version=1.1
+## G3 — data truth (signal is correct, prior signals live)
+
+- `00:27:41`   signal census: {'NEUTRAL': 5695, 'COVERING': 10, 'DISTRIBUTION': 27, 'CROWDED_SHORT_RISING': 34, 'SI_COLLAPSE_FLAT_PRICE': 5, 'HIGH_DAYS_TO_COVER': 4, 'SQUEEZE_RISK': 2}
+- `00:27:41`   SPGI   ΔSI=-29.67%  ΔPrice=-2.0%  DTC=1.18  score=87
+- `00:27:41`   HMC    ΔSI=-26.43%  ΔPrice=3.2%  DTC=1  score=87
+- `00:27:41`   CI     ΔSI=-15.1%  ΔPrice=-2.2%  DTC=3.55  score=85
+- `00:27:41`   LIN    ΔSI=-13.62%  ΔPrice=0.9%  DTC=2.46  score=84
+- `00:27:41`   CSCO   ΔSI=-12.92%  ΔPrice=-0.6%  DTC=1.9  score=84
+- `00:27:41` PASS G3_data_truth — priced=153 collapse_rows=5 misclassified=[]
+## G4 — squeeze.html renders the new board
+
+- `00:27:41`   served page CURRENT (len=24690) after 0s
+- `00:27:41` PASS G4_page — page renders #19 board
+## VERDICT
+
+- `00:27:41` ✅ PASS_ALL — canary #19 live
