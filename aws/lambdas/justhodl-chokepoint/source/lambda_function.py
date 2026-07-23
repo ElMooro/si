@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "4.1"
+VERSION = "4.1.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -187,9 +187,14 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
     ev_sales = pe_ratio = None
     try:
         _rev_ttm = None
+        _rev_ccy = None
         for _r in inc:
             if (_r.get("revenue") or 0) > 0:
                 _rev_ttm = _r["revenue"]
+                # ops 3785: filers report in local currency. SKHY files in KRW
+                # (97tn) and TSM in TWD (3.85tn); summing those with USD gave one
+                # KRW filer 95% of the semiconductor denominator.
+                _rev_ccy = (_r.get("reportedCurrency") or "").upper() or None
                 break
         if mcap and _rev_ttm and _rev_ttm > 0:
             ev_sales = round(mcap / _rev_ttm, 3)
@@ -212,7 +217,7 @@ def evaluate(sym, centrality, rerate_lookup, bulk):
         "roic": round(roic, 1) if isinstance(roic, (int, float)) else None,
         "centrality": ctr, "discount_to_fair_pct": disc, "cheap_chokepoint": bool(is_choke and cheap),
         "ev_sales": ev_sales, "pe": pe_ratio,
-        "revenue_ttm": _rev_ttm,
+        "revenue_ttm": _rev_ttm, "revenue_currency": _rev_ccy,
         "hidden_chokepoint": bool(is_choke and cap_bucket in ("nano", "micro", "small", "mid")),
         "reasons": reasons,
     }
@@ -607,6 +612,7 @@ def lambda_handler(event, context):
                     "ev_sales": _r.get("ev_sales"),
                     "pe": _r.get("pe"),
                     "revenue_ttm": _r.get("revenue_ttm"),
+                    "revenue_currency": _r.get("revenue_currency"),
                     "centrality": _r.get("centrality"),
                 })
 
@@ -888,13 +894,22 @@ def lambda_handler(event, context):
         # label each for exactly what it is.
         try:
             _rev_by_ind, _ctr_by_ind = {}, {}
+            _usd_n, _rev_n = {}, {}
+            MIN_USD_COVERAGE = 0.60   # below this the denominator omits majors
             for _c in cap_rows:
                 _i = _c.get("industry")
                 if not _i:
                     continue
                 _rv = _c.get("revenue_ttm")
+                _cc = (_c.get("revenue_currency") or "").upper()
                 if isinstance(_rv, (int, float)) and _rv > 0:
-                    _rev_by_ind[_i] = _rev_by_ind.get(_i, 0.0) + _rv
+                    _rev_n[_i] = _rev_n.get(_i, 0) + 1
+                    # ONLY USD filers enter the denominator. No FX conversion:
+                    # this engine has no rates feed and inventing one to rescue
+                    # a metric is worse than publishing less.
+                    if _cc == "USD":
+                        _usd_n[_i] = _usd_n.get(_i, 0) + 1
+                        _rev_by_ind[_i] = _rev_by_ind.get(_i, 0.0) + _rv
                 _ct = _c.get("centrality")
                 if isinstance(_ct, (int, float)) and _ct > 0:
                     _ctr_by_ind[_i] = _ctr_by_ind.get(_i, 0.0) + _ct
@@ -907,14 +922,28 @@ def lambda_handler(event, context):
                 _rv = _c.get("revenue_ttm")
                 _tot = _rev_by_ind.get(_i) or 0.0
                 # [1] revenue share — of SCORED peers only (bulk carries no revenue)
-                _c["revenue_share_pct"] = (round(100.0 * _rv / _tot, 2)
-                                           if (isinstance(_rv, (int, float)) and _rv > 0 and _tot > 0)
-                                           else None)
+                _cc = (_c.get("revenue_currency") or "").upper()
+                _un = _usd_n.get(_i, 0); _rn = _rev_n.get(_i, 0)
+                _cov = (_un / _rn) if _rn else 0.0
+                _c["revenue_usd_coverage_pct"] = round(100.0 * _cov, 1) if _rn else None
+                if _cc != "USD":
+                    _c["revenue_share_pct"] = None
+                    _c["revenue_share_suppressed"] = "filer reports in %s — not summable with USD peers" % (_cc or "unknown")
+                elif _cov < MIN_USD_COVERAGE:
+                    _c["revenue_share_pct"] = None
+                    _c["revenue_share_suppressed"] = ("industry USD coverage %.0f%% < %.0f%% — "
+                                                      "denominator would omit major filers" % (
+                                                          100 * _cov, 100 * MIN_USD_COVERAGE))
+                else:
+                    _c["revenue_share_pct"] = (round(100.0 * _rv / _tot, 2)
+                                               if (isinstance(_rv, (int, float)) and _rv > 0 and _tot > 0)
+                                               else None)
+                    _c["revenue_share_suppressed"] = None
                 _lp = _c.get("industry_peers") or 0
                 _sc = _scored_by_ind.get(_i) or 0
                 _c["revenue_coverage_pct"] = (round(100.0 * _sc / _lp, 1)
                                               if _lp else None)
-                _c["revenue_share_basis"] = "scored peers (n=%d of %s listed)" % (
+                _c["revenue_share_basis"] = "USD filers among scored peers (n=%d of %s listed)" % (
                     _sc, _lp or "?")
                 # [3] dependency share from the curated supply-chain graph;
                 # null where the graph does not cover the sector, never guessed
@@ -926,7 +955,9 @@ def lambda_handler(event, context):
                 # which percentage actually carries the claim for this name
                 if _c.get("dependency_pct") is not None and _c["dependency_pct"] >= 25:
                     _c["criticality_basis"] = "supply-chain dependency"
-                elif _c.get("revenue_share_pct") is not None and _c["revenue_share_pct"] >= 20:
+                elif (_c.get("revenue_share_pct") is not None
+                      and not _c.get("revenue_share_suppressed")
+                      and _c["revenue_share_pct"] >= 20):
                     _c["criticality_basis"] = "revenue scale"
                 elif (_c.get("criticality_pctile") or 0) >= 80:
                     _c["criticality_basis"] = "business quality (margins/ROIC/R&D)"
