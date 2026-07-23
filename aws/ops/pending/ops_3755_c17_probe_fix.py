@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3754 — PROBE for canary #17 (credit moves BEFORE equity).
+"""ops 3755 — PROBE for canary #17 (credit moves BEFORE equity).
 
 AUDIT (repo, 3754) — what already exists and why none of it is #17:
   · credit-equity-divergence = INDEX level (HYG vs SPY). A macro read: "is
@@ -41,10 +41,10 @@ UA = {"User-Agent": "Mozilla/5.0 (compatible; JustHodl research)"}
 CTX = ssl.create_default_context()
 FRED_KEY = "2f057499936072679d8843d7fce99989"
 
-with report("3754_credit_before_equity_probe") as rep:
-    rep.heading("ops 3754 — canary #17 credit-before-equity probe")
+with report("3755_c17_probe_fix") as rep:
+    rep.heading("ops 3755 — canary #17 credit-before-equity probe")
     Path("aws/ops/reports").mkdir(parents=True, exist_ok=True)
-    Path("aws/ops/reports/3754.json").write_text(json.dumps({"verdict": "STARTED"}))
+    Path("aws/ops/reports/3755.json").write_text(json.dumps({"verdict": "STARTED"}))
     out = {}
 
     try:
@@ -63,11 +63,25 @@ with report("3754_credit_before_equity_probe") as rep:
         rows = []
         if cm:
             rep.ok("  top-level: %s" % sorted(cm.keys())[:16])
-            for k, v in cm.items():
-                if isinstance(v, list) and v and isinstance(v[0], dict):
-                    rep.log("  list '%s' n=%d" % (k, len(v)))
-                    if len(v) > len(rows):
-                        rows, rows_key = v, k
+            # ops 3754 BUG: only scanned TOP-LEVEL lists, but cds-monitor
+            # nests the names under single_name_cds / sovereign_cds — the
+            # probe declared a healthy feed "unusable". Walk 2 levels.
+            def walk(obj, path=""):
+                hits = []
+                if isinstance(obj, list) and obj and isinstance(obj[0], dict):
+                    hits.append((path or "<root>", obj))
+                elif isinstance(obj, dict):
+                    for kk, vv in obj.items():
+                        hits.extend(walk(vv, (path + "." + kk) if path else kk))
+                return hits
+            allists = walk(cm)
+            for pth, lst in sorted(allists, key=lambda x: -len(x[1]))[:8]:
+                rep.log("  list '%s' n=%d keys=%s"
+                        % (pth, len(lst), sorted(lst[0].keys())[:10]))
+            if allists:
+                pth, rows = max(allists, key=lambda x: len(x[1]))
+                rep.ok("  BIGGEST list = '%s' n=%d" % (pth, len(rows)))
+                out["rows_path"] = pth
             if rows:
                 rep.log("  row keys: %s" % sorted(rows[0].keys()))
                 rep.log("  sample: %s" % json.dumps(rows[0])[:420])
@@ -156,7 +170,7 @@ with report("3754_credit_before_equity_probe") as rep:
                credit_fields=",".join(out.get("credit_fields", [])[:5]),
                history_exists=bool(out.get("history_found")),
                buildable=str(buildable))
-        Path("aws/ops/reports/3754.json").write_text(
+        Path("aws/ops/reports/3755.json").write_text(
             json.dumps({"verdict": "PASS" if buildable else "BLOCKED",
                         "found": out}, indent=2, default=str))
         if not buildable:
@@ -169,7 +183,7 @@ with report("3754_credit_before_equity_probe") as rep:
     except Exception:
         tb = traceback.format_exc()
         rep.fail("UNCAUGHT: " + tb[-1500:])
-        Path("aws/ops/reports/3754.json").write_text(
+        Path("aws/ops/reports/3755.json").write_text(
             json.dumps({"verdict": "CRASH", "traceback": tb[-3000:]}, indent=2))
         sys.exit(1)
 
