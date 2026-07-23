@@ -105,6 +105,9 @@ def main():
         else:
             rep.ok("coverage acceptable — shares are computed against a near-complete total")
 
+        if FAILED:
+            rep.fail("FAILED: %s" % ", ".join(FAILED))
+            sys.exit(1)
         rep.ok("PASS_ALL — diagnosis complete (no engine change in this ops)")
 
 
