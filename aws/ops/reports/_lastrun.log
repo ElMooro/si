@@ -1,55 +1,36 @@
-executing-against: 65c8e26ea8817a9ecf83311852cbd54d2e9fd2b4
-ops 3780 — capture_gap overlay into master-ranker
-── G0 — live producer rows ──
-[20:06:56] ✅ G0.all_rows :: all_rows n=1771
-[20:06:56] ✅ G0.row_ticker :: present
-[20:06:56] ✅ G0.row_capture_gap :: present
-[20:06:56] ✅ G0.row_global_capture_gap :: present
-[20:06:56] ✅ G0.row_tier :: present
-[20:06:56] ✅ G0.row_mcap_share_pct :: present
-[20:06:56] ✅ G0.row_undervaluation_score :: present
-── G0 — consumer anchors (grepped, never typed from memory) ──
-[20:06:56] ✅ G0.reader :: _ck already loaded — reusing, no second fetch
-[20:06:56] ✅ G0.loopvar :: top_tickers is the row list
-[20:06:56] ✅ G0.outkey :: output key confirmed
-[20:06:56] ✅ G0.anchor :: splice anchor unique (after _ck block)
-── Forecast join from LIVE artifacts ──
-[20:06:56] ✅ FORECAST.nonzero :: 25 will join (sample ['ALL', 'AMD', 'AMP', 'BABA', 'BE', 'CHRW', 'FDX', 'FIX'])
-── Splice (additive) ──
-[20:06:56] ✅ spliced + compile clean
-[20:06:56] ✅ SPLICE.marker :: marker in source
-[20:06:56] ✅ SPLICE.structural_kept :: pre-existing structural overlay untouched
-[20:06:56] ✅ SPLICE.no_double_fetch :: still exactly one chokepoint fetch
-── Deploy ──
-[20:06:56]   zip: 102069 bytes
-── 1. Lambda ──
-[20:06:56]   Lambda exists — updating
-[20:06:59] ✅   ✓ updated justhodl-master-ranker
-[20:07:15] ✅ settled attempt 1
-[20:07:15] ✅ DEPLOY.settled :: artifact live
-── Invoke + prove non-zero join on LIVE output ──
-[20:07:24] ✅ LIVE.join_nonzero :: 24 of 25 ranked names carry capture_gap
-[20:07:24] ✅ LIVE.fields_carried :: fields survived into the live artifact
-── Ranked names with capture context ──
-[20:07:24]   FIX    gap=  +4.4pp global= -12.3pp catchup=    -72% tier=WATCH
-[20:07:24]   LRCX   gap=  +1.2pp global=  +0.3pp catchup=    -57% tier=WATCH
-[20:07:24]   TSM    gap= -10.6pp global=  -1.7pp catchup=    300% tier=WATCH
-[20:07:24]   SPG    gap= -11.2pp global=  -2.5pp catchup=    -15% tier=WATCH
-[20:07:24]   UBS    gap= -16.4pp global= -69.3pp catchup=    -37% tier=NONE
-[20:07:24]   PWR    gap= -16.5pp global= -33.0pp catchup=    -46% tier=WATCH
-[20:07:24]   STX    gap= -18.0pp global=  -4.5pp catchup=    -55% tier=WATCH
-[20:07:24]   IPGP   gap= -24.0pp global= +36.1pp catchup=    -45% tier=WATCH
-[20:07:24]   AMD    gap= -30.4pp global= -14.3pp catchup=    -64% tier=WATCH
-[20:07:24]   AMP    gap= -35.4pp global= -25.2pp catchup=     31% tier=WATCH
-[20:07:24]   MPC    gap= -37.9pp global= -77.1pp catchup=    -13% tier=WATCH
-[20:07:24]   ALL    gap= -39.1pp global= -41.1pp catchup=     64% tier=WATCH
-── Additive contract ──
-[20:07:24] ✅ ADDITIVE.top_tickers :: present
-[20:07:24] ✅ ADDITIVE.top_macro :: present
-[20:07:24] ✅ ADDITIVE.alerts :: present
-[20:07:24] ✅ ADDITIVE.feed_health :: present
-[20:07:24] ✅ ADDITIVE.structural_alive :: structural counter still reported
+executing-against: 3538ddc49a5d1b27ea7976e17fafc4e415ea7c8e
+ops 3781 — verify capture-gap tiles in why.html Vitals
+── Feed precondition ──
+[22:50:10] ✅ FEED.rows :: capture ledger n=1771
+[22:50:10] ✅ FEED.note :: not-a-target note present in feed
+── Sample tickers a user would actually open ──
+[22:50:10]   NVDA   gap=  -0.6pp global=  +0.0pp catchup=    -60% (EV/S+P/E) tier=WATCH
+[22:50:10]   TSM    gap= -10.6pp global=  -1.7pp catchup=    300% (EV/S+P/E) tier=WATCH
+[22:50:10]   ASML   gap=  +0.5pp global=  -0.1pp catchup=    -56% (EV/S+P/E) tier=WATCH
+[22:50:10]   AMD    gap= -30.4pp global= -14.3pp catchup=    -64% (EV/S+P/E) tier=WATCH
+[22:50:10]   GILD   gap= +18.8pp global=  +4.3pp catchup=    -43% (EV/S+P/E) tier=WATCH
+[22:50:10]   DBX    gap= +15.2pp global= +64.4pp catchup=    128% (EV/S+P/E) tier=WATCH
+[22:50:10]   MSFT   gap= -12.3pp global=  -2.1pp catchup=    -30% (EV/S+P/E) tier=WATCH
+── Served page — markers unique to this change ──
+[22:50:10] attempt 1: HTTP 200 · 270963 bytes · 1/5 markers
+[22:50:35] attempt 2: HTTP 200 · 270963 bytes · 1/5 markers
+[22:51:00] attempt 3: HTTP 200 · 273411 bytes · 5/5 markers
+[22:51:00] ✅ SERVED.fetch_call :: present in served why.html
+[22:51:00] ✅ SERVED.tile_gap :: present in served why.html
+[22:51:00] ✅ SERVED.tile_catchup :: present in served why.html
+[22:51:00] ✅ SERVED.honesty :: present in served why.html
+[22:51:00] ✅ SERVED.fn :: present in served why.html
+── Additive — existing Vitals tiles must survive ──
+[22:51:00] ✅ KEPT.P_E_TTM :: intact
+[22:51:00] ✅ KEPT.PEG :: intact
+[22:51:00] ✅ KEPT.P_S :: intact
+[22:51:00] ✅ KEPT.EV_EBITDA :: intact
+[22:51:00] ✅ KEPT.SHARES_OUT :: intact
+[22:51:00] ✅ KEPT.DILUTION :: intact
+[22:51:00] ✅ KEPT.renderJHVitals :: intact
+[22:51:00] ✅ KEPT.fillJHVitals :: intact
 ── VERDICT ──
-[20:07:24] ✅ PASS_ALL — capture_gap now reaches both the setups desk and the ranker
+[22:51:00] ✅ PASS_ALL — capture gap now visible on the per-stock research page
+[22:51:00] Wiring set complete: engine -> page -> best-setups -> ranker -> why.html
 
-→ Report written to aws/ops/reports/latest/3780_wire_capture_gap_ranker.md
+→ Report written to aws/ops/reports/latest/3781_why_vitals_capture_gap.md
