@@ -1,7 +1,19 @@
-executing-against: ffcd78a3d1b1c6529cb899aa1c11896a558e3869
-ops 3750 — canary #19: short-interest v1.1 (SI collapse on flat price)
-── G0 — key contract ──
-[00:23:14] ✗ UNCAUGHT: Traceback (most recent call last):
+# ops 3750 — canary #19: short-interest v1.1 (SI collapse on flat price)
+
+**Status:** failure  
+**Duration:** 0.1s  
+**Finished:** 2026-07-23T00:23:14+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Log
+## G0 — key contract
+
+- `00:23:14` ✗ UNCAUGHT: Traceback (most recent call last):
   File "/home/runner/work/si/si/aws/ops/pending/ops_3750_short_interest_flatprice.py", line 74, in <module>
     page = (ROOT / "squeeze.html").read_text()
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -13,6 +25,3 @@ ops 3750 — canary #19: short-interest v1.1 (SI collapse on flat price)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 FileNotFoundError: [Errno 2] No such file or directory: '/home/runner/work/si/si/aws/squeeze.html'
 
-
-→ Report written to aws/ops/reports/latest/3750_short_interest_flatprice.md
-❌ OPS-FAIL: aws/ops/pending/ops_3750_short_interest_flatprice.py
