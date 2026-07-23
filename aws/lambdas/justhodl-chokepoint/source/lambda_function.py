@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "3.1"
+VERSION = "3.2"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -484,7 +484,10 @@ def lambda_handler(event, context):
                 # deferred_accelerating. 3766 consumed rpo_growth_yoy + accelerating,
                 # which the producer never writes -> leg silently dead (0 joins).
                 _rpo_g = _b.get("rpo_yoy")
+                if _rpo_g is None:
+                    _rpo_g = _b.get("rpo_qoq")
                 _bk_accel = bool(_b.get("demand_accelerating") or _b.get("deferred_accelerating"))
+                _bk_present = bool(_b)
 
                 cap_rows.append({
                     "ticker": _r["ticker"], "name": _r.get("name"),
@@ -504,6 +507,7 @@ def lambda_handler(event, context):
                     "rpo_yoy": _rpo_g,
                     "backlog_deferred_accel": bool(_b.get("deferred_accelerating")),
                     "backlog_accelerating": _bk_accel,
+                    "backlog_covered": _bk_present,
                     "cap_bucket": _r.get("cap_bucket"),
                     "is_chokepoint": _r.get("is_chokepoint"),
                 })
@@ -523,6 +527,7 @@ def lambda_handler(event, context):
                 legs += 1; why.append("%.0f%% ROIC" % _c["roic"])
             if _c.get("backlog_accelerating"):
                 legs += 1; why.append("backlog accelerating")
+            _c["legs_available"] = 5 if _c.get("backlog_covered") else 4
             _c["legs"] = legs
             _c["legs_why"] = why
             _c["tier"] = ("STRUCTURALLY_UNDERVALUED" if legs >= 3 and _c["capture_gap"] >= 20
@@ -556,7 +561,10 @@ def lambda_handler(event, context):
                 "industries": len(set(c["industry"] for c in cap_rows)),
                 "structurally_undervalued": len(_under),
                 "hidden": len(_hidden_cap),
-                "backlog_joined": sum(1 for c in cap_rows if c.get("rpo_growth_yoy") is not None),
+                "backlog_joined": sum(1 for c in cap_rows if c.get("rpo_yoy") is not None),
+                "backlog_covered": sum(1 for c in cap_rows if c.get("backlog_covered")),
+                "backlog_ledger_size": len(_bk_by),
+                "backlog_overlap": len(set(_bk_by.keys()) & set(c["ticker"] for c in cap_rows)),
             },
             "structurally_undervalued": _under[:40],
             "hidden_capture_gaps": _hidden_cap[:25],
