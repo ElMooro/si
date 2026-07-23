@@ -89,6 +89,18 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
 
 ## Known traps (all hit at least once — don't re-learn them)
 
+- **Canary #9 (rail carloads by commodity) is BLOCKED — do not re-probe**
+  (ops 3752/3753, 2026-07-23). Evidence: FRED carries only the two AGGREGATE
+  indices already in freight-pulse (RAILFRTCARLOADSD11 / RAILFRTINTERMODALD11)
+  plus PPI *price* series — no commodity volumes. AAR's rail-traffic page
+  returns a 296KB HTML marketing shell, no CSV. STB-1145-{BNSF,CPKC,CSXT,GTC,
+  NS,UP}.csv are SERVICE metrics (train speed, dwell, manifest %) with zero
+  commodity words in header or body. STB 49 CFR 1247 CARS_LOAD_TERM splits by
+  CAR TYPE ("PLAIN 40FT BOX"), not commodity, and is ANNUAL. The weekly
+  commodity table exists but AAR sells it. Building this from reachable data
+  would require FABRICATING the split — do not. Revisit only if Khalid buys an
+  AAR/Railinc feed.
+
 - **Empty scheduled invokes**: EventBridge targets created by the workflow
   carry NO `Input`. Handlers that require a payload (e.g. `{"tickers":[...]}`)
   silently no-op daily. Fix: `put_targets` with `Input`, or give handlers a
