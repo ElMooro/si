@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capture Gap · JustHodl.AI</title>
+<style>
+:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
+.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
+.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+th:hover{color:var(--accent)}
+td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+tr:hover td{background:rgba(255,255,255,.025)}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;border-radius:3px}
+.foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
+a{color:var(--accent)}
+.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
+.chip{display:inline-block;padding:3px 10px;border-radius:16px;font-size:11px;font-family:ui-monospace,Menlo,monospace;border:1px solid var(--border);margin:0 6px 6px 0;cursor:pointer;color:var(--text-dim)}
+.chip.on{background:var(--accent);color:#0a0e14;border-color:var(--accent);font-weight:600}
+.legs{display:inline-block;width:52px}
+.legdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:2px;background:rgba(255,255,255,.12)}
+.legdot.f{background:var(--pos)}
+#scatter{width:100%;height:430px;display:block}
+.tier{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>⚖️ Capture Gap — Value Creation vs Value Capture</h1>
+<div class="sub">A company can be the single point of failure for its entire industry and still hold only a sliver of that industry's market cap. <strong>capture_gap = criticality percentile − market-cap-share percentile</strong>, computed <em>within industry</em> against the full listed market. Positive means the market underpays for indispensability. Criticality itself comes from margin level, margin <em>stability</em> (the fingerprint of pricing power), ROIC, R&amp;D intensity and supply-chain centrality — not from the multiple.</div>
+
+<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
+
+<div class="sec">🏆 Structurally Undervalued — ≥3 of 5 legs AND gap ≥20pp</div>
+<div class="card" id="under"></div>
+
+<div class="sec">🔍 Hidden Capture Gaps — small/mid sole-suppliers nobody screens</div>
+<div class="card" id="hidden"></div>
+
+<div class="sec">🎯 Creation vs Capture — the whole cross-section</div>
+<div class="card">
+  <div id="chips"></div>
+  <svg id="scatter" viewBox="0 0 1000 430" preserveAspectRatio="xMidYMid meet"></svg>
+  <div class="note">X = market-cap-share percentile within industry (what the market pays). Y = criticality percentile (what the business is worth to its industry). Names <strong>above the diagonal</strong> create more than they capture. Bubble size = absolute market cap; amber ring = STRUCTURALLY_UNDERVALUED.</div>
+</div>
+
+<div class="sec">📊 Full Ledger — every scored name</div>
+<div class="card" style="overflow-x:auto"><table id="all"></table></div>
+
+<div class="sec">🏭 Industry Concentration — where capture is most lopsided</div>
+<div class="card" id="ind"></div>
+
+<div class="sec">Method &amp; Honest Limits</div>
+<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+
+<div class="sec">Cross-links</div>
+<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Criticality source: <a href="/chokepoint.html">Chokepoint</a> · Peer multiples: <a href="/peer-comparison.html">Peer Comparison</a> · Backlog/RPO: <a href="/backlog.html">Backlog</a> · Industry league: <a href="/boom-radar.html">Boom Radar</a> · Census: <a href="/fundamental-census.html">Fundamental Census</a></div>
+
+<div class="foot" id="foot"></div>
+</div>
+<script src="/jh-nav-drawer.js"></script>
+<script>
+(function(){
+var ACC='#F0B429',POS='#6fce8a',NEG='#E07A6A',NEU='#e8e8e8',MUT='#5b6479',DIM='#8b96a8';
+function num(v,d){return v==null||isNaN(v)?'—':Number(v).toFixed(d==null?1:d);}
+function money(v){if(v==null)return '—';var a=Math.abs(v);
+ if(a>=1e12)return '$'+(v/1e12).toFixed(2)+'T';if(a>=1e9)return '$'+(v/1e9).toFixed(1)+'B';
+ if(a>=1e6)return '$'+(v/1e6).toFixed(0)+'M';return '$'+v.toFixed(0);}
+function gapCol(g){return g==null?MUT:(g>=20?POS:g>0?NEU:NEG);}
+function tierChip(t){var c=t==='STRUCTURALLY_UNDERVALUED'?POS:t==='WATCH'?ACC:MUT;
+ var lbl=t==='STRUCTURALLY_UNDERVALUED'?'UNDERVALUED':t;
+ return '<span class="tier" style="background:'+c+'22;color:'+c+';border:1px solid '+c+'55">'+lbl+'</span>';}
+function legDots(n){var s='';for(var i=0;i<5;i++)s+='<span class="legdot'+(i<n?' f':'')+'"></span>';return '<span class="legs">'+s+'</span>';}
+
+fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/chokepoint.json?v='+Date.now(),{cache:'no-store'})
+.then(function(r){return r.json();}).then(function(d){
+try{
+var c=d.capture_gap||{};
+if(c.error){document.getElementById('hero').innerHTML='<span class="mono" style="color:'+NEG+'">Capture layer error — '+c.error+'</span>';return;}
+var st=c.stats||{},rows=c.all_rows||[];
+
+// HERO
+document.getElementById('hero').innerHTML='<div class="grid">'
++'<div class="tile"><div class="lbl">Names scored</div><div class="big">'+(st.scored||0)+'</div><div class="note">across '+(st.industries||0)+' industries</div></div>'
++'<div class="tile"><div class="lbl">Structurally undervalued</div><div class="big" style="color:'+POS+'">'+(st.structurally_undervalued||0)+'</div><div class="note">≥3 legs &amp; gap ≥20pp</div></div>'
++'<div class="tile"><div class="lbl">Hidden (small/mid)</div><div class="big" style="color:'+ACC+'">'+(st.hidden||0)+'</div><div class="note">where the screening edge lives</div></div>'
++'<div class="tile"><div class="lbl">Backlog joined</div><div class="big" style="color:'+((st.backlog_joined||0)>0?NEU:NEG)+'">'+(st.backlog_joined||0)+'</div><div class="note">'+((st.backlog_joined||0)>0?'RPO leg active':'⚠ leg inactive — no overlap')+'</div></div>'
++'</div>';
+
+// UNDERVALUED
+var un=c.structurally_undervalued||[];
+document.getElementById('under').innerHTML=un.length?('<table><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Gap</th><th>Mcap share</th><th>Criticality</th><th>Legs</th><th>Why</th></tr>'
++un.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
++'<td>'+(r.name||'').slice(0,26)+'</td><td style="color:'+DIM+'">'+(r.industry||'').slice(0,24)+'</td>'
++'<td style="color:'+POS+';font-weight:600">+'+num(r.capture_gap)+'pp</td>'
++'<td>'+num(r.mcap_share_pct,2)+'%</td><td>'+num(r.criticality)+'</td>'
++'<td>'+legDots(r.legs||0)+'</td><td style="color:'+DIM+';font-size:11px">'+((r.legs_why||[]).join('; '))+'</td></tr>';}).join('')+'</table>'
++'<div class="note">Five independent legs: capture gap ≥20pp · trading ≥15% below fair · margin stability ≤5pp · ROIC ≥15% · backlog accelerating. One leg is noise; three legs across creation, price, quality, growth and visibility is a thesis.</div>')
+:'<span class="mono" style="color:'+MUT+'">No names cleared 3 legs today — reported honestly rather than loosening the ladder.</span>';
+
+// HIDDEN
+var hd=c.hidden_capture_gaps||[];
+document.getElementById('hidden').innerHTML=hd.length?('<table><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Cap</th><th>Gap</th><th>Share</th><th>Crit</th><th>ROIC</th><th>Margin stab</th></tr>'
++hd.map(function(r){return '<tr><td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
++'<td>'+(r.name||'').slice(0,24)+'</td><td style="color:'+DIM+'">'+(r.industry||'').slice(0,22)+'</td>'
++'<td><span class="pill">'+(r.cap_bucket||'—')+'</span></td>'
++'<td style="color:'+gapCol(r.capture_gap)+'">+'+num(r.capture_gap)+'pp</td>'
++'<td>'+num(r.mcap_share_pct,2)+'%</td><td>'+num(r.criticality)+'</td>'
++'<td>'+num(r.roic)+'%</td><td>±'+num(r.gm_stability)+'pp</td></tr>';}).join('')+'</table>'
++'<div class="note">Mega-cap indispensability is already priced. A sole-supplier at 0.04% of its industry with 68 criticality is the asymmetry — this is why the engine scans the full universe, not the S&amp;P 500.</div>')
+:'<span class="mono" style="color:'+MUT+'">No hidden gaps today.</span>';
+
+// SCATTER
+var filt='ALL';
+function draw(){
+ var svg=document.getElementById('scatter'),W=1000,H=430,L=58,R=18,T=16,B=42;
+ var pts=rows.filter(function(r){return r.criticality_pctile!=null&&r.mcap_share_pctile!=null&&
+   (filt==='ALL'||(filt==='UNDER'&&r.tier==='STRUCTURALLY_UNDERVALUED')||(filt==='HIDDEN'&&['nano','micro','small','mid'].indexOf(r.cap_bucket)>=0));});
+ var mx=Math.max.apply(null,rows.map(function(r){return r.market_cap||0;}))||1;
+ function X(v){return L+(v/100)*(W-L-R);}function Y(v){return H-B-(v/100)*(H-B-T);}
+ var s='';
+ // grid
+ for(var g=0;g<=100;g+=25){s+='<line x1="'+X(g)+'" y1="'+T+'" x2="'+X(g)+'" y2="'+(H-B)+'" stroke="#1c2330" stroke-width="1"/>';
+  s+='<line x1="'+L+'" y1="'+Y(g)+'" x2="'+(W-R)+'" y2="'+Y(g)+'" stroke="#1c2330" stroke-width="1"/>';
+  s+='<text x="'+X(g)+'" y="'+(H-B+16)+'" fill="'+MUT+'" font-size="10" text-anchor="middle" font-family="ui-monospace">'+g+'</text>';
+  s+='<text x="'+(L-8)+'" y="'+(Y(g)+4)+'" fill="'+MUT+'" font-size="10" text-anchor="end" font-family="ui-monospace">'+g+'</text>';}
+ // diagonal = fair capture
+ s+='<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+X(100)+'" y2="'+Y(100)+'" stroke="'+ACC+'" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.55"/>';
+ s+='<text x="'+X(72)+'" y="'+(Y(78))+'" fill="'+ACC+'" font-size="10" font-family="ui-monospace" opacity="0.8">fair capture</text>';
+ s+='<text x="'+X(12)+'" y="'+Y(92)+'" fill="'+POS+'" font-size="11" font-family="ui-monospace">▲ creates more than it captures</text>';
+ s+='<text x="'+X(58)+'" y="'+Y(8)+'" fill="'+NEG+'" font-size="11" font-family="ui-monospace">▼ captures more than it creates</text>';
+ pts.forEach(function(r){
+  var rad=4+Math.sqrt((r.market_cap||0)/mx)*16;
+  var und=r.tier==='STRUCTURALLY_UNDERVALUED';
+  var col=und?POS:(r.capture_gap>0?NEU:NEG);
+  s+='<circle cx="'+X(r.mcap_share_pctile)+'" cy="'+Y(r.criticality_pctile)+'" r="'+rad.toFixed(1)+'" fill="'+col+'" fill-opacity="'+(und?0.5:0.2)+'" stroke="'+(und?ACC:col)+'" stroke-width="'+(und?1.8:0.8)+'"><title>'+r.ticker+' — '+(r.name||'')+'\n'+(r.industry||'')+'\ncapture gap '+num(r.capture_gap)+'pp\nmcap share '+num(r.mcap_share_pct,2)+'%  ('+money(r.market_cap)+')\ncriticality '+num(r.criticality)+'\ntier '+r.tier+'</title></circle>';
+  if(und||rad>13)s+='<text x="'+X(r.mcap_share_pctile)+'" y="'+(Y(r.criticality_pctile)-rad-3)+'" fill="'+(und?ACC:DIM)+'" font-size="9.5" text-anchor="middle" font-family="ui-monospace">'+r.ticker+'</text>';});
+ s+='<text x="'+(W/2)+'" y="'+(H-6)+'" fill="'+DIM+'" font-size="11" text-anchor="middle">market-cap-share percentile (value CAPTURED)</text>';
+ s+='<text x="14" y="'+(H/2)+'" fill="'+DIM+'" font-size="11" text-anchor="middle" transform="rotate(-90 14 '+(H/2)+')">criticality percentile (value CREATED)</text>';
+ svg.innerHTML=s;
+}
+document.getElementById('chips').innerHTML=['ALL','UNDER','HIDDEN'].map(function(k){
+ return '<span class="chip'+(k==='ALL'?' on':'')+'" data-k="'+k+'">'+(k==='ALL'?'All names':k==='UNDER'?'Undervalued only':'Small/mid only')+'</span>';}).join('');
+Array.prototype.forEach.call(document.querySelectorAll('#chips .chip'),function(el){
+ el.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('#chips .chip'),function(x){x.classList.remove('on');});
+  el.classList.add('on');filt=el.getAttribute('data-k');draw();};});
+draw();
+
+// FULL LEDGER (sortable)
+var sortK='capture_gap',sortD=-1;
+function ledger(){
+ var rs=rows.slice().sort(function(a,b){var x=a[sortK],y=b[sortK];
+  if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*sortD;});
+ var cols=[['ticker','Ticker'],['name','Company'],['industry','Industry'],['cap_bucket','Cap'],
+  ['market_cap','Mcap'],['mcap_share_pct','Share %'],['industry_peers','Peers'],
+  ['criticality','Crit'],['criticality_pctile','Crit %ile'],['mcap_share_pctile','Cap %ile'],
+  ['capture_gap','Gap'],['gm_level','GM'],['gm_stability','GM stab'],['roic','ROIC'],
+  ['discount_to_fair_pct','vs fair'],['rpo_growth_yoy','RPO YoY'],['legs','Legs'],['tier','Tier']];
+ var h='<tr>'+cols.map(function(c){return '<th data-k="'+c[0]+'">'+c[1]+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
+ var b=rs.map(function(r){return '<tr>'
+  +'<td style="color:'+ACC+';font-weight:600">'+r.ticker+'</td>'
+  +'<td>'+(r.name||'').slice(0,22)+'</td>'
+  +'<td style="color:'+DIM+'">'+(r.industry||'').slice(0,22)+'</td>'
+  +'<td><span class="pill">'+(r.cap_bucket||'—')+'</span></td>'
+  +'<td>'+money(r.market_cap)+'</td><td>'+num(r.mcap_share_pct,2)+'%</td>'
+  +'<td style="color:'+MUT+'">'+(r.industry_peers||'—')+'</td>'
+  +'<td>'+num(r.criticality)+'</td><td style="color:'+DIM+'">'+num(r.criticality_pctile)+'</td>'
+  +'<td style="color:'+DIM+'">'+num(r.mcap_share_pctile)+'</td>'
+  +'<td style="color:'+gapCol(r.capture_gap)+';font-weight:600">'+(r.capture_gap>0?'+':'')+num(r.capture_gap)+'pp</td>'
+  +'<td>'+num(r.gm_level)+'%</td><td>±'+num(r.gm_stability)+'pp</td><td>'+num(r.roic)+'%</td>'
+  +'<td style="color:'+(r.discount_to_fair_pct>0?POS:MUT)+'">'+num(r.discount_to_fair_pct)+'%</td>'
+  +'<td style="color:'+(r.rpo_growth_yoy==null?MUT:(r.rpo_growth_yoy>0?POS:NEG))+'">'+num(r.rpo_growth_yoy)+'</td>'
+  +'<td>'+legDots(r.legs||0)+'</td><td>'+tierChip(r.tier)+'</td></tr>';}).join('');
+ document.getElementById('all').innerHTML=h+b;
+ Array.prototype.forEach.call(document.querySelectorAll('#all th'),function(th){
+  th.onclick=function(){var k=th.getAttribute('data-k');
+   if(sortK===k)sortD=-sortD;else{sortK=k;sortD=-1;}ledger();};});
+}
+ledger();
+
+// INDUSTRY CONCENTRATION
+var byInd={};
+rows.forEach(function(r){var i=r.industry||'—';
+ if(!byInd[i])byInd[i]={ind:i,n:0,peers:r.industry_peers,tot:r.industry_mcap_total,best:null,sumgap:0};
+ byInd[i].n++;byInd[i].sumgap+=(r.capture_gap||0);
+ if(!byInd[i].best||(r.capture_gap||0)>(byInd[i].best.capture_gap||0))byInd[i].best=r;});
+var inds=Object.keys(byInd).map(function(k){return byInd[k];})
+ .filter(function(x){return x.n>=2;}).sort(function(a,b){return (b.best.capture_gap||0)-(a.best.capture_gap||0);}).slice(0,25);
+document.getElementById('ind').innerHTML=inds.length?('<table><tr><th>Industry</th><th>Listed peers</th><th>Industry mcap</th><th>Scored</th><th>Widest gap</th><th>Name</th><th>Its share</th></tr>'
++inds.map(function(x){return '<tr><td>'+x.ind.slice(0,30)+'</td>'
++'<td style="color:'+MUT+'">'+(x.peers||'—')+'</td><td>'+money(x.tot)+'</td><td style="color:'+DIM+'">'+x.n+'</td>'
++'<td style="color:'+gapCol(x.best.capture_gap)+';font-weight:600">+'+num(x.best.capture_gap)+'pp</td>'
++'<td style="color:'+ACC+'">'+x.best.ticker+'</td><td>'+num(x.best.mcap_share_pct,2)+'%</td></tr>';}).join('')+'</table>'
++'<div class="note">Industry mcap totals come from the full listed market (all active non-ETF names), not just the scored sample — so a share of 0.04% is a share of the <em>real</em> industry.</div>'):'';
+
+// METHOD
+var m=c.method||{};
+document.getElementById('method').innerHTML=
+ '<div style="color:'+NEU+';margin-bottom:8px">'+(c.thesis||'')+'</div>'
+ +'Denominator: '+(m.denominator||'—')+'<br>'
+ +'Ladder: '+(m.ladder||'—')+'<br>'
+ +'Legs: '+((m.legs||[]).join(' · '))+'<br>'
+ +'Minimum peers per industry: '+(m.min_peers||'—')
+ +'<div class="note" style="color:'+NEG+'">Honest limit: '+(m.honest_limit||'—')+'</div>'
+ +'<div class="note">Criticality is a quality attribute the market usually prices correctly for mega-caps — the reference AI names (NVDA, TSM, ASML) score high on creation <em>and</em> high on capture, so their gaps sit near zero. The engine is designed to say that plainly rather than manufacture a signal where none exists.</div>';
+
+document.getElementById('foot').textContent='Feed data/chokepoint.json → capture_gap · engine justhodl-chokepoint v'+(d.version||'')+' · '+(st.scored||0)+' names · generated '+(d.generated_at||'');
+}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+})
+.catch(function(e){document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Fetch failed — '+e+'</span>';});
+})();
+</script>
+</body>
+</html>
