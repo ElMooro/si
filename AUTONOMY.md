@@ -349,3 +349,22 @@ zero-value bugs in one arc:
 **Gate that the field SURVIVES EVERY INTERMEDIATE STRUCTURE and is populated in
 the LIVE artifact — a missing field must fail loudly, never default to 0/None
 and frame the engine for a plumbing typo.**
+
+
+## PROBE-THEN-WIRE (established 2026-07-23, ops 3777-3780)
+A fourth instance of the same bug class in one arc — ops 3777 consumed
+`best-setups.json` via `setups`/`all_setups`; the real key is **`top_setups`**.
+It did NOT ship, because the ops forecast the join from the LIVE artifacts
+BEFORE splicing and refused at `current_setups=0`.
+
+**The pattern, now house standard for any cross-engine wiring:**
+1. **Probe ops** — dump the live artifact's top-level keys, find every
+   list-of-dicts, identify the ticker field, compute the TRUE overlap against
+   the producer. Write NO code. (ops 3778)
+2. **Wire ops** — build against those verified names only; gate a non-zero
+   join FORECAST before splicing, and a non-zero join on the LIVE OUTPUT after
+   invoking. (ops 3779: 47/50 · ops 3780: 24/25)
+
+Also grep the in-code VARIABLE, not just the output key: `top_setups` is
+`setups[:50]` and `top_tickers` is its own list — an overlay must mutate the
+variable that becomes the key, before it is sliced.
