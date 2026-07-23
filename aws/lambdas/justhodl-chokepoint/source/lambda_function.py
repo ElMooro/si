@@ -38,7 +38,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 
-VERSION = "3.0"
+VERSION = "3.1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/chokepoint.json"
 FMP = "wwVpi37SWHoNAzacFNVCDxEKBTUlS8xb"
@@ -480,9 +480,11 @@ def lambda_handler(event, context):
 
                 # backlog leg
                 _b = _bk_by.get(_r["ticker"]) or {}
-                _rpo_g = _b.get("rpo_growth_yoy")
-                _bk_accel = bool(_b.get("accelerating")) or (
-                    isinstance(_rpo_g, (int, float)) and _rpo_g > 0)
+                # producer-verified keys (ops 3767): rpo_yoy / demand_accelerating /
+                # deferred_accelerating. 3766 consumed rpo_growth_yoy + accelerating,
+                # which the producer never writes -> leg silently dead (0 joins).
+                _rpo_g = _b.get("rpo_yoy")
+                _bk_accel = bool(_b.get("demand_accelerating") or _b.get("deferred_accelerating"))
 
                 cap_rows.append({
                     "ticker": _r["ticker"], "name": _r.get("name"),
@@ -499,7 +501,8 @@ def lambda_handler(event, context):
                     "gm_level": _r.get("gm_level"),
                     "roic": _r.get("roic"),
                     "discount_to_fair_pct": _r.get("discount_to_fair_pct"),
-                    "rpo_growth_yoy": _rpo_g,
+                    "rpo_yoy": _rpo_g,
+                    "backlog_deferred_accel": bool(_b.get("deferred_accelerating")),
                     "backlog_accelerating": _bk_accel,
                     "cap_bucket": _r.get("cap_bucket"),
                     "is_chokepoint": _r.get("is_chokepoint"),
@@ -525,6 +528,8 @@ def lambda_handler(event, context):
             _c["tier"] = ("STRUCTURALLY_UNDERVALUED" if legs >= 3 and _c["capture_gap"] >= 20
                           else "WATCH" if legs >= 1 else "NONE")
 
+        _tots = ind_total
+        _bygi = {}
         cap_rows.sort(key=lambda x: -(x.get("capture_gap") or 0))
         _under = [c for c in cap_rows if c["tier"] == "STRUCTURALLY_UNDERVALUED"]
         _hidden_cap = [c for c in _under if c.get("cap_bucket") in ("nano", "micro", "small", "mid")]
@@ -558,6 +563,56 @@ def lambda_handler(event, context):
             "widest_gaps": cap_rows[:60],
             "all_rows": cap_rows,
         }
+
+        # ── v3.1 CROSS-INDUSTRY (GLOBAL) CAPTURE GAP ──────────────────────
+        # Khalid's original framing was cross-industry, not intra-industry:
+        # "TSMC at $1T when every other company is about a trillion". The
+        # within-industry gap answers "is it cheap vs its own peers"; this
+        # answers "is the whole industry underweighted in the market". Both
+        # ship — they are different questions and disagreeing is informative.
+        try:
+            _g_crit = [c["criticality"] for c in cap_rows if c.get("criticality") is not None]
+            _g_mc = [c["market_cap"] for c in cap_rows if (c.get("market_cap") or 0) > 0]
+            for _c in cap_rows:
+                _gc = _pctile(_g_crit, _c.get("criticality") or 0)
+                _gm = _pctile(_g_mc, _c.get("market_cap") or 0)
+                _c["global_criticality_pctile"] = _gc
+                _c["global_mcap_pctile"] = _gm
+                _c["global_capture_gap"] = (round(_gc - _gm, 1)
+                                            if (_gc is not None and _gm is not None) else None)
+                # divergence: cheap globally but fair within industry (or vice
+                # versa) = the whole industry is being repriced, not the name
+                if _c.get("capture_gap") is not None and _c["global_capture_gap"] is not None:
+                    _c["gap_divergence"] = round(_c["global_capture_gap"] - _c["capture_gap"], 1)
+                else:
+                    _c["gap_divergence"] = None
+            for _c in cap_rows:
+                if _c.get("global_capture_gap") is not None:
+                    _bygi.setdefault(_c["industry"], []).append(_c["global_capture_gap"])
+            _gsorted = sorted([c for c in cap_rows if c.get("global_capture_gap") is not None],
+                              key=lambda x: -x["global_capture_gap"])
+            capture["global_marker"] = "global_capture_gap_v31"
+            capture["global_method"] = (
+                "criticality percentile vs market-cap percentile across the WHOLE scored "
+                "cross-section (not within industry). Answers 'is this business "
+                "under-capitalised relative to everything listed', which is the "
+                "cross-industry version of the question. gap_divergence = global minus "
+                "within-industry: large positive means the entire industry is "
+                "under-capitalised, not just the name.")
+            capture["widest_global_gaps"] = _gsorted[:40]
+            capture["industry_underweight"] = sorted(
+                [{"industry": _i,
+                  "n": len(_v),
+                  "median_global_gap": round(sorted(_v)[len(_v) // 2], 1),
+                  "industry_mcap_total": _tots.get(_i)}
+                 for _i, _v in _bygi.items() if len(_v) >= 3],
+                key=lambda x: -x["median_global_gap"])[:25]
+            capture["stats"]["global_scored"] = len(_gsorted)
+            diag.append("global_capture_gap: %d scored" % len(_gsorted))
+        except Exception as _ge:
+            capture["global_error"] = str(_ge)[:200]
+            diag.append("global_capture_gap FAILED: %s" % str(_ge)[:160])
+
         diag.append("capture_gap: %d scored / %d ind / %d undervalued" % (
             len(cap_rows), len(set(c["industry"] for c in cap_rows)), len(_under)))
     except Exception as _e:

@@ -1,0 +1,128 @@
+# ops 3767 — page + backlog key fix + cross-industry denominator
+
+**Status:** failure  
+**Duration:** 32.7s  
+**Finished:** 2026-07-23T17:41:06+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| backlog_joined | global_scored | invoke_seconds | invoke_status | page_bytes | scored |
+|---|---|---|---|---|---|
+|  |  |  |  | 17763 |  |
+|  |  | 13.9 | 200 |  |  |
+| 0 | 879 |  |  |  | 879 |
+
+## Log
+## G0_KEY_CONTRACT — ROW-level keys (the 3766 miss)
+
+- `17:40:33` ✅ G0.backlog_container :: container key by_ticker
+- `17:40:33` ✅ G0.row_rpo_yoy :: producer writes rpo_yoy (NOT rpo_growth_yoy)
+- `17:40:33` ✅ G0.row_demand_accel :: producer writes demand_accelerating
+- `17:40:33` ✅ G0.row_deferred_accel :: producer writes deferred_accelerating
+- `17:40:33` ✅ G0.wrong_keys_absent :: confirms rpo_growth_yoy does NOT exist in producer — 3766's leg was dead
+- `17:40:33` ✅ G0.capture_present :: v3.0 block present to patch
+- `17:40:33` ✅ G0.pctile_helper :: _pctile helper in scope for v3.1
+## [2] Fix backlog join key mismatch
+
+- `17:40:33` ✅ FIX.join_anchor :: join block anchor unique
+- `17:40:33` ✅ join rewritten onto producer-verified keys
+- `17:40:33` ✅ FIX.tail_anchor :: sort anchor unique
+## [3] Splice v3.1 global capture gap
+
+- `17:40:33` ✅ V31.anchor :: capture dict anchor unique
+- `17:40:33` ✅ V31.post_anchor :: post-dict anchor unique
+- `17:40:33` ✅ v3.1 spliced + py_compile clean
+- `17:40:33` ✅ V31.marker :: global marker in source
+## [1] Page contract — /capture-gap.html
+
+- `17:40:33` ✅ PAGE.exists :: capture-gap.html staged at repo root
+- `17:40:33` ✅ PAGE.field_all_rows :: rendered
+- `17:40:33` ✅ PAGE.field_structurally_undervalued :: rendered
+- `17:40:33` ✅ PAGE.field_hidden_capture_gaps :: rendered
+- `17:40:33` ✅ PAGE.field_capture_gap :: rendered
+- `17:40:33` ✅ PAGE.field_criticality_pctile :: rendered
+- `17:40:33` ✅ PAGE.field_mcap_share_pctile :: rendered
+- `17:40:33` ✅ PAGE.field_industry_mcap_total :: rendered
+- `17:40:33` ✅ PAGE.field_industry_peers :: rendered
+- `17:40:33` ✅ PAGE.field_legs_why :: rendered
+- `17:40:33` ✅ PAGE.field_honest_limit :: rendered
+- `17:40:33` ✅ PAGE.field_gm_stability :: rendered
+- `17:40:33` ✅ PAGE.field_roic :: rendered
+- `17:40:33` ✅ PAGE.field_cap_bucket :: rendered
+- `17:40:33` ✅ PAGE.field_tier :: rendered
+- `17:40:33` ✅ PAGE.nav :: nav drawer included
+- `17:40:33` ✅ nav FORCE pin added -> Research & Tools
+- `17:40:33` ✅ PAGE.nav_pin :: pinned
+## Deploy
+
+- `17:40:33`   zip: 95631 bytes
+## 1. Lambda
+
+- `17:40:34`   Lambda exists — updating
+- `17:40:37` ✅   ✓ updated justhodl-chokepoint
+## Zip settle
+
+- `17:40:52` ✅ artifact settled with v3.1 marker (attempt 1)
+- `17:40:52` ✅ DEPLOY.settled :: new code live
+## Invoke + verify
+
+- `17:41:06` ✅ LIVE.version :: version=3.1
+- `17:41:06` ✅ LIVE.no_global_error :: global err=None
+- `17:41:06` ✅ LIVE.global_marker :: v3.1 marker in feed
+- `17:41:06` ✗ FIX.backlog_leg_alive :: backlog_joined=0 (was 0 in 3766 due to key mismatch)
+- `17:41:06` ✅ LIVE.global_rows :: global_capture_gap populated
+## Additive contract
+
+- `17:41:06` ✅ ADDITIVE.structural_names :: present
+- `17:41:06` ✅ ADDITIVE.industry_leaders :: present
+- `17:41:06` ✅ ADDITIVE.hidden_chokepoint_book :: present
+- `17:41:06` ✅ ADDITIVE.cheap_chokepoint_book :: present
+- `17:41:06` ✅ ADDITIVE.all_chokepoints :: present
+- `17:41:06` ✅ ADDITIVE.highest_conviction_book :: present
+- `17:41:06` ✅ ADDITIVE.within_industry_kept :: within-industry gap preserved alongside global
+## KHALID'S PREMISE — within-industry vs cross-industry
+
+- `17:41:06`   TSM    within= -10.8pp  GLOBAL=  -3.1pp  div=  +7.7pp  share=11.71%  crit=71.4
+- `17:41:06`   ASML   within=  -0.3pp  GLOBAL=  -0.2pp  div=  +0.1pp  share= 3.76%  crit=73.7
+- `17:41:06`   NVDA   within=  -0.7pp  GLOBAL=  +0.0pp  div=  +0.7pp  share=27.43%  crit=88.2
+- `17:41:06`   AVGO   within= -16.7pp  GLOBAL=  -7.9pp  div=  +8.8pp  share=10.07%  crit=67.3
+- `17:41:06`   MSFT   within= -12.8pp  GLOBAL=  -3.8pp  div=  +9.0pp  share=58.78%  crit=70.6
+- `17:41:06`   AAPL   within= -46.3pp  GLOBAL= -19.7pp  div= +26.6pp  share=92.86%  crit=59.1
+- `17:41:06`   GOOGL  within= -30.6pp  GLOBAL=  -7.7pp  div= +22.9pp  share=35.89%  crit=67.6
+## Most under-capitalised INDUSTRIES (median global gap)
+
+- `17:41:06`   Medical - Pharmaceuticals          n=4   median global gap +51.3pp
+- `17:41:06`   Medical - Equipment & Services     n=3   median global gap +47.9pp
+- `17:41:06`   Software - Application             n=81  median global gap +43.7pp
+- `17:41:06`   Biotechnology                      n=62  median global gap +32.3pp
+- `17:41:06`   Medical - Devices                  n=17  median global gap +31.3pp
+- `17:41:06`   Software - Infrastructure          n=52  median global gap +25.4pp
+- `17:41:06`   Drug Manufacturers - Specialty & G n=9   median global gap +24.9pp
+- `17:41:06`   Communication Equipment            n=19  median global gap +21.6pp
+- `17:41:06`   Medical - Instruments & Supplies   n=14  median global gap +18.4pp
+- `17:41:06`   Railroads                          n=4   median global gap +16.8pp
+- `17:41:06`   Software - Services                n=5   median global gap +16.4pp
+- `17:41:06`   Security & Protection Services     n=6   median global gap +13.8pp
+## Widest CROSS-INDUSTRY gaps
+
+- `17:41:06`   NVEC   Semiconductors             global=+95.3pp  within=+63.8pp  STRUCTURALLY_UNDERVALUED
+- `17:41:06`   GRND   Software - Application     global=+93.1pp  within=+18.3pp  WATCH
+- `17:41:06`   ATEN   Software - Infrastructure  global=+89.5pp  within=+15.0pp  WATCH
+- `17:41:06`   DOCS   Medical - Healthcare Infor global=+87.4pp  within=+11.1pp  WATCH
+- `17:41:06`   CLBT   Software - Infrastructure  global=+84.7pp  within=+15.6pp  WATCH
+- `17:41:06`   PEGA   Software - Application     global=+84.1pp  within=+17.7pp  WATCH
+- `17:41:06`   NTCT   Software - Infrastructure  global=+83.2pp  within=+7.3pp  WATCH
+- `17:41:06`   ALRM   Software - Application     global=+82.9pp  within=-13.5pp  WATCH
+- `17:41:06`   RNG    Software - Application     global=+82.0pp  within=-3.9pp  WATCH
+- `17:41:06`   TARS   Biotechnology              global=+82.0pp  within=-25.4pp  WATCH
+- `17:41:06`   QLYS   Software - Infrastructure  global=+81.8pp  within=+29.0pp  STRUCTURALLY_UNDERVALUED
+- `17:41:06`   BOX    Software - Application     global=+80.6pp  within=+0.0pp  WATCH
+## VERDICT
+
+- `17:41:06` ✗ FAILED: FIX.backlog_leg_alive
