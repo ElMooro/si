@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3750 — canary #19: short-interest collapse on FLAT price.
+"""ops 3751 — canary #19: short-interest collapse on FLAT price.
 
 justhodl-short-interest already tracked short-interest change (si_change_pct)
 and had a COVERING signal, but it NEVER joined price — its docstring said
@@ -36,6 +36,9 @@ from pathlib import Path
 import boto3
 
 ROOT = Path(__file__).resolve().parents[2]
+# ops 3750 CRASHED here: ROOT is aws/, so ROOT/"squeeze.html" resolved to
+# aws/squeeze.html which does not exist. Root-level pages are parents[3].
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "ops"))
 from ops_report import report  # noqa: E402
 
@@ -46,12 +49,12 @@ PAGE = "https://justhodl.ai/squeeze.html"
 REGION = "us-east-1"
 UA = {"User-Agent": "Mozilla/5.0 (JustHodl ops verify)"}
 
-with report("3750_short_interest_flatprice") as rep:
-    rep.heading("ops 3750 — canary #19: short-interest v1.1 (SI collapse on flat price)")
+with report("3751_short_interest_flatprice_fix") as rep:
+    rep.heading("ops 3751 — canary #19: short-interest v1.1 (SI collapse on flat price)")
     fails = []
     out = {"gates": {}}
     Path("aws/ops/reports").mkdir(parents=True, exist_ok=True)
-    Path("aws/ops/reports/3750.json").write_text(json.dumps({"verdict": "STARTED"}))
+    Path("aws/ops/reports/3751.json").write_text(json.dumps({"verdict": "STARTED"}))
 
     def gate(n, ok, detail):
         out["gates"][n] = {"ok": bool(ok), "detail": str(detail)[:900]}
@@ -71,7 +74,7 @@ with report("3750_short_interest_flatprice") as rep:
                 "price_change_pct", "top_si_collapse_flat_price",
                 "price_window"]
         miss = [k for k in need if k not in src]
-        page = (ROOT / "squeeze.html").read_text()
+        page = (REPO / "squeeze.html").read_text()
         page_ok = ("top_si_collapse_flat_price" in page
                    and "sicollapse" in page)
         gate("G0_key_contract", not miss and page_ok,
@@ -177,7 +180,7 @@ with report("3750_short_interest_flatprice") as rep:
         rep.section("VERDICT")
         verdict = "PASS_ALL" if not fails else "FAIL"
         out["verdict"] = verdict
-        Path("aws/ops/reports/3750.json").write_text(json.dumps(out, indent=2))
+        Path("aws/ops/reports/3751.json").write_text(json.dumps(out, indent=2))
         rep.kv(verdict=verdict,
                priced=(doc or {}).get("n_tickers_priced", 0),
                si_collapse=len((doc or {}).get("top_si_collapse_flat_price") or []),
@@ -192,7 +195,7 @@ with report("3750_short_interest_flatprice") as rep:
     except Exception:
         tb = traceback.format_exc()
         rep.fail("UNCAUGHT: " + tb[-1500:])
-        Path("aws/ops/reports/3750.json").write_text(
+        Path("aws/ops/reports/3751.json").write_text(
             json.dumps({"verdict": "CRASH", "traceback": tb[-3000:]}, indent=2))
         sys.exit(1)
 
