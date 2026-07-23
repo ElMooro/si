@@ -39,13 +39,14 @@ level honestly and is excluded from the ranked board rather than being scored
 against a base rate that does not exist yet.
 """
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import boto3
 import urllib.request
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = "justhodl-dashboard-live"
 LINES_KEY = "config/ppi-lines.json"
 OUT_KEY = "data/ppi-acceleration.json"
@@ -55,28 +56,36 @@ UA = {"User-Agent": "JustHodl ppi-acceleration"}
 
 ACCEL_THRESH_PP = 2.0     # percentage points of 2nd derivative
 MIN_OBS_FOR_Z = 36
-WORKERS = 8
+WORKERS = 4          # FRED rate-limits bursts; 4 is the stable ceiling
 
 
-def _obs(series_id):
+def _obs(series_id, tries=3):
+    """ops 3761: 78 of 198 lines came back as fetch_error with the reason
+    swallowed. FRED rate-limits bursts, so a single attempt at 8-way
+    concurrency drops a third of the sweep. Retry with backoff and RETURN the
+    error text so a failure is diagnosable instead of anonymous."""
     u = ("https://api.stlouisfed.org/fred/series/observations?series_id="
          + series_id + "&api_key=" + FRED_KEY
          + "&file_type=json&sort_order=desc&limit=80")
-    try:
-        j = json.loads(urllib.request.urlopen(
-            urllib.request.Request(u, headers=UA), timeout=25).read())
-        out = []
-        for o in (j.get("observations") or []):
-            v = o.get("value")
-            if v in (".", None, ""):
-                continue
-            try:
-                out.append((o.get("date"), float(v)))
-            except ValueError:
-                continue
-        return out            # newest first
-    except Exception as e:
-        return {"_err": str(e)[:90]}
+    last = ""
+    for attempt in range(tries):
+        try:
+            j = json.loads(urllib.request.urlopen(
+                urllib.request.Request(u, headers=UA), timeout=30).read())
+            out = []
+            for o in (j.get("observations") or []):
+                v = o.get("value")
+                if v in (".", None, ""):
+                    continue
+                try:
+                    out.append((o.get("date"), float(v)))
+                except ValueError:
+                    continue
+            return out            # newest first
+        except Exception as e:
+            last = "%s: %s" % (type(e).__name__, str(e)[:70])
+            time.sleep(0.6 * (attempt + 1) + 0.15 * (hash(series_id) % 5))
+    return {"_err": last}
 
 
 def _pct(a, b):
@@ -106,6 +115,7 @@ def lambda_handler(event=None, context=None):
     rows, errs = [], 0
     drop = {"fetch_error": 0, "short_history": 0, "exception": 0}
     dropped_ids = []
+    err_msgs = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
         futs = {ex.submit(_obs, m["id"]): m for m in lines}
         for f in as_completed(futs):
@@ -121,6 +131,8 @@ def lambda_handler(event=None, context=None):
                 drop["fetch_error"] += 1
                 errs += 1
                 dropped_ids.append(m["id"])
+                err_msgs[o.get("_err", "?")[:60]] = err_msgs.get(
+                    o.get("_err", "?")[:60], 0) + 1
                 continue
             if len(o) < 15:
                 # real series, just too short for a 2nd derivative — say so
@@ -223,6 +235,7 @@ def lambda_handler(event=None, context=None):
         "n_universe": len(lines),
         "coverage_pct": round(100 * len(rows) / len(lines), 1) if lines else 0,
         "drop_reasons": drop,
+        "error_messages": err_msgs,
         "dropped_ids": dropped_ids[:40],
         "top_accelerating": accelerating[:15],
         "top_decelerating": decelerating[:10],

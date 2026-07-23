@@ -111,6 +111,7 @@ document.getElementById('method').textContent=d.method||'';
 var dr=d.drop_reasons||{};
 document.getElementById('cov').innerHTML='swept '+(d.n_lines||0)+' of '+(d.n_universe||0)+' universe ('+(d.coverage_pct||0)+'% coverage)'
 +' · unreachable '+((dr.fetch_error||0)+(dr.exception||0))+' · short history '+(dr.short_history||0)
++((d.error_messages&&Object.keys(d.error_messages).length)?(' · errors: '+Object.keys(d.error_messages).map(function(k){return k+' ×'+d.error_messages[k];}).slice(0,3).join(' · ')):'')
 +((d.dropped_ids&&d.dropped_ids.length)?(' · dropped: '+d.dropped_ids.slice(0,6).join(', ')+(d.dropped_ids.length>6?' …':'')):'')
 +'<br>base-rate ready '+(d.n_base_rate_ready||0)
 +' · accel threshold '+((d.thresholds||{}).accel_pp||2)+'pp · min obs for z '+((d.thresholds||{}).min_obs_for_z||36)

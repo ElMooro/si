@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3761 — SHIP canary #13: narrow-line PPI acceleration.
+"""ops 3762 — SHIP canary #13: narrow-line PPI acceleration.
 
 Sweeps the 198 lines discovered in ops 3759 (config/ppi-lines.json) and ranks
 them by the 2nd derivative of price. An aggregate PPI print averages a heating
@@ -44,14 +44,14 @@ REGION = "us-east-1"
 UA = {"User-Agent": "Mozilla/5.0 (JustHodl ops verify)"}
 EXEMPT = {"version", "generated_at", "attribution", "method", "lines",
           "top_accelerating", "top_decelerating", "n_obs",
-          "fetch_error", "exception", "short_history"}
+          "fetch_error", "exception", "short_history", "error_messages"}
 
-with report("3761_ppi_regate") as rep:
-    rep.heading("ops 3761 — canary #13: narrow-line PPI acceleration")
+with report("3762_ppi_regate2") as rep:
+    rep.heading("ops 3762 — canary #13: narrow-line PPI acceleration")
     fails = []
     out = {"gates": {}}
     Path("aws/ops/reports").mkdir(parents=True, exist_ok=True)
-    Path("aws/ops/reports/3761.json").write_text(json.dumps({"verdict": "STARTED"}))
+    Path("aws/ops/reports/3762.json").write_text(json.dumps({"verdict": "STARTED"}))
 
     def gate(n, ok, detail):
         out["gates"][n] = {"ok": bool(ok), "detail": str(detail)[:900]}
@@ -78,7 +78,7 @@ with report("3761_ppi_regate") as rep:
              "producer_missing=%s page_missing=%s" % (miss, pmiss))
 
         # ── G1 settle ────────────────────────────────────────────────────
-        rep.section("G1 — settle v1.1.0")
+        rep.section("G1 — settle v1.2.0")
         settled = False
         for i in range(26):
             try:
@@ -225,7 +225,7 @@ with report("3761_ppi_regate") as rep:
         rep.section("VERDICT")
         verdict = "PASS_ALL" if not fails else "FAIL"
         out["verdict"] = verdict
-        Path("aws/ops/reports/3761.json").write_text(json.dumps(out, indent=2))
+        Path("aws/ops/reports/3762.json").write_text(json.dumps(out, indent=2))
         rep.kv(verdict=verdict, lines=(doc or {}).get("n_lines", 0),
                accelerating=(doc or {}).get("n_accelerating", 0),
                decelerating=(doc or {}).get("n_decelerating", 0),
@@ -240,7 +240,7 @@ with report("3761_ppi_regate") as rep:
     except Exception:
         tb = traceback.format_exc()
         rep.fail("UNCAUGHT: " + tb[-1500:])
-        Path("aws/ops/reports/3761.json").write_text(
+        Path("aws/ops/reports/3762.json").write_text(
             json.dumps({"verdict": "CRASH", "traceback": tb[-3000:]}, indent=2))
         sys.exit(1)
 
