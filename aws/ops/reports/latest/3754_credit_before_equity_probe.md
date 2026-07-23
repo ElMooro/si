@@ -1,0 +1,49 @@
+# ops 3754 — canary #17 credit-before-equity probe
+
+**Status:** failure  
+**Duration:** 2.3s  
+**Finished:** 2026-07-23T01:06:31+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
+
+## Data
+
+| buildable | cds_rows | credit_fields | history_exists |
+|---|---|---|---|
+| False | 0 |  | False |
+
+## Log
+## A — data/cds-monitor.json shape
+
+- `01:06:29` ✅   top-level: ['alarm_board', 'canary_alarms', 'cross_reference', 'elapsed_s', 'errors', 'generated_at', 'global_bond_stress', 'global_credit_stress', 'headline', 'method', 'ok', 'schema_version', 'single_name_cds', 'sources', 'sovereign_cds', 'systemic_stress']
+## B — existing history ledgers (do NOT rebuild)
+
+- `01:06:29` ⚠   cds/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:06:29` ⚠   data/cds-monitor-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:06:29` ⚠   credit/credit-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:06:29` ⚠   data/credit-composite-history.json -> An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist
+- `01:06:29`   none — the #17 engine must build its OWN ledger (same self-building pattern as import-canary / IIC)
+## C — price change per name (reuse, don't refetch)
+
+- `01:06:30` ✅   data/short-interest.json -> list 'top_crowded_shorts' n=15 price-ish=['si_change_pct', 'price_change_pct', 'price_window_days']
+- `01:06:30` ✅   data/universe.json -> list 'stocks' n=5320 price-ish=['exchange', 'price']
+## D — HY issuance (is it free-reachable at all?)
+
+- `01:06:30` ✅   FRED 'corporate bond issuance' -> 10 series
+- `01:06:30`     M10016M144NNBR           New Corporate Issues, Bonds, Notes, and Stocks, Public Utilities, United S
+- `01:06:30`     Q10119USQ144NNBR         New Corporate Securities Issued, Debt, All Industries for United States
+- `01:06:30`     M10009M144NNBR           New Corporate Issues, Long Term Bonds and Notes, U.S. and Canadian
+- `01:06:30`     M13044USM156NNBR         Yields on Corporate Bonds, New Issues, Aa Rating for United States
+- `01:06:30`     Q10070USQ144NNBR         Domestic Bond Issues for United States
+- `01:06:30`     BOGZ1FA633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
+- `01:06:30`     FGCBGSQ027S              Federal Government; Corporate Bonds Issued by Commercial Banking Under TAR
+- `01:06:30`     BOGZ1FU633063045Q        Money Market Funds; Corporate Bonds Issued by Nonfinancial Corporate Busin
+- `01:06:31` ✅   BAMLH0A0HYM2 latest=2.69 (2026-07-21) [PRICE not issuance]
+- `01:06:31` ✅   BAMLC0A0CM latest=0.78 (2026-07-21) [PRICE not issuance]
+## VERDICT
+
+- `01:06:31` ✗ cds-monitor feed unusable — #17 needs a different base

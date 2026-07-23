@@ -1,0 +1,34 @@
+{
+  "verdict": "BLOCKED",
+  "found": {
+    "price_sources": {
+      "data/short-interest.json": {
+        "list": "top_crowded_shorts",
+        "n": 15,
+        "fields": [
+          "si_change_pct",
+          "price_change_pct",
+          "price_window_days"
+        ]
+      },
+      "data/universe.json": {
+        "list": "stocks",
+        "n": 5320,
+        "fields": [
+          "exchange",
+          "price"
+        ]
+      }
+    },
+    "fred_issuance": [
+      "M10016M144NNBR",
+      "Q10119USQ144NNBR",
+      "M10009M144NNBR",
+      "M13044USM156NNBR",
+      "Q10070USQ144NNBR",
+      "BOGZ1FA633063045Q",
+      "FGCBGSQ027S",
+      "BOGZ1FU633063045Q"
+    ]
+  }
+}
