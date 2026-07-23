@@ -1,57 +1,37 @@
-executing-against: aaf0aa8081d29d9da1598ad124dd9aed29e52fb7
-ops 3759 — build the narrow-PPI line universe
-── A — discover candidate lines via FRED search ──
-[01:47:59]   PPI industry semiconductor                 +19 (total 19)
-[01:47:59]   PPI industry electronic component          +21 (total 40)
-[01:48:00]   PPI industry industrial chemical           +23 (total 63)
-[01:48:01]   PPI industry basic inorganic chemical      +20 (total 83)
-[01:48:02]   PPI industry iron steel                    +24 (total 107)
-[01:48:02]   PPI industry copper                        +24 (total 131)
-[01:48:02]   PPI industry aluminum                      +18 (total 149)
-[01:48:03]   PPI industry plastics resin                +7 (total 156)
-[01:48:03]   PPI industry electrical equipment          +18 (total 174)
-[01:48:04]   PPI industry motor vehicle parts           +24 (total 198)
-[01:48:04]   PPI industry machinery manufacturing       +22 (total 220)
-[01:48:04]   PPI industry lumber                        +24 (total 244)
-[01:48:05]   PPI industry paperboard container          +20 (total 264)
-[01:48:05]   PPI industry pharmaceutical preparation    +24 (total 288)
-[01:48:06]   PPI industry aerospace product             +2 (total 290)
-[01:48:06]   PPI industry battery manufacturing         +21 (total 311)
-[01:48:06]   PPI industry wire cable                    +10 (total 321)
-[01:48:07]   PPI industry transformer                   +17 (total 338)
-[01:48:07]   PPI industry rare earth                    +0 (total 338)
-[01:48:08]   PPI industry industrial gas                +21 (total 359)
-[01:48:08] ✅   candidates discovered: 359
-── B — keep only FRESH, DEEP, NARROW lines ──
-[01:48:08]   after freshness/frequency: 245 kept, dropped {'stale': 114, 'shallow': 0, 'monthly': 0}
-── C — dedupe aggregate parents (narrow is the point) ──
-[01:48:08] ✅   narrow lines after parent-dedupe: 198 (from 245)
-[01:48:08]     PCU21112111            Producer Price Index by Industry: Oil and Gas Extraction
-[01:48:08]     PCU211211              Producer Price Index by Industry: Oil and Gas Extraction
-[01:48:08]     PCU213111213111P       Producer Price Index by Industry: Drilling Oil and Gas Wells: Primary Serv
-[01:48:08]     PCU213112213112        Producer Price Index by Industry: Support Activities for Oil and Gas Opera
-[01:48:08]     PCU22121022121011      Producer Price Index by Industry: Natural Gas Distribution: Natural Gas to
-[01:48:08]     PCU3211133211131       Producer Price Index by Industry: Sawmills: Hardwood Lumber, Made in Sawmi
-[01:48:08]     PCU3211133211133       Producer Price Index by Industry: Sawmills: Softwood Lumber, Made in Sawmi
-[01:48:08]     PCU3211133211135       Producer Price Index by Industry: Sawmills: Wood Chips, Excluding Field Ch
-[01:48:08]     PCU3212132121          Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
-[01:48:08]     PCU32121332121302      Producer Price Index by Industry: Engineered Wood Member Manufacturing: Ot
-[01:48:08]     PCU32123212            Producer Price Index by Industry: Plywood and Engineered Wood Product Manu
-[01:48:08]     PCU321321              Producer Price Index by Industry: Wood Product Manufacturing
-[01:48:08]     PCU32191132191111      Producer Price Index by Industry: Wood Window and Door Manufacturing: Doub
-[01:48:08]     PCU3219113219117       Producer Price Index by Industry: Wood Window and Door Manufacturing: Wood
-── D — verify observation depth on a sample ──
-[01:48:08]     PCU21112111            n=30 latest=218.411 (2026-06-01)
-[01:48:09]     PCU211211              n=30 latest=217.956 (2026-06-01)
-[01:48:09]     PCU213111213111P       n=30 latest=394.281 (2026-06-01)
-[01:48:09]     PCU213112213112        n=30 latest=223.678 (2026-06-01)
-[01:48:10]     PCU22121022121011      n=30 latest=300.147 (2026-06-01)
-[01:48:10]     PCU3211133211131       n=30 latest=110.553 (2026-06-01)
-[01:48:11]     PCU3211133211133       n=30 latest=144.006 (2026-06-01)
-[01:48:11]     PCU3211133211135       n=30 latest=145.728 (2026-06-01)
-── E — persist config/ppi-lines.json ──
-[01:48:12] ✅   wrote config/ppi-lines.json with 198 lines
+executing-against: 42176470002f4a499f1ba5d6c6acf4a496095552
+ops 3760 — canary #13: narrow-line PPI acceleration
+── G0 — key contract (producer + page) ──
+[01:55:22] PASS G0_key_contract — producer_missing=[] page_missing=[]
+── G1 — settle v1.0.0 ──
+[01:55:38] PASS G1_settle — deployed
+── G2 — async invoke + freshness ──
+[01:55:53] PASS G2_artifact — lines=117 accel=41 decel=3
+── G3 — data truth (accel IS the 2nd derivative) ──
+[01:55:53]   PCU3313143313142       accel=+34.70pp yoy= +58.69% prior= +23.99% m3ann=103.72 z=1.5 ACCELERATING_CONFIRMED
+[01:55:53]   PCU3251993251991       accel=+32.79pp yoy= +59.53% prior= +26.74% m3ann=118.64 z=1.06 ACCELERATING_CONFIRMED
+[01:55:53]   PCU3251803251806       accel=+25.35pp yoy= +17.53% prior=  -7.82% m3ann=96.28 z=0.3 ACCELERATING_CONFIRMED
+[01:55:53]   PCU3252113252111       accel=+22.34pp yoy= +18.35% prior=  -3.99% m3ann=75.76 z=0.58 ACCELERATING_CONFIRMED
+[01:55:53]   PCU325211325211P       accel=+20.62pp yoy= +16.57% prior=  -4.05% m3ann=72.6 z=0.57 ACCELERATING_CONFIRMED
+[01:55:53]   PCU32551032551071      accel=+14.91pp yoy= +16.40% prior=  +1.49% m3ann=41.16 z=0.74 ACCELERATING_CONFIRMED
+[01:55:53]   PCU3211133211133       accel=+14.68pp yoy=  +6.99% prior=  -7.69% m3ann=24.64 z=0.03 ACCELERATING_CONFIRMED
+[01:55:53]   PCU32513251            accel=+13.48pp yoy= +15.01% prior=  +1.53% m3ann=48.4 z=0.59 ACCELERATING_CONFIRMED
+[01:55:53] PASS G3_data_truth — rows=117 math_mismatch=[] bad_confirmed=[] z_leak=[]
+── G4 — sweep covers the discovered universe ──
+[01:55:53]   universe=198 swept=117 coverage=59.1%
+[01:55:53] FAIL G4_breadth — coverage 59.1% (117 of 198) — a sweep that collapses to a handful defeats the canary
+── G5 — page served + field coverage + nav ──
+[01:55:53]   attempt 0: HTTP Error 404: Not Found
+[01:56:13]   attempt 1: HTTP Error 404: Not Found
+[01:56:33]   attempt 2: HTTP Error 404: Not Found
+[01:56:53]   attempt 3: HTTP Error 404: Not Found
+[01:57:13]   attempt 4: HTTP Error 404: Not Found
+[01:57:33]   attempt 5: HTTP Error 404: Not Found
+[01:57:53]   served page CURRENT len=10339 after 120s
+[01:57:53] PASS G5_page_live — len=10339
+[01:57:53] PASS G5_field_coverage — every published key has a render path
+[01:57:53] PASS G5_nav — listed under ('Macro & Liquidity', 'PPI Acceleration')
 ── VERDICT ──
-[01:48:12] ✅ UNIVERSE READY — engine can consume config/ppi-lines.json
+[01:57:53] ✗ gates failed: ['G4_breadth']
 
-→ Report written to aws/ops/reports/latest/3759_ppi_line_universe.md
+→ Report written to aws/ops/reports/latest/3760_ppi_acceleration.md
+❌ OPS-FAIL: aws/ops/pending/ops_3760_ppi_acceleration.py
