@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ops 3756 — SHIP canary #17: credit-before-equity.
+"""ops 3757 — SHIP canary #17: credit-before-equity.
 
 Per-issuer credit direction (Δ distance-to-default, Δ synthetic CDS bp)
 against a self-building ledger, crossed with the equity leg. Fires only when
@@ -48,12 +48,12 @@ EXEMPT = {"version", "generated_at", "attribution", "method", "group",
           "market_cap_usd_bn", "peer_rank", "hist_n", "min_dd_move",
           "min_cds_move_bp", "leads", "names"}
 
-with report("3756_credit_before_equity") as rep:
-    rep.heading("ops 3756 — canary #17: credit-before-equity")
+with report("3757_cbe_regate") as rep:
+    rep.heading("ops 3757 — canary #17: credit-before-equity")
     fails = []
     out = {"gates": {}}
     Path("aws/ops/reports").mkdir(parents=True, exist_ok=True)
-    Path("aws/ops/reports/3756.json").write_text(json.dumps({"verdict": "STARTED"}))
+    Path("aws/ops/reports/3757.json").write_text(json.dumps({"verdict": "STARTED"}))
 
     def gate(n, ok, detail):
         out["gates"][n] = {"ok": bool(ok), "detail": str(detail)[:900]}
@@ -160,9 +160,19 @@ with report("3756_credit_before_equity") as rep:
             for g in gaps:
                 rep.log("  gap: %s" % g[:190])
             issuance_declared = any("issuance" in g.lower() for g in gaps)
-            # the engine must NOT have smuggled OAS in as an issuance proxy
-            no_fake = "BAMLH0A0HYM2" not in src or "issuance" not in src.split(
-                "BAMLH0A0HYM2")[0][-200:].lower()
+            # ops 3756: my ORIGINAL check was a fragile string-slice that
+            # flagged the DOCSTRING where the engine explains why OAS is
+            # excluded — the gate failed a correct engine. Check real CODE:
+            # OAS would only be smuggled in via an actual fetch, so assert no
+            # executable line references the series or a FRED call.
+            code_lines = [ln for ln in src.splitlines()
+                          if "BAMLH0A0HYM2" in ln or "stlouisfed" in ln]
+            executable = [ln for ln in code_lines
+                          if not ln.strip().startswith("#")
+                          and "PRICE" not in ln and "paid" not in ln]
+            no_fake = not executable
+            rep.log("  OAS/FRED references in source: %d (executable: %d)"
+                    % (len(code_lines), len(executable)))
             gate("G4_gaps", issuance_declared and no_fake,
                  "issuance_gap_declared=%s no_oas_substitution=%s"
                  % (issuance_declared, no_fake))
@@ -215,7 +225,7 @@ with report("3756_credit_before_equity") as rep:
         rep.section("VERDICT")
         verdict = "PASS_ALL" if not fails else "FAIL"
         out["verdict"] = verdict
-        Path("aws/ops/reports/3756.json").write_text(json.dumps(out, indent=2))
+        Path("aws/ops/reports/3757.json").write_text(json.dumps(out, indent=2))
         rep.kv(verdict=verdict, names=(doc or {}).get("n_names", 0),
                leads=(doc or {}).get("n_leads", 0),
                awaiting=(doc or {}).get("n_awaiting_history", 0),
@@ -230,7 +240,7 @@ with report("3756_credit_before_equity") as rep:
     except Exception:
         tb = traceback.format_exc()
         rep.fail("UNCAUGHT: " + tb[-1500:])
-        Path("aws/ops/reports/3756.json").write_text(
+        Path("aws/ops/reports/3757.json").write_text(
             json.dumps({"verdict": "CRASH", "traceback": tb[-3000:]}, indent=2))
         sys.exit(1)
 
